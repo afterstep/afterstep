@@ -2009,9 +2009,9 @@ make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, 
 
 	/* supplying everything as : -xrm "afterstep*desk:N" */
 	client_cmd = safemalloc (strlen (hints->client_cmd) + 512 /* large enough */ );
-	sprintf (client_cmd, "%s -geometry %ux%u%+d%+d -xrm \"afterstep*desk:%d\""
+	sprintf (client_cmd, "%s -geometry %ux%u%+d%+d "/*-xrm \"afterstep*desk:%d\""
 			 " -xrm \"afterstep*layer:%d\""
-			 " -xrm \"afterstep*viewportx:%d\" -xrm \"afterstep*viewporty:%d\"",
+			 " -xrm \"afterstep*viewportx:%d\" -xrm \"afterstep*viewporty:%d\""*/,
 			 hints->client_cmd,
              width, height, detach_x, detach_y, status->desktop,
 			 status->layer, status->viewport_x, status->viewport_y);
