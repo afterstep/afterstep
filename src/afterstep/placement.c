@@ -398,6 +398,44 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
     {
       /* the USPosition was specified, or the window is a transient, 
        * or it starts iconic so let it place itself */
+#ifdef HAVE_XINERAMA
+	  if( Scr.xinerama_screens_num > 1 && !(tmp_win->hints.flags & USPosition))
+	  {
+		  register int i ;
+		  XineramaScreenInfo *s = Scr.xinerama_screens ;
+		  int x, y ;
+		  unsigned int width, height ;
+		  y = tmp_win->attr.y ;
+	      x = tmp_win->attr.x ;
+		  width = tmp->frame_width ;
+		  height = tmp->frame_height ;
+
+		  for( i = 0 ; i < Scr.xinerama_screens_num ; ++ i )
+		  {
+			  if( s[i].x_org < x + width && s[i].org_x+s[i].width > x &&
+				  s[i].y_org < y + height && s[i].org_y+s[i].height > y )
+			  {
+				  if( width <= s[i].width )
+				  {
+					  if( x < s[i].x_org ) 
+						  x = s[i].x_org ;
+					  else if( x+width > s[i].org_x+s[i].width )
+						  x = s[i].org_x+s[i].width - width ;
+				  }					  
+				  if( height <= s[i].height )
+				  {
+					  if( y < s[i].y_org ) 
+						  y = s[i].y_org ;
+					  else if( y+height > s[i].org_y+s[i].height )
+						  y = s[i].org_y+s[i].height - height ;
+				  }					  
+				  tmp_win->attr.y = y;
+			      tmp_win->attr.x = x;
+			  }
+		  }
+		  Scr.xinerama_screens = NULL;
+	  }
+#endif /* XINERAMA */
     }
   aswindow_set_desk_property (tmp_win, tmp_win->Desk);
   return True;

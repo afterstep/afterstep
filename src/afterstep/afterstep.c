@@ -127,6 +127,9 @@ static char s_g_bits[] =
 #ifdef SHAPE
 int ShapeEventBase, ShapeErrorBase;
 #endif
+#ifdef HAVE_XINERAMA
+int XineEventBase, XineErrorBase;
+#endif
 
 long isIconicState = 0;
 extern XEvent Event;
@@ -192,7 +195,7 @@ main (int argc, char **argv)
   if (setlocale (LC_CTYPE, AFTER_LOCALE) == NULL)
     afterstep_err ("can't set locale", NULL, NULL, NULL);
 #endif
-
+  memset( &Scr, 0x00, sizeof(Scr));
   init_old_look_variables (False);
   InitBase (False);
   InitLook (False);
@@ -272,6 +275,7 @@ main (int argc, char **argv)
       afterstep_err ("close-on-exec failed", NULL, NULL, NULL);
       exit (1);
     }
+  	
   Scr.screen = DefaultScreen (dpy);
   screen = Scr.screen ;
   Scr.NumberOfScreens = ScreenCount (dpy);
@@ -348,6 +352,12 @@ main (int argc, char **argv)
 #ifdef SHAPE
   XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
 #endif /* SHAPE */
+#ifdef HAVE_XINERAMA
+  if( XPanoramiXQueryExtension(dpy, &XineEventBase, &XineErrorBase))
+  {
+	  Scr.xinerama_screens = XineramaQueryScreens( dpy, &(Scr.xinerama_screens_num) );
+  }
+#endif /* XINERAMA */
 
   InternUsefulAtoms ();
 
@@ -1030,6 +1040,15 @@ Done (int restart, char *command)
   /* freeing up memory */
   InitASDirNames (True);
   free_func_hash ();
+
+#ifdef HAVE_XINERAMA
+  if( Scr.xinerama_screens )
+  {
+	  XFree(Scr.xinerama_screens);
+	  Scr.xinerama_screens_num = 0;
+	  Scr.xinerama_screens = NULL;
+  }
+#endif /* XINERAMA */
 
   if (restart)
     {
