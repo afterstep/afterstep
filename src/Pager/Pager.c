@@ -1672,7 +1672,7 @@ change_desk_stacking( int desk, unsigned int clients_num, Window *clients )
     }
     for( i = 0 ; i < clients_num ; ++i )
     {
-		ASWindowData *wd = fetch_window_by_id( clients[i] );;
+		ASWindowData *wd = fetch_window_by_id( clients[i] );
 		int k = d->clients_num; 
 		while( --k >= 0 ) 
 			if( d->clients[k] == wd ) 
