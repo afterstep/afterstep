@@ -53,10 +53,13 @@ TermDef       WinListTerms[] = {
     {0, "FocusedBevel", 12, TT_FLAG, WINLIST_FBevel_ID, &BevelSyntax},
     {0, "StickyBevel", 10, TT_FLAG, WINLIST_SBevel_ID, &BevelSyntax},
     {0, "UnfocusedBevel", 14, TT_FLAG, WINLIST_UBevel_ID, &BevelSyntax},
-    {0, "CompositionMethod", 17, TT_UINTEGER, WINLIST_CM_ID, &BevelSyntax},
-    {0, "FCompositionMethod", 18, TT_UINTEGER, WINLIST_FCM_ID, &BevelSyntax},
-    {0, "UCompositionMethod", 18, TT_UINTEGER, WINLIST_UCM_ID, &BevelSyntax},
-    {0, "SCompositionMethod", 18, TT_UINTEGER, WINLIST_SCM_ID, &BevelSyntax},
+    {0, "CompositionMethod", 17, TT_UINTEGER, WINLIST_CM_ID, NULL},
+    {0, "FCompositionMethod", 18, TT_UINTEGER, WINLIST_FCM_ID, NULL},
+    {0, "UCompositionMethod", 18, TT_UINTEGER, WINLIST_UCM_ID, NULL},
+    {0, "SCompositionMethod", 18, TT_UINTEGER, WINLIST_SCM_ID, NULL},
+    {0, "Spacing", 7, TT_UINTEGER, WINLIST_Spacing_ID, NULL},
+    {0, "HSpacing", 8, TT_UINTEGER, WINLIST_HSpacing_ID, NULL},
+    {0, "VSpacing", 8, TT_UINTEGER, WINLIST_VSpacing_ID, NULL},
 
     {TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL},
     {0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL},
@@ -65,6 +68,8 @@ TermDef       WinListTerms[] = {
     {0, "FillRowsFirst", 13, TT_FLAG, WINLIST_FillRowsFirst_ID, NULL},
     {0, "UseSkipList", 11, TT_FLAG, WINLIST_UseSkipList_ID, NULL},
     {0, "ShapeToContents", 15, TT_FLAG, WINLIST_ShapeToContents_ID, NULL},
+    {TF_DEPRECIATED, "Orientation", 11, TT_TEXT, WINLIST_Orientation_ID, NULL},
+    {TF_DEPRECIATED, "MaxWidth", 8, TT_UINTEGER, WINLIST_MaxWidth_ID, NULL},
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 
@@ -98,6 +103,7 @@ CreateWinListConfig ()
 	config->show_name_type = ASN_Name;
     config->name_aligment = ALIGN_CENTER;
     config->balloon_conf = NULL;
+    config->h_spacing = config->h_spacing = DEFAULT_TBAR_SPACING;
 
 	return config;
 }
@@ -254,22 +260,6 @@ ParseWinListOptions (const char *filename, char *myname)
                     set_flags( config->set_flags, WINLIST_SBevel );
                     config->sbevel = ParseBevelOptions( pCurr->sub );
                     break ;
-                case WINLIST_CM_ID :
-                    set_flags( config->set_flags, WINLIST_CM );
-                    config->ucm = config->scm = config->fcm = ParseBevelOptions( pCurr->sub );
-                    break ;
-                case WINLIST_FCM_ID :
-                    set_flags( config->set_flags, WINLIST_FCM );
-                    config->fcm = ParseBevelOptions( pCurr->sub );
-                    break ;
-                case WINLIST_UCM_ID :
-                    set_flags( config->set_flags, WINLIST_UCM );
-                    config->ucm = ParseBevelOptions( pCurr->sub );
-                    break ;
-                case WINLIST_SCM_ID :
-                    set_flags( config->set_flags, WINLIST_SCM );
-                    config->scm = ParseBevelOptions( pCurr->sub );
-                    break ;
                 case WINLIST_ShapeToContents_ID:
                     SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_ShapeToContents);
                     break;
@@ -297,8 +287,8 @@ ParseWinListOptions (const char *filename, char *myname)
                         config->min_height = 0;
                     break;
                 case WINLIST_MaxWidth_ID:
-                    set_flags (config->set_flags, WINLIST_MaxSize);
-                    config->max_width = item.data.integer;
+                    set_flags (config->set_flags, WINLIST_MinSize|WINLIST_MaxSize);
+                    config->max_width = config->min_width = item.data.integer;
                     break;
                 case WINLIST_MaxSize_ID:
                     set_flags (config->set_flags, WINLIST_MaxSize);
@@ -378,6 +368,35 @@ ParseWinListOptions (const char *filename, char *myname)
                         SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_FillRowsFirst);
                     item.ok_to_free = 1;
                     break;
+                case WINLIST_CM_ID :
+                    set_flags( config->set_flags, WINLIST_CM );
+                    config->ucm = config->scm = config->fcm = item.data.integer;
+                    break ;
+                case WINLIST_FCM_ID :
+                    set_flags( config->set_flags, WINLIST_FCM );
+                    config->fcm = item.data.integer;
+                    break ;
+                case WINLIST_UCM_ID :
+                    set_flags( config->set_flags, WINLIST_UCM );
+                    config->ucm = item.data.integer;
+                    break ;
+                case WINLIST_SCM_ID :
+                    set_flags( config->set_flags, WINLIST_SCM );
+                    config->scm = item.data.integer;
+                    break ;
+                case WINLIST_Spacing_ID :
+                    set_flags( config->set_flags, WINLIST_H_SPACING|WINLIST_V_SPACING );
+                    config->h_spacing = config->v_spacing = item.data.integer;
+                    break ;
+                case WINLIST_HSpacing_ID :
+                    set_flags( config->set_flags, WINLIST_H_SPACING );
+                    config->h_spacing = item.data.integer;
+                    break ;
+                case WINLIST_VSpacing_ID :
+                    set_flags( config->set_flags, WINLIST_V_SPACING );
+                    config->v_spacing = item.data.integer;
+                    break ;
+
                 default:
                     item.ok_to_free = 1;
 			}

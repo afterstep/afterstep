@@ -817,6 +817,7 @@ void
 HandleMapNotify ( ASEvent *event )
 {
     ASWindow *asw = event->client;
+    Bool force_activation = False ;
     if ( asw == NULL || event->w == Scr.Root )
         return;
 
@@ -835,14 +836,14 @@ HandleMapNotify ( ASEvent *event )
         return ;                                /* otherwise it is redundand event */
     }
     if( get_flags(asw->wm_state_transition, ASWT_FROM_ICONIC ) )
-    {
         if (get_flags( Scr.Feel.flags, ClickToFocus) )
-            activate_aswindow (asw, True, False);
-    }
+            force_activation = True;
+
     ASWIN_SET_FLAGS(asw, AS_Mapped);
     ASWIN_CLEAR_FLAGS(asw, AS_IconMapped);
     ASWIN_CLEAR_FLAGS(asw, AS_Iconic);
     complete_wm_state_transition( asw, NormalState );
+    activate_aswindow (asw, force_activation, False);
     broadcast_config( M_MAP, asw );
     /* finally reaches Normal state */
 }
@@ -919,10 +920,11 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
     if( asw != NULL )
     {
         Bool eat_click = False;
-        Bool focus_accepted = False ;
-		if( !deffered )
-		{
-  		    if (get_flags( Scr.Feel.flags, ClickToFocus) )
+        /* if all we do is pressing titlebar buttons - then we should not raise/focus window !!! */
+        if( !deffered && (event->context&(~C_TButtonAll)) != 0 )
+        {
+            Bool focus_accepted = False ;
+            if (get_flags( Scr.Feel.flags, ClickToFocus) )
       		{
           		if ( asw != Scr.Windows->ungrabbed && (xbtn->state & nonlock_mods) == 0)
                 {

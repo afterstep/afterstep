@@ -372,103 +372,104 @@ long**
 get_call_list()
 {
     static long * call_list[MAX_CALL_DEPTH+1] = {NULL};
-    int i = 0 ;
 #if defined(__GNUC__)
+    if( __builtin_frame_address(0) == NULL ) goto done ;
+    if( __builtin_frame_address(1) == NULL ) goto done ;
 
     if( __builtin_frame_address(2) == NULL ) goto done ;
-    if( (call_list[i++]= __builtin_return_address(2)) == NULL ) goto done ;
+    if( (call_list[0]= __builtin_return_address(2)) == NULL ) goto done ;
 
     if( __builtin_frame_address(3) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(3)) == NULL ) goto done ;
+    if( (call_list[1] = __builtin_return_address(3)) == NULL ) goto done ;
 
     if( __builtin_frame_address(4) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(4)) == NULL ) goto done ;
+    if( (call_list[2] = __builtin_return_address(4)) == NULL ) goto done ;
 
     if( __builtin_frame_address(5) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(5)) == NULL ) goto done ;
+    if( (call_list[3] = __builtin_return_address(5)) == NULL ) goto done ;
 
     if( __builtin_frame_address(6) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(6)) == NULL ) goto done ;
+    if( (call_list[4] = __builtin_return_address(6)) == NULL ) goto done ;
 
     if( __builtin_frame_address(7) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(7)) == NULL ) goto done ;
+    if( (call_list[5] = __builtin_return_address(7)) == NULL ) goto done ;
 
     if( __builtin_frame_address(8) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(8)) == NULL ) goto done ;
+    if( (call_list[6] = __builtin_return_address(8)) == NULL ) goto done ;
 
     if( __builtin_frame_address(9) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(9)) == NULL ) goto done ;
+    if( (call_list[7] = __builtin_return_address(9)) == NULL ) goto done ;
 
     if( __builtin_frame_address(10) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(10)) == NULL ) goto done ;
+    if( (call_list[8] = __builtin_return_address(10)) == NULL ) goto done ;
 
     if( __builtin_frame_address(11) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(11)) == NULL ) goto done ;
+    if( (call_list[9] = __builtin_return_address(11)) == NULL ) goto done ;
 
     if( __builtin_frame_address(12) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(12)) == NULL ) goto done ;
+    if( (call_list[10] = __builtin_return_address(12)) == NULL ) goto done ;
 
     if( __builtin_frame_address(13) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(13)) == NULL ) goto done ;
+    if( (call_list[11] = __builtin_return_address(13)) == NULL ) goto done ;
 
     if( __builtin_frame_address(14) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(14)) == NULL ) goto done ;
+    if( (call_list[12] = __builtin_return_address(14)) == NULL ) goto done ;
 
     if( __builtin_frame_address(15) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(15)) == NULL ) goto done ;
+    if( (call_list[13] = __builtin_return_address(15)) == NULL ) goto done ;
 
     if( __builtin_frame_address(16) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(16)) == NULL ) goto done ;
+    if( (call_list[14] = __builtin_return_address(16)) == NULL ) goto done ;
 
     if( __builtin_frame_address(17) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(17)) == NULL ) goto done ;
+    if( (call_list[15] = __builtin_return_address(17)) == NULL ) goto done ;
 
     if( __builtin_frame_address(18) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(18)) == NULL ) goto done ;
+    if( (call_list[16] = __builtin_return_address(18)) == NULL ) goto done ;
 
     if( __builtin_frame_address(19) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(19)) == NULL ) goto done ;
+    if( (call_list[17] = __builtin_return_address(19)) == NULL ) goto done ;
 
     if( __builtin_frame_address(20) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(20)) == NULL ) goto done ;
+    if( (call_list[18] = __builtin_return_address(20)) == NULL ) goto done ;
 
     if( __builtin_frame_address(21) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(21)) == NULL ) goto done ;
+    if( (call_list[19] = __builtin_return_address(21)) == NULL ) goto done ;
 
     if( __builtin_frame_address(22) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(22)) == NULL ) goto done ;
+    if( (call_list[20] = __builtin_return_address(22)) == NULL ) goto done ;
 
     if( __builtin_frame_address(23) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(23)) == NULL ) goto done ;
+    if( (call_list[21] = __builtin_return_address(23)) == NULL ) goto done ;
 
     if( __builtin_frame_address(24) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(24)) == NULL ) goto done ;
+    if( (call_list[22] = __builtin_return_address(24)) == NULL ) goto done ;
 
     if( __builtin_frame_address(25) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(25)) == NULL ) goto done ;
+    if( (call_list[23] = __builtin_return_address(25)) == NULL ) goto done ;
 
     if( __builtin_frame_address(26) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(26)) == NULL ) goto done ;
+    if( (call_list[24] = __builtin_return_address(26)) == NULL ) goto done ;
 
     if( __builtin_frame_address(27) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(27)) == NULL ) goto done ;
+    if( (call_list[25] = __builtin_return_address(27)) == NULL ) goto done ;
 
     if( __builtin_frame_address(28) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(28)) == NULL ) goto done ;
+    if( (call_list[26] = __builtin_return_address(28)) == NULL ) goto done ;
 
     if( __builtin_frame_address(29) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(29)) == NULL ) goto done ;
+    if( (call_list[27] = __builtin_return_address(29)) == NULL ) goto done ;
 
     if( __builtin_frame_address(30) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(30)) == NULL ) goto done ;
+    if( (call_list[28] = __builtin_return_address(30)) == NULL ) goto done ;
 
     if( __builtin_frame_address(31) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(31)) == NULL ) goto done ;
+    if( (call_list[29] = __builtin_return_address(31)) == NULL ) goto done ;
 
     if( __builtin_frame_address(32) == NULL ) goto done ;
-    if( (call_list[i++] = __builtin_return_address(32)) == NULL ) goto done ;
+    if( (call_list[30] = __builtin_return_address(32)) == NULL ) goto done ;
 
-    call_list[i++] = NULL;
+    call_list[31] = NULL;
 done:
 #endif
     return call_list;

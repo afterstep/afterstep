@@ -338,6 +338,18 @@ GetOptions (const char *filename)
     if( get_flags(config->set_flags, WINLIST_SBevel) )
         Config->sbevel = config->sbevel;
 
+    if( get_flags(config->set_flags, WINLIST_FCM) )
+        Config->fcm = config->fcm;
+    if( get_flags(config->set_flags, WINLIST_UCM) )
+        Config->ucm = config->ucm;
+    if( get_flags(config->set_flags, WINLIST_SCM) )
+        Config->scm = config->scm;
+
+    if( get_flags(config->set_flags, WINLIST_H_SPACING) )
+        Config->h_spacing = config->h_spacing;
+    if( get_flags(config->set_flags, WINLIST_V_SPACING) )
+        Config->v_spacing = config->v_spacing;
+
     for( i = 0 ; i < MAX_MOUSE_BUTTONS ; ++i )
         if( config->mouse_actions[i] )
         {
@@ -896,6 +908,8 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
     ASFlagType align = ALIGN_TOP|ALIGN_BOTTOM ;
 
     delete_astbar_tile( tbar, -1 );
+    tbar->h_border = Config->h_spacing ;
+    tbar->v_border = Config->v_spacing ;
     set_astbar_style_ptr( tbar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
     set_astbar_hilite( tbar, BACK_FOCUSED, Config->fbevel );
     set_astbar_composition_method( tbar, BACK_FOCUSED, Config->fcm );
@@ -912,7 +926,14 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
     }
 
     align = Config->name_aligment ;
-    add_astbar_label( tbar, 0, 0, 0, align, name);
+    if( get_flags( wd->state_flags, AS_Iconic ) && name != NULL && name[0] != '\0')
+    {
+        char *iconic_name = safemalloc(1+strlen(name)+1+1);
+        sprintf(iconic_name, "(%s)", name );
+        add_astbar_label( tbar, 0, 0, 0, align, iconic_name);
+        free( iconic_name );
+    }else
+        add_astbar_label( tbar, 0, 0, 0, align, name);
     set_astbar_balloon( tbar, 0, name );
     set_astbar_focused( tbar, WinListState.main_canvas, wd->focused );
     if( wd->focused )

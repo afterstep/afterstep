@@ -493,6 +493,18 @@ version 1.99.0 AKA 2.0 beta1
         those functions will only be executed if window is already focused.
 
         ************************************************************************
+        ClickToFocus
+        ************************************************************************
+        AfterStep will not switch focus following mouse pointer, but instead will
+        switch it when window is explicitely clicked. This is the same as before.
+        The only difference is that AfterStep will not Raise window automagically,
+        unless some other settings are set. Possible way to Raise window on
+        focusing include:
+                - set AutoRaise 0  in feel file ( delay of 0 )
+                - bind mouse clicks to Raise or RaiseLower function in feel file.
+                - set ClickToRaise flag in feel file.
+
+        ************************************************************************
         FollowTitleChanges
         ************************************************************************
         That will force AfterStep to reread and merge all the hints and
@@ -835,26 +847,126 @@ version 1.99.0 AKA 2.0 beta1
 
 8. WinList options
 
+        ************************************************************************
         *WinListGeometry            +x+y
+        ************************************************************************
+        Specifies WinList geometry. Note that only position could be specified -
+        size is defined by other parameters and number of buttons.
+
+        ************************************************************************
         *WinListMinSize             WxH
+        ************************************************************************
+        Minimum size of the WinList. WinList will not shrink smaller then this
+        size, when number of buttons is small, but instead it will enlarge
+        buttons to fill extra space. YOu can set only Width, only Height or
+        both.
+
+        ************************************************************************
         *WinListMaxSize             WxH
+        ************************************************************************
+        Maximum size of the WinList. WinList will not grow larger then
+        this size, when number of buttons increase, but instead it will shrink
+        buttons to fit in allowed space. You can set only Width, only
+        Height or both. extra rows/columns could be added when max size is
+        reached in one direction.
+
+        ************************************************************************
         *WinListMaxRows             count
+        ************************************************************************
+        Maximum number of rows in WinList.
+
+        ************************************************************************
         *WinListMaxColumns          count
+        ************************************************************************
+        Maximum number of columns in WinList.
+
+        ************************************************************************
         *WinListMinColWidth         width
+        ************************************************************************
+        Minimum width of the column
+
+        ************************************************************************
         *WinListMaxColWidth         width
+        ************************************************************************
+        Maximum width of the column.
+        Older *WinListMaxWidth is still supported for compatibility, but
+        depreciated.
+
+        ************************************************************************
         *WinListFillRowsFirst
+        ************************************************************************
+        Flag, indicating that WinList should should add new row when new button
+        is added, and only if MaxRows or max height is reached - add new
+        column. By Default WinLIst adds columns first.
+
+        ************************************************************************
         *WinListUseSkipList
+        ************************************************************************
+        Obey SkipWinList flags set by applications or database config.
+
+        ************************************************************************
         *WinListUnfocusedStyle      "style"
         *WinListFocusedStyle        "style"
         *WinListStickyStyle         "style"
+        ************************************************************************
+        MyStyle to be used for rendering of window buttons for windows thar are
+        in particular state.
+
+        ************************************************************************
         *WinListUseName             0|1|2|3   # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
+        ************************************************************************
+        Tells WinList what type of name to use for displaying in WinList label.
+
+        ************************************************************************
         *WinListAlign               Left,Right,Top,Bottom
+        ************************************************************************
+        Sets align of the text label in WinList buttons.
+
+        ************************************************************************
         *WinListBevel               None,Left,Right,Top, Bottom, NoOutline
+        ************************************************************************
+        Defines 3D bevel of WinList buttons.
+
+        ************************************************************************
         *WinListFBevel              None,Left,Right,Top, Bottom, NoOutline
         *WinListUBevel              None,Left,Right,Top, Bottom, NoOutline
         *WinListSBevel              None,Left,Right,Top, Bottom, NoOutline
+        ************************************************************************
+        Defines 3D bevel of WinList buttons for windows that are in specific
+        state (unfocused/focused/sticky).
+
+        ************************************************************************
         *WinListAction              [Click]1|2|3|4|5  <action>
+        ************************************************************************
+        Defines what function should be executed on the window when specific
+        mouse button is clicked over window's button.
+
+        ************************************************************************
         *WinListShapeToContents
+        ************************************************************************
+        When Shaped extensions are available - it will cause WinList to have
+        non-rectangular shape to wrap around columns/rows of buttons.
+
+        ************************************************************************
+        CompositionMethod
+        ************************************************************************
+        Sets composition method to be used to draw WinList buttons. Default is
+        alpha-blending. Valid values are in range 130-145.
+
+        ************************************************************************
+        FCompositionMethod
+        UCompositionMethod
+        SCompositionMethod
+        ************************************************************************
+        Sets composition method for buttons representing windows in particular
+        state.
+
+        ************************************************************************
+        *WinListSpacing
+        *WinListHSpacing
+        *WinListVSpacing
+        ************************************************************************
+        ************************************************************************
 
 9. Command line options.
         Every module including afterstep proper will support the following set
@@ -898,7 +1010,7 @@ version 1.99.0 AKA 2.0 beta1
                                       instead of what was selected from the menu.
         -l --log              <val> - Spool all output into a file instead of
                                       printing it to the console.
-11. Compilation flags.
+10. Compilation flags.
 
         Below are the flags that could be used with ./configure script, and env
         vars to be set in order to aid debugging.
@@ -937,38 +1049,43 @@ version 1.99.0 AKA 2.0 beta1
         arbitrary moments, to see what images are loaded into memory.
 
         ************************************************************************
-10. Depreciated
-        10.1. Look :
+11. Depreciated
+        11.1. Look :
              MenuPinOn
 
-        10.2. Wharf :
+        11.2. Wharf :
              Folders/~Folders in Wharf config - use Folder/~Folder instead
 
-        10.3. asetroot :
-             If AfterSTep proper fails to read any MyBackground definitions
+        11.3. asetroot :
+             If AfterStep proper fails to read any MyBackground definitions
              from the look file - it will attempt to read asteroot file. Althou
              you may be fine for now - make sure you move this config into look
              file, as in future asetroot file may become obsolete.
 
-11. Discontinued
-        11.1. Look :
+        11.4. WinList :
+             *WinListMaxWidth
+                Use *WinListMaxSize/*WinListMinSize instead
+
+             *WinListOrientation         across|vertical
+                Use *WinListFillRowsFirst instead.
+
+12. Discontinued
+        12.1. Look :
                 TextureMaxColors
                 MenuPinOff
                 TextGradientColor
                 GradientText
                 ButtonMaxColors
 
-        11.2. Feel :
+        12.2. Feel :
                 MWMFunctionHints
                 MWMDecorHints
                 MWMHintOverride
 
-        11.3. WinList :
+        12.3. WinList :
                 *WinListHideGeometry        WxH+x+y
                 *WinListNoAnchor
                 *WinListUseIconNames
-                *WinListMaxWidth            width
-                *WinListOrientation         across|vertical
                 *WinListAutoHide
 
 

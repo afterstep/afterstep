@@ -250,7 +250,6 @@ AddWindow (Window w)
     /* saving window management properties : */
     set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win) );
     set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
-    RaiseWindow( tmp_win );
 
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
@@ -333,7 +332,9 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
     redecorate_window       ( tmp_win, False );
     on_window_title_changed ( tmp_win, False );
     set_window_wm_state( tmp_win, get_flags(status->flags, AS_Iconic) );
-    RaiseWindow( tmp_win );
+//    RaiseWindow( tmp_win );
+//    activate_aswindow( tmp_win, False, False );
+
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
 	 * Set the map state to FALSE to prevent a transition back to
@@ -404,6 +405,9 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
 
     if ( asw == Scr.Windows->focused )
         focus_prev_aswindow( asw );
+
+    if ( asw == Scr.Windows->ungrabbed )
+        Scr.Windows->ungrabbed = NULL;
 
     if ( asw == Scr.Windows->active )
         Scr.Windows->active = NULL;

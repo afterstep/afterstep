@@ -421,6 +421,14 @@ ASWindow     *warp_aswindow_list ( ASWindowList *list, Bool backwards );
 
 MenuData *make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon_name );
 
+void hide_focus();
+Bool focus_aswindow( ASWindow *asw );
+Bool focus_active_window();
+void focus_next_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */
+void focus_prev_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */
+void commit_circulation();
+
+
 /*************************** from add_window.c : *************************/
 void destroy_icon_windows( ASWindow *asw );
 Bool get_icon_root_geometry( ASWindow *asw, ASRectangle *geom );
@@ -429,23 +437,6 @@ Bool get_icon_root_geometry( ASWindow *asw, ASRectangle *geom );
 void grab_window_input( ASWindow *asw, Bool release_grab );
 ASImage* get_window_icon_image( ASWindow *asw );
 
-
-void hide_focus();
-Bool focus_aswindow( ASWindow *asw );
-Bool focus_active_window();
-void focus_next_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */
-void focus_prev_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */
-void commit_circulation();
-
-void hide_hilite();                            /* unhilites currently highlited window */
-void hilite_aswindow( ASWindow *asw );         /* actually hilites focused window on reception of event */
-void warp_to_aswindow( ASWindow *asw, Bool deiconify );
-Bool activate_aswindow( ASWindow *asw, Bool force, Bool deiconify );
-void press_aswindow( ASWindow *asw, int context );
-void release_pressure();
-
-void save_aswindow_anchor( ASWindow *asw, Bool hor, Bool vert );
-void moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height, Bool save_anchor );
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
 void update_window_transparency( ASWindow *asw );
@@ -456,14 +447,6 @@ void on_window_hints_changed( ASWindow *asw );
 void on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured );
 void on_window_hilite_changed( ASWindow *asw, Bool focused );
 void on_window_pressure_changed( ASWindow *asw, int pressed_context );
-
-void complete_wm_state_transition( ASWindow *asw, int state );
-Bool set_window_wm_state( ASWindow *asw, Bool iconify );
-Bool make_aswindow_visible( ASWindow *asw, Bool deiconify );
-void change_aswindow_layer( ASWindow *asw, int layer );
-void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos );
-void change_aswindow_desktop( ASWindow *asw, int new_desk );
-void toggle_aswindow_status( ASWindow *asw, ASFlagType flags );
 
 void SelectDecor (ASWindow *);
 void check_aswindow_shaped( ASWindow *asw );
@@ -663,5 +646,29 @@ ASGrid* make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int 
 Bool place_aswindow( ASWindow *asw );
 void apply_aswindow_move(struct ASMoveResizeData *data);
 void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled);
+
+/******************************* winstatus.c *******************************/
+void complete_wm_state_transition( ASWindow *asw, int state );
+Bool set_window_wm_state( ASWindow *asw, Bool iconify );
+Bool make_aswindow_visible( ASWindow *asw, Bool deiconify );
+void change_aswindow_layer( ASWindow *asw, int layer );
+void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos );
+void change_aswindow_desktop( ASWindow *asw, int new_desk );
+void toggle_aswindow_status( ASWindow *asw, ASFlagType flags );
+
+void hide_hilite();                            /* unhilites currently highlited window */
+void hilite_aswindow( ASWindow *asw );         /* actually hilites focused window on reception of event */
+void warp_to_aswindow( ASWindow *asw, Bool deiconify );
+Bool activate_aswindow( ASWindow *asw, Bool force, Bool deiconify );
+void press_aswindow( ASWindow *asw, int context );
+void release_pressure();
+
+void save_aswindow_anchor( ASWindow *asw, Bool hor, Bool vert );
+void moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height, Bool save_anchor );
+
+
+
+Bool init_aswindow_status( ASWindow *t, ASStatusHints *status );
+
 
 #endif /* ASINTERNALS_H_HEADER_INCLUDED */

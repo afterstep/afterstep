@@ -819,7 +819,6 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%p,0x%X", asiw, menu, pressed_context );
         if( pressed_context )
         {
             int px = 0, py = 0 ;
-            GrabEm(&Scr, Scr.Feel.cursors[SELECT]);
             ASQueryPointerWinXY( menu->main_canvas->w, &px, &py );
 LOCAL_DEBUG_OUT( "pointer(%d,%d)", px, py );
             if( px >= 0 && px < menu->main_canvas->width &&  py >= 0 && py < menu->main_canvas->height )
@@ -830,7 +829,6 @@ LOCAL_DEBUG_OUT( "pointer(%d,%d)", px, py );
             }
         }else if( menu->pressed_item >= 0 )
         {
-            UngrabEm(&Scr);
             press_menu_item(menu, -1 );
         }
     }

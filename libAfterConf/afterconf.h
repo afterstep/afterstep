@@ -631,13 +631,16 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
  *  *WinListAction          [Click]1|2|3|4|5
  *  *WinListShapeToContents
  *
+ * Depreciated functions :
+ *
+ *  *WinListMaxWidth        width
+ *  *WinListOrientation		across|vertical
+ *
  * Obsolete functions :
  *
  *  *WinListHideGeometry	WxH+x+y
  *  *WinListNoAnchor
  *  *WinListUseIconNames
- *  *WinListMaxWidth		width
- *  *WinListOrientation		across|vertical
  *  *WinListAutoHide
  */
 #define WINLIST_ID_START        		(BGR_ID_END+1)
@@ -665,17 +668,21 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 #define WINLIST_FCM_ID                  (WINLIST_ID_START+21)
 #define WINLIST_UCM_ID                  (WINLIST_ID_START+22)
 #define WINLIST_SCM_ID                  (WINLIST_ID_START+23)
+#define WINLIST_Spacing_ID              (WINLIST_ID_START+24)
+#define WINLIST_HSpacing_ID             (WINLIST_ID_START+25)
+#define WINLIST_VSpacing_ID             (WINLIST_ID_START+26)
 
-#define WINLIST_BALLOONS_ID             (WINLIST_ID_START+24)
 
-#define WINLIST_HideGeometry_ID         (WINLIST_ID_START+25)
-#define WINLIST_MaxWidth_ID             (WINLIST_ID_START+26)
-#define WINLIST_Orientation_ID          (WINLIST_ID_START+27)
-#define WINLIST_NoAnchor_ID             (WINLIST_ID_START+28)
-#define WINLIST_UseIconNames_ID         (WINLIST_ID_START+29)
-#define WINLIST_AutoHide_ID             (WINLIST_ID_START+30)
+#define WINLIST_BALLOONS_ID             (WINLIST_ID_START+27)
 
-#define WINLIST_ID_END	        		(WINLIST_ID_START+32)
+#define WINLIST_HideGeometry_ID         (WINLIST_ID_START+28)
+#define WINLIST_MaxWidth_ID             (WINLIST_ID_START+29)
+#define WINLIST_Orientation_ID          (WINLIST_ID_START+30)
+#define WINLIST_NoAnchor_ID             (WINLIST_ID_START+31)
+#define WINLIST_UseIconNames_ID         (WINLIST_ID_START+32)
+#define WINLIST_AutoHide_ID             (WINLIST_ID_START+33)
+
+#define WINLIST_ID_END                  (WINLIST_ID_START+34)
 
 /* config data structure */
 
@@ -705,6 +712,9 @@ typedef struct WinListConfig
 #define WINLIST_SCM             (0x01<<17)
 #define WINLIST_CM              (WINLIST_FCM|WINLIST_UCM|WINLIST_SCM)
 
+#define WINLIST_H_SPACING       (0x01<<18)
+#define WINLIST_V_SPACING       (0x01<<19)
+
 #define 	ASWL_RowsFirst 		WINLIST_FillRowsFirst
 #define 	ASWL_UseSkipList	WINLIST_UseSkipList
 	ASFlagType	flags ;
@@ -724,6 +734,7 @@ typedef struct WinListConfig
     ASFlagType      name_aligment ;
     ASFlagType      fbevel, ubevel, sbevel ;
     int             ucm, fcm, scm;             /* composition methods */
+    unsigned int    h_spacing, v_spacing ;
 
     char **mouse_actions[MAX_MOUSE_BUTTONS];
 
