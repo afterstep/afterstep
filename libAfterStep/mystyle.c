@@ -362,8 +362,8 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		width = 1;
 	if (height < 1)
 		height = 1;
-    LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%lX, geom=(%dx%d%+d%+d)", style->name, style->texture_type,
-                     style->back_icon.image, style->tint, root_x, root_y, width, height);
+    LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%lX, geom=(%dx%d%+d%+d), flip = %d", style->name, style->texture_type,
+                     style->back_icon.image, style->tint, root_x, root_y, width, height, flip);
 
 	if(  style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
 		 style->texture_type == TEXTURE_SHAPED_PIXMAP ||
@@ -435,6 +435,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	 case TEXTURE_GRADIENT_L2R:
 	 	{
 			ASGradient *grad = flip_gradient( &(style->gradient), flip );
+ 			LOCAL_DEBUG_OUT( "orig grad type = %d, translated grad_type = %d, texture_type = %d", style->gradient.type, grad->type, style->texture_type );
 		 	im = make_gradient (Scr.asv, grad, width, height, 0xFFFFFFFF, ASA_ASImage, 0,
 							 ASIMAGE_QUALITY_DEFAULT);
 			if( grad != &(style->gradient) )
@@ -1145,10 +1146,11 @@ mystyle_parse_member (MyStyle * style, char *str)
 									 free (style->gradient.color);
 									 free (style->gradient.offset);
 								 }
-								 style->gradient.type = mystyle_translate_grad_type (type);
 								 style->gradient = gradient;
+								 style->gradient.type = mystyle_translate_grad_type (type);
 								 style->texture_type = type;
 								 style->user_flags |= style_func;
+								 LOCAL_DEBUG_OUT( "style %p type = %d", style, style->gradient.type );
 							 } else
                                  show_error("Error in MyStyle \"%s\": invalid gradient type %d", style->name, type);
 						 } else
@@ -1354,6 +1356,7 @@ mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient * gradien
 	if (cylindrical)
 		gradient->offset[1] = 0.5;
 	gradient->offset[gradient->npoints - 1] = 1.0;
+	gradient->type = type ;
 	return type;
 }
 

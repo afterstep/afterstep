@@ -1939,7 +1939,7 @@ LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width
 			tbar->back[state] = back = NULL;
 		}
 	}
-LOCAL_DEBUG_OUT("back(%p)", back );
+LOCAL_DEBUG_OUT("back(%p), vertical?%s", back, get_flags( tbar->state, BAR_FLAGS_VERTICAL )?"Yes":"No" );
 	if (back == NULL)
 	{
 		back = mystyle_make_image (style, tbar->root_x, tbar->root_y, tbar->width, tbar->height, get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);

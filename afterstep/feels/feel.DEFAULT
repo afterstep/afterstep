@@ -8,7 +8,7 @@
 #  AutoReverse 0: default switching among the windows in one direction
 #  AutoReverse 1: #1->#2->#3->#4 and then #4->#3->#2->#1
 #  AutoReverse 2: #1->#2->#3->#4 and then #4->#1->#3->#2 etc.
-AutoReverse 0
+AutoReverse 2
 #
 # window switching through desks?
 #AutoTabThroughDesks
@@ -16,14 +16,6 @@ AutoReverse 0
 # Automatically raise a window if mouse stays > 500 msec on it
 # AutoRaise 500
 #
-# Support Motif window manager function hints
-MWMFunctionHints
-#
-# Support Motif window manager decoration hints
-MWMDecorHints
-#
-# Allow overriding of Motif function hints
-MWMHintOverride
 #
 # While zapping, warp mouse pointer to
 Xzap 12
@@ -82,7 +74,7 @@ EdgeScroll 100 100
 EdgeResistance 200 80
 #
 # Place window in empty zones
-#SmartPlacement
+SmartPlacement
 #
 # Random window placement
 RandomPlacement
@@ -248,13 +240,14 @@ EndPopup
 # Mouse actions
 #
 Mouse 1         R       A       PopUp "0"
-Mouse 2         R       A       WindowList 2
+Mouse 2         R       A       GetHelp
 Mouse 3         R       A       WindowList
 Mouse 1         1       A       ChangeWindowUp
-Mouse 2         1       A       GetHelp
+Mouse 2         1       C       BookmarkWindow "bkmrk1" 
+Mouse 2         1       S       GoToBookmark "bkmrk1" 
 Mouse 3         1       A       ChangeWindowDown
 Mouse 1         2       A       Delete
-Mouse 2         2       A       Destroy
+Mouse 2         2       A       Close
 Mouse 3         2       A       Destroy
 Mouse 1         3       A       PopUp "Window"
 Mouse 2         3       A       WindowList 2
@@ -262,6 +255,9 @@ Mouse 3         3       A       WindowList
 Mouse 1         4       A       Shade
 Mouse 2         4       A       Stick
 Mouse 3         4       A       Stick
+Mouse 1         5       A       PinMenu
+Mouse 2         5       A       PinMenu
+Mouse 3         5       A       PinMenu
 Mouse 1         6       A       Iconify
 Mouse 2         6       A       Maximize
 Mouse 3         6       A       Maximize
@@ -289,11 +285,11 @@ Key Right       A       M       Scroll +10 +0
 Key Up          A       M       Scroll +0  -10
 Key Down        A       M       Scroll +0  +10
 
-# shift + arrow = move cursor
-Key Left        A       S       CursorMove -1 0
-Key Right       A       S       CursorMove +1 +0
-Key Up          A       S       CursorMove +0 -1
-Key Down        A       S       CursorMove +0 +1
+# alt + shift + arrow = move cursor
+Key Left        A       MS       CursorMove -1 0
+Key Right       A       MS       CursorMove +1 +0
+Key Up          A       MS       CursorMove +0 -1
+Key Down        A       MS       CursorMove +0 +1
 
 # shift + control + arrow = change desktop
 Key Left        A       SC      Desk 0 0

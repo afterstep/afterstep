@@ -909,6 +909,11 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
         ASFlagType btn_mask = compile_titlebuttons_mask (asw->hints);
         asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
         asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
+		if( ASWIN_HFLAGS( asw, AS_VerticalTitle ) )
+			set_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
+		else
+			clear_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
+		
         /* left buttons : */
         add_astbar_btnblock(asw->tbar,
                             od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],

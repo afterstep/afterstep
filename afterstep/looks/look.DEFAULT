@@ -31,7 +31,7 @@ MyStyle "focused_window_style"
   TextStyle	3
   ForeColor     ActiveText
   BackColor	Active
-  BackGradient	2	ActiveDark	ActiveLight
+  BackGradient	6	ActiveDark	ActiveLight
   ~MyStyle
 
 MyStyle "unfocused_window_style"
@@ -64,28 +64,28 @@ MyStyle "unfocused_menu_title_style"
   Inherit       menu_title_font
   ForeColor     InactiveText1
   BackColor     HighInactive
-  BackGradient 2   HighInactiveDark HighInactiveLight
+  BackGradient  6   HighInactiveDark HighInactiveLight
   ~MyStyle
 
 MyStyle "focused_menu_title_style"
   Inherit       menu_title_font
   ForeColor	ActiveText1
   BackColor     HighActive
-  BackGradient 2  HighActiveDark HighActiveLight
+  BackGradient  6  HighActiveDark HighActiveLight
   ~MyStyle
 
 MyStyle "menu_item_style"
   Inherit       menu_font
   ForeColor     HighInactiveText
   BackColor     HighInactiveBack
-  BackGradient 2   HighInactiveBackDark HighInactiveBackLight
+  BackGradient  9   HighInactiveBackDark HighInactiveBackLight
   ~MyStyle
 
 MyStyle "menu_hilite_style"
   Font          DefaultBoldOblique.ttf-16
   ForeColor     HighActiveText
   BackColor     HighActiveBack
-  BackGradient 2   HighActiveBackLight HighActiveBackDark
+  BackGradient  9  HighActiveBackLight HighActiveBackDark
   ~MyStyle
 
 

@@ -637,7 +637,7 @@ flip_gradient( ASGradient *orig, int flip )
 	int type ;
 	Bool inverse_points = False ;
 
-	flip = flip&FLIP_MASK ;
+	flip &= FLIP_MASK ;
 	if( orig == NULL || flip == 0 )
 		return orig;
 
@@ -671,6 +671,7 @@ flip_gradient( ASGradient *orig, int flip )
 		inverse_points = True ;
 	}
 
+	grad->type = type ;
 	if( inverse_points )
     {
         register int i = 0, k = npoints;

@@ -628,7 +628,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
         else
         {
             int side = 0 ;
-            register unsigned long context = event->context;
+            register unsigned long context = (event->context&C_FRAME);
 
             if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
             {
@@ -636,11 +636,28 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
                 return;
             }
 
-            while( (0x01&context) == 0 )
+            while( (0x01&context) == 0 && side <= FR_SE)
             {
                 ++side ;
                 context = context>>1 ;
             }
+			
+			if( side > FR_SE ) 
+			{
+				int pointer_x = 0, pointer_y = 0 ;
+				ASQueryPointerRootXY( &pointer_x, &pointer_y );
+				if( pointer_x > asw->frame_canvas->root_x + asw->frame_canvas->width/2 )
+				{
+					if( pointer_y > asw->frame_canvas->root_y + asw->frame_canvas->height/2 )
+						side = FR_SE ;
+					else
+						side = FR_NE ;
+				}else if( pointer_y > asw->frame_canvas->root_y + asw->frame_canvas->height/2 )
+					side = FR_SW ;
+				else
+					side = FR_NW ;
+			}
+			
             mvrdata = resize_widget_interactively(  Scr.RootCanvas,
                                                     asw->frame_canvas,
                                                     event,
