@@ -143,13 +143,13 @@ compute_diff32( register short *diff, CARD8 *data, int size )
 	register int i = 0;	
 	register CARD32 *data32 = (CARD32*)data ;
 	diff[0] = data32[0] ;
-	fprintf( stderr, "\n0:%d(%4.4X) ", diff[0], diff[0] ); 
+/*	fprintf( stderr, "\n0:%d(%4.4X) ", diff[0], diff[0] ); */
 	while( ++i < size ) 
 	{	
 		diff[i] = (short)data32[i] - (short)data32[i-1] ;
-		fprintf( stderr, "%d:%d(%4.4X) ", i, diff[i], diff[i] ); 
+/*		fprintf( stderr, "%d:%d(%4.4X) ", i, diff[i], diff[i] ); */
 	}
-	fprintf( stderr, "\n" ); 
+/*	fprintf( stderr, "\n" ); */
 }	   
 
 static void
@@ -248,8 +248,8 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 						
 						if( ++k < i )
 						{	
-							if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x08|(-d-1) ;
-							else					buffer[comp_size] =      (d-1) ;
+							if( (d = diff[k]) < 0 ) buffer[comp_size] |= 0x08|(-d-1) ;
+							else					buffer[comp_size] |=      (d-1) ;
 							++k ;
 						}
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
@@ -278,16 +278,16 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 
 						if( ++k < i )
 						{	
-							if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x20|((-d-1)<<4) ;
-							else					buffer[comp_size] =      ((d-1)<<4) ;
+							if( (d = diff[k]) < 0 ) buffer[comp_size] |= 0x20|((-d-1)<<4) ;
+							else					buffer[comp_size] |=      ((d-1)<<4) ;
 							if( ++k < i )
 							{
-								if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x08|((-d-1)<<2) ;
-								else					buffer[comp_size] =      ((d-1)<<2) ;
+								if( (d = diff[k]) < 0 ) buffer[comp_size] |= 0x08|((-d-1)<<2) ;
+								else					buffer[comp_size] |=      ((d-1)<<2) ;
 								if( ++k < i )
 								{	
- 									if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x02|(-d-1) ;
-									else					buffer[comp_size] =      (d-1) ;
+ 									if( (d = diff[k]) < 0 ) buffer[comp_size] |= 0x02|(-d-1) ;
+									else					buffer[comp_size] |=      (d-1) ;
 									++k ;
 								}
 							}
@@ -298,7 +298,7 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 						++comp_size ;
 					}while( k  < i );
 				}	 
-			}else if( d <= 136 )  
+			}else if( d <= 135 )  
 			{                      /* 8 bit strings */
 				int k = 0;
 				do
@@ -306,7 +306,7 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 					if( (d = diff[i]) == 0 ) 
 						break;
 					if( d < 0) d = -d ;
-					if( d > 136 || d <= 8 ) 
+					if( d > 135 || d <= 8 ) 
 						break;
 					++run_step ;
 				}while( ++i < size && run_step < 16 ); 	
@@ -340,7 +340,7 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 					if( (d = diff[i]) == 0 ) 
 						break;
 					if( d < 0) d = -d ;
-					if( d <= 136 ) 
+					if( d <= 135 ) 
 						break;
 					++run_step ;
 				}while( ++i < size && run_step < 16 ); 	
@@ -376,7 +376,7 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 	   	fprintf(stderr, "\n");
 #endif
 	}	 
-	
+	/* fprintf( stderr, "compressed from %d to %d\n", size, comp_size ); */
 	return comp_size ;
 }	 
 
@@ -1221,10 +1221,11 @@ fetch_data_int( ASStorage *storage, ASStorageID id, ASStorageDstBuffer *buffer, 
 			while( offset < 0 ) offset += uncomp_size ; 
 			if( offset > 0 ) 
 			{
-				buffer->offset = uncomp_size-offset ; 
-				if( buffer->offset  < buf_size ) 
-					buffer->offset = buf_size ;
-				cpy_func( buffer, tmp+offset, buffer->offset ); 															
+				int to_copy = uncomp_size-offset ; 
+				if( to_copy > buf_size ) 
+					to_copy = buf_size ;
+				cpy_func( buffer, tmp+offset, to_copy ); 															
+				buffer->offset = to_copy ;
 			}
 			while( buffer->offset < buf_size ) 
 			{
@@ -1785,6 +1786,21 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 		res = test_data_integrity( &(Buffer[0]), Tests[i].data, size, test_flags );
 		TEST_EVAL( res == 0 ); 
 	}	 
+	if( !get_flags( test_flags, ASStorage_32Bit ) )
+	{	
+		for( i = 0 ; i < all_test_count ; ++i ) 
+		{
+			int size ;
+			int res ;
+			fprintf(stderr, "Testing fetch_data32 for id %lX size = %d ...", Tests[i].id, Tests[i].size);
+			size = fetch_data32(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size/4, 0);
+			TEST_EVAL( size == Tests[i].size/4 ); 
+		
+			fprintf(stderr, "Testing fetched data integrity ...");
+			res = test_data_integrity( Tests[i].data, &(Buffer[0]), size, test_flags|ASStorage_32Bit );
+			TEST_EVAL( res == 0 ); 
+		}	 
+	}
 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
 	if( interactive )

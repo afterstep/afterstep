@@ -149,34 +149,14 @@ Bool create_image_argb32( ASVisual *asv, ASImage *im, ASAltImFormats format )
 static void
 asimage_dup_line (ASImage * im, ColorPart color, unsigned int y1, unsigned int y2, unsigned int length)
 {
-	CARD8       **part = im->channels[color];
-	if( get_flags( im->flags, ASIM_STATIC ) ) 
-	{
-		register unsigned int i ;
-		register CARD32 *dwsrc = (CARD32*)part[y1];
-		register CARD32 *dwdst = (CARD32*)part[y2];
-		length = (length>>2)+1;
-		/* 32bit copy gives us about 15% performance gain */
-		for( i = 0 ; i < length ; ++i )
-			dwdst[i] = dwsrc[i];
-	}else
-	{
-		if (part[y2] != NULL)
-			free (part[y2]);
-		if( part[y1] )
-		{
-			register unsigned int i ;
-			register CARD32 *dwsrc = (CARD32*)part[y1];
-			register CARD32 *dwdst ;
-			length = (length>>2)+1;
-			dwdst = safemalloc (sizeof(CARD32)*length);
-			/* 32bit copy gives us about 15% performance gain */
-			for( i = 0 ; i < length ; ++i )
-				dwdst[i] = dwsrc[i];
-			part[y2] = (CARD8*)dwdst;
-		}else
-			part[y2] = NULL;
+	ASStorageID *part = im->channels[color];
+	if (part[y2] != 0)
+	{	
+		forget_data(NULL, part[y2]);
+		part[y2] = 0 ;
 	}
+	if( part[y1] )
+	 	part[y2] = dup_data(NULL, part[y1] );
 }
 
 void
@@ -184,35 +164,23 @@ asimage_erase_line( ASImage * im, ColorPart color, unsigned int y )
 {
 	if( !AS_ASSERT(im) )
 	{
-		CARD8       **part = im->channels[color];
+		ASStorageID *part = im->channels[color];
 		if( color < IC_NUM_CHANNELS )
 		{
-			if( get_flags( im->flags, ASIM_STATIC ) ) 
+			if( part[y] )
 			{
-				CARD8 back_color = ARGB32_CHAN8(im->back_color,color);
-				memset(part[y], back_color, im->width);
-			}
-			else if( part[y] )
-			{
-				free( part[y] );
-				part[y] = NULL;
+				forget_data( NULL, part[y] );
+				part[y] = 0;
 			}
 		}else
 		{
 			int c ;
 			for( c = 0 ; c < IC_NUM_CHANNELS ; c++ )
 			{
-				CARD8       **part = im->channels[color];
-				if( get_flags( im->flags, ASIM_STATIC ) ) 
-				{
-					CARD8 back_color = ARGB32_CHAN8(im->back_color,color);
-					memset(part[y], back_color, im->width);
-				}
-				else if( part[y] )
-				{
-					free( part[y] );
-					part[y] = NULL;
-				}
+				part = im->channels[color];
+				if( part[y] )
+					forget_data( NULL, part[y] );
+				part[y] = 0;
 			}
 		}
 	}
@@ -522,9 +490,6 @@ start_image_output( ASVisual *asv, ASImage *im, ASAltImFormats format,
 	if( AS_ASSERT(im) || AS_ASSERT(asv) )
 		return imout;
 
-	if( format == ASA_StaticASImage ) 
-		format = ASA_ASImage ;
-			
 	if( format < 0 || format == ASA_Vector || format >= ASA_Formats)
 		return NULL;
 	if( asimage_format_handlers[format].check_create_asim_format )

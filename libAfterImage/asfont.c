@@ -1672,7 +1672,7 @@ get_fancy_text_size( const void *src_text, ASFont *font, ASTextAttributes *attr,
 }
 
 inline static void
-render_asglyph( CARD32 **scanlines, CARD8 *row,
+render_asglyph( CARD8 **scanlines, CARD8 *row,
                 int start_x, int y, int width, int height,
 				CARD32 ratio )
 {
@@ -1681,7 +1681,7 @@ render_asglyph( CARD32 **scanlines, CARD8 *row,
 	register CARD32 data = 0;
 	while( y < max_y )
 	{
-		register CARD32 *dst = scanlines[y]+start_x;
+		register CARD8 *dst = scanlines[y]+start_x;
 		register int x = -1;
 		while( ++x < width )
 		{
@@ -1714,8 +1714,8 @@ static ASImage *
 draw_text_internal( const char *text, ASFont *font, ASTextAttributes *attr, int compression, int length )
 {
 	ASGlyphMap map ;
-	CARD32 *memory;
-	CARD32 **scanlines ;
+	CARD8 *memory;
+	CARD8 **scanlines ;
 	int i = 0, offset = 0, line_height, space_size, base_line;
 	ASImage *im;
 	int pen_x = 0, pen_y = 0;
@@ -1744,10 +1744,10 @@ LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 
 	base_line = font->max_ascend;
 LOCAL_DEBUG_OUT( "line_height is %d, space_size is %d, base_line is %d", line_height, space_size, base_line );
-	scanlines = safemalloc( line_height*sizeof(CARD32*));
-LOCAL_DEBUG_OUT( "scanline list memory allocated %d", line_height*sizeof(CARD32*) );
-	memory = safecalloc( line_height,map.width*sizeof(CARD32));
-LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*sizeof(CARD32) );
+	scanlines = safemalloc( line_height*sizeof(CARD8*));
+LOCAL_DEBUG_OUT( "scanline list memory allocated %d", line_height*sizeof(CARD8*) );
+	memory = safecalloc( line_height,map.width*sizeof(CARD8));
+LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*sizeof(CARD8) );
 	do
 	{
 		scanlines[i] = memory + offset;
@@ -1768,16 +1768,16 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 			for( y = 0 ; y < line_height ; ++y )
 			{
 				register int x = 0;
-				register CARD32 *line = scanlines[y];
+				register CARD8 *line = scanlines[y];
 #if 1
-#ifdef LOCAL_DEBUG
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 				x = 0;
 				while( x < map.width )
 					fprintf( stderr, "%2.2X ", scanlines[y][x++] );
 				fprintf( stderr, "\n" );
 #endif
 #endif
- 				asimage_add_line (im, IC_ALPHA, line, pen_y+y);
+ 				im->channels[IC_ALPHA][pen_y+y] = store_data( NULL, line, map.width, ASStorage_RLEDiffCompress, 0);
 				for( x = 0; x < (int)map.width; ++x )
 					line[x] = 0;
 			}

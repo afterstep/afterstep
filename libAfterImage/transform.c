@@ -821,14 +821,10 @@ create_destination_image( unsigned int width, unsigned int height, ASAltImFormat
 {
 	ASImage *dst = NULL ; 
 	
-	if( format == ASA_StaticASImage )
-		dst = create_static_asimage(width, height, compression);
-	else
-	{
-		dst = create_asimage(width, height, compression);
-		if( format != ASA_ASImage )
-			set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
-	}
+	dst = create_asimage(width, height, compression);
+	if( format != ASA_ASImage )
+		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
+	
 	dst->back_color = back_color ;
 	return dst ;
 }
@@ -1649,7 +1645,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d",
 		clip_height = MIN( (int)to_height, dst_y+clip_height);
 	else
 		clip_height = MIN( (int)to_height-dst_y, clip_height);
-	if( (clip_width <= 0 || clip_height <= 0) && out_format != ASA_StaticASImage  )
+	if( (clip_width <= 0 || clip_height <= 0) )
 	{                              /* we are completely outside !!! */
 		dst->back_color = color ;
 		return dst ;

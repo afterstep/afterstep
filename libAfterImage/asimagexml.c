@@ -1077,7 +1077,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (imtmp) {
 			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir,
-									static_im?ASA_StaticASImage: ASA_ASImage, 
+									ASA_ASImage, 
 									0, ASIMAGE_QUALITY_DEFAULT);
 			safe_asimage_destroy(imtmp);
 		}
@@ -1295,7 +1295,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (imtmp && width > 0 && height > 0 ) {
 			show_progress("Scaling image to [%dx%d].", width, height);
 			result = scale_asimage( asv, imtmp, width, height, 
-									static_im?ASA_StaticASImage:ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+									ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 			safe_asimage_destroy(imtmp);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -1960,8 +1960,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			}
 
 			if (num) {
-				result = merge_layers(asv, layers, num, width, height, 
-										static_im?ASA_StaticASImage:ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				result = merge_layers( asv, layers, num, width, height, 
+									   ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 				if (keep_trans && result && layers[0].im) {
 					copy_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
 				}

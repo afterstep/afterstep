@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 #ifndef NO_DEBUG_OUTPUT
 #undef DEBUG_RECTS
@@ -161,12 +161,9 @@ asimage_init (ASImage * im, Bool free_resources)
 		if (free_resources)
 		{
 			register int i ;
-			if( get_flags( im->flags, ASIM_STATIC ) ) 
-				free( im->memory.pmem );
-			else
-				for( i = im->height*4-1 ; i>= 0 ; --i )
-					if( im->red[i] )
-						free( im->red[i] );
+			for( i = im->height*4-1 ; i>= 0 ; --i )
+				if( im->red[i] != 0 )
+					forget_data( NULL, im->red[i] );
 			if( im->red )
 				free(im->red);
 #ifndef X_DISPLAY_MISSING
@@ -207,7 +204,7 @@ static void
 alloc_asimage_channels ( ASImage *im )
 {
 	/* we want result to be 32bit aligned and padded */
-	im->red = safecalloc (1, sizeof (CARD8*) * im->height * 4);
+	im->red = safecalloc (1, sizeof (ASStorageID) * im->height * 4);
 	if( im->red == NULL )
 	{
 		show_error( "Insufficient memory to create image %dx%d!", im->width, im->height );
@@ -236,50 +233,13 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 		
 		alloc_asimage_channels( im );
 
-		im->max_compressed_width = width*compression/100;
-		if( im->max_compressed_width > im->width )
-			im->max_compressed_width = im->width ;
+		if( compression == 0 ) 
+			set_flags( im->flags, ASIM_NO_COMPRESSION );
 	}
 }
 
-void
-asimage_start_static(ASImage * im, unsigned int width, unsigned int height, unsigned int compression)
-{
-	if (im)
-	{
-		register unsigned int i;
-		register CARD8 *ptr ;
-		int line_size = ((width+3)/4)*4 ;
-
-		asimage_init (im, True);
-		set_flags( im->flags, ASIM_STATIC ); 
-
-		im->height = height;
-		im->width = width;
-		im->max_compressed_width = width*compression/100;
-		if( im->max_compressed_width > im->width )
-			im->max_compressed_width = im->width ;
-
-		alloc_asimage_channels( im );
-
-		im->memory.pmem = ptr = safemalloc( line_size*height * 4 );
-		for( i = 0 ; i < height ; ++i ) 
-		{
-			im->red[i] = ptr ;
-			ptr += line_size ; 
-			im->green[i] = ptr ;
-			ptr += line_size ; 
-			im->blue[i] = ptr ;
-			ptr += line_size ; 
-			im->alpha[i] = ptr ;
-			ptr += line_size ; 
-	
-		}		
-	}
-}
-
-
-static ASImage* check_created_asimage( ASImage *im, unsigned int width, unsigned int height )
+static ASImage* 
+check_created_asimage( ASImage *im, unsigned int width, unsigned int height )
 {
 	if( im->width == 0 || im->height == 0 )
 	{
@@ -291,9 +251,8 @@ static ASImage* check_created_asimage( ASImage *im, unsigned int width, unsigned
     }else
     {
 #ifdef TRACK_ASIMAGES
-        show_progress( "created %s ASImage %p of size %dx%d with compression %d", 
-						get_flags( im->flags, ASIM_STATIC)?"static":"dynamic", im,  
-						width, height, (im->max_compressed_width*100)/im->width );
+        show_progress( "created ASImage %p of size %dx%d (%s compressed )", im,  
+						width, height, (get_flags(im->flags, ASIM_NO_COMPRESSION)?" no":"") );
         if( __as_image_registry == NULL )
             __as_image_registry = create_ashash( 0, pointer_hash_value, NULL, NULL );
         add_hash_item( __as_image_registry, AS_HASHABLE(im), im );
@@ -309,15 +268,6 @@ create_asimage( unsigned int width, unsigned int height, unsigned int compressio
 	asimage_start( im, width, height, compression );
 	return check_created_asimage( im, width, height );
 }
-
-ASImage *
-create_static_asimage( unsigned int width, unsigned int height, unsigned int compression)
-{
-	ASImage *im = safecalloc( 1, sizeof(ASImage) );
-	asimage_start_static( im, width, height, compression );
-	return check_created_asimage( im, width, height );
-}
-
 
 void
 destroy_asimage( ASImage **im )
@@ -344,9 +294,10 @@ void print_asimage_func (ASHashableValue value)
         unsigned int k;
         unsigned int red_mem = 0, green_mem = 0, blue_mem = 0, alpha_mem = 0;
         unsigned int red_count = 0, green_count = 0, blue_count = 0, alpha_count = 0;
+		ASStorageSlot slot ;
+
         fprintf( stderr,"\n\tASImage[%p].size = %dx%d;\n",  im, im->width, im->height );
         fprintf( stderr,"\tASImage[%p].back_color = 0x%lX;\n", im, (long)im->back_color );
-        fprintf( stderr,"\tASImage[%p].max_compressed_width = %d;\n", im, im->max_compressed_width);
         fprintf( stderr,"\t\tASImage[%p].alt.ximage = %p;\n", im, im->alt.ximage );
         if( im->alt.ximage )
         {
@@ -368,32 +319,30 @@ void print_asimage_func (ASHashableValue value)
 
         for( k = 0 ; k < im->height ; k++ )
     	{
-            unsigned int tmp ;
-
-            tmp = asimage_print_line( im, IC_RED  , k, 0 );
-            if( tmp > 0 )
-            {
-                ++red_count;
-                red_mem += tmp ;
-            }
-            tmp = asimage_print_line( im, IC_GREEN, k, 0 );
-            if( tmp > 0 )
-            {
-                ++green_count;
-                green_mem += tmp ;
-            }
-            tmp = asimage_print_line( im, IC_BLUE , k, 0 );
-            if( tmp > 0 )
-            {
-                ++blue_count;
-                blue_mem += tmp ;
-            }
-            tmp = asimage_print_line( im, IC_ALPHA, k, 0 );
-            if( tmp > 0 )
-            {
-                ++alpha_count;
-                alpha_mem += tmp ;
-            }
+			if( im->red[k] ) 
+				if( query_storage_slot(NULL, im->red[k], &slot ) )
+				{	
+			 		++red_count;	
+					red_mem += slot.size ;
+				}
+			if( im->green[k] ) 
+				if( query_storage_slot(NULL, im->green[k], &slot ) )
+				{	
+			 		++green_count;	
+					green_mem += slot.size ;
+				}
+			if( im->blue[k] ) 
+				if( query_storage_slot(NULL, im->blue[k], &slot ) )
+				{	
+			 		++blue_count;	
+					blue_mem += slot.size ;
+				}
+			if( im->alpha[k] ) 
+				if( query_storage_slot(NULL, im->alpha[k], &slot ) )
+				{	
+			 		++alpha_count;	
+					alpha_mem += slot.size ;
+				}
         }
 
         fprintf( stderr,"\tASImage[%p].uncompressed_size = %d;\n", im, im->width*red_count +
@@ -430,7 +379,7 @@ purge_asimage_registry()
 }
 
 /* ******************** ASImageManager ****************************/
-void
+static void
 asimage_destroy (ASHashableValue value, void *data)
 {
 	if( data )
@@ -807,320 +756,41 @@ destroy_image_layers( register ASImageLayer *l, int count, Bool reusable )
 /* **********************************************************************/
 /*  Compression/decompression 										   */
 /* **********************************************************************/
-static void
-asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y, CARD8 *buffer, size_t buf_used)
-{
-	register int len = (buf_used>>2)+1 ;
-	CARD8  **part = im->channels[color];
-	register CARD32  *dwsrc = (CARD32*)buffer;
-	register CARD32  *dwdst;
-	
-	if( get_flags( im->flags, ASIM_STATIC ) ) 
-		dwdst = (CARD32*)part[y] ;			
-	else
-	{
-		dwdst = safemalloc( sizeof(CARD32)*len);	
-		if (part[y] != NULL)
-			free (part[y]);
-		part[y] = (CARD8*)dwdst;
-	}
-	
-	while( --len >= 0 )
-		dwdst[len] = dwsrc[len];
-
-}
-
 size_t
-asimage_add_line_mono (ASImage * im, ColorPart color, register CARD8 value, unsigned int y)
+asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsigned int y)
 {
-	register CARD8 *dst;
-	int rep_count;
-	int buf_used = 0;
-
 	if (AS_ASSERT(im) || color <0 || color >= IC_NUM_CHANNELS )
 		return 0;
-	if( y >= im->height)
+	if (y >= im->height)
 		return 0;
-
-	if( get_flags( im->flags, ASIM_STATIC ) ) 
-	{
-		CARD8       **part = im->channels[color];
-		memset(part[y], value, im->width);
-		return im->width ;
-	}
-
-	if( (dst = get_compression_buffer(max(RLE_THRESHOLD+2,4))) == NULL )
-		return 0;
-
-	if( im->width <= RLE_THRESHOLD )
-	{
-		int i = im->width+1 ;
-		dst[0] = (CARD8) RLE_DIRECT_TAIL;
-		dst[i] = 0 ;
-		while( --i > 0 )
-			dst[i] = (CARD8) value;
-		buf_used = 1+im->width+1;
-	}else
-	{
-		rep_count = im->width - RLE_THRESHOLD;
-		if (rep_count <= RLE_MAX_SIMPLE_LEN)
-		{
-			dst[0] = (CARD8) rep_count;
-			dst[1] = (CARD8) value;
-			dst[2] = 0 ;
-			buf_used = 3;
-		} else
-		{
-			dst[0] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
-			dst[1] = (CARD8) ((rep_count) & 0x00FF);
-			dst[2] = (CARD8) value;
-			dst[3] = 0 ;
-			buf_used = 4;
-		}
-	}
-	asimage_apply_buffer (im, color, y, dst, buf_used);
-	release_compression_buffer( dst );
-	return buf_used;
+	
+	im->channels[color][y] = store_data( NULL, &value, 1, 0, 0);
+	return im->width;
 }
 
 size_t
 asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigned int y)
 {
-	int    i = 0, bstart = 0, ccolor = 0;
-	unsigned int    width;
-	register CARD8 *dst;
-	register int 	tail = 0;
-	int best_size, best_bstart = 0, best_tail = 0;
-	int buf_used = 0 ;
-
-	if (AS_ASSERT(im) || AS_ASSERT(data) || color <0 || color >= IC_NUM_CHANNELS )
+	if (AS_ASSERT(im) || color <0 || color >= IC_NUM_CHANNELS )
 		return 0;
 	if (y >= im->height)
 		return 0;
-
-	clear_flags( im->flags, ASIM_DATA_NOT_USEFUL );
-
-	if( get_flags( im->flags, ASIM_STATIC ) ) 
-	{
-		CARD8 *part = im->channels[color][y];
-		int i ;
-		for( i = 0 ; i < im->width ; ++i ) 
-			part[i] = data[i] ;
-		return im->width ;
-	}
-
-	best_size = 0 ;
-	if( im->width == 1 )
-	{
-		if( (dst = get_compression_buffer( 2 )) == NULL )
-			return 0;
-		dst[0] = RLE_DIRECT_TAIL ;
-		dst[1] = data[0] ;
-		buf_used = 2;
-	}else
-	{
-		CARD8 *dst_start ;
-		if( (dst_start = get_compression_buffer( im->width*2 )) == NULL )
-			return 0;
-		dst = dst_start ;
-/*		width = im->width; */
-		width = im->max_compressed_width ;
-		while( i < width )
-		{
-			while( i < width && data[i] == data[ccolor])
-			{
-/*				fprintf( stderr, "%d<%2.2X ", i, data[i] ); */
-				++i ;
-			}
-			if( i > ccolor + RLE_THRESHOLD )
-			{ /* we have to write repetition count and length */
-				register unsigned int rep_count = i - ccolor - RLE_THRESHOLD;
-
-				if (rep_count <= RLE_MAX_SIMPLE_LEN)
-				{
-					dst[tail] = (CARD8) rep_count;
-					dst[++tail] = (CARD8) data[ccolor];
-/*					fprintf( stderr, "\n%d:%d: >%d: %2.2X %d: %2.2X ", y, color, tail-1, dst[tail-1], tail, dst[tail] ); */
-				} else
-				{
-					dst[tail] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
-					dst[++tail] = (CARD8) ((rep_count) & 0x00FF);
-					dst[++tail] = (CARD8) data[ccolor];
-/*					fprintf( stderr, "\n%d:%d: >%d: %2.2X %d: %2.2X %d: %2.2X ", y, color, tail-2, dst[tail-2], tail-1, dst[tail-1], tail, dst[tail] );*/
-				}
-				++tail ;
-				bstart = ccolor = i;
-			}
-/*			fprintf( stderr, "\n"); */
-			while( i < width )
-			{
-/*				fprintf( stderr, "%d<%2.2X ", i, data[i] ); */
-				if( data[i] != data[ccolor] )
-					ccolor = i ;
-				else if( i-ccolor > RLE_THRESHOLD )
-					break;
-				++i ;
-			}
-			if( i == width )
-				ccolor = i ;
-			while( ccolor > bstart )
-			{/* we have to write direct block */
-				unsigned int dist = ccolor-bstart ;
-
-				if( tail-(int)bstart < best_size )
-				{
-					best_tail = tail ;
-					best_bstart = bstart ;
-					best_size = tail-bstart ;
-				}
-				if( dist > RLE_MAX_DIRECT_LEN )
-					dist = RLE_MAX_DIRECT_LEN ;
-				dst[tail] = RLE_DIRECT_B | ((CARD8)(dist-1));
-/*				fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, tail, dst[tail] ); */
-				dist += bstart ;
-				++tail ;
-				while ( bstart < dist )
-				{
-					dst[tail] = (CARD8) data[bstart];
-/*					fprintf( stderr, "%d: %2.2X ", tail, dst[tail]); */
-					++tail ;
-					++bstart;
-				}
-			}
-/*			fprintf( stderr, "\n"); */
-		}
-		if( best_size+(int)im->width < tail )
-		{
-			width = im->width;
-/*			LOCAL_DEBUG_OUT( " %d:%d >resetting bytes starting with offset %d(%d) (0x%2.2X) to DIRECT_TAIL( %d bytes total )", y, color, best_tail, best_bstart, dst[best_tail], width-best_bstart ); */
-			dst[best_tail] = RLE_DIRECT_TAIL;
-			dst += best_tail+1;
-			data += best_bstart;
-			for( i = width-best_bstart-1 ; i >=0 ; --i )
-				dst[i] = data[i] ;
-			buf_used = best_tail+1+width-best_bstart ;
-		}else
-		{
-			if( i < im->width )
-			{
-				dst[tail] = RLE_DIRECT_TAIL;
-				dst += tail+1 ;
-				data += i;
-				buf_used = tail+1+im->width-i ;
-				for( i = im->width-(i+1) ; i >=0 ; --i )
-					dst[i] = data[i] ;
-			}else
-			{
-				dst[tail] = RLE_EOL;
-				buf_used = tail+1;
-			}
-		}
-		dst = dst_start ;
-	}
-	asimage_apply_buffer (im, color, y, dst, buf_used);
-	release_compression_buffer( dst );
-	return buf_used;
+	if( im->channels[color][y] ) 
+		forget_data( NULL, im->channels[color][y] ); 
+	im->channels[color][y] = store_data( NULL, (CARD8*)data, im->width*4, ASStorage_RLEDiffCompress|ASStorage_32Bit, 0);
+	return im->width;
 }
-
 
 
 unsigned int
 asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long verbosity)
 {
-	CARD8       **color_ptr;
-	register CARD8 *ptr;
-	int           to_skip = 0;
-	int 		  uncopressed_size = 0 ;
-
 	if (AS_ASSERT(im) || color < 0 || color >= IC_NUM_CHANNELS )
 		return 0;
 	if (y >= im->height)
 		return 0;
-
-	color_ptr = im->channels[color];
-	if( AS_ASSERT(color_ptr) )
-		return 0;
-	ptr = color_ptr[y];
 	
-	if( get_flags( im->flags, ASIM_STATIC ) ) 
-	{
-		int i ;
-		for( i = 0 ; i < im->width ; ++i ) 
-			fprintf (stderr, " %2.2X", ptr[i]);
-		return im->width ;
-	}
-	
-	if( ptr == NULL )
-	{
-		if(  verbosity != 0 )
-			show_error( "no data available for line %d", y );
-		return 0;
-	}
-	while (*ptr != RLE_EOL)
-	{
-		while (to_skip-- > 0)
-		{
-			if (get_flags (verbosity, VRB_LINE_CONTENT))
-				fprintf (stderr, " %2.2X", *ptr);
-			ptr++;
-		}
-
-		if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
-			fprintf (stderr, "\nControl byte encountered : %2.2X", *ptr);
-
-		if (((*ptr) & RLE_DIRECT_B) != 0)
-		{
-			if( *ptr == RLE_DIRECT_TAIL )
-			{
-				if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
-					fprintf (stderr, " is RLE_DIRECT_TAIL ( %d bytes ) !", im->width-uncopressed_size);
-				if (get_flags (verbosity, VRB_LINE_CONTENT))
-				{
-					to_skip = im->width-uncopressed_size ;
-					while (to_skip-- > 0)
-					{
-						fprintf (stderr, " %2.2X", *ptr);
-						ptr++;
-					}
-				}else
-					ptr += im->width-uncopressed_size ;
-				break;
-			}
-			to_skip = 1 + ((*ptr) & (RLE_DIRECT_D));
-			uncopressed_size += to_skip;
-			if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
-				fprintf (stderr, " is RLE_DIRECT !");
-		} else if (((*ptr) & RLE_SIMPLE_B_INV) == 0)
-		{
-			if( *ptr == RLE_EOL )
-			{
-				if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
-					fprintf (stderr, " is RLE_EOL !");
-				break;
-			}
-			if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
-				fprintf (stderr, " is RLE_SIMPLE !");
-			uncopressed_size += ((int)ptr[0])+ RLE_THRESHOLD;
-			to_skip = 1;
-		} else if (((*ptr) & RLE_LONG_B) != 0)
-		{
-			if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
-				fprintf (stderr, " is RLE_LONG !");
-			uncopressed_size += ((int)ptr[1])+((((int)ptr[0])&RLE_LONG_D ) << 8)+RLE_THRESHOLD;
-			to_skip = 1 + 1;
-		}
-		to_skip++;
-		if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
-			fprintf (stderr, " to_skip = %d, uncompressed size = %d\n", to_skip, uncopressed_size);
-	}
-	if (get_flags (verbosity, VRB_LINE_CONTENT))
-		fprintf (stderr, " %2.2X\n", *ptr);
-
-	ptr++;
-
-	if (get_flags (verbosity, VRB_LINE_SUMMARY))
-		fprintf (stderr, "Row %d, Component %d, Memory Used %ld\n", y, color, (long)(ptr - color_ptr[y]));
-	return ptr - color_ptr[y];
+	return print_storage_slot(NULL, im->channels[color][y]);
 }
 
 void print_asimage( ASImage *im, int flags, char * func, int line )
@@ -1143,240 +813,32 @@ void print_asimage( ASImage *im, int flags, char * func, int line )
 		fprintf( stderr, "%s:%d> Attempted to print NULL ASImage.\n", func, line);
 }
 
-
-
-inline static CARD32*
-asimage_decode_block32 (register CARD8 *src, CARD32 *to_buf, unsigned int width )
-{
-	register CARD32 *dst = to_buf;
-	while ( *src != RLE_EOL)
-	{
-		if( src[0] == RLE_DIRECT_TAIL )
-		{
-			register int i = width - (dst-to_buf) ;
-			dst += i ;
-			src += i+1 ;
-			i = -i ;
-			while( i < 0 )
-			{
-				dst[i] = src[i] ;
-				++i ;
-			}
-			break;
-		}else if( ((*src)&RLE_DIRECT_B) != 0 )
-		{
-			register int i = (((int)src[0])&RLE_DIRECT_D) + 1;
-			dst += i ;
-			src += i+1 ;
-			i = -i ;
-			while( i < 0 )
-			{
-				dst[i] = src[i] ;
-				++i ;
-			}
-		}else if( ((*src)&RLE_LONG_B) != 0 )
-		{
-			register int i = ((((int)src[0])&RLE_LONG_D)<<8|src[1]) + RLE_THRESHOLD;
-			dst += i ;
-			i = -i ;
-			while( i < 0 )
-			{
-				dst[i] = src[2] ;
-				++i ;
-			}
-			src += 3;
-		}else
-		{
-			register int i = (int)src[0] + RLE_THRESHOLD ;
-			dst += i ;
-			i = -i;
-			while( i < 0 )
-			{
-				dst[i] = src[1] ;
-				++i ;
-			}
-			src += 2;
-		}
-	}
-	return dst;
-}
-
-inline static CARD8*
-asimage_decode_block8 (register CARD8 *src, CARD8 *to_buf, unsigned int width )
-{
-	register CARD8 *dst = to_buf;
-	while ( *src != RLE_EOL)
-	{
-		if( src[0] == RLE_DIRECT_TAIL )
-		{
-			register int i = width - (dst-to_buf) ;
-			dst += i ;
-			src += i+1 ;
-			i = -i ;
-			while( i < 0 )
-			{
-				dst[i] = src[i] ;
-				++i ;
-			}
-			break;
-		}else if( ((*src)&RLE_DIRECT_B) != 0 )
-		{
-			register int i = (((int)src[0])&RLE_DIRECT_D) + 1;
-			dst += i ;
-			src += i+1 ;
-			i = -i ;
-			while( i < 0 )
-			{
-				dst[i] = src[i] ;
-				++i ;
-			}
-		}else if( ((*src)&RLE_LONG_B) != 0 )
-		{
-			register int i = ((((int)src[0])&RLE_LONG_D)<<8|src[1]) + RLE_THRESHOLD;
-			dst += i ;
-			i = -i ;
-			while( i < 0 )
-			{
-				dst[i] = src[2] ;
-				++i ;
-			}
-			src += 3;
-		}else
-		{
-			register int i = (int)src[0] + RLE_THRESHOLD ;
-			dst += i ;
-			i = -i;
-			while( i < 0 )
-			{
-				dst[i] = src[1] ;
-				++i ;
-			}
-			src += 2;
-		}
-	}
-	return dst;
-}
-
 void print_component( register CARD32 *data, int nonsense, int len );
 
 inline int
 asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width)
 {
-	int max_i ;
-	register CARD8  *src = im->channels[color][y];
+	ASStorageID id = im->channels[color][y];
 	register int i = 0;
 	/* that thing below is supposedly highly optimized : */
-LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_width = %d, src = %p", im->width, color, y, skip, out_width, src );
+LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_width = %d", im->width, color, y, skip, out_width );
 
-	skip = skip%im->width ;
-	max_i = MIN(out_width,im->width-skip);
-
-	if( get_flags( im->flags, ASIM_STATIC ) ) 
+	if( id )
 	{
-		int k = skip ; 
-		i = skip ;
-		while( k < out_width ) 
-		{
-			while( i < max_i ) 
-				to_buf[k++] = src[i++] ;
-			i = 0 ;
-		}					
-		return im->width ;
-	}
-
-	if( src )
-	{
-#if 1
-  		if( skip > 0 || out_width+skip < im->width)
-		{
-			CARD8 *buffer = get_compression_buffer( im->width );
-
-			asimage_decode_block8( src, buffer, im->width );
-			src = buffer+skip ;
-			while( i < (int)out_width )
-			{
-				while( i < max_i )
-				{
-					to_buf[i] = src[i] ;
-					++i ;
-				}
-				src = buffer-i ;
-				max_i = MIN(out_width,im->width+i) ;
-			}
-		}else
-		{
-#endif
-			i = asimage_decode_block32( src, to_buf, im->width ) - to_buf;
-            LOCAL_DEBUG_OUT( "decoded %d pixels", i );
+		i = fetch_data32( NULL, id, to_buf, skip, out_width, 0);
+        LOCAL_DEBUG_OUT( "decoded %d pixels", i );
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-            {
-                int z = -1 ;
-                while( ++z < i )
-                    fprintf( stderr, "%X ", src[z] );
-                fprintf( stderr, "\n");
+        {
+            int z = -1 ;
+            while( ++z < i )
+                fprintf( stderr, "%X ", to_buf[z] );
+            fprintf( stderr, "\n");
 
-            }
+        }
 #endif
-#if 1
-	  		while( i < (int)out_width )
-			{   /* tiling code : */
-				register CARD32 *src = to_buf-i ;
-				int max_i = MIN(out_width,im->width+i);
-				while( i < max_i )
-				{
-					to_buf[i] = src[i] ;
-					++i ;
-				}
-			}
-#endif
-		}
 		return i;
 	}
 	return 0;
-}
-
-
-inline CARD8*
-asimage_copy_line (register CARD8 *src, int width)
-{
-	register int i = 0;
-
-	/* merely copying the data */
-	if ( src == NULL )
-		return NULL;
-	while (src[i] != RLE_EOL && width )
-	{
-		if ((src[i] & RLE_DIRECT_B) != 0)
-		{
-			if( src[i] == RLE_DIRECT_TAIL )
-			{
-				i += width+1 ;
-				break;
-			}else
-			{
-				register int to_skip = (src[i] & (RLE_DIRECT_D))+1;
-				width -= to_skip ;
-				i += to_skip ;
-			}
-		} else if ((src[i]&RLE_SIMPLE_B_INV) == 0)
-		{
-			width -= ((int)src[i])+ RLE_THRESHOLD;
-			++i ;
-		} else if ((src[i] & RLE_LONG_B) != 0)
-		{
-			register int to_skip = ((((int)src[i])&RLE_LONG_D ) << 8) ;
-			width -= ((int)src[++i])+to_skip+RLE_THRESHOLD;
-			++i;
-		}
-		++i;
-	}
-	if( i > 0 )
-	{
-		CARD8 *res = safemalloc( i+1 );
-		memcpy( res, src, i+1 );
-		return res;
-	}else
-		return NULL ;
 }
 
 unsigned int
@@ -1501,26 +963,19 @@ asimage_threshold_line( CARD8 *src, unsigned int width, unsigned int *runs, unsi
 void
 move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src )
 {
-	if( get_flags( dst->flags, ASIM_STATIC ) || get_flags( src->flags, ASIM_STATIC ) ) 
-		return;
-
 	if( !AS_ASSERT(dst) && !AS_ASSERT(src) && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
 		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
 	{
-		if( dst->width == src->width )
+		register int i = MIN(dst->height, src->height);
+		register ASStorageID *dst_rows = dst->channels[channel_dst] ;
+		register ASStorageID *src_rows = src->channels[channel_src] ;
+		while( --i >= 0 )
 		{
-			register int i = MIN(dst->height, src->height);
-			register CARD8 **dst_rows = dst->channels[channel_dst] ;
-			register CARD8 **src_rows = src->channels[channel_src] ;
-			while( --i >= 0 )
-			{
-				if( dst_rows[i] )
-					free( dst_rows[i] );
-				dst_rows[i] = src_rows[i] ;
-				src_rows[i] = NULL ;
-			}
-		}else
-			show_debug( __FILE__,"move_asimage_channel",__LINE__, "images size differ : %d and %d", src->width, dst->width );
+			if( dst_rows[i] )
+				forget_data( NULL, dst_rows[i] );
+			dst_rows[i] = src_rows[i] ;
+			src_rows[i] = 0 ;
+		}
 	}
 }
 
@@ -1528,35 +983,19 @@ move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_s
 void
 copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src )
 {
-	if( get_flags( dst->flags, ASIM_STATIC ) || get_flags( src->flags, ASIM_STATIC ) ) 
-		return;
-
 	if( !AS_ASSERT(dst) && !AS_ASSERT(src) && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
 		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
 	{
 		register int i = MIN(dst->height, src->height);
+		register ASStorageID *dst_rows = dst->channels[channel_dst] ;
+		register ASStorageID *src_rows = src->channels[channel_src] ;
 		LOCAL_DEBUG_OUT( "src = %p, dst = %p, dst->width = %d, src->width = %d", src, dst, dst->width, src->width );
-		if( dst->width == src->width )
+		while( --i >= 0 )
 		{
-			register CARD8 **dst_rows = dst->channels[channel_dst] ;
-			register CARD8 **src_rows = src->channels[channel_src] ;
-			while( --i >= 0 )
-			{
-				if( dst_rows[i] )
-					free( dst_rows[i] );
-				dst_rows[i] = asimage_copy_line( src_rows[i], dst->width );
-			}
-		}else
-		{
-			CARD32 *buffer = safemalloc( dst->width * sizeof(CARD32));			
-			while( --i >= 0 )
-			{
-				int decoded = asimage_decode_line (src, channel_src, buffer, i, 0, dst->width );
-				LOCAL_DEBUG_OUT( "decoded = %d", decoded );
-				if( decoded == dst->width ) 
-				asimage_add_line (dst, channel_dst, buffer, i) ;
-			}		
-		}	 
+			if( dst_rows[i] )
+				forget_data( NULL, dst_rows[i] );
+			dst_rows[i] = dup_data( NULL, src_rows[i] );
+		}
 	}
 }
 
@@ -1565,12 +1004,8 @@ copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
                     ASImage *src, unsigned int offset_src,
 					unsigned int nlines, ASFlagType filter )
 {
-	if( get_flags( dst->flags, ASIM_STATIC ) || get_flags( src->flags, ASIM_STATIC ) ) 
-		return;
-
 	if( !AS_ASSERT(dst) && !AS_ASSERT(src) &&
-		offset_src < src->height && offset_dst < dst->height &&
-		dst->width == src->width )
+		offset_src < src->height && offset_dst < dst->height )
 	{
 		int chan;
 
@@ -1583,14 +1018,14 @@ copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
 			if( get_flags( filter, 0x01<<chan ) )
 			{
 				register int i = -1;
-				register CARD8 **dst_rows = &(dst->channels[chan][offset_dst]) ;
-				register CARD8 **src_rows = &(src->channels[chan][offset_src]) ;
+				register ASStorageID *dst_rows = &(dst->channels[chan][offset_dst]) ;
+				register ASStorageID *src_rows = &(src->channels[chan][offset_src]) ;
 LOCAL_DEBUG_OUT( "copying %d lines of channel %d...", nlines, chan );
 				while( ++i < (int)nlines )
 				{
 					if( dst_rows[i] )
-						free( dst_rows[i] );
-					dst_rows[i] = asimage_copy_line( src_rows[i], dst->width );
+						forget_data( NULL, dst_rows[i] );
+					dst_rows[i] = dup_data( NULL, src_rows[i] );
 				}
 			}
 #if 0
@@ -1607,28 +1042,14 @@ Bool
 asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp, unsigned int y, Bool verbose)
 {
 	register unsigned int i;
-	if( get_flags( im->flags, ASIM_STATIC ) ) 
-	{
-		CARD8 *src = im->channels[color][y];
-		for( i = 0 ; i < im->width ; i++ )
-			if( src[i] != to_buf[i] )
-			{
-				if( verbose )
-					show_error( "line %d, component %d differ at offset %d ( 0x%lX(compresed) != 0x%lX(orig) )\n", y, color, i, 
-					src[i], to_buf[i] );
-				return False ;
-			}
-	}else
-	{
-		asimage_decode_line( im, color, tmp, y, 0, im->width );
-		for( i = 0 ; i < im->width ; i++ )
-			if( tmp[i] != to_buf[i] )
-			{
-				if( verbose )
-					show_error( "line %d, component %d differ at offset %d ( 0x%lX(compresed) != 0x%lX(orig) )\n", y, color, i, tmp[i], to_buf[i] );
-				return False ;
-			}
-	}
+	asimage_decode_line( im, color, tmp, y, 0, im->width );
+	for( i = 0 ; i < im->width ; i++ )
+		if( tmp[i] != to_buf[i] )
+		{
+			if( verbose )
+				show_error( "line %d, component %d differ at offset %d ( 0x%lX(compresed) != 0x%lX(orig) )\n", y, color, i, tmp[i], to_buf[i] );
+			return False ;
+		}
 	return True;
 }
 
@@ -1641,7 +1062,7 @@ get_asimage_chanmask( ASImage *im)
 	if( !AS_ASSERT(im) )
 		for( color = 0; color < IC_NUM_CHANNELS ; color++ )
 		{
-			register CARD8 **chan = im->channels[color];
+			register ASStorageID *chan = im->channels[color];
 			register int y, height = im->height ;
 			for( y = 0 ; y < height ; y++ )
 				if( chan[y] )
@@ -1737,7 +1158,7 @@ clone_asimage( ASImage *src, ASFlagType filter )
 	if( !AS_ASSERT(src) )
 	{
 		int chan ;
-		dst = create_asimage(src->width, src->height, (src->max_compressed_width*100)/src->width);
+		dst = create_asimage(src->width, src->height, 100);
 		if( get_flags( src->flags, ASIM_DATA_NOT_USEFUL ) )
 			set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 		dst->back_color = src->back_color ;
@@ -1745,10 +1166,10 @@ clone_asimage( ASImage *src, ASFlagType filter )
 			if( get_flags( filter, 0x01<<chan) )
 			{
 				register int i = dst->height;
-				register CARD8 **dst_rows = dst->channels[chan] ;
-				register CARD8 **src_rows = src->channels[chan] ;
+				register ASStorageID *dst_rows = dst->channels[chan] ;
+				register ASStorageID *src_rows = src->channels[chan] ;
 				while( --i >= 0 )
-					dst_rows[i] = asimage_copy_line( src_rows[i], dst->width );
+					dst_rows[i] = dup_data( NULL, src_rows[i] );
 			}
 	}
 	SHOW_TIME("", started);
@@ -1770,7 +1191,7 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 	if( !AS_ASSERT(src) && channel < IC_NUM_CHANNELS )
 	{
 		int i = src->height;
-		CARD8 **src_rows = src->channels[channel] ;
+		ASStorageID  *src_rows = src->channels[channel] ;
 		unsigned int *height = safemalloc( (src->width+1)*2 * sizeof(unsigned int) );
 		unsigned int *prev_runs = NULL ;
 		int prev_runs_count = 0 ;
@@ -1797,14 +1218,7 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 			{
 				if( src_rows[i] )
 				{
-					if( get_flags( src->flags, ASIM_STATIC ) ) 
-					{
-						/* TODO : ! */
-						runs_count = 2 ;
-						runs[0] = 0 ;
-						runs[1] = src->width ;
-					}else
-						runs_count = asimage_threshold_line( src_rows[i], src->width, runs, threshold );
+					runs_count = threshold_stored_data(NULL, src_rows[i], runs, src->width, threshold);
 				}else if( count_empty )
 				{
 					runs_count = 2 ;

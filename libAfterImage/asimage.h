@@ -3,6 +3,7 @@
 
 #include "asvisual.h"
 #include "blender.h"
+#include "asstorage.h"
 /*#define TRACK_ASIMAGES*/
 #ifdef __cplusplus
 extern "C" {
@@ -113,7 +114,6 @@ typedef enum {
 	ASA_ARGB32,
 	ASA_Vector,       /* This cannot be used for transformation's result
 					   * format */
-	ASA_StaticASImage,  /* image is not to be transformed, but to occupy single huge block of memory */
 	ASA_Formats
 }ASAltImFormats;
 /*******/
@@ -163,20 +163,20 @@ typedef struct ASImage
 
   unsigned int width, height;       /* size of the image in pixels */
 
-  /* pointers to arrays of scanlines of particular channel: */
-  CARD8 **alpha,
-  		**red,
-		**green,
-		**blue;
-  CARD8 **channels[IC_NUM_CHANNELS];/* merely a shortcut so we can
+  /* arrays of storage ids of stored scanlines of particular channel: */
+  ASStorageID *alpha,
+  			  *red,
+			  *green,
+			  *blue;
+  
+  ASStorageID *channels[IC_NUM_CHANNELS]; 
+  									/* merely a shortcut so we can
 									 * somewhat simplify code in loops */
 
   ARGB32 back_color ;               /* background color of the image, so
 									 * we could discard everything that
 									 * matches it, and then restore it
 									 * back. */
-  unsigned int max_compressed_width;/* effectively limits compression to
-									 * speed things up */
 
   struct ASImageAlternative
   {  /* alternative forms of ASImage storage : */
@@ -203,16 +203,13 @@ typedef struct ASImage
 #define ASIM_DATA_NOT_USEFUL	(0x01<<0)
 #define ASIM_VECTOR_TOP2BOTTOM	(0x01<<1)
 #define ASIM_XIMAGE_8BIT_MASK	(0x01<<2)
-#define ASIM_STATIC 			(0x01<<3) /* if this is set, then memory for ASImage is allocate
-										   * in one huge block, and its channels/lines cannot be
-										   * moved around and deallocated individually
+#define ASIM_NO_COMPRESSION		(0x01<<3) /* Do not use compression to save 
+										   * some computation time
 										   */
+#define ASIM_ALPHA_IS_BITMAP	(0x01<<4) 
+#define ASIM_RGB_IS_BITMAP		(0x01<<5) 
+
   ASFlagType			 flags ;    /* combination of the above flags */
-  
-  union { 
-  	void *pmem ;   /* ptr to huge block of memory to hold entire image in it */
-	/* todo: obstacks maybe and mmap stuff, and possibly swaping in file */
-  }memory ;
   
 } ASImage;
 /*******/
