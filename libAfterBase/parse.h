@@ -19,6 +19,7 @@ char *stripcpy (const char *source);
 char *stripcpy2 (const char *source, int tab_sensitive);
 char *stripcpy3 (const char *, Bool);
 char *tokencpy (const char *source);
+char *tokenskip( char *start, unsigned int n_tokens );
 struct config *find_config (struct config *, const char *);
 int quotestr (char *dest, const char *src, int maxlen);
 

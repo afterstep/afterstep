@@ -207,6 +207,36 @@ tokencpy (const char *source)
 	return mystrndup (source, ptr - source);
 }
 
+char *
+tokenskip( char *start, unsigned int n_tokens )
+{
+    register int    i ;
+    register char   *cur = start ;
+
+    if( cur == NULL ) return cur ;
+    for (i = 0; i < n_tokens; i++)
+	{
+		while (!isspace (*cur) && *cur)
+        {   /* we have to match doublequotes if we encounter any, to allow for spaces in filenames */
+			if (*cur == '"')
+			{
+				register char *ptr = find_doublequotes (cur);
+
+				if (ptr)
+					while (cur != ptr)
+						cur++;
+			}
+			cur++;
+		}
+
+		while (isspace (*cur) && *cur)
+			cur++;
+		if (*cur == '\0')
+			break;
+	}
+    return cur;
+}
+
 /****************************************************************************
  *
  * Matches text from config to a table of strings.
