@@ -1354,7 +1354,6 @@ void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
 #ifdef WORDS_BIGENDIAN
-SHOW_CHECKPOINT;
 	if( !asv->msb_first )
 #else
 	if( asv->msb_first )
@@ -1366,7 +1365,7 @@ SHOW_CHECKPOINT;
 				break;
 			/* carry over quantization error allow for error diffusion:*/
 			c = ((c>>1)&0x00300C03)+((r[i]<<20) | (g[i]<<10) | (b[i]));
-fprintf( stderr, "%s:%d src[%d] = 0x%4.4X, c = 0x%X, color[%d] = #%2.2X%2.2X%2.2X\n", __FUNCTION__, __LINE__, i+1, src[i+1], c, i, r[i], g[i], b[i]);
+/*fprintf( stderr, "%s:%d src[%d] = 0x%4.4X, c = 0x%X, color[%d] = #%2.2X%2.2X%2.2X\n", __FUNCTION__, __LINE__, i+1, src[i+1], c, i, r[i], g[i], b[i]);*/
 			{
 				register CARD32 d = c&0x300C0300 ;
 				if( d )
@@ -1379,7 +1378,7 @@ fprintf( stderr, "%s:%d src[%d] = 0x%4.4X, c = 0x%X, color[%d] = #%2.2X%2.2X%2.2
 						d |= 0x000000FF ;
 					c ^= d;
 				}
-fprintf( stderr, "%s:%d c = 0x%X, d = 0x%X, c^d = 0x%X\n", __FUNCTION__, __LINE__, c, d, c^d );
+/*fprintf( stderr, "%s:%d c = 0x%X, d = 0x%X, c^d = 0x%X\n", __FUNCTION__, __LINE__, c, d, c^d );*/
 			}
 		}while(1);
 	else
