@@ -239,7 +239,8 @@ void       free_scanline( ASScanline *sl, Bool reusable );
  *  create_visual_ximage() - to create XImage
  * ASVisual could be dealolocated and its resources freed with :
  *  destroy_asvisual()
- * SEE ALSO
+ * EXAMPLE
+ * asview.c: ASView
  * SOURCE
  */
 typedef struct ASVisual
@@ -392,6 +393,8 @@ void setup_as_colormap( ASVisual *asv );
  * Cleanup function. Frees all the memory and deallocates all the
  * resources. If reusable is False it will also free the object, pointed
  * to by asv.
+ * EXAMPLE
+ * asview.c: ASView.2
  *********/
 ASVisual *create_asvisual( Display *dpy, int screen, int default_depth,
 	                       ASVisual *reusable_memory );

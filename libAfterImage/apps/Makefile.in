@@ -36,7 +36,7 @@ GNUSTEP		= @with_gnustep_dir@
 GNUSTEPLIB	= @with_gnustep_lib@
 AFTER_DIR	= @with_afterdir@
 
-all:    $(PROGS) 
+all:    $(PROGS)
 
 install.bin:	$(PROGS)
 		@for p in $(PROGS); do \
@@ -111,8 +111,8 @@ deps:
 		  echo $$buf >>.depend ; \
 		fi
 
-asview: asview.o
-		$(CC) asview.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asview
+asview: asview.o common.o
+		$(CC) asview.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asview
 
 .c.o:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c

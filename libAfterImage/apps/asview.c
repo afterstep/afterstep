@@ -2,65 +2,23 @@
 
 #include <string.h>
 
+/****h* libAfterImage/tutorials/ASView
+ * SYNOPSIS
+ * Simple image viewer based on libAfterImage.
+ * DESCRIPTION
+ * All we want to do here is to get image filename from the command line,
+ * then load this image, and display it in simple window.
+ * After that we would want to wait, until user closes our window.
+ * SOURCE
+ */
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xproto.h>
 #include <X11/Xatom.h>
 
 #include "afterimage.h"
-
-#ifndef HAVE_AFTERBASE
-char *ApplicationName ;
-Display *dpy ;
-
-void
-set_application_name (char *argv0)
-{
-	char         *temp = strrchr (argv0, '/');
-
-	/* Save our program name - for error messages */
-	ApplicationName = temp ? temp + 1 : argv0;
-}
-
-const char *
-get_application_name()
-{
-	return ApplicationName;
-}
-
-unsigned int
-get_output_threshold()
-{
-  return 5 ;
-}
-#endif
-
-Atom _XA_WM_DELETE_WINDOW = None;
-
-
-Window 
-create_top_level_window( ASVisual *asv, Window root, int x, int y, unsigned int width, unsigned int height, unsigned int border_width, unsigned long attr_mask, XSetWindowAttributes *attr, char *app_class )
-{
-	Window w ;
-	char *tmp ;
-	XTextProperty name;
-	XClassHint class1;
-
-	w = create_visual_window(asv, root, x, y, width, height, border_width, InputOutput, attr_mask, attr );
-
-	tmp = (char*)get_application_name();
-    XStringListToTextProperty (&tmp, 1, &name);
-
-    class1.res_name = tmp;	/* for future use */
-    class1.res_class = app_class;
-    XSetWMProtocols (dpy, w, &_XA_WM_DELETE_WINDOW, 1);
-    XSetWMProperties (dpy, w, &name, &name, NULL, 0, NULL, NULL, &class1);
-    /* final cleanup */
-    XFree ((char *) name.value);
-	
-	return w;
-}
-
+#include "common.h"
 
 int main(int argc, char* argv[])
 {
@@ -69,31 +27,35 @@ int main(int argc, char* argv[])
 	int screen, depth ;
 	char *image_file = "test.xpm" ;
 	ASImage *im ;
-
+	/* see ASView.1 : */
 	set_application_name( argv[0] );
-	
-	if( argc > 1 ) 
+
+	if( argc > 1 )
 		image_file = argv[1] ;
-	
+
     dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 	screen = DefaultScreen(dpy);
 	depth = DefaultDepth( dpy, screen );
-	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL ); 
-	
-	if( im != NULL ) 
-	{	
+	/* see ASView.2 : */
+	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
+
+	if( im != NULL )
+	{
+		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
-		
+		/* see ASView.4 : */
 		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32, im->width, im->height, 1, 0, NULL, "ASView" );
 		if( w != None )
 		{
 			Pixmap p ;
-			
+
 			XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
 	  		XMapRaised   (dpy, w);
+			/* see ASView.5 : */
 			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, False );
-			if( p != None ) 
+			destroy_asimage( &im );
+			if( p != None )
 			{
 				XSetWindowBackgroundPixmap( dpy, w, p );
 				XClearWindow( dpy, w );
@@ -101,8 +63,8 @@ int main(int argc, char* argv[])
 				XFreePixmap( dpy, p );
 				p = None ;
 			}
-		}	
-
+		}
+		/* see ASView.6 : */
 	    while(w != None)
   		{
     		XEvent event ;
@@ -122,8 +84,166 @@ int main(int argc, char* argv[])
 					break;
 			}
   		}
-	}		
+	}
     if( dpy )
         XCloseDisplay (dpy);
     return 0 ;
 }
+/**************/
+
+/****f* libAfterImage/tutorials/ASView.1 [1.1]
+ * SYNOPSIS
+ * Step 1. Initialization.
+ * DESCRIPTION
+ * libAfterImage requires only 2 global things to be setup, and both of
+ * those are inherited from libAfterBase: dpy - pointer to open X display -
+ * naturally that is something we cannot live without; application name -
+ * used in all the text output, such as error and warning messages and
+ * also debugging messages if such are enabled.
+ * The following two line are about all that is required to setup both
+ * of this global variables :
+ * EXAMPLE
+ *     set_application_name( argv[0] );
+ *     dpy = XOpenDisplay(NULL);
+ * NOTES
+ * First line is setting up application name from command line's
+ * program name. Second opens up X display specified in DISPLAY env.
+ * variable. Naturally based on application purpose different parameters
+ * can be passed to these functions, such as some custom display string.
+ * SEE ALSO
+ * libAfterBase, set_application_name(), XOpenDisplay(), Display,
+ *******/
+/****f* libAfterImage/tutorials/ASView.2 [1.2]
+ * SYNOPSIS
+ * Step 2. Loading image file.
+ * DESCRIPTION
+ * At this point we are ready to load image from file into memory. Since
+ * libAfterImage does not use any X facilities to store image - we don't
+ * have to create any window or anything else yet. Even dpy is optional
+ * here - it will only be used to try and parse names of colors from
+ * .XPM images.
+ * EXAMPLE
+ *     im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL);
+ * NOTES
+ * We used compression set to 0, as we do not intend to store
+ * image in memory for any considerable amount of time, and we want to
+ * avoid additional processing overhead related to image compression.
+ * If image was loaded successfully, which is indicated by returned
+ * pointer being not NULL, we can proceed to creation of the window and
+ * displaying of the image.
+ * SEE ALSO
+ * file2ASImage()
+ ********/
+/****f* libAfterImage/tutorials/ASView.3 [1.3]
+ * SYNOPSIS
+ * Step 3. Preparation of the visual.
+ * DESCRIPTION
+ * At this point we have to obtain Visual information, as window
+ * creation is highly dependant on Visual being used. In fact when X
+ * creates a window it ties it to a particular Visual, and all its
+ * attributes, such as colormap, pixel values, pixmaps, etc. must be
+ * associated with the same Visual. Accordingly we need to acquire
+ * ASVisual structure, which is our abstraction layer from them naughty
+ * X Visuals. :
+ * EXAMPLE
+ *     asv = create_asvisual( dpy, screen, depth, NULL );
+ * NOTES
+ * If any Window or Pixmap is created based on particular ASVisual, then
+ * this ASVisual structure must not be destroyed untill all such
+ * Windows and Pixmaps are destroyed.
+ * SEE ALSO
+ * See create_asvisual() for details.
+ ********/
+/****f* libAfterImage/tutorials/ASView.4 [1.4]
+ * SYNOPSIS
+ * Step 4. Preparation of the window.
+ * DESCRIPTION
+ * Creation of top level window consists of several steps of its own:
+ * a) create the window of desired size and placement
+ * b) set ICCCM hints on the window
+ * c) select appropriate events on the window
+ * c) map the window.
+ * First two steps has been moved out into create_top_level_window()
+ * function.
+ * EXAMPLE
+ *     w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+ *                                  im->width, im->height, 1, 0, NULL,
+ *                                  "ASView" );
+ *     if( w != None )
+ *     {
+ *         XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
+ *         XMapRaised   (dpy, w);
+ *     }
+ * NOTES
+ * Map request should be made only for window that has all its hints set
+ * up already, so that Window Manager can read them right away.
+ * We want to map window as soon as possible so that User could see that
+ * something really is going on, even before image is displayed.
+ * SEE ALSO
+ * ASImage, create_top_level_window()
+ ********/
+/****f* libAfterImage/tutorials/ASView.5 [1.5]
+ * SYNOPSIS
+ * Step 5. Displaying the image.
+ * DESCRIPTION
+ * The simplest way to display image in the window is to convert it
+ * into Pixmap, then set Window's background to this Pixmap, and,
+ * at last, clear the window, so that background shows up.
+ * EXAMPLE
+ *     p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, False );
+ *     destroy_asimage( &im );
+ *     if( p != None )
+ * 	   {
+ *	       XSetWindowBackgroundPixmap( dpy, w, p );
+ *		   XClearWindow( dpy, w );
+ *		   XFlush( dpy );
+ *		   XFreePixmap( dpy, p );
+ *		   p = None ;
+ *     }
+ * NOTES
+ * After Window's background has been set to Pixmap - X server makes
+ * hidden copy of this Pixmap for later window refreshing. As the result
+ * original Pixmap is no longer needed and can be freed to conserve
+ * resources. Likewise we no longer need ASImage after we transfered it
+ * onto the Pixmap.
+ * SEE ALSO
+ * asimage2pixmap(), destroy_asimage()
+ ********/
+/****f* libAfterImage/tutorials/ASView.6 [1.6]
+ * SYNOPSIS
+ * Step 6. Waiting for user to close our window.
+ * DESCRIPTION
+ * User action requesting window to be closed is generally received
+ * first by Window Manager. Window Manager is then handles it down to
+ * the window by sending it ClientMessage event with first 32 bit word
+ * of data set to the value of WM_DELETE_WINDOW Atom.
+ * Accordingly, all client has to do is wait for such event from X server
+ * and, when received, it should destroy its window and generally exit.
+ * EXAMPLE
+ *     while(w != None)
+ *     {
+ *         XEvent event ;
+ *         XNextEvent (dpy, &event);
+ *         switch(event.type)
+ *         {
+ *             case ButtonPress:
+ *                 break ;
+ *             case ClientMessage:
+ *                 if ((event.xclient.format == 32) &&
+ *                     (event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
+ *                 {
+ *                     XDestroyWindow( dpy, w );
+ *                     XFlush( dpy );
+ *                     w = None ;
+ *                 }
+ *                 break;
+ *         }
+ *     }
+ * NOTES
+ * It is recommended that XFlush() is issued right after XDestroyWindow()
+ * as Window Manager itself may attempt to do something with the window
+ * until it receives DestroyNotify event.
+ * SEE ALSO
+ * ICCCM, Window
+ ********/
+

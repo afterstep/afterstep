@@ -119,19 +119,28 @@
  * well. If libAfterBase is not found at compilation time - libAfterImage
  * will use extract from libAfterBase included with libAfterImage.
  *
+ * EXAMPLE
+ * ASView  - image loading from the file and displaying in window.
+ * ASScale - image loading from file and scaling to arbitrary size.
+ * ASTint  - image loading from file and tinting to arbitrary color.
+ * ASMerge - imgae loading and merging with another image.
+ * ASGrad  - mutlipoint gradient drawing.
+ * ASFlip  - image loading from file and rotation.
+ * ASText  - trexturized semitransparent antialised text drawing.
+ *
  * SEE ALSO
  * Headers :
  *          asvisual.h, blender.h, asimage.h, import.h, asfont.h
  * Structures :
- *  	    ColorPair
- *  	    ASScanline
- *  	    ASVisual
- *     	    ASImage
- * 		    ASImageBevel
- * 		    ASImageDecoder
- * 		    ASImageOutput
- * 		    ASImageLayer
- * 		    ASGradient
+ *          ColorPair
+ *          ASScanline
+ *          ASVisual
+ *          ASImage
+ *          ASImageBevel
+ *          ASImageDecoder
+ *          ASImageOutput
+ *          ASImageLayer
+ *          ASGradient
  *          ASFontManager
  *          ASFont
  *          ASGlyph

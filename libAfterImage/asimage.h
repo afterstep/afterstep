@@ -565,11 +565,13 @@ typedef struct ASGradient
 /****f* libAfterImage/asimage/destroy_asimage()
  * SYNOPSIS
  * void destroy_asimage( ASImage **im );
+ * INPUTS
+ * im				- pointer to valid ASImage structure.
  * DESCRIPTION
  * frees all the memory allocated for specified ASImage. If there was
  * XImage attached to it - it will be deallocated as well.
- * INPUTS
- * im				- pointer to valid ASImage structure.
+ * EXAMPLE
+ * asview.c: ASView.5
  *********/
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
@@ -918,6 +920,8 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * It then uses supplied gc or DefaultGC of the screen to transfer
  * XImage to the server and put it on Pixmap.
  * Missing scanlines get filled with black color.
+ * EXAMPLE
+ * asview.c: ASView.5
  * SEE ALSO
  * asimage2ximage()
  * create_visual_pixmap()

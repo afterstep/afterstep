@@ -96,6 +96,8 @@ ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *
  * files.
  * After the file is found file2ASImage() attempts to detect file format,
  * and if it is known it will load it into new ASImage structure.
+ * EXAMPLE
+ * asview.c: ASView.2
  *********/
 /****f* libAfterImage/import/file2pixmap()
  * SYNOPSIS

@@ -15,6 +15,8 @@ LIB_OBJS= @AFTERBASE_C@ asfont.o asimage.o asvisual.o blender.o \
 LIB_DOCS= afterimage.h asfont.h asimage.h asvisual.h blender.h \
           import.h
 
+LIB_TUTORIALS= asview.c common.c
+
 # end specifics
 ################################################################
 # generic makefile stuff :
@@ -214,16 +216,22 @@ doc.xref: $(LIB_DOCS)
 		$(ROBODOC) $$f.h $$f.html HTML C TABSIZE 4 GENXREF doc/$$f.xref; \
 		echo "doc/$$f.xref" >> afterimage_xref.lst; \
 	done; \
+	SRCS=`echo "$(LIB_TUTORIALS) " | sed "s/.c / /g"`; \
+	for f in $$SRCS; do \
+		$(ROBODOC) apps/$$f.c $$f.html HTML C TABSIZE 4 GENXREF doc/$$f.xref; \
+		echo "doc/$$f.xref" >> afterimage_xref.lst; \
+	done; \
 	echo "doc/x11_symbols.xref" >> afterimage_xref.lst; \
 	echo "doc/freetype_symbols.xref" >> afterimage_xref.lst;
-
-
-
 
 doc.html:  doc.xref
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
 	for f in $$SRCS; do \
 		$(ROBODOC) $$f.h doc/html/$$f.html HTML C TABSIZE 4 XREF afterimage_xref.lst; \
+	done; \
+	SRCS=`echo "$(LIB_TUTORIALS) " | sed "s/.c / /g"`; \
+	for f in $$SRCS; do \
+		$(ROBODOC) apps/$$f.c doc/html/$$f.html HTML C TABSIZE 4 XREF afterimage_xref.lst; \
 	done;
 
 doc.man:  doc.xref

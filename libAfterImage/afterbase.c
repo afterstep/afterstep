@@ -30,7 +30,28 @@
 #include "afterbase.h"
 
 Display *dpy ;
+char    *asim_ApplicationName ;
 
+void
+set_application_name (char *argv0)
+{
+	char         *temp = strrchr (argv0, '/');
+
+	/* Save our program name - for error messages */
+	asim_ApplicationName = temp ? temp + 1 : argv0;
+}
+
+const char *
+get_application_name()
+{
+	return asim_ApplicationName;
+}
+
+unsigned int
+get_output_threshold()
+{
+  return 5 ;
+}
 
 /* from libAfterBase/output.c : */
 Bool asim_show_error( const char *error_format, ...)
