@@ -1057,7 +1057,7 @@ HandleConfigureRequest ( ASEvent *event )
 	 * Instead, we'll read the current geometry.  Therefore, we should respond
 	 * to configuration requests for windows which have never been mapped.
 	 */
-    
+
     if (asw == NULL)
 	{
         unsigned long xwcm;

@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (C) 1995 Bo Yang
@@ -119,6 +120,8 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
 	if( AS_ASSERT(asw) || AS_ASSERT(rd) )
 		return False;
 
+	LOCAL_DEBUG_OUT( "asw(%p)->magic(%lX)->icon_canvas(%p)->icon_title_canvas(%p)->icon_button(%p)->icon_title(%p)",
+					 asw, asw->magic, asw->icon_canvas, asw->icon_title_canvas, asw->icon_button, asw->icon_title );
     if( asw->icon_canvas == NULL || rd->ib == NULL )
         return True;
 

@@ -1966,7 +1966,10 @@ LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d", asw, iconify );
         asw->DeIconifyDesk = ASWIN_DESK(asw);
         if( asw->wm_state_transition == ASWT_StableState )
         {
-            asw->wm_state_transition = ASWT_Normal2Iconic ;
+			if( get_flags( asw->status->flags, AS_Iconic ) )
+				return False;
+
+			asw->wm_state_transition = ASWT_Normal2Iconic ;
             set_flags( asw->status->flags, AS_Iconic );
             if( get_flags( Scr.Feel.flags, StickyIcons ) || ASWIN_DESK(asw) == Scr.CurrentDesk )
                 quietly_reparent_aswindow( asw, Scr.Root, True );
@@ -2015,6 +2018,8 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
     {   /* Performing transition IconicState->NormalState  */
         if( asw->wm_state_transition == ASWT_StableState )
         {
+			if( !get_flags( asw->status->flags, AS_Iconic ) )
+				return False;
             asw->wm_state_transition = ASWT_Iconic2Normal ;
             clear_flags( asw->status->flags, AS_Iconic );
             remove_iconbox_icon( asw );
