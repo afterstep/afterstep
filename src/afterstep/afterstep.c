@@ -91,17 +91,17 @@ main (int argc, char **argv)
 	Bool bypass_autoexec = False ;
 
 #ifdef LOCAL_DEBUG
-#if 0
-	LOCAL_DEBUG_OUT( "calibrating sleep_a_little : %s","" );
+#if 1
+	LOCAL_DEBUG_OUT( "calibrating sleep_a_millisec : %s","" );
 	for( i = 0 ; i < 500 ; ++i )
 		sleep_a_millisec( 10 );
-	LOCAL_DEBUG_OUT( "500 sliip_a_little(10) completed%s","" );
+	LOCAL_DEBUG_OUT( "500 sliip_a_millisec(10) completed%s","" );
 	for( i = 0 ; i < 50 ; ++i )
 		sleep_a_millisec( 100 );
-	LOCAL_DEBUG_OUT( "50 sliip_a_little(100) completed%s","" );
+	LOCAL_DEBUG_OUT( "50 sliip_a_millisec(100) completed%s","" );
 	for( i = 0 ; i < 10 ; ++i )
 		sleep_a_millisec( 300 );
-	LOCAL_DEBUG_OUT( "10 sliip_a_little(300) completed%s","" );
+	LOCAL_DEBUG_OUT( "10 sliip_a_millisec(300) completed%s","" );
 #endif
 #endif
 
