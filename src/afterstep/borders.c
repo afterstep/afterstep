@@ -61,7 +61,6 @@
 #include "../../include/ascolor.h"
 #include "../../include/stepgfx.h"
 
-#include "../../include/XImage_utils.h"
 #include "../../include/pixmap.h"
 
 #ifdef SHAPE
@@ -78,7 +77,7 @@
          }
 
 extern Window PressedW;
-
+extern char *TextTextureStyle ;
 
 
 /**************************************************************
@@ -417,7 +416,7 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
   int i, text_x = 0, text_y = 0, text_w = 0;
   GC DrawGC, ReliefGC, ShadowGC;
   char *txt = NULL;
-  MyStyle *style;
+  MyStyle *style, *text_texture_style = NULL;
 #ifdef I18N
 #undef FONTSET
 #define FONTSET (*style).font.fontset
@@ -546,26 +545,13 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 	}
       if (t->name != NULL)
 	{
-	  if (is_focus && (Textures.flags & GradientText))
-	    {
-#ifdef I18N
-	      DrawTexturedText (dpy, t->title_w, (*style).font.font,
-		    (*style).font.fontset, text_x, text_y - (*style).font.y,
-				Scr.TitleGradient, txt, strlen (txt));
-#else /* I18N undefined */
-	      DrawTexturedText (dpy, t->title_w, (*style).font.font, text_x,
-				text_y - (*style).font.y, Scr.TitleGradient,
-				txt, strlen (txt));
-#endif /* I18N */
-	    }
-	  else if (t->flags & VERTICAL_TITLE)
-	    {
-	      mystyle_draw_vertical_text (t->title_w, style, txt, text_x, text_y);
-	    }
-	  else
-	    {
-	      mystyle_draw_text (t->title_w, style, txt, text_x, text_y);
-	    }
+		if (is_focus && TextTextureStyle != NULL)
+		    text_texture_style = mystyle_find(TextTextureStyle);
+
+	    if (t->flags & VERTICAL_TITLE)
+	    	mystyle_draw_texturized_vertical_text (t->title_w, style, text_texture_style, txt, text_x, text_y);
+		else
+	    	mystyle_draw_texturized_text (t->title_w, style, text_texture_style, txt, text_x, text_y);
 	}
 #else /* NO_TEXTURE defined */
       if (t->name != (char *) NULL)

@@ -111,6 +111,8 @@ typedef struct ScreenInfo
     int NumberOfScreens;	/* number of screens on display */
     int MyDisplayWidth;		/* my copy of DisplayWidth(dpy, screen) */
     int MyDisplayHeight;	/* my copy of DisplayHeight(dpy, screen) */
+	
+	struct ASVisual *asv ;  /* ASVisual for libAfterImage */
 
     ASWindow ASRoot;		/* the head of the afterstep window list */
     Window Root;		/* the root window */

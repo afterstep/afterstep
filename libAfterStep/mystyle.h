@@ -70,13 +70,18 @@ if (my_global_style == NULL)
 mystyle_fix_styles ();
 #endif /* Example */
 
+struct ASImage;
+struct ASGradient;
+
+
 typedef struct icon_t
   {
-    XImage *image;		/* XImage of pix, to reduce XGetImage() calls */
+    struct ASImage *image;		/* ASImage of pix, to reduce XGetImage() calls */
     Pixmap pix;			/* icon pixmap */
     Pixmap mask;		/* icon mask */
     int width;			/* icon width */
     int height;			/* icon height */
+	Atom im_name ;
   }
 icon_t;
 
@@ -105,8 +110,8 @@ typedef struct MyStyle
 #ifndef NO_TEXTURE
     int max_colors;
     icon_t back_icon;		/* background pixmap */
-    gradient_t gradient;	/* background gradient */
-    XColor tint;
+    ASGradient gradient;	/* background gradient */
+    ARGB32 tint;
 #endif
   }
 MyStyle;
@@ -131,6 +136,29 @@ enum				/* MyStyle options */
     F_BACKMULTIGRADIENT = (1 << 12),
     F_BACKTRANSPIXMAP = (1 << 13)	/* should never be set unless F_BACKPIXMAP is set!! */
   };
+  
+  enum				/* texture types */
+  {
+    TEXTURE_SOLID = 0,
+
+    TEXTURE_GRADIENT = 1,
+    TEXTURE_HGRADIENT = 2,
+    TEXTURE_HCGRADIENT = 3,
+    TEXTURE_VGRADIENT = 4,
+    TEXTURE_VCGRADIENT = 5,
+    TEXTURE_GRADIENT_TL2BR = 6,
+    TEXTURE_GRADIENT_BL2TR = 7,
+    TEXTURE_GRADIENT_T2B = 8,
+    TEXTURE_GRADIENT_L2R = 9,
+
+    TEXTURE_PIXMAP = 128,
+    TEXTURE_TRANSPARENT = 129,
+    TEXTURE_TRANSPIXMAP = 130, /* 130-145 represent different 
+	                              blending methods from libAfterImage */
+
+    TEXTURE_BUILTIN = 255
+  };
+
 
 /* serice functions */
 GC CreateTintGC (Drawable d, unsigned long tintColor, int function);
@@ -145,6 +173,9 @@ void mystyle_get_global_gcs (MyStyle * style, GC * foreGC, GC * backGC, GC * rel
 void mystyle_get_text_geometry (MyStyle * style, const char *str, int len, int *width, int *height);
 void mystyle_draw_text (Window w, MyStyle * style, const char *text, int x, int y);
 void mystyle_draw_vertical_text (Window w, MyStyle * style, const char *text, int ix, int y);
+void mystyle_draw_texturized_text (Window w, MyStyle * style, MyStyle *fore_texture, const char *text, int x, int y);
+void mystyle_draw_texturized_vertical_text (Window w, MyStyle * style, MyStyle *fore_texture, const char *text, int x, int y);
+int mystyle_translate_grad_type( int type );
 
 void mystyle_fix_styles (void);
 Pixmap mystyle_make_pixmap (MyStyle * style, int width, int height, Pixmap cache);
@@ -162,7 +193,7 @@ MyStyle *mystyle_find_or_default (const char *name);
 void mystyle_parse (char *tline, FILE * fd, char **junk, int *junk2);
 int mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath);
 void mystyle_parse_set_style (char *text, FILE * fd, char **style, int *junk2);
-int mystyle_parse_old_gradient (int type, const char *color1, const char *color2, gradient_t * gradient);
+int mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient *gradient);
 
 void set_func_arg (char *text, FILE * fd, char **value, int *junk);
 

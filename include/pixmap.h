@@ -1,6 +1,9 @@
 #ifndef PIXMAP_H_INCLUDED
 #define PIXMAP_H_INCLUDED
 
+#include "../libAfterImage/afterimage.h"
+#include "../libAfterImage/pixmap.h"
+#if 0
 #ifndef NO_PIXMAP_PROTOS
 void CopyAndShadeArea (Drawable src, Pixmap trg,
 		       int x, int y, int w, int h,
@@ -27,5 +30,5 @@ Pixmap ValidatePixmap (Pixmap p, int bSetHandler, int bTransparent, unsigned int
 int fill_with_darkened_background (Pixmap * pixmap, XColor color, int x, int y, int width, int height, int root_x, int root_y, int bDiscardOriginal);
 int fill_with_pixmapped_background (Pixmap * pixmap, XImage * image, int x, int y, int width, int height, int root_x, int root_y, int bDiscardOriginal);
 #endif
-
+#endif
 #endif

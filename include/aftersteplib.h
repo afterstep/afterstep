@@ -58,6 +58,7 @@ char *mystrndup (const char *str, size_t n);
 
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "../libAfterBase/audit.h"
 #include "../libAfterBase/safemalloc.h"
 #include "../libAfterBase/mystring.h"
@@ -78,13 +79,6 @@ char *mystrndup (const char *str, size_t n);
 #define CLAMP(a,b,c)        ((a)<(b) ? (b) : ((a)>(c) ? (c) : (a)))
 #define CLAMP_SIZE(a,b,c)   ((a)<(b) ? (b) : ((c)!=-1&&(a)>(c) ? (c) : (a)))
 
-typedef struct gradient_t
-  {
-    int npoints;
-    XColor *color;
-    double *offset;
-  }
-gradient_t;
 
 #include "general.h"		/* because misc.h is already taken */
 #include "font.h"

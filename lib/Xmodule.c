@@ -51,6 +51,7 @@
 #include "../include/screen.h"
 #include "../include/module.h"
 #include "../libAfterBase/selfdiag.h"
+#include "../libAfterImage/afterimage.h"
 
 #ifdef HAVE_XINERAMA
 static int XineEventBase, XineErrorBase;
@@ -204,6 +205,8 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask)
   scr->MyDisplayWidth = DisplayWidth (dpy, scr->screen);
   scr->MyDisplayHeight = DisplayHeight (dpy, scr->screen);
   scr->CurrentDesk = -1;
+  
+  scr->asv = create_asvisual( dpy, scr->screen, scr->d_depth, NULL );
 
 #ifdef HAVE_XINERAMA
   if( XineramaQueryExtension(dpy, &XineEventBase, &XineErrorBase))

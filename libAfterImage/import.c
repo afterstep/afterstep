@@ -603,7 +603,8 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 				im = create_asimage( width, height, compression );
 				prepare_scanline( im->width, 0, &buf, False );
 				do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
-				grayscale = (color_type == PNG_COLOR_TYPE_GRAY_ALPHA) ;
+				grayscale = ( color_type == PNG_COLOR_TYPE_GRAY_ALPHA || 
+				              color_type == PNG_COLOR_TYPE_GRAY) ;
 
 				row_bytes = png_get_rowbytes (png_ptr, info_ptr);
 				/* allocating big chunk of memory at once, to enable mmap

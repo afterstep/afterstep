@@ -1743,6 +1743,8 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 				register CARD32 *dst = scl->channels[i]+skip;
 				register int k  = 0;
 				count = xim_width-offset_x ;
+				if( count >= width )
+					count = width ;
 
 #define COPY_TILE_CHAN(op) \
 		for(; k < count ; k++ )	dst[k] = op; \

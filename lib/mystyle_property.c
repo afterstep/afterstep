@@ -27,6 +27,11 @@
 #include <X11/Xutil.h>
 
 #include "../include/aftersteplib.h"
+#include "../include/afterstep.h"
+#include "../include/parse.h"
+#include "../include/misc.h"
+#include "../include/style.h"
+#include "../include/screen.h"
 #include "../include/mystyle.h"
 #include "../include/mystyle_property.h"
 #include "../include/asproperty.h"
@@ -73,17 +78,17 @@ mystyle_set_property (Display * dpy, Window w, Atom name, Atom type)
       prop[i++] = style->max_colors;
       prop[i++] = style->back_icon.pix;
       prop[i++] = style->back_icon.mask;
-      prop[i++] = style->tint.red;
-      prop[i++] = style->tint.green;
-      prop[i++] = style->tint.blue;
+      prop[i++] = style->tint;
+      prop[i++] = style->tint;
+      prop[i++] = style->tint;
       prop[i++] = style->gradient.npoints;
       {
 	int k;
 	for (k = 0; k < style->gradient.npoints; k++)
 	  {
-	    prop[i++] = style->gradient.color[k].red;
-	    prop[i++] = style->gradient.color[k].green;
-	    prop[i++] = style->gradient.color[k].blue;
+	    prop[i++] = style->gradient.color[k];  
+	    prop[i++] = style->gradient.color[k]; /* for compatibility with older version */
+	    prop[i++] = style->gradient.color[k]; /* for compatibility with older version */
 	    prop[i++] = style->gradient.offset[k] * 0x1000000;
 	  }
       }
@@ -139,7 +144,7 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
 	    XFreePixmap (dpy, style->back_icon.mask);
 	}
       if (style->user_flags & F_BACKTRANSPIXMAP)
-	XDestroyImage (style->back_icon.image);
+	destroy_asimage (&(style->back_icon.image));
 #endif /* NO_TEXTURE */
 
       style->user_flags = 0;
@@ -173,20 +178,24 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
       style->max_colors = prop[i + 9];
       style->back_icon.pix = prop[i + 10];
       style->back_icon.mask = prop[i + 11];
-      style->tint.red = prop[i + 12];
-      style->tint.green = prop[i + 13];
-      style->tint.blue = prop[i + 14];
+      style->tint = prop[i + 12];
+	  /* for compatibility : */
+      style->tint = prop[i + 13];
+      style->tint = prop[i + 14];
       style->gradient.npoints = prop[i + 15];
       if (style->inherit_flags & F_BACKGRADIENT)
 	{
 	  size_t k;
-	  style->gradient.color = NEW_ARRAY (XColor, style->gradient.npoints);
+	  style->gradient.type = mystyle_translate_grad_type(style->texture_type);
+	  style->gradient.color = NEW_ARRAY (ARGB32, style->gradient.npoints);
 	  style->gradient.offset = NEW_ARRAY (double, style->gradient.npoints);
 	  for (k = 0; k < style->gradient.npoints; k++)
 	    {
-	      style->gradient.color[k].red = prop[i + 16 + k * 4 + 0];
-	      style->gradient.color[k].green = prop[i + 16 + k * 4 + 1];
-	      style->gradient.color[k].blue = prop[i + 16 + k * 4 + 2];
+	      style->gradient.color[k] = prop[i + 16 + k * 4 + 0];
+		  /* 
+	    	  style->gradient.color[k].green = prop[i + 16 + k * 4 + 1];
+		      style->gradient.color[k].blue = prop[i + 16 + k * 4 + 2];
+		   */
 	      style->gradient.offset[k] = (double) prop[i + 16 + k * 4 + 3] / 0x1000000;
 	    }
 	  style->user_flags |= F_BACKGRADIENT;
@@ -233,7 +242,7 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
 	  /* that failed, so create the XImage here */
 	  if (tmp == NULL)
 	    {
-	      style->back_icon.image = XGetImage (dpy, style->back_icon.pix, 0, 0, style->back_icon.width, style->back_icon.height, AllPlanes, ZPixmap);
+	      style->back_icon.image = pixmap2asimage (Scr.asv, style->back_icon.pix, 0, 0, style->back_icon.width, style->back_icon.height, AllPlanes, False, 100);
 	      style->user_flags |= F_BACKTRANSPIXMAP;
 	      style->inherit_flags &= ~F_BACKTRANSPIXMAP;
 	    }

@@ -70,6 +70,7 @@
 #include "../../include/ascolor.h"
 #include "../../include/stepgfx.h"
 #include "../../include/loadimg.h"
+#include "../../libAfterImage/afterimage.h"
 #include "../../include/mystyle_property.h"
 
 #include "dirtree.h"
@@ -127,7 +128,7 @@ MenuRoot *NewMenuRoot (char *name);
 
 #ifndef NO_TEXTURE
 char *TitleStyle = NULL;
-char *TGColor = NULL;
+char *TextTextureStyle = NULL ;
 char *MArrowPixmap = NULL;
 char hincolor[15];
 char hircolor[15];
@@ -169,6 +170,7 @@ void assign_string (char *text, FILE * fd, char **arg, int *);
 void assign_path (char *text, FILE * fd, char **arg, int *);
 void assign_themable_path (char *text, FILE * fd, char **arg, int *);
 void assign_pixmap (char *text, FILE * fd, char **arg, int *);
+void text_gradient_obsolete(char *text, FILE * fd, char **arg, int *);
 
 /*
  * Order is important here! if one keyword is the same as the first part of
@@ -269,10 +271,15 @@ struct config main_config[] =
   {"TitlePixmap", assign_string, &TPixmap, (int *) 0},	/* foc tit */
   {"UTitlePixmap", assign_string, &UPixmap, (int *) 0},		/* unfoc tit */
   {"STitlePixmap", assign_string, &SPixmap, (int *) 0},		/* stick tit */
-  {"TextGradientColor", assign_string, &TGColor, (int *) 0},	/* title text */
   {"TexturedHandle", SetFlag2, (char **) TexturedHandle, (int *) &Textures.flags},
   {"TitlebarNoPush", SetFlag2, (char **) TitlebarNoPush, (int *) &Textures.flags},
-{"GradientText", SetFlag2, (char **) GradientText, (int *) &Textures.flags},
+
+  /* these are obsolete : */
+  {"TextGradientColor", text_gradient_obsolete, (char**)NULL, (int *) 0},	/* title text */
+  {"GradientText", text_gradient_obsolete, (char**)NULL, (int *) 0},
+  /* use these instead : */  
+  {"TextTextureStyle", assign_string, &TextTextureStyle, (int *) 0},
+  
   {"ButtonTextureType", SetInts, (char **) &IconTexType, &dummy},
   {"ButtonBgColor", assign_string, &IconBgColor, (int *) 0},
   {"ButtonTextureColor", assign_string, &IconTexColor, (int *) 0},
@@ -431,7 +438,12 @@ HomeCreateIfNeeded (const char *filename)
   return res;
 }
 
-
+/***************************************************************
+ **************************************************************/
+void text_gradient_obsolete(char *text, FILE * fd, char **arg, int *i)
+{
+	tline_error( "This option is opbsolete, please use TextTextureStyle instead ");
+}
 /***************************************************************
  *
  * get an icon
@@ -556,8 +568,8 @@ init_old_look_variables (Bool free_resources)
 
 #ifndef NO_TEXTURE
       /* the gradients */
-      if (TGColor != NULL)
-	free (TGColor);
+      if (TextTextureStyle != NULL)
+	free (TextTextureStyle);
       if (UColor != NULL)
 	free (UColor);
       if (TColor != NULL)
@@ -622,7 +634,7 @@ init_old_look_variables (Bool free_resources)
 
 #ifndef NO_TEXTURE
   /* the gradients */
-  TGColor = NULL;
+  TextTextureStyle = NULL;
   UColor = NULL;
   TColor = NULL;
   SColor = NULL;
@@ -695,32 +707,30 @@ merge_old_look_colors (MyStyle * style, int type, int maxcols, char *fore, char 
     }
   if ((type > 0) && (type < TEXTURE_PIXMAP) && !((*style).user_flags & F_BACKGRADIENT))
     {
-      if (gradient != NULL)
-	{
-	  int len;
-	  char *color1 = NULL, *color2 = NULL;
-	  gradient_t grad;
-	  ReadColorValue (gradient, &color1, &len);
-	  ReadColorValue (gradient + len, &color2, &len);
-	  if (color1 != NULL && color2 != NULL &&
-	      (type = mystyle_parse_old_gradient (type, color1, color2, &grad)) >= 0)
-	    {
-	      if (style->user_flags & F_BACKGRADIENT)
+    	if (gradient != NULL)
 		{
-		  free (style->gradient.color);
-		  free (style->gradient.offset);
+			ARGB32 c1, c2 = 0;  
+			ASGradient grad ;
+			char *ptr ;
+		  
+			ptr = (char*)parse_argb_color( gradient, &c1 );
+			parse_argb_color( ptr, &c2 );
+			if ( ptr != gradient &&
+	    		 (type = mystyle_parse_old_gradient (type, c1, c2, &grad)) >= 0)
+			{
+	    	    if (style->user_flags & F_BACKGRADIENT)
+				{
+				    free (style->gradient.color);
+					free (style->gradient.offset);
+				}
+	    		style->gradient = grad;
+				grad.type = mystyle_translate_grad_type(type);
+	    		style->texture_type = type;
+	    		style->user_flags |= F_BACKGRADIENT;
+			}
+			else
+	    	    fprintf (stderr, "%s: bad gradient: %s\n", MyName, gradient);
 		}
-	      style->gradient = grad;
-	      style->texture_type = type;
-	      style->user_flags |= F_BACKGRADIENT;
-	    }
-	  else
-	    fprintf (stderr, "%s: bad gradient: %s\n", MyName, gradient);
-	  if (color1 != NULL)
-	    free (color1);
-	  if (color2 != NULL)
-	    free (color2);
-	}
     }
   else if ((type == TEXTURE_PIXMAP) && !((*style).user_flags & F_BACKPIXMAP))
     {
@@ -1464,26 +1474,6 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 #ifndef NO_TEXTURE
       if (MArrowPixmap != NULL && !GetIconFromFile (MArrowPixmap, &Scr.MenuArrow, -1))
 	fprintf (stderr, "couldn't load menu arrow pixmap\n");
-
-      if ((Textures.flags & GradientText) && TGColor != NULL &&
-	  ParseColor (TGColor, Textures.TGfrom, Textures.TGto) == True)
-	{
-	  XColor color[2];
-	  double offset[2];
-	  color[0].red = Textures.TGfrom[0];
-	  color[0].green = Textures.TGfrom[1];
-	  color[0].blue = Textures.TGfrom[2];
-	  color[1].red = Textures.TGto[0];
-	  color[1].green = Textures.TGto[1];
-	  color[1].blue = Textures.TGto[2];
-	  offset[0] = 0.0;
-	  offset[1] = 1.0;
-	  Scr.TitleGradient = XCreatePixmap (dpy, Scr.Root, Scr.MyDisplayWidth - 1,
-				 (*Scr.MSFWindow).font.height, Scr.d_depth);
-	  draw_gradient (dpy, Scr.TitleGradient, 0, 0,
-			 Scr.MyDisplayWidth - 1, Scr.MSFWindow->font.height,
-			 2, color, offset, 0, 2, 6, 40);
-	}
 
       /* update frame geometries */
       if (DecorateFrames)

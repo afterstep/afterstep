@@ -182,6 +182,7 @@ pixmap2ximage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsigne
 	if (xim)
 	{
 		im = create_asimage( xim->width, xim->height, compression);
+		im->flags = ASIM_DATA_NOT_USEFUL ;
 		im->alt.ximage = xim ;
 	}
 	return im;

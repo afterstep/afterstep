@@ -220,7 +220,6 @@ enum				/* look file flags, used in TextureInfo */
   {
     TexturedHandle = (1 << 0),
     TitlebarNoPush = (1 << 1),
-    GradientText = (1 << 2),
     IconNoBorder = (1 << 3),
     SeparateButtonTitle = (1 << 4)	/* icon title is a separate window */
   };
@@ -294,7 +293,6 @@ extern TextureInfo Textures;
 #define BUTTON9   256
 #define BUTTON10  512
 
-#include <stdlib.h>
 extern void Reborder (void);
 extern void SigDone (int);
 extern void SaveWindowsOpened (void);

@@ -37,7 +37,7 @@
 #include "../include/hashtable.h"
 #include "../include/ascolor.h"
 #include "../include/stepgfx.h"
-#include "../include/XImage_utils.h"
+/*#include "../include/XImage_utils.h"*/
 
 static int table_initialized = 0;
 static HashTable ColorTable;

@@ -40,6 +40,7 @@
 #include "../../include/mystyle.h"
 #include "../../include/loadimg.h"
 #include "../../include/parser.h"
+#include "../../include/parse.h"
 #include "../../include/confdefs.h"
 
 #define DEBUG_MYSTYLE
@@ -394,14 +395,18 @@ mystyle_create_from_definition (MyStyleDefinition * def, const char *PixmapPath)
       if (def->backgradient_from && def->backgradient_to)
 	{
 	  int type = def->backgradient_type;
-	  gradient_t gradient;
-	  if ((type = mystyle_parse_old_gradient (type, def->backgradient_from, def->backgradient_to, &gradient)) >= 0)
+	  ARGB32 c1, c2 ;
+	  ASGradient gradient;
+	  parse_argb_color( def->backgradient_from, &c1 );
+	  parse_argb_color( def->backgradient_to, &c2 );	  
+	  if ((type = mystyle_parse_old_gradient (type, c1, c2, &gradient)) >= 0)
 	    {
 	      if (style->user_flags & F_BACKGRADIENT)
 		{
 		  free (style->gradient.color);
 		  free (style->gradient.offset);
 		}
+		  gradient.type = mystyle_translate_grad_type(type);
 	      style->gradient = gradient;
 	      style->texture_type = type;
 	      style->user_flags |= F_BACKGRADIENT;
@@ -422,14 +427,13 @@ mystyle_create_from_definition (MyStyleDefinition * def, const char *PixmapPath)
       if (def->back_pixmap_type == 129)
 	{
 	  style->texture_type = def->back_pixmap_type;
-	  style->tint.pixel = 0;
+	  style->tint = 0;
 	  if (def->back_pixmap)
 	    if (strlen (def->back_pixmap))
-	      style->tint.pixel = GetColor (def->back_pixmap);
-	  if (style->tint.pixel == 0)	/* use no tinting by default */
-	    style->tint.pixel = GetColor ("white");
+		  parse_argb_color(def->back_pixmap, &(style->tint) );
+	  if (style->tint == 0)	/* use no tinting by default */
+	    style->tint = TINT_LEAVE_SAME;
 
-	  XQueryColor (dpy, DefaultColormap (dpy, DefaultScreen(dpy)), &style->tint);
 	  style->user_flags |= F_BACKPIXMAP;
 	}
       else if (def->back_pixmap)

@@ -1,26 +1,6 @@
 #ifndef STEPGFX_H_
 #define STEPGFX_H_
 
-enum				/* texture types */
-  {
-    TEXTURE_SOLID = 0,
-
-    TEXTURE_GRADIENT = 1,
-    TEXTURE_HGRADIENT = 2,
-    TEXTURE_HCGRADIENT = 3,
-    TEXTURE_VGRADIENT = 4,
-    TEXTURE_VCGRADIENT = 5,
-    TEXTURE_GRADIENT_TL2BR = 6,
-    TEXTURE_GRADIENT_BL2TR = 7,
-    TEXTURE_GRADIENT_T2B = 8,
-    TEXTURE_GRADIENT_L2R = 9,
-
-    TEXTURE_PIXMAP = 128,
-    TEXTURE_TRANSPARENT = 129,
-    TEXTURE_TRANSPIXMAP = 130,
-
-    TEXTURE_BUILTIN = 255
-  };
 
 /***** gradients function declarations ******/
 

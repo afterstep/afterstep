@@ -113,11 +113,14 @@ my_scandir (char *dirname, struct direntry *(*namelist[]),
       free (nl);
       return -1;
     }
-  *namelist = realloc (nl, n * sizeof (struct direntry *));
-
   if (n == 0)
+  {
+	if( nl ) 
+		free( nl );
 /* OK, but not point sorting or freeing anything */
     return 0;
+  }
+  *namelist = realloc (nl, n * sizeof (struct direntry *));
 
   if (*namelist == NULL)
     {

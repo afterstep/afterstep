@@ -53,7 +53,6 @@
 #include "../include/screen.h"
 #include "../include/mystyle.h"
 #include "../include/asproperty.h"
-#include "../include/XImage_utils.h"
 #include "../include/pixmap.h"
 #include "../include/loadimg.h"
 #include "../include/background.h"

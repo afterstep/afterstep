@@ -31,15 +31,18 @@
 #include <X11/Xutil.h>
 
 #include "../include/aftersteplib.h"
-#include "../include/XImage_utils.h"
-#include "../include/loadimg.h"
+#include "../include/afterstep.h"
 #include "../include/parse.h"
+#include "../include/misc.h"
+#include "../include/style.h"
+#include "../include/loadimg.h"
 #include "../include/parser.h"
 #include "../include/confdefs.h"
 #include "../include/mystyle.h"
 #include "../include/ascolor.h"
-#include "../include/stepgfx.h"
-#include "../include/pixmap.h"
+/*#include "../include/stepgfx.h"*/
+#include "../libAfterImage/afterimage.h"
+#include "../include/screen.h"
 
 /*
  * if you add a member to this list, or to the MyStyle structure,
@@ -143,25 +146,12 @@ mystyle_fix_styles (void)
     mystyle_merge_styles (dflt, style, False, False);
 }
 
-static void mystyle_draw_textline (Window w, MyStyle * style, const char *text, int len, int x, int y);
+static void mystyle_draw_textline (Window w, Drawable text_trg, MyStyle * style, const char *text, int len, int x, int y);
 
 #ifdef I18N
 #undef FONTSET
 #define FONTSET (*style).font.fontset
 #endif
-void
-mystyle_draw_vertical_text (Window w, MyStyle * style, const char *text, int x, int y)
-{
-  char str[2];
-  str[1] = '\0';
-  for (; *text != '\0'; text++)
-    {
-      int width = XTextWidth ((*style).font.font, text, 1);
-      str[0] = *text;
-      mystyle_draw_textline (w, style, str, 1, x + ((*style).font.width - width) / 2, y);
-      y += (*style).font.height;
-    }
-}
 
 void
 mystyle_get_text_geometry (MyStyle * style, const char *str, int len, int *width, int *height)
@@ -185,32 +175,108 @@ mystyle_get_text_geometry (MyStyle * style, const char *str, int len, int *width
     *height = mh;
 }
 
-void
-mystyle_draw_text (Window w, MyStyle * style, const char *text, int x, int y)
+static void
+mystyle_do_draw_text (Window w, Drawable text_trg, MyStyle * style, const char *text, int x, int y)
 {
-  mystyle_set_global_gcs (style);
-  if ((style->set_flags & F_DRAWTEXTBACKGROUND) && (style->flags & F_DRAWTEXTBACKGROUND))
-    {
-      XSetFillStyle (dpy, BackGC, FillSolid);
-      XFillRectangle (dpy, w, BackGC, x - 2, y - style->font.y - 2, XTextWidth (style->font.font, text, strlen (text)) + 4, style->font.height + 4);
-#ifndef NO_TEXTURE
-      if ((style->texture_type != 0) && (style->back_icon.pix != None))
-	XSetFillStyle (dpy, BackGC, FillTiled);
-#endif /* !NO_TEXTURE */
-    }
-
   while (*text != '\0')
     {
       const char *ptr;
       for (ptr = text; *ptr != '\0' && *ptr != '\n'; ptr++);
-      mystyle_draw_textline (w, style, text, ptr - text, x, y);
+      mystyle_draw_textline (w, text_trg, style, text, ptr - text, x, y);
       y += style->font.height;
       text = (*ptr == '\n') ? ptr + 1 : ptr;
     }
 }
 
+void
+mystyle_draw_texturized_text (Window w, MyStyle *style, MyStyle *fore_texture, const char *text, int x, int y)
+{
+	int width, height ;
+	Pixmap fore_pix = None;
+	
+    mystyle_set_global_gcs (style);
+	mystyle_get_text_geometry (style, text, strlen(text), &width, &height);
+	if ((style->set_flags & F_DRAWTEXTBACKGROUND) && (style->flags & F_DRAWTEXTBACKGROUND))
+    {
+  		XSetFillStyle (dpy, BackGC, FillSolid);
+    	XFillRectangle (dpy, w, BackGC, x - 2, y - style->font.y - 2, width + 4, height + 4);
+#ifndef NO_TEXTURE
+    	if ((style->texture_type != 0) && (style->back_icon.pix != None))
+			XSetFillStyle (dpy, BackGC, FillTiled);
+#endif /* !NO_TEXTURE */
+    }
+	
+    if( fore_texture != NULL ) 
+	{
+		if( fore_texture->texture_type <= TEXTURE_PIXMAP )
+			fore_pix = mystyle_make_pixmap( fore_texture, width, height, None );
+		else
+		{
+			Window ch ;
+			int root_x = x, root_y = y;
+			XTranslateCoordinates( dpy, w, Scr.Root, x, y, &root_x, &root_y, &ch );
+			fore_pix = mystyle_make_pixmap_overlay( fore_texture, root_x, root_y, width, height, None );
+		}
+	}
+	
+	if( fore_pix != None ) 
+	{
+	    Pixmap mask;
+		GC old_fore_gc = ForeGC ;
+		XGCValues gcv;
+		
+		mask = XCreatePixmap (dpy, Scr.Root, width + 1, height + 1, 1);
+	    gcv.foreground = 0;
+	    gcv.function = GXcopy;
+	    gcv.font = style->font.font->fid;
+	    ForeGC = XCreateGC (dpy, mask, GCFunction | GCForeground | GCFont, &gcv);
+	    XFillRectangle (dpy, mask, ForeGC, 0, 0, width, height);
+	    XSetForeground (dpy, ForeGC, 1);
+		
+		mystyle_do_draw_text ( w, mask, style, text, x, y);
+		
+		XFreeGC( dpy, ForeGC );
+		ForeGC = old_fore_gc ;
+		XSetClipOrigin (dpy, ForeGC, x, y);
+	    XSetClipMask (dpy, ForeGC, mask);
+	    XCopyArea (dpy, fore_pix, w, ForeGC, 0, 0, width, height, x, y);
+		XSetClipMask (dpy, ForeGC, None);
+		XFreePixmap( dpy, mask );
+		XFreePixmap( dpy, fore_pix );
+	}else
+		mystyle_do_draw_text ( w, w, style, text, x, y);
+}
+
+void
+mystyle_draw_text (Window w, MyStyle * style, const char *text, int x, int y)
+{
+	mystyle_draw_texturized_text (w, style, NULL, text, x, y);
+}
+
+void
+mystyle_draw_vertical_text (Window w, MyStyle * style, const char *text, int x, int y)
+{
+	char *rotated = make_tricky_text( (char*)text );
+	if( rotated )
+	{
+		mystyle_draw_texturized_text (w, style, NULL, rotated, x, y);
+		free( rotated );
+	}
+}
+
+void
+mystyle_draw_texturized_vertical_text (Window w, MyStyle * style, MyStyle *fore_texture, const char *text, int x, int y)
+{
+	char *rotated = make_tricky_text( (char*)text );
+	if( rotated )
+	{
+		mystyle_draw_texturized_text (w, style, fore_texture, rotated, x, y);
+		free( rotated );
+	}
+}
+
 static void
-mystyle_draw_textline (Window w, MyStyle * style, const char *text, int len, int x, int y)
+mystyle_draw_textline (Window w, Drawable text_trg, MyStyle * style, const char *text, int len, int x, int y)
 {
   switch (style->text_style)
     {
@@ -233,20 +299,40 @@ mystyle_draw_textline (Window w, MyStyle * style, const char *text, int len, int
       XDrawString (dpy, w, ShadowGC, x + 1, y + 2, text, len);
       XDrawString (dpy, w, ShadowGC, x + 0, y + 2, text, len);
 
-      XDrawString (dpy, w, ForeGC, x + 0, y + 0, text, len);
+      XDrawString (dpy, text_trg, ForeGC, x + 0, y + 0, text, len);
       break;
 /* 3d look #2 */
     case 2:
       XDrawString (dpy, w, ShadowGC, x - 1, y - 1, text, len);
       XDrawString (dpy, w, ReliefGC, x + 0, y + 0, text, len);
-      XDrawString (dpy, w, ForeGC, x + 1, y + 1, text, len);
+      XDrawString (dpy, text_trg, ForeGC, x + 1, y + 1, text, len);
       break;
 /* normal text */
     default:
     case 0:
-      XDrawString (dpy, w, ForeGC, x + 0, y + 0, text, len);
+      XDrawString (dpy, text_trg, ForeGC, x + 0, y + 0, text, len);
       break;
     }
+}
+
+int
+mystyle_translate_grad_type( int type )
+{
+	switch( type ) 
+	{
+  		case TEXTURE_GRADIENT   : return  GRADIENT_TopLeft2BottomRight ;
+		
+	    case TEXTURE_HGRADIENT  : 
+		case TEXTURE_HCGRADIENT : return  GRADIENT_Left2Right ;
+		
+	    case TEXTURE_VGRADIENT  : 
+  		case TEXTURE_VCGRADIENT : return GRADIENT_Top2Bottom ;
+	    case TEXTURE_GRADIENT_TL2BR : return GRADIENT_TopLeft2BottomRight ;
+	    case TEXTURE_GRADIENT_BL2TR : return  GRADIENT_BottomLeft2TopRight ;
+	    case TEXTURE_GRADIENT_T2B :   return  GRADIENT_Top2Bottom ;
+	    case TEXTURE_GRADIENT_L2R :   return  GRADIENT_Left2Right ;
+		default : return -1 ;
+	}
 }
 
 icon_t
@@ -255,6 +341,50 @@ mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
   icon_t icon =
   {None, None, 0, 0};
 #ifndef NO_TEXTURE
+    ASImage *im ;
+	ASGradient grad;  
+	
+	memset( &grad, 0x00, sizeof(grad));
+	switch( style->texture_type )
+	{
+	    case TEXTURE_SOLID :
+			im = create_asimage(width, height, 0);
+			im->back_color = style->colors.back ;
+			break;
+			
+  		case TEXTURE_GRADIENT   : 
+		
+	    case TEXTURE_HGRADIENT  : 
+		case TEXTURE_HCGRADIENT : 
+		
+	    case TEXTURE_VGRADIENT  : 
+  		case TEXTURE_VCGRADIENT : 
+	    case TEXTURE_GRADIENT_TL2BR :
+	    case TEXTURE_GRADIENT_BL2TR :
+	    case TEXTURE_GRADIENT_T2B :  
+	    case TEXTURE_GRADIENT_L2R :   
+			im = make_gradient( Scr.asv, &(style->gradient), width, height, 0xFFFFFFFF, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT  );
+			break;
+		case TEXTURE_PIXMAP :
+			im = tile_asimage( Scr.asv, style->back_icon.image, 
+			                   0, 0, width, height, TINT_LEAVE_SAME, 
+							   ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT  );
+			break;
+		default : 
+		/* not supported style */
+	}
+	
+	icon.image = im ;
+	if( im ) 
+	{
+		icon.pix = asimage2pixmap( Scr.asv, Scr.Root, im, NULL, False );
+		icon.pix = asimage2mask  ( Scr.asv, Scr.Root, im, NULL, False );
+        icon.width = im->width;
+	    icon.height = im->height;
+	}
+
+
+#if 0
   GC gc, mgc = None;
   XGCValues gcv;
   unsigned long gcm;
@@ -319,32 +449,121 @@ mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
       icon.width = width;
       icon.height = height;
     }
+#endif	
 #endif /* NO_TEXTURE */
   return icon;
 }
 
+void 
+mystyle_free_icon_resources( icon_t icon ) 
+{
+	if( icon.pix ) 
+		XFreePixmap( dpy, icon.pix );
+	if( icon.mask ) 
+		XFreePixmap( dpy, icon.mask );
+	if( icon.image ) 
+		destroy_asimage(&icon.image);
+}
+
+static merge_scanlines_func mystyle_merge_scanlines_func_xref[] =
+{
+   alphablend_scanlines,
+   allanon_scanlines,
+   alphablend_scanlines,
+   add_scanlines,
+   colorize_scanlines,
+   darken_scanlines,
+   diff_scanlines,
+   dissipate_scanlines,
+   hue_scanlines,
+   lighten_scanlines,
+   overlay_scanlines,
+   saturate_scanlines,
+   screen_scanlines,
+   sub_scanlines,
+   tint_scanlines,
+   value_scanlines,
+   NULL
+};
+
+
 icon_t
 mystyle_make_icon_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache)
 {
-  icon_t icon =
-  {None, None, 0, 0};
+    icon_t icon =  {None, None, 0, 0};
+	unsigned int root_w, root_h;
+	Pixmap root_pixmap;
 
-  if( width < 1 )
-    width = 1 ;
-  if( height < 1 )
-    height = 1 ;
-
-  if (style->texture_type < TEXTURE_TRANSPARENT)
-    icon = mystyle_make_icon (style, width, height, cache);
+    if (style->texture_type < TEXTURE_TRANSPARENT)
+	{
+	    icon = mystyle_make_icon (style, width, height, cache);
+		return icon ;
+	}
+		
 #ifndef NO_TEXTURE
-  else if (style->texture_type == TEXTURE_TRANSPARENT)
-    fill_with_darkened_background (&icon.pix, style->tint, 0, 0, width, height, root_x, root_y, 0);
-  else if (style->texture_type == TEXTURE_TRANSPIXMAP)
-    fill_with_pixmapped_background (&icon.pix, style->back_icon.image, 0, 0, width, height, root_x, root_y, 0);
-  if (icon.pix != None)
+	root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
+
+    if( width < 1 )    width = 1 ;
+    if( height < 1 )   height = 1 ;
+	
+	if (root_pixmap != None && style->texture_type == TEXTURE_TRANSPARENT )
+	{
+#if 1	
+		ASImage *src_im = pixmap2ximage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 0 );
+#else
+		ASImage *src_im = pixmap2asimage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, False, 0 );
+#endif		
+		ASImage *tinted = tile_asimage ( Scr.asv, src_im, root_x, root_y,
+  										 width,  height, style->tint,
+										 ASA_XImage,
+									     0, ASIMAGE_QUALITY_DEFAULT );
+		destroy_asimage( &src_im );
+		if( tinted ) 
+		{
+			icon.pix = asimage2pixmap( Scr.asv, Scr.Root, tinted, NULL, True );
+			icon.mask = None ;
+			icon.image = tinted ;
+		}
+	}else if (root_pixmap != None)
     {
-      icon.width = width;
-      icon.height = height;
+		ASImageLayer layers[2];
+		ASImage *merged_im ;
+		
+		init_image_layers( &layers[0], 2 );
+		layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[style->texture_type-1-TEXTURE_TRANSPARENT] ;
+		layers[0].im = pixmap2ximage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 0 );
+		layers[0].dst_x = 0 ;
+		layers[0].dst_y = 0 ;
+		layers[0].clip_x = -root_x ;
+		layers[0].clip_y = -root_y ;
+		layers[0].clip_width = width ;
+		layers[0].clip_height = height ;
+		
+		layers[1].im = style->back_icon.image ; 
+		layers[1].dst_x = 0 ;
+		layers[1].dst_y = 0 ;
+		layers[1].clip_x = 0 ;
+		layers[1].clip_y = 0 ;
+		layers[1].clip_width = width ;
+		layers[1].clip_height = height ;
+
+		merged_im = merge_layers( Scr.asv, &layers[0], 2,
+		                          width, height,
+								  ASA_XImage,
+							      0, ASIMAGE_QUALITY_DEFAULT );
+		destroy_asimage( &(layers[0].im) );
+
+		if( merged_im ) 
+		{
+			icon.pix = asimage2pixmap( Scr.asv, Scr.Root, merged_im, NULL, True );
+			icon.mask = None ;
+			icon.image = merged_im ;
+		}			
+    }
+    if (icon.pix != None)
+	{
+  		icon.width = width;
+    	icon.height = height;
     }
 #endif /* !NO_TEXTURE */
   return icon;
@@ -353,19 +572,23 @@ mystyle_make_icon_overlay (MyStyle * style, int root_x, int root_y, int width, i
 Pixmap
 mystyle_make_pixmap (MyStyle * style, int width, int height, Pixmap cache)
 {
+  Pixmap p ;
   icon_t icon = mystyle_make_icon (style, width, height, cache);
-  if (icon.mask != None)
-    XFreePixmap (dpy, icon.mask);
-  return icon.pix;
+  p = icon.pix ;
+  icon.pix = None ;
+  mystyle_free_icon_resources( icon );
+  return p ;
 }
 
 Pixmap
 mystyle_make_pixmap_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache)
 {
+  Pixmap p ;
   icon_t icon = mystyle_make_icon_overlay (style, root_x, root_y, width, height, cache);
-  if (icon.mask != None)
-    XFreePixmap (dpy, icon.mask);
-  return icon.pix;
+  p = icon.pix ;
+  icon.pix = None ;
+  mystyle_free_icon_resources( icon );
+  return p ;
 }
 
 /* set a window's background for XClearArea */
@@ -489,7 +712,6 @@ MyStyle *
 mystyle_new (void)
 {
   MyStyle *style = (MyStyle *) safemalloc (sizeof (MyStyle));
-  int screen = DefaultScreen(dpy);
 
   style->next = mystyle_first;
   mystyle_first = style;
@@ -516,13 +738,13 @@ mystyle_new (void)
   style->gradient.offset = NULL;
   style->back_icon.pix = None;
   style->back_icon.mask = None;
-  if (DefaultDepth (dpy, screen) > 16)
+  if (Scr.d_depth > 16)
     style->max_colors = 128;
-  else if (DefaultDepth (dpy, screen) > 8)
+  else if (Scr.d_depth > 8)
     style->max_colors = 32;
   else
     style->max_colors = 10;
-  style->tint.red = style->tint.green = style->tint.blue = 0xFFFF;
+  style->tint = TINT_LEAVE_SAME;
   style->back_icon.image = NULL;
 #endif
   return style;
@@ -579,8 +801,8 @@ mystyle_delete (MyStyle * style)
     {
       UnloadImage (style->back_icon.pix);
     }
-  if (style->user_flags & F_BACKTRANSPIXMAP)
-    XDestroyImage (style->back_icon.image);
+  if (style->back_icon.image)
+    destroy_asimage(&(style->back_icon.image));
 #endif
 
   /* free our own mem */
@@ -744,8 +966,11 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
       if ((override == True) && (child->user_flags & F_BACKPIXMAP))
 	{
 	  UnloadImage (child->back_icon.pix);
-	  if (child->user_flags & F_BACKTRANSPIXMAP)
-	    XDestroyImage (child->back_icon.image);
+	  if (child->back_icon.image)
+	  {
+	    destroy_asimage (&(child->back_icon.image));
+		child->back_icon.image = NULL ;
+	  }
 	}
       if ((override == True) || !(child->set_flags & F_BACKPIXMAP))
 	{
@@ -764,18 +989,17 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 	      XCopyArea (dpy, parent->back_icon.pix, child->back_icon.pix, gc,
 	      0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
 	      if (parent->back_icon.mask != None)
-		{
-		  GC mgc = XCreateGC (dpy, parent->back_icon.mask, 0, NULL);
-		  child->back_icon.pix = XCreatePixmap (dpy, RootWindow (dpy, screen), parent->back_icon.width, parent->back_icon.height, 1);
-		  XCopyArea (dpy, parent->back_icon.pix, child->back_icon.pix, mgc,
-			     0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
-		  XFreeGC (dpy, mgc);
-		}
-	      if (parent->set_flags & F_BACKTRANSPIXMAP)
-		{
-		  child->back_icon.image = CreateXImageAndData (dpy, DefaultVisual (dpy, screen), DefaultDepth (dpy, screen), ZPixmap, 0, parent->back_icon.image->width, parent->back_icon.image->height);
-		  memcpy (child->back_icon.image, parent->back_icon.image, GetXImageDataSize (child->back_icon.image));
-		}
+		  {
+			GC mgc = XCreateGC (dpy, parent->back_icon.mask, 0, NULL);
+			child->back_icon.pix = XCreatePixmap (dpy, RootWindow (dpy, screen), parent->back_icon.width, parent->back_icon.height, 1);
+			XCopyArea (dpy, parent->back_icon.pix, child->back_icon.pix, mgc,
+			       0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
+			XFreeGC (dpy, mgc);
+		  }
+		  if( parent->back_icon.image ) 
+			  child->back_icon.image = clone_asimage(parent->back_icon.image, 0xFFFFFFFF);
+		  else 
+			  child->back_icon.image = 0 ;
 	      child->back_icon.width = parent->back_icon.width;
 	      child->back_icon.height = parent->back_icon.height;
 	      child->user_flags |= F_BACKPIXMAP | (parent->set_flags & F_BACKTRANSPIXMAP);
@@ -857,7 +1081,6 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 {
   int done = 0;
   struct config *config = find_config (mystyle_config, str);
-  int screen = DefaultScreen(dpy);
 
   style_func = F_ERROR;
   style_arg = NULL;
@@ -914,31 +1137,38 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 	  break;
 	case F_BACKGRADIENT:
 	  {
-	    char *ptr;
+	    char *ptr, *ptr1;
 	    int type = strtol (style_arg, &ptr, 10);
-	    char *color1 = strtok (ptr, " \t\v\r\n\f");
-	    char *color2 = strtok (NULL, " \t\v\r\n\f");
-	    gradient_t gradient;
-	    if (color1 != NULL && color2 != NULL && (type = mystyle_parse_old_gradient (type, color1, color2, &gradient)) >= 0)
-	      {
-		if (style->user_flags & F_BACKGRADIENT)
-		  {
-		    free (style->gradient.color);
-		    free (style->gradient.offset);
-		  }
-		style->gradient = gradient;
-		style->texture_type = type;
-		style->user_flags |= style_func;
-	      }
-	    else
+		ARGB32 color1 = 0, color2 = 0 ;
+		ptr1 = (char*)parse_argb_color( ptr, &color1 );
+		if( ptr1 != ptr )
+		{
+			ptr = ptr1 ;
+			if( parse_argb_color( ptr, &color1 ) != ptr )
+			{
+			    ASGradient gradient;
+	  			if ((type = mystyle_parse_old_gradient (type, color1, color2, &gradient)) >= 0)
+			    {
+					if (style->user_flags & F_BACKGRADIENT)
+					{
+		  				free (style->gradient.color);
+		  				free (style->gradient.offset);
+					}
+					style->gradient.type = mystyle_translate_grad_type( type );
+					style->gradient = gradient;
+					style->texture_type = type;
+					style->user_flags |= style_func;
+	    		}
+			}
+		}else
 	      fprintf (stderr, "%s: bad gradient: %s\n", MyName, style_arg);
 	  }
 	  break;
 	case F_BACKMULTIGRADIENT:
 	  {
-	    char *ptr;
+	    char *ptr, *ptr1;
 	    int type = strtol (style_arg, &ptr, 10);
-	    gradient_t gradient;
+	    ASGradient gradient;
 	    int error = 0;
 
 	    gradient.npoints = 0;
@@ -947,68 +1177,52 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 	    if (type < TEXTURE_GRADIENT_TL2BR || type >= TEXTURE_PIXMAP)
 	      error = 4;
 	    while (!error && ptr != NULL && *ptr != '\0')
-	      {
-		XColor color;
-		double offset;
-		if (!error)
-		  {
-		    char *name;
-		    for (name = ptr; isspace (*name); name++);
-		    for (ptr = name; *ptr != '\0' && !isspace (*ptr); ptr++);
-		    if (*ptr != '\0')
-		      *ptr++ = '\0';
-		    if (!XParseColor (dpy, DefaultColormap (dpy, screen), name, &color))
-		      error = 1;
-		  }
-		if (!error)
-		  {
-		    char *ptr2;
-		    offset = strtod (ptr, &ptr2);
-		    if (ptr == ptr2)
-		      error = 2;
-		    ptr = ptr2;
-		  }
-		if (!error)
-		  {
-		    if (gradient.npoints > 0 && offset < gradient.offset[gradient.npoints - 1])
-		      error = 5;
-		  }
-		if (!error)
-		  {
-		    gradient.npoints++;
-		    gradient.color = realloc (gradient.color, sizeof (XColor) * gradient.npoints);
-		    gradient.offset = realloc (gradient.offset, sizeof (double) * gradient.npoints);
-		    gradient.color[gradient.npoints - 1] = color;
-		    gradient.offset[gradient.npoints - 1] = offset;
-		    for (; isspace (*ptr); ptr++);
-		  }
-	      }
+	    {
+			ARGB32 color ;
+			ptr1 = (char*)parse_argb_color( ptr, &color );
+			if( ptr1 == ptr ) 
+				error = 1 ;
+			else
+			{
+				double offset = 0.0;
+				ptr = ptr1 ;
+			    offset = strtod (ptr, &ptr1);
+			    if (ptr == ptr1)
+		    		error = 2;
+				else
+				{
+  			  		ptr = ptr1;
+				    gradient.npoints++;
+				    gradient.color = realloc (gradient.color, sizeof (XColor) * gradient.npoints);
+				    gradient.offset = realloc (gradient.offset, sizeof (double) * gradient.npoints);
+				    gradient.color[gradient.npoints - 1] = color;
+				    gradient.offset[gradient.npoints - 1] = offset;
+				    for (; isspace (*ptr); ptr++);
+				}	
+			}
+		}
 	    if (!error)
-	      {
-		if (gradient.npoints < 2)
-		  error = 3;
-	      }
-	    if (!error)
-	      {
-		gradient.offset[0] = 0.0;
-		gradient.offset[gradient.npoints - 1] = 1.0;
-		if (style->user_flags & F_BACKGRADIENT)
-		  {
-		    free (style->gradient.color);
-		    free (style->gradient.offset);
-		  }
-		style->gradient = gradient;
-		style->texture_type = type;
-		style->user_flags |= F_BACKGRADIENT;
-	      }
+    	{
+			gradient.offset[0] = 0.0;
+			gradient.offset[gradient.npoints - 1] = 1.0;
+			if (style->user_flags & F_BACKGRADIENT)
+			{
+		  		free (style->gradient.color);
+		  		free (style->gradient.offset);
+			}
+			style->gradient.type = mystyle_translate_grad_type( type );
+			style->gradient = gradient;
+			style->texture_type = type;
+			style->user_flags |= F_BACKGRADIENT;
+	    }
 	    else
-	      {
-		if (gradient.color != NULL)
-		  free (gradient.color);
-		if (gradient.offset != NULL)
-		  free (gradient.offset);
-		fprintf (stderr, "%s: bad gradient (error %d): %s\n", MyName, error, style_arg);
-	      }
+	    {
+			if (gradient.color != NULL)
+				free (gradient.color);
+			if (gradient.offset != NULL)
+				free (gradient.offset);
+			fprintf (stderr, "%s: bad gradient (error %d): %s\n", MyName, error, style_arg);
+	    }
 	  }
 	  break;
 	case F_BACKPIXMAP:
@@ -1023,41 +1237,35 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 	    if (type == 129)
 	      {
 		style->texture_type = type;
-		style->tint.pixel = 0;
-		if (strlen (tmp))
-		  style->tint.pixel = GetColor (tmp);
-		if (style->tint.pixel == 0)	/* use no tinting by default */
-		  style->tint.pixel = GetColor ("white");
-
-		XQueryColor (dpy, DefaultColormap (dpy, screen), &style->tint);
+		
+		if( parse_argb_color( tmp, &(style->tint)) == tmp )
+		  style->tint = TINT_LEAVE_SAME; /* use no tinting by default */
 	      }
 	    else
 	      {
 		char *path;
-		Pixmap pix, mask;
+		ASImage *im ;
 		if ((path = findIconFile (tmp, PixmapPath, R_OK)) != NULL &&
-		    (pix = LoadImageWithMask (dpy, RootWindow (dpy, screen), colors, path, &mask)) != None)
+		    (im = file2ASImage( path, 0xFFFFFFFF, 1.0, 100, NULL )) != None)
 		  {
-		    Window r;
-		    int d, width, height;
-		    XGetGeometry (dpy, pix, &r, &d, &d, &width, &height, &d, &d);
-		    style->back_icon.width = width;
-		    style->back_icon.height = height;
+		    style->back_icon.width = im->width;
+		    style->back_icon.height = im->height;
 		    if (style->user_flags & style_func)
 		      UnloadImage (style->back_icon.pix);
-		    style->back_icon.pix = pix;
-		    style->back_icon.mask = mask;
+		    style->back_icon.pix = asimage2pixmap(Scr.asv, Scr.Root, im, NULL, False);
+		    style->back_icon.mask = asimage2mask(Scr.asv, Scr.Root, im, NULL, False);
 		    style->user_flags |= style_func;
 		    style->texture_type = type;
 		    /* now set the transparency image, if necessary */
 		    style->inherit_flags &= ~F_BACKTRANSPIXMAP;
-		    if (style->user_flags & F_BACKTRANSPIXMAP)
-		      XDestroyImage (style->back_icon.image);
+		    if (style->back_icon.image)
+		      destroy_asimage (&(style->back_icon.image));
+			style->back_icon.image = im;
 		    if (type == TEXTURE_TRANSPIXMAP)
 		      {
-			style->back_icon.image = XGetImage (dpy, pix, 0, 0, width, height, AllPlanes, ZPixmap);
 			style->user_flags |= F_BACKTRANSPIXMAP;
 		      }
+			
 		  }
 		else
 		  fprintf (stderr, "%s: unable to load pixmap: '%s'\n", MyName, tmp);
@@ -1117,14 +1325,9 @@ set_func_arg (char *text, FILE * fd, char **value, int *junk)
  * convert an old two-color gradient to a multi-point gradient
  */
 int
-mystyle_parse_old_gradient (int type, const char *color1, const char *color2, gradient_t * gradient)
+mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient *gradient)
 {
   int cylindrical = 0;
-  XColor c1, c2;
-  int screen = DefaultScreen(dpy);
-  if (!XParseColor (dpy, DefaultColormap (dpy, screen), color1, &c1) ||
-      !XParseColor (dpy, DefaultColormap (dpy, screen), color2, &c2))
-    return -1;
   switch (type)
     {
     case TEXTURE_GRADIENT:
@@ -1148,7 +1351,7 @@ mystyle_parse_old_gradient (int type, const char *color1, const char *color2, gr
       break;
     }
   gradient->npoints = 2 + cylindrical;
-  gradient->color = NEW_ARRAY (XColor, gradient->npoints);
+  gradient->color = NEW_ARRAY (ARGB32, gradient->npoints);
   gradient->offset = NEW_ARRAY (double, gradient->npoints);
   gradient->color[0] = c1;
   gradient->color[1] = c2;

@@ -51,8 +51,6 @@
 #include "../../include/ascolor.h"
 #include "../../include/stepgfx.h"
 
-#define NO_XIMAGE_PROTO
-#include "../../include/XImage_utils.h"
 #include "../../include/pixmap.h"
 
 #ifdef SHAPE

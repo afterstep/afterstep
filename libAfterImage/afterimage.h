@@ -15,7 +15,7 @@
 #include "asimagexml.h"
 #include "import.h"
 #include "export.h"
-
+#include "pixmap.h"
 /****h* libAfterImage/libAfterImage
  * NAME
  * libAfterImage

@@ -77,6 +77,7 @@
 #include "../../include/module.h"
 #include "../../include/loadimg.h"
 #include "../../libAfterBase/selfdiag.h"
+#include "../../libAfterImage/afterimage.h"
 
 #include "globals.h"
 #include "menus.h"
@@ -286,8 +287,8 @@ main (int argc, char **argv)
 
   Scr.screen = DefaultScreen (dpy);
   screen = Scr.screen ;
+  XSetErrorHandler ((XErrorHandler) ASErrorHandler);
   Scr.NumberOfScreens = ScreenCount (dpy);
-
   if (!single)
     {
       for (i = 0; i < Scr.NumberOfScreens; i++)
@@ -375,14 +376,18 @@ main (int argc, char **argv)
 
   set_gnome_proxy ();
 
+  XSync (dpy, 0);
   XSetErrorHandler ((XErrorHandler) CatchRedirectError);
+  XSelectInput (dpy, Scr.Root,SubstructureRedirectMask );
+  XSync (dpy, 0);
+  XSetErrorHandler ((XErrorHandler) ASErrorHandler);
   XSelectInput (dpy, Scr.Root,
 		LeaveWindowMask | EnterWindowMask | PropertyChangeMask |
 		SubstructureRedirectMask |	/* SubstructureNotifyMask | */
 		KeyPressMask | ButtonPressMask | ButtonReleaseMask);
   XSync (dpy, 0);
-
-  XSetErrorHandler ((XErrorHandler) ASErrorHandler);
+  
+  Scr.asv = create_asvisual( dpy, Scr.screen, DefaultDepth (dpy, Scr.screen), NULL );
 
   CreateCursors ();
   InitVariables (1);
@@ -1142,6 +1147,7 @@ Done (int restart, char *command)
 	balloon_init (1);
 	/* pixmap references */
 	pixmap_ref_purge ();
+	build_xpm_colormap( NULL );
       }
       print_unfreed_mem ();
 #endif /*DEBUG_ALLOCS */
