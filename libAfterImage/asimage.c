@@ -293,9 +293,14 @@ store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
 			im->name = mystrdup( name );
 			res = (add_hash_item( imageman->image_hash, (ASHashableValue)(char*)im->name, im) == ASH_Success);
 			if( !res )
+			{
 				free( im->name );
-			else
+				im->name = NULL ;
+			}else
+			{
+				im->imageman = imageman ;
 				im->ref_count++ ;
+			}
 		}
 	return res ;
 }

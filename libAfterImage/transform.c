@@ -841,7 +841,8 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 
 	for( i = 0 ; i < count ; i++ )
 	{
-		if( pcurr->im != NULL || pcurr->solid_color != 0 )
+		/* all laayers but first must have valid image or solid_color ! */
+		if( pcurr->im != NULL || pcurr->solid_color != 0 || i == 0 )
 		{
 			imdecs[i] = start_image_decoding(asv, pcurr->im, SCL_DO_ALL,
 				                             pcurr->clip_x, pcurr->clip_y,
