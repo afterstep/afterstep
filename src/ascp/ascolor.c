@@ -53,6 +53,7 @@ struct
 	char *cs_save;
 	Bool display ;
 	Bool onroot ;
+	Bool default_only ;
 
 	ARGB32 base_color ;
 	int base_hue, base_sat, base_val ;
@@ -226,7 +227,7 @@ int main(int argc, char** argv)
 	ASColorState.doc_str = default_doc_str;
 	ASColorState.cs_save = default_cs_save;
 	ASColorState.display = 1;
-	ASColorState.base_color = 0xff00448f;
+	ASColorState.base_color = 0xff555577;
 	ASColorState.angle = ASCS_DEFAULT_ANGLE ;
 
 	/* Parse command line. */
@@ -254,6 +255,8 @@ int main(int argc, char** argv)
 			ASColorState.display = 0;
 		} else if ((!strcmp(argv[i], "--root-window") || !strcmp(argv[i], "-r")) && i < argc + 1) {
 			ASColorState.onroot = 1;
+		} else if ((!strcmp(argv[i], "--default-scheme") || !strcmp(argv[i], "-z")) && i < argc + 1) {
+			ASColorState.default_only = 1;
 		}
 	}
 
@@ -289,6 +292,8 @@ int main(int argc, char** argv)
 		ASColorState.geometry.x = (Scr.MyDisplayWidth - ASColorState.geometry.width)/2 ;
 	if( !get_flags( ASColorState.geometry.flags, YValue ) )
 		ASColorState.geometry.y = (Scr.MyDisplayHeight - ASColorState.geometry.height)/2 ;
+		
+			
 
 	if( ASColorState.display )
 		ASColorState.main_window = create_main_window();
@@ -520,7 +525,12 @@ do_colorscheme()
 	forget_asimage_name( Scr.image_manager, "inactive_menu_item_back" );
 
 	/* now we need to calculate color scheme and populate XML env vars with colors */
-	ASColorState.cs = make_ascolor_scheme( ASColorState.base_color, ASColorState.angle );
+	if( ASColorState.default_only ) 
+	{
+	    ASColorState.cs = make_default_ascolor_scheme();
+	    ASColorState.default_only = False ;
+	}else
+	    ASColorState.cs = make_ascolor_scheme( ASColorState.base_color, ASColorState.angle );
 
 	populate_ascs_colors_rgb( ASColorState.cs );
 	populate_ascs_colors_xml( ASColorState.cs );

@@ -165,7 +165,9 @@ ARGB32 make_color_scheme_argb( CARD32 base_alpha16, CARD32 hue360, CARD32 sat100
 void make_color_scheme_hsv( ARGB32 argb, int *phue, int *psat, int *pval );
 
 ASColorScheme *make_ascolor_scheme( ARGB32 base, int angle );
-ASColorScheme *make_default_ascolor_scheme();
+#define make_default_ascolor_scheme()  make_ascolor_scheme(DEFAULT_COLORSCHEME_BASE,ASCS_DEFAULT_ANGLE)
+ASColorScheme *make_NeXTish_ascolor_scheme();
+
 
 void populate_ascs_colors_rgb( ASColorScheme *cs );
 void populate_ascs_colors_xml( ASColorScheme *cs );

@@ -81,7 +81,7 @@
 #define AUTOEXEC_FILE   "autoexec"
 #define DATABASE_FILE   "database"
 
-#define DEFAULT_COLORSCHEME_BASE	0xFF666666   /* base color of the default colorscheme */
+#define DEFAULT_COLORSCHEME_BASE	0xFF354CB3   /* base color of the default colorscheme ( gold on blue ) */
 
 			      /* ############# */
 			      /* Look settings */

@@ -266,7 +266,7 @@ make_mono_ascolor_scheme( ARGB32 base )
 }
 
 ASColorScheme *
-make_default_ascolor_scheme()
+make_NeXTish_ascolor_scheme()
 {
 	ASColorScheme *cs = safecalloc( 1, sizeof(ASColorScheme));
 
@@ -308,9 +308,17 @@ make_default_ascolor_scheme()
 	cs->main_colors[ASMC_HighActiveBackLight] = 0xFFfEfEfE ;
 	cs->main_colors[ASMC_HighActiveText] = 0xFF000000 ;
 
+	make_color_scheme_hsv( cs->main_colors[ASMC_Inactive1], &(cs->inactive1_hue), &(cs->inactive1_sat), &(cs->inactive1_val)) ;
+	make_color_scheme_hsv( cs->main_colors[ASMC_Inactive2], &(cs->inactive2_hue), &(cs->inactive2_sat), &(cs->inactive2_val)) ;
+	make_color_scheme_hsv( cs->main_colors[ASMC_Active], &(cs->active_hue), &(cs->active_sat), &(cs->active_val));
+	make_color_scheme_hsv( cs->main_colors[ASMC_InactiveText1], &(cs->inactive_text1_hue), &(cs->inactive_text1_sat), &(cs->inactive_text1_val));
+	make_color_scheme_hsv( cs->main_colors[ASMC_InactiveText2], &(cs->inactive_text2_hue), &(cs->inactive_text2_sat), &(cs->inactive_text2_val)) ;
+	make_color_scheme_hsv( cs->main_colors[ASMC_ActiveText], NULL, &(cs->active_text_sat), &(cs->active_text_val)) ;
+	make_color_scheme_hsv( cs->main_colors[ASMC_HighInactiveText], NULL, &(cs->high_inactive_text_sat), &(cs->high_inactive_text_val)) ;
+	make_color_scheme_hsv( cs->main_colors[ASMC_HighActiveText], NULL, &(cs->high_active_text_sat), &(cs->high_active_text_val)) ;
 
-	/* all of the colors are computed by now */
-	cs->set_main_colors = 0 ;
+	/* all of the colors are set manually by now */
+	cs->set_main_colors = 0xFFFFFFFF ;
 	return cs;
 }
 
