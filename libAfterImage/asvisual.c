@@ -1296,13 +1296,14 @@ void scanline2ximage16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
 #ifdef WORDS_BIGENDIAN
+SHOW_CHECKPOINT;
 	if( !asv->msb_first )
 #else
 	if( asv->msb_first )
 #endif
 		do
 		{
-			src[i] = ENCODE_MSBF_565((c>>20),(c>>17),(c>>1),(c<<5));
+			src[i] = ENCODE_MSBF_565((c>>20),(c>>15),(c<<1),(c<<5));
 			if( --i < 0 )
 				break;
 			/* carry over quantization error allow for error diffusion:*/
@@ -1354,6 +1355,7 @@ void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
 #ifdef WORDS_BIGENDIAN
+SHOW_CHECKPOINT;
 	if( !asv->msb_first )
 #else
 	if( asv->msb_first )
