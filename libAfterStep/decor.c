@@ -80,7 +80,7 @@ refresh_canvas_config (ASCanvas * pc)
 				if( get_flags( pc->state, CANVAS_SHAPE_SET ) && !get_flags( pc->state, CANVAS_CONTAINER ))
 				{
 					LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX) (none)",  pc->w );
-                	XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, None, ShapeSet);
+//                	XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, None, ShapeSet);
 #if 0
                 	{
                     	XRectangle    rect;
@@ -192,7 +192,7 @@ invalidate_canvas_config( ASCanvas *pc )
 		return;
 
         LOCAL_DEBUG_OUT( "resizing to %dx%d", pc->width+1, pc->height+1 );
-        XResizeWindow( dpy, pc->w, pc->width+1, pc->height+1 );
+        XResizeWindow( dpy, pc->w, pc->width+1, pc->height + 1 );
 #ifdef SHAPE
         if ( !get_flags( pc->state, CANVAS_CONTAINER )  &&
 			  get_flags( pc->state, CANVAS_SHAPE_SET ) )
@@ -208,8 +208,8 @@ invalidate_canvas_config( ASCanvas *pc )
         }
 #endif
 
-    		pc->width = 1;
-		pc->height = 1;
+   		pc->width = 0;
+		pc->height = 0;
 		if (pc->canvas)
 		{
 			XFreePixmap (dpy, pc->canvas);
@@ -320,6 +320,7 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height)
 			rect.y = real_y ;
 			rect.width  = real_width ;
 			rect.height = real_height ;
+			LOCAL_DEBUG_OUT( "filling mask at %dx%d%+d%+d", rect.width, rect.height, rect.x, rect.y );
 			res = add_shape_rectangles( pc->shape, &rect, 1, 0, 0, pc->width, pc->height );
 			if( res )
 				set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
@@ -429,7 +430,7 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
             if (pc->canvas)
             {
 #ifdef SHAPE
-                if (pc->shape)
+                if (pc->shape && PVECTOR_USED(pc->shape) > 0 )
                 {
                     LOCAL_DEBUG_OUT( "XShapeCombineREctangles(%lX)set canvas shape to %d rects", pc->w, PVECTOR_USED(pc->shape) );
                     XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, PVECTOR_HEAD(XRectangle, pc->shape), PVECTOR_USED(pc->shape), ShapeSet, Unsorted);
@@ -456,7 +457,7 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 	{
         if( force || !get_flags( pc->state, CANVAS_CONTAINER ))
         {
-            if (pc->shape)
+            if (pc->shape && PVECTOR_USED(pc->shape) > 0 )
             {
                 LOCAL_DEBUG_OUT( "XShapeCombineREctangles(%lX)set canvas mask to %d rectangles", pc->w, PVECTOR_USED(pc->shape) );
                 XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, PVECTOR_HEAD(XRectangle, pc->shape), PVECTOR_USED(pc->shape), ShapeSet, Unsorted);
@@ -513,12 +514,13 @@ refresh_container_shape( ASCanvas *pc )
 		XRectangle *rects = XShapeGetRectangles( dpy, pc->w, ShapeBounding, &count, &order );
 		if( rects )
 		{
+			unsigned int curr_width = 1, curr_height = 1 ;
 			if( pc->shape == NULL )
 				pc->shape = create_shape();
 			else
 				flush_vector( pc->shape );
-
-			res = add_shape_rectangles( pc->shape, rects, count, 0, 0, pc->width, pc->height );
+			get_drawable_size( pc->w, &curr_width, &curr_height );
+			res = add_shape_rectangles( pc->shape, rects, count, 0, 0, curr_width, curr_height );
 			XFree( rects );
 
 			if( res )
@@ -560,8 +562,9 @@ LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
             return False;
         }
 
-		if( child->shape )
+		if( child->shape && PVECTOR_USED(child->shape) > 0 )
 		{
+			LOCAL_DEBUG_OUT( "adding %d child's shape rectangles", PVECTOR_USED(child->shape) );
 			res = add_shape_rectangles( parent->shape, PVECTOR_HEAD(XRectangle, child->shape), PVECTOR_USED(child->shape), child_x, child_y, parent_width, parent_height );
 		}else
 		{
@@ -570,6 +573,8 @@ LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
 			rect.y = child_y - child_bw ;
 			rect.width = child_width + child_bw*2 ;
 			rect.height = child_height + child_bw*2 ;
+            LOCAL_DEBUG_OUT( "adding child's shape as whole rectangle: %dx%d%+d%+d", rect.width, rect.height, rect.x, rect.y );
+
 			res = add_shape_rectangles( parent->shape, &rect, 1, 0, 0, parent_width, parent_height );
 		}
     }

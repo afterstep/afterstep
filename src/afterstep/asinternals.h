@@ -166,10 +166,12 @@ typedef struct ASWindow
     Time    last_restack_time ;
     int DeIconifyDesk;  /* Desk to deiconify to, for StubbornIcons */
 
-	Bool 	window_complete ;                  /* if TRue - then AddWindow has been completed */
-
 	int     maximize_ratio_x, maximize_ratio_y ;
 
+#define ASWF_WindowComplete			(0x01<<0)  /* if set - then AddWindow has been completed */
+#define ASWF_PendingShapeRemoval	(0x01<<1)
+
+	ASFlagType internal_flags ;
 }ASWindow;
 
 typedef struct ASLayer

@@ -155,7 +155,7 @@ check_side_canvas( ASWindow *asw, FrameSide side, Bool required )
             register_aswindow( w, asw );
 			canvas = create_ascanvas( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->side(%d)->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname",side, canvas, canvas->w );
-        }else
+        } else
 			invalidate_canvas_config( canvas );
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
@@ -204,8 +204,8 @@ check_frame_canvas( ASWindow *asw, Bool required )
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->FRAME->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
-        }else
-	    invalidate_canvas_config( canvas );
+        } else
+			invalidate_canvas_config( canvas );
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         w = canvas->w ;
@@ -258,8 +258,8 @@ check_client_canvas( ASWindow *asw, Bool required )
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
-        }else
-	    invalidate_canvas_config( canvas );
+        }
+		/*else    invalidate_canvas_config( canvas ); */
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         XWindowChanges xwc;                    /* our withdrawn geometry */
@@ -1110,7 +1110,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
      * it all is done when we change windows state, or move/resize it */
     /*since we might have destroyed/created some windows - we have to refresh grabs :*/
     grab_window_input( asw, False );
-	if( asw->window_complete )
+	if( get_flags( asw->internal_flags, ASWF_WindowComplete) )
 	{
 		/* we need to map all the possibly created subwindows if window is not iconic */
 		if( !ASWIN_GET_FLAGS(asw, AS_Iconic ) )
@@ -1226,6 +1226,7 @@ SetShape (ASWindow *asw, int w)
 				}
 
 			update_canvas_display_mask (asw->frame_canvas, True);
+			set_flags( asw->internal_flags, ASWF_PendingShapeRemoval );
 
 #if 0    /* no longer needed as we do not put client under titlebar anymore */
 			if( ( ASWIN_GET_FLAGS( asw, AS_Shaded ) || asw->shading_steps > 0 ) && asw->frame_sides[od->tbar_side])
@@ -1285,7 +1286,7 @@ ClearShape (ASWindow *asw)
 	unsigned int width, height ;
         XRectangle    rect;
 
-	get_drawable_size( asw->frame_canvas->w, &width, &height );
+    	get_drawable_size( asw->frame_canvas->w, &width, &height );
         rect.x = 0;
         rect.y = 0;
         rect.width  = width;
@@ -1293,6 +1294,8 @@ ClearShape (ASWindow *asw)
         LOCAL_DEBUG_OUT( "setting shape to rectangle %dx%d", rect.width, rect.height );
         XShapeCombineRectangles ( dpy, asw->frame, ShapeBounding,
                                   0, 0, &rect, 1, ShapeSet, Unsorted);
+
+		clear_flags( asw->internal_flags, ASWF_PendingShapeRemoval );
     }
 #endif /* SHAPE */
 }

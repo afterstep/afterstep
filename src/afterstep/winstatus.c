@@ -536,6 +536,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx)", asw, w, asw->w );
         {
             if( ASWIN_GET_FLAGS( asw, AS_Shaped|AS_ShapedDecor ) )
                 SetShape( asw, 0 );
+			else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
+				ClearShape( asw, 0 );
         }
     }else if( w == asw->frame )
     {/* resize canvases here :*/
@@ -584,6 +586,9 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
             update_window_transparency( asw, False );
             if( get_flags( changes, CANVAS_RESIZED ) && ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
                 SetShape( asw, 0 );
+			else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
+				ClearShape( asw, 0 );
+
 			if( !ASWIN_GET_FLAGS(asw, AS_Dead|AS_MoveresizeInProgress ) )
 	            broadcast_config (M_CONFIGURE_WINDOW, asw);
         }
@@ -640,6 +645,8 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
                         update_canvas_display( asw->frame_sides[i] );
                         if( ASWIN_GET_FLAGS( asw, AS_Shaped )  )
                             SetShape( asw, 0 );
+						else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
+							ClearShape( asw, 0 );
                     }
                 }
                 found = True;
