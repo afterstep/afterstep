@@ -310,10 +310,9 @@ typedef struct ASWindow
     int wShaped;		/* is this a shaped window */
 #endif
     int warp_index;		/* index of the window in the window list,
-				   changes when window is warped */
+                           changes when window is warped */
 
-    XWindowAttributes attr;	/* the child window attributes */
-    int FocusDesk;		/* Where (if at all) was it focussed */
+    int FocusDesk;      /* Where (if at all) was it focussed */
     int DeIconifyDesk;		/* Desk to deiconify to, for StubbornIcons */
 
     unsigned long flags;

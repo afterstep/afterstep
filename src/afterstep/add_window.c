@@ -1771,6 +1771,7 @@ AddWindow (Window w)
     ASHints      *hints  = NULL;
     ASStatusHints status;
 	extern ASDatabase *Database;
+    XWindowAttributes attr ;
 
 
 	/* allocate space for the afterstep window */
@@ -1826,10 +1827,8 @@ AddWindow (Window w)
 	tmp_win->focus_sequence = 1;
 	SetCirculateSequence (tmp_win, -1);
 
-	if (!XGetWindowAttributes (dpy, tmp_win->w, &tmp_win->attr))
-		tmp_win->attr.colormap = Scr.ASRoot.attr.colormap;
-
-	tmp_win->old_bw = tmp_win->attr.border_width;
+    if( XGetWindowAttributes( dpy, w, &attr ) )
+        tmp_win->old_bw = attr.border_width;
 
 #ifdef SHAPE
 	{
@@ -1930,12 +1929,10 @@ AddWindow (Window w)
 
     BroadcastConfig (M_ADD_WINDOW, tmp_win);
 
-    broadcast_window_name( asw );
-    broadcast_res_names( asw );
-    broadcast_icon_name( asw );
+    broadcast_window_name( tmp_win );
+    broadcast_res_names( tmp_win );
+    broadcast_icon_name( tmp_win );
 
-	if (!(XGetWindowAttributes (dpy, tmp_win->w, &(tmp_win->attr))))
-		tmp_win->attr.colormap = Scr.ASRoot.attr.colormap;
 #if 0
 /* TODO : */
 	if (NeedToResizeToo)
@@ -1947,7 +1944,7 @@ AddWindow (Window w)
 		resize_window (tmp_win->w, tmp_win, 0, 0, 0, 0);
 	}
 #endif
-    InstallWindowColormaps (Scr.colormap_win);
+    InstallWindowColormaps (tmp_win);
 	if (!ASWIN_HFLAGS(tmp_win, AS_SkipWinList))
 		update_windowList ();
 
@@ -1960,10 +1957,7 @@ AddWindow (Window w)
 void
 Destroy (ASWindow *asw, Bool kill_client)
 {
-	int           i;
-	extern ASWindow *ButtonWindow;
-
-	/*
+    /*
 	 * Warning, this is also called by HandleUnmapNotify; if it ever needs to
 	 * look at the event, HandleUnmapNotify will have to mash the UnmapNotify
 	 * into a DestroyNotify.
@@ -1972,9 +1966,13 @@ Destroy (ASWindow *asw, Bool kill_client)
 		return;
 
     XUnmapWindow (dpy, asw->frame);
-	XSync (dpy, 0);
+    XRemoveFromSaveSet (dpy, Event.xunmap.window);
+    XSelectInput (dpy, Event.xunmap.window, NoEventMask);
+    XSync (dpy, 0);
 
     Broadcast (M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
+
+    UninstallWindowColormaps( asw );
 
     if ( asw == Scr.Hilite )
 		Scr.Hilite = NULL;
@@ -1985,17 +1983,10 @@ Destroy (ASWindow *asw, Bool kill_client)
     if (asw == Scr.Focus )
         focus_next_aswindow( asw );
 
-    if (Scr.pushed_window == asw)
-		Scr.pushed_window = NULL;
-
-    if (Scr.colormap_win == asw )
-        Scr.colormap_win = NULL;
-
 	if (!kill_client)
         RestoreWithdrawnLocation (asw, True);
 
     redecorate_window( asw, True );
-
     unregister_aswindow( asw->w );
 
     asw->prev->next = asw->next;
@@ -2025,7 +2016,6 @@ RestoreWithdrawnLocation (ASWindow * asw, Bool restart)
 {
     int x = 0, y = 0;
     unsigned int width = 0, height = 0, bw = 0 ;
-    Window w ;
     Bool map_too = False ;
 
 LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
@@ -2049,8 +2039,8 @@ LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
             * window anywhere he wants ).
             *                             ( Sasha )
             */
-        x = make_detach_pos( asw->hints, asw->status, asw->anchor.x, asw->width, Scr.Vx, True );
-        y = make_detach_pos( asw->hints, asw->status, asw->anchor.y, asw->height, Scr.Vy, False );
+        x = make_detach_pos( asw->hints, asw->status, asw->anchor.x, asw->frame_canvas->width, Scr.Vx, True );
+        y = make_detach_pos( asw->hints, asw->status, asw->anchor.y, asw->frame_canvas->height, Scr.Vy, False );
 
         if ( get_flags(asw->status->flags, AS_Iconic ))
         {

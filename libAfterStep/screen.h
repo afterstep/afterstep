@@ -234,7 +234,7 @@ typedef struct ScreenInfo
     int NoBoundaryWidth;	/* frame width for decorated windows */
     int TitleTextAlign;		/* alignment of title bar text */
 #ifndef NO_TEXTURE
-    int TitleStyle;		/* old or new titlebar style */
+    int TitleStyle;         /* old or new titlebar style */
     Pixmap TitleGradient;	/* gradient for the focused title text */
 
     MyIcon MenuArrow;
@@ -250,9 +250,6 @@ typedef struct ScreenInfo
     ASWindow *Ungrabbed;
     ASWindow *PreviousFocus;	/* Window which had focus before afterstep stole it
                                  * to do moves/menus/etc. */
-    int root_pushes;            /* current push level to install root colormap windows */
-    ASWindow *pushed_window;    /* saved window to install when pushes drops to zero */
-    ASWindow *colormap_win;
 
     int EntryHeight;        /* menu entry height */
     int EdgeScrollX;		/* #pixels to scroll on screen edge */

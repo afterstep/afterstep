@@ -664,178 +664,98 @@ HandleUnmapNotify (ASEvent *event )
     if (Scr.Focus == asw )
         focus_next_aswindow( asw );
 
-    if (Scr.pushed_window == asw)
-		Scr.pushed_window = NULL;
-
-    if (colormap_win == asw)
-		colormap_win = NULL;
-
-	if ((!(Tmp_win->flags & MAPPED) && !(Tmp_win->flags & ICONIFIED)))
+    if (ASWIN_GET_FLAGS(asw, AS_Mapped) || ASWIN_GET_FLAGS(asw, AS_Iconic))
 	{
-		return;
-	}
-	XGrabServer (dpy);
-
-    if (ASCheckTypedWindowEvent ( Event.xunmap.window, DestroyNotify, &dummy))
-	{
-		Destroy (Tmp_win, True);
-		XUngrabServer (dpy);
-		UpdateVisibility ();
-		return;
-	}
-	/*
-	 * The program may have unmapped the client window, from either
-	 * NormalState or IconicState.  Handle the transition to WithdrawnState.
-	 *
-	 * We need to reparent the window back to the root (so that afterstep exiting
-	 * won't cause it to get mapped) and then throw away all state (pretend
-	 * that we've received a DestroyNotify).
-	 */
-	if (XTranslateCoordinates (dpy, Event.xunmap.window, Scr.Root, 0, 0, &dstx, &dsty, &dumwin))
-	{
-		XEvent        ev;
-		Bool          reparented;
-
-        reparented = ASCheckTypedWindowEvent ( Event.xunmap.window, ReparentNotify, &ev);
-		SetMapStateProp (Tmp_win, WithdrawnState);
-		if (reparented)
-		{
-			if (Tmp_win->old_bw)
-				XSetWindowBorderWidth (dpy, Event.xunmap.window, Tmp_win->old_bw);
-			if (get_flags(Tmp_win->hints->flags, AS_Icon) &&
-				((Tmp_win->hints->flags)&(AS_ClientIcon|AS_ClientIconPixmap)) == AS_ClientIcon )
-				XUnmapWindow (dpy, Tmp_win->hints->icon.window);
-		} else
-		{
-			RestoreWithdrawnLocation (Tmp_win, False);
-		}
-		XRemoveFromSaveSet (dpy, Event.xunmap.window);
-		XSelectInput (dpy, Event.xunmap.window, NoEventMask);
-		Destroy (Tmp_win, True);			   /* do not need to mash event before */
-		/*
-		 * Flush any pending events for the window.
-		 */
-		/* Bzzt! it could be about to re-map */
-/*      while(XCheckWindowEvent(dpy, Event.xunmap.window,
-   StructureNotifyMask | PropertyChangeMask |
-   ColormapChangeMask |
-   EnterWindowMask | LeaveWindowMask, &dummy));
- */
-	}										   /* else window no longer exists and we'll get a destroy notify */
-	XUngrabServer (dpy);
-	UpdateVisibility ();
-	XFlush (dpy);
+        Bool destroyed = False ;
+        XGrabServer (dpy);
+        destroyed = ASCheckTypedWindowEvent ( Event.xunmap.window, DestroyNotify, &dummy) ;
+        /*
+        * The program may have unmapped the client window, from either
+        * NormalState or IconicState.  Handle the transition to WithdrawnState.
+        */
+        Destroy (event->client, destroyed);               /* do not need to mash event before */
+        XUngrabServer (dpy);
+        UpdateVisibility ();
+        XFlush (dpy);
+    }
 }
 
 
 /***********************************************************************
- *
  *  Procedure:
  *	HandleButtonPress - ButtonPress event handler
- *
  ***********************************************************************/
 void
-HandleButtonPress ()
+HandleButtonPress ( ASEvent *event )
 {
 	unsigned int  modifier;
 	MouseButton  *MouseEntry;
-	Window        xPressedW;
-	int           LocalContext;
-	Bool          AShandled = False;
+    Bool          AShandled = False;
+    ASWindow     *asw = event->client ;
+    XButtonEvent *xbtn = &(event->x.xbutton);
 
-	Context = GetContext (Tmp_win, &Event, &PressedW);
-	LocalContext = Context;
-	xPressedW = PressedW;
+
 
 	/* click to focus stuff goes here */
-	if (Scr.flags & ClickToFocus)
-	{
-		if (Tmp_win && (Tmp_win != Scr.Ungrabbed)
-			&& ((Event.xbutton.state & Scr.nonlock_mods) == 0))
-		{
-			Bool          focusAccepted = SetFocus (Tmp_win->w, Tmp_win, False);
+    if( asw != NULL )
+    {
+        Bool          focus_accepted = False;
 
-			if (!(Tmp_win->flags & VISIBLE))
-			{
-				if ((Scr.flags & ClickToRaise) && (Context == C_WINDOW)
-					&& (Scr.RaiseButtons & (1 << Event.xbutton.button)))
-					RaiseWindow (Tmp_win);
-				else
-				{
-					if (Scr.AutoRaiseDelay > 0)
-					{
-						SetTimer (Scr.AutoRaiseDelay);
-					} else
-					{
+        if (get_flags( Scr.flags, ClickToFocus) )
+        {
+            if ( asw != Scr.Ungrabbed && (xbtn->state & Scr.nonlock_mods) == 0))
+                focus_accepted = focus_aswindow(asw, False);
+        }
+
+        if (!ASWIN_GET_FLAGS(asw, AS_Visible))
+        {
+            if (get_flags(Scr.flags, ClickToRaise) && event->context == C_WINDOW
+                && (Scr.RaiseButtons & (1 << xbtn->button)) )
+                RaiseWindow (asw);
+            else
+            {
+                if (Scr.AutoRaiseDelay > 0)
+                {
+                    SetTimer (Scr.AutoRaiseDelay);
+                } else
+                {
 #ifdef CLICKY_MODE_1
-						if ((Event.xany.window != Tmp_win->w) &&
-							(Event.xbutton.subwindow != Tmp_win->w) &&
-							(Event.xany.window != Tmp_win->Parent) &&
-							(Event.xbutton.subwindow != Tmp_win->Parent))
+                    if (event->w != asw->w)
 #endif
-						{
-							if (Scr.AutoRaiseDelay == 0)
-								RaiseWindow (Tmp_win);
-						}
-					}
-				}
-			}
-			if (!(Tmp_win->flags & ICONIFIED) && focusAccepted)
-			{
-				XSync (dpy, 0);
-				if ((Scr.flags & EatFocusClick) && (Context == C_WINDOW))
-					XAllowEvents (dpy, AsyncPointer, CurrentTime);
-				else
-					XAllowEvents (dpy, ReplayPointer, CurrentTime);
+                    {
+                        if (Scr.AutoRaiseDelay == 0)
+                            RaiseWindow (asw);
+                    }
+                }
+            }
+        }
+        if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
+        {
+            XSync (dpy, 0);
+            XAllowEvents (dpy, (event->context == C_WINDOW) ? ReplayPointer : AsyncPointer, CurrentTime);
+            XSync (dpy, 0);
+        }
+        if( focus_accepted )
+            return;
 
-				XSync (dpy, 0);
-				return;
-			}
-		}
-	} else if ((Scr.flags & ClickToRaise) && Tmp_win && (Context == C_WINDOW)
-			   && (Scr.RaiseButtons & (1 << Event.xbutton.button))
-			   && ((Event.xbutton.state & Scr.nonlock_mods) == 0)
-			   && ((Tmp_win->flags & VISIBLE) == 0))
-	{
-		RaiseWindow (Tmp_win);
-		if (!(Tmp_win->flags & ICONIFIED))
-		{
-			XSync (dpy, 0);
-			XAllowEvents (dpy, AsyncPointer, CurrentTime);
-			XSync (dpy, 0);
-			return;
-		}
-	}
-	XSync (dpy, 0);
-	XAllowEvents (dpy, (Context == C_WINDOW) ? ReplayPointer : AsyncPointer, CurrentTime);
-	XSync (dpy, 0);
+        on_window_pressure_changed( asw, event->context );
+    }
 
-	if (Context == C_TITLE)
-		SetTitleBar (Tmp_win, (Scr.Hilite == Tmp_win), False);
-	else
-		SetBorder (Tmp_win, (Scr.Hilite == Tmp_win), True, True, PressedW);
-
-	ButtonWindow = Tmp_win;
-
-	/* we have to execute a function or pop up a menu
-	 */
-
-	modifier = (Event.xbutton.state & Scr.nonlock_mods);
+    /* we have to execute a function or pop up a menu : */
+    modifier = (xbtn->state & Scr.nonlock_mods);
 	/* need to search for an appropriate mouse binding */
 	MouseEntry = Scr.MouseButtonRoot;
-	while (MouseEntry != (MouseButton *) 0)
+    while (MouseEntry != NULL)
 	{
-		if (((MouseEntry->Button == Event.xbutton.button) || (MouseEntry->Button == 0)) &&
-			(MouseEntry->Context & Context) &&
-			((MouseEntry->Modifier == AnyModifier) || (MouseEntry->Modifier == modifier)))
+        if ((MouseEntry->Button == xbtn->button || MouseEntry->Button == 0) &&
+            (MouseEntry->Context & event->context) &&
+            (MouseEntry->Modifier == AnyModifier || MouseEntry->Modifier == modifier))
 		{
 			/* got a match, now process it */
-			if (MouseEntry->func != (int)NULL)
+            if (MouseEntry->func != 0)
 			{
-				ExecuteFunction (MouseEntry->func, MouseEntry->action,
-								 Event.xany.window,
-								 Tmp_win, &Event, Context, MouseEntry->val1,
-								 MouseEntry->val2,
+                ExecuteFunction (MouseEntry->func, MouseEntry->action, event,
+                                 MouseEntry->val1, MouseEntry->val2,
 								 MouseEntry->val1_unit, MouseEntry->val2_unit,
 								 MouseEntry->menu, -1);
 				AShandled = True;
@@ -846,23 +766,12 @@ HandleButtonPress ()
 	}
 
 	/* GNOME this click hasn't been taken by AfterStep */
-	if (!AShandled && Event.xany.window == Scr.Root)
+    if (!AShandled && xbtn->window == Scr.Root)
 	{
 		extern Window GnomeProxyWin;
-
-		if (Event.type == ButtonPress)
-			XUngrabPointer (dpy, CurrentTime);
-		XSendEvent (dpy, GnomeProxyWin, False, SubstructureNotifyMask, &Event);
+        XUngrabPointer (dpy, CurrentTime);
+        XSendEvent (dpy, GnomeProxyWin, False, SubstructureNotifyMask, &(event->x));
 	}
-
-	PressedW = None;
-
-	if (LocalContext != C_TITLE)
-		SetBorder (ButtonWindow, (Scr.Hilite == ButtonWindow), True, True, xPressedW);
-	else
-		SetTitleBar (ButtonWindow, (Scr.Hilite == ButtonWindow), False);
-
-	ButtonWindow = NULL;
 }
 
 /***********************************************************************
@@ -872,9 +781,9 @@ HandleButtonPress ()
  *
  ************************************************************************/
 void
-HandleEnterNotify ()
+HandleEnterNotify (ASEvent *event)
 {
-	XEnterWindowEvent *ewp = &Event.xcrossing;
+    XEnterWindowEvent *ewp = &(event->x.xcrossing);
 	XEvent        d;
 
 	/* look for a matching leaveNotify which would nullify this enterNotify */
@@ -886,49 +795,48 @@ HandleEnterNotify ()
 	}
 /* an EnterEvent in one of the PanFrameWindows activates the Paging */
 #ifndef NO_VIRTUAL
-	if (ewp->window == Scr.PanFrameTop.win
-		|| ewp->window == Scr.PanFrameLeft.win
-		|| ewp->window == Scr.PanFrameRight.win || ewp->window == Scr.PanFrameBottom.win)
+    if (ewp->window == Scr.PanFrameTop.win   ||
+        ewp->window == Scr.PanFrameLeft.win  ||
+        ewp->window == Scr.PanFrameRight.win ||
+        ewp->window == Scr.PanFrameBottom.win  )
 	{
 		int           delta_x = 0, delta_y = 0;
 
 		/* this was in the HandleMotionNotify before, HEDU */
 		HandlePaging (NULL, Scr.EdgeScrollX, Scr.EdgeScrollY,
-					  &Event.xcrossing.x_root, &Event.xcrossing.y_root, &delta_x, &delta_y, True);
+                      &(ewp->x_root), &(ewp->y_root), &delta_x, &delta_y, True);
 		return;
 	}
 #endif /* NO_VIRTUAL */
 
-	if (Event.xany.window == Scr.Root)
+    if (ewp->window == Scr.Root)
 	{
-		if ((!(Scr.flags & ClickToFocus)) && (!(Scr.flags & SloppyFocus)))
-		{
-			SetFocus (Scr.NoFocusWin, NULL, False);
-		}
-		InstallWindowColormaps (NULL);
+        if (!get_flags(Scr.flags, ClickToFocus) && !get_flags(Scr.flags, SloppyFocus))
+            hide_focus();
+        InstallRootColormap(NULL);
 		return;
-	}
+    }else if( event->context != C_WINDOW )
+        InstallAfterStepColormap(NULL);
+
 	/* make sure its for one of our windows */
-	if (!Tmp_win)
+    if (asw == NULL )
 		return;
 
-	if (ASWIN_HFLAGS(Tmp_win,AS_AcceptsFocus))
+    if (ASWIN_HFLAGS(asw,AS_AcceptsFocus))
 	{
-		if (!(Scr.flags & ClickToFocus))
+        if (!get_flags(Scr.flags, ClickToFocus))
 		{
-			if (Scr.Focus != Tmp_win)
+            if (Scr.Focus != asw)
 			{
-				if ((Scr.AutoRaiseDelay > 0) && (!(Tmp_win->flags & VISIBLE)))
+                if (Scr.AutoRaiseDelay > 0 && !ASWIN_GET_FLAGS(asw, AS_Visible))
 					SetTimer (Scr.AutoRaiseDelay);
-				SetFocus (Tmp_win->w, Tmp_win, False);
-			} else
-				SetFocus (Tmp_win->w, Tmp_win, True);	/* don't affect the circ.seq. */
+                focus_aswindow(asw, False);
+            }else
+                focus_aswindow(asw, True);         /* don't affect the circ.seq. */
 		}
-		if ((!(Tmp_win->flags & ICONIFIED)) && (Event.xany.window == Tmp_win->w))
-			InstallWindowColormaps (Tmp_win);
-		else
-			InstallWindowColormaps (NULL);
-	}
+        if (!ASWIN_GET_FLAGS(asw, AS_Iconic) && event->context == C_WINDOW )
+            InstallWindowColormaps (asw);
+    }
 }
 
 

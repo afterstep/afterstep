@@ -45,6 +45,7 @@ struct ScreenInfo;
 /* special state - client is mapped - there is a small gap between MapRequest+XMapWindow and MapNotify event */
 #define AS_Mapped               (1<<16)
 #define AS_IconMapped           (1<<17)
+#define AS_Visible              (1<<18)
 
 /***********************************************************/
 /* General flags                                           */

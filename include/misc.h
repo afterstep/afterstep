@@ -51,10 +51,15 @@ extern void moveLoop (ASWindow *, int, int, int, int, int *, int *, Bool, Bool);
 extern void Keyboard_shortcuts (XEvent *, int, int);
 
 //extern void SetupFrame (ASWindow *, int, int, int, int, Bool);
-extern void CreateGCs (void);
-extern void InstallWindowColormaps (ASWindow *);
-extern void InstallRootColormap (void);
-extern void UninstallRootColormap (void);
+void CreateGCs (void);
+
+/* colormaps.c : */
+void InstallWindowColormaps (ASWindow *asw);
+void UninstallWindowColormaps (ASWindow *asw);
+void InstallRootColormap (void);
+void UninstallRootColormap (void);
+void InstallAfterStepColormap (void);
+void UninstallAfterStepColormap (void);
 
 extern void init_old_look_variables (Bool);
 extern void merge_old_look_colors (MyStyle *, int, int, char *, char *, char *, char *);
@@ -67,6 +72,7 @@ extern void match_string (struct config *, char *, char *, FILE *);
 extern struct config *match_string2 (struct config *, char *);
 extern void LoadASConfig (const char *, int, Bool, Bool, Bool);
 
+/* events.c: */
 void DigestEvent( ASEvent *event );
 extern void HandleEvents (struct ASEvent *event);
 extern void HandleFocusIn (struct ASEvent *event);
@@ -150,7 +156,7 @@ void SendConfig (int, unsigned long, ASWindow *);
 void BroadcastName (unsigned long, unsigned long, unsigned long, unsigned long, char *);
 void SendName (int, unsigned long, unsigned long, unsigned long, unsigned long, char *);
 /* simplified specialized interface to above functions : */
-void broadcast_focus _change( ASWindow *focused );
+void broadcast_focus_change( ASWindow *focused );
 void broadcast_window_name( ASWindow *asw );
 void broadcast_icon_name( ASWindow *asw );
 void broadcast_res_names( ASWindow *asw );

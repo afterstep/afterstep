@@ -62,14 +62,9 @@ typedef struct ASRequiredColormap
 static ASBiDirList  *InstalledCmapList = NULL;
 static ASInstalledColormap *RootCmap = NULL ;
 static ASInstalledColormap *AfterStepCmap = NULL ;
-static ASRequiredColormap *RequiredCmapsList = NULL ;
+static ASRequiredColormap *RequiredCmaps = NULL ;
 static int MaxRequiredCmaps = 0;
 static ASHashTable *Cmap2WindowXref = NULL ;
-
-
-
-static Colormap      last_cmap = None;
-static ASCmapState   last_cmap_state = AS_CmapNone;
 
 void
 destroy_ASInstalledColormap( void *data )
@@ -85,29 +80,18 @@ destroy_ASInstalledColormap( void *data )
 static void
 correct_colormaps_order()
 {
-    int i ;
-
-    if( MaxRequiredCmaps == 0 )
-    {
-        /* we will maintain only list of required colormaps */
-        MaxRequiredCmaps = MinCmapsOfScreen(ScreensOfDisplay(dpy,Scr.screen));
-        if( MaxRequiredCmaps == 0 )
-            return;
-        RequiredCmaps = safecalloc( MaxRequiredCmaps, sizeof(ASRequiredColormap));
-    }
+    int i = 0;
 
     if( RequiredCmaps == NULL )
-        return;
-
-    i = 0 ;
+        return;                                /* no colormap management needed */
 
     if( RootCmap && RootCmap->ref_count > 0 )
         RequiredCmaps[i++].desired = RootCmap->cmap ;
     if( i < MaxRequiredCmaps )
     {
         /* first lets check on semi-mandatory AfterStep colormap */
-        if(   AfterStepCmap != NULL &&
-            ( i < MaxRequiredCmaps-1 ||  /* either we are allowed several maps at the same time */ */
+        if(   AfterStepCmap != NULL && AfterStepCmap != RootCmap &&
+            ( i < MaxRequiredCmaps-1 ||  /* either we are allowed several maps at the same time */
               AfterStepCmap->ref_count > 0))              /* or AfterStep cmap is required */
             RequiredCmaps[i++].desired = AfterStepCmap->cmap ;
 
@@ -141,15 +125,79 @@ correct_colormaps_order()
 }
 
 static void
-install_colormap( Colormap cmap, Window w )
+uninstall_colormap( Colormap cmap, Window w )
 {
-    if( InstalledCmapList == NULL )
-        InstalledCmapList = create_asbidirlist(destroy_ASInstalledColormap);
+    Bool freed = False ;
 
-    if( InstalledCmapList != NULL )
+    if( cmap == None )
+    {
+        freed = True ;
+        if( get_hash_item( Cmap2WindowXref, AS_HASHABLE(w), (void**)&cmap ) != ASH_Success )
+            return;
+    }
+    if( InstalledCmapList && cmap != None )
     {
         ASBiDirElem *pcurr = LIST_START( InstalledCmapList );
+        if( w != None )
+            remove_hash_item (Cmap2WindowXref, AS_HASHABLE(w), NULL, True);
+        while( pcurr )
+        {
+            ASInstalledColormap *ic = LISTELEM_DATA(pcurr);
+            if( ic && ic->cmap == cmap)
+            {
+                if( --(ic->ref_count) <= 0 )
+                {
+                    if( w == None )
+                    {   /*we have to get rid of all the references to this cmap : */
+                        ASHashIterator hi ;
+                        if( start_hash_iteration (Cmap2WindowXref, &hi) )
+                            do
+                            {
+                                if( (Colormap)curr_hash_data (&hi) == cmap )
+                                    remove_curr_hash_item (&hi, True);
+                            }while( next_hash_item (&hi));
+                    }
+                    /* don't do XUninstallCmap if it was already freed by call to XFreePixmap :*/
+                    if( freed )
+                        ic->cmap = None ;
+                    destroy_bidirelem( InstalledCmapList, pcurr );
+                    correct_colormaps_order();
+                }
+                return;
+            }
+            LIST_GOTO_NEXT(pcurr);
+        }
+    }
+}
+
+static void
+install_colormap( Colormap cmap, Window w )
+{
+    if( InstalledCmapList != NULL )
+    {
+        ASBiDirElem *pcurr;
         ASInstalledColormap *ic;
+        /* lets check if the window is already known to us : */
+        if( w != None )
+        {
+            Colormap old_cmap = None ;
+            if( get_hash_item( Cmap2WindowXref, AS_HASHABLE(w), (void**)&old_cmap) == ASH_Success )
+            {
+                if( cmap == None )
+                    cmap = old_cmap ;
+                else if( cmap != old_cmap )
+                    uninstall_colormap( old_cmap, w );
+            }
+        }
+        if( cmap == None )
+            return ;
+        if( w != None )
+        {
+            add_hash_item( Cmap2WindowXref, AS_HASHABLE(w), (void*)cmap);
+            add_window_event_mask( w, ColormapChangeMask );
+        }
+        /* now lets pop this colormap to the top of the list : */
+        pcurr = LIST_START( InstalledCmapList );
         while( pcurr )
         {
             ic = LISTELEM_DATA(pcurr);
@@ -164,47 +212,46 @@ install_colormap( Colormap cmap, Window w )
         }
         ic = safecalloc( 1, sizeof(ASInstalledColormap));
         ic->cmap = cmap ;
-        ic->state = AS_CmapNew ;
         ic->ref_count = 1 ;
         prepend_bidirelem( InstalledCmapList, ic );
         correct_colormaps_order();
     }
 }
 
-static void
-uninstall_colormap( Colormap cmap, Window w )
+/*************************************************************************/
+/* Setup and cleanup procedures :                                        */
+/*************************************************************************/
+void
+ColormapSetup()
 {
-    if( InstalledCmapList )
+    if( MaxRequiredCmaps == 0 )
     {
-        ASBiDirElem *pcurr = LIST_START( InstalledCmapList );
-        while( pcurr )
-        {
-            ASInstalledColormap *ic = LISTELEM_DATA(pcurr);
-            if( ic && ic->cmap == cmap)
-            {
-                if( --(ic->ref_count) <= 0 )
-                {
-                    destroy_bidirelem( InstalledCmapList, pcurr );
-                    correct_colormaps_order();
-                }
-                return;
-            }
-            LIST_GOTO_NEXT(pcurr);
-        }
+        /* we will maintain only list of required colormaps */
+        MaxRequiredCmaps = MinCmapsOfScreen(ScreenOfDisplay(dpy,Scr.screen));
+        if( MaxRequiredCmaps == 0 )
+            return;
+        RequiredCmaps = safecalloc( MaxRequiredCmaps, sizeof(ASRequiredColormap));
     }
+
+    if( InstalledCmapList == NULL )
+        InstalledCmapList = create_asbidirlist(destroy_ASInstalledColormap);
+
+    if( Cmap2WindowXref == NULL )
+        Cmap2WindowXref = create_ashash( 7, NULL, NULL, NULL );
 }
 
 void
 ColormapCleanup()
 {
-    if( cleanup )
-    {
-        if( RequiredCmaps )
-            free( RequiredCmaps );
-        MaxRequiredCmaps = 0;
-    }
+    if( RequiredCmaps )
+        free( RequiredCmaps );
+    MaxRequiredCmaps = 0;
+
     if( InstalledCmapList )
-        destroy_asbidirlist( InstalledCmapList );
+        destroy_asbidirlist( &InstalledCmapList );
+
+    if( Cmap2WindowXref )
+        destroy_ashash( &Cmap2WindowXref );
 }
 /***********************************************************************
  *
@@ -217,57 +264,45 @@ ColormapCleanup()
  *
  ***********************************************************************/
 static void
-DigestCmapEvent( XColormapEvent *cevent, ASWindow *asw )
+DigestColormapEvent( XColormapEvent *cevent )
 {
-    static XWindowAttributes   attr ;
-    if( asw )
+    if (cevent->new && cevent->window )
     {
-        if (cevent->new && asw )
-        {
-            XGetWindowAttributes (dpy, asw->w, &attr);
-            if ( Scr.colormap_win == asw && asw->hints->cmap_windows == NULL )
-            {
-                last_cmap = attr.colormap;
-                last_cmap_state = AS_CmapNew ;
-            }
-        } else if ( last_cmap == cevent->colormap )
-        {   /* Some window installed its colormap, change it back */
-            last_cmap_state = (cevent->state == ColormapUninstalled)?
-                                    AS_CmapUninstalled:AS_CmapInstalled ;
-        }
+        if( cevent->colormap == None )
+            uninstall_colormap( None, cevent->window );
+        else
+            install_colormap( cevent->colormap, cevent->window );
+    } else
+    {   /* Update colormap status in required list : */
+        register int i = MaxRequiredCmaps;
+        while( --i >= 0 )
+            if( RequiredCmaps[i].installed == cevent->colormap )
+                RequiredCmaps[i].state = ( cevent->state == ColormapUninstalled)?
+                                            AS_CmapUninstalled:AS_CmapInstalled ;
     }
 }
 
 void
 HandleColormapNotify (ASEvent *event )
 {
-    Bool          ReInstall = False;
-    XColormapEvent *cevent = event->x.xcolormap;
-    ASWindow *asw = event->client ;
-    XWindowAttributes   attr ;
+    Bool            reinstall = False;
+    XColormapEvent *cevent = &(event->x.xcolormap);
 
+    do
+    {
+        DigestColormapEvent( cevent );
+        if( !cevent->new && cevent->state == ColormapUninstalled )
+            reinstall = True ;
 
-    DigestColormapEvent( &(event->x.xcolormap), event->client );
-
-    while (ASCheckTypedEvent (ColormapNotify, &event->x))
-	{
+        if( !ASCheckTypedEvent (ColormapNotify, &event->x))
+            break;
         DigestEvent( event );
-        DigestColormapEvent( &(event->x.xcolormap), event->client );
-    }
-    if( last_cmap_state != AS_CmapInstalled )
-        XInstallColormap (dpy, last_cmap);
+        cevent = &(event->x.xcolormap);
+    }while(1);
+
+    if( reinstall )
+        correct_colormaps_order();
 }
-
-void
-InstallWindowColormaps( ASWindow *asw )
-{
-
-
-}
-
-
-
-
 /************************************************************************
  *
  * Re-Install the active colormap
@@ -276,7 +311,7 @@ InstallWindowColormaps( ASWindow *asw )
 void
 ReInstallActiveColormap (void)
 {
-    correct_InstallWindowColormaps (Scr.colormap_win);
+    correct_colormaps_order();
 }
 
 /***********************************************************************
@@ -290,57 +325,65 @@ ReInstallActiveColormap (void)
  *		  window structure, whose colormaps are to be installed.
  *
  ************************************************************************/
-
 void
 InstallWindowColormaps (ASWindow *asw)
 {
-	int           i;
-    XWindowAttributes attributes;
-	Window        w;
-	Bool          ThisWinInstalled = False;
-
+    XWindowAttributes attr;
+    Bool          main_cmap_installed = False ;
 
 	/* If no window, then install root colormap */
     if ( asw == NULL )
         asw = &Scr.ASRoot;
 
-    Scr.colormap_win = tmp;
-	/* Save the colormap to be loaded for when force loading of
-	 * root colormap(s) ends.
-	 */
-	Scr.pushed_window = tmp;
-	/* Don't load any new colormap if root colormap(s) has been
-	 * force loaded.
-	 */
-	if (Scr.root_pushes)
-		return;
-
-    if (asw->hints->cmap_windows != NULL)
+    if (asw->hints && asw->hints->cmap_windows != NULL)
 	{
-        for (i = 0; asw->hints->cmap_windows[i] != None; ++i)
+        int  i = 0;
+        for (; asw->hints->cmap_windows[i] != None; ++i)
 		{
-			w = tmp->hints->cmap_windows[i];
-			if (w == tmp->w)
-				ThisWinInstalled = True;
-			XGetWindowAttributes (dpy, w, &attributes);
-
-			if (last_cmap != attributes.colormap)
-			{
-				last_cmap = attributes.colormap;
-				XInstallColormap (dpy, attributes.colormap);
-			}
-		}
+            Window w = asw->hints->cmap_windows[i];
+            if( w == asw->w )
+                main_cmap_installed = True ;
+            XGetWindowAttributes (dpy, w, &attr);
+            if( attr.colormap )
+                install_colormap(w, attr.colormap);
+        }
 	}
-	if (!ThisWinInstalled)
+    if (!main_cmap_installed)
 	{
-		if (last_cmap != tmp->attr.colormap)
-		{
-			last_cmap = tmp->attr.colormap;
-			XInstallColormap (dpy, tmp->attr.colormap);
-		}
-	}
+        XGetWindowAttributes (dpy, asw->w, &attr);
+        if( attr.colormap )
+            install_colormap(asw->w, attr.colormap);
+    }
 }
 
+void
+UninstallWindowColormaps (ASWindow *asw)
+{
+    XWindowAttributes attr;
+    Bool          main_cmap_done = False ;
+
+	/* If no window, then install root colormap */
+    if ( asw == NULL )
+        asw = &Scr.ASRoot;
+
+    if (asw->hints && asw->hints->cmap_windows != NULL)
+	{
+        int  i = 0;
+        for (; asw->hints->cmap_windows[i] != None; ++i)
+		{
+            Window w = asw->hints->cmap_windows[i];
+            if( w == asw->w )
+                main_cmap_done = True ;
+            XGetWindowAttributes (dpy, w, &attr);
+            uninstall_colormap( attr.colormap, w );
+        }
+	}
+    if (!main_cmap_done)
+	{
+        XGetWindowAttributes (dpy, asw->w, &attr);
+        uninstall_colormap(asw->w, attr.colormap);
+    }
+}
 
 /***********************************************************************
  *
@@ -362,30 +405,42 @@ InstallWindowColormaps (ASWindow *asw)
 void
 InstallRootColormap ()
 {
-	if (Scr.root_pushes == 0)
-	{
-        ASWindow     *tmp = Scr.pushed_window;
-		InstallWindowColormaps (&Scr.ASRoot);
-		Scr.pushed_window = tmp;
-	}
-	Scr.root_pushes++;
-	return;
+    if( RootCmap )
+    {
+        ++(RootCmap->ref_count);
+        if( RootCmap->ref_count == 1 )
+            correct_colormaps_order();
+    }
 }
-
-/***************************************************************************
- *
- * Unstacks one layer of root colormap pushing
- * If we peel off the last layer, re-install th e application colormap
- *
- ***************************************************************************/
 void
 UninstallRootColormap ()
 {
-	Scr.root_pushes--;
-	if (!Scr.root_pushes)
-	{
-		InstallWindowColormaps (Scr.pushed_window);
-	}
-	return;
+    if( RootCmap )
+    {
+        --(RootCmap->ref_count);
+        if( RootCmap->ref_count == 0 )
+            correct_colormaps_order();
+    }
+}
+
+void
+InstallAfterStepColormap ()
+{
+    if( AfterStepCmap )
+    {
+        ++(AfterStepCmap->ref_count);
+        if( AfterStepCmap->ref_count == 1 )
+            correct_colormaps_order();
+    }
+}
+void
+UninstallAfterStepColormap ()
+{
+    if( AfterStepCmap )
+    {
+        --(AfterStepCmap->ref_count);
+        if( AfterStepCmap->ref_count == 0 )
+            correct_colormaps_order();
+    }
 }
 

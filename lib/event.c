@@ -224,6 +224,15 @@ void setup_asevent_from_xevent( ASEvent *event )
 /**********************************************************************/
 
 void
+add_window_event_mask( Window w, long event_mask )
+{
+    XWindowAttributes attr ;
+    if( XGetWindowAttributes( dpy, w, &attr ) )
+        XSelectInput( dpy, w, attr.event_mask|event_mask );
+}
+
+
+void
 quietly_unmap_window( Window w, long event_mask )
 {
     /* blocking UnmapNotify events since that may bring us into Withdrawn state */
