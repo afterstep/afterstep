@@ -393,15 +393,7 @@ if test "x$enable_staticlibs" = "xyes"; then
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
 else
-	if test "x$CYGWIN" = "x" ; then
-   		AFTERBASE_LIB="../../libAfterBase/libAfterBase.so"
-   		AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
-   		AFTERSTEP_LIB="../../libAfterStep/libAfterStep.so"
-   		AFTERCONF_LIB="../../libAfterConf/libAfterConf.so"
-   		WIDGETS_LIB="../Script/Widgets/libWidgets.so"
-   		LIBPROG='$(LIB_SHARED)'
-   		LIBINSTALL="install.dyn"
-	else
+	if test "x$CYGWIN" = "xyes" ; then
    		AFTERBASE_LIB="../../libAfterBase/libAfterBase.dll.a"
    		AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.dll.a"
    		AFTERSTEP_LIB="../../libAfterStep/libAfterStep.dll.a"
@@ -409,6 +401,14 @@ else
    		WIDGETS_LIB="../Script/Widgets/libWidgets.dll.a"
    		LIBPROG='$(LIB_SHARED_CYG)'
    		LIBINSTALL="install.cyg"
+	else
+   		AFTERBASE_LIB="../../libAfterBase/libAfterBase.so"
+   		AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
+   		AFTERSTEP_LIB="../../libAfterStep/libAfterStep.so"
+   		AFTERCONF_LIB="../../libAfterConf/libAfterConf.so"
+   		WIDGETS_LIB="../Script/Widgets/libWidgets.so"
+   		LIBPROG='$(LIB_SHARED)'
+   		LIBINSTALL="install.dyn"
 	fi
 fi
 

@@ -612,11 +612,11 @@ else
 fi
 if test "x$enable_sharedlibs" = "xyes"; then
 	if test "x$CYGWIN" = "x" ; then
-	   tmp='$(LIB_SHARED)'
-	   tmp2='install.dyn'
-	else
 	   tmp='$(LIB_SHARED_CYG)'
 	   tmp2='install.cyg'
+	else
+	   tmp='$(LIB_SHARED)'
+	   tmp2='install.dyn'
 	fi
    	LIBPROG="$LIBPROG $tmp"
    	LIBINSTALL="$LIBINSTALL $tmp2"
