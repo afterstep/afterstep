@@ -45,10 +45,34 @@ void usage()
 }
 
 void
-glbuf2GLXPixmap(ASVisual *asv, Pixmap p, GLXContext glctx, int width, int height, CARD8 *glbuf )
+glbuf2GLXPixmap(ASVisual *asv, Pixmap p, GLXContext glctx, ASImage *im )
 {
-    GLboolean bparam;
+//    GLboolean bparam;
 	GLXPixmap glxp;
+	int glbuf_size = 3 * im->width * im->height;
+	CARD8 *glbuf = NULL;
+	ASImageDecoder *imdec  = NULL ;
+		
+	if ((imdec = start_image_decoding(asv, im, SCL_DO_COLOR, 0, 0, im->width, im->height, NULL)) != NULL )
+	{	 
+		int i, l = glbuf_size;
+		glbuf = safemalloc( glbuf_size );
+		for (i = 0; i < (int)im->height; i++)
+		{	
+			int k = im->width;
+			imdec->decode_image_scanline( imdec ); 
+			while( --k >= 0 ) 
+			{
+				glbuf[--l] = imdec->buffer.blue[k] ;
+				glbuf[--l] = imdec->buffer.green[k] ;
+				glbuf[--l] = imdec->buffer.red[k] ;
+			}	 
+		}
+		stop_image_decoding( &imdec );
+	}else
+		return;
+
+
 //	show_warning( "asimage2pmap");
 	//fprintf( stderr, "p = %lX, glxp = %lX, glctx = %p\n", p, glxp, glctx );
 	glxp = glXCreateGLXPixmap( dpy, &(asv->visual_info), p);
@@ -62,19 +86,20 @@ glbuf2GLXPixmap(ASVisual *asv, Pixmap p, GLXContext glctx, int width, int height
   	glDisable (GL_FOG);
   	glDisable (GL_LIGHTING);
 	
-	glViewport(-(width/2), -(height/2), width, height);
+	glViewport(-(im->width/2), -(im->height/2), im->width, im->height);
 
 	//glGetBooleanv (GL_DOUBLEBUFFER, &bparam);
 	//fprintf( stderr, "doublebuffer = %d\n", bparam );
   	//if (bparam == GL_TRUE) 
-    	glDrawBuffer (GL_FRONT);
+   	glDrawBuffer (GL_FRONT);
 
 	/* now put pixels on */
 //	glRasterPos3i( 0, 0, 0 );
 	//fprintf( stderr, "line = %d, glerror = %d\n", __LINE__, glGetError() );
 	//fprintf( stderr, "i = %d\n", i );
 //	show_warning( "glDrawPixels ...");
-	glDrawPixels( width, height, GL_RGB, GL_UNSIGNED_BYTE, glbuf );
+	glDrawPixels( im->width, im->height, GL_RGB, GL_UNSIGNED_BYTE, glbuf );
+	free( glbuf );
 //	show_warning( "glDrawPixels  done");
 	glXMakeCurrent (dpy, None, NULL);	  
 	glXDestroyGLXPixmap( dpy, glxp);
@@ -121,9 +146,6 @@ int main(int argc, char* argv[])
 		Window w = None;
 		ASVisual *asv ;
 		int screen, depth ;
-		int glbuf_size = 3 * im->width * im->height;
-		CARD8 *glbuf = NULL;
-		ASImageDecoder *imdec  = NULL ;
 
 #if 0
 		XRectangle *rects ;	unsigned int rects_count =0; int i ;
@@ -167,31 +189,13 @@ int main(int argc, char* argv[])
 			im = tmp ;
 		}		   
 #endif		   
-		if ((imdec = start_image_decoding(asv, im, SCL_DO_COLOR, 0, 0, im->width, im->height, NULL)) != NULL )
-		{	 
-			int i, l = glbuf_size;
-			glbuf = safemalloc( glbuf_size );
-			for (i = 0; i < (int)im->height; i++)
-			{	
-				int k = im->width;
-				imdec->decode_image_scanline( imdec ); 
-				while( --k >= 0 ) 
-				{
-					glbuf[--l] = imdec->buffer.blue[k] ;
-					glbuf[--l] = imdec->buffer.green[k] ;
-					glbuf[--l] = imdec->buffer.red[k] ;
-				}	 
-			}
-			stop_image_decoding( &imdec );
-		}
 		
 
 
 		/* see ASView.4 : */
-		if( glbuf != NULL ) 
-			w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-				                         im->width, im->height, 1, 0, NULL,
-										 "ASView - using OpenGL", image_file );
+		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+			                         im->width, im->height, 1, 0, NULL,
+									 "ASView - using OpenGL", image_file );
 		if( w != None )
 		{
 			Pixmap    p;
@@ -210,13 +214,12 @@ int main(int argc, char* argv[])
 				START_TIME(started);
 				time_t t = time(NULL);
 				for( i = 0 ; i < 100 ; ++i ) 
-					glbuf2GLXPixmap(asv, p, glctx, im->width, im->height, glbuf );	
+					glbuf2GLXPixmap(asv, p, glctx, im );	
 				SHOW_TIME("", started);
-				fprintf( stderr, "runtime = %d sec\n", time(NULL)-t );
+				fprintf( stderr, "runtime = %ld sec\n", time(NULL)-t );
 			}
 			/* print_storage(NULL); */
 			destroy_asimage( &im );
-			free( glbuf );
 			/* see common.c:set_window_background_and_free(): */
 			p = set_window_background_and_free( w, p );
 		}

@@ -134,15 +134,15 @@ int main(int argc, char* argv[])
 			show_warning( "asimage2pmap");
 	  		p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
 	
-			xim = asimage2ximage(asv, im);
-			my_gc = XCreateGC( asv->dpy, p, 0, &gcv );
+//			xim = asimage2ximage(asv, im);
+//			my_gc = XCreateGC( asv->dpy, p, 0, &gcv );
 			{
 				START_TIME(started);
 				time_t t = time(NULL);
 				for( i = 0 ; i < 100 ; ++i ) 
 				{	
-					put_ximage( asv, xim, p, my_gc,	0, 0, 0, 0, im->width, im->height );
-//					asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
+//					put_ximage( asv, xim, p, NULL,	0, 0, 0, 0, im->width, im->height );
+					asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
 				}
 				SHOW_TIME("", started);
 				fprintf( stderr, "runtime = %d sec\n", time(NULL)-t );
