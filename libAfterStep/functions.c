@@ -283,6 +283,7 @@ init_func_data (FunctionData * data)
 		}
 		data->hotkey = '\0';
 		data->name = data->text = NULL;
+        data->popup = NULL ;
 	}
 }
 
@@ -300,7 +301,10 @@ copy_func_data (FunctionData * dst, FunctionData * src)
 		{
 			dst->func_val[i] = src->func_val[i];
 			dst->unit[i] = src->unit[i];
-		}
+            dst->unit_val[i] = src->unit_val[i];
+        }
+        dst->hotkey = src->hotkey;
+        dst->popup = src->popup;
 	}
 }
 
@@ -318,8 +322,11 @@ dup_func_data (FunctionData * dst, FunctionData * src)
 		{
 			dst->func_val[i] = src->func_val[i];
 			dst->unit[i] = src->unit[i];
-		}
-	}
+            dst->unit_val[i] = src->unit_val[i];
+        }
+        dst->hotkey = src->hotkey;
+        dst->popup = src->popup;
+    }
 }
 
 inline FunctionData *
@@ -764,11 +771,8 @@ print_func_data(const char *file, const char *func, int line, FunctionData *data
         else
         {
             fprintf( stderr, "%s \"%s\" text[%s] ", term->keyword, data->name?data->name:"", data->text?data->text:"" );
-            if( data->text == NULL )
-            {
-                fprintf( stderr, "val0[%ld%c] ", data->func_val[0], (data->unit[0]=='\0')?' ':data->unit[0] );
-                fprintf( stderr, "val1[%ld%c] ", data->func_val[1], (data->unit[1]=='\0')?' ':data->unit[1] );
-            }
+            fprintf( stderr, "val0[%ld%c(%ld)] ", data->func_val[0], (data->unit[0]=='\0')?' ':data->unit[0],data->unit_val[0] );
+            fprintf( stderr, "val1[%ld%c(%ld)] ", data->func_val[1], (data->unit[1]=='\0')?' ':data->unit[1],data->unit_val[1] );
             fprintf( stderr, "(popup=%p)\n", data->popup );
         }
     }

@@ -110,7 +110,7 @@ Bool grab_widget_pointer( ASWidget *widget, ASEvent *trigger,
     if( widget == NULL )
 		return False;
     ASQueryPointerWinXYMask(AS_WIDGET_WINDOW(widget),root_x_return, root_y_return, x_return, y_return, mask_return);
-LOCAL_DEBUG_OUT("grabbing pointer at %+d%+d, mask = 0x%X, window(%lX)", *root_x_return, *root_y_return, *mask_return, AS_WIDGET_WINDOW(widget) );
+LOCAL_DEBUG_OUT("grabbing pointer at window(%+d%+d) root(%+d%+d), mask = 0x%X, window(%lX)", *x_return, *y_return, *root_x_return, *root_y_return, *mask_return, AS_WIDGET_WINDOW(widget) );
     if( trigger )
     {
         ttime = trigger->event_time ;;
@@ -202,8 +202,8 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 	}
 	data->complete_func = complete_func;
 
-    data->start.x = data->curr.x = data->last.x = AS_WIDGET_X(mr);
-    data->start.y = data->curr.y = data->last.y = AS_WIDGET_Y(mr);
+    data->start.x = data->curr.x = data->last.x = AS_WIDGET_X(mr) - AS_WIDGET_X(parent);
+    data->start.y = data->curr.y = data->last.y = AS_WIDGET_Y(mr) - AS_WIDGET_Y(parent);
     data->start.width  = data->curr.width  = data->last.width  = AS_WIDGET_WIDTH(mr);
     data->start.height = data->curr.height = data->last.height = AS_WIDGET_HEIGHT(mr);
 
@@ -215,8 +215,8 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 
     data->stop_on_button_press = ((data->pointer_state&ButtonAnyMask) == 0 );
 
-    data->origin_x = data->last_x - mr->root_x;
-    data->origin_y = data->last_y - mr->root_y;
+    data->origin_x = parent->root_x + data->last_x - mr->root_x;
+    data->origin_y = parent->root_y + data->last_y - mr->root_y;
 
     /* we should be using this methinks: */
     //data->last_x = root_x ;
@@ -612,6 +612,7 @@ move_func (struct ASMoveResizeData *data, int x, int y)
 	int dx, dy ;
 	short new_x, new_y ;
 
+LOCAL_DEBUG_CALLER_OUT( "data = %p, pos = (%dx%d)", data, x, y );
 	dx = x-(data->last_x+data->lag_x) ;
 	dy = y-(data->last_y+data->lag_y) ;
 

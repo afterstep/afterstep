@@ -1671,6 +1671,7 @@ translate_client_pos_main( int x, int y, unsigned int width, unsigned int height
     {
         x -= d->background->root_x ;
         y -= d->background->root_y ;
+        LOCAL_DEBUG_OUT("desk(%d) pager_vpos(%+d%+d) vscreen_size(%dx%d) desk_size(%dx%d) ", d->desk, x, y, PagerState.vscreen_width, PagerState.vscreen_height, d->background->width, d->background->height );
         if( d->background->width > 0 )
             x = (x*PagerState.vscreen_width)/d->background->width ;
         if( d->background->height > 0 )
@@ -1710,7 +1711,10 @@ apply_client_move(struct ASMoveResizeData *data)
 {
     ASWindowData *wd = fetch_client(AS_WIDGET_WINDOW(data->mr));
     int real_x = 0, real_y = 0;
-    ASPagerDesk  *d = translate_client_pos_main( data->curr.x, data->curr.y, data->curr.width, data->curr.height, wd->desk, &real_x, &real_y );
+    ASPagerDesk  *d = translate_client_pos_main( PagerState.main_canvas->root_x+data->curr.x,
+                                                 PagerState.main_canvas->root_y+data->curr.y,
+                                                 data->curr.width, data->curr.height,
+                                                 wd->desk, &real_x, &real_y );
     if( d && d->desk + PagerState.start_desk != wd->desk )
     {
         move_client_to_desk( wd, d->desk + PagerState.start_desk );
@@ -1727,10 +1731,16 @@ void complete_client_move(struct ASMoveResizeData *data, Bool cancelled)
     ASWindowData *wd = fetch_client( AS_WIDGET_WINDOW(data->mr));
     int real_x = 0, real_y = 0;
     ASPagerDesk  *d = NULL ;
+    XRectangle *rect = &(data->curr);
+
     if( cancelled )
-        d = translate_client_pos_main( data->start.x, data->start.y, data->start.width, data->start.height, wd->desk, &real_x, &real_y );
-    else
-        d = translate_client_pos_main( data->curr.x, data->curr.y, data->curr.width, data->curr.height, wd->desk, &real_x, &real_y );
+        rect = &(data->start);
+
+    d = translate_client_pos_main( rect->x+PagerState.main_canvas->root_x,
+                                   rect->y+PagerState.main_canvas->root_y,
+                                   rect->width,
+                                   rect->height,
+                                   wd->desk, &real_x, &real_y );
 
     if( d && d->desk + PagerState.start_desk != wd->desk )
     {
