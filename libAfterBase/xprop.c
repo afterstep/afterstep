@@ -23,6 +23,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdarg.h>
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
@@ -245,4 +247,44 @@ text_property2string( XTextProperty *tprop)
     }
     return text;
 }
+
+/*************************************************************************/
+/* Writing properties here :                                             */
+/*************************************************************************/
+void
+set_32bit_property (Window w, Atom property, Atom type, CARD32 data)
+{
+    if (w != None && property != None )
+	{
+        XChangeProperty (dpy, Scr.Root, property, type?type:XA_CARDINAL, 32,
+                         PropModeReplace, (unsigned char *)&data, 1);
+    }
+}
+
+void
+set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
+{
+    if (w != None && property != None )
+	{
+        if( items > 0 )
+        {
+            CARD32 *data = safemalloc( items*sizeof(CARD32));
+            register int i = 0;
+            va_list ap;
+
+            va_start(ap,items);
+            while( i < items )
+                data[i++] = va_arg(ap,CARD32);
+            va_end(ap);
+
+            XChangeProperty (dpy, Scr.Root, property, type?type:XA_CARDINAL, 32,
+                             PropModeReplace, (unsigned char *)&data, items);
+        }else
+        {
+            XChangeProperty (dpy, Scr.Root, property,
+                             type?type:XA_CARDINAL, 32, PropModeReplace, NULL, 0);
+        }
+    }
+}
+
 

@@ -35,4 +35,8 @@ char *text_property2string( XTextProperty *tprop);
 void print_text_property( stream_func func, void* stream, XTextProperty *tprop, const char *prompt );
 void free_text_property (XTextProperty ** trg);
 
+/* Writing properties : */
+void set_32bit_property (Window w, Atom property, Atom type, CARD32 data);
+void set_multi32bit_property (Window w, Atom property, Atom type, int items, ...);
+
 #endif /* XPROP_H_HEADER_INCLUDED */
