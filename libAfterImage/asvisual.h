@@ -639,7 +639,13 @@ void destroy_xshm_segment( unsigned long );
 #endif
 Bool enable_shmem_images ();
 void disable_shmem_images();
-Bool check_XImage_shared( XImage *xim );
+void* check_XImage_shared( XImage *xim );
+Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim, 
+                  int src_x, int src_y, int dest_x, int dest_y,
+				  unsigned int width, unsigned int height );
+XImage * ASGetXImage( ASVisual *asv, Drawable d,
+                  int x, int y, unsigned int width, unsigned int height,
+				  unsigned long plane_mask );
 
 
 #ifdef __cplusplus

@@ -156,6 +156,12 @@ typedef struct ScreenInfo
     struct ASImageManager *image_manager ;
 
 	Bool (*on_dead_window)( Window w );
+	
+	/* supported X extentions : */
+	int XineEventBase, XineErrorBase;
+	int	ShmCompletionEventType ;
+	int	ShapeEventBase ;
+	int	ShapeErrorBase ;
 
 }ScreenInfo;
 

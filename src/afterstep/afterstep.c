@@ -42,10 +42,6 @@ ASFlagType AfterStepState = 0; /* default status */
 /* Config : */
 struct ASDatabase    *Database = NULL;
 
-#ifdef SHAPE
-int           ShapeEventBase, ShapeErrorBase;
-#endif
-
 ASVector     *Modules       = NULL;
 int           Module_fd     = 0;
 int           Module_npipes = 8;
@@ -121,9 +117,6 @@ main (int argc, char **argv)
 
     XSync (dpy, 0);
 
-#ifdef SHAPE
-	XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
-#endif /* SHAPE */
 #ifdef XSHMIMAGE
 //	enable_shmem_images ();
 #endif

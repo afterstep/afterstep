@@ -34,10 +34,12 @@
 #include "module.h"
 #include "wmprops.h"
 #include "../libAfterImage/afterimage.h"
-
-#ifdef HAVE_XINERAMA
-static int    XineEventBase, XineErrorBase;
+#ifdef XSHMIMAGE
+# include <sys/ipc.h>
+# include <sys/shm.h>
+# include <X11/extensions/XShm.h>
 #endif
+
 static Bool   as_X_synchronous_mode = False;
 
 void
@@ -221,9 +223,15 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
     setup_modifiers ();
 
 #ifdef HAVE_XINERAMA
-	if (XineramaQueryExtension (dpy, &XineEventBase, &XineErrorBase))
+	if (XineramaQueryExtension (dpy, &(scr->XineEventBase), &(scr->XineErrorBase)))
 		get_Xinerama_rectangles (scr);
 #endif
+#ifdef SHAPE
+	XShapeQueryExtension (dpy, &(scr->ShapeEventBase), &(scr->ShapeErrorBase));
+#endif /* SHAPE */
+#ifdef XSHMIMAGE
+	scr->ShmCompletionEventType = XShmGetEventBase(dpy) + ShmCompletion;
+#endif /* SHAPE */
 
     XSelectInput (dpy, scr->Root, event_mask);
 	return x_fd;

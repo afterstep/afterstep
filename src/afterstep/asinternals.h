@@ -329,11 +329,6 @@ extern struct ASDatabase    *Database;
 /* Global variables :                                                     */
 /**************************************************************************/
 
-#ifdef SHAPE
-extern int    ShapeEventBase;
-extern int    ShapeErrorBase;
-#endif
-
 extern ASFlagType    AfterStepState;              /* see ASS_ flags above */
 /* this are linked lists of structures : */
 extern struct ASDatabase *Database;
@@ -520,26 +515,24 @@ void AlarmHandler (int nonsense);
 Bool KeyboardShortcuts (XEvent * xevent, int return_event, int move_size);
 
 void HandleExpose (struct ASEvent*);
-extern void HandleFocusIn (struct ASEvent *event);
-extern void HandleDestroyNotify (struct ASEvent *event);
-extern void HandleMapRequest (struct ASEvent *event);
-extern void HandleMapNotify (struct ASEvent *event);
-extern void HandleUnmapNotify (struct ASEvent *event);
-extern void HandleButtonRelease(struct ASEvent *event, Bool deffered);
-extern void HandleButtonPress (struct ASEvent *event, Bool deffered);
-extern void HandleEnterNotify (struct ASEvent *event);
-extern void HandleLeaveNotify (struct ASEvent *event);
-extern void HandleConfigureRequest (struct ASEvent *event);
-extern void HandleClientMessage (struct ASEvent *event);
-extern void HandlePropertyNotify (struct ASEvent *event);
-extern void HandleKeyPress (struct ASEvent *event);
-extern void HandleVisibilityNotify (struct ASEvent *event);
-extern void HandleColormapNotify (struct ASEvent *event);
+void HandleFocusIn (struct ASEvent *event);
+void HandleDestroyNotify (struct ASEvent *event);
+void HandleMapRequest (struct ASEvent *event);
+void HandleMapNotify (struct ASEvent *event);
+void HandleUnmapNotify (struct ASEvent *event);
+void HandleButtonRelease(struct ASEvent *event, Bool deffered);
+void HandleButtonPress (struct ASEvent *event, Bool deffered);
+void HandleEnterNotify (struct ASEvent *event);
+void HandleLeaveNotify (struct ASEvent *event);
+void HandleConfigureRequest (struct ASEvent *event);
+void HandleClientMessage (struct ASEvent *event);
+void HandlePropertyNotify (struct ASEvent *event);
+void HandleKeyPress (struct ASEvent *event);
+void HandleVisibilityNotify (struct ASEvent *event);
+void HandleColormapNotify (struct ASEvent *event);
 
-#ifdef SHAPE
-void          HandleShapeNotify (struct ASEvent *event);
-#endif /* SHAPE */
-
+void HandleShapeNotify (struct ASEvent *event);
+void HandleShmCompletion(struct ASEvent *event);
 /*************************** functions.c **********************************/
 void SetupFunctionHandlers();
 ComplexFunction *get_complex_function( char *name );

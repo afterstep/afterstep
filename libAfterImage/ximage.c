@@ -264,7 +264,7 @@ ASImage      *
 pixmap2ximage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, unsigned int compression)
 {
 #ifndef X_DISPLAY_MISSING
-	XImage       *xim = XGetImage (asv->dpy, p, x, y, width, height, plane_mask, ZPixmap);
+	XImage       *xim = ASGetXImage (asv, p, x, y, width, height, plane_mask);
 	ASImage      *im = NULL;
 
 	if (xim)
@@ -283,8 +283,8 @@ ASImage      *
 picture2asimage(ASVisual *asv, Pixmap rgb, Pixmap a , int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache, unsigned int compression)
 {
 #ifndef X_DISPLAY_MISSING
-	XImage       *xim = XGetImage (asv->dpy, rgb, x, y, width, height, plane_mask, ZPixmap);
-	XImage       *alpha_xim = (a==None)?NULL:XGetImage (asv->dpy, a, x, y, width, height, 0xFFFFFFFF, ZPixmap);
+	XImage       *xim = ASGetXImage (asv, rgb, x, y, width, height, plane_mask);
+	XImage       *alpha_xim = (a==None)?NULL:ASGetXImage (asv, a, x, y, width, height, 0xFFFFFFFF);
 	ASImage      *im = NULL;
 
 	if (xim)
@@ -348,7 +348,7 @@ put_ximage( ASVisual *asv, XImage *xim, Drawable d, GC gc,
 		XGCValues gcv ;
 		my_gc = XCreateGC( asv->dpy, d, 0, &gcv );
 	}
-	XPutImage( asv->dpy, d, my_gc, xim, src_x, src_y, dest_x, dest_y, width, height );
+	ASPutXImage( asv, d, my_gc, xim, src_x, src_y, dest_x, dest_y, width, height );
 	if( my_gc != gc )
 		XFreeGC( asv->dpy, my_gc );
 	return True ;
@@ -474,7 +474,7 @@ asimage2alpha(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached, B
 		XGCValues gcv ;
 		my_gc = XCreateGC( asv->dpy, mask, 0, &gcv );
 	}
-	XPutImage( asv->dpy, mask, my_gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+	ASPutXImage( asv->dpy, mask, my_gc, xim, 0, 0, 0, 0, xim->width, xim->height );
 	if( my_gc != gc )
 		XFreeGC( asv->dpy, my_gc );
 	if( xim != im->alt.mask_ximage )

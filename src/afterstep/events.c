@@ -37,6 +37,11 @@
 #include "../../libAfterStep/moveresize.h"
 
 #include <X11/keysym.h>
+#ifdef XSHMIMAGE
+# include <sys/ipc.h>
+# include <sys/shm.h>
+# include <X11/extensions/XShm.h>
+#endif
 
 /***********************************************************************
  *  _______________________EVENT HANDLING ______________________________
@@ -558,8 +563,12 @@ DispatchEvent ( ASEvent *event, Bool deffered )
             break;
         default:
 #ifdef SHAPE
-            if (event->x.type == (ShapeEventBase + ShapeNotify))
+            if (event->x.type == (Scr.ShapeEventBase + ShapeNotify))
                 HandleShapeNotify (event);
+#endif /* SHAPE */
+#ifdef XSHMIMAGE
+			if( event->x.type == Scr.ShmCompletionEventType )
+				HandleShmCompletion(event);
 #endif /* SHAPE */
 
             break;
@@ -1191,7 +1200,7 @@ HandleShapeNotify (ASEvent *event)
     if (!event->client)
 		return;
     w = event->client->w ;
-    while( ASCheckTypedWindowEvent( w, ShapeEventBase + ShapeNotify, &(event->x) ) )
+    while( ASCheckTypedWindowEvent( w, Scr.ShapeEventBase + ShapeNotify, &(event->x) ) )
     {
         if (sev->kind == ShapeBounding)
         {
@@ -1214,6 +1223,13 @@ HandleShapeNotify (ASEvent *event)
 #endif /* SHAPE */
 }
 
+void HandleShmCompletion(ASEvent *event)
+{
+#ifdef XSHMIMAGE
+    XShmCompletionEvent  *sev = (XShmCompletionEvent*) &(event->x);
+	destroy_xshm_segment( sev->shmseg );
+#endif /* SHAPE */
+}
 /***************************************************************************
  *
  * Waits for next X event, or for an auto-raise timeout.

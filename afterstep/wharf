@@ -82,10 +82,10 @@
 *Wharf Mail	normal/MailBox2 Exec "kmail" kmail &
 *Wharf Mail	normal/MailBox2 Exec "mozilla-mail" mozilla --mail &
 *Wharf Mail	normal/MailBox2 Exec "balsa" balsa &
-*Wharf Mail	normal/MailBox2 Exec "Pine" aterm -tn "Pine e-mail and news reader" -tr -tint blue -fg yellow -bg black -e pine &
-*Wharf Mail	normal/MailBox2 Exec "Pine" rxvt  -tn "Pine e-mail and news reader" -tr -fg yellow -bg black -e pine  &
-*Wharf Mail	normal/MailBox2 Exec "Pine" eterm -tn "Pine e-mail and news reader" -tr -tint blue -fg yellow -bg black -e pine &
-*Wharf Mail	normal/MailBox2 Exec "Pine" xterm -tn "Pine e-mail and news reader" -fg yellow -bg blue -e pine &
+*Wharf Mail	normal/MailBox2 Exec "Pine" aterm -title "Pine e-mail and news reader" -tr -tint blue -fg yellow -bg black -e pine &
+*Wharf Mail	normal/MailBox2 Exec "Pine" rxvt  -title "Pine e-mail and news reader" -tr -fg yellow -bg black -e pine  &
+*Wharf Mail	normal/MailBox2 Exec "Pine" eterm -title "Pine e-mail and news reader" -tr -tint blue -fg yellow -bg black -e pine &
+*Wharf Mail	normal/MailBox2 Exec "Pine" xterm -fg yellow -bg blue -e pine &
 
 
 #
@@ -105,35 +105,43 @@
 # First available Word processor :
 #
 *Wharf WordProcessor normal/Document Exec "AbiWord" abiword &
+*Wharf WordProcessor normal/Document Exec "KWord" kword &
+*Wharf WordProcessor normal/Document Exec "Pathetic Writer" pw &
+*Wharf WordProcessor normal/Document Exec "KWrite" kwrite &
 
 #
 # First available Spreadsheet processor :
 #
 *Wharf Spreadsheet normal/Table Exec "KSpread" kspread &
+*Wharf Spreadsheet normal/Table Exec "GNUMERIC" gnumeric &
+*Wharf Spreadsheet normal/Table Exec "Siag" siag &
+
+#
+# First available IRC client :
+#
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" aterm -title "BitchX IRC" -tr -sh 50 -fg white -bg black -e BitchX irc.freenode.net &
+*Wharf IRC  normal/IRCTransparent Exec "XCHAT" xchat &
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" rxvt  -title "BitchX IRC" -tr -fg yellow -bg black -e BitchX irc.freenode.net  &
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" eterm -title "BitchX IRC" -tr -sh 50 -fg yellow -bg black -e BitchX irc.freenode.net &
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" xterm -fg yellow -bg blue -e BitchX irc.freenode.net &
 
 #
 # First available Audio player :
 #
+*Wharf AudioPlayer - Swallow "wmxmms" wmxmms -single &
 *Wharf AudioPlayer logos/Xmms Exec "X Multi Media System" xmms &
 *Wharf AudioPlayer - Swallow "ascd" ascd &
 #
 # Mixer
 #
-*Wharf asmixer - Swallow "asmixer" asmixer -g -1-1 &
-*Wharf asmixer - Swallow "asMix" asmix -shape &
+*Wharf mixer - Swallow "asmixer" asmixer -g -1-1 &
+*Wharf mixer - Swallow "wmmixer" wmmixer &
+*Wharf mixer - Swallow "asMix" asmix -shape &
 
 #
 # First available Video player :
 #
 
-#
-# First available IRC client :
-#
-*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" aterm -tn "BitchX IRC" -tr -sh 50 -fg white -bg black -e BitchX irc.openprojects.net &
-*Wharf IRC  normal/IRCTransparent Exec "XCHAT" xchat &
-*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" rxvt  -tn "Pine e-mail and news reader" -tr -fg yellow -bg black -e BitchX irc.openprojects.net  &
-*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" eterm -tn "Pine e-mail and news reader" -tr -sh 50 -fg yellow -bg black -e BitchX irc.openprojects.net &
-*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" xterm -tn "Pine e-mail and news reader" -fg yellow -bg blue -e BitchX irc.openprojects.net &
 
 
 
@@ -189,9 +197,11 @@
 *MonitorWharf Quit normal/RedLight Quit "" afterstep
 
 *MonitorWharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &
-*MonitorWharf asload - Swallow "asload" asload -shape &
+*MonitorWharf loadmonitor - Swallow "asload" asload -shape &
+*MonitorWharf loadmonitor - Swallow "wmcpuload" wmcpuload -bl -w &
 *MonitorWharf asmon  - Swallow "asmon" asmon &
-*MonitorWharf wmnd   - Swallow "wmnd"  wmnd &
+*MonitorWharf wmtop  - Swallow "wmtop" wmtop &
+*MonitorWharf wmnd   - Swallow "wmnd"  wmnd -i eth0 &
 *MonitorWharf asmail - Swallow "asmail" asmail -geometry +0+0 &
 
 # one of the clocks - first available :
