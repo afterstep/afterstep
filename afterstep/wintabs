@@ -1,0 +1,17 @@
+*WinTabsGeometry         500x300+100+100
+#*WinTabsMinTabMaxRows    rows
+#*WinTabsMinTabMaxColumns cols
+*WinTabsMinTabWidth      30
+*WinTabsMaxTabWidth      130
+#*WinTabsUnfocusedStyle   "style"
+#*WinTabsFocusedStyle     "style"
+#*WinTabsStickyStyle      "style"
+*WinTabsUseSkipList      
+#*WinTabsPattern          0|1|2|3 <pattern>  # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
+*WinTabsPattern          2 "aterm"  # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
+*WinTabsAlign             Left,Right,Top,Bottom
+#*WinTabsBevel            None,Left,Right,Top, Bottom, NoOutline
+#*WinTabsFBevel           None,Left,Right,Top, Bottom, NoOutline
+#*WinTabsUBevel           None,Left,Right,Top, Bottom, NoOutline
+#*WinTabsSBevel           None,Left,Right,Top, Bottom, NoOutline
+
