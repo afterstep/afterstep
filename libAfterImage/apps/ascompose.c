@@ -132,7 +132,8 @@
  *****/
 
 
-Bool showimage(ASImage* im, int onroot, Bool looping ); 
+Window showimage(ASImage* im, Bool looping, Window main_window );
+Window make_main_window(Bool on_root);	
 
 int screen = 0, depth = 0;
 
@@ -178,6 +179,9 @@ void usage(void) {
 		" untill it is killed - usefull for slideshow type of activity.\n"
 		" When input comes from STDIN, then ascompose will loop untill Ctrl+D\n"
 		" is received (EOF).\n"
+		"\n"
+		"  -C --clipboard     run ascompose waiting for data being copied into clipboard,\n" 
+		"                     and displaying/processing it, if it is xml.\n"
 	);
 }
 
@@ -215,7 +219,13 @@ int main(int argc, char** argv) {
     char *doc_compress = NULL ;
 	int i;
 	int display = 1, onroot = 0;
-	Bool interactive = False;
+	enum
+	{
+		COMPOSE_Once = 0,
+		COMPOSE_Interactive,
+		COMPOSE_XClipboard
+	}compose_type = COMPOSE_Once ;
+	Window main_window = None ;
 
 	/* see ASView.1 : */
 	set_application_name(argv[0]);
@@ -271,10 +281,13 @@ int main(int argc, char** argv) {
         } else if ((!strcmp(argv[i], "--compress") || !strcmp(argv[i], "-c")) && i < argc + 1) {
             doc_compress = argv[++i];
 		} else if (!strcmp(argv[i], "--interactive") || !strcmp(argv[i], "-I")) {
-            interactive = True;
+            compose_type = COMPOSE_Interactive ;
 		}
 #ifndef X_DISPLAY_MISSING
-		  else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
+	
+		  else if (!strcmp(argv[i], "--clipboard") || !strcmp(argv[i], "-C")) {
+			compose_type = COMPOSE_XClipboard;
+		}   else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
 			display = 0;
 		} else if ((!strcmp(argv[i], "--root-window") || !strcmp(argv[i], "-r")) && i < argc + 1) {
 			onroot = 1;
@@ -313,7 +326,7 @@ int main(int argc, char** argv) {
 	LOCAL_DEBUG_OUT( "Done: %p", asv);
 
 	/* Load the document from file, if one was given. */
-	if( !interactive ) 
+	if( compose_type == COMPOSE_Once ) 
 	{	   
 		if (doc_file) {
 			if( strcmp( doc_file, "-") == 0 ) 
@@ -337,16 +350,17 @@ int main(int argc, char** argv) {
 				show_progress("Save successful.");
 		}
 		/* Display the image if desired. */
-		if (display && dpy) 
-			showimage(im, onroot, False);
+		if (display && dpy)
+		{
+			showimage(im, False, make_main_window(onroot));
+		}
 		/* Done with the image, finally. */
 		if( im ) 
 			destroy_asimage(&im);
-	}else
+	}else if( compose_type == COMPOSE_Interactive )
 	{
 		FILE *fp = stdin ;
 		int doc_str_len = 0;
-		Bool closed = False ;
 		if (doc_file && strcmp( doc_file, "-") != 0 ) 
 			fp = fopen( doc_file, "rt" );
 		if( doc_str ) 
@@ -358,8 +372,12 @@ int main(int argc, char** argv) {
 			ASFontManager  *my_fontman = create_generic_fontman(asv->dpy, NULL);
 			int char_count = 0 ;
 			ASXmlBuffer xb ; 
+			
 			memset( &xb, 0x00, sizeof(xb));
-	 
+	 		
+			if (display && dpy) 
+				main_window = make_main_window( onroot );
+
 			do
 			{
 				reset_xml_buffer( &xb );
@@ -386,11 +404,14 @@ int main(int argc, char** argv) {
 					if( c == EOF && fp != stdin ) 
 					{	
 						fseek( fp, 0L, SEEK_SET );
+						char_count = 0 ;
 						if( xb.state == ASXML_Start && xb.tags_count == 0 ) 
 							continue;
 					}
 				}else
 				{
+					if( char_count >= doc_str_len ) 
+						char_count = 0 ;
 					while( char_count < doc_str_len ) 
 					{
 						char_count += spool_xml_tag( &xb, &doc_str[char_count], doc_str_len - char_count );							   
@@ -417,8 +438,7 @@ int main(int argc, char** argv) {
 						}
 						/* Display the image if desired. */
 						if (display && dpy) 
-							if( !showimage(im, onroot, True) ) 
-				 				closed = True ;				
+							main_window = showimage(im, True, main_window);
 						safe_asimage_destroy(im);
 						im = NULL ;
 					}					
@@ -443,7 +463,7 @@ int main(int argc, char** argv) {
 					printf("\" level=%d tag_count=%d/>\n", xb.level ,xb.tags_count );	  
 					break;
 				}
-			}while(!closed);
+			}while( !display || dpy == NULL || main_window != None );
 			if( xb.buffer )
 				free( xb.buffer );
 			destroy_image_manager(my_imman, False);
@@ -451,7 +471,103 @@ int main(int argc, char** argv) {
 		}
 		if( fp && fp != stdin ) 
 			fclose( fp );
-	}	 
+	}
+#ifndef X_DISPLAY_MISSING		  	
+	else if( compose_type == COMPOSE_XClipboard && dpy )
+	{
+		Atom clipboard_prop ;
+		ASXmlBuffer xb ; 
+		int nbytes = 0 ;
+		char *bytes = NULL ;
+		int char_count = 0 ;
+		ASImageManager *my_imman = create_generic_imageman(NULL);
+		ASFontManager  *my_fontman = create_generic_fontman(asv->dpy, NULL);
+			
+		memset( &xb, 0x00, sizeof(xb));
+		if (display) 
+			main_window = make_main_window( onroot );
+		
+		XSelectInput( dpy, DefaultRootWindow(dpy), PropertyChangeMask );
+		clipboard_prop = XInternAtom( dpy, "CUT_BUFFER0", False );
+		while( main_window || !display ) 
+		{
+    		XEvent event ;
+			Bool show_next = False ;
+			
+			XNextEvent (dpy, &event);
+  			switch(event.type)
+			{
+				case PropertyNotify :
+					if( event.xproperty.atom == clipboard_prop ) 
+					{
+						if( bytes ) 
+							XFree(bytes);
+						bytes = XFetchBytes( dpy, &nbytes );
+						char_count = 0 ; 
+						show_next = True ;
+					}	 
+				    break ;
+	  			case ClientMessage:
+					if (event.xclient.format == 32 &&
+	  					event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW)
+					{
+						if( main_window != DefaultRootWindow(dpy) )
+							XDestroyWindow( dpy, main_window );
+						XFlush( dpy );
+						main_window = None ;
+					}
+					break;
+				case ButtonPress:
+					if( nbytes > char_count ) 
+						show_next = True ;
+					else if( main_window != DefaultRootWindow(dpy) )
+						XUnmapWindow( dpy, main_window );
+					break;
+			}
+			if( show_next ) 
+			{
+				reset_xml_buffer( &xb );
+				while( char_count < nbytes ) 
+				{
+					char_count += spool_xml_tag( &xb, &bytes[char_count], nbytes - char_count );							   
+					if( ( xb.state == ASXML_Start && xb.tags_count > 0 && xb.level == 0) || 
+						xb.state < 0 ) 
+						break;
+				}												   
+				
+				if( xb.state == ASXML_Start && xb.tags_count > 0 && xb.level == 0 ) 
+				{
+					add_xml_buffer_chars( &xb, "", 1 );
+					LOCAL_DEBUG_OUT("buffer: [%s]", xb.buffer );
+	 				im = compose_asimage_xml(asv, my_imman, my_fontman, xb.buffer, ASFLAGS_EVERYTHING, verbose, None, NULL);					
+					if( im ) 
+					{
+						/* Save the result image if desired. */
+						if (doc_save && doc_save_type) 
+						{
+        					if(!save_asimage_to_file(doc_save, im, doc_save_type, doc_compress, NULL, 0, 1)) 
+								show_error("Save failed.");
+							else
+								show_progress("Save successful.");
+						}
+						/* Display the image if desired. */
+						if (display && dpy) 
+							main_window = showimage(im, True, main_window);
+						safe_asimage_destroy(im);
+						im = NULL ;
+					}					
+				}
+			}	 
+		}	 
+
+		if( bytes ) 
+			XFree( bytes );
+		if( xb.buffer )
+			free( xb.buffer );
+		destroy_image_manager(my_imman, False);
+		destroy_font_manager(my_fontman, False);
+	}		 
+#endif
 
 	if (doc_file && doc_str && doc_str != default_doc_str) free(doc_str);
     
@@ -465,76 +581,73 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-Bool showimage(ASImage* im, int onroot, Bool looping ) 
+Window 
+make_main_window(Bool onroot)	
+{
+	Window w = None ;
+#ifndef X_DISPLAY_MISSING		  
+	if( onroot ) 
+		w = DefaultRootWindow(dpy);
+	else
+	{
+		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+				                        100, 30, 1, 0, NULL, "ASCompose" );
+		
+		XSelectInput (dpy, w, (StructureNotifyMask|ButtonPressMask|ButtonReleaseMask));
+	}	 
+#endif	
+	return w;
+}
+
+Window showimage(ASImage* im, Bool looping, Window main_window ) 
 {
 #ifndef X_DISPLAY_MISSING
-	static Window w = None ;
-	if (im && onroot) {
-		Pixmap p = asimage2pixmap(asv, DefaultRootWindow(dpy), im, NULL, False);
-		p = set_window_background_and_free(DefaultRootWindow(dpy), p);
-		w = DefaultRootWindow(dpy) ;
-	}else if(im && !onroot)
-	{
-		/* see ASView.4 : */
-		if( w == None ) 
-			w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-				                         im->width, im->height, 1, 0, NULL,
-										 "ASCompose" );
-		else
-			XResizeWindow( dpy, w, im->width, im->height );
-
-		if( w != None )
-		{
-			Pixmap p ;
-
-			XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
-	  		XMapRaised   (dpy, w);
-			/* see ASView.5 : */
-			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL,
-				                False );
-			/* see common.c:set_window_background_and_free(): */
-			p = set_window_background_and_free( w, p );
-		}
-	}
+	Pixmap p ;
+	if (im == NULL || main_window == None ) 
+		return None;
 	
-	if( w != None ) 
+	if( main_window != DefaultRootWindow(dpy) )
 	{	
-		XSelectInput (dpy, w, (StructureNotifyMask|ButtonPressMask|ButtonReleaseMask));
-
-		while(w != None)
-  		{
-    		XEvent event ;
-			Bool do_close = False ;
-	    	XNextEvent (dpy, &event);
-  			switch(event.type)
-			{
-	  			case ClientMessage:
-			    	if (event.xclient.format == 32 &&
-	  			    	event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW)
-					{
-						do_close = True ;
-					}
-					break;
-		  		case ButtonPress:
-					LOCAL_DEBUG_OUT( "ButtonPress: looping = %d", looping);
-					if( looping ) 
-						return True;
-					do_close = True ;
-					break;
-			}
-			if( do_close ) 
-			{
-				if( w != DefaultRootWindow(dpy) )
-					XDestroyWindow( dpy, w );
-				XFlush( dpy );
-				w = None ;
-				return False;
-			}	 
-  		}
+		XResizeWindow( dpy, main_window, im->width, im->height );
+		XMapRaised   ( dpy, main_window);
 	}
+
+
+	p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, False );
+	p = set_window_background_and_free( main_window, p );
 	
-	return False;
+	while(main_window != None)
+  	{
+    	XEvent event ;
+		Bool do_close = False ;
+	    XNextEvent (dpy, &event);
+  		switch(event.type)
+		{
+	  		case ClientMessage:
+			    if (event.xclient.format == 32 &&
+	  			    event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW)
+				{
+					do_close = True ;
+				}
+				break;
+		  	case ButtonPress:
+				LOCAL_DEBUG_OUT( "ButtonPress: looping = %d", looping);
+				if( looping ) 
+					return main_window;
+				do_close = True ;
+				break;
+		}
+		if( do_close ) 
+		{
+			if( main_window != DefaultRootWindow(dpy) )
+				XDestroyWindow( dpy, main_window );
+			XFlush( dpy );
+			main_window = None ;
+		}	 
+  	}
+	
 #endif /* X_DISPLAY_MISSING */
+	return main_window;
 }
 
 
