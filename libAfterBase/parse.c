@@ -48,7 +48,7 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 			while( isxdigit(ptr[len]) ) len++;
 			if( len >= 3)
 			{
-				if( (len&0x3) == 0 )
+				if( (len&0x3) == 0 && len != 12 )
 				{  /* we do have alpha channel !!! */
 					len = len>>2 ;
 					argb = (hextoi(ptr[0])<<28)&0xF0000000 ;

@@ -34,14 +34,14 @@ void _XInitImageFuncPtrs(XImage*);
 static int  get_shifts (unsigned long mask);
 static int  get_bits (unsigned long mask);
 
-CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, void *pixel);
-CARD32 color2pixel32rgb(ASVisual *asv, CARD32 encoded_color, void *pixel);
-CARD32 color2pixel24bgr(ASVisual *asv, CARD32 encoded_color, void *pixel);
-CARD32 color2pixel24rgb(ASVisual *asv, CARD32 encoded_color, void *pixel);
-CARD32 color2pixel16bgr(ASVisual *asv, CARD32 encoded_color, void *pixel);
-CARD32 color2pixel16rgb(ASVisual *asv, CARD32 encoded_color, void *pixel);
-CARD32 color2pixel15bgr(ASVisual *asv, CARD32 encoded_color, void *pixel);
-CARD32 color2pixel15rgb(ASVisual *asv, CARD32 encoded_color, void *pixel);
+CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel32rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel24bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel24rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel16bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel16rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel15bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel15rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
 void pixel2color32rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
 void pixel2color32bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
 void pixel2color24rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
@@ -111,6 +111,68 @@ int get_bits_per_pixel(Display *dpy, int depth)
 	return 32;
  }
 
+/* ********************* ASScanline ************************************/
+ASScanline*
+prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode  )
+{
+	register ASScanline *sl = reusable_memory ;
+	size_t aligned_width;
+	void *ptr;
+
+	if( sl == NULL )
+		sl = safecalloc( 1, sizeof( ASScanline ) );
+	else
+		memset( sl, 0x00, sizeof(ASScanline));
+
+	sl->width 	= width ;
+	sl->shift   = shift ;
+	/* we want to align data by 8 byte boundary (double)
+	 * to allow for code with less ifs and easier MMX/3Dnow utilization :*/
+	aligned_width = width + (width&0x00000001);
+	sl->buffer = ptr = safemalloc (((aligned_width*4)+4)*sizeof(CARD32));
+
+	sl->xc1 = sl->red 	= (CARD32*)(((long)ptr>>3)*8);
+	sl->xc2 = sl->green = sl->red   + aligned_width;
+	sl->xc3 = sl->blue 	= sl->green + aligned_width;
+	sl->alpha 	= sl->blue  + aligned_width;
+
+	sl->channels[IC_RED] = sl->red ;
+	sl->channels[IC_GREEN] = sl->green ;
+	sl->channels[IC_BLUE] = sl->blue ;
+	sl->channels[IC_ALPHA] = sl->alpha ;
+
+	if( BGR_mode )
+	{
+		sl->xc1 = sl->blue ;
+		sl->xc3 = sl->red ;
+	}
+	/* this way we can be sure that our buffers have size of multiplies of 8s
+	 * and thus we can skip unneeded checks in code */
+	/* initializing padding into 0 to avoid any garbadge carry-over
+	 * bugs with diffusion: */
+	sl->red[aligned_width-1]   = 0;
+	sl->green[aligned_width-1] = 0;
+	sl->blue[aligned_width-1]  = 0;
+	sl->alpha[aligned_width-1] = 0;
+
+	sl->back_color = ARGB32_DEFAULT_BACK_COLOR;
+
+	return sl;
+}
+
+void
+free_scanline( ASScanline *sl, Bool reusable )
+{
+	if( sl )
+	{
+		if( sl->buffer )
+			free( sl->buffer );
+		if( !reusable )
+			free( sl );
+	}
+}
+
+/* ********************* ASVisual ************************************/
 
 /* Main procedure finding and querying the best visual */
 Bool
@@ -885,36 +947,38 @@ query_pixel_color( ASVisual *asv, unsigned long pixel, CARD32 *r, CARD32 *g, CAR
 }
 
 
-CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, void *pixel)
+CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
+{
+	*pixel = ARGB32_RED8(encoded_color)|(ARGB32_GREEN8(encoded_color)<<8)|(ARGB32_BLUE8(encoded_color)<<16);
+	return 0;
+}
+CARD32 color2pixel32rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
+{
+	*pixel = encoded_color&0x00FFFFFF;
+	return 0;
+}
+CARD32 color2pixel24bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
+{
+	return 0;
+}
+CARD32 color2pixel24rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
+{
+	return 0;
+}
+CARD32 color2pixel16bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
 {
 
-	return 0;
+	return (encoded_color>>1)&0x00300403;
 }
-CARD32 color2pixel32rgb(ASVisual *asv, CARD32 encoded_color, void *pixel)
-{
-	return 0;
-}
-CARD32 color2pixel24bgr(ASVisual *asv, CARD32 encoded_color, void *pixel)
-{
-	return 0;
-}
-CARD32 color2pixel24rgb(ASVisual *asv, CARD32 encoded_color, void *pixel)
-{
-	return 0;
-}
-CARD32 color2pixel16bgr(ASVisual *asv, CARD32 encoded_color, void *pixel)
+CARD32 color2pixel16rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
 {
 	return (encoded_color>>1)&0x00300403;
 }
-CARD32 color2pixel16rgb(ASVisual *asv, CARD32 encoded_color, void *pixel)
-{
-	return (encoded_color>>1)&0x00300403;
-}
-CARD32 color2pixel15bgr(ASVisual *asv, CARD32 encoded_color, void *pixel)
+CARD32 color2pixel15bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
 {
 	return (encoded_color>>1)&0x00300C03;
 }
-CARD32 color2pixel15rgb(ASVisual *asv, CARD32 encoded_color, void *pixel)
+CARD32 color2pixel15rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
 {
 	return (encoded_color>>1)&0x00300C03;
 }

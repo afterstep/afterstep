@@ -734,11 +734,11 @@ LOCAL_DEBUG_OUT( "\t\tcolor = 0x%8.8lX\n",  color );
 			xpm_file->do_alpha = True ;
 		if( xpm_file->bpp == 1 )
 			xpm_file->cmap[(unsigned int)(xpm_file->str_buf[0])] = color ;
-		if( xpm_file->bpp == 2 )	
+		if( xpm_file->bpp == 2 )
 		{
 			ARGB32 **slot = &(xpm_file->cmap2[(unsigned int)(xpm_file->str_buf[0])]) ;
-			if( *slot == NULL ) 
-				*slot = safecalloc( 256, sizeof(ARGB32)); 
+			if( *slot == NULL )
+				*slot = safecalloc( 256, sizeof(ARGB32));
 			(*slot)[(unsigned int)(xpm_file->str_buf[1])] = color ;
 		}
 		else if( i < real_cmap_size )
@@ -795,7 +795,7 @@ convert_xpm_scanline( ASXpmFile *xpm_file, unsigned int line )
 				if( a )
 					a[k]  = ARGB32_ALPHA8(c);
 			}
-		}			
+		}
 	}else if( xpm_file->cmap_name_xref )
 	{
 		char *pixel ;

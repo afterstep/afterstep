@@ -205,6 +205,7 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 						break;
 					}
 			}
+			destroy_asimage( &im );
 		}
 	}
 	if( mask_out )

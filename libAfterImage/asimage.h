@@ -41,15 +41,17 @@ struct ASScanline;
  * Functions :
  * 		asimage_init(), asimage_start(), create_asimage(), destroy_asimage()
  *
- *   Low level scanline handling :
- * 		prepare_scanline(), free_scanline(), asimage_add_line(),
- * 		asimage_add_line_mono(), asimage_print_line()
+ *   Encoding :
+ * 		asimage_add_line(),	asimage_add_line_mono(), asimage_print_line()
  *
- *   ASImageOutput control :
+ *   Decoding
+ * 		start_image_decoding(), stop_image_decoding()
+ *
+ *   Output :
  * 		start_image_output(), set_image_output_back_color(),
  * 		toggle_image_output_direction(), stop_image_output()
  *
- *   X Server transfer :
+ *   X11 conversions :
  * 		ximage2asimage(), pixmap2asimage(), asimage2ximage(),
  * 		asimage2mask_ximage(), asimage2pixmap(), asimage2mask()
  *
@@ -217,8 +219,6 @@ typedef struct ASImageDecoder
 	ASImage 	   *im ;
 	ASFlagType 		filter;		 /* flags that mask set of channels to be extracted from
 								  * the image */
-
-#define ARGB32_DEFAULT_BACK_COLOR	ARGB32_Black  /* default background color is #FF000000 */
 
 	ARGB32	 		back_color;  /* we fill missing scanlines with this - default - black*/
 	unsigned int    offset_x,    /* left margin on source image before which we skip everything */
@@ -433,23 +433,19 @@ typedef struct ASGradient
 /****f* libAfterImage/asimage/asimage_init()
  * SYNOPSIS
  * 	void asimage_init (ASImage * im, Bool free_resources);
- * DESCRIPTION
- * 	frees datamembers of the supplied ASImage structure, and
- * 	initializes it to all 0.
  * INPUTS
  *	im 				- pointer to valid ASImage structure
  *	free_resources  - if True will make function attempt to free
  * 					  all non-NULL pointers.
+ * DESCRIPTION
+ * 	frees datamembers of the supplied ASImage structure, and
+ * 	initializes it to all 0.
  *********/
 /****f* libAfterImage/asimage/asimage_start()
  * SYNOPSIS
  * 	void asimage_start (ASImage * im, unsigned int width,
  * 									  unsigned int height,
  * 									  unsigned int compression);
- * DESCRIPTION
- * 	Allocates memory needed to store scanline of the image of supplied size.
- *  Assigns all the data members valid values. Makes sure that ASImage structure
- *	is ready to store image data.
  * INPUTS
  *	im 				- pointer to valid ASImage structure
  *	width			- width of the image
@@ -457,6 +453,10 @@ typedef struct ASGradient
  * 	compression		- level of compression to perform on image data.
  * 					  compression has to be in range of 0-100 with 100
  * 					  signifying highest level of compression.
+ * DESCRIPTION
+ * 	Allocates memory needed to store scanline of the image of supplied size.
+ *  Assigns all the data members valid values. Makes sure that ASImage structure
+ *	is ready to store image data.
  * NOTES
  * 	in order to resize ASImage structure after asimage_start() has been called, asimage_init()
  * must be invoked to free all the memory, and then asimage_start() has to be called with
@@ -467,72 +467,138 @@ typedef struct ASGradient
  * 	ASImage *create_asimage( unsigned int width,
  * 							 unsigned int height,
  * 							 unsigned int compression);
- * DESCRIPTION
  * INPUTS
+ * 	width			- desired image width
+ * 	height			- desired image height
+ *	compression		- compression level in new ASImage( see asimage_start() for more ).
+ * RETURNS
+ * 	Pointer to newly allocated and initialized ASImage structure on Success. NULL
+ * 	in case of any kind of error - that should never happen.
+ * DESCRIPTION
+ * 	Performs memory allocation for the new ASImage structure, as well as initialization
+ * 	of allocated structure based on supplied parameters.
  *********/
 /****f* libAfterImage/asimage/destroy_asimage()
  * SYNOPSIS
  * 	void destroy_asimage( ASImage **im );
  * DESCRIPTION
+ * 	frees all the memory allocated for specified ASImage. If there was XImage attached
+ * 	to it - it will be deallocated as well.
  * INPUTS
+ * 	im				- pointer to valid ASImage structure.
  *********/
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
 void destroy_asimage( ASImage **im );
 
-/****f* libAfterImage/asimage/prepare_scanline()
- * SYNOPSIS
- * 	ASScanline *prepare_scanline ( unsigned int width,
- * 							  	   unsigned int shift,
- * 								   ASScanline *reusable_memory,
- * 								   Bool BGR_mode);
+/****h* libAfterImage/asimage/Encoding
  * DESCRIPTION
- * INPUTS
- *********/
-/****f* libAfterImage/asimage/free_scanline()
- * SYNOPSIS
- * 	void       free_scanline ( ASScanline *sl, Bool reusable );
- * DESCRIPTION
- * INPUTS
- *********/
-ASScanline*prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode);
-void       free_scanline( ASScanline *sl, Bool reusable );
-
+ * 	asimage_add_line()		- encode raw scanline data
+ * 	asimage_add_line_mono()	- encode scanline to have all the same pixels
+ * 	asimage_print_line()	- print stored scanline to stderr.
+ ************/
 /****f* libAfterImage/asimage/asimage_add_line()
  * SYNOPSIS
  * 	size_t asimage_add_line (ASImage * im, ColorPart color,
  * 							 CARD32 * data, unsigned int y);
- * DESCRIPTION
  * INPUTS
+ * 	im				- pointer to valid ASImage structure
+ * 	color			- color channel's number
+ * 	data			- raw channel data of 32 bits per pixel - only lowest 8 bits
+ * 					  gets encoded.
+ * 	y 				- image row starting with 0
+ * RETURNS
+ * 	asimage_add_line() return size of the encoded channel scanline in bytes.
+ * 	On failure it will return 0.
+ * DESCRIPTION
+ *  encodes raw data of the single channel into ASImage channel scanline.
+ * 	based on compression level selected for this ASImage all or part of the
+ * 	scanline will be RLE encoded.
  *********/
 /****f* libAfterImage/asimage/asimage_add_line_mono()
  * SYNOPSIS
  * 	size_t asimage_add_line_mono (ASImage * im, ColorPart color,
  * 								  CARD8 value, unsigned int y);
- * DESCRIPTION
  * INPUTS
+ * 	im				- pointer to valid ASImage structure
+ * 	color			- color channel's number
+ * 	value			- value for the channel
+ * 	y 				- image row starting with 0
+ * RETURNS
+ * 	asimage_add_line_mono() return size of the encoded channel scanline in bytes.
+ * 	On failure it will return 0.
+ * DESCRIPTION
+ * 	encodes ASImage channel scanline to have same color copmponents value in
+ * 	every pixel. Usefull for vertical gradients for example.
  *********/
 size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y);
 size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsigned int y);
 
-/* this are verbosity flags : */
+/****d* libAfterImage/asimage/verbosity
+ * FUNCTION
+ * This are flags that define what should be printed by asimage_print_line()
+ * 	VRB_LINE_SUMMARY	- print only summary for each scanline
+ *	VRB_LINE_CONTENT 	- print summary and data for each scanline
+ *	VRB_CTRL_EXPLAIN 	- print summary, data and control codes for each scanline
+ * SOURCE
+ */
 #define VRB_LINE_SUMMARY 	(0x01<<0)
 #define VRB_LINE_CONTENT 	(0x01<<1)
 #define VRB_CTRL_EXPLAIN 	(0x01<<2)
 #define VRB_EVERYTHING		(VRB_LINE_SUMMARY|VRB_CTRL_EXPLAIN|VRB_LINE_CONTENT)
-
+/*********/
 /****f* libAfterImage/asimage/asimage_print_line()
  * SYNOPSIS
  * 	unsigned int asimage_print_line ( ASImage * im, ColorPart color,
  *									  unsigned int y,
  * 									  unsigned long verbosity);
- * DESCRIPTION
  * INPUTS
+ * 	im				- pointer to valid ASImage structure
+ * 	color			- color channel's number
+ * 	y 				- image row starting with 0
+ *	verbosity		- verbosity level - any combination of flags is allowed
+ * RETURNS
+ *
+ *
+ * DESCRIPTION
  *********/
 unsigned int asimage_print_line (ASImage * im, ColorPart color,
 				 unsigned int y, unsigned long verbosity);
 
+/****h* libAfterImage/asimage/Decoding
+ * DESCRIPTION
+ * 	start_image_decoding()	- alloocates and initializes decoder structure.
+ * 	stop_image_decoding()	- finishes decoding, frees all allocated memory.
+ ************/
+/****f* libAfterImage/asimage/start_image_decoding
+ * SYNOPSIS
+ * 	ASImageDecoder *start_image_decoding( ASVisual *asv,ASImage *im,
+ * 										  ASFlagType filter,
+ * 										  int offset_x, int offset_y,
+ * 										  unsigned int out_width,
+ * 										  ASImageBevel *bevel );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/stop_image_decoding
+ * SYNOPSIS
+ * 	void stop_image_decoding( ASImageDecoder **pimdec );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+ASImageDecoder *start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
+									  int offset_x, int offset_y,
+									  unsigned int out_width, ASImageBevel *bevel );
+void stop_image_decoding( ASImageDecoder **pimdec );
+
+/****h* libAfterImage/asimage/Output
+ * DESCRIPTION
+ * 	start_image_output				- initializes output structure
+ * 	set_image_output_back_color		- changes background color of output
+ * 	toggle_image_output_direction	- reverses vertical direction of output
+ * 	stop_image_output				- finishes output, frees all the allocated memory.
+ ************/
 /****f* libAfterImage/asimage/start_image_output()
  * SYNOPSIS
  * 	ASImageOutput *start_image_output ( struct ASVisual *asv,
@@ -566,17 +632,140 @@ void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color );
 void toggle_image_output_direction( ASImageOutput *imout );
 void stop_image_output( ASImageOutput **pimout );
 
+/****h* libAfterImage/asimage/X11
+ * DESCRIPTION
+ * 	ximage2asimage()	- convert XImage structure into ASImage
+ * 	pixmap2asimage()	- convert X11 pixmap into ASImage
+ *	asimage2ximage()	- convert ASImage into XImage
+ *	asimage2mask_ximage() - convert alpha channel of ASImage into XImage
+ *	asimage2pixmap()	- convert ASImage into Pixmap ( possibly using precreated XImage )
+ *	asimage2mask()		- convert alpha channel of ASImage into 1 bit mask Pixmap.
+ *****************/
+
+/****f* libAfterImage/asimage/ximage2asimage()
+ * SYNOPSIS
+ * 	ASImage *ximage2asimage ( struct ASVisual *asv, XImage * xim,
+ * 							  unsigned int compression );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/pixmap2asimage()
+ * SYNOPSIS
+ * 	ASImage *pixmap2asimage ( struct ASVisual *asv, Pixmap p,
+ * 							  int x, int y,
+ * 							  unsigned int width,
+ * 							  unsigned int height,
+ * 			  				  unsigned long plane_mask,
+ * 							  Bool keep_cache,
+ * 							  unsigned int compression );
+ * DESCRIPTION
+ * INPUTS
+ *********/
 ASImage *ximage2asimage (struct ASVisual *asv, XImage * xim, unsigned int compression);
 ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
 	                     unsigned int width, unsigned int height,
 		  				 unsigned long plane_mask, Bool keep_cache, unsigned int compression);
+
+/****f* libAfterImage/asimage/asimage2ximage()
+ * SYNOPSIS
+ * 	XImage  *asimage2ximage  (struct ASVisual *asv, ASImage *im);
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/asimage2mask_ximage()
+ * SYNOPSIS
+ * 	XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/asimage2pixmap()
+ * SYNOPSIS
+ * 	Pixmap   asimage2pixmap  ( struct ASVisual *asv, Window root,
+ * 							   ASImage *im, GC gc, Bool use_cached);
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/asimage2mask()
+ * SYNOPSIS
+ * 	Pixmap   asimage2mask    ( struct ASVisual *asv, Window root,
+ * 							   ASImage *im, GC gc, Bool use_cached);
+ * DESCRIPTION
+ * INPUTS
+ *********/
 
 XImage  *asimage2ximage  (struct ASVisual *asv, ASImage *im);
 XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
 Pixmap   asimage2pixmap  (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
 Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
 
-/* manipulations : */
+/****h* libAfterImage/asimage/Transformations
+ * DESCRIPTION
+ * 	scale_asimage() - scale supplied image into new image of requested size.
+ * 	tile_asimage() 	- tile image into new image of requested size, optionally tinting it.
+ * 	merge_layers()	- overlay arbitrary number of images
+ *	make_gradient()	- render gradient filled image
+ * 	flip_asimage()	- rotate image in 90 degree increments counterclockwise.
+ *****************/
+
+/****f* libAfterImage/asimage/scale_asimage()
+ * SYNOPSIS
+ * 	ASImage *scale_asimage( struct ASVisual *asv,
+ * 							ASImage *src,
+ * 							unsigned int to_width,
+ * 							unsigned int to_height,
+ * 							Bool to_xim,
+ * 							unsigned int compression_out, int quality );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/tile_asimage()
+ * SYNOPSIS
+ * 	ASImage *tile_asimage ( struct ASVisual *asv,
+ * 							ASImage *src,
+ * 							int offset_x,
+ * 							int offset_y,
+ *  					    unsigned int to_width,
+ * 							unsigned int to_height,
+ * 							ARGB32 tint,
+ * 							Bool to_xim,
+ * 							unsigned int compression_out, int quality );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/merge_layers()
+ * SYNOPSIS
+ * 	ASImage *merge_layers  ( struct ASVisual *asv,
+ * 							 ASImageLayer *layers, int count,
+ * 			  		    	 unsigned int dst_width,
+ * 							 unsigned int dst_height,
+ * 							 Bool to_xim,
+ * 							 unsigned int compression_out, int quality );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/make_gradient()
+ * SYNOPSIS
+ * 	ASImage *make_gradient ( struct ASVisual *asv,
+ * 						     struct ASGradient *grad,
+ *                			 unsigned int width,
+ * 							 unsigned int height,
+ * 							 ASFlagType filter,	Bool to_xim,
+ * 							 unsigned int compression_out, int quality  );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/flip_asimage()
+ * SYNOPSIS
+ * 	ASImage *flip_asimage ( struct ASVisual *asv,
+ * 							ASImage *src,
+ * 			 		        int offset_x, int offset_y,
+ * 				  		    unsigned int to_width,
+ * 							unsigned int to_height,
+ * 						    int flip, Bool to_xim,
+ * 							unsigned int compression_out, int quality );
+ * DESCRIPTION
+ * INPUTS
+ *********/
 ASImage *scale_asimage( struct ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int to_height,
 						Bool to_xim, unsigned int compression_out, int quality );
 ASImage *tile_asimage ( struct ASVisual *asv, ASImage *src, int offset_x, int offset_y,

@@ -7,6 +7,7 @@
 typedef CARD32 ARGB32;
 #define ARGB32_White    		0xFFFFFFFF
 #define ARGB32_Black    		0xFF000000
+#define ARGB32_DEFAULT_BACK_COLOR	ARGB32_Black  /* default background color is #FF000000 */
 
 #define ARGB32_ALPHA_CHAN		3
 #define ARGB32_RED_CHAN			2
@@ -61,6 +62,27 @@ typedef struct ASScanline
 /*    CARD32 r_mask, g_mask, b_mask ; */
 }ASScanline;
 
+/****f* libAfterImage/asimage/prepare_scanline()
+ * SYNOPSIS
+ * 	ASScanline *prepare_scanline ( unsigned int width,
+ * 							  	   unsigned int shift,
+ * 								   ASScanline *reusable_memory,
+ * 								   Bool BGR_mode);
+ * DESCRIPTION
+ * 	This function allocates memory ( if reusable_memory is NULL ) for the new
+ * 	ASScanline structure. Structures buffers gets allocated to hold scanline
+ * 	data of at least width pixel wide.
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/free_scanline()
+ * SYNOPSIS
+ * 	void       free_scanline ( ASScanline *sl, Bool reusable );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+ASScanline*prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode);
+void       free_scanline( ASScanline *sl, Bool reusable );
+
 typedef struct ASVisual
 {
 	Display      *dpy;
@@ -91,11 +113,11 @@ typedef struct ASVisual
 	}as_colormap_reverse ;
 
 	/* different usefull callbacks : */
-	CARD32 (*color2pixel_func) 	  ( struct ASVisual *asv, CARD32 encoded_color, void *err);
+	CARD32 (*color2pixel_func) 	  ( struct ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
 	void   (*pixel2color_func)    ( struct ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
 	void   (*ximage2scanline_func)( struct ASVisual *asv, XImage *xim, ASScanline *sl, int y,  unsigned char *xim_data );
 	void   (*scanline2ximage_func)( struct ASVisual *asv, XImage *xim, ASScanline *sl, int y,  unsigned char *xim_data );
-#define ARGB2PIXEL(asv,argb,err) 			(asv)->color2pixel_func((asv),(argb),(err))
+#define ARGB2PIXEL(asv,argb,pixel) 			(asv)->color2pixel_func((asv),(argb),(pixel))
 #define GET_SCANLINE(asv,xim,sl,y,xim_data) (asv)->ximage2scanline_func((asv),(xim),(sl),(y),(xim_data))
 #define PUT_SCANLINE(asv,xim,sl,y,xim_data) (asv)->scanline2ximage_func((asv),(xim),(sl),(y),(xim_data))
 
