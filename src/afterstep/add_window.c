@@ -960,6 +960,8 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
     if( get_flags( status->flags, AS_StartDesktop) && status->desktop != Scr.CurrentDesk )
         ChangeDesks( status->desktop );
 
+    t->status->desktop = Scr.CurrentDesk ;
+
     if( get_flags( status->flags, AS_StartViewportX))
         t->status->viewport_x = MIN(status->viewport_x,Scr.VxMax) ;
     else
@@ -982,6 +984,10 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
     /* TODO: AS_Iconic */
 	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
         ASWIN_LAYER(t) = AS_LayerNormal ;
+    else if( ASWIN_LAYER(t) < AS_LayerLowest )
+        ASWIN_LAYER(t) = AS_LayerLowest ;
+    else if( ASWIN_LAYER(t) < AS_LayerHighest )
+        ASWIN_LAYER(t) = AS_LayerHighest ;
 
     if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
         pending_placement = True ;

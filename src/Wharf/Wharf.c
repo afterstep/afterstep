@@ -938,6 +938,8 @@ map_wharf_folder( ASWharfFolder *aswf,
     }
     moveresize_canvas( aswf->canvas, x, y, width, height );
 
+    set_client_names( aswf->canvas->w, MyName, MyName, CLASS_WHARF, MyName );
+
     shints.flags = USSize|PWinGravity;
     if( get_flags( Config->set_flags, WHARF_GEOMETRY ) )
         shints.flags |= USPosition ;

@@ -521,7 +521,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     if( restart )
         set_flags( Scr.state, AS_StateRestarting );
 #ifndef NO_VIRTUAL
-//    MoveViewport (0, 0, False);
+    MoveViewport (0, 0, False);
 #endif
 #ifndef NO_SAVEWINDOWS
 	if (!restart)
