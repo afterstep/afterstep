@@ -691,7 +691,9 @@ static const unsigned short *_as_supported_charsets[SUPPORTED_CHARSETS_NUM] = {
  &_as_koi8_u_2uni[0],
  &_as_cp1250_2uni[0],
  &_as_cp1251_2uni[0],
- &_as_cp1252_2uni[0]
+ &_as_cp1252_2uni[0],
+ /* UTF-8 requires special processing : */
+ &_as_iso8859_1_2uni[0],
 };
 
 #if 0
@@ -949,6 +951,9 @@ parse_charset_name( const char *name )
 	{
 		/* if( strncasecmp( &name[1], "EBREW", 5 ) == 0 ) */
 		return CHARSET_ISO8859_8 ;
+	}else if( name[0] == 'U' || name[0] == 'u' ) /* UTF8 ? */
+	{
+		return CHARSET_UTF8 ;
 	}
 
 #if 0
@@ -972,6 +977,7 @@ parse_charset_name( const char *name )
 
 
 const unsigned short *as_current_charset = &_as_iso8859_1_2uni[0];
+ASSupportedCharsets as_current_charset_id = CHARSET_ISO8859_1;
 
 ASSupportedCharsets
 as_set_charset( ASSupportedCharsets new_charset )
@@ -982,5 +988,6 @@ as_set_charset( ASSupportedCharsets new_charset )
 
 LOCAL_DEBUG_OUT( "Setting encoding to %d\n", new_charset );
 	as_current_charset = _as_supported_charsets[new_charset] ;
+	as_current_charset_id = new_charset ;
 	return new_charset ;
 }

@@ -27,12 +27,16 @@ typedef enum {
    CHARSET_CP1250,
    CHARSET_CP1251,
    CHARSET_CP1252,
+   CHARSET_UTF8,
    SUPPORTED_CHARSETS_NUM
 }ASSupportedCharsets ;
 
 extern const unsigned short *as_current_charset ;
+extern ASSupportedCharsets as_current_charset_id ;
 
 #define UNICODE_CHAR	CARD32
+
+#define IsUTF8Locale()  (as_current_charset_id==CHARSET_UTF8)
 
 /*
 #define CHAR2UNICODE(c) \

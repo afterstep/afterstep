@@ -1632,6 +1632,8 @@ get_text_size( const char *src_text, ASFont *font, ASText3DType type, unsigned i
 {
 	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0 }; 
 	attr.type = type ;
+	if( IsUTF8Locale() ) 
+		attr.char_type = ASCT_UTF8 ;
 	return get_text_size_internal( (char*)src_text, font, &attr, width, height, 0/*autodetect length*/, NULL );
 }
 
@@ -1661,7 +1663,11 @@ get_fancy_text_size( const void *src_text, ASFont *font, ASTextAttributes *attr,
 		if( internal_attr.tab_size == 0 ) 
 			internal_attr.tab_size = 8 ;
 		internal_attr.version = ASTA_VERSION_INTERNAL ;
-	}
+	}else
+	{
+		if( IsUTF8Locale() ) 
+			internal_attr.char_type = ASCT_UTF8 ;
+	}	 
 	return get_text_size_internal( src_text, font, &internal_attr, width, height, length, x_positions );
 }
 
@@ -1867,6 +1873,8 @@ draw_text( const char *text, ASFont *font, ASText3DType type, int compression )
 {
 	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0 }; 
 	attr.type = type ;
+	if( IsUTF8Locale() ) 
+		attr.char_type = ASCT_UTF8 ;
 	return draw_text_internal( text, font, &attr, compression, 0/*autodetect length*/ );
 }
 
@@ -1896,7 +1904,11 @@ draw_fancy_text( const void *text, ASFont *font, ASTextAttributes *attr, int com
 		if( internal_attr.tab_size == 0 ) 
 			internal_attr.tab_size = 8 ;
 		internal_attr.version = ASTA_VERSION_INTERNAL ;
-	}
+	}else
+	{
+		if( IsUTF8Locale() ) 
+			internal_attr.char_type = ASCT_UTF8 ;
+	}  
 	return draw_text_internal( text, font, &internal_attr, compression, length );
 }
 
