@@ -1834,7 +1834,7 @@ update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc, Bool force)
 
 		while (--i >= 0)
 		{
-			if (tbar->style[i] && tbar->style[i]->texture_type >= TEXTURE_TRANSPARENT)
+			if (tbar->style[i] && TransparentMS(tbar->style[i]))
             {
 				if (tbar->back[i])
 					destroy_asimage (&(tbar->back[i]));

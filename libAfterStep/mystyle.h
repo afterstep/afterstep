@@ -134,8 +134,13 @@ enum				/* MyStyle options */
     F_BACKMULTIGRADIENT  = (1 << 12),
     F_BACKTRANSPIXMAP    = (1 << 13),   /* should never be set unless F_BACKPIXMAP is set!! */
     F_EXTERNAL_BACKPIX   = (1 << 14),   /* indicates that pixmap has been created by some other application and should not be freed */
-    F_EXTERNAL_BACKMASK  = (1 << 15)
+    F_EXTERNAL_BACKMASK  = (1 << 15),
+	F_TRANSPARENT		 = (1 << 16)           /* if set MyStyle is transparent, and everything that is drawn with it,
+												* must be updated on background changes */
   };
+
+#define TransparentMS(style)  (get_flags((style)->set_flags, F_TRANSPARENT))
+
 
   enum				/* texture types */
   {
@@ -222,6 +227,7 @@ unsigned int mystyle_get_font_height( MyStyle *style );
 
 void mystyle_list_fix_styles (ASHashTable *list);
 void mystyle_fix_styles (void);
+
 
 ASImage *mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int height, int flip );
 Pixmap mystyle_make_pixmap (MyStyle * style, int width, int height, Pixmap cache);

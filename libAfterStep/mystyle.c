@@ -188,9 +188,32 @@ mystyle_list_fix_styles (ASHashTable *list)
     if( start_hash_iteration( list, &iterator ))
         do
         {
+			Bool transparent = False ;
             style = (MyStyle*)curr_hash_data(&iterator);
             if( style != dflt )
                 mystyle_merge_styles (dflt, style, False, False);
+			if(  style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
+				 style->texture_type == TEXTURE_SHAPED_PIXMAP ||
+		 		style->texture_type > TEXTURE_PIXMAP )
+			{
+				transparent = True;
+			}else if (  style->texture_type >= TEXTURE_GRADIENT_START &&
+						style->texture_type <= TEXTURE_GRADIENT_END	)
+			{
+				/* need to check if any of the gradient colors has alpha channel < 0xff */
+				int i = style->gradient.npoints ;
+				while( --i >= 0 )
+					if( ARGB32_ALPHA8(style->gradient.color[i]) < 0x00F0 )
+					{
+						transparent = True ;
+						break;
+					}
+			}
+			if( transparent )
+			{
+				set_flags( style->user_flags, F_TRANSPARENT );
+				set_flags( style->set_flags, F_TRANSPARENT );
+			}
         }while(next_hash_item( &iterator ));
 }
 
@@ -381,23 +404,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
     LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%lX, geom=(%dx%d%+d%+d), flip = %d", style->name, style->texture_type,
                      style->back_icon.image, style->tint, width, height, root_x, root_y, flip);
 
-	if(  style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
-		 style->texture_type == TEXTURE_SHAPED_PIXMAP ||
-		 style->texture_type > TEXTURE_PIXMAP )
-	{
-		 transparency = True ;
-	}else if (  style->texture_type >= TEXTURE_GRADIENT_START &&
-				style->texture_type <= TEXTURE_GRADIENT_END	)
-	{
-		/* need to check if any of the gradient colors has alpha channel < 0xff */
-		int i = style->gradient.npoints ;
-		while( --i >= 0 )
-			if( ARGB32_ALPHA8(style->gradient.color[i]) < 0x00F0 )
-			{
-				transparency = True ;
-				break;
-			}
-	}
+	transparency = TransparentMS(style);
 
 	if(  transparency )
 	{	/* in this case we need valid root image : */
