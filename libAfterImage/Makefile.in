@@ -276,14 +276,14 @@ doc.man:  doc.xref
 		$(ROBODOC) $$f.h doc/$$f.man TROFF C TABSIZE 4 XREF afterimage_xref.lst; \
 	done;
 
-install.man: doc.man
+install.man:
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
 		for f in $$SRCS; do \
 	  	  echo $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
 		  $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
 		done
 
-install.doc: doc.html
+install.doc:
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; cd doc/html; \
 	    echo "$(MKDIR) $(AFTER_SHAREDIR)"; \
 		$(MKDIR) $(AFTER_SHAREDIR); \
@@ -297,7 +297,7 @@ install.doc: doc.html
 		done; cd ../..;
 
 install:	install.lib install.man install.doc
-	
+
 
 uninstall:	uninstall.lib
 
