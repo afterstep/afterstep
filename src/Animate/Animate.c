@@ -501,7 +501,7 @@ void
 usage (void)
 {
   printf ("Usage:\n"
-	  "%s [--version] [--help]\n", MyName);
+	  "%s [--version|-v] [--help|-h]\n", MyName);
   exit (0);
 }
 

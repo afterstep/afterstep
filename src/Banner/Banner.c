@@ -172,7 +172,7 @@ void
 usage (void)
 {
   printf ("Usage:\n"
-	  "%s [--version] [--help] [image]\n", MyName);
+	  "%s [--version|-v] [--help|-h] [image]\n", MyName);
   exit (0);
 }
 

@@ -130,7 +130,7 @@ ASDeskBackArray DesksArray =
 void
 usage (void)
 {
-  printf ("Usage:\n%s [--version] [--help] [n [m]] [--loadonly|-l]|[--kill|-k]\n", MyName);
+  printf ("Usage:\n%s [--version|-v] [--help|-h] [n [m]] [--loadonly|-l]|[--kill|-k]\n", MyName);
   printf ("If started without parameters, %s will load all configured backgrounds\n", MyName);
   printf ("into memory, and will be switching backgrounds for all desks.\n");
   printf ("You can limit number of desks that will be served, by specifying\n");
