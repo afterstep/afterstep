@@ -727,10 +727,10 @@ compile_titlebuttons_mask (ASHints *hints)
     return enabled_mask&(~disabled_mask);
 }
 
-int
-estimate_titlebar_size( ASHints *hints )
+void
+estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *height_ret )
 {
-    int width = 0 ;
+    unsigned int width = 0, height = 0 ;
     if( hints )
     {
         ASTBarData *tbar = create_astbar();
@@ -755,9 +755,13 @@ estimate_titlebar_size( ASHints *hints )
         set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSMenu[MENU_BACK_TITLE] );
         set_astbar_style_ptr( tbar, BAR_STATE_FOCUSED, Scr.Look.MSMenu[MENU_BACK_HILITE] );
         width = calculate_astbar_width( tbar );
+        height = calculate_astbar_height( tbar );
         destroy_astbar( &tbar );
     }
-    return width;
+    if( width_ret )
+		*width_ret = width;
+	if( height_ret )
+		*height_ret = height ;
 }
 
 inline static ASFlagType

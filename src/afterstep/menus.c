@@ -1062,7 +1062,7 @@ on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, A
     if( menu != NULL && menu->magic == MAGIC_ASMENU )
     {
 		ASHints *hints ;
-		int tbar_width ;
+		unsigned int tbar_width ;
 
         if( menu->items )
         {
@@ -1086,7 +1086,7 @@ on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, A
         }
         set_asmenu_look( menu, look );
 		hints = make_menu_hints( menu );
-	    tbar_width = estimate_titlebar_size( hints );
+	    estimate_titlebar_size( hints, &tbar_width, NULL );
    	    destroy_hints( hints, False );
 
     	if( tbar_width > MAX_MENU_WIDTH )
@@ -1191,7 +1191,7 @@ show_asmenu( ASMenu *menu, int x, int y )
     ASHints *hints = make_menu_hints( menu );
 	ASInternalWindow *asiw = safecalloc( 1, sizeof(ASInternalWindow));
     int gravity = NorthWestGravity ;
-    int tbar_width = 0 ;
+    unsigned int tbar_width = 0, tbar_height = 0 ;
     ASRawHints raw ;
     static char *ASMenuStyleNames[2] = {"ASMenu",NULL} ;
     ASDatabaseRecord db_rec;
@@ -1207,7 +1207,7 @@ show_asmenu( ASMenu *menu, int x, int y )
     asiw->on_look_feel_changed = on_menu_look_feel_changed;
     asiw->destroy = menu_destroy;
 
-    tbar_width = estimate_titlebar_size( hints );
+    estimate_titlebar_size( hints, &tbar_width, &tbar_height );
     if( tbar_width > MAX_MENU_WIDTH )
         tbar_width = MAX_MENU_WIDTH ;
 
@@ -1219,18 +1219,21 @@ show_asmenu( ASMenu *menu, int x, int y )
 
     if( x <= MIN_MENU_X )
         x = MIN_MENU_X ;
-    else if( x + menu->optimal_width > MAX_MENU_X )
+    else if( x + menu->optimal_width + tbar_height> MAX_MENU_X )
     {
         x = MAX_MENU_X - menu->optimal_width ;
         gravity = NorthEastGravity ;
-    }
+    }else if( x + menu->optimal_width + tbar_height + menu->optimal_width> MAX_MENU_X )
+		gravity = NorthEastGravity ;
+
     if( y <= MIN_MENU_Y )
         y = MIN_MENU_Y ;
-    else if( y + menu->optimal_height > MAX_MENU_Y )
+    else if( y + menu->optimal_height + tbar_height> MAX_MENU_Y )
     {
-        y = MAX_MENU_Y - menu->optimal_height ;
+        y = MAX_MENU_Y - menu->optimal_height;
         gravity = (gravity == NorthWestGravity)?SouthWestGravity:SouthEastGravity ;
-    }
+    }else if( y + menu->optimal_height + tbar_height + menu->optimal_height> MAX_MENU_Y )
+        gravity = (gravity == NorthWestGravity)?SouthWestGravity:SouthEastGravity ;
 
     hints->gravity = gravity ;
 

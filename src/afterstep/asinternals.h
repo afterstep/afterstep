@@ -494,7 +494,7 @@ void grab_aswindow_buttons( ASWindow *asw, Bool focused );
 int check_allowed_function2 (int func, ASHints *hints);
 int check_allowed_function (FunctionData *fdata, ASHints *hints);
 ASFlagType compile_titlebuttons_mask (ASHints *hints);
-int estimate_titlebar_size( ASHints *hints );
+void estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *height_ret );
 void disable_titlebuttons_with_function (ASWindow * t, int function);
 Bool hints2decorations( ASWindow *asw, ASHints *old_hints );
 
