@@ -2482,6 +2482,8 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 		if( imdecs[i] != NULL )
 			stop_image_decoding( &(imdecs[i]) );
 	free( imdecs );
+	if( fake_bg )
+		destroy_asimage( &fake_bg );
 	free_scanline( &tmp_line, True );
 	free_scanline( &dst_line, True );
 #ifdef DO_CLOCKING

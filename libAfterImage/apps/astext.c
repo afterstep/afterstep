@@ -84,6 +84,12 @@ int main(int argc, char* argv[])
 	}
 	if( argc > 2 )
 		text = argv[2] ;
+
+    dpy = XOpenDisplay(NULL);
+	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
+	screen = DefaultScreen(dpy);
+	depth = DefaultDepth( dpy, screen );
+
 	if( argc > 3 )
 		parse_argb_color( argv[3], &text_color );
 	if( argc > 4 )
@@ -91,14 +97,10 @@ int main(int argc, char* argv[])
 	if( argc > 5 )
 		back_image_file = argv[5] ;
 
-    dpy = XOpenDisplay(NULL);
-	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
-	screen = DefaultScreen(dpy);
-	depth = DefaultDepth( dpy, screen );
-
 	/* see ASText.1 : */
 	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
 		font = get_asfont( fontman, font_name, 0, size, ASF_GuessWho );
+print_asglyph( stderr, font, 'y' );		
 	if( font == NULL )
 	{
 		show_error( "unable to load requested font \"%s\". Aborting.", font_name );

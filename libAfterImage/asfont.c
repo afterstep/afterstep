@@ -276,7 +276,7 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 	unsigned char *pixmap ;
 	register unsigned char *dst = buffer ;
 	register int k = 0, i = 0 ;
-	int count = -1;
+	int count = 0;
 	unsigned char last = src[0];
 /* new way: if its FF we encode it as 01rrrrrr where rrrrrr is repitition count
  * if its 0 we encode it as 00rrrrrr. Any other symbol we bitshift right by 1
@@ -300,9 +300,10 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 			last = src[k] ;
 		}else
 		 	count++ ;
-
+fprintf( stderr, "%2.2X ", src[k] );
 		if( ++k >= width )
 		{
+			fputc( '\n', stderr );
 			--height ;
 			k = 0 ;
 			src += src_step ;
