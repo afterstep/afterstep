@@ -62,8 +62,10 @@ INCS_X		= @X_CFLAGS@
 INCS_PRIVATE= @AFTERBASE_CFLAGS@
 INCLUDES	= $(INCS_EXTRA) $(INCS_PRIVATE) $(INCS_X)
 
-LIBDIR		= @libdir@
-INCLUDEDIR	= @includedir@
+prefix          = @prefix@
+exec_prefix     = @exec_prefix@
+LIBDIR          = @libdir@
+INCLUDEDIR      = @includedir@
 AFTER_INC_DIR	= @includedir@/libAfterImage
 AFTER_BIN_DIR	= @bindir@
 AFTER_MAN_DIR	= @mandir@/man3
@@ -281,6 +283,8 @@ install.man: doc.man
 
 install.doc: doc.html
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; cd doc/html; \
+	    echo "$(MKDIR) $(AFTER_DOC_DIR)"; \
+		$(MKDIR) $(AFTER_DOC_DIR); \
 	    echo "$(MKDIR) $(AFTER_DOC_DIR)/html"; \
 		$(MKDIR) $(AFTER_DOC_DIR)/html; \
 		for f in *.html; do \
