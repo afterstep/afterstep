@@ -1,6 +1,6 @@
 <varlistentry id="options.QuickRestart">
-	<term>QuickRestart</term>
+	<term>QuickRestart <emphasis> look|feel|look+feel</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Causes AfterStep to reload specified config.</para>
 	</listitem>
 </varlistentry>

@@ -8,7 +8,7 @@ definition stanza, or in calling a previously defined function decleration.</par
 Function <emphasis remap='I'>"function_name"</emphasis>
     built-in_file <command>"action"</command> [<emphasis remap='I'>argument</emphasis>]
 EndFunction
-</literallayout> <!-- .fi -->
+</literallayout>
 
 <para>Specifies the definition of a complex function <emphasis remap='I'>"function_name"</emphasis>,
 which can later be bound to a mouse button or key using
@@ -42,7 +42,7 @@ previously defined <emphasis remap='I'>"action"</emphasis> from the same <emphas
 
 <literallayout remap='.nf'>
 Function <emphasis remap='I'>built-in_command</emphasis> <emphasis remap='I'>"action"</emphasis> <emphasis remap='I'>function_name</emphasis>
-</literallayout> <!-- .fi -->
+</literallayout>
 
 <para>Refer to the <emphasis remap='I'>feel.name</emphasis> files and below in EXAMPLES for examples.</para>
 

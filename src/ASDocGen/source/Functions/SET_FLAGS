@@ -1,6 +1,6 @@
 <varlistentry id="options.SET_FLAGS">
 	<term>SET_FLAGS</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Used by modules to set communication flags - identifying which messages module wishes to receive.</para>
 	</listitem>
 </varlistentry>

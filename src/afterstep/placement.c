@@ -655,7 +655,8 @@ static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
             new_y = MY_RND32();
             new_y = (new_y % ( rects[selected].height - h ));
         }
-
+		LOCAL_DEBUG_OUT( "rect %dx%d%+d%+d, new_pos = %+d%+d", 
+						 rects[selected].width, rects[selected].height, rects[selected].x, rects[selected].y, new_x, new_y );
         apply_placement_result_asw( asw, XValue|YValue, rects[selected].x+new_x, rects[selected].y+new_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else

@@ -1,6 +1,6 @@
 <varlistentry id="options.EndFunction">
 	<term>EndFunction</term>
 	<listitem>
-		<para>Terminates a Function definition.</para>
+		<para>Terminates a Complex Function definition.</para>
 	</listitem>
 </varlistentry>

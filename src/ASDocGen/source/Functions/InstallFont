@@ -1,6 +1,6 @@
 <varlistentry id="options.InstallFont">
-	<term>InstallFont</term>
+	<term>InstallFont <emphasis>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Copies specified TTF file to ~/.afterstep/desktop/fonts/ directory, so that it could be used in look configuration.</para>
 	</listitem>
 </varlistentry>

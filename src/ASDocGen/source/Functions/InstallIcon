@@ -1,6 +1,6 @@
 <varlistentry id="options.InstallIcon">
-	<term>InstallIcon</term>
+	<term>InstallIcon <emphasis>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Copies specified image file to ~/.afterstep/desktop/icons/ directory, so that it could be used in look and database configuration.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.InstallBackground">
-	<term>InstallBackground</term>
+	<term>InstallBackground <emphasis>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Copies specified file to ~/.afterstep/backgrounds/ directory, so that it will show up in the menu, to be used for Root background.</para>
 	</listitem>
 </varlistentry>

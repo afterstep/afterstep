@@ -1,6 +1,6 @@
 <varlistentry id="options.InstallThemeFile">
-	<term>InstallThemeFile</term>
+	<term>InstallThemeFile <emphasis>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Copies specified theme file to ~/.afterstep/themes/ directory, so that it could be selected from the menu.</para>
 	</listitem>
 </varlistentry>

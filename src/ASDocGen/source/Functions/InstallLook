@@ -1,6 +1,6 @@
 <varlistentry id="options.InstallLook">
-	<term>InstallLook</term>
+	<term>InstallLook <emphasis>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Copies specified look file to ~/.afterstep/looks/ directory, so that it could be selected from the menu.</para>
 	</listitem>
 </varlistentry>

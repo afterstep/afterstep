@@ -1,6 +1,6 @@
 <varlistentry id="options.InstallColorscheme">
-	<term>InstallColorscheme</term>
+	<term>InstallColorscheme <emphasis>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Copies specified file to ~/.afterstep/colorschemes/ directory, so that it will show up in the menu, to be used as color scheme.</para>
 	</listitem>
 </varlistentry>

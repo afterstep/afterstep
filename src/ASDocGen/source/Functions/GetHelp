@@ -1,6 +1,6 @@
 <varlistentry id="options.GetHelp">
 	<term>GetHelp</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Runs afterstepdoc script, that attempts to guess which web browser is available on the system, and then launches it to display HTML documentation for AfterStep.</para>
 	</listitem>
 </varlistentry>

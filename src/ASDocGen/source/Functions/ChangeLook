@@ -1,6 +1,7 @@
 <varlistentry id="options.ChangeLook">
-	<term>ChangeLook</term>
+	<term>ChangeLook <emphasis remap='I'>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Change Look to specified file</para>
+		<para>Copies Look configuration file specified by filename into user's non-configurable directory, to be used by AfterStep.</para>
 	</listitem>
 </varlistentry>

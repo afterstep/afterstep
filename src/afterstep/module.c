@@ -41,6 +41,17 @@
 #include <sys/types.h>
 #include <sys/un.h>							   /* for struct sockaddr_un */
 
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+
 #include <X11/keysym.h>
 
 #include "../../libAfterStep/module.h"
@@ -48,7 +59,7 @@
 
 static DECL_VECTOR(send_data_type, module_output_buffer);
 
-static void       DeleteQueueBuff (module_t *module);
+static void        DeleteQueueBuff (module_t *module);
 static void       AddToQueue      (module_t *module, send_data_type *ptr, int size, int done);
 
 int           module_listen (const char *socket_name);

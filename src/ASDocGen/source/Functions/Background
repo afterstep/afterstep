@@ -1,6 +1,9 @@
 <varlistentry id="options.Background">
-	<term>Background</term>
+	<term>Background <emphasis remap='I'>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Change Background image to specified file</para>
+		<para>Copies image file specified by filename into user's non-configurable directory. 
+Depending on Background configuration in look file, this may not have any effect.
+</para>
 	</listitem>
 </varlistentry>

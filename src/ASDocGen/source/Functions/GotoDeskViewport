@@ -1,6 +1,6 @@
 <varlistentry id="options.GotoDeskViewport">
-	<term>GotoDeskViewport</term>
+	<term>GotoDeskViewport   <emphasis>Desk+Vx+Vy</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Changes both current desk and viewport.</para>
 	</listitem>
 </varlistentry>

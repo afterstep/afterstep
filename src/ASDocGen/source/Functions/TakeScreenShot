@@ -1,6 +1,6 @@
 <varlistentry id="options.TakeScreenShot">
-	<term>TakeScreenShot</term>
+	<term>TakeScreenShot <emphasis>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Grabs screenshot of the entire screen and save it in specifyed files.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.InstallFeel">
-	<term>InstallFeel</term>
+	<term>InstallFeel <emphasis>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Copies specified file to ~/.afterstep/feels/ directory, so that it will show up in the menu.</para>
 	</listitem>
 </varlistentry>

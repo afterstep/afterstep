@@ -1,6 +1,7 @@
 <varlistentry id="options.ChangeColorscheme">
-	<term>ChangeColorscheme</term>
+	<term>ChangeColorscheme <emphasis remap='I'>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Change Color Scheme to specified file</para>
+		<para>Copies color scheme configuration file specified by filename into user's non-configurable directory.</para>
 	</listitem>
 </varlistentry>

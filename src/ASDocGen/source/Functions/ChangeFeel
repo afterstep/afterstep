@@ -1,6 +1,7 @@
 <varlistentry id="options.ChangeFeel">
-	<term>ChangeFeel</term>
+	<term>ChangeFeel <emphasis remap='I'>"name" filename</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Change Feel to specified file</para>
+		<para>Copies feel configuration file specified by filename into user's non-configurable directory.</para>
 	</listitem>
 </varlistentry>
