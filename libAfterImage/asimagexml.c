@@ -75,36 +75,6 @@
 
 char *interpret_ctrl_codes( char *text );
 
-/* Stolen from libAfterStep. */
-static Pixmap __GetRootPixmap (ASVisual *asv, Atom id)
-{
-	Pixmap        currentRootPixmap = None;
-#ifndef X_DISPLAY_MISSING
-
-	if (id == None)
-		id = XInternAtom (asv->dpy, "_XROOTPMAP_ID", True);
-
-	if (id != None)
-	{
-		Atom          act_type;
-		int           act_format;
-		unsigned long nitems, bytes_after;
-		unsigned char *prop = NULL;
-
-		if (XGetWindowProperty (asv->dpy, RootWindow(asv->dpy, asv->visual_info.screen), id, 0, 1, False, XA_PIXMAP,
-								&act_type, &act_format, &nitems, &bytes_after, &prop) == Success)
-		{
-			if (prop)
-			{
-				currentRootPixmap = *((Pixmap *) prop);
-				XFree (prop);
-			}
-		}
-	}
-#endif /* X_DISPLAY_MISSING */
-	return currentRootPixmap;
-}
-
 static char* cdata_str = "CDATA";
 static char* container_str = "CONTAINER";
 static ASHashTable *asxml_var = NULL;
@@ -490,7 +460,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (src && !strcmp(src, "xroot:")) {
 			unsigned int width, height;
-			Pixmap rp = __GetRootPixmap(asv, None);
+			Pixmap rp = GetRootPixmap(None);
 			show_progress("Getting root pixmap.");
 			if (rp) {
 				get_drawable_size(rp, &width, &height);

@@ -2941,6 +2941,7 @@ clone_asimage( ASImage *src, ASFlagType filter )
 /* Convinience function
  * 		- generate rectangles list for channel values exceeding threshold:        */
 /* ********************************************************************************/
+#define DEBUG_RECTS
 XRectangle*
 get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, unsigned int *rects_count_ret )
 {
@@ -2961,15 +2962,17 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 		unsigned int *tmp_height = safemalloc( (src->width+1) * sizeof(unsigned int) );
 		Bool count_empty = (ARGB32_CHAN8(src->back_color,channel)>= threshold);
 
-/*		fprintf( stderr, "%d:back_color = #%8.8lX,  count_empty = %d, thershold = %d\n", __LINE__, src->back_color, count_empty, threshold );
- */
+#ifdef DEBUG_RECTS
+		fprintf( stderr, "%d:back_color = #%8.8lX,  count_empty = %d, thershold = %d\n", __LINE__, src->back_color, count_empty, threshold );
+#endif
 		while( --i >= -1 )
 		{
 			int runs_count = 0 ;
-
-/*			fprintf( stderr, "%d: LINE %d **********************\n", __LINE__, i );
-*			asimage_print_line (src, channel, i, VRB_LINE_CONTENT);
-*/			if( i >= 0 )
+#ifdef DEBUG_RECTS
+			fprintf( stderr, "%d: LINE %d **********************\n", __LINE__, i );
+			asimage_print_line (src, channel, i, VRB_LINE_CONTENT);
+#endif
+			if( i >= 0 )
 			{
 				if( src_rows[i] )
 				{
@@ -3007,11 +3010,15 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 				for( l = 0 ; l < prev_runs_count ; ++l, ++l )
 				{
 					int start = prev_runs[l], end = prev_runs[l+1] ;
-/*					fprintf( stderr, "%d: prev run %d : start = %d, end = %d, last_k = %d, height = %d\n", __LINE__, l, start, end, last_k, height[l] );
-*/					for( k = last_k ; k < runs_count ; ++k, ++k )
+#ifdef DEBUG_RECTS
+					fprintf( stderr, "%d: prev run %d : start = %d, end = %d, last_k = %d, height = %d\n", __LINE__, l, start, end, last_k, height[l] );
+#endif
+					for( k = last_k ; k < runs_count ; ++k, ++k )
 					{
-/*						fprintf( stderr, "*%d: new run %d : start = %d, end = %d\n", __LINE__, k, runs[k], runs[k+1] );
-*/						if( runs[k] > end )
+#ifdef DEBUG_RECTS
+						fprintf( stderr, "*%d: new run %d : start = %d, end = %d\n", __LINE__, k, runs[k], runs[k+1] );
+#endif
+						if( runs[k] > end )
 						{	/* add entire run to rectangles list */
 							if( rects_count >= rects_allocated )
 							{
@@ -3022,8 +3029,10 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 							rects[rects_count].y = i+1 ;
 							rects[rects_count].width = (end-start)+1 ;
 							rects[rects_count].height = height[l] ;
-/*							fprintf( stderr, "*%d: added rectangle at y = %d\n", __LINE__, rects[rects_count].y );
-*/							++rects_count ;
+#ifdef DEBUG_RECTS
+							fprintf( stderr, "*%d: added rectangle at y = %d\n", __LINE__, rects[rects_count].y );
+#endif
+							++rects_count ;
 							break;
 						}else if( runs[k+1] >= start )
 						{
@@ -3038,62 +3047,87 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 								rects[rects_count].y = i+1 ;
 								rects[rects_count].width = runs[k]-start ;
 								rects[rects_count].height = height[l] ;
-/*								fprintf( stderr, "*%d: added rectangle at y = %d\n", __LINE__, rects[rects_count].y );
-*/								++rects_count ;
+#ifdef DEBUG_RECTS
+								fprintf( stderr, "*%d: added rectangle at y = %d\n", __LINE__, rects[rects_count].y );
+#endif
+								++rects_count ;
 								start = runs[k] ;
 							}else if( start > runs[k] )
 							{
 								tmp_runs[tmp_count] = runs[k] ;
 								tmp_runs[tmp_count+1] = start-1 ;
 								tmp_height[tmp_count] = 1 ;
-/*								fprintf( stderr, "*%d: tmp_run %d added : %d ... %d, height = %d\n", __LINE__, tmp_count, runs[k], start-1, 1 );
-*/								++tmp_count ; ++tmp_count ;
+#ifdef DEBUG_RECTS
+								fprintf( stderr, "*%d: tmp_run %d added : %d ... %d, height = %d\n", __LINE__, tmp_count, runs[k], start-1, 1 );
+#endif
+								++tmp_count ; ++tmp_count ;
 								runs[k] = start ;
 							}
 							/* at that point both runs start at the same point */
-							if( end > runs[k+1] )
-							{   /* add rectangle runs[k+1]+1, , end - runs[k+1], height[l] */
-								if( rects_count >= rects_allocated )
-								{
-									rects_allocated = rects_count + 8 + (rects_count>>3);
-									rects = realloc( rects, rects_allocated*sizeof(XRectangle));
-								}
-								rects[rects_count].x = runs[k+1]+1 ;
-								rects[rects_count].y = i+1 ;
-								rects[rects_count].width = end - runs[k+1] ;
-								rects[rects_count].height = height[l] ;
-/*								fprintf( stderr, "*%d: added rectangle at y = %d\n", __LINE__, rects[rects_count].y );
-*/								++rects_count ;
-								end = runs[k+1] ;
-							}else if( end < runs[k+1] )
+							if( end < runs[k+1] )
 							{
 								runs[k] = end+1 ;
-							}else
-							{/* eliminating new run - it was all used up :) */
+							}else 
+							{   
+								if( end > runs[k+1] )
+								{	
+									/* add rectangle runs[k+1]+1, , end - runs[k+1], height[l] */
+									if( rects_count >= rects_allocated )
+									{
+										rects_allocated = rects_count + 8 + (rects_count>>3);
+										rects = realloc( rects, rects_allocated*sizeof(XRectangle));
+									}
+									rects[rects_count].x = runs[k+1]+1 ;
+									rects[rects_count].y = i+1 ;
+									rects[rects_count].width = end - runs[k+1] ;
+									rects[rects_count].height = height[l] ;
+#ifdef DEBUG_RECTS
+									fprintf( stderr, "*%d: added rectangle at y = %d\n", __LINE__, rects[rects_count].y );
+#endif
+									++rects_count ;
+									end = runs[k+1] ;
+								
+								} 
+								/* eliminating new run - it was all used up :) */
 								runs[k] = src->width ;
 								runs[k+1] = src->width ;
-/*								fprintf( stderr, "*%d: eliminating new run %d\n", __LINE__, k );
-*/								++k ; ++k ;
+#ifdef DEBUG_RECTS
+								fprintf( stderr, "*%d: eliminating new run %d\n", __LINE__, k );
+#endif
+								++k ; ++k ;
 							}
 							tmp_runs[tmp_count] = start ;
 							tmp_runs[tmp_count+1] = end ;
 							tmp_height[tmp_count] = height[l]+1 ;
-/*							fprintf( stderr, "*%d: tmp_run %d added : %d ... %d, height = %d\n", __LINE__, tmp_count, start, end, height[l]+1 );
-*/							++tmp_count ; ++tmp_count ;
+#ifdef DEBUG_RECTS
+							fprintf( stderr, "*%d: tmp_run %d added : %d ... %d, height = %d\n", __LINE__, tmp_count, start, end, height[l]+1 );
+#endif
+							++tmp_count ; ++tmp_count ;
 							last_k = k ;
 							break;
 						}
 					}
 				}
 				/* second pass: we need to pick up remaining new runs */
+				/* I think these should be inserted in oredrly manner so that we have runs list arranged in ascending order */
 				for( k = 0 ; k < runs_count ; ++k, ++k )
 					if( runs[k] < src->width )
 					{
-						tmp_runs[tmp_count] = runs[k] ;
-						tmp_runs[tmp_count+1] = runs[k+1] ;
-						tmp_height[tmp_count] = 1 ;
-/*						fprintf( stderr, "*%d: tmp_run %d added : %d ... %d, height = %d\n", __LINE__, tmp_count, runs[k], runs[k+1], 1 );
-*/						++tmp_count, ++tmp_count;
+						int ii = tmp_count ; 
+						while( ii > 0 && tmp_runs[ii-1] > runs[k] )
+						{
+							tmp_runs[ii] = tmp_runs[ii-2] ;
+							tmp_runs[ii+1] = tmp_runs[ii-1] ;
+							tmp_height[ii] = tmp_height[ii-2] ;
+							--ii ; --ii ;
+						}
+						tmp_runs[ii] = runs[k] ;
+						tmp_runs[ii+1] = runs[k+1] ;
+						tmp_height[ii] = 1 ;
+#ifdef DEBUG_RECTS
+						fprintf( stderr, "*%d: tmp_run %d added : %d ... %d, height = %d\n", __LINE__, ii, runs[k], runs[k+1], 1 );
+#endif
+						++tmp_count, ++tmp_count;
 					}
 				tmp = prev_runs ;
 				prev_runs = tmp_runs ;

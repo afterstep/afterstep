@@ -255,6 +255,13 @@ if test "x$enable_shmimage" = "xyes"; then
 	fi
 fi
 
+dnl# Check for X shaped window extension
+HAVESHAPE="NOSHAPE"
+if test "x$enable_shaping" = "xyes"; then
+  	AC_CHECK_LIB(Xext, XShapeCombineMask, [have_shaping=yes add_lib_xext=yes AC_DEFINE(SHAPE,1,Support for shaped windows)],,$full_x_libs)
+fi
+
+
 
 PATH_XTRA_CHECKED=yes
 export PATH_XTRA_CHECKED
@@ -268,6 +275,7 @@ export X_PRE_LIBS
 export CPP
 export have_x
 export have_shmimage
+export have_shaping
 
 dnl# DONE WITH COMMON STUFF
 dnl# #############################################################
@@ -339,13 +347,6 @@ AC_CHECK_LIB(rplay,rplay,[AC_CHECK_HEADERS(rplay.h,[AUDIO_LIBS=-lrplay; AUDIO_PL
 
 AC_SUBST(AUDIO_LIBS)
 AC_SUBST(AUDIO_PLAY_CMD)
-
-dnl# Check for X shaped window extension
-HAVESHAPE="NOSHAPE"
-add_lib_xext=no
-if test "x$enable_shaping" = "xyes"; then
-  	AC_CHECK_LIB(Xext, XShapeCombineMask, [add_lib_xext=yes;AC_DEFINE(SHAPE,1,Support for shaped windows)],,$full_x_libs)
-fi
 
 if test "x$add_lib_xext" = "xyes"; then
 	x_libs="$x_libs -lXext"

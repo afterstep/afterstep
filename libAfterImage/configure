@@ -856,6 +856,7 @@ Optional Features:
   --enable-gprof           add gprof symbols (-pg) (for debugging) no
   --enable-audit           memory usage audit (for debugging) no
   --enable-shmimage        enable usage of MIT shared memory extention for image transfer no
+  --enable-shaping        enable usage of MIT shaped windows extention yes
   --enable-mmx-optimization  enable utilization of MMX instruction set to speed up imaging operations yes
 
 Optional Packages:
@@ -1382,6 +1383,13 @@ if test "${enable_shmimage+set}" = set; then
   enable_shmimage=$enableval
 else
   enable_shmimage="no"
+fi;
+# Check whether --enable-shaping or --disable-shaping was given.
+if test "${enable_shaping+set}" = set; then
+  enableval="$enable_shaping"
+  enable_shaping=$enableval
+else
+  enable_shaping="yes"
 fi;
 
 # Check whether --enable-mmx_optimization or --disable-mmx_optimization was given.
@@ -2491,12 +2499,19 @@ if test "x$FROM_AFTERSTEP_CONFIGURE" = "xyes"; then
 
 
 
-	if test "x$have_shmimage" = "xyes"; then
+    if test "x$have_shmimage" = "xyes"; then
 		cat >>confdefs.h <<\_ACEOF
 #define XSHMIMAGE 1
 _ACEOF
 
     fi
+    if test "x$have_shaping" = "xyes"; then
+		cat >>confdefs.h <<\_ACEOF
+#define SHAPE 1
+_ACEOF
+
+    fi
+
 else
 
 		if test "x$GCC" = "xyes"; then
@@ -5671,6 +5686,72 @@ fi
 _ACEOF
 
 	fi
+fi
+
+HAVESHAPE="NOSHAPE"
+if test "x$enable_shaping" = "xyes"; then
+  	echo "$as_me:$LINENO: checking for XShapeCombineMask in -lXext" >&5
+echo $ECHO_N "checking for XShapeCombineMask in -lXext... $ECHO_C" >&6
+if test "${ac_cv_lib_Xext_XShapeCombineMask+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXext $full_x_libs $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char XShapeCombineMask ();
+int
+main ()
+{
+XShapeCombineMask ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_Xext_XShapeCombineMask=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_Xext_XShapeCombineMask=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_Xext_XShapeCombineMask" >&5
+echo "${ECHO_T}$ac_cv_lib_Xext_XShapeCombineMask" >&6
+if test $ac_cv_lib_Xext_XShapeCombineMask = yes; then
+  have_xext_lib=yes;
+cat >>confdefs.h <<\_ACEOF
+#define SHAPE 1
+_ACEOF
+
+fi
+
 fi
 
 if test "x$have_xext_lib" = "xyes"; then

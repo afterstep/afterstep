@@ -37,6 +37,10 @@
 #include "../afterimage.h"
 #include "common.h"
 
+#ifdef SHAPE
+#include <X11/extensions/shape.h>
+#endif /* SHAPE */
+
 /****h* libAfterImage/ascompose
  * NAME
  * ascompose is a tool to compose image(s) and display/save it based on
@@ -603,6 +607,9 @@ Window showimage(ASImage* im, Bool looping, Window main_window, Bool center )
 {
 #ifndef X_DISPLAY_MISSING
 	Pixmap p ;
+	int x = 32, y = 32;
+	ASImage *orig_im = im ;
+
 	if (im == NULL || main_window == None ) 
 		return None;
 	
@@ -610,17 +617,61 @@ Window showimage(ASImage* im, Bool looping, Window main_window, Bool center )
 	{	
 		if( center ) 
 		{	
-			int x = (DisplayWidth (dpy, DefaultScreen(dpy)) - im->width)/2;
-			int y = (DisplayHeight (dpy, DefaultScreen(dpy)) - im->height)/2;
+			x = (DisplayWidth (dpy, DefaultScreen(dpy)) - im->width)/2;
+			y = (DisplayHeight (dpy, DefaultScreen(dpy)) - im->height)/2;
 			XMoveWindow( dpy, main_window, x, y );
 		}
 		XResizeWindow( dpy, main_window, im->width, im->height );
 		XMapRaised   ( dpy, main_window);
 	}
 
+	if( get_flags(get_asimage_chanmask(im), SCL_DO_ALPHA))
+	{	
+		unsigned int width, height;
+		Pixmap rp = GetRootPixmap(None);
+		ASImage *transp_im = NULL , *tmp ;
+#ifdef SHAPE
+		{		
+			unsigned int rects_count = 0;
+			XRectangle *rects = get_asimage_channel_rects( im, IC_ALPHA, 10, &rects_count );
+			if( rects == NULL || rects_count == 0 ) 
+				XShapeCombineMask( dpy, main_window, ShapeBounding, 0, 0, None, ShapeSet );
+			else
+				XShapeCombineRectangles (dpy, main_window, ShapeBounding, 0, 0, rects, rects_count, ShapeSet, Unsorted);
+		}
+#endif		   
+		if (rp) 
+		{
+			get_drawable_size(rp, &width, &height);
+			transp_im = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
+		}
+		
+		if( transp_im ) 
+		{   /* Build the layers first. */	
+			ASImageLayer *layers = create_image_layers( 2 );
+			layers[0].im = transp_im ;
+			layers[0].clip_x = x;
+			layers[0].clip_y = y;
+			layers[0].clip_width = im->width ;
+			layers[0].clip_height = im->height ;
+			layers[1].im = im ;
+			layers[1].clip_width = im->width ;
+			layers[1].clip_height = im->height ;
+			tmp = merge_layers(asv, layers, 2, im->width, im->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			if( tmp ) 
+				im = tmp ;
+			free( layers );
+			safe_asimage_destroy(transp_im);
+		}		
+	}		   
 
 	p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, False );
 	p = set_window_background_and_free( main_window, p );
+	if( im != orig_im ) 
+	{	
+		safe_asimage_destroy(im);
+		im = orig_im ;
+	}
 	
 	while(main_window != None)
   	{
