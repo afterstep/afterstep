@@ -737,6 +737,7 @@ unmap_canvas_window( ASCanvas *pc )
 void
 map_canvas_window( ASCanvas *pc, Bool raised )
 {
+	LOCAL_DEBUG_CALLER_OUT( "pc=%p, raised = %s", pc , raised ? "True":"False" );
     if( pc && pc->w != None )
     {
         if( raised )

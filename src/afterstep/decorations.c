@@ -1105,15 +1105,19 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
      * it all is done when we change windows state, or move/resize it */
     /*since we might have destroyed/created some windows - we have to refresh grabs :*/
     grab_window_input( asw, False );
-	/* we need to map all the possibly created subwindows if window is not iconic */
-	if( !ASWIN_GET_FLAGS(asw, AS_Iconic ) )
-		XMapSubwindows(dpy, asw->frame);
-	else
+	if( asw->window_complete )
 	{
-		map_canvas_window( asw->icon_canvas, False );
-		map_canvas_window( asw->icon_title_canvas, False );
+		/* we need to map all the possibly created subwindows if window is not iconic */
+		if( !ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+		{
+			LOCAL_DEBUG_OUT("mapping frame subwindows for client %lX, frame canvas = %p", asw->w, asw->frame_canvas );
+			XMapSubwindows(dpy, asw->frame);
+		}else
+		{
+			map_canvas_window( asw->icon_canvas, False );
+			map_canvas_window( asw->icon_title_canvas, False );
+		}
 	}
-
 	return	status_changed ;
 }
 

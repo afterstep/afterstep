@@ -76,6 +76,7 @@ static unsigned int make_corner_addon( ASOrientation *od, ASTBarData *longbar, A
     GetNormalBarHeight( longbar_height, longbar, od );
     GetNormalBarHeight( c1_height, corner1, od );
     GetNormalBarHeight( c2_height, corner2, od );
+	LOCAL_DEBUG_OUT( "longbar_height = %d, c1_height = %d, c2_height = %d", longbar_height, c1_height, c2_height );
     if( c1_height >= c2_height )
         return (c1_height > longbar_height)?c1_height - longbar_height:0;
     else
@@ -87,12 +88,15 @@ resize_canvases( ASWindow *asw, ASOrientation *od, unsigned int normal_width, un
 {
     unsigned short tbar_size = frame_sizes[od->tbar_side] ;
     unsigned short sbar_size = frame_sizes[od->sbar_side] ;
+	unsigned short tbar_addon, sbar_addon ;
 
     /* we need to determine if corners are bigger then frame bars on sbar and tbar : */
-    tbar_size += make_corner_addon( od, asw->frame_bars[od->tbar_side], asw->frame_bars[od->tbar_mirror_corners[0]], asw->frame_bars[od->tbar_mirror_corners[1]] );
-    sbar_size += make_corner_addon( od, asw->frame_bars[od->sbar_side], asw->frame_bars[od->sbar_mirror_corners[0]], asw->frame_bars[od->sbar_mirror_corners[1]] );
-
-    *(od->in_width)  = normal_width ;
+    tbar_addon = make_corner_addon( od, asw->frame_bars[od->tbar_side], asw->frame_bars[od->tbar_mirror_corners[0]], asw->frame_bars[od->tbar_mirror_corners[1]] );
+    sbar_addon = make_corner_addon( od, asw->frame_bars[od->sbar_side], asw->frame_bars[od->sbar_mirror_corners[0]], asw->frame_bars[od->sbar_mirror_corners[1]] );
+	tbar_size += tbar_addon ;
+	sbar_size += sbar_addon ;
+LOCAL_DEBUG_OUT( "tbar_size = %d, addon = %d, sbar_size = %d, addon = %d, frame_sizes = {%d,%d}", tbar_size, tbar_addon, sbar_size, sbar_addon, frame_sizes[od->tbar_side], frame_sizes[od->sbar_side] );
+	*(od->in_width)  = normal_width ;
     *(od->in_height) = tbar_size;
     if( asw->frame_sides[od->tbar_side] )
         moveresize_canvas( asw->frame_sides[od->tbar_side], 0, 0, *(od->out_width), *(od->out_height) );
@@ -244,9 +248,11 @@ move_resize_corner( ASTBarData *bar, ASCanvas *canvas, ASOrientation *od, int no
     *(od->in_y) = normal_y;
 
     if( od == &VertOrientation )
-        w = normal_height ;
+        w = normal_height - normal_y ;
     else
-        h = normal_height ;
+        h = normal_height - normal_y;
+	LOCAL_DEBUG_OUT( " w = %d, h = %d, bar->width = %d, bar->height = %d, n_w = %d, n_h = %d, n_y = %d",
+						w, h, bar->width, bar->height, normal_width, normal_height, normal_y );
     *(od->in_width) = w ;
     *(od->in_height) = h ;
     *(od->in_x) = left?0:(normal_width-(*(od->out_width)));
@@ -1030,11 +1036,12 @@ complete_wm_state_transition( ASWindow *asw, int state )
     asw->wm_state_transition = ASWT_StableState ;
     if( state == NormalState )
     {
+		LOCAL_DEBUG_OUT("mapping frame subwindows for client %lX, frame canvas = %p", asw->w, asw->frame_canvas );
         XMapSubwindows(dpy, asw->frame);
-        XMapWindow(dpy, asw->frame);
+        map_canvas_window(asw->frame_canvas, False);
     }else if( state == IconicState )
     {
-        XUnmapWindow (dpy, asw->frame);
+        unmap_canvas_window (asw->frame_canvas);
     }
     if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
         set_multi32bit_property (asw->w, _XA_WM_STATE, _XA_WM_STATE, 2, state, (state==IconicState)?asw->status->icon_window:None);
