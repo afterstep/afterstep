@@ -225,7 +225,7 @@ int
 write_gif_saved_images( GifFileType *gif, SavedImage *images, unsigned int count )
 {
 	int status = GIF_OK;
-	int i ;
+	unsigned int i ;
 
 	for( i = 0 ; i < count && status == GIF_OK; ++i )
 	{

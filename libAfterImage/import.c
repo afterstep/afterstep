@@ -676,7 +676,7 @@ apply_gamma( register CARD8* raw, register CARD8 *gamma_table, unsigned int widt
 {
 	if( gamma_table )
 	{	
-		register int i ;
+		register unsigned int i ;
 		for( i = 0 ; i < width ; ++i )
 			raw[i] = gamma_table[raw[i]] ;
 	}
@@ -804,12 +804,6 @@ png2ASImage( const char * path, ASImageImportParams *params )
 				png_read_image (png_ptr, row_pointers);
 				for (y = 0; y < height; y++)
 				{
-					register int i;
-					/*
-					for ( i = 0 ; i < row_bytes ; ++i)
-						fprintf( stderr, "%2.2X ", row_pointers[y][i] );
-					fprintf( stderr, " do_alpha = %d\n", do_alpha);
-					*/
 					if( do_alpha || !grayscale ) 
 					{	
 						raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
@@ -830,6 +824,7 @@ png2ASImage( const char * path, ASImageImportParams *params )
 					if( do_alpha )
 					{
 						int has_zero = False, has_nozero = False ;
+						register unsigned int i;
 						for ( i = 0 ; i < buf.width ; ++i)
 						{
 							/*fprintf( stderr, "%2.2X          ", buf.alpha[i] );*/
@@ -986,7 +981,7 @@ jpeg2ASImage( const char * path, ASImageImportParams *params )
 /*	for( i = 0 ; i < im->width ; i++ )	fprintf( stderr, "%3.3d    ", i );
 	fprintf( stderr, "\n");
  */
- 	while ( ++y < cinfo.output_height )
+ 	while ( ++y < (int)cinfo.output_height )
 	{
 		/* jpeg_read_scanlines expects an array of pointers to scanlines.
 		 * Here the array is only one element long, but you could ask for
@@ -1495,7 +1490,7 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 	int					status = GIF_ERROR;
 	GifFileType        *gif;
 	ASImage 	 	   *im = NULL ;
-	unsigned int  		transparent = -1 ;
+	int  		transparent = -1 ;
 	unsigned int  		y;
 	unsigned int		width = 0, height = 0;
 	ColorMapObject     *cmap = NULL ;
@@ -1515,7 +1510,7 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 			fprintf( stderr, "Ext block = %p, count = %d\n", sp->ExtensionBlocks, sp->ExtensionBlockCount );
 #endif
 			if( sp->ExtensionBlocks )
-				for ( y = 0; y < sp->ExtensionBlockCount; y++)
+				for ( y = 0; y < (unsigned int)sp->ExtensionBlockCount; y++)
 				{
 #ifdef DEBUG_TRANSP_GIF
 					fprintf( stderr, "%d: func = %X, bytes[0] = 0x%X\n", y, sp->ExtensionBlocks[y].Function, sp->ExtensionBlocks[y].Bytes[0]);
@@ -1550,7 +1545,7 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 				im = create_asimage( width, height, params->compression );
 				for (y = 0; y < height; ++y)
 				{
-					int x ;
+					unsigned int x ;
 					Bool do_alpha = False ;
                     image_y = interlaced ? gif_interlaced2y(y, height):y;
 					for (x = 0; x < width; ++x)
