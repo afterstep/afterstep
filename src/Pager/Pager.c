@@ -879,9 +879,12 @@ void place_desk( ASPagerDesk *d, int x, int y, unsigned int width, unsigned int 
 inline ASPagerDesk *
 get_pager_desk( int desk )
 {
-    register int pager_desk = desk - PagerState.start_desk ;
-    if(  pager_desk >= 0 && pager_desk < PagerState.desks_num )
-        return &(PagerState.desks[pager_desk]);
+	if( IsValidDesk(desk) )
+	{
+		register int pager_desk = desk - PagerState.start_desk ;
+	    if(  pager_desk >= 0 && pager_desk < PagerState.desks_num )
+  		    return &(PagerState.desks[pager_desk]);
+	}
     return NULL ;
 }
 
@@ -890,7 +893,7 @@ restack_desk_windows( ASPagerDesk *d )
 {
     Window *list, *curr ;
     int win_count = 0 ;
-    int i ;
+    int i, k ;
     if( d == NULL )
         return;
 
@@ -904,97 +907,110 @@ restack_desk_windows( ASPagerDesk *d )
         return ;
 
     curr = list = safecalloc( win_count, sizeof(Window));
-
+	k = 0 ; 
+	
     if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
-    {
         for( i = 0 ; i < 4 ; ++i )
-            curr[i] = PagerState.selection_bars[i] ;
-        curr += 4 ;
-    }
+		{
+			if( PagerState.selection_bars[i] ) 
+			{
+	            curr[k] = PagerState.selection_bars[i] ;
+				++k ;
+			}
+		}	
+
     if( get_flags(Config->flags, PAGE_SEPARATOR) )
     {
         register Window *sbars = d->separator_bars;
         i = d->separator_bars_num ;
         while( --i >= 0 )
-            curr[i] = sbars[i] ;
-        curr += d->separator_bars_num ;
-    }
+		{
+			if( sbars[i] ) 
+			{
+          		curr[k] = sbars[i] ;
+				++k ;
+			}
+	    }
+	}
 
     if( d->clients_num > 0 )
     {
         register ASWindowData **clients = d->clients ;
-        i = d->clients_num ;
-        while( --i >= 0 )
+        i = -1 ;
+        while( ++i < d->clients_num )
         {
-            if( clients[i] )
-                curr[i] = clients[i]->canvas->w ;
-            else
-            {
-                --curr ;
-                --win_count ;
-            }
+            if( clients[i] && clients[i]->desk == d->desk && 
+			    clients[i]->canvas  && 
+				clients[i]->canvas->w )
+			{
+                curr[k] = clients[i]->canvas->w ;
+				++k ;
+			}
         }
     }
 
     XRaiseWindow( dpy, list[0] );
-    XRestackWindows( dpy, list, win_count );
+    XRestackWindows( dpy, list, k );
 }
 
 
 void
 place_selection()
 {
-     ASPagerDesk *sel_desk ;
-
 LOCAL_DEBUG_CALLER_OUT( "Scr.CurrentDesk(%d)->start_desk(%d)", Scr.CurrentDesk, PagerState.start_desk );
-    if( get_flags(Config->flags, SHOW_SELECTION) && (sel_desk = get_pager_desk( Scr.CurrentDesk ))!= NULL )
-    {
-        int sel_x = sel_desk->background->win_x ;
-        int sel_y = sel_desk->background->win_y ;
-        int page_width = sel_desk->background->width/PagerState.page_columns ;
-        int page_height = sel_desk->background->height/PagerState.page_rows ;
-        int i = 4;
+    if( get_flags(Config->flags, SHOW_SELECTION) )
+	{
+        ASPagerDesk *sel_desk = get_pager_desk( Scr.CurrentDesk );
 
-        sel_x += (Scr.Vx*page_width)/Scr.MyDisplayWidth ;
-        sel_y += (Scr.Vy*page_height)/Scr.MyDisplayHeight ;
+  	    if( sel_desk!= NULL && sel_desk->background && sel_desk->desk_canvas )
+  		{
+      		int sel_x = sel_desk->background->win_x ;
+	        int sel_y = sel_desk->background->win_y ;
+  		    int page_width = sel_desk->background->width/PagerState.page_columns ;
+      		int page_height = sel_desk->background->height/PagerState.page_rows ;
+	        int i = 4;
+
+  		    sel_x += (Scr.Vx*page_width)/Scr.MyDisplayWidth ;
+      		sel_y += (Scr.Vy*page_height)/Scr.MyDisplayHeight ;
 LOCAL_DEBUG_OUT( "sel_pos(%+d%+d)->page_size(%dx%d)->desk(%d)", sel_x, sel_y, page_width, page_height, sel_desk->desk );
-        while ( --i >= 0 )
-            XReparentWindow( dpy, PagerState.selection_bars[i], sel_desk->desk_canvas->w, -10, -10 );
+	        while ( --i >= 0 )
+  		        XReparentWindow( dpy, PagerState.selection_bars[i], sel_desk->desk_canvas->w, -10, -10 );
 
-        PagerState.selection_bar_rects[0].x = sel_x-1 ;
-        PagerState.selection_bar_rects[0].y = sel_y-1 ;
-        PagerState.selection_bar_rects[0].width = page_width+2 ;
-        PagerState.selection_bar_rects[0].height = 1 ;
+      		PagerState.selection_bar_rects[0].x = sel_x-1 ;
+	        PagerState.selection_bar_rects[0].y = sel_y-1 ;
+  		    PagerState.selection_bar_rects[0].width = page_width+2 ;
+      		PagerState.selection_bar_rects[0].height = 1 ;
 
-        PagerState.selection_bar_rects[1].x = sel_x-1 ;
-        PagerState.selection_bar_rects[1].y = sel_y-1 ;
-        PagerState.selection_bar_rects[1].width = 1 ;
-        PagerState.selection_bar_rects[1].height = page_height+2;
+	        PagerState.selection_bar_rects[1].x = sel_x-1 ;
+  		    PagerState.selection_bar_rects[1].y = sel_y-1 ;
+	        PagerState.selection_bar_rects[1].width = 1 ;
+  		    PagerState.selection_bar_rects[1].height = page_height+2;
 
-        PagerState.selection_bar_rects[2].x = sel_x-1 ;
-        PagerState.selection_bar_rects[2].y = sel_y+page_height+1 ;
-        PagerState.selection_bar_rects[2].width = page_width+2 ;
-        PagerState.selection_bar_rects[2].height = 1 ;
+	        PagerState.selection_bar_rects[2].x = sel_x-1 ;
+  		    PagerState.selection_bar_rects[2].y = sel_y+page_height+1 ;
+	        PagerState.selection_bar_rects[2].width = page_width+2 ;
+  		    PagerState.selection_bar_rects[2].height = 1 ;
 
-        PagerState.selection_bar_rects[3].x = sel_x+page_width+1 ;
-        PagerState.selection_bar_rects[3].y = sel_y-1 ;
-        PagerState.selection_bar_rects[3].width = 1 ;
-        PagerState.selection_bar_rects[3].height = page_height+2 ;
+      		PagerState.selection_bar_rects[3].x = sel_x+page_width+1 ;
+	        PagerState.selection_bar_rects[3].y = sel_y-1 ;
+  		    PagerState.selection_bar_rects[3].width = 1 ;
+      		PagerState.selection_bar_rects[3].height = page_height+2 ;
 
-        if( !get_flags( sel_desk->flags, ASP_DeskShaded ) )
-        {
-            i = 4 ;
-            while ( --i >= 0 )
-                XMoveResizeWindow( dpy, PagerState.selection_bars[i],
-                                        PagerState.selection_bar_rects[i].x,
-                                        PagerState.selection_bar_rects[i].y,
-                                        PagerState.selection_bar_rects[i].width,
-                                        PagerState.selection_bar_rects[i].height );
-        }
-
-        restack_desk_windows( sel_desk );
-        XMapSubwindows( dpy, sel_desk->desk_canvas->w );
-        set_flags(sel_desk->flags, ASP_ShapeDirty);
+	        if( !get_flags( sel_desk->flags, ASP_DeskShaded ) )
+  		    {
+      		    i = 4 ;
+          		while ( --i >= 0 )
+	                XMoveResizeWindow( dpy, PagerState.selection_bars[i],
+  	                                      PagerState.selection_bar_rects[i].x,
+    	                                  PagerState.selection_bar_rects[i].y,
+      	                                  PagerState.selection_bar_rects[i].width,
+        	                              PagerState.selection_bar_rects[i].height );
+      		}
+  		    XMapSubwindows( dpy, sel_desk->desk_canvas->w );
+			ASSync(False);
+	        restack_desk_windows( sel_desk );
+      		set_flags(sel_desk->flags, ASP_ShapeDirty);
+		}
     }
 }
 
