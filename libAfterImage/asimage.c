@@ -1108,45 +1108,44 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
 
 
 CARD8*
-asimage_copy_line (CARD8 *src, int width)
+asimage_copy_line (register CARD8 *src, int width)
 {
-	int size = 0;
-	register CARD8 *ptr = src ;
-	int to_skip = 0;
+	register int i = 0;
 
 	/* merely copying the data */
 	if ( src == NULL )
 		return NULL;
-	while (*ptr != RLE_EOL && width )
+	while (src[i] != RLE_EOL && width )
 	{
-		if (((*ptr) & RLE_DIRECT_B) != 0)
+		if ((src[i] & RLE_DIRECT_B) != 0)
 		{
-			if( *ptr == RLE_DIRECT_TAIL )
+			if( src[i] == RLE_DIRECT_TAIL )
 			{
-				size += width ;
+				i += width+1 ;
 				break;
+			}else
+			{
+				register int to_skip = (src[i] & (RLE_DIRECT_D))+1;
+				width -= to_skip ;
+				i += to_skip ;
 			}
-			to_skip = ((*ptr) & (RLE_DIRECT_D))+1;
-			width -= to_skip ;
-			ptr += to_skip+1 ;
-			size += to_skip+1 ;
-		} else if (((*ptr) & RLE_SIMPLE_B_INV) == 0)
+		} else if ((src[i]&RLE_SIMPLE_B_INV) == 0)
 		{
-			size += 2 ;
-			ptr += 2 ;
-			width -= ((int)ptr[0])+ RLE_THRESHOLD;
-		} else if (((*ptr) & RLE_LONG_B) != 0)
+			width -= ((int)src[i])+ RLE_THRESHOLD;
+			++i ;
+		} else if ((src[i] & RLE_LONG_B) != 0)
 		{
-			width -= ((int)ptr[1])+((((int)ptr[0])&RLE_LONG_D ) << 8)+RLE_THRESHOLD;
-			ptr += 3 ;
-			size += 3 ;
+			register int to_skip = ((((int)src[i])&RLE_LONG_D ) << 8) ;
+			width -= ((int)src[++i])+to_skip+RLE_THRESHOLD;
+			++i;
 		}
+		++i;
 	}
-	if( size > 0 )
+	if( i > 0 )
 	{
-		ptr = safemalloc( size+1 );
-		memcpy( ptr, src, size+1 );
-		return ptr;
+		CARD8 *res = safemalloc( i+1 );
+		memcpy( res, src, i+1 );
+		return res;
 	}else
 		return NULL ;
 }
@@ -1200,12 +1199,13 @@ copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
 		offset_src < src->height && offset_dst < dst->height &&
 		dst->width == src->width )
 	{
-		int chan, i ;
+		int chan;
 
 		if( offset_src+nlines > src->height )
 			nlines = src->height - offset_src ;
 		if( offset_dst+nlines > dst->height )
 			nlines = dst->height - offset_dst ;
+
 		for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
 			if( get_flags( filter, 0x01<<chan ) )
 			{
@@ -1220,12 +1220,13 @@ LOCAL_DEBUG_OUT( "copying %d lines of channel %d...", nlines, chan );
 					dst_rows[i] = asimage_copy_line( src_rows[i], dst->width );
 				}
 			}
+#if 0
 		for( i = 0 ; i < nlines ; ++i )
 		{
-			asimage_print_line( src, IC_ALPHA, i, VRB_EVERYTHING );
-			asimage_print_line( dst, IC_ALPHA, i, VRB_EVERYTHING );
+			asimage_print_line( src, IC_ALPHA, i, (i==4)?VRB_EVERYTHING:VRB_LINE_SUMMARY );
+			asimage_print_line( dst, IC_ALPHA, i, (i==4)?VRB_EVERYTHING:VRB_LINE_SUMMARY );
 		}
-
+#endif
 	}
 }
 

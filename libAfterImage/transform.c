@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG */
 #define DO_CLOCKING
 
 #define USE_64BIT_FPU
@@ -1498,7 +1498,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d",
 
 		result.back_color = color ;
 		result.flags = 0 ;
-LOCAL_DEBUG_OUT( "filling %d lines with %8.8X", start_y, color );
+LOCAL_DEBUG_OUT( "filling %d lines with %8.8lX", start_y, color );
 		for( y = 0 ; y < start_y ; y++  )
 			imout->output_image_scanline( imout, &result, 1);
 
@@ -1545,7 +1545,7 @@ LOCAL_DEBUG_OUT( "copiing %d lines", clip_height );
 		}
 		result.back_color = color ;
 		result.flags = 0 ;
-LOCAL_DEBUG_OUT( "filling %d lines with %8.8X at the end", to_height-(start_y+clip_height), color );
+LOCAL_DEBUG_OUT( "filling %d lines with %8.8lX at the end", to_height-(start_y+clip_height), color );
 		for( y = start_y+clip_height ; y < to_height ; y++  )
 			imout->output_image_scanline( imout, &result, 1);
 
