@@ -1,6 +1,10 @@
 Note for Solaris users:
 
-AfterStep builds and runs on (at least) the following versions of Solaris:
+AfterStep builds and runs on (at least) the versions of Solaris listed
+below.  In each section the OS version is accompanied by the appropriate
+notes.
+
+--------------------------------------------------------------
 
         Solaris 2.5.1 with SunPro C 4.2 or gcc 2.7.2
         Solaris 2.4 with IXI Motif and SunPro C 3.0.1
@@ -40,3 +44,34 @@ maintainers so it can be mentioned here. Thanks!]
  
 
 						Chris Ridd <C.Ridd@isode.com>
+
+--------------------------------------------------------------
+
+	Solaris 9 update 4 with gcc 2.8.1
+
+1. Before running configure you need to
+
+  a) (OPTIONAL) install the Fast Light Toolkit, fltk.  This is available as
+  a freeware package from Sun; search for the package name "SFWfltk" at
+  www.sun.com.
+
+  b) edit the configure script, replacing
+
+    LDFLAGS="$LDFLAGS -rdynamic"
+
+  with
+
+    LDFLAGS="$LDFLAGS -R/usr/sfw/lib"
+
+2. Run configure as
+
+  % ./configure --prefix=/opt/sfw
+
+3. If you are using an old version of gcc, remove "-fpermissive" from
+   INCS_PRIVATE in src/ascp/Makefile.  (This is apparently needed for more
+   recent versions of gcc.)
+
+4. Go ahead, build and install.
+
+					Dan N. Bernardo
+					(dan_dot_bernardo_at_sun_dot_com)
