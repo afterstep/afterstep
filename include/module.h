@@ -3,41 +3,6 @@
 
 #include "screen.h"
 
-struct queue_buff_struct
-  {
-    struct queue_buff_struct *next;
-    unsigned long *data;
-    int size;
-    int done;
-  };
-
-typedef struct module_ibuf_t
-  {
-    int len;
-    int done;
-    int window;
-    int size;
-    char *text;
-    int cont;
-  }
-module_ibuf_t;
-
-typedef struct module_t
-  {
-    int fd;
-    int active;
-    char *name;
-    long mask;
-    struct queue_buff_struct *output_queue;
-    module_ibuf_t ibuf;
-  }
-module_t;
-
-extern int module_fd;
-extern int npipes;
-extern module_t *Module;
-extern char *display_name ;
-
 #define START_FLAG 0xffffffff
 
 #define M_TOGGLE_PAGING      (1<<0)
@@ -72,16 +37,9 @@ extern char *display_name ;
  */
 
 #define HEADER_SIZE         3
+#define MSG_HEADER_SIZE     HEADER_SIZE
 #define MAX_PACKET_SIZE    27
 #define MAX_BODY_SIZE      (MAX_PACKET_SIZE - HEADER_SIZE)
-
-/* from src/afterstep/module.c */
-int module_setup_socket (Window w, const char *display_string);
-int module_listen (const char *socket_name);
-int module_accept (int socket_fd);
-void module_init (int free_resources);
-void module_setup (void);
-int HandleModuleInput (int channel);
 
 /* from lib/module.c */
 int module_connect (const char *socket_name);
@@ -136,12 +94,15 @@ void LoadConfig (char *global_config_file, char *config_file_name, void (*read_o
 
 
 /* only aplicable to modules with X connection : lib/Xmodule.c */
+void InternUsefulAtoms (void);
+
 #ifdef MODULE_X_INTERFACE
 /* returns fd of the X server connection */
 void get_Xinerama_rectangles(ScreenInfo *scr);
 int ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask);
 /* get's Atom ID's of the atoms names listed in array */
 void InitAtoms (Display * dpy, ASAtom * atoms);
+
 /* X enabled version of RunModule */
 int My_XNextEvent (Display * dpy, int x_fd, int as_fd, void (*as_msg_handler) (unsigned long type, unsigned long *body), XEvent * event);
 

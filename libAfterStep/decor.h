@@ -6,7 +6,7 @@ struct MyStyle ;
 struct ASImage;
 struct icon_t;
 struct button_t;
-
+struct ASImageManager;
 
 typedef struct ASCanvas
 {
@@ -191,7 +191,7 @@ int  check_astbar_point( ASTBarData *tbar, int root_x, int root_y );
 MyFrame *create_myframe();
 MyFrame *create_default_myframe();
 MyFrame *myframe_find( const char *name );
-void myframe_load ( MyFrame * frame, ASImageManager *imman );
+void myframe_load ( MyFrame * frame, struct ASImageManager *imman );
 Bool filename2myframe_part (MyFrame *frame, int part, char *filename);
 Bool myframe_has_parts(const MyFrame *frame, ASFlagType mask);
 void destroy_myframe( MyFrame **pframe );

@@ -21,36 +21,27 @@
 
 #include "../../configure.h"
 
-#ifdef ISC
-#include <sys/bsdtypes.h>
-#endif
-
 #include <limits.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
 
-/* Some people say that AIX and AIXV3 need 3 preceding underscores, other say
- * no. I'll do both */
-#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
-#include <sys/select.h>
-#endif
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/module.h"
 #include "../../include/parse.h"
 #include "../../include/decor.h"
-#include "../../include/misc.h"
-#include "../../include/style.h"
 #include "../../include/screen.h"
+#include "../../include/event.h"
+#include "../../include/balloon.h"
 #include "../../include/loadimg.h"
+#include "../../libAfterImage/afterimage.h"
+#include "../../include/mystyle.h"
 #include "asinternals.h"
 
 #include <X11/keysym.h>
+
 
 #if 0
     /* All this is so much evel that I just have to get rid of it : */
@@ -118,7 +109,9 @@ warp_ungrab (ASWindow * t, Bool finished)
  ************************************************************************/
 void DigestEvent    ( ASEvent *event );
 void DispatchEvent  ( ASEvent *event );
-int  afterstep_wait_pipes_input ();
+void afterstep_wait_pipes_input ();
+void SetTimer (int delay);
+
 
 void
 HandleEvents ()
@@ -501,8 +494,6 @@ DispatchEvent ( ASEvent *event )
                                                                event->x.xconfigure.y,
                                                                event->x.xconfigure.width,
                                                                event->x.xconfigure.height );
-                if( event->w == event->client->frame )
-                    UpdateVisibility();
             }
             break;
         case ConfigureRequest:
@@ -779,7 +770,6 @@ HandleDestroyNotify (ASEvent *event )
     if (event->client)
 	{
         Destroy (event->client, True);
-		UpdateVisibility ();
 	}
 }
 
@@ -839,7 +829,6 @@ HandleMapNotify ( ASEvent *event )
     ASWIN_SET_FLAGS(asw, AS_Mapped);
     ASWIN_CLEAR_FLAGS(asw, AS_IconMapped);
     ASWIN_CLEAR_FLAGS(asw, AS_Iconic);
-    UpdateVisibility ();
 }
 
 
@@ -882,7 +871,6 @@ HandleUnmapNotify (ASEvent *event )
         */
         Destroy (event->client, destroyed);               /* do not need to mash event before */
         XUngrabServer (dpy);
-        UpdateVisibility ();
         XFlush (dpy);
     }
 }
@@ -1108,16 +1096,7 @@ HandleConfigureRequest ( ASEvent *event )
 	}
 
     if (cre->value_mask & CWStackMode)
-	{
-        ASWindow     *otherwin = window2ASWindow( cre->above);
-
-		xwc.sibling = (((cre->value_mask & CWSibling) &&
-                        ( otherwin != NULL))?otherwin->frame : cre->above);
-		xwc.stack_mode = cre->detail;
-        XConfigureWindow (dpy, asw->frame, cre->value_mask & (CWSibling | CWStackMode), &xwc);
-		XSync (dpy, False);
-		CorrectStackOrder ();
-	}
+        restack_window( asw, (cre->value_mask & CWSibling)?cre->above:None, cre->detail );
 
 #ifdef SHAPE
 	{
@@ -1192,12 +1171,135 @@ enterAlarm (int nonsense)
 }
 #endif /* 1 */
 
+/****************************************************************************
+ * Start/Stops the auto-raise timer
+ ****************************************************************************/
+void
+SetTimer (int delay)
+{
+#ifdef TIME_WITH_SYS_TIME
+	struct itimerval value;
+
+	value.it_value.tv_usec = 1000 * (delay % 1000);
+	value.it_value.tv_sec = delay / 1000;
+	value.it_interval.tv_usec = 0;
+	value.it_interval.tv_sec = 0;
+	setitimer (ITIMER_REAL, &value, NULL);
+#endif
+}
+
+
 /***************************************************************************
  *
  * Waits for next X event, or for an auto-raise timeout.
  *
  ****************************************************************************/
+void
+afterstep_wait_pipes_input()
+{
+	fd_set        in_fdset, out_fdset;
+	int           retval;
+	struct timeval tv;
+	struct timeval *t = NULL;
+    int           max_fd = 0;
 
+	FD_ZERO (&in_fdset);
+	FD_ZERO (&out_fdset);
+
+	FD_SET (x_fd, &in_fdset);
+    max_fd = x_fd ;
+
+    if (Module_fd >= 0)
+    {
+
+        FD_SET (Module_fd, &in_fdset);
+        if (max_fd < Module_fd)
+            max_fd = Module_fd;
+
+    }
+
+    {   /* adding all the modules pipes to our wait list */
+        register int i = MIN(MODULES_NUM,Module_npipes) ;
+        register module_t *list = MODULES_LIST ;
+        while( --i >= 0 )
+        {
+            if (list[i].fd >= 0)
+            {
+                FD_SET (list[i].fd, &in_fdset);
+                if (list[i].output_queue != NULL)
+                    FD_SET (list[i].fd, &out_fdset);
+                if (max_fd < list[i].fd)
+                    max_fd = list[i].fd;
+            }else /* man, this modules is dead! get rid of it - it stinks! */
+                vector_remove_index( Modules, i );
+        }
+    }
+
+	/* watch for timeouts */
+	if (timer_delay_till_next_alarm ((time_t *) & tv.tv_sec, (time_t *) & tv.tv_usec))
+		t = &tv;
+
+#if 1										   /* see SetTimer() */
+	{
+		struct itimerval value;
+		Window        child;
+#warning "FIXME: delayed RaiseObscuredWindow will only work on default screen !!!"
+		/* Do this prior to the select() call, in case the timer already expired,
+		 * in which case the select would never return. */
+		if (alarmed)
+		{
+			int junk ;
+			Window root;
+			alarmed = False;
+			XQueryPointer (dpy, Scr.Root, &root, &child, &junk, &junk, &junk, &junk, &junk);
+            if ((Scr.Windows->focused != NULL) && (child == get_window_frame(Scr.Windows->focused)))
+                RaiseObscuredWindow(Scr.Windows->focused);
+			return ;
+		}
+#ifndef TIME_WITH_SYS_TIME
+		value.it_value.tv_usec = 0;
+		value.it_value.tv_sec = 0;
+#else
+		getitimer (ITIMER_REAL, &value);
+#endif
+		if (value.it_value.tv_sec > 0 || value.it_value.tv_usec > 0)
+			if (t == NULL || value.it_value.tv_sec < tv.tv_sec ||
+				(value.it_value.tv_sec == tv.tv_sec && value.it_value.tv_usec < tv.tv_usec))
+				t = &value.it_value;
+	}
+#endif /* 1 */
+
+    retval = PORTABLE_SELECT(min (max_fd + 1, fd_width),&in_fdset,&out_fdset,NULL,t);
+
+	if (retval > 0)
+	{
+        register module_t *list ;
+        register int i ;
+		/* check for incoming module connections */
+        if (Module_fd >= 0)
+            if (FD_ISSET (Module_fd, &in_fdset))
+                if (AcceptModuleConnection(Module_fd) != -1)
+                    show_progress("accepted module connection");
+        /* note that we have to do it AFTER we accepted incoming connections as those alter the list */
+        list = MODULES_LIST ;
+        i = MIN(MODULES_NUM,Module_npipes) ;
+        /* Check for module input. */
+        while( --i >= 0 )
+        {
+            Bool has_input = FD_ISSET (list[i].fd, &in_fdset);
+            Bool has_output = FD_ISSET (list[i].fd, &out_fdset);
+            if( has_input || has_output )
+                HandleModuleInOut(i, has_input, has_output);
+        }
+	}
+
+	/* handle timeout events */
+	timer_handle ();
+}
+
+
+/* old stuff : */
+#if 0
 int
 afterstep_wait_pipes_input ()
 {
@@ -1299,3 +1401,4 @@ afterstep_wait_pipes_input ()
 	timer_handle ();
 	return 0;
 }
+#endif

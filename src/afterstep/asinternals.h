@@ -17,6 +17,37 @@ struct MoveResizeData;
 struct MenuItem;
 struct ASEvent;
 
+typedef struct queue_buff_struct
+{
+  struct queue_buff_struct *next;
+  unsigned char            *data;
+  int                       size;
+  int                       done;
+}queue_buff_struct;
+
+typedef struct module_ibuf_t
+{
+  size_t                len;
+  size_t                done;
+  Window                window;
+  size_t                size;
+  char                 *text;
+  int                   name_size, text_size;
+  struct FunctionData  *func;
+  int cont;
+}module_ibuf_t;
+
+typedef struct module_t
+{
+  int                   fd;
+  int                   active;
+  char                 *name;
+  long                  mask;
+  queue_buff_struct    *output_queue;
+  module_ibuf_t         ibuf;
+}module_t;
+
+
 /******************************************************************/
 /* these are global functions and variables private for afterstep */
 
@@ -126,6 +157,7 @@ Bool WaitWindowLoop( char *pattern, long timeout );
 
 Bool KeyboardShortcuts (XEvent * xevent, int return_event, int move_size);
 
+void HandleExpose (struct ASEvent*);
 extern void HandleFocusIn (struct ASEvent *event);
 extern void HandleFocusOut (struct ASEvent *event);
 extern void HandleDestroyNotify (struct ASEvent *event);
@@ -172,6 +204,11 @@ void rearrange_iconbox_icons( int desktop );
 
 
 /*************************** menus.c *********************************/
+
+/*************************** menuitem.c *********************************/
+FunctionData *String2Func ( const char *string, FunctionData *p_fdata, Bool quiet );
+
+
 /*************************** misc.c *********************************/
 inline void ungrab_window_buttons( Window w );
 inline void ungrab_window_keys (Window w );
@@ -214,7 +251,7 @@ void KillModuleByName (char *name);
 void DeadPipe (int nonsense);
 void ShutdownModules();
 
-
+void RunCommand (FunctionData * fdata, unsigned int channel, Window w);
 
 /******************************* outline.c ********************************/
 void MoveOutline( struct MoveResizeData * pdata );

@@ -191,8 +191,6 @@ MenuRoot *dirtree_make_menu2 (struct dirtree_t* tree, char* buf);
 
 void MakeMenu (MenuRoot * mr);
 
-int RunCommand( char* cmd, int channel, Window w );
-
 void do_menu(MenuRoot * menu, MenuRoot * parent);
 Bool configure_menu(MenuRoot * menu, MenuRoot * parent);
 void setup_menu_pixmaps(MenuRoot * menu);

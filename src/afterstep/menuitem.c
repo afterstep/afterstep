@@ -40,34 +40,18 @@
 
 #include "../../configure.h"
 
-#include <stdio.h>
 #include <signal.h>
 #include <stdarg.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <dirent.h>
-#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Xlib.h>						   /* for Bool, so Xutil.h will be happy */
-#include <X11/Xutil.h>						   /* for XSizeHints, so afterstep.h will be happy */
-
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
-#include "../../include/misc.h"
-#include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/parser.h"
 #include "../../include/loadimg.h"
@@ -75,10 +59,7 @@
 #include "../../include/decor.h"
 
 #include "dirtree.h"
-#include "menus.h"
-#include "globals.h"
-
-
+#include "asinternals.h"
 
 /* The keys must be in lower case! */
 struct charstring win_contexts[] = {
@@ -454,6 +435,23 @@ free_func_data (FunctionData * data)
 		data->text = NULL;
 	}
 	return data->func;
+}
+
+FunctionData *
+String2Func ( const char *string, FunctionData *p_fdata, Bool quiet )
+{
+    if( p_fdata )
+        free_func_data( p_fdata );
+    else
+        p_fdata = safecalloc( 1, sizeof(FunctionData));
+
+    if( parse_func( string, p_fdata, quiet ) <= 0 )
+    {
+        free_func_data( p_fdata );
+        free( p_fdata );
+        p_fdata = NULL;
+    }
+    return p_fdata;
 }
 
 /***************************************************************************/
@@ -1346,93 +1344,4 @@ MakeMenu (MenuRoot * mr)
 	return;
 }
 
-/* this will run command received from module */
-int
-RunCommand (char *cmd, int channel, Window w)
-{
-	ASWindow     *tmp_win;
-	FunctionData  fdata;
-	int           toret = 0;
-	extern module_t *Module;
 
-/*fprintf( stderr, "Module command received: %s\n", cmd);
- */
-	if (parse_func (cmd, &fdata, False) < 0)
-		return toret;
-/*fprintf( stderr,"Function parsed: [%s] [%s] [%d] [%d] [%c]\n",fdata.name,fdata.text,fdata.func_val[0], fdata.func_val[1] );
- */
-	switch (fdata.func)
-	{
-	 case F_SET_MASK:
-		 Module[channel].mask = fdata.func_val[0];
-		 break;
-	 case F_SET_NAME:
-		 if (Module[channel].name != NULL)
-			 free (Module[channel].name);
-		 Module[channel].name = fdata.text;
-		 fdata.text = NULL;
-		 break;
-	 case F_UNLOCK:
-		 toret = 66;
-		 break;
-	 case F_SET_FLAGS:
-		 {
-			 int           xorflag;
-			 Bool          update = False;
-
-             if ((tmp_win = window2ASWindow(w)) == NULL)
-				 break;
-			 xorflag = tmp_win->hints->flags ^ fdata.func_val[0];
-			 /*if (xorflag & STICKY)
-			    Stick (tmp_win); */
-			 if (xorflag & AS_SkipWinList)
-			 {
-				 tmp_win->hints->flags ^= AS_SkipWinList;
-				 update_windowList ();
-				 update = True;
-			 }
-			 if (xorflag & AS_AvoidCover)
-			 {
-				 tmp_win->hints->flags ^= AS_AvoidCover;
-				 update = True;
-			 }
-			 if (xorflag & AS_Transient)
-			 {
-				 tmp_win->hints->flags ^= AS_Transient;
-				 update = True;
-			 }
-			 if (xorflag & AS_DontCirculate)
-			 {
-				 tmp_win->hints->flags ^= AS_DontCirculate;
-				 update = True;
-			 }
-			 if (update)
-				 BroadcastConfig (M_CONFIGURE_WINDOW, tmp_win);
-			 break;
-		 }
-	 default:
-        {
-            ASEvent event;
-            event.w = w;
-            if ((event.client = window2ASWindow(w)) == NULL )
-            {
-                event.w = None;
-                event.x.xbutton.x_root = 0;
-                event.x.xbutton.y_root = 0;
-            } else
-            {
-                event.x.xbutton.x_root = event.client->frame_canvas->root_x;
-                event.x.xbutton.y_root = event.client->frame_canvas->root_y;
-            }
-            event.x.xany.type = ButtonRelease;
-            event.x.xbutton.button = 1;
-            event.x.xbutton.x = 0;
-            event.x.xbutton.y = 0;
-            event.x.xbutton.subwindow = None;
-            event.context = C_FRAME;
-            ExecuteFunction (&fdata, &event, channel);
-        }
-    }
-    free_func_data (&fdata);
-    return toret;
-}

@@ -171,6 +171,12 @@ typedef struct ScreenInfo
     int MyDisplayWidth;		/* my copy of DisplayWidth(dpy, screen) */
     int MyDisplayHeight;	/* my copy of DisplayHeight(dpy, screen) */
 
+    Bool localhost ;
+    char *rdisplay_string;
+    char *display_string;
+
+    struct ASWMProps    *wmprops;              /* window management properties */
+
 	struct ASVisual *asv ;  /* ASVisual for libAfterImage */
 	struct ASImage  *RootImage;
 
@@ -303,5 +309,18 @@ typedef struct ScreenInfo
 ScreenInfo;
 
 extern ScreenInfo Scr;
+
+void init_screen_gcs(ScreenInfo *scr);
+void make_screen_envvars( ScreenInfo *scr );
+#ifdef HAVE_XINERAMA
+void get_Xinerama_rectangles (ScreenInfo * scr);
+#endif
+Bool set_synchronous_mode (Bool enable);
+int ConnectX (ScreenInfo * scr, char *display_name, unsigned long event_mask);
+
+
+
+
+
 
 #endif /* _SCREEN_ */

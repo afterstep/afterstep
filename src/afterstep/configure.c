@@ -65,10 +65,6 @@
 #include "asinternals.h"
 
 char         *global_base_file = NULL;
-char         *PixmapPath;
-char         *CursorPath;
-char         *IconPath;
-char         *ModulePath = AFTER_BIN_DIR;
 
 Bool          shall_override_config_file;
 char         *config_file_to_override;

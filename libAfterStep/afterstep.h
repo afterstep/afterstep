@@ -251,6 +251,14 @@ struct ASTBarData;
 								     KeyPressMask 		| \
 									 LeaveWindowMask)
 
+#define AS_ROOT_EVENT_MASK          (LeaveWindowMask | \
+                                     EnterWindowMask | \
+                                     PropertyChangeMask | \
+                                     SubstructureRedirectMask |  \
+                                      /* SubstructureNotifyMask | */\
+                                     KeyPressMask | \
+                                     ButtonPressMask | \
+                                     ButtonReleaseMask )
 
 #define AS_ICON_MYSTYLE					"ButtonPixmap"
 #define AS_ICON_TITLE_MYSTYLE			"ButtonTitleFocus"
@@ -440,6 +448,12 @@ void delist_aswindow( ASWindow *t );
 void restack_window_list( int desk );
 Bool is_window_obscured (ASWindow * above, ASWindow * below);
 void restack_window( ASWindow *t, Window sibling_window, int stack_mode );
+#define RaiseWindow(asw)    restack_window((asw),None,Above)
+#define LowerWindow(asw)    restack_window((asw),None,Below)
+#define RaiseObscuredWindow(asw)  restack_window((asw),None,TopIf)
+#define RaiseLowerWindow(asw)     restack_window((asw),None,Opposite)
+
+
 ASWindow     *get_next_window (ASWindow * curr_win, char *action, int dir);
 ASWindow     *warp_aswindow_list ( ASWindowList *list, Bool backwards );
 

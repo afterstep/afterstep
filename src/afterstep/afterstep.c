@@ -37,145 +37,240 @@
 
 #include "../../configure.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <signal.h>
 #include <fcntl.h>
-#include <string.h>
 #include <unistd.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-/* need to get prototype for XrmUniqueQuark for XUniqueContext call */
-#include <X11/Xresource.h>
-#include <X11/Xutil.h>
 #include <X11/cursorfont.h>
 
-#ifdef SHAPE
-#include <X11/extensions/shape.h>
-#endif /* SHAPE */
-#ifdef HAVE_XINERAMA
-#include <X11/extensions/Xinerama.h>
-#endif /* SHAPE */
-
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
-
-#if defined (__sun__) && defined (SVR4)
-/* Solaris has sysinfo instead of gethostname.  */
-#include <sys/systeminfo.h>
-#endif
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
-#include "../../libAfterImage/afterimage.h"
 #include "../../include/parse.h"
-#include "../../include/misc.h"
-#include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/event.h"
 #include "../../include/module.h"
-#include "../../include/loadimg.h"
 #include "../../include/clientprops.h"
 #include "../../include/hints.h"
-#include "../../libAfterBase/selfdiag.h"
 #include "../../libAfterImage/afterimage.h"
 
 #include "asinternals.h"
 
-#define MAXHOSTNAME 255
-
-struct ASDatabase    *Database = NULL;
+/**************************************************************************/
+/* 		Global variables that defines our behaviour 		  */
+/**************************************************************************/
 /* our status */
 ASFlagType AfterStepState = 0; /* default status */
 
+/* Config : */
+struct SessionConfig *Session = NULL;          /* filenames of look, feel and background */
+struct ASDatabase    *Database = NULL;
 
-char         *MyName;						   /* name are we known by */
-
-ScreenInfo    Scr;							   /* structures for the screen */
-Display      *dpy;							   /* which display are we talking to */
-int           screen;						   /* and which screen */
-extern char  *config_file_to_override;
-extern Bool   shall_override_config_file;
-
-XErrorHandler CatchRedirectError (Display *, XErrorEvent *);
-void          newhandler (int sig);
-void          InitModifiers (void);
-void          CreateCursors (void);
-void          NoisyExit (int);
-void          ChildDied (int nonsense);
-void          SaveDesktopState (void);
-
-XContext      MenuContext;					   /* context for afterstep menus */
-
-int           JunkX = 0, JunkY = 0;
-Window        JunkRoot, JunkChild;			   /* junk window */
-unsigned int  JunkWidth, JunkHeight, JunkBW, JunkDepth, JunkMask;
-
-/* assorted gray bitmaps for decorative borders */
+/* Base config : */
+char         *PixmapPath;
+char         *CursorPath;
+char         *IconPath;
+char         *ModulePath = AFTER_BIN_DIR;
 
 #ifdef SHAPE
 int           ShapeEventBase, ShapeErrorBase;
 #endif
-#ifdef HAVE_XINERAMA
-int           XineEventBase, XineErrorBase;
-void          get_Xinerama_rectangles (ScreenInfo * scr);
-#endif
 
-long          isIconicState = 0;
-extern XEvent Event;
-extern Window XmuClientWindow ();
-Bool          Restarting = False;
+
 int           fd_width, x_fd;
-FILE         *savewindow_fd;
-int           SmartCircCounter = 0;			   /* F_WARP_F/B 0=CirculateUp ; 1=CirculateDown */
-int           LastFunction;
-Bool          single = False;
 
-Bool          set_synchronous_mode (Bool enable);
-extern void   Restart (int nonsense);
+ASVector     *Modules       = NULL;
+int           Module_fd     = 0;
+int           Module_npipes = 8;
 
+/**************************************************************************/
+void          SetupSignalHandler (int sig);
+void          make_screen_envvars( ScreenInfo *scr );
 
+void          SetupEnvironment( ScreenInfo *scr );
+void          SetupInputFocus( ScreenInfo *scr );
+SIGNAL_T      Restart (int nonsense);
+SIGNAL_T      SigDone (int nonsense);
 
-static char  *display_string;
-static char  *rdisplay_string;
-
-ASDirs        as_dirs = { NULL, NULL, NULL };
-
-void
-InitASDirNames (Bool freemem)
-{
-
-	if (freemem)
-	{
-		if (as_dirs.afters_noncfdir)
-			free (as_dirs.afters_noncfdir);
-		if (as_dirs.after_dir)
-			free (as_dirs.after_dir);
-		if (as_dirs.after_sharedir)
-			free (as_dirs.after_sharedir);
-	} else
-	{
-		as_dirs.afters_noncfdir = PutHome (AFTER_NONCF);
-		as_dirs.after_dir = PutHome (AFTER_DIR);
-		as_dirs.after_sharedir = PutHome (AFTER_SHAREDIR);
-	}
-}
-
+void          CaptureAllWindows (ScreenInfo *scr);
+/**************************************************************************/
+/**************************************************************************/
 /***********************************************************************
- *
  *  Procedure:
  *	main - start of afterstep
- *
  ************************************************************************/
-
 int
 main (int argc, char **argv)
 {
-	XSetWindowAttributes attributes;		   /* attributes for create windows */
-	void          InternUsefulAtoms (void);
+    register int i ;
+	Bool good_screen_count = 0 ;
+    XSetWindowAttributes attr;           /* attributes for create windows */
+
+#ifdef DEBUG_TRACE_X
+	trace_window_id2name_hook = &window_id2name;
+#endif
+    InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, 0 );
+    AfterStepState = MyArgs.flags ;
+
+    init_old_look_variables (False);
+	InitBase (False);
+	InitLook (False);
+	InitFeel (False);
+	InitDatabase (False);
+
+#if defined(LOG_FONT_CALLS)
+	fprintf (stderr, "logging font calls now\n");
+#endif
+
+    set_parent_hints_func( afterstep_parent_hints_func ); /* callback for collect_hints() */
+
+    /* These signals are mandatory : */
+    signal (SIGUSR1, Restart);
+    signal (SIGALRM, AlarmHandler); /* see SetTimer() */
+    /* These signals we would like to handle only if those are not handled already (by debugger): */
+    SetupSignalHandler(SIGINT);
+    SetupSignalHandler(SIGHUP);
+    SetupSignalHandler(SIGQUIT);
+    SetupSignalHandler(SIGTERM);
+
+    if( (x_fd = ConnectX( AS_ROOT_EVENT_MASK, True )) < 0 )
+    {
+        show_error("failed to initialize window manager session. Aborting!", Scr.screen);
+        exit(1);
+    }
+    if (fcntl (x_fd, F_SETFD, 1) == -1)
+	{
+        show_error ("close-on-exec failed");
+        exit (3);
+	}
+
+    if (get_flags( AfterStepState, ASS_Debugging))
+        set_synchronous_mode(True);
+    XSync (dpy, 0);
+
+    /* initializing our dirs names */
+    Session = GetNCASSession(Scr.true_depth, MyArgs.override_home, MyArgs.override_share);
+    if( MyArgs.override_config )
+        SetSessionOverride( Session, MyArgs.override_config );
+
+    InternUsefulAtoms ();
+
+#ifdef SHAPE
+	XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
+#endif /* SHAPE */
+
+	fd_width = get_fd_width ();
+    SetupModules();
+
+    /*
+     *  Lets init each and every screen separately :
+     */
+    for (i = 0; i < NumberOfScreens; i++)
+	{
+        show_progress( "Initializing screen %d ...", i );
+        if (i != Scr.screen)
+        {
+            if( !get_flags(MyArgs.flags, ASS_SingleScreen) )
+            {
+                int pid = spawn_child( MyName, (i<MAX_USER_SINGLETONS_NUM)?i:-1, i, None, C_NO_Context, True, True, NULL );
+                if( pid >= 0 )
+                    show_progress( "\t instance of afterstep spawned with pid %d.", pid );
+                else
+                    show_error( "failed to launch instance of afterstep to handle screen #%d", i );
+            }
+        }else
+        {
+            if( is_output_level_under_threshold( OUTPUT_LEVEL_PROGRESS ) )
+            {
+                show_progress( "\t screen[%d].size = %ux%u", Scr.screen, Scr.MyDisplayWidth, Scr.MyDisplayHeight );
+                show_progress( "\t screen[%d].root = %d", Scr.screen, Scr.Root );
+                show_progress( "\t screen[%d].color_depth = %d", Scr.screen, Scr.asv->true_depth );
+                show_progress( "\t screen[%d].colormap    = 0x%lX", Scr.screen, Scr.asv->colormap );
+                show_progress( "\t screen[%d].visual.id         = %d",  Scr.screen, Scr.asv->visual_info.visualid );
+                show_progress( "\t screen[%d].visual.class      = %d",  Scr.screen, Scr.asv->visual_info.class );
+                show_progress( "\t screen[%d].visual.red_mask   = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.red_mask   );
+                show_progress( "\t screen[%d].visual.green_mask = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.green_mask );
+                show_progress( "\t screen[%d].visual.blue_mask  = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.blue_mask  );
+                make_screen_envvars(*Scr);
+                putenv (Scr.rdisplay_string);
+                putenv (Scr.display_string);
+                show_progress( "\t screen[%d].rdisplay_string = \"%s\"", Scr.screen, Scr.rdisplay_string );
+                show_progress( "\t screen[%d].display_string = \"%s\"", Scr.screen, Scr.display_string );
+
+            }
+        }
+    }
+
+    init_screen_gcs(&Scr);
+
+    Scr.supported_hints = create_hints_list();
+    enable_hints_support( Scr.supported_hints, HINTS_ICCCM );
+    enable_hints_support( Scr.supported_hints, HINTS_Motif );
+    enable_hints_support( Scr.supported_hints, HINTS_Gnome );
+    enable_hints_support( Scr.supported_hints, HINTS_ExtendedWM );
+    enable_hints_support( Scr.supported_hints, HINTS_ASDatabase );
+    enable_hints_support( Scr.supported_hints, HINTS_GroupLead );
+    enable_hints_support( Scr.supported_hints, HINTS_Transient );
+
+    event_setup( True /*Bool local*/ );
+
+    /* the SizeWindow will be moved into place in LoadASConfig() */
+    attr.override_redirect = True;
+    attr.bit_gravity = NorthWestGravity;
+	Scr.SizeWindow = create_visual_window (Scr.asv, Scr.Root, -999, -999, 10, 10, 0,
+										   InputOutput, CWBitGravity | CWOverrideRedirect,
+                                           &attr);
+
+    /* create a window which will accept the keyboard focus when no other
+	   windows have it */
+	attributes.event_mask = KeyPressMask | FocusChangeMask;
+	attributes.override_redirect = True;
+	Scr.NoFocusWin = create_visual_window (Scr.asv, Scr.Root, -10, -10, 10, 10, 0,
+										   InputOnly, CWEventMask | CWOverrideRedirect,
+										   &attributes);
+	XMapWindow (dpy, Scr.NoFocusWin);
+	XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, CurrentTime);
+
+
+    /* Load config ... */
+
+    /* Reparent all the windows .... */
+
+    /* install pan frames */
+
+
+
+    {
+        ASEvent event = {0};
+        FunctionData restart_func ;
+        init_func_data( &restart_func );
+        restart_func.func = F_FUNCTION ;
+        restart_func.popup = Restarting?Scr.RestartFunction:Scr.InitFunction ;
+        if (restart_func.popup)
+            ExecuteFunction (&restart_func, &event, -1);
+    }
+    XDefineCursor (dpy, Scr.Root, Scr.ASCursors[DEFAULT]);
+
+   /* make sure we're on the right desk, and the _WIN_DESK property is set */
+    ChangeDesks (Scr.CurrentDesk);
+
+    LOCAL_DEBUG_OUT( "TOTAL SCREENS INITIALIZED : %d", good_screen_count );
+#if (defined(LOCAL_DEBUG)||defined(DEBUG)) && defined(DEBUG_ALLOCS)
+    LOCAL_DEBUG_OUT( "printing memory%s","");
+    spool_unfreed_mem( "afterstep.allocs.startup", NULL );
+#endif
+    LOCAL_DEBUG_OUT( "entering main loop%s","");
+
+    HandleEvents ();
+	return (0);
+}
+
+
+
+
+
+#if 0
+
+    void          InternUsefulAtoms (void);
 	void          InitVariables (int);
 	int           i;
 	extern int    x_fd;
@@ -183,28 +278,8 @@ main (int argc, char **argv)
 	char          message[255];
 	char          num[10];
 
-	MyName = argv[0];
-	set_application_name(argv[0]);
 
-#ifdef I18N
-	if (setlocale (LC_CTYPE, AFTER_LOCALE) == NULL)
-		afterstep_err ("can't set locale", NULL, NULL, NULL);
-#endif
-	memset (&Scr, 0x00, sizeof (Scr));
-	init_old_look_variables (False);
-	InitBase (False);
-	InitLook (False);
-	InitFeel (False);
-	InitDatabase (False);
-#ifndef NO_TEXTURE
-	frame_init (False);
-#endif /* !NO_TEXTURE */
-	module_init (0);
-
-#if defined(LOG_FONT_CALLS)
-	fprintf (stderr, "logging font calls now\n");
-#endif
-	set_output_threshold(OUTPUT_LEVEL_PROGRESS);
+    set_output_threshold(OUTPUT_LEVEL_PROGRESS);
 	for (i = 1; i < argc; i++)
 	{
 		show_progress("argv[%d] = \"%s\"", i, argv[i]);
@@ -262,159 +337,20 @@ main (int argc, char **argv)
 
 	ReapChildren ();
 
-	if (!(dpy = XOpenDisplay (display_name)))
-	{
-		afterstep_err ("can't open display %s", XDisplayName (display_name), NULL, NULL);
-		exit (1);
-	}
-	x_fd = XConnectionNumber (dpy);
-
-	if (fcntl (x_fd, F_SETFD, 1) == -1)
-	{
-		afterstep_err ("close-on-exec failed", NULL, NULL, NULL);
-		exit (1);
-	}
-
-	Scr.screen = DefaultScreen (dpy);
-	screen = Scr.screen;
-	XSetErrorHandler ((XErrorHandler) ASErrorHandler);
-	Scr.NumberOfScreens = ScreenCount (dpy);
-	if (!single)
-	{
-		for (i = 0; i < Scr.NumberOfScreens; i++)
-		{
-			if (i != Scr.screen)
-			{
-				sprintf (message, "%s -d %s", MyName, XDisplayString (dpy));
-				len = strlen (message);
-				message[len - 1] = 0;
-				sprintf (num, "%d", i);
-				strcat (message, num);
-				strcat (message, " -s ");
-				if (debugging)
-					strcat (message, "--debug");
-				if (shall_override_config_file)
-				{
-					strcat (message, " -f ");
-					strcat (message, config_file_to_override);
-				}
-				strcat (message, " &\n");
-
-				if (!fork ())
-					execl ("/bin/sh", "sh", "-c", message, (char *)0);
-			}
-		}
-	}
-
-    Scr.supported_hints = create_hints_list();
-    enable_hints_support( Scr.supported_hints, HINTS_ICCCM );
-    enable_hints_support( Scr.supported_hints, HINTS_Motif );
-    enable_hints_support( Scr.supported_hints, HINTS_Gnome );
-    enable_hints_support( Scr.supported_hints, HINTS_ExtendedWM );
-    enable_hints_support( Scr.supported_hints, HINTS_ASDatabase );
-    enable_hints_support( Scr.supported_hints, HINTS_GroupLead );
-    enable_hints_support( Scr.supported_hints, HINTS_Transient );
-
-    event_setup( True /*Bool local*/ );
-
 	if (debugging)
 		set_synchronous_mode (True);
-	/* initializing our dirs names */
-	InitASDirNames (False);
-
-	/*  Add a DISPLAY entry to the environment, incase we were started
-	 * with afterstep -display term:0.0
-	 */
-	len = strlen (XDisplayString (dpy));
-	display_string = safemalloc (len + 10);
-	sprintf (display_string, "DISPLAY=%s", XDisplayString (dpy));
-	putenv (display_string);
-	/* Add a HOSTDISPLAY environment variable, which is the same as
-	 * DISPLAY, unless display = :0.0 or unix:0.0, in which case the full
-	 * host name will be used for ease in networking . */
-	if (strncmp (display_string, "DISPLAY=:", 9) == 0)
-	{
-		char          client[MAXHOSTNAME];
-
-		mygethostname (client, MAXHOSTNAME);
-		rdisplay_string = safemalloc (len + 14 + strlen (client));
-		sprintf (rdisplay_string, "HOSTDISPLAY=%s:%s", client, &display_string[9]);
-	} else if (strncmp (display_string, "DISPLAY=unix:", 13) == 0)
-	{
-		char          client[MAXHOSTNAME];
-
-		mygethostname (client, MAXHOSTNAME);
-		rdisplay_string = safemalloc (len + 14 + strlen (client));
-		sprintf (rdisplay_string, "HOSTDISPLAY=%s:%s", client, &display_string[13]);
-	} else
-	{
-		rdisplay_string = safemalloc (len + 14);
-		sprintf (rdisplay_string, "HOSTDISPLAY=%s", XDisplayString (dpy));
-	}
-	putenv (rdisplay_string);
-
-	Scr.Root = RootWindow (dpy, Scr.screen);
-	if (Scr.Root == None)
-	{
-		afterstep_err ("Screen %d is not a valid screen", (char *)Scr.screen, NULL, NULL);
-		exit (1);
-	}
 
 #ifdef SHAPE
 	XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
 #endif /* SHAPE */
-#ifdef HAVE_XINERAMA
-	if (XineramaQueryExtension (dpy, &XineEventBase, &XineErrorBase))
-		get_Xinerama_rectangles (&Scr);
-#endif /* XINERAMA */
-
-	InternUsefulAtoms ();
-
-	/* Make sure property priority colors is empty */
-	XChangeProperty (dpy, Scr.Root, _XA_MIT_PRIORITY_COLORS,
-					 XA_CARDINAL, 32, PropModeReplace, NULL, 0);
-
-	set_gnome_proxy ();
-
-	XSync (dpy, 0);
-	XSetErrorHandler ((XErrorHandler) CatchRedirectError);
-	XSelectInput (dpy, Scr.Root, SubstructureRedirectMask);
-	XSync (dpy, 0);
-	XSetErrorHandler ((XErrorHandler) ASErrorHandler);
-	XSelectInput (dpy, Scr.Root, LeaveWindowMask | EnterWindowMask | PropertyChangeMask | SubstructureRedirectMask |	/* SubstructureNotifyMask | */
-				  KeyPressMask | ButtonPressMask | ButtonReleaseMask);
-	XSync (dpy, 0);
-
-	Scr.asv = create_asvisual (dpy, Scr.screen, DefaultDepth (dpy, Scr.screen), NULL);
-
 	CreateCursors ();
 	InitVariables (1);
-	module_setup ();
-
-	/* the SizeWindow will be moved into place in LoadASConfig() */
-	attributes.override_redirect = True;
-	attributes.bit_gravity = NorthWestGravity;
-	Scr.SizeWindow = create_visual_window (Scr.asv, Scr.Root, -999, -999, 10, 10, 0,
-										   InputOutput, CWBitGravity | CWOverrideRedirect,
-										   &attributes);
-
-    CreateGCs();
 
 	/* read config file, set up menus, colors, fonts */
 	LoadASConfig (display_name, 0, 1, 1, 1);
 
 /*print_unfreed_mem();
  */
-	/* create a window which will accept the keyboard focus when no other
-	   windows have it */
-	attributes.event_mask = KeyPressMask | FocusChangeMask;
-	attributes.override_redirect = True;
-	Scr.NoFocusWin = create_visual_window (Scr.asv, Scr.Root, -10, -10, 10, 10, 0,
-										   InputOnly, CWEventMask | CWOverrideRedirect,
-										   &attributes);
-	XMapWindow (dpy, Scr.NoFocusWin);
-
-	XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, CurrentTime);
 
 	XSync (dpy, 0);
 
@@ -433,31 +369,20 @@ main (int argc, char **argv)
 	XUngrabServer (dpy);					/* UnGrabbed !!!!!*/
 #endif										/* UnGrabbed !!!!!*/
 	/**********************************************************/
-
-
-	fd_width = GetFdWidth ();
-
-	/* watch for incoming module connections */
-	module_setup_socket (Scr.Root, display_string);
-
-    {
-        ASEvent event = {0};
-        FunctionData restart_func ;
-        init_func_data( &restart_func );
-        restart_func.func = F_FUNCTION ;
-        restart_func.popup = Restarting?Scr.RestartFunction:Scr.InitFunction ;
-        if (restart_func.popup)
-            ExecuteFunction (&restart_func, &event, -1);
-    }
-    XDefineCursor (dpy, Scr.Root, Scr.ASCursors[DEFAULT]);
-
-	/* make sure we're on the right desk, and the _WIN_DESK property is set */
-    ChangeDesks (Scr.CurrentDesk);
-
-	HandleEvents ();
-	return (0);
 }
+#endif
 
+/*** NEW STUFF : *******************************************************/
+
+
+
+
+
+
+
+
+
+/*** OLD STUFF : *******************************************************/
 /***********************************************************************
  *
  *  Procedure:
@@ -576,50 +501,6 @@ CaptureAllWindows (void)
 	/* after the windows already on the screen are in place,
 	 * don't use PPosition */
 	PPosOverride = FALSE;
-}
-
-
-/***********************************************************************
- *
- *  Procedure:
- *	InternUsefulAtoms:
- *            Dont really know what it does
- *
- ***********************************************************************
- */
-Atom          _XA_MIT_PRIORITY_COLORS;
-Atom          _XA_WM_CHANGE_STATE;
-Atom          _XA_WM_STATE;
-Atom          _XA_WM_COLORMAP_WINDOWS;
-Atom          _XA_WM_PROTOCOLS;
-Atom          _XA_WM_TAKE_FOCUS;
-Atom          _XA_WM_DELETE_WINDOW;
-Atom          _XA_MwmAtom;
-Atom          _XA_WIN_STATE;
-Atom          _XROOTPMAP_ID;
-Atom          _AS_STYLE;
-Atom          _AS_MODULE_SOCKET;
-Atom          _XA_WIN_DESK;
-
-void
-InternUsefulAtoms (void)
-{
-	/*
-	 * Create priority colors if necessary.
-	 */
-	_XA_MIT_PRIORITY_COLORS = XInternAtom (dpy, "_MIT_PRIORITY_COLORS", False);
-	_XA_WM_CHANGE_STATE = XInternAtom (dpy, "WM_CHANGE_STATE", False);
-	_XA_WM_STATE = XInternAtom (dpy, "WM_STATE", False);
-	_XA_WM_COLORMAP_WINDOWS = XInternAtom (dpy, "WM_COLORMAP_WINDOWS", False);
-	_XA_WM_PROTOCOLS = XInternAtom (dpy, "WM_PROTOCOLS", False);
-	_XA_WM_TAKE_FOCUS = XInternAtom (dpy, "WM_TAKE_FOCUS", False);
-	_XA_WM_DELETE_WINDOW = XInternAtom (dpy, "WM_DELETE_WINDOW", False);
-	_XA_MwmAtom = XInternAtom (dpy, "_MOTIF_WM_HINTS", False);
-	_XA_WIN_STATE = XInternAtom (dpy, "_WIN_STATE", False);
-	_XROOTPMAP_ID = XInternAtom (dpy, "_XROOTPMAP_ID", False);
-	_AS_STYLE = XInternAtom (dpy, "_AS_STYLE", False);
-	_AS_MODULE_SOCKET = XInternAtom (dpy, "_AS_MODULE_SOCKET", False);
-	_XA_WIN_DESK = XInternAtom (dpy, "_WIN_DESK", False);
 }
 
 /***********************************************************************
