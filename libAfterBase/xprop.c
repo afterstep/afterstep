@@ -364,6 +364,23 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
 }
 
 void
+set_32bit_proplist (Window w, Atom property, Atom type, CARD32 * list, long nitems)
+{
+    if (w != None && property != None )
+	{
+        if( nitems > 0 )
+        {
+            XChangeProperty (dpy, Scr.Root, property, type?type:XA_CARDINAL, 32,
+                             PropModeReplace, (unsigned char *)&list, nitems);
+        }else
+        {
+            XChangeProperty (dpy, Scr.Root, property,
+                             type?type:XA_CARDINAL, 32, PropModeReplace, NULL, 0);
+        }
+    }
+}
+
+void
 set_string_property (Window w, Atom property, char *data)
 {
     if (w != None && property != None && data)

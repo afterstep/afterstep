@@ -47,6 +47,7 @@ void free_text_property (XTextProperty ** trg);
 /* Writing properties : */
 void set_32bit_property (Window w, Atom property, Atom type, CARD32 data);
 void set_multi32bit_property (Window w, Atom property, Atom type, int items, ...);
+void set_32bit_proplist (Window w, Atom property, Atom type, CARD32 * list, long nitems);
 
 void set_string_property (Window w, Atom property, char *data);
 
