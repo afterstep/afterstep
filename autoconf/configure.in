@@ -359,27 +359,27 @@ dnl# if needed - check for external libAfterImage and libAfterBase :
 AC_MSG_CHECKING(libAfterBase headers)
 if test "$afterbase_includes" = "NO"; then
   AC_CHECK_HEADER(libAfterBase/astypes.h,
-			      [AC_DEFINE(HAVE_AFTERBASE) AC_MSG_RESULT("<libAfterBase/astypes.h>")],
-				   AC_MSG_RESULT("none found"))
+			      [AC_DEFINE(HAVE_AFTERBASE) AC_MSG_RESULT(<libAfterBase/astypes.h>)],
+				   AC_MSG_RESULT(none found))
 else
   AC_DEFINE(HAVE_AFTERBASE)
   if test "x$afterbase_includes" != "x"; then
 	  LIBAFTERBASE_CFLAGS="-I$afterbase_includes"
   fi
-  AC_MSG_RESULT("$afterbase_includes/libAfterBase/astypes.h>")
+  AC_MSG_RESULT($afterbase_includes)
 fi
 
 AC_MSG_CHECKING(libAfterImage headers)
 if test "$afterimage_includes" = "NO"; then
   AC_CHECK_HEADER(libAfterImage/afterimage.h,
-			      [AC_DEFINE(HAVE_AFTERIMAGE) AC_MSG_RESULT("<libAfterImage/afterimage.h>")],
-				   AC_MSG_RESULT("none found"))
+			      [AC_DEFINE(HAVE_AFTERIMAGE) AC_MSG_RESULT(<libAfterImage/afterimage.h>)],
+				   AC_MSG_RESULT(none found))
 else
   AC_DEFINE(HAVE_AFTERIMAGE)
   if test "x$afterimage_includes" != "x"; then
 	  LIBAFTERIMAGE_CFLAGS="-I$afterimage_includes"
   fi
-  AC_MSG_RESULT("$afterimage_includes/libAfterImage/afterimage.h>")
+  AC_MSG_RESULT($afterimage_includes)
 fi
 
 if test "x$enable_staticlibs" = "xyes"; then
@@ -651,7 +651,6 @@ src/Tile/Makefile \
 src/Wharf/Makefile \
 src/WinList/Makefile \
 src/WinList2/Makefile \
-src/Zharf/Makefile \
 src/test/Makefile \
 \
 tools/Makefile \
@@ -661,7 +660,6 @@ tools/makeastheme.pl \
 afterstep/base \
 afterstep/audio \
 afterstep/autoexec \
-afterstep/compatibility \
 afterstep/pager \
 afterstep/start/.include \
 afterstep/start/1_Desktop/Feel/.include \

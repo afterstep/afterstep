@@ -22,7 +22,7 @@
 #
 *WharfFullPush
 #*WharfNoPush
-*WharfNoBorder
+#*WharfNoBorder
 
 # This will resize Wharf's buttons to fit the size of swallowed apps/icons
 #*WharfFitContents
@@ -35,6 +35,7 @@
 *WharfRows		1
 #*WharfColumns		1
 *WharfGeometry		+5+30
+*WharfBevel		Bottom,Right,NoOutline,Extra
 
 
 #-----------------------------------------------------------------------
@@ -162,7 +163,8 @@
 #
 *MonitorWharfFullPush
 #*MonitorWharfNoPush
-*MonitorWharfNoBorder
+*MonitorWharfBevel		Right,NoOutline
+
 
 # This will resize Wharf's buttons to fit the size of swallowed apps/icons
 #*MonitorWharfFitContents
@@ -189,7 +191,7 @@
 *Wharf asload - Swallow "asload" asload -shape &
 *Wharf asmail - Swallow "asmail" asmail -geometry +0+0 &
 
-# one of the clocks - first available : 
+# one of the clocks - first available :
 *MonitorWharf clock - Swallow "asclock" asclock -shape -12 -position +1+1 &
 *MonitorWharf clock - Swallow "xclock" xclock -bg gray10 -fg cyan -digital -brief &
 

@@ -585,14 +585,15 @@ grab_window_input( ASWindow *asw, Bool release_grab )
  ** given context, in human readable form
  */
 char         *
-list_functions_by_context (int context)
+list_functions_by_context (int context, ASHints *hints )
 {
 	MouseButton  *btn;
 	char         *str = NULL;
 	int           allocated_bytes = 0;
-
+	if( hints == NULL )
+		return NULL ;
     for (btn = Scr.Feel.MouseButtonRoot; btn != NULL; btn = btn->NextButton)
-		if (btn->Context & context)
+		if ( (btn->Context & context) && check_allowed_function (btn->fdata, hints ) )
 		{
 			TermDef      *fterm;
 
@@ -706,15 +707,18 @@ compile_titlebuttons_mask (ASHints *hints)
         {
             int context = Scr.Look.buttons[i].context;
             MouseButton  *func;
+			Bool at_least_one_enabled = False ;
 
             enabled_mask |= context ;
             for (func = Scr.Feel.MouseButtonRoot; func != NULL; func = (*func).NextButton)
                 if ( (func->Context & context) != 0 )
-                    if( !check_allowed_function (func->fdata,hints ) )
-                    {
-                        disabled_mask |= Scr.Look.buttons[i].context ;
-                        break;
-                    }
+                    if( check_allowed_function (func->fdata,hints ) )
+					{
+						at_least_one_enabled = True ;
+						break;
+					}
+			if( !at_least_one_enabled )
+	            disabled_mask |= Scr.Look.buttons[i].context ;
         }
     }
     LOCAL_DEBUG_OUT( "disabled mask(0x%lX)->enabled_mask(0x%lX)->button_mask(0x%lX)", disabled_mask, enabled_mask, enabled_mask&(~disabled_mask) );
@@ -1042,7 +1046,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	        {
   		        if( get_flags( btn_mask, C_TButton0<<i) )
       		    {
-          		    char *str = list_functions_by_context (C_TButton0<<i);
+          		    char *str = list_functions_by_context (C_TButton0<<i, asw->hints);
               		LOCAL_DEBUG_OUT( "balloon text will be \"%s\"", str?str:"none" );
 	                set_astbar_balloon( asw->tbar, C_TButton0<<i, str, AS_Text_ASCII );
   		            if( str )

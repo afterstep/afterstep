@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # Guess values for system-dependent variables and create Makefiles.
-# Generated automatically using autoconf version 2.13 
+# Generated automatically using autoconf version 2.13
 # Copyright (C) 1992, 93, 94, 95, 96 Free Software Foundation, Inc.
 #
 # This configure script is free software; the Free Software Foundation
@@ -1697,13 +1697,13 @@ else
   /*)
   ac_cv_path_RM="$RM" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_RM="$RM" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_RM="$ac_dir/$ac_word"
@@ -1734,13 +1734,13 @@ else
   /*)
   ac_cv_path_MV="$MV" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_MV="$MV" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_MV="$ac_dir/$ac_word"
@@ -1771,13 +1771,13 @@ else
   /*)
   ac_cv_path_CP="$CP" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_CP="$CP" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_CP="$ac_dir/$ac_word"
@@ -1808,13 +1808,13 @@ else
   /*)
   ac_cv_path_MKDIR="$MKDIR" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_MKDIR="$MKDIR" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_MKDIR="$ac_dir/$ac_word"
@@ -1845,13 +1845,13 @@ else
   /*)
   ac_cv_path_PERL="$PERL" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_PERL="$PERL" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_PERL="$ac_dir/$ac_word"
@@ -1882,13 +1882,13 @@ else
   /*)
   ac_cv_path_FIND="$FIND" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_FIND="$FIND" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_FIND="$ac_dir/$ac_word"
@@ -1919,13 +1919,13 @@ else
   /*)
   ac_cv_path_XARGS="$XARGS" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_XARGS="$XARGS" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_XARGS="$ac_dir/$ac_word"
@@ -1956,13 +1956,13 @@ else
   /*)
   ac_cv_path_LDCONFIG="$LDCONFIG" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_LDCONFIG="$LDCONFIG" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH:/sbin:/usr/local/sbin"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_LDCONFIG="$ac_dir/$ac_word"
@@ -3469,7 +3469,7 @@ echo "$ac_t""$ac_cv_c_inline" 1>&6
 case "$ac_cv_c_inline" in
   inline | yes) ;;
   no) cat >> confdefs.h <<\EOF
-#define inline 
+#define inline
 EOF
  ;;
   *)  cat >> confdefs.h <<EOF
@@ -3673,7 +3673,7 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_hdr 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -3805,7 +3805,7 @@ fi
 if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   echo "$ac_t""yes" 1>&6
   add_lib_xext=yes;cat >> confdefs.h <<\EOF
-#define SHAPE 
+#define SHAPE
 EOF
 
 else
@@ -3857,7 +3857,7 @@ fi
 if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   echo "$ac_t""yes" 1>&6
   x_libs="-lXinerama $x_libs";cat >> confdefs.h <<\EOF
-#define HAVE_XINERAMA 
+#define HAVE_XINERAMA
 EOF
 
 else
@@ -3868,12 +3868,13 @@ fi
 
 if test "x$enable_sigsegv" = "xyes"; then
   cat >> confdefs.h <<\EOF
-#define HAVE_SIGSEGV_HANDLING 
+#define HAVE_SIGSEGV_HANDLING
 EOF
 
 fi
 
 echo $ac_n "checking libAfterBase headers""... $ac_c" 1>&6
+
 echo "configure:3878: checking libAfterBase headers" >&5
 if test "$afterbase_includes" = "NO"; then
   ac_safe=`echo "libAfterBase/astypes.h" | sed 'y%./+-%__p_%'`
@@ -3917,12 +3918,12 @@ else
   cat >> confdefs.h <<\EOF
 #define HAVE_AFTERBASE 1
 EOF
-
   if test "x$afterbase_includes" != "x"; then
 	  LIBAFTERBASE_CFLAGS="-I$afterbase_includes"
   fi
-  echo "$ac_t"""$afterbase_includes/libAfterBase/astypes.h>"" 1>&6
+  echo "$ac_t""$afterbase_includes/libAfterBase/astypes.h>" 1>&6
 fi
+
 
 echo $ac_n "checking libAfterImage headers""... $ac_c" 1>&6
 echo "configure:3929: checking libAfterImage headers" >&5
@@ -3958,7 +3959,7 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<\EOF
 #define HAVE_AFTERIMAGE 1
 EOF
- echo "$ac_t"""<libAfterImage/afterimage.h>"" 1>&6
+ echo "$ac_t""<libAfterImage/afterimage.h>" 1>&6
 else
   echo "$ac_t""no" 1>&6
 echo "$ac_t"""none found"" 1>&6
@@ -3972,7 +3973,7 @@ EOF
   if test "x$afterimage_includes" != "x"; then
 	  LIBAFTERIMAGE_CFLAGS="-I$afterimage_includes"
   fi
-  echo "$ac_t"""$afterimage_includes/libAfterImage/afterimage.h>"" 1>&6
+  echo "$ac_t""$afterimage_includes" 1>&6
 fi
 
 if test "x$enable_staticlibs" = "xyes"; then
@@ -4143,7 +4144,7 @@ fi
 
 
 if test "x$enable_different_looknfeels" = "xyes"; then cat >> confdefs.h <<\EOF
-#define DIFFERENTLOOKNFEELFOREACHDESKTOP 
+#define DIFFERENTLOOKNFEELFOREACHDESKTOP
 EOF
  fi
 if test "x$enable_pagerbackground" = "xyes"; then cat >> confdefs.h <<\EOF
@@ -4647,7 +4648,6 @@ src/Tile/Makefile \
 src/Wharf/Makefile \
 src/WinList/Makefile \
 src/WinList2/Makefile \
-src/Zharf/Makefile \
 src/test/Makefile \
 \
 tools/Makefile \
@@ -4657,7 +4657,6 @@ tools/makeastheme.pl \
 afterstep/base \
 afterstep/audio \
 afterstep/autoexec \
-afterstep/compatibility \
 afterstep/pager \
 afterstep/start/.include \
 afterstep/start/1_Desktop/Feel/.include \

@@ -245,33 +245,43 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define MYFRAME_FrameUnfocusedStyle_ID  (MYFRAME_ID_START+16)
 #define MYFRAME_FrameFocusedStyle_ID    (MYFRAME_ID_START+17)
 #define MYFRAME_FrameStickyStyle_ID     (MYFRAME_ID_START+18)
-#define MYFRAME_TitleBackground_ID      (MYFRAME_ID_START+19)
-#define MYFRAME_SideSize_ID             (MYFRAME_ID_START+20)
-#define MYFRAME_CornerSize_ID           (MYFRAME_ID_START+21)
-#define MYFRAME_SideAlign_ID            (MYFRAME_ID_START+22)
-#define MYFRAME_CornerAlign_ID          (MYFRAME_ID_START+23)
-#define MYFRAME_SideBevel_ID            (MYFRAME_ID_START+24)
-#define MYFRAME_CornerBevel_ID          (MYFRAME_ID_START+25)
-#define MYFRAME_SideFBevel_ID           (MYFRAME_ID_START+26)
-#define MYFRAME_CornerFBevel_ID         (MYFRAME_ID_START+27)
-#define MYFRAME_SideUBevel_ID           (MYFRAME_ID_START+28)
-#define MYFRAME_CornerUBevel_ID         (MYFRAME_ID_START+29)
-#define MYFRAME_SideSBevel_ID           (MYFRAME_ID_START+30)
-#define MYFRAME_CornerSBevel_ID         (MYFRAME_ID_START+31)
-#define MYFRAME_TitleBevel_ID           (MYFRAME_ID_START+32)
-#define MYFRAME_TitleFBevel_ID          (MYFRAME_ID_START+33)
-#define MYFRAME_TitleUBevel_ID          (MYFRAME_ID_START+34)
-#define MYFRAME_TitleSBevel_ID          (MYFRAME_ID_START+35)
-#define MYFRAME_TitleAlign_ID           (MYFRAME_ID_START+36)
-#define MYFRAME_TitleBackgroundAlign_ID (MYFRAME_ID_START+37)
-#define MYFRAME_TitleCM_ID              (MYFRAME_ID_START+38)
-#define MYFRAME_TitleFCM_ID             (MYFRAME_ID_START+39)
-#define MYFRAME_TitleUCM_ID             (MYFRAME_ID_START+40)
-#define MYFRAME_TitleSCM_ID             (MYFRAME_ID_START+41)
-#define MYFRAME_Inherit_ID              (MYFRAME_ID_START+42)
-#define MYFRAME_DONE_ID                 (MYFRAME_ID_START+43)
 
-#define MYFRAME_ID_END      (MYFRAME_ID_START+48)
+#define MYFRAME_LeftBtnBackground_ID	(MYFRAME_ID_START+19)
+#define MYFRAME_LeftSpacerBackground_ID (MYFRAME_ID_START+20)
+#define MYFRAME_TitleBackground_ID      (MYFRAME_ID_START+21)
+#define MYFRAME_RightSpacerBackground_ID (MYFRAME_ID_START+22)
+#define MYFRAME_RightBtnBackground_ID   (MYFRAME_ID_START+23)
+
+#define MYFRAME_SideSize_ID             (MYFRAME_ID_START+24)
+#define MYFRAME_CornerSize_ID           (MYFRAME_ID_START+25)
+#define MYFRAME_SideAlign_ID            (MYFRAME_ID_START+26)
+#define MYFRAME_CornerAlign_ID          (MYFRAME_ID_START+27)
+#define MYFRAME_SideBevel_ID            (MYFRAME_ID_START+28)
+#define MYFRAME_CornerBevel_ID          (MYFRAME_ID_START+29)
+#define MYFRAME_SideFBevel_ID           (MYFRAME_ID_START+30)
+#define MYFRAME_CornerFBevel_ID         (MYFRAME_ID_START+31)
+#define MYFRAME_SideUBevel_ID           (MYFRAME_ID_START+32)
+#define MYFRAME_CornerUBevel_ID         (MYFRAME_ID_START+33)
+#define MYFRAME_SideSBevel_ID           (MYFRAME_ID_START+34)
+#define MYFRAME_CornerSBevel_ID         (MYFRAME_ID_START+35)
+#define MYFRAME_TitleBevel_ID           (MYFRAME_ID_START+36)
+#define MYFRAME_TitleFBevel_ID          (MYFRAME_ID_START+37)
+#define MYFRAME_TitleUBevel_ID          (MYFRAME_ID_START+38)
+#define MYFRAME_TitleSBevel_ID          (MYFRAME_ID_START+39)
+#define MYFRAME_TitleAlign_ID           (MYFRAME_ID_START+40)
+#define MYFRAME_LeftBtnBackAlign_ID		(MYFRAME_ID_START+41)
+#define MYFRAME_LeftSpacerBackAlign_ID  (MYFRAME_ID_START+42)
+#define MYFRAME_TitleBackgroundAlign_ID (MYFRAME_ID_START+43)
+#define MYFRAME_RightSpacerBackAlign_ID (MYFRAME_ID_START+44)
+#define MYFRAME_RightBtnBackAlign_ID	(MYFRAME_ID_START+45)
+#define MYFRAME_TitleCM_ID              (MYFRAME_ID_START+46)
+#define MYFRAME_TitleFCM_ID             (MYFRAME_ID_START+47)
+#define MYFRAME_TitleUCM_ID             (MYFRAME_ID_START+48)
+#define MYFRAME_TitleSCM_ID             (MYFRAME_ID_START+49)
+#define MYFRAME_Inherit_ID              (MYFRAME_ID_START+50)
+#define MYFRAME_DONE_ID                 (MYFRAME_ID_START+51)
+
+#define MYFRAME_ID_END      (MYFRAME_ID_START+64)
 
 #define ALIGN_ID_START      (MYFRAME_ID_END+1)
 #define ALIGN_Left_ID       (ALIGN_ID_START+1)
@@ -367,7 +377,9 @@ typedef struct MyFrameDefinition
     char        *parts[FRAME_PARTS];
     char        *title_styles[BACK_STYLES];
     char        *frame_styles[BACK_STYLES];
-    char        *title_back;
+    char        *left_btn_back, *left_spacer_back;
+	char        *title_back;
+    char        *right_btn_back, *right_spacer_back;
     ASFlagType   set_part_size ;
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
@@ -380,6 +392,8 @@ typedef struct MyFrameDefinition
     ASFlagType   set_title_attr ;
     ASFlagType   title_fbevel, title_ubevel, title_sbevel;
     ASFlagType   title_align, title_back_align;
+	ASFlagType   left_btn_back_align, left_spacer_back_align;
+	ASFlagType   right_btn_back_align, right_spacer_back_align;
     int          title_fcm, title_ucm, title_scm;
 
     char       **inheritance_list ;
