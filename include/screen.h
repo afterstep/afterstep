@@ -97,12 +97,10 @@ typedef enum                /* feel file flags */
     SaveUnders              = (1 << 21),
     SloppyFocus             = (1 << 22),
     IconTitle               = (1 << 23),
-    MWMFunctionHints        = (1 << 24),
-    MWMDecorHints           = (1 << 25),
-    MWMHintOverride         = (1 << 26),
-    FollowTitleChanges      = (1 << 27),
-    AutoTabThroughDesks     = (1 << 28),
-    DoHandlePageing         = (1 << 29)
+    FollowTitleChanges      = (1 << 24),
+    AutoTabThroughDesks     = (1 << 25),
+    DoHandlePageing         = (1 << 26),
+    DontRestoreFocus        = (1 << 27)
 }FeelFlags;
 
 /* look file flags */

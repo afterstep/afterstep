@@ -759,14 +759,23 @@ void place_desk( ASPagerDesk *d, int x, int y, unsigned int width, unsigned int 
         moveresize_canvas( d->desk_canvas, x, y, width, height );
 }
 
+inline ASPagerDesk *
+get_pager_desk( int desk )
+{
+    register int pager_desk = desk - PagerState.start_desk ;
+    if(  pager_desk >= 0 && pager_desk < PagerState.desks_num )
+        return &(PagerState.desks[pager_desk]);
+    return NULL ;
+}
+
 void
 place_selection()
 {
-    int curr_desk = Scr.CurrentDesk - PagerState.start_desk ;
+     ASPagerDesk *sel_desk ;
+
 LOCAL_DEBUG_CALLER_OUT( "Scr.CurrentDesk(%d)->start_desk(%d)", Scr.CurrentDesk, PagerState.start_desk );
-    if(  curr_desk >= 0 && curr_desk < PagerState.desks_num && get_flags(Config->flags, SHOW_SELECTION))
+    if( get_flags(Config->flags, SHOW_SELECTION) && (sel_desk = get_pager_desk( Scr.CurrentDesk ))!= NULL )
     {
-        ASPagerDesk *sel_desk = &(PagerState.desks[curr_desk]);
         int sel_x = sel_desk->background->win_x ;
         int sel_y = sel_desk->background->win_y ;
         int page_width = sel_desk->background->width/PagerState.page_columns ;
@@ -774,7 +783,7 @@ LOCAL_DEBUG_CALLER_OUT( "Scr.CurrentDesk(%d)->start_desk(%d)", Scr.CurrentDesk, 
 
         sel_x += (Scr.Vx*page_width)/Scr.MyDisplayWidth ;
         sel_y += (Scr.Vy*page_height)/Scr.MyDisplayHeight ;
-LOCAL_DEBUG_OUT( "sel_pos(%+d%+d)->page_size(%dx%d)->desk(%d)", sel_x, sel_y, page_width, page_height, curr_desk );
+LOCAL_DEBUG_OUT( "sel_pos(%+d%+d)->page_size(%dx%d)->desk(%d)", sel_x, sel_y, page_width, page_height, sel_desk->desk );
         XReparentWindow( dpy, PagerState.selection_bars[0], sel_desk->desk_canvas->w, -10, -10 );
         XReparentWindow( dpy, PagerState.selection_bars[1], sel_desk->desk_canvas->w, -10, -10 );
         XReparentWindow( dpy, PagerState.selection_bars[2], sel_desk->desk_canvas->w, -10, -10 );
@@ -1081,6 +1090,32 @@ shade_desk_row( ASPagerDesk *d, Bool shade )
     }
     rearrange_pager_desks( False );
 }
+/*************************************************************************
+ *
+ *************************************************************************/
+void add_client( ASWindowData *wd )
+{
+    ASPagerDesk *d = get_pager_desk( wd->desk );
+    XSetWindowAttributes attr ;
+
+    if( d == NULL )
+        return;
+
+    /* create window, canvas and tbar : */
+    //wd->canvas =
+
+}
+
+void refresh_client( ASWindowData *wd )
+{
+
+}
+
+void delete_client( ASWindowData *wd )
+{
+
+
+}
 
 /*************************************************************************
  * individuaL Desk manipulation
@@ -1100,14 +1135,12 @@ process_message (unsigned long type, unsigned long *body)
 
 		show_progress( "message %X window %X data %p", type, body[0], wd );
 		res = handle_window_packet( type, body, &wd );
-#if 0
         if( res == WP_DataCreated )
-			add_winlist_button( tbar, wd );
+            add_client( wd );
 		else if( res == WP_DataChanged )
-			refresh_winlist_button( tbar, wd );
+            refresh_client( wd );
 		else if( res == WP_DataDeleted )
-			delete_winlist_button( tbar, wd );
-#endif
+            delete_client( wd );
     }else
     {
         switch( type )

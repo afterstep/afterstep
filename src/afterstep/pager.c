@@ -375,18 +375,19 @@ ChangeDesks (int new_desk)
 	{
         int i ;
         int circ_count = VECTOR_USED(*(Scr.Windows->circulate_list));
-#ifndef NO_REMEMBER_FOCUS
-        ASWindow **circ_list = VECTOR_HEAD(ASWindow*,*(Scr.Windows->circulate_list));
-        for( i =0 ; i < circ_count ; ++i )
-            if( circ_list[i] != NULL && circ_list[i]->magic == MAGIC_ASWINDOW )
-                if( ASWIN_DESK(circ_list[i]) == new_desk )
-                {
-                    focus_aswindow( circ_list[i], False );
-                    break;
-                }
-#else
-        i = circ_count ;
-#endif
+        if( !get_flags( Scr.Feel.flags, DontRestoreFocus ) )
+        {
+            ASWindow **circ_list = VECTOR_HEAD(ASWindow*,*(Scr.Windows->circulate_list));
+            for( i =0 ; i < circ_count ; ++i )
+                if( circ_list[i] != NULL && circ_list[i]->magic == MAGIC_ASWINDOW )
+                    if( ASWIN_DESK(circ_list[i]) == new_desk )
+                    {
+                        focus_aswindow( circ_list[i], False );
+                        break;
+                    }
+        }else
+            i = circ_count ;
+
         if( i >= circ_count )
             hide_focus();
     }
