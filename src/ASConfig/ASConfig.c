@@ -134,39 +134,11 @@
 #include "../../libAfterStep/event.h"
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterStep/parser.h"
+#include "../../libAfterStep/session.h"
 #include "../../libAfterConf/afterconf.h"
 
 
 /*************************************************************************/
-typedef enum 
-{
-	ASProp_Phony = 0,
-	ASProp_Integer,
-	ASProp_Data,
-	ASProp_Image,
-	ASProp_Color,
-	ASProp_Gradient,
-	ASProp_File,
-	ASProp_ContentsTypes		   
-}ASPropContentsType;
-
-typedef struct ASProperty {
-	unsigned short type ;                 /* same a options IDs from autoconf.h */
-
-	unsigned short contents_type ;
-	char *name ;
-	union {
-		int 		 integer ;
-		ASStorageID  data;			
-		ASImage 	*im ;
-		ARGB32		 argb ;
-		ASGradient  *grad ;
-		ASConfigFile *config_file ;
-	}contents;
-	
-	ASBiDirList *sub_props ;	   
-}ASProperty;
-
 typedef struct ASConfigFile {
 	char *dirname ;
 	char *filename ;
@@ -180,6 +152,42 @@ typedef struct ASConfigFile {
 	FreeStorageElem *free_storage ;
 
 }ASConfigFile;
+
+
+
+typedef enum 
+{
+	ASProp_Phony = 0,
+	ASProp_Integer,
+	ASProp_Data,
+	ASProp_File,
+	ASProp_String,
+	ASProp_ContentsTypes		   
+}ASPropContentsType;
+
+typedef struct ASProperty {
+
+#define ASProp_Indexed				(0x01<<0)	
+	ASFlagType flags ;
+	
+	int id ;                 /* same a options IDs from autoconf.h */
+
+	ASPropContentsType type ;
+	char *name ;
+	int index ;
+
+	union {
+		int 		 integer ;
+		ASStorageID  data;			
+		ASConfigFile *config_file ;
+		char 		 *string ;
+	}contents;
+	
+	ASBiDirList *sub_props ;	   
+
+	/* padding to 32 bytes */
+	int reserved ;
+}ASProperty;
 
 /* hiererchy : 
  * root
@@ -319,6 +327,7 @@ DeadPipe (int foo)
 }
 
 
+void load_hierarchy();
 
 
 int
@@ -336,7 +345,7 @@ main (int argc, char **argv)
 }
 /**************************************************************************/
 ASConfigFile *
-load_config_file(const char *dirname, const char filename, const char *myname, SyntaxDef *syntax )
+load_config_file(const char *dirname, const char *filename, const char *myname, SyntaxDef *syntax )
 {
 	ASConfigFile * ascf ;
 		
@@ -378,15 +387,18 @@ void destroy_config_file( ASConfigFile *ascf )
 }	 
 
 /*************************************************************************/
+void destroy_property( void *data );
+
 ASProperty *
-create_property( int type, ASPropContentsType contents_type, const char *name, Bool tree )
+create_property( int id, ASPropContentsType type, const char *name, Bool tree )
 {
 	ASProperty *prop = safecalloc( 1, sizeof(ASProperty));
+	prop->id = id ;
 	prop->type = type ;
-	prop->contents_type = contents_type ;
 	prop->name = mystrdup(name) ;
 	if( tree ) 
 		prop->sub_props = create_asbidirlist( destroy_property ) ;
+	return prop;
 }
 
 void destroy_property( void *data )
@@ -397,15 +409,21 @@ void destroy_property( void *data )
 	{	
 		if( prop->name ) 
 			free( prop->name );
-		switch( prop->contents_type ) 
+		switch( prop->type ) 
 		{
 			case ASProp_Phony : break;
 			case ASProp_Integer : break;
-			case ASProp_Data : forget_data(NULL, prop->contents.data); break ;
-			case ASProp_Image : safe_asimage_destroy( prop->contents.im ); break;
-			case ASProp_Color : break;
-			case ASProp_Gradient : destroy_asgradient( &(prop->contents.grad) ); break;
-			case ASProp_File : destroy_config_file( prop->contents.config_file ); break;
+			case ASProp_Data : 
+				forget_data(NULL, prop->contents.data); 
+				break ;
+			case ASProp_File : 
+				destroy_config_file( prop->contents.config_file ); 
+				break;
+			case ASProp_String : 
+				if( prop->contents.string ) 
+					free(prop->contents.string);
+				break;
+			default: break;
 		}	 
 	
 		if( prop->sub_props ) 
@@ -415,10 +433,67 @@ void destroy_property( void *data )
 }	 
 
 void 
-free_storage2property_list( FreeStorage *fs, ASProperty *pl )
+free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 {
+	FreeStorageElem *curr = fs ;
+	ConfigItem    item;
+	ASProperty *prop ;
 	
+	item.memory = NULL;
 	
+	while( curr ) 
+	{
+		if (curr->term == NULL)
+			continue;
+		if (!ReadConfigItem (&item, curr))
+			continue;
+
+		if( (curr->term->type == TT_QUOTED_TEXT || curr->term->type == TT_TEXT) &&
+			 curr->term->sub_syntax != NULL && 
+			 !get_flags(curr->term->flags, TF_INDEXED|TF_DIRECTION_INDEXED) )
+		{	
+			prop = create_property( curr->term->id, ASProp_Phony, item.data.string, (curr->sub != NULL) );	 
+		}else                  /* we actually have some data */
+		{
+			prop = special_free_storage2property( curr );
+			if( prop == NULL ) 
+			{	
+				int type = ASProp_Phony;
+				char *name = NULL ;
+
+				switch( curr->term->type )
+				{
+					case TT_FLAG : 
+					case TT_INTEGER : 
+					case TT_UINTEGER :
+					case TT_BITLIST : 	type = ASProp_Integer ; break ;
+
+					case TT_COLOR : 	
+					case TT_FONT : 		
+					case TT_FILENAME : 	
+					case TT_PATHNAME : 	
+					case TT_TEXT : 
+					case TT_QUOTED_TEXT :
+					case TT_OPTIONAL_PATHNAME : type = ASProp_Data ; break ;
+					case TT_GEOMETRY :	 /* handled by special_ as complex datatype */ break ;
+					case TT_SPECIAL : 	/* handled by special_ as complex datatype */ break ;
+					case TT_FUNCTION : 	/* handled by special_ as complex datatype */ break ;
+					case TT_BOX :		/* handled by special_ as complex datatype */ break ;
+					case TT_BUTTON :	/* handled by special_ as complex datatype */ break ;
+					case TT_BINDING : 	/* handled by special_ as complex datatype */ break ;
+					case TT_INTARRAY : 	/* handled by special_ as complex datatype */ break ;
+					case TT_CURSOR : 	/* handled by special_ as complex datatype */ break ;
+				}	 
+				prop = create_property( curr->term->id, type, name, (curr->sub != NULL) );	 
+			}
+		}	 
+
+		if( get_flags(curr->term->flags, TF_INDEXED|TF_DIRECTION_INDEXED))
+		{	
+			prop->index = item.index ;
+			set_flags( prop->flags, ASProp_Indexed );
+		}
+	}		   
 }
 
 
@@ -430,6 +505,9 @@ merge_property_list( ASProperty *src, ASProperty *dst )
 }
 
 /*************************************************************************/
+ASProperty* load_Base();
+
+
 void 
 load_hierarchy()
 {
@@ -461,14 +539,14 @@ load_Base()
 		ASProperty *file, *opts ;
 
 		file = create_property( CONFIG_BaseFile_ID, ASProp_File, "File", True );
-		file->content.config_file = cf ;
+		file->contents.config_file = cf ;
 		
 		free_storage2property_list( cf->free_storage, file );
- 		append_bidirelem( base->sub_prop, file );			   
+ 		append_bidirelem( base->sub_props, file );			   
 			
 		opts = create_property( CONFIG_BaseOptions_ID, ASProp_Phony, "Options", True );
 		merge_property_list( file, opts );
-		append_bidirelem( base->sub_prop, opts );			   
+		append_bidirelem( base->sub_props, opts );			   
 	}	 
 	return base;
 }	 

@@ -205,7 +205,7 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "TitleFocusedCompositionMethod", 28, TT_UINTEGER,   MYFRAME_TitleFCM_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleUnfocusedCompositionMethod", 30, TT_UINTEGER,  MYFRAME_TitleUCM_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleStickyCompositionMethod", 27, TT_UINTEGER,    MYFRAME_TitleSCM_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Inherit", 7, TT_QUOTED_TEXT,              MYFRAME_Inherit_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING|TF_NONUNIQUE, "Inherit", 7, TT_QUOTED_TEXT,              MYFRAME_Inherit_ID, NULL},
     {TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~MyFrame", 8, TT_FLAG, MYFRAME_DONE_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "LeftBtnBackground", 17,  TT_FILENAME,     MYFRAME_LeftBtnBackground_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackground", 20,  TT_FILENAME,  MYFRAME_LeftSpacerBackground_ID, NULL},

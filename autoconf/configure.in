@@ -637,6 +637,7 @@ src/ascp/gtk/Makefile \
 src/asetroot/Makefile \
 src/Animate/Makefile \
 src/Audio/Makefile \
+src/ASConfig/Makefile \
 src/ASDocGen/Makefile \
 src/Banner/Banner.sh \
 src/Banner/Makefile \

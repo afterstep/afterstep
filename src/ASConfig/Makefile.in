@@ -1,155 +1,18 @@
-OBJS		= ASDocGen.o datadoc.o docfile.o robodoc.o xmlproc.o
+OBJS            = ASConfig.o
 
-PROG		= ASDocGen
+PROG		= ASConfig
 
 LIBS_PRIVATE      = $(LIB_AFTERCONF) $(LIB_AFTERSTEP) \
 					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) $(LIBS_AFTERIMAGE)
-LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
-				  $(LIB_AFTERCONF)
+LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) $(LIB_AFTERCONF)
 
 @MAKEFILECOMMON@
 
+$(PROG):        $(OBJS) $(LIBS_DEPEND)
+		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
 
-
-do_compile:    $(OBJS) $(LIBS_DEPEND)
-		$(CC) $(OBJS) $(LIBS_ALL) -o ASDocGen
-		@touch do_compile
-
-doc_man:	do_compile
-		@echo -n "Generating man pages ..." ; ./ASDocGen -l log.man -t nroff ; echo "Done" ; touch doc_man
-		       
-doc_html:    	do_compile
-		@echo -n "Generating HTML docs ..." ; ./ASDocGen -l log.html -t html ; echo "Done" ; touch doc_html
-
-doc_xml:	do_compile
-		@echo -n "Generating XML docs ..." ; ./ASDocGen -l log.xml -t xml ; echo "Done" ; touch doc_xml
-		       
-doc_text:    	do_compile
-		@echo -n "Generating Plain Text docs ..." ; ./ASDocGen -l log.text -t plain ; echo "Done" ; touch doc_text
-
-
-ASDocGen:	do_compile doc_man doc_html
-		
 module.clean:
-		$(RMF) do_compile doc_man doc_html doc_xml doc_text
-		$(RMF) -r man html xml text php
-		$(RMF) ASDocGen_php.tar ASDocGen_php.tar.gz
-		$(RMF) log.*
-
-install.man:	$(PROG)
-		@cd man; echo "Installing application man pages ..." ; \
-		for f in `ls *.man`; do \
-			page_name=`echo $$f| awk -F . '{print $$1}'`; \
-	  		echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
-	  		$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
-		done; echo "Done"; \
-		cd API; echo "Installing API man pages ..." ; \
-		for f in `ls *.man`; do \
-			page_name=`echo $$f| awk -F . '{print $$1}'`; \
-	  		echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_API_DIR)/$$page_name.3x; \
-	  		$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_API_DIR)/$$page_name.3x; \
-		done; echo "Done"; \
-		cd ../..
-
-install.data_html:  do_compile
-		@if [ -d $(AFTER_DOC_DIR)/html ] ; then \
-	  		echo $(RMF) -r $(AFTER_DOC_DIR)/html; \
-			$(RMF) -r $(AFTER_DOC_DIR)/html; \
-		fi; \
-		$(MKDIR) -p $(AFTER_DOC_DIR)/html/data; \
-		echo "Generating catalogue of installed data files ..." ; \
-		old_IMAGE_PATH=$(IMAGE_PATH); old_FONT_PATH=$(FONT_PATH); \
-		export FONT_PATH="@with_afterdir@/desktop/fonts/:@datadir@/afterstep/desktop/fonts/:/usr/share/fonts/default/TrueType/:@x_libraries@/X11/fonts/TTF"; \
-		export IMAGE_PATH="@with_afterdir@/desktop/icons/:@datadir@/afterstep/desktop/icons/:@with_afterdir@/desktop/:@datadir@/afterstep/desktop/:@with_afterdir@/desktop/buttons/:@datadir@/afterstep/desktop/buttons/:@with_afterdir@/backgrounds/:@datadir@/afterstep/backgrounds/:@x_includes@/X11/pixmaps/"; \
-		./ASDocGen -t html --data --css data_html_styles.css -S $(AFTER_SHAREDIR) -D $(AFTER_DOC_DIR)/html/data -l /dev/null  ; \
-		export IMAGE_PATH=$(old_IMAGE_PATH); export FONT_PATH=$(old_FONT_PATH); \
-		echo "Done"; \
-
 		
-install.doc_html:	install.data_html  $(PROG)
-		@cd html; echo "Installing application HTML pages ..." ; \
-		for f in `ls *.html`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
-	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
-		done; echo "Done"; \
-		$(MKDIR) -p $(AFTER_DOC_DIR)/html/images; \
-		cd ../images; echo "Installing application images ..." ; \
-		for f in `ls *.jpg`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/images/$$f; \
-	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/images/$$f; \
-		done; echo "Done"; \
-		$(MKDIR) -p $(AFTER_DOC_DIR)/html/API; \
-		cd ../html/API; echo "Installing API HTML docs ..." ; \
-		for f in `ls *.html`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
-	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
-		done; echo "Done"; \
-		cd ../..
+install:	install.bin
 
-install.doc_xml:	doc_xml
-		@if [ -d $(AFTER_DOC_DIR)/xml ] ; then \
-	  		echo $(RMF) -r $(AFTER_DOC_DIR)/xml; \
-			$(RMF) -r $(AFTER_DOC_DIR)/xml; \
-		fi; \
-		$(MKDIR) -p $(AFTER_DOC_DIR)/xml; \
-		cd xml; echo "Installing application XML pages ..." ; \
-		for f in `ls *.xml`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/$$f; \
-	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/$$f; \
-		done; echo "Done"; \
-		$(MKDIR) -p $(AFTER_DOC_DIR)/xml/images; \
-		cd ../images; echo "Installing images ..." ; \
-		for f in `ls *.jpg`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/images/$$f; \
-	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/images/$$f; \
-		done; echo "Done"; \
-		$(MKDIR) -p $(AFTER_DOC_DIR)/xml/API; \
-		cd ../xml/API; echo "Installing API XML docs ..." ; \
-		for f in `ls *.xml`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/API/$$f; \
-	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/API/$$f; \
-		done; echo "Done"; \
-		cd ../..
-
-install.doc_text:	doc_text
-		@if [ -d $(AFTER_DOC_DIR)/text ] ; then \
-	  		echo $(RMF) -r $(AFTER_DOC_DIR)/text; \
-			$(RMF) -r $(AFTER_DOC_DIR)/text; \
-		fi; \
-		$(MKDIR) -p $(AFTER_DOC_DIR)/text; \
-		cd xml; echo "Installing application Plain Text pages ..." ; \
-		for f in `ls *.txt`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/$$f; \
-	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/$$f; \
-		done; echo "Done"; \
-		$(MKDIR) -p $(AFTER_DOC_DIR)/text/API; \
-		cd API; echo "Installing API Plain Text docs ..." ; \
-		for f in `ls *.txt`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/API/$$f; \
-	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/API/$$f; \
-		done; echo "Done"; \
-		cd ../..
-
-php_pages:	do_compile
-		@echo -n "Generating PHP pages ..." ; ./ASDocGen -l log.text -t php ; echo "Done"; \
-		if [ -f ASDocGen_php.tar.gz ] ; then \
-			$(RM) ASDocGen_php.tar.gz ; \
-		fi; \
-		echo "Tar-gzipping PHP pages ..." ; \
-		cd php && tar cpvf ../ASDocGen_php.tar * && cd .. ; \
-		tar Apvf ./ASDocGen_php.tar images; \
-		gzip ./ASDocGen_php.tar; \
-		echo "Done."
-
-uninstall.man:
-		@for p in $(PROG); do \
-			$(RMF) $(AFTER_BIN_DIR)/$$p.1x; \
-		done
-
-
-
-install:	$(PROG) install.man install.doc_html
-
-uninstall:	uninstall.man
-
-
+uninstall:	uninstall.bin

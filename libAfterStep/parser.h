@@ -48,6 +48,7 @@ typedef struct TermDef
   /* and must be filtered out and converted into */
   /* respective non-depreciated options by libASConfig */
 #define TF_DIRECTION_INDEXED (1<<22) /* North,South, East,West, NorthWest, NorthEast, SouthWest, SouthEast as index */
+#define TF_NONUNIQUE 		 (1<<21) /* Ther could be several options of this type in config */
 
 
   unsigned long flags;		/* combination of any of above values */
