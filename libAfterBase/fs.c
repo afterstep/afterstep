@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (C) 1999 Sasha Vasko <sasha at aftercode.net>
  * merged with envvar.c originally created by :
  * Copyright (C) 1999 Ethan Fischer <allanon@crystaltokyo.com>
  * Copyright (C) 1998 Pierre Clerissi <clerissi@pratique.fr>
@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -332,7 +332,7 @@ void
 replace_envvar (char **path)
 {
 	char         *res = do_replace_envvar( *path );
-	if( res != *path ) 
+	if( res != *path )
 	{
 		free( *path );
 		*path = res ;

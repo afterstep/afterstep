@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000,2001 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 2000,2001 Sasha Vasko <sasha at aftercode.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -183,8 +183,8 @@ pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsign
 	}
 	return im;
 #else
-    return NULL ;	
-#endif	
+    return NULL ;
+#endif
 }
 
 Pixmap
@@ -220,7 +220,7 @@ asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 	}
 	return p;
 #else
-	return None ;	
+	return None ;
 #endif
 }
 
@@ -255,7 +255,7 @@ asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 	return mask;
 #else
 	return None ;
-#endif	
+#endif
 }
 
 

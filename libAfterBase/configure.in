@@ -2,7 +2,7 @@ dnl# -*- sh -*-
 dnl# Process this file with autoconf to produce a configure script.
 dnl#
 dnl#Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
-dnl#Copyright (c) 2001,1998 Sasha Vasko <sashav@sprintmail.com>
+dnl#Copyright (c) 2001,1998 Sasha Vasko <sasha at aftercode.net>
 dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
@@ -114,7 +114,7 @@ dnl# we are alone - have to do all the checks ourselves :
 	INSTALL_PROGRAM=`echo $INSTALL_PROGRAM|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
 	INSTALL_DATA=`echo $INSTALL_DATA|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
 	INSTALL_LIB=`echo $INSTALL_LIB|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
-	
+
 	AC_PROG_RANLIB
 	AC_PATH_PROG(RM, rm, rm)
 	AC_PATH_PROG(MV, mv, mv)
@@ -126,7 +126,7 @@ dnl# we are alone - have to do all the checks ourselves :
 	AC_PATH_PROG(LDCONFIG, ldconfig, ldconfig, $PATH:/sbin:/usr/local/sbin)
 	AC_CHECK_PROG(sgmltools, sgmltools, HAVE_SGMLTOOLS, NO_SGMLTOOLS)
 fi
-	
+
 
 dnl# some standard checks :
 dnl# let's check for endiannes of our box
@@ -136,11 +136,11 @@ AC_C_INLINE
 dnl# check for X, if top level configure script did not do that yet :
 if test "x$PATH_XTRA_CHECKED" != "xyes"; then
 	AC_PATH_XTRA
-else 
+else
   if test "x$have_x" != "xyes"; then
 	  AC_DEFINE(X_DISPLAY_MISSING)
   fi
-fi	
+fi
 
 dnl# Check for headers
 AC_HEADER_DIRENT
@@ -164,16 +164,16 @@ dnl# Checks for functions
 
 if test "x$DO_HAVE_WAIT3" = "xyes"; then
 	AC_DEFINE(HAVE_WAIT3)
-else	
+else
 dnl# are you sure ? let me doublecheck :
 	AC_FUNC_WAIT3
-fi	
+fi
 AC_CHECK_FUNCS(uname gethostname)
 
 if test "x$enable_staticlibs" = "xyes"; then
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
-fi   
+fi
 if test "x$enable_sharedlibs" = "xyes"; then
    tmp='$(LIB_SHARED)'
    LIBPROG="$LIBPROG $tmp"

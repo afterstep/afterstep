@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2001, Sasha Vasko <sashav@sprintmail.com>
+# Copyright (c) 2001, Sasha Vasko <sasha at aftercode.net>
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
@@ -24,7 +24,7 @@ APPS_SRCS=apps/common.c apps/ascompose.c apps/asview.c \
 		  apps/asscale.c apps/astile.c apps/asmerge.c \
 		  apps/asgrad.c apps/asflip.c apps/astext.c
 
-APPS_INCS=apps/common.h 
+APPS_INCS=apps/common.h
 
 # end specifics
 ################################################################
@@ -178,11 +178,11 @@ uninstall.script:
 
 clean:
 		$(RMF) $(LIB_SHARED) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core ; \
-		cd apps; make clean; cd .. 
+		cd apps; make clean; cd ..
 
 distclean:
 		$(RMF) $(LIB_SHARED) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile ; \
-		cd apps; make distclean; cd .. 
+		cd apps; make distclean; cd ..
 
 indent:
 		@SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
@@ -193,7 +193,7 @@ indent:
 		    mv /tmp/$$i $$i; \
 		  fi; \
 		done ; \
-		cd apps; make indent; cd .. 
+		cd apps; make indent; cd ..
 
 deps:
 		echo -n > .depend ; \
@@ -227,7 +227,7 @@ deps:
 		  echo -n '		$$('$(LIB_NAME)_PATH')'/$$f >> .shared ; \
 		done; \
 		echo "" >> .shared ; \
-		cd apps; make deps; cd .. 
+		cd apps; make deps; cd ..
 
 apps: 	@LIBPROG@ $(LIB_OBJS) $(LIB_INCS) $(APPS_SRCS) $(APPS_INCS)
 		cd apps; make ; cd ..

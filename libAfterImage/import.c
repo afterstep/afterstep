@@ -1,6 +1,6 @@
 /* This file contains code for unified image loading from many file formats */
 /********************************************************************/
-/* Copyright (c) 2001 Sasha Vasko <sashav@sprintmail.com>           */
+/* Copyright (c) 2001 Sasha Vasko <sasha at aftercode.net>           */
 /********************************************************************/
 /*
  * This library is free software; you can redistribute it and/or
@@ -211,7 +211,7 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 			XFreePixmap( asv->dpy, *mask_out );
 		*mask_out = mask ;
 	}
-#endif	
+#endif
 	return trg ;
 }
 

@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2000 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 2000 Sasha Vasko <sasha at aftercode.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -93,7 +93,7 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 				*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
 			while( !isspace(*ptr) && *ptr != '\0' ) ptr++;
 			return ptr;
-#endif			
+#endif
 		}
 	}
 	return color;
@@ -357,30 +357,30 @@ parse_signed_int (register char *tline, int *val_return, int *sign_return)
 
 	while (isspace (tline[i])) ++i;
 
-	switch( tline[i] ) 
+	switch( tline[i] )
 	{ /* handling constructs like --10 or -+10 which is equivalent to -0-10or -0+10 */
 		case '\0' : sign = 5 ; --i; break ;
 		case '-' : 	sign = -1;
-					if( tline[i+1] == '-' ) 
-					{ ++i ; sign = -2 ; }	
-					else if( tline[i+1] == '+' ) 
-					{ ++i ; sign = 3 ; }	
+					if( tline[i+1] == '-' )
+					{ ++i ; sign = -2 ; }
+					else if( tline[i+1] == '+' )
+					{ ++i ; sign = 3 ; }
 					break;
-		case '+' :	++sign; 
-					if( tline[i+1] == '-' ) 
-					{ ++i ; sign = -3 ; }	
-					else if( tline[i+1] == '+' ) 
-					{ ++i ; sign = 2 ; }	
+		case '+' :	++sign;
+					if( tline[i+1] == '-' )
+					{ ++i ; sign = -3 ; }
+					else if( tline[i+1] == '+' )
+					{ ++i ; sign = 2 ; }
 					break;
 		case '=' :  break; /* skipping */
-		case 'x' :  
-		case 'X' :  sign = 4; break; 
-	  default : --i ;	
-	}	  
+		case 'x' :
+		case 'X' :  sign = 4; break;
+	  default : --i ;
+	}
 	while (isdigit (tline[++i]))
 		val = val * 10 + (int)(tline[i] - '0');
 
-	if( val_return ) 
+	if( val_return )
 		*val_return = (sign < 0)?-val:val ;
 	if( sign_return )
 		*sign_return = sign;
@@ -399,60 +399,60 @@ parse_func_args (char *tline, char *unit, int *func_val)
 }
 
 char         *
-parse_geometry (register char *tline, 
-                int *x_return, int *y_return, 
-                unsigned int *width_return, 
-  				unsigned int *height_return, 
+parse_geometry (register char *tline,
+                int *x_return, int *y_return,
+                unsigned int *width_return,
+  				unsigned int *height_return,
 				int* flags_return )
 {
 	int flags = 0 ;
 	int sign, val ;
-	
+
 	tline = parse_signed_int( tline, &val, &sign );
-	if( sign == 0 ) 
+	if( sign == 0 )
 	{
-		if( width_return ) 
+		if( width_return )
 		{
-			*width_return = val ; 
+			*width_return = val ;
 			set_flags( flags, WidthValue );
-		}	
+		}
 		tline = parse_signed_int( tline, &val, &sign );
 	}
-	if( sign == 4 ) 
+	if( sign == 4 )
 	{
-		if( height_return ) 
+		if( height_return )
 		{
-			*height_return = val ; 
+			*height_return = val ;
 			set_flags( flags, HeightValue );
-		}	
+		}
 		tline = parse_signed_int( tline, &val, &sign );
 	}
-	if( sign == 0 ) 
+	if( sign == 0 )
 		sign = 1 ;
-	if( sign == 1 || sign == -1) 
+	if( sign == 1 || sign == -1)
 	{
-		if( x_return ) 
+		if( x_return )
 		{
-			*x_return = val ; 
+			*x_return = val ;
 			set_flags( flags, ( sign < 0 )?XNegative|XValue:XValue );
-		}	
+		}
 		tline = parse_signed_int( tline, &val, &sign );
-	}else if( sign != 5 ) 
+	}else if( sign != 5 )
 	{
-		if( x_return ) 
+		if( x_return )
 		{
-			*x_return = 0 ; 
+			*x_return = 0 ;
 			set_flags( flags, ( sign == -2 || sign == 3 )?XNegative|XValue:XValue );
-		}	
+		}
 	}
 
-	if( sign != 5 && y_return ) 
+	if( sign != 5 && y_return )
 	{
-		*y_return = val ; 
+		*y_return = val ;
 		set_flags( flags, ( sign < 0 )?YNegative|YValue:YValue );
 	}
-	
-	if( flags_return ) 
+
+	if( flags_return )
 		*flags_return = flags ;
 
 	return tline;

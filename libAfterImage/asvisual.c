@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001,2000,1999 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 2001,2000,1999 Sasha Vasko <sasha at aftercode.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
