@@ -674,7 +674,6 @@ if test -d src/Form ; 		then AC_CONFIG_FILES([src/Form/Makefile]) fi
 if test -d src/Gnome ; 		then AC_CONFIG_FILES([src/Gnome/Makefile]) fi
 if test -d src/Ident ; 		then AC_CONFIG_FILES([src/Ident/Makefile]) fi
 if test -d src/Pager ; 		then AC_CONFIG_FILES([src/Pager/Makefile]) fi
-if test -d src/Save ; 		then AC_CONFIG_FILES([src/Save/Makefile]) fi
 if test -d src/Script ; 	then AC_CONFIG_FILES([src/Script/Makefile src/Script/Widgets/Makefile]) fi
 if test -d src/Scroll ; 	then AC_CONFIG_FILES([src/Scroll/Makefile]) fi
 if test -d src/Sound ; 		then AC_CONFIG_FILES([src/Sound/Makefile]) fi

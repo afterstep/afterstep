@@ -1,7 +1,0 @@
-./Save.h:
-
-./Save.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/module.h \
-		Save.h
