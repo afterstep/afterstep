@@ -632,66 +632,66 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-different-looknfeels
-                          different look&feel for each desktop no
-  --enable-pagerbackground provide background support with the Pager yes
-  --enable-i18n           support I18N no
-  --enable-xlocale        using X_LOCALE no
-  --enable-menuwarp       warp mouse pointer to menus no
-  --enable-savewindows    save windows and re-open next session yes
-  --enable-texture        support gradient, XPM, and JPEG textures yes
-  --enable-shade          support shaded windows yes
-  --enable-virtual        support virtual desktops yes
-  --enable-saveunders     request saveunders for menus yes
-  --enable-windowlist     compile built-in window-list yes
-  --enable-availability   check for unavailable binaries yes
-  --enable-fixeditems     enable fixed menu entries no
-  --enable-ascp           build AfterStep Control Panel yes
-  --enable-shaping        support shaped windows yes
-  --enable-xinerama       support Xinerama Multihead extentions yes
-  --enable-staticlibs     enable linking to libafterstep statically yes
-  --enable-gdb            add gdb symbols (-g) (for debugging) no
-  --enable-sigsegv        enable internal handler of Segmentation Fault (for self-diagnostics) yes
-  --enable-warn           turn on more compiler warnings (for debugging) no
-  --enable-gprof          add gprof symbols (-pg) (for debugging) no
-  --enable-audit          memory usage audit (for debugging) no
-  --enable-trace          some function calls tracing (see include/trace.h) (for debugging) no
-  --enable-trace-x        trace X calls (runtime option) (for debugging) no
-  --enable-mmx-optimization  enable utilization of MMX instruction set to speed up imaging operations yes
-  --enable-script         compile Script module yes
-  --enable-reuse-font     enables reuse of loaded font resource by modules (don't use with TrueType fonts !)no
+                          different look&feel for each desktop [no]
+  --enable-pagerbackground provide background support with the Pager [yes]
+  --enable-i18n           support I18N [no]
+  --enable-xlocale        using X_LOCALE [no]
+  --enable-menuwarp       warp mouse pointer to menus [no]
+  --enable-savewindows    save windows and re-open next session [yes]
+  --enable-texture        support gradient, XPM, and JPEG textures [yes]
+  --enable-shade          support shaded windows [yes]
+  --enable-virtual        support virtual desktops [yes]
+  --enable-saveunders     request saveunders for menus [yes]
+  --enable-windowlist     compile built-in window-list [yes]
+  --enable-availability   check for unavailable binaries [yes]
+  --enable-fixeditems     enable fixed menu entries [no]
+  --enable-ascp           build AfterStep Control Panel [yes]
+  --enable-shaping        support shaped windows [yes]
+  --enable-xinerama       support Xinerama Multihead extentions [yes]
+  --enable-staticlibs     enable linking to libafterstep statically [yes]
+  --enable-gdb            add gdb symbols (-g) (for debugging) [no]
+  --enable-sigsegv        enable internal handler of Segmentation Fault (for self-diagnostics) [yes]
+  --enable-warn           turn on more compiler warnings (for debugging) [no]
+  --enable-gprof          add gprof symbols (-pg) (for debugging) [no]
+  --enable-audit          memory usage audit (for debugging) [no]
+  --enable-trace          some function calls tracing (see include/trace.h) (for debugging) [no]
+  --enable-trace-x        trace X calls (runtime option) (for debugging) [no]
+  --enable-mmx-optimization  enable utilization of MMX instruction set to speed up imaging operations [yes]
+  --enable-script         compile Script module [yes]
+  --enable-reuse-font     enables reuse of loaded font resource by modules (don't use with TrueType fonts !)[no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-gnustep-dir=DIR  GNUstep directory ~/GNUstep
-  --with-gnustep-lib=DIR  GNUstep/Library directory Library
-  --with-afterdir=DIR     user AfterStep dir AfterStep
-  --with-imageloader=APP  used to display non-XPMs xli -onroot -quiet
-  --with-helpcommand=APP  display manpage for window xiterm -e man
-  --with-soundplayer=APP  used to play sounds from Audio play (from SOX package)
-  --with-startsort=METHOD start menu sorting method SORTBYALPHA
-  --with-desktops=DESKS   default desktops in pager 4
-  --with-deskgeometry=GEOM desktop views as COLUMNSxROWS 2x2
-  --with-xpm               support XPM image format yes
-  --with-builtin-xpm       use builtin XPM parsing/handling instead of libXpm yes
+  --with-gnustep-dir=DIR  GNUstep directory [~/GNUstep]
+  --with-gnustep-lib=DIR  GNUstep/Library directory [Library]
+  --with-afterdir=DIR     user AfterStep dir [AfterStep]
+  --with-imageloader=APP  used to display non-XPMs [xli -onroot -quiet]
+  --with-helpcommand=APP  display manpage for window [xiterm -e man]
+  --with-soundplayer=APP  used to play sounds from Audio [play] (from SOX package)
+  --with-startsort=METHOD start menu sorting method [SORTBYALPHA]
+  --with-desktops=DESKS   default desktops in pager [4]
+  --with-deskgeometry=GEOM desktop views as COLUMNSxROWS [2x2]
+  --with-xpm               support XPM image format [yes]
+  --with-builtin-xpm       use builtin XPM parsing/handling instead of libXpm [yes]
   --with-xpm-includes=DIR  use libXpm includes in DIR( when builtin XPM handling is disabled )
-  --with-jpeg              support JPEG image format yes
+  --with-jpeg              support JPEG image format [yes]
   --with-jpeg-includes=DIR use JPEG includes in DIR
-  --with-png               support PNG image format yes
+  --with-png               support PNG image format [yes]
   --with-png-includes=DIR  use PNG includes in DIR
-  --with-ungif             support GIF image format using libungif yes
-  --with-gif               support GIF image format using libgif   no
+  --with-ungif             support GIF image format using libungif [yes]
+  --with-gif               support GIF image format using libgif   [no]
   --with-gif-includes=DIR  use GIF includes in DIR
-  --with-tiff              support TIFF image format yes
+  --with-tiff              support TIFF image format [yes]
   --with-tiff-includes=DIR use TIFF includes in DIR
-  --with-ttf               support True Type Fonts via FreeType library yes
+  --with-ttf               support True Type Fonts via FreeType library [yes]
   --with-ttf-includes=DIR  use FreeType includes in DIR
   --with-afterbase-includes=DIR  use libAfterBase includes in DIR
   --with-afterimage-includes=DIR  use libAfterImage includes in DIR
   --with-afterbase-lib=DIR  use libAfterBase library located in DIR
   --with-afterimage-lib=DIR  use libAfterImage library located in DIR
   --with-locale=LOCALE    locale name you want to use
-  --with-libefence        compile with libefence to debug buffer overruns no
+  --with-libefence        compile with libefence to debug buffer overruns [no]
   --with-x                use the X Window System
 
 Some influential environment variables:
