@@ -439,12 +439,12 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 	if (strlen(MyArgs.locale) == 0)
 	{
 		free( MyArgs.locale );
-		MyArgs.locale = mystrdup(getenv(LANG));
+		MyArgs.locale = mystrdup(getenv("LANG"));
 		if (strlen(MyArgs.locale) == 0)
   		    show_error ("LANG environment variable is not set - unable to determine locale");
-	}			
+	}
 #endif
-	
+
     MyArgs.mask = opt_mask ;
 #ifndef NO_DEBUG_OUTPUT
     MyArgs.verbosity_level = OUTPUT_VERBOSE_THRESHOLD ;
@@ -499,11 +499,11 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 	if( MyArgs.locale )
 	{
 		as_set_charset( parse_charset_name( MyArgs.locale ));
-#ifdef I18N		
+#ifdef I18N
 		if (strlen(MyArgs.locale) > 0)
 			if (setlocale (LC_CTYPE, MyArgs.locale) == NULL)
   			    show_error ("unable to set locale");
-#endif		
+#endif
 	}
 #ifdef DEBUG_TRACE_X
     trace_enable_function(MyArgs.trace_calls);
