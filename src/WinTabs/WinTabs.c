@@ -79,6 +79,9 @@ typedef struct {
 	int rows ;
 	int row_height ;
 
+    int selected_tab ;
+    int pressed_tab ;
+
 }ASWinTabsState ;
 
 ASWinTabsState WinTabsState = { 0 };
@@ -86,7 +89,7 @@ ASWinTabsState WinTabsState = { 0 };
 
 #define WINTABS_TAB_EVENT_MASK    (ButtonReleaseMask | ButtonPressMask | \
 	                               LeaveWindowMask   | EnterWindowMask | \
-                                   StructureNotifyMask )
+                                   StructureNotifyMask|PointerMotionMask )
 
 /**********************************************************************/
 /**********************************************************************/
@@ -112,6 +115,11 @@ void check_swallow_window( ASWindowData *wd );
 void rearrange_tabs();
 void render_tabs( Bool canvas_resized );
 void on_destroy_notify(Window w);
+void select_tab( int tab );
+void press_tab( int tab );
+
+unsigned int find_tab_by_position( int root_x, int root_y );
+
 
 int
 main( int argc, char **argv )
@@ -123,6 +131,7 @@ main( int argc, char **argv )
 
     ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
     ConnectAfterStep (  M_END_WINDOWLIST |
+                        M_DESTROY_WINDOW |
                     	WINDOW_CONFIG_MASK |
                     	WINDOW_NAME_MASK );
     balloon_init (False);
@@ -144,6 +153,7 @@ main( int argc, char **argv )
 
 	SendInfo ("Send_WindowList", 0);
 
+    WinTabsState.selected_tab = WinTabsState.pressed_tab = -1 ;
 	WinTabsState.tabs = create_asvector( sizeof(ASWinTab) );
 
     WinTabsState.main_window = make_wintabs_window();
@@ -153,7 +163,7 @@ main( int argc, char **argv )
     map_canvas_window( WinTabsState.tabs_canvas, True );
     set_root_clip_area(WinTabsState.main_canvas );
 	/* delay mapping main canvas untill we actually swallowed something ! */
-    map_canvas_window( WinTabsState.main_canvas, True );
+    /* map_canvas_window( WinTabsState.main_canvas, True ); */
     /* final cleanup */
 	XFlush (dpy);
 	sleep (1);								   /* we have to give AS a chance to spot us */
@@ -368,11 +378,15 @@ DispatchEvent (ASEvent * event)
 {
 /*    ASWindowData *pointer_wd = NULL ; */
     ASCanvas *mc = WinTabsState.main_canvas ;
+    int pointer_tab = -1 ;
 
     SHOW_EVENT_TRACE(event);
 
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
     {
+        pointer_tab  = find_tab_by_position( event->x.xmotion.x_root, event->x.xmotion.y_root );
+        if( pointer_tab >= PVECTOR_USED(WinTabsState.tabs) )
+            pointer_tab = -1 ;
     }
     LOCAL_DEBUG_OUT( "mc.geom = %dx%d%+d%+d", mc->width, mc->height, mc->root_x, mc->root_y );
     switch (event->x.type)
@@ -398,8 +412,15 @@ DispatchEvent (ASEvent * event)
             }
 	        break;
         case ButtonPress:
+            if( pointer_tab >= 0 ) 
+                press_tab( pointer_tab );
             break;
         case ButtonRelease:
+            press_tab( -1 );    
+            if( pointer_tab >= 0 ) 
+            {
+                select_tab( pointer_tab );    
+            }
 			break;
         case EnterNotify :
 			if( event->x.xcrossing.window == Scr.Root )
@@ -409,6 +430,10 @@ DispatchEvent (ASEvent * event)
 			}
         case LeaveNotify :
         case MotionNotify :
+            if( pointer_tab >= 0 && (event->x.xmotion.state&AllButtonMask) != 0) 
+            {
+                press_tab( pointer_tab );        
+            }    
             break ;
         case DestroyNotify:
             on_destroy_notify(event->w);
@@ -484,17 +509,13 @@ make_wintabs_window()
     shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
-	extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeDock ;
+    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 
     /* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
-    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|
-                          ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
-                          KeyPressMask|KeyReleaseMask|
-                          EnterWindowMask|LeaveWindowMask|
-						  SubstructureRedirectMask);
+    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|SubstructureRedirectMask);
 
 	return w ;
 }
@@ -545,6 +566,15 @@ void
 delete_tab( int index ) 
 {
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    if( WinTabsState.selected_tab == index ) 
+    {    
+        WinTabsState.selected_tab = -1 ;
+        select_tab( (index > 0) ? index-1:index+1 );
+    }
+    if( WinTabsState.pressed_tab == index ) 
+    {    
+        WinTabsState.pressed_tab = -1 ;
+    }
     destroy_astbar( &(tabs[index].bar) );
     destroy_ascanvas( &(tabs[index].client_canvas) );
     if( tabs[index].name ) 
@@ -690,6 +720,45 @@ render_tabs( Bool canvas_resized )
 	}
 }
 
+void 
+select_tab( int tab )
+{
+    if( tab == WinTabsState.selected_tab ) 
+        return ; 
+    if( WinTabsState.selected_tab >= 0 && WinTabsState.selected_tab < PVECTOR_USED( WinTabsState.tabs ) )
+    {
+        ASWinTab *old_tab =  PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+WinTabsState.selected_tab ;
+        set_astbar_focused(old_tab->bar, WinTabsState.tabs_canvas, False);
+        WinTabsState.selected_tab = -1 ;
+    }    
+    if( tab >= 0 && tab < PVECTOR_USED( WinTabsState.tabs ) )
+    {
+        ASWinTab *new_tab = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+tab ;
+        set_astbar_focused(new_tab->bar, WinTabsState.tabs_canvas, True);
+        XRaiseWindow( dpy, new_tab->client );
+        WinTabsState.selected_tab = tab ;
+    }
+}    
+
+void 
+press_tab( int tab )
+{
+    if( tab == WinTabsState.pressed_tab ) 
+        return ; 
+    if( WinTabsState.pressed_tab >= 0 && WinTabsState.pressed_tab < PVECTOR_USED( WinTabsState.tabs ) )
+    {
+        ASWinTab *old_tab =  PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+WinTabsState.pressed_tab ;
+        set_astbar_pressed(old_tab->bar, WinTabsState.tabs_canvas, False);
+        WinTabsState.pressed_tab = -1 ;
+    }    
+    if( tab >= 0 && tab < PVECTOR_USED( WinTabsState.tabs ) )
+    {
+        ASWinTab *new_tab = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+tab ;
+        set_astbar_pressed(new_tab->bar, WinTabsState.tabs_canvas, True);
+        WinTabsState.pressed_tab = tab ;
+    }
+}    
+
 /**************************************************************************
  * Swallowing code
  **************************************************************************/
@@ -817,3 +886,30 @@ on_destroy_notify(Window w)
             return ; 
         }    
 }    
+
+unsigned int
+find_tab_by_position( int root_x, int root_y )
+{
+//    int col = WinListState.columns_num ;
+    int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
+    int i = tabs_num ;
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    ASCanvas *tc = WinTabsState.tabs_canvas ; 
+
+    root_x -= tc->root_x ;
+    root_y -= tc->root_y ;
+    if( root_x  >= 0 && root_y >= 0 &&
+        root_x < tc->width && root_y < tc->height )
+    {
+        for( i = 0 ; i < tabs_num ; ++i ) 
+        {
+            register ASTBarData *bar = tabs[i].bar ;
+            if( bar->win_x <= root_x && bar->win_x+bar->width > root_x &&
+                bar->win_y <= root_y && bar->win_y+bar->height > root_y )
+                break;
+        }
+    }
+
+    return i;
+}
+
