@@ -1189,18 +1189,18 @@ titlebar_sanity_check (void)
 	int           i;
 	ASWindow     *t;
 
-	for (i = 4; i >= 0; i--)
-		if (Scr.buttons[i * 2 + 1].unpressed.image)
+	for (i = 4; i >= 0; --i)
+		if (Scr.buttons[i].unpressed.image)
 			break;
 	Scr.nr_left_buttons = i + 1;
-	for (i = 4; i >= 0; i--)
-		if (Scr.buttons[(i * 2 + 2) % 10].unpressed.image)
+	for (i = 9; i >= 5; --i)
+		if (Scr.buttons[i].unpressed.image)
 			break;
-	Scr.nr_right_buttons = i + 1;
+	Scr.nr_right_buttons = i - 4;
 	/* traverse window list and redo the titlebar/buttons if necessary */
 	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 	{
-		if (t->flags & TITLE)
+		if (ASWIN_HFLAGS(t, AS_Titlebar))
 		{
 			int           width = t->frame_width;
 			int           height = t->frame_height;
@@ -1809,6 +1809,9 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 		fprintf (stderr, "invalid Titlebar button number: %d\n", num);
 		return;
 	}
+	
+	num = translate_title_button(num);
+	
 	/* going the hard way to prevent buffer overruns */
 	while (isspace (*(tline + offset)) && offset < linelen)
 		offset++;

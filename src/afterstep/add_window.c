@@ -120,7 +120,7 @@ create_titlebar_windows (ASWindow * tmp_win)
 	unsigned long valuemask;
 	XSetWindowAttributes attributes;
 
-	if (!(tmp_win->flags & TITLE))
+	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar))
 		return False;
 
 	valuemask = CWBackPixmap | CWBorderPixel | CWCursor | CWEventMask;
@@ -154,7 +154,7 @@ init_titlebutton_windows (ASWindow * tmp_win, Bool free_resources)
 	{
 		for (i = 0; i < 5; i++)
 		{
-			if (tmp_win->right_w[i] != None)
+			if (tmp_win->left_w[i] != None)
 			{
 				balloon_delete (balloon_find (tmp_win->left_w[i]));
 				XDestroyWindow (dpy, tmp_win->left_w[i]);
@@ -234,40 +234,36 @@ list_functions_by_context (int context)
 }
 
 /*
-   ** button argument:
-   ** 0 == leftmost button
-   ** 1 == rightmost button
-   ** 2 == next to leftmost button
-   ** 3 == next to rightmost button
-   ** etc.
+   ** button argument - is translated button number !!!!
+   ** 0 1 2 3 4  text 9 8 7 6 5
+   ** none of that old crap !!!!
  */
 Bool
-create_titlebutton_balloon (ASWindow * tmp_win, int button)
+create_titlebutton_balloon (ASWindow * tmp_win, int b)
 {
-	int           n = button / 2 + 5 * (button & 1);
-	char         *str;
+/*	int           n = button / 2 + 5 * (button & 1); */
+	char         *str = NULL ;
+	Window 		  w = None;
 
-	if (!(tmp_win->flags & TITLE))
+	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar) || 
+	    Scr.buttons[b].width <= 0 || IsBtnDisabled(tmp_win, b ))
 		return False;
-	if (!(button & 1) && button / 2 < Scr.nr_left_buttons &&
-		Scr.buttons[button + 1].width > 0 &&
-		!(tmp_win->buttons & (BUTTON1 << button)))
+		
+	if (IsLeftButton(b))
+	{ 
+		str = list_functions_by_context (C_L1 << b);
+		w = tmp_win->left_w[b];
+	}else
 	{
-		if ((str = list_functions_by_context (C_L1 << n)) != NULL)
-		{
-			balloon_new_with_text (dpy, tmp_win->left_w[button / 2], str);
-			free (str);
-		}
+		int rb = b - FIRST_RIGHT_TBTN ;
+		str = list_functions_by_context (C_R1 << rb);
+		w = tmp_win->right_w[rb];
 	}
-	if ((button & 1) && button / 2 < Scr.nr_right_buttons &&
-		Scr.buttons[(button + 1) % 10].width > 0 &&
-		!(tmp_win->buttons & (BUTTON1 << button)))
+	if( str )
 	{
-		if ((str = list_functions_by_context (C_L1 << n)) != NULL)
-		{
-			balloon_new_with_text (dpy, tmp_win->right_w[button / 2], str);
-			free (str);
-		}
+		if( w ) 
+			balloon_new_with_text (dpy, w, str);
+		free (str);
 	}
 	return True;
 }
@@ -284,7 +280,7 @@ create_titlebutton_windows (ASWindow * tmp_win)
 	unsigned long valuemask;
 	XSetWindowAttributes attributes;
 
-	if (!(tmp_win->flags & TITLE))
+	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar))
 		return False;
 	valuemask = CWBackPixmap | CWBorderPixel | CWCursor | CWEventMask;
 	attributes.background_pixmap = ParentRelative;
@@ -301,37 +297,30 @@ create_titlebutton_windows (ASWindow * tmp_win)
 	tmp_win->nr_right_buttons = 0;
 	tmp_win->space_taken_left_buttons = 0;
 	tmp_win->space_taken_right_buttons = 0;
-	for (i = 0; i < 5; i++)
+	for (i = 0; i < TITLE_BUTTONS; i++)
 	{
-		if ((i < Scr.nr_left_buttons) &&
-			(Scr.buttons[i + i + 1].width > 0) &&
-			!(tmp_win->buttons & (BUTTON1 << (i + i))))
+		Window w ;
+		if( Scr.buttons[i].width <= 0 || IsBtnDisabled(tmp_win, i ) )
+			continue;
+		w = create_visual_window (Scr.asv, tmp_win->frame, -999, -999,
+		  						  Scr.buttons[i].width, Scr.buttons[i].height,
+								  0, InputOutput, valuemask, &attributes);
+		XSaveContext (dpy, w, ASContext, (caddr_t) tmp_win);
+
+		if (IsLeftButton(i))
 		{
-			tmp_win->left_w[i] =
-				create_visual_window (Scr.asv, tmp_win->frame, -999, -999,
-									  Scr.buttons[i + i + 1].width, Scr.buttons[i + i + 1].height,
-									  0, InputOutput, valuemask, &attributes);
-			XSaveContext (dpy, tmp_win->left_w[i], ASContext, (caddr_t) tmp_win);
+			tmp_win->left_w[i] = w ;
 			tmp_win->nr_left_buttons++;
 			tmp_win->space_taken_left_buttons +=
-				Scr.buttons[i + i + 1].width + Scr.TitleButtonSpacing;
-			create_titlebutton_balloon (tmp_win, i + i);
-		}
-		if ((i < Scr.nr_right_buttons) &&
-			(Scr.buttons[(i + i + 2) % 10].width > 0) &&
-			!(tmp_win->buttons & (BUTTON1 << (i * 2 + 1))))
+				Scr.buttons[i].width + Scr.TitleButtonSpacing;
+		}else
 		{
-			tmp_win->right_w[i] =
-				create_visual_window (Scr.asv, tmp_win->frame, -999, -999,
-									  Scr.buttons[(i + i + 2) % 10].width,
-									  Scr.buttons[(i + i + 2) % 10].height, 0, InputOutput,
-									  valuemask, &attributes);
-			XSaveContext (dpy, tmp_win->right_w[i], ASContext, (caddr_t) tmp_win);
+			tmp_win->right_w[i] = w ;
 			tmp_win->nr_right_buttons++;
 			tmp_win->space_taken_right_buttons +=
-				Scr.buttons[(i + i + 2) % 10].width + Scr.TitleButtonSpacing;
-			create_titlebutton_balloon (tmp_win, i + i + 1);
+				Scr.buttons[i].width + Scr.TitleButtonSpacing;
 		}
+		create_titlebutton_balloon (tmp_win, i);
 	}
 
 	/* if left buttons exist, remove one extraneous space so title is shown correctly */
@@ -389,7 +378,7 @@ SelectDecor (ASWindow * t)
 	}
 #endif
 	/* Assume no decorations, and build up */
-	t->flags &= ~(BORDER | TITLE | FRAME);
+	t->flags &= ~(FRAME);
 	t->boundary_width = 0;
 	t->boundary_height = 0;
 	t->corner_width = 0;
@@ -397,18 +386,13 @@ SelectDecor (ASWindow * t)
 	t->title_height = 0;
 	t->button_height = 0;
 
-	if (get_flags(tflags,AS_Titlebar))
-		t->flags |= TITLE;
-
 	if (!get_flags(hints->function_mask,AS_FuncResize))
 	{
 		/* a wide border, with corner tiles */
 #ifndef NO_TEXTURE
 		if (DecorateFrames && get_flags(tflags,AS_Frame))
 			t->flags |= FRAME;
-		else
 #endif /* !NO_TEXTURE */
-			t->flags |= BORDER;
 	}
 	if (!get_flags(hints->function_mask,AS_FuncPopup))
 		disable_titlebuttons_with_function (t, F_POPUP);
@@ -418,7 +402,7 @@ SelectDecor (ASWindow * t)
 		disable_titlebuttons_with_function (t, F_MAXIMIZE);
 
 	t->boundary_width = 0;
-	t->boundary_height = (t->flags & BORDER) ? Scr.BoundaryWidth : 0;
+	t->boundary_height = ASWIN_HFLAGS(t, AS_Handles) ? Scr.BoundaryWidth : 0;
 	t->corner_width = 16 + t->boundary_height;
 
 	if( get_flags(tflags,AS_Frame) )
@@ -428,8 +412,6 @@ SelectDecor (ASWindow * t)
 	else
 		t->bw = 1;
 		
-	if (t->boundary_height == 0)
-		t->flags &= ~BORDER;
 	t->button_height = t->title_height - 7;
 }
 
@@ -710,8 +692,6 @@ AddWindow (Window w)
 
 	bind_aswindow_styles(tmp_win);
 
-	/* TODO add button translation everywhere */
-	tmp_win->buttons = ~(tmp_win->hints->disabled_buttons) ;
 	SelectDecor (tmp_win);
 	if( get_flags(tmp_win->hints->flags,AS_AcceptsFocus) )
 	{
@@ -722,8 +702,6 @@ AddWindow (Window w)
 
 	if( get_flags(tmp_win->hints->flags,AS_AvoidCover))
 		tmp_win->flags |= AVOID_COVER;
-	if (get_flags(tmp_win->hints->flags,AS_VerticalTitle))
-		tmp_win->flags |= VERTICAL_TITLE;
 	if (get_flags(tmp_win->hints->flags,AS_SkipWinList))
 		tmp_win->flags |= WINDOWLISTSKIP;
 	if (get_flags(tmp_win->hints->flags,AS_DontCirculate))
@@ -858,7 +836,7 @@ AddWindow (Window w)
 	tmp_win->title_w = 0;
 	/* title geometry can be anything - SetupFrame() will fix it */
 	tmp_win->title_x = tmp_win->title_y = -999;
-	if (tmp_win->flags & BORDER)
+	if (ASWIN_HFLAGS(tmp_win, AS_Handles))
 	{
 		/* Just dump the windows any old place and left SetupFrame take
 		 * care of the mess */
@@ -871,7 +849,7 @@ AddWindow (Window w)
 									  0, InputOutput, valuemask, &attributes);
 		}
 	}
-	if (tmp_win->flags & BORDER)
+	if (ASWIN_HFLAGS(tmp_win, AS_Handles))
 	{
 		attributes.cursor = Scr.ASCursors[BOTTOM];
 		tmp_win->side =
@@ -932,7 +910,7 @@ AddWindow (Window w)
 	XSaveContext (dpy, tmp_win->w, ASContext, (caddr_t) tmp_win);
 	XSaveContext (dpy, tmp_win->frame, ASContext, (caddr_t) tmp_win);
 	XSaveContext (dpy, tmp_win->Parent, ASContext, (caddr_t) tmp_win);
-	if (tmp_win->flags & BORDER)
+	if (ASWIN_HFLAGS(tmp_win, AS_Handles))
 	{
 		XSaveContext (dpy, tmp_win->side, ASContext, (caddr_t) tmp_win);
 		for (i = 0; i < 2; i++)

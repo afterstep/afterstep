@@ -143,7 +143,7 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 		if (Tmp_win->icon_pixmap_w != None)
 			XDeleteContext (dpy, Tmp_win->icon_pixmap_w, ASContext);
 
-	if (Tmp_win->flags & TITLE)
+	if (ASWIN_HFLAGS(Tmp_win,AS_Titlebar))
 	{
 		XDeleteContext (dpy, Tmp_win->title_w, ASContext);
 		for (i = 0; i < Scr.nr_left_buttons; i++)
@@ -152,7 +152,7 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 			if (Tmp_win->right_w[i] != None)
 				XDeleteContext (dpy, Tmp_win->right_w[i], ASContext);
 	}
-	if (Tmp_win->flags & BORDER)
+	if (ASWIN_HFLAGS(Tmp_win,AS_Handles))
 	{
 		XDeleteContext (dpy, Tmp_win->side, ASContext);
 		for (i = 0; i < 2; i++)

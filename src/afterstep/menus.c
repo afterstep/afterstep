@@ -178,7 +178,7 @@ configure_menu (MenuRoot * menu, MenuRoot * parent)
 				XTranslateCoordinates (dpy, win->right_w[Button], Scr.Root, 0, 0, &x, &y, &child);
 			if (Context & (C_LALL | C_RALL | C_TITLE))
 			{
-				if (win->flags & VERTICAL_TITLE)
+				if (ASWIN_HFLAGS(win, AS_VerticalTitle))
 					x = win->frame_x + win->bw + win->title_x + win->title_width + win->bw;
 				else
 					y = win->frame_y + win->bw + win->title_y + win->title_height + win->bw;

@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (c) 1999 Sasha Vasko <sasha at aftercode.net>
+ * Copyright (c) 1999,2002 Sasha Vasko <sasha at aftercode.net>
  * This module is based on Twm, but has been SIGNIFICANTLY modified
  * by Rob Nation
  * by Bo Yang

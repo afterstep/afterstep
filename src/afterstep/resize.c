@@ -624,9 +624,9 @@ draw_wmaker_outline (int x, int y, int width, int height, ASWindow * win)
 		return;
 
 	/* titlebar */
-	if (win->flags & TITLE)
+	if (ASWIN_HFLAGS(win,AS_Titlebar))
 	{
-		if (win->flags & VERTICAL_TITLE)
+		if (ASWIN_HFLAGS(win,AS_VerticalTitle))
 			XDrawLine (dpy, Scr.Root, Scr.DrawGC, x + win->title_width, y + 1,
 					   x + win->title_width, y + height - 1);
 		else
@@ -634,13 +634,13 @@ draw_wmaker_outline (int x, int y, int width, int height, ASWindow * win)
 					   x + width - 1, y + win->title_height);
 	}
 	/* lowbar */
-	if (win->flags & BORDER)
+	if (ASWIN_HFLAGS(win,AS_Handles))
 		XDrawLine (dpy, Scr.Root, Scr.DrawGC, x + 1, y + height - 6, x + width - 1, y + height - 6);
 
 	/* window borders */
 	if (win->flags & FRAME)
 	{
-		if (win->flags & VERTICAL_TITLE)
+		if (ASWIN_HFLAGS(win,AS_VerticalTitle))
 			draw_box_outline (x + Scr.fs[FR_W].w + win->title_width,
 							  y + Scr.fs[FR_N].h, width - Scr.fs[FR_W].w -
 							  Scr.fs[FR_E].w - win->title_width, height -

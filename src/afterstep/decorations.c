@@ -101,19 +101,16 @@ SetGnomeState (ASWindow * t)
 }
 
 Bool
-is_function_bound_to_button (int button, int function)
+is_function_bound_to_button (int b, int function)
 {
 	MouseButton  *func;
 	int           context;
 
-	if (button & 1)
-		context = C_L1 << (button / 2);
+	if (IsLeftButton(b))
+		context = C_L1 << b;
 	else
-	{
-		if (button == 0)
-			button = 10;
-		context = C_R1 << ((button - 2) / 2);
-	}
+		context = C_R1 << (b-FIRST_RIGHT_TBTN);
+
 	for (func = Scr.MouseButtonRoot; func != NULL; func = (*func).NextButton)
 		if ((func->Context & context) && (func->func == function))
 			return True;
@@ -123,14 +120,13 @@ is_function_bound_to_button (int button, int function)
 void
 disable_titlebuttons_with_function (ASWindow * t, int function)
 {
-	int           i, j;
+	int           i;
 
-	for (i = 0; i < 10; i++)
+	for (i = 0; i < TITLE_BUTTONS; i++)
 	{
-		j = (i != 9) ? (i + 1) : 0;
-		if ((Scr.buttons[j].unpressed.image != NULL ) &&
-			!(t->buttons & (BUTTON1 << i)) && is_function_bound_to_button (j, function))
-			t->buttons |= BUTTON1 << i;
+		if (Scr.buttons[i].unpressed.image != NULL &&
+			IsBtnEnabled(t,i) && is_function_bound_to_button (i, function))
+			DisableBtn(t, i);
 	}
 }
 

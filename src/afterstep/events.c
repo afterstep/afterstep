@@ -817,7 +817,7 @@ HandleMapNotify ()
 	if (Scr.flags & ClickToFocus)
 		SetFocus (Tmp_win->w, Tmp_win, False);
 
-	if ((!(Tmp_win->flags & (BORDER | TITLE))) && (Tmp_win->boundary_width < 2))
+	if (!ASWIN_HFLAGS(Tmp_win, (AS_Titlebar|AS_Handles)) && (Tmp_win->boundary_width < 2))
 		SetBorder (Tmp_win, False, True, True, Tmp_win->frame);
 
 	XSync (dpy, 0);

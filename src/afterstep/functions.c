@@ -1382,7 +1382,7 @@ Shade (ASWindow * tmp_win)
 		XMapWindow (dpy, tmp_win->w);
 #ifndef NO_SHADE
 		/* do the unshading animation */
-		if (tmp_win->flags & VERTICAL_TITLE)
+		if (ASWIN_HFLAGS(tmp_win, AS_VerticalTitle))
 		{
 			int           x;
 
@@ -1433,13 +1433,13 @@ Shade (ASWindow * tmp_win)
 		tmp_win->flags |= SHADED;
 
 		/* can't shade a window with no titlebar */
-		if (!tmp_win->flags & TITLE)
+		if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar))
 			return;
 
 #ifndef NO_SHADE
 		XLowerWindow (dpy, tmp_win->w);
 		/* do the shading animation */
-		if (tmp_win->flags & VERTICAL_TITLE)
+		if (ASWIN_HFLAGS(tmp_win, AS_VerticalTitle))
 		{
 			int           x;
 

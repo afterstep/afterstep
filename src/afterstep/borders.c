@@ -1,6 +1,7 @@
 
 /****************************************************************************
  * This module is based on Twm, but has been SIGNIFICANTLY modified 
+ * Copyright (c) 2002 Sasha Vasko <sasha@aftercode.net>
  * Copyright (c) 1998, 1999 Ethan Fischer <allanon@crystaltokyo.com>
  * by Rob Nation 
  * by Bo Yang
@@ -356,14 +357,14 @@ SetBorder (ASWindow * t, Bool is_focus, Bool force, Bool Mapped, Window expose_w
 	attributes.background_pixel = (*style).colors.back;;
 	valuemask = CWBorderPixel | CWBackPixel;
 
-	if (t->flags & (TITLE | BORDER))
+	if (ASWIN_HFLAGS(t,AS_Titlebar|AS_Handles))
 	{
 		XSetWindowBorder (dpy, t->Parent, Scr.asv->black_pixel);
 		XSetWindowBorder (dpy, t->frame, Scr.asv->black_pixel);
 	}
-	if (t->flags & TITLE)
+	if (ASWIN_HFLAGS(t,AS_Titlebar))
 		SetTitleBar (t, is_focus, False);
-	if (t->flags & BORDER)
+	if (ASWIN_HFLAGS(t,AS_Handles))
 	{
 		/* draw relief lines */
 		x = t->frame_width - 2 * t->corner_width + t->bw;
@@ -400,7 +401,7 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 #define FONTSET (*style).font.fontset
 #endif /* I18N */
 
-	if ((t == NULL) || (!(t->flags & TITLE)))
+	if ((t == NULL) || !ASWIN_HFLAGS(t,AS_Titlebar))
 		return;
 
 /* set the GCs */
@@ -427,7 +428,7 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 
 	if (ASWIN_NAME(t))
 	{
-		if (t->flags & VERTICAL_TITLE)
+		if (ASWIN_HFLAGS(t,AS_VerticalTitle))
 		{
 			txt = fit_vertical_text ((*style).font, ASWIN_NAME(t),
 									 strlen (ASWIN_NAME(t)), t->title_height -
@@ -451,13 +452,13 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 	}
 
 	/* compute the vertical position for the title */
-	if (t->flags & VERTICAL_TITLE)
+	if (ASWIN_HFLAGS(t,AS_VerticalTitle))
 		text_x = (t->title_width - (*style).font.width) / 2;
 	else
 		text_y = (t->title_height - (*style).font.height) / 2 + (*style).font.y;
 
 /* figure out where the title text goes */
-	if (t->flags & VERTICAL_TITLE)
+	if (ASWIN_HFLAGS(t,AS_VerticalTitle))
 		switch (Scr.TitleTextAlign)
 		{
 		 case JUSTIFY_LEFT:
@@ -527,7 +528,7 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 			if (is_focus && TextTextureStyle != NULL)
 				text_texture_style = mystyle_find (TextTextureStyle);
 
-			if (t->flags & VERTICAL_TITLE)
+			if (ASWIN_HFLAGS(t,AS_VerticalTitle))
 				mystyle_draw_texturized_vertical_text (t->title_w, style, text_texture_style, txt,
 													   text_x, text_y);
 			else
@@ -767,7 +768,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 		left = tmp_win->nr_left_buttons;
 		right = tmp_win->nr_right_buttons;
 
-		if (tmp_win->flags & TITLE)
+		if (ASWIN_HFLAGS(tmp_win,AS_Titlebar))
 		{
 			set_titlebar_geometry (tmp_win);
 
@@ -778,7 +779,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 			xwc.height = tmp_win->title_height;
 			XConfigureWindow (dpy, tmp_win->title_w, xwcm, &xwc);
 
-			if (tmp_win->flags & VERTICAL_TITLE)
+			if (ASWIN_HFLAGS(tmp_win,AS_VerticalTitle))
 			{
 				xwcm = CWX | CWY;
 				/* if TitleButtonStyle == 0, add a border from the side, otherwise
@@ -794,8 +795,8 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 					{
 						xwc.x =
 							tmp_win->title_x + (tmp_win->title_width -
-												Scr.buttons[i + i + 1].width) / 2;
-						if (xwc.y + Scr.buttons[i + i + 1].height + Scr.TitleButtonSpacing <
+												Scr.buttons[i].width) / 2;
+						if (xwc.y + Scr.buttons[i].height + Scr.TitleButtonSpacing <
 							tmp_win->title_y + tmp_win->title_height)
 							XConfigureWindow (dpy, tmp_win->left_w[i], xwcm, &xwc);
 						else
@@ -803,7 +804,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 							xwc.y = -999;
 							XConfigureWindow (dpy, tmp_win->left_w[i], xwcm, &xwc);
 						}
-						xwc.y += Scr.buttons[i + i + 1].height + Scr.TitleButtonSpacing;
+						xwc.y += Scr.buttons[i].height + Scr.TitleButtonSpacing;
 					}
 				}
 
@@ -817,12 +818,13 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 
 				for (i = 0; i < Scr.nr_right_buttons; i++)
 				{
+					int si = i + FIRST_RIGHT_TBTN ;
 					if (tmp_win->right_w[i] != None)
 					{
 						xwc.x =
 							tmp_win->title_x + (tmp_win->title_width -
-												Scr.buttons[(i + i + 2) % 10].width) / 2;
-						xwc.y -= Scr.buttons[(i + i + 2) % 10].height + Scr.TitleButtonSpacing;
+												Scr.buttons[si].width) / 2;
+						xwc.y -= Scr.buttons[si].height + Scr.TitleButtonSpacing;
 						if (xwc.y > tmp_win->title_y)
 							XConfigureWindow (dpy, tmp_win->right_w[i], xwcm, &xwc);
 						else
@@ -848,8 +850,8 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 					{
 						xwc.y =
 							tmp_win->title_y + (tmp_win->title_height -
-												Scr.buttons[i + i + 1].height) / 2;
-						if (xwc.x + Scr.buttons[i + i + 1].width + Scr.TitleButtonSpacing <
+												Scr.buttons[i].height) / 2;
+						if (xwc.x + Scr.buttons[i].width + Scr.TitleButtonSpacing <
 							tmp_win->title_x + tmp_win->title_width)
 							XConfigureWindow (dpy, tmp_win->left_w[i], xwcm, &xwc);
 						else
@@ -857,7 +859,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 							xwc.x = -999;
 							XConfigureWindow (dpy, tmp_win->left_w[i], xwcm, &xwc);
 						}
-						xwc.x += Scr.buttons[i + i + 1].width + Scr.TitleButtonSpacing;
+						xwc.x += Scr.buttons[i].width + Scr.TitleButtonSpacing;
 					}
 				}
 
@@ -871,12 +873,13 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 
 				for (i = 0; i < Scr.nr_right_buttons; i++)
 				{
+					int si = i + FIRST_RIGHT_TBTN ;
 					if (tmp_win->right_w[i] != None)
 					{
 						xwc.y =
 							tmp_win->title_y + (tmp_win->title_height -
-												Scr.buttons[(i + i + 2) % 10].height) / 2;
-						xwc.x -= Scr.buttons[(i + i + 2) % 10].width + Scr.TitleButtonSpacing;
+												Scr.buttons[si].height) / 2;
+						xwc.x -= Scr.buttons[si].width + Scr.TitleButtonSpacing;
 						if (xwc.x > tmp_win->title_x)
 							XConfigureWindow (dpy, tmp_win->right_w[i], xwcm, &xwc);
 						else
@@ -888,7 +891,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 				}
 			}
 		}
-		if (tmp_win->flags & BORDER)
+		if (ASWIN_HFLAGS(tmp_win,AS_Handles))
 		{
 			xwidth = w - 2 * tmp_win->corner_width + tmp_win->bw;
 			xwcm = CWWidth | CWHeight | CWX | CWY;
@@ -907,7 +910,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 				if (i)
 					xwc.x = w - tmp_win->corner_width + tmp_win->bw;
 				else
-					xwc.x = 0;
+			 		xwc.x = 0;
 
 				xwc.y = h - tmp_win->boundary_height;
 				XConfigureWindow (dpy, tmp_win->corners[i], xwcm, &xwc);
@@ -951,7 +954,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 	/* 
 	 * rebuild titlebar background gradients
 	 */
-	if ((tmp_win->flags & TITLE) && tmp_win->title_width > 2 && tmp_win->title_height > 2)
+	if (ASWIN_HFLAGS(tmp_win,AS_Titlebar) && tmp_win->title_width > 2 && tmp_win->title_height > 2)
 	{
 		/* focused titlebar */
 		if (tmp_win->style_focus->texture_type > 0 &&
@@ -999,7 +1002,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 									 tmp_win->title_height, None);
 		}
 	}
-	if ((tmp_win->flags & (TITLE | BORDER)) && (Moved || Resized))
+	if (ASWIN_HFLAGS(tmp_win,AS_Titlebar|AS_Handles) && (Moved || Resized))
 		SetTransparency (tmp_win);
 	tmp_win->bp_height = tmp_win->title_height;
 	tmp_win->bp_width = tmp_win->title_width;
@@ -1065,7 +1068,7 @@ SetShape (ASWindow * tmp_win, int w)
 						tmp_win->w, ShapeBounding, ShapeSet);
 
 	/* windows with titles */
-	if (tmp_win->flags & TITLE)
+	if (ASWIN_HFLAGS(tmp_win,AS_Titlebar))
 	{
 		XRectangle    rect;
 
@@ -1079,7 +1082,7 @@ SetShape (ASWindow * tmp_win, int w)
 	}
 
 	/* windows with handles */
-	if (tmp_win->flags & BORDER)
+	if (ASWIN_HFLAGS(tmp_win,AS_Handles))
 	{
 		XRectangle    rect;
 
@@ -1231,14 +1234,14 @@ set_titlebar_geometry (ASWindow * t)
 	t->title_y = t->boundary_width;
 	t->title_width = 0;
 	t->title_height = 0;
-	if (t->flags & TITLE)
+	if (ASWIN_HFLAGS(t,AS_Titlebar))
 	{
 		/* calculate the titlebar width and height */
-		if (t->flags & VERTICAL_TITLE)
+		if (ASWIN_HFLAGS(t,AS_VerticalTitle))
 		{
 			int           i, width = 2;
 
-			for (i = 0; i < 10; i++)
+			for (i = 0; i < TITLE_BUTTONS; i++)
 				if (width < Scr.buttons[i].width)
 					width = Scr.buttons[i].width;
 
@@ -1262,7 +1265,7 @@ set_titlebar_geometry (ASWindow * t)
 		{
 			int           i, height = 2;
 
-			for (i = 0; i < 10; i++)
+			for (i = 0; i < TITLE_BUTTONS; i++)
 				if (height < Scr.buttons[i].height)
 					height = Scr.buttons[i].height;
 
@@ -1307,9 +1310,9 @@ get_parent_geometry (ASWindow * t, int frame_width, int frame_height, int *paren
 	}
 
 	/* do the titlebar */
-	if (t->flags & TITLE)
+	if (ASWIN_HFLAGS(t,AS_Titlebar))
 	{
-		if (t->flags & VERTICAL_TITLE)
+		if (ASWIN_HFLAGS(t,AS_VerticalTitle))
 		{
 			/* titlebar goes on the left */
 			parent_x += t->title_width + t->bw;
@@ -1323,7 +1326,7 @@ get_parent_geometry (ASWindow * t, int frame_width, int frame_height, int *paren
 	}
 
 	/* do the lowbar */
-	if (t->flags & BORDER)
+	if (ASWIN_HFLAGS(t,AS_Handles))
 		parent_height -= t->boundary_height;
 
 	if (parent_x_out != NULL)
@@ -1379,9 +1382,9 @@ get_client_geometry (ASWindow * t, int frame_x, int frame_y, int frame_width, in
 		client_y -= 2 * (t->old_bw - t->bw);
 
 	/* do the titlebar */
-	if (t->flags & TITLE)
+	if (ASWIN_HFLAGS(t,AS_Titlebar))
 	{
-		if (t->flags & VERTICAL_TITLE)
+		if (ASWIN_HFLAGS(t,AS_VerticalTitle))
 		{
 			/* titlebar goes on the left */
 			if (grav_x != -1)
@@ -1397,7 +1400,7 @@ get_client_geometry (ASWindow * t, int frame_x, int frame_y, int frame_width, in
 	}
 
 	/* do the lowbar */
-	if (t->flags & BORDER)
+	if (ASWIN_HFLAGS(t,AS_Handles))
 	{
 		client_height -= t->boundary_height;
 		if (grav_y == 1)
@@ -1456,9 +1459,9 @@ get_frame_geometry (ASWindow * t, int client_x, int client_y, int client_width, 
 		frame_y += 2 * (t->old_bw - t->bw);
 
 	/* do the titlebar */
-	if (t->flags & TITLE)
+	if (ASWIN_HFLAGS(t,AS_Titlebar))
 	{
-		if (t->flags & VERTICAL_TITLE)
+		if (ASWIN_HFLAGS(t,AS_VerticalTitle))
 		{
 			/* titlebar goes on the left */
 			if (grav_x != -1)
@@ -1474,7 +1477,7 @@ get_frame_geometry (ASWindow * t, int client_x, int client_y, int client_width, 
 	}
 
 	/* do the lowbar */
-	if (t->flags & BORDER)
+	if (ASWIN_HFLAGS(t,AS_Handles))
 	{
 		frame_height += t->boundary_height;
 		if (grav_y == 1)
@@ -1524,9 +1527,9 @@ get_resize_geometry (ASWindow * t, int client_x, int client_y, int client_width,
 	frame_y -= t->bw;
 
 	/* do the titlebar */
-	if (t->flags & TITLE)
+	if (ASWIN_HFLAGS(t,AS_Titlebar))
 	{
-		if (t->flags & VERTICAL_TITLE)
+		if (ASWIN_HFLAGS(t,AS_VerticalTitle))
 		{
 			/* titlebar goes on the left */
 			frame_x -= t->title_width + t->bw;
@@ -1540,7 +1543,7 @@ get_resize_geometry (ASWindow * t, int client_x, int client_y, int client_width,
 	}
 
 	/* do the lowbar */
-	if (t->flags & BORDER)
+	if (ASWIN_HFLAGS(t,AS_Handles))
 		frame_height += t->boundary_height;
 
 	if (frame_x_out != NULL)

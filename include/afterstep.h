@@ -180,10 +180,21 @@ typedef struct ASWindow
 #define ASWIN_ICON_NAME(t)  ((t)->hints->icon_name)
 #define ASWIN_DESK(t)       ((t)->status->desktop)
 #define ASWIN_LAYER(t)      ((t)->status->layer)
+#define ASWIN_HFLAGS(t,f) 	get_flags((t)->hints->flags,(f))
 #define ASWIN_GET_FLAGS(t,f) 	get_flags((t)->status->flags,(f))
 #define ASWIN_SET_FLAGS(t,f)    set_flags((t)->status->flags,(f))
 #define ASWIN_CLEAR_FLAGS(t,f) 	clear_flags((t)->status->flags,(f))
 #define ASWIN_FUNC_MASK(t)  ((t)->hints->function_mask)
+
+#define TITLE_BUTTONS		10
+#define FIRST_RIGHT_TBTN 	5
+#define IsLeftButton(b) 	((b)<FIRST_RIGHT_TBTN)
+#define IsRightButton(b) 	((b)>=FIRST_RIGHT_TBTN)
+
+#define IsBtnDisabled(t,b)  (!get_flags((t)->hints->disabled_buttons,(0x01<<(b))))
+#define IsBtnEnabled(t,b)   get_flags((t)->hints->disabled_buttons,(0x01<<(b)))
+#define DisableBtn(t,b)  	clear_flags((t)->hints->disabled_buttons,(0x01<<(b)))
+
 
     int old_bw;			/* border width before reparenting */
     Window frame;		/* the frame window */
@@ -253,7 +264,6 @@ typedef struct ASWindow
 
     long focus_sequence;
     long circulate_sequence;
-    unsigned long buttons;
     Bool focus_var;		/* to see if focus will work this way */
 #ifndef NO_TEXTURE
     int bp_width, bp_height;	/* size of background pixmap */
@@ -307,10 +317,6 @@ extern TextureInfo Textures;
  * window flags definitions 
  ***************************************************************************/
 #define STICKY			(1<< 0)		/* Does window stick to glass? */
-#define BORDER			(1<< 1)		/* Is this decorated with border */
-#ifndef TITLE
-#define TITLE			(1<< 2)		/* Is this decorated with title */
-#endif
 #define MAPPED			(1<< 3)		/* is it mapped? */
 #define ICONIFIED		(1<< 4)		/* is it an icon now? */
 #define TRANSIENT		(1<< 5)		/* is it a transient window? */
@@ -337,11 +343,9 @@ extern TextureInfo Textures;
 #define SHADED			(1<<22)
 #define NOICON_TITLE		(1<<23)
 #define AVOID_COVER		(1<<24)		/* if other windows avoid covering this one */
-#define VERTICAL_TITLE		(1<<25)		/* if this window has a vertical titlebar */
 #define PASS_1			(1<<26)		/* if window was handled in the first pass of a multi-pass operation */
 #define NOFOCUS			(1<<27)		/* set on windows that don't want any focus */
 #define FRAME			(1<<28)		/* for windows that want to have a frame around the parent window */
-#define HANDLES			(1<<29)
 /* flags to suppress/enable title bar buttons */
 #define BUTTON1     1
 #define BUTTON2     2
