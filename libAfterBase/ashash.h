@@ -4,7 +4,7 @@
 
 struct wild_reg_exp;
 
-typedef union
+typedef union ASHashableValue
 {
   unsigned long long_val;
   char *string_val;
