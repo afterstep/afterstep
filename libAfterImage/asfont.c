@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #undef LOCAL_DEBUG
-#define DO_CLOCKING
+#undef DO_CLOCKING
 
 #ifdef _WIN32
 #include "win32/config.h"
