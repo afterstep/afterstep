@@ -29,6 +29,8 @@
 
 #include <X11/Xmd.h>
 
+#define LOCAL_DEBUG
+
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
 #include "../include/ashash.h"
@@ -194,6 +196,7 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
 		hash->items_num++;
 		if (hash->buckets[key]->next == NULL)
 			hash->buckets_used++;
+LOCAL_DEBUG_CALLER_OUT( "0x%lX", (unsigned long)item );
 	} else
 		free (item);
 	return res;

@@ -355,6 +355,7 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
 
             XChangeProperty (dpy, Scr.Root, property, type?type:XA_CARDINAL, 32,
                              PropModeReplace, (unsigned char *)&data, items);
+			free(data);							
         }else
         {
             XChangeProperty (dpy, Scr.Root, property,
