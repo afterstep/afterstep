@@ -688,6 +688,7 @@ afterstep/Makefile \
 doc/Makefile \
 doc/afterstepdoc \
 \
+libAfterStep/afterstep-config \
 libAfterStep/Makefile \
 libAfterConf/Makefile \
 \
