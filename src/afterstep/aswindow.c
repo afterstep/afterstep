@@ -21,15 +21,9 @@
 
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/hints.h"
-#include "../../include/screen.h"
-#include "../../include/decor.h"
-#include "../../include/module.h"
 #include "asinternals.h"
 
-Bool on_dead_aswindow( Window w, struct ASWindowList *list );
+Bool on_dead_aswindow( Window w );
 /********************************************************************************/
 /* window list management */
 
@@ -61,7 +55,7 @@ init_aswindow_list()
 //    list->root->w = Scr.Root ;
 //    add_hash_item( list->clients, (ASHashableValue)Scr.Root, list->root );
 
-    list->on_dead_window = on_dead_aswindow ;
+    Scr.on_dead_window = on_dead_aswindow ;
 
     return list;
 }
@@ -207,7 +201,7 @@ pattern2ASWindow( const char *pattern )
 }
 
 
-Bool on_dead_aswindow( Window w, struct ASWindowList *list )
+Bool on_dead_aswindow( Window w )
 {
     ASWindow *asw = window2ASWindow( w );
     if( asw )

@@ -1,7 +1,7 @@
 
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
+#include "../../libAfterStep/asapp.h"
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>

@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2003 Sasha Vasko
  * Copyright (C) 1996 Frank Fejes
  * Copyright (C) 1996 Alfredo Kojima
  * Copyright (C) 1995 Bo Yang
@@ -29,14 +30,6 @@
  ****************************************************************************/
 
 #include "../../configure.h"
-
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/screen.h"
-#include "../../include/functions.h"
-#include "../../include/mystyle.h"
-#include "../../include/decor.h"
 
 #include "asinternals.h"
 

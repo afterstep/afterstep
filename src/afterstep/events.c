@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2003 Sasha Vasko
  * Copyright (C) 1995 Bo Yang
  * Copyright (C) 1993 Robert Nation
  * Copyright (C) 1993 Frank Fejes
@@ -24,26 +25,17 @@
 
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
+#include "asinternals.h"
+
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
 
-#include "../../include/afterstep.h"
-#include "../../include/module.h"
-#include "../../include/parse.h"
-#include "../../include/decor.h"
-#include "../../include/screen.h"
-#include "../../include/event.h"
-#include "../../include/balloon.h"
-#include "../../include/loadimg.h"
-#include "../../libAfterImage/afterimage.h"
-#include "../../include/mystyle.h"
-#include "../../include/wmprops.h"
-#include "../../include/moveresize.h"
-#include "asinternals.h"
+#include "../../libAfterStep/loadimg.h"
+#include "../../libAfterStep/wmprops.h"
+#include "../../libAfterStep/moveresize.h"
 
 #include <X11/keysym.h>
 

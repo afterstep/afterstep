@@ -32,7 +32,7 @@
 
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
+#include "../../libAfterStep/asapp.h"
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -41,20 +41,21 @@
 #define IN_MODULE
 #define MODULE_X_INTERFACE
 
-#include "../../include/afterstep.h"
-#include "../../include/screen.h"
-#include "../../include/module.h"
-#include "../../include/parse.h"
-#include "../../include/parser.h"
-#include "../../include/confdefs.h"
-#include "../../include/mystyle.h"
-#include "../../include/mystyle_property.h"
-#include "../../include/balloon.h"
-#include "../../include/aswindata.h"
-#include "../../include/decor.h"
-#include "../../include/event.h"
-#include "../../include/wmprops.h"
-#include "../../include/moveresize.h"
+#include "../../libAfterStep/afterstep.h"
+#include "../../libAfterStep/screen.h"
+#include "../../libAfterStep/module.h"
+#include "../../libAfterStep/parser.h"
+#include "../../libAfterStep/mystyle.h"
+#include "../../libAfterStep/mystyle_property.h"
+#include "../../libAfterStep/balloon.h"
+#include "../../libAfterStep/aswindata.h"
+#include "../../libAfterStep/decor.h"
+#include "../../libAfterStep/event.h"
+#include "../../libAfterStep/wmprops.h"
+#include "../../libAfterStep/moveresize.h"
+
+#include "../../libAfterConf/afterconf.h"
+
 
 typedef struct ASPagerDesk {
 

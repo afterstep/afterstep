@@ -1,290 +1,117 @@
 ./dirtree.h: \
-		../../include/functions.h
-
-./globals.h:
+		../../libAfterStep/functions.h
 
 ./menus.h: \
-		../../include/functions.h
+		../../libAfterStep/functions.h
 
 ./asinternals.h: \
+		../../libAfterStep/asapp.h \
+		../../libAfterImage/afterimage.h \
+		../../libAfterStep/afterstep.h \
+		../../libAfterStep/event.h \
+		../../libAfterStep/decor.h \
+		../../libAfterStep/screen.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/mystyle.h \
+		../../libAfterStep/clientprops.h \
+		../../libAfterStep/hints.h \
+		../../libAfterStep/balloon.h \
+		../../libAfterStep/parser.h \
 		menus.h
 
 ./add_window.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/event.h \
-		../../include/decor.h \
-		../../include/screen.h \
-		../../include/parser.h \
-		../../include/module.h \
-		../../include/mystyle.h \
-		../../include/clientprops.h \
-		../../include/hints.h \
-		../../include/balloon.h \
-		../../libAfterImage/afterimage.h \
 		asinternals.h
 
 ./afterstep.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/screen.h \
-		../../include/event.h \
-		../../include/decor.h \
-		../../include/module.h \
-		../../include/clientprops.h \
-		../../include/hints.h \
-		../../include/session.h \
-		../../include/wmprops.h \
-		../../include/balloon.h \
-		../../include/loadimg.h \
-		../../libAfterImage/afterimage.h \
-		asinternals.h
-
-./borders.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h \
-		../../include/module.h
-
-./clientwin.o: \
-		../../configure.h
+		asinternals.h \
+		../../libAfterStep/loadimg.h \
+		../../libAfterStep/session.h \
+		../../libAfterStep/wmprops.h
 
 ./colormaps.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../libAfterImage/afterimage.h \
-		../../include/afterstep.h \
-		../../include/screen.h \
-		../../include/event.h \
 		asinternals.h
 
 ./configure.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/mystyle.h \
-		../../include/decor.h \
-		../../include/screen.h \
-		../../include/loadimg.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
-		../../include/balloon.h \
-		../../include/session.h \
-		../../libAfterImage/afterimage.h \
-		../../include/mystyle_property.h \
+		asinternals.h \
 		dirtree.h \
-		asinternals.h
+		../../libAfterStep/loadimg.h \
+		../../libAfterStep/session.h \
+		../../libAfterStep/mystyle_property.h \
+		../../libAfterConf/afterconf.h
 
 ./decorations.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/screen.h \
-		../../include/functions.h \
-		../../include/mystyle.h \
-		../../include/decor.h \
 		asinternals.h
 
 ./dirtree.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/parser.h \
+		../../libAfterStep/asapp.h \
 		../../include/myscandir.h \
 		dirtree.h
 
 ./events.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/module.h \
-		../../include/parse.h \
-		../../include/decor.h \
-		../../include/screen.h \
-		../../include/event.h \
-		../../include/balloon.h \
-		../../include/loadimg.h \
-		../../libAfterImage/afterimage.h \
-		../../include/mystyle.h \
-		../../include/wmprops.h \
-		../../include/moveresize.h \
-		asinternals.h
-
-./frame.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h \
-		../../include/module.h \
-		../../include/loadimg.h
+		asinternals.h \
+		../../libAfterStep/loadimg.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterStep/moveresize.h
 
 ./functions.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../libAfterImage/afterimage.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/parser.h \
-		../../include/decor.h \
-		../../include/event.h \
-		../../include/screen.h \
-		../../include/module.h \
-		../../include/session.h \
-		../../include/moveresize.h \
-		asinternals.h
-
-./gnome.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h \
-		../../include/module.h
+		asinternals.h \
+		../../libAfterStep/session.h \
+		../../libAfterStep/moveresize.h
 
 ./icons.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/decor.h \
-		../../include/screen.h \
-		../../include/module.h \
 		asinternals.h
 
 ./menuitem.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/screen.h \
-		../../include/parser.h \
-		../../include/loadimg.h \
-		../../include/module.h \
-		../../include/decor.h \
-		dirtree.h \
-		asinternals.h
+		asinternals.h \
+		../../libAfterStep/loadimg.h \
+		dirtree.h
 
 ./menus.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/screen.h \
-		../../include/mystyle.h \
-		../../include/decor.h \
-		../../include/hints.h \
-		../../include/event.h \
 		asinternals.h \
 		menus.h
 
 ./misc.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/screen.h \
 		asinternals.h
 
 ./module.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/decor.h \
-		../../include/screen.h \
-		../../include/module.h \
-		../../include/wmprops.h \
-		../../include/event.h \
-		asinternals.h
-
-./move.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h \
-		../../include/module.h
+		asinternals.h \
+		../../libAfterStep/wmprops.h
 
 ./myscandir.o: \
 		../../configure.h \
-		../../include/asapp.h \
+		../../libAfterStep/asapp.h \
 		../../include/myscandir.h
 
 ./pager.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../libAfterImage/afterimage.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/screen.h \
-		../../include/module.h \
-		../../include/event.h \
-		../../include/decor.h \
-		../../include/mystyle.h \
-		../../include/wmprops.h \
-		../../include/session.h \
-		asinternals.h
+		asinternals.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterStep/session.h
 
 ./placement.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/screen.h \
-		../../include/decor.h \
 		asinternals.h
-
-./resize.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h \
-		../../include/string.h \
-		../../include/functions.h
-
-./style.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/style.h \
-		../../include/parse.h \
-		../../include/afterstep.h \
-		../../include/misc.h \
-		../../include/screen.h \
-		../../include/hints.h
 
 ./windows.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/screen.h \
+		asinternals.h \
 		menus.h
 
 ./aswindow.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/hints.h \
-		../../include/screen.h \
-		../../include/decor.h \
-		../../include/module.h \
 		asinternals.h
 
 ./functions_old.o: \
@@ -301,22 +128,7 @@
 
 ./housekeeping.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/screen.h \
-		../../include/decor.h \
 		asinternals.h
-
-./titlechange.o:
-
-./geometry.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h
 
 ./menus_old.o: \
 		../../configure.h \

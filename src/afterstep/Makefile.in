@@ -1,8 +1,8 @@
-OBJS            = module.o add_window.o afterstep.o aswindow.o \
+OBJS            = add_window.o afterstep.o aswindow.o \
 				colormaps.o configure.o decorations.o dirtree.o \
-				events.o functions.o housekeeping.o myscandir.o \
-				pager.o placement.o menuitem.o misc.o icons.o windows.o \
-				menus.o
+				events.o functions.o housekeeping.o icons.o \
+				menuitem.o menus.o misc.o module.o myscandir.o \
+				pager.o placement.o windows.o 
 
 # move.o clientwin.o
 # resize.o

@@ -29,6 +29,8 @@
 
 #include "../../configure.h"
 
+#include "asinternals.h"
+
 #include <signal.h>
 #include <stdarg.h>
 #include <fcntl.h>
@@ -41,14 +43,7 @@
 
 #include <X11/keysym.h>
 
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/decor.h"
-#include "../../include/screen.h"
-#include "../../include/module.h"
-#include "../../include/wmprops.h"
-#include "../../include/event.h"
-#include "asinternals.h"
+#include "../../libAfterStep/wmprops.h"
 
 typedef CARD32 send_data_type;
 static DECL_VECTOR(send_data_type, module_output_buffer);

@@ -19,11 +19,6 @@
 
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
-#include "../../libAfterImage/afterimage.h"
-#include "../../include/afterstep.h"
-#include "../../include/screen.h"
-#include "../../include/event.h"
 #include "asinternals.h"
 
 typedef enum {

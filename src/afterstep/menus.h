@@ -3,7 +3,7 @@
 
 #define MAX_FILE_SIZE 4096	/* max chars to read from file for cut */
 
-#include "../../include/functions.h"
+#include "../../libAfterStep/functions.h"
 
 struct ASEvent;
 struct TermDef;
@@ -79,7 +79,7 @@ int free_func_data( FunctionData* data );
 ComplexFunction *find_complex_func( struct ASHashTable *list, char *name );
 
 void ExecuteFunction (struct FunctionData *, struct ASEvent *, int);
-void FocusOn (ASWindow *, int, Bool);
+void FocusOn (struct ASWindow *, int, Bool);
 
 MenuData* FindPopup( const char* name, int quiet );
 

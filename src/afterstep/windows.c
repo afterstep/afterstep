@@ -26,10 +26,7 @@
 
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/screen.h"
+#include "asinternals.h"
 #include "menus.h"
 
 /* I tried to include "limits.h" to get these values, but it

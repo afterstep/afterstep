@@ -27,7 +27,6 @@
 #include "../libAfterStep/parser.h"
 #include "../libAfterStep/hints.h"
 #include "../libAfterStep/mystyle.h"
-#include "../libAfterStep/parse.h"
 #include "../libAfterStep/screen.h"
 #include "../libAfterStep/mylook.h"
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2003 Sasha Vasko <sasha@ aftercode.net>
  * Copyright (c) 1999 Ethan Fischer <allanon@crystaltokyo.com>
  * Copyright (C) 1993 Robert Nation
  *
@@ -27,19 +28,11 @@
 #define LOCAL_DEBUG
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
-#include "../../libAfterImage/afterimage.h"
-#include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/screen.h"
-#include "../../include/module.h"
-#include "../../include/event.h"
-#include "../../include/decor.h"
-#include "../../include/mystyle.h"
-#include "../../include/wmprops.h"
-#include "../../include/session.h"
-
 #include "asinternals.h"
+
+#include "../../libAfterStep/wmprops.h"
+#include "../../libAfterStep/session.h"
+
 
 /***************************************************************************
  *

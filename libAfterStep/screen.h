@@ -161,6 +161,9 @@ typedef struct ScreenInfo
 
     struct ASFontManager  *font_manager ;
     struct ASImageManager *image_manager ;
+	
+	Bool (*on_dead_window)( Window w );
+
 }ScreenInfo;
 
 void init_screen_gcs(ScreenInfo *scr);

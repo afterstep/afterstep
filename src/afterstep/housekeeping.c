@@ -25,14 +25,10 @@
 
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
 #include <limits.h>
 #include <signal.h>
 #include <unistd.h>
 
-#include "../../include/afterstep.h"
-#include "../../include/screen.h"
-#include "../../include/decor.h"
 #include "asinternals.h"
 
 /*****************************************************************************

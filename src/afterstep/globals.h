@@ -1,6 +1,0 @@
-#ifndef AS_GLOBALS_HEADER_FILE
-#define AS_GLOBALS_HEADER_FILE
-
-
-
-#endif

@@ -1,7 +1,7 @@
 #ifndef DIRTREE_H
 #define DIRTREE_H
 
-#include "../../include/functions.h"
+#include "../../libAfterStep/functions.h"
 
 typedef struct dirtree_t
 {

@@ -23,7 +23,6 @@
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/afterstep.h"
 #include "../libAfterStep/parser.h"
-//#include "../libAfterStep/parse.h"
 #include "../libAfterStep/screen.h"
 
 #include "afterconf.h"

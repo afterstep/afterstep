@@ -1,17 +1,17 @@
 ./WinList.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/screen.h \
-		../../include/module.h \
-		../../include/mystyle.h \
-		../../include/mystyle_property.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
-		../../include/clientprops.h \
-		../../include/wmprops.h \
-		../../include/decor.h \
+		../../libAfterStep/asapp.h \
 		../../libAfterImage/afterimage.h \
-		../../include/aswindata.h \
-		../../include/balloon.h \
-		../../include/event.h
+		../../libAfterStep/afterstep.h \
+		../../libAfterStep/screen.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/mystyle.h \
+		../../libAfterStep/mystyle_property.h \
+		../../libAfterStep/parser.h \
+		../../libAfterStep/clientprops.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterStep/decor.h \
+		../../libAfterStep/aswindata.h \
+		../../libAfterStep/balloon.h \
+		../../libAfterStep/event.h \
+		../../libAfterConf/afterconf.h

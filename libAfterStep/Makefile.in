@@ -25,8 +25,8 @@ LIB_OBJS= asapp.o asdatabase.o asfeel.o aswindata.o \
 		  outline.o parser.o screen.o session.o wmprops.o
 
 LIB_NAME        = LIBAFTERSTEP
-LIB_STATIC      = libafterstep.a
-LIB_SHARED      = libafterstep.so
+LIB_STATIC      = libAfterStep.a
+LIB_SHARED      = libAfterStep.so
 LIBVER          = @libafterstep_version@
 LIBVERMAJOR     = @libafterstep_version_major@
 

@@ -144,8 +144,8 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 	if (event && dpy)
 	{
         if( event->error_code == BadWindow && Scr.Windows != NULL )
-            if( Scr.Windows->on_dead_window )
-                if( Scr.Windows->on_dead_window( event->resourceid, Scr.Windows ) )
+            if( Scr.on_dead_window )
+                if( Scr.on_dead_window( event->resourceid ) )
                     return 0;
 
         err_text = safemalloc (128);

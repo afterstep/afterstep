@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2002 Jan Fedak <jack at mobil dot cz>
- * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
+ * Copyright (c) 1998,2003 Sasha Vasko <sasha at aftercode.net>
  * spawned from configure.c and module.c using code from various ppl :
  * Copyright (c) 1998 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
  * Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
@@ -41,7 +41,9 @@
 #define LOCAL_DEBUG
 
 #include "../../configure.h"
-#include "../../include/asapp.h"
+
+#include "asinternals.h"
+
 #include <signal.h>
 #include <stdarg.h>
 #include <fcntl.h>
@@ -51,16 +53,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/screen.h"
-#include "../../include/parser.h"
-#include "../../include/loadimg.h"
-#include "../../include/module.h"
-#include "../../include/decor.h"
+#include "../../libAfterStep/loadimg.h"
 
 #include "dirtree.h"
-#include "asinternals.h"
 
 /***************************************************************************/
 /*                      Menu functions                                     */

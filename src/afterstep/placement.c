@@ -22,11 +22,6 @@
 #define LOCAL_DEBUG
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/screen.h"
-#include "../../include/decor.h"
-
 #include "asinternals.h"
 
 

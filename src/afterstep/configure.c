@@ -39,24 +39,18 @@
 #define LOCAL_DEBUG
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
+#include "asinternals.h"
+
 #include <unistd.h>
 
-#include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/mystyle.h"
-#include "../../include/decor.h"
-#include "../../include/screen.h"
-#include "../../include/loadimg.h"
-#include "../../include/parser.h"
-#include "../../include/confdefs.h"
-#include "../../include/balloon.h"
-#include "../../include/session.h"
-#include "../../libAfterImage/afterimage.h"
-#include "../../include/mystyle_property.h"
-
 #include "dirtree.h"
-#include "asinternals.h"
+
+#include "../../libAfterStep/loadimg.h"
+#include "../../libAfterStep/session.h"
+#include "../../libAfterStep/mystyle_property.h"
+
+#include "../../libAfterConf/afterconf.h"
+
 
 /* old look auxilary variables : */
 static MyFont StdFont    = {NULL};         /* font structure */

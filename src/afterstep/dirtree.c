@@ -29,12 +29,8 @@
 
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/parser.h"
+#include "../../libAfterStep/asapp.h"
 #include "../../include/myscandir.h"
-
 #include "dirtree.h"
 void          init_func_data (FunctionData * data);
 int           txt2func (const char *text, FunctionData * fdata, int quiet);

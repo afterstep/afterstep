@@ -20,10 +20,10 @@
 /*#define LOCAL_DEBUG */
 #include "../configure.h"
 
-#include "../include/asapp.h"
-#include "../include/screen.h"
-#include "../include/clientprops.h"
-#include "../include/hints.h"
+#include "asapp.h"
+#include "screen.h"
+#include "clientprops.h"
+#include "hints.h"
 
 /************************************************************************/
 /*		New hints implementation :				*/

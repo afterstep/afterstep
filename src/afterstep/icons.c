@@ -23,19 +23,12 @@
 
 #include "../../configure.h"
 
+#include "asinternals.h"
 
-#include "../../include/asapp.h"
 #include <unistd.h>
 #include <signal.h>
 #include <X11/Intrinsic.h>
 
-#include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/decor.h"
-#include "../../include/screen.h"
-#include "../../include/module.h"
-
-#include "asinternals.h"
 
 /***********************************************************************/
 /* new IconBox handling :                                              */

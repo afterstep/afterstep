@@ -48,7 +48,6 @@
 		../libAfterStep/asapp.h \
 		../libAfterStep/afterstep.h \
 		../libAfterStep/parser.h \
-		../libAfterStep/parse.h \
 		../libAfterStep/screen.h \
 		afterconf.h
 
@@ -59,7 +58,6 @@
 		../libAfterStep/parser.h \
 		../libAfterStep/hints.h \
 		../libAfterStep/mystyle.h \
-		../libAfterStep/parse.h \
 		../libAfterStep/screen.h \
 		../libAfterStep/mylook.h \
 		afterconf.h
@@ -70,7 +68,6 @@
 		../libAfterStep/afterstep.h \
 		../libAfterStep/mystyle.h \
 		../libAfterStep/parser.h \
-		../libAfterStep/parse.h \
 		../libAfterStep/screen.h \
 		afterconf.h
 

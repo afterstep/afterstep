@@ -25,23 +25,27 @@
 
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
+#include "../../libAfterStep/asapp.h"
+
 #include <signal.h>
 #include <unistd.h>
-#include "../../include/afterstep.h"
-#include "../../include/screen.h"
-#include "../../include/module.h"
-#include "../../include/mystyle.h"
-#include "../../include/mystyle_property.h"
-#include "../../include/parser.h"
-#include "../../include/confdefs.h"
-#include "../../include/clientprops.h"
-#include "../../include/wmprops.h"
-#include "../../include/decor.h"
+
 #include "../../libAfterImage/afterimage.h"
-#include "../../include/aswindata.h"
-#include "../../include/balloon.h"
-#include "../../include/event.h"
+
+#include "../../libAfterStep/afterstep.h"
+#include "../../libAfterStep/screen.h"
+#include "../../libAfterStep/module.h"
+#include "../../libAfterStep/mystyle.h"
+#include "../../libAfterStep/mystyle_property.h"
+#include "../../libAfterStep/parser.h"
+#include "../../libAfterStep/clientprops.h"
+#include "../../libAfterStep/wmprops.h"
+#include "../../libAfterStep/decor.h"
+#include "../../libAfterStep/aswindata.h"
+#include "../../libAfterStep/balloon.h"
+#include "../../libAfterStep/event.h"
+
+#include "../../libAfterConf/afterconf.h"
 
 /**********************************************************************/
 /*  AfterStep specific global variables :                             */

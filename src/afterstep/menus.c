@@ -28,21 +28,16 @@
 /***********************************************************************
  * afterstep menu code
  ***********************************************************************/
-#include "../../configure.h"
 
 #define LOCAL_DEBUG
 
-#include "../../include/asapp.h"
-#include <X11/keysym.h>
+#include "../../configure.h"
 
-#include "../../include/afterstep.h"
-#include "../../include/screen.h"
-#include "../../include/mystyle.h"
-#include "../../include/decor.h"
-#include "../../include/hints.h"
-#include "../../include/event.h"
 #include "asinternals.h"
 #include "menus.h"
+
+
+#include <X11/keysym.h>
 
 #define START_LONG_DRAW_OPERATION   XGrabServer(dpy)
 #define STOP_LONG_DRAW_OPERATION    XUngrabServer(dpy)

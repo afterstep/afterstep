@@ -2,21 +2,20 @@
 
 ./Pager.o: \
 		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/screen.h \
-		../../include/module.h \
-		../../include/parse.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
-		../../include/mystyle.h \
-		../../include/mystyle_property.h \
-		../../include/balloon.h \
-		../../include/aswindata.h \
-		../../include/decor.h \
-		../../include/event.h \
-		../../include/wmprops.h \
-		../../include/moveresize.h
+		../../libAfterStep/asapp.h \
+		../../libAfterStep/afterstep.h \
+		../../libAfterStep/screen.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/parser.h \
+		../../libAfterStep/mystyle.h \
+		../../libAfterStep/mystyle_property.h \
+		../../libAfterStep/balloon.h \
+		../../libAfterStep/aswindata.h \
+		../../libAfterStep/decor.h \
+		../../libAfterStep/event.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterStep/moveresize.h \
+		../../libAfterConf/afterconf.h
 
 ./x_pager.o: \
 		../../configure.h \

@@ -23,28 +23,11 @@
  * the window
  *
  **********************************************************************/
-#include "../../configure.h"
 #define LOCAL_DEBUG
 
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/event.h"
-#include "../../include/decor.h"
-#include "../../include/screen.h"
-#include "../../include/parser.h"
-#include "../../include/module.h"
-#include "../../include/mystyle.h"
-#include "../../include/clientprops.h"
-#include "../../include/hints.h"
-#include "../../include/balloon.h"
-#include "../../libAfterImage/afterimage.h"
-#include "asinternals.h"
+#include "../../configure.h"
 
-#ifdef SHAPE
-#include <X11/extensions/shape.h>
-#include <X11/Xresource.h>
-#endif /* SHAPE */
+#include "asinternals.h"
 
 #if 0
 /************************************************************************/

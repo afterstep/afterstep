@@ -20,28 +20,18 @@
 #include "../../configure.h"
 #define LOCAL_DEBUG
 
-#include "../../include/asapp.h"
+#include "asinternals.h"
+
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
 
 #include <X11/cursorfont.h>
 
-#include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/screen.h"
-#include "../../include/event.h"
-#include "../../include/decor.h"
-#include "../../include/module.h"
-#include "../../include/clientprops.h"
-#include "../../include/hints.h"
-#include "../../include/session.h"
-#include "../../include/wmprops.h"
-#include "../../include/balloon.h"
-#include "../../include/loadimg.h"
-#include "../../libAfterImage/afterimage.h"
+#include "../../libAfterStep/loadimg.h"
+#include "../../libAfterStep/session.h"
+#include "../../libAfterStep/wmprops.h"
 
-#include "asinternals.h"
 
 /**************************************************************************/
 /* 		Global variables that defines our behaviour 		  */

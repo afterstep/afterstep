@@ -2,7 +2,7 @@
 #define _MYSTYLE_
 
 #include "../libAfterImage/afterimage.h"
-#include "../include/font.h"
+#include "font.h"
 
 /***********************************************************************
  *

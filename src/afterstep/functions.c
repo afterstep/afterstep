@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (c) 2000,2001 Sasha Vasko <sasha at aftercode.net>
+ * Copyright (c) 2000,2001,2003 Sasha Vasko <sasha at aftercode.net>
  * Copyright (c) 1999 Ethan Fisher <allanon@crystaltokyo.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,22 +32,13 @@
 
 #include "../../configure.h"
 
-#include "../../include/asapp.h"
-#include "../../libAfterImage/afterimage.h"
+#include "asinternals.h"
 
 #include <limits.h>
 #include <signal.h>
 
-#include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/parser.h"
-#include "../../include/decor.h"
-#include "../../include/event.h"
-#include "../../include/screen.h"
-#include "../../include/module.h"
-#include "../../include/session.h"
-#include "../../include/moveresize.h"
-#include "asinternals.h"
+#include "../../libAfterStep/session.h"
+#include "../../libAfterStep/moveresize.h"
 
 static as_function_handler function_handlers[F_FUNCTIONS_NUM] ;
 
