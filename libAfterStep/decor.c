@@ -32,6 +32,7 @@
 #include "event.h"
 #include "balloon.h"
 
+
 static GC           MaskGC = None;
 static ASTBarData  *FocusedBar = NULL;          /* currently focused bar with balloon shown for it */
 
