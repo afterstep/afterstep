@@ -93,6 +93,7 @@ long option_compare(  ASHashableValue value1, ASHashableValue value2 );
 
 /* case unsensitive strings  - spaces and control chars are alowed */
 ASHashKey casestring_hash_value (ASHashableValue value, ASHashKey hash_size);
+long casestring_compare(  ASHashableValue value1, ASHashableValue value2 );
 
 /* case sensitive strings  - spaces and control chars are alowed */
 ASHashKey string_hash_value (ASHashableValue value, ASHashKey hash_size);
