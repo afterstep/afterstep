@@ -7,6 +7,7 @@
 #include <string.h>
 #undef malloc
 #undef safemalloc
+#undef safecalloc
 #endif /* DEBUG_ALLOCS */
 
 /* always undef free, as it will be both redefined with and without
