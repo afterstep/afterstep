@@ -37,6 +37,7 @@
 # endif
 #endif
 
+#include "../../libAfterStep/colorscheme.h"
 #include "asinternals.h"
 
 /**************************************************************************
@@ -422,6 +423,7 @@ void cover_desktop()
     if( _as_desktop_cover_gc == NULL ) 
     {
         unsigned long mask = GCFunction|GCForeground|GCBackground|GCGraphicsExposures ;
+		CARD32 r16, g16, b16 ;
 
         if( _as_desktop_cover_xfs == NULL ) 
             _as_desktop_cover_xfs = XLoadQueryFont( dpy, "fixed" );
@@ -431,8 +433,19 @@ void cover_desktop()
             gcvalue.font = _as_desktop_cover_xfs->fid;
             mask |= GCFont ;
         }
-        gcvalue.foreground = Scr.asv->white_pixel;
-        gcvalue.background = Scr.asv->black_pixel;;
+		
+		r16 = ARGB32_RED16(Scr.Look.desktop_animation_tint);
+		g16 = ARGB32_GREEN16(Scr.Look.desktop_animation_tint);
+		b16 = ARGB32_BLUE16(Scr.Look.desktop_animation_tint);
+		if( ASCS_BLACK_O_WHITE_CRITERIA16(r16,g16,b16) )
+		{
+	        gcvalue.foreground = Scr.asv->black_pixel;
+    	    gcvalue.background = Scr.asv->white_pixel;
+		}else
+		{			  
+	        gcvalue.foreground = Scr.asv->white_pixel;
+    	    gcvalue.background = Scr.asv->black_pixel;
+		}
         gcvalue.function = GXcopy;
         gcvalue.graphics_exposures = 0;
     
@@ -441,7 +454,7 @@ void cover_desktop()
     if( _as_desktop_cover_gc )
     {
         unsigned long pixel ;
-        ARGB2PIXEL(Scr.asv,0x000000FF,&pixel);
+        ARGB2PIXEL(Scr.asv,Scr.Look.desktop_animation_tint,&pixel);
         gcvalue.foreground = pixel;
         gcvalue.function = GXand;
         XChangeGC( dpy, _as_desktop_cover_gc, GCFunction|GCForeground, &gcvalue );

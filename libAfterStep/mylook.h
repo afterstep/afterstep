@@ -356,6 +356,8 @@ typedef struct MyLook
 
     struct ASBalloonLook *balloon_look ;
 
+	ARGB32	desktop_animation_tint ;
+
 }MyLook;
 
 MyFrame *create_myframe();
@@ -380,6 +382,8 @@ void init_deskconfigs_list( MyLook *look );
 void mydeskconfig_delete( MyDesktopConfig **dc );
 inline MyDesktopConfig *add_deskconfig_to_list( ASHashTable *list, MyDesktopConfig *dc );
 MyDesktopConfig *add_deskconfig( MyLook *look, MyDesktopConfig *dc );
+
+ARGB32 get_random_tint_color();
 
 
 void mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see LookLoadFlags */ );

@@ -153,6 +153,8 @@ main (int argc, char **argv, char **envp)
 		return 1;/* failed to accure window management selection - other wm is running */
 	}
 	XSetWindowBackground( dpy, Scr.Root, Scr.asv->black_pixel );
+	Scr.Look.desktop_animation_tint = get_random_tint_color();
+
     cover_desktop();
 	if( get_flags( AfterStepState, ASS_Restarting ))
 	{	

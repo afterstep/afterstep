@@ -116,6 +116,15 @@ myobj_destroy (ASHashableValue value, void *data)
 		}
 	}
 }
+
+ARGB32
+get_random_tint_color()
+{	
+	static ARGB32 tint_colors[6] = {0xFFFF0000,0xFFFFFF00,0xFFFF00FF,0xFF00FFFF,0xFF00FF00,0xFF0000FF};
+	return tint_colors[time(NULL)%6] ;
+}
+	
+
 /*************************************************************************/
 /* MyLook :                                                              */
 /*************************************************************************/
@@ -266,6 +275,7 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 		look->RubberBand = 0;
 		look->CursorFore = NULL ;
 		look->CursorBack = NULL ;
+		look->desktop_animation_tint = get_random_tint_color() ;
     }
 
 	if (get_flags (what_flags, LL_Flags))

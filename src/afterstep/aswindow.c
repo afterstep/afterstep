@@ -1234,6 +1234,7 @@ hide_focus()
     Scr.Windows->focused = NULL;
     Scr.Windows->ungrabbed = NULL;
     XRaiseWindow(dpy, Scr.ServiceWin);
+	LOCAL_DEBUG_OUT( "XSetInputFocus(window= %lX (service_win), time = %lu)", Scr.ServiceWin, Scr.last_Timestamp);
     XSetInputFocus (dpy, Scr.ServiceWin, RevertToParent, Scr.last_Timestamp);
     XSync(dpy, False );
 }
@@ -1286,8 +1287,11 @@ focus_window( ASWindow *asw, Window w )
 	/* at the same time using CurrentTime all the time seems to cause some apps to fail,
 	 * most noticeably GTK-perl */
 	if( w != None )
-	    XSetInputFocus ( dpy, w, RevertToParent, 
-						(Scr.Windows->focused == NULL)?CurrentTime:Scr.last_Timestamp);
+	{
+		Time t = (Scr.Windows->focused == NULL)?CurrentTime:Scr.last_Timestamp ;
+		LOCAL_DEBUG_OUT( "XSetInputFocus(window= %lX, time = %lu)", w, t);	  
+	    XSetInputFocus ( dpy, w, RevertToParent, t );
+	}
 
     ASSync(False );
     return (w!=None);
