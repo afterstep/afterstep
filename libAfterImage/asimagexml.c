@@ -528,6 +528,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * bgimage  Optional.  No default.  The area behind the text will be filled
  *          with this image.
  * spacing  Optional.  Default 0.  Extra pixels to place between each glyph.
+ * type     Optional.  Default 0.  Valid values are from 0 to 7 and each represeend different 3d type.
  * NOTES
  * <text> without bgcolor, fgcolor, fgimage, or bgimage will NOT
  * produce visible output by itself.  See EXAMPLES below.
@@ -541,7 +542,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		const char* fgcolor_str = NULL;
 		const char* bgcolor_str = NULL;
 		ARGB32 fgcolor = ARGB32_White, bgcolor = ARGB32_Black;
-		int point = 12, spacing = 0;
+		int point = 12, spacing = 0, type = AST_Plain;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "font")) font_name = ptr->parm;
@@ -551,6 +552,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (!strcmp(ptr->tag, "bgimage")) bgimage_str = ptr->parm;
 			if (!strcmp(ptr->tag, "fgcolor")) fgcolor_str = ptr->parm;
 			if (!strcmp(ptr->tag, "bgcolor")) bgcolor_str = ptr->parm;
+			if (!strcmp(ptr->tag, "type")) type = strtol(ptr->parm, NULL, 0);
 		}
 		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, cdata_str)) text = ptr->parm;
@@ -561,14 +563,18 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (fontman) font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
 			if (font != NULL) {
 				set_asfont_glyph_spacing(font, spacing, 0);
-				result = draw_text(text, font, AST_Plain, 0);
+				result = draw_text(text, font, type, 0);
 				if (result && fgimage_str) {
 					ASImage* fgimage = NULL;
-					fgimage = fetch_asimage(imman, fgimage_str );
-					show_progress("Using image [%s] as foreground.", fgimage_str);
+					fgimage = get_asimage(imman, fgimage_str, 0xFFFFFFFF, 100 );
+					show_progress("Using image [%s](%p) as foreground. Text size is %dx%d", fgimage_str, fgimage, result->width, result->height);
 					if (fgimage) {
-						release_asimage( fgimage );
-						fgimage = tile_asimage(asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+						ASImage *tmp = tile_asimage(asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+						if( tmp )
+						{
+					   		release_asimage( fgimage );
+							fgimage = tmp ;
+						}
 						move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
 						safe_asimage_destroy(result);
 						result = fgimage;
@@ -1531,6 +1537,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  *          crefid image.
  * x        Optional. Default is 0. Pixel coordinate of left edge.
  * y        Optional. Default is 0. Pixel coordinate of top edge.
+ * align    Optional. Alternative to x - allowed values are right, center
+ *          and left.
+ * valign   Optional. Alternative to y - allowed values are top, middle
+ *          and bottom.
  * clip_x   Optional. Default is 0. X Offset on infinite surface tiled
  *          with this image, from which to cut portion of an image to be
  *          used in composition.
@@ -1573,10 +1583,16 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (num) {
 			int width = 0, height = 0;
 			ASImageLayer *layers;
+#define  ASXML_ALIGN_LEFT 	(0x01<<0)
+#define  ASXML_ALIGN_RIGHT 	(0x01<<1)
+#define  ASXML_ALIGN_TOP    (0x01<<2)
+#define  ASXML_ALIGN_BOTTOM (0x01<<3)
+			int *align ;
 			int i ;
 
 			/* Build the layers first. */
 			layers = create_image_layers( num );
+			align = safecalloc( num, sizeof(int));
 			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) {
 				int x = 0, y = 0;
 				int clip_x = 0, clip_y = 0;
@@ -1609,6 +1625,17 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 						else if (!strcmp(tmp->tag, "clip_height")) clip_height_str = tmp->parm;
 						else if (!strcmp(tmp->tag, "tint")) parse_argb_color(tmp->parm, &tint);
 						else if (!strcmp(tmp->tag, "tile")) tile = True;
+						else if (!strcmp(tmp->tag, "align"))
+						{
+							if (!strcmp(tmp->parm, "left"))set_flags( align[num], ASXML_ALIGN_LEFT);
+							else if (!strcmp(tmp->parm, "right"))set_flags( align[num], ASXML_ALIGN_RIGHT);
+							else if (!strcmp(tmp->parm, "center"))set_flags( align[num], ASXML_ALIGN_LEFT|ASXML_ALIGN_RIGHT);
+						}else if (!strcmp(tmp->tag, "valign"))
+						{
+							if (!strcmp(tmp->parm, "top"))set_flags( align[num], ASXML_ALIGN_TOP) ;
+							else if (!strcmp(tmp->parm, "bottom"))set_flags( align[num], ASXML_ALIGN_BOTTOM);
+							else if (!strcmp(tmp->parm, "middle"))set_flags( align[num], ASXML_ALIGN_TOP|ASXML_ALIGN_BOTTOM);
+						}
 					}
 					if (refid) {
 						ASImage* refimg = fetch_asimage(imman, refid);
@@ -1662,7 +1689,30 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				width = layers[0].im->width;
 				height = layers[0].im->height;
 			}
-	   		for (i = 0 ; i < num ; i++) {
+
+
+	   		for (i = 0 ; i < num ; i++)
+			{
+				if( get_flags(align[i], ASXML_ALIGN_LEFT|ASXML_ALIGN_RIGHT ) )
+				{
+					int im_width = ( layers[i].clip_width == 0 )? layers[i].im->width : layers[i].clip_width ;
+					int x = 0 ;
+					if( get_flags( align[i], ASXML_ALIGN_RIGHT ) )
+						x = width - im_width ;
+					if( get_flags( align[i], ASXML_ALIGN_LEFT ) )
+						x /= 2;
+					layers[i].dst_x = x;
+				}
+				if( get_flags(align[i], ASXML_ALIGN_TOP|ASXML_ALIGN_BOTTOM ) )
+				{
+					int im_height = ( layers[i].clip_height == 0 )? layers[i].im->height : layers[i].clip_height;
+					int y = 0 ;
+					if( get_flags( align[i], ASXML_ALIGN_BOTTOM ) )
+						y = height - im_height ;
+					if( get_flags( align[i], ASXML_ALIGN_TOP ) )
+						y /= 2;
+					layers[i].dst_y = y;
+				}
 				if( layers[i].clip_width == 0 )
 					layers[i].clip_width = width - layers[i].dst_x;
 				if( layers[i].clip_height == 0 )
