@@ -277,7 +277,7 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 	register unsigned char *dst = buffer ;
 	register int k = 0, i = 0 ;
 	int count = -1;
-	unsigned char last = 0;
+	unsigned char last = src[0];
 /* new way: if its FF we encode it as 01rrrrrr where rrrrrr is repitition count
  * if its 0 we encode it as 00rrrrrr. Any other symbol we bitshift right by 1
  * and then store it as 1sssssss where sssssss are topmost sugnificant bits.
@@ -817,7 +817,7 @@ load_glyph_freetype( ASFont *font, ASGlyph *asg, int glyph )
 				asg->ascend  = face->glyph->bitmap_top;
 				asg->descend = bmap->rows - asg->ascend;
 				/* we only want to keep lead if it was negative */
-				asg->lead    = face->glyph->bitmap_left ;
+				asg->lead    = face->glyph->bitmap_left;
 	LOCAL_DEBUG_OUT( "glyph %p is %dx%d ascend = %d, lead = %d, bmap_top = %d",  asg, asg->width, asg->height, asg->ascend, asg->lead, face->glyph->bitmap_top );
 			}
 }
@@ -1107,8 +1107,6 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 				int max_y = y + asg->height;
 				register CARD8 *row = asg->pixmap;
 				int width = asg->width ;
-				register int x = 0;
-				int count = ((row[0]&0x80)==0)?row[1]:0;
 				int start_x ;
 
 				if( font->pen_move_dir == RIGHT_TO_LEFT )
@@ -1120,36 +1118,39 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 				else
 					start_x = 0 ;
 
-				count = -1 ;
-				while( y < max_y )
 				{
-					register CARD32 *dst = scanlines[y]+start_x;
+					int count = -1 ;
 					register CARD32 data = 0;
-					for( x = 0 ; x < width ; ++x )
+					while( y < max_y )
 					{
-/*fprintf( stderr, "data = %X, count = %d, x = %d, y = %d\n", data, count, x, y );*/
-						if( count < 0 )
+						register CARD32 *dst = scanlines[y]+start_x;
+						register int x = -1;
+						while( ++x < width )
 						{
-							data = *(row++);
-							if( (data&0x80) != 0)
+/*fprintf( stderr, "data = %X, count = %d, x = %d, y = %d\n", data, count, x, y );*/
+							if( count < 0 )
 							{
-								data = ((data&0x7F)<<1);
-								if( data != 0 )
-									++data;
-							}else
-							{
-								count = data&0x3F ;
-								data = ((data&0x40) != 0 )? 0xFF: 0x00;
+								data = *(row++);
+								if( (data&0x80) != 0)
+								{
+									data = ((data&0x7F)<<1);
+									if( data != 0 )
+										++data;
+								}else
+								{
+									count = data&0x3F ;
+									data = ((data&0x40) != 0 )? 0xFF: 0x00;
+								}
 							}
+							if( data )
+								dst[x] = data ;
+							--count;
 						}
-						if( data )
-							dst[x] = data ;
-						--count;
+						++y;
 					}
-					++y;
-				}
+				}					
 				if( font->pen_move_dir == LEFT_TO_RIGHT )
-  					pen_x  += asg->step ;
+  					pen_x  += asg->step;
 			}
 		}
 	}while( map.glyphs[i] != GLYPH_EOT );
@@ -1198,15 +1199,14 @@ void print_asglyph( FILE* stream, ASFont* font, unsigned long c)
 			if( asg->pixmap[k]&0x80 )
 			{
 				fprintf( stream, "%2.2X ", ((asg->pixmap[k]&0x7F)<<1));
-				++i ;
 			}else
 			{
 				int count = asg->pixmap[k]&0x3F;
 				if( asg->pixmap[k]&0x40 )
-					fprintf( stream, "FF(%d times) ", count );
+					fprintf( stream, "FF(%d times) ", count+1 );
 				else
-					fprintf( stream, "00(%d times) ", count );
-				i += count+1 ;
+					fprintf( stream, "00(%d times) ", count+1 );
+				i += count ;
 			}
 		    k++;
 		}

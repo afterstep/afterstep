@@ -41,10 +41,10 @@
 int main(int argc, char* argv[])
 {
 	Window w ;
-	ASVisual *asv ;
+	ASVisual *asv = NULL ;
 	int screen, depth ;
 	char *font_name = "fixed";
-	int size = 12 ;
+	int size = 32 ;
 	char *text = "Smart Brown Dog jumps Over The Lazy Fox, and falls into the ditch.";
 	ARGB32 text_color = ARGB32_White;
 	char *fore_image_file = NULL ;
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 
 	/* see ASText.1 : */
 	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
-		font = get_asfont( fontman, font_name, size, 0, ASF_GuessWho );
+		font = get_asfont( fontman, font_name, 0, size, ASF_GuessWho );
 	if( font == NULL )
 	{
 		show_error( "unable to load requested font \"%s\". Aborting.", font_name );
@@ -106,11 +106,11 @@ int main(int argc, char* argv[])
 				fore_im = tmp ;
 		}
 	}
+	width  += TEXT_MARGIN*2 ;
+	height += TEXT_MARGIN*2 ;
 	/* see ASView.4 : */
 	w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-		                         width+(TEXT_MARGIN*2),
-								 height+(TEXT_MARGIN*2),
-								 1, 0, NULL,
+		                         width,	height, 1, 0, NULL, 
 								 "ASText" );
 	if( w != None )
 	{
@@ -126,12 +126,12 @@ int main(int argc, char* argv[])
 		text_im = draw_text( text, font, 0 );
 		if( fore_im )
 		{
-			fore_im->alpha = text_im->alpha ;
-			text_im->alpha = NULL ;
+			move_asimage_channel( fore_im, text_im, IC_ALPHA );
 			destroy_asimage( &text_im );
 		}else
 			fore_im = text_im ;
-
+		
+		memset( &(layers[0]), 0x00, sizeof(layers) );
 		layers[0].im = back_im ;
 		layers[0].clip_width = width ;
 		layers[0].clip_height = height ;

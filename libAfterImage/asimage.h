@@ -545,6 +545,23 @@ typedef struct ASGradient
  * called, asimage_init() must be invoked to free all the memory, and
  * then asimage_start() has to be called with new dimensions.
  *********/
+/****f* libAfterImage/asimage/asimage_sta()
+ * SYNOPSIS
+ * void move_asimage_channel( ASImage *dst, ASImage *src, int channel );
+ * INPUTS
+ * dst     - ASImage which will have its channel substituted
+ * src     - ASImage which will donate its channel to dst.
+ * channel - what channel to move.
+ * DESCRIPTION
+ * MOves channel data from one ASImage to another, while discarding 
+ * what was already in destination's channel. 
+ * NOTES
+ * Source image (donor) will loose its channel data, as it will be 
+ * moved to destination ASImage. Also there is a condition that both 
+ * images must be of the same width - otherwise function returns 
+ * without doing anything. If height is different - the minimum of 
+ * two will be used.
+ *********/
 /****f* libAfterImage/asimage/create_asimage()
  * SYNOPSIS
  * ASImage *create_asimage( unsigned int width,
@@ -575,6 +592,7 @@ typedef struct ASGradient
  *********/
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
+void move_asimage_channel( ASImage *dst, ASImage *src, int channel );
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
 void destroy_asimage( ASImage **im );
 

@@ -22,6 +22,7 @@
 /*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
 
+#include <ctype.h>
 #include "afterbase.h"
 #include "asvisual.h"
 #include "blender.h"
@@ -393,7 +394,7 @@ void    /* this one was first implemented on XImages by allanon :) - mode 131  *
 allanon_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
 	register int i = -1, max_i = bottom->width ;
-	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
+	register CARD32 *ta = top->alpha;
 	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
 	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
 	while( ++i < max_i )
@@ -411,7 +412,7 @@ void    /* this one was first implemented on XImages by allanon :) - mode 131  *
 tint_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
 	register int i = -1, max_i = bottom->width ;
-	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
+	register CARD32 *ta = top->alpha;
 #if 1
 	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
 	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;

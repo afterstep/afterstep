@@ -65,7 +65,6 @@ dnl# AfterSTep already checked everything for us
 	dnl#  AC_PROG_CC
 	AC_SUBST(CC)
 	AC_SUBST(GCC)
-	AC_SUBST(CFLAGS)
 	dnl#  AC_PROG_INSTALL
     AC_SUBST(INSTALL)
     AC_SUBST(INSTALL_PROGRAM)
@@ -258,7 +257,6 @@ if test "$have_tiff" = yes -o "$have_png" = yes ; then
   AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lz -lm"
 fi
 
-
 dnl# check for libfreetype
 
 AC_CHECK_HEADERS(ft2build.h)
@@ -288,7 +286,7 @@ else
 	  done;
 	  AC_MSG_RESULT($TTF_INCLUDES)
 	  saved_CPPFLAGS=$CPPFLAGS
-	  saved_CLAGS=$CFLAGS
+	  saved_CFLAGS=$CFLAGS
 	  CPPFLAGS="$CPPFLAGS $TTF_INCLUDES"
 	  CFLAGS="$CFLAGS $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $X_CFLAGS"
 	  AC_MSG_CHECKING( freetype/freetype.h )
@@ -382,6 +380,7 @@ if test "x$enable_mmx_optimization" = "xyes"; then AC_DEFINE(HAVE_MMX) fi
 
 dnl# Variable strings declaration
 
+AC_SUBST(CFLAGS)
 AC_SUBST(version)
 AC_SUBST(version_major)
 AC_SUBST(lib_name)

@@ -156,6 +156,21 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 	}
 }
 
+void 
+move_asimage_channel( ASImage *dst, ASImage *src, int channel )
+{
+	if( dst && src && channel >= 0 && channel < IC_NUM_CHANNELS )
+		if( dst->width == src->width ) 
+		{
+			int i = MIN(dst->height, src->height);
+			while( --i >= 0 ) 
+			{
+				dst->channels[channel][i] = src->channels[channel][i] ;	
+				src->channels[channel][i] = NULL ;
+			}
+		}
+}
+
 ASImage *
 create_asimage( unsigned int width, unsigned int height, unsigned int compression)
 {
