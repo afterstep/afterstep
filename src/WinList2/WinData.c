@@ -84,8 +84,8 @@ destroy_window_data(ASWindowData *wd)
 			remove_hash_item( _as_Winlist, AS_HASHABLE(wd->client), NULL, True );
 		else
 			window_data_destroy( 0, wd );
-	}
-	free( wd ); 
+	}else 
+		free( wd ); 
 }
 
 ASWindowData *

@@ -249,6 +249,27 @@ get_astbar_label_height( ASTBarData *tbar )
 	return MAX( size[0], size[1] );
 }
 
+unsigned int 
+calculate_astbar_height( ASTBarData *tbar )
+{
+	int size = 0 ;
+	if( tbar == NULL ) 
+		return 0 ;
+	size = get_astbar_label_height( tbar );
+	size += tbar->top_bevel + tbar->bottom_bevel ;
+	return size;
+}
+
+unsigned int 
+calculate_astbar_width( ASTBarData *tbar )
+{
+	int size = 0 ;
+	if( tbar == NULL ) 
+		return 0 ;
+	size = get_astbar_label_width( tbar );
+	size += tbar->left_bevel + tbar->right_bevel ;
+	return size;
+}
 
 Bool 
 set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height )
@@ -273,6 +294,28 @@ LOCAL_DEBUG_CALLER_OUT( "resizing TBAR %p from %dx%d to %dx%d", tbar, tbar->widt
 	return changed ;
 }
 
+#define ASTBAR_HILITE	FULL_HILITE
+
+static void update_astbar_bevel_size( ASTBarData *tbar )
+{
+	ASImageBevel bevel ;
+	int i ;
+	tbar->left_bevel = tbar->top_bevel = tbar->right_bevel = tbar->bottom_bevel = 0 ;
+	for( i = 0 ; i < BAR_STATE_NUM ; ++i ) 
+		if( tbar->style[i] ) 
+		{
+  			mystyle_make_bevel( tbar->style[i], &bevel, ASTBAR_HILITE, False );
+			if( tbar->left_bevel < bevel.left_outline ) 
+				tbar->left_bevel = bevel.left_outline ;
+			if( tbar->top_bevel < bevel.top_outline ) 
+				tbar->top_bevel = bevel.top_outline ;
+			if( tbar->right_bevel < bevel.right_outline ) 
+				tbar->right_bevel = bevel.right_outline ;
+			if( tbar->bottom_bevel < bevel.bottom_outline ) 
+				tbar->bottom_bevel = bevel.bottom_outline ;
+		}
+}
+
 Bool 
 set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name )
 {
@@ -287,6 +330,7 @@ set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name )
 			destroy_asimage( &(tbar->back[state]) );
 			tbar->back[state] = NULL ;
 		}
+		update_astbar_bevel_size( tbar );
 	}
 	return changed ;
 }
@@ -387,7 +431,7 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc,
 		label_im = mystyle_draw_text_image( style, tbar->label_text );
 	}
 
-	mystyle_make_bevel( style, &bevel, FULL_HILITE, pressed );
+	mystyle_make_bevel( style, &bevel, ASTBAR_HILITE, pressed );
 	/* in unfocused and unpressed state we render pixmap and set 
 	 * window's background to it 
 	 * in focused state or in pressed state we render to 
@@ -397,11 +441,13 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc,
 	init_image_layers(&layers[0], 2 );
 	layers[0].im = back ;
 	layers[0].bevel = &bevel ;
-	layers[0].clip_width = tbar->width ;
-	layers[0].clip_height = tbar->height ;		
+	layers[0].clip_width = tbar->width-(tbar->left_bevel+tbar->right_bevel) ;
+	layers[0].clip_height = tbar->height-(tbar->top_bevel+tbar->bottom_bevel) ;
 	layers[1].im = label_im ;
-	layers[1].clip_width = tbar->width ;
-	layers[1].clip_height = tbar->height ;		
+	layers[1].dst_x = tbar->left_bevel ;
+	layers[1].dst_y = tbar->right_bevel ;
+	layers[1].clip_width = label_im?label_im->width:tbar->width ;
+	layers[1].clip_height = label_im?label_im->height:tbar->height ;		
 
 LOCAL_DEBUG_CALLER_OUT( "MERGING TBAR %p image %dx%d from %p %dx%d and %p %dx%d", 
                  tbar, tbar->width, tbar->height, 

@@ -65,8 +65,12 @@ ScreenInfo Scr;			/* AS compatible screen information structure */
 ASBiDirList *WinList = NULL ;
 Window 		 WinListWindow = None ;
 ASCanvas 	*WinListCanvas = NULL ;
-unsigned int WinListWidth = 100 ;
-unsigned int WinListHeight = 100 ;
+typedef struct {
+	unsigned int  width, height ;
+	ASTBarData *widest, *tallest ;
+	unsigned int max_width, max_height ;
+}ASWinListState ;
+ASWinListState WinListState = { 100, 100, NULL, NULL, 0, 0 };
 
 /**********************************************************************/
 /**********************************************************************/
@@ -99,7 +103,7 @@ typedef struct WinListConfig
 WinListConfig Config = { 0, 0, 0, 0, 
                     	  0, 0, 0, 0, 
 						  1, 0, 1, 0,
-						  64,
+						  0,
 						  "unfocused_window_style",
 						  "focused_window_style",
 						  ASN_Name,
@@ -290,11 +294,11 @@ DispatchEvent (XEvent * Event)
 	    case ConfigureNotify:
 			if( handle_canvas_config( WinListCanvas ) )
 			{
-				if( WinListWidth  != WinListCanvas->width || 
-				    WinListHeight != WinListCanvas->height)			
+				if( WinListState.width  != WinListCanvas->width || 
+				    WinListState.height != WinListCanvas->height)			
 				{
-					WinListWidth  = WinListCanvas->width; 
-				    WinListHeight = WinListCanvas->height;
+					WinListState.width  = WinListCanvas->width; 
+				    WinListState.height = WinListCanvas->height;
 					rearrange_winlist_buttons();
 				}
 			}
@@ -326,7 +330,7 @@ make_winlist_window()
 	XSizeHints    shints;
 	ExtendedWMHints extwm_hints ;
 
-	w = create_visual_window( Scr.asv, Scr.Root, Config.anchor_x, Config.anchor_y, WinListWidth, WinListHeight, 0, InputOutput, 0, NULL);
+	w = create_visual_window( Scr.asv, Scr.Root, Config.anchor_x, Config.anchor_y, WinListState.width, WinListState.height, 0, InputOutput, 0, NULL);
 	set_client_names( w, MyName, MyName, AS_MODULE_CLASS, MyName );
 
 	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize;
@@ -398,6 +402,7 @@ rearrange_winlist_buttons()
 	unsigned int max_height = 1, max_width = 1 ;
 	unsigned int allowed_max_width = (Config.max_width==0)?Scr.MyDisplayWidth:Config.max_width ;
 	unsigned int allowed_max_height = (Config.max_height==0)?Scr.MyDisplayHeight:Config.max_height ;
+	unsigned int max_col_width = (Config.max_col_width==0)?Scr.MyDisplayWidth:Config.max_col_width ;
 	
 	if( allowed_max_width > Scr.MyDisplayWidth ) 
 		allowed_max_width = Scr.MyDisplayWidth ;
@@ -410,19 +415,25 @@ rearrange_winlist_buttons()
 		{
 			unsigned int width, height ;
 			
-			width = get_astbar_label_width( tbar );		
-			height = get_astbar_label_height( tbar );		
+			width = calculate_astbar_width( tbar );		
+			height = calculate_astbar_height( tbar );		
 LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text, width, height );			
-			if( width > Config.max_col_width ) 
-				width = Config.max_col_width ;
+			if( width > max_col_width ) 
+				width = max_col_width ;
 			if( width > allowed_max_width ) 
 				width = allowed_max_width ;
 			if( height > allowed_max_height ) 
 				height = allowed_max_height ;
 			if( height  > max_height ) 
+			{
 				max_height = height ;
+				WinListState.tallest = tbar ;
+			}
 			if( width  > max_width ) 
+			{
 				max_width = width ;
+				WinListState.widest = tbar ;
+			}
 		}
 	}
 	for( elem = WinList->head ; elem ; elem = elem->next )
@@ -466,16 +477,19 @@ LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text,
 	}
 	if( get_flags(Config.flags, ASWL_RowsFirst) )
 	{
-		WinListWidth = (curr_row > 1)? Config.max_width : next_x ;
-		WinListHeight = next_y + max_height ;
+		WinListState.width = allowed_max_width ;
+		WinListState.height = next_y + max_height ;
 	}else
 	{
-		WinListHeight = (curr_col > 1)? Config.max_height : next_y ;
-		WinListWidth = next_x + max_width ;
+		WinListState.height = allowed_max_height ;
+		WinListState.width = next_x ;
 	}
-	LOCAL_DEBUG_OUT("Resizing Winlist window to %dx%d", WinListWidth, WinListHeight );
-	if( WinListCanvas->width != WinListWidth || WinListCanvas->height != WinListHeight )
-		XResizeWindow( dpy, WinListWindow, WinListWidth, WinListHeight );
+	LOCAL_DEBUG_OUT("Resizing Winlist window to %dx%d", WinListState.width, WinListState.height );
+	if( WinListCanvas->width != WinListState.width || WinListCanvas->height != WinListState.height )
+		XResizeWindow( dpy, WinListWindow, WinListState.width, WinListState.height );
+
+	WinListState.max_width = max_width ;
+	WinListState.max_height = max_height ;
 
 	update_canvas_display( WinListCanvas );
 }
@@ -512,8 +526,10 @@ refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 	if( tbar )
 	{
 		set_astbar_label( tbar, get_visible_window_name(wd) );	
-		rearrange_winlist_buttons();
-		render_winlist_button( tbar );
+		if( tbar == WinListState.widest || tbar == WinListState.tallest )
+			rearrange_winlist_buttons();
+		else
+			render_winlist_button( tbar );
 	}
 }
 

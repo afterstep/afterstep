@@ -1466,6 +1466,8 @@ mystyle_draw_text_image( MyStyle *style, const char *text )
 		{
 			/* todo: implement text rendering using libAfterImage : */	
 			im = draw_text( text, style->font.as_font, style->text_style, 100 );
+			if( im )
+				im->back_color = style->colors.fore ;
 		}
 	}
 	return im ;

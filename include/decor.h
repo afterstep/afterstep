@@ -25,9 +25,11 @@ typedef struct ASTBarData {
 	unsigned int width, height ;
 	char *label_text ;
 	
-	struct MyStyle *style[2] ;
-	struct ASImage *back[2]  ;
-	struct ASImage *label[2] ;
+	unsigned int left_bevel, top_bevel, right_bevel, bottom_bevel ;
+	
+	struct MyStyle 		*style[2] ;
+	struct ASImage 		*back [2] ;
+	struct ASImage 		*label[2] ;
 	
 	struct ASImage *left_shape, *center_shape, *right_shape ;
 
@@ -46,6 +48,9 @@ ASTBarData* create_astbar();
 void destroy_astbar( ASTBarData **ptbar );
 unsigned int get_astbar_label_width( ASTBarData *tbar );
 unsigned int get_astbar_label_height( ASTBarData *tbar );
+unsigned int calculate_astbar_height( ASTBarData *tbar );
+unsigned int calculate_astbar_width( ASTBarData *tbar );
+
 
 Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height );
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
