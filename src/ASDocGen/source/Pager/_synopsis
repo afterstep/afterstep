@@ -4,4 +4,9 @@
     <arg choice='plain'><replaceable>first_desktop</replaceable></arg>
     <arg choice='opt'><replaceable>last_desktop</replaceable></arg>
 </cmdsynopsis>
+<mediaobject>
+	<imageobject>
+		<imagedata fileref="images/Pager.jpg" align="right"/>
+	</imageobject>
+</mediaobject>
 </section>

@@ -63,6 +63,9 @@ void end_code_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 void start_listitem_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_listitem_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
+void start_imagedata_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+void end_imagedata_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+
 void start_variablelist_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_variablelist_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
@@ -120,6 +123,7 @@ emphasis
 listitem
 cmdsynopsis
 replaceable
+mediaobject
 variablelist
 varlistentry
 literallayout
@@ -139,19 +143,27 @@ typedef enum
 	DOCBOOK_title_ID,	  
 	DOCBOOK_group_ID,	  
 	DOCBOOK_label_ID,	  
+	DOCBOOK_width_ID,	  
+	DOCBOOK_depth_ID,
+	DOCBOOK_align_ID,
 	DOCBOOK_anchor_ID,
 	DOCBOOK_option_ID,	  
 	DOCBOOK_choice_ID,	  
+	DOCBOOK_valign_ID,	  
 	DOCBOOK_command_ID,	  
 	DOCBOOK_example_ID,	  
 	DOCBOOK_linkend_ID,	  
 	DOCBOOK_section_ID,	  
+	DOCBOOK_fileref_ID,	  
 	DOCBOOK_refsect1_ID,	  
 	DOCBOOK_emphasis_ID,	  
 	DOCBOOK_listitem_ID,	  
+	DOCBOOK_imagedata_ID,
 	DOCBOOK_formalpara_ID,
 	DOCBOOK_cmdsynopsis_ID,	  
 	DOCBOOK_replaceable_ID,	  
+	DOCBOOK_mediaobject_ID,
+	DOCBOOK_imageobject_ID,
 	DOCBOOK_variablelist_ID,	  
 	DOCBOOK_varlistentry_ID,	  
 	DOCBOOK_literallayout_ID,

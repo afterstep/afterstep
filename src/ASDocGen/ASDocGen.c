@@ -499,13 +499,15 @@ check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module )
 						/* obsolete option - move it away */
 						char *obsolete_fname = make_file_name (obsolete_dir, name );
 						char *fname = make_file_name (syntax_dir, name );
+						Bool no_dir = False ;
 						if( CheckDir(obsolete_dir) != 0 )
-							if( make_doc_dir( obsolete_dir ) ) 
-							{
-								copy_file (fname, obsolete_fname);
-								show_progress( "Option \"%s\" is obsolete - moving away!", name );
-								unlink(fname);
-							}
+							no_dir = !make_doc_dir( obsolete_dir ) ;
+						if( !no_dir )
+						{
+							copy_file (fname, obsolete_fname);
+							show_progress( "Option \"%s\" is obsolete - moving away!", name );
+							unlink(fname);
+						}
 						free( fname );
 						free( obsolete_fname ); 
 					}	 

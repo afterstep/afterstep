@@ -43,19 +43,27 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 	{ TAG_INFO_AND_ID(title), start_title_tag, end_title_tag },
 	{ TAG_INFO_AND_ID(group), start_group_tag, end_group_tag },
 	{ TAG_INFO_AND_ID(label), NULL, NULL },
+	{ TAG_INFO_AND_ID(width), NULL, NULL },
+	{ TAG_INFO_AND_ID(depth), NULL, NULL },
+	{ TAG_INFO_AND_ID(align), NULL, NULL },
 	{ TAG_INFO_AND_ID(anchor), start_anchor_tag, end_anchor_tag },
 	{ TAG_INFO_AND_ID(option), start_option_tag, end_option_tag },
 	{ TAG_INFO_AND_ID(choice), NULL, NULL },
+	{ TAG_INFO_AND_ID(valign), NULL, NULL },
 	{ TAG_INFO_AND_ID(command), start_command_tag, end_command_tag },
 	{ TAG_INFO_AND_ID(example), start_example_tag, end_example_tag },
 	{ TAG_INFO_AND_ID(linkend), NULL, NULL },
 	{ TAG_INFO_AND_ID(section), start_section_tag, end_section_tag },
+	{ TAG_INFO_AND_ID(fileref), NULL, NULL },
 	{ TAG_INFO_AND_ID(refsect1), start_refsect1_tag, end_refsect1_tag },
 	{ TAG_INFO_AND_ID(emphasis), start_emphasis_tag, end_emphasis_tag },
 	{ TAG_INFO_AND_ID(listitem), start_listitem_tag, end_listitem_tag },
+	{ TAG_INFO_AND_ID(imagedata), start_imagedata_tag, end_imagedata_tag },
 	{ TAG_INFO_AND_ID(formalpara), start_formalpara_tag, end_formalpara_tag },	
 	{ TAG_INFO_AND_ID(cmdsynopsis), start_cmdsynopsis_tag, end_cmdsynopsis_tag },
 	{ TAG_INFO_AND_ID(replaceable), start_emphasis_tag, end_emphasis_tag },
+	{ TAG_INFO_AND_ID(mediaobject), NULL, NULL },
+	{ TAG_INFO_AND_ID(imageobject), NULL, NULL },
 	{ TAG_INFO_AND_ID(variablelist), start_variablelist_tag, end_variablelist_tag },
 	{ TAG_INFO_AND_ID(varlistentry), start_varlistentry_tag, end_varlistentry_tag },
 	{ TAG_INFO_AND_ID(literallayout), start_literallayout_tag, end_literallayout_tag }
@@ -704,6 +712,51 @@ end_listitem_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *stat
 	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	  	)
 		fwrite( "</DD>", 1, 5, state->dest_fp );	
 }
+
+void 
+start_imagedata_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+{
+	if( state->doc_type == DocType_HTML	 || state->doc_type == DocType_PHP	   )
+	{	
+		const char *url = NULL ;
+		const char *align = NULL ;
+		const char *valign = NULL ;
+		const char *width = NULL ;
+		const char *height = NULL ;
+		while( parm ) 
+		{	
+			switch( parm->tag_id ) 
+			{
+				case DOCBOOK_width_ID : width = parm->parm ; break ;
+				case DOCBOOK_depth_ID : height = parm->parm ; break ;
+				case DOCBOOK_align_ID : align = parm->parm ; break ;
+				case DOCBOOK_valign_ID : valign = parm->parm ; break ;	  
+				case DOCBOOK_fileref_ID : url = parm->parm ; break ;	  
+			}	 
+			parm = parm->next ;
+		}		
+
+		fprintf( state->dest_fp, "<IMG src=\"%s\"", url );	
+		if( align != NULL ) 
+			fprintf( state->dest_fp, " align=\"%s\"", align );	 
+		if( valign != NULL ) 
+			fprintf( state->dest_fp, " valign=\"%s\"", valign );	 
+		if( width != NULL ) 
+			fprintf( state->dest_fp, " width=\"%s\"", width );	 
+		if( height != NULL ) 
+			fprintf( state->dest_fp, " height=\"%s\"", height );	 
+		fwrite( ">", 1, 1, state->dest_fp );	  
+	}
+}
+
+void 
+end_imagedata_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+{
+	close_link(state);
+	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	  	)
+		fwrite( "</IMG>", 1, 6, state->dest_fp );	
+}
+
 
 void 
 start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
