@@ -81,8 +81,10 @@ int main(int argc, char* argv[])
 			to_width = im->width*2 ;
 		if( !get_flags(geom_flags, HeightValue ) )
 			to_height = im->height*2;
-		printf( "%s: scaling image \"%s\" to %dx%d\n",
-			    get_application_name(), image_file, to_width, to_height );
+		printf( "%s: scaling image \"%s\" to %dx%d by factor of %fx%f\n",
+			    get_application_name(), image_file, to_width, to_height,
+				(double)to_width/(double)(im->width),
+				(double)to_height/(double)(im->height) );
 
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
