@@ -28,6 +28,7 @@
 #include "afterstep.h"
 #include "screen.h"
 #include "asfeel.h"
+#include "event.h"
 
 /**************************************************************************************
  * ASFeel initialization and destruction code.
@@ -147,6 +148,66 @@ apply_feel_cursor( Window w, ASFeel *feel, int cursor )
 {
     if( feel && cursor >= 0 && cursor < MAX_CURSORS && w != None)
         XDefineCursor (dpy, w, feel->cursors[cursor]);
+}
+
+void
+recolor_feel_cursors( ASFeel *feel, ARGB32 fore, ARGB32 back )
+{
+    if( feel )
+	{
+		int i ;
+		XColor xfore, xback ;
+		xfore.red = ARGB32_RED16(fore);
+		xfore.green = ARGB32_GREEN16(fore);
+		xfore.blue = ARGB32_BLUE16(fore);
+		xback.red = ARGB32_RED16(back);
+		xback.green = ARGB32_GREEN16(back);
+		xback.blue = ARGB32_BLUE16(back);
+		for( i = 0 ; i < MAX_CURSORS ; ++i )
+			if( feel->cursors[i] )
+				XRecolorCursor (dpy, feel->cursors[i], &xfore, &xback);
+	}
+}
+
+
+
+void
+apply_context_cursor( Window w, ASFeel *feel, unsigned long context )
+{
+    if( feel && context != 0 && w != None)
+	{
+		static Cursor last_cursor = None ;
+		static Window last_window = None ;
+		Cursor c = None ;
+		switch( context )
+		{
+			case C_TITLE   : c = feel->cursors[TITLE_CURSOR] ; 	break ;
+			case C_FrameN  : c = feel->cursors[TOP] ; 			break ;
+			case C_FrameE  : c = feel->cursors[RIGHT] ; 			break ;
+			case C_FrameS  : c = feel->cursors[BOTTOM] ; 		break ;
+			case C_FrameW  : c = feel->cursors[LEFT] ; 			break ;
+			case C_FrameNW : c = feel->cursors[TOP_LEFT] ; 		break ;
+			case C_FrameNE : c = feel->cursors[TOP_RIGHT] ; 		break ;
+			case C_FrameSW : c = feel->cursors[BOTTOM_LEFT] ; 	break ;
+			case C_FrameSE : c = feel->cursors[BOTTOM_RIGHT] ; 	break ;
+			default:
+				if( get_flags(context,C_FRAME) )
+					c = feel->cursors[MOVE] ;
+		}
+
+		if( c == None && get_flags(context,C_FRAME) )
+			c = feel->cursors[MOVE] ;
+		LOCAL_DEBUG_OUT( "context %s, selected cursor %ld, window %lX", context2text(context), c, w );
+		if( c != None )
+		{
+			if( last_window != w || last_cursor != c )
+			{
+				last_cursor = c ;
+				last_window = w ;
+	        	XDefineCursor (dpy, w, c);
+			}
+		}
+	}
 }
 
 void

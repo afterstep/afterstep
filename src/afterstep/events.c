@@ -239,14 +239,14 @@ WaitWindowLoop( char *pattern, long timeout )
 
 	end_time += start_time ;
 	click_end_time += start_time ;
-	
+
 	if( pattern == NULL || pattern[0] == '\0' )
 		return NULL ;
 
-	LOCAL_DEBUG_OUT( "waiting for \"%s\"", pattern );		
-    if( (asw = complex_pattern2ASWindow( pattern )) != NULL ) 
+	LOCAL_DEBUG_OUT( "waiting for \"%s\"", pattern );
+    if( (asw = complex_pattern2ASWindow( pattern )) != NULL )
   		return asw;
-		
+
 	while (!done)
 	{
 		do
@@ -261,14 +261,14 @@ WaitWindowLoop( char *pattern, long timeout )
 					/* we do not want user to do anything interactive at that time - hence
 					   deffered == True */
                     DispatchEvent( &event, True );
-					if( event.x.type == ButtonPress || event.x.type == KeyPress ) 
+					if( event.x.type == ButtonPress || event.x.type == KeyPress )
 					{
-						end_time = click_end_time ; 
+						end_time = click_end_time ;
 						break;
 					}
-						
+
                     if( (event.x.type == MapNotify || event.x.type == PropertyNotify )&& event.client )
-                        if( (asw = complex_pattern2ASWindow( pattern )) != NULL ) 
+                        if( (asw = complex_pattern2ASWindow( pattern )) != NULL )
                             return asw;
                 }
 			}
@@ -372,7 +372,7 @@ DigestEvent( ASEvent *event )
                         break;
                     }
             }else
-			{	/* we are on the border of the frame : see what side ofthe frame we are on */              	
+			{	/* we are on the border of the frame : see what side ofthe frame we are on */
 				event->context = C_FRAME ;
 				if( pointer_root_x < asw->frame_canvas->root_x+(int)asw->frame_canvas->bw )
 					pointer_root_x = asw->frame_canvas->root_x+(int)asw->frame_canvas->bw ;
@@ -384,7 +384,7 @@ DigestEvent( ASEvent *event )
 					pointer_root_y = asw->frame_canvas->root_y+(int)asw->frame_canvas->bw+(int)asw->frame_canvas->height-1;
 				else
 					event->context = C_CLIENT ;
-									
+
 			}
 
             if( w != asw->frame )
@@ -445,7 +445,7 @@ DigestEvent( ASEvent *event )
         }
 
         on_astbar_pointer_action( pointer_bar, event->context, (event->x.type == LeaveNotify) );
-
+		apply_context_cursor( w, &(Scr.Feel), event->context );
         event->widget  = canvas ;
         /* we have to do this at all times !!!! */
         /* if( event->x.type == ButtonRelease && Scr.Windows->pressed )
@@ -725,10 +725,6 @@ update_transp_iter_func(void *data, void *aux_data)
 void
 HandlePropertyNotify (ASEvent *event)
 {
-#ifdef I18N
-	char        **list;
-	int           num;
-#endif
     ASWindow       *asw;
     XPropertyEvent *xprop = &(event->x.xproperty);
     Atom atom = xprop->atom ;

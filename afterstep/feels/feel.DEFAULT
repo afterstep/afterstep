@@ -112,20 +112,33 @@ DecorateTransients
 #  8 DESTROY       - used for DESTROY and DELETE built-ins.
 #  9 TOP           - used in the top side-bar of a window
 # 10 RIGHT        - used in the right side-bar of a window
+# 11 BOTTOM
+# 12 LEFT
+# 13 TOP_LEFT
+# 14 TOP_RIGHT
+# 15 BOTTOM_LEFT
+# 16 BOTTOM_RIGHT
 #
 # while /usr/include/X11/cursorfont.h contains available cursors
 #
 #Cursor 0
-Cursor 1 68
+Cursor 1 58
 Cursor 2 68
 Cursor 3 22
-#Cursor 4
+Cursor 4 120
 Cursor 5 150
-Cursor 6 68
+Cursor 6 60
 Cursor 7 68
 Cursor 8 88
-Cursor 9 68
-Cursor 10 68
+Cursor 9 138
+Cursor 10 96
+Cursor 11 16
+Cursor 12 70
+Cursor 13 134
+Cursor 14 136
+Cursor 15 12
+Cursor 16 14
+
 #
 ##########################################################################
 

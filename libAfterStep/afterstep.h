@@ -340,7 +340,8 @@ struct ASTBarData;
 									 ButtonReleaseMask 	| \
 									 EnterWindowMask 	| \
 									 LeaveWindowMask 	| \
-									 StructureNotifyMask)
+									 StructureNotifyMask| \
+									 PointerMotionMask)  /* needed to be able to switch mouse pointers */
 
 #define AS_ICON_TITLE_EVENT_MASK 	(ButtonPressMask 	| \
                                      ButtonReleaseMask 	| \

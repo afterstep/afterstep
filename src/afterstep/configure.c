@@ -1370,12 +1370,19 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     }
 
     if( get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
+	{
+		ARGB32 cursor_fore, cursor_back ;
         fix_menu_pin_on( &Scr.Look );
-
+		/* also need to recolor cursors ! */
+		parse_argb_color( "ActiveText", &cursor_back );
+		parse_argb_color( "HighActive", &cursor_fore );
+		recolor_feel_cursors( &Scr.Feel, cursor_fore, cursor_back );
+	}
 
     /* TODO: update the menus */
     if (get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 	{
+		/* TODO: update mouse cursor ! */
     }
 
     /* force update of window frames */
