@@ -239,11 +239,33 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 				add_hash_item( fontman->fonts_hash, (ASHashableValue)(char*)font->name, font);
 			}
 		}
+		if( font )
+			font->ref_count++ ;
 	}
 	return font;
 }
 
-void
+int
+release_font( ASFont *font )
+{
+	int res = -1 ;
+	if( font )
+	{
+		if( font->magic == MAGIC_ASFONT )
+		{
+			if( --(font->ref_count) < 0 )
+			{
+				ASFontManager *fontman = font->fontman ;
+				if( fontman )
+					remove_hash_item(fontman->fonts_hash, (ASHashableValue)(char*)font->name, NULL, True);
+			}else
+				res = font->ref_count ;
+		}
+	}
+	return res ;
+}
+
+static void
 destroy_font( ASFont *font )
 {
 	if( font )

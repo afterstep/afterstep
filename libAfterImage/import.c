@@ -97,7 +97,7 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	int 		  subimage = -1 ;
 	char 		 *realfilename = NULL, *tmp = NULL ;
 	va_list       ap;
-	char 		 *paths[8] ;
+	char 		 *paths[MAX_SEARCH_PATHS+1] ;
 	register int i;
 
 	ASImage *im = NULL;
@@ -108,10 +108,10 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	filename_len = strlen(file);
 
 	va_start (ap, compression);
-	for( i = 0 ; i < 8 ; i++ )
+	for( i = 0 ; i < MAX_SEARCH_PATHS ; i++ )
 		if( (paths[i] = va_arg(ap,char*)) == NULL )
 			break;
-	paths[7] = NULL ;
+	paths[MAX_SEARCH_PATHS] = NULL ;
 	va_end (ap);
 
 	/* first lets try to find file as it is */
@@ -217,6 +217,29 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 		*mask_out = mask ;
 	}
 	return trg ;
+}
+
+ASImage *
+get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression )
+{
+	ASImage *im = NULL ;
+	if( imageman && file )
+		if( (im = fetch_asimage(imageman, file )) == NULL )
+		{
+			char **path = &(imageman->search_path[0]);
+			if( path[2] == NULL )
+				im = file2ASImage( file, what, imageman->gamma, compression, path[0], path[1], NULL );
+#if (MAX_SEARCH_PATHS!=8)
+#error "Fixme: please update file2ASImage call to match max number of search paths in ImageManager"
+#else
+			else
+				im = file2ASImage( file, what, imageman->gamma, compression, path[0], path[1], path[2],
+			    	               path[3], path[4], path[5], path[6], path[7], NULL );
+#endif
+			if( im )
+				store_asimage( imageman, im, file );
+		}
+	return im;
 }
 
 /***********************************************************************************/

@@ -126,10 +126,18 @@ struct ASScanline;
  *  destroy_asimage()
  * SOURCE
  */
+
 struct ASImageAlternative;
+struct ASImageManager;
+
+/* magic number identifying ASFont data structure */
+#define MAGIC_ASIMAGE            0xA3A314AE
 
 typedef struct ASImage
 {
+
+  unsigned long magic ;
+
   unsigned int width, height;       /* size of the image in pixels */
 
   /* pointers to arrays of scanlines of particular channel: */
@@ -159,9 +167,13 @@ typedef struct ASImage
 									 * values */
   }alt;
 
+  struct ASImageManager *imageman;  /* if not null - then image could be
+									 * referenced by some other code */
+  int                    ref_count ;/* this will tell us what us how many
+									 * times */
+  char                  *name ;     /* readonly copy of image name */
 } ASImage;
 /*******/
-
 /****d* libAfterImage/ASAltImFormats
  * FUNCTION
  * Identifies what output format should be used for storing the
@@ -192,7 +204,30 @@ typedef enum {
  */
 #define MAX_IMPORT_IMAGE_SIZE 	4000
 #define MAX_BEVEL_OUTLINE 		10
+#define MAX_SEARCH_PATHS		8      /* prudently limiting ourselfs */
 /******/
+
+/****s* libAfterImage/ASImageManager
+ * NAME
+ * ASImageManager
+ * DESCRIPTION
+ * Global data identifying connection to external libraries, as well as
+ * images location paths.
+ * This structure could be used to maintain repository of loaded images
+ * in order to avoid loading same image more then once.
+ * It holds hash of loaded image names.
+ *
+ * SOURCE
+ */
+typedef struct ASImageManager
+{
+	ASHashTable  *image_hash ;
+	/* misc stuff that may come handy : */
+	char 	     *search_path[MAX_SEARCH_PATHS+1];
+	double 		  gamma ;
+}ASImageManager;
+/*************/
+
 
 /* Auxiliary data structures : */
 /****s* libAfterImage/ASImageBevel
@@ -616,6 +651,12 @@ void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsig
 void move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
 void destroy_asimage( ASImage **im );
+
+ASImageManager *create_image_manager( struct ASImageManager *reusable_memory, double gamma, ... );
+void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
+Bool     store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
+ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
+int      release_asimage( ASImage *im );
 
 /****h* libAfterImage/asimage/Encoding
  * DESCRIPTION

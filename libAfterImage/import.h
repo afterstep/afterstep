@@ -122,5 +122,12 @@ ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *
 ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... );
 Pixmap file2pixmap(struct ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_out);
 
+/****f* libAfterImage/import/get_asimage()
+ *
+ *
+ *
+ ********/
+ASImage *get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression );
+
 #endif
 

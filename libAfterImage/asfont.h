@@ -145,6 +145,7 @@ typedef struct ASGlyphRange
 typedef struct ASFont
 {
 	unsigned long 	magic ;
+	int 			ref_count ;
 
 	struct ASFontManager *fontman;  /* our owner */
 	char 				 *name;
@@ -343,20 +344,26 @@ void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
  * Otherwise it tryes to load font as FreeType font first, and then
  * Xlib font, unless exact font type is specifyed.
  *********/
-/****f* libAfterImage/asfont/destroy_font()
+/****f* libAfterImage/asfont/release_font()
  * SYNOPSIS
- * void destroy_font( ASFont *font );
+ * void release_font( ASFont *font );
  * INPUTS
  * font - pointer to the valid ASFont structure containing loaded font.
+ * RETURN VALUE
+ * returns current reference count. -1 means that object has been
+ * destroyed.
  * DESCRIPTION
- * This function will close the font, remove it from ASFontManager's
- * list, destroy all the glyphs and generally free everything else used
- * by ASFont.
+ * This function will decrement reference count on loaded font and if
+ * reference count will be less then 0 ( meaning that release_font() has
+ * been called more times then get_asfont() ) it will close the font,
+ * remove it from ASFontManager's list, destroy all the glyphs and
+ * generally free everything else used by ASFont.
+ * Otherwise font will remain in memory for faster reuse.
  *********/
 struct ASFont *open_freetype_font( struct ASFontManager *fontman, const char *font_string, int face_no, int size, Bool verbose);
 struct ASFont *open_X11_font( struct ASFontManager *fontman, const char *font_string);
 struct ASFont *get_asfont( struct ASFontManager *fontman, const char *font_string, int face_no, int size, ASFontType type );
-void    destroy_font( struct ASFont *font );
+int            release_font( struct ASFont *font );
 
 /****f* libAfterImage/asfont/print_asfont()
  * SYNOPSIS

@@ -28,6 +28,8 @@
 #ifdef DO_CLOCKING
 #include <sys/time.h>
 #endif
+#include <stdarg.h>
+
 
 #include "afterbase.h"
 #include "asvisual.h"
@@ -209,7 +211,7 @@ void
 destroy_asimage( ASImage **im )
 {
 	if( im )
-		if( *im )
+		if( *im && (*im)->imageman == NULL)
 		{
 			asimage_init( *im, True );
 			free( *im );
@@ -233,6 +235,112 @@ Bool create_image_argb32( ASVisual *asv, ASImage *im, ASAltImFormats format )
 	if( im->alt.argb32 == NULL )
 		im->alt.argb32 = safemalloc( im->width*im->height*sizeof(ARGB32) );
 	return True;
+}
+
+/* ******************** ASImageManager ****************************/
+void
+asimage_destroy (ASHashableValue value, void *data)
+{
+	if( data )
+	{
+		ASImage *im = (ASImage*)data ;
+		free( value.string_val );
+		im->imageman = NULL ;
+		destroy_asimage( &im );
+	}
+}
+
+ASImageManager *create_image_manager( struct ASImageManager *reusable_memory, double gamma, ... )
+{
+	ASImageManager *imman = reusable_memory ;
+	int i ;
+	va_list ap;
+
+	if( imman == NULL )
+		imman = safecalloc( 1, sizeof(ASImageManager));
+	else
+		memset( imman, 0x00, sizeof(ASImageManager));
+
+	va_start (ap, gamma);
+	for( i = 0 ; i < MAX_SEARCH_PATHS ; i++ )
+	{
+		if( va_arg(ap,char*) == NULL )
+			break;
+		imman->search_path[i] = mystrdup( va_arg(ap,char*));
+	}
+	va_end (ap);
+
+	imman->search_path[MAX_SEARCH_PATHS] = NULL ;
+	imman->gamma = gamma ;
+
+	imman->image_hash = create_ashash( 7, string_hash_value, string_compare, asimage_destroy );
+
+	return imman;
+}
+
+void
+destroy_image_manager( struct ASImageManager *imman, Bool reusable )
+{
+	if( imman )
+	{
+		int i = MAX_SEARCH_PATHS;
+		destroy_ashash( &(imman->image_hash) );
+		while( --i >= 0 )
+			if(imman->search_path[i])
+				free( imman->search_path[i] );
+
+		if( !reusable )
+			free( imman );
+		else
+			memset( imman, 0x00, sizeof(ASImageManager));
+	}
+}
+
+Bool
+store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
+{
+	Bool res = False ;
+	if( imageman && im != NULL && name )
+		if( im->imageman == NULL )
+		{
+			im->name = mystrdup( name );
+			res = (add_hash_item( imageman->image_hash, (ASHashableValue)(char*)im->name, im) == ASH_Success);
+			if( !res )
+				free( im->name );
+			else
+				im->ref_count++ ;
+		}
+	return res ;
+}
+
+ASImage *
+fetch_asimage( ASImageManager* imageman, const char *name )
+{
+	ASImage *im = NULL ;
+	if( imageman && name )
+		if( get_hash_item( imageman->image_hash, (ASHashableValue)((char*)name), (void**)&im) == ASH_Success )
+			im->ref_count++ ;
+	return im;
+}
+
+int
+release_asimage( ASImage *im )
+{
+	int res = -1 ;
+	if( im )
+	{
+		if( im->magic == MAGIC_ASIMAGE )
+		{
+			if( --(im->ref_count) < 0 )
+			{
+				ASImageManager *imman = im->imageman ;
+				if( imman )
+					remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, True);
+			}else
+				res = im->ref_count ;
+		}
+	}
+	return res ;
 }
 
 /* ******************** ASImageDecoder ****************************/
@@ -2884,13 +2992,13 @@ mirror_asimage( ASVisual *asv, ASImage *src,
 		      int offset_x, int offset_y,
 			  unsigned int to_width,
 			  unsigned int to_height,
-			  Bool vertical, ASAltImFormats out_format, 
+			  Bool vertical, ASAltImFormats out_format,
 			  unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
 	ASImageOutput  *imout ;
 	START_TIME(started);
-	
+
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
 	dst = create_asimage(to_width, to_height, compression_out);
 #ifdef HAVE_MMX
@@ -2906,7 +3014,7 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		ASImageDecoder *imdec ;
 		ASScanline result ;
 		int y;
-		if( !vertical ) 
+		if( !vertical )
 			prepare_scanline( to_width, 0, &result, asv->BGR_mode );
 LOCAL_DEBUG_OUT("miroring actually...%s", "");
 		if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y,
@@ -2930,10 +3038,10 @@ LOCAL_DEBUG_OUT("miroring actually...%s", "");
 					SCANLINE_FUNC(reverse_component,imdec->buffer,result,0,to_width);
 					imout->output_image_scanline( imout, &result, 1);
 				}
-			}	
+			}
 			stop_image_decoding( &imdec );
 		}
-		if( !vertical ) 
+		if( !vertical )
 			free_scanline( &result, True );
 		stop_image_output( &imout );
 	}
