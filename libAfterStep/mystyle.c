@@ -39,7 +39,7 @@
 #include "../include/parser.h"
 #include "../include/confdefs.h"
 #include "../include/mystyle.h"
-#include "../include/ascolor.h"
+/*#include "../include/ascolor.h"*/
 /*#include "../include/stepgfx.h"*/
 #include "../libAfterImage/afterimage.h"
 #include "../include/screen.h"

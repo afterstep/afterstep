@@ -39,10 +39,6 @@
 #include <sys/bsdtypes.h>	/* Saul */
 #endif /* Saul */
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
 #include <X11/Intrinsic.h>
 
 #define IN_MODULE
@@ -52,8 +48,6 @@
 #include "../include/style.h"
 #include "../include/screen.h"
 #include "../include/mystyle.h"
-#include "../include/asproperty.h"
-#include "../include/pixmap.h"
 #include "../include/loadimg.h"
 #include "../include/background.h"
 
@@ -388,7 +382,7 @@ SetBackgroundsProperty (ASDeskBackArray * backs, Atom property)
     return;
   if (backs->desks == NULL || backs->desks_num <= 0)
     return;
-  set_as_property (dpy, Scr.Root, property, (unsigned long *) (backs->desks), backs->desks_num * sizeof (ASDeskBack), (1 << 8) + 0);
+  set_as_property (Scr.Root, property, (unsigned long *) (backs->desks), backs->desks_num * sizeof (ASDeskBack), (1 << 8) + 0);
 }
 
 void
@@ -401,7 +395,7 @@ GetBackgroundsProperty (ASDeskBackArray * backs, Atom property)
     return;
   if (backs->desks != NULL || backs->desks_num > 0)
     FreeDeskBackArray (backs, FALSE);
-  data = get_as_property (dpy, Scr.Root, property, (size_t *) & (backs->desks_num), &version);
+  data = get_as_property (Scr.Root, property, (size_t *) & (backs->desks_num), &version);
   if (data && backs->desks_num > 0 && version == (1 << 8) + 0)
     {
       backs->desks = (ASDeskBack *) safemalloc (backs->desks_num);

@@ -34,7 +34,6 @@
 #include "../include/screen.h"
 #include "../include/mystyle.h"
 #include "../include/mystyle_property.h"
-#include "../include/asproperty.h"
 
 #ifdef I18N
 #define MAX_FONTSET_NAME_LENGTH  256
@@ -95,7 +94,7 @@ mystyle_set_property (Display * dpy, Window w, Atom name, Atom type)
 #endif /* NO_TEXTURE */
     }
   /* set the property version to 1.1 */
-  set_as_property (dpy, w, name, (unsigned long *) prop, nelements * sizeof (unsigned long), (1 << 8) + 1);
+  set_as_property (w, name, (unsigned long *) prop, nelements * sizeof (unsigned long), (1 << 8) + 1);
   free (prop);
 }
 
@@ -106,7 +105,7 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
   size_t i, n;
   unsigned long version;
 
-  if ((prop = get_as_property (dpy, w, name, &n, &version)) == NULL)
+  if ((prop = get_as_property (w, name, &n, &version)) == NULL)
     return;
   /* do we know how to handle this version? */
   if (version != (1 << 8) + 1)

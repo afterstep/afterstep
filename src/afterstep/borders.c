@@ -58,10 +58,6 @@
 #include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"
-#include "../../include/ascolor.h"
-#include "../../include/stepgfx.h"
-
-#include "../../include/pixmap.h"
 
 #ifdef SHAPE
 #include <X11/extensions/shape.h>

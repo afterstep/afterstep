@@ -43,10 +43,7 @@
 		../../include/misc.h \
 		../../include/style.h \
 		../../include/screen.h \
-		../../include/module.h \
-		../../include/ascolor.h \
-		../../include/stepgfx.h \
-		../../include/pixmap.h
+		../../include/module.h
 
 ./clientwin.o: \
 		../../configure.h
@@ -69,8 +66,6 @@
 		../../include/misc.h \
 		../../include/style.h \
 		../../include/screen.h \
-		../../include/ascolor.h \
-		../../include/stepgfx.h \
 		../../include/loadimg.h \
 		../../libAfterImage/afterimage.h \
 		../../include/mystyle_property.h \
@@ -86,8 +81,6 @@
 		../../include/misc.h \
 		../../include/style.h \
 		../../include/screen.h \
-		../../include/ascolor.h \
-		../../include/stepgfx.h \
 		menus.h
 
 ./dirtree.o: \
@@ -119,8 +112,6 @@
 		../../include/style.h \
 		../../include/screen.h \
 		../../include/module.h \
-		../../include/ascolor.h \
-		../../include/stepgfx.h \
 		../../include/loadimg.h
 
 ./functions.o: \
@@ -180,9 +171,6 @@
 		../../include/misc.h \
 		../../include/style.h \
 		../../include/screen.h \
-		../../include/ascolor.h \
-		../../include/stepgfx.h \
-		../../include/pixmap.h \
 		menus.h
 
 ./misc.o: \

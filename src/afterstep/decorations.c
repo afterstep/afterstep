@@ -44,10 +44,6 @@
 #include "../../include/misc.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
-#ifndef NO_TEXTURE
-#include "../../include/ascolor.h"
-#include "../../include/stepgfx.h"
-#endif
 
 #include "menus.h"
 

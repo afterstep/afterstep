@@ -316,17 +316,17 @@ text_property2string( XTextProperty *tprop)
 }
 
 /* AfterStep specific property : */
-Bool
-read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *version, unsigned long **trg)
+unsigned long *
+get_as_property ( Window w, Atom property, size_t * data_size, unsigned long *version)
 {
-#ifndef X_DISPLAY_MISSING
     CARD32       *data = NULL;
+#ifndef X_DISPLAY_MISSING
     CARD32       *header;
 	int           actual_format;
 	Atom          actual_type;
     unsigned long junk, size;
 
-    if( w == None || property == None || trg == NULL )
+    if( w == None || property == None )
         return False;
 	/* try to get the property version and data size */
     if (XGetWindowProperty (dpy, w, property, 0, 2, False, AnyPropertyType, &actual_type,
@@ -350,6 +350,17 @@ read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *v
                                AnyPropertyType, &actual_type, &actual_format, &size, &junk, (unsigned char **)&data) != Success)
 			data = NULL;
 	}
+#endif	
+	return data ;
+}
+
+Bool
+read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *version, unsigned long **trg)
+{
+#ifndef X_DISPLAY_MISSING
+    CARD32       *data = get_as_property( w, property, data_size, version );
+	int     size = (*data_size)/sizeof(unsigned long);
+
     if( data )
     {
         *trg = safemalloc( size*sizeof(unsigned long));

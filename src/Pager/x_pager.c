@@ -49,7 +49,6 @@
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
 #include "../../include/mystyle.h"
-#include "../../include/pixmap.h"
 #include "../../include/background.h"
 #include "Pager.h"
 

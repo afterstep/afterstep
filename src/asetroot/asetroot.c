@@ -58,7 +58,6 @@
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
 #include "../../include/module.h"
-#include "../../include/pixmap.h"
 #include "../../include/loadimg.h"
 #include "../../include/background.h"
 

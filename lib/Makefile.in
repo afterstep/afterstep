@@ -8,7 +8,7 @@ LIB_INCS=
 # removed : mystrcasecmp.o mystrdup.o safemalloc.o
 #           sleep.o hostname.o getfdwidth.o
 #           audit.o strncmp.o homeanddirs.o
-#           findfile.o
+#           findfile.o asproperty.o
 #
 LIB_OBJS= catstring3.o background.o balloon.o copystring.o \
 	      font.o \
@@ -16,7 +16,7 @@ LIB_OBJS= catstring3.o background.o balloon.o copystring.o \
 		  loadimg.o mystyle.o mystyle_property.o \
 		  parse.o parser.o termhash.o \
 		  readpacket.o \
-		  timer.o wild.o asproperty.o
+		  timer.o wild.o
 
 LIB_NAME        = LIBAFTERSTEP
 LIB_STATIC      = libafterstep.a

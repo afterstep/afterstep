@@ -1,7 +1,7 @@
 #ifndef AFTERSTEP_LIB_HEADER_FILE_INCLUDED
 #define AFTERSTEP_LIB_HEADER_FILE_INCLUDED
 
-#include "../libAfterBase/astypes.h"
+#include "afterbase.h"
 
 /***********************************************************************/
 /* This stuff should be coming from libAfterBase now :                 */
@@ -82,7 +82,6 @@ char *mystrndup (const char *str, size_t n);
 
 #include "general.h"		/* because misc.h is already taken */
 #include "font.h"
-#include "timer.h"
 #include "mystyle.h"
 #include "mystyle_property.h"
 #include "balloon.h"

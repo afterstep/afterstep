@@ -27,6 +27,5 @@
 		../../include/parser.h \
 		../../include/confdefs.h \
 		../../include/mystyle.h \
-		../../include/pixmap.h \
 		../../include/background.h \
 		Pager.h

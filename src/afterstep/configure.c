@@ -67,8 +67,6 @@
 #include "../../include/misc.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
-#include "../../include/ascolor.h"
-#include "../../include/stepgfx.h"
 #include "../../include/loadimg.h"
 #include "../../libAfterImage/afterimage.h"
 #include "../../include/mystyle_property.h"
