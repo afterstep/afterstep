@@ -314,7 +314,9 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 		}else
 			strcpy( index_name, state->display_name );
 
-   		add_hash_item( Index, AS_HASHABLE(index_name), (void*)mystrdup(dest_file) );   
+		if( strcmp(index_name, "Topic index") != 0 && 
+			strcmp(index_name, "Glossary") != 0 )
+   			add_hash_item( Index, AS_HASHABLE(index_name), (void*)mystrdup(dest_file) );   
 	}
 	/* HEADER ***********************************************************************/
 	write_doc_header( state );

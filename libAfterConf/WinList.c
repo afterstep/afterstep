@@ -85,7 +85,7 @@ SyntaxDef     WinListSyntax = {
     ' ',
 	"",
 	"\t",
-	"WinList configuration",
+	"Module:WinList",
 	"WinList",
 	"AfterStep module displaying list of opened windows",
 	NULL,

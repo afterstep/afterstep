@@ -1,6 +1,12 @@
 <varlistentry id="options.DefaultGeometry">
-	<term>DefaultGeometry</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term>DefaultGeometry <emphasis remap='I'>WIDTHxHEIGHT+X+Y</emphasis></term>
+      <listitem>
+<para>Specifies initial placement for the given window, to be used in absense of
+USPosition geometry (command line specified one). Default behaviour is to
+either do Random or Smart placement or let user drag window around.
+Any of the geometry values can be ommited, and either of position values
+could be negative, in which case it will be added to screen size, effectively
+allowing placement relative to right/bottom edge. Just like standard X
+geometry.</para>
+      </listitem>
 </varlistentry>

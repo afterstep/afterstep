@@ -54,7 +54,7 @@ SyntaxDef     MyBackgroundSyntax = {
     ' ',
 	"",
 	"\t",
-	"MyBackground definition",
+	"Look MyBackground definition",
 	"MyBackground",
 	"details how background is to be rendered",
 	NULL,

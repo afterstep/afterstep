@@ -59,7 +59,7 @@ SyntaxDef     BaseSyntax = {
 	' ',
 	"",
 	"\t",
-	"Base configuration",
+	"AfterStep Base configuration",
 	"Base",
 	"essential AfterStep configuration options",
 	NULL,

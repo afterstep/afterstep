@@ -1,6 +1,9 @@
 <varlistentry id="options.WindowListSkip">
-	<term>WindowListSkip</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>WindowListSkip</emphasis></term>
+      <listitem>
+<para>Specifies that the app name will be omitted from both the internal Window
+List (default click of mouse buttons 2 &amp; 3 on the root window), and the
+<emphasis remap='B'>WinList(1)</emphasis> module bar. The default is <emphasis remap='I'>WindowListHit</emphasis> implicitly
+for all windows.</para>
+      </listitem>
 </varlistentry>

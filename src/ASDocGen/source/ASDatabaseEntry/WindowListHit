@@ -1,6 +1,8 @@
 <varlistentry id="options.WindowListHit">
-	<term>WindowListHit</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+      <term><emphasis remap='I'>WindowListHit</emphasis></term>
+      <listitem>
+<para>Specifies that the app name will be shown on both the internal Window
+List (default click of mouse buttons 2 &amp; 3 on the root window), and the
+<emphasis remap='B'>WinList(1)</emphasis> module bar.  This is the default implicitly for all windows.</para>
 	</listitem>
 </varlistentry>

@@ -84,7 +84,7 @@ SyntaxDef     ColorSyntax = {
     ' ',
 	"",
 	"\t",
-    "AfterStep custom Color Scheme",
+    "Custom Color Scheme",
 	"ColorScheme",
 	"defines color values for standard set of internal color names, to be used in other configuration files",
 	NULL,

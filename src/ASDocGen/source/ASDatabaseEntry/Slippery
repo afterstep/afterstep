@@ -1,6 +1,7 @@
 <varlistentry id="options.Slippery">
-	<term>Slippery</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>Slippery</emphasis></term>
+      <listitem>
+<para>This is the default setting - windows stay on the desktop they were placed on, and do not "follow"
+viewport, when desk/view changes.</para>
+      </listitem>
 </varlistentry>

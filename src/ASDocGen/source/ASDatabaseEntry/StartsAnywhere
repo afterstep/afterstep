@@ -1,6 +1,6 @@
 <varlistentry id="options.StartsAnywhere">
-	<term>StartsAnywhere</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>StartsAnyWhere</emphasis></term>
+      <listitem>
+<para>Upon startup window will be placed onto the current desktop. This is the implicit default setting for all windows.</para>
+      </listitem>
 </varlistentry>

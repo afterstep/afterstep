@@ -1,6 +1,8 @@
 <varlistentry id="options.CirculateSkip">
-	<term>CirculateSkip</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>CirculateSkip</emphasis></term>
+      <listitem>
+<para>Causes windows to be skipped over when the ChangeWindowUp, ChangeWindowDown or
+Warp (also called alt-tabbing) functions are invoked.  This is disabled by default 
+implicitly for all windows.</para>
+      </listitem>
 </varlistentry>

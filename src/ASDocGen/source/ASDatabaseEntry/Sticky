@@ -1,6 +1,8 @@
 <varlistentry id="options.Sticky">
-	<term>Sticky</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>Sticky</emphasis></term>
+      <listitem>
+<para>Causes the app window to stick to it's location for each desktop that
+becomes current, allowing the window to "follow" while changings desks/
+views.  The default is <emphasis remap='I'>Slippery</emphasis> implicitly for all windows.</para>
+      </listitem>
 </varlistentry>

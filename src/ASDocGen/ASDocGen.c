@@ -101,6 +101,31 @@ const char *DocClassStrings[4][2] =
 	{"Configuration", "_options"}
 };	 
 
+typedef struct {
+	char *src_file ;
+	char *descr_short ;
+	char *descr_long ;				   
+}ASApiSourceDescr;
+
+ASApiSourceDescr libAfterImage_Sources[] = 
+{	
+	{"afterimage.h", "libAfterImage", "overview of libAfterImage image library"}, 
+	{"asvisual.h", "ASVisual", "abstraction layer on top of X Visuals, focusing on color handling" },
+  	{"asimage.h", "ASImage", "internal structures and methods used for image manipulation in libAfterImage" },
+	{"blender.h", "ASImage Blending", "functionality for blending of image data using diofferent algorithms"}, 
+	{"export.h", "ASImage export", "functionality for writing images into files"}, 
+	{"import.h", "ASImage import", "functionality for reading images from files"},
+	{"imencdec.h", "ASImage encoding/decoding", "encoding/decoding ASImage data from/to usable data structures"}, 
+	{"transform.h", "ASImage Transformations", "transformations available for ASImages"},
+	{"ximage.h", "XImage", "functionality for displaying ASImages on X display"},
+	{"ascmap.h", "Indexed Image handling", "defines main structures and function for image quantization"},
+	{"asfont.h", "ASFont", "text drawing functionality and handling of TTF and X11 fonts"}, 
+	{"char2uni.h", "Unicode", "handling on Unicode, UTF-8 and localized 8 bit encodings"}, 
+	{NULL, NULL, NULL}
+};
+
+
+
 const char *HTML_CSS_File = "html_styles.css" ;
 
 ASHashTable *DocBookVocabulary = NULL ;
@@ -286,11 +311,15 @@ main (int argc, char **argv)
 
 		while( --DocGenerationPass >= 0 ) 
 		{
-			gen_code_doc( "../../libAfterImage", api_dest_dir, 
-			  		  	"asimage.h", 
-			  		  	"ASImage",
-			  		  	"internal structures and methods used for image manipulation in libAfterImage",
-			  		  	target_type );
+			int s ;
+			for( s = 0 ; libAfterImage_Sources[s].src_file != NULL ; ++s ) 
+			{	
+				gen_code_doc( 	"../../libAfterImage", api_dest_dir, 
+			  			  		libAfterImage_Sources[s].src_file, 
+			  			  		libAfterImage_Sources[s].descr_short,
+			  		  			libAfterImage_Sources[s].descr_long,
+			  		  			target_type );
+			}
 			if( DocGenerationPass == 0 ) 
 			{	
 				gen_glossary( api_dest_dir, "Glossary", target_type );
@@ -657,6 +686,7 @@ void
 gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type )
 {
 	ASXMLInterpreterState state;
+	LOCAL_DEBUG_OUT( "Glossary has %d items", Glossary->items_num);
 	if( (doc_type == DocType_HTML	|| doc_type == DocType_PHP ) && Glossary->items_num > 0 )
 	{	
 		ASHashableValue *values;
@@ -665,9 +695,11 @@ gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type )
 		int col_end[3], col_curr[3], col_count = 3 ;
 		Bool has_items = True, col_skipped[3] = {True, True, True};
 		char c = '\0' ; 
+				
 		if( !start_doc_file( dest_dir, file, NULL, doc_type, NULL, NULL, NULL, &state, DOC_CLASS_None, DocClass_Glossary ) )	 
 			return ;
-
+		
+		LOCAL_DEBUG_OUT( "sorting hash items : ... %s", "" );
 		values = safecalloc( Glossary->items_num, sizeof(ASHashableValue));
 		data = safecalloc( Glossary->items_num, sizeof(ASHashData));
 		items_num = sort_hash_items (Glossary, values, (void**)data, 0);
@@ -721,7 +753,7 @@ gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type )
 			fprintf( state.dest_fp, "</TR>\n" );
 		}	 
 		fprintf( state.dest_fp, "</table>\n" );
-
+		
 		free( data );
 		free( values );
 		end_doc_file( &state );	 	  
@@ -794,6 +826,9 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type )
 		fprintf( state.dest_fp, "</UL>\n" );
 		free( data );
 		free( values );
+		if( doc_type == DocType_PHP )
+			fprintf( state.dest_fp, "<? $vs_fname = 'visualselect.php';\n"
+									"   if(file_exists($vs_fname)) include $vs_fname; ?>\n" );
 		end_doc_file( &state );	 	  
 	}
 }

@@ -1,6 +1,7 @@
 <varlistentry id="options.StaysOnBack">
-	<term>StaysOnBack</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>StaysOnBack</emphasis></term>
+      <listitem>
+<para>Places window in Layer -1, essentially forcing it to go under most other windows. Default Layer is 0. </para>
+<para><emphasis remap='I'>NOTE: deprecated, use Layer instead.</emphasis></para>
+      </listitem>
 </varlistentry>

@@ -78,7 +78,7 @@ SyntaxDef     WinTabsSyntax = {
     ' ',
 	"",
 	"\t",
-	"WinTabs configuration",
+	"Module:WinTabs",
 	"WinTabs",
 	"AfterStep module for arranging windows using tabs",
 	NULL,

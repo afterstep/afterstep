@@ -1,6 +1,11 @@
 <varlistentry id="options.NoButton">
-	<term>NoButton</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term>NoButton <emphasis remap='I'>number</emphasis></term>
+      <listitem>
+<para>Specifing a <emphasis remap='I'>number</emphasis> to each use of <emphasis remap='I'>NoButton</emphasis> will cause that
+buttons be hidden from the title bar. Number should be the same as used in <emphasis remap='I'>TitleButtons</emphasis>
+setting.  The default is to display all buttons defined in the <emphasis remap='I'>look.name</emphasis> file if the
+following conditions are met: there is a valid bitmap or pixmap specified for the button in the <emphasis remap='I'>look.name</emphasis> file;
+ and the button has not been forced not to display by the use of Motif WM hints specified by application.
+</para>
+      </listitem>
 </varlistentry>

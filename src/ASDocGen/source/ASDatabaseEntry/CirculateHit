@@ -1,6 +1,7 @@
 <varlistentry id="options.CirculateHit">
-	<term>CirculateHit</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>CirculateHit</emphasis></term>
+      <listitem>
+<para>Enables window to be switched to using ChangeWindowUp, ChangeWindowDown or
+Warp (also called alt-tabbing) functions.  This is the default implicitly for all windows.</para>
+      </listitem>
 </varlistentry>

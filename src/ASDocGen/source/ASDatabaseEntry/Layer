@@ -1,6 +1,11 @@
 <varlistentry id="options.Layer">
-	<term>Layer</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term>Layer <emphasis remap='I'>layer</emphasis></term>
+      <listitem>
+<para>Specifies what layer this window should be in.  <emphasis remap='I'>layer</emphasis> may be any
+integer (positive, negative, or zero).  Windows are grouped according to
+their layer, and may not be moved out of their layer.  Windows in higher
+layers will be above windows in lower layers.  By default, windows are
+placed in layer 0.  <emphasis remap='I'>StaysOnBack</emphasis> corresponds to <userinput>Layer -1</userinput>, and
+<emphasis remap='I'>StaysOnTop</emphasis> corresponds to <emphasis remap='I'>Layer 1</emphasis>.</para>
+      </listitem>
 </varlistentry>

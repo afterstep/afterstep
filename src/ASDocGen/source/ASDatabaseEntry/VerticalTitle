@@ -1,6 +1,7 @@
 <varlistentry id="options.VerticalTitle">
-	<term>VerticalTitle</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>VerticalTitle</emphasis></term>
+      <listitem>
+<para>Causes the window titlebar to be placed vertically along the left side of
+the window, instead of horizontally across the top.</para>
+      </listitem>
 </varlistentry>

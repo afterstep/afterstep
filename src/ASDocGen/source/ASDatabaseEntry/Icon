@@ -1,5 +1,5 @@
 <varlistentry id="options.Icon">
-      <term><emphasis remap='I'>Icon filename</emphasis></term>
+      <term>Icon <emphasis remap='I'>filename</emphasis></term>
       <listitem>
 <para>Specifies the [filename] to use when iconified, overriding
 any icon the app itself might provide.  <emphasis remap='I'>NoIcon</emphasis> turns this off.

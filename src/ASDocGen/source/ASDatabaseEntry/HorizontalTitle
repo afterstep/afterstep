@@ -1,6 +1,6 @@
 <varlistentry id="options.HorizontalTitle">
-	<term>HorizontalTitle</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>HorizontalTitle</emphasis></term>
+      <listitem>
+<para>Causes the window titlebar to be placed horizontally on top of the window. This is the implicit default for all windows.</para>
+      </listitem>
 </varlistentry>

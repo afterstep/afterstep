@@ -202,7 +202,7 @@ struct SyntaxDef FuncSyntax = {
     ' ',
 	"",
 	"\t",
-	"AS Function",
+	"AfterStep Function",
 	"Functions",
 	"built in AfterStep functions",
 	NULL,

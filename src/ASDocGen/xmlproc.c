@@ -123,7 +123,7 @@ translate_special_sequence( const char *ptr, int len,  int *seq_len )
 	}		
 						
 	if( seq_len )    
-		*seq_len = (c == '\0')?c_len:0 ;
+		*seq_len = (c == '\0')?0:c_len ;
 	return c;   				 
 }
 
@@ -242,6 +242,7 @@ convert_xml_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *sta
 	}	 
 	for (ptr = doc->child ; ptr ; ptr = ptr->next) 
 	{
+		LOCAL_DEBUG_OUT( "handling tag's data \"%s\"", ptr->parm );
 		if (ptr->tag_id == XML_CDATA_ID ) 
 		{
 			const char *data_ptr = ptr->parm ;
@@ -289,6 +290,7 @@ convert_xml_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *sta
 		}else 
 			convert_xml_tag( ptr, NULL, state );
 	}
+	LOCAL_DEBUG_OUT( "handling end tag with func %p", SupportedDocBookTagInfo[doc->tag_id].handle_end_tag );
 	if( state->doc_type != DocType_XML ) 
 	{
 		if( doc->tag_id > 0 && doc->tag_id < DOCBOOK_SUPPORTED_IDS ) 
@@ -340,10 +342,16 @@ convert_xml_file( const char *syntax_dir, const char *file, ASXMLInterpreterStat
 		if( !empty_file )
 		{	
 			for (ptr = doc->child ; ptr ; ptr = ptr->next) 
-				convert_xml_tag( ptr, NULL, state );
+			{
+				LOCAL_DEBUG_OUT( "converting child <%s>", ptr->tag );
+	  			convert_xml_tag( ptr, NULL, state );
+				LOCAL_DEBUG_OUT( "done converting child <%s>", ptr->tag );
+			}
 		}
 		/* Delete the xml. */
+		LOCAL_DEBUG_OUT( "deleting xml %p", doc );
 		xml_elem_delete(NULL, doc);
+		LOCAL_DEBUG_OUT( "freeing doc_str %p", doc_str );
 		free( doc_str );		
 	}	 	   
 	LOCAL_DEBUG_OUT( "done with %s", source_file );

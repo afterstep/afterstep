@@ -44,7 +44,7 @@ SyntaxDef     MyStyleSyntax = {
     '\t',
     "",
     "",
-    "MyStyle definition",
+    "Look MyStyle definition",
 	"MyStyle",
 	"defines combination of color, font, style, background to be used together",
 	NULL,

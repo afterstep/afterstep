@@ -1,6 +1,11 @@
 <varlistentry id="options.StartsOnDesk">
-	<term>StartsOnDesk</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term>StartsOnDesk <emphasis remap='I'>number</emphasis></term>
+      <listitem>
+<para>Causes the app window to start on the specified <emphasis remap='I'>desk</emphasis> number. If
+<emphasis remap='I'>SmartPlacement</emphasis> is used in the <emphasis remap='I'>feel.name</emphasis> file, the window will
+appear on the specified <emphasis remap='I'>desk</emphasis> number, but will require interaction to
+place it; unless it was called with geometry settings. Specific
+<emphasis remap='I'>Viewports</emphasis> are also allowed, refer to them below.  The default is
+<emphasis remap='I'>StartsAnyWhere</emphasis> implicitly for all windows.</para>
+      </listitem>
 </varlistentry>

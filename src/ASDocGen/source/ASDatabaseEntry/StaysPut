@@ -1,6 +1,8 @@
 <varlistentry id="options.StaysPut">
-	<term>StaysPut</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>StaysPut</emphasis></term>
+      <listitem>
+<para>Places window in default Layer 0, disabling effects of <emphasis remap='I'>StaysOnTop</emphasis>, 
+<emphasis remap='I'>StaysOnBack</emphasis> and <emphasis remap='I'>Layer</emphasis>.</para>
+<para><emphasis remap='I'>NOTE: deprecated, use Layer instead.</emphasis></para>
+      </listitem>
 </varlistentry>

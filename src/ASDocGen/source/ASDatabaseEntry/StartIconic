@@ -1,6 +1,7 @@
 <varlistentry id="options.StartIconic">
-	<term>StartIconic</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>StartIconic</emphasis></term>
+      <listitem>
+<para>Causes the app to start and immediately iconify itself to the <emphasis remap='I'>IconBox</emphasis>.
+The default is <emphasis remap='I'>StartNormal</emphasis> implicitly for all windows.</para>
+      </listitem>
 </varlistentry>

@@ -1,6 +1,11 @@
 <varlistentry id="options.ViewportX">
-	<term>ViewportX</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term>ViewportX <emphasis remap='I'>number</emphasis></term>
+      <listitem>
+<para>Specifies the coordinate along the x-axis that <command>afterstep</command> should
+place a window.  This allows opening a window on a particular desk and view.
+<emphasis remap='I'>number</emphasis> is measured in pixels and the screen resolution is the outline
+of a desk's particular boundaries; where it will then place it upon another
+desk or view.  Combined with <emphasis remap='I'>ViewportY</emphasis>, a window can be given geometry
+by <command>afterstep</command> and be placed in the desired desktop and view.</para>
+      </listitem>
 </varlistentry>
