@@ -341,7 +341,7 @@ read_mit_priority_colors (ASWMProps * wmprops, Bool deleted)
 				for (items--; items >= 0; items--)
 					wmprops->preserved_colors[items] = (CARD32)(list[items]);
 			}
-			XFree (list);
+			free (list);
 		}
 
 		return True;
@@ -412,7 +412,7 @@ read_extwm_desk_viewport (ASWMProps * wmprops, Bool deleted)
             success = True ;
         }
         if( raw_data )
-			XFree (raw_data);
+			free (raw_data);
     }
     return success;
 }
@@ -456,7 +456,7 @@ read_as_current_viewport (ASWMProps * wmprops, Bool deleted)
         }
 
         if( raw_data )
-			XFree (raw_data);
+			free (raw_data);
 	}
     return success;
 }

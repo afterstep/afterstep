@@ -502,6 +502,26 @@ add_tab( Window client, const char *name, INT32 encoding )
 void
 rearrange_tabs()
 {
+	int total_length = 0, max_total_length = 0 ;
+	int max_height = 0 ;
+	ASCanvas *mc = WinTabsState.main_canvas ;
+	int i ;
+	ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+
+	if( Config->max_rows > 0 )
+		max_total_length = mc->width * Config->max_rows ;
+
+	i = PVECTOR_USED(WinTabsState.tabs) ;
+	while( --i >= 0 )
+	{
+		int width  = get_astbar_label_width( tabs[i]->bar );
+		int height = get_astbar_label_height( tabs[i]->bar );
+
+		if( height > max_height )
+			max_height = height ;
+		total_length += width ;
+	}
+
 
 
 }

@@ -43,7 +43,7 @@ Bool read_32bit_property (Window w, Atom property, CARD32* trg);
  * data_size - will hold the size of returned data
  * version   - will hold the version of retrieved data
  */
-CARD32 *get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version);
+long *get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version);
 Bool read_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version, CARD32 **trg);
 
 char *text_property2string( XTextProperty *tprop);

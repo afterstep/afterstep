@@ -350,7 +350,7 @@ read_wm_protocols (ASRawHints * hints, Window w)
             LOCAL_DEBUG_OUT( "nprotos=%ld, protocols[0] = 0x%lX(\"%s\")", nprotos, protocols[0], XGetAtomName(dpy, protocols[0]));
 			translate_atom_list (&(hints->wm_protocols), WM_Protocols, protocols, nprotos);
             LOCAL_DEBUG_OUT( "translated protocols =0x%lX", hints->wm_protocols );
-			XFree (protocols);
+			free (protocols);
 		}
 	}
 }
@@ -361,7 +361,7 @@ read_wm_cmap_windows (ASRawHints * hints, Window w)
 	if (hints && w != None)
 	{
 		if (hints->wm_cmap_windows)
-			XFree (hints->wm_cmap_windows);
+			free (hints->wm_cmap_windows);
 		if (!read_32bit_proplist
 			(w, _XA_WM_COLORMAP_WINDOWS, 10, &(hints->wm_cmap_windows), &(hints->wm_cmap_win_count)))
 			hints->wm_cmap_win_count = 0;
@@ -413,7 +413,7 @@ read_wm_state (ASRawHints * hints, Window w)
 			}
 		}
         if( data )
-            XFree( data );
+            free( data );
 	}
 }
 
@@ -430,7 +430,7 @@ read_motif_hints (ASRawHints * hints, Window w)
 
         if (hints->motif_hints)
 		{
-			XFree (hints->motif_hints);
+			free (hints->motif_hints);
 			hints->motif_hints = NULL;
         }
         if (nitems >= 4)
@@ -439,7 +439,7 @@ read_motif_hints (ASRawHints * hints, Window w)
             raw_data = NULL ;
         }
         if( raw_data )
-            XFree( raw_data );
+            free( raw_data );
 	}
 }
 
@@ -544,7 +544,7 @@ read_extwm_window_type (ASRawHints * hints, Window w)
 		if (read_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, 6, &protocols, &nprotos))
 		{
 			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_WindowType, protocols, nprotos);
-			XFree (protocols);
+			free (protocols);
 		}
 	}
 }
@@ -560,7 +560,7 @@ read_extwm_state (ASRawHints * hints, Window w)
         if (read_32bit_proplist (w, _XA_NET_WM_STATE, 6, &protocols, &nprotos))
 		{
 			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_State, protocols, nprotos);
-			XFree (protocols);
+			free (protocols);
 		}
 	}
 }
@@ -587,7 +587,7 @@ read_extwm_protocols (ASRawHints * hints, Window w)
 		if (read_32bit_proplist (w, _XA_NET_WM_PROTOCOLS, 1, &protocols, &nprotos))
 		{
 			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_Protocols, protocols, nprotos);
-			XFree (protocols);
+			free (protocols);
 		}
 	}
 }
@@ -854,7 +854,7 @@ destroy_raw_hints (ASRawHints * hints, Bool reusable)
 			free (hints->transient_for);
 
 		if (hints->wm_cmap_windows)
-			XFree (hints->wm_cmap_windows);
+			free (hints->wm_cmap_windows);
 
 		if (hints->wm_client_machine)
 			free_text_property (&(hints->wm_client_machine));
@@ -863,7 +863,7 @@ destroy_raw_hints (ASRawHints * hints, Bool reusable)
 
 		/* Motif Hints : */
 		if (hints->motif_hints)
-			XFree (hints->motif_hints);
+			free (hints->motif_hints);
 
 		/* Gnome Hints : */
 		/* nothing to free here */
@@ -1206,7 +1206,7 @@ set_client_state (Window w, struct ASStatusHints *status)
 			if (read_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, MAX_NET_WM_STATES, &old_extwm_state, &old_extwm_used))
 			{
 				translate_atom_list (&old_state, EXTWM_State, old_extwm_state, old_extwm_used);
-				XFree (old_extwm_state);
+				free (old_extwm_state);
 			}
 			if (get_flags (old_state, EXTWM_StateModal))
 				extwm_states[used++] = _XA_NET_WM_STATE_MODAL;

@@ -493,7 +493,7 @@ CaptureAllWindows (ScreenInfo *scr)
             if( read_32bit_proplist (children[i], _XA_WM_STATE, 2, &state_prop, &nitems) )
 			{
                 wm_state = state_prop[0] ;
-				XFree( state_prop );
+				free( state_prop );
 			}
             if( (wm_state == IconicState) || (attr.map_state != IsUnmapped))
                 AddWindow( children[i] );
