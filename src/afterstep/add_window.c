@@ -46,8 +46,6 @@
 #include <X11/Xresource.h>
 #endif /* SHAPE */
 
-#warning "implement titlebar config language in redecorate_window"
-
 #if 0
 /************************************************************************/
 /* artifacts of ASWindow icon handling - assimilate in other functions: */
@@ -1189,13 +1187,19 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
 
     if( w == asw->w )
     {  /* simply update client's size and position */
+        ASFlagType changes ;
         if( ASWIN_GET_FLAGS(asw, AS_Dead) )
             return;
-        handle_canvas_config (asw->client_canvas);
+        changes = handle_canvas_config (asw->client_canvas);
         if( asw->internal && asw->internal->on_moveresize )
             asw->internal->on_moveresize( asw->internal, w );
 
-        broadcast_config (M_CONFIGURE_WINDOW, asw);
+        if( changes != 0 )
+        {
+            if( ASWIN_GET_FLAGS( asw, AS_Shaped ) )
+                SetShape( asw, 0 );
+            broadcast_config (M_CONFIGURE_WINDOW, asw);
+        }
     }else if( w == asw->frame )
     {/* resize canvases here :*/
         int changes = handle_canvas_config (asw->frame_canvas);
@@ -1241,7 +1245,11 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         }
 
         if( changes != 0 )
+        {
             update_window_transparency( asw );
+            if( get_flags( changes, CANVAS_RESIZED ) && ASWIN_GET_FLAGS( asw, AS_Shaped )  )
+                SetShape( asw, 0 );
+        }
     }else if( asw->icon_canvas && w == asw->icon_canvas->w )
     {
         canvas_moved = handle_canvas_config (asw->icon_canvas);
@@ -1274,7 +1282,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         for( i = 0 ; i < FRAME_SIDES ; ++i )
             if( asw->frame_sides[i] && asw->frame_sides[i]->w == w )
             {   /* canvas has beer resized - resize tbars!!! */
-                Bool canvas_moved = handle_canvas_config (asw->frame_sides[i]);
+                Bool changes = handle_canvas_config (asw->frame_sides[i]);
 
                 /* we must resize using current window size instead of event's size */
                 *(od->in_width)  = asw->frame_sides[i]->width ;
@@ -1285,9 +1293,13 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
                 /* don't redraw window decoration while in the middle of animation : */
                 if( asw->shading_steps<= 0 )
                 {
-                    if( move_resize_frame_bars( asw, i, od, normal_width, normal_height, canvas_moved) ||
-                        canvas_moved )  /* now we need to show them on screen !!!! */
+                    if( move_resize_frame_bars( asw, i, od, normal_width, normal_height, changes) ||
+                        changes )  /* now we need to show them on screen !!!! */
+                    {
                         update_canvas_display( asw->frame_sides[i] );
+                        if( ASWIN_GET_FLAGS( asw, AS_Shaped )  )
+                            SetShape( asw, 0 );
+                    }
                 }
                 found = True;
                 break;
@@ -1571,14 +1583,6 @@ SelectDecor (ASWindow * t)
 {
 	ASHints *hints = t->hints ;
 	ASFlagType tflags = hints->flags ;
-
-#ifdef SHAPE
-	if (t->wShaped)
-	{
-		tflags &= ~(AS_Border | AS_Frame);
-		clear_flags(hints->function_mask,AS_FuncResize);
-	}
-#endif
 
 #ifndef NO_TEXTURE
     if (!get_flags(hints->function_mask,AS_FuncResize) || !get_flags( Scr.Look.flags, DecorateFrames))
@@ -1946,15 +1950,26 @@ SetShape (ASWindow *asw, int w)
         if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
         {                                      /* todo: update icon's shape */
 
-        }else
+        }else if( ASWIN_GET_FLAGS( asw, AS_Shaped ) )
         {
             int i ;
-            XShapeCombineMask (dpy, asw->frame, ShapeBounding, 0, 0, None, ShapeSet);
+
             if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-                combine_canvas_shape( asw->frame_canvas, asw->client_canvas );
+            {
+LOCAL_DEBUG_OUT( "combining client shape at %+d%+d", asw->client_canvas->root_x - asw->frame_canvas->root_x,
+                                    asw->client_canvas->root_y - asw->frame_canvas->root_y );
+                XShapeCombineShape (dpy, asw->frame, ShapeBounding,
+                                    asw->client_canvas->root_x - asw->frame_canvas->root_x,
+                                    asw->client_canvas->root_y - asw->frame_canvas->root_y,
+                                    asw->w, ShapeBounding, ShapeSet);
+            }else
+            {
+LOCAL_DEBUG_OUT( "setting empty shape - client's dead%s", "" );
+                XShapeCombineMask (dpy, asw->frame, ShapeBounding, 0, 0, None, ShapeSet);
+            }
             for( i = 0 ; i < FRAME_SIDES ; ++i )
                 if( asw->frame_sides[i] )
-                    combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i] );
+                    combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], False );
         }
     }
 #if 0 /*old code : */
@@ -2244,6 +2259,23 @@ init_aswindow(ASWindow * t, Bool free_resources )
     t->magic = MAGIC_ASWINDOW ;
 }
 
+void
+check_aswindow_shaped( ASWindow *asw )
+{
+    int           boundingShaped= False;
+#ifdef SHAPE
+    int           dumm, clipShaped= False;
+    unsigned      udumm;
+    XShapeQueryExtents (dpy, asw->w,
+                        &boundingShaped, &dumm, &dumm, &udumm, &udumm,
+                        &clipShaped, &dumm, &dumm, &udumm, &udumm);
+#endif /* SHAPE */
+    if( boundingShaped )
+        ASWIN_SET_FLAGS( asw, AS_Shaped );
+    else
+        ASWIN_CLEAR_FLAGS( asw, AS_Shaped );
+}
+
 /***********************************************************************
  *
  *  Procedure:
@@ -2304,22 +2336,7 @@ AddWindow (Window w)
 		free ((char *)tmp_win);
 		return (NULL);
 	}
-
-#ifdef SHAPE
-	{
-		int           xws, yws, xbs, ybs;
-		unsigned      wws, hws, wbs, hbs;
-		int           boundingShaped, clipShaped;
-
-		XShapeSelectInput (dpy, tmp_win->w, ShapeNotifyMask);
-		XShapeQueryExtents (dpy, tmp_win->w,
-							&boundingShaped, &xws, &yws, &wws, &hws,
-							&clipShaped, &xbs, &ybs, &wbs, &hbs);
-		tmp_win->wShaped = boundingShaped;
-	}
-#endif /* SHAPE */
-
-	SelectDecor (tmp_win);
+    SelectDecor (tmp_win);
 
     if( !init_aswindow_status( tmp_win, &status ) )
 	{
@@ -2327,6 +2344,10 @@ AddWindow (Window w)
 		return NULL;
 	}
 
+#ifdef SHAPE
+    XShapeSelectInput (dpy, tmp_win->w, ShapeNotifyMask);
+#endif
+    check_aswindow_shaped( tmp_win );
     /*
 	 * Make sure the client window still exists.  We don't want to leave an
 	 * orphan frame window if it doesn't.  Since we now have the server
@@ -2425,6 +2446,10 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
 		Destroy (tmp_win, False);
 		return NULL;
 	}
+
+#ifdef SHAPE
+    XShapeSelectInput (dpy, tmp_win->w, ShapeNotifyMask);
+#endif
 
     XGrabServer (dpy);
     XSetWindowBorderWidth (dpy, tmp_win->w, 0);

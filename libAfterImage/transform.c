@@ -1431,7 +1431,7 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 		                                  get_flags( flip, FLIP_VERTICAL )?to_height:to_width,
 										  get_flags( flip, FLIP_VERTICAL )?to_width:to_height, NULL)) != NULL )
 		{
-			if( get_flags( flip, FLIP_VERTICAL ) )
+            if( get_flags( flip, FLIP_VERTICAL ) )
 			{
 				CARD32 *chan_data ;
 				size_t  pos = 0;
@@ -1492,12 +1492,13 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 			}else
 			{
 				toggle_image_output_direction( imout );
+                fprintf( stderr, __FUNCTION__":chanmask = 0x%lX", filter );
 				for( y = 0 ; y < to_height ; y++  )
 				{
 					imdec->decode_image_scanline( imdec );
-					result.flags = imdec->buffer.flags ;
-					result.back_color = imdec->buffer.back_color ;
-					SCANLINE_FUNC(reverse_component,imdec->buffer,result,0,to_width);
+                    result.flags = imdec->buffer.flags = imdec->buffer.flags & filter ;
+                    result.back_color = imdec->buffer.back_color ;
+                    SCANLINE_FUNC_FILTERED(reverse_component,imdec->buffer,result,0,to_width);
 					imout->output_image_scanline( imout, &result, 1);
 				}
 			}
@@ -1814,7 +1815,7 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 	 * instead of from top to bottom : */
 	if( !get_flags( im->flags, ASIM_VECTOR_TOP2BOTTOM) )
 		toggle_image_output_direction(imout);
-	
+
 	prepare_scanline( im->width, QUANT_ERR_BITS, &buf, asv->BGR_mode );
 	curr_point = palette->npoints/2 ;
 	points = palette->points ;
@@ -1910,7 +1911,7 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 	if( vector != NULL )
 		if( (im = create_asimage( width, height, compression ) ) != NULL )
 		{
-			if( out_format != ASA_ASImage ) 
+			if( out_format != ASA_ASImage )
 				set_flags( im->flags, ASIM_DATA_NOT_USEFUL );
 			if( set_asimage_vector( im, vector ) )
 				if( palette )
@@ -1957,7 +1958,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 	if (!src) return NULL;
 
 	dst = create_asimage(src->width, src->height, compression_out);
-	if( out_format != ASA_ASImage ) 
+	if( out_format != ASA_ASImage )
 		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 
 	dst->back_color = src->back_color;
@@ -2058,7 +2059,7 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		return NULL;
 
 	dst = create_asimage (to_width, to_height, compression_out);
-	if( out_format != ASA_ASImage ) 
+	if( out_format != ASA_ASImage )
 		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 
 	dst->back_color = src->back_color ;

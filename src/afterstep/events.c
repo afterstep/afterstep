@@ -1169,17 +1169,7 @@ HandleConfigureRequest ( ASEvent *event )
     if (cre->value_mask & CWStackMode)
         restack_window( asw, (cre->value_mask & CWSibling)?cre->above:None, cre->detail );
 
-#ifdef SHAPE
-	{
-		int           xws, yws, xbs, ybs;
-		unsigned      wws, hws, wbs, hbs;
-		int           boundingShaped, clipShaped;
-
-        XShapeQueryExtents (dpy, asw->w, &boundingShaped, &xws, &yws, &wws,
-							&hws, &clipShaped, &xbs, &ybs, &wbs, &hbs);
-        asw->wShaped = boundingShaped;
-	}
-#endif /* SHAPE */
+    check_aswindow_shaped( asw );
 
     /* for restoring */
 	if (cre->value_mask & CWBorderWidth)
@@ -1225,8 +1215,12 @@ HandleShapeNotify (ASEvent *event)
 		return;
 	if (sev->kind != ShapeBounding)
 		return;
-    event->client->wShaped = sev->shaped;
-    SetShape (event->client, 0/*Tmp_win->frame_width*/);
+    if( sev->shaped )
+        ASWIN_SET_FLAGS( event->client, AS_Shaped );
+    else
+        ASWIN_CLEAR_FLAGS( event->client, AS_Shaped );
+
+    SetShape (event->client, 0);
 }
 #endif /* SHAPE */
 

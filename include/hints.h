@@ -47,6 +47,7 @@ struct ScreenInfo;
 #define AS_Mapped               (1<<16)
 #define AS_IconMapped           (1<<17)
 #define AS_Visible              (1<<18)
+#define AS_Shaped               (1<<19)
 
 /***********************************************************/
 /* General flags                                           */

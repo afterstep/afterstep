@@ -24,6 +24,8 @@ typedef struct ASCanvas
 #define CANVAS_CONTAINER            (0x01<<16) /* user drawn - should not maintain our canvas Pixmap,
                                                 * also should monitor chnages in user defined shape,
                                                 * and update mask pixmap accordingly */
+#define CANVAS_FORCE_MASK           (0x01<<18)  /* forces rendering of the canvas mask even if MyStyle is not shaped */
+
     ASFlagType  state ;
 	Window w;
 	int root_x, root_y;
@@ -187,7 +189,7 @@ void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line);
 #else
 void update_canvas_display( ASCanvas *pc );
 #endif
-void combine_canvas_shape (ASCanvas *parent, ASCanvas *child );
+Bool combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first );
 
 
 void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );

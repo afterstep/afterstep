@@ -516,7 +516,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	imdec->out_height = out_height;
 	imdec->next_line = offset_y ;
 	imdec->back_color = (im != NULL)?im->back_color:ARGB32_DEFAULT_BACK_COLOR ;
-	imdec->bevel = bevel ;
+    imdec->bevel = bevel ;
   	if( bevel )
 	{
 		if( bevel->left_outline > MAX_BEVEL_OUTLINE )
@@ -556,7 +556,8 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 		imdec->decode_image_scanline = decode_image_scanline_normal ;
 
 	prepare_scanline(out_width+imdec->bevel_h_addon, 0, &(imdec->buffer), asv->BGR_mode );
-	imdec->buffer.back_color = ARGB32_DEFAULT_BACK_COLOR;
+    imdec->buffer.back_color = (im != NULL)?im->back_color:ARGB32_DEFAULT_BACK_COLOR ;
+
 	if( im == NULL )
 		imdec->decode_asscanline = decode_asscanline_native;
 	else if( get_flags( im->flags, ASIM_DATA_NOT_USEFUL ) && im->alt.ximage != NULL )
@@ -2379,9 +2380,9 @@ output_image_line_top( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	if( new_line )
 	{
 		if( ratio > 1 )
-			SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,imout->available->width);
+            SCANLINE_FUNC_FILTERED(divide_component,*(new_line),*(imout->available),ratio,imout->available->width);
 		else
-			SCANLINE_FUNC(copy_component,*(new_line),*(imout->available),NULL,imout->available->width);
+            SCANLINE_FUNC_FILTERED(copy_component,*(new_line),*(imout->available),NULL,imout->available->width);
 		imout->available->flags = new_line->flags ;
 		imout->available->back_color = new_line->back_color ;
 	}
@@ -2389,14 +2390,15 @@ output_image_line_top( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	if( imout->used != NULL )
 	{
 		if( new_line != NULL )
-			SCANLINE_FUNC(best_output_filter,*(imout->used),*(imout->available),0,imout->available->width);
+            SCANLINE_FUNC_FILTERED(best_output_filter,*(imout->used),*(imout->available),0,imout->available->width);
 		else
-			SCANLINE_MOD(fine_output_filter_mod,*(imout->used),0,imout->used->width);
+            SCANLINE_MOD_FILTERED(fine_output_filter_mod,*(imout->used),0,imout->used->width);
 		to_store = imout->used ;
 	}
 	if( to_store )
+    {
 		imout->encode_image_scanline( imout, to_store );
-
+    }
 	/* rotating the buffers : */
 	if( imout->buffer_shift > 0 )
 	{
@@ -2414,12 +2416,12 @@ void
 output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 {
 	/* caching and preprocessing line into our buffer : */
-	if( new_line )
+    if( new_line )
 	{
-		SCANLINE_FUNC(fine_output_filter, *(new_line),*(imout->available),ratio,imout->available->width);
+        SCANLINE_FUNC_FILTERED(fine_output_filter, *(new_line),*(imout->available),ratio,imout->available->width);
 		imout->available->flags = new_line->flags ;
 		imout->available->back_color = new_line->back_color ;
-/*		SCANLINE_MOD(print_component,*(imout->available),0, new_line->width ); */
+/*      SCANLINE_MOD(print_component,*(imout->available),0, new_line->width ); */
 		/* copying/encoding previously cached line into destination image : */
 		imout->encode_image_scanline( imout, imout->available );
 	}
@@ -2431,7 +2433,7 @@ output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	/* caching and preprocessing line into our buffer : */
 	if( new_line )
 	{
-		SCANLINE_FUNC(fast_output_filter,*(new_line),*(imout->available),ratio,imout->available->width);
+        SCANLINE_FUNC_FILTERED(fast_output_filter,*(new_line),*(imout->available),ratio,imout->available->width);
 		imout->available->flags = new_line->flags ;
 		imout->available->back_color = new_line->back_color ;
 		imout->encode_image_scanline( imout, imout->available );
@@ -2444,9 +2446,9 @@ output_image_line_direct( ASImageOutput *imout, ASScanline *new_line, int ratio 
 	/* caching and preprocessing line into our buffer : */
 	if( new_line )
 	{
-		if( ratio > 1)
+        if( ratio > 1)
 		{
-			SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,imout->available->width);
+            SCANLINE_FUNC_FILTERED(divide_component,*(new_line),*(imout->available),ratio,imout->available->width);
 			imout->available->flags = new_line->flags ;
 			imout->available->back_color = new_line->back_color ;
 			imout->encode_image_scanline( imout, imout->available );

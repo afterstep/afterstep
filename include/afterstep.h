@@ -486,9 +486,6 @@ typedef struct ASWindow
 	/********************************************************************/
 	/* END of NEW ASWindow frame decorations                            */
 	/********************************************************************/
-#ifndef NO_SHAPE
-    int wShaped;        /* is this a shaped window   */
-#endif
     int FocusDesk;      /* Where (if at all) was it focussed       */
     int DeIconifyDesk;  /* Desk to deiconify to, for StubbornIcons */
 
@@ -635,6 +632,7 @@ void change_aswindow_desktop( ASWindow *asw, int new_desk );
 void toggle_aswindow_status( ASWindow *asw, ASFlagType flags );
 
 void SelectDecor (ASWindow *);
+void check_aswindow_shaped( ASWindow *asw );
 ASWindow *AddWindow (Window w);
 ASWindow *AddInternalWindow (Window w,
                              ASInternalWindow **pinternal,

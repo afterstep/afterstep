@@ -77,7 +77,6 @@ typedef struct ASSwallowed
 {
     ASCanvas *normal, *iconic;
     ASCanvas *current;                         /* one of the above */
-
 }ASSwallowed;
 
 typedef struct ASWharfButton
@@ -104,6 +103,7 @@ typedef struct ASWharfFolder
 #define ASW_Mapped          (0x01<<0)
 #define ASW_Vertical        (0x01<<1)
 #define ASW_Withdrawn       (0x01<<2)
+#define ASW_NeedsShaping    (0x01<<3)
     ASFlagType  flags;
 
     ASCanvas    *canvas;
@@ -126,6 +126,8 @@ typedef struct ASWharfState
 
     ASWharfButton *pressed_button;
     int pressed_state;
+
+    Bool shaped_style;
 
 }ASWharfState;
 
@@ -304,6 +306,23 @@ CheckConfigSanity()
         {
             Config->force_size.width = 0;
             Config->force_size.height = 0;
+        }
+    }
+
+    WharfState.shaped_style = False ;
+    if( Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type >= TEXTURE_TEXTURED_START &&
+        Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type <= TEXTURE_SHAPED_PIXMAP  )
+    {
+        WharfState.shaped_style = True;
+        LOCAL_DEBUG_OUT( "shaped pixmap detected%s","");
+    }else if( Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type >= TEXTURE_SCALED_PIXMAP &&
+        Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type <= TEXTURE_PIXMAP  )
+    {
+        ASImage *im = Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.image ;
+        if( im && check_asimage_alpha( Scr.asv, im ) )
+        {
+            WharfState.shaped_style = True ;
+            LOCAL_DEBUG_OUT( "transparent pixmap detected%s","");
         }
     }
 
@@ -601,11 +620,16 @@ create_wharf_button_canvas(ASWharfButton *aswb, ASCanvas *parent)
 {
     static XSetWindowAttributes attr ;
     Window w ;
+    ASCanvas *canvas;
 
     attr.event_mask = WHARF_BUTTON_EVENT_MASK ;
     w = create_visual_window( Scr.asv, parent->w, -1, -1, 1, 1, 0, InputOutput, CWEventMask, &attr );
     register_object( w, (ASMagic*)aswb );
-    return create_ascanvas(w);
+    canvas = create_ascanvas(w);
+
+    if( WharfState.shaped_style )
+        set_flags( canvas->state, CANVAS_FORCE_MASK );
+    return canvas;
 }
 
 ASTBarData *
@@ -613,18 +637,17 @@ build_wharf_button_tbar(WharfButton *wb)
 {
     ASTBarData *bar = create_astbar();
     int icon_row = 0, icon_col = 0;
-
-    if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
-    {
-        int label_row = 0, label_col = 0;
-        int label_flip = get_flags( Config->flags, WHARF_FLIP_LABEL )?FLIP_UPSIDEDOWN:0;
-        int label_align = NO_ALIGN ;
+    int label_row = 0, label_col = 0;
+    int label_flip = get_flags( Config->flags, WHARF_FLIP_LABEL )?FLIP_UPSIDEDOWN:0;
+    int label_align = NO_ALIGN ;
 #define WLL_Vertical    (0x01<<0)
 #define WLL_Opposite    (0x01<<1)
 #define WLL_AlignCenter (0x01<<2)
 #define WLL_AlignRight  (0x01<<3)
 #define WLL_OverIcon    (0x01<<4)
 
+    if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
+    {
         if( get_flags(Config->label_location, WLL_Vertical ))
             label_flip |= FLIP_VERTICAL ;
         if( !get_flags(Config->label_location, WLL_OverIcon ))
@@ -646,7 +669,6 @@ build_wharf_button_tbar(WharfButton *wb)
             label_align = ALIGN_RIGHT|ALIGN_TOP ;
         else
             label_align = ALIGN_LEFT|ALIGN_BOTTOM ;
-        add_astbar_label( bar, label_col, label_row, label_flip, label_align, wb->title );
     }
     if( wb->icon )
     {
@@ -660,6 +682,10 @@ build_wharf_button_tbar(WharfButton *wb)
                 add_astbar_icon( bar, icon_col, icon_row, 0, Config->align_contents, im );
         }
     }
+
+    if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
+        add_astbar_label( bar, label_col, label_row, label_flip, label_align, wb->title );
+
     set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
     if( !get_flags( Config->flags, WHARF_NO_BORDER ) )
         set_astbar_hilite( bar, RIGHT_HILITE|BOTTOM_HILITE );
@@ -800,6 +826,30 @@ destroy_wharf_folder( ASWharfFolder **paswf )
     *paswf = NULL ;
 }
 
+inline void
+update_wharf_folder_shape( ASWharfFolder *aswf )
+{
+#ifdef SHAPE
+    int i =  aswf->buttons_num;
+    int set = 0 ;
+    if( (get_flags( Config->flags, WHARF_SHAPE_TO_CONTENTS ) && get_flags( aswf->flags, ASW_NeedsShaping))||
+        WharfState.shaped_style )
+    {
+        while ( --i >= 0 )
+        {
+            if( combine_canvas_shape (aswf->canvas, aswf->buttons[i].canvas, (set==0) ) )
+                ++set;
+            if( aswf->buttons[i].swallowed )
+            {
+                if( combine_canvas_shape (aswf->canvas, aswf->buttons[i].swallowed->current, (set==0) ) )
+                    ++set;
+            }
+        }
+    }
+#endif
+}
+
+
 void
 map_wharf_folder( ASWharfFolder *aswf,
                   int x, int y, unsigned int width, unsigned int height,
@@ -856,6 +906,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
     int x = 0, y = 0 ;
     int i;
     Bool fit_contents = get_flags(Config->flags, WHARF_FIT_CONTENTS);
+    Bool needs_shaping = False ;
     LOCAL_DEBUG_OUT( "max_size(%dx%d)", max_width, max_height );
     if( get_flags( aswf->flags, ASW_Vertical ) )
     {
@@ -884,6 +935,8 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
                 else if( get_flags( Config->align_contents, ALIGN_TOP ))
                     dy = dy>>1 ;
                 moveresize_canvas( aswb->canvas, dx, y+dy, aswb->desired_width, aswb->desired_height );
+                if( aswb->desired_width != max_width )
+                    needs_shaping = True;
             }else
                 moveresize_canvas( aswb->canvas, 0, y, max_width, height );
             y += height ;
@@ -906,7 +959,19 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
             register int width = (get_flags( aswb->flags, ASW_MaxSwallow )|| fit_contents )?aswb->desired_width:max_width ;
             if( get_flags(Config->flags, WHARF_SHAPE_TO_CONTENTS) )
             {
-                moveresize_canvas( aswb->canvas, x, 0, width, max_height );
+                int dx = width - aswb->desired_width ;
+                int dy = max_height - aswb->desired_height ;
+                if( get_flags( Config->align_contents, ALIGN_RIGHT ) == 0 )
+                    dx = 0 ;
+                else if( get_flags( Config->align_contents, ALIGN_LEFT ))
+                    dx = dx>>1 ;
+                if( get_flags( Config->align_contents, ALIGN_BOTTOM ) == 0 )
+                    dy = 0 ;
+                else if( get_flags( Config->align_contents, ALIGN_TOP ))
+                    dy = dy>>1 ;
+                moveresize_canvas( aswb->canvas, x+dx, dy, width, aswb->desired_height );
+                if( aswb->desired_height != max_height )
+                    needs_shaping = True;
             }else
                 moveresize_canvas( aswb->canvas, x, 0, width, max_height );
             x += width;
@@ -915,6 +980,10 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
         *total_height_return = max_height ;
     }
     ASSync( False );
+    if( needs_shaping )
+        set_flags( aswf->flags, ASW_NeedsShaping );
+    else
+        clear_flags( aswf->flags, ASW_NeedsShaping );
 }
 
 void
@@ -1060,6 +1129,7 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
         if( left != right)
             x += east?5:-5 ;
     }
+    update_wharf_folder_shape( aswf );
     map_wharf_folder( aswf, x, y, width, height, east?(south?SouthEastGravity:NorthEastGravity):
                                                       (south?SouthWestGravity:NorthWestGravity) );
     set_flags( aswf->flags, ASW_Mapped );
@@ -1244,7 +1314,7 @@ check_swallow_window( ASWindowData *wd )
         /* create swallow object : */
         aswb->swallowed = safecalloc( 1, sizeof(ASSwallowed ));
         /* first thing - we reparent window and its icon if there is any */
-        XReparentWindow( dpy, wd->client, aswb->canvas->w, -10000, -10000 );
+        XReparentWindow( dpy, wd->client, aswb->canvas->w, 0, 0 );
         aswb->swallowed->normal = create_ascanvas_container( wd->client );
         register_object( wd->client, (ASMagic*)aswb );
         XSelectInput (dpy, wd->client, StructureNotifyMask);
@@ -1253,7 +1323,7 @@ check_swallow_window( ASWindowData *wd )
                                     withdraw_btn && aswb->parent == WharfState.root_folder);
         if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap))
         {
-            XReparentWindow( dpy, wd->icon, aswb->canvas->w, -10000, -10000 );
+            XReparentWindow( dpy, wd->icon, aswb->canvas->w, 0, 0 );
             aswb->swallowed->iconic = create_ascanvas_container( wd->icon );
             register_object( wd->icon, (ASMagic*)aswb );
             XSelectInput (dpy, wd->icon, StructureNotifyMask);
@@ -1272,7 +1342,7 @@ check_swallow_window( ASWindowData *wd )
         if( get_flags( aswb->flags, ASW_MaxSwallow ) || Config->force_size.height == 0 )
             aswb->desired_height = aswb->swallowed->current->height;
 
-        moveresize_canvas( aswb->swallowed->current, 0, 0, aswb->desired_width, aswb->desired_height );
+        resize_canvas( aswb->swallowed->current, aswb->desired_width, aswb->desired_height );
         map_canvas_window( aswb->swallowed->current, True );
 
         place_wharf_buttons( aswf, &total_width, &total_height );
@@ -1300,6 +1370,7 @@ void
 on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
 {
     ASFlagType changes = handle_canvas_config (aswb->canvas );
+    ASFlagType swallowed_changes = 0 ;
     if( get_flags(changes, CANVAS_RESIZED ) )
         set_astbar_size( aswb->bar, aswb->canvas->width, aswb->canvas->height );
     else if( get_flags(changes, CANVAS_MOVED ) )
@@ -1307,8 +1378,26 @@ on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
 
     if( changes != 0 && (DoesBarNeedsRendering(aswb->bar) || is_canvas_needs_redraw( aswb->canvas )))
         render_astbar( aswb->bar, aswb->canvas );
-    if( is_canvas_dirty( aswb->canvas ) )
+
+    if( aswb->swallowed )
+    {
+        swallowed_changes = handle_canvas_config (aswb->swallowed->current );
+    }
+#ifndef SHAPE
+    swallowed_changes = 0 ;                    /* if no shaped extentions - ignore the changes */
+#endif
+    if( is_canvas_dirty( aswb->canvas ) || swallowed_changes != 0 )
+    {
         update_canvas_display( aswb->canvas );
+#ifdef SHAPE
+        if( aswb->canvas->mask != None && aswb->swallowed )
+        {
+            combine_canvas_shape (aswb->canvas, aswb->swallowed->current, False );
+        }
+#endif
+    }
+
+
 }
 
 void on_wharf_moveresize( ASEvent *event )
@@ -1320,7 +1409,9 @@ void on_wharf_moveresize( ASEvent *event )
         return;
     if( obj->magic == MAGIC_WHARF_BUTTON )
     {
-        on_wharf_button_moveresize( (ASWharfButton*)obj, event );
+        ASWharfButton *aswb = (ASWharfButton*)obj;
+        on_wharf_button_moveresize( aswb, event );
+        update_wharf_folder_shape( aswb->parent );
     }else if( obj->magic == MAGIC_WHARF_FOLDER )
     {
         ASWharfFolder *aswf = (ASWharfFolder*)obj;
@@ -1354,6 +1445,8 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
                 while( --i >= 0 )
                     on_wharf_button_moveresize( &(aswf->buttons[i]), event );
             }
+            //if( get_flags(changes, CANVAS_RESIZED ) )
+                update_wharf_folder_shape( aswf );
         }
     }
 }
@@ -1425,13 +1518,6 @@ on_wharf_pressed( ASEvent *event )
             {
                 int wx = 0, wy = 0, wwidth, wheight;
                 int i = aswf->buttons_num ;
-                while ( --i >= 0 )
-                {
-                    if( aswf->buttons[i].folder &&
-                        get_flags( aswf->buttons[i].folder->flags, ASW_Mapped ) )
-                        unmap_wharf_folder( aswf->buttons[i].folder );
-                }
-
                 if( Config->withdraw_style < WITHDRAW_ON_ANY_BUTTON_AND_SHOW )
                     aswb = &(aswf->buttons[0]);
 
@@ -1444,8 +1530,15 @@ on_wharf_pressed( ASEvent *event )
 
                 set_flags( aswf->flags, ASW_Withdrawn );
                 moveresize_canvas( aswf->canvas, wx, wy, wwidth, wheight );
-                moveresize_canvas( aswb->canvas, 0, 0, wwidth, wheight );
                 XRaiseWindow( dpy, aswb->canvas->w );
+                while ( --i >= 0 )
+                {
+                    if( aswf->buttons[i].folder &&
+                        get_flags( aswf->buttons[i].folder->flags, ASW_Mapped ) )
+                        unmap_wharf_folder( aswf->buttons[i].folder );
+                    move_canvas( aswf->buttons[i].canvas, wwidth, wheight );
+                }
+                moveresize_canvas( aswb->canvas, 0, 0, wwidth, wheight );
             }
             return;
         }
