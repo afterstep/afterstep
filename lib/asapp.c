@@ -76,8 +76,8 @@ struct ASSession *Session = NULL;          /* filenames of look, feel and backgr
 
 /* names of AS functions - used all over the place  :*/
 
-#define FUNC_TERM(txt,len,func)         {TF_NO_MYNAME_PREPENDING,txt,len,TT_TEXT,func,NULL, NULL}
-#define FUNC_TERM2(flags,txt,len,func)  {TF_NO_MYNAME_PREPENDING|(flags),txt,len,TT_TEXT,func,NULL, NULL}
+#define FUNC_TERM(txt,len,func)         {TF_NO_MYNAME_PREPENDING,txt,len,TT_TEXT,func,NULL}
+#define FUNC_TERM2(flags,txt,len,func)  {TF_NO_MYNAME_PREPENDING|(flags),txt,len,TT_TEXT,func,NULL}
 
 TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME, "Nop", 3, F_NOP),   /* Nop      "name"|"" */
@@ -172,7 +172,12 @@ struct SyntaxDef FuncSyntax = {
 	'\0',
 	FuncTerms,
 	0,										   /* use default hash size */
-	NULL
+    ' ',
+	"",
+	"\t",
+	"AS Function",
+	NULL,
+	0
 };
 
 struct SyntaxDef     *pFuncSyntax = &FuncSyntax;
@@ -444,10 +449,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
     fd_width = get_fd_width ();
 
     if (FuncSyntax.term_hash == NULL)
-    {
-        InitHash (&FuncSyntax);
-		BuildHash (&FuncSyntax);
-    }
+		PrepareSyntax (&FuncSyntax);
     set_output_threshold( MyArgs.verbosity_level );
 #ifdef DEBUG_TRACE_X
     trace_enable_function(MyArgs.trace_calls);

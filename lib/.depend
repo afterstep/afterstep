@@ -129,12 +129,6 @@
 		../include/afterstep.h \
 		../include/parser.h
 
-./termhash.o : \
-		../configure.h \
-		../include/asapp.h \
-		../include/afterstep.h \
-		../include/parser.h
-
 ./readpacket.o : \
 		../configure.h \
 		../include/asapp.h \

@@ -145,11 +145,8 @@ txt2fterm (const char *txt, int quiet)
 	TermDef      *fterm;
 
 	if (FuncSyntax.term_hash == NULL)
-	{
-		InitHash (&FuncSyntax);
-		BuildHash (&FuncSyntax);
-	}
-	if ((fterm = FindStatementTerm ((char *)txt, &FuncSyntax)) == NULL && !quiet)
+        PrepareSyntax (&FuncSyntax);
+    if ((fterm = FindStatementTerm ((char *)txt, &FuncSyntax)) == NULL && !quiet)
         show_error ("unknown function name in function specification [%s].\n", txt);
 
 	return fterm;
