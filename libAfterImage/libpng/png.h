@@ -837,7 +837,11 @@ typedef png_info FAR * png_infop;
 typedef png_info FAR * FAR * png_infopp;
 
 /* Maximum positive integer used in PNG is (2^31)-1 */
-#define PNG_MAX_UINT ((png_uint_32)0x7fffffffL)
+#define PNG_UINT_31_MAX ((png_uint_32)0x7fffffffL)
+#define PNG_UINT_32_MAX (~((png_uint_32)0))
+#define PNG_SIZE_MAX (~((png_size_t)0))
+/* PNG_MAX_UINT is deprecated; use PNG_UINT_31_MAX instead. */
+#define PNG_MAX_UINT PNG_UINT_31_MAX
 
 /* These describe the color_type field in png_info. */
 /* color type masks */
@@ -2659,6 +2663,8 @@ PNG_EXTERN png_int_32 png_get_int_32 PNGARG((png_bytep buf));
 PNG_EXTERN png_uint_32 png_get_uint_32 PNGARG((png_bytep buf));
 PNG_EXTERN png_uint_16 png_get_uint_16 PNGARG((png_bytep buf));
 #endif /* !PNG_READ_BIG_ENDIAN_SUPPORTED */
+PNG_EXTERN png_uint_32 png_get_uint_31 PNGARG((png_structp png_ptr,
+  png_bytep buf));
 
 /* Initialize png_ptr struct for reading, and allocate any other memory.
  * (old interface - DEPRECATED - use png_create_read_struct instead).

@@ -1,0 +1,10 @@
+<varlistentry id="options.BalloonYOffset">
+	<term>BalloonYOffset</term>
+	<listitem>
+		<para>The balloon window is positioned to be horizontally centered against
+		the <command>Wharf</command> window it is describing. The vertical position may be
+		set as an offset. Negative offsets of <option>-N</option> are placed <emphasis remap='I'>N</emphasis>
+		pixels above the <command>Wharf</command> window, positive offsets of <emphasis remap='I'>+N</emphasis> are 
+		placed <emphasis remap='I'>N</emphasis> pixels below. Defaults to +2.</para>
+	</listitem>
+</varlistentry>

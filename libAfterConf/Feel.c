@@ -147,6 +147,11 @@ TermDef FeelTerms[] =
   {TF_SPECIAL_PROCESSING|TF_NO_MYNAME_PREPENDING,
                             "Key",3                     , TT_BINDING    , FEEL_Key_ID               , &FuncSyntax},
 
+  {TF_NO_MYNAME_PREPENDING, "ShadeAnimationSteps", 19, TT_UINTEGER, 	FEEL_ShadeAnimationSteps_ID, NULL},
+  {TF_NO_MYNAME_PREPENDING, "CoverAnimationSteps", 19, TT_UINTEGER, 	FEEL_CoverAnimationSteps_ID, NULL },
+  {TF_NO_MYNAME_PREPENDING, "CoverAnimationType", 18,  TT_UINTEGER, 	FEEL_CoverAnimationType_ID, NULL },
+
+
     /* obsolete stuff : */
   {TF_OBSOLETE|TF_NO_MYNAME_PREPENDING, "MWMFunctionHints",16       , TT_FLAG       , FEEL_MWMFunctionHints_ID  , NULL},
   {TF_OBSOLETE|TF_NO_MYNAME_PREPENDING, "MWMDecorHints",13          , TT_FLAG       , FEEL_MWMDecorHints_ID     , NULL},

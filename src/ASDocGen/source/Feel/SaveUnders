@@ -1,0 +1,11 @@
+<varlistentry id="options.SaveUnders">
+	<term>SaveUnders</term>
+	<listitem>
+		<para>Specifies that afterstep frames should request saveunders.  This
+		will cause afterstep to save those portions of windows that  are
+		not  visible  to  system memory.  This can significantly improve
+		the performance during opaque moves, but it causes a significant
+		increase  in  memory usage.  This can also cause garbled display
+		with some applications.</para>
+	</listitem>
+</varlistentry>

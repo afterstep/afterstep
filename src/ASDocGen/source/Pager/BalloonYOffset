@@ -1,0 +1,10 @@
+<varlistentry id="options.BalloonYOffset">
+	<term>BalloonYOffset</term>
+	<listitem>
+		<para>The balloon window is positioned  to  be  horizontally  centered
+		against  the  application  window it is describing. The vertical
+		position may be set as an offset. Negative  offsets  of  -N  are
+		placed  N  pixels above the pager window, positive offsets of +N
+		are placed N pixels below. Defaults to +2.</para>
+	</listitem>
+</varlistentry>

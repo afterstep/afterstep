@@ -1,0 +1,7 @@
+<varlistentry id="options.CirculateSkipIcons">
+	<term>CirculateSkipIcons</term>
+	<listitem>
+		<para>Specifies that all icons should be skipped  when  Warping  (alt-
+		tabbing) between windows.</para>
+	</listitem>
+</varlistentry>

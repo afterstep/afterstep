@@ -1,0 +1,6 @@
+<varlistentry id="options.MenuHiliteStyle">
+	<term>MenuHiliteStyle</term>
+	<listitem>
+		<para>Specifies the MyStyle to use for hilighted menu items.</para>
+	</listitem>
+</varlistentry>

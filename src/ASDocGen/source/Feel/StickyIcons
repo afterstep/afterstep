@@ -1,0 +1,7 @@
+<varlistentry id="options.StickyIcons">
+	<term>StickyIcons</term>
+	<listitem>
+		<para>Specifies that icons should stick to the screen's glass and fol-
+		low it from desk/view to desk/view.</para>
+	</listitem>
+</varlistentry>

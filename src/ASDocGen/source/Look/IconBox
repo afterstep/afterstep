@@ -1,0 +1,26 @@
+<varlistentry id="options.IconBox">
+	<term>IconBox</term>
+	<listitem>
+		<para>Specifies a region of the screen in  which  to  place  iconified
+		windows.  Up to four icon boxes can be defined. If an IconBox is
+		provided, icons will automatically be placed in them, if  possible.
+		Otherwise, they will be placed in the upper left corner of
+		the screen. Each time a window is  iconified,  a  new  place  is
+		found for it, unless the icon has been moved manually. An available
+		space is searched for from left to right, then top to  bottom.
+		Icons  will  not  be  automatically placed on top of other
+		icons, but they may be placed underneath application windows  if
+		StubbornIconPlacement  has  not been specified. If left or right
+		is negative, then AfterStep will add the screen width to it.  If
+		top  or  bottom  is negative, then AfterStep will add the screen
+		height to it. Note that -0 is not parsed as the right or  bottom
+		pixel  on  the screen. Use -1 instead. The IconBox will normally
+		be filled from left to right, then top to bottom.   However,  if
+		the right edge of the IconBox is closer to the right edge of the
+		screen than the left edge of the IconBox is to the left edge  of
+		the  screen,  then  it will be filled from right to left.  Similarly
+		for top to bottom.  For example, "2 2 -1 -1"  will  result
+		in  an  IconBox  which  fills from right to left, then bottom to
+		top.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,8 @@
+<varlistentry id="options.FullPush">
+	<term>FullPush</term>
+	<listitem>
+		<para>If specified, the entire <command>Wharf</command> button background will be offset down
+		and to the right 2 pixels when pushed.  Especially useful with
+		<emphasis remap='I'>*WharfNoBorder</emphasis> textures.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,6 @@
+<varlistentry id="options.AnimateMain">
+	<term>AnimateMain</term>
+	<listitem>
+		<para>Designates that full-length <command>Wharf</command> withdraws will be animated.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,12 @@
+<varlistentry id="options.Columns">
+	<term>Columns</term>
+	<listitem>
+		<para>Specifies the number of <emphasis remap='I'>columns</emphasis> of buttons to be created. This will 
+		give your <command>Wharf</command> a vertical layout, with the number of columns equal 
+		to the number specificed in <emphasis remap='I'>columns</emphasis>. If unspecified, the number of 
+		columns will be set to 1.  If the <emphasis remap='I'>columns</emphasis> are set to a number 
+		greater than 1, then there will be that number of columns with enough 
+		rows to satisfy the requested number of buttons.  Only one of 
+		<emphasis remap='I'>*WharfRows</emphasis> or <emphasis remap='I'>*WharfColumns</emphasis> should be specified.</para>
+	</listitem>
+</varlistentry>

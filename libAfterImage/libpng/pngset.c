@@ -253,6 +253,8 @@ png_set_IHDR(png_structp png_ptr, png_infop info_ptr,
       png_error(png_ptr, "Image width or height is zero in IHDR");
    if (width > PNG_MAX_UINT || height > PNG_MAX_UINT)
       png_error(png_ptr, "Invalid image size in IHDR");
+   if (width > PNG_USER_WIDTH_MAX || height > PNG_USER_HEIGHT_MAX)
+      png_error(png_ptr, "image size exceeds user limits in IHDR");
 
    /* check other values */
    if (bit_depth != 1 && bit_depth != 2 && bit_depth != 4 &&

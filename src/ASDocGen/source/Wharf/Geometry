@@ -1,0 +1,9 @@
+<varlistentry id="options.Geometry">
+	<term>Geometry</term>
+	<listitem>
+		<para>Specifies the <command>Wharf</command> window location and/or size.  If the size is 
+		not specified, Wharf will auto-size itself in a reasonable manner. The 
+		<emphasis remap='I'>geometry</emphasis> is a standard X11 window geometry specification; see 
+		<emphasis remap='B'>XParseGeometry(3x)</emphasis>, and <emphasis remap='B'>EXAMPLES</emphasis> (below) for further details.</para>
+	</listitem>
+</varlistentry>

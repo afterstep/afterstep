@@ -1,0 +1,7 @@
+<varlistentry id="options.LeftTitlebarLayout">
+	<term>LeftTitlebarLayout</term>
+	<listitem>
+		<para>FIXME: add proper description here.</para>
+		<para>See Also: <ulink url="TbarLayout#synopsis">Titlebar Layout Flags</ulink> for further details.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,8 @@
+<varlistentry id="options.SloppyFocus">
+	<term>SloppyFocus</term>
+	<listitem>
+		<para>Specifies  that  windows  retain  focus until the mouse moves to
+		another window, or Warping causes another window to gain  focus.</para>
+		<para>SloppyFocus has no effect if ClickToFocus is also specified.</para>
+	</listitem>
+</varlistentry>

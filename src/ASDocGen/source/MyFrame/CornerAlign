@@ -1,0 +1,7 @@
+<varlistentry id="options.CornerAlign">
+	<term>CornerAlign</term>
+	<listitem>
+		<para>FIXME: add proper description here.</para>
+		<para>See Also: <ulink url="Align#synopsis">Alignment flags</ulink> for further details.</para>
+	</listitem>
+</varlistentry>

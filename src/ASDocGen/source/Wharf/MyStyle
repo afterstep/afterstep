@@ -1,0 +1,11 @@
+<varlistentry id="options.MyStyle">
+	<term>MyStyle</term>
+	<listitem>
+		<para>Specifies the style of the wharf button tiles, including background color, 
+		background pixmap (which may be transparent), and background gradient. 
+		This method of specifying the background is preferred over the BgColor, 
+		MaxColors, Pixmap, TextureColor, and TextureType options, although those 
+		(older) options do still work.</para>
+		<para>See Also: <ulink url="MyStyle#synopsis">MyStyle definition</ulink> for further details.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,11 @@
+<varlistentry id="options.EdgeScroll">
+	<term>EdgeScroll</term>
+	<listitem>
+		<para>Specifies the percentage of a page to  scroll  when  the  cursor
+		hits  the edge of a page. Setting EdgeScroll to 0 0 will disable
+		scrolling.  Setting this option to 100  100  will  scroll  whole
+		pages.  Set to 1000 1000, scrolling will wrap around at the edge
+		of the desktop.  Both horizontal and vertical should be positive
+		numbers.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,8 @@
+<varlistentry id="options.IconPath">
+	<term>IconPath</term>
+	<listitem>
+		<para>Specifies the paths to locate the  bitmaps  in,  typically  used
+		only if XPM, JPEG, or PNG images aren't available. Valid bitmaps
+		are standard X11 XBM's.</para>
+	</listitem>
+</varlistentry>

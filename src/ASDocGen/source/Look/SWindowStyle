@@ -1,0 +1,6 @@
+<varlistentry id="options.SWindowStyle">
+	<term>SWindowStyle</term>
+	<listitem>
+		<para>Specifies the MyStyle to use for the sticky window  decorations.</para>
+	</listitem>
+</varlistentry>

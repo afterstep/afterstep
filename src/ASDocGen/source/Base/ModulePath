@@ -1,0 +1,6 @@
+<varlistentry id="options.ModulePath">
+	<term>ModulePath</term>
+	<listitem>
+		<para>Specifies the paths to locate the Modules in.</para>
+	</listitem>
+</varlistentry>

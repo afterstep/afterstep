@@ -1,0 +1,7 @@
+<varlistentry id="options.BalloonCloseDelay">
+	<term>BalloonCloseDelay</term>
+	<listitem>
+		<para>Specifies the period in milliseconds to delay the disappearance  of
+		the balloon when leaving window with the mouse.</para>
+	</listitem>
+</varlistentry>

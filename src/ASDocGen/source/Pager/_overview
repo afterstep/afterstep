@@ -1,0 +1,122 @@
+<section label="overview" id="overview">
+<refsect1 id='usage'><title>USAGE</title>
+
+<para>Although <command>Pager</command> can be run from the command line, it is normally 
+spawned by afterstep in the <emphasis>autoexec</emphasis> file, in the following
+manner:</para>
+<literallayout>
+
+	Module	"I"	Pager beginning_desktop# ending_desktop#
+	Wait	"I"	Pager
+
+</literallayout>
+<para>In case you use Pager to switch your root backgrounds 
+<command>Wait</command> can be used as shown above.  This will insure that the 
+<command>Pager</command> has set the root background before you start
+any furthur apps (like transparent aterms and Eterms).</para>
+
+<para>or from within an afterstep menu file by 'Pager':</para>
+<literallayout>
+
+% cat "~/.afterstep/start/Modules/Pager"
+	Module "Pager" Pager first_desktop last_desktop
+	MiniPixmap "mini-as.xpm"
+</literallayout>
+
+<para>To stop the <command>Pager</command> module, a menu item can be used:</para>
+<literallayout>
+
+% cat "~/.afterstep/start/Modules/Pager_Stop"
+	KillModuleByName "Stop Pager" Pager
+	MiniPixmap "mini-as.xpm"
+</literallayout>
+
+</refsect1>
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>The <command>Pager</command> module shows a miniature view of the Afterstep desktops
+which are specified in the command line. This is a useful reminder of
+where your active windows are. Windows in the pager are accordingly to
+MyStyle definitions "*PagerUWindowStyle" - for unfocused windows,
+"*PagerFWindowStyle" - for focused windows and "*PagerSWindowStyle" -
+for sticky windows. If you never defined those MyStyles, Pager will
+default to same styles as used for actual windows.</para>
+
+<para>The <command>Pager</command> can be used to change your viewport into the current
+desktop, to change desktops, or to move windows around.</para>
+
+<para>Pressing mouse button 1 or 2 in the <command>Pager</command> will cause your viewport
+to change to the selected page of the selected desk. If you click with
+button 1 in the desk-label area, you will switch desks but not
+pages within the desk.</para>
+
+<para>Clicking and dragging with mouse button 2 on a miniature window in the
+<command>Pager</command> will cause that window to be move to the location where you
+release the mouse button, but your viewport will not change. If you drag
+the window out of the pager and onto your desktop, a full size image of
+the window will appear for you to place. There is no way to pick up a
+full size image of the window and move it into the <command>Pager</command>, however.
+Since some mice do not have button 2, provisions have been made to drag
+windows in the <command>Pager</command> by pressing modifier-1 (usually Alt) and
+dragging with button 3.</para>
+
+<para>When iconified, the pager will work as a fully functional current page
+only pager. Windows and viewports can be moved within the icon of the
+pager. Users will want to make sure that they have no lines similar to</para>
+
+<para>Starting with version 1.7.122 Pager no longer loads background images 
+into the memory. Module asetroot should be used to accomplish that task.
+But Pager will still be able to switch backgrounds as you switch between
+desks, after you've run asetroot to load images. Use *PagerDontDrawBg
+option in pager config file to TURN background switching OFF.</para>
+
+<para>See asetroot man page for more information.</para>
+
+<literallayout>
+
+	Style	"Pager"	Icon myIcon.[xpm|jpg|png]
+
+</literallayout>
+<para>in their feel files.</para>
+
+</refsect1>
+
+<refsect1 id='initialization'><title>INITIALIZATION</title>
+<para>During initialization, <command>Pager</command> will search for a configuration file
+which describes the images, locations and actions to take.  This file 
+will be the one specified by the <option>-f</option> option (if given).  Else, the 
+~/.afterstep/pager file will be used if it exists.  Else, 
+/usr/local/share/afterstep/pager will be used.</para>
+
+<para>If the <command>Pager</command> executable is linked to another name, ie ln -s
+<command>Pager</command> <command>OtherPager</command>, then another module called <command>OtherPager</command>
+can be started, with a completely different set of configurations than
+<command>Pager</command>, simply by adding <emphasis>*OtherPager</emphasis> options following the same
+<emphasis>*Pager</emphasis> configuration options below to the <emphasis>pager</emphasis> file. This way
+multiple Pager programs can be used.</para>
+
+</refsect1>
+
+<refsect1 id='keyboard_focus_control'><title>KEYBOARD FOCUS CONTROL</title>
+<para>You can direct the keyboard focus to any window on the current desktop
+by clicking with button 2 on its image in the pager. The window does
+not need to be visible, but it does need to be on the current page.</para>
+
+</refsect1>
+
+<refsect1 id='invocation'><title>INVOCATION</title>
+<para><command>Pager</command> can be invoked from the <emphasis>autoexec</emphasis> file or from a menu
+item as shown in the Synopsis section above.</para>
+
+<para>AfterStep will search through the directories specified in the
+<emphasis>ModulePath</emphasis> configuration in the <emphasis>base</emphasis> (where # is your
+colordepth) to attempt to locate <command>Pager</command>.</para>
+
+</refsect1>
+
+<refsect1 id='configuration_files'><title>CONFIGURATION FILES</title>
+<para><command>Pager</command> reads the <emphasis>base</emphasis> file and <emphasis>pager</emphasis> file when it
+starts up and looks for its configuration options.</para>
+
+</refsect1>
+</section>

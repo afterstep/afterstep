@@ -1,0 +1,12 @@
+<varlistentry id="options.Rows">
+	<term>Rows</term>
+	<listitem>
+		<para>Specifies the number of <emphasis remap='I'>rows</emphasis> of buttons to be created. This will 
+		give your <command>Wharf</command> a horizontal layout, with the number of rows equal 
+		to the number specified in <emphasis remap='I'>rows</emphasis>. If unspecified, the number of rows 
+		will be set to 1.  If the <emphasis remap='I'>rows</emphasis> are set to a number greater than 1, 
+		then there will be that number of rows with enough columns to satisfy the 
+		requested number of buttons.  Only one of <emphasis remap='I'>*WharfRows</emphasis> or 
+		<emphasis remap='I'>*WharfColumns</emphasis> should be specified.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,9 @@
+<varlistentry id="options.DecorateTransients">
+	<term>DecorateTransients</term>
+	<listitem>
+		<para> Specifies  that  transient  windows (pop-up dialog boxes), which
+		are normally not decorated, should be given the usual title  and
+		low  bars.   Note: some pop-up windows and menus are not managed
+		by the window manager, so do not get these decorations.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,9 @@
+<varlistentry id="options.Balloons">
+	<term>Balloons</term>
+	<listitem>
+		<para>Turns on the balloon feature. A "balloon" is displayed showing the name 
+		of the button the pointer is resting on in the <command>Wharf</command>. The balloon 
+		background and text are configured with the MyStyle "*WharfBalloon".
+		See <emphasis remap='B'>afterstep(1x)</emphasis> for more information on MyStyles.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,27 @@
+<section label="base_config" id="base_config">
+<refsect1 name="Base config">
+<title>BASE CONFIGURATION OPTIONS</title>
+<para>The following two configuration options are in the <emphasis>base</emphasis> file:</para>
+
+<variablelist>
+  <varlistentry>
+  <term>*DeskTopSize <emphasis>Columns x Rows</emphasis></term>
+  <listitem>
+	<para>Defines the number of view <emphasis>Columns</emphasis> by the number of view
+	<emphasis>Rows</emphasis> of the desk(s) in proportional units, i.e. 2x1 would show
+	2 views of one desk, one beside another.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*DeskTopScale <emphasis>number</emphasis></term>
+  <listitem>
+	<para>If the geometry is not specified, then a desktop reduction factor is
+	used to calculate the pager's size. Things in the pager window
+	are shown at 1/<emphasis>number</emphasis> of the actual size.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+</section>

@@ -1,0 +1,12 @@
+<varlistentry id="options.ActiveDeskBevel">
+	<term>ActiveDeskBevel</term>
+	<listitem>
+		<para>Defines how border around Pager desk representation of the current desk should be draw.</para>
+		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
+		<example>
+		<literallayout>
+*PagerActiveDeskBevel Left,Top   # draws thick bevelled lines at the top 
+                                 # and left of the desk</literallayout>		       
+		</example>
+	</listitem>
+</varlistentry>

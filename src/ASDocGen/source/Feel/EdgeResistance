@@ -1,0 +1,23 @@
+<varlistentry id="options.EdgeResistance">
+	<term>EdgeResistance</term>
+	<listitem>
+		<para> Specifies how hard it should be to change views within a desktop
+		by moving the mouse over the edge of the screen, and how hard it
+		hould be to move a window over the edge of a screen.
+
+		The  delay  in  milliseconds,  defines how long the pointer must
+		spend at the screen edge before that view becomes current.  This
+		is  useful  in conjunction with EdgeScroll 100 100, so the views
+		don't get switched accidently.
+
+		The pixels defines how far over the edge a window must  "appear"
+		to move before it actually moves partially off the screen.
+
+		Note  that  with EdgeScroll 0 0, it is still possible to move or
+		resize windows across the edge of the current screen. By setting
+		the  pixels  parameter  of EdgeResistance to 10000, this type of
+		motion is impossible. However, with  EdgeResistances  less  than
+		10000,  but  greater than 0, moving over pages becomes difficult
+		but not impossible.</para>
+	</listitem>
+</varlistentry>

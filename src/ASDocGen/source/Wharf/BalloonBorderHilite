@@ -1,0 +1,7 @@
+<varlistentry id="options.BalloonBorderHilite">
+	<term>BalloonBorderHilite</term>
+	<listitem>
+		<para>FIXME: add proper description here.</para>
+		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
+	</listitem>
+</varlistentry>

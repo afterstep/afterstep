@@ -1,0 +1,8 @@
+<varlistentry id="options.ClickToFocus">
+	<term>ClickToFocus</term>
+	<listitem>
+		<para>Specifies  that  the  keyboard  input (aka focus) stays with one
+		window until a new window's TitleBar is  clicked  on,  or  gains
+		focus through Warping or de-iconification.</para>
+	</listitem>
+</varlistentry>

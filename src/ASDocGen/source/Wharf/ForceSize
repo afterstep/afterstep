@@ -1,0 +1,8 @@
+<varlistentry id="options.ForceSize">
+	<term>ForceSize</term>
+	<listitem>
+		<para>If specified, will force pixmaps larger than 64x64 to the default
+		size of 64x64.  Pixmaps smaller than 64x64 are not supported.  This has
+		no effect on the icons used for applications.</para>
+	</listitem>
+</varlistentry>

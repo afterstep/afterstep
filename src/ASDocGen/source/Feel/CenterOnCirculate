@@ -1,0 +1,10 @@
+<varlistentry id="options.CenterOnCirculate">
+	<term>CenterOnCirculate</term>
+	<listitem>
+		<para>Specifies that when Warping (alt-tabbing), the desktop
+		page containing the window to which the pointer is moving will
+		be automatically selected and afterstep will attempt to center
+		the target window in the desktop viewport, rather than just
+		flipping to the desktop the window resides in.</para>
+	</listitem>
+</varlistentry>

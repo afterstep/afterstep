@@ -1,0 +1,5 @@
+<section label="synopsis" id="synopsis">
+<cmdsynopsis>
+<command>Animate</command> [<ulink url="AfterStep#standard_options_list">standard options</ulink>] 
+</cmdsynopsis>
+</section>

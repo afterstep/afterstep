@@ -1,0 +1,8 @@
+<varlistentry id="options.ClickTime">
+	<term>ClickTime</term>
+	<listitem>
+		<para> Specifies  that  afterstep should consider two mouse clicks made
+		within delay milliseconds to be a double mouse  click,  and  not
+		two  single mouse clicks. The default delay is 150 milliseconds.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,7 @@
+<varlistentry id="options.StubbornIcons">
+	<term>StubbornIcons</term>
+	<listitem>
+		<para>Specifies that icons should uniconify to their original desk. By
+		default, icons uniconify to the current desk.</para>
+	</listitem>
+</varlistentry>

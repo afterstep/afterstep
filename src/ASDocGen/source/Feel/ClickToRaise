@@ -1,0 +1,11 @@
+<varlistentry id="options.ClickToRaise">
+	<term>ClickToRaise</term>
+	<listitem>
+		<para>Specifies that windows should be raised when a button is clicked
+		in the titlebar, handle (low bar), or application area.  buttons
+		specifies the list of buttons which triggers this function.
+		In  AutoRaise  mode   this  will  simply raise the window if the
+		click is before the delay  specified in AutoRaise.  In  ClickToFocus
+		mode, this will raise the window and give it focus.</para>
+	</listitem>
+</varlistentry>

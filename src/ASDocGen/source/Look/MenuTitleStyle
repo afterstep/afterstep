@@ -1,0 +1,6 @@
+<varlistentry id="options.MenuTitleStyle">
+	<term>MenuTitleStyle</term>
+	<listitem>
+		<para>Specifies the MyStyle to use for menu titles.</para>
+	</listitem>
+</varlistentry>

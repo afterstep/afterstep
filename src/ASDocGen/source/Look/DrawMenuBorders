@@ -1,0 +1,15 @@
+<varlistentry id="options.DrawMenuBorders">
+	<term>DrawMenuBorders</term>
+	<listitem>
+		<para>Specifies  the  look  of the (start)menu.  Using 0 will draw the
+		menu with no border on either the menu label or menu  item  por-
+		tions.   Using  1  will draw a border around each menu label and
+		around the menu item.  Using 2 will drawn a  border  around  the
+		menu label and the entire menu item list.  The border colors are
+		calculated from the BackColor under  MyStyle  menu_item  of  the
+		look.name.  The "hilight" (top & left) color is one half lighter
+		than the BackColor color and the "shadow" (bottom  &  right)  is
+		one  half  darker  than  the  BackColor color.  If the BackColor
+		color is black, the color grey is used.</para>
+	</listitem>
+</varlistentry>

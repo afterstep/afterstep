@@ -1,0 +1,8 @@
+<varlistentry id="options.AnimateSteps">
+	<term>AnimateSteps</term>
+	<listitem>
+	    <para>Specifies the <emphasis remap='I'>steps</emphasis> a Folder takes in animating while opening or
+	    closing.  This translates into the Folder button moving
+	    &lt;button-size&gt;/<emphasis remap='I'>steps</emphasis> pixels each step.</para>
+	</listitem>
+</varlistentry>

@@ -348,10 +348,17 @@ TermDef       LookTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonStyle", 23, TT_QUOTED_TEXT, BALLOON_Style_ID, NULL},
 
     {TF_NO_MYNAME_PREPENDING, "TitleTextAlign", 14, TT_UINTEGER, LOOK_TitleTextAlign_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonSpacingLeft", 22, TT_INTEGER, LOOK_TitleButtonSpacingLeft_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonSpacingRight", 23, TT_INTEGER, LOOK_TitleButtonSpacingRight_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleButtonSpacing", 18, TT_INTEGER, LOOK_TitleButtonSpacing_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "TitleButtonStyle", 16, TT_UINTEGER, LOOK_TitleButtonStyle_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonXOffsetLeft", 22, TT_INTEGER, LOOK_TitleButtonXOffsetLeft_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonXOffsetRight", 23, TT_INTEGER, LOOK_TitleButtonXOffsetRight_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleButtonXOffset", 18, TT_INTEGER, LOOK_TitleButtonXOffset_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonYOffsetLeft", 22, TT_INTEGER, LOOK_TitleButtonYOffsetLeft_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonYOffsetRight", 23, TT_INTEGER, LOOK_TitleButtonYOffsetRight_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleButtonYOffset", 18, TT_INTEGER, LOOK_TitleButtonYOffset_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonStyle", 16, TT_INTEGER, LOOK_TitleButtonStyle_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonOrder", 16, TT_TEXT, LOOK_TitleButtonOrder_ID, NULL},
     {TF_INDEXED|TF_NO_MYNAME_PREPENDING, "TitleButton", 11, TT_BUTTON, LOOK_TitleButton_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "ResizeMoveGeometry", 18, TT_GEOMETRY, LOOK_ResizeMoveGeometry_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "StartMenuSortMode", 17, TT_UINTEGER, LOOK_StartMenuSortMode_ID, NULL},
@@ -361,7 +368,6 @@ TermDef       LookTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "SeparateButtonTitle", 19, TT_FLAG, LOOK_SeparateButtonTitle_ID, NULL},
 
     {TF_NO_MYNAME_PREPENDING, "RubberBand", 10, TT_UINTEGER, LOOK_RubberBand_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "ShadeAnimationSteps", 19, TT_UINTEGER, LOOK_ShadeAnimationSteps_ID, NULL},
 
     {TF_NO_MYNAME_PREPENDING, "DefaultStyle", 12, TT_QUOTED_TEXT, LOOK_DefaultStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "FWindowStyle", 12, TT_QUOTED_TEXT, LOOK_FWindowStyle_ID, NULL},
@@ -371,6 +377,11 @@ TermDef       LookTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "MenuTitleStyle", 14, TT_QUOTED_TEXT, LOOK_MenuTitleStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "MenuHiliteStyle", 15, TT_QUOTED_TEXT, LOOK_MenuHiliteStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "MenuStippleStyle", 16, TT_QUOTED_TEXT, LOOK_MenuStippleStyle_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "MenuSubItemStyle", 16, TT_QUOTED_TEXT, LOOK_MenuSubItemStyle_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "MenuHiTitleStyle", 16, TT_QUOTED_TEXT, LOOK_MenuHiTitleStyle_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "MenuItemCompositionMethod", 25, TT_INTEGER, LOOK_MenuItemCompositionMethod_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "MenuHiliteCompositionMethod", 27, TT_INTEGER, LOOK_MenuHiliteCompositionMethod_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "MenuStippleCompositionMethod", 28, TT_INTEGER, LOOK_MenuStippleCompositionMethod_ID, NULL},
 
 	INCLUDE_MYFRAME,
 
@@ -379,6 +390,15 @@ TermDef       LookTerms[] = {
 	/* see ASetRoot.c : */
     {TF_NO_MYNAME_PREPENDING, "MyBackground", 12, TT_QUOTED_TEXT,BGR_MYBACKGROUND, &MyBackgroundSyntax},
 	{TF_NO_MYNAME_PREPENDING|TF_INDEXED|TF_DONT_SPLIT, "DeskBack", 8, TT_QUOTED_TEXT, LOOK_DeskBack_ID, NULL},
+
+	{TF_NO_MYNAME_PREPENDING, "DefaultFrame", 12, TT_QUOTED_TEXT, LOOK_DefaultFrame_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "DontDrawBackground", 18, TT_FLAG, LOOK_DontDrawBackground_ID, NULL},
+    
+	{TF_NO_MYNAME_PREPENDING, "CursorFore", 10, TT_COLOR, LOOK_CursorFore_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "CursorBack", 10, TT_COLOR, LOOK_CursorFore_ID, NULL},
+	
+	{TF_NO_MYNAME_PREPENDING, "KillBackgroundThreshold", 23, TT_INTEGER, LOOK_KillBackgroundThreshold_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "DontAnimateBackground", 21, TT_INTEGER, LOOK_DontAnimateBackground_ID, NULL},
 
 	{0, NULL, 0, 0, 0}
 };

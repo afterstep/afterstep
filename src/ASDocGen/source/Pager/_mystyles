@@ -1,0 +1,58 @@
+<section label="mystyles" id="mystyles">
+<refsect1 id='MyStyles'>
+<title>MyStyle DEFINITIONS</title>
+<para>Starting with version 1.7.60 Pager supports definition of most of
+it's visual parameters in look file as MyStyles. 
+Styles can also be defined in pager config file, but main contents of
+the look file will override them. Include them in your pager config
+to make sure that you get nice looking Pager even if styles are not 
+defined in look file.
+The following standard MyStyle names are used :</para>
+
+<variablelist>
+  <varlistentry>
+  <term>*PagerUWindowStyle</term>
+  <listitem>
+	<para>(defaults to "unfocused_window_style") - unfocused window 
+	representation's style. 
+	Background pixmap and gradient can be used here.</para>
+   
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerFWindowStyle</term>
+  <listitem>
+	<para>(defaults to "focused_window_style") - focused window representation's
+	style. Background pixmap and gradient can be used here.</para>   
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerSWindowStyle</term>
+  <listitem>
+	<para>(defaults to "sticky_window_style") - sticky window representation's
+	style. Background pixmap and gradient can be used here.</para>   
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerActiveDesk</term>
+  <listitem>
+	<para>active (selected) desk's label style. This style - defines only look of
+	the desk's LABEL - to define how your actual desk window will look like
+	-  you should use <emphasis>*PagerStyle</emphasis> option - see below. Background
+	pixmap, gradient and transparency can be used here.</para>   
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerInActiveDesk</term>
+  <listitem>
+	<para>Same as above, only for inactive desk's label. 
+	Background pixmap, gradient and transparency can be used here.</para>   
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+</section>

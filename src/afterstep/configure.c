@@ -189,6 +189,7 @@ struct config main_config[] = {
 	/* obsolete stuff */
 	{"Font", assign_string, &Stdfont, (int *)0},
 	{"WindowFont", assign_string, &Windowfont, (int *)0},
+	{"IconFont", assign_string, &Iconfont, (int *)0},
     {"MTitleForeColor", assign_string, &MenuForeColor[MENU_BACK_TITLE], (int *)0},
     {"MTitleBackColor", assign_string, &MenuBackColor[MENU_BACK_TITLE], (int *)0},
     {"MenuForeColor", assign_string, &MenuForeColor[MENU_BACK_ITEM], (int *)0},
@@ -242,7 +243,6 @@ struct config main_config[] = {
 
     /* new stuff : */
 	{"IconBox"							, SetBox, (char **)0, (int *)0},
-	{"IconFont"							, assign_string, &Iconfont, (int *)0},
     {"MyStyle"							, mystyle_parse, (char**)"afterstep", (int*)&MyStyleList},
     {"MyBackground"						, myback_parse, (char**)"asetroot", NULL},  /* pretending to be asteroot here */
     {"DeskBack"							, deskback_parse, NULL, NULL },
@@ -250,11 +250,13 @@ struct config main_config[] = {
     {"MyFrame"							, myframe_parse, (char**)"afterstep", (int*)&MyFrameList},
     {"DefaultFrame"						, assign_string, (char**)&DefaultFrameName, (int*)0},
     {"DontDrawBackground"				, SetFlag2, (char **)DontDrawBackground, (int *)&Scr.Look.flags},
-	{"CustomCursor"						, SetCustomCursor, (char **)0, (int *)0},
     {"CursorFore"						, assign_string, &Scr.Look.CursorFore, (int *)0},    /* foreground color to be used for coloring pointer's cursor */
     {"CursorBack"						, assign_string, &Scr.Look.CursorBack, (int *)0},    /* background color to be used for coloring pointer's cursor */
+	/* this two a really from the feel */
+	{"CustomCursor"						, SetCustomCursor, (char **)0, (int *)0},
 	{"Cursor"							, SetCursor, (char **)0, (int *)0},
-    {"MenuPinOn"						, assign_string, &MenuPinOn, (int *)0},    /* menu pin */
+    /***********************************/
+	{"MenuPinOn"						, assign_string, &MenuPinOn, (int *)0},    /* menu pin */
     {"MArrowPixmap"						, assign_pixmap, (char **)&Scr.Look.MenuArrow, (int *)0},   /* menu arrow */
     {"TitlebarNoPush"					, SetFlag2, (char **)TitlebarNoPush, (int *)&Scr.Look.flags},
     {"TextureMenuItemsIndividually"		, SetFlag2, (char **)TxtrMenuItmInd,(int *)&Scr.Look.flags},

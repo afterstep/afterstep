@@ -1,0 +1,6 @@
+<varlistentry id="options.MenuStippleStyle">
+	<term>MenuStippleStyle</term>
+	<listitem>
+		<para>Specifies the MyStyle to use for stippled menu items.</para>
+	</listitem>
+</varlistentry>

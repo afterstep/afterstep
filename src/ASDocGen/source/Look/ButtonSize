@@ -1,0 +1,11 @@
+<varlistentry id="options.ButtonSize">
+	<term>ButtonSize</term>
+	<listitem>
+		<para>Specifies the size of iconified windows.  Every iconified window
+		button will be exactly width pixels wide and height pixels high.
+		This includes titles drawn at the  top,  but  not  the  separate
+		title window created by SeparateButtonTitle.  If either width or
+		height is less than one, that dimension will not be fixed.   The
+		default is ButtonSize 0 0</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,7 @@
+<varlistentry id="options.Width">
+	<term>Width</term>
+	<listitem>
+		<para>Tells Animate how wide a line to draw with. Note that width 0
+		produces a fast line at Width 1.</para>
+	</listitem>
+</varlistentry>

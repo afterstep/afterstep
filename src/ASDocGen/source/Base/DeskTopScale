@@ -1,0 +1,8 @@
+<varlistentry id="options.DeskTopScale">
+	<term>DeskTopScale</term>
+	<listitem>
+		<para>If the geometry is not specified, then a desktop reduction factor
+		is used to calculate the pager's size. Things in the pager
+		window are shown at 1/number of the actual size.</para>
+	</listitem>
+</varlistentry>

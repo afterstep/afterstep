@@ -1,0 +1,8 @@
+<varlistentry id="options.StubbornIconPlacement">
+	<term>StubbornIconPlacement</term>
+	<listitem>
+		<para>Specifies  that  icons  should avoid being hidden behind windows
+		placed over the IconBox by  moving  themselves  around  (dancing
+		icons).</para>
+	</listitem>
+</varlistentry>

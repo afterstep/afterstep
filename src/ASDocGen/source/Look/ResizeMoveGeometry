@@ -1,0 +1,14 @@
+<varlistentry id="options.ResizeMoveGeometry">
+	<term>ResizeMoveGeometry</term>
+	<listitem>
+		<para>Specifies the location of the resize/move window. If this option
+		is not specified, the move/resize window will be centered on the
+		screen.  geom may be any one of the following:</para>
+		<literallayout>
+		++: upper-left corner
+		-+: upper-right corner
+		+-: lower-left corner
+		--: lower-right corner
+		</literallayout>
+	</listitem>
+</varlistentry>

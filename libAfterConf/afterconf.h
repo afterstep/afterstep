@@ -1397,10 +1397,13 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 #define FEEL_Mouse_ID                 (FEEL_ID_START+40)
 #define FEEL_Key_ID                   (FEEL_ID_START+41)
 #define FEEL_ShadeAnimationSteps_ID   (FEEL_ID_START+42)
+#define FEEL_CoverAnimationSteps_ID   (FEEL_ID_START+43)
+#define FEEL_CoverAnimationType_ID	  (FEEL_ID_START+44)
+
 /* obsolete stuff : */
-#define FEEL_MWMFunctionHints_ID            (FEEL_ID_START+43)
-#define FEEL_MWMDecorHints_ID               (FEEL_ID_START+44)
-#define FEEL_MWMHintOverride_ID             (FEEL_ID_START+45)
+#define FEEL_MWMFunctionHints_ID            (FEEL_ID_START+45)
+#define FEEL_MWMDecorHints_ID               (FEEL_ID_START+46)
+#define FEEL_MWMHintOverride_ID             (FEEL_ID_START+47)
 
 #define FEEL_ID_END                   (FEEL_ID_START+64)
 

@@ -1,0 +1,7 @@
+<varlistentry id="options.AutoTabThroughDesks">
+	<term>AutoTabThroughDesks</term>
+	<listitem>
+		<para>In  conjunction  with  AutoReverse,  this  will  Warp  (alt-tab)
+		through windows on all desks.</para>
+	</listitem>
+</varlistentry>

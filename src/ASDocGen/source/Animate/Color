@@ -1,0 +1,7 @@
+<varlistentry id="options.Color">
+	<term>Color</term>
+	<listitem>
+		<para>Tells Animate what color (see rgb.txt) to draw the window outline
+		with as it animates.</para>
+	</listitem>
+</varlistentry>

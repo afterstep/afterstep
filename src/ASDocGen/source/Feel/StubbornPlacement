@@ -1,0 +1,6 @@
+<varlistentry id="options.StubbornPlacement">
+	<term>StubbornPlacement</term>
+	<listitem>
+		<para>Specifies that new windows should avoid being placed over icons.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,13 @@
+<varlistentry id="options.OpaqueMove">
+	<term>OpaqueMove</term>
+	<listitem>
+		<para>Specifies the maximum size window where opaque  window  movement
+		should  be used.  % is percent of the total screen area.  Set to
+		0, all windows will be moved using the  traditional  rubber-band
+		outline.  Set to 100, all windows will be move as solid windows.
+		The default is 5 which allows small windows to be  moved  in  an
+		opaque  manner,  but  large windows to be moved as rubber-bands.
+		Using this option with large values can slow down video response
+		on slower systems.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,9 @@
+<varlistentry id="options.AnimateStepsMain">
+	<term>AnimateStepsMain</term>
+	<listitem>
+<para>Specifies the <emphasis remap='I'>steps</emphasis> the main Wharf takes in iconification or
+de-iconification upon mouse button 3 being pressed. This translates into
+the main Wharf moving &lt;button-size&gt;/<emphasis remap='I'>steps</emphasis> pixels each step.
+		</para>
+	</listitem>
+</varlistentry>

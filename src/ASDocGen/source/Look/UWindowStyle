@@ -1,0 +1,6 @@
+<varlistentry id="options.UWindowStyle">
+	<term>UWindowStyle</term>
+	<listitem>
+		<para>Specifies  the  MyStyle  to use for the unfocused window decorations.</para>
+	</listitem>
+</varlistentry>

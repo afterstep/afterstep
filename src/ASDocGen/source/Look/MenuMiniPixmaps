@@ -1,0 +1,10 @@
+<varlistentry id="options.MenuMiniPixmaps">
+	<term>MenuMiniPixmaps</term>
+	<listitem>
+		<para>Specifies  whether  mini pixmaps should be included in menus. If
+		minis is 0, mini pixmaps are not included. If minis is  1,  mini
+		pixmaps  are  included. Note that mini pixmaps will not be added
+		to menus until the next time menus are updated. Mini pixmaps can
+		cause AS to take much longer to load over a network.</para>
+	</listitem>
+</varlistentry>

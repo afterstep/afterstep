@@ -1,0 +1,8 @@
+<varlistentry id="options.RandomPlacement">
+	<term>RandomPlacement</term>
+	<listitem>
+		<para>Specifies that windows which would normally require user  inter-
+		vention  for  placement  be  automagically  placed  in  ever-so-
+		slightly random locations.</para>
+	</listitem>
+</varlistentry>

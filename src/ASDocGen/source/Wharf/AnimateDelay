@@ -1,0 +1,7 @@
+<varlistentry id="options.AnimateDelay">
+	<term>AnimateDelay</term>
+	<listitem>
+		<para>Specifies the <emphasis remap='I'>delay</emphasis> in milliseconds that the animation will pause
+		between each move when opening or closing a folder.</para>
+	</listitem>
+</varlistentry>

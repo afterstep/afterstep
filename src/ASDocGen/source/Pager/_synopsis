@@ -1,0 +1,7 @@
+<section label="synopsis" id="synopsis">
+<cmdsynopsis>
+<command>Pager</command> [<ulink url="AfterStep#standard_options_list">standard options</ulink>] 
+    <arg choice='plain'><replaceable>first_desktop</replaceable></arg>
+    <arg choice='opt'><replaceable>last_desktop</replaceable></arg>
+</cmdsynopsis>
+</section>

@@ -1,0 +1,10 @@
+<varlistentry id="options.AppsBackingStore">
+	<term>AppsBackingStore</term>
+	<listitem>
+		<para>Specifies that app windows should request backing store.
+		X-terminals and low memory systems should avoid this as redrawing
+		will be quicker than pulling the saved image  from  swap  space.
+		Backing store will always be faster than redraw on machines that
+		have enough memory. This causes non-ICCCM compliance.</para>
+	</listitem>
+</varlistentry>

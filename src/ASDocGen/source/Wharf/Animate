@@ -1,0 +1,8 @@
+<varlistentry id="options.Animate">
+	<term>Animate</term>
+	<listitem>
+		<para>If specified, the opening and closing of Folders  will  be  animated,
+		rather than simply drawn in one frame.
+		</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,7 @@
+<varlistentry id="options.Twist">
+	<term>Twist</term>
+	<listitem>
+		<para>Tells Animate how many revolutions to twist the iconification
+		frame.</para>
+	</listitem>
+</varlistentry>

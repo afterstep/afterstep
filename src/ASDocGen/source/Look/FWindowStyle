@@ -1,0 +1,6 @@
+<varlistentry id="options.FWindowStyle">
+	<term>FWindowStyle</term>
+	<listitem>
+		<para>Specifies the MyStyle to use for the focused window decorations.</para>
+	</listitem>
+</varlistentry>

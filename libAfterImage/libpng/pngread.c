@@ -384,16 +384,13 @@ png_read_info(png_structp png_ptr, png_infop info_ptr)
       png_uint_32 length;
 
       png_read_data(png_ptr, chunk_length, 4);
-      length = png_get_uint_32(chunk_length);
+      length = png_get_uint_31(png_ptr,chunk_length);
 
       png_reset_crc(png_ptr);
       png_crc_read(png_ptr, png_ptr->chunk_name, 4);
 
       png_debug2(0, "Reading %s chunk, length=%lu.\n", png_ptr->chunk_name,
          length);
-
-      if (length > PNG_MAX_UINT)
-         png_error(png_ptr, "Invalid chunk length.");
 
       /* This should be a binary subdivision search or a hash for
        * matching the chunk name rather than a linear search.
@@ -673,10 +670,7 @@ png_read_row(png_structp png_ptr, png_bytep row, png_bytep dsp_row)
             png_crc_finish(png_ptr, 0);
 
             png_read_data(png_ptr, chunk_length, 4);
-            png_ptr->idat_size = png_get_uint_32(chunk_length);
-
-            if (png_ptr->idat_size > PNG_MAX_UINT)
-              png_error(png_ptr, "Invalid chunk length.");
+            png_ptr->idat_size = png_get_uint_31(png_ptr,chunk_length);
 
             png_reset_crc(png_ptr);
             png_crc_read(png_ptr, png_ptr->chunk_name, 4);
@@ -946,15 +940,12 @@ png_read_end(png_structp png_ptr, png_infop info_ptr)
 #endif /* PNG_GLOBAL_ARRAYS */
 
       png_read_data(png_ptr, chunk_length, 4);
-      length = png_get_uint_32(chunk_length);
+      length = png_get_uint_31(png_ptr,chunk_length);
 
       png_reset_crc(png_ptr);
       png_crc_read(png_ptr, png_ptr->chunk_name, 4);
 
       png_debug1(0, "Reading %s chunk.\n", png_ptr->chunk_name);
-
-      if (length > PNG_MAX_UINT)
-         png_error(png_ptr, "Invalid chunk length.");
 
       if (!png_memcmp(png_ptr->chunk_name, png_IHDR, 4))
          png_handle_IHDR(png_ptr, info_ptr, length);
@@ -1298,6 +1289,9 @@ png_read_png(png_structp png_ptr, png_infop info_ptr,
     * PNG file before the first IDAT (image data chunk).
     */
    png_read_info(png_ptr, info_ptr);
+
+   if (info_ptr->height > PNG_UINT_32_MAX/sizeof(png_bytep))
+      png_error(png_ptr,"Image is too high to process with png_read_png()");
 
    /* -------------- image transformations start here ------------------- */
 
