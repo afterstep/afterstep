@@ -1,5 +1,4 @@
 <varlistentry id="options.MyFrame">
-	<term>MyFrame</term>
 <term>MyFrame "<emphasis remap='I'>frame_name</emphasis>"</term>
   <term>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<emphasis remap='I'>frame_option</emphasis></term>
   <term>~MyFrame</term>
