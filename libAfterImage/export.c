@@ -142,6 +142,9 @@ ASImage2file( ASImage *im, const char *dir, const char *file,
 			realfilename[dirname_len-1] = '/' ;
 		}
 		strcpy( realfilename+dirname_len, file );
+#ifdef _WIN32
+		unix_path2dos_path( realfilename );
+#endif
 	}
 	if( type >= ASIT_Unknown || type < 0 )
 		show_error( "Hmm, I don't seem to know anything about format you trying to write file \"%s\" in\n.\tPlease check the manual", realfilename );

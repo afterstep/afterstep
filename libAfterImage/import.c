@@ -152,6 +152,13 @@ file2ASImage_extra( const char *file, ASImageImportParams *iparams )
 	if( file )
 	{
 		filename_len = strlen(file);
+#ifdef _WIN32
+		{		
+			int i = 0 ; 
+			while( iparams->search_path[i] != NULL ) 
+				unix_path2dos_path( iparams->search_path[i] );
+		}
+#endif
 
 		/* first lets try to find file as it is */
 		if( (realfilename = locate_image_file(file, iparams->search_path)) == NULL )
@@ -236,8 +243,10 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 
 	va_start (ap, compression);
 	for( i = 0 ; i < MAX_SEARCH_PATHS ; i++ )
+	{	
 		if( (paths[i] = va_arg(ap,char*)) == NULL )
 			break;
+	}		   
 	paths[MAX_SEARCH_PATHS] = NULL ;
 	va_end (ap);
 
@@ -423,16 +432,23 @@ locate_image_file( const char *file, char **paths )
 	char *realfilename = NULL;
 	if( file != NULL )
 	{
-		if( CheckFile( file ) == 0 )
+		realfilename = mystrdup( file );
+#ifdef _WIN32
+		unix_path2dos_path( realfilename );
+#endif
+		
+		if( CheckFile( realfilename ) != 0 )
 		{
-			realfilename = (char*)file;
-		}else if( paths != NULL )
-		{	/* now lets try and find the file in any of the optional paths :*/
-			register int i = 0;
-			do
-			{
-				realfilename = find_file( file, paths[i], R_OK );
-			}while( realfilename == NULL && paths[i++] != NULL );
+			free( realfilename ) ;
+			realfilename = NULL ;
+			if( paths != NULL )
+			{	/* now lets try and find the file in any of the optional paths :*/
+				register int i = 0;
+				do
+				{
+					realfilename = find_file( file, paths[i], R_OK );
+				}while( realfilename == NULL && paths[i++] != NULL );
+			}
 		}
 	}
 	return realfilename;

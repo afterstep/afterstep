@@ -23,6 +23,7 @@ int APIENTRY
 WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
 {
 	char *image_file = "../apps/rose512.jpg" ;
+	
 //	char *image_file = "../apps/fore.xpm" ;
 	ASImage *im ;
 	WNDCLASSEX wnd_class ; 
@@ -37,9 +38,17 @@ WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
 		image_file = lpCmdLine ;
 	else
 		usage();
-	/* The following could be used to dump JPEG version of the image into
-	 * stdout : */
-	/* ASImage2file( im, NULL, NULL, ASIT_Jpeg, NULL ); */
+
+	if( image_file[0] == '\"' ) 
+	{
+		int i = 0;
+		while( image_file[i+1] != '\0' && image_file[i+1] !=  '\"')
+		{
+			image_file[i] = image_file[i+1] ; 
+			++i ;
+		}
+		image_file[i] = '\0' ;
+	}
 
 	asv = create_asvisual( NULL, 0, 0, NULL );
 
@@ -51,7 +60,12 @@ WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
 	}
 	
 	/* converting result into BMP file ( as an example ) */
-	ASImage2file( im, NULL, "asview.bmp", ASIT_Bmp, NULL );
+	/* ASImage2file( im, NULL, "asview.bmp", ASIT_Bmp, NULL ); */
+	
+	/* The following could be used to dump JPEG version of the image into
+	 * stdout : */
+	/* ASImage2file( im, NULL, NULL, ASIT_Jpeg, NULL ); */
+
 
 	bmbits = NULL ;
 	// Convert ASImage into DIB: 

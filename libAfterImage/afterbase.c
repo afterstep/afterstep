@@ -240,6 +240,16 @@ asim_load_file(const char* realfilename)
 /* supposedly pathlist should not include any environment variables
    including things like ~/
  */
+void 
+unix_path2dos_path( char *path )
+{
+	int i = strlen(path) ; 
+	while( --i >= 0 ) 
+		if( path[i] == '/' && ( i == 0 || path[i-1] != '/' ) )
+			path[i] = '\\' ;
+}		   
+
+
 char         *
 asim_find_file (const char *file, const char *pathlist, int type)
 {
@@ -251,8 +261,15 @@ asim_find_file (const char *file, const char *pathlist, int type)
 
 	if (file == NULL)
 		return NULL;
+#ifdef _WIN32
+#define PATH_SEPARATOR_CHAR ';'
+#define PATH_CHAR '\\'
+#else
+#define PATH_SEPARATOR_CHAR ':'
+#define PATH_CHAR '/'
+#endif
 
-	if (*file == '/' || *file == '~' || ((pathlist == NULL) || (*pathlist == '\0')))
+	if (*file == PATH_CHAR || *file == '~' || ((pathlist == NULL) || (*pathlist == '\0')))
 	{
 		path = put_file_home (file);
 		if ( access (path, type) == 0 )
@@ -267,23 +284,23 @@ asim_find_file (const char *file, const char *pathlist, int type)
 	len = i ;
 	for (ptr = (char *)pathlist; *ptr; ptr += i)
 	{
-		if (*ptr == ':')
+		if (*ptr == ':' || *ptr == PATH_SEPARATOR_CHAR)
 			ptr++;
-		for (i = 0; ptr[i] && ptr[i] != ':'; i++);
+		for (i = 0; ptr[i] && ptr[i] != ':' && ptr[i] != PATH_SEPARATOR_CHAR; i++);
 		if (i > max_path)
 			max_path = i;
 	}
 
 	path = safemalloc (max_path + 1 + len + 1 + 100);
 	strcpy( path+max_path+1, file );
-	path[max_path] = '/' ;
+	path[max_path] = PATH_CHAR ;
 
 	ptr = (char*)&(pathlist[0]) ;
 	while( ptr[0] != '\0' )
 	{
-		for( i = 0 ; ptr[i] == ':' ; ++i );
+		for( i = 0 ; ptr[i] == ':' || ptr[i] == PATH_SEPARATOR_CHAR; ++i );
 		ptr += i ;
-		for( i = 0 ; ptr[i] != ':' && ptr[i] != '\0' ; ++i );
+		for( i = 0 ; ptr[i] != ':' && ptr[i] != PATH_SEPARATOR_CHAR && ptr[i] != '\0' ; ++i );
 		if( i > 0 )
 		{
 			strncpy( path+max_path-i, ptr, i );

@@ -222,6 +222,7 @@ char   *asim_put_file_home (const char *path_with_home);
 char   *asim_load_file     (const char *realfilename);
 #define load_file(r)     asim_load_file(r)
 
+void unix_path2dos_path( char *path );
 char   *asim_find_file (const char *file, const char *pathlist, int type);
 #define find_file(f,p,t) asim_find_file(f,p,t)
 char   *asim_copy_replace_envvar (char *path);
