@@ -6,9 +6,10 @@ struct wild_reg_exp;
 
 typedef union ASHashableValue
 {
-  unsigned long long_val;
-  char *string_val;
+  unsigned long 	   long_val;
+  char 				  *string_val;
   struct wild_reg_exp *wrexp_val;	/* regular expression */
+  void 				  *ptr ;
 }
 ASHashableValue;
 
@@ -30,6 +31,8 @@ typedef struct ASHashTable
   ASHashBucket *buckets;
   ASHashKey buckets_used;
   unsigned long items_num;
+  
+  ASHashItem *most_recent ;
 
     ASHashKey (*hash_func) (ASHashableValue value, ASHashKey hash_size);
   long (*compare_func) (ASHashableValue value1, ASHashableValue value2);
@@ -103,6 +106,9 @@ void remove_curr_hash_item (ASHashIterator * iterator, Bool destroy);
 /**************************************************************************/
 /* here is the set of implemented hash functions : */
 /**************************************************************************/
+
+ASHashKey pointer_hash_value (ASHashableValue value, ASHashKey hash_size);
+
 
 long
 desc_long_compare_func (ASHashableValue value1, ASHashableValue value2);

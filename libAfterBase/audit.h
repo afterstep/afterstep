@@ -20,6 +20,7 @@
 
 #else
 #include <X11/Xutil.h>
+#include "../include/ashash.h"
 
 int as_assert (void *p, const char *fname, int line, const char *call);
 #define AS_ASSERT(p) as_assert(p,__FILE__, __LINE__ ,__FUNCTION__)
@@ -27,6 +28,7 @@ int as_assert (void *p, const char *fname, int line, const char *call);
 #define malloc(a) countmalloc(__FUNCTION__, __LINE__, a)
 #define safemalloc(a) countmalloc(__FUNCTION__, __LINE__, a)
 #define safecalloc(a,b) countcalloc(__FUNCTION__, __LINE__, a, b)
+#define add_hash_item(a,b,c) countadd_hash_item(__FUNCTION__, __LINE__,a,b,c)
 #define calloc(a, b) countcalloc(__FUNCTION__, __LINE__, a, b)
 #define realloc(a, b) countrealloc(__FUNCTION__, __LINE__, a, b)
 #define free(a) countfree(__FUNCTION__, __LINE__, a)
@@ -36,6 +38,7 @@ void *countcalloc (const char *fname, int line, size_t nrecords,
 		   size_t length);
 void *countrealloc (const char *fname, int line, void *ptr, size_t length);
 void countfree (const char *fname, int line, void *ptr);
+ASHashResult countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHashableValue value, void *data );
 
 #define XCreatePixmap(a, b, c, d, e) count_xcreatepixmap(__FUNCTION__, __LINE__, a, b, c, d, e)
 #define XCreateBitmapFromData(a, b, c, d, e) count_xcreatebitmapfromdata(__FUNCTION__, __LINE__, a, b, c, d, e)

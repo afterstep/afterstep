@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2001 Sasha Vasko <sashav@sprintmail.com>
  * Copyright (C) 1999 Ethan Fischer <allanon@crystaltokyo.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -37,11 +38,13 @@
 #endif /* XPM */
 
 #include "../include/aftersteplib.h"
+#include "../include/ashash.h"
 
 #undef malloc
 #undef safemalloc
 #undef calloc
 #undef realloc
+#undef add_hash_item
 #undef free
 
 #undef XCreatePixmap
@@ -86,12 +89,11 @@ as_assert (void *p, const char *fname, int line, const char *call)
 
 typedef struct mem
 {
-	struct mem   *next;
-	const char   *fname;
-	int           line;
-	size_t        length;
-	int           type;
 	void         *ptr;
+	const char	 *fname;
+	size_t        length;
+	short int     type;
+	short int     line;
 	char          freed;
 }
 mem;
@@ -102,6 +104,7 @@ enum
 	C_MALLOC = 0x100,
 	C_CALLOC = 0x200,
 	C_REALLOC = 0x300,
+	C_ADD_HASH_ITEM = 0x400,
 
 	C_PIXMAP = 1,
 	C_CREATEPIXMAP = 0x100,
@@ -133,29 +136,63 @@ enum
 	C_LAST_TYPE
 };
 
-static mem   *first_mem = NULL;
-static unsigned long allocations = 0;
-static unsigned long reallocations = 0;
-static unsigned long deallocations = 0;
-static unsigned long max_allocations = 0;
+
+static ASHashTable *allocs_hash = NULL ;
+#define DEALLOC_CACHE_SIZE		128
+static mem* deallocated_mem[DEALLOC_CACHE_SIZE] ;
+static unsigned int deallocated_used = 0 ;
+
+static long allocations = 0;
+static long reallocations = 0;
+static long deallocations = 0;
+static long max_allocations = 0;
 static unsigned long max_alloc = 0;
 static unsigned long max_x_alloc = 0;
 static unsigned long total_alloc = 0;
 static unsigned long total_x_alloc = 0;
 
+static int    service_mode = 0 ;
+
+
 void          count_alloc (const char *fname, int line, void *ptr, size_t length, int type);
-mem          *count_find (const char *fname, int line, void *ptr, int type, mem ** pm2);
+mem          *count_find (const char *fname, int line, void *ptr, int type);
 mem          *count_find_and_extract (const char *fname, int line, void *ptr, int type);
+
+void mem_destroy (ASHashableValue value,void *data)
+{
+	if( data != NULL )
+	{
+		if( deallocated_used < DEALLOC_CACHE_SIZE )
+			deallocated_mem[deallocated_used++] = (mem*)data ;
+		else
+			free( data );	
+	}
+}
+
 
 void
 count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 {
 	mem          *m;
+	ASHashResult  res ; 
 
-	m = (mem *) malloc (sizeof (mem));
-	memset (m, 0, sizeof (mem));
-	m->next = first_mem;
-	first_mem = m;
+	if( service_mode ) 
+		return ;
+	if( allocs_hash == NULL )
+	{
+		service_mode++ ;
+		allocs_hash = create_ashash( 256, pointer_hash_value, NULL, mem_destroy );
+		service_mode-- ;
+	}
+	
+	if( get_hash_item( allocs_hash, (ASHashableValue)ptr, (void**)&m ) == ASH_Success )
+	{
+		show_error( "Same pointer value 0x%lX is being counted twice!\n  Called from %s:%d - previously allocated in %s:%d", (unsigned long)ptr, fname, line, m->fname, m->line );
+		print_simple_backtrace();
+	}else if( deallocated_used > 0 )
+		m = deallocated_mem[--deallocated_used];
+	else	
+		m = calloc (1, sizeof (mem));
 	m->fname = fname;
 	m->line = line;
 	m->length = length;
@@ -176,75 +213,46 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 	}
 	if (allocations - deallocations > max_allocations)
 		max_allocations = allocations - deallocations;
+
+	if( (res = add_hash_item( allocs_hash, (ASHashableValue)ptr, m )) != ASH_Success )
+		show_error( "failed to log allocation for pointer 0x%lX - result = %d", ptr, res);
 }
 
 mem          *
-count_find (const char *fname, int line, void *ptr, int type, mem ** pm2)
+count_find (const char *fname, int line, void *ptr, int type)
 {
-	mem          *m1;
-	mem          *m2;
+	mem          *m;
 
-	/* scan for an invalid allocation list */
-	{
-		int           q;
-		mem          *mmm;
-
-		for (q = 0, mmm = first_mem; mmm != NULL && q < MAX_AUDIT_ALLOCS; mmm = mmm->next, q++);
-		if (q == MAX_AUDIT_ALLOCS)
-		{
-			fprintf (stderr,
-					 "%s:maximum number of memory allocation has reached in (%s:%d)\n", __FUNCTION__, fname, line);
-			exit (1);
-		}
-	}
-
-	for (m1 = m2 = first_mem; m1 != NULL; m2 = m1, m1 = m1->next)
-		if (m1->ptr == ptr && (m1->type & 0xff) == (type & 0xff))
-			break;
-	if (pm2)
-		*pm2 = m2;
-	return m1;
+	if( allocs_hash != NULL ) 
+		if( get_hash_item( allocs_hash, (ASHashableValue)ptr, (void**)&m) == ASH_Success )
+			if( (m->type & 0xff) == (type & 0xff) )
+				return m ;
+	return NULL ;		
 }
 
 mem          *
 count_find_and_extract (const char *fname, int line, void *ptr, int type)
 {
-	mem          *m1;
-	mem          *m2;
+	mem          *m = NULL;
 
-	if ((m1 = count_find (fname, line, ptr, type, &m2)) == NULL)
-		return NULL;
-
-	if (m1 == first_mem)
-		first_mem = m1->next;
-	else
-		m2->next = m1->next;
-
-	/* scan for an invalid allocation list */
+	if( allocs_hash ) 
 	{
-		int           q;
-		mem          *mmm;
-
-		for (q = 0, mmm = first_mem; mmm != NULL && q < MAX_AUDIT_ALLOCS; mmm = mmm->next, q++);
-		if (q == MAX_AUDIT_ALLOCS)
-		{
-			fprintf (stderr,
-					 "%s:maximum number of memory allocation has reached in (%s:%d)\n", __FUNCTION__, fname, line);
-			exit (1);
-		}
+		service_mode++ ;
+		if( remove_hash_item (allocs_hash, (ASHashableValue)ptr, (void**)&m, False) == ASH_Success )
+			if( (m->type & 0xff) != (type & 0xff) )
+				show_error( "while deallocating pointer 0x%lX discovered that it was allocated with different type", ptr ); 
+		service_mode-- ;
 	}
-
-	if ((m1->type & 0xff) == C_MEM)
+	if( m )
 	{
-		total_alloc -= m1->length;
-	} else
-	{
-		total_x_alloc -= m1->length;
+		if ((m->type & 0xff) == C_MEM)
+			total_alloc -= m->length;
+		else
+			total_x_alloc -= m->length;
 	}
-
 	deallocations++;
 
-	return m1;
+	return m;
 }
 
 void         *
@@ -279,18 +287,28 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 		return NULL;
 	if (ptr != NULL)
 	{
-		mem          *m;
+		mem          *m = NULL;
+		ASHashResult  res ; 
 
-		for (m = first_mem; m != NULL; m = m->next)
-			if (m->ptr == ptr && (m->type & 0xff) == C_MEM)
-				break;
+		if( allocs_hash != NULL ) 
+		{
+			service_mode++ ;
+			if( remove_hash_item (allocs_hash, (ASHashableValue)ptr, (void**)&m, False) == ASH_Success )
+				if( (m->type & 0xff) != C_MEM )
+				{
+					show_error( "while deallocating pointer 0x%lX discovered that it was allocated with different type", ptr ); 
+					m = NULL ;
+				}
+			service_mode-- ;
+		}
+
+
 		if (m == NULL)
 		{
-			fprintf (stderr,
-					 "%s:attempt in %s:%d to realloc memory(%p) that was never allocated!\n",
-					 __FUNCTION__, fname, line, ptr);
+			show_error ("%s:attempt in %s:%d to realloc memory(%p) that was never allocated!\n",
+					     __FUNCTION__, fname, line, ptr);
+			print_simple_backtrace();						 
 			return NULL;
-			/* exit (1); */
 		}
 		if ((m->type & 0xff) == C_MEM)
 		{
@@ -312,8 +330,9 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 		m->ptr = realloc (ptr, length);
 		m->freed = 0;
 		ptr = m->ptr;
-
-		reallocations++;
+		if( (res = add_hash_item( allocs_hash, (ASHashableValue)ptr, m )) != ASH_Success )
+			show_error( "failed to log allocation for pointer 0x%lX - result = %d", ptr, res);
+  		reallocations++;
 	} else
 		ptr = countmalloc (fname, line, length);
 
@@ -325,6 +344,8 @@ countfree (const char *fname, int line, void *ptr)
 {
 	mem          *m = count_find_and_extract (fname, line, ptr, C_MEM);
 
+	if( service_mode ) 
+		return ;
 	if (ptr == NULL)
 	{
 		fprintf (stderr, "%s:attempt to free NULL memory in %s:%d\n", __FUNCTION__, fname, line);
@@ -352,15 +373,26 @@ countfree (const char *fname, int line, void *ptr)
 	m1->line = line;
 #else
 	safefree (m->ptr);
-	safefree (m);
+	mem_destroy( (ASHashableValue)NULL, m );
 #endif
 }
+
+ASHashResult 
+countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHashableValue value, void *data )
+{
+	ASHashResult   res = add_hash_item(hash, value, data );
+
+    if( res == ASH_Success )
+		count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_ITEM);
+	return res;
+}
+
+
 
 void
 print_unfreed_mem (void)
 {
-	mem          *m;
-	int           q;
+	ASHashIterator i;
 
 	fprintf (stderr, "===============================================================================\n");
 	fprintf (stderr, "Memory audit: %s\n", MyName);
@@ -378,7 +410,11 @@ print_unfreed_mem (void)
 	fprintf (stderr, "----------------------\n");
 	fprintf (stderr, "allocating function    |line |length |pointer    |type (subtype)\n");
 	fprintf (stderr, "-----------------------+-----+-------+-----------+--------------\n");
-	for (q = 0, m = first_mem; m != NULL && q < MAX_AUDIT_ALLOCS; m = m->next, q++)
+	if( start_hash_iteration( allocs_hash, &i ) )
+	do
+	{
+		register mem *m;
+		m = curr_hash_data( &i );
 		if (m->freed == 0)
 		{
 			fprintf (stderr, "%23s|%-5d|%-7d|0x%08x ", m->fname, m->line, m->length, (unsigned int)m->ptr);
@@ -396,6 +432,9 @@ print_unfreed_mem (void)
 					  break;
 				  case C_REALLOC:
 					  fprintf (stderr, " (realloc)");
+					  break;
+				  case C_ADD_HASH_ITEM:
+					  fprintf (stderr, " (add_hash_item)");
 					  break;
 				 }
 				 /* if it seems to be a string, print it */
@@ -498,7 +537,8 @@ print_unfreed_mem (void)
 				 break;
 			}
 			fprintf (stderr, "\n");
-		}
+		}			
+	}while( next_hash_item(&i) );
 	fprintf (stderr, "===============================================================================\n");
 }
 
@@ -579,7 +619,7 @@ count_xfreepixmap (const char *fname, int line, Display * display, Pixmap pmap)
 */
 
 	XFreePixmap (display, pmap);
-	safefree (m);
+	mem_destroy( (ASHashableValue)NULL, m );
 	return Success;
 }
 
@@ -615,7 +655,7 @@ count_xfreegc (const char *fname, int line, Display * display, GC gc)
 	}
 
 	XFreeGC (display, gc);
-	safefree (m);
+	mem_destroy( (ASHashableValue)NULL, m );
 	return Success;
 }
 
@@ -738,9 +778,9 @@ count_xdestroyimage (const char *fname, int line, XImage * image)
 	image_data = (void *)(image->data);
 	image_obdata = (void *)(image->obdata);
 
-	if ((m = count_find (fname, line, (void *)image, C_IMAGE, NULL)) == NULL)
+	if ((m = count_find (fname, line, (void *)image, C_IMAGE)) == NULL)
 		/* can also be of C_MEM type if we allocated it ourselvs */
-		if ((m = count_find (fname, line, (void *)image, C_MEM, NULL)) == NULL)
+		if ((m = count_find (fname, line, (void *)image, C_MEM)) == NULL)
 		{
 			fprintf (stderr,
 					 "%s:attempt in %s:%d to destroy an XImage that was never created or already destroyed.\n",
@@ -754,15 +794,15 @@ count_xdestroyimage (const char *fname, int line, XImage * image)
 		/* can also be of C_MEM type if we allocated it ourselvs */
 		m = count_find_and_extract (fname, line, (void *)image, C_MEM);
 	if (m)
-		safefree (m);
+		mem_destroy( (ASHashableValue)NULL, m );
 
 	/* find and free the image->data pointer if it is in our list */
 	if ((m = count_find_and_extract (fname, line, image_data, C_MEM)) != NULL)
-		safefree (m);
+		mem_destroy( (ASHashableValue)NULL, m );
 
 	/* find and free the image->obdata pointer if it is in our list */
 	if ((m = count_find_and_extract (fname, line, image_obdata, C_MEM)) != NULL)
-		safefree (m);
+		mem_destroy( (ASHashableValue)NULL, m );
 
 	return Success;
 }
@@ -947,7 +987,7 @@ count_xfree (const char *fname, int line, void *data)
 	}
 
 	XFree (data);
-	safefree (m);
+	mem_destroy( (ASHashableValue)NULL, m );
 	return Success;
 }
 

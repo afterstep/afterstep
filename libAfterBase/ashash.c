@@ -114,26 +114,6 @@ destroy_ashash_bucket (ASHashBucket * bucket, void (*item_destroy_func) (ASHasha
 }
 
 void
-print_ashash (ASHashTable * hash, void (*item_print_func) (ASHashableValue value))
-{
-	register int  i;
-	ASHashItem   *item;
-
-	for (i = 0; i < hash->size; i++)
-	{
-		if (hash->buckets[i] == NULL)
-			continue;
-		fprintf (stderr, "Bucket # %d:", i);
-		for (item = hash->buckets[i]; item != NULL; item = item->next)
-			if (item_print_func)
-				item_print_func (item->value);
-			else
-				fprintf (stderr, "[0x%lX(%ld)]", item->value.long_val, item->value.long_val);
-		fprintf (stderr, "\n");
-	}
-}
-
-void
 destroy_ashash (ASHashTable ** hash)
 {
 	if (*hash)
@@ -149,6 +129,12 @@ destroy_ashash (ASHashTable ** hash)
 		*hash = NULL;
 	}
 }
+
+#ifdef DEBUG_ALLOCS
+#undef add_hash_item
+#undef safemalloc
+#undef free
+#endif
 
 static        ASHashResult
 add_item_to_bucket (ASHashBucket * bucket, ASHashItem * item, long (*compare_func) (ASHashableValue, ASHashableValue))
@@ -193,14 +179,41 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
 	res = add_item_to_bucket (&(hash->buckets[key]), item, hash->compare_func);
 	if (res == ASH_Success)
 	{
+		hash->most_recent = item ;
 		hash->items_num++;
 		if (hash->buckets[key]->next == NULL)
 			hash->buckets_used++;
-LOCAL_DEBUG_CALLER_OUT( "0x%lX", (unsigned long)item );
+/*LOCAL_DEBUG_CALLER_OUT( "0x%lX", (unsigned long)item );*/
 	} else
 		free (item);
 	return res;
 }
+
+#ifdef DEBUG_ALLOCS
+#define safemalloc(a) countmalloc(__FUNCTION__, __LINE__, a)
+#define add_hash_item(a,b,c) countadd_hash_item(__FUNCTION__, __LINE__,a,b,c)
+#define free(a) countfree(__FUNCTION__, __LINE__, a)
+#endif
+void
+print_ashash (ASHashTable * hash, void (*item_print_func) (ASHashableValue value))
+{
+	register int  i;
+	ASHashItem   *item;
+
+	for (i = 0; i < hash->size; i++)
+	{
+		if (hash->buckets[i] == NULL)
+			continue;
+		fprintf (stderr, "Bucket # %d:", i);
+		for (item = hash->buckets[i]; item != NULL; item = item->next)
+			if (item_print_func)
+				item_print_func (item->value);
+			else
+				fprintf (stderr, "[0x%lX(%ld)]", item->value.long_val, item->value.long_val);
+		fprintf (stderr, "\n");
+	}
+}
+
 
 static ASHashItem **
 find_item_in_bucket (ASHashBucket * bucket,
@@ -259,6 +272,9 @@ remove_hash_item (ASHashTable * hash, ASHashableValue value, void **trg, Bool de
 		if (*pitem)
 		{
 			ASHashItem   *next;
+			
+			if( hash->most_recent == *pitem )
+				hash->most_recent = NULL ;
 
 			if (trg)
 				*trg = (*pitem)->data;
@@ -461,6 +477,14 @@ curr_hash_data (ASHashIterator * iterator)
 /************************************************************************/
 /* 	Some usefull implementations 					*/
 /************************************************************************/
+ASHashKey pointer_hash_value (ASHashableValue value, ASHashKey hash_size)
+{
+	register ASHashKey key = (ASHashKey)value.ptr ;
+	if( hash_size == 256 ) 
+		return (key>>4)&0x0FF;
+	return (key>>4) % hash_size;
+}
+
 /* case sensitive strings hash */
 ASHashKey
 string_hash_value (ASHashableValue value, ASHashKey hash_size)
