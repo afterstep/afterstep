@@ -140,7 +140,8 @@ compile_tbar_layout( unsigned int *tbar_layout, unsigned int *default_tbar_layou
 	{
 		int r = MYFRAME_TITLE_BACK_LEFT2RIGHT(l);
 		int left_elem = MYFRAME_GetTbarLayoutElem(left_layout,l);	
-		int right_elem = MYFRAME_GetTbarLayoutElem(right_layout,r);	  
+		/* second arg to GetTbarLayout should be from 0 to   MYFRAME_TITLE_SIDE_ELEMS - so we use l for both left and right */
+		int right_elem = MYFRAME_GetTbarLayoutElem(right_layout,l/* no mistake(see above)! */);	
 		if( left_elem != MYFRAME_TITLE_BACK_INVALID && !used[l]) 
 		{	
 			tbar_layout[left_elem] = default_tbar_layout[l] ;
