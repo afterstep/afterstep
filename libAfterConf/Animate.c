@@ -89,6 +89,7 @@ CreateAnimateConfig ()
 {
 	AnimateConfig *config = (AnimateConfig *) safecalloc (1, sizeof (AnimateConfig));
 	config->iterations = ANIMATE_DEFAULT_ITERATIONS ;
+	config->delay = ANIMATE_DEFAULT_DELAY ;
 	return config;
 }
 

@@ -68,7 +68,7 @@ void process_message (send_data_type type, send_data_type *body);
 /*************************************************************************/
 /*************************************************************************/
 static void 
-draw_animation_points( XPoint *points, int count ) 
+animate_points( XPoint *points, int count ) 
 {
 	LOCAL_DEBUG_OUT( "Drawing %d points:", count );	
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
@@ -79,9 +79,16 @@ draw_animation_points( XPoint *points, int count )
 	}	 
 #endif
 	XDrawLines (dpy, Scr.Root, Scr.DrawGC, points, 5, CoordModeOrigin);
-	XFlush (dpy);
-	sleep_a_little (Config->delay * 1000);
+	ASSync(False);
+	sleep_a_millisec (Config->delay);
 	XDrawLines (dpy, Scr.Root, Scr.DrawGC, points, 5, CoordModeOrigin);
+}
+
+void 
+draw_animation_rectangle( int x, int y, int width, int height ) 
+{
+	LOCAL_DEBUG_OUT( "Drawing rectangle %dx%d%+d%+d", width, height, x, y );		
+	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, x, y, width, height);	
 }
 
 /*
@@ -107,7 +114,7 @@ AnimateResizeTwist (ASAnimateParams *params)
     points[4].x = params->cx + cos (params->angle - a) * d;
     points[4].y = params->cy + sin (params->angle - a) * d;
       
-	draw_animation_points( points, 5 );
+	animate_points( points, 5 );
 	return False;
 }
 
@@ -138,7 +145,7 @@ AnimateResizeFlip (ASAnimateParams *params)
 	points[4].x = points[0].x;
 	points[4].y = points[0].y;
 
-	draw_animation_points( points, 5 );
+	animate_points( points, 5 );
 	return False;
 }
 
@@ -165,7 +172,7 @@ AnimateResizeTurn (ASAnimateParams *params)
     points[4].x = points[0].x;
     points[4].y = points[0].y;
 
-    draw_animation_points( points, 5 );
+    animate_points( points, 5 );
 	return False;
 }
 
@@ -178,10 +185,10 @@ AnimateResizeTurn (ASAnimateParams *params)
 Bool
 AnimateResizeZoom (ASAnimateParams *params)
 {
-    XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, (int) params->cw, (int) params->ch);
-    XFlush (dpy);
-    sleep_a_little (Config->delay);
-    XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, (int) params->cw, (int) params->ch);
+	draw_animation_rectangle( (int) params->cx, (int) params->cy, (int) params->cw, (int) params->ch);
+    ASSync(False);
+    sleep_a_millisec ((Config->delay/10)+1);
+    draw_animation_rectangle( (int) params->cx, (int) params->cy, (int) params->cw, (int) params->ch);
 	return False;
 }
 
@@ -195,16 +202,16 @@ AnimateResizeZoom (ASAnimateParams *params)
 Bool
 AnimateResizeZoom3D (ASAnimateParams *params)
 {
-	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, (int) params->cw,  (int) params->ch);
-	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, params->x, params->y, params->w, params->h);
+	draw_animation_rectangle( (int) params->cx, (int) params->cy, (int) params->cw,  (int) params->ch);
+	draw_animation_rectangle( params->x, params->y, params->w, params->h);
 	XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, params->x, params->y);
 	XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) params->cx + (int) params->cw), (int) params->cy, (params->x + params->w), params->y);
 	XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) params->cx + (int) params->cw), ((int) params->cy +(int) params->ch), (params->x + params->w), (params->y + params->h));
 	XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, ((int) params->cy + (int) params->ch), params->x, (params->y + params->h));
-	XFlush (dpy);
-	sleep_a_little (Config->delay);
-	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, (int) params->cw, (int) params->ch);
-	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, params->x, params->y, params->w, params->h);
+	ASSync(False);
+	sleep_a_millisec (Config->delay);
+	draw_animation_rectangle( (int) params->cx, (int) params->cy, (int) params->cw, (int) params->ch);
+	draw_animation_rectangle( params->x, params->y, params->w, params->h);
 	XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, params->x, params->y);
 	XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) params->cx + (int) params->cw), (int) params->cy, (params->x + params->w), params->y);
 	XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) params->cx + (int) params->cw), ((int) params->cy + (int) params->ch), (params->x + params->w), (params->y + params->h));
@@ -286,12 +293,10 @@ do_animate( ASRectangle *from, ASRectangle *to )
 	if( iterations == 0 ) 
 		iterations = ANIMATE_DEFAULT_ITERATIONS ;
 
+	XGrabServer (dpy);
 	do
 	{
-		XGrabServer (dpy);
 		do_brake = params.iter_func( &params );
-		XUngrabServer (dpy);
-		ASSync(False);
 					   
 		++params.iter ;
 	  	params.cx += params.xstep;
@@ -303,6 +308,7 @@ do_animate( ASRectangle *from, ASRectangle *to )
 		LOCAL_DEBUG_OUT( "iter = %d of %d, angle = %f, final = %f", params.iter, iterations, params.angle, params.final_angle );
 	}while( !do_brake && params.iter < iterations && params.angle < params.final_angle );
 	ASFlush ();
+	XUngrabServer (dpy);
 }	  
 
 #if 0
@@ -327,7 +333,7 @@ AnimateClose (int x, int y, int w, int h)
 	{
 	  XDrawRectangle (dpy, Scr.Root, DrawGC, x, y, w, i);
 	  XFlush (dpy);
-	  sleep_a_little (ANIM_DELAY2 * 600);
+	  sleep_a_millisec (ANIM_DELAY2);
 	  XDrawRectangle (dpy, Scr.Root, DrawGC, x, y, w, i);
 	  y += step / 2;
 	}
@@ -434,7 +440,8 @@ void CheckConfigSanity()
 	if( Config->delay == 0 ) 
 		Config->delay = 1 ;
 		
-
+	/* Config->resize = ART_Zoom ; */
+		
 	gcv.line_width = Config->width;
   	gcv.function = GXxor;
   	gcv.foreground = pixel;

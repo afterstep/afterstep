@@ -1705,10 +1705,11 @@ typedef struct
 #define ANIMATE_SET_RESIZE		(0x01<<4)	  
 	ASFlagType set_flags ;
 	char *color;
+
+#define ANIMATE_DEFAULT_DELAY		10         /* in milliseconds */
+#define ANIMATE_DEFAULT_ITERATIONS 	12
+
 	int delay;
-
-#define ANIMATE_DEFAULT_ITERATIONS 12
-
 	int iterations;
 	int twist;
 	int width;
