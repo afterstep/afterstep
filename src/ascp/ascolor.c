@@ -44,10 +44,11 @@ struct
 	Window main_window ;
 
 	char *doc_str ;
-	char* doc_save;
-	char* doc_save_type;
-    char *doc_compress;
 	char *doc_file;
+	char *img_save;
+	char *img_save_type;
+    char *img_compress;
+	char *cs_save;
 	Bool display ;
 	Bool onroot ;
 
@@ -210,6 +211,8 @@ void do_colorscheme();
 void do_change_param( int val );
 void DispatchEvent (ASEvent * event);
 
+char *default_cs_save = "colorscheme";
+
 int main(int argc, char** argv)
 {
 	int i;
@@ -219,6 +222,7 @@ int main(int argc, char** argv)
 
 	memset( &ASColorState, 0x00, sizeof(ASColorState ));
 	ASColorState.doc_str = default_doc_str;
+	ASColorState.cs_save = default_cs_save;
 	ASColorState.display = 1;
 	ASColorState.base_color = 0xff00448f;
 	ASColorState.angle = ASCS_DEFAULT_ANGLE ;
@@ -236,15 +240,17 @@ int main(int argc, char** argv)
 			ASColorState.doc_file = argv[++i];
 		} else if ((!strcmp(argv[i], "--string") || !strcmp(argv[i], "-s")) && i < argc + 1) {
 			ASColorState.doc_str = argv[++i];
-		} else if ((!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) && i < argc + 1) {
-			ASColorState.doc_save = argv[++i];
+		} else if ((!strcmp(argv[i], "--save-image") || !strcmp(argv[i], "-i")) && i < argc + 1) {
+			ASColorState.img_save = argv[++i];
 		} else if ((!strcmp(argv[i], "--type") || !strcmp(argv[i], "-t")) && i < argc + 1) {
-			ASColorState.doc_save_type = argv[++i];
+			ASColorState.img_save_type = argv[++i];
         } else if ((!strcmp(argv[i], "--compress") || !strcmp(argv[i], "-c")) && i < argc + 1) {
-            ASColorState.doc_compress = argv[++i];
-		}else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
+            ASColorState.img_compress = argv[++i];
+		} else if ((!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) && i < argc + 1) {
+			ASColorState.cs_save = argv[++i];
+		} else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
 			ASColorState.display = 0;
-		}else if ((!strcmp(argv[i], "--root-window") || !strcmp(argv[i], "-r")) && i < argc + 1) {
+		} else if ((!strcmp(argv[i], "--root-window") || !strcmp(argv[i], "-r")) && i < argc + 1) {
 			ASColorState.onroot = 1;
 		}
 	}
@@ -260,11 +266,11 @@ int main(int argc, char** argv)
 		}
 	}
 	/* Automagically determine the output type, if none was given. */
-	if (ASColorState.doc_save && !ASColorState.doc_save_type)
+	if (ASColorState.img_save && !ASColorState.img_save_type)
 	{
-		ASColorState.doc_save_type = strrchr(ASColorState.doc_save, '.');
-		if (ASColorState.doc_save_type)
-			ASColorState.doc_save_type++;
+		ASColorState.img_save_type = strrchr(ASColorState.img_save, '.');
+		if (ASColorState.img_save_type)
+			ASColorState.img_save_type++;
 	}
 
 
@@ -494,14 +500,23 @@ do_colorscheme()
 	}
 
 	/* Save the result image if desired. */
-	if (ASColorState.doc_save && ASColorState.doc_save_type) {
-        if(!save_asimage_to_file(ASColorState.doc_save, ASColorState.cs_im, ASColorState.doc_save_type, ASColorState.doc_compress, NULL, 0, 1))
-		{
-			show_error("Save failed.");
-		}else
-		{
-			show_progress("Save successful.");
-		}
+	if (ASColorState.img_save && ASColorState.img_save_type)
+	{
+        if(!save_asimage_to_file(ASColorState.img_save, ASColorState.cs_im, ASColorState.img_save_type, ASColorState.img_compress, NULL, 0, 1))
+			show_error("Image Save failed.");
+		else
+			show_progress("Image Save successful.");
+	}
+
+	/* Save the result colorscheme if desired. */
+	if ( ASColorState.cs_save )
+	{
+		ColorConfig *config = ASColorScheme2ColorConfig( ASColorState.cs );
+
+		if( WriteColorOptions (ASColorState.cs_save, MyName, config, 0) == 0 )
+			show_error("Color Scheme Saved to \"%s\".", ASColorState.cs_save);
+		else
+			show_progress("Color Scheme Save to \"%s\" unsuccessful.", ASColorState.cs_save);
 	}
 
 	/* Display the image if desired. */

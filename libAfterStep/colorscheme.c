@@ -63,6 +63,21 @@ make_color_scheme_argb( CARD32 base_alpha16, CARD32 hue360, CARD32 sat100, CARD3
 	return argb;
 }
 
+void
+make_color_scheme_hsv( ARGB32 argb, int *phue, int *psat, int *pval )
+{
+	CARD32 hue16, sat16, val16 ;
+
+	hue16 = rgb2hsv( ARGB32_RED16(argb), ARGB32_GREEN16(argb), ARGB32_BLUE16(argb), &sat16, &val16 );
+
+	if( phue )
+		*phue = hue162degrees( hue16 );
+	if( psat )
+		*psat = val162percent( sat16 );
+	if( pval )
+		*pval = val162percent( val16 );
+}
+
 Bool
 is_light_hsv( int hue360, int sat100, int val100 )
 {
@@ -108,19 +123,120 @@ make_grad_argb( ARGB32 *grad, ARGB32 base_alpha16, int hue360, int sat100, int v
 	grad[1] = make_color_scheme_argb( base_alpha16, hue360, sat100, light_val );
 }
 
+inline void
+make_mono_grad_argb( ARGB32 *grad, ARGB32 base_alpha16, int shade100 )
+{
+	int dark_val = shade100 - ASCS_MONO_GRADIENT_OFFSET ;
+	int light_val = shade100 + ASCS_MONO_GRADIENT_OFFSET ;
+	if( light_val > 100 )
+		light_val = 100 ;
+	else if( light_val < 0 )
+		light_val = 0 ;
+	if( dark_val > 100 )
+		dark_val = 100 ;
+	else if( dark_val < 0 )
+		dark_val = 0 ;
+
+	grad[0] = MAKE_ARGB32_GREY( base_alpha16, dark_val );
+	grad[1] = MAKE_ARGB32_GREY( base_alpha16, light_val );
+}
+
+ASColorScheme *
+make_mono_ascolor_scheme( ARGB32 base )
+{
+	ASColorScheme *cs = safecalloc( 1, sizeof(ASColorScheme));
+	int base_shade = val162percent(ARGB32_GREEN16(base));
+	int shade ;
+	CARD32 base_alpha16 ;
+
+	/* handling base color */
+	base_alpha16 = ARGB32_ALPHA16(base);
+
+	cs->main_colors[ASMC_Base] = base ;
+	cs->angle = 0 ;
+
+	make_mono_grad_argb( &(cs->main_colors[ASMC_BaseDark]), base_alpha16, base_shade );
+
+	shade = base_shade - ASCS_MONO_SIMILAR_OFFSET ;
+	cs->main_colors[ASMC_Inactive1] 	= MAKE_ARGB32_GREY(base_alpha16,shade);
+	make_mono_grad_argb( &(cs->main_colors[ASMC_Inactive1Dark]), base_alpha16, shade );
+	cs->inactive1_val = shade ;
+
+	shade = base_shade + ASCS_MONO_SIMILAR_OFFSET ;
+	cs->main_colors[ASMC_Inactive2] 	= MAKE_ARGB32_GREY(base_alpha16,shade);
+	make_mono_grad_argb( &(cs->main_colors[ASMC_Inactive2Dark]), base_alpha16, shade );
+	cs->inactive2_val = shade ;
+
+	shade = base_shade + ASCS_MONO_CONTRAST_OFFSET ;
+	cs->main_colors[ASMC_Active] 		= MAKE_ARGB32_GREY(base_alpha16,shade);
+	make_mono_grad_argb( &(cs->main_colors[ASMC_ActiveDark]), base_alpha16, shade );
+	cs->active_val = shade;
+
+	shade = base_shade - ASCS_MONO_SIMILAR_OFFSET + ASCS_MONO_CONTRAST_OFFSET;
+	cs->main_colors[ASMC_InactiveText1] = MAKE_ARGB32_GREY(base_alpha16,shade);
+	cs->inactive_text1_val = shade ;
+
+	shade = base_shade + ASCS_MONO_SIMILAR_OFFSET + ASCS_MONO_CONTRAST_OFFSET;
+	cs->main_colors[ASMC_InactiveText2] = MAKE_ARGB32_GREY(base_alpha16,shade);
+	cs->inactive_text2_val = shade ;
+
+	shade = base_shade ;
+	cs->main_colors[ASMC_ActiveText] 	= MAKE_ARGB32_GREY(base_alpha16,shade);
+	cs->active_text_val = shade ;
+
+	shade = base_shade - ASCS_MONO_SIMILAR_OFFSET + ASCS_MONO_HIGH_OFFSET;
+	cs->main_colors[ASMC_HighInactive] 	= MAKE_ARGB32_GREY(base_alpha16,shade);
+	make_mono_grad_argb( &(cs->main_colors[ASMC_HighInactiveDark]), base_alpha16, shade );
+
+	shade = base_shade + ASCS_MONO_CONTRAST_OFFSET + ASCS_MONO_HIGH_OFFSET;
+	cs->main_colors[ASMC_HighActive]   	= MAKE_ARGB32_GREY(base_alpha16,shade);
+	make_mono_grad_argb( &(cs->main_colors[ASMC_ActiveDark]), base_alpha16, shade );
+
+	shade = base_shade - ASCS_MONO_SIMILAR_OFFSET - ASCS_MONO_HIGH_OFFSET;
+	cs->main_colors[ASMC_HighInactiveBack] 	= MAKE_ARGB32_GREY(base_alpha16,shade);
+	make_mono_grad_argb( &(cs->main_colors[ASMC_HighInactiveBackDark]), base_alpha16, shade );
+
+	shade = base_shade  + ASCS_MONO_CONTRAST_OFFSET - ASCS_MONO_HIGH_OFFSET;
+	cs->main_colors[ASMC_HighActiveBack] 	= MAKE_ARGB32_GREY(base_alpha16,shade);
+	make_mono_grad_argb( &(cs->main_colors[ASMC_HighActiveBackDark]), base_alpha16, shade );
+
+	shade = base_shade - ASCS_MONO_SIMILAR_OFFSET - ASCS_MONO_HIGH_OFFSET + ASCS_MONO_CONTRAST_OFFSET ;
+	cs->main_colors[ASMC_HighInactiveText] 	= MAKE_ARGB32_GREY(base_alpha16,shade);
+	cs->high_inactive_text_val = shade ;
+
+	shade = base_shade + ASCS_MONO_HIGH_OFFSET ;
+	cs->main_colors[ASMC_HighActiveText] 	= MAKE_ARGB32_GREY(base_alpha16,shade);
+	cs->high_active_text_val = shade ;
+
+	shade = base_shade - ASCS_MONO_SIMILAR_OFFSET + ASCS_MONO_HIGH_OFFSET;
+	cs->main_colors[ASMC_DisabledText] 	= MAKE_ARGB32_GREY(base_alpha16,shade);
+
+	/* all of the colors are computed by now */
+	cs->set_main_colors = 0 ;
+	return cs;
+}
+
+
 ASColorScheme *
 make_ascolor_scheme( ARGB32 base, int angle )
 {
-	ASColorScheme *cs = safecalloc( 1, sizeof(ASColorScheme));
+	ASColorScheme *cs;
 	CARD32 hue16, sat16, val16 ;
 	CARD32 base_alpha16 ;
 	int sat, val;
 
-	angle = FIT_IN_RANGE( ASCS_MIN_ANGLE, angle, ASCS_MAX_ANGLE );
-	cs->angle = angle ;
 	/* handling base color */
 	base_alpha16 = ARGB32_ALPHA16(base);
 	hue16 = rgb2hsv( ARGB32_RED16(base), ARGB32_GREEN16(base), ARGB32_BLUE16(base), &sat16, &val16 );
+
+	if( hue16 == -1 || ( hue16 == 0 && sat16 == 0 )  )
+		return make_mono_ascolor_scheme( base );
+
+	cs = safecalloc( 1, sizeof(ASColorScheme));
+
+	angle = FIT_IN_RANGE( ASCS_MIN_ANGLE, angle, ASCS_MAX_ANGLE );
+	cs->angle = angle ;
+
 	cs->base_hue = hue162degrees(hue16);
 	sat = val162percent(sat16);
 	val = val162percent(val16);
@@ -263,6 +379,9 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	make_grad_argb( &(cs->main_colors[ASMC_ActiveDark]), base_alpha16, cs->active_hue, cs->active_sat, cs->active_val + ASCS_HIGH_BRIGHTNESS_OFFSET );
 	make_grad_argb( &(cs->main_colors[ASMC_HighInactiveBackDark]), base_alpha16, cs->base_hue, cs->base_sat, cs->base_val + ASCS_HIGH_BRIGHTNESS_OFFSET );
 	make_grad_argb( &(cs->main_colors[ASMC_HighActiveBackDark]), base_alpha16, cs->active_hue, cs->active_sat, cs->active_val - ASCS_HIGH_BRIGHTNESS_OFFSET );
+
+	/* all of the colors are computed by now */
+	cs->set_main_colors = 0 ;
 
 	return cs;
 }

@@ -17,6 +17,7 @@
  *
  */
 
+#define LOCAL_DEBUG
 
 #include "../configure.h"
 
@@ -161,7 +162,7 @@ ParseColorOptions (const char *filename, char *myname)
  *
  */
 int
-WriteColorOptions (const char *filename, char *myname, ColorConfig * config, unsigned long flags)
+WriteColorOptions (const char *filename, char *myname, ColorConfig * config, unsigned long flags )
 {
 	ConfigDef    *ColorConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
@@ -177,28 +178,36 @@ WriteColorOptions (const char *filename, char *myname, ColorConfig * config, uns
 	CopyFreeStorage (&Storage, config->more_stuff);
 
 	/* building free storage here */
+	LOCAL_DEBUG_OUT( "0x%lX", config->set_main_colors );
 	for( i = 0 ; i < ASMC_MainColors ; ++i )
-		if( get_flags(config->set_main_colors, 0x01<<i ) )
-		{
-			ARGB32 c = config->main_colors[i] ;
-			CARD32 a, r, g, b, h, s, v ;
-			char *tmp[1] ;
-			a = ARGB32_ALPHA8(c);
-			r = ARGB32_RED16(c);
-			g = ARGB32_GREEN16(c);
-			b = ARGB32_BLUE16(c);
-			h = rgb2hsv( r, g, b, &s, &v );
-			h = hue162degrees(h);
-			s = val162percent(s);
-			v = val162percent(v);
-			r = r>>8 ;
-			g = g>>8 ;
-			b = b>>8 ;
-			tmp[0] = &(color_buffer[0]) ;
-			sprintf( color_buffer, "#%2.2lX%2.2lX%2.2lX%2.2lX  # or ahsv(%ld,%ld,%ld,%ld) or argb(%ld,%ld,%ld,%ld)",
-					 a, r, g, b, a, h, s, v, a, r, g, b );
-			tail = Strings2FreeStorage ( &ColorSyntax, tail, &(tmp[0]), 1, COLOR_ID_START+i );
-		}
+	{
+		ARGB32 c = config->main_colors[i] ;
+		CARD32 a, r, g, b, h, s, v ;
+		char *tmp[1] ;
+		FreeStorageElem **pelem ;
+
+		a = ARGB32_ALPHA8(c);
+		r = ARGB32_RED16(c);
+		g = ARGB32_GREEN16(c);
+		b = ARGB32_BLUE16(c);
+		h = rgb2hsv( r, g, b, &s, &v );
+		h = hue162degrees(h);
+		s = val162percent(s);
+		v = val162percent(v);
+		r = r>>8 ;
+		g = g>>8 ;
+		b = b>>8 ;
+		tmp[0] = &(color_buffer[0]) ;
+		sprintf( color_buffer, "#%2.2lX%2.2lX%2.2lX%2.2lX  \t\t# or ahsv(%ld,%ld,%ld,%ld) or argb(%ld,%ld,%ld,%ld)",
+					a, r, g, b, a, h, s, v, a, r, g, b );
+		pelem = tail ;
+		LOCAL_DEBUG_OUT( "tail  = %p", tail );
+		tail = Strings2FreeStorage ( &ColorSyntax, tail, &(tmp[0]), 1, COLOR_ID_START+i );
+
+		LOCAL_DEBUG_OUT( "i = %d, tail  = %p, *pelem = %p", i, tail, pelem );
+		if( *pelem && !get_flags(config->set_main_colors, 0x01<<i ) && i != ASMC_Base )
+			set_flags( (*pelem)->flags, CF_DISABLED_OPTION );
+	}
 
 	/* colorscheme angle */
 	if( get_flags( config->set_main_colors, COLOR_Angle ) )
@@ -215,6 +224,61 @@ WriteColorOptions (const char *filename, char *myname, ColorConfig * config, uns
 		fprintf (stderr, (Storage != NULL) ? " failed." : " success.");
 	}
 	return 0;
+}
+
+ColorConfig *
+ASColorScheme2ColorConfig( ASColorScheme *cs )
+{
+	ColorConfig *config = NULL ;
+
+	if( cs )
+	{
+		int i ;
+		config = CreateColorConfig();
+		config->angle = cs->angle ;
+		for( i = 0 ; i < ASMC_MainColors ; ++i )
+			config->main_colors[i] = cs->main_colors[i] ;
+		config->set_main_colors = cs->set_main_colors ;
+	}
+	return config;
+}
+
+ASColorScheme *
+ColorConfig2ASColorScheme( ColorConfig *config )
+{
+	ASColorScheme *cs = NULL ;
+
+	if( config )
+	{
+		int i ;
+		config = CreateColorConfig();
+		cs = make_ascolor_scheme( config->main_colors[ASMC_Base], config->angle );
+		for( i = 0 ; i < ASMC_MainColors ; ++i )
+			if( i != ASMC_Base && get_flags( config->set_main_colors, (0x01<<i)) )
+				cs->main_colors[i]  = config->main_colors[i] ;
+
+		if( get_flags( config->set_main_colors, COLOR_Inactive1 ) )
+			make_color_scheme_hsv( cs->main_colors[ASMC_Inactive1], &(cs->inactive1_hue), &(cs->inactive1_sat), &(cs->inactive1_val)) ;
+		if( get_flags( config->set_main_colors, COLOR_Inactive2 ) )
+			make_color_scheme_hsv( cs->main_colors[ASMC_Inactive2], &(cs->inactive2_hue), &(cs->inactive2_sat), &(cs->inactive2_val)) ;
+		if( get_flags( config->set_main_colors, COLOR_Active ) )
+			make_color_scheme_hsv( cs->main_colors[ASMC_Active], &(cs->active_hue), &(cs->active_sat), &(cs->active_val));
+		if( get_flags( config->set_main_colors, COLOR_InactiveText1 ) )
+			make_color_scheme_hsv( cs->main_colors[ASMC_InactiveText1], &(cs->inactive_text1_hue), &(cs->inactive_text1_sat), &(cs->inactive_text1_val));
+		if( get_flags( config->set_main_colors, COLOR_InactiveText2 ) )
+			make_color_scheme_hsv( cs->main_colors[ASMC_InactiveText2], &(cs->inactive_text2_hue), &(cs->inactive_text2_sat), &(cs->inactive_text2_val)) ;
+
+		if( get_flags( config->set_main_colors, COLOR_ActiveText ) )
+			make_color_scheme_hsv( cs->main_colors[ASMC_ActiveText], NULL, &(cs->active_text_sat), &(cs->active_text_val)) ;
+
+		if( get_flags( config->set_main_colors, COLOR_HighInactiveText ) )
+			make_color_scheme_hsv( cs->main_colors[ASMC_HighInactiveText], NULL, &(cs->high_inactive_text_sat), &(cs->high_inactive_text_val)) ;
+		if( get_flags( config->set_main_colors, COLOR_HighActiveText ) )
+			make_color_scheme_hsv( cs->main_colors[ASMC_HighActiveText], NULL, &(cs->high_active_text_sat), &(cs->high_active_text_val)) ;
+
+		cs->set_main_colors = config->set_main_colors ;
+	}
+	return cs;
 }
 
 

@@ -1516,6 +1516,12 @@ typedef struct ColorConfig
 ColorConfig *ParseColorFile (const char *filename, char *myname);
 void DestroyColorConfig (ColorConfig * config);
 
+ColorConfig *ParseColorOptions (const char *filename, char *myname);
+int WriteColorOptions (const char *filename, char *myname, ColorConfig * config, unsigned long flags);
+
+ColorConfig *ASColorScheme2ColorConfig( ASColorScheme *cs );
+ASColorScheme *ColorConfig2ASColorScheme( ColorConfig *config );
+
 /***************************************************************************/
 
 #ifdef __cplusplus
