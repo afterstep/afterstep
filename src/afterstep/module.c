@@ -812,7 +812,6 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 			 if (xorflag & AS_SkipWinList)
 			 {
 				 tmp_win->hints->flags ^= AS_SkipWinList;
-				 update_windowList ();
 				 update = True;
 			 }
 			 if (xorflag & AS_AvoidCover)

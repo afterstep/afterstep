@@ -1918,7 +1918,6 @@ changeDesks (int val1, int val2)
 	}
 
 	CorrectStackOrder ();
-	update_windowList ();
 
 	/* Change the look to this desktop's one if it really changed */
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
@@ -1957,10 +1956,8 @@ changeWindowsDesk (ASWindow * t, int new_desk)
 	/* Better re-draw the pager now */
 	BroadcastConfig (M_CONFIGURE_WINDOW, t);
 	CorrectStackOrder ();
-	if (!ASWIN_HFLAGS(t, AS_SkipWinList))
-		update_windowList ();
 
-	/* update the _WIN_DESK property */
+    /* update the _WIN_DESK property */
 	set_client_desktop( t->w, ASWIN_DESK(t) );
 }
 /**************************************************************************

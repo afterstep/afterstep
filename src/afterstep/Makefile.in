@@ -2,7 +2,7 @@ OBJS            = add_window.o afterstep.o aswindow.o \
 				colormaps.o configure.o decorations.o dirtree.o \
 				events.o functions.o housekeeping.o icons.o \
 				menuitem.o menus.o misc.o module.o myscandir.o \
-				pager.o placement.o windows.o 
+                                pager.o placement.o
 
 # move.o clientwin.o
 # resize.o

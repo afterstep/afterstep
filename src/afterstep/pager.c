@@ -346,7 +346,6 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
 #if 0
     /* autoplace sticky icons so they don't wind up over a stationary icon */
 	AutoPlaceStickyIcons ();
-	update_windowList ();
 #endif
 
 }

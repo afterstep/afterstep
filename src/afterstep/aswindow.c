@@ -372,9 +372,6 @@ delist_aswindow( ASWindow *t )
     skip_winlist = get_flags(t->hints->flags, AS_SkipWinList);
     discard_bidirelem( Scr.Windows->clients, t );
 
-    if (!skip_winlist)
-        update_windowList ();
-
 }
 
 void

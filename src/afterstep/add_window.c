@@ -2746,8 +2746,6 @@ AddWindow (Window w)
 	}
 #endif
     InstallWindowColormaps (tmp_win);
-	if (!ASWIN_HFLAGS(tmp_win, AS_SkipWinList))
-		update_windowList ();
 
 	return (tmp_win);
 }
@@ -2829,9 +2827,6 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
 		resize_window (tmp_win->w, tmp_win, 0, 0, 0, 0);
 	}
 #endif
-
-    if (!ASWIN_HFLAGS(tmp_win, AS_SkipWinList))
-		update_windowList ();
 
 	return (tmp_win);
 }

@@ -102,37 +102,12 @@
 		asinternals.h \
 		../../libAfterStep/moveresize.h
 
-./windows.o: \
-		../../configure.h \
-		asinternals.h \
-		menus.h
-
 ./aswindow.o: \
 		../../configure.h \
 		asinternals.h
-
-./functions_old.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h \
-		../../include/module.h \
-		globals.h \
-		menus.h
 
 ./housekeeping.o: \
 		../../configure.h \
 		asinternals.h
 
-./menus_old.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h \
-		menus.h
+
