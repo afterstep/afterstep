@@ -218,21 +218,36 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 				free( cmd_app );	
 			}else
 	            fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s &\n", app_name, asw->hints->client_cmd, geom );
-			fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
-						        ", Layer %d"
-								", %s"
-								", StartsOnDesk %d"
-								", ViewportX %d"
-								", ViewportY %d"
-								", %s"
-								"\n",
-						     	app_name, pure_geometry,
-							 	ASWIN_LAYER(asw),
-							 	ASWIN_GET_FLAGS(asw,AS_Sticky)?"Sticky":"Slippery",
-								ASWIN_DESK(asw),
-								asw->status->viewport_x,
-								asw->status->viewport_y,
-								ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+			if( ASWIN_GET_FLAGS(asw,AS_Sticky) )
+			{	
+				fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
+							        ", Layer %d"
+									", Sticky"
+									", StartsOnDesk %d"
+									", %s"
+									"\n",
+						     		app_name, pure_geometry,
+							 		ASWIN_LAYER(asw),
+									ASWIN_DESK(asw),
+									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+			}else
+			{
+				
+				fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
+							        ", Layer %d"
+									", Slippery"
+									", StartsOnDesk %d"
+									", ViewportX %d"
+									", ViewportY %d"
+									", %s"
+									"\n",
+						     		app_name, pure_geometry,
+							 		ASWIN_LAYER(asw),
+									ASWIN_DESK(asw),
+									((asw->status->x + asw->status->viewport_x) / Scr.MyDisplayWidth)*Scr.MyDisplayWidth,
+									((asw->status->y + asw->status->viewport_y) / Scr.MyDisplayHeight)*Scr.MyDisplayHeight,
+									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+			}	 
 			if( pure_geometry ) 
 				free( pure_geometry );
 			if( geom )
