@@ -438,5 +438,5 @@ MArrowPixmap		arrow-dots.xpm
 #
 #DeskBack  0  "back2"
 
-KillBackgroundThreshold 1000000
+KillBackgroundThreshold 10000000
 

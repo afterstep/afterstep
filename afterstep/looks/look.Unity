@@ -29,16 +29,6 @@ MyStyle "TitleButtonBalloon"
   BackMultiGradient  7 Saturation(20,HighActiveBack) 0.0 Value(30,HighActiveBack) 0.3 Saturation(90,HighActiveBack)
   ~MyStyle
 
-MyStyle "unfocused_title_style"
-  Inherit       "window_font"
-  TextStyle	9
-  ForeColor     InactiveText1Dark
-  BackPixmap    125 bars/title_titleBG_unity
-DrawTextBackground 0
-  ~MyStyle
-
-
-
 MyStyle "window_font"
   Font		DefaultSans.ttf-14
   TextStyle	0
@@ -98,14 +88,14 @@ MyStyle "unfocused_menu_title_style"
   Inherit       "menu_title_font"
   ForeColor     InactiveText1
   BackColor     HighInactive
-  BackPixmap    125 bars/title_titleBG_unity
+  BackPixmap    125 bars/title_tile_unity_bottom
   ~MyStyle
 
 MyStyle "focused_menu_title_style"
   Inherit       "menu_title_font"
   ForeColor	ActiveText
   BackColor     HighActive
-  BackPixmap    125 bars/title_titleBG_unity
+  BackPixmap    125 bars/title_tile_unity_bottom
   ~MyStyle
 
 MyStyle "menu_item_style"
@@ -368,12 +358,12 @@ TitleButtonSpacingLeft	2
 TitleButtonOrder 2578901T346
 
 # Normal buttons
-TitleButton 1 buttons/unity-switchwindow
-TitleButton 2 buttons/unity-close
-TitleButton 3 buttons/unity-menu
-TitleButton 4 buttons/unity-shade
-TitleButton 6 buttons/unity-maxmin
-
+TitleButton 1 unity-switchwindow
+TitleButton 2 unity-close
+TitleButton 3 unity-menu
+TitleButton 4 unity-shade
+TitleButton 6 unity-maxmin
+TitleButton 5 unity-switchwindow
 
 TitleButtonBalloons
 TitleButtonBalloonBorderHilite	Right,Bottom
