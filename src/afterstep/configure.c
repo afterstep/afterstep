@@ -277,6 +277,7 @@ struct config main_config[] = {
     {"MenuTitleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_TITLE], (int *)0},
     {"MenuHiliteStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_HILITE], (int *)0},
     {"MenuStippleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_STIPPLE], (int *)0},
+    {"MenuSubItemStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_SUBITEM], (int *)0},
     {"MenuItemCompositionMethod", SetInts, (char **)&Scr.Look.menu_icm, &dummy},
     {"MenuHiliteCompositionMethod", SetInts, (char **)&Scr.Look.menu_hcm, &dummy},
     {"MenuStippleCompositionMethod", SetInts, (char **)&Scr.Look.menu_scm, &dummy},
@@ -701,7 +702,7 @@ make_styles (MyLook *look)
 {
 /* make sure the globals are defined */
     char *style_names[BACK_STYLES] = { "default", "FWindow", "UWindow", "SWindow" };
-    char *menu_style_names[MENU_BACK_STYLES] = { "MenuTitle", "MenuItem", "MenuHilite", "MenuStipple" };
+    char *menu_style_names[MENU_BACK_STYLES] = { "MenuTitle", "MenuItem", "MenuHilite", "MenuStipple", "MenuSubItem" };
     int i ;
 
     if (look->MSWindow[BACK_DEFAULT] == NULL)
@@ -712,8 +713,12 @@ make_styles (MyLook *look)
 
     for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
         if (look->MSMenu[i] == NULL)
-            look->MSMenu[i] = mystyle_list_new (look->styles_list, menu_style_names[i]);
-
+        {
+            if( i == MENU_BACK_SUBITEM )
+                look->MSMenu[i] = look->MSMenu[MENU_BACK_ITEM];
+            else
+                look->MSMenu[i] = mystyle_list_new (look->styles_list, menu_style_names[i]);
+        }
     if (mystyle_list_find (look->styles_list, "ButtonPixmap") == NULL)
         mystyle_list_new (look->styles_list, "ButtonPixmap");
     if (mystyle_list_find (look->styles_list, "ButtonTitleFocus") == NULL)

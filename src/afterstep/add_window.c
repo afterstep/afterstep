@@ -1311,13 +1311,6 @@ SendConfigureNotify(ASWindow *asw)
     client_event.xconfigure.width = asw->client_canvas->width;
     client_event.xconfigure.height = asw->client_canvas->height;
 
-    if (client_event.xconfigure.height <= 0)
-        client_event.xconfigure.height = asw->hints->height_inc;
-
-    if (client_event.xconfigure.width <= 0)
-        client_event.xconfigure.width = asw->hints->width_inc;
-
-
     client_event.xconfigure.border_width = asw->status->border_width;
     /* Real ConfigureNotify events say we're above title window, so ... */
     /* what if we don't have a title ????? */
@@ -1890,8 +1883,6 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
         ASWIN_LAYER(t) = AS_LayerNormal ;
 
-    add_aswindow_to_layer( t, ASWIN_LAYER(t) );
-
     if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
         maximize_window_status( status, t->saved_status, t->status, status->flags );
     else if( !get_flags( t->status->flags, AS_Position ))
@@ -2222,7 +2213,7 @@ SetShape (ASWindow *asw, int w)
         {
             int i ;
 
-            combine_canvas_shape (asw->frame_canvas, asw->client_canvas, True );
+            combine_canvas_shape (asw->frame_canvas, asw->client_canvas, True, True );
 #if 0
             Window        wdumm;
 			int client_x = 0, client_y = 0 ;
@@ -2255,7 +2246,7 @@ SetShape (ASWindow *asw, int w)
 #endif
             for( i = 0 ; i < FRAME_SIDES ; ++i )
                 if( asw->frame_sides[i] )
-                    combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], False );
+                    combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], False, False );
         }
     }
 #if 0 /*old code : */
@@ -2701,7 +2692,8 @@ AddWindow (Window w)
 	 * reparented, so we'll get a DestroyNotify for it.  We won't have
 	 * gotten one for anything up to here, however.
 	 */
-	XGrabServer (dpy);
+    ASSync( False );
+    XGrabServer (dpy);
     if (validate_drawable(tmp_win->w, NULL, NULL) == None)
 	{
 		destroy_hints(tmp_win->hints, False);

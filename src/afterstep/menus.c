@@ -248,10 +248,10 @@ LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item, mdi->m
     /* optional menu items : */
     /* add label */
     if( mdi->item )
-        add_astbar_label( item->bar, 3, 0, 0, ALIGN_LEFT, mdi->item );
+        add_astbar_label( item->bar, 3, 0, 0, ALIGN_LEFT|ALIGN_VCENTER, mdi->item );
     /* add hotkey */
     if( mdi->item2 )
-        add_astbar_label( item->bar, 4, 0, 0, ALIGN_RIGHT, mdi->item2 );
+        add_astbar_label( item->bar, 4, 0, 0, ALIGN_RIGHT|ALIGN_VCENTER, mdi->item2 );
 
     item->flags = 0 ;
     if( mdi->fdata->func == F_POPUP )
@@ -280,17 +280,21 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
 
     delete_astbar_tile( item->bar, MI_LEFT_SPACER_IDX );
     if(get_flags( item->flags, AS_MenuItemSubitem ))
-	subitem_offset = icon_space+2+item->bar->h_spacing+item->bar->h_spacing;
-    add_astbar_spacer( item->bar, 0, 0, 0, NO_ALIGN, subitem_offset, 1 );
+    {
+        subitem_offset = icon_space+2+item->bar->h_spacing+item->bar->h_spacing;
+        add_astbar_spacer( item->bar, 0, 0, 0, NO_ALIGN, subitem_offset, 1 );
+    }
     delete_astbar_tile( item->bar, MI_LEFT_ARROW_IDX );
+#if 1
     if(get_flags( item->flags, AS_MenuItemSubitem ))
     {
-	if( look->MenuArrow )
+        if( look->MenuArrow )
     	    add_astbar_icon( item->bar, 1, 0, 0, NO_ALIGN, look->MenuArrow->image );
         else
-	    add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, arrow_space, 1 );
-    }else
-        add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, 1, 1 );
+            add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, arrow_space, 1 );
+    }
+#endif
+//        add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, 1, 1 );
 
     if( get_flags( look->flags, MenuMiniPixmaps ) && icon_space > 0 )
     {
@@ -302,7 +306,7 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
         else
             add_astbar_spacer( item->bar, 2, 0, 0, NO_ALIGN, icon_space, 1 );
     }
-    
+
     /* delete tile from Popup arrow cell : */
     delete_astbar_tile( item->bar, MI_POPUP_IDX );
     /* now readd it as proper type : */
@@ -318,7 +322,9 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
         set_astbar_style_ptr( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_STIPPLE] );
     }else
     {
-        set_astbar_style_ptr( item->bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_ITEM] );
+        set_astbar_style_ptr( item->bar, BAR_STATE_UNFOCUSED,
+                              look->MSMenu[get_flags( item->flags, AS_MenuItemSubitem )?MENU_BACK_SUBITEM:
+                                                                                        MENU_BACK_ITEM] );
         set_astbar_style_ptr( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_HILITE] );
     }
     if( look->DrawMenuBorders == DRAW_MENU_BORDERS_ITEM )
@@ -396,6 +402,35 @@ render_asmenu_bars( ASMenu *menu )
 /*************************************************************************/
 /* midium level ASMenu functionality :                                      */
 /*************************************************************************/
+static unsigned int
+extract_recent_subitems( MenuData *md, MenuDataItem **subitems, unsigned int max_subitems )
+{
+    int used = 0 ;
+    MenuDataItem *smdi = md->first ;
+    while( smdi != NULL )
+    {
+        if( smdi->last_used_time > 0 )
+        {
+            if( used < max_subitems )
+            {
+                subitems[used] = smdi ;
+                ++used ;
+            }else
+            {
+                register int i = used ;
+                while( --i >= 0 )
+                    if( subitems[i]->last_used_time  > smdi->last_used_time )
+                    {
+                        subitems[i] = smdi ;
+                        break;
+                    }
+            }
+        }
+        smdi = smdi->next ;
+    }/* while smdi */
+    return used;
+}
+
 void
 set_asmenu_data( ASMenu *menu, MenuData *md )
 {
@@ -437,45 +472,24 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
                 ++real_items_num;
                 if( mdi->fdata->func == F_POPUP && item->submenu != NULL && subitems != NULL )
                 {
-                    int used = 0, max_subitems = Scr.Feel.recent_submenu_items ;
-                    MenuDataItem *smdi = item->submenu->first ;
-                    while( smdi != NULL )
+                    int used = extract_recent_subitems( item->submenu, subitems, Scr.Feel.recent_submenu_items );
+                    if( used > 0 )
                     {
-                        if( smdi->last_used_time > 0 )
-                        {
-                            if( used < max_subitems )
-                            {
-                                subitems[used] = smdi ;
-                                ++used ;
-                            }else
-                            {
-                                i = used ;
-                                while( --i >= 0 )
-                                    if( subitems[i]->last_used_time  > smdi->last_used_time )
-                                    {
-                                        subitems[i] = smdi ;
-                                        break;
-                                    }
-                            }
-                        }
-                        smdi = smdi->next ;
-                    }/* while smdi */
-		    if( used > 0 ) 
-		    {
                         items_num += used ;
-	                if( menu->items_num < items_num )
-    	        	{
-	    		    int to_zero = max(real_items_num,menu->items_num);
-                    	    menu->items = realloc( menu->items, items_num*(sizeof(ASMenuItem)));
-                    	    memset( &(menu->items[to_zero]), 0x00, (items_num-to_zero)*sizeof(ASMenuItem));
-                	}
+                        if( menu->items_num < items_num )
+                        {
+                            int to_zero = max(real_items_num,menu->items_num);
+                            menu->items = realloc( menu->items, items_num*(sizeof(ASMenuItem)));
+                            memset( &(menu->items[to_zero]), 0x00, (items_num-to_zero)*sizeof(ASMenuItem));
+                        }
                         for( i = 0 ; i < used ; ++i )
-	                {
+                        {
     	            	    set_asmenu_item_data( &(menu->items[real_items_num]), subitems[i] );
-			    set_flags( menu->items[real_items_num].flags, AS_MenuItemSubitem );
-                    	    ++real_items_num;
-                	}
-		    }
+                            subitems[i] = NULL ;
+                            set_flags( menu->items[real_items_num].flags, AS_MenuItemSubitem );
+                            ++real_items_num;
+                        }
+                    }
                 }
             }
         if( real_items_num > 0 )
@@ -490,6 +504,8 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
             set_flags( menu->items[0].flags, AS_MenuItemFirst );
             set_flags( menu->items[real_items_num-1].flags, AS_MenuItemLast );
         }
+        if( subitems )
+            free( subitems );
     }
     menu->icon_space = MIN(max_icon_size,(Scr.MyDisplayWidth>>3));
     /* if we had more then needed tbars - destroy the rest : */
@@ -1175,4 +1191,5 @@ is_menu_pinnable( ASMenu *menu )
         return !(menu->pinned);
     return False;
 }
+
 

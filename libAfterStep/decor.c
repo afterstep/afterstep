@@ -426,15 +426,16 @@ get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwid
 static void
 set_canvas_shape_to_rectangle( ASCanvas * pc )
 {
-    unsigned int width, height ;
+    int x, y;
+    unsigned int width, height, bw ;
     XRectangle    rect;
     rect.x = 0;
     rect.y = 0;
-    get_current_canvas_size( pc, &width, &height );
-    rect.width  = width;
-    rect.height = height;
+    get_current_canvas_geometry( pc, &x, &y, &width, &height, &bw );
+    rect.width  = width+bw*2;
+    rect.height = height+bw*2;
     XShapeCombineRectangles ( dpy, pc->w, ShapeBounding,
-                                0, 0, &rect, 1, ShapeSet, Unsorted);
+                                -bw, -bw, &rect, 1, ShapeSet, Unsorted);
 }
 
 void
@@ -490,7 +491,7 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 }
 
 Bool
-combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first )
+combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first, Bool use_window_shape )
 {
 #ifdef SHAPE
     if (parent && child )
@@ -515,16 +516,17 @@ combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first )
             return False;
         }
 
-        return combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw, first );
+        return combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw, first, use_window_shape );
     }
 #endif
     return False;
 }
 
 Bool
-combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_width, int child_height, int child_bw, Bool first )
+combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_width, int child_height, int child_bw, Bool first, Bool use_window_shape )
 {
 #ifdef SHAPE
+LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
     if (parent && child )
 	{
         if( get_flags( child->state, CANVAS_CONTAINER ) )
@@ -557,9 +559,17 @@ LOCAL_DEBUG_OUT( "setting bounding container's shape from rectangle %dx%d%+d%+d"
                                 0, 0, &rect, 1, first?ShapeSet:ShapeUnion, Unsorted);
         }else
         {
-LOCAL_DEBUG_OUT( "setting bounding container's shape from mask %lX at %+d%+d",  child->mask, child_x, child_y );
-            XShapeCombineMask  ( dpy, parent->w, ShapeBounding, child_x+child_bw, child_y+child_bw, child->mask,
-                                 first?ShapeSet:ShapeUnion);
+            if( !use_window_shape )
+            {
+                LOCAL_DEBUG_OUT( "setting bounding container's shape from mask %lX at %+d%+d",  child->mask, child_x, child_y );
+                XShapeCombineMask  ( dpy, parent->w, ShapeBounding, child_x+child_bw, child_y+child_bw,
+                                     child->mask, first?ShapeSet:ShapeUnion);
+            }else
+            {
+                LOCAL_DEBUG_OUT( "setting bounding container's shape from shape %lX at %+d%+d",  child->mask, child_x, child_y );
+                XShapeCombineShape (dpy, parent->w, ShapeBounding, child_x+child_bw, child_y+child_bw,
+                                    child->w, ShapeBounding, first?ShapeSet:ShapeUnion);
+            }
         }
         return True;
     }
@@ -568,21 +578,21 @@ LOCAL_DEBUG_OUT( "setting bounding container's shape from mask %lX at %+d%+d",  
 }
 
 Bool
-combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool first )
+combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool first, Bool use_window_shape )
 {
 #ifdef SHAPE
     if( child )
     {
         unsigned int width, height, bw;
         get_current_canvas_geometry( child, NULL, NULL, &width, &height, &bw );
-        return combine_canvas_shape_at_geom ( parent, child, child_x, child_y, width, height, bw, first );
+        return combine_canvas_shape_at_geom ( parent, child, child_x, child_y, width, height, bw, first, use_window_shape );
     }
 #endif
     return False;
 }
 
 Bool
-replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y )
+replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool use_window_shape )
 {
 #ifdef SHAPE
     unsigned int width, height, bw;
@@ -596,7 +606,7 @@ replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int chi
 
 LOCAL_DEBUG_OUT( "setting bounding container's shape from rectangle %dx%d%+d%+d",  rect.width, rect.height, rect.x, rect.y );
         XShapeCombineRectangles (dpy, parent->w, ShapeBounding, 0, 0, &rect, 1, ShapeUnion, Unsorted);
-        return combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw, False );
+        return combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw, False, use_window_shape );
     }
 #endif
     return False;
@@ -1133,8 +1143,20 @@ set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImag
             return 0;
     layer->dst_x = tile->x ;
     layer->dst_y = tile->y ;
-    layer->clip_width  = layer->im->width ;
-    layer->clip_height = layer->im->height ;
+    if( layer->im->width < max_width )
+    {
+        layer->dst_x += make_tile_pad( get_flags(tile->flags, AS_TilePadLeft), get_flags(tile->flags, AS_TilePadRight), max_width, layer->im->width );
+        layer->clip_width  = layer->im->width ;
+    }else
+        layer->clip_width  = max_width ;
+    if( layer->im->height < max_height )
+    {
+        layer->dst_y += make_tile_pad( get_flags(tile->flags, AS_TilePadTop), get_flags(tile->flags, AS_TilePadBottom), max_height, layer->im->height );
+        layer->clip_height  = layer->im->height ;
+    }else
+        layer->clip_height  = max_height ;
+
+    layer->clip_height = min(layer->im->height, max_height) ;
     alpha = ARGB32_ALPHA8(layer->im->back_color);
     if( alpha < 0x00FF && alpha > 1 )
         layer->tint = MAKE_ARGB32((alpha>>1),0x007F,0x007F,0x007F);

@@ -68,6 +68,7 @@ typedef struct ASPagerDesk {
     ASTBarData *title;
     ASTBarData *background;
     Window     *separator_bars;                /* (rows-1)*(columns-1) */
+    XRectangle *separator_bar_rects ;
     unsigned int separator_bars_num ;
     unsigned int title_width, title_height;
 
@@ -104,6 +105,7 @@ typedef struct ASPagerState
     ASPagerDesk  *resize_desk;                 /* desk on which we are currently resizing the window */
 
     Window      selection_bars[4];
+    XRectangle  selection_bar_rects[4] ;
 }ASPagerState;
 
 ASPagerState PagerState;
@@ -697,7 +699,7 @@ place_desk_background( ASPagerDesk *d )
     set_astbar_size( d->background, PagerState.desk_width, PagerState.desk_height );
 }
 
-static void
+static Bool
 render_desk( ASPagerDesk *d, Bool force )
 {
     if( is_canvas_needs_redraw( d->desk_canvas) )
@@ -710,8 +712,66 @@ render_desk( ASPagerDesk *d, Bool force )
         render_astbar( d->background, d->desk_canvas );
 
     if( is_canvas_dirty( d->desk_canvas) )
+    {
         update_canvas_display( d->desk_canvas );
+        return True;
+    }
+    return False;
 }
+
+static void
+update_desk_shape( ASPagerDesk *d )
+{
+#ifdef SHAPE
+    int i ;
+
+    if( d == NULL )
+        return;
+
+    if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
+    {
+        XShapeCombineRectangles ( dpy, d->desk_canvas->w, ShapeBounding,
+                                  0, 0, &(PagerState.selection_bar_rects[0]), 4, ShapeUnion, Unsorted);
+        LOCAL_DEBUG_OUT( "added selection_bar_rects to shape%s","" );
+    }
+    if( get_flags(Config->flags, PAGE_SEPARATOR) )
+    {
+//        int i = d->separator_bars_num ;
+        XShapeCombineRectangles ( dpy, d->desk_canvas->w, ShapeBounding,
+                                  0, 0, &(d->separator_bar_rects[0]), d->separator_bars_num, ShapeUnion, Unsorted);
+        LOCAL_DEBUG_OUT( "added %d separator_bar_rects to shape", d->separator_bars_num);
+#if 0
+        while( --i >= 0 )
+        {
+            LOCAL_DEBUG_OUT( "\t %dx%d%+d%+d", d->separator_bar_rects[i].width,
+                                               d->separator_bar_rects[i].height,
+                                               d->separator_bar_rects[i].x,
+                                               d->separator_bar_rects[i].y );
+        }
+#endif
+    }
+
+    if( d->clients_num > 0 )
+    {
+        register ASWindowData **clients = d->clients ;
+        i = d->clients_num ;
+        while( --i >= 0 )
+            if( clients[i] )
+                combine_canvas_shape( d->desk_canvas, clients[i]->canvas, False, False );
+    }
+#endif
+}
+
+void
+update_pager_shape()
+{
+#ifdef SHAPE
+    int i ;
+    for( i = 0 ; i < PagerState.desks_num; ++i )
+        combine_canvas_shape( PagerState.main_canvas, PagerState.desks[i].desk_canvas, (i == 0), True );
+#endif
+}
+
 
 unsigned int
 calculate_desk_width( ASPagerDesk *d )
@@ -832,25 +892,49 @@ LOCAL_DEBUG_CALLER_OUT( "Scr.CurrentDesk(%d)->start_desk(%d)", Scr.CurrentDesk, 
         int sel_y = sel_desk->background->win_y ;
         int page_width = sel_desk->background->width/PagerState.page_columns ;
         int page_height = sel_desk->background->height/PagerState.page_rows ;
+        int i = 4;
 
         sel_x += (Scr.Vx*page_width)/Scr.MyDisplayWidth ;
         sel_y += (Scr.Vy*page_height)/Scr.MyDisplayHeight ;
 LOCAL_DEBUG_OUT( "sel_pos(%+d%+d)->page_size(%dx%d)->desk(%d)", sel_x, sel_y, page_width, page_height, sel_desk->desk );
-        XReparentWindow( dpy, PagerState.selection_bars[0], sel_desk->desk_canvas->w, -10, -10 );
-        XReparentWindow( dpy, PagerState.selection_bars[1], sel_desk->desk_canvas->w, -10, -10 );
-        XReparentWindow( dpy, PagerState.selection_bars[2], sel_desk->desk_canvas->w, -10, -10 );
-        XReparentWindow( dpy, PagerState.selection_bars[3], sel_desk->desk_canvas->w, -10, -10 );
+        while ( --i >= 0 )
+            XReparentWindow( dpy, PagerState.selection_bars[i], sel_desk->desk_canvas->w, -10, -10 );
+
+        PagerState.selection_bar_rects[0].x = sel_x-1 ;
+        PagerState.selection_bar_rects[0].y = sel_y-1 ;
+        PagerState.selection_bar_rects[0].width = page_width+2 ;
+        PagerState.selection_bar_rects[0].height = 1 ;
+
+        PagerState.selection_bar_rects[1].x = sel_x-1 ;
+        PagerState.selection_bar_rects[1].y = sel_y-1 ;
+        PagerState.selection_bar_rects[1].width = 1 ;
+        PagerState.selection_bar_rects[1].height = page_height+2;
+
+        PagerState.selection_bar_rects[2].x = sel_x-1 ;
+        PagerState.selection_bar_rects[2].y = sel_y+page_height+1 ;
+        PagerState.selection_bar_rects[2].width = page_width+2 ;
+        PagerState.selection_bar_rects[2].height = 1 ;
+
+        PagerState.selection_bar_rects[3].x = sel_x+page_width+1 ;
+        PagerState.selection_bar_rects[3].y = sel_y-1 ;
+        PagerState.selection_bar_rects[3].width = 1 ;
+        PagerState.selection_bar_rects[3].height = page_height+2 ;
 
         if( !get_flags( sel_desk->flags, ASP_DeskShaded ) )
         {
-            XMoveResizeWindow( dpy, PagerState.selection_bars[0], sel_x-1, sel_y-1, page_width+2, 1 );
-            XMoveResizeWindow( dpy, PagerState.selection_bars[1], sel_x-1, sel_y-1, 1, page_height+2 );
-            XMoveResizeWindow( dpy, PagerState.selection_bars[2], sel_x-1, sel_y+page_height+1, page_width+2, 1 );
-            XMoveResizeWindow( dpy, PagerState.selection_bars[3], sel_x+page_width+1, sel_y-1, 1, page_height+2 );
+            i = 4 ;
+            while ( --i >= 0 )
+                XMoveResizeWindow( dpy, PagerState.selection_bars[i],
+                                        PagerState.selection_bar_rects[i].x,
+                                        PagerState.selection_bar_rects[i].y,
+                                        PagerState.selection_bar_rects[i].width,
+                                        PagerState.selection_bar_rects[i].height );
         }
 
         restack_desk_windows( sel_desk );
         XMapSubwindows( dpy, sel_desk->desk_canvas->w );
+        update_desk_shape( sel_desk );
+        update_pager_shape();
     }
 }
 
@@ -935,6 +1019,7 @@ redecorate_pager_desks()
                 if( d->separator_bars[p] )
                     XDestroyWindow( dpy, d->separator_bars[p] );
             free( d->separator_bars );
+            free( d->separator_bar_rects );
             d->separator_bars_num = 0 ;
             d->separator_bars = NULL ;
         }
@@ -942,10 +1027,14 @@ redecorate_pager_desks()
         {
             d->separator_bars_num = PagerState.page_columns-1+PagerState.page_rows-1 ;
             d->separator_bars = safecalloc( d->separator_bars_num, sizeof(Window));
+            d->separator_bar_rects = safecalloc( d->separator_bars_num, sizeof(XRectangle));
             ARGB2PIXEL(Scr.asv,Config->grid_color_argb,&(attr.background_pixel));
             for( p = 0 ; p < d->separator_bars_num ; ++p )
+            {
                 d->separator_bars[p] = create_visual_window(Scr.asv, d->desk_canvas->w, 0, 0, 1, 1,
                                                              0, InputOutput, CWBackPixel, &attr );
+                d->separator_bar_rects[p].width = d->separator_bar_rects[p].height = 1 ;
+            }
             XMapSubwindows( dpy, d->desk_canvas->w );
         }
     }
@@ -1035,6 +1124,7 @@ rearrange_pager_desks(Bool dont_resize_main )
         }else
             x += width+Config->border_width;
     }
+    update_pager_shape();
     ASSync(False);
 }
 
@@ -1163,7 +1253,7 @@ set_client_name( ASWindowData *wd, Bool redraw )
 }
 
 void
-place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw )
+place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_update_shape )
 {
     int x = 0, y = 0, width = 1, height = 1;
     int curr_x, curr_y ;
@@ -1216,6 +1306,11 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw )
             }else
                 moveresize_canvas( canvas, x, y, width, height );
             LOCAL_DEBUG_OUT( "+PLACE->canvas(%p)->geom(%dx%d%+d%+d)", wd->canvas, width, height, x, y );
+        }
+        if( !dont_update_shape )
+        {
+            update_desk_shape( d );
+            update_pager_shape();
         }
     }
 }
@@ -1331,7 +1426,7 @@ void add_client( ASWindowData *wd )
 
     set_client_name( wd, False);
     set_client_look( wd, False );
-    place_client( d, wd, True );
+    place_client( d, wd, True, False );
     map_canvas_window( wd->canvas, True );
     LOCAL_DEBUG_OUT( "+CREAT->canvas(%p)->bar(%p)->client_win(%lX)", wd->canvas, wd->bar, wd->client );
 }
@@ -1349,7 +1444,7 @@ void refresh_client( int old_desk, ASWindowData *wd )
     }
     set_client_name( wd, True );
     set_astbar_focused( wd->bar, wd->canvas, wd->focused );
-    place_client( d, wd, False );
+    place_client( d, wd, False, False );
     LOCAL_DEBUG_OUT( "all done%s", "" );
 }
 
@@ -1450,9 +1545,11 @@ move_sticky_clients()
             register ASWindowData **clients = d->clients ;
             while( --i >= 0 )
                 if( clients[i] && get_flags( clients[i]->state_flags, AS_Sticky))
-                    place_client( d, clients[i], True );
+                    place_client( d, clients[i], True, True );
+            update_desk_shape( d );
         }
     }
+    update_pager_shape();
 }
 
 static char as_comm_buf[256];
@@ -1901,7 +1998,11 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
                 {
                     update_astbar_transparency(PagerState.desks[i].title, PagerState.desks[i].desk_canvas);
                     update_astbar_transparency(PagerState.desks[i].background, PagerState.desks[i].desk_canvas);
-                    render_desk( &(PagerState.desks[i]), False );
+                    if( render_desk( &(PagerState.desks[i]), False ) )
+                    {
+                        update_desk_shape( &(PagerState.desks[i]) );
+                        update_pager_shape();
+                    }
                 }
             }
             break;
@@ -1920,6 +2021,7 @@ on_desk_moveresize( ASPagerDesk *d )
         if( !get_flags(d->flags, ASP_DeskShaded ) )
         {   /* place all the grid separation windows : */
             register Window *wa = d->separator_bars;
+            register XRectangle *wrecta = d->separator_bar_rects;
             if( wa )
             {
                 register int p = PagerState.page_columns-1;
@@ -1930,11 +2032,16 @@ on_desk_moveresize( ASPagerDesk *d )
                 /* vertical bars : */
                 while( --p >= 0 )
                 {
+                    wrecta[p].x = pos ;
+                    wrecta[p].y = pos2 ;
+                    wrecta[p].width = 1 ;
+                    wrecta[p].height = size ;
                     XMoveResizeWindow( dpy, wa[p], pos, pos2, 1, size );
                     pos -= pos_inc ;
                 }
                 /* horizontal bars */
                 wa += PagerState.page_columns-1;
+                wrecta += PagerState.page_columns-1;
                 p = PagerState.page_rows-1;
                 pos_inc = d->background->height/PagerState.page_rows ;
                 pos = d->background->win_y + p*pos_inc;
@@ -1942,6 +2049,10 @@ on_desk_moveresize( ASPagerDesk *d )
                 size = d->background->width ;
                 while( --p >= 0 )
                 {
+                    wrecta[p].x = pos2 ;
+                    wrecta[p].y = pos ;
+                    wrecta[p].width = size ;
+                    wrecta[p].height = 1 ;
                     XMoveResizeWindow( dpy, wa[p], pos2, pos, size, 1 );
                     pos -= pos_inc ;
                 }
@@ -1952,7 +2063,7 @@ on_desk_moveresize( ASPagerDesk *d )
                 register int i ;
                 i = d->clients_num ;
                 while( --i >= 0 )
-                    place_client( d, d->clients[i], False );
+                    place_client( d, d->clients[i], False, True );
             }
             if( d->desk == Scr.CurrentDesk )
                 place_selection();
@@ -1986,6 +2097,7 @@ on_desk_moveresize( ASPagerDesk *d )
     update_astbar_transparency(d->background, d->desk_canvas);
 
     render_desk( d, (changes!=0) );
+    update_desk_shape(d);
 }
 
 void on_pager_window_moveresize( void *client, Window w, int x, int y, unsigned int width, unsigned int height )
@@ -2032,6 +2144,7 @@ void on_pager_window_moveresize( void *client, Window w, int x, int y, unsigned 
                     break;
                 }
         }
+        update_pager_shape();
     }
 }
 
@@ -2134,6 +2247,7 @@ release_pressure()
     if( PagerState.pressed_canvas && PagerState.pressed_bar )
     {
 LOCAL_DEBUG_OUT( "canvas(%p)->bar(%p)->context(%s)", PagerState.pressed_canvas, PagerState.pressed_bar, context2text(PagerState.pressed_context) );
+LOCAL_DEBUG_OUT( "main_geometry(%dx%d%+d%+d)", PagerState.main_canvas->width, PagerState.main_canvas->height, PagerState.main_canvas->root_x, PagerState.main_canvas->root_y );
         if( PagerState.pressed_desk )
         {
             ASPagerDesk *d = PagerState.pressed_desk ;
@@ -2148,6 +2262,7 @@ LOCAL_DEBUG_OUT( "canvas(%p)->bar(%p)->context(%s)", PagerState.pressed_canvas, 
                 char command[64];
                 int px = 0, py = 0;
                 ASQueryPointerRootXY(&px,&py);
+LOCAL_DEBUG_OUT( "pointer root pos(%+d%+d)", px, py );
                 px -= d->desk_canvas->root_x ;
                 py -= d->desk_canvas->root_y ;
                 if( px > 0 && px < d->desk_canvas->width &&

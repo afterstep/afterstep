@@ -219,10 +219,10 @@ void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line);
 void update_canvas_display( ASCanvas *pc );
 #endif
 
-Bool combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first );
-Bool combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_w, int child_h, int child_bw, Bool first );
-Bool combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool first );
-Bool replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y );
+Bool combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first, Bool use_window_shape );
+Bool combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_w, int child_h, int child_bw, Bool first, Bool use_window_shape );
+Bool combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool first, Bool use_window_shape );
+Bool replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool use_window_shape );
 
 
 
@@ -237,7 +237,6 @@ Bool is_canvas_needs_redraw( ASCanvas *pc );
 Bool is_canvas_dirty( ASCanvas *pc );
 void add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity, int vx, int vy );
 void set_root_clip_area( ASCanvas *canvas );
-
 
 
 ASTBtnData *create_astbtn();
@@ -259,6 +258,7 @@ Bool set_astbar_composition_method( ASTBarData *tbar, unsigned int state, unsign
 Bool set_astbar_style_ptr (ASTBarData * tbar, unsigned int state, struct MyStyle *style);
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
 
+int make_tile_pad( Bool pad_before, Bool pad_after, int cell_size, int tile_size );
 
 int add_astbar_spacer( ASTBarData *tbar, unsigned char col, unsigned char row, int flip, int align, unsigned short width, unsigned short height);
 int add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align,

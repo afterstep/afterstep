@@ -310,6 +310,7 @@ add_aswindow_to_layer( ASWindow *asw, int layer )
     {
         ASLayer  *dst_layer = get_aslayer( layer, Scr.Windows );
         /* inserting window into the top of the new layer */
+    LOCAL_DEBUG_OUT( "adding window %p to layer %p (%d)", asw, dst_layer, layer );
         if( !AS_ASSERT(dst_layer) )
             vector_insert_elem( dst_layer->members, &asw, 1, NULL, False );
     }
@@ -328,7 +329,7 @@ LOCAL_DEBUG_OUT( "can be found at index %d", vector_find_data(	src_layer->member
 	    while( vector_find_data( src_layer->members, &asw ) < src_layer->members->used )
 	    {
     	        vector_remove_elem( src_layer->members, &asw );
-		LOCAL_DEBUG_OUT( "after delition can be found at index %d", vector_find_data(	src_layer->members, &asw ) );
+        LOCAL_DEBUG_OUT( "after delition can be found at index %d(used%d)", vector_find_data(   src_layer->members, &asw ), src_layer->members->used );
 	    }
 	}
     }
@@ -344,9 +345,8 @@ enlist_aswindow( ASWindow *t )
     append_bidirelem( Scr.Windows->clients, t );
     vector_insert_elem( Scr.Windows->circulate_list, &t, 1, NULL, True );
 
+    add_aswindow_to_layer( t, ASWIN_LAYER(t) );
     tie_aswindow( t );
-    if (!get_flags(t->hints->flags, AS_SkipWinList))
-        update_windowList ();
     return True;
 }
 
@@ -516,39 +516,39 @@ restack_window_list( int desk, Bool send_msg_only )
     if( (layers_in = sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(*layers), 0)) == 0 )
         return ;
 
-    l = VECTOR_HEAD(ASLayer*,*layers);
-    windows = VECTOR_HEAD(Window,*ids);
+    l = PVECTOR_HEAD(ASLayer*,layers);
+    windows = PVECTOR_HEAD(Window,ids);
     windows_num = 0 ;
     LOCAL_DEBUG_OUT( "filling up array with window IDs: layers_in = %ld, Total clients = %d", layers_in, Scr.Windows->clients->count );
     for( i = 0 ; i < layers_in ; i++ )
     {
-        register int k, end_k = VECTOR_USED(*(l[i]->members)) ;
-        ASWindow **members = VECTOR_HEAD(ASWindow*,*(l[i]->members));
+        register int k, end_k = PVECTOR_USED(l[i]->members) ;
+        ASWindow **members = PVECTOR_HEAD(ASWindow*,l[i]->members);
         if( end_k > ids->allocated )
             end_k = ids->allocated ;
         LOCAL_DEBUG_OUT( "layer %ld, end_k = %d", i, end_k );
         for( k = 0 ; k < end_k ; k++ )
-	{
-	    register ASWindow *asw = members[k] ;
+        {
+            register ASWindow *asw = members[k] ;
             if( ASWIN_DESK(asw) == desk )
-		if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-            	    windows[windows_num++] = asw->w;
-	}
+                if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+                    windows[windows_num++] = asw->w;
+        }
     }
     LOCAL_DEBUG_OUT( "Sending stacking order: windows_num = %ld, ", windows_num );
-    VECTOR_USED(*ids) = windows_num ;
+    PVECTOR_USED(ids) = windows_num ;
     SendStackingOrder (-1, M_STACKING_ORDER, desk, ids);
 
     if( !send_msg_only )
     {
-        l = VECTOR_HEAD(ASLayer*,*layers);
-        windows = VECTOR_HEAD(Window,*ids);
+        l = PVECTOR_HEAD(ASLayer*,layers);
+        windows = PVECTOR_HEAD(Window,ids);
         windows_num = 0 ;
         LOCAL_DEBUG_OUT( "filling up array with window frame IDs: layers_in = %ld, ", layers_in );
         for( i = 0 ; i < layers_in ; i++ )
         {
-            register int k, end_k = VECTOR_USED(*(l[i]->members)) ;
-            register ASWindow **members = VECTOR_HEAD(ASWindow*,*(l[i]->members));
+            register int k, end_k = PVECTOR_USED(l[i]->members) ;
+            register ASWindow **members = PVECTOR_HEAD(ASWindow*,l[i]->members);
             if( end_k > ids->allocated )
                 end_k = ids->allocated ;
             LOCAL_DEBUG_OUT( "layer %ld, end_k = %d", i, end_k );
