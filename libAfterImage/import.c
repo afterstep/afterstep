@@ -39,6 +39,10 @@
 /* Include file for users of png library. */
 #include <jpeglib.h>
 #endif
+#ifdef GIF
+#include <gif_lib.h>
+#endif
+
 #include "../include/afterstep.h"
 #include "../include/screen.h"
 #include "../include/asimage.h"
@@ -1278,7 +1282,7 @@ bmp2ASImage( const char * path, ASFlagType what )
 }
 
 /***********************************************************************************/
-/* Windows ICO file format :   									   				   */
+/* Windows ICO/CUR file format :   									   			   */
 
 ASImage *
 ico2ASImage( const char * path, ASFlagType what )
@@ -1346,15 +1350,8 @@ ico2ASImage( const char * path, ASFlagType what )
 			int x ;
 			if( fread( &(and_mask[0]), sizeof (CARD8), mask_bytes, infile ) < mask_bytes )
 				break;
-			for( x = 0 ; x < mask_bytes ; ++x )
-				fprintf( stderr, "%2.2X              ", and_mask[x] );
-			fprintf( stderr, "\n" );
 			for( x = 0 ; x < icon.bWidth ; ++x )
-			{
 				buf.alpha[x] = (and_mask[x>>3]&(0x80>>(x&0x7)))? 0x0000 : 0x00FF ;
-				fprintf( stderr, "%2.2X", buf.alpha[x] );
-			}
-			fprintf( stderr, "\n" );
 			asimage_add_line (im, IC_ALPHA, buf.alpha, y);
 		}
 		free_scanline( &buf, True );
@@ -1370,4 +1367,191 @@ ico2ASImage( const char * path, ASFlagType what )
 
 }
 
+/***********************************************************************************/
+#ifdef GIF		/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
+ASImage *
+gif2ASImage( const char * path, ASFlagType what )
+{
+	double        		gamma = 1.0;
+	CARD8  			   *gamma_table = NULL ;
+	FILE			   *fp ;
+	int					status = GIF_ERROR;
+	GifFileType        *gif;
+	GifPixelType	   *all_rows = NULL;
+    GifRowType         *rows = NULL;
+	GifRecordType       rec;
+	ASImage 	 	   *im = NULL ;
+	ASScanline    		buf;
+	int 		  		transparent = -1 ;
+	unsigned int  		y;
+	unsigned int		width, height ;
 
+	if ((fp = open_image_file(path)) == NULL)
+		return NULL;
+	
+	if( (gif = DGifOpenFileHandle(fileno(fp))) != NULL )
+	{
+		while((status = DGifGetRecordType(gif, &rec)) != GIF_ERROR)
+		{
+			if( rec == TERMINATE_RECORD_TYPE ) 
+				break;
+			if( rec == IMAGE_DESC_RECORD_TYPE && rows == NULL ) 
+			{
+				size_t offset = 0;
+		    	if ((status = DGifGetImageDesc(gif)) == GIF_ERROR)
+  		  			break;
+			    width = gif->Image.Width;
+			    height = gif->Image.Height;				  
+				
+				if( width >= MAX_IMPORT_IMAGE_SIZE || height >= MAX_IMPORT_IMAGE_SIZE )
+					break;
+				
+			    rows = safemalloc(height * sizeof(GifRowType *));
+				all_rows = safemalloc(height * width * sizeof(GifPixelType));
+				
+				for (y = 0; y < height; y++) 
+				{
+					rows[y] = all_rows+offset ;
+					offset += width*sizeof(GifPixelType);
+				}
+				if (gif->Image.Interlace) 
+				{	
+					int i ;		
+					static int intoffset[] = {0, 4, 2, 1};
+					static int intjump[] = {8, 8, 4, 2};
+					for (i = 0; i < 4; ++i) 
+			            for (y = intoffset[i]; y < height; y += intjump[i]) 
+				            if( (status = DGifGetLine(gif, rows[y], width)) != GIF_OK )
+							{
+								i = 4;
+								break;
+							}
+		        }else 
+			        for (y = 0; y < height; ++y) 
+			            if( (status = DGifGetLine(gif, rows[y], width)) != GIF_OK )
+							break;
+			}else if (rec == EXTENSION_RECORD_TYPE ) 
+			{
+	    		int         ext_code = 0;
+    			GifByteType *ext = NULL;
+		
+		  		DGifGetExtension(gif, &ext_code, &ext);
+  				while (ext) 
+				{
+					if( transparent < 0 )
+      					if( ext_code == 0xf9 && (ext[1]&0x01))	
+				  			transparent = (int) ext[4];
+		      		ext = NULL;
+      				DGifGetExtensionNext(gif, &ext);
+				}
+			}
+
+			if( status != GIF_OK ) 
+				break;
+  		}
+	}
+	
+	if( status == GIF_OK && rows  )
+	{
+		int bg_color =   gif->SBackGroundColor ;
+	  	ColorMapObject  *cmap = gif->SColorMap ;
+		  
+		im = safecalloc( 1, sizeof( ASImage ) );
+		asimage_start( im, width, height );
+		prepare_scanline( im->width, 0, &buf, False );
+	  
+		if( gif->Image.ColorMap != NULL) 
+			cmap = gif->Image.ColorMap ; /* private colormap where available */
+		  
+		for (y = 0; y < height; ++y) 
+		{
+			int x ;
+			Bool do_alpha = False ;
+			for (x = 0; x < width; ++x) 
+			{
+				int c = rows[y][x];
+      			if ( c == transparent) 
+				{
+					c = bg_color ;
+					do_alpha = True ;
+					buf.alpha[x] = 0 ;
+				}else
+					buf.alpha[x] = 0x00FF ;
+		        buf.red[x]   = cmap->Colors[c].Red;
+		        buf.green[x] = cmap->Colors[c].Green;
+				buf.blue[x]  = cmap->Colors[c].Blue;
+	        }
+			asimage_add_line (im, IC_RED,   buf.red, y);
+			asimage_add_line (im, IC_GREEN, buf.green, y);
+			asimage_add_line (im, IC_BLUE,  buf.blue, y);
+			if( do_alpha )
+				asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
+		}
+		free_scanline(&buf, True);
+	}
+	if( rows ) 
+		free( rows );
+	if( all_rows ) 
+		free( all_rows );
+
+	DGifCloseFile(gif);
+	return im ;
+}
+#else 			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
+ASImage *
+gif2ASImage( const char * path, ASFlagType what )
+{
+	show_error( "unable to load file \"%s\" - missing GIF image format libraries.\n", path );
+	return NULL ;
+}
+#endif			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
+
+#if 0
+#ifdef TIFF		/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
+ASImage *
+tiff2ASImage( const char * path, ASFlagType what )
+{
+	static ASImage 	 *im = NULL ;
+	FILE 		 *fp ;
+	double        image_gamma = 0.0;
+	double        screen_gamma = 1.0;
+	ASScanline    buf;
+	Bool 		  do_alpha = False, grayscale = False ;
+	unsigned int  y;
+	size_t		  row_bytes, offset ;
+
+	if ((fp = open_image_file(path)) == NULL)
+		return NULL;
+
+	im = safecalloc( 1, sizeof( ASImage ) );
+	asimage_start( im, width, height );
+	prepare_scanline( im->width, 0, &buf, False );
+	do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
+
+	for (y = 0; y < height; y++)
+	{
+		raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
+
+		asimage_add_line (im, IC_RED,   buf.red, y);
+		asimage_add_line (im, IC_GREEN, buf.green, y);
+		asimage_add_line (im, IC_BLUE,  buf.blue, y);
+		if( do_alpha )
+			asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
+	}
+
+	free_scanline(&buf, True);
+	/* read rest of file, and get additional chunks in info_ptr - REQUIRED */
+	/* close the file */
+	fclose (fp);
+	return im ;
+}
+#else 			/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
+
+ASImage *
+tiff2ASImage( const char * path, ASFlagType what )
+{
+	show_error( "unable to load file \"%s\" - missing TIFF image format libraries.\n", path );
+	return NULL ;
+}
+#endif			/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
+#endif
