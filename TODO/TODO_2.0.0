@@ -1,7 +1,7 @@
 TODO list for AfterStep v. 2.0.0
 
 created on 01/09/2003 by Sasha Vasko <sasha at aftercode dot net>
-last updated on 01/09/2003
+last updated on 03/07/2003
 
 TODO:
         Common :
@@ -18,15 +18,12 @@ TODO:
                    web.
                 8. Update websites afterstep.sf.net and maybe www.afterstep.org (see David Mihm).
         AfterStep-proper :
-                1. Complete support for iconified windows
-                2. Debug stacking order between layers
-                3. Implement window placement  in arbitrary position when NoPPosition is used.
-                4. Implement support for background image description in asetroot file
+                1. Debug stacking order between layers
+                2. Implement support for background image description in asetroot file
                    (when look does not have it).
-                5. Implement theme handling tool.
-                6. Implement support for cursor movement using the keyboard while in menus.
-                7. Add FollowTitleChanges option to the database flags.
-                8. Reimplement balloons.
+                3. Implement theme handling tool.
+                4. Implement support for cursor movement using the keyboard while in menus.
+                5. Add FollowTitleChanges option to the database flags.
         asetroot :
                 1. Move background handling code into the lib from afterstep-proper/pager.c.
                 2. Change to use above-mentioned code
@@ -74,14 +71,11 @@ TODO:
                 1. feel free to use it for any testing :)
         Tile
                 1. See Cascade.
-        WinList2
-                1. Implement all the config options support - probably just needs some debugging.
         WinList
                 1. Get rid of - WinList2 should be used instead.
         Wharf
                 1. Implement Drag-N-Drop interface - need to check latest developments in GNOME
                    and use same approach as they do. See afterstep-devel for some code.
-                2. Reimplement 2D layout where 2 rows of buttons could be displayed.
         Zharf
                 1. Get rid of. Wharf can now do labels and more. Probably just create link to Wharf
                    for old times sake.
@@ -92,4 +86,11 @@ DONE:
                 2. MyFrames are now implemented and feature numerous powerfull features for
                    managing widow decoration, including titlebar bevel and align, different MyStyles
                    for titlebar and frame, scaling or tiling images, etc.
+                3. Complete support for iconified windows
+                4. Implement window placement  in arbitrary position when NoPPosition is used.
+                5. Reimplement balloons.
+        WinList2
+                1. Implement all the config options support.
+        Wharf
+                1. Reimplement 2D layout where 2 rows of buttons could be displayed.
 
