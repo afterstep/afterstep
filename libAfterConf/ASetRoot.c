@@ -413,7 +413,7 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
 	ConfigData cd ;
 
     if( look == NULL )
-        look = &(Scr.Look);
+        look = get_screen_look(NULL);
 
     fpd.fp = fd ;
     fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
@@ -460,9 +460,9 @@ LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data 
 	{
         myback->scale = back_config->scale ;
 		if( !get_flags( back_config->scale.flags, WidthValue ) )
-			myback->scale.width = Scr.MyDisplayWidth ;
+			myback->scale.width = get_screen_width(NULL);
 		if( !get_flags( back_config->scale.flags, HeightValue ) )
-			myback->scale.height = Scr.MyDisplayHeight ;
+			myback->scale.height = get_screen_height(NULL);
 		set_flags( myback->scale.flags, WidthValue|HeightValue );
 	}
 

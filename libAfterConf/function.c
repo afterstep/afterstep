@@ -97,11 +97,14 @@ Func2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, FunctionData * fu
 {
 	TermDef      *pterm;
 	FreeStorageElem *new_elem;
+	TermDef      *folder_term = func2fterm (F_Folder, False);
 
 	if (func == NULL || tail == NULL)
 		return tail;
+    if( folder_term == NULL ) 
+		return tail ;
 
-    FuncTerms[F_Folder].sub_syntax = &WharfSyntax ;
+    folder_term->sub_syntax = &WharfSyntax ;
 
 	pterm = FindTerm (&FuncSyntax, TT_ANY, func->func);
 	/* adding balloon free storage here */
@@ -200,14 +203,15 @@ FunctionData *
 String2Func ( const char *string, FunctionData *p_fdata, Bool quiet )
 {
     FreeStorageElem *storage;
+	TermDef      *folder_term = func2fterm (F_Folder, True);
     TermDef      *fterm ;
     char *ptr = (char*)string ;
     ConfigItem item;
     int res ;
 
-    if( ptr == NULL ) return NULL ;
+    if( ptr == NULL || folder_term == NULL ) return NULL ;
 
-    FuncTerms[F_Folder].sub_syntax = &WharfSyntax ;
+    folder_term->sub_syntax = &WharfSyntax ;
 
     item.memory = NULL ;
 	item.ok_to_free = False ;

@@ -72,6 +72,7 @@ Bool audio_player_rplay(short) ;
 Bool audio_player_cat(short) ;
 Bool audio_player_stdout(short) ;
 Bool audio_player_ext(short) ;
+void DeadPipe(int);
 
 /* then we add path to it and store it in this table : */
 char         *sound_table[MAX_SOUNDS];
@@ -80,6 +81,7 @@ int
 main (int argc, char **argv)
 {
 	/* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_AUDIO, argc, argv, NULL, NULL, 0 );
 
     ConnectX( &Scr, PropertyChangeMask );

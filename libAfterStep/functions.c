@@ -53,8 +53,9 @@ func2fterm (FunctionCode func, int quiet)
 	register int  i;
 
 	/* in most cases that should work : */
-	if (FuncTerms[func].id == func)
-		return &(FuncTerms[func]);
+	if( func < F_FUNCTIONS_NUM )
+		if (FuncTerms[func].id == func)
+			return &(FuncTerms[func]);
 
 	/* trying fallback if it did not : */
 	for (i = 0; i < F_FUNCTIONS_NUM; i++)

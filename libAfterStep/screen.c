@@ -41,6 +41,75 @@
 
 static Bool   as_X_synchronous_mode = False;
 
+/*************************************************************************/
+/* Scr data members access functions to be used in linking DLLs          */
+int get_screen_width(ScreenInfo *scr)
+{
+	if( scr == NULL ) 
+		scr = &Scr;
+	return scr->MyDisplayWidth;	
+}	 
+
+int get_screen_height(ScreenInfo *scr)
+{
+	if( scr == NULL ) 
+		scr = &Scr;
+	return scr->MyDisplayHeight;	
+}	 
+
+int get_screen_current_desk(ScreenInfo *scr)
+{
+	if( scr == NULL ) 
+		scr = &Scr;
+	return scr->CurrentDesk;	
+}	 
+
+struct MyLook *get_screen_look(ScreenInfo *scr)
+{
+	if( scr == NULL ) 
+		scr = &Scr;
+	return &(scr->Look);	
+}	 
+
+struct ASImageManager *get_screen_image_manager(ScreenInfo *scr)
+{
+	if( scr == NULL ) 
+		scr = &Scr;
+	return scr->image_manager;	
+}	 
+
+
+ScreenInfo *get_current_screen()
+{
+	return &Scr ;
+}	 
+
+void
+reload_screen_image_manager( ScreenInfo *scr, ASImageManager **old_imageman )
+{
+	char *env_path1 = NULL, *env_path2 = NULL ;
+	if( scr == NULL ) 
+		scr = &Scr ;
+	if( old_imageman )
+	{
+		*old_imageman = scr->image_manager ;
+	}else if( scr->image_manager )
+      	destroy_image_manager( scr->image_manager, False );
+
+	env_path1 = getenv( "IMAGE_PATH" ) ;
+	env_path2 = getenv( "PATH" );
+	if( env_path1 == NULL ) 
+	{
+		env_path1 = env_path2;
+		env_path2 = NULL ;
+	}
+    scr->image_manager = create_image_manager( NULL, 2.2, Environment->pixmap_path?Environment->pixmap_path:"", env_path1, env_path2, NULL );
+	set_xml_image_manager( scr->image_manager );
+    show_progress("Pixmap Path changed to \"%s:%s:%s\" ...", Environment->pixmap_path?Environment->pixmap_path:"", env_path1?env_path1:"", env_path2?env_path2:"");
+}
+
+/*************************************************************************/
+
 void
 get_Xinerama_rectangles (ScreenInfo * scr)
 {

@@ -119,12 +119,13 @@ void press_tab( int tab );
 void set_tab_look( ASWinTab *aswt );
 
 unsigned int find_tab_by_position( int root_x, int root_y );
-
+void DeadPipe(int);
 
 int
 main( int argc, char **argv )
 {
     /* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_GADGET, argc, argv, NULL, NULL, 0 );
     set_signal_handler( SIGSEGV );
 

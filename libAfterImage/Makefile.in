@@ -62,6 +62,8 @@ LIB_DIR_NAME    = libAfterImage
 LIB_NAME        = LIBAFTERIMAGE
 LIB_STATIC      = libAfterImage.a
 LIB_SHARED      = libAfterImage.so
+LIB_SHARED_CYG  = cygAfterImage.dll
+LIB_SHARED_CYG_AR  = libAfterImage.dll.a
 LIBVER          = 0.99
 LIBVERMAJOR     = 0
 
@@ -81,6 +83,7 @@ FIND		= @FIND@
 XARGS		= @XARGS@
 LDCONFIG	= @LDCONFIG@
 ROBODOC     = robodoc
+LN_S		= @LN_S@
 
 YACC		= @YACC@
 LEX		= @LEX@
@@ -102,8 +105,10 @@ INCLUDES	= $(INCS_EXTRA) $(INCS_PRIVATE) $(INCS_X)
 USER_LD_FLAGS	= @user_ldflags@
 LIBS_X		= @x_libs@
 LIBS_XEXTS	=
-LIBS_AFTERIMAGE = @AFTERIMAGE_TEST_LIBS@
-LIBRARIES	= $(USER_LD_FLAGS) $(LIBS_AFTERIMAGE) $(LIBS_X) $(LIBS_XEXTS)
+LIBS_TEST	= @AFTERIMAGE_TEST_LIBS@
+LIBS_AFTERIMAGE = @AFTERIMAGE_LIB_LIBS@
+LIBRARIES	= $(LIBS_AFTERIMAGE) $(LIBS_X) $(LIBS_XEXTS)
+LIBRARIES_TEST	= $(LIBS_TEST) $(LIBS_X) $(LIBS_XEXTS)
 
 prefix          = @prefix@
 exec_prefix     = @exec_prefix@
@@ -150,12 +155,13 @@ install.static:
 install.script:
 
 install.dyn:
-		$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR)
-		$(INSTALL_SCRIPT) afterimage-libs afterimage-config $(AFTER_BIN_DIR)
-		-@/bin/rm -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED)
-		ln -sf $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR)
-		ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED)
-		@(if test `uname` = "Linux"; then \
+		@( echo "$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR)"; \
+		$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR); \
+		$(INSTALL_SCRIPT) afterimage-libs afterimage-config $(AFTER_BIN_DIR); \
+		$(RM) -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED); \
+		$(LN_S) -f $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR); \
+		$(LN_S) -f $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED); \
+		if test `uname` = "Linux"; then \
 		   if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
 		     echo "" > /dev/null; \
 		   elif grep -q $(LIBDIR) /etc/ld.so.conf > /dev/null 2>&1; then \
@@ -167,6 +173,14 @@ install.dyn:
 		   echo "$(LDCONFIG)"; \
 		   $(LDCONFIG); \
 		 fi \
+		)
+
+install.cyg:
+		@( echo "$(INSTALL_LIB) $(LIB_SHARED_CYG) $(LIBDIR)"; \
+		$(INSTALL_LIB) $(LIB_SHARED_CYG) $(LIBDIR); \
+		echo "$(INSTALL_LIB) $(LIB_SHARED_CYG_AR) $(LIBDIR)"; \
+		$(INSTALL_LIB) $(LIB_SHARED_CYG_AR) $(LIBDIR); \
+		$(INSTALL_SCRIPT) afterimage-libs afterimage-config $(AFTER_BIN_DIR); \
 		)
 
 install.inc:
@@ -215,12 +229,12 @@ uninstall.man:
 uninstall.script:
 
 clean:
-		$(RMF) $(LIB_SHARED) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core ; \
+		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core ; \
 		for I in ${subdirs}; do $(RMF) $$I/*.o $$I/*.obj $$I/*.bak; done; \
 		cd apps; make clean; cd ..
 
 distclean: clean
-		$(RMF) $(LIB_SHARED) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile ; \
+		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile ; \
 		cd apps; make distclean; cd ..
 
 indent:
@@ -281,13 +295,13 @@ test_asstorage.o: test_asstorage.c
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_ASSTORAGE $(INCLUDES) $(EXTRA_INCLUDES) -c asstorage.c -o test_asstorage.o
 
 test_asstorage:	test_asstorage.o
-		$(CC) test_asstorage.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o test_asstorage
+		$(CC) test_asstorage.o $(USER_LD_FLAGS)  $(LIBRARIES_TEST) $(EXTRA_LIBRARIES) -o test_asstorage
 
 test_asdraw.o:	draw.c
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_ASDRAW $(INCLUDES) $(EXTRA_INCLUDES) -c draw.c -o test_asdraw.o
 
 test_asdraw:	test_asdraw.o
-		$(CC) test_asdraw.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o test_asdraw
+		$(CC) test_asdraw.o $(USER_LD_FLAGS) $(LIBRARIES_TEST) $(EXTRA_LIBRARIES) -o test_asdraw
 
 
 
@@ -306,11 +320,18 @@ test_asdraw:	test_asdraw.o
 include .depend
 #endif
 
+$(LIB_SHARED_CYG): $(LIB_OBJS) $(LIB_INCS)
+	$(CC) -shared -o $(LIB_SHARED_CYG) \
+    		-Wl,--out-implib=$(LIB_SHARED_CYG_AR) \
+    		-Wl,--export-all-symbols -Wl,--enable-auto-import \
+    		-Wl,--whole-archive ${LIB_OBJS} \
+    		$(USER_LD_FLAGS) -Wl,--no-whole-archive $(LIBRARIES)
+
 $(LIB_SHARED): $(LIB_SHARED).$(LIBVERMAJOR)
-	ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIB_SHARED)
+	$(LN_S) -f $(LIB_SHARED).$(LIBVERMAJOR) $(LIB_SHARED)
 
 $(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
-	ln -sf $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
+	$(LN_S) -f $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
 
 $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) config.h
 	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \

@@ -94,12 +94,13 @@ Window make_ident_window();
 void fill_window_data();
 void display_window_data();
 void add_property( const char *name, const char *value, unsigned long value_encoding, Bool span_cols );
-
+void DeadPipe(int);
 
 int
 main( int argc, char **argv )
 {
     /* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_IDENT, argc, argv, NULL, NULL, 0 );
 
     set_signal_handler( SIGSEGV );

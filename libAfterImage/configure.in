@@ -64,6 +64,7 @@ AC_ARG_WITH(afterbase_includes, [  --with-afterbase-includes=DIR  use libAfterBa
 dnl# Check for compiler tools
 
 AC_PROG_CC
+AC_PROG_LN_S
 dnl# AC_SUBST(CC)
 dnl# AC_SUBST(GCC)
 
@@ -157,7 +158,6 @@ dnl# we are alone - have to do all the checks ourselves :
 	AC_PATH_PROG(FIND, find, find)
 	AC_PATH_PROG(XARGS, xargs, xargs)
 	AC_PATH_PROG(LDCONFIG, ldconfig, ldconfig, $PATH:/sbin:/usr/local/sbin)
-	AC_CHECK_PROG(sgmltools, sgmltools, HAVE_SGMLTOOLS, NO_SGMLTOOLS)
 fi
 
 if test "x$enable_gdb" = "xno"; then
@@ -569,11 +569,13 @@ if test "x$have_afterbase" = "xyes"; then
     fi
     AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
     AFTERIMAGE_TEST_LIBS="-L./ -L../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
+    AFTERIMAGE_LIB_LIBS="-L./ -L../libAfterBase $AFTERIMAGE_LIBS"
     AC_DEFINE(HAVE_AFTERBASE,1,[Define if libAfterBase is available])
 	AC_MSG_RESULT(yes  $AFTERBASE_INCS_PATH)
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
 	AFTERIMAGE_TEST_LIBS="-L./ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
+	AFTERIMAGE_LIB_LIBS="-L./ $AFTERIMAGE_LIBS_EXTERNAL"
 	if test "$with_afterbase" = "no"; then
 	    AC_MSG_RESULT(disabled)
 	else
@@ -589,6 +591,7 @@ AC_SUBST(AFTERBASE_C)
 AC_SUBST(have_afterbase)
 AC_SUBST(AFTERIMAGE_APPS_LIBS)
 AC_SUBST(AFTERIMAGE_TEST_LIBS)
+AC_SUBST(AFTERIMAGE_LIB_LIBS)
 
 dnl# finalizing libs listing :
 
@@ -604,11 +607,19 @@ AC_SUBST(AFTERIMAGE_LIBS)
 if test "x$enable_staticlibs" = "xyes"; then
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
+else
+   enable_sharedlibs="yes"
 fi
 if test "x$enable_sharedlibs" = "xyes"; then
-   tmp='$(LIB_SHARED)'
-   LIBPROG="$LIBPROG $tmp"
-   LIBINSTALL="$LIBINSTALL install.dyn"
+	if test "x$CYGWIN" = "x" ; then
+	   tmp='$(LIB_SHARED)'
+	   tmp2='install.dyn'
+	else
+	   tmp='$(LIB_SHARED_CYG)'
+	   tmp2='install.cyg'
+	fi
+   	LIBPROG="$LIBPROG $tmp"
+   	LIBINSTALL="$LIBINSTALL $tmp2"
 fi
 
 dnl# define X_LOCALE.  need Linux, NetBSD and etc.

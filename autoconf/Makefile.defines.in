@@ -18,6 +18,7 @@ MKDIR		= @MKDIR@
 FIND		= @FIND@
 XARGS		= @XARGS@
 LDCONFIG	= @LDCONFIG@
+LN_S		= @LN_S@
 
 YACC		= @YACC@
 LEX		= @LEX@

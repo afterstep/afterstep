@@ -248,7 +248,7 @@ ReadASPacket (int fd, send_data_type *header, send_data_type **body)
 		if (count == 0 ||					   /* dead pipe (EOF) */
 			(count < 0 && errno != EINTR))	   /* not a signal interuption */
 		{
-			DeadPipe (1);
+			ASDeadPipe (1);
 			return -1;
 		}
 		if (count > 0)
@@ -274,7 +274,7 @@ ReadASPacket (int fd, send_data_type *header, send_data_type **body)
 			if (count2 == 0 ||				   /* dead pipe (EOF) */
 				(count2 < 0 && errno != EINTR))	/* not a signal interuption */
 			{
-				DeadPipe (1);
+				ASDeadPipe (1);
 				return -1;
 			}
 			if (count2 > 0)
@@ -383,8 +383,6 @@ module_wait_pipes_input ( void (*as_msg_handler) (send_data_type type, send_data
 }
 
 
-void          DeadPipe (int nonsense);
-
 int
 ConnectAfterStep (send_data_type message_mask)
 {
@@ -394,7 +392,7 @@ ConnectAfterStep (send_data_type message_mask)
 
 	/* connect to AfterStep */
 	/* Dead pipe == AS died */
-	signal (SIGPIPE, DeadPipe);
+	signal (SIGPIPE, ASDeadPipe);
     fd = Scr.wmprops?socket_connect_client(Scr.wmprops->as_socket_filename):-1;
 
     if (fd < 0)

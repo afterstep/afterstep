@@ -419,6 +419,23 @@ match_command_line_opt( char *argvi, CommandLineOpts *options )
     return opt;
 }
 
+static DeadPipe_handler _as_dead_pipe_handler = NULL ; 
+
+DeadPipe_handler set_DeadPipe_handler( DeadPipe_handler new_handler ) 
+{
+	DeadPipe_handler old = _as_dead_pipe_handler ; 
+	_as_dead_pipe_handler = new_handler ; 
+	return old;
+}	 
+
+void ASDeadPipe( int nonsense ) 
+{
+	if( _as_dead_pipe_handler )
+		_as_dead_pipe_handler(nonsense);
+	else
+		exit (0);
+}	 
+
 void
 InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) (void), void (*custom_usage_func) (void), ASFlagType opt_mask )
 {
@@ -428,7 +445,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 #endif
 
 	set_signal_handler (SIGUSR2);
-    signal (SIGPIPE, DeadPipe);        /* don't forget DeadPipe should be provided by the app */
+    signal (SIGPIPE, ASDeadPipe);        /* don't forget DeadPipe should be provided by the app */
 
     SetMyClass( app_class );
     MyVersionFunc = version_func ;

@@ -499,7 +499,7 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 			style->texture_type = type;
 		} else
         {  /* treat second parameter as an image filename : */
-        	if ( load_icon(&(style->back_icon), def->back_pixmap, Scr.image_manager ))
+        	if ( load_icon(&(style->back_icon), def->back_pixmap, get_screen_image_manager(NULL) ))
 			{
 				set_flags (style->user_flags, F_BACKPIXMAP);
 				if (type >= TEXTURE_TRANSPIXMAP)

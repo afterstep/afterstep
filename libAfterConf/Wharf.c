@@ -613,13 +613,14 @@ ParseWharfOptions (const char *filename, char *myname)
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 	MyStyleDefinition **styles_tail = &(config->style_defs);
+	TermDef      *folder_term = func2fterm (F_Folder, False);
 
 	cd.filename = filename ;
 	ConfigReader = InitConfigReader (myname, &WharfSyntax, CDT_Filename, cd, WharfSpecialFunc);
 	if (!ConfigReader)
 		return config;
 
-    FuncTerms[F_Folder].sub_syntax = &WharfSyntax ;
+    folder_term->sub_syntax = &WharfSyntax ;
 
     item.memory = NULL;
 	PrintConfigReader (ConfigReader);

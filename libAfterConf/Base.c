@@ -318,28 +318,6 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 	*penv = env ;
 }
 
-void
-ReloadASImageManager( ASImageManager **old_imageman )
-{
-	char *env_path1 = NULL, *env_path2 = NULL ;
-	if( old_imageman )
-	{
-		*old_imageman = Scr.image_manager ;
-	}else if( Scr.image_manager )
-      	destroy_image_manager( Scr.image_manager, False );
-
-	env_path1 = getenv( "IMAGE_PATH" ) ;
-	env_path2 = getenv( "PATH" );
-	if( env_path1 == NULL ) 
-	{
-		env_path1 = env_path2;
-		env_path2 = NULL ;
-	}
-    Scr.image_manager = create_image_manager( NULL, 2.2, Environment->pixmap_path?Environment->pixmap_path:"", env_path1, env_path2, NULL );
-	set_xml_image_manager( Scr.image_manager );
-    show_progress("Pixmap Path changed to \"%s:%s:%s\" ...", Environment->pixmap_path?Environment->pixmap_path:"", env_path1?env_path1:"", env_path2?env_path2:"");
-}
-
 Bool
 ReloadASEnvironment( ASImageManager **old_imageman, ASFontManager **old_fontman, BaseConfig **config_return, Bool flush_images )
 {
@@ -348,6 +326,7 @@ ReloadASEnvironment( ASImageManager **old_imageman, ASFontManager **old_fontman,
     char *configfile = NULL ;
 	BaseConfig *config = NULL ;
 	ASEnvironment *e = NULL ;
+	ScreenInfo *scr = get_current_screen();
 
 	if( Environment != NULL )
 	{
@@ -394,43 +373,43 @@ ReloadASEnvironment( ASImageManager **old_imageman, ASFontManager **old_fontman,
 	e = Environment ;
 	/* Save base filename to pass to modules */
     if( mystrcmp(old_pixmap_path, e->pixmap_path) == 0 ||
-		(e->pixmap_path != NULL && Scr.image_manager == NULL) ||
+		(e->pixmap_path != NULL && scr->image_manager == NULL) ||
 		flush_images )
     {
-		ReloadASImageManager( old_imageman );
+		reload_screen_image_manager( scr, old_imageman );
 	}
 	if( old_pixmap_path && old_pixmap_path != e->pixmap_path )
     	free( old_pixmap_path );
 
 	if( mystrcmp(old_font_path, e->font_path) == 0 ||
-		(e->font_path != NULL && Scr.font_manager == NULL) )
+		(e->font_path != NULL && scr->font_manager == NULL) )
     {
 		if( old_fontman )
 		{
-			*old_fontman = Scr.font_manager ;
-		}else if( Scr.font_manager )
-			destroy_font_manager( Scr.font_manager, False );
+			*old_fontman = scr->font_manager ;
+		}else if( scr->font_manager )
+			destroy_font_manager( scr->font_manager, False );
 
-        Scr.font_manager = create_font_manager( dpy, e->font_path, NULL );
-		set_xml_font_manager( Scr.font_manager );
+        scr->font_manager = create_font_manager( dpy, e->font_path, NULL );
+		set_xml_font_manager( scr->font_manager );
 	    show_progress("Font Path changed to \"%s\" ...", e->font_path?e->font_path:"");
     }
     if( old_font_path && old_font_path != e->font_path )
         free( old_font_path );
 
 	if( e->desk_pages_h > 0 )
-		Scr.VxMax = (e->desk_pages_h-1)*Scr.MyDisplayWidth ;
+		scr->VxMax = (e->desk_pages_h-1)*scr->MyDisplayWidth ;
 	else
-		Scr.VxMax = 0 ;
+		scr->VxMax = 0 ;
 	if( e->desk_pages_v > 0 )
-		Scr.VyMax = (e->desk_pages_v-1)*Scr.MyDisplayHeight ;
+		scr->VyMax = (e->desk_pages_v-1)*scr->MyDisplayHeight ;
 	else
-		Scr.VyMax = 0 ;
-	Scr.VScale = e->desk_scale;
-	if( Scr.VScale <= 1 ) 
-		Scr.VScale = 2 ;
-	else if( Scr.VScale >= Scr.MyDisplayHeight/2 ) 
-		Scr.VScale = Scr.MyDisplayHeight/2 ;
+		scr->VyMax = 0 ;
+	scr->VScale = e->desk_scale;
+	if( scr->VScale <= 1 ) 
+		scr->VScale = 2 ;
+	else if( scr->VScale >= scr->MyDisplayHeight/2 ) 
+		scr->VScale = scr->MyDisplayHeight/2 ;
 
 	return (config!=NULL);
 }

@@ -169,6 +169,15 @@ void check_screen_panframes(ScreenInfo *scr);
 void raise_scren_panframes (ScreenInfo *scr);
 Window get_lowest_panframe(ScreenInfo *scr);
 
+void reload_screen_image_manager( ScreenInfo *scr, struct ASImageManager **old_imageman );
+ScreenInfo *get_current_screen();
+int get_screen_width(ScreenInfo *scr);
+int get_screen_height(ScreenInfo *scr);
+int get_screen_current_desk(ScreenInfo *scr);
+struct MyLook *get_screen_look(ScreenInfo *scr);
+struct ASImageManager *get_screen_image_manager(ScreenInfo *scr);
+
+
 
 #ifdef HAVE_XINERAMA
 void get_Xinerama_rectangles (ScreenInfo * scr);

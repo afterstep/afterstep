@@ -194,6 +194,7 @@ main (int argc, char **argv)
 	Bool do_data = False;
 	ASDocType target_type = DocType_Source ;
 	/* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_ASDOCGEN, argc, argv, NULL, NULL, 0 );
 	InitSession();
     for( i = 1 ; i< argc ; ++i)

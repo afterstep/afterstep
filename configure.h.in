@@ -39,7 +39,6 @@
 
 #define DEFAULT_WINDOW_WAIT_TIMEOUT		1000  /* mlsec */
 
-#define	@sgmltools@
 #define VERSION					"@version@"
 #define CANONICAL_BUILD			"@build@"
 #define CANONICAL_BUILD_OS		"@build_os@"

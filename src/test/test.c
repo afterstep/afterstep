@@ -147,11 +147,13 @@ void HandleEvents();
 void DispatchEvent (ASEvent * Event);
 Window make_test_window();
 void process_message (unsigned long type, unsigned long *body);
+void DeadPipe(int);
 
 int
 main( int argc, char **argv )
 {
     /* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_TEST, argc, argv, NULL, NULL, 0 );
 
     set_signal_handler( SIGSEGV );

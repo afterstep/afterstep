@@ -87,6 +87,7 @@ void HandleEvents();
 void process_message (send_data_type type, send_data_type *body);
 void tile_windows();
 void cascade_windows();
+void DeadPipe(int);
 
 
 int
@@ -110,6 +111,7 @@ main( int argc, char **argv )
 	int i ;
 	int nargc = 0 ;
     /* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_ARRANGE, argc, argv, NULL, NULL, OPTION_SINGLE|OPTION_RESTART );
 
     set_signal_handler( SIGSEGV );

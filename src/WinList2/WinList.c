@@ -117,11 +117,13 @@ unsigned int find_button_by_position( int x, int y );
 void press_winlist_button( ASWindowData *wd );
 void release_winlist_button( ASWindowData *wd, int button );
 void update_winlist_styles();
+void DeadPipe(int);
 
 int
 main( int argc, char **argv )
 {
     /* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_WINLIST, argc, argv, NULL, NULL, 0 );
 
     set_signal_handler( SIGSEGV );

@@ -12,10 +12,15 @@ LIB_DIR_NAME    = libAfterConf
 LIB_NAME        = LIBAFTERCONF
 LIB_STATIC      = libAfterConf.a
 LIB_SHARED      = libAfterConf.so
+LIB_SHARED_CYG  = cygAfterConf.dll
+LIB_SHARED_CYG_AR  = libAfterConf.dll.a
 LIBVER          = @libafterconf_version@
 LIBVERMAJOR     = @libafterconf_version_major@
 
 CONFIG_SCRIPT=afterconf-config 
+
+LIBS_PRIVATE      = ../src/afterstep/$(LIB_AFTERSTEP) ../src/afterstep/$(LIB_AFTERIMAGE) ../src/afterstep/$(LIB_AFTERBASE) $(LIBS_AFTERIMAGE)
+
 
 @MAKEFILECOMMONLIB@
 

@@ -149,6 +149,7 @@ main (int argc, char **argv)
 	Bool print_hierarchy = True ;
 	int i ;
 	/* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_ASCONFIG, argc, argv, NULL, NULL, 0 );
 	for( i = 1 ; i < argc ; ++i ) 
 		if( argv[i] ) 

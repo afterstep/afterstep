@@ -165,7 +165,7 @@ void release_pressure();
 void on_desk_moveresize( ASPagerDesk *d );
 void on_scroll_viewport( ASEvent *event );
 void place_separation_bars( ASPagerDesk *d );
-
+void DeadPipe(int);
 
 /***********************************************************************
  *   main - start of module
@@ -178,6 +178,7 @@ main (int argc, char **argv)
 	int desk_cnt = 0 ;
 
     /* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, 0 );
 
     memset( &PagerState, 0x00, sizeof(PagerState));

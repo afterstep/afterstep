@@ -211,7 +211,7 @@ void set_wharf_clip_area( ASWharfFolder *aswf, int x, int y );
 void set_withdrawn_clip_area( ASWharfFolder *aswf, int x, int y, unsigned int w, unsigned int h );
 void change_button_focus(ASWharfButton *aswb, Bool focused ); 
 static Bool check_app_click	( ASWharfButton *aswb, XButtonEvent *xbtn );
-
+void DeadPipe(int);
 
 /***********************************************************************
  *   main - start of module
@@ -220,6 +220,7 @@ int
 main (int argc, char **argv)
 {
     /* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_WHARF, argc, argv, NULL, NULL, 0 );
 
     memset( &WharfState, 0x00, sizeof(WharfState));

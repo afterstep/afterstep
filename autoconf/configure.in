@@ -83,6 +83,7 @@ AC_ARG_ENABLE(shaping,		[  --enable-shaping        support shaped windows [[yes]
 AC_ARG_ENABLE(shmimage,		[  --enable-shmimage       support shared memory images [[yes]] ],enable_shmimage=$enableval,enable_shmimage="yes")
 AC_ARG_ENABLE(xinerama,		[  --enable-xinerama       support Xinerama Multihead extentions [[yes]] ],enable_xinerama=$enableval,enable_xinerama="yes")
 AC_ARG_ENABLE(staticlibs,       [  --enable-staticlibs     enable linking to libafterstep statically [[yes]] ],enable_staticlibs=$enableval,enable_staticlibs="yes")
+AC_ARG_ENABLE(sharedlibs,       [  --enable-sharedlibs     enable linking to libafterstep dynamically [[no]] ],enable_sharedlibs=$enableval,enable_sharedlibs="no")
 
 AC_ARG_WITH(libefence,		[  --with-libefence        compile with libefence to debug buffer overruns [[no]] ],with_libefence=$withval,with_libefence="")
 AC_ARG_ENABLE(gdb,		[  --enable-gdb            add gdb symbols (-g) (for debugging) [[no]] ],enable_gdb=$enableval,enable_gdb="no")
@@ -112,6 +113,7 @@ echo "checking whether we are compiling in FreeBSD environment... $FBSD"
 dnl# Comman stuff : compiler tools, proggies, etc.
 AC_PROG_CC
 AC_PROG_CXX
+AC_PROG_LN_S
 
 export CC
 export GCC
@@ -212,9 +214,14 @@ export LEX
 export LEXLIB
 AC_PROG_YACC
 export YACC
-AC_CHECK_PROG(sgmltools, sgmltools, HAVE_SGMLTOOLS, NO_SGMLTOOLS)
-export sgmltools
 
+AC_CHECKING(linkage type)
+if test "x$enable_staticlibs" = "xyes"; then
+   AC_MSG_RESULT(static)
+else
+   enable_sharedlibs="yes"
+   AC_MSG_RESULT(dynamic)
+fi
 
 dnl# Check for X :
 AC_PATH_XTRA
@@ -311,6 +318,8 @@ _def_lib_conf_opts=" \
 	--enable-audit=${enable_audit} \
 	--enable-trace=${enable_trace} \
 	--enable-shmimage=${enable_shmimage} \
+	--enable-staticlibs=${enable_staticlibs} \
+	--enable-sharedlibs=${enable_sharedlibs} \
 "
 
 AC_CHECKING(libAfterBase)
@@ -384,13 +393,23 @@ if test "x$enable_staticlibs" = "xyes"; then
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
 else
-   AFTERBASE_LIB="../../libAfterBase/libAfterBase.so"
-   AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
-   AFTERSTEP_LIB="../../libAfterStep/libAfterStep.so"
-   AFTERCONF_LIB="../../libAfterConf/libAfterConf.so"
-   WIDGETS_LIB="../Script/Widgets/libWidgets.so"
-   LIBPROG='$(LIB_SHARED)'
-   LIBINSTALL="install.dyn"
+	if test "x$CYGWIN" = "x" ; then
+   		AFTERBASE_LIB="../../libAfterBase/libAfterBase.so"
+   		AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
+   		AFTERSTEP_LIB="../../libAfterStep/libAfterStep.so"
+   		AFTERCONF_LIB="../../libAfterConf/libAfterConf.so"
+   		WIDGETS_LIB="../Script/Widgets/libWidgets.so"
+   		LIBPROG='$(LIB_SHARED)'
+   		LIBINSTALL="install.dyn"
+	else
+   		AFTERBASE_LIB="../../libAfterBase/libAfterBase.dll.a"
+   		AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.dll.a"
+   		AFTERSTEP_LIB="../../libAfterStep/libAfterStep.dll.a"
+   		AFTERCONF_LIB="../../libAfterConf/libAfterConf.dll.a"
+   		WIDGETS_LIB="../Script/Widgets/libWidgets.dll.a"
+   		LIBPROG='$(LIB_SHARED_CYG)'
+   		LIBINSTALL="install.cyg"
+	fi
 fi
 
 AFTERBASE_STATIC_LIB="../../libAfterBase/libAfterBase.a"

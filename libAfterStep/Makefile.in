@@ -30,8 +30,12 @@ LIB_DIR_NAME    = libAfterStep
 LIB_NAME        = LIBAFTERSTEP
 LIB_STATIC      = libAfterStep.a
 LIB_SHARED      = libAfterStep.so
+LIB_SHARED_CYG  = cygAfterStep.dll
+LIB_SHARED_CYG_AR  = libAfterStep.dll.a
 LIBVER          = @libafterstep_version@
 LIBVERMAJOR     = @libafterstep_version_major@
+
+LIBS_PRIVATE      = ../src/afterstep/$(LIB_AFTERIMAGE) ../src/afterstep/$(LIB_AFTERBASE)  $(LIBS_AFTERIMAGE)
 
 @MAKEFILECOMMONLIB@
 

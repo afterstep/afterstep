@@ -1283,7 +1283,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             }
         }else if(get_flags(what, PARSE_LOOK_CONFIG))
 		{  /* must reload Image manager so that changed images would get updated */
-			ReloadASImageManager( &old_image_manager );
+			reload_screen_image_manager( &Scr, &old_image_manager );
 		}
 
         if (get_flags(what, PARSE_LOOK_CONFIG))

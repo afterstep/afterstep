@@ -56,6 +56,7 @@ SIGNAL_T      SigDone (int nonsense);
 
 void          CaptureAllWindows (ScreenInfo *scr);
 void          DoAutoexec( Bool restarting );
+void DeadPipe(int);
 
 Bool afterstep_parent_hints_func(Window parent, ASParentHints *dst );
 
@@ -111,6 +112,7 @@ main (int argc, char **argv)
 #ifdef DEBUG_TRACE_X
 	trace_window_id2name_hook = &window_id2name;
 #endif
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0);
 	for( i = 1 ; i< argc ; ++i)
 	{

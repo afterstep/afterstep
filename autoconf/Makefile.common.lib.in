@@ -42,9 +42,9 @@ install.script:
 install.dyn:
 		@(  echo "$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR)"; \
 		$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR); \
-		/bin/rm -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED); \
-		ln -sf $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR); \
-		ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED); \
+		$(RM) -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED); \
+		$(LN_S) -f $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR); \
+		$(LN_S) -f $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED); \
 		 if test `uname` = "Linux"; then \
 		   if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
 		     echo "" > /dev/null; \
@@ -57,6 +57,13 @@ install.dyn:
 		   echo "$(LDCONFIG)"; \
 		   $(LDCONFIG); \
 		 fi \
+		)
+
+install.cyg:
+		@( echo "$(INSTALL_LIB) $(LIB_SHARED_CYG) $(LIBDIR)"; \
+		$(INSTALL_LIB) $(LIB_SHARED_CYG) $(LIBDIR); \
+		echo "$(INSTALL_LIB) $(LIB_SHARED_CYG_AR) $(LIBDIR)"; \
+		$(INSTALL_LIB) $(LIB_SHARED_CYG_AR) $(LIBDIR); \
 		)
 
 install.inc:
@@ -107,10 +114,10 @@ uninstall.man:
 uninstall.script:
 
 clean:
-		$(RMF) $(LIB_SHARED) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core
+		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core
 
 distclean:
-		$(RMF) $(LIB_SHARED) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
+		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
 
 indent:
 		@SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
@@ -175,11 +182,18 @@ $(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS)
 include .depend
 #endif
 
+$(LIB_SHARED_CYG): $(LIB_OBJS) $(LIB_INCS)
+	$(CC) -shared -o $(LIB_SHARED_CYG) \
+    		-Wl,--out-implib=$(LIB_SHARED_CYG_AR) \
+    		-Wl,--export-all-symbols -Wl,--enable-auto-import \
+    		-Wl,--whole-archive ${LIB_OBJS} \
+    		$(USER_LD_FLAGS) -Wl,--no-whole-archive $(LIBS_ALL)
+
 $(LIB_SHARED): $(LIB_SHARED).$(LIBVERMAJOR)
-	ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIB_SHARED)
+	$(LN_S) -f $(LIB_SHARED).$(LIBVERMAJOR) $(LIB_SHARED)
 
 $(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
-	ln -sf $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
+	$(LN_S) -f $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
 
 $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS)
 	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \

@@ -383,6 +383,7 @@ int
 main (int argc, char **argv)
 {
 	/* Save our program name - for error messages */
+	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_ANIMATE, argc, argv, NULL, NULL, 0 );
 
     ConnectX( &Scr, PropertyChangeMask );
