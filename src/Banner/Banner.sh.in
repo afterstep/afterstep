@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ -f @with_afterdir@/banner ]
+if test -f @with_afterdir@/banner; then
 	ascompose -f @with_afterdir@/banner -g +0-0 --override --timeout 200 -I
 else
     	ascompose -f @datadir@/afterstep/banner -g +0-0 --override --timeout 200 -I	
