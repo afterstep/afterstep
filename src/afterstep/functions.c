@@ -1,6 +1,6 @@
 /****************************************************************************
  * Copyright (c) 1999 Sasha Vasko <sashav@sprintmail.com>
- * This module is based on Twm, but has been SIGNIFICANTLY modified 
+ * This module is based on Twm, but has been SIGNIFICANTLY modified
  * by Rob Nation
  * by Bo Yang
  * by Frank Fejes
@@ -85,12 +85,12 @@ extern ASDirs as_dirs;
  *
  *  Inputs:
  *	func	- the function to execute
- *	action	- the menu action to execute 
+ *	action	- the menu action to execute
  *	w	- the window to execute this function on
  *	tmp_win	- the afterstep window structure
  *	event	- the event that caused the function
  *	context - the context in which the button was pressed
- *      val1,val2 - the distances to move in a scroll operation 
+ *      val1,val2 - the distances to move in a scroll operation
  *
  ***********************************************************************/
 void
@@ -776,11 +776,11 @@ GetNextWindow (const ASWindow * current_win, const int func)
 }
 
 /* Circulate()
-   ** find the next window in circulation order; if direction == DOWN, the next 
-   ** window is the window with the next highest circulate_sequence after 
-   ** tmp_win, or the lowest circulate_sequence if tmp_win is the highest 
-   ** overall; if direction == UP, the next window is the window with the next 
-   ** lowest circulate_sequence after tmp_win, or the highest if tmp_win is 
+   ** find the next window in circulation order; if direction == DOWN, the next
+   ** window is the window with the next highest circulate_sequence after
+   ** tmp_win, or the lowest circulate_sequence if tmp_win is the highest
+   ** overall; if direction == UP, the next window is the window with the next
+   ** lowest circulate_sequence after tmp_win, or the highest if tmp_win is
    ** the lowest overall
    ** returns the next window, or if no next window is found, returns NULL
  */
@@ -890,7 +890,7 @@ DeferExecution (XEvent * eventp, Window * w, ASWindow ** tmp_win,
       /* block until there is an event */
       XMaskEvent (dpy, ButtonPressMask | ButtonReleaseMask |
 		  ExposureMask | KeyPressMask |
-		  ButtonMotionMask | PointerMotionMask	/* | EnterWindowMask | 
+		  ButtonMotionMask | PointerMotionMask	/* | EnterWindowMask |
 							   LeaveWindowMask */ , eventp);
       StashEventTime (eventp);
 
@@ -1019,10 +1019,10 @@ MoveViewport (int newx, int newy, Bool grab)
 
   if (deltax || deltay)
     {
-      /* Here's an attempt at optimization by reducing (hopefully) the expose 
-       * events sent to moved windows.  Move the windows which will be on the 
-       * new desk, from the front window to the back one.  Move the other 
-       * windows from the back one to the front.  Thus if a window is totally 
+      /* Here's an attempt at optimization by reducing (hopefully) the expose
+       * events sent to moved windows.  Move the windows which will be on the
+       * new desk, from the front window to the back one.  Move the other
+       * windows from the back one to the front.  Thus if a window is totally
        * (or partially) obscured, it will not be uncovered if possible. */
 
       /* do the windows which will be on the new desk first */
@@ -1121,7 +1121,7 @@ MoveViewport (int newx, int newy, Bool grab)
 
 /**************************************************************************
  *
- * Moves focus to specified window 
+ * Moves focus to specified window
  *
  *************************************************************************/
 void
@@ -1344,10 +1344,10 @@ Maximize (ASWindow * tmp_win, int val1, int val2,
 }
 
 /***********************************************************************
- *    
+ *
  *  Procedure:
  *      (Un)Shade a window.
- *        
+ *
  ***********************************************************************/
 void
 Shade (ASWindow * tmp_win)
@@ -1434,7 +1434,7 @@ Shade (ASWindow * tmp_win)
 	  int x;
 	  h = tmp_win->frame_height;
 	  w = tmp_win->frame_width;
-	  s = w / ShadeAnimationSteps;
+	  s = (w>ShadeAnimationSteps)? w / ShadeAnimationSteps: 1;
 	  x = 0;
 	  while (w > tmp_win->title_width)
 	    {
@@ -1450,7 +1450,7 @@ Shade (ASWindow * tmp_win)
 	{
 	  h = tmp_win->frame_height;
 	  w = tmp_win->frame_width;
-	  s = h / ShadeAnimationSteps;
+	  s = ( h > ShadeAnimationSteps )? h / ShadeAnimationSteps: 1;
 	  y = 0;
 
 	  while (h > tmp_win->title_height)
@@ -1489,7 +1489,7 @@ Shade (ASWindow * tmp_win)
 /****************************************************************************
  *
  * paste the cut buffer into the window with the input focus
- * 
+ *
  ***************************************************************************/
 
 void
@@ -1503,7 +1503,7 @@ PasteSelection (void)
 
       buf = XFetchBuffer (dpy, &length, buffer);
 
-/* everything from here on is a kludge; if you know a better way to do it, 
+/* everything from here on is a kludge; if you know a better way to do it,
  * please fix it!
  */
       if ((buf != NULL) && (length > 0))
@@ -1759,7 +1759,7 @@ ComplexFunction (Window w, ASWindow * tmp_win, XEvent * eventp,
       type = TRIPLE_CLICK;
       ev = &d;
     }
-  /* some functions operate on button release instead of 
+  /* some functions operate on button release instead of
    * presses. These gets really weird for complex functions ... */
   if (eventp->type == ButtonPress)
     eventp->type = ButtonRelease;
@@ -1795,7 +1795,7 @@ ComplexFunction (Window w, ASWindow * tmp_win, XEvent * eventp,
 
 
 /**************************************************************************
- * 
+ *
  * Move to a new desktop
  *
  *************************************************************************/
@@ -1816,9 +1816,9 @@ changeDesks (int val1, int val2)
   else
     Scr.CurrentDesk = val2;
 
-  /* update property to tell us what desk we were on when we restart; 
-   * always do this so that when we get called from main(), the property 
-   * will be set; this property is what we use to determine if we're 
+  /* update property to tell us what desk we were on when we restart;
+   * always do this so that when we get called from main(), the property
+   * will be set; this property is what we use to determine if we're
    * starting up for the first time, or restarting */
   data = (unsigned long) Scr.CurrentDesk;
   XChangeProperty (dpy, Scr.Root, _XA_WIN_DESK, XA_CARDINAL, 32,
@@ -1829,8 +1829,8 @@ changeDesks (int val1, int val2)
 
   Broadcast (M_NEW_DESK, 1, Scr.CurrentDesk);
 
-  /* Scan the window list, mapping windows on the new Desk, unmapping 
-   * windows on the old Desk; do this in reverse order to reduce client 
+  /* Scan the window list, mapping windows on the new Desk, unmapping
+   * windows on the old Desk; do this in reverse order to reduce client
    * expose events */
   XGrabServer (dpy);
   for (t = Scr.ASRoot.next; t != NULL; t = t->next)
@@ -1896,7 +1896,7 @@ changeDesks (int val1, int val2)
 
 
 /**************************************************************************
- * 
+ *
  * Move to a new desktop
  *
  *************************************************************************/
