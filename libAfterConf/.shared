@@ -2,6 +2,7 @@ LIBAFTERCONF_OBJS = \
 		$(LIBAFTERCONF_PATH)/ASetRoot.c \
 		$(LIBAFTERCONF_PATH)/Base.c \
 		$(LIBAFTERCONF_PATH)/balloon.c \
+		$(LIBAFTERCONF_PATH)/Color.c \
 		$(LIBAFTERCONF_PATH)/Database.c \
 		$(LIBAFTERCONF_PATH)/Feel.c \
 		$(LIBAFTERCONF_PATH)/function.c \

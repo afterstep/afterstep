@@ -12,7 +12,10 @@
 		../configure.h \
 		../libAfterStep/asapp.h \
 		../libAfterStep/afterstep.h \
+		../libAfterStep/screen.h \
 		../libAfterStep/parser.h \
+		../libAfterStep/session.h \
+		../libAfterImage/afterimage.h \
 		afterconf.h
 
 ./balloon.o : \
@@ -23,6 +26,14 @@
 		../libAfterStep/parser.h \
 		../libAfterStep/balloon.h \
 		../libAfterStep/mylook.h \
+		afterconf.h
+
+./Color.o : \
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/colorscheme.h \
 		afterconf.h
 
 ./Database.o : \

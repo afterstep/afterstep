@@ -422,6 +422,7 @@ ASWindow     *warp_aswindow_list ( ASWindowList *list, Bool backwards );
 MenuData *make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon_name );
 
 void hide_focus();
+Bool focus_window( ASWindow *asw, Window w );
 Bool focus_aswindow( ASWindow *asw );
 Bool focus_active_window();
 void focus_next_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */

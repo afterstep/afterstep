@@ -837,6 +837,22 @@ void autoraise_aswindow( void *data )
 }
 
 Bool
+focus_window( ASWindow *asw, Window w )
+{
+    LOCAL_DEBUG_OUT( "focusing window %lX, client %lX, frame %lX, asw %p", w, asw->w, asw->frame, asw );
+  	if( asw != NULL ) 
+        if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus) && !ASWIN_GET_FLAGS(asw, AS_Dead))
+            send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
+
+	if( w != None ) 		
+	    XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
+
+    XSync(dpy, False );
+    return (w!=None);
+}
+
+
+Bool
 focus_aswindow( ASWindow *asw )
 {
     Bool          do_hide_focus = False ;
@@ -916,10 +932,8 @@ focus_aswindow( ASWindow *asw )
         show_warning( "unable to focus window %lX that is about to be unmapped for client %lX, frame %lX", w, asw->w, asw->frame );
     else
     {
-        LOCAL_DEBUG_OUT( "focusing window %lX, client %lX, frame %lX, asw %p", w, asw->w, asw->frame, asw );
-        XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
-        if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus) && !ASWIN_GET_FLAGS(asw, AS_Dead))
-            send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
+	
+		focus_window( asw, w );
 
         Scr.Windows->focused = asw ;
         if (Scr.Feel.AutoRaiseDelay == 0)

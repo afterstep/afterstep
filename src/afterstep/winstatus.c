@@ -203,8 +203,14 @@ LOCAL_DEBUG_OUT( "@@ANIM to(%d)->from(%d)->delta(%d)->step(%d)", to_size, from_s
                 --(asw->shading_steps);
             }
         }else if( !ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+		{
+			/* when we shade the window - focus gets set to frame window - 
+			   we need to revert it back to the client : */
+			if( Scr.Windows->focused == asw )
+				focus_window( asw, asw->w );
+
             return 0;
-        else
+        }else
         {
             *(od->in_width) = asw->tbar->width ;
             *(od->in_height) = asw->tbar->height ;

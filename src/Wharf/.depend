@@ -1,7 +1,3 @@
-./OffiX/DragAndDrop.h:
-
-./OffiX/DragAndDropTypes.h:
-
 ./Wharf.h: \
 		../../include/asapp.h \
 		../../include/afterstep.h \
@@ -9,9 +5,9 @@
 		../../include/screen.h \
 		../../include/module.h
 
-./icons.o: \
-		../../configure.h \
-		Wharf.h
+./OffiX/DragAndDrop.h:
+
+./OffiX/DragAndDropTypes.h:
 
 ./Wharf.o: \
 		../../configure.h \
@@ -30,3 +26,7 @@
 		../../libAfterStep/wmprops.h \
 		../../libAfterStep/functions.h \
 		../../libAfterConf/afterconf.h
+
+./icons.o: \
+		../../configure.h \
+		Wharf.h
