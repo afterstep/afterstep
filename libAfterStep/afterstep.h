@@ -322,6 +322,26 @@ Bool destroy_registered_window( Window w );
 
 void destroy_icon_windows( ASWindow *asw );
 
+void MyXGrabButton ( unsigned button, unsigned modifiers,
+                     Window grab_window, Bool owner_events, unsigned event_mask,
+                     int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
+void MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window);
+
+void grab_window_buttons (Window w, ASFlagType context_mask);
+void ungrab_window_buttons( Window w );
+void grab_aswindow_buttons( ASWindow *asw, Bool focused );
+
+void ungrab_window_keys (Window w );
+void grab_window_keys (Window w, ASFlagType context_mask);
+void grab_aswindow_keys( ASWindow *asw );
+
+/* swiss army knife - does everything about grabbing : */
+void grab_window_input( ASWindow *asw, Bool release_grab );
+
+
+void hide_focus();
+Bool focus_aswindow( ASWindow *asw, Bool circulated );
+
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
 void update_window_transparency( ASWindow *asw );
