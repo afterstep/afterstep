@@ -69,7 +69,7 @@ MyStyle "unfocused_menu_title_style"
 
 MyStyle "focused_menu_title_style"
   Inherit       menu_title_font
-  ForeColor	ActiveText1
+  ForeColor	ActiveText
   BackColor     HighActive
   BackGradient  6  HighActiveDark HighActiveLight
   ~MyStyle
@@ -174,7 +174,14 @@ MyStyle "*WharfTile"
 	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      InactiveText2
 	BackColor      Inactive2
-	BackMultiGradient   6 #10222222 0.0 alpha(30,Inactive2Dark) 0.3 alpha(60,Inactive2Light) 0.5 alpha(90,Active) 0.8 ActiveLight 1.0
+	BackMultiGradient   6 #10222222 0.0 alpha(20,Inactive2Dark) 0.3 alpha(30,Inactive2Light) 0.5 alpha(60,Active) 0.8 alpha(30,ActiveLight) 1.0
+~MyStyle
+
+MyStyle "*MonitorWharfTile"
+	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackPixmap     129 #7f7f7f
 ~MyStyle
 
 #----------WinList MyStyles---------#
@@ -222,8 +229,14 @@ SeparateButtonTitle 0
 ButtonSize 64 64
 #--------------------------
 
+# Also lets define colors for the cursor ( from selected colorscheme ) :
 
+CursorFore "Cursor"
+CursorBack "ActiveText"
+
+###################################################################
 # 2-5) : misc options
+
 #  Border around iconifyied windows ?
 ButtonNoBorder
 #  [0/1/2] Draw lines between menu options ?
@@ -282,4 +295,101 @@ TitleButton 6 default-iconize-dark 		 default-iconize-dark-pressed
 TitleButton 5 default-pin-light	 		 default-pin-light-pressed
 
 MArrowPixmap		arrow-dots.xpm
+
+
+################################################################################
+# Optional stuff :
+
+# Window decorations Frame can be defined as such :
+#
+# MyFrame "name"
+#     [Inherit     "some_other_name"]
+#traditional form :
+#     [North       <pixmap>]
+#     [East        <pixmap>]
+#     [South       <pixmap>]
+#     [West        <pixmap>]
+#     [NorthEast   <pixmap>]
+#     [NorthWest   <pixmap>]
+#     [SouthEast   <pixmap>]
+#     [SouthWest   <pixmap>]
+#alternative form :
+#     [Side        North|South|East|West|Any [<pixmap>]] - if pixmap is ommited -
+#                                                          empty bevel will be drawn
+#     [NoSide      North|South|East|West|Any]
+#     [Corner      NorthEast|SouthEast|NorthWest|SouthWest|Any <pixmap>] - if pixmap is ommited -
+#                                                                          empty bevel will be drawn
+#     [NoCorner    NorthEast|SouthEast|NorthWest|SouthWest|Any]
+#new settings :
+#  this MyStyles will override *WindowStyle "" setting above, allowing for example for frame
+#  decoration to be drawn with different style then titlebar :
+#     [TitleUnfocusedStyle   <style>
+#     [TitleFocusedStyle     <style>
+#     [TitleStickyStyle      <style>
+#     [FrameUnfocusedStyle   <style>
+#     [FrameFocusedStyle     <style>
+#     [FrameStickyStyle      <style>
+#     [TitleBackground       <pixmap>] - gets overlayed over background and under the text
+#additional attributes :
+#     [SideSize        North|South|East|West|Any <WIDTHxLENGTH>] - pixmap will be scaled to this size
+#     [SideAlign       North|South|East|West|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+#     [SideBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [SideFocusedBevel      North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [SideUnfocusedBevel    North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [SideStickyBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [CornerSize      NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT>]
+#     [CornerAlign     NorthEast|SouthEast|NorthWest|SouthWest|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+#     [CornerBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [CornerFocusedBevel    NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [CornerUnfocusedBevel  NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [CornerStickyBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [TitleBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
+#     [TitleFocusedBevel     None|[Left,Top,Right,Bottom,Extra,NoOutline]
+#     [TitleUnfocusedBevel   None|[Left,Top,Right,Bottom,Extra,NoOutline]
+#     [TitleStickyBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
+#     [TitleAlign      None|[Left,Top,Right,Bottom]
+#     [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+#
+# texture_type is the same as in MyStyle definitions for BackPIxmap ( valid values are in 130-160 range ):
+#     [TitleCompositionMethod   testure_type]
+#     [TitleFocusedCompositionMethod     testure_type]
+#     [TitleUnfocusedCompositionMethod   testure_type]
+#     [TitleStickyCompositionMethod      testure_type]
+#~MyFrame
+#
+#
+# Several MyFrame's could be defined. Whichever will be used is deternmined by MyFrame "name" setting in
+# database entry. Otherwise Default Frame is used, as determined by the following setting :
+
+# DefaultFrame "name"
+#####################################################################
+# Root background settings :
+#
+# To disable root background drawing by AfterStep uncomment this one :
+#DontDrawBackground
+#
+#AfterStep by default will tile image in ~/.afterstep/non-configurable/#_background.
+#To use different methods use config options previously used in asteroot module :
+
+#MyBackground "back2"
+#    Use 0 "~/GNUstep/Library/AfterStep/non-configurable/1_background"
+#    Tint red
+#    Cut  300x300
+#    Scale 500x500
+#    Pad 0 yellow
+#    Align 4
+#~MyBackground
+#
+#MyBackground "back3"
+#    Use 1 "*WharfTile"
+#    Tint green
+#~MyBackground
+#
+#MyBackground "back4"
+#    Use 2 "-onroot -quiet ~/GNUstep/Library/AfterStep/non-configurable/1_background"
+#    Tint green
+#~MyBackground
+#
+#DeskBack  0  "back2"
+
 

@@ -1,6 +1,4 @@
 ##########################################################################
-# Root window feeling
-#
 #------------------------------------------------------------------------
 # Windows behaviour
 #
@@ -16,7 +14,6 @@ AutoReverse 2
 # Automatically raise a window if mouse stays > 500 msec on it
 # AutoRaise 500
 #
-#
 # While zapping, warp mouse pointer to
 Xzap 12
 Yzap 12
@@ -24,6 +21,10 @@ Yzap 12
 # Avoid problems with xpaint like applications which define their own icon
 # as a window and tell the window manager it's its icon
 KeepIconWindows
+
+# when application changes its name - hints will be updated and applied
+#FollowTitleChanges
+
 #
 # Don't push titlebar when clicked
 # Titlebarnopush
@@ -73,29 +74,57 @@ EdgeScroll 100 100
 # To avoid unwanted moving, edges resist during N ms
 EdgeResistance 800 80
 #
+
+###########################################################################
+# Initial Placement of the windows
+##############
+# Old style (simplified) settings :
+
 # Place window in empty zones
 SmartPlacement
-#
 # Random window placement
 #RandomPlacement
-#
 # Windows can't chose where to place
 NoPPosition
+
+#############
+# New style (simplified) settings :
+# WindowBox configuration may look something like this :
+# WindowBox   "some_name"
+# 	Area   WxH+X+Y
+# 	Virtual
+#	MinWidth	width
+#	MinHeight	height
+#	MaxWidth	width
+#	MaxHeight	height
+#	FirstTry	SmartPlacement|RandomPlacement|Tile
+#	ThenTry 	RandomPlacement|Cascade|Manual
+#	VerticalPriority
+#	ReverseOrder
+#     	Desk        desk
+#     	MinLayer    min_layer
+#     	MaxLayer    max_layer
+#~WindowBox
+#
+#DefaultWindowBox  "some_name"
+#
+
+##########################################################################
+# X server performance tweaks :
+#AppsBackingStore
+#BackingStore
+#SaveUnders
+
+##########################################################################
+# Misc stuff :
+#
+#RecentSubmenuItems   <number>   # changes number of recently used submenu items displayed in poarent menu
 #
 # Put a titlebar + various stuff on dialog boxes
 DecorateTransients
 #
-# Tell me what it means :-)
-#AppsBackingStore
-#BackingStore
-#SaveUnders
-#DontMoveOff
-#XorValue
-#MenusHigh
-#PagingDefault
-#
-##########################################################################
 
+##########################################################################
 ##########################################################################
 # Cursor
 #
@@ -112,20 +141,33 @@ DecorateTransients
 #  8 DESTROY       - used for DESTROY and DELETE built-ins.
 #  9 TOP           - used in the top side-bar of a window
 # 10 RIGHT        - used in the right side-bar of a window
+# 11 BOTTOM
+# 12 LEFT
+# 13 TOP_LEFT
+# 14 TOP_RIGHT
+# 15 BOTTOM_LEFT
+# 16 BOTTOM_RIGHT
 #
 # while /usr/include/X11/cursorfont.h contains available cursors
 #
 #Cursor 0
-Cursor 1 68
+Cursor 1 58
 Cursor 2 68
 Cursor 3 22
-#Cursor 4
+Cursor 4 120
 Cursor 5 150
-Cursor 6 68
+Cursor 6 60
 Cursor 7 68
 Cursor 8 88
-Cursor 9 68
-Cursor 10 68
+Cursor 9 138
+Cursor 10 96
+Cursor 11 16
+Cursor 12 70
+Cursor 13 134
+Cursor 14 136
+Cursor 15 12
+Cursor 16 14
+
 #
 ##########################################################################
 
