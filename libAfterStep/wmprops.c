@@ -918,16 +918,16 @@ set_desktop_num_prop (ASWMProps * wmprops, long new_desk, Window vroot, Bool add
 			for (i = 0; i < wmprops->as_desk_num; i++)
 				if (wmprops->as_desk_numbers[i] >= new_desk)
 					break;
-
 			wmprops->as_desk_num++;
 			wmprops->desktop_num = wmprops->as_desk_num;
-			wmprops->as_desk_numbers = realloc (wmprops->as_desk_numbers, wmprops->as_desk_num);
-			wmprops->virtual_roots = realloc (wmprops->virtual_roots, wmprops->as_desk_num);
-            k = wmprops->as_desk_num ;
-            while ( --k > i )
+			wmprops->as_desk_numbers = realloc (wmprops->as_desk_numbers, wmprops->as_desk_num * sizeof(long) );
+			wmprops->virtual_roots = realloc (wmprops->virtual_roots, wmprops->as_desk_num * sizeof(Window));
+            k = wmprops->as_desk_num-1 ;
+            while ( k > i && k > 0 )
 			{
 				wmprops->as_desk_numbers[k] = wmprops->as_desk_numbers[k - 1];
 				wmprops->virtual_roots[k] = wmprops->virtual_roots[k - 1];
+				--k ;
 			}
 			wmprops->as_desk_numbers[i] = new_desk;
 			wmprops->virtual_roots[i] = vroot;
