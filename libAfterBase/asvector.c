@@ -17,7 +17,7 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,8 +26,7 @@
 
 /*#define LOCAL_DEBUG*/
 
-#include "../include/aftersteplib.h"
-#include "../include/asvector.h"
+#include "asvector.h"
 
 ASVector *create_asvector( size_t unit )
 {

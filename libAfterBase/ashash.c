@@ -20,7 +20,7 @@
 
 /*#define DO_CLOCKING      */
 
-#include "../configure.h"
+#include "config.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -31,9 +31,7 @@
 
 /*#define LOCAL_DEBUG*/
 
-#include "../include/aftersteplib.h"
-#include "../include/afterstep.h"
-#include "../include/ashash.h"
+#include "ashash.h"
 
 ASHashKey default_hash_func (ASHashableValue value, ASHashKey hash_size)
 {

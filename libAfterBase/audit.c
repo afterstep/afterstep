@@ -19,7 +19,7 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 #ifdef DEBUG_ALLOCS
 
@@ -38,8 +38,7 @@
 #include <X11/xpm.h>
 #endif /* XPM */
 
-#include "../include/aftersteplib.h"
-#include "../include/ashash.h"
+#include "ashash.h"
 
 #undef malloc
 #undef safemalloc

@@ -1,5 +1,5 @@
-#ifndef AFTERSTEP_AUDIT_H
-#define AFTERSTEP_AUDIT_H
+#ifndef AUDIT_H_HEADER_INCLUDED
+#define AUDIT_H_HEADER_INCLUDED
 
 /*
  * This code is a (hopefully) nearly transparent way to keep track of
@@ -20,7 +20,7 @@
 
 #else
 #include <X11/Xutil.h>
-#include "../include/ashash.h"
+#include "ashash.h"
 
 int as_assert (void *p, const char *fname, int line, const char *call);
 #define AS_ASSERT(p) as_assert(p,__FILE__, __LINE__ ,__FUNCTION__)
@@ -163,5 +163,4 @@ void print_unfreed_mem_stats (const char *file, const char *func, int line, cons
 
 
 #endif /* DEBUG_ALLOCS */
-
-#endif /* AFTERSTEP_AUDIT_H */
+#endif /* AUDIT_H_HEADER_INCLUDED */

@@ -11,8 +11,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "../configure.h"
-#include "../include/aftersteplib.h"
+#include "config.h"
 
 /****************************************************************************
  *

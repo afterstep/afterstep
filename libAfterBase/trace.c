@@ -17,7 +17,7 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 #if !defined(DEBUG_ALLOCS) && defined(DEBUG_TRACE)
 
@@ -27,18 +27,8 @@
 #include <ctype.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#ifdef XPM
-#include <X11/xpm.h>
-#endif /* XPM */
 
-#include "../include/aftersteplib.h"
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/aswindow.h"
-#include "../include/trace.h"				   /* for deps */
-#include "../include/functions.h"
-#include "../include/hints.h"
-#include "../include/resources.h"
+#include "trace.h"				   
 
 #if defined(TRACE_XNextEvent) || defined(TRACE_DispatchEvent)
 typedef struct EventDesc
@@ -113,125 +103,6 @@ printf_xevent (XEvent * e)
 }
 
 #endif /*TRACE_XNextEvent */
-
-#ifdef TRACE_ExecuteFunction
-typedef struct FuncDesc
-{
-	char         *name;
-	long          mask;
-}
-FuncDesc;
-
-FuncDesc      func_types[] = { {"F_NOP", MiscFuncMask},
-{"F_TITLE", MiscFuncMask},
-{"F_BEEP", MiscFuncMask},
-{"F_QUIT", StateFuncMask},
-{"F_RESTART", StateFuncMask},
-{"F_REFRESH", ConfigFuncMask},
-#ifndef NO_VIRTUAL
-{"F_SCROLL", VirtualFuncMask},
-{"F_GOTO_PAGE", VirtualFuncMask},
-{"F_TOGGLE_PAGE", VirtualFuncMask},
-#endif
-{"F_MOVECURSOR", MiscFuncMask},
-{"F_WARP_F", WindowFuncMask},
-{"F_WARP_B", WindowFuncMask},
-{"F_WAIT", ModuleFuncMask},
-{"F_DESK", VirtualFuncMask},
-#ifndef NO_WINDOWLIST
-{"F_WINDOWLIST", MenuFuncMask},
-#endif
-{"F_POPUP", MenuFuncMask},
-{"F_FUNCTION", MiscFuncMask},
-#ifndef NO_TEXTURE
-{"F_MINIPIXMAP", MenuFuncMask},
-#endif
-{"F_EXEC", MenuFuncMask},
-{"F_MODULE", ModuleFuncMask},
-{"F_KILLMODULEBYNAME", ModuleFuncMask},
-{"F_QUICKRESTART", StateFuncMask},
-{"F_CHANGE_BACKGROUND", ConfigFuncMask},
-{"F_CHANGE_LOOK", ConfigFuncMask},
-{"F_CHANGE_FEEL", ConfigFuncMask},
-{"F_ENDFUNC", MenuFuncMask},
-{"F_ENDPOPUP", MenuFuncMask},
-
-	/* this functions require window as aparameter */
-{"F_WINDOW_FUNC_START", MiscFuncMask},
-{"F_MOVE", WindowFuncMask},
-{"F_RESIZE", WindowFuncMask},
-{"F_RAISE", WindowFuncMask},
-{"F_LOWER", WindowFuncMask},
-{"F_RAISELOWER", WindowFuncMask},
-{"F_PUTONTOP", WindowFuncMask},
-{"F_PUTONBACK", WindowFuncMask},
-{"F_SETLAYER", WindowFuncMask},
-{"F_TOGGLELAYER", WindowFuncMask},
-{"F_SHADE", WindowFuncMask},
-{"F_DELETE", WindowFuncMask},
-{"F_DESTROY", WindowFuncMask},
-{"F_CLOSE", WindowFuncMask},
-{"F_ICONIFY", WindowFuncMask},
-{"F_MAXIMIZE", WindowFuncMask},
-{"F_STICK", WindowFuncMask},
-{"F_FOCUS", WindowFuncMask},
-{"F_CHANGEWINDOW_UP", WindowFuncMask},
-{"F_CHANGEWINDOW_DOWN", WindowFuncMask},
-{"F_GETHELP", MiscFuncMask},
-{"F_PASTE_SELECTION", MiscFuncMask},
-{"F_CHANGE_WINDOWS_DESK", VirtualFuncMask | WindowFuncMask},
-	/* end of window functions */
-	/* these are commands  to be used only by modules */
-{"F_MODULE_FUNC_START", ModuleFuncMask},
-{"F_SEND_WINDOW_LIST", ModuleFuncMask},
-{"F_SET_MASK", ModuleFuncMask},
-{"F_SET_NAME", ModuleFuncMask},
-{"F_UNLOCK", ModuleFuncMask},
-{"F_SET_FLAGS", ModuleFuncMask},
-	/* these are internal commands */
-{"F_INTERNAL_FUNC_START", MiscFuncMask},
-{"F_RAISE_IT", WindowFuncMask},
-{"F_FUNCTIONS_NUM", MiscFuncMask}
-};
-
-int
-func_traceble (int func)
-{
-	if (func >= 0 && func < F_FUNCTIONS_NUM)
-		if (func_types[func].mask & (FUNC_TRACE_MASK))
-			return True;
-	return False;
-}
-
-void
-printf_func (FunctionData *fdata)
-{
-    if( fdata )
-        if (fdata->func >= 0 && fdata->func < F_FUNCTIONS_NUM)
-            fprintf (stderr, "<%s>,\"%s\",%ld,%ld,%d,%d", func_types[fdata->func].name, fdata->text,
-                                                          data->func_val[0], data->func_val[1],
-                                                          data->unit_val[0], data->unit_val[1]);
-}
-
-#endif /*TRACE_ExecuteFunction */
-
-void
-printf_aswindow (ASWindow * t)
-{
-	if (t)
-	{
-		fprintf (stderr, "\"%s\",0x%lX,0x%lX,...", t->all_hints->names[0], t->frame, t->w);
-	}
-}
-
-void
-printf_asrectangle (ASRectangle * r)
-{
-	if (r)
-	{
-		fprintf (stderr, "%ux%u%+d%+d", r->width, r->height, r->x, r->y);
-	}
-}
 
 #define BOOL2STRING(b)   ((b)?"True":"False")
 
@@ -436,73 +307,6 @@ trace_XWindowEvent (Display * dpy, Window w, long event_mask, XEvent * event_ret
 
 #endif
 
-
-/* libasGUI functions */
-#ifdef TRACE_UnloadImage
-#undef UnloadImage
-extern int    UnloadImage (Pixmap pixmap);
-int
-trace_UnloadImage (Pixmap pixmap, const char *filename, int line)
-{
-	int           res;
-
-	fprintf (stderr, "I>%s(%d):UnloadImage(0x%lX)\n", filename, line, pixmap);
-
-	res = UnloadImage (pixmap);
-
-	fprintf (stderr, "I<%s(%d):UnloadImage(0x%lX) returned: %d.\n", filename, line, pixmap, res);
-
-	return res;
-}
-
-#undef UnloadMask
-extern int    UnloadMask (Pixmap mask);
-int
-trace_UnloadMask (Pixmap mask, const char *filename, int line)
-{
-	int           res;
-
-	fprintf (stderr, "I>%s(%d):UnloadMask(0x%lX)\n", filename, line, mask);
-
-	res = UnloadImage (mask);
-
-	fprintf (stderr, "I<%s(%d):UnloadMask(0x%lX) returned: %d.\n", filename, line, mask, res);
-
-	return res;
-}
-
-#endif
-
-/* libafterstep functions */
-#ifdef TRACE_load_font
-#undef load_font
-extern Bool   load_font (const char *font_name, struct MyFont *font);
-Bool
-trace_load_font (const char *font_name, struct MyFont *font, const char *file, int line)
-{
-	int           res;
-
-	fprintf (stderr, "L>%s(%d):load_font(\"%s\",0x%lX)\n", file, line, font_name, (unsigned long)font);
-
-	res = load_font (font_name, font);
-
-	fprintf (stderr, "L<%s(%d):load_font(\"%s\",0x%lX) returned: %d.\n", file,
-			 line, font_name, (unsigned long)font, res);
-
-	return res;
-}
-
-#undef unload_font
-extern void   unload_font (struct MyFont *font);
-void
-trace_unload_font (struct MyFont *font, const char *file, int line)
-{
-	fprintf (stderr, "L>%s(%d):unload_font(0x%lX)\n", file, line, (unsigned long)font);
-
-	unload_font (font);
-}
-#endif
-
 #ifdef TRACE_mystrdup
 #undef mystrdup
 extern char  *mystrdup (const char *str);
@@ -534,156 +338,6 @@ trace_mystrndup (const char *str, size_t n, const char *file, int line)
 	return strres;
 }
 #endif
-
-
-/* afterstep functions */
-#ifdef TRACE_AddWindow
-#undef AddWindow
-extern ASWindow *AddWindow (Window w);
-ASWindow     *
-trace_AddWindow (Window w, const char *filename, int line)
-{
-	ASWindow     *asres;
-
-	fprintf (stderr, "A>%s(%d):AddWindow(0x%lX)\n", filename, line, w);
-
-	asres = AddWindow (w);
-
-	fprintf (stderr, "A<%s(%d):AddWindow(0x%lX) returned: 0x%lX{", filename, line, w, (unsigned long)asres);
-	printf_aswindow (asres);
-	fprintf (stderr, "}\n");
-
-	return asres;
-}
-#endif
-
-#ifdef TRACE_SetFocus
-#undef SetFocus
-extern Bool   SetFocus (Window w, ASWindow * Fw);
-Bool
-trace_SetFocus (Window w, ASWindow * Fw, const char *filename, int line)
-{
-	Bool          bres;
-
-	fprintf (stderr, "A>%s(%d):SetFocus(0x%lX, 0x%lX{", filename, line, w, (unsigned long)Fw);
-	printf_aswindow (Fw);
-	fprintf (stderr, "})\n");
-
-	bres = SetFocus (w, Fw);
-	fprintf (stderr, "A<%s(%d):SetFocus(0x%lX, 0x%lX, ...) returned: %s\n",
-			 filename, line, w, (unsigned long)Fw, BOOL2STRING (bres));
-
-	return bres;
-}
-#endif
-
-#ifdef TRACE_SetupFrame
-#undef SetupFrame
-extern void   SetupFrame (ASWindow * tmp_win, Bool sendEvent);
-void
-trace_SetupFrame (ASWindow * tmp_win, Bool sendEvent, const char *filename, int line)
-{
-	fprintf (stderr, "A>%s(%d):SetupFrame(0x%lX{", filename, line, (unsigned long)tmp_win);
-	printf_aswindow (tmp_win);
-	fprintf (stderr, "},%s)\n", sendEvent ? "True" : "False");
-
-	SetupFrame (tmp_win, sendEvent);
-}
-#endif
-
-#ifdef TRACE_ResizeFrame
-#undef ResizeFrame
-extern unsigned int ResizeFrame (struct ASWindow *t, struct ASRectangle *new_frame, unsigned int todo);
-unsigned int
-trace_ResizeFrame (struct ASWindow *t, struct ASRectangle *new_frame, unsigned int todo, const char *filename, int line)
-{
-	unsigned int  uires;
-
-	fprintf (stderr, "A>%s(%d):ResizeFrame(0x%lX{", filename, line, (unsigned long)t);
-	printf_aswindow (t);
-	fprintf (stderr, "},{");
-	printf_asrectangle (new_frame);
-	fprintf (stderr, "},0x%X)\n", todo);
-
-	uires = ResizeFrame (t, new_frame, todo);
-
-	fprintf (stderr, "A<%s(%d):ResizeFrame(0x%lX,...) returned 0x%X\n", filename, line, (unsigned long)t, uires);
-	return uires;
-}
-
-#undef ResizeClient
-extern void   ResizeClient (struct ASWindow *t, struct ASRectangle *new_client);
-void
-trace_ResizeClient (struct ASWindow *t, struct ASRectangle *new_client, const char *filename, int line)
-{
-	fprintf (stderr, "A>%s(%d):ResizeClient(0x%lX{", filename, line, (unsigned long)t);
-	printf_aswindow (t);
-	fprintf (stderr, "},{");
-	printf_asrectangle (new_client);
-	fprintf (stderr, "})\n");
-
-	ResizeClient (t, new_client);
-}
-#endif
-
-#ifdef TRACE_DispatchEvent
-#undef DispatchEvent
-extern void   DispatchEvent (XEvent * event);
-void
-trace_DispatchEvent (XEvent * event, const char *filename, int line)
-{
-	if (event_traceble (event))
-	{
-		ASWindow     *tmp_win;
-
-		fprintf (stderr, "A>%s(%d):DispatchEvent(0x%lX{", filename, line, (unsigned long)event);
-		printf_xevent (event);
-		if ((tmp_win = (ASWindow *) window_id2data (event->xany.window)) != NULL)
-		{
-			fprintf (stderr, "} for {");
-			printf_aswindow (tmp_win);
-		}
-		fprintf (stderr, "})\n");
-	}
-	DispatchEvent (event);
-}
-#endif
-
-#ifdef TRACE_ReparentIt
-#undef ReparentIt
-extern void   ReparentIt (ASWindow * t, Window to_win);
-void
-trace_ReparentIt (ASWindow * t, Window to_win, const char *filename, int line)
-{
-	fprintf (stderr, "A>%s(%d):ReparentIt(0x%lX{", filename, line, (unsigned long)t);
-	printf_aswindow (t);
-	fprintf (stderr, "},0x%lX)\n", to_win);
-	ReparentIt (t, to_win);
-}
-#endif
-
-#ifdef TRACE_ExecuteFunction
-#undef ExecuteFunction
-extern void   ExecuteFunction ( FunctionData *data, Window in_w, ASWindow * tmp_win,
-                                XEvent * eventp, unsigned long context, int Module);
-void
-trace_ExecuteFunction (FunctionData *data, Window in_w, ASWindow * tmp_win,
-                       XEvent * eventp, unsigned long context, int Module, const char *filename, int line)
-{
-	if (func_traceble (func))
-	{
-		fprintf (stderr, "A>%s(%d):ExecuteFunction({", filename, line);
-        printf_func (data);
-		fprintf (stderr, "},0x%lX,{", in_w);
-		printf_aswindow (tmp_win);
-		fprintf (stderr, "},{");
-		printf_xevent (eventp);
-        fprintf (stderr, "},0x%lX,%d)\n", context, Module);
-	}
-	ExecuteFunction (func, action, in_w, tmp_win, eventp, context, val1, val2, val1_unit, val2_unit, menu, Module);
-}
-#endif
-
 #endif /* DEBUG_ALLOCS */
 
 #ifdef DEBUG_TRACE_X
@@ -694,15 +348,8 @@ trace_ExecuteFunction (FunctionData *data, Window in_w, ASWindow * tmp_win,
 #include <ctype.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#ifdef XPM
-#include <X11/xpm.h>
-#endif /* XPM */
 
-#include "../include/aftersteplib.h"
-#include "../include/afterstep.h"
-#include "../include/aswindow.h"
-#include "../include/trace.h"				   /* for deps */
-#include "../include/functions.h"
+#include "trace.h"				   
 
 #undef XRaiseWindow
 #undef XLowerWindow
