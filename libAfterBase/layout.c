@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include "astypes.h"
+#include "audit.h"
 #include "safemalloc.h"
 #include "output.h"
 #include "layout.h"
@@ -937,7 +938,44 @@ ASGridLine *
 add_gridline( ASGridLine **list, short band, short start, short end,
               short gravity_above, short gravity_below )
 {
-	ASGridLine *l = safecalloc( 1, sizeof(ASGridLine));
+	ASGridLine *l;
+
+	if( AS_ASSERT(list) )
+		return NULL;
+
+	for( l = *list ; l != NULL ; l = l->next )
+	{/* eliminating duplicates and sorting in ascending order : */
+		if( l->band <= band )
+			list = &(l->next);
+		if( l->band == band )
+		{
+			if( l->start < end && l->end > start )
+			{ /* at least intersecting : */
+				if( l->gravity_above == gravity_above &&
+					l->gravity_below == gravity_below )
+			  	{
+					l->start = MIN( l->start, start );
+					l->end = MAX( l->end, end );
+					return NULL;
+				}
+				if( l->start == start && l->end == end )
+				{
+					l->gravity_above = ( l->gravity_above < 0 )?
+											MIN(l->gravity_above, gravity_above):
+											((gravity_above < 0 )? gravity_above:
+						                    	MAX(l->gravity_above, gravity_above));
+					l->gravity_below = ( l->gravity_below < 0 )?
+											MIN(l->gravity_below, gravity_below):
+											((gravity_below < 0 )? gravity_below:
+												MAX(l->gravity_below, gravity_below));
+					return NULL;
+				}
+			}
+		}else if( l->band > band )
+			break;
+	}
+
+	l = safecalloc( 1, sizeof(ASGridLine));
 	l->band = band ;
 	l->start = start ;
 	l->end = end ;
@@ -952,74 +990,74 @@ add_gridline( ASGridLine **list, short band, short start, short end,
 
 void make_layout_grid( ASLayout *layout, ASGrid *grid,
 					   int origin_x, int origin_y,
-	                   short outer_gravity, short inner_gravity )
+	                   short gravity )
 {
 	int i ;
 
 	if( layout == NULL || grid == NULL )
 		return ;
 	/* horizontal lines : */
-	add_gridline( &(grid->h_lines), origin_y, origin_x, layout->width+origin_x, outer_gravity, outer_gravity );
 	for( i = 0 ; i < layout->dim_y  ; i++ )
 	{
         register ASLayoutElem *pelem = layout->rows[i];
-		int y = pelem?pelem->y:0 + layout->offset_north ;
-        if( pelem && y > 0 && y <= layout->height )
+		int y = (pelem?pelem->y:0) + layout->offset_north ;
+LOCAL_DEBUG_OUT( "y = %d, lheight = %d", y, layout->height );
+        if( pelem && y >= 0 && y < layout->height )
         {
-			int start = -1, end = 0;
+			int start = 0, end = 0;
 			do
 			{
 	            int x = pelem->x + layout->offset_west ;
-				if( x+pelem->width >= 0 && x < layout->width )
+LOCAL_DEBUG_OUT( "start = %d, end = %d, x = %d, width = %d, lwidth = %d", start, end, x, pelem->width, layout->width );
+				if( x+pelem->width > 0 && pelem->x < layout->width )
 				{
-					if( start < 0 )
+					if( x > end + layout->v_spacing + 1 )
 					{
-						start = MAX( x, 0 );
-						end = start+pelem->width ;
-					}else if( x > end + layout->v_spacing + 1 )
+						if( end > start )
+							add_gridline( &(grid->h_lines), y+origin_y, start+origin_x, end+origin_x, gravity, gravity );
+						end = start = x ;
+					}else if( x > start && start == end )
 					{
-						add_gridline( &(grid->h_lines), y+origin_y, start+origin_x, end+origin_x, inner_gravity, inner_gravity );
-						start = -1 ;
-					}else if( end < x+pelem->width )
+						start = end = x ;
+					}
+					if( end < x+pelem->width )
 						end = x+pelem->width ;
 				}
 			}while( (pelem = pelem->right) != NULL );
-			if( start >= 0 )
-				add_gridline( &(grid->h_lines), y+origin_y, start+origin_x, end+origin_x, inner_gravity, inner_gravity );
+			if( end > start )
+				add_gridline( &(grid->h_lines), y+origin_y, start+origin_x, end+origin_x, gravity, gravity );
         }
 	}
-	add_gridline( &(grid->h_lines), origin_y+layout->height, origin_x, layout->width+origin_x, outer_gravity, outer_gravity );
 	/* vertical lines : */
-	add_gridline( &(grid->v_lines), origin_x, origin_y, layout->height+origin_y, outer_gravity, outer_gravity );
     for( i = 0 ; i < layout->dim_x  ; i++ )
 	{
         register ASLayoutElem *pelem = layout->cols[i];
-		int x = pelem?pelem->x:0 + layout->offset_west ;
-        if( pelem && x > 0 && x <= layout->height )
+		int x = (pelem?pelem->x:0) + layout->offset_west ;
+LOCAL_DEBUG_OUT( "x = %d, lwidth = %d", x, layout->width );
+        if( pelem && x >= 0 && x < layout->width )
         {
-			int start = -1, end = 0;
+			int start = 0, end = 0;
 			do
 			{
 	            int y = pelem->y + layout->offset_north ;
-				if( y+pelem->height >= 0 && y < layout->height )
+LOCAL_DEBUG_OUT( "start = %d, end = %d, y = %d, height = %d, lheight = %d", start, end, y, pelem->height, layout->height );
+				if( y+pelem->height > 0 && pelem->y < layout->height )
 				{
-					if( start < 0 )
+					if( y > end + layout->h_spacing + 1 )
 					{
-						start = MAX( y, 0 );
-						end = start+pelem->height ;
-					}else if( y > end + layout->h_spacing + 1 )
-					{
-						add_gridline( &(grid->v_lines), x+origin_x, start+origin_y, end+origin_y, inner_gravity, inner_gravity );
-						start = -1 ;
-					}else if( end < y+pelem->height )
+						if( end > start )
+							add_gridline( &(grid->v_lines), x+origin_x, start+origin_y, end+origin_y, gravity, gravity );
+						end = start = y ;
+					}else if( y > start && start == end )
+						start = end = y ;
+					if( end < y+pelem->height )
 						end = y+pelem->height ;
 				}
-			}while( (pelem = pelem->right) != NULL );
-			if( start > 0 )
-				add_gridline( &(grid->v_lines), x+origin_x, start+origin_y, end+origin_y, inner_gravity, inner_gravity );
+			}while( (pelem = pelem->below) != NULL );
+			if( end > start )
+				add_gridline( &(grid->v_lines), x+origin_x, start+origin_y, end+origin_y, gravity, gravity );
         }
 	}
-	add_gridline( &(grid->v_lines), origin_x+layout->width, origin_y, layout->height+origin_y, outer_gravity, outer_gravity );
 }
 
 void print_asgrid( ASGrid *grid )
@@ -1031,11 +1069,11 @@ void print_asgrid( ASGrid *grid )
 		fprintf( stderr, "Horizontal grid lines :\n" );
 		fprintf( stderr, "\t band \t start \t end   \t above \t below\n" );
 		for( l = grid->h_lines ; l != NULL ; l = l->next )
-			fprintf( stderr, "\t %4.4d \t %5.5d \t %5.5d \t %5.5d \t %5.5d\n", l->band, l->start, l->end, l->gravity_above, l->gravity_below );
+			fprintf( stderr, "\t % 4.4d \t % 5.5d \t % 5.5d \t % 5.5d \t % 5.5d\n", l->band, l->start, l->end, l->gravity_above, l->gravity_below );
 		fprintf( stderr, "Vertical grid lines :\n" );
 		fprintf( stderr, "\t band \t start \t end   \t above \t below\n" );
 		for( l = grid->v_lines ; l != NULL ; l = l->next )
-			fprintf( stderr, "\t %4.4d \t %5.5d \t %5.5d \t %5.5d \t %5.5d\n", l->band, l->start, l->end, l->gravity_above, l->gravity_below );
+			fprintf( stderr, "\t % 4.4d \t % 5.5d \t % 5.5d \t % 5.5d \t % 5.5d\n", l->band, l->start, l->end, l->gravity_above, l->gravity_below );
 	}
 	fprintf( stderr, "Done printing grid %p\n", grid );
 }

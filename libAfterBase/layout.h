@@ -166,9 +166,14 @@ ASFlagType set_layout_context_fixed_size( ASLayout *layout, int context,
 Bool moveresize_layout( ASLayout *layout,
 	                    unsigned int width, unsigned int height,
 						Bool force );
+
+ASGridLine *add_gridline( ASGridLine **list,
+	                      short band, short start, short end,
+             			  short gravity_above, short gravity_below );
+
 void make_layout_grid( ASLayout *layout, ASGrid *grid,
 					   int origin_x, int origin_y,
-	                   short outer_gravity, short inner_gravity );
+	                   short gravity );
 void print_asgrid( ASGrid *grid );
 
 #endif  /* AS_LAYOUT_H_HEADER_FILE */
