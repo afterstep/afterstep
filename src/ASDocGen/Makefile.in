@@ -15,13 +15,13 @@ $(PROG):        $(OBJS) $(LIBS_DEPEND)
 install.man:	$(PROG)
 		@echo -n "Generating man pages ..." ; ./ASDocGen -l log.man -t nroff ; echo "Done"; \
 		cd man; echo "Installing application man pages ..." ; \
-		for f in *.man; do \
+		for f in `ls *.man`; do \
 			page_name=`echo $$f| awk -F . '{print $$1}'`; \
 	  		echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
 	  		$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
 		done; echo "Done"; \
 		cd API; echo "Installing API man pages ..." ; \
-		for f in *.man; do \
+		for f in `ls *.man`; do \
 			page_name=`echo $$f| awk -F . '{print $$1}'`; \
 	  		echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_API_DIR)/$$page_name.3x; \
 	  		$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_API_DIR)/$$page_name.3x; \
@@ -36,13 +36,19 @@ install.doc_html:	$(PROG)
 		fi; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/html; \
 		cd html; echo "Installing application HTML pages ..." ; \
-		for f in *.html; do \
+		for f in `ls *.html`; do \
 	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
 	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
 		done; echo "Done"; \
+		$(MKDIR) -p $(AFTER_DOC_DIR)/html/images; \
+		cd ../images; echo "Installing application images ..." ; \
+		for f in `ls *.jpg`; do \
+	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/images/$$f; \
+	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/images/$$f; \
+		done; echo "Done"; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/html/API; \
-		cd API; echo "Installing API HTML docs ..." ; \
-		for f in *.html; do \
+		cd ../html/API; echo "Installing API HTML docs ..." ; \
+		for f in `ls *.html`; do \
 	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
 	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
 		done; echo "Done"; \
@@ -56,13 +62,19 @@ install.doc_xml:	$(PROG)
 		fi; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/xml; \
 		cd xml; echo "Installing application XML pages ..." ; \
-		for f in *.xml; do \
+		for f in `ls *.xml`; do \
 	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/$$f; \
 	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/$$f; \
 		done; echo "Done"; \
+		$(MKDIR) -p $(AFTER_DOC_DIR)/xml/images; \
+		cd ../images; echo "Installing images ..." ; \
+		for f in `ls *.jpg`; do \
+	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/images/$$f; \
+	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/images/$$f; \
+		done; echo "Done"; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/xml/API; \
-		cd API; echo "Installing API XML docs ..." ; \
-		for f in *.xml; do \
+		cd ../xml/API; echo "Installing API XML docs ..." ; \
+		for f in `ls *.xml`; do \
 	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/API/$$f; \
 	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/API/$$f; \
 		done; echo "Done"; \
@@ -76,13 +88,13 @@ install.doc_text:	$(PROG)
 		fi; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/text; \
 		cd xml; echo "Installing application Plain Text pages ..." ; \
-		for f in *.xml; do \
+		for f in `ls *.txt`; do \
 	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/$$f; \
 	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/$$f; \
 		done; echo "Done"; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/text/API; \
 		cd API; echo "Installing API Plain Text docs ..." ; \
-		for f in *.xml; do \
+		for f in `ls *.txt`; do \
 	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/API/$$f; \
 	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/API/$$f; \
 		done; echo "Done"; \
@@ -94,7 +106,9 @@ php_pages:	$(PROG)
 			$(RM) ASDocGen_php.tar.gz ; \
 		fi; \
 		echo "Tar-gzipping PHP pages ..." ; \
-		cd php && tar zcpvf ../ASDocGen_php.tar.gz * && cd .. ; \
+		cd php && tar cpvf ../ASDocGen_php.tar * && cd .. ; \
+		tar Apvf ./ASDocGen_php.tar images; \
+		gzip ./ASDocGen_php.tar; \
 		echo "Done."
 
 uninstall.man:
