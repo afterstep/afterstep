@@ -7,17 +7,17 @@ dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
 dnl#AC_INIT(afterstep/autoexec.in)
-AC_INIT(AfterStep,2.00.00.cvs,as-bugs@afterstep.org,AfterStep.tar)
+AC_INIT(AfterStep,2.00.01,as-bugs@afterstep.org,AfterStep.tar)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
 version=$PACKAGE_VERSION
 app_version=$PACKAGE_VERSION
-libafterstep_version="1.00"
+libafterstep_version="1.01"
 libafterstep_version_major="0"
 libafterstep_name="LIBAFTERSTEP"
 libafterstep_file_name="libAfterStep"
-libafterconf_version="1.00"
+libafterconf_version="1.01"
 libafterconf_version_major="0"
 libafterconf_name="LIBAFTERCONF"
 libafterconf_file_name="libAfterConf"
@@ -651,9 +651,9 @@ src/Animate/Makefile \
 src/Audio/Makefile \
 src/ASConfig/Makefile \
 src/ASDocGen/Makefile \
+src/Arrange/Makefile \
 src/Banner/Banner.sh \
 src/Banner/Makefile \
-src/Cascade/Makefile \
 src/Clean/Makefile \
 src/Form/Makefile \
 src/Gnome/Makefile \
@@ -664,7 +664,6 @@ src/Script/Widgets/Makefile \
 src/Script/Makefile \
 src/Scroll/Makefile \
 src/Sound/Makefile \
-src/Tile/Makefile \
 src/Wharf/Makefile \
 src/WinList2/Makefile \
 src/WinTabs/Makefile \
