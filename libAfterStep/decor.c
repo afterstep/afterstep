@@ -697,7 +697,8 @@ set_astbar_image( ASTBarData *tbar, ASImage *image )
                 tbar->back_image = NULL ;
             }
             if( image )
-                tbar->back_image = dup_asimage( image );
+                if( (tbar->back_image = dup_asimage( image )) == NULL )
+					tbar->back_image = clone_asimage( image );
 
             flush_tbar_backs(tbar);
 

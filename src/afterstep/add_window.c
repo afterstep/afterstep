@@ -400,7 +400,8 @@ check_icon_canvas( ASWindow *asw, Bool required )
             attributes.cursor = Scr.ASCursors[DEFAULT];
 
             if ((ASWIN_HFLAGS(asw, AS_ClientIcon|AS_ClientIconPixmap) != AS_ClientIcon) ||
-                 asw->hints == NULL || asw->hints->icon.window == None )
+                 asw->hints == NULL || asw->hints->icon.window == None ||
+				 !get_flags(Scr.flags, KeepIconWindows))
             { /* create windows */
                 attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
                 w = create_visual_window ( Scr.asv, Scr.Root, -10, -10, 1, 1, 0,
@@ -468,6 +469,30 @@ check_icon_title_canvas( ASWindow *asw, Bool required, Bool reuse_icon_canvas )
     return (asw->icon_title_canvas = canvas);
 }
 
+static ASImage*
+get_window_icon_image( ASWindow *asw )
+{
+	ASImage *im = NULL ;
+	if( ASWIN_HFLAGS( asw, AS_ClientIcon|AS_ClientIconPixmap ) == AS_ClientIcon|AS_ClientIconPixmap &&
+	    get_flags( Scr.flags, KeepIconWindows )&&
+		asw->hints->icon.pixmap != None ) 
+	{/* convert client's icon into ASImage */
+		unsigned int width, height ;
+		get_drawable_size( asw->hints->icon.pixmap, &width, &height );
+		im = picture2asimage( Scr.asv, asw->hints->icon.pixmap, 
+		                               asw->hints->icon_mask, 
+									   0, 0, width, height, 
+									   0xFFFFFFFF, False, 100 );
+	}
+	/* TODO: we also need to check for newfashioned ARGB icon from 
+	 * extended WM specs here 
+	 */
+	if( im == NULL && asw->hints->icon_file )
+		im = get_asimage( Scr.image_manager, asw->hints->icon_file, 0xFFFFFFFF, 100 );
+	
+	return im;
+}
+
 static ASTBarData*
 check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name, ASImage *img, unsigned short back_w, unsigned short back_h )
 {
@@ -498,6 +523,20 @@ invalidate_window_icon( ASWindow *asw )
         check_icon_canvas( asw, False );
 }
 
+/* this should set up proper feel settings - grab keyboard and mouse buttons : 
+ * Note: must be called after redecorate_window, since some of windows may have 
+ * been created at that time.
+ */
+void
+grab_window_input( ASWindow *asw, Bool release_grab )
+{
+	/**** 1) frame window grabs : 			****/
+	/**** 2) client window grabs : 			****/
+	/**** 3) icon window grabs : 			****/
+	/**** 4) icon title window grabs : 		****/
+	/**** 5) frame decor windows grabs :	****/
+}
+
 void
 redecorate_window( ASWindow *asw, Bool free_resources )
 {
@@ -507,6 +546,7 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     Bool has_tbar = False ;
 	int i ;
     char *mystyle_name = Scr.MSFWindow?Scr.MSFWindow->name:NULL;
+	ASImage *icon_image = NULL ;
 
     if( AS_ASSERT(asw) )
         return ;
@@ -519,18 +559,23 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     }
     if(  free_resources || asw->hints == NULL || asw->status == NULL )
     {/* destroy window decorations here : */
+     /* destruction goes in reverese order ! */
+	    check_tbar( &(asw->icon_title), False, NULL, NULL, 0, 0 );
+	    check_tbar( &(asw->icon_button), False, NULL, NULL, 0, 0 );
+        check_tbar( &(asw->tbar), False, NULL, NULL, 0, 0 );
+		i = FRAME_PARTS ; 
+		while( --i >= 0 )
+            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0 );
+	
         check_side_canvas( asw, FR_W, False );
         check_side_canvas( asw, FR_E, False );
         check_side_canvas( asw, FR_S, False );
         check_side_canvas( asw, FR_N, False );
-		for( i = 0 ; i < FRAME_PARTS ; ++i )
-            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0 );
-        check_tbar( &(asw->tbar), False, NULL, NULL, 0, 0 );
 
+        check_icon_title_canvas( asw, False );
+        check_icon_canvas( asw, False );
         check_client_canvas( asw, False );
         check_frame_canvas( asw, False );
-        check_icon_canvas( asw, False );
-        check_icon_title_canvas( asw, False );
 
         return ;
     }
@@ -565,7 +610,15 @@ redecorate_window( ASWindow *asw, Bool free_resources )
         right_canvas = check_side_canvas( asw, FR_E, myframe_has_parts(frame, FRAME_RIGHT_MASK) );
     }
     /* 6) now we have to create bar for icon - if it is not client's animated icon */
+	if( asw->icon_canvas )
+		icon_image = get_window_icon_image( asw );
+    check_tbar( &(asw->icon_button), (asw->icon_canvas != NULL), AS_ICON_MYSTYLE,
+                icon_image, 0, 0 );/* scaling icon image */
+	if( icon_image ) 
+        safe_asimage_destroy( icon_image );
     /* 7) now we have to create bar for icon title (optional) */
+    check_tbar( &(asw->icon_title), (asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
+                NULL, 0, 0 );
     /* 8) now we have to create actuall bars - for each frame element plus one for the titlebar */
 	for( i = 0 ; i < FRAME_PARTS ; ++i )
     {
@@ -618,6 +671,7 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     /* we also need to setup label, unfocused/sticky style and tbar sizes -
      * it all is done when we change windows state, or move/resize it */
 }
+
 
 /* this gets called when Root background changes : */
 void

@@ -218,6 +218,12 @@ struct ASTBarData;
 								     KeyPressMask 		| \
 									 LeaveWindowMask)
 
+#define AS_ICON_MYSTYLE					"ButtonPixmap"
+#define AS_ICON_TITLE_MYSTYLE			"ButtonTitleFocus"
+#define AS_ICON_TITLE_STICKY_MYSTYLE	"ButtonTitleSticky"
+#define AS_ICON_TITLE_UNFOCUS_MYSTYLE	"ButtonTitleUnfocus"
+
+
 /* for each window that is on the display, one of these structures
  * is allocated and linked into a list
  */
