@@ -1,6 +1,10 @@
 
 2003-09-25  sasha
 
+	* AfterStep 2.00.beta2 Release
+	* Some minor tweaks to cursor coloring and HSV manipuylation for
+	  grayscale
+	* Implemented automagic generation of the ChangeLog
 	* generating ChangeLog
 
 2003-09-24  sasha
@@ -4214,4 +4218,3 @@
 
 	* AfterStep 1.9.19 first put in CVS.
 	* Initial revision
-

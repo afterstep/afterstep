@@ -1,4 +1,10 @@
 
+2003-09-25  sasha
+
+	* Some minor tweaks to cursor coloring and HSV manipuylation for
+	  grayscale
+	* Implemented automagic generation of the ChangeLog
+
 2003-09-22  sasha
 
 	* Fixed locale parsing from LANG variable; Fixed module startup to

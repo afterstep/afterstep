@@ -1,4 +1,8 @@
 
+2003-09-25  sasha
+
+	* Implemented automagic generation of the ChangeLog
+
 2003-09-23  sasha
 
 	* Added look options for mouse pointer coloring: PointerFore and
