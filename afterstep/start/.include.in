@@ -8,6 +8,11 @@
 # include another directory's contents in this menu
 #include "../fixed"
 
+# include system menu directory's contents in this menu
+# causing all the items from system's menu to follow local items
+#include_ordered 1000  "/usr/local/share/afterstep/start"
+
+
 # keep this directory's name so it can be used in a PopUp function
 # (this is ignored for the toplevel directory; the toplevel dir's 
 # name is always "0")

@@ -1263,7 +1263,9 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 					if( med_dd-aa > dd ) 
 					{
 						int v = (dd-med_dd)*255/(-aa+255) ;	
+#ifdef DEBUG_ELLIPS					 						   
 						fprintf( stderr, "\t\t BELOW: dx2 = %d, v = %d\n", dx2, v ); 
+#endif
 						CTX_PUT_PIXEL( ctx, x+(x2-1), y-y1, 255-v ) ;
 						CTX_PUT_PIXEL( ctx, x-(x2-1), y+y1, 255-v ) ;
 						CTX_PUT_PIXEL( ctx, x+(x2-2), y-y1, v ) ;

@@ -19,7 +19,7 @@ typedef struct dirtree_t
   char* icon;
   char* extension;
   char* minipixmap_extension;
-  int order;
+  int order, base_order;
   int recent_items;
 } dirtree_t;
 
@@ -41,6 +41,7 @@ void dirtree_delete(dirtree_t* tree);
 void dirtree_fill_from_dir(dirtree_t* tree);
 void dirtree_move_children(dirtree_t* tree1, dirtree_t* tree2);
 void dirtree_set_command(dirtree_t* tree, struct FunctionData* command, int recurse);
+void dirtree_set_base_order (dirtree_t * tree, int base_order);
 void dirtree_parse_include(dirtree_t* tree);
 void dirtree_remove_order(dirtree_t* tree);
 void dirtree_merge(dirtree_t* tree);
@@ -50,6 +51,7 @@ int dirtree_parse(dirtree_t* tree, const char* file);
 int dirtree_set_id(dirtree_t* tree, int id);
 
 int dirtree_compar(const dirtree_t** d1, const dirtree_t** d2);
+int dirtree_compar_base_order (const dirtree_t ** d1, const dirtree_t ** d2);
 int dirtree_compar_order(const dirtree_t** d1, const dirtree_t** d2);
 int dirtree_compar_type(const dirtree_t** d1, const dirtree_t** d2);
 int dirtree_compar_alpha(const dirtree_t** d1, const dirtree_t** d2);

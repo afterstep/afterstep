@@ -2029,7 +2029,8 @@ SetTButtonOrder(char *text, FILE * fd, char **unused1, int *unused2)
  *
  ***************************************************************************/
 
-/* buf must be at least MAXLINELENGTH chars long */
+void dirtree_print_tree (dirtree_t * tree, int depth);
+
 int
 MeltStartMenu (char *buf)
 {
@@ -2039,17 +2040,19 @@ MeltStartMenu (char *buf)
     switch (Scr.Look.StartMenuSortMode)
 	{
 	 case SORTBYALPHA:
-		 dirtree_compar_list[0] = dirtree_compar_order;
-		 dirtree_compar_list[1] = dirtree_compar_type;
-		 dirtree_compar_list[2] = dirtree_compar_alpha;
-		 dirtree_compar_list[3] = NULL;
+		 dirtree_compar_list[0] = dirtree_compar_base_order;
+		 dirtree_compar_list[1] = dirtree_compar_order;
+		 dirtree_compar_list[2] = dirtree_compar_type;
+		 dirtree_compar_list[3] = dirtree_compar_alpha;
+		 dirtree_compar_list[4] = NULL;
 		 break;
 
 	 case SORTBYDATE:
-		 dirtree_compar_list[0] = dirtree_compar_order;
-		 dirtree_compar_list[1] = dirtree_compar_type;
-		 dirtree_compar_list[2] = dirtree_compar_mtime;
-		 dirtree_compar_list[3] = NULL;
+		 dirtree_compar_list[0] = dirtree_compar_base_order;
+		 dirtree_compar_list[1] = dirtree_compar_order;
+		 dirtree_compar_list[2] = dirtree_compar_type;
+		 dirtree_compar_list[3] = dirtree_compar_mtime;
+		 dirtree_compar_list[4] = NULL;
 		 break;
 
 	 default:
@@ -2066,7 +2069,7 @@ MeltStartMenu (char *buf)
     tree = dirtree_new_from_dir (as_start);
     show_progress("MENU loaded from \"%s\" ...", as_start);
 	free (as_start);
-
+	
 #ifdef FIXED_DIR
 	{
         char         *as_fixeddir = make_session_dir (Session, FIXED_DIR, False);
@@ -2076,6 +2079,7 @@ MeltStartMenu (char *buf)
 			dirtree_t    *fixed_tree = dirtree_new_from_dir (as_fixeddir);
 
 			free (as_fixeddir);
+			
 			dirtree_move_children (tree, fixed_tree);
 			dirtree_delete (fixed_tree);
             show_progress("FIXED MENU loaded from \"%s\" ...", as_fixeddir);
@@ -2089,6 +2093,7 @@ MeltStartMenu (char *buf)
 	dirtree_remove_order (tree);
 	dirtree_merge (tree);
 	dirtree_sort (tree);
+/*	dirtree_print_tree( tree, 0) ; */
 	dirtree_set_id (tree, 0);
 	/* make sure one copy of the root menu uses the name "0" */
 	(*tree).flags &= ~DIRTREE_KEEPNAME;

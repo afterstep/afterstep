@@ -24,7 +24,7 @@
  ***************************************************************************/
 
 #define DIRTREE_C
-
+#define LOCAL_DEBUG
 #include <sys/stat.h>
 
 #include "../../configure.h"
@@ -35,6 +35,7 @@ int           txt2func (const char *text, FunctionData * fdata, int quiet);
 int           free_func_data (FunctionData * data);
 
 dirtree_compar_f dirtree_compar_list[] = {
+	dirtree_compar_base_order,	
 	dirtree_compar_order,
 	dirtree_compar_type,
 	dirtree_compar_alpha,
@@ -247,17 +248,34 @@ dirtree_parse (dirtree_t * tree, const char *file)
 	while (fgets (str, 8192, fp) != NULL)
 	{
 		char         *ptr;
+		Bool 	      do_include = False ; 
+		int 		  include_order = 0 ;
 
 		ptr = strip_whitespace (str);
 		/* ignore comments and blank lines */
 		if (*ptr == '#' || *ptr == '\0')
 			continue;
-		if (!mystrncasecmp (ptr, "include", 7))
+		if( !mystrncasecmp (ptr, "include", 7) )
+		{
+			do_include = True ;
+			ptr += 7 ; 
+			if( !mystrncasecmp (ptr, "_ordered", 8) ) 	  
+			{
+				for (ptr += 8; isspace (*ptr); ptr++);				
+				if ( isdigit(*ptr) )
+				{
+					include_order = atoi( ptr );	
+					while( isdigit( *ptr ) ) ++ptr;
+				}	 
+			}	 
+		}
+			
+		if( do_include )   
 		{
 			char         *path;
 			dirtree_t    *t;
 
-			for (ptr += 7; isspace (*ptr); ptr++);
+			while(isspace (*ptr))	ptr++;
 			if (*ptr != '"')
 				continue;
 			path = ++ptr;
@@ -277,6 +295,9 @@ dirtree_parse (dirtree_t * tree, const char *file)
 
 				/* included dir might have a .include */
 				dirtree_parse_include (t);
+				if( include_order != 0 ) 
+					dirtree_set_base_order ( t, include_order);
+
 				dirtree_move_children (tree, t);
 				dirtree_delete (t);
 			}
@@ -357,6 +378,26 @@ dirtree_parse_include (dirtree_t * tree)
 }
 
 void
+dirtree_set_base_order (dirtree_t * tree, int base_order)
+{
+	dirtree_t    *t;
+	
+	if( tree->base_order == 0 ) 
+		tree->base_order = base_order ; 
+	
+	for (t = tree->child; t != NULL; t = t->next)
+	{
+		if( t->child == NULL ) 
+		{	
+			if( t->base_order == 0 ) 
+				t->base_order = base_order ; 
+		}else
+			dirtree_set_base_order(t, base_order);
+	}
+}
+
+
+void
 dirtree_remove_order (dirtree_t * tree)
 {
 	dirtree_t    *t;
@@ -399,6 +440,8 @@ dirtree_merge (dirtree_t * tree)
 				{
 					if (t2->order != -1)
 						t->order = t2->order;
+					if( t2->base_order < t->base_order ) 
+						t->base_order = t2->base_order ; 
 					dirtree_remove (t2);
 					dirtree_move_children (t, t2);
 					dirtree_delete (t2);
@@ -441,6 +484,14 @@ dirtree_compar (const dirtree_t ** d1, const dirtree_t ** d2)
 		diff = (*compar) (d1, d2);
 	return diff;
 }
+
+/* sort entries based their base_order; 0 comes before 1000 */
+int
+dirtree_compar_base_order (const dirtree_t ** d1, const dirtree_t ** d2)
+{
+	return (**d1).base_order - (**d2).base_order;
+}
+
 
 /* sort entries based their order; 1 comes before 2 */
 int
@@ -610,19 +661,19 @@ dirtree_output_tree (FILE * fp, dirtree_t * tree, int recurse)
 #endif
 
 /* debugging code */
-#if 0
 void
 dirtree_print_tree (dirtree_t * tree, int depth)
 {
 	dirtree_t    *t;
 
-	fprintf (stderr, "%*s%s%s(%s:%s:%d:%x)\n", depth, "", tree->name,
-			 (tree->flags & DIRTREE_DIR) ? "/ " : " ", tree->command->keyword, tree->icon,
-			 tree->order, tree->flags);
+	fprintf (stderr, "%*s%s%s(%s: order = %d: base_order = %d: flags = %x)\n", depth, "", tree->name,
+			 (tree->flags & DIRTREE_DIR) ? "/ " : " ", tree->icon,
+			 tree->order, tree->base_order, tree->flags);
 	for (t = tree->child; t != NULL; t = t->next)
 		dirtree_print_tree (t, depth + 1);
 }
 
+#if 0
 void
 dirtree_print_tree_from_dir (const char *dir)
 {
