@@ -38,8 +38,27 @@
 void decode_image_scanline_normal( ASImageDecoder *imdec );
 void decode_image_scanline_beveled( ASImageDecoder *imdec );
 
-void encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store );
+Bool create_image_xim( ASVisual *asv, ASImage *im, ASAltImFormats format );
+Bool create_image_argb32( ASVisual *asv, ASImage *im, ASAltImFormats format );
+
 void encode_image_scanline_asim( ASImageOutput *imout, ASScanline *to_store );
+void encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store );
+void encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store );
+void encode_image_scanline_argb32( ASImageOutput *imout, ASScanline *to_store );
+
+static struct ASImageFormatHandlers
+{
+	Bool (*check_create_asim_format)( ASVisual *asv, ASImage *im, ASAltImFormats format );
+	void (*encode_image_scanline)( ASImageOutput *imout, ASScanline *to_store );
+}asimage_format_handlers[ASA_Formats] =
+{
+	{ NULL, encode_image_scanline_asim },
+	{ create_image_xim, encode_image_scanline_xim },
+	{ create_image_xim, encode_image_scanline_mask_xim },
+	{ create_image_argb32, encode_image_scanline_argb32 }
+};
+
+
 
 void output_image_line_top( ASImageOutput *, ASScanline *, int );
 void output_image_line_fine( ASImageOutput *, ASScanline *, int );
@@ -117,8 +136,12 @@ asimage_init (ASImage * im, Bool free_resources)
 				free(im->red);
 			if (im->buffer)
 				free (im->buffer);
-			if( im->ximage )
-				XDestroyImage( im->ximage );
+			if( im->alt.ximage )
+				XDestroyImage( im->alt.ximage );
+			if( im->alt.mask_ximage )
+				XDestroyImage( im->alt.mask_ximage );
+			if( im->alt.argb32 )
+				free( im->alt.argb32 );
 		}
 		memset (im, 0x00, sizeof (ASImage));
 	}
@@ -156,16 +179,16 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 	}
 }
 
-void 
+void
 move_asimage_channel( ASImage *dst, ASImage *src, int channel )
 {
 	if( dst && src && channel >= 0 && channel < IC_NUM_CHANNELS )
-		if( dst->width == src->width ) 
+		if( dst->width == src->width )
 		{
 			int i = MIN(dst->height, src->height);
-			while( --i >= 0 ) 
+			while( --i >= 0 )
 			{
-				dst->channels[channel][i] = src->channels[channel][i] ;	
+				dst->channels[channel][i] = src->channels[channel][i] ;
 				src->channels[channel][i] = NULL ;
 			}
 		}
@@ -174,7 +197,7 @@ move_asimage_channel( ASImage *dst, ASImage *src, int channel )
 ASImage *
 create_asimage( unsigned int width, unsigned int height, unsigned int compression)
 {
-	ASImage *im = safecalloc( 1, sizeof( ASImage *) );
+	ASImage *im = safecalloc( 1, sizeof(ASImage) );
 	asimage_start( im, width, height, compression );
 	return im;
 }
@@ -191,17 +214,34 @@ destroy_asimage( ASImage **im )
 		}
 }
 
+Bool create_image_xim( ASVisual *asv, ASImage *im, ASAltImFormats format )
+{
+	XImage **dst = (format == ASA_MaskXImage )? &(im->alt.mask_ximage):&(im->alt.ximage);
+	if( *dst == NULL )
+		if( (*dst = create_visual_ximage( asv, im->width, im->height, (format == ASA_MaskXImage )?1:0 )) == NULL )
+			show_error( "Unable to create %sXImage for the visual %d",
+				        (format == ASA_MaskXImage )?"mask ":"",
+						asv->visual_info.visualid );
+	return ( *dst != NULL );
+}
+
+Bool create_image_argb32( ASVisual *asv, ASImage *im, ASAltImFormats format )
+{
+	if( im->alt.argb32 == NULL )
+		im->alt.argb32 = safemalloc( im->width*im->height*sizeof(ARGB32) );
+	return True;
+}
 
 /* ******************** ASImageDecoder ****************************/
 ASImageDecoder *
 start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
-					  int offset_x, int offset_y, 
-					  unsigned int out_width, 
-					  unsigned int out_height, 
+					  int offset_x, int offset_y,
+					  unsigned int out_width,
+					  unsigned int out_height,
 					  ASImageBevel *bevel )
 {
 	ASImageDecoder *imdec = NULL;
-	unsigned int bevel_addon = 0;
+
 	if( im == NULL || filter == 0 || asv == NULL )
 		return NULL;
 
@@ -247,7 +287,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 		imdec->decode_image_scanline = decode_image_scanline_normal ;
 
 
-	prepare_scanline(out_width+bevel_addon, 0, &(imdec->buffer), asv->BGR_mode );
+	prepare_scanline(out_width+imdec->bevel_h_addon, 0, &(imdec->buffer), asv->BGR_mode );
 
 	return imdec;
 }
@@ -265,32 +305,26 @@ stop_image_decoding( ASImageDecoder **pimdec )
 }
 
 /* ******************** ASImageOutput ****************************/
+
 ASImageOutput *
-start_image_output( ASVisual *asv, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality )
+start_image_output( ASVisual *asv, ASImage *im, ASAltImFormats format,
+                    int shift, int quality )
 {
 	register ASImageOutput *imout= NULL;
 
-	if( im == NULL || asv == NULL)
+	if( im == NULL || asv == NULL || format < 0 || format >= ASA_Formats)
 		return imout;
-	if( xim == NULL )
-		xim = im->ximage ;
-	if( to_xim && xim == NULL )
-		return imout;
+
+	if( asimage_format_handlers[format].check_create_asim_format )
+		if( !asimage_format_handlers[format].check_create_asim_format(asv, im, format) )
+			return NULL;
+
 	imout = safecalloc( 1, sizeof(ASImageOutput));
 	imout->asv = asv;
 	imout->im = im ;
-	imout->to_xim = to_xim ;
-	imout->encode_image_scanline = (to_xim)?encode_image_scanline_xim:
-										   encode_image_scanline_asim;
 
-	imout->xim = xim ;
-	if( xim )
-	{
-		imout->height = xim->height;
-		imout->bpl 	  = xim->bytes_per_line;
-		imout->xim_line = xim->data;
-	}else
-		imout->height = im->height;
+	imout->out_format = format ;
+	imout->encode_image_scanline = asimage_format_handlers[format].encode_image_scanline;
 
 	prepare_scanline( im->width, 0, &(imout->buffer[0]), asv->BGR_mode);
 	prepare_scanline( im->width, 0, &(imout->buffer[1]), asv->BGR_mode);
@@ -304,6 +338,7 @@ start_image_output( ASVisual *asv, ASImage *im, XImage *xim, Bool to_xim, int sh
 	imout->used 	 = NULL;
 	imout->buffer_shift = shift;
 	imout->next_line = 0 ;
+	imout->bottom_to_top = 1 ;
 	if( quality > ASIMAGE_QUALITY_TOP || quality < ASIMAGE_QUALITY_POOR )
 		quality = asimage_quality_level;
 
@@ -344,21 +379,16 @@ void toggle_image_output_direction( ASImageOutput *imout )
 {
 	if( imout )
 	{
-		if( imout->bottom_to_top )
+		if( imout->bottom_to_top < 0 )
 		{
-			if( imout->next_line >= imout->height-1 )
-			{
+			if( imout->next_line >= imout->im->height-1 )
 				imout->next_line = 0 ;
-				if( imout->to_xim )
-					imout->xim_line = imout->xim->data;
-			}
+			imout->bottom_to_top = 1 ;
 		}else if( imout->next_line <= 0 )
 		{
-		 	imout->next_line = imout->height-1 ;
-			if( imout->to_xim )
-				imout->xim_line = imout->xim->data+(imout->next_line*imout->bpl);
+		 	imout->next_line = imout->im->height-1 ;
+			imout->bottom_to_top = -1 ;
 		}
-		imout->bottom_to_top = !imout->bottom_to_top ;
 	}
 }
 
@@ -1675,7 +1705,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 {
 	size_t   			 count ;
 	register ASScanline *scl = &(imdec->buffer);
-	int 	 			 y = imdec->next_line%imdec->out_height;
+	int 	 			 y = imdec->next_line;
 	register ASImageBevel *bevel = imdec->bevel ;
 	ARGB32 bevel_color = bevel->hi_color, shade_color = bevel->lo_color;
 	ARGB32 hilo_corner_color = bevel->hilo_color, corner_color = bevel->hihi_color;
@@ -1683,17 +1713,18 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 	int offset_shade = 0, corner = 0;
 	int channel;
 
-	if( y >= imdec->out_height-bevel->bottom_outline )
+	if( y < bevel->top_outline )
 	{
-		offset_shade = imdec->out_height-y ;
+		offset_shade = scl->width - (y*bevel->right_outline)/bevel->top_outline;
+		corner = y ;
+	}else if( y >= imdec->out_height+bevel->top_outline &&
+		      y < imdec->out_height+imdec->bevel_v_addon)
+	{
+		offset_shade = corner = (imdec->out_height+imdec->bevel_v_addon)-y ;
 		if( bevel->left_outline != bevel->bottom_outline )
 			offset_shade = (offset_shade*bevel->left_outline)/bevel->bottom_outline;
 		corner_color = bevel->lolo_color ;
 		corner = scl->width-corner ;
-	}else if( y < bevel->top_outline )
-	{
-		offset_shade = scl->width - (y*bevel->right_outline)/bevel->top_outline;
-		corner = y ;
 	}else
 		partial_bevel = True ;
 
@@ -1709,7 +1740,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 				scl->channels[channel][offset_shade-1] = ARGB32_CHAN8(hilo_corner_color,channel)<<scl->shift ;
 				scl->channels[channel][corner] = ARGB32_CHAN8(corner_color,channel)<<scl->shift ;
 			}
-		if( y == 0 || y == imdec->out_height-1 )
+		if( y == 0 || y == imdec->out_height+bevel->top_outline-1 )
 			scl->alpha[0] = scl->alpha[scl->width-1] = MIN(scl->alpha[0],0x5F<<scl->shift);
 
 		set_flags( scl->flags,imdec->filter);
@@ -1718,11 +1749,10 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 		int width = scl->width-imdec->bevel_h_addon ;
 		CARD32 a_bevel = ARGB32_ALPHA8(bevel_color), a_shade = ARGB32_ALPHA8(shade_color);
 	    CARD32 da_bevel = a_bevel/(bevel->left_inline+1), da_shade = a_shade/(bevel->right_inline+1) ;
-		int inline_bottom = imdec->out_height - (imdec->bevel_v_addon + bevel->bottom_inline);
+		int inline_bottom = imdec->out_height - bevel->bottom_inline;
 
 		y -= bevel->top_outline ;
 		offset_shade = scl->width-bevel->right_outline ;
-fprintf( stderr, "y == %d, inline_bottom = %d, out_height = %d\n" , y, inline_bottom, imdec->out_height );
 		for( channel = 0 ; channel < ARGB32_CHANNELS ; ++channel )
 			if( get_flags(imdec->filter, (0x01<<channel)) )
 			{
@@ -1732,7 +1762,7 @@ fprintf( stderr, "y == %d, inline_bottom = %d, out_height = %d\n" , y, inline_bo
 				CARD32 chan_shade = ARGB32_CHAN8(shade_color,channel)<<scl->shift ;
 
 				set_component( scl->channels[channel], chan_bevel, 0, bevel->left_outline );
-				if( (count = asimage_decode_line(imdec->im,channel, chan_img_start, y, imdec->offset_x, width)) < width)
+				if( (count = asimage_decode_line(imdec->im,channel, chan_img_start, imdec->next_line%imdec->im->height, imdec->offset_x, width)) < width)
 					set_component( chan_img_start, ARGB32_CHAN8(imdec->back_color,channel)<<scl->shift, count, width );
 				set_component( scl->channels[channel], chan_shade, offset_shade, scl->width );
 				for( i = 0 ; i < bevel->left_inline ; i++ )
@@ -1768,50 +1798,59 @@ fprintf( stderr, "y == %d, inline_bottom = %d, out_height = %d\n" , y, inline_bo
 }
 /* *********************************************************************/
 /*						  ENCODER : 								  */
+inline static void
+tile_ximage_line( XImage *xim, unsigned int line, int step )
+{
+	register int i ;
+	int xim_step = step*xim->bytes_per_line ;
+	unsigned char *src_line = xim->data+xim->bytes_per_line*line ;
+	unsigned char *dst_line = src_line+xim_step ;
+	for( i = line+step ; i < xim->height && i >= 0 ; i+=step )
+	{
+		memcpy( dst_line, src_line, xim->bytes_per_line );
+		dst_line += xim_step ;
+	}
+}
+
+void
+encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
+{
+	register XImage *xim = imout->im->alt.mask_ximage ;
+	if( imout->next_line < xim->height && imout->next_line >= 0 )
+	{
+		if( get_flags(to_store->flags, SCL_DO_ALPHA) )
+		{
+			register int x ;
+			for ( x = MIN(xim->width, to_store->width)-1 ; x >= 0 ; --x )
+				XPutPixel( xim, x, imout->next_line,
+				           (to_store->alpha[x] >= 0x7F)?1:0 );
+		}
+		if( imout->tiling_step > 0 )
+			tile_ximage_line( xim, imout->next_line,
+			                  imout->bottom_to_top*imout->tiling_step );
+		imout->next_line += imout->bottom_to_top;
+	}
+}
+
 void
 encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 {
-	if( imout->next_line < imout->xim->height && imout->next_line >= 0 )
+	register XImage *xim = imout->im->alt.ximage ;
+	if( imout->next_line < xim->height && imout->next_line >= 0 )
 	{
-		if( imout->xim->depth == 1 )
-		{
-			if( get_flags(to_store->flags, SCL_DO_ALPHA) )
-			{
-				register int x ;
-				for ( x = MIN(imout->xim->width, to_store->width)-1 ; x >= 0 ; --x )
-					XPutPixel( imout->xim, x, imout->next_line, (to_store->alpha[x] >= 0x7F)?1:0 );
-			}
-		}else
-		{
-			if( !get_flags(to_store->flags, SCL_DO_RED) )
-				set_component( to_store->red  , ARGB32_RED8(to_store->back_color), 0, to_store->width );
-			if( !get_flags(to_store->flags, SCL_DO_GREEN) )
-				set_component( to_store->green, ARGB32_GREEN8(to_store->back_color), 0, to_store->width );
-			if( !get_flags(to_store->flags, SCL_DO_BLUE) )
-				set_component( to_store->blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
-			PUT_SCANLINE(imout->asv, imout->xim,to_store,imout->next_line,imout->xim_line);
-		}
+		if( !get_flags(to_store->flags, SCL_DO_RED) )
+			set_component( to_store->red, ARGB32_RED8(to_store->back_color), 0, to_store->width );
+		if( !get_flags(to_store->flags, SCL_DO_GREEN) )
+			set_component( to_store->green, ARGB32_GREEN8(to_store->back_color), 0, to_store->width );
+		if( !get_flags(to_store->flags, SCL_DO_BLUE) )
+			set_component( to_store->blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
+		PUT_SCANLINE(imout->asv, xim,to_store,imout->next_line,
+			         xim->data+imout->next_line*xim->bytes_per_line);
+
 		if( imout->tiling_step > 0 )
-		{
-			register int i ;
-			int step = ( imout->bottom_to_top )? -imout->tiling_step : imout->tiling_step ;
-			int xim_step = step*imout->bpl ;
-			unsigned char *xim_line = imout->xim_line+xim_step ;
-			for( i = imout->next_line+step ; i < imout->height && i >= 0 ; i+=step )
-			{
-				memcpy( xim_line, imout->xim_line, imout->bpl );
-				xim_line += xim_step ;
-			}
-		}
-		if( imout->bottom_to_top )
-		{
-			imout->xim_line -= imout->bpl;
-			--(imout->next_line);
-		}else
-		{
-			imout->xim_line += imout->bpl;
-			++(imout->next_line);
-		}
+			tile_ximage_line( imout->im->alt.ximage, imout->next_line,
+			                  imout->bottom_to_top*imout->tiling_step );
+		imout->next_line += imout->bottom_to_top;
 	}
 }
 
@@ -1831,7 +1870,7 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 			int bytes_count ;
 			register int i, color ;
 			int max_i = imout->im->height ;
-			int step = (imout->bottom_to_top)?-imout->tiling_step:imout->tiling_step;
+			int step =  imout->bottom_to_top*imout->tiling_step;
 
 			for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
 			{
@@ -1864,8 +1903,57 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 					asimage_erase_line( imout->im, color, imout->next_line );
 		}
 	}
-	imout->next_line += imout->bottom_to_top?-1:1;
+	imout->next_line += imout->bottom_to_top;
 }
+
+inline static void
+tile_argb32_line( ARGB32 *data, unsigned int line, int step, unsigned int width, unsigned int height )
+{
+	register int i ;
+	ARGB32 *src_line = data+width*line ;
+	ARGB32 *dst_line = src_line+width ;
+
+	for( i = line+step ; i < height && i >= 0 ; i+=step )
+	{
+		memcpy( dst_line, src_line, width*sizeof(ARGB32));
+		dst_line += step;
+	}
+}
+
+void
+encode_image_scanline_argb32( ASImageOutput *imout, ASScanline *to_store )
+{
+	register ARGB32 *data = imout->im->alt.argb32 ;
+	if( imout->next_line < imout->im->height && imout->next_line >= 0 )
+	{
+		register int x = imout->im->width;
+		register CARD32 *alpha = to_store->alpha ;
+		register CARD32 *red = to_store->red ;
+		register CARD32 *green = to_store->green ;
+		register CARD32 *blue = to_store->blue ;
+		if( !get_flags(to_store->flags, SCL_DO_RED) )
+			set_component( red, ARGB32_RED8(to_store->back_color), 0, to_store->width );
+		if( !get_flags(to_store->flags, SCL_DO_GREEN) )
+			set_component( green, ARGB32_GREEN8(to_store->back_color), 0, to_store->width );
+		if( !get_flags(to_store->flags, SCL_DO_BLUE) )
+			set_component( blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
+
+		data += x*imout->next_line ;
+		if( !get_flags(to_store->flags, SCL_DO_ALPHA) )
+			while( --x >= 0 )
+				data[x] = MAKE_ARGB32( 0xFF, red[x], green[x], blue[x] );
+		else
+			while( --x >= 0 )
+				data[x] = MAKE_ARGB32( alpha[x], red[x], green[x], blue[x] );
+
+		if( imout->tiling_step > 0 )
+			tile_argb32_line( imout->im->alt.argb32, imout->next_line,
+			                  imout->bottom_to_top*imout->tiling_step,
+							  imout->im->width, imout->im->height );
+		imout->next_line += imout->bottom_to_top;
+	}
+}
+
 
 void
 output_image_line_top( ASImageOutput *imout, ASScanline *new_line, int ratio )
@@ -2148,31 +2236,21 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
 /* *****************************************************************************/
 ASImage *
 scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int to_height,
-			   Bool to_xim, unsigned int compression_out, int quality )
+			   ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
 	ASImageOutput  *imout ;
 	ASImageDecoder *imdec;
 	int h_ratio ;
 	int *scales_h = NULL, *scales_v = NULL;
-
+#ifdef DO_CLOCKING
+	time_t started = clock ();
+#endif
 	if( !check_scale_parameters(src,&to_width,&to_height) )
 		return NULL;
-
 	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, 0, 0, NULL)) == NULL )
 		return NULL;
-
-	dst = safecalloc(1, sizeof(ASImage));
-	asimage_start (dst, to_width, to_height, compression_out);
-	if( to_xim )
-		if( (dst->ximage = create_visual_ximage( asv, to_width, to_height, 0 )) == NULL )
-		{
-			show_error( "Unable to create XImage for the visual %d", asv->visual_info.visualid );
-			asimage_init(dst, True);
-			free( dst );
-			stop_image_decoding( &imdec );
-			return NULL ;
-		}
+	dst = create_asimage(to_width, to_height, compression_out);
 	if( to_width == src->width )
 		h_ratio = 0;
 	else if( to_width < src->width )
@@ -2184,10 +2262,8 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 			h_ratio++ ;
 	}else
 		h_ratio = to_width ;
-
 	scales_h = make_scales( src->width, to_width );
 	scales_v = make_scales( src->height, to_height );
-
 #ifdef LOCAL_DEBUG
 	{
 	  register int i ;
@@ -2202,7 +2278,7 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
-	if((imout = start_image_output( asv, dst, dst->ximage, to_xim, QUANT_ERR_BITS, quality )) == NULL )
+	if((imout = start_image_output( asv, dst, out_format, QUANT_ERR_BITS, quality )) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
@@ -2221,6 +2297,9 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 	free( scales_h );
 	free( scales_v );
 	stop_image_decoding( &imdec );
+#ifdef DO_CLOCKING
+	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
+#endif
 	return dst;
 }
 
@@ -2230,30 +2309,25 @@ tile_asimage( ASVisual *asv, ASImage *src,
 			  unsigned int to_width,
 			  unsigned int to_height,
 			  ARGB32 tint,
-			  Bool to_xim, unsigned int compression_out, int quality )
+			  ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
 	ASImageDecoder *imdec ;
 	ASImageOutput  *imout ;
+#ifdef DO_CLOCKING
+	time_t started = clock ();
+#endif
+
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
 	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 		return NULL;
 
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height, compression_out);
-	if( to_xim )
-		if( (dst->ximage = create_visual_ximage( asv, to_width, to_height, 0 )) == NULL )
-		{
-			show_error( "Unable to create XImage for the visual %d", asv->visual_info.visualid );
-			asimage_init(dst, True);
-			free( dst );
-			stop_image_decoding( &imdec );
-			return NULL ;
-		}
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
-	if((imout = start_image_output( asv, dst, dst->ximage, to_xim, (tint!=0)?8:0, quality)) == NULL )
+	if((imout = start_image_output( asv, dst, out_format, (tint!=0)?8:0, quality)) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
@@ -2290,6 +2364,9 @@ LOCAL_DEBUG_OUT("tiling actually...%s", "");
 	mmx_off();
 #endif
 	stop_image_decoding( &imdec );
+#ifdef DO_CLOCKING
+	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
+#endif
 	return dst;
 }
 
@@ -2298,7 +2375,7 @@ merge_layers( ASVisual *asv,
 				ASImageLayer *layers, int count,
 			  	unsigned int dst_width,
 			  	unsigned int dst_height,
-			  	Bool to_xim, unsigned int compression_out, int quality )
+			  	ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
 	ASImageDecoder **imdecs ;
@@ -2312,14 +2389,6 @@ merge_layers( ASVisual *asv,
 LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height );
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, dst_width, dst_height, compression_out);
-	if( to_xim )
-		if( (dst->ximage = create_visual_ximage( asv, dst_width, dst_height, 0 )) == NULL )
-		{
-			show_error( "Unable to create XImage for the visual %d", asv->visual_info.visualid );
-			asimage_init(dst, True);
-			free( dst );
-			return NULL ;
-		}
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &tmp_line, asv->BGR_mode );
 	dst_line.flags = SCL_DO_ALL ;
@@ -2336,7 +2405,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	mmx_init();
 #endif
 
-	if((imout = start_image_output( asv, dst, dst->ximage, to_xim, QUANT_ERR_BITS, quality)) == NULL )
+	if((imout = start_image_output( asv, dst, out_format, QUANT_ERR_BITS, quality)) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
@@ -2398,7 +2467,7 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 	free_scanline( &tmp_line, True );
 	free_scanline( &dst_line, True );
 #ifdef DO_CLOCKING
-	fprintf (stderr, "merge_layers time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
+	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
 #endif
 	return dst;
 }
@@ -2419,7 +2488,7 @@ make_gradient_left2right( ASImageOutput *imout, ASScanline *dither_lines, int di
 static void
 make_gradient_top2bottom( ASImageOutput *imout, ASScanline *dither_lines, int dither_lines_num, ASFlagType filter )
 {
-	int y, height = imout->height, width = imout->im->width ;
+	int y, height = imout->im->height, width = imout->im->width ;
 	int line ;
 	ASScanline result;
 	CARD32 chan_data[MAX_GRADIENT_DITHER_LINES] = {0,0,0,0};
@@ -2580,11 +2649,14 @@ make_gradient_diag_height( ASImageOutput *imout, ASScanline *dither_lines, int d
 ASImage*
 make_gradient( ASVisual *asv, ASGradient *grad,
                unsigned int width, unsigned int height, ASFlagType filter,
-  			   Bool to_xim, unsigned int compression_out, int quality  )
+  			   ASAltImFormats out_format, unsigned int compression_out, int quality  )
 {
 	ASImage *im = NULL ;
 	ASImageOutput *imout;
 	int line_len = width;
+#ifdef DO_CLOCKING
+	time_t started = clock ();
+#endif
 
 	if( asv == NULL || grad == NULL )
 		return NULL;
@@ -2594,19 +2666,11 @@ make_gradient( ASVisual *asv, ASGradient *grad,
 		height = 2;
 	im = safecalloc( 1, sizeof(ASImage) );
 	asimage_start (im, width, height, compression_out);
-	if( to_xim )
-		if( (im->ximage = create_visual_ximage( asv, width, height, 0 )) == NULL )
-		{
-			show_error( "Unable to create XImage for the visual %d", asv->visual_info.visualid );
-			asimage_init(im, True);
-			free( im );
-			return NULL ;
-		}
 	if( get_flags(grad->type,GRADIENT_TYPE_ORIENTATION) )
 		line_len = height ;
 	if( get_flags(grad->type,GRADIENT_TYPE_DIAG) )
 		line_len = MAX(width,height)<<1 ;
-	if((imout = start_image_output( asv, im, im->ximage, to_xim, QUANT_ERR_BITS, quality)) == NULL )
+	if((imout = start_image_output( asv, im, out_format, QUANT_ERR_BITS, quality)) == NULL )
 	{
 		asimage_init(im, True);
 		free( im );
@@ -2652,6 +2716,9 @@ make_gradient( ASVisual *asv, ASGradient *grad,
 			free_scanline( &(lines[line]), True );
 		free( lines );
 	}
+#ifdef DO_CLOCKING
+	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
+#endif
 	return im;
 }
 
@@ -2664,11 +2731,14 @@ flip_asimage( ASVisual *asv, ASImage *src,
 			  unsigned int to_width,
 			  unsigned int to_height,
 			  int flip,
-			  Bool to_xim, unsigned int compression_out, int quality )
+			  ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
 	ASImageOutput  *imout ;
 	ASFlagType filter = SCL_DO_ALL;
+#ifdef DO_CLOCKING
+	time_t started = clock ();
+#endif
 
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
 	if( src )
@@ -2684,18 +2754,10 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
  */
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height, compression_out);
-	if( to_xim )
-		if( (dst->ximage = create_visual_ximage( asv, to_width, to_height, 0 )) == NULL )
-		{
-			show_error( "Unable to create XImage for the visual %d", asv->visual_info.visualid );
-			asimage_init(dst, True);
-			free( dst );
-			return NULL ;
-		}
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
-	if((imout = start_image_output( asv, dst, dst->ximage, to_xim, 0, quality)) == NULL )
+	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
@@ -2707,8 +2769,8 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		int y;
 LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 		prepare_scanline( to_width, 0, &result, asv->BGR_mode );
-		if( (imdec = start_image_decoding(asv, src, filter, offset_x, offset_y, 
-		                                  get_flags( flip, FLIP_VERTICAL )?to_height:to_width, 
+		if( (imdec = start_image_decoding(asv, src, filter, offset_x, offset_y,
+		                                  get_flags( flip, FLIP_VERTICAL )?to_height:to_width,
 										  get_flags( flip, FLIP_VERTICAL )?to_width:to_height, NULL)) != NULL )
 		{
 			if( get_flags( flip, FLIP_VERTICAL ) )
@@ -2789,9 +2851,10 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 #ifdef HAVE_MMX
 	mmx_off();
 #endif
+#ifdef DO_CLOCKING
+	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
+#endif
 	return dst;
-
-
 }
 
 /* ***************************************************************************/
@@ -2856,12 +2919,10 @@ asimage2ximage (ASVisual *asv, ASImage *im)
 
 	if (im == NULL)
 		return xim;
-
-	xim = create_visual_ximage( asv, im->width, im->height, 0 );
-	if( (imout = start_image_output( asv, im, xim, True, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
+	if( (imout = start_image_output( asv, im, ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
 		return xim;
-
-	prepare_scanline( xim->width, 0, &xim_buf, asv->BGR_mode );
+	xim = im->alt.ximage ;
+	prepare_scanline( im->width, 0, &xim_buf, asv->BGR_mode );
 #ifdef DO_CLOCKING
 	started = clock ();
 #endif
@@ -2896,10 +2957,9 @@ asimage2mask_ximage (ASVisual *asv, ASImage *im)
 	if (im == NULL)
 		return xim;
 
-	xim = create_visual_ximage( asv, im->width, im->height, 1 );
-	if( (imout = start_image_output( asv, im, xim, True, 0, ASIMAGE_QUALITY_POOR )) == NULL )
+	if( (imout = start_image_output( asv, im, ASA_MaskXImage, 0, ASIMAGE_QUALITY_POOR )) == NULL )
 		return xim;
-
+	xim = im->alt.mask_ximage ;
 	prepare_scanline( xim->width, 0, &xim_buf, asv->BGR_mode );
 	xim_buf.flags = SCL_DO_ALPHA ;
 	for (i = 0; i < im->height; i++)
@@ -2924,7 +2984,7 @@ pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsign
 	{
 		im = ximage2asimage (asv, xim, compression);
 		if( keep_cache )
-			im->ximage = xim ;
+			im->alt.ximage = xim ;
 		else
 			XDestroyImage (xim);
 	}
@@ -2938,7 +2998,7 @@ asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 	Pixmap        p = None;
 	GC 			  my_gc = gc ;
 
-	if ( !use_cached || im->ximage == NULL )
+	if ( !use_cached || im->alt.ximage == NULL )
 	{
 		if( (xim = asimage2ximage( asv, im )) == NULL )
 		{
@@ -2946,7 +3006,7 @@ asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 			return None ;
 		}
 	}else
-		xim = im->ximage ;
+		xim = im->alt.ximage ;
 	if (xim != NULL )
 	{
 		p = create_visual_pixmap( asv, root, xim->width, xim->height, 0 );
@@ -2958,7 +3018,7 @@ asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 		XPutImage( asv->dpy, p, my_gc, xim, 0, 0, 0, 0, xim->width, xim->height );
 		if( my_gc != gc )
 			XFreeGC( asv->dpy, my_gc );
-		if( xim != im->ximage )
+		if( xim != im->alt.ximage )
 			XDestroyImage (xim);
 	}
 	return p;
@@ -2971,11 +3031,15 @@ asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 	Pixmap        mask = None;
 	GC 			  my_gc = gc ;
 
-	if( (xim = asimage2mask_ximage( asv, im )) == NULL )
+	if ( !use_cached || im->alt.mask_ximage == NULL )
 	{
-		show_error("cannot export image's mask into XImage.");
-		return None ;
-	}
+		if( (xim = asimage2mask_ximage( asv, im )) == NULL )
+		{
+			show_error("cannot export image's mask into XImage.");
+			return None ;
+		}
+	}else
+		xim = im->alt.mask_ximage ;
 	mask = create_visual_pixmap( asv, root, xim->width, xim->height, 1 );
 	if( my_gc == NULL )
 	{
@@ -2985,7 +3049,8 @@ asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 	XPutImage( asv->dpy, mask, my_gc, xim, 0, 0, 0, 0, xim->width, xim->height );
 	if( my_gc != gc )
 		XFreeGC( asv->dpy, my_gc );
-	XDestroyImage (xim);
+	if( xim != im->alt.mask_ximage )
+		XDestroyImage (xim);
 	return mask;
 }
 

@@ -690,7 +690,7 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 
 	/* Step 6: while (scan lines remain to be read) */
 #ifdef DO_CLOCKING
-		printf (" loading initialization time (clocks): %lu\n", clock () - started);
+	fprintf (stderr, "loading initialization time (clocks): %lu\n", clock () - started);
 #endif
 	y = -1 ;
 	/*cinfo.output_scanline*/
@@ -719,7 +719,7 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 	}
 	free_scanline(&buf, True);
 #ifdef DO_CLOCKING
-		printf ("\n read time (clocks): %lu\n", clock () - started);
+	fprintf (stderr, "\n read time (clocks): %lu\n", clock () - started);
 #endif
 
 	/* Step 7: Finish decompression */
@@ -744,8 +744,9 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 	 * warnings occurred (test whether jerr.pub.num_warnings is nonzero).
 	 */
 #ifdef DO_CLOCKING
-	printf ("\n image loading time (clocks): %lu\n", clock () - started);
+	fprintf (stderr, "image loading time (clocks): %lu\n", clock () - started);
 #endif
+	LOCAL_DEBUG_OUT("done loading JPEG image \"%s\"", path);
 	return im ;
 }
 #else 			/* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
