@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2000 Andrew Ferguson <andrew@owsla.cjb.net>
  * Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -570,7 +571,7 @@ option_hash_value (ASHashableValue value, ASHashKey hash_size)
 
 	{
 		c = *(opt++);
-		if (c == '\0' || !(isalnum (c) || c == '~'))
+		if (c == '\0' || !(isalnum (c) || ispunct(c)))
 			break;
 		if (isupper (c))
 			c = tolower (c);
@@ -591,7 +592,7 @@ option_compare (ASHashableValue value1, ASHashableValue value2)
 		return -1;
 	if (str2 == NULL)
 		return 1;
-	while ((*str1 && isalnum (*str1)) || (*str2 && isalnum (*str2)))
+	while ((*str1 && (isalnum (*str1) || ispunct (*str1))) || (*str2 && (isalnum (*str2) || ispunct (*str2))))
 	{
 		char          u1, u2;
 
