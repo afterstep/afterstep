@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
 		ASImage *text_im ;
 		ASImage *rendered_im ;
 		ASImageLayer layers[2] ;
-		ASImageBevel bevel = {0/*BEVEL_SOLID_INLINE*/, 0xFFDDDDDD, 0xFF555555, 0xFFFFFFFF, 0xFF777777, 0xFF444444,
+		ASImageBevel bevel = {0/*BEVEL_SOLID_INLINE*/, 0xFFDDDDDD, 0xFF555555, 0xFFFFFFFF, 0xFF777777, 0xFF222222,
 		                      BEVEL_HI_WIDTH, BEVEL_HI_WIDTH,
 							  BEVEL_LO_WIDTH, BEVEL_LO_WIDTH,
 							  BEVEL_HI_WIDTH, BEVEL_HI_WIDTH,
