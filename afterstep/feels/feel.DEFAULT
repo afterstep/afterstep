@@ -72,8 +72,8 @@ OpaqueResize 100
 EdgeScroll 100 100
 #
 # To avoid unwanted moving, edges resist during N ms
-EdgeResistance 800 80
-#
+#EdgeResistance 800 80
+EdgeResistance 800 4
 
 ###########################################################################
 # Initial Placement of the windows
