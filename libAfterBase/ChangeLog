@@ -1,4 +1,268 @@
 
+2004-11-30  sasha
+
+	* added a configure option --disable-data-reinstall just for MG_Tak
+	  - it prevents image, font files from being copied over existing
+	  ones, and prevents HTML catalogue from being generated;
+
+2004-11-23  sasha
+
+	* updated version to 2.00.01
+	* fixed possible segfault in data HTML cataloguing code
+
+2004-11-15  sasha
+
+	* changed Pager invocation in start menu to use desktop number
+	  specifyed to configure script
+
+2004-11-02  sasha
+
+	* Fixed bug in frame handling to get north side of the frame to
+	  show up, even when NoTitle is requested
+
+2004-10-18  sasha
+
+	* added indexing in function to try and prevent functions with name
+	  signifying urgency from being eleminated as duplicates
+
+2004-10-14  sasha
+
+	* possibly resolved problem with ASDocGen not being run when
+	  compiled with shared libraries
+
+2004-10-13  sasha
+
+	*  implemented most of the menu parsing into property list
+
+2004-09-27  sasha
+
+	* changed versions to 2.00 and 1.00 for libraries
+
+2004-09-24  sasha
+
+	* fixed button ungrabbing on windows withdrawing that was causing
+	  wierd BadAccess errors in Wharf
+
+2004-09-22  sasha
+
+	* some performance optimization based on gprof stats, as well as
+	  memory leak cleanups
+
+2004-09-21  sasha
+
+	* added mandatory -O3 in libAfterImage and libAfterBase improving
+	  performance significantly;
+
+2004-09-17  sasha
+
+	* Fixed property type for WM supporting check property -
+	  implemented setting client list property
+
+2004-08-30  sasha
+
+	* updated configure scripts
+
+2004-08-24  sasha
+
+	* more WinList performance tweaking and afterstep even handling
+	* Implemented memory debugging for buffer underruns with
+	  --enable-audit under win32; Found memory corruption caused by
+	  merging image of size 0, which fixes segmentation Fault in
+	  WinList
+
+2004-08-16  sasha
+
+	* Changed version number to beta5, Changed AfterStep.spec to be
+	  updated automagically with proper version number; Updated
+	  afterstepdoc script to select web browser from mozilla, firefox,
+	  konq, opera, netscape
+
+2004-08-12  sasha
+
+	* fixes to docs to format properly into PHP. Fixes to AsDocGen to
+	  have nice indexes and proper references from devel docs to user
+	  and back
+
+2004-07-29  sasha
+
+	* debugging the size of AS menus; added storage printing function
+
+2004-07-23  sasha
+
+	* completed implementation of ASStorage, including compression
+	  scheme for bitmapped data
+
+2004-07-14  sasha
+
+	* completed debugging and implementing asstorage
+
+2004-07-13  sasha
+
+	* Fixed guarded memory handlinbg for blocks of whole number of
+	  pages; Debugged some of the aspects of ASStorage memory handling
+	  - must implement defragmentation now
+
+2004-07-01  sasha
+
+	* fixed flush_ashash, to properly clear members
+	* fixed segfault in ASDocGen index generation and possibly fixed
+	  bug in flush_ashash
+
+2004-06-10  sasha
+
+	* added new totals to audit memory printing
+	* added xml tag <release> so that temporary images could be unload
+	  to free up some memory
+
+2004-06-08  sasha
+
+	* Fixed race condition with modules using LOCKONSEND and display
+	  being grabbed
+
+2004-05-20  sasha
+
+	* Implemented new feature allowing changing order of items in
+	  titlebar - LeftTitlebarLayout and RightTitlebarLayout in MyFrame;
+	  Fixed bug in place_aswindow where it would never default onto
+	  manuall placement causing big windows to be silently killed
+	  without displaying them; Fixed bug in custom colors cleanup code
+	  to not treat color values as pointers; Updated docs and xml image
+	  docs in particular from patch submitted by ma.darche@cynode.org;
+	  Added Audio config to libAfterConf, and copied Audio.c from
+	  experimental branch, in order to convert it to 2.0
+
+2004-05-17  sasha
+
+	* cleaned up C++ comments
+
+2004-05-12  sasha
+
+	* updated configure scripts and partly fixed freetype autodetection
+	  for debian - still need ft2build adding to freetype.h detection
+	  code
+	* implemented fast(er) desktop switching by caching background
+	  pixmaps - there are some quirks that needs to be ironed out still
+
+2004-05-11  sasha
+
+	* Implemented memory debugging under cygwin and fixed discovered
+	  bug in MyStyle parsing
+
+2004-05-10  sasha
+
+	* debugging memory audit
+
+2004-04-16  sasha
+
+	* Debugged Bookmarking mechanism- was forgetting to create a copy
+	  of bookmark string while storing it in hash table
+
+2004-03-18  sasha
+
+	* Found and fixed very wierd heap corruption bug, causing segfault
+	  whenever bevelled rectang is drawn
+
+2004-03-17  sasha
+
+	* Added aditional sanity checks to MyStyles property reading code,
+	  to make sure we do not go over the size of the buffer
+
+2004-03-04  sasha
+
+	* Fixed annoying type-punning warnings; Fixed annoying -rdynamic
+	  warnings on CYGWIN; Changed default compression ratio for
+	  screenshots to give very high quality; Fixed configure.in to
+	  properly work with latest autotools supporting PACKAGE_ stuff;
+	  Fixed configure to remove -g if enable-gdb is not requested;
+	  Fixed root image grabbing using overlay window to not use Backing
+	  Store; Fixed ascompose to set USPosition when geometry is
+	  requested; Fixed Banner to set its title ; Upgraded version to
+	  beta4
+
+2004-03-03  sasha
+
+	* debugged Wharf's handling of RootClipArea, and enforced
+	  ConfigureNotify handling for folder to preceede buttons; Debugged
+	  WinList's handling of root background refreshes - must rerender
+	  buttons and canvas if transparent; Fixed handling of Root pixmap
+	  grabbing code to actually clip it to RootClipArea in mystyle.c
+
+2004-02-27  sasha
+
+	* Implemented new Banner using ascompose
+
+2004-01-28  sasha
+
+	* minor bug in detection of HAVE_DECL_ELFW - should check if its 0
+	  or 1
+
+2004-01-27  sasha
+
+	* now hopefully workplace state restoration should work fine -
+	  fixed complex function name parsing, for cases when its nested
+	  within anopther complex function.  Also added checks to not
+	  remove -g even if --enable-gdb is not specified ( due to requests
+	  from debian folks)
+
+2004-01-23  sasha
+
+	* debugging is_executable_in_path under OSX
+
+2004-01-21  sasha
+
+	*  yet another check of link.h header to fix compilation failures
+
+2004-01-20  sasha
+
+	* added checks for required structures and types in elf.h for
+	  selfdiag code
+
+2004-01-13  sasha
+
+	* disabled animating for tiled pixmaps as it seems to cause
+	  slowness
+
+2004-01-12  sasha
+
+	* hopefully optimized ximage transfer by using reusable memory and
+	  added ability to postpone background switching task to be done
+	  later
+
+2004-01-08  sasha
+
+	* fixed libAfterStep installation procedure and some of the headers
+	  to make it useable in external apps
+
+2003-12-09  sasha
+
+	* got rid of Wait3 testing in configure - should speed it up a bit
+
+2003-12-05  sasha
+
+	* fixed stddef.h bug in libAfterBase and without-x compile problem
+	  in asimage.c
+
+2003-10-09  sasha
+
+	* Fixed Pager layout problem when number of desks does not match
+	  config file; Fixed Pager sizing when there are more then 1
+	  column; Fixed swallowed window size handling in Wharf to honor
+	  ConfigureRequests; Fixed synthetic ConfigureNotify sending in
+	  Wharf to do it when size has not change; Fixed command line
+	  parsing in Pager to handle args passed in by AS; Fixed bugs
+	  introduced while fixing 64-bitness in XChangeProperty
+
+2003-10-08  sasha
+
+	* Hopefully fixed 64-bitness problems in XGetProperty
+	* make sure get_caller_func() does not return NULL
+	* fixed nasty bug preventing AS from working on louse 8bit displays
+	  ( many thanks to heviarti)
+
+2003-10-07  sasha
+
+	* corrected Makefiles and fixed compile bugs in WinTabs prototype
+
 2003-09-25  sasha
 
 	* AfterStep 2.00.beta2 Release

@@ -1,4 +1,633 @@
 
+2004-11-30  sasha
+
+	* added a configure option --disable-data-reinstall just for MG_Tak
+	  - it prevents image, font files from being copied over existing
+	  ones, and prevents HTML catalogue from being generated;
+
+2004-11-29  sasha
+
+	* Fixed bug in afterstep not sending proper notifications about
+	  which window is currently focused
+
+2004-11-26  sasha
+
+	* fixed memory leak at add_line_mono
+
+2004-11-23  sasha
+
+	* updated version to 2.00.01
+	* added comments to vectorize_asimage
+
+2004-11-22  sasha
+
+	* implemented vectorize_asimage and some minor fixes to Wharf
+
+2004-11-19  sasha
+
+	* Fixed tiling with negative offset - unsigned/signed conversion
+	  problem
+	* Debugged conversion from alt.argb32 to other stuff, like XImage
+	  etc. using ASImageDecoder - see example in asview.c
+	* Implemented ASImageDecoder support for alt.argb32 format
+
+2004-11-16  sasha
+
+	* changes to accomodate new aterm code
+	*  Fixed ascmap to not segfault under MSWin and fixed fill_asimage
+	  to use proper width when x > 0  - reported by Valeriy Onuchin;
+
+2004-11-15  sasha
+
+	* fixed shading translation into tint
+	* fixed some code in pixmap handling used in aterm
+	* changed Pager invocation in start menu to use desktop number
+	  specifyed to configure script
+
+2004-11-14  born2late
+
+	* typo corrections
+
+2004-11-10  sasha
+
+	* fixes to afterimage include files to properly install and enable
+	  other apps to use it
+
+2004-10-27  sasha
+
+	* began implementing XML-RPC interface to ASConfig
+
+2004-10-15  sasha
+
+	* fixed libAfterImage makefile for win32 to include asstorage.c;
+	  fixed compilation problem and excessive debug output under
+	  windows
+
+2004-10-14  sasha
+
+	* possibly resolved problem with ASDocGen not being run when
+	  compiled with shared libraries
+
+2004-10-08  sasha
+
+	* Fixed problem in base loading where there were no sanity checks
+	  for DesktopScale value; Fixed a bug in ASStorage where small
+	  images < 15 pixel widths would come out broken; Implemented
+	  partially property tree printing in ASConfig; Added ASStorage
+	  functionality to be able to query original size of the stored
+	  data
+
+2004-09-27  sasha
+
+	* changed versions to 2.00 and 1.00 for libraries
+	* fixed recently intoduced bug in asstorage causing major slowness;
+	  added some logic to prevent costly maintenance operations from
+	  happening too often
+
+2004-09-24  sasha
+
+	* fixed segfault in asstorage when diff buffer does not gets
+	  reallocated
+	* fixed button ungrabbing on windows withdrawing that was causing
+	  wierd BadAccess errors in Wharf
+
+2004-09-23  sasha
+
+	* implemented preloading of menu pixmaps - speeding things up
+	  considerable; fixed segfault in asstorage - still unclear how
+	  that could happen - may see some image corruption instead
+
+2004-09-22  sasha
+
+	* some performance optimization based on gprof stats, as well as
+	  memory leak cleanups
+
+2004-09-21  sasha
+
+	* added mandatory -O3 in libAfterImage and libAfterBase improving
+	  performance significantly;
+	* fixed performance hog in asstorage, as well as segfault in the
+	  same place; Implemented shaped image rendering directly into
+	  XImage, added menu shortcuts for Left and Right keys
+
+2004-09-19  sasha
+
+	* fixed possible data loss in asstorage for the very first block
+
+2004-09-16  sasha
+
+	* lots of optimizations of focus change handling in WinList and
+	  AfterStep, shape handling optimizations in Pager and other tweaks
+
+2004-09-15  sasha
+
+	* added NoBorder flag to MyFrames, improved performance and
+	  feedback in data doc generation
+
+2004-09-14  sasha
+
+	* added code to background handling, to not interrupt the animation
+	  when desktop is switched before it completes
+
+2004-09-08  sasha
+
+	* changes to feel file for better shortcuts for desktop switching;
+	  Fixes to ASStorage to properly handle reference counting without
+	  leaving leftovers
+
+2004-09-02  sasha
+
+	* Lots of tweaks to desktop switching, initial placement handling
+	  and move-resizing
+
+2004-08-30  sasha
+
+	* updated configure scripts
+
+2004-08-26  sasha
+
+	* fix to Makefile to install man pages and HTML help pages
+
+2004-08-25  sasha
+
+	* more xft development
+	* Some changes to DeadPipe to prtevent it from reentering self
+
+2004-08-24  sasha
+
+	* Implemented memory debugging for buffer underruns with
+	  --enable-audit under win32; Found memory corruption caused by
+	  merging image of size 0, which fixes segmentation Fault in
+	  WinList
+
+2004-08-23  sasha
+
+	* Fixed make install in libAfterImage; Added missing files to
+	  libAfterImage's project files; Fixed segfault in afterstep when
+	  clicking happens too fast and there is no more window by the time
+	  function is executed
+	* applied patch for interlaced GIF support from Maxim Nikulin
+
+2004-08-20  sasha
+
+	* new development to add interface with XRender extention for text
+	  rendering
+
+2004-08-19  sasha
+
+	* fixed potential segmentation fault in asfont.c at the time of
+	  text rendering
+
+2004-08-17  sasha
+
+	* fixed compile bug in asstorage.c
+	* disabled clocking of transformations and text drawing
+
+2004-08-16  sasha
+
+	* Changed version number to beta5, Changed AfterStep.spec to be
+	  updated automagically with proper version number; Updated
+	  afterstepdoc script to select web browser from mozilla, firefox,
+	  konq, opera, netscape
+
+2004-08-13  sasha
+
+	* fixed bug in asstorage causing segfaults if block is used
+	  completely; Improved Wharf's handling of animation - should now
+	  be much smoother
+
+2004-08-12  sasha
+
+	* fixes to docs to format properly into PHP. Fixes to AsDocGen to
+	  have nice indexes and proper references from devel docs to user
+	  and back
+
+2004-08-11  sasha
+
+	* Implemented new generated doc installation in Makefiles, added
+	  more libAfterImage docs, fixed formatting in asimage.h and
+	  asfont.h
+
+2004-08-10  sasha
+
+	* Fixed bug in ASStorage causing negative sizes in slots and as the
+	  result garbadge in images
+
+2004-08-09  sasha
+
+	*  fixed segfault bug in transform.c if image creatrion fails
+	* fixed some docs generation
+
+2004-08-06  sasha
+
+	* added xml source for documentation into CVS and updated Look in
+	  libAfterConf to be same as in src/afterstep/configure.c
+
+2004-08-03  sasha
+
+	* Implemented 3 new types of text: OutlineAbove, OutlineBelow,
+	  OutlineFull that does outlining of text, also enabled alpha
+	  tinting of the text at the time of rendering
+
+2004-08-02  sasha
+
+	* added memory cleanup code to ascompose, and added missing free
+	  calls to storage destruction code
+	* fixed thresholding code in asstorage needed for rectangular shape
+	  stuff
+	* Improved reference counting in ASStorage to accomodate to wierd
+	  storage states where some blocks have no space left for reference
+
+2004-07-30  sasha
+
+	* reimplemented image reading using new functionality of ASStorage
+	  using bitmap stuff and grayscale images using reference counters
+
+2004-07-29  sasha
+
+	* debugging the size of AS menus; added storage printing function
+
+2004-07-28  sasha
+
+	* disabled debug output
+	* rewrote ASImage contents storing code to utilize generic
+	  ASStorage
+	* added 32bit store function
+
+2004-07-23  sasha
+
+	* completed implementation of ASStorage, including compression
+	  scheme for bitmapped data
+
+2004-07-21  sasha
+
+	* Completed implementing RLEDIFF compression and ; Completed
+	  debugging of asstorage with RLE DIFF compression
+
+2004-07-20  sasha
+
+	* implemented decompression
+	* Implemented RLE diff compression code in ASStorage
+
+2004-07-16  sasha
+
+	* started implementing compression using zlib
+
+2004-07-14  sasha
+
+	* completed debugging and implementing asstorage
+
+2004-07-13  sasha
+
+	* Implemented and debugged storage defragmentation; Moved xml
+	  parser enums back to .h and added missing typedefs
+	* Fixed guarded memory handlinbg for blocks of whole number of
+	  pages; Debugged some of the aspects of ASStorage memory handling
+	  - must implement defragmentation now
+	* changed /ML flags to /MD ( based on Bertrand Bellenot suggestion)
+	* accepted patch from Bertrand Bellenot (Root) for libAfterImage
+	  under Win32; Updated MSVC project files with new files
+
+2004-07-12  sasha
+
+	* debugged storage storing, started implementing fetching
+	* added better testing code
+
+2004-07-09  sasha
+
+	* partially debugged ASStorage implementation
+
+2004-07-07  sasha
+
+	* storage splitting
+
+2004-07-06  sasha
+
+	* ASAStorage slot selection code added
+	* Continued implementation of ASStorage
+	* implemented test container for asstorage ala XP
+
+2004-07-05  sasha
+
+	* started implemnting proper storage for ASImage data
+
+2004-07-03  sasha
+
+	* Updated configure scripts; spilt image decoder/encoder from
+	  asimage - need to rearrange to get it to order
+	* done most of the coding required for proper handling od static
+	  ASImages
+
+2004-07-02  sasha
+
+	* implemented crosslinking docs
+
+2004-07-01  sasha
+
+	* implementing urls for keywords, intellifgent handling of the NAME
+	  section, etc.
+
+2004-06-30  sasha
+
+	* Added nested subsections, partly debugged quotations, other doc
+	  gen tweaks
+
+2004-06-29  sasha
+
+	* progress in implementing static ASImages
+
+2004-06-25  sasha
+
+	* prototyped doc generation for robodoc comments
+
+2004-06-24  sasha
+
+	* Disabled stripping of binaries when enable-gdb is requested
+
+2004-06-22  sasha
+
+	* Implemented support for static ASImages where memory is allocated
+	  more efficiently
+
+2004-06-21  sasha
+
+	* added support for UTF-8 when its requested in LC_LANG setting
+
+2004-06-13  sasha
+
+	* Introduced new type of image	- static to add flexibility in
+	  regards to memory allocation
+
+2004-06-10  sasha
+
+	* added xml tag <release> so that temporary images could be unload
+	  to free up some memory
+
+2004-06-08  sasha
+
+	* Fixed race condition with modules using LOCKONSEND and display
+	  being grabbed
+	* added ability to XML parser to recognize known tags; Added
+	  framework code for converting source xml into html docs to
+	  ASDocGen
+
+2004-05-24  sasha
+
+	* fixed scaling algorithm to properly scale images with height <= 3
+
+2004-05-18  sasha
+
+	* updated dependancies, and completed reimplementing Animate module
+	  - still needs some debugging though
+	* fixed erroneous uncommented line in shared memory XImages
+
+2004-05-17  sasha
+
+	* cleaned up C++ comments
+
+2004-05-13  sasha
+
+	* debugging background changing
+	* hopefully fixed detection of freetype library on debian sarge
+
+2004-05-12  sasha
+
+	* updated configure scripts and partly fixed freetype autodetection
+	  for debian - still need ft2build adding to freetype.h detection
+	  code
+	* implemented fast(er) desktop switching by caching background
+	  pixmaps - there are some quirks that needs to be ironed out still
+
+2004-05-11  sasha
+
+	* fishing out segfault in get_text_size
+	* Implemented memory debugging under cygwin and fixed discovered
+	  bug in MyStyle parsing
+
+2004-05-10  sasha
+
+	* Implemented Transient button functionality in Wharf, missing from
+	  1.8
+
+2004-05-07  sasha
+
+	* minor TODO changes
+
+2004-04-29  sasha
+
+	* Implemented ability to use tab stops while drawing text, and
+	  cleaned up new api calls; Fixed Wharf Bevel setting
+
+2004-04-19  sasha
+
+	* Implemented ability to load any font as monospaced using scaling
+	  of glyphs and other techniques, making it possible to use
+	  libAfterImage for text output in applications such as text
+	  editors and terminal emulators
+
+2004-04-15  sasha
+
+	* Fixed bug in handling of Viewport setting in database when only
+	  one of the x or y is set.It was using X set flag for y value and
+	  wise versa
+
+2004-03-31  sasha
+
+	* Fixed potential segfault in asfont.c when font is NULL; Fixed
+	  including of afterbase.h in asapp.h to be done only when compiled
+	  as part of AfterStep
+
+2004-03-19  sasha
+
+	* added includes for xmd.h prior to jpeglib, to prevent multiple
+	  definitions of INT32
+	* added missing include for system's zlib.h in png.h
+	* removed unneeded io.h from libungif
+
+2004-03-18  sasha
+
+	* Found and fixed very wierd heap corruption bug, causing segfault
+	  whenever bevelled rectang is drawn
+	* Added builtin libungif to libAfterImage, and enabled support for
+	  it by default in configure
+
+2004-03-17  sasha
+
+	* added MSVC nmake  makefiles
+	* fixed libAfterImage to properly handle path in win32
+
+2004-03-16  sasha
+
+	* Incorporated libpng, libjpeg and zlib into libAfterImage, in case
+	  it is not available on the target system, or we are compiling
+	  under win32
+
+2004-03-11  sasha
+
+	* Completed implementing conversion from ASImage into DIB and
+	  implemented sample win32 image viewer application as an example
+	  and testbed.
+
+2004-03-10  sasha
+
+	* started implementing ASImage2DIB converter
+	* moved some of the bmp functionality into bmp.c/h
+	* removed 0x0D that came from MSVC porting
+	* changes to make libAfterImage compile under MSVC in win32
+	* began porting libAfterImage into win32
+
+2004-03-05  sasha
+
+	* Fixed compilation in Feel.c with --enable-gdb; Fixed local
+	  selection if only the country is specified such as en_US - RedHat
+	  seems to have this; Fixed segfault in spawn_child with locale
+	  specified it was attempting to check if pointer is isspace()
+	  triggering bug in glibc
+
+2004-03-04  sasha
+
+	* Fixed annoying type-punning warnings; Fixed annoying -rdynamic
+	  warnings on CYGWIN; Changed default compression ratio for
+	  screenshots to give very high quality; Fixed configure.in to
+	  properly work with latest autotools supporting PACKAGE_ stuff;
+	  Fixed configure to remove -g if enable-gdb is not requested;
+	  Fixed root image grabbing using overlay window to not use Backing
+	  Store; Fixed ascompose to set USPosition when geometry is
+	  requested; Fixed Banner to set its title ; Upgraded version to
+	  beta4
+
+2004-03-01  sasha
+
+	* better Banner
+	* removed redundand ifdefs for I18N
+	* debugged and optimized Banner and ascompose
+
+2004-02-27  sasha
+
+	* added missing usage text to ascompose and fixed Makefile to
+	  install Banner
+	* improved ascompose
+	* debugged mask to rectangles list functionality in asimage.c
+
+2004-02-26  sasha
+
+	* added support for shaped windows to ascompose; Debugged
+	  channel->rectangle set conversion in libAfterImage - still have
+	  some vertical stripes
+	* Fixed <rotate> tag in asxml to properly swap width and height in
+	  case of 90 or 270 degree rotation
+
+2004-02-21  sasha
+
+	* added code to AfterStep to publish Image and Font path in env
+	  vars; Added feel.ICCCM that has no keyboard bindings; Added
+	  window centering code to ascompose; Added missing cursor
+	  definitions to look.QNX;
+
+2004-02-20  sasha
+
+	* Added ability to wait for data placed in X clipboard and then
+	  displaying it if its in XML format
+
+2004-02-19  sasha
+
+	* added ability to use same window for different images
+	* fixed display closing when running in loop
+	* added interactive error reporting functionality
+	* added interactivity functionality to ascompose
+
+2004-01-27  sasha
+
+	* now hopefully workplace state restoration should work fine -
+	  fixed complex function name parsing, for cases when its nested
+	  within anopther complex function.  Also added checks to not
+	  remove -g even if --enable-gdb is not specified ( due to requests
+	  from debian folks)
+
+2004-01-21  sasha
+
+	* fixed bug where empty locale would be specified while starting a
+	  module causing Pager to have 255 desktops and other wierdness
+
+2004-01-13  sasha
+
+	* fixed bug in shared image variant of background xfer
+	* disabled animating for tiled pixmaps as it seems to cause
+	  slowness
+
+2004-01-12  sasha
+
+	* hopefully optimized ximage transfer by using reusable memory and
+	  added ability to postpone background switching task to be done
+	  later
+
+2004-01-08  sasha
+
+	* fixed libAfterStep installation procedure and some of the headers
+	  to make it useable in external apps
+
+2004-01-06  sasha
+
+	* fixed get_font to not crash when X is missing; Fixed ascolor to
+	  not open any connections to AS when -n option is used
+
+2004-01-02  sasha
+
+	* Fixed keyboard presses handling to not require window selection
+	  when there is a focused window; Updated .spec file to better
+	  handle libraries and stuff ( thanks to Andre Costa )
+
+2003-12-23  sasha
+
+	* Fixed README.SOLARIS and libAfterImage's Makefile if's
+
+2003-12-17  sasha
+
+	* added width/height value "proportional" to <scale> tag to keep
+	  image ratio while scaling
+
+2003-12-09  sasha
+
+	* got rid of Wait3 testing in configure - should speed it up a bit
+
+2003-12-08  sasha
+
+	* fixed handling of trailing whitespace at the end of the tag in
+	  XML processor
+	* added support for C control codes in printf format strings in
+	  asxml, added safeguards to check for proper number of parameters
+	  in printf format string
+	* fixed support for input from stdin and output onto stdout in
+	  ascompose
+
+2003-12-05  sasha
+
+	* Cleaned up configure to not have ugly -I.. -I../.. and not do any
+	  detection of libAfterImage/Base - we should always use what we
+	  came distributed with
+	* fixed without-x compile problem in asvisual.c
+	* fixed stddef.h bug in libAfterBase and without-x compile problem
+	  in asimage.c
+	* added <print> tag to asimage xml to enable output of internal
+	  variables such as image size
+
+2003-11-28  sasha
+
+	* added afterimage-config
+
+2003-11-14  sasha
+
+	* Added cover window to meaningfully show user that AfterStep is
+	  reloading config or starting up or doing anything else that takes
+	  time
+
+2003-11-07  sasha
+
+	* Added ActiveDeskBevel and InActiveDeskBevel to Pager's options;
+	  Debugged bevel drawing when tbar has different bevels for focus
+	  and unfocus states( should get rid of wierd black frame when one
+	  of the states is None)
+
 2003-09-25  sasha
 
 	* AfterStep 2.00.beta2 Release
