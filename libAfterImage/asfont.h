@@ -1,27 +1,93 @@
 #ifndef ASFONT_HEADER_ICLUDED
 #define ASFONT_HEADER_ICLUDED
 
+/****h* libAfterImage/asfont.h
+ * DESCRIPTION
+ * Text drawing functionality.
+ * Text is drawn as an ASImage with only alpha channel. Since alpha
+ * channel is 8 bit widths that allows for 256 shades to be used in
+ * rendered glyphs. That in turn allows for smoothing and antialiasing
+ * of the drawn text. Such an approcah allows for easy manipulation of
+ * the drawn text, such as changing color, making it transparent,
+ * texturizing, rotation, etc.
+ *
+ * libAfterImage supports two types of fonts :
+ * Fonts that could be rendered using standard Xlib functionality, and
+ * fonts rendered by FreeType 2 library. That may include TrueType
+ * fonts. When fonts are obtained via Xlib special processing is
+ * performed in order to smooth its shape and leverage 256 shades
+ * palette available.
+ *
+ * Any font being used is has to be opened first. At that time its
+ * properties are analysed and glyphs are cached in clients memory.
+ * Special RLE compression method is used for font glyphs, significantly
+ * reducing memory utilization without any effect on performance.
+ *
+ * Font management and drawing functionality has been designed with
+ * internatiolization in mind, althou support for locales is not
+ * complete yet.
+ * SEE ALSO
+ * Structures :
+ *          ASFontManager
+ *          ASFont
+ *
+ * Functions :
+ *          create_font_manager(), destroy_font_manager(),
+ *          open_freetype_font(), open_X11_font(), get_asfont(),
+ *          destroy_font(), print_asfont(), print_asglyph(),
+ *          draw_text()
+ *
+ * Other libAfterImage modules :
+ *     asimage.h, asvisual.h, blender.h, import.h
+ * AUTHOR
+ * Sasha Vasko <sashav at sprintmail dot com>
+ ******************/
+
+/****d* libAfterImage/MAX_GLYPHS_PER_FONT
+ * FUNCTION
+ * Max value of glyphs per font allowed. We need that so we can detect
+ * and avoid broken fonts somehow.
+ * SOURCE
+ */
 #define MAX_GLYPHS_PER_FONT  2048
+/*************/
 
 /* magic number identifying ASFont data structure */
 #define MAGIC_ASFONT            0xA3A3F098
 
+/****d* libAfterImage/ASFontType
+ * FUNCTION
+ * Supported types of fonts - Xlib or FreeType 2
+ * ASF_GuessWho will enable autodetection of the font type.
+ * It is attempted to be opened as FreeType font first, and if that
+ * fails - it will be opened as Xlib font.
+ * SOURCE
+ */
 typedef enum
 {
 	ASF_X11 = 0,
 	ASF_Freetype,
 	ASF_GuessWho
 }ASFontType;
+/*************/
 
 struct ASFontManager;
 struct ASFont;
 
+/****d* libAfterImage/CHAR_SIZE
+ * FUNCTION
+ * Convinient macro so we can transparently determine the number of
+ * bytes that character spans. It assumes UTF-8 encoding when I18N is
+ * enabled.
+ * SOURCE
+ */
 #ifdef I18N
 /* size of the UTF-8 encoded character is based on value of the first byte : */
 #define CHAR_SIZE(c) 	(((c)&0x80)?(((c)&0x40)?(((c)&0x20)?(((c)&0x10)?5:4):3):2):1)
 #else
 #define CHAR_SIZE(c) 	1
 #endif
+/*************/
 
 #ifdef INCLUDE_ASFONT_PRIVATE
 typedef struct ASGlyph
@@ -41,27 +107,56 @@ typedef struct ASGlyphRange
 	struct ASGlyphRange *below, *above;
 }ASGlyphRange;
 
-
+/****s* libAfterImage/ASFont
+ * NAME
+ * ASFont
+ * DESCRIPTION
+ * Structure to contain all the font characteristics, as well as
+ * set of glyph images. Such structure has to be created/opened prior to
+ * being able to draw characters with any font.
+ * SOURCE
+ */
 typedef struct ASFont
 {
 	unsigned long 	magic ;
 
-	struct ASFontManager *fontman;              /* our owner */
+	struct ASFontManager *fontman;  /* our owner */
 	char 				 *name;
 
 	ASFontType  	type ;
 #ifdef HAVE_FREETYPE
-	FT_Face  		ft_face;                    /* free type font handle */
+	FT_Face  		ft_face;        /* free type font handle */
 #endif
-	ASGlyphRange   *codemap;
-	ASGlyph         default_glyph;
+	ASGlyphRange   *codemap;        /* linked list of glyphsets, each
+									 * representing continuos range of
+									 * available codes */
+	ASGlyph         default_glyph;  /* valid glyph to be drawn when
+									 * code is not valid */
 
-	unsigned int 	max_height, max_ascend, space_size;
+	unsigned int 	max_height,     /* maximiu height of the character
+									 * glyph */
+		            max_ascend,     /* maximum distance from the baseline
+									 * to the top of the character glyph */
+					space_size;     /* fixed width value to be used when
+									 * rendering spaces and tabs */
 #define LEFT_TO_RIGHT    1
 #define RIGHT_TO_LEFT   -1
-	int 			pen_move_dir ;
+	int 			pen_move_dir ;  /* direction of the text flow */
 }ASFont;
+/*************/
 
+/****s* libAfterImage/ASFontManager
+ * NAME
+ * ASFontManager
+ * DESCRIPTION
+ * Global data identifying connection to external libraries, as well as
+ * fonts location paths.
+ * This structure has to be created/initialized prior to any font being
+ * loaded.
+ * It also holds list of fonts that are currently open, allowing for
+ * easy access to fonts.
+ * SOURCE
+ */
 typedef struct ASFontManager
 {
 	Display    *dpy;
@@ -78,18 +173,89 @@ typedef struct ASFontManager
 												* - we use it to limit number of glyphs
 												* we load */
 }ASFontManager;
+/*************/
 
 #endif
 
+/****f* libAfterImage/asfont/create_font_manager()
+ * SYNOPSIS
+ * ASFontManager *create_font_manager( Display *dpy,
+ *                                     const char *font_path,
+ *                                     ASFontManager *reusable_memory );
+ * INPUTS
+ * DESCRIPTION
+ *********/
+/****f* libAfterImage/asfont/destroy_font_manager()
+ * SYNOPSIS
+ * void destroy_font_manager( struct ASFontManager *fontman,
+ *                            Bool reusable );
+ * INPUTS
+ * DESCRIPTION
+ *********/
 struct ASFontManager *create_font_manager( Display *dpy, const char * font_path, struct ASFontManager *reusable_memory );
 void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
+
+/****f* libAfterImage/asfont/open_freetype_font()
+ * SYNOPSIS
+ * ASFont *open_freetype_font( ASFontManager *fontman,
+ *                             const char *font_string,
+ *                             int face_no,
+ *                             int size, Bool verbose);
+ * INPUTS
+ * DESCRIPTION
+ *********/
+/****f* libAfterImage/asfont/open_X11_font()
+ * SYNOPSIS
+ * ASFont *open_X11_font( ASFontManager *fontman,
+ *                        const char *font_string);
+ * INPUTS
+ * DESCRIPTION
+ *********/
+/****f* libAfterImage/asfont/get_asfont()
+ * SYNOPSIS
+ * ASFont *get_asfont( ASFontManager *fontman,
+ *                     const char *font_string,
+ *                     int face_no, int size,
+ *                     ASFontType type );
+ * INPUTS
+ * DESCRIPTION
+ *********/
+/****f* libAfterImage/asfont/destroy_font()
+ * SYNOPSIS
+ * void destroy_font( ASFont *font );
+ * INPUTS
+ * DESCRIPTION
+ *********/
 struct ASFont *open_freetype_font( struct ASFontManager *fontman, const char *font_string, int face_no, int size, Bool verbose);
 struct ASFont *open_X11_font( struct ASFontManager *fontman, const char *font_string);
 struct ASFont *get_asfont( struct ASFontManager *fontman, const char *font_string, int face_no, int size, ASFontType type );
-void    print_asfont( FILE* stream, struct ASFont* font);
-void 	print_asglyph( FILE* stream, struct ASFont* font, unsigned long c);
 void    destroy_font( struct ASFont *font );
 
+/****f* libAfterImage/asfont/print_asfont()
+ * SYNOPSIS
+ * void    print_asfont( FILE* stream,
+ *                       ASFont* font);
+ * INPUTS
+ * DESCRIPTION
+ *********/
+/****f* libAfterImage/asfont/print_asglyph()
+ * SYNOPSIS
+ * void 	print_asglyph( FILE* stream,
+ *                         ASFont* font, unsigned long c);
+ * INPUTS
+ * DESCRIPTION
+ *********/
+void    print_asfont( FILE* stream, struct ASFont* font);
+void 	print_asglyph( FILE* stream, struct ASFont* font, unsigned long c);
+
+/****f* libAfterImage/asfont/draw_text()
+ * SYNOPSIS
+ * ASImage *draw_text( const char *text,
+ *                     ASFont *font,
+ *                     int compression );
+ * INPUTS
+ * DESCRIPTION
+ *********/
 struct ASImage *draw_text( const char *text, struct ASFont *font, int compression );
 
 
