@@ -21,7 +21,7 @@
 #endif
 #ifndef MAX
 #ifndef USE_SAFE_MINMAX
-#define MAX(a,b)            ((a)<(b) ? (a) : (b))
+#define MAX(a,b)            ((a)>(b) ? (a) : (b))
 #else
 #define MAX(x,y)                                \
   ({ const typeof(x) _x = (x); const typeof(y) _y = (y); \
