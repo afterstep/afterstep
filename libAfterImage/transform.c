@@ -196,7 +196,7 @@ enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int 
 			{
 				dst[n] = (T&0x7F000000)?0:INTERPOLATE_N_COLOR(T,S);
 				if( ++n >= S ) break;
-				(int)T += (int)step;
+				T = (int)T + (int)step;
 			}while(1);
 			dst += n ;
 		}else
@@ -1649,9 +1649,110 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
 	return True;
 }
 
+/* ********************************************************************************/
+/* Vector -> ASImage functions :                                                  */
+/* ********************************************************************************/
+Bool
+colorize_asimage_vector( ASVisual *asv, ASImage *im,
+						 ASVectorPalette *palette,
+						 ASAltImFormats out_format,
+						 int quality )
+{
+	ASImageOutput  *imout = NULL ;
+	ASScanline buf ;
+	int x, y, curr_point, last_point ;
+    register double *vector ;
+	double *points ;
+	double *multipliers[IC_NUM_CHANNELS] ;
 
-///////////////////////////////////////////////////////////////////////////////
-// Gaussian blur code.
+	if( im == NULL || palette == NULL || out_format == ASA_Vector )
+		return False;
+
+	if( im->alt.vector == NULL )
+		return False;
+	vector = im->alt.vector ;
+
+	if((imout = start_image_output( asv, im, out_format, QUANT_ERR_BITS, quality)) == NULL )
+		return False;
+
+	prepare_scanline( im->width, QUANT_ERR_BITS, &buf, asv->BGR_mode );
+	curr_point = palette->npoints/2 ;
+	points = palette->points ;
+	last_point = palette->npoints-1 ;
+	buf.flags = 0 ;
+	for( y = 0 ; y < IC_NUM_CHANNELS ; ++y )
+	{
+		if( palette->channels[y] )
+		{
+			multipliers[y] = safemalloc( last_point*sizeof(double));
+			for( x = 0 ; x < last_point ; ++x )
+				multipliers[y][x] = (double)(palette->channels[y][x+1] - palette->channels[y][x])/
+				                 	        (points[x+1]-points[x]);
+			set_flags(buf.flags, (0x01<<y));
+		}else
+			multipliers[y] = NULL ;
+	}
+	for( y = 0 ; y < im->height ; ++y )
+	{
+		for( x = 0 ; x < im->width ; ++x )
+		{
+			register int i = IC_NUM_CHANNELS ;
+			double d ;
+
+			if( points[curr_point] > vector[x] )
+			{
+				while( --curr_point >= 0 )
+					if( points[curr_point] < vector[x] )
+						break;
+				if( curr_point < 0 )
+					++curr_point ;
+			}else
+			{
+				while( points[curr_point+1] < vector[x] )
+					if( ++curr_point >= last_point )
+					{
+						curr_point = last_point-1 ;
+						break;
+					}
+			}
+			d = vector[x]-points[curr_point];
+			while( --i >= 0 )
+				if( multipliers[i] )
+					buf.channels[i][x] = (int)(d*multipliers[i][curr_point])+palette->channels[i][curr_point] ;
+		}
+		imout->output_image_scanline( imout, &buf, 1);
+		vector += im->width ;
+	}
+	for( y = 0 ; y < IC_NUM_CHANNELS ; ++y )
+		free(multipliers[y]);
+
+	stop_image_output( &imout );
+	free_scanline( &buf, True );
+	return True;
+}
+
+ASImage *
+create_asimage_from_vector( ASVisual *asv, double *vector,
+							unsigned int width, unsigned int height,
+							ASVectorPalette *palette,
+							ASAltImFormats out_format,
+							unsigned int compression, int quality )
+{
+	ASImage *im = NULL;
+
+	if( vector != NULL )
+		if( (im = create_asimage( width, height, compression ) ) != NULL )
+			if( set_asimage_vector( im, vector ) )
+				if( palette )
+					colorize_asimage_vector( asv, im, palette, out_format, quality );
+
+	return im ;
+}
+
+
+/***********************************************************************
+ * Gaussian blur code.
+ **********************************************************************/
 
 #undef PI
 #define PI 3.141592526

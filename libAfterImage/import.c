@@ -862,7 +862,7 @@ ppm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 					}
 					width = atoi( &(buffer[i]) );
 					while ( buffer[i] != '\0' && !isspace((int)buffer[i]) ) ++i;
-					while ( (int)isspace(buffer[i]) ) ++i;
+					while ( isspace((int)buffer[i]) ) ++i;
 					if( buffer[i] != '\0')
 						height = atoi(&(buffer[i]));
 				}

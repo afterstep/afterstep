@@ -59,7 +59,8 @@ static struct ASImageFormatHandlers
 	{ NULL, encode_image_scanline_asim },
 	{ create_image_xim, encode_image_scanline_xim },
 	{ create_image_xim, encode_image_scanline_mask_xim },
-	{ create_image_argb32, encode_image_scanline_argb32 }
+	{ create_image_argb32, encode_image_scanline_argb32 },
+	{ NULL, NULL }                             /* vector of doubles */
 };
 
 
@@ -148,6 +149,8 @@ asimage_init (ASImage * im, Bool free_resources)
 #endif
 			if( im->alt.argb32 )
 				free( im->alt.argb32 );
+			if( im->alt.vector )
+				free( im->alt.vector );
 		}
 		memset (im, 0x00, sizeof (ASImage));
 		im->magic = MAGIC_ASIMAGE ;
@@ -509,8 +512,11 @@ start_image_output( ASVisual *asv, ASImage *im, ASAltImFormats format,
 		if( im->magic != MAGIC_ASIMAGE )
 			im = NULL ;
 
-	if( AS_ASSERT(im) || AS_ASSERT(asv) || format < 0 || format >= ASA_Formats)
+	if( AS_ASSERT(im) || AS_ASSERT(asv) )
 		return imout;
+
+	if( format < 0 || format == ASA_Vector || format >= ASA_Formats)
+		return NULL;
 
 	if( asimage_format_handlers[format].check_create_asim_format )
 		if( !asimage_format_handlers[format].check_create_asim_format(asv, im, format) )
@@ -2057,6 +2063,27 @@ output_image_line_direct( ASImageOutput *imout, ASScanline *new_line, int ratio 
 		}else
 			imout->encode_image_scanline( imout, new_line );
 	}
+}
+/* ********************************************************************************/
+/* Vector -> ASImage functions :                                                  */
+/* ********************************************************************************/
+Bool
+set_asimage_vector( ASImage *im, register double *vector )
+{
+	if( vector == NULL || im == NULL )
+		return False;
+
+	if( im->alt.vector == NULL )
+		im->alt.vector = safemalloc( im->width*im->height*sizeof(double));
+
+	{
+		register double *dst = im->alt.vector ;
+		register int i = im->width*im->height;
+		while( --i >= 0 )
+			dst[i] = vector[i] ;
+	}
+
+	return True;
 }
 
 /* ********************************************************************************/

@@ -593,16 +593,16 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			} else {
 				gradient.type = GRADIENT_BottomLeft2TopRight;
 			}
-			for (p = color_str ; isspace(*p) ; p++);
+			for (p = color_str ; isspace((int)*p) ; p++);
 			for (npoints1 = 0 ; *p ; npoints1++) {
-				if (*p) for ( ; *p && !isspace(*p) ; p++);
-				for ( ; isspace(*p) ; p++);
+				if (*p) for ( ; *p && !isspace((int)*p) ; p++);
+				for ( ; isspace((int)*p) ; p++);
 			}
 			if (offset_str) {
-				for (p = offset_str ; isspace(*p) ; p++);
+				for (p = offset_str ; isspace((int)*p) ; p++);
 				for (npoints2 = 0 ; *p ; npoints2++) {
-					if (*p) for ( ; *p && !isspace(*p) ; p++);
-					for ( ; isspace(*p) ; p++);
+					if (*p) for ( ; *p && !isspace((int)*p) ; p++);
+					for ( ; isspace((int)*p) ; p++);
 				}
 			}
 			if (npoints1 > 1) {
@@ -1024,9 +1024,9 @@ void my_destroy_asimage(ASImage* image) {
 	if (image->ref_count < 0) destroy_asimage(&image);
 }
 
-// Math expression parsing algorithm.  The basic math ops (add, subtract, 
-// multiply, divide), unary minus, and parentheses are supported.  
-// Operator precedence is NOT supported.  Percentages are allowed, and 
+// Math expression parsing algorithm.  The basic math ops (add, subtract,
+// multiply, divide), unary minus, and parentheses are supported.
+// Operator precedence is NOT supported.  Percentages are allowed, and
 // apply to the "size" parameter of this function.
 double parse_math(const char* str, char** endptr, double size) {
 	double total = 0;
@@ -1333,7 +1333,7 @@ void xml_insert(xml_elem_t* parent, xml_elem_t* child) {
 
 char* lcstring(char* str) {
 	char* ptr = str;
-	for ( ; *ptr ; ptr++) if (isupper((int)*ptr)) *ptr = tolower(*ptr);
+	for ( ; *ptr ; ptr++) if (isupper((int)*ptr)) *ptr = tolower((int)*ptr);
 	return str;
 }
 

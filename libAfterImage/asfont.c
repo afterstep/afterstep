@@ -1039,7 +1039,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 	int i = -1, g = 0 ;
 	const char *ptr = text;
 	ASGlyph *last_asg = NULL ;
-	int offset_3d_x = 0, offset_3d_y = 0 ;
+	unsigned int offset_3d_x = 0, offset_3d_y = 0 ;
 	int space_size  = (font->space_size>>1)+1+font->spacing_x;
 
 	apply_text_3D_type( type, &offset_3d_x, &offset_3d_y );

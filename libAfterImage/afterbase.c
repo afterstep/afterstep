@@ -616,7 +616,7 @@ asim_casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
 	ASHashKey     hash_key = 0;
 	register int  i = 0;
 	char         *string = (char*)value;
-	register char c;
+	register int c;
 
 	do
 	{

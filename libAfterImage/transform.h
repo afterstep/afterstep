@@ -327,5 +327,16 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
                	   int x, int y, int width, int height,
 				   ARGB32 color );
 
+Bool
+colorize_asimage_vector( ASVisual *asv, ASImage *im,
+						 ASVectorPalette *palette,
+						 ASAltImFormats out_format,
+						 int quality );
+ASImage *
+create_asimage_from_vector( ASVisual *asv, double *vector,
+							unsigned int width, unsigned int height,
+							ASVectorPalette *palette,
+							ASAltImFormats out_format,
+							unsigned int compression, int quality );
 
 #endif

@@ -124,6 +124,24 @@ struct ASImageManager;
 /* magic number identifying ASFont data structure */
 #define MAGIC_ASIMAGE            0xA3A314AE
 
+/****d* libAfterImage/ASAltImFormats
+ * FUNCTION
+ * Identifies what output format should be used for storing the
+ * transformation result. Also identifies what data is currently stored
+ * in alt member of ASImage structure.
+ * SOURCE
+ */
+typedef enum {
+	ASA_ASImage = 0,
+    ASA_XImage,
+	ASA_MaskXImage,
+	ASA_ARGB32,
+	ASA_Vector,       /* This cannot be used for transformation's result
+					   * format */
+	ASA_Formats
+}ASAltImFormats;
+/*******/
+
 typedef struct ASImage
 {
 
@@ -160,6 +178,10 @@ typedef struct ASImage
 									 * used to store mask of the image */
 	ARGB32 *argb32 ;                /* array of widthxheight ARGB32
 									 * values */
+	double *vector ;			    /* scientific data that should be used
+									 * in conjunction with
+									 * ASScientificPalette to produce
+									 * actuall ARGB data */
   }alt;
 
   struct ASImageManager *imageman;  /* if not null - then image could be
@@ -168,20 +190,6 @@ typedef struct ASImage
 									 * times */
   char                  *name ;     /* readonly copy of image name */
 } ASImage;
-/*******/
-/****d* libAfterImage/ASAltImFormats
- * FUNCTION
- * Identifies what output format should be used for storing the
- * transformation result.
- * SOURCE
- */
-typedef enum {
-	ASA_ASImage = 0,
-    ASA_XImage,
-	ASA_MaskXImage,
-	ASA_ARGB32,
-	ASA_Formats
-}ASAltImFormats;
 /*******/
 
 /****d* libAfterImage/LIMITS
@@ -225,6 +233,23 @@ typedef struct ASImageManager
 
 
 /* Auxiliary data structures : */
+/****s* libAfterImage/ASScientificPalette
+ * NAME
+ * ASScientificPalette
+ * DESCRIPTION
+ * Contains pallette allowing us to map double values in vector image
+ * data into actuall ARGB values.
+ * SOURCE
+ */
+typedef struct ASVectorPalette
+{
+	unsigned int npoints ;
+	double *points ;
+	CARD16 *channels[IC_NUM_CHANNELS] ;        /* ARGB data for key points. */
+	ARGB32  default_color;
+}ASVectorPalette;
+/*************/
+
 /****s* libAfterImage/ASImageBevel
  * NAME
  * ASImageBevel
@@ -687,6 +712,7 @@ void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsig
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
 ASImage *clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter );
 void destroy_asimage( ASImage **im );
+Bool set_asimage_vector( ASImage *im, register double *vector );
 
 /****h* libAfterImage/asimage/ImageManager
  * DESCRIPTION
