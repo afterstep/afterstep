@@ -137,6 +137,7 @@ typedef struct ScreenInfo
     int Vy;
 
     int CurrentDesk;        /* The current desktop number */
+    int LastValidDesk;      /* Last nonspecial desktop's number  (<> 10000) */
 
     Time   last_Timestamp;                      /* last event timestamp */
     Time   menu_grab_Timestamp;                 /* pointer grab time used in menus */

@@ -222,7 +222,8 @@ AddWindow (Window w)
 	 * gotten one for anything up to here, however.
 	 */
     ASSync( False );
-    XGrabServer (dpy);
+	if( !pending_placement )
+	    XGrabServer (dpy);
     if (validate_drawable(tmp_win->w, NULL, NULL) == None)
 	{
 		destroy_hints(tmp_win->hints, False);
@@ -257,7 +258,8 @@ AddWindow (Window w)
 	 * WithdrawnState in HandleUnmapNotify.  Map state gets set correctly
 	 * again in HandleMapNotify.
      */
-	XUngrabServer (dpy);
+	if( !pending_placement )	 
+		XUngrabServer (dpy);
     broadcast_config (M_ADD_WINDOW, tmp_win);
     broadcast_window_name( tmp_win );
     broadcast_res_names( tmp_win );
@@ -323,7 +325,6 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
     XShapeSelectInput (dpy, tmp_win->w, ShapeNotifyMask);
 #endif
 
-    XGrabServer (dpy);
     XSetWindowBorderWidth (dpy, tmp_win->w, 0);
 
 	/* add the window into the afterstep list */
@@ -341,7 +342,6 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
 	 * WithdrawnState in HandleUnmapNotify.  Map state gets set correctly
 	 * again in HandleMapNotify.
      */
-    XUngrabServer (dpy);
     broadcast_config (M_ADD_WINDOW, tmp_win);
     broadcast_window_name( tmp_win );
     broadcast_res_names( tmp_win );

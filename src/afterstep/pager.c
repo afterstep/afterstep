@@ -293,6 +293,9 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
     if( Scr.CurrentDesk == new_desk )
         return;
 
+    if( IsValidDesk( old_desk ) )
+		Scr.LastValidDesk = old_desk ;
+
     /* we have to handle all the pending ConfigureNotifys here : */
     ConfigureNotifyLoop();
 
@@ -348,7 +351,12 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
 #endif
 
     /* we need to set the desktop background : */
-    change_desktop_background(new_desk, old_desk);
+	if( (IsValidDesk( new_desk ) && IsValidDesk( old_desk )) || 
+		Scr.LastValidDesk != new_desk )
+	{
+	    change_desktop_background(new_desk, Scr.LastValidDesk);
+	}/* otherwise we were switching to service desk number in order to switch 
+		viewport and desktop change is not needed */
 
     /*TODO: implement virtual desktops switching : */
 #if 0
@@ -666,12 +674,14 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         flush_asimage_cache(new_im);
         XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
         XClearWindow( dpy, Scr.Root );
+#if 0 /* don't do that as it causes unwanted flickering */
 		if( old_pmap == bh->pmap )
 		{                                      /* cruel hack to force refresh of transprent terms : */
 			set_xrootpmap_id (Scr.wmprops, None );
 			ASSync(False);
 			sleep_a_little( 1000 );
 		}
+#endif		
         set_xrootpmap_id (Scr.wmprops, bh->pmap );
     }else
         set_xrootpmap_id (Scr.wmprops, None );

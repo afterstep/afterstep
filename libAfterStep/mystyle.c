@@ -249,6 +249,11 @@ grab_root_asimage( ScreenInfo *scr )
 	attr.backing_store = Always ;
 	attr.event_mask = ExposureMask ;
 	attr.override_redirect = True ;
+
+	LOCAL_DEBUG_OUT( "grabbing root image from %dx%d%+d%+d", 
+					 Scr.RootClipArea.width, Scr.RootClipArea.height,
+					 Scr.RootClipArea.x, Scr.RootClipArea.y	);		
+
     src = create_visual_window( scr->asv, scr->Root, Scr.RootClipArea.x, Scr.RootClipArea.y,
                                 Scr.RootClipArea.width, Scr.RootClipArea.height,
 	    		                0, CopyFromParent,

@@ -668,6 +668,7 @@ HandlePropertyNotify (ASEvent *event)
         read_xrootpmap_id (Scr.wmprops, (xprop->state == PropertyDelete));
         if(Scr.RootImage)
         {
+			
             safe_asimage_destroy (Scr.RootImage);
             Scr.RootImage = NULL ;
         }

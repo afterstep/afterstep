@@ -1708,6 +1708,12 @@ on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
     return True;
 }
 
+void 
+update_root_clip_area()
+{
+	/* TODO: update root clip area to the max area occupied by all mapped folders */
+}
+
 void on_wharf_moveresize( ASEvent *event )
 {
     ASMagic *obj = NULL;
@@ -1763,6 +1769,7 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
             }else if( changes != 0 )
             {
                 int i = aswf->buttons_num ;
+				update_root_clip_area();
                 while( --i >= 0 )
                     on_wharf_button_moveresize( &(aswf->buttons[i]), event );
             }
