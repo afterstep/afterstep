@@ -299,6 +299,53 @@ hls2rgb (CARD32 hue, CARD32 luminance, CARD32 saturation, CARD32 *red, CARD32 *g
 /* scanline blending 													 */
 /*************************************************************************/
 
+typedef struct merge_scanlines_func_desc {
+    char *name ;
+	int name_len ;
+	merge_scanlines_func func;
+}merge_scanlines_func_desc;
+
+merge_scanlines_func_desc std_merge_scanlines_func_list[] = 
+{
+  { "add", 3, add_scanlines },
+  { "alphablend", 10, alphablend_scanlines },
+  { "allanon", 7, allanon_scanlines },
+  { "colorize", 8, colorize_scanlines },
+  { "darken", 6, darken_scanlines },
+  { "diff", 4, diff_scanlines },
+  { "dissipate", 9, dissipate_scanlines },
+  { "hue", 3, hue_scanlines },
+  { "lighten", 7, lighten_scanlines },
+  { "overlay", 7, overlay_scanlines },
+  { "saturate", 8, saturate_scanlines },
+  { "screen", 6, screen_scanlines },
+  { "sub", 3, sub_scanlines },
+  { "tint", 4, tint_scanlines },
+  { "value", 5, value_scanlines},
+  { NULL, 0, NULL }
+};
+
+merge_scanlines_func 
+blend_scanlines_name2func( const char *name )
+{
+	register int i = 0;
+	
+	if( name == NULL ) 
+		return NULL ;
+    while( isspace(*name) ) ++name;
+	do
+	{
+		if( name[0] == std_merge_scanlines_func_list[i].name[0] )
+			if( mystrncasecmp( name, std_merge_scanlines_func_list[i].name, 
+			                   std_merge_scanlines_func_list[i].name_len ) == 0 )
+				return std_merge_scanlines_func_list[i].func ;
+	
+	}while( std_merge_scanlines_func_list[++i].name != NULL );
+	
+	return NULL ;
+
+}
+
 void
 alphablend_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {

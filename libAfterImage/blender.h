@@ -21,6 +21,9 @@
  *          saturate_scanlines(), value_scanlines(),
  *          colorize_scanlines(), dissipate_scanlines().
  *
+ *    usefull merging function name to function translator :
+ *          blend_scanlines_name2func()
+ *
  * Other libAfterImage modules :
  *     asimage.h, asvisual.h, import.h, asfont.h
  * AUTHOR
@@ -206,6 +209,22 @@ void saturate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int 
 void value_scanlines( struct ASScanline *bottom, struct ASScanline *top, int mode );
 void colorize_scanlines( struct ASScanline *bottom, struct ASScanline *top, int mode );
 void dissipate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
+
+/****f* libAfterImage/import/blend_scanlines_name2func()
+ * SYNOPSIS
+ * merge_scanlines_func blend_scanlines_name2func( const char *name );
+ * INPUTS
+ * name - string, identifying scanline merging function.
+ * RETURN VALUE
+ * returns pointer to the scanline merging function on succes.
+ * NULL on failure.
+ * DESCRIPTION
+ * blend_scanlines_name2func() will strip leading whitespaces off of
+ * the supplied name, and then will attempt to match it against the list
+ * of names of merging functions. It will then return pointer to the 
+ * function with matching name.
+ ****************/
+merge_scanlines_func blend_scanlines_name2func( const char *name );
 
 #endif             /* BLENDER_H_HEADER_INCLUDED */
 
