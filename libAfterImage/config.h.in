@@ -25,7 +25,7 @@
 /* Define if libFreeType is available */
 #undef HAVE_FREETYPE
 
-/* Define if libFreeType is available */
+/* Define if libFreeType has freetype.h in freetype/ */
 #undef HAVE_FREETYPE_FREETYPE
 
 /* Define to 1 if you have the <ft2build.h> header file. */
@@ -46,6 +46,9 @@
 /* Define if support for XPM images should be through libXpm library in Xlib
    */
 #undef HAVE_LIBXPM_X11
+
+/* Define to 1 if the system has the type `long long'. */
+#undef HAVE_LONG_LONG
 
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
@@ -163,6 +166,8 @@
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* Define as `__inline' if that's what the C compiler calls it, or to nothing
-   if it is not supported. */
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
 #undef inline
+#endif

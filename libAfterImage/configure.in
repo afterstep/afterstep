@@ -223,6 +223,7 @@ dnl# some standard checks :
 dnl# let's check for endiannes of our box
 AC_C_BIGENDIAN
 AC_C_INLINE
+AC_CHECK_TYPES([long long])
 
 dnl# Check for headers
 AC_HEADER_TIME

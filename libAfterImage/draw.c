@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-//#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 
 #ifdef _WIN32
 #include "win32/config.h"
@@ -820,8 +820,11 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 		x - rx  < ctx->canvas_width && y - ry < ctx->canvas_height ) 
 	{	
 		int max_y = ry ; 
-		int rx2 = rx*rx, ry2 = ry * ry ; 
-		
+#ifdef HAVE_LONG_LONG						   
+		long long rx2 = rx*rx, ry2 = ry * ry, d ; 
+#else
+		long rx2 = rx*rx, ry2 = ry * ry, d ; 
+#endif		
 		if( y + ry  > ctx->canvas_height ) 
 			max_y = ctx->canvas_height - y ; 
 		if( y - ry  < 0 && y > max_y ) 
@@ -829,10 +832,10 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 
 		if( fill ) 
 		{
-			int y1 = 0; 
-			int x1 = rx-1;
-			int ty = rx*rx ;
-			int tx = x1*x1 ;
+			long y1 = 0; 
+			long x1 = rx-1;
+			long ty = rx*rx ;
+			long tx = x1*x1 ;
 			
 			do
 			{
@@ -843,17 +846,27 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 				}
 				CTX_FILL_HLINE(ctx,x-x1,y+y1,x+x1,255);
 				CTX_FILL_HLINE(ctx,x-x1,y-y1,x+x1,255);
-				ty -= (((y1<<1)+1)*rx2)/ry2;
+				
+				d = (y1<<1)+1 ;
+				/* this is likely to break for large radii when there are no 64 bit ints */
+				if( rx != ry )
+					d = (d*rx2)/ry2 ;
+				ty -= (long)d;
 			
 			}while( ++y1 < max_y ); 
 		}
 		
 		asim_move_to( ctx, x+rx, y );
-		if(  x < -16000 || y < -16000 || x > 16000 || y > 16000 ) 
+		LOCAL_DEBUG_OUT( "x = %d, y = %d, rx = %d, ry = %d", x, y, rx, ry );
+/* if no 64 bit integers - then tough luck - have to resort to beziers */
+#ifndef HAVE_LONG_LONG						   
+		if( (rx == ry && (rx > 16000 || ry > 16000 || x < -16000 || y < -16000 || x > 16000 || y > 16000)) ||
+			(rx != ry && (rx > 1000 || ry > 1000 || x > 1000 || y > 1000 || x < -1000 || y < -1000)) ) 
 		{  /* somewhat imprecise approximation using 4 bezier curves */
 			int drx = rx*142 ;       /* that gives us precision of about 0.05% which is 
 									* pretty good for integer math */
 			int dry = ry*142 ;
+			LOCAL_DEBUG_OUT( "drx = %d, dry = %d", drx, dry );
 			rx  = rx << 8 ; 
 			ry  = ry << 8 ; 
 			x  = x << 8 ; 
@@ -862,7 +875,9 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 			ctx_draw_bezier( ctx, x, y+ry, x-drx, y+ry, x-rx, y+dry, x-rx, y );
 			ctx_draw_bezier( ctx, x-rx, y, x-rx, y-dry, x-drx, y-ry, x, y-ry );
 			ctx_draw_bezier( ctx, x, y-ry, x+drx, y-ry, x+rx, y-dry, x+rx, y );
+
 	 	}else
+#endif			
 		{		  
 			x = x<<4 ; 
 			y = y<<4 ; 
@@ -871,17 +886,16 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 			max_y = (max_y << 4) + 4;
 
 			{
-				int min_r = rx - 4, max_r = rx + 4 ; 
-				int y1 = 0; 
-				int x1 = max_r;
-				int min_ty = min_r * min_r ;
-				int max_ty = max_r * max_r ;
-				int tx = max_ty ;
+				long min_r = rx - 1, max_r = rx + 1 ; 
+				long y1 = 0; 
+				long x1 = max_r;
+				long min_ty = min_r * min_r ;
+				long max_ty = max_r * max_r ;
+				long tx = max_ty ;
 			
 				do
 				{
-					int start_tx, start_x1 ;
-					int d ;
+					long start_tx, start_x1 ;
 					while( tx > max_ty ) 
 					{
 						--x1; 
@@ -902,9 +916,11 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 					}
 					tx = start_tx ; 
 					x1 = start_x1 ;
-					d = (((y1<<1)+1)*rx2)/ry2 ;
-					min_ty -= d;
-					max_ty -= d;
+					d = ((y1<<1)+1);
+					if( rx != ry )
+						d = (d*rx2)/ry2 ;
+					min_ty -= (long)d;
+					max_ty -= (long)d;
 				}while( ++y1 <= max_y ); 
 			}
 		}		
@@ -916,94 +932,6 @@ void
 asim_circle( ASDrawContext *ctx, int x, int y, int r, Bool fill ) 
 {
 	asim_straight_ellips( ctx, x, y, r, r, fill );
-#if 0	 
-	if( ctx && r > 0 && 
-		x + r >= 0 && y+r >= 0 && x - r  < ctx->canvas_width && y - r < ctx->canvas_height ) 
-	{	
-		int max_y = r ; 
-		if( y + r  > ctx->canvas_width ) 
-			max_y = ctx->canvas_width - y ; 
-		if( y - r  < 0 && y > max_y ) 
-			max_y = y ; 
-
-		if( fill ) 
-		{
-			int y1 = 0; 
-			int x1 = r-1;
-			int ty = r*r ;
-			int tx = r*r-(r<<1)+1 ;
-			
-			do
-			{
-				while( tx > ty ) 
-				{
-					tx -= (x1<<1)+1 ;
-					--x1 ;
-				}
-				CTX_FILL_HLINE(ctx,x-x1,y+y1,x+x1,255);
-				CTX_FILL_HLINE(ctx,x-x1,y-y1,x+x1,255);
-				ty -= (y1<<1)+1;
-			
-			}while( ++y1 < max_y ); 
-		}
-		
-		asim_move_to( ctx, x+r, y );
-		if(  x < -16000 || y < -16000 || x > 16000 || y > 16000 ) 
-		{  /* somewhat imprecise approximation using 4 bezier curves */
-			int dr = r*142 ;       /* that gives us precision of about 0.05% which is 
-									* pretty good for integer math */
-			r  = r << 8 ; 
-			x  = x << 8 ; 
-			y  = y << 8 ; 
-			ctx_draw_bezier( ctx, x+r, y, x+r, y+dr, x+dr, y+r, x, y+r );
-			ctx_draw_bezier( ctx, x, y+r, x-dr, y+r, x-r, y+dr, x-r, y );
-			ctx_draw_bezier( ctx, x-r, y, x-r, y-dr, x-dr, y-r, x, y-r );
-			ctx_draw_bezier( ctx, x, y-r, x+dr, y-r, x+r, y-dr, x+r, y );
-	 	}else
-		{		  
-			x = x<<4 ; 
-			y = y<<4 ; 
-			r = r<<4 ;
-			max_y = (max_y << 4) + 4;
-
-			{
-				int min_r = r - 4, max_r = r + 4 ; 
-				int y1 = 0; 
-				int x1 = max_r;
-				int min_ty = min_r * min_r ;
-				int max_ty = max_r * max_r ;
-				int tx = max_ty ;
-			
-				do
-				{
-					int start_tx, start_x1 ;
-					while( tx > max_ty ) 
-					{
-						--x1; 
-						tx -= (x1<<1)+1 ;
-					}	 
-					start_tx = tx ; 
-					start_x1 = x1 ;
-
-					
-					while( tx > min_ty && x1 >= 0) 
-					{
-						render_supersampled_pixel( ctx, (x-x1)<<4, (y+y1)<<4 );
-						render_supersampled_pixel( ctx, (x-x1)<<4, (y-y1)<<4 );
-						render_supersampled_pixel( ctx, (x+x1)<<4, (y+y1)<<4 );
-						render_supersampled_pixel( ctx, (x+x1)<<4, (y-y1)<<4 );
-						--x1; 
-						tx -= (x1<<1)+1 ;
-					}
-					tx = start_tx ; 
-					x1 = start_x1 ;
-					min_ty -= (y1<<1)+1;
-					max_ty -= (y1<<1)+1;
-				}while( ++y1 <= max_y ); 
-			}
-		}		
-	}		
-#endif
 }	 
 
 /* Sinus lookup table */
@@ -1041,56 +969,50 @@ static inline int asim_sin( int angle )
 void
 asim_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool fill ) 
 {
-	if( rx == ry ) 
-		return asim_circle( ctx, x, y, rx, fill );
+	while( angle >= 360 ) 
+		angle -= 360 ;
+	while( angle < 0 ) 
+		angle += 360 ;
+	
+	if( angle == 0 || angle ==180  || rx == ry ) 
+	{	
+		asim_straight_ellips( ctx, x, y, rx, ry, fill );
+		if( angle == 180 ) 
+			asim_move_to( ctx, x-rx, y );
+		return;
+	}
+	if( angle == 90 || angle == 270 ) 
+	{	
+		asim_straight_ellips( ctx, x, y, ry, rx, fill );
+		asim_move_to( ctx, x, y + (angle == 90?-rx:rx) );
+		return;
+	}
 
 	if( ctx && rx > 0 && ry > 0 ) 
 	{	
 		int dx0 = rx, dy0 = ry, dx1 = 0, dy1 = rx*4/3 ;
 		int x0, y0, x1down, y1down, x2down, y2down, x3, y3, x2up, y2up, x1up, y1up ; 
-		
-		while( angle >= 360 ) 
-			angle -= 360 ;
-		while( angle < 0 ) 
-			angle += 360 ;
-		
-		if( angle == 90 || angle == 270 ) 
+		int ry4 = (ry<<2)/3 ;
+		int sin_val = asim_sin(angle);
+		int cos_val = asim_sin(angle+90);
+		if(sin_val < 0) 
+			sin_val = -sin_val ;
+		if(cos_val < 0) 
+			cos_val = -cos_val ;
+		dx0 = (rx*cos_val)>>8; 
+		dy0 = (rx*sin_val)>>8; 
+		dx1 = (ry4*sin_val)>>8;
+		dy1 = (ry4*cos_val)>>8; 
+		if( angle < 180 )
 		{
-			int t = rx ;
-			rx = ry ; 
-			ry = t ;	   
-			angle = 0 ;
-		}
-		if( angle != 0 && angle != 180 ) 
-		{	
-			int ry4 = (ry<<2)/3 ;
-			int sin_val = asim_sin(angle);
-			int cos_val = asim_sin(angle-90);
-			if(sin_val < 0) 
-				sin_val = -sin_val ;
-			if(cos_val < 0) 
-				cos_val = -cos_val ;
-			dx0 = (rx*cos_val)>>8; 
-			dy0 = (rx*sin_val)>>8; 
-			dx1 = (ry4*sin_val)>>8;
-			dy1 = (ry4*cos_val)>>8; 
-			if( angle < 180 )
-			{
-				dy0 = -dy0 ;
-				dx1 = -dx1 ; 
-			}	 
-			if( angle > 90 && angle < 270 )
-			{	
-				dx0 = -dx0 ; 
-				dy1 = -dy1 ;
-			}
-		}else
-		{	
-			dx0 = rx<<8 ; 
-			dy0 = 0 ; 
-			dx1 = 0 ; 
-			dy1 = (ry<<10)/3 ;
+			dy0 = -dy0 ;
+			dx1 = -dx1 ; 
 		}	 
+		if( angle > 90 && angle < 270 )
+		{	
+			dx0 = -dx0 ; 
+			dy1 = -dy1 ;
+		}
 		x = x << 8;
 		y = y << 8;
 		x0 = x + dx0 ;
@@ -1111,6 +1033,107 @@ asim_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool f
 		ctx_draw_bezier( ctx, x3, y3, x2up, y2up, x1up, y1up, x0, y0 );
 	}		
 }	 
+
+int 
+asim_sqrt( int sval ) 
+{
+	long long uval = sval >= 0 ? sval:-sval ;
+	long long res = (uval>=1024?uval>>5:(uval>=64?uval>>3:uval>>1)) ; 
+	long long t = res*res ;
+	while( t > uval ) 
+	{
+		t -= (res<<1)-1 ;
+		--res ;
+	}		  
+	return res;
+}	  
+
+void
+asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool fill ) 
+{
+	while( angle >= 360 ) 
+		angle -= 360 ;
+	while( angle < 0 ) 
+		angle += 360 ;
+	
+	if( angle == 0 || angle ==180  || rx == ry ) 
+	{	
+		asim_straight_ellips( ctx, x, y, rx, ry, fill );
+		if( angle == 180 ) 
+			asim_move_to( ctx, x-rx, y );
+		return;
+	}
+	if( angle == 90 || angle == 270 ) 
+	{	
+		asim_straight_ellips( ctx, x, y, ry, rx, fill );
+		asim_move_to( ctx, x, y + (angle == 90?-rx:rx) );
+		return;
+	}
+
+	if( angle > 180 ) 
+		angle -= 180 ; 
+
+	if( ctx && rx > 0 && ry > 0 ) 
+	{	
+		long long sin_val = asim_sin(angle);
+		long long cos_val = asim_sin(angle+90);
+		long long rx2 = rx*rx ; 
+		long long ry2 = ry*ry ;
+		long long c2 = rx2 - ry2 ; 
+		long long xc2 = (((c2 * cos_val)/0x00010000)*cos_val)/0x00010000 ;
+		long long yc2 = (((c2 * sin_val)/0x00010000)*sin_val)/0x00010000 ;
+		long long A = rx2 - xc2 ;
+		long long B = rx2 - yc2 ;
+		long long C = -((((c2*sin_val)/0x00010000)*cos_val)/0x00010000) ;
+		long long F = -rx2*ry2 ;
+		long long yt = asim_sqrt(A);
+		long long xt = -C/yt ;
+		long long xr = asim_sqrt(B);
+		long long yr = -C/xr ;
+		long long x1 = xt ; 
+		long long x2 = xt ; 
+		long long start = A*xt*xt + B*yt*yt + 2*C*xt*yt+F ;
+		long long d1 = start -(2*A+C)*xt-(2*C+B)*yt+A+C+(B>>2);
+		long long d2 = start +(2*A-C)*xt+(2*C-B)*yt+A-C+(B>>2);
+		long long y1 = yt ; 
+
+		fprintf( stderr, "sin = %lld, cos = %lld, rx2 = %lld, ry2 = %lld, c2 = %lld, xc2 = %lld, yc2 = %lld\n", 
+				 sin_val, cos_val, rx2, ry2, c2, xc2, yc2 );
+		fprintf( stderr, "A = %lld, B = %lld, C = %lld, F = %lld\n", A, B, C, F );
+		fprintf( stderr, "yt = %lld, xt = %lld, xr = %lld, yr = %lld, d1 = %lld, d2 = %lld\n", yt, xt, xr, yr, d1, d2 );
+		while( y1 >= 0 ) 
+		{
+			while( d1 < 0 ) 
+			{
+				long long delta = -2*A*x1 - 2*C*y1+A+C ;
+				fprintf( stderr, "delta = %lld, d1 = %lld\n", delta, d1 );
+				d1 += delta ;
+				--x1 ;
+			}	  
+			while( d2 < 0 ) 
+			{
+				long long delta = (y1 > yr)? 2*A*x2 + 2*C*y1+A-C : -2*A*x2 - 2*C*y1+A+C ;
+				fprintf( stderr, "delta = %lld, d2 = %lld\n", delta, d2 );
+				d2 += delta ;
+				if(y1 <= yr)
+					--x2 ;
+				else
+					++x2 ;
+			}	 
+			fprintf( stderr, "y1 = %lld, x1 = %lld, x2 = %lld, d1 = %lld, d2 = %lld\n", y1, x1, x2, d1, d2 );
+			CTX_FILL_HLINE(ctx,x+x1,y-y1,x+x2,255);
+			CTX_FILL_HLINE(ctx,x-x1,y+y1,x-x2,255);
+			d1 += -2*(A+C)*x1-2*(C+B)*y1+A+5*C+2*B ;
+			if(y1 <= yr)
+				d2 += -2*(A+C)*x2-2*(C+B)*y1+A+5*C+2*B ;
+			else
+				d2 += 2*(A-C)*x2+2*(C-B)*y1+A-C ;
+			--y1 ;
+			fprintf( stderr, "y1 = %lld, d1 = %lld, d2 = %lld\n", y1, d1, d2 );
+		}	 
+	}		
+}	 
+
 
 
 void 
@@ -1323,19 +1346,21 @@ int main(int argc, char **argv )
 	asim_circle( ctx, -1000, -1000, 2000, False );
 	asim_ellips( ctx, -1000, -1000, 2000, 500, -45, False );
 	asim_circle( ctx, 595, 550, 200, False );
-	for( i = 0 ; i < 180 ; i+=5 ) 
-		asim_ellips( ctx, 595, 550, 198, 40, i, False );
+	i = 30 ;
+//	for( i = 0 ; i < 180 ; i+=5 ) 
+		asim_ellips2( ctx, 595, 550, 198, 40, i, False );
 
 	asim_circle( ctx, 705, 275, 90, True );
+
 
 	asim_circle( ctx, -40000, 500, 40500, False );
 	asim_circle( ctx, -10000, 500, 10499, False );
 
-/*	asim_flood_fill( ctx, 664, 166, 0, 126 ); 
+	asim_flood_fill( ctx, 664, 166, 0, 126 ); 
 	asim_flood_fill( ctx, 670, 77, 0, 126 ); 
 	asim_flood_fill( ctx, 120, 80, 0, 126 ); 
 	asim_flood_fill( ctx, 300, 460, 0, 126 ); 
-*/
+
 #if 1
 	/* commit drawing : */
 	apply_draw_context( drawing1, ctx, SCL_DO_ALPHA ); 
