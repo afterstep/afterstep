@@ -37,15 +37,33 @@ use strict;
 # get AfterStep socket name (via xprop)
 
 sub module_get_socket_name {
-  my $socket_name = "$ENV{'HOME'}/GNUstep/Library/AfterStep/non-configurable/connect.DISPLAY=$ENV{'DISPLAY'}";
+
+   #won't work for me. -Vae
+  my $socket_name = "$ENV{'HOME'}/.afterstep/connect.DISPLAY=$ENV{'DISPLAY'}";
+  
+  my $xprop_root;
+
   open(XPROP, "xprop -root |") || warn "unable to execute xprop: $!";
+
   while (<XPROP>) {
-    if (/^_AS_MODULE_SOCKET/) {
+    if (/^_NET_SUPPORTING_WM_CHECK\(WINDOW\)/) {
+      $xprop_root = (split(/#/))[1];
+      last;
+    }
+  }
+  close(XPROP);
+
+  open (XPROP, "xprop -id $xprop_root |") || warn "unable to execute xprop: $!";
+  while (<XPROP>) {
+    if (/^_AS_MODULE_SOCKET\(STRING\)/) {
       $socket_name = (split(/"/))[1];
       last;
     }
   }
   close(XPROP);
+  
+
+
   return $socket_name;
 }
 
