@@ -342,13 +342,16 @@ typedef struct ASVisual
 /****f* libAfterImage/asvisual/query_screen_visual()
  * SYNOPSIS
  * Bool query_screen_visual( ASVisual *asv, Display *dpy, int screen,
- *                           Window root, int default_depth );
+ *                           Window root, int default_depth, 
+							 VisualID visual_id, Colormap cmap );
  * INPUTS
  * asv  		- preallocated ASVisual structure.
  * dpy  		- valid pointer to opened X display.
  * screen   	- screen number on which to query visuals.
  * root     	- root window on that screen.
  * default_depth- default colordepth of the screen.
+ * visual_id    - optional ID of prefered Visual.
+ * cmap         - optional colormap to be used.
  * RETURN VALUE
  * True on success, False on failure
  * ASVisual structure pointed by asv will have the following data
@@ -399,7 +402,8 @@ typedef struct ASVisual
  *********/
 
 Bool query_screen_visual_id( ASVisual *asv, Display *dpy, int screen,
-	                      	 Window root, int default_depth, VisualID visual_id );
+	                      	 Window root, int default_depth, 
+							 VisualID visual_id, Colormap cmap );
 #define query_screen_visual(a,d,s,r,dd) query_screen_visual_id((a),(d),(s),(r),(dd),0)
 
 Bool setup_truecolor_visual( ASVisual *asv );
@@ -409,7 +413,7 @@ void setup_as_colormap( ASVisual *asv );
  * SYNOPSIS
  * ASVisual *create_asvisual_for_id( Display *dpy, int screen,
  *                                   int default_depth,
- *                                   VisualID visual_id,
+ *                                   VisualID visual_id, Colormap cmap,
  *                                   ASVisual *reusable_memory );
  * INPUTS
  * dpy  		- valid pointer to opened X display.
@@ -417,6 +421,7 @@ void setup_as_colormap( ASVisual *asv );
  * root     	- root window on that screen.
  * default_depth- default colordepth of the screen.
  * visual_id    - ID of X visual to use.
+ * cmap         - optional ID of the colormap to be used.
  * reusable_memory - pointer to preallocated ASVisual structure.
  * RETURN VALUE
  * Pointer to ASVisual structure initialized with enough information
@@ -475,7 +480,7 @@ void setup_as_colormap( ASVisual *asv );
  * asview.c: ASView.2
  *********/
 ASVisual *create_asvisual_for_id( Display *dpy, int screen, int default_depth,
-	                              VisualID visual_id,
+	                              VisualID visual_id, Colormap cmap,
 								  ASVisual *reusable_memory );
 ASVisual *create_asvisual( Display *dpy, int screen, int default_depth,
 	                       ASVisual *reusable_memory );
