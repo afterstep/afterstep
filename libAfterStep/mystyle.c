@@ -412,6 +412,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 #else
                 tmp_root = pixmap2asimage (Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, False, 100);
 #endif
+				LOCAL_DEBUG_OUT ("Root pixmap ASImage = %p, size = %dx%d", tmp_root, tmp_root?tmp_root->width:0, tmp_root?tmp_root->height:0);
                 if( tmp_root )
                 {
                     if( Scr.RootClipArea.x == 0 && Scr.RootClipArea.y == 0 &&
@@ -421,7 +422,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
                         Scr.RootImage = tmp_root ;
                     }else
                     {
-                        Scr.RootImage = tile_asimage (Scr.asv, Scr.RootImage,
+                        Scr.RootImage = tile_asimage (Scr.asv, tmp_root,
                                                     Scr.RootClipArea.x, Scr.RootClipArea.y,
                                                     Scr.RootClipArea.width, Scr.RootClipArea.height, TINT_NONE,
                                                     ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
@@ -442,7 +443,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 			 root_w = Scr.RootImage->width;
 			 root_h = Scr.RootImage->height;
 		 }
-         LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", Scr.RootImage, Scr.RootClipArea.width, Scr.RootClipArea.height, Scr.RootClipArea.x, Scr.RootClipArea.y, root_w, root_h);
+         LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", Scr.RootImage, Scr.RootClipArea.width, Scr.RootClipArea.height, Scr.RootClipArea.x, Scr.RootClipArea.y, Scr.RootImage?Scr.RootImage->width:0, Scr.RootImage?Scr.RootImage->height:0);
 	}
 	if( get_flags( flip, FLIP_VERTICAL )  )
 	{

@@ -130,7 +130,8 @@ typedef struct ASWharfFolder
     ASWharfButton *buttons ;
     int buttons_num;
     ASWharfButton *parent ;
-
+	
+	int gravity ;
     unsigned int total_width, total_height;    /* size calculated based on size of participating buttons */
 
     int animation_steps;                       /* how many steps left */
@@ -182,6 +183,7 @@ void check_swallow_window( ASWindowData *wd );
 void update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force );
 void update_wharf_folder_styles( ASWharfFolder *aswf, Bool force );
 void on_wharf_button_confreq( ASWharfButton *aswb, ASEvent *event );
+void update_root_clip_area();
 
 
 /***********************************************************************
@@ -1098,6 +1100,7 @@ map_wharf_folder( ASWharfFolder *aswf,
         shints.flags |= PPosition ;
 
     shints.win_gravity = gravity ;
+	aswf->gravity = gravity ;
 
 	extwm_hints.pid = getpid();
     extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_TypeDock ;
@@ -1472,6 +1475,7 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
                                                       (south?SouthWestGravity:NorthWestGravity) );
     set_flags( aswf->flags, ASW_Mapped );
     clear_flags( aswf->flags, ASW_Withdrawn );
+	update_root_clip_area();
     return True;
 }
 
@@ -1490,6 +1494,7 @@ LOCAL_DEBUG_OUT( "unmapping canvas %p at %dx%d%+d%+d", aswf->canvas, aswf->canva
             get_flags( aswf->buttons[i].folder->flags, ASW_Mapped ) )
             unmap_wharf_folder( aswf->buttons[i].folder );
     }
+	update_root_clip_area();
 }
 
 void
@@ -1888,10 +1893,65 @@ on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
     return True;
 }
 
+void 
+add_wharf_folder_to_area( ASWharfFolder *aswf, int *from_x, int *from_y, int *to_x, int *to_y )
+{
+	if( aswf != NULL && get_flags( aswf->flags, ASW_Mapped ) ) 
+	{
+		int x1 = aswf->canvas->root_x+(int)aswf->canvas->bw ;
+		int y1 = aswf->canvas->root_y+(int)aswf->canvas->bw ;
+		int x2 = aswf->total_width ;
+		int y2 = aswf->total_height ;
+        int i = aswf->buttons_num ;
+
+		if( aswf->gravity == NorthEastGravity || aswf->gravity == SouthEastGravity )
+			x1 = x1+aswf->canvas->width - x2 ; 
+		if( aswf->gravity == SouthWestGravity || aswf->gravity == SouthEastGravity )
+			y1 = y1+aswf->canvas->height - y2 ; 
+		x2 += x1 ;
+		y2 += y1 ;
+		LOCAL_DEBUG_OUT( "folder: from %+d%+d to %+d%+d, all: from %+d%+d to %+d%+d", 
+						 x1, y1, x2, y2, *from_x, *from_y, *to_x, *to_y );
+		if ( x2 > 0 && x1 < (int)Scr.MyDisplayWidth &&
+			 y2 > 0 && y1 < (int)Scr.MyDisplayHeight )
+		{
+			x1 = AS_CLAMP( 0, x1, Scr.MyDisplayWidth );
+			x2 = AS_CLAMP( 0, x2, Scr.MyDisplayWidth );
+			y1 = AS_CLAMP( 0, y1, Scr.MyDisplayHeight );
+			y2 = AS_CLAMP( 0, y2, Scr.MyDisplayHeight );
+			if( x1 < *from_x ) *from_x = x1 ; 				   
+			if( x2 > *to_x ) *to_x = x2 ; 				   
+			if( y1 < *from_y ) *from_y = y1 ; 				   
+			if( y2 > *to_y ) *to_y = y2 ; 				   
+
+			LOCAL_DEBUG_OUT( "CLAMPED: folder: from %+d%+d to %+d%+d, all: from %+d%+d to %+d%+d", 
+							 x1, y1, x2, y2, *from_x, *from_y, *to_x, *to_y );
+		}
+		while( --i >= 0 ) 
+			if( aswf->buttons[i].folder != NULL ) 
+		 		add_wharf_folder_to_area( aswf->buttons[i].folder, 
+										  from_x, from_y, to_x, to_y );
+	}
+}	 
+
+
 void
 update_root_clip_area()
 {
 	/* TODO: update root clip area to the max area occupied by all mapped folders */
+	int from_x = Scr.MyDisplayWidth, from_y = Scr.MyDisplayHeight ;
+	int to_x = 0, to_y = 0;
+	ASWharfFolder *aswf = WharfState.root_folder ; 
+	add_wharf_folder_to_area( aswf, &from_x, &from_y, &to_x, &to_y );
+	Scr.RootClipArea.x = from_x;
+    Scr.RootClipArea.y = from_y;
+    Scr.RootClipArea.width  = (to_x > from_x)?to_x - from_x:1;
+    Scr.RootClipArea.height = (to_y > from_y)?to_y - from_y:1;
+    if( Scr.RootImage )
+    {
+        safe_asimage_destroy( Scr.RootImage );
+        Scr.RootImage = NULL ;
+    }
 }
 
 void on_wharf_moveresize( ASEvent *event )
@@ -1904,6 +1964,19 @@ void on_wharf_moveresize( ASEvent *event )
     if( obj->magic == MAGIC_WHARF_BUTTON )
     {
         ASWharfButton *aswb = (ASWharfButton*)obj;
+		
+		/* need to check if there were any ConfigureNotify 's for our folder 
+		 * and if so - go process them first */
+		ASEvent parent_event;
+    	while( ASCheckTypedWindowEvent(aswb->parent->canvas->w, ConfigureNotify,&(parent_event.x)) )
+    	{
+     		parent_event.client = NULL ;
+            setup_asevent_from_xevent( &parent_event );
+            DispatchEvent( &parent_event );
+        	ASSync(False);
+    	}
+
+		LOCAL_DEBUG_OUT("Handling button resizefor button %p", aswb );
         if( on_wharf_button_moveresize( aswb, event ) )
         {
 #ifdef SHAPE
@@ -1915,6 +1988,7 @@ void on_wharf_moveresize( ASEvent *event )
     {
         ASWharfFolder *aswf = (ASWharfFolder*)obj;
         ASFlagType changes = handle_canvas_config (aswf->canvas );
+		LOCAL_DEBUG_OUT("Handling folder resize for button %p", aswf );
         if( aswf->animation_steps == 0 && get_flags( aswf->flags, ASW_Mapped ) && aswf->animation_dir < 0 )
         {
             unmap_wharf_folder( aswf );
@@ -1930,6 +2004,8 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
                     unmap_wharf_folder( aswf );
                 else
                 {
+					if( changes&(CANVAS_MOVED) )
+						update_root_clip_area();
                     LOCAL_DEBUG_OUT( "resizing folder from %dx%d to %dx%d", aswf->canvas->width, aswf->canvas->height, new_width, new_height );
                     resize_canvas( aswf->canvas, new_width, new_height) ;
                     ASSync( False ) ;

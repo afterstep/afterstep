@@ -46,7 +46,7 @@ extern "C" {
 #define FIT_SIZE_IN_RANGE(from,val,size,to)  (((val)<(from))?(from):(((val)+(size) >(to))?(to)-(size):(val)))
 
 /* same as above actually */
-#define AS_CLAMP(a,b,c)        ((a)<(b) ? (b) : ((a)>(c) ? (c) : (a)))
+#define AS_CLAMP(a,b,c)        ((a)<(b) ? (((b)<(c))?(b):(c)) : ((a)>(c) ? (c) : (a)))
 #define AS_CLAMP_SIZE(a,b,c)   ((a)<(b) ? (b) : ((c)!=-1&&(a)>(c) ? (c) : (a)))
 #define SWAP(a, b, type)    { type SWAP_NaMe = a; a = b; b = SWAP_NaMe; }
 

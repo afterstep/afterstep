@@ -465,7 +465,13 @@ DispatchEvent (ASEvent * event)
                 safe_asimage_destroy( Scr.RootImage );
                 Scr.RootImage = NULL ;
                 for( i = 0 ; i < WinListState.windows_num ; ++i )
-                    update_astbar_transparency( WinListState.window_order[i]->bar, WinListState.main_canvas, True );
+                    if( update_astbar_transparency( WinListState.window_order[i]->bar, WinListState.main_canvas, True ) )
+						render_astbar( WinListState.window_order[i]->bar, WinListState.main_canvas );
+		        if( is_canvas_dirty( WinListState.main_canvas ) )
+				{
+            		update_canvas_display( WinListState.main_canvas );
+					update_canvas_display_mask (WinListState.main_canvas, True);
+				}
             }else if( event->x.xproperty.atom == _AS_STYLE )
 			{
                 int i ;

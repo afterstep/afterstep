@@ -1081,6 +1081,8 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         	XClearWindow( dpy, Scr.Root );
         	set_xrootpmap_id (Scr.wmprops, bh->pmap );
 		}  
+		if( Scr.RootImage == NULL )
+			Scr.RootImage = dup_asimage(Scr.RootBackground->im) ;
     }else
         set_xrootpmap_id (Scr.wmprops, None );
     ASSync(False);
