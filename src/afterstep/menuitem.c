@@ -282,6 +282,7 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 		keysym = XStringToKeysym (name);
 		if (keysym != NoSymbol && (keycode = XKeysymToKeycode (dpy, keysym)) != 0)
 		{
+			int m ;
 			XDisplayKeycodes (dpy, &min, &max);
 			for (m = 0; m <= 8; m++)   /* is 8 really the maximum number of modifiers to search through? */
 			{

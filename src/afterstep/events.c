@@ -698,24 +698,33 @@ HandleKeyPress ( ASEvent *event )
 	FuncKey      *key;
     XKeyEvent *xk = &(event->x.xkey);
     unsigned int modifier = (xk->state & nonlock_mods);
+	int m ; 
 
 	/* Here's a real hack - some systems have two keys with the
 		* same keysym and different keycodes. This converts all
 		* the cases to one keycode. */
-    xk->keycode = XKeysymToKeycode (dpy, XKeycodeToKeysym (dpy, xk->keycode, 0));
+	for( m = 0 ; m < 8 ; ++m ) 
+	{	
+		KeySym keysym = XKeycodeToKeysym (dpy, xk->keycode, m); 
+		int keycode ; 
+		if( keysym == NoSymbol ) 
+			continue;
+    	if( (keycode = XKeysymToKeycode (dpy, keysym)) == 0 )
+			continue;
+		xk->keycode = keycode;
 
-    for (key = Scr.Feel.FuncKeyRoot; key != NULL; key = key->next)
-	{
-        if ((key->keycode == xk->keycode) &&
-			((key->mods == (modifier & (~LockMask))) ||
-             (key->mods == AnyModifier)) && (key->cont & event->context))
+    	for (key = Scr.Feel.FuncKeyRoot; key != NULL; key = key->next)
 		{
-			/* check if the warp key was pressed */
-            ExecuteFunction (key->fdata, event, -1);
-			return;
+        	if ((key->keycode == xk->keycode) &&
+				((key->mods == (modifier & (~LockMask))) ||
+             	(key->mods == AnyModifier)) && (key->cont & event->context))
+			{
+				/* check if the warp key was pressed */
+            	ExecuteFunction (key->fdata, event, -1);
+				return;
+			}
 		}
 	}
-
 	/* if a key has been pressed and it's not one of those that cause
 	   warping, we know the warping is finished */
     if( get_flags( AfterStepState, ASS_WarpingMode ) )
