@@ -151,7 +151,7 @@ struct config main_config[] = {
     {"OpaqueResize", SetInts, (char **)&Scr.Feel.OpaqueResize, &dummy},
     {"XorValue", SetInts, (char **)&Scr.Feel.XorValue, &dummy},
 	{"Mouse", ParseMouseEntry, (char **)1, (int *)0},
-    {"Popup", ParseMenuEntry, (char **)1, (int *)0},
+    {"Popup", ParsePopupEntry, (char **)1, (int *)0},
     {"Function", ParseFunctionEntry, (char **)1, (int *)0},
 	{"Key", ParseKeyEntry, (char **)1, (int *)0},
 	{"ClickToFocus", SetFlag, (char **)ClickToFocus, (int *)EatFocusClick},
@@ -439,7 +439,7 @@ merge_old_look_variables (MyLook *look)
     int i ;
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
-        button_styles[i] = mystyle_find(button_style_names[i]);
+        button_styles[i] = mystyle_list_find(look->styles_list, button_style_names[i]);
 
 	/* the fonts */
 	if (Stdfont != NULL)
@@ -521,7 +521,7 @@ merge_old_look_variables (MyLook *look)
 
 #ifndef NO_TEXTURE
 		{
-			MyStyle      *button_pixmap = mystyle_find ("ButtonPixmap");
+            MyStyle      *button_pixmap = mystyle_list_find (look->styles_list, "ButtonPixmap");
 
 			/* icon styles automagically inherit from window title styles */
 			if (button_pixmap != NULL)
@@ -590,6 +590,7 @@ CheckBaseSanity()
 void
 InitFeel (ASFeel *feel, Bool free_resources)
 {
+    int i ;
     if (free_resources && feel)
 	{
         while (feel->MouseButtonRoot != NULL)
@@ -618,6 +619,16 @@ InitFeel (ASFeel *feel, Bool free_resources)
             }
 			free (fk);
 		}
+        for( i = 0 ; i < MAX_CURSORS; ++i )
+            if( feel->cursors[i] && feel->cursors[i] != Scr.standard_cursors[i] )
+            {
+                XFreeCursor( dpy, feel->cursors[i] );
+                feel->cursors[i] = None ;
+            }
+        if( feel->Popups )
+            destroy_ashash( &feel->Popups );
+        if( feel->ComplexFunctions )
+            destroy_ashash( &feel->ComplexFunctions );
 	}
 
     feel->buttons2grab = 7;
@@ -636,6 +647,13 @@ InitFeel (ASFeel *feel, Bool free_resources)
 
     feel->MouseButtonRoot = NULL;
     feel->FuncKeyRoot = NULL;
+    feel->Popups = NULL;
+    feel->ComplexFunctions = NULL;
+
+    for( i = 0 ; i < MAX_CURSORS; ++i )
+        if( feel->cursors[i] )
+            feel->cursors[i] = Scr.standard_cursors[i] ;
+
 }
 
 void
@@ -683,8 +701,7 @@ InitLook (MyLook *look, Bool free_resources)
     if (free_resources)
 	{
 		/* styles/textures */
-		while (mystyle_first != NULL)
-			mystyle_delete (mystyle_first);
+        mystyle_list_destroy_all(&(look->styles_list));
 
         if( look->DefaultFrame )
             destroy_myframe( &(look->DefaultFrame) );
@@ -719,9 +736,11 @@ InitLook (MyLook *look, Bool free_resources)
         unload_font (&StdFont);
         unload_font (&WindowFont);
         unload_font (&IconFont);
+
+        destroy_hints_list(&(look->supported_hints));
     }
     /* styles/textures */
-	mystyle_first = NULL;
+    look->styles_list = NULL;
     for( i = 0 ; i < BACK_STYLES ; ++i )
         look->MSWindow[i] = NULL;
     for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
@@ -759,15 +778,7 @@ InitLook (MyLook *look, Bool free_resources)
 	pixmap_ref_purge ();
 
     look->StartMenuSortMode = DEFAULTSTARTMENUSORT;
-    look->supported_hints = create_hints_list();
-
-    enable_hints_support( look->supported_hints, HINTS_ICCCM );
-    enable_hints_support( look->supported_hints, HINTS_Motif );
-    enable_hints_support( look->supported_hints, HINTS_Gnome );
-    enable_hints_support( look->supported_hints, HINTS_ExtendedWM );
-    enable_hints_support( look->supported_hints, HINTS_ASDatabase );
-    enable_hints_support( look->supported_hints, HINTS_GroupLead );
-    enable_hints_support( look->supported_hints, HINTS_Transient );
+    look->supported_hints = NULL ;
 
     /* temporary old-style fonts : */
     memset(&StdFont, 0x00, sizeof(MyFont));
@@ -784,23 +795,23 @@ make_styles (MyLook *look)
     int i ;
 
     if (look->MSWindow[BACK_DEFAULT] == NULL)
-        look->MSWindow[BACK_DEFAULT] = mystyle_find_or_default ("default");
+        look->MSWindow[BACK_DEFAULT] = mystyle_list_find_or_default (look->styles_list, "default");
     for( i = 0 ; i < BACK_STYLES ; ++i )
         if (look->MSWindow[i] == NULL)
-            look->MSWindow[i] = mystyle_new_with_name (style_names[i]);
+            look->MSWindow[i] = mystyle_list_new (look->styles_list, style_names[i]);
 
     for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
         if (look->MSMenu[i] == NULL)
-            look->MSMenu[i] = mystyle_new_with_name (menu_style_names[i]);
+            look->MSMenu[i] = mystyle_list_new (look->styles_list, menu_style_names[i]);
 
-    if (mystyle_find ("ButtonPixmap") == NULL)
-		mystyle_new_with_name ("ButtonPixmap");
-	if (mystyle_find ("ButtonTitleFocus") == NULL)
-		mystyle_new_with_name ("ButtonTitleFocus");
-	if (mystyle_find ("ButtonTitleSticky") == NULL)
-		mystyle_new_with_name ("ButtonTitleSticky");
-	if (mystyle_find ("ButtonTitleUnfocus") == NULL)
-		mystyle_new_with_name ("ButtonTitleUnfocus");
+    if (mystyle_list_find (look->styles_list, "ButtonPixmap") == NULL)
+        mystyle_list_new (look->styles_list, "ButtonPixmap");
+    if (mystyle_list_find (look->styles_list, "ButtonTitleFocus") == NULL)
+        mystyle_list_new (look->styles_list, "ButtonTitleFocus");
+    if (mystyle_list_find (look->styles_list, "ButtonTitleSticky") == NULL)
+        mystyle_list_new (look->styles_list, "ButtonTitleSticky");
+    if (mystyle_list_find (look->styles_list, "ButtonTitleUnfocus") == NULL)
+        mystyle_list_new (look->styles_list, "ButtonTitleUnfocus");
 }
 
 void
@@ -812,8 +823,9 @@ FixLook( MyLook *look )
     merge_old_look_variables (look);
 
     /* fill in remaining members with the default style */
-    mystyle_fix_styles (look);
-    mystyle_set_property (dpy, Scr.Root, _AS_STYLE, XA_INTEGER);
+    mystyle_list_fix_styles (look->styles_list);
+
+    mystyle_list_set_property (Scr.wmprops, look->styles_list);
 
 #ifndef NO_TEXTURE
     /* update frame geometries */
@@ -839,6 +851,18 @@ FixLook( MyLook *look )
         look->resize_move_geometry.height = look->MSWindow[BACK_FOCUSED]->font.height + SIZE_VINDENT * 2;
 
     set_flags( look->resize_move_geometry.flags, HeightValue|WidthValue );
+
+    if( look->supported_hints == NULL )
+    {
+        look->supported_hints = create_hints_list();
+        enable_hints_support( look->supported_hints, HINTS_ICCCM );
+        enable_hints_support( look->supported_hints, HINTS_Motif );
+        enable_hints_support( look->supported_hints, HINTS_Gnome );
+        enable_hints_support( look->supported_hints, HINTS_ExtendedWM );
+        enable_hints_support( look->supported_hints, HINTS_ASDatabase );
+        enable_hints_support( look->supported_hints, HINTS_GroupLead );
+        enable_hints_support( look->supported_hints, HINTS_Transient );
+    }
 }
 
 /*
@@ -1120,7 +1144,7 @@ assign_string (char *text, FILE * fd, char **arg, int *junk)
 void
 assign_themable_path (char *text, FILE * fd, char **arg, int *junk)
 {
-	char         *as_theme_data = make_file_name (as_dirs.after_dir, THEME_DATA_DIR);
+    char         *as_theme_data = make_session_dir(Session, THEME_DATA_DIR, False);
 	char         *tmp = stripcpy (text);
 	int           tmp_len;
 
@@ -1280,7 +1304,7 @@ SetCursor (char *text, FILE * fd, char **arg, int *junk)
         Cursor new_c = XCreateFontCursor (dpy, cursor_style);
         if( new_c )
         {
-            if( Scr.Feel.cursors[cursor_num] )
+            if( Scr.Feel.cursors[cursor_num] && Scr.Feel.cursors[cursor_num] != Scr.standard_cursors[cursor_num])
                 XFreeCursor( dpy, Scr.Feel.cursors[cursor_num] );
             Scr.Feel.cursors[cursor_num] = new_c ;
         }
@@ -1341,7 +1365,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
     new_c = XCreatePixmapCursor (dpy, cursor, mask, &fore, &back, x, y);
     if( new_c )
     {
-        if( Scr.Feel.cursors[cursor_num] )
+        if( Scr.Feel.cursors[cursor_num] && Scr.Feel.cursors[cursor_num] != Scr.standard_cursors[cursor_num])
             XFreeCursor( dpy, Scr.Feel.cursors[cursor_num] );
         Scr.Feel.cursors[cursor_num] = new_c ;
     }
@@ -1500,7 +1524,7 @@ MeltStartMenu (char *buf)
 	char         *as_start = NULL;
 	dirtree_t    *tree;
 
-	switch (StartMenuSortMode)
+    switch (Scr.Look.StartMenuSortMode)
 	{
 	 case SORTBYALPHA:
 		 dirtree_compar_list[0] = dirtree_compar_order;
@@ -1526,33 +1550,13 @@ MeltStartMenu (char *buf)
 	 *    directories used for the generation.
 	 */
 
-	if (CheckDir (as_dirs.after_dir) == 0)
-	{
-		as_start = make_file_name (as_dirs.after_dir, START_DIR);
-		if (CheckDir (as_start) != 0)
-		{
-			free (as_start);
-			as_start = NULL;
-		}
-	}
-	if (as_start == NULL)
-	{
-		printf ("Using system wide defaults from '%s'", as_dirs.after_sharedir);
-		as_start = make_file_name (as_dirs.after_sharedir, START_DIR);
-		if (CheckDir (as_start) != 0)
-		{
-			free (as_start);
-			perror ("unable to locate the menu directory");
-			Done (0, NULL);
-			return 0;
-		}
-	}
-	tree = dirtree_new_from_dir (as_start);
+    as_start = make_session_dir (Session, START_DIR, False);
+    tree = dirtree_new_from_dir (as_start);
 	free (as_start);
 
 #ifdef FIXED_DIR
 	{
-		char         *as_fixeddir = make_file_name (as_dirs.after_sharedir, FIXED_DIR);
+        char         *as_fixeddir = make_session_dir (Session, FIXED_DIR, False);
 
 		if (CheckDir (as_fixeddir) == 0)
 		{
@@ -1562,7 +1566,7 @@ MeltStartMenu (char *buf)
 			dirtree_move_children (tree, fixed_tree);
 			dirtree_delete (fixed_tree);
 		} else
-			perror ("unable to locate the fixed menu directory");
+            show_error("unable to locate the fixed menu directory at \"%s\"", as_fixeddir);
 		free (as_fixeddir);
 	}
 #endif /* FIXED_DIR */

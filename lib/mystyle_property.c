@@ -25,6 +25,7 @@
 #include "../include/screen.h"
 #include "../include/mystyle.h"
 #include "../include/mystyle_property.h"
+#include "../include/wmprops.h"
 
 #ifdef I18N
 #define MAX_FONTSET_NAME_LENGTH  256
@@ -32,27 +33,30 @@
 #endif
 
 void
-mystyle_set_property (Display * dpy, Window w, Atom name, Atom type)
+mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 {
-	MyStyle      *style;
-	unsigned long *prop;
+    unsigned long *prop;
 	int           i, nelements;
+    ASHashIterator iterator ;
 
 	nelements = 0;
-	for (style = mystyle_first; style != NULL; style = style->next)
+    if( !start_hash_iteration( list, &iterator ) ) return ;
+	do
 	{
-		nelements += 9;
+        nelements += 9;
 #ifndef NO_TEXTURE
-		nelements += 7 + style->gradient.npoints * 4;
+        nelements += 7 + ((MyStyle*)curr_hash_data(&iterator))->gradient.npoints * 4;
 #endif /* NO_TEXTURE */
-	}
+    }while( next_hash_item(&iterator));
 
 	prop = safemalloc (sizeof (unsigned long) * nelements);
 
 	i = 0;
-	for (style = mystyle_first; style != NULL; style = style->next)
+    start_hash_iteration( list, &iterator );
+	do
 	{
-/*	  show_warning( "style \"%s\" set_flags = %X", style->name, style->set_flags );
+        MyStyle *style = (MyStyle*)curr_hash_data(&iterator);
+/*    show_warning( "style \"%s\" set_flags = %X", style->name, style->set_flags );
  */
 		prop[i++] = style->set_flags;
 		prop[i++] = XInternAtom (dpy, style->name, False);
@@ -89,30 +93,38 @@ mystyle_set_property (Display * dpy, Window w, Atom name, Atom type)
 			}
 		}
 #endif /* NO_TEXTURE */
-	}
+    }while( next_hash_item(&iterator));
 	/* set the property version to 1.2 */
-	set_as_property (w, name, (unsigned long *)prop, nelements * sizeof (unsigned long), (1 << 8) + 2);
-	free (prop);
+    set_as_style (wmprops, nelements * sizeof (unsigned long), (1 << 8) + 2, prop );
+    free (prop);
 }
 
 void
-mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
+mystyle_set_property (ASWMProps *wmprops)
+{
+    mystyle_list_set_property (wmprops,Scr.Look.styles_list);
+}
+
+
+void
+mystyle_get_property (ASWMProps *wmprops)
 {
 	unsigned long *prop;
 	size_t        i, n;
 	unsigned long version;
 
-	if ((prop = get_as_property (w, name, &n, &version)) == NULL)
+    if ( (prop = wmprops->as_styles_data) == NULL )
 		return;
 	/* do we know how to handle this version? */
+    version = wmprops->as_styles_version ;
+    /* do we know how to handle this version? */
 	if (version != (1 << 8) + 2)
 	{
-		fprintf (stderr, "%s: style property has unknown version %d.%d\n", MyName, (int)version >> 8,
-				 (int)version & 0xff);
+        show_error("style property has unknown version %d.%d", (int)version >> 8, (int)version & 0xff);
 		return;
 	}
 
-	n /= sizeof (unsigned long);
+    n = wmprops->as_styles_size/sizeof (unsigned long);
 	for (i = 0; i < n;)
 	{
 		MyStyle      *style;
@@ -280,6 +292,4 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
 	/* force update of global gcs */
 	mystyle_fix_styles ();
 	mystyle_set_global_gcs (NULL);
-
-	XFree (prop);
 }

@@ -26,18 +26,9 @@
 
 #include "../../configure.h"
 
-#include <stdio.h>
-#include <signal.h>
-#include <string.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
-#include "../../include/misc.h"
-#include "../../include/style.h"
 #include "../../include/screen.h"
 #include "menus.h"
 
@@ -62,8 +53,9 @@ extern XContext MenuContext;
 MenuRoot     *
 update_windowList (void)
 {
-	MenuRoot     *mr = NULL;
+    MenuRoot     *mr = NULL;
 
+#if 0
 #ifndef NO_WINDOWLIST
 	int           val1 = winlist_val1;
 	int           val2 = winlist_val2;
@@ -137,12 +129,14 @@ update_windowList (void)
 	MakeMenu (mr);
 /*  mr->is_transient = True; */
 #endif
+#endif
 	return mr;
 }
 
 void
 do_windowList (int val1, int val2)
 {
+#if 0
 #ifndef NO_WINDOWLIST
 	MenuRoot     *mr;
 
@@ -150,5 +144,6 @@ do_windowList (int val1, int val2)
 	winlist_val2 = val2;
 	mr = update_windowList ();
 	do_menu (mr, NULL);
+#endif
 #endif
 }

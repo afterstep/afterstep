@@ -1700,8 +1700,7 @@ DeadPipe (int nonsense)
       free (pixmapPath);
 
     /* kill the styles */
-    while (mystyle_first != NULL)
-      mystyle_delete (mystyle_first);
+    mystyle_destroy_all();
 
     /* kill the global GCs so they won't show up in the memory audit */
     mystyle_get_global_gcs (Style, &gc1, &gc2, &gc3, &gc4);

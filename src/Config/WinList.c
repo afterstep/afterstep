@@ -20,26 +20,12 @@
 
 #include "../../configure.h"
 
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <ctype.h>
-
-#include <stdlib.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
-#include "../../include/style.h"
 #include "../../include/mystyle.h"
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
+#include "../../include/balloon.h"
 
 /*****************************************************************************
  *
@@ -121,16 +107,16 @@ void
 DestroyWinListConfig (WinListConfig * config)
 {
 	int i ;
-	
+
 	if( config->unfocused_style )
 		free( config->unfocused_style );
 	if( config->focused_style )
 		free( config->focused_style );
 	if( config->sticky_style )
 		free( config->sticky_style );
-		
+
 	for( i = 0 ; i < MAX_MOUSE_BUTTONS; ++i )
-		if( config->mouse_actions[i] ) 
+		if( config->mouse_actions[i] )
 			free( config->mouse_actions[i] );
 
   DestroyFreeStorage (&(config->more_stuff));
@@ -143,11 +129,11 @@ void
 PrintWinListConfig (WinListConfig * config)
 {
 	int i ;
-	
+
 	fprintf( stderr, "WinListConfig = %p;\n", config );
-	if( config == NULL ) 
+	if( config == NULL )
 		return;
-	
+
 	fprintf( stderr, "WinListConfig.RowsFirst = %s;\n",	get_flags(config->flags, WINLIST_FillRowsFirst)?"True":"False");
 	fprintf( stderr, "WinListConfig.UseSkipList = %s;\n",	get_flags(config->flags, WINLIST_UseSkipList)?"True":"False");
 	fprintf( stderr, "WinListConfig.set_flags = 0x%lX;\n", config->set_flags );
@@ -159,10 +145,10 @@ PrintWinListConfig (WinListConfig * config)
 	fprintf( stderr, "WinListConfig.MaxColumns = %d;\n", config->max_columns );
 	fprintf( stderr, "WinListConfig.min_col_width = %d;\n", config->min_col_width );
 	fprintf( stderr, "WinListConfig.max_col_width = %d;\n", config->max_col_width );
-	
+
 	fprintf( stderr, "WinListConfig.show_name_type = %d;\n", config->show_name_type ); /* 0, 1, 2, 3 */
-	fprintf( stderr, "WinListConfig.name_aligment = %d;\n", config->name_aligment );  
-	
+	fprintf( stderr, "WinListConfig.name_aligment = %d;\n", config->name_aligment );
+
 	fprintf( stderr, "WinListConfig.unfocused_style = %p;\n",  config->unfocused_style );
 	if( config->unfocused_style )
 		fprintf( stderr, "WinListConfig.unfocused_style = \"%s\";\n",  config->unfocused_style );
@@ -172,11 +158,11 @@ PrintWinListConfig (WinListConfig * config)
 	fprintf( stderr, "WinListConfig.sticky_style = %p;\n", config->sticky_style );
 	if( config->sticky_style )
 		fprintf( stderr, "WinListConfig.sticky_style = \"%s\";\n", config->sticky_style );
-		
+
 	for( i = 0 ; i < MAX_MOUSE_BUTTONS; ++i )
 	{
 		fprintf( stderr, "WinListConfig.mouse_action[%d] = %p;\n", i, config->mouse_actions[i] );
-		if( config->mouse_actions[i] ) 
+		if( config->mouse_actions[i] )
 			fprintf( stderr, "WinListConfig.mouse_action[%d] = \"%s\";\n", i, config->mouse_actions[i] );
 	}
 }

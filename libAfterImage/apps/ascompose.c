@@ -26,6 +26,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <stdio.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -234,11 +235,15 @@ int main(int argc, char** argv) {
 		}
 	}
 
+    dpy = NULL ;
 #ifndef X_DISPLAY_MISSING
-	dpy = XOpenDisplay(NULL);
-	_XA_WM_DELETE_WINDOW = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-	screen = DefaultScreen(dpy);
-	depth = DefaultDepth(dpy, screen);
+    if( display )
+    {
+        dpy = XOpenDisplay(NULL);
+        _XA_WM_DELETE_WINDOW = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+        screen = DefaultScreen(dpy);
+        depth = DefaultDepth(dpy, screen);
+    }
 #endif
 
 	asv = create_asvisual(dpy, screen, depth, NULL);

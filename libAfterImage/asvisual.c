@@ -209,14 +209,14 @@ static void find_useable_visual( ASVisual *asv, Display *dpy, int screen,
 	int (*oldXErrorHandler) (Display *, XErrorEvent *) =
 						XSetErrorHandler (asvisual_empty_XErrorHandler);
 	Colormap orig_cmap = attr->colormap ;
-	
+
 	for( k = 0  ; k < nitems ; k++ )
 	{
 		Window       w = None, wjunk;
 		unsigned int width, height, ujunk ;
 		int          junk;
 		/* try and use default colormap when possible : */
-		if( orig_cmap == None ) 
+		if( orig_cmap == None )
 		{
   			if( list[k].visual == DefaultVisual( dpy, (screen) ) )
 			{
@@ -318,7 +318,7 @@ query_screen_visual_id( ASVisual *asv, Display *dpy, int screen, Window root, in
 #ifndef X_DISPLAY_MISSING
 	memset( &attr, 0x00, sizeof( attr ));
 	attr.colormap = cmap ;
-	
+
 	if( visual_id == 0 )
 	{
 		for( i = 0 ; templates[i].depth != 0 ; i++ )
@@ -398,30 +398,30 @@ create_asvisual_for_id( Display *dpy, int screen, int default_depth, VisualID vi
 {
 	ASVisual *asv = reusable_memory ;
 #ifndef X_DISPLAY_MISSING
-	Window root = RootWindow(dpy,screen);
+    Window root = dpy?RootWindow(dpy,screen):None;
 #endif /*ifndef X_DISPLAY_MISSING */
 
 	if( asv == NULL )
-		asv = safemalloc( sizeof(ASVisual) );
+        asv = safecalloc( 1, sizeof(ASVisual) );
 #ifndef X_DISPLAY_MISSING
-	if( query_screen_visual_id( asv, dpy, screen, root, default_depth, visual_id, cmap ) )
-	{	/* found visual - now off to decide about color handling on it : */
-	 	if( !setup_truecolor_visual( asv ) )
-	 	{  /* well, we don't - lets try and preallocate as many colors as we can but up to
-	   		* 1/4 of the colorspace or 12bpp colors, whichever is smaller */
-	 		setup_pseudo_visual( asv );
-	 		if( asv->as_colormap == NULL )
-	 			setup_as_colormap( asv );
-		}
-	}else
-	{
-		if( reusable_memory != asv )
-			free( asv );
-		asv = NULL ;
-	}
-#else
-	memset( asv, 0x00, sizeof(ASVisual));
-
+    if( dpy )
+    {
+        if( query_screen_visual_id( asv, dpy, screen, root, default_depth, visual_id, cmap ) )
+        {   /* found visual - now off to decide about color handling on it : */
+            if( !setup_truecolor_visual( asv ) )
+            {  /* well, we don't - lets try and preallocate as many colors as we can but up to
+                * 1/4 of the colorspace or 12bpp colors, whichever is smaller */
+                setup_pseudo_visual( asv );
+                if( asv->as_colormap == NULL )
+                    setup_as_colormap( asv );
+            }
+        }else
+        {
+            if( reusable_memory != asv )
+                free( asv );
+            asv = NULL ;
+        }
+    }
 #endif /*ifndef X_DISPLAY_MISSING */
 	return asv;
 }

@@ -8,7 +8,7 @@
 
 struct SyntaxDef;
 
-typedef struct term_definition
+typedef struct TermDef
   {
 #define TF_NAMED_SUBCONFIG	(1<<25)	/* first token is used as the name */
   /* rest of the line gets parsed using subsyntax */
@@ -62,9 +62,8 @@ typedef struct term_definition
 						 */
 
     /* the following will be initialized automatically */
-    struct term_definition *brother;	/* next term with the same hash key in hash table */
-  }
-TermDef;
+    struct TermDef *brother;    /* next term with the same hash key in hash table */
+  }TermDef;
 
 typedef struct term_hash_table
   {

@@ -637,7 +637,37 @@ SendPacket ( int channel, unsigned long msg_type, unsigned long num_datum, ...)
 }
 
 void
-SendString (int channel, unsigned long msg_type, unsigned long id, unsigned long tag, char *string )
+SendConfig (int module, unsigned long event_type, ASWindow * t)
+{
+    int frame_x = 0, frame_y = 0, frame_width = 0, frame_height = 0;
+    Window icon_title_w = None, icon_pixmap_w = None ;
+
+    if( t->frame_canvas )
+    {
+        frame_x = t->frame_canvas->root_x ;
+        frame_y = t->frame_canvas->root_y ;
+        frame_width = t->frame_canvas->width ;
+        frame_height = t->frame_canvas->height ;
+    }
+
+    if( t->icon_canvas )
+        icon_pixmap_w = t->icon_canvas->w ;
+    if( t->icon_title_canvas && t->icon_title_canvas != t->icon_canvas )
+        icon_title_w = t->icon_title_canvas->w ;
+
+
+    SendPacket (module, event_type, 24, t->w, t->frame, (unsigned long)t,
+                frame_x, frame_y, frame_width, frame_height,
+                ASWIN_DESK(t), t->status->flags, t->hints->flags, 0,
+				t->hints->base_width, t->hints->base_height, t->hints->width_inc,
+				t->hints->height_inc, t->hints->min_width, t->hints->min_height,
+                t->hints->max_width,  t->hints->max_height,
+                icon_title_w,         icon_pixmap_w, t->hints->gravity, 0xFFFFFFFF, 0x00000000);
+}
+
+void
+SendString ( int channel, unsigned long msg_type,
+             unsigned long w, unsigned long frame, unsigned long asw_ptr, char *string )
 {
     unsigned long data[3];
     int           len = 0;
@@ -648,11 +678,12 @@ SendString (int channel, unsigned long msg_type, unsigned long id, unsigned long
 
     flush_vector( &module_output_buffer );
     append_vector( &module_output_buffer,
-                    make_msg_header(msg_type,2+1+(len>>2)+1+MSG_HEADER_SIZE),
+                    make_msg_header(msg_type,3+1+(len>>2)+1+MSG_HEADER_SIZE),
                     MSG_HEADER_SIZE );
-    data[0] = id;
-    data[1] = tag;
-    append_vector( &module_output_buffer, &(data[0]), 2);
+    data[0] = w;
+    data[1] = frame;
+    data[2] = asw_ptr;
+    append_vector( &module_output_buffer, &(data[0]), 3);
     serialize_string( string, &module_output_buffer );
     SendBuffer( channel );
 }
@@ -673,16 +704,13 @@ SendVector (int channel, unsigned long msg_type, ASVector *vector)
 }
 
 
-
-
-
 /* this will run command received from module */
 void
 RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 {
 	ASWindow     *tmp_win;
     int           toret = 0;
-	extern module_t *Module;
+    module_t     *module;
 
 /*fprintf( stderr,"Function parsed: [%s] [%s] [%d] [%d] [%c]\n",fdata.name,fdata.text,fdata.func_val[0], fdata.func_val[1] );
  */
@@ -690,22 +718,19 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
         return;
     if (!IsValidFunc(fdata->func))
         return;
-
+    module = &(MODULES_LIST[channel] );
     switch (fdata->func)
 	{
 	 case F_SET_MASK:
-         Module[channel].mask = fdata->func_val[0];
+         module->mask = fdata->func_val[0];
 		 break;
 	 case F_SET_NAME:
-        {
-            module_t *module = &(MODULES_LIST[channel] );
-            if (module->name != NULL)
-                free (module->name);
-            module->name = fdata->text;
-            fdata->text = NULL;
-            break;
-        }
-	 case F_UNLOCK:
+        if (module->name != NULL)
+            free (module->name);
+        module->name = fdata->text;
+        fdata->text = NULL;
+        break;
+     case F_UNLOCK:
 		 toret = 66;
 		 break;
 	 case F_SET_FLAGS:
@@ -740,7 +765,7 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 				 update = True;
 			 }
 			 if (update)
-				 BroadcastConfig (M_CONFIGURE_WINDOW, tmp_win);
+                 broadcast_config (M_CONFIGURE_WINDOW, tmp_win);
 			 break;
 		 }
 	 default:
@@ -785,7 +810,7 @@ void
 broadcast_window_name( ASWindow *asw )
 {
     if( asw )
-        SendName( -1, M_WINDOW_NAME, asw->w, asw->frame,
+        SendString( -1, M_WINDOW_NAME, asw->w, asw->frame,
                       (unsigned long)asw, ASWIN_NAME(asw));
 }
 
@@ -793,7 +818,7 @@ void
 broadcast_icon_name( ASWindow *asw )
 {
     if( asw )
-        SendName( -1, M_ICON_NAME, asw->w, asw->frame,
+        SendString( -1, M_ICON_NAME, asw->w, asw->frame,
                     (unsigned long)asw, ASWIN_ICON_NAME(asw));
 }
 
@@ -802,9 +827,9 @@ broadcast_res_names( ASWindow *asw )
 {
     if( asw )
     {
-        SendName( -1, M_RES_CLASS, asw->w, asw->frame,
+        SendString( -1, M_RES_CLASS, asw->w, asw->frame,
                     (unsigned long)asw, asw->hints->res_class);
-        SendName( -1, M_RES_NAME, asw->w, asw->frame,
+        SendString( -1, M_RES_NAME, asw->w, asw->frame,
                     (unsigned long)asw, asw->hints->res_name);
     }
 }
@@ -822,6 +847,11 @@ broadcast_status_change( int message, ASWindow *asw )
         SendPacket( -1, M_MAP, 3, asw->w, asw->frame, (unsigned long)asw);
 }
 
+void
+broadcast_config (unsigned long event_type, ASWindow * t)
+{
+    SendConfig( -1, event_type, t );
+}
 
 
 

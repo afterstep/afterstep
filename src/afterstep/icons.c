@@ -21,23 +21,12 @@
 
 #include "../../configure.h"
 
-#include <stdio.h>
+
+#include "../../include/asapp.h"
 #include <unistd.h>
 #include <signal.h>
-#include <string.h>
-
-#ifdef NeXT
-#include <fcntl.h>
-#endif
-
 #include <X11/Intrinsic.h>
-#include <X11/Xutil.h>
 
-#ifdef SHAPE
-#include <X11/extensions/shape.h>
-#endif /* SHAPE */
-
-#include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
 #include "../../include/decor.h"
@@ -71,7 +60,7 @@ get_iconbox( int desktop )
 	ASIconBox *ib = NULL ;
 	if( IsValidDesk(desktop) )
 	{
-		if( get_flags(Scr.flags, StickyIcons) )
+        if( get_flags(Scr.Feel.flags, StickyIcons) )
 			ib = Scr.default_icon_box ;
 		else
 			if( Scr.icon_boxes )
@@ -80,7 +69,7 @@ get_iconbox( int desktop )
 		if( ib == NULL )
 		{
 			ib = safecalloc( 1, sizeof( ASIconBox ));
-			if( Scr.configured_icon_areas_num == 0 || Scr.configured_icon_areas == NULL )
+            if( Scr.Look.configured_icon_areas_num == 0 || Scr.Look.configured_icon_areas == NULL )
 			{
 				ib->areas_num = 1 ;
                 ib->areas = safecalloc( 1, sizeof(ASGeometry) );
@@ -88,14 +77,14 @@ get_iconbox( int desktop )
 				ib->areas->height = Scr.MyDisplayHeight ;
 			}else
 			{
-				register int i = Scr.configured_icon_areas_num ;
+                register int i = Scr.Look.configured_icon_areas_num ;
 				ib->areas_num = i ;
                 ib->areas = safecalloc( ib->areas_num, sizeof(ASGeometry) );
 				while( --i >= 0 )
-                    ib->areas[i] = Scr.configured_icon_areas[i];
+                    ib->areas[i] = Scr.Look.configured_icon_areas[i];
 			}
 			ib->icons = create_asbidirlist( NULL );
-			if( get_flags(Scr.flags, StickyIcons) )
+            if( get_flags(Scr.Feel.flags, StickyIcons) )
 				Scr.default_icon_box = ib ;
 			else
 			{

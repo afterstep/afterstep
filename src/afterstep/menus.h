@@ -144,7 +144,7 @@ struct charstring
     int value;
   };
 
-struct term_definition ;
+struct TermDef;
 
 char* parse_context (char *string, int *output, struct charstring *table);
 char scan_for_hotkey (char* txt);
@@ -154,8 +154,8 @@ void parse_func_units( FunctionData* data );
 void free_func_hash();
 
 /* the following two returns pointer to static preinitialized memory!!! */
-struct term_definition* txt2fterm( const char* txt, int quiet );
-struct term_definition* func2fterm( FunctionCode func, int quiet );
+struct TermDef* txt2fterm( const char* txt, int quiet );
+struct TermDef*  func2fterm( FunctionCode func, int quiet );
 int txt2func( const char* text, FunctionData* fdata, int quiet );
 
 int parse_func( const char* text, FunctionData* data, int quiet );

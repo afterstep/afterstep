@@ -324,6 +324,8 @@ typedef struct ScreenInfo
     ASFeel  Feel;
     MyLook  Look;
 
+    Cursor  standard_cursors[MAX_CURSORS];
+
     GC DrawGC;          /* GC to draw lines for move and resize */
 
     int xinerama_screens_num ;

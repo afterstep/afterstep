@@ -20,26 +20,12 @@
 
 #include "../../configure.h"
 
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <ctype.h>
-
-#include <stdlib.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
-#include "../../include/style.h"
 #include "../../include/mystyle.h"
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
+#include "../../include/balloon.h"
 
 /*****************************************************************************
  *
@@ -123,7 +109,7 @@ PagerConfig *
 CreatePagerConfig (int ndesks)
 {
   PagerConfig *config = (PagerConfig *) safemalloc (sizeof (PagerConfig));
-  
+
   /* let's initialize Pager's config with some nice values: */
   init_asgeometry (&(config->icon_geometry));
   init_asgeometry (&(config->geometry));

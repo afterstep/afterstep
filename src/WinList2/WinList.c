@@ -1,5 +1,5 @@
 /*
- * This is the complete from scratch rewrite of the original WinList 
+ * This is the complete from scratch rewrite of the original WinList
  * module.
  *
  * Copyright (C) 2002 Sasha Vasko <sasha at aftercode.net>
@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
- 
+
 /*#define DO_CLOCKING      */
 
 #include "../../configure.h"
@@ -112,7 +112,7 @@ static void rearrange_winlist_buttons();
 static Bool rearrange_winlist_window();
 
 
-int 
+int
 main( int argc, char **argv )
 {
 	int i ;
@@ -120,29 +120,29 @@ main( int argc, char **argv )
 	int x_fd ;
 	int as_fd[2] ;
 	Window w ;
-	
+
 	set_application_name(argv[0]);
 	SetMyName (argv[0]);
-	
+
 	default_winlist_style = safemalloc( 1+strlen(MyName)+1);
 	default_winlist_style[0] = '*' ;
 	strcpy( &(default_winlist_style[1]), MyName );
-	
+
 	set_signal_handler( SIGSEGV );
 	set_output_threshold( OUTPUT_LEVEL_PROGRESS );
 
 	i = ProcessModuleArgs (argc, argv, &global_config_file, NULL, NULL, usage);
-	
+
 #ifdef I18N
 	if (setlocale (LC_ALL, AFTER_LOCALE) == NULL)
   		show_error("cannot set locale.");
 #endif
 
 	x_fd = ConnectX (&Scr, display_name, PropertyChangeMask);
-	if( !x_fd ) 
+	if( !x_fd )
 		return 1 ;
 
-	as_fd[0] = as_fd[1] = 
+	as_fd[0] = as_fd[1] =
 	        ConnectAfterStep (M_ADD_WINDOW |
 		  					  M_CONFIGURE_WINDOW |
 							  M_DESTROY_WINDOW |
@@ -153,7 +153,7 @@ main( int argc, char **argv )
 							  M_ICON_NAME |
 							  M_WINDOW_NAME |
 							  M_END_WINDOWLIST);
-	if( !as_fd[0] ) 
+	if( !as_fd[0] )
 		return 1 ;
 
 	intern_hint_atoms ();
@@ -161,10 +161,10 @@ main( int argc, char **argv )
 
 	/* Request a list of all windows, while we load our config */
     SendInfo (as_fd, "Send_WindowList", 0);
-	
+
 	LoadBaseConfig (global_config_file, GetBaseOptions);
     LoadConfig (global_config_file, "winlist", GetOptions);
-	
+
 	WinList = create_asbidirlist(destroy_winlist_button);
 	WinListWindow = w = make_winlist_window();
 	WinListCanvas = create_ascanvas( WinListWindow );
@@ -193,28 +193,27 @@ DeadPipe (int nonsense)
 /* normally, we let the system clean up, but when auditing time comes
  * around, it's best to have the books in order... */
     balloon_init (1);
-	if( WinList ) 
+	if( WinList )
 	{
 		destroy_asbidirlist( &WinList );
 	}
 	if( WinListCanvas )
 		destroy_ascanvas( &WinListCanvas );
-		
-	if( Base ) 
+
+	if( Base )
 		DestroyBaseConfig(&Base);
 
     {
     	GC foreGC, backGC, reliefGC, shadowGC;
 
     	mystyle_get_global_gcs (mystyle_first, &foreGC, &backGC, &reliefGC, &shadowGC);
-    	while (mystyle_first)
-			mystyle_delete (mystyle_first);
-    	XFreeGC (dpy, foreGC);
+        mystyle_destroy_all();
+        XFreeGC (dpy, foreGC);
     	XFreeGC (dpy, backGC);
     	XFreeGC (dpy, reliefGC);
     	XFreeGC (dpy, shadowGC);
     }
-	
+
 
     print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
@@ -229,14 +228,14 @@ void
 GetBaseOptions (const char *filename)
 {
     BaseConfig *config = ParseBaseOptions (filename, MyName);
-	
+
     if (!config)
 	    exit (0);			/* something terrible has happend */
 
-    if( Base!= NULL ) 
+    if( Base!= NULL )
 		DestroyBaseConfig (Base);
 	Base = config ;
-	
+
 	Scr.image_manager = create_image_manager( NULL, 2.2, Base->pixmap_path, Base->icon_path, NULL );
 //	Scr.font_manager = create_font_manager( NULL, NULL );
 }
@@ -250,14 +249,14 @@ GetOptions (const char *filename)
 	PrintWinListConfig (config);
 #endif
 
-	if( config == NULL ) 
+	if( config == NULL )
 		return ;
-	
+
     if (config->style_defs)
 	    ProcessMyStyleDefinitions (&(config->style_defs), Base->pixmap_path);
 	mystyle_get_property (dpy, Scr.Root, _AS_STYLE, XA_INTEGER);
-		
-	if( Config && Config != &DefaultConfig) 
+
+	if( Config && Config != &DefaultConfig)
 		DestroyWinListConfig( Config );
 	Config = config ;
 }
@@ -268,16 +267,16 @@ GetOptions (const char *filename)
 void
 process_message (unsigned long type, unsigned long *body)
 {
-	if( (type&WINDOW_PACKET_MASK) != 0 )  
+	if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
 		ASTBarData *tbar = wd?wd->data:NULL;
 		WindowPacketResult res ;
-		
-		
+
+
 		show_progress( "message %X window %X data %p", type, body[0], wd );
 		res = handle_window_packet( type, body, &wd );
-		if( res == WP_DataCreated ) 
+		if( res == WP_DataCreated )
 			add_winlist_button( tbar, wd );
 		else if( res == WP_DataChanged )
 			refresh_winlist_button( tbar, wd );
@@ -320,7 +319,7 @@ DispatchEvent (XEvent * Event)
 /********************************************************************/
 /* showing our main window :                                        */
 /********************************************************************/
-Window 
+Window
 make_winlist_window()
 {
 	Window        w;
@@ -368,14 +367,14 @@ make_winlist_window()
 
 	/* showing window to let user see that we are doing something */
 	XMapRaised (dpy, w);
-	rearrange_winlist_window();	
+	rearrange_winlist_window();
 	/* final cleanup */
 	XFlush (dpy);
 	sleep (1);								   /* we have to give AS a chance to spot us */
 	/* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
 	XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask);
-	
+
 	return w ;
 }
 /********************************************************************/
@@ -394,21 +393,21 @@ get_visible_window_name( ASWindowData *wd )
 		case ASN_ResName :  vname = wd->res_name ; break ;
 	 default :
 	}
-	if( vname == NULL ) 	
+	if( vname == NULL )
 	{
-		if( wd->window_name ) 
+		if( wd->window_name )
 			return wd->window_name ;
 		if( wd->icon_name )
 			return wd->icon_name ;
-		if( wd->res_class ) 
+		if( wd->res_class )
 			return wd->res_class ;
-		if( wd->res_name ) 
+		if( wd->res_name )
 			return wd->res_name ;
 	}
 	return vname ;
 }
 
-static Bool 
+static Bool
 render_winlist_button( ASTBarData *tbar )
 {
 	LOCAL_DEBUG_CALLER_OUT("tbar %p", tbar );
@@ -420,7 +419,7 @@ render_winlist_button( ASTBarData *tbar )
 	return False ;
 }
 
-/* WE do redrawing in two steps : 
+/* WE do redrawing in two steps :
   1) we need to determine the desired window size and resize it accordingly
   2) when we get StructureNotify event - we need to reposition and redraw
      everything accordingly
@@ -436,35 +435,35 @@ rearrange_winlist_window()
 	unsigned int allowed_max_height = (Config->max_height==0)?Scr.MyDisplayHeight:Config->max_height ;
 	unsigned int max_col_width = (Config->max_col_width==0)?Scr.MyDisplayWidth:Config->max_col_width ;
 	unsigned int count = 0 ;
-	
-	if( allowed_max_width > Scr.MyDisplayWidth ) 
+
+	if( allowed_max_width > Scr.MyDisplayWidth )
 		allowed_max_width = Scr.MyDisplayWidth ;
 	if( allowed_max_height > Scr.MyDisplayHeight )
 		allowed_max_height = Scr.MyDisplayHeight ;
 	for( elem = WinList->head ; elem ; elem = elem->next )
 	{
 		ASTBarData *tbar = elem->data ;
-		if( tbar ) 
+		if( tbar )
 		{
 			unsigned int width, height ;
-			
+
 			++count ;
-			
-			width = calculate_astbar_width( tbar );		
-			height = calculate_astbar_height( tbar );		
-LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text, width, height );			
-			if( width > max_col_width ) 
+
+			width = calculate_astbar_width( tbar );
+			height = calculate_astbar_height( tbar );
+LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text, width, height );
+			if( width > max_col_width )
 				width = max_col_width ;
-			if( width > allowed_max_width ) 
+			if( width > allowed_max_width )
 				width = allowed_max_width ;
-			if( height > allowed_max_height ) 
+			if( height > allowed_max_height )
 				height = allowed_max_height ;
-			if( height  > max_height ) 
+			if( height  > max_height )
 			{
 				max_height = height ;
 				WinListState.tallest = tbar ;
 			}
-			if( width  > max_width ) 
+			if( width  > max_width )
 			{
 				max_width = width ;
 				WinListState.widest = tbar ;
@@ -482,13 +481,13 @@ LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text,
 		}else
 		{
 			rows = count / cols ;
-			if( rows * cols < count ) 
+			if( rows * cols < count )
 				++rows ;
 		}
 	}else
 	{
 		rows = (allowed_max_height+1)/max_height ;
-		if( rows > count ) 
+		if( rows > count )
 		{
 			rows = count ;
 			cols = 1 ;
@@ -500,29 +499,29 @@ LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text,
 		}
 	}
 
-	if( WinListState.width  == cols * max_width && 
-	    WinListState.height == rows * max_height && 
-		WinListCanvas->width == WinListState.width && 
+	if( WinListState.width  == cols * max_width &&
+	    WinListState.height == rows * max_height &&
+		WinListCanvas->width == WinListState.width &&
 		WinListCanvas->height == WinListState.height )
 		return False ;
 	WinListState.width  = cols * max_width ;
 	WinListState.height = rows * max_height;
-	if( WinListState.width <= 0 ) 
+	if( WinListState.width <= 0 )
 		WinListState.width = 1 ;
 	if( WinListState.height <= 0 )
 		WinListState.height = 1 ;
-	
+
 	LOCAL_DEBUG_OUT("Resizing Winlist window to (%dx%d) %dx%d max size is (%dx%d)", cols, rows, WinListState.width, WinListState.height, max_width, max_height );
 	if( WinListCanvas )
 		resize_canvas( WinListCanvas, WinListState.width, WinListState.height );
 
 	WinListState.max_width = max_width ;
 	WinListState.max_height = max_height ;
-	
-	return True ;	
+
+	return True ;
 }
 
-static void 
+static void
 rearrange_winlist_buttons()
 {
 	ASBiDirElem *elem ;
@@ -532,8 +531,8 @@ rearrange_winlist_buttons()
 	unsigned int max_height = WinListState.max_height, max_width = WinListState.max_width ;
 	unsigned int allowed_max_width = (Config->max_width==0)?Scr.MyDisplayWidth:Config->max_width ;
 	unsigned int allowed_max_height = (Config->max_height==0)?Scr.MyDisplayHeight:Config->max_height ;
-	
-	if( allowed_max_width > Scr.MyDisplayWidth ) 
+
+	if( allowed_max_width > Scr.MyDisplayWidth )
 		allowed_max_width = Scr.MyDisplayWidth ;
 	if( allowed_max_height > Scr.MyDisplayHeight )
 		allowed_max_height = Scr.MyDisplayHeight ;
@@ -542,31 +541,31 @@ rearrange_winlist_buttons()
 		ASTBarData *tbar = elem->data ;
 		Bool redraw = False ;
 		int x, y ;
-		if( tbar ) 
+		if( tbar )
 		{
 			redraw = set_astbar_size( tbar, max_width, max_height );
 			if( get_flags(Config->flags, ASWL_RowsFirst) )
 			{
 				if( next_x+max_width > allowed_max_width )
-					if( curr_row  < Config->max_rows ) 
+					if( curr_row  < Config->max_rows )
 					{
 						++curr_row ;
 						next_x = 0 ;
 						next_y += max_height ;
 					}
-				x = next_x ; 
+				x = next_x ;
 				y = next_y ;
 				next_x += max_width ;
 			}else
 			{
-				if( next_y+max_height > allowed_max_height ) 
+				if( next_y+max_height > allowed_max_height )
 					if( curr_col  < Config->max_columns )
 					{
 						++curr_col ;
 						next_y = 0 ;
 						next_x += max_width ;
 					}
-				x = next_x ; 
+				x = next_x ;
 				y = next_y ;
 				next_y += max_height ;
 			}
@@ -579,16 +578,16 @@ rearrange_winlist_buttons()
 }
 
 /* Public stuff : ***************************************************/
-void 
+void
 destroy_winlist_button( void *data )
 {
-	if( data ) 
+	if( data )
 	{
 		destroy_astbar( (ASTBarData**)&data );
 	}
 }
 
-static void 
+static void
 configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
 {
 	char *name = get_visible_window_name(wd);
@@ -601,7 +600,7 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
 	set_astbar_label( tbar, name);
 	if( wd->focused )
 	{
-		if( WinListState.focused && WinListState.focused != wd ) 
+		if( WinListState.focused && WinListState.focused != wd )
 		{
 			WinListState.focused->focused = False ;
 			refresh_winlist_button( WinListState.focused->data, WinListState.focused ) ;
@@ -612,22 +611,22 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
 		clear_flags( tbar->state, BAR_STATE_FOCUSED );
 }
 
-void 
+void
 add_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 {
 	tbar = create_astbar();
 	tbar = append_bidirelem( WinList, tbar );
-	if( tbar ) 
+	if( tbar )
 	{
 		configure_tbar_props( tbar, wd );
-			
+
 //		LOCAL_DEBUG_OUT( "Added tbar %p with name [%s]", tbar, name);
 		wd->data = tbar ;
 		rearrange_winlist_window();
 	}
 }
 
-void 
+void
 refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 {
 	if( tbar )
@@ -644,16 +643,16 @@ refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 	}
 }
 
-void 
+void
 delete_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 {
-	if( WinListState.focused == wd ) 
+	if( WinListState.focused == wd )
 		WinListState.focused = NULL ;
-LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );		
+LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
 	if( tbar )
 	{
 		discard_bidirelem( WinList, tbar );
 		rearrange_winlist_window();
-	}  
+	}
 }
 

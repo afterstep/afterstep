@@ -1,14 +1,11 @@
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "../../configure.h"
+
+#include "../../include/asapp.h"
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
 
-#include "../../configure.h"
-#include "../../include/aftersteplib.h"
 #include "../../include/myscandir.h"
 
 /*

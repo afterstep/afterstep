@@ -20,27 +20,13 @@
 
 #include "../../configure.h"
 
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <ctype.h>
-
-#include <stdlib.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
-#include "../../include/style.h"
 #include "../../include/mystyle.h"
-#include "../../include/loadimg.h"
+//#include "../../include/loadimg.h"
 #include "../../include/parser.h"
 #include "../../include/parse.h"
+#include "../../include/screen.h"
 #include "../../include/confdefs.h"
 
 #define DEBUG_MYSTYLE
@@ -332,8 +318,7 @@ mystyle_create_from_definition (MyStyleDefinition * def, const char *PixmapPath)
 
   if ((style = mystyle_find (def->name)) == NULL)
     {
-      style = mystyle_new ();
-      style->name = def->name;
+      style = mystyle_new_with_name (def->name);
       def->name = NULL;		/* so it wont get deallocated */
     }
 
@@ -378,7 +363,7 @@ mystyle_create_from_definition (MyStyleDefinition * def, const char *PixmapPath)
   		  style->relief.fore = GetHilite (style->colors.back);
     	  style->relief.back = GetShadow (style->colors.back);
     	  style->user_flags |= F_BACKCOLOR;
-	  }	  
+	  }
     }
   if (def->set_flags & F_TEXTSTYLE)
     {
@@ -402,75 +387,90 @@ mystyle_create_from_definition (MyStyleDefinition * def, const char *PixmapPath)
 	  ARGB32 c1, c2 ;
 	  ASGradient gradient;
 	  parse_argb_color( def->backgradient_from, &c1 );
-	  parse_argb_color( def->backgradient_to, &c2 );	  
-	  if ((type = mystyle_parse_old_gradient (type, c1, c2, &gradient)) >= 0)
+	  parse_argb_color( def->backgradient_to, &c2 );
+        if ((type = mystyle_parse_old_gradient (type, c1, c2, &gradient)) >= 0)
 	    {
-	      if (style->user_flags & F_BACKGRADIENT)
-		{
-		  free (style->gradient.color);
-		  free (style->gradient.offset);
-		}
-		  gradient.type = mystyle_translate_grad_type(type);
-	      style->gradient = gradient;
-	      style->texture_type = type;
-	      style->user_flags |= F_BACKGRADIENT;
-	    }
-	  else
-	    mystyle_error ("bad gradient.\n", style->name, NULL);
-	}
-      else
-	mystyle_error ("incomplete gradient definition.\n", style->name, NULL);
+                if (style->user_flags & F_BACKGRADIENT)
+                {
+                    free (style->gradient.color);
+                    free (style->gradient.offset);
+                }
+                gradient.type = mystyle_translate_grad_type(type);
+                style->gradient = gradient;
+                style->texture_type = type;
+                style->user_flags |= F_BACKGRADIENT;
+            }else
+                mystyle_error ("bad gradient.\n", style->name, NULL);
+        }else
+            mystyle_error ("incomplete gradient definition.\n", style->name, NULL);
 
     }
-  if ((def->set_flags & F_BACKPIXMAP))
+    if ((def->set_flags & F_BACKPIXMAP))
     {
-      int colors = -1;
-      if (style->set_flags & F_MAXCOLORS)
-	colors = style->max_colors;
+        int type = def->back_pixmap_type ;
+        char *tmp = def->back_pixmap ;
 
-      if (def->back_pixmap_type == 129)
-	{
-	  style->texture_type = def->back_pixmap_type;
-	  style->tint = 0;
-	  if (def->back_pixmap)
-	    if (strlen (def->back_pixmap))
-		  parse_argb_color(def->back_pixmap, &(style->tint) );
-	  if (style->tint == 0)	/* use no tinting by default */
-	    style->tint = TINT_LEAVE_SAME;
+        clear_flags (style->inherit_flags, F_BACKTRANSPIXMAP | F_BACKPIXMAP);
+        free_icon_resources (style->back_icon);
+        memset (&(style->back_icon), 0x00, sizeof (style->back_icon));
 
-	  style->user_flags |= F_BACKPIXMAP;
-	}
-      else if (def->back_pixmap)
-	{
-	  char *path;
-	  Pixmap pix, mask;
-	  if ((path = findIconFile (def->back_pixmap, PixmapPath, R_OK)) != NULL &&
-	      (pix = LoadImageWithMask (dpy, RootWindow (dpy, DefaultScreen(dpy)), colors, path, &mask)) != None)
-	    {
-	      Window r;
-	      int d;
-	      XGetGeometry (dpy, pix, &r, &d, &d, &style->back_icon.width, &style->back_icon.height, &d, &d);
-	      if (style->user_flags & F_BACKPIXMAP)
-		{
-		  if (style->back_icon.mask != None)
-		    UnloadMask (style->back_icon.mask);
-		  UnloadImage (style->back_icon.pix);
-		}
-	      style->back_icon.pix = pix;
-	      style->back_icon.mask = mask;
-	      style->texture_type = def->back_pixmap_type;
-	      style->user_flags |= F_BACKPIXMAP;
-	    }
-	  else
-	    mystyle_error ("unable to load pixmap: '%s'\n", style->name, def->back_pixmap);
+        if (type < TEXTURE_TEXTURED_START || type >= TEXTURE_TEXTURED_END)
+        {
+            show_error("Error in MyStyle \"%s\": unsupported texture type [%d] in BackPixmap setting. Assuming default of [128] instead.", style->name, type);
+            type = TEXTURE_PIXMAP;
+        }
+        if (type == TEXTURE_TRANSPARENT || type == TEXTURE_TRANSPARENT_TWOWAY)
+        {                             /* treat second parameter as ARGB tint value : */
+            if (parse_argb_color (tmp, &(style->tint)) == tmp)
+                style->tint = TINT_LEAVE_SAME; /* use no tinting by default */
+            else if (type == TEXTURE_TRANSPARENT)
+                style->tint = (style->tint >> 1) & 0x7F7F7F7F; /* converting old style tint */
+        /*LOCAL_DEBUG_OUT( "tint is 0x%X (from %s)",  style->tint, tmp);*/
+            set_flags (style->user_flags, F_BACKPIXMAP);
+            style->texture_type = type;
+        } else
+        {  /* treat second parameter as an image filename : */
+            if ( load_icon(&(style->back_icon), tmp, Scr.image_manager ))
+            {
+                set_flags (style->user_flags, F_BACKPIXMAP);
+                if (type >= TEXTURE_TRANSPIXMAP)
+                    set_flags (style->user_flags, F_BACKTRANSPIXMAP);
+                style->texture_type = type;
+            } else
+                mystyle_error(style->name, "failed to load image file \"%s\".", tmp);
+        }
+        LOCAL_DEBUG_OUT ("MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%X", style->name,
+                        style->texture_type, style->back_icon.image, style->tint);
+        free (tmp);
 
-	  if (path != NULL)
-	    free (path);
-	}
-      style->inherit_flags &= ~F_BACKPIXMAP;
+#if 0
+            char *path;
+            Pixmap pix, mask;
+            if ((path = findIconFile (def->back_pixmap, PixmapPath, R_OK)) != NULL &&
+                (pix = LoadImageWithMask (dpy, RootWindow (dpy, DefaultScreen(dpy)), colors, path, &mask)) != None)
+            {
+                Window r;
+                int d;
+                XGetGeometry (dpy, pix, &r, &d, &d, &style->back_icon.width, &style->back_icon.height, &d, &d);
+                if (style->user_flags & F_BACKPIXMAP)
+                {
+                    free_icon_resources(style->back_icon);
+                }
+                style->back_icon.pix = pix;
+                style->back_icon.mask = mask;
+                style->texture_type = def->back_pixmap_type;
+                style->user_flags |= F_BACKPIXMAP;
+            }else
+                mystyle_error ("unable to load pixmap: '%s'\n", style->name, def->back_pixmap);
+
+            if (path != NULL)
+            free (path);
+        }
+        style->inherit_flags &= ~F_BACKPIXMAP;
+#endif
     }
 #endif
-  if (def->set_flags & F_DRAWTEXTBACKGROUND)
+    if (def->set_flags & F_DRAWTEXTBACKGROUND)
     {
       style->user_flags |= F_DRAWTEXTBACKGROUND;
       style->inherit_flags &= ~F_DRAWTEXTBACKGROUND;

@@ -27,23 +27,11 @@
 
 #include "../../configure.h"
 
-#include <limits.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <signal.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/screen.h"
 
-#include "menus.h"
+#include "asinternals.h"
 
 /****************************************************************************/
 /* window management specifics - button ungrabbing convinience functions:   */
@@ -76,9 +64,9 @@ MyXGrabButton ( unsigned button, unsigned modifiers,
         register int i = 0 ;
         do
         {
-            XGrabButton (dpy, button, modifiers | Scr.lock_mods[i], grab_window,
+            XGrabButton (dpy, button, modifiers | lock_mods[i], grab_window,
                          owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
-            if( Scr.lock_mods[i] == 0 )
+            if( lock_mods[i] == 0 )
                 break;
             ++i ;
         }while(1);
@@ -95,8 +83,8 @@ MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window)
         register int i = 0 ;
         do
         {
-            XUngrabButton (dpy, button, modifiers | Scr.lock_mods[i], grab_window);
-            if( Scr.lock_mods[i] == 0 )
+            XUngrabButton (dpy, button, modifiers | lock_mods[i], grab_window);
+            if( lock_mods[i] == 0 )
                 break;
             ++i ;
         }while(1);
@@ -108,23 +96,22 @@ grab_window_buttons (Window w, ASFlagType context_mask)
 {
     register MouseButton  *MouseEntry;
 
-    for( MouseEntry = Scr.MouseButtonRoot ; MouseEntry ; MouseEntry = MouseEntry->NextButton)
+    for( MouseEntry = Scr.Feel.MouseButtonRoot ; MouseEntry ; MouseEntry = MouseEntry->NextButton)
         if ( MouseEntry->fdata  && get_flags(MouseEntry->Context, context_mask))
 		{
 			if (MouseEntry->Button > 0)
                 MyXGrabButton (MouseEntry->Button, MouseEntry->Modifier, w,
 							   True, ButtonPressMask | ButtonReleaseMask,
-							   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
+                               GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[DEFAULT]);
             else
 			{
                 register int  i = MAX_MOUSE_BUTTONS+1;
                 while( --i > 0 )
                     MyXGrabButton (i, MouseEntry->Modifier, w,
 								   True, ButtonPressMask | ButtonReleaseMask,
-								   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
+                                   GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[DEFAULT]);
             }
         }
-	return;
 }
 
 
@@ -135,11 +122,11 @@ grab_focus_click( Window w )
     if( w )
     { /* need to grab all buttons for window that we are about to unfocus */
         for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
-            if (Scr.buttons2grab & (0x01 << i))
+            if (Scr.Feel.buttons2grab & (0x01 << i))
             {
                 MyXGrabButton ( i + 1, 0, w,
                                 True, ButtonPressMask, GrabModeSync,
-                                GrabModeAsync, None, Scr.ASCursors[SYS]);
+                                GrabModeAsync, None, Scr.Feel.cursors[SYS]);
             }
     }
 }
@@ -151,7 +138,7 @@ ungrab_focus_click( Window w )
     {   /* if we do click to focus, remove the grab on mouse events that
          * was made to detect the focus change */
         register int i = 0;
-        register ASFlagType grab_btn_mask = Scr.buttons2grab<<1 ;
+        register ASFlagType grab_btn_mask = Scr.Feel.buttons2grab<<1 ;
         while ( ++i <= MAX_MOUSE_BUTTONS )
             if ( grab_btn_mask&(1<<i) )
                 MyXUngrabButton (i, 0, w);
@@ -166,7 +153,7 @@ void
 grab_window_keys (Window w, ASFlagType context_mask)
 {
 	FuncKey      *tmp;
-	for (tmp = Scr.FuncKeyRoot; tmp != NULL; tmp = tmp->next)
+    for (tmp = Scr.Feel.FuncKeyRoot; tmp != NULL; tmp = tmp->next)
         if (get_flags( tmp->cont, context_mask ))
         {
             if( tmp->mods == AnyModifier )
@@ -177,8 +164,8 @@ grab_window_keys (Window w, ASFlagType context_mask)
                 do
                 {/* combining modifiers with <Lock> keys,
                   * so to enable things like ScrollLock+Alt+A to work the same as Alt+A */
-                    XGrabKey( dpy, tmp->keycode, tmp->mods|Scr.lock_mods[i], w, True, GrabModeAsync, GrabModeAsync);
-                    if( Scr.lock_mods[i] == 0 )
+                    XGrabKey( dpy, tmp->keycode, tmp->mods|lock_mods[i], w, True, GrabModeAsync, GrabModeAsync);
+                    if( lock_mods[i] == 0 )
                         break;
                     ++i;
                 }while(1);
@@ -212,28 +199,6 @@ autoraise_timer_handler (void *data)
  *
  ****************************************************************************/
 
-void
-SetTimer (int delay)
-{
-#if 1
-	/* unfortunately, a bug in glibc-2.0.7 causes the timer version of this
-	 * code to segfault; until glibc-2.0.7 is no longer in popular use, we
-	 * use the old code */
-#ifdef TIME_WITH_SYS_TIME
-	struct itimerval value;
-
-	value.it_value.tv_usec = 1000 * (delay % 1000);
-	value.it_value.tv_sec = delay / 1000;
-	value.it_interval.tv_usec = 0;
-	value.it_interval.tv_sec = 0;
-	setitimer (ITIMER_REAL, &value, NULL);
-#endif
-#else /* 1 */
-	while (timer_remove_by_data (&autoraise_timer_handler));
-	if (delay > 0)
-		timer_new (delay, &autoraise_timer_handler, &autoraise_timer_handler);
-#endif /* 1 */
-}
 
 /******************************************************************************
  *
@@ -247,9 +212,9 @@ GrabRaiseClick (ASWindow * t)
 
 	for (b = 1; b <= MAX_MOUSE_BUTTONS; b++)
 	{
-		if (Scr.RaiseButtons & (1 << b))
+        if (Scr.Feel.RaiseButtons & (1 << b))
             MyXGrabButton (b, 0, t->w, True, ButtonPressMask, GrabModeSync,
-						   GrabModeAsync, None, Scr.ASCursors[TITLE_CURSOR]);
+                           GrabModeAsync, None, Scr.Feel.cursors[TITLE_CURSOR]);
 	}
 }
 
@@ -265,7 +230,7 @@ UngrabRaiseClick (ASWindow * t)
 
 	for (b = 1; b <= MAX_MOUSE_BUTTONS; b++)
 	{
-		if (Scr.RaiseButtons & (1 << b))
+        if (Scr.Feel.RaiseButtons & (1 << b))
             MyXUngrabButton (b, 0, t->w);
 	}
 }

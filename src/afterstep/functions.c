@@ -42,6 +42,7 @@
 #include "../../include/event.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"
+#include "../../include/session.h"
 #include "asinternals.h"
 
 static as_function_handler function_handlers[F_FUNCTIONS_NUM] ;
@@ -168,7 +169,7 @@ void SetupFunctionHandlers()
 ComplexFunction *
 get_complex_function( char *name )
 {
-    return find_complex_func( Scr.ComplexFunctions, name );
+    return find_complex_func( Scr.Feel.ComplexFunctions, name );
 }
 
 /***********************************************************************
@@ -277,7 +278,7 @@ LOCAL_DEBUG_CALLER_OUT( "cursor %d, event %d, window 0x%lX, window_name \"%s\", 
             (finish_event == ButtonRelease && event->x.type != ButtonPress))
 			return FALSE;
 
-    if (!(res = !GrabEm (&Scr, Scr.ASCursors[cursor])))
+    if (!(res = !GrabEm (&Scr, Scr.Feel.cursors[cursor])))
 	{
         WaitEventLoop( event, finish_event, -1 );
         if (event->client == NULL)
@@ -342,7 +343,7 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
 			return;
 		}
     }
-    if (!GrabEm (&Scr, Scr.ASCursors[SELECT]))
+    if (!GrabEm (&Scr, Scr.Feel.cursors[SELECT]))
 	{
         show_warning( "failed to grab pointer while executing complex function \"%s\"", name );
         XBell (dpy, Scr.screen);
@@ -350,10 +351,10 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
 	}
 
     clicks = 0 ;
-    while( IsClickLoop( event, ButtonReleaseMask, Scr.ClickTime ) )
+    while( IsClickLoop( event, ButtonReleaseMask, Scr.Feel.ClickTime ) )
     {
         clicks++ ;
-        if( !IsClickLoop( event, ButtonPressMask, Scr.ClickTime ) )
+        if( !IsClickLoop( event, ButtonPressMask, Scr.Feel.ClickTime ) )
             break;
         clicks++ ;
     }
@@ -544,8 +545,8 @@ void movecursor_func_handler( FunctionData *data, ASEvent *event, int module )
     {
         int new_vx = 0, new_vy = 0;
 
-        new_vx = make_edge_scroll( x, scr->Vx, scr->MyDisplayWidth,  scr->VxMax, scr->EdgeScrollX );
-        new_vy = make_edge_scroll( y, scr->Vy, scr->MyDisplayHeight, scr->VyMax, scr->EdgeScrollY );
+        new_vx = make_edge_scroll( x, scr->Vx, scr->MyDisplayWidth,  scr->VxMax, scr->Feel.EdgeScrollX );
+        new_vy = make_edge_scroll( y, scr->Vy, scr->MyDisplayHeight, scr->VyMax, scr->Feel.EdgeScrollY );
         if( new_vx != scr->Vx || new_vy != scr->Vy )
             MoveViewport (new_vx, new_vy, True);
     }
@@ -633,7 +634,7 @@ void warp_func_handler( FunctionData *data, ASEvent *event, int module )
     {
         event->client = t;
         event->w = get_window_frame(t);
-        StartWarping(&Scr, Scr.ASCursors[SELECT]);
+        StartWarping(&Scr, Scr.Feel.cursors[SELECT]);
         warp_to_aswindow(t, (data->func == F_WARP_F || data->func == F_WARP_B));
     }
 }
@@ -681,7 +682,7 @@ void exec_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     XGrabPointer( dpy, Scr.Root, True,
 	   		      ButtonPressMask | ButtonReleaseMask,
-                  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.ASCursors[WAIT], CurrentTime);
+                  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[WAIT], CurrentTime);
     XSync (dpy, 0);
     spawn_child( data->text, -1, -1, None, C_NO_CONTEXT, True, False, NULL );
     XUngrabPointer (dpy, CurrentTime);
@@ -693,7 +694,7 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
     char tmpfile[256], *realfilename ;
 
     XGrabPointer (dpy, Scr.Root, True, ButtonPressMask | ButtonReleaseMask,
-                  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.ASCursors[WAIT], CurrentTime);
+                  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[WAIT], CurrentTime);
     XSync (dpy, 0);
 
     if (Scr.screen == 0)
@@ -701,7 +702,7 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
     else
         sprintf (tmpfile, BACK_FILE ".scr%ld", Scr.CurrentDesk, Scr.screen);
 
-    realfilename = make_file_name (as_dirs.after_dir, tmpfile);
+    realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
     if (CopyFile (data->text, realfilename) == 0)
         SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
 
@@ -729,7 +730,7 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
         sprintf (tmpfile, file_template, desk, Scr.d_depth, Scr.screen);
     }
 
-    realfilename = make_file_name (as_dirs.after_dir, tmpfile);
+    realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
     if (CopyFile (data->text, realfilename) == 0)
         QuickRestart ((data->func == F_CHANGE_LOOK)?"look":"feel");
 }
@@ -765,12 +766,12 @@ void goto_page_func_handler( FunctionData *data, ASEvent *event, int module )
 void toggle_page_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_VIRTUAL
-    if( get_flags( Scr.flags, DoHandlePageing ) )
-        clear_flags( Scr.flags, DoHandlePageing );
+    if( get_flags( Scr.Feel.flags, DoHandlePageing ) )
+        clear_flags( Scr.Feel.flags, DoHandlePageing );
 	else
-        set_flags( Scr.flags, DoHandlePageing );
+        set_flags( Scr.Feel.flags, DoHandlePageing );
 
-    SendPacket( -1, M_TOGGLE_PAGING, 1, get_flags( Scr.flags, DoHandlePageing ));
+    SendPacket( -1, M_TOGGLE_PAGING, 1, get_flags( Scr.Feel.flags, DoHandlePageing ));
     CheckPanFrames ();
 #endif
 }
@@ -783,7 +784,7 @@ void gethelp_func_handler( FunctionData *data, ASEvent *event, int module )
       		char         *realfilename = PutHome(HELPCOMMAND);
             XGrabPointer (dpy, Scr.Root, True,
                           ButtonPressMask | ButtonReleaseMask,
-                          GrabModeAsync, GrabModeAsync, Scr.Root, Scr.ASCursors[WAIT], CurrentTime);
+                          GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[WAIT], CurrentTime);
             XSync (dpy, 0);
             spawn_child( realfilename, -1, -1, None, C_NO_CONTEXT, True, False, ASWIN_RES_NAME(event->client), NULL);
             free (realfilename);
@@ -851,10 +852,10 @@ send_aswindow_data_iter_func(void *data, void *aux_data)
     ASWindow *asw = (ASWindow *)data ;
 
     SendConfig (module, M_CONFIGURE_WINDOW, asw);
-    SendName (module, M_WINDOW_NAME, asw->w,asw->frame,(unsigned long)asw, asw->hints->names[0]);
-    SendName (module, M_ICON_NAME, asw->w, asw->frame, (unsigned long)asw, asw->hints->icon_name);
-    SendName (module, M_RES_CLASS, asw->w, asw->frame, (unsigned long)asw, asw->hints->res_class);
-    SendName (module, M_RES_NAME,  asw->w, asw->frame, (unsigned long)asw, asw->hints->res_name);
+    SendString (module, M_WINDOW_NAME, asw->w,asw->frame,(unsigned long)asw, asw->hints->names[0]);
+    SendString (module, M_ICON_NAME, asw->w, asw->frame, (unsigned long)asw, asw->hints->icon_name);
+    SendString (module, M_RES_CLASS, asw->w, asw->frame, (unsigned long)asw, asw->hints->res_class);
+    SendString (module, M_RES_NAME,  asw->w, asw->frame, (unsigned long)asw, asw->hints->res_name);
 
     if (ASWIN_GET_FLAGS(asw,AS_Iconic))
     {
@@ -917,7 +918,7 @@ QuickRestart (char *what)
 	if (parse_look || parse_feel || parse_menu || shall_override_config_file)
 	{
         InstallRootColormap();
-        GrabEm (&Scr, Scr.ASCursors[WAIT]);
+        GrabEm (&Scr, Scr.Feel.cursors[WAIT]);
 	}
 
 	/* Don't kill modules */

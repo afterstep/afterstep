@@ -130,14 +130,14 @@ ValidatePixmap (Pixmap p, int bSetHandler, int bTransparent, unsigned int *pWidt
     int junk;
 	if (bSetHandler)
 		oldXErrorHandler = XSetErrorHandler (pixmap_error_handler);
-  
+
     if (bTransparent)
 	    p = GetRootPixmap (None);
 	if (!pWidth)
   		pWidth = &junk;
     if (!pHeight)
 	    pHeight = &junk;
-  
+
     if (p != None)
 	{
   		if (!XGetGeometry (dpy, p, &root, &junk, &junk, pWidth, pHeight, &junk, &junk))
@@ -159,6 +159,8 @@ GetRootDimensions (int *width, int *height)
 	Window root;
 	int w_x, w_y;
 	unsigned int junk;
+    if( dpy == NULL )
+        return 0;
 	if (!XGetGeometry (dpy, RootWindow(dpy,DefaultScreen(dpy)), &root,
 					     &w_x, &w_y, width, height, &junk, &junk))
     {

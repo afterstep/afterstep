@@ -23,14 +23,11 @@
 
 #include "../../configure.h"
 
+#include "../../include/asapp.h"
 #include <limits.h>
-#include <stdio.h>
 #include <signal.h>
-#include <string.h>
-#include <ctype.h>
 #include <unistd.h>
 
-#include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/screen.h"
 #include "asinternals.h"

@@ -2,6 +2,7 @@
 #define HINTS_H_HEADER_INCLUDED
 
 #include <X11/Xmd.h>
+#include "clientprops.h"
 
 struct ASRawHints;
 struct ASDatabaseRecord;

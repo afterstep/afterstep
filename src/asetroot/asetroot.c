@@ -501,8 +501,7 @@ DeadPipe (int nonsense)
       GC foreGC, backGC, reliefGC, shadowGC;
 
       mystyle_get_global_gcs (mystyle_first, &foreGC, &backGC, &reliefGC, &shadowGC);
-      while (mystyle_first)
-	mystyle_delete (mystyle_first);
+      mystyle_destroy_all();
       XFreeGC (dpy, foreGC);
       XFreeGC (dpy, backGC);
       XFreeGC (dpy, reliefGC);
@@ -761,27 +760,27 @@ DoTransformPixmap (ASImage *src, MyBackgroundConfig * back)
     }
     if (back->flags & BGFLAG_CUT || tint != TINT_LEAVE_SAME)
     {
-		ASImage *tiled_im = tile_asimage( Scr.asv, work_im, 
-		                                  x, y, width, height, tint, 
+		ASImage *tiled_im = tile_asimage( Scr.asv, work_im,
+		                                  x, y, width, height, tint,
 		                                  ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
 		if( tiled_im )
 		{
-			if( work_im != src ) 
+			if( work_im != src )
 				destroy_asimage( &work_im );
 			work_im = tiled_im ;
 		}
     }
-	
-    if( Scr.xinerama_screens && Scr.xinerama_screens_num > 1 ) 
+
+    if( Scr.xinerama_screens && Scr.xinerama_screens_num > 1 )
 	{
 	    register int i = Scr.xinerama_screens_num ;
 		while( --i > 0 )
-			if( Scr.xinerama_screens[i].x == 0 && Scr.xinerama_screens[i].y == 0 ) 
+			if( Scr.xinerama_screens[i].x == 0 && Scr.xinerama_screens[i].y == 0 )
 			    break ;
 	    screen_width = Scr.xinerama_screens[i].width ;
 	    screen_height = Scr.xinerama_screens[i].height ;
-    }	
-	
+    }
+
 	/* scale */
     if (back->flags & BGFLAG_SCALE)
     {
@@ -796,12 +795,12 @@ DoTransformPixmap (ASImage *src, MyBackgroundConfig * back)
 		    width = screen_width;
 		    height = screen_height;
 		}
-	  
-		scaled_im = scale_asimage( Scr.asv, work_im, width, height, 
+
+		scaled_im = scale_asimage( Scr.asv, work_im, width, height,
 		                           ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
 		if( scaled_im )
 		{
-			if( work_im != src ) 
+			if( work_im != src )
 				destroy_asimage( &work_im );
 			work_im = scaled_im ;
 		}
@@ -831,18 +830,18 @@ DoTransformPixmap (ASImage *src, MyBackgroundConfig * back)
 		    x = (width - old_width) / 2;
 		    y = (height - old_height) / 2;
 		}
-		
-		padded_im = pad_asimage( Scr.asv, work_im, x, y, width, height, 
-								 pad_color, 
+
+		padded_im = pad_asimage( Scr.asv, work_im, x, y, width, height,
+								 pad_color,
 		                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
 		if( padded_im )
 		{
-			if( work_im != src ) 
+			if( work_im != src )
 				destroy_asimage( &work_im );
 			work_im = padded_im ;
 		}
     }
-	
+
 	trg = asimage2pixmap( Scr.asv, Scr.Root, work_im, NULL, False );
 	if( work_im != src )
 		destroy_asimage( &work_im );

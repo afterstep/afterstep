@@ -18,23 +18,18 @@
  */
 
 /****************************************************************************
- * 
+ *
  * dirtree.c: converts a menu directory tree into a configuration file
  *
  ***************************************************************************/
 
 #define DIRTREE_C
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-
 #include <sys/stat.h>
 
 #include "../../configure.h"
 
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
 #include "../../include/parser.h"

@@ -26,6 +26,11 @@
 #define MAGIC_MENU_DATA_ITEM    0x7A3ED1FE
 #define MAGIC_COMPLEX_FUNC      0x7A3CCF46
 
+#define MAGIC_MYLOOK_RES_BASE   0x7A311000
+#define MAGIC_MYSTYLE           (MAGIC_MYLOOK_RES_BASE+0)
+#define MAGIC_MYBACKGROUND      (MAGIC_MYLOOK_RES_BASE+1)
+
+
 
 /* List of flags that allows us to put AfterSTep in different states : */
 #define ASS_NormalOperation     (0x01<<0)      /* otherwise we are in restart or shutdown or initialization  */
@@ -355,26 +360,18 @@ typedef struct ASWindow
 	/********************************************************************/
 	/* END of NEW ASWindow frame decorations                            */
 	/********************************************************************/
-    int old_bw;			/* border width before reparenting */
 #ifndef NO_SHAPE
     int wShaped;		/* is this a shaped window */
 #endif
-    int warp_index;		/* index of the window in the window list,
-                           changes when window is warped */
-
     int FocusDesk;      /* Where (if at all) was it focussed */
     int DeIconifyDesk;		/* Desk to deiconify to, for StubbornIcons */
 
-    unsigned long flags;
-
-    int orig_x;			/* unmaximized x coordinate */
+    int orig_x;         /* unmaximized x coordinate */
     int orig_y;			/* unmaximized y coordinate */
     int orig_wd;		/* unmaximized window width */
     int orig_ht;		/* unmaximized window height */
 
-    long focus_sequence;
-    long circulate_sequence;
-  }ASWindow;
+}ASWindow;
 
 typedef struct ASLayer
 {

@@ -23,7 +23,7 @@
     * You should have received a copy of the GNU General Public License
     * along with this program; if not, write to the Free Software
     * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-    * $Id: WinList.c,v 1.4 2002/10/31 22:25:09 sasha Exp $
+    * $Id: WinList.c,v 1.5 2002/11/06 23:04:15 sasha Exp $
   */
 
 #define TRUE 1
@@ -1006,8 +1006,7 @@ ShutMeDown (int exitstat)
     GC gc1, gc2, gc3, gc4;
 
     /* kill the styles */
-    while (mystyle_first != NULL)
-      mystyle_delete (mystyle_first);
+    mystyle_destroy_all();
 
     /* kill the global GCs so they won't show up in the memory audit */
     mystyle_get_global_gcs (Style, &gc1, &gc2, &gc3, &gc4);

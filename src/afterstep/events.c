@@ -21,13 +21,13 @@
 
 #include "../../configure.h"
 
+#include "../../include/asapp.h"
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
 
-#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/module.h"
 #include "../../include/parse.h"
@@ -94,7 +94,7 @@ warp_ungrab (ASWindow * t, Bool finished)
                             attributes.your_event_mask & ~(PointerMotionMask | KeyPressMask));
             }
             if (finished)       /* the window becomes the first one in the warp list now */
-            ChangeWarpIndex (t->warp_index, warping_direction);
+            {}
         }
         if (finished)
             warp_in_process = 0;
@@ -426,8 +426,9 @@ DispatchEvent ( ASEvent *event )
     balloon_handle_event (&(event->x));
 
 	/* handle menu events specially */
-    if (HandleMenuEvent (NULL, event) == True)
-		return;
+    /* if (HandleMenuEvent (NULL, event) == True)
+     *  return;
+     */
 
     switch (event->x.type)
 	{
@@ -465,7 +466,7 @@ DispatchEvent ( ASEvent *event )
                 if (warp_in_process)
                     warp_grab (event->client);
                 else
-                    ChangeWarpIndex (event->client->warp_index, F_WARP_F);
+                {/*  ChangeWarpIndex (event->client->warp_index, F_WARP_F); */}
             }
             break;
         case FocusOut:
@@ -556,7 +557,7 @@ HandleKeyPress ( ASEvent *event )
     XKeyEvent *xk = &(event->x.xkey);
     unsigned int modifier = (xk->state & nonlock_mods);
 
-	for (key = Scr.FuncKeyRoot; key != NULL; key = key->next)
+    for (key = Scr.Feel.FuncKeyRoot; key != NULL; key = key->next)
 	{
 		/* Here's a real hack - some systems have two keys with the
 		 * same keysym and different keycodes. This converts all
@@ -566,11 +567,9 @@ HandleKeyPress ( ASEvent *event )
 			((key->mods == (modifier & (~LockMask))) ||
              (key->mods == AnyModifier)) && (key->cont & event->context))
 		{
-			extern int    AutoReverse;
-
 			/* check if the warp key was pressed */
             warp_in_process = ((key->fdata->func == F_WARP_B || key->fdata->func == F_WARP_F) &&
-							   AutoReverse == 2);
+                               Scr.Feel.AutoReverse == 2);
 			if (warp_in_process)
                 warping_direction = key->fdata->func;
 
@@ -629,18 +628,18 @@ HandlePropertyNotify (ASEvent *event)
         iterate_asbidirlist( Scr.Windows->clients, update_transp_iter_func, NULL, NULL, False );
 
         /* use move_menu() to update transparent menus; this is a kludge, but it works */
-		if ((*Scr.MSMenuTitle).texture_type == 129 || (*Scr.MSMenuItem).texture_type == 129 ||
+#if 0                                          /* reimplement menu redrawing : */
+        if ((*Scr.MSMenuTitle).texture_type == 129 || (*Scr.MSMenuItem).texture_type == 129 ||
 			(*Scr.MSMenuHilite).texture_type == 129)
 		{
-#if 0                                          /* reimplement menu redrawing : */
             MenuRoot     *menu;
 
 			for (menu = Scr.first_menu; menu != NULL; menu = menu->next)
 				if ((*menu).is_mapped)
 					move_menu (menu, (*menu).x, (*menu).y);
+        }
 #endif
-		}
-	}
+    }
 
     if( (asw = event->client) == NULL )
         return ;
@@ -654,7 +653,7 @@ HandlePropertyNotify (ASEvent *event)
 	{
 		show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
         if( update_property_hints_manager( asw->w, xprop->atom,
-		                                   Scr.supported_hints,
+                                           Scr.Look.supported_hints,
                                            asw->hints, asw->status ) )
 		{
             broadcast_window_name( asw );
@@ -662,7 +661,7 @@ HandlePropertyNotify (ASEvent *event)
 
             show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\"", ASWIN_NAME(asw), ASWIN_ICON_NAME(asw) );
 
-			if (Scr.flags & FollowTitleChanges)
+            if (get_flags(Scr.Feel.flags, FollowTitleChanges))
                 on_icon_changed(asw);
 
 			/* fix the name in the title bar */
@@ -820,7 +819,7 @@ HandleMapNotify ( ASEvent *event )
 
     broadcast_status_change( ASWIN_GET_FLAGS(asw, AS_Iconic)?M_DEICONIFY:M_MAP, asw );
 
-    if (get_flags( Scr.flags, ClickToFocus) )
+    if (get_flags( Scr.Feel.flags, ClickToFocus) )
         focus_aswindow (asw, False);
 
 #warning "do we need to un-hilite window at the time of mapNotify?"
@@ -897,7 +896,7 @@ HandleButtonPress ( ASEvent *event )
     {
         Bool          focus_accepted = False;
 
-        if (get_flags( Scr.flags, ClickToFocus) )
+        if (get_flags( Scr.Feel.flags, ClickToFocus) )
         {
             if ( asw != Scr.Windows->ungrabbed && (xbtn->state & nonlock_mods) == 0)
                 focus_accepted = focus_aswindow(asw, False);
@@ -905,21 +904,21 @@ HandleButtonPress ( ASEvent *event )
 
         if (!ASWIN_GET_FLAGS(asw, AS_Visible))
         {
-            if (get_flags(Scr.flags, ClickToRaise) && event->context == C_WINDOW
-                && (Scr.RaiseButtons & (1 << xbtn->button)) )
+            if (get_flags(Scr.Feel.flags, ClickToRaise) && event->context == C_WINDOW
+                && (Scr.Feel.RaiseButtons & (1 << xbtn->button)) )
                 RaiseWindow (asw);
             else
             {
-                if (Scr.AutoRaiseDelay > 0)
+                if (Scr.Feel.AutoRaiseDelay > 0)
                 {
-                    SetTimer (Scr.AutoRaiseDelay);
+                    SetTimer (Scr.Feel.AutoRaiseDelay);
                 } else
                 {
 #ifdef CLICKY_MODE_1
                     if (event->w != asw->w)
 #endif
                     {
-                        if (Scr.AutoRaiseDelay == 0)
+                        if (Scr.Feel.AutoRaiseDelay == 0)
                             RaiseWindow (asw);
                     }
                 }
@@ -940,7 +939,7 @@ HandleButtonPress ( ASEvent *event )
     /* we have to execute a function or pop up a menu : */
     modifier = (xbtn->state & nonlock_mods);
 	/* need to search for an appropriate mouse binding */
-	MouseEntry = Scr.MouseButtonRoot;
+    MouseEntry = Scr.Feel.MouseButtonRoot;
     while (MouseEntry != NULL)
 	{
         if ((MouseEntry->Button == xbtn->button || MouseEntry->Button == 0) &&
@@ -961,9 +960,8 @@ HandleButtonPress ( ASEvent *event )
 	/* GNOME this click hasn't been taken by AfterStep */
     if (!AShandled && xbtn->window == Scr.Root)
 	{
-		extern Window GnomeProxyWin;
         XUngrabPointer (dpy, CurrentTime);
-        XSendEvent (dpy, GnomeProxyWin, False, SubstructureNotifyMask, &(event->x));
+        XSendEvent (dpy, Scr.wmprops->wm_event_proxy, False, SubstructureNotifyMask, &(event->x));
 	}
 }
 
@@ -997,7 +995,7 @@ HandleEnterNotify (ASEvent *event)
 		int           delta_x = 0, delta_y = 0;
 
 		/* this was in the HandleMotionNotify before, HEDU */
-        HandlePaging (Scr.EdgeScrollX, Scr.EdgeScrollY,
+        HandlePaging (Scr.Feel.EdgeScrollX, Scr.Feel.EdgeScrollY,
                       &(ewp->x_root), &(ewp->y_root), &delta_x, &delta_y, True, event);
 		return;
 	}
@@ -1005,7 +1003,7 @@ HandleEnterNotify (ASEvent *event)
 
     if (ewp->window == Scr.Root)
 	{
-        if (!get_flags(Scr.flags, ClickToFocus) && !get_flags(Scr.flags, SloppyFocus))
+        if (!get_flags(Scr.Feel.flags, ClickToFocus|SloppyFocus))
             hide_focus();
         InstallRootColormap();
 		return;
@@ -1018,12 +1016,12 @@ HandleEnterNotify (ASEvent *event)
 
     if (ASWIN_HFLAGS(asw,AS_AcceptsFocus))
 	{
-        if (!get_flags(Scr.flags, ClickToFocus))
+        if (!get_flags(Scr.Feel.flags, ClickToFocus))
 		{
             if (Scr.Windows->focused != asw)
 			{
-                if (Scr.AutoRaiseDelay > 0 && !ASWIN_GET_FLAGS(asw, AS_Visible))
-					SetTimer (Scr.AutoRaiseDelay);
+                if (Scr.Feel.AutoRaiseDelay > 0 && !ASWIN_GET_FLAGS(asw, AS_Visible))
+                    SetTimer (Scr.Feel.AutoRaiseDelay);
                 focus_aswindow(asw, False);
             }else
                 focus_aswindow(asw, True);         /* don't affect the circ.seq. */
@@ -1188,7 +1186,6 @@ SetTimer (int delay)
 	setitimer (ITIMER_REAL, &value, NULL);
 #endif
 }
-
 
 /***************************************************************************
  *

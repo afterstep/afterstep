@@ -26,20 +26,13 @@
 
 #include "../../configure.h"
 
-#include <stdio.h>
-#include <signal.h>
-#include <string.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
+#include "../../libAfterImage/afterimage.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
-#include "../../include/misc.h"
-#include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"
+#include "../../include/event.h"
 
 #include "asinternals.h"
 
@@ -55,6 +48,9 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 #ifndef NO_VIRTUAL
 	int           x, y, total;
 #endif
+    Window wdumm;
+    int    dumm;
+    unsigned int udumm;
 
 	*delta_x = 0;
 	*delta_y = 0;
@@ -62,7 +58,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 #ifndef NO_VIRTUAL
 	if (DoHandlePageing)
 	{
-		if ((Scr.ScrollResistance >= 10000) || ((HorWarpSize == 0) && (VertWarpSize == 0)))
+        if ((Scr.Feel.EdgeResistanceScroll >= 10000) || ((HorWarpSize == 0) && (VertWarpSize == 0)))
 			return;
 
 		/* need to move the viewport */
@@ -71,7 +67,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 			return;
 
 		total = 0;
-		while (total < Scr.ScrollResistance)
+        while (total < Scr.Feel.EdgeResistanceScroll)
 		{
 			sleep_a_little (10000);
 			total += 10;
@@ -85,7 +81,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 				return;
 		}
 
-		XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild, &x, &y, &JunkX, &JunkY, &JunkMask);
+        XQueryPointer (dpy, Scr.Root, &wdumm, &wdumm, &x, &y, &dumm, &dumm, &udumm);
 
 		/* fprintf (stderr, "-------- MoveOutline () called from pager.c\ntmp_win == 0xlX\n", (long int) tmp_win); */
 		/* Turn off the rubberband if its on */
@@ -111,7 +107,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 		/* Ouch! lots of bounds checking */
 		if (Scr.Vx + *delta_x < 0)
 		{
-			if (!(Scr.flags & EdgeWrapX))
+            if (!get_flags(Scr.Feel.flags, EdgeWrapX))
 			{
 				*delta_x = -Scr.Vx;
 				*xl = x - *delta_x;
@@ -122,7 +118,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 			}
 		} else if (Scr.Vx + *delta_x > Scr.VxMax)
 		{
-			if (!(Scr.flags & EdgeWrapX))
+            if (!get_flags(Scr.Feel.flags, EdgeWrapX))
 			{
 				*delta_x = Scr.VxMax - Scr.Vx;
 				*xl = x - *delta_x;
@@ -136,7 +132,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 
 		if (Scr.Vy + *delta_y < 0)
 		{
-			if (!(Scr.flags & EdgeWrapY))
+            if (!get_flags(Scr.Feel.flags, EdgeWrapY))
 			{
 				*delta_y = -Scr.Vy;
 				*yt = y - *delta_y;
@@ -147,7 +143,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 			}
 		} else if (Scr.Vy + *delta_y > Scr.VyMax)
 		{
-			if (!(Scr.flags & EdgeWrapY))
+            if (!get_flags(Scr.Feel.flags, EdgeWrapY))
 			{
 				*delta_y = Scr.VyMax - Scr.Vy;
 				*yt = y - *delta_y;
@@ -174,7 +170,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 				XGrabServer (dpy);
 			XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, *xl, *yt);
 			MoveViewport (Scr.Vx + *delta_x, Scr.Vy + *delta_y, False);
-			XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild, xl, yt, &JunkX, &JunkY, &JunkMask);
+            XQueryPointer (dpy, Scr.Root, &wdumm, &wdumm, xl, yt, &dumm, &dumm, &udumm);
 			if (Grab)
 				XUngrabServer (dpy);
 		}
@@ -316,12 +312,9 @@ MoveViewport (int newx, int newy, Bool grab)
 				}
             }
 #endif
-        /* autoplace sticky icons so they don't wind up over a stationary icon */
-		AutoPlaceStickyIcons ();
-	}
+        /* TODO: autoplace sticky icons so they don't wind up over a stationary icon */
+    }
     CheckPanFrames ();
-
-	UpdateVisibility ();
 	if (grab)
 		XUngrabServer (dpy);
 #endif
@@ -447,26 +440,27 @@ ChangeDesks (int new_desk)
 void
 CheckPanFrames (void)
 {
-	int           wrapX = (Scr.flags & EdgeWrapX);
-	int           wrapY = (Scr.flags & EdgeWrapY);
+    int           wrapX = get_flags(Scr.Feel.flags, EdgeWrapX);
+    int           wrapY = get_flags(Scr.Feel.flags, EdgeWrapY);
 
 	/* Remove Pan frames if paging by edge-scroll is permanently or
 	 * temporarily disabled */
-    if ((Scr.EdgeScrollY == 0) || !get_flags(Scr.flags, DoHandlePageing))
+    if ((Scr.Feel.EdgeScrollY == 0) || !get_flags(Scr.Feel.flags, DoHandlePageing))
 	{
 		XUnmapWindow (dpy, Scr.PanFrameTop.win);
 		Scr.PanFrameTop.isMapped = False;
 		XUnmapWindow (dpy, Scr.PanFrameBottom.win);
 		Scr.PanFrameBottom.isMapped = False;
 	}
-    if ((Scr.EdgeScrollX == 0) || !get_flags(Scr.flags, DoHandlePageing))
+    if ((Scr.Feel.EdgeScrollX == 0) || !get_flags(Scr.Feel.flags, DoHandlePageing))
 	{
 		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
 		Scr.PanFrameLeft.isMapped = False;
 		XUnmapWindow (dpy, Scr.PanFrameRight.win);
 		Scr.PanFrameRight.isMapped = False;
 	}
-    if (((Scr.EdgeScrollX == 0) && (Scr.EdgeScrollY == 0)) || !get_flags(Scr.flags, DoHandlePageing))
+    if (((Scr.Feel.EdgeScrollX == 0) && (Scr.Feel.EdgeScrollY == 0)) ||
+        !get_flags(Scr.Feel.flags, DoHandlePageing))
 		return;
 
 	/* LEFT, hide only if EdgeWrap is off */
@@ -544,16 +538,16 @@ InitPanFrames ()
 	attributes.event_mask = (EnterWindowMask | LeaveWindowMask | VisibilityChangeMask);
 	valuemask = (CWEventMask | CWCursor);
 
-	attributes.cursor = Scr.ASCursors[TOP];
+    attributes.cursor = Scr.Feel.cursors[TOP];
 	Scr.PanFrameTop.win = create_visual_window (Scr.asv, Scr.Root, 0, 0, Scr.MyDisplayWidth, PAN_FRAME_THICKNESS, 0,	/* no border */
 												InputOnly, valuemask, &attributes);
-	attributes.cursor = Scr.ASCursors[LEFT];
+    attributes.cursor = Scr.Feel.cursors[LEFT];
 	Scr.PanFrameLeft.win = create_visual_window (Scr.asv, Scr.Root, 0, PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, Scr.MyDisplayHeight - 2 * PAN_FRAME_THICKNESS, 0,	/* no border */
 												 InputOnly, valuemask, &attributes);
-	attributes.cursor = Scr.ASCursors[RIGHT];
+    attributes.cursor = Scr.Feel.cursors[RIGHT];
 	Scr.PanFrameRight.win = create_visual_window (Scr.asv, Scr.Root, Scr.MyDisplayWidth - PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, Scr.MyDisplayHeight - 2 * PAN_FRAME_THICKNESS, 0,	/* no border */
 												  InputOnly, valuemask, &attributes);
-	attributes.cursor = Scr.ASCursors[BOTTOM];
+    attributes.cursor = Scr.Feel.cursors[BOTTOM];
 	Scr.PanFrameBottom.win = create_visual_window (Scr.asv, Scr.Root, 0, Scr.MyDisplayHeight - PAN_FRAME_THICKNESS, Scr.MyDisplayWidth, PAN_FRAME_THICKNESS, 0,	/* no border */
 												   InputOnly, valuemask, &attributes);
 	Scr.PanFrameTop.isMapped = Scr.PanFrameLeft.isMapped =

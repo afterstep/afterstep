@@ -44,8 +44,10 @@
 
 
 #include "afterbase.h"
+#include "functions.h"
 
 struct SyntaxDef;
+struct TermDef;
 //#include "trace.h"
 
 /* compatibility macros : */
@@ -217,6 +219,7 @@ extern int SingleScreen ;                              /* if >= 0 then [points t
 extern unsigned int  NumberOfScreens;   			   /* number of screens on display */
 extern int PointerScreen ;							   /* screen that currently has pointer */
 
+extern struct TermDef       FuncTerms[F_FUNCTIONS_NUM + 1];
 extern struct SyntaxDef FuncSyntax, *pFuncSyntax ;
 
 extern struct ASEnvironment *DefaultEnv;

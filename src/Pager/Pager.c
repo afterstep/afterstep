@@ -387,8 +387,7 @@ DeadPipe (int nonsense)
       GC foreGC, backGC, reliefGC, shadowGC;
 
       mystyle_get_global_gcs (mystyle_first, &foreGC, &backGC, &reliefGC, &shadowGC);
-      while (mystyle_first)
-	mystyle_delete (mystyle_first);
+      mystyle_destroy_all();
       XFreeGC (dpy, foreGC);
       XFreeGC (dpy, backGC);
       XFreeGC (dpy, reliefGC);

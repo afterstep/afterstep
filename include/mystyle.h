@@ -86,7 +86,10 @@ struct ASGradient;
 
 typedef struct MyStyle
   {
-    struct MyStyle *next;
+    unsigned long magic ;
+
+    ASHashTable *owner ;
+
     int set_flags;		/* == (user_flags | inherit_flags) */
     int user_flags;		/* options the user set */
     int inherit_flags;		/* inherited options */
@@ -216,17 +219,27 @@ int mystyle_translate_grad_type( int type );
 ASImage *mystyle_draw_text_image( MyStyle *style, const char *text );
 unsigned int mystyle_get_font_height( MyStyle *style );
 
+void mystyle_list_fix_styles (ASHashTable *list);
 void mystyle_fix_styles (void);
+
 ASImage *mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int height );
 Pixmap mystyle_make_pixmap (MyStyle * style, int width, int height, Pixmap cache);
 Pixmap mystyle_make_pixmap_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache);
 icon_t mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache);
 icon_t mystyle_make_icon_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache);
 void mystyle_set_window_background (Window w, MyStyle * style);
-MyStyle *mystyle_new (void);
+
+MyStyle *mystyle_list_new (struct ASHashTable *list, char *name);
 MyStyle *mystyle_new_with_name (char *name);
-void mystyle_delete (MyStyle * style);
+
+void mystyle_list_destroy_all( ASHashTable **plist );
+void mystyle_destroy_all();
+
 void mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool copy);
+
+MyStyle *mystyle_list_find (struct ASHashTable *list, const char *name);
+MyStyle *mystyle_list_find_or_default (struct ASHashTable *list, const char *name);
+
 MyStyle *mystyle_find (const char *name);
 MyStyle *mystyle_find_or_default (const char *name);
 

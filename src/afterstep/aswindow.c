@@ -575,7 +575,7 @@ warp_aswindow_list ( ASWindowList *list, Bool backwards )
         list->warp_curr_dir = dir ;
     }else if( dir == list->warp_user_dir )
     {
-            if( Scr.AutoReverse == AST_ClosedLoop )
+            if( Scr.Feel.AutoReverse == AST_ClosedLoop )
                 dir = list->warp_curr_dir ;
     }else
     {
@@ -590,9 +590,9 @@ warp_aswindow_list ( ASWindowList *list, Bool backwards )
 
         if( 0 > i || i >= end_i )
         {
-            if( Scr.AutoReverse == AST_OpenLoop )
+            if( Scr.Feel.AutoReverse == AST_OpenLoop )
                 i = (i <= 0)? end_i : 0 ;
-            else if( Scr.AutoReverse == AST_ClosedLoop )
+            else if( Scr.Feel.AutoReverse == AST_ClosedLoop )
                 list->warp_curr_dir = dir = (dir < 0 )? 1 : -1 ;
             else
                 return NULL;
@@ -601,8 +601,8 @@ warp_aswindow_list ( ASWindowList *list, Bool backwards )
         }
 
         if( !(ASWIN_HFLAGS(clients[i], AS_DontCirculate)) &&
-            !(ASWIN_GET_FLAGS(clients[i], AS_Iconic) && get_flags(Scr.flags, CirculateSkipIcons)) &&
-            !(ASWIN_DESK(clients[i]) != Scr.CurrentDesk && get_flags(Scr.flags,AutoTabThroughDesks )))
+            !(ASWIN_GET_FLAGS(clients[i], AS_Iconic) && get_flags(Scr.Feel.flags, CirculateSkipIcons)) &&
+            !(ASWIN_DESK(clients[i]) != Scr.CurrentDesk && get_flags(Scr.Feel.flags,AutoTabThroughDesks )))
         {
             next = clients[i] ;
             break;

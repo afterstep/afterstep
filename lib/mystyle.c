@@ -55,8 +55,6 @@ struct config mystyle_config[] = {
 	{"", NULL, NULL}
 };
 
-MyStyle      *mystyle_first;
-
 /* the GCs are static, but they are still used outside mystyle.c */
 static GC     ForeGC = None;
 static GC     BackGC = None;
@@ -66,15 +64,19 @@ static GC     ShadowGC = None;
 static int    style_func;
 static char  *style_arg;
 
+static MyStyle *old_GC_style = NULL;
+static int       make_GCs = 1;
+
+
+
 /* just a nice error printing function */
 void
 mystyle_error (char *format, char *name, char *text2)
 {
-	fprintf (stderr, "\n%s: MyStyle [%s] parsing error:", MyName, name);
-	if (text2)
-		fprintf (stderr, format, text2);
-	else
-		fprintf (stderr, format);
+    if (text2)
+        show_error ("MyStyle [%s] parsing error: %s %s", name, format, text2);
+    else
+        show_error ("MyStyle [%s] parsing error: %s", name, format);
 }
 
 /* Creates tinting GC for drawable d, with color tintColor,
@@ -135,16 +137,18 @@ GetAverage (ARGB32 foreground, ARGB32 background)
 	return MAKE_ARGB32 (a, r, g, b);
 }
 
-
-
-
 /* create the default style if necessary, and fill in the unset fields
  * of the other styles from the default */
 void
-mystyle_fix_styles (void)
+mystyle_list_fix_styles (ASHashTable *list)
 {
 	MyStyle      *dflt;
 	MyStyle      *style;
+    ASHashIterator iterator ;
+
+    if( list == NULL )
+        if( (list = Scr.Look.styles_list) == NULL )
+            return;
 
 /*
  * the user may not have set the default style, so set it here
@@ -152,8 +156,8 @@ mystyle_fix_styles (void)
  *  by mystyle_new() already
  * we need FONT, FORECOLOR, and BACKCOLOR, at a minimum
  */
-	if ((dflt = mystyle_find ("default")) == NULL)
-		dflt = mystyle_new_with_name ("default");
+    if ((dflt = mystyle_list_find (list, "default")) == NULL)
+        dflt = mystyle_list_new (list, "default");
 	if ((dflt->set_flags & F_FORECOLOR) == 0)
 		dflt->user_flags |= F_FORECOLOR;
 	if ((dflt->set_flags & F_BACKCOLOR) == 0)
@@ -166,7 +170,7 @@ mystyle_fix_styles (void)
 	{
 		if (load_font (NULL, &dflt->font) == False)
 		{
-			fprintf (stderr, "%s: couldn't load default font", MyName);
+            show_error("couldn't load the default font");
 			exit (1);
 		}
 		dflt->user_flags |= F_FONT;
@@ -174,8 +178,19 @@ mystyle_fix_styles (void)
 	dflt->set_flags = dflt->inherit_flags | dflt->user_flags;
 
 /* fix up the styles, using the default style */
-	for (style = mystyle_first; style != NULL; style = style->next)
-		mystyle_merge_styles (dflt, style, False, False);
+    if( start_hash_iteration( list, &iterator ))
+        do
+        {
+            style = (MyStyle*)curr_hash_data(&iterator);
+            if( style != dflt )
+                mystyle_merge_styles (dflt, style, False, False);
+        }while(next_hash_item( &iterator ));
+}
+
+void
+mystyle_fix_styles (void)
+{
+    mystyle_list_fix_styles (NULL);
 }
 
 static void   mystyle_draw_textline (Window w, Drawable text_trg, MyStyle * style, const char *text, int len, int x,
@@ -601,9 +616,6 @@ mystyle_set_window_background (Window w, MyStyle * style)
 void
 mystyle_set_global_gcs (MyStyle * style)
 {
-	static MyStyle *old_style = NULL;
-	static int    make_GCs = 1;
-
 /* make the drawing GCs if necessary */
 	if (make_GCs)
 	{
@@ -620,17 +632,12 @@ mystyle_set_global_gcs (MyStyle * style)
 	}
 
 /* set the GCs if the style is different */
-	if (style == NULL && old_style != NULL)
+    if (style == NULL && old_GC_style != NULL)
+    {  /* force update the current style if it still exists */
+        mystyle_set_gcs (old_GC_style, ForeGC, BackGC, ReliefGC, ShadowGC);
+    } else if (old_GC_style != style)
 	{
-		MyStyle      *s;
-
-		/* force update the current style if it still exists */
-		for (s = mystyle_first; s != NULL && s != old_style; s = s->next);
-		if (s != NULL)
-			mystyle_set_gcs (s, ForeGC, BackGC, ReliefGC, ShadowGC);
-	} else if (old_style != style)
-	{
-		old_style = style;
+        old_GC_style = style;
 		mystyle_set_gcs (style, ForeGC, BackGC, ReliefGC, ShadowGC);
 	}
 }
@@ -693,15 +700,33 @@ mystyle_get_global_gcs (MyStyle * style, GC * foreGC, GC * backGC, GC * reliefGC
 		*shadowGC = ShadowGC;
 }
 
-MyStyle      *
-mystyle_new (void)
+/*************************************************************************/
+/* Mystyle creation/deletion                                             */
+/*************************************************************************/
+static void
+mystyle_free_resources( MyStyle *style )
 {
-	MyStyle      *style = (MyStyle *) safemalloc (sizeof (MyStyle));
+    if( style->magic == MAGIC_MYSTYLE )
+    {
+        if (style->user_flags & F_FONT)
+        {
+            unload_font (&style->font);
+        }
+#ifndef NO_TEXTURE
+        if (style->user_flags & F_BACKGRADIENT)
+        {
+            free (style->gradient.color);
+            free (style->gradient.offset);
+        }
+        free_icon_resources( style->back_icon );
+#endif
+    }
+}
 
-	style->next = mystyle_first;
-	mystyle_first = style;
-
-	style->user_flags = 0;
+void
+mystyle_init (MyStyle  *style)
+{
+    style->user_flags = 0;
 	style->inherit_flags = 0;
 	style->set_flags = 0;
 	style->flags = 0;
@@ -724,99 +749,148 @@ mystyle_new (void)
 	style->back_icon.pix = None;
 	style->back_icon.mask = None;
 	style->back_icon.alpha = None;
-	if (Scr.d_depth > 16)
-		style->max_colors = 128;
-	else if (Scr.d_depth > 8)
-		style->max_colors = 32;
-	else
-		style->max_colors = 10;
-	style->tint = TINT_LEAVE_SAME;
+    style->tint = TINT_LEAVE_SAME;
 	style->back_icon.image = NULL;
 #endif
-	return style;
+}
+
+
+void
+mystyle_destroy (ASHashableValue value, void *data)
+{
+    if ((char*)value != NULL)
+	{
+/*	fprintf( stderr, "destroying mystyle [%s]\n", value.string_val ); */
+        free ((char*)value);               /* destroying our name */
+	}
+    if ( data != NULL)
+    {
+        MyStyle *style = (MyStyle*) data ;
+        if( style == old_GC_style )
+            old_GC_style = NULL ;
+        mystyle_free_resources( style );
+        style->magic = 0 ;                 /* invalidating memory block */
+        free (data);
+    }
+}
+
+ASHashTable *
+mystyle_list_init()
+{
+    ASHashTable *list = NULL;
+
+    list = create_ashash( 0, casestring_hash_value, casestring_compare, mystyle_destroy );
+
+    return list;
+}
+
+MyStyle *
+mystyle_list_new (struct ASHashTable *list, char *name)
+{
+    MyStyle      *style ;
+
+    if( name == NULL ) return NULL ;
+
+    if( list == NULL )
+    {
+        if( Scr.Look.styles_list == NULL )
+            if( (Scr.Look.styles_list = mystyle_list_init())== NULL ) return NULL;
+        list = Scr.Look.styles_list ;
+    }
+
+    if( get_hash_item( list, AS_HASHABLE(name), (void**)&style ) == ASH_Success )
+        if( style )
+        {
+            if( style->magic == MAGIC_MYSTYLE )
+                return style;
+            else
+                remove_hash_item( list, (ASHashableValue)name, NULL, True );
+        }
+
+    style = (MyStyle *) safecalloc (1, sizeof (MyStyle));
+
+    style->name = mystrdup( name );
+    mystyle_init(style);
+
+    if( add_hash_item( list, AS_HASHABLE(style->name), style ) != ASH_Success )
+    {   /* something terrible has happen */
+        if( style->name )
+            free( style->name );
+        free( style );
+        return NULL;
+    }
+    style->magic = MAGIC_MYSTYLE ;
+    return style;
 }
 
 MyStyle      *
 mystyle_new_with_name (char *name)
 {
-	MyStyle      *style = mystyle_new ();
-
-	if (name != NULL)
-	{
-		style->name = (char *)safemalloc (strlen (name) + 1);
-		strcpy (style->name, name);
-	}
-	return style;
+    if (name == NULL)
+        return NULL ;
+    return mystyle_list_new( NULL, name );
 }
 
-/*
- * deletes memory alloc'd for style (including members)
- */
+
+/* destruction of all mystyle records : */
+void
+mystyle_list_destroy_all( ASHashTable **plist )
+{
+    if( plist == NULL )
+        plist = &Scr.Look.styles_list ;
+    destroy_ashash( plist );
+}
 
 void
-mystyle_delete (MyStyle * style)
+mystyle_destroy_all()
 {
-	MyStyle      *s1;
-	MyStyle      *s2;
+    mystyle_list_destroy_all( NULL );
+}
 
-	/* remove ourself from the list */
-	for (s1 = s2 = mystyle_first; s1 != NULL; s2 = s1, s1 = s1->next)
-		if (s1 == style)
-			break;
-	if (s1 != NULL)
-	{
-		if (mystyle_first == s1)
-			mystyle_first = s1->next;
-		else
-			s2->next = s1->next;
-	}
-	/* delete members */
-	if (style->name != NULL)
-		free (style->name);
-	if (style->user_flags & F_FONT)
-	{
-		unload_font (&style->font);
-	}
-#ifndef NO_TEXTURE
-	if (style->user_flags & F_BACKGRADIENT)
-	{
-		free (style->gradient.color);
-		free (style->gradient.offset);
-	}
-	if (style->user_flags & F_BACKPIXMAP)
-	{
-		UnloadImage (style->back_icon.pix);
-	}
-	if (style->back_icon.image)
-		destroy_asimage (&(style->back_icon.image));
-#endif
 
-	/* free our own mem */
-	free (style);
+/*
+ * MyStyle Lookup functions :
+ */
+MyStyle *
+mystyle_list_find (struct ASHashTable *list, const char *name)
+{
+    MyStyle *style = NULL;
+    if( list == NULL )
+        list = Scr.Look.styles_list ;
+
+    if( list && name )
+        if( get_hash_item( list, AS_HASHABLE((char*)name), (void**)&style ) != ASH_Success )
+            style = NULL ;
+    return style;
+}
+
+MyStyle *
+mystyle_list_find_or_default (struct ASHashTable *list, const char *name)
+{
+    MyStyle *style = NULL;
+
+    if( list == NULL )
+        list = Scr.Look.styles_list ;
+
+    if( list && name )
+        if( get_hash_item( list, AS_HASHABLE((char*)name), (void**)&style ) != ASH_Success )
+            if( get_hash_item( list, AS_HASHABLE("default"), (void**)&style ) != ASH_Success )
+                style = NULL ;
+    return style;
 }
 
 /* find a style by name */
 MyStyle      *
 mystyle_find (const char *name)
 {
-	MyStyle      *style = NULL;
-
-	if (name != NULL)
-		for (style = mystyle_first; style != NULL; style = style->next)
-			if (!mystrcasecmp (style->name, name))
-				break;
-	return style;
+    return mystyle_list_find(NULL, name);
 }
 
 /* find a style by name or return the default style */
 MyStyle      *
 mystyle_find_or_default (const char *name)
 {
-	MyStyle      *style = mystyle_find (name);
-
-	if (style == NULL)
-		style = mystyle_find ("default");
-	return style;
+    return mystyle_list_find_or_default( NULL, name);
 }
 
 /*
@@ -1035,7 +1109,13 @@ mystyle_parse (char *tline, FILE * fd, char **ppath, int *junk2)
 	char         *newline;
 	char         *name = stripcpy2 (tline, 0);
 
-	if (Scr.image_manager == NULL)
+    if (name == NULL)
+	{
+        show_error("bad style name '%s'", tline);
+		return;
+	}
+
+    if (Scr.image_manager == NULL)
 	{
 		char         *pixmap_path = *ppath;
 
@@ -1046,28 +1126,15 @@ mystyle_parse (char *tline, FILE * fd, char **ppath, int *junk2)
 		Scr.image_manager = create_image_manager (NULL, 2.2, pixmap_path, NULL);
 	}
 
-	if (name == NULL)
-	{
-		fprintf (stderr, "%s: bad style name '%s'", MyName, tline);
-		return;
-	}
-	newline = safemalloc (MAXLINELENGTH + 1);
 /* if this style was already defined, find it */
-	if ((style = mystyle_find (name)) != NULL)
-	{
-		free (name);
-		name = style->name;
-	} else
-	{
-		style = mystyle_new ();
-		style->name = name;
-	}
+    if ((style = mystyle_find (name)) == NULL)
+        style = mystyle_new_with_name (name);
+    free( name );
 
-	while (fgets (newline, MAXLINELENGTH, fd))
+    newline = safemalloc (MAXLINELENGTH + 1);
+    while (fgets (newline, MAXLINELENGTH, fd))
 	{
-		char         *p;
-
-		p = stripcomments (newline);
+        char         *p = stripcomments (newline);
 		if (*p != '\0')
 			if (mystyle_parse_member (style, p, *ppath) != False)
 				break;
@@ -1094,10 +1161,10 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 	if (config != NULL)
 		config->action (str + strlen (config->keyword), NULL, config->arg, config->arg2);
 	else
-		fprintf (stderr, "%s: unknown style command: %s\n", MyName, str);
+        mystyle_error(style->name, "unknown style command: %s", str);
 	if (style_arg == NULL)
 	{
-		fprintf (stderr, "%s: bad style arg: %s\n", MyName, str);
+        mystyle_error(style->name, "bad style argument: %s", str);
 		return 0;
 	} else
 	{
@@ -1111,7 +1178,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 				 if (parent != NULL)
 					 mystyle_merge_styles (parent, style, True, False);
 				 else
-					 fprintf (stderr, "%s: unknown style: %s\n", MyName, style_arg);
+                     mystyle_error(style->name, "unknown style to be inherited: %s", style_arg);
 			 }
 			 break;
 		 case F_FONT:
@@ -1129,7 +1196,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 			 if (parse_argb_color (style_arg, &(style->colors.fore)) != style_arg)
 				 style->user_flags |= style_func;
 			 else
-				 show_error ("in MyStyle \"%s\": unable to parse Forecolor \"%s\"", style->name, style_arg);
+                 mystyle_error(style->name, "unable to parse Forecolor \"%s\"", style_arg);
 			 break;
 		 case F_BACKCOLOR:
 			 style->texture_type = 0;
@@ -1139,7 +1206,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 				 style->relief.back = GetShadow (style->colors.back);
 				 style->user_flags |= style_func;
 			 } else
-				 show_error ("in MyStyle \"%s\": unable to parse Backcolor \"%s\"", style->name, style_arg);
+                 mystyle_error(style->name, "unable to parse Backcolor \"%s\"", style_arg);
 			 break;
 #ifndef NO_TEXTURE
 		 case F_MAXCOLORS:
@@ -1159,7 +1226,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 					 ++i;
 				 if (ptr[i] == '\0')
 				 {
-					 show_error ("missing gradient colors: %s", style_arg);
+                     mystyle_error(style->name, "missing gradient colors: %s", style_arg);
 				 } else
 				 {
 					 ptr = &ptr[i];
@@ -1189,13 +1256,13 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 								 style->texture_type = type;
 								 style->user_flags |= style_func;
 							 } else
-								 show_error ("in MyStyle \"%s\":invalid gradient type %d", style->name, type);
+                                 show_error("Error in MyStyle \"%s\": invalid gradient type %d", style->name, type);
 						 } else
-							 show_error ("in MyStyle \"%s\":can't parse second color \"%s\"", style->name, ptr);
+                             mystyle_error(style->name, "in MyStyle \"%s\":can't parse second color \"%s\"", ptr);
 					 } else
-						 show_error ("in MyStyle \"%s\":can't parse first color \"%s\"", style->name, ptr);
+                         mystyle_error(style->name, "in MyStyle \"%s\":can't parse first color \"%s\"", ptr);
 					 if (!(style->user_flags & style_func))
-						 show_error ("bad gradient: %s", style_arg);
+                         mystyle_error(style->name, "bad gradient: \"%s\"", style_arg);
 				 }
 			 }
 			 break;
@@ -1258,7 +1325,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 						 free (gradient.color);
 					 if (gradient.offset != NULL)
 						 free (gradient.offset);
-					 fprintf (stderr, "%s: bad gradient (error %d): %s\n", MyName, error, style_arg);
+                     show_error("Error in MyStyle \"%s\": bad gradient (error %d): %s", style->name, error, style_arg);
 				 }
 			 }
 			 break;
@@ -1274,9 +1341,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 
 				 if (type < TEXTURE_TEXTURED_START || type >= TEXTURE_TEXTURED_END)
 				 {
-					 show_error
-						 ("Mystyle \"%s\" has unsupported texture type [%d] in BackPixmap setting. Assuming default of [128] instead.",
-						  style->name, type);
+                     show_error("Error in MyStyle \"%s\": unsupported texture type [%d] in BackPixmap setting. Assuming default of [128] instead.", style->name, type);
 					 type = TEXTURE_PIXMAP;
 				 }
 				 if (type == TEXTURE_TRANSPARENT || type == TEXTURE_TRANSPARENT_TWOWAY)
@@ -1297,7 +1362,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 							 set_flags (style->user_flags, F_BACKTRANSPIXMAP);
 						 style->texture_type = type;
 					 } else
-						 show_error ("failed to load image file \"%s\" in MyStyle \"%s\".", tmp, style->name);
+                         mystyle_error(style->name, "failed to load image file \"%s\".", tmp);
 				 }
 				 LOCAL_DEBUG_OUT ("MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%X", style->name,
 								  style->texture_type, style->back_icon.image, style->tint);
@@ -1320,7 +1385,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 
 		 case F_ERROR:
 		 default:
-			 fprintf (stderr, "%s: unknown style command: %s\n", MyName, str);
+             mystyle_error(style->name, "unknown style command: [%s]", str);
 			 break;
 		}
 	}
@@ -1341,7 +1406,7 @@ mystyle_parse_set_style (char *text, FILE * fd, char **style, int *junk2)
 	{
 		*(MyStyle **) style = mystyle_find (name);
 		if (*style == NULL)
-			fprintf (stderr, "%s: unknown style name: '%s'\n", MyName, name);
+            show_error("unknown style name: \"%s\"", name);
 		free (name);
 	}
 }

@@ -186,7 +186,7 @@ check_side_canvas( ASWindow *asw, FrameSide side, Bool required )
 
 			valuemask = CWBorderPixel | CWEventMask;
 			attributes.border_pixel = Scr.asv->black_pixel;
-			if (Scr.flags & BackingStore)
+            if (Scr.Feel.flags & BackingStore)
 			{
 				valuemask |= CWBackingStore;
 				attributes.backing_store = WhenMapped;
@@ -231,10 +231,10 @@ check_frame_canvas( ASWindow *asw, Bool required )
                 valuemask |= CWBackPixmap;
             }
             attributes.border_pixel = Scr.asv->black_pixel;
-            attributes.cursor = Scr.ASCursors[DEFAULT];
+            attributes.cursor = Scr.Feel.cursors[DEFAULT];
             attributes.event_mask = AS_FRAME_EVENT_MASK;
 
-            if (Scr.flags & SaveUnders)
+            if (get_flags(Scr.Feel.flags, SaveUnders))
             {
                 valuemask |= CWSaveUnder;
                 attributes.save_under = TRUE;
@@ -278,7 +278,7 @@ check_client_canvas( ASWindow *asw, Bool required )
             valuemask = (CWEventMask | CWDontPropagate);
             attributes.event_mask = AS_CLIENT_EVENT_MASK;
             attributes.do_not_propagate_mask = ButtonPressMask | ButtonReleaseMask;
-            if (Scr.flags & AppsBackingStore)
+            if (get_flags(Scr.Feel.flags, AppsBackingStore))
             {
                 valuemask |= CWBackingStore;
                 attributes.backing_store = WhenMapped;
@@ -348,11 +348,11 @@ check_icon_canvas( ASWindow *asw, Bool required )
 
             valuemask = CWBorderPixel | CWCursor | CWEventMask ;
             attributes.border_pixel = Scr.asv->black_pixel;
-            attributes.cursor = Scr.ASCursors[DEFAULT];
+            attributes.cursor = Scr.Feel.cursors[DEFAULT];
 
             if ((ASWIN_HFLAGS(asw, AS_ClientIcon|AS_ClientIconPixmap) != AS_ClientIcon) ||
                  asw->hints == NULL || asw->hints->icon.window == None ||
-				 !get_flags(Scr.flags, KeepIconWindows))
+                 !get_flags(Scr.Feel.flags, KeepIconWindows))
             { /* create windows */
                 attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
                 w = create_visual_window ( Scr.asv, Scr.Root, -10, -10, 1, 1, 0,
@@ -406,7 +406,7 @@ check_icon_title_canvas( ASWindow *asw, Bool required, Bool reuse_icon_canvas )
 
             valuemask = CWBorderPixel | CWCursor | CWEventMask ;
             attributes.border_pixel = Scr.asv->black_pixel;
-            attributes.cursor = Scr.ASCursors[DEFAULT];
+            attributes.cursor = Scr.Feel.cursors[DEFAULT];
             attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
             /* create windows */
             w = create_visual_window ( Scr.asv, Scr.Root, -10, -10, 1, 1, 0,
@@ -425,7 +425,7 @@ get_window_icon_image( ASWindow *asw )
 {
 	ASImage *im = NULL ;
     if( ASWIN_HFLAGS( asw, AS_ClientIcon|AS_ClientIconPixmap ) == (AS_ClientIcon|AS_ClientIconPixmap) &&
-	    get_flags( Scr.flags, KeepIconWindows )&&
+        get_flags( Scr.Feel.flags, KeepIconWindows )&&
 		asw->hints->icon.pixmap != None )
 	{/* convert client's icon into ASImage */
 		unsigned int width, height ;
@@ -486,7 +486,7 @@ grab_aswindow_buttons( ASWindow *asw, Bool focused )
 {
     if( asw )
     {
-        Bool do_focus_grab = (!focused && get_flags( Scr.flags, ClickToFocus ));
+        Bool do_focus_grab = (!focused && get_flags( Scr.Feel.flags, ClickToFocus ));
         if( do_focus_grab )
             grab_focus_click( asw->frame );
         else
@@ -573,7 +573,7 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     ASCanvas *left_canvas = NULL, *right_canvas = NULL ;
     Bool has_tbar = False ;
 	int i ;
-    char *mystyle_name = Scr.MSFWindow?Scr.MSFWindow->name:NULL;
+    char *mystyle_name = Scr.Look.MSWindow[BACK_FOCUSED]->name;
 	ASImage *icon_image = NULL ;
     static int normal_frame_contexts[FRAME_PARTS] =
         { C_FrameN, C_FrameE, C_FrameS, C_FrameW, C_FrameNW,C_FrameNE,C_FrameSW,C_FrameSE };
@@ -622,12 +622,12 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     if( check_client_canvas( asw, True ) == NULL )
         return;
     /* 3) we need to prepare icon window : */
-    check_icon_canvas( asw, (ASWIN_HFLAGS( asw, AS_Icon) && !get_flags(Scr.flags, SuppressIcons)) );
+    check_icon_canvas( asw, (ASWIN_HFLAGS( asw, AS_Icon) && !get_flags(Scr.Feel.flags, SuppressIcons)) );
     /* 4) we need to prepare icon title window : */
     check_icon_title_canvas( asw, (ASWIN_HFLAGS( asw, AS_IconTitle) &&
-                                  get_flags(Scr.flags, IconTitle) &&
-                                  !get_flags(Scr.flags, SuppressIcons)),
-                                        !get_flags(Scr.look_flags, SeparateButtonTitle)&&
+                                  get_flags(Scr.Feel.flags, IconTitle) &&
+                                  !get_flags(Scr.Feel.flags, SuppressIcons)),
+                                        !get_flags(Scr.Look.flags, SeparateButtonTitle)&&
                                         (asw->icon_canvas!=NULL) );
 
     /* 5) we need to prepare windows for 4 frame decoration sides : */
@@ -696,14 +696,14 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 	{ /* need to add some titlebuttons */
 		ASTBtnBlock* btns ;
 		/* left buttons : */
-		btns = build_tbtn_block( &(Scr.buttons[0]),
+        btns = build_tbtn_block( &(Scr.Look.buttons[0]),
 		                         ~(asw->hints->disabled_buttons),
 		                         TITLE_BUTTONS_PERSIDE, 1,
                                  ASWIN_HFLAGS(asw, AS_VerticalTitle)?
 									TBTN_ORDER_B2T:TBTN_ORDER_L2R );
         set_astbar_btns( asw->tbar, &btns, True );
         /* right buttons : */
-		btns = build_tbtn_block( &(Scr.buttons[TITLE_BUTTONS_PERSIDE]),
+        btns = build_tbtn_block( &(Scr.Look.buttons[TITLE_BUTTONS_PERSIDE]),
 		                         (~(asw->hints->disabled_buttons))>>TITLE_BUTTONS_PERSIDE,
 		                         TITLE_BUTTONS_PERSIDE, 1,
                                  ASWIN_HFLAGS(asw, AS_VerticalTitle)?
@@ -943,12 +943,6 @@ on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width,
 }
 
 void
-on_icon_changed( ASWindow *asw )
-{
-    /* TODO: implement icon update : */
-}
-
-void
 on_window_title_changed( ASWindow *asw, Bool update_display )
 {
     if( AS_ASSERT(asw) )
@@ -996,12 +990,12 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
         {
             unfocus_mystyle = asw->hints->mystyle_names[BACK_STICKY];
             if( unfocus_mystyle == NULL )
-                unfocus_mystyle = Scr.MSSWindow?Scr.MSSWindow->name:NULL ;
+                unfocus_mystyle = Scr.Look.MSWindow[BACK_STICKY]->name ;
         }else
             unfocus_mystyle = asw->hints->mystyle_names[BACK_UNFOCUSED];
 
         if( unfocus_mystyle == NULL )
-            unfocus_mystyle = Scr.MSUWindow?Scr.MSUWindow->name:NULL ;
+            unfocus_mystyle = Scr.Look.MSWindow[BACK_UNFOCUSED]->name ;
 
         for( i = 0 ; i < FRAME_PARTS ; ++i )
             if( asw->frame_bars[i] )
@@ -1056,8 +1050,9 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
             XMoveResizeWindow( dpy, asw->frame,
                             asw->status->x, asw->status->y,
                             asw->status->width, asw->status->height );
-        BroadcastConfig (M_CONFIGURE_WINDOW, asw);
+        broadcast_config (M_CONFIGURE_WINDOW, asw);
     }
+    set_client_state( asw->w, asw->status );
 }
 
 void
@@ -1150,7 +1145,7 @@ list_functions_by_context (int context)
 	char         *str = NULL;
 	int           allocated_bytes = 0;
 
-	for (btn = Scr.MouseButtonRoot; btn != NULL; btn = btn->NextButton)
+    for (btn = Scr.Feel.MouseButtonRoot; btn != NULL; btn = btn->NextButton)
 		if (btn->Context & context)
 		{
 			TermDef      *fterm;
@@ -1205,7 +1200,7 @@ create_titlebutton_balloon (ASWindow * tmp_win, int b)
 	Window 		  w = None;
 
 	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar) ||
-	    Scr.buttons[b].width <= 0 || IsBtnDisabled(tmp_win, b ))
+        Scr.Look.buttons[b].width <= 0 || IsBtnDisabled(tmp_win, b ))
 		return False;
 
 #if 0                                          /* TODO: fix balloons */
@@ -1248,7 +1243,7 @@ SelectDecor (ASWindow * t)
 #endif
 
 #ifndef NO_TEXTURE
-    if (!get_flags(hints->function_mask,AS_FuncResize) || !get_flags( Scr.look_flags, DecorateFrames))
+    if (!get_flags(hints->function_mask,AS_FuncResize) || !get_flags( Scr.Look.flags, DecorateFrames))
 #endif /* !NO_TEXTURE */
 	{
 		/* a wide border, with corner tiles */
@@ -1350,7 +1345,6 @@ place_aswindow( ASWindow *asw, ASStatusHints *status )
 Bool
 init_aswindow_status( ASWindow *t, ASStatusHints *status )
 {
-	extern int PPosOverride ;
 	ASStatusHints adjusted_status ;
 
 	if( t->status == NULL )
@@ -1374,9 +1368,9 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 
     adjusted_status = *status ;
 
-    if( PPosOverride )
+    if( !get_flags(AfterStepState, ASS_NormalOperation) )
         set_flags( adjusted_status.flags, AS_Position );
-	else if( get_flags(Scr.flags, NoPPosition) &&
+    else if( get_flags(Scr.Feel.flags, NoPPosition) &&
             !get_flags( status->flags, AS_StartPositionUser ) )
         clear_flags( adjusted_status.flags, AS_Position );
 
@@ -1403,17 +1397,8 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 	}
 #endif
     /* TODO: AS_Iconic */
-	if (ASWIN_GET_FLAGS(t, AS_StartsIconic ))
-		t->flags |= STARTICONIC;
-
 	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
 		ASWIN_LAYER(t) = AS_LayerNormal ;
-
-    if( ASWIN_GET_FLAGS(t, AS_StartsSticky ) )
-		t->flags |= STICKY;
-
-    if( ASWIN_GET_FLAGS(t, AS_StartsShaded ) )
-		t->flags |= SHADED;
 
     status2anchor( &(t->anchor), t->hints, t->status, Scr.VxMax, Scr.VyMax);
 
@@ -1453,7 +1438,7 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
 		   fix it eventually, less we want to end up with iconified transients
 		   without icons
 		 */
-        BroadcastConfig (M_CONFIGURE_WINDOW, asw);
+        broadcast_config (M_CONFIGURE_WINDOW, asw);
 
         if( !ASWIN_HFLAGS(asw, AS_Transient))
 		{
@@ -1468,7 +1453,7 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
             add_iconbox_icon( asw );
             restack_window( asw, None, Below );
 
-			if ((Scr.flags & ClickToFocus) || (Scr.flags & SloppyFocus))
+            if (get_flags(Scr.Feel.flags, ClickToFocus) || get_flags(Scr.Feel.flags, SloppyFocus))
 			{
                 if (asw == Scr.Windows->focused)
                     focus_next_aswindow (asw);
@@ -1479,7 +1464,7 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
     {   /* Performing transition IconicState->NormalState  */
         clear_flags( asw->status->flags, AS_Iconic );
         remove_iconbox_icon( asw );
-        if (Scr.flags & StubbornIcons)
+        if (get_flags(Scr.Feel.flags, StubbornIcons))
             ASWIN_DESK(asw) = asw->DeIconifyDesk;
         else
             ASWIN_DESK(asw) = Scr.CurrentDesk;
@@ -1489,17 +1474,13 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
 
         XMapWindow (dpy, asw->w);
         if (ASWIN_DESK(asw) == Scr.CurrentDesk)
-        {
             XMapWindow (dpy, asw->frame);
-            asw->flags |= MAP_PENDING;
-        }
-        SetMapStateProp (asw, NormalState);
 
         XRaiseWindow (dpy, asw->w);
         if( !ASWIN_HFLAGS(asw, AS_Transient ))
         {
-            if ((Scr.flags & StubbornIcons) || (Scr.flags & ClickToFocus))
-                FocusOn (asw, 1, False);
+            if (get_flags(Scr.Feel.flags, StubbornIcons|ClickToFocus))
+                activate_aswindow (asw, True, False);
             else
                 RaiseWindow (asw);
         }
@@ -1614,8 +1595,8 @@ SetShape (ASWindow *asw, int w)
 		/* TODO: add frame decorations shape */
 
 		/* update icon shape */
-        if (asw->icon_canvas != NULL)
-			UpdateIconShape (asw);
+        /*if (asw->icon_canvas != NULL)
+            UpdateIconShape (asw); */
 	}
 #endif /* SHAPE */
 }
@@ -1626,7 +1607,7 @@ SetShape (ASWindow *asw, int w)
 void
 hide_focus()
 {
-    if (get_flags(Scr.flags, ClickToFocus) && Scr.Windows->ungrabbed != NULL)
+    if (get_flags(Scr.Feel.flags, ClickToFocus) && Scr.Windows->ungrabbed != NULL)
         grab_aswindow_buttons( Scr.Windows->ungrabbed, False );
 
     Scr.Windows->focused = NULL;
@@ -1691,7 +1672,7 @@ focus_aswindow( ASWindow *asw, Bool circulated )
     if( do_nothing || do_hide_focus )
         return False;
 
-    if (get_flags(Scr.flags, ClickToFocus) && Scr.Windows->ungrabbed != asw)
+    if (get_flags(Scr.Feel.flags, ClickToFocus) && Scr.Windows->ungrabbed != asw)
     {  /* need to grab all buttons for window that we are about to
         * unfocus */
         grab_aswindow_buttons( Scr.Windows->ungrabbed, False );
@@ -1749,7 +1730,7 @@ activate_aswindow( ASWindow *asw, Bool force, Bool deiconify )
 
     if( force )
     {
-        GrabEm (&Scr, Scr.ASCursors[SELECT]);     /* to prevent Enter Notify events to
+        GrabEm (&Scr, Scr.Feel.cursors[SELECT]);     /* to prevent Enter Notify events to
                                                       be sent to us while shifting windows around */
         if( !make_aswindow_visible( asw, deiconify ) )
             return False;
@@ -1784,7 +1765,7 @@ focus_next_aswindow( ASWindow *asw )
 {
     ASWindow     *new_focus = NULL;
 
-    if( get_flags(Scr.flags, ClickToFocus))
+    if( get_flags(Scr.Feel.flags, ClickToFocus))
         new_focus = get_next_window (asw, NULL, 1);
     if( !activate_aswindow( new_focus, False, False) )
         hide_focus();
@@ -1866,34 +1847,20 @@ ASWindow     *
 AddWindow (Window w)
 {
 	ASWindow     *tmp_win;					   /* new afterstep window structure */
-	int           a, b;
-	extern Bool   NeedToResizeToo;
-
-#ifdef I18N
-	char        **list;
-	int           num;
-#endif
 	ASRawHints    raw_hints ;
     ASHints      *hints  = NULL;
     ASStatusHints status;
-	extern ASDatabase *Database;
-    XWindowAttributes attr ;
 
 
 	/* allocate space for the afterstep window */
 	tmp_win = safecalloc (1, sizeof (ASWindow));
     init_aswindow( tmp_win, False );
 
-	NeedToResizeToo = False;
-
 //    init_titlebar_windows (tmp_win, False);
 //    init_titlebutton_windows (tmp_win, False);
 
-	tmp_win->flags = VISIBLE;
-	tmp_win->w = w;
-
-	if (XGetGeometry (dpy, tmp_win->w, &JunkRoot, &JunkX, &JunkY,
-					  &JunkWidth, &JunkHeight, &JunkBW, &JunkDepth) == 0)
+    tmp_win->w = w;
+    if (validate_drawable(w, NULL, NULL) == None)
 	{
 		free ((char *)tmp_win);
 		return (NULL);
@@ -1905,7 +1872,7 @@ AddWindow (Window w)
     {
         if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
             print_hints( NULL, NULL, &raw_hints );
-        hints = merge_hints( &raw_hints, Database, &status, Scr.supported_hints, HINT_ANY, NULL );
+        hints = merge_hints( &raw_hints, Database, &status, Scr.Look.supported_hints, HINT_ANY, NULL );
         destroy_raw_hints( &raw_hints, True );
         if( hints )
         {
@@ -1931,12 +1898,6 @@ AddWindow (Window w)
 
 /*  fprintf( stderr, "[%s]: %dx%d%+d%+d\n", tmp_win->name, JunkWidth, JunkHeight, JunkX, JunkY );
 */
-	tmp_win->focus_sequence = 1;
-	SetCirculateSequence (tmp_win, -1);
-
-    if( XGetWindowAttributes( dpy, w, &attr ) )
-        tmp_win->old_bw = attr.border_width;
-
 #ifdef SHAPE
 	{
 		int           xws, yws, xbs, ybs;
@@ -1981,8 +1942,7 @@ AddWindow (Window w)
 	 * gotten one for anything up to here, however.
 	 */
 	XGrabServer (dpy);
-	if (XGetGeometry (dpy, w, &JunkRoot, &JunkX, &JunkY,
-					  &JunkWidth, &JunkHeight, &JunkBW, &JunkDepth) == 0)
+    if (validate_drawable(tmp_win->w, NULL, NULL) == None)
 	{
 		destroy_hints(tmp_win->hints, False);
 		free ((char *)tmp_win);
@@ -1990,14 +1950,6 @@ AddWindow (Window w)
 		return (NULL);
 	}
     XSetWindowBorderWidth (dpy, tmp_win->w, 0);
-
-	tmp_win->flags &= ~ICONIFIED;
-	tmp_win->flags &= ~ICON_UNMAPPED;
-	tmp_win->flags &= ~MAXIMIZED;
-
-	/* the newly created window will be on the top of the warp list */
-	tmp_win->warp_index = 0;
-	ChangeWarpIndex (++LastWarpIndex, F_WARP_F);
 
 	/* add the window into the afterstep list */
     enlist_aswindow( tmp_win );
@@ -2011,26 +1963,11 @@ AddWindow (Window w)
 	 * Set the map state to FALSE to prevent a transition back to
 	 * WithdrawnState in HandleUnmapNotify.  Map state gets set correctly
 	 * again in HandleMapNotify.
-	 */
-	tmp_win->flags &= ~MAPPED;
-
-#if 0
-	width = tmp_win->frame_width;
-	height = tmp_win->frame_height;
-	tmp_win->frame_width = 0;
-	tmp_win->frame_height = 0;
-
-    SetupFrame (tmp_win, tmp_win->frame_x, tmp_win->frame_y, width, height, True);
-#endif
-
+     */
     RaiseWindow (tmp_win);
 	XUngrabServer (dpy);
 
-	XGetGeometry (dpy, tmp_win->w, &JunkRoot, &JunkX, &JunkY,
-				  &JunkWidth, &JunkHeight, &JunkBW, &JunkDepth);
-	XTranslateCoordinates (dpy, tmp_win->frame, Scr.Root, JunkX, JunkY, &a, &b, &JunkChild);
-
-    BroadcastConfig (M_ADD_WINDOW, tmp_win);
+    broadcast_config (M_ADD_WINDOW, tmp_win);
 
     broadcast_window_name( tmp_win );
     broadcast_res_names( tmp_win );

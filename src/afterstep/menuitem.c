@@ -40,6 +40,7 @@
 
 #include "../../configure.h"
 
+#include "../../include/asapp.h"
 #include <signal.h>
 #include <stdarg.h>
 #include <fcntl.h>
@@ -49,7 +50,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
 #include "../../include/screen.h"
@@ -622,20 +622,10 @@ LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", 0x%lX)", value.string_val, (u
         {
             md->magic = 0 ;
 
+#if 0
             /* unmap if necessary */
             if (md->is_mapped == True)
                 unmap_menu (md);
-
-            if( md->name != (char*)value )
-                free( md->name );
-
-            while( (mdi=md->first) != NULL )
-            {
-                md->first = mdi->next ;
-                mdi->next = NULL ;
-                menu_data_item_destroy( mdi );
-            }
-
 #ifndef NO_TEXTURE
             /*  free background pixmaps */
             if (md->titlebg != None)
@@ -648,8 +638,19 @@ LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", 0x%lX)", value.string_val, (u
             if (md->w != None)
             {
                 XDestroyWindow (dpy, md->w);
-                XDeleteContext (dpy, md->w, MenuContext);
             }
+#endif
+
+            if( md->name != (char*)value )
+                free( md->name );
+
+            while( (mdi=md->first) != NULL )
+            {
+                md->first = mdi->next ;
+                mdi->next = NULL ;
+                menu_data_item_destroy( mdi );
+            }
+
         }
         free(data);
     }
@@ -715,7 +716,7 @@ FindPopup (char *name, int quiet)
 		return mr;
 	}
 
-    mr = find_menu_data( Scr.Popups, name );
+    mr = find_menu_data( Scr.Feel.Popups, name );
     if (!quiet && mr == NULL )
 		str_error ("Popup [%s] not defined!\n", name);
 	return mr;
@@ -754,9 +755,9 @@ NewMenuItem (MenuRoot * menu)
 MenuRoot     *
 CreateMenuRoot (char *name)
 {
-    if( Scr.Popups == NULL )
-        init_list_of_menus(&(Scr.Popups), True);
-    return new_menu_data( Scr.Popups, name );
+    if( Scr.Feel.Popups == NULL )
+        init_list_of_menus(&(Scr.Feel.Popups), True);
+    return new_menu_data( Scr.Feel.Popups, name );
 }
 
 void
@@ -806,7 +807,7 @@ MenuItemParse (MenuRoot * menu, const char *buf)
 	if (fdata->func != F_ENDPOPUP && fdata->func != F_ENDFUNC)
 	{
 #ifndef NO_TEXTURE
-        if (fdata->func != F_MINIPIXMAP && !get_flags( Scr.look_flags, MenuMiniPixmaps))
+        if (fdata->func != F_MINIPIXMAP && !get_flags( Scr.Look.flags, MenuMiniPixmaps))
 #endif /* !NO_TEXTURE */
 		{
 			MenuItemFromFunc (menu, fdata);
@@ -881,10 +882,10 @@ ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2)
 	static int    screen_initialized = 0;
     ComplexFunction  *func = NULL ;
 
-    if( Scr.ComplexFunctions == NULL )
-        init_list_of_funcs(&(Scr.ComplexFunctions), True);
+    if( Scr.Feel.ComplexFunctions == NULL )
+        init_list_of_funcs(&(Scr.Feel.ComplexFunctions), True);
 
-    func = new_complex_func( Scr.ComplexFunctions, name);
+    func = new_complex_func( Scr.Feel.ComplexFunctions, name);
     free( name );
 
     ParseFunctionBody (func, fd);
@@ -896,10 +897,10 @@ ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2)
     }
 
     if (strcmp (func->name, "InitFunction") == 0 || strcmp (func->name, screen_init_func) == 0)
-        Scr.InitFunction = func;
+        Scr.Feel.InitFunction = func;
     else if (strcmp (func->name, "RestartFunction") == 0 ||
              strcmp (func->name, screen_restart_func) == 0)
-        Scr.RestartFunction = func;
+        Scr.Feel.RestartFunction = func;
 }
 
 /****************************************************************************
@@ -933,17 +934,17 @@ ParseMouseEntry (char *tline, FILE * fd, char **junk, int *junk2)
 		return;
 	}
 	if ((contexts & C_WINDOW) && (((mods == 0) || mods == AnyModifier)))
-		Scr.buttons2grab &= ~(1 << (button - 1));
+        Scr.Feel.buttons2grab &= ~(1 << (button - 1));
 
-	temp = Scr.MouseButtonRoot;
-	Scr.MouseButtonRoot = (MouseButton *) safemalloc (sizeof (MouseButton));
-	Scr.MouseButtonRoot->NextButton = temp;
+    temp = Scr.Feel.MouseButtonRoot;
+    Scr.Feel.MouseButtonRoot = (MouseButton *) safemalloc (sizeof (MouseButton));
+    Scr.Feel.MouseButtonRoot->NextButton = temp;
 
-	Scr.MouseButtonRoot->fdata = fdata;
+    Scr.Feel.MouseButtonRoot->fdata = fdata;
 
-	Scr.MouseButtonRoot->Button = button;
-	Scr.MouseButtonRoot->Context = contexts;
-	Scr.MouseButtonRoot->Modifier = mods;
+    Scr.Feel.MouseButtonRoot->Button = button;
+    Scr.Feel.MouseButtonRoot->Context = contexts;
+    Scr.Feel.MouseButtonRoot->Modifier = mods;
 }
 
 /****************************************************************************
@@ -985,8 +986,8 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 			{
 				FuncKey      *tmp = (FuncKey *) safemalloc (sizeof (FuncKey));
 
-				tmp->next = Scr.FuncKeyRoot;
-				Scr.FuncKeyRoot = tmp;
+                tmp->next = Scr.Feel.FuncKeyRoot;
+                Scr.Feel.FuncKeyRoot = tmp;
 
 				tmp->name = name;
 				name = NULL;
@@ -1033,11 +1034,11 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 
 	/* make self */
 	if (tree->flags & DIRTREE_KEEPNAME)
-		menu = NewMenuRoot (tree->name);
+        menu = CreateMenuRoot (tree->name);
 	else
 	{
 		sprintf (buf, "%d", tree->flags & DIRTREE_ID);
-		menu = NewMenuRoot (buf);
+        menu = CreateMenuRoot (buf);
 	}
 
 	/* make title */
@@ -1046,7 +1047,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 	scan_for_hotkey (fdata->name);
 	MenuItemFromFunc (menu, fdata);
 #ifndef NO_TEXTURE
-    if (get_flags( Scr.look_flags, MenuMiniPixmaps))
+    if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
 	{
 		fdata = create_named_function( F_MINIPIXMAP,
 		                               tree->icon != NULL ? tree->icon : "mini-menu.xpm");
@@ -1083,7 +1084,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 
 			MenuItemFromFunc (menu, fdata);
 #ifndef NO_TEXTURE
-            if (get_flags( Scr.look_flags, MenuMiniPixmaps))
+            if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
 			{
 				fdata = create_named_function( F_MINIPIXMAP, t->icon != NULL ? t->icon : "mini-folder.xpm");
 				MenuItemFromFunc (menu, fdata);
@@ -1106,7 +1107,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 			MenuItemFromFunc (menu, fdata);
 
 #ifndef NO_TEXTURE
-            if (get_flags( Scr.look_flags, MenuMiniPixmaps) && t->icon != NULL)
+            if (get_flags( Scr.Look.flags, MenuMiniPixmaps) && t->icon != NULL)
 			{
 				fdata = create_named_function(F_MINIPIXMAP, t->icon);
 				MenuItemFromFunc (menu, fdata);
@@ -1135,7 +1136,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 
 #ifndef NO_TEXTURE
 			/* check for a MiniPixmap */
-            if (get_flags( Scr.look_flags, MenuMiniPixmaps))
+            if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
 			{
 				int           parsed = 0;
 
@@ -1168,10 +1169,12 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
  * Generates the window for a menu
  *
  ****************************************************************************/
+
 void
 MakeMenu (MenuRoot * mr)
 {
-	MenuItem     *cur;
+#if 0
+    MenuItem     *cur;
 	unsigned long valuemask = (CWEventMask | CWCursor);
 	XSetWindowAttributes attributes;
 	int           width, y, t;
@@ -1340,8 +1343,7 @@ MakeMenu (MenuRoot * mr)
 		map_menu (mr, (*mr).context);
 		pin_menu (mr);
 	}
-
-	return;
+#endif
 }
 
 

@@ -255,7 +255,7 @@ CreateGCs (void)
         gcm = GCFunction | GCLineWidth | GCForeground | GCSubwindowMode;
         gcv.function = GXxor;
         gcv.line_width = 0;
-        gcv.foreground = XORvalue;
+        gcv.foreground = Scr.Feel.XorValue;
         gcv.subwindow_mode = IncludeInferiors;
         Scr.DrawGC = XCreateGC (dpy, Scr.Root, gcm, &gcv);
     }
@@ -264,24 +264,24 @@ void
 CreateCursors (void)
 {
 	/* define cursors */
-    Scr.Feel.cursors[POSITION] = XCreateFontCursor (dpy, XC_left_ptr);
+    Scr.standard_cursors[POSITION]     = XCreateFontCursor (dpy, XC_left_ptr);
 /*  Scr.ASCursors[DEFAULT] = XCreateFontCursor(dpy, XC_top_left_arrow); */
-    Scr.Feel.cursors[DEFAULT] = XCreateFontCursor (dpy, XC_left_ptr);
-    Scr.Feel.cursors[SYS] = XCreateFontCursor (dpy, XC_left_ptr);
-    Scr.Feel.cursors[TITLE_CURSOR] = XCreateFontCursor (dpy, XC_left_ptr);
-    Scr.Feel.cursors[MOVE] = XCreateFontCursor (dpy, XC_fleur);
-    Scr.Feel.cursors[MENU] = XCreateFontCursor (dpy, XC_left_ptr);
-    Scr.Feel.cursors[WAIT] = XCreateFontCursor (dpy, XC_watch);
-    Scr.Feel.cursors[SELECT] = XCreateFontCursor (dpy, XC_dot);
-    Scr.Feel.cursors[DESTROY] = XCreateFontCursor (dpy, XC_pirate);
-    Scr.Feel.cursors[LEFT] = XCreateFontCursor (dpy, XC_left_side);
-    Scr.Feel.cursors[RIGHT] = XCreateFontCursor (dpy, XC_right_side);
-    Scr.Feel.cursors[TOP] = XCreateFontCursor (dpy, XC_top_side);
-    Scr.Feel.cursors[BOTTOM] = XCreateFontCursor (dpy, XC_bottom_side);
-    Scr.Feel.cursors[TOP_LEFT] = XCreateFontCursor (dpy, XC_top_left_corner);
-    Scr.Feel.cursors[TOP_RIGHT] = XCreateFontCursor (dpy, XC_top_right_corner);
-    Scr.Feel.cursors[BOTTOM_LEFT] = XCreateFontCursor (dpy, XC_bottom_left_corner);
-    Scr.Feel.cursors[BOTTOM_RIGHT] = XCreateFontCursor (dpy, XC_bottom_right_corner);
+    Scr.standard_cursors[DEFAULT]      = XCreateFontCursor (dpy, XC_left_ptr);
+    Scr.standard_cursors[SYS]          = XCreateFontCursor (dpy, XC_left_ptr);
+    Scr.standard_cursors[TITLE_CURSOR] = XCreateFontCursor (dpy, XC_left_ptr);
+    Scr.standard_cursors[MOVE]         = XCreateFontCursor (dpy, XC_fleur);
+    Scr.standard_cursors[MENU]         = XCreateFontCursor (dpy, XC_left_ptr);
+    Scr.standard_cursors[WAIT]         = XCreateFontCursor (dpy, XC_watch);
+    Scr.standard_cursors[SELECT]       = XCreateFontCursor (dpy, XC_dot);
+    Scr.standard_cursors[DESTROY]      = XCreateFontCursor (dpy, XC_pirate);
+    Scr.standard_cursors[LEFT]         = XCreateFontCursor (dpy, XC_left_side);
+    Scr.standard_cursors[RIGHT]        = XCreateFontCursor (dpy, XC_right_side);
+    Scr.standard_cursors[TOP]          = XCreateFontCursor (dpy, XC_top_side);
+    Scr.standard_cursors[BOTTOM]       = XCreateFontCursor (dpy, XC_bottom_side);
+    Scr.standard_cursors[TOP_LEFT]     = XCreateFontCursor (dpy, XC_top_left_corner);
+    Scr.standard_cursors[TOP_RIGHT]    = XCreateFontCursor (dpy, XC_top_right_corner);
+    Scr.standard_cursors[BOTTOM_LEFT]  = XCreateFontCursor (dpy, XC_bottom_left_corner);
+    Scr.standard_cursors[BOTTOM_RIGHT] = XCreateFontCursor (dpy, XC_bottom_right_corner);
 }
 
 void
@@ -357,15 +357,6 @@ CleanupScreen()
     XSetInputFocus (dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
 	XSync (dpy, 0);
 
-    destroy_hints_list(&(Scr.supported_hints));
-
-    for( i = 0 ; i < MAX_CURSORS; ++i )
-        if( Scr.ASCursors[i] )
-        {
-            XFreeCursor( dpy, Scr.ASCursors[i] );
-            Scr.ASCursors[i] = None ;
-        }
-
 #ifdef HAVE_XINERAMA
 	if (Scr.xinerama_screens)
 	{
@@ -375,13 +366,17 @@ CleanupScreen()
 	}
 #endif /* XINERAMA */
 
-    if( Scr.Popups )
-        destroy_ashash( &Scr.Popups );
-    if( Scr.ComplexFunctions )
-        destroy_ashash( &Scr.ComplexFunctions );
+
+    for( i = 0 ; i < MAX_CURSORS; ++i )
+        if( Scr.standard_cursors[i] )
+        {
+            XFreeCursor( dpy, Scr.standard_cursors[i] );
+            Scr.standard_cursors[i] = None ;
+        }
 
     InitLook(&Scr.Look, True);
     InitFeel(&Scr.Feel, True);
+
 
     /* free display strings; can't do this in main(), because some OS's
      * don't copy the environment variables properly */

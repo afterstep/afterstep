@@ -141,18 +141,6 @@ intern_selection_atom (ASWMProps * wmprops)
 }
 
 Bool
-wait_event (XEvent * event, Window w, int mask, int max_wait)
-{
-	int           tick_count;
-
-	start_ticker (1);
-	/* now we have to wait for our window to become mapped - waiting for PropertyNotify */
-	for (tick_count = 0; !XCheckWindowEvent (dpy, w, mask, event) && tick_count < max_wait; tick_count++)
-		wait_tick ();
-	return (tick_count < max_wait);
-}
-
-Bool
 accure_wm_selection (ASWMProps * wmprops)
 {
 	Window        w;

@@ -24,19 +24,11 @@
 
 #include "../configure.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <stdlib.h>
-
-#include "../include/afterbase.h"
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 #include "../include/afterstep.h"
 #include "../include/asdatabase.h"
 #include "../include/parser.h"
 #include "../include/confdefs.h"
-#include "../include/clientprops.h"
 #include "../include/hints.h"
 
 /*****************************************************************************

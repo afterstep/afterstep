@@ -30,27 +30,14 @@
 
 #include "../../configure.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#include <X11/Xproto.h>
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
-#include "../../include/misc.h"
-#include "../../include/style.h"
 #include "../../include/screen.h"
 
-#include "menus.h"
+#include "asinternals.h"
 
 #define WIN_HINTS_DO_NOT_COVER    (1<<5)	   /*attempt to not cover this window */
-
-extern ASWindow *Tmp_win;
-
 
 unsigned long
 GetGnomeState (ASWindow * t)
@@ -83,7 +70,7 @@ is_function_bound_to_button (int b, int function)
 	else
 		context = C_R1 << (b-FIRST_RIGHT_TBTN);
 
-	for (func = Scr.MouseButtonRoot; func != NULL; func = (*func).NextButton)
+    for (func = Scr.Feel.MouseButtonRoot; func != NULL; func = (*func).NextButton)
         if ((func->Context & context) && (func->fdata->func == function))
 			return True;
 	return False;
@@ -96,7 +83,7 @@ disable_titlebuttons_with_function (ASWindow * t, int function)
 
 	for (i = 0; i < TITLE_BUTTONS; i++)
 	{
-		if (Scr.buttons[i].unpressed.image != NULL &&
+        if (Scr.Look.buttons[i].unpressed.image != NULL &&
 			IsBtnEnabled(t,i) && is_function_bound_to_button (i, function))
 			DisableBtn(t, i);
 	}
@@ -154,7 +141,7 @@ check_allowed_function2 (int func, ASWindow * t)
  *
  ****************************************************************************/
 int
-check_allowed_function (MenuItem * mi)
+check_allowed_function (MenuItem * mi, ASWindow *asw)
 {
 	/* Complex functions are a little tricky... ignore them for now */
     int func = mi->fdata->func ;
@@ -183,6 +170,6 @@ check_allowed_function (MenuItem * mi)
 			return 1;
 	}
 
-	return check_allowed_function2 (func, Tmp_win);
+    return check_allowed_function2 (func, asw);
 }
 

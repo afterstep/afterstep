@@ -144,6 +144,8 @@ void UninstallAfterStepColormap (void);
 
 
 /*************************** configure.c **********************************/
+Bool GetIconFromFile (char *file, MyIcon * icon, int max_colors);
+
 void InitBase (Bool free_resources);
 void InitDatabase (Bool free_resources);
 
@@ -154,7 +156,7 @@ void LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse
 
 /*************************** decorations.c ********************************/
 int check_allowed_function2 (int func, ASWindow * t);
-int check_allowed_function (struct MenuItem * mi);
+int check_allowed_function (struct MenuItem * mi, struct ASWindow *asw);
 
 /*************************** events.c ********************************/
 void DigestEvent    ( struct ASEvent *event );
@@ -219,6 +221,7 @@ void rearrange_iconbox_icons( int desktop );
 
 /*************************** menuitem.c *********************************/
 FunctionData *String2Func ( const char *string, FunctionData *p_fdata, Bool quiet );
+void ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2);
 
 
 /*************************** misc.c *********************************/
@@ -232,6 +235,8 @@ void grab_window_buttons (Window w, ASFlagType context_mask);
 void grab_window_keys (Window w, ASFlagType context_mask);
 void grab_focus_click( Window w );
 void ungrab_focus_click( Window w );
+void SetTimer (int delay);
+
 
 /***************************** module.c ***********************************/
 void SetupModules(void);
@@ -240,20 +245,17 @@ void ExecModule (char *action, Window win, int context);
 int  AcceptModuleConnection (int socket_fd);
 
 void SendPacket (int channel, unsigned long  msg_type, unsigned long num_datum, ...);
-void SendString (int channel, unsigned long  msg_type, unsigned long id, unsigned long tag, char *string );
 void SendVector (int channel, unsigned long  msg_type, struct ASVector *vector);
 void SendConfig (int module, unsigned long event_type, ASWindow * t);
-void SendName (int module, unsigned long event_type,
+void SendString (int module, unsigned long event_type,
                unsigned long data1, unsigned long data2, unsigned long data3, char *name);
-
-void BroadcastConfig (unsigned long, ASWindow *);
-void SendName (int, unsigned long, unsigned long, unsigned long, unsigned long, char *);
 /* simplified specialized interface to above functions : */
 void broadcast_focus_change( ASWindow *focused );
 void broadcast_window_name( ASWindow *asw );
 void broadcast_icon_name( ASWindow *asw );
 void broadcast_res_names( ASWindow *asw );
 void broadcast_status_change( int message, ASWindow *asw );
+void broadcast_config (unsigned long event_type, ASWindow * t);
 
 
 
