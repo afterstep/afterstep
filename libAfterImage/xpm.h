@@ -51,7 +51,7 @@ typedef struct ASXpmFile
 	ARGB32		*cmap, **cmap2;
 	ASHashTable *cmap_name_xref;
 
-	Bool do_alpha ;
+	Bool do_alpha, full_alpha ;
 }ASXpmFile;
 
 typedef enum {

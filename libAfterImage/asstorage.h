@@ -79,6 +79,8 @@ typedef struct ASStorageSlot
 #define ASStorage_8BitShift			(0x01<<9)  /* data is 32 bpp shifted left by 8 bit 
 												* (must combine with _32Bit flag )*/ 
 
+#define ASStorage_32BitRLE			(ASStorage_RLEDiffCompress|ASStorage_32Bit)
+
 	CARD16  flags ;
 	CARD16  ref_count ;
 	CARD32  size ;
@@ -86,7 +88,7 @@ typedef struct ASStorageSlot
 	CARD16  index ;  /* reverse mapping of slot address into index in array */
 	/* slots may be placed in array pointing into different areas of the memory 
 	 * block, since we will need to implement some sort of garbadge collection and 
-	 * defragmentation mechanism - we need to be able to process them in orderly 
+	 * defragmentation mechanism - we need to be able to process them in orderly 	
 	 * fashion. 
 	 * So finally : 
 	 * 1) slot's index does not specify where in the memory slot 

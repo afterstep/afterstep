@@ -1457,7 +1457,7 @@ raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned
 			{
 				if( do_alpha )
 					buf->alpha[x] = *(--row);
-				buf->xc1 [x] = buf->xc2[x] = buf->xc3[x]  = gamma_table[*(--row)];
+				buf->red [x] = gamma_table[*(--row)];
 			}
 	}else
 	{
@@ -1480,7 +1480,7 @@ raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned
 			{
 				if( do_alpha )
 					buf->alpha[x] = *(--row);
-				buf->xc1 [x] = buf->xc2[x] = buf->xc3[x]  = *(--row);
+				buf->red [x] = *(--row);
 			}
 	}
 }

@@ -783,7 +783,11 @@ build_xpm_colormap( ASXpmFile *xpm_file )
  LOCAL_DEBUG_OUT( "cmap[%d]: 0x%X\n",  i, color );
 			xpm_file->cmap[i] = color;
 			if( ARGB32_ALPHA8(color) != 0x00FF )
+			{	
+				if( ARGB32_ALPHA8(color) != 0 ) 
+					xpm_file->full_alpha = True ;
 				xpm_file->do_alpha = True ;
+			}
 		}
 #else
 		char *colornames[6] ;
