@@ -971,8 +971,8 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 			attributes->border_pixel = asv->black_pixel ;
 			set_flags(mask, CWBorderPixel );
 		}
-		/* If the parent window and the new window have different bit 
-		** depths (such as on a Solaris box with 8bpp root window and 
+		/* If the parent window and the new window have different bit
+		** depths (such as on a Solaris box with 8bpp root window and
 		** 24bpp child windows), ParentRelative will not work. */
 		if ( get_flags(mask, CWBackPixmap) && attributes->background_pixmap == ParentRelative &&
 			 asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy) ))
@@ -1377,11 +1377,13 @@ ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y, 
 		register CARD16 *src = (CARD16*)xim_data ;
 		do
 		{
-			ARGB32 c ;
-			if( get_hash_item( asv->as_colormap_reverse.hash, (ASHashableValue)((unsigned long)src[i]), (void**)&c ) != ASH_Success )
+            void *hash_data = NULL ;
+            ARGB32 c ;
+            if( get_hash_item( asv->as_colormap_reverse.hash, (ASHashableValue)((unsigned long)src[i]), &hash_data ) != ASH_Success )
 				query_pixel_color( asv, src[i], r+i, g+i, b+i );
 			else
 			{
+                c = PTR2CARD32(hash_data);
 				r[i] =  ARGB32_RED8(c);
 				g[i] =  ARGB32_GREEN8(c);
 				b[i] =  ARGB32_BLUE8(c);
@@ -1392,11 +1394,13 @@ ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y, 
 		do
 		{
 			unsigned long pixel = XGetPixel( xim, i, y );
+            void *hash_data = NULL ;
 			ARGB32 c ;
-			if( get_hash_item( asv->as_colormap_reverse.hash, (ASHashableValue)pixel, (void**)&c ) != ASH_Success )
+            if( get_hash_item( asv->as_colormap_reverse.hash, (ASHashableValue)pixel, &hash_data ) != ASH_Success )
 				query_pixel_color( asv, pixel, r+i, g+i, b+i );
 			else
 			{
+                c = PTR2CARD32(hash_data);
 				r[i] =  ARGB32_RED8(c);
 				g[i] =  ARGB32_GREEN8(c);
 				b[i] =  ARGB32_BLUE8(c);

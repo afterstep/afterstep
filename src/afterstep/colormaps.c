@@ -119,6 +119,7 @@ uninstall_colormap( Colormap cmap, Window w )
     if( cmap == None )
     {
         freed = True ;
+        /* Colormap as well as other IDs are 64 bit on 64 bit systems - safe to use instead of pointer */
         if( get_hash_item( Cmap2WindowXref, AS_HASHABLE(w), (void**)&cmap ) != ASH_Success )
             return;
     }
@@ -168,6 +169,7 @@ install_colormap( Colormap cmap, Window w )
         if( w != None )
         {
             Colormap old_cmap = None ;
+            /* Colormap as well as other IDs are 64 bit on 64 bit systems - safe to use instead of pointer */
             if( get_hash_item( Cmap2WindowXref, AS_HASHABLE(w), (void**)&old_cmap) == ASH_Success )
             {
                 if( cmap == None )

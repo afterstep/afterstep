@@ -67,7 +67,7 @@
 typedef struct ASPagerDesk {
 
     ASFlagType flags ;
-    int desk ;
+    long desk ;
     ASCanvas   *desk_canvas;
     ASTBarData *title;
     ASTBarData *background;
@@ -90,7 +90,7 @@ typedef struct ASPagerState
     ASCanvas    *icon_canvas;
 
     ASPagerDesk *desks ;
-    int start_desk, desks_num ;
+    long start_desk, desks_num ;
 
     int page_rows,  page_columns ;
     int desk_width, desk_height ; /* x and y size of desktop */
@@ -159,7 +159,7 @@ main (int argc, char **argv)
     int i;
     char *cptr = NULL ;
 //    char *global_config_file = NULL;
-    int desk1 = 0, desk2 = 0;
+    long desk1 = 0, desk2 = 0;
 
     /* Save our program name - for error messages */
     InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, 0 );
@@ -421,7 +421,7 @@ LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, 
 
         if( Config->MSDeskBack[i] == NULL )
         {
-            sprintf( buf, "*%sDesk%d", MyName, i + PagerState.start_desk);
+            sprintf( buf, "*%sDesk%ld", MyName, i + PagerState.start_desk);
             Config->MSDeskBack[i] = mystyle_find_or_default( buf );
         }
     }
@@ -877,11 +877,11 @@ void place_desk( ASPagerDesk *d, int x, int y, unsigned int width, unsigned int 
 }
 
 inline ASPagerDesk *
-get_pager_desk( int desk )
+get_pager_desk( long desk )
 {
 	if( IsValidDesk(desk) )
 	{
-		register int pager_desk = desk - PagerState.start_desk ;
+        register long pager_desk = desk - PagerState.start_desk ;
 	    if(  pager_desk >= 0 && pager_desk < PagerState.desks_num )
   		    return &(PagerState.desks[pager_desk]);
 	}
@@ -957,7 +957,7 @@ restack_desk_windows( ASPagerDesk *d )
 void
 place_selection()
 {
-LOCAL_DEBUG_CALLER_OUT( "Scr.CurrentDesk(%d)->start_desk(%d)", Scr.CurrentDesk, PagerState.start_desk );
+LOCAL_DEBUG_CALLER_OUT( "Scr.CurrentDesk(%d)->start_desk(%ld)", Scr.CurrentDesk, PagerState.start_desk );
     if( get_flags(Config->flags, SHOW_SELECTION) )
 	{
         ASPagerDesk *sel_desk = get_pager_desk( Scr.CurrentDesk );
@@ -972,7 +972,7 @@ LOCAL_DEBUG_CALLER_OUT( "Scr.CurrentDesk(%d)->start_desk(%d)", Scr.CurrentDesk, 
 
   		    sel_x += (Scr.Vx*page_width)/Scr.MyDisplayWidth ;
       		sel_y += (Scr.Vy*page_height)/Scr.MyDisplayHeight ;
-LOCAL_DEBUG_OUT( "sel_pos(%+d%+d)->page_size(%dx%d)->desk(%d)", sel_x, sel_y, page_width, page_height, sel_desk->desk );
+LOCAL_DEBUG_OUT( "sel_pos(%+d%+d)->page_size(%dx%d)->desk(%ld)", sel_x, sel_y, page_width, page_height, sel_desk->desk );
 	        while ( --i >= 0 )
   		        XReparentWindow( dpy, PagerState.selection_bars[i], sel_desk->desk_canvas->w, -10, -10 );
 
@@ -1035,7 +1035,7 @@ redecorate_pager_desks()
             w = create_visual_window(Scr.asv, PagerState.main_canvas->w, 0, 0, PagerState.desk_width, PagerState.desk_height,
                                      Config->border_width, InputOutput, CWEventMask|CWBorderPixel, &attr );
             d->desk_canvas = create_ascanvas( w );
-            LOCAL_DEBUG_OUT("+CREAT canvas(%p)->desk(%d)->geom(%dx%d%+d%+d)->parent(%lx)", d->desk_canvas, PagerState.start_desk+i, PagerState.desk_width, PagerState.desk_height, 0, 0, PagerState.main_canvas->w );
+            LOCAL_DEBUG_OUT("+CREAT canvas(%p)->desk(%ld)->geom(%dx%d%+d%+d)->parent(%lx)", d->desk_canvas, PagerState.start_desk+i, PagerState.desk_width, PagerState.desk_height, 0, 0, PagerState.main_canvas->w );
             //enable_rendering = False ;
             handle_canvas_config( d->desk_canvas );
         }
@@ -1060,7 +1060,7 @@ redecorate_pager_desks()
                 add_astbar_label( d->title, 0, flip?1:0, flip, align, Config->labels[i] );
             else
             {
-                sprintf( buf, "Desk %d", PagerState.start_desk+i );
+                sprintf( buf, "Desk %ld", PagerState.start_desk+i );
                 add_astbar_label( d->title, 0, flip?1:0, flip, align, buf );
             }
             if( Config->shade_btn )
@@ -1344,7 +1344,7 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_upd
             client_x += Scr.Vx ;
             client_y += Scr.Vy ;
         }
-        LOCAL_DEBUG_OUT( "+PLACE->client(%lX)->frame_geom(%dx%d%+d%+d)", wd->client, wd->frame_rect.width, wd->frame_rect.height, wd->frame_rect.x, wd->frame_rect.y );
+        LOCAL_DEBUG_OUT( "+PLACE->client(%lX)->frame_geom(%ldx%ld%+ld%+ld)", wd->client, wd->frame_rect.width, wd->frame_rect.height, wd->frame_rect.x, wd->frame_rect.y );
         x = ( client_x * desk_width )/PagerState.vscreen_width ;
         y = ( client_y * desk_height)/PagerState.vscreen_height;
         width  = ( wd->frame_rect.width  * desk_width )/PagerState.vscreen_width ;
@@ -1508,15 +1508,15 @@ void add_client( ASWindowData *wd )
     LOCAL_DEBUG_OUT( "+CREAT->canvas(%p)->bar(%p)->client_win(%lX)", wd->canvas, wd->bar, wd->client );
 }
 
-void refresh_client( int old_desk, ASWindowData *wd )
+void refresh_client( long old_desk, ASWindowData *wd )
 {
     ASPagerDesk *d = get_pager_desk( wd->desk );
-    LOCAL_DEBUG_OUT( "client(%lX)->name(%s)->icon_name(%s)->desk(%d)->old_desk(%d)", wd->client, wd->window_name, wd->icon_name, wd->desk, old_desk );
+    LOCAL_DEBUG_OUT( "client(%lX)->name(%s)->icon_name(%s)->desk(%ld)->old_desk(%ld)", wd->client, wd->window_name, wd->icon_name, wd->desk, old_desk );
     if( old_desk != wd->desk )
     {
         forget_desk_client( old_desk, wd );
         add_desk_client( d, wd );
-        LOCAL_DEBUG_OUT( "reparenting client to desk %d", d->desk );
+        LOCAL_DEBUG_OUT( "reparenting client to desk %ld", d->desk );
         quietly_reparent_canvas( wd->canvas, d->desk_canvas->w, CLIENT_EVENT_MASK, False );
     }
     set_client_name( wd, True );
@@ -1687,7 +1687,7 @@ translate_client_pos_main( int x, int y, unsigned int width, unsigned int height
     {
         x -= d->background->root_x ;
         y -= d->background->root_y ;
-        LOCAL_DEBUG_OUT("desk(%d) pager_vpos(%+d%+d) vscreen_size(%dx%d) desk_size(%dx%d) ", d->desk, x, y, PagerState.vscreen_width, PagerState.vscreen_height, d->background->width, d->background->height );
+        LOCAL_DEBUG_OUT("desk(%ld) pager_vpos(%+d%+d) vscreen_size(%dx%d) desk_size(%dx%d) ", d->desk, x, y, PagerState.vscreen_width, PagerState.vscreen_height, d->background->width, d->background->height );
         if( d->background->width > 0 )
             x = (x*PagerState.vscreen_width)/d->background->width ;
         if( d->background->height > 0 )
@@ -2402,7 +2402,7 @@ LOCAL_DEBUG_OUT( "pointer root pos(%+d%+d)", px, py );
                         SendInfo ( command, 0);
                         PagerState.wait_as_response++;
                     }
-                    sprintf (command, "Desk 0 %d\n", d->desk + PagerState.start_desk);
+                    sprintf (command, "Desk 0 %ld\n", d->desk + PagerState.start_desk);
                     SendInfo (command, 0);
                     PagerState.wait_as_response++;
                 }

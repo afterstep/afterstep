@@ -55,6 +55,12 @@ typedef ASFlagType ASFlagsXref[5];
 #define clear_flags(var, val) 	((var) &= ~(val))
 #define CheckSetFlag(b,f,v) 	{if((b)) (f) |= (v) ; else (f) &= ~(v);}
 
+
+/* may need to implement different approach depending on endiannes */
+#define PTR2CARD32(p)       ((CARD32)(p))
+#define LONG2CARD32(l)      ((CARD32)(l))
+
+
 typedef struct ASMagic
 { /* just so we can safely cast void* to query magic number :*/
     unsigned long magic ;
