@@ -3215,7 +3215,65 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 	return rects;
 }
 
+/***********************************************************************************/
+void
+raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned int width, Bool grayscale, Bool do_alpha )
+{
+	register int x = width;
 
+	if( grayscale )
+		row += do_alpha? width<<1 : width ;
+	else
+		row += width*(do_alpha?4:3) ;
+
+	if( gamma_table )
+	{
+		if( !grayscale )
+		{
+			while ( --x >= 0 )
+			{
+				row -= 3 ;
+				if( do_alpha )
+				{
+					--row;
+					buf->alpha[x] = row[3];
+				}
+				buf->xc1[x]  = gamma_table[row[0]];
+				buf->xc2[x]= gamma_table[row[1]];
+				buf->xc3[x] = gamma_table[row[2]];
+			}
+		}else /* greyscale */
+			while ( --x >= 0 )
+			{
+				if( do_alpha )
+					buf->alpha[x] = *(--row);
+				buf->xc1 [x] = buf->xc2[x] = buf->xc3[x]  = gamma_table[*(--row)];
+			}
+	}else
+	{
+		if( !grayscale )
+		{
+			while ( --x >= 0 )
+			{
+				row -= 3 ;
+				if( do_alpha )
+				{
+					--row;
+					buf->alpha[x] = row[3];
+				}
+				buf->xc1[x]  = row[0];
+				buf->xc2[x]= row[1];
+				buf->xc3[x] = row[2];
+			}
+		}else /* greyscale */
+			while ( --x >= 0 )
+			{
+				if( do_alpha )
+					buf->alpha[x] = *(--row);
+				buf->xc1 [x] = buf->xc2[x] = buf->xc3[x]  = *(--row);
+			}
+	}
+}
 
 /* ********************************************************************************/
 /* The end !!!! 																 */

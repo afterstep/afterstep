@@ -1298,9 +1298,14 @@ name( const type *text, ASFont *font, ASGlyphMap *map, int space_size, unsigned 
 	return line_count ; \
 }
 
+#ifdef _MSC_VER
 FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Char,char,get_character_glyph(text[i],font),1)
-FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_UTF8,char,get_utf8_glyph(&text[i],font),i+=(UTF8_CHAR_SIZE(text[i])-1))
 FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Unicode,UNICODE_CHAR,get_unicode_glyph(text[i],font),1)
+#else
+FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Char,char,get_character_glyph(text[i],font),/* */)
+FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Unicode,UNICODE_CHAR,get_unicode_glyph(text[i],font),/* */)
+#endif
+FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_UTF8,char,get_utf8_glyph(&text[i],font),i+=(UTF8_CHAR_SIZE(text[i])-1))
 
 typedef enum {
   ASCT_UTF8 = 0,
@@ -1419,7 +1424,11 @@ get_text_size_localized( const char *src_text, ASFont *font, ASText3DType type, 
 	if( char_type == ASCT_Char )
 	{
 		char *text = (char*)&src_text[0] ;
+#ifdef _MSC_VER
 		GET_TEXT_SIZE_LOOP(get_character_glyph(text[i],font),1);
+#else		
+		GET_TEXT_SIZE_LOOP(get_character_glyph(text[i],font),/* */);
+#endif
 	}else if( char_type == ASCT_UTF8 )
 	{
 		char *text = (char*)&src_text[0] ;
@@ -1427,7 +1436,11 @@ get_text_size_localized( const char *src_text, ASFont *font, ASText3DType type, 
 	}else if( char_type == ASCT_Unicode )
 	{
 		UNICODE_CHAR *text = (UNICODE_CHAR*)&src_text[0] ;
+#ifdef _MSC_VER
 		GET_TEXT_SIZE_LOOP(get_unicode_glyph(text[i],font),1);
+#else		   
+		GET_TEXT_SIZE_LOOP(get_unicode_glyph(text[i],font),/* */);
+#endif
 	}
 
     h = line_count * (font->max_height+offset_3d_y) - font->spacing_y;

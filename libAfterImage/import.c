@@ -84,6 +84,7 @@
 #endif
 
 #include "asimage.h"
+#include "bmp.h"
 #include "ximage.h"
 #include "xcf.h"
 #include "xpm.h"
@@ -535,64 +536,6 @@ check_image_type( const char *realfilename )
 	return type;
 }
 
-static void
-raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned int width, Bool grayscale, Bool do_alpha )
-{
-	register int x = width;
-
-	if( grayscale )
-		row += do_alpha? width<<1 : width ;
-	else
-		row += width*(do_alpha?4:3) ;
-
-	if( gamma_table )
-	{
-		if( !grayscale )
-		{
-			while ( --x >= 0 )
-			{
-				row -= 3 ;
-				if( do_alpha )
-				{
-					--row;
-					buf->alpha[x] = row[3];
-				}
-				buf->xc1[x]  = gamma_table[row[0]];
-				buf->xc2[x]= gamma_table[row[1]];
-				buf->xc3[x] = gamma_table[row[2]];
-			}
-		}else /* greyscale */
-			while ( --x >= 0 )
-			{
-				if( do_alpha )
-					buf->alpha[x] = *(--row);
-				buf->xc1 [x] = buf->xc2[x] = buf->xc3[x]  = gamma_table[*(--row)];
-			}
-	}else
-	{
-		if( !grayscale )
-		{
-			while ( --x >= 0 )
-			{
-				row -= 3 ;
-				if( do_alpha )
-				{
-					--row;
-					buf->alpha[x] = row[3];
-				}
-				buf->xc1[x]  = row[0];
-				buf->xc2[x]= row[1];
-				buf->xc3[x] = row[2];
-			}
-		}else /* greyscale */
-			while ( --x >= 0 )
-			{
-				if( do_alpha )
-					buf->alpha[x] = *(--row);
-				buf->xc1 [x] = buf->xc2[x] = buf->xc3[x]  = *(--row);
-			}
-	}
-}
 
 /***********************************************************************************/
 #ifdef HAVE_XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
@@ -1198,24 +1141,6 @@ bmp_read16 (FILE *fp, CARD16 *data, int count)
 	return total;
 }
 
-typedef struct tagBITMAPFILEHEADER {
-#define BMP_SIGNATURE		0x4D42             /* "BM" */
-		CARD16  bfType;
-        CARD32  bfSize;
-        CARD32  bfReserved;
-        CARD32  bfOffBits;
-} BITMAPFILEHEADER;
-
-typedef struct tagBITMAPINFOHEADER
-	{
-	   CARD32 biSize;
-	   CARD32 biWidth,  biHeight;
-	   CARD16 biPlanes, biBitCount;
-	   CARD32 biCompression;
-	   CARD32 biSizeImage;
-	   CARD32 biXPelsPerMeter, biYPelsPerMeter;
-	   CARD32 biClrUsed, biClrImportant;
-}BITMAPINFOHEADER;
 
 ASImage *
 read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
@@ -1299,55 +1224,9 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 	y =( direction == 1 )?0:height-1 ;
 	while( y >= 0 && y < (int)height)
 	{
-		int x ;
 		if( fread( data, sizeof (char), row_size, infile ) < (unsigned int)row_size )
 			break;
-		switch( bmp_info->biBitCount )
-		{
-			case 1 :
-				for( x = 0 ; x < (int)bmp_info->biWidth ; x++ )
-				{
-					int entry = (data[x>>3]&(1<<(x&0x07)))?cmap_entry_size:0 ;
-					buf->red[x] = cmap[entry+2];
-					buf->green[x] = cmap[entry+1];
-					buf->blue[x] = cmap[entry];
-				}
-			    break ;
-			case 4 :
-				for( x = 0 ; x < (int)bmp_info->biWidth ; x++ )
-				{
-					int entry = data[x>>1];
-					if(x&0x01)
-						entry = ((entry>>4)&0x0F)*cmap_entry_size ;
-					else
-						entry = (entry&0x0F)*cmap_entry_size ;
-					buf->red[x] = cmap[entry+2];
-					buf->green[x] = cmap[entry+1];
-					buf->blue[x] = cmap[entry];
-				}
-			    break ;
-			case 8 :
-				for( x = 0 ; x < (int)bmp_info->biWidth ; x++ )
-				{
-					int entry = data[x]*cmap_entry_size ;
-					buf->red[x] = cmap[entry+2];
-					buf->green[x] = cmap[entry+1];
-					buf->blue[x] = cmap[entry];
-				}
-			    break ;
-			case 16 :
-				for( x = 0 ; x < (int)bmp_info->biWidth ; ++x )
-				{
-					CARD8 c1 = data[x] ;
-					CARD8 c2 = data[++x];
-					buf->blue[x] =    c1&0x1F;
-					buf->green[x] = ((c1>>5)&0x07)|((c2<<3)&0x18);
-					buf->red[x] =   ((c2>>2)&0x1F);
-				}
-			    break ;
-			default:
-				raw2scanline( data, buf, gamma_table, im->width, False, (bmp_info->biBitCount==32));
-		}
+ 		dib_data_to_scanline(buf, bmp_info, gamma_table, data, cmap, cmap_entry_size); 
 		asimage_add_line (im, IC_RED,   buf->red  , y);
 		asimage_add_line (im, IC_GREEN, buf->green, y);
 		asimage_add_line (im, IC_BLUE,  buf->blue , y);
