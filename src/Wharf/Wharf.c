@@ -1406,6 +1406,11 @@ grab_swallowed_canvas_btns( ASCanvas *canvas, Bool action, Bool withdraw )
 {
 	register int i = 0 ;
 	register unsigned int *mods = lock_mods;
+
+	LOCAL_DEBUG_OUT( "%p,%d,%d", canvas, action, withdraw );
+
+	if( AS_ASSERT(canvas) )
+		return;
     do
     {
         /* grab button 1 if this button performs an action */

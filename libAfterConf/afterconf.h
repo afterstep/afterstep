@@ -1129,6 +1129,150 @@ struct MyLook *LookConfig2MyLook ( struct LookConfig *config, struct MyLook *loo
                                    Bool free_resources, Bool do_init,
 								   unsigned long what_flags	);
 /***************************************************************************/
+/***************************************************************************/
+/*                        Directory Tree definitions                       */
+/***************************************************************************/
+#if 0
+#include "dirtree.h"
+
+/***************************************************************************/
+/***************************************************************************/
+/*                        Menu data definitions                            */
+/***************************************************************************/
+MenuData *dirtree2menu_data (struct ASHashTable **list, dirtree_t * tree, char *buf);
+MenuData *FreeStorage2MenuData( FreeStorageElem *storage, ConfigItem *item, struct ASHashTable *list );
+FreeStorageElem **MenuData2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, MenuData *md );
+void      dir2menu_data (char *name, struct ASHashTable** list);
+void      file2menu_data (char *name, struct ASHashTable** list);
+
+void      load_standard_menu( struct ASHashTable** list );
+void      load_fixed_menu( struct ASHashTable** list  );
+#endif
+/***************************************************************************/
+/***************************************************************************/
+/*                  Complex Function data definitions                      */
+/***************************************************************************/
+ComplexFunction *FreeStorage2ComplexFunction( FreeStorageElem *storage, ConfigItem *item, struct ASHashTable *list );
+FreeStorageElem **ComplexFunction2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, ComplexFunction *cf );
+/***************************************************************************/
+/***************************************************************************/
+/*                        FEEL parsing definitions                         */
+/***************************************************************************/
+
+#define FEEL_ID_START                 (LOOK_ID_END+1)
+
+#define FEEL_ClickToFocus_ID          (FEEL_ID_START)
+#define FEEL_SloppyFocus_ID           (FEEL_ID_START+1)
+#define FEEL_AutoFocus_ID             (FEEL_ID_START+2)
+
+#define FEEL_DecorateTransients_ID    (FEEL_ID_START+3)
+
+#define FEEL_DontMoveOff_ID           (FEEL_ID_START+4)
+#define FEEL_NoPPosition_ID           (FEEL_ID_START+5)
+#define FEEL_SmartPlacement_ID        (FEEL_ID_START+6)
+#define FEEL_RandomPlacement_ID       (FEEL_ID_START+7)
+#define FEEL_StubbornPlacement_ID     (FEEL_ID_START+8)
+#define FEEL_MenusHigh_ID             (FEEL_ID_START+9)
+#define FEEL_CenterOnCirculate_ID     (FEEL_ID_START+10)
+
+#define FEEL_SuppressIcons_ID         (FEEL_ID_START+11)
+#define FEEL_IconTitle_ID             (FEEL_ID_START+12)
+#define FEEL_KeepIconWindows_ID       (FEEL_ID_START+13)
+#define FEEL_StickyIcons_ID           (FEEL_ID_START+14)
+#define FEEL_StubbornIcons_ID         (FEEL_ID_START+15)
+#define FEEL_StubbornIconPlacement_ID (FEEL_ID_START+16)
+#define FEEL_CirculateSkipIcons_ID    (FEEL_ID_START+17)
+
+#define FEEL_BackingStore_ID          (FEEL_ID_START+18)
+#define FEEL_AppsBackingStore_ID      (FEEL_ID_START+19)
+#define FEEL_SaveUnders_ID            (FEEL_ID_START+20)
+
+#define FEEL_PagingDefault_ID         (FEEL_ID_START+21)
+#define FEEL_AutoTabThroughDesks_ID   (FEEL_ID_START+22)
+
+#define FEEL_ClickTime_ID             (FEEL_ID_START+23)
+#define FEEL_OpaqueMove_ID            (FEEL_ID_START+24)
+#define FEEL_OpaqueResize_ID          (FEEL_ID_START+25)
+#define FEEL_AutoRaise_ID             (FEEL_ID_START+26)
+#define FEEL_AutoReverse_ID           (FEEL_ID_START+27)
+#define FEEL_DeskAnimationType_ID     (FEEL_ID_START+28)
+#define FEEL_DeskAnimationSteps_ID    (FEEL_ID_START+29)
+#define FEEL_XorValue_ID              (FEEL_ID_START+30)
+#define FEEL_Xzap_ID                  (FEEL_ID_START+31)
+#define FEEL_Yzap_ID                  (FEEL_ID_START+32)
+#define FEEL_Cursor_ID                (FEEL_ID_START+33)
+#define FEEL_CustomCursor_ID          (FEEL_ID_START+34)
+#define FEEL_ClickToRaise_ID          (FEEL_ID_START+35)
+#define FEEL_EdgeScroll_ID            (FEEL_ID_START+36)
+#define FEEL_EdgeResistance_ID        (FEEL_ID_START+37)
+#define FEEL_Popup_ID                 (FEEL_ID_START+38)
+#define FEEL_Function_ID              (FEEL_ID_START+39)
+#define FEEL_Mouse_ID                 (FEEL_ID_START+40)
+#define FEEL_Key_ID                   (FEEL_ID_START+41)
+#define FEEL_ShadeAnimationSteps_ID   (FEEL_ID_START+42)
+/* obsolete stuff : */
+#define FEEL_MWMFunctionHints_ID            (FEEL_ID_START+43)
+#define FEEL_MWMDecorHints_ID               (FEEL_ID_START+44)
+#define FEEL_MWMHintOverride_ID             (FEEL_ID_START+45)
+
+#define FEEL_ID_END                   (FEEL_ID_START+64)
+
+/* we don't really need FeelConfig since feel does not cary
+   any information that requires char2bin conversion and consecutive
+   memory allocation/deallocation. Hence we use ASFeel as FeelConfig.
+ */
+struct ASFeel;
+
+/* this is usefull only for ASCP, but what the heck: */
+typedef struct KeyBindingConfig
+{
+	char 				    *name ;
+	struct ASInputContexts  *contexts ;
+
+	struct KeyBindingConfig *next ;
+}KeyBindingConfig;
+
+typedef struct FeelConfig
+{
+	struct ASFeel *feel ;
+    char         **menu_locations ;
+    int            menu_locs_num ;
+
+	FreeStorageElem *more_stuff ;
+
+}FeelConfig;
+
+FeelConfig *CreateFeelConfig ();
+void DestroyFeelConfig (FeelConfig * config);
+FeelConfig *ParseFeelOptions (const char *filename, char *myname);
+void        LoadFeelMenus (FeelConfig *config);
+
+KeyBindingConfig *CreateKeyBindingConfig();
+void DestroyKeyBindingConfig(KeyBindingConfig *kb);
+void LinkKeyBindingConfig( KeyBindingConfig *kb, KeyBindingConfig **where );
+void UnlinkKeyBindingConfig( KeyBindingConfig **kb );
+KeyBindingConfig **Contexts2KeyBindingConfig( SyntaxDef *syntax, KeyBindingConfig **tail, char *sym, struct ASInputContexts *ic );
+
+int WriteFeelOptions (const char *filename, char *myname,  FeelConfig * config, unsigned long flags);
+
+/* AutoExec config is basically a very limited subset of the feel config
+ * therefore it does not deserve its own section : */
+
+typedef struct AutoExecConfig
+{
+    ComplexFunction *init ;
+    ComplexFunction *restart ;
+
+    FreeStorageElem *more_stuff ;
+
+}AutoExecConfig;
+
+AutoExecConfig *CreateAutoExecConfig ();
+void    DestroyAutoExecConfig (AutoExecConfig * config);
+AutoExecConfig *ParseAutoExecOptions (const char *filename, char *myname);
+int WriteAutoExecOptions (const char *filename, char *myname,  AutoExecConfig * config, unsigned long flags);
+
+/***************************************************************************/
 
 
 #endif /* CONF_DEFS_H_FILE_INCLUDED */

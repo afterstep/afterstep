@@ -172,8 +172,12 @@ inline void vector_move_data_up( ASVector *v, int index, int offset, int length 
 {
     register int i ;
     /* word copying is usually faster then raw memory copying */
+	/* assuming length > 0 or == -1 && offset > 0 */
     if( length == -1 )
         length = v->used ;
+
+	if( offset > 0 && length > v->used - offset )
+		length = v->used - offset ;
     if( v->unit == sizeof(long*) )
     {   /* 4 or 8 byte pointer copying  */
         register long** src = (long**)(v->memory);
