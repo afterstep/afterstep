@@ -1,6 +1,6 @@
 <varlistentry id="options.Left">
 	<term>Left</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Aligns image, text or block of buttons to the left of the widget.</para>
 	</listitem>
 </varlistentry>

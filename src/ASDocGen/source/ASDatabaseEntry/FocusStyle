@@ -1,6 +1,8 @@
 <varlistentry id="options.FocusStyle">
-	<term>FocusStyle</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term>FocusStyle [<emphasis remap='I'>style</emphasis>]</term>
+      <listitem>
+	<para>Specifies a MyStyle to be used for this window when it has the keyboard
+	focus.  If <emphasis remap='I'>style</emphasis> is unspecified, the default focus style will be
+	used instead (see <emphasis remap='I'>FWindowStyle</emphasis>, below).</para>
+      </listitem>
 </varlistentry>

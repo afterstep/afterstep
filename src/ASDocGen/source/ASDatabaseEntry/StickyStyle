@@ -1,6 +1,9 @@
 <varlistentry id="options.StickyStyle">
-	<term>StickyStyle</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term>StickyStyle <emphasis remap='I'>style</emphasis></term>
+      <listitem>
+<para>Specifies a MyStyle to be used for this window when it does not have the
+keyboard focus, and is sticky.  If <emphasis remap='I'>style</emphasis> is unspecified, the default
+sticky style will be used instead (see <emphasis remap='I'>SWindowStyle</emphasis>, below).</para>
+
+      </listitem>
 </varlistentry>

@@ -1,6 +1,9 @@
 <varlistentry id="options.BorderWidth">
-	<term>BorderWidth</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+      <term><emphasis remap='I'>BorderWidth width</emphasis></term>
+      <listitem>
+<para>Specifying this in conjunction with <emphasis remap='I'>NoHandles</emphasis>, sets the border width
+of a window to be <emphasis remap='I'>width</emphasis>. A <emphasis remap='I'>width</emphasis> of <literal>0</literal> causes no border.
+ This option has no affect if not used with <emphasis remap='I'>NoHandles</emphasis>.  The default
+is <literal>1</literal> implicitly for all windows.</para>
 	</listitem>
 </varlistentry>

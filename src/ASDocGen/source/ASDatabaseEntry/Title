@@ -1,6 +1,6 @@
 <varlistentry id="options.Title">
-	<term>Title</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>Title</emphasis></term>
+      <listitem>
+<para>Specifies that <command>afterstep</command> should put a title bar decoration on the app. The is the default.</para>
+      </listitem>
 </varlistentry>

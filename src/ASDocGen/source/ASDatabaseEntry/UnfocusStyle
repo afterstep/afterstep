@@ -1,6 +1,9 @@
 <varlistentry id="options.UnfocusStyle">
-	<term>UnfocusStyle</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term>UnfocusStyle <emphasis remap='I'>style</emphasis></term>
+      <listitem>
+<para>Specifies a MyStyle to be used for this window when it does not have the
+keyboard focus, and is not sticky.  If <emphasis remap='I'>style</emphasis> is unspecified, the
+default unfocus style will be used instead (see <emphasis remap='I'>UWindowStyle</emphasis>, below).</para>
+
+      </listitem>
 </varlistentry>

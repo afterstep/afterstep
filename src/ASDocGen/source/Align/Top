@@ -1,6 +1,6 @@
 <varlistentry id="options.Top">
 	<term>Top</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Aligns image, text or block of buttons to the top of the widget.</para>
 	</listitem>
 </varlistentry>

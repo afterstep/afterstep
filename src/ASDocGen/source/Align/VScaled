@@ -1,6 +1,7 @@
 <varlistentry id="options.VScaled">
 	<term>VScaled</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Scale contents to the height of the widget. 
+		      If used in combination with LabelHeight - height of the text will be used insted of the height of the widget.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.LabelHeight">
 	<term>LabelHeight</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Has to be appplied to background image of the widget - it will cause this image to be resized
+		(tiled or scaled) to the height of the widget's label (such as titlebar text).</para>
 	</listitem>
 </varlistentry>

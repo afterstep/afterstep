@@ -1,6 +1,11 @@
 <varlistentry id="options.AvoidCover">
-	<term>AvoidCover</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>AvoidCover</emphasis></term>
+      <listitem>
+<para>Specifies that other windows should not be allowed to cover the app window.
+Prevents other windows from moving in front of (or behind) the app window.
+If <emphasis remap='I'>SmartPlacement</emphasis> is specified in the <emphasis remap='I'>feel</emphasis> file, windows will
+not be allowed to automatically place themselves over the app window, if
+possible. <emphasis remap='I'>AllowCover</emphasis> turns off <emphasis remap='I'>AvoidCover</emphasis>. The default is
+<emphasis remap='I'>AllowCover</emphasis>.</para>
+      </listitem>
 </varlistentry>

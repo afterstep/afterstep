@@ -1,6 +1,8 @@
 <varlistentry id="options.HandleWidth">
-	<term>HandleWidth</term>
+	<term><emphasis remap='I'>HandleWidth width</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+<para>Specifies the <emphasis remap='I'>width</emphasis> of the resize handles on the
+The default <emphasis remap='I'>width</emphasis> is <literal>8</literal> pixels.
+</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.NoIcon">
-	<term>NoIcon</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+      <term><emphasis remap='I'>NoIcon</emphasis></term>
+      <listitem>
+<para>Disables icon from being visible when window is iconifyed. That causes window to simply disappear when the app is iconified.
+Refer to the EXAMPLES below for a method to make all icons disappear.</para>
 	</listitem>
 </varlistentry>

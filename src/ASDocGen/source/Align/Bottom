@@ -1,6 +1,6 @@
 <varlistentry id="options.Bottom">
 	<term>Bottom</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Align contents to the bottom of the widget.</para>
 	</listitem>
 </varlistentry>

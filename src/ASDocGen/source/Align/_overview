@@ -1,2 +1,9 @@
 <section label="overview" id="overview">
+<para>Align flags specify how contents of the widget should be aligned. Each widget is divided into the grid of 8x8 cells.
+Each of widget's visible items occupy one of the cells. Widget attempts to determine the size of each row and column, by
+using size of visible elements that occupy it's cells and its align flags. 
+</para>
+<para>
+Note that some visible items ( such as icons, images, text, buttons ) may occupy same cell that affecting the size of it.
+</para>
 </section>

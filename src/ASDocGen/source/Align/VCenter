@@ -1,6 +1,6 @@
 <varlistentry id="options.VCenter">
 	<term>VCenter</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Vertically align contents to the center. Same as combination of Top,Bottom.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,9 @@
 <varlistentry id="options.Icon">
-	<term>Icon</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+      <term><emphasis remap='I'>Icon filename</emphasis></term>
+      <listitem>
+<para>Specifies the [filename] to use when iconified, overriding
+any icon the app itself might provide.  <emphasis remap='I'>NoIcon</emphasis> turns this off.
+The default is to use the app's supplied icon or the icon specified with the
+WM_NAME of "Unknown" or "*".</para>
 	</listitem>
 </varlistentry>

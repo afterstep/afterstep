@@ -1,6 +1,6 @@
 <varlistentry id="options.Center">
 	<term>Center</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Align contents to the center of the widget. This is the same as combination of all of the Left,Right,Bottom,Top</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.HScaled">
 	<term>HScaled</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Scale contents to the width of the widget. 
+		      If used in combination with LabelWidth - width of the text will be used insted of the width of the widget.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.NoTitle">
-	<term>NoTitle</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>NoTitle</emphasis></term>
+      <listitem>
+<para>Specifies that <command>afterstep</command> should not put a title bar decoration on the
+app.  The is off by default.</para>
+      </listitem>
 </varlistentry>

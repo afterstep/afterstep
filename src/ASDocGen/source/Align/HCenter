@@ -1,6 +1,6 @@
 <varlistentry id="options.HCenter">
 	<term>HCenter</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Horizontally align contents to the center. Same as combination of Left,Right.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.Focus">
-	<term>Focus</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>Focus</emphasis></term>
+      <listitem>
+	<para>This will set the window to accept input focus.  The is the default for all windows.</para>
+      </listitem>
 </varlistentry>

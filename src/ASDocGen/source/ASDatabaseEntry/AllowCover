@@ -1,6 +1,8 @@
 <varlistentry id="options.AllowCover">
-	<term>AllowCover</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>AllowCover</emphasis></term>
+      <listitem>
+	<para>Specifies that other windows should be allowed to cover the app window.
+	Turns off <emphasis remap='I'>AvoidCover</emphasis>. This is the default setting.
+	</para>
+      </listitem>
 </varlistentry>

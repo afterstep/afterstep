@@ -1,2 +1,4 @@
 <section label="overview" id="overview">
+<para>This file contains window properties for application windows which controls
+their "behavior" within <command>afterstep</command>.</para>
 </section>

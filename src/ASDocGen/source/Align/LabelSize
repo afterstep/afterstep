@@ -1,6 +1,6 @@
 <varlistentry id="options.LabelSize">
 	<term>LabelSize</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Same as the combination of LabelWidth,LabelHeight.</para>
 	</listitem>
 </varlistentry>

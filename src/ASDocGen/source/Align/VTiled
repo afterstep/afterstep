@@ -1,6 +1,6 @@
 <varlistentry id="options.VTiled">
 	<term>VTiled</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Tiles image to fill entire widget's height.</para>
 	</listitem>
 </varlistentry>

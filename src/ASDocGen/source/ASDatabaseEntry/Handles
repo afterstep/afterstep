@@ -1,6 +1,8 @@
 <varlistentry id="options.Handles">
-	<term>Handles</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+      <term><emphasis remap='I'>Handles</emphasis></term>
+      <listitem>
+<para>Specifies that the app window will display the "low bar" decoration.
+This also removes the ability to resize windows with the resize handles on
+the "low bar" ends.  The is the default for all windows.</para>
+      </listitem>
 </varlistentry>
