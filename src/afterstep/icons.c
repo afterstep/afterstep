@@ -266,7 +266,7 @@ add_iconbox_icon( ASWindow *asw )
     if( AS_ASSERT(asw) )
         return False;
 
-    /* TODO: we need to add this window to the list of icons,
+    /* we need to add this window to the list of icons,
      * and then place it in appropriate position : */
     ib = get_iconbox( ASWIN_DESK(asw) );
     append_bidirelem( ib->icons, asw );
@@ -280,7 +280,7 @@ remove_iconbox_icon( ASWindow *asw )
     ASIconBox *ib = NULL ;
     if( AS_ASSERT(asw) )
         return False;
-    /* TODO: we need to remove this window from the list of icons */
+    /* we need to remove this window from the list of icons */
     ib = get_iconbox( ASWIN_DESK(asw) );
     discard_bidirelem( ib->icons, asw );
     rearrange_iconbox( ib );
@@ -296,7 +296,6 @@ change_iconbox_icon_desk( ASWindow *asw, int from_desk, int to_desk )
 void
 on_icon_changed( ASWindow *asw )
 {
-    /* TODO : */
 	/* if( AS_ASSERT(asw) ) */
         return;
     /* we probably need to reshuffle entire iconbox when that happen : */

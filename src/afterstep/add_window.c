@@ -281,17 +281,6 @@ AddWindow (Window w)
     broadcast_res_names( tmp_win );
     broadcast_icon_name( tmp_win );
 
-#if 0
-/* TODO : */
-	if (NeedToResizeToo)
-	{
-		XWarpPointer (dpy, Scr.Root, Scr.Root, 0, 0, Scr.MyDisplayWidth,
-					  Scr.MyDisplayHeight,
-					  tmp_win->frame_x + (tmp_win->frame_width >> 1),
-					  tmp_win->frame_y + (tmp_win->frame_height >> 1));
-		resize_window (tmp_win->w, tmp_win, 0, 0, 0, 0);
-	}
-#endif
     InstallWindowColormaps (tmp_win);
 	set_flags( tmp_win->internal_flags, ASWF_WindowComplete) ;
 

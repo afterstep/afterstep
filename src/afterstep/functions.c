@@ -197,7 +197,7 @@ get_complex_function( char *name )
     return find_complex_func( Scr.Feel.ComplexFunctions, name );
 }
 
-/* TODO : WE need to implement functions queue, so that ExecuteFunction
+/* WE need to implement functions queue, so that ExecuteFunction
  * only places function to run into that queue, and queue gets processed
  * at a later time from the main event loop.
  * This is to prevent nasty recursions when functions are called from
@@ -1354,7 +1354,6 @@ void killmodule_func_handler( FunctionData *data, ASEvent *event, int module )
 void popup_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     run_menu( data->name, event->client?event->client->w:None );
-    /* TODO : implement menus : */
 }
 
 void quit_func_handler( FunctionData *data, ASEvent *event, int module )
