@@ -275,6 +275,20 @@ ExecuteFunctionExt (FunctionData *data, ASEvent *event, int module, Bool defered
     append_bidirelem( FunctionQueue, sf );
 }
 
+void
+ExecuteFunctionForClient(FunctionData *data, Window client)
+{
+	ASEvent dummy ;
+	LOCAL_DEBUG_CALLER_OUT( "client_window(%lX)", client );
+    if( data == NULL )
+        return ;
+	memset( &dummy, 0x00, sizeof( dummy ) );
+	dummy.client = window2ASWindow( client );
+	dummy.x.type = ButtonRelease ; 
+	dummy.x.xany.window = client ;
+	ExecuteFunctionExt( data, &dummy, -1, (client!=None) /* deffered */ );
+}
+
 
 #undef ExecuteFunction
 void
@@ -1322,7 +1336,7 @@ void killmodule_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void popup_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    run_menu( data->name );
+    run_menu( data->name, event->client?event->client->w:None );
     /* TODO : implement menus : */
 }
 
@@ -1407,7 +1421,7 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 			realfilename = PutHome(&(default_template[0]));
 		}
 
-		if( save_asimage_to_file(realfilename, im, type, NULL, NULL, 10, replace) )
+		if( save_asimage_to_file(realfilename, im, type, NULL, NULL, 0, replace) )
 			show_warning( "screenshot saved as \"%s\"", realfilename );
 		free( realfilename ) ;
 	}

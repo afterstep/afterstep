@@ -301,7 +301,8 @@ grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 	start_ticker(1);
 	/* now we have to wait for our window to become mapped - waiting for Expose */
 	for( tick_count = 0 ; !XCheckWindowEvent( dpy, src, ExposureMask, &event ) && tick_count < 100 ; tick_count++)
-  		wait_tick();
+  		/*sleep_a_millisec(500); */
+		wait_tick();
 	if( tick_count < 100 )
         if( (root_im = pixmap2asimage( scr->asv, src, 0, 0, width, height, AllPlanes, False, 100 )) != NULL )
 		{

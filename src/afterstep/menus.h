@@ -57,6 +57,9 @@ typedef struct ASMenu
     struct ASWindow *owner;
 
 	struct ASTBarData *scroll_up_bar, *scroll_down_bar;
+
+    Window client_window;
+
 }ASMenu;
 
 #define MAX_MENU_ITEM_HEIGHT    (Scr.MyDisplayHeight>>4)
@@ -113,7 +116,7 @@ MenuData *update_windowList (void);
 /*************************************************************************/
 /* menu execution code :                                                 */
 /*************************************************************************/
-void run_menu( const char *name );
+void run_menu( const char *name, Window client_window  );
 void run_menu_data( MenuData *md );
 ASMenu *run_submenu( ASMenu *supermenu, MenuData *md, int x, int y );
 ASMenu *find_asmenu( const char *name );

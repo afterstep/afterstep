@@ -45,7 +45,6 @@
 
 static ASMenu *ASTopmostMenu = NULL;
 
-
 ASHints *make_menu_hints( ASMenu *menu );
 /*************************************************************************/
 /* low level ASMenu functionality :                                      */
@@ -848,7 +847,7 @@ LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pre
             item->fdata->func != F_POPUP )
         {
             set_menu_item_used( menu, item->source );
-            ExecuteFunction( item->fdata, NULL, -1 );
+            ExecuteFunctionForClient( item->fdata, menu->client_window );
             if( !menu->pinned )
                 close_asmenu( &ASTopmostMenu );
         }
@@ -1350,10 +1349,12 @@ run_menu_data( MenuData *md )
 }
 
 void
-run_menu( const char *name )
+run_menu( const char *name, Window client_window )
 {
     MenuData *md = FindPopup (name, False);
     run_menu_data( md );
+	if( ASTopmostMenu ) 
+		ASTopmostMenu->client_window = client_window ;
 }
 
 

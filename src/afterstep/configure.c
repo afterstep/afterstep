@@ -1617,7 +1617,7 @@ SetCursor (char *text, FILE * fd, char **arg, int *junk)
             if( Scr.Feel.cursors[cursor_num] && Scr.Feel.cursors[cursor_num] != Scr.standard_cursors[cursor_num])
                 XFreeCursor( dpy, Scr.Feel.cursors[cursor_num] );
             Scr.Feel.cursors[cursor_num] = new_c ;
-			LOCAL_DEBUG_OUT( "New X Font cursor created for cursor_num %d", cursor_num );
+			LOCAL_DEBUG_OUT( "New X Font cursor %lX created for cursor_num %d", new_c, cursor_num );
         }
     }
 }

@@ -10,7 +10,7 @@
 
 # default should never be used, so let's make it obvious when it *is* used
 MyStyle "default"
-  Font		-*-helvetica-*-r-*-*-12-*-*-*-*-*-*-*
+  Font		DefaultSans.ttf-14
   ForeColor	red
   BackColor	green
   ~MyStyle
@@ -25,11 +25,11 @@ TitleButtonBalloonDelay		200
 MyStyle "TitleButtonBalloon"
   ForeColor	grey70
   BackColor	Black
-  Font		-*-helvetica-*-r-*-*-10-*-*-*-*-*-*-*
+  Font		DefaultSans.ttf-12
   ~MyStyle
 
 MyStyle "window_font"
-  Font		-*-lucida-bold-r-*-*-13-*-*-*-*-*-*-*
+  Font		DefaultSans.ttf-15
   TextStyle	0
   ~MyStyle
 
@@ -39,32 +39,29 @@ MyStyle "focused_window_style"
   ForeColor     #E5E2E8				#basically white
   BackColor	#475293
   BackGradient	2	#6068DB	#475293
-  MaxColors	10
   ~MyStyle
 
 MyStyle "unfocused_window_style"
   Inherit       window_font
   ForeColor     #050505
   BackColor     #6e5b52
-  MaxColors	10
   ~MyStyle
 
 MyStyle "sticky_window_style"
   Inherit       window_font
   ForeColor     #9E9EA7
   BackColor	#4e2f2f
-  MaxColors	10
   ~MyStyle
 
 
 #----------Menu MyStyles---------#
 MyStyle "menu_title_font"
-  Font          -*-lucida-bold-r-*-*-13-*-*-*-*-*-*-*
+  Font          DefaultSansBold.ttf-14
   TextStyle     0
   ~MyStyle
   
 MyStyle "menu_font"
-  Font          -b&h-lucida-medium-r-*-*-12-*-*-*-*-*-*-*
+  Font          DefaultSans.ttf-14
   TextStyle     0
   ~MyStyle
   
@@ -81,7 +78,7 @@ MyStyle "menu_item_style"
   ~MyStyle
   
 MyStyle "menu_hilite_style"
-  Font          -*-helvetica-bold-r-*-*-13-*-*-*-*-*-*-*
+  Font          DefaultSansBold.ttf-14
   ForeColor     white
   BackColor     #475293
   ~MyStyle
@@ -106,7 +103,7 @@ MenuStippleStyle "menu_stipple_style"
 #----------Pager MyStyles---------#
 
 MyStyle "*PagerBalloon"
-  Font		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
+  Font		Default.ttf-14
   ForeColor	Black
   BackColor	Grey70
 ~MyStyle
@@ -123,18 +120,17 @@ MyStyle "DeskStyle"
   BackPixmap	129
 ##  Translucent Pager tinted <color>
 # BackPixmap	129 #a8a8a8
-  MaxColors	10
 ~MyStyle
 
 MyStyle "*PagerActiveDesk"
-   Font 		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
+   Font 	       Default.ttf-12	
    BackColor           #475293
    ForeColor           Grey70
 # gradients, pixmap and transparency allowed here
 ~MyStyle
 
 MyStyle "*PagerInActiveDesk"
-   Font 		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
+   Font 		Default.ttf-12
     BackColor           Grey30
     ForeColor           Grey70
 # gradients, pixmap and transparency allowed here
@@ -161,7 +157,7 @@ MyStyle "*PagerSWindowStyle"
 #----------Wharf MyStyles---------#
 
 MyStyle "*WharfBalloon"
-  Font		-adobe-helvetica-bold-o-*-*-12-*-*-*-*-*-*-*
+  Font		Default.ttf-12
   ForeColor	Black
   BackColor	Grey70
 ~MyStyle
@@ -172,17 +168,18 @@ MyStyle "*WharfTile"
 #  BackGradient	1 DarkBlue DarkGreen
 ##  Pimapped Wharf Tile
   BackPixmap	128 ASBBlockDefault.xpm
-##  Transparent Wharf Tile
-#  BackPixmap	129 ASBBlockDefault.xpm
-##  Translucent Wharf Tile tinted <color>
-#  BackPixmap	129 #a8a8a8
-  MaxColors	10
+~MyStyle
+
+MyStyle "*MonitorWharfTile"
+  BackColor	grey50
+  ##  Translucent Wharf Tile tinted <color>
+  BackPixmap	129 #a8a8a8
 ~MyStyle
 
 #----------WinList MyStyles---------#
 
 MyStyle "*WinListBalloon"
-  Font		-b&h-lucida-medium-r-normal-*-10-*-*-*-p-*-iso8859-1
+  Font		Default.ttf-12
   ForeColor	Black
   BackColor	Wheat
 ~MyStyle
@@ -190,12 +187,11 @@ MyStyle "*WinListBalloon"
 MyStyle "*WinList"
   ForeColor     white
   BackColor     gray10
-  Font		-b&h-lucida-medium-r-normal-*-*-100-*-*-p-*-iso8859-1
+  Font		DefaultSans.ttf-15
   TextStyle  2
   BackPixmap 129 #a8a8a8
 # BackPixmap 128 title.png
 # BackGradient 5 #606060 #d0d0d0
-  MaxColors 10
 ~MyStyle
 
 #----------Button MyStyles---------#
@@ -206,19 +202,19 @@ MyStyle "ButtonPixmap"
   ~MyStyle
 
 MyStyle "ButtonTitleFocus"
-  Font		-*-helvetica-bold-r-*-*-10-*-*-*-*-*-*-*
+  Font		DefaultSans.ttf-15
   ForeColor     grey70
   BackColor     Black
   ~MyStyle
 
 MyStyle "ButtonTitleSticky"
-  Font          -*-helvetica-bold-r-*-*-10-*-*-*-*-*-*-*
+  Font          DefaultSans.ttf-15
   ForeColor     grey70
   BackColor     Black
   ~MyStyle
 
 MyStyle "ButtonTitleUnfocus"
-  Font          -*-helvetica-bold-r-*-*-10-*-*-*-*-*-*-*
+  Font          DefaultSans.ttf-15
   ForeColor     grey70
   BackColor     Black
   ~MyStyle
@@ -242,8 +238,6 @@ ButtonSize 64 64
 # 128 - User defined pixmap
 # 129 - Transparent/Transluceny menu + valid xpm OR tint color
 
-MenuPinOn		as1.5-kill.xpm
-#MenuPinOff		as1.5-kill.xpm
 MArrowPixmap		arrow-dots.xpm
 
 # 2-5) : misc options
@@ -273,7 +267,7 @@ RubberBand 2
 # 3) TextStyle :
 #  Mode is either 0 (normal), 1 (big 3d), 2 (nice 3d)
 # 3-1) Text : fonts
-IconFont                -adobe-helvetica-medium-r-*-*-8-*-*-*-*-*-*-*
+IconFont                DefaultSans.ttf-12
 IconBox                 1 -64 -1 -1
 TitleTextAlign          2
 
@@ -305,3 +299,8 @@ TitleButton 2 as-kill.xpm as-kill-pressed.xpm
 TitleButton 3 as-menu-a.xpm as-menu-a-pressed.xpm
 TitleButton 4 as-shade-a.xpm as-shade-a-pressed.xpm
 TitleButton 6 as-iconize.xpm as-iconize-pressed.xpm
+
+# the following is used instead of MenuPinOn :
+TitleButton 5 as1.5-kill.xpm	 		 as1.5-kill.xpm
+
+

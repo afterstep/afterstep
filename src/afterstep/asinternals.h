@@ -564,6 +564,7 @@ ComplexFunction *get_complex_function( char *name );
 
 /* schedule function for execution( add to queue ) */
 void ExecuteFunction (struct FunctionData *data, struct ASEvent *event, int Module);
+void ExecuteFunctionForClient(struct FunctionData *data, Window client);
 void ExecuteFunctionExt (struct FunctionData *data, struct ASEvent *event, int module, Bool defered);
 /* execute all the scheduled functions from the queue */
 void ExecutePendingFunctions();
