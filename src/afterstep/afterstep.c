@@ -56,8 +56,6 @@ struct ASDatabase    *Database = NULL;
 int           ShapeEventBase, ShapeErrorBase;
 #endif
 
-int           x_fd;
-
 ASVector     *Modules       = NULL;
 int           Module_fd     = 0;
 int           Module_npipes = 8;
@@ -123,18 +121,7 @@ main (int argc, char **argv)
     IgnoreSignal(SIGQUIT);
     IgnoreSignal(SIGTERM);
 
-
-    if( (x_fd = ConnectX( &Scr, MyArgs.display_name, AS_ROOT_EVENT_MASK )) < 0 )
-    {
-        show_error("failed to initialize window manager session. Aborting!", Scr.screen);
-        exit(1);
-    }
-    if (fcntl (x_fd, F_SETFD, 1) == -1)
-	{
-        show_error ("close-on-exec failed");
-        exit (3);
-	}
-
+    ConnectX( &Scr, AS_ROOT_EVENT_MASK );
     InitSession();
 
     if (get_flags( AfterStepState, ASS_Debugging))

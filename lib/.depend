@@ -5,16 +5,6 @@
 		../include/screen.h \
 		../include/module.h
 
-./Xmodule.o : \
-		../configure.h \
-		../include/asapp.h \
-		../include/afterstep.h \
-		../include/mystyle.h \
-		../include/screen.h \
-		../include/module.h \
-		../include/wmprops.h \
-		../libAfterImage/afterimage.h
-
 ./asapp.o : \
 		../configure.h \
 		../include/asapp.h \
@@ -129,11 +119,6 @@
 		../include/afterstep.h \
 		../include/parser.h
 
-./readpacket.o : \
-		../configure.h \
-		../include/asapp.h \
-		../include/module.h
-
 ./screen.o : \
 		../configure.h \
 		../include/asapp.h \
@@ -153,10 +138,6 @@
 		../include/session.h
 
 ./timer.o : \
-		../configure.h \
-		../include/asapp.h
-
-./wild.o : \
 		../configure.h \
 		../include/asapp.h
 

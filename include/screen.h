@@ -292,8 +292,6 @@ typedef struct ScreenInfo
     struct ASImageManager *image_manager ;
 }ScreenInfo;
 
-extern ScreenInfo Scr;
-
 void init_screen_gcs(ScreenInfo *scr);
 void make_screen_envvars( ScreenInfo *scr );
 
@@ -307,7 +305,7 @@ Window get_lowest_panframe(ScreenInfo *scr);
 void get_Xinerama_rectangles (ScreenInfo * scr);
 #endif
 Bool set_synchronous_mode (Bool enable);
-int ConnectX (ScreenInfo * scr, char *display_name, unsigned long event_mask);
+int ConnectX (ScreenInfo * scr, unsigned long event_mask);
 void setup_modifiers ();
 
 #define  create_screen_window(scr,p,x,y,w,h,bw,c,mask,attr) \

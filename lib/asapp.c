@@ -57,6 +57,9 @@ unsigned int  nonlock_mods = 0;				   /* a mask for non-locking modifiers */
 unsigned int *lock_mods = NULL;				   /* all combinations of lock modifier masks */
 /* Now for each display we may have one or several screens ; */
 ScreenInfo    Scr;							   /* ScreenInfo for the default screen */
+int x_fd = 0;                                  /* descriptor of the X Windows connection  */
+
+
 int SingleScreen = -1 ;						   /* if >= 0 then [points to the only ScreenInfo structure available */
 int PointerScreen = 0;						   /* screen that currently has pointer */
 unsigned int  NumberOfScreens = 0; 			   /* number of screens on display */

@@ -79,32 +79,10 @@ ASMessage;
 /* checks if there is message from Afterstep in incoming pipe,
  * and reads it if it is . Returns NULL if there is nothing available yet
  */
-ASMessage *CheckASMessageFine (int fd, int t_sec, int t_usec);
-#define CheckASMessage(fd,t_sec) CheckASMessageFine(fd,t_sec,0)
+ASMessage *CheckASMessageFine ( int t_sec, int t_usec);
+#define CheckASMessage(t_sec) CheckASMessageFine(t_sec,0)
 void DestroyASMessage (ASMessage * msg);
-void module_wait_pipes_input ( int x_fd, int as_fd, void (*as_msg_handler) (unsigned long type, unsigned long *body) );
-
-/* more usefull stuff removing duplicate code from modules */
-
-typedef struct as_pipes
-  {
-    int fd[2];
-    int fd_width;
-    int x_fd;
-  }
-ASPipes;
-
-typedef struct as_atom
-  {
-    Atom atom;
-    char *name;
-    Atom type;
-  }
-ASAtom;
-
-void default_version_func (void);
-void (*custom_version_func) (void);
-int ProcessModuleArgs (int argc, char **argv, char **global_config_file, unsigned long *app_window, unsigned long *app_context, void (*custom_usage_func) (void));
+void module_wait_pipes_input ( void (*as_msg_handler) (unsigned long type, unsigned long *body) );
 
 /* returns fd of the AfterStep connection */
 int ConnectAfterStep (unsigned long message_mask);
@@ -119,21 +97,5 @@ void SendCommand( FunctionData * pfunc, unsigned long window);
 /* constructs config filename and calls supplied user function */
 void LoadBaseConfig (void (*read_base_options_func) (const char *));
 void LoadConfig (char *config_file_name, void (*read_options_func) (const char *));
-
-
-/* only aplicable to modules with X connection : lib/Xmodule.c */
-void InternUsefulAtoms (void);
-
-#ifdef MODULE_X_INTERFACE
-/* returns fd of the X server connection */
-void get_Xinerama_rectangles(ScreenInfo *scr);
-int ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask);
-/* get's Atom ID's of the atoms names listed in array */
-void InitAtoms (Display * dpy, ASAtom * atoms);
-
-/* X enabled version of RunModule */
-int My_XNextEvent (Display * dpy, int x_fd, int as_fd, void (*as_msg_handler) (unsigned long type, unsigned long *body), XEvent * event);
-
-#endif
 
 #endif /* MODULE_H */

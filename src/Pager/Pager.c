@@ -117,8 +117,6 @@ ASHashTable *PagerClients = NULL;
 
 PagerConfig *Config = NULL;
 
-int as_fd[2] ;
-
 void
 pager_usage (void)
 {
@@ -128,7 +126,7 @@ pager_usage (void)
 	exit (0);
 }
 
-void HandleEvents(int x_fd, int *as_fd);
+void HandleEvents();
 void process_message (unsigned long type, unsigned long *body);
 void DispatchEvent (ASEvent * Event);
 void rearrange_pager_window();
@@ -155,7 +153,6 @@ main (int argc, char **argv)
     char *cptr = NULL ;
 //    char *global_config_file = NULL;
     int desk1 = 0, desk2 = 0;
-    int x_fd ;
 
     /* Save our program name - for error messages */
     InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, 0 );
@@ -196,33 +193,23 @@ main (int argc, char **argv)
     for( i = 0; i< PagerState.desks_num; ++i )
         PagerState.desks[i].desk = PagerState.start_desk+i ;
 
-    if( (x_fd = ConnectX( &Scr, MyArgs.display_name, PropertyChangeMask )) < 0 )
-    {
-        show_error("failed to initialize window manager session. Aborting!", Scr.screen);
-        exit(1);
-    }
-    if (fcntl (x_fd, F_SETFD, 1) == -1)
-	{
-        show_error ("close-on-exec failed");
-        exit (3);
-	}
+    ConnectX( &Scr, PropertyChangeMask );
 
     if (get_flags( MyArgs.flags, ASS_Debugging))
         set_synchronous_mode(True);
     XSync (dpy, 0);
 
-
-    as_fd[0] = as_fd[1] = ConnectAfterStep (M_ADD_WINDOW |
-                                            M_CONFIGURE_WINDOW |
-                                            M_DESTROY_WINDOW |
-                                            M_FOCUS_CHANGE |
-                                            M_NEW_PAGE |
-                                            M_NEW_DESK |
-                                            M_NEW_BACKGROUND |
-                                            M_WINDOW_NAME |
-                                            M_ICON_NAME |
-                                            M_END_WINDOWLIST|
-                                            M_STACKING_ORDER);
+    ConnectAfterStep (  M_ADD_WINDOW |
+                        M_CONFIGURE_WINDOW |
+                        M_DESTROY_WINDOW |
+                        M_FOCUS_CHANGE |
+                        M_NEW_PAGE |
+                        M_NEW_DESK |
+                        M_NEW_BACKGROUND |
+                        M_WINDOW_NAME |
+                        M_ICON_NAME |
+                        M_END_WINDOWLIST|
+                        M_STACKING_ORDER);
 
     Config = CreatePagerConfig (PagerState.desks_num);
 
@@ -242,12 +229,12 @@ main (int argc, char **argv)
     rearrange_pager_desks(False);
 
     LOCAL_DEBUG_OUT("starting The Loop ...%s","");
-    HandleEvents(x_fd, as_fd);
+    HandleEvents();
 
     return 0;
 }
 
-void HandleEvents(int x_fd, int *as_fd)
+void HandleEvents()
 {
     ASEvent event;
     Bool has_x_events = False ;
@@ -255,7 +242,7 @@ void HandleEvents(int x_fd, int *as_fd)
     {
         if (PagerState.wait_as_response > 0)
         {
-            ASMessage *msg = CheckASMessage (as_fd[1], WAIT_AS_RESPONSE_TIMEOUT);
+            ASMessage *msg = CheckASMessage (WAIT_AS_RESPONSE_TIMEOUT);
             if (msg)
             {
                 process_message (msg->header[1], msg->body);
@@ -273,7 +260,7 @@ void HandleEvents(int x_fd, int *as_fd)
                     DispatchEvent( &event );
                 }
             }
-            module_wait_pipes_input ( x_fd, as_fd[1], process_message );
+            module_wait_pipes_input ( process_message );
         }
     }
 }

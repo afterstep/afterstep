@@ -85,7 +85,7 @@ WinListConfig *Config = &DefaultConfig ;
 
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
-void HandleEvents(int x_fd, int *as_fd);
+void HandleEvents();
 void process_message (unsigned long type, unsigned long *body);
 void DispatchEvent (ASEvent * Event);
 Window make_winlist_window();
@@ -100,35 +100,22 @@ static Bool rearrange_winlist_window();
 int
 main( int argc, char **argv )
 {
-    int x_fd ;
-	int as_fd[2] ;
     Window w ;
 
     /* Save our program name - for error messages */
     InitMyApp (CLASS_WINLIST, argc, argv, NULL, NULL, 0 );
 
-    if( (x_fd = ConnectX( &Scr, MyArgs.display_name, PropertyChangeMask )) < 0 )
-    {
-        show_error("failed to initialize window manager session. Aborting!", Scr.screen);
-        exit(1);
-    }
-    if (fcntl (x_fd, F_SETFD, 1) == -1)
-	{
-        show_error ("close-on-exec failed");
-        exit (3);
-	}
+    ConnectX( &Scr, PropertyChangeMask );
 
     if (get_flags( MyArgs.flags, ASS_Debugging))
         set_synchronous_mode(True);
     XSync (dpy, 0);
 
-    as_fd[0] = as_fd[1] = ConnectAfterStep (M_FOCUS_CHANGE |
-                                            M_DESTROY_WINDOW |
-                                            WINDOW_CONFIG_MASK |
-                                            WINDOW_NAME_MASK |
-                                            M_END_WINDOWLIST);
-    if( !as_fd[0] )
-		return 1 ;
+    ConnectAfterStep (M_FOCUS_CHANGE |
+                    M_DESTROY_WINDOW |
+                    WINDOW_CONFIG_MASK |
+                    WINDOW_NAME_MASK |
+                    M_END_WINDOWLIST);
 
     default_winlist_style = safemalloc( 1+strlen(MyName)+1);
 	default_winlist_style[0] = '*' ;
@@ -148,11 +135,11 @@ main( int argc, char **argv )
 	WinListCanvas = create_ascanvas( WinListWindow );
 
 	/* And at long last our main loop : */
-    HandleEvents( x_fd, as_fd);
+    HandleEvents();
 	return 0 ;
 }
 
-void HandleEvents(int x_fd, int *as_fd)
+void HandleEvents()
 {
     ASEvent event;
     Bool has_x_events = False ;
@@ -167,7 +154,7 @@ void HandleEvents(int x_fd, int *as_fd)
                 DispatchEvent( &event );
             }
         }
-        module_wait_pipes_input ( x_fd, as_fd[1], process_message );
+        module_wait_pipes_input ( process_message );
     }
 }
 

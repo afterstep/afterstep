@@ -35,8 +35,6 @@
 #include "../include/wmprops.h"
 #include "../include/session.h"
 
-char         *display_name = NULL;
-
 #define  ASSocketWriteInt32(sb,d,i)  socket_buffered_write( (sb), (d), (i)*sizeof(CARD32))
 #define  ASSocketWriteInt16(sb,d,i)  socket_buffered_write( (sb), (d), (i)*sizeof(CARD16))
 
@@ -227,53 +225,89 @@ SendNumCommand ( int func, const char *name, const long *func_val, const long *u
 	}
 }
 
-/*************************************************************************/
-/* establishing the connection :                                         */
-/*************************************************************************/
-
+/************************************************************************
+ *
+ * Reads a single packet of info from AfterStep. Prototype is:
+ * unsigned long header[3];
+ * unsigned long *body;
+ * int fd[2];
+ * void DeadPipe(int nonsense);
+ *  (Called if the pipe is no longer open )
+ *
+ * ReadASPacket(fd[1],header, &body);
+ *
+ * Returns:
+ *   > 0 everything is OK.
+ *   = 0 invalid packet.
+ *   < 0 pipe is dead. (Should never occur)
+ *
+ **************************************************************************/
 int
-module_connect (const char *socket_name)
+ReadASPacket (int fd, unsigned long *header, unsigned long **body)
 {
-	int           fd;
+	int           count, count2;
+	size_t        bytes_to_read;
+	int           bytes_in = 0;
+	char         *cbody;
 
-    if( socket_name == NULL )
-        return -1;
-
-	/* create an unnamed socket */
-	if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
+	bytes_to_read = 3 * sizeof (unsigned long);
+	cbody = (char *)header;
+	do
 	{
-		fprintf (stderr, "%s: unable to create UNIX socket: ", MyName);
-		perror ("");
-	}
-
-	/* connect to the named socket */
-	if (fd >= 0)
-	{
-		struct sockaddr_un name;
-
-		name.sun_family = AF_UNIX;
-		strcpy (name.sun_path, socket_name);
-
-		if (connect (fd, (struct sockaddr *)&name, sizeof (struct sockaddr_un)))
+		count = read (fd, &cbody[bytes_in], bytes_to_read);
+		if (count == 0 ||					   /* dead pipe (EOF) */
+			(count < 0 && errno != EINTR))	   /* not a signal interuption */
 		{
-			fprintf (stderr, "%s: unable to connect to socket '%s': ", MyName, name.sun_path);
-			perror ("");
-			close (fd);
-			fd = -1;
+			DeadPipe (1);
+			return -1;
+		}
+		if (count > 0)
+		{
+			bytes_to_read -= count;
+			bytes_in += count;
 		}
 	}
+	while (bytes_to_read > 0);
 
-	return fd;
+	if (header[0] == START_FLAG)
+	{
+		bytes_to_read = (header[2] - 3) * sizeof (unsigned long);
+		if ((*body = (unsigned long *)safemalloc (bytes_to_read)) == NULL)	/* not enough memory */
+			return 0;
+
+		cbody = (char *)(*body);
+		bytes_in = 0;
+
+		while (bytes_to_read > 0)
+		{
+			count2 = read (fd, &cbody[bytes_in], bytes_to_read);
+			if (count2 == 0 ||				   /* dead pipe (EOF) */
+				(count2 < 0 && errno != EINTR))	/* not a signal interuption */
+			{
+				DeadPipe (1);
+				return -1;
+			}
+			if (count2 > 0)
+			{
+				bytes_to_read -= count2;
+				bytes_in += count2;
+			}
+		}
+	} else
+		count = 0;
+	return count;
 }
+
 
 int           GetFdWidth (void);
 
 ASMessage    *
-CheckASMessageFine (int fd, int t_sec, int t_usec)
+CheckASMessageFine (int t_sec, int t_usec)
 {
 	fd_set        in_fdset;
 	ASMessage    *msg = NULL;
 	struct timeval tv;
+    int           fd = get_module_in_fd();
 
 	FD_ZERO (&in_fdset);
 	FD_SET (fd, &in_fdset);
@@ -314,7 +348,7 @@ DestroyASMessage (ASMessage * msg)
 
 
 void
-module_wait_pipes_input ( int x_fd, int as_fd, void (*as_msg_handler) (unsigned long type, unsigned long *body) )
+module_wait_pipes_input ( void (*as_msg_handler) (unsigned long type, unsigned long *body) )
 {
     fd_set        in_fdset, out_fdset;
 	int           retval;
@@ -322,6 +356,7 @@ module_wait_pipes_input ( int x_fd, int as_fd, void (*as_msg_handler) (unsigned 
 	struct timeval *t = NULL;
     int           max_fd = 0;
     ASMessage     msg;
+    int as_fd = get_module_in_fd();
 
 	FD_ZERO (&in_fdset);
 	FD_ZERO (&out_fdset);
@@ -459,60 +494,4 @@ LoadConfig (char *config_file_name, void (*read_options_func) (const char *))
         read_options_func (Session->overriding_file);
 }
 
-/**********************************************************************/
-/*              ModuleInfo functions                                  */
-/**********************************************************************/
-void
-default_version_func (void)
-{
-	printf ("%s version %s\n", MyName, VERSION);
-	exit (0);
-}
 
-void          (*custom_version_func) (void) = default_version_func;
-
-int
-ProcessModuleArgs (int argc, char **argv, char **global_config_file, unsigned long *app_window,
-				   unsigned long *app_context, void (*custom_usage_func) (void))
-{
-	int           i;
-
-	display_name = getenv ("DISPLAY");
-	for (i = 1; i < argc && *argv[i] == '-'; i++)
-	{
-		if (!strcmp (argv[i], "-h") || !strcmp (argv[i], "--help"))
-		{
-			if (custom_usage_func)
-				custom_usage_func ();
-			else
-				exit (0);
-		} else if (!strcmp (argv[i], "-d") || !strcmp (argv[i], "--display"))
-		{
-			display_name = argv[++i];
-		} else if (!strcmp (argv[i], "-v") || !strcmp (argv[i], "--version"))
-		{
-			if (custom_version_func)
-				custom_version_func ();
-			else
-				exit (0);
-		} else if (!strcmp (argv[i], "-w") || !strcmp (argv[i], "--window"))
-		{
-			i++;
-			if (app_window)
-				*app_window = strtol (argv[i], NULL, 16);
-		} else if (!strcmp (argv[i], "-c") || !strcmp (argv[i], "--context"))
-		{
-			i++;
-			if (app_context)
-				*app_context = strtol (argv[i], NULL, 16);
-		} else if (!strcmp (argv[i], "-f") && i + 1 < argc)
-		{
-			i++;
-			if (global_config_file)
-				*global_config_file = argv[i];
-		} else
-			return i;
-
-	}
-	return i;
-}

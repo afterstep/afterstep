@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/fcntl.h>
 #include <sys/un.h>
 #include <sys/time.h>
 
@@ -165,17 +166,25 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 
 
 int
-ConnectX (ScreenInfo * scr, char *display_name, unsigned long event_mask)
+ConnectX (ScreenInfo * scr, unsigned long event_mask)
 {
-	int           x_fd;
-
-	/* Initialize X connection */
-	if (!(dpy = XOpenDisplay (display_name)))
+    /* Initialize X connection */
+    if (!(dpy = XOpenDisplay (MyArgs.display_name)))
 	{
-        show_error("Can't open display %s. Exiting!", XDisplayName (display_name));
+        show_error("Can't open display %s. Exiting!", XDisplayName (MyArgs.display_name));
 		exit (1);
 	}
+
 	x_fd = XConnectionNumber (dpy);
+
+    if( x_fd < 0 )
+    {
+        show_error("failed to initialize X Windows session. Aborting!");
+        exit(1);
+    }
+    if (fcntl (x_fd, F_SETFD, 1) == -1)
+        show_warning ("close-on-exec for X Windows connection failed");
+
 	XSetErrorHandler (ASErrorHandler);
 
     if( get_flags(MyArgs.flags, ASS_Debugging) )
