@@ -170,9 +170,9 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 
 	width = im->width;
 	tail = im->buffer;
-	fprintf( stderr, "%d:%d:%2.2X ", y, color, data[0] );
-	
-	if( width == 1 ) 
+/*	fprintf( stderr, "%d:%d:%2.2X ", y, color, data[0] ); */
+
+	if( width == 1 )
 	{
 		tail[0] = 1 ;
 		tail[1] = data[0] ;
@@ -182,7 +182,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 		while( ++i < width )
 		{
 			Bool save_block = (i == width-1);
-			fprintf( stderr, "%2.2X ", data[i] );
+/*			fprintf( stderr, "%2.2X ", data[i] ); */
 			if( data[i] == data[ccolor] && !save_block )
 			{
 				if( direct && i-ccolor >= RLE_THRESHOLD )
@@ -196,47 +196,52 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 				save_block = save_block || (ccolor - bstart > RLE_MAX_DIRECT_LEN - RLE_THRESHOLD - 1) ;
 			}else
 				save_block = True ;
-			
+
 			if( save_block )
-			{				
-				if (direct || ccolor > bstart )
-				{/* we have to write direct block */
-					tail[0] = RLE_DIRECT_B | ((CARD8)(ccolor-bstart-1));
-					fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] );
-					tail -= bstart-1 ;
-					while ( bstart < ccolor )
-					{
-						tail[bstart] = (CARD8) data[bstart];
-						fprintf( stderr, "%d: %2.2X ", &(tail[bstart]) - im->buffer, tail[bstart] );
-						++bstart ;
-					}
-					tail += bstart ;
-				}else
+			{
+				if( !direct )
 				{   /* we have to write repetition count and length */
 					register unsigned int rep_count = i - ccolor - RLE_THRESHOLD;
-			
+
 					if (rep_count <= RLE_MAX_SIMPLE_LEN)
 					{
 						tail[0] = (CARD8) rep_count;
-						fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] );
+/*						fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] ); */
 						tail[1] = (CARD8) data[ccolor];
-						fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] );
+/*						fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] ); */
 						tail += 2 ;
 					} else
 					{
 						tail[0] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
-						fprintf( stderr, "\n%d: %2.2X ", &(tail[0]) - im->buffer, tail[0] );
+/*						fprintf( stderr, "\n%d: %2.2X ", &(tail[0]) - im->buffer, tail[0] ); */
 						tail[1] = (CARD8) ((rep_count) & 0x00FF);
-						fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] );
+/*						fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] ); */
 						tail[2] = (CARD8) data[ccolor];
-						fprintf( stderr, "%d: %2.2X ", &(tail[2]) - im->buffer, tail[2] );
+/*						fprintf( stderr, "%d: %2.2X ", &(tail[2]) - im->buffer, tail[2] ); */
 						tail += 3 ;
 					}
 					bstart = ccolor = i;
-					direct = True;
-				} 
-				fprintf( stderr, "\n");
-			}				
+					if( i == width-1 )
+						ccolor++;
+					else
+						direct = True;
+				}
+
+				if ( ccolor > bstart )
+				{/* we have to write direct block */
+					tail[0] = RLE_DIRECT_B | ((CARD8)(ccolor-bstart-1));
+/*					fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] ); */
+					tail -= bstart-1 ;
+					while ( bstart < ccolor )
+					{
+						tail[bstart] = (CARD8) data[bstart];
+/*						fprintf( stderr, "%d: %2.2X ", &(tail[bstart]) - im->buffer, tail[bstart] ); */
+						++bstart ;
+					}
+					tail += bstart ;
+				}
+/*				fprintf( stderr, "\n"); */
+			}
 		}
 	}
 
@@ -309,48 +314,49 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	return ptr - color_ptr[y];
 }
 
-unsigned int
+static inline int
 asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y)
 {
-	CARD8       **color_ptr;
-	register CARD8  *src ;
-	register CARD32 *dst;
-	register int  to_write;
-	int written  = 0;
-
-	if (im == NULL || to_buf == NULL)
-		return 0;
-	if (y > im->height)
-		return 0;
-
-	if ((color_ptr = asimage_get_color_ptr (im, color)) == NULL)
-		return 0;
-	src = color_ptr[y];
-	dst = to_buf;
-
-	while (*src != RLE_EOL)
+	CARD8       **color_ptr = asimage_get_color_ptr (im, color);
+	register CARD8  *src = color_ptr[y];
+	register CARD32 *dst = to_buf;
+	/* that thing below is supposedly highly optimized : */
+	while ( *src != RLE_EOL)
 	{
-		to_write = _asimage_get_length (src);
-LOCAL_DEBUG_OUT( "line %d component %d written %d to_write %d src[0] 0x%X src[1] 0x%X", y, color, written, to_write, src[0], src[1] );
-		if (((*src) & RLE_DIRECT_B) != 0)
+		if( ((*src)&RLE_DIRECT_B) != 0 )
 		{
-			register int i = -1 ;
-			src++;
-			while (to_write >= ++i)			   /* we start counting from 0 - 0 is actually count of 1 */
-				dst[i] = src[i];
-			src += to_write ;
-		} else
+			register int i = (((int)src[0])&RLE_DIRECT_D) + 1;
+			dst += i ;
+			src += i+1 ;
+			i = -i ;
+			while( i < 0 )
+			{
+				dst[i] = src[i] ;
+				++i ;
+			}
+		}else if( ((*src)&RLE_LONG_B) != 0 )
 		{
-			register int i = -1 ;
-			if (((*src) & RLE_LONG_B) != 0)
-				src++;
-			src++;
-			while (to_write >= ++i )
-				dst[i] = *src;
-			src++;
+			register int i = ((((int)src[0])&RLE_LONG_D)<<8|src[1]) + RLE_THRESHOLD;
+			dst += i ;
+			i = -i ;
+			while( i < 0 )
+			{
+				dst[i] = src[2] ;
+				++i ;
+			}
+			src += 3;
+		}else
+		{
+			register int i = src[0] + RLE_THRESHOLD ;
+			dst += i ;
+			i = -i;
+			while( i <= 0 )
+			{
+				dst[i] = src[1] ;
+				++i ;
+			}
+			src += 2;
 		}
-  		dst += to_write ;
-		written += to_write ;
 	}
 	return (dst - to_buf);
 }
@@ -359,7 +365,6 @@ unsigned int
 asimage_copy_line (CARD8 * from, CARD8 * to)
 {
 	register CARD8 *src = from, *dst = to;
-	register int  to_write;
 
 	/* merely copying the data */
 	if (src == NULL || dst == NULL)
@@ -368,9 +373,11 @@ asimage_copy_line (CARD8 * from, CARD8 * to)
 	{
 		if (((*src) & RLE_DIRECT_B) != 0)
 		{
-			to_write = ((*src) & (RLE_DIRECT_D)) + 1;
+			register int  to_write = ((*src) & (RLE_DIRECT_D)) + 1;
 			while (to_write-- >= 0)			   /* we start counting from 0 - 0 is actually count of 1 */
-				*(dst++) = *(src++);
+				dst[to_write] = src[to_write];
+			dst += to_write ;
+			src += to_write ;
 		} else if (((*src) & RLE_SIMPLE_B_INV) == 0)
 		{
 			dst[0] = src[0];
@@ -436,7 +443,7 @@ asimage_scale_line_down (CARD8 * from, CARD8 * to, unsigned int from_width, unsi
 typedef struct ASScanline
 {
 	CARD32        *buffer ;
-	CARD32        *red, *green, *blue;
+	CARD32        *red, *green, *blue, *alpha;
 	unsigned int   width, shift;
 /*    CARD32 r_mask, g_mask, b_mask ; */
 }ASScanline;
@@ -451,9 +458,10 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 
 	sl->width 	= width ;
 	sl->shift   = shift ;
-	sl->red 	= sl->buffer = safemalloc ((width*3)*sizeof(CARD32));
-	sl->green 	= sl->buffer + width;
-	sl->blue 	= sl->buffer + (width<<1);
+	sl->red 	= sl->buffer = safemalloc ((width*4)*sizeof(CARD32));
+	sl->green 	= sl->red   + width;
+	sl->blue 	= sl->green + width;
+	sl->alpha 	= sl->blue  + width;
 	return sl;
 }
 
@@ -777,5 +785,106 @@ pixmap_from_asimage(ASImage *im, Window w, GC gc)
 		}
 	}
 	return p;
+}
+
+/*******************************************************************************/
+/* below goes all kinds of funky stuff we can do with scanlines : 			   */
+/*******************************************************************************/
+/* this will shrink array based on count of items in src per one dst item with averaging */
+static inline void
+shrink_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+{/* we skip all checks as it is static function and we want to optimize it
+  * as much as possible */
+	register int i = -1, k = -1;
+	while( ++k < len )
+	{
+		register int reps = scales[k] ;
+		if( reps == 1 )
+			dst[k] = src[++i] ;
+		else
+		{
+			register CARD32 point = src[++i] ;
+			if( reps == 2 )
+				dst[k] = (point + src[++i])>>1 ;
+			else
+			{
+				while( --reps )
+					point += src[++i];
+				dst[k] = point/scales[k] ;
+			}
+		}
+	}
+}
+
+/* this will enlarge array based on count of items in dst per PAIR of src item with smoothing/scatter/dither */
+#if 0
+static inline void
+enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+{/* we skip all checks as it is static function and we want to optimize it
+  * as much as possible */
+	register int i = -1, start = 0;
+	--len;
+	while( ++i < len )
+	{
+		register int scale = scales[k] ;
+		register int end = start + scale;
+		dst[start] = src[i] ;
+		dst[end] = src[i+1] ;
+		if( scale > 1 )
+		{
+			static int randomizer = 0 ;
+			if( scale == 2 )
+			{
+				dst[start] = src[i] ;
+				dst[start+1] = ((src[i]+src[i+1])>>1)+((++randomizer)&0x01);
+				dst[end] = src[i+1] ;
+			}else
+			{
+				CARD32 diff = src[i]-src[i+1] ;
+				if( diff < 0 )
+					diff = -diff ;
+				if( diff > (scale>>1) )
+				{
+					register CARD32 point = src[i]*(scale-1)+src[i+1] ;
+					while( ++start < end )
+					{
+						dst[start] = point/scale + ((++randomizer)&0x01) ;
+						point += src[i+1]-src[i] ;
+					}
+				}else
+				{
+					register CARD32 point = src[i]*(scale-1)+src[i+1] ;
+					while( ++start < end )
+					{
+						dst[start] = point/scale + ((++randomizer)&0x01) ;
+						point += src[i+1]-src[i] ;
+					}
+				}
+					register CARD32 point = src[++i] ;
+				if( reps == 2 )
+					dst[k] = (point + src[++i])>>1 ;
+				else
+				{
+					while( --reps )
+						point += src[++i];
+					dst[k] = point/scales[k] ;
+				}
+		}
+	}
+}
+#endif
+
+static inline void
+shrink_scanline( ASScanline *src_line, ASScanline *dst_line, register int *scales )
+{/* again we skip all checks as it is static function and we want to optimize it
+  * as much as possible */
+	if( src_line->red && dst_line->red )
+		shrink_component( src_line->red, dst_line->red, scales, dst_line->width );
+	if( src_line->green && dst_line->green )
+		shrink_component( src_line->green, dst_line->green, scales, dst_line->width );
+	if( src_line->blue && dst_line->blue )
+		shrink_component( src_line->blue, dst_line->blue, scales, dst_line->width );
+	if( src_line->alpha && dst_line->alpha )
+		shrink_component( src_line->alpha, dst_line->alpha, scales, dst_line->width );
 }
 

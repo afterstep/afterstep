@@ -75,8 +75,6 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
 #define VRB_CTRL_EXPLAIN 	(0x01<<2)
 #define VRB_EVERYTHING		(VRB_LINE_SUMMARY|VRB_CTRL_EXPLAIN|VRB_LINE_CONTENT)
 
-unsigned int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y);
-
 ASImage *asimage_from_ximage (XImage * xim);
 ASImage *asimage_from_pixmap (Pixmap p, int x, int y,
 			      unsigned int width,
