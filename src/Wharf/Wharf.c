@@ -3105,6 +3105,6 @@ x_error_handler (Display * dpy, XErrorEvent * error)
   fprintf (stderr, "%s: X Error\n"
 	   "%*s  Request %d, Error %d %d, Type: %d\n",
 	   MyName,
-	   strlen (MyName), "", error->request_code, error->error_code, error->minor_code, error->type);
+	   (int)strlen (MyName), "", error->request_code, error->error_code, error->minor_code, error->type);
   return 0;
 }

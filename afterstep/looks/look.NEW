@@ -283,7 +283,7 @@ TextureMenuItemsIndividually 0
 #  |+-       --|
 #  +-----------+
 #ResizeMoveGeometry ++
-#  [0/1/2] Allows selection of move/resize rubberband look
+#  [0-10] Allows selection of move/resize rubberband look
 RubberBand 2
 
 #--------------------------

@@ -530,20 +530,33 @@ LOCAL_DEBUG_OUT( "index = %d", index );
 	return im ;
 }
 
+static void
+asimage2icon( ASImage *im, icon_t *icon, Bool ignore_alpha )
+{
+	icon->image = im;
+	if( im )
+	{
+		icon->pix = asimage2pixmap( Scr.asv, Scr.Root, icon->image, NULL, False );
+		if( !ignore_alpha ) 
+		{
+			int depth = check_asimage_alpha (Scr.asv, im );
+			if( depth == 1 )
+				icon->mask = asimage2alpha  ( Scr.asv, Scr.Root, im, NULL, False, False );
+			else if( depth == 8 )
+				icon->alpha = asimage2alpha  ( Scr.asv, Scr.Root, im, NULL, False, True );
+        }
+		icon->width = im->width;
+	    icon->height = im->height;
+	}
+}
+
 icon_t
 mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
 {
-	icon_t icon = {None, None, 0, 0};
+	icon_t icon = {None, None, None, 0, 0};
 #ifndef NO_TEXTURE
-	icon.image = mystyle_make_image( style, 0, 0, width, height );
-	if( icon.image )
-	{
-		icon.pix = asimage2pixmap( Scr.asv, Scr.Root, icon.image, NULL, True );
-		if( style->texture_type <= TEXTURE_PIXMAP ) 
-			icon.mask = asimage2mask  ( Scr.asv, Scr.Root, icon.image, NULL, False );
-        icon.width = icon.image->width;
-	    icon.height = icon.image->height;
-	}
+	asimage2icon( mystyle_make_image( style, 0, 0, width, height ), 
+				  &icon, ( style->texture_type < TEXTURE_TEXTURED_START ) );
 #endif /* NO_TEXTURE */
 	return icon;
 }
@@ -555,6 +568,8 @@ mystyle_free_icon_resources( icon_t icon )
 		UnloadImage( icon.pix );
 	if( icon.mask ) 
 		UnloadMask( icon.mask );
+	if( icon.alpha ) 
+		UnloadMask( icon.alpha );
 	if( icon.image ) 
 		safe_asimage_destroy(icon.image);
 }
@@ -564,15 +579,8 @@ mystyle_make_icon_overlay (MyStyle * style, int root_x, int root_y, int width, i
 {
   icon_t icon = {None, None, 0, 0};
 #ifndef NO_TEXTURE
-	icon.image = mystyle_make_image( style, root_x, root_y, width, height );
-	if( icon.image )
-	{
-		icon.pix = asimage2pixmap( Scr.asv, Scr.Root, icon.image, NULL, False );
-		if( style->texture_type <= TEXTURE_PIXMAP ) 
-			icon.mask = asimage2mask  ( Scr.asv, Scr.Root, icon.image, NULL, False );
-        icon.width = icon.image->width;
-	    icon.height = icon.image->height;
-	}
+	asimage2icon( mystyle_make_image( style, root_x, root_y, width, height ), 
+				  &icon, ( style->texture_type < TEXTURE_TEXTURED_START ) );
 #endif /* NO_TEXTURE */
   return icon;
 }
@@ -744,6 +752,7 @@ mystyle_new (void)
   style->gradient.offset = NULL;
   style->back_icon.pix = None;
   style->back_icon.mask = None;
+  style->back_icon.alpha = None;
   if (Scr.d_depth > 16)
     style->max_colors = 128;
   else if (Scr.d_depth > 8)
@@ -1000,8 +1009,16 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 	    		if (parent->back_icon.mask != None)
 				{
 					GC mgc = XCreateGC (dpy, parent->back_icon.mask, 0, NULL);
-					child->back_icon.pix = XCreatePixmap (dpy, Scr.Root, parent->back_icon.width, parent->back_icon.height, 1);
-					XCopyArea (dpy, parent->back_icon.pix, child->back_icon.pix, mgc,
+					child->back_icon.mask = XCreatePixmap (dpy, Scr.Root, parent->back_icon.width, parent->back_icon.height, 1);
+					XCopyArea (dpy, parent->back_icon.mask, child->back_icon.mask, mgc,
+			  				   0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
+					XFreeGC (dpy, mgc);
+				}
+	    		if (parent->back_icon.alpha != None)
+				{
+					GC mgc = XCreateGC (dpy, parent->back_icon.alpha, 0, NULL);
+					child->back_icon.alpha = XCreatePixmap (dpy, Scr.Root, parent->back_icon.width, parent->back_icon.height, 8);
+					XCopyArea (dpy, parent->back_icon.alpha, child->back_icon.alpha, mgc,
 			  				   0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
 					XFreeGC (dpy, mgc);
 				}
@@ -1295,11 +1312,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 			ASImage *im = get_asimage(Scr.image_manager, tmp, 0xFFFFFFFF, 100 ); 
 			if( im )
 			{
-				style->back_icon.image = im ;
-			    style->back_icon.width = im->width;
-			    style->back_icon.height = im->height;
-			    style->back_icon.pix = asimage2pixmap(Scr.asv, Scr.Root, im, NULL, False);
-			    style->back_icon.mask = asimage2mask(Scr.asv, Scr.Root, im, NULL, False);
+				asimage2icon( im, &(style->back_icon), False );
 				set_flags( style->user_flags, style_func );
 				if( type >= TEXTURE_TRANSPIXMAP )
 					set_flags( style->user_flags, F_BACKTRANSPIXMAP );

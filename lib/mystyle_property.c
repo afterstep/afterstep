@@ -83,7 +83,7 @@ mystyle_set_property (Display * dpy, Window w, Atom name, Atom type)
       prop[i++] = style->back_icon.pix;
       prop[i++] = style->back_icon.mask;
       prop[i++] = style->tint;
-      prop[i++] = 0; /* unused/reserved */
+      prop[i++] = style->back_icon.alpha;
       prop[i++] = 0; /* unused/reserved */
       prop[i++] = style->gradient.npoints;
       {
@@ -99,8 +99,8 @@ mystyle_set_property (Display * dpy, Window w, Atom name, Atom type)
       }
 #endif /* NO_TEXTURE */
     }
-  /* set the property version to 1.1 */
-  set_as_property (w, name, (unsigned long *) prop, nelements * sizeof (unsigned long), (1 << 8) + 1);
+  /* set the property version to 1.2 */
+  set_as_property (w, name, (unsigned long *) prop, nelements * sizeof (unsigned long), (1 << 8) + 2);
   free (prop);
 }
 
@@ -114,7 +114,7 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
   if ((prop = get_as_property (w, name, &n, &version)) == NULL)
     return;
   /* do we know how to handle this version? */
-  if (version != (1 << 8) + 1)
+  if (version != (1 << 8) + 2)
     {
       fprintf (stderr, "%s: style property has unknown version %d.%d\n", MyName, (int) version >> 8, (int) version & 0xff);
       return;
@@ -184,9 +184,9 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
       style->back_icon.pix = prop[i + 10];
       style->back_icon.mask = prop[i + 11];
       style->tint = prop[i + 12];
+      style->back_icon.alpha = prop[i + 13];
 	  /* unused/reserved : */
-/*    style->tint = prop[i + 13];
-      style->tint = prop[i + 14];
+/*    style->tint = prop[i + 14];
  */
       style->gradient.npoints = prop[i + 15];
 /*	  show_warning( "checking if gradient data in style \"%s\": (set flags are : 0x%X)", style->name, style->inherit_flags);
@@ -219,9 +219,14 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
 		    style->back_icon.pix = None ;
 		else
 		{
-			style->back_icon.image = pixmap2asimage( Scr.asv, style->back_icon.pix, 
-													 0, 0, style->back_icon.width, style->back_icon.height, 
-													 AllPlanes, False, 0 );
+			if( style->back_icon.mask )
+				style->back_icon.image = picture2asimage( Scr.asv, style->back_icon.pix, style->back_icon.mask,  
+				                                          0, 0, style->back_icon.width, style->back_icon.height, 
+														  AllPlanes, False, 0 );
+			else
+				style->back_icon.image = picture2asimage( Scr.asv, style->back_icon.pix, style->back_icon.alpha,  
+				                                          0, 0, style->back_icon.width, style->back_icon.height, 
+														  AllPlanes, False, 0 );
 		}
 	}
     if (style->back_icon.pix == None && style->texture_type != 129 )

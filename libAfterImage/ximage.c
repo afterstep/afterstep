@@ -371,23 +371,26 @@ asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 }
 
 Pixmap
-asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
+asimage2alpha(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached, Bool bitmap)
 {
 #ifndef X_DISPLAY_MISSING
 	XImage       *xim ;
 	Pixmap        mask = None;
 	GC 			  my_gc = gc ;
+	
+	int target_depth = bitmap?1:8;
 
-	if ( !use_cached || im->alt.mask_ximage == NULL )
+	if ( !use_cached || im->alt.mask_ximage == NULL || 
+	     im->alt.mask_ximage->depth != target_depth )
 	{
-		if( (xim = asimage2mask_ximage( asv, im )) == NULL )
+		if( (xim = asimage2alpha_ximage( asv, im, bitmap )) == NULL )
 		{
 			show_error("cannot export image's mask into XImage.");
 			return None ;
 		}
 	}else
 		xim = im->alt.mask_ximage ;
-	mask = create_visual_pixmap( asv, root, xim->width, xim->height, 1 );
+	mask = create_visual_pixmap( asv, root, xim->width, xim->height, target_depth );
 	if( my_gc == NULL )
 	{
 		XGCValues gcv ;
@@ -404,6 +407,11 @@ asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 #endif
 }
 
+Pixmap
+asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
+{
+	return asimage2alpha(asv, root, im, gc, use_cached, False);
+}
 /* ********************************************************************************/
 /* The end !!!! 																 */
 /* ********************************************************************************/

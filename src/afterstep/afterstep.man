@@ -879,12 +879,26 @@ right to left, then bottom to top.
 
 .IP "RubberBand \fItype\fP"
 Specifies the \fIRubberBand\fP type to use when moving or resizing
-non-opaque windows.  There are 3 styles:
+non-opaque windows.  There are 10 styles:
 
 .nf
 0: the window is represented as a number of rectangles
 1: one rectangle the size of the window
-2: one crossed-out rectangle the size of the window.
+2: one crossed-out rectangle the size of the window
+3: rectangles showing the titlebar and handles, if the
+   window has them
+4: rectange for the window outline, with secondry corners
+   stretching half way up the sides for the top left and
+   botton right
+5: as for 4 but with teriary corners going 2/3rds up the
+   secondry corners
+6: small window corners and a crosshair at the centre
+7: CAD-style lines stretching from screen edges to form
+   the window outline
+8: 2 pixel wire frame containing a fixed grid
+9: like 0 except the rectangles are thinner (1 pixel lines
+   instead of 3-4).
+.fi
 
 .IP "TitleTextAlign \fIalignment\fP"
 Specifies the alignment of the window title in the titlebar.  The

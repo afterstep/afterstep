@@ -267,7 +267,7 @@ StartMenuSortMode 1
 TitleButtonStyle	0
 #  define the number of pixels between titlebar buttons ; 0
 TitleButtonSpacing	2
-#  [0/1/2] Allows selection of move/resize rubberband look
+#  [0-10] Allows selection of move/resize rubberband look
 RubberBand 2
 
 # 3) TextStyle :

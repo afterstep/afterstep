@@ -17,12 +17,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * $Id: List.c,v 1.1 2000/10/20 03:27:57 sashav Exp $
+ * $Id: List.c,v 1.2 2002/07/22 06:39:46 sashav Exp $
  */
 
 #include "../../configure.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "List.h"
 #include "../../include/aftersteplib.h"
 #include "../../include/module.h"

@@ -1046,6 +1046,52 @@ get_asimage_chanmask( ASImage *im)
     return mask ;
 }
 
+int
+check_asimage_alpha (ASVisual *asv, ASImage *im )
+{
+	int recomended_depth = 0 ;
+	int            i;
+	ASScanline     buf;
+
+	if (im == NULL)
+		return 0;
+	
+	prepare_scanline( im->width, 0, &buf, asv->BGR_mode );
+	buf.flags = SCL_DO_ALPHA ;
+	for (i = 0; i < im->height; i++)
+	{
+		int count = asimage_decode_line (im, IC_ALPHA, buf.alpha, i, 0, buf.width);
+		if( count < buf.width )
+		{
+			if( ARGB32_ALPHA8(im->back_color) == 0 )
+			{
+				if( recomended_depth == 0 )
+					recomended_depth = 1 ;
+			}else if( ARGB32_ALPHA8(im->back_color) != 0xFF )
+			{
+				recomended_depth = 8 ;
+				break ;
+			}
+		}
+		while( --count >= 0 )
+			if( buf.alpha[count] == 0  )
+			{
+				if( recomended_depth == 0 )
+					recomended_depth = 1 ;
+			}else if( (buf.alpha[count]&0xFF) != 0xFF  )	
+			{
+				recomended_depth = 8 ;
+				break ;
+			}
+		if( recomended_depth == 8 ) 
+			break;
+	}
+	free_scanline(&buf, True);
+
+	return recomended_depth;
+}
+
+
 
 unsigned int
 asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long verbosity)

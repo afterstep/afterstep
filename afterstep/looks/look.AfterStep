@@ -239,7 +239,7 @@ ButtonNoBorder
 DrawMenuBorders 1
 #  Texture menu options individually, or the whole menu ?
 TextureMenuItemsIndividually 1
-#  [0/1/2] Allows selection of move/resize rubberband look
+#  [0-10] Allows selection of move/resize rubberband look
 RubberBand 2
 
 #  [0/1] Do you want minipixmaps in startmenu ?

@@ -64,7 +64,8 @@
 int           rplay_fd = -1;
 
 /* define the rplay table */
-RPLAY        *rplay_table[MAX_SOUNDS];
+RPLAY        *rplay_table[MAX_MESSAGES + MAX_BUILTIN];
+/*RPLAY        *rplay_table[MAX_SOUNDS];*/
 char         *host = NULL;
 int           volume = RPLAY_DEFAULT_VOLUME;
 int           priority = RPLAY_DEFAULT_PRIORITY;
@@ -125,7 +126,7 @@ char         *messages[] = {
 	"unshade",
 	"lockonsend",
 	"new_background",
-        "new_theme",
+    "new_theme",
 /* add builtins here */
 	"startup",
 	"shutdown",

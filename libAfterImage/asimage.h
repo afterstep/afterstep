@@ -1026,6 +1026,7 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
 size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y);
 size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsigned int y);
 ASFlagType get_asimage_chanmask( ASImage *im);
+int check_asimage_alpha (ASVisual *asv, ASImage *im );
 inline int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width);
 void move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
 void copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );

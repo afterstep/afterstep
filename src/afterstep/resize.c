@@ -47,6 +47,7 @@
 #include "../../include/misc.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
+#include "../../include/string.h"
 #include "functions.h"
 
 static int    dragx;						   /* all these variables are used */
@@ -583,6 +584,16 @@ draw_fvwm_outline (int x, int y, int width, int height)
 }											   /* draw_fvwm_outline ()  */
 
 void
+draw_twm_outline (int x, int y, int width, int height)
+{
+  XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, x, y, width, height);
+  XDrawLine (dpy, Scr.Root, Scr.DrawGC, x + 1, y + height / 3, x - 1 + width, y + height / 3);
+  XDrawLine (dpy, Scr.Root, Scr.DrawGC, x + 1, y + height - height / 3, x - 1 + width, y + height - height / 3);
+  XDrawLine (dpy, Scr.Root, Scr.DrawGC, x + width / 3, y + 1, x + width / 3, y - 1 + height);
+  XDrawLine (dpy, Scr.Root, Scr.DrawGC, x + width - width / 3, y + 1, x + width - width / 3, y - 1 + height);
+}				/* draw_twm_outline ()  */
+
+void
 draw_box_outline (int x, int y, int width, int height)
 {
 	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, x, y, width, height);
@@ -788,7 +799,7 @@ MoveOutline ( /* Window root, */ ASWindow * win, int x, int y, int width, int he
 	 * 6 is the corners of the window with a crosshair in the middle.
 	 * 7 is lines spanning the whole screen framing the window. (CAD style)
 	 * 8 is a 2-pixel wide frame containing a fixed grid.
-	 *
+     * 9 is like 0, except with a thinner outer border.	 
 	 * (Might have afterstep default to 3 if allanon_, nekked, & the gang don't have any objections)
 	 */
 	extern int    RubberBand;
@@ -834,6 +845,9 @@ MoveOutline ( /* Window root, */ ASWindow * win, int x, int y, int width, int he
 			 break;
 		 case 8:
 			 draw_grid_outline (lastx, lasty, lastWidth, lastHeight);
+			 break;
+	 	case 9:
+		 	 draw_twm_outline (lastx, lasty, lastWidth, lastHeight);
 			 break;
 			 /* this should normally not happen */
 		 default:
@@ -881,6 +895,9 @@ MoveOutline ( /* Window root, */ ASWindow * win, int x, int y, int width, int he
 			 break;
 		 case 8:
 			 draw_grid_outline (x, y, width, height);
+			 break;
+         case 9:
+             draw_twm_outline (x, y, width, height);
 			 break;
 			 /* uh, which one dudes? */
 		 default:
