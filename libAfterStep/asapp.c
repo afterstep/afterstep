@@ -881,12 +881,13 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         }
         strcpy (ptr, do_fork?" &\n":"\n");
 
+        LOCAL_DEBUG_OUT("execl(\"%s\")", cmdl );
+        fprintf( stderr, "len=%d: execl(\"%s\")", len, cmdl );
+
         /* CYGWIN does not handle close-on-exec gracefully - whave to do it ourselves : */
         if( CloseOnExec )
             CloseOnExec();
 
-        LOCAL_DEBUG_OUT("execl(\"%s\")", cmdl );
-        fprintf( stderr, "len=%d: execl(\"%s\")", len, cmdl );
         execl ("/bin/sh", "sh", "-c", cmdl, (char *)0);
         if( screen >= 0 )
             show_error( "failed to start %s on the screen %d", cmd, screen );

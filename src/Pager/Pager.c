@@ -185,7 +185,7 @@ main (int argc, char **argv)
 	PagerState.page_rows = PagerState.page_columns = 1 ;
 
     for( i = 1 ; i< argc ; ++i)
-		if( argv[i] != NULL && isspace (argv[i][0]) )
+		if( argv[i] != NULL && isdigit (argv[i][0]) )
 		{
 			++desk_cnt ;
 			if( desk_cnt == 1 )
