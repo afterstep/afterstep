@@ -71,8 +71,9 @@ update_window_transparency( ASWindow *asw, Bool force )
 			update_astbar_transparency (asw->frame_bars[i], asw->frame_sides[od->tbar2canvas_xref[i]], force);
 			if( DoesBarNeedsRendering(asw->frame_bars[i]) )
 			{
-				changed_canvases[od->tbar2canvas_xref[i]] = asw->frame_sides[od->tbar2canvas_xref[i]] ;
-				render_astbar( asw->frame_bars[i], asw->frame_sides[od->tbar2canvas_xref[i]] );
+				ASCanvas *c = asw->frame_sides[od->tbar2canvas_xref[i]];
+				changed_canvases[od->tbar2canvas_xref[i]] = c ;
+				render_astbar( asw->frame_bars[i], c );
 			}
 		}
 
@@ -589,6 +590,42 @@ SendConfigureNotify(ASWindow *asw)
     XSendEvent (dpy, asw->w, False, StructureNotifyMask, &client_event);
 }
 
+static Bool 
+check_frame_side_config( ASWindow *asw, Window w, ASOrientation *od )       
+{	
+	Bool found = False;
+	int i ;
+	unsigned int normal_width, normal_height ;
+
+    for( i = 0 ; i < FRAME_SIDES ; ++i )
+        if( asw->frame_sides[i] && asw->frame_sides[i]->w == w )
+        {   /* canvas has beer resized - resize tbars!!! */
+            Bool changes = handle_canvas_config (asw->frame_sides[i]);
+
+            /* we must resize using current window size instead of event's size */
+            *(od->in_width)  = asw->frame_sides[i]->width ;
+            *(od->in_height) = asw->frame_sides[i]->height ;
+            normal_width  = *(od->out_width)  ;
+            normal_height = *(od->out_height) ;
+
+            /* don't redraw window decoration while in the middle of animation : */
+            if( asw->shading_steps<= 0 )
+            {
+                if( move_resize_frame_bars( asw, i, od, normal_width, normal_height, changes) ||
+                    changes )  /* now we need to show them on screen !!!! */
+                {
+                    update_canvas_display( asw->frame_sides[i] );
+                    if( ASWIN_GET_FLAGS( asw, AS_Shaped|AS_ShapedDecor )  )
+                        SetShape( asw, 0 );
+					else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
+						ClearShape( asw );
+                }
+            }
+            found = True;
+            break;
+        }
+	return found;
+}
 
 /* this gets called when StructureNotify/SubstractureNotify arrives : */
 void
@@ -665,16 +702,25 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
 
         if( changes != 0 )
         {
-			if( !check_window_offscreen(asw) )
-            	update_window_transparency( asw, False );
 			LOCAL_DEBUG_OUT( "resized = %X, shaped = %lX", get_flags( changes, CANVAS_RESIZED ), ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ) );
             if( get_flags( changes, CANVAS_RESIZED ) )
 			{
+				if( asw->shading_steps ==  0 )
+				{	
+		        	for( i = 0 ; i < FRAME_SIDES ; ++i )
+        		    	if( asw->frame_sides[i] )
+							check_frame_side_config( asw, asw->frame_sides[i]->w, od );       
+				}
+				
 				if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
                 	SetShape( asw, 0 );
 				else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
 					ClearShape( asw );
-			}
+			} 
+				
+			if( !check_window_offscreen(asw) )
+            	update_window_transparency( asw, False );
+
 			if( !ASWIN_GET_FLAGS(asw, AS_Dead|AS_MoveresizeInProgress ) )
 	            broadcast_config (M_CONFIGURE_WINDOW, asw);
         }
@@ -710,38 +756,9 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         broadcast_config (M_CONFIGURE_WINDOW, asw);
     }else if( asw->shading_steps ==  0 ) /* one of the frame canvases :*/
     {
-        Bool found = False;
-        for( i = 0 ; i < FRAME_SIDES ; ++i )
-            if( asw->frame_sides[i] && asw->frame_sides[i]->w == w )
-            {   /* canvas has beer resized - resize tbars!!! */
-                Bool changes = handle_canvas_config (asw->frame_sides[i]);
-
-                /* we must resize using current window size instead of event's size */
-                *(od->in_width)  = asw->frame_sides[i]->width ;
-                *(od->in_height) = asw->frame_sides[i]->height ;
-                normal_width  = *(od->out_width)  ;
-                normal_height = *(od->out_height) ;
-
-                /* don't redraw window decoration while in the middle of animation : */
-                if( asw->shading_steps<= 0 )
-                {
-                    if( move_resize_frame_bars( asw, i, od, normal_width, normal_height, changes) ||
-                        changes )  /* now we need to show them on screen !!!! */
-                    {
-                        update_canvas_display( asw->frame_sides[i] );
-                        if( ASWIN_GET_FLAGS( asw, AS_Shaped|AS_ShapedDecor )  )
-                            SetShape( asw, 0 );
-						else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
-							ClearShape( asw );
-                    }
-                }
-                found = True;
-                break;
-            }
-        if( !found )
+        if( !check_frame_side_config( asw, w, od ) )
             if( asw->internal && asw->internal->on_moveresize )
                 asw->internal->on_moveresize( asw->internal, w );
-
     }
     ASSync(False);
 }
