@@ -84,7 +84,9 @@ static int           MenuPinOnButton = -1 ;
 
 static MyStyleDefinition *MyStyleList = NULL ;
 static MyFrameDefinition *MyFrameList = NULL ;
-static char         *DefaultFrameName = NULL ;
+static char              *DefaultFrameName = NULL ;
+static MyFrameDefinition *LegacyFrameDef = NULL ;
+
 
 static balloonConfig BalloonConfig = {0, 0, 0, 0, 0, 0, NULL };
 
@@ -631,6 +633,8 @@ InitLook (MyLook *look, Bool free_resources)
         DestroyMyFrameDefinitions (&MyFrameList);
         if( DefaultFrameName )
             free( DefaultFrameName );
+		if( LegacyFrameDef )
+			DestroyMyFrameDefinitions( &LegacyFrameDef );
         if( BalloonConfig.style )
             free( BalloonConfig.style );
 		for( i = 0  ; i < BACK_STYLES ; ++i )
@@ -659,6 +663,7 @@ InitLook (MyLook *look, Bool free_resources)
 
 	MyFrameList = NULL ;
     DefaultFrameName = NULL ;
+	LegacyFrameDef = NULL ;
     memset( &BalloonConfig, 0x00, sizeof(BalloonConfig));
 }
 
@@ -795,8 +800,10 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
     set_flags( frame->set_title_attr, MYFRAME_TitleBevelSet|MYFRAME_TitleAlignSet );
 
     if( add_hash_item( list, AS_HASHABLE(frame->name), frame ) != ASH_Success )
+	{
+		LOCAL_DEBUG_OUT( "failed to add frame with the name \"%s\", currently list holds %ld frames", frame->name, list->items_num );
         destroy_myframe( &frame );
-    else
+    }else
     {
         LOCAL_DEBUG_OUT( "added frame with the name \"%s\"", frame->name );
     }
@@ -931,7 +938,7 @@ FixLook( MyLook *look )
         PrintMyFrameDefinitions (MyFrameList, 1);
 #endif
         LOCAL_DEBUG_OUT( "MyFrameList %p", MyFrameList );
-        if( MyFrameList )
+        if( MyFrameList || LegacyFrameDef )
             check_myframes_list( look );
         for( fd = MyFrameList ; fd != NULL ; fd = fd->next )
         {
@@ -939,15 +946,23 @@ FixLook( MyLook *look )
             frame = add_myframe_from_def( look->FramesList, fd, default_title_align|ALIGN_VCENTER );
             myframe_load ( frame, Scr.image_manager );
         }
+		if( LegacyFrameDef && DefaultFrameName  == NULL )
+		{
+            LOCAL_DEBUG_OUT( "processing legacy MyFrameDefinition %p", LegacyFrameDef );
+            frame = add_myframe_from_def( look->FramesList, LegacyFrameDef, default_title_align|ALIGN_VCENTER );
+            myframe_load ( frame, Scr.image_manager );
+			if( look->DefaultFrame == NULL )
+				look->DefaultFrame = frame ;
+		}
         DestroyMyFrameDefinitions (&MyFrameList);
-        if( look->DefaultFrame != NULL )
-            myframe_load ( look->DefaultFrame, Scr.image_manager );
-        else if( DefaultFrameName != NULL )
+		DestroyMyFrameDefinitions (&LegacyFrameDef);
+        if( look->DefaultFrame == NULL && DefaultFrameName != NULL )
         {
             get_hash_item( look->FramesList, AS_HASHABLE(DefaultFrameName), (void**)&(look->DefaultFrame));
             LOCAL_DEBUG_OUT( "DefaultFrameName is \"%s\": found frame %p with that name.", DefaultFrameName, look->DefaultFrame );
         }
-    }
+    }else if( look->DefaultFrame != NULL )
+		destroy_myframe( &(look->DefaultFrame) );
 #endif /* ! NO_TEXTURE */
     if( look->DefaultFrame == NULL )
         look->DefaultFrame = create_default_myframe(default_title_align|ALIGN_VCENTER);
@@ -1714,17 +1729,17 @@ void
 SetFramePart (char *text, FILE * fd, char **frame, int *id)
 {
     char *fname = NULL;
-    MyFrame *pframe  = (MyFrame*)frame;
     if( parse_filename (text, &fname) != text )
     {
-        if( pframe == NULL )
-        {
-            if( Scr.Look.DefaultFrame == NULL )
-                Scr.Look.DefaultFrame = create_myframe();
-            pframe = Scr.Look.DefaultFrame;
-        }
-        filename2myframe_part (pframe, (int)id, fname);
-        free( fname );
+		int part_id = (int)id ;
+		if( LegacyFrameDef == NULL )
+		{
+			AddMyFrameDefinition(&LegacyFrameDef);
+			LegacyFrameDef->name = mystrdup("default");
+		}
+		show_warning( "Frame* definitions are deprecated in look. Please use MyFrame ... ~MyFrame structures instead.%s","");
+		set_string_value (&(LegacyFrameDef->parts[part_id]), fname, &(LegacyFrameDef->set_parts), (0x01<<part_id));
+        set_flags( LegacyFrameDef->parts_mask, (0x01<<part_id));
     }
 }
 
