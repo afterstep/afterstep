@@ -718,7 +718,7 @@ create_wharf_folder_canvas(ASWharfFolder *aswf)
     static XSetWindowAttributes attr ;
     Window w ;
     ASCanvas *pc = NULL;
-    unsigned long mask = CWEventMask|CWBackPixmap ;
+    unsigned long mask = CWEventMask|CWBackPixel ; /*map ; */
 
     attr.event_mask = WHARF_FOLDER_EVENT_MASK ;
     attr.background_pixel = Scr.asv->black_pixel ;
@@ -732,8 +732,7 @@ create_wharf_folder_canvas(ASWharfFolder *aswf)
 		XRectangle rect ;
 		rect.x = rect.y = 0 ;
 		rect.width = rect.height = 1 ;
-		XShapeCombineRectangles ( dpy, w, ShapeBounding,
-        	                      0, 0, &rect, 1, ShapeSet, Unsorted);
+		XShapeCombineRectangles ( dpy, w, ShapeBounding, 0, 0, &rect, 1, ShapeSet, Unsorted);
 	}
 #endif
 
@@ -752,7 +751,8 @@ create_wharf_button_canvas(ASWharfButton *aswb, ASCanvas *parent)
     ASCanvas *canvas;
 
     attr.event_mask = WHARF_BUTTON_EVENT_MASK ;
-    w = create_visual_window( Scr.asv, parent->w, -1, -1, 1, 1, 0, InputOutput, CWEventMask, &attr );
+	attr.background_pixel = Scr.asv->black_pixel ;
+    w = create_visual_window( Scr.asv, parent->w, -1, -1, 1, 1, 0, InputOutput, CWEventMask|CWBackPixel, &attr );
     register_object( w, (ASMagic*)aswb );
     canvas = create_ascanvas(w);
 
@@ -1270,8 +1270,7 @@ map_wharf_folder( ASWharfFolder *aswf,
 	/* showing window to let user see that we are doing something */
     map_canvas_window(aswf->canvas, True);
 #ifdef SHAPE
-	XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding,
-                              0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+	//XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
 #endif
     LOCAL_DEBUG_OUT( "mapping folder window for folder %p", aswf );
     /* final cleanup */
@@ -1721,8 +1720,7 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 #ifdef SHAPE		
 		LOCAL_DEBUG_OUT("boundary pos(%dx%d%+d%+d) shaping window %lX", aswf->boundary.width, aswf->boundary.height, aswf->boundary.x, aswf->boundary.y, aswf->canvas->w );
 		/* fprintf( stderr, "setting boundary to 1x1\n" );  */
-	    XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding,
-                                  0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+	    //XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
 #endif
     }
     
@@ -2408,9 +2406,8 @@ void on_wharf_moveresize( ASEvent *event )
             int i = aswf->buttons_num ;
 LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 #ifdef SHAPE
-            if( get_flags( changes, CANVAS_RESIZED ) && get_flags(aswf->flags,ASW_AnimationPending ) )
-				XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding,
-                              0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+//            if( get_flags( changes, CANVAS_RESIZED ) && get_flags(aswf->flags,ASW_AnimationPending ) )
+//				XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
 #endif
 
 			if( !get_flags( aswf->flags, ASW_Withdrawn ) )

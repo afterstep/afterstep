@@ -247,6 +247,12 @@ AddWindow (Window w)
 	/* add the window into the afterstep list */
     enlist_aswindow( tmp_win );
     redecorate_window  ( tmp_win, False );
+
+	/* we have to set shape on frame window. If window has title - 
+	 * on_window_title_changed will take care of it - otherwise we force it
+	 * by calling SetShape directly.
+	 */
+
 	if( tmp_win->tbar )
 	    on_window_title_changed ( tmp_win, False );
 	else 
