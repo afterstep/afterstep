@@ -7,7 +7,7 @@ extern "C" {
 
 struct ASFeel ;
 struct MyLook ;
-
+struct ScreenInfo;
 
 typedef struct ASDeskSession
 {
@@ -65,7 +65,7 @@ int CheckOrCreate (const char *what);
 void check_AfterStep_dirtree ( char * ashome, Bool create_non_conf);
 
 /* legacy session using non-configurable dir to store config files : */
-ASSession *GetNCASSession (ScreenInfo *scr, const char *home, const char *share );
+ASSession *GetNCASSession (struct ScreenInfo *scr, const char *home, const char *share );
 
 #ifdef __cplusplus
 }

@@ -178,6 +178,7 @@ void setup_modifiers ();
     create_visual_window((scr)->asv,((p)==None)?((scr)->Root):(p),x,y,w,h,bw,c,mask,attr)
 
 void merge_geometry( ASGeometry *from, ASGeometry *to );
+void check_desksize_sanity( ScreenInfo *scr );
 
 #ifdef __cplusplus
 }

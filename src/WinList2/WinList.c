@@ -89,8 +89,6 @@ ASWinListState WinListState = { 0, NULL, None, NULL, NULL };
 /**********************************************************************/
 /* Our configuration options :                                        */
 /**********************************************************************/
-BaseConfig *Base = NULL;
-
 /*char *default_unfocused_style = "unfocused_window_style";
  char *default_focused_style = "focused_window_style";
  char *default_sticky_style = "sticky_window_style";
@@ -181,8 +179,6 @@ DeadPipe (int nonsense)
         destroy_ascanvas( &WinListState.main_canvas );
     if( WinListState.main_window )
         XDestroyWindow( dpy, WinListState.main_window );
-	if( Base )
-        DestroyBaseConfig(Base);
     if( Config )
         DestroyWinListConfig(Config);
 
@@ -267,22 +263,7 @@ CheckConfigSanity()
 void
 GetBaseOptions (const char *filename)
 {
-    BaseConfig *config = ParseBaseOptions (filename, MyName);
-
-    if (!config)
-	    exit (0);			/* something terrible has happend */
-
-    if( Base!= NULL )
-		DestroyBaseConfig (Base);
-	Base = config ;
-
-    if( Scr.image_manager )
-        destroy_image_manager( Scr.image_manager, False );
-    if( Scr.font_manager )
-        destroy_font_manager( Scr.font_manager, False );
-
-    Scr.image_manager = create_image_manager( NULL, 2.2, Base->pixmap_path, Base->icon_path, NULL );
-    Scr.font_manager = create_font_manager (dpy, Base->font_path, NULL);
+	ReloadASEnvironment( NULL, NULL, NULL );
 }
 
 void

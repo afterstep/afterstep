@@ -931,7 +931,7 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 }
 
 void
-mystyle_parse (char *tline, FILE * fd, char **ppath, int *junk2)
+mystyle_parse (char *tline, FILE * fd, char **pjunk, int *junk2)
 {
 	MyStyle      *style;
 	char         *newline;
@@ -941,17 +941,6 @@ mystyle_parse (char *tline, FILE * fd, char **ppath, int *junk2)
 	{
         show_error("bad style name '%s'", tline);
 		return;
-	}
-
-    if (Scr.image_manager == NULL)
-	{
-		char         *pixmap_path = *ppath;
-
-		if (pixmap_path == NULL)
-			pixmap_path = getenv ("IMAGE_PATH");
-		if (pixmap_path == NULL)
-			pixmap_path = getenv ("PATH");
-        Scr.image_manager = create_image_manager (NULL, 2.2, pixmap_path, IconPath, NULL);
 	}
 
 /* if this style was already defined, find it */
@@ -964,7 +953,7 @@ mystyle_parse (char *tline, FILE * fd, char **ppath, int *junk2)
 	{
         char         *p = stripcomments (newline);
 		if (*p != '\0')
-			if (mystyle_parse_member (style, p, *ppath) != False)
+			if (mystyle_parse_member (style, p) != False)
 				break;
 	}
 
@@ -978,7 +967,7 @@ mystyle_parse (char *tline, FILE * fd, char **ppath, int *junk2)
  * returns 1 when a "~MyStyle" is parsed
  */
 int
-mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
+mystyle_parse_member (MyStyle * style, char *str)
 {
 	int           done = 0;
 	struct config *config = find_config (mystyle_config, str);

@@ -187,7 +187,6 @@ main (int argc, char **argv)
 
     /* Load config ... */
     /* read config file, set up menus, colors, fonts */
-    InitBase (False);
     InitDatabase (False);
     LoadASConfig (0, PARSE_EVERYTHING);
 
@@ -573,8 +572,8 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 
 	/* freeing up memory */
     destroy_assession( Session );
+	destroy_asenvironment( &Environment );
     InitDatabase(True);
-    InitBase(True);
     free_func_hash ();
     /* pixmap references */
     build_xpm_colormap (NULL);

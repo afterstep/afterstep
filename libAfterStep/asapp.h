@@ -156,6 +156,17 @@ typedef struct ASProgArgs
     char      *log_file ;
 }ASProgArgs;
 
+typedef struct ASEnvironment
+{
+  char *module_path;
+  char *audio_path;
+  char *icon_path;
+  char *pixmap_path;
+  char *font_path;
+  char *cursor_path;
+  unsigned short desk_pages_h, desk_pages_v ;
+  unsigned short desk_scale ;
+}ASEnvironment;
 
 /*
  * FEW PRESET LEVELS OF OUTPUT :
@@ -166,6 +177,9 @@ typedef struct ASProgArgs
 #define OUTPUT_LEVEL_VROOT          7
 #define OUTPUT_LEVEL_WINDOW_LIST   (OUTPUT_LEVEL_DEBUG+9) /* too much output - too slow */
 
+
+ASEnvironment *make_default_environment();
+void destroy_asenvironment( ASEnvironment **penv );
 
 /***********************************************************************************/
 /* general purpose application launcher :                                          */
@@ -246,14 +260,8 @@ extern int PointerScreen ;							   /* screen that currently has pointer */
 extern struct TermDef       FuncTerms[F_FUNCTIONS_NUM + 1];
 extern struct SyntaxDef FuncSyntax, *pFuncSyntax ;
 
-/* Base config : */
-extern char *PixmapPath;
-extern char *CursorPath;
-extern char *IconPath;
-extern char *ModulePath;
-extern char *FontPath;
-
 extern struct ASSession *Session;          /* filenames of look, feel and background */
+extern struct ASEnvironment *Environment;
 
 /* this two are unused in as-stable yet : */
 struct ASFeel;
@@ -261,7 +269,6 @@ struct MyLook;
 extern struct ASFeel *DefaultFeel;
 extern struct MyLook *DefaultLook;
 
-extern struct ASEnvironment *DefaultEnv;
 
 extern void (*CloseOnExec)();
 

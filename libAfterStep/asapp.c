@@ -78,22 +78,14 @@ ScreenInfo  **all_screens = NULL ;             /* all ScreenInfo structures for 
 ASHashTable  *screens_window_hash =NULL	;	   /* so we can easily track what window is on what screen */
 /* end of: unused - future development : */
 
-/* TODO: need to initialize Default* things to something sensible */
-struct ASEnvironment *DefaultEnv = NULL;
 
 struct ASFeel *DefaultFeel = NULL;/* unused - future development : */
 struct MyLook *DefaultLook = NULL;/* unused - future development : */
 
 void (*CloseOnExec)() = NULL ;
 
-/* Base config : */
-char         *PixmapPath = NULL;
-char         *CursorPath = NULL;
-char         *IconPath   = NULL;
-char         *ModulePath = AFTER_BIN_DIR;
-char         *FontPath   = NULL;
-
 struct ASSession *Session = NULL;          /* filenames of look, feel and background */
+struct ASEnvironment *Environment = NULL;
 
 /* names of AS functions - used all over the place  :*/
 
@@ -506,6 +498,102 @@ free_func_hash ()
 	}
 }
 
+/*********** end command line parsing **************************/
+
+ASEnvironment *
+make_default_environment()
+{
+	ASEnvironment *e = safecalloc( 1, sizeof(ASEnvironment) );
+	static const char *default_pixmap_path_format =
+		"%s/%s/%s/desktop/icons/:"
+		"%s/desktop/icons/:"
+		"%s/%s/%s/desktop/:"
+		"%s/desktop/:"
+		"%s/%s/%s/desktop/buttons/:"
+		"%s/desktop/buttons/:"
+		"%s/%s/%s/backgrounds/:"
+		"%s/backgrounds/:"
+		"%s" ;
+
+	static const char *default_font_path_format =
+		"%s/%s/%s/desktop/fonts/:"
+		"%s/desktop/fonts/:"
+		"/usr/share/fonts/default/TrueType/:"
+		"%s" ;
+
+	static const char *default_cursor_path_format =
+		"%s/%s/%s/desktop/cursors:"
+		"%s/desktop/cursors";
+
+	e->desk_scale = 24 ;
+	e->desk_pages_h = 2 ;
+	e->desk_pages_v = 2 ;
+	e->module_path = mystrdup( AFTER_BIN_DIR );
+	e->icon_path = mystrdup( DEFAULT_ICON_DIR );
+	e->pixmap_path = safemalloc( strlen(default_pixmap_path_format)+
+		                         (strlen(GNUSTEP)+strlen(GNUSTEPLIB)+strlen(AFTER_DIR))*4+
+								 strlen(AFTER_SHAREDIR)*4 +
+								 strlen(DEFAULT_PIXMAP_DIR) + 1);
+	sprintf( e->pixmap_path, default_pixmap_path_format,
+	                         GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+							 AFTER_SHAREDIR,
+							 GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+							 AFTER_SHAREDIR,
+							 GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+							 AFTER_SHAREDIR,
+							 GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+							 AFTER_SHAREDIR,
+							 DEFAULT_PIXMAP_DIR );
+
+	e->font_path = safemalloc(   strlen(default_font_path_format)+
+		                         strlen(GNUSTEP)+
+								 strlen(GNUSTEPLIB)+
+								 strlen(AFTER_DIR)+
+								 strlen(AFTER_SHAREDIR) +
+								 strlen(DEFAULT_TTF_DIR) + 1);
+	sprintf( e->font_path, default_font_path_format,
+	                         GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+							 AFTER_SHAREDIR,
+							 DEFAULT_TTF_DIR );
+
+	e->cursor_path = safemalloc( strlen(default_cursor_path_format)+
+		                         strlen(GNUSTEP)+
+								 strlen(GNUSTEPLIB)+
+								 strlen(AFTER_DIR)+
+								 strlen(AFTER_SHAREDIR) + 1);
+	sprintf( e->cursor_path, default_cursor_path_format,
+	                         GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+							 AFTER_SHAREDIR );
+	return e;
+}
+
+void
+destroy_asenvironment( ASEnvironment **penv )
+{
+	if( penv )
+	{
+		ASEnvironment *e = *penv ;
+		if( e )
+		{
+			if( e->module_path )
+				free( e->module_path );
+			if( e->audio_path )
+				free( e->audio_path );
+			if( e->icon_path )
+				free( e->icon_path );
+			if( e->pixmap_path )
+				free( e->pixmap_path );
+			if( e->font_path )
+				free( e->font_path );
+			if( e->cursor_path )
+				free( e->cursor_path );
+
+			free( e ) ;
+			*penv = NULL ;
+		}
+	}
+}
+
 void
 InitSession()
 {
@@ -537,10 +625,11 @@ FreeMyAppResources()
     flush_asbidirlist_memory_pool();
     free( MyArgs.saved_argv );
     destroy_assession( Session );
+	destroy_asenvironment( &Environment );
     build_xpm_colormap( NULL );
 }
 
-/*********** end command line parsing **************************/
+
 /************ child process spawning ***************************/
 /***********************************************************************
  *  Procedure:

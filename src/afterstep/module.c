@@ -585,9 +585,9 @@ ExecModule (char *action, Window win, int context)
     args = parse_filename( action, &module );
     if( module == NULL )
         return ;
-    if ((cmd = findIconFile (module, ModulePath, X_OK)) == NULL)
+    if ((cmd = findIconFile (module, Environment->module_path, X_OK)) == NULL)
 	{
-        show_error("no such module %s in path %s\n", module, ModulePath);
+        show_error("no such module %s in path %s\n", module, Environment->module_path);
         free( module );
         return;
 	}

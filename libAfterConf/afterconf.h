@@ -18,6 +18,7 @@
 extern "C" {
 #endif
 
+struct ASImageManager;
 struct ASFontManager;
 struct SyntaxDef;
 struct MyLook;
@@ -27,6 +28,7 @@ struct ConfigDef;
 struct FunctionData;
 struct ComplexFunction;
 struct ConfigItem;
+
 
 extern struct SyntaxDef      BevelSyntax;
 extern struct SyntaxDef      AlignSyntax;
@@ -91,6 +93,9 @@ void ExtractPath (BaseConfig * config,
 			 char **font_path,
 			 char **cursor_path,
 			 char **myname_path);
+
+void BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv );
+Bool ReloadASEnvironment( struct ASImageManager **old_imageman, struct ASFontManager **old_fontman, BaseConfig **config_return );
 
 /*
  * all data members that has been used from BaseConfig structure, returned

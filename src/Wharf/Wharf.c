@@ -435,43 +435,8 @@ void
 GetBaseOptions (const char *filename)
 {
     START_TIME(started);
-    BaseConfig *config = ParseBaseOptions (filename, MyName);
-	char *pixmap_path = NULL ;
-	char *icon_path = NULL ;
-	char *font_path = NULL ;
 
-    if (!config)
-        exit (0);           /* something terrible has happend */
-
-	ExtractPath (config, NULL, NULL, &icon_path, &pixmap_path, &font_path, NULL, NULL );
-
-    if( Scr.image_manager )
-        destroy_image_manager( Scr.image_manager, False );
-    Scr.image_manager = create_image_manager( NULL, 2.2, pixmap_path, icon_path, NULL );
-	LOCAL_DEBUG_OUT( "pixmap_path=\"%s\"", pixmap_path );
-	LOCAL_DEBUG_OUT( "icon_path=\"%s\"", icon_path );
-    if( Scr.font_manager )
-        destroy_font_manager( Scr.font_manager, False );
-
-    Scr.font_manager = create_font_manager (dpy, font_path, NULL);
-
-	if( pixmap_path )
-		free( pixmap_path );
-	if( icon_path )
-		free( icon_path );
-	if( font_path )
-		free( font_path );
-
-
-    Scr.VScale = config->desktop_scale;
-
-    DestroyBaseConfig (config);
-
-    Scr.Vx = 0;
-    Scr.Vy = 0;
-
-    Scr.VxMax = Scr.MyDisplayWidth;
-    Scr.VyMax = Scr.MyDisplayHeight;
+	ReloadASEnvironment( NULL, NULL, NULL );
 
     SHOW_TIME("BaseConfigParsingTime",started);
 }

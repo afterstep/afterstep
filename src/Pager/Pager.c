@@ -553,29 +553,16 @@ GetBaseOptions (const char *filename)
 {
 
     START_TIME(started);
-    BaseConfig *config = ParseBaseOptions (filename, MyName);
 
-    if (!config)
-        exit (0);           /* something terrible has happend */
+	ReloadASEnvironment( NULL, NULL, NULL );
 
-    if( Scr.image_manager )
-        destroy_image_manager( Scr.image_manager, False );
-    Scr.image_manager = create_image_manager( NULL, 2.2, config->pixmap_path, config->icon_path, NULL );
-
-    if (config->desktop_size.flags & WidthValue)
-        PagerState.page_columns = config->desktop_size.width;
-    if (config->desktop_size.flags & HeightValue)
-        PagerState.page_rows = config->desktop_size.height;
-
-    Scr.VScale = config->desktop_scale;
-
-    DestroyBaseConfig (config);
+	if (Environment->desk_pages_h > 0 )
+        PagerState.page_columns = Environment->desk_pages_h;
+    if (Environment->desk_pages_v > 0)
+        PagerState.page_rows = Environment->desk_pages_v;
 
     Scr.Vx = 0;
     Scr.Vy = 0;
-
-    Scr.VxMax = (PagerState.page_columns - 1) * Scr.MyDisplayWidth;
-    Scr.VyMax = (PagerState.page_rows - 1) * Scr.MyDisplayHeight;
     PagerState.vscreen_width = Scr.VxMax + Scr.MyDisplayWidth;
     PagerState.vscreen_height = Scr.VyMax + Scr.MyDisplayHeight;
     PagerState.desk_width = PagerState.vscreen_width/Scr.VScale;

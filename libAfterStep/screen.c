@@ -495,3 +495,20 @@ void merge_geometry( ASGeometry *from, ASGeometry *to )
     to->flags |= from->flags ;
 }
 
+void
+check_desksize_sanity( ScreenInfo *scr )
+{
+	if( scr == NULL )
+		scr = &Scr ;
+
+    if( scr->VxMax <= 0 )
+        scr->VxMax = 0 ;
+    else if( scr->VxMax < 32000/scr->MyDisplayWidth )
+        scr->VxMax = (scr->VxMax * scr->MyDisplayWidth) - scr->MyDisplayWidth ;
+
+    if( scr->VyMax <= 0 )
+        scr->VyMax = 0 ;
+    else if( scr->VyMax < 32000/scr->MyDisplayHeight )
+        scr->VyMax = (Scr.VyMax * scr->MyDisplayHeight) - scr->MyDisplayHeight ;
+}
+

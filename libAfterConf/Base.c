@@ -24,7 +24,10 @@
 
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/afterstep.h"
+#include "../libAfterStep/screen.h"
 #include "../libAfterStep/parser.h"
+#include "../libAfterStep/session.h"
+#include "../libAfterImage/afterimage.h"
 
 #include "afterconf.h"
 
@@ -181,77 +184,6 @@ ParseBaseOptions (const char *filename, char *myname)
 	return config;
 }
 
-void
-ExtractPath (BaseConfig * config,
-			 char **module_path,
-			 char **audio_path,
-			 char **icon_path,
-			 char **pixmap_path,
-			 char **font_path,
-			 char **cursor_path,
-			 char **myname_path)
-{
-	register char *tmp ;
-	if (config)
-	{
-		if (module_path)
-		{
-			tmp = copy_replace_envvar (config->module_path);
-			set_string_value(module_path, tmp, NULL, 0 );
-		}
-		if (audio_path)
-		{
-			tmp = copy_replace_envvar (config->audio_path);
-			set_string_value(audio_path, tmp, NULL, 0 );
-		}
-		if (icon_path)
-		{
-			tmp = copy_replace_envvar (config->icon_path);
-			set_string_value(icon_path, tmp, NULL, 0 );
-		}
-		if (pixmap_path)
-		{
-			tmp = copy_replace_envvar (config->pixmap_path);
-			set_string_value(pixmap_path, tmp, NULL, 0 );
-		}
-		if (font_path)
-		{
-			tmp = copy_replace_envvar (config->font_path);
-			set_string_value(font_path, tmp, NULL, 0 );
-		}
-		if (cursor_path)
-		{
-			tmp = copy_replace_envvar (config->cursor_path);
-			set_string_value(cursor_path, tmp, NULL, 0 );
-		}
-		if (myname_path)
-		{
-			tmp = copy_replace_envvar (config->myname_path);
-			set_string_value(myname_path, tmp, NULL, 0 );
-		}
-	}
-}
-
-#if 0
-void
-BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
-{
-	register ASEnvironment *env = *penv;
-	if( env == NULL )
-		env = safecalloc( 1, sizeof( ASEnvironment ) );
-	ExtractPath (config, &(env->module_path),
-		            	&(env->audio_path),
-						&(env->icon_path),
-						&(env->pixmap_path),
-						&(env->font_path),
-						&(env->cursor_path),
-						&(env->myname_path));
-	env->desk_pages_h = config->desktop_size.width ;
-	env->desk_pages_v = config->desktop_size.height ;
-	*penv = env ;
-}
-#endif
-
 /* returns:
  *		0 on success
  *		1 if data is empty
@@ -309,3 +241,182 @@ WriteBaseOptions (const char *filename, char *myname, BaseConfig * config, unsig
 	}
 	return 0;
 }
+
+/*************************************************************************
+ * Supplementary functionality to handle Base configuration changes.
+ *************************************************************************/
+void
+ExtractPath (BaseConfig * config,
+			 char **module_path,
+			 char **audio_path,
+			 char **icon_path,
+			 char **pixmap_path,
+			 char **font_path,
+			 char **cursor_path,
+			 char **myname_path)
+{
+	register char *tmp ;
+	if (config)
+	{
+		if (module_path)
+		{
+			tmp = copy_replace_envvar (config->module_path);
+			set_string_value(module_path, tmp, NULL, 0 );
+		}
+		if (audio_path)
+		{
+			tmp = copy_replace_envvar (config->audio_path);
+			set_string_value(audio_path, tmp, NULL, 0 );
+		}
+		if (icon_path)
+		{
+			tmp = copy_replace_envvar (config->icon_path);
+			set_string_value(icon_path, tmp, NULL, 0 );
+		}
+		if (pixmap_path)
+		{
+			tmp = copy_replace_envvar (config->pixmap_path);
+			set_string_value(pixmap_path, tmp, NULL, 0 );
+		}
+		if (font_path)
+		{
+			tmp = copy_replace_envvar (config->font_path);
+			set_string_value(font_path, tmp, NULL, 0 );
+		}
+		if (cursor_path)
+		{
+			tmp = copy_replace_envvar (config->cursor_path);
+			set_string_value(cursor_path, tmp, NULL, 0 );
+		}
+		if (myname_path)
+		{
+			tmp = copy_replace_envvar (config->myname_path);
+			set_string_value(myname_path, tmp, NULL, 0 );
+		}
+	}
+}
+
+void
+BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
+{
+	register ASEnvironment *env = *penv;
+	if( env == NULL )
+		env = safecalloc( 1, sizeof( ASEnvironment ) );
+	ExtractPath (config, &(env->module_path),
+		            	&(env->audio_path),
+						&(env->icon_path),
+						&(env->pixmap_path),
+						&(env->font_path),
+						&(env->cursor_path),
+						NULL);
+	if (config->desktop_size.flags & WidthValue)
+		env->desk_pages_h = config->desktop_size.width ;
+	else
+		env->desk_pages_h = 0 ;
+
+	if (config->desktop_size.flags & HeightValue)
+		env->desk_pages_v = config->desktop_size.height ;
+	else
+		env->desk_pages_v = 0 ;
+	env->desk_scale = config->desktop_scale ;
+	*penv = env ;
+}
+
+Bool
+ReloadASEnvironment( ASImageManager **old_imageman, ASFontManager **old_fontman, BaseConfig **config_return )
+{
+	char *old_pixmap_path = NULL ;
+	char *old_font_path = NULL ;
+    char *configfile = NULL ;
+	BaseConfig *config = NULL ;
+	ASEnvironment *e = NULL ;
+
+	if( Environment != NULL )
+	{
+		old_pixmap_path = Environment->pixmap_path ;
+		Environment->pixmap_path = NULL ;
+		old_font_path   = Environment->font_path ;
+		Environment->font_path   = NULL ;
+	}
+
+	configfile = Session->overriding_file ;
+	if( configfile == NULL )
+		configfile = make_session_file(Session, BASE_FILE, False/* no longer use #bpp in filenames */ );
+	if( configfile != NULL )
+	{
+		config = ParseBaseOptions (configfile, MyName);
+		if( config != NULL )
+			show_progress("BASE configuration loaded from \"%s\" ...", configfile);
+		else
+			show_progress("BASE could not be loaded from \"%s\" ...", configfile);
+		if( configfile != Session->overriding_file )
+			free( configfile );
+	}else
+        show_warning("BASE configuration file cannot be found");
+
+	if( config == NULL )
+	{
+		if( Environment != NULL )
+		{
+			Environment->pixmap_path = old_pixmap_path ;
+			Environment->font_path 	 = old_font_path ;
+			return  False;
+		}
+		/* otherwise we should use default values  - Environment should never be NULL */
+		Environment = make_default_environment();
+	}else
+	{
+		BaseConfig2ASEnvironment( config, &Environment );
+		if( config_return )
+			*config_return = config ;
+		else
+			DestroyBaseConfig (config);
+	}
+
+	e = Environment ;
+	/* Save base filename to pass to modules */
+    if( mystrcmp(old_pixmap_path, e->pixmap_path) == 0 ||
+		(e->pixmap_path != NULL && Scr.image_manager == NULL) )
+    {
+		if( old_imageman )
+		{
+			*old_imageman = Scr.image_manager ;
+		}else if( Scr.image_manager )
+        	destroy_image_manager( Scr.image_manager, False );
+
+        Scr.image_manager = create_image_manager( NULL, 2.2, e->pixmap_path?e->pixmap_path:"", getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
+		set_xml_image_manager( Scr.image_manager );
+	    show_progress("Pixmap Path changed to \"%s:%s:%s\" ...", e->pixmap_path?e->pixmap_path:"", getenv( "IMAGE_PATH" ), getenv( "PATH" ));
+	}
+	if( old_pixmap_path && old_pixmap_path != e->pixmap_path )
+    	free( old_pixmap_path );
+
+	if( mystrcmp(old_font_path, e->font_path) == 0 ||
+		(e->font_path != NULL && Scr.font_manager == NULL) )
+    {
+		if( old_fontman )
+		{
+			*old_fontman = Scr.font_manager ;
+		}else if( Scr.font_manager )
+			destroy_font_manager( Scr.font_manager, False );
+
+        Scr.font_manager = create_font_manager( dpy, e->font_path, NULL );
+		set_xml_font_manager( Scr.font_manager );
+	    show_progress("Font Path changed to \"%s\" ...", e->font_path?e->font_path:"");
+    }
+    if( old_font_path && old_font_path != e->font_path )
+        free( old_font_path );
+
+	if( e->desk_pages_h > 0 )
+		Scr.VxMax = (e->desk_pages_h-1)*Scr.MyDisplayWidth ;
+	else
+		Scr.VxMax = 0 ;
+	if( e->desk_pages_v > 0 )
+		Scr.VyMax = (e->desk_pages_v-1)*Scr.MyDisplayHeight ;
+	else
+		Scr.VyMax = 0 ;
+	Scr.VScale = e->desk_scale;
+
+	return (config!=NULL);
+}
+

@@ -127,17 +127,6 @@ static int dummy;
  * another keyword, the shorter one must come first!
  */
 struct config main_config[] = {
-	/* base options */
-    {"IconPath",   assign_path, &IconPath, (int *)0},
-	{"ModulePath", assign_path, &ModulePath, (int *)0},
-	{"PixmapPath", assign_themable_path, &PixmapPath, (int *)0},
-	{"CursorPath", assign_path, &CursorPath, (int *)0},
-    {"FontPath",   assign_path, &FontPath, (int *)0},
-
-	/* database options */
-	{"DeskTopScale", SetInts, (char **)&Scr.VScale, &dummy},
-    {"DeskTopSize",  SetInts, (char **)&Scr.VxMax, &Scr.VyMax},
-
 	/* feel options */
 	{"StubbornIcons", SetFlag, (char **)StubbornIcons, (int *)0},
 	{"StubbornPlacement", SetFlag, (char **)StubbornPlacement, (int *)0},
@@ -209,7 +198,7 @@ struct config main_config[] = {
     {"HiBackColor", assign_string, &WindowBackColor[BACK_FOCUSED], (int *)0},
 	{"IconBox", SetBox, (char **)0, (int *)0},
 	{"IconFont", assign_string, &Iconfont, (int *)0},
-	{"MyStyle", mystyle_parse, &PixmapPath, NULL},
+	{"MyStyle", mystyle_parse, NULL, NULL},
     /* new stuff : */
     {"MyBackground", myback_parse, (char**)"asetroot", NULL},  /* pretending to be asteroot here */
     {"DeskBack", deskback_parse, NULL, NULL },
@@ -342,7 +331,7 @@ void CheckImageManager()
 {
     if( Scr.image_manager == NULL )
 	{
-		char *ppath = PixmapPath ;
+		char *ppath = Environment->pixmap_path ;
 		if( ppath == NULL )
 			ppath = getenv( "IMAGE_PATH" );
 		if( ppath == NULL )
@@ -585,51 +574,6 @@ merge_old_look_variables (MyLook *look)
                 mystyle_merge_styles (look->MSWindow[i], button_styles[i], 0, 0);
     }
     init_old_look_variables (True);            /* no longer need those strings !!!! */
-}
-
-/*
- * Initialize base.#bpp variables
- */
-void
-InitBase (Bool free_resources)
-{
-	if (free_resources)
-	{
-		if (IconPath != NULL)
-			free (IconPath);
-		if (ModulePath != NULL)
-			free (ModulePath);
-        if (CursorPath != NULL)
-            free (CursorPath);
-        if (PixmapPath != NULL)
-			free (PixmapPath);
-        if (FontPath != NULL)
-            free (FontPath);
-    }
-
-	IconPath = NULL;
-	ModulePath = NULL;
-	PixmapPath = NULL;
-    CursorPath = NULL;
-    FontPath = NULL;
-
-    Scr.VxMax = 1;
-    Scr.VyMax = 1;
-    Scr.VScale = 1;
-}
-
-void
-CheckBaseSanity()
-{
-    if( Scr.VxMax <= 0 )
-        Scr.VxMax = 0 ;
-    else if( Scr.VxMax < 32000/Scr.MyDisplayWidth )
-        Scr.VxMax = (Scr.VxMax * Scr.MyDisplayWidth) - Scr.MyDisplayWidth ;
-
-    if( Scr.VyMax <= 0 )
-        Scr.VyMax = 0 ;
-    else if( Scr.VyMax < 32000/Scr.MyDisplayHeight )
-        Scr.VyMax = (Scr.VyMax * Scr.MyDisplayHeight) - Scr.MyDisplayHeight ;
 }
 
 
@@ -1204,11 +1148,8 @@ void
 LoadASConfig (int thisdesktop, ASFlagType what)
 {
     char            *tline = NULL;
-    ASImageManager  *old_image_manager = Scr.image_manager ;
-    ASFontManager   *old_font_manager  = Scr.font_manager ;
-    char            *old_pixmap_path = PixmapPath ;
-    char            *old_font_path   = FontPath ;
-
+    ASImageManager  *old_image_manager = NULL ;
+    ASFontManager   *old_font_manager  = NULL ;
 
 #ifndef DIFFERENTLOOKNFEELFOREACHDESKTOP
 	/* only one look & feel should be used */
@@ -1222,43 +1163,17 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         const char *const_configfile;
         if (get_flags(what, PARSE_BASE_CONFIG))
 		{
-            if( (configfile = make_session_file(Session, BASE_FILE, False/* no longer use #bpp in filenames */ )) != NULL )
-            {
-                InitBase (True);
-                ParseConfigFile (configfile, &tline);
-                /* Save base filename to pass to modules */
-                if( mystrcmp(old_pixmap_path, PixmapPath) == 0 ||
-					(PixmapPath != NULL && Scr.image_manager == NULL) )
-                {
-                    Scr.image_manager = create_image_manager( NULL, 2.2, PixmapPath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
-					set_xml_image_manager( Scr.image_manager );
-
-					if( !get_flags(what, PARSE_LOOK_CONFIG) )
+			if( ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL ) )
+			{
+				if( !get_flags(what, PARSE_LOOK_CONFIG) )
+				{
+					if( old_image_manager != NULL || old_font_manager != NULL )
 					{
                     	InitLook (&Scr.Look, True);
                     	set_flags(what, PARSE_LOOK_CONFIG);
 					}
-	                show_progress("Pixmap Path changed to \"%s:%s\" ...", PixmapPath?PixmapPath:"", getenv( "PATH" ));
-				}
-                if( mystrcmp(old_font_path, FontPath) == 0 ||
-					(FontPath!= NULL && Scr.font_manager == NULL) )
-                {
-                    Scr.font_manager = create_font_manager( dpy, FontPath, NULL );
-					set_xml_font_manager( Scr.font_manager );
-
-					if( !get_flags(what, PARSE_LOOK_CONFIG) )
-					{
-                    	InitLook (&Scr.Look, True);
-                    	set_flags(what, PARSE_LOOK_CONFIG);
-					}
-	                show_progress("Font Path changed to \"%s\" ...", FontPath?FontPath:"");
-                }
-                show_progress("BASE configuration loaded from \"%s\" ...", configfile);
-                free( configfile );
-            }else
-            {
-                show_warning("BASE configuration file cannot be found");
-                clear_flags(what, PARSE_BASE_CONFIG);
+				}else
+                	clear_flags(what, PARSE_BASE_CONFIG);
             }
         }
         if (get_flags(what, PARSE_LOOK_CONFIG))
@@ -1342,23 +1257,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         }
 	} else
 	{
-		Scr.image_manager = NULL ;
-		/* Yes, override config file */
-        InitBase (True);
-        if( mystrcmp(old_pixmap_path, PixmapPath) == 0 ||
-			(PixmapPath!= NULL && Scr.image_manager == NULL) )
-		{
-	        Scr.image_manager = create_image_manager( NULL, 2.2, PixmapPath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
-			set_xml_image_manager( Scr.image_manager );
-		}
-
-		if( mystrcmp(old_font_path, FontPath) == 0 ||
-			(FontPath!= NULL && Scr.font_manager == NULL) )
-		{
-	        Scr.font_manager = create_font_manager( dpy, FontPath, NULL );
-			set_xml_font_manager( Scr.font_manager );
-		}
-
+		ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL );
 		InitLook (&Scr.Look, True);
         InitFeel (&Scr.Feel, True);
         InitDatabase (True);
@@ -1372,7 +1271,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		free (tline);
     show_progress("Done loading configuration.");
 
-    CheckBaseSanity();
+    check_desksize_sanity( &Scr );
     check_feel_sanity( &Scr.Feel );
 
     if (get_flags(what, PARSE_FEEL_CONFIG))
@@ -1409,10 +1308,6 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     }
     if( old_font_manager && old_font_manager != Scr.font_manager )
         destroy_font_manager( old_font_manager, False );
-    if( old_pixmap_path && old_pixmap_path != PixmapPath )
-        free( old_pixmap_path );
-    if( old_font_path && old_font_path != FontPath )
-        free( old_font_path );
 }
 
 /*****************************************************************************
@@ -1601,7 +1496,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 		return;
 	}
 
-	path = findIconFile (f_mask, CursorPath, R_OK);
+	path = findIconFile (f_mask, Environment->cursor_path, R_OK);
 	if (path)
 	{
 		XReadBitmapFile (dpy, Scr.Root, path, &width, &height, &mask, &x, &y);
@@ -1612,7 +1507,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 		return;
 	}
 
-	path = findIconFile (f_cursor, CursorPath, R_OK);
+	path = findIconFile (f_cursor, Environment->cursor_path, R_OK);
 	if (path)
 	{
 		XReadBitmapFile (dpy, Scr.Root, path, &width, &height, &cursor, &x, &y);
