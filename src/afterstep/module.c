@@ -721,6 +721,32 @@ KillModuleByName (char *name)
 	return;
 }
 
+int FindModuleByName (char *name)
+{
+    wild_reg_exp  *wrexp = compile_wild_reg_exp( name );
+	int module = -1;
+
+    if ( wrexp != NULL && Modules)
+    {
+        register int i = MODULES_NUM;
+        register module_t *list = MODULES_LIST ;
+
+        while( --i >= 0 )
+            if (list[i].fd > 0)
+            {
+                LOCAL_DEBUG_OUT( "checking if module %d \"%s\" matches regexp \"%s\"", i, list[i].name, name);
+                if (match_wild_reg_exp( list[i].name, wrexp ) == 0 )
+				{	
+                    module = i ; 
+					break;
+				}
+            }
+        destroy_wild_reg_exp( wrexp );
+    }
+	return module;
+}
+
+
 void
 SendPacket ( int channel, send_data_type msg_type, send_data_type num_datum, ...)
 {

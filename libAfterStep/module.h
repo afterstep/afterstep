@@ -66,11 +66,12 @@ extern "C" {
 #define M_NEW_CONFIG         (1<<16)
 #define M_NEW_MODULE_CONFIG	 (1<<17)
 #define M_PLAY_SOUND		 (1<<18)
+#define M_SWALLOW_WINDOW	 (1<<19)
 
 //#define M_LOCKONSEND         (1<<19)
 
 
-#define MAX_MESSAGES          18
+#define MAX_MESSAGES          19
 #define MAX_MASK             ((1<<MAX_MESSAGES)-1)
 
 #define WAIT_AS_RESPONSE_TIMEOUT    20   /* seconds */

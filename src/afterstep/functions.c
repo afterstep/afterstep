@@ -388,7 +388,8 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 		else
 	    	fin_event = ButtonPress ;
 
-		if (data->text != NULL && event->client == NULL)
+		if (data->text != NULL && event->client == NULL && 
+			func != F_SWALLOW_WINDOW )/* SWallowWindow has module name as its text ! */
 			if (*(data->text) != '\0')
 				if ((event->client = pattern2ASWindow (data->text)) != NULL)
 				{
@@ -1490,8 +1491,12 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	/* TODO: */	
-	
+	if( event->client ) 
+	{	
+		if( module < 0 && data->text ) 
+			module = FindModuleByName( data->text );
+		SendPacket( module, M_SWALLOW_WINDOW, 2, event->client->w, event->client->frame);
+ 	}	
 }	 
 
 void test_func_handler( FunctionData *data, ASEvent *event, int module )
