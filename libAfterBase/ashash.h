@@ -104,6 +104,9 @@ void remove_curr_hash_item (ASHashIterator * iterator, Bool destroy);
 /* here is the set of implemented hash functions : */
 /**************************************************************************/
 
+long
+desc_long_compare_func (ASHashableValue value1, ASHashableValue value2);
+
 /* configuration options - case unsensitive and spaces are not alowed */
 ASHashKey option_hash_value (ASHashableValue value, ASHashKey hash_size);
 long option_compare (ASHashableValue value1, ASHashableValue value2);

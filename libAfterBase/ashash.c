@@ -44,6 +44,12 @@ default_compare_func (ASHashableValue value1, ASHashableValue value2)
 	return ((long)value1.long_val - (long)value2.long_val);
 }
 
+long
+desc_long_compare_func (ASHashableValue value1, ASHashableValue value2)
+{
+    return ((long)value2.long_val - (long)value1.long_val);
+}
+
 void
 init_ashash (ASHashTable * hash, Bool freeresources)
 {
