@@ -211,11 +211,11 @@ Pixmap  asimage2mask    (struct ScreenInfo *scr, ASImage *im, GC gc, Bool use_ca
 ASImage *scale_asimage( struct ScreenInfo *scr, ASImage *src, unsigned int to_width, unsigned int to_height,
 						Bool to_xim, unsigned int compression_out, int quality );
 ASImage *tile_asimage ( struct ScreenInfo *scr, ASImage *src, int offset_x, int offset_y,
-															  unsigned int to_width,  unsigned int to_height, ARGB32 tint,
-															  Bool to_xim, unsigned int compression_out, int quality );
-ASImage *merge_layers( ScreenInfo *scr, ASImageLayer *layers, int count,
-			  		   unsigned int dst_width, unsigned int dst_height,
-			  		   Bool to_xim, unsigned int compression_out, int quality );
+  					    unsigned int to_width,  unsigned int to_height, ARGB32 tint,
+						Bool to_xim, unsigned int compression_out, int quality );
+ASImage *merge_layers ( struct ScreenInfo *scr, ASImageLayer *layers, int count,
+			  		    unsigned int dst_width, unsigned int dst_height,
+			  		    Bool to_xim, unsigned int compression_out, int quality );
 
 
 
