@@ -178,6 +178,7 @@ typedef struct ASProperty {
 	ASPropContentsType type ;
 	char *name ;
 	int index ;
+	int order ;                /* sort order if  > -1 */
 
 	union {
 		int 		 integer ;
@@ -188,8 +189,6 @@ typedef struct ASProperty {
 	
 	ASBiDirList *sub_props ;	   
 
-	/* padding to 32 bytes */
-	int reserved ;
 }ASProperty;
 
 /* hiererchy : 
@@ -709,6 +708,7 @@ create_property( int id, ASPropContentsType type, const char *name, Bool tree )
 	prop->id = id ;
 	prop->type = type ;
 	prop->name = mystrdup(name) ;
+	prop->order = -1 ;
 	if( tree ) 
 		prop->sub_props = create_asbidirlist( destroy_property ) ;
 	return prop;
@@ -717,8 +717,15 @@ create_property( int id, ASPropContentsType type, const char *name, Bool tree )
 static inline void
 append_property( ASProperty *owner, ASProperty *prop )
 {
-	if( owner )
+	if( owner && prop )
 		append_bidirelem( owner->sub_props, prop );	
+}	 
+
+static inline void
+prepend_property( ASProperty *owner, ASProperty *prop )
+{
+	if( owner && prop )
+		prepend_bidirelem( owner->sub_props, prop );	
 }	 
 
 ASProperty *
@@ -784,6 +791,7 @@ dup_property( ASProperty *src )
 		dst = create_property( src->id, src->type, src->name, (src->sub_props != NULL) );
 		dst->flags = src->flags ;
 		dst->index = src->index ;
+		dst->order = src->order ;
 		dup_property_contents( src, dst ); 
 	}
 	
@@ -1151,7 +1159,7 @@ merge_property_list( ASProperty *src, ASProperty *dst )
 	if( src->sub_props == NULL && dst->sub_props == NULL ) 
 		return;
 	LOCAL_DEBUG_CALLER_OUT("(%p,%p)", src, dst );	
-	iterate_asbidirlist( src->sub_props, merge_prop_into_list, dst->sub_props, NULL, False );		  	
+	iterate_asbidirlist( src->sub_props, merge_prop_into_list, dst, NULL, False );		  	
 }
 /*************************************************************************/
 ASProperty* asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *owner_prop, int func, const char *extension, const char *mini_ext );
@@ -1298,24 +1306,38 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 			char *minipixmap = NULL ;
 			char hotkey = '\0' ;
 			int k ; 
+			char *clean_name;
+			int order = strtol (list[i]->d_name, &clean_name, 10);
+			
+			if( clean_name == list[i]->d_name )
+			{	
+				if( isalpha(clean_name[0]) && clean_name[1] == '_' )
+				{	
+					order = (int)(clean_name[0]) - (int)'0' ;
+					clean_name += 2 ;
+					len -= 2 ;
+				}else
+					order = -1 ;
+			}else
+				len -= (clean_name - list[i]->d_name );
 
 			if( ext_len > 0 && len > ext_len )
 			{	
-				if( strcmp(list[i]->d_name + len - ext_len, extension) == 0 ) 
-					stripped_name = mystrndup( list[i]->d_name, len - ext_len );
-				else if( strncmp(list[i]->d_name, extension, ext_len) == 0 ) 
-					stripped_name = mystrdup( list[i]->d_name + ext_len );
+				if( strcmp( clean_name + len - ext_len, extension) == 0 ) 
+					stripped_name = mystrndup( clean_name, len - ext_len );
+				else if( strncmp(clean_name, extension, ext_len) == 0 ) 
+					stripped_name = mystrdup( clean_name + ext_len );
 			}
 			if( stripped_name == NULL )
 			{	
 				if( mini_ext_len > 0 && len > mini_ext_len )
 				{ 
-					if( strcmp( list[i]->d_name + len - mini_ext_len, mini_ext ) == 0 ) 
+					if( strcmp( clean_name + len - mini_ext_len, mini_ext ) == 0 ) 
 						continue;				
-					if( strncmp( list[i]->d_name, mini_ext, mini_ext_len ) == 0 ) 
+					if( strncmp( clean_name, mini_ext, mini_ext_len ) == 0 ) 
 						continue;				
 				}
-				stripped_name = mystrdup( list[i]->d_name );
+				stripped_name = mystrdup( clean_name );
 			}
 			
 			if( mini_ext_len > 0 )
@@ -1398,6 +1420,8 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 				}else
 					destroy_config_file( cf ); 
 			}
+			if( item ) 
+				item->order = order ;
 			if( stripped_name)
 				free( stripped_name );
 			if(minipixmap)
@@ -1410,6 +1434,45 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 	free( new_path );
 	return popup;
 }
+
+int compare_menuitems_handler(void *data1, void *data2)
+{
+	ASProperty *item1 = (ASProperty*)data1 ; 	
+	ASProperty *item2 = (ASProperty*)data2 ; 
+	static char buffer1[512], buffer2[512] ;
+	int stored_len1 = 0, stored_len2 = 0 ;
+	LOCAL_DEBUG_OUT( "comparing items with order %d and %d", item1->order, item2->order ); 
+	if( item2->id == F_POPUP && item1->id != F_POPUP) 
+		return 1 ;
+	else if( item1->id == F_POPUP && item2->id != F_POPUP) 
+		return 0;
+	if( item2->order >= 0 )
+	{
+		if( item1->order  < 0 )
+			return 1;
+		return item1->order - item2->order;
+	}
+	if( item1->order >= 0 )
+		return 0;
+
+	if( item1->type == ASProp_File && item2->type == ASProp_File )
+		return mystrcmp( item1->contents.config_file->filename, item2->contents.config_file->filename );
+	else if( item1->type == ASProp_File && item2->type == ASProp_Data )
+	{
+	 	decode_string( item2->contents.data, &(buffer1[0]), 512, &stored_len1 );
+		return mystrcmp( item1->contents.config_file->filename, &buffer1[0] );
+	}else if( item2->type == ASProp_File && item1->type == ASProp_Data )
+	{
+	 	decode_string( item1->contents.data, &(buffer1[0]), 512, &stored_len1 );
+		return mystrcmp( &buffer1[0], item2->contents.config_file->filename );
+	}else if( item2->type == ASProp_Data && item1->type == ASProp_Data )
+	{
+		decode_string( item1->contents.data, &(buffer1[0]), 512, &stored_len1 );
+	 	decode_string( item2->contents.data, &(buffer2[0]), 512, &stored_len2 );
+		return mystrcmp( &buffer1[0], &buffer2[0] );
+	}	 
+	return 0; 
+}	 
 
 Bool
 melt_menu_props_into_list(void *data, void *aux_data)
@@ -1435,7 +1498,6 @@ melt_menu_props_into_list(void *data, void *aux_data)
 #define MAX_EXTENTION 256
 		char *extension = NULL ;
 		char *mini_ext = NULL ;
-		int order = 0 ;
 		ASBiDirElem *curr ; 		   
 		ASProperty *phony = NULL;
 
@@ -1459,7 +1521,7 @@ melt_menu_props_into_list(void *data, void *aux_data)
 				case INCLUDE_minipixmap_ID         : /* OBSOLETE */   break ;
 				case INCLUDE_command_ID        	   : /* TODO */   break ;
 				case INCLUDE_order_ID       	   :    
-					order = prop->contents.integer ; break ;
+					dst_popup->order = prop->contents.integer ; break ;
 				case INCLUDE_RecentSubmenuItems_ID : /* TODO */   break ;
 				case INCLUDE_name_ID          	   : 
 					if( name )	free( name ); 
@@ -1521,8 +1583,24 @@ melt_menu_props_into_list(void *data, void *aux_data)
 			free( mini_ext );
 	}
 	/* now we need to sort items according to order */
-
+	bubblesort_asbidirlist( dst_popup->sub_props, compare_menuitems_handler );
+	LOCAL_DEBUG_OUT( "sorted menu \"%s\"", dst_popup->name );
+	print_hierarchy( dst_popup, 0 );
 	/* and now we need to add F_TITLE item for menu name */
+	if( name == NULL ) 
+	{	
+		int i = -1; 
+		parse_file_name( dst_popup->name, NULL, &name );
+		if( name )
+			while( name[++i] ) if( name[i] == '_' ) name[i] = ' ' ;
+	}
+	if( name ) 
+	{
+		ASProperty *title ; 
+		title = create_property( F_TITLE, ASProp_Phony, name, True );
+		prepend_property( dst_popup, title  );
+		free( name );
+	}	 
 
 	return True;
 }
@@ -1596,6 +1674,8 @@ print_hierarchy( ASProperty *root, int level )
 	for( i = 0 ; i < level ; ++i ) 
 		fputc( '\t', stderr);
 	fprintf( stderr, "%s(%ld) ", keyword_id2keyword(root->id), root->id );
+	if( root->order >= 0 ) 
+		fprintf( stderr, "order=%d ", root->order );
 	if( get_flags( root->flags, ASProp_Indexed ) ) 
 	   	fprintf( stderr, "[%d] ", root->index );
 	else if( root->name )
