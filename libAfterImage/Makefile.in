@@ -25,7 +25,7 @@ LIB_TUTORIALS= common.c asview.c asscale.c astile.c asmerge.c \
 LIB_NAME        = LIBAFTERIMAGE
 LIB_STATIC      = libAfterImage.a
 LIB_SHARED      = libAfterImage.so
-LIBVER          = 0.60
+LIBVER          = 0.80
 LIBVERMAJOR     = 0
 
 CC		= @CC@

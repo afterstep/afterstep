@@ -28,7 +28,8 @@ dnl# compile-time switches
 AC_ARG_ENABLE(i18n,		[  --enable-i18n           support I18N [no] ],enable_i18n=$enableval,enable_i18n="no")
 AC_ARG_ENABLE(xlocale,		[  --enable-xlocale        using X_LOCALE [no] ],enable_xlocale=$enableval,enable_xlocale="no")
 AC_ARG_WITH(locale,		[  --with-locale=LOCALE    locale name you want to use ],with_locale=$withval,with_locale="")
-AC_ARG_ENABLE(staticlibs,       [  --enable-staticlibs     enable linking to libafterstep statically [yes] ],enable_staticlibs=$enableval,enable_staticlibs="yes")
+AC_ARG_ENABLE(staticlibs,   [  --enable-staticlibs     enable linking to libAfterBase statically [yes] ],enable_staticlibs=$enableval,enable_staticlibs="yes")
+AC_ARG_ENABLE(sharedlibs,   [  --enable-sharedlibs     enable linking to libAfterBase dynamically [no] ],enable_sharedlibs=$enableval,enable_sharedlibs="no")
 
 AC_ARG_ENABLE(gdb,		[  --enable-gdb            add gdb symbols (-g) (for debugging) [no] ],enable_gdb=$enableval,enable_gdb="no")
 AC_ARG_ENABLE(warn,		[  --enable-warn           turn on more compiler warnings (for debugging) [no] ],enable_warn=$enableval,enable_warn="no")
@@ -168,9 +169,11 @@ AC_CHECK_FUNCS(uname gethostname)
 if test "x$enable_staticlibs" = "xyes"; then
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
-else
-   LIBPROG='$(LIB_SHARED)'
-   LIBINSTALL="install.dyn"
+fi   
+if test "x$enable_sharedlibs" = "xyes"; then
+   tmp='$(LIB_SHARED)'
+   LIBPROG="$LIBPROG $tmp"
+   LIBINSTALL="$LIBINSTALL install.dyn"
 fi
 
 dnl# define X_LOCALE.  need Linux, NetBSD and etc.
