@@ -30,6 +30,8 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 
+/*#define LOCAL_DEBUG*/
+
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
 #include "../include/parse.h"
@@ -381,7 +383,6 @@ mystyle_translate_grad_type( int type )
 
 static merge_scanlines_func mystyle_merge_scanlines_func_xref[] =
 {
-   alphablend_scanlines,
    allanon_scanlines,
    alphablend_scanlines,
    add_scanlines,
@@ -397,6 +398,10 @@ static merge_scanlines_func mystyle_merge_scanlines_func_xref[] =
    sub_scanlines,
    tint_scanlines,
    value_scanlines,
+   /* just a filler below : */
+   alphablend_scanlines,
+   alphablend_scanlines,
+   alphablend_scanlines,
    NULL
 };
 
@@ -409,7 +414,7 @@ mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int heig
 #ifndef NO_TEXTURE
     if( width < 1 )    width = 1 ;
     if( height < 1 )   height = 1 ;
-
+LOCAL_DEBUG_OUT( "style \"%s\", texture_type = %d, im = %p", style->name, style->texture_type, style->back_icon.image );
 	switch( style->texture_type )
 	{
 	    case TEXTURE_SOLID :
@@ -430,6 +435,13 @@ mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int heig
 	    case TEXTURE_GRADIENT_L2R :   
 			im = make_gradient( Scr.asv, &(style->gradient), width, height, 0xFFFFFFFF, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT  );
 			break;
+		case TEXTURE_SHAPED_SCALED_PIXMAP :
+		case TEXTURE_SCALED_PIXMAP :
+			im = scale_asimage( Scr.asv, style->back_icon.image, 
+			                    width, height, 
+							    ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT  );
+			break;
+		case TEXTURE_SHAPED_PIXMAP :
 		case TEXTURE_PIXMAP :
 			im = tile_asimage( Scr.asv, style->back_icon.image, 
 			                   0, 0, width, height, TINT_LEAVE_SAME, 
@@ -449,21 +461,36 @@ mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int heig
 				root_w = Scr.RootImage->width ;
 				root_h = Scr.RootImage->height ;
 			}
-			if (Scr.RootImage != NULL && style->texture_type == TEXTURE_TRANSPARENT )
+LOCAL_DEBUG_OUT( "RootImage = %p", Scr.RootImage );
+
+			if ( Scr.RootImage == NULL )
+				return NULL ;
+				
+			if ( style->texture_type == TEXTURE_TRANSPARENT || 
+				 style->texture_type == TEXTURE_TRANSPARENT_TWOWAY )
 			{
 				im = tile_asimage ( Scr.asv, Scr.RootImage, root_x, root_y,
   				  				    width,  height, style->tint,
 									ASA_ASImage,
 									0, ASIMAGE_QUALITY_DEFAULT );
-			}else if ( Scr.RootImage != NULL && 
-			           style->texture_type > TEXTURE_TRANSPARENT &&
-					   style->texture_type <= TEXTURE_TRANSPARENT+15 )
-	    	{
+			}else
+			{
 				ASImageLayer layers[2];
-		
-				init_image_layers( &layers[0], 2 );
-				layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[style->texture_type-TEXTURE_TRANSPARENT] ;
+				ASImage *scaled_im = NULL ;
+				int index = 0 ; 
+
+	  			init_image_layers( &layers[0], 2 );
+
 				layers[0].im = Scr.RootImage;
+				if( style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
+				  	style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END )
+					index = style->texture_type-TEXTURE_SCALED_TRANSPIXMAP ;
+				else if( style->texture_type >= TEXTURE_TRANSPIXMAP &&
+				  		 style->texture_type < TEXTURE_TRANSPIXMAP_END )
+					index = style->texture_type-TEXTURE_TRANSPIXMAP ;
+					
+LOCAL_DEBUG_OUT( "index = %d", index );
+	  	  		layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index] ;
 				layers[0].dst_x = 0 ;
 				layers[0].dst_y = 0 ;
 				layers[0].clip_x = root_x ;
@@ -471,8 +498,16 @@ mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int heig
 				layers[0].clip_width = width ;
 				layers[0].clip_height = height ;
 
+			    layers[1].im = style->back_icon.image ;
+				if( style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
+				  	style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END )
+	    		{
+					scaled_im = scale_asimage( Scr.asv, layers[1].im, width, height, 
+											   ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+					if( scaled_im ) 
+						layers[1].im = scaled_im ;
+				}
 				layers[1].merge_scanlines = layers[0].merge_scanlines ;		
-				layers[1].im = style->back_icon.image ; 
 				layers[1].dst_x = 0 ;
 				layers[1].dst_y = 0 ;
 				layers[1].clip_x = 0 ;
@@ -484,6 +519,8 @@ mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int heig
 		      	                   width, height,
 								   ASA_ASImage,
 							       0, ASIMAGE_QUALITY_DEFAULT );
+				if( scaled_im ) 
+					destroy_asimage( &scaled_im );
 			}
 	}
 #endif /* NO_TEXTURE */
@@ -512,11 +549,11 @@ void
 mystyle_free_icon_resources( icon_t icon ) 
 {
 	if( icon.pix ) 
-		XFreePixmap( dpy, icon.pix );
+		UnloadImage( icon.pix );
 	if( icon.mask ) 
-		XFreePixmap( dpy, icon.mask );
+		UnloadMask( icon.mask );
 	if( icon.image ) 
-		destroy_asimage(&icon.image);
+		safe_asimage_destroy(icon.image);
 }
 
 icon_t
@@ -929,58 +966,59 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 	    }
 	}
     }
-  if (parent->set_flags & F_BACKPIXMAP)
+	if (parent->set_flags & F_BACKPIXMAP)
     {
-      if ((override == True) && (child->user_flags & F_BACKPIXMAP))
-	{
-	  UnloadImage (child->back_icon.pix);
-	  if (child->back_icon.image)
-	  {
-	    destroy_asimage (&(child->back_icon.image));
-		child->back_icon.image = NULL ;
-	  }
-	}
-      if ((override == True) || !(child->set_flags & F_BACKPIXMAP))
-	{
-	  if (override == True)
-	    child->texture_type = parent->texture_type;
-	  if (copy == False)
-	    {
-	      child->back_icon = parent->back_icon;
-	      child->user_flags &= ~(F_BACKPIXMAP | F_BACKTRANSPIXMAP);
-	      child->inherit_flags |= F_BACKPIXMAP | (parent->set_flags & F_BACKTRANSPIXMAP);
-	    }
-	  else
-	    {
-	      GC gc = DefaultGC (dpy, screen);
-	      child->back_icon.pix = XCreatePixmap (dpy, RootWindow (dpy, screen), parent->back_icon.width, parent->back_icon.height, DefaultDepth (dpy, screen));
-	      XCopyArea (dpy, parent->back_icon.pix, child->back_icon.pix, gc,
-	      0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
-	      if (parent->back_icon.mask != None)
-		  {
-			GC mgc = XCreateGC (dpy, parent->back_icon.mask, 0, NULL);
-			child->back_icon.pix = XCreatePixmap (dpy, RootWindow (dpy, screen), parent->back_icon.width, parent->back_icon.height, 1);
-			XCopyArea (dpy, parent->back_icon.pix, child->back_icon.pix, mgc,
-			       0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
-			XFreeGC (dpy, mgc);
-		  }
-		  if( parent->back_icon.image ) 
-			  child->back_icon.image = clone_asimage(parent->back_icon.image, 0xFFFFFFFF);
-		  else 
-			  child->back_icon.image = 0 ;
-	      child->back_icon.width = parent->back_icon.width;
-	      child->back_icon.height = parent->back_icon.height;
-	      child->user_flags |= F_BACKPIXMAP | (parent->set_flags & F_BACKTRANSPIXMAP);
-	      child->inherit_flags &= ~(F_BACKPIXMAP | F_BACKTRANSPIXMAP);
-	    }
-	}
-    }
-  if (parent->texture_type == TEXTURE_TRANSPARENT && (override == True || child->texture_type != TEXTURE_TRANSPARENT))
-    {
-      child->tint = parent->tint;
+    	if ((override == True) && (child->user_flags & F_BACKPIXMAP))
+		{
+			mystyle_free_icon_resources( child->back_icon );
+			memset( &(child->back_icon), 0x00, sizeof(child->back_icon));
+		}
+    	if ((override == True) || !(child->set_flags & F_BACKPIXMAP))
+		{
+			if (override == True)
+	  			child->texture_type = parent->texture_type;
+			if ( (parent->texture_type == TEXTURE_TRANSPARENT || 
+			      parent->texture_type == TEXTURE_TRANSPARENT_TWOWAY) && 
+			     (override == True || 
+				  (child->texture_type != TEXTURE_TRANSPARENT && 
+				   child->texture_type != TEXTURE_TRANSPARENT_TWOWAY)))
+		    {
+    			child->tint = parent->tint;
+		    }
+			if ( !copy )
+	  		{
+	    		child->back_icon = parent->back_icon;
+	    		clear_flags(child->user_flags, F_BACKPIXMAP|F_BACKTRANSPIXMAP);
+	    		set_flags(child->inherit_flags, F_BACKPIXMAP );
+				if( get_flags( parent->set_flags, F_BACKTRANSPIXMAP ) )
+					set_flags( child->inherit_flags, F_BACKTRANSPIXMAP );
+	  		}else
+	  		{
+	    		GC gc = DefaultGC (dpy, screen);
+		    	child->back_icon.pix = XCreatePixmap (dpy, RootWindow (dpy, screen), parent->back_icon.width, parent->back_icon.height, DefaultDepth (dpy, screen));
+		    	XCopyArea (	dpy, parent->back_icon.pix, child->back_icon.pix, gc,
+	  						0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
+	    		if (parent->back_icon.mask != None)
+				{
+					GC mgc = XCreateGC (dpy, parent->back_icon.mask, 0, NULL);
+					child->back_icon.pix = XCreatePixmap (dpy, RootWindow (dpy, screen), parent->back_icon.width, parent->back_icon.height, 1);
+					XCopyArea (dpy, parent->back_icon.pix, child->back_icon.pix, mgc,
+			  				   0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
+					XFreeGC (dpy, mgc);
+				}
+				if( parent->back_icon.image ) 
+					child->back_icon.image = dup_asimage(parent->back_icon.image);
+				else 
+				    child->back_icon.image = 0 ;
+	  			child->back_icon.width = parent->back_icon.width;
+	    		child->back_icon.height = parent->back_icon.height;
+		    	child->user_flags |= F_BACKPIXMAP | (parent->set_flags & F_BACKTRANSPIXMAP);
+		    	child->inherit_flags &= ~(F_BACKPIXMAP | F_BACKTRANSPIXMAP);
+	  		}
+		}
     }
 #endif /* NO_TEXTURE */
-  if (parent->set_flags & F_DRAWTEXTBACKGROUND)
+    if (parent->set_flags & F_DRAWTEXTBACKGROUND)
     {
       if ((override == True) || !(child->set_flags & F_DRAWTEXTBACKGROUND))
 	{
@@ -1008,6 +1046,16 @@ mystyle_parse (char *tline, FILE * fd, char **ppath, int *junk2)
   char *newline;
   char *name = stripcpy2 (tline, 0);
 
+  if( Scr.image_manager == NULL )
+  {
+	  char *pixmap_path = *ppath ;
+	  if( pixmap_path == NULL )  
+		  pixmap_path = getenv( "IMAGE_PATH" );
+	  if( pixmap_path == NULL )  
+		  pixmap_path = getenv( "PATH" );
+	  Scr.image_manager = create_image_manager( NULL, 2.2, pixmap_path, NULL );
+  }
+  
   if (name == NULL)
     {
       fprintf (stderr, "%s: bad style name '%s'", MyName, tline);
@@ -1200,49 +1248,40 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 	    char *ptr;
 	    int type = strtol (style_arg, &ptr, 10);
 	    char *tmp = stripcpy (ptr);
-	    int colors = -1;
-	    style->inherit_flags &= ~F_BACKTRANSPIXMAP;
-	    if (style->set_flags & F_MAXCOLORS)
-	      colors = style->max_colors;
-	    if (type == 129)
-	      {
-		style->texture_type = type;
-		
-		if( parse_argb_color( tmp, &(style->tint)) == tmp )
-		  style->tint = TINT_LEAVE_SAME; /* use no tinting by default */
-	      }
-	    else
-	      {
-		char *path;
-		ASImage *im ;
-		if ((path = findIconFile (tmp, PixmapPath, R_OK)) != NULL &&
-		    (im = file2ASImage( path, 0xFFFFFFFF, 1.0, 100, NULL )) != None)
-		  {
-		    style->back_icon.width = im->width;
-		    style->back_icon.height = im->height;
-		    if (style->user_flags & style_func)
-		      UnloadImage (style->back_icon.pix);
-		    style->back_icon.pix = asimage2pixmap(Scr.asv, Scr.Root, im, NULL, False);
-		    style->back_icon.mask = asimage2mask(Scr.asv, Scr.Root, im, NULL, False);
-		    style->user_flags |= style_func;
-		    style->texture_type = type;
-		    /* now set the transparency image, if necessary */
-		    style->inherit_flags &= ~F_BACKTRANSPIXMAP;
-		    if (style->back_icon.image)
-		      destroy_asimage (&(style->back_icon.image));
-			style->back_icon.image = im;
-		    if (type == TEXTURE_TRANSPIXMAP)
-		      {
-			style->user_flags |= F_BACKTRANSPIXMAP;
-		      }
-			
-		  }
-		else
-		  fprintf (stderr, "%s: unable to load pixmap: '%s'\n", MyName, tmp);
 
-		if (path != NULL)
-		  free (path);
-	      }
+	    clear_flags( style->inherit_flags, F_BACKTRANSPIXMAP|F_BACKPIXMAP);
+		mystyle_free_icon_resources(style->back_icon);
+		memset( &(style->back_icon), 0x00, sizeof(style->back_icon));
+		
+		if( type < TEXTURE_TEXTURED_START || type >= TEXTURE_TEXTURED_END ) 
+		{
+			show_error( "Mystyle \"%s\" has unsupported texture type [%d] in BackPixmap setting. Assuming default of [128] instead.", style->name, type );
+			type = TEXTURE_PIXMAP ;			
+		}
+		if( type == TEXTURE_TRANSPARENT || type == TEXTURE_TRANSPARENT_TWOWAY ) 
+		{ /* treat second parameter as ARGB tint value : */
+			if( parse_argb_color( tmp, &(style->tint)) == tmp )
+				style->tint = TINT_LEAVE_SAME; /* use no tinting by default */
+			else if( type == TEXTURE_TRANSPARENT ) 
+				style->tint = (style->tint>>1)&0x7F7F7F7F; /* converting old style tint */
+/*LOCAL_DEBUG_OUT( "tint is 0x%X (from %s)",  style->tint, tmp);*/
+			set_flags( style->user_flags, style_func );
+		}else
+		{ /* treat second parameter as an image filename : */
+			ASImage *im = get_asimage(Scr.image_manager, tmp, 0xFFFFFFFF, 100 ); 
+			if( im )
+			{
+				style->back_icon.image = im ;
+			    style->back_icon.width = im->width;
+			    style->back_icon.height = im->height;
+			    style->back_icon.pix = asimage2pixmap(Scr.asv, Scr.Root, im, NULL, False);
+			    style->back_icon.mask = asimage2mask(Scr.asv, Scr.Root, im, NULL, False);
+				set_flags( style->user_flags, style_func );
+				if( type >= TEXTURE_TRANSPIXMAP )
+					set_flags( style->user_flags, F_BACKTRANSPIXMAP );
+			}else
+				show_error( "failed to load image file \"%s\" in MyStyle \"%s\".", tmp, style->name );	
+		}
 	    free (tmp);
 	  }
 	  break;
