@@ -1,21 +1,3 @@
-/* XPM */
-static char * g_iconize_xpm[] = {
-"20 16 2 1",
-" 	c None",
-".	c #FFFFFF",
-"                   .",
-"                   .",
-"                   .",
-"                   .",
-"     ........      .",
-"     ........      .",
-"     .      .      .",
-"     .      .      .",
-"     .      .      .",
-"     .      .      .",
-"     .      .      .",
-"     ........      .",
-"                   .",
-"                   .",
-"                   .",
-"                   ."};
+<bevel colors="#00000000 white" border="1 1 1 0" solid=1>
+	<img src="dots/window_small"/>
+</bevel>
