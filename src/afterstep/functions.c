@@ -236,11 +236,8 @@ LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)"
         if (func != F_RESIZE && func != F_MOVE)
 		{
 			fin_event = ButtonRelease;
-            if (func != F_DESTROY && func != F_DELETE && func != F_CLOSE)
-				cursor = DESTROY;
-			else
-				cursor = SELECT;
-		} else
+            cursor = (func!=F_DESTROY && func!=F_DELETE && func!=F_CLOSE)?SELECT:DESTROY;
+        } else
 		{
 			cursor = MOVE;
 			fin_event = ButtonPress;
@@ -436,9 +433,14 @@ void apply_aswindow_move(struct ASMoveResizeData *data)
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
 SHOW_CHECKPOINT;
 LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.x, data->curr.y, data->curr.width, data->curr.height);
-    moveresize_aswindow_wm( asw,
-                            data->curr.x, data->curr.y,
-                            data->curr.width, data->curr.height);
+    if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+        moveresize_aswindow_wm( asw,
+                                data->curr.x, data->curr.y,
+                                asw->status->width, asw->status->height);
+    else
+        moveresize_aswindow_wm( asw,
+                                data->curr.x, data->curr.y,
+                                data->curr.width, data->curr.height);
 }
 
 
@@ -568,6 +570,13 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
         {
             int side = 0 ;
             register unsigned long context = event->context;
+
+            if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+            {
+                XBell (dpy, Scr.screen);
+                return;
+            }
+
             while( (0x01&context) == 0 )
             {
                 ++side ;
@@ -584,7 +593,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
         {
             raise_scren_panframes( &Scr );
             mvrdata->below_sibling = get_lowest_panframe(&Scr);
-            set_moveresize_restrains( mvrdata, asw->hints, &(asw->status->frame_size[0]));
+            set_moveresize_restrains( mvrdata, asw->hints, asw->status);
 //            mvrdata->subwindow_func = on_deskelem_move_subwindow ;
             mvrdata->grid = make_desktop_grid(Scr.CurrentDesk);
             Scr.moveresize_in_progress = mvrdata ;
@@ -782,12 +791,11 @@ void close_func_handler( FunctionData *data, ASEvent *event, int module )
 		send_wm_protocol_request(w, _XA_WM_DELETE_WINDOW, CurrentTime);
 	else
 	{
-		unsigned int ujunk ;
-  		if (data->func == F_DELETE)
-			XBell (dpy, event->scr->screen);
-		else if (get_drawable_size( w, &ujunk, &ujunk) == 0)
+        if( event->client->internal != NULL || validate_drawable(w, NULL, NULL) == None)
             Destroy (event->client, True);
-		else
+        else if (data->func == F_DELETE )
+            XBell (dpy, event->scr->screen);
+        else
 			XKillClient (dpy, w);
 		XSync (dpy, 0);
 	}

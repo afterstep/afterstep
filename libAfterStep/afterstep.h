@@ -207,8 +207,9 @@ FrameSide;
 /* */
 
 
-#define INVALID_POSITION	(-30000)
-#define INVALID_DESK		(10000)
+#define MAX_POSITION        30000
+#define INVALID_POSITION    (-MAX_POSITION)
+#define INVALID_DESK        10000
 #define IsValidDesk(d)		(d!=INVALID_DESK)
 
 
@@ -291,6 +292,7 @@ struct ASTBarData;
 
 #define AS_MENU_EVENT_MASK         ( ButtonPressMask    | \
 									 ButtonReleaseMask 	| \
+                                     PointerMotionMask  | \
 									 EnterWindowMask 	| \
                                      LeaveWindowMask    | \
                                      StructureNotifyMask)
@@ -315,6 +317,9 @@ typedef struct ASInternalWindow
 {
     ASMagic  *data;                             /* internal data structure */
     struct ASWindow *owner;
+
+    /* adds all the subwindows to window->ASWindow xref */
+    void (*register_subwindows)( struct ASInternalWindow *asiw );
 
     void (*on_moveresize)( struct ASInternalWindow *asiw, Window w );
     /* fwindow looses/gains focus : */
@@ -527,10 +532,10 @@ void save_aswindow_list( ASWindowList *list, char *file );
 void restack_window_list( int desk );
 Bool is_window_obscured (ASWindow * above, ASWindow * below);
 void restack_window( ASWindow *t, Window sibling_window, int stack_mode );
-#define RaiseWindow(asw)    restack_window((asw),None,Above)
-#define LowerWindow(asw)    restack_window((asw),None,Below)
-#define RaiseObscuredWindow(asw)  restack_window((asw),None,TopIf)
-#define RaiseLowerWindow(asw)     restack_window((asw),None,Opposite)
+#define RaiseWindow(asw)    do{show_progress(__FILE__ " " __FUNCTION__ ":%d R",__LINE__);restack_window((asw),None,Above);}while(0)
+#define LowerWindow(asw)    do{show_progress(__FILE__ " " __FUNCTION__ ":%d L",__LINE__);restack_window((asw),None,Below);}while(0)
+#define RaiseObscuredWindow(asw)  do{show_progress(__FILE__ " " __FUNCTION__ ":%d RO",__LINE__);restack_window((asw),None,TopIf);}while(0)
+#define RaiseLowerWindow(asw)     do{show_progress(__FILE__ " " __FUNCTION__ ":%d RL",__LINE__);restack_window((asw),None,Opposite);}while(0)
 
 
 ASWindow     *get_next_window (ASWindow * curr_win, char *action, int dir);

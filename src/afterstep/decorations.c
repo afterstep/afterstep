@@ -34,6 +34,7 @@
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
 #include "../../include/screen.h"
+#include "../../include/functions.h"
 
 #include "asinternals.h"
 
@@ -59,36 +60,6 @@ GetGnomeState (ASWindow * t)
 	return state;
 }
 
-Bool
-is_function_bound_to_button (int b, int function)
-{
-	MouseButton  *func;
-	int           context;
-
-	if (IsLeftButton(b))
-		context = C_L1 << b;
-	else
-		context = C_R1 << (b-FIRST_RIGHT_TBTN);
-
-    for (func = Scr.Feel.MouseButtonRoot; func != NULL; func = (*func).NextButton)
-        if ((func->Context & context) && (func->fdata->func == function))
-			return True;
-	return False;
-}
-
-void
-disable_titlebuttons_with_function (ASWindow * t, int function)
-{
-	int           i;
-
-	for (i = 0; i < TITLE_BUTTONS; i++)
-	{
-        if (Scr.Look.buttons[i].unpressed.image != NULL &&
-			IsBtnEnabled(t,i) && is_function_bound_to_button (i, function))
-			DisableBtn(t, i);
-	}
-}
-
 /****************************************************************************
  *
  * Checks the function "function", and sees if it
@@ -104,28 +75,12 @@ check_allowed_function2 (int func, ASWindow * t)
 
 	if( t )
 	{
-		ASHints *hints = t->hints ;
-		switch( func )
-		{
-			case F_DELETE :
-				if( !get_flags( hints->protocols, AS_DoesWmDeleteWindow ) )
-					return 0;
-			case F_CLOSE :
-				return ( get_flags( hints->function_mask, AS_FuncClose ) )?1:0 ;
-			case F_DESTROY :
-				return ( get_flags( hints->function_mask, AS_FuncKill ) )?1:0 ;
-			case F_MOVE :
-				return (get_flags( hints->function_mask, AS_FuncMove ) )?1:0 ;
-			case F_RESIZE :
-				return (get_flags( hints->function_mask, AS_FuncResize ) )?1:0 ;
-			case F_ICONIFY :
-                return (get_flags( hints->function_mask, AS_FuncMinimize ) )?1:0 ;
-			case F_MAXIMIZE :
-                return (get_flags( hints->function_mask, AS_FuncMaximize ) )?1:0 ;
-			case F_SHADE :
-                return (get_flags( hints->flags, AS_Titlebar ) )?1:0 ;
-		}
-	}
+        int mask = function2mask( func );
+        if( func == F_SHADE )
+            return get_flags( t->hints->flags, AS_Titlebar ) ;
+        else if( mask != 0 )
+            return get_flags( t->hints->function_mask, mask );
+    }
 	return 1;
 }
 /****************************************************************************
@@ -138,35 +93,53 @@ check_allowed_function2 (int func, ASWindow * t)
  *
  ****************************************************************************/
 int
-check_allowed_function (MenuDataItem * mi, ASWindow *asw)
+check_allowed_function (FunctionData *fdata, ASWindow *asw)
 {
-	/* Complex functions are a little tricky... ignore them for now */
-    int func = mi->fdata->func ;
+    int func = fdata->func ;
+    int i ;
+    ComplexFunction *cfunc ;
 
-	if (func == F_FUNCTION && mi->item != NULL)
-	{
-		/* Hard part! What to do now? */
-		/* Hate to do it, but for lack of a better idea,
-		 * check based on the menu entry name */
-		if (mystrncasecmp (mi->item, MOVE_STRING, strlen (MOVE_STRING)) == 0)
-			func = F_MOVE;
-		else if ( mystrncasecmp (mi->item, RESIZE_STRING1, strlen (RESIZE_STRING1)) == 0 ||
-		          mystrncasecmp (mi->item, RESIZE_STRING2, strlen (RESIZE_STRING2)) == 0)
-			func = F_RESIZE ;
-		else if ( mystrncasecmp (mi->item, MINIMIZE_STRING, strlen (MINIMIZE_STRING)) == 0 ||
-		          mystrncasecmp (mi->item, MINIMIZE_STRING2, strlen (MINIMIZE_STRING2)) == 0)
-			func = F_ICONIFY ;
-		else if ( mystrncasecmp (mi->item, MAXIMIZE_STRING, strlen (MAXIMIZE_STRING)) == 0)
-			func = F_MAXIMIZE ;
-		else if ( mystrncasecmp (mi->item, CLOSE_STRING1, strlen (CLOSE_STRING1)) == 0 ||
-				  mystrncasecmp (mi->item, CLOSE_STRING2, strlen (CLOSE_STRING2)) == 0 ||
-				  mystrncasecmp (mi->item, CLOSE_STRING3, strlen (CLOSE_STRING3)) == 0 ||
-				  mystrncasecmp (mi->item, CLOSE_STRING4, strlen (CLOSE_STRING4)) == 0 )
-			func = F_CLOSE;
-		else
-			return 1;
-	}
+    if (func != F_FUNCTION)
+        return check_allowed_function2 (func, asw);
 
-    return check_allowed_function2 (func, asw);
+    if( (cfunc = get_complex_function( fdata->name ) ) == NULL )
+        return 0;
+
+    for( i = 0 ; i < cfunc->items_num ; ++i )
+        if( cfunc->items[i].func == F_FUNCTION )
+        {
+            if( check_allowed_function (&(cfunc->items[i]), asw) == 0 )
+                return 0;
+        }else if( check_allowed_function2 (cfunc->items[i].func, asw) == 0 )
+            return 0;
+    return 1;
 }
+
+
+ASFlagType
+compile_titlebuttons_mask (ASWindow * asw)
+{
+    ASFlagType mask = asw->hints->disabled_buttons ;
+    int           i;
+
+	for (i = 0; i < TITLE_BUTTONS; i++)
+	{
+        if (Scr.Look.buttons[i].unpressed.image != NULL )
+        {
+            int context = IsLeftButton(i)?(context = C_L1 << i):(C_R1 << (i-FIRST_RIGHT_TBTN));
+            MouseButton  *func;
+
+            for (func = Scr.Feel.MouseButtonRoot; func != NULL; func = (*func).NextButton)
+                if ( (func->Context & context) != 0 )
+                    if( !check_allowed_function (func->fdata,asw ) )
+                    {
+                        mask |= 0x01<<i ;
+                        break;
+                    }
+        }
+    }
+    return mask;
+}
+
+
 

@@ -167,7 +167,8 @@ void InitFeel (struct ASFeel *feel, Bool free_resources);
 void LoadASConfig (int thisdesktop, ASFlagType what);
 /*************************** decorations.c ********************************/
 int check_allowed_function2 (int func, ASWindow * t);
-int check_allowed_function (struct MenuDataItem * mi, struct ASWindow *asw);
+int check_allowed_function (FunctionData *fdata, ASWindow *asw);
+ASFlagType compile_titlebuttons_mask (ASWindow * asw);
 
 /*************************** events.c ********************************/
 const char *context2text(int ctx);
@@ -207,6 +208,7 @@ void          HandleShapeNotify (struct ASEvent *event);
 
 /*************************** functions.c **********************************/
 void SetupFunctionHandlers();
+ComplexFunction *get_complex_function( char *name );
 
 void ExecuteFunction (struct FunctionData *data, struct ASEvent *event, int Module);
 int  DeferExecution (struct ASEvent *event, int cursor, int FinishEvent);

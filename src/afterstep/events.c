@@ -173,13 +173,6 @@ HandleEvents ()
         {
             ASNextEvent (&(event.x));
             DigestEvent( &event );
-#ifndef EVENT_TRACE
-            if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
-#endif
-            {
-                show_progress("****************************************************************");
-                show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)", __FILE__, __FUNCTION__, __LINE__, event.x.type, event_type2name(event.x.type), event.x.xany.window, event.w, event.client, context2text(event.context));
-            }
             DispatchEvent( &event );
         }
         afterstep_wait_pipes_input ();
@@ -250,15 +243,23 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
 	int dx = 0, dy = 0, total = 0;
 	int x_orig = event->x.xbutton.x_root ;
 	int y_orig = event->x.xbutton.y_root ;
-	register XEvent *xevt = &(event->x) ;
+    /* we are in the middle of running Complex function - we must only do mandatory
+     * processing on received events, but do not actually handle them !!
+     * Client window affected, as well as the context must not change -
+     * only the X event could */
+    ASEvent tmp_event ;
+    register XEvent *xevt = &(tmp_event.x) ;
 
-	do
+    do
 	{
         ASFlush();
 		sleep_a_little (1000);
         if (ASCheckMaskEvent (end_mask, xevt))
-			return True;
-
+        {
+            DigestEvent( &tmp_event );
+            event->x = *xevt ;                 /* everything else must remain the same !!! */
+            return True;
+        }
         if( total++ > click_time )
 			break;
 
@@ -266,8 +267,11 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
 		{
 			dx = x_orig - xevt->xmotion.x_root;
 			dy = y_orig - xevt->xmotion.y_root;
+            DigestEvent( &tmp_event );
 		}
-	}while( dx > -5 && dx < 5 && dy > -5 && dy < 5 );
+    }while( dx > -5 && dx < 5 && dy > -5 && dy < 5 );
+    event->x = *xevt ;                 /* everything else must remain the same !!! */
+
 	return False;
 }
 
@@ -317,7 +321,7 @@ DigestEvent( ASEvent *event )
     event->context = C_ROOT ;
     event->widget = Scr.RootCanvas ;
     /* in housekeeping mode we handle pointer events only as applied to root window ! */
-    if( get_flags(AfterStepState, ASS_HousekeepingMode) && (event->eclass & ASE_POINTER_EVENTS) != 0)
+    if( Scr.moveresize_in_progress && (event->eclass & ASE_POINTER_EVENTS) != 0)
         event->client = NULL;
     else
         event->client = window2ASWindow( event->w );
@@ -403,6 +407,16 @@ DigestEvent( ASEvent *event )
             }
         }
         event->widget  = canvas ;
+        /* we have to do this at all times !!!! */
+        if( event->x.type == ButtonRelease && Scr.Windows->pressed )
+            release_pressure();
+    }
+#ifndef EVENT_TRACE
+    if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
+#endif
+    {
+        show_progress("****************************************************************");
+        show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name(event->x.type), event->x.xany.window, event->w, event->client, context2text(event->context));
     }
 }
 
@@ -511,12 +525,15 @@ DispatchEvent ( ASEvent *event )
             /* if warping, a button press, non-warp keypress, or pointer motion
             * indicates that the warp is done */
             warp_ungrab (event->client, True);
-            HandleButtonRelease (event);
+            if( Scr.Windows->pressed )
+                HandleButtonRelease (event);
             break;
         case MotionNotify:
             /* if warping, a button press, non-warp keypress, or pointer motion
             * indicates that the warp is done */
             warp_ungrab (event->client, True);
+            if( event->client && event->client->internal )
+                event->client->internal->on_pointer_event( event->client->internal, event );
             break;
         case EnterNotify:
             HandleEnterNotify (event);
@@ -1047,10 +1064,9 @@ HandleButtonPress ( ASEvent *event )
 void
 HandleButtonRelease ( ASEvent *event )
 {   /* click to focus stuff goes here */
-//    if( Scr.Windows->pressed != NULL )
-//        if( (event->x.xbutton.state&(Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)) == 0 )
-                 press_aswindow( Scr.Windows->pressed, 0 );
-            //release_pressure();
+LOCAL_DEBUG_CALLER_OUT("pressed(%p)->state(0x%X)", Scr.Windows->pressed, (event->x.xbutton.state&(Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)) );
+    if( (event->x.xbutton.state&(Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)) == 0 )
+        release_pressure();
 }
 
 /***********************************************************************
@@ -1248,7 +1264,7 @@ HandleShapeNotify (ASEvent *event)
 /**************************************************************************
  * For auto-raising windows, this routine is called
  *************************************************************************/
-volatile int  alarmed;
+volatile int  alarmed = False;
 void
 AlarmHandler (int nonsense)
 {

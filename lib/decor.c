@@ -48,12 +48,10 @@ refresh_canvas_config (ASCanvas * pc)
 	if (pc && pc->w != None)
 	{
 		int           root_x = pc->root_x, root_y = pc->root_y;
-		int           x, y;
-		unsigned int  width = pc->width, height = pc->height, udumm;
+        unsigned int  width = pc->width, height = pc->height;
 		Window        wdumm;
 
 		XTranslateCoordinates (dpy, pc->w, Scr.Root, 0, 0, &root_x, &root_y, &wdumm);
-		XGetGeometry (dpy, pc->w, &wdumm, &x, &y, &width, &height, &udumm, &udumm);
         if(root_x != pc->root_x)
             set_flags(changed, CANVAS_X_CHANGED);
         if( root_y != pc->root_y);
@@ -61,6 +59,7 @@ refresh_canvas_config (ASCanvas * pc)
 		pc->root_x = root_x;
 		pc->root_y = root_y;
 
+        get_drawable_size(pc->w, &width, &height);
         if( width != pc->width )
             set_flags(changed, CANVAS_WIDTH_CHANGED);
         if( height != pc->height )
@@ -68,7 +67,6 @@ refresh_canvas_config (ASCanvas * pc)
 
 		if (width != pc->width || height != pc->height)
 		{
-			changed = True;
 			if (pc->canvas)
 			{
 				XFreePixmap (dpy, pc->canvas);
@@ -181,8 +179,10 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 ASFlagType
 handle_canvas_config (ASCanvas * canvas)
 {
-    ASFlagType res = refresh_canvas_config (canvas);
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", canvas, canvas->w, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
+    ASFlagType res ;
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->orig_geom(%ux%u%+d%+d)", canvas, canvas->w, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
+    res = refresh_canvas_config (canvas);
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->new__geom(%ux%u%+d%+d)->change(0x%lX)", canvas, canvas->w, canvas->width, canvas->height, canvas->root_x, canvas->root_y, res );
     return res;
 }
 
@@ -326,6 +326,18 @@ resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u)", pc, pc->w, width, height );
     /* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
+    if( width>MAX_POSITION )
+    {
+        AS_ASSERT(0);
+        width = pc->width ;
+    }else if( AS_ASSERT(width))
+        width = 1 ;
+    if( height>MAX_POSITION )
+    {
+        AS_ASSERT(0);
+        height = pc->height ;
+    }else if( AS_ASSERT(height))
+        height = 1;
     if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
 	XResizeWindow (dpy, pc->w, width, height);
@@ -337,6 +349,19 @@ moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int
 LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w, width, height, x, y );
     /* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
+    if( width>MAX_POSITION )
+    {
+        AS_ASSERT(0);
+        width = pc->width ;
+    }else if( AS_ASSERT(width))
+        width = 1 ;
+    if( height>MAX_POSITION )
+    {
+        AS_ASSERT(0);
+        height = pc->height ;
+    }else if( AS_ASSERT(height))
+        height = 1;
+
     if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
     XMoveResizeWindow (dpy, pc->w, x, y, width, height);
@@ -709,10 +734,19 @@ set_astbar_size (ASTBarData * tbar, unsigned int width, unsigned int height)
 {
 	Bool          changed = False;
 
-	if (tbar)
+    if (tbar )
 	{
-		unsigned int  w = (width > 0) ? width : 1;
-		unsigned int  h = (height > 0) ? height : 1;
+        unsigned int  w = width;
+        unsigned int  h = height;
+
+        if( w >= MAX_POSITION )
+            w = tbar->width ;
+        else if( w == 0  )
+            w = 1 ;
+        if( h >= MAX_POSITION )
+            h = tbar->height ;
+        else if( h == 0  )
+            h = 1 ;
 
 		changed = (w != tbar->width || h != tbar->height);
 		LOCAL_DEBUG_CALLER_OUT ("resizing TBAR %p from %dx%d to %dx%d", tbar, tbar->width, tbar->height, w, h);
@@ -877,7 +911,14 @@ move_astbar (ASTBarData * tbar, ASCanvas * pc, int win_x, int win_y)
 
 	if (tbar && pc)
 	{
-		int           root_x = pc->root_x + win_x, root_y = pc->root_y + win_y;
+        int root_x, root_y;
+        if( win_x >= MAX_POSITION || win_x <= -MAX_POSITION )
+            win_x = tbar->win_x ;
+        if( win_y >= MAX_POSITION || win_y <= -MAX_POSITION)
+            win_y = tbar->win_y ;
+
+        root_x = pc->root_x + win_x;
+        root_y = pc->root_y + win_y;
 
 		changed = (root_x != tbar->root_x || root_y != tbar->root_y);
 		tbar->root_x = root_x;

@@ -46,6 +46,7 @@ struct ASOutlineSegment;
 struct ASMoveResizeData;
 struct ASGrid;
 struct ASHints;
+struct ASStatusHints;
 //struct ASWidget;
 
 typedef	void (*as_interactive_pointer_handler)  (struct ASMoveResizeData *data, int x, int y);
@@ -126,7 +127,8 @@ resize_widget_interactively( struct ASWidget *parent,
 	  						 as_interactive_apply_handler    apply_func,
 							 as_interactive_complete_handler complete_func,
 							 int side );
-void set_moveresize_restrains( ASMoveResizeData *data, struct ASHints *hints, unsigned int *frame_size );
+void set_moveresize_restrains( ASMoveResizeData *data, struct ASHints *hints, struct ASStatusHints *status );
+
 
 
 Bool check_moveresize_event( struct ASEvent *event );

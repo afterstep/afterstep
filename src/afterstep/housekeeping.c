@@ -64,7 +64,7 @@ GrabEm (ScreenInfo *scr, Cursor cursor)
 
     mask = ButtonPressMask | ButtonReleaseMask | ButtonMotionMask |
            PointerMotionMask | EnterWindowMask | LeaveWindowMask ;
-    while ( (res = XGrabPointer (dpy, scr->Root, False, mask, GrabModeAsync,
+    while ( (res = XGrabPointer (dpy, scr->Root, True, mask, GrabModeAsync,
                                  GrabModeAsync, scr->Root, cursor,
                                  CurrentTime)) != GrabSuccess )
 	{

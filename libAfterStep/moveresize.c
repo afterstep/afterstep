@@ -714,28 +714,32 @@ LOCAL_DEBUG_OUT( "requested side = %d, using side = %d", side, data->side );
 }
 
 void
-set_moveresize_restrains( ASMoveResizeData *data, ASHints *hints, unsigned int *frame_size )
+set_moveresize_restrains( ASMoveResizeData *data, ASHints *hints, ASStatusHints *status )
 {
     if( data )
     {
-        if( frame_size )
+        Bool ignore_minmax_size = False ;
+        if( status )
         {
-            data->frame_width = frame_size[FR_W]+frame_size[FR_E];
-            data->frame_height = frame_size[FR_N]+frame_size[FR_S];
+            data->frame_width = status->frame_size[FR_W]+status->frame_size[FR_E];
+            data->frame_height = status->frame_size[FR_N]+status->frame_size[FR_S];
+            ignore_minmax_size = get_flags( status->flags, AS_Shaded);
         }
 
         if( hints )
         {
-            if( hints->min_width > 0 )
-                data->min_width = hints->min_width+data->frame_width ;
-            if( hints->max_width > 0 )
-                data->max_width = hints->max_width+data->frame_width ;
+            if( !ignore_minmax_size )
+            {
+                if( hints->min_width > 0 )
+                    data->min_width = hints->min_width+data->frame_width ;
+                if( hints->max_width > 0 )
+                    data->max_width = hints->max_width+data->frame_width ;
+                if( hints->min_height > 0 )
+                    data->min_height = hints->min_height+data->frame_height ;
+                if( hints->max_height > 0 )
+                    data->max_height = hints->max_height+data->frame_height ;
+            }
             data->width_inc = hints->width_inc ;
-
-            if( hints->min_height > 0 )
-                data->min_height = hints->min_height+data->frame_height ;
-            if( hints->max_height > 0 )
-                data->max_height = hints->max_height+data->frame_height ;
             data->height_inc = hints->height_inc ;
         }
 

@@ -195,7 +195,7 @@ typedef struct ASFeel
     unsigned int ClickTime;        /* Max buttonclickdelay for Function built-in */
     unsigned int OpaqueMove;       /* Keep showing window while being moved if size<N% */
     unsigned int OpaqueResize;     /* Keep showing window while being resized if size<N% */
-    unsigned int AutoRaiseDelay;       /* Delay between setting focus and raisingwin */
+    int AutoRaiseDelay;            /* Delay between setting focus and raisingwin */
 
 #define FEEL_WARP_ONEWAY       0
 #define FEEL_WARP_YOYO         1

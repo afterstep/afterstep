@@ -313,6 +313,13 @@ check_client_canvas( ASWindow *asw, Bool required )
             valuemask = (CWEventMask | CWDontPropagate);
             attributes.event_mask = AS_CLIENT_EVENT_MASK;
             attributes.do_not_propagate_mask = ButtonPressMask | ButtonReleaseMask;
+            if( asw->internal )
+            {
+                XWindowAttributes attr ;
+                if( XGetWindowAttributes( dpy, w, &attr ) )
+                    attributes.event_mask |= attr.your_event_mask;
+            }
+
             if (get_flags(Scr.Feel.flags, AppsBackingStore))
             {
                 valuemask |= CWBackingStore;
@@ -721,16 +728,17 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     if( asw->tbar )
 	{ /* need to add some titlebuttons */
 		ASTBtnBlock* btns ;
+        ASFlagType btn_mask = compile_titlebuttons_mask (asw);
 		/* left buttons : */
         btns = build_tbtn_block( &(Scr.Look.buttons[0]),
-		                         ~(asw->hints->disabled_buttons),
+                                 ~btn_mask,
                                  TITLE_BUTTONS_PERSIDE,
                                  Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                                  od->left_btn_order, C_L1 );
         set_astbar_btns( asw->tbar, &btns, True );
         /* right buttons : */
         btns = build_tbtn_block( &(Scr.Look.buttons[TITLE_BUTTONS_PERSIDE]),
-		                         (~(asw->hints->disabled_buttons))>>TITLE_BUTTONS_PERSIDE,
+                                 (~btn_mask)>>TITLE_BUTTONS_PERSIDE,
                                  TITLE_BUTTONS_PERSIDE,
                                  Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                                  od->right_btn_order, C_R1 );
@@ -897,6 +905,12 @@ LOCAL_DEBUG_OUT( "@@ANIM to(%d)->from(%d)->delta(%d)->step(%d)", to_size, from_s
             }
         }else if( !ASWIN_GET_FLAGS( asw, AS_Shaded ) )
             return 0;
+        else
+        {
+            *(od->in_width) = asw->tbar->width ;
+            *(od->in_height) = asw->tbar->height ;
+            return *(od->out_height);
+        }
     }
     return step_size;
 }
@@ -1123,11 +1137,12 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
             if( step_size <= 0 )  /* don't moveresize client window while shading !!!! */
             {
                 resize_canvases( asw, od, normal_width, normal_height, frame_size );
-                moveresize_canvas( asw->client_canvas,
-                                frame_size[FR_W],
-                                frame_size[FR_N],
-                                width-(frame_size[FR_W]+frame_size[FR_E]),
-                                height-(frame_size[FR_N]+frame_size[FR_S]));
+                if( !ASWIN_GET_FLAGS(asw, AS_Shaded ) )  /* leave shaded client alone ! */
+                    moveresize_canvas( asw->client_canvas,
+                                    frame_size[FR_W],
+                                    frame_size[FR_N],
+                                    width-(frame_size[FR_W]+frame_size[FR_E]),
+                                    height-(frame_size[FR_N]+frame_size[FR_S]));
             }else if( normal_height != step_size )
             {
                 sleep_a_little(10000);
@@ -1475,13 +1490,6 @@ SelectDecor (ASWindow * t)
 		if (get_flags(tflags,AS_Frame))
 			clear_flags( t->hints->flags, AS_Frame );
 	}
-
-	if (!get_flags(hints->function_mask,AS_FuncPopup))
-		disable_titlebuttons_with_function (t, F_POPUP);
-	if (!get_flags(hints->function_mask,AS_FuncMinimize))
-		disable_titlebuttons_with_function (t, F_ICONIFY);
-	if (!get_flags(hints->function_mask,AS_FuncMaximize))
-		disable_titlebuttons_with_function (t, F_MAXIMIZE);
 }
 
 /*
@@ -1577,6 +1585,14 @@ moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigne
         scratch_status.y = y ;
         scratch_status.width = width ;
         scratch_status.height = height ;
+
+        if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+        {    /* tricky tricky */
+            if( ASWIN_HFLAGS(asw,AS_VerticalTitle ) )
+                scratch_status.width = asw->status->width ;
+            else
+                scratch_status.height = asw->status->height ;
+        }
 
         /* need to apply two-way conversion in order to make sure that size restrains are applied : */
         status2anchor( &(asw->anchor), asw->hints, &scratch_status, Scr.VxMax, Scr.VyMax);
@@ -2359,8 +2375,18 @@ Destroy (ASWindow *asw, Bool kill_client)
     if ( asw == Scr.Windows->hilited )
         Scr.Windows->hilited = NULL;
 
-    if (!kill_client)
+    if (!kill_client && asw->internal == NULL )
         RestoreWithdrawnLocation (asw, True);
+
+    if( asw->internal )
+    {
+        if( asw->internal->destroy )
+            asw->internal->destroy( asw->internal );
+        if( asw->internal->data ) /* in case destroy() above did not work properly */
+            free( asw->internal->data );
+        free( asw->internal );
+        asw->internal = NULL ;
+    }
 
     redecorate_window( asw, True );
     unregister_aswindow( asw->w );

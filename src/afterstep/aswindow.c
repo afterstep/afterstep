@@ -18,11 +18,13 @@
  */
 
 #include "../../configure.h"
+#define LOCAL_DEBUG
 
 #include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/hints.h"
 #include "../../include/screen.h"
+#include "../../include/decor.h"
 #include "asinternals.h"
 
 /********************************************************************************/
@@ -414,6 +416,20 @@ is_status_overlaping (ASStatusHints * above, ASStatusHints *below)
 			above->y < below->y + below->height && above->y + above->height > below->y);
 }
 
+inline Bool
+is_canvas_overlaping (ASCanvas * above, ASCanvas *below)
+{
+	if (above == NULL)
+		return False;
+	if (below == NULL)
+		return True;
+
+    return (above->root_x < below->root_x + below->width && above->root_x + above->width > below->root_x &&
+            above->root_y < below->root_y + below->height && above->root_y + above->height > below->root_y);
+}
+
+#define IS_OVERLAPING(a,b)    is_canvas_overlaping((a)->frame_canvas,(b)->frame_canvas)
+
 Bool
 is_window_obscured (ASWindow * above, ASWindow * below)
 {
@@ -421,7 +437,7 @@ is_window_obscured (ASWindow * above, ASWindow * below)
     ASWindow **members ;
 
 	if (above != NULL && below != NULL)
-        return is_status_overlaping (above->status, below->status);
+        return IS_OVERLAPING(above, below);
 
 	if (above == NULL && below != NULL)
     {/* checking if window "below" is completely obscured by any of the
@@ -437,7 +453,7 @@ is_window_obscured (ASWindow * above, ASWindow * below)
             if( (t = members[i]) == below )
 				return False;
             else if( ASWIN_DESK(t) == ASWIN_DESK(below) )
-                if (is_status_overlaping (t->status, below->status))
+                if (IS_OVERLAPING(t,below))
 					return True;
         }
     }else if (above != NULL )
@@ -453,7 +469,7 @@ is_window_obscured (ASWindow * above, ASWindow * below)
             if( (t = members[i]) == above )
 				return False;
             else if( ASWIN_DESK(t) == ASWIN_DESK(above) )
-                if (is_status_overlaping (above->status, t->status) )
+                if (IS_OVERLAPING(above,t) )
 					return True;
         }
     }
@@ -471,6 +487,7 @@ restack_window( ASWindow *t, Window sibling_window, int stack_mode )
     if( t == NULL )
         return ;
 
+LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
     src_layer = get_aslayer( ASWIN_LAYER(t), Scr.Windows );
 
     if( sibling_window )

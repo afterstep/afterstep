@@ -84,8 +84,10 @@ destroy_asmenu(ASMenu **pmenu)
         ASMenu *menu = *pmenu;
         if( menu && menu->magic == MAGIC_ASMENU )
         {
+            Window w = menu->main_canvas->w ;
             if( menu->main_canvas )
                 destroy_ascanvas( &(menu->main_canvas) );
+            destroy_registered_window( w );
 
             if( menu->item_bar )
             {
@@ -189,13 +191,11 @@ LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
     }
     /* some sanity checks : */
 
-#define MAX_MENU_ITEM_HEIGHT (Scr.MyDisplayHeight>>4)
     if( max_height > MAX_MENU_ITEM_HEIGHT )
         max_height = MAX_MENU_ITEM_HEIGHT ;
     if( max_height == 0 )
         max_height = 1 ;
 
-#define MAX_MENU_WIDTH (Scr.MyDisplayWidth>>1)
     if( max_width > MAX_MENU_WIDTH )
         max_width = MAX_MENU_WIDTH ;
     if( max_width == 0 )
@@ -205,7 +205,6 @@ LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
 
     display_size = max_height * menu->items_num ;
 
-#define MAX_MENU_HEIGHT ((Scr.MyDisplayHeight*3)/4)
     if( display_size > MAX_MENU_HEIGHT )
     {
         menu->visible_items_num = MAX_MENU_HEIGHT/max_height;
@@ -232,12 +231,13 @@ void set_asmenu_scroll_position( ASMenu *menu, int pos );
 void
 select_menu_item( ASMenu *menu, int selection )
 {
+LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
     if( AS_ASSERT(menu) || menu->items_num == 0 )
         return;
-    if( selection >= menu->items_num )
-        selection = menu->items_num - 1 ;
-    else if( selection < 0 )
+    if( selection < 0 )
         selection = 0 ;
+    else if( selection >= (int)menu->items_num )
+        selection = menu->items_num - 1 ;
 
     set_astbar_focused( menu->item_bar[menu->selected_item], menu->main_canvas, False );
     set_astbar_focused( menu->item_bar[selection], menu->main_canvas, True );
@@ -257,15 +257,16 @@ set_asmenu_scroll_position( ASMenu *menu, int pos )
     int curr_y = 0 ;
     int i ;
 
+LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pos );
     if( AS_ASSERT(menu) || menu->items_num == 0 )
         return;
-
     if( pos < 0 )
         pos = 0 ;
     else if( pos > (int)(menu->items_num) - (int)(menu->visible_items_num) )
         pos = (int)(menu->items_num) - (int)(menu->visible_items_num) ;
 
     curr_y =  ((int)(menu->items_num) - pos) * menu->item_height ;
+LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_item(%d)", pos, curr_y, menu->items_num, menu->visible_items_num, menu->selected_item);
     i = menu->items_num ;
     while( --i >= 0 )
     {
@@ -286,6 +287,17 @@ set_asmenu_scroll_position( ASMenu *menu, int pos )
 /* Menu event handlers  - ASInternalWindow interface :                   */
 /*************************************************************************/
 void
+menu_register_subwindows( struct ASInternalWindow *asiw )
+{
+    ASMenu   *menu = (ASMenu*)(asiw->data) ;
+    if( menu != NULL && menu->magic == MAGIC_ASMENU )
+    {
+        register_aswindow( menu->main_canvas->w, asiw->owner );
+    }
+}
+
+
+void
 on_menu_moveresize( ASInternalWindow *asiw, Window w )
 {
     ASMenu   *menu = (ASMenu*)(asiw->data) ;
@@ -293,6 +305,7 @@ on_menu_moveresize( ASInternalWindow *asiw, Window w )
     {
         ASFlagType changed = handle_canvas_config( menu->main_canvas );
         register int i = menu->items_num ;
+LOCAL_DEBUG_OUT( "changed(%lX)->main_width(%d)->main_height(%d)->item_height(%d)", changed, menu->main_canvas->width, menu->main_canvas->height, menu->item_height);
         if( get_flags( changed, CANVAS_RESIZED) )
         {
             if( get_flags( changed, CANVAS_WIDTH_CHANGED) )
@@ -353,9 +366,19 @@ void
 on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
 {
     ASMenu   *menu = (ASMenu*)(asiw->data) ;
-    if( menu != NULL && menu->magic == MAGIC_ASMENU )
+    if( menu != NULL && menu->magic == MAGIC_ASMENU && event)
     {
-        /* TODO : change selection and maybe pop a submenu */
+        /* change selection and maybe pop a submenu */
+        XMotionEvent *xmev = &(event->x.xmotion);
+        ASCanvas *canvas = menu->main_canvas ;
+        int px = xmev->x_root - canvas->root_x, py = xmev->y_root - canvas->root_y;
+
+        if( px >= 0 && px < canvas->width &&  py >= 0 && py < canvas->height )
+        {
+            int selection = py/menu->item_height ;
+            if( selection != menu->selected_item )
+                select_menu_item( menu, selection );
+        }
     }
 }
 
@@ -414,7 +437,7 @@ menu_destroy( ASInternalWindow *asiw )
 /* End of Menu event handlers:                                           */
 /*************************************************************************/
 void
-show_asmenu(ASMenu *menu)
+show_asmenu(ASMenu *menu, int x, int y)
 {
     ASStatusHints status ;
     ASHints *hints = safecalloc( 1, sizeof(ASHints) );
@@ -422,6 +445,7 @@ show_asmenu(ASMenu *menu)
 
     asiw->data = (ASMagic*)menu;
 
+    asiw->register_subwindows = menu_register_subwindows;
     asiw->on_moveresize = on_menu_moveresize;
     asiw->on_hilite_changed = on_menu_hilite_changed ;
     asiw->on_pressure_changed = on_menu_pressure_changed;
@@ -443,8 +467,17 @@ show_asmenu(ASMenu *menu)
                    AS_StartLayer|
                    AS_StartsSticky;
 
-    status.x = (Scr.MyDisplayWidth - menu->item_width)/2;
-    status.y = (Scr.MyDisplayHeight - menu->item_height)/2;
+    if( x <= MIN_MENU_X )
+        x = MIN_MENU_X ;
+    else if( x + menu->optimal_width > MAX_MENU_X )
+        x = MAX_MENU_X - menu->optimal_width ;
+    if( y <= MIN_MENU_Y )
+        y = MIN_MENU_Y ;
+    else if( y + menu->optimal_height > MAX_MENU_Y )
+        y = MAX_MENU_Y - menu->optimal_height ;
+
+    status.x = x;
+    status.y = y;
     status.width = menu->optimal_width;
     status.height = menu->optimal_height;
     status.viewport_x = Scr.Vy;
@@ -471,10 +504,9 @@ show_asmenu(ASMenu *menu)
                    AS_MaxSize|
                    AS_SizeInc ;
     hints->protocols = AS_DoesWmTakeFocus ;
-    hints->function_mask = 0xFFFFFFFF ;
-    clear_flags( hints->function_mask,  AS_FuncPopup|
-                                        AS_FuncMinimize|
-                                        AS_FuncMaximize);
+    hints->function_mask = ~(AS_FuncPopup|     /* everything else is allowed ! */
+                             AS_FuncMinimize|
+                             AS_FuncMaximize);
 
     hints->min_width  = menu->optimal_width ;
     hints->min_height = menu->item_height ;
@@ -527,5 +559,6 @@ run_menu( const char *name )
     set_asmenu_data( menu, md );
     set_asmenu_look( menu, &Scr.Look );
     set_asmenu_scroll_position( menu, 0 );
-    show_asmenu(menu);
+    show_asmenu(menu, (Scr.MyDisplayWidth - menu->item_width)/2,
+                      (Scr.MyDisplayHeight - menu->item_height)/2 );
 }

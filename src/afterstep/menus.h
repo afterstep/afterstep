@@ -54,6 +54,16 @@ typedef struct ASMenu
     unsigned int optimal_width, optimal_height;
 }ASMenu;
 
+#define MAX_MENU_ITEM_HEIGHT    (Scr.MyDisplayHeight>>4)
+#define MAX_MENU_WIDTH          (Scr.MyDisplayWidth>>1)
+#define MAX_MENU_HEIGHT         ((Scr.MyDisplayHeight*3)/4)
+#define MIN_MENU_X              5
+#define MAX_MENU_X              (Scr.MyDisplayWidth-5)
+#define MIN_MENU_Y              5
+#define MAX_MENU_Y              (Scr.MyDisplayHeight-5)
+
+
+
 /*************************************************************************/
 /* Function prototypes :                                                 */
 /*************************************************************************/
