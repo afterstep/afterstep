@@ -127,6 +127,8 @@ main( int argc, char **argv )
     /* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_GADGET, argc, argv, NULL, NULL, 0 );
+	LinkAfterStepConfig();
+
     set_signal_handler( SIGSEGV );
 
 

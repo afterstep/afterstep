@@ -54,6 +54,7 @@
 
 ./cover.o: \
 		../../configure.h \
+		../../libAfterStep/colorscheme.h \
 		asinternals.h
 
 ./decorations.o: \

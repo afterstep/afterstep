@@ -13,18 +13,6 @@
 		../../libAfterStep/event.h \
 		../../libAfterStep/wmprops.h
 
-./ascolor.o: \
-		../../configure.h \
-		../../libAfterStep/asapp.h \
-		../../libAfterImage/afterimage.h \
-		../../libAfterStep/afterstep.h \
-		../../libAfterConf/afterconf.h \
-		../../libAfterStep/colorscheme.h \
-		../../libAfterStep/module.h \
-		../../libAfterStep/event.h \
-		../../libAfterStep/wmprops.h \
-		asdocview.h
-
 ./asimbrowser.o: \
 		../../configure.h \
 		../../libAfterStep/asapp.h \
@@ -36,3 +24,19 @@
 		../../libAfterStep/event.h \
 		../../libAfterStep/wmprops.h \
 		../../libAfterStep/session.h
+
+./gtk/ascp_base.o: \
+		../../configure.h \
+		../../libAfterStep/asapp.h \
+		../../libAfterStep/screen.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/aswindata.h \
+		../../libAfterStep/event.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterStep/parser.h \
+		../../libAfterConf/afterconf.h \
+		ASDocGen.h \
+		xmlproc.h \
+		robodoc.h \
+		docfile.h \
+		datadoc.h

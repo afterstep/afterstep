@@ -44,7 +44,6 @@ flag_options_xref WindowBoxFlagsXref[] = {
  * file
  *
  ****************************************************************************/
-extern SyntaxDef     PopupFuncSyntax ;
 void input_context_destroy(ASHashableValue value, void *data);
 
 flag_options_xref FeelFlagsXref[] = {
@@ -353,7 +352,7 @@ Keyboard2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, struct FuncKey 
         d_tail = tail ;
         tail = Binding2FreeStorage (syntax, tail, ic->name, ic->cont, ic->mods, id);
         if( tail != d_tail && *d_tail )   /* saving our function as a sub-elem */
-            Func2FreeStorage( &FuncSyntax, &((*d_tail)->sub), ic->fdata );
+            Func2FreeStorage( pFuncSyntax, &((*d_tail)->sub), ic->fdata );
 		ic = ic->next ;
     }
     return tail;
@@ -374,7 +373,7 @@ Mouse2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, struct MouseButton
 		sprintf( &(buffer[0]), "%d", ic->Button );
         tail = Binding2FreeStorage (syntax, tail, buffer, ic->Context, ic->Modifier, id);
         if( tail != d_tail && *d_tail )   /* saving our function as a sub-elem */
-            Func2FreeStorage( &FuncSyntax, &((*d_tail)->sub), ic->fdata );
+            Func2FreeStorage( pFuncSyntax, &((*d_tail)->sub), ic->fdata );
 		ic = ic->NextButton ;
     }
     return tail;

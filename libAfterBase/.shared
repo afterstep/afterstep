@@ -20,6 +20,7 @@ LIBAFTERBASE_OBJS = \
 		$(LIBAFTERBASE_PATH)/xwrap.c
 
 LIBAFTERBASE_INCS = \
+		$(LIBAFTERBASE_PATH)/afterbase_config.h \
 		$(LIBAFTERBASE_PATH)/ashash.h \
 		$(LIBAFTERBASE_PATH)/aslist.h \
 		$(LIBAFTERBASE_PATH)/asvector.h \

@@ -4,7 +4,7 @@
 
 LIB_INCS= afterconf.h
 
-LIB_OBJS        = AfterStep.o AlignBevel.o Animate.o ASetRoot.o ASConfig.o Audio.o \
+LIB_OBJS        = AfterStep.o AlignBevel.o Animate.o ASetRoot.o Audio.o \
 		Base.o balloon.o Color.o Database.o Feel.o function.o Ident.o Look.o \
 		MyFrame.o MyStyle.o Pager.o Wharf.o WinList.o WinTabs.o
 

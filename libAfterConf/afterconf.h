@@ -91,8 +91,8 @@ extern struct SyntaxDef      PopupFuncSyntax;
 #define FUNC_ID_START           F_NOP   /* 0 */
 #define FUNC_ID_END           	F_FUNCTIONS_NUM
 
-extern struct TermDef FuncTerms[F_FUNCTIONS_NUM + 1];
-extern struct SyntaxDef FuncSyntax;
+extern struct SyntaxDef *pFuncSyntax;
+extern struct SyntaxDef DummyFuncSyntax;
 
 /* used in some "special" function to correctly process trailing function definition */
 unsigned long TrailingFuncSpecial (struct ConfigDef * config, struct FreeStorageElem ** storage, int skip_tokens);
@@ -208,6 +208,11 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_mask_ID  				(CONFIG_SUBOPTIONS_IDS+22)
 
 #define CONFIG_ID_END					(CONFIG_SUBOPTIONS_IDS+23)
+
+
+/* must call this one to fix all the pointers referencing libAfterStep */
+void LinkAfterStepConfig();
+
 
 /***************************************************************************/
 /*                        Base file pasring definitions                    */

@@ -161,6 +161,8 @@ main (int argc, char **argv)
 			   
 		}
 
+	LinkAfterStepConfig();
+
 	InitSession();
 
 	register_special_keywords();

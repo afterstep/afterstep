@@ -91,7 +91,7 @@ Func2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, FunctionData * fu
 
     folder_term->sub_syntax = &WharfSyntax ;
 
-	pterm = FindTerm (&FuncSyntax, TT_ANY, func->func);
+	pterm = FindTerm (pFuncSyntax, TT_ANY, func->func);
 	/* adding balloon free storage here */
 	if ((new_elem = AddFreeStorageElem (syntax, tail, pterm, WHARF_Wharf_ID)) != NULL)
 	{
@@ -330,7 +330,7 @@ complex_function_parse (char *tline, FILE * fd, char *list, int *count)
     sprintf( fpd.data, "Function %s\n", tline );
     LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
 	cd.fileptranddata = &fpd ;
-    ConfigReader = InitConfigReader ((char*)get_application_name(), &FuncSyntax, CDT_FilePtrAndData, cd, NULL);
+    ConfigReader = InitConfigReader ((char*)get_application_name(), pFuncSyntax, CDT_FilePtrAndData, cd, NULL);
     free( fpd.data );
 
     if (!ConfigReader)

@@ -180,6 +180,7 @@ main (int argc, char **argv)
     /* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, 0 );
+	LinkAfterStepConfig();
 
     memset( &PagerState, 0x00, sizeof(PagerState));
 	PagerState.page_rows = PagerState.page_columns = 1 ;

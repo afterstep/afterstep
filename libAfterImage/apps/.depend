@@ -63,6 +63,12 @@
 		../afterimage.h \
 		common.h
 
+./asview_gl.o: \
+		config.h \
+		../afterbase.h \
+		../afterimage.h \
+		common.h
+
 ./common.o: \
 		config.h \
 		../afterbase.h \

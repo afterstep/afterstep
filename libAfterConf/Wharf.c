@@ -89,7 +89,7 @@ SyntaxDef     WhevSyntax = {
     {0, "ForceSize", 9,         TT_GEOMETRY, WHARF_ForceSize_ID, NULL}
 
 #define WHARF_FOLDER_TERMS \
-	{TF_SPECIAL_PROCESSING, "", 0, TT_SPECIAL, WHARF_Wharf_ID, &FuncSyntax}, \
+	{TF_SPECIAL_PROCESSING, "", 0, TT_SPECIAL, WHARF_Wharf_ID, &DummyFuncSyntax}, \
 	{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR, WHARF_FOLDER_END, 7, TT_FLAG, WHARF_FolderEnd_ID, NULL}
 
 
@@ -806,12 +806,12 @@ WharfButton2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, WharfButto
 
 				memset (&tmp, 0x00, sizeof (FunctionData));
 				tmp.func = F_Folder;
-				Func2FreeStorage (&FuncSyntax, &(new_elem->sub), &tmp);
+				Func2FreeStorage (pFuncSyntax, &(new_elem->sub), &tmp);
 				WharfFolder2FreeStorage (syntax, &(new_elem->sub->sub), button->folder, False);
 
 			} else if (button->function)
 			{
-				Func2FreeStorage (&FuncSyntax, &(new_elem->sub), button->function);
+				Func2FreeStorage (pFuncSyntax, &(new_elem->sub), button->function);
 			}
 
 		}

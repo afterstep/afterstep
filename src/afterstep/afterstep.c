@@ -127,6 +127,8 @@ main (int argc, char **argv, char **envp)
 	    }
 	}
 
+	LinkAfterStepConfig();
+
     AfterStepState = MyArgs.flags ;
     clear_flags( AfterStepState, ASS_NormalOperation );
 	set_flags( AfterStepState, ASS_SuppressDeskBack );

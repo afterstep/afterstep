@@ -196,6 +196,7 @@ main (int argc, char **argv)
 	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_ASDOCGEN, argc, argv, NULL, NULL, 0 );
+	LinkAfterStepConfig();
 	InitSession();
     for( i = 1 ; i< argc ; ++i)
 	{

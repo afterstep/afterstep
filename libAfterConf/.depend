@@ -38,14 +38,6 @@
 		../libAfterImage/afterimage.h \
 		afterconf.h
 
-./ASConfig.o : \
-		../configure.h \
-		../libAfterStep/asapp.h \
-		../libAfterStep/afterstep.h \
-		../libAfterStep/parser.h \
-		../libAfterStep/hints.h \
-		afterconf.h
-
 ./Audio.o : \
 		../configure.h \
 		../libAfterStep/asapp.h \

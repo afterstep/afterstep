@@ -31,6 +31,26 @@
 
 #include "afterconf.h"
 
+SyntaxDef DummyFuncSyntax = {
+    '\0',   '\n',	NULL,
+	0, 		' ',	"",			"\t",
+	"AfterStep Function",
+	"Functions",
+	"built in AfterStep functions",
+	NULL,	0
+};
+
+SyntaxDef     DummyPopupFuncSyntax = {
+	'\n',	'\0',	NULL,
+	0, 		' ',	"\t",		"\t",
+    "Popup/Complex function definition",
+	"Popup",
+	"",	
+	NULL,	0
+};
+
+
+
 
 
 TermDef       SupportedHintsTerms[] =
@@ -115,7 +135,7 @@ TermDef includeTerms[] =
   {TF_NO_MYNAME_PREPENDING, "extension", 12         , TT_TEXT       , INCLUDE_extension_ID          , NULL},
   {TF_NO_MYNAME_PREPENDING, "miniextension", 12     , TT_TEXT       , INCLUDE_miniextension_ID      , NULL},
   {TF_NO_MYNAME_PREPENDING, "minipixmap", 12        , TT_FILENAME   , INCLUDE_minipixmap_ID         , NULL},
-  {TF_NO_MYNAME_PREPENDING, "command", 12           , TT_FLAG  		, INCLUDE_command_ID          	, &FuncSyntax},
+  {TF_NO_MYNAME_PREPENDING, "command", 12           , TT_FLAG  		, INCLUDE_command_ID          	, &DummyFuncSyntax},
   {TF_NO_MYNAME_PREPENDING, "order", 12           	, TT_INTEGER    , INCLUDE_order_ID       		, NULL},
   {TF_NO_MYNAME_PREPENDING, "RecentSubmenuItems", 12, TT_INTEGER    , INCLUDE_RecentSubmenuItems_ID , NULL},
   {TF_NO_MYNAME_PREPENDING, "name", 12           	, TT_TEXT       , INCLUDE_name_ID          		, NULL},
@@ -251,11 +271,9 @@ SyntaxDef includeSyntax =
 /**************************************************************************
  * FEEL terms : 
  **************************************************************************/
-extern struct SyntaxDef PopupFuncSyntax;
-extern struct SyntaxDef FuncSyntax;
 
-#define POPUP_TERM 		{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Popup",5                   , TT_QUOTED_TEXT, FEEL_Popup_ID             , &PopupFuncSyntax}
-#define FUNCTION_TERM 	{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Function",8                , TT_QUOTED_TEXT, FEEL_Function_ID          , &PopupFuncSyntax}
+#define POPUP_TERM 		{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Popup",5                   , TT_QUOTED_TEXT, FEEL_Popup_ID             , &DummyPopupFuncSyntax}
+#define FUNCTION_TERM 	{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Function",8                , TT_QUOTED_TEXT, FEEL_Function_ID          , &DummyPopupFuncSyntax}
   
 #define AFTERSTEP_FEEL_TERMS \
   {TF_NO_MYNAME_PREPENDING, "ClickToFocus",12           , TT_FLAG       , FEEL_ClickToFocus_ID          , NULL}, \
@@ -316,10 +334,10 @@ extern struct SyntaxDef FuncSyntax;
   {TF_INDEXED|TF_NO_MYNAME_PREPENDING, "CustomCursor",12    , TT_CURSOR     , FEEL_CustomCursor_ID      , NULL}
 
 #define AFTERSTEP_MOUSE_TERMS \
-  {TF_SPECIAL_PROCESSING|TF_NO_MYNAME_PREPENDING, "Mouse",5, TT_BINDING , FEEL_Mouse_ID  				, &FuncSyntax}
+  {TF_SPECIAL_PROCESSING|TF_NO_MYNAME_PREPENDING, "Mouse",5, TT_BINDING , FEEL_Mouse_ID  				, &DummyFuncSyntax}
 
 #define AFTERSTEP_KEYBOARD_TERMS \
-  {TF_SPECIAL_PROCESSING|TF_NO_MYNAME_PREPENDING, "Key",3  , TT_BINDING , FEEL_Key_ID    				, &FuncSyntax}
+  {TF_SPECIAL_PROCESSING|TF_NO_MYNAME_PREPENDING, "Key",3  , TT_BINDING , FEEL_Key_ID    				, &DummyFuncSyntax}
 
 #define AFTERSTEP_WINDOWBOX_TERMS \
   {TF_NO_MYNAME_PREPENDING, "WindowBox", 9,				TT_QUOTED_TEXT, FEEL_WindowBox_ID				, &WindowBoxSyntax}
@@ -433,6 +451,7 @@ TermDef FunctionTerms[] =
   {0, NULL, 0, 0, 0}
 };
 
+extern TermDef       WharfTerms[];
 
 /**************************************************************************
  * Syntaxes : 
@@ -455,4 +474,32 @@ SyntaxDef AfterStepCursorSyntax 	={ '\n', '\0', AfterStepCursorTerms,   		0, '\t
 SyntaxDef AfterStepMouseSyntax 		={ '\n', '\0', MouseBindingTerms, 			0, '\t', "", "\t", "MouseBindings", "MouseBindings", "AfterStep MouseBinding configuration", NULL, 0};
 SyntaxDef AfterStepKeySyntax 		={ '\n', '\0', KeyboardBindingTerms,   		0, '\t', "", "\t", "KeyboardBindings", "KeyboardBindings", "AfterStep KeyboardBinding configuration", NULL, 0};
 SyntaxDef AfterStepWindowBoxSyntax 	={ '\n', '\0', AfterStepWindowBoxTerms,		0, '\t', "", "\t", "WindowBoxes", "WindowBoxes", "AfterStep WindowBox configuration", NULL, 0};
+
+
+void LinkAfterStepConfig()
+{
+	int i = 0;
+	TermDef *termsets[] = {includeTerms,	
+						FeelTerms,	
+						MouseBindingTerms,	
+						KeyboardBindingTerms,	
+						PopupTerms,	
+						FunctionTerms,
+						WharfTerms,
+						NULL } ;
+	while( termsets[i] ) 
+	{
+		TermDef *terms = termsets[i] ; 
+		int k = 0 ; 
+		while( terms[k].keyword != NULL ) 
+		{
+			if( terms[k].sub_syntax == &DummyFuncSyntax ) 
+				terms[k].sub_syntax = pFuncSyntax ; 
+			else if( terms[k].sub_syntax == &DummyPopupFuncSyntax ) 
+				terms[k].sub_syntax = pPopupFuncSyntax ; 
+			++k ;	
+		}	 
+		++i ;	
+	}	 
+}	 
 

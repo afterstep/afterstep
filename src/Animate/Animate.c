@@ -387,6 +387,8 @@ main (int argc, char **argv)
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_ANIMATE, argc, argv, NULL, NULL, 0 );
 
+	LinkAfterStepConfig();
+
     ConnectX( ASDefaultScr, 0 );
     ConnectAfterStep ( mask_reg, mask_lock_on_send );
 	

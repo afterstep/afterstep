@@ -83,6 +83,7 @@ main (int argc, char **argv)
 	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_AUDIO, argc, argv, NULL, NULL, 0 );
+	LinkAfterStepConfig();
 
     ConnectX( ASDefaultScr, PropertyChangeMask );
     ConnectAfterStep ( mask_reg, 0 );

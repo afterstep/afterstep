@@ -3,7 +3,8 @@
 		config.h \
 		asvisual.h \
 		blender.h \
-		asimage.h
+		asimage.h \
+		ascmap.h
 
 ./ascmap.o : \
 		win32/config.h \
@@ -55,6 +56,14 @@
 		win32/config.h \
 		config.h \
 		char2uni.h
+
+./draw.o : \
+		win32/config.h \
+		config.h \
+		asvisual.h \
+		asimage.h \
+		draw.h \
+		afterimage.h
 
 ./export.o : \
 		win32/config.h \
