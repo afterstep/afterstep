@@ -1961,6 +1961,7 @@ make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, 
 	int           detach_x, detach_y;
 	int           grav_x, grav_y;
 	int           bw = 0;
+	int width, height ;
 
 	if (hints == NULL || status == NULL || anchor == NULL)
 		return NULL;
@@ -1979,6 +1980,15 @@ make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, 
 
     detach_x = gravitate_position (detach_x, anchor->width, bw, scr->MyDisplayWidth, grav_x);
     detach_y = gravitate_position (detach_y, anchor->height, bw, scr->MyDisplayHeight, grav_y);
+    
+    width = anchor->width ; 
+    height = anchor->height ;
+    
+    if( hints->width_inc > 0 ) 
+	width /= hints->width_inc ; 
+    if( hints->height_inc > 0 ) 
+	height /= hints->height_inc ; 
+	
 
 	/* supplying everything as : -xrm "afterstep*desk:N" */
 	client_cmd = safemalloc (strlen (hints->client_cmd) + 512 /* large enough */ );
@@ -1986,7 +1996,7 @@ make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, 
 			 " -xrm \"afterstep*layer:%d\""
 			 " -xrm \"afterstep*viewportx:%d\" -xrm \"afterstep*viewporty:%d\"",
 			 hints->client_cmd,
-             anchor->width, anchor->height, detach_x, detach_y, status->desktop,
+             width, height, detach_x, detach_y, status->desktop,
 			 status->layer, status->viewport_x, status->viewport_y);
 	return client_cmd;
 }

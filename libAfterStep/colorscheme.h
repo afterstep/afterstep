@@ -179,5 +179,5 @@ void populate_ascs_colors_xml( ASColorScheme *cs );
 
 
 
-#endif COLORSCHEME_H_HEADER_DEFINED
+#endif
 

@@ -78,6 +78,10 @@ module_setup_socket ()
 
         if( tmpdir == NULL )
             tmpdir = default_tmp_dir ;
+	if( access( tmpdir, W_OK ) != 0 ) 
+	    if( (tmpdir = getenv( "HOME" )) == NULL ) 
+		return False ;		    
+	    
         tmp = safemalloc (strlen(tmpdir)+11+32 + strlen (display) + 1);
         sprintf (tmp, "%s/afterstep-%d.%s", tmpdir, getuid(), display);
 		LOCAL_DEBUG_OUT("using socket \"%s\" for intermodule communications", tmp);
