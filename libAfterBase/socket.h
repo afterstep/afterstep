@@ -1,6 +1,8 @@
 #ifndef AS_SOCKET_H_HEADER_INCLUDED
 #define AS_SOCKET_H_HEADER_INCLUDED
 
+struct ASBiDirList;
+
 /* socket setup code :		 														   */
 int socket_connect_client (const char *socket_name);
 int socket_listen (const char *socket_name);
@@ -19,11 +21,11 @@ int socket_listen (const char *socket_name);
 #define as_hlton16(ui16)		as_ntohl(ui16)     /* conversion is symmetrical */
 #endif
 
-/* buffered write operations : 														   */
+/* simple buffered write operations : 	*/
 typedef struct ASSocketBuffer
 {
 	int fd ;
-#define AS_SOCK_BUFFER_SIZE		1024
+#define AS_SOCK_BUFFER_SIZE		2048           /* single page */
 	int   bytes_in ;
 	CARD8 buffer[AS_SOCK_BUFFER_SIZE] ;
 }ASSocketBuffer;
@@ -34,7 +36,33 @@ void socket_write_int16 (ASSocketBuffer *sb, CARD16 *data, size_t items );
 void socket_write_string (ASSocketBuffer *sb, const char *string);
 void socket_write_flush ( ASSocketBuffer *sb );
 
-/* signal safe socket read operations : 											   */
+/* More complex signal safe and overflow safe socket write operations (FIFO): */
+typedef struct ASFIFOPacket
+{
+	int 	ref_count ;          /* number of queues we are participating in */
+	time_t  added_time ;         /* so we can implement per-packet timeouts */
+	size_t  bytes_in, bytes_out ;
+	CARD8  *buffer ;
+}ASFIFOPacket;
+
+typedef struct ASFIFOQueue
+{
+	/* output pipe : */
+	int fd ;
+	/* actuall queue : */
+	struct ASBiDirList  queue ;
+}ASFIFOQueue;
+
+ASFIFOPacket *form_fifo_packet( CARD8* buffer, size_t size );
+void dereference_packet( ASFIFOPacket **ppacket );  /* destroys packet when its ref_count reaches 0 */
+
+ASFIFOQueue *create_fifo( int fd );
+size_t 		add_fifo_packet( ASFIFOQueue *fifo, ASFIFOPacket *packet );
+size_t 		send_fifo( ASFIFOQueue *fifo );     /* attempts to send next packet */
+void 		purge_fifo( ASFIFOQueue *fifo );
+void 		destroy_fifo( ASFIFOQueue **pfifo);
+
+/* signal safe socket read operations :   */
 
 typedef struct ASProtocolItemSpec
 {

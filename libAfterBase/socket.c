@@ -37,6 +37,7 @@
 #include "config.h"
 #include "astypes.h"
 #include "audit.h"
+#include "aslist.h"
 #include "output.h"
 #include "socket.h"
 
@@ -254,6 +255,84 @@ socket_write_string (ASSocketBuffer *sb, const char *string)
 			socket_buffered_write (sb, string, len);
 	}
 }
+
+/**********************************************************************/
+/* More complex signal safe and overflow safe socket write operations (FIFO): */
+/**********************************************************************/
+
+ASFIFOPacket *
+form_fifo_packet( CARD8* buffer, size_t size )
+{
+	if( size > 0 && buffer )
+	{
+		register ASFIFOPacket *p = safecalloc( 1, sizeof(ASFIFOPacket) );
+		p->buffer = safemalloc( size );
+		memcpy( p->buffer, buffer, size );
+		p->bytes_in = size ;
+		return p;
+	}
+	return NULL;
+}
+
+void
+dereference_packet( ASFIFOPacket **ppacket )
+{
+	ASFIFOPacket *p = *ppacket ;
+	if( p )
+		if( --(p->ref_count) )
+		{
+			free( p->buffer );
+			free( p );
+			*ppacket = NULL ;
+		}
+}
+
+void
+remove_fifo_packet( void *data )
+{
+	ASFIFOPacket *p = data ;
+	dereference_packet( &p );
+}
+
+ASFIFOQueue  *
+create_fifo( int fd )
+{
+	ASFIFOQueue  *fifo = NULL ;
+	if( fd >= 0 )
+	{
+		fifo = safecalloc( 1, sizeof(ASFIFOQueue) );
+		fifo->fd = fd ;
+		fifo->queue.destroy_func = remove_fifo_packet ;
+	}
+	return fifo;
+}
+
+inline void
+purge_fifo_queue( ASFIFOQueue *fifo )
+{
+	if( fifo )
+		purge_asbidirlist( &(fifo->queue) );
+}
+
+size_t
+send_fifo_queue( ASFIFOQueue *fifo )
+{
+	size_t written = 0 ;
+
+	return written;
+}
+
+void
+destroy_fifo_queue( ASFIFOQueue **pfifo)
+{
+	ASFIFOQueue *p = *pfifo;
+	if( p )
+	{
+		purge_fifo_queue( p );
+		free( p );
+	}
+}
+
 
 /***************************************************************************************/
 /* signal safe socket read operations : 											   */

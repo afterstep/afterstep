@@ -23,12 +23,12 @@
 # asapp.c, screen.c trace.c needs to be split up into
 # generic and AS-specific code :
 
-LIB_INCS=	ashash.h asvector.h astypes.h audit.h \
+LIB_INCS=	ashash.h aslist.h asvector.h astypes.h audit.h \
 		fs.h layout.h mystring.h os.h output.h parse.h \
 		regexp.h safemalloc.h selfdiag.h \
 		sleep.h socket.h timer.h trace.h xprop.h xwrap.h
 
-LIB_OBJS=	ashash.o asvector.o audit.o \
+LIB_OBJS=	ashash.o aslist.o asvector.o audit.o \
 		fs.o layout.o mystring.o os.o output.o parse.o \
 		regexp.o safemalloc.o selfdiag.o \
 		sleep.o socket.o timer.o trace.o xprop.o xwrap.o
@@ -40,7 +40,7 @@ LIB_OBJS=	ashash.o asvector.o audit.o \
 LIB_NAME        = LIBAFTERBASE
 LIB_STATIC      = libAfterBase.a
 LIB_SHARED      = libAfterBase.so
-LIBVER          = 0.81
+LIBVER          = 0.91
 LIBVERMAJOR     = 0
 
 CC		= @CC@
