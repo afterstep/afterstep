@@ -627,8 +627,8 @@ LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
 		}else
 		{
 			XRectangle rect ;
-			rect.x = child_x - child_bw ;
-			rect.y = child_y - child_bw ;
+			rect.x = child_x ;
+			rect.y = child_y ;
 			rect.width = child_width + child_bw*2 ;
 			rect.height = child_height + child_bw*2 ;
             LOCAL_DEBUG_OUT( "adding child's shape as whole rectangle: %dx%d%+d%+d", rect.width, rect.height, rect.x, rect.y );

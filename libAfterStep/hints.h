@@ -245,6 +245,8 @@ Bool update_colormaps( struct ScreenInfo *scr, Window w, ASSupportedHints *list,
 Bool update_property_hints( Window w, Atom property, ASHints *hints, ASStatusHints *status );
 Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *list,
                                     ASHints *hints, ASStatusHints *status );
+void update_cmd_line_hints (Window w, Atom property, 
+					   ASHints * hints, ASStatusHints * status);
 
 void check_status_sanity (struct ScreenInfo * scr, ASStatusHints * status);
 void check_hints_sanity (struct ScreenInfo * scr, ASHints * clean);

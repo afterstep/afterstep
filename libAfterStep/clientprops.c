@@ -1138,6 +1138,10 @@ handle_manager_property_update (Window w, Atom property, ASRawHints * raw)
 			read_func = read_wm_cmap_windows;
 		else if (property == _XA_WM_STATE)
 			read_func = read_wm_state;
+		else if (property == _XA_WM_COMMAND)
+			read_func = read_wm_command;
+		else if (property == _XA_WM_CLIENT_MACHINE)
+			read_func = read_wm_client_machine;
 		else
 		{
 			show_debug (__FILE__, __FUNCTION__, __LINE__, "unknown property %X", property);
@@ -1150,6 +1154,7 @@ handle_manager_property_update (Window w, Atom property, ASRawHints * raw)
 
 	return False;
 }
+
 
 
 /**********************************************************************************/

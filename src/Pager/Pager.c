@@ -683,12 +683,12 @@ place_desk_title( ASPagerDesk *d )
         if( get_flags(Config->flags, VERTICAL_LABEL) )
         {
             if( get_flags(Config->flags, LABEL_BELOW_DESK) )
-                x = PagerState.desk_width ;
+                x = PagerState.desk_width - width;
             height = PagerState.desk_height ;
         }else
         {
             if( get_flags(Config->flags, LABEL_BELOW_DESK) )
-                y = PagerState.desk_height ;
+                y = PagerState.desk_height - height;
             width = PagerState.desk_width ;
         }
         move_astbar( d->title, d->desk_canvas, x, y);
@@ -709,7 +709,7 @@ place_desk_background( ASPagerDesk *d )
     }
 
     move_astbar( d->background, d->desk_canvas, x, y);
-    set_astbar_size( d->background, PagerState.desk_width, PagerState.desk_height );
+    set_astbar_size( d->background, PagerState.desk_width-x, PagerState.desk_height-y );
 }
 
 static Bool
@@ -827,6 +827,7 @@ update_pager_shape()
 		unsigned int d_width, d_height, bw ;
 
         get_current_canvas_geometry( d->desk_canvas, &x, &y, &d_width, &d_height, &bw );
+		LOCAL_DEBUG_OUT( "desk geometry = %dx%d%+d%+d, bw = %d", d_width, d_height, x, y, bw );
 		combine_canvas_shape_at_geom( PagerState.main_canvas, d->desk_canvas, x, y, d_width, d_height, bw );
 
 	    if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
@@ -857,12 +858,12 @@ update_pager_shape()
 	    clear_flags( d->flags, ASP_ShapeDirty );
     }
 	border[0].x = 0 ;
-	border[0].y = PagerState.main_canvas->height - 1 ;
+	border[0].y = PagerState.main_canvas->height - Config->border_width ;
 	border[0].width = PagerState.main_canvas->width ;
-	border[0].height = 1 ;
-	border[1].x = PagerState.main_canvas->width - 1 ;
+	border[0].height = Config->border_width ;
+	border[1].x = PagerState.main_canvas->width - Config->border_width ;
 	border[1].y = 0 ;
-	border[1].width = 1 ;
+	border[1].width = Config->border_width ;
 	border[1].height = PagerState.main_canvas->height ;
 
 	add_shape_rectangles( PagerState.main_canvas->shape, &(border[0]), 2, 0, 0, PagerState.main_canvas->width, PagerState.main_canvas->height );
@@ -881,9 +882,7 @@ calculate_desk_width( ASPagerDesk *d )
 	if( get_flags( Config->flags, VERTICAL_LABEL ) && d->title_width > 0 )
     {
         if( get_flags( d->flags, ASP_DeskShaded ) )
-            width = d->title_width;
-        else
-            width += d->title_width;
+            width = d->title_width+Config->border_width;
     }
     return width;
 }
@@ -896,9 +895,7 @@ calculate_desk_height( ASPagerDesk *d )
     if( !get_flags( Config->flags, VERTICAL_LABEL ) && d->title_height > 0 )
     {
         if( get_flags( d->flags, ASP_DeskShaded ) )
-            height = d->title_height;
-        else
-            height += d->title_height;
+            height = d->title_height+Config->border_width;
     }
     return height;
 }
@@ -1242,7 +1239,6 @@ rearrange_pager_desks(Bool dont_resize_main )
     int i ;
     int col = 0;
     int x = 0, y = 0, row_height = 0;
-	int desk_bw = Config->border_width ;
     /* Pass 1: first we must resize or main window !!! */
     update_main_canvas_config();
     if( !dont_resize_main )
@@ -1257,24 +1253,26 @@ rearrange_pager_desks(Bool dont_resize_main )
             height = calculate_desk_height( d );
 
             if( height > row_height )
-                row_height = height+Config->border_width;
+                row_height = height;
 
             if( ++col >= Config->columns )
             {
-                if( all_width < x+desk_bw+width+desk_bw )
-                    all_width = x+desk_bw+width+desk_bw ;
-                y += row_height+desk_bw;
+                if( all_width < x+width )
+                    all_width = x+width ;
+                y += row_height;
 
                 row_height = 0 ;
                 x = 0 ;
                 col = 0;
             }else
-                x += width+desk_bw;
+                x += width;
         }
-        if( all_width < x+desk_bw )
-            all_width = x+desk_bw ;
-        if( all_height < y+row_height+desk_bw )
-            all_height = y+row_height+desk_bw;
+        if( all_width < x )
+            all_width = x ;
+        if( all_height < y+row_height )
+            all_height = y+row_height;
+		all_width += Config->border_width ;
+		all_height += Config->border_width ;
         if( PagerState.main_canvas->width != all_width || PagerState.main_canvas->height != all_height )
         {
             resize_canvas( PagerState.main_canvas, all_width, all_height );
@@ -1292,10 +1290,10 @@ rearrange_pager_desks(Bool dont_resize_main )
         width = calculate_desk_width( d );
         height = calculate_desk_height( d );
 
-        place_desk( d, x, y, width, height );
+        place_desk( d, x, y, width-Config->border_width, height-Config->border_width );
 
         if( height > row_height )
-            row_height = height+desk_bw;
+            row_height = height;
 
         if( ++col >= Config->columns )
         {
@@ -1304,7 +1302,7 @@ rearrange_pager_desks(Bool dont_resize_main )
             x = 0 ;
             col = 0;
         }else
-            x += width+desk_bw;
+            x += width;
     }
     ASSync(False);
 }
@@ -1312,77 +1310,80 @@ rearrange_pager_desks(Bool dont_resize_main )
 unsigned int
 calculate_pager_desk_width()
 {
-    int main_width = PagerState.main_canvas->width - (Config->columns+1)*Config->border_width;
+    int main_width = PagerState.main_canvas->width - Config->border_width;
     if( !get_flags( Config->flags, VERTICAL_LABEL ) )
         return main_width/Config->columns;
     else
     {
         unsigned int unshaded_col_count = 0 ;
-        unsigned int label_width = 0 ;
+        unsigned int shaded_width = 0 ;
         int col = 0 ;
         /* we have to calculate the number of not-shaded columns,
         * and then devide size of the main canvas by this number : */
         for( col = 0 ; col < Config->columns ; ++col )
         {
             Bool unshaded = False ;
-            unsigned int col_label_width = 0 ;
+            unsigned int col_shaded_width = 0 ;
             int i ;
 
             for( i = col ; i < PagerState.desks_num ; i+= Config->columns )
             {
                 ASPagerDesk *d = &(PagerState.desks[i]);
-                if( col_label_width < d->title_width )
-                    col_label_width = d->title_width ;
                 if( !get_flags(d->flags, ASP_DeskShaded )  )
                     unshaded = True ;
+				else if( col_shaded_width < d->title_width )
+                    col_shaded_width = d->title_width ;
             }
             if( unshaded )
                 ++unshaded_col_count ;
-            label_width += col_label_width ;
+            shaded_width += col_shaded_width ;
         }
 
 LOCAL_DEBUG_OUT( "unshaded_col_count = %d", unshaded_col_count );
         if( unshaded_col_count == 0 )
             return PagerState.desk_width;
-        return (main_width-label_width)/unshaded_col_count;
+        return (main_width-shaded_width)/unshaded_col_count;
     }
 }
 
 unsigned int
 calculate_pager_desk_height()
 {
-    int main_height = PagerState.main_canvas->height - (Config->rows+1)*Config->border_width ;
+    int main_height = PagerState.main_canvas->height - Config->border_width ;
     if( get_flags( Config->flags, VERTICAL_LABEL ) )
         return main_height/Config->rows;
     else
     {
         unsigned int unshaded_row_count = 0 ;
-        unsigned int label_height = 0 ;
+        unsigned int shaded_height = 0 ;
         int row ;
         /* we have to calculate the number of not-shaded columns,
         * and then devide size of the main canvas by this number : */
         for( row = 0 ; row < Config->rows ; ++row )
         {
             Bool unshaded = False ;
-            unsigned int row_label_height = 0 ;
-            int i ;
-
-            for( i = row*Config->columns ; i < PagerState.desks_num ; ++i  )
+            unsigned int row_shaded_height = 0 ;
+            int i, max_i = (row+1)*Config->columns ;
+			
+			if( max_i > PagerState.desks_num )
+				max_i = PagerState.desks_num ;
+				
+            for( i = row*Config->columns ; i < max_i ; ++i  )
             {
                 ASPagerDesk *d = &(PagerState.desks[i]);
-                if( row_label_height < d->title_height )
-                    row_label_height = d->title_height ;
                 if( !get_flags(d->flags, ASP_DeskShaded )  )
                     unshaded = True ;
+				else if( row_shaded_height < d->title_height )
+                    row_shaded_height = d->title_height ;
             }
             if( unshaded )
                 ++unshaded_row_count ;
-            label_height += row_label_height ;
+            shaded_height += row_shaded_height ;
         }
 LOCAL_DEBUG_OUT( "unshaded_row_count = %d", unshaded_row_count );
         if( unshaded_row_count == 0 )
             return PagerState.desk_height;
-        return (main_height - label_height)/unshaded_row_count;
+        return (main_height - shaded_height)/unshaded_row_count;
     }
 }
 

@@ -1273,8 +1273,27 @@ update_property_hints (Window w, Atom property, ASHints * hints, ASStatusHints *
 			if ((changed = (((status->flags & EXTWM_AFFECTED_STATE) ^ new_state) != 0)))
 				status->flags = new_state | (status->flags & EXTWM_AFFECTED_STATE);
 		}
+		destroy_raw_hints (&raw, True);
+
 	}
 	return changed;
+}
+
+/* same as above only for window manager : */
+void
+update_cmd_line_hints (Window w, Atom property, 
+					   ASHints * hints, ASStatusHints * status)
+{
+	ASRawHints    raw;
+
+	memset (&raw, 0x00, sizeof (ASRawHints));
+	raw.scr = &Scr;
+	show_debug (__FILE__, __FUNCTION__, __LINE__, "trying to handle property change");
+	if (handle_manager_property_update (w, property, &raw))
+	{
+		merge_command_line (hints, status, &raw);
+		destroy_raw_hints (&raw, True);		
+	}
 }
 
 /* same as above only for window manager : */
@@ -1362,6 +1381,7 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 			}
 		}
 		destroy_hints (&clean, True);
+		destroy_raw_hints (&raw, True);		
 	} else
 		show_debug (__FILE__, __FUNCTION__, __LINE__, "failed to handle property update");
 

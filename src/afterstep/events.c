@@ -782,7 +782,10 @@ HandlePropertyNotify (ASEvent *event)
 		if( old_name )
 			free( old_name );
     /* otherwise we should check if this is the status property that we change ourselves : */
-    }else if( NeedToTrackPropChanges(atom) )
+    }else if( atom == XA_WM_COMMAND || atom == XA_WM_CLIENT_MACHINE )
+	{
+		update_cmd_line_hints (asw->w, atom, asw->hints, asw->status );
+	}else if( NeedToTrackPropChanges(atom) )
         on_window_hints_changed( asw );
     /* we have to do the complete refresh of hints, since we have to override WH_HINTS with database, etc. */
 }
