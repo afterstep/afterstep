@@ -1,4 +1,52 @@
 
+2005-03-01  sasha
+
+	* added support for IMAGE_PATH env var to all apps in libAfterImage
+	  enabling them to view images installed in different afterstep
+	  directories
+	* some docs additions
+	* fixed bugs: segfault and mem corruption in ASStorage when
+	  compressed size exceeds buffer size; Proper encoding usage in
+	  winlist menus - for UTF8 encoded window names; Proper encoding
+	  usage in balloons - it was using ASCII regardless; Proper font in
+	  Pager with support for international chars instead of 5x8;
+	  Handling of $HOME at the beginning of include statements of
+	  .include files
+
+2005-02-28  sasha
+
+	* added experimental image transfer code using OpenGL API
+	* more performance testing with OpenGL
+	* gl timing
+
+2005-02-25  sasha
+
+	* added prototype of image transfer to X using GLX - to see if its
+	  any faster
+	* fixed compile warning
+	* updated configure to exclude Save
+
+2005-02-23  sasha
+
+	* implemented scratch canvas functionality in draw.c to facilitate
+	  fill operation on some countours; Added draw.h header
+
+2005-02-22  sasha
+
+	* changed ~ to //home/sasha
+	* added FONT_PATH and IMAGE_PATH to set of envvars put out by
+	  AfterStep
+	* compilation warnings and bugs submitted by Valeriy Onuchin
+
+2005-01-21  sasha
+
+	* added recovery code for malformed gifs not having zero length
+	  block at the end of compressed data
+
+2005-01-20  sasha
+
+	* updated ChangeLog for 2.00.02 release
+
 2005-01-18  sasha
 
 	* fixed configure for CYGWIN to build proper lib type. Implemented

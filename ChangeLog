@@ -1,6 +1,154 @@
 
+2005-03-02  sasha
+
+	* updated NEW file to 2.00.03 release
+	* fixed longstanding bug with windows not being properly delisted
+	  from iconbox. Thanks Debian users
+
+2005-03-01  sasha
+
+	* added more text in ASDocGen sources
+	* added support for IMAGE_PATH env var to all apps in libAfterImage
+	  enabling them to view images installed in different afterstep
+	  directories
+	* some docs additions
+	* fixed bugs: segfault and mem corruption in ASStorage when
+	  compressed size exceeds buffer size; Proper encoding usage in
+	  winlist menus - for UTF8 encoded window names; Proper encoding
+	  usage in balloons - it was using ASCII regardless; Proper font in
+	  Pager with support for international chars instead of 5x8;
+	  Handling of $HOME at the beginning of include statements of
+	  .include files
+
+2005-02-28  born2late
+
+	* missing commits ?
+
+2005-02-28  sasha
+
+	* added experimental image transfer code using OpenGL API
+	* more performance testing with OpenGL
+	* gl timing
+
+2005-02-25  sasha
+
+	* added prototype of image transfer to X using GLX - to see if its
+	  any faster
+	* fixed compile warning
+
+2005-02-25  born2late
+
+	* monkey error corrections
+	* windowbox almost complete now
+	* hopefully i can sort my mess out one day
+
+2005-02-25  sasha
+
+	* fixed rectangle list compilation for placement purposes - some
+	  rectangles were being lost
+	* updated configure to exclude Save
+
+2005-02-24  sasha
+
+	* updated doc source tree
+	* Fixed left buttons align in QNX theme to work for vertical tbars
+	* fixed bug screwing up titlebar on look change if frame decor size
+	  had changed
+
+2005-02-23  sasha
+
+	* removed unneeded Save module
+	* fixed handling WharfNoBorder
+	* Fixed handling of RandomPlacement - it should not fallback to
+	  Manual
+	* fixed handling of DefaultGeometry in database
+	* implemented scratch canvas functionality in draw.c to facilitate
+	  fill operation on some countours; Added draw.h header
+	* fixed bug in PutHome having random concatenation symbol in the
+	  middle
+
+2005-02-22  sasha
+
+	* changed ~ to //home/sasha
+	* fixed afterstep defaults
+	* added FONT_PATH and IMAGE_PATH to set of envvars put out by
+	  AfterStep
+	* compilation warnings and bugs submitted by Valeriy Onuchin
+
+2005-02-18  sasha
+
+	* implemented new feture allowing for Hue/Saturation adjustment of
+	  the titlebars using TitleHue and TitleSat in MyFrame. Fixed
+	  look.Unity to take advantage of this
+
+2005-02-17  sasha
+
+	* fixed compile error in screenshot function and ugly string code
+	  in the same place
+
+2005-02-17  vae
+
+	* added one more comment
+	* added postcard.sh ... configure needs to fix FILE.  and it needs
+	  to be put into /usr/share/afterstep/autoexec as xterm -e
+	  postcard.sh with the path and stuff.
+
+2005-02-17  sasha
+
+	* completed look.Unity
+	* added look.Unity's frame
+
+2005-02-16  sasha
+
+	* completed look.Unity titlebar
+	* added remaining buttons to look.Unity
+	* look.Unity progress; Fixed align flags translation for vertical
+	  tbars; Added new feature Left/RightBtnAlign to MyFrame
+
+2005-02-16  born2late
+
+	* typo correction
+
+2005-02-15  sasha
+
+	* added look.Unity - still needs work
+
+2005-02-15  vae
+
+	* xprop needed two calls, not one, now.
+
+2005-02-09  born2late
+
+	* minor corrections to the docs
+
+2005-02-05  born2late
+
+	* hopefully extracted _all_ info from NEW file.
+
+2005-01-31  born2late
+
+	* MyBackground doc fills
+
+2005-01-28  vae
+
+	*
+	  Added my beautifully pilfered mozilla logos
+
+2005-01-26  sasha
+
+	* added checks for environ decl, and implemented fallback procedure
+
+2005-01-21  sasha
+
+	* fixed wm restart process to pass proper environment to the
+	  process, including DISPLAY var
+	* added recovery code for malformed gifs not having zero length
+	  block at the end of compressed data
+
 2005-01-20  sasha
 
+	* fixed compile warning in desktop switching function
+	* updated ChangeLog for 2.00.02 release
 	* AfterStep 2.00.02 release
 
 2005-01-19  sasha
@@ -3897,8 +4045,6 @@
 	  Fixed typo in Initialization.
 	*
 	  Fixed repeated misspeelings.
-	*
-	  Fixed typo.
 	*
 	  Minor change to phrasing under ``Configuration File"
 
