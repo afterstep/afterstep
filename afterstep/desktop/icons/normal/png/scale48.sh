@@ -8,5 +8,5 @@ else
   else
     out_fname=$2;
   fi
-  ascompose -n -o $out_fname -t png -s "<scale width=48 height=48><img src=$1/> </scale>";
+  ascompose -n -o $out_fname -t png -c 9 -s "<scale width=48 height=48><img src=$1/> </scale>";
 fi
