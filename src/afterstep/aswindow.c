@@ -113,6 +113,28 @@ check_aswindow_name_unique( char *name, ASWindow *asw )
 	return True;
 }
 
+// ask for program command line
+char *pid2cmd ( int pid )
+{
+#define MAX_CMDLINE_SIZE 2048
+   	FILE *f;
+   	static char buf[MAX_CMDLINE_SIZE];
+	static char path[128];
+	char *cmd = NULL ;
+
+	sprintf (path, "/proc/%d/cmdline", pid);
+   	if ((f = fopen (path, "r")) !=NULL )
+	{	
+		if( fgets (buf, MAX_CMDLINE_SIZE, f) != NULL )
+		{	
+			buf[MAX_CMDLINE_SIZE-1] = '\0' ;
+			cmd = mystrdup( &buf[0] );
+		}		
+	}
+    fclose (f);
+	return cmd;
+}
+
 Bool
 make_aswindow_cmd_iter_func(void *data, void *aux_data)
 {
@@ -120,87 +142,94 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
     ASWindow *asw = (ASWindow*)data ;
     if( asw && swad )
     {
-        if( asw->hints->client_host && asw->hints->client_cmd )
-            if( mystrcasecmp( asw->hints->client_host, swad->this_host ) == 0 )
-            {
-				char *pure_geometry = NULL ;
-				char *geom = make_client_geometry_string( &Scr, asw->hints, asw->status, &(asw->anchor), Scr.Vx, Scr.Vy, &pure_geometry );
-				/* format :   [<res_class>]:[<res_name>]:[[#<seq_no>]|<name>]  */
-				int app_no = get_res_name_count( swad->res_name_counts, asw->hints->res_name );
-				char *rname = asw->hints->res_name?asw->hints->res_name:"*" ;
-				char *rclass = asw->hints->res_class?asw->hints->res_class:"*" ;
-				char *name = get_flags( asw->internal_flags, ASWF_NameChanged )?NULL:ASWIN_NAME(asw);
-				int i = 0;
-				char *app_name = "*" ;
-				char *cmd_app = NULL, *cmd_args ;
-				/* need to check if we can use window name in the pattern. It has to be :
-				 * 1) Not changed since window initial mapping
-				 * 2) all ASCII
-				 * 3) shorter then 80 chars
-				 * 4) must not match class or res_name
-				 * 5) Unique
-				 */
-				if( name == rname || name == rclass ) 
+		Bool same_host = (asw->hints->client_host == NULL || mystrcasecmp( asw->hints->client_host, swad->this_host )== 0);
+		if( asw->hints->client_cmd == NULL && same_host )
+		{
+		 	if( ASWIN_HFLAGS(asw, AS_PID) && asw->hints->pid > 0 )
+				asw->hints->client_cmd = pid2cmd( asw->hints->pid );
+			
+		}
+
+        if( asw->hints->client_cmd == NULL && same_host )
+        {
+			char *pure_geometry = NULL ;
+			char *geom = make_client_geometry_string( &Scr, asw->hints, asw->status, &(asw->anchor), Scr.Vx, Scr.Vy, &pure_geometry );
+			/* format :   [<res_class>]:[<res_name>]:[[#<seq_no>]|<name>]  */
+			int app_no = get_res_name_count( swad->res_name_counts, asw->hints->res_name );
+			char *rname = asw->hints->res_name?asw->hints->res_name:"*" ;
+			char *rclass = asw->hints->res_class?asw->hints->res_class:"*" ;
+			char *name = get_flags( asw->internal_flags, ASWF_NameChanged )?NULL:ASWIN_NAME(asw);
+			int i = 0;
+			char *app_name = "*" ;
+			char *cmd_app = NULL, *cmd_args ;
+			/* need to check if we can use window name in the pattern. It has to be :
+				* 1) Not changed since window initial mapping
+				* 2) all ASCII
+				* 3) shorter then 80 chars
+				* 4) must not match class or res_name
+				* 5) Unique
+				*/
+			if( name == rname || name == rclass ) 
+				name = NULL ;
+			if(	name )
+			{
+				while( name[i] != '\0' )
+				{
+					if( !isascii(name[i]) )
+						break;
+					if( ++i >= 80 )
+						break;
+				}
+				if( name[i] != '\0' )
 					name = NULL ;
-				if(	name )
+				else
 				{
-					while( name[i] != '\0' )
-					{
-						if( !isascii(name[i]) )
-							break;
-						if( ++i >= 80 )
-							break;
-					}
-					if( name[i] != '\0' )
+					if( strcmp( rclass, name ) == 0 ||
+						strcmp( rname, name ) == 0 	)
 						name = NULL ;
-					else
-					{
-						if( strcmp( rclass, name ) == 0 ||
-							strcmp( rname, name ) == 0 	)
+					else                   /* check that its unique */
+						if( !check_aswindow_name_unique( name, asw ) )
 							name = NULL ;
-						else                   /* check that its unique */
-							if( !check_aswindow_name_unique( name, asw ) )
-								name = NULL ;
-					}
 				}
-				if( name == NULL )
-				{
-					app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+1+15+1 );
-					sprintf( app_name, "%s:%s:#%d", rclass, rname, app_no );
-				}else
-				{
-					app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+strlen(name)+1 );
-					sprintf( app_name, "%s:%s:%s", rclass, rname, name );
-				}
+			}
+			if( name == NULL )
+			{
+				app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+1+15+1 );
+				sprintf( app_name, "%s:%s:#%d", rclass, rname, app_no );
+			}else
+			{
+				app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+strlen(name)+1 );
+				sprintf( app_name, "%s:%s:%s", rclass, rname, name );
+			}
 				
-				cmd_args = parse_token(asw->hints->client_cmd, &cmd_app );
-				if( cmd_app ) 
-				{   /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
-					fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s %s &\n", app_name, cmd_app, geom, cmd_args );
-					free( cmd_app );	
-				}else
-	                fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s &\n", app_name, asw->hints->client_cmd, geom );
-				fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
-						            ", Layer %d"
-									", %s"
-									", StartsOnDesk %d"
-									", ViewportX %d"
-									", ViewportY %d"
-									", %s"
-									"\n",
-						     		app_name, pure_geometry,
-							 		ASWIN_LAYER(asw),
-							 		ASWIN_GET_FLAGS(asw,AS_Sticky)?"Sticky":"Slippery",
-									ASWIN_DESK(asw),
-									asw->status->viewport_x,
-									asw->status->viewport_y,
-									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
-				if( pure_geometry ) 
-					free( pure_geometry );
-				if( geom )
-					free( geom );
-				free( app_name );
-            }
+			cmd_args = parse_token(asw->hints->client_cmd, &cmd_app );
+			if( cmd_app ) 
+			{   /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
+				fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s %s &\n", app_name, cmd_app, geom, cmd_args );
+				free( cmd_app );	
+			}else
+	            fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s &\n", app_name, asw->hints->client_cmd, geom );
+			fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
+						        ", Layer %d"
+								", %s"
+								", StartsOnDesk %d"
+								", ViewportX %d"
+								", ViewportY %d"
+								", %s"
+								"\n",
+						     	app_name, pure_geometry,
+							 	ASWIN_LAYER(asw),
+							 	ASWIN_GET_FLAGS(asw,AS_Sticky)?"Sticky":"Slippery",
+								ASWIN_DESK(asw),
+								asw->status->viewport_x,
+								asw->status->viewport_y,
+								ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+			if( pure_geometry ) 
+				free( pure_geometry );
+			if( geom )
+				free( geom );
+			free( app_name );
+        }
         return True;
     }
     return False;

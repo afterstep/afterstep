@@ -880,7 +880,7 @@ void setlayer_func_handler( FunctionData *data, ASEvent *event, int module )
     else if( func == F_PUTONBACK )
 	layer = AS_LayerBack ;
     else
-	layer = (func == F_TOGGLELAYER && ASWIN_LAYER(event->client))?data->func_val[1]: data->func_val[0] ;
+	layer = (func == F_TOGGLELAYER && ASWIN_LAYER(event->client) == data->func_val[1])?data->func_val[1]: data->func_val[0] ;
     change_aswindow_layer( event->client, layer );
 }
 
