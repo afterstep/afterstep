@@ -43,7 +43,7 @@ SyntaxDef     PopupFuncSyntax = {
 	"\t",
 	"\t",
     "Popup/Complex function definition",
-	"Feel/Popup",
+	"Popup",
 	NULL,
 	0
 };

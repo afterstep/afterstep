@@ -235,7 +235,7 @@ SetMyName (char *argv0)
 
 /* If you change/add options please change InitMyApp below and option flags in aftersteplib.h */
 
-static CommandLineOpts as_cmdl_options[] =
+CommandLineOpts as_standard_cmdl_options[20] =
 {
 #define  SHOW_VERSION   0
 #define  SHOW_CONFIG    1
@@ -294,6 +294,8 @@ print_command_line_opt(const char *prompt, CommandLineOpts *options, ASFlagType 
     register int i ;
     ASFlagType bit = 0x01;
 
+	if( options == NULL ) 
+		options = as_standard_cmdl_options ;
     printf ("%s:\n", prompt);
 
     for( i = 0 ; options[i].handler != NULL ; i++ )
@@ -343,7 +345,7 @@ standard_usage()
         MyUsageFunc();
     else
         printf (OPTION_USAGE_FORMAT "\n", MyName );
-    print_command_line_opt("standard_options are :", as_cmdl_options, MyArgs.mask);
+    print_command_line_opt("standard_options are :", as_standard_cmdl_options, MyArgs.mask);
 }
 
 void  handler_show_info( char *argv, void *trg, long param )
@@ -463,19 +465,19 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
         for( i = 1 ; i < argc ; i++ )
         {
             register int opt ;
-            if( (opt = match_command_line_opt( &(argv[i][0]), as_cmdl_options )) < 0 )
+            if( (opt = match_command_line_opt( &(argv[i][0]), as_standard_cmdl_options )) < 0 )
                 continue;
             if( get_flags( (0x01<<opt), MyArgs.mask) )
                 continue;
-            if( get_flags( as_cmdl_options[opt].flags, CMO_HasArgs ) )
+            if( get_flags( as_standard_cmdl_options[opt].flags, CMO_HasArgs ) )
             {
 				argv[i] = NULL ;
                 if( ++i >= argc )
                     continue;
                 else
-                    as_cmdl_options[opt].handler( argv[i], as_cmdl_options[opt].trg, as_cmdl_options[opt].param );
+                    as_standard_cmdl_options[opt].handler( argv[i], as_standard_cmdl_options[opt].trg, as_standard_cmdl_options[opt].param );
             }else
-                as_cmdl_options[opt].handler( NULL, as_cmdl_options[opt].trg, as_cmdl_options[opt].param );
+                as_standard_cmdl_options[opt].handler( NULL, as_standard_cmdl_options[opt].trg, as_standard_cmdl_options[opt].param );
             argv[i] = NULL ;
         }
     }

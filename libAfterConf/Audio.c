@@ -74,7 +74,7 @@ SyntaxDef     AudioEventsSyntax = {
 	"",
 	"\t",
     "Audio event configuration",
-	"Audio/EventNames",
+	"AudioEvents",
 	NULL,
 	0
 };

@@ -136,7 +136,7 @@ SyntaxDef     TbarLayoutSyntax = {
 	" ",
 	"\t",
     "Titlebar Layout Flags",
-	"Look/MyFrame/TbarLayout",
+	"TbarLayout",
 	NULL,
 	0
 };
@@ -234,7 +234,7 @@ SyntaxDef     MyFrameSyntax = {
 	"",
 	"\t",
 	"MyFrame definition",
-	"Look/MyFrame",
+	"MyFrame",
 	NULL,
 	0
 };
@@ -261,7 +261,7 @@ SyntaxDef     SupportedHintsSyntax = {
 	" ",
 	"\t",
     "Supported hints list",
-	"Look/SupportedHints",
+	"SupportedHints",
 	NULL,
 	0
 };

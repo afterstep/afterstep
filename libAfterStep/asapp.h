@@ -110,6 +110,8 @@ typedef struct CommandLineOpts
     ASFlagType flags;
 }CommandLineOpts;
 
+extern CommandLineOpts as_standard_cmdl_options[20];/* really its terminated by NULL element */
+
 void  print_command_line_opt(const char *prompt, CommandLineOpts *options, ASFlagType mask);
 int   match_command_line_opt( char *argvi, CommandLineOpts *options );
 
@@ -136,6 +138,7 @@ typedef struct ASProgArgs
 #define OPTION_DESCR1_FORMAT_NOVAL 		" --%-16.16s       - %s.\n"
 #define OPTION_DESCR2_FORMAT			OPTION_NOSHORT_FORMAT "                            %s\n"
 #define OPTION_PARAM_FORMAT		         "  %-20.20s       - %s.\n"
+
     ASFlagType mask ;    /* mask, specifying what options are not supported */
 
     char      *override_config;

@@ -59,7 +59,7 @@ SyntaxDef     WindowBoxSyntax = {
 	"",
 	"\t",
 	"WindowBox definition",
-	"Feel/WindowBox",
+	"FeelWindowBox",
 	NULL,
 	0
 };

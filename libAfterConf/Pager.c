@@ -55,8 +55,8 @@ SyntaxDef     PagerDecorationSyntax = {
     ' ',
 	" ",
 	"\t",
-	"PagerDecoration",
-	"Pager/Decorations",
+	"Pager Decoration options",
+	"PagerDecorations",
 	NULL,
 	0
 };

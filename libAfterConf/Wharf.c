@@ -57,7 +57,7 @@ SyntaxDef     WhevSyntax = {
 	"",
 	"\t",
 	"Wharf sound definition",
-	"Wharf/Sounds",
+	"WharfSounds",
 	NULL,
     0
 };
