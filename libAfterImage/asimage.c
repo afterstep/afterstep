@@ -509,9 +509,9 @@ fill_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode,
 	int           i, width = xim_buf->width;
 	register CARD32 *r = xim_buf->red, *g = xim_buf->green, *b = xim_buf->blue;
 	register CARD8  *src = (CARD8 *) xim_line;
-#ifdef LOCAL_DEBUG			
+#ifdef LOCAL_DEBUG
     static int debug_count = 10 ;
-#endif			  
+#endif
 
 	if (BGR_mode != byte_order)
 	{
@@ -547,7 +547,7 @@ fill_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode,
 			}
 	} else if (bpp == 16)
 	{										   /* must add LSB/MSB checking */
-LOCAL_DEBUG_OUT( "reading row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );		
+LOCAL_DEBUG_OUT( "reading row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );
 		if (byte_order == MSBFirst)
 			for (i = 0 ; i < width; i++)
 			{
@@ -562,13 +562,13 @@ LOCAL_DEBUG_OUT( "reading row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 				r[i] =  (src[1]&0xF8);
 				g[i] = ((src[1]&0x07)<<5)|((src[0]&0xE0)>>3);;
 				b[i] =  (src[0]&0x1F)<<3;
-#ifdef LOCAL_DEBUG				
+#ifdef LOCAL_DEBUG
 				if( debug_count > 0 )
 				{
-fprintf( stderr, "rgb #%2.2X%2.2X%2.2X in: 0x%4.4X( %2.2X %2.2X )\n", r[i], g[i], b[i], *((unsigned short*)src), src[0], src[1] ); 
+fprintf( stderr, "rgb #%2.2lX%2.2lX%2.2lX in: 0x%4.4X( %2.2X %2.2X )\n", r[i], g[i], b[i], *((unsigned short*)src), src[0], src[1] );
 					debug_count-- ;
 				}
-#endif				
+#endif
 				src += 2;
 			}
 	} else if (bpp == 15)
@@ -602,9 +602,9 @@ put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, 
 	int           i, width = xim_buf->width;
 	register CARD32 *r = xim_buf->red, *g = xim_buf->green, *b = xim_buf->blue;
 	register CARD8  *src = (CARD8 *) xim_line;
-#ifdef LOCAL_DEBUG			
+#ifdef LOCAL_DEBUG
     static int debug_count = 10 ;
-#endif			  
+#endif
 
 	if (BGR_mode != byte_order)
 	{
@@ -642,7 +642,7 @@ put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, 
 	{										   /* must add LSB/MSB checking */
 		CARD32 err_red = 0, err_green = 0, err_blue = 0;
 		CARD32 red, green, blue;
-LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );		
+LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );
 		if (byte_order == MSBFirst)
 		{
 			for (i = 0 ; i < width; i++)
@@ -663,16 +663,16 @@ LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 				blue = b[i]+err_blue ; err_blue = (blue&0x07)>>1 ;
 				src[1] = (CARD8)((red&0xF8) | (green >> 5));
 				src[0] = (CARD8)(((green<< 3)&0xE0) |  blue>>3);
-#ifdef LOCAL_DEBUG				
+#ifdef LOCAL_DEBUG
 				if( debug_count > 0 )
 				{
-fprintf( stderr, "source #%2.2X%2.2X%2.2X error #%2.2X%2.2X%2.2X result #%2.2X%2.2X%2.2X out: 0x%4.4X( %2.2X %2.2X )\n", r[i], g[i], b[i], err_red, err_green, err_blue, red, green, blue, *((unsigned short*)src), src[0], src[1] ); 
+fprintf( stderr, "source #%2.2lX%2.2lX%2.2lX error #%2.2lX%2.2lX%2.2lX result #%2.2lX%2.2lX%2.2lX out: 0x%4.4X( %2.2X %2.2X )\n", r[i], g[i], b[i], err_red, err_green, err_blue, red, green, blue, *((unsigned short*)src), src[0], src[1] );
 					debug_count-- ;
 				}
-#endif				
+#endif
 				src += 2;
 			}
-		}			
+		}
 	} else if (bpp == 15)
 	{										   /* must add LSB/MSB checking */
 		CARD32 err_red = 0, err_green = 0, err_blue = 0;
@@ -733,8 +733,7 @@ fprintf( stderr, "source #%2.2X%2.2X%2.2X error #%2.2X%2.2X%2.2X result #%2.2X%2
 /* or :
  * Cn = (-C1+(2*S+1)*C2+C3-C4-n*2*C2+n*2*C3)/2S  			   */
 /*       [ T                   [C2s]  [C3s]]   			       */
-#define INTERPOLATION_C2s(c2)	 		 	((c2)<<2)
-#define INTERPOLATION_C3s(c3)	 		 	((c3)<<2)
+#define INTERPOLATION_Cs(c2)	 		 	((c2)<<2)
 #define INTERPOLATION_TOTAL_START(c1,C2s,C3s,c4,S) 	((((S)<<2)+1)*(C2s)+((C3s)<<1)+(C3s)-c1-c4)
 #define INTERPOLATION_TOTAL_STEP(C2s,C3s)  	((C3s)-(C2s))
 #define INTERPOLATE_N_COLOR(T,S)		  	(((T)<<(QUANT_ERR_BITS-1))/(S))
@@ -752,7 +751,7 @@ enlarge_component12( register CARD32 *src, register CARD32 *dst, int *scales, in
 	while( i < len )
 	{
 		c4 = src[i+2];
-		if( scales[i] == 0 )
+		if( scales[i] == 1 )
 		{
 			c1 = src[i];     /* that's right we can do that PRIOR as we calculate nothing */
 			dst[k] = INTERPOLATE_COLOR1(c1) ;
@@ -769,7 +768,7 @@ enlarge_component12( register CARD32 *src, register CARD32 *dst, int *scales, in
 	}
 
 	/* to avoid one more if() in loop we moved tail part out of the loop : */
-	if( scales[i] == 0 )
+	if( scales[i] == 1 )
 		dst[k] = INTERPOLATE_COLOR1(src[i]);
 	else
 	{
@@ -785,13 +784,19 @@ enlarge_component23( register CARD32 *src, register CARD32 *dst, int *scales, in
 {/* expected len >= 2  */
 	register int i = 0, k = 0;
 	register int c1 = src[0], c4 = src[1];
+	if( scales[0] == 1 )
+	{/* special processing for first element - it can be 1 - others can only be 2 or 3 */
+		dst[k] = INTERPOLATE_COLOR1(src[0]) ;
+		++k;
+		++i;
+	}
 	--len; --len;
 	while( i < len )
 	{
 		register int c2 = src[i], c3 = src[i+1] ;
 		c4 = src[i+2];
 		dst[k] = INTERPOLATE_COLOR1(c2) ;
-		if( scales[0] == 1 )
+		if( scales[i] == 2 )
 		{
 			dst[++k] = INTERPOLATE_COLOR2(c1,c2,c3,c4);
 		}else
@@ -807,13 +812,18 @@ enlarge_component23( register CARD32 *src, register CARD32 *dst, int *scales, in
 	{
 		register int c2 = src[i], c3 = src[i+1] ;
 		dst[k] = INTERPOLATE_COLOR1(c2) ;
-		if( scales[0] == 1 )
+		if( scales[i] == 2 )
 		{
 			dst[k+1] = INTERPOLATE_COLOR2(c1,c2,c3,c4);
 		}else
 		{
-			dst[++k] = INTERPOLATE_A_COLOR3(c1,c2,c3,c4);
-			dst[k+1] = INTERPOLATE_B_COLOR3(c1,c2,c3,c4);
+			if( scales[i] == 1 )
+				--k;
+			else
+			{
+				dst[++k] = INTERPOLATE_A_COLOR3(c1,c2,c3,c4);
+				dst[k+1] = INTERPOLATE_B_COLOR3(c1,c2,c3,c4);
+			}
 		}
 	}
 	dst[k+2] = INTERPOLATE_COLOR1(c4) ;
@@ -828,28 +838,33 @@ enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int 
   * as much as possible */
 	int i = 0;
 	int c1 = src[0], c4 = src[1];
+	int C2s = INTERPOLATION_Cs(src[0]), C3s = INTERPOLATION_Cs(src[1]) ;
 	register int k = 0;
+LOCAL_DEBUG_OUT( "len = %d", len );
 	--len; --len;
 	while( i <= len )
 	{
-		register int C2s = INTERPOLATION_C2s(src[i]), C3s = INTERPOLATION_C3s(src[i+1]) ;
+		register int S = scales[i], step = INTERPOLATION_TOTAL_STEP(C2s,C3s) ;
 		register int n, T ;
-		int S = scales[i]+1 ;
 
+		LOCAL_DEBUG_OUT( "pixel %d, S = %d, step = %d", i, S, step );
 		if( i < len )
 			c4 = src[i+2];
 		T = INTERPOLATION_TOTAL_START(c1,C2s,C3s,c4,S);
 		for( n = 1 ; n < S ; n++ )
 		{
 			dst[k+n] = INTERPOLATE_N_COLOR(T,S);
-			T += INTERPOLATION_TOTAL_STEP(C2s,C3s);
+			T += step;
 		}
 		c1 = src[i];
 		dst[k] = INTERPOLATE_COLOR1(c1) ;
 		k += n ;
 		++i;
+		C2s = C3s;
+		C3s = INTERPOLATION_Cs(src[i]);
 	}
 	dst[k] = INTERPOLATE_COLOR1(c4) ;
+LOCAL_DEBUG_OUT( "%d pixels written", k );
 }
 
 /* this will shrink array based on count of items in src per one dst item with averaging */
@@ -916,7 +931,61 @@ set_component( register CARD32 *src, register CARD32 value, int offset, int len 
 }
 
 static inline void
-divide_component( register CARD32 *data, int ratio, int len )
+divide_component( register CARD32 *src, register CARD32 *dst, int ratio, int len )
+{
+	register int i ;
+	for( i = 0 ; i < len ; ++i )
+		dst[i] = src[i]/ratio;
+}
+
+static inline void
+rbitshift_component( register CARD32 *src, register CARD32 *dst, int shift, int len )
+{
+	register int i ;
+	for( i = 0 ; i < len ; ++i )
+		dst[i] = src[i]>>shift;
+}
+
+/* diffusingly combine src onto self and dst, and rightbitshift src by quantization shift */
+static inline void
+diffuse_shift_component( register CARD32 *line1, register CARD32 *line2, int unused, int len )
+{/* we carry half of the quantization error onto the surrounding pixels : */
+ /*        X    7/16 */
+ /* 3/16  5/16  1/16 */
+	register int i ;
+	register CARD32 errp = 0, err = 0, c;
+	c = line1[0] ;
+	errp = c&QUANT_ERR_MASK;
+
+	line2[0] += (errp*5)>>4 ;
+	line1[0] = c>>QUANT_ERR_BITS ;
+
+	for( i = 1 ; i < len ; ++i )
+	{
+		c = line1[i]+((errp*7)>>4) ;
+		err = c&QUANT_ERR_MASK;
+
+		line2[i-1] += (err*3)>>4 ;
+		line2[i] += ((err*5)>>4)+(errp>>4);
+		line1[i] = c>>QUANT_ERR_BITS ;
+		errp = err ;
+	}
+}
+
+static inline void
+start_component_interpolation( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, register CARD32 *T, register CARD32 *step, int S, int len)
+{
+	register int i;
+	for( i = 0 ; i < len ; i++ )
+	{
+		register int C2s = INTERPOLATION_Cs(c2[i]), C3s = INTERPOLATION_Cs(c3[i]) ;
+		T[i] = INTERPOLATION_TOTAL_START(c1[i],C2s,C3s,c4[i],S);
+		step[i] = INTERPOLATION_TOTAL_STEP(C2s,C3s);
+	}
+}
+
+static inline void
+divide_component_mod( register CARD32 *data, int ratio, int len )
 {
 	register int i ;
 	for( i = 0 ; i < len ; ++i )
@@ -924,7 +993,7 @@ divide_component( register CARD32 *data, int ratio, int len )
 }
 
 static inline void
-rbitshift_component( register CARD32 *data, int bits, int len )
+rbitshift_component_mod( register CARD32 *data, int bits, int len )
 {
 	register int i ;
 	for( i = 0 ; i < len ; ++i )
@@ -949,7 +1018,7 @@ print_component( register CARD32 *data, int nonsense, int len )
 {
 	register int i ;
 	for( i = 0 ; i < len ; ++i )
-		fprintf( stderr, " %8.8X", data[i] );
+		fprintf( stderr, " %8.8lX", data[i] );
 	fprintf( stderr, "\n");
 }
 
@@ -959,33 +1028,33 @@ print_component( register CARD32 *data, int nonsense, int len )
 
 #define DECODE_SCANLINE(im,dst,y) \
 do{												\
-	clear_flags( dst.flags,SCL_DO_ALL);			\
-	if( set_component(dst.red  ,0,asimage_decode_line(im,IC_RED  ,dst.red,  y),dst.width)<dst.width) \
-		set_flags( dst.flags,SCL_DO_RED);												 \
-	if( set_component(dst.green,0,asimage_decode_line(im,IC_GREEN,dst.green,y),dst.width)<dst.width) \
-		set_flags( dst.flags,SCL_DO_GREEN);												 \
-	if( set_component(dst.blue ,0,asimage_decode_line(im,IC_BLUE ,dst.blue, y),dst.width)<dst.width) \
-		set_flags( dst.flags,SCL_DO_BLUE);												 \
-	if( set_component(dst.alpha,0,asimage_decode_line(im,IC_ALPHA,dst.alpha,y),dst.width)<dst.width) \
-		set_flags( dst.flags,SCL_DO_ALPHA);												 \
+	clear_flags( (dst).flags,SCL_DO_ALL);			\
+	if( set_component((dst).red  ,0,asimage_decode_line((im),IC_RED  ,(dst).red,  (y)),(dst).width)<(dst).width) \
+		set_flags( (dst).flags,SCL_DO_RED);												 \
+	if( set_component((dst).green,0,asimage_decode_line((im),IC_GREEN,(dst).green,(y)),(dst).width)<(dst).width) \
+		set_flags( (dst).flags,SCL_DO_GREEN);												 \
+	if( set_component((dst).blue ,0,asimage_decode_line((im),IC_BLUE ,(dst).blue, (y)),(dst).width)<(dst).width) \
+		set_flags( (dst).flags,SCL_DO_BLUE);												 \
+	if( set_component((dst).alpha,0,asimage_decode_line((im),IC_ALPHA,(dst).alpha,(y)),(dst).width)<(dst).width) \
+		set_flags( (dst).flags,SCL_DO_ALPHA);												 \
   }while(0)
 
 #define ENCODE_SCANLINE(im,src,y) \
-do{	asimage_add_line(im, IC_RED,   src.red,   y); \
-   	asimage_add_line(im, IC_GREEN, src.green, y); \
-   	asimage_add_line(im, IC_BLUE,  src.blue,  y); \
-	if( get_flags(src.flags,SCL_DO_ALPHA))asimage_add_line(im, IC_ALPHA, src.alpha, y); \
+do{	asimage_add_line((im), IC_RED,   (src).red,   (y)); \
+   	asimage_add_line((im), IC_GREEN, (src).green, (y)); \
+   	asimage_add_line((im), IC_BLUE,  (src).blue,  (y)); \
+	if( get_flags((src).flags,SCL_DO_ALPHA))asimage_add_line((im), IC_ALPHA, (src).alpha, (y)); \
   }while(0)
 
 #define SCANLINE_FUNC(f,src,dst,scales,len) \
 do{	f((src).red,  (dst).red,  (scales),(len));		\
 	f((src).green,(dst).green,(scales),(len)); 		\
 	f((src).blue, (dst).blue, (scales),(len));   	\
-	if(get_flags(src.flags,SCL_DO_ALPHA)) f((src).alpha,(dst).alpha,(scales),(len)); \
+	if(get_flags((src).flags,SCL_DO_ALPHA)) f((src).alpha,(dst).alpha,(scales),(len)); \
   }while(0)
 
 #define CHOOSE_SCANLINE_FUNC(r,src,dst,scales,len) \
- switch( r )                                              							\
+ switch(r)                                              							\
  {  case 0:	SCANLINE_FUNC(shrink_component11,(src),(dst),(scales),(len));break;   	\
 	case 1: SCANLINE_FUNC(shrink_component, (src),(dst),(scales),(len));	break;  \
 	case 2:	SCANLINE_FUNC(enlarge_component12,(src),(dst),(scales),(len));break ; 	\
@@ -994,10 +1063,17 @@ do{	f((src).red,  (dst).red,  (scales),(len));		\
  }
 
 #define SCANLINE_MOD(f,src,p,len) \
-do{	f((src).red,p,(len));		\
-	f((src).green,p,(len));		\
-	f((src).blue,p,(len));		\
-	if(get_flags(src.flags,SCL_DO_ALPHA)) f((src).alpha,p,(len));\
+do{	f((src).red,(p),(len));		\
+	f((src).green,(p),(len));		\
+	f((src).blue,(p),(len));		\
+	if(get_flags((src).flags,SCL_DO_ALPHA)) f((src).alpha,(p),(len));\
+  }while(0)
+
+#define SCANLINE_COMBINE(f,c1,c2,c3,c4,o1,o2,p,len)						   \
+do{	f((c1).red,(c2).red,(c3).red,(c4).red,(o1).red,(o2).red,(p),(len));		\
+	f((c1).green,(c2).green,(c3).green,(c4).green,(o1).green,(o2).green,(p),(len));	\
+	f((c1).blue,(c2).blue,(c3).blue,(c4).blue,(o1).blue,(o2).blue,(p),(len));		\
+	if(get_flags((c1).flags,SCL_DO_ALPHA)) f((c1).alpha,(c2).alpha,(c3).alpha,(c4).alpha,(o1).alpha,(o2).alpha,(p),(len));	\
   }while(0)
 
 Bool
@@ -1024,13 +1100,16 @@ make_scales( unsigned short from_size, unsigned short to_size )
 	unsigned short smaller = MIN(from_size,to_size);
 	unsigned short bigger  = MAX(from_size,to_size);
 	register int i = 0, k = 0;
-	int eps = 0;
+	int eps;
 
+	if( from_size < to_size )
+	{	smaller--; bigger-- ; }
 	if( smaller == 0 )
 		smaller = 1;
 	if( bigger == 0 )
 		bigger = 1;
 	scales = safecalloc( smaller, sizeof(int));
+	eps = -(bigger>>1);
 	/* now using Bresengham algoritm to fiill the scales :
 	 * since scaling is merely transformation
 	 * from 0:bigger space (x) to 0:smaller space(y)*/
@@ -1047,22 +1126,134 @@ make_scales( unsigned short from_size, unsigned short to_size )
 	return scales;
 }
 
+/********************************************************************/
+/* This is static piece of data that tell us what is the status of
+ * the output stream, and allows us to easily put stuff out :       */
+
+typedef struct ASImageOutput
+{
+	ASImage *im ;
+	XImage *xim ;
+	Bool to_xim ;
+	unsigned char *xim_line;
+	int            height, bpl;
+	ASScanline buffer[2], *used, *available;
+	int buffer_shift;   /* -1 means - buffer is empty */
+	int next_line ;
+}ASImageOutput;
+
+ASImageOutput *
+start_image_output( ASImage *im, XImage *xim, Bool to_xim, int shift )
+{
+	register ASImageOutput *imout= NULL;
+
+	if( im == NULL )
+		return imout;
+	if( xim == NULL )
+		xim = im->ximage ;
+	if( to_xim && xim == NULL )
+		return imout;
+	imout = safecalloc( 1, sizeof(ASImageOutput));
+	imout->im = im ;
+	imout->to_xim = to_xim ;
+	imout->xim = xim ;
+
+	imout->height = xim->height;
+	imout->bpl 	  = xim->bytes_per_line;
+	imout->xim_line = xim->data;
+
+	prepare_scanline( im->width, 0, &(imout->buffer[0]));
+	prepare_scanline( im->width, 0, &(imout->buffer[1]));
+	imout->available = &(imout->buffer[0]);
+	imout->used 	 = NULL;
+	imout->buffer_shift = shift;
+	imout->next_line = 0 ;
+	return imout;
+}
+
+void inline
+output_image_line( ASImageOutput *imout, ASScanline *new_line, int ratio )
+{
+	/* caching and preprocessing line into our buffer : */
+	if( new_line )
+	{
+		if( ratio > 1 )
+		{
+			if( ratio == 2 )
+				SCANLINE_FUNC(rbitshift_component,*(new_line),*(imout->available),1,new_line->width);
+			else
+				SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,new_line->width);
+		}else
+			SCANLINE_FUNC(copy_component,*(new_line),*(imout->available),NULL,new_line->width);
+	}
+	/* copying/encoding previously cahced line into destination image : */
+	if( imout->used != NULL )
+	{
+		if( new_line != NULL )
+			SCANLINE_FUNC(diffuse_shift_component,*(imout->used),*(imout->available),QUANT_ERR_BITS,new_line->width);
+		else if( imout->buffer_shift > 0 )
+			SCANLINE_MOD(simple_diffuse_shift_component,*(imout->used),imout->buffer_shift,imout->used->width);
+
+#ifdef LOCAL_DEBUG
+		LOCAL_DEBUG_OUT( "output line %d :", imout->next_line );
+		SCANLINE_MOD(print_component,*(imout->used),1,imout->used->width);
+#endif
+
+		if( imout->to_xim )
+		{
+			if( imout->next_line < imout->xim->height )
+			{
+				if( ascolor_true_depth == 0 )
+					put_ximage_buffer_pseudo( imout->xim, imout->used, imout->next_line );
+				else
+				{
+					put_ximage_buffer (imout->xim_line, imout->used, 0, imout->xim->byte_order, imout->xim->bits_per_pixel );
+					imout->xim_line += imout->bpl;
+				}
+			}
+		}else if( imout->next_line < imout->im->height )
+			ENCODE_SCANLINE(imout->im,*(imout->used),imout->next_line);
+		++(imout->next_line);
+	}
+	/* rotating the buffers : */
+	if( new_line == NULL )
+		imout->used = NULL ;
+	else
+		imout->used = imout->available ;
+	imout->available = &(imout->buffer[0]);
+	if( imout->available == imout->used )
+		imout->available = &(imout->buffer[1]);
+}
+
+void
+stop_image_output( ASImageOutput **pimout )
+{
+	if( pimout )
+	{
+		register ASImageOutput *imout = *pimout;
+		if( imout )
+		{
+			if( imout->used )
+				output_image_line( imout, NULL, 1);
+			free_scanline(&(imout->buffer[0]), True);
+			free_scanline(&(imout->buffer[1]), True);
+			free( imout );
+			*pimout = NULL;
+		}
+	}
+}
+
+/********************************************************************/
 void
 scale_image_down( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* scales_v, Bool to_xim)
 {
 	ASScanline src_line, dst_line, total ;
 	int i = 0, k = 0;
-	unsigned char *xim_line = NULL;
-	int            height = 0, bpl = 0;
+	ASImageOutput *imout ;
 
-	if( to_xim  )
-	{
-		if( dst->ximage == NULL )
-			return;
-		height =   dst->ximage->height;
-		bpl = 	   dst->ximage->bytes_per_line;
-		xim_line = dst->ximage->data;
-	}
+	if((imout = start_image_output( dst, dst->ximage, to_xim, QUANT_ERR_BITS )) == NULL )
+		return;
+
 	prepare_scanline( src->width, 0, &src_line );
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line );
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &total );
@@ -1073,10 +1264,11 @@ scale_image_down( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* s
 		total.flags = src_line.flags ;
 		CHOOSE_SCANLINE_FUNC(h_ratio,src_line,total,scales_h,total.width);
 		reps += i;
+
 #ifdef LOCAL_DEBUG
-			LOCAL_DEBUG_OUT( "source line %d max line in this reps %d", i, reps );
-			SCANLINE_MOD(print_component,total,1,total.width);
-#endif 			
+		LOCAL_DEBUG_OUT( "source line %d max line in this reps %d", i, reps );
+		SCANLINE_MOD(print_component,total,1,total.width);
+#endif
 		++i ;
 		while ( reps > i )
 		{
@@ -1084,46 +1276,15 @@ scale_image_down( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* s
 			total.flags |= src_line.flags ;
 			CHOOSE_SCANLINE_FUNC(h_ratio,src_line,dst_line,scales_h,dst_line.width);
 			SCANLINE_FUNC(add_component,total,dst_line,NULL,total.width);
-#ifdef LOCAL_DEBUG
-			LOCAL_DEBUG_OUT( "source line %d max line in this reps %d", i, reps );
-			SCANLINE_MOD(print_component,total,1,total.width);
-#endif 			
 			++i ;
 		}
-		if( (reps = scales_v[k])> 1 )
-		{
-			if( reps == 2 )
-				SCANLINE_MOD(rbitshift_component,total,1,total.width);
-			else
-				SCANLINE_MOD(divide_component,total,reps,total.width);
-#ifdef LOCAL_DEBUG
-			LOCAL_DEBUG_OUT("resulting row %d before diffusion:", k );
-			SCANLINE_MOD(print_component,total,1,total.width);
-#endif 			
-			SCANLINE_MOD(simple_diffuse_shift_component,total,QUANT_ERR_BITS,total.width);
-		}else
-			SCANLINE_MOD(rbitshift_component,total,QUANT_ERR_BITS,total.width);
-#ifdef LOCAL_DEBUG
-			LOCAL_DEBUG_OUT("resulting row %d :", k );
-			SCANLINE_MOD(print_component,total,1,total.width);
-#endif 			
-
-		if( to_xim )
-		{
-			if( ascolor_true_depth == 0 )
-				put_ximage_buffer_pseudo( dst->ximage, &total, k );
-			else
-			{
-				put_ximage_buffer (xim_line, &total, 0, dst->ximage->byte_order, dst->ximage->bits_per_pixel );
-				xim_line += bpl;
-			}
-		}else
-			ENCODE_SCANLINE(dst,total,k);
+		output_image_line( imout, &total, scales_v[k] );
 		++k;
 	}
 	free_scanline(&src_line, True);
 	free_scanline(&dst_line, True);
 	free_scanline(&total, True);
+	stop_image_output( &imout );
 }
 
 void
@@ -1137,8 +1298,70 @@ scale_image_up23( ASImage *src, ASImage *dst, int h_ratio )
 }
 
 void
-scale_image_up( ASImage *src, ASImage *dst, int h_ratio )
+scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* scales_v, Bool to_xim)
 {
+	ASScanline src_lines[4], *c1, *c2, *c3, *c4, tmp;
+	ASScanline total, step ;
+	int i = 0, k = 0, max_i;
+	ASImageOutput *imout ;
+
+	if((imout = start_image_output( dst, dst->ximage, to_xim, QUANT_ERR_BITS )) == NULL )
+		return;
+
+	for( i = 0 ; i < 4 ; i++ )
+		prepare_scanline( dst->width, 0, &(src_lines[i]));
+	prepare_scanline( src->width, QUANT_ERR_BITS, &tmp );
+	prepare_scanline( dst->width, QUANT_ERR_BITS, &total );
+	prepare_scanline( dst->width, QUANT_ERR_BITS, &step );
+
+	c2 = c1 = &(src_lines[0]);
+	c3 = &(src_lines[1]);
+	c4 = &(src_lines[(src->height>2)?2:1]);
+	DECODE_SCANLINE(src,tmp,0);
+	total.flags = step.flags = c2->flags = tmp.flags ;
+LOCAL_DEBUG_OUT( "rescaling line #%d", 0 );
+	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c2,scales_h,src->width);
+	DECODE_SCANLINE(src,tmp,1);
+	c3->flags = tmp.flags ;
+LOCAL_DEBUG_OUT( "rescaling line #%d", 1 );
+	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c3,scales_h,src->width);
+	i = 0 ;
+	max_i = src->height-1 ;
+	while( i < max_i )
+	{
+		int S = scales_v[i], n ;
+
+		if( i+2 < src->height )
+		{
+			DECODE_SCANLINE(src,tmp,i+2);
+			c4->flags = tmp.flags ;
+LOCAL_DEBUG_OUT( "rescaling line #%d", i+2 );
+			CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c4,scales_h,src->width);
+		}
+		output_image_line( imout, c2, 1);
+
+		/* now we'll prepare total and step : */
+		SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,total,step,S,dst->width);
+
+		for( n = 1 ; n < S ; n++ )
+		{
+			output_image_line( imout, &total, S);
+			SCANLINE_FUNC(add_component,step,total,NULL,dst->width );
+		}
+		c1 = c2;
+		c2 = c3;
+		c3 = c4;
+		k += n ;
+		++i;
+	}
+	output_image_line( imout, c4, 1);
+	for( i = 0 ; i < 4 ; i++ )
+		free_scanline(&(src_lines[i]), True);
+	free_scanline(&tmp, True);
+	free_scanline(&step, True);
+	free_scanline(&total, True);
+	stop_image_output( &imout );
+
 }
 
 ASImage *
@@ -1156,22 +1379,22 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth
 	if( to_xim )
 		dst->ximage = CreateXImageAndData( dpy, ascolor_visual, depth, ZPixmap, 0, to_width, to_height );
 
-	if( to_width == src->width ) 
-		h_ratio = 0; 
+	if( to_width == src->width )
+		h_ratio = 0;
 	else
 	{
 	    h_ratio = to_width/src->width;
 		if( to_width%src->width > 0 )
 			h_ratio++ ;
 	}
-	if( to_height == src->height ) 
+	if( to_height == src->height )
 		v_ratio = 0 ;
 	else
 	{
 		v_ratio = to_height/src->height;
 		if( to_height%src->height > 0 )
 			v_ratio++ ;
-	}			
+	}
 
 	scales_h = make_scales( src->width, to_width );
 	scales_v = make_scales( src->height, to_height );
@@ -1179,13 +1402,13 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth
 	{
 	  register int i ;
 	  for( i = 0 ; i < MIN(src->width, to_width) ; i++ )
-		fprintf( stderr, " %d", scales_h[i] ); 	  
-	  fprintf( stderr, "\n" ); 
+		fprintf( stderr, " %d", scales_h[i] );
+	  fprintf( stderr, "\n" );
 	  for( i = 0 ; i < MIN(src->height, to_height) ; i++ )
-		fprintf( stderr, " %d", scales_v[i] ); 	 
-	  fprintf( stderr, "\n" ); 
-	}		 
-#endif	
+		fprintf( stderr, " %d", scales_v[i] );
+	  fprintf( stderr, "\n" );
+	}
+#endif
 
 	if( v_ratio <= 1 ) 					   /* scaling down */
 		scale_image_down( src, dst, h_ratio, scales_h, scales_v, to_xim );
@@ -1194,8 +1417,10 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth
 	else if( v_ratio > 2 && v_ratio <= 3)
 		scale_image_up23( src, dst, h_ratio );
 	else
-		scale_image_up( src, dst, h_ratio );
+		scale_image_up( src, dst, h_ratio, scales_h, scales_v, to_xim );
 
+	free( scales_h );
+	free( scales_v );
 	return dst;
 }
 
@@ -1213,8 +1438,13 @@ asimage_from_ximage (XImage * xim)
 #ifdef LOCAL_DEBUG
 	CARD32       *tmp ;
 #endif
-	if (xim == NULL)
+
+	if( xim == NULL)
 		return im;
+
+	height = xim->height;
+	bpl 	  = xim->bytes_per_line;
+	xim_line = xim->data;
 
 	im = (ASImage *) safecalloc (1, sizeof (ASImage));
 	asimage_start (im, xim->width, xim->height);
@@ -1222,10 +1452,6 @@ asimage_from_ximage (XImage * xim)
 	tmp = safemalloc( xim->width * sizeof(CARD32));
 #endif
 	prepare_scanline( xim->width, 0, &xim_buf );
-
-	height = xim->height;
-	bpl = xim->bytes_per_line;
-	xim_line = xim->data;
 
 	if( ascolor_true_depth == 0 )
 		for (i = 0; i < height; i++)
@@ -1261,38 +1487,25 @@ XImage*
 ximage_from_asimage (ASImage *im, int depth)
 {
 	XImage        *xim = NULL;
-	unsigned char *xim_line;
-	int           i, height, bpl;
+	int           i;
 	ASScanline    xim_buf;
+	ASImageOutput *imout ;
 
 	if (im == NULL)
 		return xim;
 
 	xim = CreateXImageAndData( dpy, ascolor_visual, depth, ZPixmap, 0, im->width, im->height );
+	if( (imout = start_image_output( im, xim, True, 0 )) == NULL )
+		return xim;
 
 	prepare_scanline( xim->width, 0, &xim_buf );
-
-	height = im->height;
-	bpl = 	   xim->bytes_per_line;
-	xim_line = xim->data;
-
-	if( ascolor_true_depth == 0 )
-		for (i = 0; i < height; i++)
-		{
-			asimage_decode_line (im, IC_RED,   xim_buf.red, i);
-			asimage_decode_line (im, IC_GREEN, xim_buf.green, i);
-			asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i);
-			put_ximage_buffer_pseudo( xim, &xim_buf, i );
-		}
-	else                                       /* TRue color visual */
-		for (i = 0; i < height; i++)
-		{
-			asimage_decode_line (im, IC_RED,   xim_buf.red, i);
-			asimage_decode_line (im, IC_GREEN, xim_buf.green, i);
-			asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i);
-			put_ximage_buffer (xim_line, &xim_buf, 0, xim->byte_order, xim->bits_per_pixel );
-			xim_line += bpl;
-		}
+	for (i = 0; i < im->height; i++)
+	{
+		asimage_decode_line (im, IC_RED,   xim_buf.red, i);
+		asimage_decode_line (im, IC_GREEN, xim_buf.green, i);
+		asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i);
+		output_image_line( imout, &xim_buf, 1 );
+	}
 	free_scanline(&xim_buf, True);
 
 	return xim;
