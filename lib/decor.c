@@ -382,25 +382,11 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 }
 
 Bool
-combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first )
+combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool first )
 {
 #ifdef SHAPE
     if (parent && child )
 	{
-        int child_x = child->root_x - parent->root_x ;
-        int child_y = child->root_y - parent->root_y ;
-
-        if( child_x > parent->width || child_y > parent->height ||
-            child_x+child->width <= 0 || child_y+child->height <= 0 )
-        {
-#ifdef LOCAL_DEBUG
-            if( get_flags( child->state, CANVAS_CONTAINER ) )
-                LOCAL_DEBUG_OUT( "container shape ignored - out of bounds: %dx%d%+d%+d parents: %dx%d%+d%+d",
-                                 child->width, child->height, child->root_x, child->root_y,
-                                 parent->width, parent->height, parent->root_x, parent->root_y );
-#endif
-            return False;
-        }
         if( get_flags( child->state, CANVAS_CONTAINER ) )
         {
             Bool           boundingShaped= False;
@@ -436,6 +422,74 @@ LOCAL_DEBUG_OUT( "setting bounding container's shape from mask %lX at %+d%+d",  
                                  first?ShapeSet:ShapeUnion);
         }
         return True;
+    }
+#endif
+    return False;
+}
+
+Bool
+replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y )
+{
+#ifdef SHAPE
+    if (parent && child )
+	{
+        XRectangle    rect;
+
+        rect.x = child_x ;
+        rect.y = child_y ;
+        rect.width  = child->width;
+        rect.height = child->height;
+
+LOCAL_DEBUG_OUT( "setting bounding container's shape from rectangle %dx%d%+d%+d",  rect.width, rect.height, rect.x, rect.y );
+        XShapeCombineRectangles (dpy, parent->w, ShapeBounding, 0, 0, &rect, 1, ShapeUnion, Unsorted);
+        return combine_canvas_shape_at (parent, child, child_x, child_y, False );
+    }
+#endif
+    return False;
+}
+
+Bool
+clear_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y )
+{
+#ifdef SHAPE
+    if (parent && child )
+	{
+        XRectangle    rect;
+
+        rect.x = child_x ;
+        rect.y = child_y ;
+        rect.width  = child->width;
+        rect.height = child->height;
+
+LOCAL_DEBUG_OUT( "setting bounding container's shape from rectangle %dx%d%+d%+d",  rect.width, rect.height, rect.x, rect.y );
+        XShapeCombineRectangles (dpy, parent->w, ShapeBounding, 0, 0, &rect, 1, ShapeUnion, Unsorted);
+        return True;
+    }
+#endif
+    return False;
+}
+
+
+Bool
+combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first )
+{
+#ifdef SHAPE
+    if (parent && child )
+	{
+        int child_x = child->root_x - parent->root_x ;
+        int child_y = child->root_y - parent->root_y ;
+        if( child_x > parent->width || child_y > parent->height ||
+            child_x+child->width <= 0 || child_y+child->height <= 0 )
+        {
+#ifdef LOCAL_DEBUG
+            if( get_flags( child->state, CANVAS_CONTAINER ) )
+                LOCAL_DEBUG_OUT( "container shape ignored - out of bounds: %dx%d%+d%+d parents: %dx%d%+d%+d",
+                                 child->width, child->height, child->root_x, child->root_y,
+                                 parent->width, parent->height, parent->root_x, parent->root_y );
+#endif
+            return False;
+        }
+        return combine_canvas_shape_at (parent, child, child_x, child_y, first );
     }
 #endif
     return False;
@@ -916,6 +970,7 @@ static int
 set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state )
 {
     register ASLabel *lbl = &(tile->data.label);
+    CARD32 alpha ;
     layer->im = lbl->rendered[state] ;
     if( layer->im == NULL )
         if( (layer->im = lbl->rendered[(~state)&BAR_STATE_FOCUS_MASK] ) == NULL )
@@ -924,6 +979,9 @@ set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state )
     layer->dst_y = tile->y ;
     layer->clip_width  = layer->im->width ;
     layer->clip_height = layer->im->height ;
+    alpha = ARGB32_ALPHA8(layer->im->back_color);
+    if( alpha < 0x00FF && alpha > 1 )
+        layer->tint = MAKE_ARGB32((alpha>>1),0x007F,0x007F,0x007F);
     return 1;
 }
 

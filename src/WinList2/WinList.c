@@ -29,6 +29,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 #define IN_MODULE
 #define MODULE_X_INTERFACE
 
@@ -45,6 +46,7 @@
 #include "../../libAfterImage/afterimage.h"
 #include "../../include/aswindata.h"
 #include "../../include/balloon.h"
+#include "../../include/event.h"
 
 /**********************************************************************/
 /*  AfterStep specific global variables :                             */
@@ -81,18 +83,11 @@ WinListConfig *Config = &DefaultConfig ;
 
 /**********************************************************************/
 
-void
-winlist_usage (void)
-{
-  printf ("Usage:\n"
-  	      "%s [-d|--display display_name] [-v|--version] [-h|--help]\n", MyName);
-  exit (0);
-}
-
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
+void HandleEvents(int x_fd, int *as_fd);
 void process_message (unsigned long type, unsigned long *body);
-void DispatchEvent (XEvent * Event);
+void DispatchEvent (ASEvent * Event);
 Window make_winlist_window();
 void destroy_winlist_button( void *data );
 void add_winlist_button( ASTBarData *tbar, ASWindowData *wd );
@@ -105,12 +100,35 @@ static Bool rearrange_winlist_window();
 int
 main( int argc, char **argv )
 {
-	char *global_config_file = NULL;
     int x_fd ;
 	int as_fd[2] ;
     Window w ;
 
-	set_application_name(argv[0]);
+    /* Save our program name - for error messages */
+    InitMyApp (CLASS_WINLIST, argc, argv, NULL, NULL, 0 );
+
+    if( (x_fd = ConnectX( &Scr, MyArgs.display_name, PropertyChangeMask )) < 0 )
+    {
+        show_error("failed to initialize window manager session. Aborting!", Scr.screen);
+        exit(1);
+    }
+    if (fcntl (x_fd, F_SETFD, 1) == -1)
+	{
+        show_error ("close-on-exec failed");
+        exit (3);
+	}
+
+    if (get_flags( MyArgs.flags, ASS_Debugging))
+        set_synchronous_mode(True);
+    XSync (dpy, 0);
+
+    as_fd[0] = as_fd[1] = ConnectAfterStep (M_FOCUS_CHANGE |
+                                            M_DESTROY_WINDOW |
+                                            WINDOW_CONFIG_MASK |
+                                            WINDOW_NAME_MASK |
+                                            M_END_WINDOWLIST);
+    if( !as_fd[0] )
+		return 1 ;
 
     default_winlist_style = safemalloc( 1+strlen(MyName)+1);
 	default_winlist_style[0] = '*' ;
@@ -119,67 +137,46 @@ main( int argc, char **argv )
 	set_signal_handler( SIGSEGV );
 	set_output_threshold( OUTPUT_LEVEL_PROGRESS );
 
-//    i = ProcessModuleArgs (argc, argv, &global_config_file, NULL, NULL, usage);
+    /* Request a list of all windows, while we load our config */
+    SendInfo ("Send_WindowList", 0);
 
-#ifdef I18N
-	if (setlocale (LC_ALL, AFTER_LOCALE) == NULL)
-  		show_error("cannot set locale.");
-#endif
-
-    InitMyApp (CLASS_WINLIST, argc, argv, winlist_usage, NULL, 0 );
-
-    x_fd = ConnectX (&Scr, MyArgs.display_name, PropertyChangeMask );
-	if( !x_fd )
-		return 1 ;
-
-	as_fd[0] = as_fd[1] =
-	        ConnectAfterStep (M_ADD_WINDOW |
-		  					  M_CONFIGURE_WINDOW |
-							  M_DESTROY_WINDOW |
-							  M_FOCUS_CHANGE |
-							  M_ICONIFY |
-							  M_ICON_LOCATION |
-							  M_DEICONIFY |
-							  M_ICON_NAME |
-							  M_WINDOW_NAME |
-							  M_END_WINDOWLIST);
-	if( !as_fd[0] )
-		return 1 ;
-
-	intern_hint_atoms ();
-	intern_wmprop_atoms ();
-
-	/* Request a list of all windows, while we load our config */
-    SendInfo (as_fd, "Send_WindowList", 0);
-
-	LoadBaseConfig (global_config_file, GetBaseOptions);
-    LoadConfig (global_config_file, "winlist", GetOptions);
+    LoadBaseConfig ( GetBaseOptions);
+    LoadConfig ("winlist", GetOptions);
 
 	WinList = create_asbidirlist(destroy_winlist_button);
 	WinListWindow = w = make_winlist_window();
 	WinListCanvas = create_ascanvas( WinListWindow );
 
 	/* And at long last our main loop : */
-	while (1)
-    {
-        XEvent event;
-		if (!My_XNextEvent (dpy, x_fd, as_fd[0], process_message, &event))
-  			timer_handle ();	/* handle timeout events */
-		else
-  		{
-    		balloon_handle_event (&event);
-    		DispatchEvent (&event);
-  		}
-    }
-
+    HandleEvents( x_fd, as_fd);
 	return 0 ;
 }
+
+void HandleEvents(int x_fd, int *as_fd)
+{
+    ASEvent event;
+    Bool has_x_events = False ;
+    while (True)
+    {
+        while((has_x_events = XPending (dpy)))
+        {
+            if( ASNextEvent (&(event.x), True) )
+            {
+                event.client = NULL ;
+                setup_asevent_from_xevent( &event );
+                DispatchEvent( &event );
+            }
+        }
+        module_wait_pipes_input ( x_fd, as_fd[1], process_message );
+    }
+}
+
+
 
 void
 DeadPipe (int nonsense)
 {
 #ifdef DEBUG_ALLOCS
-	int i;
 /* normally, we let the system clean up, but when auditing time comes
  * around, it's best to have the books in order... */
     balloon_init (1);
@@ -191,19 +188,10 @@ DeadPipe (int nonsense)
 		destroy_ascanvas( &WinListCanvas );
 
 	if( Base )
-		DestroyBaseConfig(&Base);
+        DestroyBaseConfig(Base);
 
-    {
-    	GC foreGC, backGC, reliefGC, shadowGC;
-
-    	mystyle_get_global_gcs (mystyle_first, &foreGC, &backGC, &reliefGC, &shadowGC);
-        mystyle_destroy_all();
-        XFreeGC (dpy, foreGC);
-    	XFreeGC (dpy, backGC);
-    	XFreeGC (dpy, reliefGC);
-    	XFreeGC (dpy, shadowGC);
-    }
-
+    window_data_cleanup();
+    FreeMyAppResources();
 
     print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
@@ -227,7 +215,7 @@ GetBaseOptions (const char *filename)
 	Base = config ;
 
 	Scr.image_manager = create_image_manager( NULL, 2.2, Base->pixmap_path, Base->icon_path, NULL );
-//	Scr.font_manager = create_font_manager( NULL, NULL );
+    Scr.font_manager = create_font_manager (dpy, Base->font_path, NULL);
 }
 
 void
@@ -243,7 +231,7 @@ GetOptions (const char *filename)
 		return ;
 
     if (config->style_defs)
-	    ProcessMyStyleDefinitions (&(config->style_defs), Base->pixmap_path);
+        ProcessMyStyleDefinitions (&(config->style_defs));
     mystyle_get_property (Scr.wmprops);
 
 	if( Config && Config != &DefaultConfig)
@@ -276,9 +264,9 @@ process_message (unsigned long type, unsigned long *body)
 }
 
 void
-DispatchEvent (XEvent * Event)
+DispatchEvent (ASEvent * event)
 {
-    switch (Event->type)
+    switch (event->x.type)
     {
 	    case ConfigureNotify:
 			if( handle_canvas_config( WinListCanvas ) )
@@ -295,10 +283,10 @@ DispatchEvent (XEvent * Event)
 	    case ButtonRelease:
 			break;
 	    case ClientMessage:
-    	    if ((Event->xclient.format == 32) &&
-		  	    (Event->xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
+            if ((event->x.xclient.format == 32) &&
+                (event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
 			{
-			    exit (0);
+                DeadPipe(0);
 			}
 	        break;
 	    case PropertyNotify:

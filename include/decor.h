@@ -189,7 +189,12 @@ void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line);
 #else
 void update_canvas_display( ASCanvas *pc );
 #endif
+
 Bool combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first );
+Bool combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool first );
+Bool replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y );
+Bool clear_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y );
+
 
 
 void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
