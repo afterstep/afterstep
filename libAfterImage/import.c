@@ -1487,7 +1487,7 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 	{
 		SavedImage	*sp = NULL ;
 		int count = 0 ;
-		if( (status = get_gif_saved_images(gif, subimage, &sp, &count )) == GIF_OK )
+		if( (status = get_gif_saved_images(gif, params->subimage, &sp, &count )) == GIF_OK )
 		{
 			GifPixelType *row_pointer ;
 #ifdef DEBUG_TRANSP_GIF
@@ -1519,7 +1519,7 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 			{
 				int bg_color =   gif->SBackGroundColor ;
 
-				im = create_asimage( width, height, compression );
+				im = create_asimage( width, height, params->compression );
 				prepare_scanline( im->width, 0, &buf, False );
 				for (y = 0; y < height; ++y)
 				{

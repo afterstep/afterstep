@@ -336,6 +336,7 @@ void mylook_destroy (MyLook ** look);
 struct MyStyle *mylook_get_style(MyLook *look, const char *name);
 inline MyBackground  *mylook_get_desk_back(MyLook *look, long desk);
 inline MyBackground  *mylook_get_back(MyLook *look, char *name);
+inline MyDesktopConfig *mylook_get_desk_config(MyLook *look, long desk);
 
 
 

@@ -690,6 +690,20 @@ mylook_get_style(MyLook *look, const char *name)
     return NULL;
 }
 
+inline MyDesktopConfig *
+mylook_get_desk_config(MyLook *look, long desk)
+{
+    if( look )
+	{
+		ASHashData hdata = {0} ;
+		LOCAL_DEBUG_OUT( "looking for desk_config for dekstop %ld...", desk );
+		if( get_hash_item( look->desk_configs, AS_HASHABLE(desk), &hdata.vptr) == ASH_Success )
+		    return hdata.vptr ;
+	}
+	return NULL;
+}
+
+
 inline MyBackground *
 mylook_get_desk_back(MyLook *look, long desk)
 {
@@ -709,12 +723,13 @@ LOCAL_DEBUG_OUT( "found desk_config %p for dekstop %ld...", dc, desk );
 #endif
 				if( get_hash_item( look->backs_list, AS_HASHABLE(dc->back_name), &hdata.vptr) == ASH_Success )
 					myback = hdata.vptr ;
-LOCAL_DEBUG_OUT( "found back %p for dekstop %ld with name \"%s\"...", myback, desk, dc->back_name );
+LOCAL_DEBUG_OUT( "found back %p for dekstop %ld with name \"%s\". data = \"%s\" ", myback, desk, dc->back_name, myback?myback->data:"<null>" );
 			}
 		}
 	}
 	return myback ;
 }
+
 
 inline MyBackground *
 mylook_get_back(MyLook *look, char *name)

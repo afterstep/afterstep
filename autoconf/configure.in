@@ -35,10 +35,10 @@ eval "includedir=$includedir"
 dnl# directories
 dnl# AC_ARG_WITH(gnustep_dir,	[  --with-gnustep-dir=DIR  GNUstep directory [[~/GNUstep]] ],with_gnustep_dir=$withval, with_gnustep_dir="~/GNUstep")
 dnl# AC_ARG_WITH(gnustep_lib,	[  --with-gnustep-lib=DIR  GNUstep/Library directory [[Library]] ],with_gnustep_lib=$withval, with_gnustep_lib="Library")
-AC_ARG_WITH(afterdir,		[  --with-afterdir=DIR     user AfterStep dir [[AfterStep]] ],with_afterdir=$withval, with_afterdir="~/.afterstep")
+AC_ARG_WITH(afterdir,		[  --with-afterdir=DIR     user AfterStep dir [[~/.afterstep]] ],with_afterdir=$withval, with_afterdir="~/.afterstep")
 
 dnl# helper apps
-AC_ARG_WITH(imageloader,	[  --with-imageloader=APP  used to display non-XPMs [[xli -onroot -quiet]] ],with_imageloader=$withval, with_imageloader="xli -onroot -quiet -colors 20")
+AC_ARG_WITH(imageloader,	[  --with-imageloader=APP  used to display images in unsupported format  [[xli -onroot -quiet]] ],with_imageloader=$withval, with_imageloader="xli -onroot -quiet -colors 20")
 AC_ARG_WITH(helpcommand,	[  --with-helpcommand=APP  display manpage for window [[xiterm -e man]] ],with_helpcommand=$withval, with_helpcommand="xiterm -e man")
 AC_ARG_WITH(soundplayer,	[  --with-soundplayer=APP  used to play sounds from Audio [[play]] (from SOX package)],with_soundplayer=$withval, with_soundplayer="play")
 
@@ -58,8 +58,8 @@ AC_ARG_WITH(jpeg,		    [  --with-jpeg              support JPEG image format [[y
 AC_ARG_WITH(jpeg_includes,  [  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=NO)
 AC_ARG_WITH(png,		    [  --with-png               support PNG image format [[yes]]])
 AC_ARG_WITH(png_includes,   [  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=NO)
-AC_ARG_WITH(ungif,		    [  --with-ungif             support GIF image format using libungif [[yes]]])
-AC_ARG_WITH(gif,		    [  --with-gif               support GIF image format using libgif   [[no]]])
+AC_ARG_WITH(ungif,		[  --with-ungif            compile support for gif image format using libungif [[no]] ],with_ungif=$withval,with_ungif="no")
+AC_ARG_WITH(gif,		[  --with-gif              compile support for gif image format using libgif [[no]] ],with_gif=$withval,with_gif="no")
 AC_ARG_WITH(gif_includes,   [  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=NO)
 AC_ARG_WITH(tiff,		    [  --with-tiff              support TIFF image format [[yes]]])
 AC_ARG_WITH(tiff_includes,  [  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=NO)
@@ -94,8 +94,6 @@ AC_ARG_ENABLE(xinerama,		[  --enable-xinerama       support Xinerama Multihead e
 AC_ARG_ENABLE(staticlibs,       [  --enable-staticlibs     enable linking to libafterstep statically [[yes]] ],enable_staticlibs=$enableval,enable_staticlibs="yes")
 
 AC_ARG_WITH(libefence,		[  --with-libefence        compile with libefence to debug buffer overruns [[no]] ],with_libefence=$withval,with_libefence="")
-AC_ARG_WITH(gif,		[  --with-gif              compile support for gif image format using libgif [[no]] ],with_gif=$withval,with_gif="no")
-AC_ARG_WITH(ungif,		[  --with-ungif            compile support for gif image format using libungif [[no]] ],with_ungif=$withval,with_ungif="no")
 AC_ARG_ENABLE(gdb,		[  --enable-gdb            add gdb symbols (-g) (for debugging) [[no]] ],enable_gdb=$enableval,enable_gdb="no")
 AC_ARG_ENABLE(sigsegv,		[  --enable-sigsegv        enable internal handler of Segmentation Fault (for self-diagnostics) [[yes]] ],enable_sigsegv=$enableval,enable_sigsegv="yes")
 AC_ARG_ENABLE(warn,		[  --enable-warn           turn on more compiler warnings (for debugging) [[no]] ],enable_warn=$enableval,enable_warn="no")

@@ -1068,6 +1068,7 @@ FixLook( MyLook *look )
             {
                 MyDesktopConfig *dc = (MyDesktopConfig *)curr_hash_data( &it );
                 MyBackground *myback = mylook_get_back(look, dc->back_name);
+				LOCAL_DEBUG_OUT( "myback = %p, back_name = \"%s\"", myback, dc->back_name?dc->back_name:"<NULL>" );
                 if( myback == NULL && dc->back_name != NULL )
                 {
                     myback = create_myback( dc->back_name );

@@ -538,7 +538,7 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
 MyBackground *get_desk_back_or_default( int desk, Bool old_desk )
 {
 	MyBackground *myback = mylook_get_desk_back( &(Scr.Look), desk );
-	if( !old_desk && !get_flags( Scr.Look.flags, DontDrawBackground ))
+	if( myback == NULL && !old_desk && !get_flags( Scr.Look.flags, DontDrawBackground ))
 	{
 		const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND, True);
 		if( const_configfile != NULL )
@@ -548,15 +548,22 @@ MyBackground *get_desk_back_or_default( int desk, Bool old_desk )
 			char * buf = safemalloc( strlen(DEFAULT_BACK_NAME)+15+1 );
 
 			sprintf( buf, DEFAULT_BACK_NAME, desk );
-	    	dc = create_mydeskconfig( desk, buf );
-			free( buf );
-			add_deskconfig( &(Scr.Look), dc );
-       		myback = mylook_get_back( &(Scr.Look), dc->back_name);
-        	if( myback == NULL  )
-        	{
-            	myback = create_myback( dc->back_name );
-            	myback->type = MB_BackImage ;
-            	add_myback( &(Scr.Look), myback );
+			dc = mylook_get_desk_config( &(Scr.Look), desk );
+			if( dc == NULL )
+			{
+		    	dc = create_mydeskconfig( desk, buf );
+				free( buf );
+				dc = add_deskconfig( &(Scr.Look), dc );
+			}
+			if( dc != NULL )
+			{
+       			myback = mylook_get_back( &(Scr.Look), dc->back_name);
+        		if( myback == NULL  )
+        		{
+            		myback = create_myback( dc->back_name );
+            		myback->type = MB_BackImage ;
+            		add_myback( &(Scr.Look), myback );
+				}
 			}
 		}
 	}
@@ -569,7 +576,10 @@ load_myback_image( int desk, MyBackground *back )
 {
     ASImage *im = NULL ;
     if( back->data && back->data[0] )
+	{
+		LOCAL_DEBUG_OUT( "Attempting to load background image from \"%s\"", back->data );
         im = get_asimage( Scr.image_manager, back->data, 0xFFFFFFFF, 100 );
+	}
 
     if( im == NULL )
     {
@@ -732,7 +742,7 @@ make_desktop_image( int desk, MyBackground *new_back )
             LOCAL_DEBUG_OUT( "fetch_asimage returned %p", new_im );
         }
 
-    }if( new_back->type == MB_BackMyStyle )
+    }else if( new_back->type == MB_BackMyStyle )
     {
         MyStyle *style = mystyle_find_or_default( new_back->data );
         int root_width = Scr.MyDisplayWidth;
