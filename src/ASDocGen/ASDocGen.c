@@ -1161,8 +1161,8 @@ add_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
 				fprintf( state->dest_fp, "\n<A href=\"%s", state->curr_url_page );	   
 				if( get_flags( state->flags, ASXMLI_LinkIsLocal ) ) 	  
 					fwrite( ".html", 1, 5, state->dest_fp );	
-				if( state->curr_url_anchor == NULL ) 
-					fprintf( state->dest_fp, "#%s\">", attr->parm );	
+				if( state->curr_url_anchor != NULL ) 
+					fprintf( state->dest_fp, "#%s\">", state->curr_url_anchor );	
 				fwrite( "\">", 1, 2, state->dest_fp );
 			}else if( state->doc_type == DocType_PHP ) 
 			{
