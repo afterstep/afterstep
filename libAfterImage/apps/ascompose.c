@@ -66,6 +66,7 @@ Display* dpy;
 int screen, depth;
 ASVisual *asv;
 int verbose = 0;
+ASHashTable* image_hash = NULL;
 
 char* default_doc_str = "
 <composite type=hue>
@@ -78,21 +79,21 @@ char* default_doc_str = "
 ";
 
 void version(void) {
-	printf("ascompose version 1.0\n");
+	printf("ascompose version 1.2\n");
 }
 
 void usage(void) {
 	printf(
 		"Usage:\n"
-		"ascompose [-h] [-f file] [-s string] [-o file] [-t type] [-v] [-V]\n"
+		"ascompose [-h] [-f file] [-n] [-o file] [-s string] [-t type] [-v] [-V]\n"
 		"  -h --help          display this help and exit\n"
 		"  -f --file file     an XML file to use as input\n"
+		"  -n --no-display    don't display the image\n"
+		"  -o --output file   output to file\n"
 		"  -s --string string an XML string to use as input\n"
+		"  -t --type type     type of file to output to\n"
 		"  -v --version       display version and exit\n"
 		"  -V --verbose       increase verbosity\n"
-		"  -o --output file   output to file\n"
-		"  -t --type type     type of file to output to\n"
-		"  -n --no-display    don't display the image\n"
 	);
 }
 
@@ -154,13 +155,25 @@ int main(int argc, char** argv) {
 		printf("\n");
 	}
 
-	// Do something with the structure!
-	im = build_image_from_xml(doc, NULL);
-	if (display == 1) {
-		showimage(im);
+	// Initialize the image hash.
+	image_hash = create_ashash(53, &string_hash_value, &string_compare, &string_destroy);
+
+	// Build the image(s) from the xml document structure.
+	if (doc) {
+		xml_elem_t* ptr;
+		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
+			ASImage* tmpim = build_image_from_xml(ptr, NULL);
+			if (tmpim) im = tmpim;
+		}
 	}
 
-	// *** Save it depending if it was told too.
+	// Automagically determine the output type, if none was given.
+	if (doc_save && !doc_save_type) {
+		doc_save_type = strrchr(doc_save, '.');
+		if (doc_save_type) doc_save_type++;
+	}
+
+	// Save the result image if desired.
 	if (doc_save && doc_save_type) {
 		if(!save_file(doc_save, im, doc_save_type)) {
 			printf("Save failed.\n");
@@ -168,6 +181,12 @@ int main(int argc, char** argv) {
 			printf("Save successful.\n");
 		}
 	}
+
+	// Display the image if desired.
+	if (display == 1) {
+		showimage(im);
+	}
+
 	destroy_asimage( &im );
 #ifdef DEBUG_ALLOCS
 	print_unfreed_mem();
@@ -207,7 +226,7 @@ Bool save_file(const char* file2bsaved, ASImage *im, const char* strtype) {
 		return(0);
 	}
 
-	return ASImage2file(im, ".", file2bsaved, type, NULL);
+	return ASImage2file(im, NULL, file2bsaved, type, NULL);
 
 }
 
@@ -282,13 +301,17 @@ void showimage(ASImage* im) {
 // Each tag is only allowed to return ONE image.
 ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 	xml_elem_t* ptr;
+	char* id = NULL;
 	ASImage* result = NULL;
 
 	if (!strcmp(doc->tag, "img")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
-		xml_elem_t* src;
-		for (src = parm ; src && strcmp(src->tag, "src") ; src = src->next);
-		if (!strcmp(src->parm, "xroot:")) {
+		const char* src = NULL;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			if (!strcmp(ptr->tag, "src")) src = ptr->parm;
+		}
+		if (src && !strcmp(src, "xroot:")) {
 			int width, height;
 			Pixmap rp = GetRootPixmap(None);
 			if (verbose) printf("Getting root pixmap.\n");
@@ -297,8 +320,82 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				result = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
 			}
 		} else if (src) {
-			if (verbose) printf("Loading image [%s].\n", src->parm);
-			result = file2ASImage(src->parm, 0xFFFFFFFF, SCREEN_GAMMA, 100, NULL);
+			if (verbose) printf("Loading image [%s].\n", src);
+			result = file2ASImage(src, 0xFFFFFFFF, SCREEN_GAMMA, 100, NULL);
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+
+	if (!strcmp(doc->tag, "recall")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* srcid = NULL;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			if (!strcmp(ptr->tag, "srcid")) srcid = ptr->parm;
+		}
+		if (srcid) {
+			if (verbose) printf("Recalling image id [%s].\n", srcid);
+			get_hash_item(image_hash, (ASHashableValue)(char*)srcid, (void**)&result);
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+
+#if 0 // This tag isn't finished yet.
+	if (!strcmp(doc->tag, "text")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* text = NULL;
+		const char* font_name = "fixed";
+		int point = 32;
+		ASImage* bgimage = NULL;
+		ASImage* fgimage = NULL;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			if (!strcmp(ptr->tag, "text")) text = ptr->parm;
+			if (!strcmp(ptr->tag, "font")) font_name = ptr->parm;
+			if (!strcmp(ptr->tag, "point")) point = strtol(ptr->parm, NULL, 0);
+			if (!strcmp(ptr->tag, "bgimage")) get_hash_item(image_hash, (ASHashableValue)(char*)ptr->parm, (void**)&bgimage);
+			if (!strcmp(ptr->tag, "fgimage")) get_hash_item(image_hash, (ASHashableValue)(char*)ptr->parm, (void**)&fgimage);
+		}
+		if (text) {
+			struct ASFontManager *fontman = NULL;
+			struct ASFont *font = NULL;
+			if (verbose) printf("Rendering text [%s].\n", text);
+			if ((fontman = create_font_manager(dpy, NULL, NULL)) != NULL)
+				font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
+			if (font != NULL) {
+				result = draw_text(text, font, AST_ShadeBelow, 0);
+        destroy_font_manager(fontman, False);
+      }
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+#endif
+
+	if (!strcmp(doc->tag, "save")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* dst = NULL;
+		const char* ext = NULL;
+		int autoext = 0;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			if (!strcmp(ptr->tag, "dst")) dst = ptr->parm;
+			if (!strcmp(ptr->tag, "format")) ext = ptr->parm;
+		}
+		if (dst && !ext) {
+			ext = strrchr(dst, '.');
+			if (ext) ext++;
+			autoext = 1;
+		}
+		if (dst && ext) {
+			for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
+				result = build_image_from_xml(ptr, NULL);
+			}
+			if (verbose > 1 && autoext)
+				printf("No format given.  File extension [%s] used as format.\n", ext);
+			if (verbose) printf("Saving image to file [%s].\n", dst);
+			if (result && !save_file(dst, result, ext)) {
+				fprintf(stderr, "Unable to save image.\n");
+			}
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -310,6 +407,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		char* color_str = NULL;
 		char* offset_str = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "width")) width = strtol(ptr->parm, NULL, 0);
 			if (!strcmp(ptr->tag, "height")) height = strtol(ptr->parm, NULL, 0);
 			if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
@@ -413,15 +511,14 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		ASImage* imtmp = NULL;
 		int dir = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "dir")) dir = !mystrcasecmp(ptr->parm, "vertical");
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(ptr, NULL);
 		}
 		if (imtmp) {
-printf("Mirror.\n");
 			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-if (!result) printf("Mirror failed.\n");
 			destroy_asimage(&imtmp);
 		}
 		if (verbose) printf("Mirroring image [%sally].\n", dir ? "horizont" : "vertic");
@@ -433,6 +530,7 @@ if (!result) printf("Mirror failed.\n");
 		ASImage* imtmp = NULL;
 		double angle = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
@@ -465,6 +563,7 @@ if (!result) printf("Mirror failed.\n");
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		int width = 0, height = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "width")) width = strtol(ptr->parm, NULL, 0);
 			if (!strcmp(ptr->tag, "height")) height = strtol(ptr->parm, NULL, 0);
 		}
@@ -486,6 +585,7 @@ if (!result) printf("Mirror failed.\n");
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		int width = 0, height = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "width")) width = strtol(ptr->parm, NULL, 0);
 			if (!strcmp(ptr->tag, "height")) height = strtol(ptr->parm, NULL, 0);
 		}
@@ -508,6 +608,7 @@ if (!result) printf("Mirror failed.\n");
 		char* pop = NULL;
 		int num;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "op")) pop = ptr->parm;
 		}
 		if (pop) {
@@ -568,6 +669,11 @@ if (!result) printf("Mirror failed.\n");
 			result = build_image_from_xml(ptr, &sparm);
 			if (result && rparm) *rparm = sparm; else xml_elem_delete(NULL, sparm);
 		}
+	}
+
+	if (id && result) {
+		if (verbose > 1) printf("Storing image id [%s].\n", id);
+		add_hash_item(image_hash, (ASHashableValue)id, result);
 	}
 
 	return result;

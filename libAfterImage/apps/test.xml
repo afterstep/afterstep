@@ -1,5 +1,5 @@
 "Burning Rose"
-<composite op=hue>
+<composite id="Burning Rose" op=hue>
   <composite op=add>
     <scale width=512 height=384><img src=rose512.jpg/></scale>
     <tile width=512 height=384><img src=back.xpm/></tile>
@@ -31,3 +31,5 @@ and all your relatives will pity you, when you discover just how devoted you are
 it owns your soul
 and all your relatives will pity you, when you discover just how devoted you are.</text></mirror>
 </composite>
+
+<recall srcid="Burning Rose"/>

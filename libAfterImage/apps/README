@@ -57,25 +57,30 @@ ascompose
 ascompose uses an XML input file to compose an image and display it.  The
 possible XML tags are:
 
-<composite type="alphablend">
-  type     Required.  The compositing operation.  Valid values are the
-           standard AS blending ops: add, alphablend, allanon, colorize,
-           darken, diff, dissipate, hue, lighten, overlay, saturate,
+<composite id="com" op="alphablend">
+  id       Optional.  Image will be given this name for future reference.
+  op       Required.  The compositing operation.  Valid values are the 
+           standard AS blending ops: add, alphablend, allanon, colorize, 
+           darken, diff, dissipate, hue, lighten, overlay, saturate, 
            screen, sub, tint, value.
-  All images surrounded by this tag will be composited with the given type.
-<scale width="512" height="384">
+  All images surrounded by this tag will be composited with the given op.
+<scale id="sca" width="512" height="384">
+  id       Optional.  Image will be given this name for future reference.
   width    Required.  The image will be scaled to this width.
   height   Required.  The image will be scaled to this height.
   This tag applies to the first image contained within the tag.  Any
   further images will be discarded.
-<tile width="512" height="384">
+<tile id="til" width="512" height="384">
+  id       Optional.  Image will be given this name for future reference.
   width    Required.  The image will be tiled to this width.
   height   Required.  The image will be tiled to this height.
   This tag applies to the first image contained within the tag.  Any
   further images will be discarded.
-<img src=rose512.jpg/>
+<img id="img" src=rose512.jpg/>
+  id       Optional.  Image will be given this name for future reference.
   src      Required.  The filename (NOT URL) of the image file to load.
-<gradient angle="90" width="600" height="500" colors="#ff007fff #7f00ffff #ff007fff" offsets="0.0 0.125 1.0"/>
+<gradient id="gra" angle="90" width="600" height="500" colors="#ff007fff #7f00ffff #ff007fff" offsets="0.0 0.125 1.0"/>
+  id       Optional.  Image will be given this name for future reference.
   width    Required.  The gradient will have this width.
   height   Required.  The gradient will have this height.
   colors   Required.  Whitespace-separated list of colors.  At least two
@@ -93,14 +98,27 @@ possible XML tags are:
            direction of the gradient.  Currently the only supported
            values are 0, 45, 90, 135, 180, 225, 270, 315.  0 means left
            to right, 90 means top to bottom, etc.
-<rotate angle="90">
+<rotate id="rot" angle="90">
+  id       Optional.  Image will be given this name for future reference.
   angle    Required.  Given in degrees.  Possible values are currently
            "90", "180", and "270".  Rotates the image through the given
            angle.
-<mirror dir="vertical">
+<mirror id="mir" dir="vertical">
+  id       Optional.  Image will be given this name for future reference.
   dir      Required.  Possible values are "vertical" and "horizontal".
            The image will be flipped over the x-axis if dir is vertical,
            and flipped over the y-axis if dir is horizontal.
+<recall id="rec" srcid="com">
+  id       Optional.  Image will be given this name for future reference.
+  srcid    Required.  An image ID defined with the "id" parameter for 
+           any previously created image.
+<save id="sav" dst="myimage.jpg" format="jpg">
+  id       Optional.  Image will be given this name for future reference.
+  dst      Required.  Name of file image will be saved to.
+  format   Optional.  Ouput format of saved image.  Defaults to the 
+           extension of the "dst" parameter.  Valid values are the standard 
+           AS image file formats: jpg, bmp, png, xcf, ppm, pnm, ico, cur, 
+           gif, xbm, tiff.
 
 As an example, the default XML used by ascompose is:
 
