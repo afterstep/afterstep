@@ -398,7 +398,7 @@ query_screen_visual_id( ASVisual *asv, Display *dpy, int screen, Window root, in
 		asv->white_pixel = white_xcol.pixel ;
 		asv->black_pixel = black_xcol.pixel ;
 	}
-	if( get_output_threshold() >= OUTPUT_DEFAULT_THRESHOLD )
+	if( get_output_threshold() >= OUTPUT_VERBOSE_THRESHOLD )
 	{
 		fprintf( stderr, "Selected visual 0x%lx: depth %d, class %d\n RGB masks: 0x%lX, 0x%lX, 0x%lX, Byte Ordering: %s\n",
 				 asv->visual_info.visualid,

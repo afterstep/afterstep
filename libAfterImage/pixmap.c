@@ -299,12 +299,7 @@ ScalePixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, Sha
 {
 	Pixmap p = None ;
 #ifndef X_DISPLAY_MISSING
-	ASVisual asv ;
-	int screen = DefaultScreen(dpy);
-	
-	create_asvisual( dpy, screen, DefaultDepth(dpy, screen), &asv );
-	p = scale_pixmap( &asv, src, src_w, src_h, width, height, gc, shading2tint32(shading) );
-	destroy_asvisual( &asv, True );
+	p = scale_pixmap( get_default_asvisual(), src, src_w, src_h, width, height, gc, shading2tint32(shading) );
 #endif
 	return p;
 }
@@ -349,7 +344,6 @@ CopyAndShadeArea ( Drawable src, Pixmap trg,
 				   GC gc, ShadingInfo * shading)
 {
 #ifndef X_DISPLAY_MISSING
-	int screen = DefaultScreen(dpy);
 	ARGB32 tint = shading2tint32( shading );
 
     if (x < 0 || y < 0)
@@ -360,10 +354,7 @@ CopyAndShadeArea ( Drawable src, Pixmap trg,
 		XCopyArea (dpy, src, trg, gc, x, y, w, h, trg_x, trg_y);
 	}else
 	{
-		ASVisual asv ;
-		create_asvisual( dpy, screen, DefaultDepth(dpy, screen), &asv );
-		copyshade_drawable_area( &asv, src, trg, x, y, w, h, trg_x, trg_y, gc, tint );
-		destroy_asvisual( &asv, True );
+		copyshade_drawable_area( get_default_asvisual(), src, trg, x, y, w, h, trg_x, trg_y, gc, tint );
 	}
 #endif
 }
@@ -402,18 +393,8 @@ void
 ShadeTiledPixmap (Pixmap src, Pixmap trg, int src_w, int src_h, int x, int y, int w, int h, GC gc, ShadingInfo * shading)
 {
 #ifndef X_DISPLAY_MISSING
-	ASVisual *asv = NULL;
 	ARGB32 tint = shading2tint32( shading );
-  
-	if( tint != TINT_LEAVE_SAME )
-	{
-		int screen = DefaultScreen(dpy);
-	    asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
-	}
-
-	tile_pixmap (asv, src, trg, src_w, src_h, x, y, w, h, gc, tint);
-	if( asv )
-		destroy_asvisual( asv, False );
+	tile_pixmap (get_default_asvisual(), src, trg, src_w, src_h, x, y, w, h, gc, tint);
 #endif
 }
 
@@ -436,21 +417,13 @@ ShadePixmap (Pixmap src, int x, int y, int width, int height, GC gc, ShadingInfo
 {
     Pixmap trg = None;
 #ifndef X_DISPLAY_MISSING
-	ASVisual *asv = NULL;
 	ARGB32 tint = shading2tint32( shading );
   
-	if( tint != TINT_LEAVE_SAME )
-	{
-		int screen = DefaultScreen(dpy);
-	    asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
-	}
-	trg = CREATE_TRG_PIXMAP (asv, width, height);
+	trg = CREATE_TRG_PIXMAP (get_default_asvisual(), width, height);
 	if (trg != None)
     {
-    	copyshade_drawable_area (asv, src, trg, x, y, width, height, 0, 0, gc, tint);
+    	copyshade_drawable_area (get_default_asvisual(), src, trg, x, y, width, height, 0, 0, gc, tint);
     }
-	if( asv )
-		destroy_asvisual( asv, False );
 #endif
 	return trg;
 }
@@ -496,17 +469,9 @@ CenterPixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, Sh
 {
 	Pixmap trg = None;
 #ifndef X_DISPLAY_MISSING
-	ASVisual *asv = NULL;
 	ARGB32 tint = shading2tint32( shading );
   
-	if( tint != TINT_LEAVE_SAME )
-	{
-		int screen = DefaultScreen(dpy);
-	    asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
-	}
-	trg = center_pixmap( asv, src, src_w, src_h, width, height, gc, tint );
-	if( asv )
-		destroy_asvisual( asv, False );
+	trg = center_pixmap( get_default_asvisual(), src, src_w, src_h, width, height, gc, tint );
 #endif		
 	return trg ;	
 }
@@ -538,17 +503,9 @@ GrowPixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, Shad
 {
 	Pixmap trg = None;
 #ifndef X_DISPLAY_MISSING
-	ASVisual *asv = NULL;
 	ARGB32 tint = shading2tint32( shading );
   
-	if( tint != TINT_LEAVE_SAME )
-	{
-		int screen = DefaultScreen(dpy);
-	    asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
-	}
-	trg = grow_pixmap( asv, src, src_w, src_h, width, height, gc, tint );
-	if( asv )
-		destroy_asvisual( asv, False );
+	trg = grow_pixmap( get_default_asvisual(), src, src_w, src_h, width, height, gc, tint );
 #endif		
 	return trg ;	
 }
@@ -709,13 +666,8 @@ CutPixmap ( Pixmap src, Pixmap trg,
 {
 	Pixmap res = None;
 #ifndef X_DISPLAY_MISSING
-	ASVisual *asv = NULL;
 	ARGB32 tint = shading2tint32( shading );
-	int screen = DefaultScreen(dpy);
-    asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
-	res = cut_pixmap( asv, src, trg, x, y, src_w, src_h, width, height, gc, tint );
-	if( asv )
-		destroy_asvisual( asv, False );
+	res = cut_pixmap( get_default_asvisual(), src, trg, x, y, src_w, src_h, width, height, gc, tint );
 #endif		
 	return res ;	
 }
