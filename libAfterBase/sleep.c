@@ -5,12 +5,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -58,10 +58,15 @@ start_ticker (unsigned int size)
 	_as_ticker_last_tick = times (&t);		   /* in system ticks */
 	if (_as_ticker_tick_time == 0)
 	{
+		register clock_t delta = _as_ticker_last_tick;
 		/* calibrating clock - how many ms per cpu tick ? */
 		sleep_a_little (100);
-		_as_ticker_tick_time = 101 / (times (&t) - _as_ticker_last_tick);
 		_as_ticker_last_tick = times (&t);
+		delta = _as_ticker_last_tick - delta ;
+		if( delta <= 0 )
+			_as_ticker_tick_time = 100;
+		else
+			_as_ticker_tick_time = 101 / delta;
 	}
 	_as_ticker_tick_size = size;			   /* in ms */
 }
