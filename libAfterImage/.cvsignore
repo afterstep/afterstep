@@ -1,0 +1,7 @@
+config.h
+config.log
+config.cache
+Makefile
+config.status
+afterbase.h
+.cvsignore
