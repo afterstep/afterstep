@@ -22,7 +22,7 @@ typedef struct ASHashItem
 }
 ASHashItem;
 
-typedef unsigned int ASHashKey;
+typedef unsigned short ASHashKey;
 typedef ASHashItem *ASHashBucket;
 
 typedef struct ASHashTable
@@ -31,7 +31,7 @@ typedef struct ASHashTable
   ASHashBucket *buckets;
   ASHashKey buckets_used;
   unsigned long items_num;
-  
+
   ASHashItem *most_recent ;
 
     ASHashKey (*hash_func) (ASHashableValue value, ASHashKey hash_size);
