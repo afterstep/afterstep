@@ -350,12 +350,38 @@ change_aswindow_desk_iter_func(void *data, void *aux_data)
     return True;
 }
 
+Bool
+count_desk_client_iter_func(void *data, void *aux_data)
+{
+    int *pcount = (int*)aux_data ;
+    ASWindow *asw = (ASWindow *)data ;
+
+    if( !ASWIN_GET_FLAGS(asw, AS_Sticky) &&
+        (!ASWIN_GET_FLAGS(asw, AS_Iconic) || !get_flags( Scr.Feel.flags, StickyIcons)) )
+    {
+        if(ASWIN_DESK(asw)==Scr.CurrentDesk)
+            ++(*pcount);
+    }
+    return True;
+}
+
+void change_desktop_background( int desk, int old_desk );
 
 void
 ChangeDesks (int new_desk)
 {
+    int old_desk = Scr.CurrentDesk ;
+
     if( Scr.CurrentDesk == new_desk )
         return;
+
+    if( IsValidDesk( Scr.CurrentDesk ) )
+    {
+        int client_count = 0 ;
+        iterate_asbidirlist( Scr.Windows->clients, count_desk_client_iter_func, (void*)&client_count, NULL, False );
+        if( client_count != 0 )
+            old_desk = INVALID_DESK ;
+    }
 
     Scr.CurrentDesk = new_desk;
     if( as_desk2ext_desk (Scr.wmprops, new_desk) == INVALID_DESKTOP_PROP )
@@ -399,6 +425,9 @@ ChangeDesks (int new_desk)
 	QuickRestart ("look&feel");
 #endif
 
+    /* we need to set the desktop background : */
+    change_desktop_background(new_desk, old_desk);
+
     /*TODO: implement virtual desktops switching : */
 #if 0
     /* autoplace sticky icons so they don't wind up over a stationary icon */
@@ -408,6 +437,28 @@ ChangeDesks (int new_desk)
 	CorrectStackOrder ();
 	update_windowList ();
 #endif
+
+}
+
+void
+change_desktop_background( int desk, int old_desk )
+{
+    MyBackground *new_myback = mylook_get_desk_back( &(Scr.Look), desk );
+    MyBackground *old_myback = mylook_get_desk_back( &(Scr.Look), old_desk );
+    char *new_imname ;
+
+    if( new_myback == NULL )
+        return ;
+    if( old_myback )
+    {                                          /* release old background */
+        char *old_imname = make_myback_image_name( &(Scr.Look), old_myback->name );
+        if( Scr.RootImage && Scr.RootImage->name && strcmp(Scr.RootImage->name, old_imname) == 0 )
+            Scr.RootImage = NULL ;
+        release_asimage_by_name( Scr.image_manager, old_imname );
+        free( old_imname );
+    }
+
+    new_imname = make_myback_image_name( &(Scr.Look), new_myback->name );
 
 }
 

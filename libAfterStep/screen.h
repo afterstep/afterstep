@@ -12,6 +12,8 @@
 #include "hints.h"
 #include "asdatabase.h"
 #include "font.h"
+#include "mylook.h"
+
 
 #define SIZE_HINDENT 5
 #define SIZE_VINDENT 3
@@ -51,11 +53,6 @@
 /* button styles */
 #define NO_BUTTON_STYLE		-1	/* button is undefined */
 #define XPM_BUTTON_STYLE	2	/* button is a pixmap */
-
-/* title bar text alignment  */
-#define JUSTIFY_CENTER 0
-#define JUSTIFY_LEFT   1
-#define JUSTIFY_RIGHT  2
 
 #ifndef NO_VIRTUAL
 typedef struct
@@ -106,29 +103,9 @@ typedef enum                /* feel file flags */
 /* look file flags */
 typedef enum
 {
-    TxtrMenuItmInd      = (0x01 << 0),
-    MenuMiniPixmaps     = (0x01 << 1),
-    GradientText        = (0x01 << 2),
-    TexturedHandle      = (0x01 << 3),
-    TitlebarNoPush      = (0x01 << 4),
-    IconNoBorder        = (0x01 << 5),
-    SeparateButtonTitle = (0x01 << 6),    /* icon title is a separate window */
-    DecorateFrames      = (0x01 << 7)
-}LookFlags;
-
-
-typedef enum
-{
     AS_StateShutdown   = (0x01<<0),
     AS_StateRestarting = (0x01<<1)
 }ASScreenStateFlags ;
-
-typedef struct fr_sz
-  {
-    int w;
-    int h;
-  }
-fr_sz;
 
 struct MenuRoot;
 struct MouseButton;
@@ -226,71 +203,6 @@ typedef struct ASFeel
     unsigned int        no_snaping_mod ;         /* modifyer mask that disables snapping to edges whle move/resizing the window */
 }
 ASFeel;
-
-typedef struct MyLook
-{
-    unsigned long magic;
-    /* The following two things are mostly used by ASRenderer : */
-    char         *name;         /* filename of the look */
-    int           ref_count ;   /* number of times referenced */
-    /* Actuall Look data : */
-    unsigned long flags;
-    /* the rest of the stuff is related to windows.
-        Window gets values when its first initialized, and then we have
-        to go and update it whenever we move it from one desk to another.
-    */
-    unsigned short look_id;
-    unsigned short deskback_id_base ;
-
-    /* update mystyle_fix_styles() and InitLook() if you add a style */
-    struct ASHashTable *styles_list;  /* hash of MyStyles by name */
-    struct ASHashTable *backs_list;   /* hash of MyBackgrounds   by name */
-
-    struct MyStyle *MSMenu[MENU_BACK_STYLES]; /* menu MyStyles */
-
-    /* focussed, unfocussed, sticky window styles */
-    struct MyStyle *MSWindow[BACK_STYLES];
-
-    ASGeometry resize_move_geometry;  /* position of the size window */
-
-    char *DefaultIcon;      /* Icon to use when no other icons are found */
-
-    struct icon_t *MenuArrow;
-
-    MyButton    buttons[TITLE_BUTTONS];
-
-    /* Menu parameters */
-#define DRAW_MENU_BORDERS_NONE      0
-#define DRAW_MENU_BORDERS_ITEM      1
-#define DRAW_MENU_BORDERS_OVERALL   2
-    int DrawMenuBorders;
-    int StartMenuSortMode;
-
-    /* Icons parameters */
-    ASGeometry *configured_icon_areas ;
-	unsigned int configured_icon_areas_num ;
-    unsigned int ButtonWidth, ButtonHeight;
-
-    /* misc stuff */
-    int RubberBand;
-
-    /* these affect window placement : */
-    /* None of it should be used by placement related functions from this
-        structure - they should consult copies of it stored in ASWindow
-        structure.
-    */
-    int TitleButtonStyle;     /* 0 - afterstep, 1 - WM old, 2 - free hand */
-    int TitleButtonSpacing;
-    int TitleButtonXOffset;
-    int TitleButtonYOffset;
-    int TitleTextAlign;       /* alignment of title bar text */
-
-    struct ASSupportedHints *supported_hints;
-
-    struct MyFrame *DefaultFrame;
-    struct ASHashTable *FramesList ;/* hash table of named MyFrames */
-
-}MyLook;
 
 typedef struct ScreenInfo
   {

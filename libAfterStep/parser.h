@@ -148,6 +148,12 @@ typedef struct storage_cursor
   }
 StorageStack;
 
+typedef struct FilePtrAndData
+{
+    FILE *fp ;
+    char *data ;                               /* prefetched line from the above file ! */
+}FilePtrAndData;
+
 typedef struct config_definition
   {
     char *myname;		/* prog name */
@@ -197,7 +203,8 @@ typedef enum
     CDT_Filename,
     CDT_FilePtr,
     CDT_FileDesc,
-    CDT_Data
+    CDT_Data,
+    CDT_FilePtrAndData
   }
 ConfigDataType;
 

@@ -303,8 +303,12 @@ ASetRootConfig *ParseASetRootOptions (const char *filename, char *myname);
  */
 
 void DestroyASetRootConfig (ASetRootConfig * config);
+void myback_parse (char *tline, FILE * fd, char **myname, int *mylook);
 
-
+/***************************************************************************/
+/***************************************************************************/
+/*                        WinList config parsing definitions               */
+/***************************************************************************/
 /* New winlist config :
  *
  *	*WinListGeometry		+x+y

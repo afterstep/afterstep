@@ -162,55 +162,6 @@ typedef struct ASTBarData {
 	/* 64 bytes */
 }ASTBarData ;
 
-/*********************************************************************
- * Window decorations Frame can be defined as such :
- *
- * MyFrame "name"
- *     [Inherit     "name"]
- * #traditional form :
- *     [FrameN   <pixmap>]
- *     [FrameE   <pixmap>]
- *     [FrameS   <pixmap>]
- *     [FrameW   <pixmap>]
- *     [FrameNE  <pixmap>]
- *     [FrameNW  <pixmap>]
- *     [FrameSE  <pixmap>]
- *     [FrameSW  <pixmap>]
- * #alternative form :
- *     [Side        North|South|East|West|Any [<pixmap>]] - if pixmap is ommited -
- *                                                          empty bevel will be drawn
- *     [NoSide      North|South|East|West|Any]
- *     [Corner      NorthEast|SouthEast|NorthWest|SouthWest|Any <pixmap>] - if pixmap is ommited -
- *                                                                          empty bevel will be drawn
- *     [NoCorner    NorthEast|SouthEast|NorthWest|SouthWest|Any]
- *     [SideSize    North|South|East|West|Any <WIDTHxLENGTH>] - pixmap will be scaled to this size
- *     [CornerSize  NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT>]
- * ~MyFrame
- */
-typedef struct MyFrame
-{
-#define MAGIC_MYFRAME           0xA351F385
-
-    unsigned long magic ;
-    char      *name;
-    ASFlagType flags; /* first 8 bits represent one enabled side/corner each */
-    struct icon_t    *parts[FRAME_PARTS];
-    char             *part_filenames[FRAME_PARTS];
-    unsigned int part_width[FRAME_PARTS];
-    unsigned int part_length[FRAME_PARTS];
-#define MYFRAME_HOR_MASK    ((0x01<<FR_N)|(0x01<<FR_S))
-#define MYFRAME_VERT_MASK   ((0x01<<FR_W)|(0x01<<FR_E))
-#define IsSideVertical(side)  ((side) == FR_W || (side)== FR_E)
-#define IsFrameCorner(p)   ((p)>=FRAME_SIDES)
-#define IsFramePart(f,p)   ((f)->parts[(p)] || ((f)->part_width[(p)] && (f)->part_length[(p)]))
-
-    unsigned int spacing ;
-}MyFrame;
-
-extern int    _as_frame_corner_xref[FRAME_SIDES+1];
-#define LeftCorner(side)    _as_frame_corner_xref[(side)]
-#define RightCorner(side)   _as_frame_corner_xref[(side)+1]
-
 ASCanvas* create_ascanvas(Window w);
 ASCanvas* create_ascanvas_container (Window w);
 
@@ -297,17 +248,6 @@ Bool  trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, i
 #else
 Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 #endif
-
-
-
-MyFrame *create_myframe();
-MyFrame *create_default_myframe();
-MyFrame *myframe_find( const char *name );
-void myframe_load ( MyFrame * frame, struct ASImageManager *imman );
-Bool filename2myframe_part (MyFrame *frame, int part, char *filename);
-Bool myframe_has_parts(const MyFrame *frame, ASFlagType mask);
-void destroy_myframe( MyFrame **pframe );
-
 
 #endif /* !NO_TEXTURE */
 #endif /* DECOR_H_HEADER */

@@ -1206,7 +1206,7 @@ mystyle_parse (char *tline, FILE * fd, char **ppath, int *junk2)
 			pixmap_path = getenv ("IMAGE_PATH");
 		if (pixmap_path == NULL)
 			pixmap_path = getenv ("PATH");
-		Scr.image_manager = create_image_manager (NULL, 2.2, pixmap_path, NULL);
+        Scr.image_manager = create_image_manager (NULL, 2.2, pixmap_path, IconPath, NULL);
 	}
 
 /* if this style was already defined, find it */

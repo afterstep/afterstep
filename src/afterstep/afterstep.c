@@ -296,6 +296,7 @@ DestroyManagementWindows()
 void
 SetupScreen()
 {
+    Scr.Look.magic = MAGIC_MYLOOK ;
     InitLook(&Scr.Look, False);
     InitFeel(&Scr.Feel, False);
 

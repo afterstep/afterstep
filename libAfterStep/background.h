@@ -23,7 +23,7 @@ typedef union
   }
 StoredBackData;
 
-typedef struct as_desk_back
+typedef struct ASDeskBack
   {
     unsigned long desk;
     Atom data_type;		/* XA_PIXMAP if Pixmap 0 if InternAtom */

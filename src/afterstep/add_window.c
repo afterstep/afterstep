@@ -46,8 +46,6 @@
 #include <X11/Xresource.h>
 #endif /* SHAPE */
 
-extern int    LastWarpIndex;
-
 #warning "implement titlebar config language in redecorate_window"
 
 #if 0
@@ -746,6 +744,7 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     /* 9) now we have to setup titlebar buttons */
     if( asw->tbar )
 	{ /* need to add some titlebuttons */
+        ASFlagType title_align = ALIGN_LEFT ;
         ASFlagType btn_mask = compile_titlebuttons_mask (asw->hints);
         asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
         asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
@@ -758,9 +757,14 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
                             Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                             od->left_btn_order, C_L1 );
         /* label */
+        if(Scr.Look.TitleTextAlign == JUSTIFY_RIGHT )
+            title_align = ALIGN_RIGHT ;
+        else if(Scr.Look.TitleTextAlign == JUSTIFY_CENTER )
+            title_align = ALIGN_CENTER ;
+
         add_astbar_label( asw->tbar,
                           od->default_tbar_elem_col[1], od->default_tbar_elem_row[1],
-                          od->flip, ALIGN_RIGHT, ASWIN_NAME(asw));
+                          od->flip, title_align, ASWIN_NAME(asw));
         /* right buttons : */
         add_astbar_btnblock(asw->tbar,
                             od->default_tbar_elem_col[2], od->default_tbar_elem_row[2],

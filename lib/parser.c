@@ -17,8 +17,7 @@
  *
  */
 
-/*#define DO_CLOCKING      */
-
+#undef DO_CLOCKING
 #undef UNKNOWN_KEYWORD_WARNING
 
 #include "../configure.h"
@@ -175,6 +174,10 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 			 break;
 		 case CDT_Data:
 			 break;
+         case CDT_FilePtrAndData :
+             new_conf->fp = ((FilePtrAndData*)source)->fp;
+			 new_conf->fd = fileno (new_conf->fp);
+            break ;
 		}
 
 	if (new_conf->fd != -1 && new_conf->fp == NULL)
@@ -221,7 +224,18 @@ InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, void *s
 		/* allocate to store entire data */
 		new_conf->buffer = (char *)safemalloc (strlen ((char *)source) + 1);
 		strcpy (new_conf->buffer, (char *)source);
-	} else
+    } else if( type == CDT_FilePtrAndData )
+    {
+        FilePtrAndData *fpd = (FilePtrAndData*)source;
+        int buf_len = fpd->data?strlen( fpd->data ):0;
+        if( buf_len < MAXLINELENGTH )
+            buf_len = MAXLINELENGTH ;
+        new_conf->buffer = (char *)safemalloc (buf_len + 1);
+        if( fpd->data )
+            strcpy (new_conf->buffer, fpd->data);
+        else
+            new_conf->buffer[0] = '\0';
+    }else
 	{
 		new_conf->buffer = (char *)safemalloc (MAXLINELENGTH + 1);
 		new_conf->buffer[0] = '\0';
@@ -1446,19 +1460,19 @@ WriteConfig (ConfigDef * config, FreeStorageElem ** storage, ConfigDataType targ
 	/* now saving buffer into file if we need to */
 	switch (target_type)
 	{
-	 case CDT_Filename:
-		 t_fd = open ((char *)(*target), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-		 break;
-	 case CDT_FilePtr:
-		 t_fd = fileno ((FILE *) (*target));
-		 break;
-	 case CDT_FileDesc:
-		 t_fd = *((int *)(*target));
-		 break;
-	 case CDT_Data:
-		 (*target) = (void *)(t_buffer.buffer);
-		 return t_buffer.used;
-	}
+        case CDT_Filename:
+            t_fd = open ((char *)(*target), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+            break;
+        case CDT_FilePtr:
+            t_fd = fileno ((FILE *) (*target));
+            break;
+        case CDT_FileDesc:
+            t_fd = *((int *)(*target));
+            break;
+        case CDT_Data:
+            (*target) = (void *)(t_buffer.buffer);
+            return t_buffer.used;
+    }
 	if (t_fd != -1)
 	{
 		write (t_fd, t_buffer.buffer, t_buffer.used);

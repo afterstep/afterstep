@@ -35,8 +35,6 @@
 #include <X11/extensions/shape.h>
 #endif
 
-int    _as_frame_corner_xref[FRAME_SIDES+1] = {FR_NW, FR_NE, FR_SE, FR_SW, FR_NW};
-
 static GC     MaskGC = None;
 
 /********************************************************************/
@@ -1710,105 +1708,4 @@ check_astbar_point( ASTBarData *tbar, int root_x, int root_y )
 }
 
 /*************************************************************************/
-/*************************************************************************/
-/* MyFrame management :                                                  */
-/*************************************************************************/
-MyFrame *
-create_myframe()
-{
-    MyFrame *frame = safecalloc( 1, sizeof(MyFrame));
-    frame->magic = MAGIC_MYFRAME ;
 
-    return frame;
-
-}
-
-MyFrame *
-create_default_myframe()
-{
-    MyFrame *frame = create_myframe();
-    frame->flags = C_SIDEBAR ;
-    frame->part_width[FR_S] = BOUNDARY_WIDTH ;
-    frame->part_width[FR_SW] = CORNER_WIDTH ;
-    frame->part_width[FR_SE] = CORNER_WIDTH ;
-    frame->part_length[FR_S] = 1;
-    frame->part_length[FR_SW] = BOUNDARY_WIDTH ;
-    frame->part_length[FR_SE] = BOUNDARY_WIDTH ;
-    frame->spacing = 1;
-    return frame ;
-}
-
-MyFrame *
-myframe_find( const char *name )
-{
-    MyFrame *frame = Scr.Look.DefaultFrame ;
-    if( name && Scr.Look.FramesList )
-        if( get_hash_item( Scr.Look.FramesList, AS_HASHABLE(name), (void**)&frame) != ASH_Success )
-            frame = Scr.Look.DefaultFrame ;
-    return frame ;
-}
-
-void
-myframe_load ( MyFrame * frame, ASImageManager *imman )
-{
-	register int  i;
-
-	if (frame == NULL)
-		return;
-	for (i = 0; i < FRAME_PARTS; i++)
-        if( frame->part_filenames[i] )
-        {
-            frame->parts[i] = safecalloc( 1, sizeof(icon_t));
-            if( !load_icon (frame->parts[i], frame->part_filenames[i], imman) )
-            {
-                free( frame->parts[i] );
-                frame->parts[i] = NULL;
-            }
-        }
-}
-
-Bool
-filename2myframe_part (MyFrame *frame, int part, char *filename)
-{
-    if (filename && frame && part>= 0 && part < FRAME_PARTS)
-	{
-        if( frame->part_filenames[part] )
-            free( frame->part_filenames[part] );
-        frame->part_filenames[part] = mystrdup(filename);
-        return True;
-    }
-    return False;
-}
-
-Bool
-myframe_has_parts(const MyFrame *frame, ASFlagType mask)
-{
-    if( frame )
-    {
-        register int i ;
-        for( i = 0 ; i < FRAME_PARTS ; ++i )
-            if( (mask&(0x01<<i)) )
-                if( !IsFramePart(frame,i) )
-                    return False;
-        return True;
-    }
-    return False;
-}
-
-void
-destroy_myframe( MyFrame **pframe )
-{
-    MyFrame *pf = *pframe ;
-    if( pf )
-    {
-        register int i = FRAME_PARTS;
-        while( --i >= 0 )
-            if( pf->parts[i] )
-                destroy_icon( &(pf->parts[i]) );
-        pf->magic = 0 ;
-        free( pf );
-        *pframe = NULL ;
-    }
-}
-
-/*************************************************************************/

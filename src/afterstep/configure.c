@@ -109,6 +109,8 @@ void          assign_pixmap         (char *text, FILE * fd, char **arg, int *idx
 void          assign_geometry       (char *text, FILE * fd, char **geom, int *junk);
 void          obsolete              (char *text, FILE * fd, char **arg, int *);
 
+void          deskback_parse        (char *text, FILE * fd, char **junk, int *junk2);
+
 /* main parsing function  : */
 void          match_string (struct config *table, char *text, char *error_msg, FILE * fd);
 
@@ -200,6 +202,11 @@ struct config main_config[] = {
 	{"IconBox", SetBox, (char **)0, (int *)0},
 	{"IconFont", assign_string, &Iconfont, (int *)0},
 	{"MyStyle", mystyle_parse, &PixmapPath, NULL},
+    {"MyBackground", myback_parse, (char**)"asetroot", NULL},  /* pretending to be asteroot here */
+    {"DeskBack", deskback_parse, NULL, NULL },
+    {"*asetrootDeskBack", deskback_parse, NULL, NULL },        /* pretending to be asteroot here */
+    //TODO :
+    //{"MyFrame", myframe_parse, &PixmapPath, NULL},
 
 #ifndef NO_TEXTURE
 	{"TextureTypes", assign_string, &TexTypes, (int *)0},
@@ -734,33 +741,17 @@ ApplyFeel( ASFeel *feel )
 void
 InitLook (MyLook *look, Bool free_resources)
 {
-	int           i;
+    /* actuall MyLook cleanup : */
+    mylook_init (look, free_resources, LL_Everything );
 
-    balloon_init (free_resources);
+    /* other related things : */
     if (free_resources)
 	{
-		/* styles/textures */
-        mystyle_list_destroy_all(&(look->styles_list));
-
-        if( look->DefaultFrame )
-            destroy_myframe( &(look->DefaultFrame) );
-        if( look->FramesList )
-            destroy_ashash( &(look->FramesList));
-
 #ifndef NO_TEXTURE
 		/* icons */
-        if (look->MenuArrow != NULL)
-            destroy_icon( &(look->MenuArrow) );
         if( MenuPinOn != NULL )
             free( MenuPinOn );
-
 #endif /* !NO_TEXTURE */
-		/* titlebar buttons */
-        for (i = 0; i < TITLE_BUTTONS; i++)
-            free_button_resources( &(look->buttons[i]) );
-        if( look->configured_icon_areas )
-            free( look->configured_icon_areas );
-
         if( Scr.default_icon_box )
             destroy_asiconbox( &(Scr.default_icon_box));
         if( Scr.icon_boxes )
@@ -770,54 +761,13 @@ InitLook (MyLook *look, Bool free_resources)
         unload_font (&StdFont);
         unload_font (&WindowFont);
         unload_font (&IconFont);
-
-        destroy_hints_list(&(look->supported_hints));
     }
-    /* styles/textures */
-    look->styles_list = NULL;
-    for( i = 0 ; i < BACK_STYLES ; ++i )
-        look->MSWindow[i] = NULL;
-    for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
-        look->MSMenu[i] = NULL;
-
-    look->TitleTextAlign = 0;
-
-	/* titlebar buttons */
-    look->TitleButtonSpacing = 2;
-    look->TitleButtonStyle = 0;
-    for (i = 0; i < TITLE_BUTTONS; i++)
-        memset(&(look->buttons[i]), 0x00, sizeof(MyButton));
-
-    look->ButtonWidth = 0;
-    look->ButtonHeight = 0;
-
-    /* icons */
-    look->MenuArrow = NULL;
     MenuPinOn = NULL;
-
-	/* resize/move window geometry */
-    memset( &(look->resize_move_geometry), 0x00, sizeof(ASGeometry));
-
-    /* miscellaneous stuff */
-    look->RubberBand = 0;
-    look->flags = TxtrMenuItmInd|SeparateButtonTitle ;
-    look->DrawMenuBorders = 1;
-    look->configured_icon_areas_num = 0;
-    look->configured_icon_areas = NULL ;
 
     Scr.default_icon_box = NULL ;
     Scr.icon_boxes = NULL ;
 
-    look->DefaultFrame = NULL ;
-
-    /* initialize some lists */
-    look->DefaultIcon = NULL;
-    /* free pixmaps that are no longer in use */
-	pixmap_ref_purge ();
-
-    look->StartMenuSortMode = DEFAULTSTARTMENUSORT;
-    look->supported_hints = NULL ;
-
+    pixmap_ref_purge ();
     /* temporary old-style fonts : */
     memset(&StdFont, 0x00, sizeof(MyFont));
     memset(&WindowFont, 0x00, sizeof(MyFont));
@@ -935,6 +885,27 @@ FixLook( MyLook *look )
             look->TitleButtonYOffset = 1;
             break ;
     }
+
+    /* now we need to go through all the deskconfigs and create generic
+     * MyBackground for those that alreadyu do not have one */
+    if( look->desk_configs )
+    {
+        ASHashIterator it ;
+        if( start_hash_iteration( look->desk_configs, &it ) )
+            do
+            {
+                MyDesktopConfig *dc = (MyDesktopConfig *)curr_hash_data( &it );
+                MyBackground *myback = mylook_get_back(look, dc->back_name);
+                if( myback == NULL && dc->back_name != NULL )
+                {
+                    myback = create_myback( dc->back_name );
+                    myback->type = MB_BackImage ;
+                    myback->data = mystrdup( dc->back_name );
+                    add_myback( look, myback );
+                }
+            }while( next_hash_item( &it ) );
+    }
+
 }
 
 /*
@@ -1646,6 +1617,38 @@ MeltStartMenu (char *buf)
 
 	dirtree_delete (tree);
 	return 0;
+}
+
+void deskback_parse(char *text, FILE * fd, char **junk, int *junk2)
+{
+    register int i = 0;
+    int desk = atoi(text);
+    char *data = NULL ;
+    MyDesktopConfig *dc = NULL ;
+
+    if( !IsValidDesk(desk) )
+        return;
+
+    while( isdigit(text[i]) ) ++i ;
+    if( i == 0 || !isspace(text[i]) )
+    {
+        show_error( "missing desktop number in: \"%s\"", text);
+        return;
+    }
+
+    while( isspace(text[i]) ) ++i ;
+    if( text[i] == '#' )
+        return;
+
+    data = stripcpy2 (&(text[i]), 0);
+    if( data == NULL )
+    {
+        show_error( "DeskBack option with no name of the relevant MyBackground: \"%s\"", text);
+        return ;
+    }
+    dc = create_mydeskconfig( desk, data );
+    add_deskconfig( &(Scr.Look), dc );
+    free( data );
 }
 
 /****************************************************************************

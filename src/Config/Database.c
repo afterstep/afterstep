@@ -38,87 +38,151 @@
  *
  ****************************************************************************/
 
-TermDef       GravityTerms[] =
-{
-    {TF_NO_MYNAME_PREPENDING, "NorthWest", 9,   TT_FLAG, GRAVITY_NorthWest_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "North", 5,       TT_FLAG, GRAVITY_North_ID    , NULL},
-    {TF_NO_MYNAME_PREPENDING, "NorthEast", 9,   TT_FLAG, GRAVITY_NorthEast_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "West", 4,        TT_FLAG, GRAVITY_West_ID     , NULL},
-    {TF_NO_MYNAME_PREPENDING, "Center", 6,      TT_FLAG, GRAVITY_Center_ID   , NULL},
-    {TF_NO_MYNAME_PREPENDING, "East", 4,        TT_FLAG, GRAVITY_East_ID     , NULL},
-    {TF_NO_MYNAME_PREPENDING, "SouthWest", 9,   TT_FLAG, GRAVITY_SouthWest_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "South", 5,       TT_FLAG, GRAVITY_South_ID    , NULL},
-    {TF_NO_MYNAME_PREPENDING, "SouthEast", 9,   TT_FLAG, GRAVITY_SouthEast_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Static", 6,      TT_FLAG, GRAVITY_Static_ID   , NULL},
-    {0, NULL, 0, 0, 0}
+TermDef       GravityTerms[] = {
+	{TF_NO_MYNAME_PREPENDING, "NorthWest", 9, TT_FLAG, GRAVITY_NorthWest_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "North", 5, TT_FLAG, GRAVITY_North_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NorthEast", 9, TT_FLAG, GRAVITY_NorthEast_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "West", 4, TT_FLAG, GRAVITY_West_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Center", 6, TT_FLAG, GRAVITY_Center_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "East", 4, TT_FLAG, GRAVITY_East_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "SouthWest", 9, TT_FLAG, GRAVITY_SouthWest_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "South", 5, TT_FLAG, GRAVITY_South_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "SouthEast", 9, TT_FLAG, GRAVITY_SouthEast_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Static", 6, TT_FLAG, GRAVITY_Static_ID, NULL}
+	,
+	{0, NULL, 0, 0, 0}
 };
 
 SyntaxDef     GravitySyntax = {
-    ' ',
-    ',',
-    GravityTerms,
-    7,                                         /* hash size */
+	' ',
+	',',
+	GravityTerms,
+	7,										   /* hash size */
 	NULL,
 };
 
 
 TermDef       StyleTerms[] = {
-	{TF_NO_MYNAME_PREPENDING, "Icon", 4, TT_FILENAME, DATABASE_Icon_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "NoIcon", 6, TT_FLAG, DATABASE_NoIcon_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "FocusStyle", 10, TT_TEXT, DATABASE_FocusStyle_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "UnfocusStyle", 12, TT_TEXT, DATABASE_UnfocusStyle_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "StickyStyle", 11, TT_TEXT, DATABASE_StickyStyle_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "NoIconTitle", 11, TT_FLAG, DATABASE_NoIconTitle_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "IconTitle", 9, TT_FLAG, DATABASE_IconTitle_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "Focus", 5, TT_FLAG, DATABASE_Focus_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "NoFocus", 7, TT_FLAG, DATABASE_NoFocus_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "NoTitle", 7, TT_FLAG, DATABASE_NoTitle_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "Title", 5, TT_FLAG, DATABASE_Title_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "NoHandles", 9, TT_FLAG, DATABASE_NoHandles_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "Handles", 7, TT_FLAG, DATABASE_Handles_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "NoButton", 8, TT_INTEGER, DATABASE_NoButton_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "Button", 6, TT_INTEGER, DATABASE_Button_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "WindowListSkip", 14, TT_FLAG, DATABASE_WindowListSkip_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "WindowListHit", 13, TT_FLAG, DATABASE_WindowListHit_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "CirculateSkip", 13, TT_FLAG, DATABASE_CirculateSkip_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "CirculateHit", 12, TT_FLAG, DATABASE_CirculateHit_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "StartIconic", 11, TT_FLAG, DATABASE_StartIconic_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "StartNormal", 11, TT_FLAG, DATABASE_StartNormal_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "Layer", 5, TT_INTEGER, DATABASE_Layer_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "StaysOnTop", 10, TT_FLAG, DATABASE_StaysOnTop_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "StaysPut", 8, TT_FLAG, DATABASE_StaysPut_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "StaysOnBack", 11, TT_FLAG, DATABASE_StaysOnBack_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "AvoidCover", 10, TT_FLAG, DATABASE_AvoidCover_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "AllowCover", 10, TT_FLAG, DATABASE_AllowCover_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "VerticalTitle", 13, TT_FLAG, DATABASE_VerticalTitle_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "HorizontalTitle", 15, TT_FLAG, DATABASE_HorizontalTitle_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "Sticky", 6, TT_FLAG, DATABASE_Sticky_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "Slippery", 8, TT_FLAG, DATABASE_Slippery_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "BorderWidth", 11, TT_INTEGER, DATABASE_BorderWidth_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "HandleWidth", 11, TT_INTEGER, DATABASE_HandleWidth_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "StartsOnDesk", 12, TT_INTEGER, DATABASE_StartsOnDesk_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "ViewportX", 9, TT_INTEGER, DATABASE_ViewportX_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "ViewportY", 9, TT_INTEGER, DATABASE_ViewportY_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "StartsAnywhere", 14, TT_FLAG, DATABASE_StartsAnywhere_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "NoFrame", 7, TT_FLAG, DATABASE_NoFrame_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "Frame", 5, TT_TEXT, DATABASE_Frame_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "DefaultGeometry",15,TT_GEOMETRY,DATABASE_DefaultGeometry_ID      , NULL},
-    {TF_NO_MYNAME_PREPENDING, "OverrideGravity", 15 , TT_FLAG, DATABASE_OverrideGravity_ID      , &GravitySyntax},
-    {TF_NO_MYNAME_PREPENDING, "HonorPPosition", 14  , TT_FLAG, DATABASE_HonorPPosition_ID       , NULL},
-    {TF_NO_MYNAME_PREPENDING, "NoPPosition", 11     , TT_FLAG, DATABASE_NoPPosition_ID          , NULL},
-    {TF_NO_MYNAME_PREPENDING, "HonorGroupHints", 15 , TT_FLAG, DATABASE_HonorGroupHints_ID      , NULL},
-    {TF_NO_MYNAME_PREPENDING, "NoGroupHints", 12    , TT_FLAG, DATABASE_NoGroupHints_ID         , NULL},
-    {TF_NO_MYNAME_PREPENDING, "HonorTransientHints",19,TT_FLAG,DATABASE_HonorTransientHints_ID  , NULL},
-    {TF_NO_MYNAME_PREPENDING, "NoTransientHints", 16, TT_FLAG, DATABASE_NoTransientHints_ID     , NULL},
-    {TF_NO_MYNAME_PREPENDING, "HonorMotifHints", 15 , TT_FLAG, DATABASE_HonorMotifHints_ID      , NULL},
-    {TF_NO_MYNAME_PREPENDING, "NoMotifHints", 12    , TT_FLAG, DATABASE_NoMotifHints_ID         , NULL},
-    {TF_NO_MYNAME_PREPENDING, "HonorGnomeHints", 15 , TT_FLAG, DATABASE_HonorGnomeHints_ID      , NULL},
-    {TF_NO_MYNAME_PREPENDING, "NoGnomeHints", 12    , TT_FLAG, DATABASE_NoGnomeHints_ID         , NULL},
-    {TF_NO_MYNAME_PREPENDING, "HonorExtWMHints", 15 , TT_FLAG, DATABASE_HonorExtWMHints_ID      , NULL},
-    {TF_NO_MYNAME_PREPENDING, "NoExtWMHints", 12    , TT_FLAG, DATABASE_NoExtWMHints_ID         , NULL},
-    {TF_NO_MYNAME_PREPENDING, "HonorXResources", 15 , TT_FLAG, DATABASE_HonorXResources_ID      , NULL},
-    {TF_NO_MYNAME_PREPENDING, "NoXResources", 12    , TT_FLAG, DATABASE_NoXResources_ID         , NULL},
-    {0, NULL, 0, 0, 0}
+	{TF_NO_MYNAME_PREPENDING, "Icon", 4, TT_FILENAME, DATABASE_Icon_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoIcon", 6, TT_FLAG, DATABASE_NoIcon_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "FocusStyle", 10, TT_TEXT, DATABASE_FocusStyle_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "UnfocusStyle", 12, TT_TEXT, DATABASE_UnfocusStyle_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "StickyStyle", 11, TT_TEXT, DATABASE_StickyStyle_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoIconTitle", 11, TT_FLAG, DATABASE_NoIconTitle_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "IconTitle", 9, TT_FLAG, DATABASE_IconTitle_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Focus", 5, TT_FLAG, DATABASE_Focus_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoFocus", 7, TT_FLAG, DATABASE_NoFocus_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoTitle", 7, TT_FLAG, DATABASE_NoTitle_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Title", 5, TT_FLAG, DATABASE_Title_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoHandles", 9, TT_FLAG, DATABASE_NoHandles_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Handles", 7, TT_FLAG, DATABASE_Handles_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoButton", 8, TT_INTEGER, DATABASE_NoButton_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Button", 6, TT_INTEGER, DATABASE_Button_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "WindowListSkip", 14, TT_FLAG, DATABASE_WindowListSkip_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "WindowListHit", 13, TT_FLAG, DATABASE_WindowListHit_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "CirculateSkip", 13, TT_FLAG, DATABASE_CirculateSkip_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "CirculateHit", 12, TT_FLAG, DATABASE_CirculateHit_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "StartIconic", 11, TT_FLAG, DATABASE_StartIconic_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "StartNormal", 11, TT_FLAG, DATABASE_StartNormal_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Layer", 5, TT_INTEGER, DATABASE_Layer_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "StaysOnTop", 10, TT_FLAG, DATABASE_StaysOnTop_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "StaysPut", 8, TT_FLAG, DATABASE_StaysPut_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "StaysOnBack", 11, TT_FLAG, DATABASE_StaysOnBack_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "AvoidCover", 10, TT_FLAG, DATABASE_AvoidCover_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "AllowCover", 10, TT_FLAG, DATABASE_AllowCover_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "VerticalTitle", 13, TT_FLAG, DATABASE_VerticalTitle_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "HorizontalTitle", 15, TT_FLAG, DATABASE_HorizontalTitle_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Sticky", 6, TT_FLAG, DATABASE_Sticky_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Slippery", 8, TT_FLAG, DATABASE_Slippery_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "BorderWidth", 11, TT_INTEGER, DATABASE_BorderWidth_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "HandleWidth", 11, TT_INTEGER, DATABASE_HandleWidth_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "StartsOnDesk", 12, TT_INTEGER, DATABASE_StartsOnDesk_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "ViewportX", 9, TT_INTEGER, DATABASE_ViewportX_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "ViewportY", 9, TT_INTEGER, DATABASE_ViewportY_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "StartsAnywhere", 14, TT_FLAG, DATABASE_StartsAnywhere_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoFrame", 7, TT_FLAG, DATABASE_NoFrame_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Frame", 5, TT_TEXT, DATABASE_Frame_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "DefaultGeometry", 15, TT_GEOMETRY, DATABASE_DefaultGeometry_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "OverrideGravity", 15, TT_FLAG, DATABASE_OverrideGravity_ID, &GravitySyntax}
+	,
+	{TF_NO_MYNAME_PREPENDING, "HonorPPosition", 14, TT_FLAG, DATABASE_HonorPPosition_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoPPosition", 11, TT_FLAG, DATABASE_NoPPosition_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "HonorGroupHints", 15, TT_FLAG, DATABASE_HonorGroupHints_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoGroupHints", 12, TT_FLAG, DATABASE_NoGroupHints_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "HonorTransientHints", 19, TT_FLAG, DATABASE_HonorTransientHints_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoTransientHints", 16, TT_FLAG, DATABASE_NoTransientHints_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "HonorMotifHints", 15, TT_FLAG, DATABASE_HonorMotifHints_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoMotifHints", 12, TT_FLAG, DATABASE_NoMotifHints_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "HonorGnomeHints", 15, TT_FLAG, DATABASE_HonorGnomeHints_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoGnomeHints", 12, TT_FLAG, DATABASE_NoGnomeHints_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "HonorExtWMHints", 15, TT_FLAG, DATABASE_HonorExtWMHints_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoExtWMHints", 12, TT_FLAG, DATABASE_NoExtWMHints_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "HonorXResources", 15, TT_FLAG, DATABASE_HonorXResources_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoXResources", 12, TT_FLAG, DATABASE_NoXResources_ID, NULL}
+	,
+	{0, NULL, 0, 0, 0}
 };
 
 SyntaxDef     StyleSyntax = {
@@ -130,26 +194,46 @@ SyntaxDef     StyleSyntax = {
 };
 
 flag_options_xref StyleFlags[] = {
-	{STYLE_STICKY, DATABASE_Sticky_ID, DATABASE_Slippery_ID},
-	{STYLE_TITLE, DATABASE_Title_ID, DATABASE_NoTitle_ID},
-	{STYLE_ICON, 0 /* special case */ , DATABASE_NoIcon_ID},
-	{STYLE_CIRCULATE, DATABASE_CirculateHit_ID, DATABASE_CirculateSkip_ID},
-	{STYLE_WINLIST, DATABASE_WindowListHit_ID, DATABASE_WindowListSkip_ID},
-	{STYLE_STARTUP_DESK, 0 /*special case */ , DATABASE_StartsAnywhere_ID},
-	{STYLE_START_ICONIC, DATABASE_StartIconic_ID, DATABASE_StartNormal_ID},
-	{STYLE_ICON_TITLE, DATABASE_IconTitle_ID, DATABASE_NoIconTitle_ID},
-	{STYLE_FOCUS, DATABASE_Focus_ID, DATABASE_NoFocus_ID},
-	{STYLE_AVOID_COVER, DATABASE_AvoidCover_ID, DATABASE_AllowCover_ID},
-	{STYLE_VERTICAL_TITLE, DATABASE_VerticalTitle_ID, DATABASE_HorizontalTitle_ID},
-	{STYLE_FRAME, 0 /*special case */ , DATABASE_NoFrame_ID},
-	{STYLE_HANDLES, DATABASE_Handles_ID, DATABASE_NoHandles_ID},
-    {STYLE_PPOSITION       , DATABASE_HonorPPosition_ID,  DATABASE_NoPPosition_ID},
-    {STYLE_GROUP_HINTS     , DATABASE_HonorGroupHints_ID, DATABASE_NoGroupHints_ID},
-    {STYLE_TRANSIENT_HINTS , DATABASE_HonorTransientHints_ID, DATABASE_NoTransientHints_ID},
-    {STYLE_MOTIF_HINTS     , DATABASE_HonorMotifHints_ID, DATABASE_NoMotifHints_ID},
-    {STYLE_GNOME_HINTS     , DATABASE_HonorGnomeHints_ID, DATABASE_NoGnomeHints_ID},
-    {STYLE_EXTWM_HINTS     , DATABASE_HonorExtWMHints_ID, DATABASE_NoExtWMHints_ID},
-    {STYLE_XRESOURCES_HINTS, DATABASE_HonorXResources_ID, DATABASE_NoXResources_ID},
+	{STYLE_STICKY, DATABASE_Sticky_ID, DATABASE_Slippery_ID}
+	,
+	{STYLE_TITLE, DATABASE_Title_ID, DATABASE_NoTitle_ID}
+	,
+	{STYLE_ICON, 0 /* special case */ , DATABASE_NoIcon_ID}
+	,
+	{STYLE_CIRCULATE, DATABASE_CirculateHit_ID, DATABASE_CirculateSkip_ID}
+	,
+	{STYLE_WINLIST, DATABASE_WindowListHit_ID, DATABASE_WindowListSkip_ID}
+	,
+	{STYLE_STARTUP_DESK, 0 /*special case */ , DATABASE_StartsAnywhere_ID}
+	,
+	{STYLE_START_ICONIC, DATABASE_StartIconic_ID, DATABASE_StartNormal_ID}
+	,
+	{STYLE_ICON_TITLE, DATABASE_IconTitle_ID, DATABASE_NoIconTitle_ID}
+	,
+	{STYLE_FOCUS, DATABASE_Focus_ID, DATABASE_NoFocus_ID}
+	,
+	{STYLE_AVOID_COVER, DATABASE_AvoidCover_ID, DATABASE_AllowCover_ID}
+	,
+	{STYLE_VERTICAL_TITLE, DATABASE_VerticalTitle_ID, DATABASE_HorizontalTitle_ID}
+	,
+	{STYLE_FRAME, 0 /*special case */ , DATABASE_NoFrame_ID}
+	,
+	{STYLE_HANDLES, DATABASE_Handles_ID, DATABASE_NoHandles_ID}
+	,
+	{STYLE_PPOSITION, DATABASE_HonorPPosition_ID, DATABASE_NoPPosition_ID}
+	,
+	{STYLE_GROUP_HINTS, DATABASE_HonorGroupHints_ID, DATABASE_NoGroupHints_ID}
+	,
+	{STYLE_TRANSIENT_HINTS, DATABASE_HonorTransientHints_ID, DATABASE_NoTransientHints_ID}
+	,
+	{STYLE_MOTIF_HINTS, DATABASE_HonorMotifHints_ID, DATABASE_NoMotifHints_ID}
+	,
+	{STYLE_GNOME_HINTS, DATABASE_HonorGnomeHints_ID, DATABASE_NoGnomeHints_ID}
+	,
+	{STYLE_EXTWM_HINTS, DATABASE_HonorExtWMHints_ID, DATABASE_NoExtWMHints_ID}
+	,
+	{STYLE_XRESOURCES_HINTS, DATABASE_HonorXResources_ID, DATABASE_NoXResources_ID}
+	,
 	{0, 0, 0}
 };
 
@@ -180,7 +264,7 @@ style_init (name_list * nl)
 	nl->name = NULL;
 	nl->set_flags = 0;
 	nl->flags = 0;
-    init_asgeometry( &(nl->default_geometry) );
+	init_asgeometry (&(nl->default_geometry));
 	nl->icon_file = NULL;
 	nl->Desk = 0;
 	nl->layer = 0;
@@ -188,7 +272,7 @@ style_init (name_list * nl)
 	nl->resize_width = 0;
 	nl->ViewportX = -1;
 	nl->ViewportY = -1;
-    nl->gravity = NorthWestGravity ;
+	nl->gravity = NorthWestGravity;
 
 	nl->off_buttons = 0;
 	nl->on_buttons = 0;
@@ -229,10 +313,10 @@ style_copy (name_list * to, name_list * from)
 			to->icon_file = from->icon_file;
 		if (from->name != NULL)
 			to->name = from->name;
-        if (get_flags (from->set_flags, STYLE_DEFAULT_GEOMETRY))
-            to->default_geometry = from->default_geometry;
+		if (get_flags (from->set_flags, STYLE_DEFAULT_GEOMETRY))
+			to->default_geometry = from->default_geometry;
 
-        if (get_flags (from->set_flags, STYLE_STARTUP_DESK))
+		if (get_flags (from->set_flags, STYLE_STARTUP_DESK))
 			to->Desk = from->Desk;
 		if (get_flags (from->set_flags, STYLE_VIEWPORTX))
 			to->ViewportX = from->ViewportX;
@@ -244,8 +328,8 @@ style_copy (name_list * to, name_list * from)
 			to->resize_width = from->resize_width;
 		if (get_flags (from->set_flags, STYLE_LAYER))
 			to->layer = from->layer;
-        if (get_flags (from->set_flags, STYLE_GRAVITY))
-            to->gravity = from->gravity;
+		if (get_flags (from->set_flags, STYLE_GRAVITY))
+			to->gravity = from->gravity;
 
 		to->set_flags |= from->set_flags;
 		to->flags |= (from->set_flags & from->flags);
@@ -357,11 +441,10 @@ translate_title_button_back (unsigned int title_button)
 	return MAX_BUTTONS - 1;
 }
 
-static unsigned long window_style_cross[][2] =
-{ {DATABASE_FocusStyle_ID, BACK_FOCUSED},
-  {DATABASE_UnfocusStyle_ID, BACK_UNFOCUSED},
-  {DATABASE_StickyStyle_ID, BACK_STICKY},
-  {0, BACK_DEFAULT}
+static unsigned long window_style_cross[][2] = { {DATABASE_FocusStyle_ID, BACK_FOCUSED},
+{DATABASE_UnfocusStyle_ID, BACK_UNFOCUSED},
+{DATABASE_StickyStyle_ID, BACK_STICKY},
+{0, BACK_DEFAULT}
 };
 
 
@@ -386,11 +469,11 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 
 		switch (storage->term->id)
 		{
-         case DATABASE_DefaultGeometry_ID:
-              set_flags (style->set_flags, STYLE_DEFAULT_GEOMETRY);
-              style->default_geometry = item.data.geometry;
-              break;
-         case DATABASE_Icon_ID:
+		 case DATABASE_DefaultGeometry_ID:
+			 set_flags (style->set_flags, STYLE_DEFAULT_GEOMETRY);
+			 style->default_geometry = item.data.geometry;
+			 break;
+		 case DATABASE_Icon_ID:
 			 set_string_value (&(style->icon_file), item.data.string, NULL, 0);
 			 if (strlen (style->icon_file) > 0)
 			 {
@@ -419,15 +502,15 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 			 break;
 		 case DATABASE_Layer_ID:
 			 style->layer = item.data.integer;
-             /* we want to limit user specifyed layers to AS_LayerDesktop < layer < AS_LayerMenu
-              * which is reasonable, since you cannot be lower then Desktop and higher then Menu
-              */
-             if( style->layer <= AS_LayerDesktop )
-                style->layer = AS_LayerDesktop+1 ;
-             else if( style->layer >= AS_LayerMenu )
-                style->layer = AS_LayerMenu-1 ;
+			 /* we want to limit user specifyed layers to AS_LayerDesktop < layer < AS_LayerMenu
+			  * which is reasonable, since you cannot be lower then Desktop and higher then Menu
+			  */
+			 if (style->layer <= AS_LayerDesktop)
+				 style->layer = AS_LayerDesktop + 1;
+			 else if (style->layer >= AS_LayerMenu)
+				 style->layer = AS_LayerMenu - 1;
 
-             set_flags (style->set_flags, STYLE_LAYER);
+			 set_flags (style->set_flags, STYLE_LAYER);
 			 break;
 		 case DATABASE_StaysOnTop_ID:
 			 style->layer = 1;
@@ -479,14 +562,14 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 			 if (strlen (style->icon_file) <= 0)
 				 clear_flags (style->flags, STYLE_FRAME);
 			 break;
-         case DATABASE_OverrideGravity_ID:
-             if( storage->sub )
-                if( storage->sub->term )
-                {
-                    style->gravity = storage->sub->term->id - GRAVITY_ID_START ;
-                    set_flags (style->set_flags, STYLE_GRAVITY);
-                }
-             break;
+		 case DATABASE_OverrideGravity_ID:
+			 if (storage->sub)
+				 if (storage->sub->term)
+				 {
+					 style->gravity = storage->sub->term->id - GRAVITY_ID_START;
+					 set_flags (style->set_flags, STYLE_GRAVITY);
+				 }
+			 break;
 		 default:
 			 item.ok_to_free = 1;
 		}
@@ -539,7 +622,7 @@ ParseDatabaseOptions (const char *filename, char *myname)
 /*****************************************************************************/
 /*                      Writer stuff                                         */
 /*****************************************************************************/
-#if 0 /* don't work in as-stable */
+#if 0										   /* don't work in as-stable */
 FreeStorageElem **
 WriteSingleStyle (name_list * style, FreeStorageElem ** tail)
 {
@@ -581,42 +664,45 @@ WriteSingleStyle (name_list * style, FreeStorageElem ** tail)
 		for (i = 0; i < MAX_BUTTONS; i++)
 			if (style->off_buttons & (1 << i))
 				d_tail =
-                    Integer2FreeStorage (&StyleSyntax, d_tail, NULL, translate_title_button_back (i), DATABASE_NoButton_ID);
+					Integer2FreeStorage (&StyleSyntax, d_tail, NULL, translate_title_button_back (i),
+										 DATABASE_NoButton_ID);
 			else if (style->on_buttons & (1 << i))
 				d_tail =
-                    Integer2FreeStorage (&StyleSyntax, d_tail, NULL, translate_title_button_back (i), DATABASE_Button_ID);
+					Integer2FreeStorage (&StyleSyntax, d_tail, NULL, translate_title_button_back (i),
+										 DATABASE_Button_ID);
 
-        if (get_flags (style->set_flags, STYLE_DEFAULT_GEOMETRY))
-            d_tail = Geometry2FreeStorage (&StyleSyntax, d_tail, &(style->default_geometry), DATABASE_DefaultGeometry_ID);
+		if (get_flags (style->set_flags, STYLE_DEFAULT_GEOMETRY))
+			d_tail =
+				Geometry2FreeStorage (&StyleSyntax, d_tail, &(style->default_geometry), DATABASE_DefaultGeometry_ID);
 
 		if (get_flags (style->set_flags, STYLE_LAYER))
 		{
-            if( style->layer == AS_LayerBack )
-                d_tail = Flag2FreeStorage (&StyleSyntax, d_tail, DATABASE_StaysOnBack_ID);
-            else if( style->layer == AS_LayerNormal )
-                d_tail = Flag2FreeStorage (&StyleSyntax, d_tail, DATABASE_StaysPut_ID);
-            else if( style->layer == AS_LayerTop )
-                d_tail = Flag2FreeStorage (&StyleSyntax, d_tail, DATABASE_StaysOnTop_ID);
-            else
-                d_tail = Integer2FreeStorage (&StyleSyntax, d_tail, NULL, style->layer, DATABASE_Layer_ID);
+			if (style->layer == AS_LayerBack)
+				d_tail = Flag2FreeStorage (&StyleSyntax, d_tail, DATABASE_StaysOnBack_ID);
+			else if (style->layer == AS_LayerNormal)
+				d_tail = Flag2FreeStorage (&StyleSyntax, d_tail, DATABASE_StaysPut_ID);
+			else if (style->layer == AS_LayerTop)
+				d_tail = Flag2FreeStorage (&StyleSyntax, d_tail, DATABASE_StaysOnTop_ID);
+			else
+				d_tail = Integer2FreeStorage (&StyleSyntax, d_tail, NULL, style->layer, DATABASE_Layer_ID);
 		}
 
 		if (get_flags (style->set_flags, STYLE_BORDER_WIDTH))
-            d_tail = Integer2FreeStorage (&StyleSyntax, d_tail, NULL, style->border_width, DATABASE_BorderWidth_ID);
+			d_tail = Integer2FreeStorage (&StyleSyntax, d_tail, NULL, style->border_width, DATABASE_BorderWidth_ID);
 		if (get_flags (style->set_flags, STYLE_HANDLE_WIDTH))
-            d_tail = Integer2FreeStorage (&StyleSyntax, d_tail, NULL, style->resize_width, DATABASE_HandleWidth_ID);
+			d_tail = Integer2FreeStorage (&StyleSyntax, d_tail, NULL, style->resize_width, DATABASE_HandleWidth_ID);
 
 		if (get_flags (style->flags, STYLE_STARTUP_DESK) && get_flags (style->set_flags, STYLE_STARTUP_DESK))
-            d_tail = Integer2FreeStorage (&StyleSyntax, d_tail, NULL, style->Desk, DATABASE_StartsOnDesk_ID);
+			d_tail = Integer2FreeStorage (&StyleSyntax, d_tail, NULL, style->Desk, DATABASE_StartsOnDesk_ID);
 		/* ViewportXY -1 means that we use current viewport */
 		if (get_flags (style->set_flags, STYLE_VIEWPORTX))
 			d_tail =
-                Integer2FreeStorage (&StyleSyntax, d_tail, NULL,
+				Integer2FreeStorage (&StyleSyntax, d_tail, NULL,
 									 (get_flags (style->flags, STYLE_VIEWPORTX)) ? style->ViewportX : -1,
 									 DATABASE_ViewportX_ID);
 		if (get_flags (style->set_flags, STYLE_VIEWPORTY))
 			d_tail =
-                Integer2FreeStorage (&StyleSyntax, d_tail, NULL,
+				Integer2FreeStorage (&StyleSyntax, d_tail, NULL,
 									 (get_flags (style->flags, STYLE_VIEWPORTY)) ? style->ViewportY : -1,
 									 DATABASE_ViewportY_ID);
 
@@ -624,13 +710,14 @@ WriteSingleStyle (name_list * style, FreeStorageElem ** tail)
 			if (get_flags (style->flags, STYLE_FRAME) && strlen (style->frame_name) > 0)
 				d_tail = String2FreeStorage (&StyleSyntax, d_tail, style->frame_name, DATABASE_Frame_ID);
 
-        if (get_flags (style->set_flags, STYLE_GRAVITY))
-        {
-            FreeStorageElem **grav_tail = d_tail;
-            d_tail = Flag2FreeStorage (&StyleSyntax, d_tail, DATABASE_OverrideGravity_ID);
-            if( *grav_tail )
-                Flag2FreeStorage (&StyleSyntax, &((*grav_tail)->sub), GRAVITY_ID_START+style->gravity);
-        }
+		if (get_flags (style->set_flags, STYLE_GRAVITY))
+		{
+			FreeStorageElem **grav_tail = d_tail;
+
+			d_tail = Flag2FreeStorage (&StyleSyntax, d_tail, DATABASE_OverrideGravity_ID);
+			if (*grav_tail)
+				Flag2FreeStorage (&StyleSyntax, &((*grav_tail)->sub), GRAVITY_ID_START + style->gravity);
+		}
 	}
 
 	return tail;
