@@ -48,6 +48,12 @@
 # include <X11/extensions/XShm.h>
 #endif
 
+#ifdef HAVE_GLX
+# include <GL/gl.h>
+# include <GL/glx.h>
+#endif
+
+
 CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
 CARD32 color2pixel32rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
 CARD32 color2pixel24bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
@@ -616,6 +622,39 @@ setup_truecolor_visual( ASVisual *asv )
 
 	if( vi->class != TrueColor )
 		return False;
+
+#ifdef HAVE_GLX
+	if( glXQueryExtension (dpy, NULL, NULL))
+	{
+		int val = False;
+		glXGetConfig(dpy, vi, GLX_USE_GL, &val);		
+		if( val ) 
+		{
+			asv->glx_scratch_gc_indirect = glXCreateContext (dpy, &(asv->visual_info), NULL, False);
+			if( asv->glx_scratch_gc_indirect ) 
+			{	
+				set_flags( asv->glx_support, ASGLX_Available );
+				if( glXGetConfig(dpy, vi, GLX_RGBA, &val) == 0 )
+					if( val ) set_flags( asv->glx_support, ASGLX_RGBA );
+				if( glXGetConfig(dpy, vi, GLX_DOUBLEBUFFER, &val) == 0 )
+					if( val ) set_flags( asv->glx_support, ASGLX_DoubleBuffer );
+				if( glXGetConfig(dpy, vi, GLX_DOUBLEBUFFER, &val) == 0 )
+					if( val ) set_flags( asv->glx_support, ASGLX_DoubleBuffer );
+				
+				if( (asv->glx_scratch_gc_indirect = glXCreateContext (dpy, &(asv->visual_info), NULL, True)) != NULL ) 
+					if( !glXIsDirect( dpy, asv->glx_scratch_gc_direct ) )
+					{	
+						glXDestroyContext(dpy, asv->glx_scratch_gc_direct );
+						asv->glx_scratch_gc_direct = NULL ;
+					}
+#ifdef __CYGWIN__
+				/* under Cygwin that seems to be 40% faster then regular XImage for some reason */
+				set_flags( asv->glx_support, ASGLX_UseForImageTx );
+#endif
+			}
+		}	 
+	}	 
+#endif
 
 	asv->BGR_mode = ((vi->red_mask&0x0010)!=0) ;
 	asv->rshift = get_shifts (vi->red_mask);

@@ -314,6 +314,7 @@ draw_canvas_image (ASCanvas * pc, ASImage * im, int x, int y)
 	Pixmap        p;
 	int           real_x, real_y;
 	int           width, height;
+	Bool 		  done = False;
 
 	LOCAL_DEBUG_CALLER_OUT ("pc(%p)->im(%p)->x(%d)->y(%d)", pc, im, x, y);
 	if (im == NULL || pc == NULL)
@@ -325,14 +326,22 @@ draw_canvas_image (ASCanvas * pc, ASImage * im, int x, int y)
         return False;
 
     LOCAL_DEBUG_OUT ("drawing image %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y);
-	if (asimage2drawable (ASDefaultVisual, p, im, ASDefaultDrawGC, real_x - x, real_y - y, real_x, real_y, width, height, True))
+	if( get_flags( ASDefaultVisual->glx_support, ASGLX_UseForImageTx ) )
+		done = asimage2drawable_gl( ASDefaultVisual, p, im, 
+									real_x - x, real_y - y, real_x, real_y,
+        	   						width, height, 
+			   						pc->width, pc->height, 
+									False );
+	if( !done ) 		
+		asimage2drawable (ASDefaultVisual, p, im, ASDefaultDrawGC, real_x - x, real_y - y, real_x, real_y, width, height, True);
+
+	if ( done )
 	{
 		set_flags (pc->state, CANVAS_OUT_OF_SYNC);
         XClearArea( dpy, pc->w, real_x, real_y, width, height, True );
         XSync (dpy, False);
-        return True;
 	}
-    return False;
+    return done;
 }
 
 void

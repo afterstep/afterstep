@@ -861,6 +861,7 @@ Optional Features:
   --enable-audit           memory usage audit (for debugging) no
   --enable-shmimage        enable usage of MIT shared memory extention for image transfer no
   --enable-shaping        enable usage of MIT shaped windows extention yes
+  --enable-glx            enable usage of GLX extention yes
   --enable-mmx-optimization  enable utilization of MMX instruction set to speed up imaging operations yes
 
 Optional Packages:
@@ -1438,6 +1439,13 @@ if test "${enable_shaping+set}" = set; then
   enable_shaping=$enableval
 else
   enable_shaping="yes"
+fi;
+# Check whether --enable-glx or --disable-glx was given.
+if test "${enable_glx+set}" = set; then
+  enableval="$enable_glx"
+  enable_glx=$enableval
+else
+  enable_glx="yes"
 fi;
 
 # Check whether --enable-mmx_optimization or --disable-mmx_optimization was given.
@@ -6241,6 +6249,82 @@ _ACEOF
 fi
 
 fi
+
+if test "x$enable_glx" = "xyes"; then
+  	echo "$as_me:$LINENO: checking for glDrawPixels in -lGL" >&5
+echo $ECHO_N "checking for glDrawPixels in -lGL... $ECHO_C" >&6
+if test "${ac_cv_lib_GL_glDrawPixels+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lGL $full_x_libs $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char glDrawPixels ();
+int
+main ()
+{
+glDrawPixels ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_GL_glDrawPixels=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_GL_glDrawPixels=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_GL_glDrawPixels" >&5
+echo "${ECHO_T}$ac_cv_lib_GL_glDrawPixels" >&6
+if test $ac_cv_lib_GL_glDrawPixels = yes; then
+  x_libs="$x_libs -lGL";
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GLX 1
+_ACEOF
+
+fi
+
+fi
+
 
 if test "x$have_xext_lib" = "xyes"; then
     x_libs="$x_libs -lXext"

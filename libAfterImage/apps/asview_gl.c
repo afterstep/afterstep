@@ -36,7 +36,6 @@
 
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include <GL/glu.h>
 
 void usage()
 {
@@ -200,7 +199,7 @@ int main(int argc, char* argv[])
 		{
 			Pixmap    p;
 			int i ;
-			GLXContext glctx;
+//			GLXContext glctx;
 
 	  		XMapRaised   (dpy, w);
 			XSync(dpy,False);
@@ -209,12 +208,18 @@ int main(int argc, char* argv[])
 			/* see ASView.5 : */
 			show_warning( "asimage2pmap Done");
 			p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
-			glctx = glXCreateContext (dpy, &(asv->visual_info), NULL, True);
+//			glctx = glXCreateContext (dpy, &(asv->visual_info), NULL, True);
 			{
 				START_TIME(started);
 				time_t t = time(NULL);
 				for( i = 0 ; i < 100 ; ++i ) 
-					glbuf2GLXPixmap(asv, p, glctx, im );	
+						asimage2drawable_gl( asv, p, im,
+                  							 0, 0, 0, 0,
+        		  							 im->width, im->height, 
+											 im->width, im->height, 
+											 False );
+						  
+//					glbuf2GLXPixmap(asv, p, glctx, im );	
 				SHOW_TIME("", started);
 				fprintf( stderr, "runtime = %ld sec\n", time(NULL)-t );
 			}

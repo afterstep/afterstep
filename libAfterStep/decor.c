@@ -1578,6 +1578,8 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 	}else if (pc->shape)
  		fill_canvas_mask (pc, tbar->win_x, tbar->win_y, tbar->width, tbar->height );
 #endif
+	if( get_flags( ASDefaultVisual->glx_support, ASGLX_UseForImageTx ) )
+		fmt = ASA_ASImage ;
 	if( tbar->hue[state] > 0 || tbar->sat[state] >= 0 )
 	{
 		ASImage *tmp_im = merge_layers (ASDefaultVisual, &layers[0], good_layers, tbar->width, tbar->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);		

@@ -34,6 +34,9 @@
 /* Define if libgif/ungif is available */
 #undef HAVE_GIF
 
+/* Support for OpenGL extention */
+#undef HAVE_GLX
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 

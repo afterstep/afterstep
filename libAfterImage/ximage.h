@@ -344,6 +344,13 @@ Bool	 asimage2drawable( struct ASVisual *asv, Drawable d, ASImage *im, GC gc,
          			       int src_x, int src_y, int dest_x, int dest_y,
         		  		   unsigned int width, unsigned int height,
 				  		   Bool use_cached);
+/* these will do the same, but will use OpenGL API where available */
+Bool asimage2drawable_gl(	ASVisual *asv, Drawable d, ASImage *im,
+                  		int src_x, int src_y, int dest_x, int dest_y,
+        		  		unsigned int width, unsigned int height, 
+						unsigned int d_width, unsigned int d_height, 
+						Bool force_direct );
+
 Bool	 asimage2alpha_drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
       	    		  	   int src_x, int src_y, int dest_x, int dest_y,
         				   unsigned int width, unsigned int height,

@@ -41,6 +41,11 @@
 #include <stdarg.h>
 #endif
 
+#ifdef HAVE_GLX
+# include <GL/gl.h>
+# include <GL/glx.h>
+#endif
+
 
 #ifdef _WIN32
 # include "win32/afterbase.h"
@@ -464,6 +469,103 @@ put_ximage( ASVisual *asv, XImage *xim, Drawable d, GC gc,
 #else
 	return False ;
 #endif
+}
+
+Bool
+asimage2drawable_gl(	ASVisual *asv, Drawable d, ASImage *im,
+                  		int src_x, int src_y, int dest_x, int dest_y,
+        		  		unsigned int width, unsigned int height, 
+						unsigned int d_width, unsigned int d_height, 
+						Bool force_direct )
+{
+	if( im != NULL && get_flags( asv->glx_support, ASGLX_Available ) && d != None )
+	{
+#ifdef HAVE_GLX		
+		int glbuf_size = (get_flags( asv->glx_support, ASGLX_RGBA )? 4 : 3 ) * width * height;
+		CARD8 *glbuf = NULL;
+		ASImageDecoder *imdec  = NULL ;
+		GLXPixmap glxp = None;
+		
+		if ((imdec = start_image_decoding( asv, im, 
+									   	get_flags( asv->glx_support, ASGLX_RGBA )?SCL_DO_ALL:SCL_DO_COLOR, 
+									   	src_x, src_y, width, height, NULL)) != NULL )
+		{	 
+			int i, l = glbuf_size;
+			glbuf = safemalloc( glbuf_size );
+			for (i = 0; i < (int)im->height; i++)
+			{	
+				int k = im->width;
+				imdec->decode_image_scanline( imdec ); 
+				if( get_flags( asv->glx_support, ASGLX_RGBA ) ) 
+				{	  
+					while( --k >= 0 ) 
+					{
+						glbuf[--l] = imdec->buffer.alpha[k] ;
+						glbuf[--l] = imdec->buffer.blue[k] ;
+						glbuf[--l] = imdec->buffer.green[k] ;
+						glbuf[--l] = imdec->buffer.red[k] ;
+					}	 
+				}else
+				{	
+					while( --k >= 0 ) 
+					{
+						glbuf[--l] = imdec->buffer.blue[k] ;
+						glbuf[--l] = imdec->buffer.green[k] ;
+						glbuf[--l] = imdec->buffer.red[k] ;
+					}	 
+				}
+			}
+			stop_image_decoding( &imdec );
+		}else
+			return False;
+
+		if( !force_direct ) 
+		{	
+			glxp = glXCreateGLXPixmap( dpy, &(asv->visual_info), d);
+			/* d is either invalid drawable or is a window */
+			if( glxp == None ) 
+				force_direct = True ; 
+		}                      
+		if( glxp == None ) 
+		{
+			if( asv->glx_scratch_gc_direct	!= NULL )
+				glXMakeCurrent (dpy, d, asv->glx_scratch_gc_direct);
+			else
+				glXMakeCurrent (dpy, d, asv->glx_scratch_gc_indirect);
+		}else
+			glXMakeCurrent (dpy, glxp, asv->glx_scratch_gc_indirect);
+		
+		if( glGetError() != 0 ) 
+			return False;
+			
+		glDisable(GL_BLEND);		/* optimize pixel transfer rates */
+	  	glDisable (GL_DEPTH_TEST);
+	  	glDisable (GL_DITHER);
+	  	glDisable (GL_FOG);
+	  	glDisable (GL_LIGHTING);
+	
+		if( dest_y + height >= d_height ) 
+			--dest_y ;
+		glViewport(dest_x-((int)d_width/2), ((int)d_height/2)-(dest_y+(int)height), d_width, d_height);
+
+  		if ( get_flags( asv->glx_support, ASGLX_DoubleBuffer ) ) 
+   			glDrawBuffer (GL_FRONT);
+
+		/* now put pixels on */
+		glRasterPos3i( 0, 0, 0 );
+	
+		glDrawPixels(   width, height, 
+						get_flags( asv->glx_support, ASGLX_RGBA )?GL_RGBA:GL_RGB, 
+						GL_UNSIGNED_BYTE, glbuf );
+		free( glbuf );
+		glXMakeCurrent (dpy, None, NULL);	  
+		if( glxp ) 
+			glXDestroyGLXPixmap( dpy, glxp);
+		glFinish(); 				   
+		return True;
+#endif
+	}
+	return False;
 }
 
 Bool

@@ -336,6 +336,17 @@ typedef struct ASVisual
 									XImage *xim,
 									ASScanline *sl, int y,
 									unsigned char *xim_data );
+
+#define ASGLX_Unavailable			0
+#define ASGLX_Available				(0x01<<0)
+#define ASGLX_DoubleBuffer			(0x01<<1)
+#define ASGLX_RGBA					(0x01<<2)
+#define ASGLX_UseForImageTx			(0x01<<3)	
+	ASFlagType glx_support ;    /* one of the above flags */
+
+	void *glx_scratch_gc_indirect ; /* (GLXContext) */
+	void *glx_scratch_gc_direct ;	/* (GLXContext) */
+
 #ifndef X_DISPLAY_MISSING
 #define ARGB2PIXEL(asv,argb,pixel) 		   \
 	(asv)->color2pixel_func((asv),(argb),(pixel))

@@ -725,6 +725,7 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 	int x_fd = XConnectionNumber (dpy);
 	unsigned int shape_rects_count = 0;
 	XRectangle *shape_rects = NULL ;
+	Bool done = False ;
 
 	if (im == NULL || main_window == None ) 
 		return None;
@@ -838,7 +839,8 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 					layers[1].im = im ;
 					layers[1].clip_width = im->width ;
 					layers[1].clip_height = im->height ;
-					tmp = merge_layers(asv, layers, 2, im->width, im->height, ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					tmp = merge_layers(asv, layers, 2, im->width, im->height, 
+									   get_flags( asv->glx_support, ASGLX_UseForImageTx )?ASA_ASImage:ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT);
 					if( tmp ) 
 						im = tmp ;
 					free( layers );
@@ -847,8 +849,18 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 #endif
 		}		   
 	}
+	
+	p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
 
-	p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, True );
+	if( get_flags( asv->glx_support, ASGLX_UseForImageTx ) )
+		done = asimage2drawable_gl( asv, p, im, 0, 0, 0, 0,
+        	   						im->width, im->height, 
+			   						im->width, im->height, 
+									False );
+	
+	if( !done ) 
+		asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, True);
+	
 	p = set_window_background_and_free( main_window, p );
 	XSync(dpy, False);
 #if 1

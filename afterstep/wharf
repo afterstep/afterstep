@@ -78,7 +78,8 @@
 #
 # First available GUI Web Browser :
 #
-*Wharf WebBrowser logos/mozilla Exec "Firefox" firefox &
+*Wharf WebBrowser logos/Firefox Exec "Firefox" firefox &
+*Wharf WebBrowser logos/Firefox Exec "Firefox2" mozilla-firefox &
 *Wharf WebBrowser logos/mozilla Exec "Mozilla" mozilla &
 *Wharf WebBrowser logos/Opera   Exec "Opera Web Browser" opera &
 
