@@ -357,11 +357,11 @@ text_property2string( XTextProperty *tprop)
 }
 
 /* AfterStep specific property : */
-long *
+static long *
 get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 {
 	
-    long *result = NULL;
+    CARD32 *result = NULL;
 #ifndef X_DISPLAY_MISSING
 	union 
 	{	
@@ -370,7 +370,7 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 	}header, data;
 	int           actual_format;
 	Atom          actual_type;
-    unsigned long junk, size;
+    CARD32		  junk, size;
 
     if( w == None || property == None )
         return False;
@@ -384,8 +384,8 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
         return False;
 
     if( version )
-        *version   = (CARD32)header.long_ptr[0];
-    size = (CARD32)header.long_ptr[1];
+        *version   = header.long_ptr[0];
+    size = header.long_ptr[1];
     if( data_size )
         *data_size = size;
     size /= sizeof(CARD32);
@@ -393,10 +393,13 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 	XFree (header.long_ptr);
 	if (actual_type == XA_INTEGER)
 	{
+		unsigned long actual_size = 0;
 		/* try to get the actual information */
         if (XGetWindowProperty(dpy, w, property, 2, size, False,
-                               AnyPropertyType, &actual_type, &actual_format, &size, &junk, &data.uc_ptr) != Success)
+                               AnyPropertyType, &actual_type, &actual_format, &actual_size, &junk, &data.uc_ptr) != Success)
 			data.uc_ptr = NULL;
+		else if( actual_size < size )          /* make sure we do not go out of bounds of returned memory */
+			*data_size = actual_size*sizeof(CARD32) ; 
 	}
 	result = data.long_ptr ;
 #endif
@@ -408,7 +411,7 @@ read_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version,
 {
 #ifndef X_DISPLAY_MISSING
     long  *data = get_as_property( w, property, data_size, version );
-    int             size = (*data_size)/sizeof(CARD32);
+    int    size = (*data_size)/sizeof(CARD32);
 
     if( data )
     {
@@ -543,18 +546,21 @@ void
 set_as_property ( Window w, Atom property, CARD32 *data, size_t data_size, CARD32 version)
 {
 #ifndef X_DISPLAY_MISSING
-    CARD32 *buffer;
+    long *buffer;
+	long buffer_size = 2 + data_size/sizeof(CARD32) ;
+	int i = data_size/sizeof(CARD32);
 
-    buffer = safemalloc (2 * sizeof (long) + data_size);
+    buffer = safemalloc (buffer_size*sizeof(long));
 	/* set the property version to 1.0 */
 	buffer[0] = version;
 	/* the size of meaningful data to store */
 	buffer[1] = data_size;
 	/* fill in the properties */
-	memcpy (&(buffer[2]), data, data_size);
+	while( --i >= 0 ) 
+		buffer[i+2] = data[i] ;
 
     XChangeProperty (dpy, w, property, XA_INTEGER, 32, PropModeReplace,
-					 (unsigned char *)buffer, 2 + data_size / sizeof (long));
+					 (unsigned char *)buffer, buffer_size);
 	free (buffer);
 #endif
 }

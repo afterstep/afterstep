@@ -82,7 +82,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		}
     }while( next_hash_item(&iterator));
 	/* set the property version to 1.2 */
-    set_as_style (wmprops, nelements * sizeof (CARD32), (1 << 8) + 2, prop );
+    set_as_style (wmprops, nelements *  sizeof (CARD32), (1 << 8) + 2, prop );
     free (prop);
 }
 
