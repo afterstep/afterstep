@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +10,13 @@
 #include "afterimage.h"
 #include "common.h"
 
+#include <X11/Xatom.h> // For XA_PIXMAP.
+
 #define xml_tagchar(a) (isalnum(a) || (a) == '-' || (a) == '_')
+
+// We don't trust the math library to actually provide this number.
+#undef PI
+#define PI 180
 
 typedef struct xml_elem_t {
 	struct xml_elem_t* next;
@@ -20,7 +27,7 @@ typedef struct xml_elem_t {
 
 char* load_file(const char* filename);
 void showimage(ASImage* im);
-ASImage* build_image_from_xml(xml_elem_t* doc);
+ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm);
 xml_elem_t* xml_parse_parm(const char* parm);
 void xml_print(xml_elem_t* root);
 xml_elem_t* xml_elem_new(void);
@@ -30,6 +37,8 @@ xml_elem_t* xml_parse_doc(const char* str);
 int xml_parse(const char* str, xml_elem_t* current);
 void xml_insert(xml_elem_t* parent, xml_elem_t* child);
 char* lcstring(char* str);
+
+Pixmap GetRootPixmap (Atom id);
 
 Display* dpy;
 int screen, depth;
@@ -112,7 +121,7 @@ int main(int argc, char** argv) {
 	}
 
 	// Do something with the structure!
-	im = build_image_from_xml(doc);
+	im = build_image_from_xml(doc, NULL);
 	showimage(im);
 
 #ifdef DEBUG_ALLOCS
@@ -192,7 +201,7 @@ void showimage(ASImage* im) {
 }
 
 // Each tag is only allowed to return ONE image.
-ASImage* build_image_from_xml(xml_elem_t* doc) {
+ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 	xml_elem_t* ptr;
 	ASImage* result = NULL;
 
@@ -200,11 +209,178 @@ ASImage* build_image_from_xml(xml_elem_t* doc) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		xml_elem_t* src;
 		for (src = parm ; src && strcmp(src->tag, "src") ; src = src->next);
-		if (src) {
+		if (!strcmp(src->parm, "xroot:")) {
+			int width, height;
+			Pixmap rp = GetRootPixmap(None);
+			if (verbose) printf("Getting root pixmap.\n");
+			if (rp) {
+				get_drawable_size(rp, &width, &height);
+				result = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
+			}
+		} else if (src) {
 			if (verbose) printf("Loading image [%s].\n", src->parm);
 			result = file2ASImage(src->parm, 0xFFFFFFFF, SCREEN_GAMMA, 100, NULL);
 		}
-		xml_elem_delete(NULL, parm);
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+
+	if (!strcmp(doc->tag, "gradient")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		int width = 0, height = 0;
+		double angle = 0;
+		char* color_str = NULL;
+		char* offset_str = NULL;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "width")) width = strtol(ptr->parm, NULL, 0);
+			if (!strcmp(ptr->tag, "height")) height = strtol(ptr->parm, NULL, 0);
+			if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
+			if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
+			if (!strcmp(ptr->tag, "offsets")) offset_str = ptr->parm;
+		}
+		if (width && height && color_str) {
+			ASGradient gradient;
+			int reverse = 0, npoints1 = 0, npoints2 = 0;
+			char* p;
+			angle = fmod(angle, 2 * PI);
+			if (angle > 2 * PI * 15 / 16 || angle < 2 * PI * 1 / 16) {
+				gradient.type = GRADIENT_Left2Right;
+			} else if (angle < 2 * PI * 3 / 16) {
+				gradient.type = GRADIENT_TopLeft2BottomRight;
+			} else if (angle < 2 * PI * 5 / 16) {
+				gradient.type = GRADIENT_Top2Bottom;
+			} else if (angle < 2 * PI * 7 / 16) {
+				gradient.type = GRADIENT_BottomLeft2TopRight; reverse = 1;
+			} else if (angle < 2 * PI * 9 / 16) {
+				gradient.type = GRADIENT_Left2Right; reverse = 1;
+			} else if (angle < 2 * PI * 11 / 16) {
+				gradient.type = GRADIENT_TopLeft2BottomRight; reverse = 1;
+			} else if (angle < 2 * PI * 13 / 16) {
+				gradient.type = GRADIENT_Top2Bottom; reverse = 1;
+			} else {
+				gradient.type = GRADIENT_BottomLeft2TopRight;
+			}
+			for (p = color_str ; isspace(*p) ; p++);
+			for (npoints1 = 0 ; *p ; npoints1++) {
+				if (*p) for ( ; *p && !isspace(*p) ; p++);
+				for ( ; isspace(*p) ; p++);
+			}
+			if (offset_str) {
+				for (p = offset_str ; isspace(*p) ; p++);
+				for (npoints2 = 0 ; *p ; npoints2++) {
+					if (*p) for ( ; *p && !isspace(*p) ; p++);
+					for ( ; isspace(*p) ; p++);
+				}
+			}
+			if (npoints1 > 1) {
+				int i;
+				if (offset_str && npoints1 > npoints2) npoints1 = npoints2;
+				gradient.color = NEW_ARRAY(ARGB32, npoints1);
+				gradient.offset = NEW_ARRAY(double, npoints1);
+				for (p = color_str ; isspace(*p) ; p++);
+				for (npoints1 = 0 ; *p ; ) {
+					char* pb = p, ch;
+					if (*p) for ( ; *p && !isspace(*p) ; p++);
+					for ( ; isspace(*p) ; p++);
+					ch = *p; *p = '\0';
+					if (parse_argb_color(pb, gradient.color + npoints1)) npoints1++;
+					*p = ch;
+				}
+				if (offset_str) {
+					for (p = offset_str ; isspace(*p) ; p++);
+					for (npoints2 = 0 ; *p ; ) {
+						char* pb = p, ch;
+						if (*p) for ( ; *p && !isspace(*p) ; p++);
+						ch = *p; *p = '\0';
+						gradient.offset[npoints2] = strtod(pb, &pb);
+						if (pb == p) npoints2++;
+						*p = ch;
+						for ( ; isspace(*p) ; p++);
+					}
+				} else {
+					for (npoints2 = 0 ; npoints2 < npoints1 ; npoints2++)
+						gradient.offset[npoints2] = (double)npoints2 / (npoints1 - 1);
+				}
+				gradient.npoints = npoints1;
+				if (npoints2 && gradient.npoints > npoints2)
+					gradient.npoints = npoints2;
+				if (reverse) {
+					for (i = 0 ; i < gradient.npoints / 2 ; i++) {
+						int i2 = gradient.npoints - 1 - i;
+						ARGB32 c = gradient.color[i];
+						double o = gradient.offset[i];
+						gradient.color[i] = gradient.color[i2];
+						gradient.color[i2] = c;
+						gradient.offset[i] = gradient.offset[i2];
+						gradient.offset[i2] = o;
+					}
+					for (i = 0 ; i < gradient.npoints ; i++) {
+						gradient.offset[i] = 1.0 - gradient.offset[i];
+					}
+				}
+				if (verbose) printf("Generating [%dx%d] gradient with angle [%f], colors [%s], offsets [%s], and npoints [%d/%d].\n", width, height, angle, color_str, offset_str ? offset_str : "(none given)", npoints1, npoints2);
+				if (verbose > 1) {
+					for (i = 0 ; i < gradient.npoints ; i++) {
+						printf("  Point [%d] has color [#%08x] and offset [%f].\n", i, gradient.color[i], gradient.offset[i]);
+					}
+				}
+				result = make_gradient(asv, &gradient, width, height, 0xFFFFFFFF, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			}
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+
+#if 0
+	// This should mirror the image, not rotate it.
+	if (!strcmp(doc->tag, "flip")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		ASImage* imtmp = NULL;
+		int dir = 0;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "dir")) dir = !mystrcasecmp(ptr->parm, "vertical");
+		}
+		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+			imtmp = build_image_from_xml(ptr, NULL);
+		}
+		if (imtmp) {
+			result = flip_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir ? FLIP_UPSIDEDOWN : FLIP_VERTICAL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			destroy_asimage(&imtmp);
+		}
+		if (verbose) printf("Flipping image [%sally].\n", dir ? "horizont" : "vertic");
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+#endif
+
+	if (!strcmp(doc->tag, "rotate")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		ASImage* imtmp = NULL;
+		double angle = 0;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
+		}
+		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+			imtmp = build_image_from_xml(ptr, NULL);
+		}
+		if (imtmp) {
+			int dir = 0;
+			angle = fmod(angle, 2 * PI);
+			if (angle > 2 * PI * 7 / 8 || angle < 2 * PI * 1 / 8) {
+				dir = 0;
+			} else if (angle < 2 * PI * 3 / 8) {
+				dir = FLIP_VERTICAL;
+			} else if (angle < 2 * PI * 5 / 8) {
+				dir = FLIP_UPSIDEDOWN;
+			} else {
+				dir = FLIP_VERTICAL | FLIP_UPSIDEDOWN;
+			}
+			if (dir) {
+				result = flip_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				destroy_asimage(&imtmp);
+				if (verbose) printf("Rotating image [%f degrees].\n", angle);
+			} else {
+				result = imtmp;
+			}
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
 	if (!strcmp(doc->tag, "scale")) {
@@ -217,7 +393,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc) {
 		if (width && height) {
 			ASImage* imtmp = NULL;
 			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-				imtmp = build_image_from_xml(ptr);
+				imtmp = build_image_from_xml(ptr, NULL);
 			}
 			if (imtmp) {
 				result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
@@ -225,7 +401,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc) {
 			}
 			if (verbose) printf("Scaling image to [%dx%d].\n", width, height);
 		}
-		xml_elem_delete(NULL, parm);
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
 	if (!strcmp(doc->tag, "tile")) {
@@ -238,7 +414,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc) {
 		if (width && height) {
 			ASImage* imtmp = NULL;
 			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-				imtmp = build_image_from_xml(ptr);
+				imtmp = build_image_from_xml(ptr, NULL);
 			}
 			if (imtmp) {
 				result = tile_asimage(asv, imtmp, 0, 0, width, height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
@@ -246,35 +422,43 @@ ASImage* build_image_from_xml(xml_elem_t* doc) {
 			}
 			if (verbose) printf("Tiling image to [%dx%d].\n", width, height);
 		}
-		xml_elem_delete(NULL, parm);
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
 	if (!strcmp(doc->tag, "composite")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
-		char* ptype = NULL;
+		char* pop = NULL;
 		int num;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "type")) ptype = ptr->parm;
+			if (!strcmp(ptr->tag, "op")) pop = ptr->parm;
 		}
-		if (ptype) {
+		if (pop) {
 			// Find out how many subimages we have.
 			num = 0;
 			for (ptr = doc->child ; ptr ; ptr = ptr->next) {
 				if (strcmp(ptr->tag, "CDATA")) num++;
 			}
 		}
-		if (ptype && num) {
-			int width = 0, height = 0;
+		if (pop && num) {
+			int x = 0, y = 0, width = 0, height = 0;
 			ASImageLayer *layers;
 
 			// Build the layers first.
 			layers = NEW_ARRAY(ASImageLayer, num);
 			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) {
+				xml_elem_t* sparm = NULL;
 				if (!strcmp(ptr->tag, "CDATA")) continue;
-				layers[num].im = build_image_from_xml(ptr);
+				layers[num].im = build_image_from_xml(ptr, &sparm);
+				if (sparm) {
+					xml_elem_t* tmp;
+					for (tmp = sparm ; tmp ; tmp = tmp->next) {
+						if (!strcmp(tmp->tag, "x")) x = strtol(tmp->parm, NULL, 0);
+						if (!strcmp(tmp->tag, "y")) y = strtol(tmp->parm, NULL, 0);
+					}
+				}
 				if (layers[num].im) {
-					layers[num].dst_x = 0;
-					layers[num].dst_y = 0;
+					layers[num].dst_x = x;
+					layers[num].dst_y = y;
 					layers[num].clip_x = 0;
 					layers[num].clip_y = 0;
 					layers[num].clip_width = layers[num].im->width;
@@ -282,26 +466,29 @@ ASImage* build_image_from_xml(xml_elem_t* doc) {
 					layers[num].tint = 0;
 					layers[num].bevel = 0;
 					layers[num].merge_mode = 0;
-					layers[num].merge_scanlines = blend_scanlines_name2func(ptype);
+					layers[num].merge_scanlines = blend_scanlines_name2func(pop);
 					if (width < layers[num].im->width) width = layers[num].im->width;
 					if (height < layers[num].im->height) height = layers[num].im->height;
 					num++;
 				}
+				if (sparm) xml_elem_delete(NULL, sparm);
 			}
 
-			if (verbose) printf("Compositing [%d] image(s) with op [%s].\n", num, ptype);
+			if (verbose) printf("Compositing [%d] image(s) with op [%s].\n", num, pop);
 
 			result = merge_layers(asv, layers, num, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 			while (--num >= 0) destroy_asimage(&layers[num].im);
 			free(layers);
 		}
-		xml_elem_delete(NULL, parm);
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
 	// No match so far... see if one of our children can do any better.
 	if (!result) {
 		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
-			result = build_image_from_xml(ptr);
+			xml_elem_t* sparm = NULL;
+			result = build_image_from_xml(ptr, &sparm);
+			if (result && rparm) *rparm = sparm; else xml_elem_delete(NULL, sparm);
 		}
 	}
 
@@ -578,4 +765,34 @@ char* lcstring(char* str) {
 	char* ptr = str;
 	for ( ; *ptr ; ptr++) if (isupper(*ptr)) *ptr = tolower(*ptr);
 	return str;
+}
+
+/* Stolen from libAfterStep. */
+Pixmap GetRootPixmap (Atom id)
+{
+	Pixmap        currentRootPixmap = None;
+
+	if (id == None)
+		id = XInternAtom (dpy, "_XROOTPMAP_ID", True);
+
+	if (id != None)
+	{
+		Atom          act_type;
+		int           act_format;
+		unsigned long nitems, bytes_after;
+		unsigned char *prop = NULL;
+
+/*fprintf(stderr, "\n aterm GetRootPixmap(): root pixmap is set");                  */
+		if (XGetWindowProperty (dpy, RootWindow(dpy, screen), id, 0, 1, False, XA_PIXMAP,
+								&act_type, &act_format, &nitems, &bytes_after, &prop) == Success)
+		{
+			if (prop)
+			{
+				currentRootPixmap = *((Pixmap *) prop);
+				XFree (prop);
+/*fprintf(stderr, "\n aterm GetRootPixmap(): root pixmap is [%lu]", currentRootPixmap); */
+			}
+		}
+	}
+	return currentRootPixmap;
 }

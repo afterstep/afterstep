@@ -1,0 +1,33 @@
+"Burning Rose"
+<composite op=hue>
+  <composite op=add>
+    <scale width=512 height=384><img src=rose512.jpg/></scale>
+    <tile width=512 height=384><img src=back.xpm/></tile>
+  </composite>
+  <tile width=512 height=384><img src=fore.xpm/></tile>
+</composite>
+
+My current testing XML.
+<composite op=alphablend>
+  <scale width="640" height="512"><img src="/tmp/testimg.jpg"/></scale>
+  <rotate angle=90><scale width="640" height="512"><img src="/tmp/RedbrushAlpha-0.5.png"/></scale></rotate>
+  <scale width="640" height="512"><img src="/tmp/IceAlpha-0.5.png"/></scale>
+  <bevel edge-color="#dfdfdfdf #df8f8f8f" corner-color="#ffffffff #ffafafaf #ff2f2f2f" outer-edge="2 2 -1 -1" inner-edge="8 8 -6 -6">
+    <gradient x=20 y=6 angle=90 width=600 height=500 tint="#7d7f7f7f" colors="#ff007fff #7f00ffff #ff007fff #ff0000ff #ff000000 #ffffff00" offsets="0.0 0.125 0.25 0.5625 0.8 1.0"/>
+  </bevel>
+</composite>
+
+"AfterStep owns!"
+<composite op=alphablend>
+  <tile width="400%" height="400%"><img src="xroot:"/></tile>
+  <scale width="640" height="512"><img src="/tmp/testimg.jpg"/></scale>
+  <scale width="640" height="512"><img src="/tmp/RedbrushAlpha-0.5.png"/></scale>
+  <scale width="640" height="512"><img src="/tmp/IceAlpha-0.5.png"/></scale>
+  <text x=20 y=150 bgcolor="#ffffffff" tint="#7f7f7f7f">AfterStep  owns jjjijijiji you
+it owns your soul
+and all your relatives will pity you, when you discover just how devoted you are.</text>
+  <bevel edge-color="#dfdfdfdf #df8f8f8f" corner-color="#ffffffff #ffafafaf #ff2f2f2f" outer-edge="2 2 -1 -1" inner-edge="8 8 -6 -6"><gradient x=20 y=6 width=450 height=500 tint="#7d7f7f7f" colors="#ff007fff #7f00ffff #ff007fff #ff0000ff #ff000000 #ffffff00" offsets="0.0 0.125 0.25 0.5625 0.8 1.0"/></bevel>
+  <rotate dir="vertical" x=20 y=300><text bgcolor="#ffffffff" tint="#7f7f7f7f">AfterStep  owns jjjijijiji you
+it owns your soul
+and all your relatives will pity you, when you discover just how devoted you are.</text></rotate>
+</composite>

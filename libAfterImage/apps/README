@@ -64,6 +64,28 @@ possible XML tags are:
   further images will be discarded.  
 <img src=rose512.jpg/>
   src      Required.  The filename (NOT URL) of the image file to load.
+<gradient angle="90" width="600" height="500" colors="#ff007fff #7f00ffff #ff007fff" offsets="0.0 0.125 1.0"/>
+  width    Required.  The gradient will have this width.
+  height   Required.  The gradient will have this height.
+  colors   Required.  Whitespace-separated list of colors.  At least two 
+           colors are required.  Each color in this list will be visited 
+           in turn, at the intervals given by the offsets attribute.
+  offsets  Optional.  Whitespace-separated list of floating point values 
+           ranging from 0.0 to 1.0.  The colors from the colors attribute 
+           are given these offsets, and the final gradient is rendered 
+           from the combination of the two.  If both colors and offsets 
+           are given but the number of colors and offsets do not match, 
+           the minimum of the two will be used, and the other will be 
+           truncated to match.  If offsets are not given, a smooth 
+           stepping from 0.0 to 1.0 will be used.
+  angle    Optional.  Given in degrees.  Default is 0.  This is the 
+           direction of the gradient.  Currently the only supported 
+           values are 0, 45, 90, 135, 180, 225, 270, 315.  0 means left 
+           to right, 90 means top to bottom, etc.
+<rotate angle="90">
+  angle    Required.  Given in degrees.  Possible values are currently 
+           "90", "180", and "270".  Rotates the image through the given 
+           angle.
 
 As an example, the default XML used by ascompose is:
 
