@@ -70,6 +70,7 @@ typedef struct ASXMLInterpreterState {
 	
 	FILE *dest_fp ;
 	char *dest_file ;
+	const char *dest_dir ;
 	ASDocType doc_type ;
 	int header_depth ;
 	int group_depth ;
@@ -84,6 +85,7 @@ typedef struct ASXMLInterpreterState {
 }ASXMLInterpreterState ;
 
 extern const char *HTML_CSS_File ;
+extern const char *CurrHtmlBackFile ;
 #define DATE_SIZE 64
 extern char CurrentDateLong[DATE_SIZE];
 extern char CurrentDateShort[DATE_SIZE];

@@ -1,6 +1,6 @@
-<bevel colors="gray80 black" border="1 1 1 1" solid="0">
+<bevel colors="#D0D0D0 #000000" border="1 1 1 1" solid="0">
   <composite>
-    <gradient angle="45" colors="black #A9A9A9" width="15"
+    <gradient angle="45" colors="#000000 #A9A9A9" width="15"
     height="15"/>
 
     <tile tint="#606060">

@@ -1,5 +1,5 @@
 <composite merge="clip">
-  <hsv affected_hue="blue" affected_radius="10"
+  <hsv affected_hue="#0000FF" affected_radius="10"
   saturation_offset="40" value_offset="0" hue_offset="-30">
     <img src="large/NetworkedGlobe"/>
   </hsv>

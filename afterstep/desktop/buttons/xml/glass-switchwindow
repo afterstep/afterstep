@@ -11,7 +11,7 @@ value_offset="$ascs.Inactive1.value-60">
 <composite merge="clip">
   <recall srcid="btn_back_inactive"/>
 
-  <tile x="4" y="4" tint="white">
+  <tile x="4" y="4" tint="#FFFFFF">
     <scale width="13" height="11">
       <recall srcid="arrow_short_small_icon"/>
     </scale>

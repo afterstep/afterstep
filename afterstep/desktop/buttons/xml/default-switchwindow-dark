@@ -1,3 +1,4 @@
+<forget srcid="arrow_short_small_icon"/>
 <rotate id="arrow_short_small_icon" angle="180">
   <img src="dots/arrow_short_small"/>
 </rotate>

@@ -7,7 +7,7 @@ value_offset="$ascs.Active.value-60">
 <composite merge="clip">
   <recall srcid="btn_back_active"/>
 
-  <tile x="3" y="3" tint="white">
+  <tile x="3" y="3" tint="#FFFFFF">
     <img src="dots/windows_small"/>
   </tile>
 

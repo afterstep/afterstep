@@ -1,4 +1,4 @@
-<tile tint="red">
+<tile tint="#FF0000">
   <rotate angle="270">
     <img src="dots/arrow_medium"/>
   </rotate>

@@ -136,6 +136,9 @@ ASApiSourceDescr libAfterImage_Sources[] =
 
 
 const char *HTML_CSS_File = "html_styles.css" ;
+static const char *HTML_DATA_BACKGROUND_File = "background.jpg" ;
+static const char *HTML_HELP_BACKGROUND_File = NULL ;
+const char *CurrHtmlBackFile = NULL ;
 
 ASHashTable *DocBookVocabulary = NULL ;
 
@@ -192,7 +195,7 @@ main (int argc, char **argv)
 	ASDocType target_type = DocType_Source ;
 	/* Save our program name - for error messages */
     InitMyApp (CLASS_ASDOCGEN, argc, argv, NULL, NULL, 0 );
-
+	InitSession();
     for( i = 1 ; i< argc ; ++i)
 	{
 		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
@@ -219,6 +222,13 @@ main (int argc, char **argv)
 			{
 				++i ;				
 				HTML_CSS_File = argv[i] ;
+			}else if( strcmp( argv[i], "--html-data-back" ) == 0 && i+1 < argc && argv[i+1] != NULL ) 
+			{
+				++i ;				
+				if( strcasecmp( argv[i], "none") == 0 ) 
+					HTML_DATA_BACKGROUND_File = NULL ;
+				else
+					HTML_DATA_BACKGROUND_File = argv[i] ;
 			}else if( (strcmp( argv[i], "-d" ) == 0 || strcmp( argv[i], "--data" ) == 0) ) 
 			{
 				do_data = True ;
@@ -240,7 +250,6 @@ main (int argc, char **argv)
 
 #if 0
 
-    ConnectX( &Scr, PropertyChangeMask );
     ConnectAfterStep ( mask_reg);
 	
   	SendInfo ( "Nop \"\"", 0);
@@ -285,8 +294,48 @@ main (int argc, char **argv)
 		check_syntax_source( source_dir, NULL, True );
 	}else if( do_data )
 	{	
-		Scr.asv = create_asvisual(NULL, 0, 32, NULL);
+		char *env_path1 = NULL, *env_path2 = NULL ;
+		ASColorScheme *cs = NULL ;
+		
+	    if ((dpy = XOpenDisplay (MyArgs.display_name)))
+		{
+			Scr.MyDisplayWidth = DisplayWidth (dpy, Scr.screen);
+			Scr.MyDisplayHeight = DisplayHeight (dpy, Scr.screen);
+
+			asxml_var_insert("xroot.width", Scr.MyDisplayWidth);
+    		asxml_var_insert("xroot.height", Scr.MyDisplayHeight);
+
+		    Scr.asv = create_asvisual (dpy, Scr.screen, DefaultDepth(dpy,Scr.screen), NULL);
+		}else
+		{		    
+			asxml_var_insert("xroot.width", 1024);
+    		asxml_var_insert("xroot.height", 768);
+			Scr.asv = create_asvisual(NULL, 0, 32, NULL);
+		}
+		
+		env_path1 = getenv( "IMAGE_PATH" ) ;
+		env_path2 = getenv( "PATH" );
+		if( env_path1 == NULL ) 
+		{
+			env_path1 = env_path2;
+			env_path2 = NULL ;
+		}
+	    Scr.image_manager = create_image_manager( NULL, 2.2, env_path1, env_path2, NULL );
+		set_xml_image_manager( Scr.image_manager );
+        
+		env_path1 = getenv( "FONT_PATH" ) ;
+		Scr.font_manager = create_font_manager( dpy, env_path1, NULL );
+		set_xml_font_manager( Scr.font_manager );
+
+		/*ReloadASEnvironment( NULL, NULL, NULL, False ); */
+		cs = make_default_ascolor_scheme();
+		populate_ascs_colors_rgb( cs );
+		populate_ascs_colors_xml( cs );
+		free( cs );
+
 		TopicIndexName = NULL ;
+		
+		CurrHtmlBackFile = HTML_DATA_BACKGROUND_File ;
 		gen_data_doc( 	source_dir, destination_dir?destination_dir:"data", "",
 			  		  	"Installed data files - fonts, images and configuration",
 			  			target_type );

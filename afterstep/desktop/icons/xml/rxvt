@@ -1,6 +1,6 @@
 <composite>
   <img src="large/Monitor1"/>
 
-  <text x="10" y="20" fgcolor="gray80">#rxvt</text>
+  <text x="10" y="20" fgcolor="#DDDDDD">#rxvt</text>
 </composite>
 

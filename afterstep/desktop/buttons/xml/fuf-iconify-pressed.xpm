@@ -1,6 +1,6 @@
-<bevel colors="black gray80" border="1 1 1 1" solid="0">
+<bevel colors="#000000 #D0D0D0" border="1 1 1 1" solid="0">
   <composite>
-    <gradient angle="45" colors="black #A9A9A9" width="15"
+    <gradient angle="45" colors="#000000 #A9A9A9" width="15"
     height="15"/>
 
     <img src="dots/windows_small"/>

@@ -1,6 +1,6 @@
 <composite>
   <img src="large/Monitor1"/>
 
-  <text x="10" y="20" fgcolor="gray80">#Eterm</text>
+  <text x="10" y="20" fgcolor="#D0D0D0">#Eterm</text>
 </composite>
 

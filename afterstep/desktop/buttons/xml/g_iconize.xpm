@@ -1,4 +1,4 @@
-<bevel colors="#00000000 white" border="1 1 1 0" solid="1">
+<bevel colors="#00000000 #FFFFFF" border="1 1 1 0" solid="1">
   <img src="dots/window_small"/>
 </bevel>
 

@@ -1,4 +1,4 @@
-<tile tint="green">
+<tile tint="#00FF00">
   <rotate angle="180">
     <img src="dots/arrow_small"/>
   </rotate>

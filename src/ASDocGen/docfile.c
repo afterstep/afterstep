@@ -28,21 +28,15 @@
 #include "ASDocGen.h"
 #include "docfile.h"
 
-const char *HTMLHeaderFormat = "</head>\n"
-					  		   "<body>\n"
-							   "<A name=\"page_top\"></A>\n"
+const char *HTMLHeaderFormat = "<A name=\"page_top\"></A>\n"
 							   "<A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A><p>\n" ;
 
-const char *HTMLHeaderFormatAPI = "</head>\n"
-					  		   "<body>\n"
-							   "<A name=\"page_top\"></A>\n"
+const char *HTMLHeaderFormatAPI = "<A name=\"page_top\"></A>\n"
 							   "<A href=\"API/index.html\">Main index</A>"
 							   "<A href=\"API/index.html\">%s</A>&nbsp;&nbsp;<A href=\"API/Glossary.html\">%s</A><p>\n" ;
 
-const char *HTMLHeaderFormatNoIndex = "</head>\n"
-					  		   "<body>\n"
-							   "<A name=\"page_top\"></A>\n"
-							   "<A href=\"../index.html\">Go back</A><p>\n" ;
+const char *HTMLHeaderFormatNoIndex = "<A name=\"page_top\"></A>\n"
+							   "<A href=\"%sindex.html\">Go back</A><p>\n" ;
 
 /*************************************************************************/
 void 
@@ -70,8 +64,14 @@ write_doc_header( ASXMLInterpreterState *state )
 				if( len > 0 ) 
 					fwrite( css, 1, len, state->dest_fp );	   
 			}	 
+			
+			if( CurrHtmlBackFile != NULL ) 
+				fprintf( state->dest_fp, "</head>\n<body BACKGROUND=\"%s\">\n", CurrHtmlBackFile );
+			else
+				fprintf( state->dest_fp, "</head>\n<body>\n" );
+
 			if( TopicIndexName == NULL )
-				fprintf( state->dest_fp, HTMLHeaderFormatNoIndex );
+				fprintf( state->dest_fp, HTMLHeaderFormatNoIndex, (strcmp(state->doc_name,"index") == 0)?"../":"" );
 			else if( TopicIndexName == APITopicIndexName )
 				fprintf( state->dest_fp, HTMLHeaderFormatAPI, TopicIndexName, GlossaryName );
 			else
@@ -266,13 +266,13 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 				ASFlagType doc_class_mask, ASDocClass doc_class )
 {
 	char *dest_file = safemalloc( strlen(doc_path)+(doc_postfix?strlen(doc_postfix):0)+5+1 );
-	char *dest_path = safemalloc( strlen( dest_dir ) + 1 + strlen(doc_path)+(doc_postfix?strlen(doc_postfix):0)+5+1 );
+	char *dest_path;
 	char *ptr ;
 	FILE *dest_fp ;
 	Bool dst_dir_exists = True;
 
 	sprintf( dest_file, "%s%s.%s", doc_path, doc_postfix?doc_postfix:"", ASDocTypeExtentions[doc_type] ); 
-	sprintf( dest_path, "%s/%s", dest_dir, dest_file ); 
+	dest_path = make_file_name( dest_dir, dest_file );			  
 	LOCAL_DEBUG_OUT( "starting doc \"%s\"", dest_path );	
 	ptr = dest_path; 
 	while( *ptr == '/' ) ++ptr ;
@@ -301,7 +301,13 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 	else 
 	{	
 		dest_fp = fopen( dest_path, "wt" );
-		chmod (dest_path, 0664);
+		chmod (dest_path, 0644);
+		if( CurrHtmlBackFile ) 
+		{
+			char * back_dst = make_file_name( dest_dir, CurrHtmlBackFile );			  
+			copy_file( CurrHtmlBackFile, back_dst );
+			free( back_dst );
+		}
 	}
 	if( dest_fp == NULL ) 
 	{
@@ -318,6 +324,7 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 	state->display_purpose = display_purpose?display_purpose:"X11 window manager" ;
 	state->dest_fp = dest_fp ;
 	state->dest_file = dest_file ;
+	state->dest_dir = dest_dir ;
 	state->doc_type = doc_type ; 
 	state->doc_class_mask = (doc_class_mask==0)?0xFFFFFFFF:doc_class_mask;
 	state->doc_class = doc_class ;

@@ -1,0 +1,90 @@
+<style type="text/css">
+	<!--
+
+	body {
+        	margin-top: 5px;
+		background-repeat: repeat;
+		color: #F5F8FA;
+	}
+
+	.copy {
+		margin-top: 10px;
+        	margin-left: 4%;
+        	margin-right: 4%;
+	}
+
+	a:link {color: #8888FF}
+	a:visited {color: #88FF88}
+	a:hover {color: #FF77FF}
+	a:active {color: #FF00FF}
+
+	.copy2 {
+		margin-top: 10px;
+        	margin-left: 0;
+        	margin-right: 0;
+	}
+
+	.copy2 a:link, .copy a:visited {
+        	color:#0FF;
+        	text-decoration:none
+	}
+
+	.copy2 a:active, .copy a:hover {
+        	color:#FC3;
+        	text-decoration:underline
+	}
+
+	p.codeBlock {
+		background: #444444;
+		padding: 1em;
+		margin-left: 4em;
+		font-family:Tahoma, Arial, Verdana, Helvetica;
+		font-size:14px;
+	}
+	.container {
+		padding: -1em;
+		margin-left: 0em;
+		margin-right: 1em;
+		width: 100%;
+		background: #ccc;
+		border: 1px solid #000;
+		font-size:13px;
+	}
+	p.dense {
+		margin-top: 0em;
+		padding: 0em;
+		line-height: 110%;
+	}			       
+	p.sect_header
+	{
+    		background-color: #dddddd;
+    		color: #000000;
+    		text-align: right;
+    		font-size: 11pt;
+	}
+	p.refsect_header
+	{
+    		text-align: left;
+    		font-size: 14px;
+		line-height: 90%;
+	}
+	dl.dense {
+		padding: 0;
+		margin: 0;
+		font-size:14px;
+	}
+	ul.dense {
+	}
+	li.dense {
+		line-height: 110%;
+	}
+	dt.dense {
+		line-height: 110%;
+		text-align: bottom;
+	}
+	dd.dense {
+		font-size:14px;
+	}
+	-->
+</style>
+

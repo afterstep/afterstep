@@ -1,10 +1,10 @@
 <composite>
-  <bevel colors="black black" border="1 1 2 1">
-    <solid color="red" width="15" height="15"/>
+  <bevel colors="#000000 #000000" border="1 1 2 1">
+    <solid color="#FF0000" width="15" height="15"/>
   </bevel>
 
-  <bevel colors="black black" border="1 1 2 1" x="3" y="3">
-    <solid color="red" width="9" height="9"/>
+  <bevel colors="#000000 #000000" border="1 1 2 1" x="3" y="3">
+    <solid color="#FF0000" width="9" height="9"/>
   </bevel>
 </composite>
 
