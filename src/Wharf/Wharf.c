@@ -679,8 +679,8 @@ DispatchEvent (ASEvent * event)
         case ReparentNotify :
             if( event->x.xreparent.parent == Scr.Root )
             {
-                sleep_a_millisec( 100 );
-                XMoveResizeWindow( dpy, event->x.xreparent.window, -1000, -1000, 1, 1 );
+                //sleep_a_millisec( 100 );
+                //XMoveResizeWindow( dpy, event->x.xreparent.window, -10000, -10000, 1, 1 );
             }
             break ;
 	    case PropertyNotify:
@@ -1695,8 +1695,8 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
     if( get_flags(Config->flags, WHARF_ANIMATE ) )
     {
 		set_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending );
-		aswf->animate_from_w = aswf->canvas->width; 
-		aswf->animate_from_h = aswf->canvas->height;
+		aswf->animate_from_w = get_flags( aswf->flags, ASW_Vertical )?aswf->canvas->width:0; 
+		aswf->animate_from_h = get_flags( aswf->flags, ASW_Vertical )?0:aswf->canvas->height;
 		aswf->animate_to_w = width;
 		aswf->animate_to_h = height;
 		aswf->boundary.x = aswf->boundary.y = 0 ; 
@@ -1731,18 +1731,22 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
     clear_flags( aswf->flags, ASW_Withdrawn );
 	ASSync(False);
 
+	if( aswf->canvas->width == width && aswf->canvas->height == height )
+	{
+		animate_wharf_loop( aswf, aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h );
+		clear_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending );
+	}	 
+
     return True;
 }
 
+static inline void unmap_wharf_folder( ASWharfFolder *aswf );
+
 static inline void
-unmap_wharf_folder( ASWharfFolder *aswf )
+unmap_wharf_subfolders( ASWharfFolder *aswf )
 {
     int i = aswf->buttons_num;
 LOCAL_DEBUG_OUT( "unmapping canvas %p at %dx%d%+d%+d", aswf->canvas, aswf->canvas->width, aswf->canvas->height, aswf->canvas->root_x, aswf->canvas->root_y );
-    unmap_canvas_window( aswf->canvas );
-    /*moveresize_canvas( aswf->canvas, -1000, -1000, 1, 1 ); to make sure we get ConfigureNotify next time we map the folder again */
-    clear_flags( aswf->flags, ASW_Mapped );
-
     while ( --i >= 0 )
     {
         if( aswf->buttons[i].folder &&
@@ -1750,6 +1754,20 @@ LOCAL_DEBUG_OUT( "unmapping canvas %p at %dx%d%+d%+d", aswf->canvas, aswf->canva
             unmap_wharf_folder( aswf->buttons[i].folder );
     }
 }
+
+static inline void
+unmap_wharf_folder( ASWharfFolder *aswf )
+{
+LOCAL_DEBUG_OUT( "unmapping canvas %p at %dx%d%+d%+d", aswf->canvas, aswf->canvas->width, aswf->canvas->height, aswf->canvas->root_x, aswf->canvas->root_y );
+    unmap_canvas_window( aswf->canvas );
+    /*moveresize_canvas( aswf->canvas, -1000, -1000, 1, 1 ); to make sure we get ConfigureNotify next time we map the folder again */
+    clear_flags( aswf->flags, ASW_Mapped );
+
+	unmap_wharf_subfolders( aswf );
+}
+
+static inline void
+withdraw_wharf_subfolders( ASWharfFolder *aswf );
 
 void
 withdraw_wharf_folder( ASWharfFolder *aswf )
@@ -1760,6 +1778,9 @@ LOCAL_DEBUG_OUT( "withdrawing folder %p", aswf );
 LOCAL_DEBUG_OUT( "folder->flags(%lX)", aswf->flags );
     if( !get_flags( aswf->flags, ASW_Mapped ) )
         return ;
+
+	withdraw_wharf_subfolders( aswf );
+	ASSync(False);
 
     if( get_flags(Config->flags, WHARF_ANIMATE ) )
     {
@@ -1785,6 +1806,21 @@ LOCAL_DEBUG_OUT( "unmapping folder %p", aswf );
     unmap_wharf_folder( aswf );
     ASSync( False );
 }
+
+static inline void
+withdraw_wharf_subfolders( ASWharfFolder *aswf )
+{
+    int i = aswf->buttons_num;
+LOCAL_DEBUG_OUT( "unmapping canvas %p at %dx%d%+d%+d", aswf->canvas, aswf->canvas->width, aswf->canvas->height, aswf->canvas->root_x, aswf->canvas->root_y );
+    while ( --i >= 0 )
+    {
+        if( aswf->buttons[i].folder &&
+            get_flags( aswf->buttons[i].folder->flags, ASW_Mapped ) )
+            withdraw_wharf_folder( aswf->buttons[i].folder );
+    }
+}
+
+
 
 Bool display_main_folder()
 {
@@ -2397,26 +2433,34 @@ void on_wharf_moveresize( ASEvent *event )
     {
         ASWharfFolder *aswf = (ASWharfFolder*)obj;
         ASFlagType changes = handle_canvas_config (aswf->canvas );
-		LOCAL_DEBUG_OUT("Handling folder resize for folder %p, mapped = %d", aswf, get_flags( aswf->flags, ASW_Mapped ) );
+		LOCAL_DEBUG_OUT("Handling folder resize for folder %p, mapped = %lX", aswf, get_flags( aswf->flags, ASW_Mapped ) );
         if( aswf->animation_steps == 0 && get_flags( aswf->flags, ASW_Mapped ) && aswf->animation_dir < 0 )
         {
             unmap_wharf_folder( aswf );
         }else if( changes != 0 )
         {
             int i = aswf->buttons_num ;
+			Bool withdrawn = False ;
 LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
+
+			withdrawn = (aswf->canvas->width == 1 || aswf->canvas->height == 1 ||
+						 (aswf->canvas->root_x == -10000 && aswf->canvas->root_y == -10000) );
+
 #ifdef SHAPE
             if( get_flags( changes, CANVAS_RESIZED ) && get_flags(aswf->flags,ASW_AnimationPending ) )
 				XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
 #endif
 
-			if( !get_flags( aswf->flags, ASW_Withdrawn ) && get_flags( aswf->flags, ASW_Mapped ))
+			if( !withdrawn )
 			{	
-				set_wharf_clip_area( aswf, aswf->canvas->root_x, aswf->canvas->root_y );
-				while( --i >= 0 )
-    	            on_wharf_button_moveresize( &(aswf->buttons[i]), event );
-			}else if( aswf->withdrawn_button != NULL )
-				on_wharf_button_moveresize( aswf->withdrawn_button, event );
+				if( !get_flags( aswf->flags, ASW_Withdrawn ))
+				{	
+					set_wharf_clip_area( aswf, aswf->canvas->root_x, aswf->canvas->root_y );
+					while( --i >= 0 )
+    	            	on_wharf_button_moveresize( &(aswf->buttons[i]), event );
+				}else if( aswf->withdrawn_button != NULL )
+					on_wharf_button_moveresize( aswf->withdrawn_button, event );
+			}
 
 #if 1			   
             if( get_flags( changes, CANVAS_RESIZED ))
@@ -2431,7 +2475,7 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 			}
 #endif
 		
-			if( get_flags( changes, CANVAS_RESIZED ) && get_flags( aswf->flags, ASW_Mapped ))
+			if( get_flags( changes, CANVAS_RESIZED ) && !withdrawn )
 			{
 				/* fprintf(stderr, "clearing or applying boundary\n");	  */
 				if( !update_wharf_folder_shape( aswf ) ) 
@@ -2517,7 +2561,7 @@ on_wharf_pressed( ASEvent *event )
 		if( get_flags( aswb->flags, ASW_Transient ) )
 			return ;
 		        
-		if( event->x.xbutton.button == Button3 && aswb->parent == WharfState.root_folder )
+		if( event->x.xbutton.button == Button3 && aswf == WharfState.root_folder )
 		{	
             if( (WITHDRAW_ON_EDGE(Config) && (&(aswf->buttons[0]) == aswb || &(aswf->buttons[aswf->buttons_num-1]) == aswb)) ||
                  WITHDRAW_ON_ANY(Config))
@@ -2536,8 +2580,9 @@ on_wharf_pressed( ASEvent *event )
 					if( Config->withdraw_style < WITHDRAW_ON_ANY_BUTTON_AND_SHOW )
                     	aswb = &(aswf->buttons[0]);
 
+					withdraw_wharf_subfolders( aswf );
 					/* update our name to withdrawn */	  					
-					set_folder_name( WharfState.root_folder, True );
+					set_folder_name( aswf, True );
 
                 	wwidth = aswb->desired_width ;
                 	wheight = aswb->desired_height ;

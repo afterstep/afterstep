@@ -441,7 +441,6 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 {
 	ASImage      *im = NULL;
 	Pixmap        root_pixmap;
-	unsigned int  root_w, root_h;
 	Bool transparency = False ;
 	int preflip_width, preflip_height ;
 
@@ -456,26 +455,17 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 
 	if(  transparency )
 	{	/* in this case we need valid root image : */
-		 if (Scr.RootImage == NULL)
-		 {
-			 root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
-			 LOCAL_DEBUG_OUT ("obtained Root pixmap = %lX", root_pixmap);
-			 Scr.RootImage = clip_root_pixmap( root_pixmap, root_w, root_h );
+		if (Scr.RootImage == NULL)
+		{
+			unsigned int  root_w, root_h;
+			root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
+			LOCAL_DEBUG_OUT ("obtained Root pixmap = %lX", root_pixmap);
+			Scr.RootImage = clip_root_pixmap( root_pixmap, root_w, root_h );
              
-			 if( Scr.RootImage == NULL )
-             {
-                if( (Scr.RootImage = grab_root_asimage( &Scr, None, False )) != NULL )
-                {
-                    root_w = Scr.RootImage->width;
-                    root_h = Scr.RootImage->height;
-                }
-             }
-		 } else
-		 {
-			 root_w = Scr.RootImage->width;
-			 root_h = Scr.RootImage->height;
-		 }
-         LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", Scr.RootImage, Scr.RootClipArea.width, Scr.RootClipArea.height, Scr.RootClipArea.x, Scr.RootClipArea.y, Scr.RootImage?Scr.RootImage->width:0, Scr.RootImage?Scr.RootImage->height:0);
+			if( Scr.RootImage == NULL )
+                Scr.RootImage = grab_root_asimage( &Scr, None, False );
+		}
+        LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", Scr.RootImage, Scr.RootClipArea.width, Scr.RootClipArea.height, Scr.RootClipArea.x, Scr.RootClipArea.y, Scr.RootImage?Scr.RootImage->width:0, Scr.RootImage?Scr.RootImage->height:0);
 	}
 	if( get_flags( flip, FLIP_VERTICAL )  )
 	{
