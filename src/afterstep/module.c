@@ -209,13 +209,11 @@ module_accept (int socket_fd)
   struct sockaddr_un name;
 
   fd = accept (socket_fd, (struct sockaddr *) &name, &len);
-
   if (fd < 0 && errno != EWOULDBLOCK)
     {
       fprintf (stderr, "%s: error accepting connection: ", MyName);
       perror ("");
     }
-
   /* set non-blocking I/O mode */
   if (fd >= 0)
     {
@@ -227,7 +225,6 @@ module_accept (int socket_fd)
 	  fd = -1;
 	}
     }
-
   /* mark as close-on-exec so other programs won't inherit the socket */
   if (fd >= 0)
     {
@@ -239,7 +236,6 @@ module_accept (int socket_fd)
 	  fd = -1;
 	}
     }
-
   if (fd >= 0)
     {
       int i;
@@ -253,7 +249,6 @@ module_accept (int socket_fd)
 	  close (fd);
 	  return -1;
 	}
-
       /* add pipe to afterstep's active pipe list */
       Module[i].name = mystrdup ("unknown module");
       Module[i].fd = fd;
@@ -261,7 +256,6 @@ module_accept (int socket_fd)
       Module[i].mask = MAX_MASK;
       Module[i].output_queue = NULL;
     }
-
   return fd;
 }
 

@@ -85,7 +85,7 @@ warp_grab (ASWindow * t)
 {
   XWindowAttributes attributes;
 
-  /* we're watching all key presses and accept mouse cursor motion events 
+  /* we're watching all key presses and accept mouse cursor motion events
      so we will be able to tell when warp mode is finished */
   XGetWindowAttributes (dpy, t->frame, &attributes);
   XSelectInput (dpy, t->frame, attributes.your_event_mask | (PointerMotionMask | KeyPressMask));
@@ -162,7 +162,7 @@ DispatchEvent ()
       HandleUnmapNotify ();
       break;
     case ButtonPress:
-      /* if warping, a button press, non-warp keypress, or pointer motion 
+      /* if warping, a button press, non-warp keypress, or pointer motion
        * indicates that the warp is done */
       if ((Tmp_win != NULL) && (warp_in_process))
 	warp_ungrab (Tmp_win, True);
@@ -174,7 +174,7 @@ DispatchEvent ()
     case LeaveNotify:
       HandleLeaveNotify ();
 #if 0
-      /* if warping, leaving a window means that we need to ungrab, but 
+      /* if warping, leaving a window means that we need to ungrab, but
        * the ungrab should be taken care of by the FocusOut */
       if ((warp_in_process) && (Tmp_win != NULL))
 	warp_ungrab (Tmp_win, False);
@@ -191,13 +191,13 @@ DispatchEvent ()
 	}
       break;
     case FocusOut:
-      /* if warping, this is the normal way to determine that we should ungrab 
+      /* if warping, this is the normal way to determine that we should ungrab
        * window events */
       if (Tmp_win != NULL && warp_in_process)
 	warp_ungrab (Tmp_win, False);
       break;
     case MotionNotify:
-      /* if warping, a button press, non-warp keypress, or pointer motion 
+      /* if warping, a button press, non-warp keypress, or pointer motion
        * indicates that the warp is done */
       if ((warp_in_process) && (Tmp_win != NULL))
 	warp_ungrab (Tmp_win, True);
@@ -244,7 +244,9 @@ HandleEvents ()
     {
       last_event_type = 0;
       if (AS_XNextEvent (dpy, &Event))
-	DispatchEvent ();
+	  {
+		DispatchEvent ();
+	  }
     }
 }
 
@@ -562,7 +564,7 @@ HandlePropertyNotify ()
 
 /*
  * if the icon name is NoName, set the name of the icon to be
- * the same as the window 
+ * the same as the window
  */
       if (Tmp_win->icon_name == NoName)
 	{
@@ -996,8 +998,8 @@ HandleUnmapNotify ()
    * The program may have unmapped the client window, from either
    * NormalState or IconicState.  Handle the transition to WithdrawnState.
    *
-   * We need to reparent the window back to the root (so that afterstep exiting 
-   * won't cause it to get mapped) and then throw away all state (pretend 
+   * We need to reparent the window back to the root (so that afterstep exiting
+   * won't cause it to get mapped) and then throw away all state (pretend
    * that we've received a DestroyNotify).
    */
   if (XTranslateCoordinates (dpy, Event.xunmap.window, Scr.Root,
@@ -1371,7 +1373,7 @@ HandleConfigureRequest ()
   /*
    * SetupWindow (x,y) are the location of the upper-left outer corner and
    * are passed directly to XMoveResizeWindow (frame).  The (width,height)
-   * are the inner size of the frame.  The inner width is the same as the 
+   * are the inner size of the frame.  The inner width is the same as the
    * requested client window width; the inner height is the same as the
    * requested client window height plus any title bar slop.
    */
@@ -1403,7 +1405,7 @@ HandleShapeNotify (void)
 
 #if 1				/* see SetTimer() */
 /**************************************************************************
- * 
+ *
  * For auto-raising windows, this routine is called
  *
  *************************************************************************/
@@ -1432,20 +1434,29 @@ AS_XNextEvent (Display * dpy, XEvent * event)
   struct timeval *t = NULL;
   extern module_t *Module;
 
+  XFlush (dpy);
+  if (XPending (dpy))
+    {
+	  XNextEvent (dpy, event);
+	  StashEventTime (event);
+	  return 1;
+    }
+
   FD_ZERO (&in_fdset);
   FD_SET (x_fd, &in_fdset);
   FD_ZERO (&out_fdset);
 
-  FD_SET (module_fd, &in_fdset);
-
+  if( module_fd >= 0 )
+  {
+  	FD_SET (module_fd, &in_fdset);
+  }
   for (i = 0; i < npipes; i++)
     {
-      if (Module[i].fd >= 0)
+	  if (Module[i].fd >= 0)
 	FD_SET (Module[i].fd, &in_fdset);
-      if (Module[i].output_queue != NULL)
+	  if (Module[i].output_queue != NULL)
 	FD_SET (Module[i].fd, &out_fdset);
     }
-
   /* watch for timeouts */
   if (timer_delay_till_next_alarm ((time_t *) & tv.tv_sec, (time_t *) & tv.tv_usec))
     t = &tv;
@@ -1486,20 +1497,18 @@ AS_XNextEvent (Display * dpy, XEvent * event)
   /* Do this IMMEDIATELY prior to select, to prevent any nasty
    * queued up X events from just hanging around waiting to be
    * flushed */
-  XFlush (dpy);
   if (XPending (dpy))
     {
-      XNextEvent (dpy, event);
-      StashEventTime (event);
-      return 1;
+	  XNextEvent (dpy, event);
+	  StashEventTime (event);
+	  return 1;
     }
-
   /* Zap all those zombies! */
   /* If we get to here, then there are no X events waiting to be processed.
    * Just take a moment to check for dead children. */
   ReapChildren ();
-
   XFlush (dpy);
+
 #ifdef __hpux
   retval = select (fd_width, (int *) &in_fdset, (int *) &out_fdset, NULL, t);
 #else
@@ -1507,10 +1516,11 @@ AS_XNextEvent (Display * dpy, XEvent * event)
 #endif
 
   /* check for incoming module connections */
-  if (module_fd >= 0)
+  if (module_fd >= 0 && FD_ISSET (module_fd, &in_fdset))
+  {
     if (module_accept (module_fd) != -1)
       fprintf (stderr, "accepted module connection\n");
-
+  }
   if (retval > 0)
     {
       /* Check for module input. */
@@ -1525,6 +1535,5 @@ AS_XNextEvent (Display * dpy, XEvent * event)
 
   /* handle timeout events */
   timer_handle ();
-
   return 0;
 }
