@@ -393,6 +393,14 @@ int main(int argc, char* argv[])
  * SYNOPSIS
  * Step 4. Merging foreground and background with bevel.
  * DESCRIPTION
+ * On this step we have 2 images ready for us - background and texturized
+ * text. At this point we need to merge them together by alpha-blending
+ * text over background (remeber - text is alpha-channel of foreground
+ * texture). At the same time we would like to add some nice bevel border
+ * around entire image. To accomplish that task all we have to do is setup
+ * ASImageLayer structure for both background and foreground, and apply
+ * merge_layers on them. When it is done - we no longer need original
+ * images and we destroy them to free up some memory.
  * EXAMPLE
  *     ASImageLayer layers[2] ;
  *     ASImageBevel bevel = {0, 0xFFDDDDDD, 0xFF555555,
@@ -416,10 +424,13 @@ int main(int argc, char* argv[])
  *     layers[1].merge_scanlines = alphablend_scanlines ;
  *     rendered_im = merge_layers( asv, &(layers[0]), 2,
  *                                 width+BEVEL_ADDON, height+BEVEL_ADDON,
- *                                 True, 0, ASIMAGE_QUALITY_DEFAULT);
+ *                                 ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT);
  *     destroy_asimage( &fore_im );
  *     destroy_asimage( &back_im );
  * NOTES
+ * We have to remember that outside bevel border will addup to the image
+ * size, hence we have to use width+BEVEL_ADDON , height+BEVEL_ADDON as
+ * desired image size.
  * SEE ALSO
  * ASImageLayer, ASImageBevel, merge_layers()
  ********/
