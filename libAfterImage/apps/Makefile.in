@@ -1,5 +1,5 @@
 
-PROGS= asview asscale astile asmerge asgrad asflip asi18n astext ascompose
+PROGS= asview asscale astile asmerge asgrad asflip asi18n astext ascompose asvector
 
 
 CC		= @CC@
