@@ -19,6 +19,9 @@
 /* Define to 1 if the system has the type `Elf32_Addr'. */
 #undef HAVE_ELF32_ADDR
 
+/* Define to 1 if `d_tag' is member of `Elf32_Dyn'. */
+#undef HAVE_ELF32_DYN_D_TAG
+
 /* Define to 1 if the system has the type `Elf64_Addr'. */
 #undef HAVE_ELF64_ADDR
 
@@ -60,9 +63,6 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
-
-/* Define to 1 if `d_tag' is member of `struct Elf32_Dyn'. */
-#undef HAVE_STRUCT_ELF32_DYN_D_TAG
 
 /* Define to 1 if you have the <sys/dirent.h> header file. */
 #undef HAVE_SYS_DIRENT_H
