@@ -17,7 +17,7 @@
 #include "../config.h"
 #endif
 
-#include <io.h>
+//#include <io.h>
 #ifdef __MSDOS__
 #include <alloc.h>
 #include <sys\stat.h>

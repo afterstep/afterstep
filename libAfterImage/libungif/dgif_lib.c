@@ -16,7 +16,6 @@
 #include "../config.h"
 #endif
 
-#include <io.h>
 #if defined (__MSDOS__) && !defined(__DJGPP__) && !defined(__GNUC__)
 #include <alloc.h>
 #include <sys\stat.h>
