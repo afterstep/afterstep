@@ -1440,7 +1440,7 @@ void
 SetInts (char *text, FILE * fd, char **arg1, int *arg2)
 {
     sscanf (text, "%d%*c%d", (int *)arg1, (int *)arg2);
-    LOCAL_DEBUG_OUT( "text=[%s], arg1=%p, Scr.Feel.Autoreverse = %p, res = %d", text, arg1, &(Scr.Feel.AutoReverse), *((int*)arg1) );
+/*    LOCAL_DEBUG_OUT( "text=[%s], arg1=%p, Scr.Feel.Autoreverse = %p, res = %d", text, arg1, &(Scr.Feel.AutoReverse), *((int*)arg1) );*/
 }
 
 /*****************************************************************************
