@@ -50,6 +50,12 @@ int main(int argc, char* argv[])
 	set_application_name( argv[0] );
 #if (HAVE_AFTERBASE_FLAG==1)
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
+#ifdef DEBUG_ALLOCS
+	fprintf( stderr, "have DEBUG_ALLOCS\n");
+#endif
+#ifdef AFTERBASE_DEBUG_ALLOCS
+	fprintf( stderr, "have AFTERBASE_DEBUG_ALLOCS\n");
+#endif
 #endif
 
 	if( argc > 1 )
@@ -149,12 +155,20 @@ int main(int argc, char* argv[])
 		}
 		/* see common.c: wait_closedown() : */
 		wait_closedown(w);
-
+		destroy_asvisual( asv, False );
 #else
 		/* writing result into the file */
 		ASImage2file( im, NULL, "asview.jpg", ASIT_Jpeg, NULL );
 #endif
 	}
+#ifdef DEBUG_ALLOCS
+    flush_ashash_memory_pool();
+	asxml_var_cleanup();
+	custom_color_cleanup();
+    build_xpm_colormap( NULL );
+	flush_default_asstorage();
+	print_unfreed_mem();
+#endif
 
     return 0 ;
 }

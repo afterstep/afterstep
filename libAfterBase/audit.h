@@ -15,78 +15,81 @@
  */
 
 #include <stdio.h>
+#include "afterbase_config.h"
 #include "ashash.h"
 #include "xwrap.h"
-#include "afterbase_config.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#if defined(AFTERBASE_DEBUG_ALLOCS) && !defined(NO_DEBUG_ALLOCS) && !defined(DEBUG_ALLOCS)
+# define DEBUG_ALLOCS
+#endif	  
 
 #define AUDIT_SERVICE_MEM_LIMIT (4<<20)
 
 #ifndef DEBUG_ALLOCS
 
-#define AS_ASSERT(p)            ((long)(p)==0)
-#define AS_ASSERT_NOTVAL(p,v)      ((long)(p)!=(long)v)
-#define PRINT_MEM_STATS(m)      do{}while(0)
+# define AS_ASSERT(p)            ((long)(p)==0)
+# define AS_ASSERT_NOTVAL(p,v)      ((long)(p)!=(long)v)
+# define PRINT_MEM_STATS(m)      do{}while(0)
 #else
 
 int as_assert (void *p, const char *fname, int line, const char *call);
 
-#define AS_ASSERT(p) as_assert((void*)p,__FILE__, __LINE__ ,__FUNCTION__)
-#define AS_ASSERT_NOTVAL(p,val) as_assert((void*)(((p)!=(val))?0:(((int)p)==0)?-1:(int)p),__FILE__, __LINE__ ,__FUNCTION__)
+# define AS_ASSERT(p) as_assert((void*)p,__FILE__, __LINE__ ,__FUNCTION__)
+# define AS_ASSERT_NOTVAL(p,val) as_assert((void*)(((p)!=(val))?0:(((int)p)==0)?-1:(int)p),__FILE__, __LINE__ ,__FUNCTION__)
 
-#define malloc(a) countmalloc(__FUNCTION__, __LINE__, a)
-#define safemalloc(a) countmalloc(__FUNCTION__, __LINE__, a)
-#define safecalloc(a,b) countcalloc(__FUNCTION__, __LINE__, a, b)
-#define calloc(a, b) countcalloc(__FUNCTION__, __LINE__, a, b)
-#define realloc(a, b) countrealloc(__FUNCTION__, __LINE__, a, b)
-#define free(a) countfree(__FUNCTION__, __LINE__, a)
+# define malloc(a) countmalloc(__FUNCTION__, __LINE__, a)
+# define safemalloc(a) countmalloc(__FUNCTION__, __LINE__, a)
+# define safecalloc(a,b) countcalloc(__FUNCTION__, __LINE__, a, b)
+# define calloc(a, b) countcalloc(__FUNCTION__, __LINE__, a, b)
+# define realloc(a, b) countrealloc(__FUNCTION__, __LINE__, a, b)
+# define free(a) countfree(__FUNCTION__, __LINE__, a)
 
-#define add_hash_item(a,b,c) countadd_hash_item(__FUNCTION__, __LINE__,a,b,c)
-#define mystrdup(a) countadd_mystrdup(__FUNCTION__, __LINE__,a)
-#define mystrndup(a,b) countadd_mystrndup(__FUNCTION__, __LINE__,a,b)
+# define add_hash_item(a,b,c) countadd_hash_item(__FUNCTION__, __LINE__,a,b,c)
+# define mystrdup(a) countadd_mystrdup(__FUNCTION__, __LINE__,a)
+# define mystrndup(a,b) countadd_mystrndup(__FUNCTION__, __LINE__,a,b)
 
-#ifndef X_DISPLAY_MISSING
+# if !defined(X_DISPLAY_MISSING) && defined(AFTERBASE_X_DISPLAY)
 
-#define XCreatePixmap(a, b, c, d, e) count_xcreatepixmap(__FUNCTION__, __LINE__, a, b, c, d, e)
-#define XCreateBitmapFromData(a, b, c, d, e) count_xcreatebitmapfromdata(__FUNCTION__, __LINE__, a, b, c, d, e)
-#define XCreatePixmapFromBitmapData(a, b, c, d, e, f, g, h) count_xcreatepixmapfrombitmapdata(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h)
-#define XFreePixmap(a, b) count_xfreepixmap(__FUNCTION__, __LINE__, a, b)
+#  define XCreatePixmap(a, b, c, d, e) count_xcreatepixmap(__FUNCTION__, __LINE__, a, b, c, d, e)
+#  define XCreateBitmapFromData(a, b, c, d, e) count_xcreatebitmapfromdata(__FUNCTION__, __LINE__, a, b, c, d, e)
+#  define XCreatePixmapFromBitmapData(a, b, c, d, e, f, g, h) count_xcreatepixmapfrombitmapdata(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h)
+#  define XFreePixmap(a, b) count_xfreepixmap(__FUNCTION__, __LINE__, a, b)
 
-#define XCreateGC(a, b, c, d) count_xcreategc(__FUNCTION__, __LINE__, a, b, c, d)
-#define XFreeGC(a, b) count_xfreegc(__FUNCTION__, __LINE__, a, b)
+#  define XCreateGC(a, b, c, d) count_xcreategc(__FUNCTION__, __LINE__, a, b, c, d)
+#  define XFreeGC(a, b) count_xfreegc(__FUNCTION__, __LINE__, a, b)
 
-#undef XDestroyImage		/* this is normally a macro */
+#  undef XDestroyImage		/* this is normally a macro */
 
-#define XCreateImage(a, b, c, d, e, f, g, h, i, j) count_xcreateimage(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j)
-#define XGetImage(a, b, c, d, e, f, g, h) count_xgetimage(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h)
-#undef XSubImage
-#define XSubImage(a, b, c, d, e) count_xsubimage(__FUNCTION__, __LINE__, a, b, c, d, e)
-#define XDestroyImage(a) count_xdestroyimage(__FUNCTION__, __LINE__, a)
+#  define XCreateImage(a, b, c, d, e, f, g, h, i, j) count_xcreateimage(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j)
+#  define XGetImage(a, b, c, d, e, f, g, h) count_xgetimage(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h)
+#  undef XSubImage
+#  define XSubImage(a, b, c, d, e) count_xsubimage(__FUNCTION__, __LINE__, a, b, c, d, e)
+#  define XDestroyImage(a) count_xdestroyimage(__FUNCTION__, __LINE__, a)
 
-#define XGetVisualInfo(a,b,c,d)	count_xgetvisualinfo(__FUNCTION__,__LINE__,a,b,c,d)
+#  define XGetVisualInfo(a,b,c,d)	count_xgetvisualinfo(__FUNCTION__,__LINE__,a,b,c,d)
 
-#define XGetWindowProperty(a, b, c, d, e, f, g, h, i, j, k, l) count_xgetwindowproperty(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j, k, l)
-#define XListProperties(a,b,c) count_xlistproperties(__FUNCTION__, __LINE__, a, b, c)
-#define XGetTextProperty(a,b,c,d) count_xgettextproperty(__FUNCTION__,__LINE__,a,b,c,d)
-#define XAllocClassHint()   count_xallocclasshint(__FUNCTION__,__LINE__)
-#define XAllocSizeHints()   count_xallocsizehints(__FUNCTION__,__LINE__)
-#define XQueryTree(a, b, c, d, e, f) count_xquerytree(__FUNCTION__, __LINE__, a, b, c, d, e, f)
-#define XGetWMHints(a, b) count_xgetwmhints(__FUNCTION__, __LINE__, a, b)
-#define XGetWMProtocols(a, b, c, d) count_xgetwmprotocols(__FUNCTION__, __LINE__, a, b, c, d)
-#define XGetWMName(a, b, c) count_xgetwmname(__FUNCTION__, __LINE__, a, b, c)
-#define XGetClassHint(a, b, c) count_xgetclasshint(__FUNCTION__, __LINE__, a, b, c)
-#define XGetAtomName(a, b) count_xgetatomname(__FUNCTION__, __LINE__, a, b)
-#define XStringListToTextProperty(a, b, c) count_xstringlisttotextproperty(__FUNCTION__, __LINE__, a, b, c)
-#define XFree(a) count_xfree(__FUNCTION__, __LINE__, a)
+#  define XGetWindowProperty(a, b, c, d, e, f, g, h, i, j, k, l) count_xgetwindowproperty(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j, k, l)
+#  define XListProperties(a,b,c) count_xlistproperties(__FUNCTION__, __LINE__, a, b, c)
+#  define XGetTextProperty(a,b,c,d) count_xgettextproperty(__FUNCTION__,__LINE__,a,b,c,d)
+#  define XAllocClassHint()   count_xallocclasshint(__FUNCTION__,__LINE__)
+#  define XAllocSizeHints()   count_xallocsizehints(__FUNCTION__,__LINE__)
+#  define XQueryTree(a, b, c, d, e, f) count_xquerytree(__FUNCTION__, __LINE__, a, b, c, d, e, f)
+#  define XGetWMHints(a, b) count_xgetwmhints(__FUNCTION__, __LINE__, a, b)
+#  define XGetWMProtocols(a, b, c, d) count_xgetwmprotocols(__FUNCTION__, __LINE__, a, b, c, d)
+#  define XGetWMName(a, b, c) count_xgetwmname(__FUNCTION__, __LINE__, a, b, c)
+#  define XGetClassHint(a, b, c) count_xgetclasshint(__FUNCTION__, __LINE__, a, b, c)
+#  define XGetAtomName(a, b) count_xgetatomname(__FUNCTION__, __LINE__, a, b)
+#  define XStringListToTextProperty(a, b, c) count_xstringlisttotextproperty(__FUNCTION__, __LINE__, a, b, c)
+#  define XFree(a) count_xfree(__FUNCTION__, __LINE__, a)
 
-#endif /* #ifndef X_DISPLAY_MISSING */
+# endif /* #ifndef X_DISPLAY_MISSING */
 
 
-#define PRINT_MEM_STATS(m)     print_unfreed_mem_stats(__FILE__,__FUNCTION__, __LINE__,(m))
+# define PRINT_MEM_STATS(m)     print_unfreed_mem_stats(__FILE__,__FUNCTION__, __LINE__,(m))
 
 #endif /* DEBUG_ALLOCS */
 
@@ -105,7 +108,7 @@ char* countadd_mystrdup(const char *fname, int line, const char *a);
 char* countadd_mystrndup(const char *fname, int line, const char *a, int len);
 
 
-#ifndef X_DISPLAY_MISSING
+#if !defined(X_DISPLAY_MISSING) && defined(AFTERBASE_X_DISPLAY)
 Pixmap count_xcreatepixmap (const char *fname, int line, Display * display,
 			    Drawable drawable, unsigned int width,
 			    unsigned int height, unsigned int depth);

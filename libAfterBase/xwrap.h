@@ -1,13 +1,13 @@
 #ifndef XWRAP_H_HEADER_INCLUDED
 #define XWRAP_H_HEADER_INCLUDED
 
-#ifndef X_DISPLAY_MISSING
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xmd.h>
-#include <X11/Xatom.h>
-#include <X11/Xproto.h>
-#include <X11/Xresource.h>
+#if !defined(X_DISPLAY_MISSING)
+# include <X11/Xlib.h>
+# include <X11/Xutil.h>
+# include <X11/Xmd.h>
+# include <X11/Xatom.h>
+# include <X11/Xproto.h>
+# include <X11/Xresource.h>
 
 #else
 
@@ -15,63 +15,63 @@
 extern "C" {
 #endif
 
-#define Display  void
-#ifndef Bool
-#define Bool int
-#endif
-#ifndef True
-#define True 1
-#endif
-#ifndef False
-#define False 0
-#endif
+# define Display  void
+# ifndef Bool
+#  define Bool int
+# endif
+# ifndef True
+#  define True 1
+# endif
+# ifndef False
+#  define False 0
+# endif
 
-#ifndef CARD32
-#define CARD32 unsigned int
-#endif
-#ifndef CARD16
-#define CARD16 unsigned short
-#endif
-#ifndef CARD8
-#define CARD8 unsigned char
-#endif
+# ifndef CARD32
+#  define CARD32 unsigned int
+# endif
+# ifndef CARD16
+#  define CARD16 unsigned short
+# endif
+# ifndef CARD8
+#  define CARD8 unsigned char
+# endif
 
-#ifndef XID
-#define XID CARD32
-#endif
+# ifndef XID
+#  define XID CARD32
+# endif
 
-#ifndef Drawable
-#define Drawable   XID
-#endif
-#ifndef Atom
-#define Atom       XID
-#endif
-#ifndef Window
-#define Window     XID
-#endif
-#ifndef Pixmap
-#define Pixmap     XID
-#endif
-#ifndef Font
-#define Font       XID
-#endif
-#ifndef Colormap
-#define Colormap   XID
-#endif
-#ifndef Cursor
-#define Cursor   XID
-#endif
-#ifndef VisualID
-#define VisualID   XID
-#endif
+# ifndef Drawable
+#  define Drawable   XID
+# endif
+# ifndef Atom
+#  define Atom       XID
+# endif
+# ifndef Window
+#  define Window     XID
+# endif
+# ifndef Pixmap
+#  define Pixmap     XID
+# endif
+# ifndef Font
+#  define Font       XID
+# endif
+# ifndef Colormap
+#  define Colormap   XID
+# endif
+# ifndef Cursor
+#  define Cursor   XID
+# endif
+# ifndef VisualID
+#  define VisualID   XID
+# endif
 
-#ifndef GC
-#define GC void*
-#endif
+# ifndef GC
+#  define GC void*
+# endif
 
-#ifndef None
-#define None 0
-#endif
+# ifndef None
+#  define None 0
+# endif
 
 typedef struct {
 	int function;		/* logical operation */
@@ -111,11 +111,11 @@ typedef struct {
 typedef struct {
 	void *ext_data;	/* hook for extension to hang data */
 	XID visualid;	/* visual id of this visual */
-#if defined(__cplusplus) || defined(c_plusplus)
+# if defined(__cplusplus) || defined(c_plusplus)
 	int c_class;		/* C++ class of screen (monochrome, etc.) */
-#else
+# else
 	int class;		/* class of screen (monochrome, etc.) */
-#endif
+# endif
 	unsigned long red_mask, green_mask, blue_mask;	/* mask values */
 	int bits_per_rgb;	/* log base 2 of distinct color values */
 	int map_entries;	/* color map entries */
@@ -126,11 +126,11 @@ typedef struct {
   VisualID visualid;
   int screen;
   int depth;
-#if defined(__cplusplus) || defined(c_plusplus)
+# if defined(__cplusplus) || defined(c_plusplus)
   int c_class;					/* C++ */
-#else
+# else
   int class;
-#endif
+# endif
   unsigned long red_mask;
   unsigned long green_mask;
   unsigned long blue_mask;
@@ -155,7 +155,7 @@ typedef struct _XImage {
     unsigned long blue_mask;
     void *obdata;		/* hook for the object routines to hang on */
     struct funcs {		/* image manipulation routines */
-#if NeedFunctionPrototypes
+# if NeedFunctionPrototypes
 	struct _XImage *(*create_image)(
 		void* /* display */,
 		void*		/* visual */,
@@ -172,14 +172,14 @@ typedef struct _XImage {
 	int (*put_pixel)            (struct _XImage *, int, int, unsigned long);
 	struct _XImage *(*sub_image)(struct _XImage *, int, int, unsigned int, unsigned int);
 	int (*add_pixel)            (struct _XImage *, long);
-#else
+# else
 	struct _XImage *(*create_image)();
 	int (*destroy_image)();
 	unsigned long (*get_pixel)();
 	int (*put_pixel)();
 	struct _XImage *(*sub_image)();
 	int (*add_pixel)();
-#endif
+# endif
 	} f;
 } XImage;
 
@@ -213,20 +213,20 @@ int XParseGeometry (  char *string,int *x,int *y,
 					  unsigned int *height);    /* RETURN */
 
 /* needed by above function : */
-#define NoValue		0x0000
-#define XValue  	0x0001
-#define YValue		0x0002
-#define WidthValue  	0x0004
-#define HeightValue  	0x0008
-#define AllValues 	0x000F
-#define XNegative 	0x0010
-#define YNegative 	0x0020
+# define NoValue		0x0000
+# define XValue  	0x0001
+# define YValue		0x0002
+# define WidthValue  	0x0004
+# define HeightValue  	0x0008
+# define AllValues 	0x000F
+# define XNegative 	0x0010
+# define YNegative 	0x0020
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
-#endif
+#endif                         /* X_DISPLAY_MISSING */
 
 #ifdef __cplusplus
 extern "C" {

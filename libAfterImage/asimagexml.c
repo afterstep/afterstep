@@ -152,6 +152,7 @@ void set_xml_font_manager( ASFontManager *fontman )
 	_as_xml_font_manager = fontman ;
 }
 
+
 void asxml_var_insert(const char* name, int value);
 
 void

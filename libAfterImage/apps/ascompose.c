@@ -369,6 +369,7 @@ int main(int argc, char** argv) {
 	}
 	
 	destroy_asvisual( asv, False );
+	asv = NULL ;
     
 	dpy = NULL ;
 #ifndef X_DISPLAY_MISSING
@@ -430,7 +431,10 @@ int main(int argc, char** argv) {
 		}
 		/* Done with the image, finally. */
 		if( im ) 
-			destroy_asimage(&im);
+		{	
+			safe_asimage_destroy( im );
+			im = NULL ;
+		}
 	}else if( compose_type == COMPOSE_Interactive )
 	{
 		FILE *fp = stdin ;
@@ -655,21 +659,26 @@ int main(int argc, char** argv) {
 		destroy_font_manager(my_fontman, False);
 	}		 
 #endif
-
 	if (doc_file && doc_str && doc_str != default_doc_str) free(doc_str);
 
 #if !defined(X_DISPLAY_MISSING)    
 	if( dpy )
         XCloseDisplay (dpy);
 #endif
-
+	LOCAL_DEBUG_OUT( "display Closed%s","");
 #ifdef DEBUG_ALLOCS
-    flush_ashash_memory_pool();
 	asxml_var_cleanup();
+	LOCAL_DEBUG_OUT( "display Closed%s","");
 	custom_color_cleanup();
+	LOCAL_DEBUG_OUT( "display Closed%s","");
     build_xpm_colormap( NULL );
+	LOCAL_DEBUG_OUT( "display Closed%s","");
 	flush_default_asstorage();
-	destroy_asvisual( asv, False );
+	LOCAL_DEBUG_OUT( "display Closed%s","");
+//	destroy_asvisual( asv, False );
+	LOCAL_DEBUG_OUT( "display Closed%s","");
+    flush_ashash_memory_pool();
+	LOCAL_DEBUG_OUT( "display Closed%s","");
 	print_unfreed_mem();
 #endif
 
