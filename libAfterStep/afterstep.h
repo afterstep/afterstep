@@ -182,6 +182,18 @@ struct ASStatusHints;
 struct ASCanvas;
 struct ASTBarData;
 
+#define AS_CLIENT_EVENT_MASK (StructureNotifyMask|PropertyChangeMask| \
+							  EnterWindowMask|LeaveWindowMask| \
+ 							  ColormapChangeMask|FocusChangeMask)
+
+
+#define AS_FRAME_EVENT_MASK  (SubstructureRedirectMask | ButtonPressMask | \
+							  ButtonReleaseMask | EnterWindowMask | \
+							  LeaveWindowMask | ExposureMask | FocusChangeMask)
+
+#define AS_CANVAS_EVENT_MASK (ButtonPressMask | ButtonReleaseMask | \
+                              EnterWindowMask | LeaveWindowMask | \
+						   	  StructureNotifyMask)
 
 /* for each window that is on the display, one of these structures
  * is allocated and linked into a list
@@ -242,21 +254,6 @@ typedef struct ASWindow
 	/* END of NEW ASWindow frame decorations                            */
 	/********************************************************************/
     int old_bw;			/* border width before reparenting */
-    Window Parent;		/* Ugly Ugly Ugly - it looks like you
-				 * HAVE to reparent the app window into
-				 * a window whose size = app window,
-				 * or else you can't keep xv and matlab
-				 * happy at the same time! */
-    Window title_w;		/* the title bar window */
-    Window side;
-    Window corners[2];		/* Corner pieces */
-    Window fw[8];		/* frame windows */
-    int nr_left_buttons;
-    int nr_right_buttons;
-    Window left_w[5];
-    Window right_w[5];
-    int space_taken_left_buttons;
-    int space_taken_right_buttons;
 #ifndef NO_SHAPE
     int wShaped;		/* is this a shaped window */
 #endif
@@ -270,11 +267,6 @@ typedef struct ASWindow
     int boundary_height;
     int corner_width;
     int bw;
-    int title_x;
-    int title_y;
-    int title_height;		/* height of the title bar */
-    int title_width;		/* width of the title bar */
-    int button_height;		/* height of the buttons on title bar */
 
     Window icon_pixmap_w;	/* the icon window */
     int icon_p_x;		/* icon pixmap window x */
@@ -308,16 +300,6 @@ typedef struct ASWindow
 
     long focus_sequence;
     long circulate_sequence;
-#ifndef NO_TEXTURE
-    int bp_width, bp_height;	/* size of background pixmap */
-    Pixmap backPixmap;		/* for titlebar background */
-    Pixmap backPixmap2;		/* unfocused window titlebar */
-    Pixmap backPixmap3;		/* unfocused sticky titlebar */
-#endif
-    MyStyle *style_focus;
-    MyStyle *style_unfocus;
-    MyStyle *style_sticky;
-    fr_pos fp[8];
   }
 ASWindow;
 
@@ -330,8 +312,6 @@ void on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int w
 void on_window_title_changed( ASWindow *asw, Bool update_display );
 void on_window_status_changed( ASWindow *asw, Bool update_display );
 Bool iconify_window( ASWindow *asw, Bool iconify );
-
-void bind_aswindow_styles(ASWindow *t);
 
 
 #define TITLE_OLD		0	/* old (NEXTSTEP 3) style titlebar */

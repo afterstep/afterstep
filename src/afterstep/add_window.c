@@ -119,6 +119,27 @@ Bool register_aswindow( Window w, ASWindow *asw )
     return False;
 }
 
+/**********************************************************************/
+/* window management specifics - mapping/unmapping with no events :   */
+/**********************************************************************/
+
+void
+quietly_unmap_window( Window w, long event_mask )
+{
+    /* blocking UnmapNotify events since that may bring us into Withdrawn state */
+    XSelectInput (dpy, w, event_mask & ~StructureNotifyMask);
+    XUnmapWindow( dpy, w );
+    XSelectInput (dpy, w, event_mask );
+}
+
+void
+quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_mask )
+{
+    /* blocking UnmapNotify events since that may bring us into Withdrawn state */
+    XSelectInput (dpy, w, event_mask & ~StructureNotifyMask);
+    XReparentWindow( dpy, w, (new_parent!=None)?new_parent:Scr.Root, x, y );
+    XSelectInput (dpy, w, event_mask );
+}
 
 
 /********************************************************************/
@@ -154,8 +175,8 @@ check_canvas( ASWindow *asw, FrameSide side, Bool required )
 				valuemask |= CWBackingStore;
 				attributes.backing_store = WhenMapped;
 			}
-			attributes.event_mask = (ButtonPressMask | ButtonReleaseMask |
-                                     EnterWindowMask | LeaveWindowMask | StructureNotifyMask);
+			attributes.event_mask = AS_CANVAS_EVENT_MASK;
+
 			w = create_visual_window (Scr.asv, asw->frame,
 									  0, 0, 1, 1, 0, InputOutput,
 									  valuemask, &attributes);
@@ -556,167 +577,6 @@ on_window_status_changed( ASWindow *asw, Bool update_display )
 /********************************************************************/
 /* end of ASWindow frame decorations management                     */
 /********************************************************************/
-#if 0                                          /* old useless code  */
-void
-init_titlebar_windows (ASWindow * tmp_win, Bool free_resources)
-{
-	if (free_resources)
-	{
-		if (tmp_win->title_w != None)
-		{
-			XDestroyWindow (dpy, tmp_win->title_w);
-			XDeleteContext (dpy, tmp_win->title_w, ASContext);
-		}
-	}
-	tmp_win->title_w = None;
-}
-
-/*
- * Create the titlebar.
- * We place the window anywhere, and let SetupFrame() take care of
- *  putting it where it belongs.
- */
-Bool
-create_titlebar_windows (ASWindow * tmp_win)
-{
-	unsigned long valuemask;
-	XSetWindowAttributes attributes;
-
-	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar))
-		return False;
-
-	valuemask = CWBackPixmap | CWBorderPixel | CWCursor | CWEventMask;
-	attributes.background_pixmap = ParentRelative;
-	attributes.border_pixel = Scr.asv->black_pixel;
-	if (Scr.flags & BackingStore)
-	{
-		valuemask |= CWBackingStore;
-		attributes.backing_store = WhenMapped;
-	}
-	attributes.event_mask = (ButtonPressMask | ButtonReleaseMask | ExposureMask |
-							 EnterWindowMask | LeaveWindowMask);
-	attributes.cursor = Scr.ASCursors[TITLE_CURSOR];
-	tmp_win->title_x = -999;
-	tmp_win->title_y = -999;
-	tmp_win->title_w = create_visual_window (Scr.asv, tmp_win->frame,
-											 tmp_win->title_x, tmp_win->title_y,
-											 tmp_win->title_width,
-											 (tmp_win->title_height + tmp_win->bw), 0, InputOutput,
-											 valuemask, &attributes);
-	XSaveContext (dpy, tmp_win->title_w, ASContext, (caddr_t) tmp_win);
-	return True;
-}
-
-void
-init_titlebutton_windows (ASWindow * tmp_win, Bool free_resources)
-{
-	int           i;
-
-	if (free_resources)
-	{
-		for (i = 0; i < (TITLE_BUTTONS>>1); i++)
-		{
-			if (tmp_win->left_w[i] != None)
-			{
-				balloon_delete (balloon_find (tmp_win->left_w[i]));
-				XDestroyWindow (dpy, tmp_win->left_w[i]);
-				XDeleteContext (dpy, tmp_win->left_w[i], ASContext);
-			}
-			if (tmp_win->right_w[i] != None)
-			{
-				balloon_delete (balloon_find (tmp_win->left_w[i]));
-				XDestroyWindow (dpy, tmp_win->right_w[i]);
-				XDeleteContext (dpy, tmp_win->right_w[i], ASContext);
-			}
-		}
-	}
-	for (i = 0; i < (TITLE_BUTTONS>>1); i++)
-	{
-		tmp_win->left_w[i] = None;
-		tmp_win->right_w[i] = None;
-	}
-	tmp_win->nr_right_buttons = 0;
-	tmp_win->nr_left_buttons = 0;
-	tmp_win->space_taken_left_buttons = 0;
-	tmp_win->space_taken_right_buttons = 0;
-}
-
-/*
- * Create the titlebar buttons.
- * We place the windows anywhere, and let SetupFrame() take care of
- *  putting them where they belong.
- */
-Bool
-create_titlebutton_windows (ASWindow * tmp_win)
-{
-	int           i;
-	unsigned long valuemask;
-	XSetWindowAttributes attributes;
-
-	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar))
-		return False;
-	valuemask = CWBackPixmap | CWBorderPixel | CWCursor | CWEventMask;
-	attributes.background_pixmap = ParentRelative;
-	attributes.border_pixel = Scr.asv->black_pixel;
-	if (Scr.flags & BackingStore)
-	{
-		valuemask |= CWBackingStore;
-		attributes.backing_store = WhenMapped;
-	}
-	attributes.event_mask = (ButtonPressMask | ButtonReleaseMask | ExposureMask |
-							 EnterWindowMask | LeaveWindowMask);
-	attributes.cursor = Scr.ASCursors[SYS];
-	tmp_win->nr_left_buttons = 0;
-	tmp_win->nr_right_buttons = 0;
-	tmp_win->space_taken_left_buttons = 0;
-	tmp_win->space_taken_right_buttons = 0;
-	for (i = 0; i < TITLE_BUTTONS; i++)
-	{
-		Window w ;
-		if( Scr.buttons[i].width <= 0 || IsBtnDisabled(tmp_win, i ) )
-			continue;
-		w = create_visual_window (Scr.asv, tmp_win->frame, -999, -999,
-		  						  Scr.buttons[i].width, Scr.buttons[i].height,
-								  0, InputOutput, valuemask, &attributes);
-		XSaveContext (dpy, w, ASContext, (caddr_t) tmp_win);
-
-		if (IsLeftButton(i))
-		{
-			tmp_win->left_w[i] = w ;
-			tmp_win->nr_left_buttons++;
-			tmp_win->space_taken_left_buttons +=
-				Scr.buttons[i].width + Scr.TitleButtonSpacing;
-		}else
-		{
-			int rb = RightButtonIdx(i);
-			tmp_win->right_w[rb] = w ;
-			tmp_win->nr_right_buttons++;
-			tmp_win->space_taken_right_buttons +=
-				Scr.buttons[i].width + Scr.TitleButtonSpacing;
-		}
-		create_titlebutton_balloon (tmp_win, i);
-	}
-
-	/* if left buttons exist, remove one extraneous space so title is shown correctly */
-	if (tmp_win->space_taken_left_buttons)
-		tmp_win->space_taken_left_buttons -= Scr.TitleButtonSpacing;
-	/* if right buttons exist, remove one extraneous space so title is shown correctly */
-	if (tmp_win->space_taken_right_buttons)
-		tmp_win->space_taken_right_buttons -= Scr.TitleButtonSpacing;
-
-	/* add borders if Scr.TitleButtonStyle == 0 */
-	if (!Scr.TitleButtonStyle)
-	{
-		tmp_win->space_taken_left_buttons += 6;
-		tmp_win->space_taken_right_buttons += 6;
-	}
-
-	return True;
-}
-
-
-#endif
-
 /*
    ** returns a newline delimited list of the Mouse functions bound to a
    ** given context, in human readable form
@@ -808,23 +668,6 @@ create_titlebutton_balloon (ASWindow * tmp_win, int b)
 	return True;
 }
 
-
-void
-bind_aswindow_styles(ASWindow *t)
-{
-	char **styles_names = t->hints->mystyle_names ;
-
-	t->style_focus = styles_names[BACK_FOCUSED]?mystyle_find (styles_names[BACK_FOCUSED]):NULL ;
-	if( t->style_focus == NULL )
-		t->style_focus = Scr.MSFWindow;
-	t->style_unfocus = styles_names[BACK_UNFOCUSED]?mystyle_find (styles_names[BACK_UNFOCUSED]):NULL ;
-	if( t->style_unfocus == NULL )
-		t->style_unfocus = Scr.MSUWindow;
-	t->style_sticky = styles_names[BACK_STICKY]?mystyle_find (styles_names[BACK_STICKY]):NULL ;
-	if( t->style_sticky == NULL )
-		t->style_sticky = Scr.MSSWindow;
-}
-
 /****************************************************************************
  * Interprets the property MOTIF_WM_HINTS, sets decoration and functions
  * accordingly
@@ -849,10 +692,6 @@ SelectDecor (ASWindow * t)
 	/* Assume no decorations, and build up */
 	t->boundary_width = 0;
 	t->boundary_height = 0;
-	t->corner_width = 0;
-	t->title_width = 0;
-	t->title_height = 0;
-	t->button_height = 0;
 
 #ifndef NO_TEXTURE
 	if (!get_flags(hints->function_mask,AS_FuncResize) || !DecorateFrames)
@@ -880,8 +719,6 @@ SelectDecor (ASWindow * t)
 		t->bw = border_width;
 	else
 		t->bw = 1;
-
-	t->button_height = t->title_height - 7;
 }
 
 /*
@@ -1052,13 +889,64 @@ LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d, batch = %d", asw, iconify, b
          * Prevent the receipt of an UnmapNotify, since we trigger any such event
          * as signal for transition to the Withdrawn state.
          */
+		asw->flags &= ~MAPPED;
+		asw->DeIconifyDesk = ASWIN_DESK(asw);
+		 
 LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
         quietly_unmap_window( asw->w, AS_CLIENT_EVENT_MASK );
         XUnmapWindow (dpy, asw->frame);
 
+		SetMapStateProp (asw, IconicState);
+		
+		/* this transient logic is kinda broken - we need to exepriment with it and 
+		   fix it eventually, less we want to end up with iconified transients 
+		   without icons 
+		 */
+		if ( ASWIN_HFLAGS(asw, AS_Transient))
+		{
+			asw->flags |= ICONIFIED | ICON_UNMAPPED;
+			Broadcast (M_ICONIFY, 7, asw->w, asw->frame,
+					   (unsigned long)asw, -10000, -10000, asw->icon_p_width, asw->icon_p_height);
+			BroadcastConfig (M_CONFIGURE_WINDOW, asw);
+		}else
+		{
+			if (asw->icon_pixmap_w == None && asw->icon_title_w == None)
+				CreateIconWindow (asw);
+			asw->flags |= ICONIFIED;
+			asw->flags &= ~ICON_UNMAPPED;
+			AutoPlace (asw);
+			XFlush (dpy);
+			Broadcast (M_ICONIFY, 7, asw->w, asw->frame,
+			  		   (unsigned long)asw,
+					    asw->icon_p_x, asw->icon_p_y, 
+						asw->icon_p_width, asw->icon_p_height);
+			BroadcastConfig (M_CONFIGURE_WINDOW, asw);
+
+			LowerWindow (asw);
+			if (ASWIN_DESK(asw) == Scr.CurrentDesk)
+			{
+				if (asw->icon_pixmap_w != None)
+					XMapWindow (dpy, asw->icon_pixmap_w);
+				if (asw->icon_title_w != None)
+					XMapWindow (dpy, asw->icon_title_w);
+			}
+
+			if ((Scr.flags & ClickToFocus) || (Scr.flags & SloppyFocus))
+			{
+				if (asw == Scr.Focus)
+				{
+		  			if (Scr.PreviousFocus == Scr.Focus)
+						Scr.PreviousFocus = NULL;
+					if ((Scr.flags & ClickToFocus) && (asw->next))
+						SetFocus (asw->next->w, asw->next, False);
+					else
+						SetFocus (Scr.NoFocusWin, NULL, False);
+				}
+			}
+		}
 LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_NAME(asw) );
         set_flags( asw->status->flags, AS_Iconic );
-        asw->status->icon_window = asw->icon->icon_w ;
+        asw->status->icon_window = asw->icon_pixmap_w?asw->icon_pixmap_w:asw->icon_title_w ;
     }else
     {   /* Performing transition IconicState->NormalState  */
         asw->flags |= MAPPED;
@@ -1083,11 +971,11 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
             XMapWindow (dpy, asw->frame);
             asw->flags |= MAP_PENDING;
         }
-        SetMapStateProp (t, NormalState);
-        t->flags &= ~ICONIFIED;
-        t->flags &= ~ICON_UNMAPPED;
+        SetMapStateProp (asw, NormalState);
+        asw->flags &= ~ICONIFIED;
+        asw->flags &= ~ICON_UNMAPPED;
 
-        XRaiseWindow (dpy, t->w);
+        XRaiseWindow (dpy, asw->w);
 
         XFlush (dpy);
         if( !ASWIN_HFLAGS(asw, AS_Transient ))
@@ -1103,6 +991,167 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
 
     on_window_status_changed( asw, True );
     return True;
+}
+
+/****************************************************************************
+ *
+ * Sets up the shaped window borders 
+ * 
+ ****************************************************************************/
+void
+SetShape (ASWindow *asw, int w)
+{
+#ifdef SHAPE
+	if( asw ) 
+	{
+		int bw = asw->status->border_width ;
+
+		XShapeCombineShape (dpy, asw->frame, ShapeBounding, 
+	  	      	            asw->status->x + bw, 
+							asw->status->y + bw,
+							asw->w, ShapeBounding, ShapeSet);
+
+		/* windows with titles */
+		if (ASWIN_HFLAGS(asw,AS_Titlebar) && asw->tbar)
+		{
+			XRectangle    rect;
+
+			rect.x = asw->tbar->win_x - bw;
+			rect.y = asw->tbar->win_y - bw;
+			rect.width  = asw->tbar->width  + 2*bw;
+			rect.height = asw->tbar->height + 2*bw;
+
+			XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
+									 0, 0, &rect, 1, ShapeUnion, Unsorted);
+		}
+
+		/* TODO: add frame decorations shape */
+
+		/* update icon shape */
+		if (asw->icon_pixmap_w != None)
+			UpdateIconShape (asw);
+	}			
+#endif /* SHAPE */
+}
+
+/********************************************************************
+ *
+ * Sets the input focus to the indicated window.
+ *
+ **********************************************************************/
+
+Bool
+SetFocus (Window w, ASWindow * Fw, Bool circulated)
+{
+	int           i;
+	extern Time   lastTimestamp;
+	Bool          focusAccepted = True;
+
+	if (!circulated && Fw)
+		SetCirculateSequence (Fw, 1);
+
+	/* ClickToFocus focus queue manipulation */
+	if (Fw && Fw != Scr.Focus && Fw != &Scr.ASRoot)
+		Fw->focus_sequence = Scr.next_focus_sequence++;
+
+	if (Scr.NumberOfScreens > 1)
+	{
+		XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild,
+					   &JunkX, &JunkY, &JunkX, &JunkY, &JunkMask);
+		if (JunkRoot != Scr.Root)
+		{
+			if ((Scr.flags & ClickToFocus) && (Scr.Ungrabbed != NULL))
+			{
+				/* Need to grab buttons for focus window */
+				XSync (dpy, 0);
+				for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
+					if (Scr.buttons2grab & (1 << i))
+						MyXGrabButton (dpy, i + 1, 0, Scr.Ungrabbed->frame,
+									   True, ButtonPressMask, GrabModeSync,
+									   GrabModeAsync, None, Scr.ASCursors[SYS]);
+				Scr.Focus = NULL;
+				Scr.Ungrabbed = NULL;
+				XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, lastTimestamp);
+			}
+			return False;
+		}
+	}
+
+	if (Fw && (Fw->status->desktop != Scr.CurrentDesk))
+	{
+		Fw = NULL;
+		w = Scr.NoFocusWin;
+		focusAccepted = False;
+	}
+	if ((Scr.flags & ClickToFocus) && (Scr.Ungrabbed != Fw))
+	{
+		/* need to grab all buttons for window that we are about to
+		 * unfocus */
+		if (Scr.Ungrabbed != NULL)
+		{
+			XSync (dpy, 0);
+			for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
+				if (Scr.buttons2grab & (1 << i))
+				{
+					MyXGrabButton (dpy, i + 1, 0, Scr.Ungrabbed->frame,
+								   True, ButtonPressMask, GrabModeSync,
+								   GrabModeAsync, None, Scr.ASCursors[SYS]);
+				}
+			Scr.Ungrabbed = NULL;
+		}
+		/* if we do click to focus, remove the grab on mouse events that
+		 * was made to detect the focus change */
+		if ((Scr.flags & ClickToFocus) && (Fw != NULL))
+		{
+			for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
+				if (Scr.buttons2grab & (1 << i))
+				{
+					MyXUngrabButton (dpy, i + 1, 0, Fw->frame);
+				}
+			Scr.Ungrabbed = Fw;
+		}
+	}
+
+	/* try to give focus to shaded windows */
+	if ((Fw != NULL) && (Fw->flags & SHADED))
+	{
+		if (Fw->frame != None)
+			w = Fw->frame;
+		else
+			return False;
+	}
+
+	/* give focus to icons */
+	if (Fw != NULL && (Fw->flags & ICONIFIED))
+	{
+		if (Fw->icon_title_w != None)
+			w = Fw->icon_title_w;
+		else if (Fw->icon_pixmap_w != None)
+			w = Fw->icon_pixmap_w;
+	}
+
+	if (Fw && ASWIN_HFLAGS(Fw, AS_AcceptsFocus))
+	{
+		/* Window will accept input focus */
+		XSetInputFocus (dpy, w, RevertToParent, lastTimestamp);
+		Scr.Focus = Fw;
+	} else if ((Scr.Focus) && (Scr.Focus->status->desktop == Scr.CurrentDesk))
+	{
+		/* Window doesn't want focus. Leave focus alone */
+		/* XSetInputFocus (dpy,Scr.Hilite->w , RevertToParent, lastTimestamp); */
+		focusAccepted = False;
+	} else
+	{
+		XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, lastTimestamp);
+		Scr.Focus = NULL;
+		focusAccepted = False;
+	}
+	if ((Fw) && get_flags(Fw->hints->protocols, AS_DoesWmTakeFocus))
+		send_clientmessage (w, _XA_WM_TAKE_FOCUS, lastTimestamp);
+
+	XSync (dpy, 0);
+
+	return focusAccepted;
 }
 
 
@@ -1126,7 +1175,7 @@ AddWindow (Window w)
 	ASWindow     *tmp_win;					   /* new afterstep window structure */
 	unsigned long valuemask;				   /* mask for create windows */
 	XSetWindowAttributes attributes;		   /* attributes for create windows */
-	int           i, width, height;
+	int           i;
 	int           a, b;
 	extern Bool   NeedToResizeToo;
 	extern ASWindow *colormap_win;
@@ -1212,8 +1261,6 @@ AddWindow (Window w)
 		tmp_win->wShaped = boundingShaped;
 	}
 #endif /* SHAPE */
-
-	bind_aswindow_styles(tmp_win);
 
 	SelectDecor (tmp_win);
 
@@ -1304,9 +1351,8 @@ AddWindow (Window w)
 	attributes.border_pixel = Scr.asv->black_pixel;
 
 	attributes.cursor = Scr.ASCursors[DEFAULT];
-	attributes.event_mask = (SubstructureRedirectMask | ButtonPressMask |
-							 ButtonReleaseMask | EnterWindowMask |
-							 LeaveWindowMask | ExposureMask | FocusChangeMask);
+	attributes.event_mask = AS_FRAME_EVENT_MASK;
+	
 	if (Scr.flags & SaveUnders)
 	{
 		valuemask |= CWSaveUnder;
@@ -1332,9 +1378,7 @@ AddWindow (Window w)
     XReparentWindow (dpy, tmp_win->w, tmp_win->frame, 0, 0);
 
 	valuemask = (CWEventMask | CWDontPropagate);
-	attributes.event_mask = (StructureNotifyMask | PropertyChangeMask |
-							 EnterWindowMask | LeaveWindowMask |
-							 ColormapChangeMask | FocusChangeMask);
+	attributes.event_mask = AS_CLIENT_EVENT_MASK;
 	attributes.do_not_propagate_mask = ButtonPressMask | ButtonReleaseMask;
 	if (Scr.flags & AppsBackingStore)
 	{
@@ -1480,4 +1524,177 @@ GrabKeys (ASWindow * tmp_win)
 	}
 	return;
 }
+
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+/* Archive of old code :                                              */
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+
+#if 0                                          /* old useless code  */
+void
+init_titlebar_windows (ASWindow * tmp_win, Bool free_resources)
+{
+	if (free_resources)
+	{
+		if (tmp_win->title_w != None)
+		{
+			XDestroyWindow (dpy, tmp_win->title_w);
+			XDeleteContext (dpy, tmp_win->title_w, ASContext);
+		}
+	}
+	tmp_win->title_w = None;
+}
+
+/*
+ * Create the titlebar.
+ * We place the window anywhere, and let SetupFrame() take care of
+ *  putting it where it belongs.
+ */
+Bool
+create_titlebar_windows (ASWindow * tmp_win)
+{
+	unsigned long valuemask;
+	XSetWindowAttributes attributes;
+
+	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar))
+		return False;
+
+	valuemask = CWBackPixmap | CWBorderPixel | CWCursor | CWEventMask;
+	attributes.background_pixmap = ParentRelative;
+	attributes.border_pixel = Scr.asv->black_pixel;
+	if (Scr.flags & BackingStore)
+	{
+		valuemask |= CWBackingStore;
+		attributes.backing_store = WhenMapped;
+	}
+	attributes.event_mask = (ButtonPressMask | ButtonReleaseMask | ExposureMask |
+							 EnterWindowMask | LeaveWindowMask);
+	attributes.cursor = Scr.ASCursors[TITLE_CURSOR];
+	tmp_win->title_x = -999;
+	tmp_win->title_y = -999;
+	tmp_win->title_w = create_visual_window (Scr.asv, tmp_win->frame,
+											 tmp_win->title_x, tmp_win->title_y,
+											 tmp_win->title_width,
+											 (tmp_win->title_height + tmp_win->bw), 0, InputOutput,
+											 valuemask, &attributes);
+	XSaveContext (dpy, tmp_win->title_w, ASContext, (caddr_t) tmp_win);
+	return True;
+}
+
+void
+init_titlebutton_windows (ASWindow * tmp_win, Bool free_resources)
+{
+	int           i;
+
+	if (free_resources)
+	{
+		for (i = 0; i < (TITLE_BUTTONS>>1); i++)
+		{
+			if (tmp_win->left_w[i] != None)
+			{
+				balloon_delete (balloon_find (tmp_win->left_w[i]));
+				XDestroyWindow (dpy, tmp_win->left_w[i]);
+				XDeleteContext (dpy, tmp_win->left_w[i], ASContext);
+			}
+			if (tmp_win->right_w[i] != None)
+			{
+				balloon_delete (balloon_find (tmp_win->left_w[i]));
+				XDestroyWindow (dpy, tmp_win->right_w[i]);
+				XDeleteContext (dpy, tmp_win->right_w[i], ASContext);
+			}
+		}
+	}
+	for (i = 0; i < (TITLE_BUTTONS>>1); i++)
+	{
+		tmp_win->left_w[i] = None;
+		tmp_win->right_w[i] = None;
+	}
+	tmp_win->nr_right_buttons = 0;
+	tmp_win->nr_left_buttons = 0;
+	tmp_win->space_taken_left_buttons = 0;
+	tmp_win->space_taken_right_buttons = 0;
+}
+
+/*
+ * Create the titlebar buttons.
+ * We place the windows anywhere, and let SetupFrame() take care of
+ *  putting them where they belong.
+ */
+Bool
+create_titlebutton_windows (ASWindow * tmp_win)
+{
+	int           i;
+	unsigned long valuemask;
+	XSetWindowAttributes attributes;
+
+	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar))
+		return False;
+	valuemask = CWBackPixmap | CWBorderPixel | CWCursor | CWEventMask;
+	attributes.background_pixmap = ParentRelative;
+	attributes.border_pixel = Scr.asv->black_pixel;
+	if (Scr.flags & BackingStore)
+	{
+		valuemask |= CWBackingStore;
+		attributes.backing_store = WhenMapped;
+	}
+	attributes.event_mask = (ButtonPressMask | ButtonReleaseMask | ExposureMask |
+							 EnterWindowMask | LeaveWindowMask);
+	attributes.cursor = Scr.ASCursors[SYS];
+	tmp_win->nr_left_buttons = 0;
+	tmp_win->nr_right_buttons = 0;
+	tmp_win->space_taken_left_buttons = 0;
+	tmp_win->space_taken_right_buttons = 0;
+	for (i = 0; i < TITLE_BUTTONS; i++)
+	{
+		Window w ;
+		if( Scr.buttons[i].width <= 0 || IsBtnDisabled(tmp_win, i ) )
+			continue;
+		w = create_visual_window (Scr.asv, tmp_win->frame, -999, -999,
+		  						  Scr.buttons[i].width, Scr.buttons[i].height,
+								  0, InputOutput, valuemask, &attributes);
+		XSaveContext (dpy, w, ASContext, (caddr_t) tmp_win);
+
+		if (IsLeftButton(i))
+		{
+			tmp_win->left_w[i] = w ;
+			tmp_win->nr_left_buttons++;
+			tmp_win->space_taken_left_buttons +=
+				Scr.buttons[i].width + Scr.TitleButtonSpacing;
+		}else
+		{
+			int rb = RightButtonIdx(i);
+			tmp_win->right_w[rb] = w ;
+			tmp_win->nr_right_buttons++;
+			tmp_win->space_taken_right_buttons +=
+				Scr.buttons[i].width + Scr.TitleButtonSpacing;
+		}
+		create_titlebutton_balloon (tmp_win, i);
+	}
+
+	/* if left buttons exist, remove one extraneous space so title is shown correctly */
+	if (tmp_win->space_taken_left_buttons)
+		tmp_win->space_taken_left_buttons -= Scr.TitleButtonSpacing;
+	/* if right buttons exist, remove one extraneous space so title is shown correctly */
+	if (tmp_win->space_taken_right_buttons)
+		tmp_win->space_taken_right_buttons -= Scr.TitleButtonSpacing;
+
+	/* add borders if Scr.TitleButtonStyle == 0 */
+	if (!Scr.TitleButtonStyle)
+	{
+		tmp_win->space_taken_left_buttons += 6;
+		tmp_win->space_taken_right_buttons += 6;
+	}
+
+	return True;
+}
+
+
+#endif
 

@@ -659,82 +659,9 @@ Iconify (ASWindow * tmp_win)
 		if ((t == tmp_win) ||
 		    (get_flags(t->hints->flags, AS_Transient) && t->hints->transient_for == tmp_win->w))
 		{
-			/*
-			 * Prevent the receipt of an UnmapNotify, since that would
-			 * cause a transition to the Withdrawn state.
-			 */
-			t->flags &= ~MAPPED;
-			XSelectInput (dpy, t->w, eventMask & ~StructureNotifyMask);
-			XUnmapWindow (dpy, t->w);
-			XSelectInput (dpy, t->w, eventMask);
-			XUnmapWindow (dpy, t->frame);
-			t->DeIconifyDesk = ASWIN_DESK(t);
-			if (t->icon_title_w != None)
-				XUnmapWindow (dpy, t->icon_title_w);
-			if (t->icon_pixmap_w)
-				XUnmapWindow (dpy, t->icon_pixmap_w);
-
-			SetMapStateProp (t, IconicState);
-			SetBorder (t, False, False, False, None);
-			if (t != tmp_win)
-			{
-				t->flags |= ICONIFIED | ICON_UNMAPPED;
-
-				Broadcast (M_ICONIFY, 7, t->w, t->frame,
-						   (unsigned long)t, -10000, -10000, t->icon_p_width, t->icon_p_height);
-				BroadcastConfig (M_CONFIGURE_WINDOW, t);
-			}
+			iconify_window( t, True );
 		}
-	}
-
-	if (tmp_win->icon_pixmap_w == None && tmp_win->icon_title_w == None)
-		CreateIconWindow (tmp_win);
-
-	tmp_win->flags |= ICONIFIED;
-	tmp_win->flags &= ~ICON_UNMAPPED;
-	AutoPlace (tmp_win);
-
-	XFlush (dpy);
-
-	/* handle any redraw events that the unmap may have caused */
-	while (XPending (dpy))
-	{
-		AS_XNextEvent (dpy, &Event);
-		DispatchEvent ();
-	}
-
-	Broadcast (M_ICONIFY, 7, tmp_win->w, tmp_win->frame,
-			   (unsigned long)tmp_win,
-			   tmp_win->icon_p_x, tmp_win->icon_p_y, tmp_win->icon_p_width, tmp_win->icon_p_height);
-	BroadcastConfig (M_CONFIGURE_WINDOW, tmp_win);
-
-/* twice else Animate causes bad redraws */
-
-	XFlush (dpy);
-
-	LowerWindow (tmp_win);
-	if (ASWIN_DESK(tmp_win) == Scr.CurrentDesk)
-	{
-		if (tmp_win->icon_pixmap_w != None)
-			XMapWindow (dpy, tmp_win->icon_pixmap_w);
-		if (tmp_win->icon_title_w != None)
-			XMapWindow (dpy, tmp_win->icon_title_w);
-	}
-
-	if ((Scr.flags & ClickToFocus) || (Scr.flags & SloppyFocus))
-	{
-		if ((tmp_win) && (tmp_win == Scr.Focus))
-		{
-			if (Scr.PreviousFocus == Scr.Focus)
-				Scr.PreviousFocus = NULL;
-			if ((Scr.flags & ClickToFocus) && (tmp_win->next))
-				SetFocus (tmp_win->next->w, tmp_win->next, False);
-			else
-			{
-				SetFocus (Scr.NoFocusWin, NULL, False);
-			}
-		}
-	}
+	}		
 }
 
 /****************************************************************************
