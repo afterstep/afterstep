@@ -247,7 +247,10 @@ AddWindow (Window w)
 	/* add the window into the afterstep list */
     enlist_aswindow( tmp_win );
     redecorate_window  ( tmp_win, False );
-    on_window_title_changed ( tmp_win, False );
+	if( tmp_win->tbar )
+	    on_window_title_changed ( tmp_win, False );
+	else 
+		SetShape( tmp_win, 0 );
 
     if( pending_placement )
     {
