@@ -64,6 +64,8 @@ ASWindowData *fetch_window_by_id( Window w );
 ASWindowData *add_window_data( ASWindowData *wd );
 WindowPacketResult handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pdata);
 
+void iterate_window_data( iter_list_data_handler iter_func, void *aux_data);
+
 void window_data_cleanup();
 
 

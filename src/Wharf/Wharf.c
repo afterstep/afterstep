@@ -182,6 +182,7 @@ main (int argc, char **argv)
                     M_END_WINDOWLIST |
                     WINDOW_CONFIG_MASK |
                     WINDOW_NAME_MASK);
+    balloon_init (False);
 
     Config = CreateWharfConfig ();
 
@@ -314,6 +315,15 @@ CheckConfigSanity()
 
     show_progress( "printing wharf config : ");
     PrintWharfConfig(Config);
+
+    #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    Print_balloonConfig ( Config->balloon_conf );
+#endif
+    balloon_config2look( &(Scr.Look), Config->balloon_conf );
+    LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
+                    Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
+    set_balloon_look( Scr.Look.balloon_look );
+
 }
 
 void
@@ -381,6 +391,11 @@ SHOW_CHECKPOINT;
 
     if( config->root_folder )
         merge_wharf_folders( &(Config->root_folder), &(config->root_folder) );
+
+    if( Config->balloon_conf )
+        Destroy_balloonConfig( Config->balloon_conf );
+    Config->balloon_conf = config->balloon_conf ;
+    config->balloon_conf = NULL ;
 
     if (config->style_defs)
         ProcessMyStyleDefinitions (&(config->style_defs));
@@ -527,8 +542,6 @@ DispatchEvent (ASEvent * event)
     }
 
     event->client = NULL ;
-    balloon_handle_event (&(event->x));
-
     switch (event->x.type)
     {
 	    case ConfigureNotify:
@@ -545,6 +558,17 @@ DispatchEvent (ASEvent * event)
             release_pressure();
             break;
         case MotionNotify :
+            break ;
+        case EnterNotify :
+        case LeaveNotify :
+            {
+                ASMagic *obj = fetch_object( event->w ) ;
+                if( obj != NULL && obj->magic == MAGIC_WHARF_BUTTON )
+                {
+                    ASWharfButton *aswb = (ASWharfButton*)obj;
+                    on_astbar_pointer_action( aswb->bar, 0, (event->x.type==LeaveNotify));
+                }
+            }
             break ;
 	    case ClientMessage:
             {
@@ -672,6 +696,8 @@ build_wharf_button_tbar(WharfButton *wb)
 
     if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
         add_astbar_label( bar, label_col, label_row, label_flip, label_align, wb->title );
+
+    set_astbar_balloon( bar, 0, wb->title );
 
     set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
     if( !get_flags( Config->flags, WHARF_NO_BORDER ) )

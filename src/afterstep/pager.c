@@ -452,7 +452,8 @@ load_myback_image( int desk, MyBackground *back )
     return im;
 }
 
-void release_old_background( int desk )
+void
+release_old_background( int desk, Bool forget )
 {
     MyBackground *back = mylook_get_desk_back( &(Scr.Look), desk );
     ASImage *im = NULL ;
@@ -463,22 +464,35 @@ void release_old_background( int desk )
 
     imname = make_myback_image_name( &(Scr.Look), back->name );
     im = query_asimage( Scr.image_manager, imname );
+    LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", imname, im );
     free( imname );
 
     if( im == NULL && back->type == MB_BackImage )
     {
         if( back->data && back->data[0] )
+        {
             im = query_asimage( Scr.image_manager, back->data );
+            LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", back->data, im );
+        }
         if( im == NULL )
         {
             const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND);
             if( const_configfile != NULL )
+            {
                 im = query_asimage( Scr.image_manager, const_configfile );
+                LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", const_configfile, im );
+            }
         }
     }
 
-    if( im != NULL && im->width*im->height >= Scr.Look.KillBackgroundThreshold )
-        safe_asimage_destroy( im );
+    if( im != NULL )
+    {
+        if( forget )
+        {
+            while( safe_asimage_destroy( im ) >= 0 );
+        }else if( im->width*im->height >= Scr.Look.KillBackgroundThreshold )
+            safe_asimage_destroy( im );
+    }
 }
 
 ASImage*
@@ -490,10 +504,15 @@ make_desktop_image( int desk, MyBackground *new_back )
     {
         if( (new_im = fetch_asimage( Scr.image_manager, new_imname )) == NULL )
         {
+            LOCAL_DEBUG_OUT( "fetch_asimage could not find the back \"%s\" - loading ", new_imname );
             if( (new_im = load_myback_image( desk, new_back )) != NULL )
                 if( new_im->name == NULL )
                     store_asimage( Scr.image_manager, new_im, new_imname );
+        }else
+        {
+            LOCAL_DEBUG_OUT( "fetch_asimage returned %p", new_im );
         }
+
     }if( new_back->type == MB_BackMyStyle )
     {
         MyStyle *style = mystyle_find_or_default( new_back->data );
@@ -547,7 +566,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         desk != old_desk ) /* if desks are the same then we are reloading current background !!! */
         return;
 
-    release_old_background( old_desk );
+    release_old_background( old_desk, (desk==old_desk) );
 
     if( Scr.RootBackground == NULL )
         Scr.RootBackground = safecalloc( 1, sizeof(ASBackgroundHandler));

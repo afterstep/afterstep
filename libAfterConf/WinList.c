@@ -43,12 +43,14 @@ TermDef       WinListTerms[] = {
     {0, "MinColWidth", 11, TT_INTEGER, WINLIST_MinColWidth_ID, NULL},
     {0, "UseName", 7, TT_INTEGER, WINLIST_UseName_ID, NULL},
     {0, "Justify", 7, TT_TEXT, WINLIST_Justify_ID, NULL},
+    {0, "Bevel", 5, TT_FLAG, WINLIST_Bevel_ID, &BevelSyntax},
     {TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL},
     {0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL},
     {0, "FocusedStyle", 12, TT_TEXT, WINLIST_FocusedStyle_ID, NULL},
     {0, "StickyStyle", 11, TT_TEXT, WINLIST_StickyStyle_ID, NULL},
     {0, "FillRowsFirst", 13, TT_FLAG, WINLIST_FillRowsFirst_ID, NULL},
     {0, "UseSkipList", 11, TT_FLAG, WINLIST_UseSkipList_ID, NULL},
+    {0, "ShapeToContents", 15, TT_FLAG, WINLIST_ShapeToContents_ID, NULL},
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 
@@ -76,7 +78,8 @@ CreateWinListConfig ()
 {
 	WinListConfig *config = (WinListConfig *) safecalloc (1, sizeof (WinListConfig));
 
-	config->gravity = NorthWestGravity;
+    init_asgeometry (&(config->geometry));
+    config->gravity = NorthWestGravity;
 	config->max_rows = 1;
 	config->show_name_type = ASN_Name;
 	config->name_aligment = ASA_Left;
@@ -122,7 +125,8 @@ PrintWinListConfig (WinListConfig * config)
 	fprintf (stderr, "WinListConfig.UseSkipList = %s;\n",
 			 get_flags (config->flags, WINLIST_UseSkipList) ? "True" : "False");
 	fprintf (stderr, "WinListConfig.set_flags = 0x%lX;\n", config->set_flags);
-	fprintf (stderr, "WinListConfig.geometry = %+d%+d;\n", config->anchor_x, config->anchor_y);
+    fprintf (stderr, "WinListConfig.geometry.flags = 0x%X;\n", config->geometry.flags);
+    fprintf (stderr, "WinListConfig.geometry = %+d%+d;\n", config->geometry.x, config->geometry.x);
 	fprintf (stderr, "WinListConfig.gravity = %d;\n", config->gravity);
 	fprintf (stderr, "WinListConfig.MinSize = %dx%d;\n", config->min_width, config->min_height);
 	fprintf (stderr, "WinListConfig.MaxSize = %dx%d;\n", config->max_width, config->max_height);
@@ -182,154 +186,143 @@ ParseWinListOptions (const char *filename, char *myname)
 			continue;
 
 		if (pCurr->term->type == TT_FLAG)
-			switch (pCurr->term->id)
-			{
-			 case WINLIST_FillRowsFirst_ID:
-				 SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_FillRowsFirst);
-				 break;
-			 case WINLIST_UseSkipList_ID:
-				 SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_UseSkipList);
-				 break;
-			 case WINLIST_UseIconNames_ID:
-				 if (!get_flags (config->set_flags, WINLIST_UseName))
-				 {
-					 set_flags (config->set_flags, WINLIST_UseName);
-					 config->show_name_type = ASN_IconName;
-				 }
-				 break;
-		} else
+        {
+            switch (pCurr->term->id)
+            {
+                case WINLIST_FillRowsFirst_ID:
+                    SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_FillRowsFirst);
+                    break;
+                case WINLIST_UseSkipList_ID:
+                    SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_UseSkipList);
+                    break;
+                case WINLIST_UseIconNames_ID:
+                    if (!get_flags (config->set_flags, WINLIST_UseName))
+                    {
+                        set_flags (config->set_flags, WINLIST_UseName);
+                        config->show_name_type = ASN_IconName;
+                    }
+                    break;
+                case WINLIST_Bevel_ID :
+                    set_flags( config->set_flags, WINLIST_Bevel );
+                    config->bevel = ParseBevelOptions( pCurr->sub );
+                    break ;
+                case WINLIST_ShapeToContents_ID:
+                    SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_ShapeToContents);
+                    break;
+            }
+        }else
 		{
 			if (!ReadConfigItem (&item, pCurr))
 				continue;
 
 			switch (pCurr->term->id)
 			{
-			 case WINLIST_Geometry_ID:
-				 set_flags (config->set_flags, WINLIST_Geometry);
-				 if (get_flags (item.data.geometry.flags, XValue))
-					 config->anchor_x = item.data.geometry.x;
-				 else
-					 config->anchor_x = 0;
-				 if (get_flags (item.data.geometry.flags, YValue))
-					 config->anchor_y = item.data.geometry.y;
-				 else
-					 config->anchor_y = 0;
-				 if (get_flags (item.data.geometry.flags, XNegative))
-				 {
-					 if (get_flags (item.data.geometry.flags, YNegative))
-						 config->gravity = SouthEastGravity;
-					 else
-						 config->gravity = NorthEastGravity;
-				 } else if (get_flags (item.data.geometry.flags, YNegative))
-					 config->gravity = SouthWestGravity;
-				 else
-					 config->gravity = NorthWestGravity;
+                case WINLIST_Geometry_ID:
+                    set_flags (config->set_flags, WINLIST_Geometry);
+                    config->geometry = item.data.geometry ;
+                    break;
+                case WINLIST_MinSize_ID:
+                    set_flags (config->set_flags, WINLIST_MinSize);
+                    if (get_flags (item.data.geometry.flags, WidthValue))
+                        config->min_width = item.data.geometry.width;
+                    else
+                        config->min_width = 0;
+                    if (get_flags (item.data.geometry.flags, HeightValue))
+                        config->min_height = item.data.geometry.height;
+                    else
+                        config->min_height = 0;
+                    break;
+                case WINLIST_MaxWidth_ID:
+                    set_flags (config->set_flags, WINLIST_MaxSize);
+                    config->max_width = item.data.integer;
+                    break;
+                case WINLIST_MaxSize_ID:
+                    set_flags (config->set_flags, WINLIST_MaxSize);
+                    if (get_flags (item.data.geometry.flags, WidthValue))
+                        config->max_width = item.data.geometry.width;
+                    else
+                        config->max_width = 0;
+                    if (get_flags (item.data.geometry.flags, HeightValue))
+                        config->max_height = item.data.geometry.height;
+                    else
+                        config->max_height = 0;
+                    break;
+                case WINLIST_MaxRows_ID:
+                    set_flags (config->set_flags, WINLIST_MaxRows);
+                    config->max_rows = item.data.integer;
+                    break;
+                case WINLIST_MaxColumns_ID:
+                    set_flags (config->set_flags, WINLIST_MaxColumns);
+                    config->max_columns = item.data.integer;
+                    break;
+                case WINLIST_MinColWidth_ID:
+                    set_flags (config->set_flags, WINLIST_MinColWidth);
+                    config->min_col_width = item.data.integer;
+                    break;
+                case WINLIST_MaxColWidth_ID:
+                    set_flags (config->set_flags, WINLIST_MaxColWidth);
+                    config->max_col_width = item.data.integer;
+                    break;
+                case WINLIST_UseName_ID:
+                    set_flags (config->set_flags, WINLIST_UseName);
+                    config->show_name_type = item.data.integer % ASN_NameTypes;
+                    break;
+                case WINLIST_Justify_ID:
+                    set_flags (config->set_flags, WINLIST_Justify);
+                    config->name_aligment = item.data.integer % ASA_AligmentTypes;
+                    break;
+                case WINLIST_Action_ID:
+                    {
+                        char         *ptr = item.data.string;
+                        int           action_no = 0, i;
 
-				 break;
-			 case WINLIST_MinSize_ID:
-				 set_flags (config->set_flags, WINLIST_MinSize);
-				 if (get_flags (item.data.geometry.flags, WidthValue))
-					 config->min_width = item.data.geometry.width;
-				 else
-					 config->min_width = 0;
-				 if (get_flags (item.data.geometry.flags, HeightValue))
-					 config->min_height = item.data.geometry.height;
-				 else
-					 config->min_height = 0;
-				 break;
-			 case WINLIST_MaxWidth_ID:
-				 set_flags (config->set_flags, WINLIST_MaxSize);
-				 config->max_width = item.data.integer;
-				 break;
-			 case WINLIST_MaxSize_ID:
-				 set_flags (config->set_flags, WINLIST_MaxSize);
-				 if (get_flags (item.data.geometry.flags, WidthValue))
-					 config->max_width = item.data.geometry.width;
-				 else
-					 config->max_width = 0;
-				 if (get_flags (item.data.geometry.flags, HeightValue))
-					 config->max_height = item.data.geometry.height;
-				 else
-					 config->max_height = 0;
-				 break;
-			 case WINLIST_MaxRows_ID:
-				 set_flags (config->set_flags, WINLIST_MaxRows);
-				 config->max_rows = item.data.integer;
-				 break;
-			 case WINLIST_MaxColumns_ID:
-				 set_flags (config->set_flags, WINLIST_MaxColumns);
-				 config->max_columns = item.data.integer;
-				 break;
-			 case WINLIST_MinColWidth_ID:
-				 set_flags (config->set_flags, WINLIST_MinColWidth);
-				 config->min_col_width = item.data.integer;
-				 break;
-			 case WINLIST_MaxColWidth_ID:
-				 set_flags (config->set_flags, WINLIST_MaxColWidth);
-				 config->max_col_width = item.data.integer;
-				 break;
-			 case WINLIST_UseName_ID:
-				 set_flags (config->set_flags, WINLIST_UseName);
-				 config->show_name_type = item.data.integer % ASN_NameTypes;
-				 break;
-			 case WINLIST_Justify_ID:
-				 set_flags (config->set_flags, WINLIST_Justify);
-				 config->name_aligment = item.data.integer % ASA_AligmentTypes;
-				 break;
-			 case WINLIST_Action_ID:
-				 {
-					 char         *ptr = item.data.string;
-					 int           action_no = 0, i;
-
-					 if (mystrncasecmp (ptr, "Click", 5) == 0)
-						 ptr += 5;
-					 if (isdigit (ptr[0]))
-					 {
-						 action_no = atoi (ptr);
-						 if (action_no <= 0)
-							 action_no = 1;
-						 --action_no;
-						 action_no %= MAX_MOUSE_BUTTONS;
-						 i = 0;
-						 while (!isspace (ptr[i]) && ptr[i])
-							 ++i;
-						 while (isspace (ptr[i]) && ptr[i])
-							 ++i;
-						 ptr += i;
-					 }
-					 if (*ptr)
-					 {
-						 ptr = mystrdup (ptr);
-						 REPLACE_STRING (config->mouse_actions[action_no], ptr);
-					 }
-					 item.ok_to_free = 1;
-				 }
-				 break;
-			 case WINLIST_UnfocusedStyle_ID:
-				 REPLACE_STRING (config->unfocused_style, item.data.string);
-				 break;
-			 case WINLIST_FocusedStyle_ID:
-				 REPLACE_STRING (config->focused_style, item.data.string);
-				 break;
-			 case WINLIST_StickyStyle_ID:
-				 REPLACE_STRING (config->sticky_style, item.data.string);
-				 break;
-			 case MYSTYLE_START_ID:
-				 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
-				 item.ok_to_free = 1;
-				 break;
-			 case WINLIST_Orientation_ID:
-				 if (mystrncasecmp (item.data.string, "across", 6) == 0)
-					 SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_FillRowsFirst);
-				 item.ok_to_free = 1;
-				 break;
-			 default:
-				 item.ok_to_free = 1;
-
+                        if (mystrncasecmp (ptr, "Click", 5) == 0)
+                            ptr += 5;
+                        if (isdigit (ptr[0]))
+                        {
+                            action_no = atoi (ptr);
+                            if (action_no <= 0)
+                                action_no = 1;
+                            --action_no;
+                            action_no %= MAX_MOUSE_BUTTONS;
+                            i = 0;
+                            while (!isspace (ptr[i]) && ptr[i])
+                                ++i;
+                            while (isspace (ptr[i]) && ptr[i])
+                                ++i;
+                            ptr += i;
+                        }
+                        if (*ptr)
+                        {
+                            ptr = mystrdup (ptr);
+                            REPLACE_STRING (config->mouse_actions[action_no], ptr);
+                        }
+                        item.ok_to_free = 1;
+                    }
+                    break;
+                case WINLIST_UnfocusedStyle_ID:
+                    REPLACE_STRING (config->unfocused_style, item.data.string);
+                    break;
+                case WINLIST_FocusedStyle_ID:
+                    REPLACE_STRING (config->focused_style, item.data.string);
+                    break;
+                case WINLIST_StickyStyle_ID:
+                    REPLACE_STRING (config->sticky_style, item.data.string);
+                    break;
+                case MYSTYLE_START_ID:
+                    styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
+                    item.ok_to_free = 1;
+                    break;
+                case WINLIST_Orientation_ID:
+                    if (mystrncasecmp (item.data.string, "across", 6) == 0)
+                        SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_FillRowsFirst);
+                    item.ok_to_free = 1;
+                    break;
+                default:
+                    item.ok_to_free = 1;
 			}
 		}
 	}
-
 	ReadConfigItem (&item, NULL);
 	DestroyConfig (ConfigReader);
 	DestroyFreeStorage (&Storage);

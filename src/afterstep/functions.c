@@ -832,7 +832,6 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
     free (realfilename);
     XUngrabPointer (dpy, CurrentTime);
     XSync (dpy, 0);
-
 }
 
 void change_config_func_handler( FunctionData *data, ASEvent *event, int module )

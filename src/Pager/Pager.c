@@ -374,8 +374,8 @@ CheckConfigSanity()
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {
-        static char *window_style_names[BACK_STYLES] ={"*%sFWindowStyle", "*%sSWindowStyle", "*%sUWindowStyle" };
-        static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","sticky_window_style","unfocused_window_style"};
+        static char *window_style_names[BACK_STYLES] ={"*%sFWindowStyle", "*%sSWindowStyle", "*%sUWindowStyle", NULL };
+        static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","sticky_window_style","unfocused_window_style", NULL};
 
         sprintf( buf, window_style_names[i], MyName );
         if( (Scr.Look.MSWindow[i] = mystyle_find( buf )) == NULL )
@@ -474,7 +474,7 @@ GetOptions (const char *filename)
     if( get_flags(config->set_flags, PAGER_SET_COLUMNS) )
         Config->columns = config->columns;
 
-    config->gravity = NorthWestGravity ;
+    Config->gravity = NorthWestGravity ;
     if( get_flags( config->set_flags, PAGER_SET_GEOMETRY ) )
         merge_geometry(&(config->geometry), &(Config->geometry) );
 
