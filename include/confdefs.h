@@ -156,7 +156,8 @@ extern char *pixmapPath;
 #define SHOW_SELECTION          (1<<9)
 #define FAST_STARTUP			(1<<10)
 #define SET_ROOT_ON_STARTUP		(1<<11)
-#define PAGER_FLAGS_MAX_SHIFT 	11
+#define VERTICAL_LABEL          (1<<12)
+#define PAGER_FLAGS_MAX_SHIFT   12
 #define PAGER_FLAGS_DEFAULT	(USE_LABEL|REDRAW_BG|PAGE_SEPARATOR|SHOW_SELECTION)
 /* set/unset flags : */
 #define PAGER_SET_GEOMETRY  		(1<<16)
@@ -201,6 +202,7 @@ extern char *pixmapPath;
 #define PAGER_DECOR_BORDER_COLOR_ID	(PAGER_ID_START+36)
 #define PAGER_DECOR_LABEL_BELOW_ID	(PAGER_ID_START+37)
 #define PAGER_DECOR_HIDE_INACTIVE_ID 	(PAGER_ID_START+38)
+#define PAGER_DECOR_VERTICAL_LABEL_ID   (PAGER_ID_START+39)
 #define PAGER_ID_END		(PAGER_ID_START+50)
 /* config data structure */
 

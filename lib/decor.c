@@ -330,6 +330,12 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 }
 
 Bool
+is_canvas_needs_redraw( ASCanvas *pc )
+{
+    return pc?get_flags (pc->state, CANVAS_DIRTY):False;
+}
+
+Bool
 is_canvas_dirty( ASCanvas *pc )
 {
     return pc?get_flags (pc->state, CANVAS_DIRTY|CANVAS_OUT_OF_SYNC):False;
@@ -627,6 +633,28 @@ check_btn_point( ASTile *tile, int x, int y )
     }
     return C_NO_CONTEXT;
 }
+
+Bool
+set_tbtn_pressed( ASBtnBlock *bb, int context )
+{
+    register int i = bb->buttons_num ;
+    Bool changed = False ;
+    while( --i >= 0 )
+    {
+        register ASTBtnData *btn = &(bb->buttons[i]) ;
+        ASImage *new_current ;
+        new_current = (context&(btn->context))?btn->pressed:btn->unpressed ;
+        if( new_current == NULL )
+            new_current = (btn->pressed==NULL)?btn->unpressed:btn->pressed ;
+        if( new_current != btn->current )
+        {
+            changed = True;
+            btn->current = new_current;
+        }
+    }
+    return changed;
+}
+
 
 static int
 set_asbtn_block_layer( ASTile* tile, ASImageLayer *layer, unsigned int state )
@@ -1315,12 +1343,35 @@ set_astbar_pressed (ASTBarData * tbar, ASCanvas * pc, Bool pressed)
 			set_flags (tbar->state, BAR_STATE_PRESSED);
 		else
 			clear_flags (tbar->state, BAR_STATE_PRESSED);
-        if( old_pressed != pressed && pc != NULL )
+
+
+        if( old_pressed != pressed )
+            set_flags(tbar->state, BAR_FLAGS_REND_PENDING);
+        if( get_flags(tbar->state, BAR_FLAGS_REND_PENDING) && pc != NULL )
             render_astbar( tbar, pc );
         return ((pressed?1:0)!=old_pressed);
 	}
 	return False;
 }
+
+Bool
+set_astbar_btn_pressed (ASTBarData * tbar, int context)
+{
+	if (tbar)
+	{
+        int i ;
+        Bool changed = False ;
+        for( i = 0 ; i < tbar->tiles_num ; ++i )
+            if( ASTileType(tbar->tiles[i]) == AS_TileBtnBlock )
+                if( set_tbtn_pressed( &(tbar->tiles[i].data.bblock), context ) )
+                    changed = True;
+        if( changed )
+            set_flags(tbar->state, BAR_FLAGS_REND_PENDING);
+        return changed;
+	}
+	return False;
+}
+
 
 Bool
 update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc)

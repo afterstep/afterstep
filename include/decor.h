@@ -129,6 +129,7 @@ typedef struct ASTBarData {
 
 #define BAR_FLAGS_REND_PENDING  (0x01<<16)     /* has been moved, resized or otherwise changed and needs rerendering */
 #define DoesBarNeedsRendering(pb) get_flags((pb)->state, BAR_FLAGS_REND_PENDING )
+#define SetBarNeedsRendering(pb)  set_flags((pb)->state, BAR_FLAGS_REND_PENDING )
 #define BAR_FLAGS_VERTICAL      (0x01<<17)     /* vertical label */
 #define BAR_FLAGS_IMAGE_BACK    (0x01<<18)     /* back represents an icon instead of  */
 
@@ -211,7 +212,7 @@ extern int    _as_frame_corner_xref[FRAME_SIDES+1];
 #define RightCorner(side)   _as_frame_corner_xref[(side)+1]
 
 ASCanvas* create_ascanvas(Window w);
-ASCanvas*create_ascanvas_container (Window w);
+ASCanvas* create_ascanvas_container (Window w);
 
 void destroy_ascanvas( ASCanvas **pcanvas );
 #define CANVAS_X_CHANGED            (0x01<<0)
@@ -239,6 +240,7 @@ void move_canvas (ASCanvas * pc, int x, int y);
 void moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height);
 void map_canvas_window( ASCanvas *pc, Bool raised );
 void unmap_canvas_window( ASCanvas *pc );
+Bool is_canvas_needs_redraw( ASCanvas *pc );
 Bool is_canvas_dirty( ASCanvas *pc );
 
 
@@ -280,6 +282,8 @@ Bool change_astbar_first_label (ASTBarData * tbar, const char *label);
 Bool move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y );
 Bool set_astbar_focused( ASTBarData *tbar, ASCanvas *pc, Bool focused );
 Bool set_astbar_pressed( ASTBarData *tbar, ASCanvas *pc, Bool pressed );
+Bool set_astbar_btn_pressed( ASTBarData * tbar, int context );
+
 Bool update_astbar_transparency( ASTBarData *tbar, ASCanvas *pc );
 int  check_astbar_point( ASTBarData *tbar, int root_x, int root_y );
 

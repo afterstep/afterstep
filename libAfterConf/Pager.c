@@ -44,6 +44,7 @@ TermDef PagerDecorationTerms[] =
   {TF_NO_MYNAME_PREPENDING, "DeskBorderColor", 15, TT_COLOR, PAGER_DECOR_BORDER_COLOR_ID, NULL, NULL},
   {TF_NO_MYNAME_PREPENDING, "LabelBelowDesk", 14, TT_FLAG, PAGER_DECOR_LABEL_BELOW_ID, NULL, NULL},
   {TF_NO_MYNAME_PREPENDING, "HideInactiveLabels", 18, TT_FLAG, PAGER_DECOR_HIDE_INACTIVE_ID, NULL, NULL},
+  {TF_NO_MYNAME_PREPENDING, "VerticalLabel", 13, TT_FLAG, PAGER_DECOR_VERTICAL_LABEL_ID, NULL, NULL},
   {0, NULL, 0, 0, 0}
 };
 
@@ -195,6 +196,10 @@ ReadDecorations (PagerConfig * config, FreeStorageElem * pCurr)
                 case PAGER_DECOR_HIDE_INACTIVE_ID:
                     config->flags |= HIDE_INACTIVE_LABEL;
                     set_flags( config->set_flags, HIDE_INACTIVE_LABEL );
+                    break;
+                case PAGER_DECOR_VERTICAL_LABEL_ID:
+                    config->flags |= VERTICAL_LABEL;
+                    set_flags( config->set_flags, VERTICAL_LABEL );
                     break;
             }
         }else

@@ -1380,6 +1380,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s)", asw, context2text(pressed_context));
     {
         register int i = FRAME_PARTS;
         /* Titlebar */
+        set_astbar_btn_pressed (asw->tbar, pressed_context);  /* must go before next call to properly redraw :  */
         set_astbar_pressed( asw->tbar, asw->frame_sides[od->tbar_side], pressed_context&C_TITLE );
         /* frame decor : */
         for( i = FRAME_PARTS; --i >= 0; )

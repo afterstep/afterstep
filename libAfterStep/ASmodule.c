@@ -17,7 +17,10 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+#define LOCAL_DEBUG
 
+#include "../configure.h"
+#include "../include/asapp.h"
 #include <signal.h>
 
 #include <unistd.h>
@@ -26,8 +29,6 @@
 #include <sys/un.h>
 #include <sys/time.h>
 
-#include "../configure.h"
-#include "../include/asapp.h"
 #include "../libAfterImage/afterimage.h"
 #include "../include/screen.h"
 #include "../include/module.h"
@@ -171,7 +172,7 @@ void
 SendInfo (int *fd, char *message, unsigned long window)
 {
 	size_t        w;
-
+LOCAL_DEBUG_OUT( "message to afterstep:\"%s\"", message );
 	if (message != NULL)
 	{
 		write (fd[0], &window, sizeof (unsigned long));

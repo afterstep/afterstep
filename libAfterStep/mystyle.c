@@ -545,13 +545,19 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
                 }
              }
              if( Scr.RootImage == NULL )
-				Scr.RootImage = grab_root_asimage( &Scr );
+             {
+                if( (Scr.RootImage = grab_root_asimage( &Scr )) != NULL )
+                {
+                    root_w = Scr.RootImage->width;
+                    root_h = Scr.RootImage->height;
+                }
+             }
 		 } else
 		 {
 			 root_w = Scr.RootImage->width;
 			 root_h = Scr.RootImage->height;
 		 }
-		 LOCAL_DEBUG_OUT ("RootImage = %p", Scr.RootImage);
+         LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", Scr.RootImage, Scr.RootClipArea.width, Scr.RootClipArea.height, Scr.RootClipArea.x, Scr.RootClipArea.y, root_w, root_h);
 
 		if (Scr.RootImage == NULL)
 		{  /* simply creating solid color image */
