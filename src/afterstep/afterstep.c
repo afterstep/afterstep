@@ -257,7 +257,7 @@ SHOW_CHECKPOINT;
     LOCAL_DEBUG_OUT( "printing memory");
     spool_unfreed_mem( "afterstep.allocs.startup", NULL );
 #endif
-    LOCAL_DEBUG_OUT( "entering main loop");
+    LOCAL_DEBUG_OUT( "entering main loop%s","");
 
     HandleEvents ();
 	return (0);
