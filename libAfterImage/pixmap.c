@@ -202,15 +202,10 @@ int
 GetWinPosition (Window w, int *x, int *y)
 {
 #ifndef X_DISPLAY_MISSING
-	Window root, parent, *children;
-	unsigned int nchildren;
+	int bRes = 1;
 	static int rootWidth = 0, rootHeight = 0;
-	XWindowAttributes attr;
 	int my_x, my_y;
-
-	XGetWindowAttributes (dpy, w, &attr);
-	if (attr.map_state != IsViewable)
-  		return 0;
+	Window wdumm;
 
 	if (!x)
   		x = &my_x;
@@ -224,36 +219,21 @@ GetWinPosition (Window w, int *x, int *y)
   		if (!GetRootDimensions (&rootWidth, &rootHeight))
     		return 0;
 
-	while (XQueryTree (dpy, w, &root, &parent, &children, &nchildren))
-    {
-    	int w_x, w_y;
-    	unsigned int w_w, w_h, border_w, w_depth;
-    	if (children)
-			XFree (children);
-    	if (!XGetGeometry (dpy, w, &root,
-			 &w_x, &w_y, &w_w, &w_h, &border_w, &w_depth))
-			break;
-    	(*x) += w_x + border_w;
-    	(*y) += w_y + border_w;
-
-    	if (parent == root)
-		{			/* taking in to consideration virtual desktopping */
-			int bRes = 1;
-			if (*x < 0 || *x >= rootWidth || *y < 0 || *y >= rootHeight)
-	  			bRes = 0;
-			/* don't want to return position outside the screen even if we fail */
-			while (*x < 0)
-	  			*x += rootWidth;
-			while (*y < 0)
-	  			*y += rootHeight;
-			if (*x > rootWidth)
-	  			*x %= rootWidth;
-			if (*y > rootHeight)
-	  			*y %= rootHeight;
-			return bRes;
-		}
-    	w = parent;
-    }
+	
+	XTranslateCoordinates (dpy, w, RootWindow(dpy,DefaultScreen(dpy)), 0, 0, x, y, &wdumm);
+	/* taking in to consideration virtual desktopping */
+	if (*x < 0 || *x >= rootWidth || *y < 0 || *y >= rootHeight)
+		bRes = 0;
+	/* don't want to return position outside the screen even if we fail */
+	while(*x < 0)
+		*x += rootWidth;
+	while (*y < 0)
+		*y += rootHeight;
+	if (*x > rootWidth)
+		*x %= rootWidth;
+	if (*y > rootHeight)
+		*y %= rootHeight;
+	return bRes;
 #endif
 	*x = 0;
 	*y = 0;
