@@ -26,6 +26,8 @@
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 
+/*#define LOCAL_DEBUG*/
+
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
 #include "../include/parse.h"
@@ -61,6 +63,8 @@ mystyle_set_property (Display * dpy, Window w, Atom name, Atom type)
   i = 0;
   for (style = mystyle_first; style != NULL; style = style->next)
     {
+/*	  show_warning( "style \"%s\" set_flags = %X", style->name, style->set_flags );
+ */
       prop[i++] = style->set_flags;
       prop[i++] = XInternAtom (dpy, style->name, False);
       prop[i++] = style->text_style;
@@ -89,6 +93,7 @@ mystyle_set_property (Display * dpy, Window w, Atom name, Atom type)
 	    prop[i++] = style->gradient.color[k];  
 	    prop[i++] = style->gradient.color[k]; /* for compatibility with older version */
 	    prop[i++] = style->gradient.color[k]; /* for compatibility with older version */
+		LOCAL_DEBUG_OUT( "gradient color at offset %f is %X", style->gradient.offset[k], style->gradient.color[k] );
 	    prop[i++] = style->gradient.offset[k] * 0x1000000;
 	  }
       }
@@ -184,6 +189,8 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
       style->tint = prop[i + 14];
  */
       style->gradient.npoints = prop[i + 15];
+/*	  show_warning( "checking if gradient data in style \"%s\": (set flags are : 0x%X)", style->name, style->inherit_flags);
+ */
       if (style->inherit_flags & F_BACKGRADIENT)
 	{
 	  size_t k;
@@ -198,6 +205,7 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
 		      style->gradient.color[k].blue = prop[i + 16 + k * 4 + 2];
 		   */
 	      style->gradient.offset[k] = (double) prop[i + 16 + k * 4 + 3] / 0x1000000;
+		  LOCAL_DEBUG_OUT( "gradient color at offset %f is %X", style->gradient.offset[k], style->gradient.color[k] );
 	    }
 	  style->user_flags |= F_BACKGRADIENT;
 	  style->inherit_flags &= ~F_BACKGRADIENT;

@@ -85,14 +85,20 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 		{
 #ifndef X_DISPLAY_MISSING
 			XColor xcol, xcol_scr ;
-			register const char *ptr = &(color[0]);
+			register char *ptr = (char*)&(color[0]);
+			register int i = 0;
 			/* does not really matter here what screen to use : */
 			if( AS_ASSERT(dpy) )
 				return color ;
-			if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), color, &xcol, &xcol_scr) )
+			while( isalnum((int)ptr[i]) ) ++i;
+			if( ptr[i] != '\0' ) 
+				ptr = mystrndup(&(color[0]), i );
+			
+			if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), ptr, &xcol, &xcol_scr) )
 				*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
-			while( !isspace((int)*ptr) && *ptr != '\0' ) ptr++;
-			return ptr;
+			if( ptr != &(color[0]) ) 
+				free( ptr );
+			return &(color[i]);
 #endif
 		}
 	}

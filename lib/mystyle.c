@@ -1141,6 +1141,8 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 	case F_FORECOLOR:
 	  if( parse_argb_color( style_arg, &(style->colors.fore)) != style_arg )
 		  style->user_flags |= style_func;
+	  else
+		  show_error( "in MyStyle \"%s\": unable to parse Forecolor \"%s\"", style->name, style_arg );
 	  break;
 	case F_BACKCOLOR:
 	  style->texture_type = 0;
@@ -1149,7 +1151,8 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 		  style->relief.fore = GetHilite (style->colors.back);
 		  style->relief.back = GetShadow (style->colors.back);
 		  style->user_flags |= style_func;
-	  }
+	  }else
+		  show_error( "in MyStyle \"%s\": unable to parse Backcolor \"%s\"", style->name, style_arg );
 	  break;
 #ifndef NO_TEXTURE
 	case F_MAXCOLORS:
@@ -1163,7 +1166,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 		ARGB32 color1 = 0, color2 = 0 ;
 		register int i = 0;
 		while( !isspace(ptr[i]) && ptr[i] != '\0' ) ++i;
-		while( isspace(ptr[i]) && ptr[i] != '\0' ) ++i;
+		while( isspace(ptr[i]) ) ++i;
 		if( ptr[i] == '\0' )
 		{
 		    show_error("missing gradient colors: %s", style_arg);
@@ -1171,12 +1174,16 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 		{
 			ptr = &ptr[i] ;
 			ptr1 = (char*)parse_argb_color( ptr, &color1 );
+/*show_warning("in MyStyle \"%s\":c1 = #%X(%s)", style->name, color1, ptr );			*/
 			if( ptr1 != ptr )
 			{
-				ptr = ptr1 ;
-				if( parse_argb_color( ptr, &color1 ) != ptr )
+				int k = 0 ;
+				while( isspace(ptr1[k]) ) ++k;
+				ptr = &ptr1[k] ;
+				if( parse_argb_color( ptr, &color2 ) != ptr )
 				{
 				    ASGradient gradient;
+/*show_warning("in MyStyle \"%s\":c1 = #%X, c2 = #%X", style->name, color1, color2 );*/
 	  				if ((type = mystyle_parse_old_gradient (type, color1, color2, &gradient)) >= 0)
 				    {
 						if (style->user_flags & F_BACKGRADIENT)
@@ -1189,8 +1196,13 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 						style->texture_type = type;
 						style->user_flags |= style_func;
 		    		}
-				}
+					else
+						show_error( "in MyStyle \"%s\":invalid gradient type %d", style->name, type );
+				}else
+					show_error( "in MyStyle \"%s\":can't parse second color \"%s\"", style->name, ptr );
 			}else
+				show_error( "in MyStyle \"%s\":can't parse first color \"%s\"", style->name, ptr );
+			if( !(style->user_flags&style_func) )
 			    show_error("bad gradient: %s", style_arg);
 		}
 	  }
@@ -1245,6 +1257,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 			style->gradient = gradient;
 			style->texture_type = type;
 			style->user_flags |= F_BACKGRADIENT;
+			style_func = F_BACKGRADIENT;
 	    }
 	    else
 	    {
@@ -1322,6 +1335,9 @@ LOCAL_DEBUG_OUT( "MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%X", style-
 	}
     }
   style->set_flags = style->inherit_flags | style->user_flags;
+/*  show_warning( "style \"%s\" set_flags = %X, style_func = %x", style->name, style->set_flags, style_func );
+  show_warning( "text = \"%s\"", str );
+*/
   free (style_arg);
   return done;
 }

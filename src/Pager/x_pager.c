@@ -1296,7 +1296,7 @@ HilightDesk (int i /*Desk */ , int if_texture)
 
       /* let's setup window border/background at this point */
       attr.background_pixmap = GetMyStylePixmap (Pager.Desks[i].title_w, style, desk_w, label_h);
-      attr.background_pixel = style->colors.back;
+      ARGB2PIXEL(Scr.asv, style->colors.back, &(attr.background_pixel));
       if (Pager.Flags & DIFFERENT_BORDER_COLOR)
 		  ARGB2PIXEL(Scr.asv, Look.BorderColor,&attr.border_pixel);
       else
@@ -1359,7 +1359,7 @@ DecorateDesk (long Desk)
   if (attr.background_pixmap == None)
     {
       if (Look.DeskStyles[Desk])
-	attr.background_pixel = Look.DeskStyles[Desk]->colors.back;
+		  ARGB2PIXEL(Scr.asv, Look.DeskStyles[Desk]->colors.back, &(attr.background_pixel));
       else
 	attr.background_pixel = 0;
       mask = CWBorderPixel | CWBackPixel;
@@ -1462,7 +1462,7 @@ GetWinAttributes (PagerWindow * t, XSetWindowAttributes * attributes, unsigned l
     ppos = &pos;
   GetViewPosition (t, ppos);
 
-  if (Look.Styles[type]->texture_type > 0 && Look.Styles[type]->texture_type <= 128)
+  if (Look.Styles[type]->texture_type > 0 && Look.Styles[type]->texture_type <= TEXTURE_PIXMAP)
     attributes->background_pixmap = mystyle_make_pixmap (Look.Styles[type],
 							 ppos->normal_width,
 						 ppos->normal_height, None);
@@ -1470,8 +1470,8 @@ GetWinAttributes (PagerWindow * t, XSetWindowAttributes * attributes, unsigned l
     attributes->background_pixmap = None;
   LOG3 ("\nType %d, Back pixmap %ld", type, attributes->background_pixmap);
 
-  attributes->background_pixel = Look.Styles[type]->colors.back;
-  attributes->border_pixel = Look.Styles[type]->colors.fore;
+  ARGB2PIXEL(Scr.asv,Look.Styles[type]->colors.back, &(attributes->background_pixel));
+  ARGB2PIXEL(Scr.asv,Look.Styles[type]->colors.fore, &(attributes->border_pixel));
 
   if (attributes->background_pixmap)
     *valuemask = (CWBackPixmap | CWBorderPixel);
