@@ -1,28 +1,26 @@
+*WinListGeometry        +0+0
+*WinListMinSize         10000    #will be truncated to thescreen size
+#*WinListMaxSize         400
+*WinListBevel           Right,Bottom
+*WinListAlign           Left,Right,Bottom,Top
+*WinListMaxRows         1
+#*WinListMaxColumns      3
+*WinListFillRowsFirst
+*WinListUseSkipList
 
-#------------------------------------------------------------------------
-# Tasks list
-#
+*WinListUnfocusedStyle  "unfocused_window_style"
+*WinListFocusedStyle  "focused_window_style"
+*WinListStickyStyle  "sticky_window_style"
+
+*WinListUseName 1
 
 *WinListAction Click1 Iconify -1,Focus
 *WinListAction Click2 Shade
 *WinListAction Click3 Iconify
-*WinListUseSkipList
-*WinListUseIconNames
 
-# Geometries, unhidden WinList
-*WinListGeometry +0+0
-# hidden WinList
-*WinListHideGeometry +0+0
-
-*WinListMaxWidth 1024
-# down (vertical winlist) or across (horizontal titlebar) ?
-*WinListOrientation across
-*WinListAutoHide 0
-
-# Balloons
+ # Balloons
 *WinListBalloons
 *WinListBalloonDelay 0
-*WinListBalloonBorderWidth 1
-*WinListBalloonYOffset +1
-*WinListBalloonBorderColor black
+*WinListBalloonYOffset -10
+
 

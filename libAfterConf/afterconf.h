@@ -6,6 +6,7 @@ struct ASFontManager;
 struct SyntaxDef;
 struct MyLook;
 extern struct SyntaxDef      BevelSyntax;
+extern struct SyntaxDef      AlignSyntax;
 extern struct SyntaxDef     *BevelSyntaxPtr;
 
 
@@ -552,7 +553,7 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
  *  *WinListFocusedStyle 	"style"
  *  *WinListStickyStyle 	"style"
  *	*WinListUseName			0|1|2|3   # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
- *	*WinListJustify			l|c|r     # l - Left, c - Center, r - Right
+ *  *WinListAlign           Left,Right,Top,Bottom
  *  *WinListBevel           None,Left,Right,Top, Bottom, NoOutline
  *  *WinListAction          [Click]1|2|3|4|5
  *  *WinListShapeToContents
@@ -577,7 +578,7 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 #define WINLIST_MaxColWidth_ID			(WINLIST_ID_START+7)
 #define WINLIST_MinColWidth_ID			(WINLIST_ID_START+8)
 #define WINLIST_UseName_ID				(WINLIST_ID_START+9)
-#define WINLIST_Justify_ID				(WINLIST_ID_START+10)
+#define WINLIST_Align_ID                (WINLIST_ID_START+10)
 #define WINLIST_Bevel_ID                (WINLIST_ID_START+11)
 #define WINLIST_Action_ID               (WINLIST_ID_START+12)
 #define WINLIST_UnfocusedStyle_ID		(WINLIST_ID_START+13)
@@ -600,8 +601,6 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 
 typedef enum
 { ASN_Name = 0, ASN_IconName, ASN_ResClass, ASN_ResName, ASN_NameTypes }ASNameTypes ;
-typedef enum
-{ ASA_Left = 0, ASA_Center, ASA_Right, ASA_AligmentTypes } ASAligmentTypes;
 
 typedef struct WinListConfig
 {
@@ -615,7 +614,7 @@ typedef struct WinListConfig
 #define WINLIST_MaxColWidth		(0x01<<7)
 #define WINLIST_MinColWidth		(0x01<<8)
 #define WINLIST_UseName			(0x01<<9)
-#define WINLIST_Justify			(0x01<<10)
+#define WINLIST_Align           (0x01<<10)
 #define WINLIST_Bevel           (0x01<<11)
 #define WINLIST_ShapeToContents (0x01<<12)
 
@@ -626,6 +625,7 @@ typedef struct WinListConfig
     ASGeometry geometry ;
     unsigned int min_width, min_height ;
 	unsigned int max_width, max_height ;
+#define MAX_WINLIST_WINDOW_COUNT    512        /* 512 x 4 == 2048 == 1 page in memory */
 	unsigned int max_rows, max_columns ;
 	unsigned int min_col_width, max_col_width ;
 
@@ -634,7 +634,7 @@ typedef struct WinListConfig
 	char *sticky_style ;
 
 	ASNameTypes     show_name_type ; /* 0, 1, 2, 3 */
-	ASAligmentTypes name_aligment ;
+    ASFlagType      name_aligment ;
     ASFlagType      bevel ;
 
 	char *mouse_actions[MAX_MOUSE_BUTTONS];
@@ -1100,6 +1100,7 @@ LookConfig *CreateLookConfig ();
 void DestroyLookConfig (LookConfig * config);
 
 ASFlagType ParseBevelOptions( FreeStorageElem * options );
+ASFlagType ParseAlignOptions( FreeStorageElem * options );
 void bevel_parse(char *text, FILE * fd, char **myname, int *pbevel);
 LookConfig *ParseLookOptions (const char *filename, char *myname);
 struct MyLook *LookConfig2MyLook ( struct LookConfig *config, struct MyLook *look,

@@ -33,16 +33,18 @@
  *
  ****************************************************************************/
 
+extern SyntaxDef AlignSyntax;
 
 TermDef       WinListTerms[] = {
     {0, "Geometry", 8, TT_GEOMETRY, WINLIST_Geometry_ID, NULL},
     {0, "MinSize", 7, TT_GEOMETRY, WINLIST_MinSize_ID, NULL},
     {0, "MaxSize", 7, TT_GEOMETRY, WINLIST_MaxSize_ID, NULL},
+    {0, "MaxRows", 7, TT_INTEGER, WINLIST_MaxRows_ID, NULL},
     {0, "MaxColumns", 10, TT_INTEGER, WINLIST_MaxColumns_ID, NULL},
     {0, "MaxColWidth", 11, TT_INTEGER, WINLIST_MaxColWidth_ID, NULL},
     {0, "MinColWidth", 11, TT_INTEGER, WINLIST_MinColWidth_ID, NULL},
     {0, "UseName", 7, TT_INTEGER, WINLIST_UseName_ID, NULL},
-    {0, "Justify", 7, TT_TEXT, WINLIST_Justify_ID, NULL},
+    {0, "Align", 5, TT_FLAG, WINLIST_Align_ID, &AlignSyntax},
     {0, "Bevel", 5, TT_FLAG, WINLIST_Bevel_ID, &BevelSyntax},
     {TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL},
     {0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL},
@@ -82,7 +84,7 @@ CreateWinListConfig ()
     config->gravity = NorthWestGravity;
 	config->max_rows = 1;
 	config->show_name_type = ASN_Name;
-	config->name_aligment = ASA_Left;
+    config->name_aligment = ALIGN_CENTER;
     config->balloon_conf = NULL;
 
 	return config;
@@ -126,7 +128,7 @@ PrintWinListConfig (WinListConfig * config)
 			 get_flags (config->flags, WINLIST_UseSkipList) ? "True" : "False");
 	fprintf (stderr, "WinListConfig.set_flags = 0x%lX;\n", config->set_flags);
     fprintf (stderr, "WinListConfig.geometry.flags = 0x%X;\n", config->geometry.flags);
-    fprintf (stderr, "WinListConfig.geometry = %+d%+d;\n", config->geometry.x, config->geometry.x);
+    fprintf (stderr, "WinListConfig.geometry = %+d%+d;\n", config->geometry.x, config->geometry.y);
 	fprintf (stderr, "WinListConfig.gravity = %d;\n", config->gravity);
 	fprintf (stderr, "WinListConfig.MinSize = %dx%d;\n", config->min_width, config->min_height);
 	fprintf (stderr, "WinListConfig.MaxSize = %dx%d;\n", config->max_width, config->max_height);
@@ -136,7 +138,8 @@ PrintWinListConfig (WinListConfig * config)
 	fprintf (stderr, "WinListConfig.max_col_width = %d;\n", config->max_col_width);
 
 	fprintf (stderr, "WinListConfig.show_name_type = %d;\n", config->show_name_type);	/* 0, 1, 2, 3 */
-	fprintf (stderr, "WinListConfig.name_aligment = %d;\n", config->name_aligment);
+    fprintf (stderr, "WinListConfig.name_aligment = %lX;\n", config->name_aligment);
+    fprintf (stderr, "WinListConfig.bevel = %lX;\n", config->bevel);
 
 	fprintf (stderr, "WinListConfig.unfocused_style = %p;\n", config->unfocused_style);
 	if (config->unfocused_style)
@@ -202,6 +205,10 @@ ParseWinListOptions (const char *filename, char *myname)
                         config->show_name_type = ASN_IconName;
                     }
                     break;
+                case WINLIST_Align_ID :
+                    set_flags( config->set_flags, WINLIST_Align );
+                    config->name_aligment = ParseAlignOptions( pCurr->sub );
+                    break ;
                 case WINLIST_Bevel_ID :
                     set_flags( config->set_flags, WINLIST_Bevel );
                     config->bevel = ParseBevelOptions( pCurr->sub );
@@ -266,10 +273,6 @@ ParseWinListOptions (const char *filename, char *myname)
                 case WINLIST_UseName_ID:
                     set_flags (config->set_flags, WINLIST_UseName);
                     config->show_name_type = item.data.integer % ASN_NameTypes;
-                    break;
-                case WINLIST_Justify_ID:
-                    set_flags (config->set_flags, WINLIST_Justify);
-                    config->name_aligment = item.data.integer % ASA_AligmentTypes;
                     break;
                 case WINLIST_Action_ID:
                     {

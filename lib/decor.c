@@ -706,6 +706,20 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%ux%u%+d%+d)", canvas, canvas->width, canvas->heigh
     }
 }
 
+void
+set_root_clip_area( ASCanvas *canvas )
+{
+    Scr.RootClipArea.x = canvas->root_x;
+    Scr.RootClipArea.y = canvas->root_y;
+    Scr.RootClipArea.width  = canvas->width;
+    Scr.RootClipArea.height = canvas->height;
+    if( Scr.RootImage )
+    {
+        safe_asimage_destroy( Scr.RootImage );
+        Scr.RootImage = NULL ;
+    }
+}
+
 /********************************************************************/
 /* ASTBtnData :                                                     */
 /********************************************************************/

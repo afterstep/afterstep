@@ -651,17 +651,7 @@ update_main_canvas_config()
 {
     int changes = handle_canvas_config( PagerState.main_canvas );
     if( changes != 0 )
-    {
-        Scr.RootClipArea.x = PagerState.main_canvas->root_x;
-        Scr.RootClipArea.y = PagerState.main_canvas->root_y;
-        Scr.RootClipArea.width  = PagerState.main_canvas->width;
-        Scr.RootClipArea.height = PagerState.main_canvas->height;
-        if( Scr.RootImage )
-        {
-            safe_asimage_destroy( Scr.RootImage );
-            Scr.RootImage = NULL ;
-        }
-    }
+        set_root_clip_area( PagerState.main_canvas );
     return changes;
 }
 
