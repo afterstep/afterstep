@@ -673,6 +673,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         {
             register unsigned int *frame_size = &(asw->status->frame_size[0]) ;
             int step_size = make_shade_animation_step( asw, od );
+			LOCAL_DEBUG_OUT( "setp_size = %d" );
             if( step_size <= 0 )  /* don't moveresize client window while shading !!!! */
             {
                 resize_canvases( asw, od, normal_width, normal_height, frame_size );
@@ -682,18 +683,26 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
                                     frame_size[FR_N],
                                     asw->frame_canvas->width-(frame_size[FR_W]+frame_size[FR_E]),
                                     asw->frame_canvas->height-(frame_size[FR_N]+frame_size[FR_S]));
-            }else if( normal_height != step_size )
-            {
-                sleep_a_millisec(10);
-                /* we get smoother animation if we move decoration ahead of actually
-                 * resizing frame window : */
-                resize_canvases( asw, od, normal_width, step_size, frame_size );
-                *(od->in_width)=normal_width ;
-                *(od->in_height)=step_size ;
-/*LOCAL_DEBUG_OUT( "**SHADE Client(%lx(%s))->(%d>-%d)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->shading_steps, step_size );*/
-                resize_canvas( asw->frame_canvas, *(od->out_width), *(od->out_height));
-                ASSync(False);
-            }
+            }else
+			{ 
+				if( normal_height != step_size )
+            	{
+                	sleep_a_millisec(10);
+                	/* we get smoother animation if we move decoration ahead of actually
+                 	* resizing frame window : */
+                	resize_canvases( asw, od, normal_width, step_size, frame_size );
+                	*(od->in_width)=normal_width ;
+                	*(od->in_height)=step_size ;
+	/*LOCAL_DEBUG_OUT( "**SHADE Client(%lx(%s))->(%d>-%d)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->shading_steps, step_size );*/
+                	resize_canvas( asw->frame_canvas, *(od->out_width), *(od->out_height));
+                	ASSync(False);
+            	}else
+				{  /* probably just the change of the look - titlebar may need to be resized */
+					resize_canvases( asw, od, normal_width, normal_height, frame_size );
+					move_canvas (asw->client_canvas, frame_size[FR_W], frame_size[FR_N]);
+				}
+
+			}
         }else if( get_flags( changes, CANVAS_MOVED ) )
         {
 			LOCAL_DEBUG_OUT( "window is moved but not resized %s", "");
