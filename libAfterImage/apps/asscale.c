@@ -37,7 +37,8 @@ void usage()
 int main(int argc, char* argv[])
 {
 	char *image_file = "rose512.jpg" ;
-	int dummy, to_width, to_height, geom_flags = 0;
+	int dummy, geom_flags = 0;
+	unsigned int to_width, to_height ;
 	ASImage *im ;
 
 	/* see ASView.1 : */
