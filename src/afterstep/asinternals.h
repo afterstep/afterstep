@@ -496,6 +496,16 @@ void InitFeel (struct ASFeel *feel, Bool free_resources);
 #define EVERYTHING_CHANGED      (0xFFFFFFFF)
 
 void LoadASConfig (int thisdesktop, ASFlagType what);
+
+/*************************** cover.c **************************************/
+
+void remove_desktop_cover();
+Window get_desktop_cover_window();
+void restack_desktop_cover();
+void cover_desktop();
+void desktop_cover_cleanup();
+
+
 /*************************** decorations.c ********************************/
 inline ASOrientation* get_orientation_data( ASWindow *asw );
 void grab_aswindow_buttons( ASWindow *asw, Bool focused );

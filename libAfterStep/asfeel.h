@@ -234,6 +234,9 @@ typedef struct ASFeel
 	unsigned int        window_boxes_num ;
 
     unsigned int        recent_submenu_items;
+
+    unsigned int        desk_cover_animation_steps ;
+    unsigned int        desk_cover_animation_type ;
 }
 ASFeel;
 

@@ -1278,6 +1278,7 @@ complete_wm_state_transition( ASWindow *asw, int state )
     if( state == NormalState )
     {
 		LOCAL_DEBUG_OUT("mapping frame subwindows for client %lX, frame canvas = %p", asw->w, asw->frame_canvas );
+        restack_desktop_cover();
         XMapSubwindows(dpy, asw->frame);
         map_canvas_window(asw->frame_canvas, False);
     }else if( state == IconicState )

@@ -735,8 +735,8 @@ restack_window_list( int desk, Bool send_msg_only )
         ids = create_asvector( sizeof(Window) );
     else
         flush_vector( ids );
-    if( Scr.Windows->clients->count > ids->allocated )
-        realloc_vector( ids, Scr.Windows->clients->count );
+    if( Scr.Windows->clients->count+1 > ids->allocated )
+        realloc_vector( ids, Scr.Windows->clients->count+1 );
 
     if( (layers_in = sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(*layers), 0)) == 0 )
         return ;
@@ -769,6 +769,11 @@ restack_window_list( int desk, Bool send_msg_only )
         l = PVECTOR_HEAD(ASLayer*,layers);
         windows = PVECTOR_HEAD(Window,ids);
         windows_num = 0 ;
+        if( get_desktop_cover_window() )
+        {    
+            windows[0] = get_desktop_cover_window();
+            ++windows_num ;
+        }
         LOCAL_DEBUG_OUT( "filling up array with window frame IDs: layers_in = %ld, ", layers_in );
         for( i = 0 ; i < layers_in ; i++ )
         {

@@ -130,6 +130,8 @@ main (int argc, char **argv)
 		show_error( "Hostile X server encountered - unable to proceed :-(");
 		return 1;/* failed to accure window management selection - other wm is running */
 	}
+    cover_desktop();
+
 SHOW_CHECKPOINT;
 	InitSession();
 SHOW_CHECKPOINT;
@@ -230,6 +232,10 @@ SHOW_CHECKPOINT;
         MoveViewport(Scr.wmprops->as_current_vx, Scr.wmprops->as_current_vy, False);
 
     SetupFunctionHandlers();
+
+    ConfigureNotifyLoop();
+    remove_desktop_cover();
+
     DoAutoexec(get_flags( AfterStepState, ASS_Restarting));
 
     /* all system Go! we are completely Operational! */
@@ -604,7 +610,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 	flush_shm_cache();
 #endif
 
-
+    desktop_cover_cleanup();
 
 	if (restart)
 	{

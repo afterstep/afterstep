@@ -6,12 +6,11 @@
 #endif
 
 #include <errno.h>
-#include <malloc.h>
+
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #ifdef BROKEN_SUN_HEADERS
 #include "sun_headers.h"

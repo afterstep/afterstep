@@ -214,13 +214,13 @@ open_X11_font( ASFontManager *fontman, const char *font_string)
 {
 	ASFont *font = NULL ;
 #ifndef X_DISPLAY_MISSING
-#ifdef I18N
-	/* TODO: we have to use FontSet and loop through fonts instead filling
-	 * up 2 bytes per character table with glyphs */
-
-
-
-#else                                          /* assume ISO Latin 1 encoding */
+/* 
+    #ifdef I18N
+     TODO: we have to use FontSet and loop through fonts instead filling
+           up 2 bytes per character table with glyphs 
+    #else 
+*/
+    /* for now assume ISO Latin 1 encoding */
 	XFontStruct *xfs ;
 
 	if( (xfs = XLoadQueryFont( fontman->dpy, font_string )) == NULL )
@@ -234,7 +234,6 @@ open_X11_font( ASFontManager *fontman, const char *font_string)
 	font->type = ASF_X11 ;
 	load_X11_glyphs( fontman->dpy, font, xfs );
 	XFreeFont( fontman->dpy, xfs );
-#endif
 #endif /* #ifndef X_DISPLAY_MISSING */
 	return font;
 }

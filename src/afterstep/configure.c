@@ -1229,6 +1229,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     char            *tline = NULL;
     ASImageManager  *old_image_manager = NULL ;
     ASFontManager   *old_font_manager  = NULL ;
+    
+    cover_desktop();
 
 #ifndef DIFFERENTLOOKNFEELFOREACHDESKTOP
 	/* only one look & feel should be used */
@@ -1416,6 +1418,10 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     }
     if( old_font_manager && old_font_manager != Scr.font_manager )
         destroy_font_manager( old_font_manager, False );
+
+    ConfigureNotifyLoop();
+    remove_desktop_cover();
+
 }
 
 /*****************************************************************************
