@@ -1378,7 +1378,7 @@ SHOW_CHECKPOINT;
 						d |= 0x000000FF ;
 					c ^= d;
 				}
-fprintf( stderr, "%s:%c c = 0x%X, d = 0x%X, c^d = 0x%X\n", __FUNCTION__, __LINE__, c, d, c^d );
+fprintf( stderr, "%s:%d c = 0x%X, d = 0x%X, c^d = 0x%X\n", __FUNCTION__, __LINE__, c, d, c^d );
 			}
 		}while(1);
 	else
@@ -1401,7 +1401,7 @@ fprintf( stderr, "%s:%c c = 0x%X, d = 0x%X, c^d = 0x%X\n", __FUNCTION__, __LINE_
 						d |= 0x000000FF ;
 					c ^= d;
 				}
-fprintf( stderr, "%s:%c c = 0x%X, d = 0x%X, c^d = 0x%X\n", __FUNCTION__, __LINE__, c, d, c^d );
+fprintf( stderr, "%s:%d c = 0x%X, d = 0x%X, c^d = 0x%X\n", __FUNCTION__, __LINE__, c, d, c^d );
 			}
 		}while(1);
 }
