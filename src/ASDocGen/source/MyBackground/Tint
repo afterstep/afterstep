@@ -1,6 +1,7 @@
 <varlistentry id="options.Tint">
-	<term>Tint</term>
+	<term>Tint<emphasis remap='I'>color</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>will tint image with color. Use shades of gray to obtain
+                darkened image. Note: this only works on TrueColor displays.</para>
 	</listitem>
 </varlistentry>

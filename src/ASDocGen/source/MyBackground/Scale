@@ -1,6 +1,7 @@
 <varlistentry id="options.Scale">
-	<term>Scale</term>
+	<term>Scale<emphasis remap='I'>[geometry]</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>scale image to specified geometry. If geometry is omitted
+                the image will be scaled to the screen size.</para>
 	</listitem>
 </varlistentry>

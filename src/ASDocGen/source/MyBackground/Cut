@@ -1,6 +1,7 @@
 <varlistentry id="options.Cut">
-	<term>Cut</term>
+	<term>Cut<emphasis='I'>"geometry"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>will cut piece with specified geometry from the source
+                image.</para>
 	</listitem>
 </varlistentry>

@@ -32,8 +32,8 @@ const char *HTMLHeaderFormat = "<A name=\"page_top\"></A>\n"
 							   "<A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A><p>\n" ;
 
 const char *HTMLHeaderFormatAPI = "<A name=\"page_top\"></A>\n"
-							   "<A href=\"API/index.html\">Main index</A>"
-							   "<A href=\"API/index.html\">%s</A>&nbsp;&nbsp;<A href=\"API/Glossary.html\">%s</A><p>\n" ;
+							   "<A href=\"../index.html\">Main index</A>"
+							   "<A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A><p>\n" ;
 
 const char *HTMLHeaderFormatNoIndex = "<A name=\"page_top\"></A>\n"
 							   "<A href=\"%sindex.html\">Go back</A><p>\n" ;

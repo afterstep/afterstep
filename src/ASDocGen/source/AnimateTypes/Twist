@@ -1,6 +1,7 @@
 <varlistentry id="options.Twist">
-	<term>Twist</term>
+	<term>Twist<emphasis remap='I'>twist</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Tells Animate how many revolutions to twist the iconification
+		frame.</para>
 	</listitem>
 </varlistentry>

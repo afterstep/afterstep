@@ -1,6 +1,11 @@
 <varlistentry id="options.Pad">
-	<term>Pad</term>
+	<term>Pad<emphasis remap='I'>[type color]</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>will pad image if it is smaller then screen  with  specified
+		color.  Possible type values are :
+                1: - pad horizontally and tile vertically
+                2: - pad vertically and tile horizontally
+                3: - pad both vertically and horizontally to make the image the
+		size of the screen.</para>
 	</listitem>
 </varlistentry>
