@@ -195,7 +195,8 @@ LOCAL_DEBUG_OUT( "name received \"%s\"", new_name );
 	CHECK_CHANGE_VAL(wd->frame_rect.y		,data[4],res);
 	CHECK_CHANGE_VAL(wd->frame_rect.width	,data[5],res);
 	CHECK_CHANGE_VAL(wd->frame_rect.height	,data[6],res);
-	CHECK_CHANGE_VAL(wd->desk				,data[7],res);
+    if( IsValidDesk(data[7]) )
+        CHECK_CHANGE_VAL(wd->desk           ,data[7],res);
     CHECK_CHANGE_VAL(wd->state_flags        ,data[8],res);
     CHECK_CHANGE_VAL(wd->flags              ,data[9],res);
     CHECK_CHANGE_VAL(wd->hints.base_width   ,data[10],res);

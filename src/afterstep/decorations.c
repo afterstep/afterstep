@@ -293,7 +293,7 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw
 		 */
         if( !ASWIN_GET_FLAGS(asw, AS_Dead) && get_parent_window( w ) == asw->frame )
         {
-            if( get_flags( Scr.state, AS_StateShutdown ) )
+            if( get_flags( AfterStepState, ASS_Shutdown ) )
                 quietly_reparent_window( w, Scr.Root, xwc.x, xwc.y, AS_CLIENT_EVENT_MASK );
             else
                 XReparentWindow (dpy, w, Scr.Root, xwc.x, xwc.y);

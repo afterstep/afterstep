@@ -262,6 +262,8 @@ struct config main_config[] = {
 #endif /* NO_TEXTURE */
     {"TitleTextAlign", SetInts, (char **)&Scr.Look.TitleTextAlign, &dummy},
     {"TitleButtonSpacing", SetInts, (char **)&Scr.Look.TitleButtonSpacing, (int *)&dummy},
+    {"TitleButtonXOffset", SetInts, (char **)&Scr.Look.TitleButtonXOffset, (int *)&dummy},
+    {"TitleButtonYOffset", SetInts, (char **)&Scr.Look.TitleButtonYOffset, (int *)&dummy},
     {"TitleButtonStyle", SetInts, (char **)&Scr.Look.TitleButtonStyle, (int *)&dummy},
     {"TitleButtonOrder", SetTButtonOrder, (char **)&(Scr.Look.button_xref[0]), (int*)&(Scr.Look.button_first_right)},
     {"TitleTextMode", SetTitleText, (char **)1, (int *)0},

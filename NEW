@@ -99,9 +99,30 @@ version 1.99.0 AKA 2.0 beta1
              instead of simple back and fore colors.
 
         2.2. Window frame decorations (aka MyFrame )
-                MyFrame contains complete instructions as to how window should
-                be decorated :
+                Each window is surrounded by so-called frame decoration. each
+                frame decoration could be built from 9 TBars:
+                1) Main Titlebar  with icons on left, label in the middle and
+                   icons on right. Label may also have special underlying image -
+                   so called Title Background. Ordering of this elements is set by
+                   TitleButtonOrder setting ( see below ).
+                2) 4 frame sides. Each of this have wixed width that is
+                   determined by SideSize setting  or image size if SideSize is
+                   ommited. Second dimention of the TBar changes to match the
+                   size of the window.
+                3) 4 frame corners. Each of this have both fixed width and
+                   height, as determined by CornerSize setting or image size.
 
+                   Each of above elements is rendered by generating background
+                using respective MyStyle, and then overlaying images/buttons
+                and text on top of it. Default overlaying is done using
+                composition method alpha-blend. In case of main Titlebar that
+                could be changed. Bevel is then drawn on top of the image as
+                specified in respective setting.
+
+                MyFrame contains
+                complete instructions as to how window should be decorated :
+
+             *******************************************************************
                 MyFrame "name"
                       [Inherit     "name"]
                    #traditional form :
@@ -131,44 +152,86 @@ version 1.99.0 AKA 2.0 beta1
                   #additional attributes :
                       [SideSize        North|South|East|West|Any <WIDTHxLENGTH>] - pixmap will be scaled to this size
                       [SideAlign       North|South|East|West|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+                                - default is HTiled,VTiled
                       [SideBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
                       [SideFocusedBevel      North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
                       [SideUnfocusedBevel    North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
                       [SideStickyBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+                                - default bevel is Right,Bottom
                       [CornerSize      NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT>]
                       [CornerAlign     NorthEast|SouthEast|NorthWest|SouthWest|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+                                - default is HTiled,VTiled
                       [CornerBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
                       [CornerFocusedBevel    NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
                       [CornerUnfocusedBevel  NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
                       [CornerStickyBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+                                - default bevel is Right,Bottom
                       [TitleBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
                       [TitleFocusedBevel     None|[Left,Top,Right,Bottom,Extra,NoOutline]
                       [TitleUnfocusedBevel   None|[Left,Top,Right,Bottom,Extra,NoOutline]
                       [TitleStickyBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
+                                - default bevel is Right,Bottom
                       [TitleAlign      None|[Left,Top,Right,Bottom]
+                                - default is Left
                       [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
                       [TitleCompositionMethod   testure_type]
                       [TitleFocusedCompositionMethod     testure_type]
                       [TitleUnfocusedCompositionMethod   testure_type]
                       [TitleStickyCompositionMethod      testure_type]
+                                - default is 131 ( alpha-blending )
                   ~MyFrame
+             *******************************************************************
 
                    MyFrame allows different MyStyles to be used for titlebar and
                 frame decorations. If any of those are ommited - default
                 setting from FWindowStyle/UWindowStyle/SWindowStyle will be
                 used.
+
+                   Important:
+                        If you use semi-transparent images for frame sides -
+                they will be overlayed on top of MyStyle generated background,
+                so if you want it to be overlayed over root background - you
+                should use MyStyle with BackPixmap set to 129 or 149.
+                        Also note that unless you use MYStyle with BackPixmap
+                126 and 125 - frame decorations will not be shaped. Likewise if
+                you want frame part to have only the shape of the image, you
+                specified, with no background at all - use MyStyle with
+                BackPixmap set like so :
+
+                        BackPixmap  126  empty.xpm
+
+                Where empty.xpm is 1x1 completely transparent image (supplied
+                as desktop/icons/common/empty.xpm ).
+
                    To identify side/corner it is possible to use abbreviations,
                 such as: N, NW, SW, etc.
                    All the CompositionMethod settings must have one of the
                 BackPixmap types from MyStyles ( ie 130-143 )
-                   Note that TitleBackground option allows you to specify an
+                   Align setting may have different meaning/capabilities for
+                different items. When applied to text - it simply aligns text
+                to sides mentioned. When applied to image - such as title
+                background or frame side pixmap - it also specifies if image
+                should be tiled, scaled or left same size. Make sure that you
+                use HTiled,VTiled or HScaled,VScaled for frame sides -
+                otherwise images on they will not be resized to match window
+                size (this is also a feture :).
+                   To center item specify Align to include both sides. For
+                example :
+
+                   Align Left,Right
+
+                   will center item horizontally.
+
+                Note that TitleBackground option allows you to specify an
                 image to be used under titlebar label in addition to the MyStyle.
                 This was done for better shaped titlebars. You may have MyStyle
                 to be completely transparent shape, while TitleBackground some
                 non-transparent image, and that will provide better visibility
                 for the titlebar text.
 
+             *******************************************************************
                 [DefaultFrame  "name"]
+             *******************************************************************
 
                    Allows specifying one of the MyFrames defined as
                 DefaultFrame causing AfterStep to use it for all the windows,
@@ -178,27 +241,35 @@ version 1.99.0 AKA 2.0 beta1
 
         2.3. Root background settings ( aka MyBackground )
 
+             *******************************************************************
                 [KillBackgroundThreshold   <size>]
+             *******************************************************************
                     Here <size> is the maximum number of pixels in root
                 background image. If image is bigger that this - it will be
                 unloaded from memory when desktop is switched and image is no
                 longer in use. Use it on systems with low memory.
 
+             *******************************************************************
                 [DeskBack  desk# "background"]
+             *******************************************************************
 
                    Specifies  what background to use for desk#. "background"
                 can be either  image  filename  in  double-quotes,  or  the name
                 of background definition (see below).
 
+             *******************************************************************
                 MyBackground "background_name"
                   background_option
                 ~MyBackground
+             *******************************************************************
                    Specifies the beginning of a background definition. The
                 background  can be  referred to later by background_name.
                 ~MyBackground ends a  root  background definition. The possible
                 background_options follow:
 
+             *******************************************************************
                 [Use type  "data"]
+             *******************************************************************
                    Specifies what to  use  as  the  root  background. Possible
                 type values are :
                      0: load image from the file. In that case "data" should
@@ -221,19 +292,27 @@ version 1.99.0 AKA 2.0 beta1
                 source image, in this order:
                      Cut->Tint->Scale->Align->Pad.
 
+             *******************************************************************
                 Cut geometry
+             *******************************************************************
                     will cut piece with specified geometry  from the source image.
 
+             *******************************************************************
                 Tint color
+             *******************************************************************
                     will  tint  image  with color. Gray60 will make image
                     lighter, while Gray40 will make image darker. Tinting
                     it two way !
 
+             *******************************************************************
                 Scale [geometry]
+             *******************************************************************
                     scale image to specified geometry. If geometry is omitted
                     AfterStep will scale it to the screen size.
 
+             *******************************************************************
                 Align [type]
+             *******************************************************************
                     it  will  align resulting image according to type.  Possible
                     values are :
                     1: - align to the right of the screen
@@ -242,7 +321,9 @@ version 1.99.0 AKA 2.0 beta1
                     0 or 4: - align to the center of the screen This option
                      works only in  conjunction  with  the following Pad option.
 
+             *******************************************************************
              Pad [type color]
+             *******************************************************************
                     will  pad image if it is smaller then screen
                     with specified color.  Possible type  values
                     are :
@@ -255,8 +336,13 @@ version 1.99.0 AKA 2.0 beta1
              will work in order to facilitate compatability with old configs.
 
         2.4. MyStyle changes
+
+             *******************************************************************
              MaxColors dicontinued
+             *******************************************************************
+             *******************************************************************
              BackPixmap has numerous new types added :
+             *******************************************************************
                 2.4.1. Shaped BackPixmap types :
                      125 - image is scaled to the size of TBar and TBar is
                            shaped with alpha channel of this image.
@@ -306,72 +392,365 @@ version 1.99.0 AKA 2.0 beta1
                      scaled to fill TBar instead of tiled in it.
 
         2.5. Titlebar buttons
-                TitleButtonSpacing
-                TitleButtonStyle
-                TitleButtonOrder
+                ****************************************************************
+                TitleButtonStyle  <val>
+                ****************************************************************
+                New style value 2 has been added. When 2 is used, then
+                distance between titlebar edge and titlebuttons is determined
+                by by TitleButtonXOffset and TitleButtonYOffset.
+                ****************************************************************
+                TitleButtonXOffset  <x_offset_val>
+                TitleButtonYOffset  <y_offset_val>
+                ****************************************************************
+                Determine distance of titlebar buttons from the edge of the
+                titlebar
+                ****************************************************************
+                TitleButtonOrder  <context_sequence>
+                ****************************************************************
+                Determines layout of the titlebar. Default is 13579t08642.
 
         2.6. Menu settings
-                MenuPinOn
-                MenuSubItemStyle
-                MenuItemCompositionMethod
-                MenuHiliteCompositionMethod
-                MenuStippleCompositionMethod
+                ****************************************************************
+                MenuPinOn  <image>
+                ****************************************************************
+                        MenuPinOn is depreciated and AfterSTep will reinterpret
+                it, and it will create new TitleButton using last unused
+                TitleButton context. It will then assign PinMenu function to
+                this button. This button will only be shown on titlebars
+                belonging to menu windows. This button behaves just like any
+                other TitleButton - for example you can use TitleButtonOrder to
+                specify where it should go. Problem is you may not know what
+                context AfterStep had choosen for it. The better way would be
+                to explicitely define TitleButton, and assign PinMenu to it in
+                your feel.
+
+                ****************************************************************
+                MenuSubItemStyle "mystyle"
+                ****************************************************************
+                        AfterStep now includes new feature: when you select an
+                item from menu - this item will be marked as recently used, and
+                next time menu is opened it will show all the recently used
+                items from its SUBMENU. For exmaple you do :
+
+                Menu->Applications->rxvt
+
+                Next time you open Main menu - it will display rxvt just ander
+                Application item with some offset.
+
+                It looks much better when this subitems are shown with
+                different (smaller ) font. To achive that - specify MyStyle
+                with smaller font using MenuSubItemStyle option in your look
+                file.
+
+                This feature could be turned off or altered by using
+
+                        RecentSubmenuItems
+                option in your feel file: set it to 0 to disable feture.
+
+                ****************************************************************
+                MenuItemCompositionMethod       <130-145>
+                MenuHiliteCompositionMethod     <130-145>
+                MenuStippleCompositionMethod    <130-145>
+                ****************************************************************
+                This is fun feature - try it and see how you like different
+                values :) If you use shades of grey for your item text - you
+                may not see any difference for some of this values.
+
 
         2.7. Balloon settings
-                TitleButtonBalloonBorderHilite
-                TitleButtonBalloonXOffset
-                TitleButtonBalloonYOffset
-                TitleButtonBalloonDelay
-                TitleButtonBalloonCloseDelay
-                TitleButtonBalloonStyle
-                TitleButtonBalloons
-                TitleButton
+             *******************************************************************
+                TitleButtonBalloonBorderHilite  None|[Left,Top,Right,Bottom,Extra,NoOutline]
+             *******************************************************************
+             Defines bevel to be drawn around balloons - replaces BorderWidth
+             setting.
+
+             *******************************************************************
+                TitleButtonBalloonXOffset  <value_in_pixels>
+             *******************************************************************
+                Added to complement YOffset setting.
+
+             *******************************************************************
+                TitleButtonBalloonCloseDelay <mlseconds>
+             *******************************************************************
+                Determines delay between when balloon is shown and before it
+             disapears.
+
+             *******************************************************************
+                TitleButtonBalloonStyle  "mystyle_name"
+             *******************************************************************
+                MyStyle to be used to draw balloon. Note that balloons could be
+             shaped (BackPixmap 125 and 126 )
 
 
 3. Feel options :
 
+        ************************************************************************
         FollowTitleChanges
+        ************************************************************************
+        That will force AfterStep to reread and merge all the hints and
+        settings from the database files, whenever window changes either its
+        name or icon name.
+
+        ************************************************************************
         PersistentMenus
-        NoSnapKey
-        ScreenEdgeAttraction
+        ************************************************************************
+        Right now if you try to open a menu when its already opened - that will
+        cause menu to close. To disablethis behaviour and instead pop-up a menu
+        again - use this setting.
+
+        ************************************************************************
+        NoSnapKey   <key>
+        ************************************************************************
+        AfterSTep now has feature that "snaps" window to different desktop
+        features, such as edges of other windows and edge of the screen. To
+        disable it temorarily you can press and hold Shift key. Use this
+        setting to request different modifier key instead of Shift.
+
+        ************************************************************************
+        ScreenEdgeAttraction  <distance>
+        ************************************************************************
+        Defines distance from which window will be attracted to the screen
+        edge, while being interactively moved/resized.
+
+        ************************************************************************
         WindowEdgeAttraction
+        ************************************************************************
+        Defines distance from which window will be attracted to the other
+        window's edge, while being interactively moved/resized.
+
+        ************************************************************************
         DontRestoreFocus
+        ************************************************************************
+        Will not restore focus to the recently focused application wile
+        switching desktops.
+
+        ************************************************************************
         WindowBox
-        DefaultWindowBox
-        RecentSubmenuItems
+        ************************************************************************
+        This is whole new thing to allow better window placement policy :
+
+        WindowBox   "some_name"
+              Area   WxH+X+Y
+              Virtual
+              MinWidth        width
+              MinHeight       height
+              MaxWidth        width
+              MaxHeight       height
+              FirstTry        SmartPlacement|RandomPlacement|Tile
+              ThenTry         RandomPlacement|Cascade|Manual
+              VerticalPriority
+              ReverseOrder
+              Desk        desk
+              MinLayer    min_layer
+              MaxLayer    max_layer
+         ~WindowBox
+
+        WindowBox defines area on screen/virtual desktop into which window will
+        be placed on startup.
+         - Area    - defines the confining region.
+         - Virtual - defines that area is in virtual coordinates.
+         - MinWidth,MinHeight, MaxWidth,MaxHeight - places restrains on what
+        size window could be placed in this area.
+         - FirstTry - strategy to use while placing window. FirstTry strategy
+        will attempt to place window in empty space only.
+         - ThenTry  - backup strategy to use when there is no suitable empty
+        space.
+         - VerticalPriority, ReverseOrder alter behaviour of some strategies  -
+        Tile and Cascade, from what I remeber.
+         - Desk - limits effects of this WindowBox to specific desk.
+         - MinLayer,MaxLayer - limits effects of the WindowBox to windows with
+        layer value that falls in range.
+
+        Note that old SmartPlacement/RandomPlacement has been coopted to be
+        used for Default windowbox.
+
+        ************************************************************************
+        DefaultWindowBox  "windowbox_name"
+        ************************************************************************
+        Window boxes are processed in order they were listed in config. If
+        suitable windowbox could not be found for the window - then windowbox
+        named in DefaultWindowBox will be forced.
+
+        ************************************************************************
+        RecentSubmenuItems <number_of_items>
+        ************************************************************************
+        Defines maximum number of recently used submenu items to be listed
+        under menu item. Set to 0 to disable feature. Default is 4.
 
         3.2. Functions
-                GoToBookmark ["name" window_bookmark ]
+                ****************************************************************
                 BookmarkWindow "name" new_bookmark
+                ****************************************************************
+                Places bookmark on selected window, to be used later on to get
+                back to that window.
+
+                ****************************************************************
+                GoToBookmark ["name" window_bookmark ]
+                ****************************************************************
+                Focuses window specified by previously placed window_bookmark.
+
+                ****************************************************************
                 PinMenu ["name"]
+                ****************************************************************
+                Pins menu on desktop
+
+                ****************************************************************
                 SaveWorkspace "name" file_name
+                ****************************************************************
+                Write list of presently running applications with its position
+                and desktop number into specified file. You can run this file
+                at a later time as a shell script to restore state of the
+                desktop. Note this does not work for many applications that
+                does not provide needed ICCCM properties on its windows.
+
+                ****************************************************************
                 ChangeTheme "name" file_name
+                ****************************************************************
+                Sets current theme config file. Such config file may include
+                settings for look, feel, menu, autoexec and any module.
 
 4. Database options
+        ************************************************************************
         NoFrame
-        Frame
-        WindowBox
-        DefaultGeometry
-        OverrideGravity
-        HonorPPosition
-        NoPPosition
-        HonorGroupHints
-        NoGroupHints
-        HonorTransientHints
-        NoTransientHints
-        HonorMotifHints
-        NoMotifHints
-        HonorGnomeHints
-        NoGnomeHints
-        HonorExtWMHints
-        NoExtWMHints
-        HonorXResources
-        NoXResources
+        ************************************************************************
+        Disabled frame decorations for this window
 
-5. Pager options
+        ************************************************************************
+        Frame  "frame_name"
+        ************************************************************************
+        Enables "frame_name" to be used for decoration of this window
+
+        ************************************************************************
+        WindowBox "window_box_name"
+        ************************************************************************
+        Requires AfterSTep to use specified WindowBox for placement of this
+        window.
+
+        ************************************************************************
+        DefaultGeometry
+        ************************************************************************
+        Fill force AfterStep to replace parts of window initial placement with
+        predefined values. For example :
+
+        Style "*mozilla*"  DefaultGeometry 1024x500
+
+        will force mozilla windows (or any windows that have "mozilla" in its
+        name ) to have initial size 1024x500.
+        Note that in case of mozilla its usefull to define several Styles so
+        that you will get different geometries for different dialog boxes, such
+        as search/download/ etc.
+
+        ************************************************************************
+        OverrideGravity  gravity
+        ************************************************************************
+        Some applications (notably xv) has been designed without reading widely
+        accepted and used standards such as ICCCM. Gravity value is one of of
+        the hints that often gets misplaced by applications. As the result may
+        exhibit wierd placement behaviour - such as window moving to the
+        top-left with each resize or file opened. Try specifying StaticGravity
+        for such apps. Also some applications do not set gravity correctly. For
+        example you start an application with geometry +10-10 which means
+        SouthWestGravity and that should fix position of left and bottom sides
+        of the window. But window set its gravity to NorthWestGravity instead
+        and as the result window gets placed further down to the bottom by the
+        size of the framne decorations. In this cases you can specify whatever
+        gravity you want and thus override those stupid apps.
+
+        Allowed values are :
+                NorthWest
+                North
+                NorthEast
+                West
+                Center
+                East
+                SouthWest
+                South
+                SouthEast
+                Static
+
+        Read more about gravity at :
+                http://www.freedesktop.org/standards/wm-spec/1.3/html/x362.html
+
+        All of the options below are similar to NoPPosition stuff - it either
+        enables or disables handling of specific ICCCM, MOTIF, etc. properties
+        that are set on the window by application.
+
+        4.2. ICCCM hints handling
+
+        ************************************************************************
+        HonorPPosition
+        ************************************************************************
+        Forces AfterStep to use PPosition hint for this window. PPosition hint
+        normally means that application has determined its position due to some
+        of its own configuration settings, and position has not been
+        explicitely requested on the command line. This setting overrides
+        NoPPosition setting in feel file.
+
+        ************************************************************************
+        NoPPosition
+        ************************************************************************
+        Opposite of the above. PPosition will be ignored for the matching
+        window.
+
+        ************************************************************************
+        HonorGroupHints
+        ************************************************************************
+        ************************************************************************
+        NoGroupHints
+        ************************************************************************
+        ************************************************************************
+        HonorTransientHints
+        ************************************************************************
+        Will force AfterStep to use transient hint, effectively attaching
+        window to its parent( placing it on the same layer , etc. )
+
+        ************************************************************************
+        NoTransientHints
+        ************************************************************************
+        Ignore transient hint - window will be treated as an independent
+        window.
+
+        4.2. Motif hints handling
+        ************************************************************************
+        HonorMotifHints
+        ************************************************************************
+        ************************************************************************
+        NoMotifHints
+        ************************************************************************
+        Forces AfterStep to disregard Motif decoration and functionality hints.
+
+        4.3. Old style GNOME hints :
+        ************************************************************************
+        HonorGnomeHints
+        ************************************************************************
+        ************************************************************************
+        NoGnomeHints
+        ************************************************************************
+
+        4.4. Modern GNOME and KDE hints ( Extended WM Hints ):
+        ************************************************************************
+        HonorExtWMHints
+        ************************************************************************
+        ************************************************************************
+        NoExtWMHints
+        ************************************************************************
+
+        4.5. XResources database handling :
+        ************************************************************************
+        HonorXResources
+        ************************************************************************
+        ************************************************************************
+        NoXResources
+        ************************************************************************
+        Forces AfterStep to disregard XResources database when it comes to
+        window placement.
+
+5. XResources database.
+
+6. Pager options
         ShadeButton
 
-6. Wharf options
+7. Wharf options
         ShowLabel
         LabelLocation
         FlipLabel
@@ -381,7 +760,7 @@ version 1.99.0 AKA 2.0 beta1
         Bevel
         CompositionMethod
 
-7. WinList options
+8. WinList options
 
         *WinListGeometry                +x+y
         *WinListMinSize                     WxH
@@ -403,33 +782,33 @@ version 1.99.0 AKA 2.0 beta1
         *WinListSBevel           None,Left,Right,Top, Bottom, NoOutline
         *WinListAction          [Click]1|2|3|4|5
         *WinListShapeToContents
-8. Depreciated
-        8.1. Look :
+9. Depreciated
+        9.1. Look :
              MenuPinOn
 
-        8.2. Wharf :
+        9.2. Wharf :
              Folders/~Folders in Wharf config - use Folder/~Folder instead
 
-        8.3. asetroot :
+        9.3. asetroot :
              If AfterSTep proper fails to read any MyBackground definitions
              from the look file - it will attempt to read asteroot file. Althou
              you may be fine for now - make sure you move this config into look
              file, as in future asetroot file may become obsolete.
 
-9. Discontinued
-        9.1. Look :
+10. Discontinued
+        10.1. Look :
                 TextureMaxColors
                 MenuPinOff
                 TextGradientColor
                 GradientText
                 ButtonMaxColors
 
-        9.2. Feel :
+        10.2. Feel :
                 MWMFunctionHints
                 MWMDecorHints
                 MWMHintOverride
 
-        9.3. WinList :
+        10.3. WinList :
                 *WinListHideGeometry        WxH+x+y
                 *WinListNoAnchor
                 *WinListUseIconNames

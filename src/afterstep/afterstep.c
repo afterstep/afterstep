@@ -177,12 +177,14 @@ main (int argc, char **argv)
         ChangeDesks (curr);
         if( get_flags( Scr.wmprops->set_props, WMC_DesktopViewport ) &&
             curr < Scr.wmprops->desktop_viewports_num )
-            MoveViewport(Scr.wmprops->desktop_viewport[curr<<1], Scr.wmprops->desktop_viewport[(curr<<1)+1], False);
+        {
+            /* we have to do that prior to capturing any window so that they'll get in
+             * correct position and will not end up outside of the screen */
+            MoveViewport(Scr.wmprops->desktop_viewport[curr<<1],
+                         Scr.wmprops->desktop_viewport[(curr<<1)+1], False);
+        }
     }else
         ChangeDesks (0);
-
-    if( get_flags( Scr.wmprops->set_props, WMC_ASViewport )  )
-        MoveViewport(Scr.wmprops->as_current_vx, Scr.wmprops->as_current_vy, False);
 
     /* Load config ... */
     /* read config file, set up menus, colors, fonts */
@@ -205,6 +207,10 @@ main (int argc, char **argv)
 #endif										/* UnGrabbed !!!!!*/
 	/**********************************************************/
     XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[DEFAULT]);
+
+    /* now we can restore whatever viewport was prior to AS restart */
+    if( get_flags( Scr.wmprops->set_props, WMC_ASViewport )  )
+        MoveViewport(Scr.wmprops->as_current_vx, Scr.wmprops->as_current_vy, False);
 
     SetupFunctionHandlers();
     DoAutoexec(get_flags( AfterStepState, ASS_Restarting));
@@ -530,9 +536,10 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     if( restart )
         local_command = mystrdup(command?command:MyName);
 
-    set_flags( Scr.state, AS_StateShutdown );
+    set_flags( AfterStepState, ASS_Shutdown );
     if( restart )
-        set_flags( Scr.state, AS_StateRestarting );
+        set_flags( AfterStepState, ASS_Restarting );
+    clear_flags( AfterStepState, ASS_NormalOperation );
 #ifndef NO_VIRTUAL
     MoveViewport (0, 0, False);
 #endif

@@ -241,7 +241,7 @@ create_asimage( unsigned int width, unsigned int height, unsigned int compressio
     }else
     {
 #ifdef TRACK_ASIMAGES
-        show_progress( "created ASImage %d of size %dx%d with compression %d", im, width, height, compression );
+        show_progress( "created ASImage %p of size %dx%d with compression %d", im, width, height, compression );
         if( __as_image_registry == NULL )
             __as_image_registry = create_ashash( 0, pointer_hash_value, NULL, NULL );
         add_hash_item( __as_image_registry, AS_HASHABLE(im), im );
@@ -258,7 +258,7 @@ destroy_asimage( ASImage **im )
 		{
 #ifdef TRACK_ASIMAGES
             show_progress( "destroying ASImage %p of size %dx%d", *im, (*im)->width, (*im)->height );
-            remove_hash_item( __as_image_registry, AS_HASHABLE(im), NULL, False );
+            remove_hash_item( __as_image_registry, AS_HASHABLE(*im), NULL, False );
 #endif
 			asimage_init( *im, True );
 			(*im)->magic = 0;

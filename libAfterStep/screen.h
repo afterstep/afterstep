@@ -38,12 +38,6 @@ typedef struct
 #endif
 
 /* look file flags */
-typedef enum
-{
-    AS_StateShutdown   = (0x01<<0),
-    AS_StateRestarting = (0x01<<1)
-}ASScreenStateFlags ;
-
 struct MenuRoot;
 struct MouseButton;
 struct FuncKey;
@@ -81,7 +75,6 @@ typedef struct ASBackgroundHandler
 
 typedef struct ScreenInfo
   {
-    ASFlagType    state ;   /* shutting down, restarting, etc. */
     unsigned long screen;
     int d_depth;            /* copy of DefaultDepth(dpy, screen) */
     int NumberOfScreens;	/* number of screens on display */

@@ -220,7 +220,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%+d%+d), old(%+d%+d), max(%+d,%+d)", newx, newy, Sc
 	Scr.Vx = newx;
 	Scr.Vy = newy;
     SendPacket( -1, M_NEW_PAGE, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
-    set_current_viewport_prop (Scr.wmprops, Scr.Vx, Scr.Vy);
+    set_current_viewport_prop (Scr.wmprops, Scr.Vx, Scr.Vy, get_flags( AfterStepState, ASS_NormalOperation));
 
 	if (deltax || deltay)
 	{
@@ -655,6 +655,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         set_xrootpmap_id (Scr.wmprops, None );
     ASSync(False);
     print_asimage_registry();
+    LOCAL_DEBUG_OUT("done%s","" );
 }
 
 /*************************************************************************

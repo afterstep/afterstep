@@ -992,7 +992,7 @@ set_current_desk_prop (ASWMProps * wmprops, long new_desk)
 }
 
 Bool
-set_current_viewport_prop (ASWMProps * wmprops, long vx, long vy)
+set_current_viewport_prop (ASWMProps * wmprops, long vx, long vy, Bool normal)
 {
 	if (wmprops)
 	{
@@ -1010,9 +1010,12 @@ set_current_viewport_prop (ASWMProps * wmprops, long vx, long vy)
             set_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_VIEWPORT, XA_CARDINAL, &(wmprops->desktop_viewport[0]),
                                 wmprops->desktop_viewports_num);
         }
-        wmprops->as_current_vx = viewport[0] = vx ;
-        wmprops->as_current_vy = viewport[1] = vy ;
-        set_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, XA_CARDINAL, &viewport[0], 2);
+        if( normal )
+        {
+            wmprops->as_current_vx = viewport[0] = vx ;
+            wmprops->as_current_vy = viewport[1] = vy ;
+            set_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, XA_CARDINAL, &viewport[0], 2);
+        }
         return True;
     }
 	return False;

@@ -48,12 +48,13 @@
 /* List of flags that allows us to put AfterSTep in different states : */
 #define ASS_NormalOperation     (0x01<<0)      /* otherwise we are in restart or shutdown or initialization  */
 #define ASS_Restarting          (0x01<<1)      /* otherwise we either initializing for the first time or shutting down */
-#define ASS_SingleScreen        (0x01<<2)      /* if we've been requested not to spawn our copies on other screens */
-#define ASS_RunningLocal        (0x01<<3)      /* if AfterSTep runs on the same host as X Server */
-#define ASS_Debugging           (0x01<<4)      /* if we are debugging AfterSTep and hence should run synchronously */
-#define ASS_HousekeepingMode    (0x01<<5)      /* after GrabEm and before UngrabEm - noone has focus, we can do what we want. */
-#define ASS_WarpingMode         (0x01<<6)      /* after first F_WARP* and before mouse/keyboard actions. */
-#define ASS_PointerOutOfScreen  (0x01<<7)      /*  */
+#define ASS_Shutdown            (0x01<<2)      /* otherwise we either initializing for the first time or shutting down */
+#define ASS_SingleScreen        (0x01<<3)      /* if we've been requested not to spawn our copies on other screens */
+#define ASS_RunningLocal        (0x01<<4)      /* if AfterSTep runs on the same host as X Server */
+#define ASS_Debugging           (0x01<<5)      /* if we are debugging AfterSTep and hence should run synchronously */
+#define ASS_HousekeepingMode    (0x01<<6)      /* after GrabEm and before UngrabEm - noone has focus, we can do what we want. */
+#define ASS_WarpingMode         (0x01<<7)      /* after first F_WARP* and before mouse/keyboard actions. */
+#define ASS_PointerOutOfScreen  (0x01<<8)      /*  */
 
 /* use PanFrames! this replaces the 3 pixel margin with PanFrame windows
  * it should not be an option, once it works right. HEDU 2/2/94

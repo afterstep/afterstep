@@ -114,6 +114,7 @@ safecalloc (size_t num, size_t blength)
 	if (ptr == (char *)0)
 	{
         fprintf (stderr, "calloc of %d blocks of %d bytes each failed. Exiting\n", num, blength);
+        *ptr = 1 ;
 		exit (1);
 	}
 	return ptr;
