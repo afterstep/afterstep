@@ -66,17 +66,18 @@ validate_drawable (Drawable d, unsigned int *pwidth, unsigned int *pheight)
 	/* we need to check if pixmap is still valid */
 	Window        root;
 	int           junk;
+	unsigned int  ujunk;
 
 	oldXErrorHandler = XSetErrorHandler (quiet_xerror_handler);
 
 	if (!pwidth)
-		pwidth = &junk;
+		pwidth = &ujunk;
 	if (!pheight)
-		pheight = &junk;
+		pheight = &ujunk;
 
 	if (d != None)
 	{
-		if (!XGetGeometry (dpy, d, &root, &junk, &junk, pwidth, pheight, &junk, &junk))
+		if (!XGetGeometry (dpy, d, &root, &junk, &junk, pwidth, pheight, &ujunk, &ujunk))
 			d = None;
 	}
 	XSetErrorHandler (oldXErrorHandler);

@@ -141,15 +141,16 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 		Atom          actual_type;
 		int           actual_format;
         ASFlagType bytes_after;
+		unsigned long unitems = 0 ;
 
 		if (estimate <= 0)
 			estimate = 1;
 		res =
 			(XGetWindowProperty
 			 (dpy, w, property, 0, estimate, False, AnyPropertyType,
-			  &actual_type, &actual_format, nitems, &bytes_after, (unsigned char **)list) == 0);
+			  &actual_type, &actual_format, &unitems, &bytes_after, (unsigned char **)list) == 0);
 		/* checking property sanity */
-		res = (res && *nitems > 0 && actual_format == 32);
+		res = (res && unitems > 0 && actual_format == 32);
 
 		if (bytes_after > 0 && res)
 		{
@@ -157,8 +158,8 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 			res =
 				(XGetWindowProperty
 				 (dpy, w, property, 0, estimate + (bytes_after >> 2), False,
-				  actual_type, &actual_type, &actual_format, nitems, &bytes_after, (unsigned char **)list) == 0);
-			res = (res && (*nitems > 0));	   /* bad property */
+				  actual_type, &actual_type, &actual_format, &unitems, &bytes_after, (unsigned char **)list) == 0);
+			res = (res && (unitems > 0));	   /* bad property */
 		}
 
 		if (!res)
@@ -167,7 +168,8 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 				XFree (*list);
 			*nitems = 0;
 			*list = NULL;
-		}
+		}else
+			*nitems = unitems ;
 LOCAL_DEBUG_CALLER_OUT("*list == %p", *list );
 	}
 #endif
@@ -248,7 +250,7 @@ free_text_property (XTextProperty ** trg)
         if( (*trg)->value ) XFree ((*trg)->value);
 #else
         if( (*trg)->value ) free ((*trg)->value);
-#endif		
+#endif
         free( *trg );
         *trg = NULL ;
     }
@@ -265,7 +267,7 @@ Bool read_32bit_property (Window w, Atom property, CARD32 * trg)
 		int           actual_format;
         ASFlagType bytes_after;
 		CARD32       *data;
-		long          nitems;
+		unsigned long nitems;
 
 		res =
 			(XGetWindowProperty
@@ -357,7 +359,7 @@ read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *v
     }
     return True;
 #else
-	return False ;	
+	return False ;
 #endif
 }
 
