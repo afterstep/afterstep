@@ -324,3 +324,64 @@ ComplexFunction2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, ComplexF
 
 }
 
+void
+complex_function_parse (char *tline, FILE * fd, char *list, int *count)
+{
+    FilePtrAndData fpd ;
+    ConfigDef    *ConfigReader ;
+    FreeStorageElem *Storage = NULL, *more_stuff = NULL;
+    struct ASHashTable *funcs_list = (struct ASHashTable*)list ;
+
+    if( list == NULL || count == NULL )
+        return;
+    fpd.fp = fd ;
+    fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
+    sprintf( fpd.data, "Function %s\n", tline );
+    LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
+    ConfigReader = InitConfigReader ((char*)get_application_name(), &FuncSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+    free( fpd.data );
+
+    if (!ConfigReader)
+        return ;
+
+	PrintConfigReader (ConfigReader);
+	ParseConfig (ConfigReader, &Storage);
+	PrintFreeStorage (Storage);
+
+	/* getting rid of all the crap first */
+    StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
+    DestroyFreeStorage (&more_stuff);
+
+    FreeStorage2ComplexFunction( Storage, NULL, funcs_list );
+
+	DestroyConfig (ConfigReader);
+	DestroyFreeStorage (&Storage);
+}
+
+ComplexFunction *
+ParseComplexFunctionFile (const char *filename, char *myname)
+{
+    ConfigDef *ConfigReader =
+        InitConfigReader (myname, &FuncSyntax, CDT_Filename, (void *) filename, NULL);
+    FreeStorageElem *Storage = NULL, *more_stuff = NULL;
+	ComplexFunction *new_func = NULL ;
+
+    if (!ConfigReader)
+        return NULL;
+
+	PrintConfigReader (ConfigReader);
+	ParseConfig (ConfigReader, &Storage);
+	PrintFreeStorage (Storage);
+
+	/* getting rid of all the crap first */
+    StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
+    DestroyFreeStorage (&more_stuff);
+
+    new_func = FreeStorage2ComplexFunction( Storage, NULL, NULL );
+
+	DestroyConfig (ConfigReader);
+	DestroyFreeStorage (&Storage);
+
+	return new_func;
+}
+

@@ -1365,6 +1365,10 @@ typedef struct FeelConfig
 
 }FeelConfig;
 
+void complex_function_parse (char *tline, FILE * fd, char *list, int *count);
+ComplexFunction *ParseComplexFunctionFile (const char *filename, char *myname);
+
+
 FeelConfig *CreateFeelConfig ();
 void DestroyFeelConfig (FeelConfig * config);
 FeelConfig *ParseFeelOptions (const char *filename, char *myname);
