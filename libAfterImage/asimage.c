@@ -766,6 +766,8 @@ asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsigned int 
 	if (y >= im->height)
 		return 0;
 	
+	if( im->channels[color][y] ) 
+		forget_data( NULL, im->channels[color][y] ); 
 	im->channels[color][y] = store_data( NULL, &value, 1, 0, 0);
 	return im->width;
 }
