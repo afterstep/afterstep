@@ -83,6 +83,10 @@ int
 main (int argc, char **argv)
 {
     register int i ;
+	
+	int start_viewport_x = 0 ;
+	int start_viewport_y = 0 ;
+	int start_desk = 0 ;
 
 #ifdef LOCAL_DEBUG
 #if 0
@@ -198,21 +202,28 @@ SHOW_CHECKPOINT;
    /* make sure we're on the right desk, and the _WIN_DESK property is set */
     Scr.CurrentDesk = INVALID_DESK ;
     if( get_flags( Scr.wmprops->set_props, WMC_ASDesks )  )
-        ChangeDesks (Scr.wmprops->as_current_desk);
-    else if( get_flags( Scr.wmprops->set_props, WMC_DesktopCurrent )  )
+	{
+		start_desk = Scr.wmprops->as_current_desk ;
+    }else if( get_flags( Scr.wmprops->set_props, WMC_DesktopCurrent )  )
     {
         int curr = Scr.wmprops->desktop_current ;
-        ChangeDesks (curr);
+        start_desk = curr;
         if( get_flags( Scr.wmprops->set_props, WMC_DesktopViewport ) &&
             curr < Scr.wmprops->desktop_viewports_num )
         {
             /* we have to do that prior to capturing any window so that they'll get in
              * correct position and will not end up outside of the screen */
-            MoveViewport(Scr.wmprops->desktop_viewport[curr<<1],
-                         Scr.wmprops->desktop_viewport[(curr<<1)+1], False);
+            start_viewport_x = Scr.wmprops->desktop_viewport[curr<<1] ;
+			start_viewport_y = Scr.wmprops->desktop_viewport[(curr<<1)+1] ;
         }
-    }else
-        ChangeDesks (0);
+    }
+    if( get_flags( Scr.wmprops->set_props, WMC_ASViewport )  )
+	{
+		start_viewport_x = Scr.wmprops->as_current_vx ;
+		start_viewport_y = Scr.wmprops->as_current_vy ;
+	}
+	/* temporarily setting up desktop 0 */
+	ChangeDesks(0);
 
     /* Load config ... */
     /* read config file, set up menus, colors, fonts */
@@ -238,9 +249,6 @@ SHOW_CHECKPOINT;
     XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[ASCUR_Default]);
 
     display_progress( True, "Seting initial viewport to %+d%+d ...", Scr.wmprops->as_current_vx, Scr.wmprops->as_current_vy );
-    /* now we can restore whatever viewport was prior to AS restart */
-    if( get_flags( Scr.wmprops->set_props, WMC_ASViewport )  )
-        MoveViewport(Scr.wmprops->as_current_vx, Scr.wmprops->as_current_vy, False);
 
     SetupFunctionHandlers();
     display_progress( True, "Processing all pending events ..." );
@@ -249,6 +257,10 @@ SHOW_CHECKPOINT;
     remove_desktop_cover();
 
     DoAutoexec(get_flags( AfterStepState, ASS_Restarting));
+	
+	/* once all the windows are swallowed and placed in its proper desks - we cas restore proper
+	   desktop/viewport : */
+	ChangeDeskAndViewport ( start_desk, start_viewport_x, start_viewport_y, False);
 
     /* all system Go! we are completely Operational! */
     set_flags( AfterStepState, ASS_NormalOperation);
