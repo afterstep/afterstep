@@ -48,7 +48,7 @@
 #include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/string.h"
-#include "functions.h"
+#include "../../include/functions.h"
 
 static int    dragx;						   /* all these variables are used */
 static int    dragy;						   /* in resize operations */

@@ -32,6 +32,7 @@
 #include "../include/screen.h"
 //#include "functions.h"
 #include "../include/clientprops.h"
+#include "../include/hints.h"
 //#include "hints.h"
 
 /************************************************************************/

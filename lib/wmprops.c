@@ -25,7 +25,6 @@
 #include <ctype.h>
 
 #include "../include/afterbase.h"
-#define OUTPUT_LEVEL_VROOT (OUTPUT_VERBOSE_THRESHOLD)
 
 #include "../include/aftersteplib.h"
 #include "../include/screen.h"

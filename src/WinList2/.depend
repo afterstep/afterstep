@@ -1,0 +1,32 @@
+./WinData.h:
+
+./WinList.o: \
+		../../configure.h \
+		../../include/afterbase.h \
+		../../libAfterImage/afterimage.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/screen.h \
+		../../include/module.h \
+		../../include/mystyle.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/clientprops.h \
+		../../include/wmprops.h \
+		../../include/decor.h \
+		WinData.h
+
+./WinData.o: \
+		../../configure.h \
+		../../include/afterbase.h \
+		../../libAfterImage/afterimage.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/screen.h \
+		../../include/module.h \
+		../../include/mystyle.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/clientprops.h \
+		../../include/wmprops.h \
+		WinData.h

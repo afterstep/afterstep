@@ -10,12 +10,10 @@ LIB_INCS=
 #           audit.o strncmp.o homeanddirs.o
 #           findfile.o asproperty.o
 #
-LIB_OBJS= catstring3.o background.o balloon.o copystring.o \
-	      clientprops.o decor.o font.o \
-		  Xmodule.o ASmodule.o \
-		  loadimg.o myicon.o mystyle.o mystyle_property.o \
-		  parse.o parser.o termhash.o \
-		  readpacket.o \
+LIB_OBJS= ASmodule.o Xmodule.o asdatabase.o background.o balloon.o \
+		  catstring3.o copystring.o clientprops.o decor.o font.o \
+		  hints.o loadimg.o myicon.o mystyle.o mystyle_property.o \
+		  parse.o parser.o termhash.o readpacket.o \
 		  timer.o wild.o wmprops.o
 
 LIB_NAME        = LIBAFTERSTEP

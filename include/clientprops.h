@@ -521,25 +521,6 @@ typedef struct ASRawHints
 }
 ASRawHints;
 
-typedef struct ASStatusHints
-{
-    ASFlagType   flags ;
-
-    int             x, y;
-    unsigned int    width, height;
-    unsigned int    border_width ; /* this border width is needed only to calculate
-								    * reference point when we are starting up */
-    unsigned int    viewport_x, viewport_y;
-    int             desktop ;
-	int 			layer ;
-
-    /* get's set by window manager - not read from hints: */
-    Window          icon_window;
-	unsigned int    frame_size[8];   /* size of the frame decoration */
-
-}ASStatusHints;
-
-
 /*************************************************************************/
 /*                           Interface                                   */
 /*************************************************************************/

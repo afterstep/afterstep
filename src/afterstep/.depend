@@ -1,12 +1,10 @@
 ./dirtree.h: \
-		functions.h
-
-./functions.h:
+		../../include/functions.h
 
 ./globals.h:
 
 ./menus.h: \
-		functions.h
+		../../include/functions.h
 
 ./add_window.o: \
 		../../configure.h \
@@ -240,7 +238,8 @@
 		../../include/misc.h \
 		../../include/style.h \
 		../../include/screen.h \
-		functions.h
+		../../include/string.h \
+		../../include/functions.h
 
 ./style.o: \
 		../../configure.h \
@@ -262,3 +261,12 @@
 		menus.h
 
 ./titlechange.o:
+
+./geometry.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h

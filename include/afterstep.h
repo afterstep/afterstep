@@ -15,6 +15,14 @@
 #define get_flags(v,f)  	((v)&(f))
 #endif
 
+/************************** Magic Numbers : ********************************/
+#define MAGIC_ASDBRECORD        0x7A3DBECD
+#define MAGIC_ASWINDOW          0x7A3819D0
+#define MAGIC_ASDESKTOP         0x7A3DE347
+#define MAGIC_ASFEEL            0x7A3FEE1D
+#define MAGIC_ASICON            0x7A301C07
+
+
 /* use PanFrames! this replaces the 3 pixel margin with PanFrame windows
  * it should not be an option, once it works right. HEDU 2/2/94
  */
@@ -57,6 +65,20 @@
 
 #define NULLSTR ((char *) NULL)
 
+/* possible style index values */
+#define BACK_FOCUSED		0
+#define BACK_UNFOCUSED		1
+#define BACK_STICKY         2
+#define BACK_DEFAULT		3
+#define BACK_STYLES         4
+
+#define MENU_BACK_ITEM 		0
+#define MENU_BACK_TITLE 	1
+#define MENU_BACK_HILITE 	2
+#define MENU_BACK_STIPPLE 	3
+#define MENU_BACK_STYLES 	4
+
+
 /* contexts for button presses */
 #define C_NO_CONTEXT		0
 #define C_WINDOW		(1 <<  0)
@@ -81,6 +103,11 @@
 				 C_SIDEBAR|C_L1|C_L2|C_L3|C_L4|C_L5|\
 				 C_R1|C_R2|C_R3|C_R4|C_R5)
 
+
+#define INVALID_POSITION	(-30000)
+#define INVALID_DESK		(10000)
+#define IsValidDesk(d)		(d!=INVALID_DESK)
+
 #include "myicon.h"
 
 typedef struct button_t
@@ -94,14 +121,34 @@ button_t;
 
 typedef button_t MyButton ;
 
-#define FR_N 0
-#define FR_NE 1
-#define FR_E 2
-#define FR_SE 3
-#define FR_S 4
-#define FR_SW 5
-#define FR_W 6
-#define FR_NW 7
+/* different frame decoration part ids : */
+typedef enum
+{				/* don't change order !!!!
+				 * If you do, the following must be met :
+				 *     - sides must go first and start with 0
+				 *     - order must be the same as order of cursors in screen.h
+				 */
+  FR_N = 0,
+  FR_E,
+  FR_S,
+  FR_W,
+  FRAME_SIDES,
+  FR_NW = FRAME_SIDES,
+  FR_NE,
+  FR_SW,
+  FR_SE,
+  FRAME_CORNERS,
+  FRAME_PARTS = FRAME_CORNERS
+}
+FrameSide;
+
+typedef struct
+{
+  int flags, x, y;
+  unsigned int width, height;
+}
+ASGeometry;
+
 
 typedef struct fr_pos
   {
@@ -297,6 +344,39 @@ extern TextureInfo Textures;
 #define BUTTON8   128
 #define BUTTON9   256
 #define BUTTON10  512
+
+/* possible flags to identify which tasks needs to be done on
+   frame decorations/handles */
+#define TODO_EVENT		(0x01)
+#define TODO_RESIZE_X		(0x01<<1)
+#define TODO_RESIZE_Y		(0x01<<2)
+#define TODO_RESIZE		(TODO_RESIZE_X|TODO_RESIZE_Y)
+#define TODO_MOVE_X		(0x01<<3)
+#define TODO_MOVE_Y		(0x01<<4)
+#define TODO_MOVE		(TODO_MOVE_Y|TODO_MOVE_X)
+#define TODO_TITLE		(0x01<<5)
+#define TODO_SIDE		(0x01<<6)
+#define TODO_DECOR		(TODO_TITLE|TODO_SIDE)
+#define TODO_REDRAW_TITLE 	(0x01<<7)
+#define TODO_REDRAW_SIDE  	(0x01<<8)
+#define TODO_REDRAW		(TODO_REDRAW_TITLE|TODO_REDRAW_SIDE)
+#define TODO_PAGE_X		(0x01<<9)
+#define TODO_PAGE_Y		(0x01<<10)
+#define TODO_PAGE		(TODO_PAGE_X|TODO_PAGE_Y)
+/* this 2 are used in MyWidgets : */
+#define TODO_REBUILD_CACHE	(0x01<<11)
+#define TODO_REDRAW_WIDGET	(0x01<<12)
+/* */
+
+/*
+ * FEW PRESET LEVELS OF OUTPUT :
+ */
+#define OUTPUT_LEVEL_PARSE_ERR      1
+#define OUTPUT_LEVEL_HINTS          OUTPUT_VERBOSE_THRESHOLD
+#define OUTPUT_LEVEL_DATABASE       OUTPUT_VERBOSE_THRESHOLD
+#define OUTPUT_LEVEL_VROOT          7
+#define OUTPUT_LEVEL_WINDOW_LIST   (OUTPUT_LEVEL_DEBUG+9) /* too much output - too slow */
+
 
 extern void Reborder (void);
 extern void SigDone (int);

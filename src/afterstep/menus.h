@@ -3,7 +3,7 @@
 
 #define MAX_FILE_SIZE 4096	/* max chars to read from file for cut */
 
-#include "functions.h"
+#include "../../include/functions.h"
 
 /* using long type here as we can get large numbers in
    commands from modules (SET_MASK in particular) */
