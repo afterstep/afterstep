@@ -231,6 +231,8 @@ ConfigDef *InitConfigReader (char *myname, SyntaxDef * syntax,
 			     ConfigDataType type, ConfigData source,
 			     SpecialFunc special);
 int ParseConfig (ConfigDef * config, FreeStorageElem ** tail);
+FreeStorageElem *file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, FreeStorageElem **foreign_options );
+
 
 ConfigDef *InitConfigWriter (char *myname, SyntaxDef * syntax,
 			     ConfigDataType type, ConfigData  source);

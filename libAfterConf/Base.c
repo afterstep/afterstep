@@ -113,24 +113,15 @@ DestroyBaseConfig (BaseConfig * config)
 BaseConfig   *
 ParseBaseOptions (const char *filename, char *myname)
 {
-	ConfigData cd ;
-	ConfigDef    *ConfigReader ;
 	BaseConfig   *config = CreateBaseConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 
-	cd.filename = filename ;
-	ConfigReader = InitConfigReader (myname, &BaseSyntax, CDT_Filename, cd, NULL);
-	if (!ConfigReader)
+	Storage = file2free_storage(filename, myname, &BaseSyntax, &(config->more_stuff) );
+	if (Storage == NULL)
 		return config;
 
 	item.memory = NULL;
-	PrintConfigReader (ConfigReader);
-	ParseConfig (ConfigReader, &Storage);
-	PrintFreeStorage (Storage);
-
-	/* getting rid of all the crap first */
-	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
@@ -182,7 +173,6 @@ ParseBaseOptions (const char *filename, char *myname)
 	}
 	ReadConfigItem (&item, NULL);
 
-	DestroyConfig (ConfigReader);
 	DestroyFreeStorage (&Storage);
 	return config;
 }

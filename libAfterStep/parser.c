@@ -811,6 +811,33 @@ ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 }
 
 
+FreeStorageElem *
+file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, FreeStorageElem **foreign_options )
+{
+	ConfigData cd ;
+	ConfigDef    *reader ;
+	FreeStorageElem *storage = NULL ;
+	
+	cd.filename = filename ;
+	config_reader = InitConfigReader (myname, syntax, CDT_Filename, cd, NULL);
+	if (!config_reader)
+		return NULL;
+
+	PrintConfigReader (config_reader);
+	ParseConfig(config_reader, &storage);
+	PrintFreeStorage (storage);
+
+	/* getting rid of all the crap first */
+	if( foreign_options )
+		StorageCleanUp (&storage, foreign_options, CF_DISABLED_OPTION);
+
+	DestroyConfig (config_reader);   
+	return storage;
+}	 
+
+
+
+
 /****************************************************************************************/
 /*                        Assorted utility functions                                    */
 /****************************************************************************************/
