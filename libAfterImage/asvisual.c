@@ -1034,6 +1034,18 @@ create_visual_pixmap( ASVisual *asv, Window root, unsigned int width, unsigned i
 #endif /*ifndef X_DISPLAY_MISSING */
 }
 
+void
+destroy_visual_pixmap( ASVisual *asv, Pixmap *ppmap )
+{
+	if( asv && ppmap )
+		if( *ppmap )
+		{
+			XFreePixmap( asv->dpy, *ppmap );
+			*ppmap = None ;
+		}
+}
+
+
 #ifdef XSHMIMAGE
 
 int	(*orig_XShmImage_destroy_image)(XImage *ximage) = NULL ;

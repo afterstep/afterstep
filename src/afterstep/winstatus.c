@@ -108,7 +108,10 @@ update_window_transparency( ASWindow *asw, Bool force )
 	}
 	for( i = 0 ; i < 6 ; ++i )
 		if( changed_canvases[i] )
+		{
+			invalidate_canvas_save( changed_canvases[i] );
 			update_canvas_display( changed_canvases[i] );
+		}
 
 }
 
@@ -674,6 +677,7 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
             if( canvas && update_display )
             {
                 render_astbar( asw->tbar, canvas );
+				invalidate_canvas_save( canvas );
                 update_canvas_display( canvas );
             }
     }
@@ -876,15 +880,34 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
     if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
     {
         register int i = FRAME_PARTS;
-        /* Titlebar */
-        set_astbar_focused( asw->tbar, asw->frame_sides[od->tbar_side], focused );
-        /* frame decor : */
-        for( i = FRAME_PARTS; --i >= 0; )
-            set_astbar_focused( asw->frame_bars[i], asw->frame_sides[od->tbar2canvas_xref[i]], focused );
-        /* now posting all the changes on display :*/
-        for( i = FRAME_SIDES; --i >= 0; )
-            if( is_canvas_dirty(asw->frame_sides[i]) )
-                update_canvas_display( asw->frame_sides[i] );
+
+	    for( i = FRAME_SIDES; --i >= 0; )
+		{
+    	    ASCanvas *update_canvas = asw->frame_sides[i] ;
+			int k ;
+			if( focused )
+			{
+				save_canvas(update_canvas);
+			}else
+			{
+				if( restore_canvas(asw->frame_sides[i]) )
+				{
+					LOCAL_DEBUG_OUT( "canvas restored for side %d", i );
+					update_canvas = NULL ;
+				}
+			}
+
+			if( i == od->tbar_side )
+				set_astbar_focused( asw->tbar, update_canvas, focused );
+
+			for( k = 0 ; k < FRAME_PARTS ; ++k )
+				if( od->tbar2canvas_xref[k] == i )
+					set_astbar_focused( asw->frame_bars[k], update_canvas, focused );
+		}
+    	/* now posting all the changes on display :*/
+    	for( i = FRAME_SIDES; --i >= 0; )
+        	if( is_canvas_dirty(asw->frame_sides[i]) )
+            	update_canvas_display( asw->frame_sides[i] );
         if( asw->internal && asw->internal->on_hilite_changed )
             asw->internal->on_hilite_changed( asw->internal, NULL, focused );
         if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor ) )
@@ -1068,9 +1091,9 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 			{
                 ASQueryPointerRootXY( &x, &y );
 				if( x < 0 || x > Scr.MyDisplayWidth )
-					x = Scr.MyDisplayWidth/2 ; 
+					x = Scr.MyDisplayWidth/2 ;
 				if( y < 0 || y > Scr.MyDisplayHeight )
-					y = Scr.MyDisplayHeight/2 ; 
+					y = Scr.MyDisplayHeight/2 ;
 			}
             t->status->x = x - (int)t->status->width/2 ;
             t->status->y = y - (int)t->status->height/2 ;

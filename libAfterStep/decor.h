@@ -36,6 +36,10 @@ typedef struct ASCanvas
 	int root_x, root_y;
 	unsigned int width, height ;
 
+	Pixmap 		saved_canvas ;
+	ASVector 	*saved_shape ;
+
+	/* these two are shortcuts to above values */
 	Pixmap canvas;
 	ASVector *shape;                     /* vector of XRectangles */
     /* 32 bytes */
@@ -230,6 +234,9 @@ void update_canvas_display( ASCanvas *pc );
 #endif
 void update_canvas_display_mask (ASCanvas * pc, Bool force);
 
+Bool save_canvas( ASCanvas *pc );
+void invalidate_canvas_save( ASCanvas *pc );
+Bool restore_canvas( ASCanvas *pc );
 
 Bool check_canvas_shaped( ASCanvas *pc);
 Bool refresh_container_shape( ASCanvas *pc );

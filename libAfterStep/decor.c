@@ -68,11 +68,12 @@ refresh_canvas_config (ASCanvas * pc)
 
 		if (width != pc->width || height != pc->height)
 		{
-			if (pc->canvas)
-			{
-				XFreePixmap (dpy, pc->canvas);
-				pc->canvas = None;
-			}
+			destroy_visual_pixmap(Scr.asv, &(pc->saved_canvas));
+			destroy_visual_pixmap(Scr.asv, &(pc->canvas));
+
+			if (pc->saved_shape )
+				destroy_shape( &(pc->saved_shape) );
+
             if (pc->shape )
 			{
 				destroy_shape( &(pc->shape) );
@@ -162,8 +163,10 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 		LOCAL_DEBUG_CALLER_OUT( "<<#########>>destroying canvas %p for window %lX", pc, pc?pc->w:None );
 		if (pc)
 		{
-			if (pc->canvas)
-				XFreePixmap (dpy, pc->canvas);
+			destroy_visual_pixmap(Scr.asv, &(pc->saved_canvas));
+			destroy_visual_pixmap(Scr.asv, &(pc->canvas));
+            if (pc->saved_shape)
+				destroy_shape( &(pc->saved_shape));
             if (pc->shape)
 				destroy_shape( &(pc->shape));
 			memset (pc, 0x00, sizeof (ASCanvas));
@@ -210,14 +213,13 @@ invalidate_canvas_config( ASCanvas *pc )
 
    		pc->width = 0;
 		pc->height = 0;
-		if (pc->canvas)
-		{
-			XFreePixmap (dpy, pc->canvas);
-			pc->canvas = None;
-		}
+		destroy_visual_pixmap(Scr.asv, &(pc->canvas));
+		destroy_visual_pixmap(Scr.asv, &(pc->saved_canvas));
 	    if (pc->shape)
 			destroy_shape( &(pc->shape) );
-		set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
+	    if (pc->saved_shape)
+			destroy_shape( &(pc->saved_shape) );
+		set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC | CANVAS_MASK_OUT_OF_SYNC);
 		set_flags( pc->state, CANVAS_CONFIG_INVALID);
 	}
 }
@@ -361,16 +363,6 @@ draw_canvas_mask (ASCanvas * pc, ASImage * im, int x, int y)
 	return res;
 }
 
-#ifdef TRACE_update_canvas_display
-#undef update_canvas_display
-void update_canvas_display (ASCanvas * pc);
-void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
-{
-    fprintf (stderr, "D>%s(%d):update_canvas_display(%p)\n", file, line, pc);
-    update_canvas_display(pc);
-}
-#endif
-
 inline Bool
 get_current_canvas_size( ASCanvas * pc, unsigned int *pwidth, unsigned int *pheight )
 {
@@ -418,6 +410,16 @@ set_canvas_shape_to_rectangle( ASCanvas * pc )
                                 -bw, -bw, &rect, 1, ShapeSet, Unsorted);
 	set_flags( pc->state, CANVAS_SHAPE_SET );
 }
+
+#ifdef TRACE_update_canvas_display
+#undef update_canvas_display
+void update_canvas_display (ASCanvas * pc);
+void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
+{
+    fprintf (stderr, "D>%s(%d):update_canvas_display(%p)\n", file, line, pc);
+    update_canvas_display(pc);
+}
+#endif
 
 void
 update_canvas_display (ASCanvas * pc)
@@ -470,6 +472,62 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 	}
 #endif
 }
+
+Bool
+save_canvas( ASCanvas *pc )
+{
+	if( pc )
+	{
+		destroy_visual_pixmap( Scr.asv, &(pc->saved_canvas) );
+		pc->saved_canvas = pc->canvas ;
+		pc->canvas = None ;
+
+		destroy_shape( &(pc->saved_shape) );
+		pc->saved_shape = pc->shape ;
+		pc->shape = NULL ;
+
+		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC|CANVAS_OUT_OF_SYNC);
+		return (pc->saved_canvas != None) ;
+	}
+	return False;
+}
+
+void
+invalidate_canvas_save( ASCanvas *pc )
+{
+	if( pc )
+	{
+		destroy_visual_pixmap( Scr.asv, &(pc->saved_canvas) );
+		destroy_shape( &(pc->saved_shape) );
+	}
+}
+
+
+Bool
+restore_canvas( ASCanvas *pc )
+{
+	if( pc )
+	{
+		if( pc->saved_canvas == None )
+			return False ;
+
+		destroy_visual_pixmap( Scr.asv, &(pc->canvas) );
+		pc->canvas = pc->saved_canvas ;
+		pc->saved_canvas = None ;
+
+
+		destroy_shape( &(pc->shape) );
+		pc->shape = pc->saved_shape ;
+		pc->saved_shape = NULL ;
+
+		update_canvas_display( pc );
+		update_canvas_display_mask (pc, False);
+		return True;
+	}
+	return False ;
+}
+
+
 
 
 void
@@ -1807,14 +1865,15 @@ set_astbar_focused (ASTBarData * tbar, ASCanvas * pc, Bool focused)
 	if (tbar)
 	{
         int          old_focused = get_flags (tbar->state, BAR_STATE_FOCUS_MASK)?1:0;
+		int          new_focused = focused?1:0;
 
 		if (focused)
 			set_flags (tbar->state, BAR_STATE_FOCUSED);
 		else
 			clear_flags (tbar->state, BAR_STATE_FOCUSED);
-        if( old_focused != focused && pc != NULL )
+        if( old_focused != new_focused && pc != NULL )
             render_astbar( tbar, pc );
-        return ((focused?1:0)!=old_focused);
+        return (new_focused != old_focused);
 	}
 	return False;
 }

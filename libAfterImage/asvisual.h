@@ -631,6 +631,8 @@ GC      create_visual_gc( ASVisual *asv, Window root,
 Pixmap  create_visual_pixmap( ASVisual *asv, Window root,
 	                          unsigned int width, unsigned int height,
 							  unsigned int depth );
+void destroy_visual_pixmap( ASVisual *asv, Pixmap *ppmap );
+
 XImage* create_visual_ximage( ASVisual *asv,
 	                          unsigned int width, unsigned int height,
 							  unsigned int depth );

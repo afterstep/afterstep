@@ -1047,6 +1047,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
   		        if( canvas )
       		    {
 	                render_astbar( asw->tbar, canvas );
+					invalidate_canvas_save( canvas );
   		            update_canvas_display( canvas );
 				}
 		}
