@@ -3,13 +3,20 @@
 
 
 /* 
- *	Slot can hold upto (2^16)*4 == 256 KBytes ; 
- *	there could be up to 4 arrays of 512 pointers to slots each in Storage Block
- *	There could be 2^20 StorageBlocks in ASStorage
+ *	there could be up to 16 arrays of 1024 pointers to slots each in Storage Block
+ *	There could be 2^18 StorageBlocks in ASStorage
  */
+#define AS_STORAGE_SLOTS_BATCH		1024  /* so that batch of pointer occupies 1 page  */ 
+#define AS_STORAGE_SLOTS_BATCH_CNT	16
+#define AS_STORAGE_SLOT_ID_BITS		14  /* 32*512 == 2^14 */ 
+#define AS_STORAGE_MAX_SLOTS_CNT	(0x01<<AS_STORAGE_SLOT_ID_BITS)
+
+#define AS_STORAGE_BLOCK_ID_BITS	(32-AS_STORAGE_SLOT_ID_BITS)
+#define AS_STORAGE_MAX_BLOCK_CNT   	(0x01<<AS_STORAGE_BLOCK_ID_BITS)
+#define AS_STORAGE_DEF_BLOCK_SIZE	(1024*256)  /* 256 Kb */  
 
 
-#define ASStorageSlot_SIZE 8 /* 8 bytes */
+#define ASStorageSlot_SIZE 16 /* 16 bytes */
 
 typedef struct ASStorageSlot
 {
@@ -19,18 +26,28 @@ typedef struct ASStorageSlot
 
 #define ASStorage_CompressionType	(0x0F<<0) /* allow for 16 compression schemes */
 #define ASStorage_Used				(0x01<<4)
-#define ASStorage_NotTileable		(0x01<<4)
+#define ASStorage_NotTileable		(0x01<<5)
 
 	CARD16  flags ;
-	CARD16  data_size ;
 	CARD16  ref_count ;
-	CARD16  reserved ;
+	CARD32  size ;
+	CARD32  uncompressed_size ;
+	CARD16  index ;  /* reverse mapping of slot address into index in array */
+	/* slots may be placed in array pointing into different areas of the memory 
+	 * block, since we will need to implement some sort of garbadge collection and 
+	 * defragmentation mechanism - we need to be able to process them in orderly 
+	 * fashion. 
+	 * So finally : 
+	 * 1) slot's index does not specify where in the memory slot 
+	 * is located, it is only used to address slot from outside.
+	 * 2) Using slots memory address and its size we can go through the chain of slots
+	 * and perform all the maintenance tasks  as long as we have reverse mapping 
+	 * of addresses into indexes.
+	 * 
+	 */
+	CARD16 reserved ;          /* to make us have size rounded by 16 bytes margin */
 }ASStorageSlot;
 
-
-/* Pointer to ASStorageBlock is the pointer to allocated memory beginning - sizeof(ASStorageBlock) 
- * thus we need not to store it separately 
- */
 
 typedef struct ASStorageBlock
 {
@@ -38,21 +55,23 @@ typedef struct ASStorageBlock
  	CARD32  flags ;
 	int 	size ;
 
-	int   	min_free, max_free, used;
-
+	int   	total_free;
+	ASStorageSlot  *start;
 	/* array of pointers to slots is allocated separately, so that we can reallocate it 
 	   in case we have lots of small slots */
-	ASStorageSlot **slots;
-	int 	slots_count, first_free ;
+	ASStorageSlot **slots[AS_STORAGE_SLOTS_BATCH_CNT];
+	int used_slots ;
 
 }ASStorageBlock;
 
 
 typedef struct ASStorage
 {
+	int default_block_size ;
+
 
 	ASStorageBlock **blocks ;
-	int 			blocks_count, first_free;
+	int 			blocks_count;
 
 }ASStorage;
 

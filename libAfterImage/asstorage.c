@@ -44,6 +44,7 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#include <memory.h>
 
 #ifdef _WIN32
 # include "win32/afterbase.h"
@@ -74,21 +75,100 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType flag
 	return data;
 }
 
+ASStorageBlock *
+create_asstorage_block( int useable_size )
+{
+	int allocate_size = (((sizeof(ASStorageBlock)+sizeof(ASStorageSlot) + useable_size)/4096)+1)*4096 ;
+	void * ptr = malloc(allocate_size);
+	if( ptr == NULL ) 
+		return NULL;
+	ASStorageBlock *block = ptr ;
+	memset( block, 0x00, sizeof(ASStorageBlock));
+	block->size = allocate_size - sizeof(ASStorageBlock) ;
+	block->total_free = block->size ;
+	block->slots[0] = calloc( AS_STORAGE_SLOTS_BATCH, sizeof(ASStorageSlot*));
+	if( block->slots[0] == NULL ) 
+	{	
+		free( ptr ); 
+		return NULL;
+	}
+	block->start = (ASStorageSlot*)(ptr+sizeof(ASStorageBlock));
+	block->slots[0][0] = block->start ;
+	block->slots[0][0]->flags = 0 ;  /* slot of the free memory */ 
+	block->slots[0][0]->ref_count = 0 ;
+	block->slots[0][0]->size = block->size ;
+	block->slots[0][0]->uncompressed_size = block->size ;
+	block->used_slots = 1 ;
+
+	return block;
+}
 
 int
 select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags )
 {
-	int block_id = 0 ;
-	/* TODO */
-	return block_id;
+	int i ;
+	int new_block = -1 ; 
+	compressed_size += sizeof(ASStorageSlot);
+	for( i = 0 ; i < storage->blocks_count ; ++i ) 
+	{
+		ASStorageBlock *block = storage->blocks[i];
+		if( block )
+		{	
+			if( block->total_free > compressed_size && 
+				block->used_slots < AS_STORAGE_MAX_SLOTS_CNT )
+				return i+1;
+		}else if( new_block < 0 ) 
+			new_block = i ;
+	}		
+	/* no available blocks found - need to allocate a new block */
+	if( new_block  < 0 ) 
+	{
+		i = new_block = storage->blocks_count ;
+		storage->blocks_count += 16 ;
+		storage->blocks = realloc( storage->blocks, storage->blocks_count*sizeof(ASStorageBlock*));
+		while( ++i < storage->blocks_count )
+			storage->blocks[i] = NULL ;
+	}	 
+	storage->blocks[new_block] = create_asstorage_block( max(storage->default_block_size, compressed_size) );		
+	if( storage->blocks[new_block] == NULL )  /* memory allocation failed ! */ 
+		new_block = -1 ;
+	return new_block+1;
+}
+
+ASStorageSlot *
+select_storage_slot( ASStorageBlock *block, int size )
+{
+	ASStorageSlot *slot = NULL ;
+	/* TODO : */
+	return slot;		   
+}
+
+Bool
+split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
+{
+	
+	return True;
 }
 
 int
 store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compressed_size, ASFlagType flags )
 {
-	int slot_id = 0 ;
-	/* TODO */
-	return slot_id ;
+	ASStorageSlot *slot ;
+	CARD8 *dst ;
+	slot = select_storage_slot( block, compressed_size );
+	if( slot == NULL ) 
+		return 0;
+	if( slot->size > compressed_size ) 
+		if( !split_storage_slot( block, slot, compressed_size ) ) 
+			return 0;
+	dst = (CARD8*)(slot+1);
+	memcpy( dst, data, compressed_size );
+	slot->flags = (flags | ASStorage_Used) ;
+	slot->ref_count = 1;
+	slot->size = compressed_size ;
+	slot->uncompressed_size = size ;
+
+	return slot->index+1 ;
 }
 
 
@@ -99,7 +179,7 @@ ASStorage *
 create_asstorage()
 {
 	ASStorage *storage = safecalloc(1, sizeof(ASStorage));
-
+	storage->default_block_size = AS_STORAGE_DEF_BLOCK_SIZE ;
 	return storage ;
 }
 
