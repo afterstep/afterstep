@@ -1,6 +1,8 @@
 <varlistentry id="options.FontPath">
 	<term>FontPath <emphasis remap='I'>path[:path]</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the paths to locate the font files in.</para>
+		<para>Suported are standard X11 fonts and Truetype fonts through
+		the FreeType library.<para>
 	</listitem>
 </varlistentry>

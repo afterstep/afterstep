@@ -1,6 +1,10 @@
 <varlistentry id="options.Side">
-	<term>Side</term>
+	<term>Side
+	<emphasis remap='I'>[ South | North | East | West ]</emphasis>
+	<emphasis remap='I'>"pixmap_name"</emphasis>
+	</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the side of the window frame to be decorated
+		and the pixmap to be used.</para>
 	</listitem>
 </varlistentry>

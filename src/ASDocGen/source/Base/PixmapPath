@@ -2,6 +2,6 @@
 	<term>PixmapPath <emphasis remap='I'>path[:path]</emphasis></term>
 	<listitem>
 		<para>Specifies the paths to locate the pixmaps in.  Valid pixmaps are
-		currently XPM, JPEG, and PNG.</para>
+		currently XCF, XPM, PPM/PNM, ICO, GIF, XML Images, JPEG, PNG and TIFF.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.East">
-	<term>East</term>
+	<term>East<emphasis remap='I'>"pixmap_name"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the pixmap to be displayed in the right border
+		of the window frame, if DecorateFrames is set.</para>
 	</listitem>
 </varlistentry>

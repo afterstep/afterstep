@@ -1,6 +1,10 @@
 <varlistentry id="options.Corner">
-	<term>Corner</term>
+	<term>Corner
+	<emphasis remap='I'>[ SouthEast | SouthWest | NorthEast | NorthWest ]</emphasis>
+	<emphasis remap='I'>"pixmap_name"</emphasis>
+	</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the corner of the window frame to be decorated
+		and the pixmap to be used.</para>
 	</listitem>
 </varlistentry>

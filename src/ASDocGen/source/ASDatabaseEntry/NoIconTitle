@@ -1,6 +1,6 @@
 <varlistentry id="options.NoIconTitle">
 	<term>NoIconTitle</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies that no title should be displayed under an iconified app.</para>
 	</listitem>
 </varlistentry>

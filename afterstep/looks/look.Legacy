@@ -173,7 +173,8 @@ MyStyle "*WharfTile"
 MyStyle "*MonitorWharfTile"
   BackColor	grey50
   ##  Translucent Wharf Tile tinted <color>
-  BackPixmap	129 #a8a8a8
+#  BackPixmap	129 #a8a8a8
+  BackPixmap	128 ASBBlockDefault.xpm
 ~MyStyle
 
 #----------WinList MyStyles---------#

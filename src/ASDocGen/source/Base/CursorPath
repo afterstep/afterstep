@@ -1,6 +1,6 @@
 <varlistentry id="options.CursorPath">
 	<term>CursorPath <emphasis remap='I'>path[:path]</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the paths to locate the cursor files in.</para>
 	</listitem>
 </varlistentry>
