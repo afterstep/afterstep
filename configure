@@ -4675,7 +4675,7 @@ if test $ac_cv_lib_Xext_XShmCreateImage = yes; then
   have_xshmimage=yes
 fi
 
-	if test "x$have_xshmimage=yes" = "xyes"; then
+	if test "x$have_xshmimage" = "xyes"; then
 		echo "$as_me:4679: checking for sys/ipc.h" >&5
 echo $ECHO_N "checking for sys/ipc.h... $ECHO_C" >&6
 if test "${ac_cv_header_sys_ipc_h+set}" = set; then
@@ -4720,7 +4720,7 @@ else
 fi
 
 	fi
-	if test "x$have_xshmimage=yes" = "xyes"; then
+	if test "x$have_xshmimage" = "xyes"; then
 		echo "$as_me:4724: checking for sys/shm.h" >&5
 echo $ECHO_N "checking for sys/shm.h... $ECHO_C" >&6
 if test "${ac_cv_header_sys_shm_h+set}" = set; then
@@ -4765,7 +4765,7 @@ else
 fi
 
 	fi
-	if test "x$have_xshmimage=yes" = "xyes"; then
+	if test "x$have_xshmimage" = "xyes"; then
 		add_lib_xext=yes
 		cat >>confdefs.h <<\EOF
 #define XSHMIMAGE
