@@ -625,15 +625,15 @@ mystyle_set_gcs (MyStyle * style, GC foreGC, GC backGC, GC reliefGC, GC shadowGC
   unsigned long gcm;
 
 /* set the drawing GC */
-  gcv.foreground = style->colors.fore;
-  gcv.background = style->colors.back;
+  ARGB2PIXEL(Scr.asv, style->colors.fore, &gcv.foreground);
+  ARGB2PIXEL(Scr.asv, style->colors.back, &gcv.background);
   gcv.font = style->font.font->fid;
   gcv.fill_style = FillSolid;
   gcm = GCForeground | GCBackground | GCFont | GCFillStyle;
   if (foreGC != None)
     XChangeGC (dpy, foreGC, gcm, &gcv);
 
-  gcv.foreground = style->colors.back;
+  ARGB2PIXEL(Scr.asv, style->colors.back, &gcv.foreground);
 #ifndef NO_TEXTURE
   if ((style->texture_type != 0) && (style->back_icon.pix != None))
     {
@@ -646,16 +646,16 @@ mystyle_set_gcs (MyStyle * style, GC foreGC, GC backGC, GC reliefGC, GC shadowGC
     XChangeGC (dpy, backGC, gcm, &gcv);
 
 /* set the relief GC */
-  gcv.foreground = style->relief.fore;
-  gcv.background = style->relief.back;
+  ARGB2PIXEL(Scr.asv, style->relief.fore, &gcv.foreground);
+  ARGB2PIXEL(Scr.asv, style->relief.back, &gcv.background);
   gcv.fill_style = FillSolid;
   gcm = GCForeground | GCBackground | GCFont | GCFillStyle;
   if (reliefGC != None)
     XChangeGC (dpy, reliefGC, gcm, &gcv);
 
 /* set the shadow GC */
-  gcv.foreground = style->relief.back;
-  gcv.background = style->relief.fore;
+  ARGB2PIXEL(Scr.asv, style->relief.back, &gcv.foreground);
+  ARGB2PIXEL(Scr.asv, style->relief.fore, &gcv.background);
   gcv.fill_style = FillSolid;
   gcm = GCForeground | GCBackground | GCFont | GCFillStyle;
   if (shadowGC != None)
