@@ -23,7 +23,7 @@
 # asapp.c, screen.c trace.c needs to be split up into
 # generic and AS-specific code :
 
-LIB_INCS=	ashash.h aslist.h asvector.h astypes.h audit.h \
+LIB_INCS=	afterbase_config.h ashash.h aslist.h asvector.h astypes.h audit.h \
 		fs.h layout.h mystring.h os.h output.h parse.h \
 		regexp.h safemalloc.h selfdiag.h \
 		sleep.h socket.h timer.h trace.h xprop.h xwrap.h

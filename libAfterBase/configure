@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC sgmltools INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC sgmltools INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE DEBUG_ALLOCS_DEF DEBUG_ALLOCS_VAL DEBUG_TRACE_DEF DEBUG_TRACE_VAL DEBUG_TRACE_X_DEF DEBUG_TRACE_X_VAL X_DISPLAY_DEF X_DISPLAY_VAL LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -6794,8 +6794,48 @@ _ACEOF
 
 
 
+if test "x$enable_audit" = "xyes"; then
+	DEBUG_ALLOCS_DEF="define"
+	DEBUG_ALLOCS_VAL=1
+else
+	DEBUG_ALLOCS_DEF="undef"
+	DEBUG_ALLOCS_VAL=0
+fi
+if test "x$enable_trace" = "xyes"; then
+	DEBUG_TRACE_DEF="define"
+	DEBUG_TRACE_VAL=1
+else
+	DEBUG_TRACE_DEF="undef"
+	DEBUG_TRACE_VAL=0
+fi
 
-          ac_config_files="$ac_config_files Makefile"
+if test "x$enable_trace_x" = "xyes"; then
+	DEBUG_TRACE_X_DEF="define"
+	DEBUG_TRACE_X_VAL=1
+else
+	DEBUG_TRACE_X_DEF="undef"
+	DEBUG_TRACE_X_VAL=0
+fi
+
+if test "x$have_x" != "xyes"; then
+	X_DISPLAY_DEF= "define"
+	X_DISPLAY_VAL=1
+else
+	X_DISPLAY_DEF="undef"
+	X_DISPLAY_VAL=
+fi
+
+
+
+
+
+
+
+
+
+
+
+                    ac_config_files="$ac_config_files afterbase_config.h Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -7321,6 +7361,7 @@ for ac_config_target in $ac_config_targets
 do
   case "$ac_config_target" in
   # Handling of arguments.
+  "afterbase_config.h" ) CONFIG_FILES="$CONFIG_FILES afterbase_config.h" ;;
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h:config.h.in" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
@@ -7458,6 +7499,14 @@ s,@x_libs@,$x_libs,;t t
 s,@LIBPROG@,$LIBPROG,;t t
 s,@LIBINSTALL@,$LIBINSTALL,;t t
 s,@DEFINE_XLOCALE@,$DEFINE_XLOCALE,;t t
+s,@DEBUG_ALLOCS_DEF@,$DEBUG_ALLOCS_DEF,;t t
+s,@DEBUG_ALLOCS_VAL@,$DEBUG_ALLOCS_VAL,;t t
+s,@DEBUG_TRACE_DEF@,$DEBUG_TRACE_DEF,;t t
+s,@DEBUG_TRACE_VAL@,$DEBUG_TRACE_VAL,;t t
+s,@DEBUG_TRACE_X_DEF@,$DEBUG_TRACE_X_DEF,;t t
+s,@DEBUG_TRACE_X_VAL@,$DEBUG_TRACE_X_VAL,;t t
+s,@X_DISPLAY_DEF@,$X_DISPLAY_DEF,;t t
+s,@X_DISPLAY_VAL@,$X_DISPLAY_VAL,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 CEOF

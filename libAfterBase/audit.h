@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include "ashash.h"
 #include "xwrap.h"
+#include "afterbase_config.h"
 
 #ifdef __cplusplus
 extern "C" {
