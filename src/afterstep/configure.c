@@ -1258,14 +1258,20 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 					}
 				}else
                 	clear_flags(what, PARSE_BASE_CONFIG);
-				tmp = safemalloc(strlen( ASIMAGE_PATH_ENVVAR ) + 1 + strlen(Environment->pixmap_path)+1) ;
-				sprintf( tmp, "%s=%s", ASIMAGE_PATH_ENVVAR, Environment->pixmap_path );
-				putenv( tmp );
-				set_string_value( &PixmapPathEnvVar, tmp, NULL, 0 );
-				tmp = safemalloc(strlen( ASFONT_PATH_ENVVAR ) + 1 + strlen(Environment->font_path)+1) ;
-				sprintf( tmp, "%s=%s", ASFONT_PATH_ENVVAR, Environment->font_path );
-				putenv( tmp );
-				set_string_value( &FontPathEnvVar, tmp, NULL, 0 );
+				if( Environment->pixmap_path != NULL ) 
+				{	
+					tmp = safemalloc(strlen( ASIMAGE_PATH_ENVVAR ) + 1 + strlen(Environment->pixmap_path)+1) ;
+					sprintf( tmp, "%s=%s", ASIMAGE_PATH_ENVVAR, Environment->pixmap_path );
+					putenv( tmp );
+					set_string_value( &PixmapPathEnvVar, tmp, NULL, 0 );
+				}
+				if( Environment->font_path ) 
+				{	
+					tmp = safemalloc(strlen( ASFONT_PATH_ENVVAR ) + 1 + strlen(Environment->font_path)+1) ;
+					sprintf( tmp, "%s=%s", ASFONT_PATH_ENVVAR, Environment->font_path );
+					putenv( tmp );
+					set_string_value( &FontPathEnvVar, tmp, NULL, 0 );
+				}
             }
         }else if(get_flags(what, PARSE_LOOK_CONFIG))
 		{  /* must reload Image manager so that changed images would get updated */
