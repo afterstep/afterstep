@@ -696,12 +696,15 @@ destroy_asstorage_block( ASStorageBlock *block )
 }
 
 static int
-select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags )
+select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags, int block_id_start )
 {
 	int i ;
 	int new_block = -1 ; 
 	compressed_size += sizeof(ASStorageSlot);
-	for( i = 0 ; i < storage->blocks_count ; ++i ) 
+	i = block_id_start - 1 ;
+	if( i < 0 ) 
+		i = 0 ;
+	for( ; i < storage->blocks_count ; ++i ) 
 	{
 		ASStorageBlock *block = storage->blocks[i];
 		if( block )
@@ -968,15 +971,19 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 }
 
 static int
-store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compressed_size, ASFlagType flags )
+store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compressed_size, int ref_count, ASFlagType flags )
 {
 	ASStorageSlot *slot ;
 	CARD8 *dst ;
 	slot = select_storage_slot( block, compressed_size );
 	LOCAL_DEBUG_OUT( "selected slot %p for size %d (compressed %d) and flags %lX", slot, size, compressed_size, flags );
+	
+	if( slot == NULL ) 
+		return 0;
+	
 	if( slot > block->end || slot < block->start) 
 	{
-		show_error( "storage slot selected falls outside of allocated memory. Slot = %p, start, end = %p", slot, block->start, block->end );
+		show_error( "storage slot selected falls outside of allocated memory. Slot = %p, start = %p, end = %p", slot, block->start, block->end );
 		return 0;
 	}			  
 	if( &(slot->data[slot->size]) > ((CARD8*)(block->start)) + block->size) 
@@ -990,8 +997,6 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 		return 0;
 	}			  
 		
-	if( slot == NULL ) 
-		return 0;
 	LOCAL_DEBUG_OUT( "block = %p", block );
 	if( ASStorageSlot_USABLE_SIZE(slot) >= compressed_size+ASStorageSlot_SIZE ) 
 		if( !split_storage_slot( block, slot, compressed_size ) ) 
@@ -1006,7 +1011,7 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	LOCAL_DEBUG_OUT( "dst = %p", dst );
 	memcpy( dst, data, compressed_size );
 	slot->flags = (flags | ASStorage_Used) ;
-	slot->ref_count = 0;
+	slot->ref_count = ref_count;
 	slot->size = compressed_size ;
 	slot->uncompressed_size = size ;
 
@@ -1023,6 +1028,36 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
  
 	return slot->index+1 ;
 }
+
+
+static ASStorageID 
+store_compressed_data( ASStorage *storage, CARD8* data, int size, int compressed_size, int ref_count, ASFlagType flags )
+{
+	int id = 0 ;
+	int block_id = 0;
+	
+	do
+	{	
+		block_id = select_storage_block( storage, compressed_size, flags, block_id );
+		LOCAL_DEBUG_OUT( "selected block %d", block_id );
+		if( block_id > 0 ) 
+		{
+			int slot_id = store_data_in_block(  storage->blocks[block_id-1], 
+												data, size, 
+												compressed_size, ref_count, flags );
+
+			LOCAL_DEBUG_OUT( "slot id %d", slot_id );
+			if( slot_id > 0 )	
+				id = make_asstorage_id( block_id, slot_id );
+			else
+				if( storage->blocks[block_id-1]->total_free >= compressed_size ) 
+					break;
+		}
+	}while( block_id != 0 && id == 0 );
+	return id ;		
+}	  
+
+
 
 
 static inline ASStorageBlock *
@@ -1082,38 +1117,62 @@ static ASStorageSlot *
 convert_slot_to_ref( ASStorage *storage, ASStorageID id )	
 {
 	int block_idx = StorageID2BlockIdx(id);
-	ASStorageBlock *block = find_storage_block(storage, id);
+	ASStorageBlock *block;
 	ASStorageID target_id = 0;
 	int slot_id = 0 ;
 	int ref_index, body_index ;
 	ASStorageSlot *ref_slot, *body_slot ;
 	
-	if( block->total_free < sizeof(ASStorageID))
-		return NULL ; 
+	block = find_storage_block(storage, id);
 	
-	slot_id = store_data_in_block(  block, (CARD8*)&target_id, 
-									sizeof(ASStorageID), sizeof(ASStorageID), 
-									ASStorage_Reference );
-	if( slot_id <= 0 )
-		return NULL ; 
+	LOCAL_DEBUG_OUT( "block = %p, block->total_free = %d", block, block->total_free );
+	/* Two strategies here - 1 - the fast one - we try to allocate new slot 
+	 * and avoid copying the body of the data over - we can do that only if
+	 * there is enough space in its block, otherwise we have to relocate it 
+	 * into different block, which is slower.
+	 */
+	if( block->total_free > sizeof(ASStorageID))
+	{	
+		slot_id = store_data_in_block(  block, (CARD8*)&target_id, 
+										sizeof(ASStorageID), sizeof(ASStorageID), 0, 
+										ASStorage_Reference );
+	}
+	LOCAL_DEBUG_OUT( "block = %p, block->total_free = %d, slot_id = 0x%X", block, block->total_free, slot_id );
 	
-	/* now we need to swap contents of the slots */
-	ref_index = slot_id-1 ;
-	ref_slot = block->slots[ref_index] ;
+	if( slot_id > 0 )
+	{ 	/* We can use fast strategy : now we need to swap contents of the slots */
+		ref_index = slot_id-1 ;
+		ref_slot = block->slots[ref_index] ;
 	
-	body_index = StorageID2SlotIdx(id) ; 
-	body_slot = block->slots[body_index] ;
+		body_index = StorageID2SlotIdx(id) ; 
+		body_slot = block->slots[body_index] ;
 	
-	block->slots[ref_index] = body_slot ;
-	body_slot->index = ref_index ;
+		block->slots[ref_index] = body_slot ;
+		body_slot->index = ref_index ;
 
-	block->slots[body_index] = ref_slot ; 
-	ref_slot->index = body_index ;
+		block->slots[body_index] = ref_slot ; 
+		ref_slot->index = body_index ;
 
-	target_id = make_asstorage_id( block_idx+1, slot_id );
-	memcpy( &(ref_slot->data[0]), (CARD8*)&target_id, sizeof(ASStorageID));
-
-	body_slot->ref_count = 1;
+		target_id = make_asstorage_id( block_idx+1, slot_id );
+		body_slot->ref_count = 1;
+	}else
+	{/* otherwise we have to relocate the actuall body into a different block, 
+	  * which is somewhat tricky : */
+		ref_index = StorageID2SlotIdx(id); ;
+		ref_slot = block->slots[ref_index] ;
+		
+		target_id = store_compressed_data( storage, &(ref_slot->data[0]), 
+										   ref_slot->uncompressed_size, 
+										   ref_slot->size, ref_slot->ref_count+1, ref_slot->flags );
+		if( target_id == 0 ) 
+			return NULL;		
+		
+		split_storage_slot( block, ref_slot, sizeof(ASStorageID));
+		ref_slot->uncompressed_size = sizeof(ASStorageID) ; 
+		set_flags( ref_slot->flags, ASStorage_Reference );
+		clear_flags( ref_slot->flags, ASStorage_CompressionType );
+	}	 
+	memcpy( &(ref_slot->data[0]), (CARD8*)&target_id, sizeof(ASStorageID));				 
 
 	return ref_slot;
 }
@@ -1308,9 +1367,6 @@ flush_default_asstorage()
 ASStorageID 
 store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bitmap_threshold)
 {
-	int id = 0 ;
-	int block_id ;
-	int slot_id ;
 	int compressed_size = size ;
 	CARD8 *buffer = data;
 	CARD32 bitmap_threshold32 = bitmap_threshold ;
@@ -1326,19 +1382,10 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bi
 	if( !get_flags(flags, ASStorage_Reference))
 		if( get_flags( flags, ASStorage_CompressionType ) || get_flags( flags, ASStorage_32Bit ) )
 			buffer = compress_stored_data( storage, data, size, &flags, &compressed_size, bitmap_threshold32 );
-	block_id = select_storage_block( storage, compressed_size, flags );
-	LOCAL_DEBUG_OUT( "selected block %d", block_id );
-	if( block_id > 0 ) 
-	{
-		slot_id = store_data_in_block(  storage->blocks[block_id-1], 
-										buffer, get_flags( flags, ASStorage_32Bit )?size/4:size, 
-										compressed_size, flags );
-
-		LOCAL_DEBUG_OUT( "slot id %d", slot_id );
-		if( slot_id > 0 )	
-			id = make_asstorage_id( block_id, slot_id );
-	}
-	return id ;		
+	
+	return store_compressed_data( storage, buffer, 
+								  get_flags( flags, ASStorage_32Bit )?size/4:size, 
+								  compressed_size, 0, flags );
 }
 
 
@@ -1535,20 +1582,27 @@ dup_data(ASStorage *storage, ASStorageID id)
 			ASStorageID target_id = id ;
 			if( !get_flags( slot->flags, ASStorage_Reference )) 
 			{	
-				if( (slot = convert_slot_to_ref( storage, id )) == NULL ) 
-					return 0;
+				ASStorageSlot *new_slot = convert_slot_to_ref( storage, id );
+				if( new_slot != NULL ) 
+					slot = new_slot;
 			}
+				
+			if( get_flags( slot->flags, ASStorage_Reference )) 
+			{   
+				memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));
+				/* from now on - slot is a reference slot, so we just need to 
+			 	 * duplicate it and increase ref_count of target */
+				target_slot = find_storage_slot( find_storage_block( storage, target_id ), target_id );
+			}else
+				target_slot = slot ; 	
 			
-			memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));
-			/* from now on - slot is a reference slot, so we just need to 
-			 * duplicate it and increase ref_count of target */
-			target_slot = find_storage_slot( find_storage_block( storage, target_id ), target_id );
+			LOCAL_DEBUG_OUT( "target_slot = %p, slot = %p", target_slot, slot );
 			if( target_slot == NULL ) 
 				return 0;
 			/* doing it here as store_data() may change slot pointers */
 			++(target_slot->ref_count);			   
-
 			new_id = store_data( storage, (CARD8*)&target_id, sizeof(ASStorageID), ASStorage_Reference, 0);
+			LOCAL_DEBUG_OUT( "new_id = 0x%lX", new_id );
 		}
 	}
 	return new_id;

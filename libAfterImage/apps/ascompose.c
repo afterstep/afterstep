@@ -206,6 +206,7 @@ void usage(void) {
  * parameters are given :
  * SOURCE
  */
+#if 1
 static char* default_doc_str = "\
 <composite op=hue>\
   <composite op=add>\
@@ -218,6 +219,11 @@ static char* default_doc_str = "\
 <printf format=\"original image height=%d\n\" var=\"rose.height\"/>\
 <printf format=\"original image size in pixels=%d\n\" val=$rose.width*$rose.height/>\
 ";
+#else	
+static char* default_doc_str = "\
+    <scale width=512 height=proportional><img id=rose src=rose512.jpg/></scale>\
+";
+#endif
 /*******/
 /* <printf format="original image height=%d\n" var="rose.height"/>
 	<printf format="original image size in pixels=%d\n" val=$rose.width*$rose.height/>
@@ -422,6 +428,7 @@ int main(int argc, char** argv) {
 		if (display && dpy)
 		{
 			showimage(im, False, make_main_window(onroot, &main_window_props), &main_window_props);
+			LOCAL_DEBUG_OUT( "Image %p displayed", im );
 		}
 		/* Done with the image, finally. */
 		if( im ) 
@@ -838,6 +845,7 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 	p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, True );
 	p = set_window_background_and_free( main_window, p );
 	XSync(dpy, False);
+#if 0
 #ifdef SHAPE
 	if( shape_rects == NULL || shape_rects_count == 0 ) 
 		XShapeCombineMask( dpy, main_window, ShapeBounding, 0, 0, None, ShapeSet );
@@ -847,6 +855,7 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 		free( shape_rects );
 		shape_rects = NULL ;
 	}
+#endif		   
 #endif		   
 	XSync(dpy, False);
 	if( im != orig_im ) 

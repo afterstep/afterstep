@@ -17,7 +17,7 @@
  */
 
 #undef LOCAL_DEBUG
-#undef DO_CLOCKING
+#define DO_CLOCKING
 #undef DEBUG_HSV_ADJUSTMENT
 #define USE_64BIT_FPU
 #undef NEED_RBITSHIFT_FUNCS
