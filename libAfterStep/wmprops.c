@@ -74,6 +74,7 @@ Atom          _AS_VIRTUAL_ROOT = None;
 Atom          _AS_DESK_NUMBERS = None;
 Atom          _AS_CURRENT_DESK = None;
 Atom          _AS_CURRENT_VIEWPORT = None;
+Atom  		  _AS_SERVICE_WINDOW = None;
 
 /* Crossreferences of atoms into flag value for
    different atom list type of properties :*/
@@ -122,6 +123,7 @@ AtomXref  _WMPropAtoms[] = {
 	{"_AS_DESK_NUMBERS", &_AS_DESK_NUMBERS},   /* translation of the continuous range of */
     {"_AS_CURRENT_DESK", &_AS_CURRENT_DESK},   /* current afterstep desk */
     {"_AS_CURRENT_VIEWPORT", &_AS_CURRENT_VIEWPORT},   /* current afterstep viewport */
+    {"_AS_SERVICE_WINDOW", &_AS_SERVICE_WINDOW},   /* current afterstep Scr.ServiceWin */
     {NULL, NULL, 0, None}
 };
 
@@ -598,6 +600,26 @@ read_as_virtual_root (ASWMProps * wmprops, Bool deleted)
 	return False;
 }
 
+Bool
+read_as_service_window (ASWMProps * wmprops, Bool deleted)
+{
+	if (wmprops)
+	{
+        CARD32        swin_id = None;
+
+		if (deleted)
+			return False;
+		if (read_32bit_property (wmprops->selection_window, _AS_SERVICE_WINDOW, &swin_id))
+		{
+			wmprops->as_service_window = (Window) swin_id;
+			return True;
+		}
+	}
+	return False;
+}
+
+
+
 /******************** Property management functions: **************************/
 
 void
@@ -656,6 +678,7 @@ prop_description_struct WMPropsDescriptions_volitile[] = {
 	{&_AS_VISUAL, read_as_visual, WMC_ASVisual, 0},
 	{&_AS_MODULE_SOCKET, read_as_module_socket, WMC_ASModule, 0},
 	{&_AS_VIRTUAL_ROOT, read_as_virtual_root, WMC_ASVirtualRoot, 0},
+	{&_AS_SERVICE_WINDOW, read_as_service_window, WMC_ASServiceWindow, 0},
 	{NULL, NULL, 0, 0}
 };
 
@@ -809,7 +832,10 @@ setup_wmprops (ScreenInfo * scr, Bool manager, ASFlagType what, ASWMProps * reus
 
 		read_root_wmprops (wmprops, manager);
 		if (!manager)
+		{	
 			read_volitile_wmprops (wmprops);
+			scr->ServiceWin = wmprops->as_service_window ;
+		}
 	}
 	return wmprops;
 }
@@ -1124,6 +1150,18 @@ set_desktop_geometry_prop (ASWMProps * wmprops, CARD32 width, CARD32 height)
 		return True;
     }
 	return False;
+}
+
+void
+set_service_window_prop (ASWMProps * wmprops, Window service_win)
+{
+	if (wmprops)
+	{
+        if ( wmprops->as_service_window == service_win )
+			return ;
+        wmprops->as_service_window = service_win ;
+        set_32bit_property (wmprops->selection_window, _AS_SERVICE_WINDOW, XA_WINDOW, service_win);
+    }
 }
 
 

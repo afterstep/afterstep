@@ -51,6 +51,7 @@ extern Atom  _AS_VIRTUAL_ROOT            ;
 extern Atom  _AS_DESK_NUMBERS            ;
 extern Atom  _AS_CURRENT_DESK            ;
 extern Atom  _AS_CURRENT_VIEWPORT        ;
+extern Atom  _AS_SERVICE_WINDOW          ;
 
 extern struct AtomXref *WMPropAtoms;    /*all top level atoms for purpose of easy interning */
 
@@ -76,7 +77,8 @@ typedef enum
     WMC_ASModule        = (0x01<<12),
     WMC_ASVirtualRoot   = (0x01<<13),
     WMC_ASDesks         = (0x01<<14),
-    WMC_ASViewport      = (0x01<<15)
+    WMC_ASViewport      = (0x01<<15),
+    WMC_ASServiceWindow = (0x01<<16)
 }WMPropClass;
 
 
@@ -152,6 +154,8 @@ typedef struct ASWMProps
 
     ASFlagType     my_props ;
     ASFlagType     set_props ;
+
+	Window 	as_service_window ;
 }ASWMProps;
 
 /*************************************************************************/
@@ -186,6 +190,7 @@ Bool set_desktop_geometry_prop (ASWMProps * wmprops, CARD32 width, CARD32 height
 void set_clients_list (ASWMProps * wmprops, Window *list, int nclients);
 void set_stacking_order (ASWMProps * wmprops, Window *list, int nclients);
 void set_active_window_prop (ASWMProps * wmprops, Window active);
+void set_service_window_prop (ASWMProps *wmprops, Window service_win );
 
 void flush_wmprop_data(ASWMProps *wmprops, ASFlagType what );
 

@@ -99,6 +99,7 @@ int main(int argc, char* argv[])
 		depth = DefaultDepth( dpy, screen );
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
+		/*asv = create_asvisual_for_id( dpy, screen, depth, 0x25, None, NULL ); */
 
 #if 0		 
 		/* test example for fill_asimage : */
@@ -132,10 +133,11 @@ int main(int argc, char* argv[])
 	  		p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
 	
 			{
+				/*int i ;*/
 				START_TIME(started);
 				time_t t = time(NULL);
 				/* for( i = 0 ; i < 100 ; ++i )  */
-				asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
+					asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
 				SHOW_TIME("", started);
 				show_progress( "runtime = %d sec\n", time(NULL)-t );
 			}

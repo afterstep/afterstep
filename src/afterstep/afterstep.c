@@ -350,6 +350,7 @@ CreateManagementWindows()
     Scr.ServiceWin = create_visual_window (Scr.asv, Scr.Root, 0, 0, 1, 1, 0,
                                            InputOutput, CWEventMask | CWOverrideRedirect,
                                            &attr);
+	set_service_window_prop (Scr.wmprops, Scr.ServiceWin);
 	LOCAL_DEBUG_OUT( "Scr.ServiceWin = %lX;", Scr.ServiceWin );
     XMapRaised (dpy, Scr.ServiceWin);
     XSetInputFocus (dpy, Scr.ServiceWin, RevertToParent, CurrentTime);

@@ -2051,8 +2051,8 @@ check_swallow_window( ASWindowData *wd )
 	}
     if( w != None )
         w = get_parent_window( w );
-    LOCAL_DEBUG_OUT( "second parent %lX, root %lX", w, Scr.Root );
-    if( w != Scr.Root )
+    LOCAL_DEBUG_OUT( "second parent %lX, root %lX, service_win = %lX", w, Scr.Root, Scr.ServiceWin );
+    if( w != Scr.Root && w != Scr.ServiceWin)
 	{
 		ungrab_server();
 		return ;
