@@ -768,39 +768,38 @@ enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int 
 {/* we skip all checks as it is static function and we want to optimize it
   * as much as possible */
 	int i = 0;
-	int c1 = src[0], c4 = src[1];
-	register int k = 0;
+	int c1 = src[0];
 LOCAL_DEBUG_OUT( "len = %d", len );
-	--len; --len;
-	while( i <= len )
+	--len ;
+	do
 	{
 		register int step = INTERPOLATION_TOTAL_STEP(src[i],src[i+1]);
-		register int n = 0, T ;
+		register int T ;
 		register short S = scales[i];
 
 /*		LOCAL_DEBUG_OUT( "pixel %d, S = %d, step = %d", i, S, step );*/
-		if( i < len )
-			c4 = src[i+2];
-		T = INTERPOLATION_TOTAL_START(c1,src[i],src[i+1],c4,S);
-		if( step == 0 )
+		T = INTERPOLATION_TOTAL_START(c1,src[i],src[i+1],src[i+2],S);
+		if( step )
 		{
-			register CARD32 c = ((T&0xFF000000)!=0)?0:INTERPOLATE_N_COLOR(T,S);
-			do{	dst[k+n] = c;	}while(++n < S);
-		}else
-		{
+			register int n = 0 ;
 			do
 			{
-				dst[k+n] = (T&0xFF000000)?0:INTERPOLATE_N_COLOR(T,S);
+				dst[n] = (T&0x7F000000)?0:INTERPOLATE_N_COLOR(T,S);
 				if( ++n >= S ) break;
 				(int)T += (int)step;
 			}while(1);
+			dst += n ;
+		}else
+		{
+			register CARD32 c = (T&0x7F000000)?0:INTERPOLATE_N_COLOR(T,S);
+			while(--S >= 0){	dst[S] = c;	}
+			dst += scales[i] ;
 		}
 		c1 = src[i];
-/*		dst[k] = INTERPOLATE_COLOR1(src[i]) ;*/
-		k += n ;
-		++i;
-	}
-	dst[k] = INTERPOLATE_COLOR1(c4) ;
+		if( ++i >= len ) 
+			break;
+	}while(1);
+	*dst = INTERPOLATE_COLOR1(src[i]) ;
 /*LOCAL_DEBUG_OUT( "%d pixels written", k );*/
 }
 
@@ -871,6 +870,7 @@ static inline void
 add_component( CARD32 *src, CARD32 *incr, int *scales, int len )
 {
 	int i = 0;
+
 	len += len&0x01;
 #ifdef HAVE_MMX
 	if( asimage_use_mmx )
@@ -989,35 +989,47 @@ static inline void
 fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int len )
 {/* we carry half of the quantization error onto the following pixel and store it in dst: */
 	register int i = 0;
-	register CARD32 c = 0, err = 0;
 	if( ratio <= 1 )
 	{
+		register int c = src[0];
   	    do
 		{
-			if( (int)src[i] < 0 )
-				dst[i] = 0;
-			else
-			{
-				c += src[i] ;
-				dst[i] = c>>QUANT_ERR_BITS ;
-			}
-			c = (c&QUANT_ERR_MASK)>>1 ;
-		}while( ++i < len );
+			if( c&0xFFFF0000 ) 
+				c = ( c&0x7F000000 )?0:0x0000FFFF;
+			dst[i] = c>>(QUANT_ERR_BITS) ;
+			if( ++i >= len ) 
+				break;
+			c = ((c&QUANT_ERR_MASK)>>(QUANT_ERR_BITS+1))+src[i];
+		}while(1);
 	}else if( ratio == 2 )
 	{
+		register CARD32 c = src[0];
   	    do
 		{
-			c = (((src[i]&0xFF000000)!=0)?0:src[i]>>1)+err;
- 			err = (c&QUANT_ERR_MASK)>>1 ;
- 			dst[i] = c>>QUANT_ERR_BITS ;
-		}while( ++i < len );
+			if( c&0xFFFF0000 ) 
+				c = ( c&0x7F000000 )?0:0x00007FFF;
+			else
+				c = c>>1 ;
+			dst[i] = c>>(QUANT_ERR_BITS) ;
+			if( ++i >= len ) 
+				break;
+			c = ((c&QUANT_ERR_MASK)>>(QUANT_ERR_BITS+1))+src[i];
+		}while( 1 );
 	}else
+	{
+		register CARD32 c = src[0];
   	    do
 		{
-			c = (((src[i]&0xFF000000)!=0)?0:src[i]/ratio)+err;
-			dst[i] = c>>QUANT_ERR_BITS;
- 			err = (c&QUANT_ERR_MASK)>>1 ;
-		}while( ++i < len );
+			if( c&0xFFFF0000 ) 
+				c = ( c&0x7F000000 )?0:0x0000FFFF;
+			
+			c = c/ratio ;
+			dst[i] = c>>(QUANT_ERR_BITS) ;
+			if( ++i >= len ) 
+				break;
+			c = ((c&QUANT_ERR_MASK)>>(QUANT_ERR_BITS+1))+src[i];
+		}while(1);
+	}
 }
 
 static inline void
@@ -1281,6 +1293,7 @@ put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, 
 #ifdef LOCAL_DEBUG
     static int debug_count = 10 ;
 #endif
+
 /*fprintf( stderr, "bpp = %d, MSBFirst = %d \n", bpp, byte_order==MSBFirst ) ;*/
 	if (BGR_mode != byte_order)
 	{
@@ -1323,7 +1336,6 @@ LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 			i = 0 ;
 			do
 			{
-/*				c += (g[i-step]<<20) | (g[i]<<10) | (g[i+step]); */
 				if (byte_order == MSBFirst)
 					src[i] = ((c>>17)&0x0007)|((c>>1)&0xE000)|((c>>20)&0x00F8)|((c<<5)&0x1F00);
 				else
@@ -1334,14 +1346,17 @@ LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 				c = ((c>>1)&0x00300403)+((g[i-step]<<20) | (g[i]<<10) | (g[i+step]));
 				{
 					register CARD32 d = c&0x300C0300 ;
-					if( c&0x30000000 )
-						d |= 0x0FF00000;
-					if( c&0x000C0000 )
-						d |= 0x0003FC00 ;
-					if( c&0x00000300 )
-						d |= 0x000000FF ;
+					if( d ) 
+					{
+						if( c&0x30000000 )
+							d |= 0x0FF00000;
+						if( c&0x000C0000 )
+							d |= 0x0003FC00 ;
+						if( c&0x00000300 )
+							d |= 0x000000FF ;
+						c ^= d;
+					}
 /*fprintf( stderr, "c = 0x%X, d = 0x%X, c^d = 0x%X\n", c, d, c^d );*/
-					c ^= d;
 				}
 			}while(1);
 #else
@@ -1407,14 +1422,17 @@ LOCAL_DEBUG_OUT( "writing row in 15bpp with %s: ", (byte_order == MSBFirst)?"MSB
 				c = ((c>>1)&0x00300C03)+((g[i-step]<<20) | (g[i]<<10) | (g[i+step]));
 				{
 					register CARD32 d = c&0x300C0300 ;
-					if( c&0x30000000 )
-						d |= 0x0FF00000;
-					if( c&0x000C0000 )
-						d |= 0x0003FC00 ;
-					if( c&0x00000300 )
-						d |= 0x000000FF ;
+					if( d )
+					{
+						if( c&0x30000000 )
+							d |= 0x0FF00000;
+						if( c&0x000C0000 )
+							d |= 0x0003FC00 ;
+						if( c&0x00000300 )
+							d |= 0x000000FF ;
 /*fprintf( stderr, "c = 0x%X, d = 0x%X, c^d = 0x%X\n", c, d, c^d );*/
-					c ^= d;
+						c ^= d;
+					}
 				}
 			}while(1);
 	} else
@@ -1449,7 +1467,7 @@ output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 			else
 				SCANLINE_MOD(fast_output_filter_mod,*(imout->used),0,imout->used->width);
 		}
-#ifdef LOCAL_DEBUG
+#if 0
 		LOCAL_DEBUG_OUT( "output line %d :", imout->next_line );
 		SCANLINE_MOD(print_component,*(imout->used),1,imout->used->width);
 #endif
