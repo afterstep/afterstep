@@ -825,7 +825,7 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
 
 	if( id )
 	{
-		i = fetch_data32( NULL, id, to_buf, skip, out_width, 0);
+		i = fetch_data32( NULL, id, to_buf, skip, out_width, 0, NULL);
         LOCAL_DEBUG_OUT( "decoded %d pixels", i );
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
         {

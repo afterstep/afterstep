@@ -427,6 +427,10 @@ ReloadASEnvironment( ASImageManager **old_imageman, ASFontManager **old_fontman,
 	else
 		Scr.VyMax = 0 ;
 	Scr.VScale = e->desk_scale;
+	if( Scr.VScale <= 1 ) 
+		Scr.VScale = 2 ;
+	else if( Scr.VScale >= Scr.MyDisplayHeight/2 ) 
+		Scr.VScale = Scr.MyDisplayHeight/2 ;
 
 	return (config!=NULL);
 }

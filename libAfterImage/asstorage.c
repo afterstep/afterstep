@@ -520,7 +520,10 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 	CARD8  *buffer = data ;
 	size_t 	buf_size = size ; 
 	
-	if( get_flags( *flags, ASStorage_RLEDiffCompress ) && size > ASStorageSlot_SIZE)
+	if( size < ASStorageSlot_SIZE ) 
+		clear_flags( *flags, ASStorage_RLEDiffCompress );
+
+	if( get_flags( *flags, ASStorage_RLEDiffCompress ) )
 	{
 		int uncompressed_size = size ;
 
@@ -1380,20 +1383,21 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 
 static inline int  
 fetch_data_int( ASStorage *storage, ASStorageID id, ASStorageDstBuffer *buffer, int offset, int buf_size, CARD8 bitmap_value, 
-		  		data_cpy_func_type cpy_func)
+		  		data_cpy_func_type cpy_func, int *original_size)
 {
 	ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
 	LOCAL_DEBUG_OUT( "slot = %p", slot );
 	if( slot )
 	{
 		int uncomp_size = slot->uncompressed_size ;
+		*original_size = uncomp_size ;
 		if( get_flags( slot->flags, ASStorage_Reference) )
 		{
 			ASStorageID target_id = 0;
 			memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
 			LOCAL_DEBUG_OUT( "target_id = %lX", target_id );
 			if( target_id != 0 ) 
-				return fetch_data_int(storage, target_id, buffer, offset, buf_size, bitmap_value, cpy_func);
+				return fetch_data_int(storage, target_id, buffer, offset, buf_size, bitmap_value, cpy_func, original_size);
 			else
 				return 0;
 		}	 
@@ -1409,6 +1413,10 @@ fetch_data_int( ASStorage *storage, ASStorageID id, ASStorageDstBuffer *buffer, 
 													uncomp_size, slot->flags, bitmap_value );
 			while( offset > uncomp_size ) offset -= uncomp_size ; 
 			while( offset < 0 ) offset += uncomp_size ; 
+			
+			if( get_flags( slot->flags, ASStorage_NotTileable ) )
+				if( buf_size > uncomp_size - offset ) 
+					buf_size = uncomp_size - offset ;
 			if( offset > 0 ) 
 			{
 				int to_copy = uncomp_size-offset ; 
@@ -1417,6 +1425,7 @@ fetch_data_int( ASStorage *storage, ASStorageID id, ASStorageDstBuffer *buffer, 
 				cpy_func( buffer, tmp+offset, to_copy ); 															
 				buffer->offset = to_copy ;
 			}
+			LOCAL_DEBUG_OUT( "offset = %d", buffer->offset );
 			while( buffer->offset < buf_size ) 
 			{
 				int to_copy = buf_size - buffer->offset ; 
@@ -1556,34 +1565,42 @@ store_data_tinted(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, C
 
 
 int  
-fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int buf_size, CARD8 bitmap_value)
+fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int buf_size, CARD8 bitmap_value, int *original_size)
 {
+	int dumm ; 
 	if( storage == NULL ) 
 		storage = get_default_asstorage();
-	
+
+	if( original_size == NULL ) 
+		original_size = &dumm ;
+	*original_size = 0;
 	if( storage != NULL && id != 0 )
 	{	
 		ASStorageDstBuffer buf ; 
 		buf.offset = 0 ; 
 		buf.buffer = buffer ;
-		return fetch_data_int( storage, id, &buf, offset, buf_size, bitmap_value, card8_card8_cpy );
+		return fetch_data_int( storage, id, &buf, offset, buf_size, bitmap_value, card8_card8_cpy, original_size );
 	}
 	return 0 ;	 
 }
 
 int  
-fetch_data32(ASStorage *storage, ASStorageID id, CARD32 *buffer, int offset, int buf_size, CARD8 bitmap_value)
+fetch_data32(ASStorage *storage, ASStorageID id, CARD32 *buffer, int offset, int buf_size, CARD8 bitmap_value, int *original_size)
 {
+	int dumm ;
 	if( storage == NULL ) 
 		storage = get_default_asstorage();
 	
+	if( original_size == NULL ) 
+		original_size = &dumm ;
+	*original_size = 0;
 	if( storage != NULL && id != 0 )
 	{
 		ASStorageDstBuffer buf ; 
 		buf.offset = 0 ; 
 		buf.buffer = buffer ;
 	  	
-		return fetch_data_int( storage, id, &buf, offset, buf_size, bitmap_value, card8_card32_cpy );
+		return fetch_data_int( storage, id, &buf, offset, buf_size, bitmap_value, card8_card32_cpy, original_size );
 	}
 	return 0 ;	
 }
@@ -1597,6 +1614,7 @@ threshold_stored_data(ASStorage *storage, ASStorageID id, unsigned int *runs, in
 	if( storage != NULL && id != 0 )
 	{
 		ASStorageDstBuffer buf ; 
+		int dumm = 0 ;
 		buf.offset = 0 ; 
 		buf.buffer = runs ;
 
@@ -1607,7 +1625,7 @@ threshold_stored_data(ASStorage *storage, ASStorageID id, unsigned int *runs, in
 #ifdef DEBUG_THRESHOLD	  
 		fprintf( stderr, __FUNCTION__ ": id = 0x%lX, width = %d, threshold = %d\n", id, width, threshold );
 #endif
-		if( fetch_data_int( storage, id, &buf, 0, width, threshold, card8_threshold ) > 0 ) 
+		if( fetch_data_int( storage, id, &buf, 0, width, threshold, card8_threshold, &dumm) > 0 ) 
 		{
 			if( buf.start >= 0 && buf.end >= buf.start )
 			{
@@ -2038,7 +2056,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 		int size ;
 		int res ;
 		fprintf(stderr, "Testing fetch_data for id %lX size = %d ...", Tests[i].id, Tests[i].size);
-		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0, NULL);
 		TEST_EVAL( size == Tests[i].size ); 
 		
 		fprintf(stderr, "Testing fetched data integrity ...");
@@ -2052,7 +2070,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 			int size ;
 			int res ;
 			fprintf(stderr, "Testing fetch_data32 for id %lX size = %d ...", Tests[i].id, Tests[i].size);
-			size = fetch_data32(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size/4, 0);
+			size = fetch_data32(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size/4, 0, NULL);
 			TEST_EVAL( size == Tests[i].size/4 ); 
 		
 			fprintf(stderr, "Testing fetched data integrity ...");
@@ -2072,7 +2090,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 			continue;
 		fprintf(stderr, "%d: Testing forget_data for id %lX size = %d ...\n", __LINE__, Tests[i].id, Tests[i].size);
 		forget_data(storage, Tests[i].id);
-		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0 );
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0, NULL );
 		TEST_EVAL( size != Tests[i].size ); 
 		Tests[i].id = 0;
 #ifndef DEBUG_ALLOCS
@@ -2117,7 +2135,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 		int size ;
 		int res ;
 		fprintf(stderr, "Testing fetch_data for id %lX size = %d ...", Tests[i].id, Tests[i].size);
-		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0, NULL);
 		TEST_EVAL( size == Tests[i].size ); 
 		
 		fprintf(stderr, "Testing fetched data integrity ...");
@@ -2136,7 +2154,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 			continue;
 		fprintf(stderr, "%d: Testing forget_data for id %lX size = %d ...\n", __LINE__, Tests[i].id, Tests[i].size);
 		forget_data(storage, Tests[i].id);
-		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0, NULL);
 		TEST_EVAL( size != Tests[i].size ); 
 		Tests[i].id = 0;
 #ifndef DEBUG_ALLOCS
@@ -2179,7 +2197,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 			Tests[i].size = Tests[k].size ;
 			Tests[i].data = Tests[k].data ;
 			Tests[i].linked = True ;
-			size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0);
+			size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0, NULL);
 			TEST_EVAL( size == Tests[i].size ); 
 		
 			fprintf(stderr, "Testing dupped data integrity ...\n");
@@ -2199,7 +2217,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 				continue;
 			fprintf(stderr, "%d: Testing forget_data for id %lX size = %d ...\n", __LINE__, Tests[i].id, Tests[i].size);
 			forget_data(storage, Tests[i].id);
-			size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0);
+			size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0, NULL);
 			TEST_EVAL( size != Tests[i].size ); 
 			Tests[i].id = 0;
 			if( !Tests[i].linked ) 

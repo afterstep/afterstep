@@ -170,7 +170,7 @@ typedef struct ASProperty {
 #define ASProp_Indexed				(0x01<<0)	
 	ASFlagType flags ;
 	
-	int id ;                 /* same a options IDs from autoconf.h */
+	ASStorageID id ;                 /* same a options IDs from autoconf.h */
 
 	ASPropContentsType type ;
 	char *name ;
@@ -325,11 +325,12 @@ DeadPipe (int foo)
 	}
     exit (0);
 }
-
-
+/*************************************************************************/
+/*************************************************************************/
 void load_hierarchy();
-
-
+void print_hierarchy( ASProperty *root, int level );
+/*************************************************************************/
+/*************************************************************************/
 int
 main (int argc, char **argv)
 {
@@ -337,7 +338,10 @@ main (int argc, char **argv)
     InitMyApp (CLASS_ASCONFIG, argc, argv, NULL, NULL, 0 );
 	InitSession();
 
+	LOCAL_DEBUG_OUT("loading hierarchy%s","");
 	load_hierarchy();
+	
+	print_hierarchy(Root, 0);
 	
 	if( dpy )   
     	XCloseDisplay (dpy);
@@ -432,6 +436,42 @@ void destroy_property( void *data )
 	}
 }	 
 
+ASProperty *
+special_free_storage2property( FreeStorageElem *curr )
+{
+	ASProperty *prop = NULL ;
+	int type = curr->term->type ;
+	if( type == MYSTYLE_BACKGRADIENT_ID ) 
+	{
+				/* TODO */				   
+	}else if( type == MYSTYLE_BACKGRADIENT_ID ) 
+	{
+				/* TODO */				   
+	}else if( type == MYSTYLE_BACKPIXMAP_ID )
+	{
+				/* TODO */				   
+	}
+
+	switch( curr->term->type ) 
+	{	
+	 	case TT_SPECIAL : 	/* should be handled based on its type : */ 
+			if( type == WHARF_Wharf_ID )			
+			{
+				/* TODO */				
+				
+			}	 
+			break ;
+	 	case TT_FUNCTION : 	/* TODO */ break ;
+	 	case TT_BOX :		/* TODO */ break ;
+	 	case TT_BUTTON :	/* TODO */ break ;
+	 	case TT_BINDING : 	/* TODO */ break ;
+	 	case TT_INTARRAY : 	/* TODO */ break ;
+	 	case TT_CURSOR : 	/* TODO */ break ;
+	}
+
+	return prop;
+}
+
 void 
 free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 {
@@ -439,6 +479,7 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 	ConfigItem    item;
 	ASProperty *prop ;
 	
+	LOCAL_DEBUG_CALLER_OUT("(%p,%p)", fs, pl );	  
 	item.memory = NULL;
 	
 	while( curr ) 
@@ -475,16 +516,16 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 					case TT_TEXT : 
 					case TT_QUOTED_TEXT :
 					case TT_OPTIONAL_PATHNAME : type = ASProp_Data ; break ;
-					case TT_GEOMETRY :	 /* handled by special_ as complex datatype */ break ;
-					case TT_SPECIAL : 	/* handled by special_ as complex datatype */ break ;
-					case TT_FUNCTION : 	/* handled by special_ as complex datatype */ break ;
-					case TT_BOX :		/* handled by special_ as complex datatype */ break ;
-					case TT_BUTTON :	/* handled by special_ as complex datatype */ break ;
-					case TT_BINDING : 	/* handled by special_ as complex datatype */ break ;
-					case TT_INTARRAY : 	/* handled by special_ as complex datatype */ break ;
-					case TT_CURSOR : 	/* handled by special_ as complex datatype */ break ;
+					default:
+					/* handled by special_ as complex datatype */ break ;
 				}	 
 				prop = create_property( curr->term->id, type, name, (curr->sub != NULL) );	 
+				if( type == ASProp_Data ) 
+				{
+					prop->contents.data = store_data( NULL, item.data.string, strlen(item.data.string)+1, ASStorage_RLEDiffCompress|ASStorage_NotTileable, 0);
+					/* LOCAL_DEBUG_OUT( "stored with id = %d, string = \"%s\"", prop->contents.data, item.data.string ); */
+				}else
+					prop->contents.integer = item.data.integer ;
 			}
 		}	 
 
@@ -493,6 +534,11 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 			prop->index = item.index ;
 			set_flags( prop->flags, ASProp_Indexed );
 		}
+
+		if( prop ) 
+			append_bidirelem( pl->sub_props, prop );			   
+
+		curr = curr->next ;
 	}		   
 }
 
@@ -500,7 +546,7 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 void 
 merge_property_list( ASProperty *src, ASProperty *dst )
 {
-		
+	LOCAL_DEBUG_CALLER_OUT("(%p,%p)", src, dst );	
 	
 }
 
@@ -529,7 +575,9 @@ load_Base()
 	ASConfigFile *cf = NULL ;
 
 	if( filename )
-	{	
+	{
+		LOCAL_DEBUG_OUT("loading file \"%s\"", filename );
+	  
 		cf = load_config_file(NULL, filename, "afterstep", &BaseSyntax );
 		free( filename );
 	}
@@ -551,3 +599,58 @@ load_Base()
 	return base;
 }	 
 
+/*************************************************************************/
+void print_hierarchy( ASProperty *root, int level );
+
+Bool
+print_hierarchy_iter_func(void *data, void *aux_data)
+{
+    ASProperty *prop = (ASProperty*)data;
+	int level = (int)aux_data ;
+	print_hierarchy( prop, level );		
+	return True;
+}
+
+void 
+print_hierarchy( ASProperty *root, int level )
+{
+	int i ;
+
+	//LOCAL_DEBUG_CALLER_OUT("(%p,%d)",root, level );
+
+	if( root == NULL ) 
+		return ;
+
+	for( i = 0 ; i < level ; ++i ) 
+		fputc( '\t', stderr);
+	fprintf( stderr, "%ld", root->id );
+	if( get_flags( root->flags, ASProp_Indexed ) ) 
+	   	fprintf( stderr, "[%d]", root->index );
+	else if( root->name )
+		fprintf( stderr, " \"%s\"", root->name );
+	
+	if( root->type == ASProp_Integer ) 
+		fprintf( stderr, "= %d;", root->contents.integer );	
+	else if( root->type == ASProp_Data ) 
+	{
+		static char string[128] ;	  
+		int bytes_out, orig_bytes ;
+		/*LOCAL_DEBUG_OUT( "fetching data with id = %d", root->contents.data );  */
+		bytes_out = fetch_data(NULL, root->contents.data, &string[0], 0, 127, 0, &orig_bytes);
+		/* LOCAL_DEBUG_OUT( "fetched %d bytes", bytes_out ); */
+		if( bytes_out < orig_bytes ) 
+			fprintf( stderr, "= %d of %d chars:", bytes_out, orig_bytes );	 
+		else
+			fprintf( stderr, "= ");
+		fprintf( stderr, "\"%s\"", string );	
+		fputc( ';', stderr);
+	}else if( root->type == ASProp_File )    
+		fprintf( stderr, " loaded from [%s];", root->contents.config_file->fullname );
+
+	fputc( '\n', stderr);
+	if( root->sub_props ) 
+	{
+	 	iterate_asbidirlist( root->sub_props, print_hierarchy_iter_func, (void*)(level+1), NULL, False );		  
+	}
+	
+}	 
