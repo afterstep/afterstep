@@ -1,4 +1,4 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* config.h.in.  Generated automatically from libAfterImage/configure.in by autoheader.  */
 #undef I18N
 
 /* debugging options */

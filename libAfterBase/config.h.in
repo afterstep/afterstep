@@ -1,21 +1,4 @@
 /* config.h.in.  Generated automatically from libAfterBase/configure.in by autoheader.  */
-
-/* Define if you have the wait3 system call.  */
-#undef HAVE_WAIT3
-
-/* Define as __inline if that's what the C compiler calls it.  */
-#undef inline
-
-/* Define if you can safely include both <sys/time.h> and <time.h>.  */
-#undef TIME_WITH_SYS_TIME
-
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-#undef WORDS_BIGENDIAN
-
-/* Define if the X Window System is missing or not being used.  */
-#undef X_DISPLAY_MISSING
-
 #undef I18N
 
 /* debugging options */
@@ -26,38 +9,56 @@
 /* self diagnostic signal handler's argument */
 #undef HAVE_SIGCONTEXT
 
-/* Define if you have the backtrace_symbols function.  */
+
+/* Define if you have the `backtrace_symbols' function. */
 #undef HAVE_BACKTRACE_SYMBOLS
 
-/* Define if you have the gethostname function.  */
-#undef HAVE_GETHOSTNAME
-
-/* Define if you have the uname function.  */
-#undef HAVE_UNAME
-
-/* Define if you have the <dirent.h> header file.  */
+/* Define if you have the <dirent.h> header file, and it defines `DIR'. */
 #undef HAVE_DIRENT_H
 
-/* Define if you have the <elf.h> header file.  */
+/* Define if you have the <elf.h> header file. */
 #undef HAVE_ELF_H
 
-/* Define if you have the <execinfo.h> header file.  */
+/* Define if you have the <execinfo.h> header file. */
 #undef HAVE_EXECINFO_H
 
-/* Define if you have the <link.h> header file.  */
+/* Define if you have the `gethostname' function. */
+#undef HAVE_GETHOSTNAME
+
+/* Define if you have the <link.h> header file. */
 #undef HAVE_LINK_H
 
-/* Define if you have the <ndir.h> header file.  */
+/* Define if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
 
-/* Define if you have the <sys/dir.h> header file.  */
+/* Define if you have the <sys/dir.h> header file, and it defines `DIR'. */
 #undef HAVE_SYS_DIR_H
 
-/* Define if you have the <sys/ndir.h> header file.  */
+/* Define if you have the <sys/ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_SYS_NDIR_H
 
-/* Define if you have the <sys/time.h> header file.  */
+/* Define if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
 
-/* Define if you have the <sys/wait.h> header file.  */
+/* Define if you have the <sys/wait.h> header file. */
 #undef HAVE_SYS_WAIT_H
+
+/* Define if you have the `uname' function. */
+#undef HAVE_UNAME
+
+/* Define if you have the `wait3' system call. */
+#undef HAVE_WAIT3
+
+/* Define if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Define if your processor stores words with the most significant byte first
+   (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
+
+/* Define if the X Window System is missing or not being used. */
+#undef X_DISPLAY_MISSING
+
+/* Define as `__inline' if that's what the C compiler calls it, or to nothing
+   if it is not supported. */
+#undef inline

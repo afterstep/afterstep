@@ -200,15 +200,8 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 		{
 			trg = asimage2pixmap( asv, root, im, NULL, False );
 			if( mask_out )
-			{
-				register int i ;
-				for( i = 0 ; i < im->height ; i++ )
-					if( im->alpha[i] != NULL )
-					{
-						mask = asimage2mask( asv, root, im, NULL, False );
-						break;
-					}
-			}
+				if( get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA ) )
+					mask = asimage2mask( asv, root, im, NULL, False );
 			destroy_asimage( &im );
 		}
 	}
