@@ -413,9 +413,9 @@ check_image_type( const char *realfilename )
 	FILE *fp ;
 	ASImageFileTypes type = ASIT_Unknown ;
 	/* lets check if we have compressed xpm file : */
-	if( filename_len > 6 && mystrncasecmp( realfilename+filename_len-3, "xpm.gz", 6 ) == 0 )
+	if( filename_len > 7 && mystrncasecmp( realfilename+filename_len-7, ".xpm.gz", 7 ) == 0 )
 		type = ASIT_GZCompressedXpm;
-	else if( filename_len > 5 && mystrncasecmp( realfilename+filename_len-3, "xpm.Z", 5 ) == 0 )
+	else if( filename_len > 6 && mystrncasecmp( realfilename+filename_len-6, ".xpm.Z", 6 ) == 0 )
 		type = ASIT_ZCompressedXpm ;
 	else if( (fp = open_image_file( realfilename )) != NULL )
 	{

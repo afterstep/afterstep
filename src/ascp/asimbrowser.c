@@ -398,24 +398,29 @@ void generate_dir_html( char *dir, char *html_dir )
 			}else
 			{
 				strcpy( preview_name, curr->name );
-				strcpy( &(preview_name[name_len]), ".png" );
 				strcpy( ext_name, curr->name );
 				strcpy( &(ext_name[name_len]), ".html" );
+				strcpy( &(preview_name[name_len]), ".png" );
 			}
 			if( curr->preview )
 			{
 				ASImageExportParams params ;
-#if 1
-				params.png.flags = EXPORT_ALPHA ;
-				params.png.compression = 6 ;
-				params.png.type = ASIT_Png ;
-				preview_saved = ASImage2file( curr->preview, NULL, preview_name,ASIT_Png, &params );
-#else
-				params.jpeg.flags = EXPORT_ALPHA ;
-				params.jpeg.quality = 100 ;
-				params.jpeg.type = ASIT_Jpeg ;
-				preview_saved = ASImage2file( curr->preview, NULL, preview_name,ASIT_Jpeg, &params );
-#endif
+				if( curr->type != ASIT_Jpeg &&
+					get_flags( get_asimage_chanmask(curr->preview), SCL_DO_ALPHA) &&
+					curr->preview->width < 200 && curr->preview->height < 200 )
+				{
+					params.png.flags = EXPORT_ALPHA ;
+					params.png.compression = 6 ;
+					params.png.type = ASIT_Png ;
+					preview_saved = ASImage2file( curr->preview, NULL, preview_name,ASIT_Png, &params );
+				}else
+				{
+					params.jpeg.flags = EXPORT_ALPHA ;
+					params.jpeg.quality = 100 ;
+					params.jpeg.type = ASIT_Jpeg ;
+					preview_saved = ASImage2file( curr->preview, NULL, preview_name,ASIT_Jpeg, &params );
+				}
+
 				if( !preview_saved )
 					show_warning( "failed to save \"%s\" as png preview - skipping", curr->name );
 			}

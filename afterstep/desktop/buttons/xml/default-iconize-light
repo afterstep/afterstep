@@ -1,0 +1,12 @@
+<composite>
+	<tile tint="#787f7f7f">
+		<tile tint="InactiveText1">
+			<scale width=16 height=16>
+				<img src="dots/windows_medium"/>
+			</scale>
+		</tile>
+	</tile>
+		<tile tint="BaseLight">
+			<img src="dots/windows_medium"/>
+		</tile>
+</composite>
