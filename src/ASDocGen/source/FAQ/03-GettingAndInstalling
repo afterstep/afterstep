@@ -1,0 +1,77 @@
+<section><title>3. Getting and Installing AfterStep 2.0</title>
+
+<section><title>3.1. Where can I get AfterStep 2.0?</title>
+<para>You can download AfterStep 2.0 at any of the following locations:</para>
+<variablelist>
+<varlistentry><listitem><ulink url="ftp://ftp.afterstep.org/stable/">ftp://ftp.afterstep.org/stable/</ulink></listitem></varlistentry>
+<varlistentry><listitem><ulink url="http://sourceforge.net/project/showfiles.php?group_id=30">SourceForge.net</ulink></listitem></varlistentry>
+<varlistentry><listitem><ulink url="http://www.afterstep.org/download.php?show=RPMS">RPM packages</ulink></listitem></varlistentry>
+</variablelist>
+</section>
+
+
+<section><title>3.2. What do I need to compile and install AfterStep?</title>
+<para>
+Because AfterStep is an X application, you need to have X installed, and the X development
+libraries (note, in this case "development" means libraries need to compile things with X,
+not development level code).  It's probably a good idea to also have a working C compiler.
+</para><para>
+AfterStep includes some image libraries, but it is recommended that you install those libraries 
+using your distribution's package management system. Note that you will need development libraries 
+in addition to run-time libraries. The following are the libraries that AfterStep can take advantage of : 
+<variablelist>
+<varlistentry><listitem><para>libJPEG - support for JPEG image format</para></listitem></varlistentry>
+<varlistentry><listitem><para>libPNG - support for PNG image format</para></listitem></varlistentry>
+<varlistentry><listitem><para>libTIFF - support for TIFF image format</para></listitem></varlistentry>
+<varlistentry><listitem><para>Freetype - support for TrueType fonts</para></listitem></varlistentry>
+</variablelist>
+</para><para>
+Note that following image format do not require any external libraries : 
+XPM, PPM, BMP, ICO, XCF, GIF.
+</para>
+</section>
+
+
+<section><title>3.3. Can I install AfterStep without being root?</title>
+<para>
+Yes, before compiling AfterStep, do this:
+<literallayout><code>mkdir &tilde;/bin
+mkdir -p &tilde;/man/man1
+./configure --prefix &tilde;/
+</code></literallayout>
+Then follow the normal install directions, allowing you to <code>make install</code> without being
+root.
+</para>
+</section>
+
+
+<section><title>3.4. How do I upgrade AfterStep from AfterStep version prior to 2.0.0?</title>
+<para>
+Install AfterStep 2.0 and then run it. It will start with default configuration that you may or maynot like.
+If you wish to try and reuse your old configuration files, then copy them over from your old 
+&tilde;/GNUstep/Library/AfterStep/ directory and into &tilde;/.afterstep/. 
+Restart AfterStep to make changes effective. If some of the features do not work quite right - 
+feel free to submit bug report along with your configuration files.
+</para><para>
+It is recommended though that you start with default configuration and try out all of the supplied looks and color schemes.
+Select whichever is close to what you want and then modify it to your liking. 
+These approach will allow you to take advantage of many new features, available in AfterStep 2.0.
+</para>
+</section>
+
+<section><title>3.4. How do I upgrade AfterStep from AfterStep version higher then 2.0.0?</title>
+<para>
+Make sure that all configuration files that you ever changed are in your home directory at &tilde;/.afterstep/, as
+installing afterstep will replace everything in global shared location (/usr/local/share/afterstep).
+Install afterstep and run. You should not have any trouble.
+</para>
+</section>
+
+<section><title>3.5. What's up with all these compile errors?</title>
+<para>
+Most likely, you don't have the X devel package (should have come with
+your operating system, if not, check <ulink url="http://www.x.org/">http://www.x.org/</ulink>).
+</para>
+</section>
+
+</section>

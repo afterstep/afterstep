@@ -119,6 +119,7 @@ example
 linkend
 section
 refsect1
+refsect1
 emphasis
 listitem
 cmdsynopsis
@@ -156,6 +157,7 @@ typedef enum
 	DOCBOOK_section_ID,	  
 	DOCBOOK_fileref_ID,	  
 	DOCBOOK_refsect1_ID,	  
+	DOCBOOK_refsect2_ID,	  
 	DOCBOOK_emphasis_ID,	  
 	DOCBOOK_listitem_ID,	  
 	DOCBOOK_imagedata_ID,

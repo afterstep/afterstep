@@ -1,0 +1,146 @@
+<section><title>1. General Information</title>
+
+<section><title>1.1. About this Document.</title>
+<para>
+This document is an ever growing set of questions, statements, ideas and complaints about
+AfterStep version 2.0.
+</para><para>
+You can get this FAQ at the following locations:
+<ulink url="http://www.afterstep.org/FAQ/"/>
+</para><para>
+The rest of this document assumes you are running AfterStep 2.0.  If you are running a version of AfterStep prior
+to version 2.0, this document will suggests only one thing: upgrade.
+</para>
+</section>
+
+<section><title>1.2. What is AfterStep?</title>
+<para>
+AfterStep is a Window Manager for the X Window System (hereafter referred to as X).
+It was started to emulate the look and feel of NeXTSTEP(tm), but has evolved into
+something that while still being able to emulate NeXT, can do much much more.  Without
+using much memory or cpu time, AfterStep provides all the features one could want in a
+Window Manager.
+</para>
+</section>
+
+<section><title>1.3. What is AfterStep's history?</title>
+<para>
+Original AfterStep was a continuation of the BowMan Window Manager which was originally put together by Bo Yang.  
+BowMan was based on the fvwm Window Manager, written by Robert Nation. Fvwm was based on code from twm. 
+And so on....
+</para><para>
+Idea was to emulate some of the look and feel of the NEXTSTEP(tm) user interface, but overtime it evolved to include other concepts, as dictated by end user needs. 
+It is that unholy direction that made Alfredo Kojima abandon project in 1997 and create a Window Manger of its own - 
+Window Maker, which had a goal of strict adherance to NEXTSTEP interface ideas.
+</para><para>
+After releasing version 1.8.11 it became aparent for developers that old AfterStep codebase had reached its limits and 
+required a substantial redesign. Such redesign began with development of radically new image handling library 
+libAfterImage, introducing high quality image manipulation, blending, TrueType fonts, XML image scripting, and more.
+Building off of libAfterImage and incorporating new developments in X Window management, AfterStep 2.0 was born and released in
+September, 2004. As of now AfterStep code base contains none of the original fvwm parts, and association to fvwm, twm and BowMan remain only in history.  
+</para>
+</section>
+
+<section><title>1.4. Fine, what if I'm not running AfterStep 2.0? Is there a FAQ for me?</title>
+<para>
+Yes.  There should be a version of the AfterStep FAQ available within your specific AfterStep distribution.
+If you are using a version earlier than 2.0, it is strongly suggested you upgrade.
+</para>
+</section>
+
+<section><title>1.5. What is X? What are these "window managers" ?</title>
+<para>
+"X" is shorthand for The X Window System. It is a basis for building graphical user
+interfaces for UNIX (it is available for non-UNIX systems, but wasn't designed to be as
+such). "X" is not the interface itself, just a foundation for one.  For more information,
+check <ulink url="http://www.x.org/">www.x.org</ulink>.
+</para><para>
+A Window Manager is a program that manages your windows during your X session. AfterStep
+is one of many available <ulink url="http://www.plig.org/xwinman/">window managers</ulink>.
+</para>
+</section>
+
+<section><title>1.6. What are AfterStep's main features?</title>
+<variablelist>
+<varlistentry><term>The Wharf</term>
+<listitem>Similar to NeXTSTEP's(tm) Dock, it allows applications to be Swallowed,
+shortcuts with icons, and many other things.
+</listitem></varlistentry>
+
+<varlistentry><term>The Pager</term>
+<listitem>
+Shows a miniature view of the Afterstep desktops, you can move between
+them, and move windows around in the Pager as though it were a miniature desktop.
+</listitem></varlistentry>
+
+<varlistentry><term>The WinList</term>
+<listitem>
+A list of all the windows, clicking on the items can show that window,
+destroy it, shade it, or anything you might want.
+</listitem></varlistentry>
+
+<varlistentry><term>Configurability</term>
+<listitem>
+Almost anything can be changed.
+</listitem></varlistentry>
+
+<varlistentry><term>XML image scripting</term>
+<listitem>AfterStep allows XML scripts to be used to assemble complex images for things like buttons, frame sides, etc, 
+from other, simplier images or graphical primitives.
+</listitem></varlistentry>
+
+<varlistentry><term>TrueType fonts support</term>
+<listitem>Antialised TrueType fonts could be used to render window titles and other labels.
+</listitem></varlistentry>
+
+<varlistentry><term>Unicode, UTF8 and other encodings support</term>
+<listitem>Most international character encodings are supported as long as fonts provide glyphs.
+</listitem></varlistentry>
+
+<varlistentry><term>ColorSchemes</term>
+<listitem>AfterStep can calculate a set of about 34 colors to create looks with harmonious color composition.
+</listitem></varlistentry>
+
+</variablelist>
+</section>
+
+<section><title>1.7. Is AfterStep 2.0 GNOME and/or KDE compliant?</title>
+<para>
+AfterStep 2.0 supports Extended Window Manager Hints, ICCCM protocol and Motif hints, 
+thus making it as compatible as possible with both GNOME and KDE, as well as most other X applications.
+</para>
+</section>
+
+<section><title>1.8. Can I run it in Microsoft Windows(tm)?</title>
+<para>AfterStep 2.0 does run under Windows using CYGWIN compatibility layer, while running any X server.
+Some of the X servers available under Windows allow so-called root-less mode, where X applications can coincide 
+with native applications. See <ulink url="http://www.afterstep.org/screenshots/AS_Cygwin.jpg">sample screenshot</ulink>.
+</para>
+</section>
+
+<section><title>1.9. Who develops AfterStep?</title>
+<variablelist>
+<varlistentry><term>Sasha Vasko	&lt;sasha at aftercode.net&gt;</term>
+<listitem>coordinator, coder, web designer, carpenter, and everything else ( at the moment ).
+</listitem></varlistentry>
+<varlistentry><term>Niklas Lunger &lt;niklas at fet dot at&gt;</term>
+<listitem>documentation and user testing.
+</listitem></varlistentry>
+</variablelist>
+
+</section>
+<section><title>1.10. AfterStep is awesome! How can I help?</title>
+<para>
+Code contributions are welcome. Hardware donations are welcome. If you can help write AfterStep, or feel you can help
+the effort elsewhere, do so.  Hang out on irc (#afterstep, efnet), participate on the
+mailing lists, suggest ideas, help code, etc etc.
+</para>
+</section>
+<section><title>1.11. Who writes this FAQ?</title>
+<para>
+see 1.9. above. 
+</para>
+</section>
+
+
+</section>

@@ -56,6 +56,7 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 	{ TAG_INFO_AND_ID(section), start_section_tag, end_section_tag },
 	{ TAG_INFO_AND_ID(fileref), NULL, NULL },
 	{ TAG_INFO_AND_ID(refsect1), start_refsect1_tag, end_refsect1_tag },
+	{ TAG_INFO_AND_ID(refsect2), start_refsect1_tag, end_refsect1_tag },
 	{ TAG_INFO_AND_ID(emphasis), start_emphasis_tag, end_emphasis_tag },
 	{ TAG_INFO_AND_ID(listitem), start_listitem_tag, end_listitem_tag },
 	{ TAG_INFO_AND_ID(imagedata), start_imagedata_tag, end_imagedata_tag },
@@ -214,7 +215,7 @@ convert_xml_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *sta
 	}	 
 	for (ptr = doc->child ; ptr ; ptr = ptr->next) 
 	{
-		LOCAL_DEBUG_OUT( "handling tag's data \"%s\"", ptr->parm );
+		/* LOCAL_DEBUG_OUT( "handling tag's data \"%s\"", ptr->parm ); */
 		if (ptr->tag_id == XML_CDATA_ID ) 
 		{
 			const char *data_ptr = ptr->parm ;
@@ -262,13 +263,13 @@ convert_xml_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *sta
 		}else 
 			convert_xml_tag( ptr, NULL, state );
 	}
-	LOCAL_DEBUG_OUT( "handling end tag with func %p", SupportedDocBookTagInfo[doc->tag_id].handle_end_tag );
+	/* LOCAL_DEBUG_OUT( "handling end tag with func %p", SupportedDocBookTagInfo[doc->tag_id].handle_end_tag ); */
 	if( state->doc_type != DocType_XML ) 
 	{
 		if( doc->tag_id > 0 && doc->tag_id < DOCBOOK_SUPPORTED_IDS ) 
 			if( SupportedDocBookTagInfo[doc->tag_id].handle_end_tag ) 
 				SupportedDocBookTagInfo[doc->tag_id].handle_end_tag( doc, parm, state ); 
-		LOCAL_DEBUG_OUT( "xml_elem_delete for parm %p", parm );
+/*		LOCAL_DEBUG_OUT( "xml_elem_delete for parm %p", parm ); */
 		if (rparm) *rparm = parm; 
 		else xml_elem_delete(NULL, parm);
 	}else
@@ -287,7 +288,8 @@ convert_xml_file( const char *syntax_dir, const char *file, ASXMLInterpreterStat
 	
 	source_file = make_file_name( syntax_dir, file );
 	doc_str = load_file(source_file);
-	LOCAL_DEBUG_OUT( "file %s loaded into {%s}", source_file, doc_str );
+	LOCAL_DEBUG_OUT( "file %s loaded", source_file );
+	/*LOCAL_DEBUG_OUT( "file %s loaded into {%s}", source_file, doc_str ); */
 	if( doc_str != NULL )
 	{
 		xml_elem_t* doc;
@@ -439,7 +441,9 @@ add_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
 			if( state->curr_url_page[l-1] != '/' && 
 				( l < 5 || mystrcasecmp( &(state->curr_url_page[l-5]), ".html" ) != 0) && 
 				( l < 4 || mystrcasecmp( &(state->curr_url_page[l-4]), ".php" ) != 0) &&
-				( l < 4 || mystrcasecmp( &(state->curr_url_page[l-4]), ".htm" ) != 0) )
+				( l < 4 || mystrcasecmp( &(state->curr_url_page[l-4]), ".htm" ) != 0) &&
+				( l < 4 || mystrcasecmp( &(state->curr_url_page[l-4]), ".jpg" ) != 0) &&
+				( l < 4 || mystrcasecmp( &(state->curr_url_page[l-4]), ".png" ) != 0))
 			{
 				set_flags( state->flags, ASXMLI_LinkIsLocal );
 			}
@@ -756,7 +760,10 @@ start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 			fwrite( "<HR>\n", 1, 5, state->dest_fp );
 		 */
 		add_anchor( parm, state );
-		fwrite( "<UL>", 1, 4, state->dest_fp );
+		if( get_flags( state->flags, ASXMLI_OrderSections ) )
+			fwrite( "<OL>", 1, 4, state->dest_fp );
+		else
+			fwrite( "<UL>", 1, 4, state->dest_fp );
 	}
 }
 
@@ -766,7 +773,10 @@ end_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 	--(state->header_depth);	
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 	{
-		fwrite( "</UL>", 1, 5, state->dest_fp );
+		if( get_flags( state->flags, ASXMLI_OrderSections ) )
+			fwrite( "</OL>", 1, 5, state->dest_fp );
+		else
+			fwrite( "</UL>", 1, 5, state->dest_fp );
 	}
 }
 

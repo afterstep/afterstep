@@ -136,6 +136,7 @@ ASApiSourceDescr libAfterImage_Sources[] =
 
 
 const char *HTML_CSS_File = "html_styles.css" ;
+const char *FAQ_HTML_CSS_File = "faq_html_styles.css" ;
 static const char *HTML_DATA_BACKGROUND_File = "background.jpg" ;
 /*static const char *HTML_HELP_BACKGROUND_File = NULL ; */
 const char *CurrHtmlBackFile = NULL ;
@@ -160,6 +161,7 @@ void check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module
 void gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax, ASDocType doc_type );
 void gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type );
 void gen_index( const char *dest_dir, const char *file, ASDocType doc_type, Bool user_docs );
+void gen_faq_doc( const char *source_dir, const char *dest_dir, ASDocType doc_type );
 
 /*************************************************************************/
 /*************************************************************************/
@@ -224,6 +226,10 @@ main (int argc, char **argv)
 			{
 				++i ;				
 				HTML_CSS_File = argv[i] ;
+			}else if( strcmp( argv[i], "--faq-css" ) == 0 && i+1 < argc && argv[i+1] != NULL ) 
+			{
+				++i ;				
+				FAQ_HTML_CSS_File = argv[i] ;
 			}else if( strcmp( argv[i], "--html-data-back" ) == 0 && i+1 < argc && argv[i+1] != NULL ) 
 			{
 				++i ;				
@@ -368,6 +374,7 @@ main (int argc, char **argv)
 			
 			if( DocGenerationPass == 0 ) 
 			{	
+				gen_faq_doc( source_dir, destination_dir, target_type );
 				gen_glossary( destination_dir, "Glossary", target_type );
 				gen_index( destination_dir, "index", target_type, True );
 			}
@@ -375,7 +382,7 @@ main (int argc, char **argv)
 		}
 		flush_ashash( Glossary );
 		flush_ashash( Index );
-
+		
 		GlossaryName = APIGlossaryName ; 
 		TopicIndexName = APITopicIndexName ; 
 		Links = APILinks;
@@ -402,6 +409,8 @@ main (int argc, char **argv)
 			flush_ashash( Glossary );
 			flush_ashash( Index );
 		}		  
+
+
 	}		 
 	
 	if( dpy )   
@@ -757,6 +766,43 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 	
 	free( syntax_dir );
 }
+
+void 
+gen_faq_doc( const char *source_dir, const char *dest_dir, ASDocType doc_type )
+{
+	ASXMLInterpreterState state;
+	char *faq_dir = NULL ;
+	ASFlagType doc_class_mask = DOC_CLASS_None	;
+	struct direntry  **list = NULL;
+	int list_len, i ;
+
+	faq_dir = make_file_name( source_dir, "FAQ" );
+
+	if( !start_doc_file( dest_dir, "afterstep_faq", NULL, doc_type, 
+						 "afterstep_faq", 
+						 "AfterStep FAQ",
+						 "This document is an ever growing set of questions, statements, ideas and complaints about AfterStep version 2.0", 
+						 &state, doc_class_mask, DocClass_FAQ ) )	 
+		return ;
+	
+	/* BODY *************************************************************************/
+	set_flags( state.flags, ASXMLI_OrderSections );
+	list_len = my_scandir ((char*)faq_dir, &list, ignore_dots, NULL);
+	for (i = 0; i < list_len; i++)
+	{	
+		if ( !S_ISDIR (list[i]->d_mode) )
+			convert_xml_file( faq_dir, list[i]->d_name, &state );
+		free(list[i]);
+	}
+	if( list ) 
+		free( list );   
+	
+	/* FOOTER ***********************************************************************/
+	end_doc_file( &state );	 	
+	
+	free( faq_dir );
+}
+
 
 void 
 gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type )

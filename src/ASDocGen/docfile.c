@@ -57,7 +57,10 @@ write_doc_header( ASXMLInterpreterState *state )
 					  		"<head><meta http-equiv=\"content-type\" content=\"text/html; charset=ISO-8859-1\">\n"
   					  		"<title>%s</title>\n", state->display_name );
 
-			css = load_file( HTML_CSS_File );
+			if( state->doc_class == DocClass_FAQ ) 
+				css = load_file( FAQ_HTML_CSS_File );
+			else
+				css = load_file( HTML_CSS_File );
 			if( css  ) 
 			{
 				int len = strlen( css );

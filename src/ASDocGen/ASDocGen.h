@@ -33,7 +33,8 @@ typedef enum {
 	DocClass_MyStyles,
 	DocClass_Options,
 	DocClass_TopicIndex,
-	DocClass_Glossary
+	DocClass_Glossary,
+	DocClass_FAQ,
 }ASDocClass;
 
 extern const char *StandardOptionsEntry;
@@ -62,6 +63,8 @@ typedef struct ASXMLInterpreterState {
 #define ASXMLI_FormalPara			(0x01<<8)	  
 #define ASXMLI_EscapeDQuotes		(0x01<<9)	  
 
+#define ASXMLI_OrderSections		(0x01<<10)	  
+
 	
 	ASFlagType flags;
 
@@ -86,6 +89,8 @@ typedef struct ASXMLInterpreterState {
 }ASXMLInterpreterState ;
 
 extern const char *HTML_CSS_File ;
+extern const char *FAQ_HTML_CSS_File ;
+
 extern const char *CurrHtmlBackFile ;
 #define DATE_SIZE 64
 extern char CurrentDateLong[DATE_SIZE];
