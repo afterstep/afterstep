@@ -7,6 +7,7 @@
 #undef  DEBUG_ALLOCS
 
 #undef  HAVE_XPM
+#undef  HAVE_XPM_TEST
 #undef  HAVE_XPM_X11
 
 #undef  HAVE_JPEG

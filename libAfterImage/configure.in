@@ -41,7 +41,8 @@ AC_ARG_WITH(jpeg,		    [  --with-jpeg              support JPEG image format [ye
 AC_ARG_WITH(jpeg_includes,  [  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=NO)
 AC_ARG_WITH(png,		    [  --with-png               support PNG image format [yes]])
 AC_ARG_WITH(png_includes,   [  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=NO)
-AC_ARG_WITH(gif,		    [  --with-gif               support GIF image format [yes]])
+AC_ARG_WITH(ungif,		    [  --with-ungif             support GIF image format using libungif [yes]])
+AC_ARG_WITH(gif,		    [  --with-gif               support GIF image format using libgif   [no]])
 AC_ARG_WITH(gif_includes,   [  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=NO)
 AC_ARG_WITH(tiff,		    [  --with-tiff              support TIFF image format [yes]])
 AC_ARG_WITH(tiff_includes,  [  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=NO)
@@ -118,213 +119,100 @@ if test "x$enable_warn" = "xyes"; then
   CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
 fi
 
-dnl# Check for headers
-
+dnl# some standard checks :
+AC_C_INLINE
 AC_PATH_XTRA
 
-INC_PATH_LIST="/usr/include /usr/include/X11 /usr/include/X11R6 \
-	/usr/include/X11R5 /usr/include/X11R4        \
-    /usr/local/include /usr/local/include/X11 /usr/local/include/X11R6  \
-    /usr/local/include/X11R5 /usr/local/include/X11R4  \
-    /usr/X11/include /usr/X11R6/include /usr/X11R5/include /usr/X11R4/include  \
-    /usr/local/X11/include /usr/local/X11R6/include /usr/local/X11R5/include  \
-    /usr/local/X11R4/include  \
-    /usr/XFree86/include/X11 /usr/X386/include /usr/x386/include         \
-    /usr/unsupported/include /usr/athena/include /usr/local/x11r5/include  \
-    /usr/lpp/Xamples/include /usr/openwin/include /usr/openwin/share/include"
+dnl# Check for graphics libraries :
+
+AFTERIMAGE_LIBS=
 
 if test "$with_xpm" = no; then
   have_xpm=disabled
 else
-  AC_MSG_CHECKING(for libXpm)
-  AC_CACHE_VAL(ac_cv_have_xpm, [
-  vt_xpm_include_X11=no
-  if test -n "$xpm_includes"; then
-    vt_xpm_includes=$xpm_includes
-  else
-    vt_xpm_includes=NO
+  SAVED_CFLAGS=$CPPFLAGS
+  if test "$xpm_includes" != NO; then
+	XPM_CFLAGS="-I$xpm_includes"
+	CPPFLAGS="$CPPFLAGS $XPM_CFLAGS"
   fi
-
-  if test "$vt_xpm_includes" = NO; then
-  AC_TRY_CPP([#include <X11/xpm.h>],
-  [# We can compile using X headers with no special include directory.
-	vt_xpm_includes=
-	vt_xpm_include_X11=yes],
-  [# Look for the header file in a standard set of common directories.
-	for ac_dir in $INC_PATH_LIST ; do
-  	  if test -r "$ac_dir/X11/xpm.h"; then
-    	vt_xpm_includes="$ac_dir"
-        vt_xpm_include_X11=yes
-	    break
-  	  else
-    	if test -r "$ac_dir/xpm.h"; then
-      	  vt_xpm_includes=$ac_dir
-          break
-	    fi
-  	  fi
-	done])
-  fi
-  if test "$vt_xpm_includes" = NO; then
-    ac_cv_have_xpm="have_xpm=no"
-  else
-    ac_cv_have_xpm="have_xpm=yes \
-      vt_xpm_includes=$vt_xpm_includes \
-	vt_xpm_include_X11=$vt_xpm_include_X11"
-  fi])dnl
-  eval "$ac_cv_have_xpm"
+  AC_CHECK_HEADER(xpm.h,have_xpm=yes,
+				  [AC_CHECK_HEADER(X11/xpm.h,[have_xpm=yes AC_DEFINE(HAVE_XPM_X11)])
+				  ])
   if test "x$have_xpm" = "xyes"; then
-    if test "x$vt_xpm_includes" != "x"; then
-		XPM_CFLAGS="-I$vt_xpm_includes"
-    fi
 	AC_DEFINE(HAVE_XPM)
-    if test "$vt_xpm_include_X11" = yes; then
-	  AC_DEFINE(HAVE_XPM_X11)
-	fi
+	AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lXpm"
   fi
-  AC_MSG_RESULT($have_xpm $XPM_CFLAG)
+  CPPFLAGS=$SAVED_CFLAGS
 fi
-
 AC_SUBST(XPM_CFLAGS)
 
 if test "$with_jpeg" = no; then
   have_jpeg=disabled
 else
-  AC_MSG_CHECKING(for libjpeg)
-  AC_CACHE_VAL(ac_cv_have_jpeg, [
-  if test -n "$jpeg_includes"; then
-    vt_jpeg_includes=$jpeg_includes
-  else
-    vt_jpeg_includes=NO
+  SAVED_CFLAGS=$CPPFLAGS
+  if test "$jpeg_includes" != NO; then
+	JPEG_CFLAGS="-I$jpeg_includes"
+	CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
   fi
-
-  if test "$vt_jpeg_includes" = NO; then
-  AC_TRY_CPP([#include <jpeglib.h>],
-  [# We can compile using X headers with no special include directory.
-	vt_jpeg_includes=],
-  [# Look for the header file in a standard set of common directories.
-	for ac_dir in $INC_PATH_LIST ; do
-    	if test -r "$ac_dir/jpeglib.h"; then
-      	  vt_jpeg_includes=$ac_dir
-          break
-	    fi
-	done])
-  fi
-  if test "$vt_jpeg_includes" = NO; then
-    ac_cv_have_jpeg="have_jpeg=no"
-  else
-    ac_cv_have_jpeg="have_jpeg=yes \
-      vt_jpeg_includes=$vt_jpeg_includes"
-	if test "x$vt_jpeg_includes" != "x"; then 
-		JPEG_CFLAGS=-I$vt_jpeg_includes
-	fi
-	AC_DEFINE(HAVE_JPEG)
-  fi])dnl
-  eval "$ac_cv_have_jpeg"
-  if test "x$have_jpeg" = "xyes"; then 
-    if test "x$vt_jpeg_includes" != "x"; then 
-		JPEG_CFLAGS="-I$vt_jpeg_includes"
-    fi
-	AC_DEFINE(HAVE_JPEG)
-  fi
-  AC_MSG_RESULT($have_jpeg $JPEG_CFLAG)
+  AC_CHECK_HEADER(jpeglib.h,[AC_DEFINE(HAVE_JPEG) EXT_IMAGE_LIBS="$AFTERIMAGE_LIBS -ljpeg"])
+  CPPFLAGS=$SAVED_CFLAGS
 fi
 AC_SUBST(JPEG_CFLAGS)
 
 if test "$with_png" = no; then
   have_png=disabled
 else
-  AC_MSG_CHECKING(for libpng)
-  AC_CACHE_VAL(ac_cv_have_png, [
-  if test -n "$png_includes"; then
-    vt_png_includes=$png_includes
-  else
-    vt_png_includes=NO
+  SAVED_CFLAGS=$CPPFLAGS
+  if test "$png_includes" != NO; then
+	PNG_CFLAGS="-I$png_includes"
+	CPPFLAGS="$CPPFLAGS $PNG_CFLAGS"
   fi
-
-  if test "$vt_png_includes" = NO; then
-  AC_TRY_CPP([#include <png.h>],
-  [# We can compile using X headers with no special include directory.
-	vt_png_includes=],
-  [# Look for the header file in a standard set of common directories.
-	for ac_dir in $INC_PATH_LIST ; do
-    	if test -r "$ac_dir/png.h"; then
-      	  vt_png_includes=$ac_dir
-          break
-	    fi
-	done])
-  fi
-  if test "$vt_png_includes" = NO; then
-    ac_cv_have_png="have_png=no"
-  else
-    ac_cv_have_png="have_png=yes \
-      vt_png_includes=$vt_png_includes"
-  fi])dnl
-  eval "$ac_cv_have_png"
-  if test "x$have_png" = "xyes"; then 
-    if test "x$vt_png_includes" != "x"; then 
-		PNG_CFLAGS="-I$vt_png_includes"
-    fi
-	AC_DEFINE(HAVE_PNG)
-  fi
-  AC_MSG_RESULT($have_png $PNG_CFLAGS)
+  AC_CHECK_HEADER(png.h,[AC_DEFINE(HAVE_PNG) AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lpng" have_png=yes])
+  CPPFLAGS=$SAVED_CFLAGS
 fi
 AC_SUBST(PNG_CFLAGS)
 
 dnl# Test for libungif first :
-if test "$with_gif" = no; then
+if test "$with_gif$with_ungif" = nono; then
   have_gif=disabled
 else
-  if test "$gif_includes" = NO; then
-    AC_CHECK_LIB(ungif, DGifOpenFileName,
-		     GIF_LIBS="-lungif"
-		     have_gif=yes, have_gif=no,$x_libs)
-	if test "x$have_gif" = "xno"; then
-	  AC_CHECK_LIB(gif, DGifOpenFileName,
-  				 GIF_LIBS="-lgif"
-				 have_gif="yes", have_gif="no",$x_libs)
-
-	fi;
-	if test "x$have_gif" = "xyes"; then
-	  AC_CHECK_HEADER(gif_lib.h,AC_DEFINE(HAVE_GIF),have_gif=no GIF_LIBS="")
+  SAVED_CFLAGS=$CPPFLAGS
+  if test "$gif_includes" != NO; then
+	GIF_CFLAGS="-I$gif_includes"
+	CPPFLAGS="$CPPFLAGS $GIF_CFLAGS"
+  fi
+  AC_CHECK_HEADER(gif_lib.h,have_gif=yes)
+  CPPFLAGS=$SAVED_CFLAGS
+  if test "x$have_gif" = "xyes"; then
+	AC_DEFINE(HAVE_GIF) 
+	if test "$with_gif" = no; then
+		AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lungif"
+	else
+		AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lgif"
 	fi
-	GIF_CFLAGS=
-  else
-  	if test "x$gif_includes" != "x"; then 
-		GIF_CFLAGS=-I$gif_includes
-	fi
-	AC_DEFINE(HAVE_GIF)
-  fi	
+  fi
 fi
 AC_SUBST(GIF_CFLAGS)
+
 dnl# Test for libtiff :
 
 if test "$with_tiff" = no; then
   have_tiff=disabled
 else
-  if test "$tiff_includes" = NO; then
-    AC_CHECK_LIB(tiff, TIFFReadScanline,
-			   TIFF_LIBS="-ltiff" have_tiff=yes,
-		AC_CHECK_LIB(tiff, TIFFReadScanline,
-			     TIFF_LIBS="-ltiff" have_tiff=yes,
-			AC_CHECK_LIB(tiff, TIFFReadScanline,
-  					  TIFF_LIBS="-ltiff -ljpeg -lz -lm" have_tiff=yes,,
-					  $x_libs -ljpeg -lz -lm),
-				 $x_libs $JPEG_LIBS $PNG_LIBS),
-			$x_libs)
-    if test "x$have_tiff" = "xyes"; then
-		AC_CHECK_HEADER(tiffio.h,AC_DEFINE(HAVE_TIFF),TIFF_LIBS="" have_tiff=no)
-	fi
-	TIFF_CFLAGS=
-  else
-    AC_MSG_CHECKING(extra path to TIFF includes)
-	if test "x$tiff_includes" != "x"; then
-		TIFF_CFLAGS=-I$tiff_includes
-	fi		
-	AC_DEFINE(HAVE_TIFF)
-    AC_MSG_RESULT($TIFF_CFLAGS)
-  fi	
+  SAVED_CFLAGS=$CPPFLAGS
+  if test "$tiff_includes" != NO; then
+	TIFF_CFLAGS="-I$tiff_includes"
+	CPPFLAGS="$CPPFLAGS $TIFF_CFLAGS"
+  fi
+  AC_CHECK_HEADER(tiffio.h,[AC_DEFINE(HAVE_TIFF) AFTERIMAGE_LIBS="-ltiff $AFTERIMAGE_LIBS" have_tiff=yes])
+  CPPFLAGS=$SAVED_CFLAGS
 fi
 AC_SUBST(TIFF_CFLAGS)
+
+if test "$have_tiff" = yes -o "$have_png" = yes ; then
+  AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lz -lm"
+fi  
+
 
 dnl# check for libfreetype
 
@@ -355,23 +243,29 @@ else
 	  done;
 	  AC_MSG_RESULT($TTF_INCLUDES)
 	  AC_DEFINE(HAVE_FREETYPE)
+	  have_ttf=yes
     else
 		enable_ttf=no ;
 		AC_MSG_RESULT(none found, ttf disabled)
 		echo "You have to install FreeType libary in order to be able to use TTF fonts."
+        have_ttf=no
     fi;
   else
 	TTF_INCLUDES=$ttf_includes
 	AC_DEFINE(HAVE_FREETYPE)
+    have_ttf=yes
   fi	
+  if test "$have_ttf" = yes; then
+	  AFTERIMAGE_LIBS="`freetype-config --libs` $AFTERIMAGE_LIBS"
+  fi
 fi;
 AC_SUBST(TTF_INCLUDES)
 
 if test "$with_afterbase" != "NO"; then
   AC_MSG_CHECKING(libAfterBase headers)
+  have_afterbase=yes 
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
-		have_afterbase=yes 
 		AC_DEFINE(HAVE_AFTERBASE) 
 		AC_DEFINE(HAVE_CUSTOM_AFTERBASE)
         AFTERBASE_INC_PATH=".."
@@ -380,42 +274,41 @@ if test "$with_afterbase" != "NO"; then
  	    AC_CHECK_HEADER(libAfterBase/astypes.h,
 					    [AC_DEFINE(HAVE_AFTERBASE) \
 						 AC_MSG_RESULT("<libAfterBase/astypes.h>")],
-						 AC_MSG_RESULT("none found"))
+						[AC_MSG_RESULT("none found") have_afterbase=no])
 	  fi	
   else
-	  have_afterbase=yes 
 	  AC_DEFINE(HAVE_AFTERBASE) 
 	  AC_DEFINE(HAVE_CUSTOM_AFTERBASE)	  
 	  AFTERBASE_INC_PATH=$afterbase_includes
   	  AC_MSG_RESULT("$AFTERBASE_INC_PATH/libAfterBase/astypes.h>")
   fi
 fi
+
 AFTERBASE_C=afterbase.c
 if test "x$have_afterbase" = "xyes"; then 
 	AFTERBASE_C=
+    AFTERIMAGE_LIBS="-lafterbase $AFTERIMAGE_LIBS"
 fi
 AC_SUBST(AFTERBASE_INC_PATH)
 AC_SUBST(AFTERBASE_C)
+
+
+dnl# finalizing libs listing :
+
+CLEAN_AFTERIMAGE_LIBS=
+for L in $AFTERIMAGE_LIBS; do
+  if test "$L" != "-L$libdir"; then
+	  CLEAN_AFTERIMAGE_LIBS="$CLEAN_AFTERIMAGE_LIBS $L"
+  fi
+done
+AFTERIMAGE_LIBS="-L$libdir -lafterimage $CLEAN_AFTERIMAGE_LIBS"
+AC_SUBST(AFTERIMAGE_LIBS)
 
 dnl# Checks for optional programs
 
 AC_CHECK_PROG(sgmltools, sgmltools, HAVE_SGMLTOOLS, NO_SGMLTOOLS)
 
 dnl# Checks for functions
-
-dnl# check for inline : (slightly different from standard version from autoconf )
-
-AC_CACHE_CHECK([for inline], ac_cv_c_inline,
-[ac_cv_c_inline=no
-for ac_kw in inline __inline__ __inline; do
-  AC_TRY_COMPILE(, [} $ac_kw foo() {], [ac_cv_c_inline=$ac_kw; break])
-done
-])
-case "$ac_cv_c_inline" in
-  inline | yes) ;;
-  no) AC_DEFINE(inline, ) AC_DEFINE(NO_INLINE, ) ;;
-  *)  AC_DEFINE_UNQUOTED(inline, $ac_cv_c_inline) ;;
-esac;
 
 dnl# Check for X
 
@@ -461,4 +354,7 @@ AC_CONFIG_HEADER(config.h)
 dnl# Common parts of the Makefile
 
 AC_OUTPUT(Makefile \
-afterbase.h)
+afterbase.h \
+afterimage-libs)
+
+chmod 755 afterimage-libs

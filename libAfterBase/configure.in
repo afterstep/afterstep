@@ -110,9 +110,12 @@ if test "x$enable_warn" = "xyes"; then
   CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
 fi
 
+dnl# some standard checks :
+AC_C_INLINE
+AC_PATH_XTRA
+
 dnl# Check for headers
 
-AC_PATH_XTRA
 AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_CHECK_HEADERS(sys/wait.h sys/time.h)
@@ -167,11 +170,6 @@ if test "x$enable_staticlibs" = "xyes"; then
 else
    LIBPROG='$(LIB_SHARED)'
    LIBINSTALL="install.dyn"
-fi
-
-dnl# Electric Fence goes at the end
-if test "x$with_libefence" = "xyes"; then
-  AC_CHECK_LIB(efence,malloc,x_libs="$x_libs -lefence")
 fi
 
 dnl# define X_LOCALE.  need Linux, NetBSD and etc.

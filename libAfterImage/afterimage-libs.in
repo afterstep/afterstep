@@ -1,0 +1,6 @@
+#! /bin/sh
+#
+
+export AFTERIMAGE_LIBS="@AFTERIMAGE_LIBS@"
+echo $AFTERIMAGE_LIBS
+exit 0

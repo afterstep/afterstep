@@ -1,0 +1,37 @@
+./asfont.c: \
+		config.h \
+		afterbase.h \
+		asfont.h \
+		asimage.h \
+		asvisual.h
+
+./asimage.c: \
+		config.h \
+		afterbase.h \
+		asvisual.h \
+		blender.h \
+		asimage.h
+
+./asvisual.c: \
+		config.h \
+		afterbase.h \
+		asvisual.h
+
+./blender.c: \
+		config.h \
+		afterbase.h \
+		asvisual.h \
+		blender.h
+
+./import.c: \
+		config.h \
+		afterbase.h \
+		asimage.h \
+		xcf.h \
+		import.h
+
+./xcf.c: \
+		config.h \
+		afterbase.h \
+		asimage.h \
+		xcf.h
