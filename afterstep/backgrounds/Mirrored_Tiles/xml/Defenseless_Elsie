@@ -10,6 +10,7 @@
 		<recall srcid="tile_scaled_DefenselessElsie"/>
 	</mirror>
 </composite>
+<release srcid="tile_scaled_DefenselessElsie"/>
 
 <composite op="tint">
 	<gradient width="$xroot.width" height="$xroot.height"
@@ -22,5 +23,4 @@
 	</composite>
 </composite>
 
-<release srcid="tile_scaled_DefenselessElsie"/>
 <release srcid="left_tile_DefenselessElsie"/>

@@ -8,6 +8,7 @@
 		<recall srcid="tile_scaled_DorchesterConsolidated"/>
 	</mirror>
 </composite>
+<release srcid="left_tile_DorchesterConsolidated"/>
 
 <composite op="tint">
   	<gradient width="$xroot.width" height="$xroot.height"
@@ -21,5 +22,4 @@
 </composite>
 
 
-<release srcid="left_tile_DorchesterConsolidated"/>
 <release srcid="tile_scaled_DorchesterConsolidated"/>

@@ -8,6 +8,7 @@
 		<recall srcid="tile_EvilCarWash_scaled"/>
 	</mirror>
 </composite>
+<release srcid="left_tile_EvilCarWash"/>
 
 <composite op="tint">
   	<gradient width="$xroot.width" height="$xroot.height"
@@ -20,6 +21,5 @@
 	</composite>
 </composite>
 
-<release srcid="left_tile_EvilCarWash"/>
 <release srcid="tile_scaled_EvilCarWash"/>
 

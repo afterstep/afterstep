@@ -8,6 +8,7 @@
 		<recall srcid="tile_scaled_BlurtsMichelson"/>
 	</mirror>
 </composite>
+<release srcid="tile_scaled_BlurtsMichelson"/>
 
 <composite op="tint">
   	<gradient width="$xroot.width" height="$xroot.height"
@@ -20,5 +21,4 @@
 	</composite>
 </composite>
 
-<release srcid="tile_scaled_BlurtsMichelson"/>
 <release srcid="left_tile_BlurtsMichelson"/>
