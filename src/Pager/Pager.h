@@ -85,7 +85,7 @@ typedef enum {
 }PagerWinType;
 
 typedef struct pager_win_attr {
-    Pixel  back_pixel;
+    unsigned long  back_pixel;
     Pixmap back_pixmap;
     GC     foreGC ;
 }PagerWinAttr;    
@@ -108,11 +108,11 @@ typedef struct pager_look {
   int DeskBorderWidth ;
   int TitleAlign ;
 
-  Pixel GridColor ;
+  unsigned long GridColor ;
   GC	GridGC ;
 
-  Pixel BorderColor ;  
-  Pixel SelectionColor ; 
+  unsigned long BorderColor ;  
+  unsigned long SelectionColor ; 
 
   MyFont windowFont ; 
   int bNeedToFixStyles ;
@@ -191,7 +191,7 @@ void OnLookUpdated();
 void InitDesk( long Desk );
 void RetrieveBackgrounds();
 void initialize_pager(void);
-Pixel GetColor(char *name);
+unsigned long GetColor(char *name);
 void nocolor(char *a, char *b);
 void DispatchEvent(XEvent *Event);
 void DecorateDesk (long Desk);

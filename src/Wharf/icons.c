@@ -27,51 +27,19 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-
-#ifdef XPM
-#include <X11/xpm.h>
-#endif /* XPM */
-
 #ifdef NeXT
 #include <fcntl.h>
 #endif
 
 #include "Wharf.h"
-#include "../../include/loadimg.h"
-#include "../../include/XImage_utils.h"
-#include "../../include/pixmap.h"
-
-/****************************************************************************
- *
- * Loads an icon file into a pixmap
- *
- ****************************************************************************/
-void
-LoadIconFile (icon_info * icon)
-{
-#ifndef NO_ICONS
-  /* First, check for a monochrome bitmap */
-  if ((*icon).file != NULL)
-    GetBitmapFile (icon);
-  /* Next, check for a color pixmap */
-  if (((*icon).file != NULL) &&
-      ((*icon).w == 0) && ((*icon).h == 0))
-    GetImageFile (icon);
-#endif
-}
 
 /****************************************************************************
  *
  * Creates an Icon Window
  *
  ****************************************************************************/
-void
-CreateButtonIconWindow (button_info * button, Window * win)
+Window
+CreateButtonIconWindow (Window win)
 {
 #ifndef NO_ICONS
   unsigned long valuemask;	/* mask for create windows */
@@ -87,11 +55,10 @@ CreateButtonIconWindow (button_info * button, Window * win)
 
   /* make sure the window geometry does not match the button, so
    * place_buttons() is forced to configure it */
-  (*button).IconWin =
-    XCreateWindow (dpy, *win, 0, 0, 1, 1, 0, CopyFromParent,
-		   CopyFromParent, CopyFromParent, valuemask, &attributes);
-
-  return;
+  return create_visual_window( Scr.asv, win, 0, 0, 1, 1, 0, 
+      					  	   CopyFromParent, valuemask, &attributes);
+#else
+  return None ;
 #endif
 }
 
@@ -108,65 +75,71 @@ ConfigureIconWindow (button_info * button)
   GC ShapeGC;
   int w, h;
   int xoff, yoff;
-  icon_info icon = back_pixmap;
+  ASImage *icon = back_pixmap;
   int bMyIcon = 0;
 
-  if (button->width <= 0 || button->height <= 0)
-    return;
+	if (button->width <= 0 || button->height <= 0)
+  		return;
 
-  /* handle transparency */
-  if (Style->texture_type >= TEXTURE_TRANSPARENT && Style->texture_type < TEXTURE_BUILTIN)
-    {
-      int x = 0, y = 0;
-      Pixmap pixmap;
-
-      if (button->parent != NULL)
+    /* handle transparency */
+	if (Style->texture_type >= TEXTURE_TRANSPARENT && Style->texture_type < TEXTURE_BUILTIN)
 	{
-	  x = button->parent->x;
-	  y = button->parent->y;
-	}
-      pixmap = mystyle_make_pixmap_overlay (Style, x + button->x, y + button->y, button->width, button->height, None);
-      if (pixmap != None)
-	{
-	  icon.icon = pixmap;
-	  icon.w = button->width;
-	  icon.h = button->height;
-	  bMyIcon = 1;
-	}
-    }
+  	    int x = 0, y = 0;
+    	ASImage *im;
 
-  if (button->completeIcon.icon != None)
-    XFreePixmap (dpy, button->completeIcon.icon);
-  button->completeIcon.icon = XCreatePixmap (dpy, Scr.Root, button->width,
+  		if (button->parent != NULL)
+		{
+			x = button->parent->x;
+			y = button->parent->y;
+		}
+    	im = mystyle_make_image (Style, x + button->x, y + button->y, button->width, button->height);
+    	if (im != NULL)
+		{
+			icon = im;
+			bMyIcon = 1;
+		}
+  	}
+
+#warning "pending completion of Wharf rewrite to use libAfterImage"
+
+
+
+
+
+
+    if (button->completeIcon.icon != None)
+	    XFreePixmap (dpy, button->completeIcon.icon);
+	
+	button->completeIcon.icon = XCreatePixmap (dpy, Scr.Root, button->width,
 					     button->height, Scr.d_depth);
-  XSetForeground (dpy, NormalGC, BlackPixel (dpy, Scr.screen));
-  XFillRectangle (dpy, button->completeIcon.icon, NormalGC,
-		  0, 0, button->width, button->height);
+	XSetForeground (dpy, NormalGC, BlackPixel (dpy, Scr.screen));
+	XFillRectangle (dpy, button->completeIcon.icon, NormalGC,
+					  0, 0, button->width, button->height);
 
-  /* if the background does not fill the whole button, shape */
-  clear_flags (button->flags, WB_Shaped);
-  if (icon.icon == None || icon.mask != None)
-    set_flags (button->flags, WB_Shaped);
+	/* if the background does not fill the whole button, shape */
+	clear_flags (button->flags, WB_Shaped);
+	if (icon.icon == None || icon.mask != None)
+  		set_flags (button->flags, WB_Shaped);
 
-  /* if an icon fills the whole button, don't shape */
-  for (i = 0; i < button->num_icons; i++)
-    if ((button->icons[i].mask == None) &&
-	(button->icons[i].w >= button->width) &&
-	(button->icons[i].h >= button->height))
-      clear_flags (button->flags, WB_Shaped);
+	/* if an icon fills the whole button, don't shape */
+	for (i = 0; i < button->num_icons; i++)
+  		if ((button->icons[i].mask == None) &&
+		    (button->icons[i]->width >= button->width) &&
+			(button->icons[i]->height >= button->height))
+		    clear_flags (button->flags, WB_Shaped);
 
   /* create and clear the mask */
-  if (button->completeIcon.mask != None)
-    XFreePixmap (dpy, button->completeIcon.mask);
-  button->completeIcon.mask = XCreatePixmap (dpy, Scr.Root, button->width,
-					     button->height, 1);
-  ShapeGC = XCreateGC (dpy, button->completeIcon.mask, 0, NULL);
-  if (get_flags (button->flags, WB_Shaped))
-    XSetForeground (dpy, ShapeGC, 0);
-  else
-    XSetForeground (dpy, ShapeGC, 1);
-  XFillRectangle (dpy, button->completeIcon.mask, ShapeGC,
-		  0, 0, button->width, button->height);
+	if (button->completeIcon.mask != None)
+  		XFreePixmap (dpy, button->completeIcon.mask);
+	button->completeIcon.mask = XCreatePixmap (dpy, Scr.Root, button->width,
+	  				     button->height, 1);
+    ShapeGC = XCreateGC (dpy, button->completeIcon.mask, 0, NULL);
+    if (get_flags (button->flags, WB_Shaped))
+	    XSetForeground (dpy, ShapeGC, 0);
+    else
+	    XSetForeground (dpy, ShapeGC, 1);
+    XFillRectangle (dpy, button->completeIcon.mask, ShapeGC,
+			  0, 0, button->width, button->height);
 
   /* tile with the background pixmap */
   if (icon.icon != None)
@@ -333,6 +306,14 @@ GetImageFile (icon_info * icon)
  * read background icons from data
  *
  ****************************************************************************/
+
+int 
+MakeWharfGradient(icon_info * icon)
+{
+	
+
+}
+
 int
 GetXPMData (icon_info * icon, char **data)
 {

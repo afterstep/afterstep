@@ -34,18 +34,13 @@
 #include <sys/wait.h>
 #include <time.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-#include <X11/xpm.h>
 #ifdef SHAPE
 #include <X11/extensions/shape.h>
 #endif
 
 #define IN_MODULE
-
+#include "../../include/afterbase.h"
+#include "../../libAfterImage/afterimage.h"
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/style.h"
@@ -53,10 +48,7 @@
 #include "../../include/module.h"
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
-#include "../../include/ascolor.h"
-#include "../../include/stepgfx.h"
 #include "../../include/mystyle.h"
-#include "../../include/XImage_utils.h"
 #include "../../include/pixmap.h"
 #include "../../include/background.h"
 #include "Pager.h"
@@ -853,12 +845,14 @@ DispatchEvent (XEvent * Event)
 	else if (Event->xproperty.atom == Atoms[ATOM_ROOT_PIXMAP].atom)
 	  {
 	    static Pixmap lastRootPixmap = None;
+		if( Scr.RootImage )
+		    destroy_asimage( &(Scr.RootImage));
 
 	    Pager.CurentRootBack = GetRootPixmap (Atoms[ATOM_ROOT_PIXMAP].atom);
 	    if (lastRootPixmap != Pager.CurentRootBack)
 	      {			/* if it was changed not by us */
-		UpdateTransparency ();
-		lastRootPixmap = Pager.CurentRootBack;
+			UpdateTransparency ();
+			lastRootPixmap = Pager.CurentRootBack;
 	      }
 	  }
 	else if (Event->xproperty.atom == Atoms[ATOM_BACKGROUNDS].atom)
@@ -1359,11 +1353,10 @@ DecorateDesk (long Desk)
 	if (back->data.pixmap)
 	  if (XGetGeometry (dpy, back->data.pixmap, &root, &dummy, &dummy,
 			    &src_width, &src_height, &dum, &dum) != 0)
-	    attr.background_pixmap = ScalePixmap (back->data.pixmap,
+	    attr.background_pixmap = scale_pixmap (Scr.asv, back->data.pixmap,
 						  src_width, src_height,
 						  desk_w, height,
-						  DefaultGC (dpy, screen),
-						  NULL);
+						  DefaultGC (dpy, screen), TINT_LEAVE_SAME );
     }
   else
     attr.background_pixmap = GetMyStylePixmap (Pager.Desks[Desk].w,
@@ -1392,6 +1385,9 @@ void
 UpdateTransparency ()
 {
   long Desk = 0;
+  if( Scr.RootImage )
+    destroy_asimage( &(Scr.RootImage));
+
   for (; Desk < Pager.ndesks; Desk++)
     {
       if (Look.DeskStyles[Desk])
@@ -1403,6 +1399,9 @@ UpdateTransparency ()
       if (label_h > 0)
 	HilightDesk (Desk, TEXTURE_TRANSPARENT);
     }
+	if( Scr.RootImage )
+	    destroy_asimage( &(Scr.RootImage));
+	
 }
 #endif
 void

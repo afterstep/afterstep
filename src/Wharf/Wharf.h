@@ -1,13 +1,11 @@
 
 #define IN_MODULE
-
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
+#include "../../include/module.h"
 #include "../../include/parse.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
-#include "../../include/ascolor.h"
-#include "../../include/stepgfx.h"
 
 #ifdef MAX_BUTTONS
 #undef MAX_BUTTONS
@@ -32,17 +30,8 @@
 #define clear_flags(var, val) ((var) &= ~(val))
 #endif
 
-typedef struct icon_info icon_info;
 typedef struct button_info button_info;
 typedef struct folder_info folder_info;
-
-struct icon_info
-{
-    char *file;
-    short w, h;
-    Pixmap icon, mask;
-    char depth;
-};
 
 enum /* button_info flags */
 {
@@ -62,11 +51,11 @@ struct button_info
   char *action;
   char *title;
   int num_icons;
-  icon_info icons[MAX_OVERLAY];
+  ASImage *icons[MAX_OVERLAY];
   int x, y;
   int width;
   int height;
-  icon_info completeIcon;		/* icon with background */
+  ASImage *completeIcon;		/* icon with background */
   Window IconWin;
   Window swallowed_win;
   XSizeHints hints;
@@ -126,15 +115,11 @@ extern int    My_XNextEvent(Display *dpy, XEvent *event);
 extern void   DeadPipe(int nonsense);
 
 /* from icons.c */
-extern void   LoadIconFile(icon_info* icon);
-extern void   CreateButtonIconWindow(button_info* button, Window *win);
+Window CreateButtonIconWindow (Window win);
 void ConfigureIconWindow(button_info* button);
-extern void   GetBitmapFile(icon_info* icon);
-extern int    GetImageFile(icon_info* icon);
-extern int    GetXPMData(icon_info* icon, char **data);
-extern int    GetXPMGradient(icon_info* icon, int from[3], int to[3], int maxcols,
-		   int type);
-extern int    GetSolidXPM(icon_info* icon, Pixel pixel);
+extern ASImage *GetXPMData(const char **data);
+extern ASImage *GetXPMGradient(int from[3], int to[3], int maxcols, int type);
+extern ASImage *GetSolidXPM(ARGB32 color);
 extern Bool Pushed;
 extern void DrawOutline(Drawable d, int w, int h);
 
@@ -173,7 +158,7 @@ extern GC ShapeGC;
 
 extern MyStyle* Style;
 
-extern icon_info back_pixmap;
-
+extern ASImage *back_pixmap;
+extern ASImageManager *imman;
 extern char *iconPath;
 extern char *pixmapPath;

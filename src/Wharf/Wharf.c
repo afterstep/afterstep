@@ -50,20 +50,10 @@
 #if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
 #include <sys/select.h>
 #endif
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-#ifdef SHAPE
-#include <X11/extensions/shape.h>
-#endif /* SHAPE */
 #ifdef I18N
 #include <X11/Xlocale.h>
 #endif
 
-#include "../../include/module.h"
-#include "../../include/loadimg.h"
 #include "Wharf.h"
 #include "../../include/iconbg.h"
 
@@ -143,14 +133,14 @@ button_info *new_button (button_info * button);
 void delete_button (button_info * button);
 void update_folder_shape (folder_info * folder);
 
-icon_info back_pixmap;
-
 folder_info *new_folder (void);
 void delete_folder (folder_info * folder);
 folder_info *first_folder = NULL;
 folder_info *root_folder;	/* the main wharf */
 folder_info *current_folder;
 
+ASImage *back_pixmap = NULL;
+ASImageManager *imman =  NULL;
 char *iconPath = NULL;
 char *pixmapPath = NULL;
 
@@ -437,8 +427,7 @@ main (int argc, char **argv)
 
   CreateShadowGC ();
 
-  back_pixmap.icon = None;
-  back_pixmap.mask = None;
+  back_pixmap = NULL;
   CreateIconPixmap ();
 
   /* set up folders and create windows */
@@ -1316,12 +1305,11 @@ CreateShadowGC (void)
 void
 CreateIconPixmap (void)
 {
-  if (back_pixmap.mask != None)
-    UnloadMask (back_pixmap.mask);
-  if (back_pixmap.icon != None)
-    UnloadImage (back_pixmap.icon);
+  if (back_pixmap != NULL)
+	destroy_asimage( &back_pixmap );
   /* create the icon pixmap */
-  if (Style->texture_type != TEXTURE_BUILTIN || !GetXPMData (&back_pixmap, button_xpm))
+  if ( Style->texture_type != TEXTURE_BUILTIN || 
+       (back_pixmap = GetXPMData (button_xpm)) == NULL )
     {
       int width = 64, height = 64;
       icon_t icon;
@@ -1338,15 +1326,10 @@ CreateIconPixmap (void)
 	  icon.width = width;
 	  icon.height = height;
 	}
-      if (ForceWidth > 0)
-	icon.width = ForceWidth;
-      if (ForceHeight > 0)
-	icon.height = ForceHeight;
-      back_pixmap.icon = icon.pix;
-      back_pixmap.mask = icon.mask;
-      back_pixmap.w = icon.width;
-      back_pixmap.h = icon.height;
-      back_pixmap.depth = Scr.d_depth;
+	
+	  back_pixmap = icon.image ;
+	  icon.image = NULL ;
+	  mystyle_free_icon_resources(icon); 
     }
 }
 
@@ -1688,11 +1671,12 @@ CreateFolderWindow (folder_info * folder)
   for (button = (*folder).first; button != NULL; button = (*button).next)
     {
       if (!get_flags ((*button).flags, WB_UserSetSize))
-	{
-	  (*button).width = back_pixmap.w;
-	  (*button).height = back_pixmap.h;
-	}
-      CreateButtonIconWindow (button, &(*folder).win);
+	  {
+		/* TODO: why do we need this : */
+		(*button).width = (ForceWidth > 0)?ForceWidth:back_pixmap->width;
+		(*button).height = (ForceHeight > 0)?ForceHeight:back_pixmap->height;
+	  }
+      (*button).IconWin = CreateButtonIconWindow ((*folder).win);
       XSelectInput (dpy, (*button).IconWin, EnterWindowMask | LeaveWindowMask);
     }
 
@@ -1700,11 +1684,6 @@ CreateFolderWindow (folder_info * folder)
   for (button = (*folder).first; button != NULL; button = (*button).next)
     if (!get_flags (button->flags, WB_Transient))
       balloon_new_with_text (dpy, (*button).IconWin, (*button).title);
-
-  /* load icon pixmaps */
-  for (button = (*folder).first; button != NULL; button = (*button).next)
-    for (i = 0; i < (*button).num_icons; i++)
-      LoadIconFile (&(*button).icons[i]);
 
   /* place the buttons and resize the folder window */
   place_buttons (folder);
@@ -1853,17 +1832,22 @@ DeadPipe (int nonsense)
     if (ModulePath != NULL)
       free (ModulePath);
 #endif
+	if( back_pixmap )
+	{
+		safe_asimage_destroy( back_pixmap );
+		back_pixmap = NULL ;
+	}
+	if( imman ) 
+	{
+	  destroy_image_manager( imman, False );
+	  imman = NULL ;
+	}
     if (iconPath != NULL)
       free (iconPath);
     if (pixmapPath != NULL)
       free (pixmapPath);
 
     XFreeGC (dpy, NormalGC);
-
-    if (back_pixmap.mask != None)
-      UnloadMask (back_pixmap.mask);
-    if (back_pixmap.icon != None)
-      UnloadImage (back_pixmap.icon);
 
     /* kill the styles */
     while (mystyle_first != NULL)
@@ -2141,6 +2125,9 @@ ParseBaseOptions (char *filename)
       tline = fgets (line, sizeof (line), fd);
     }
   fclose (fd);
+  if( imman ) 
+	  destroy_image_manager( imman, False );
+  imman = create_image_manager( NULL, 2.2, PixmapPath, IconPath );
 }
 
 
@@ -2256,6 +2243,7 @@ match_stringWharf (char *tline)
   char *ptr, *start, *end, *tmp;
   struct button_info *actual;
   struct button_info *button;
+  char *filename = NULL ;
 
   /* skip spaces */
   while (isspace (*tline) && (*tline != '\n'))
@@ -2335,19 +2323,22 @@ match_stringWharf (char *tline)
   /* separate icon files to be overlaid */
   i2 = len;
   j = k = 0;
-  for (i = actual->num_icons; i < MAX_OVERLAY; i++)
-    {
-      while (ptr[j] != ',' && j < i2)
-	j++;
-      actual->icons[i].file = safemalloc (j - k + 1);
-      strncpy (actual->icons[i].file, &(ptr[k]), j - k);
-      actual->icons[i].file[j - k] = 0;
-      actual->num_icons++;
+  for (i = actual->num_icons; actual->num_icons < MAX_OVERLAY; i++)
+  {
+      while (ptr[j] != ',' && j < i2)	j++;
+	  
+	  filename = filename?realloc(filename, j - k + 1):safemalloc(j - k + 1);
+      strncpy (filename, &(ptr[k]), j - k);
+      filename[j-k] = 0;
+	  if( (actual->icons[actual->num_icons] = get_asimage( imman, filename, 0xFFFFFFFF, 100)) != NULL ) ;
+	      actual->num_icons++;
       j++;
       k = j;
       if (j >= i2)
-	break;
-    }
+		break;
+  }
+  if( filename ) 
+	  free(filename);
   free (ptr);
   tline = end;
   /* skip spaces */
@@ -2692,8 +2683,6 @@ new_folder (void)
 button_info *
 new_button (button_info * button)
 {
-  icon_info default_icon =
-  {NULL, 0, 0, None, None, 0};
   int i;
 
   if (button == NULL)
@@ -2706,13 +2695,12 @@ new_button (button_info * button)
   (*button).title = NULL;
   (*button).num_icons = 0;
   for (i = 0; i < MAX_OVERLAY; i++)
-    (*button).icons[i] = default_icon;
+    (*button).icons[i] = NULL;
   (*button).x = 0;
   (*button).y = 0;
   (*button).width = 0;
   (*button).height = 0;
-  (*button).completeIcon.icon = None;
-  (*button).completeIcon.mask = None;
+  (*button).completeIcon = NULL;
   (*button).IconWin = None;
   (*button).swallowed_win = None;
   (*button).hangon = NULL;
@@ -2899,18 +2887,11 @@ delete_button (button_info * button)
 
   /* delete the icons */
   for (i = 0; i < (*button).num_icons; i++)
-    {
-      if ((*button).icons[i].file != NULL)
-	free ((*button).icons[i].file);
-      if ((*button).icons[i].mask != None)
-	UnloadMask ((*button).icons[i].mask);
-      if ((*button).icons[i].icon != None)
-	UnloadImage ((*button).icons[i].icon);
-    }
-  if ((*button).completeIcon.icon != None)
-    XFreePixmap (dpy, (*button).completeIcon.icon);
-  if ((*button).completeIcon.mask != None)
-    XFreePixmap (dpy, (*button).completeIcon.mask);
+	if( (*button).icons[i] )
+	  destroy_asimage( &(button->icons[i]) );
+
+  if ((*button).completeIcon)
+      destroy_asimage(&((*button).completeIcon));
 
   /* delete swallowed windows, but not modules (AfterStep handles those) */
   if (button->swallowed_win != None && !get_flags (button->flags, WB_Module))

@@ -494,6 +494,8 @@ HandlePropertyNotify ()
   if (Event.xproperty.atom == _XROOTPMAP_ID && Event.xproperty.window == Scr.Root)
     {
       ASWindow *win;
+	  if( Scr.RootImage )
+		  destroy_asimage( &(Scr.RootImage));
       for (win = Scr.ASRoot.next; win != NULL; win = win->next)
 	if (SetTransparency (win))
 	  SetBorder (win, Scr.Hilite == win, True, True, None);

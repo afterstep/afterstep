@@ -335,16 +335,37 @@ mystyle_translate_grad_type( int type )
 	}
 }
 
-icon_t
-mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
+static merge_scanlines_func mystyle_merge_scanlines_func_xref[] =
 {
-  icon_t icon =
-  {None, None, 0, 0};
+   alphablend_scanlines,
+   allanon_scanlines,
+   alphablend_scanlines,
+   add_scanlines,
+   colorize_scanlines,
+   darken_scanlines,
+   diff_scanlines,
+   dissipate_scanlines,
+   hue_scanlines,
+   lighten_scanlines,
+   overlay_scanlines,
+   saturate_scanlines,
+   screen_scanlines,
+   sub_scanlines,
+   tint_scanlines,
+   value_scanlines,
+   NULL
+};
+
+ASImage *
+mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int height )
+{
+    ASImage *im = NULL;
+	Pixmap root_pixmap ;
+	unsigned int root_w, root_h ;
 #ifndef NO_TEXTURE
-    ASImage *im ;
-	ASGradient grad;  
-	
-	memset( &grad, 0x00, sizeof(grad));
+    if( width < 1 )    width = 1 ;
+    if( height < 1 )   height = 1 ;
+
 	switch( style->texture_type )
 	{
 	    case TEXTURE_SOLID :
@@ -370,88 +391,77 @@ mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
 			                   0, 0, width, height, TINT_LEAVE_SAME, 
 							   ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT  );
 			break;
-		default : 
-		/* not supported style */
-	}
-	
-	icon.image = im ;
-	if( im ) 
-	{
-		icon.pix = asimage2pixmap( Scr.asv, Scr.Root, im, NULL, False );
-		icon.pix = asimage2mask  ( Scr.asv, Scr.Root, im, NULL, False );
-        icon.width = im->width;
-	    icon.height = im->height;
-	}
+		default :
+			if( Scr.RootImage == NULL )  
+			{
+				root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
+#if 1	
+				Scr.RootImage = pixmap2ximage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 100 );
+#else
+				Scr.RootImage = pixmap2asimage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, False, 100 );
+#endif		
+			}else
+			{
+				root_w = Scr.RootImage->width ;
+				root_h = Scr.RootImage->height ;
+			}
+			if (Scr.RootImage != NULL && style->texture_type == TEXTURE_TRANSPARENT )
+			{
+				im = tile_asimage ( Scr.asv, Scr.RootImage, root_x, root_y,
+  				  				    width,  height, style->tint,
+									ASA_ASImage,
+									0, ASIMAGE_QUALITY_DEFAULT );
+			}else if ( Scr.RootImage != NULL && 
+			           style->texture_type > TEXTURE_TRANSPARENT &&
+					   style->texture_type <= TEXTURE_TRANSPARENT+15 )
+	    	{
+				ASImageLayer layers[2];
+		
+				init_image_layers( &layers[0], 2 );
+				layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[style->texture_type-TEXTURE_TRANSPARENT] ;
+				layers[0].im = Scr.RootImage;
+				layers[0].dst_x = 0 ;
+				layers[0].dst_y = 0 ;
+				layers[0].clip_x = root_x ;
+				layers[0].clip_y = root_y ;
+				layers[0].clip_width = width ;
+				layers[0].clip_height = height ;
 
+				layers[1].merge_scanlines = layers[0].merge_scanlines ;		
+				layers[1].im = style->back_icon.image ; 
+				layers[1].dst_x = 0 ;
+				layers[1].dst_y = 0 ;
+				layers[1].clip_x = 0 ;
+		  		layers[1].clip_y = 0 ;
+				layers[1].clip_width = width ;
+  				layers[1].clip_height = height ;
 
-#if 0
-  GC gc, mgc = None;
-  XGCValues gcv;
-  unsigned long gcm;
-  int screen = DefaultScreen(dpy);
-
-  icon.pix = XCreatePixmap (dpy, RootWindow (dpy, screen), width, height, DefaultDepth (dpy, screen));
-  gcv.foreground = style->colors.back;
-  gcv.background = style->colors.fore;
-  gcv.fill_style = FillSolid;
-  gcv.graphics_exposures = False;
-  gcm = GCForeground | GCBackground | GCFillStyle | GCGraphicsExposures;
-  if (style->texture_type == 128)
-    {
-      gcv.fill_style = FillTiled;
-      gcv.tile = style->back_icon.pix;
-      gcm |= GCTile;
-      if (style->back_icon.mask != None)
-	icon.mask = XCreatePixmap (dpy, RootWindow (dpy, screen), width, height, 1);
-    }
-  gc = XCreateGC (dpy, icon.pix, gcm, &gcv);
-  if (icon.mask != None)
-    {
-      gcv.tile = style->back_icon.mask;
-      gcm = GCFillStyle | GCGraphicsExposures | GCTile;
-      mgc = XCreateGC (dpy, style->back_icon.mask, gcm, &gcv);
-    }
-  switch (style->texture_type)
-    {
-    case TEXTURE_PIXMAP:
-      if (icon.mask != None)
-	XFillRectangle (dpy, icon.mask, mgc, 0, 0, width, height);
-      /* fall through to case TEXTURE_SOLID */
-    case TEXTURE_SOLID:
-      XFillRectangle (dpy, icon.pix, gc, 0, 0, width, height);
-      break;
-    default:			/* gradients */
-      if (style->texture_type <= TEXTURE_SOLID || style->texture_type >= TEXTURE_PIXMAP)
-	{
-	  XFreePixmap (dpy, icon.pix);
-	  icon.pix = None;
+				im = merge_layers( Scr.asv, &layers[0], 2,
+		      	                   width, height,
+								   ASA_ASImage,
+							       0, ASIMAGE_QUALITY_DEFAULT );
+			}
 	}
-      /* use the cache if we can */
-      if (cache != None && width < DisplayWidth (dpy, screen) &&
-	  height < DisplayHeight (dpy, screen))
-	{
-	  XCopyArea (dpy, cache, icon.pix, gc, 0, 0, width, height, 0, 0);
-	}
-      else
-	{
-	  draw_gradient (dpy, icon.pix, 0, 0, width, height,
-			 style->gradient.npoints, style->gradient.color,
-			 style->gradient.offset, 0, style->texture_type,
-			 style->max_colors, 40);
-	}
-      break;
-    }
-  XFreeGC (dpy, gc);
-  if (mgc != None)
-    XFreeGC (dpy, mgc);
-  if (icon.pix != None)
-    {
-      icon.width = width;
-      icon.height = height;
-    }
-#endif	
 #endif /* NO_TEXTURE */
-  return icon;
+	return im ;
+}
+
+icon_t
+mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
+{
+	icon_t icon = {None, None, 0, 0};
+#ifndef NO_TEXTURE
+	icon.image = mystyle_make_image( style, 0, 0, width, height );
+	if( icon.image )
+	{
+		icon.pix = asimage2pixmap( Scr.asv, Scr.Root, icon.image, NULL, False );
+		if( style->texture_type <= TEXTURE_PIXMAP ) 
+			icon.mask = asimage2mask  ( Scr.asv, Scr.Root, icon.image, NULL, False );
+        icon.width = icon.image->width;
+	    icon.height = icon.image->height;
+	}
+#endif /* NO_TEXTURE */
+	return icon;
 }
 
 void 
@@ -465,107 +475,21 @@ mystyle_free_icon_resources( icon_t icon )
 		destroy_asimage(&icon.image);
 }
 
-static merge_scanlines_func mystyle_merge_scanlines_func_xref[] =
-{
-   alphablend_scanlines,
-   allanon_scanlines,
-   alphablend_scanlines,
-   add_scanlines,
-   colorize_scanlines,
-   darken_scanlines,
-   diff_scanlines,
-   dissipate_scanlines,
-   hue_scanlines,
-   lighten_scanlines,
-   overlay_scanlines,
-   saturate_scanlines,
-   screen_scanlines,
-   sub_scanlines,
-   tint_scanlines,
-   value_scanlines,
-   NULL
-};
-
-
 icon_t
 mystyle_make_icon_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache)
 {
-    icon_t icon =  {None, None, 0, 0};
-	unsigned int root_w, root_h;
-	Pixmap root_pixmap;
-
-    if (style->texture_type < TEXTURE_TRANSPARENT)
-	{
-	    icon = mystyle_make_icon (style, width, height, cache);
-		return icon ;
-	}
-		
+  icon_t icon = {None, None, 0, 0};
 #ifndef NO_TEXTURE
-	root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
-
-    if( width < 1 )    width = 1 ;
-    if( height < 1 )   height = 1 ;
-	
-	if (root_pixmap != None && style->texture_type == TEXTURE_TRANSPARENT )
+	icon.image = mystyle_make_image( style, root_x, root_y, width, height );
+	if( icon.image )
 	{
-#if 1	
-		ASImage *src_im = pixmap2ximage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 0 );
-#else
-		ASImage *src_im = pixmap2asimage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, False, 0 );
-#endif		
-		ASImage *tinted = tile_asimage ( Scr.asv, src_im, root_x, root_y,
-  										 width,  height, style->tint,
-										 ASA_XImage,
-									     0, ASIMAGE_QUALITY_DEFAULT );
-		destroy_asimage( &src_im );
-		if( tinted ) 
-		{
-			icon.pix = asimage2pixmap( Scr.asv, Scr.Root, tinted, NULL, True );
-			icon.mask = None ;
-			icon.image = tinted ;
-		}
-	}else if (root_pixmap != None)
-    {
-		ASImageLayer layers[2];
-		ASImage *merged_im ;
-		
-		init_image_layers( &layers[0], 2 );
-		layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[style->texture_type-1-TEXTURE_TRANSPARENT] ;
-		layers[0].im = pixmap2ximage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 0 );
-		layers[0].dst_x = 0 ;
-		layers[0].dst_y = 0 ;
-		layers[0].clip_x = -root_x ;
-		layers[0].clip_y = -root_y ;
-		layers[0].clip_width = width ;
-		layers[0].clip_height = height ;
-		
-		layers[1].im = style->back_icon.image ; 
-		layers[1].dst_x = 0 ;
-		layers[1].dst_y = 0 ;
-		layers[1].clip_x = 0 ;
-		layers[1].clip_y = 0 ;
-		layers[1].clip_width = width ;
-		layers[1].clip_height = height ;
-
-		merged_im = merge_layers( Scr.asv, &layers[0], 2,
-		                          width, height,
-								  ASA_XImage,
-							      0, ASIMAGE_QUALITY_DEFAULT );
-		destroy_asimage( &(layers[0].im) );
-
-		if( merged_im ) 
-		{
-			icon.pix = asimage2pixmap( Scr.asv, Scr.Root, merged_im, NULL, True );
-			icon.mask = None ;
-			icon.image = merged_im ;
-		}			
-    }
-    if (icon.pix != None)
-	{
-  		icon.width = width;
-    	icon.height = height;
-    }
-#endif /* !NO_TEXTURE */
+		icon.pix = asimage2pixmap( Scr.asv, Scr.Root, icon.image, NULL, False );
+		if( style->texture_type <= TEXTURE_PIXMAP ) 
+			icon.mask = asimage2mask  ( Scr.asv, Scr.Root, icon.image, NULL, False );
+        icon.width = icon.image->width;
+	    icon.height = icon.image->height;
+	}
+#endif /* NO_TEXTURE */
   return icon;
 }
 

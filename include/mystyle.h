@@ -178,6 +178,7 @@ void mystyle_draw_texturized_vertical_text (Window w, MyStyle * style, MyStyle *
 int mystyle_translate_grad_type( int type );
 
 void mystyle_fix_styles (void);
+ASImage *mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int height );
 Pixmap mystyle_make_pixmap (MyStyle * style, int width, int height, Pixmap cache);
 Pixmap mystyle_make_pixmap_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache);
 icon_t mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache);

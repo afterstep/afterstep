@@ -113,6 +113,7 @@ typedef struct ScreenInfo
     int MyDisplayHeight;	/* my copy of DisplayHeight(dpy, screen) */
 	
 	struct ASVisual *asv ;  /* ASVisual for libAfterImage */
+	struct ASImage  *RootImage;
 
     ASWindow ASRoot;		/* the head of the afterstep window list */
     Window Root;		/* the root window */
