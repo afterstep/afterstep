@@ -374,11 +374,10 @@ DisplaySize (ASWindow * tmp_win, int width, int height, Bool Init)
 	last_height = height;
 
 	get_client_geometry (tmp_win, 0, 0, width, height, NULL, NULL, &dwidth, &dheight);
-
-	dwidth -= tmp_win->normal_hints.base_width;
-	dheight -= tmp_win->normal_hints.base_height;
-	dwidth /= tmp_win->normal_hints.width_inc;
-	dheight /= tmp_win->normal_hints.height_inc;
+	dwidth -= tmp_win->hints->base_width;
+	dheight -= tmp_win->hints->base_height;
+	dwidth /= tmp_win->hints->width_inc;
+	dheight /= tmp_win->hints->height_inc;
 
 	(void)sprintf (str, " %4d x %-4d ", dwidth, dheight);
 
@@ -437,23 +436,22 @@ ConstrainSize (ASWindow * tmp_win, int *widthp, int *heightp)
 
 	get_client_geometry (tmp_win, 0, 0, *widthp, *heightp, NULL, NULL, &dwidth, &dheight);
 
-	minWidth = tmp_win->normal_hints.min_width;
-
-	minHeight = tmp_win->normal_hints.min_height;
+	minWidth = tmp_win->hints->min_width;
+	minHeight = tmp_win->hints->min_height;
 
 /*  minHeight = 1; */
 
-	baseWidth = tmp_win->normal_hints.base_width;
-	baseHeight = tmp_win->normal_hints.base_height;
+	baseWidth = tmp_win->hints->base_width;
+	baseHeight = tmp_win->hints->base_height;
 
-	maxWidth = tmp_win->normal_hints.max_width;
-	maxHeight = tmp_win->normal_hints.max_height;
+	maxWidth = tmp_win->hints->max_width;
+	maxHeight = tmp_win->hints->max_height;
 
 /*    maxWidth = Scr.VxMax + Scr.MyDisplayWidth;
    maxHeight = Scr.VyMax + Scr.MyDisplayHeight; */
 
-	xinc = tmp_win->normal_hints.width_inc;
-	yinc = tmp_win->normal_hints.height_inc;
+	xinc = tmp_win->hints->width_inc;
+	yinc = tmp_win->hints->height_inc;
 
 	/*
 	 * First, clamp to min and max values
@@ -479,10 +477,10 @@ ConstrainSize (ASWindow * tmp_win, int *widthp, int *heightp)
 	/*
 	 * Third, adjust for aspect ratio
 	 */
-#define maxAspectX tmp_win->normal_hints.max_aspect.x
-#define maxAspectY tmp_win->normal_hints.max_aspect.y
-#define minAspectX tmp_win->normal_hints.min_aspect.x
-#define minAspectY tmp_win->normal_hints.min_aspect.y
+#define maxAspectX tmp_win->hints->max_aspect.x
+#define maxAspectY tmp_win->hints->max_aspect.y
+#define minAspectX tmp_win->hints->min_aspect.x
+#define minAspectY tmp_win->hints->min_aspect.y
 	/*
 	 * The math looks like this:
 	 *
@@ -498,7 +496,7 @@ ConstrainSize (ASWindow * tmp_win, int *widthp, int *heightp)
 	 * 
 	 */
 
-	if (tmp_win->normal_hints.flags & PAspect)
+	if (get_flags(tmp_win->hints->flags, AS_Aspect))
 	{
 		if (minAspectX * dheight > minAspectY * dwidth)
 		{

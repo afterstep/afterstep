@@ -284,25 +284,25 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 
 	 case F_PUTONTOP:
 		 /* put the window in its new place above ontop windows */
-		 tmp_win->layer = 1;
+		 tmp_win->status->layer = AS_LayerTop;
 		 RaiseWindow (tmp_win);
 		 break;
 
 	 case F_PUTONBACK:
 		 /* put the window in its new place below onback windows */
-		 tmp_win->layer = -1;
+		 tmp_win->status->layer = AS_LayerBack;
 		 RaiseWindow (tmp_win);
 		 break;
 
 	 case F_SETLAYER:
 		 /* put the window in its new place */
-		 tmp_win->layer = val1;
+		 tmp_win->status->layer = val1;
 		 RaiseWindow (tmp_win);
 		 break;
 
 	 case F_TOGGLELAYER:
 		 /* swap window layer */
-		 tmp_win->layer = (tmp_win->layer == val1) ? val2 : val1;
+		 tmp_win->status->layer = (tmp_win->status->layer == val1) ? val2 : val1;
 		 RaiseWindow (tmp_win);
 		 break;
 
@@ -544,12 +544,14 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 			 {
 				 if (AS_XNextEvent (dpy, &Event))
 				 {
-					 DispatchEvent ();
-					 if (Event.type == MapNotify && Tmp_win)
-					 {
-						  if( match_window_names_old( action, &(Tmp_win->hints->names[0]) ) )
-							  done = True;
-					 }
+					DispatchEvent ();
+					if (Event.type == MapNotify && Tmp_win)
+					{
+						wild_reg_exp *regexp = compile_wild_reg_exp(action);
+						if( match_string_list (&(Tmp_win->hints->names[0]), MAX_WINDOW_NAMES, regexp) == 0)
+							done = True ;
+						destroy_wild_reg_exp( regexp );
+					}
 				 }
 			 }
 		 }
@@ -739,7 +741,7 @@ GetNextWindow (const ASWindow * current_win, const int func)
 			/* AutoTabThroughDesks == 0 */
 		{
 			if (((Scr.flags & CirculateSkipIcons) && (t->flags & ICONIFIED)) ||
-				(t->Desk != Scr.CurrentDesk) ||
+				(ASWIN_DESK(t) != Scr.CurrentDesk) ||
 				(t->flags & CIRCULATESKIP) || (t->flags & WINDOWLISTSKIP))
 				continue;
 		}
@@ -793,12 +795,18 @@ Circulate (ASWindow * tmp_win, char *action, int direction)
 		if (!(t->flags & CIRCULATESKIP) &&
 			!(t->flags & NOFOCUS) &&
 			!(t->flags & WINDOWLISTSKIP) &&
-			(AutoTabThroughDesks || t->Desk == Scr.CurrentDesk) &&
+			(AutoTabThroughDesks || ASWIN_DESK(t) == Scr.CurrentDesk) &&
 			(!(Scr.flags & CirculateSkipIcons) || !(t->flags & ICONIFIED)))
 		{
 			if( action != NULL )
-				if( !match_window_names_old( action, t->hints->names ) )
+			{
+				int res ;
+				wild_reg_exp *regexp = compile_wild_reg_exp(action);
+				res = match_string_list (&(t->hints->names[0]), MAX_WINDOW_NAMES, regexp);
+				destroy_wild_reg_exp( regexp );
+				if( res == 0 )
 					continue ;
+			}
 			/* update first, last, and target */
 			if (first == NULL || t->circulate_sequence < first->circulate_sequence)
 				first = t;
@@ -1123,8 +1131,8 @@ FocusOn (ASWindow * t, int DeIconifyOnly, Bool circulating)
 	if (t == NULL)
 		return;
 
-	if (t->Desk != Scr.CurrentDesk)
-		changeDesks (0, t->Desk);
+	if (ASWIN_DESK(t) != Scr.CurrentDesk)
+		changeDesks (0, ASWIN_DESK(t));
 
 #ifndef NO_VIRTUAL
 
@@ -1835,14 +1843,14 @@ changeDesks (int val1, int val2)
 		if (!((t->flags & ICONIFIED) && (Scr.flags & StickyIcons)) &&
 			!(t->flags & STICKY) && !(t->flags & ICON_UNMAPPED))
 		{
-			if (t->Desk == oldDesk)
+			if (ASWIN_DESK(t) == oldDesk)
 			{
 				if (Scr.Focus == t)
 					t->FocusDesk = oldDesk;
 				else
 					t->FocusDesk = -1;
 				UnmapIt (t);
-			} else if (t->Desk == Scr.CurrentDesk)
+			} else if (ASWIN_DESK(t) == Scr.CurrentDesk)
 			{
 				MapIt (t);
 				if (t->FocusDesk == Scr.CurrentDesk)
@@ -1853,8 +1861,8 @@ changeDesks (int val1, int val2)
 		} else
 		{
 			/* Window is sticky */
-			t->Desk = Scr.CurrentDesk;
-			aswindow_set_desk_property (t, t->Desk);
+			ASWIN_DESK(t) = Scr.CurrentDesk ;
+			set_client_desktop( t->w, Scr.CurrentDesk );
 			if (Scr.Focus == t)
 			{
 				t->FocusDesk = oldDesk;
@@ -1897,23 +1905,23 @@ changeDesks (int val1, int val2)
 void
 changeWindowsDesk (ASWindow * t, int new_desk)
 {
-	if (new_desk == t->Desk)
+	if (new_desk == ASWIN_DESK(t))
 		return;
 
 	/* change mapping if necessary */
-	if (t->Desk == Scr.CurrentDesk)
+	if (ASWIN_DESK(t) == Scr.CurrentDesk)
 	{
-		t->Desk = new_desk;
+		ASWIN_DESK(t) = new_desk;
 		UnmapIt (t);
 	} else if (new_desk == Scr.CurrentDesk)
 	{
-		t->Desk = new_desk;
+		ASWIN_DESK(t) = new_desk;
 		/* If its an icon, auto-place it */
 		if (t->flags & ICONIFIED)
 			AutoPlace (t);
 		MapIt (t);
 	} else
-		t->Desk = new_desk;
+		ASWIN_DESK(t) = new_desk;
 
 	/* Better re-draw the pager now */
 	BroadcastConfig (M_CONFIGURE_WINDOW, t);
@@ -1922,21 +1930,8 @@ changeWindowsDesk (ASWindow * t, int new_desk)
 		update_windowList ();
 
 	/* update the _WIN_DESK property */
-	aswindow_set_desk_property (t, t->Desk);
+	aswindow_set_desk_property (t, ASWIN_DESK(t));
 }
-
-/* update the _WIN_DESK property */
-void
-aswindow_set_desk_property (ASWindow * t, int new_desk)
-{
-	extern Atom   _XA_WIN_DESK;
-	unsigned long desk = new_desk;
-
-	XChangeProperty (dpy, t->w, _XA_WIN_DESK, XA_CARDINAL, 32, PropModeReplace,
-					 (unsigned char *)&desk, 1);
-}
-
-
 /**************************************************************************
  *
  * Unmaps a window on transition to a new desktop

@@ -102,8 +102,8 @@ update_windowList (void)
 			next_desk = MY_INT_MAX;
 			for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 			{
-				if ((t->Desk > last_desk_done) && (t->Desk < next_desk))
-					next_desk = t->Desk;
+				if ((ASWIN_DESK(t) > last_desk_done) && (ASWIN_DESK(t) < next_desk))
+					next_desk = ASWIN_DESK(t);
 			}
 		} else if ((val1 < 4) && (val1 > -4))
 		{
@@ -121,7 +121,7 @@ update_windowList (void)
 		last_desk_done = next_desk;
 		for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 		{
-			if ((t->Desk == next_desk) && (!(t->flags & WINDOWLISTSKIP)))
+			if ((ASWIN_DESK(t) == next_desk) && (!get_flags(t->hints->flags, AS_SkipWinList)))
 			{
 				fdata.func = F_RAISE_IT;
 				fdata.name = mystrdup ((val1 & 0x0001) ? ASWIN_ICON_NAME(t) : ASWIN_NAME(t));

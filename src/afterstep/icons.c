@@ -470,10 +470,10 @@ AutoPlace (ASWindow * t)
 			t->icon_p_x += Scr.MyDisplayWidth;
 		if (t->icon_p_y < 0)
 			t->icon_p_y += Scr.MyDisplayHeight;
-	} else if (t->wmhints && (t->wmhints->flags & IconPositionHint))
+	} else if (get_flags(t->hints->flags, AS_ClientIconPosition))
 	{
-		t->icon_p_x = t->wmhints->icon_x;
-		t->icon_p_y = t->wmhints->icon_y;
+		t->icon_p_x = t->hints->icon_x;
+		t->icon_p_y = t->hints->icon_y;
 	} else
 	{
 		int           i, real_x = 0, real_y = 0, width, height;
@@ -623,14 +623,15 @@ DeIconify (ASWindow * tmp_win)
 	for (t = Scr.ASRoot.next; t != NULL; t = tn)
 	{
 		tn = t->next;
-		if ((t == tmp_win) || ((t->flags & TRANSIENT) && (t->transientfor == tmp_win->w)))
+		if ((t == tmp_win) || 
+		    (get_flags(t->hints->flags, AS_Transient) && t->hints->transient_for == tmp_win->w))
 		{
 			t->flags |= MAPPED;
 			if (Scr.flags & StubbornIcons)
-				t->Desk = t->DeIconifyDesk;
+				ASWIN_DESK(t) = t->DeIconifyDesk;
 			else
-				t->Desk = Scr.CurrentDesk;
-			aswindow_set_desk_property (t, t->Desk);
+				ASWIN_DESK(t) = Scr.CurrentDesk;
+			set_client_desktop( t->w, ASWIN_DESK(t));
 
 			if (Scr.Hilite == t)
 				SetBorder (t, False, True, True, None);
@@ -641,7 +642,7 @@ DeIconify (ASWindow * tmp_win)
 				/* try to put at least half the window
 				 * in the current screen, if the current desktop
 				 * is the windows desktop */
-				if (t->Desk == Scr.CurrentDesk)
+				if (ASWIN_DESK(t) == Scr.CurrentDesk)
 				{
 					new_x = t->frame_x;
 					new_y = t->frame_y;
@@ -674,7 +675,7 @@ DeIconify (ASWindow * tmp_win)
 			XFlush (dpy);
 
 			XMapWindow (dpy, t->w);
-			if (t->Desk == Scr.CurrentDesk)
+			if (ASWIN_DESK(t) == Scr.CurrentDesk)
 			{
 				XMapWindow (dpy, t->frame);
 				t->flags |= MAP_PENDING;
@@ -731,7 +732,8 @@ Iconify (ASWindow * tmp_win)
 	/* iconify transients first */
 	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 	{
-		if ((t == tmp_win) || ((t->flags & TRANSIENT) && (t->transientfor == tmp_win->w)))
+		if ((t == tmp_win) || 
+		    (get_flags(t->hints->flags, AS_Transient) && t->hints->transient_for == tmp_win->w))
 		{
 			/*
 			 * Prevent the receipt of an UnmapNotify, since that would
@@ -742,7 +744,7 @@ Iconify (ASWindow * tmp_win)
 			XUnmapWindow (dpy, t->w);
 			XSelectInput (dpy, t->w, eventMask);
 			XUnmapWindow (dpy, t->frame);
-			t->DeIconifyDesk = t->Desk;
+			t->DeIconifyDesk = ASWIN_DESK(t);
 			if (t->icon_title_w != None)
 				XUnmapWindow (dpy, t->icon_title_w);
 			if (t->icon_pixmap_w)
@@ -787,7 +789,7 @@ Iconify (ASWindow * tmp_win)
 	XFlush (dpy);
 
 	LowerWindow (tmp_win);
-	if (tmp_win->Desk == Scr.CurrentDesk)
+	if (ASWIN_DESK(tmp_win) == Scr.CurrentDesk)
 	{
 		if (tmp_win->icon_pixmap_w != None)
 			XMapWindow (dpy, tmp_win->icon_pixmap_w);
@@ -843,7 +845,7 @@ ChangeIcon (ASWindow * win)
 	{
 		CreateIconWindow (win);
 		AutoPlace (win);
-		if (win->Desk == Scr.CurrentDesk)
+		if (ASWIN_DESK(win) == Scr.CurrentDesk)
 		{
 			if (win->icon_pixmap_w != None)
 				XMapWindow (dpy, win->icon_pixmap_w);
@@ -861,11 +863,7 @@ ChangeIcon (ASWindow * win)
 char         *
 SearchIcon (ASWindow * tmp_win)
 {
-	name_list     nl;
-
-	nl.icon_file = tmp_win->icon_pm_file;
-	style_fill_by_name (&nl, &(tmp_win->hints->names[0]));
-	return nl.icon_file;
+	return tmp_win->hints->icon_file;
 }
 
 void
@@ -979,20 +977,18 @@ GetColorIconFile (ASWindow * tmp_win)
 int
 GetIconBitmap (ASWindow * tmp_win)
 {
-	if (tmp_win->wmhints == NULL || !(tmp_win->wmhints->flags & IconPixmapHint) ||
-		tmp_win->wmhints->icon_pixmap == None)
+	if ( !get_flags(tmp_win->hints->flags, AS_ClientIconPixmap) ||
+		  tmp_win->hints->icon.pixmap == None)
 		return 0;
 
-	XGetGeometry (dpy, tmp_win->wmhints->icon_pixmap, &JunkRoot, &JunkX, &JunkY,
+	XGetGeometry (dpy, tmp_win->hints->icon.pixmap, &JunkRoot, &JunkX, &JunkY,
 				  (unsigned int *)&tmp_win->icon_pm_width,
 				  (unsigned int *)&tmp_win->icon_pm_height, &JunkBW, &JunkDepth);
-	tmp_win->icon_pm_pixmap = tmp_win->wmhints->icon_pixmap;
+	tmp_win->icon_pm_pixmap = tmp_win->hints->icon.pixmap;
 	tmp_win->icon_pm_depth = JunkDepth;
 
-	if (tmp_win->wmhints->flags & IconMaskHint)
-	{
-		tmp_win->icon_pm_mask = tmp_win->wmhints->icon_mask;
-	}
+	tmp_win->icon_pm_mask = tmp_win->hints->icon_mask;
+		
 	tmp_win->flags |= ICON_OURS;
 	tmp_win->flags &= ~PIXMAP_OURS;
 
@@ -1007,11 +1003,11 @@ GetIconBitmap (ASWindow * tmp_win)
 int
 GetIconWindow (ASWindow * tmp_win)
 {
-	if (tmp_win->wmhints == NULL || !(tmp_win->wmhints->flags & IconWindowHint) ||
-		tmp_win->wmhints->icon_window == None)
+	if ( ((tmp_win->hints->flags &(AS_ClientIcon|AS_ClientIconPixmap)) != AS_ClientIcon) ||
+		 tmp_win->hints->icon.window == None)
 		return 0;
 
-	if (XGetGeometry (dpy, tmp_win->wmhints->icon_window, &JunkRoot,
+	if (XGetGeometry (dpy, tmp_win->hints->icon.window, &JunkRoot,
 					  &JunkX, &JunkY, (unsigned int *)&tmp_win->icon_pm_width,
 					  (unsigned int *)&tmp_win->icon_pm_height, &JunkBW, &JunkDepth) == 0)
 	{
@@ -1027,7 +1023,7 @@ GetIconWindow (ASWindow * tmp_win)
 	 */
 	/* Make sure that the window is a child of the root window ! */
 	/* Olwais screws this up, maybe others do too! */
-	tmp_win->icon_pixmap_w = tmp_win->wmhints->icon_window;
+	tmp_win->icon_pixmap_w = tmp_win->hints->icon.window;
 
 	XReparentWindow (dpy, tmp_win->icon_pixmap_w, Scr.Root, 0, 0);
 	tmp_win->flags &= ~ICON_OURS;

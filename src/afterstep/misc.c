@@ -128,8 +128,8 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 
 	XDeleteContext (dpy, Tmp_win->w, ASContext);
 
-	if (Tmp_win->icon_pm_pixmap != None && Tmp_win->wmhints &&
-		!(Tmp_win->wmhints->flags & IconPixmapHint))
+	if (Tmp_win->icon_pm_pixmap != None &&
+		!get_flags(Tmp_win->hints->flags, AS_ClientIconPixmap))
 		UnloadImage (Tmp_win->icon_pm_pixmap);
 
 	if (Tmp_win->icon_title_w)
@@ -168,13 +168,7 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 	Tmp_win->prev->next = Tmp_win->next;
 	if (Tmp_win->next != NULL)
 		Tmp_win->next->prev = Tmp_win->prev;
-	if (Tmp_win->wmhints)
-		XFree ((char *)Tmp_win->wmhints);
-	if (Tmp_win->mwm_hints)
-		XFree ((char *)Tmp_win->mwm_hints);
 
-	if (Tmp_win->cmap_windows != (Window *) NULL)
-		XFree ((void *)Tmp_win->cmap_windows);
 #ifndef NO_TEXTURE
 	if (Tmp_win->backPixmap != None)
 		XFreePixmap (dpy, Tmp_win->backPixmap);
@@ -612,9 +606,9 @@ UpdateVisibility (void)
 			visible = VISIBLE;
 			for (s = Scr.ASRoot.next; s != t; s = s->next)
 			{
-				if ((s->flags & TRANSIENT) && (s->transientfor == t->w))
+				if (get_flags(s->hints->flags, AS_Transient) && (s->hints->transient_for == t->w))
 					continue;
-				else if (s->layer != t->layer)
+				else if (s->status->layer != t->status->layer)
 					continue;
 
 				if (s->flags & MAPPED)

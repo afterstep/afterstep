@@ -60,8 +60,8 @@ highest_layer (ASWindow * list)
 	int           highest = -10000;
 
 	for (; list != NULL; list = list->next)
-		if (highest < list->layer)
-			highest = list->layer;
+		if (highest < list->status->layer)
+			highest = list->status->layer;
 	return highest;
 }
 
@@ -71,9 +71,9 @@ highest_layer_below_window (ASWindow * list, ASWindow * w)
 	int           highest = -10000;
 
 	for (; list != NULL; list = list->next)
-		if (highest < list->layer && list->layer < w->layer)
-			highest = list->layer;
-	return highest == -10000 ? w->layer : highest;
+		if (highest < list->status->layer && list->status->layer < w->status->layer)
+			highest = list->status->layer;
+	return highest == -10000 ? w->status->layer : highest;
 }
 
 ASWindow     *
@@ -179,11 +179,11 @@ RaiseWindow (ASWindow * t)
 
 	/* collect all windows which go above us */
 	list = NULL;
-	while ((highest = highest_layer (Scr.ASRoot.next)) > t->layer)
+	while ((highest = highest_layer (Scr.ASRoot.next)) > t->status->layer)
 		for (w = Scr.ASRoot.next; w != NULL; w = wn)
 		{
 			wn = w->next;
-			if (w->layer == highest)
+			if (w->status->layer == highest)
 				list = list_append (list, list_extract (w));
 		}
 
@@ -192,7 +192,7 @@ RaiseWindow (ASWindow * t)
 	for (w = Scr.ASRoot.next; w != NULL; w = wn)
 	{
 		wn = w->next;
-		if ((w->flags & TRANSIENT) && w->transientfor == t->w)
+		if (get_flags(w->hints->flags, AS_Transient) && w->hints->transient_for == t->w)
 			list = list_append (list, list_extract (w));
 	}
 #endif /* !DONT_RAISE_TRANSIENTS */
@@ -270,7 +270,7 @@ LowerWindow (ASWindow * t)
 	for (w = Scr.ASRoot.next; w != NULL; w = wn)
 	{
 		wn = w->next;
-		if ((w->flags & TRANSIENT) && w->transientfor == t->w)
+		if (get_flags(w->hints->flags, AS_Transient) && w->hints->transient_for == t->w)
 			list = list_append (list, list_extract (w));
 	}
 #endif /* !DONT_RAISE_TRANSIENTS */
@@ -279,11 +279,11 @@ LowerWindow (ASWindow * t)
 	list = list_append (list, list_extract (t));
 
 	/* next, any windows which go below us */
-	while ((highest = highest_layer_below_window (Scr.ASRoot.next, t)) < t->layer)
+	while ((highest = highest_layer_below_window (Scr.ASRoot.next, t)) < t->status->layer)
 		for (w = Scr.ASRoot.next; w != NULL; w = wn)
 		{
 			wn = w->next;
-			if (w->layer == highest)
+			if (w->status->layer == highest)
 				list = list_append (list, list_extract (w));
 		}
 
@@ -366,7 +366,7 @@ CorrectStackOrder (void)
 		for (w = Scr.ASRoot.next; w != NULL; w = wn)
 		{
 			wn = w->next;
-			if (w->layer == highest)
+			if (w->status->layer == highest)
 				list = list_append (list, list_extract (w));
 		}
 	}

@@ -2,7 +2,9 @@ OBJS		= add_window.o afterstep.o borders.o clientwin.o \
 		colormaps.o configure.o decorations.o dirtree.o \
 		events.o frame.o functions.o gnome.o icons.o menus.o \
 		misc.o module.o move.o myscandir.o pager.o \
-		placement.o resize.o style.o windows.o menuitem.o
+		placement.o resize.o windows.o menuitem.o
+
+#  style.o
 
 PROG		= afterstep
 
