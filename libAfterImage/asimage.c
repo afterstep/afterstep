@@ -986,7 +986,7 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int
 			dst[i] = c>>(QUANT_ERR_BITS) ;
 			if( ++i >= len )
 				break;
-			c = ((c&QUANT_ERR_MASK)>>(QUANT_ERR_BITS+1))+src[i];
+			c = ((c&QUANT_ERR_MASK)>>1)+src[i];
 		}while(1);
 	}else if( ratio == 2 )
 	{
@@ -999,7 +999,7 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int
 			dst[i] = c>>(QUANT_ERR_BITS) ;
 			if( ++i >= len )
 				break;
-			c = ((c&QUANT_ERR_MASK)>>(QUANT_ERR_BITS+1))+src[i];
+			c = ((c&QUANT_ERR_MASK)>>1)+src[i];
 		}while( 1 );
 	}else
 	{
@@ -1012,7 +1012,7 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int
 			dst[i] = c>>(QUANT_ERR_BITS) ;
 			if( ++i >= len )
 				break;
-			c = ((c&QUANT_ERR_MASK)>>(QUANT_ERR_BITS+1))+src[i];
+			c = ((c&QUANT_ERR_MASK)>>1)+src[i];
 		}while(1);
 	}
 }
