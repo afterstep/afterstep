@@ -83,9 +83,9 @@ EdgeResistance 800 80
 # Place window in empty zones
 SmartPlacement
 # Random window placement
-#RandomPlacement
+RandomPlacement
 # Windows can't chose where to place
-NoPPosition
+#NoPPosition
 
 #############
 # New style (simplified) settings :
