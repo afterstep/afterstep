@@ -21,9 +21,6 @@
 #define LOCAL_DEBUG
 #include "../configure.h"
 #include "../include/afterbase.h"
-#include "asapp.h"
-#include "afterstep.h"
-#include "screen.h"
 #include "shape.h"
 
 ASVector *
@@ -333,7 +330,7 @@ print_shape( ASVector *shape )
 
 
 Bool
-add_shape_mask( ASVector *shape, ASImage *mask_im )
+add_shape_mask( struct ASVector *shape, struct ASImage *mask_im )
 {
 
 	return False;
@@ -368,14 +365,14 @@ subtract_shape_rectangle( ASVector *shape, XRectangle *rects, unsigned int count
 }
 
 Bool
-query_shape_from_window( ASVector *shape, Window w )
+query_shape_from_window( struct ASVector *shape, Window w )
 {
 
 	return False;
 }
 
 Bool
-apply_shape_to_window( ASVector *shape, Window w )
+apply_shape_to_window( struct ASVector *shape, Window w )
 {
 
 	return False;

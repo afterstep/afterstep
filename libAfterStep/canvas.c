@@ -20,18 +20,19 @@
 #define LOCAL_DEBUG
 #undef DO_CLOCKING
 
+#include <string.h>
+
 #include "../configure.h"
+
 #include "../include/afterbase.h"
-#include "asapp.h"
-#include "afterstep.h"
-#include "mystyle.h"
-#include "screen.h"
 #include "../libAfterImage/afterimage.h"
-#include "myicon.h"
-#include "canvas.h"
-#include "event.h"
-#include "balloon.h"
+#include "screen.h"
 #include "shape.h"
+#include "canvas.h"
+
+/* we do it here so that we can make it dependant on fewest possible number 
+ * of header, so we can reuse it in other apps */
+extern ScreenInfo Scr;
 
 inline Bool
 get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwidth, unsigned int *pheight, unsigned int *pbw )
@@ -802,8 +803,11 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
 
         if( parent != dst )
         {
+            /* blocking UnmapNotify events since that may bring us into Withdrawn state */
+    		XSelectInput (dpy, pc->w, event_mask & ~StructureNotifyMask);
             LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, %+d%+d ), bw = %d", pc->w, dst, x, y, bw );
-            quietly_reparent_window( pc->w, dst, x, y, event_mask );
+    		XReparentWindow( dpy, pc->w, (dst!=None)?dst:Scr.Root, x, y );
+    		XSelectInput (dpy, pc->w, event_mask );
         }
     }
 }
