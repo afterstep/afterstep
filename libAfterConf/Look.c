@@ -58,7 +58,7 @@ SyntaxDef     AlignSyntax = {
     ' ',
 	" ",
 	"\t",
-    "Aligninig flags",
+    "Alignment flags",
 	"Align",
 	NULL,
 	0

@@ -136,7 +136,7 @@ typedef struct ASProgArgs
 #define OPTION_NOSHORT_FORMAT			"   "
 #define OPTION_DESCR1_FORMAT_VAL 		" --%-16.16s <val> - %s.\n"
 #define OPTION_DESCR1_FORMAT_NOVAL 		" --%-16.16s       - %s.\n"
-#define OPTION_DESCR2_FORMAT			OPTION_NOSHORT_FORMAT "                            %s\n"
+#define OPTION_DESCR2_FORMAT			OPTION_NOSHORT_FORMAT "                            %s.\n"
 #define OPTION_PARAM_FORMAT		         "  %-20.20s       - %s.\n"
 
     ASFlagType mask ;    /* mask, specifying what options are not supported */

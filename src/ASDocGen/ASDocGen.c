@@ -118,14 +118,17 @@ void end_option_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *s
 void start_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
-void start_part_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
-void end_part_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+void start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+void end_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+
+void start_anchor_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+void end_anchor_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
 void start_title_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_title_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
-void start_olink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
-void end_olink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+void start_ulink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+void end_ulink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
 void start_emphasis_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_emphasis_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
@@ -157,10 +160,11 @@ void end_literallayout_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterS
 
 
 /* supported DocBook tags : 
-	<part label="overview" id="overview">
+	<section label="overview" id="overview">
 	<refsect1 id='usage'>
 	<title>
 	<para>
+    <anchor>
 	<command>
 	<emphasis>
 	<literallayout>
@@ -173,24 +177,25 @@ void end_literallayout_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterS
 	<arg choice='opt'>
 	<replaceable>
 	<group choice='opt'>
-	<olink linkend="Bevel#synopsis">
+	<ulink url="Bevel#synopsis">
 	<example>
 
 	Here is the complete vocabulary :
 id
 arg
-part
 para
 term
 title
 group
-olink
+ulink
 label
+anchor
 option
 choice
 command
 example
 linkend
+section
 refsect1
 emphasis
 listitem
@@ -207,18 +212,20 @@ typedef enum
 	DOCBOOK_unknown_ID = 0,	  
 	DOCBOOK_id_ID,	  
 	DOCBOOK_arg_ID,	  
-	DOCBOOK_part_ID,	  
+	DOCBOOK_url_ID,	  
 	DOCBOOK_para_ID,	  
 	DOCBOOK_term_ID,	  
+	DOCBOOK_ulink_ID,	  
 	DOCBOOK_title_ID,	  
 	DOCBOOK_group_ID,	  
-	DOCBOOK_olink_ID,	  
 	DOCBOOK_label_ID,	  
+	DOCBOOK_anchor_ID,
 	DOCBOOK_option_ID,	  
 	DOCBOOK_choice_ID,	  
 	DOCBOOK_command_ID,	  
 	DOCBOOK_example_ID,	  
 	DOCBOOK_linkend_ID,	  
+	DOCBOOK_section_ID,	  
 	DOCBOOK_refsect1_ID,	  
 	DOCBOOK_emphasis_ID,	  
 	DOCBOOK_listitem_ID,	  
@@ -239,19 +246,21 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 	{ TAG_INFO_AND_ID(unknown), NULL, NULL },
 	{ TAG_INFO_AND_ID(id), NULL, NULL },
 	{ TAG_INFO_AND_ID(arg), start_arg_tag, end_arg_tag },
-	{ TAG_INFO_AND_ID(part), start_part_tag, end_part_tag },
+	{ TAG_INFO_AND_ID(url), NULL, NULL },
 	{ TAG_INFO_AND_ID(para), start_para_tag, end_para_tag },
 	{ TAG_INFO_AND_ID(term), start_term_tag, end_term_tag },
+	{ TAG_INFO_AND_ID(ulink), start_ulink_tag, end_ulink_tag },
 	{ TAG_INFO_AND_ID(title), start_title_tag, end_title_tag },
 	{ TAG_INFO_AND_ID(group), start_group_tag, end_group_tag },
-	{ TAG_INFO_AND_ID(olink), start_olink_tag, end_olink_tag },
 	{ TAG_INFO_AND_ID(label), NULL, NULL },
+	{ TAG_INFO_AND_ID(anchor), start_anchor_tag, end_anchor_tag },
 	{ TAG_INFO_AND_ID(option), start_option_tag, end_option_tag },
 	{ TAG_INFO_AND_ID(choice), NULL, NULL },
 	{ TAG_INFO_AND_ID(command), start_command_tag, end_command_tag },
 	{ TAG_INFO_AND_ID(example), start_example_tag, end_example_tag },
 	{ TAG_INFO_AND_ID(linkend), NULL, NULL },
-	{ TAG_INFO_AND_ID(refsect1), start_part_tag, end_part_tag },
+	{ TAG_INFO_AND_ID(section), start_section_tag, end_section_tag },
+	{ TAG_INFO_AND_ID(refsect1), start_section_tag, end_section_tag },
 	{ TAG_INFO_AND_ID(emphasis), start_emphasis_tag, end_emphasis_tag },
 	{ TAG_INFO_AND_ID(listitem), start_listitem_tag, start_listitem_tag },
 	{ TAG_INFO_AND_ID(cmdsynopsis), start_cmdsynopsis_tag, end_cmdsynopsis_tag },
@@ -295,7 +304,7 @@ main (int argc, char **argv)
 {
 	int i ; 
 	char *source_dir = "source" ;
-	char *destination_dir = "html" ;
+	const char *destination_dir = NULL ;
 	ASDocType target_type = DocType_Source ;
 	/* Save our program name - for error messages */
     InitMyApp (CLASS_ASDOCGEN, argc, argv, NULL, NULL, 0 );
@@ -319,10 +328,15 @@ main (int argc, char **argv)
 					target_type = DocType_NROFF ; 														   
 				else if( mystrcasecmp( argv[i+1], "source" ) == 0 ) 
 					target_type = DocType_Source ; 														   
+				else
+					show_error( "unknown target type \"%s\"" );
 			}	 
 		}
 	}		  
+	if( destination_dir == NULL ) 
+		destination_dir = ASDocTypeExtentions[target_type] ;
 #if 0
+
     ConnectX( &Scr, PropertyChangeMask );
     ConnectAfterStep ( mask_reg);
 	
@@ -345,6 +359,14 @@ main (int argc, char **argv)
 			check_syntax_source( source_dir, TopLevelSyntaxes[i], (i >= MODULE_SYNTAX_START) );
 		++i ;	
 	}	 
+	/* we need to generate some top level files for afterstep itself : */
+	if( target_type < DocType_Source ) /* 1) generate HTML doc structure */
+	{
+		/* TODO: */	  
+		gen_syntax_doc( source_dir, destination_dir, NULL, target_type );
+	}else
+		check_syntax_source( source_dir, NULL, True );
+
 	 
 	if( dpy )   
     	XCloseDisplay (dpy);
@@ -372,33 +394,43 @@ void
 write_standard_options_source( FILE *f )
 {
 	int i = 0;
-	fprintf( f, "<refsect1 id='standard_options'><title>STANDARD OPTIONS</title>\n"
+	fprintf( f, "<anchor id=\"standard_options_list\"/>\n"
+				"<section>\n"
+				"<title>STANDARD OPTIONS</title>\n"
+				"<para>The following is the list of command line options supported by"
+				" all AfterStep modules and applications.</para>" 
 				"<variablelist>\n" );
 
 	while( as_standard_cmdl_options[i].long_opt ) 
 	{
 		fprintf( f, "	<varlistentry>\n" );
 		if( as_standard_cmdl_options[i].short_opt  )
-  			fprintf( f, "	<term>-%5.5s | --%s</term>\n", as_standard_cmdl_options[i].short_opt, as_standard_cmdl_options[i].long_opt );
+  			fprintf( f, "	<term>-%s | --%s", as_standard_cmdl_options[i].short_opt, as_standard_cmdl_options[i].long_opt );
 		else
-  			fprintf( f, "	<term>         --%s</term>\n", as_standard_cmdl_options[i].long_opt );
-		fprintf( f, "	<listitem>\n" ); 
-		fprintf( f, "   <para>%s</para>\n", as_standard_cmdl_options[i].descr1 );
+  			fprintf( f, "	<term>     --%s", as_standard_cmdl_options[i].long_opt );
+        
+		if( get_flags( as_standard_cmdl_options[i].flags, CMO_HasArgs ) )
+			fprintf( f, " <replaceable>val</replaceable>" );	
+
+		fprintf( f, "</term>\n" 
+					"	<listitem>\n" ); 
+		fprintf( f, "   <para>%s. ", as_standard_cmdl_options[i].descr1 );
 		if( as_standard_cmdl_options[i].descr2 )
-			fprintf( f, "   <para>%s</para>\n", as_standard_cmdl_options[i].descr2 );
-		fprintf( f, "   </listitem>\n"
+			fprintf( f, " %s.", as_standard_cmdl_options[i].descr2 );
+		fprintf( f, "   </para>\n"
+					"   </listitem>\n"
 					"	</varlistentry>\n" );
 		++i ;
 	}	 
 	fprintf( f, "</variablelist>\n"
-				"</refsect1>\n" );
+				"</section>\n" );
 }
 
 void 
 check_option_source( const char *syntax_dir, const char *option, SyntaxDef *sub_syntax, const char *module_name)
 {
 	char *filename = make_file_name( syntax_dir, option );
-	if( CheckFile( filename ) != 0 ) 
+	if( CheckFile( filename ) != 0 || mystrcasecmp( &(option[1]), "standard_options" ) == 0) 
 	{
 		FILE *f = fopen( filename, "w" );
 		if( f )
@@ -412,29 +444,27 @@ check_option_source( const char *syntax_dir, const char *option, SyntaxDef *sub_
 							option, option );
 				if( sub_syntax ) 
 					fprintf( f, "		<para>See Also: "
-								"<olink linkend=\"%s#synopsis\">%s</olink> for further details.</para>\n",
+								"<ulink url=\"%s#synopsis\">%s</ulink> for further details.</para>\n",
 							 sub_syntax->doc_path, sub_syntax->display_name );
 				fprintf( f,	"	</listitem>\n"
   							"</varlistentry>\n" ); 
 			}else
 			{
-				fprintf( f, "<part label=\"%s\" id=\"%s\">\n", &(option[1]), &(option[1]) ); 
+				fprintf( f, "<section label=\"%s\" id=\"%s\">\n", &(option[1]), &(option[1]) ); 
 				if( module_name )
 				{	
 					if( mystrcasecmp( &(option[1]), "synopsis" ) == 0 ) 
 					{
 						fprintf( f, "<cmdsynopsis>\n"
-  									"<command>%s</command>\n"
-									"[<olink linkend=\"AfterStep#standard_options\">standard options</olink>] \n"
+  									"<command>%s</command> [<ulink url=\"AfterStep#standard_options_list\">standard options</ulink>] \n"
 									"</cmdsynopsis>\n", module_name );
-					}else if( mystrcasecmp( &(option[1]), "overview" ) == 0 && 
-						 	  mystrcasecmp( module_name, "afterstep" ) == 0 ) 
+					}else if( mystrcasecmp( &(option[1]), "standard_options" ) == 0 ) 
 					{
 						write_standard_options_source( f );
 					}
 				}		
 						 
-				fprintf( f, "</part>\n" ); 
+				fprintf( f, "</section>\n" ); 
 			}	 
 			fclose(f); 	 
 		}
@@ -449,25 +479,29 @@ generate_main_source( const char *source_dir )
 	int i ;
 	for (i = 0; StandardSourceEntries[i] != NULL ; ++i)
 		check_option_source( source_dir, StandardSourceEntries[i], NULL, "afterstep");	
+	check_option_source( source_dir, "_standard_options", NULL, "afterstep");	 
 }
-
 
 void 
 check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module )
 {
 	int i ;
-	char *syntax_dir ;
+	char *syntax_dir = NULL ;
 	char *obsolete_dir ;
 	struct direntry  **list = NULL;
 	int list_len ;
 
-	if( get_hash_item( ProcessedSyntaxes, AS_HASHABLE(syntax), NULL ) == ASH_Success )
-		return ;
+	if( syntax )
+	{	
+		if( get_hash_item( ProcessedSyntaxes, AS_HASHABLE(syntax), NULL ) == ASH_Success )
+			return ;
 
-	if( syntax->doc_path == NULL || syntax->doc_path[0] == '\0' )
+		if( syntax->doc_path != NULL && syntax->doc_path[0] != '\0' )
+			syntax_dir = make_file_name (source_dir, syntax->doc_path); 
+	}
+	if( syntax_dir == NULL ) 
 		syntax_dir = mystrdup( source_dir );
-	else
-		syntax_dir = make_file_name (source_dir, syntax->doc_path); 
+	
 	obsolete_dir = make_file_name (syntax_dir, "obsolete" );
 	
 	if( CheckDir(syntax_dir) != 0 )
@@ -477,53 +511,57 @@ check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module )
 			return;
 		}
 
-	add_hash_item( ProcessedSyntaxes, AS_HASHABLE(syntax), NULL );   
+	if( syntax ) 
+	{	
+		add_hash_item( ProcessedSyntaxes, AS_HASHABLE(syntax), NULL );   
 
-	/* pass one: lets see which of the existing files have no related options : */
-	list_len = my_scandir ((char*)syntax_dir, &list, ignore_dots, NULL);
-	for (i = 0; i < list_len; i++)
-	{	
-		int k ;
-		if (!S_ISDIR (list[i]->d_mode))
+		/* pass one: lets see which of the existing files have no related options : */
+		list_len = my_scandir ((char*)syntax_dir, &list, ignore_dots, NULL);
+		for (i = 0; i < list_len; i++)
 		{	
-			char *name = list[i]->d_name ;
-			show_progress( "checking \"%s\" ... ", name );
-			if( name[0] != '_' ) 
+			int k ;
+			if (!S_ISDIR (list[i]->d_mode))
 			{	
-				for (k = 0; syntax->terms[k].keyword; k++)
-					if( mystrcasecmp(name, syntax->terms[k].keyword ) == 0 ) 
-						break;
-				if( syntax->terms[k].keyword == NULL ) 
-				{
-					/* obsolete option - move it away */
-					char *obsolete_fname = make_file_name (obsolete_dir, name );
-					char *fname = make_file_name (syntax_dir, name );
-					if( CheckDir(obsolete_dir) != 0 )
-						if( make_doc_dir( obsolete_dir ) ) 
-						{
-							copy_file (fname, obsolete_fname);
-							show_progress( "Option \"%s\" is obsolete - moving away!", name );
-							unlink(fname);
-						}
-					free( fname );
-					free( obsolete_fname ); 
-				}	 
-			}
-		}		
-		free( list[i] );
-	}
-	if( list )
-		free (list);
-	/* pass two: lets see which options are missing : */
-	for (i = 0; syntax->terms[i].keyword; i++)
-	{	
-		if (syntax->terms[i].sub_syntax)
-			check_syntax_source( source_dir, syntax->terms[i].sub_syntax, False );
-		if( isalnum( syntax->terms[i].keyword[0] ) )					
-			check_option_source( syntax_dir, syntax->terms[i].keyword, syntax->terms[i].sub_syntax, module?syntax->doc_path:NULL ) ;
-	}
-	for (i = 0; StandardSourceEntries[i] != NULL ; ++i)
-		check_option_source( syntax_dir, StandardSourceEntries[i], NULL, module?syntax->doc_path:NULL ) ;
+				char *name = list[i]->d_name ;
+				show_progress( "checking \"%s\" ... ", name );
+				if( name[0] != '_' ) 
+				{	
+					for (k = 0; syntax->terms[k].keyword; k++)
+						if( mystrcasecmp(name, syntax->terms[k].keyword ) == 0 ) 
+							break;
+					if( syntax->terms[k].keyword == NULL ) 
+					{
+						/* obsolete option - move it away */
+						char *obsolete_fname = make_file_name (obsolete_dir, name );
+						char *fname = make_file_name (syntax_dir, name );
+						if( CheckDir(obsolete_dir) != 0 )
+							if( make_doc_dir( obsolete_dir ) ) 
+							{
+								copy_file (fname, obsolete_fname);
+								show_progress( "Option \"%s\" is obsolete - moving away!", name );
+								unlink(fname);
+							}
+						free( fname );
+						free( obsolete_fname ); 
+					}	 
+				}
+			}		
+			free( list[i] );
+		}
+		if( list )
+			free (list);
+		/* pass two: lets see which options are missing : */
+		for (i = 0; syntax->terms[i].keyword; i++)
+		{	
+			if (syntax->terms[i].sub_syntax)
+				check_syntax_source( source_dir, syntax->terms[i].sub_syntax, False );
+			if( isalnum( syntax->terms[i].keyword[0] ) )					
+				check_option_source( syntax_dir, syntax->terms[i].keyword, syntax->terms[i].sub_syntax, module?syntax->doc_path:NULL ) ;
+		}
+		for (i = 0; StandardSourceEntries[i] != NULL ; ++i)
+			check_option_source( syntax_dir, StandardSourceEntries[i], NULL, module?syntax->doc_path:NULL ) ;
+	}else
+		generate_main_source( syntax_dir );
 
 	free( obsolete_dir );
 	free( syntax_dir );
@@ -536,12 +574,39 @@ check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module )
 void 
 convert_source_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *state )
 {
-	xml_elem_t* parm = xml_parse_parm(doc->parm, DocBookVocabulary);	
+	xml_elem_t* parm = NULL;	
 	xml_elem_t* ptr ;
+	const char *tag_name = doc->tag;
 	
-	if( doc->tag_id > 0 && doc->tag_id < DOCBOOK_SUPPORTED_IDS ) 
-		if( SupportedDocBookTagInfo[doc->tag_id].handle_start_tag ) 
-			SupportedDocBookTagInfo[doc->tag_id].handle_start_tag( doc, parm, state ); 
+	if( state->doc_type != DocType_XML ) 
+	{
+		parm = xml_parse_parm(doc->parm, DocBookVocabulary);	   
+		if( doc->tag_id > 0 && doc->tag_id < DOCBOOK_SUPPORTED_IDS ) 
+			if( SupportedDocBookTagInfo[doc->tag_id].handle_start_tag ) 
+				SupportedDocBookTagInfo[doc->tag_id].handle_start_tag( doc, parm, state ); 
+	}else
+	{
+		
+		if( doc->tag_id == DOCBOOK_refsect1_ID ) 
+			tag_name = SupportedDocBookTagInfo[DOCBOOK_section_ID].tag;
+
+		fprintf( state->dest_fp, "<%s", tag_name ); 
+		if( doc->parm ) 
+		{
+			char *ptr = NULL;
+			if( doc->tag_id == DOCBOOK_ulink_ID )
+				ptr = strchr( doc->parm, '#' );
+			if( ptr != NULL )
+			{
+				*ptr = '\0' ;
+				fprintf( state->dest_fp, " %s.html#%s", doc->parm, ptr+1 );	  
+				*ptr = '#' ;
+			}else		  
+				fprintf( state->dest_fp, " %s", doc->parm );
+		}
+		fputc( '>', state->dest_fp );
+
+	}	 
 	for (ptr = doc->child ; ptr ; ptr = ptr->next) 
 	{
 		if (ptr->tag_id == XML_CDATA_ID ) 
@@ -549,11 +614,18 @@ convert_source_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *
 		else 
 			convert_source_tag( ptr, NULL, state );
 	}
-	if( doc->tag_id > 0 && doc->tag_id < DOCBOOK_SUPPORTED_IDS ) 
-		if( SupportedDocBookTagInfo[doc->tag_id].handle_end_tag ) 
-			SupportedDocBookTagInfo[doc->tag_id].handle_end_tag( doc, parm, state ); 
-	if (rparm) *rparm = parm; 
-	else xml_elem_delete(NULL, parm);
+	if( state->doc_type != DocType_XML ) 
+	{
+		if( doc->tag_id > 0 && doc->tag_id < DOCBOOK_SUPPORTED_IDS ) 
+			if( SupportedDocBookTagInfo[doc->tag_id].handle_end_tag ) 
+				SupportedDocBookTagInfo[doc->tag_id].handle_end_tag( doc, parm, state ); 
+		if (rparm) *rparm = parm; 
+		else xml_elem_delete(NULL, parm);
+	}else
+	{	
+		fprintf( state->dest_fp, "</%s>", tag_name );
+	}
+	
 }
 
 void 
@@ -576,16 +648,24 @@ convert_source_file( const char *syntax_dir, const char *file, ASXMLInterpreterS
 		free( doc_str );		
 	}	 	   
 	free( source_file );
+	fprintf( state->dest_fp, "\n" );
 }
 
 void 
 write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
 {
+	char *display_name = "AfterStep" ;
+	char *doc_name = "AfterStep" ;
+	if( syntax ) 
+	{	
+		display_name = syntax->display_name ;
+		doc_name = syntax->doc_path ;
+	}
 	++(state->header_depth);
 	switch( state->doc_type ) 
 	{
 		case DocType_Plain :
-			fprintf( state->dest_fp, "%s\n\n", syntax->display_name );
+			fprintf( state->dest_fp, "%s\n\n", display_name );
 			break;
 		case DocType_HTML :
 			fprintf( state->dest_fp, "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
@@ -594,11 +674,25 @@ write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
   					  		"<title>%s</title>\n"
 					  		"</head>\n"
 					  		"<body>\n"
-					  		"<h1>%s</h1>\n", syntax->display_name, syntax->display_name );
+					  		"<h1>%s</h1>\n", display_name, display_name );
 			break;
  		case DocType_PHP :	
 		    break ;
 		case DocType_XML :
+			fprintf( state->dest_fp, "<!DOCTYPE article PUBLIC \"-//OASIS//DTD DocBook XML V4.1.2//EN\"\n"
+                  					 "\"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd\" [\n"
+									 "<!ENTITY %s SYSTEM \"%s.xml\" NDATA SGML>\n"
+									 "]>\n", doc_name, doc_name );
+			fprintf( state->dest_fp, "<article id=\"index\">\n"
+									 "<articleinfo>\n"
+   									 "<authorgroup>\n"
+      								 "<corpauthor>\n"
+      								 "<ulink url=\"http://www.afterstep.org\">AfterStep Window Manager</ulink>\n"
+      								 "</corpauthor>\n"
+      								 "</authorgroup>\n"
+									 "<title>%s documentation</title>\n"
+									 "<releaseinfo>%s</releaseinfo>\n"
+									 "</articleinfo>\n", display_name, VERSION );
 			break ;
 		case DocType_NROFF :
 		    break ;
@@ -623,7 +717,8 @@ write_syntax_options_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
  		case DocType_PHP :	
 		    break ;
 		case DocType_XML :
-			break ;
+			fprintf( state->dest_fp, "\n<section label=\"options\" id=\"options\"><title>CONFIGURATION OPTIONS :</title>\n" );
+			break;
 		case DocType_NROFF :
 		    break ;
 		default:
@@ -645,6 +740,7 @@ write_syntax_options_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
  		case DocType_PHP :	
 		    break ;
 		case DocType_XML :
+			fprintf( state->dest_fp, "\n</section>\n" );
 			break ;
 		case DocType_NROFF :
 		    break ;
@@ -658,16 +754,22 @@ write_syntax_options_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
 void 
 write_syntax_doc_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
 {
+	char *display_name = "AfterStep" ;
+	if( syntax ) 
+		display_name = syntax->display_name ;
 	switch( state->doc_type ) 
 	{
 		case DocType_Plain :
 			break;
 		case DocType_HTML :
+			fprintf( state->dest_fp, "<p><FONT face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"-2\">AfterStep version %s</a></FONT>\n",
+					 VERSION ); 
 			fprintf( state->dest_fp, "</body>\n</html>\n" );			
 			break;
  		case DocType_PHP :	
 		    break ;
 		case DocType_XML :
+			fprintf( state->dest_fp, "\n</article>\n" );
 		    break ;
 		case DocType_NROFF :
 		    break ;
@@ -685,12 +787,17 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 	FILE *dest_fp ; 
 	Bool dst_dir_exists = True ;
 	ASXMLInterpreterState state;
+	char *doc_path = "AfterStep" ;
 
-	if( get_hash_item( ProcessedSyntaxes, AS_HASHABLE(syntax), NULL ) == ASH_Success )
-		return ;
-
-	dest_file = safemalloc( strlen( dest_dir ) + 1 + strlen(syntax->doc_path) + 5+1 );
-	sprintf( dest_file, "%s/%s.%s", dest_dir, syntax->doc_path, ASDocTypeExtentions[doc_type] ); 
+	if( syntax )
+	{	
+		if( get_hash_item( ProcessedSyntaxes, AS_HASHABLE(syntax), NULL ) == ASH_Success )
+			return ;
+		doc_path = syntax->doc_path ;
+	}
+	dest_file = safemalloc( strlen( dest_dir ) + 1 + strlen(doc_path) + 5+1 );
+	sprintf( dest_file, "%s/%s.%s", dest_dir, doc_path, ASDocTypeExtentions[doc_type] ); 
+	
 	ptr = dest_file; 
 	while( *ptr == '/' ) ++ptr ;
 	ptr = strchr( ptr, '/' );
@@ -720,7 +827,9 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 		return ;
 	}				   
 
-	add_hash_item( ProcessedSyntaxes, AS_HASHABLE(syntax), NULL );   
+	if( syntax )
+		add_hash_item( ProcessedSyntaxes, AS_HASHABLE(syntax), NULL );   
+
 	memset( &state, 0x00, sizeof(state));
 	state.flags = ASXMLI_FirstArg ;
 	state.dest_fp = dest_fp ;
@@ -731,22 +840,34 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 	/* BODY *************************************************************************/
 	{
 		int i ;
-		char *syntax_dir ;
-		syntax_dir = make_file_name( source_dir, syntax->doc_path );
-		for( i = 0 ; i < OPENING_PARTS_END ; ++i ) 
-			convert_source_file( syntax_dir, StandardSourceEntries[i], &state );
-		
-		write_syntax_options_header( syntax, &state );
-		for (i = 0; syntax->terms[i].keyword; i++)
+		char *syntax_dir = NULL ;
+		if( syntax != NULL && syntax->doc_path != NULL && syntax->doc_path[0] != '\0' )
+			syntax_dir = make_file_name (source_dir, syntax->doc_path); 
+		if( syntax_dir == NULL ) 
+			syntax_dir = mystrdup( source_dir );
+
+		if( syntax ) 
 		{	
-			if (syntax->terms[i].sub_syntax)
-				gen_syntax_doc( source_dir, dest_dir, syntax->terms[i].sub_syntax, doc_type );
-			if( isalnum( syntax->terms[i].keyword[0] ) )					
-				convert_source_file( syntax_dir, syntax->terms[i].keyword, &state );
+			for( i = 0 ; i < OPENING_PARTS_END ; ++i ) 
+				convert_source_file( syntax_dir, StandardSourceEntries[i], &state );
+			write_syntax_options_header( syntax, &state );
+			for (i = 0; syntax->terms[i].keyword; i++)
+			{	
+				if (syntax->terms[i].sub_syntax)
+					gen_syntax_doc( source_dir, dest_dir, syntax->terms[i].sub_syntax, doc_type );
+				if( isalnum( syntax->terms[i].keyword[0] ) )					
+					convert_source_file( syntax_dir, syntax->terms[i].keyword, &state );
+			}
+			write_syntax_options_footer( syntax, &state );	  
+			for( i = OPENING_PARTS_END ; StandardSourceEntries[i]; ++i ) 
+				convert_source_file( syntax_dir, StandardSourceEntries[i], &state );
+		}else
+		{	
+			convert_source_file( syntax_dir, StandardSourceEntries[0], &state );
+			convert_source_file( syntax_dir, "_standard_options", &state );
+			for( i = 1 ; StandardSourceEntries[i] ; ++i ) 
+				convert_source_file( syntax_dir, StandardSourceEntries[i], &state );
 		}
-		write_syntax_options_footer( syntax, &state );	  
-		for( i = OPENING_PARTS_END ; StandardSourceEntries[i]; ++i ) 
-			convert_source_file( syntax_dir, StandardSourceEntries[i], &state );
 		free( syntax_dir );
 	}
 	/* FOOTER ***********************************************************************/
@@ -781,7 +902,7 @@ add_html_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
 {
 	while( attr ) 
 	{
-		if( attr->tag_id == DOCBOOK_linkend_ID ) 
+		if( attr->tag_id == DOCBOOK_linkend_ID ||  attr->tag_id == DOCBOOK_url_ID ) 
 		{
 			char *ptr ;
 			if( get_flags( state->flags, ASXMLI_InsideLink ) )
@@ -799,7 +920,6 @@ add_html_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
 		}	 
 		attr = attr->next ;	
 	}	 
-		   
 }	 
 
 void 
@@ -944,7 +1064,7 @@ end_listentry_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 }
 
 void 
-start_part_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	++(state->header_depth);	
 	if( state->doc_type == DocType_HTML	 )
@@ -952,7 +1072,7 @@ start_part_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state 
 }
 
 void 
-end_part_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+end_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	--(state->header_depth);	
 }
@@ -1080,7 +1200,7 @@ end_example_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 }
 
 void 
-start_olink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+start_ulink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	if( state->doc_type == DocType_HTML	 )
 	{
@@ -1089,10 +1209,24 @@ start_olink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 }
 	 
 void 
-end_olink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+end_ulink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	if( state->doc_type == DocType_HTML	 )
 		close_html_link(state);
 }	 
+
+void 
+start_anchor_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+{
+	if( state->doc_type == DocType_HTML	 )
+		add_html_anchor( parm, state );	
+}
+	
+void 
+end_anchor_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+{
+	if( state->doc_type == DocType_HTML	 )
+		close_html_link(state);
+}
 
 
