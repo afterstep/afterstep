@@ -55,6 +55,7 @@ const char *StandardSourceEntries[] =
 {
 	"_synopsis",	
 	"_overview",	   
+#define OPENING_PARTS_END   2	 
 	"_examples",	   
 	"_related",	   
 	"_footnotes",	   
@@ -62,6 +63,8 @@ const char *StandardSourceEntries[] =
 };
 
 void check_syntax_source( const char *source_dir, SyntaxDef *syntax );
+void make_syntax_html( const char *source_dir, const char *dest_dir, SyntaxDef *syntax );
+
 /*************************************************************************/
 /*************************************************************************/
 /*************************************************************************/
@@ -81,14 +84,45 @@ DeadPipe (int foo)
     exit (0);
 }
 
+typedef enum { 
+	DocType_HTML = 0,
+	DocType_PHP,
+	DocType_XML,
+	DocType_NROFF,
+	DocType_Source,
+	DocTypes_Count
+}ASDocType;
+
 int
 main (int argc, char **argv)
 {
 	int i ; 
 	char *source_dir = "source" ;
+	char *destination_dir = "html" ;
+	ASDocType target_type = DocType_Source ;
 	/* Save our program name - for error messages */
     InitMyApp (CLASS_ASDOCGEN, argc, argv, NULL, NULL, 0 );
 
+    for( i = 1 ; i< argc ; ++i)
+	{
+		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
+		if( argv[i] != NULL  )
+		{
+			if( (strcmp( argv[i], "-t" ) == 0 || strcmp( argv[i], "-target" ) == 0) && i+1 < argc && argv[i+1] != NULL ) 
+			{
+				if( mystrcasecmp( argv[i+1], "html" ) == 0 ) 
+					target_type = DocType_HTML ; 														   
+				else if( mystrcasecmp( argv[i+1], "php" ) == 0 ) 
+					target_type = DocType_PHP ; 														   
+				else if( mystrcasecmp( argv[i+1], "xml" ) == 0 ) 
+					target_type = DocType_XML ; 														   
+				else if( mystrcasecmp( argv[i+1], "nroff" ) == 0 ) 
+					target_type = DocType_NROFF ; 														   
+				else if( mystrcasecmp( argv[i+1], "source" ) == 0 ) 
+					target_type = DocType_Source ; 														   
+			}	 
+		}
+	}		  
 #if 0
     ConnectX( &Scr, PropertyChangeMask );
     ConnectAfterStep ( mask_reg);
@@ -100,7 +134,14 @@ main (int argc, char **argv)
 	i = 0 ; 
 	while( TopLevelSyntaxes[i] )
 	{
-		check_syntax_source( source_dir, TopLevelSyntaxes[i] );
+		switch( target_type ) 
+		{
+			case DocType_HTML :
+				make_syntax_html( source_dir, destination_dir, TopLevelSyntaxes[i] );
+			    break ;	  
+			default:
+				check_syntax_source( source_dir, TopLevelSyntaxes[i] );
+		}
 		++i ;	
 	}	 
 	/* 2) generate HTML doc structure */
@@ -228,3 +269,133 @@ check_syntax_source( const char *source_dir, SyntaxDef *syntax )
 	free( obsolete_dir );
 	free( syntax_dir );
 }	 
+
+typedef struct ASXMLInterpreterState {
+#define ASXMLI_LiteralLayout	(0x01<<0)	
+	ASFlagType flags;
+
+}ASXMLInterpreterState ;
+
+void
+preprocess_tag( xml_elem_t *doc, xml_elem_t *parm, FILE *dest_fp, ASDocType doc_type, ASXMLInterpreterState *state )
+{
+	
+}
+	
+void
+postprocess_tag( xml_elem_t *doc, xml_elem_t *parm, FILE *dest_fp, ASDocType doc_type, ASXMLInterpreterState *state )
+{
+	
+}
+
+void 
+convert_source_tag( xml_elem_t *doc, FILE *dest_fp, ASDocType doc_type, xml_elem_t **rparm, ASXMLInterpreterState *state )
+{
+	xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);	
+	xml_elem_t* ptr ;
+	
+	preprocess_tag( doc, parm, dest_fp, doc_type, state );	
+	for (ptr = doc->child ; ptr ; ptr = ptr->next) 
+	{
+		if (ptr->tag_id == XML_CDATA_ID ) 
+			fprintf( stderr, "%s", ptr->parm );
+		else 
+			convert_source_tag( ptr, dest_fp, doc_type, NULL, state );
+	}
+	postprocess_tag( doc, parm, dest_fp, doc_type, state );
+	if (rparm) *rparm = parm; 
+	else xml_elem_delete(NULL, parm);
+}
+
+void 
+convert_source_file( const char *syntax_dir, const char *file, FILE *dest_fp, ASDocType doc_type )
+{
+	char *source_file ;
+	char *doc_str ; 
+	
+	source_file = make_file_name( syntax_dir, file );
+	doc_str = load_file(source_file);
+	if( doc_str != NULL )
+	{
+		xml_elem_t* doc;
+		xml_elem_t* ptr;
+		ASXMLInterpreterState state = {0};
+
+		doc = xml_parse_doc(doc_str, NULL);
+		for (ptr = doc->child ; ptr ; ptr = ptr->next) 
+			convert_source_tag( ptr, dest_fp, doc_type, NULL, &state );
+		/* Delete the xml. */
+		xml_elem_delete(NULL, doc);
+		free( doc_str );		
+	}	 	   
+	free( source_file );
+}
+
+
+void 
+make_syntax_html( const char *source_dir, const char *dest_dir, SyntaxDef *syntax )
+{
+	char *dest_file, *ptr ;
+	FILE *dest_fp ; 
+	Bool dst_dir_exists = True ;
+
+	dest_file = safemalloc( strlen( dest_dir ) + 1 + strlen(syntax->doc_path) + 5+1 );
+	sprintf( dest_file, "%s/%s.html", dest_dir, syntax->doc_path ); 
+	ptr = dest_file; 
+	while( *ptr == '/' ) ++ptr ;
+	ptr = strchr( ptr, '/' );
+	while( ptr != NULL )
+	{
+		*ptr = '\0' ;
+		if( CheckDir(ptr) != 0 )
+			if( !make_doc_dir( ptr ) ) 
+			{
+		 		dst_dir_exists = False ;
+				break;
+			}
+ 		*ptr = '/' ;
+		ptr = strchr( ptr+1, '/' );
+	}
+	if( !dst_dir_exists ) 
+	{
+		free( dest_file );	  
+		return ;
+	}
+	
+	dest_fp = fopen( dest_file, "wt" );
+	if( dest_fp == NULL ) 
+	{
+		show_error( "Failed to open destination file \"%s\" for writing!", dest_file );
+		free( dest_file );
+		return ;
+	}				   
+	/* HTML HEADER ***********************************************************************/
+	fprintf( dest_fp, "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
+					  "<html>\n"
+					  "<head><meta http-equiv=\"content-type\" content=\"text/html; charset=ISO-8859-1\">\n"
+  					  "<title>%s</title>\n"
+					  "</head>\n"
+					  "<body>\n"
+					  "<h1>%s</h1>\n", syntax->display_name, syntax->display_name );
+	/* HTML BODY *************************************************************************/
+	{
+		int i ;
+		char *syntax_dir ;
+		syntax_dir = make_file_name( source_dir, syntax->doc_path );
+		for( i = 0 ; i < OPENING_PARTS_END ; ++i ) 
+			convert_source_file( syntax_dir, StandardSourceEntries[i], dest_fp, DocType_HTML );
+		for (i = 0; syntax->terms[i].keyword; i++)
+		{	
+			if (syntax->terms[i].sub_syntax)
+				make_syntax_html( source_dir, dest_dir, syntax->terms[i].sub_syntax );
+			if( isalnum( syntax->terms[i].keyword[0] ) )					
+				convert_source_file( syntax_dir, syntax->terms[i].keyword, dest_fp, DocType_HTML );
+		}
+		for( i = OPENING_PARTS_END ; StandardSourceEntries[i]; ++i ) 
+			convert_source_file( syntax_dir, StandardSourceEntries[i], dest_fp, DocType_HTML );
+		free( syntax_dir );
+	}
+	/* HTML FOOTER ***********************************************************************/
+	fprintf( dest_fp, "</body>\n</html>\n" );		
+	fclose( dest_fp );
+}

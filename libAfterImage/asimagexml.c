@@ -92,8 +92,8 @@
 
 char *interpret_ctrl_codes( char *text );
 
-static char* cdata_str = "CDATA";
-static char* container_str = "CONTAINER";
+static char* cdata_str = XML_CDATA_STR;
+static char* container_str = XML_CONTAINER_STR;
 static ASHashTable *asxml_var = NULL;
 
 static ASImageManager *_as_xml_image_manager = NULL ;
@@ -225,7 +225,7 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 
     asxml_var_init();
 
-	doc = xml_parse_doc(doc_str);
+	doc = xml_parse_doc(doc_str, NULL);
 	if (verbose > 1) 
 	{
 		xml_print(doc);
@@ -480,7 +480,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * image to fit the location of the resulting window, if one is displayed.
  ******/
 	if (!strcmp(doc->tag, "img")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* src = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
@@ -517,7 +517,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  *          any previously created image.
  ******/
 	if (!strcmp(doc->tag, "recall")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* srcid = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
@@ -547,7 +547,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  *                     domain.sym_name.value
  ******/
 	if (!strcmp(doc->tag, "color")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* name = NULL;
 		const char* argb_text = NULL;
 		const char* var_domain = NULL;
@@ -629,7 +629,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * produce visible output by itself.  See EXAMPLES below.
  ******/
 	if (!strcmp(doc->tag, "text")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* text = NULL;
 		const char* font_name = "fixed";
 		const char* fgimage_str = NULL;
@@ -749,7 +749,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * further images will be discarded.
  *******/
 	if (!strcmp(doc->tag, "save")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* dst = NULL;
 		const char* ext = NULL;
 		const char* compress = NULL ;
@@ -811,7 +811,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "bevel")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		ASImage* imtmp = NULL;
 		char* color_str = NULL;
 		char* border_str = NULL;
@@ -901,7 +901,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  *          to right, 90 means top to bottom, etc.
  *****/
 	if (!strcmp(doc->tag, "gradient")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* refid = NULL;
 		const char* width_str = NULL;
 		const char* height_str = NULL;
@@ -1040,7 +1040,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "mirror")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		ASImage* imtmp = NULL;
 		int dir = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
@@ -1071,7 +1071,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "background")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		ASImage* imtmp = NULL;
 		ARGB32 argb = ARGB32_Black;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
@@ -1108,7 +1108,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "blur")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		ASImage* imtmp = NULL;
 		int horz = 0, vert = 0;
         int filter = SCL_DO_ALL;
@@ -1161,7 +1161,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "rotate")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		ASImage* imtmp = NULL;
 		double angle = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
@@ -1221,7 +1221,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * instead of specific size for particular dimention.
  ******/
 	if (!strcmp(doc->tag, "scale")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* refid = NULL;
 		const char* width_str = NULL;
 		const char* height_str = NULL;
@@ -1296,7 +1296,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "crop")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* refid = NULL;
 		const char* srcx_str = NULL;
 		const char* srcy_str = NULL;
@@ -1376,7 +1376,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "tile")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* refid = NULL;
 		const char* xorig_str = NULL;
 		const char* yorig_str = NULL;
@@ -1497,7 +1497,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "hsv")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* refid = NULL;
 		const char* xorig_str = NULL;
 		const char* yorig_str = NULL;
@@ -1594,7 +1594,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "pad")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* refid = NULL;
 		const char* left_str = "0";
 		const char* top_str  = "0";
@@ -1657,7 +1657,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * 		    Effectively overrides alpha component of the color setting.
  ******/
 	if (!strcmp(doc->tag, "solid")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* refid = NULL;
 		const char* width_str = NULL;
 		const char* height_str = NULL;
@@ -1761,7 +1761,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * libAfterImage
  ******/
 	if (!strcmp(doc->tag, "composite")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* pop = "alphablend";
 		int keep_trans = 0;
 		int merge = 0;
@@ -1940,7 +1940,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 
 	if (!strcmp(doc->tag, "printf")) 
 	{
-		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		const char* format = NULL;
 		const char* var = NULL;
 		int val = 0 ;
@@ -2026,8 +2026,17 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 }
 
 
+int 
+xml_name2id( const char *name, ASHashTable *vocabulary )
+{
+	ASHashData hdata;
+	hdata.i = 0 ;
+    get_hash_item(vocabulary, AS_HASHABLE(name), &hdata.vptr); 
+	return hdata.i;		
+}	 
 
-xml_elem_t* xml_parse_parm(const char* parm) {
+
+xml_elem_t* xml_parse_parm(const char* parm, ASHashTable *vocabulary) {
 	xml_elem_t* list = NULL;
 	const char* eparm;
 
@@ -2072,6 +2081,8 @@ xml_elem_t* xml_parse_parm(const char* parm) {
 		if (!list) list = p;
 		else { p->next = list; list = p; }
 		p->tag = lcstring(mystrndup(bname, ename - bname));
+		if( vocabulary )
+			p->tag_id = xml_name2id( p->tag, vocabulary );
 		p->parm = mystrndup(bval, eval - bval);
 	}
 
@@ -2098,7 +2109,7 @@ static void xml_print_r(xml_elem_t* root, int depth) {
 	} else {
 		fprintf(stderr, "%*s<%s", depth * 2, "", root->tag);
 		if (root->parm) {
-			xml_elem_t* parm = xml_parse_parm(root->parm);
+			xml_elem_t* parm = xml_parse_parm(root->parm, NULL);
 			while (parm) {
 				xml_elem_t* p = parm->next;
 				fprintf(stderr, " %s=\"%s\"", parm->tag, parm->parm);
@@ -2127,6 +2138,7 @@ xml_elem_t* xml_elem_new(void) {
 	xml_elem_t* elem = NEW(xml_elem_t);
 	elem->next = elem->child = NULL;
 	elem->parm = elem->tag = NULL;
+	elem->tag_id = XML_UNKNOWN_ID ;
 	return elem;
 }
 
@@ -2161,14 +2173,15 @@ void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem) {
 	}
 }
 
-xml_elem_t* xml_parse_doc(const char* str) {
+xml_elem_t* xml_parse_doc(const char* str, ASHashTable *vocabulary) {
 	xml_elem_t* elem = xml_elem_new();
 	elem->tag = container_str;
-	xml_parse(str, elem);
+	elem->tag_id = XML_CONTAINER_ID ;
+	xml_parse(str, elem, vocabulary);
 	return elem;
 }
 
-int xml_parse(const char* str, xml_elem_t* current) {
+int xml_parse(const char* str, xml_elem_t* current, ASHashTable *vocabulary) {
 	const char* ptr = str;
 
 	/* Find a tag of the form <tag opts>, </tag>, or <tag opts/>. */
@@ -2199,6 +2212,7 @@ int xml_parse(const char* str, xml_elem_t* current) {
 					{
 						xml_elem_t* child = xml_elem_new();
 						child->tag = cdata_str;
+						child->tag_id = XML_CDATA_ID ;
 						child->parm = mystrndup(ptr, oab - ptr);
 						xml_insert(current, child);
 					}
@@ -2281,6 +2295,7 @@ int xml_parse(const char* str, xml_elem_t* current) {
 			if (oab - ptr) {
 				xml_elem_t* child = xml_elem_new();
 				child->tag = cdata_str;
+				child->tag_id = XML_CDATA_ID ;
 				child->parm = mystrndup(ptr, oab - ptr);
 				xml_insert(current, child);
 			}
@@ -2294,9 +2309,11 @@ int xml_parse(const char* str, xml_elem_t* current) {
 			{
 				xml_elem_t* child = xml_elem_new();
 				child->tag = lcstring(mystrndup(btag, etag - btag));
+				if( vocabulary )
+					child->tag_id = xml_name2id( child->tag, vocabulary );
 				if (eparm - bparm) child->parm = mystrndup(bparm, eparm - bparm);
 				xml_insert(current, child);
-				if (!empty) ptr += xml_parse(ptr, child);
+				if (!empty) ptr += xml_parse(ptr, child, vocabulary);
 			}
 		}
 	}

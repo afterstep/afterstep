@@ -13,10 +13,17 @@ extern "C" {
 #undef PI
 #define PI 180
 
+#define XML_CDATA_STR 		"CDATA"
+#define XML_CONTAINER_STR	"CONTAINER"
+#define XML_CDATA_ID		-2
+#define XML_CONTAINER_ID	-1
+#define XML_UNKNOWN_ID		 0
+
 typedef struct xml_elem_t {
 	struct xml_elem_t* next;
 	struct xml_elem_t* child;
 	char* tag;
+	int tag_id;
 	char* parm;
 } xml_elem_t;
 
@@ -98,13 +105,13 @@ ASImage* build_image_from_xml( ASVisual *asv,
 							   xml_elem_t* doc, xml_elem_t** rparm,
 							   ASFlagType flags, int verbose, Window display_win);
 double parse_math(const char* str, char** endptr, double size);
-xml_elem_t* xml_parse_parm(const char* parm);
+xml_elem_t* xml_parse_parm(const char* parm, ASHashTable *vocabulary);
 void xml_print(xml_elem_t* root);
 xml_elem_t* xml_elem_new(void);
 xml_elem_t* xml_elem_remove(xml_elem_t** list, xml_elem_t* elem);
 void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem);
-xml_elem_t* xml_parse_doc(const char* str);
-int xml_parse(const char* str, xml_elem_t* current);
+xml_elem_t* xml_parse_doc(const char* str, ASHashTable *vocabulary);
+int xml_parse(const char* str, xml_elem_t* current, ASHashTable *vocabulary);
 void xml_insert(xml_elem_t* parent, xml_elem_t* child);
 char* lcstring(char* str);
 Bool save_asimage_to_file(const char* file2bsaved, ASImage *im,
