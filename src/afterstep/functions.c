@@ -636,7 +636,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
                 return;
             }
 
-            while( (0x01&context) == 0 && side <= FR_SE)
+            while( (0x01&context) == 0 )
             {
                 ++side ;
                 context = context>>1 ;
