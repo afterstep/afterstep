@@ -475,21 +475,21 @@ get_window_icon_image( ASWindow *asw )
 	ASImage *im = NULL ;
 	if( ASWIN_HFLAGS( asw, AS_ClientIcon|AS_ClientIconPixmap ) == AS_ClientIcon|AS_ClientIconPixmap &&
 	    get_flags( Scr.flags, KeepIconWindows )&&
-		asw->hints->icon.pixmap != None ) 
+		asw->hints->icon.pixmap != None )
 	{/* convert client's icon into ASImage */
 		unsigned int width, height ;
 		get_drawable_size( asw->hints->icon.pixmap, &width, &height );
-		im = picture2asimage( Scr.asv, asw->hints->icon.pixmap, 
-		                               asw->hints->icon_mask, 
-									   0, 0, width, height, 
+		im = picture2asimage( Scr.asv, asw->hints->icon.pixmap,
+		                               asw->hints->icon_mask,
+									   0, 0, width, height,
 									   0xFFFFFFFF, False, 100 );
 	}
-	/* TODO: we also need to check for newfashioned ARGB icon from 
-	 * extended WM specs here 
+	/* TODO: we also need to check for newfashioned ARGB icon from
+	 * extended WM specs here
 	 */
 	if( im == NULL && asw->hints->icon_file )
 		im = get_asimage( Scr.image_manager, asw->hints->icon_file, 0xFFFFFFFF, 100 );
-	
+
 	return im;
 }
 
@@ -523,8 +523,8 @@ invalidate_window_icon( ASWindow *asw )
         check_icon_canvas( asw, False );
 }
 
-/* this should set up proper feel settings - grab keyboard and mouse buttons : 
- * Note: must be called after redecorate_window, since some of windows may have 
+/* this should set up proper feel settings - grab keyboard and mouse buttons :
+ * Note: must be called after redecorate_window, since some of windows may have
  * been created at that time.
  */
 void
@@ -563,10 +563,10 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 	    check_tbar( &(asw->icon_title), False, NULL, NULL, 0, 0 );
 	    check_tbar( &(asw->icon_button), False, NULL, NULL, 0, 0 );
         check_tbar( &(asw->tbar), False, NULL, NULL, 0, 0 );
-		i = FRAME_PARTS ; 
+		i = FRAME_PARTS ;
 		while( --i >= 0 )
             check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0 );
-	
+
         check_side_canvas( asw, FR_W, False );
         check_side_canvas( asw, FR_E, False );
         check_side_canvas( asw, FR_S, False );
@@ -594,7 +594,9 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     check_icon_title_canvas( asw, (ASWIN_HFLAGS( asw, AS_IconTitle) &&
                                   get_flags(Scr.flags, IconTitle) &&
                                   !get_flags(Scr.flags, SuppressIcons)),
-                                  get_flags(Scr.look_flags, SeparateButtonTitle) );
+                                        !get_flags(Scr.look_flags, SeparateButtonTitle)&&
+                                        (asw->icon_canvas!=NULL) );
+
     /* 5) we need to prepare windows for 4 frame decoration sides : */
     if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
     {
@@ -613,8 +615,8 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 	if( asw->icon_canvas )
 		icon_image = get_window_icon_image( asw );
     check_tbar( &(asw->icon_button), (asw->icon_canvas != NULL), AS_ICON_MYSTYLE,
-                icon_image, 0, 0 );/* scaling icon image */
-	if( icon_image ) 
+                icon_image, icon_image?icon_image->width:0, icon_image?icon_image->height:0 );/* scaling icon image */
+	if( icon_image )
         safe_asimage_destroy( icon_image );
     /* 7) now we have to create bar for icon title (optional) */
     check_tbar( &(asw->icon_title), (asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
@@ -771,24 +773,55 @@ void
 on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width, unsigned int height )
 {
     int i ;
+    Bool canvas_moved = False;
 
     if( AS_ASSERT(asw) || w == asw->w )
         return ;
 
-    if( w == asw->frame )
+    if( w == asw->w )
+    {  /* simply update client's size and position */
+        handle_canvas_config (asw->client_canvas);
+    }else if( w == asw->frame )
     {/* resize canvases here :*/
-        if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-        { /* west and east canvases are the big ones - resize them first */
-            resize_canvases( asw, asw->frame_sides[FR_W],
-                                  asw->frame_sides[FR_E],
-                                  asw->frame_sides[FR_N],
-                                  asw->frame_sides[FR_S], width, height );
-        }else
-            resize_canvases( asw, asw->frame_sides[FR_N],
-                                  asw->frame_sides[FR_S],
-                                  asw->frame_sides[FR_W],
-                                  asw->frame_sides[FR_E], width, height );
-    }else
+        if( width != asw->frame_canvas->width || height != asw->frame_canvas->height )
+            if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+            { /* west and east canvases are the big ones - resize them first */
+                resize_canvases( asw, asw->frame_sides[FR_W],
+                                    asw->frame_sides[FR_E],
+                                    asw->frame_sides[FR_N],
+                                    asw->frame_sides[FR_S], width, height );
+            }else
+                resize_canvases( asw, asw->frame_sides[FR_N],
+                                    asw->frame_sides[FR_S],
+                                    asw->frame_sides[FR_W],
+                                    asw->frame_sides[FR_E], width, height );
+        if( handle_canvas_config (asw->frame_canvas) )
+            update_window_transparency( asw );
+    }else if( asw->icon_canvas && w == asw->icon_canvas->w )
+    {
+        canvas_moved = handle_canvas_config (asw->icon_canvas);
+        if( canvas_moved )
+        {
+            unsigned short title_size = 0 ;
+            if( asw->icon_title && asw->icon_title_canvas == asw->icon_canvas )
+            {
+                set_astbar_size( asw->icon_title, width, asw->icon_title->height );
+                title_size = asw->icon_title->height ;
+                render_astbar( asw->icon_title, asw->icon_canvas );
+            }
+            set_astbar_size( asw->icon_button, width, height-title_size )
+            render_astbar( asw->icon_button, asw->icon_canvas );
+            update_canvas_display( asw->icon_canvas );
+        }
+    }else if( asw->icon_title_canvas && w == asw->icon_title_canvas->w )
+    {
+        if( handle_canvas_config(asw->icon_title_canvas) && asw->icon_title )
+        {
+            set_astbar_size( asw->icon_title, width, asw->icon_title->height );
+            render_astbar( asw->icon_title, asw->icon_title_canvas );
+            update_canvas_display( asw->icon_title_canvas );
+        }
+    }else  /* one of the frame canvases :*/
     {
         for( i = 0 ; i < FRAME_SIDES ; ++i )
             if( asw->frame_sides[i] && asw->frame_sides[i]->w == w )
@@ -847,12 +880,17 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
     if( asw->tbar )
     {
         ASCanvas *canvas = ASWIN_HFLAGS(asw, AS_VerticalTitle)?asw->frame_sides[FR_W]:asw->frame_sides[FR_N];
-        set_astbar_label( asw->tbar, ASWIN_NAME(asw) );
-        if( canvas && update_display )
-        {
-            render_astbar( asw->tbar, canvas );
-            update_canvas_display( canvas );
-        }
+        if( set_astbar_label( asw->tbar, ASWIN_NAME(asw) ) )
+            if( canvas && update_display )
+            {
+                render_astbar( asw->tbar, canvas );
+                update_canvas_display( canvas );
+            }
+    }
+    if( asw->icon_title )
+    {
+        if( set_astbar_label( asw->icon_title, ASWIN_ICON_NAME(asw) ) )
+            on_icon_changed( asw );
     }
 }
 
@@ -867,72 +905,83 @@ on_window_status_changed( ASWindow *asw, Bool update_display )
     if( AS_ASSERT(asw) )
         return ;
 
-    if( ASWIN_GET_FLAGS(asw, AS_Sticky ) )
+    if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
     {
-        unfocus_mystyle = asw->hints->mystyle_names[BACK_STICKY];
-        if( unfocus_mystyle == NULL )
-            unfocus_mystyle = Scr.MSSWindow?Scr.MSSWindow->name:NULL ;
+        unfocus_mystyle = ASWIN_GET_FLAGS(asw, AS_Sticky )?
+                            AS_ICON_TITLE_STICKY_MYSTYLE:
+                            AS_ICON_TITLE_UNFOCUS_MYSTYLE ;
+        if( asw->icon_title )
+            changed = set_astbar_style( asw->icon_title, BAR_STATE_UNFOCUSED, unfocus_mystyle );
+        if( changed ) /* now we need to update icon title size */
+            on_icon_changed( asw );
     }else
-        unfocus_mystyle = asw->hints->mystyle_names[BACK_UNFOCUSED];
+    {
+        if( ASWIN_GET_FLAGS(asw, AS_Sticky ) )
+        {
+            unfocus_mystyle = asw->hints->mystyle_names[BACK_STICKY];
+            if( unfocus_mystyle == NULL )
+                unfocus_mystyle = Scr.MSSWindow?Scr.MSSWindow->name:NULL ;
+        }else
+            unfocus_mystyle = asw->hints->mystyle_names[BACK_UNFOCUSED];
 
-    if( unfocus_mystyle == NULL )
-        unfocus_mystyle = Scr.MSUWindow?Scr.MSUWindow->name:NULL ;
+        if( unfocus_mystyle == NULL )
+            unfocus_mystyle = Scr.MSUWindow?Scr.MSUWindow->name:NULL ;
 
-    for( i = 0 ; i < FRAME_PARTS ; ++i )
-        if( asw->frame_bars[i] )
-            if( set_astbar_style( asw->frame_bars[i], BAR_STATE_UNFOCUSED, unfocus_mystyle ) )
+        for( i = 0 ; i < FRAME_PARTS ; ++i )
+            if( asw->frame_bars[i] )
+                if( set_astbar_style( asw->frame_bars[i], BAR_STATE_UNFOCUSED, unfocus_mystyle ) )
+                    changed = True ;
+
+        if( asw->tbar )
+            if( set_astbar_style( asw->tbar, BAR_STATE_UNFOCUSED, unfocus_mystyle ) )
                 changed = True ;
+        if( changed )
+        {/* now we need to update frame sizes in status */
+            int tbar_side = FR_N ;
+            unsigned int *frame_size = &(asw->status->frame_size[0]) ;
+            if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+            {
+                tbar_size = calculate_astbar_width( asw->tbar );
+                tbar_side = FR_W ;
+                set_astbar_size( asw->tbar, tbar_size, asw->tbar?asw->tbar->height:0 );
+            }else
+            {
+                tbar_size = calculate_astbar_height( asw->tbar );
+                set_astbar_size( asw->tbar, asw->tbar?asw->tbar->width:0, tbar_size );
+            }
+            for( i = 0 ; i < FRAME_SIDES ; ++i )
+                if( asw->frame_bars[i] )
+                    frame_size[i] = IsSideVertical(i)?asw->frame_bars[i]->width:
+                                                    asw->frame_bars[i]->height ;
+                else
+                    frame_size[i] = 0;
 
-    if( asw->tbar )
-        if( set_astbar_style( asw->tbar, BAR_STATE_UNFOCUSED, unfocus_mystyle ) )
-            changed = True ;
-
-    if( changed )
-    {/* now we need to update frame sizes in status */
-        int tbar_side = FR_N ;
-        unsigned int *frame_size = &(asw->status->frame_size[0]) ;
-	    if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-		{
-			tbar_size = calculate_astbar_width( asw->tbar );
-			tbar_side = FR_W ;
-			set_astbar_size( asw->tbar, tbar_size, asw->tbar?asw->tbar->height:0 );
-		}else
-		{
-			tbar_size = calculate_astbar_height( asw->tbar );
-			set_astbar_size( asw->tbar, asw->tbar?asw->tbar->width:0, tbar_size );
-		}
-		for( i = 0 ; i < FRAME_SIDES ; ++i )
-			if( asw->frame_bars[i] )
-				frame_size[i] = IsSideVertical(i)?asw->frame_bars[i]->width:
-				                                  asw->frame_bars[i]->height ;
-			else
-				frame_size[i] = 0;
-
-		frame_size[tbar_side] += tbar_size ;
-        anchor2status ( asw->status, asw->hints, &(asw->anchor));
-    }else if( asw->tbar )
-        tbar_size = ASWIN_HFLAGS(asw, AS_VerticalTitle )?asw->tbar->width:asw->tbar->height;
+            frame_size[tbar_side] += tbar_size ;
+            anchor2status ( asw->status, asw->hints, &(asw->anchor));
+        }else if( asw->tbar )
+            tbar_size = ASWIN_HFLAGS(asw, AS_VerticalTitle )?asw->tbar->width:asw->tbar->height;
+    }
 
     /* now we need to move/resize our frame window */
-    if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+    /* note that icons are handled by iconbox */
+    if( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
 	{
-
-    }else if( ASWIN_GET_FLAGS( asw, AS_Shaded ) && tbar_size > 0 )
-	{
-	    if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-			XMoveResizeWindow( dpy, asw->frame,
-			                   asw->status->x, asw->status->y,
-							   tbar_size, asw->status->height );
-		else
-			XMoveResizeWindow( dpy, asw->frame,
-			                   asw->status->x, asw->status->y,
-							   asw->status->width, tbar_size );
-    }else
-		XMoveResizeWindow( dpy, asw->frame,
-		                   asw->status->x, asw->status->y,
-						   asw->status->width, asw->status->height );
-
-    BroadcastConfig (M_CONFIGURE_WINDOW, asw);
+        if( ASWIN_GET_FLAGS( asw, AS_Shaded ) && tbar_size > 0 )
+        {
+            if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+                XMoveResizeWindow( dpy, asw->frame,
+                                asw->status->x, asw->status->y,
+                                tbar_size, asw->status->height );
+            else
+                XMoveResizeWindow( dpy, asw->frame,
+                                asw->status->x, asw->status->y,
+                                asw->status->width, tbar_size );
+        }else
+            XMoveResizeWindow( dpy, asw->frame,
+                            asw->status->x, asw->status->y,
+                            asw->status->width, asw->status->height );
+        BroadcastConfig (M_CONFIGURE_WINDOW, asw);
+    }
 }
 /********************************************************************/
 /* end of ASWindow frame decorations management                     */
@@ -1039,9 +1088,6 @@ SelectDecor (ASWindow * t)
 	ASHints *hints = t->hints ;
 	ASFlagType tflags = hints->flags ;
 
-	border_width = get_flags(tflags, AS_Border)?hints->border_width:Scr.NoBoundaryWidth;
-	resize_width = get_flags(tflags, AS_Handles)?hints->handle_width:Scr.BoundaryWidth;
-
 #ifdef SHAPE
 	if (t->wShaped)
 	{
@@ -1049,9 +1095,6 @@ SelectDecor (ASWindow * t)
 		clear_flags(hints->function_mask,AS_FuncResize);
 	}
 #endif
-	/* Assume no decorations, and build up */
-	t->boundary_width = 0;
-	t->boundary_height = 0;
 
 #ifndef NO_TEXTURE
 	if (!get_flags(hints->function_mask,AS_FuncResize) || !DecorateFrames)
@@ -1068,17 +1111,6 @@ SelectDecor (ASWindow * t)
 		disable_titlebuttons_with_function (t, F_ICONIFY);
 	if (!get_flags(hints->function_mask,AS_FuncMaximize))
 		disable_titlebuttons_with_function (t, F_MAXIMIZE);
-
-	t->boundary_width = 0;
-	t->boundary_height = ASWIN_HFLAGS(t, AS_Handles) ? Scr.BoundaryWidth : 0;
-	t->corner_width = 16 + t->boundary_height;
-
-	if( get_flags(tflags,AS_Frame) )
-		t->bw = 0 ;
-	else if( get_flags(tflags, AS_Handles))
-		t->bw = border_width;
-	else
-		t->bw = 1;
 }
 
 /*
@@ -1249,7 +1281,6 @@ LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d, batch = %d", asw, iconify, b
          * Prevent the receipt of an UnmapNotify, since we trigger any such event
          * as signal for transition to the Withdrawn state.
          */
-		asw->flags &= ~MAPPED;
 		asw->DeIconifyDesk = ASWIN_DESK(asw);
 
 LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
@@ -1264,32 +1295,19 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
 		 */
 		if ( ASWIN_HFLAGS(asw, AS_Transient))
 		{
-			asw->flags |= ICONIFIED | ICON_UNMAPPED;
-			Broadcast (M_ICONIFY, 7, asw->w, asw->frame,
+            Broadcast (M_ICONIFY, 7, asw->w, asw->frame,
 					   (unsigned long)asw, -10000, -10000, asw->icon_p_width, asw->icon_p_height);
 			BroadcastConfig (M_CONFIGURE_WINDOW, asw);
 		}else
 		{
-			if (asw->icon_pixmap_w == None && asw->icon_title_w == None)
-				CreateIconWindow (asw);
-			asw->flags |= ICONIFIED;
-			asw->flags &= ~ICON_UNMAPPED;
-			AutoPlace (asw);
-			XFlush (dpy);
-			Broadcast (M_ICONIFY, 7, asw->w, asw->frame,
+            set_flags( asw->status->flags, AS_Iconic );
+            add_iconbox_icon( asw );
+            Broadcast (M_ICONIFY, 7, asw->w, asw->frame,
 			  		   (unsigned long)asw,
 					    asw->icon_p_x, asw->icon_p_y,
 						asw->icon_p_width, asw->icon_p_height);
 			BroadcastConfig (M_CONFIGURE_WINDOW, asw);
-
 			LowerWindow (asw);
-			if (ASWIN_DESK(asw) == Scr.CurrentDesk)
-			{
-				if (asw->icon_pixmap_w != None)
-					XMapWindow (dpy, asw->icon_pixmap_w);
-				if (asw->icon_title_w != None)
-					XMapWindow (dpy, asw->icon_title_w);
-			}
 
 			if ((Scr.flags & ClickToFocus) || (Scr.flags & SloppyFocus))
 			{
@@ -1305,12 +1323,10 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
 			}
 		}
 LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_NAME(asw) );
-        set_flags( asw->status->flags, AS_Iconic );
-        asw->status->icon_window = asw->icon_pixmap_w?asw->icon_pixmap_w:asw->icon_title_w ;
     }else
     {   /* Performing transition IconicState->NormalState  */
-        asw->flags |= MAPPED;
-
+        clear_flags( asw->status->flags, AS_Iconic );
+        remove_iconbox_icon( asw );
         if (Scr.flags & StubbornIcons)
             ASWIN_DESK(asw) = asw->DeIconifyDesk;
         else
@@ -1319,10 +1335,6 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
 
         /* TODO: make sure that the window is on this screen */
 
-        if (asw->icon_pixmap_w != None)
-            XUnmapWindow (dpy, asw->icon_pixmap_w);
-        if (asw->icon_title_w != None)
-            XUnmapWindow (dpy, asw->icon_title_w);
         Broadcast (M_DEICONIFY, 7, asw->w, asw->frame, (unsigned long)asw,
                    asw->icon_p_x, asw->icon_p_y, asw->icon_p_width, asw->icon_p_height);
         XMapWindow (dpy, asw->w);
@@ -1332,12 +1344,8 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
             asw->flags |= MAP_PENDING;
         }
         SetMapStateProp (asw, NormalState);
-        asw->flags &= ~ICONIFIED;
-        asw->flags &= ~ICON_UNMAPPED;
 
         XRaiseWindow (dpy, asw->w);
-
-        XFlush (dpy);
         if( !ASWIN_HFLAGS(asw, AS_Transient ))
         {
             if ((Scr.flags & StubbornIcons) || (Scr.flags & ClickToFocus))
@@ -1345,7 +1353,6 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
             else
                 RaiseWindow (asw);
         }
-        clear_flags( asw->status->flags, AS_Iconic );
         asw->status->icon_window = None ;
     }
 
@@ -1624,25 +1631,7 @@ AddWindow (Window w)
 
 	SelectDecor (tmp_win);
 
-	if (!get_flags(tmp_win->hints->flags,AS_Icon) || get_flags(Scr.flags, SuppressIcons))
-		tmp_win->flags |= SUPPRESSICON;
-	else
-	{	/* an icon was specified */
-		tmp_win->icon_pm_file = NULL ;
-		if( tmp_win->hints->icon.window != None )
-		{
-
-		}else
-		{
-			tmp_win->icon_pm_file = tmp_win->hints->icon_file;
-			if(tmp_win->icon_pm_file == NULL )/* use default icon */
-		  		tmp_win->icon_pm_file = Scr.DefaultIcon;
-		}
-	}
-	tmp_win->icon_pm_pixmap = None;
-	tmp_win->icon_pm_mask = None;
-
-	if( !init_aswindow_status( tmp_win, &status ) )
+    if( !init_aswindow_status( tmp_win, &status ) )
 	{
 		Destroy (tmp_win, False);
 		return NULL;
@@ -1695,60 +1684,13 @@ AddWindow (Window w)
 	tmp_win->prev = &Scr.ASRoot;
 	Scr.ASRoot.next = tmp_win;
 
-	/* create windows */
-	valuemask = CWBorderPixel | CWCursor | CWEventMask;
-	if (Scr.d_depth < 2)
-	{
-		attributes.background_pixmap = Scr.light_gray_pixmap;
-		if (tmp_win->flags & STICKY)
-			attributes.background_pixmap = Scr.sticky_gray_pixmap;
-		valuemask |= CWBackPixmap;
-	} else
-	{
-		attributes.background_pixmap = ParentRelative;
-		valuemask |= CWBackPixmap;
-	}
-	attributes.border_pixel = Scr.asv->black_pixel;
-
-	attributes.cursor = Scr.ASCursors[DEFAULT];
-	attributes.event_mask = AS_FRAME_EVENT_MASK;
-
-	if (Scr.flags & SaveUnders)
-	{
-		valuemask |= CWSaveUnder;
-		attributes.save_under = TRUE;
-	}
-	/* What the heck, we'll always reparent everything from now on! */
-	tmp_win->frame =
-		create_visual_window (Scr.asv, Scr.Root, tmp_win->frame_x, tmp_win->frame_y,
-							  tmp_win->frame_width, tmp_win->frame_height,
-							  tmp_win->bw, InputOutput, valuemask, &attributes);
-
-    register_aswindow( tmp_win->frame, tmp_win );
-    register_aswindow( tmp_win->w, tmp_win );
-
-    attributes.save_under = FALSE;
-
     redecorate_window       ( tmp_win, False );
     on_window_title_changed ( tmp_win, False );
     on_window_status_changed( tmp_win, False );
 
 	XMapSubwindows (dpy, tmp_win->frame);
-    XRaiseWindow (dpy, tmp_win->w);
-    XReparentWindow (dpy, tmp_win->w, tmp_win->frame, 0, 0);
 
-	valuemask = (CWEventMask | CWDontPropagate);
-	attributes.event_mask = AS_CLIENT_EVENT_MASK;
-	attributes.do_not_propagate_mask = ButtonPressMask | ButtonReleaseMask;
-	if (Scr.flags & AppsBackingStore)
-	{
-		valuemask |= CWBackingStore;
-		attributes.backing_store = WhenMapped;
-	}
-	XChangeWindowAttributes (dpy, tmp_win->w, valuemask, &attributes);
-	XAddToSaveSet (dpy, tmp_win->w);
-
-	/*
+    /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
 	 * Set the map state to FALSE to prevent a transition back to
 	 * WithdrawnState in HandleUnmapNotify.  Map state gets set correctly

@@ -298,14 +298,6 @@ typedef struct ASWindow
 #endif
     int warp_index;		/* index of the window in the window list,
 				   changes when window is warped */
-    int frame_x;		/* x position of frame */
-    int frame_y;		/* y position of frame */
-    int frame_width;		/* width of frame */
-    int frame_height;		/* height of frame */
-    int boundary_width;
-    int boundary_height;
-    int corner_width;
-    int bw;
 
     XWindowAttributes attr;	/* the child window attributes */
     int FocusDesk;		/* Where (if at all) was it focussed */

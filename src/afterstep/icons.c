@@ -115,6 +115,30 @@ get_iconbox( int desktop )
 Bool
 add_iconbox_icon( ASWindow *asw )
 {
+    if( AS_ASSERT(asw) )
+        return;
+    /* TODO: we need to add this window to the list of icons */
+    if (asw->icon_canvas)
+        XMapWindow (dpy, asw->icon_canvas->w);
+    if (asw->icon_title_canvas != NULL && asw->icon_title_canvas != asw->icon_canvas)
+        XMapWindow (dpy, asw->icon_title_canvas->w);
+
+    if (ASWIN_DESK(asw) != Scr.CurrentDesk)
+    {  /* move it away so it is not visible */
+
+    }
+}
+
+Bool
+remove_iconbox_icon( ASWindow *asw )
+{
+    if( AS_ASSERT(asw) )
+        return;
+    /* TODO: we need to add this window to the list of icons */
+    if (asw->icon_canvas)
+        XUnmapWindow (dpy, asw->icon_canvas->w);
+    if (asw->icon_title_canvas != NULL && asw->icon_title_canvas != asw->icon_canvas)
+        XUnmapWindow (dpy, asw->icon_title_canvas->w);
 }
 
 Bool
@@ -123,9 +147,25 @@ change_iconbox_icon_desk( ASWindow *asw, int from_desk, int to_desk )
 
 }
 
-Bool
-remove_iconbox_icon( ASWindow *asw )
+void
+on_icon_changed( ASWindow *asw )
 {
+    if( AS_ASSERT(asw) )
+        return;
+    /* we probably need to reshuffle entire iconbox when that happen : */
+    if( asw->icon_title )
+    {
+        int tbar_size = calculate_astbar_width( asw->icon_title );
+        set_astbar_size( asw->icon_title, tbar_size, asw->icon_title?asw->icon_title->height:0 );
+        render_astbar( asw->icon_title, asw->icon_title_canvas );
+    }
+    if( asw->icon_button )
+    {
+
+
+    }
+    update_canvas_display( asw->icon_canvas );
+    update_canvas_display( asw->icon_title_canvas );
 }
 
 void
