@@ -16,7 +16,7 @@ typedef struct ASHashItem
 {
   struct ASHashItem *next;
   ASHashableValue value;
-  void *data;			/* optional data structure related to this 
+  void *data;			/* optional data structure related to this
 				   hashable value */
 }
 ASHashItem;
@@ -46,7 +46,7 @@ typedef struct ASHashIterator
 ASHashIterator;
 
 void init_ashash (ASHashTable * hash, Bool freeresources);
-/* Note that all parameters are optional here. 
+/* Note that all parameters are optional here.
    If it is set to NULL - defaults will be used */
 
 #define DEFAULT_HASH_SIZE 51	/* random value - not too big - not too small */
@@ -54,12 +54,9 @@ void init_ashash (ASHashTable * hash, Bool freeresources);
 /* default compare_func is long_val1-long_val2 */
 
 ASHashTable *create_ashash (ASHashKey size,
-			    ASHashKey (*hash_func) (ASHashableValue,
-						    ASHashKey),
-			    long (*compare_func) (ASHashableValue,
-						  ASHashableValue),
-			    void (*item_destroy_func) (ASHashableValue,
-						       void *));
+                ASHashKey (*hash_func) (ASHashableValue,ASHashKey),
+                long (*compare_func) (ASHashableValue,  ASHashableValue),
+                void (*item_destroy_func) (ASHashableValue,void *));
 void print_ashash (ASHashTable * hash,
 		   void (*item_print_func) (ASHashableValue value));
 void destroy_ashash (ASHashTable ** hash);
