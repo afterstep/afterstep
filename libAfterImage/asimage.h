@@ -116,6 +116,7 @@ typedef struct ASImageOutput
 typedef void (*merge_scanlines_func)( ASScanline *bottom, ASScanline *top, int mode);
 void alphablend_scanlines( ASScanline *bottom, ASScanline *top, int unused );
 void allanon_scanlines( ASScanline *bottom, ASScanline *top, int unused );
+void tint_scanlines( ASScanline *bottom, ASScanline *top, int unused );
 void add_scanlines( ASScanline *bottom, ASScanline *top, int unused );
 void sub_scanlines( ASScanline *bottom, ASScanline *top, int unused );
 void diff_scanlines( ASScanline *bottom, ASScanline *top, int unused );
@@ -127,10 +128,7 @@ void hue_scanlines( ASScanline *bottom, ASScanline *top, int mode );
 void saturate_scanlines( ASScanline *bottom, ASScanline *top, int mode );
 void value_scanlines( ASScanline *bottom, ASScanline *top, int mode );
 void colorize_scanlines( ASScanline *bottom, ASScanline *top, int mode );
-
-
-
-
+void dissipate_scanlines( ASScanline *bottom, ASScanline *top, int unused );
 
 typedef struct ASImageLayer
 {
@@ -143,8 +141,6 @@ typedef struct ASImageLayer
 	int merge_mode ;
 	merge_scanlines_func merge_scanlines ;
 }ASImageLayer;
-
-
 
 
 void asimage_init (ASImage * im, Bool free_resources);
