@@ -56,7 +56,7 @@ GrabEm (ScreenInfo *scr, Cursor cursor)
 	 * eliminate the enterNotify and exitNotify events that go
 	 * to the windows */
 	grabbed_screen = scr ;
-    grabbed_screen_focus = scr->Focus ;
+    grabbed_screen_focus = scr->Windows->focused ;
     hide_focus();
 
     mask = ButtonPressMask | ButtonReleaseMask | ButtonMotionMask |
@@ -98,7 +98,6 @@ UngrabEm ()
     }
 }
 
-#if 0
 static ScreenInfo *warping_screen = NULL;
 
 Bool
@@ -117,13 +116,12 @@ EndWarping()
     if( get_flags(AfterStepState, ASS_WarpingMode) && warping_screen )
     {
         clear_flags(AfterStepState, ASS_WarpingMode);
-        if( warping_screen->winlist->hilited != warping_screen->winlist->active )
-            activate_window( warping_screen->winlist->hilited, False, False );
+        if( warping_screen->Windows->hilited != warping_screen->Windows->active )
+            activate_aswindow( warping_screen->Windows->hilited, False, False );
         UngrabEm();
 		warping_screen = NULL;
     }
 }
-#endif
 
 /****************************************************************************
  * paste the cut buffer into the window with the input focus
@@ -131,7 +129,7 @@ EndWarping()
 void
 PasteSelection (ScreenInfo *scr)
 {
-    if (scr->Focus != NULL)
+    if (scr->Windows->focused != NULL)
 	{
 		int           length;
 		int           buffer = 0;
@@ -146,7 +144,7 @@ PasteSelection (ScreenInfo *scr)
 		{
 			int           i;
 			XEvent        event;
-            Window        w = scr->Focus->w ;
+            Window        w = scr->Windows->focused->w ;
 
 			event.xkey.display = dpy;
 			event.xkey.window = w;

@@ -433,6 +433,8 @@ void restack_window_list( int desk );
 Bool is_window_obscured (ASWindow * above, ASWindow * below);
 void restack_window( ASWindow *t, Window sibling_window, int stack_mode );
 ASWindow     *get_next_window (ASWindow * curr_win, char *action, int dir);
+ASWindow     *warp_aswindow_list ( ASWindowList *list, Bool backwards );
+
 
 /* from add_window.c : */
 void destroy_icon_windows( ASWindow *asw );
@@ -463,6 +465,8 @@ void on_window_pressure_changed( ASWindow *asw, int pressed_context );
 Bool iconify_window( ASWindow *asw, Bool iconify );
 Bool make_aswindow_visible( ASWindow *asw, Bool deiconify );
 void change_aswindow_layer( ASWindow *asw, int layer );
+void change_aswindow_desktop( ASWindow *asw, int new_desk );
+void toggle_aswindow_status( ASWindow *asw, ASFlagType flags );
 
 void SelectDecor (ASWindow *);
 ASWindow *AddWindow (Window);

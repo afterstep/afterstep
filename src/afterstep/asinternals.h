@@ -69,6 +69,11 @@ void InstallAfterStepColormap (void);
 void UninstallAfterStepColormap (void);
 
 
+/*************************** configure.c **********************************/
+void
+LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
+              Bool parse_look, Bool parse_feel);
+
 /*************************** decorations.c ********************************/
 int check_allowed_function2 (int func, ASWindow * t);
 int check_allowed_function (struct MenuItem * mi);
@@ -80,6 +85,7 @@ void HandleEvents   ();
 void WaitForButtonsUpLoop ();
 Bool WaitEventLoop( ASEvent *event, int finish_event_type, long timeout );
 Bool IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time );
+Bool WaitWindowLoop( char *pattern, long timeout );
 
 
 Bool KeyboardShortcuts (XEvent * xevent, int return_event, int move_size);
@@ -109,6 +115,8 @@ void SetupFunctionHandlers();
 
 void ExecuteFunction (struct FunctionData *data, struct ASEvent *event, int Module);
 int  DeferExecution (struct ASEvent *event, int cursor, int FinishEvent);
+void QuickRestart (char *what);
+void ChangeDesks (int new_desk);
 
 /************************* housekeeping.c ********************************/
 Bool GrabEm   ( struct ScreenInfo *scr, Cursor cursor );
@@ -125,15 +133,24 @@ void SetupModules(void);
 void ExecModule (char *action, Window win, int context);
 int  AcceptModuleConnection (int socket_fd);
 
+void Broadcast (unsigned long event_type, unsigned long num_datum, ...);
+
 void SendPacket (int channel, unsigned long  msg_type, unsigned long num_datum, ...);
 void SendString (int channel, unsigned long  msg_type, unsigned long id, unsigned long tag, char *string );
 void SendVector (int channel, unsigned long  msg_type, struct ASVector *vector);
+void SendConfig (int module, unsigned long event_type, ASWindow * t);
+void SendName (int module, unsigned long event_type,
+               unsigned long data1, unsigned long data2, unsigned long data3, char *name);
+
+
 
 void HandleModuleInOut(unsigned int channel, Bool has_input, Bool has_output);
 
 void KillModuleByName (char *name);
 void DeadPipe (int nonsense);
 void ShutdownModules();
+
+
 
 /******************************* outline.c ********************************/
 void MoveOutline( struct MoveResizeData * pdata );
@@ -145,7 +162,6 @@ void MoveOutline( struct MoveResizeData * pdata );
 Bool MoveViewport (struct ScreenInfo *scr, int newx, int newy);
 void HandlePaging (struct ScreenInfo *scr, int HorWarpSize, int VertWarpSize, int *xl,
 	 	  		   int *yt, int *delta_x, int *delta_y, Bool Grab);
-void ChangeDesks (struct ScreenInfo *scr, long new_desk);
 
 
 #endif /* ASINTERNALS_H_HEADER_INCLUDED */

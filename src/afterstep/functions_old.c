@@ -1832,9 +1832,7 @@ ComplexFunction (Window w, ASWindow * tmp_win, XEvent * eventp,
 
 
 /**************************************************************************
- *
  * Move to a new desktop
- *
  *************************************************************************/
 void
 changeDesks (int val1, int val2)

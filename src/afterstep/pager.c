@@ -52,7 +52,6 @@ void          DrawPartitionLines (void);
 ASWindow     *FindCounterpart (Window target);
 Bool          pagerOn = True;
 Bool          EnablePagerRedraw = True;
-Bool          DoHandlePageing = True;
 
 int
 highest_layer (ASWindow * list)

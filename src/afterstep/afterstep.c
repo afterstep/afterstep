@@ -477,7 +477,7 @@ main (int argc, char **argv)
 	XDefineCursor (dpy, Scr.Root, Scr.ASCursors[DEFAULT]);
 
 	/* make sure we're on the right desk, and the _WIN_DESK property is set */
-	changeDesks (0, Scr.CurrentDesk);
+    ChangeDesks (Scr.CurrentDesk);
 
 	HandleEvents ();
 	return (0);
@@ -1219,27 +1219,26 @@ usage (void)
 void
 checkPanFrames (void)
 {
-	extern Bool   DoHandlePageing;
 	int           wrapX = (Scr.flags & EdgeWrapX);
 	int           wrapY = (Scr.flags & EdgeWrapY);
 
 	/* Remove Pan frames if paging by edge-scroll is permanently or
 	 * temporarily disabled */
-	if ((Scr.EdgeScrollY == 0) || (!DoHandlePageing))
+    if ((Scr.EdgeScrollY == 0) || !get_flags(Scr.flags, DoHandlePageing))
 	{
 		XUnmapWindow (dpy, Scr.PanFrameTop.win);
 		Scr.PanFrameTop.isMapped = False;
 		XUnmapWindow (dpy, Scr.PanFrameBottom.win);
 		Scr.PanFrameBottom.isMapped = False;
 	}
-	if ((Scr.EdgeScrollX == 0) || (!DoHandlePageing))
+    if ((Scr.EdgeScrollX == 0) || !get_flags(Scr.flags, DoHandlePageing))
 	{
 		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
 		Scr.PanFrameLeft.isMapped = False;
 		XUnmapWindow (dpy, Scr.PanFrameRight.win);
 		Scr.PanFrameRight.isMapped = False;
 	}
-	if (((Scr.EdgeScrollX == 0) && (Scr.EdgeScrollY == 0)) || (!DoHandlePageing))
+    if (((Scr.EdgeScrollX == 0) && (Scr.EdgeScrollY == 0)) || !get_flags(Scr.flags, DoHandlePageing))
 		return;
 
 	/* LEFT, hide only if EdgeWrap is off */

@@ -158,7 +158,6 @@ int           Xzap = 12, Yzap = 12;
 int           DrawMenuBorders = 1;
 int           TextureMenuItemsIndividually = 1;
 int           AutoReverse = 0;
-int           AutoTabThroughDesks = 0;
 int           MenuMiniPixmaps = 0;
 int           StartMenuSortMode = DEFAULTSTARTMENUSORT;
 int           ShadeAnimationSteps = 12;
@@ -216,15 +215,15 @@ struct config main_config[] = {
 	{"SloppyFocus", SetFlag, (char **)SloppyFocus, (int *)0},
 	{"Cursor", SetCursor, (char **)0, (int *)0},
 	{"CustomCursor", SetCustomCursor, (char **)0, (int *)0},
-	{"PagingDefault", SetInts, (char **)&DoHandlePageing, &dummy},
+    {"PagingDefault", SetFlag, (char **)DoHandlePageing, NULL},
 	{"EdgeResistance", SetInts, (char **)&Scr.ScrollResistance, &Scr.MoveResistance},
 	{"BackingStore", SetFlag, (char **)BackingStore, (int *)0},
 	{"AppsBackingStore", SetFlag, (char **)AppsBackingStore, (int *)0},
 	{"SaveUnders", SetFlag, (char **)SaveUnders, (int *)0},
 	{"Xzap", SetInts, (char **)&Xzap, (int *)&dummy},
 	{"Yzap", SetInts, (char **)&Yzap, (int *)&dummy},
-	{"AutoReverse", SetInts, (char **)&AutoReverse, (int *)&dummy},
-	{"AutoTabThroughDesks", SetInts, (char **)&AutoTabThroughDesks, (int *)&dummy},
+    {"AutoReverse", SetInts, (char **)&Scr.AutoReverse, (int *)&dummy},
+    {"AutoTabThroughDesks", SetFlag, (char **)AutoTabThroughDesks, NULL},
 	{"MWMFunctionHints", SetFlag, (char **)MWMFunctionHints, NULL},
 	{"MWMDecorHints", SetFlag, (char **)MWMDecorHints, NULL},
 	{"MWMHintOverride", SetFlag, (char **)MWMHintOverride, NULL},
@@ -1099,9 +1098,7 @@ InitFeel (Bool free_resources)
 		}
 	}
 	StartMenuSortMode = 0;
-	AutoReverse = 0;
-	AutoTabThroughDesks = 0;
-	DoHandlePageing = True;
+    Scr.AutoReverse = 0;
 	Xzap = 12;
 	Yzap = 12;
 	StartMenuSortMode = DEFAULTSTARTMENUSORT;
@@ -1113,7 +1110,7 @@ InitFeel (Bool free_resources)
 	Scr.ClickTime = 150;
 	Scr.AutoRaiseDelay = 0;
 	Scr.RaiseButtons = 0;
-	Scr.flags = 0;
+    Scr.flags = DoHandlePageing;
 
 	Scr.MouseButtonRoot = NULL;
 	Scr.FuncKeyRoot = NULL;

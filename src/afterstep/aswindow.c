@@ -550,6 +550,72 @@ get_next_window (ASWindow * curr_win, char *action, int dir)
 
 }
 
+/*********************************************************************************
+ * Find next window in circulate csequence forward (dir 1) or backward (dir -1)
+ * from specifyed window. when we reach top or bottom we are turning back
+ * checking AutoRestart here to determine what to do when we have warped through
+ * all the windows, and came back to start.
+ *********************************************************************************/
+ASWindow     *
+warp_aswindow_list ( ASWindowList *list, Bool backwards )
+{
+    register int i;
+    register int dir = backwards ? 1 : -1 ;
+    int end_i;
+    ASWindow **clients;
+    ASWindow *next = NULL ;
+    int loop_count = 0 ;
+
+    if( list == NULL ) return NULL;
+
+	end_i = VECTOR_USED(*(list->circulate_list)) ;
+	clients = VECTOR_HEAD(ASWindow*,*(list->circulate_list));
+
+    if( list->warp_curr_index < 0 )
+    { /* need to initialize warping : */
+        list->warp_curr_index = (dir > 0)? 0 : end_i ;
+        list->warp_user_dir = dir ;
+        list->warp_init_dir = dir ;
+        list->warp_curr_dir = dir ;
+    }else if( dir == list->warp_user_dir )
+    {
+            if( Scr.AutoReverse == AST_ClosedLoop )
+                dir = list->warp_curr_dir ;
+    }else
+    {
+        list->warp_user_dir = dir ;
+        /* user reversed direction - so do we : */
+        dir = (list->warp_curr_dir > 0)? -1 : 1 ;
+        list->warp_curr_dir = dir ;
+    }
+
+    for( i = list->warp_curr_index+dir ; loop_count < 2 ; i+=dir )
+    {
+
+        if( 0 > i || i >= end_i )
+        {
+            if( Scr.AutoReverse == AST_OpenLoop )
+                i = (i <= 0)? end_i : 0 ;
+            else if( Scr.AutoReverse == AST_ClosedLoop )
+                list->warp_curr_dir = dir = (dir < 0 )? 1 : -1 ;
+            else
+                return NULL;
+            loop_count++ ;
+            continue;
+        }
+
+        if( !(ASWIN_HFLAGS(clients[i], AS_DontCirculate)) &&
+            !(ASWIN_GET_FLAGS(clients[i], AS_Iconic) && get_flags(Scr.flags, CirculateSkipIcons)) &&
+            !(ASWIN_DESK(clients[i]) != Scr.CurrentDesk && get_flags(Scr.flags,AutoTabThroughDesks )))
+        {
+            next = clients[i] ;
+            break;
+        }
+    }
+    if( next != NULL )
+        list->warp_curr_index = i ;
+    return next;
+}
 
 /********************************************************************************/
 /* Placement management */
@@ -583,4 +649,6 @@ place_window( ASWindow *t, ASStatusHints *status )
 //#warning TODO: implement window placement
 	return True ;
 }
+
+
 

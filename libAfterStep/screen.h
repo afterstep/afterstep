@@ -78,34 +78,36 @@ enum                /* look file flags, used in Scr.look_flags */
 /* for the flags value - these used to be separate Bool's */
 enum				/* feel file flags */
   {
-    ClickToFocus = (1 << 0),	/* Focus follows or click to focus */
-    DecorateTransients = (1 << 1),	/* decorate transient windows? */
-    DontMoveOff = (1 << 2),	/* make sure windows stay on desk */
-    RandomPlacement = (1 << 3),	/* random windows placement */
-    SuppressIcons = (1 << 4),	/* prevent generating icon win */
-    StickyIcons = (1 << 5),	/* Icons always sticky? */
-    EdgeWrapX = (1 << 6),	/* Should EdgeScroll wrap around? */
-    EdgeWrapY = (1 << 7),
-    CenterOnCirculate = (1 << 8),	/* center window on circulate ? */
-    KeepIconWindows = (1 << 9),
-    ClickToRaise = (1 << 10),
-    EatFocusClick = (1 << 11),
-    MenusHigh = (1 << 12),
-    NoPPosition = (1 << 13),
-    SMART_PLACEMENT = (1 << 14),
-    CirculateSkipIcons = (1 << 15),
-    StubbornIcons = (1 << 16),
-    StubbornPlacement = (1 << 17),
-    StubbornIconPlacement = (1 << 18),
-    BackingStore = (1 << 19),
-    AppsBackingStore = (1 << 20),
-    SaveUnders = (1 << 21),
-    SloppyFocus = (1 << 22),
-    IconTitle = (1 << 23),
-    MWMFunctionHints = (1 << 24),
-    MWMDecorHints = (1 << 25),
-    MWMHintOverride = (1 << 26),
-    FollowTitleChanges = (1 << 27),
+    ClickToFocus            = (1 << 0), /* Focus follows or click to focus */
+    DecorateTransients      = (1 << 1), /* decorate transient windows? */
+    DontMoveOff             = (1 << 2), /* make sure windows stay on desk */
+    RandomPlacement         = (1 << 3), /* random windows placement */
+    SuppressIcons           = (1 << 4), /* prevent generating icon win */
+    StickyIcons             = (1 << 5), /* Icons always sticky? */
+    EdgeWrapX               = (1 << 6), /* Should EdgeScroll wrap around? */
+    EdgeWrapY               = (1 << 7),
+    CenterOnCirculate       = (1 << 8), /* center window on circulate ? */
+    KeepIconWindows         = (1 << 9),
+    ClickToRaise            = (1 << 10),
+    EatFocusClick           = (1 << 11),
+    MenusHigh               = (1 << 12),
+    NoPPosition             = (1 << 13),
+    SMART_PLACEMENT         = (1 << 14),
+    CirculateSkipIcons      = (1 << 15),
+    StubbornIcons           = (1 << 16),
+    StubbornPlacement       = (1 << 17),
+    StubbornIconPlacement   = (1 << 18),
+    BackingStore            = (1 << 19),
+    AppsBackingStore        = (1 << 20),
+    SaveUnders              = (1 << 21),
+    SloppyFocus             = (1 << 22),
+    IconTitle               = (1 << 23),
+    MWMFunctionHints        = (1 << 24),
+    MWMDecorHints           = (1 << 25),
+    MWMHintOverride         = (1 << 26),
+    FollowTitleChanges      = (1 << 27),
+    AutoTabThroughDesks     = (1 << 28),
+    DoHandlePageing         = (1 << 29)
   };
 
 typedef enum
@@ -144,6 +146,11 @@ typedef struct ASIconBox
 	ASBiDirList *icons ;
 }ASIconBox;
 
+typedef enum {
+    AST_OneDirection = 0,
+    AST_ClosedLoop = 1,
+    AST_OpenLoop = 2
+}ASTabbingReverse;
 
 typedef struct ScreenInfo
   {
@@ -188,7 +195,6 @@ typedef struct ScreenInfo
 
     Cursor ASCursors[MAX_CURSORS];
 
-    name_list *TheList;		/* list of window names with attributes */
     char *DefaultIcon;		/* Icon to use when no other icons are found */
 
     ColorPair MenuStippleColors;
@@ -227,6 +233,7 @@ typedef struct ScreenInfo
 
     GC ScratchGC1;
     GC ScratchGC2;
+
     int TitleTextType;
     int TitleTextY;
 
@@ -250,6 +257,7 @@ typedef struct ScreenInfo
     unsigned int nonlock_mods;	/* a mask for non-locking modifiers */
     unsigned int *lock_mods;	/* all combinations of lock modifier masks */
     unsigned char buttons2grab;	/* buttons to grab in click to focus mode */
+
     ASFlagType flags;    /* feel file flags and state */
     ASFlagType look_flags;
     int randomx;        /* values used for randomPlacement */
@@ -271,6 +279,7 @@ typedef struct ScreenInfo
     int OpaqueSize;		/* Keep showing window while being moved if size<N% */
     int OpaqueResize;		/* Keep showing window while being resized if size<N% */
     int CurrentDesk;		/* The current desktop number */
+    int AutoReverse;        /* Defines how window circukation should handle end of list, see: ASTabbingReverse */
 
     struct ASHashTable *Popups ;
     struct ASHashTable *ComplexFunctions ;

@@ -44,7 +44,7 @@
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
-//#include "../../include/misc.h"
+#include "../../include/decor.h"
 //#include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"
@@ -62,7 +62,8 @@ void scroll_func_handler( FunctionData *data, ASEvent *event, int module );
 void movecursor_func_handler( FunctionData *data, ASEvent *event, int module );
 void raiselower_func_handler( FunctionData *data, ASEvent *event, int module );
 void setlayer_func_handler( FunctionData *data, ASEvent *event, int module );
-void status_func_handler( FunctionData *data, ASEvent *event, int module );
+void change_desk_func_handler( FunctionData *data, ASEvent *event, int module );
+void toggle_status_func_handler( FunctionData *data, ASEvent *event, int module );
 void iconify_func_handler( FunctionData *data, ASEvent *event, int module );
 void focus_func_handler( FunctionData *data, ASEvent *event, int module );
 void paste_selection_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -72,6 +73,7 @@ void bookmark_window_func_handler( FunctionData *data, ASEvent *event, int modul
 void close_func_handler( FunctionData *data, ASEvent *event, int module );
 void restart_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_func_handler( FunctionData *data, ASEvent *event, int module );
+void change_background_func_handler( FunctionData *data, ASEvent *event, int module );
 void change_config_func_handler( FunctionData *data, ASEvent *event, int module );
 void refresh_func_handler( FunctionData *data, ASEvent *event, int module );
 void goto_page_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -110,10 +112,11 @@ void SetupFunctionHandlers()
         function_handlers[F_TOGGLELAYER]=
         function_handlers[F_SETLAYER]       = setlayer_func_handler   ;
 
-    function_handlers[F_CHANGE_WINDOWS_DESK]=
-        function_handlers[F_MAXIMIZE]       =
+    function_handlers[F_CHANGE_WINDOWS_DESK]= change_desk_func_handler;
+
+    function_handlers[F_MAXIMIZE]           =
         function_handlers[F_SHADE]          =
-        function_handlers[F_STICK]          = status_func_handler;
+        function_handlers[F_STICK]          = toggle_status_func_handler;
 
     function_handlers[F_ICONIFY]            = iconify_func_handler;
 
@@ -136,9 +139,10 @@ void SetupFunctionHandlers()
         function_handlers[F_MaxSwallow] =
         function_handlers[F_DropExec]       = exec_func_handler ;
 
+    function_handlers[F_CHANGE_BACKGROUND]  = change_background_func_handler;
+
     function_handlers[F_CHANGE_LOOK] =
-        function_handlers[F_CHANGE_FEEL] =
-        function_handlers[F_CHANGE_BACKGROUND]=change_config_func_handler ;
+        function_handlers[F_CHANGE_FEEL]    = change_config_func_handler ;
 
     function_handlers[F_REFRESH]            = refresh_func_handler ;
 #ifndef NO_VIRTUAL
@@ -595,22 +599,24 @@ void setlayer_func_handler( FunctionData *data, ASEvent *event, int module )
     change_aswindow_layer( event->client, layer );
 }
 
-void status_func_handler( FunctionData *data, ASEvent *event, int module )
+void change_desk_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    ASStatusHints scratch_status ;
+    if( event->client )
+        change_aswindow_desktop( event->client, data->func_val[0] );
+}
+
+void toggle_status_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+    ASFlagType toggle_flags = 0;
     if( data->func == F_STICK )
-        scratch_status.flags = AS_Sticky ;
-    else if( data->func == F_CHANGE_WINDOWS_DESK )
-    {
-        scratch_status.flags = AS_Desktop ;
-        scratch_status.desktop = data->func_val[0] ;
-    }else if( data->func == F_MAXIMIZE )
-        scratch_status.flags = AS_MaximizedX|AS_MaximizedY ;
+        toggle_flags = AS_Sticky ;
+    else if( data->func == F_MAXIMIZE )
+        toggle_flags = AS_MaximizedX|AS_MaximizedY ;
     else if( data->func == F_SHADE )
-        scratch_status.flags = AS_Shaded ;
+        toggle_flags = AS_Shaded ;
     else
         return ;
-    change_window_status( event->client, &scratch_status, False );
+    toggle_aswindow_status( event->client, toggle_flags );
 }
 
 void focus_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -626,14 +632,14 @@ void warp_func_handler( FunctionData *data, ASEvent *event, int module )
         if (*(data->text) != '\0')
             t = pattern2ASWindow (data->text);
     if( t == NULL )
-        t = warp_aswindow_list (event->scr->winlist, (data->func == F_CHANGEWINDOW_DOWN ||
-                                       data->func == F_WARP_B), DefaultFeel );
+        t = warp_aswindow_list (Scr.Windows, (data->func == F_CHANGEWINDOW_DOWN ||
+                                       data->func == F_WARP_B));
     if ( t != NULL)
     {
         event->client = t;
         event->w = get_window_frame(t);
-        StartWarping(event->scr, DefaultFeel->cursors[SELECT]);
-        warp_to_window(t, (data->func == F_WARP_F || data->func == F_WARP_B));
+        StartWarping(&Scr, Scr.ASCursors[SELECT]);
+        warp_to_aswindow(t, (data->func == F_WARP_F || data->func == F_WARP_B));
     }
 }
 
@@ -664,7 +670,7 @@ void close_func_handler( FunctionData *data, ASEvent *event, int module )
   		if (data->func == F_DELETE)
 			XBell (dpy, event->scr->screen);
 		else if (get_drawable_size( w, &ujunk, &ujunk) == 0)
-			delete_window(event->client, True, False);
+            Destroy (event->client, True);
 		else
 			XKillClient (dpy, w);
 		XSync (dpy, 0);
@@ -678,44 +684,77 @@ void restart_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void exec_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    XGrabPointer( dpy, event->scr->Root, True,
+    XGrabPointer( dpy, Scr.Root, True,
 	   		      ButtonPressMask | ButtonReleaseMask,
-                  GrabModeAsync, GrabModeAsync, event->scr->Root, event->scr->CurrentFeel->cursors[WAIT], CurrentTime);
+                  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.ASCursors[WAIT], CurrentTime);
     XSync (dpy, 0);
-    spawn_child( data->text, -1, -1, None, ASC_NoContext, True, False, NULL );
+    spawn_child( data->text, -1, -1, None, C_NO_CONTEXT, True, False, NULL );
+    XUngrabPointer (dpy, CurrentTime);
+    XSync (dpy, 0);
+}
+
+void change_background_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+    char tmpfile[256], *realfilename ;
+
+    XGrabPointer (dpy, Scr.Root, True, ButtonPressMask | ButtonReleaseMask,
+                  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.ASCursors[WAIT], CurrentTime);
+    XSync (dpy, 0);
+
+    if (Scr.screen == 0)
+        sprintf (tmpfile, BACK_FILE, Scr.CurrentDesk);
+    else
+        sprintf (tmpfile, BACK_FILE ".scr%ld", Scr.CurrentDesk, Scr.screen);
+
+    realfilename = make_file_name (as_dirs.after_dir, tmpfile);
+    if (CopyFile (data->text, realfilename) == 0)
+        Broadcast (M_NEW_BACKGROUND, 1, 1);
+
+    free (realfilename);
     XUngrabPointer (dpy, CurrentTime);
     XSync (dpy, 0);
 }
 
 void change_config_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    XSync (dpy, 0);
-	/* update session config file */
-    ChangeDeskSession (Session, event->scr->CurrentDesk, data->text, data->func);
-	SaveASSession (Session, event->scr->true_depth);
+    char *file_template ;
+    char tmpfile[256], *realfilename = NULL ;
+    int desk = 0 ;
+#ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
+    desk = Scr.CurrentDesk ;
+#endif
+    if (Scr.screen == 0)
+    {
+        file_template = (data->func == F_CHANGE_LOOK)? LOOK_FILE : FEEL_FILE ;
+        sprintf (tmpfile, file_template, desk, Scr.d_depth);
+    }else
+    {
+        file_template = (data->func == F_CHANGE_LOOK)? LOOK_FILE ".scr%ld" :
+                                                       FEEL_FILE ".scr%ld";
+        sprintf (tmpfile, file_template, desk, Scr.d_depth, Scr.screen);
+    }
 
-    /* bring change into effect */
-    if (data->func == F_CHANGE_BACKGROUND)
-	{
-        SendPacket (-1, ASM_NewBackground, 2, 1, event->scr->Root);
-	}else
-	{
-	    register ASFlagType    what = 0 ;
-
-  		if (GetSessionOverride(Session) != NULL)
-			what = ASFLAGS_EVERYTHING ;
-		else if (data->func == F_CHANGE_LOOK)
-  	  	    set_flags( what, CONFIG_LOOK );
-		else
-  	    	set_flags( what, CONFIG_FEEL );
-		SendPacket( -1, ASM_ConfigChanged, 2, event->scr->CurrentDesk, what );
-		ReloadASConfig( event->scr->CurrentDesk, what );
-	}
+    realfilename = make_file_name (as_dirs.after_dir, tmpfile);
+    if (CopyFile (data->text, realfilename) == 0)
+        QuickRestart ((data->func == F_CHANGE_LOOK)?"look":"feel");
 }
 
 void refresh_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    register Window w = create_cover_window (event->scr);
+    XSetWindowAttributes attributes;
+	unsigned long valuemask;
+	Window        w;
+
+	valuemask = (CWBackPixmap | CWBackingStore | CWOverrideRedirect);
+	attributes.background_pixmap = None;
+	attributes.backing_store = NotUseful;
+	attributes.override_redirect = True;
+
+    w = create_visual_window(Scr.asv, Scr.Root, 0, 0,
+                               Scr.MyDisplayWidth, Scr.MyDisplayHeight,
+                               0, InputOutput, valuemask, &attributes);
+
+	XMapRaised (dpy, w);
     XSync (dpy, False);
     XDestroyWindow (dpy, w);
     XFlush (dpy);
@@ -731,12 +770,13 @@ void goto_page_func_handler( FunctionData *data, ASEvent *event, int module )
 void toggle_page_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_VIRTUAL
-	if( get_flags( event->scr->CurrentFeel->flags, DoHandlePageing ) )
-		clear_flags( event->scr->CurrentFeel->flags, DoHandlePageing );
+    if( get_flags( Scr.flags, DoHandlePageing ) )
+        clear_flags( Scr.flags, DoHandlePageing );
 	else
-		set_flags( event->scr->CurrentFeel->flags, DoHandlePageing );
-    SendPacket(-1, ASM_TogglePaging, 2, get_flags( event->scr->CurrentFeel->flags, DoHandlePageing ), event->scr->Root);
-    check_screen_panframes (event->scr);
+        set_flags( Scr.flags, DoHandlePageing );
+
+    Broadcast (M_TOGGLE_PAGING, 1, get_flags( Scr.flags, DoHandlePageing ));
+    checkPanFrames ();
 #endif
 }
 
@@ -746,11 +786,11 @@ void gethelp_func_handler( FunctionData *data, ASEvent *event, int module )
   		if (ASWIN_RES_NAME(event->client)!= NULL)
 		{
       		char         *realfilename = PutHome(HELPCOMMAND);
-            XGrabPointer (dpy, event->scr->Root, True,
+            XGrabPointer (dpy, Scr.Root, True,
                           ButtonPressMask | ButtonReleaseMask,
-                          GrabModeAsync, GrabModeAsync, event->scr->Root, event->scr->CurrentFeel->cursors[WAIT], CurrentTime);
+                          GrabModeAsync, GrabModeAsync, Scr.Root, Scr.ASCursors[WAIT], CurrentTime);
             XSync (dpy, 0);
-            spawn_child( realfilename, -1, -1, None, ASC_NoContext, True, False, ASWIN_RES_NAME(event->client), NULL);
+            spawn_child( realfilename, -1, -1, None, C_NO_CONTEXT, True, False, ASWIN_RES_NAME(event->client), NULL);
             free (realfilename);
             XUngrabPointer (dpy, CurrentTime);
             XSync (dpy, 0);
@@ -768,11 +808,11 @@ void desk_func_handler( FunctionData *data, ASEvent *event, int module )
     long new_desk ;
 
     if ( data->func_val[0] != 0 && !IsValidDesk (data->func_val[0]))
-        new_desk = event->scr->CurrentDesk + data->func_val[0];
+        new_desk = Scr.CurrentDesk + data->func_val[0];
 	else
         new_desk = data->func_val[1];
 
-    ChangeDesks (event->scr, new_desk);
+    ChangeDesks (new_desk);
 }
 
 void module_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -788,7 +828,7 @@ void killmodule_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void popup_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    do_menu_new( event->scr, data->name, event->client, event->context, NULL );
+    /* TODO : implement menus : */
 }
 
 void quit_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -799,56 +839,49 @@ void quit_func_handler( FunctionData *data, ASEvent *event, int module )
 void windowlist_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_WINDOWLIST
-    do_menu_new( event->scr, make_window_list_name(data->text == NULL ? event->scr->CurrentDesk: data->func_val[0]), event->client, event->context, windowlist_menu);
+    /* TODO : implement menus : */
+    /*do_menu_new( event->scr, make_window_list_name(data->text == NULL ? event->scr->CurrentDesk: data->func_val[0]), event->client, event->context, windowlist_menu);*/
 #endif /* ! NO_WINDOWLIST */
 }
 
 void quickrestart_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    ASFlagType    what = 0 ;
+    QuickRestart (data->text);
+}
 
-	if (data->text == NULL)
-		return;
+Bool
+send_aswindow_data_iter_func(void *data, void *aux_data)
+{
+    int module = (int)aux_data ;
+    ASWindow *asw = (ASWindow *)data ;
 
-    if (GetSessionOverride(Session) != NULL || strcmp (data->text, "all") == 0)
-        what = ASFLAGS_EVERYTHING ;
-	else if (strcmp (data->text, "look&feel") == 0)
-        set_flags( what, CONFIG_LOOK|CONFIG_FEEL );
-	else if (strcmp (data->text, "startmenu") == 0)
-        set_flags( what, CONFIG_MENU );
-	else if (strcmp (data->text, "look") == 0)
-        set_flags( what, CONFIG_LOOK );
-    else if (strcmp (data->text, "feel") == 0)
-        set_flags( what, CONFIG_FEEL );
-	else if (strcmp (data->text, "background") == 0)
-        set_flags( what, CONFIG_ROOT_BACK );
+    SendConfig (module, M_CONFIGURE_WINDOW, asw);
+    SendName (module, M_WINDOW_NAME, asw->w,asw->frame,(unsigned long)asw, asw->hints->names[0]);
+    SendName (module, M_ICON_NAME, asw->w, asw->frame, (unsigned long)asw, asw->hints->icon_name);
+    SendName (module, M_RES_CLASS, asw->w, asw->frame, (unsigned long)asw, asw->hints->res_class);
+    SendName (module, M_RES_NAME,  asw->w, asw->frame, (unsigned long)asw, asw->hints->res_name);
 
-	ReloadASConfig( event->scr->CurrentDesk, what );
-    if ( get_flags( what, CONFIG_ROOT_BACK) )
-        SendPacket (-1, ASM_NewBackground, 2, 1, event->scr->Root);
+    if (ASWIN_GET_FLAGS(asw,AS_Iconic))
+    {
+        ASCanvas *ic = asw->icon_canvas?asw->icon_canvas:asw->icon_title_canvas ;
+        if( ic != NULL )
+            SendPacket (module, M_ICONIFY, 7, asw->w, asw->frame,
+                        (unsigned long)asw, ic->root_x, ic->root_y, ic->width, ic->height);
+        else
+            SendPacket (module, M_ICONIFY, 7, asw->w, asw->frame, (unsigned long)asw, 0, 0, 0, 0);
+    }
+    return True;
 }
 
 void send_window_list_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     if (module >= 0)
     {
-        ASHashIterator i ;
-		ScreenInfo *scr = event->scr;
-
-        SendPacket (module, ASM_TogglePaging, 2, scr->Root, get_flags( scr->CurrentFeel->flags, DoHandlePageing ));
-        SendPacket (module, ASM_NewDesk, 2, scr->Root, scr->CurrentDesk );
-        SendPacket (module, ASM_NewPage, 4, scr->Root, scr->Vx, scr->Vy, scr->CurrentDesk);
-        SendPacket (module, ASM_StartWindowlist, 1, scr->Root);
-
-        if( start_hash_iteration( scr->winlist->clients, &i ) )
-            do
-            {
-                register ASWindow *t ;
-                t = curr_hash_data( &i );
-                SendPacket (module, ASM_AddWindow, 2, scr->Root, t->w);
-                send_window_all( t, module );
-            }while( next_hash_item( &i ) );
-        SendPacket (module, ASM_EndWindowlist, 1, scr->Root);
+        SendPacket (module, M_TOGGLE_PAGING, 1, DoHandlePageing);
+        SendPacket (module, M_NEW_DESK, 1, Scr.CurrentDesk);
+        SendPacket (module, M_NEW_PAGE, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
+        iterate_asbidirlist( Scr.Windows->clients, send_aswindow_data_iter_func, (void*)module, NULL, False );
+        SendPacket (module, M_END_WINDOWLIST, 0);
     }
 }
 
@@ -859,4 +892,84 @@ void test_func_handler( FunctionData *data, ASEvent *event, int module )
 /*         do_menu_new( "Look", NULL, NULL ); */
 		 fprintf( stderr, "Testing completed\n" );
 }
+
+void
+QuickRestart (char *what)
+{
+	extern char  *display_name;
+	extern int    have_the_colors;
+	extern Bool   shall_override_config_file;
+	Bool          parse_menu = False;
+	Bool          parse_look = shall_override_config_file;
+	Bool          parse_feel = shall_override_config_file;
+	Bool          update_background = False;
+
+	if (what == NULL)
+		return;
+
+	if (strcmp (what, "all") == 0)
+		parse_menu = parse_look = parse_feel = update_background = True;
+	else if (strcmp (what, "look&feel") == 0)
+		parse_look = parse_feel = True;
+	else if (strcmp (what, "startmenu") == 0)
+		parse_menu = True;
+	else if (strcmp (what, "look") == 0)
+		parse_look = True;
+	else if (strcmp (what, "feel") == 0)
+		parse_feel = True;
+	else if (strcmp (what, "background") == 0)
+		update_background = True;
+
+	/* Force reinstall */
+	if (parse_look || parse_feel || parse_menu || shall_override_config_file)
+	{
+        InstallRootColormap();
+        GrabEm (&Scr, Scr.ASCursors[WAIT]);
+	}
+
+	/* Don't kill modules */
+	/* ClosePipes(); */
+
+#if 0
+    /* TODO: delete menus - only if necessary */
+	if (shall_override_config_file || parse_menu)
+		while (Scr.first_menu != NULL)
+			DeleteMenuRoot (Scr.first_menu);
+#endif
+
+	if (parse_look || parse_feel || parse_menu || shall_override_config_file)
+	{
+		have_the_colors = 0;
+
+		/* Don't reset desktop position */
+		/* InitVariables(0); */
+
+		/* LoadASConfig must be called, or AS will be left in an unusable state */
+		LoadASConfig (display_name, Scr.CurrentDesk, parse_menu, parse_look, parse_feel);
+
+#ifndef NO_VIRTUAL
+		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
+		XUnmapWindow (dpy, Scr.PanFrameRight.win);
+		XUnmapWindow (dpy, Scr.PanFrameBottom.win);
+		XUnmapWindow (dpy, Scr.PanFrameTop.win);
+		Scr.PanFrameBottom.isMapped = Scr.PanFrameTop.isMapped =
+			Scr.PanFrameLeft.isMapped = Scr.PanFrameRight.isMapped = False;
+
+		checkPanFrames ();
+#endif
+
+		UngrabEm ();
+	}
+
+	if (update_background)
+		Broadcast (M_NEW_BACKGROUND, 1, 1);
+}
+
+void
+ChangeDesks (int new_desk)
+{
+    /*TODO: implement virtual desktops switching : */
+
+}
+
 

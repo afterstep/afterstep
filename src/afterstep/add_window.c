@@ -1363,7 +1363,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 		t->status = safecalloc(1, sizeof(ASStatusHints));
 
     if( get_flags( status->flags, AS_StartDesktop) && status->desktop != Scr.CurrentDesk )
-        changeDesks( 0, status->desktop );
+        ChangeDesks( status->desktop );
     t->status->desktop = Scr.CurrentDesk ;
 
     if( get_flags( status->flags, AS_StartViewportX))
@@ -1525,7 +1525,7 @@ make_aswindow_visible( ASWindow *asw, Bool deiconify )
     }
 
     if (ASWIN_DESK(asw) != Scr.CurrentDesk)
-        changeDesks( 0, ASWIN_DESK(asw));
+        ChangeDesks( ASWIN_DESK(asw));
 
     /* TODO: need to to center on window */
     return True;
@@ -1551,6 +1551,34 @@ change_aswindow_layer( ASWindow *asw, int layer )
         restack_window_list( ASWIN_DESK(asw) );
     }
 }
+
+void change_aswindow_desktop( ASWindow *asw, int new_desk )
+{
+    if( AS_ASSERT(asw) )
+        return ;
+    if( ASWIN_DESK(asw) == new_desk )
+        return ;
+
+    ASWIN_DESK(asw) = new_desk ;
+    /* TODO: implement proper desktop changing ! */
+}
+
+void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
+{
+    ASFlagType on_flags, off_flags ;
+
+    if( AS_ASSERT(asw) )
+        return ;
+    if( flags == 0 )
+        return ;
+
+    on_flags = (~(asw->status->flags))&flags ;
+    off_flags = (asw->status->flags)&(~flags) ;
+    asw->status->flags = on_flags|off_flags ;
+    on_window_status_changed( asw );
+    /* TODO: implement maximization !!!! */
+}
+
 /****************************************************************************
  *
  * Sets up the shaped window borders

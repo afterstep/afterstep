@@ -118,20 +118,25 @@ warp_ungrab (ASWindow * t, Bool finished)
  ************************************************************************/
 void DigestEvent    ( ASEvent *event );
 void DispatchEvent  ( ASEvent *event );
+int  afterstep_wait_pipes_input ();
 
 void
 HandleEvents ()
 {
     ASEvent event;
-	while (True)
-	{
-        if ( AS_XNextEvent (dpy, &(event.x)) )
-		{
+    Bool has_x_events = False ;
+    while (True)
+    {
+        while((has_x_events = XPending (dpy)))
+        {
+            ASNextEvent (&(event.x));
+
 /*fprintf( stderr, "%s:%d Received event %d\n", __FUNCTION__, __LINE__, event.x.type );*/
             DigestEvent( &event );
             DispatchEvent( &event );
-		}
-	}
+        }
+        afterstep_wait_pipes_input ();
+    }
 }
 
 /***************************************************************************
@@ -218,6 +223,43 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
 	}while( dx > -5 && dx < 5 && dy > -5 && dy < 5 );
 	return False;
 }
+
+Bool
+WaitWindowLoop( char *pattern, long timeout )
+{
+	wild_reg_exp *wrexp = compile_wild_reg_exp( pattern );
+	Bool done = False ;
+	ASEvent event ;
+	Bool has_x_events ;
+
+	if( wrexp == NULL )
+		return False;
+	while (!done)
+	{
+		do
+		{
+            ASFlush();
+			while((has_x_events = XPending (dpy)))
+			{
+                ASNextEvent (&(event.x));
+
+                DigestEvent( &event );
+                DispatchEvent( &event );
+                if( event.x.type == MapNotify && event.client )
+                    if( match_string_list (event.client->hints->names, MAX_WINDOW_NAMES, wrexp) == 0 )
+                    {
+                        destroy_wild_reg_exp( wrexp );
+                        return True;
+					}
+			}
+		}while( has_x_events );
+
+		afterstep_wait_pipes_input ();
+	}
+	destroy_wild_reg_exp( wrexp );
+    return False;
+}
+
 
 
 void
@@ -503,7 +545,7 @@ HandleFocusIn ( ASEvent *event )
     while (ASCheckTypedEvent (FocusIn, &event->x));
     DigestEvent( event );
 
-    if (event->client != Scr.Hilite)
+    if (event->client != Scr.Windows->hilited)
         broadcast_focus_change( event->client );
     /* note that hilite_aswindow changes value of Scr.Hilite!!! */
     hilite_aswindow( event->client );
@@ -569,6 +611,14 @@ HandleKeyPress ( ASEvent *event )
 #define MAX_NAME_LEN 200L					   /* truncate to this many */
 #define MAX_ICON_NAME_LEN 200L				   /* ditto */
 
+
+Bool
+update_transp_iter_func(void *data, void *aux_data)
+{
+    update_window_transparency( (ASWindow*)data );
+    return True;
+}
+
 void
 HandlePropertyNotify (ASEvent *event)
 {
@@ -584,9 +634,9 @@ HandlePropertyNotify (ASEvent *event)
 	{
         if (Scr.RootImage)
 			destroy_asimage (&(Scr.RootImage));
-        for (asw = Scr.ASRoot.next; asw != NULL; asw = asw->next)
-            update_window_transparency( asw );
-		/* use move_menu() to update transparent menus; this is a kludge, but it works */
+        iterate_asbidirlist( Scr.Windows->clients, update_transp_iter_func, NULL, NULL, False );
+
+        /* use move_menu() to update transparent menus; this is a kludge, but it works */
 		if ((*Scr.MSMenuTitle).texture_type == 129 || (*Scr.MSMenuItem).texture_type == 129 ||
 			(*Scr.MSMenuHilite).texture_type == 129)
 		{
@@ -815,10 +865,10 @@ HandleUnmapNotify (ASEvent *event )
     /* if (Scr.Hilite == asw )
         Scr.Hilite = NULL; */
 
-    if (Scr.PreviousFocus == asw)
-		Scr.PreviousFocus = NULL;
+    if (Scr.Windows->previous_active == asw)
+        Scr.Windows->previous_active = NULL;
 
-    if (Scr.Focus == asw )
+    if (Scr.Windows->focused == asw )
         focus_next_aswindow( asw );
 
     if (ASWIN_GET_FLAGS(asw, AS_Mapped) || ASWIN_GET_FLAGS(asw, AS_Iconic))
@@ -860,7 +910,7 @@ HandleButtonPress ( ASEvent *event )
 
         if (get_flags( Scr.flags, ClickToFocus) )
         {
-            if ( asw != Scr.Ungrabbed && (xbtn->state & Scr.nonlock_mods) == 0)
+            if ( asw != Scr.Windows->ungrabbed && (xbtn->state & Scr.nonlock_mods) == 0)
                 focus_accepted = focus_aswindow(asw, False);
         }
 
@@ -981,7 +1031,7 @@ HandleEnterNotify (ASEvent *event)
 	{
         if (!get_flags(Scr.flags, ClickToFocus))
 		{
-            if (Scr.Focus != asw)
+            if (Scr.Windows->focused != asw)
 			{
                 if (Scr.AutoRaiseDelay > 0 && !ASWIN_GET_FLAGS(asw, AS_Visible))
 					SetTimer (Scr.AutoRaiseDelay);
@@ -1015,9 +1065,9 @@ HandleLeaveNotify ( ASEvent *event )
 		{
             if (ewp->detail != NotifyInferior)
 			{
-				if (Scr.Focus != NULL)
+                if (Scr.Windows->focused != NULL)
                     hide_focus();
-                if (Scr.Hilite != NULL)
+                if (Scr.Windows->hilited != NULL)
                     hide_hilite();
             }
 		}
@@ -1147,10 +1197,11 @@ enterAlarm (int nonsense)
  * Waits for next X event, or for an auto-raise timeout.
  *
  ****************************************************************************/
+
 int
-AS_XNextEvent (Display * dpy, XEvent * event)
+afterstep_wait_pipes_input ()
 {
-	extern int    fd_width, x_fd;
+    extern int    fd_width, x_fd;
 	fd_set        in_fdset, out_fdset;
 	int           i;
 	int           retval;
@@ -1159,14 +1210,7 @@ AS_XNextEvent (Display * dpy, XEvent * event)
 	extern module_t *Module;
 	int           max_fd = 0;
 
-	XFlush (dpy);
-	if (XPending (dpy))
-	{
-        ASNextEvent (event);
-		return 1;
-	}
-
-	FD_ZERO (&in_fdset);
+    FD_ZERO (&in_fdset);
 	FD_SET (x_fd, &in_fdset);
 	max_fd = x_fd;
 	FD_ZERO (&out_fdset);
@@ -1202,11 +1246,11 @@ AS_XNextEvent (Display * dpy, XEvent * event)
 			alarmed = False;
 			XQueryPointer (dpy, Scr.Root, &JunkRoot, &child, &JunkX, &JunkY, &JunkX,
 						   &JunkY, &JunkMask);
-			if ((Scr.Focus != NULL) && (child == Scr.Focus->frame))
+            if ((Scr.Windows->focused != NULL) && (child == Scr.Windows->focused->frame))
 			{
-				if (!(Scr.Focus->flags & VISIBLE))
+                if (!(Scr.Windows->focused->flags & VISIBLE))
 				{
-					RaiseWindow (Scr.Focus);
+                    RaiseWindow (Scr.Windows->focused);
 				}
 			}
 			return 0;
@@ -1224,18 +1268,7 @@ AS_XNextEvent (Display * dpy, XEvent * event)
 	}
 #endif /* 1 */
 
-	/* Do this IMMEDIATELY prior to select, to prevent any nasty
-	 * queued up X events from just hanging around waiting to be
-	 * flushed */
-	if (XPending (dpy))
-	{
-        ASNextEvent (event);
-		return 1;
-	}
-	/* Zap all those zombies! */
-	/* If we get to here, then there are no X events waiting to be processed.
-	 * Just take a moment to check for dead children. */
-	ReapChildren ();
+    ReapChildren ();
 	XFlush (dpy);
 
 #ifdef __hpux
