@@ -24,6 +24,8 @@
 #include "../../configure.h"
 
 #include <signal.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #ifdef I18N
 #include <X11/Xlocale.h>
@@ -44,8 +46,9 @@
 #include "../../include/clientprops.h"
 #include "../../include/wmprops.h"
 
-struct ASWindowData;
-#define WINDOW_PACKET_MASK 0xFFFFFFFF
+#include "WinData.h"
+
+#define AS_MODULE_CLASS	"WinList"
 
 /**********************************************************************/
 /*  AfterStep specific global variables :                             */
@@ -58,6 +61,31 @@ ScreenInfo Scr;			/* AS compatible screen information structure */
 /* Our configuration options :                                        */
 /**********************************************************************/
 BaseConfig *Base = NULL;
+typedef enum { ASN_Name = 0, ASN_IconName, ASN_ResClass, ASN_ResName, ASN_NameTypes }ASNameTypes ;
+typedef enum { ASA_Left = 0, ASA_Center, ASA_Right, ASA_AligmentTypes } ASAligmentTypes;
+
+typedef struct WinListConfig
+{
+#define 	ASWL_RowsFirst 		(0x01<<16)
+	ASFlagType	flags ;
+	int anchor_x, anchor_y ;
+	int gravity ;
+	unsigned int min_width, min_height ;
+	unsigned int max_width, max_height ;
+	unsigned int min_rows, min_columns ;
+	unsigned int max_rows, max_columns ;
+	
+	ASNameTypes     show_name_type ; /* 0, 1, 2, 3 */
+	ASAligmentTypes name_aligment ;  
+	
+
+}WinListConfig;
+
+WinListConfig WinList = { 0, 0, 0, 0, 
+                          0, 0, 0, 0, 
+						  1, 0, 1, 0,
+						  ASN_Name,
+						  ASA_Left };
 /**********************************************************************/
 
 void
@@ -72,6 +100,8 @@ void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
 void process_message (unsigned long type, unsigned long *body);
 void DispatchEvent (XEvent * Event);
+Window make_winlist_window();
+
 
 int 
 main( int argc, char **argv )
@@ -80,6 +110,7 @@ main( int argc, char **argv )
 	char *global_config_file = NULL;
 	int x_fd ;
 	int as_fd[2] ;
+	Window w ;
 	
 	set_application_name(argv[0]);
 	SetMyName (argv[0]);
@@ -120,6 +151,8 @@ main( int argc, char **argv )
 	
 	LoadBaseConfig (global_config_file, GetBaseOptions);
     LoadConfig (global_config_file, "pager", GetOptions);
+
+	w = make_winlist_window();
 
 	/* And at long last our main loop : */
 	while (1)
@@ -228,4 +261,39 @@ DispatchEvent (XEvent * Event)
 	    case PropertyNotify:
 			break;
     }
+}
+
+/********************************************************************/
+/* showing our main window :                                        */
+/********************************************************************/
+Window 
+make_winlist_window()
+{
+	Window        w;
+	XSizeHints    shints;
+	ExtendedWMHints extwm_hints ;
+
+	w = create_visual_window( Scr.asv, Scr.Root, WinList.anchor_x, WinList.anchor_y, Scr.MyDisplayWidth, 20, 0, InputOutput, 0, NULL);
+	set_client_names( w, MyName, MyName, AS_MODULE_CLASS, MyName );
+
+	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize;
+	shints.min_width = shints.min_height = 4;
+	shints.max_width = shints.max_height = 5;
+	shints.base_width = shints.base_height = 4;
+
+	extwm_hints.pid = getpid();
+	extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeMenu ;
+
+	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+
+	/* showing window to let user see that we are doing something */
+	XMapRaised (dpy, w);
+	/* final cleanup */
+	XFlush (dpy);
+	sleep (1);								   /* we have to give AS a chance to spot us */
+	/* we will need to wait for PropertyNotify event indicating transition
+	   into Withdrawn state, so selecting event mask: */
+	XSelectInput (dpy, w, PropertyChangeMask);
+	
+	return w ;
 }
