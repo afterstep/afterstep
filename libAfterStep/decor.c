@@ -92,6 +92,7 @@ get_canvas_canvas (ASCanvas * pc)
 		return None;
     if( get_flags( pc->state, CANVAS_CONTAINER ) )
         return None;
+LOCAL_DEBUG_CALLER_OUT( "ASCanvas(%p)->canvas(%X)", pc,pc->canvas );
 	if (pc->canvas == None)
 	{
 		pc->canvas = create_visual_pixmap (Scr.asv, Scr.Root, pc->width, pc->height, 0);
@@ -223,12 +224,15 @@ draw_canvas_image (ASCanvas * pc, ASImage * im, int x, int y)
 	int           real_x, real_y;
 	int           width, height;
 
+	LOCAL_DEBUG_CALLER_OUT ("pc(%p)->im(%p)->x(%d)->y(%d)", pc, im, x, y);
 	if (im == NULL || pc == NULL)
 		return False;
 
+	LOCAL_DEBUG_OUT ("getting canvas %s", "");
 	if ((p = get_canvas_canvas (pc)) == None)
 		return False;
 
+	LOCAL_DEBUG_OUT ("getting rectangle %s", "");
 	if (!make_canvas_rectangle (pc, im, x, y, &real_x, &real_y, &width, &height))
 		return False;
 
@@ -1275,7 +1279,7 @@ move_astbar (ASTBarData * tbar, ASCanvas * pc, int win_x, int win_y)
 		changed = changed || (win_x != tbar->win_x || win_y != tbar->win_y);
 		tbar->win_x = win_x;
 		tbar->win_y = win_y;
-LOCAL_DEBUG_OUT( "tbar(%p)->root_pos(%+d%+d)->win_pos(%+d%+d)", tbar, root_x, root_y, win_x, win_y );
+LOCAL_DEBUG_OUT( "tbar(%p)->root_geom(%ux%u%+d%+d)->win_pos(%+d%+d)->changed(%x)", tbar, tbar->width, tbar->height, root_x, root_y, win_x, win_y, changed );
 	}
 	return changed;
 }
@@ -1316,10 +1320,13 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
     int good_layers = 0;
 
 	/* input control : */
+LOCAL_DEBUG_CALLER_OUT("tbar(%p)->pc(%p)", tbar, pc );	
 	if (tbar == NULL || pc == NULL || pc->w == None)
 		return False;
 	state = get_flags (tbar->state, BAR_STATE_FOCUS_MASK);
-	if ((style = tbar->style[state]) == NULL)
+	style = tbar->style[state];
+LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d", style, tbar->width, tbar->height, tbar->root_x, tbar->root_y );	
+	if (style == NULL)
 		return False;
 	/* validating our images : */
 	if ((back = tbar->back[state]) != NULL)
@@ -1332,10 +1339,11 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 			tbar->back[state] = back = NULL;
 		}
 	}
+LOCAL_DEBUG_OUT("back(%p)", back );		
 	if (back == NULL)
 	{
 		tbar->back[state] = back = mystyle_make_image (style, tbar->root_x, tbar->root_y, tbar->width, tbar->height);
-
+LOCAL_DEBUG_OUT("back-try2(%p)", back );		
 		if (back == NULL)
 			return False;
 	}

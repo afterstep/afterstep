@@ -20,7 +20,7 @@
 
 #include "../configure.h"
 
-/* #define LOCAL_DEBUG */
+#define LOCAL_DEBUG
 
 #include "../include/asapp.h"
 #include "../include/afterstep.h"
@@ -402,6 +402,46 @@ mystyle_translate_grad_type (int type)
 	}
 }
 
+/****************************************************************************
+ * grab a section of the screen and darken it
+ ***************************************************************************/
+static ASImage *
+grab_root_asimage( ScreenInfo *scr )
+{
+	XSetWindowAttributes attr ;
+    XEvent event ;
+    int tick_count = 0 ;
+    Bool grabbed = False ;
+	Window src;
+	ASImage *root_im = NULL ;
+	
+	attr.background_pixmap = ParentRelative ;
+	attr.backing_store = Always ;
+	attr.event_mask = ExposureMask ;
+	attr.override_redirect = True ;
+	src = create_visual_window( scr->asv, scr->Root, 0, 0, scr->MyDisplayWidth, scr->MyDisplayHeight,
+	    		                0, CopyFromParent, 
+				  				CWBackPixmap|CWBackingStore|CWOverrideRedirect|CWEventMask,
+				  				&attr); 
+
+	if( src == None ) return NULL ;
+	XGrabServer( dpy );
+	grabbed = True ;
+	XMapRaised( dpy, src );
+	XSync(dpy, False );
+	start_ticker(1);
+	/* now we have to wait for our window to become mapped - waiting for Expose */
+	for( tick_count = 0 ; !XCheckWindowEvent( dpy, src, ExposureMask, &event ) && tick_count < 100 ; tick_count++)
+  		wait_tick();
+	if( tick_count < 100 )
+		root_im = pixmap2ximage( scr->asv, src, 0, 0, scr->MyDisplayWidth, scr->MyDisplayHeight, AllPlanes, 0 );
+	XDestroyWindow( dpy, src );
+	XUngrabServer( dpy );
+	return root_im ;
+}
+
+
+
 static merge_scanlines_func mystyle_merge_scanlines_func_xref[] = {
 	allanon_scanlines,
 	alphablend_scanlines,
@@ -437,7 +477,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		width = 1;
 	if (height < 1)
 		height = 1;
-	LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%X", style->name, style->texture_type,
+	LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%lX", style->name, style->texture_type,
 					 style->back_icon.image, style->tint);
 	switch (style->texture_type)
 	{
@@ -473,6 +513,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		 if (Scr.RootImage == NULL)
 		 {
 			 root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
+			 LOCAL_DEBUG_OUT ("obtained Root pixmap = %lX", root_pixmap);
 			 if (root_pixmap)
 			 {
 #if 0
@@ -480,67 +521,72 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 #else
 				 Scr.RootImage = pixmap2asimage (Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, False, 100);
 #endif
-			 }
+			 }else
+				Scr.RootImage = grab_root_asimage( &Scr );
 		 } else
 		 {
 			 root_w = Scr.RootImage->width;
 			 root_h = Scr.RootImage->height;
 		 }
 		 LOCAL_DEBUG_OUT ("RootImage = %p", Scr.RootImage);
+		
+		if (Scr.RootImage == NULL)
+		{  /* simply creating solid color image */
+			im = create_asimage( width, height, 100 );
+			im->back_color = style->colors.back ;
+		}else
+		{
+			if (style->texture_type == TEXTURE_TRANSPARENT || style->texture_type == TEXTURE_TRANSPARENT_TWOWAY)
+			{
+				im = tile_asimage (Scr.asv, Scr.RootImage, root_x, root_y,
+									width, height, style->tint, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			} else
+			{
+				 ASImageLayer  layers[2];
+				 ASImage      *scaled_im = NULL;
+				 int           index = 0;
 
-		 if (Scr.RootImage == NULL)
-			 return NULL;
+				 init_image_layers (&layers[0], 2);
 
-		 if (style->texture_type == TEXTURE_TRANSPARENT || style->texture_type == TEXTURE_TRANSPARENT_TWOWAY)
-		 {
-			 im = tile_asimage (Scr.asv, Scr.RootImage, root_x, root_y,
-								width, height, style->tint, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-		 } else
-		 {
-			 ASImageLayer  layers[2];
-			 ASImage      *scaled_im = NULL;
-			 int           index = 0;
+				 layers[0].im = Scr.RootImage;
+				 if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
+					 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
+					 index = style->texture_type - TEXTURE_SCALED_TRANSPIXMAP;
+				 else if (style->texture_type >= TEXTURE_TRANSPIXMAP && style->texture_type < TEXTURE_TRANSPIXMAP_END)
+					 index = style->texture_type - TEXTURE_TRANSPIXMAP;
 
-			 init_image_layers (&layers[0], 2);
+				 LOCAL_DEBUG_OUT ("index = %d", index);
+				 layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index];
+				 layers[0].dst_x = 0;
+				 layers[0].dst_y = 0;
+				 layers[0].clip_x = root_x;
+				 layers[0].clip_y = root_y;
+				 layers[0].clip_width = width;
+				 layers[0].clip_height = height;
 
-			 layers[0].im = Scr.RootImage;
-			 if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
-				 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
-				 index = style->texture_type - TEXTURE_SCALED_TRANSPIXMAP;
-			 else if (style->texture_type >= TEXTURE_TRANSPIXMAP && style->texture_type < TEXTURE_TRANSPIXMAP_END)
-				 index = style->texture_type - TEXTURE_TRANSPIXMAP;
+				 layers[1].im = style->back_icon.image;
+				 if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
+					 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
+				 {
+					 scaled_im = scale_asimage (Scr.asv, layers[1].im, width, height,
+												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					 if (scaled_im)
+						 layers[1].im = scaled_im;
+				 }
+				 layers[1].merge_scanlines = layers[0].merge_scanlines;
+				 layers[1].dst_x = 0;
+				 layers[1].dst_y = 0;
+				 layers[1].clip_x = 0;
+				 layers[1].clip_y = 0;
+				 layers[1].clip_width = width;
+				 layers[1].clip_height = height;
 
-			 LOCAL_DEBUG_OUT ("index = %d", index);
-			 layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index];
-			 layers[0].dst_x = 0;
-			 layers[0].dst_y = 0;
-			 layers[0].clip_x = root_x;
-			 layers[0].clip_y = root_y;
-			 layers[0].clip_width = width;
-			 layers[0].clip_height = height;
-
-			 layers[1].im = style->back_icon.image;
-			 if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
-				 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
-			 {
-				 scaled_im = scale_asimage (Scr.asv, layers[1].im, width, height,
-											ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				 im = merge_layers (Scr.asv, &layers[0], 2, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 				 if (scaled_im)
-					 layers[1].im = scaled_im;
+					 destroy_asimage (&scaled_im);
 			 }
-			 layers[1].merge_scanlines = layers[0].merge_scanlines;
-			 layers[1].dst_x = 0;
-			 layers[1].dst_y = 0;
-			 layers[1].clip_x = 0;
-			 layers[1].clip_y = 0;
-			 layers[1].clip_width = width;
-			 layers[1].clip_height = height;
-
-			 im = merge_layers (Scr.asv, &layers[0], 2, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			 if (scaled_im)
-				 destroy_asimage (&scaled_im);
-		 }
-	}
+		}
+	}		
 #endif /* NO_TEXTURE */
 	return im;
 }
@@ -1364,7 +1410,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 					 } else
                          mystyle_error(style->name, "failed to load image file \"%s\".", tmp);
 				 }
-				 LOCAL_DEBUG_OUT ("MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%X", style->name,
+				 LOCAL_DEBUG_OUT ("MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%lX", style->name,
 								  style->texture_type, style->back_icon.image, style->tint);
 				 free (tmp);
 			 }
