@@ -1,6 +1,6 @@
 %define	name	AfterStep
-%define	fver	2.00.beta4
-%define	version	2.00.beta4
+%define	fver	2.00.beta4b
+%define	version	2.00.beta4b
 %define	release	1
 %define	serial	1
 
