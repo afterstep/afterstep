@@ -197,6 +197,13 @@ typedef struct {
     Cursor cursor;		/* cursor to be displayed (or None) */
 } XSetWindowAttributes;
 
+typedef struct {
+	unsigned long pixel;
+	unsigned short red, green, blue;
+	char flags;  /* do_red, do_green, do_blue */
+	char pad;
+} XColor;
+
 int XParseGeometry (  char *string,int *x,int *y,
                       unsigned int *width,    /* RETURN */
 					  unsigned int *height);    /* RETURN */
