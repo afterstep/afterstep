@@ -233,7 +233,7 @@ static char* default_doc_str = "\
 static char* cdata_str = "CDATA";
 static char* container_str = "CONTAINER";
 
-
+void asimage_destroy (ASHashableValue value, void *data);
 
 int main(int argc, char** argv) {
 	ASImage* im = NULL;
@@ -308,10 +308,10 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "\n");
 	}
 
-	if (doc_str && doc_str != default_doc_str) free(doc_str);
+	if (doc_file && doc_str && doc_str != default_doc_str) free(doc_str);
 
 	/* Initialize the image hash. */
-	image_hash = create_ashash(53, &string_hash_value, &string_compare, &string_destroy);
+	image_hash = create_ashash(53, &string_hash_value, &string_compare, &asimage_destroy);
 
 	/* Build the image(s) from the xml document structure. */
 	if (doc) {
