@@ -101,7 +101,7 @@ make_file_name (const char *path, const char *file)
 	for (i = 0; path[i]; i++)
 		ptr[i] = path[i];
 	/* copying filename */
-	ptr[1] = '/';
+	ptr[i] = '/';
 	ptr += i+1 ;
 	for (i = 0; file[i]; i++)
 		ptr[i] = file[i];
