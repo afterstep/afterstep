@@ -856,7 +856,8 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
             event.context = C_FRAME;
             event.scr = &Scr ;
             event.event_time = Scr.last_Timestamp ;
-            ExecuteFunction (fdata, &event, channel);
+            /* there must be no deffering on module commands ! */
+            ExecuteFunctionExt (fdata, &event, channel, True);
         }
     }
     free_func_data (fdata);

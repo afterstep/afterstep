@@ -215,12 +215,12 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 
     data->stop_on_button_press = ((data->pointer_state&ButtonAnyMask) == 0 );
 
-	data->origin_x = root_x - data->last_x ;
-	data->origin_y = root_y - data->last_y ;
+    data->origin_x = data->last_x - mr->root_x;
+    data->origin_y = data->last_y - mr->root_y;
 
     /* we should be using this methinks: */
-    data->last_x = root_x ;
-    data->last_y = root_y ;
+    //data->last_x = root_x ;
+    //data->last_y = root_y ;
 
 	/* " %u x %u %+d %+d " */
 	data->geometry_string = safemalloc( 1+6+3+6+2+6+2+6+1+1 +30/*for the heck of it*/);
@@ -434,8 +434,8 @@ SHOW_CHECKPOINT;
                 finished = True;
         case MotionNotify:
 			/* update location of the pager_view window */
-			new_x = event->x.xmotion.x_root;
-			new_y = event->x.xmotion.y_root;
+            new_x = event->x.xmotion.x_root - data->parent->root_x;
+            new_y = event->x.xmotion.y_root - data->parent->root_y;
 LOCAL_DEBUG_OUT("new = %+d%+d, finished = %d", new_x, new_y, finished );
 			data->pointer_func (data, new_x, new_y);
 			break;
