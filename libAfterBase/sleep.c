@@ -89,8 +89,10 @@ start_ticker (unsigned int size)
 		delta = _as_ticker_last_tick - delta ;
 		if( delta <= 0 )
 			_as_ticker_tick_time = 100;
-		else
+		else if( delta <= 100 )
 			_as_ticker_tick_time = 101 / delta;
+		else
+			_as_ticker_tick_time = 1 ;
 	}
 	_as_ticker_tick_size = size;			   /* in ms */
 }

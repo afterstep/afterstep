@@ -257,6 +257,8 @@ check_client_canvas( ASWindow *asw, Bool required )
 
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );
+			if( ASWIN_GET_FLAGS( asw, AS_Shaped ) )
+				refresh_container_shape( canvas );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         }
 		/*else    invalidate_canvas_config( canvas ); */
@@ -1211,12 +1213,10 @@ SetShape (ASWindow *asw, int w)
 				asw->frame_canvas->shape = create_shape();
 
 			get_current_canvas_geometry( asw->client_canvas, &child_x, &child_y, &width, &height, &bw );
-	        rect.x = child_x ;
-    	    rect.y = child_y ;
-        	rect.width  = width+bw*2;
-            rect.height = height+bw*2;
-
-			combine_canvas_shape_at_geom (asw->frame_canvas, asw->client_canvas, child_x, child_y, width, height, bw );
+	        rect.x = 0 ;
+    	    rect.y = 0 ;
+        	rect.width  = width;
+            rect.height = height;
 
           	for( i = 0 ; i < FRAME_SIDES ; ++i )
               	if( asw->frame_sides[i] )
@@ -1225,6 +1225,10 @@ SetShape (ASWindow *asw, int w)
                   	combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i] );
 				}
 
+			subtract_shape_rectangle( asw->frame_canvas->shape, &rect, 1, child_x, child_y, asw->frame_canvas->width, asw->frame_canvas->height );
+			combine_canvas_shape_at_geom (asw->frame_canvas, asw->client_canvas, child_x, child_y, width, height, bw );
+
+			print_shape( asw->frame_canvas->shape ) ;
 			update_canvas_display_mask (asw->frame_canvas, True);
 			set_flags( asw->internal_flags, ASWF_PendingShapeRemoval );
 

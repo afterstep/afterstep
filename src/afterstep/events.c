@@ -233,11 +233,10 @@ WaitWindowLoop( char *pattern, long timeout )
 	Bool done = False ;
 	ASEvent event ;
 	Bool has_x_events ;
+	time_t end_time = time(NULL) + (timeout<=0?DEFAULT_WINDOW_WAIT_TIMEOUT:timeout)/100 ;
 
 	if( wrexp == NULL )
 		return False;
-
-	start_ticker ((timeout<=0?DEFAULT_WINDOW_WAIT_TIMEOUT:timeout)*10);
 
 	while (!done)
 	{
@@ -261,7 +260,7 @@ WaitWindowLoop( char *pattern, long timeout )
                         }
                 }
 			}
-			if( is_tick() )
+			if( time(NULL) > end_time )
 			{
 			    done = True ;
 				break;
@@ -269,7 +268,7 @@ WaitWindowLoop( char *pattern, long timeout )
 
 		}while( has_x_events );
 
-		if( is_tick() )
+		if( time(NULL) > end_time )
 			break;
 		afterstep_wait_pipes_input ();
 	}
@@ -1180,7 +1179,7 @@ HandleConfigureRequest ( ASEvent *event )
     if (cre->value_mask & CWStackMode)
         restack_window( asw, (cre->value_mask & CWSibling)?cre->above:None, cre->detail );
 
-    check_aswindow_shaped( asw );
+    /* check_aswindow_shaped( asw ); */
 
     /* for restoring */
 	if (cre->value_mask & CWBorderWidth)

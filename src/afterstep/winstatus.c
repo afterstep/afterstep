@@ -584,11 +584,13 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         if( changes != 0 )
         {
             update_window_transparency( asw, False );
-            if( get_flags( changes, CANVAS_RESIZED ) && ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
-                SetShape( asw, 0 );
-			else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
-				ClearShape( asw );
-
+            if( get_flags( changes, CANVAS_RESIZED ) )
+			{
+				if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
+                	SetShape( asw, 0 );
+				else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
+					ClearShape( asw );
+			}
 			if( !ASWIN_GET_FLAGS(asw, AS_Dead|AS_MoveresizeInProgress ) )
 	            broadcast_config (M_CONFIGURE_WINDOW, asw);
         }
@@ -643,7 +645,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
                         changes )  /* now we need to show them on screen !!!! */
                     {
                         update_canvas_display( asw->frame_sides[i] );
-                        if( ASWIN_GET_FLAGS( asw, AS_Shaped )  )
+                        if( ASWIN_GET_FLAGS( asw, AS_Shaped|AS_ShapedDecor )  )
                             SetShape( asw, 0 );
 						else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
 							ClearShape( asw );

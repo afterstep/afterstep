@@ -61,7 +61,7 @@ assimilate_rectangle( int new_x, int new_y, int new_width, int new_height, ASVec
 		if( shape_rects[i].x >= new_x &&
 			shape_rects[i].y >= new_y &&
 			shape_rects[i].x+shape_rects[i].width <= new_x+new_width &&
-			shape_rects[i].y+shape_rects[i].height <= new_x+new_height )
+			shape_rects[i].y+shape_rects[i].height <= new_y+new_height )
 		{
 			LOCAL_DEBUG_OUT(" \tassimilated by %dx%d%+d%+d", shape_rects[i].width, shape_rects[i].height, shape_rects[i].x, shape_rects[i].y );
 			shape_rects[i].x = new_x ;
@@ -193,6 +193,97 @@ assimilate_rectangle( int new_x, int new_y, int new_width, int new_height, ASVec
 	return changed;
 }
 
+/* using int type here to avoid problems with signed/unsigned comparisonand for simplier and faster code */
+static Bool
+subtract_rectangle( int new_x, int new_y, int new_width, int new_height, ASVector *shape )
+{
+	XRectangle *shape_rects = PVECTOR_HEAD(XRectangle, shape);
+	int shape_rect_count = PVECTOR_USED( shape );
+	int i ;
+	Bool changed = False ;
+	XRectangle segments[4] ;
+	int seg_count ;
+
+	if( new_width == 0 || new_height == 0 )
+		return False;
+
+	LOCAL_DEBUG_OUT(" assimilating %dx%d%+d%+d", new_width, new_height, new_x, new_y );
+
+	/* pass 1 : find rectangles that are entirely inside us and delete them all :  */
+	i = shape_rect_count ;
+	while( --i >= 0 )
+	{
+		if( shape_rects[i].x >= new_x &&
+			shape_rects[i].y >= new_y &&
+			shape_rects[i].x+shape_rects[i].width <= new_x+new_width &&
+			shape_rects[i].y+shape_rects[i].height <= new_y+new_height )
+		{
+			LOCAL_DEBUG_OUT(" \ttrashing %dx%d%+d%+d", shape_rects[i].width, shape_rects[i].height, shape_rects[i].x, shape_rects[i].y );
+			vector_remove_index( shape, i );
+			changed = True ;
+		}
+	}
+	/* pass 2 : adjust all the intersected rectangles :  */
+	for( i = 0 ; i < shape_rect_count ; ++i )
+	{
+		int left   = shape_rects[i].x ;
+		int right  = shape_rects[i].x + shape_rects[i].width ;
+		int top    = shape_rects[i].y ;
+		int bottom = shape_rects[i].y + shape_rects[i].height ;
+		int s_left = new_x ;
+		int s_right = new_x + new_width ;
+		int s_top = new_y ;
+		int s_bottom = new_y + new_height ;
+
+
+		if( left >= s_right || top >= s_bottom || right <= s_left || bottom <= s_top )
+			continue;
+		seg_count = 0 ;
+		if( top < s_top )
+		{/* there will be top portion */
+			segments[seg_count].x = left ;
+			segments[seg_count].y = top ;
+			segments[seg_count].width = right - left ;
+			segments[seg_count].height = s_top - top ;
+			++seg_count ;
+		}
+		if( left < s_left )
+		{/* there will be left segment */
+			segments[seg_count].x = left ;
+			segments[seg_count].y = max(top,s_top) ;
+			segments[seg_count].width = s_left - left ;
+			segments[seg_count].height = min(s_bottom, bottom) - segments[seg_count].y ;
+			++seg_count ;
+		}
+		if( right > s_right )
+		{/* there will be right segment */
+			segments[seg_count].x = s_right ;
+			segments[seg_count].y = max(top,s_top) ;
+			segments[seg_count].width = right - s_right ;
+			segments[seg_count].height = min(s_bottom, bottom) - segments[seg_count].y ;
+			++seg_count ;
+		}
+		if( bottom > s_bottom )
+		{/* there will be right segment */
+			segments[seg_count].x = left ;
+			segments[seg_count].y = s_bottom ;
+			segments[seg_count].width = right - left ;
+			segments[seg_count].height = bottom - s_bottom ;
+			++seg_count ;
+		}
+		shape_rects[i] = segments[--seg_count] ;
+		if( seg_count > 0 )
+		{
+			append_vector( shape, &segments[0], seg_count );
+			shape_rects = PVECTOR_HEAD(XRectangle, shape);
+			shape_rect_count = PVECTOR_USED( shape );
+		}
+	}
+
+	return changed;
+}
+
+
 Bool
 add_shape_rectangles( ASVector *shape, XRectangle *rects, unsigned int count, int x_origin, int y_origin, unsigned int clip_width, unsigned int clip_height )
 {
@@ -223,6 +314,25 @@ add_shape_rectangles( ASVector *shape, XRectangle *rects, unsigned int count, in
 
 
 Bool
+print_shape( ASVector *shape )
+{
+	if( shape )
+	{
+		XRectangle *shape_rects = PVECTOR_HEAD(XRectangle, shape);
+		int shape_rect_count = PVECTOR_USED( shape );
+		int i ;
+
+		show_progress( "Printing shape of %d rectangles : ", shape_rect_count );
+		for( i = 0 ; i < shape_rect_count ; ++i )
+			show_progress( "\trects[%d] = %dx%d%+d%+d;", i, shape_rects[i].width, shape_rects[i].height, shape_rects[i].x, shape_rects[i].y );
+		return True;
+
+	}
+	return False;
+}
+
+
+Bool
 add_shape_mask( ASVector *shape, ASImage *mask_im )
 {
 
@@ -230,10 +340,31 @@ add_shape_mask( ASVector *shape, ASImage *mask_im )
 }
 
 Bool
-subtract_shape_rectangles( ASVector *shape, XRectangle *rects, unsigned int count )
+subtract_shape_rectangle( ASVector *shape, XRectangle *rects, unsigned int count, int x_origin, int y_origin, unsigned int clip_width, unsigned int clip_height )
 {
+	int i ;
+	int new_x, new_y, new_width, new_height ;
+	Bool changed = False ;
 
-	return False;
+	if( shape == NULL || rects == NULL || count == 0 )
+		return False;
+
+	LOCAL_DEBUG_OUT("subtract %d rectangles at %+d%+d clipped by %dx%d", count, x_origin, y_origin, clip_width, clip_height  );
+	for( i = 0 ; i < count ; ++i )
+	{
+		new_x = rects[i].x + x_origin ;
+		if( new_x >= (int)clip_width )
+			continue;
+		new_y = rects[i].y + y_origin ;
+		if( new_y >= (int)clip_height )
+			continue;
+		new_width  =( new_x + (int)rects[i].width  > (int)clip_width  )?(int)clip_width  - new_x:(int)rects[i].width  ;
+		new_height =( new_y + (int)rects[i].height > (int)clip_height )?(int)clip_height - new_y:(int)rects[i].height ;
+
+		if( subtract_rectangle( new_x, new_y, new_width, new_height, shape ) )
+			changed = True ;
+	}
+	return changed;
 }
 
 Bool
