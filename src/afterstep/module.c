@@ -236,8 +236,11 @@ LOCAL_DEBUG_OUT("Incoming message in proto 1%s","");
             }
 		} else								   /* Protocol 2 */
 		{
+            /* for module->afterstep communications - 32 bit values are always used : */
             CARD32        curr_len;
+            CARD32        tmp32, tmp32_val[2], tmp32_unit[2] ;
 			register FunctionData *pfunc = ibuf->func;
+            int i ;
 
 LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
             if (pfunc == NULL)
@@ -247,7 +250,8 @@ LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
 				ibuf->func = pfunc;
 			}
 
-            res = ReadModuleInput (module, &offset, sizeof (pfunc->func), &(pfunc->func));
+            res = ReadModuleInput (module, &offset, sizeof (CARD32), &tmp32);
+            pfunc->func = tmp32 ;
 
 			if (res > 0)
 			{
@@ -266,6 +270,7 @@ LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
                 res = ReadModuleInput (module, &offset, ibuf->name_size, pfunc->name);
 				pfunc->name[ibuf->name_size] = '\0';
 			}
+            LOCAL_DEBUG_OUT( "name_size = %ld, pfunc->name = %p", ibuf->name_size, pfunc->name );
             if (res > 0)
                 res = ReadModuleInput (module, &offset, sizeof (ibuf->text_size), &(ibuf->text_size));
 
@@ -276,11 +281,18 @@ LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
                 res = ReadModuleInput (module, &offset, ibuf->text_size, pfunc->text);
 				pfunc->text[ibuf->text_size] = '\0';
 			}
-			if (res > 0)
-                res = ReadModuleInput (module, &offset, sizeof (pfunc->func_val) * 2, pfunc->func_val);
+            LOCAL_DEBUG_OUT( "text_size = %ld, pfunc->text = %p", ibuf->text_size, pfunc->text );
+            if (res > 0)
+                res = ReadModuleInput (module, &offset, sizeof (tmp32_val), &(tmp32_val[0]));
 
 			if (res > 0)
-                res = ReadModuleInput (module, &offset, sizeof (pfunc->unit_val) * 2, pfunc->unit_val);
+                res = ReadModuleInput (module, &offset, sizeof (tmp32_unit), &(tmp32_unit[0]));
+
+            for( i = 0 ; i < MAX_FUNC_ARGS ; ++i )
+            {
+                pfunc->func_val[i] = tmp32_val[i] ;
+                pfunc->unit_val[i] = tmp32_unit[i] ;
+            }
 
 			if (res > 0 && IsValidFunc (pfunc->func))
                 invalid_func = False;
