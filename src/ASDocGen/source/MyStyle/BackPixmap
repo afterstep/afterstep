@@ -2,22 +2,96 @@
 <term>BackPixmap <emphasis remap='I'>type</emphasis> <emphasis remap='I'>pixmap_name|color_name</emphasis></term>
       <listitem>
 <para>Specifies that a pixmap should be used as a background instead of a
-solid color. This option has two forms, depending on the value of
-<emphasis remap='I'>type</emphasis>. If <emphasis remap='I'>type</emphasis> is 128, the second parameter, <emphasis remap='I'>pixmap_name</emphasis>
-must be the name of an xpm, jpeg, or png image which can be found in
-<emphasis remap='I'>PixmapPath</emphasis>. If <emphasis remap='I'>type</emphasis> is 129, the root pixmap (desktop
+solid color. This option has two forms, depending on the value of <emphasis remap='I'>type</emphasis> :
+</para> 
+<para>
+If <emphasis remap='I'>type</emphasis> is 125, 126, 127, 128, 130-144, 150-164
+- the second parameter, <emphasis remap='I'>pixmap_name</emphasis>
+must be the name of an image file which can be found in <emphasis remap='I'>PixmapPath</emphasis>. 
+</para> 
+<para>
+If <emphasis remap='I'>type</emphasis> is 129 or 149 the root pixmap (desktop
 background) will be used, and the optional second parameter must be a
-color with which the root pixmap will be shaded.  If <emphasis remap='I'>type</emphasis> is 130,
-the root pixmap will be averaged with the specified pixmap, and the
-result will be used as the background.</para>
-<para>Note: if you wish to use an external program to change your desktop background, make sure it also sets
-the _XROOTPMAP_ID property on the root window (like Esetroot) or <emphasis remap='I'>type</emphasis> 129 and <emphasis remap='I'>type</emphasis> 130
-won't work properly.</para>
+color with which the root pixmap will be shaded/tinted.  
+</para> 
+<para>
+Depending on the value of <emphasis remap='I'>type</emphasis> AfterStep will render pixmap in many different ways :
 
-<literallayout remap='.nf'>
-128: tiled pixmap from the upper left
-129: "transparent" (or tinted with color)
-130: translucent pixmap
-</literallayout> <!-- .fi -->
-	</listitem>
+<variablelist>
+<varlistentry><term>125</term><listitem>
+Image is SCALED to the size of the widget, and its opacity is used to set the shape of the widget/window decoration, 
+achieving non-rectangular window effect.
+</listitem></varlistentry>
+<varlistentry><term>126</term><listitem>
+Image is TILED to the size of the widget, and its opacity is used to set the shape of the widget/window decoration, 
+achieving non-rectangular window effect.
+</listitem></varlistentry>
+<varlistentry><term>127</term><listitem>
+Image is SCALED to the size of the widget.
+</listitem></varlistentry>
+<varlistentry><term>128</term><listitem>
+Image is Tiled to the size of the image.
+</listitem></varlistentry>
+<varlistentry><term>129</term><listitem>
+Underlying desktop background is tinted/shaded with the color specified with the second parameter.
+</listitem></varlistentry>
+<varlistentry><term>130</term><listitem>
+Underlying desktop background is combined with tiled image, using "allanon" method - taking average of pixel values.
+</listitem></varlistentry>
+<varlistentry><term>131</term><listitem>
+Underlying desktop background is alpha-blended with tiled image.
+</listitem></varlistentry>
+<varlistentry><term>132</term><listitem>
+Underlying desktop background is tinted using pixel values of the tiled image, as a tint values on per-pixel basis.
+</listitem></varlistentry>
+<varlistentry><term>133</term><listitem>
+Each pixel of underlying desktop background has value of tiled image's pixel added to it.
+</listitem></varlistentry>
+<varlistentry><term>134</term><listitem>
+Each pixel of underlying desktop background has value of tiled image's pixel subtracted from it.
+</listitem></varlistentry>
+<varlistentry><term>135</term><listitem>
+Result consists of pixels representing absolute value of difference between underlying desktop background and tiled image.
+</listitem></varlistentry>
+<varlistentry><term>136</term><listitem>
+Underlying desktop background is darkened using luminocity of the tiled image's pixels.
+</listitem></varlistentry>
+<varlistentry><term>137</term><listitem>
+Underlying desktop background is lightened using luminocity of the tiled image's pixels.
+</listitem></varlistentry>
+<varlistentry><term>138</term><listitem>
+Underlying desktop background is "screened" by the tiled image.
+</listitem></varlistentry>
+<varlistentry><term>139</term><listitem>
+Underlying desktop background is "overlayed" by the tiled image.
+</listitem></varlistentry>
+<varlistentry><term>140</term><listitem>
+Underlying desktop background's hue is substituted with the hue of the tiled image.
+</listitem></varlistentry>
+<varlistentry><term>141</term><listitem>
+Underlying desktop background's saturation is substituted with the saturation of the tiled image.
+</listitem></varlistentry>
+<varlistentry><term>142</term><listitem>
+Underlying desktop background's value (in HSV colorspace) is substituted with the value of the tiled image.
+</listitem></varlistentry>
+<varlistentry><term>143</term><listitem>
+Underlying desktop background is "colorized" by the tiled image.
+</listitem></varlistentry>
+<varlistentry><term>144</term><listitem>
+Underlying desktop background is "dissipated" by the tiled image.
+</listitem></varlistentry>
+
+<varlistentry><term>149</term><listitem>
+Underlying desktop background is tinted/shaded with the color specified with the second parameter.
+It differs from 129 so that desktop background could be both darkened and brightened. If tint color
+channel is greater the 7F (127 decimal) - then respective channel of background will be brightened.
+</listitem></varlistentry>
+
+<varlistentry><term>150 - 164</term><listitem>
+Same as 130-144 but specified image is scaled to the size of the widget.
+</listitem></varlistentry>
+</variablelist>
+
+</listitem>
 </varlistentry>
+

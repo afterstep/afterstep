@@ -5,17 +5,19 @@
 solid color. The gradient colors start at <emphasis remap='I'>color1</emphasis> and end at
 <emphasis remap='I'>colorN</emphasis>. Each color has an <emphasis remap='I'>offset</emphasis> associated with it. The
 <emphasis remap='I'>offset</emphasis> is a number between 0.0 and 1.0, and specifies where in
-the gradient the colors are to be placed.  The colors are standard X11
-color definitions. At least two colors must be given. The offsets are
-non-decreasing numbers between 0.0 and 1.0. If the first offset is not
+the gradient the colors are to be placed.  The colors are in one of the <ulink url="ColorScheme#color_values">color formats</ulink> supported by AfterStep.
+At least two colors must be given. 
+If gradient includes at least one transparent color ( alpha value set to be below FF ), gradient will be alpha-blended over the
+root background image.
+The offsets are non-decreasing numbers between 0.0 and 1.0. If the first offset is not
 0.0, it will be set to 0.0. If the last offset is not 1.0, it will be
 set to 1.0. <emphasis remap='I'>type</emphasis> may be any of the following:</para>
 
 <literallayout remap='.nf'>
-6: diagonal from top-left to bottom-right
-7: diagonal from bottom-left to top-right
-8: top to bottom
-9: left to right
-</literallayout> <!-- .fi -->
+6: Top-Left to Bottom Right diagonal
+7: Bottom-Left to Top-Right diagonal
+8: Vertical Top to Bottom
+9: Horizontal Left to Right
+</literallayout>
 	</listitem>
 </varlistentry>

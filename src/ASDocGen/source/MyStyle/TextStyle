@@ -6,8 +6,15 @@ can be 0, 1, or 2:</para>
 
 <literallayout remap='.nf'>
 0: normal text
-1: 3d effect #1
-2: 3d effect #2
-</literallayout> <!-- .fi -->
+1: embossed 3D text
+2: sunken 3D text
+3: text has shade above the text
+4: text has shade below the text
+5: thick embossed 3D text
+6: thick sunken 3D text
+7: text is outlined with contrasting color on upper edge of a glyph.
+8: text is outlined with contrasting color on bottom edge of a glyph.
+9: text is outlined with contrasting color all around a glyph.
+</literallayout>
 	</listitem>
 </varlistentry>

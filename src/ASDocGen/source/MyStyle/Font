@@ -1,7 +1,12 @@
 <varlistentry id="options.Font">
 <term>Font <emphasis remap='I'>font</emphasis></term>
       <listitem>
-<para>Specifies the font associated with this style. <emphasis remap='I'>font</emphasis> is a standard
-X11 font definition. Since AfterStep 2.0 true type fonts are also supported.</para>
+<para>Specifies the font associated with this style. 
+<emphasis remap='I'>font</emphasis> copuld beeither a standard X11 font definition, or a filename of the TrueType font that could be found in FontPath.
+To specify the size of the TrueType font - use format like that : FontName.ttf-Size. </para>
+		<example>
+		<literallayout>
+	Font  DefaultSans.ttf-14</literallayout>		
+		</example>
 	</listitem>
 </varlistentry>

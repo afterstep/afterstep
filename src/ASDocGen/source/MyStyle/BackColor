@@ -1,7 +1,10 @@
 <varlistentry id="options.BackColor">
 <term>BackColor <emphasis remap='I'>color</emphasis></term>
       <listitem>
-<para>Specifies the background color associated with this style. <emphasis remap='I'>color</emphasis>
-is a standard X11 color definition.</para>
+<para>Specifies the background color associated with this style. 
+<emphasis remap='I'>color</emphasis>is color definition in one of the <ulink url="ColorScheme#color_values">color formats</ulink> supported by AfterStep.
+</para><para>
+BackColor is also used to calculate bevel colors used to draw a border around a widget.
+</para>
 	</listitem>
 </varlistentry>

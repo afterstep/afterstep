@@ -3,7 +3,11 @@
       <listitem>
 <para>Specifies that a gradient should be used as a background instead of a
 solid color. The gradient colors start at <emphasis remap='I'>from</emphasis> and end at <emphasis remap='I'>to</emphasis>.
-<emphasis remap='I'>from</emphasis> and <emphasis remap='I'>to</emphasis> are standard X11 color definitions. <emphasis remap='I'>type</emphasis>
+<emphasis remap='I'>from</emphasis> and <emphasis remap='I'>to</emphasis> 
+are color definition in one of the supported <ulink url="ColorScheme#color_values">color formats</ulink>. 
+If gradient includes at least one transparent color ( alpha value set to be below FF ), gradient will be alpha-blended over the
+root background image.
+<emphasis remap='I'>type</emphasis>
 can be 1, 2, 3, 4, or 5:</para>
 
 <literallayout remap='.nf'>
@@ -12,6 +16,10 @@ can be 1, 2, 3, 4, or 5:</para>
 3: Horizontal from top/bottom to center
 4: Vertical from left to right
 5: Vertical from left/right to center
-</literallayout> <!-- .fi -->
+6: Top-Left to Bottom Right diagonal ( same as 1 )
+7: Bottom-Left to Top-Right diagonal
+8: Vertical Top to Bottom ( same as 2 )
+9: Horizontal Left to Right ( same as 4 )
+</literallayout>
 	</listitem>
 </varlistentry>
