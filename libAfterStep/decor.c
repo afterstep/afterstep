@@ -1792,6 +1792,23 @@ move_astbar (ASTBarData * tbar, ASCanvas * pc, int win_x, int win_y)
 		changed = (root_x != tbar->root_x || root_y != tbar->root_y);
 		tbar->root_x = root_x;
 		tbar->root_y = root_y;
+		if( changed )
+		{
+			Bool redraw = False ;
+			register int  i = BAR_STATE_NUM;
+			while (--i >= 0)
+			{
+				if (tbar->style[i] && TransparentMS(tbar->style[i]))
+            	{
+					if (tbar->back[i])
+						destroy_asimage (&(tbar->back[i]));
+                	if( i == ((tbar->state)&BAR_STATE_FOCUS_MASK) )
+                    	redraw = True;
+            	}
+			}
+        	if( redraw )
+            	set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+		}
 		changed = changed || (win_x != tbar->win_x || win_y != tbar->win_y);
 		tbar->win_x = win_x;
 		tbar->win_y = win_y;

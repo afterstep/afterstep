@@ -58,9 +58,57 @@ Bool get_icon_root_geometry( ASWindow *asw, ASRectangle *geom )
 
 /* this gets called when Root background changes : */
 void
-update_window_transparency( ASWindow *asw )
+update_window_transparency( ASWindow *asw, Bool force )
 {
-/* TODO: */
+	ASOrientation *od = get_orientation_data(asw);
+	int i ;
+	ASCanvas *changed_canvases[6] = {NULL, NULL, NULL, NULL, NULL, NULL };
+
+	for( i = 0 ; i < FRAME_PARTS ; ++i )
+		if( asw->frame_bars[i] )
+		{
+			update_astbar_transparency (asw->frame_bars[i], asw->frame_sides[od->tbar2canvas_xref[i]], force);
+			if( DoesBarNeedsRendering(asw->frame_bars[i]) )
+			{
+				changed_canvases[od->tbar2canvas_xref[i]] = asw->frame_sides[od->tbar2canvas_xref[i]] ;
+				render_astbar( asw->frame_bars[i], asw->frame_sides[od->tbar2canvas_xref[i]] );
+			}
+		}
+
+	if( asw->tbar )
+	{
+		update_astbar_transparency (asw->tbar, asw->frame_sides[od->tbar_side], force);
+		if( DoesBarNeedsRendering(asw->tbar) )
+		{
+			changed_canvases[od->tbar_side] = asw->frame_sides[od->tbar_side] ;
+			render_astbar( asw->tbar, asw->frame_sides[od->tbar_side] );
+		}
+	}
+
+	if( asw->icon_button )
+	{
+		update_astbar_transparency (asw->icon_button, asw->icon_canvas, force);
+		if( DoesBarNeedsRendering(asw->icon_button) )
+		{
+			changed_canvases[4] = asw->icon_canvas ;
+			render_astbar(asw->icon_button, asw->icon_canvas);
+		}
+	}
+	if( asw->icon_title )
+	{
+		update_astbar_transparency (asw->icon_title, asw->icon_title_canvas?asw->icon_title_canvas:asw->icon_canvas, force);
+		if( DoesBarNeedsRendering( asw->icon_title ) )
+		{
+			if( asw->icon_title_canvas != NULL && asw->icon_title_canvas != asw->icon_canvas )
+				changed_canvases[5] = asw->icon_title_canvas ;
+			else
+				changed_canvases[4] = asw->icon_canvas ;
+			render_astbar (asw->icon_title, asw->icon_title_canvas?asw->icon_title_canvas:asw->icon_canvas );
+		}
+	}
+	for( i = 0 ; i < 6 ; ++i )
+		if( changed_canvases[i] )
+			update_canvas_display( changed_canvases[i] );
 
 }
 
@@ -535,7 +583,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
 
         if( changes != 0 )
         {
-            update_window_transparency( asw );
+            update_window_transparency( asw, False );
             if( get_flags( changes, CANVAS_RESIZED ) && ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
                 SetShape( asw, 0 );
 			if( !ASWIN_GET_FLAGS(asw, AS_Dead|AS_MoveresizeInProgress ) )

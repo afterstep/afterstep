@@ -1,0 +1,5 @@
+<tile tint=Base>
+	<scale width=$minipixmap.width height=$minipixmap.height>
+		<img src="tiles/Checkers"/>
+	</scale>
+</tile>

@@ -431,7 +431,7 @@ ASImage* get_window_icon_image( ASWindow *asw );
 
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
-void update_window_transparency( ASWindow *asw );
+void update_window_transparency( ASWindow *asw, Bool force  );
 void on_window_moveresize( ASWindow *asw, Window w );
 void on_icon_changed( ASWindow *asw );
 void on_window_title_changed( ASWindow *asw, Bool update_display );

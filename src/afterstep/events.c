@@ -663,7 +663,7 @@ HandleKeyPress ( ASEvent *event )
 Bool
 update_transp_iter_func(void *data, void *aux_data)
 {
-    update_window_transparency( (ASWindow*)data );
+    update_window_transparency( (ASWindow*)data, True );
     return True;
 }
 

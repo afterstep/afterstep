@@ -48,6 +48,7 @@ typedef struct ASMenu
 
     unsigned int optimal_width, optimal_height;
     unsigned int icon_space, arrow_space ;
+	unsigned int scroll_bar_size ;
 
     Bool focused ;
     Bool pinned ;
@@ -65,6 +66,7 @@ typedef struct ASMenu
 #define MIN_MENU_Y              5
 #define MAX_MENU_Y              (Scr.MyDisplayHeight-5)
 #define DEFAULT_ARROW_SIZE      (Scr.MyDisplayWidth>>7)
+#define DEFAULT_SCROLLBAR_SIZE      (Scr.MyDisplayWidth>>6)
 
 
 /*************************************************************************/

@@ -379,7 +379,7 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
 }
 
 static void
-render_asmenu_bars( ASMenu *menu )
+render_asmenu_bars( ASMenu *menu, Bool force )
 {
     int i = menu->items_num ;
     Bool rendered = False;
@@ -390,10 +390,16 @@ render_asmenu_bars( ASMenu *menu )
         {
             int prev_y = -10000 ;
             register ASTBarData *bar = menu->items[i].bar ;
-            if( bar->win_y >= menu->main_canvas->height )
-                break;
+            if( bar->win_y >= (int)(menu->main_canvas->height) )
+                continue;
 
-            if( DoesBarNeedsRendering(bar) &&
+/*			update_astbar_transparency (bar, menu->main_canvas, False); */
+
+			LOCAL_DEBUG_OUT( "bar %p needs_rendering? %s, visible? %s, lower ? %s", bar,
+							 DoesBarNeedsRendering(bar)?"yes":"no",
+							 (bar->win_y + (int)(bar->height) > 0)?"yes":"no",
+							 ((int)(bar->win_y) > prev_y)?"yes":"no");
+            if( (force || DoesBarNeedsRendering(bar)) &&
                 bar->win_y + (int)(bar->height) > 0 &&
                 (int)(bar->win_y) > prev_y )
             {
@@ -402,12 +408,21 @@ render_asmenu_bars( ASMenu *menu )
             }
             prev_y = bar->win_y ;
         }
+		if( menu->visible_items_num < menu->items_num )
+		{
+            if( render_astbar( menu->scroll_up_bar, menu->main_canvas ) )
+                rendered = True ;
+            if( render_astbar( menu->scroll_down_bar, menu->main_canvas ) )
+                rendered = True ;
+		}
         STOP_LONG_DRAW_OPERATION;
 		LOCAL_DEBUG_OUT( "%s menu items rendered!", rendered?"some":"none" );
         if( rendered )
         {
             update_canvas_display( menu->main_canvas );
             ASSync(False);
+			/* yield to let some time for menu redrawing to happen : */
+			sleep_a_little(10000);
         }
     }
 }
@@ -616,6 +631,8 @@ LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
         max_height = MAX_MENU_ITEM_HEIGHT ;
     if( max_height == 0 )
         max_height = 1 ;
+	/* we want height to be even at all times */
+	max_height = ((max_height+1)/2)*2;
 
     if( max_width > MAX_MENU_WIDTH )
         max_width = MAX_MENU_WIDTH ;
@@ -625,12 +642,13 @@ LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
     menu->item_height = max_height ;
 
     display_size = max_height * menu->items_num ;
+	menu->scroll_bar_size = max_height/2 ;
 
     if( display_size > MAX_MENU_HEIGHT )
     {
         menu->visible_items_num = MAX_MENU_HEIGHT/max_height;
         display_size = menu->visible_items_num* max_height ;  /* important! */
-		display_size += 2*DEFAULT_ARROW_SIZE ;  /* we'll need to render two more scroll bars */
+		display_size += 2*menu->scroll_bar_size ;  /* we'll need to render two more scroll bars */
     }else
         menu->visible_items_num = display_size / max_height ;
 
@@ -644,8 +662,8 @@ LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
     if( menu->top_item > menu->items_num - menu->visible_items_num )
         menu->top_item = menu->items_num - menu->visible_items_num ;
 
-   set_astbar_size( menu->scroll_up_bar, max_width, DEFAULT_ARROW_SIZE );
-   set_astbar_size( menu->scroll_down_bar, max_width, DEFAULT_ARROW_SIZE );
+   set_astbar_size( menu->scroll_up_bar, max_width, menu->scroll_bar_size );
+   set_astbar_size( menu->scroll_down_bar, max_width, menu->scroll_bar_size );
 
 	i = menu->items_num ;
     while ( --i >= 0 )
@@ -701,40 +719,64 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
         set_asmenu_scroll_position( menu, MAX(selection-1, 0) );
     else if( selection >= menu->top_item + menu->visible_items_num )
         set_asmenu_scroll_position( menu, (selection-menu->visible_items_num)+1);
-    render_asmenu_bars(menu);
+    render_asmenu_bars(menu, False);
 }
 
 void
 set_asmenu_scroll_position( ASMenu *menu, int pos )
 {
-    int curr_y = 0 ;
+    int curr_y ;
     int i ;
+	int first_item, last_item ;
 
 LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pos );
     if( AS_ASSERT(menu) || menu->items_num == 0 )
         return;
-    if( pos < 0 )
-        pos = 0 ;
-    else if( pos > (int)(menu->items_num) - (int)(menu->visible_items_num) )
-        pos = (int)(menu->items_num) - (int)(menu->visible_items_num) ;
+	first_item = (pos < 0)?0:pos ;
 
-    curr_y =  ((int)(menu->items_num) - pos) * menu->item_height ;
-LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_item(%d)", pos, curr_y, menu->items_num, menu->visible_items_num, menu->selected_item);
-    i = menu->items_num ;
-    while( --i >= 0 )
-    {
-        curr_y -= menu->item_height ;
-        move_astbar( menu->items[i].bar, menu->main_canvas, 0, curr_y );
-    }
-    menu->top_item = pos ;
-    if( menu->selected_item < menu->top_item )
+	last_item =first_item + menu->visible_items_num-1 ;
+	if( last_item >= menu->items_num )
+	{
+		last_item = menu->items_num-1 ;
+		first_item = max(0, menu->items_num - menu->visible_items_num);
+	}
+
+	for( i = 0 ; i < first_item ; ++i )
+		move_astbar( menu->items[i].bar, menu->main_canvas, 0, -menu->item_height );
+	for( i = last_item+1 ; i < menu->items_num ; ++i )
+		move_astbar( menu->items[i].bar, menu->main_canvas, 0, -menu->item_height );
+
+	curr_y = 0 ;
+	if( first_item > 0 || last_item < menu->items_num-1 )
+	{
+		move_astbar( menu->scroll_up_bar, menu->main_canvas, 0, curr_y );
+		curr_y += menu->scroll_bar_size ;
+	}else
+	{
+		move_astbar( menu->scroll_up_bar, menu->main_canvas, 0, -menu->scroll_bar_size );
+		move_astbar( menu->scroll_up_bar, menu->main_canvas, 0, -menu->scroll_bar_size );
+	}
+
+	for( i = first_item ; i <= last_item ; ++i )
+	{
+		move_astbar( menu->items[i].bar, menu->main_canvas, 0, curr_y );
+        curr_y += menu->item_height ;
+	}
+	if( first_item > 0 || last_item < menu->items_num-1 )
+		move_astbar( menu->scroll_down_bar, menu->main_canvas, 0, curr_y );
+
+LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_item(%d)", first_item, curr_y, menu->items_num, menu->visible_items_num, menu->selected_item);
+
+	menu->top_item = first_item ;
+
+	if( menu->selected_item < menu->top_item )
         select_menu_item( menu, menu->top_item );
     else if( menu->selected_item >= 0 )
 	{
 		if( menu->visible_items_num > 0 && menu->selected_item >= (int)menu->top_item + (int)menu->visible_items_num )
         select_menu_item( menu, menu->top_item + menu->visible_items_num - 1 );
 	}
-    render_asmenu_bars(menu);
+    render_asmenu_bars(menu, False);
 }
 
 static inline void
@@ -795,7 +837,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
             run_item_submenu( menu, pressed );
         }
     }
-    render_asmenu_bars(menu);
+    render_asmenu_bars(menu, False);
 LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pressed_item, menu->focused );
     if( pressed < 0 && menu->pressed_item >= 0 && menu->focused )
     {
@@ -839,25 +881,26 @@ LOCAL_DEBUG_OUT( "changed(%lX)->main_width(%d)->main_height(%d)->item_height(%d)
             {
                 while ( --i >= 0 )
                     set_astbar_size(menu->items[i].bar, menu->main_canvas->width, menu->item_height);
+				set_astbar_size(menu->scroll_up_bar, menu->main_canvas->width, menu->scroll_bar_size);
+				set_astbar_size(menu->scroll_down_bar, menu->main_canvas->width, menu->scroll_bar_size);
             }
             if( get_flags( changed, CANVAS_HEIGHT_CHANGED) )
             {
                 menu->visible_items_num = menu->main_canvas->height / menu->item_height ;
 				if( menu->visible_items_num < menu->items_num )
-					menu->visible_items_num = (menu->main_canvas->height - (DEFAULT_ARROW_SIZE*2) )/ menu->item_height ;
+					menu->visible_items_num = (menu->main_canvas->height - (menu->scroll_bar_size*2) )/ menu->item_height ;
 LOCAL_DEBUG_OUT( "update_canvas_display via set_asmenu_scroll_position from move_resize %s", "");
                 set_asmenu_scroll_position( menu, menu->top_item );
             }
         }else if( get_flags( changed, CANVAS_MOVED) )
         {
-            Bool update_display = False ;
             while ( --i >= 0 )
                 update_astbar_transparency(menu->items[i].bar, menu->main_canvas, False);
-            if( update_display )
-                update_canvas_display( menu->main_canvas );
+			update_astbar_transparency(menu->scroll_up_bar, menu->main_canvas, False);
+			update_astbar_transparency(menu->scroll_down_bar, menu->main_canvas, False);
         }
         if( changed != 0 )
-            render_asmenu_bars(menu);
+            render_asmenu_bars(menu, get_flags( changed, CANVAS_RESIZED));
     }
 }
 
@@ -893,7 +936,24 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%p,0x%X", asiw, menu, pressed_context );
 LOCAL_DEBUG_OUT( "pointer(%d,%d)", px, py );
             if( px >= 0 && px < menu->main_canvas->width &&  py >= 0 && py < menu->main_canvas->height )
             {
-                int pressed = py/menu->item_height ;
+				int pressed = -1 ;
+				if( menu->visible_items_num < menu->items_num )
+				{
+					if( py < menu->scroll_bar_size )
+					{
+						set_asmenu_scroll_position( menu, menu->top_item-1 );
+					}else if( py > menu->scroll_down_bar->win_y )
+					{
+						set_asmenu_scroll_position( menu, menu->top_item+1 );
+					}else
+					{
+						pressed = (py - menu->scroll_bar_size)/menu->item_height ;
+					}
+					if( pressed < 0 )
+						return ;
+				}else
+                	pressed = py/menu->item_height ;
+				pressed += menu->top_item ;
                 if( pressed != menu->pressed_item )
                     press_menu_item( menu, pressed );
             }
@@ -931,7 +991,42 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
 
         if( px >= 0 && px < canvas->width &&  py >= 0 && py < canvas->height )
         {
-            int selection = py/menu->item_height ;
+			int selection = -1 ;
+			if( menu->items_num > menu->visible_items_num )
+			{
+				Bool render = False ;
+				if( py < menu->scroll_bar_size )
+				{
+					if( set_astbar_focused( menu->scroll_up_bar, menu->main_canvas, True ) )
+						render = True ;
+					if( set_astbar_focused( menu->scroll_down_bar, menu->main_canvas, False ) )
+						render = True ;
+				}else
+				{
+			   		if( set_astbar_focused( menu->scroll_up_bar, menu->main_canvas, False ) )
+						render = True ;
+					if( py > menu->scroll_down_bar->win_y )
+					{
+						if( set_astbar_focused( menu->scroll_down_bar, menu->main_canvas, True ) )
+							render = True ;
+					}else
+					{
+						if( set_astbar_focused( menu->scroll_down_bar, menu->main_canvas, False ) )
+							render = True ;
+						else
+							selection = (py-menu->scroll_bar_size)/menu->item_height ;
+					}
+				}
+				if( selection < 0 )
+				{
+					if( render )
+						render_asmenu_bars(menu, False);
+					return;
+				}
+			}else
+				selection = py/menu->item_height ;
+			selection += menu->top_item ;
+
             if( selection != menu->selected_item )
             {
                 if( xmev->state & ButtonAnyMask )
