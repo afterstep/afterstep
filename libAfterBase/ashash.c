@@ -121,11 +121,13 @@ flush_ashash (ASHashTable * hash)
 LOCAL_DEBUG_CALLER_OUT( " hash = %p, *hash = %p", hash, *hash  );
 	if (hash)
 	{
-		register int  i;
-		for (i = hash->size - 1; i >= 0; i--)
+		register int  i = hash->size;
+		while( --i >= 0 )
 			if (hash->buckets[i])
 				destroy_ashash_bucket (&(hash->buckets[i]), hash->item_destroy_func);
 		hash->items_num = 0 ;
+		hash->buckets_used = 0 ;
+		hash->most_recent = NULL ;
 	}
 }
 
