@@ -636,6 +636,7 @@ XImage* create_visual_ximage( ASVisual *asv,
 
 #ifdef XSHMIMAGE
 Bool destroy_xshm_segment( unsigned long );
+void flush_shm_cache();
 #endif
 Bool enable_shmem_images ();
 void disable_shmem_images();

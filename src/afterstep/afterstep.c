@@ -610,6 +610,10 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     free_func_hash ();
     /* pixmap references */
     build_xpm_colormap (NULL);
+#ifdef XSHMIMAGE
+	flush_shm_cache();
+#endif
+	
 
 
 	if (restart)

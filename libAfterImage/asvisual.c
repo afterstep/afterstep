@@ -1091,6 +1091,12 @@ void remove_shm_area( ASShmArea *area, Bool free_resources )
 
 }
 
+void flush_shm_cache( )
+{
+	while( shm_available_mem_head != NULL )
+		remove_shm_area( shm_available_mem_head, True );
+}
+
 void save_shm_area( char *shmaddr, int shmid, int size )
 {
 	ASShmArea *area;

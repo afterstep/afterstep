@@ -637,6 +637,9 @@ FreeMyAppResources()
     destroy_assession( Session );
 	destroy_asenvironment( &Environment );
     build_xpm_colormap( NULL );
+#ifdef XSHMIMAGE
+	flush_shm_cache();
+#endif
 }
 
 
