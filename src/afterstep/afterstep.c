@@ -658,7 +658,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 	if (restart)
 	{
         spawn_child( local_command, -1, restart_screen,
-                     None, C_NO_CONTEXT, False, True, NULL );
+                     None, C_NO_CONTEXT, False, (command == NULL), NULL );
     } else
 	{
 	    XCloseDisplay (dpy);
