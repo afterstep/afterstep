@@ -3,13 +3,13 @@
 .\" ROBODoc (c) 1994-2001 by Frans Slothouber and Jacco van Weert.
 .\" t
 .\" @(#)ascompose.c.3
-.TH ascompose.c 1 "Mon Jan 07 2002" ascompose.c 3
-.PM Generated from ascompose.c with ROBODoc v3.2.3 on Mon Jan 07 16:00:50 2002
+.TH ascompose.c 1 "Tue Jan 08 2002" ascompose.c 3
+.PM Generated from ascompose.c with ROBODoc v3.2.3 on Tue Jan 08 11:47:28 2002
 
 .SH libAfterImage/ascompose
 .SS\fB NAME\fP 
 .nf
-\fR  \fBascompose\fP is a tool to compose image(s) and display/save it based on
+\fR  \fBascompose\fP is a tool to compose image(s) and display/\fBsave\fP it based on
  supplied XML input file\.
 
 \fP 
@@ -29,8 +29,8 @@
 .nf
  \fBascompose\fP reads supplied XML data, and manipulates image accordingly\.
  It could transform images from files of any supported file format,
- draw gradients, render anialiased texturized text, perform
- superimposition of arbitrary number of images, and save images into
+ draw gradients, render anialiased texturized \fBtext\fP, perform
+ superimposition of arbitrary number of images, and \fBsave\fP images into
  files of any of supported output file formats\.
 
  At any point, the result of any operation could be assigned a name,
@@ -103,13 +103,13 @@
 .SS\fB SOURCE\fP 
 .nf
     static char* default_doc_str = "\\
-    <composite op=hue>\\
-      <composite op=add>\\
-        <scale width=512 height=384><img src=rose512\.jpg/></scale>\\
-        <tile width=512 height=384><img src=back\.xpm/></tile>\\
-      </composite>\\
-      <tile width=512 height=384><img src=fore\.xpm/></tile>\\
-    </composite>\\
+    <\fBcomposite\fP op=hue>\\
+      <\fBcomposite\fP op=add>\\
+        <\fBscale\fP width=512 height=384><img src=rose512\.jpg/></\fBscale\fP>\\
+        <\fBtile\fP width=512 height=384><img src=back\.xpm/></\fBtile\fP>\\
+      </\fBcomposite\fP>\\
+      <\fBtile\fP width=512 height=384><img src=fore\.xpm/></\fBtile\fP>\\
+    </\fBcomposite\fP>\\
     ";
 .fi
 
@@ -119,7 +119,636 @@
 .nf
  Here is the list and description of possible XML \fBtags\fP to use in the
  script :
+    img       \- load image from the file\.
+    \fBrecall\fP    \- \fBrecall\fP previously loaded/generated image by its name\.
+    \fBtext\fP      \- render \fBtext\fP string into new image\.
+    \fBsave\fP      \- \fBsave\fP an image into the file\.
+    \fBbevel\fP     \- draw \fBsolid\fP \fBbevel\fP frame around the image\.
+    \fBgradient\fP  \- render multipoint \fBgradient\fP\.
+    \fBmirror\fP    \- create \fBmirror\fP copy of an image\.
+    \fBblur\fP      \- perform gaussian blurr on an image\.
+    \fBrotate\fP    \- \fBrotate\fP/\fBflip\fP image in 90 degree inscrements\.
+    \fBscale\fP     \- \fBscale\fP an image to arbitrary size\.
+    \fBcrop\fP      \- \fBcrop\fP an image to arbitrary size\.
+    \fBtile\fP      \- \fBtile\fP an image to arbitrary size\.
+    \fBhsv\fP       \- adjust Hue, Saturation and Value of an image\.
+    \fBpad\fP       \- \fBpad\fP image with \fBsolid\fP color from either or all sides\.
+    \fBsolid\fP     \- generate new image of requested size, filled with \fBsolid\fP
+              color\.
+    \fBcomposite\fP \- superimpose arbitrary number of images using one of 15
+              available methods\.
 
+ Each tag generates new image as the result of the transformation \-
+ existing images are never modified and could be reused as many times
+ as needed\. See below for description of each tag\.
+
+ Whenever numerical values are involved, the basic math ops (add,
+ subtract, multiply, divide), unary minus, and parentheses are
+ supported\.
+ Operator precedence is NOT supported\.  Percentages are allowed, and
+ apply to the "size" parameter of this function\.
+
+/
+* Math expression parsing algorithm\. */
+ouble parse_math(const char* str, char** endptr, double size) {
+double total = 0;
+char op = '+';
+char minus = 0;
+const char* startptr = str;
+while (*str) {
+    while (isspace((int)*str)) str++;
+    if (!op) {
+        if (*str == '+' || *str == '\-' || *str == '*' || *str == '/') op = *str++;
+        else if (*str == '\-') { minus = 1; str++; }
+        else if (*str == ')') { str++; break; }
+        else break;
+    } else {
+        char* ptr;
+        double num;
+        if (*str == '(') num = parse_math(str + 1, &ptr, size);
+        else num = strtod(str, &ptr);
+        if (str != ptr) {
+            if (*ptr == '%') num *= size / 100\.0, ptr++;
+            if (minus) num = \-num;
+            if (op == '+') total += num;
+            else if (op == '\-') total \-= num;
+            else if (op == '*') total *= num;
+            else if (op == '/' && num) total /= num;
+        } else break;
+        str = ptr;
+        op = '\\0';
+        minus = 0;
+    }
+}
+if (endptr) *endptr = (char*)str;
+show_debug(__FILE__,__FUNCTION__,__LINE__,"Parsed math [%s] with reference [%\.2f] into number [%\.2f]\.", startptr, size, total);
+return total;
+
+* Each tag is only allowed to return ONE image\. */
+SImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
+xml_elem_t* ptr;
+char* id = NULL;
+\fBASImage\fP* result = NULL;
+***** \fBlibAfterImage\fP/\fBascompose\fP/\fBtags\fP/img
+
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/recall
+.SS\fB NAME\fP 
+.nf
+\fR  \fBrecall\fP \- \fBrecall\fP previously generated and named image by its id\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBrecall\fP id="new_id" srcid="image_id">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\.  Image will be given this name for future reference\.
+ srcid    Required\.  An image ID defined with the "id" parameter for
+          any previously created image\.
+
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/text
+.SS\fB NAME\fP 
+.nf
+\fR  \fBtext\fP \- render \fBtext\fP string into new image, using specific font, size
+        and texture\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBtext\fP id="new_id" font="font" point="size" fgcolor="color"
+       bgcolor="color" fgimage="image_id" bgimage="image_id"
+       spacing="points">My Text Here</\fBtext\fP>
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\.  Image will be given this name for future reference\.
+ font     Optional\.  Default is "fixed"\.  Font to use for \fBtext\fP\.
+ point    Optional\.  Default is 12\.  Size of \fBtext\fP in points\.
+ fgcolor  Optional\.  No default\.  The \fBtext\fP will be drawn in this color\.
+ bgcolor  Optional\.  No default\.  The area behind the \fBtext\fP will be drawn
+          in this color\.
+ fgimage  Optional\.  No default\.  The \fBtext\fP will be textured by this image\.
+ bgimage  Optional\.  No default\.  The area behind the \fBtext\fP will be filled
+          with this image\.
+ spacing  Optional\.  Default 0\.  Extra pixels to place between each glyph\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  <\fBtext\fP> without bgcolor, fgcolor, fgimage, or bgimage will NOT
+ produce visible output by itself\.  See EXAMPLES below\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/save
+.SS\fB NAME\fP 
+.nf
+\fR  \fBsave\fP \- write generated/loaded image into the file of one of the
+        supported types
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBsave\fP id="new_id" dst="filename" format="format" compress="value"
+       opacity="value" replace="0|1" delay="mlsecs">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\.  Image will be given this name for future reference\.
+ dst      Required\.  Name of file image will be saved to\.
+ format   Optional\.  Ouput format of saved image\.  Defaults to the
+          extension of the "dst" parameter\.  Valid values are the
+          standard AS image file formats: xpm, jpg, png, gif, tiff\.
+ compress Optional\.  Compression level if supported by output file
+          format\. Valid values are in range of 0 \- 100 and any of
+          "defalte", "jpeg", "ojpeg", "packbits" for TIFF files\.
+          Note that JPEG and GIF will produce images with deteriorated
+          \fBquality\fP when compress is greater then 0\. For JPEG default is
+          25, for PNG default is 6 and for GIF it is 0\.
+ opacity  Optional\. Level below which \fBpixel\fP is considered to be
+          transparent, while saving image as XPM or GIF\. Valid values
+          are in range 0\-255\. Default is 127\.
+ replace  Optional\. Causes \fBascompose\fP to delete file if the file with the
+          same name already exists\. Valid values are 0 and 1\. Default
+          is 1 \- files are deleted before being saved\. Disable this to
+          get multyimage animated gifs\.
+ delay    Optional\. Delay to be stored in GIF image\. This could be used
+          to create animated gifs\. Note that you have to set replace="0"
+          and then write several images into the GIF file with the same
+          name\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  This tag applies to the first image contained within the tag\.  Any
+ further images will be discarded\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/bevel
+.SS\fB NAME\fP 
+.nf
+\fR  \fBbevel\fP \- draws \fBsolid\fP \fBbevel\fP frame around the image\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBbevel\fP id="new_id" colors="color1 color2"
+        border="left top right bottom">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\.  Image will be given this name for future reference\.
+ colors   Optional\.  Whitespace\-separated list of colors\.  Exactly two
+          colors are required\.  Default is "#ffdddddd #ff555555"\.  The
+          first color is the color of the upper and left edges, and the
+          second is the color of the lower and right edges\.
+ borders  Optional\.  Whitespace\-separated list of integer values\.
+          Default is "10 10 10 10"\.  The values represent the offsets
+          toward the center of the image of each border: left, top,
+          right, bottom\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  This tag applies to the first image contained within the tag\.  Any
+ further images will be discarded\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/gradient
+.SS\fB NAME\fP 
+.nf
+\fR  \fBgradient\fP \- render multipoint \fBgradient\fP\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBgradient\fP id="new_id" angle="degrees" width="pixels" height="pixels"
+           colors ="color1 color2 color3 [\.\.\.]"
+           offsets="fraction1 fraction2 fraction3 [\.\.\.]"/>
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\.  Image will be given this name for future reference\.
+ refid    Optional\.  An image ID defined with the "id" parameter for
+          any previously created image\.  If set, percentages in "width"
+          and "height" will be derived from the width and height of the
+          refid image\.
+ width    Required\.  The \fBgradient\fP will have this width\.
+ height   Required\.  The \fBgradient\fP will have this height\.
+ colors   Required\.  Whitespace\-separated list of colors\.  At least two
+          colors are required\.  Each color in this list will be visited
+          in turn, at the intervals given by the offsets attribute\.
+ offsets  Optional\.  Whitespace\-separated list of floating point values
+          ranging from 0\.0 to 1\.0\.  The colors from the colors attribute
+          are given these offsets, and the final \fBgradient\fP is rendered
+          from the combination of the two\.  If both colors and offsets
+          are given but the number of colors and offsets do not match,
+          the minimum of the two will be used, and the other will be
+          truncated to match\.  If offsets are not given, a smooth
+          stepping from 0\.0 to 1\.0 will be used\.
+ angle    Optional\.  Given in degrees\.  Default is 0\.  This is the
+          direction of the \fBgradient\fP\.  Currently the only supported
+          values are 0, 45, 90, 135, 180, 225, 270, 315\.  0 means left
+          to right, 90 means top to bottom, etc\.
+
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/mirror
+.SS\fB NAME\fP 
+.nf
+\fR  \fBmirror\fP \- create new image as \fBmirror\fP copy of an old one\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+  <\fBmirror\fP id="new_id" dir="direction">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\. Image will be given this name for future reference\.
+ dir      Required\. Possible values are "vertical" and "horizontal"\.
+          The image will be flipped over the x\-axis if dir is vertical,
+          and flipped over the y\-axis if dir is horizontal\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  This tag applies to the first image contained within the tag\.  Any
+ further images will be discarded\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/blur
+.SS\fB NAME\fP 
+.nf
+\fR  \fBblur\fP \- perform a gaussian blurr on an image\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBblur\fP id="new_id" horz="radius" vert="radius">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\. Image will be given this name for future reference\.
+ horz     Optional\. Horizontal radius of the \fBblur\fP in pixels\.
+ vert     Optional\. Vertical radius of the \fBblur\fP in pixels\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  This tag applies to the first image contained within the tag\.  Any
+ further images will be discarded\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/rotate
+.SS\fB NAME\fP 
+.nf
+\fR  \fBrotate\fP \- \fBrotate\fP an image in 90 degree increments (\fBflip\fP)\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+  <\fBrotate\fP id="new_id" angle="degrees">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\. Image will be given this name for future reference\.
+ angle    Required\.  Given in degrees\.  Possible values are currently
+          "90", "180", and "270"\.  Rotates the image through the given
+          angle\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  This tag applies to the first image contained within the tag\.  Any
+ further images will be discarded\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/scale
+.SS\fB NAME\fP 
+.nf
+\fR  \fBscale\fP \- \fBscale\fP image to arbitrary size
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBscale\fP id="new_id" ref_id="other_imag" width="pixels" height="pixels">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\. Image will be given this name for future reference\.
+ refid    Optional\.  An image ID defined with the "id" parameter for
+          any previously created image\.  If set, percentages in "width"
+          and "height" will be derived from the width and height of the
+          refid image\.
+ width    Required\.  The image will be scaled to this width\.
+ height   Required\.  The image will be scaled to this height\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  This tag applies to the first image contained within the tag\.  Any
+ further images will be discarded\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/crop
+.SS\fB NAME\fP 
+.nf
+\fR  \fBcrop\fP \- \fBcrop\fP image to arbitrary area within it\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+  <\fBcrop\fP id="new_id" refid="other_image" srcx="pixels" srcy="pixels"
+        width="pixels" height="pixels" \fBtint\fP="color">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\. Image will be given this name for future reference\.
+ refid    Optional\. An image ID defined with the "id" parameter for
+          any previously created image\.  If set, percentages in "width"
+          and "height" will be derived from the width and height of the
+          refid image\.
+ srcx     Optional\. Default is "0"\. Skip this many pixels from the left\.
+ srcy     Optional\. Default is "0"\. Skip this many pixels from the top\.
+ width    Optional\. Default is "100%"\.  Keep this many pixels wide\.
+ height   Optional\. Default is "100%"\.  Keep this many pixels tall\.
+ \fBtint\fP     Optional\. Additionally \fBtint\fP an image to specified color\.
+          Tinting can both lighten and darken an image\. Tinting color
+          0 or #7f7f7f7f yeilds no tinting\. Tinting can be performed on
+          any channel, including \fBalpha\fP channel\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  This tag applies to the first image contained within the tag\.  Any
+ further images will be discarded\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/tile
+.SS\fB NAME\fP 
+.nf
+\fR  \fBtile\fP \- \fBtile\fP an image to specified area\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+  <\fBtile\fP id="new_id" refid="other_image" width="pixels" height="pixels"
+        x_origin="pixels" y_origin="pixels" \fBtint\fP="color">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\. Image will be given this name for future reference\.
+ refid    Optional\. An image ID defined with the "id" parameter for
+          any previously created image\.  If set, percentages in "width"
+          and "height" will be derived from the width and height of the
+          refid image\.
+ width    Optional\. Default is "100%"\. The image will be tiled to this
+          width\.
+ height   Optional\. Default is "100%"\. The image will be tiled to this
+          height\.
+ x_origin Optional\. Horizontal position on infinite surface, covered
+          with tiles of the image, from which to cut out resulting
+          image\.
+ y_origin Optional\. Vertical position on infinite surface, covered
+          with tiles of the image, from which to cut out resulting
+          image\.
+ \fBtint\fP     Optional\. Additionally \fBtint\fP an image to specified color\.
+          Tinting can both lighten and darken an image\. Tinting color
+          0 or #7f7f7f7f yeilds no tinting\. Tinting can be performed
+          on any channel, including \fBalpha\fP channel\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  This tag applies to the first image contained within the tag\.  Any
+ further images will be discarded\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/hsv
+.SS\fB NAME\fP 
+.nf
+\fR  \fBhsv\fP \- adjust Hue, Saturation and/or Value of an image and optionally
+ \fBtile\fP an image to arbitrary area\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBhsv\fP id="new_id" refid="other_image"
+      x_origin="pixels" y_origin="pixels" width="pixels" height="pixels"
+      affected_hue="degrees|color" affected_radius="degrees"
+      hue_offset="degrees" saturation_offset="value"
+      value_offset="value">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\. Image will be given this name for future reference\.
+ refid    Optional\. An image ID defined with the "id" parameter for
+          any previously created image\.  If set, percentages in "width"
+          and "height" will be derived from the width and height of the
+          refid image\.
+ width    Optional\. Default is "100%"\. The image will be tiled to this
+          width\.
+ height   Optional\. Default is "100%"\. The image will be tiled to this
+          height\.
+ x_origin Optional\. Horizontal position on infinite surface, covered
+          with tiles of the image, from which to cut out resulting
+          image\.
+ y_origin Optional\. Vertical position on infinite surface, covered
+          with tiles of the image, from which to cut out resulting
+          image\.
+ affected_hue    Optional\. Limits effects to the renage of hues around
+          this hue\. If numeric value is specified \- it is treated as
+          degrees on 360 degree circle, with :
+              red = 0,
+              yellow = 60,
+              green = 120,
+              cyan = 180,
+              blue = 240,
+              magenta = 300\.
+          If colorname or value preceded with # is specified here \- it
+          will be treated as RGB color and converted into hue
+          automagically\.
+ affected_radius
+          Optional\. Value in degrees to be used in order to
+          calculate the range of affected hues\. Range is determined by
+          substracting and adding this value from/to affected_hue\.
+ hue_offset
+          Optional\. Value by which to adjust the hue\.
+ saturation_offset
+          Optional\. Value by which to adjust the saturation\.
+ value_offset
+          Optional\. Value by which to adjust the value\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  One of the Offsets must be not 0, in order for operation to be
+ performed\.
+
+ This tag applies to the first image contained within the tag\.  Any
+ further images will be discarded\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/pad
+.SS\fB NAME\fP 
+.nf
+\fR  \fBpad\fP \- \fBpad\fP an image with \fBsolid\fP color rectangles\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBpad\fP id="new_id" refid="other_image" left="pixels" top="pixels"
+      right="pixels" bottom="pixels" color="color">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\. Image will be given this name for future reference\.
+ refid    Optional\. An image ID defined with the "id" parameter for
+          any previously created image\.  If set, percentages in "\fBpixel\fP"
+          \fBpad\fP values will be derived from the width and height of the
+          refid image\.
+ left     Optional\. Size to add to the left of the image\.
+ top      Optional\. Size to add to the top of the image\.
+ right    Optional\. Size to add to the right of the image\.
+ bottom   Optional\. Size to add to the bottom of the image\.
+ color    Optional\. Color value to fill added areas with\. It could be
+          transparent of course\. Default is #FF000000 \- totally black\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  This tag applies to the first image contained within the tag\.  Any
+ further images will be discarded\.
+\fP 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/solid
+.SS\fB NAME\fP 
+.nf
+\fR  \fBsolid\fP \- generate image of specified size and fill it with \fBsolid\fP color\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBsolid\fP id="new_id" color="color" width="pixels" height="pixels"/>
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\. Image will be given this name for future reference\.
+ color    Optional\.  Default is "#ffffffff"\.  An image will be created
+          and filled with this color\.
+ width    Required\.  The image will have this width\.
+ height   Required\.  The image will have this height\.
+
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/composite
+.SS\fB NAME\fP 
+.nf
+\fR  \fBcomposite\fP \- superimpose arbitrary number of images on top of each
+ other\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBcomposite\fP id="new_id" op="op_desc"
+            keep\-transparency="0|1" merge="0|1">
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id       Optional\. Image will be given this name for future reference\.
+ op       Optional\. Default is "alphablend"\. The compositing operation\.
+          Valid values are the standard AS blending ops: add, alphablend,
+          allanon, colorize, darken, diff, dissipate, hue, lighten,
+          overlay, saturate, screen, sub, \fBtint\fP, value\.
+ merge    Optional\. Default is "expand"\. Valid values are "clip" and
+          "expand"\. Determines whether final image will be expanded to
+          the maximum size of the layers, or clipped to the bottom
+          layer\.
+ keep\-transparency
+          Optional\. Default is "0"\. Valid values are "0" and "1"\. If
+          set to "1", the transparency of the bottom layer will be
+          kept for the final image\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  All images surrounded by this tag will be composited with the given op\.
+
+ All \fBtags\fP surrounded by this tag will be given the following
+ additional attributes in addition to their normal ones\.  Under no
+ circumstances is there a conflict with the normal child attributes\.
+ crefid   Optional\. An image ID defined with the "id" parameter for
+          any previously created image\. If set, percentages in "x"
+          and "y" will be derived from the width and height of the
+          crefid image\.
+ x        Optional\. Default is 0\. Pixel coordinate of left edge\.
+ y        Optional\. Default is 0\. Pixel coordinate of top edge\.
+ clip_x   Optional\. Default is 0\. X Offset on infinite surface tiled
+          with this image, from which to cut portion of an image to be
+          used in composition\.
+ clip_y   Optional\. Default is 0\. Y Offset on infinite surface tiled
+          with this image, from which to cut portion of an image to be
+          used in composition\.
+ clip_width
+          Optional\. Default is image width\. Tile image to this width
+          prior to superimposition\.
+ clip_height
+          Optional\. Default is image height\. Tile image to this height
+          prior to superimposition\.
+ \fBtile\fP     Optional\. Default is 0\. If set will cause image to be tiled
+          across entire composition, unless overriden by clip_width or
+          clip_height\.
+ \fBtint\fP     Optional\. Additionally \fBtint\fP an image to specified color\.
+          Tinting can both lighten and darken an image\. Tinting color
+          0 or #7f7f7f7f yeilds no tinting\. Tinting can be performed
+          on any channel, including \fBalpha\fP channel\.
+\fP 
 .fi
 
 .PP

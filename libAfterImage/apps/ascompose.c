@@ -49,7 +49,7 @@
  * DESCRIPTION
  * ascompose reads supplied XML data, and manipulates image accordingly.
  * It could transform images from files of any supported file format,
- * draw gradients, render anialiased texturized text, perform
+ * draw gradients, render antialiased texturized text, perform
  * superimposition of arbitrary number of images, and save images into
  * files of any of supported output file formats.
  *
@@ -62,7 +62,7 @@
  * Internal image format is 32bit ARGB with 8bit per channel.
  *
  * Last image referenced, will be displayed in X window, unless -n option
- * is specifyed. If -r option is specifyed, then this image will be
+ * is specified. If -r option is specified, then this image will be
  * displayed in root window of X display, effectively setting a background
  * for a desktop. If -o option is specified, this image will also be
  * saved into the file or requested type.
@@ -71,7 +71,7 @@
  * allowing it to be used on web servers and any other place. It does not
  * even require X libraries in that case.
  *
- * Supported filetypes for input are :
+ * Supported file types for input are :
  * XPM   - via internal code, or libXpm library.
  * JPEG  - via libJpeg library.
  * PNG   - via libPNG library.
@@ -106,6 +106,23 @@
  *                       use several of these, like: ascompose -V -V -V.
  *    -D --debug         maximum verbosity - show everything and
  *                       debug messages.
+ * PORTABILITY
+ * ascompose could be used both with and without X window system. It has
+ * been tested on most UNIX flavors on both 32 and 64 bit architecture.
+ * It has also been tested under CYGWIN environment on Windows 95/NT/2000
+ * USES
+ * libAfterImage         all the image manipulation routines.
+ * libAfterBase          Optionally. Misc data handling such as hash
+ *                       tables and console io. Must be used when compiled
+ *                       without X Window support.
+ * libJPEG               JPEG image format support.
+ * libPNG                PNG image format support.
+ * libungif              GIF image format support.
+ * libTIFF               TIFF image format support.
+ * AUTHOR
+ * Ethan Fisher          <allanon at crystaltokyo dot com>
+ * Sasha Vasko           <sasha at aftercode dot net>
+ * Eric Kowalski         <eric at beancrock dot net>
  *****/
 
 
@@ -480,8 +497,8 @@ void showimage(ASImage* im, int onroot) {
  * 	bevel     - draw solid bevel frame around the image.
  * 	gradient  - render multipoint gradient.
  * 	mirror    - create mirror copy of an image.
- * 	blur      - perform gaussian blurr on an image.
- * 	rotate    - rotate/flip image in 90 degree inscrements.
+ * 	blur      - perform gaussian blur on an image.
+ * 	rotate    - rotate/flip image in 90 degree increments.
  * 	scale     - scale an image to arbitrary size.
  * 	crop      - crop an image to arbitrary size.
  * 	tile      - tile an image to arbitrary size.
@@ -495,7 +512,52 @@ void showimage(ASImage* im, int onroot) {
  * Each tag generates new image as the result of the transformation -
  * existing images are never modified and could be reused as many times
  * as needed. See below for description of each tag.
- *******/
+ *
+ * Whenever numerical values are involved, the basic math ops (add,
+ * subtract, multiply, divide), unary minus, and parentheses are
+ * supported.
+ * Operator precedence is NOT supported.  Percentages are allowed, and
+ * apply to the "size" parameter of this function.
+ *
+ * Each tag is only allowed to return ONE image.
+ *
+ ******/
+/* Math expression parsing algorithm. */
+double parse_math(const char* str, char** endptr, double size) {
+	double total = 0;
+	char op = '+';
+	char minus = 0;
+	const char* startptr = str;
+	while (*str) {
+		while (isspace((int)*str)) str++;
+		if (!op) {
+			if (*str == '+' || *str == '-' || *str == '*' || *str == '/') op = *str++;
+			else if (*str == '-') { minus = 1; str++; }
+			else if (*str == ')') { str++; break; }
+			else break;
+		} else {
+			char* ptr;
+			double num;
+			if (*str == '(') num = parse_math(str + 1, &ptr, size);
+			else num = strtod(str, &ptr);
+			if (str != ptr) {
+				if (*ptr == '%') num *= size / 100.0, ptr++;
+				if (minus) num = -num;
+				if (op == '+') total += num;
+				else if (op == '-') total -= num;
+				else if (op == '*') total *= num;
+				else if (op == '/' && num) total /= num;
+			} else break;
+			str = ptr;
+			op = '\0';
+			minus = 0;
+		}
+	}
+	if (endptr) *endptr = (char*)str;
+	show_debug(__FILE__,__FUNCTION__,__LINE__,"Parsed math [%s] with reference [%.2f] into number [%.2f].", startptr, size, total);
+	return total;
+}
+
 
 /* Each tag is only allowed to return ONE image. */
 ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
@@ -668,7 +730,8 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
  * save - write generated/loaded image into the file of one of the
  *        supported types
  * SYNOPSIS
- * <save id="sav" dst="myimage.jpg" format="jpg">
+ * <save id="new_id" dst="filename" format="format" compress="value"
+ *       opacity="value" replace="0|1" delay="mlsecs">
  * ATTRIBUTES
  * id       Optional.  Image will be given this name for future reference.
  * dst      Required.  Name of file image will be saved to.
@@ -677,7 +740,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
  *          standard AS image file formats: xpm, jpg, png, gif, tiff.
  * compress Optional.  Compression level if supported by output file
  *          format. Valid values are in range of 0 - 100 and any of
- *          "defalte", "jpeg", "ojpeg", "packbits" for TIFF files.
+ *          "deflate", "jpeg", "ojpeg", "packbits" for TIFF files.
  *          Note that JPEG and GIF will produce images with deteriorated
  *          quality when compress is greater then 0. For JPEG default is
  *          25, for PNG default is 6 and for GIF it is 0.
@@ -687,7 +750,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
  * replace  Optional. Causes ascompose to delete file if the file with the
  *          same name already exists. Valid values are 0 and 1. Default
  *          is 1 - files are deleted before being saved. Disable this to
- *          get multyimage animated gifs.
+ *          get multimage animated gifs.
  * delay    Optional. Delay to be stored in GIF image. This could be used
  *          to create animated gifs. Note that you have to set replace="0"
  *          and then write several images into the GIF file with the same
@@ -696,7 +759,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
  * This tag applies to the first image contained within the tag.  Any
  * further images will be discarded.
  *******/
-ÿÿÿif (!strcmp(doc->tag, "save")) {
+	if (!strcmp(doc->tag, "save")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* dst = NULL;
 		const char* ext = NULL;
@@ -816,33 +879,34 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
  * NAME
  * gradient - render multipoint gradient.
  * SYNOPSIS
- * <gradient id="gra" angle="90" width="600" height="500" colors="#ff007fff #7f00ffff #ff007fff" offsets="0.0 0.125 1.0"/>
+ * <gradient id="new_id" angle="degrees" width="pixels" height="pixels"
+ *           colors ="color1 color2 color3 [...]"
+ *           offsets="fraction1 fraction2 fraction3 [...]"/>
  * ATTRIBUTES
- *   id       Optional.  Image will be given this name for future reference.
-  refid    Optional.  An image ID defined with the "id" parameter for
-           any previously created image.  If set, percentages in "width"
-           and "height" will be derived from the width and height of the
-           refid image.
-  width    Required.  The gradient will have this width.
-  height   Required.  The gradient will have this height.
-  colors   Required.  Whitespace-separated list of colors.  At least two
-           colors are required.  Each color in this list will be visited
-           in turn, at the intervals given by the offsets attribute.
-  offsets  Optional.  Whitespace-separated list of floating point values
-           ranging from 0.0 to 1.0.  The colors from the colors attribute
-           are given these offsets, and the final gradient is rendered
-           from the combination of the two.  If both colors and offsets
-           are given but the number of colors and offsets do not match,
-           the minimum of the two will be used, and the other will be
-           truncated to match.  If offsets are not given, a smooth
-           stepping from 0.0 to 1.0 will be used.
-  angle    Optional.  Given in degrees.  Default is 0.  This is the
-           direction of the gradient.  Currently the only supported
-           values are 0, 45, 90, 135, 180, 225, 270, 315.  0 means left
-           to right, 90 means top to bottom, etc.
-
- ******/
-ÿÿÿif (!strcmp(doc->tag, "gradient")) {
+ * id       Optional.  Image will be given this name for future reference.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * width    Required.  The gradient will have this width.
+ * height   Required.  The gradient will have this height.
+ * colors   Required.  Whitespace-separated list of colors.  At least two
+ *          colors are required.  Each color in this list will be visited
+ *          in turn, at the intervals given by the offsets attribute.
+ * offsets  Optional.  Whitespace-separated list of floating point values
+ *          ranging from 0.0 to 1.0.  The colors from the colors attribute
+ *          are given these offsets, and the final gradient is rendered
+ *          from the combination of the two.  If both colors and offsets
+ *          are given but the number of colors and offsets do not match,
+ *          the minimum of the two will be used, and the other will be
+ *          truncated to match.  If offsets are not given, a smooth
+ *          stepping from 0.0 to 1.0 will be used.
+ * angle    Optional.  Given in degrees.  Default is 0.  This is the
+ *          direction of the gradient.  Currently the only supported
+ *          values are 0, 45, 90, 135, 180, 225, 270, 315.  0 means left
+ *          to right, 90 means top to bottom, etc.
+ *****/
+	if (!strcmp(doc->tag, "gradient")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* refid = NULL;
 		const char* width_str = NULL;
@@ -965,17 +1029,17 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 
 /****** libAfterImage/ascompose/tags/mirror
  * NAME
- *
+ * mirror - create new image as mirror copy of an old one.
  * SYNOPSIS
- *  <mirror id="mir" dir="vertical">
+ *  <mirror id="new_id" dir="direction">
  * ATTRIBUTES
- *
-  id       Optional.  Image will be given this name for future reference.
-  dir      Required.  Possible values are "vertical" and "horizontal".
-           The image will be flipped over the x-axis if dir is vertical,
-           and flipped over the y-axis if dir is horizontal.
-  This tag applies to the first image contained within the tag.  Any
-  further images will be discarded.
+ * id       Optional. Image will be given this name for future reference.
+ * dir      Required. Possible values are "vertical" and "horizontal".
+ *          The image will be flipped over the x-axis if dir is vertical,
+ *          and flipped over the y-axis if dir is horizontal.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "mirror")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -995,15 +1059,19 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-
 /****** libAfterImage/ascompose/tags/blur
  * NAME
- *
+ * blur - perform a gaussian blurr on an image.
  * SYNOPSIS
- *
+ * <blur id="new_id" horz="radius" vert="radius">
  * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * horz     Optional. Horizontal radius of the blur in pixels.
+ * vert     Optional. Vertical radius of the blur in pixels.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
  ******/
-
 	if (!strcmp(doc->tag, "blur")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		ASImage* imtmp = NULL;
@@ -1026,17 +1094,17 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 
 /****** libAfterImage/ascompose/tags/rotate
  * NAME
- *
+ * rotate - rotate an image in 90 degree increments (flip).
  * SYNOPSIS
- *  <rotate id="rot" angle="90">
+ *  <rotate id="new_id" angle="degrees">
  * ATTRIBUTES
- *     id       Optional.  Image will be given this name for future reference.
-  angle    Required.  Given in degrees.  Possible values are currently
-           "90", "180", and "270".  Rotates the image through the given
-           angle.
-  This tag applies to the first image contained within the tag.  Any
-  further images will be discarded.
-
+ * id       Optional. Image will be given this name for future reference.
+ * angle    Required.  Given in degrees.  Possible values are currently
+ *          "90", "180", and "270".  Rotates the image through the given
+ *          angle.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "rotate")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -1074,19 +1142,20 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 
 /****** libAfterImage/ascompose/tags/scale
  * NAME
- *
+ * scale - scale image to arbitrary size
  * SYNOPSIS
- *  <scale id="sca" width="512" height="384">
+ * <scale id="new_id" ref_id="other_imag" width="pixels" height="pixels">
  * ATTRIBUTES
- *    id       Optional.  Image will be given this name for future reference.
-  refid    Optional.  An image ID defined with the "id" parameter for
-           any previously created image.  If set, percentages in "width"
-           and "height" will be derived from the width and height of the
-           refid image.
-  width    Required.  The image will be scaled to this width.
-  height   Required.  The image will be scaled to this height.
-  This tag applies to the first image contained within the tag.  Any
-  further images will be discarded.
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * width    Required.  The image will be scaled to this width.
+ * height   Required.  The image will be scaled to this height.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "scale")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -1128,22 +1197,27 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 
 /****** libAfterImage/ascompose/tags/crop
  * NAME
- *
+ * crop - crop image to arbitrary area within it.
  * SYNOPSIS
- *  <crop id="cro" srcx="0" srcy="0" width="512" height="384">
+ *  <crop id="new_id" refid="other_image" srcx="pixels" srcy="pixels"
+ *        width="pixels" height="pixels" tint="color">
  * ATTRIBUTES
-   id       Optional.  Image will be given this name for future reference.
-  refid    Optional.  An image ID defined with the "id" parameter for
-           any previously created image.  If set, percentages in "width"
-           and "height" will be derived from the width and height of the
-           refid image.
-  srcx     Optional.  Default is "0".  Skip this many pixels from the left.
-  srcy     Optional.  Default is "0".  Skip this many pixels from the top.
-  width    Optional.  Default is "100%".  Keep this many pixels wide.
-  height   Optional.  Default is "100%".  Keep this many pixels tall.
-  This tag applies to the first image contained within the tag.  Any
-  further images will be discarded.
-*
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional. An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * srcx     Optional. Default is "0". Skip this many pixels from the left.
+ * srcy     Optional. Default is "0". Skip this many pixels from the top.
+ * width    Optional. Default is "100%".  Keep this many pixels wide.
+ * height   Optional. Default is "100%".  Keep this many pixels tall.
+ * tint     Optional. Additionally tint an image to specified color.
+ *          Tinting can both lighten and darken an image. Tinting color
+ *          0 or #7f7f7f7f yeilds no tinting. Tinting can be performed on
+ *          any channel, including alpha channel.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "crop")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -1192,24 +1266,35 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-
 /****** libAfterImage/ascompose/tags/tile
  * NAME
- *
+ * tile - tile an image to specified area.
  * SYNOPSIS
- *  <tile id="til" width="512" height="384">
+ *  <tile id="new_id" refid="other_image" width="pixels" height="pixels"
+ *        x_origin="pixels" y_origin="pixels" tint="color">
  * ATTRIBUTES
- *    id       Optional.  Image will be given this name for future reference.
-  refid    Optional.  An image ID defined with the "id" parameter for
-           any previously created image.  If set, percentages in "width"
-           and "height" will be derived from the width and height of the
-           refid image.
-  width    Optional.  Default is "100%".  The image will be tiled to this
-           width.
-  height   Optional.  Default is "100%".  The image will be tiled to this
-           height.
-  This tag applies to the first image contained within the tag.  Any
-  further images will be discarded.
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional. An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * width    Optional. Default is "100%". The image will be tiled to this
+ *          width.
+ * height   Optional. Default is "100%". The image will be tiled to this
+ *          height.
+ * x_origin Optional. Horizontal position on infinite surface, covered
+ *          with tiles of the image, from which to cut out resulting
+ *          image.
+ * y_origin Optional. Vertical position on infinite surface, covered
+ *          with tiles of the image, from which to cut out resulting
+ *          image.
+ * tint     Optional. Additionally tint an image to specified color.
+ *          Tinting can both lighten and darken an image. Tinting color
+ *          0 or #7f7f7f7f yields no tinting. Tinting can be performed
+ *          on any channel, including alpha channel.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "tile")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -1256,13 +1341,60 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-
 /****** libAfterImage/ascompose/tags/hsv
  * NAME
- *
+ * hsv - adjust Hue, Saturation and/or Value of an image and optionally
+ * tile an image to arbitrary area.
  * SYNOPSIS
- *
+ * <hsv id="new_id" refid="other_image"
+ *      x_origin="pixels" y_origin="pixels" width="pixels" height="pixels"
+ *      affected_hue="degrees|color" affected_radius="degrees"
+ *      hue_offset="degrees" saturation_offset="value"
+ *      value_offset="value">
  * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional. An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * width    Optional. Default is "100%". The image will be tiled to this
+ *          width.
+ * height   Optional. Default is "100%". The image will be tiled to this
+ *          height.
+ * x_origin Optional. Horizontal position on infinite surface, covered
+ *          with tiles of the image, from which to cut out resulting
+ *          image.
+ * y_origin Optional. Vertical position on infinite surface, covered
+ *          with tiles of the image, from which to cut out resulting
+ *          image.
+ * affected_hue    Optional. Limits effects to the renage of hues around
+ *          this hue. If numeric value is specified - it is treated as
+ *          degrees on 360 degree circle, with :
+ *              red = 0,
+ *              yellow = 60,
+ *              green = 120,
+ *              cyan = 180,
+ *              blue = 240,
+ *              magenta = 300.
+ *          If colorname or value preceded with # is specified here - it
+ *          will be treated as RGB color and converted into hue
+ *          automagically.
+ * affected_radius
+ *          Optional. Value in degrees to be used in order to
+ *          calculate the range of affected hues. Range is determined by
+ *          substracting and adding this value from/to affected_hue.
+ * hue_offset
+ *          Optional. Value by which to adjust the hue.
+ * saturation_offset
+ *          Optional. Value by which to adjust the saturation.
+ * value_offset
+ *          Optional. Value by which to adjust the value.
+ * NOTES
+ * One of the Offsets must be not 0, in order for operation to be
+ * performed.
+ *
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "hsv")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -1282,7 +1414,19 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			else if (!strcmp(ptr->tag, "y_origin")) yorig_str = ptr->parm;
 			else if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
 			else if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "affected_hue")) 	affected_hue = atoi(ptr->parm);
+			else if (!strcmp(ptr->tag, "affected_hue"))
+			{
+				if( isdigit( ptr->parm[0] ) )
+					affected_hue = atoi(ptr->parm);
+				else
+				{
+					ARGB32 color = 0;
+					if( parse_argb_color( ptr->parm, &color ) != ptr->parm )
+						affected_hue = rgb2hue( ARGB32_RED16(color),
+												ARGB32_GREEN16(color),
+												ARGB32_BLUE16(color));
+				}
+			}
 			else if (!strcmp(ptr->tag, "affected_radius")) 	affected_radius = atoi(ptr->parm);
 			else if (!strcmp(ptr->tag, "hue_offset")) 		hue_offset = atoi(ptr->parm);
 			else if (!strcmp(ptr->tag, "saturation_offset"))saturation_offset = atoi(ptr->parm);
@@ -1321,10 +1465,25 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 
 /****** libAfterImage/ascompose/tags/pad
  * NAME
- *
+ * pad - pad an image with solid color rectangles.
  * SYNOPSIS
- *
+ * <pad id="new_id" refid="other_image" left="pixels" top="pixels"
+ *      right="pixels" bottom="pixels" color="color">
  * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional. An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "pixel"
+ *          pad values will be derived from the width and height of the
+ *          refid image.
+ * left     Optional. Size to add to the left of the image.
+ * top      Optional. Size to add to the top of the image.
+ * right    Optional. Size to add to the right of the image.
+ * bottom   Optional. Size to add to the bottom of the image.
+ * color    Optional. Color value to fill added areas with. It could be
+ *          transparent of course. Default is #FF000000 - totally black.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
  ******/
 	if (!strcmp(doc->tag, "pad")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -1376,16 +1535,15 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 
 /****** libAfterImage/ascompose/tags/solid
  * NAME
- *
+ * solid - generate image of specified size and fill it with solid color.
  * SYNOPSIS
- *  <solid id="sol" color="#ffffffff" width="64" height="64">
+ * <solid id="new_id" color="color" width="pixels" height="pixels"/>
  * ATTRIBUTES
- *   id       Optional.  Image will be given this name for future reference.
-  color    Optional.  Default is "#ffffffff".  An image will be created
-           and filled with this color.
-  width    Required.  The image will have this width.
-  height   Required.  The image will have this height.
-
+ * id       Optional. Image will be given this name for future reference.
+ * color    Optional.  Default is "#ffffffff".  An image will be created
+ *          and filled with this color.
+ * width    Required.  The image will have this width.
+ * height   Required.  The image will have this height.
  ******/
 	if (!strcmp(doc->tag, "solid")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -1423,38 +1581,58 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 
 /****** libAfterImage/ascompose/tags/composite
  * NAME
- *
+ * composite - superimpose arbitrary number of images on top of each
+ * other.
  * SYNOPSIS
- * <composite id="com" op="alphablend">
+ * <composite id="new_id" op="op_desc"
+ *            keep-transparency="0|1" merge="0|1">
  * ATTRIBUTES
- *   id       Optional.  Image will be given this name for future reference.
-  op       Optional.  Default is "alphablend".  The compositing operation.
-           Valid values are the standard AS blending ops: add, alphablend,
-           allanon, colorize, darken, diff, dissipate, hue, lighten,
-           overlay, saturate, screen, sub, tint, value.
-  merge    Optional.  Default is "expand".  Valid values are "clip" and
-           "expand".  Determines whether final image will be expanded to
-           the maximum size of the layers, or clipped to the bottom layer.
-  keep-transparency
-           Optional.  Default is "0".  Valid values are "0" and "1".  If
-           set to "1", the transparency of the bottom layer will be
-           kept for the final image.
-  All images surrounded by this tag will be composited with the given op.
-
-  NOTE: All tags surrounded by this tag will be given the following
-  additional attributes in addition to their normal ones.  Under no
-  circumstances is there a conflict with the normal child attributes.
-
-  crefid   Optional.  An image ID defined with the "id" parameter for
-           any previously created image.  If set, percentages in "x"
-           and "y" will be derived from the width and height of the crefid
-           image.
-  x        Optional.  Default is 0.  Pixel coordinate of left edge.
-  y        Optional.  Default is 0.  Pixel coordinate of top edge.
-  tint     Optional.  No default.  Color to tint image by.  This is
-           actually a "darken" op applied to the whole subimage during
-           the overall compositing operation.
-
+ * id       Optional. Image will be given this name for future reference.
+ * op       Optional. Default is "alphablend". The compositing operation.
+ *          Valid values are the standard AS blending ops: add, alphablend,
+ *          allanon, colorize, darken, diff, dissipate, hue, lighten,
+ *          overlay, saturate, screen, sub, tint, value.
+ * merge    Optional. Default is "expand". Valid values are "clip" and
+ *          "expand". Determines whether final image will be expanded to
+ *          the maximum size of the layers, or clipped to the bottom
+ *          layer.
+ * keep-transparency
+ *          Optional. Default is "0". Valid values are "0" and "1". If
+ *          set to "1", the transparency of the bottom layer will be
+ *          kept for the final image.
+ * NOTES
+ * All images surrounded by this tag will be composited with the given op.
+ *
+ * All tags surrounded by this tag will be given the following
+ * additional attributes in addition to their normal ones.  Under no
+ * circumstances is there a conflict with the normal child attributes.
+ * crefid   Optional. An image ID defined with the "id" parameter for
+ *          any previously created image. If set, percentages in "x"
+ *          and "y" will be derived from the width and height of the
+ *          crefid image.
+ * x        Optional. Default is 0. Pixel coordinate of left edge.
+ * y        Optional. Default is 0. Pixel coordinate of top edge.
+ * clip_x   Optional. Default is 0. X Offset on infinite surface tiled
+ *          with this image, from which to cut portion of an image to be
+ *          used in composition.
+ * clip_y   Optional. Default is 0. Y Offset on infinite surface tiled
+ *          with this image, from which to cut portion of an image to be
+ *          used in composition.
+ * clip_width
+ *          Optional. Default is image width. Tile image to this width
+ *          prior to superimposition.
+ * clip_height
+ *          Optional. Default is image height. Tile image to this height
+ *          prior to superimposition.
+ * tile     Optional. Default is 0. If set will cause image to be tiled
+ *          across entire composition, unless overridden by clip_width or
+ *          clip_height.
+ * tint     Optional. Additionally tint an image to specified color.
+ *          Tinting can both lighten and darken an image. Tinting color
+ *          0 or #7f7f7f7f yields no tinting. Tinting can be performed
+ *          on any channel, including alpha channel.
+ * SEE ALSO
+ * libAfterImage
  ******/
 	if (!strcmp(doc->tag, "composite")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -1619,6 +1797,9 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 	return result;
 }
 
+
+
+
 void my_destroy_asimage(ASImage* image) {
 	image->ref_count--;
 	if (image->ref_count < 0)
@@ -1626,46 +1807,6 @@ void my_destroy_asimage(ASImage* image) {
 		show_progress("Destroying image [%08lx] with refcount [%d].", (unsigned long)image, image->ref_count);
 		destroy_asimage(&image);
 	}
-}
-
-/* Math expression parsing algorithm.  The basic math ops (add, subtract,
- * multiply, divide), unary minus, and parentheses are supported.
- * Operator precedence is NOT supported.  Percentages are allowed, and
- * apply to the "size" parameter of this function.
- */
-double parse_math(const char* str, char** endptr, double size) {
-	double total = 0;
-	char op = '+';
-	char minus = 0;
-	const char* startptr = str;
-	while (*str) {
-		while (isspace((int)*str)) str++;
-		if (!op) {
-			if (*str == '+' || *str == '-' || *str == '*' || *str == '/') op = *str++;
-			else if (*str == '-') { minus = 1; str++; }
-			else if (*str == ')') { str++; break; }
-			else break;
-		} else {
-			char* ptr;
-			double num;
-			if (*str == '(') num = parse_math(str + 1, &ptr, size);
-			else num = strtod(str, &ptr);
-			if (str != ptr) {
-				if (*ptr == '%') num *= size / 100.0, ptr++;
-				if (minus) num = -num;
-				if (op == '+') total += num;
-				else if (op == '-') total -= num;
-				else if (op == '*') total *= num;
-				else if (op == '/' && num) total /= num;
-			} else break;
-			str = ptr;
-			op = '\0';
-			minus = 0;
-		}
-	}
-	if (endptr) *endptr = (char*)str;
-	show_debug(__FILE__,__FUNCTION__,__LINE__,"Parsed math [%s] with reference [%.2f] into number [%.2f].", startptr, size, total);
-	return total;
 }
 
 xml_elem_t* xml_parse_parm(const char* parm) {
