@@ -218,7 +218,7 @@ typedef struct ASXpmCharmap
 	char *char_code ;
 }ASXpmCharmap;
 
-#define MAXPRINTABLE 92			
+#define MAXPRINTABLE 92
 /* number of printable ascii chars minus \ and " for string compat
  * and ? to avoid ANSI trigraphs. */
 
@@ -270,60 +270,22 @@ Bool
 ASImage2xpm ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
 {
 	FILE *outfile;
-	ASScanline imbuf ;
-	Bool skip_alpha = False;
-	Bool has_alpha = False;
-	int alpha_thresh = 0 ;
 	int y, x ;
-	int *row_pointer ;
-	ASSortedColorIndex *index;                 /* better not allocate such a large structure on stack!!! */
+	int *mapped_im, *row_pointer ;
 	ASColormap         cmap;
-	START_TIME(started);
 	ASXpmCharmap       xpm_cmap ;
 	int xpm_idx = 0 ;
+	START_TIME(started);
 
 	LOCAL_DEBUG_CALLER_OUT ("(\"%s\")", path);
 
 	if ((outfile = open_writeable_image_file( path )) == NULL)
 		return False;
 
-	index = safecalloc( 1, sizeof(ASSortedColorIndex));
-	prepare_scanline( im->width, 0, &imbuf, False );
-	row_pointer = safemalloc( im->width*sizeof(int));
-
-	for( y = 0 ; y < im->height ; y++ )
-	{
-		asimage_decode_line (im, IC_RED,   imbuf.red,   y, 0, imbuf.width);
-		asimage_decode_line (im, IC_GREEN, imbuf.green, y, 0, imbuf.width);
-		asimage_decode_line (im, IC_BLUE,  imbuf.blue,  y, 0, imbuf.width);
-		if( !skip_alpha )
-			if( asimage_decode_line (im, IC_ALPHA, imbuf.alpha, y, 0, imbuf.width) <= imbuf.width )
-				skip_alpha = True ;
-		for( x = 0; x < imbuf.width ; x++ )
-		{
-#if 1
-			if( !skip_alpha )
-				if( imbuf.alpha[x] < 127 )
-				{
-					has_alpha = True ;
-					continue;
-				}
-#endif
-			add_index_color( index, imbuf.red[x],imbuf.green[x],imbuf.blue[x]);
-		}
-	}
-	if( skip_alpha )
-		has_alpha = False ;
-	if( has_alpha )
-		alpha_thresh = 127 ;
-	SHOW_TIME("color indexing",started);
-
-LOCAL_DEBUG_OUT("building colormap%s","");
-	color_index2colormap( index, max_colors, &cmap );
-	SHOW_TIME("colormap calculation",started);
+	mapped_im = colormap_asimage( im, &cmap, max_colors, 4, 127 );
 
 LOCAL_DEBUG_OUT("building charmap%s","");
-	build_xpm_charmap( &cmap, has_alpha, &xpm_cmap );
+	build_xpm_charmap( &cmap, cmap.has_opaque, &xpm_cmap );
 	SHOW_TIME("charmap calculation",started);
 
 LOCAL_DEBUG_OUT("writing file%s","");
@@ -334,23 +296,21 @@ LOCAL_DEBUG_OUT("writing file%s","");
 		fprintf( outfile, "\"%s c #%2.2X%2.2X%2.2X\",\n", &(xpm_cmap.char_code[xpm_idx]), cmap.entries[y].red, cmap.entries[y].green, cmap.entries[y].blue );
 		xpm_idx += xpm_cmap.cpp+1 ;
 	}
-	if( has_alpha && y < xpm_cmap.count )
+	if( cmap.has_opaque && y < xpm_cmap.count )
 		fprintf( outfile, "\"%s c None\",\n", &(xpm_cmap.char_code[xpm_idx]) );
 	SHOW_TIME("image header writing",started);
 
+	row_pointer = mapped_im ;
 	for( y = 0 ; y < im->height ; y++ )
 	{
-		asimage_decode_line (im, IC_ALPHA, imbuf.alpha, y, 0, imbuf.width);
-		asimage_decode_line (im, IC_RED,   imbuf.red, y, 0, imbuf.width);
-		asimage_decode_line (im, IC_GREEN, imbuf.green, y, 0, imbuf.width);
-		asimage_decode_line (im, IC_BLUE,  imbuf.blue, y, 0, imbuf.width);
-		quantize_scanline( &imbuf, index, &cmap, row_pointer,  alpha_thresh, xpm_cmap.count-1 );
 		fputc( '"', outfile );
-		for( x = 0; x < imbuf.width ; x++ )
+		for( x = 0; x < im->width ; x++ )
 		{
+			register int idx = (row_pointer[x] >= 0)? row_pointer[x] : cmap.count+1 ;
 /*fprintf( stderr, "index : %d, offset = %d, char = %s\n", row_pointer[x], row_pointer[x]*(xpm_cmap.cpp+1), &(xpm_cmap.char_code[row_pointer[x]*(xpm_cmap.cpp+1)]) );*/
-			fprintf( outfile, "%s", &(xpm_cmap.char_code[row_pointer[x]*(xpm_cmap.cpp+1)]) );
+			fprintf( outfile, "%s", &(xpm_cmap.char_code[idx*(xpm_cmap.cpp+1)]) );
 		}
+		row_pointer += im->width ;
 		if( y < im->height-1 )
 			fprintf( outfile, "\",\n" );
 		else
@@ -361,8 +321,8 @@ LOCAL_DEBUG_OUT("writing file%s","");
 
 	SHOW_TIME("image writing",started);
 	destroy_xpm_charmap( &xpm_cmap, True );
+	free( mapped_im );
 	destroy_colormap( &cmap, True );
-	destroy_colorindex( index, False );
 
 	SHOW_TIME("total",started);
 	return False;
