@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include <malloc.h>
 /* <setjmp.h> is used for the optional error recovery mechanism */

@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <varargs.h>
 #include <sys/time.h>
 #include <sys/times.h>
 
