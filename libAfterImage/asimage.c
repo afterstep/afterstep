@@ -2179,7 +2179,7 @@ set_asimage_vector( ASImage *im, register double *vector )
 /* Convinience function - very fast image cloning :                               */
 /* ********************************************************************************/
 ASImage*
-clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter )
+clone_asimage( ASImage *src, ASFlagType filter )
 {
 	ASImage *dst = NULL ;
 	START_TIME(started);

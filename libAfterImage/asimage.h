@@ -692,9 +692,8 @@ int mmx_off(void);
  *********/
 /****f* libAfterImage/asimage/clone_asimage()
  * SYNOPSIS
- * ASImage *clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter );
+ * ASImage *clone_asimage(ASImage *src, ASFlagType filter );
  * INPUTS
- * asv      - pointer to valid ASVisual structure
  * src      - original ASImage.
  * filter   - bitmask of channels to be copied from one image to another.
  * RETURN VALUE
@@ -722,7 +721,7 @@ int mmx_off(void);
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
-ASImage *clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter );
+ASImage *clone_asimage( ASImage *src, ASFlagType filter );
 void destroy_asimage( ASImage **im );
 Bool set_asimage_vector( ASImage *im, register double *vector );
 

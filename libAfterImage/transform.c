@@ -1470,7 +1470,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d",
 		return NULL ;
 
 	if( to_width == src->width && to_height == src->height && dst_x == 0 && dst_y == 0 )
-		return clone_asimage( asv, src, SCL_DO_ALL );
+		return clone_asimage( src, SCL_DO_ALL );
 
 	dst = create_asimage(to_width, to_height, compression_out);
 	clip_width = src->width ;
