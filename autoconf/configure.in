@@ -204,12 +204,6 @@ export YACC
 AC_CHECK_PROG(sgmltools, sgmltools, HAVE_SGMLTOOLS, NO_SGMLTOOLS)
 export sgmltools
 
-dnl# check for wait is particularly nasty :
-AC_FUNC_WAIT3
-if test "x$ac_cv_func_wait3_rusage" = "xyes"; then
-	DO_HAVE_WAIT3=yes
-	export DO_HAVE_WAIT3
-fi
 
 dnl# Check for X :
 AC_PATH_XTRA
@@ -323,7 +317,9 @@ AC_C_INLINE
 
 dnl# Check for headers
 AC_HEADER_TIME
-AC_CHECK_HEADERS(sys/wait.h sys/time.h malloc.h stdlib.h)
+AC_CHECK_HEADERS(sys/time.h malloc.h stdlib.h)
+
+AC_CHECK_HEADERS(sys/wait.h,,AC_FUNC_WAIT3)
 
 dnl# Check for librplay for Audio
 

@@ -35,7 +35,7 @@ APPS_INCS=apps/common.h
 LIB_NAME        = LIBAFTERIMAGE
 LIB_STATIC      = libAfterImage.a
 LIB_SHARED      = libAfterImage.so
-LIBVER          = 0.93
+LIBVER          = 0.99
 LIBVERMAJOR     = 0
 
 CC		= @CC@

@@ -167,12 +167,6 @@ fi
 
 dnl# Checks for functions
 
-if test "x$DO_HAVE_WAIT3" = "xyes"; then
-	AC_DEFINE(HAVE_WAIT3)
-else
-dnl# are you sure ? let me doublecheck :
-	AC_FUNC_WAIT3
-fi
 AC_CHECK_FUNCS(uname gethostname)
 
 if test "x$enable_staticlibs" = "xyes"; then
