@@ -189,6 +189,7 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
         {
             DigestEvent( &tmp_event );
             event->x = *xevt ;                 /* everything else must remain the same !!! */
+	        DispatchEvent( event, True );
             return True;
         }
         if( is_tick() )

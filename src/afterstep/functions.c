@@ -188,6 +188,8 @@ typedef struct ASScheduledFunction
      * since they may change by the time function is run : */
     Window client ;
     Window canvas ;
+	
+	Bool defered ;
 }ASScheduledFunction;
 
 ASBiDirList *FunctionQueue = NULL ;
@@ -212,24 +214,11 @@ void destroy_scheduled_function_handler( void *data )
  *      event   - the event that caused the function
  *      module  - number of the module we received function request from
  ***********************************************************************/
-#undef ExecuteFunction
 void
-ExecuteFunction (FunctionData *data, ASEvent *event, int module)
-#ifdef TRACE_ExecuteFunction
-#define ExecuteFunction(d,e,m) trace_ExecuteFunction(d,e,m,__FILE__,__LINE__)
-#endif
+ExecuteFunctionExt (FunctionData *data, ASEvent *event, int module, Bool defered)
 {
-    ASScheduledFunction *sf ;
-#if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
-    if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
-#endif
-LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)",
-                         event?event->x.type:-1,
-                         event?event_type2name(event->x.type):"n/a",
-                         event?(unsigned long)event->w:0,
-                         event?event->client:NULL,
-                         event?(event->client?ASWIN_NAME(event->client):"none"):"none",
-                         module );
+	ASScheduledFunction *sf = NULL;
+
     if( data == NULL )
         return ;
     if( FunctionQueue == NULL )
@@ -241,6 +230,7 @@ LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)"
 
     sf->event.event_time = Scr.last_Timestamp ;
     sf->event.scr = &Scr ;
+	sf->defered = defered ;
     if( event )
     {
         sf->event.mask              = event->mask           ;
@@ -258,6 +248,26 @@ LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)"
             sf->canvas              = event->widget->w ;
     }
     append_bidirelem( FunctionQueue, sf );
+}
+
+
+#undef ExecuteFunction
+void
+ExecuteFunction (FunctionData *data, ASEvent *event, int module)
+#ifdef TRACE_ExecuteFunction
+#define ExecuteFunction(d,e,m) trace_ExecuteFunction(d,e,m,__FILE__,__LINE__)
+#endif
+{
+	LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)",
+                         event?event->x.type:-1,
+                         event?event_type2name(event->x.type):"n/a",
+                         event?(unsigned long)event->w:0,
+                         event?event->client:NULL,
+                         event?(event->client?ASWIN_NAME(event->client):"none"):"none",
+                         module );
+    if( data == NULL )
+        return ;
+	ExecuteFunctionExt( data, event, module, False );
 }
 /***********************************************************************
  *  Procedure:
@@ -278,8 +288,13 @@ DoExecuteFunction ( ASScheduledFunction *sf )
     ASEvent *event = &(sf->event);
     register FunctionCode  func = data->func;
 
-    print_func_data(__FILE__, "DoExecuteFunction", __LINE__, data);
-
+#if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
+    if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
+#endif
+	{
+	    print_func_data(__FILE__, "DoExecuteFunction", __LINE__, data);
+	}
+	
     if( sf->client != None )
     {
         ASWindow *asw ;
@@ -313,7 +328,7 @@ DoExecuteFunction ( ASScheduledFunction *sf )
     /* Defer Execution may wish to alter this value */
     if (IsWindowFunc (func))
 	{
-        int           do_defer = True, fin_event;
+        int           do_defer = !(sf->defered), fin_event;
 
         if( event->x.type == ButtonPress )
             fin_event = ButtonRelease ;
@@ -339,9 +354,11 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 
             if (DeferExecution (event, cursor, fin_event))
                 func = F_NOP;
-            else if (event->client == NULL)
-                func = F_NOP;
         }
+
+		if( event->client == NULL ) 
+      		func = F_NOP;
+		
 	}
 
     if( function_handlers[func] || func == F_FUNCTION )
@@ -459,7 +476,7 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
         c = func->items[i].name ? *(func->items[i].name): 'i' ;
         if( c == IMMEDIATE || c == IMMEDIATE_UPPER )
         {
-            ExecuteFunction (&(func->items[i]), event, -1);
+			ExecuteFunctionExt (&(func->items[i]), event, -1, True);
         }else
         {
             persist = True ;
@@ -507,7 +524,7 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
             {
                 c = func->items[i].name[0];
                 if( c == clicks_upper[clicks] || c == clicks_lower[clicks] )
-                    ExecuteFunction (&(func->items[i]), event, -1);
+					ExecuteFunctionExt (&(func->items[i]), event, -1, True);
             }
     }
 //    WaitForButtonsUpLoop ();
