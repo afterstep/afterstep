@@ -22,7 +22,7 @@
 #define ClientMask		(1L<<30) 
 #define MappingMask		(1L<<31) 
 /* use standard X event masks here : */
-#define EVENT_TRACE_MASK	(EnterWindowMask|LeaveWindowMask|FocusChangeMask)
+#define EVENT_TRACE_MASK	(SubstructureRedirectMask)
 
 /* libafterstep functions */
 #undef TRACE_load_font 		/* both load and unload actually */
