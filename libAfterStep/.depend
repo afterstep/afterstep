@@ -35,14 +35,6 @@
 		aswindata.h \
 		decor.h
 
-./background.o : \
-		../configure.h \
-		asapp.h \
-		afterstep.h \
-		screen.h \
-		mystyle.h \
-		background.h
-
 ./balloon.o : \
 		../configure.h \
 		asapp.h \

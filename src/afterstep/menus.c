@@ -237,19 +237,21 @@ LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item, mdi->m
     /* reserve space for minipixmap */
 #define MI_LEFT_SPACER_IDX  0
     add_astbar_spacer( item->bar, 0, 0, 0, NO_ALIGN, 1, 1 );              /*0*/
-#define MI_LEFT_ICON_IDX    1
-    add_astbar_spacer( item->bar, 0, 0, 0, NO_ALIGN, 1, 1 );              /*1*/
+#define MI_LEFT_ARROW_IDX   1
+    add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, 1, 1 );              /*1*/
+#define MI_LEFT_ICON_IDX    2
+    add_astbar_spacer( item->bar, 2, 0, 0, NO_ALIGN, 1, 1 );              /*2*/
     /* reserve space for popup icon :*/
-#define MI_POPUP_IDX        2
-    add_astbar_spacer( item->bar, 7, 0, 0, NO_ALIGN, 1, 1 );              /*2*/
+#define MI_POPUP_IDX        3
+    add_astbar_spacer( item->bar, 7, 0, 0, NO_ALIGN, 1, 1 );              /*3*/
 
     /* optional menu items : */
     /* add label */
     if( mdi->item )
-        add_astbar_label( item->bar, 1, 0, 0, ALIGN_LEFT, mdi->item );
+        add_astbar_label( item->bar, 3, 0, 0, ALIGN_LEFT, mdi->item );
     /* add hotkey */
     if( mdi->item2 )
-        add_astbar_label( item->bar, 2, 0, 0, ALIGN_RIGHT, mdi->item2 );
+        add_astbar_label( item->bar, 4, 0, 0, ALIGN_RIGHT, mdi->item2 );
 
     item->flags = 0 ;
     if( mdi->fdata->func == F_POPUP )
@@ -266,6 +268,7 @@ static Bool
 set_asmenu_item_look( ASMenuItem *item, MyLook *look, unsigned int icon_space, unsigned int arrow_space )
 {
     ASFlagType hilite = NO_HILITE, fhilite = NO_HILITE ;
+    int subitem_offset = 1 ;
 LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
 
     if( item->bar == NULL )
@@ -275,16 +278,31 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
     item->bar->h_border = DEFAULT_MENU_ITEM_HBORDER ;
     item->bar->v_border = DEFAULT_MENU_ITEM_VBORDER ;
 
+    delete_astbar_tile( item->bar, MI_LEFT_SPACER_IDX );
+    if(get_flags( item->flags, AS_MenuItemSubitem ))
+	subitem_offset = icon_space+2+item->bar->h_spacing+item->bar->h_spacing;
+    add_astbar_spacer( item->bar, 0, 0, 0, NO_ALIGN, subitem_offset, 1 );
+    delete_astbar_tile( item->bar, MI_LEFT_ARROW_IDX );
+    if(get_flags( item->flags, AS_MenuItemSubitem ))
+    {
+	if( look->MenuArrow )
+    	    add_astbar_icon( item->bar, 1, 0, 0, NO_ALIGN, look->MenuArrow->image );
+        else
+	    add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, arrow_space, 1 );
+    }else
+        add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, 1, 1 );
+
     if( get_flags( look->flags, MenuMiniPixmaps ) && icon_space > 0 )
     {
         //set_astbar_tile_size( item->bar, MI_LEFT_SPACER_IDX, icon_space, 1 );
         delete_astbar_tile( item->bar, MI_LEFT_ICON_IDX );
         /* now readd it as minipixmap :*/
         if( item->icon )
-            add_astbar_icon( item->bar, 0, 0, 0, ALIGN_VCENTER, item->icon );
+            add_astbar_icon( item->bar, 2, 0, 0, ALIGN_VCENTER, item->icon );
         else
-            add_astbar_spacer( item->bar, 0, 0, 0, NO_ALIGN, icon_space, 1 );
+            add_astbar_spacer( item->bar, 2, 0, 0, NO_ALIGN, icon_space, 1 );
     }
+    
     /* delete tile from Popup arrow cell : */
     delete_astbar_tile( item->bar, MI_POPUP_IDX );
     /* now readd it as proper type : */
@@ -442,18 +460,22 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
                         }
                         smdi = smdi->next ;
                     }/* while smdi */
-                    items_num += used ;
-                    if( menu->items_num < items_num )
-                    {
-                        menu->items = realloc( menu->items, items_num*(sizeof(ASMenuItem)));
-                        memset( &(menu->items[menu->items_num]), 0x00, (items_num-menu->items_num)*sizeof(ASMenuItem));
-                    }
-
-                    for( i = 0 ; i < used ; ++i )
-                    {
-                        set_asmenu_item_data( &(menu->items[real_items_num]), subitems[i] );
-                        ++real_items_num;
-                    }
+		    if( used > 0 ) 
+		    {
+                        items_num += used ;
+	                if( menu->items_num < items_num )
+    	        	{
+	    		    int to_zero = max(real_items_num,menu->items_num);
+                    	    menu->items = realloc( menu->items, items_num*(sizeof(ASMenuItem)));
+                    	    memset( &(menu->items[to_zero]), 0x00, (items_num-to_zero)*sizeof(ASMenuItem));
+                	}
+                        for( i = 0 ; i < used ; ++i )
+	                {
+    	            	    set_asmenu_item_data( &(menu->items[real_items_num]), subitems[i] );
+			    set_flags( menu->items[real_items_num].flags, AS_MenuItemSubitem );
+                    	    ++real_items_num;
+                	}
+		    }
                 }
             }
         if( real_items_num > 0 )
@@ -492,7 +514,7 @@ set_asmenu_look( ASMenu *menu, MyLook *look )
     unsigned int max_width = 0, max_height = 0;
     int display_size ;
 
-    menu->arrow_space = look->MenuArrow?look->MenuArrow->width:5 ;
+    menu->arrow_space = look->MenuArrow?look->MenuArrow->width:DEFAULT_ARROW_SIZE ;
 
     i = menu->items_num ;
     while ( --i >= 0 )

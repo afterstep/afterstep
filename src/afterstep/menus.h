@@ -17,6 +17,7 @@ typedef struct ASMenuItem
 #define AS_MenuItemDisabled     (0x01<<0)
 #define AS_MenuItemFirst        (0x01<<1)
 #define AS_MenuItemLast         (0x01<<2)
+#define AS_MenuItemSubitem      (0x01<<3)
     ASFlagType flags;
     struct ASTBarData *bar;
     struct MenuData   *submenu;
@@ -61,7 +62,7 @@ typedef struct ASMenu
 #define MAX_MENU_X              (Scr.MyDisplayWidth-5)
 #define MIN_MENU_Y              5
 #define MAX_MENU_Y              (Scr.MyDisplayHeight-5)
-
+#define DEFAULT_ARROW_SIZE      (Scr.MyDisplayWidth>>7)
 
 
 /*************************************************************************/

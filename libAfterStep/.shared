@@ -3,7 +3,6 @@ LIBAFTERSTEP_OBJS = \
 		$(LIBAFTERSTEP_PATH)/asdatabase.c \
 		$(LIBAFTERSTEP_PATH)/asfeel.c \
 		$(LIBAFTERSTEP_PATH)/aswindata.c \
-		$(LIBAFTERSTEP_PATH)/background.c \
 		$(LIBAFTERSTEP_PATH)/balloon.c \
 		$(LIBAFTERSTEP_PATH)/clientprops.c \
 		$(LIBAFTERSTEP_PATH)/decor.c \

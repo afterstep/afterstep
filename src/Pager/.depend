@@ -17,20 +17,6 @@
 		../../libAfterStep/moveresize.h \
 		../../libAfterConf/afterconf.h
 
-./Pager_old.o: \
-		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/screen.h \
-		../../include/module.h \
-		../../include/parse.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
-		../../include/mystyle.h \
-		../../include/background.h \
-		../../include/balloon.h \
-		Pager.h
-
 ./x_pager.o: \
 		../../configure.h \
 		../../include/aftersteplib.h \
@@ -44,4 +30,18 @@
 		../../include/confdefs.h \
 		../../include/mystyle.h \
 		../../include/background.h \
+		Pager.h
+
+./Pager_old.o: \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/screen.h \
+		../../include/module.h \
+		../../include/parse.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/mystyle.h \
+		../../include/background.h \
+		../../include/balloon.h \
 		Pager.h
