@@ -18,10 +18,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "config.h"
+#undef LOCAL_DEBUG
+#undef DO_CLOCKING
 
-/*#define LOCAL_DEBUG */
-/*#define DO_CLOCKING */
+#include "config.h"
 
 #include <stdlib.h>
 #include <malloc.h>
@@ -756,7 +756,7 @@ build_xpm_colormap( ASXpmFile *xpm_file )
 		if( i < real_cmap_size )
 		{
 			color = lookup_xpm_color((char**)&(xpm_cmap[i].string), xpm_color_names);
-LOCAL_DEBUG_OUT( "cmap[%d]: 0x%X\n",  i, color );
+ LOCAL_DEBUG_OUT( "cmap[%d]: 0x%X\n",  i, color );
 			xpm_file->cmap[i] = color;
 			if( ARGB32_ALPHA8(color) != 0x00FF )
 				xpm_file->do_alpha = True ;

@@ -18,9 +18,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#undef LOCAL_DEBUG
 #include "config.h"
 
-/*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
 
 #include <time.h>
@@ -100,7 +100,7 @@ ASImage2file( ASImage *im, const char *dir, const char *file,
 
 	if( im == NULL ) return False;
 
-	if( file ) 
+	if( file )
 	{
   		filename_len = strlen(file);
 		if( dir != NULL )
@@ -112,7 +112,7 @@ ASImage2file( ASImage *im, const char *dir, const char *file,
 			realfilename[dirname_len-1] = '/' ;
 		}
 		strcpy( realfilename+dirname_len, file );
-	}	
+	}
 	if( type >= ASIT_Unknown || type < 0 )
 		show_error( "Hmm, I don't seem to know anything about format you trying to write file \"%s\" in\n.\tPlease check the manual", realfilename );
    	else if( as_image_file_writers[type] )
@@ -235,7 +235,7 @@ ASImage2xpm ( ASImage *im, const char *path, ASImageExportParams *params )
 	if ((outfile = open_writeable_image_file( path )) == NULL)
 		return False;
 
-	mapped_im = colormap_asimage( im, &cmap, params->xpm.max_colors, params->xpm.dither, params->xpm.opaque_threshold );
+    mapped_im = colormap_asimage( im, &cmap, params->xpm.max_colors, params->xpm.dither, params->xpm.opaque_threshold );
 	if( !get_flags( params->xpm.flags, EXPORT_ALPHA) )
 		cmap.has_opaque = False ;
 	else
@@ -266,8 +266,9 @@ LOCAL_DEBUG_OUT("writing file%s","");
 		{
 			register int idx = (row_pointer[x] >= 0)? row_pointer[x] : transp_idx ;
 			register char *ptr = &(xpm_cmap.char_code[idx*(xpm_cmap.cpp+1)]) ;
-			if( idx >= cmap.count )
-				fprintf( stderr, "(%d,%d) -> %d, %d: %s\n", x, y, idx, row_pointer[x], ptr );
+LOCAL_DEBUG_OUT( "(%d,%d)->%d (row_pointer %d )", x, y, idx, row_pointer[x] );
+            if( idx > cmap.count )
+                show_error("bad XPM color index :(%d,%d) -> %d, %d: %s", x, y, idx, row_pointer[x], ptr );
 			while( *ptr )
 				fputc( *(ptr++), outfile );
 		}
@@ -821,7 +822,7 @@ ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params)
 	if( params == NULL )
 		params = (ASImageExportParams *)&defaults ;
 
-	if( path == NULL ) 
+	if( path == NULL )
 	{
 		SHOW_UNSUPPORTED_NOTE("TIFF streamed into stdout",path);
 		return False ;

@@ -16,17 +16,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "config.h"
-
-/* #define LOCAL_DEBUG */
-/* #define DO_CLOCKING */
-/*#define DEBUG_HSV_ADJUSTMENT */
-
-
+#undef LOCAL_DEBUG
+#undef DO_CLOCKING
+#undef DEBUG_HSV_ADJUSTMENT
 #define USE_64BIT_FPU
+#undef NEED_RBITSHIFT_FUNCS
 
-/* #define NEED_RBITSHIFT_FUNCS */
-
+#include "config.h"
 
 #include <malloc.h>
 #ifdef DO_CLOCKING
@@ -623,30 +619,35 @@ check_scale_parameters( ASImage *src, unsigned int *to_width, unsigned int *to_h
 }
 
 int *
-make_scales( unsigned short from_size, unsigned short to_size, unsigned short tail )
+make_scales( int from_size, int to_size, int tail )
 {
 	int *scales ;
-	unsigned short smaller = MIN(from_size,to_size);
-	unsigned short bigger  = MAX(from_size,to_size);
+    int smaller = MIN(from_size,to_size);
+    int bigger  = MAX(from_size,to_size);
 	register int i = 0, k = 0;
 	int eps;
-
+    LOCAL_DEBUG_OUT( "from %d to %d tail %d", from_size, to_size, tail );
 	if( from_size < to_size )
-	{	smaller-=tail; bigger-=tail ; }
-	if( smaller == 0 )
+    {
+        smaller-=tail;
+        bigger-=tail ;
+    }
+    if( smaller <= 0 )
 		smaller = 1;
-	if( bigger == 0 )
+    if( bigger <= 0 )
 		bigger = 1;
 	scales = safecalloc( smaller+tail, sizeof(int));
-	eps = -(bigger>>1);
-	/* now using Bresengham algoritm to fiill the scales :
+    eps = -bigger/2;
+    LOCAL_DEBUG_OUT( "smaller %d, bigger %d, eps %d", smaller, bigger, eps );
+    /* now using Bresengham algoritm to fiill the scales :
 	 * since scaling is merely transformation
 	 * from 0:bigger space (x) to 0:smaller space(y)*/
 	for ( i = 0 ; i < bigger ; i++ )
 	{
 		++scales[k];
 		eps += smaller;
-		if( (eps << 1) >= bigger )
+        LOCAL_DEBUG_OUT( "scales[%d] = %d, i = %d, k = %d, eps %d", k, scales[k], i, k, eps );
+        if( eps+eps >= bigger )
 		{
 			++k ;
 			eps -= bigger ;
@@ -728,33 +729,36 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
 			CHOOSE_SCANLINE_FUNC(h_ratio,imdec->buffer,*c4,scales_h,line_len);
 		}
 		/* now we'll prepare total and step : */
-		imout->output_image_scanline( imout, c2, 1);
-		if( S > 1 )
-		{
-			if( S == 2 )
-			{
-				SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,1,out_width);
-				imout->output_image_scanline( imout, c1, 1);
-			}else if( S == 3 )
-			{
-				SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,2,out_width);
-				imout->output_image_scanline( imout, c1, 1);
-				SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,3,out_width);
-				imout->output_image_scanline( imout, c1, 1);
-			}else
-			{
-				SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,out_width);
-				do
-				{
-					imout->output_image_scanline( imout, c1, 1);
-					if((--S)<=1)
-						break;
-					SCANLINE_FUNC(add_component,*c1,step,NULL,out_width );
- 				}while(1);
-			}
-		}
+        if( S > 0 )
+        {
+            imout->output_image_scanline( imout, c2, 1);
+            if( S > 1 )
+            {
+                if( S == 2 )
+                {
+                    SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,1,out_width);
+                    imout->output_image_scanline( imout, c1, 1);
+                }else if( S == 3 )
+                {
+                    SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,2,out_width);
+                    imout->output_image_scanline( imout, c1, 1);
+                    SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,3,out_width);
+                    imout->output_image_scanline( imout, c1, 1);
+                }else
+                {
+                    SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,out_width);
+                    do
+                    {
+                        imout->output_image_scanline( imout, c1, 1);
+                        if((--S)<=1)
+                            break;
+                        SCANLINE_FUNC(add_component,*c1,step,NULL,out_width );
+                    }while(1);
+                }
+            }
+        }
 	}while( ++i < max_i );
-	imout->output_image_scanline( imout, c4, 1);
+    imout->output_image_scanline( imout, c3, 1);
 
 	for( i = 0 ; i < 4 ; i++ )
 		free_scanline(&(src_lines[i]), True);
@@ -1312,7 +1316,7 @@ make_gradient( ASVisual *asv, ASGradient *grad,
 	ASImageOutput *imout;
 	int line_len = width;
 	START_TIME(started);
-LOCAL_DEBUG_CALLER_OUT( "type = 0x%X, width=%d, height = %d, filter = 0x%X", grad->type, width, height, filter );
+LOCAL_DEBUG_CALLER_OUT( "type = 0x%X, width=%d, height = %d, filter = 0x%lX", grad->type, width, height, filter );
 	if( asv == NULL || grad == NULL )
 		return NULL;
 	if( width == 0 )
@@ -2058,7 +2062,7 @@ adjust_asimage_hsv( ASVisual *asv, ASImage *src,
 	ASImageOutput  *imout ;
 	START_TIME(started);
 
-LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, hue = %lu", offset_x, offset_y, to_width, to_height, affected_hue );
+LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, hue = %u", offset_x, offset_y, to_width, to_height, affected_hue );
 	if( src && (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 		return NULL;
 

@@ -18,11 +18,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#undef LOCAL_DEBUG
+#undef DO_CLOCKING
+#undef DEBUG_TRANSP_GIF
+
 #include "config.h"
 
-/*#define LOCAL_DEBUG */
-/*#define DO_CLOCKING */
-/*#define DEBUG_TRANSP_GIF*/
 
 #include <time.h>
 #include <unistd.h>
@@ -509,7 +510,7 @@ xpm_data2ASImage( const char **data, ASFlagType what, double gamma, CARD8 *gamma
 	ASImage *im = NULL ;
 	START_TIME(started);
 
-	LOCAL_DEBUG_CALLER_OUT ("(\"%s\", 0x%lX)", path, what);
+    LOCAL_DEBUG_CALLER_OUT ("(\"%s\", 0x%lX)", (char*)data, what);
 	if( (xpm_file=open_xpm_data(data)) == NULL )
 	{
 		show_error("cannot read XPM data.");
@@ -680,6 +681,9 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	}
 	/* close the file */
 	fclose (fp);
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
+#endif
 	SHOW_TIME("image loading",started);
 	return im ;
 }
@@ -1244,7 +1248,7 @@ ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	FILE         *infile;					   /* source file */
 	ASScanline    buf;
 	int y, mask_bytes;
-	CARD8  and_mask[8];
+    CARD8  *and_mask;
 	START_TIME(started);
 	struct IconDirectoryEntry {
     	CARD8  bWidth;
@@ -1286,21 +1290,26 @@ ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	fprintf( stderr, "icon[1].bHeight = %d(0x%X)\n",  icon.bHeight,  icon.bHeight );
 	fprintf( stderr, "icon[1].bColorCount = %d\n",  icon.bColorCount );
 	fprintf( stderr, "icon[1].dwImageOffset = %ld(0x%lX)\n",  icon.dwImageOffset,  icon.dwImageOffset );
+    fprintf( stderr, "icon[1].bmp_size = %ld\n",  icon.dwBytesInRes );
+    fprintf( stderr, "icon[1].dwBytesInRes = %ld\n",  icon.dwBytesInRes );
 #endif
 	if( im != NULL )
 	{
-		mask_bytes = icon.bWidth>>3 ;
-		if( mask_bytes > 8 )
-			mask_bytes = 8 ;
-		for( y = icon.bHeight-1 ; y >= 0 ; y-- )
+        mask_bytes = (icon.bWidth>>3)+3/4 ;    /* everything is aligned by 32 bits */
+        mask_bytes *= 4 ;                      /* in bytes  */
+        and_mask = safemalloc( mask_bytes );
+        for( y = icon.bHeight-1 ; y >= 0 ; y-- )
 		{
 			int x ;
-			if( fread( &(and_mask[0]), sizeof (CARD8), mask_bytes, infile ) < mask_bytes )
+            if( fread( and_mask, sizeof (CARD8), mask_bytes, infile ) < mask_bytes )
 				break;
 			for( x = 0 ; x < icon.bWidth ; ++x )
+            {
 				buf.alpha[x] = (and_mask[x>>3]&(0x80>>(x&0x7)))? 0x0000 : 0x00FF ;
+            }
 			asimage_add_line (im, IC_ALPHA, buf.alpha, y);
 		}
+        free( and_mask );
 		free_scanline( &buf, True );
 	}else
 		show_error( "invalid or unsupported ICO format in image file \"%s\"", path );

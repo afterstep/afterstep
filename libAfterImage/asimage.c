@@ -16,9 +16,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#undef LOCAL_DEBUG
 #include "config.h"
 
-/*#define LOCAL_DEBUG*/
 /* #define DO_CLOCKING */
 
 #define USE_64BIT_FPU
@@ -1501,6 +1501,16 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
 		{
 #endif
 			i = asimage_decode_block32( src, to_buf, im->width ) - to_buf;
+            LOCAL_DEBUG_OUT( "decoded %d pixels", i );
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+            {
+                int z = -1 ;
+                while( ++z < i )
+                    fprintf( stderr, "%X ", src[z] );
+                fprintf( stderr, "\n");
+
+            }
+#endif
 #if 1
 	  		while( i < out_width )
 			{   /* tiling code : */
