@@ -53,6 +53,48 @@
 
 #include "asstorage.h"
 
+/************************************************************************/
+/* Private Functions : 													*/
+/************************************************************************/
+static inline ASStorageID 
+make_asstorage_id( int block_id, int slot_id )
+{
+	ASStorageID id = 0 ;
+	if( block_id > 0 && block_id < (0x01<<18)&& slot_id > 0 && slot_id < (0x01<<14)) 
+		id = ((CARD32)block_id<<14)|(CARD32)slot_id ;
+	return id;
+}
+
+CARD8* 
+compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType flags, int *compressed_size )
+{
+	/* TODO: just a stub for now - need to implement compression */
+	if( compressed_size ) 
+		*compressed_size = size ;
+	return data;
+}
+
+
+int
+select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags )
+{
+	int block_id = 0 ;
+	/* TODO */
+	return block_id;
+}
+
+int
+store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compressed_size, ASFlagType flags )
+{
+	int slot_id = 0 ;
+	/* TODO */
+	return slot_id ;
+}
+
+
+/************************************************************************/
+/* Public Functions : 													*/
+/************************************************************************/
 ASStorage *
 create_asstorage()
 {
@@ -78,10 +120,37 @@ destroy_asstorage(ASStorage **pstorage)
 ASStorageID 
 store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags)
 {
-	/* TODO */
-	return 0;
+	int id = 0 ;
+	int block_id ;
+	int slot_id ;
+	int compressed_size = size ;
+	CARD8 *buffer = data;
+	if( size <= 0 || data == NULL || storage == NULL ) 
+		return 0;
+		
+	if( get_flags( flags, ASStorage_CompressionType ) )
+		buffer = compress_stored_data( storage, data, size, flags, &compressed_size );
+	block_id = select_storage_block( storage, compressed_size, flags );
+	if( block_id > 0 ) 
+	{
+		slot_id = store_data_in_block(  storage->blocks[block_id-1], 
+										buffer, size, compressed_size, flags );
+	
+		id = make_asstorage_id( block_id, slot_id );
+	}
+	return id ;		
 }
 
+
+CARD8* make_storage_test_data( int size )
+{
+	CARD8 *data = malloc(size);
+	int i ;
+	int seed = time(NULL);
+	for( i = 0 ; i < size ; ++i ) 
+		data[i] = i+seed%(i+1)+data[i] ;
+	return data ;
+}
 
 Bool 
 test_asstorage()
@@ -95,17 +164,33 @@ test_asstorage()
 	printf("Testing storage creation ...");
 	storage = create_asstorage();
 #define TEST_EVAL(val)   do{ \
-							if(val){ printf("failed\n"); return False;} \
-							else printf("success.\n")}while(0)
+							if(!(val)){ printf("failed\n"); return False;} \
+							else printf("success.\n");}while(0)
 	TEST_EVAL( storage != NULL ); 
 	
-	printf("Testing store_data for data %p size = %d, and flags 0x%X...", test_data, test_data_size,
+	printf("Testing store_data for data %p size = %d, and flags 0x%lX...", test_data, test_data_size,
 			test_flags);
-	id = store_data( storage, test_data, test_data_size, 0 );
+	id = store_data( storage, test_data, test_data_size, test_flags );
 	TEST_EVAL( id == 0 ); 
 
+	test_data_size = 1 ;
+	test_data = make_storage_test_data( test_data_size );
+	printf("Testing store_data for data %p size = %d, and flags 0x%lX...", test_data, test_data_size,
+			test_flags);
+	id = store_data( storage, test_data, test_data_size, test_flags );
+	TEST_EVAL( id != 0 ); 
+	free( test_data );
 
 	printf("Testing storage destruction ...");
 	destroy_asstorage(&storage);
 	TEST_EVAL( storage == NULL ); 
+	
+	return True ;
 }
+
+#ifdef TEST_ASSTORAGE
+int main()
+{
+	return test_asstorage();
+}
+#endif
