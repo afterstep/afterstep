@@ -58,7 +58,8 @@ int main(int argc, char* argv[])
 {
 	ASVisual *asv ;
 	int screen = 0, depth = 0;
-	int dummy, to_width, to_height, geom_flags = 0;
+	int dummy, geom_flags = 0;
+	unsigned int tile_width, tile_height ;
 	ASGradient grad ;
 	ASGradient default_grad = { 1, 10, &(default_colors[0]), &(default_offsets[0])} ;
 	ASImage *grad_im = NULL;
@@ -148,16 +149,16 @@ int main(int argc, char* argv[])
 	grad_im = make_gradient( asv, &grad, to_width, to_height,
 	        	             SCL_DO_ALL,
 #ifndef X_DISPLAY_MISSING
-							 ASA_XImage, 
+							 ASA_XImage,
 #else
 							 ASA_ASImage,
 #endif
 							 0, ASIMAGE_QUALITY_DEFAULT );
-	if( grad_im ) 
+	if( grad_im )
 	{
 #ifndef X_DISPLAY_MISSING
 		/* see ASView.4 : */
-		Window w = create_top_level_window( asv, 
+		Window w = create_top_level_window( asv,
 		                                    DefaultRootWindow(dpy), 32, 32,
 		                        			to_width, to_height, 1, 0, NULL,
 											"ASGradient" );

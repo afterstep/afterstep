@@ -49,7 +49,8 @@ int main(int argc, char* argv[])
 	int screen = 0, depth = 0;
 	char *image_file = "rose512.jpg" ;
 	ARGB32 tint_color = time(NULL);
-	int tile_x, tile_y, tile_width, tile_height, geom_flags = 0;
+	int tile_x, tile_y, geom_flags = 0;
+	unsigned int tile_width, tile_height ;
 	ASImage *im ;
 
 	/* see ASView.1 : */
