@@ -26,7 +26,7 @@ typedef struct ASStorageSlot
 /* Pointer to ASStorageSlot is the pointer to used memory beginning - ASStorageSlot_SIZE 
  * thus we need not to store it separately 
  */
-
+#define ASStoprage_ZlibCompress		(0x01<<0)
 #define ASStorage_CompressionType	(0x0F<<0) /* allow for 16 compression schemes */
 #define ASStorage_Used				(0x01<<4)
 #define ASStorage_NotTileable		(0x01<<5)
@@ -78,6 +78,10 @@ typedef struct ASStorage
 
 	ASStorageBlock **blocks ;
 	int 			blocks_count;
+
+	CARD8  *comp_buffer ;
+	size_t 	comp_buf_size ; 
+	size_t	last_zipped_size ;
 
 }ASStorage;
 

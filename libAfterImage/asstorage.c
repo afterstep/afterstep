@@ -46,6 +46,12 @@
 #endif
 #include <memory.h>
 
+#ifndef HAVE_ZLIB_H
+#include "zlib/zlib.h"
+#else
+#include <zlib.h>
+#endif
+
 #ifdef _WIN32
 # include "win32/afterbase.h"
 #else
@@ -76,8 +82,18 @@ static CARD8*
 compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType flags, int *compressed_size )
 {
 	/* TODO: just a stub for now - need to implement compression */
+	int comp_size = size ;
+	if( get_flags( flags, ASStoprage_ZlibCompress ) )
+	{
+		CARD8  *comp_buffer ;
+		size_t 	comp_buf_size ; 
+		size_t	last_zipped_size ;
+	
+		
+	}	 
+		
 	if( compressed_size ) 
-		*compressed_size = size ;
+		*compressed_size = comp_size ;
 	return data;
 }
 

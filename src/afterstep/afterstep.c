@@ -266,7 +266,7 @@ SHOW_CHECKPOINT;
     set_flags( AfterStepState, ASS_NormalOperation);
 
 #if (defined(LOCAL_DEBUG)||defined(DEBUG)) && defined(DEBUG_ALLOCS)
-    LOCAL_DEBUG_OUT( "printing memory");
+    LOCAL_DEBUG_OUT( "printing memory%s","");
     spool_unfreed_mem( "afterstep.allocs.startup", NULL );
 #endif
     LOCAL_DEBUG_OUT( "entering main loop%s","");
