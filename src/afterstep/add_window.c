@@ -1763,13 +1763,7 @@ AddWindow (Window w)
 }
 
 /***********************************************************************
- *
- *  Procedure:
- *	GrabButtons - grab needed buttons for the window
- *
- *  Inputs:
- *	tmp_win - the afterstep window structure to use
- *
+ *  GrabButtons - grab needed buttons for the window
  ***********************************************************************/
 void
 GrabButtons (ASWindow * tmp_win)
@@ -1805,26 +1799,67 @@ GrabButtons (ASWindow * tmp_win)
 }
 
 /***********************************************************************
- *
- *  Procedure:
- *	GrabKeys - grab needed keys for the window
- *
- *  Inputs:
- *	tmp_win - the afterstep window structure to use
- *
+ *  GrabIconButtons - grab needed buttons for the icon window
  ***********************************************************************/
 void
-GrabKeys (ASWindow * tmp_win)
+GrabIconButtons (ASWindow * tmp_win, Window w)
 {
-	FuncKey      *tmp;
+	MouseButton  *MouseEntry;
 
-	for (tmp = Scr.FuncKeyRoot; tmp != NULL; tmp = tmp->next)
+	MouseEntry = Scr.MouseButtonRoot;
+	while (MouseEntry != (MouseButton *) 0)
 	{
-		if (tmp->cont & (C_WINDOW | C_TITLE | C_RALL | C_LALL | C_SIDEBAR))
-			MyXGrabKey (dpy, tmp->keycode, tmp->mods, tmp_win->frame, True,
-						GrabModeAsync, GrabModeAsync);
+		if ((MouseEntry->func != (int)0) && (MouseEntry->Context & C_ICON))
+		{
+			if (MouseEntry->Button > 0)
+				MyXGrabButton (dpy, MouseEntry->Button, MouseEntry->Modifier, w,
+							   True, ButtonPressMask | ButtonReleaseMask,
+							   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
+			else
+			{
+				int           i;
+
+				for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
+				{
+					MyXGrabButton (dpy, i + 1, MouseEntry->Modifier, w,
+								   True, ButtonPressMask | ButtonReleaseMask,
+								   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
+				}
+			}
+		}
+		MouseEntry = MouseEntry->NextButton;
 	}
 	return;
+}
+
+void
+grab_window_keys (Window w, ASFlagType context_mask)
+{
+	FuncKey      *tmp;
+	for (tmp = Scr.FuncKeyRoot; tmp != NULL; tmp = tmp->next)
+        if (get_flags( tmp->cont, context_mask ))
+            MyXGrabKey (dpy, tmp->keycode, tmp->mods, w, True, GrabModeAsync, GrabModeAsync);
+}
+
+/***********************************************************************
+ *  GrabKeys - grab needed keys for the window
+ ***********************************************************************/
+void
+GrabKeys (ASWindow *asw)
+{
+    grab_window_keys (asw->frame, (C_WINDOW | C_TITLE | C_RALL | C_LALL | C_SIDEBAR));
+}
+
+/***********************************************************************
+ *  GrabIconKeys - grab needed keys for the icon window
+ ***********************************************************************/
+void
+GrabIconKeys (ASWindow *asw)
+{
+    if( asw->icon_canvas )
+        grab_window_keys (asw->icon_canvas->w, (C_ICON));
+    if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas )
+        grab_window_keys (asw->icon_title_canvas->w, (C_ICON));
 }
 
 /**********************************************************************/

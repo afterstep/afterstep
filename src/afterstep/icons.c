@@ -671,67 +671,6 @@ AutoPlace (ASWindow * t)
 			   (unsigned long)t, t->icon_p_x, t->icon_p_y, t->icon_p_width, t->icon_p_height);
 }
 
-/***********************************************************************
- *
- *  Procedure:
- *	GrabIconButtons - grab needed buttons for the icon window
- *
- *  Inputs:
- *	tmp_win - the afterstep window structure to use
- *
- ***********************************************************************/
-void
-GrabIconButtons (ASWindow * tmp_win, Window w)
-{
-	MouseButton  *MouseEntry;
-
-	MouseEntry = Scr.MouseButtonRoot;
-	while (MouseEntry != (MouseButton *) 0)
-	{
-		if ((MouseEntry->func != (int)0) && (MouseEntry->Context & C_ICON))
-		{
-			if (MouseEntry->Button > 0)
-				MyXGrabButton (dpy, MouseEntry->Button, MouseEntry->Modifier, w,
-							   True, ButtonPressMask | ButtonReleaseMask,
-							   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
-			else
-			{
-				int           i;
-
-				for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
-				{
-					MyXGrabButton (dpy, i + 1, MouseEntry->Modifier, w,
-								   True, ButtonPressMask | ButtonReleaseMask,
-								   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
-				}
-			}
-		}
-		MouseEntry = MouseEntry->NextButton;
-	}
-	return;
-}
-
-
-
-/***********************************************************************
- *
- *  Procedure:
- *	GrabIconKeys - grab needed keys for the icon window
- *
- *  Inputs:
- *	tmp_win - the afterstep window structure to use
- *
- ***********************************************************************/
-void
-GrabIconKeys (ASWindow * tmp_win, Window w)
-{
-	FuncKey      *tmp;
-
-	for (tmp = Scr.FuncKeyRoot; tmp != NULL; tmp = tmp->next)
-		if (tmp->cont & C_ICON)
-			MyXGrabKey (dpy, tmp->keycode, tmp->mods, w, True, GrabModeAsync, GrabModeAsync);
-	return;
-}
 
 
 /***********************************************************************
