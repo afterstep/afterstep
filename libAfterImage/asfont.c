@@ -222,7 +222,8 @@ open_X11_font( ASFontManager *fontman, const char *font_string)
 */
     /* for now assume ISO Latin 1 encoding */
 	XFontStruct *xfs ;
-
+	if( fontman->dpy == NULL ) 
+		return NULL;
 	if( (xfs = XLoadQueryFont( fontman->dpy, font_string )) == NULL )
 	{
 		show_warning( "failed to load X11 font \"%s\". Sorry about that.", font_string );

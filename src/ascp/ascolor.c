@@ -279,10 +279,15 @@ int main(int argc, char** argv)
 	}
 
 
-	ConnectX( &Scr, PropertyChangeMask );
-    ConnectAfterStep ( 0 );
-
-	LoadBaseConfig (GetBaseOptions);
+	if( ASColorState.display )
+	{	
+		ConnectX( &Scr, PropertyChangeMask );
+    	ConnectAfterStep ( 0 );
+		LoadBaseConfig (GetBaseOptions);
+	}else
+	{
+		Scr.asv = create_asvisual( NULL, 0, 0, NULL );
+	}	 
 
 	if( !get_flags( ASColorState.geometry.flags, WidthValue ) )
 		ASColorState.geometry.width = 640 ;
