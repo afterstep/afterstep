@@ -226,6 +226,7 @@ void free_func_hash ();
 /* Command Line stuff : */
 extern ASProgArgs *MyArgsPtr;
 #define MyArgs   (*MyArgsPtr)	/* some typical progy cmd line options - set by SetMyArgs( argc, argv )*/
+#define MyArgs_IS_MACRO
 extern char 	  *MyName;	/* name are we known by - set by SetMyName(argv[0]) */
 #define MAX_MY_CLASS    64
 extern char        MyClass[MAX_MY_CLASS+1]; /* application Class name ( Pager, Wharf, etc. ) - set by SetMyClass(char *) */
@@ -264,6 +265,7 @@ extern struct ScreenInfo   *ASDefaultScr;				   /* ScreenInfo for the default sc
 
 /* this is for compatibility with old code : */
 #define Scr	 	(*ASDefaultScr)
+#define Scr_IS_MACRO
 
 
 /* this two are unused in as-stable yet : */

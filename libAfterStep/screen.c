@@ -236,7 +236,15 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 int
 ConnectX (ScreenInfo * scr, unsigned long event_mask)
 {
-    /* Initialize X connection */
+    
+	if( scr == NULL ) 
+	{
+		if( ASDefaultScr == NULL ) 
+			ASDefaultScr = safecalloc( 1, sizeof(ScreenInfo));
+		scr = ASDefaultScr ;
+	}
+	/* Initialize X connection */
+	
     if (!(dpy = XOpenDisplay (MyArgs.display_name)))
 	{
         show_error("Can't open display \"%s\". Exiting!", XDisplayName (MyArgs.display_name));

@@ -1,3 +1,9 @@
+version 2.0.2 release
+	* added include_ordered <order_id> <path> 
+	  keyword to menu .include syntax - allow including menu trees so that they 
+	  all get sorted down at the bottom of menu.
+	* libs can now compile as DLLs under CYGWIN.
+
 version 2.0 release
 	*Reimplemented Ident module
 	*Added bunch of docs to ASDocGen and incorporated code from asimbrowser to 
