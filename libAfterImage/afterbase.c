@@ -594,6 +594,15 @@ asim_string_compare (ASHashableValue value1, ASHashableValue value2)
 	return 0;
 }
 
+void
+asim_string_destroy (ASHashableValue value, void *data)
+{
+	if (value.string_val != NULL)
+		free (value.string_val);
+	if (data != value.string_val && data != NULL)
+		free (data);
+}
+
 /* variation for case-unsensitive strings */
 ASHashKey
 asim_casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
