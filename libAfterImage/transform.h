@@ -11,6 +11,8 @@ extern "C" {
 #endif
 
 /****h* libAfterImage/transform.h
+ * NAME
+ * transform
  * SYNOPSIS
  * Defines transformations that could be performed on ASImage.
  * DESCRIPTION
@@ -33,18 +35,21 @@ extern "C" {
  *
  * SEE ALSO
  *  Transformations :
- *          scale_asimage(), tile_asimage(), merge_layers(), make_gradient(),
- *          flip_asimage(), mirror_asimage(), pad_asimage(),
- *          blur_asimage_gauss(), fill_asimage(), adjust_asimage_hsv()
+ *          scale_asimage(), tile_asimage(), merge_layers(), 
+ * 			make_gradient(), flip_asimage(), mirror_asimage(), 
+ * 			pad_asimage(), blur_asimage_gauss(), fill_asimage(), 
+ * 			adjust_asimage_hsv()
  *
  *  Other libAfterImage modules :
  *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
  *          import.h transform.h ximage.h
  * AUTHOR
  * Sasha Vasko <sasha at aftercode dot net>
- ******
- */
+ *******/
 /****f* libAfterImage/transform/scale_asimage()
+ * NAME
+ * scale_asimage() - scales source ASImage into new image of requested 
+ * dimensions. 
  * SYNOPSIS
  * ASImage *scale_asimage( struct ASVisual *asv,
  *                         ASImage *src,
@@ -64,14 +69,16 @@ extern "C" {
  * RETURN VALUE
  * returns newly created and encoded ASImage on success, NULL of failure.
  * DESCRIPTION
- * Scales source ASImage into new image of requested dimensions. If size
- * has to be reduced - then several neighboring pixels will be averaged
- * into single pixel. If size has to be increased then new pixels will
- * be interpolated based on values of four neighboring pixels.
+ * If size has to be reduced - then several neighboring pixels will be 
+ * averaged into single pixel. If size has to be increased then new 
+ * pixels will be interpolated based on values of four neighboring pixels.
  * EXAMPLE
  * ASScale
  *********/
 /****f* libAfterImage/transform/tile_asimage()
+ * NAME
+ * tile_asimage() - tiles/crops ASImage to desired size, while optionaly 
+ * tinting it at the same time.
  * SYNOPSIS
  * ASImage *tile_asimage ( struct ASVisual *asv,
  *                         ASImage *src,
@@ -97,8 +104,7 @@ extern "C" {
  * RETURN VALUE
  * returns newly created and encoded ASImage on success, NULL of failure.
  * DESCRIPTION
- * Source ASImage will be tiled into newly created image of specified
- * size. offset_x and offset_y define origin on source image from which
+ * Offset_x and offset_y define origin on source image from which
  * tiling will start. If offset_x or offset_y is outside of the image
  * boundaries, then it will be reduced by whole number of image sizes to
  * fit inside the image. At the time of tiling image will be tinted
@@ -107,6 +113,8 @@ extern "C" {
  * ASTile
  *********/
 /****f* libAfterImage/transform/merge_layers()
+ * NAME
+ * merge_layers()
  * SYNOPSIS
  * ASImage *merge_layers  ( struct ASVisual *asv,
  *                          ASImageLayer *layers, int count,
@@ -138,6 +146,8 @@ extern "C" {
  * effectively making it transparent.
  *********/
 /****f* libAfterImage/transform/make_gradient()
+ * NAME
+ * make_gradient() - renders linear gradient into new ASImage
  * SYNOPSIS
  * ASImage *make_gradient ( struct ASVisual *asv,
  *                          struct ASGradient *grad,
@@ -167,6 +177,8 @@ extern "C" {
  * looking gradients.
  *********/
 /****f* libAfterImage/transform/flip_asimage()
+ * NAME
+ * flip_asimage() - rotates ASImage in 90 degree increments
  * SYNOPSIS
  * ASImage *flip_asimage ( struct ASVisual *asv,
  *                         ASImage *src,
@@ -196,6 +208,8 @@ extern "C" {
  * supported 90, 180 and 270 degrees.
  *********/
 /****f* libAfterImage/transform/mirror_asimage()
+ * NAME
+ * mirror_asimage()
  * SYNOPSIS
  * ASImage *mirror_asimage ( struct ASVisual *asv,
  *                           ASImage *src,
@@ -224,6 +238,9 @@ extern "C" {
  * and it will mirror it in vertical or horizontal direction.
  *********/
 /****f* libAfterImage/transform/pad_asimage()
+ * NAME 
+ * pad_asimage() enlarges ASImage, padding it with specified color on 
+ * each side in accordance with requested geometry.
  * SYNOPSIS
  * ASImage *pad_asimage( ASVisual *asv, ASImage *src,
  *                      int dst_x, int dst_y,
@@ -246,16 +263,17 @@ extern "C" {
  * quality      - output quality
  * RETURN VALUE
  * returns newly created and encoded ASImage on success, NULL of failure.
- * DESCRIPTION
- * enlarges ASImage, padding it with specified color on each side in
- * accordance with requested geometry.
  *********/
 /****f* libAfterImage/transform/blur_asimage_gauss()
+ * NAME
+ * blur_asimage_gauss() Performs Gaussian blurr of the image 
+ * ( usefull for drop shadows and the likes ).
  * SYNOPSIS
  * ASImage* blur_asimage_gauss( ASVisual* asv, ASImage* src,
  *                              double horz, double vert,
  *                              ASAltImFormats out_format,
- *                              unsigned int compression_out, int quality );
+ *                              unsigned int compression_out, 
+ * 								int quality );
  * INPUTS
  * asv          - pointer to valid ASVisual structure
  * src          - source ASImage
@@ -267,11 +285,11 @@ extern "C" {
  * quality      - output quality
  * RETURN VALUE
  * returns newly created and encoded ASImage on success, NULL of failure.
- * DESCRIPTION
- * Performs Gaussian blurr of the image ( usefull fro drop shadows and
- * the likes ).
  *********/
 /****f* libAfterImage/transform/fill_asimage()
+ * NAME
+ * fill_asimage() - Fills rectangle within the existing ASImage with 
+ * specified color.
  * SYNOPSIS
  * Bool fill_asimage( ASVisual *asv, ASImage *im,
  *                    int x, int y, int width, int height,
@@ -284,10 +302,10 @@ extern "C" {
  * color         - ARGB32 color value to fill rectangle with.
  * RETURN VALUE
  * True on success, False on failure.
- * DESCRIPTION
- * Fills rectangle within the existing ASImage with specified color.
  *********/
 /****f* libAfterImage/transform/adjust_asimage_hsv()
+ * NAME
+ * adjust_asimage_hsv() - adjusts image color properties in HSV colorspace
  * SYNOPSIS
  * ASImage *adjust_asimage_hsv( ASVisual *asv, ASImage *src,
  *                              int offset_x, int offset_y,
@@ -401,6 +419,9 @@ ASImage* adjust_asimage_hsv( ASVisual *asv, ASImage *src,
 					unsigned int compression_out, int quality );
 
 /****f* libAfterImage/transform/colorize_asimage_vector()
+ * NAME
+ * colorize_asimage_vector() creates ASImage from double precision indexed 
+ * image data - usefull for scientific visualisation.
  * SYNOPSIS
  * Bool colorize_asimage_vector( ASVisual *asv, ASImage *im,
  * 		             	         ASVectorPalette *palette,
@@ -418,12 +439,16 @@ ASImage* adjust_asimage_hsv( ASVisual *asv, ASImage *src,
  * True on success, False on failure.
  * DESCRIPTION
  * This function will try to convert double precision indexed image data
- * into actuall color image using palette. Original data should be attached
- * to ASImage using vector member. Operation is relatively fast and allows
- * representation of scientific data as color image with dynamically
- * changing palette.
+ * into actuall color image using palette. Original data should be 
+ * attached to ASImage using vector member. Operation is relatively fast 
+ * and allows representation of scientific data as color image with 
+ * dynamically changing palette.
  *********/
 /****f* libAfterImage/transform/create_asimage_from_vector()
+ * NAME
+ * create_asimage_from_vector() - convinience function allowing to 
+ * create new ASImage, set its vector data and colorize it using 
+ * palette - all in one step.
  * SYNOPSIS
  * ASImage *create_asimage_from_vector( ASVisual *asv, double *vector,
  *                                      unsigned int width,
@@ -445,10 +470,6 @@ ASImage* adjust_asimage_hsv( ASVisual *asv, ASImage *src,
  * quality       - output quality
  * RETURN VALUE
  * New ASImage  on success, NULL on failure.
- * DESCRIPTION
- * This function is merely a convinience function allowing to create new
- * ASImage, set its vector data and colorize it using palette - all in
- * one step.
  * SEE ALSO
  * colorize_asimage_vector(), create_asimage(), set_asimage_vector()
  *********/

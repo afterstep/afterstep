@@ -48,8 +48,10 @@ void usage()
 	printf( "Usage: astile [-h]|[[-g geometry][-t tint_color] image]\n");
 	printf( "Where: image    - source image filename.\n");
 	printf( "       geometry - width and height of the resulting image,\n");
-	printf( "                  and x, y of the origin of the tiling on source image.\n");
-	printf( "       tint_color - color to tint image with.( defaults to current time :)\n");
+	printf( "                  and x, y of the origin of the tiling on "
+			"source image.\n");
+	printf( "       tint_color - color to tint image with.( defaults to "
+			"current time :)\n");
 }
 
 int main(int argc, char* argv[])
@@ -67,12 +69,12 @@ int main(int argc, char* argv[])
 	set_application_name( argv[0] );
 
 #ifndef X_DISPLAY_MISSING
-		/* parse_argb_color can only be used after display is open,
-		   otherwise we are limited to colors defined as ARGB values : */
-  		dpy = XOpenDisplay(NULL);
-		_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
-		screen = DefaultScreen(dpy);
-		depth = DefaultDepth( dpy, screen );
+	/* parse_argb_color can only be used after display is open,
+	   otherwise we are limited to colors defined as ARGB values : */
+  	dpy = XOpenDisplay(NULL);
+	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
+	screen = DefaultScreen(dpy);
+	depth = DefaultDepth( dpy, screen );
 #endif
 
 	if( argc > 1 )
@@ -94,7 +96,8 @@ int main(int argc, char* argv[])
 					case 't' :			/* see ASTile.1 : */
 						if( parse_argb_color( argv[i+1], &tint_color ) ==
 							argv[i+1] )
-							show_warning( "unable to parse tint color - default used: #%8.8X",
+							show_warning( "unable to parse tint color - "
+										  "default used: #%8.8X",
 				            			  tint_color );
 					    break ;
 					case 'g' :   		/* see ASTile.2 : */
@@ -110,7 +113,8 @@ int main(int argc, char* argv[])
 		}
 	}else
 	{
-		show_warning( "no image file or tint color specified - defaults used: \"%s\" #%8.8lX",
+		show_warning( "no image file or tint color specified - "
+					  "defaults used: \"%s\" #%8.8lX",
 		              image_file, tint_color );
 		usage();
 	}
@@ -127,7 +131,8 @@ int main(int argc, char* argv[])
 		tile_width = im->width*2 ;
 	if( !get_flags(geom_flags, HeightValue ) )
 		tile_height = im->height*2;
-	printf( "%s: tiling image \"%s\" to %dx%d%+d%+d tinting with #%8.8lX\n",
+	printf( "%s: tiling image \"%s\" to "
+			"%dx%d%+d%+d tinting with #%8.8lX\n",
 		    get_application_name(), image_file, tile_width, tile_height,
 			tile_x, tile_y, tint_color );
 
@@ -218,7 +223,7 @@ int main(int argc, char* argv[])
  * default size is same as image's width.
  * EXAMPLE
  *     geom_flags = XParseGeometry ( argv[i+1], &tile_x, &tile_y,
- *                                            &tile_width, &tile_height );
+ *                                   &tile_width, &tile_height );
  * SEE ALSO
  * ASScale.1
  ********/
@@ -242,11 +247,11 @@ int main(int argc, char* argv[])
  * color or decrease it. If any particular channel of the tint_color is
  * greater then 127 then intensity is increased, otherwise its decreased.
  * EXAMPLE
- *     tinted_im = tile_asimage( asv, im, tile_x, tile_y,
- *                               tile_width, tile_height,
- *                               tint_color,
- *                               ASA_XImage, 0, ASIMAGE_QUALITY_TOP );
- *     destroy_asimage( &im );
+ * tinted_im = tile_asimage( asv, im, tile_x, tile_y,
+ *                         tile_width, tile_height,
+ *                         tint_color,
+ *                         ASA_XImage, 0, ASIMAGE_QUALITY_TOP );
+ * destroy_asimage( &im );
  * NOTES
  * SEE ALSO
  * tile_asimage().

@@ -12,7 +12,7 @@ LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
 $(PROG):        $(OBJS) $(LIBS_DEPEND)
 		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
 
-install.man:
+install.man:	$(PROG)
 		@echo -n "Generating man pages ..." ; ./ASDocGen -l log.man -t nroff ; echo "Done"; \
 		cd man; echo "Installing application man pages ..." ; \
 		for f in *.man; do \
@@ -28,7 +28,7 @@ install.man:
 		done; echo "Done"; \
 		cd ../..
 		
-install.doc_html:
+install.doc_html:	$(PROG)
 		@echo -n "Generating HTML docs ..." ; ./ASDocGen -l log.html -t html ; echo "Done"; \
 		if [ -d $(AFTER_DOC_DIR)/html ] ; then \
 	  		echo $(RMF) -r $(AFTER_DOC_DIR)/html; \
@@ -48,7 +48,7 @@ install.doc_html:
 		done; echo "Done"; \
 		cd ../..
 
-install.doc_xml:
+install.doc_xml:	$(PROG)
 		@echo -n "Generating XML docs ..." ; ./ASDocGen -l log.xml -t xml ; echo "Done"; \
 		if [ -d $(AFTER_DOC_DIR)/xml ] ; then \
 	  		echo $(RMF) -r $(AFTER_DOC_DIR)/xml; \
@@ -68,7 +68,7 @@ install.doc_xml:
 		done; echo "Done"; \
 		cd ../..
 
-install.doc_text:
+install.doc_text:	$(PROG)
 		@echo -n "Generating Plain Text docs ..." ; ./ASDocGen -l log.text -t plain ; echo "Done"; \
 		if [ -d $(AFTER_DOC_DIR)/text ] ; then \
 	  		echo $(RMF) -r $(AFTER_DOC_DIR)/text; \
@@ -88,6 +88,14 @@ install.doc_text:
 		done; echo "Done"; \
 		cd ../..
 
+php_pages:	$(PROG)
+		@echo -n "Generating PHP pages ..." ; ./ASDocGen -l log.text -t php ; echo "Done"; \
+		if [ -f ASDocGen_php.tar.gz ] ; then \
+			$(RM) ASDocGen_php.tar.gz ; \
+		fi; \
+		echo "Tar-gzipping PHP pages ..." ; \
+		cd php && tar zcpvf ../ASDocGen_php.tar.gz * && cd .. ; \
+		echo "Done."
 
 uninstall.man:
 		@for p in $(PROG); do \

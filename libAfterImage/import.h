@@ -11,8 +11,9 @@ extern "C" {
 
 
 /****h* libAfterImage/import.h
- * DESCRIPTION
- * Image file format autodetection, reading and decoding routines.
+ * NAME
+ * import - Image file format autodetection, reading and decoding 
+ * routines.
  * SEE ALSO
  * Functions :
  *  		file2ASImage(), get_asimage(), file2pixmap()
@@ -25,19 +26,16 @@ extern "C" {
  ******************/
 
 /****d* libAfterImage/gamma
- * FUNCTION
- * Defines default value for screen gamma correction.
+ * NAME
+ * SCREEN_GAMMA - Defines default value for screen gamma correction.
  * SOURCE
  */
-
 #define SCREEN_GAMMA 2.2
 #define DEFAULT_PNG_IMAGE_GAMMA     0.45455
 /*************/
 /****s* libAfterImage/ASImageFileTypes
  * NAME
- * ASImageFileTypes
- * DESCRIPTION
- * List of known image file formats.
+ * ASImageFileTypes - List of known image file formats.
  * SOURCE
  */
 typedef enum
@@ -66,9 +64,8 @@ typedef enum
 
 /****s* libAfterImage/ASImageListEntry
  * NAME
- * ASImageListEntry
- * DESCRIPTION
- * entry in linked list of images loaded from single directory.
+ * ASImageListEntry - entry in linked list of images loaded from single 
+ * directory.
  * SOURCE
  */
 typedef struct ASImageListEntry
@@ -120,6 +117,8 @@ ASImage *xml2ASImage ( const char * path, ASImageImportParams *params );
 
 
 /****f* libAfterImage/import/file2ASImage()
+ * NAME
+ * file2ASImage() - load ASImage from file.
  * SYNOPSIS
  * ASImage *file2ASImage( const char *file, ASFlagType what,
  *                        double gamma,
@@ -151,6 +150,9 @@ ASImage *xml2ASImage ( const char * path, ASImageImportParams *params );
  * asview.c: ASView.2
  *********/
 /****f* libAfterImage/import/get_asimage()
+ * NAME
+ * get_asimage() - increment reference counter if file is already loaded,
+ * or load image from file.
  * SYNOPSIS
  * ASImage *get_asimage( ASImageManager* imageman, const char *file,
  *                       ASFlagType what, unsigned int compression );
@@ -191,6 +193,8 @@ ASImageListEntry *get_asimage_list( struct ASVisual *asv, const char *dir,
 
 
 /****f* libAfterImage/import/file2pixmap()
+ * NAME
+ * file2pixmap() - convinience function to load file into X Pixmap.
  * SYNOPSIS
  * Pixmap file2pixmap( struct ASVisual *asv, Window root,
  *                     const char *realfilename,

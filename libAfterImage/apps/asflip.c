@@ -29,11 +29,15 @@
 
 void usage()
 {
-	printf( "Usage: asflip [-h]|[[-f flip]|[-m vertical] [-g geom] image]\n");
-	printf( "Where: image - is image filename\n");
-	printf( "       flip  - rotation angle in degrees. 90, 180 and 270 degrees supported\n");
-	printf( "       geom  - source image is tiled using this geometry, prior to rotation\n");
-	printf( "       vertical - 1 - mirror image in vertical direction, 0 - horizontal\n");
+	printf( "Usage: asflip [-h]|[[-f flip]|[-m vertical] "
+			"[-g geom] image]");
+	printf( "\nWhere: image - is image filename\n");
+	printf( "       flip  - rotation angle in degrees. "
+			"90, 180 and 270 degrees supported\n");
+	printf( "       geom  - source image is tiled using this geometry, "
+			"prior to rotation\n");
+	printf( "       vertical - 1 - mirror image in vertical direction, "
+			"0 - horizontal\n");
 }
 
 int main(int argc, char* argv[])
@@ -106,18 +110,21 @@ int main(int argc, char* argv[])
 	if( !get_flags(geom_flags, WidthValue ) )
 	{
 		if( !mirror )
-			tile_width = (get_flags(flip,FLIP_VERTICAL))?im->height:im->width ;
+			tile_width = (get_flags(flip,FLIP_VERTICAL))?
+						 	im->height:im->width ;
 		else
 			tile_width = im->width ;
 	}
 	if( !get_flags(geom_flags, HeightValue ) )
 	{
 		if( !mirror )
-			tile_height = (get_flags(flip,FLIP_VERTICAL))?im->width:im->height;
+			tile_height = (get_flags(flip,FLIP_VERTICAL))?
+							im->width:im->height;
 		else
 			tile_height = im->height ;
 	}
-	printf( "%s: tiling image \"%s\" to %dx%d%+d%+d and then flipping it by %d degrees\n",
+	printf( "%s: tiling image \"%s\" to %dx%d%+d%+d and then "
+			"flipping it by %d degrees\n",
 		    get_application_name(), image_file,
 			tile_width, tile_height,tile_x, tile_y, flip*90 );
 
@@ -130,21 +137,25 @@ int main(int argc, char* argv[])
 			                       	tile_x, tile_y,
 									tile_width, tile_height,
 				       	 			flip,
-				                	ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+				                	ASA_ASImage, 0, 
+									ASIMAGE_QUALITY_DEFAULT );
 	else
 		flipped_im = mirror_asimage(asv, im,
 			                       	tile_x, tile_y,
 									tile_width, tile_height,
 				       	 			vertical,
-				                	ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+				                	ASA_ASImage, 0, 
+									ASIMAGE_QUALITY_DEFAULT );
 	destroy_asimage( &im );
 
 	if( flipped_im )
 	{
 #ifndef X_DISPLAY_MISSING
 		/* see ASView.4 : */
-		Window w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-			  		      	                tile_width, tile_height, 1, 0, NULL,
+		Window w = create_top_level_window( asv, DefaultRootWindow(dpy), 
+											32, 32,
+			  		      	                tile_width, tile_height, 
+											1, 0, NULL,
 											"ASFlip", image_file );
 		if( w != None )
 		{
@@ -191,11 +202,12 @@ int main(int argc, char* argv[])
  * image gets tiled to suplied rectangle, and then gets rotated to
  * requested degree.
  * EXAMPLE
- *  	flipped_im = flip_asimage( 	asv, im,
- * 			                       	tile_x, tile_y,
- * 									tile_width, tile_height,
- * 				       	 			flip,
- * 				                	ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+ *  	flipped_im = flip_asimage(asv, im,
+ * 			                      tile_x, tile_y,
+ * 								  tile_width, tile_height,
+ * 				       	 		  flip,
+ * 				                  ASA_XImage,0, 
+ * 								  ASIMAGE_QUALITY_DEFAULT );
  * 		destroy_asimage( &im );
  * NOTES
  * As far as we need to render rotated image right away - we set to_xim

@@ -109,7 +109,8 @@ typedef struct {
 
 ASApiSourceDescr libAfterImage_Sources[] = 
 {	
-	{"afterimage.h", "libAfterImage", "overview of libAfterImage image library"}, 
+	{"afterimage.h", "AFTERImage", "overview of libAfterImage image library"}, 
+	{"asimagexml.c", "AFTERImage XML tags", "XML schema to be used for scripting image manipulation by AfterStep and ascompose"}, 
 	{"asvisual.h", "ASVisual", "abstraction layer on top of X Visuals, focusing on color handling" },
   	{"asimage.h", "ASImage", "internal structures and methods used for image manipulation in libAfterImage" },
 	{"blender.h", "ASImage Blending", "functionality for blending of image data using diofferent algorithms"}, 
@@ -121,15 +122,15 @@ ASApiSourceDescr libAfterImage_Sources[] =
 	{"ascmap.h", "Indexed Image handling", "defines main structures and function for image quantization"},
 	{"asfont.h", "ASFont", "text drawing functionality and handling of TTF and X11 fonts"}, 
 	{"char2uni.h", "Unicode", "handling on Unicode, UTF-8 and localized 8 bit encodings"}, 
-	{"apps/asview.c",  "libAfterImage example 1: Image viewer","demonstrates loading and displaying of images"}, 
-	{"apps/asscale.c", "libAfterImage example 2: Image scaling","demonstrates image loading and scaling"}, 
-	{"apps/astile.c",  "libAfterImage example 3: Image tiling/croping","demonstrates image tiling/cropping and tinting"}, 
-	{"apps/asmerge.c", "libAfterImage example 4: Image blending","demonstrates blending of multiple image using different algorithms"},
-	{"apps/asgrad.c",  "libAfterImage example 5: Gradient rendering","demonstrates rendering of multi point linear gradients"}, 
-	{"apps/asflip.c",  "libAfterImage example 6: Image rotation","demonstrates flipping image in 90 degree increments"}, 
-	{"apps/astext.c",  "libAfterImage example 7: Text rendering","demonstrates antialiased texturized text rendering"},
-	{"apps/common.c",  "libAfterImage examples common","common functions used in other examples "}, 
-	{"apps/ascompose.c", "libAfterImage XML script processor","provides access to libAfterImage functionality, using scripts written in custom XML dialect"}, 
+	{"apps/asview.c",  "AFTERImage example 1: Image viewer","demonstrates loading and displaying of images"}, 
+	{"apps/asscale.c", "AFTERImage example 2: Image scaling","demonstrates image loading and scaling"}, 
+	{"apps/astile.c",  "AFTERImage example 3: Image tiling/croping","demonstrates image tiling/cropping and tinting"}, 
+	{"apps/asmerge.c", "AFTERImage example 4: Image blending","demonstrates blending of multiple image using different algorithms"},
+	{"apps/asgrad.c",  "AFTERImage example 5: Gradient rendering","demonstrates rendering of multi point linear gradients"}, 
+	{"apps/asflip.c",  "AFTERImage example 6: Image rotation","demonstrates flipping image in 90 degree increments"}, 
+	{"apps/astext.c",  "AFTERImage example 7: Text rendering","demonstrates antialiased texturized text rendering"},
+	{"apps/common.c",  "AFTERImage examples common","common functions used in other examples "}, 
+	{"apps/ascompose.c", "AFTERImage XML script processor","provides access to libAfterImage functionality, using scripts written in custom XML dialect"}, 
 	{NULL, NULL, NULL}
 };
 
@@ -794,14 +795,16 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type, Bool user
 		if( user_docs )
 		{	
 			if( doc_type == DocType_PHP )
-			{	
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Developer's docs index","API/index", "" );
-			}else if( doc_type == DocType_HTML )
-			{
- 				fprintf( state.dest_fp,  "<A href=\"API/index.html\">Developer's docs index</A>\n" );			
-			}	 
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Developer documentation index","API/index", "" );
+			else if( doc_type == DocType_HTML )
+ 				fprintf( state.dest_fp,  "<A href=\"API/index.html\">Developer documentation index</A>\n" );			
+		}else
+		{	  
+			if( doc_type == DocType_PHP )
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","User documentation index","index", "" );
+			else if( doc_type == DocType_HTML )
+ 				fprintf( state.dest_fp,  "<A href=\"index.html\">User documentation index</A>\n" );			
 		}
-		
 		fprintf( state.dest_fp, "<hr>\n<p><UL class=\"dense\">\n" );
 		for( i = 0 ; i < items_num ; ++i ) 
 		{

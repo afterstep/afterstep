@@ -10,8 +10,8 @@ extern "C" {
 #endif
 
 /****h* libAfterImage/ximage.h
- * SYNOPSIS
- * Defines conversion to and from XImages and Pixmaps.
+ * NAME
+ * ximage - Defines conversion to and from XImages and Pixmaps.
  * DESCRIPTION
  * ximage2asimage()	- convert XImage structure into ASImage
  * pixmap2asimage()	- convert X11 pixmap into ASImage
@@ -27,10 +27,11 @@ extern "C" {
  *          import.h transform.h ximage.h
  * AUTHOR
  * Sasha Vasko <sasha at aftercode dot net>
- ******
- */
+ *******/
 
-/****f* libAfterImage/ximage/picture_ximage2asimage()
+/****f* libAfterImage/picture_ximage2asimage()
+ * NAME
+ * picture_ximage2asimage()
  * SYNOPSIS
  * ASImage *picture_ximage2asimage ( struct ASVisual *asv,
  *                                   XImage * xim, XImage *alpha_xim,
@@ -50,7 +51,11 @@ extern "C" {
  * supplied ASVisual, and resulting scanlines will be encoded into
  * ASImage.
  *********/
-/****f* libAfterImage/ximage/ximage2asimage()
+/****f* libAfterImage/ximage2asimage()
+ * NAME
+ * ximage2asimage() - same as picture_ximage2asimage with alpha_ximage 
+ * set to NULL. Supplied for compatibility with older versions and for 
+ * convinience.
  * SYNOPSIS
  * ASImage *ximage2asimage ( struct ASVisual *asv, XImage * xim,
  *                           unsigned int compression );
@@ -62,10 +67,10 @@ extern "C" {
  * pointer to newly allocated ASImage, containing encoded data, on
  * success. NULL on failure.
  * DESCRIPTION
- * same as picture_ximage2asimage with alpha_ximage set to NULL.
- * supplied for compatibility with older versions and for convinience.
  *********/
-/****f* libAfterImage/ximage/pixmap2asimage()
+/****f* libAfterImage/pixmap2asimage()
+ * NAME
+ * pixmap2asimage()
  * SYNOPSIS
  * ASImage *pixmap2ximage( ASVisual *asv, Pixmap p, int x, int y,
  *                         unsigned int width, unsigned int height,
@@ -78,19 +83,21 @@ extern "C" {
  * width, height- rectangle on Pixmap to be encoded into ASImage.
  * plane_mask   - limits color planes to be copied from Pixmap.
  * keep_cache   - indicates if we should keep XImage, used to copy
- *                image data from the X server, and attached it to ximage
- *                member of resulting ASImage.
+ *                image data from the X server, and attached it to 
+ * 				  ximage member of resulting ASImage.
  * compression  - degree of compression of resulting ASImage.
  * RETURN VALUE
- * pointer to newly allocated ASImage, containing data in XImage format, on
- * success. NULL on failure.
+ * pointer to newly allocated ASImage, containing data in XImage format, 
+ * on success. NULL on failure.
  * DESCRIPTION
  * pixmap2ximage will obtain XImage of the requested area of the
- * X Pixmap, and it will attach it to newly created ASImage using alt.ximage
- * member. After that newly created ASImage could be used in any
- * transformations.
+ * X Pixmap, and it will attach it to newly created ASImage using 
+ * alt.ximage member. After that newly created ASImage could be used 
+ * in any transformations.
  *********/
-/****f* libAfterImage/ximage/picture2asimage()
+/****f* libAfterImage/picture2asimage()
+ * NAME
+ * picture2asimage()
  * SYNOPSIS
  * ASImage *picture2asimage (struct ASVisual *asv,
  *                           Pixmap rgb, Pixmap a,
@@ -108,19 +115,21 @@ extern "C" {
  * width, height- rectangle on Pixmap to be encoded into ASImage.
  * plane_mask   - limits color planes to be copied from Pixmap.
  * keep_cache   - indicates if we should keep XImage, used to copy
- *                image data from the X server, and attached it to ximage
- *                member of resulting ASImage.
+ *                image data from the X server, and attached it to 
+ * 				  ximage member of resulting ASImage.
  * compression  - degree of compression of resulting ASImage.
  * RETURN VALUE
  * pointer to newly allocated ASImage, containing encoded data, on
  * success. NULL on failure.
  * DESCRIPTION
  * picture2asimage will obtain XImage of the requested area of the
- * X Pixmap, If alpha channel pixmap is supplied - it will be used to encode
- * ASImage's alpha channel. Alpha channel pixmap must be either
+ * X Pixmap, If alpha channel pixmap is supplied - it will be used to 
+ * encode ASImage's alpha channel. Alpha channel pixmap must be either
  * 8 or 1 bit deep, and it must have the same dimentions as main Pixmap.
  *********/
-/****f* libAfterImage/ximage/pixmap2asimage()
+/****f* libAfterImage/pixmap2asimage()
+ * NAME
+ * pixmap2asimage()
  * SYNOPSIS
  * ASImage *pixmap2asimage ( struct ASVisual *asv, Pixmap p,
  *                           int x, int y,
@@ -136,8 +145,8 @@ extern "C" {
  * width, height- rectangle on Pixmap to be encoded into ASImage.
  * plane_mask   - limits color planes to be copied from Pixmap.
  * keep_cache   - indicates if we should keep XImage, used to copy
- *                image data from the X server, and attached it to ximage
- *                member of resulting ASImage.
+ *                image data from the X server, and attached it to 
+ *                ximage member of resulting ASImage.
  * compression  - degree of compression of resulting ASImage.
  * RETURN VALUE
  * pointer to newly allocated ASImage, containing encoded data, on
@@ -158,7 +167,9 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
 	                     unsigned int width, unsigned int height,
 		  				 unsigned long plane_mask, Bool keep_cache, unsigned int compression);
 
-/****f* libAfterImage/ximage/asimage2ximage()
+/****f* libAfterImage/asimage2ximage()
+ * NAME
+ * asimage2ximage()
  * SYNOPSIS
  * XImage  *asimage2ximage  (struct ASVisual *asv, ASImage *im);
  * INPUTS
@@ -181,9 +192,12 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * SEE ALSO
  * create_visual_ximage()
  *********/
-/****f* libAfterImage/ximage/asimage2alpha_ximage()
+/****f* libAfterImage/asimage2alpha_ximage()
+ * NAME
+ * asimage2alpha_ximage()
  * SYNOPSIS
- * XImage  *asimage2alpha_ximage (struct ASVisual *asv, ASImage *im, Bool bitmap);
+ * XImage  *asimage2alpha_ximage (struct ASVisual *asv, 
+ *                                ASImage *im, Bool bitmap);
  * INPUTS
  * asv   		- pointer to valid ASVisual structure
  * im    		- source ASImage
@@ -207,7 +221,10 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * desired - make sure you set im->alt.mask_ximage to NULL, to dissociate
  * XImage object from ASImage.
  *********/
-/****f* libAfterImage/ximage/asimage2mask_ximage()
+/****f* libAfterImage/asimage2mask_ximage()
+ * NAME
+ * asimage2mask_ximage() - same as asimage2alpha_ximage(). Supplied for 
+ * convinience and compatibility with older versions.
  * SYNOPSIS
  * XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
  * INPUTS
@@ -216,11 +233,10 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * RETURN VALUE
  * On success returns newly created and encoded XImage of the depth 1.
  * NULL on failure.
- * DESCRIPTION
- * Same as asimage2alpha_ximage(). Supplied for convinience and
- * compatibility with older versions.
  *********/
-/****f* libAfterImage/ximage/asimage2pixmap()
+/****f* libAfterImage/asimage2pixmap()
+ * NAME
+ * asimage2pixmap()
  * SYNOPSIS
  * Bool	 asimage2drawable( struct ASVisual *asv, Drawable d, ASImage *im,
  *                         GC gc,
@@ -260,7 +276,9 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * create_visual_pixmap()
  *********/
 
-/****f* libAfterImage/ximage/asimage2pixmap()
+/****f* libAfterImage/asimage2pixmap()
+ * NAME
+ * asimage2pixmap()
  * SYNOPSIS
  * Pixmap   asimage2pixmap  ( struct ASVisual *asv, Window root,
  *                            ASImage *im, GC gc, Bool use_cached);
@@ -287,7 +305,9 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * asimage2drawable()
  * create_visual_pixmap()
  *********/
-/****f* libAfterImage/ximage/asimage2mask()
+/****f* libAfterImage/asimage2mask()
+ * NAME
+ * asimage2mask()
  * SYNOPSIS
  * Pixmap   asimage2mask ( struct ASVisual *asv, Window root,
  *                         ASImage *im, GC gc, Bool use_cached);

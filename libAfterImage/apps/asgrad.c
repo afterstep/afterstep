@@ -40,12 +40,14 @@ ARGB32 default_colors[] = {
 	0xFFE0E0FF,
 	0xFFa0a0FF,
 };
-double default_offsets[] = { 0, 0.1, 0.15, 0.20, 0.35, 0.45, 0.55, 0.50, 0.65, 0.8, 1.0} ;
+double default_offsets[] = { 0, 0.1, 0.15, 0.20, 0.35, 0.45, 0.55, 0.50, 
+							 0.65, 0.8, 1.0} ;
 
 
 void usage()
 {
-	printf( "  Usage: asgrad -h | <geometry> <gradient_type> <color1> <offset2> <color2> [ <offset3> <color3> ...]\n");
+	printf( "  Usage: asgrad -h | <geometry> <gradient_type> <color1> "
+			"<offset2> <color2> [ <offset3> <color3> ...]\n");
 	printf( "  Where: geometry - size of the resulting image and window;\n");
 	printf( "         gradient_type - One of the fiollowing values :\n");
 	printf( "            0 - linear   left-to-right gradient,\n");
@@ -62,7 +64,8 @@ int main(int argc, char* argv[])
 	int dummy, geom_flags = 0;
 	unsigned int to_width, to_height ;
 	ASGradient grad ;
-	ASGradient default_grad = { 1, 11, &(default_colors[0]), &(default_offsets[0])} ;
+	ASGradient default_grad = { 1, 11, &(default_colors[0]), 
+									   &(default_offsets[0])} ;
 	ASImage *grad_im = NULL;
 
 	/* see ASView.1 : */
@@ -112,8 +115,10 @@ int main(int argc, char* argv[])
 			}
 
 			/* see ASTile.1 : */
-			if( parse_argb_color( argv[i], &(grad.color[grad.npoints])) != argv[i] )
-				if(grad.offset[grad.npoints] >= 0. && grad.offset[grad.npoints]<= 1.0 )
+			if( parse_argb_color( argv[i], &(grad.color[grad.npoints])) 
+				!= argv[i] )
+				if( grad.offset[grad.npoints] >= 0. && 
+					grad.offset[grad.npoints]<= 1.0 )
 					grad.npoints++ ;
 		}
 	}else
@@ -142,7 +147,8 @@ int main(int argc, char* argv[])
 		to_height = 500 ;
 #endif
 	printf( "%s: rendering gradient of type %d to %dx%d\n",
-		    get_application_name(), grad.type&GRADIENT_TYPE_MASK, to_width, to_height );
+			get_application_name(), grad.type&GRADIENT_TYPE_MASK, 
+			to_width, to_height );
 
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );

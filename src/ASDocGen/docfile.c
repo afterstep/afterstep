@@ -27,6 +27,18 @@
 
 #include "ASDocGen.h"
 
+const char *HTMLHeaderFormat = "</head>\n"
+					  		   "<body>\n"
+							   "<A name=\"page_top\"></A>\n"
+							   "<A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A><p>\n" ;
+
+const char *HTMLHeaderFormatAPI = "</head>\n"
+					  		   "<body>\n"
+							   "<A name=\"page_top\"></A>\n"
+							   "<A href=\"API/index.html\">Main index</A>"
+							   "<A href=\"API/index.html\">%s</A>&nbsp;&nbsp;<A href=\"API/Glossary.html\">%s</A><p>\n" ;
+
+
 /*************************************************************************/
 void 
 write_doc_header( ASXMLInterpreterState *state )
@@ -53,11 +65,11 @@ write_doc_header( ASXMLInterpreterState *state )
 				if( len > 0 ) 
 					fwrite( css, 1, len, state->dest_fp );	   
 			}	 
-			fprintf( state->dest_fp, "</head>\n"
-					  				 "<body>\n"
-									 "<A name=\"page_top\"></A>\n"
-									 "<A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A><p>\n",
-									 TopicIndexName, GlossaryName );
+			if( TopicIndexName == APITopicIndexName )
+				fprintf( state->dest_fp, HTMLHeaderFormatAPI, TopicIndexName, GlossaryName );
+			else
+				fprintf( state->dest_fp, HTMLHeaderFormat, TopicIndexName, GlossaryName );				
+
 			if( state->display_purpose[0] != '\0' )
 				fprintf( state->dest_fp, "<h1>%s</h1><font size=4>%s</font><hr>\n", state->display_name, state->display_purpose );
 			else
@@ -66,14 +78,23 @@ write_doc_header( ASXMLInterpreterState *state )
 			break;
  		case DocType_PHP :	
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Index","visualselect", "" );
+
+/*			if( TopicIndexName == APITopicIndexName )
+				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Main Index","index", "" );
+ */			
 			if( state->doc_class != DocClass_TopicIndex )
-				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Topics","index", "" );
+				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc",
+						 TopicIndexName,
+						 (TopicIndexName == APITopicIndexName)?"API/index":"index", "" );
 			else
-				fprintf( state->dest_fp, PHPCurrPageFormat, "Topics" );
+				fprintf( state->dest_fp, PHPCurrPageFormat, TopicIndexName );
+			
 			if( state->doc_class != DocClass_Glossary )
-				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc",GlossaryName,"Glossary", "" );
+				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc",GlossaryName,
+						(GlossaryName == APIGlossaryName)?"API/Glossary":"Glossary", "" );
 			else
 				fprintf( state->dest_fp, PHPCurrPageFormat, GlossaryName );
+
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","F.A.Q.","faq", "" );
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Copyright","authors", "" );
 			for( i = 0 ; i < DocClass_TopicIndex ; ++i ) 
@@ -315,7 +336,8 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 			strcpy( index_name, state->display_name );
 
 		if( strcmp(index_name, "Topic index") != 0 && 
-			strcmp(index_name, "Glossary") != 0 )
+			strcmp(index_name, "Glossary") != 0 && 
+			strncmp( index_name, "API ", 4 ) != 0 )
    			add_hash_item( Index, AS_HASHABLE(index_name), (void*)mystrdup(dest_file) );   
 	}
 	/* HEADER ***********************************************************************/

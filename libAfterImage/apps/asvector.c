@@ -28,15 +28,23 @@
 #include "common.h"
 
 #if 1
-CARD16 chan_alpha[] = {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff};
-CARD16 chan_red  [] = {0x0000, 0x7000, 0x0000, 0x0000, 0x0000, 0xffff, 0xffff, 0x7000, 0xffff};
-CARD16 chan_green[] = {0x0000, 0x0000, 0x0000, 0xffff, 0xffff, 0xffff, 0x0000, 0x0000, 0xffff};
-CARD16 chan_blue [] = {0x0000, 0x7000, 0xffff, 0xffff, 0x0000, 0x0000, 0x0000, 0x0000, 0xffff};
+CARD16 chan_alpha[] = {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 
+								0xffff, 0xffff, 0xffff, 0xffff};
+CARD16 chan_red  [] = {0x0000, 0x7000, 0x0000, 0x0000, 0x0000, 
+								0xffff, 0xffff, 0x7000, 0xffff};
+CARD16 chan_green[] = {0x0000, 0x0000, 0x0000, 0xffff, 0xffff, 
+								0xffff, 0x0000, 0x0000, 0xffff};
+CARD16 chan_blue [] = {0x0000, 0x7000, 0xffff, 0xffff, 0x0000, 
+								0x0000, 0x0000, 0x0000, 0xffff};
 #else
-CARD16 chan_alpha[] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
-CARD16 chan_red[] =   {0x0000, 0x0000, 0x0000, 0x0000, 0x8888, 0xffff, 0xffff, 0xffff, 0xff00};
-CARD16 chan_green[]=  {0x0000, 0x0000, 0x8888, 0x8888, 0x0000, 0x0000, 0x8888, 0x8888, 0xff00};
-CARD16 chan_blue[] =  {0xFFFF, 0x0000, 0xFFFF, 0x0000, 0xFFFF, 0x0000, 0xffff, 0x0000, 0xff00};
+CARD16 chan_alpha[] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 
+								0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
+CARD16 chan_red[] =   {0x0000, 0x0000, 0x0000, 0x0000, 0x8888, 
+								0xffff, 0xffff, 0xffff, 0xff00};
+CARD16 chan_green[]=  {0x0000, 0x0000, 0x8888, 0x8888, 0x0000, 
+								0x0000, 0x8888, 0x8888, 0xff00};
+CARD16 chan_blue[] =  {0xFFFF, 0x0000, 0xFFFF, 0x0000, 0xFFFF, 
+								0x0000, 0xffff, 0x0000, 0xff00};
 #endif
 
 double points[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8} ;
@@ -51,7 +59,10 @@ int main(int argc, char* argv[])
 	ASVisual *asv ;
 	int screen = 0, depth = 0;
 	unsigned int to_width= 200, to_height = 200;
-	ASVectorPalette  palette = { 9, &(points[0]), {&chan_blue[0], &chan_green[0], &chan_red[0], &chan_alpha[0]}, ARGB32_Black} ;
+	ASVectorPalette  palette = { 9, &(points[0]), 
+								{&chan_blue[0], &chan_green[0], 
+								 &chan_red[0], &chan_alpha[0]}, 
+								 ARGB32_Black} ;
 	double vector[5 * 5] ;
 /*	double vector[200*200] ; */
 	ASImage *vect_im = NULL;
@@ -93,15 +104,17 @@ int main(int argc, char* argv[])
     vect_im = temp_im ;
 #else
 	vect_im = scale_asimage(asv, temp_im, to_width, to_height,
-                                   /* ASA_XImage */  ASA_ASImage, 100, ASIMAGE_QUALITY_POOR);
+                            ASA_ASImage, 100, ASIMAGE_QUALITY_POOR);
 #endif
 	if( vect_im )
 	{
 #ifndef X_DISPLAY_MISSING
 		/* see ASView.4 : */
 		Window w = create_top_level_window( asv,
-		                                    DefaultRootWindow(dpy), 32, 32,
-		                        			to_width, to_height, 1, 0, NULL,
+		                                    DefaultRootWindow(dpy), 
+											32, 32,
+		                        			to_width, to_height, 1, 0, 
+											NULL,
 											"ASVector", NULL );
 		if( w != None )
 		{

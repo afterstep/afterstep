@@ -20,6 +20,8 @@ extern const char *PHPXrefFormatUseSrc;
 extern const char *PHPCurrPageFormat;
 
 extern const char *AfterStepName;
+extern const char *APIGlossaryName; 
+extern const char *APITopicIndexName ; 
 extern const char *GlossaryName; 
 extern const char *TopicIndexName; 
 

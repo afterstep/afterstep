@@ -12,7 +12,7 @@ extern "C" {
 
 /****h* libAfterImage/asfont.h
  * NAME
- * asfont.h
+ * asfont
  * DESCRIPTION
  * Text drawing functionality.
  * Text is drawn as an ASImage with only alpha channel. Since alpha
@@ -171,7 +171,7 @@ typedef struct ASFont
 								  * to the top of the character glyph */
 					max_descend; /* need both descend and ascend to be 
 								    able to dynamically recalculate font 
-								    height while adding new characters */									 
+								    height while adding new characters */
 	unsigned int	space_size;  /* fixed width value to be used when
 								  * rendering spaces and tabs */
 	int 			spacing_x, spacing_y;
@@ -304,6 +304,8 @@ typedef struct ASTextAttributes
  * times untill text drawing is no longer needed.
  *********/
 /****f* libAfterImage/asfont/destroy_font_manager()
+ * NAME
+ * destroy_font_manager()
  * SYNOPSIS
  * void destroy_font_manager( ASFontManager *fontman,
  *                            Bool reusable );

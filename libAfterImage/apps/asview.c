@@ -45,7 +45,8 @@ int main(int argc, char* argv[])
 		image_file = argv[1] ;
 	}else
 	{
-		show_warning( "Image filename was not specified. Using default: \"%s\"", image_file );
+		show_warning( 	"Image filename was not specified. "
+						"Using default: \"%s\"", image_file );
 		usage();
 	}
 	/* see ASView.2 : */
@@ -64,14 +65,18 @@ int main(int argc, char* argv[])
 		int screen, depth ;
 #if 0
 		XRectangle *rects ;	unsigned int rects_count =0; int i ;
-		rects = get_asimage_channel_rects( im, IC_ALPHA, 10, &rects_count );
+		rects = get_asimage_channel_rects( im, IC_ALPHA, 10, 
+											&rects_count );
 		fprintf( stderr, " %d rectangles generated : \n", rects_count );
 		for( i = 0 ; i < rects_count ; ++i )
-			fprintf( stderr, "\trect[%d]=%dx%d%+d%+d;\n", i, rects[i].width, rects[i].height, rects[i].x, rects[i].y );
+			fprintf( stderr, "\trect[%d]=%dx%d%+d%+d;\n", 
+					 i, rects[i].width, rects[i].height, 
+					 rects[i].x, rects[i].y );
 #endif
 
 	    dpy = XOpenDisplay(NULL);
-		_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
+		_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", 
+											False);
 		screen = DefaultScreen(dpy);
 		depth = DefaultDepth( dpy, screen );
 		/* see ASView.3 : */
@@ -111,7 +116,7 @@ int main(int argc, char* argv[])
  * Step 1. Initialization.
  * DESCRIPTION
  * libAfterImage requires only 2 global things to be setup, and both of
- * those are inherited from libAfterBase: dpy - pointer to open X display -
+ * those are inherited from libAfterBase: dpy - pointer to open X display-
  * naturally that is something we cannot live without; application name -
  * used in all the text output, such as error and warning messages and
  * also debugging messages if such are enabled.
@@ -205,8 +210,8 @@ int main(int argc, char* argv[])
  * into Pixmap, then set Window's background to this Pixmap, and,
  * at last, clear the window, so that background shows up.
  * EXAMPLE
- *     p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, False );
- *     destroy_asimage( &im );
+ *  p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, False );
+ *  destroy_asimage( &im );
  * NOTES
  * We no longer need ASImage after we transfered it onto the Pixmap, so
  * we better destroy it to conserve resources.

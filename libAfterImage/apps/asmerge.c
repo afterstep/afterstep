@@ -50,7 +50,8 @@ void usage()
 	printf( "Usage: asmerge [-h]|[image op1 image1 [op2 image2 [...]]]\n");
 	printf( "Where: image  - is background image filename\n");
 	printf( "       image1 - is first overlay's filename\n");
-	printf( "       op1,op2,... - overlay operation. Supported operations are :\n");
+	printf( "       op1,op2,... - overlay operation."
+			" Supported operations are :\n");
 	list_scanline_merging( stdout,
 	        "         %-15.15s- %s\n");
 }
@@ -79,7 +80,8 @@ int main(int argc, char* argv[])
 		show_error( "not enough arguments, please see usage:%s", " ");
 		usage() ;
 		printf( "Using the default, \"The Burning Rose\", composition :\n");
-		printf( "\n\trose512.jpg add back.xpm:512x386 hue fore.xpm:512x386\n");
+		printf( "\n\trose512.jpg add back.xpm:512x386 hue "
+				"fore.xpm:512x386\n");
 		argv = &(burning_rose[0]) ;
 		argc = 6;
 	}
@@ -114,7 +116,8 @@ int main(int argc, char* argv[])
 		}
 		if( (separator = strchr( argv[i], ':' )) != NULL )
 		{   /* see ASTile.1 : */
-			geom_flags = XParseGeometry( separator+1, &x, &y, &width, &height);
+			geom_flags = XParseGeometry( separator+1, 
+										 &x, &y, &width, &height);
 			filename = mystrndup( argv[i], separator-argv[i] );
 		}else
 			filename = argv[i] ;
@@ -147,8 +150,10 @@ int main(int argc, char* argv[])
 				{
 					ASImage *scaled_bottom ;
 					/* see ASScale.2 : */
-					scaled_bottom = scale_asimage( asv, layers[layers_num].im,
-											  	width, height, False, 100,
+					scaled_bottom = scale_asimage( asv, 
+												   layers[layers_num].im,
+											  	   width, height, 
+												   False, 100,
 											  	ASIMAGE_QUALITY_DEFAULT );
 					destroy_asimage( &(layers[layers_num].im) );
 					layers[layers_num].im = scaled_bottom ;
@@ -181,9 +186,11 @@ int main(int argc, char* argv[])
 	{
 #ifndef X_DISPLAY_MISSING
 	/* see ASView.4 : */
-  		Window w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-					                         to_width, to_height, 1, 0, NULL,
-											 "ASMerge", NULL );
+  		Window w = create_top_level_window( asv, DefaultRootWindow(dpy), 
+											32, 32,
+					                        to_width, to_height, 
+											1, 0, NULL,
+											"ASMerge", NULL );
 		if( w != None )
 		{
 			Pixmap p ;
@@ -289,7 +296,8 @@ int main(int argc, char* argv[])
  * EXAMPLE
  * 		merged_im = merge_layers( asv, layers, layers_num,
  * 			                      to_width, to_height,
- * 			                      ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+ * 			                      ASA_ASImage, 0, 
+ * 								  ASIMAGE_QUALITY_DEFAULT );
  * 		while( --layers_num >= 0 )
  * 			destroy_asimage( &(layers[layers_num].im) );
  * 		free( layers );

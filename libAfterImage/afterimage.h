@@ -21,11 +21,8 @@
 
 /****h* libAfterImage/libAfterImage
  * NAME
- * libAfterImage
- *
- * SYNOPSIS
- * Generic imaging library originally designed for AfterStep X Window
- * Manager.
+ * libAfterImage - generic imaging library originally designed for 
+ * AfterStep X Window Manager.
  *
  * PURPOSE
  * libAfterImage is the imaging library implemented for AfterStep
@@ -264,7 +261,8 @@
  *          asimage2mask_ximage(), asimage2pixmap(), asimage2mask()
  *
  *   Transformations :
- *          scale_asimage(), tile_asimage(), merge_layers(), make_gradient(),
+ *          scale_asimage(), tile_asimage(), merge_layers(), 
+ * 			make_gradient(),
  *          flip_asimage(), mirror_asimage(), pad_asimage(),
  *          blur_asimage_gauss(), fill_asimage(), adjust_asimage_hsv()
  *
@@ -276,8 +274,8 @@
  *   Text Drawing :
  *          create_font_manager(), destroy_font_manager(),
  *          open_freetype_font(), open_X11_font(), get_asfont(),
- *          destroy_font(), print_asfont(), print_asglyph(),
- *          draw_text()
+ *          release_font(), print_asfont(), print_asglyph(),
+ *          draw_text(), draw_fancy_text()
  *********/
 #endif  /* AFTERIMAGE_H_HEADER_INCLUDED */
 

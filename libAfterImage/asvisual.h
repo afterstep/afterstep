@@ -6,9 +6,9 @@ extern "C" {
 #endif
 
 /****h* libAfterImage/asvisual.h
- * DESCRIPTION
- * Defines abstraction layer on top of X Visuals, as well as several
- * fundamental color datatypes.
+ * NAME
+ * asvisual - Defines abstraction layer on top of X Visuals, as well as 
+ * several fundamental color datatypes.
  * SEE ALSO
  * Structures:
  *  	    ColorPair
@@ -50,6 +50,8 @@ extern "C" {
 #define ALPHA_SOLID            	0xFF
 /*******************/
 /****d* libAfterImage/ARGB32
+ * NAME
+ * ARGB32 - main color datatype
  * FUNCTION
  * ARGB32 is fundamental datatype that hold 32bit value corresponding to
  * pixels color and transparency value (alpha channel) in ARGB
@@ -74,13 +76,10 @@ typedef CARD32 ARGB32;
 #define ARGB32_BLUE_CHAN		0
 #define ARGB32_CHANNELS			4
 
-#if 1
-#define MAKE_ARGB32(a,r,g,b)	((( (CARD32)a)        <<24)|((((CARD32)r)&0x00FF)<<16)| \
-                                 ((((CARD32)g)&0x00FF)<<8 )|(( (CARD32)b)&0x00FF))
-#else
-#define MAKE_ARGB32(a,r,g,b)	((((a)&0x00FF)<<24)|(((r)&0x00FF)<<16)| \
-                                 (((g)&0x00FF)<<8)|((b)&0x00FF))
-#endif
+#define MAKE_ARGB32(a,r,g,b)	((( (CARD32)a)        <<24)| \
+								 ((((CARD32)r)&0x00FF)<<16)| \
+                                 ((((CARD32)g)&0x00FF)<<8 )| \
+								 (( (CARD32)b)&0x00FF))
 
 #define MAKE_ARGB32_GREY8(a,l)	(((a)<<24)|(((l)&0x00FF)<<16)| \
                                  (((l)&0x00FF)<<8)|((l)&0x00FF))
@@ -99,6 +98,16 @@ typedef CARD32 ARGB32;
 #define MAKE_ARGB32_CHAN16(v,i)	((((v)&0x00FF00)>>8)<<((i)<<3))
 /*******************/
 /****d* libAfterImage/ColorPart
+ * NAME
+ * IC_RED - red channel
+ * NAME
+ * IC_GREEN - green channel
+ * NAME 
+ * IC_BLUE - blue channel
+ * NAME
+ * IC_ALPHA - alpha channel
+ * NAME
+ * IC_NUM_CHANNELS - number of supported channels
  * FUNCTION
  * Ids of the channels. These are basically synonyms to related ARGB32
  * channel numbers
@@ -116,9 +125,7 @@ ColorPart;
 /*******************/
 /****s* libAfterImage/ColorPair
  * NAME
- * ColorPair
- * DESCRIPTION
- * Convenient structure to hold pair of colors.
+ * ColorPair - convenient structure to hold pair of colors.
  * SOURCE
  */
 typedef struct ColorPair
@@ -129,9 +136,7 @@ typedef struct ColorPair
 /*******************/
 /****s* libAfterImage/ASScanline
  * NAME
- * ASScanline
- * SYNOPSIS
- * ASScanline is a structure to hold contents of the single scanline.
+ * ASScanline - structure to hold contents of the single scanline.
  * DESCRIPTION
  * ASScanline holds data for the single scanline, split into channels
  * with 32 bits per pixel per channel. All the memory is allocated at
@@ -162,33 +167,36 @@ typedef struct ASScanline
 #define SCL_DO_COLOR		(SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE)
 #define SCL_DO_ALL			(SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE| \
                              SCL_DO_ALPHA)
-	CARD32	 	   flags ;            /* combination of  the above values */
+	CARD32	 	   flags ;   /* combination of  the above values */
 	CARD32        *buffer ;
 	CARD32        *blue, *green, *red, *alpha ;
 	CARD32	      *channels[IC_NUM_CHANNELS];
-	CARD32        *xc3, *xc2, *xc1;   /* since some servers require
-									   * BGR mode here we store what
-									   * goes into what color component
-									   * in XImage */
+	CARD32        *xc3, *xc2, *xc1; /* since some servers require
+									 * BGR mode here we store what
+									 * goes into what color component
+									 * in XImage */
 	ARGB32         back_color;
 	unsigned int   width, shift;
 	unsigned int   offset_x ;
 }ASScanline;
 /*******************/
 
-/****f* libAfterImage/asvisual/prepare_scanline()
+/****f* libAfterImage/ARGB32_manhattan_distance()
+ * NAME 
+ * ARGB32_manhattan_distance() - This function can be used to evaluate closeness of 
+ * two colors.
  * SYNOPSIS
  * long ARGB32_manhattan_distance (long a, long b);
  * INPUTS
  * a, b - ARGB32 color values to calculate Manhattan distance in between
  * RETURN VALUE
  * returns calculated Manhattan distance.
- * DESCRIPTION
- * This function can be used to evaluate closeness of two colors.
  *********/
 long ARGB32_manhattan_distance (long a, long b);
 
-/****f* libAfterImage/asvisual/prepare_scanline()
+/****f* libAfterImage/prepare_scanline()
+ * NAME
+ * prepare_scanline()
  * SYNOPSIS
  * ASScanline *prepare_scanline ( unsigned int width,
  *                                unsigned int shift,
@@ -207,7 +215,9 @@ long ARGB32_manhattan_distance (long a, long b);
  * hold scanline data of at least width pixel wide. Buffers are adjusted
  * to start on 8 byte boundary.
  *********/
-/****f* libAfterImage/asvisual/free_scanline()
+/****f* libAfterImage/free_scanline()
+ * NAME
+ * free_scanline()
  * SYNOPSIS
  * void       free_scanline ( ASScanline *sl, Bool reusable );
  * INPUTS
@@ -226,9 +236,7 @@ void       free_scanline( ASScanline *sl, Bool reusable );
 
 /****s* libAfterImage/ASVisual
  * NAME
- * ASVisual
- * SYNOPSIS
- * ASVisual is abstraction layer on top of X Server Visual.
+ * ASVisual - an abstraction layer on top of X Server Visual.
  * DESCRIPTION
  * This structure has been introduced in order to compensate for the
  * fact that X may have so many different types of Visuals. It provides
@@ -278,8 +286,9 @@ typedef struct ASVisual
 {
 	Display      *dpy;
 
-	/* This envvar will be used to determine what X Visual (in hex) to use.
- 	 * If unset then best possible will be selected automagically : */
+	/* This envvar will be used to determine what X Visual 
+	 * (in hex) to use. If unset then best possible will 
+	 * be selected automagically : */
 #define ASVISUAL_ID_ENVVAR "AFTERIMAGE_VISUAL_ID"
 
 	XVisualInfo	  visual_info;
@@ -301,8 +310,8 @@ typedef struct ASVisual
 		ACM_3BPP,
 		ACM_6BPP,
 		ACM_12BPP
-	} as_colormap_type ;        /* there can only be 64 or 4096 entries
-								 * so far ( 6 or 12 bpp) */
+	} as_colormap_type ;    /* there can only be 64 or 4096 entries
+							 * so far ( 6 or 12 bpp) */
 	unsigned long *as_colormap; /* array of preallocated colors for
 								 * PseudoColor mode */
 	union                       /* reverse color lookup tables : */
@@ -319,10 +328,12 @@ typedef struct ASVisual
 		                            unsigned long pixel,
 									CARD32 *red, CARD32 *green,
 									CARD32 *blue);
-	void   (*ximage2scanline_func)( struct ASVisual *asv, XImage *xim,
+	void   (*ximage2scanline_func)( struct ASVisual *asv, 
+									XImage *xim,
 		                            ASScanline *sl, int y,
 								    unsigned char *xim_data );
-	void   (*scanline2ximage_func)( struct ASVisual *asv, XImage *xim,
+	void   (*scanline2ximage_func)( struct ASVisual *asv, 
+									XImage *xim,
 									ASScanline *sl, int y,
 									unsigned char *xim_data );
 #ifndef X_DISPLAY_MISSING
@@ -343,7 +354,11 @@ typedef struct ASVisual
 }ASVisual;
 /*******************/
 
-/****f* libAfterImage/asvisual/query_screen_visual()
+/****f* libAfterImage/query_screen_visual()
+ * NAME
+ * query_screen_visual_id()
+ * NAME
+ * query_screen_visual()
  * SYNOPSIS
  * Bool query_screen_visual_id( ASVisual *asv, Display *dpy, int screen,
  *                           Window root, int default_depth,
@@ -373,7 +388,9 @@ typedef struct ASVisual
  * Once X Visual has been identified, we create X colormap and allocate
  * white and black pixels from it.
  *********/
-/****f* libAfterImage/asvisual/setup_truecolor_visual()
+/****f* libAfterImage/setup_truecolor_visual()
+ * NAME
+ * setup_truecolor_visual()
  * SYNOPSIS
  * Bool setup_truecolor_visual( ASVisual *asv );
  * INPUTS
@@ -386,7 +403,9 @@ typedef struct ASVisual
  * colordepth, and whether we work in BGR mode. It then goes about
  * setting up correct hooks to X IO functions.
  *********/
-/****f* libAfterImage/asvisual/setup_pseudo_visual()
+/****f* libAfterImage/setup_pseudo_visual()
+ * NAME
+ * setup_pseudo_visual()
  * SYNOPSIS
  * void setup_pseudo_visual( ASVisual *asv  );
  * INPUTS
@@ -397,7 +416,9 @@ typedef struct ASVisual
  * setting up correct X IO hooks and possibly initialization of reverse
  * colormap in case ASVisual already has colormap preallocated.
  *********/
-/****f* libAfterImage/asvisual/setup_as_colormap()
+/****f* libAfterImage/setup_as_colormap()
+ * NAME
+ * setup_as_colormap()
  * SYNOPSIS
  * void setup_as_colormap( ASVisual *asv );
  * INPUTS
@@ -417,7 +438,9 @@ Bool query_screen_visual_id( ASVisual *asv, Display *dpy, int screen,
 Bool setup_truecolor_visual( ASVisual *asv );
 void setup_pseudo_visual( ASVisual *asv  );
 void setup_as_colormap( ASVisual *asv );
-/****f* libAfterImage/asvisual/create_asvisual_for_id()
+/****f* libAfterImage/create_asvisual_for_id()
+ * NAME
+ * create_asvisual_for_id()
  * SYNOPSIS
  * ASVisual *create_asvisual_for_id( Display *dpy, int screen,
  *                                   int default_depth,
@@ -446,7 +469,9 @@ void setup_as_colormap( ASVisual *asv );
  * on all Windows, Pixmaps and colormaps must match, there is a need to
  * synchronise visuals used by an app and libAfterImage.
  *********/
-/****f* libAfterImage/asvisual/create_asvisual()
+/****f* libAfterImage/create_asvisual()
+ * NAME
+ * create_asvisual()
  * SYNOPSIS
  * ASVisual *create_asvisual( Display *dpy, int screen,
  *                            int default_depth,
@@ -473,7 +498,9 @@ void setup_as_colormap( ASVisual *asv );
  * results.
  *********/
 
-/****f* libAfterImage/asvisual/destroy_asvisual()
+/****f* libAfterImage/destroy_asvisual()
+ * NAME
+ * destroy_asvisual()
  * SYNOPSIS
  * void destroy_asvisual( ASVisual *asv, Bool reusable );
  * INPUTS
@@ -494,7 +521,9 @@ ASVisual *create_asvisual( Display *dpy, int screen, int default_depth,
 	                       ASVisual *reusable_memory );
 ASVisual *get_default_asvisual();
 void destroy_asvisual( ASVisual *asv, Bool reusable );
-/****f* libAfterImage/asvisual/visual2visual_prop()
+/****f* libAfterImage/visual2visual_prop()
+ * NAME
+ * visual2visual_prop()
  * SYNOPSIS
  * Bool visual2visual_prop( ASVisual *asv, size_t *size,
  *                          unsigned long *version, unsigned long **data );
@@ -509,7 +538,9 @@ void destroy_asvisual( ASVisual *asv, Bool reusable );
  * This function will encode ASVisual structure into memory block of
  * 32 bit values, suitable for storing in X property.
  *********/
-/****f* libAfterImage/asvisual/visual_prop2visual()
+/****f* libAfterImage/visual_prop2visual()
+ * NAME
+ * visual_prop2visual()
  * SYNOPSIS
  * Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
  *                          size_t size,
@@ -541,7 +572,9 @@ Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
 #define INPUTONLY_LEGAL_MASK (CWWinGravity | CWEventMask | \
 		   				      CWDontPropagate | CWOverrideRedirect | \
 							  CWCursor )
-/****f* libAfterImage/asvisual/create_visual_window()
+/****f* libAfterImage/create_visual_window()
+ * NAME
+ * create_visual_window()
  * SYNOPSIS
  * Window  create_visual_window( ASVisual *asv, Window parent,
  *                               int x, int y,
@@ -566,7 +599,9 @@ Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
  * it will then add mandatory attributes if needed, and attempt to
  * create window for the specified ASVisual.
  *********/
-/****f* libAfterImage/asvisual/create_visual_pixmap()
+/****f* libAfterImage/create_visual_gc()
+ * NAME
+ * create_visual_gc()
  * SYNOPSIS
  * GC      create_visual_gc( ASVisual *asv, Window root,
  *                           unsigned long mask, XGCValues *gcvalues );
@@ -583,7 +618,9 @@ Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
  * Obtained GC should be good to be used for manipulation of windows and
  * Pixmaps created for the same ASVisual.
  *********/
-/****f* libAfterImage/asvisual/create_visual_pixmap()
+/****f* libAfterImage/create_visual_pixmap()
+ * NAME
+ * create_visual_pixmap()
  * SYNOPSIS
  * Pixmap  create_visual_pixmap( ASVisual *asv, Window root,
  *                               unsigned int width, unsigned int height,
@@ -601,7 +638,9 @@ Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
  * parameters, and attempt to create pixmap for the specified ASVisual,
  * root and depth.
  *********/
-/****f* libAfterImage/asvisual/create_visual_ximage()
+/****f* libAfterImage/create_visual_ximage()
+ * NAME
+ * create_visual_ximage()
  * SYNOPSIS
  * XImage* create_visual_ximage( ASVisual *asv,
  *                               unsigned int width, unsigned int height,

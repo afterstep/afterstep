@@ -6,8 +6,8 @@ extern "C" {
 #endif
 
 /****h* libAfterImage/export.h
- * DESCRIPTION
- * Image output into different file formats.
+ * NAME
+ * export - Image output into different file formats.
  * SEE ALSO
  * Structures :
  *          ASXpmExportParams
@@ -27,6 +27,13 @@ extern "C" {
  ******************/
 
 /****d* libAfterImage/ExportFlags
+ * NAME
+ * EXPORT_GRAYSCALE - save image as grayscale.
+ * NAME
+ * EXPORT_ALPHA - save alpha channel if format permits
+ * NAME
+ * EXPORT_APPEND - if format allows multiple images - image will be 
+ * appended
  * FUNCTION
  * Some common flags that could be used while writing images into
  * different file formats.
@@ -39,11 +46,7 @@ extern "C" {
 
 /****s* libAfterImage/ASXpmExportParams
  * NAME
- * ASXpmExportParams
- * SYNOPSIS
  * ASXpmExportParams - parameters for export into XPM file.
- * DESCRIPTION
- * SEE ALSO
  * SOURCE
  */
 typedef struct
@@ -57,11 +60,7 @@ typedef struct
 /*******/
 /****s* libAfterImage/ASPngExportParams
  * NAME
- * ASPngExportParams
- * SYNOPSIS
  * ASPngExportParams - parameters for export into PNG file.
- * DESCRIPTION
- * SEE ALSO
  * SOURCE
  */
 typedef struct
@@ -73,11 +72,7 @@ typedef struct
 /*******/
 /****s* libAfterImage/ASJpegExportParams
  * NAME
- * ASJpegExportParams
- * SYNOPSIS
  * ASJpegExportParams - parameters for export into JPEG file.
- * DESCRIPTION
- * SEE ALSO
  * SOURCE
  */
 typedef struct
@@ -89,11 +84,7 @@ typedef struct
 /*******/
 /****s* libAfterImage/ASGifExportParams
  * NAME
- * ASGifExportParams
- * SYNOPSIS
  * ASGifExportParams - parameters for export into GIF file.
- * DESCRIPTION
- * SEE ALSO
  * SOURCE
  */
 typedef struct
@@ -107,11 +98,7 @@ typedef struct
 /*******/
 /****s* libAfterImage/ASTiffExportParams
  * NAME
- * ASTiffExportParams
- * SYNOPSIS
  * ASTiffExportParams - parameters for export into TIFF file.
- * DESCRIPTION
- * SEE ALSO
  * SOURCE
  */
 typedef struct
@@ -135,8 +122,6 @@ typedef struct
 /*******/
 /****s* libAfterImage/ASImageExportParams
  * NAME
- * ASImageExportParams
- * SYNOPSIS
  * ASImageExportParams - union of structures holding parameters for
  *   export into different file formats.
  * DESCRIPTION
@@ -162,6 +147,8 @@ extern as_image_writer_func as_image_file_writers[ASIT_Unknown];
 
 
 /****f* libAfterImage/export/ASImage2file()
+ * NAME
+ * ASImage2file()
  * SYNOPSIS
  * Bool ASImage2file( ASImage *im, const char *dir, const char *file,
 					  ASImageFileTypes type, ASImageExportParams *params );

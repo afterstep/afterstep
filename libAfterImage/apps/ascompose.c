@@ -57,10 +57,12 @@
  * supplied XML input file.
  *
  * SYNOPSIS
- * ascompose -f file|-s string [-o file] [-t type] [-V]"
- * ascompose -i include_file [-i more_include_file ... ]-f file|-s string [-o file] [-t type] [-V]"
- * ascompose -f file|-s string [-o file] [-t type] [-V] [-n]"
- * ascompose -f file|-s string [-o file] [-t type [-c compression_level]] [-V] [-r]"
+ * ascompose -f file|-s string [-o file] [-t type] [-V]
+ * ascompose -i include_file [-i more_include_file ... ]
+ * 			 -f file|-s string [-o file] [-t type] [-V]
+ * ascompose -f file|-s string [-o file] [-t type] [-V] [-n]
+ * ascompose -f file|-s string [-o file] [-t type [-c compression_level]] 
+ * 			 [-V] [-r]
  * ascompose [-h]
  * ascompose [-v]
  *
@@ -125,7 +127,8 @@
  *                       use several of these, like: ascompose -V -V -V.
  *    -D --debug         maximum verbosity - show everything and
  *                       debug messages.
- *    -i --include file  include file as input prior to processing main file.
+ *    -i --include file  include file as input prior to processing main 
+ * 						 file.
  * PORTABILITY
  * ascompose could be used both with and without X window system. It has
  * been tested on most UNIX flavors on both 32 and 64 bit architecture.
@@ -143,7 +146,7 @@
  * Ethan Fisher          <allanon at crystaltokyo dot com>
  * Sasha Vasko           <sasha at aftercode dot net>
  * Eric Kowalski         <eric at beancrock dot net>
- *****/
+ *******/
 
 
 ASVisual *asv;
@@ -210,23 +213,20 @@ void usage(void) {
 static char* default_doc_str = "\
 <composite op=hue>\
   <composite op=add>\
-    <scale width=512 height=proportional><img id=rose src=rose512.jpg/></scale>\
+    <scale width=512 height=proportional>\
+		<img id=rose src=rose512.jpg/></scale>\
     <tile width=512 height=384><img src=back.xpm/></tile>\
   </composite>\
   <tile width=512 height=384><img src=fore.xpm/></tile>\
 </composite>\
 <printf format=\"original image width=%d\n\" var=\"rose.width\"/>\
 <printf format=\"original image height=%d\n\" var=\"rose.height\"/>\
-<printf format=\"original image size in pixels=%d\n\" val=$rose.width*$rose.height/>\
-";
+<printf format=\
+\"original image size in pixels=%d\n\" val=$rose.width*$rose.height/>";
 #else	
 static char* default_doc_str = "<img src=AfterStepBeauty/>";
 #endif
 /*******/
-/* <printf format="original image height=%d\n" var="rose.height"/>
-	<printf format="original image size in pixels=%d\n" val=$rose.width*$rose.height/>
- */ 
-	
 char *load_stdin();	
 
 typedef struct ASComposeWinProps

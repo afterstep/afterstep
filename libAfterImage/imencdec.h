@@ -8,9 +8,10 @@
 extern "C" {
 #endif
 
-/****h* libAfterImage/asimage.h
+/****h* libAfterImage/imencdec.h
  * NAME
- * ASImage defines main structures and function for image manipulation.
+ * imencdec defines main structures and function for image storing,
+ * extraction and conversion to/from usable formats.
  * DESCRIPTION
  * this header defines structures and functions to be used by outside 
  * applications for reading and writing into ASImages. ASImage pixel 
@@ -79,7 +80,8 @@ typedef struct ASImageBevel
 
 	/* these will be placed in the corners */
 	ARGB32	hihi_color ;	/* color of the top-left corner */
-	ARGB32	hilo_color ;	/* color of the top-right and bottom-left corners */
+	ARGB32	hilo_color ;	/* color of the top-right and 
+							 * bottom-left corners */
 	ARGB32	lolo_color ;	/* color of the bottom-right corner */
 
 	/* outlines define size of the line drawn around the image */
@@ -87,7 +89,8 @@ typedef struct ASImageBevel
 	unsigned short top_outline ;
 	unsigned short right_outline ; 
 	unsigned short bottom_outline ;
-	/* inlines define size of the semitransparent line drawn inside the image */
+	/* inlines define size of the semitransparent line drawn 
+	 * inside the image */
 	unsigned short left_inline ;
 	unsigned short top_inline ;
 	unsigned short right_inline ;
@@ -129,26 +132,31 @@ typedef struct ASImageBevel
 typedef void (*decode_asscanline_func)( struct ASImageDecoder *imdec, 
 										unsigned int skip, int y );
 /* high level driver (bevel or not bevel): */
-typedef void (*decode_image_scanline_func)(struct ASImageDecoder *imdec);
+typedef void (*decode_image_scanline_func)
+				(struct ASImageDecoder *imdec);
 
 typedef struct ASImageDecoder
 {
 	ASVisual 	   *asv;
 	ASImage 	   *im ;
-	ASFlagType 		filter;		 /* flags that mask set of channels to
-								  * be extracted from the image */
+	ASFlagType 		filter;		 /* flags that mask set of 
+								  * channels to be extracted 
+								  * from the image */
 
-	ARGB32	 		back_color;  /* we fill missing scanlines with this
-								  * default - black*/
-	unsigned int    offset_x,    /* left margin on source image before
-								  * which we skip everything */
-					out_width;   /* actual length of the output scanline */
+	ARGB32	 		back_color;  /* we fill missing scanlines 
+								  * with this default - black*/
+	unsigned int    offset_x,    /* left margin on source image 
+								  * before which we skip everything */
+					out_width;   /* actual length of the output 
+								  * scanline */
 	unsigned int 	offset_y,	 /* top margin */
                     out_height;
-	ASImageBevel	*bevel;      /* bevel to wrap everything around with */
+	ASImageBevel	*bevel;      /* bevel to wrap everything 
+								  * around with */
 
 	/* offsets of the drawn bevel baseline on resulting image : */
-	int            bevel_left, bevel_top, bevel_right, bevel_bottom ;
+	int            bevel_left, bevel_top, 
+					bevel_right, bevel_bottom ;
 
 	/* scanline buffer containing current scanline */
 	ASScanline 		buffer; /* matches the out_width */
@@ -157,7 +165,8 @@ typedef struct ASImageDecoder
 	unsigned short   bevel_h_addon, bevel_v_addon ;
 	int 			next_line ;
 
-    ASScanline   *xim_buffer; /* matches the size of the original XImage */
+    ASScanline   *xim_buffer; /* matches the size of the 
+							   * original XImage */
 
 	decode_asscanline_func     decode_asscanline ;
 	decode_image_scanline_func decode_image_scanline ;
@@ -260,39 +269,33 @@ typedef struct ASImageOutput
 									 * 0 - no shift,
 									 * 8 - use 8 bit precision */
 	int 			 next_line ;    /* next scanline to be written */
-	unsigned int	 tiling_step;   /* each line written will be repeated
-									 * with this step until we exceed
-									 * image size */
-	unsigned int 	 tiling_range;  /* Limits region in which we need to
-									 * tile. If set to 0 then image height
-									 * is used */
+	unsigned int	 tiling_step;   /* each line written will be 
+									 * repeated with this step until 
+									 * we exceed image size */
+	unsigned int 	 tiling_range;  /* Limits region in which we need 
+									 * to tile. If set to 0 then image 
+									 * height is used */
 	int 	    	 bottom_to_top; /* -1 if we should output in
-									 * bottom to top order, +1 otherwise*/
+									 * bottom to top order, 
+									 * +1 otherwise*/
 
 	int     		 quality ;		/* see above */
 
 	output_image_scanline_func
 		output_image_scanline ;  /* high level interface - division,
-								  * error diffusion as well as encoding */
+								  * error diffusion as well 
+								  * as encoding */
 	encode_image_scanline_func
-		encode_image_scanline ;  /* low level interface - encoding only */
+		encode_image_scanline ;  /* low level interface - 
+								  * encoding only */
 
 	/* internal data members : */
 	ASScanline 		 buffer[2], *used, *available;
 }ASImageOutput;
 /********/
-
-/****h* libAfterImage/asimage/Decoding
- * DESCRIPTION
- * start_image_decoding()   - allocates and initializes decoder
- *                            structure.
- * set_decoder_shift()      - changes the shift value of decoder - 8 or 0.
- * set_decoder_back_color() - changes the back color to be used while
- *                            decoding the image.
- * stop_image_decoding()    - finishes decoding, frees all allocated
- *                            memory.
- ************/
 /****f* libAfterImage/asimage/start_image_decoding()
+ * NAME
+ * start_image_decoding()   - allocates and initializes decoder structure.
  * SYNOPSIS
  * ASImageDecoder *start_image_decoding( ASVisual *asv,ASImage *im,
  *                                       ASFlagType filter,
@@ -336,6 +339,9 @@ typedef struct ASImageOutput
  * stop_image_decoding()
  *********/
 /****f* libAfterImage/asimage/set_decoder_bevel_geom()
+ * NAME
+ * set_decoder_bevel_geom() - changes default placement of the bevel on 
+ * decoded image. 
  * SYNOPSIS
  * void set_decoder_bevel_geom( ASImageDecoder *imdec, int x, int y,
  *                              unsigned int width, unsigned int height );
@@ -347,14 +353,15 @@ typedef struct ASImageOutput
  * width,
  * height  - widtha and height of the inner border of the bevel outline.
  * DESCRIPTION
- * This function should be used to change default placement of the bevel
- * on decoded image. For example if you only need to render small part of
- * the button, that is being rendered from transparency image.
+ * For example if you only need to render small part of the button, that 
+ * is being rendered from transparency image.
  * NOTE
  * This call modifies bevel_h_addon and bevel_v_addon of
  * ASImageDecoder structure.
  *******/
 /****f* libAfterImage/asimage/set_decoder_shift()
+ * NAME
+ * set_decoder_shift() - changes the shift value of decoder - 8 or 0.
  * SYNOPSIS
  * void set_decoder_shift( ASImageDecoder *imdec, int shift );
  * INPUTS
@@ -367,6 +374,9 @@ typedef struct ASImageOutput
  * shift memebr of ASImageDecoder structure.
  *******/
 /****f* libAfterImage/asimage/set_decoder_back_color()
+ * NAME
+ * set_decoder_back_color() - changes the back color to be used while
+ * decoding the image.
  * SYNOPSIS
  * void set_decoder_back_color( ASImageDecoder *imdec, ARGB32 back_color );
  * INPUTS
@@ -379,6 +389,9 @@ typedef struct ASImageOutput
  * back_color memebr of ASImageDecoder structure.
  *******/
 /****f* libAfterImage/asimage/stop_image_decoding()
+ * NAME
+ * stop_image_decoding()    - finishes decoding, frees all allocated
+ * memory.
  * SYNOPSIS
  * void stop_image_decoding( ASImageDecoder **pimdec );
  * INPUTS
@@ -401,16 +414,9 @@ void set_decoder_shift( ASImageDecoder *imdec, int shift );
 void set_decoder_back_color( ASImageDecoder *imdec, ARGB32 back_color );
 void stop_image_decoding( ASImageDecoder **pimdec );
 
-/****h* libAfterImage/asimage/Output
- * DESCRIPTION
- * start_image_output               - initializes output structure
- * set_image_output_back_color      - changes background color of output
- * toggle_image_output_direction    - reverses vertical direction of
- *                                    output
- * stop_image_output                - finishes output, frees all the
- *                                    allocated memory.
- ************/
 /****f* libAfterImage/asimage/start_image_output()
+ * NAME
+ * start_image_output() - initializes output structure
  * SYNOPSIS
  * ASImageOutput *start_image_output ( struct ASVisual *asv,
  *                                     ASImage *im,
@@ -439,6 +445,8 @@ void stop_image_decoding( ASImageDecoder **pimdec );
  * tiling_step member is not 0.
  **********/
 /****f* libAfterImage/asimage/set_image_output_back_color()
+ * NAME
+ * set_image_output_back_color() - changes background color of output
  * SYNOPSIS
  * void set_image_output_back_color ( ASImageOutput *imout,
  *                                    ARGB32 back_color );
@@ -449,6 +457,8 @@ void stop_image_decoding( ASImageDecoder **pimdec );
  *  			  will be used to fill empty parts of outgoing scanlines.
  *********/
 /****f* libAfterImage/asimage/toggle_image_output_direction()
+ * NAME
+ * toggle_image_output_direction() - reverses vertical direction of output
  * SYNOPSIS
  * void toggle_image_output_direction( ASImageOutput *imout );
  * INPUTS
@@ -463,6 +473,8 @@ void stop_image_decoding( ASImageDecoder **pimdec );
  * the image.
  *********/
 /****f* libAfterImage/asimage/stop_image_output()
+ * NAME
+ * stop_image_output() - finishes output, frees all the allocated memory.
  * SYNOPSIS
  * void stop_image_output( ASImageOutput **pimout );
  * INPUTS

@@ -16,7 +16,7 @@ struct ASScanline;
 
 /****h* libAfterImage/asimage.h
  * NAME
- * asimage.h defines main structures and function for image manipulation.
+ * asimage defines main structures and function for image manipulation.
  * DESCRIPTION
  * libAfterImage provides powerful functionality to load, store
  * and transform images. It allows for smaller memory utilization by
@@ -79,8 +79,8 @@ struct ASScanline;
 
 /****d* libAfterImage/ASAltImFormats
  * NAME 
- * ASAltImFormats identifies what output format should be used for storing the
- * transformation result. Also identifies what data is currently stored
+ * ASAltImFormats identifies what output format should be used for storing 
+ * the transformation result. Also identifies what data is currently stored
  * in alt member of ASImage structure.
  * SOURCE
  */
@@ -168,8 +168,8 @@ typedef struct ASImage
 #define ASIM_DATA_NOT_USEFUL	(0x01<<0)
 #define ASIM_VECTOR_TOP2BOTTOM	(0x01<<1)
 #define ASIM_XIMAGE_8BIT_MASK	(0x01<<2)
-#define ASIM_NO_COMPRESSION		(0x01<<3) /* Do not use compression to save 
-										   * some computation time
+#define ASIM_NO_COMPRESSION		(0x01<<3) /* Do not use compression to 
+										   * save some computation time
 										   */
 #define ASIM_ALPHA_IS_BITMAP	(0x01<<4) 
 #define ASIM_RGB_IS_BITMAP		(0x01<<5) 
@@ -428,8 +428,8 @@ typedef struct ASGradient
  * ASIM_COMPRESSION_NONE defined as 0 - disables compression.
  * NAME 
  * ASIM_COMPRESSION_FULL defined as 100 - highest compression level.
- * Anything in between 0 and 100 will cause only part of the scanline to be 
- * compressed.
+ * Anything in between 0 and 100 will cause only part of the scanline to 
+ * be compressed.
  ********/
 #define ASIM_COMPRESSION_NONE       0
 #define ASIM_COMPRESSION_FULL	   100
@@ -460,9 +460,9 @@ int mmx_off(void);
  *********/
 /****f* libAfterImage/asimage/asimage_start()
  * NAME
- * asimage_start() Allocates memory needed to store scanline of the image of 
- * supplied size. Assigns all the data members valid values. Makes sure that
- * ASImage structure is ready to store image data.
+ * asimage_start() Allocates memory needed to store scanline of the image 
+ * of supplied size. Assigns all the data members valid values. Makes sure 
+ * that ASImage structure is ready to store image data.
  * SYNOPSIS
  * void asimage_start (ASImage * im, unsigned int width,
  *                                   unsigned int height,
@@ -481,9 +481,9 @@ int mmx_off(void);
  *********/
 /****f* libAfterImage/asimage/create_asimage()
  * NAME
- * create_asimage() Performs memory allocation for the new ASImage structure, 
- * as well as initialization of allocated structure based on supplied 
- * parameters.
+ * create_asimage() Performs memory allocation for the new ASImage 
+ * structure, as well as initialization of allocated structure based on 
+ * supplied parameters.
  * SYNOPSIS
  * ASImage *create_asimage( unsigned int width,
  *                          unsigned int height,
@@ -537,8 +537,8 @@ ASImage *clone_asimage( ASImage *src, ASFlagType filter );
 void destroy_asimage( ASImage **im );
 /****f* libAfterImage/asimage/set_asimage_vector()
  * NAME
- * set_asimage_vector() This function replaces contents of the vector member 
- * of ASImage structure with new double precision data.
+ * set_asimage_vector() This function replaces contents of the vector 
+ * member of ASImage structure with new double precision data.
  * SYNOPSIS
  * set_asimage_vector( ASImage *im, register double *vector );
  * INPUTS
@@ -581,7 +581,8 @@ Bool set_asimage_vector( ASImage *im, register double *vector );
  * NAME 
  * destroy_image_manager() destroy management obejct.
  * SYNOPSIS
- * void destroy_image_manager( struct ASImageManager *imman, Bool reusable );
+ * void destroy_image_manager( struct ASImageManager *imman, 
+ * 							   Bool reusable );
  * INPUTS
  * imman           - pointer to ASImageManager object to be deallocated
  * reusable        - if True, then memory that holds object itself will
@@ -598,7 +599,8 @@ void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
  * NAME
  * store_asimage()  add ASImage to the reference.
  * SYNOPSIS
- * Bool store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
+ * Bool store_asimage( ASImageManager* imageman, ASImage *im, 
+ * 					   const char *name );
  * INPUTS
  * imageman        - pointer to valid ASImageManager object.
  * im              - pointer to the image to be stored.
@@ -705,8 +707,8 @@ void  destroy_asgradient( ASGradient **pgrad );
  * SYNOPSIS
  * ASGradient *flip_gradient( ASGradient *orig, int flip );
  * INPUTS
- * orig           - pointer to original ASGradient structure to be rotated.
- * flip           - value defining desired rotation.
+ * orig       - pointer to original ASGradient structure to be rotated.
+ * flip       - value defining desired rotation.
  * RETURN VALUE
  * Same as original gradient if flip is 0. New gradient structure in any
  * other case.
@@ -752,10 +754,11 @@ ASImageLayer *create_image_layers( int count );
  * void destroy_image_layers( register ASImageLayer *l,
  *                            int count,
  *                            Bool reusable );
- * l				- pointer to pointer to valid array of ASImageLayer
- *                    structures.
- * count            - number of structures in array.
- * reusable         - if True - then array itself will not be deallocates -
+ * INPUTS
+ * l			- pointer to pointer to valid array of ASImageLayer
+ *                structures.
+ * count        - number of structures in array.
+ * reusable     - if True - then array itself will not be deallocates -
  *                    which is usable when it was allocated on stack.
  * DESCRIPTION
  * frees all the memory allocated for specified array of ASImageLayer s.
@@ -810,8 +813,8 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  * INPUTS
  * im         - valid ASImage object.
  * DESCRIPTION
- * goes throu all the scanlines of the ASImage and toggles bits representing
- * those components that have at least some data.
+ * goes throu all the scanlines of the ASImage and toggles bits 
+ * representing those components that have at least some data.
  *********/
 /****f* libAfterImage/asimage/move_asimage_channel()
  * NAME

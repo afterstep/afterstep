@@ -6,8 +6,8 @@ extern "C" {
 #endif
 
 /****h* libAfterImage/ascmap.h
- * SYNOPSIS
- * Defines main structures and function for image quantization.
+ * NAME
+ * ascmap - Defines main structures and function for image quantization.
  * DESCRIPTION
  * Image quantization is needed primarily in order to be able to export
  * images into file, with colormap format, such as GIF and XPM.
@@ -41,8 +41,7 @@ extern "C" {
  *          import.h transform.h ximage.h
  * AUTHOR
  * Sasha Vasko <sasha at aftercode dot net>
- ******
- */
+ *******/
 
 /***********************************************************************************/
 /* reduced colormap building code :                                                */
@@ -131,11 +130,7 @@ typedef struct ASSortedColorHash
 
 /****s* libAfterImage/ASColormapEntry
  * NAME
- * ASColormapEntry
- * SYNOPSIS
- * ASColormapEntry represents single colorcell in the colormap.
- * DESCRIPTION
- * SEE ALSO
+ * ASColormapEntry - ASColormapEntry represents single colorcell in the colormap.
  * SOURCE
  */
 
@@ -146,11 +141,7 @@ typedef struct ASColormapEntry
 /*******/
 /****s* libAfterImage/ASColormap
  * NAME
- * ASColormap
- * SYNOPSIS
- * ASColormap represents entire colormap generated for the image.
- * DESCRIPTION
- * SEE ALSO
+ * ASColormap - ASColormap represents entire colormap generated for the image.
  * SOURCE
  */
 typedef struct ASColormap
@@ -177,7 +168,9 @@ int         get_color_index         ( ASSortedColorHash *index,
 ASColormap *color_hash2colormap     ( ASColormap *cmap,
 	                                  unsigned int max_colors );
 
-/****f* libAfterImage/ascmap/colormap_asimage()
+/****f* libAfterImage/colormap_asimage()
+ * NAME
+ * colormap_asimage()
  * SYNOPSIS
  * int *colormap_asimage( ASImage *im, ASColormap *cmap,
  *                        unsigned int max_colors, unsigned int dither,
@@ -204,7 +197,9 @@ ASColormap *color_hash2colormap     ( ASColormap *cmap,
  * colors.
  *
  *********/
-/****f* libAfterImage/ascmap/destroy_colormap()
+/****f* libAfterImage/destroy_colormap()
+ * NAME
+ * destroy_colormap()
  * SYNOPSIS
  * void destroy_colormap( ASColormap *cmap, Bool reusable );
  * INPUTS

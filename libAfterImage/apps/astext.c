@@ -47,20 +47,30 @@
 
 void usage()
 {
-	printf( "  Usage:   astext [-h] [-f font] [-s size] [-t text] [-S 3D_style] \n");
+	printf( "  Usage:   astext [-h] [-f font] [-s size] [-t text] "
+			"[-S 3D_style] \n");
 	printf( "                  [-c text_color] [-b background_color]\n");
-	printf( "                  [-T foreground_texture] [-B background_image]\n");
-	printf( "      			   [-r foreground_resize_type] [-R background_resize_type]\n");
+	printf( "                  [-T foreground_texture] "
+			"[-B background_image]\n");
+	printf( "      			   [-r foreground_resize_type] "
+			"[-R background_resize_type]\n");
 	printf( "      			   [-m ]\n");
-	printf( "  Where: font - TrueType font's filename or X font spec or alias;\n");
+	printf( "  Where: font - TrueType font's filename or X font spec or "
+			"alias;\n");
 	printf( "         size - size in points for TrueType fonts;\n");
 	printf( "         text - text to be drawn;\n");
-	printf( "         3D_style - 3D style of text. One of the following:\n");
-	printf( "             0 - plain 2D tetx, 1 - embossed, 2 - sunken, 3 - shade above,\n");
-	printf( "             4 - shade below, 5 - embossed thick, 6 - sunken thick.\n");
-	printf( "             7 - ouline above, 8 - ouline below, 9 - full ouline.\n");
-	printf( "         resize_type - tells how texture/image should be transformed to fit\n");
-	printf( "                       the text size. Could be: scale or tile. Default is tile\n");
+	printf( "         3D_style - 3D style of text. "
+			"One of the following:\n");
+	printf( "             0 - plain 2D tetx, 1 - embossed, 2 - sunken, "
+			"3 - shade above,\n");
+	printf( "             4 - shade below, 5 - embossed thick, "
+			"6 - sunken thick.\n");
+	printf( "             7 - ouline above, 8 - ouline below, "
+			"9 - full ouline.\n");
+	printf( "         resize_type - tells how texture/image should be "
+			"transformed to fit\n");
+	printf( "         the text size. Could be: scale or tile." 
+			"Default is tile\n");
 	printf( "         -m make font monospaced. \n");
 
 
@@ -72,15 +82,8 @@ int main(int argc, char* argv[])
 	int screen = 0, depth = 0;
 	char *font_name = "test.ttf";
 	int size = 32 ;
-#if 0	
-	char *text ="CVS\t\t     command.c\tiobuff.c  rxvt.h.notmine  thai.c\n"
-				"Makefile\t     command.o\tiobuff.o  scrbuff.c\t  thai.h\n"
-				"Makefile.in\t     events.c\tlog	  scrbuff.h	  thai.o\n"
-				"afterstep.h	     events.o	main.c	  scrbuff.o	  unicode\n"
-				"aterm.exe	     feature.h	main.o	  screen.c	  utmp.c\n";
-#else
- 	char *text = "Smart Brown Dog jumps\nOver The Lazy Fox,\nand falls into the ditch.";
-#endif
+ 	char *text = "Smart Brown Dog jumps\nOver The Lazy Fox,\n"
+				 "and falls into the ditch.";
 	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
 	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
 	char *fore_image_file = "fore.xpm" ;
@@ -94,7 +97,9 @@ int main(int argc, char* argv[])
 	int i ;
 	int text_margin = size/2 ;
 	Bool monospaced = False ;
-	ASTextAttributes attr = {ASTA_VERSION_1, ASTA_UseTabStops, AST_ShadeBelow, ASCT_Char, 8, 0, NULL, 0, ARGB32_White };
+	ASTextAttributes attr = {ASTA_VERSION_1, ASTA_UseTabStops, 
+							 AST_ShadeBelow, ASCT_Char, 8, 0, 
+							 NULL, 0, ARGB32_White };
 	
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -129,7 +134,8 @@ int main(int argc, char* argv[])
 				attr.type = atoi(argv[i+1]);
 				if( attr.type >= AST_3DTypes )
 				{
-					show_error( "3D type is wrong. Using 2D Plain instead.");
+					show_error( "3D type is wrong. "
+								"Using 2D Plain instead.");
 					attr.type = AST_Plain ;
 				}
 
@@ -158,15 +164,17 @@ int main(int argc, char* argv[])
 
 	/* see ASText.1 : */
 	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
-		font = get_asfont( fontman, font_name, 0, size, ASF_GuessWho|(monospaced?ASF_Monospaced:0) );
+		font = get_asfont( fontman, font_name, 0, size, 
+						   ASF_GuessWho|(monospaced?ASF_Monospaced:0) );
 
 	if( font == NULL )
 	{
-		show_error( "unable to load requested font \"%s\". Falling back to \"fixed\".", font_name );
+		show_error( "unable to load requested font \"%s\". "
+					"Falling back to \"fixed\".", font_name );
 		font = get_asfont( fontman, "fixed", 0, size, ASF_GuessWho );
 		if( font == NULL )
 		{
-			show_error( "font \"fixed\" is not available either. Aborting.");
+			show_error("font \"fixed\" is not available either. Aborting.");
 			return 1;
 		}
 	}
@@ -183,8 +191,8 @@ int main(int argc, char* argv[])
 
 	/* see ASText.2 : */
 	/*set_asfont_glyph_spacing( font, 10, 40 );*/
-    /* Simple way : get_text_size( text, font, attr.type, &width, &height ); */
-	/* Fancy way : */
+    /*Simple way:get_text_size( text, font, attr.type, &width, &height ); */
+	/*Fancy way : */
 	get_fancy_text_size( text, font, &attr, &width, &height, 0, NULL );
 	if( fore_image_file )
 	{
@@ -196,10 +204,13 @@ int main(int argc, char* argv[])
 			{   /* see ASScale.2 : */
 				if( scale_fore_image )
 					fore_im = scale_asimage( asv, tmp, width, height,
-  					                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+  					                         ASA_ASImage, 0, 
+											 ASIMAGE_QUALITY_DEFAULT );
 				else
-					fore_im = tile_asimage( asv, tmp, 0, 0, width, height, 0,
-  					                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+					fore_im = tile_asimage( asv, tmp, 0, 0, 
+											width, height, 0,
+  					                        ASA_ASImage, 0, 
+											ASIMAGE_QUALITY_DEFAULT );
 				destroy_asimage( &tmp );
 			}else
 				fore_im = tmp ;
@@ -214,10 +225,12 @@ int main(int argc, char* argv[])
 			                        SCREEN_GAMMA, 0, NULL );
 		if( tmp )
 		{
-			if( scale_back_image && (tmp->width != width || tmp->height != height) )
+			if( scale_back_image && 
+				(tmp->width != width || tmp->height != height) )
 			{   /* see ASScale.2 : */
 				back_im = scale_asimage( asv, tmp, width, height,
-				                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+				                         ASA_ASImage, 0, 
+										 ASIMAGE_QUALITY_DEFAULT );
 				destroy_asimage( &tmp );
 			}else
 				back_im = tmp ;
@@ -229,10 +242,6 @@ int main(int argc, char* argv[])
     /* simple way : text_im = draw_text( text, font, attr.type, 0 ); */
 	text_im = draw_fancy_text( text, font, &attr, 0, 0 );
 
-/*
-show_progress( "text_im->width = %d, text_im->height = %d", text_im->width, text_im->height );
-show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore_im->height );
-*/
 	if( fore_im )
 	{
 		move_asimage_channel( fore_im, IC_ALPHA, text_im, IC_ALPHA );
@@ -248,7 +257,9 @@ show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore
 	{
 		ASImage *rendered_im ;
 		ASImageLayer layers[2] ;
-		ASImageBevel bevel = {0/*BEVEL_SOLID_INLINE*/, 0xFFDDDDDD, 0xFF555555, 0xFFFFFFFF, 0xFF777777, 0xFF222222,
+		ASImageBevel bevel = {0/*BEVEL_SOLID_INLINE*/, 0xFFDDDDDD, 
+							  0xFF555555, 0xFFFFFFFF, 
+							  0xFF777777, 0xFF222222,
 		                      BEVEL_HI_WIDTH, BEVEL_HI_WIDTH,
 							  BEVEL_LO_WIDTH, BEVEL_LO_WIDTH,
 							  BEVEL_HI_WIDTH, BEVEL_HI_WIDTH,
@@ -268,7 +279,11 @@ show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore
 		layers[0].bevel = &bevel ;
 		layers[1].im = fore_im ;
 		layers[1].dst_x = text_margin+BEVEL_HI_WIDTH*2 ;
-		layers[1].dst_y = text_margin+MIN((int)text_margin,((int)font->max_height-(int)font->max_ascend))/2+BEVEL_HI_WIDTH*2;
+		layers[1].dst_y = text_margin+
+							MIN( (int)text_margin,
+								((int)font->max_height-
+								 (int)font->max_ascend))/2+
+								 BEVEL_HI_WIDTH*2;
 		if( fore_im ) 
 		{	
 			layers[1].clip_width = fore_im->width ;
@@ -290,8 +305,10 @@ show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore
 #ifndef X_DISPLAY_MISSING
 			Window w;
 			/* see ASView.4 : */
-			w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-			      		                 width+BEVEL_ADDON, height+BEVEL_ADDON,
+			w = create_top_level_window( asv, DefaultRootWindow(dpy), 
+										 32, 32,
+			      		                 width+BEVEL_ADDON, 
+										 height+BEVEL_ADDON,
 										 1, 0, NULL,
 										 "ASText", text );
 			if( w != None )
@@ -301,8 +318,8 @@ show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore
 			  	XMapRaised   (dpy, w);
 
 				/* see ASView.5 : */
-				p = asimage2pixmap( asv, DefaultRootWindow(dpy), rendered_im,
-						            NULL, True );
+				p = asimage2pixmap( asv, DefaultRootWindow(dpy), 
+									rendered_im, NULL, True );
 				destroy_asimage( &rendered_im );
 				/* see common.c: set_window_background_and_free() : */
 				p = set_window_background_and_free( w, p );
@@ -313,7 +330,8 @@ show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore
       			XCloseDisplay (dpy);
 #else
 			/* writing result into the file */
-			ASImage2file( rendered_im, NULL, "astext.jpg", ASIT_Jpeg, NULL );
+			ASImage2file( rendered_im, NULL, "astext.jpg", ASIT_Jpeg, 
+						  NULL );
 			destroy_asimage( &rendered_im );
 #endif
 		}
@@ -345,7 +363,8 @@ show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore
  *         font = get_asfont( fontman, "fixed", 0, size, ASF_GuessWho );
  *         if( font == NULL )
  *         {
- *             show_error( "font \"fixed\" is not available either. Aborting.");
+ *             show_error( "font \"fixed\" is not available either. 
+ * 							Aborting.");
  *             return 1;
  *         }
  *     }

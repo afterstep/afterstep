@@ -7,6 +7,8 @@ extern "C" {
 #endif
 
 /****h* libAfterImage/blender.h
+ * NAME 
+ * blender
  * DESCRIPTION
  * Defines implemented methods for ASScanline combining, that could
  * be passed to merge_layers() via ASImageLayer structure.
@@ -42,7 +44,9 @@ struct ASScanline;
 /* it produces  bottom = bottom <merge> top */
 typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanline *top, int offset);
 
-/****d* libAfterImage/blender/colorspace
+/****d* libAfterImage/colorspace
+ * NAME
+ * colorspace
  * DESCRIPTION
  * RGB colorspace: each color is represented as a combination of
  * red, green and blue values. Each value can be in 2 formats :
@@ -64,7 +68,15 @@ typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanli
  * represents most colors as ARGB32 values or ASScanline scanlines of
  * pixels.
  ****************/
-/****f* libAfterImage/blender/rgb2value()
+/****f* libAfterImage/rgb2value()
+ * NAME
+ * rgb2value()
+ * NAME
+ * rgb2saturation()
+ * NAME
+ * rgb2hue()
+ * NAME
+ * rgb2luminance()
  * SYNOPSIS
  * CARD32 rgb2value( CARD32 red, CARD32 green, CARD32 blue );
  * CARD32 rgb2saturation( CARD32 red, CARD32 green, CARD32 blue );
@@ -80,7 +92,7 @@ typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanli
  * DESCRIPTION
  * This functions translate RGB color into respective coordinates of
  * HSV and HLS colorspaces.
- * REturned hue values are in 16bit format. To translate it to and from
+ * Returned hue values are in 16bit format. To translate it to and from
  * conventional 0-360 degree range, please use :
  * degrees2hue16() - converts conventional hue in 0-360 range into hue16
  * hue162degree()  - converts 16bit hue value into conventional degrees.
@@ -99,7 +111,11 @@ inline CARD32 rgb2value( CARD32 red, CARD32 green, CARD32 blue );
 inline CARD32 rgb2saturation( CARD32 red, CARD32 green, CARD32 blue );
 inline CARD32 rgb2hue( CARD32 red, CARD32 green, CARD32 blue );
 inline CARD32 rgb2luminance (CARD32 red, CARD32 green, CARD32 blue );
-/****f* libAfterImage/blender/rgb2hsv()
+/****f* libAfterImage/rgb2hsv()
+ * NAME
+ * rgb2hsv()
+ * NAME
+ * rgb2hls()
  * SYNOPSIS
  * CARD32 rgb2hsv( CARD32 red, CARD32 green, CARD32 blue,
  *                 CARD32 *saturation, CARD32 *value );
@@ -120,7 +136,11 @@ inline CARD32 rgb2luminance (CARD32 red, CARD32 green, CARD32 blue );
  ****************/
 inline CARD32 rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *value );
 inline CARD32 rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance, CARD32 *saturation );
-/****f* libAfterImage/blender/hsv2rgb()
+/****f* libAfterImage/hsv2rgb()
+ * NAME
+ * hsv2rgb()
+ * NAME
+ * hls2rgb()
  * SYNOPSIS
  * void hsv2rgb( CARD32 hue, CARD32 saturation, CARD32 value,
  *               CARD32 *red, CARD32 *green, CARD32 *blue);
@@ -142,7 +162,60 @@ inline void hsv2rgb (CARD32 hue, CARD32 saturation, CARD32 value, CARD32 *red, C
 inline void hls2rgb (CARD32 hue, CARD32 luminance, CARD32 saturation, CARD32 *red, CARD32 *green, CARD32 *blue);
 
 /* scanline blending 													 */
-/****f* libAfterImage/blender/merge_scanline
+/****f* libAfterImage/merge_scanline
+ * NAME
+ * alphablend_scanlines() - combines top and bottom RGB components based
+ *                        on alpha channel value:
+ *                        bottom = bottom*(255-top_alpha)+top*top_alpha;
+ * NAME
+ * allanon_scanlines()  - averages each pixel between two scanlines.
+ *                        This method has been first implemented by
+ *                        Ethan Fisher aka allanon as mode 130:
+ *                        bottom = (bottom+top)/2;
+ * NAME
+ * tint_scanlines()     - tints bottom scanline with top scanline( with
+ *                        saturation to prevent overflow) :
+ *                        bottom = (bottom*(top/2))/32768;
+ * NAME
+ * add_scanlines()      - adds top scanline to bottom scanline with
+ *                        saturation to prevent overflow:
+ *                        bottom = bottom+top;
+ * NAME
+ * sub_scanlines()      - substrates top scanline from bottom scanline
+ *                        with saturation to prevent overflow:
+ *                        bottom = bottom-top;
+ * NAME
+ * diff_scanlines()     - for each pixel calculates absolute difference
+ *                        between bottom and top color value :
+ *                        bottom = (bottom>top)?bottom-top:top-bottom;
+ * NAME
+ * darken_scanlines()   - substitutes each pixel with minimum color
+ *                        value of top and bottom :
+ *                        bottom = (bottom>top)?top:bottom;
+ * NAME
+ * lighten_scanlines()  - substitutes each pixel with maximum color
+ *                        value of top and bottom :
+ *                        bottom = (bottom>top)?bottom:top;
+ * NAME
+ * screen_scanlines()   - some wierd merging algorithm taken from GIMP;
+ * NAME
+ * overlay_scanlines()  - some wierd merging algorithm taken from GIMP;
+ * NAME
+ * hue_scanlines()      - substitute hue of bottom scanline with hue of
+ *                        top scanline;
+ * NAME
+ * saturate_scanlines() - substitute saturation of bottom scanline with
+ *                        the saturation of top scanline;
+ * NAME
+ * value_scanlines()    - substitute value of bottom scanline with
+ *                        the value of top scanline;
+ * NAME
+ * colorize_scanlines() - combine luminance of bottom scanline with hue
+ *                        and saturation of top scanline;
+ * NAME
+ * dissipate_scanlines()- randomly alpha-blend bottom and top scanlines,
+ *                        using alpha value of top scanline as a
+ *                        threshold for random values.
  * SYNOPSIS
  * void alphablend_scanlines( ASScanline *bottom, ASScanline *top, int );
  * void allanon_scanlines   ( ASScanline *bottom, ASScanline *top, int );
@@ -169,44 +242,6 @@ inline void hls2rgb (CARD32 hue, CARD32 luminance, CARD32 saturation, CARD32 *re
  * ASScanline.
  * The following are merging methods used in each function :
  *
- * alphablend_scanlines - combines top and bottom RGB components based
- *                        on alpha channel value:
- *                        bottom = bottom*(255-top_alpha)+top*top_alpha;
- * allanon_scanlines    - averages each pixel between two scanlines.
- *                        This method has been first implemented by
- *                        Ethan Fisher aka allanon as mode 130:
- *                        bottom = (bottom+top)/2;
- * tint_scanlines       - tints bottom scanline with top scanline( with
- *                        saturation to prevent overflow) :
- *                        bottom = (bottom*(top/2))/32768;
- * add_scanlines        - adds top scanline to bottom scanline with
- *                        saturation to prevent overflow:
- *                        bottom = bottom+top;
- * sub_scanlines        - substrates top scanline from bottom scanline
- *                        with saturation to prevent overflow:
- *                        bottom = bottom-top;
- * diff_scanlines       - for each pixel calculates absolute difference
- *                        between bottom and top color value :
- *                        bottom = (bottom>top)?bottom-top:top-bottom;
- * darken_scanlines     - substitutes each pixel with minimum color
- *                        value of top and bottom :
- *                        bottom = (bottom>top)?top:bottom;
- * lighten_scanlines    - substitutes each pixel with maximum color
- *                        value of top and bottom :
- *                        bottom = (bottom>top)?bottom:top;
- * screen_scanlines     - some wierd merging algorithm taken from GIMP;
- * overlay_scanlines    - some wierd merging algorithm taken from GIMP;
- * hue_scanlines        - substitute hue of bottom scanline with hue of
- *                        top scanline;
- * saturate_scanlines   - substitute saturation of bottom scanline with
- *                        the saturation of top scanline;
- * value_scanlines      - substitute value of bottom scanline with
- *                        the value of top scanline;
- * colorize_scanlines   - combine luminance of bottom scanline with hue
- *                        and saturation of top scanline;
- * dissipate_scanlines  - randomly alpha-blend bottom and top scanlines,
- *                        using alpha value of top scanline as a
- *                        threshold for random values.
  ****************/
 void alphablend_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 void allanon_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
@@ -230,7 +265,11 @@ void value_scanlines( struct ASScanline *bottom, struct ASScanline *top, int off
 void colorize_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 void dissipate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 
-/****f* libAfterImage/blender/blend_scanlines_name2func()
+/****f* libAfterImage/blend_scanlines_name2func()
+ * NAME
+ * blend_scanlines_name2func()
+ * NAME
+ * list_scanline_merging()
  * SYNOPSIS
  * merge_scanlines_func blend_scanlines_name2func( const char *name );
  * void list_scanline_merging(FILE* stream, const char *format);

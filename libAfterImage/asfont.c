@@ -1770,11 +1770,9 @@ draw_text_internal( const char *text, ASFont *font, ASTextAttributes *attr, int 
 	ASImage *im;
 	int pen_x = 0, pen_y = 0;
 	unsigned int offset_3d_x = 0, offset_3d_y = 0  ;
-#ifdef DO_CLOCKING
-	time_t started = clock ();
-#endif
 	CARD32 back_color = 0 ;
 	CARD32 alpha_7 = 0x007F, alpha_9 = 0x009F, alpha_A = 0x00AF, alpha_C = 0x00CF, alpha_F = 0x00FF, alpha_E = 0x00EF;
+	START_TIME(started);	   
 
 LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font, compression );
 	if( !get_text_glyph_map( text, font, &map, attr, length) )
@@ -1974,9 +1972,7 @@ LOCAL_DEBUG_OUT( "line_height is %d, space_size is %d, base_line is %d", line_he
 		free( rgb_memory );
 	if( rgb_scanlines ) 
 		free( rgb_scanlines );
-#ifdef DO_CLOCKING
-	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
-#endif
+	SHOW_TIME("", started);
 	return im;
 }
 

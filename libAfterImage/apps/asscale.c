@@ -59,7 +59,8 @@ int main(int argc, char* argv[])
 			                             &to_width, &to_height );
 	}else
 	{
-		show_warning( "no image file or scale geometry - defaults used: \"%s\" ",
+		show_warning( "no image file or scale geometry - defaults used:"
+					  " \"%s\" ",
 		              image_file );
 		usage();
 	}
@@ -86,13 +87,16 @@ int main(int argc, char* argv[])
 			int screen, depth ;
 
 		    dpy = XOpenDisplay(NULL);
-			_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
+			_XA_WM_DELETE_WINDOW = XInternAtom( dpy, 
+												"WM_DELETE_WINDOW", 
+												False);
 			screen = DefaultScreen(dpy);
 			depth = DefaultDepth( dpy, screen );
 			/* see ASView.3 : */
 			asv = create_asvisual( dpy, screen, depth, NULL );
 			/* see ASView.4 : */
-			w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+			w = create_top_level_window( asv, DefaultRootWindow(dpy), 
+										 32, 32,
 				                         to_width, to_height, 1, 0, NULL,
 										 "ASScale", image_file );
 			if( w != None )
@@ -102,10 +106,11 @@ int main(int argc, char* argv[])
 		  		XMapRaised   (dpy, w);
 				/* see ASScale.2 : */
 				scaled_im = scale_asimage( asv, im, to_width, to_height,
-					                       ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+					                       ASA_XImage, 0, 
+										   ASIMAGE_QUALITY_DEFAULT );
 				destroy_asimage( &im );
 				/* see ASView.5 : */
-				p = asimage2pixmap( asv, DefaultRootWindow(dpy), scaled_im,
+				p = asimage2pixmap(asv, DefaultRootWindow(dpy), scaled_im,
 					                NULL, True );
 				/* print_storage(NULL); */
 				destroy_asimage( &scaled_im );
@@ -117,8 +122,9 @@ int main(int argc, char* argv[])
 		}
 #else
 		asv = create_asvisual( NULL, 0, 0, NULL );
-		scaled_im = scale_asimage( asv, im, to_width, to_height,
-			                       ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+		scaled_im = scale_asimage(asv, im, to_width, to_height,
+			                      ASA_ASImage, 0, 
+								  ASIMAGE_QUALITY_DEFAULT );
 		/* writing result into the file */
 		ASImage2file( scaled_im, NULL, "asscale.jpg", ASIT_Jpeg, NULL );
 		destroy_asimage( &scaled_im );
@@ -171,7 +177,7 @@ int main(int argc, char* argv[])
  *
  * EXAMPLE
  *     scaled_im = scale_asimage( asv, im, to_width, to_height,
- * 	                              ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+ * 	                           ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
  *     destroy_asimage( &im );
  * NOTES
  * Scaling image up to very large height is much slower then to same

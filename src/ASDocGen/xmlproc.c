@@ -769,7 +769,12 @@ start_title_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 			fprintf( state->dest_fp, "<p class=\"sect_header\"><B>" );	   
 	}else if( state->doc_type == DocType_PHP )
 	{	
-		fprintf( state->dest_fp, "<B>");	
+		if( get_flags( state->flags, ASXMLI_FormalPara ) )
+		{
+			add_glossary_item( doc, state ); 	  
+			close_link(state);
+		}
+		fprintf( state->dest_fp, "<B>");	   
 	}
 }
 

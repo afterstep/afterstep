@@ -77,8 +77,10 @@ Atom _XA_WM_DELETE_WINDOW = None;
 Window
 create_top_level_window( ASVisual *asv, Window root, int x, int y,
                          unsigned int width, unsigned int height,
-						 unsigned int border_width, unsigned long attr_mask,
-						 XSetWindowAttributes *attr, const char *app_class, const char *app_name )
+						 unsigned int border_width, 
+						 unsigned long attr_mask,
+						 XSetWindowAttributes *attr, 
+						 const char *app_class, const char *app_name )
 {
  	Window w = None;
 #ifndef X_DISPLAY_MISSING
@@ -86,7 +88,8 @@ create_top_level_window( ASVisual *asv, Window root, int x, int y,
 	XTextProperty name;
 	XClassHint class1;
 
-	w = create_visual_window(asv, root, x, y, width, height, border_width, InputOutput, attr_mask, attr );
+	w = create_visual_window(asv, root, x, y, width, height, border_width, 
+							 InputOutput, attr_mask, attr );
 
 	tmp = (app_name==NULL)?(char*)get_application_name():(char*)app_name;
     XStringListToTextProperty (&tmp, 1, &name);
@@ -171,7 +174,9 @@ wait_closedown( Window w )
     if( dpy == NULL || w == None )
 		return ;
 
-	XSelectInput (dpy, w, (StructureNotifyMask | ButtonPressMask|ButtonReleaseMask));
+	XSelectInput (dpy, w, ( StructureNotifyMask | 
+							ButtonPressMask|
+							ButtonReleaseMask));
 
 	while(w != None)
   	{
