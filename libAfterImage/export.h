@@ -8,9 +8,10 @@
  *  		ASImage2file()
  *
  * Other libAfterImage modules :
- *     asimage.h, asvisual.h, blender.h, asfont.h, import.h
+ *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
+ *          import.h transform.h ximage.h
  * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
+ * Sasha Vasko <sasha at aftercode dot net>
  ******************/
 #define EXPORT_GRAYSCALE			(0x01<<0)
 #define EXPORT_ALPHA				(0x01<<1)

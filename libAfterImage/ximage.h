@@ -19,14 +19,14 @@
  * 				  	  mask Pixmap.
  * SEE ALSO
  * Other libAfterImage modules :
- *          asvisual.h, ascmap.h, asimage.h, import.h, export.h
- *          transform.h, blender.h, asfont.h
+ *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
+ *          import.h transform.h ximage.h
  * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
+ * Sasha Vasko <sasha at aftercode dot net>
  ******
  */
 
-/****f* libAfterImage/asimage/ximage2asimage()
+/****f* libAfterImage/ximage/ximage2asimage()
  * SYNOPSIS
  * ASImage *ximage2asimage ( struct ASVisual *asv, XImage * xim,
  *                           unsigned int compression );
@@ -43,7 +43,7 @@
  * supplied ASVisual, and resulting scanlines will be encoded into
  * ASImage.
  *********/
-/****f* libAfterImage/asimage/pixmap2asimage()
+/****f* libAfterImage/ximage/pixmap2asimage()
  * SYNOPSIS
  * ASImage *pixmap2asimage ( struct ASVisual *asv, Pixmap p,
  *                           int x, int y,
@@ -75,7 +75,7 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
 	                     unsigned int width, unsigned int height,
 		  				 unsigned long plane_mask, Bool keep_cache, unsigned int compression);
 
-/****f* libAfterImage/asimage/asimage2ximage()
+/****f* libAfterImage/ximage/asimage2ximage()
  * SYNOPSIS
  * XImage  *asimage2ximage  (struct ASVisual *asv, ASImage *im);
  * INPUTS
@@ -98,7 +98,7 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * SEE ALSO
  * create_visual_ximage()
  *********/
-/****f* libAfterImage/asimage/asimage2mask_ximage()
+/****f* libAfterImage/ximage/asimage2mask_ximage()
  * SYNOPSIS
  * XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
  * INPUTS
@@ -120,7 +120,7 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * desired - make sure you set im->alt.mask_ximage to NULL, to dissociate
  * XImage object from ASImage.
  *********/
-/****f* libAfterImage/asimage/asimage2pixmap()
+/****f* libAfterImage/ximage/asimage2pixmap()
  * SYNOPSIS
  * Pixmap   asimage2pixmap  ( struct ASVisual *asv, Window root,
  *                            ASImage *im, GC gc, Bool use_cached);
@@ -149,7 +149,7 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * asimage2ximage()
  * create_visual_pixmap()
  *********/
-/****f* libAfterImage/asimage/asimage2mask()
+/****f* libAfterImage/ximage/asimage2mask()
  * SYNOPSIS
  * Pixmap   asimage2mask ( struct ASVisual *asv, Window root,
  *                         ASImage *im, GC gc, Bool use_cached);

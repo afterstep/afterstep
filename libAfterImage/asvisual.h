@@ -28,9 +28,10 @@
  *  	    create_visual_ximage()
  *
  * Other libAfterImage modules :
- *     asimage.h, import.h, blender.h, asfont.h
+ *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
+ *          import.h transform.h ximage.h
  * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
+ * Sasha Vasko <sasha at aftercode dot net>
  ******************/
 
 /****d* libAfterImage/alpha

@@ -37,12 +37,14 @@
  *          create_font_manager(), destroy_font_manager(),
  *          open_freetype_font(), open_X11_font(), get_asfont(),
  *          destroy_font(), print_asfont(), print_asglyph(),
- *          draw_text()
+ *          draw_text(),
+ *          get_asfont_glyph_spacing(), set_asfont_glyph_spacing()
  *
  * Other libAfterImage modules :
- *     asimage.h, asvisual.h, blender.h, import.h
+ *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
+ *          import.h transform.h ximage.h
  * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
+ * Sasha Vasko <sasha at aftercode dot net>
  ******************/
 
 /****d* libAfterImage/MAX_GLYPHS_PER_FONT
@@ -163,7 +165,7 @@ typedef struct ASFont
 									 * to the top of the character glyph */
 					space_size;     /* fixed width value to be used when
 									 * rendering spaces and tabs */
-	int 			spacing_x, spacing_y;									 
+	int 			spacing_x, spacing_y;
 #define LEFT_TO_RIGHT    1
 #define RIGHT_TO_LEFT   -1
 	int 			pen_move_dir ;  /* direction of the text flow */
@@ -422,6 +424,30 @@ struct ASImage *draw_text( const char *text,
 Bool get_text_size( const char *text,
 	                struct ASFont *font, ASText3DType type,
                     unsigned int *width, unsigned int *height );
+/****f* libAfterImage/asfont/get_asfont_glyph_spacing()
+ * SYNOPSIS
+ * Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y );
+ * INPUTS
+ * font    - Loaded ASFont structure.
+ * x       - pointer to the variable to receive horizontal spacing value.
+ * y       - pointer to the variable to receive vertical spacing value.
+ * RETURN VALUE
+ * True if meaningfull information has been returned.
+ * DESCRIPTION
+ * Returns inter-glyph spacing of specified font.
+ *********/
+/****f* libAfterImage/asfont/set_asfont_glyph_spacing()
+ * SYNOPSIS
+ * Bool set_asfont_glyph_spacing( ASFont* font, int x, int y );
+ * INPUTS
+ * font    - Loaded ASFont structure.
+ * x       - new horizontal spacing value.
+ * y       - new vertical spacing value.
+ * RETURN VALUE
+ * TRue on success.
+ * DESCRIPTION
+ * Changes inter-glyph spacing of the specified font.
+ *********/
 
 Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y );
 Bool set_asfont_glyph_spacing( ASFont* font, int x, int y );

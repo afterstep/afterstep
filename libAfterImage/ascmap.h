@@ -1,6 +1,26 @@
 #ifndef ASCMAP_H_HEADER_ICLUDED
 #define ASCMAP_H_HEADER_ICLUDED
 
+/****h* libAfterImage/ascmap.h
+ * SYNOPSIS
+ * Defines main structures and function for image quantization.
+ * DESCRIPTION
+ * SEE ALSO
+ * Structures :
+ *          ASColormapEntry
+ *          ASColormap
+ *
+ * Functions :
+ *          colormap_asimage(), destroy_colormap()
+ *
+ * Other libAfterImage modules :
+ *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
+ *          import.h transform.h ximage.h
+ * AUTHOR
+ * Sasha Vasko <sasha at aftercode dot net>
+ ******
+ */
+
 /***********************************************************************************/
 /* reduced colormap building code :                                                */
 /***********************************************************************************/
@@ -99,14 +119,25 @@ typedef struct ASColormap
 	Bool has_opaque ;
 }ASColormap;
 
-void  add_index_color( ASSortedColorHash *index, CARD32 indexed, unsigned int slot, CARD32 red, CARD32 green, CARD32 blue );
-void destroy_colorhash( ASSortedColorHash *index, Bool reusable );
-unsigned int add_colormap_items( ASSortedColorHash *index, unsigned int start, unsigned int stop, unsigned int quota, unsigned int base, ASColormapEntry *entries );
-void fix_colorindex_shortcuts( ASSortedColorHash *index );
-ASColormap *color_hash2colormap( ASColormap *cmap, unsigned int max_colors );
+void         add_index_color   ( ASSortedColorHash *index,
+	                             CARD32 indexed, unsigned int slot,
+							     CARD32 red, CARD32 green, CARD32 blue );
+void         destroy_colorhash ( ASSortedColorHash *index, Bool reusable );
+unsigned int add_colormap_items( ASSortedColorHash *index,
+	                             unsigned int start, unsigned int stop,
+								 unsigned int quota, unsigned int base,
+								 ASColormapEntry *entries );
+
+void        fix_colorindex_shortcuts( ASSortedColorHash *index );
+int         get_color_index         ( ASSortedColorHash *index,
+	                                  CARD32 indexed, unsigned int slot );
+ASColormap *color_hash2colormap     ( ASColormap *cmap,
+	                                  unsigned int max_colors );
+
+int *colormap_asimage( ASImage *im, ASColormap *cmap,
+	                   unsigned int max_colors, unsigned int dither,
+					   int opaque_threshold );
 void destroy_colormap( ASColormap *cmap, Bool reusable );
-int  get_color_index( ASSortedColorHash *index, CARD32 indexed, unsigned int slot );
-int *colormap_asimage( ASImage *im, ASColormap *cmap, unsigned int max_colors, unsigned int dither, int opaque_threshold );
 
 
 #endif

@@ -200,7 +200,7 @@ void
 destroy_asimage( ASImage **im )
 {
 	if( im )
-		if( *im && (*im)->imageman == NULL)
+		if( *im && !AS_ASSERT((*im)->imageman))
 		{
 			asimage_init( *im, True );
 /*fprintf( stderr, "destroying image : %p\n", *im );*/
@@ -237,7 +237,7 @@ asimage_destroy (ASHashableValue value, void *data)
 		ASImage *im = (ASImage*)data ;
 		if( im != NULL )
 		{
-			if( im->magic != MAGIC_ASIMAGE )
+			if( !AS_ASSERT_VAL(im->magic, MAGIC_ASIMAGE) )
 				im = NULL ;
 			else
 				im->imageman = NULL ;
@@ -298,11 +298,11 @@ Bool
 store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
 {
 	Bool res = False ;
-	if( im != NULL )
-		if( im->magic != MAGIC_ASIMAGE )
+	if( !AS_ASSERT(im) )
+		if( !AS_ASSERT_VAL(im->magic, MAGIC_ASIMAGE) )
 			im = NULL ;
 
-	if( imageman && im != NULL && name )
+	if( !AS_ASSERT(imageman) && !AS_ASSERT(im) && !AS_ASSERT((char*)name) )
 		if( im->imageman == NULL )
 		{
 			im->name = mystrdup( name );
@@ -324,7 +324,7 @@ ASImage *
 fetch_asimage( ASImageManager* imageman, const char *name )
 {
 	ASImage *im = NULL ;
-	if( imageman && name )
+	if( !AS_ASSERT(imageman) && !AS_ASSERT(name) )
 		if( get_hash_item( imageman->image_hash, (ASHashableValue)((char*)name), (void**)&im) == ASH_Success )
 		{
 			if( im->magic != MAGIC_ASIMAGE )
@@ -338,11 +338,11 @@ fetch_asimage( ASImageManager* imageman, const char *name )
 ASImage *
 dup_asimage( ASImage* im )
 {
-	if( im != NULL )
-		if( im->magic != MAGIC_ASIMAGE )
+	if( !AS_ASSERT(im) )
+		if( AS_ASSERT_VAL(im->magic,MAGIC_ASIMAGE) )
 			im = NULL ;
 
-	if( im && im->imageman )
+	if( !AS_ASSERT(im) && !AS_ASSERT(im->imageman) )
 	{
 		im->ref_count++ ;
 		return im;
@@ -350,18 +350,18 @@ dup_asimage( ASImage* im )
 	return NULL ;
 }
 
-int
+inline int
 release_asimage( ASImage *im )
 {
 	int res = -1 ;
-	if( im )
+	if( !AS_ASSERT(im) )
 	{
 		if( im->magic == MAGIC_ASIMAGE )
 		{
 			if( --(im->ref_count) < 0 )
 			{
 				ASImageManager *imman = im->imageman ;
-				if( imman )
+				if( !AS_ASSERT(imman) )
 					remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, True);
 			}else
 				res = im->ref_count ;
@@ -375,10 +375,9 @@ release_asimage_by_name( ASImageManager *imageman, char *name )
 {
 	int res = -1 ;
 	ASImage *im = NULL ;
-	if( imageman && name )
+	if( !AS_ASSERT(imageman) && !AS_ASSERT(name) )
 		if( get_hash_item( imageman->image_hash, (ASHashableValue)((char*)name), (void**)&im) == ASH_Success )
-			if( im->magic == MAGIC_ASIMAGE )
-				res = release_asimage( im );
+			res = release_asimage( im );
 	return res ;
 }
 
@@ -392,7 +391,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 {
 	ASImageDecoder *imdec = NULL;
 
-	if( filter == 0 || asv == NULL )
+ 	if( AS_ASSERT(filter) || AS_ASSERT(asv))
 		return NULL;
 	if( im != NULL )
 		if( im->magic != MAGIC_ASIMAGE )
@@ -401,7 +400,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	if( im == NULL )
 	{
 		offset_x = offset_y = 0 ;
-		if( out_width == 0 || out_height == 0 )
+		if( AS_ASSERT(out_width)|| AS_ASSERT(out_height))
 			return NULL ;
 	}else
 	{
@@ -509,7 +508,7 @@ start_image_output( ASVisual *asv, ASImage *im, ASAltImFormats format,
 		if( im->magic != MAGIC_ASIMAGE )
 			im = NULL ;
 
-	if( im == NULL || asv == NULL || format < 0 || format >= ASA_Formats)
+	if( AS_ASSERT(im) || AS_ASSERT(asv) || format < 0 || format >= ASA_Formats)
 		return imout;
 
 	if( asimage_format_handlers[format].check_create_asim_format )
@@ -703,7 +702,7 @@ asimage_dup_line (ASImage * im, ColorPart color, unsigned int y1, unsigned int y
 void
 asimage_erase_line( ASImage * im, ColorPart color, unsigned int y )
 {
-	if( im )
+	if( !AS_ASSERT(im) )
 	{
 		if( color < IC_NUM_CHANNELS )
 		{
@@ -736,7 +735,7 @@ asimage_add_line_mono (ASImage * im, ColorPart color, register CARD8 value, unsi
 	register CARD8 *dst;
 	int rep_count;
 
-	if (im == NULL || color <0 || color >= IC_NUM_CHANNELS )
+	if (AS_ASSERT(im) || color <0 || color >= IC_NUM_CHANNELS )
 		return 0;
 	if (im->buffer == NULL || y >= im->height)
 		return 0;
@@ -770,7 +769,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 	register int 	tail = 0;
 	int best_size, best_bstart = 0, best_tail = 0;
 
-	if (im == NULL || data == NULL || color <0 || color >= IC_NUM_CHANNELS )
+	if (AS_ASSERT(im) || AS_ASSERT(data) || color <0 || color >= IC_NUM_CHANNELS )
 		return 0;
 	if (im->buffer == NULL || y >= im->height)
 		return 0;
@@ -889,7 +888,7 @@ get_asimage_chanmask( ASImage *im)
     ASFlagType mask = 0 ;
 	int color ;
 
-	if( im )
+	if( !AS_ASSERT(im) )
 		for( color = 0; color < IC_NUM_CHANNELS ; color++ )
 		{
 			register CARD8 **chan = im->channels[color];
@@ -913,12 +912,13 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	int           to_skip = 0;
 	int 		  uncopressed_size = 0 ;
 
-	if (im == NULL || color < 0 || color >= IC_NUM_CHANNELS )
+	if (AS_ASSERT(im) || color < 0 || color >= IC_NUM_CHANNELS )
 		return 0;
 	if (y >= im->height)
 		return 0;
 
-	if((color_ptr = im->channels[color]) == NULL )
+	color_ptr = im->channels[color];
+	if( AS_ASSERT(color_ptr) )
 		return 0;
 	ptr = color_ptr[y];
 	if( ptr == NULL )
@@ -1135,7 +1135,7 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 	register CARD8  *src = im->channels[color][y];
 	/* that thing below is supposedly highly optimized : */
 LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_width = %d, src = %p", im->width, color, y, skip, out_width, src );
-	if( src )
+	if( !AS_ASSERT(src) )
 	{
 		register int i = 0;
 #if 1
@@ -1186,7 +1186,7 @@ asimage_copy_line (register CARD8 *src, int width)
 	register int i = 0;
 
 	/* merely copying the data */
-	if ( src == NULL )
+	if ( AS_ASSERT(src))
 		return NULL;
 	while (src[i] != RLE_EOL && width )
 	{
@@ -1226,7 +1226,7 @@ asimage_copy_line (register CARD8 *src, int width)
 void
 move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src )
 {
-	if( dst && src && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
+	if( !AS_ASSERT(dst) && !AS_ASSERT(src) && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
 		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
 		if( dst->width == src->width )
 		{
@@ -1247,7 +1247,7 @@ move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_s
 void
 copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src )
 {
-	if( dst && src && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
+	if( !AS_ASSERT(dst) && !AS_ASSERT(src) && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
 		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
 		if( dst->width == src->width )
 		{
@@ -1268,7 +1268,7 @@ copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
                     ASImage *src, unsigned int offset_src,
 					unsigned int nlines, ASFlagType filter )
 {
-	if( dst && src &&
+	if( !AS_ASSERT(dst) && !AS_ASSERT(src) &&
 		offset_src < src->height && offset_dst < dst->height &&
 		dst->width == src->width )
 	{
@@ -2067,7 +2067,7 @@ clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter )
 	ASImage *dst = NULL ;
 	START_TIME(started);
 
-	if( src )
+	if( !AS_ASSERT(src) )
 	{
 		int chan ;
 		dst = create_asimage(src->width, src->height, (src->max_compressed_width*100)/src->width);

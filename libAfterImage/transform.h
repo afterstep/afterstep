@@ -29,15 +29,17 @@
  * SEE ALSO
  *   Transformations :
  *          scale_asimage(), tile_asimage(), merge_layers(), make_gradient(),
- *          flip_asimage()
+ *          flip_asimage(), pad_asimage(), blur_asimage_gauss(),
+ *          fill_asimage()
+ *
  * Other libAfterImage modules :
- *          asvisual.h, ascmap.h, asimage.h, import.h, export.h
- *          blender.h, asfont.h, ximage.h
+ *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
+ *          import.h transform.h ximage.h
  * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
+ * Sasha Vasko <sasha at aftercode dot net>
  ******
  */
-/****f* libAfterImage/asimage/scale_asimage()
+/****f* libAfterImage/transform/scale_asimage()
  * SYNOPSIS
  * ASImage *scale_asimage( struct ASVisual *asv,
  *                         ASImage *src,
@@ -64,7 +66,7 @@
  * EXAMPLE
  * ASScale
  *********/
-/****f* libAfterImage/asimage/tile_asimage()
+/****f* libAfterImage/transform/tile_asimage()
  * SYNOPSIS
  * ASImage *tile_asimage ( struct ASVisual *asv,
  *                         ASImage *src,
@@ -99,7 +101,7 @@
  * EXAMPLE
  * ASTile
  *********/
-/****f* libAfterImage/asimage/merge_layers()
+/****f* libAfterImage/transform/merge_layers()
  * SYNOPSIS
  * ASImage *merge_layers  ( struct ASVisual *asv,
  *                          ASImageLayer *layers, int count,
@@ -130,7 +132,7 @@
  * layer will be padded to fit width of the destination image with all 0
  * effectively making it transparent.
  *********/
-/****f* libAfterImage/asimage/make_gradient()
+/****f* libAfterImage/transform/make_gradient()
  * SYNOPSIS
  * ASImage *make_gradient ( struct ASVisual *asv,
  *                          struct ASGradient *grad,
@@ -159,7 +161,7 @@
  * Different dithering techniques will be applied to produce nicer
  * looking gradients.
  *********/
-/****f* libAfterImage/asimage/flip_asimage()
+/****f* libAfterImage/transform/flip_asimage()
  * SYNOPSIS
  * ASImage *flip_asimage ( struct ASVisual *asv,
  *                         ASImage *src,
@@ -188,7 +190,7 @@
  * and it will rotate it then based on flip value. Three rotation angles
  * supported 90, 180 and 270 degrees.
  *********/
-/****f* libAfterImage/asimage/mirror_asimage()
+/****f* libAfterImage/transform/mirror_asimage()
  * SYNOPSIS
  * ASImage *mirror_asimage ( struct ASVisual *asv,
  *                           ASImage *src,
@@ -216,6 +218,71 @@
  * tile source image based on offset_x, offset_y, and destination size,
  * and it will mirror it in vertical or horizontal direction.
  *********/
+/****f* libAfterImage/transform/pad_asimage()
+ * SYNOPSIS
+ * ASImage *pad_asimage( ASVisual *asv, ASImage *src,
+ *                      int dst_x, int dst_y,
+ *                      unsigned int to_width,
+ *                      unsigned int to_height,
+ *                      ARGB32 color,
+ *                      ASAltImFormats out_format,
+ *                      unsigned int compression_out, int quality );
+ * INPUTS
+ * asv          - pointer to valid ASVisual structure
+ * src          - source ASImage
+ * dst_x, dst_y - placement of the source image relative to the origin of
+ *                destination image
+ * to_width     - width of the destination image
+ * to_height    - height of the destination image
+ * color        - ARGB32 color value to pad with.
+ * out_format 	- optionally describes alternative ASImage format that
+ *                should be produced as the result - XImage, ARGB32, etc.
+ * compression_out - compression level of resulting image in range 0-100.
+ * quality      - output quality
+ * RETURN VALUE
+ * returns newly created and encoded ASImage on success, NULL of failure.
+ * DESCRIPTION
+ * enlarges ASImage, padding it with specified color on each side in
+ * accordance with requested geometry.
+ *********/
+/****f* libAfterImage/transform/blur_asimage_gauss()
+ * SYNOPSIS
+ * ASImage* blur_asimage_gauss( ASVisual* asv, ASImage* src,
+ *                              double horz, double vert,
+ *                              ASAltImFormats out_format,
+ *                              unsigned int compression_out, int quality );
+ * INPUTS
+ * asv          - pointer to valid ASVisual structure
+ * src          - source ASImage
+ * horz         - horizontal radius of the blurr
+ * vert         - vertical radius of the blurr
+ * out_format 	- optionally describes alternative ASImage format that
+ *                should be produced as the result - XImage, ARGB32, etc.
+ * compression_out - compression level of resulting image in range 0-100.
+ * quality      - output quality
+ * RETURN VALUE
+ * returns newly created and encoded ASImage on success, NULL of failure.
+ * DESCRIPTION
+ * Performs Gaussian blurr of the image ( usefull fro drop shadows and
+ * the likes ).
+ *********/
+/****f* libAfterImage/transform/fill_asimage()
+ * SYNOPSIS
+ * Bool fill_asimage( ASVisual *asv, ASImage *im,
+ *                    int x, int y, int width, int height,
+ *                    ARGB32 color );
+ * INPUTS
+ * asv           - pointer to valid ASVisual structure
+ * im            - ASImage to fill with the color
+ * x, y          - left-top corner of the rectangle to fill.
+ * width, height - size of the rectangle to fill.
+ * color         - ARGB32 color value to fill rectangle with.
+ * RETURN VALUE
+ * True on success, False on failure.
+ * DESCRIPTION
+ * Fills rectangle within the existing ASImage with specified color.
+ *********/
+
 ASImage *scale_asimage( struct ASVisual *asv, ASImage *src,
 						unsigned int to_width, unsigned int to_height,
 						ASAltImFormats out_format,
@@ -251,11 +318,10 @@ ASImage *pad_asimage(   ASVisual *asv, ASImage *src,
 			  			ARGB32 color,
 			  			ASAltImFormats out_format,
 			  			unsigned int compression_out, int quality );
-ASImage* blur_asimage_gauss(
-  ASVisual* asv, ASImage* src, double horz, double vert, 
-  ASAltImFormats out_format, unsigned int compression_out, 
-  int quality
-);
+ASImage* blur_asimage_gauss( ASVisual* asv, ASImage* src,
+	                         double horz, double vert,
+                             ASAltImFormats out_format,
+							 unsigned int compression_out, int quality);
 
 Bool fill_asimage( ASVisual *asv, ASImage *im,
                	   int x, int y, int width, int height,

@@ -9,12 +9,13 @@
  * Image file format autodetection, reading and decoding routines.
  * SEE ALSO
  * Functions :
- *  		file2ASImage(), file2pixmap()
+ *  		file2ASImage(), get_asimage(), file2pixmap()
  *
  * Other libAfterImage modules :
- *     asimage.h, asvisual.h, blender.h, asfont.h
+ *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
+ *          import.h transform.h ximage.h
  * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
+ * Sasha Vasko <sasha at aftercode dot net>
  ******************/
 
 /****d* libAfterImage/gamma
@@ -99,6 +100,32 @@ ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *
  * EXAMPLE
  * asview.c: ASView.2
  *********/
+/****f* libAfterImage/import/get_asimage()
+ * SYNOPSIS
+ * ASImage *get_asimage( ASImageManager* imageman, const char *file,
+ *                       ASFlagType what, unsigned int compression );
+ * INPUTS
+ * imageman     - pointer to valid ASVisual structure.
+ * file         - root window ID for the destination screen.
+ * what         - full image file's name with path.
+ * compression  -
+ * RETURN VALUE
+ * Pointer to ASImage structure holding image data on success.
+ * NULL on failure
+ * DESCRIPTION
+ * get_asimage will attempt check with the ASImageManager's list of load
+ * images, and if image with requested filename already exists - it will
+ * increment its reference count and return its pointer.
+ * Otherwise it will call file2ASImage() to load image from file. It will
+ * use PATH and gamma values from the ASImageManager to pass to
+ * file2ASImage(). If image is successfully loaded - it will be added to
+ * the ASImageManager's list and its pointer will be returned.
+ * SEE ALSO
+ * file2ASImage()
+ *********/
+ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... );
+ASImage *get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression );
+
 /****f* libAfterImage/import/file2pixmap()
  * SYNOPSIS
  * Pixmap file2pixmap( struct ASVisual *asv, Window root,
@@ -119,15 +146,8 @@ ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *
  * then convert it into X Pixmap. In case image has alpha channel -
  * mask Pixmap will be produced if mask_out is not NULL.
  *********/
-ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... );
 Pixmap file2pixmap(struct ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_out);
 
-/****f* libAfterImage/import/get_asimage()
- *
- *
- *
- ********/
-ASImage *get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression );
 
 #endif
 

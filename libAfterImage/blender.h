@@ -25,9 +25,10 @@
  *          blend_scanlines_name2func()
  *
  * Other libAfterImage modules :
- *     asimage.h, asvisual.h, import.h, asfont.h
+ *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
+ *          import.h transform.h ximage.h
  * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
+ * Sasha Vasko <sasha at aftercode dot net>
  ******************/
 
 
@@ -36,7 +37,7 @@ struct ASScanline;
 /* it produces  bottom = bottom <merge> top */
 typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanline *top, int offset);
 
-/****d* libAfterImage/import/colorspace
+/****d* libAfterImage/blender/colorspace
  * DESCRIPTION
  * RGB colorspace: each color is represented as a combination of
  * red, green and blue values. Each value can be in 2 formats :
@@ -58,7 +59,7 @@ typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanli
  * represents most colors as ARGB32 values or ASScanline scanlines of
  * pixels.
  ****************/
-/****f* libAfterImage/import/rgb2value()
+/****f* libAfterImage/blender/rgb2value()
  * SYNOPSIS
  * CARD32 rgb2value( CARD32 red, CARD32 green, CARD32 blue );
  * CARD32 rgb2saturation( CARD32 red, CARD32 green, CARD32 blue );
@@ -79,7 +80,7 @@ inline CARD32 rgb2value( CARD32 red, CARD32 green, CARD32 blue );
 inline CARD32 rgb2saturation( CARD32 red, CARD32 green, CARD32 blue );
 inline CARD32 rgb2hue( CARD32 red, CARD32 green, CARD32 blue );
 inline CARD32 rgb2luminance (CARD32 red, CARD32 green, CARD32 blue );
-/****f* libAfterImage/import/rgb2hsv()
+/****f* libAfterImage/blender/rgb2hsv()
  * SYNOPSIS
  * CARD32 rgb2hsv( CARD32 red, CARD32 green, CARD32 blue,
  *                 CARD32 *saturation, CARD32 *value );
@@ -100,7 +101,7 @@ inline CARD32 rgb2luminance (CARD32 red, CARD32 green, CARD32 blue );
  ****************/
 inline CARD32 rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *value );
 inline CARD32 rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance, CARD32 *saturation );
-/****f* libAfterImage/import/hsv2rgb()
+/****f* libAfterImage/blender/hsv2rgb()
  * SYNOPSIS
  * void hsv2rgb( CARD32 hue, CARD32 saturation, CARD32 value,
  *               CARD32 *red, CARD32 *green, CARD32 *blue);
@@ -122,7 +123,7 @@ inline void hsv2rgb (CARD32 hue, CARD32 saturation, CARD32 value, CARD32 *red, C
 inline void hls2rgb (CARD32 hue, CARD32 luminance, CARD32 saturation, CARD32 *red, CARD32 *green, CARD32 *blue);
 
 /* scanline blending 													 */
-/****f* libAfterImage/import/merge_scanline
+/****f* libAfterImage/blender/merge_scanline
  * SYNOPSIS
  * void alphablend_scanlines( ASScanline *bottom, ASScanline *top, int );
  * void allanon_scanlines   ( ASScanline *bottom, ASScanline *top, int );
@@ -210,7 +211,7 @@ void value_scanlines( struct ASScanline *bottom, struct ASScanline *top, int off
 void colorize_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 void dissipate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 
-/****f* libAfterImage/import/blend_scanlines_name2func()
+/****f* libAfterImage/blender/blend_scanlines_name2func()
  * SYNOPSIS
  * merge_scanlines_func blend_scanlines_name2func( const char *name );
  * void list_scanline_merging(FILE* stream, const char *format);

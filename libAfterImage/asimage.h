@@ -21,6 +21,7 @@ struct ASScanline;
  * SEE ALSO
  * Structures :
  *          ASImage
+ *          ASImageManager
  *          ASImageBevel
  *          ASImageDecoder
  *          ASImageOutput
@@ -29,24 +30,37 @@ struct ASScanline;
  *
  * Functions :
  *          asimage_init(), asimage_start(), create_asimage(),
- *          destroy_asimage()
+ *          clone_asimage(), destroy_asimage()
+ *
+ *   ImageManager Reference counting and managing :
+ *          create_image_manager(), destroy_image_manager(),
+ *          store_asimage(), fetch_asimage(), dup_asimage(),
+ *          release_asimage(), release_asimage_by_name()
+ *
+ *   Layers helper functions :
+ *          init_image_layers(), create_image_layers(),
+ *          destroy_image_layers()
  *
  *   Encoding :
  *          asimage_add_line(),	asimage_add_line_mono(),
- *          asimage_print_line()
+ *          asimage_print_line(), get_asimage_chanmask(),
+ *          move_asimage_channel(), copy_asimage_channel(),
+ *          copy_asimage_lines()
  *
  *   Decoding
- *          start_image_decoding(), stop_image_decoding()
+ *          start_image_decoding(), stop_image_decoding(),
+ *          asimage_decode_line (), set_decoder_shift(),
+ *          set_decoder_back_color()
  *
  *   Output :
  *          start_image_output(), set_image_output_back_color(),
  *          toggle_image_output_direction(), stop_image_output()
  *
  * Other libAfterImage modules :
- *          asvisual.h, transform.h, export.h, import.h, blender.h,
- * 			asfont.h, ximage.h
+ *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
+ *          import.h transform.h ximage.h
  * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
+ * Sasha Vasko <sasha at aftercode dot net>
  ******
  */
 
@@ -639,6 +653,24 @@ int mmx_off(void);
  * Performs memory allocation for the new ASImage structure, as well as
  * initialization of allocated structure based on supplied parameters.
  *********/
+/****f* libAfterImage/asimage/clone_asimage()
+ * SYNOPSIS
+ * ASImage *clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter );
+ * INPUTS
+ * asv      - pointer to valid ASVisual structure
+ * src      - original ASImage.
+ * filter   - bitmask of channels to be copied from one image to another.
+ * RETURN VALUE
+ * New ASImage, as a copy of original image.
+ * DESCRIPTION
+ * Creates exact clone of the original ASImage, with same compression,
+ * back_color and rest of the attributes. Only ASImage data will be
+ * carried over. Any attached alternative forms of images (XImages, etc.)
+ * will not be copied. Any channel with unset bit in filter will not be
+ * copied. Image name, ASImageManager and ref_count will not be copied -
+ * use store_asimage() afterwards and make sure you use different name,
+ * to avoid clashes with original image.
+ *********/
 /****f* libAfterImage/asimage/destroy_asimage()
  * SYNOPSIS
  * void destroy_asimage( ASImage **im );
@@ -653,17 +685,121 @@ int mmx_off(void);
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
+ASImage *clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter );
 void destroy_asimage( ASImage **im );
 
+/****h* libAfterImage/asimage/ImageManager
+ * DESCRIPTION
+ * create_image_manager()  - create ASImage management and reference
+ *                           counting object.
+ * destroy_image_manager() - destroy management obejct.
+ * store_asimage()         - add ASImage to the refererence.
+ * fetch_asimage()         - retrieve previously stored image, incrementing
+ *                           reference count.
+ * dup_asimage()           - increment reference count of stored ASImage.
+ * release_asimage()       - decrement reference count/destroy ASImage.
+ * release_asimage_by_name()
+ *********/
+/****f* libAfterImage/asimage/create_image_manager()
+ * SYNOPSIS
+ * ASImageManager *create_image_manager( ASImageManager *reusable_memory,
+ *                                       double gamma, ... );
+ * INPUTS
+ * reusable_memory - optional pointer to a block of memory to be used to
+ *                   store ASImageManager object.
+ * double gamma    - value of gamma correction to be used while loading
+ *                   images from files.
+ * ...             - NULL terminated list of up to 8 PATH strings to list
+ *                   locations at which images could be found.
+ * DESCRIPTION
+ * Creates ASImageManager object in memory and initializes it with
+ * requested gamma value and PATH list. This Object will contain a hash
+ * table referencing all the loaded images. When such object is used while
+ * loading images from the file - gamma and PATH values will be used, so
+ * that all the loaded and referenced images will have same parameters.
+ * File name will be used as the image name, and if same file is attempted
+ * to be loaded again - instead reference will be incremented, and
+ * previously loaded image will be retyrned. All the images stored in
+ * ASImageManager's table will contain a back pointer to it, and they must
+ * be deallocated only by calling release_asimage(). destroy_asimage() will
+ * refuse to deallocate such an image.
+ *********/
+/****f* libAfterImage/asimage/destroy_image_manager()
+ * SYNOPSIS
+ * void destroy_image_manager( struct ASImageManager *imman, Bool reusable );
+ * INPUTS
+ * imman           - pointer to ASImageManager object to be deallocated
+ * reusable        - if True, then memory that holds object itself will
+ *                   not be deallocated. Usefull when object is created
+ *                   on stack.
+ * DESCRIPTION
+ * Destroys all the referenced images, PATH values and if reusable is False,
+ * also deallocates object's memory.
+ *********/
 ASImageManager *create_image_manager( struct ASImageManager *reusable_memory, double gamma, ... );
 void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
+
+/****f* libAfterImage/asimage/store_asimage()
+ * SYNOPSIS
+ * Bool store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
+ * INPUTS
+ * imageman        - pointer to valid ASImageManager object.
+ * im              - pointer to the image to be stored.
+ * name            - unique name of the image.
+ * DESCRIPTION
+ * Adds specifyed image to the ASImageManager's list of referenced images.
+ * Stored ASImage could be deallocated only by release_asimage(), or when
+ * ASImageManager object itself is destroyed.
+ *********/
+/****f* libAfterImage/asimage/fetch_asimage()
+ * SYNOPSIS
+ * ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
+ * INPUTS
+ * imageman        - pointer to valid ASImageManager object.
+ * name            - unique name of the image.
+ * DESCRIPTION
+ * Looks for image with the name in ASImageManager's list and if found,
+ * it will increment reference count and return pointer to it.
+ *********/
+/****f* libAfterImage/asimage/dup_asimage()
+ * SYNOPSIS
+ * ASImage *dup_asimage( ASImage* im );
+ * INPUTS
+ * im              - pointer to already referenced image.
+ * DESCRIPTION
+ * Increments reference count on the specifyed ASImage.
+ *********/
+/****f* libAfterImage/asimage/release_asimage()
+ * SYNOPSIS
+ * int	release_asimage( ASImage *im );
+ * INPUTS
+ * im              - pointer to already referenced image.
+ * DESCRIPTION
+ * Decrements reference count on the ASImage object and destroys it if
+ * reference count is below zero.
+ *********/
+/****f* libAfterImage/asimage/release_asimage_by_name()
+ * SYNOPSIS
+ * int release_asimage_by_name( ASImageManager *imman, char *name );
+ * INPUTS
+ * imageman        - pointer to valid ASImageManager object.
+ * name            - unique name of the image.
+ * DESCRIPTION
+ * Finds ASImage known by specified name in ASImageManager's list and
+ * then calls release_asimage() on that image.
+ *********/
 Bool     store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
 ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
 ASImage *dup_asimage  ( ASImage* im );         /* increment ref countif applicable */
 int      release_asimage( ASImage *im );
 int		 release_asimage_by_name( ASImageManager *imman, char *name );
 
-
+/****h* libAfterImage/asimage/Layers
+ * DESCRIPTION
+ * init_image_layers()    - initialize set of ASImageLayer structures.
+ * create_image_layers()  - allocate and initialize set of ASImageLayer's.
+ * destroy_image_layers() - destroy set of ASImageLayer structures.
+ *********/
 /****f* libAfterImage/asimage/init_image_layers()
  * SYNOPSIS
  * inline void init_image_layers( register ASImageLayer *l, int count );
@@ -712,7 +848,14 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  * DESCRIPTION
  * asimage_add_line()       - encode raw scanline data
  * asimage_add_line_mono()  - encode scanline to have all the same pixels
+ * get_asimage_chanmask()   - determine what channels contain data.
  * asimage_print_line()     - print stored scanline to stderr.
+ * asimage_decode_line()    - decode single scanline of the ASImage
+ * move_asimage_channel()   - move channel's data from one image to another.
+ * copy_asimage_channel()   - duplicate channel's data from one image to
+ *                            another.
+ * copy_asimage_lines()     - duplicate range of scanline from one image
+ *                            to another.
  ************/
 /****f* libAfterImage/asimage/asimage_add_line()
  * SYNOPSIS
@@ -748,6 +891,15 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  * encodes ASImage channel scanline to have same color components
  * value in every pixel. Useful for vertical gradients for example.
  *********/
+/****f* libAfterImage/asimage/get_asimage_chanmask()
+ * SYNOPSIS
+ * ASFlagType get_asimage_chanmask( ASImage *im);
+ * INPUTS
+ * im         - valid ASImage object.
+ * DESCRIPTION
+ * goes throu all the scanlines of the ASImage and toggles bits representing
+ * those components that have at least some data.
+ *********/
 /****f* libAfterImage/asimage/move_asimage_channel()
  * SYNOPSIS
  * void move_asimage_channel( ASImage *dst, int channel_dst,
@@ -780,7 +932,24 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  * Same as move_asimage_channel() but makes copy of channel's data
  * instead of simply moving it from one image to another.
  *********/
-
+/****f* libAfterImage/asimage/copy_asimage_lines()
+ * SYNOPSIS
+ * void copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
+ *                          ASImage *src, unsigned int offset_src,
+ *                          unsigned int nlines, ASFlagType filter );
+ * INPUTS
+ * dst         - ASImage which will have its channel substituted;
+ * offset_dst  - scanline in destination image to copy to;
+ * src         - ASImage which will donate its channel to dst;
+ * offset_src  - scanline in source image to copy data from;
+ * nlines      - number of scanlines to be copied;
+ * filter      - specifies what channels should be copied.
+ * DESCRIPTION
+ * Makes copy of scanline data for continuos set of scanlines, affecting
+ * only those channels marked in filter.
+ * NOTE
+ * Images must be of the same width.
+ *********/
 size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y);
 size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsigned int y);
 ASFlagType get_asimage_chanmask( ASImage *im);
@@ -891,6 +1060,9 @@ inline void copy_component( register CARD32 *src, register CARD32 *dst, int *unu
  * DESCRIPTION
  * start_image_decoding()   - allocates and initializes decoder
  *                            structure.
+ * set_decoder_shift()      - changes the shift value of decoder - 8 or 0.
+ * set_decoder_back_color() - changes the back color to be used while
+ *                            decoding the image.
  * stop_image_decoding()    - finishes decoding, frees all allocated
  *                            memory.
  ************/
@@ -937,6 +1109,30 @@ inline void copy_component( register CARD32 *src, register CARD32 *dst, int *unu
  * 3) finish decoding and deallocated all the used memory by calling
  * stop_image_decoding()
  *********/
+/****f* libAfterImage/asimage/set_decoder_shift()
+ * SYNOPSIS
+ * void set_decoder_shift( ASImageDecoder *imdec, int shift );
+ * INPUTS
+ * imdec   - pointer to pointer to structure, previously created
+ *            by start_image_decoding.
+ * shift   - new value to be used as the shift while decoding image.
+ *           valid values are 8 and 0.
+ * DESCRIPTION
+ * This function should be used instead of directly modifyeing value of
+ * shift memebr of ASImageDecoder structure.
+ *******/
+/****f* libAfterImage/asimage/set_decoder_back_color()
+ * SYNOPSIS
+ * void set_decoder_back_color( ASImageDecoder *imdec, ARGB32 back_color );
+ * INPUTS
+ * imdec      - pointer to pointer to structure, previously created
+ *              by start_image_decoding.
+ * back_color - ARGB32 color value to be used as the background color to
+ *              fill empty spaces in decoded ASImage.
+ * DESCRIPTION
+ * This function should be used instead of directly modifyeing value of
+ * back_color memebr of ASImageDecoder structure.
+ *******/
 /****f* libAfterImage/asimage/stop_image_decoding()
  * SYNOPSIS
  * void stop_image_decoding( ASImageDecoder **pimdec );
@@ -1038,24 +1234,5 @@ void toggle_image_output_direction( ASImageOutput *imout );
 void stop_image_output( ASImageOutput **pimout );
 
 
-/****f* libAfterImage/asimage/clone_asimage()
- * SYNOPSIS
- * ASImage *clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter );
- * INPUTS
- * asv      - pointer to valid ASVisual structure
- * src      - original ASImage.
- * filter   - bitmask of channels to be copied from one image to another.
- * RETURN VALUE
- * New ASImage, as a copy of original image.
- * DESCRIPTION
- * Creates exact clone of the original ASImage, with same compression,
- * back_color and rest of the attributes. Only ASImage data will be
- * carried over. Any attached alternative forms of images (XImages, etc.)
- * will not be copied. Any channel with unset bit in filter will not be
- * copied. Image name, ASImageManager and ref_count will not be copied -
- * use store_asimage() afterwards and make sure you use different name,
- * to avoid clashes with original image.
- *********/
-ASImage *clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter );
 
 #endif
