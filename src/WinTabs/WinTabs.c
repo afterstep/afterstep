@@ -57,7 +57,7 @@ typedef struct ASWinTab{
 	unsigned short	 row, col ;                /* needed for layout purposes */
 	ASTBarData 		*bar ;
 	ASCanvas 		*client ;
-}ASGauge;
+}ASWinTab;
 
 typedef struct {
 	Window main_window ;
@@ -92,7 +92,7 @@ void GetOptions (const char *filename);
 void HandleEvents();
 void process_message (unsigned long type, unsigned long *body);
 void DispatchEvent (ASEvent * Event);
-Window make_gadget_window();
+Window make_wintabs_window();
 
 int
 main( int argc, char **argv )
@@ -103,18 +103,18 @@ main( int argc, char **argv )
     set_signal_handler( SIGSEGV );
 
     ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
-    ConnectAfterStep ();
+    ConnectAfterStep ( 0 );
     balloon_init (False);
-    Config = CreateGadgetConfig ();
+    Config = CreateWinTabsConfig ();
 
     LoadBaseConfig ( GetBaseOptions);
 	LoadColorScheme();
 	LoadConfig ("wintabs", GetOptions);
     CheckConfigSanity();
 
-    GadgetState.main_window = make_wintabs_window();
-    GadgetState.main_canvas = create_ascanvas( GadgetState.main_window );
-    set_root_clip_area(GadgetState.main_canvas );
+    WinTabsState.main_window = make_wintabs_window();
+    WinTabsState.main_canvas = create_ascanvas( WinTabsState.main_window );
+    set_root_clip_area(WinTabsState.main_canvas );
 
 	/* And at long last our main loop : */
     HandleEvents();
@@ -150,7 +150,7 @@ DeadPipe (int nonsense)
     if( WinTabsState.main_window )
         XDestroyWindow( dpy, WinTabsState.main_window );
     if( Config )
-        DestroyGadgetConfig(Config);
+        DestroyWinTabsConfig(Config);
 
 #ifdef DEBUG_ALLOCS
     print_unfreed_mem ();
@@ -222,7 +222,6 @@ GetBaseOptions (const char *filename)
 void
 GetOptions (const char *filename)
 {
-    int i ;
     START_TIME(option_time);
     WinTabsConfig *config = ParseWinTabsOptions( filename, MyName );
 
@@ -236,7 +235,7 @@ GetOptions (const char *filename)
     Config->set_flags |= config->set_flags;
 
     Config->gravity = NorthWestGravity ;
-    if( get_flags(config->set_flags, GADGET_Geometry) )
+    if( get_flags(config->set_flags, WINTABS_Geometry) )
         merge_geometry(&(config->geometry), &(Config->geometry) );
 
 
@@ -293,12 +292,15 @@ DispatchEvent (ASEvent * event)
     {
 	    case ConfigureNotify:
             {
-                ASFlagType changes = handle_canvas_config( GadgetState.main_canvas );
+                ASFlagType changes = handle_canvas_config( WinTabsState.main_canvas );
                 if( changes != 0 )
-                    set_root_clip_area( GadgetState.main_canvas );
+                    set_root_clip_area( WinTabsState.main_canvas );
 
                 if( get_flags( changes, CANVAS_RESIZED ) )
-                else if( changes != 0 )        /* moved - update transparency ! */
+				{
+				}else if( changes != 0 )        /* moved - update transparency ! */
+				{
+				}
             }
 	        break;
         case ButtonPress:
@@ -325,13 +327,11 @@ DispatchEvent (ASEvent * event)
 			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
             if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
             {
-                int i ;
                 LOCAL_DEBUG_OUT( "root background updated!%s","");
                 safe_asimage_destroy( Scr.RootImage );
                 Scr.RootImage = NULL ;
             }else if( event->x.xproperty.atom == _AS_STYLE )
 			{
-                int i ;
 				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 				handle_wmprop_event (Scr.wmprops, &(event->x));
 				mystyle_list_destroy_all(&(Scr.Look.styles_list));
@@ -353,8 +353,8 @@ make_wintabs_window()
 	XSizeHints    shints;
 	ExtendedWMHints extwm_hints ;
 	int x, y ;
-    unsigned int width = max(Config->min_width,1);
-    unsigned int height = max(Config->min_height,1);
+    unsigned int width = max(Config->geometry.width,1);
+    unsigned int height = max(Config->geometry.height,1);
 
 	switch( Config->gravity )
 	{

@@ -1,6 +1,10 @@
-OBJS            = WinTabs.o
+EXTRA_INCLUDES	= -I.
 
-PROG		= WinTabs
+EXTRA_DEFINES	= -DENABLE_DND -DENABLE_SOUND
+
+OBJS            = Wharf.o
+
+PROG		= Wharf
 
 LIBS_PRIVATE      = $(LIB_AFTERCONF) $(LIB_AFTERSTEP) \
 					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) $(LIBS_AFTERIMAGE)
@@ -13,5 +17,8 @@ $(PROG):        $(OBJS) $(LIBS_DEPEND)
 		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
 
 install:	install.bin install.man
+		@if ! [ -f $(AFTER_BIN_DIR)/MonitorWharf ] ; then \
+			ln -s $(PROG) $(AFTER_BIN_DIR)/MonitorWharf ;\
+		fi
 
 uninstall:	uninstall.bin uninstall.man

@@ -1,10 +1,11 @@
-OBJS            = Gadget.o
+OBJS            = WinTabs.o
 
-PROG		= Gadget
+PROG		= WinTabs
 
 LIBS_PRIVATE      = $(LIB_AFTERCONF) $(LIB_AFTERSTEP) \
 					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) $(LIBS_AFTERIMAGE)
-LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) $(LIB_AFTERCONF)
+LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
+				  $(LIB_AFTERCONF)
 
 @MAKEFILECOMMON@
 
@@ -14,3 +15,4 @@ $(PROG):        $(OBJS) $(LIBS_DEPEND)
 install:	install.bin install.man
 
 uninstall:	uninstall.bin uninstall.man
+
