@@ -31,8 +31,8 @@
  * SOURCE
  */
 
-#include <libAfterImage/afterbase.h>
-#include <libAfterImage/afterimage.h>
+#include "../afterbase.h"
+#include "../afterimage.h"
 #include "common.h"
 
 /* Usage:  astext [-f font] [-s size] [-t text] [-S 3D_style]

@@ -23,8 +23,8 @@
  * SOURCE
  */
 
-#include <libAfterImage/afterbase.h>
-#include <libAfterImage/afterimage.h>
+#include "../afterbase.h"
+#include "../afterimage.h"
 #include "common.h"
 
 ARGB32 default_colors[] = {

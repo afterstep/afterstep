@@ -34,8 +34,8 @@
 
 #define LOCAL_DEBUG 
 
-#include <libAfterImage/afterbase.h>
-#include <libAfterImage/afterimage.h>
+#include "../afterbase.h"
+#include "../afterimage.h"
 #include "common.h"
 #include "../char2uni.h"
 

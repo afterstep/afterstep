@@ -425,20 +425,19 @@ AC_SUBST(TTF_INCLUDES)
 AFTERIMAGE_LIBS_EXTERNAL=$AFTERIMAGE_LIBS
 AC_SUBST(AFTERIMAGE_LIBS_EXTERNAL)
 
-AFTERBASE_CFLAGS=
-APPS_AFTERBASE_CFLAGS=
+USE_DEFAULT_AFTERBASE=0
+AFTERBASE_INCS_PATH=
 AC_MSG_CHECKING(libAfterBase headers)
 if test "$with_afterbase" != "no"; then
   have_afterbase=yes
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
-		AFTERBASE_CFLAGS="-I.."
+		AFTERBASE_INCS_PATH="../"
 	  else
- 	    AC_CHECK_HEADER(libAfterBase/astypes.h,,[have_afterbase=no])
+ 	    AC_CHECK_HEADER(libAfterBase/astypes.h,[USE_DEFAULT_AFTERBASE=1],[have_afterbase=no])
 	  fi
   else
-	  AFTERBASE_CFLAGS="-I$afterbase_includes"
-	  APPS_AFTERBASE_CFLAGS="-I$afterbase_includes"
+	  AFTERBASE_INCS_PATH="$afterbase_includes/"
   fi
 fi
 
@@ -454,7 +453,7 @@ if test "x$have_afterbase" = "xyes"; then
     fi
     AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
     AC_DEFINE(HAVE_AFTERBASE)
-	AC_MSG_RESULT($AFTERBASE_CFLAGS)
+	AC_MSG_RESULT(yes  $AFTERBASE_INCS_PATH)
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
 	if test "$with_afterbase" = "no"; then
@@ -465,9 +464,9 @@ else
 	AC_HEADER_DIRENT
 	AC_CHECK_HEADERS(sys/dirent.h)
 fi
+AC_SUBST(AFTERBASE_INCS_PATH)
+AC_SUBST(USE_DEFAULT_AFTERBASE)
 AC_SUBST(HAVE_AFTERBASE_FLAG)
-AC_SUBST(AFTERBASE_CFLAGS)
-AC_SUBST(APPS_AFTERBASE_CFLAGS)
 AC_SUBST(AFTERBASE_C)
 AC_SUBST(have_afterbase)
 AC_SUBST(AFTERIMAGE_APPS_LIBS)

@@ -33,7 +33,7 @@
 #endif
 
 #include "asinternals.h"
-#include "libAfterStep/session.h"
+#include "../../libAfterStep/session.h"
 
 Bool on_dead_aswindow( Window w );
 /********************************************************************************/

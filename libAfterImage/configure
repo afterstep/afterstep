@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC sgmltools INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS TTF_INCLUDES AFTERIMAGE_LIBS_EXTERNAL HAVE_AFTERBASE_FLAG AFTERBASE_CFLAGS APPS_AFTERBASE_CFLAGS AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC sgmltools INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS TTF_INCLUDES AFTERIMAGE_LIBS_EXTERNAL AFTERBASE_INCS_PATH USE_DEFAULT_AFTERBASE HAVE_AFTERBASE_FLAG AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERIMAGEFILES'
 
 # Initialize some variables set by options.
@@ -6971,15 +6971,15 @@ fi;
 AFTERIMAGE_LIBS_EXTERNAL=$AFTERIMAGE_LIBS
 
 
-AFTERBASE_CFLAGS=
-APPS_AFTERBASE_CFLAGS=
+USE_DEFAULT_AFTERBASE=0
+AFTERBASE_INCS_PATH=
 echo "$as_me:$LINENO: checking libAfterBase headers" >&5
 echo $ECHO_N "checking libAfterBase headers... $ECHO_C" >&6
 if test "$with_afterbase" != "no"; then
   have_afterbase=yes
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
-		AFTERBASE_CFLAGS="-I.."
+		AFTERBASE_INCS_PATH="../"
 	  else
  	    if test "${ac_cv_header_libAfterBase_astypes_h+set}" = set; then
   echo "$as_me:$LINENO: checking for libAfterBase/astypes.h" >&5
@@ -7111,7 +7111,7 @@ echo "${ECHO_T}$ac_cv_header_libAfterBase_astypes_h" >&6
 
 fi
 if test $ac_cv_header_libAfterBase_astypes_h = yes; then
-  :
+  USE_DEFAULT_AFTERBASE=1
 else
   have_afterbase=no
 fi
@@ -7119,8 +7119,7 @@ fi
 
 	  fi
   else
-	  AFTERBASE_CFLAGS="-I$afterbase_includes"
-	  APPS_AFTERBASE_CFLAGS="-I$afterbase_includes"
+	  AFTERBASE_INCS_PATH="$afterbase_includes/"
   fi
 fi
 
@@ -7139,8 +7138,8 @@ if test "x$have_afterbase" = "xyes"; then
 #define HAVE_AFTERBASE 1
 _ACEOF
 
-	echo "$as_me:$LINENO: result: $AFTERBASE_CFLAGS" >&5
-echo "${ECHO_T}$AFTERBASE_CFLAGS" >&6
+	echo "$as_me:$LINENO: result: yes  $AFTERBASE_INCS_PATH" >&5
+echo "${ECHO_T}yes  $AFTERBASE_INCS_PATH" >&6
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
 	if test "$with_afterbase" = "no"; then
@@ -8301,9 +8300,9 @@ s,@GIF_CFLAGS@,$GIF_CFLAGS,;t t
 s,@TIFF_CFLAGS@,$TIFF_CFLAGS,;t t
 s,@TTF_INCLUDES@,$TTF_INCLUDES,;t t
 s,@AFTERIMAGE_LIBS_EXTERNAL@,$AFTERIMAGE_LIBS_EXTERNAL,;t t
+s,@AFTERBASE_INCS_PATH@,$AFTERBASE_INCS_PATH,;t t
+s,@USE_DEFAULT_AFTERBASE@,$USE_DEFAULT_AFTERBASE,;t t
 s,@HAVE_AFTERBASE_FLAG@,$HAVE_AFTERBASE_FLAG,;t t
-s,@AFTERBASE_CFLAGS@,$AFTERBASE_CFLAGS,;t t
-s,@APPS_AFTERBASE_CFLAGS@,$APPS_AFTERBASE_CFLAGS,;t t
 s,@AFTERBASE_C@,$AFTERBASE_C,;t t
 s,@have_afterbase@,$have_afterbase,;t t
 s,@AFTERIMAGE_APPS_LIBS@,$AFTERIMAGE_APPS_LIBS,;t t

@@ -23,8 +23,8 @@
  * SOURCE
  */
 
-#include <libAfterImage/afterbase.h>
-#include <libAfterImage/afterimage.h>
+#include "../afterbase.h"
+#include "../afterimage.h"
 #include "common.h"
 
 #if 1

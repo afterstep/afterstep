@@ -2,8 +2,8 @@
 
 #include <string.h>
 
-#include <libAfterImage/afterbase.h>
-#include <libAfterImage/afterimage.h>
+#include "../afterbase.h"
+#include "../afterimage.h"
 
 /****h* libAfterImage/tutorials/common.h
  * SYNOPSIS

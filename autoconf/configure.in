@@ -67,11 +67,6 @@ AC_ARG_WITH(tiff_includes,  [  --with-tiff-includes=DIR use TIFF includes in DIR
 AC_ARG_WITH(tff,		    [  --with-ttf               support True Type Fonts via FreeType library [[yes]]])
 AC_ARG_WITH(tff_includes,   [  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=NO)
 
-AC_ARG_WITH(afterbase_includes,  [  --with-afterbase-includes=DIR  use libAfterBase includes in DIR], afterbase_includes="$withval", afterbase_includes=NO)
-AC_ARG_WITH(afterimage_includes, [  --with-afterimage-includes=DIR  use libAfterImage includes in DIR], afterimage_includes="$withval", afterimage_includes=NO)
-AC_ARG_WITH(afterbase_lib,       [  --with-afterbase-lib=DIR  use libAfterBase library located in DIR], afterbase_lib="$withval", afterbase_lib=NO)
-AC_ARG_WITH(afterimage_lib,      [  --with-afterimage-lib=DIR  use libAfterImage library located in DIR], afterimage_lib="$withval", afterimage_lib=NO)
-
 dnl# compile-time switches
 AC_ARG_ENABLE(pagerbackground,	[  --enable-pagerbackground provide background support with the Pager [[yes]] ],enable_pagerbackground=$enableval,enable_pagerbackground="yes")
 AC_ARG_ENABLE(i18n,		[  --enable-i18n           support I18N [[no]] ],enable_i18n=$enableval,enable_i18n="no")
@@ -133,7 +128,7 @@ fi
 
 dnl# Add -fPIC for IA64 compilation
 AC_CYGWIN
-if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
+if test "x$CYGWIN" != "xyes" -a "x$GCC" = "xyes" ; then
   if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
     CFLAGS="$CFLAGS -fPIC"
   fi
@@ -238,7 +233,12 @@ else
 fi
 
 have_shmimage=no
-if test "x$CYGWIN$enable_shmimage" = "xyes"; then
+
+if test "x$CYGWIN" == "xyes"; then
+	enable_shmimage=no
+fi
+
+if test "x$enable_shmimage" = "xyes"; then
 	AC_CHECK_LIB(Xext, XShmCreateImage, [have_shmimage=yes],,$full_x_libs)
 	if test "x$have_shmimage" = "xyes"; then
 		AC_CHECK_HEADER(sys/ipc.h,,[have_shmimage=no])
@@ -295,20 +295,16 @@ _def_lib_conf_opts=" \
 	--enable-shmimage=${enable_shmimage} \
 "
 
-if test -d libAfterBase; then
-  AC_CHECKING(libAfterBase)
-  cd libAfterBase; \
-  ./configure $_def_lib_conf_opts \
+AC_CHECKING(libAfterBase)
+cd libAfterBase; \
+./configure $_def_lib_conf_opts \
    --enable-trace-x=$enable_trace_x; \
-  cd ../
-  afterbase_includes=".. -I../.."
-  afterbase_lib=
-fi
+cd ../
+afterbase_lib=
 
-if test -d libAfterImage; then
-  AC_CHECKING(libAfterImage)
-  cd libAfterImage; \
-  ./configure $_def_lib_conf_opts \
+AC_CHECKING(libAfterImage)
+cd libAfterImage; \
+./configure $_def_lib_conf_opts \
    --enable-i18n=$enable_i18n --enable-xlocale=$enable_xlocale --with-locale=$with_locale \
    --with-xpm=$with_xpm   --with-builtin-xpm=$with_builtin_xpm  --with-xpm-includes=$xpm_includes \
    --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes \
@@ -318,10 +314,8 @@ if test -d libAfterImage; then
    --with-ttf=$with_ttf   --with-ttf-includes=$ttf_includes \
    --enable-mmx-optimization=$enable_mmx_optimization \
    --with-ungif=$with_ungif --with-gif=$with_gif; \
-   cd ../
-  afterimage_includes=".. -I../.."
-  afterimage_lib=
-fi
+cd ../
+afterimage_lib=
 
 dnl# let's check for endiannes of our box
 AC_C_BIGENDIAN
@@ -365,33 +359,6 @@ if test "x$enable_sigsegv" = "xyes"; then
   AC_DEFINE(HAVE_SIGSEGV_HANDLING,)
 fi
 
-dnl# if needed - check for external libAfterImage and libAfterBase :
-AC_MSG_CHECKING(libAfterBase headers)
-if test "$afterbase_includes" = "NO"; then
-  AC_CHECK_HEADER(libAfterBase/astypes.h,
-			      [AC_DEFINE(HAVE_AFTERBASE) AC_MSG_RESULT(<libAfterBase/astypes.h>)],
-				   AC_MSG_RESULT(none found))
-else
-  AC_DEFINE(HAVE_AFTERBASE)
-  if test "x$afterbase_includes" != "x"; then
-	  LIBAFTERBASE_CFLAGS="-I$afterbase_includes"
-  fi
-  AC_MSG_RESULT($afterbase_includes)
-fi
-
-AC_MSG_CHECKING(libAfterImage headers)
-if test "$afterimage_includes" = "NO"; then
-  AC_CHECK_HEADER(libAfterImage/afterimage.h,
-			      [AC_DEFINE(HAVE_AFTERIMAGE) AC_MSG_RESULT(<libAfterImage/afterimage.h>)],
-				   AC_MSG_RESULT(none found))
-else
-  AC_DEFINE(HAVE_AFTERIMAGE)
-  if test "x$afterimage_includes" != "x"; then
-	  LIBAFTERIMAGE_CFLAGS="-I$afterimage_includes"
-  fi
-  AC_MSG_RESULT($afterimage_includes)
-fi
-
 if test "x$enable_staticlibs" = "xyes"; then
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.a"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.a"
@@ -410,43 +377,12 @@ else
    LIBINSTALL="install.dyn"
 fi
 
-AC_MSG_CHECKING(libAfterBase library)
-AFTERBASE_LIBS=
-if test "$afterbase_lib" = NO; then
-  AFTERBASE_LIB=-lAfterBase
-else
-  if test "x$afterbase_lib" != "x"; then
-	 AFTERBASE_LIB="-L$afterbase_lib -lAfterBase"
-  fi
-fi
-AC_MSG_RESULT($AFTERBASE_LIBS)
-
 AC_MSG_CHECKING(libAfterImage external libraries)
-AFTERIMAGE_LIBS=
-if test "$afterimage_lib" = NO; then
-  AFTERIMAGE_LIB=-lAfterImage
-  AFTERIMAGE_LIBS=`afterimage-libs --external-only`
-  image_format=`afterimage-libs --preferred-image-format`
-else
-  if test -x "libAfterImage/afterimage-libs"; then
-     AFTERIMAGE_LIBS=`libAfterImage/afterimage-libs --external-only`
-     image_format=`libAfterImage/afterimage-libs --preferred-image-format`
-  else
-	 AFTERIMAGE_LIB="-L$afterimage_lib -lAfterImage"
-	 AFTERIMAGE_LIBS=`$afterimage_lib/afterimage-libs --external-only`
-         image_format=`$afterimage_lib/afterimage-libs --preferred-image-format`
-  fi
-fi
-
+AFTERIMAGE_LIBS=`libAfterImage/afterimage-libs --external-only`
 AC_MSG_RESULT($AFTERIMAGE_LIBS)
 AC_MSG_CHECKING(preferred image format)
+image_format=`libAfterImage/afterimage-libs --preferred-image-format`
 AC_MSG_RESULT($image_format)
-
-if test "x$LIBAFTERIMAGE_CFLAGS" = "x$LIBAFTERBASE_CFLAGS"; then
-  LIBAFTERIMAGE_CFLAGS=
-fi
-AC_SUBST(LIBAFTERBASE_CFLAGS)
-AC_SUBST(LIBAFTERIMAGE_CFLAGS)
 
 dnl# if ascp requested - check for fltk libraries
 

@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC sgmltools CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD LIBAFTERBASE_CFLAGS LIBAFTERIMAGE_CFLAGS target target_cpu target_vendor target_os version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK ASCP_GTK_LIBS ASCP_GTK_INCLUDES user_ldflags x_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB LIBPROG LIBINSTALL DEFINE_XLOCALE with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC sgmltools CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD target target_cpu target_vendor target_os version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK ASCP_GTK_LIBS ASCP_GTK_INCLUDES user_ldflags x_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB LIBPROG LIBINSTALL DEFINE_XLOCALE with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERBASEFILES LIBAFTERIMAGEFILES LIBAFTERSTEPFILES LIBAFTERCONFFILES MAKEFILEDEFINES MAKEFILECOMMON MAKEFILECOMMONLIB'
 
 # Initialize some variables set by options.
@@ -911,10 +911,6 @@ Optional Packages:
   --with-tiff-includes=DIR use TIFF includes in DIR
   --with-ttf               support True Type Fonts via FreeType library [yes]
   --with-ttf-includes=DIR  use FreeType includes in DIR
-  --with-afterbase-includes=DIR  use libAfterBase includes in DIR
-  --with-afterimage-includes=DIR  use libAfterImage includes in DIR
-  --with-afterbase-lib=DIR  use libAfterBase library located in DIR
-  --with-afterimage-lib=DIR  use libAfterImage library located in DIR
   --with-locale=LOCALE    locale name you want to use
   --with-libefence        compile with libefence to debug buffer overruns [no]
   --with-x                use the X Window System
@@ -1551,39 +1547,6 @@ if test "${with_tff_includes+set}" = set; then
   ttf_includes="$withval"
 else
   ttf_includes=NO
-fi;
-
-
-# Check whether --with-afterbase_includes or --without-afterbase_includes was given.
-if test "${with_afterbase_includes+set}" = set; then
-  withval="$with_afterbase_includes"
-  afterbase_includes="$withval"
-else
-  afterbase_includes=NO
-fi;
-
-# Check whether --with-afterimage_includes or --without-afterimage_includes was given.
-if test "${with_afterimage_includes+set}" = set; then
-  withval="$with_afterimage_includes"
-  afterimage_includes="$withval"
-else
-  afterimage_includes=NO
-fi;
-
-# Check whether --with-afterbase_lib or --without-afterbase_lib was given.
-if test "${with_afterbase_lib+set}" = set; then
-  withval="$with_afterbase_lib"
-  afterbase_lib="$withval"
-else
-  afterbase_lib=NO
-fi;
-
-# Check whether --with-afterimage_lib or --without-afterimage_lib was given.
-if test "${with_afterimage_lib+set}" = set; then
-  withval="$with_afterimage_lib"
-  afterimage_lib="$withval"
-else
-  afterimage_lib=NO
 fi;
 
 # Check whether --enable-pagerbackground or --disable-pagerbackground was given.
@@ -3070,7 +3033,7 @@ case $host_os in
          * ) CYGWIN=no;;
 esac
 
-if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
+if test "x$CYGWIN" != "xyes" -a "x$GCC" = "xyes" ; then
   if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
     CFLAGS="$CFLAGS -fPIC"
   fi
@@ -5521,6 +5484,11 @@ else
 fi
 
 have_shmimage=no
+
+if test "x$CYGWIN" == "xyes"; then
+	enable_shmimage=no
+fi
+
 if test "x$enable_shmimage" = "xyes"; then
 	echo "$as_me:$LINENO: checking for XShmCreateImage in -lXext" >&5
 echo $ECHO_N "checking for XShmCreateImage in -lXext... $ECHO_C" >&6
@@ -6143,22 +6111,18 @@ _def_lib_conf_opts=" \
 	--enable-shmimage=${enable_shmimage} \
 "
 
-if test -d libAfterBase; then
-  { echo "$as_me:$LINENO: checking libAfterBase..." >&5
+{ echo "$as_me:$LINENO: checking libAfterBase..." >&5
 echo "$as_me: checking libAfterBase..." >&6;}
-  cd libAfterBase; \
-  ./configure $_def_lib_conf_opts \
+cd libAfterBase; \
+./configure $_def_lib_conf_opts \
    --enable-trace-x=$enable_trace_x; \
-  cd ../
-  afterbase_includes=".. -I../.."
-  afterbase_lib=
-fi
+cd ../
+afterbase_lib=
 
-if test -d libAfterBase; then
-  { echo "$as_me:$LINENO: checking libAfterImage..." >&5
+{ echo "$as_me:$LINENO: checking libAfterImage..." >&5
 echo "$as_me: checking libAfterImage..." >&6;}
-  cd libAfterImage; \
-  ./configure $_def_lib_conf_opts \
+cd libAfterImage; \
+./configure $_def_lib_conf_opts \
    --enable-i18n=$enable_i18n --enable-xlocale=$enable_xlocale --with-locale=$with_locale \
    --with-xpm=$with_xpm   --with-builtin-xpm=$with_builtin_xpm  --with-xpm-includes=$xpm_includes \
    --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes \
@@ -6168,10 +6132,8 @@ echo "$as_me: checking libAfterImage..." >&6;}
    --with-ttf=$with_ttf   --with-ttf-includes=$ttf_includes \
    --enable-mmx-optimization=$enable_mmx_optimization \
    --with-ungif=$with_ungif --with-gif=$with_gif; \
-   cd ../
-  afterimage_includes=".. -I../.."
-  afterimage_lib=
-fi
+cd ../
+afterimage_lib=
 
 echo "$as_me:$LINENO: checking whether byte ordering is bigendian" >&5
 echo $ECHO_N "checking whether byte ordering is bigendian... $ECHO_C" >&6
@@ -6988,318 +6950,6 @@ _ACEOF
 
 fi
 
-echo "$as_me:$LINENO: checking libAfterBase headers" >&5
-echo $ECHO_N "checking libAfterBase headers... $ECHO_C" >&6
-if test "$afterbase_includes" = "NO"; then
-  if test "${ac_cv_header_libAfterBase_astypes_h+set}" = set; then
-  echo "$as_me:$LINENO: checking for libAfterBase/astypes.h" >&5
-echo $ECHO_N "checking for libAfterBase/astypes.h... $ECHO_C" >&6
-if test "${ac_cv_header_libAfterBase_astypes_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-fi
-echo "$as_me:$LINENO: result: $ac_cv_header_libAfterBase_astypes_h" >&5
-echo "${ECHO_T}$ac_cv_header_libAfterBase_astypes_h" >&6
-else
-  # Is the header compilable?
-echo "$as_me:$LINENO: checking libAfterBase/astypes.h usability" >&5
-echo $ECHO_N "checking libAfterBase/astypes.h usability... $ECHO_C" >&6
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-#include <libAfterBase/astypes.h>
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_header_compiler=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-ac_header_compiler=no
-fi
-rm -f conftest.$ac_objext conftest.$ac_ext
-echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
-echo "${ECHO_T}$ac_header_compiler" >&6
-
-# Is the header present?
-echo "$as_me:$LINENO: checking libAfterBase/astypes.h presence" >&5
-echo $ECHO_N "checking libAfterBase/astypes.h presence... $ECHO_C" >&6
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <libAfterBase/astypes.h>
-_ACEOF
-if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
-  (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } >/dev/null; then
-  if test -s conftest.err; then
-    ac_cpp_err=$ac_c_preproc_warn_flag
-  else
-    ac_cpp_err=
-  fi
-else
-  ac_cpp_err=yes
-fi
-if test -z "$ac_cpp_err"; then
-  ac_header_preproc=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-  ac_header_preproc=no
-fi
-rm -f conftest.err conftest.$ac_ext
-echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
-echo "${ECHO_T}$ac_header_preproc" >&6
-
-# So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc in
-  yes:no )
-    { echo "$as_me:$LINENO: WARNING: libAfterBase/astypes.h: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: libAfterBase/astypes.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: libAfterBase/astypes.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: libAfterBase/astypes.h: proceeding with the preprocessor's result" >&2;}
-    (
-      cat <<\_ASBOX
-## ------------------------------------ ##
-## Report this to bug-autoconf@gnu.org. ##
-## ------------------------------------ ##
-_ASBOX
-    ) |
-      sed "s/^/$as_me: WARNING:     /" >&2
-    ;;
-  no:yes )
-    { echo "$as_me:$LINENO: WARNING: libAfterBase/astypes.h: present but cannot be compiled" >&5
-echo "$as_me: WARNING: libAfterBase/astypes.h: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: libAfterBase/astypes.h: check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: libAfterBase/astypes.h: check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: libAfterBase/astypes.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: libAfterBase/astypes.h: proceeding with the preprocessor's result" >&2;}
-    (
-      cat <<\_ASBOX
-## ------------------------------------ ##
-## Report this to bug-autoconf@gnu.org. ##
-## ------------------------------------ ##
-_ASBOX
-    ) |
-      sed "s/^/$as_me: WARNING:     /" >&2
-    ;;
-esac
-echo "$as_me:$LINENO: checking for libAfterBase/astypes.h" >&5
-echo $ECHO_N "checking for libAfterBase/astypes.h... $ECHO_C" >&6
-if test "${ac_cv_header_libAfterBase_astypes_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_cv_header_libAfterBase_astypes_h=$ac_header_preproc
-fi
-echo "$as_me:$LINENO: result: $ac_cv_header_libAfterBase_astypes_h" >&5
-echo "${ECHO_T}$ac_cv_header_libAfterBase_astypes_h" >&6
-
-fi
-if test $ac_cv_header_libAfterBase_astypes_h = yes; then
-  cat >>confdefs.h <<\_ACEOF
-#define HAVE_AFTERBASE 1
-_ACEOF
- echo "$as_me:$LINENO: result: <libAfterBase/astypes.h>" >&5
-echo "${ECHO_T}<libAfterBase/astypes.h>" >&6
-else
-  echo "$as_me:$LINENO: result: none found" >&5
-echo "${ECHO_T}none found" >&6
-fi
-
-
-else
-  cat >>confdefs.h <<\_ACEOF
-#define HAVE_AFTERBASE 1
-_ACEOF
-
-  if test "x$afterbase_includes" != "x"; then
-	  LIBAFTERBASE_CFLAGS="-I$afterbase_includes"
-  fi
-  echo "$as_me:$LINENO: result: $afterbase_includes" >&5
-echo "${ECHO_T}$afterbase_includes" >&6
-fi
-
-echo "$as_me:$LINENO: checking libAfterImage headers" >&5
-echo $ECHO_N "checking libAfterImage headers... $ECHO_C" >&6
-if test "$afterimage_includes" = "NO"; then
-  if test "${ac_cv_header_libAfterImage_afterimage_h+set}" = set; then
-  echo "$as_me:$LINENO: checking for libAfterImage/afterimage.h" >&5
-echo $ECHO_N "checking for libAfterImage/afterimage.h... $ECHO_C" >&6
-if test "${ac_cv_header_libAfterImage_afterimage_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-fi
-echo "$as_me:$LINENO: result: $ac_cv_header_libAfterImage_afterimage_h" >&5
-echo "${ECHO_T}$ac_cv_header_libAfterImage_afterimage_h" >&6
-else
-  # Is the header compilable?
-echo "$as_me:$LINENO: checking libAfterImage/afterimage.h usability" >&5
-echo $ECHO_N "checking libAfterImage/afterimage.h usability... $ECHO_C" >&6
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-#include <libAfterImage/afterimage.h>
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_header_compiler=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-ac_header_compiler=no
-fi
-rm -f conftest.$ac_objext conftest.$ac_ext
-echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
-echo "${ECHO_T}$ac_header_compiler" >&6
-
-# Is the header present?
-echo "$as_me:$LINENO: checking libAfterImage/afterimage.h presence" >&5
-echo $ECHO_N "checking libAfterImage/afterimage.h presence... $ECHO_C" >&6
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <libAfterImage/afterimage.h>
-_ACEOF
-if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
-  (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } >/dev/null; then
-  if test -s conftest.err; then
-    ac_cpp_err=$ac_c_preproc_warn_flag
-  else
-    ac_cpp_err=
-  fi
-else
-  ac_cpp_err=yes
-fi
-if test -z "$ac_cpp_err"; then
-  ac_header_preproc=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-  ac_header_preproc=no
-fi
-rm -f conftest.err conftest.$ac_ext
-echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
-echo "${ECHO_T}$ac_header_preproc" >&6
-
-# So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc in
-  yes:no )
-    { echo "$as_me:$LINENO: WARNING: libAfterImage/afterimage.h: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: libAfterImage/afterimage.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: libAfterImage/afterimage.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: libAfterImage/afterimage.h: proceeding with the preprocessor's result" >&2;}
-    (
-      cat <<\_ASBOX
-## ------------------------------------ ##
-## Report this to bug-autoconf@gnu.org. ##
-## ------------------------------------ ##
-_ASBOX
-    ) |
-      sed "s/^/$as_me: WARNING:     /" >&2
-    ;;
-  no:yes )
-    { echo "$as_me:$LINENO: WARNING: libAfterImage/afterimage.h: present but cannot be compiled" >&5
-echo "$as_me: WARNING: libAfterImage/afterimage.h: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: libAfterImage/afterimage.h: check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: libAfterImage/afterimage.h: check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: libAfterImage/afterimage.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: libAfterImage/afterimage.h: proceeding with the preprocessor's result" >&2;}
-    (
-      cat <<\_ASBOX
-## ------------------------------------ ##
-## Report this to bug-autoconf@gnu.org. ##
-## ------------------------------------ ##
-_ASBOX
-    ) |
-      sed "s/^/$as_me: WARNING:     /" >&2
-    ;;
-esac
-echo "$as_me:$LINENO: checking for libAfterImage/afterimage.h" >&5
-echo $ECHO_N "checking for libAfterImage/afterimage.h... $ECHO_C" >&6
-if test "${ac_cv_header_libAfterImage_afterimage_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_cv_header_libAfterImage_afterimage_h=$ac_header_preproc
-fi
-echo "$as_me:$LINENO: result: $ac_cv_header_libAfterImage_afterimage_h" >&5
-echo "${ECHO_T}$ac_cv_header_libAfterImage_afterimage_h" >&6
-
-fi
-if test $ac_cv_header_libAfterImage_afterimage_h = yes; then
-  cat >>confdefs.h <<\_ACEOF
-#define HAVE_AFTERIMAGE 1
-_ACEOF
- echo "$as_me:$LINENO: result: <libAfterImage/afterimage.h>" >&5
-echo "${ECHO_T}<libAfterImage/afterimage.h>" >&6
-else
-  echo "$as_me:$LINENO: result: none found" >&5
-echo "${ECHO_T}none found" >&6
-fi
-
-
-else
-  cat >>confdefs.h <<\_ACEOF
-#define HAVE_AFTERIMAGE 1
-_ACEOF
-
-  if test "x$afterimage_includes" != "x"; then
-	  LIBAFTERIMAGE_CFLAGS="-I$afterimage_includes"
-  fi
-  echo "$as_me:$LINENO: result: $afterimage_includes" >&5
-echo "${ECHO_T}$afterimage_includes" >&6
-fi
-
 if test "x$enable_staticlibs" = "xyes"; then
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.a"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.a"
@@ -7318,49 +6968,16 @@ else
    LIBINSTALL="install.dyn"
 fi
 
-echo "$as_me:$LINENO: checking libAfterBase library" >&5
-echo $ECHO_N "checking libAfterBase library... $ECHO_C" >&6
-AFTERBASE_LIBS=
-if test "$afterbase_lib" = NO; then
-  AFTERBASE_LIB=-lAfterBase
-else
-  if test "x$afterbase_lib" != "x"; then
-	 AFTERBASE_LIB="-L$afterbase_lib -lAfterBase"
-  fi
-fi
-echo "$as_me:$LINENO: result: $AFTERBASE_LIBS" >&5
-echo "${ECHO_T}$AFTERBASE_LIBS" >&6
-
 echo "$as_me:$LINENO: checking libAfterImage external libraries" >&5
 echo $ECHO_N "checking libAfterImage external libraries... $ECHO_C" >&6
-AFTERIMAGE_LIBS=
-if test "$afterimage_lib" = NO; then
-  AFTERIMAGE_LIB=-lAfterImage
-  AFTERIMAGE_LIBS=`afterimage-libs --external-only`
-  image_format=`afterimage-libs --preferred-image-format`
-else
-  if test -x "libAfterImage/afterimage-libs"; then
-     AFTERIMAGE_LIBS=`libAfterImage/afterimage-libs --external-only`
-     image_format=`libAfterImage/afterimage-libs --preferred-image-format`
-  else
-	 AFTERIMAGE_LIB="-L$afterimage_lib -lAfterImage"
-	 AFTERIMAGE_LIBS=`$afterimage_lib/afterimage-libs --external-only`
-         image_format=`$afterimage_lib/afterimage-libs --preferred-image-format`
-  fi
-fi
-
+AFTERIMAGE_LIBS=`libAfterImage/afterimage-libs --external-only`
 echo "$as_me:$LINENO: result: $AFTERIMAGE_LIBS" >&5
 echo "${ECHO_T}$AFTERIMAGE_LIBS" >&6
 echo "$as_me:$LINENO: checking preferred image format" >&5
 echo $ECHO_N "checking preferred image format... $ECHO_C" >&6
+image_format=`libAfterImage/afterimage-libs --preferred-image-format`
 echo "$as_me:$LINENO: result: $image_format" >&5
 echo "${ECHO_T}$image_format" >&6
-
-if test "x$LIBAFTERIMAGE_CFLAGS" = "x$LIBAFTERBASE_CFLAGS"; then
-  LIBAFTERIMAGE_CFLAGS=
-fi
-
-
 
 
 LIBS=$saved_LIBS
@@ -7804,7 +7421,7 @@ LIBAFTERCONFFILES=./libAfterConf/.shared
 
 
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib configure.h Makefile afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile src/asetroot/Makefile src/Animate/Makefile src/Audio/Makefile src/Banner/Makefile src/Cascade/Makefile src/Clean/Makefile src/Form/Makefile src/Gnome/Makefile src/Ident/Makefile src/Pager/Makefile src/Save/Makefile src/Script/Widgets/Makefile src/Script/Makefile src/Scroll/Makefile src/Sound/Makefile src/Tile/Makefile src/Wharf/Makefile src/WinList2/Makefile src/WinTabs/Makefile src/Gadget/Makefile src/test/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib configure.h Makefile afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/afterstep-config libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile src/asetroot/Makefile src/Animate/Makefile src/Audio/Makefile src/Banner/Makefile src/Cascade/Makefile src/Clean/Makefile src/Form/Makefile src/Gnome/Makefile src/Ident/Makefile src/Pager/Makefile src/Save/Makefile src/Script/Widgets/Makefile src/Script/Makefile src/Scroll/Makefile src/Sound/Makefile src/Tile/Makefile src/Wharf/Makefile src/WinList2/Makefile src/WinTabs/Makefile src/Gadget/Makefile src/test/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -8337,6 +7954,7 @@ do
   "afterstep/Makefile" ) CONFIG_FILES="$CONFIG_FILES afterstep/Makefile" ;;
   "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   "doc/afterstepdoc" ) CONFIG_FILES="$CONFIG_FILES doc/afterstepdoc" ;;
+  "libAfterStep/afterstep-config" ) CONFIG_FILES="$CONFIG_FILES libAfterStep/afterstep-config" ;;
   "libAfterStep/Makefile" ) CONFIG_FILES="$CONFIG_FILES libAfterStep/Makefile" ;;
   "libAfterConf/Makefile" ) CONFIG_FILES="$CONFIG_FILES libAfterConf/Makefile" ;;
   "src/afterstep/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/afterstep/Makefile" ;;
@@ -8507,8 +8125,6 @@ s,@EGREP@,$EGREP,;t t
 s,@x_libraries@,$x_libraries,;t t
 s,@AUDIO_LIBS@,$AUDIO_LIBS,;t t
 s,@AUDIO_PLAY_CMD@,$AUDIO_PLAY_CMD,;t t
-s,@LIBAFTERBASE_CFLAGS@,$LIBAFTERBASE_CFLAGS,;t t
-s,@LIBAFTERIMAGE_CFLAGS@,$LIBAFTERIMAGE_CFLAGS,;t t
 s,@target@,$target,;t t
 s,@target_cpu@,$target_cpu,;t t
 s,@target_vendor@,$target_vendor,;t t
