@@ -299,7 +299,10 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 	if( DocGenerationPass > 0 ) 
 		dest_fp = fopen( "/dev/null", "wt" );
 	else 
+	{	
 		dest_fp = fopen( dest_path, "wt" );
+		chmod (dest_path, 0664);
+	}
 	if( dest_fp == NULL ) 
 	{
 		show_error( "Failed to open destination file \"%s\" for writing!", dest_path );
