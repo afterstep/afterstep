@@ -1,4 +1,9 @@
-<scale width=$xroot.width height=$xroot.height>
-	<img src=".StormySkies"/>
-</scale>
+<composite op="allanon">
+	<gradient width="$xroot.width" height="$xroot.height"
+	colors="BaseLight BaseDark" angle="45"/>
+
+	<scale width="$xroot.width" height="$xroot.height" tile="1">
+		<img src=".StormySkies"/>
+	</scale>
+</composite>
 

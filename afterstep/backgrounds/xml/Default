@@ -3,17 +3,17 @@
 </tile>
 
 <composite>
-  <composite op="add">
+  <composite op="allanon">
     <gradient width="$xroot.width" height="$xroot.height"
-    colors="BaseDark BaseLight" angle="45"/>
+    colors="BaseLight BaseDark" angle="45"/>
 
-    <scale width="32" height="32" tile="1">
-      <img src="tiles/SimpleTexture"/>
+    <scale width="$xroot.width" height="$xroot.height" tile="1">
+      <img src=".StormySkies"/>
     </scale>
   </composite>
-
-  <text align="center" valign="middle" font="DefaultFancy.ttf"
-  point="60" fgimage="text_fgimage" type="3">AfterStep 2.0</text>
+  <tile tint="#4f9F9F9F" align="center" valign="middle">
+    <text fgcolor="Inactive1" font="DefaultFancy.ttf" point="60" type="3">AfterStep 2.0</text>
+  </tile>
 </composite>
 
 <release srcid="text_fgimage"/>
