@@ -5,7 +5,7 @@
 /*#define DEBUG_BACKGROUNDS*/
 
 
-typedef struct pager_window 
+typedef struct pager_window
 {
   Window w;
   Window frame;
@@ -40,13 +40,13 @@ typedef struct pager_view_position
   int icon_x, icon_y, icon_width, icon_height ;
 }PagerViewPosition ;
 
-typedef struct desk_info 
+typedef struct desk_info
 {
   Window w;
   Window title_w;
-  
+
   Bool exposed ;
-  
+
   char *label;
   char *StyleName ;
 
@@ -68,9 +68,9 @@ typedef struct pager_info
   int PageRows, PageColumns ;
   int xSize, ySize ; /* x and y size of desktop */
   int AspectX, AspectY;
-  
-  int bStarted ; 
-  
+
+  int bStarted ;
+
   Pixmap CurentRootBack ;
   ASDeskBackArray Backgrounds ;
 
@@ -88,13 +88,13 @@ typedef struct pager_win_attr {
     unsigned long  back_pixel;
     Pixmap back_pixmap;
     GC     foreGC ;
-}PagerWinAttr;    
+}PagerWinAttr;
 
 typedef enum {
-    STYLE_FWINDOW=WIN_FOCUSED,	
-    STYLE_SWINDOW=WIN_STICKY,	
-    STYLE_UWINDOW=WIN_UNFOCUSED, 
-    STYLE_ADESK,	
+    STYLE_FWINDOW=WIN_FOCUSED,
+    STYLE_SWINDOW=WIN_STICKY,
+    STYLE_UWINDOW=WIN_UNFOCUSED,
+    STYLE_ADESK,
     STYLE_INADESK,
     STYLE_MAX_STYLE
 } PAGER_STYLES ;
@@ -104,17 +104,17 @@ typedef struct pager_look {
   MyStyle* Styles[STYLE_MAX_STYLE];
   GC WinForeGC[WIN_TYPES_NUM];
   MyStyle** DeskStyles ;
-   
+
   int DeskBorderWidth ;
   int TitleAlign ;
 
   ARGB32 GridColor ;
   GC	GridGC ;
 
-  ARGB32 BorderColor ;  
-  ARGB32 SelectionColor ; 
+  ARGB32 BorderColor ;
+  ARGB32 SelectionColor ;
 
-  MyFont windowFont ; 
+  MyFont windowFont ;
   int bNeedToFixStyles ;
 
 }PagerLook ;
@@ -143,7 +143,6 @@ extern ASAtom  Atoms[];
 
 extern int WaitASResponse;
 #define PAGE_MOVE_THRESHOLD		15   /* precent */
-#define WAIT_AS_RESPONSE_TIMEOUT 	20   /* seconds */
 
 #define IS_STICKY(t)	(((t->flags&ICONIFIED)&&(Pager.Flags&STICKY_ICONS))|| \
 	                  (t->flags&STICKY))
@@ -151,7 +150,7 @@ extern int WaitASResponse;
 /*************************************************************************
  *
  * Subroutine Prototypes
- * 
+ *
  *************************************************************************/
 void SendInfo(int *fd,char *message,unsigned long window);
 void DeadPipe(int nonsense);
@@ -211,9 +210,9 @@ void HilightDesk(int i, int if_texture);
 void DrawIconGrid(int erase);
 void SwitchToDesk(int Desk);
 void SwitchToDeskAndPage(int Desk, XEvent *Event);
-int  GetWinAttributes( PagerWindow* t, 
-                       XSetWindowAttributes* attributes, 
-		       unsigned long *valuemask, 
+int  GetWinAttributes( PagerWindow* t,
+                       XSetWindowAttributes* attributes,
+		       unsigned long *valuemask,
 		       PagerViewPosition* ppos );
 void AddNewWindow(PagerWindow *prev);
 void MoveResizePagerView(PagerWindow *t);

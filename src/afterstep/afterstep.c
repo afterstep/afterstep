@@ -119,6 +119,8 @@ main (int argc, char **argv)
         exit (3);
 	}
 
+    InitSession();
+
     if (get_flags( AfterStepState, ASS_Debugging))
         set_synchronous_mode(True);
     XSync (dpy, 0);

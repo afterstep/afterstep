@@ -185,8 +185,8 @@ int spawn_child( const char *cmd, int singleton_id, int screen, Window w, int co
 /* GLOBALS :                                                                       */
 /***********************************************************************************/
 /* this call will set most of them up : */
-void
-InitMyApp (  const char *app_class, int agrc, char **argv, void (*version_func) (void), void (*custom_usage_func) (void), ASFlagType opt_mask );
+void InitMyApp (  const char *app_class, int agrc, char **argv, void (*version_func) (void), void (*custom_usage_func) (void), ASFlagType opt_mask );
+void InitSession();
 
 
 /* these are global public variables from libafterstep */

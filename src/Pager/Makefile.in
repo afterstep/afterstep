@@ -1,4 +1,6 @@
-OBJS		= Pager.o x_pager.o
+OBJS            = Pager.o
+
+# x_pager.o
 
 PROG		= Pager
 

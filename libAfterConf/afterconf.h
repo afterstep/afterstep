@@ -206,17 +206,24 @@ extern char *pixmapPath;
 
 typedef struct
   {
+    int rows, columns;
     ASGeometry geometry, icon_geometry;
     char **labels;
     char **styles;
     int align;
     unsigned long flags, set_flags;
     char *small_font_name;
-    int rows, columns;
+    int border_width;
+
     char *selection_color;
     char *grid_color;
-    int border_width;
     char *border_color;
+
+    /* these are generated after reading the config : */
+    int gravity ;
+    ARGB32  selection_color_argb;
+    ARGB32  grid_color_argb;
+    ARGB32  border_color_argb;
 
     MyStyleDefinition *style_defs;
 

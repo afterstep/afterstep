@@ -132,6 +132,7 @@ CreatePagerConfig (int ndesks)
   config->style_defs = NULL;
 
   config->more_stuff = NULL;
+  config->gravity = NorthWestGravity ;
 
   return config;
 }

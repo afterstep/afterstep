@@ -17,6 +17,7 @@
  *
  */
 
+#define LOCAL_DEBUG
 #include "../configure.h"
 
 #include "../include/asapp.h"
@@ -412,6 +413,7 @@ read_as_visual (ASWMProps * wmprops, Bool deleted)
 Bool
 read_as_module_socket (ASWMProps * wmprops, Bool deleted)
 {
+LOCAL_DEBUG_CALLER_OUT( "wmprops(%p)->deleted(%d)", wmprops, deleted);
 	if (wmprops)
 	{
 		char         *socket_name = NULL;
@@ -423,7 +425,7 @@ read_as_module_socket (ASWMProps * wmprops, Bool deleted)
 
 		if (!read_string_property (wmprops->selection_window, _AS_MODULE_SOCKET, &socket_name))
 			return False;
-
+LOCAL_DEBUG_OUT( "\tas_socket_name is [%s]", socket_name);
 		wmprops->as_socket_filename = mystrdup (socket_name);
 		XFree (socket_name);
 		return True;
@@ -593,18 +595,23 @@ read_volitile_wmprops (ASWMProps * wmprops)
 	int           props_num = 0;
 	struct prop_description_struct *descr;
 
+LOCAL_DEBUG_CALLER_OUT( "wmprops(%p)->selection_window(%lX)", wmprops, wmprops?wmprops->selection_window:None );
 	if (wmprops == NULL || wmprops->selection_window == None)
 		return;
 	all_props = XListProperties (dpy, wmprops->selection_window, &props_num);
 
+LOCAL_DEBUG_OUT( "XListProperties returned %d volitile props", props_num );
 	if (wmprop_volitile_handlers == NULL)
 		init_wmprop_volitile_handlers ();
 	if (all_props)
 	{
 		while (props_num-- > 0)
 		{
-			if (get_hash_item (wmprop_volitile_handlers, (ASHashableValue) all_props[props_num], (void **)&descr) ==
+LOCAL_DEBUG_OUT( "checking property %d [%s]...", props_num, XGetAtomName (dpy, all_props[props_num]) );
+            if (get_hash_item (wmprop_volitile_handlers, (ASHashableValue) all_props[props_num], (void **)&descr) ==
 				ASH_Success)
+            {
+LOCAL_DEBUG_OUT( "\tfound description %p", descr );
 				if (descr != NULL)
 					if (descr->read_func != NULL)
 						if (descr->read_func (wmprops, False))
@@ -612,6 +619,7 @@ read_volitile_wmprops (ASWMProps * wmprops)
 							set_flags (wmprops->set_props, descr->prop_class);
 							clear_flags (wmprops->my_props, descr->prop_class);
 						}
+            }
 		}
 		XFree (all_props);
 	}

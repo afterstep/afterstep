@@ -55,6 +55,8 @@
 #define MAX_MESSAGES          23
 #define MAX_MASK             (((1<<MAX_MESSAGES)-1) & ~M_LOCKONSEND)
 
+#define WAIT_AS_RESPONSE_TIMEOUT    20   /* seconds */
+
 /* M_LOCKONSEND when set causes afterstep to wait for the module to send an
  * unlock message back, needless to say, we wouldn't want this on by default
  */
@@ -110,10 +112,12 @@ int ProcessModuleArgs (int argc, char **argv, char **global_config_file, unsigne
 
 /* returns fd of the AfterStep connection */
 int ConnectAfterStep (unsigned long message_mask);
+void SendInfo (int *fd, char *message, unsigned long window);
+
 
 /* constructs config filename and calls supplied user function */
-void LoadBaseConfig (char *global_config_file, void (*read_base_options_func) (const char *));
-void LoadConfig (char *global_config_file, char *config_file_name, void (*read_options_func) (const char *));
+void LoadBaseConfig (void (*read_base_options_func) (const char *));
+void LoadConfig (char *config_file_name, void (*read_options_func) (const char *));
 
 
 /* only aplicable to modules with X connection : lib/Xmodule.c */

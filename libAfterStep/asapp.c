@@ -147,7 +147,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("&nonsense&", 10, F_MODULE_FUNC_START),	/* not really a command */
 	FUNC_TERM ("Send_WindowList", 15, F_SEND_WINDOW_LIST),	/* */
 	FUNC_TERM ("SET_MASK", 8, F_SET_MASK),	   /* SET_MASK  mask */
-	FUNC_TERM2 (NEED_CMD, "SET_NAME", 8, F_SET_NAME),	/* SET_NAME  name */
+    FUNC_TERM2 (NEED_NAME, "SET_NAME", 8, F_SET_NAME),   /* SET_NAME  name */
 	FUNC_TERM ("UNLOCK", 6, F_UNLOCK),		   /* UNLOCK    1  */
 	FUNC_TERM ("SET_FLAGS", 9, F_SET_FLAGS),   /* SET_FLAGS flags */
 	/* these are internal commands */
@@ -440,15 +440,6 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
         }
     }
 
-    /* initializing our dirs names */
-    Session = GetNCASSession(&Scr, MyArgs.override_home, MyArgs.override_share);
-    if( MyArgs.override_config )
-        set_session_override( Session, MyArgs.override_config, 0 );
-    if( MyArgs.override_look )
-        set_session_override( Session, MyArgs.override_look, F_CHANGE_LOOK );
-    if( MyArgs.override_feel )
-        set_session_override( Session, MyArgs.override_feel, F_CHANGE_FEEL );
-
     fd_width = get_fd_width ();
 
     if (FuncSyntax.term_hash == NULL)
@@ -461,6 +452,19 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
     trace_enable_function(MyArgs.trace_calls);
 #endif
 
+}
+
+void
+InitSession()
+{
+    /* initializing our dirs names */
+    Session = GetNCASSession(&Scr, MyArgs.override_home, MyArgs.override_share);
+    if( MyArgs.override_config )
+        set_session_override( Session, MyArgs.override_config, 0 );
+    if( MyArgs.override_look )
+        set_session_override( Session, MyArgs.override_look, F_CHANGE_LOOK );
+    if( MyArgs.override_feel )
+        set_session_override( Session, MyArgs.override_feel, F_CHANGE_FEEL );
 }
 
 /*********** end command line parsing **************************/

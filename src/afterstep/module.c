@@ -25,6 +25,8 @@
  *
  ***********************************************************************/
 
+#define LOCAL_DEBUG
+
 #include "../../configure.h"
 
 #include <signal.h>
@@ -214,21 +216,24 @@ HandleModuleInput (module_t *module)
 	{
 		if (ibuf->size > 0)					   /* Protocol 1 */
 		{
+LOCAL_DEBUG_OUT("Incoming message in proto 1%s","");
             CheckCmdTextSize (module, &(ibuf->size), &(ibuf->len), &(ibuf->text));
             res = ReadModuleInput (module, &offset, ibuf->size, ibuf->text);
 
-			if (res > 0)
+            if (res > 0)
 			{
 				/* null-terminate the command line */
 				ibuf->text[ibuf->size] = '\0';
-                invalid_func = (ibuf->func=String2Func (ibuf->text, ibuf->func, False))!= NULL?1:-1;
-			}
+                ibuf->func = String2Func (ibuf->text, ibuf->func, False);
+                invalid_func = (ibuf->func!= NULL)?1:-1;
+            }
 		} else								   /* Protocol 2 */
 		{
 			size_t        curr_len;
 			register FunctionData *pfunc = ibuf->func;
 
-			if (pfunc == NULL)
+LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
+            if (pfunc == NULL)
 			{
 				pfunc = (FunctionData *) safemalloc (sizeof (FunctionData));
 				init_func_data (pfunc);
@@ -291,10 +296,14 @@ HandleModuleInput (module_t *module)
 	if (res < 0)
         KillModule (module);
     else if (res > 0)
+    {
         ibuf->done = 0;                        /* done reading command */
+        if( invalid_func )
+            res = -1 ;
+    }
 
     PRINT_MEM_STATS(NULL);
-	return res;
+    return res;
 }
 
 static void
@@ -425,7 +434,7 @@ SendBuffer( int channel )
 		/* lets make sure that we will not overrun the buffer : */
         realloc_vector(&module_output_buffer, size_to_send );
         b = VECTOR_HEAD(send_data_type,module_output_buffer);
-LOCAL_DEBUG_OUT( "sending %d words to module # %d of %d", size_to_send, channel, MODULES_NUM );
+LOCAL_DEBUG_OUT( "sending %ld words to module # %d of %d", size_to_send, channel, MODULES_NUM );
         if( channel >= 0 && channel < MODULES_NUM)
             PositiveWrite (channel, b, size_to_send*sizeof(send_data_type) );
 	    else
@@ -1304,9 +1313,9 @@ HandleModuleInput (int channel)
 	text[Module[channel].ibuf.size] = '\0';
 
 	if (strlen (text))
-		return RunCommand (text, channel, w);
-
-	return 0;
+        if( parse_func (text, &(text[Module[channel].ibuf.func), False ) >= 0)
+            return 1;
+    return 0;
 }
 
 void

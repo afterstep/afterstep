@@ -31,38 +31,18 @@
 #include "../libAfterImage/afterimage.h"
 #include "../include/screen.h"
 #include "../include/module.h"
+#include "../include/wmprops.h"
+#include "../include/session.h"
 
 char         *display_name = NULL;
-
-char         *
-module_get_socket_property (Window w)
-{
-	char         *data;
-	int           actual_format;
-	Atom          name, actual_type;
-	unsigned long junk;
-
-	name = XInternAtom (dpy, "_AS_MODULE_SOCKET", False);
-
-	if (XGetWindowProperty
-		(dpy, w, name, 0, ~0, False, AnyPropertyType, &actual_type, &actual_format, &junk, &junk,
-		 (unsigned char **)&data) != Success)
-		return NULL;
-
-	if (actual_type != XA_STRING || actual_format != 8)
-	{
-		XFree (data);
-		return NULL;
-	}
-
-	return data;
-}
 
 int
 module_connect (const char *socket_name)
 {
 	int           fd;
 
+    if( socket_name == NULL )
+        return -1;
 	/* create an unnamed socket */
 	if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
 	{
@@ -166,93 +146,97 @@ void          DeadPipe (int nonsense);
 int
 ConnectAfterStep (unsigned long message_mask)
 {
-	char         *temp;
-	char          mask_mesg[32];
+    char *temp;
+    char          mask_mesg[32];
 	int           as_fd[2];
 
 	/* connect to AfterStep */
 	/* Dead pipe == AS died */
 	signal (SIGPIPE, DeadPipe);
-	temp = module_get_socket_property (RootWindow (dpy, DefaultScreen (dpy)));
-	as_fd[0] = as_fd[1] = module_connect (temp);
-	XFree (temp);
+    as_fd[0] = as_fd[1] = Scr.wmprops?module_connect (Scr.wmprops->as_socket_filename):-1;
 
 	if (as_fd[0] < 0)
 	{
-		fprintf (stderr, "%s: unable to establish connection to AfterStep\n", MyName);
+        show_error("unable to establish connection to AfterStep");
 		exit (1);
 	}
 
 	temp = safemalloc (9 + strlen (MyName) + 1);
-	sprintf (temp, "SET_NAME %s", MyName);
+    sprintf (temp, "SET_NAME \"%s\"", MyName);
 	SendInfo (as_fd, temp, None);
 	free (temp);
 
 	sprintf (mask_mesg, "SET_MASK %lu\n", (unsigned long)message_mask);
 	SendInfo (as_fd, mask_mesg, None);
+
+    /* don't really have to do this here, but anyway : */
+    InitSession();
+
 	return as_fd[0];
 }
 
 void
-LoadBaseConfig (char *global_config_file, void (*read_base_options_func) (const char *))
+LoadBaseConfig(void (*read_base_options_func) (const char *))
 {
-	if (global_config_file != NULL)
-		read_base_options_func (global_config_file);
-	else
-	{
-		char         *realconfigfile;
-		char          configfile[255];
+    if( Session == NULL )
+    {
+        show_error("Session has not been properly initialized. Exiting");
+        exit(1);
+    }
 
-		sprintf (configfile, "%s/base.%dbpp", AFTER_DIR, Scr.asv->visual_info.depth);
-		realconfigfile = (char *)PutHome (configfile);
-		if (CheckFile (realconfigfile) == -1)
-		{
-			free (realconfigfile);
-			sprintf (configfile, "%s/base.%dbpp", AFTER_SHAREDIR, Scr.asv->visual_info.depth);
-			realconfigfile = PutHome (configfile);
-		}
-		read_base_options_func (realconfigfile);
-		free (realconfigfile);
-	}
+    if (Session->overriding_file == NULL )
+	{
+        char *configfile = make_session_file(Session, BASE_FILE, True );
+        if( configfile != NULL )
+        {
+            read_base_options_func (Session->overriding_file);
+            show_progress("BASE configuration loaded from \"%s\" ...", configfile);
+            free( configfile );
+        }else
+        {
+            show_warning("BASE configuration file cannot be found");
+        }
+    }else
+        read_base_options_func (Session->overriding_file);
 }
 
 void
-LoadConfig (char *global_config_file, char *config_file_name, void (*read_options_func) (const char *))
+LoadConfig (char *config_file_name, void (*read_options_func) (const char *))
 {
-	char         *realconfigfile;
-	char          configfile[255];
-
-	if (global_config_file != NULL)
-		read_options_func (global_config_file);
-	else
+    if( Session == NULL )
+    {
+        show_error("Session has not been properly initialized. Exiting");
+        exit(1);
+    }
+    if (Session->overriding_file == NULL )
 	{
-		sprintf (configfile, "%s/%s", AFTER_DIR, config_file_name);
-		realconfigfile = (char *)PutHome (configfile);
-		if ((CheckFile (realconfigfile)) == -1)
-		{
-			free (realconfigfile);
-			sprintf (configfile, "%s/%s", AFTER_SHAREDIR, config_file_name);
-			realconfigfile = PutHome (configfile);
-		}
-		read_options_func (realconfigfile);
-		free (realconfigfile);
-	}
-	strcpy (configfile, AFTER_DIR);
-	sprintf (configfile + strlen (AFTER_DIR), "/" THEME_FILE, 0, Scr.asv->visual_info.depth);
-	realconfigfile = (char *)PutHome (configfile);
-	if ((CheckFile (realconfigfile)) != -1)
-	{
-		fprintf (stderr, "%s: reading theme file \"%s\"... \n", MyName, realconfigfile);
-		read_options_func (realconfigfile);
-	}
-	free (realconfigfile);
+        char *configfile ;
+        const char *const_configfile;
 
-	sprintf (configfile, "%s/%s", AFTER_DIR, THEME_OVERRIDE_FILE);
-	realconfigfile = (char *)PutHome (configfile);
-	if ((CheckFile (realconfigfile)) != -1)
-		read_options_func (realconfigfile);
-	free (realconfigfile);
+        configfile = make_session_file(Session, config_file_name, False );
+        if( configfile != NULL )
+        {
+            read_options_func(configfile);
+            show_progress("configuration loaded from \"%s\" ...", configfile);
+            free( configfile );
+        }else
+        {
+            show_warning("configuration file \"%s\" cannot be found", config_file_name);
+        }
 
+        if( (const_configfile = get_session_file (Session, 0, F_CHANGE_THEME) ) != NULL )
+        {
+            read_options_func(const_configfile);
+            show_progress("THEME configuration loaded from \"%s\" ...", const_configfile);
+            if( (configfile = make_session_data_file  (Session, False, R_OK, THEME_OVERRIDE_FILE, NULL )) != NULL )
+            {
+                read_options_func(configfile);
+                show_progress("THEME OVERRIDES configuration loaded from \"%s\" ...", configfile);
+                free( configfile );
+            }
+        }
+    }else
+        read_options_func (Session->overriding_file);
 }
 
 /**********************************************************************/

@@ -39,7 +39,7 @@
  ***************************************************************************/
 
 #include "../../configure.h"
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 #include "../../include/asapp.h"
 #include <signal.h>
 #include <stdarg.h>
@@ -448,9 +448,6 @@ parse_func (const char *text, FunctionData * data, int quiet)
 			data->func = F_NOP;
 	}
 
-
-
-
 /*
    if( data->func == F_SCROLL )
    {
@@ -489,12 +486,15 @@ String2Func ( const char *string, FunctionData *p_fdata, Bool quiet )
     else
         p_fdata = safecalloc( 1, sizeof(FunctionData));
 
-    if( parse_func( string, p_fdata, quiet ) <= 0 )
+    LOCAL_DEBUG_OUT( "parsing message \"%s\"", string );
+    if( parse_func( string, p_fdata, quiet ) < 0 )
     {
+        LOCAL_DEBUG_OUT( "parsing failed%s", "" );
         free_func_data( p_fdata );
         free( p_fdata );
         p_fdata = NULL;
-    }
+    }else
+        LOCAL_DEBUG_OUT( "parsing success with func = %d", p_fdata->func );
     return p_fdata;
 }
 

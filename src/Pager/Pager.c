@@ -27,11 +27,13 @@
  */
 
 /*#define DO_CLOCKING      */
+#define LOCAL_DEBUG
 
 #include "../../configure.h"
 
 #include "../../include/asapp.h"
 #include <signal.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <sys/time.h>
@@ -45,6 +47,7 @@
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
 #include "../../include/mystyle.h"
+#include "../../include/mystyle_property.h"
 #include "../../include/balloon.h"
 #include "../../include/aswindata.h"
 #include "../../include/decor.h"
@@ -81,6 +84,8 @@ typedef struct ASPagerState
 ASPagerState PagerState ={ 0, NULL, NULL, NULL, 0, 0 };
 #define DEFAULT_BORDER_COLOR 0xFF808080
 
+PagerConfig *Config = NULL;
+
 void
 pager_usage (void)
 {
@@ -90,18 +95,23 @@ pager_usage (void)
 	exit (0);
 }
 
+void process_message (unsigned long type, unsigned long *body);
+void DispatchEvent (XEvent * Event);
+void rearrange_pager_window();
+Window make_pager_window();
+void GetOptions (const char *filename);
+void GetBaseOptions (const char *filename);
+
+
 /***********************************************************************
- *
- *   Procedure:
  *   main - start of module
- *
  ***********************************************************************/
 int
 main (int argc, char **argv)
 {
-    int itemp, i;
+    int i;
     char *cptr = NULL ;
-    char *global_config_file = NULL;
+//    char *global_config_file = NULL;
     int desk1 = 0, desk2 = 0;
     int x_fd ;
 	int as_fd[2] ;
@@ -172,16 +182,20 @@ main (int argc, char **argv)
                                             M_ICON_NAME |
                                             M_END_WINDOWLIST);
 
-    LOCAL_DEBUG_OUT("parsing Options ...");
-//    LoadBaseConfig (global_config_file, GetBaseOptions);
-//    LoadConfig (global_config_file, "pager", GetOptions);
+    Config = CreatePagerConfig (PagerState.desks_num);
+
+    LOCAL_DEBUG_OUT("parsing Options ...%s","");
+    LoadBaseConfig (GetBaseOptions);
+    LoadConfig ("pager", GetOptions);
 
     /* Create a list of all windows */
     /* Request a list of all windows,
      * wait for ConfigureWindow packets */
     SendInfo (as_fd, "Send_WindowList", 0);
 
-    LOCAL_DEBUG_OUT("starting The Loop ...");
+    PagerState.main_canvas = create_ascanvas( make_pager_window() );
+
+    LOCAL_DEBUG_OUT("starting The Loop ...%s","");
     while (1)
     {
         XEvent event;
@@ -208,157 +222,283 @@ main (int argc, char **argv)
     return 0;
 }
 
+/****************************************************************************/
+/* PROCESSING OF AFTERSTEP MESSAGES :                                       */
+/****************************************************************************/
+void
+process_message (unsigned long type, unsigned long *body)
+{
+	if( (type&WINDOW_PACKET_MASK) != 0 )
+	{
+		struct ASWindowData *wd = fetch_window_by_id( body[0] );
+//        ASTBarData *tbar = wd?wd->tbar:NULL;
+		WindowPacketResult res ;
+
+
+		show_progress( "message %X window %X data %p", type, body[0], wd );
+		res = handle_window_packet( type, body, &wd );
+#if 0
+        if( res == WP_DataCreated )
+			add_winlist_button( tbar, wd );
+		else if( res == WP_DataChanged )
+			refresh_winlist_button( tbar, wd );
+		else if( res == WP_DataDeleted )
+			delete_winlist_button( tbar, wd );
+#endif
+	}
+}
+
+void
+DispatchEvent (XEvent * Event)
+{
+    switch (Event->type)
+    {
+	    case ConfigureNotify:
+#if 0
+            if( handle_canvas_config( WinListCanvas ) )
+			{
+				ASBiDirElem *elem ;
+				rearrange_winlist_buttons();
+				for( elem = WinList->head ; elem ; elem = elem->next )
+					update_astbar_transparency( elem->data, WinListCanvas );
+			}
+#endif
+	        break;
+	    case Expose:
+	        break;
+	    case ButtonPress:
+	    case ButtonRelease:
+			break;
+	    case ClientMessage:
+    	    if ((Event->xclient.format == 32) &&
+		  	    (Event->xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
+			{
+			    exit (0);
+			}
+	        break;
+	    case PropertyNotify:
+			break;
+    }
+}
+
+void
+DeadPipe (int nonsense)
+{
+#ifdef DEBUG_ALLOCS
+	int i;
+    GC foreGC, backGC, reliefGC, shadowGC;
+
+/* normally, we let the system clean up, but when auditing time comes
+ * around, it's best to have the books in order... */
+    balloon_init (1);
+    if( PagerState.main_canvas )
+        destroy_ascanvas( &PagerState.main_canvas );
+
+    if( Config )
+        DestroyPagerConfig (Config);
+
+    mystyle_get_global_gcs (mystyle_first, &foreGC, &backGC, &reliefGC, &shadowGC);
+    mystyle_destroy_all();
+    XFreeGC (dpy, foreGC);
+    XFreeGC (dpy, backGC);
+    XFreeGC (dpy, reliefGC);
+    XFreeGC (dpy, shadowGC);
+
+    print_unfreed_mem ();
+#endif /* DEBUG_ALLOCS */
+
+    XFlush (dpy);			/* need this for SetErootPixmap to take effect */
+	XCloseDisplay (dpy);		/* need this for SetErootPixmap to take effect */
+    exit (0);
+}
+
+
 /*****************************************************************************
  *
  * This routine is responsible for reading and parsing the config file
  *
  ****************************************************************************/
+void
+CheckConfigSanity()
+{
+    if( Config == NULL )
+        Config = CreatePagerConfig (PagerState.desks_num);
+    if( Config->rows == 0 )
+        Config->rows = 1;
+
+    if( Config->columns == 0 ||
+        Config->rows*Config->columns != PagerState.desks_num )
+        Config->columns = PagerState.desks_num/Config->rows;
+
+    if( Config->rows*Config->columns < PagerState.desks_num )
+        if( ++(config->columns) ;
+
+
+}
+
+void merge_geometry( ASGeometry *from, ASGeometry *to )
+{
+    if ( get_flags(from->flags, WidthValue) )
+        to->width = from->width ;
+    if ( get_flags(from->flags, HeightValue) )
+        to->height = from->height ;
+    if ( get_flags(from->flags, XValue) )
+    {
+        to->x = from->x ;
+        if( !get_flags(from->flags, XNegative) )
+            clear_flags(to->flags, XNegative);
+    }
+    if ( get_flags(from->flags, YValue) )
+    {
+        to->y = from->y ;
+        if( !get_flags(from->flags, YNegative) )
+            clear_flags(to->flags, YNegative);
+    }
+    to->flags |= from->flags ;
+}
 
 void
 GetOptions (const char *filename)
 {
-  PagerConfig *config = ParsePagerOptions (filename, MyName, PagerState.start_desk, PagerState.start_desk+PagerState.desks_num);
-  int i;
-#ifdef DO_CLOCKING
-  clock_t started = clock ();
-#endif
+    PagerConfig *config = ParsePagerOptions (filename, MyName, PagerState.start_desk, PagerState.start_desk+PagerState.desks_num);
+    int i;
+    START_TIME(option_time);
 
 /*   WritePagerOptions( filename, MyName, Pager.desk1, Pager.desk2, config, WF_DISCARD_UNKNOWN|WF_DISCARD_COMMENTS );
  */
 
+    /* Need to merge new config with what we have already :*/
+    /* now lets check the config sanity : */
+    /* mixing set and default flags : */
+    Config->flags = (config->flags&config->set_flags)|(Config->flags & (~config->set_flags));
+
+    if( get_flags(config->set_flags, PAGER_SET_ROWS) )
+        Config->rows = config->rows;
+
+    if( get_flags(config->set_flags, PAGER_SET_COLUMNS) )
+        Config->columns = config->columns;
+
+    config->gravity = NorthWestGravity ;
+    if( get_flags( config->set_flags, PAGER_SET_GEOMETRY ) )
+        merge_geometry(&(config->geometry), &(Config->geometry) );
+
+    if( get_flags( config->set_flags, PAGER_SET_ICON_GEOMETRY ) )
+        merge_geometry(&(config->icon_geometry), &(Config->icon_geometry) );
+
+    if( config->labels )
+        for( i = 0 ; i < PagerState.desks_num ; ++i )
+            if( config->labels[i] )
+                set_string_value( &(Config->labels[i]), config->labels[i], NULL, 0 );
+    if( config->styles )
+        for( i = 0 ; i < PagerState.desks_num ; ++i )
+            if( config->styles[i] )
+                set_string_value( &(Config->styles[i]), config->styles[i], NULL, 0 );
 #if 0
-  for( i = 0 ; i < PAGER_FLAGS_MAX_SHIFT ; ++i )
-	  if( get_flags( config->set_flags, (0x01<<i)) )
-	  {
-		  if( get_flags( config->flags, (0x01<<i)) )
-			  set_flags(Pager.Flags, (0x01<<i));
-		  else
-			  clear_flags(Pager.Flags, (0x01<<i));
-	  }
+    int align;
+    unsigned long flags, set_flags;
+    char *small_font_name;
+    int border_width;
 
-  if( get_flags( config->set_flags, PAGER_SET_ALIGN ) )
-	  Look.TitleAlign = config->align;
-  if( get_flags( config->set_flags, PAGER_SET_ROWS ) )
-	  Pager.Rows = config->rows;
-  if( get_flags( config->set_flags, PAGER_SET_COLUMNS ) )
-	  Pager.Columns = config->columns;
+    char *selection_color;
+    char *grid_color;
+    char *border_color;
 
-  if( Pager.Rows == 0 )
-	  Pager.Rows = 1 ;
-  if( Pager.Columns == 0 )
-	  Pager.Columns = ((Pager.desk2-Pager.desk1)+Pager.Rows-1) / Pager.Rows ;
-  else if( Pager.Rows*Pager.Columns  < Pager.desk2-Pager.desk1 )
-  	  Pager.Rows = ((Pager.desk2-Pager.desk1)+Pager.Columns-1) / Pager.Columns ;
-
-  if( get_flags( config->set_flags, PAGER_SET_GEOMETRY ) )
-  {
-    if (config->geometry.flags & WidthValue)
-	  window_w = config->geometry.width;
-    if (config->geometry.flags & HeightValue)
-	  window_h = config->geometry.height;
-    if (config->geometry.flags & XValue)
-	  {
-  	    window_x = config->geometry.x;
-    	usposition = 1;
-        if (config->geometry.flags & XNegative)
-	  	  window_x_negative = 1;
-      }
-	if (config->geometry.flags & YValue)
-  	{
-  	    window_y = config->geometry.y;
-    	usposition = 1;
-        if (config->geometry.flags & YNegative)
-			window_y_negative = 1;
-    }
-  }
-/*
-  if( window_w <= 0 )
-	window_w = Pager.xSize*Pager.Columns/Scr.VScale ;
-  if( window_h <= 0 )
-	window_h = Pager.ySize*Pager.Rows/Scr.VScale ;
-fprintf( stderr, "windows size will be %dx%d (%dx%d) %d\n", window_w, window_h, Pager.Columns, Pager.Rows, Scr.VScale );
-*/
-
-  if( get_flags( config->set_flags, PAGER_SET_ICON_GEOMETRY ) )
-  {
-    if (config->icon_geometry.flags & WidthValue)
-	  icon_w = config->icon_geometry.width;
-    if (config->icon_geometry.flags & HeightValue)
-	  icon_h = config->icon_geometry.height;
-    if (config->icon_geometry.flags & XValue)
-	  icon_x = config->icon_geometry.x;
-    if (config->icon_geometry.flags & YValue)
-	  icon_y = config->icon_geometry.y;
-  }
-
-  for (i = 0; i < Pager.ndesks; i++)
-	  if( config->labels[i] )
-	  {
-		if (Pager.Desks[i].label)
-		  free (Pager.Desks[i].label);
-	    Pager.Desks[i].label = config->labels[i];
-  	  }
-#ifdef PAGER_BACKGROUND
-    for (i = 0; i < Pager.ndesks; i++)
-	{
-	  if( config->styles[i] )
-	  {
-  	    if (Pager.Desks[i].StyleName)
-			free (Pager.Desks[i].StyleName);
-	    Pager.Desks[i].StyleName = config->styles[i];
-  	  }
-	}
-#endif
-/*
-  if( icon_w <= 0 )
-	icon_w = 64 ;
-  if( icon_h <= 0 )
-	icon_h = 64 ;
-*/
-
-  if (config->small_font_name)
-    {
-      load_font (config->small_font_name, &(Look.windowFont));
-      free (config->small_font_name);
-    }
-  else if( get_flags( config->set_flags, PAGER_SET_SMALL_FONT ) )
-    Look.windowFont.font = NULL;
-
-  if (config->selection_color)
-    {
-      parse_argb_color(config->selection_color, &(Look.SelectionColor));
-      free (config->selection_color);
-    }else if( get_flags( config->set_flags, PAGER_SET_SELECTION_COLOR ) )
-	  Look.SelectionColor = DEFAULT_BORDER_COLOR;
-
-  if (config->grid_color)
-    {
-      parse_argb_color(config->grid_color, &Look.GridColor);
-      free (config->grid_color);
-    }else if( get_flags( config->set_flags, PAGER_SET_GRID_COLOR ) )
-      Look.GridColor = DEFAULT_BORDER_COLOR;
-  if (config->border_color)
-    {
-      parse_argb_color(config->border_color, &Look.BorderColor );
-      free (config->border_color);
-    }else if( get_flags( config->set_flags, PAGER_SET_BORDER_COLOR ) )
-      Look.BorderColor  = DEFAULT_BORDER_COLOR;
-
-  if( get_flags( config->set_flags, PAGER_SET_BORDER_WIDTH ) )
-	  Look.DeskBorderWidth = config->border_width;
-
-  if (config->style_defs)
-    ProcessMyStyleDefinitions (&(config->style_defs), pixmapPath);
-
-#endif
-  DestroyPagerConfig (config);
-
-#ifdef DO_CLOCKING
-  fprintf (stderr, "\n Config parsing time (clocks): %lu\n", clock () - started);
+    /* these are generated after reading the config : */
+    int gravity ;
+    ARGB32  selection_color_argb;
+    ARGB32  grid_color_argb;
+    ARGB32  border_color_argb;
 #endif
 
+    DestroyPagerConfig (config);
+    SHOW_TIME("Config parsing",option_time);
 }
 
+
+
+
+
+
+
+
+
+
+
+#if 0
+
+
+        if (get_flags(config->geometry.flags, WidthValue) && config->geometry.width > config->columns )
+            PagerState.desk_width = config->geometry.width/config->columns ;
+
+        config->geometry.width = PagerState.desk_width*config->columns ;
+
+        if (get_flags(config->geometry.flags, HeightValue) && config->geometry.height > config->rows )
+            PagerState.desk_height = config->geometry.height/config->rows ;
+
+        config->geometry.height = PagerState.desk_width*config->rows ;
+
+        if( !get_flags(config->geometry.flags, XValue))
+        {
+            if(get_flags(config->geometry.flags, YValue))
+                config->geometry.x = 0;
+        }else
+        {
+            int real_x = config->geometry.x ;
+            if( get_flags(config->geometry.flags, XNegative) )
+            {
+                config->gravity = NorthEastGravity ;
+                real_x += Scr.MyDisplayWidth ;
+            }
+            if( real_x + config->geometry.width  < 0 )
+                config->geometry.x = get_flags(config->geometry.flags, XNegative)?
+                                        config->geometry.width-Scr.MyDisplayWidth : 0 ;
+            else if( real_x > Scr.MyDisplayWidth )
+                config->geometry.x = get_flags(config->geometry.flags, XNegative)?
+                                        0 : Scr.MyDisplayWidth-config->geometry.width ;
+        }
+        if( !get_flags(config->geometry.flags, YValue) )
+        {
+            if( get_flags(config->geometry.flags, XValue) )
+                config->geometry.y = 0;
+        }else
+        {
+            int real_y = config->geometry.y ;
+            if( get_flags(config->geometry.flags, YNegative) )
+            {
+                config->gravity = (config->gravity==NorthEastGravity)?SouthEastGravity:SouthWestGravity ;
+                real_y += Scr.MyDisplayHeight ;
+            }
+            if( real_y + config->geometry.height  < 0 )
+                config->geometry.y = get_flags(config->geometry.flags, YNegative)?
+                                        config->geometry.height-Scr.MyDisplayHeight : 0 ;
+            else if( real_y > Scr.MyDisplayHeight )
+                config->geometry.y = get_flags(config->geometry.flags, YNegative)?
+                                        0 : Scr.MyDisplayHeight-config->geometry.height ;
+        }
+    }else
+    {
+        config->geometry.x = 0 ;
+        config->geometry.y = 0 ;
+        config->geometry.width = PagerState.desk_width*PagerState.desk_columns ;
+        config->geometry.height = PagerState.desk_height*PagerState.desk_rows ;
+    }
+
+    if( get_flags( config->set_flags, PAGER_SET_ICON_GEOMETRY ) )
+    {
+        if ( !get_flags(config->icon_geometry.flags, WidthValue) || config->icon_geometry.width <= 0 )
+            config->icon_geometry.width = 54;
+        if ( !get_flags(config->icon_geometry.flags, HeightValue)|| config->icon_geometry.height <= 0)
+            config->icon_geometry.height = 54;
+    }else
+    {
+        config->icon_geometry.width = 54;
+        config->icon_geometry.height = 54;
+    }
+
+    if (config->style_defs)
+        ProcessMyStyleDefinitions (&(config->style_defs), PixmapPath);
+    mystyle_get_property (Scr.wmprops);
+#endif
 
 /*****************************************************************************
  *
@@ -369,41 +509,104 @@ void
 GetBaseOptions (const char *filename)
 {
 
-  BaseConfig *config = ParseBaseOptions (filename, MyName);
-#ifdef DO_CLOCKING
-  clock_t started = clock ();
-#endif
+    START_TIME(started);
+    BaseConfig *config = ParseBaseOptions (filename, MyName);
 
-  if (!config)
-    exit (0);			/* something terrible has happend */
+    if (!config)
+        exit (0);           /* something terrible has happend */
 
-  PixmapPath = config->pixmap_path;
-  replaceEnvVar (&PixmapPath);
-  ModulePath = config->module_path;
-  replaceEnvVar (&ModulePath);
-  config->pixmap_path = NULL;	/* setting it to NULL so it would not be
-				   deallocated by DestroyBaseConfig */
-  config->module_path = NULL;
+    if( Scr.image_manager )
+        destroy_image_manager( Scr.image_manager, False );
+    Scr.image_manager = create_image_manager( NULL, 2.2, config->pixmap_path, config->icon_path, NULL );
 
-  if (config->desktop_size.flags & WidthValue)
-    PagerState.page_columns = config->desktop_size.width;
-  if (config->desktop_size.flags & HeightValue)
-    PagerState.page_rows = config->desktop_size.height;
+    if (config->desktop_size.flags & WidthValue)
+        PagerState.page_columns = config->desktop_size.width;
+    if (config->desktop_size.flags & HeightValue)
+        PagerState.page_rows = config->desktop_size.height;
 
-  Scr.VScale = config->desktop_scale;
+    Scr.VScale = config->desktop_scale;
 
-  DestroyBaseConfig (config);
+    DestroyBaseConfig (config);
 
-  Scr.Vx = 0;
-  Scr.Vy = 0;
+    Scr.Vx = 0;
+    Scr.Vy = 0;
 
-  Scr.VxMax = (PagerState.page_columns - 1) * Scr.MyDisplayWidth;
-  Scr.VyMax = (PagerState.page_rows - 1) * Scr.MyDisplayHeight;
-  PagerState.desk_width = Scr.VxMax + Scr.MyDisplayWidth;
-  PagerState.desk_height = Scr.VyMax + Scr.MyDisplayHeight;
+    Scr.VxMax = (PagerState.page_columns - 1) * Scr.MyDisplayWidth;
+    Scr.VyMax = (PagerState.page_rows - 1) * Scr.MyDisplayHeight;
+    PagerState.desk_width = Scr.VxMax + Scr.MyDisplayWidth;
+    PagerState.desk_height = Scr.VyMax + Scr.MyDisplayHeight;
 
-#ifdef DO_CLOCKING
-  fprintf (stderr, "\n Base Config parsing time (clocks): %lu\n", clock () - started);
-#endif
+    SHOW_TIME("BaseConfigParsingTime",started);
+}
+
+/********************************************************************/
+/* showing our main window :                                        */
+/********************************************************************/
+Window
+make_pager_window()
+{
+	Window        w;
+	XSizeHints    shints;
+	ExtendedWMHints extwm_hints ;
+	int x, y ;
+    unsigned int width = Config->geometry.width;
+    unsigned int height = Config->geometry.height;
+
+	switch( Config->gravity )
+	{
+		case NorthEastGravity :
+            x = Scr.MyDisplayWidth - width + Config->geometry.x ;
+            y = Config->geometry.y ;
+			break;
+		case SouthEastGravity :
+            x = Scr.MyDisplayWidth - width + Config->geometry.x ;
+            y = Scr.MyDisplayHeight - height + Config->geometry.y ;
+			break;
+		case SouthWestGravity :
+            x = Config->geometry.x ;
+            y = Scr.MyDisplayHeight - height + Config->geometry.y ;
+			break;
+		case NorthWestGravity :
+		default :
+            x = Config->geometry.x ;
+            y = Config->geometry.y ;
+			break;
+	}
+
+	w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, 0, NULL);
+    set_client_names( w, MyName, MyName, CLASS_PAGER, MyName );
+
+    shints.flags = USSize|PMinSize|PResizeInc|PWinGravity;
+    if( get_flags( Config->set_flags, PAGER_SET_GEOMETRY ) )
+        shints.flags |= USPosition ;
+    else
+        shints.flags |= PPosition ;
+
+    shints.min_width = PagerState.desk_columns;
+    shints.min_height = PagerState.desk_rows;
+    shints.width_inc = PagerState.desk_columns;
+    shints.height_inc = PagerState.desk_rows;
+	shints.win_gravity = Config->gravity ;
+
+	extwm_hints.pid = getpid();
+	extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeMenu ;
+
+	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+
+	/* showing window to let user see that we are doing something */
+	XMapRaised (dpy, w);
+    /* final cleanup */
+	XFlush (dpy);
+	sleep (1);								   /* we have to give AS a chance to spot us */
+	/* we will need to wait for PropertyNotify event indicating transition
+	   into Withdrawn state, so selecting event mask: */
+	XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask);
+	return w ;
+}
+
+void rearrange_pager_window()
+{
+
 
 }
+
