@@ -337,6 +337,9 @@ typedef struct ASImageDecoder
                     out_height;
 	ASImageBevel	*bevel;      /* bevel to wrap everything around with */
 
+	/* offsets of the drawn bevel baseline on resulting image : */
+	int            bevel_left, bevel_top, bevel_right, bevel_bottom ;
+
 	/* scanline buffer containing current scanline */
 	ASScanline 		buffer;
 
@@ -512,6 +515,15 @@ typedef struct ASImageLayer
 	ARGB32 tint ;                      		/* if 0 - no tint */
 	ASImageBevel *bevel ;					/* border to wrap layer with
 											 * (for buttons, etc.)*/
+
+	/* if image is clipped then we need to specify offsets of bevel as
+	 * related to clipped rectangle. Normally it should be :
+	 * 0, 0, im->width, im->height. And if width/height left 0 - it will
+	 * default to this values. Note that clipped image MUST be entirely
+	 * inside the bevel rectangle. !!!*/
+	int bevel_x, bevel_y;
+	unsigned int bevel_width, bevel_height;
+
 	int merge_mode ;                     	/* reserved for future use */
 	merge_scanlines_func merge_scanlines ;	/* overlay method */
 	struct ASImageLayer *next;              /* optional pointer to next
@@ -1135,6 +1147,25 @@ inline void copy_component( register CARD32 *src, register CARD32 *dst, int *unu
  * 3) finish decoding and deallocated all the used memory by calling
  * stop_image_decoding()
  *********/
+/****f* libAfterImage/asimage/set_decoder_bevel_geom()
+ * SYNOPSIS
+ * void set_decoder_bevel_geom( ASImageDecoder *imdec, int x, int y,
+ *                              unsigned int width, unsigned int height );
+ * INPUTS
+ * imdec   - pointer to pointer to structure, previously created
+ *           by start_image_decoding.
+ * x,y     - left top position of the inner border of the Bevel outline
+ *           as related to the origin of subimage being decoded.
+ * width,
+ * height  - widtha and height of the inner border of the bevel outline.
+ * DESCRIPTION
+ * This function should be used to change default placement of the bevel
+ * on decoded image. For example if you only need to render small part of
+ * the button, that is being rendered from transparency image.
+ * NOTE
+ * This call modifies bevel_h_addon and bevel_v_addon of
+ * ASImageDecoder structure.
+ *******/
 /****f* libAfterImage/asimage/set_decoder_shift()
  * SYNOPSIS
  * void set_decoder_shift( ASImageDecoder *imdec, int shift );
@@ -1176,6 +1207,8 @@ ASImageDecoder *start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filt
 									  unsigned int out_width,
 									  unsigned int out_height,
 									  ASImageBevel *bevel );
+void set_decoder_bevel_geom( ASImageDecoder *imdec, int x, int y,
+     	                     unsigned int width, unsigned int height );
 void set_decoder_shift( ASImageDecoder *imdec, int shift );
 void set_decoder_back_color( ASImageDecoder *imdec, ARGB32 back_color );
 void stop_image_decoding( ASImageDecoder **pimdec );

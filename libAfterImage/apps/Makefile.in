@@ -40,7 +40,7 @@ GNUSTEP		= @with_gnustep_dir@
 GNUSTEPLIB	= @with_gnustep_lib@
 AFTER_DIR	= @with_afterdir@
 
-# need this for dependancies : 
+# need this for dependancies :
 LIBAFTERIMAGE_PATH = ../../libAfterImage
 LIB_STATIC      = $(LIBAFTERIMAGE_PATH)/libAfterImage.a
 LIB_SHARED      = $(LIBAFTERIMAGE_PATH)/libAfterImage.so
@@ -163,7 +163,7 @@ include .depend
 @LIBAFTERIMAGEFILES@
 
 $(LIBAFTERIMAGE_PATH)/libAfterImage.a: $(LIBAFTERIMAGE_OBJS) $(LIBAFTERIMAGE_INCS)
-		cd $(LIBAFTERIMAGE_PATH)/; ${MAKE}
+		cd $(LIBAFTERIMAGE_PATH)/; ${MAKE} libAfterImage.a
 
 $(LIBAFTERIMAGE_PATH)/libAfterImage.so: $(LIBAFTERIMAGE_OBJS) $(LIBAFTERIMAGE_INCS)
-		cd $(LIBAFTERIMAGE_PATH)/; ${MAKE}
+		cd $(LIBAFTERIMAGE_PATH)/; ${MAKE} libAfterImage.so
