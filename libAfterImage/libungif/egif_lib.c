@@ -51,6 +51,7 @@ static GifPixelType CodeMask[] = {
 };
 
 static unsigned char GifVersionPrefix[GIF_STAMP_LEN + 1] = GIF87_STAMP;
+static int GifVersionPrefixLen = GIF_STAMP_LEN ;
 
 #define WRITE(_gif,_buf,_len)   \
   (((GifFilePrivateType*)_gif->Private)->Write ?    \
@@ -184,8 +185,8 @@ int EGifPutScreenDesc(GifFileType *GifFile,
 
 /* First write the version prefix into the file. */
 #ifndef DEBUG_NO_PREFIX
-    if (WRITE(GifFile, GifVersionPrefix, strlen(GifVersionPrefix)) !=
-						strlen(GifVersionPrefix)) {
+    if (WRITE(GifFile, GifVersionPrefix, GifVersionPrefixLen) !=
+						GifVersionPrefixLen) {
 	_GifError = E_GIF_ERR_WRITE_FAILED;
 	return GIF_ERROR;
     }
