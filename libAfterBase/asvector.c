@@ -244,9 +244,9 @@ inline void vector_set_data( ASVector *v, void *data, int offset, int length)
             trg[i] = src[i] ;
     }else
     {
-        register CARD8 *trg = ((CARD8*)(v->memory))+offset;
+        register CARD8 *trg = ((CARD8*)(v->memory))+(offset*v->unit);
         register CARD8 *src = (CARD8*)data ;
-        for( i = 0 ; i < length ; i++ )
+        for( i = length*v->unit - 1 ; i >=0 ; i-- )
             trg[i] = src[i] ;
     }
 }
