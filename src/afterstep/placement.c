@@ -301,18 +301,19 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
 void apply_aswindow_move(struct ASMoveResizeData *data)
 {
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
-SHOW_CHECKPOINT;
 LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
     if( asw )
     {
+		int new_width = data->curr.width ;
+		int new_height = data->curr.height ;
         if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
-            moveresize_aswindow_wm( asw,
-                                    data->curr.x, data->curr.y,
-                                    asw->status->width, asw->status->height, False);
-        else
-            moveresize_aswindow_wm( asw,
-                                    data->curr.x, data->curr.y,
-                                    data->curr.width, data->curr.height, False);
+		{
+			new_width = asw->status->width ;
+			new_height = asw->status->height ;
+		}
+        moveresize_canvas(  asw->frame_canvas, data->curr.x, data->curr.y, new_width, new_height );
+		ASSync(False);
+        moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, new_width, new_height, False);
     }
 }
 

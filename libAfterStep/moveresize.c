@@ -637,8 +637,9 @@ LOCAL_DEBUG_OUT( "curr(%+d%+d)->delta(%+d%+d)->lag(%+d%+d)->last(%+d%+d)", data-
 /*  fprintf( stderr, "move_func: (x,y) =(%d,%d) to %+d%+d\n", x, y, pdata->new_x, pdata->new_y );
 */
 /*	resist_move (pdata); */
-	update_geometry_display( data );
 	data->apply_func( data );
+	ASSync(False);
+	update_geometry_display( data );
 }
 
 void
@@ -691,13 +692,15 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 	data->last_x = x ;
 	data->last_y = y ;
 
+	data->apply_func( data );
+	ASSync(False);
+	update_geometry_display( data );
+
 LOCAL_DEBUG_OUT( " dx = %d, width  = %d, x = %d, lag_x = %d", dx, data->curr.width, data->curr.x, data->lag_x );
 LOCAL_DEBUG_OUT( " dy = %d, height = %d, y = %d, lag_y = %d", dy, data->curr.height, data->curr.y, data->lag_y );
 /*  fprintf( stderr, "move_func: (x,y) =(%d,%d) to %+d%+d\n", x, y, pdata->new_x, pdata->new_y );
 */
 /*	resist_move (pdata); */
-	update_geometry_display( data );
-	data->apply_func( data );
 }
 
 

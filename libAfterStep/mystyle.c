@@ -240,9 +240,31 @@ grab_root_asimage( ScreenInfo *scr )
     Bool grabbed = False ;
 	Window src;
 	ASImage *root_im = NULL ;
+	int x = scr->RootClipArea.x, y = scr->RootClipArea.y ;
+	int width = scr->RootClipArea.width, height = scr->RootClipArea.height ;
 
+	if( scr == NULL )
+		scr = &Scr ;
 	/* this only works if we use DefaultVisual - same visual as the Root window :*/
-	if( Scr.asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy) ) )
+	if( scr->asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy) ) )
+		return NULL ;
+
+	if( x < 0 )
+	{
+		width += x ;
+		x = 0 ;
+	}
+	if( y < 0 )
+	{
+		height += y ;
+		y = 0 ;
+	}
+	if( x + width > Scr.MyDisplayWidth )
+		width = (int)(Scr.MyDisplayWidth) - x ;
+	if( y + height > Scr.MyDisplayHeight )
+		height = (int)(Scr.MyDisplayHeight) - y ;
+
+	if( height < 0 || width < 0 )
 		return NULL ;
 
 	attr.background_pixmap = ParentRelative ;
@@ -250,13 +272,9 @@ grab_root_asimage( ScreenInfo *scr )
 	attr.event_mask = ExposureMask ;
 	attr.override_redirect = True ;
 
-	LOCAL_DEBUG_OUT( "grabbing root image from %dx%d%+d%+d", 
-					 Scr.RootClipArea.width, Scr.RootClipArea.height,
-					 Scr.RootClipArea.x, Scr.RootClipArea.y	);		
+	LOCAL_DEBUG_OUT( "grabbing root image from %dx%d%+d%+d", width, height, x, y );
 
-    src = create_visual_window( scr->asv, scr->Root, Scr.RootClipArea.x, Scr.RootClipArea.y,
-                                Scr.RootClipArea.width, Scr.RootClipArea.height,
-	    		                0, CopyFromParent,
+    src = create_visual_window( scr->asv, scr->Root, x, y, width, height, 0, CopyFromParent,
 				  				CWBackPixmap|CWBackingStore|CWOverrideRedirect|CWEventMask,
 				  				&attr);
 
@@ -270,7 +288,25 @@ grab_root_asimage( ScreenInfo *scr )
 	for( tick_count = 0 ; !XCheckWindowEvent( dpy, src, ExposureMask, &event ) && tick_count < 100 ; tick_count++)
   		wait_tick();
 	if( tick_count < 100 )
-        root_im = pixmap2ximage( scr->asv, src, 0, 0, Scr.RootClipArea.width, Scr.RootClipArea.height, AllPlanes, 0 );
+        if( (root_im = pixmap2ximage( scr->asv, src, 0, 0, width, height, AllPlanes, 0 )) != NULL )
+		{
+			if( scr->RootClipArea.y < 0 || scr->RootClipArea.y < 0 )
+			{
+				ASImage *tmp ;
+
+				x = ( scr->RootClipArea.x < 0 )? -scr->RootClipArea.x : 0 ;
+				y = ( scr->RootClipArea.y < 0 )? -scr->RootClipArea.y : 0 ;
+
+				tmp = tile_asimage (scr->asv, root_im,
+                                    x, y, scr->RootClipArea.width, scr->RootClipArea.height, TINT_NONE,
+                                   ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+				if( tmp )
+				{
+                	destroy_asimage( &root_im );
+					root_im = tmp ;
+				}
+			}
+		}
 	XDestroyWindow( dpy, src );
 	XUngrabServer( dpy );
 	return root_im ;
@@ -319,6 +355,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	ASImage      *im = NULL;
 	Pixmap        root_pixmap;
 	unsigned int  root_w, root_h;
+	Bool transparency = False ;
 
 #ifndef NO_TEXTURE
 	if (width < 1)
@@ -327,37 +364,12 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		height = 1;
     LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%lX, geom=(%dx%d%+d%+d)", style->name, style->texture_type,
                      style->back_icon.image, style->tint, root_x, root_y, width, height);
-	switch (style->texture_type)
-	{
-	 case TEXTURE_SOLID:
-		 im = create_asimage (width, height, 0);
-		 im->back_color = style->colors.back;
-		 break;
 
-	 case TEXTURE_GRADIENT:
-
-	 case TEXTURE_HGRADIENT:
-	 case TEXTURE_HCGRADIENT:
-
-	 case TEXTURE_VGRADIENT:
-	 case TEXTURE_VCGRADIENT:
-	 case TEXTURE_GRADIENT_TL2BR:
-	 case TEXTURE_GRADIENT_BL2TR:
-	 case TEXTURE_GRADIENT_T2B:
-	 case TEXTURE_GRADIENT_L2R:
-		 im = make_gradient (Scr.asv, &(style->gradient), width, height, 0xFFFFFFFF, ASA_ASImage, 0,
-							 ASIMAGE_QUALITY_DEFAULT);
-		 break;
-	 case TEXTURE_SHAPED_SCALED_PIXMAP:
-	 case TEXTURE_SCALED_PIXMAP:
-		 im = scale_asimage (Scr.asv, style->back_icon.image, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-		 break;
-	 case TEXTURE_SHAPED_PIXMAP:
-	 case TEXTURE_PIXMAP:
-		 im = tile_asimage (Scr.asv, style->back_icon.image,
-							0, 0, width, height, TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-		 break;
-	 default:
+	if(  style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
+		 style->texture_type == TEXTURE_SHAPED_PIXMAP ||
+		 style->texture_type > TEXTURE_PIXMAP )
+	{	/* in this case we need valid root image : */
+		 transparency = True ;
 		 if (Scr.RootImage == NULL)
 		 {
 			 root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
@@ -401,7 +413,42 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 			 root_h = Scr.RootImage->height;
 		 }
          LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", Scr.RootImage, Scr.RootClipArea.width, Scr.RootClipArea.height, Scr.RootClipArea.x, Scr.RootClipArea.y, root_w, root_h);
+	}
 
+	switch (style->texture_type)
+	{
+	 case TEXTURE_SOLID:
+		 im = create_asimage (width, height, 0);
+		 im->back_color = style->colors.back;
+		 break;
+
+	 case TEXTURE_GRADIENT:
+
+	 case TEXTURE_HGRADIENT:
+	 case TEXTURE_HCGRADIENT:
+
+	 case TEXTURE_VGRADIENT:
+	 case TEXTURE_VCGRADIENT:
+	 case TEXTURE_GRADIENT_TL2BR:
+	 case TEXTURE_GRADIENT_BL2TR:
+	 case TEXTURE_GRADIENT_T2B:
+	 case TEXTURE_GRADIENT_L2R:
+		 im = make_gradient (Scr.asv, &(style->gradient), width, height, 0xFFFFFFFF, ASA_ASImage, 0,
+							 ASIMAGE_QUALITY_DEFAULT);
+		 break;
+	 case TEXTURE_SHAPED_SCALED_PIXMAP:
+	 case TEXTURE_SCALED_PIXMAP:
+		 im = scale_asimage (Scr.asv, style->back_icon.image, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 break;
+	 case TEXTURE_SHAPED_PIXMAP:
+	 case TEXTURE_PIXMAP:
+		 im = tile_asimage (Scr.asv, style->back_icon.image,
+							0, 0, width, height, TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 break;
+	}
+
+	if( transparency )
+	{
 		if (Scr.RootImage == NULL)
 		{  /* simply creating solid color image */
 			im = create_asimage( width, height, 100 );
@@ -421,7 +468,11 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 init_image_layers (&layers[0], 2);
 
 				 layers[0].im = Scr.RootImage;
-				 if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
+				 if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP &&
+					 style->texture_type == TEXTURE_SHAPED_PIXMAP)
+				 {
+					 index = 1 ;               /* alphablending  */
+				 }else if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
 					 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
 					 index = style->texture_type - TEXTURE_SCALED_TRANSPIXMAP;
 				 else if (style->texture_type >= TEXTURE_TRANSPIXMAP && style->texture_type < TEXTURE_TRANSPIXMAP_END)
@@ -436,7 +487,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 layers[0].clip_width = width;
 				 layers[0].clip_height = height;
 
-				 layers[1].im = style->back_icon.image;
+				 layers[1].im = im?im:style->back_icon.image;
 				 if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
 					 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
 				 {
@@ -453,9 +504,25 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 layers[1].clip_width = width;
 				 layers[1].clip_height = height;
 
-				 im = merge_layers (Scr.asv, &layers[0], 2, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-				 if (scaled_im)
-					 destroy_asimage (&scaled_im);
+				{
+					ASImage *tmp = merge_layers (Scr.asv, &layers[0], 2, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					if( tmp )
+					{
+						if( im )
+						{
+							if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP &&
+							    style->texture_type == TEXTURE_SHAPED_PIXMAP)
+							{
+								/*we need to keep alpha channel intact */
+								copy_asimage_channel(tmp, IC_ALPHA, im, IC_ALPHA);
+							}
+							safe_asimage_destroy (im);
+						}
+						im = tmp ;
+					}
+				}
+				if (scaled_im)
+					destroy_asimage (&scaled_im);
 			 }
 		}
 	}

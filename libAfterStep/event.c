@@ -428,13 +428,15 @@ next_event (register XEvent * event_return, Bool compress_motion)
     if (res)
     {
         stash_event_time(event_return);
-        if( compress_motion && event_return->type == MotionNotify )
+#if 0
+		if( compress_motion && event_return->type == MotionNotify )
         {
             XFlush( dpy );
-            sleep_a_little( 10000 );
+            sleep_a_little( 5000 );
             if( recursively_find_motion_notify(10) )
                 return False;
         }
+#endif
     }
     return res;
 }
