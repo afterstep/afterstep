@@ -1619,7 +1619,7 @@ mystyle_draw_text_image (MyStyle * style, const char *text, unsigned long encodi
 					im = draw_unicode_text ((CARD32*)text, style->font.as_font, style->text_style, 100);
 				    break ;
 			}
-LOCAL_DEBUG_OUT( "im is %p, back_color is %lX", im, style->colors.fore );
+LOCAL_DEBUG_OUT( "encoding is %ld, im is %p, back_color is %lX", encoding, im, style->colors.fore );
             if (im)
             {
 				im->back_color = style->colors.fore;

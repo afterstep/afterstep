@@ -2307,14 +2307,25 @@ print_clean_hints (stream_func func, void *stream, ASHints * clean)
 	if (!pre_print_check (&func, &stream, clean, "No hints available(NULL)."))
 		return;
 	for (i = 0; i < MAX_WINDOW_NAMES && clean->names[i]; i++)
+	{
 		func (stream, "CLEAN.NAMES[%d] = \"%s\";\n", i, clean->names[i]);
+		func (stream, "CLEAN.NAMES_ENCODING[%d] = %d;\n", i, clean->names_encoding[i]);
+	}
 	if (clean->icon_name)
+	{
 		func (stream, "CLEAN.icon_name = \"%s\";\n", clean->icon_name);
+		func (stream, "CLEAN.icon_name_encoding = %d;\n", clean->names_encoding[clean->icon_name_idx]);
+	}
 	if (clean->res_name)
+	{
 		func (stream, "CLEAN.res_name = \"%s\";\n", clean->res_name);
+		func (stream, "CLEAN.res_name_encoding = %d;\n", clean->names_encoding[clean->res_name_idx]);
+	}
 	if (clean->res_class)
+	{
 		func (stream, "CLEAN.res_class = \"%s\";\n", clean->res_class);
-
+		func (stream, "CLEAN.res_class_encoding = %d;\n", clean->names_encoding[clean->res_class_idx]);
+	}
 	func (stream, "CLEAN.flags = 0x%lX;\n", clean->flags);
 	func (stream, "CLEAN.protocols = 0x%lX;\n", clean->protocols);
 	func (stream, "CLEAN.function_mask = 0x%lX;\n", clean->function_mask);
