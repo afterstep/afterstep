@@ -1007,9 +1007,6 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         desk != old_desk ) /* if desks are the same then we are reloading current background !!! */
         return;
     
-    cover_desktop();
-    display_progress( True, "Changing background for desktop #%d ...", desk);
-	
     if( Scr.RootBackground != NULL )
 	{	
 		LOCAL_DEBUG_OUT( "ROOT_PIXMAP = %lX at %d", Scr.RootBackground->pmap, __LINE__ );
@@ -1032,6 +1029,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         Scr.RootBackground->cmd_pid = 0;
         Scr.RootBackground->im = NULL ;
     }
+	 
     release_old_background( old_desk, (desk==old_desk) );
 	if( new_back->loaded_pixmap ) 
 	{
@@ -1048,10 +1046,13 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			XSetWindowBackgroundPixmap( dpy, Scr.Root, new_back->loaded_pixmap );
 			XClearWindow( dpy, Scr.Root );
 			set_xrootpmap_id (Scr.wmprops, new_back->loaded_pixmap );
-	    	remove_desktop_cover();
+//	    	remove_desktop_cover();
 			return ;   
 		}
 	}		  
+    cover_desktop();
+   	display_progress( True, "Changing background for desktop #%d ...", desk);
+	
 
     if( new_back->type == MB_BackCmd )
     {                                          /* run command */
