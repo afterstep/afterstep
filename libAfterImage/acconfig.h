@@ -15,3 +15,6 @@
 #undef  HAVE_TIFF
 #undef  HAVE_FREETYPE
 
+#undef  HAVE_AFTERBASE
+#undef  HAVE_CUSTOM_AFTERBASE
+

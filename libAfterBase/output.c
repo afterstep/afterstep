@@ -55,7 +55,11 @@ set_application_name (char *argv0)
 	ApplicationName = temp ? temp + 1 : argv0;
 }
 
-
+const char *
+get_application_name()
+{
+	return ApplicationName;
+}
 
 unsigned int
 set_output_threshold( unsigned int threshold )
@@ -66,6 +70,13 @@ set_output_threshold( unsigned int threshold )
         as_default_stream_stream = stderr ;
     return old;
 }
+
+unsigned int 
+get_output_threshold()
+{
+  return as_output_threshold ;
+}
+
 
 unsigned int
 set_output_level( unsigned int level )

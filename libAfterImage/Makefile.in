@@ -6,9 +6,11 @@
 ################################################################
 # library specifics :
 
-LIB_INCS= asfont.h asimage.h asvisual.h blender.h import.h xcf.h
+LIB_INCS= afterbase.h \
+		  asfont.h asimage.h asvisual.h blender.h import.h xcf.h
 
-LIB_OBJS= asfont.o asimage.o asvisual.o blender.o import.o xcf.o
+LIB_OBJS= @AFTERBASE_C@ \
+		  asfont.o asimage.o asvisual.o blender.o import.o xcf.o
 
 # end specifics
 ################################################################

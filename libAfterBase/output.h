@@ -8,6 +8,7 @@
 /* This has to manually set in order for output to have meaningfull labels : */
 extern char *ApplicationName ;
 void set_application_name (char *argv0);
+const char *get_application_name();
 
 
 /***********************************************************************************/
@@ -15,6 +16,7 @@ void set_application_name (char *argv0);
 /***********************************************************************************/
 typedef int (*stream_func)(void*, const char*,...);
 unsigned int set_output_threshold( unsigned int threshold );
+unsigned int get_output_threshold();
 
 /*
  * FEW PRESET LEVELS OF OUTPUT :

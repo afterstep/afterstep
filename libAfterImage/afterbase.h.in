@@ -1,0 +1,185 @@
+#ifndef AFTERBASE_H_HEADER_INCLUDED
+#define AFTERBASE_H_HEADER_INCLUDED
+
+#ifdef HAVE_AFTERBASE
+#ifdef  HAVE_CUSTOM_AFTERBASE
+#include "@AFTERBASE_INC_PATH@/libAfterBase/astypes.h"
+#include "@AFTERBASE_INC_PATH@/libAfterBase/audit.h"
+#include "@AFTERBASE_INC_PATH@/libAfterBase/output.h"
+#include "@AFTERBASE_INC_PATH@/libAfterBase/safemalloc.h"
+#include "@AFTERBASE_INC_PATH@/libAfterBase/mystring.h"
+#include "@AFTERBASE_INC_PATH@/libAfterBase/fs.h"
+#include "@AFTERBASE_INC_PATH@/libAfterBase/parse.h"
+#include "@AFTERBASE_INC_PATH@/libAfterBase/selfdiag.h"
+#include "@AFTERBASE_INC_PATH@/libAfterBase/trace.h"
+#else
+#include <libAfterBase/astypes.h>
+#include <libAfterBase/audit.h>
+#include <libAfterBase/output.h>
+#include <libAfterBase/safemalloc.h>
+#include <libAfterBase/mystring.h>
+#include <libAfterBase/fs.h>
+#include <libAfterBase/parse.h>
+#include <libAfterBase/selfdiag.h>
+#include <libAfterBase/trace.h>
+#endif		/* HAVE_CUSTOM_AFTERBASE */
+#else    
+
+/* the goal of this header is to provide sufficient code so that
+   libAfterImage could live without libAfterBase at all. 
+   Basically with define macros and copy over few functions 
+   from libAfterBase 
+ */
+
+/* from libAfterBase/astypes.h : */
+
+#ifndef XMD_H
+#include <X11/Xmd.h>
+#endif
+#ifndef Bool
+#define Bool int
+#endif
+#ifndef True
+#define True 1
+#endif
+#ifndef False
+#define False 0
+#endif
+
+typedef unsigned long ASFlagType ;
+#define ASFLAGS_EVERYTHING  0xFFFFFFFF
+typedef ASFlagType ASFlagsXref[5];
+
+#define get_flags(var, val) 	((var) & (val))
+#define set_flags(var, val) 	((var) |= (val))
+#define clear_flags(var, val) 	((var) &= ~(val))
+#define CheckSetFlag(b,f,v) 	{if((b)) (f) |= (v) ; else (f) &= ~(v);}
+
+/* from libAfterBase/selfdiag.h : */
+#define get_caller_func() "unknown" 
+
+/* from libAfterBase/output.h : */
+/* user app must export these if libAfterBase is not used : */
+const char *get_application_name();
+unsigned int get_output_threshold();
+
+/*
+ * FEW PRESET LEVELS OF OUTPUT :
+ */
+#define OUTPUT_LEVEL_INVALID        0
+#define OUTPUT_LEVEL_PARSE_ERR      1
+#define OUTPUT_LEVEL_ERROR          1
+#define OUTPUT_LEVEL_WARNING        4
+#define OUTPUT_DEFAULT_THRESHOLD    5
+#define OUTPUT_LEVEL_PROGRESS       OUTPUT_DEFAULT_THRESHOLD
+#define OUTPUT_LEVEL_ACTIVITY       OUTPUT_DEFAULT_THRESHOLD
+#define OUTPUT_VERBOSE_THRESHOLD    6
+#define OUTPUT_LEVEL_DEBUG          10   /* anything above it is hardcore debugging */
+
+/* AfterStep specific error and Warning handlers : */
+/* Returns True if something was actually printed  */
+Bool asim_show_error( const char *error_format, ...);
+Bool asim_show_warning( const char *warning_format, ...);
+
+#define show_error asim_show_error
+#define show_warning asim_show_warning
+
+void asim_nonGNUC_debugout( const char *format, ...);
+inline void asim_nonGNUC_debugout_stub( const char *format, ...);
+/* may be used below in case compilation problems occur.
+ * Please submit a bug report if usage of any of the following generates errors on
+ * your compiler . Thanks!!! */
+
+/* Some usefull debugging macros : */
+#ifdef __GNUC__
+
+#if defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL)
+#define DEBUG_OUT(format,args...) \
+    do{ fprintf( stderr, "%s:%s:%s:%d:>" format "\n", get_application_name(), __FILE__, __FUNCTION__, __LINE__, ## args );}while(0)
+#else
+#define DEBUG_OUT(format,args...)
+#endif /* DEBUG */
+
+#if defined(LOCAL_DEBUG)||defined(DEBUG_ALL)
+#define LOCAL_DEBUG_OUT(format,args...) \
+    do{ fprintf( stderr, "%s:%s:%s:%d:>" format "\n", get_application_name(), __FILE__, __FUNCTION__, __LINE__, ## args );}while(0)
+#define LOCAL_DEBUG_CALLER_OUT(format,args...) \
+    do{ fprintf( stderr, "%s:%s:%s:> called from [%s] with args(" format ")\n", get_application_name(), __FILE__, __FUNCTION__, get_caller_func(), ## args );}while(0)
+#else
+#define LOCAL_DEBUG_OUT(format,args...)
+#define LOCAL_DEBUG_CALLER_OUT(format,args...)
+#endif /* LOCAL_DEBUG */
+
+#elif  __STDC_VERSION__ >= 199901              /* C99 standard provides support for this as well : */
+
+#if defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL)
+#define DEBUG_OUT(...) \
+    do{ fprintf( stderr, "%s:%s:%s:%d:>", get_application_name(), __FILE__, __FUNCTION__, __LINE__ ); \
+        fprintf( stderr, __VA_ARGS__); \
+        fprintf( stderr, "\n"); \
+    }while(0)
+#else
+#define DEBUG_OUT(...)
+#endif /* DEBUG */
+
+#if defined(LOCAL_DEBUG)||defined(DEBUG_ALL)
+#define LOCAL_DEBUG_OUT(...) \
+    do{ fprintf( stderr, "%s:%s:%s:%d:>", get_application_name(), __FILE__, __FUNCTION__, __LINE__ ); \
+        fprintf( stderr, __VA_ARGS__); \
+        fprintf( stderr, "\n"); \
+    }while(0)
+#define LOCAL_DEBUG_CALLER_OUT(...) \
+    do{ fprintf( stderr, "%s:%s:%s:> called from [%s] with args(", get_application_name(), __FILE__, get_caller_func() ); \
+        fprintf( stderr, __VA_ARGS__); \
+        fprintf( stderr, ")\n"); \
+    }while(0)
+#else
+#define LOCAL_DEBUG_OUT(...)
+#define LOCAL_DEBUG_CALLER_OUT(...)
+#endif /* LOCAL_DEBUG */
+
+#else  /* non __GNUC__ or C99 compliant compiler : */
+
+#if defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL)
+#define DEBUG_OUT           asim_nonGNUC_debugout
+#else
+#define DEBUG_OUT           asim_nonGNUC_debugout_stub
+#endif /* DEBUG */
+
+#if defined(LOCAL_DEBUG)||defined(DEBUG_ALL)
+#define LOCAL_DEBUG_OUT     asim_nonGNUC_debugout
+#define LOCAL_DEBUG_CALLER_OUT     asim_nonGNUC_debugout_stub
+#else
+#define LOCAL_DEBUG_OUT            asim_nonGNUC_debugout_stub
+#define LOCAL_DEBUG_CALLER_OUT     asim_nonGNUC_debugout_stub
+#endif /* LOCAL_DEBUG */
+
+#endif
+
+/* from libAfterBase/safemalloc.h : */
+#define safemalloc(s) 	malloc(s)
+#define safecalloc(c,s) calloc(c,s)
+#define safefree(m)   	free(m)
+
+/* from libAfterBase/mystring.h : */
+#include <string.h>
+#define mystrdup(s)     strdup(s)
+#define mystrndup(s,n)    strndup(s,n)
+#define mystrncasecmp(s,s2,n)    strncasecmp(s,s2,n)
+
+/* from libAfterBase/fs.h : */
+int		asim_check_file_mode (const char *file, int mode);
+#if !defined(S_IFREG) || !defined(S_IFDIR)
+#include <sys/stat.h>
+#endif
+#define CheckFile(f) 	asim_check_file_mode(f,S_IFREG)
+#define CheckDir(d) 	asim_check_file_mode(d,S_IFDIR)
+char   *asim_put_file_home (const char *path_with_home);
+#define put_file_home(p) asim_put_file_home(p)
+char   *asim_find_file (const char *file, const char *pathlist, int type);
+#define find_file(f,p,t) asim_find_file(f,p,t)
+
+#endif /* HAVE_AFTERBASE */
+
+#endif /* AFTERBASE_H_HEADER_INCLUDED */
+

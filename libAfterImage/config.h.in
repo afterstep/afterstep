@@ -27,5 +27,8 @@
 #undef  HAVE_TIFF
 #undef  HAVE_FREETYPE
 
+#undef  HAVE_AFTERBASE
+#undef  HAVE_CUSTOM_AFTERBASE
+
 /* Define if you have the <ft2build.h> header file.  */
 #undef HAVE_FT2BUILD_H

@@ -12,8 +12,8 @@ AC_CONFIG_HEADER(config.h:config.h.in)
 
 version="0.90"
 version_major="0"
-lib_name="LIBAFTERBASE"
-lib_file_name="libAfterBase"
+lib_name="LIBAFTERIMAGE"
+lib_file_name="libAfterImage"
 
 dnl# Setup command-line options
 
@@ -48,6 +48,9 @@ AC_ARG_WITH(tiff_includes,  [  --with-tiff-includes=DIR use TIFF includes in DIR
 
 AC_ARG_WITH(tff,		    [  --with-ttf               support True Type Fonts via FreeType library [yes]])
 AC_ARG_WITH(tff_includes,   [  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=NO)
+
+AC_ARG_WITH(afterbase,		    [  --with-afterbase               use libAfterBase library of basic functionality [yes]])
+AC_ARG_WITH(afterbase_includes, [  --with-afterbase-includes=DIR  use libAfterBase includes in DIR], afterbase_includes="$withval", afterbase_includes=NO)
 
 dnl# Check for compiler tools
 
@@ -329,7 +332,7 @@ AC_CHECK_HEADERS(ft2build.h)
 
 TTF_INCLUDES=
 
-if test "x$with_ttf" = NO; then
+if test "x$with_ttf" = "xNO"; then
   have_ttf=disabled
 else
   if test "$ttf_includes" = NO; then
@@ -364,7 +367,35 @@ else
 fi;
 AC_SUBST(TTF_INCLUDES)
 
-
+if test "$with_afterbase" != "NO"; then
+  AC_MSG_CHECKING(libAfterBase headers)
+  if test "$afterbase_includes" = NO; then
+	  if test -r "../libAfterBase/astypes.h"; then
+		have_afterbase=yes 
+		AC_DEFINE(HAVE_AFTERBASE) 
+		AC_DEFINE(HAVE_CUSTOM_AFTERBASE)
+        AFTERBASE_INC_PATH=".."
+		AC_MSG_RESULT("../libAfterBase/astypes.h")
+	  else
+ 	    AC_CHECK_HEADER(libAfterBase/astypes.h,
+					    [AC_DEFINE(HAVE_AFTERBASE) \
+						 AC_MSG_RESULT("<libAfterBase/astypes.h>")],
+						 AC_MSG_RESULT("none found"))
+	  fi	
+  else
+	  have_afterbase=yes 
+	  AC_DEFINE(HAVE_AFTERBASE) 
+	  AC_DEFINE(HAVE_CUSTOM_AFTERBASE)	  
+	  AFTERBASE_INC_PATH=$afterbase_includes
+  	  AC_MSG_RESULT("$AFTERBASE_INC_PATH/libAfterBase/astypes.h>")
+  fi
+fi
+AFTERBASE_C=afterbase.c
+if test "x$have_afterbase" = "xyes"; then 
+	AFTERBASE_C=
+fi
+AC_SUBST(AFTERBASE_INC_PATH)
+AC_SUBST(AFTERBASE_C)
 
 dnl# Checks for optional programs
 
@@ -429,4 +460,5 @@ AC_CONFIG_HEADER(config.h)
 
 dnl# Common parts of the Makefile
 
-AC_OUTPUT(Makefile)
+AC_OUTPUT(Makefile \
+afterbase.h)
