@@ -79,7 +79,7 @@ safemalloc (size_t length)
 	if (ptr == (char *)0)
 	{
 		char *suicide = NULL;
-		fprintf (stderr, "malloc of %d bytes failed. Exiting\n", length);
+		fprintf (stderr, "malloc of %lu bytes failed. Exiting\n", (unsigned long)length);
 		*suicide = 1 ;
 		exit (1);
 	}
@@ -115,7 +115,7 @@ safecalloc (size_t num, size_t blength)
 
 	if (ptr == (char *)0)
 	{
-        fprintf (stderr, "calloc of %d blocks of %d bytes each failed. Exiting\n", num, blength);
+        fprintf (stderr, "calloc of %lu blocks of %lu bytes each failed. Exiting\n", (unsigned long)num, (unsigned long)blength);
         *ptr = 1 ;
 		exit (1);
 	}
@@ -140,8 +140,8 @@ dump_memory()
 
 	f = fopen( filename, "w" );
 	for( i = 0 ; i < MAX_BLOCK ; i++ )
-		fprintf( f, "%u\t\t%u\n", i, memory[i].allocations );
-	fprintf( f, "greater then %u\t\t%u\n", i, longer_then_max_block );
+		fprintf( f, "%lu\t\t%lu\n", (unsigned long)i, (unsigned long)memory[i].allocations );
+	fprintf( f, "greater then %lu\t\t%lu\n", (unsigned long)i, (unsigned long)longer_then_max_block );
 	fclose( f );
 }
 

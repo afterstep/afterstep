@@ -339,7 +339,7 @@ countmalloc (const char *fname, int line, size_t length)
 	void         *ptr;
     if( (int)length < 0 )
 	{
-		fprintf( stderr, "too large malloc of %u from %s:%d\n", length, fname, line );
+		fprintf( stderr, "too large malloc of %lu from %s:%d\n", (unsigned long)length, fname, line );
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
 #endif
@@ -356,7 +356,7 @@ countcalloc (const char *fname, int line, size_t nrecords, size_t length)
 
     if( (int)(length*nrecords) < 0 )
 	{
-		fprintf( stderr, "too large calloc of %u from %s:%d\n", length*nrecords, fname, line );
+		fprintf( stderr, "too large calloc of %lu from %s:%d\n", (unsigned long)length*nrecords, fname, line );
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
 #endif
@@ -550,7 +550,7 @@ output_unfreed_mem (FILE *stream)
 			continue;
 		}else if (m->freed == 0)
 		{
-            fprintf (stream, "%23s|%-5d|%-7d|0x%08x ", m->fname, m->line, m->length, (unsigned int)m->ptr);
+            fprintf (stream, "%23s|%-5d|%-7ld|%p ", m->fname, m->line, (long)m->length, m->ptr);
 			switch (m->type & 0xff)
 			{
 			 case C_MEM:
@@ -799,8 +799,8 @@ count_xfreegc (const char *fname, int line, Display * display, GC gc)
 
 	if (m == NULL)
 	{
-		show_error( "count_xfreegc:attempt in %s:%d to free a GC (0x%X)that was never created or already destroyed!",
-				    fname, line, (unsigned int)gc);
+		show_error( "count_xfreegc:attempt in %s:%d to free a GC (%p)that was never created or already destroyed!",
+				    fname, line, gc);
 		return !Success;
 	}
 

@@ -200,7 +200,7 @@ find_func_symbol (void *addr, long *offset)
 	if (_ptabs.sym_ent_size == sizeof (Elf32_Sym))
 	{
 		Elf32_Sym    *ptr = _ptabs.symbols + 1;
-		Elf32_Addr    addr32 = (unsigned int)addr;
+		Elf32_Addr    addr32 = (Elf32_Addr)addr;
 
 		for (i = 1; i < _ptabs.sym_ent_num; i++)
 		{
@@ -219,7 +219,7 @@ find_func_symbol (void *addr, long *offset)
 	{
 		int           i;
 		Elf64_Sym    *ptr = (Elf64_Sym *) (_ptabs.symbols + 1);
-		Elf64_Addr    addr64 = (unsigned int)addr;
+		Elf64_Addr    addr64 = (Elf64_Addr)addr;
 
 		for (i = 1; i < _ptabs.sym_ent_num; i++)
 		{
@@ -255,7 +255,7 @@ print_lib_list ()
 		for (; plm != NULL; plm = plm->l_next)
 		{
 			if (plm->l_addr != 0x00 && plm->l_name != NULL)
-				fprintf (stderr, "   [0x%8.8X]:[%s]\n", plm->l_addr, plm->l_name);
+				fprintf (stderr, "   [0x%8.8lx]:[%s]\n", (unsigned long)plm->l_addr, plm->l_name);
 		}
 	}
 #endif

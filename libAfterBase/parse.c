@@ -53,6 +53,8 @@ ASHashTable *custom_argb_colornames = NULL ;
 
 void
 register_custom_color(const char* name, CARD32 value) {
+	ASHashData hdata = {0} ;
+
 	if( name == NULL )
 		return ;
 	if (custom_argb_colornames == NULL )
@@ -62,7 +64,8 @@ register_custom_color(const char* name, CARD32 value) {
 	remove_hash_item(custom_argb_colornames, AS_HASHABLE(name), NULL, False);
 
     show_progress("Defining color [%s] == #%X.", name, value);
-    add_hash_item(custom_argb_colornames, AS_HASHABLE(mystrdup(name)), (void*)value);
+	hdata.c32 = value ;
+    add_hash_item(custom_argb_colornames, AS_HASHABLE(mystrdup(name)), hdata.vptr);
 }
 
 void

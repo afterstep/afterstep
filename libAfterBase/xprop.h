@@ -26,11 +26,11 @@ AtomXref;
 /*************************************************************************/
 /* X Atoms : */
 Bool intern_atom_list (AtomXref * list);
-void translate_atom_list (ASFlagType *trg, AtomXref * xref, unsigned long* list,
+void translate_atom_list (ASFlagType *trg, AtomXref * xref, CARD32* list,
                           long nitems);
 void print_list_hints( stream_func func, void* stream, ASFlagType flags,
                        AtomXref *xref, const char *prompt );
-void encode_atom_list ( AtomXref * xref, unsigned long **list, long *nitems, ASFlagType flags);
+void encode_atom_list ( AtomXref * xref, CARD32 **list, long *nitems, ASFlagType flags);
 
 Bool read_32bit_proplist (Window w, Atom property, long estimate,
                           CARD32** list, long *nitems);
@@ -70,7 +70,7 @@ void set_text_property (Window w, Atom property, char** data, int items_num, AST
 /* This will set X property of XA_INTEGER type to the array of data of
  * the specifyed size
  */
-void set_as_property ( Window w, Atom name, unsigned long *data, size_t data_size, unsigned long version);
+void set_as_property ( Window w, Atom name, CARD32 *data, size_t data_size, CARD32 version);
 
 #ifdef __cplusplus
 }
