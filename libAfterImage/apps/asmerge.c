@@ -68,7 +68,6 @@ int main(int argc, char* argv[])
 #if (HAVE_AFTERBASE_FLAG==1)
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
 #endif
-	SHOW_CHECKPOINT;
 	if( argc == 2 && strncmp(argv[1],"-h", 2) == 0 )
 	{
 		usage();
