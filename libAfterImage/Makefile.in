@@ -102,7 +102,7 @@ INCLUDES	= $(INCS_EXTRA) $(INCS_PRIVATE) $(INCS_X)
 USER_LD_FLAGS	= @user_ldflags@
 LIBS_X		= @x_libs@
 LIBS_XEXTS	=
-LIBS_AFTERIMAGE = @AFTERIMAGE_APPS_LIBS@
+LIBS_AFTERIMAGE = @AFTERIMAGE_TEST_LIBS@
 LIBRARIES	= $(USER_LD_FLAGS) $(LIBS_AFTERIMAGE) $(LIBS_X) $(LIBS_XEXTS)
 
 prefix          = @prefix@
@@ -281,9 +281,12 @@ $(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS) config.h
 		$(RANLIB) $(LIB_STATIC)
 
 test_asstorage:
-		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_ASSTORAGE $(INCLUDES) $(EXTRA_INCLUDES) -c asstorage.c -o asstorage_test.o
-		$(CC) asstorage_test.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asstorage_test
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_ASSTORAGE $(INCLUDES) $(EXTRA_INCLUDES) -c asstorage.c -o test_asstorage.o
+		$(CC) test_asstorage.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o test_asstorage
 
+test_asdraw:
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_ASDRAW $(INCLUDES) $(EXTRA_INCLUDES) -c draw.c -o test_asdraw.o
+		$(CC) test_asdraw.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o test_asdraw
 
 
 .c.o:

@@ -123,7 +123,10 @@ apply_tool( ASDrawContext *ctx, int curr_x, int curr_y )
 	for( y = 0 ; y < ah ; ++y ) 
 	{	
 		for( x = 0 ; x < aw ; ++x ) 
-			dst[x] += src[x] ;
+		{
+			register CARD32 t = (CARD32)dst[x] + (CARD32)src[x] ;
+			dst[x] = t > 255? 255 : t ;
+		}
 		src += tw ; 
 		dst += cw ; 
 	}
@@ -134,13 +137,13 @@ apply_tool( ASDrawContext *ctx, int curr_x, int curr_y )
 /*********************************************************************************/
 
 
-Bool 
-draw_line_solid( ASDrawContext *ctx )
+static Bool 
+ctx_draw_line_solid( ASDrawContext *ctx )
 {
 	ASDrawPoint *dest = (ASDrawPoint*)(ctx->draw_data);
 	int start_x, start_y, end_x, end_y ; 
 
-	if( dest->y < ctx->curr_y ) 
+	if( dest->y > ctx->curr_y ) 
 	{
 		start_x = ctx->curr_x ; 
 		start_y = ctx->curr_y ; 
@@ -221,6 +224,19 @@ create_draw_context( unsigned int width, unsigned int height )
 	return ctx;
 }	   
 	
+void
+asim_line_to( ASDrawContext *ctx, int dst_x, int dst_y ) 
+{
+	ASDrawPoint dst ;
+	dst.x = dst_x ; 
+	dst.y = dst_y ; 
+
+	ctx->draw_data = &dst ; 
+	ctx_draw_line_solid( ctx );
+	ctx->draw_data = NULL ;
+}	 
+
+
 Bool
 apply_draw_context( ASImage *im, ASDrawContext *ctx, ASFlagType filter ) 
 {
@@ -255,4 +271,77 @@ apply_draw_context( ASImage *im, ASDrawContext *ctx, ASFlagType filter )
 /*********************************************************************************/
 /* The end !!!! 																 */
 /*********************************************************************************/
+/*********************************************************************************/
+/* Test container : 																 */
+/*********************************************************************************/
+
+#ifdef TEST_ASDRAW
+#include "afterimage.h"
+
+int main(int argc, char **argv )
+{
+	ASVisual *asv ;
+	ASImage *back = NULL ;
+	ASImage *drawing1 = NULL ;
+	ASImage *merged_im = NULL ;
+	ASImageLayer *layers ;
+	int layers_num = 0, i;
+	int screen = 0, depth = 0;
+
+	ASDrawContext *ctx ;
+
+#define DRAW_TEST_SIZE 512	
+	
+	set_output_threshold( 10 );
+
+#ifndef X_DISPLAY_MISSING
+	dpy = XOpenDisplay(NULL);
+	screen = DefaultScreen(dpy);
+	depth = DefaultDepth( dpy, screen );
+#endif
+
+	asv = create_asvisual( dpy, screen, depth, NULL );
+
+
+	back = create_asimage( DRAW_TEST_SIZE, DRAW_TEST_SIZE, 100 );
+	back->back_color = ARGB32_White ;
+	drawing1 = create_asimage( DRAW_TEST_SIZE, DRAW_TEST_SIZE, 100 );
+	drawing1->back_color = ARGB32_Black ;
+
+
+	ctx = create_draw_context(DRAW_TEST_SIZE, DRAW_TEST_SIZE);
+	/* actuall drawing starts here */
+
+	asim_line_to( ctx, 200, 200 ); 
+	asim_line_to( ctx, 100, 10 );
+	asim_line_to( ctx, 10, 300 );
+
+	/* commit drawing : */
+	apply_draw_context( drawing1, ctx, ARGB32_ALPHA_CHAN ); 
+	
+	layers_num = 2 ;
+	layers = create_image_layers( layers_num );
+	
+	layers[0].im = back ;
+	layers[1].im = drawing1 ;
+	layers[0].clip_width = DRAW_TEST_SIZE ;
+	layers[0].clip_height = DRAW_TEST_SIZE ;
+	layers[1].clip_width = DRAW_TEST_SIZE ;
+	layers[1].clip_height = DRAW_TEST_SIZE ;
+		
+	merged_im = merge_layers( asv, layers, layers_num,
+		                      DRAW_TEST_SIZE, DRAW_TEST_SIZE,
+							  ASA_ASImage,
+							  0, ASIMAGE_QUALITY_DEFAULT );
+
+
+	ASImage2file( merged_im, NULL, "test_asdraw.jpg", ASIT_Jpeg, NULL );
+	destroy_asimage( &merged_im );
+
+
+	return 1;
+}
+	
+
+#endif
 

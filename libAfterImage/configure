@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC sgmltools INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS TTF_INCLUDES JPEG_OBJS ZLIB_OBJS PNG_OBJS UNGIF_OBJS AFTERIMAGE_LIBS_EXTERNAL AFTERBASE_INCS_PATH USE_DEFAULT_AFTERBASE HAVE_AFTERBASE_FLAG AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC sgmltools INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS TTF_INCLUDES JPEG_OBJS ZLIB_OBJS PNG_OBJS UNGIF_OBJS AFTERIMAGE_LIBS_EXTERNAL AFTERBASE_INCS_PATH USE_DEFAULT_AFTERBASE HAVE_AFTERBASE_FLAG AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_TEST_LIBS AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERIMAGEFILES'
 
 # Initialize some variables set by options.
@@ -3187,7 +3187,7 @@ if test "x$enable_gdb" = "xno"; then
 		DIRTY_CFLAGS="$CFLAGS"
   		CFLAGS="-O3"
   		for f in $DIRTY_CFLAGS; do
-       		if test "x$f" != "-O2" -a "x$f" != "-O3"; then
+       		if test "x$f" != "x-O2" -a "x$f" != "x-O3" -a "x$f" != "x-O"; then
 		   		CFLAGS="$CFLAGS $f"
 			fi
   		done
@@ -8364,6 +8364,7 @@ if test "x$have_afterbase" = "xyes"; then
     	AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
     fi
     AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
+    AFTERIMAGE_TEST_LIBS="-L./ -L../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_AFTERBASE 1
@@ -8373,6 +8374,7 @@ _ACEOF
 echo "${ECHO_T}yes  $AFTERBASE_INCS_PATH" >&6
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
+	AFTERIMAGE_TEST_LIBS="-L./ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
 	if test "$with_afterbase" = "no"; then
 	    echo "$as_me:$LINENO: result: disabled" >&5
 echo "${ECHO_T}disabled" >&6
@@ -8861,6 +8863,7 @@ fi
 done
 
 fi
+
 
 
 
@@ -9601,6 +9604,7 @@ s,@HAVE_AFTERBASE_FLAG@,$HAVE_AFTERBASE_FLAG,;t t
 s,@AFTERBASE_C@,$AFTERBASE_C,;t t
 s,@have_afterbase@,$have_afterbase,;t t
 s,@AFTERIMAGE_APPS_LIBS@,$AFTERIMAGE_APPS_LIBS,;t t
+s,@AFTERIMAGE_TEST_LIBS@,$AFTERIMAGE_TEST_LIBS,;t t
 s,@AFTERIMAGE_LIBS@,$AFTERIMAGE_LIBS,;t t
 s,@image_format@,$image_format,;t t
 s,@version@,$version,;t t

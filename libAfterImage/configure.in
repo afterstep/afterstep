@@ -567,10 +567,12 @@ if test "x$have_afterbase" = "xyes"; then
     	AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
     fi
     AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
+    AFTERIMAGE_TEST_LIBS="-L./ -L../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
     AC_DEFINE(HAVE_AFTERBASE,1,[Define if libAfterBase is available])
 	AC_MSG_RESULT(yes  $AFTERBASE_INCS_PATH)
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
+	AFTERIMAGE_TEST_LIBS="-L./ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
 	if test "$with_afterbase" = "no"; then
 	    AC_MSG_RESULT(disabled)
 	else
@@ -585,6 +587,7 @@ AC_SUBST(HAVE_AFTERBASE_FLAG)
 AC_SUBST(AFTERBASE_C)
 AC_SUBST(have_afterbase)
 AC_SUBST(AFTERIMAGE_APPS_LIBS)
+AC_SUBST(AFTERIMAGE_TEST_LIBS)
 
 dnl# finalizing libs listing :
 
