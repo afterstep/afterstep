@@ -8,7 +8,7 @@
  * Copyright (c) 1998 Mike Venaccio <venaccio@aero.und.edu>
  * Copyright (c) 1998 Chris Ridd <c.ridd@isode.com>
  * Copyright (c) 1997 Raphael Goulais <velephys@hol.fr>
- * Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca> 
+ * Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
  * Copyright (C) 1996 Frank Fejes
  * Copyright (C) 1995 Bo Yang
  * Copyright (C) 1993 Robert Nation
@@ -30,7 +30,7 @@
  */
 
 /****************************************************************************
- * 
+ *
  * Configure.c: reads the configuration files, interprets them,
  * and sets up menus, bindings, colors, and fonts as specified
  *
@@ -175,9 +175,6 @@ void assign_pixmap (char *text, FILE * fd, char **arg, int *);
  */
 struct config main_config[] =
 {
-  /* currently unused? */
-  {"ReadPipeConfig", ReadPipeConfig, NULL, NULL},
-
   /* base options */
   {"IconPath", assign_path, &IconPath, (int *) 0},
   {"ModulePath", assign_path, &ModulePath, (int *) 0},
@@ -317,7 +314,7 @@ struct config main_config[] =
 
 #define PARSE_BUFFER_SIZE 	MAXLINELENGTH
 char *orig_tline = NULL;
-/* the following values must not be reset other then by main 
+/* the following values must not be reset other then by main
    config reading routine
  */
 int curr_conf_line = -1;
@@ -436,7 +433,7 @@ HomeCreateIfNeeded (const char *filename)
 /***************************************************************
  *
  * get an icon
- * 
+ *
  **************************************************************/
 Bool
 GetIconFromFile (char *file, MyIcon * icon, int max_colors)
@@ -471,9 +468,9 @@ GetIconFromFile (char *file, MyIcon * icon, int max_colors)
 }
 
 /***************************************************************
- * 
+ *
  * Read a XPM file
- * 
+ *
  **************************************************************/
 Pixmap
 GetXPMTile (char *file, int max_colors)
@@ -511,8 +508,8 @@ stripcpy3 (const char *source, const Bool Warn)
 }
 
 
-/* 
- * initialize the old-style look variables 
+/*
+ * initialize the old-style look variables
  */
 void
 init_old_look_variables (Bool free_resources)
@@ -1293,7 +1290,7 @@ ParseConfigFile (const char *file, char **tline)
 }
 
 /*****************************************************************************
- * 
+ *
  * This routine is responsible for reading and parsing the config file
  *
  ****************************************************************************/
@@ -1592,7 +1589,7 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 	}
     }
 
-  /* redo icons in case IconBox, ButtonSize, SeparateButtonTitle, or one 
+  /* redo icons in case IconBox, ButtonSize, SeparateButtonTitle, or one
    * of the Icon definitions in database changed */
   if (parse_database || parse_look || shall_override_config_file)
     {
@@ -1604,7 +1601,7 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 }
 
 /*****************************************************************************
- * 
+ *
  * Copies a text string from the config file to a specified location
  *
  ****************************************************************************/
@@ -1616,7 +1613,7 @@ assign_string (char *text, FILE * fd, char **arg, int *junk)
 }
 
 /*****************************************************************************
- * 
+ *
  * Copies a PATH string from the config file to a specified location
  *
  ****************************************************************************/
@@ -1671,7 +1668,7 @@ SetTitleText (char *tline, FILE * fd, char **junk, int *junk2)
 }
 
 /****************************************************************************
- * 
+ *
  *  Read Titlebar pixmap button
  *
  ****************************************************************************/
@@ -1769,7 +1766,7 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 }
 
 /*****************************************************************************
- * 
+ *
  * Changes a cursor def.
  *
  ****************************************************************************/
@@ -1844,7 +1841,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
   XFreePixmap (dpy, cursor);
 }
 /*****************************************************************************
- * 
+ *
  * Sets a boolean flag to true
  *
  ****************************************************************************/
@@ -1876,7 +1873,7 @@ SetFlag2 (char *text, FILE * fd, char **arg, int *var)
 }
 
 /*****************************************************************************
- * 
+ *
  * Reads in one or two integer values
  *
  ****************************************************************************/
@@ -1888,7 +1885,7 @@ SetInts (char *text, FILE * fd, char **arg1, int *arg2)
 }
 
 /*****************************************************************************
- * 
+ *
  * Reads in a list of mouse button numbers
  *
  ****************************************************************************/
@@ -1914,7 +1911,7 @@ SetButtonList (char *text, FILE * fd, char **arg1, int *arg2)
 
 
 /*****************************************************************************
- * 
+ *
  * Reads Dimensions for an icon box from the config file
  *
  ****************************************************************************/
@@ -2015,7 +2012,7 @@ is_executable_in_path (const char *name)
     {
       if (cache)
 	free (cache);
-      /* allocating slightly more space then needed to avoid 
+      /* allocating slightly more space then needed to avoid
          too many reallocations */
       cache = (char *) safemalloc (i + (i >> 1) + 1);
       cache_size = i + (i >> 1);
@@ -2090,8 +2087,8 @@ MeltStartMenu (char *buf)
       break;
     }
 
-  /* 
-   *    Here we test the existence of various  
+  /*
+   *    Here we test the existence of various
    *    directories used for the generation.
    */
 
@@ -2144,7 +2141,7 @@ MeltStartMenu (char *buf)
   (*tree).flags &= ~DIRTREE_KEEPNAME;
 
   dirtree_make_menu2 (tree, buf);
-  /* to keep backward compatibility, make a copy of the root menu with 
+  /* to keep backward compatibility, make a copy of the root menu with
    * the name "start" */
   {
     if ((*tree).name != NULL)
@@ -2181,82 +2178,8 @@ GetColors (void)
   return;
 }
 
-/* Nat
- *  'ReadPipeConfig' cfg instruction
- *  let's read the stdout of a process (via popen(3)), which contains config
- *  instructions
- */
-
-void
-ReadPipeConfig (char *text, FILE * fd, char **value, int *junk)
-{
-  FILE *pipeFileIn;		/* input channel from the popen'ed process */
-  FILE *fileOut;		/* tmp file storing the popen results */
-  char errMsg[128], tmpFileName[PATH_MAX];
-  int readChar;
-  static int semaCounter = 0;
-
-  semaCounter++;		/* counter of ReadPipeConfig embedded calls (probably due to
-				   some ReadPipeConfig containing a ReadPipeConfig) */
-
-  sprintf (errMsg, "ReadPipeConfig (%d)", semaCounter);
-
-  if (tmpnam (tmpFileName) == NULL)
-    {
-      afterstep_err (errMsg, "cannot tmpnam", NULL, NULL);
-      semaCounter--;
-      return;
-    }
-  if ((fileOut = fopen (tmpFileName, "w")) == NULL)
-    {
-      afterstep_err (errMsg, "cannot open the temp file", tmpFileName, NULL);
-      semaCounter--;
-      return;
-    }
-  if ((pipeFileIn = popen (text, "r")) == NULL)
-    {
-      afterstep_err (errMsg, "cannot open the piped process", text, NULL);
-      semaCounter--;
-      return;
-    }
-  while ((readChar = fgetc (pipeFileIn)) != EOF)
-    {
-      if (fputc (readChar, fileOut) == EOF)
-	{
-	  afterstep_err (errMsg, "cannot write into the temp file", tmpFileName, NULL);
-	  pclose (pipeFileIn);
-	  fclose (fileOut);
-	  unlink (tmpFileName);
-
-	  semaCounter--;
-	  return;
-	}
-    }
-
-  if (fclose (fileOut) != 0)
-    {
-      afterstep_err (errMsg, "cannot close the temp file", tmpFileName, NULL);
-      pclose (pipeFileIn);
-      unlink (tmpFileName);
-      semaCounter--;
-      return;
-    }
-  if (pclose (pipeFileIn) == -1)
-    {
-      afterstep_err (errMsg, "cannot pclose", tmpFileName, NULL);
-      unlink (tmpFileName);
-      semaCounter--;
-      return;
-    }
-  /* Nat: which function may I call here in order to get the
-     'tmpFileName'-named file read as a configuration file? */
-
-  unlink (tmpFileName);
-  semaCounter--;
-}
-
 /****************************************************************************
- * 
+ *
  * Matches text from config to a table of strings, calls routine
  * indicated in table.
  *
