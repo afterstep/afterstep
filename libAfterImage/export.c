@@ -324,6 +324,7 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	int compression;
 	ASImageDecoder *imdec ;
 	CARD32 *r, *g, *b, *a ;
+	png_color_16 back_color ;
 
 	START_TIME(started);
 	static ASPngExportParams defaults = { ASIT_Png, EXPORT_ALPHA, -1 };
@@ -392,6 +393,12 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 		                     (has_alpha?PNG_COLOR_TYPE_RGB_ALPHA:PNG_COLOR_TYPE_RGB),
 				 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
 				 PNG_FILTER_TYPE_DEFAULT );
+	/* better set background color as some web browsers can't seem to work without it ( IE in particular ) */
+	memset( &back_color, 0x00, sizeof(png_color_16));
+	back_color.red = ARGB32_RED16( im->back_color );
+	back_color.green = ARGB32_GREEN16( im->back_color );
+	back_color.blue = ARGB32_BLUE16( im->back_color );
+	png_set_bKGD(png_ptr, info_ptr, &back_color);
 	/* PNG treats alpha s alevel of opacity,
 	 * and so do we - there is no need to reverse it : */
 	/*	png_set_invert_alpha(png_ptr); */

@@ -1223,7 +1223,7 @@ redecorate_pager_desks()
 	 */
 	if( !get_flags( Config->geometry.flags, WidthValue ) )
 	{
-		int delta = (wasted_x - PagerState.wasted_width)/Config->columns ; ;
+		int delta = (wasted_x - PagerState.wasted_width)/Config->columns ;
 		if( delta != 0 )
 		{
 			PagerState.desk_width += delta ;
@@ -1232,7 +1232,7 @@ redecorate_pager_desks()
 	}
 	if( !get_flags( Config->geometry.flags, HeightValue ) )
 	{
-		int delta = (wasted_y - PagerState.wasted_height)/Config->rows ; ;
+		int delta = (wasted_y - PagerState.wasted_height)/Config->rows ;
 		if( delta != 0 )
 		{
 			PagerState.desk_height += delta ;

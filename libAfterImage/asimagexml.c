@@ -1055,6 +1055,38 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
+/****** libAfterImage/asimagexml/tags/background
+ * NAME
+ * background - set image's background color.
+ * SYNOPSIS
+ *  <background id="new_id" color="color">
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * color    Required. Color to be used for background - fills all the
+ *          spaces in image with missing pixels.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
+	if (!strcmp(doc->tag, "background")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		ASImage* imtmp = NULL;
+		ARGB32 argb = ARGB32_Black;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			if (!strcmp(ptr->tag, "color")) parse_argb_color( ptr->parm, &argb );
+		}
+		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
+		}
+		if (imtmp) {
+			result = clone_asimage( imtmp, SCL_DO_ALL );
+			safe_asimage_destroy(imtmp);
+			result->back_color = argb ;
+		}
+		show_progress( "Setting back_color for image %p to 0x%8.8X", result, argb );
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
 /****** libAfterImage/asimagexml/tags/blur
  * NAME
  * blur - perform a gaussian blurr on an image.
