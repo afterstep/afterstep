@@ -376,7 +376,7 @@ while (<PROC>) {
   # We will make an array of that list and read the last one as the actual
   # bit depth
   my @depths = split /,\s/, $_, $1;
-  $BIT_DEPTH = $depths[scalar(@depths) -1];
+  $BIT_DEPTH = $depths[0];
   last;
 }
 
