@@ -861,7 +861,7 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type, Bool user
 				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Installed data files catalogue","data/index", "" );
 			}else if( doc_type == DocType_HTML )
 			{	
- 				fprintf( state.dest_fp,  "<A href=\"API/index.html\">Developer documentation index</A><br>\n" );			
+ 				fprintf( state.dest_fp,  "<A href=\"API/index.html\">Developer documentation index</A>&nbsp;&nbsp;\n" );
 				fprintf( state.dest_fp,  "<A href=\"data/index.html\">Installed data files catalogue</A>\n" );			   
 			}
 		}else
@@ -873,8 +873,8 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type, Bool user
 			}
 			else if( doc_type == DocType_HTML )
 			{
- 				fprintf( state.dest_fp,  "<A href=\"../index.html\">User documentation index</A>\n" );
-				fprintf( state.dest_fp,  "<A href=\"data/index.html\">Installed data files catalogue</A>\n" );
+ 				fprintf( state.dest_fp,  "<A href=\"../index.html\">User documentation index</A>&nbsp;&nbsp;\n" );
+				fprintf( state.dest_fp,  "<A href=\"../data/index.html\">Installed data files catalogue</A>\n" );
 			}
 		}
 		fprintf( state.dest_fp, "<hr>\n<p><UL class=\"dense\">\n" );
