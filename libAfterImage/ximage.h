@@ -26,6 +26,26 @@
  ******
  */
 
+/****f* libAfterImage/ximage/picture_ximage2asimage()
+ * SYNOPSIS
+ * ASImage *picture_ximage2asimage ( struct ASVisual *asv, 
+ *                                   XImage * xim, XImage *alpha_xim,
+ *                                   unsigned int compression );
+ * INPUTS
+ * asv           - pointer to valid ASVisual structure
+ * xim           - source XImage
+ * alpha_xim     - source XImage for Alpha channel
+ * compression   - degree of compression of resulting ASImage.
+ * RETURN VALUE
+ * pointer to newly allocated ASImage, containing encoded data, on
+ * success. NULL on failure.
+ * DESCRIPTION
+ * picture_ximage2asimage will attempt to create new ASImage with the same
+ * dimensions as supplied XImage. If both XImages are supplied - they must 
+ * have same dimentions. XImage will be decoded based on
+ * supplied ASVisual, and resulting scanlines will be encoded into
+ * ASImage.
+ *********/
 /****f* libAfterImage/ximage/ximage2asimage()
  * SYNOPSIS
  * ASImage *ximage2asimage ( struct ASVisual *asv, XImage * xim,
@@ -38,10 +58,8 @@
  * pointer to newly allocated ASImage, containing encoded data, on
  * success. NULL on failure.
  * DESCRIPTION
- * ximage2asimage will attempt to create new ASImage with the same
- * dimensions as supplied XImage. XImage will be decoded based on
- * supplied ASVisual, and resulting scanlines will be encoded into
- * ASImage.
+ * same as picture_ximage2asimage with alpha_ximage set to NULL.
+ * supplied for compatibility with older versions and for convinience.
  *********/
 /****f* libAfterImage/ximage/pixmap2asimage()
  * SYNOPSIS
@@ -68,6 +86,36 @@
  * member. After that newly created ASImage could be used in any 
  * transformations.
  *********/
+/****f* libAfterImage/ximage/picture2asimage()
+ * SYNOPSIS
+ * ASImage *picture2asimage (struct ASVisual *asv, 
+ *                           Pixmap rgb, Pixmap a,
+ *                           int x, int y,
+ *                           unsigned int width,
+ *                           unsigned int height,
+ *                           unsigned long plane_mask,
+ *                           Bool keep_cache,
+ *                           unsigned int compression );
+ * INPUTS
+ * asv  		  - pointer to valid ASVisual structure
+ * rgb    		  - source Pixmap for red, green and blue channels
+ * a    		  - source Pixmap for the alpha channel
+ * x, y,
+ * width, height- rectangle on Pixmap to be encoded into ASImage.
+ * plane_mask   - limits color planes to be copied from Pixmap.
+ * keep_cache   - indicates if we should keep XImage, used to copy
+ *                image data from the X server, and attached it to ximage
+ *                member of resulting ASImage.
+ * compression  - degree of compression of resulting ASImage.
+ * RETURN VALUE
+ * pointer to newly allocated ASImage, containing encoded data, on
+ * success. NULL on failure.
+ * DESCRIPTION
+ * picture2asimage will obtain XImage of the requested area of the
+ * X Pixmap, If alpha channel pixmap is supplied - it will be used to encode 
+ * ASImage's alpha channel. Alpha channel pixmap must be either 
+ * 8 or 1 bit deep, and it must have the same dimentions as main Pixmap.
+ *********/
 /****f* libAfterImage/ximage/pixmap2asimage()
  * SYNOPSIS
  * ASImage *pixmap2asimage ( struct ASVisual *asv, Pixmap p,
@@ -91,14 +139,17 @@
  * pointer to newly allocated ASImage, containing encoded data, on
  * success. NULL on failure.
  * DESCRIPTION
- * pixmap2asimage will obtain XImage of the requested area of the
- * X Pixmap, and will encode it into ASImage using ximage2asimage()
- * function.
+ * same as picture2asimage() with alpha pixmap set to None. Supplied for 
+ * compatibility and convinience.
  *********/
+ASImage *picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned int compression);
 ASImage *ximage2asimage (struct ASVisual *asv, XImage * xim, unsigned int compression);
 ASImage *pixmap2ximage( ASVisual *asv, Pixmap p, int x, int y, 
                         unsigned int width, unsigned int height, 
 						unsigned long plane_mask, unsigned int compression);
+ASImage *picture2asimage(ASVisual *asv, Pixmap rgb, Pixmap a , int x, int y, 
+                         unsigned int width, unsigned int height, 
+						 unsigned long plane_mask, Bool keep_cache, unsigned int compression);
 ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
 	                     unsigned int width, unsigned int height,
 		  				 unsigned long plane_mask, Bool keep_cache, unsigned int compression);
@@ -126,6 +177,32 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * SEE ALSO
  * create_visual_ximage()
  *********/
+/****f* libAfterImage/ximage/asimage2alpha_ximage()
+ * SYNOPSIS
+ * XImage  *asimage2alpha_ximage (struct ASVisual *asv, ASImage *im, Bool bitmap);
+ * INPUTS
+ * asv   		- pointer to valid ASVisual structure
+ * im    		- source ASImage
+ * bitmap       - if True resulting XImage will have depth of 1 bit - 
+ *                traditional X mask; otherwise it will have depth of 8 
+ *                (usefull for XFree86 RENDER extension)
+ * RETURN VALUE
+ * On success returns newly created and encoded XImage of the depth 1 or 8.
+ * NULL on failure.
+ * DESCRIPTION
+ * asimage2alpha_ximage() creates new XImage of the exact same size as
+ * supplied ASImage, and depth 1 or 8. Alpha channels of ASImage then gets
+ * decoded, and encoded into XImage. In case requested depth is 1 then 
+ * alpha channel is interpreted like so: 127 or greater is encoded as 1, 
+ * otherwise as 0.
+ * Missing scanlines get filled with 1s as they signify absence of mask.
+ * NOTES
+ * Returned pointer to XImage will also be stored in im->alt.mask_ximage,
+ * and It will be destroyed when XImage is destroyed, or reused in any
+ * subsequent calls to asimage2mask_ximage(). If any other behaviour is
+ * desired - make sure you set im->alt.mask_ximage to NULL, to dissociate
+ * XImage object from ASImage.
+ *********/
 /****f* libAfterImage/ximage/asimage2mask_ximage()
  * SYNOPSIS
  * XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
@@ -136,17 +213,8 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * On success returns newly created and encoded XImage of the depth 1.
  * NULL on failure.
  * DESCRIPTION
- * asimage2mask_ximage() creates new XImage of the exact same size as
- * supplied ASImage, and depth 1. Alpha channels of ASImage then gets
- * decoded, and encoded into XImage. If alpha channel is greater the
- * 127 it is encoded as 1, otherwise as 0.
- * Missing scanlines get filled with 1s as they signify absence of mask.
- * NOTES
- * Returned pointer to XImage will also be stored in im->alt.mask_ximage,
- * and It will be destroyed when XImage is destroyed, or reused in any
- * subsequent calls to asimage2mask_ximage(). If any other behaviour is
- * desired - make sure you set im->alt.mask_ximage to NULL, to dissociate
- * XImage object from ASImage.
+ * Same as asimage2alpha_ximage(). Supplied for convinience and 
+ * compatibility with older versions.
  *********/
 /****f* libAfterImage/ximage/asimage2pixmap()
  * SYNOPSIS
@@ -240,6 +308,7 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * asimage2mask_ximage()
  **********/
 XImage  *asimage2ximage  (struct ASVisual *asv, ASImage *im);
+XImage  *asimage2alpha_ximage (ASVisual *asv, ASImage *im, Bool bitmap );
 XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
 Bool	 asimage2drawable( struct ASVisual *asv, Drawable d, ASImage *im, GC gc,
          			       int src_x, int src_y, int dest_x, int dest_y,

@@ -40,47 +40,91 @@
 /* ***************************************************************************/
 
 ASImage      *
-ximage2asimage (ASVisual *asv, XImage * xim, unsigned int compression)
+picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned int compression)
 {
 	ASImage      *im = NULL;
 	unsigned char *xim_line;
-	int           i, height, bpl;
+	int           i, height, width, bpl;
 	ASScanline    xim_buf;
 #ifdef LOCAL_DEBUG
 	CARD32       *tmp ;
 #endif
+	if( xim && alpha_xim )
+		if( xim->width != alpha_xim->width ||
+		    xim->height != alpha_xim->height )
+			return NULL ;
+	if( xim == NULL && alpha_xim == NULL )
+		return NULL ;
+		
+	width = xim?xim->width:alpha_xim->width;
+	height = xim?xim->height:alpha_xim->height;
 
-	if( xim == NULL)
-		return im;
-
-	height = xim->height;
-	bpl 	 = xim->bytes_per_line;
-	xim_line = (unsigned char *)xim->data;
-
-	im = create_asimage( xim->width, xim->height, compression);
+	im = create_asimage( width, height, compression);
+	prepare_scanline( width, 0, &xim_buf, asv->BGR_mode );
 #ifdef LOCAL_DEBUG
-	tmp = safemalloc( xim->width * sizeof(CARD32));
+	tmp = safemalloc( width * sizeof(CARD32));
 #endif
-	prepare_scanline( xim->width, 0, &xim_buf, asv->BGR_mode );
-	for (i = 0; i < height; i++)
+
+	if( xim )
 	{
-		GET_SCANLINE(asv,xim,&xim_buf,i,xim_line);
-		asimage_add_line (im, IC_RED,   xim_buf.red, i);
-		asimage_add_line (im, IC_GREEN, xim_buf.green, i);
-		asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
+		bpl 	 = xim->bytes_per_line;
+		xim_line = (unsigned char *)xim->data;
+
+		for (i = 0; i < height; i++)
+		{
+			GET_SCANLINE(asv,xim,&xim_buf,i,xim_line);
+			asimage_add_line (im, IC_RED,   xim_buf.red, i);
+			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
+			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
 #ifdef LOCAL_DEBUG
-		if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) )
-			exit(0);
-		if( !asimage_compare_line( im, IC_GREEN,  xim_buf.green, tmp, i, True ) )
-			exit(0);
-		if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) )
-			exit(0);
+			if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) )
+				exit(0);
+			if( !asimage_compare_line( im, IC_GREEN,  xim_buf.green, tmp, i, True ) )
+				exit(0);
+			if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) )
+				exit(0);
 #endif
-		xim_line += bpl;
+			xim_line += bpl;
+		}
+	}
+	if( alpha_xim )
+	{
+		CARD32 *dst = xim_buf.alpha ;
+		bpl 	 = alpha_xim->bytes_per_line;
+		xim_line = (unsigned char *)alpha_xim->data;
+
+		for (i = 0; i < height; i++)
+		{
+			register int x = width;
+			if( alpha_xim->depth == 8 ) 
+			{
+				while(--x >= 0 ) dst[x] = (CARD32)(xim_line[x]);
+			}else
+			{
+				while(--x >= 0 ) 
+#ifndef X_DISPLAY_MISSING
+					dst[x] = (XGetPixel(alpha_xim, x, i) == 0)?0x00:0xFF;
+#else
+					dst[x] = 0xFF ;
+#endif
+			}
+			asimage_add_line (im, IC_ALPHA, xim_buf.alpha, i);
+#ifdef LOCAL_DEBUG
+			if( !asimage_compare_line( im, IC_ALPHA,  xim_buf.alpha, tmp, i, True ) )
+				exit(0);
+#endif
+			xim_line += bpl;
+		}
 	}
 	free_scanline(&xim_buf, True);
 
 	return im;
+}
+
+ASImage      *
+ximage2asimage (ASVisual *asv, XImage * xim, unsigned int compression)
+{
+	return picture_ximage2asimage (asv, xim, NULL, compression);
 }
 
 static inline int
@@ -143,15 +187,26 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 }
 
 XImage*
-asimage2mask_ximage (ASVisual *asv, ASImage *im)
+asimage2alpha_ximage (ASVisual *asv, ASImage *im, Bool bitmap )
 {
 	XImage        *xim = NULL;
 	int            i;
 	ASScanline     xim_buf;
 	ASImageOutput *imout ;
+	ASFlagType flag = bitmap?0:ASIM_XIMAGE_8BIT_MASK;
 
 	if (im == NULL)
 		return xim;
+	
+	if( im->alt.mask_ximage )
+		if( (im->flags & ASIM_XIMAGE_8BIT_MASK )^flag)
+		{
+#ifndef X_DISPLAY_MISSING
+			XDestroyImage( im->alt.mask_ximage );
+#endif
+			im->alt.mask_ximage = NULL ;
+		}
+	set_flags( im->flags, flag );
 
 	if( (imout = start_image_output( asv, im, ASA_MaskXImage, 0, ASIMAGE_QUALITY_POOR )) == NULL )
 		return xim;
@@ -162,7 +217,7 @@ asimage2mask_ximage (ASVisual *asv, ASImage *im)
 	{
 		int count = asimage_decode_line (im, IC_ALPHA, xim_buf.alpha, i, 0, xim_buf.width);
 		if( count < xim_buf.width )
-			xim_set_component( xim_buf.blue, ARGB32_ALPHA8(im->back_color), count, xim_buf.width );
+			xim_set_component( xim_buf.alpha, ARGB32_ALPHA8(im->back_color), count, xim_buf.width );
 		imout->output_image_scanline( imout, &xim_buf, 1 );
 	}
 	free_scanline(&xim_buf, True);
@@ -170,6 +225,12 @@ asimage2mask_ximage (ASVisual *asv, ASImage *im)
 	stop_image_output(&imout);
 
 	return xim;
+}
+
+XImage*
+asimage2mask_ximage (ASVisual *asv, ASImage *im)
+{
+	return asimage2alpha_ximage (asv, im, False );
 }
 
 ASImage      *
@@ -191,26 +252,43 @@ pixmap2ximage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsigne
 #endif
 }
 
-
 ASImage      *
-pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache, unsigned int compression)
+picture2asimage(ASVisual *asv, Pixmap rgb, Pixmap a , int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache, unsigned int compression)
 {
 #ifndef X_DISPLAY_MISSING
-	XImage       *xim = XGetImage (asv->dpy, p, x, y, width, height, plane_mask, ZPixmap);
+	XImage       *xim = XGetImage (asv->dpy, rgb, x, y, width, height, plane_mask, ZPixmap);
+	XImage       *alpha_xim = (a==None)?NULL:XGetImage (asv->dpy, a, x, y, width, height, 0xFFFFFFFF, ZPixmap);
 	ASImage      *im = NULL;
 
 	if (xim)
 	{
-		im = ximage2asimage (asv, xim, compression);
+		im = picture_ximage2asimage (asv, xim, alpha_xim, compression);
 		if( keep_cache )
+		{
 			im->alt.ximage = xim ;
-		else
+			if( alpha_xim )
+			{
+				im->alt.mask_ximage = alpha_xim ;
+				if( alpha_xim->depth == 8 )
+					set_flags( im->flags, ASIM_XIMAGE_8BIT_MASK );
+			}
+		}else
+		{
 			XDestroyImage (xim);
+			if( alpha_xim )
+				XDestroyImage (alpha_xim);
+		}
 	}
 	return im;
 #else
     return NULL ;
 #endif
+}
+
+ASImage      *
+pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache, unsigned int compression)
+{
+	return picture2asimage(asv, p, None, x, y, width, height, plane_mask, keep_cache, compression);
 }
 
 Bool
