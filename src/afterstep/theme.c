@@ -66,6 +66,7 @@ detect_theme_file_type( const char * filename )
 	ASThemeFileType type = AST_ThemeBad ;
 	FILE *f ;
 
+	LOCAL_DEBUG_OUT( "theme file \"%s\"", filename );
 	if( filename )
 	{
 #ifdef __CYGWIN__
@@ -75,9 +76,11 @@ detect_theme_file_type( const char * filename )
 #endif
 		{
 			char buf[17] = "";
-			if( fread( &(buf[0]), 16, 1, f ) == 16 )
+			LOCAL_DEBUG_OUT( "theme file opened - reading 16 bytes ...%s","");
+			if( fread( &(buf[0]), 1, 16, f ) == 16 )
 			{
 				buf[16] = '\0' ;
+				LOCAL_DEBUG_OUT( "read data is \"%s\"", &(buf[0]));
 				if( strncmp( &(buf[0]), "BZh", 3 ) == 0 )
 					type = AST_ThemeTarBz2 ;
 				else if( buf[0] == (char)0x1F && buf[1] == (char)0x8b )
@@ -120,16 +123,48 @@ Bool untar_file( const char *src, const char *dst )
 	return False;
 }
 
-ComplexFunction *
-build_theme_script( const char *theme_dir )
+ThemeConfig *
+build_theme_config( const char *theme_dir )
 {
-	ComplexFunction *ts = NULL ;
+	ThemeConfig *config = NULL ;
 
-	return ts ;
+	return config ;
 }
 
 void
-fix_theme_script( ComplexFunction *install_func, const char *theme_dir )
+fix_install_theme_script( ComplexFunction *install_func, const char *theme_dir )
+{
+	int i ;
+    for( i = 0 ; i < install_func->items_num ; i++ )
+    {
+		FunctionData *fdata = &(install_func->items[i]);
+		int   func = fdata->func ;
+		char *fixed_fname = NULL ;
+		if( fdata->text != NULL )
+		{
+			switch( func )
+			{
+				case F_INSTALL_LOOK :
+				case F_INSTALL_FEEL :
+				case F_INSTALL_BACKGROUND :
+				case F_INSTALL_FONT :
+				case F_INSTALL_ICON :
+				case F_INSTALL_TILE :
+				case F_INSTALL_THEME_FILE :
+					fixed_fname = make_file_name( theme_dir, fdata->text );
+			    	break ;
+			}
+			if( fixed_fname != NULL )
+			{
+				free( fdata->text );
+				fdata->text = fixed_fname ;
+			}
+		}
+    }
+}
+
+void
+fix_apply_theme_script( ComplexFunction *install_func )
 {
 	int i ;
     for( i = 0 ; i < install_func->items_num ; i++ )
@@ -142,25 +177,19 @@ fix_theme_script( ComplexFunction *install_func, const char *theme_dir )
 			switch( func )
 			{
 				case F_CHANGE_LOOK :
-					fixed_fname = make_session_data_file(Session, False, 0, as_look_dir_name, fdata->text, NULL );
+					if( (fixed_fname = make_session_data_file(Session, False, S_IFREG, as_look_dir_name, fdata->text, NULL )) == NULL )
+						fixed_fname = make_session_data_file(Session, True, S_IFREG, as_look_dir_name, fdata->text, NULL );
 			    	break ;
 				case F_CHANGE_FEEL :
-					fixed_fname = make_session_data_file(Session, False, 0, as_feel_dir_name, fdata->text, NULL );
+					if( (fixed_fname = make_session_data_file(Session, False, S_IFREG, as_feel_dir_name, fdata->text, NULL )) == NULL )
+						fixed_fname = make_session_data_file(Session, True, S_IFREG, as_feel_dir_name, fdata->text, NULL );
 			    	break ;
 				case F_CHANGE_BACKGROUND :
-					fixed_fname = make_session_data_file(Session, False, 0, as_background_dir_name, fdata->text, NULL );
+					if( (fixed_fname = make_session_data_file(Session, False, S_IFREG, as_background_dir_name, fdata->text, NULL )) == NULL )
+						fixed_fname = make_session_data_file(Session, True, S_IFREG, as_background_dir_name, fdata->text, NULL );
 			    	break ;
 				case F_CHANGE_THEME_FILE :
-					fixed_fname = make_session_data_file(Session, False, 0, as_theme_file_dir_name, fdata->text, NULL );
-			    	break ;
-				case F_INSTALL_LOOK :
-				case F_INSTALL_FEEL :
-				case F_INSTALL_BACKGROUND :
-				case F_INSTALL_FONT :
-				case F_INSTALL_ICON :
-				case F_INSTALL_TILE :
-				case F_INSTALL_THEME_FILE :
-					fixed_fname = make_file_name( theme_dir, fdata->text );
+					fixed_fname = make_session_data_file(Session, False, S_IFREG, as_theme_file_dir_name, fdata->text, NULL );
 			    	break ;
 			}
 			if( fixed_fname != NULL )
@@ -214,6 +243,8 @@ install_theme_file( const char *src )
 			theme_tarball = safemalloc( themedir_len + 4 + 1 );
 			sprintf (theme_dir, "%s.tar", theme_dir );
 		}
+		theme_script_fname = safemalloc( themedir_len + 1 + 14 + 1 );
+		sprintf( theme_script_fname, "%s/install_script", theme_dir );
 	}else
 	{
 		char *tmp = strrchr( src, '/' );
@@ -221,6 +252,7 @@ install_theme_file( const char *src )
 			theme_dir = mystrndup( src, tmp - src );
 		else
 			theme_dir = mystrdup( "" );
+		theme_script_fname = mystrdup( src );
 	}
 
 	if( theme_tarball == NULL  )
@@ -251,21 +283,34 @@ install_theme_file( const char *src )
 	if( type == AST_ThemeScript )
 	{
 		/* step 1: parsing theme script file */
-		ComplexFunction *install_func = NULL ;
+		ThemeConfig *theme = NULL ;
+		Bool old_style_theme = False ;
+
 		if( theme_script_fname && CheckFile( theme_script_fname ) == 0 )
-			install_func = ParseComplexFunctionFile ( theme_script_fname, "afterstep");
+			theme = ParseThemeFile ( theme_script_fname, "afterstep");
 
-		if( install_func == NULL )
-			install_func = build_theme_script( theme_dir );
-		else if( theme_dir[0] != '\0' )
-			fix_theme_script( install_func, theme_dir );  /* appends theme_dir to filenames */
+		if( theme == NULL )
+		{
+			theme = build_theme_config( theme_dir );
+			old_style_theme = True ;
+		}else if( theme_dir[0] != '\0' && theme->install )
+			fix_install_theme_script( theme->install, theme_dir );  /* appends theme_dir to filenames */
 
-		if( install_func == NULL )
+		if( theme == NULL )
 			show_error( "Theme contains no recognizable files. Installation failed" );
 		else
 		{
-			ExecuteBatch( install_func );
-			really_destroy_complex_func(install_func);
+			if( theme->install )
+				ExecuteBatch( theme->install );
+
+			if( theme->apply )
+			{
+				if( !old_style_theme )
+					fix_apply_theme_script( theme->apply );  /* appends theme_dir to filenames */
+				ExecuteBatch( theme->apply );
+			}
+
+			DestroyThemeConfig(theme);
 			success = True ;
 		}
 	}

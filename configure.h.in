@@ -63,7 +63,7 @@
 #define DESKTOP_DIR     "desktop"
 #define FONT_DIR        "desktop/fonts"
 #define ICON_DIR        "desktop/icons"
-#define TILES_DIR       "desktop/tiles"
+#define TILE_DIR       "desktop/tiles"
 #define COMP_FILE	"compatibility"                  /* with -f oldrc */
 #define BASE_FILE       "base"                           /* scrdepth */
 #define ASETROOT_FILE   "asetroot"                   /* legacy background configuration */

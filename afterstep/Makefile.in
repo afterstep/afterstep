@@ -71,8 +71,6 @@ install:
 	$(CP) -r feels $(AFTER_SHAREDIR)/
 	@$(MKDIR) -p $(AFTER_SHAREDIR)/looks; \
 	$(CP) -r looks $(AFTER_SHAREDIR)/
-	@$(MKDIR) -p $(AFTER_SHAREDIR)/installed_themes; \
-	$(CP) -r installed_themes $(AFTER_SHAREDIR)/
 	@$(MKDIR) -p $(AFTER_SHAREDIR)/scripts; \
 	$(CP) -r scripts $(AFTER_SHAREDIR)/
 	@$(MKDIR) -p $(AFTER_SHAREDIR)/themes; \

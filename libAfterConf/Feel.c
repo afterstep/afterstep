@@ -222,6 +222,27 @@ SyntaxDef AutoExecSyntax =
   0
 };
 
+TermDef ThemeTerms[] =
+{
+  {TF_NO_MYNAME_PREPENDING, "Function",8                , TT_QUOTED_TEXT, FEEL_Function_ID          , &PopupFuncSyntax},
+  {0, NULL, 0, 0, 0}
+};
+
+SyntaxDef ThemeSyntax =
+{
+  '\n',
+  '\0',
+  ThemeTerms,
+  0,				/* use default hash size */
+  ' ',
+  "",
+  "\t",
+  "theme installation script",
+  NULL,
+  0
+};
+
+
 
 /**************************************************************************************
  * WindowBox code :
@@ -985,4 +1006,78 @@ WriteAutoExecOptions (const char *filename, char *myname,  AutoExecConfig * conf
     }
 	return 0;
 }
+
+/********************************************************************************/
+/*   Theme file  :                                                              */
+/********************************************************************************/
+void
+DestroyThemeConfig (ThemeConfig * config)
+{
+    if( config->install )
+        really_destroy_complex_func( config->install );
+    if( config->apply )
+        really_destroy_complex_func( config->apply );
+
+    DestroyFreeStorage (&(config->more_stuff));
+    free (config);
+}
+
+ThemeConfig *
+ParseThemeFile (const char *filename, char *myname)
+{
+	ThemeConfig *config ;
+    ConfigDef *ConfigReader =
+        InitConfigReader (myname, &ThemeSyntax, CDT_Filename, (void *) filename, NULL);
+    FreeStorageElem *Storage = NULL, *pCurr;
+    ConfigItem item;
+
+	LOCAL_DEBUG_OUT( "ConfigReader is %p", ConfigReader );
+    if (!ConfigReader)
+        return NULL;
+
+	config = safecalloc( 1, sizeof(ThemeConfig ) );
+
+	PrintConfigReader (ConfigReader);
+	ParseConfig (ConfigReader, &Storage);
+	PrintFreeStorage (Storage);
+
+	LOCAL_DEBUG_OUT( "Storage is %p", Storage );
+	LOCAL_DEBUG_OUT( "Storage->sub is %p", Storage->sub );
+	/* getting rid of all the crap first */
+    StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
+
+	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
+  	{
+  	    if (pCurr->term == NULL)
+			continue;
+        if (!ReadConfigItem (&item, pCurr))
+			continue;
+
+        switch (pCurr->term->id)
+		{
+            case FEEL_Function_ID           :
+                if( mystrncasecmp( item.data.string, "InstallTheme", 12 ) == 0 )
+                {
+                    if( config->install )
+                        really_destroy_complex_func( config->install );
+                     config->install = FreeStorage2ComplexFunction( pCurr, &item, NULL );
+                }else if( mystrncasecmp( item.data.string, "ApplyTheme", 10 ) == 0 )
+                {
+                    if( config->apply )
+                        really_destroy_complex_func( config->apply );
+                    config->apply = FreeStorage2ComplexFunction( pCurr, &item, NULL );
+                }
+                break ;
+          default:
+				item.ok_to_free = 1;
+		}
+    }
+	ReadConfigItem (&item, NULL);
+
+	DestroyConfig (ConfigReader);
+	DestroyFreeStorage (&Storage);
+
+	return config;
+}
+
 

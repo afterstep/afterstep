@@ -1438,7 +1438,7 @@ assign_themable_path (char *text, FILE * fd, char **arg, int *junk)
 {
     char         *tmp = stripcpy (text);
 	int           tmp_len;
-    char         *as_theme_data = make_session_dir(Session, THEME_DATA_DIR, False);
+    char         *as_theme_data = NULL ; /*make_session_dir(Session, ICON_DIR, False); */
 
 	replaceEnvVar (&tmp);
     if( as_theme_data )

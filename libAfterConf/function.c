@@ -357,31 +357,3 @@ complex_function_parse (char *tline, FILE * fd, char *list, int *count)
 	DestroyConfig (ConfigReader);
 	DestroyFreeStorage (&Storage);
 }
-
-ComplexFunction *
-ParseComplexFunctionFile (const char *filename, char *myname)
-{
-    ConfigDef *ConfigReader =
-        InitConfigReader (myname, &FuncSyntax, CDT_Filename, (void *) filename, NULL);
-    FreeStorageElem *Storage = NULL, *more_stuff = NULL;
-	ComplexFunction *new_func = NULL ;
-
-    if (!ConfigReader)
-        return NULL;
-
-	PrintConfigReader (ConfigReader);
-	ParseConfig (ConfigReader, &Storage);
-	PrintFreeStorage (Storage);
-
-	/* getting rid of all the crap first */
-    StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
-    DestroyFreeStorage (&more_stuff);
-
-    new_func = FreeStorage2ComplexFunction( Storage, NULL, NULL );
-
-	DestroyConfig (ConfigReader);
-	DestroyFreeStorage (&Storage);
-
-	return new_func;
-}
-

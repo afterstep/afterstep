@@ -1,6 +1,6 @@
 #AfterStep theme
 
-Function "InstallTheme"
+Function "ApplyTheme"
 	ChangeFeel feel.DEFAULT
 	ChangeLook look.DEFAULT
 	Background Default

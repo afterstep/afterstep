@@ -58,7 +58,7 @@ char     *as_theme_file_dir_name = THEME_FILE_DIR ;
 char     *as_feel_dir_name = FEEL_DIR ;
 char     *as_font_dir_name = FONT_DIR ;
 char     *as_icon_dir_name = ICON_DIR ;
-char     *as_tile_dir_name = TILES_DIR ;
+char     *as_tile_dir_name = TILE_DIR ;
 
 
 int       fd_width;

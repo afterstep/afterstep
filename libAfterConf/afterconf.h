@@ -1366,8 +1366,6 @@ typedef struct FeelConfig
 }FeelConfig;
 
 void complex_function_parse (char *tline, FILE * fd, char *list, int *count);
-ComplexFunction *ParseComplexFunctionFile (const char *filename, char *myname);
-
 
 FeelConfig *CreateFeelConfig ();
 void DestroyFeelConfig (FeelConfig * config);
@@ -1390,11 +1388,24 @@ typedef struct AutoExecConfig
 
 }AutoExecConfig;
 
+typedef struct ThemeConfig
+{
+    ComplexFunction *install ;
+    ComplexFunction *apply ;
+
+    FreeStorageElem *more_stuff ;
+
+}ThemeConfig;
+
+
+
 AutoExecConfig *CreateAutoExecConfig ();
 void    DestroyAutoExecConfig (AutoExecConfig * config);
 AutoExecConfig *ParseAutoExecOptions (const char *filename, char *myname);
 int WriteAutoExecOptions (const char *filename, char *myname,  AutoExecConfig * config, unsigned long flags);
 
+void DestroyThemeConfig (ThemeConfig * config);
+ThemeConfig *ParseThemeFile (const char *filename, char *myname);
 /***************************************************************************/
 
 
