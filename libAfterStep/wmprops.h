@@ -142,7 +142,7 @@ typedef struct ASWMProps
     /* ASModule : */
     char          *as_socket_filename;
     /* ASVirtualRoot : */
-    Window         as_virtual_root ;
+    CARD32         as_virtual_root ;
     /* ASDesks : */
     CARD32  as_desk_num ;
     INT32           as_current_desk ;

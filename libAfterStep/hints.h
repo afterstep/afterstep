@@ -153,7 +153,7 @@ typedef struct ASHints
   Window group_lead ;
   Window transient_for;
 
-  Window *cmap_windows ; /* terminated with None value (zero)*/
+  CARD32 *cmap_windows ; /* terminated with None value (zero)*/
 
   int pid ;
 
@@ -241,7 +241,7 @@ void merge_asdb_hints (ASHints * clean, struct ASRawHints * raw, struct ASDataba
  */
 /* returns True if protocol/function hints actually changed :*/
 Bool update_protocols( struct ScreenInfo *scr, Window w, ASSupportedHints *list, ASFlagType *pprots, ASFlagType *pfuncs );
-Bool update_colormaps( struct ScreenInfo *scr, Window w, ASSupportedHints *list, Window **pcmap_windows );
+Bool update_colormaps( struct ScreenInfo *scr, Window w, ASSupportedHints *list, CARD32 **pcmap_windows );
 Bool update_property_hints( Window w, Atom property, ASHints *hints, ASStatusHints *status );
 Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *list,
                                     ASHints *hints, ASStatusHints *status );

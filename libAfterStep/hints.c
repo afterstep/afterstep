@@ -345,7 +345,7 @@ update_colormaps (ScreenInfo * scr, Window w, ASSupportedHints * list, CARD32 **
 	ASRawHints    raw;
 	ASHints       clean;
 	Bool          changed = False;
-	register Window *old_win, *new_win;
+	register CARD32 *old_win, *new_win;
 
 
 	if (w == None || pcmap_windows == NULL)
@@ -597,7 +597,7 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 
 			if (clean->cmap_windows)
 				free (clean->cmap_windows);
-			clean->cmap_windows = (Window *) safecalloc (raw->wm_cmap_win_count + 1, sizeof (Window));
+			clean->cmap_windows = safecalloc (raw->wm_cmap_win_count + 1, sizeof (CARD32));
 			for (i = 0; i < raw->wm_cmap_win_count; i++)
 				clean->cmap_windows[i] = raw->wm_cmap_windows[i];
 			clean->cmap_windows[i] = None;
