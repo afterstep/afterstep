@@ -23,11 +23,59 @@ typedef struct xml_elem_t {
 #define ASIM_XML_ENABLE_SAVE 	(0x01<<0)
 #define ASIM_XML_ENABLE_SHOW 	(0x01<<1)
 
+enum
+{
+	ASXML_Start 			= 0,			               
+	ASXML_TagOpen 			= 1,
+	ASXML_TagName 			= 2,
+	ASXML_TagAttrOrClose 	= 3,
+	ASXML_AttrName 			= 4,
+	ASXML_AttrEq 			= 5,
+	ASXML_AttrValueStart 	= 6,
+	ASXML_AttrValue 		= 7
+} ASXML_ParserState;
+
+enum
+{
+	ASXML_BadStart = -1,
+	ASXML_BadTagName = -2,
+	ASXML_UnexpectedSlash = -3,
+	ASXML_UnmatchedClose = -4,
+	ASXML_BadAttrName = -5,
+	ASXML_MissingAttrEq = -6
+} ASXML_ParserError;
+
+
+typedef struct 
+{
+	char *buffer ;
+	int allocated, used ;
+
+	int state ; 
+	int level ;
+	Bool verbatim;
+	Bool quoted;
+	
+	enum
+	{
+		ASXML_OpeningTag = 0,
+		ASXML_SimpleTag,
+		ASXML_ClosingTag,
+	}tag_type ;
+
+	int tags_count ;
+}ASXmlBuffer;
+
+
+
+
 struct ASImageManager ;
 struct ASFontManager ;
 
 void set_xml_image_manager( struct ASImageManager *imman );
 void set_xml_font_manager( struct ASFontManager *fontman );
+struct ASImageManager *create_generic_imageman(const char *path);		   
+struct ASFontManager *create_generic_fontman(Display *dpy, const char *path);
 
 void asxml_var_insert(const char* name, int value);
 void asxml_var_init(void);
@@ -61,6 +109,11 @@ Bool save_asimage_to_file(const char* file2bsaved, ASImage *im,
 						  const char *compress,
 						  const char *opacity,
 			  			  int delay, int replace);
+
+void reset_xml_buffer( ASXmlBuffer *xb );
+inline void add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len );
+int spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len );
+
 
 #ifdef __cplusplus
 }

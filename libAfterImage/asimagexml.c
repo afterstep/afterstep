@@ -179,6 +179,46 @@ asxml_var_nget(char* name, int n) {
       return value;
 }
 
+ASImageManager *create_generic_imageman(const char *path)		
+{
+	ASImageManager *my_imman = NULL ;
+	char *path2 = copy_replace_envvar( getenv( ASIMAGE_PATH_ENVVAR ) );
+	show_progress("image path is \"%s\".", path2 );
+	if( path != NULL )
+		my_imman = create_image_manager( NULL, SCREEN_GAMMA, path, path2, NULL );
+	else
+		my_imman = create_image_manager( NULL, SCREEN_GAMMA, path2, NULL );
+	LOCAL_DEBUG_OUT( "created image manager %p with search path \"%s\"", my_imman, my_imman->search_path[0] );
+	if( path2 )
+		free( path2 );
+	return my_imman;
+}
+
+ASFontManager *create_generic_fontman(Display *dpy, const char *path)		   
+{
+	ASFontManager  *my_fontman ;
+	char *path2 = copy_replace_envvar( getenv( ASFONT_PATH_ENVVAR ) );
+	if( path != NULL )
+	{
+		if( path2 != NULL )
+		{
+			int path_len = strlen(path);
+			char *full_path = safemalloc( path_len+1+strlen(path2)+1);
+			strcpy( full_path, path );
+			full_path[path_len] = ':';
+			strcpy( &(full_path[path_len+1]), path2 );
+			free( path2 );
+			path2 = full_path ;
+		}else
+			path2 = (char*)path ;
+	}
+	my_fontman = create_font_manager( dpy, path2, NULL );
+	if( path2 && path2 != path )
+		free( path2 );
+
+	return my_fontman;
+}
+
 ASImage *
 compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path)
 {
@@ -187,65 +227,33 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 	ASImageManager *my_imman = imman, *old_as_xml_imman = _as_xml_image_manager ;
 	ASFontManager  *my_fontman = fontman, *old_as_xml_fontman = _as_xml_font_manager ; ;
 
-
-      asxml_var_init();
+    asxml_var_init();
 
 	doc = xml_parse_doc(doc_str);
-	if (verbose > 1) {
+	if (verbose > 1) 
+	{
 		xml_print(doc);
 		fprintf(stderr, "\n");
 	}
 
 	/* Build the image(s) from the xml document structure. */
-
 	if (doc)
 	{
 		xml_elem_t* ptr;
-		char *path2 ;
 		if( my_imman == NULL )
+		{	
+			if( _as_xml_image_manager == NULL )
+				_as_xml_image_manager = create_generic_imageman( path );/* we'll want to reuse it in case of recursion */
 			my_imman = _as_xml_image_manager ;
-
-		if( my_imman == NULL )
-		{
-			path2 = copy_replace_envvar( getenv( ASIMAGE_PATH_ENVVAR ) );
-			show_progress("image path is \"%s\".", path2 );
-			if( path != NULL )
-				my_imman = create_image_manager( NULL, SCREEN_GAMMA, path, path2, NULL );
-			else
-				my_imman = create_image_manager( NULL, SCREEN_GAMMA, path2, NULL );
-			LOCAL_DEBUG_OUT( "created image manager %p with search path \"%s\"", my_imman, my_imman->search_path[0] );
-			if( path2 )
-				free( path2 );
-			/* we'll want to reuse it in case of recursion */
-			_as_xml_image_manager = my_imman;
 		}
 
 		if( my_fontman == NULL )
+		{
+			if( _as_xml_font_manager == NULL )
+				_as_xml_font_manager = create_generic_fontman( asv->dpy, path );
 			my_fontman = _as_xml_font_manager ;
-
-		if( my_fontman == NULL )
-		{
-			path2 = copy_replace_envvar( getenv( ASFONT_PATH_ENVVAR ) );
-			if( path != NULL )
-			{
-				if( path2 != NULL )
-				{
-					int path_len = strlen(path);
-					char *full_path = safemalloc( path_len+1+strlen(path2)+1);
-					strcpy( full_path, path );
-					full_path[path_len] = ':';
-					strcpy( &(full_path[path_len+1]), path2 );
-					free( path2 );
-					path2 = full_path ;
-				}else
-					path2 = (char*)path ;
-			}
-			my_fontman = create_font_manager( asv->dpy, path2, NULL );
-			/* we'll want to reuse it in case of recursion */
-			_as_xml_font_manager = my_fontman ;
-			if( path2 && path2 != path )
-				free( path2 );
 		}
+		
 		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
 			ASImage* tmpim = build_image_from_xml(asv, my_imman, my_fontman, ptr, NULL, flags, verbose, display_win);
 			if (tmpim && im) safe_asimage_destroy(im);
@@ -254,7 +262,7 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.8X", im, im?im->imageman:NULL, my_imman, im?im->magic:0 );
 
 		if( my_imman != imman && my_imman != old_as_xml_imman )
-		{
+		{/* detach created image from imman to be destroyed : */
 			if( im && im->imageman == my_imman )
 				forget_asimage( im );
 			destroy_image_manager(my_imman, False);
@@ -264,14 +272,11 @@ LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.
 		/* must restore managers to its original state */
 		_as_xml_image_manager = old_as_xml_imman   ;
 		_as_xml_font_manager =  old_as_xml_fontman ;
+		
+		/* Delete the xml. */
+		xml_elem_delete(NULL, doc);
 	}
-
-	/* Delete the xml. */
-	if (doc) xml_elem_delete(NULL, doc);
-
-      asxml_var_init();
-
-LOCAL_DEBUG_OUT( "returning im = %p, im->imman	= %p, im->magic = %8.8X", im, im?im->imageman:NULL, im?im->magic:0 );
+	LOCAL_DEBUG_OUT( "returning im = %p, im->imman	= %p, im->magic = %8.8X", im, im?im->imageman:NULL, im?im->magic:0 );
 	return im;
 }
 
@@ -2172,7 +2177,8 @@ int xml_parse(const char* str, xml_elem_t* current) {
 		if (*oab != '<') return oab - str;
 
 		/* Does this look like a close tag? */
-		if (oab[1] == '/') {
+		if (oab[1] == '/') 
+		{
 			const char* etag;
 			/* Find the end of the tag. */
 			for (etag = oab + 2 ; xml_tagchar((int)*etag) ; etag++);
@@ -2180,9 +2186,12 @@ int xml_parse(const char* str, xml_elem_t* current) {
 			while (isspace((int)*etag)) ++etag;
 			/* If this is an end tag, and the tag matches the tag we're parsing, */
 			/* we're done.  If not, continue on blindly. */
-			if (*etag == '>') {
-				if (!strncasecmp(oab + 2, current->tag, etag - (oab + 2))) {
-					if (oab - ptr) {
+			if (*etag == '>') 
+			{
+				if (!strncasecmp(oab + 2, current->tag, etag - (oab + 2))) 
+				{
+					if (oab - ptr) 
+					{
 						xml_elem_t* child = xml_elem_new();
 						child->tag = cdata_str;
 						child->parm = mystrndup(ptr, oab - ptr);
@@ -2319,9 +2328,9 @@ char *interpret_ctrl_codes( char *text )
 			char subst = '\0' ;
 			switch( ptr[curr+1] ) 
 			{
-				case '\\' : subst = '\\';   break ;	
+				case '\\': subst = '\\' ;  break ;	
 				case 'a' : subst = '\a' ;  break ;	 
-				case 'b' : subst = '\b' ; break ;	 
+				case 'b' : subst = '\b' ;  break ;	 
 				case 'e' : subst = '\e' ;  break ;	 
 				case 'f' : subst = '\f' ;  break ;	 
 				case 'n' : subst = '\n' ;  break ;	 
@@ -2342,4 +2351,224 @@ char *interpret_ctrl_codes( char *text )
 	}	 
 	return text;
 }	 
+
+void reset_xml_buffer( ASXmlBuffer *xb )
+{
+	if( xb ) 
+	{
+		xb->used = 0 ; 
+		xb->state = ASXML_Start	 ;
+		xb->level = 0 ;
+		xb->verbatim = False ;
+		xb->quoted = False ;
+		xb->tag_type = ASXML_OpeningTag ;
+		xb->tags_count = 0 ;
+	}		  
+}	 
+
+
+inline void 
+add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len )
+{
+	if( xb->used + len > xb->allocated ) 
+	{	
+		xb->allocated = xb->used + (((len>>11)+1)<<11) ;	  
+		xb->buffer = realloc( xb->buffer, xb->allocated );
+	}
+	memcpy( &(xb->buffer[xb->used]), tmp, len );
+	xb->used += len ;
+}
+
+int 
+spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len )
+{
+	register int i = 0 ; 
+	
+	if( !xb->verbatim && !xb->quoted && 
+		(xb->state != ASXML_Start || xb->level == 0 )) 
+	{	/* skip spaces if we are not in string */
+		while( i < len && isspace( (int)tmp[i] )) ++i;
+		if( i >= len ) 
+			return i;
+	}
+	if( xb->state == ASXML_Start ) 
+	{     /* we are looking for the opening '<' */
+		if( tmp[i] != '<' ) 
+		{
+			if( xb->level == 0 ) 	  
+				xb->state = ASXML_BadStart ; 
+			else
+			{
+				int start = i ; 
+				while( i < len && tmp[i] != '<' ) ++i ;	  
+				add_xml_buffer_chars( xb, &tmp[start], i - start );
+				return i;
+			}
+		}else
+		{	
+			xb->state = ASXML_TagOpen; 	
+			xb->tag_type = ASXML_OpeningTag ;
+			add_xml_buffer_chars( xb, "<", 1 );
+			if( ++i >= len ) 
+				return i;
+		}
+	}
+	
+	if( xb->state == ASXML_TagOpen ) 
+	{     /* we are looking for the beginning of tag name  or closing tag's slash */
+		if( tmp[i] == '/' ) 
+		{
+			xb->state = ASXML_TagName; 
+			xb->verbatim = True ; 		   
+			xb->tag_type = ASXML_ClosingTag ;
+			add_xml_buffer_chars( xb, "/", 1 );
+			if( ++i >= len ) 
+				return i;
+		}else if( isalnum((int)tmp[i]) )	
+		{	 
+			xb->state = ASXML_TagName; 		   
+			xb->verbatim = True ; 		   
+		}else
+			xb->state = ASXML_BadTagName ;
+	}
+
+	if( xb->state == ASXML_TagName ) 
+	{     /* we are looking for the tag name */
+		int start = i ;
+		/* need to store attribute name in form : ' attr_name' */
+		while( i < len && isalnum((int)tmp[i]) ) ++i ;
+		if( i > start ) 
+			add_xml_buffer_chars( xb, &tmp[start], i - start );
+		if( i < len ) 
+		{	
+			if( isspace( (int)tmp[i] ) || tmp[i] == '>' ) 
+			{
+				xb->state = ASXML_TagAttrOrClose;
+				xb->verbatim = False ; 
+			}else
+				xb->state = ASXML_BadTagName ;
+		}			 
+		return i;
+	}
+
+	if( xb->state == ASXML_TagAttrOrClose ) 
+	{   /* we are looking for the atteribute or closing '/>' or '>' */
+		Bool has_slash = (xb->tag_type != ASXML_OpeningTag);
+
+		if( !has_slash && tmp[i] == '/' )
+		{	
+			xb->tag_type = ASXML_SimpleTag ;
+			add_xml_buffer_chars( xb, "/", 1 );		 			  
+			++i ;
+			has_slash = True ;
+		}
+		if( i < len ) 
+		{	
+			if( has_slash && tmp[i] != '>') 
+				xb->state = ASXML_UnexpectedSlash ;	  
+			else if( tmp[i] == '>' ) 
+			{
+				++(xb->tags_count);
+				xb->state = ASXML_Start; 	
+	 			add_xml_buffer_chars( xb, ">", 1 );		 			  
+				++i ;
+				if( xb->tag_type == ASXML_OpeningTag )
+					++(xb->level);
+				else if( xb->tag_type == ASXML_ClosingTag )					
+				{
+					if( xb->level <= 0 )
+					{
+				 		xb->state = ASXML_UnmatchedClose;
+						return i;		   
+					}else
+						--(xb->level);			
+				}		 			   
+			}else if( !isalnum( (int)tmp[i] ) )	  
+				xb->state = ASXML_BadAttrName ;
+			else
+			{	
+				xb->state = ASXML_AttrName;		 
+				xb->verbatim = True ;
+				add_xml_buffer_chars( xb, " ", 1);
+			}
+		}
+		return i;
+	}
+
+	if( xb->state == ASXML_AttrName ) 
+	{	
+		int start = i ;
+		/* need to store attribute name in form : ' attr_name' */
+		while( i < len && isalnum((int)tmp[i]) ) ++i ;
+		if( i > start ) 
+			add_xml_buffer_chars( xb, &tmp[start], i - start );
+		if( i < len ) 
+		{	
+			if( isspace( (int)tmp[i] ) || tmp[i] == '=' ) 
+			{
+				xb->state = ASXML_AttrEq;
+				xb->verbatim = False ; 
+				/* should fall down to case below */
+			}else
+				xb->state = ASXML_BadAttrName ;
+		}
+	 	return i;				 
+	}	
+
+	if( xb->state == ASXML_AttrEq )                   /* looking for '=' */
+	{
+		if( tmp[i] == '=' ) 
+		{
+			xb->state = ASXML_AttrValueStart;				
+			add_xml_buffer_chars( xb, "=", 1 );		 			  
+			++i ;
+		}else	 
+			xb->state = ASXML_MissingAttrEq ;
+		return i;
+	}	
+	
+	if( xb->state == ASXML_AttrValueStart )/*looking for attribute value:*/
+	{
+		xb->state = ASXML_AttrValue ;
+		if( tmp[i] == '"' )
+		{
+			xb->quoted = True ; 
+			add_xml_buffer_chars( xb, "\"", 1 );
+			++i ;
+		}else	 
+			xb->verbatim = True ; 
+		return i;
+	}	  
+	
+	if( xb->state == ASXML_AttrValue )  /* looking for attribute value : */
+	{
+		if( !xb->quoted && isspace((int)tmp[i]) ) 
+		{
+			add_xml_buffer_chars( xb, " ", 1 );
+			++i ;
+			xb->verbatim = False ; 
+			xb->state = ASXML_TagAttrOrClose ;
+		}else if( xb->quoted && tmp[i] == '"' ) 
+		{
+			add_xml_buffer_chars( xb, "\"", 1 );
+			++i ;
+			xb->quoted = False ; 
+			xb->state = ASXML_TagAttrOrClose ;
+		}else if( tmp[i] == '/' || tmp[i] == '>' )
+		{
+			xb->quoted = False ; 
+			xb->verbatim = False ; 
+			xb->state = ASXML_TagAttrOrClose ;				
+		}	 
+		else			
+		{
+			add_xml_buffer_chars( xb, &tmp[i], 1 );
+			++i ;
+		}
+		return i;
+	}	  
+	
+	return (i==0)?1:i;
+}	   
+
 

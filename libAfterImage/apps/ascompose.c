@@ -21,6 +21,8 @@
 
 #include "config.h"
 
+#undef LOCAL_DEBUG
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -184,6 +186,9 @@ static char* default_doc_str = "\
 <printf format=\"original image size in pixels=%d\n\" val=$rose.width*$rose.height/>\
 ";
 /*******/
+/* <printf format="original image height=%d\n" var="rose.height"/>
+	<printf format="original image size in pixels=%d\n" val=$rose.width*$rose.height/>
+ */ 
 	
 char *load_stdin();	
 
@@ -196,6 +201,7 @@ int main(int argc, char** argv) {
     char *doc_compress = NULL ;
 	int i;
 	int display = 1, onroot = 0;
+	Bool interactive = False;
 
 	/* see ASView.1 : */
 	set_application_name(argv[0]);
@@ -212,6 +218,11 @@ int main(int argc, char** argv) {
 		} else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
 			version();
 			exit(0);
+		} else if (!strcmp(argv[i], "--quiet") || !strcmp(argv[i], "-q")) {
+#if (HAVE_AFTERBASE_FLAG==1)
+			set_output_threshold(0);
+#endif
+			verbose = 0;
 		} else if (!strcmp(argv[i], "--verbose") || !strcmp(argv[i], "-V")) {
 #if (HAVE_AFTERBASE_FLAG==1)
 			set_output_threshold(OUTPUT_VERBOSE_THRESHOLD);
@@ -245,6 +256,8 @@ int main(int argc, char** argv) {
 			doc_save_type = argv[++i];
         } else if ((!strcmp(argv[i], "--compress") || !strcmp(argv[i], "-c")) && i < argc + 1) {
             doc_compress = argv[++i];
+		} else if (!strcmp(argv[i], "--interactive") || !strcmp(argv[i], "-I")) {
+            interactive = True;
 		}
 #ifndef X_DISPLAY_MISSING
 		  else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
@@ -261,7 +274,9 @@ int main(int argc, char** argv) {
 #ifndef X_DISPLAY_MISSING
     if( display )
     {
+		LOCAL_DEBUG_OUT( "Opening display ...%s", "");
         dpy = XOpenDisplay(NULL);
+		LOCAL_DEBUG_OUT( "Done: %p", dpy);
 		if( dpy )
 		{	
         	_XA_WM_DELETE_WINDOW = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
@@ -273,47 +288,131 @@ int main(int argc, char** argv) {
 	if( dpy == NULL && doc_file == NULL && doc_str == default_doc_str )
 		doc_file = strdup("-");
 
-	/* Load the document from file, if one was given. */
-	if (doc_file) {
-		if( strcmp( doc_file, "-") == 0 ) 
-			doc_str = load_stdin();
-		else
-			doc_str = load_file(doc_file);
-		if (!doc_str) {
-			fprintf(stderr, "Unable to load file [%s]: %s.\n", doc_file, strerror(errno));
-			exit(1);
-		}
-	}
-
-
-	asv = create_asvisual(dpy, screen, depth, NULL);
-
-	im = compose_asimage_xml(asv, NULL, NULL, doc_str, ASFLAGS_EVERYTHING, verbose, None, NULL);
-
-	if (doc_file && doc_str && doc_str != default_doc_str) free(doc_str);
-
 	/* Automagically determine the output type, if none was given. */
 	if (doc_save && !doc_save_type) {
 		doc_save_type = strrchr(doc_save, '.');
 		if (doc_save_type) doc_save_type++;
 	}
 
-	/* Save the result image if desired. */
-	if (doc_save && doc_save_type) {
-        if(!save_asimage_to_file(doc_save, im, doc_save_type, doc_compress, NULL, 0, 1)) {
-			show_error("Save failed.");
-		} else {
-			show_progress("Save successful.");
+	LOCAL_DEBUG_OUT( "Creating visual ...%s", "");
+	asv = create_asvisual(dpy, screen, depth, NULL);
+	LOCAL_DEBUG_OUT( "Done: %p", asv);
+
+	/* Load the document from file, if one was given. */
+	if( !interactive ) 
+	{	   
+		if (doc_file) {
+			if( strcmp( doc_file, "-") == 0 ) 
+				doc_str = load_stdin();
+			else
+				doc_str = load_file(doc_file);
+			if (!doc_str) 
+			{
+				show_error("Unable to load file [%s]: %s.\n", doc_file, strerror(errno));
+				exit(1);
+			}
 		}
-	}
+		
+		im = compose_asimage_xml(asv, NULL, NULL, doc_str, ASFLAGS_EVERYTHING, verbose, None, NULL);
+		/* Save the result image if desired. */
+		if (doc_save && doc_save_type) 
+		{
+        	if(!save_asimage_to_file(doc_save, im, doc_save_type, doc_compress, NULL, 0, 1)) 
+				show_error("Save failed.");
+			else
+				show_progress("Save successful.");
+		}
+		/* Display the image if desired. */
+		if (display && dpy) 
+			showimage(im, onroot);
+		/* Done with the image, finally. */
+		if( im ) 
+			destroy_asimage(&im);
+	}else
+	{
+		FILE *fp = stdin ;
+		int doc_str_len = 0;
+		if (doc_file && strcmp( doc_file, "-") != 0 ) 
+			fp = fopen( doc_file, "rt" );
+		if( doc_str ) 
+			doc_str_len = strlen( doc_str );
+				   
+		if( fp != NULL || doc_str_len > 0 )
+		{
+			ASImageManager *my_imman = create_generic_imageman(NULL);
+			ASFontManager  *my_fontman = create_generic_fontman(asv->dpy, NULL);
+			int char_count = 0 ;
+			ASXmlBuffer xb ; 
+			memset( &xb, 0x00, sizeof(xb));
+	 
+			do
+			{
+				reset_xml_buffer( &xb );
+				if( fp ) 	  
+				{
+					int c ;
+					show_progress("Please enter your xml text :" );
+					while( (c = fgetc(fp)) != EOF ) 
+					{
+						char cc = c; 
+						while( xb.state >= 0 && spool_xml_tag( &xb, &cc, 1 ) <= 0)
+						{	
+							LOCAL_DEBUG_OUT("[%c] : state=%d, tags_count=%d, level = %d, tag_type = %d", 
+								             cc, xb.state, xb.tags_count, xb.level, xb.tag_type );
+						}
+						LOCAL_DEBUG_OUT("[%c] : state=%d, tags_count=%d, level = %d, tag_type = %d", 
+								        cc, xb.state, xb.tags_count, xb.level, xb.tag_type );
 
-	/* Display the image if desired. */
-	if (display && dpy) {
-		showimage(im, onroot);
-	}
+						++char_count ;
+						if( ( xb.state == ASXML_Start || xb.state < 0 ) && 
+							xb.tags_count > 0 && xb.level == 0 ) 
+							break;
+					}		   
+				}else
+				{
+					while( char_count < doc_str_len ) 
+					{
+						char_count += spool_xml_tag( &xb, &doc_str[char_count], doc_str_len - char_count );							   
+						if( ( xb.state == ASXML_Start || xb.state < 0 ) && 
+							xb.tags_count > 0 && xb.level == 0 ) 
+							break;
+					}												   
+				}		 
+				if( xb.state == ASXML_Start && xb.tags_count > 0 && xb.level == 0 ) 
+				{
+					add_xml_buffer_chars( &xb, "", 1 );
+					LOCAL_DEBUG_OUT("buffer: [%s]", xb.buffer );
+	 				im = compose_asimage_xml(asv, my_imman, my_fontman, xb.buffer, ASFLAGS_EVERYTHING, verbose, None, NULL);					
+					if( im ) 
+					{
+						/* Save the result image if desired. */
+						if (doc_save && doc_save_type) 
+						{
+        					if(!save_asimage_to_file(doc_save, im, doc_save_type, doc_compress, NULL, 0, 1)) 
+								show_error("Save failed.");
+							else
+								show_progress("Save successful.");
+						}
+						/* Display the image if desired. */
+						if (display && dpy) 
+							showimage(im, onroot);
+						safe_asimage_destroy(im);
+						im = NULL ;
+					}					
+				}else
+					break;
+			}while(1);
+			if( xb.buffer )
+				free( xb.buffer );
+			destroy_image_manager(my_imman, False);
+			destroy_font_manager(my_fontman, False);
+		}
+		if( fp && fp != stdin ) 
+			fclose( fp );
+	}	 
 
-	/* Done with the image, finally. */
-	destroy_asimage(&im);
+	if (doc_file && doc_str && doc_str != default_doc_str) free(doc_str);
+
 
 #ifdef DEBUG_ALLOCS
 	print_unfreed_mem();
