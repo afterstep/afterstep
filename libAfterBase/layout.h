@@ -67,14 +67,14 @@ typedef struct ASLayout
     unsigned int width, height ;
     unsigned short h_border, v_border, h_spacing, v_spacing ;
 
-#define ASLAYOUT_MAX_SIZE       64             /* 64x64 seems like a huge grid, */
-                                               /* should be ample for anything  */
+#define ASLAYOUT_MAX_SIZE       64       /* 64x64 seems like a huge grid, */
+                                         /* should be ample for anything  */
     unsigned short dim_x, dim_y, count ;
 
-    ASLayoutElem **rows, **cols;                /* 2 dimentional array of pointers */
-
-    ASLayoutElem *disabled ;                    /* elements that has been temporarily
-                                                 * taken out of the circulation */
+    ASLayoutElem **rows, **cols;         /* 2 dimentional array of pointers */
+	ASLayoutElem *disabled ;             /* elements that has been
+										  * temporarily taken out of
+										  * the circulation */
 }ASLayout;
 
 
@@ -107,6 +107,10 @@ Bool set_layout_offsets( ASLayout *layout,
 void get_layout_fixed_size( ASLayout *layout,
 	                        CARD32 *fixed_width,
 	                        CARD32 *fixed_height );
+Bool get_layout_context_fixed_frame( ASLayout *layout,
+									 int context,
+									 int *north, int *east,
+									 int *south, int *west );
 Bool get_layout_context_size( ASLayout *layout, int context,
 	                          int *x, int *y,
 							  unsigned int *width, unsigned int *height );

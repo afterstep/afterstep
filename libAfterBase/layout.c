@@ -397,66 +397,148 @@ set_layout_offsets( ASLayout *layout, int east, int north, int west, int south )
 
 /**********************************************************************/
 /* fixed size handling :                                              */
+static unsigned int
+get_layout_fixed_width( ASLayout *layout, unsigned int start_col, unsigned int end_col )
+{
+    register int i ;
+	unsigned int width = 0 ;
+
+    for( i = start_col ; i < end_col ; ++i )
+    {
+        register ASLayoutElem *pelem = layout->cols[i];
+        register int fw = 0 ;
+        while ( pelem )
+        {
+            if( get_flags( pelem->flags, LF_FixedWidth ) )
+			{
+                LOCAL_DEBUG_OUT( " layout %lX found item with fixed width %d at %dx%d",
+                                    (unsigned long)layout, pelem->fixed_width, pelem->row, pelem->column );
+                if( pelem->fixed_width+pelem->bw > fw )
+                    fw = pelem->fixed_width+pelem->bw ;
+            }
+			pelem = pelem->below ;
+        }
+        if( fw > 0 )
+            width += fw+layout->v_spacing ;
+    }
+    if( width > 0 )
+        width -= (int)layout->v_spacing ;
+	return width ;
+}
+
+static unsigned int
+get_layout_fixed_height( ASLayout *layout, unsigned int start_row, unsigned int end_row )
+{
+    register int i ;
+	unsigned int height = 0 ;
+
+    for( i = start_row ; i < end_row ; i++ )
+    {
+        register ASLayoutElem *pelem = layout->rows[i];
+        register int fh = 0 ;
+        while ( pelem )
+        {
+            if( get_flags( pelem->flags, LF_FixedHeight ) )
+			{
+LOCAL_DEBUG_OUT( " layout %lX found item with fixed height %d at %dx%d", (unsigned long)layout, pelem->fixed_height, pelem->row, pelem->column );
+                if( pelem->fixed_height+pelem->bw > fh )
+                    fh = pelem->fixed_height+pelem->bw ;
+			}
+            pelem = pelem->right ;
+        }
+        if( fh > 0 )
+            height += fh+layout->h_spacing ;
+    }
+    if( height >0 )
+        height -= layout->h_spacing ;
+	return height;
+}
+
 void
 get_layout_fixed_size( ASLayout *layout, CARD32 *fixed_width, CARD32 *fixed_height )
 {
-    int width = 0, height = 0 ;
+    int width = 0, height = 0;
     if( layout && layout->count > 0 )
     {
-        register int i ;
         if( fixed_width )
         {
-            width = layout->v_border ;
-            for( i = 0 ; i < layout->dim_x ; i++ )
-            {
-                register ASLayoutElem *pelem = layout->cols[i];
-                register int fw = 0 ;
-                while ( pelem )
-                {
-                    if( get_flags( pelem->flags, LF_FixedWidth ) )
-					{
-                        LOCAL_DEBUG_OUT( " layout %lX found item with fixed width %d at %dx%d",
-                                         (unsigned long)layout, pelem->fixed_width, pelem->row, pelem->column );
-                        if( pelem->fixed_width+pelem->bw > fw )
-                            fw = pelem->fixed_width+pelem->bw ;
-                    }
-					pelem = pelem->below ;
-                }
-                if( fw > 0 )
-                    width += fw+layout->v_spacing ;
-            }
+			width = get_layout_fixed_width( layout, 0, layout->dim_x );
             if( width > 0 )
-                width += layout->v_border + ((int)layout->v_border - (int)layout->v_spacing)+layout->offset_east+layout->offset_west ;
+                width += layout->v_border + layout->v_border + layout->offset_east + layout->offset_west ;
         }
         if( fixed_height )
         {
-            height = 0 ;
-            for( i = 0 ; i < layout->dim_y ; i++ )
-            {
-                register ASLayoutElem *pelem = layout->rows[i];
-                register int fh = 0 ;
-                while ( pelem )
-                {
-                    if( get_flags( pelem->flags, LF_FixedHeight ) )
-					{
-LOCAL_DEBUG_OUT( " layout %lX found item with fixed height %d at %dx%d", (unsigned long)layout, pelem->fixed_height, pelem->row, pelem->column );
-                        if( pelem->fixed_height+pelem->bw > fh )
-                            fh = pelem->fixed_height+pelem->bw ;
-					}
-                    pelem = pelem->right ;
-                }
-                if( fh > 0 )
-                    height += fh+layout->h_spacing ;
-            }
+            height = get_layout_fixed_height( layout, 0, layout->dim_y );
             if( height >0 )
-                height += layout->h_border +((int)layout->h_border - (int)layout->h_spacing) + (int)layout->offset_north +(int)layout->offset_south ;
+                height += layout->h_border+ layout->h_border + layout->offset_north+ layout->offset_south ;
         }
     }
 LOCAL_DEBUG_OUT( " layout %lX FIXED WIDTH is %d FIXED HEIGHT is %d", (unsigned long)layout, width, height );
     if( fixed_width )
-        *fixed_width = width ;
+        *fixed_width = width < 0 ? 0 : width ;
     if( fixed_height )
-        *fixed_height = height ;
+        *fixed_height = height < 0 ? 0 : height ;
+}
+
+Bool
+get_layout_context_fixed_frame( ASLayout *layout, int context, int *north, int *east, int *south, int *west )
+{
+    int size ;
+    if( layout && layout->count > 0 )
+    {
+        ASLayoutElem **pelem = get_layout_context_ptr( layout, context );
+		if( pelem != NULL )
+		{
+            register ASLayoutElem *elem = *pelem ;
+
+			if( north )
+			{
+				size = 0 ;
+				if( elem->row > 0 )
+				{
+					size = get_layout_fixed_height( layout, 0, elem->row );
+					if( size > 0 )
+						size += layout->h_spacing ;
+				}
+				*north = size+layout->h_border;
+			}
+			if( east )
+			{
+				size = 0 ;
+				if( elem->column+elem->h_span < layout->dim_x )
+				{
+					size = get_layout_fixed_width( layout, elem->column+elem->h_span, layout->dim_x );
+					if( size > 0 )
+						size += layout->v_spacing ;
+				}
+				*east = size+layout->v_border;
+			}
+			if( south )
+			{
+				size = 0 ;
+				if( elem->row+elem->v_span < layout->dim_y )
+				{
+					size = get_layout_fixed_height( layout, elem->row+elem->v_span, layout->dim_y );
+					if( size > 0 )
+						size += layout->h_spacing ;
+				}
+				*south = size+layout->h_border;
+			}
+			if( west )
+			{
+				size = 0 ;
+				if( elem->column > 0 )
+				{
+					size = get_layout_fixed_width( layout, 0, elem->column );
+					if( size > 0 )
+						size += layout->v_spacing ;
+				}
+				*west = size+layout->v_border;
+			}
+			return True;
+		}
+    }
+	return False;
 }
 
 ASFlagType
