@@ -809,7 +809,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p, %d, submenu(%p)", menu, item, menu->items[item].sub
 }
 
 void
-press_menu_item( ASMenu *menu, int pressed )
+press_menu_item( ASMenu *menu, int pressed, Bool keyboard_event )
 {
 LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
 
@@ -828,31 +828,56 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
             pressed = -1 ;
         else
         {
-            if( pressed != menu->selected_item )
+			if( keyboard_event ) 
+			{   /* don't press if keyboard selection */
+				if( pressed != menu->selected_item )
+					select_menu_item( menu, pressed );
+
+			}else if( pressed != menu->selected_item )
             {
                 set_astbar_pressed( menu->items[pressed].bar, NULL, True );/* don't redraw yet */
                 select_menu_item( menu, pressed );  /* this one updates display already */
             }else
                 set_astbar_pressed( menu->items[pressed].bar, menu->main_canvas, True );
             set_menu_item_used( menu, menu->items[pressed].source );
-            run_item_submenu( menu, pressed );
+			
+			if( menu->items[pressed].submenu != NULL ) 
+			{
+				if( keyboard_event ) 
+				{
+					int x = menu->main_canvas->root_x+(int)menu->main_canvas->bw+menu->main_canvas->width-(menu->arrow_space + DEFAULT_MENU_SPACING) ;
+					int y = menu->main_canvas->root_y+(int)menu->main_canvas->bw ;
+					y += menu->items[pressed].bar->win_y + menu->items[pressed].bar->height - 5 ;
+					XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, x, y);
+				}		  
+            	run_item_submenu( menu, pressed );
+			}
         }
     }
     render_asmenu_bars(menu, False);
 LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pressed_item, menu->focused );
-    if( pressed < 0 && menu->pressed_item >= 0 && menu->focused )
-    {
-        ASMenuItem *item = &(menu->items[menu->pressed_item]);
-        if( !get_flags(item->flags, AS_MenuItemDisabled) &&
-            item->fdata->func != F_POPUP )
-        {
-            set_menu_item_used( menu, item->source );
-            ExecuteFunctionForClient( item->fdata, menu->client_window );
-            if( !menu->pinned )
-                close_asmenu( &ASTopmostMenu );
-        }
-    }
-    menu->pressed_item = pressed ;
+    if( menu->focused )
+	{	
+		int item_no = keyboard_event?pressed:menu->pressed_item ;
+    	
+		/* if keyboard event we exec item on press event, and on release event otherwise */ 
+		if( item_no >= 0 && (pressed < 0 || keyboard_event))   
+    	{
+        	ASMenuItem *item = &(menu->items[item_no]);
+        	if( !get_flags(item->flags, AS_MenuItemDisabled) &&
+            	 item->fdata->func != F_POPUP )
+        	{
+            	set_menu_item_used( menu, item->source );
+            	ExecuteFunctionForClient( item->fdata, menu->client_window );
+            	if( !menu->pinned )
+                	close_asmenu( &ASTopmostMenu );
+        	}
+    	}
+	}
+	if( keyboard_event )
+		menu->pressed_item = -1 ;
+	else
+    	menu->pressed_item = pressed ;
 }
 /*************************************************************************/
 /* Menu event handlers  - ASInternalWindow interface :                   */
@@ -956,11 +981,11 @@ LOCAL_DEBUG_OUT( "pointer(%d,%d)", px, py );
                 	pressed = py/menu->item_height ;
 				pressed += menu->top_item ;
                 if( pressed != menu->pressed_item )
-                    press_menu_item( menu, pressed );
+                    press_menu_item( menu, pressed, False );
             }
         }else if( menu->pressed_item >= 0 )
         {
-            press_menu_item(menu, -1 );
+            press_menu_item(menu, -1, False );
         }
     }
 }
@@ -1031,7 +1056,7 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
             if( selection != menu->selected_item )
             {
                 if( xmev->state & ButtonAnyMask )
-                    press_menu_item( menu, selection );
+                    press_menu_item( menu, selection, False );
                 else
                     select_menu_item( menu, selection );
             }
@@ -1053,8 +1078,23 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
     {
 		KeySym keysym = XLookupKeysym (&(event->x.xkey), 0);
 	    
-		if (keysym == XK_Escape)
+		if (keysym == XK_Escape || 
+			keysym == XK_BackSpace ||
+			keysym == XK_Delete )
 		{	
+			if( menu->supermenu != NULL ) 
+			{	
+				ASMenu *sm = menu->supermenu ; 
+				int x = sm->main_canvas->root_x + sm->main_canvas->bw; 
+				int y = sm->main_canvas->root_y + sm->main_canvas->bw;
+				if( sm->selected_item >= 0 && sm->selected_item < sm->items_num )
+				{
+					ASMenuItem *item = &(sm->items[sm->selected_item]);
+					x += item->bar->win_x + item->bar->width - (menu->arrow_space + DEFAULT_MENU_SPACING);
+					y += item->bar->win_y + item->bar->height/2 ;
+				}	 
+				XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, x, y);
+			}
 			close_asmenu(&menu); 
 /*            menu_destroy( asiw ); */
             return ;
@@ -1070,7 +1110,7 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
 			for( i = 0 ; i < menu->items_num ; i++ )
 				if( menu->items[i].fdata->hotkey == keysym )
 				{
-					press_menu_item( menu, i );
+					press_menu_item( menu, i, True );
 					return ;
 				}
 			for( i = 0 ; i < menu->items_num ; i++ )
@@ -1080,12 +1120,38 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
 				LOCAL_DEBUG_OUT( "name = %s", n?n:"(null)" );	  
 				if( n != NULL && n[0] == keysym )
 				{
-					press_menu_item( menu, i );
+					press_menu_item( menu, i, True );
 					return ;
 				}
 			}
-		}else
+		}else 
 		{	 /* TODO : goto to menu item using the shortcut key */
+			switch( keysym )
+			{
+			  	case XK_Page_Up:
+					break;
+				case XK_Page_Down:
+					break;
+				case XK_Up:
+				case XK_k:
+				case XK_p:
+					if( menu->selected_item > 0 )
+	                	select_menu_item( menu, menu->selected_item-1 );
+                    break;
+				case XK_Tab :
+				case XK_Down:
+				case XK_n:
+				case XK_j:
+					if( menu->selected_item < menu->items_num )
+	                	select_menu_item( menu, menu->selected_item+1 );
+                    break;
+				case XK_Return :
+				case XK_space :
+					{
+						if( menu->selected_item	>= 0 ) 
+		 					press_menu_item( menu, menu->selected_item, True );		
+					}
+			}	 
 		}	
     }
 }
