@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC sgmltools INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS TTF_INCLUDES AFTERIMAGE_LIBS_EXTERNAL HAVE_AFTERBASE_FLAG AFTERBASE_CFLAGS APPS_AFTERBASE_CFLAGS AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC sgmltools INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS TTF_INCLUDES AFTERIMAGE_LIBS_EXTERNAL HAVE_AFTERBASE_FLAG AFTERBASE_CFLAGS APPS_AFTERBASE_CFLAGS AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERIMAGEFILES'
 
 # Initialize some variables set by options.
@@ -4552,8 +4552,10 @@ _ACEOF
   fi
 fi
 
+user_ldflags=$LDFLAGS
+
 if test "x$have_x" = "xyes"; then
-  x_libs="$LDFLAGS $X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
+  x_libs="$X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
   echo "$as_me:$LINENO: checking for XOpenDisplay in -lX11" >&5
 echo $ECHO_N "checking for XOpenDisplay in -lX11... $ECHO_C" >&6
 if test "${ac_cv_lib_X11_XOpenDisplay+set}" = set; then
@@ -7628,6 +7630,7 @@ _ACEOF
 
 
 
+
 LIBAFTERIMAGEFILES=.shared
 
 
@@ -8305,6 +8308,7 @@ s,@version_major@,$version_major,;t t
 s,@lib_name@,$lib_name,;t t
 s,@lib_file_name@,$lib_file_name,;t t
 s,@with_locale@,$with_locale,;t t
+s,@user_ldflags@,$user_ldflags,;t t
 s,@x_libs@,$x_libs,;t t
 s,@LIBPROG@,$LIBPROG,;t t
 s,@LIBINSTALL@,$LIBINSTALL,;t t
