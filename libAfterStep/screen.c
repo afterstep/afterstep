@@ -142,7 +142,7 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 {
 	char         *err_text;
 
-	fprintf (stderr, "%s has encountered the following problem interacting with X Windows :\n", MyName);
+	fprintf (stderr, "%s has encountered a problem interacting with X Windows :\n", MyName);
 	if (event && dpy)
 	{
         if( event->error_code == BadWindow && Scr.Windows != NULL )

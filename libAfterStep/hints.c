@@ -298,6 +298,8 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 			clean->icon_name = clean->names[0];
 		what &= ~HINT_NAME;
 	}
+	if( clean->names[0] == NULL ) 
+		clean->names[0] = mystrdup("");        /* must have at least one valid name string - even if empty */
 	/* we don't want to do anything else if all that was requested are names */
 	if (what == 0)
 		return clean;

@@ -385,7 +385,7 @@ read_wm_command (ASRawHints * hints, Window w)
 											    * so we just use standard X function to read it up : */
 		if (hints->wm_cmd_argv)
 			XFreeStringList (hints->wm_cmd_argv);
-		LOCAL_DEBUG_OUT( "Reading WM_COMMAND property from window %X", w );
+		LOCAL_DEBUG_OUT( "Reading WM_COMMAND property from window %lX", w );
 		if (XGetCommand (dpy, w, &(hints->wm_cmd_argv), &(hints->wm_cmd_argc)) == 0)
 		{
 			LOCAL_DEBUG_OUT( "XGetCommand returned 0%s", "" );
