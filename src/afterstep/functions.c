@@ -1308,7 +1308,7 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 	ASImage *im ;
 	Window target = None ;
 	sleep_a_little(5000);
-	if( event->client )
+	if( event->client && data->func != F_TAKE_SCREENSHOT)
 		target = (data->func == F_TAKE_WINDOWSHOT)?event->client->w:event->client->frame;
 	im = grab_root_asimage( &Scr, target, True );
 	LOCAL_DEBUG_OUT( "grab_root_image returned %p", im );

@@ -1330,8 +1330,15 @@ void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
     asw->status->flags = on_flags|off_flags ;
 
     if( get_flags( flags, AS_Shaded ) )
+	{
+		if( get_flags( asw->status->flags, AS_Shaded ) )
+		{
+		    ASOrientation *od = get_orientation_data( asw );
+	        if( asw->frame_sides[od->tbar_side] )
+  		        XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
+		}
         asw->shading_steps = Scr.Feel.ShadeAnimationSteps ;
-
+	}
     if( get_flags( flags, AS_Sticky) )
 	{   /* anchor of sticky window is always in real coordinates, while
 	     * for non-sticky its in virtual coordinates

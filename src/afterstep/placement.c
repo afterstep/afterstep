@@ -322,7 +322,8 @@ LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.
 			new_width = asw->status->width ;
 			new_height = asw->status->height ;
 		}
-        moveresize_canvas(  asw->frame_canvas, data->curr.x, data->curr.y, new_width, new_height );
+		/* lets only move us as we maybe in shaded state : */
+        move_canvas(  asw->frame_canvas, data->curr.x, data->curr.y );
 		ASSync(False);
         moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, new_width, new_height, False);
     }

@@ -775,7 +775,7 @@ fix_background_align( ASFlagType align )
 		set_flags( new_align, FIT_LABEL_WIDTH );
 	if( get_flags( new_align, RESIZE_V_SCALE) )
     	set_flags( new_align, FIT_LABEL_HEIGHT );
-	LOCAL_DEBUG_OUT( "Fixed align from 0x%x to 0x%x", align, new_align );
+	LOCAL_DEBUG_OUT( "Fixed align from 0x%lx to 0x%lx", align, new_align );
 	return new_align;
 }
 
@@ -1190,7 +1190,9 @@ SetShape (ASWindow *asw, int w)
         {
             int i ;
 
-            combine_canvas_shape (asw->frame_canvas, asw->client_canvas, True, True );
+			if( !ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+			{
+	            combine_canvas_shape (asw->frame_canvas, asw->client_canvas, True, True );
 #if 0
             Window        wdumm;
 			int client_x = 0, client_y = 0 ;
@@ -1221,9 +1223,14 @@ SetShape (ASWindow *asw, int w)
                                          0, 0, &rect, 1, ShapeSet, Unsorted);
             }
 #endif
-            for( i = 0 ; i < FRAME_SIDES ; ++i )
-                if( asw->frame_sides[i] )
-                    combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], False, False );
+          		for( i = 0 ; i < FRAME_SIDES ; ++i )
+              		if( asw->frame_sides[i] )
+                  		combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], False, False );
+			}else
+			{
+			    ASOrientation *od = get_orientation_data( asw );
+				combine_canvas_shape (asw->frame_canvas, asw->frame_sides[od->tbar_side], True, True );
+			}
         }
     }
 #if 0 /*old code : */

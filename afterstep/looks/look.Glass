@@ -54,17 +54,20 @@ MyStyle "sticky_window_style"
 
 MyStyle "focused_frame_style"
   ForeColor     ActiveText
-  BackColor	Saturation(100,Active)
+  BackColor			Saturation(100,Active)
+  BackPixmap  149 	VALUE(100,Saturation(100,Active))
   ~MyStyle
 
 MyStyle "unfocused_frame_style"
   ForeColor     InactiveText1
   BackColor	Saturation(100,Inactive1)
+  BackPixmap  149 	VALUE(100,Saturation(100,Inactive1))
   ~MyStyle
 
 MyStyle "sticky_frame_style"
   ForeColor     InactiveText2
   BackColor	Saturation(100,Inactive2)
+  BackPixmap  149 	VALUE(100,Saturation(100,Inactive2))
   ~MyStyle
 
 #----------Menu MyStyles---------#
