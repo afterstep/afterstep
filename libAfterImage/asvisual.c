@@ -1148,17 +1148,17 @@ check_XImage_shared( XImage *xim )
 	if( _as_use_shm_images )
 		if(get_hash_item( xshmimage_images, AS_HASHABLE(xim), NULL ) != ASH_Success)
 			img_data = NULL ;
-	return img_data ;			
+	return img_data ;
 }
 
-Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim, 
+Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim,
                   int src_x, int src_y, int dest_x, int dest_y,
 				  unsigned int width, unsigned int height )
 {
 	ASXShmImage *img_data = NULL ;
 	if( xim == NULL || asv == NULL )
 		return False ;
-	if( ( img_data = check_XImage_shared( xim )) != NULL ) 
+	if( ( img_data = check_XImage_shared( xim )) != NULL )
 	{
 		img_data->wait_completion_event = True ;
 		return (XShmPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height, True ) == 0 );
@@ -1171,10 +1171,10 @@ XImage *ASGetXImage( ASVisual *asv, Drawable d,
 				  unsigned long plane_mask )
 {
 	XImage *xim = NULL ;
-	
+
 	if( asv == NULL || d == None )
 		return NULL ;
-	if( _as_use_shm_images ) 
+	if( _as_use_shm_images )
 	{
 		unsigned int depth ;
 		Window        root;
@@ -1182,13 +1182,13 @@ XImage *ASGetXImage( ASVisual *asv, Drawable d,
 		int           junk;
 		if(XGetGeometry (dpy, d, &root, &junk, &junk, &ujunk, &ujunk, &ujunk, &depth) == 0)
 			return NULL ;
-		
+
 		xim = create_visual_ximage(asv,width,height,depth);
 		XShmGetImage( asv->dpy, d, xim, x, y, plane_mask );
-		
+
 	}else
 		xim = XGetImage( asv->dpy, d, x, y, width, height, plane_mask, ZPixmap );
-	return xim ;		
+	return xim ;
 }
 #else
 
@@ -1196,7 +1196,7 @@ Bool enable_shmem_images (){return False; }
 void disable_shmem_images(){}
 void *check_XImage_shared( XImage *xim ) {return NULL ; }
 
-Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim, 
+Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim,
                   int src_x, int src_y, int dest_x, int dest_y,
 				  unsigned int width, unsigned int height )
 {
@@ -1281,7 +1281,7 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 			ximage->obdata = NULL;
 			ximage->f.destroy_image = My_XDestroyImage;
 			dsize = ximage->bytes_per_line*ximage->height;
-	    	if (((data = (char *)safecalloc (1, dsize)) == NULL) && (dsize > 0))
+	    	if (((data = (char *)safemalloc (dsize)) == NULL) && (dsize > 0))
 			{
 				XFree ((char *)ximage);
 				return (XImage *) NULL;

@@ -72,8 +72,8 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 
 		for (i = 0; i < height; i++)
 		{
-			if( xim->depth == asv->true_depth ) 
-			{			    
+			if( xim->depth == asv->true_depth )
+			{
 			    GET_SCANLINE(asv,xim,&xim_buf,i,xim_line);
 	    		    asimage_add_line (im, IC_RED,   xim_buf.red, i);
 			    asimage_add_line (im, IC_GREEN, xim_buf.green, i);
@@ -85,18 +85,18 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 				exit(0);
 			    if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) )
 				exit(0);
-#endif			
+#endif
 			}else if( xim->depth == 8 )
 			{
-			    register int x = width;								
-			    while(--x >= 0 ) 
+			    register int x = width;
+			    while(--x >= 0 )
 	    		        xim_buf.blue[x] = (CARD32)(xim_line[x]);
 	    		    asimage_add_line (im, IC_RED,   xim_buf.red, i);
 			    asimage_add_line (im, IC_GREEN, xim_buf.red, i);
 			    asimage_add_line (im, IC_BLUE,  xim_buf.red, i);
 			}else if( xim->depth == 1 )
 			{
-			    register int x = width;								
+			    register int x = width;
 			    while(--x >= 0 )
 			    {
 #ifndef X_DISPLAY_MISSING
@@ -109,7 +109,7 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 			    asimage_add_line (im, IC_GREEN, xim_buf.red, i);
 			    asimage_add_line (im, IC_BLUE,  xim_buf.red, i);
 			}
-			
+
 			xim_line += bpl;
 		}
 	}
@@ -474,7 +474,7 @@ asimage2alpha(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached, B
 		XGCValues gcv ;
 		my_gc = XCreateGC( asv->dpy, mask, 0, &gcv );
 	}
-	ASPutXImage( asv->dpy, mask, my_gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+	ASPutXImage( asv, mask, my_gc, xim, 0, 0, 0, 0, xim->width, xim->height );
 	if( my_gc != gc )
 		XFreeGC( asv->dpy, my_gc );
 	if( xim != im->alt.mask_ximage )

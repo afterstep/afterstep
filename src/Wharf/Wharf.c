@@ -786,7 +786,7 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
 		for( i = 0 ; i < wb->contents_num ; ++i )
 		{
 			FunctionData *function = wb->contents[i].function ;
-
+LOCAL_DEBUG_OUT( "contents %d has function %p with func = %d", i, function, function?function->func:-1 );
 	        if( function )
 			{
 				int func = function->func ;
@@ -805,11 +805,19 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
 				break;
 			}
 		}
-		if( disabled )
+		if( wb->folder != NULL )
+			disabled = False ;
+
+		if( wb->contents_num == 0 && disabled )
 		{
 			set_flags( wb->set_flags, WHARF_BUTTON_DISABLED );
-			show_warning( "None of Applications assigned to the button \"%s\" cannot be found in the PATH. Button will be disabled", wb->title?wb->title:"-" );
-		}else
+			show_warning( "Button \"%s\" has no functions nor folder assigned to it. Button will be disabled", wb->title?wb->title:"-" );
+		}else if( disabled )
+		{
+			set_flags( wb->set_flags, WHARF_BUTTON_DISABLED );
+			show_warning( "None of Applications assigned to the button \"%s\" can be found in the PATH. Button will be disabled", wb->title?wb->title:"-" );
+		}
+		if( !disabled )
 			++count ;
         wb = wb->next ;
     }
