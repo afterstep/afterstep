@@ -1334,13 +1334,13 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 {
 	unsigned int line_count = 0;
 	unsigned int offset_3d_x = 0, offset_3d_y = 0 ;
-	int space_size  = (font->space_size>>1)+1+font->spacing_x;
+	int space_size  = 0 ;
 
 	apply_text_3D_type( type, &offset_3d_x, &offset_3d_y );
 
 	if( text == NULL || font == NULL || map == NULL)
 		return False;
-
+	space_size  = (font->space_size>>1)+1+font->spacing_x;
 	offset_3d_x += font->spacing_x ;
 	offset_3d_y += font->spacing_y ;
 
@@ -1416,13 +1416,14 @@ get_text_size_localized( const char *src_text, ASFont *font, ASText3DType type, 
 	unsigned int line_width = 0;
     int i = -1;
 	ASGlyph *last_asg = NULL ;
-	int space_size  = (font->space_size>>1)+1+font->spacing_x;
+	int space_size = 0;
 	unsigned int offset_3d_x = 0, offset_3d_y = 0 ;
 
 	apply_text_3D_type( type, &offset_3d_x, &offset_3d_y );
 	if( src_text == NULL || font == NULL )
 		return False;
 
+	space_size  = (font->space_size>>1)+1+font->spacing_x;
 	offset_3d_x += font->spacing_x ;
 	offset_3d_y += font->spacing_y ;
 

@@ -1,5 +1,7 @@
 #include "config.h"
 
+#define AFTERSTEP_INTERNALS
+
 #ifdef __FreeBSD__
 #include <sys/syslimits.h>
 #else

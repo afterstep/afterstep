@@ -41,7 +41,10 @@
 #endif /* HAVE_XINERAMA */
 
 
+#ifdef AFTERSTEP_INTERNALS
 #include "../include/afterbase.h"
+#endif
+
 #include "functions.h"
 
 #ifdef __cplusplus
