@@ -25,7 +25,7 @@ Style   "*Wharf"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles, Avo
 Style   "Banner"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles
 Style   "WinList"       NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles, AvoidCover
 # to make sure Pager always stays open we place it into the highest used level :
-Style   "*Pager"        NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles
+Style   "*Pager"        NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, AvoidCover
 
 Style 	"Bitch*"		NoHandles, Sticky
 
