@@ -228,6 +228,7 @@ struct config main_config[] =
   {"MWMFunctionHints", SetFlag, (char **) MWMFunctionHints, NULL},
   {"MWMDecorHints", SetFlag, (char **) MWMDecorHints, NULL},
   {"MWMHintOverride", SetFlag, (char **) MWMHintOverride, NULL},
+  {"FollowTitleChanges", SetFlag, (char **) FollowTitleChanges, (int *) 0},
   /* look options */
   {"Font", assign_string, &Stdfont, (int *) 0},
   {"WindowFont", assign_string, &Windowfont, (int *) 0},

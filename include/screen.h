@@ -88,7 +88,8 @@ enum				/* feel file flags */
     IconTitle = (1 << 23),
     MWMFunctionHints = (1 << 24),
     MWMDecorHints = (1 << 25),
-    MWMHintOverride = (1 << 26)
+    MWMHintOverride = (1 << 26),
+    FollowTitleChanges = (1 << 27)
   };
 
 typedef struct fr_sz

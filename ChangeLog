@@ -1,3 +1,4 @@
+ o Applied patch to get AfterStep to change Icon when Title is changing.
  o Fixed Tile's -h handling.
  o added support for maximization to not exceed screen size, while 
    working with xinerama.

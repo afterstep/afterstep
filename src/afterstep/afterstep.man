@@ -603,6 +603,10 @@ Specifies that any pop-up menu's submenu should appear at the top of the
 parent menu instead of starting at the point in the parent window where
 the submenu item lies.
 
+.IP "\fIFollowTitleChanges\fP"
+Makes \fBafterstep\fP to change application's icon when it changes its 
+title, if some other icon was specified in database for this new name.
+
 .IP "\fIPagingDefault 0|1\fP"
 Specifies if Paging should be enabled (\fI1\fP) or disabled (\fI0\fP).
 Paging is set to enabled by default.

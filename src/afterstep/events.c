@@ -558,6 +558,9 @@ HandlePropertyNotify ()
       BroadcastName (M_WINDOW_NAME, Tmp_win->w, Tmp_win->frame,
 		     (unsigned long) Tmp_win, Tmp_win->name);
 
+	  if( Scr.flags& FollowTitleChanges )
+	      ChangeIcon(Tmp_win);
+          
       /* fix the name in the title bar */
       if (!(Tmp_win->flags & ICONIFIED))
 	SetTitleBar (Tmp_win, (Scr.Hilite == Tmp_win), True);

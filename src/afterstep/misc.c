@@ -579,7 +579,7 @@ MyXGrabKey (Display * display, int keycode, unsigned modifiers,
     {
       mod = *mods++;
       XGrabKey (display, keycode, modifiers | mod, grab_window, owner_events,
-		pointer_mode, keyboard_mode);
+		pointer_mode, keyboard_mode); // A memory leak occurs here. Bug in Xlib?
     }
   while (mod);
 }

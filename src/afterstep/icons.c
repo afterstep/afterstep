@@ -237,14 +237,20 @@ CreateIconWindow (ASWindow * tmp_win)
 			   FocusChangeMask);
 
   if ((Textures.flags & SeparateButtonTitle) && (Scr.flags & IconTitle) && !(tmp_win->flags & NOICON_TITLE))
+      {
+	     if( tmp_win->icon_title_w )
+	         XDestroyWindow(dpy, tmp_win->icon_title_w);
     tmp_win->icon_title_w =
       XCreateWindow (dpy, Scr.Root, -999, -999, 16, 16, 0,
 		     CopyFromParent, CopyFromParent, CopyFromParent,
 		     valuemask, &attributes);
+      }
 
   if ((tmp_win->flags & ICON_OURS) &&
       tmp_win->icon_p_width > 0 && tmp_win->icon_p_height > 0)
     {
+  	  if( tmp_win->icon_pixmap_w )
+		  XDestroyWindow(dpy, tmp_win->icon_pixmap_w);
       tmp_win->icon_pixmap_w =
 	XCreateWindow (dpy, Scr.Root, -999, -999, 16, 16, 0,
 		       CopyFromParent, CopyFromParent, CopyFromParent,
