@@ -314,6 +314,8 @@ sort_hash_items (ASHashTable * hash, ASHashableValue * values, void **data, unsi
 				bottom++;
 			while (buckets[top] == NULL && top > bottom)
 				top--;
+			if( buckets[top] == NULL ) 
+				break;
 		}
 		free (buckets);
 		return count_in;
