@@ -1361,7 +1361,7 @@ SHOW_CHECKPOINT;
 #endif
 		do
 		{
-			src[i] = ENCODE_MSBF_555((c>>21),(c>>18),(c>>2),(c<<5));
+			src[i] = ENCODE_MSBF_555((c>>21),(c>>16),(c>>2),(c<<5));
 			if( --i < 0 )
 				break;
 			/* carry over quantization error allow for error diffusion:*/
