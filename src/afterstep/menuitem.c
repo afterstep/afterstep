@@ -650,7 +650,7 @@ DeleteMenuItem (MenuItem * item)
 		free (item->item2);
 	if (item->action != NULL)
 		free (item->action);
-	mystyle_free_icon_resources( item->icon );
+	free_icon_resources( item->icon );
 
 	free (item);
 }

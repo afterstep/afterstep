@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2002 Sasha Vasko <sasha@aftercode.net>
  * Copyright (c) 1998, 1999 Ethan Fischer <allanon@crystaltokyo.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -535,26 +536,6 @@ LOCAL_DEBUG_OUT( "index = %d", index );
 	return im ;
 }
 
-void
-asimage2icon( ASImage *im, icon_t *icon, Bool ignore_alpha )
-{
-	icon->image = im;
-	if( im )
-	{
-		icon->pix = asimage2pixmap( Scr.asv, Scr.Root, icon->image, NULL, False );
-		if( !ignore_alpha ) 
-		{
-			int depth = check_asimage_alpha (Scr.asv, im );
-			if( depth == 1 )
-				icon->mask = asimage2alpha  ( Scr.asv, Scr.Root, im, NULL, False, True );
-			else if( depth == 8 )
-				icon->alpha = asimage2alpha  ( Scr.asv, Scr.Root, im, NULL, False, False );
-        }
-		icon->width = im->width;
-	    icon->height = im->height;
-	}
-}
-
 icon_t
 mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
 {
@@ -564,19 +545,6 @@ mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
 				  &icon, ( style->texture_type < TEXTURE_TEXTURED_START ) );
 #endif /* NO_TEXTURE */
 	return icon;
-}
-
-void 
-mystyle_free_icon_resources( icon_t icon ) 
-{
-	if( icon.pix ) 
-		UnloadImage( icon.pix );
-	if( icon.mask ) 
-		UnloadMask( icon.mask );
-	if( icon.alpha ) 
-		UnloadMask( icon.alpha );
-	if( icon.image ) 
-		safe_asimage_destroy(icon.image);
 }
 
 icon_t
@@ -597,7 +565,7 @@ mystyle_make_pixmap (MyStyle * style, int width, int height, Pixmap cache)
   icon_t icon = mystyle_make_icon (style, width, height, cache);
   p = icon.pix ;
   icon.pix = None ;
-  mystyle_free_icon_resources( icon );
+  free_icon_resources( icon );
   return p ;
 }
 
@@ -608,7 +576,7 @@ mystyle_make_pixmap_overlay (MyStyle * style, int root_x, int root_y, int width,
   icon_t icon = mystyle_make_icon_overlay (style, root_x, root_y, width, height, cache);
   p = icon.pix ;
   icon.pix = None ;
-  mystyle_free_icon_resources( icon );
+  free_icon_resources( icon );
   return p ;
 }
 
@@ -983,7 +951,7 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
     {
     	if ((override == True) && (child->user_flags & F_BACKPIXMAP))
 		{
-			mystyle_free_icon_resources( child->back_icon );
+			free_icon_resources( child->back_icon );
 			memset( &(child->back_icon), 0x00, sizeof(child->back_icon));
 		}
     	if ((override == True) || !(child->set_flags & F_BACKPIXMAP))
@@ -1295,7 +1263,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 	    char *tmp = stripcpy (ptr);
 
 	    clear_flags( style->inherit_flags, F_BACKTRANSPIXMAP|F_BACKPIXMAP);
-		mystyle_free_icon_resources(style->back_icon);
+		free_icon_resources(style->back_icon);
 		memset( &(style->back_icon), 0x00, sizeof(style->back_icon));
 		
 		if( type < TEXTURE_TEXTURED_START || type >= TEXTURE_TEXTURED_END ) 

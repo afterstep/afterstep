@@ -36,6 +36,12 @@
 #include "../libAfterImage/afterimage.h"
 #include "../include/decor.h"
 
+#ifdef SHAPE
+#include <X11/extensions/shape.h>
+#endif
+
+static GC MaskGC = None;
+
 /********************************************************************/
 /* ASCanvas :                                                       */
 /********************************************************************/
@@ -92,7 +98,22 @@ Pixmap get_canvas_mask( ASCanvas *pc )
 		return None ;
 	
 	if( pc->mask == None ) 
+	{
 		pc->mask = create_visual_pixmap( Scr.asv, Scr.Root, pc->width, pc->height, 1 );
+		if( pc->mask )
+		{
+			if( MaskGC == None )
+			{
+				XGCValues gcv ;
+				gcv.foreground = 0xFFFFFFFF ;
+				gcv.background = 0 ;
+				
+				MaskGC = XCreateGC( dpy, pc->mask, GCForeground|GCBackground, &gcv );
+			}
+			XFillRectangle( dpy, pc->mask, MaskGC, 0, 0, pc->width, pc->height );
+			set_flags( pc->state, CANVAS_DIRTY|CANVAS_MASK_OUT_OF_SYNC );
+		}
+	}
 	return pc->mask ;
 }
 
@@ -131,6 +152,36 @@ Bool handle_canvas_config( ASCanvas *canvas )
 	return refresh_canvas_config( canvas );
 }
 
+Bool make_canvas_rectangle( ASCanvas *pc, ASImage *im, int x, int y, 
+                            int *cx, int *cy, int *cwidth, int *cheight )
+{
+	*cwidth = im->width ;
+	*cheight = im->height ;
+	*cx = x;
+	*cy = y;
+	if( x+ *cwidth <= 0 || x > pc->width ) 
+		return False ;
+	if( y+ *cheight <= 0 || y > pc->height ) 
+		return False ;
+	
+	if( *cx < 0 ) 
+	{
+		*cwidth += *cx ;			
+		*cx = 0 ;
+	}
+	if( *cx + *cwidth > pc->width )
+		*cwidth = pc->width-*cx ;
+	if( *cy < 0 ) 
+	{
+		*cheight += *cy ;			
+		*cy = 0 ;
+	}
+	if( *cy + *cheight > pc->height )
+		*cheight = pc->height-*cy ;
+	return True ;
+}
+
+
 Bool draw_canvas_image( ASCanvas *pc, ASImage *im, int x, int y )
 {
 	Pixmap p;
@@ -142,30 +193,10 @@ Bool draw_canvas_image( ASCanvas *pc, ASImage *im, int x, int y )
 	
 	if( (p = get_canvas_canvas( pc )) == None ) 
 		return False;
-	
-	width = im->width ;
-	height = im->height ;
-	real_x = x;
-	real_y = y;
-	if( x+width <= 0 || x > pc->width ) 
+
+	if( !make_canvas_rectangle( pc, im, x, y, &real_x, &real_y, &width, &height ) )
 		return False ;
-	if( y+height <= 0 || y > pc->height ) 
-		return False ;
-	
-	if( real_x < 0 ) 
-	{
-		width += real_x ;			
-		real_x = 0 ;
-	}
-	if( real_x + width > pc->width )
-		width = pc->width-real_x ;
-	if( real_y < 0 ) 
-	{
-		height += real_y ;			
-		real_y = 0 ;
-	}
-	if( real_y + height > pc->height )
-		height = pc->height-real_y ;
+
 LOCAL_DEBUG_OUT( "drawing image %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y ); 		
 	if( asimage2drawable( Scr.asv, p, im, NULL, real_x-x, real_y-y, real_x, real_y, width, height, True ) )
 	{
@@ -175,14 +206,65 @@ LOCAL_DEBUG_OUT( "drawing image %dx%d at %dx%d%+d%+d", im->width, im->height, wi
 	return False ;
 }
 
+
+Bool draw_canvas_mask( ASCanvas *pc, ASImage *im, int x, int y )
+{
+	Pixmap mask;
+	int real_x, real_y;
+	int width, height ;
+	
+	if( im == NULL || pc == NULL )
+		return False;
+	
+	if( (mask = get_canvas_mask( pc )) == None ) 
+		return False;
+	
+	if( !make_canvas_rectangle( pc, im, x, y, &real_x, &real_y, &width, &height ) )
+		return False ;
+LOCAL_DEBUG_OUT( "drawing mask %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y ); 		
+	if( asimage2alpha_drawable( Scr.asv, mask, im, MaskGC, real_x-x, real_y-y, real_x, real_y, width, height, True ) )
+	{
+		set_flags( pc->state, CANVAS_MASK_OUT_OF_SYNC );
+		return True ;
+	}
+	return False ;
+}
+
+void fill_canvas_mask( ASCanvas *pc, int win_x, int win_y, int width, int height, int val )
+{
+	int real_x, real_y;
+	int real_width, real_height ;
+
+	if( pc->mask != None )
+	{
+		real_x = MAX(win_x,0);
+		real_y = MAX(win_y,0);
+		real_width = width-(real_x-win_x) ;
+		real_height = height-(real_y-win_y) ;
+		if( real_width > 0 && real_height > 0 && real_x < pc->width && real_y < pc->height )
+		{
+			if( real_x+real_width > pc->width ) 
+				real_width = pc->width - real_x ;
+			if( real_y+real_height > pc->height ) 
+				real_height = pc->height - real_y ;
+			XFillRectangle( dpy, pc->mask, MaskGC, real_x, real_y, real_width, real_height );
+		}
+	}
+}
+
 void update_canvas_display( ASCanvas *pc )
 {
 	if( pc && pc->w != None )
 	{
 		if( pc->canvas ) 
 		{
+#ifdef SHAPE
+			if( pc->mask )
+				XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, pc->mask, ShapeSet);
+#endif 
 			XSetWindowBackgroundPixmap( dpy, pc->w, pc->canvas );
 			XClearWindow( dpy, pc->w );
+			
 			XSync( dpy, False );
 			clear_flags( pc->state, CANVAS_DIRTY|CANVAS_OUT_OF_SYNC );
 		}	
@@ -416,6 +498,7 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc )
 	ASImageLayer layers[2] ;
 	ASImage *merged_im ;
 	int state ;
+	ASAltImFormats fmt = ASA_XImage ;
 
 	/* input control : */
 	if( tbar == NULL || pc == NULL || pc->w == None )
@@ -473,15 +556,29 @@ LOCAL_DEBUG_CALLER_OUT( "MERGING TBAR %p image %dx%d from %p %dx%d and %p %dx%d"
 				 back, back?back->width:-1, back?back->height:-1, 
 				 label_im, label_im?label_im->width:-1, label_im?label_im->height:-1 ); 		
 				 
+#ifdef SHAPE
+	if( style->texture_type == TEXTURE_SHAPED_PIXMAP || 
+		style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP )
+		fmt = ASA_ASImage ;
+	else if( pc->mask )
+		fill_canvas_mask( pc, tbar->win_x, tbar->win_y, tbar->width, tbar->height, 1 );
+#endif
 	merged_im = merge_layers( Scr.asv, &layers[0], 2, 
-	                          tbar->width, tbar->height,
-							  ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+  		                      tbar->width, tbar->height,
+							  fmt, 0, ASIMAGE_QUALITY_DEFAULT );
+	
 	if( merged_im ) 
 	{
 		Bool res = draw_canvas_image( pc, merged_im, tbar->win_x, tbar->win_y );
+#ifdef SHAPE
+		if( style->texture_type == TEXTURE_SHAPED_PIXMAP || 
+			style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP )
+			draw_canvas_mask( pc, merged_im, tbar->win_x, tbar->win_y );
+#endif		
 		destroy_asimage( &merged_im );			
 		return res;
 	}
+	
 	return False ;
 }
 

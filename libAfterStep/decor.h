@@ -7,8 +7,9 @@ struct ASImage;
 
 typedef struct ASCanvas
 {
-#define CANVAS_DIRTY			(0x01<<0)
-#define CANVAS_OUT_OF_SYNC		(0x01<<1)
+#define CANVAS_DIRTY				(0x01<<0)
+#define CANVAS_OUT_OF_SYNC			(0x01<<1)
+#define CANVAS_MASK_OUT_OF_SYNC		(0x01<<2)
 	ASFlagType	state ;
 	Window w;
 	int root_x, root_y;

@@ -202,10 +202,6 @@ GC CreateTintGC (Drawable d, unsigned long tintColor, int function);
 /* just a nice error printing function */
 void mystyle_error (char *format, char *name, char *text2);
 
-void asimage2icon( ASImage *im, icon_t *icon, Bool ignore_alpha );
-void mystyle_free_icon_resources( icon_t icon );
-
-
 /* these functions change the global style */
 void mystyle_set_global_gcs (MyStyle * style);
 void mystyle_set_gcs (MyStyle * style, GC foreGC, GC backGC, GC reliefGC, GC shadowGC);

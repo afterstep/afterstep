@@ -314,6 +314,10 @@ Bool	 asimage2drawable( struct ASVisual *asv, Drawable d, ASImage *im, GC gc,
          			       int src_x, int src_y, int dest_x, int dest_y,
         		  		   unsigned int width, unsigned int height,
 				  		   Bool use_cached);
+Bool	 asimage2alpha_drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
+      	    		  	   int src_x, int src_y, int dest_x, int dest_y,
+        				   unsigned int width, unsigned int height,
+						   Bool use_cached);
 Pixmap   asimage2pixmap  (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
 Pixmap	 asimage2alpha   (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached, Bool bitmap);
 Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);

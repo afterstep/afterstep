@@ -17,4 +17,7 @@ icon_t;
 
 typedef icon_t MyIcon;
 
+void asimage2icon( ASImage *im, icon_t *icon, Bool ignore_alpha );
+void free_icon_resources( icon_t icon );
+
 #endif /* #define AS_MYICON_H_HEADER_INCLUDED */

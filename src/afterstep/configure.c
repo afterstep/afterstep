@@ -946,11 +946,11 @@ InitLook (Bool free_resources)
 #ifndef NO_TEXTURE
 		/* icons */
 		if (Scr.MenuArrow.pix != None)
-			mystyle_free_icon_resources( Scr.MenuArrow );
+			free_icon_resources( Scr.MenuArrow );
 		if (Scr.MenuPinOn.pix != None)
-			mystyle_free_icon_resources( Scr.MenuPinOn );
+			free_icon_resources( Scr.MenuPinOn );
 		if (Scr.MenuPinOff.pix != None)
-			mystyle_free_icon_resources( Scr.MenuPinOff );
+			free_icon_resources( Scr.MenuPinOff );
 
 		/* cached gradients */
 		if (Scr.TitleGradient != None)
@@ -960,8 +960,8 @@ InitLook (Bool free_resources)
 		/* titlebar buttons */
 		for (i = 0; i < 10; i++)
 		{
-			mystyle_free_icon_resources( Scr.buttons[i].unpressed );
-			mystyle_free_icon_resources( Scr.buttons[i].pressed );
+			free_icon_resources( Scr.buttons[i].unpressed );
+			free_icon_resources( Scr.buttons[i].pressed );
 		}
 #ifndef NO_TEXTURE
 		/* iconized window background */

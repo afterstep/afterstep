@@ -291,6 +291,45 @@ pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsign
 	return picture2asimage(asv, p, None, x, y, width, height, plane_mask, keep_cache, compression);
 }
 
+static Bool 
+put_ximage( ASVisual *asv, XImage *xim, Drawable d, GC gc,
+            int src_x, int src_y, int dest_x, int dest_y,
+  		    unsigned int width, unsigned int height )
+{
+#ifndef X_DISPLAY_MISSING
+	GC 			  my_gc = gc ;
+
+	if( src_x < 0 )
+	{
+		width += src_x ;
+		src_x = 0;
+	}else if( src_x > xim->width )
+		return False;
+	if( xim->width  > src_x+width )
+		width = xim->width - src_x ;
+	if( src_y < 0 )
+	{
+		height+= src_y ;
+		src_y = 0;
+	}else if( src_y > xim->height )
+		return False;
+	if( xim->height  > src_y+height )
+		height = xim->height - src_y ;
+
+	if( my_gc == NULL )
+	{
+		XGCValues gcv ;
+		my_gc = XCreateGC( asv->dpy, d, 0, &gcv );
+	}
+	XPutImage( asv->dpy, d, my_gc, xim, src_x, src_y, dest_x, dest_y, width, height );
+	if( my_gc != gc )
+		XFreeGC( asv->dpy, my_gc );
+	return True ;
+#else
+	return False ;
+#endif
+}
+
 Bool
 asimage2drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
                   int src_x, int src_y, int dest_x, int dest_y,
@@ -301,25 +340,7 @@ asimage2drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
 	if( im )
 	{
 		XImage       *xim ;
-		GC 			  my_gc = gc ;
-
-		if( src_x < 0 )
-		{
-			width += src_x ;
-			src_x = 0;
-		}else if( src_x > im->width )
-			return False;
-		if( im->width  > src_x+width )
-			width = im->width - src_x ;
-		if( src_y < 0 )
-		{
-			height+= src_y ;
-			src_y = 0;
-		}else if( src_y > im->height )
-			return False;
-		if( im->height  > src_y+height )
-			height = im->height - src_y ;
-
+		Bool res = False;
 		if ( !use_cached || im->alt.ximage == NULL )
 		{
 			if( (xim = asimage2ximage( asv, im )) == NULL )
@@ -331,18 +352,48 @@ asimage2drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
 			xim = im->alt.ximage ;
 		if (xim != NULL )
 		{
-			if( my_gc == NULL )
-			{
-				XGCValues gcv ;
-				my_gc = XCreateGC( asv->dpy, d, 0, &gcv );
-			}
-			XPutImage( asv->dpy, d, my_gc, xim, src_x, src_y, dest_x, dest_y, width, height );
-			if( my_gc != gc )
-				XFreeGC( asv->dpy, my_gc );
+			res = put_ximage( asv, xim, d, gc,	src_x, src_y, dest_x, dest_y, width, height );
 			if( xim != im->alt.ximage )
 				XDestroyImage (xim);
 		}
-		return True;
+		return res;
+	}
+#endif
+	return False ;
+}
+
+Bool
+asimage2alpha_drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
+            		    int src_x, int src_y, int dest_x, int dest_y,
+        				unsigned int width, unsigned int height,
+						Bool use_cached)
+{
+#ifndef X_DISPLAY_MISSING
+	if( im )
+	{
+		XImage       *xim ;
+		unsigned int  alpha_depth = 1 ;		
+		int dumm; unsigned int udumm; Window root ;
+		Bool res = False ;
+
+		XGetGeometry( dpy, d, &root, &dumm, &dumm, &udumm, &udumm, &udumm, &alpha_depth );
+
+		if ( !use_cached || im->alt.mask_ximage == NULL || im->alt.mask_ximage->depth != alpha_depth )
+		{
+			if( (xim = asimage2alpha_ximage (asv, im, (alpha_depth == 1) )) == NULL )
+			{
+				show_error("cannot export image into alpha XImage.");
+				return None ;
+			}
+		}else
+			xim = im->alt.mask_ximage ;
+		if (xim != NULL )
+		{
+			res = put_ximage( asv, xim, d, gc,	src_x, src_y, dest_x, dest_y, width, height );
+			if( xim != im->alt.mask_ximage )
+				XDestroyImage (xim);
+		}
+		return res;
 	}
 #endif
 	return False ;

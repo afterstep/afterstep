@@ -13,7 +13,7 @@ LIB_INCS=
 LIB_OBJS= catstring3.o background.o balloon.o copystring.o \
 	      clientprops.o decor.o font.o \
 		  Xmodule.o ASmodule.o \
-		  loadimg.o mystyle.o mystyle_property.o \
+		  loadimg.o myicon.o mystyle.o mystyle_property.o \
 		  parse.o parser.o termhash.o \
 		  readpacket.o \
 		  timer.o wild.o wmprops.o

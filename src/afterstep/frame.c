@@ -88,7 +88,7 @@ frame_init (int free_resources)
 		if (FrameSW != NULL)
 			free (FrameSW);
 		for (i = 0; i < 8; i++)
-			mystyle_free_icon_resources( ff.handle[i] );
+			free_icon_resources( ff.handle[i] );
 	}
 	FrameN = NULL;
 	FrameS = NULL;
@@ -145,7 +145,7 @@ frame_free_data (ASWindow * tw, Bool all)
 	{
 		if (all)
 		{
-			mystyle_free_icon_resources( ff.handle[i] );
+			free_icon_resources( ff.handle[i] );
 			memset(&(ff.handle[i]), 0x00, sizeof(MyIcon) );			
 		}
 		if (tw != NULL)

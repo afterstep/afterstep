@@ -381,10 +381,10 @@ alphablend_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 			ba[i] = 0x0000FF00;
 		}else if( a > 0 )
 		{
-			ba[i] += a ;
+			a = (a>>8) ;
+			ba[i] = ((ba[i]*(255-a))>>8)+ta[i] ;
 			if( ba[i] > 0x0000FFFF )
 				ba[i] = 0x0000FFFF ;
-			a = (a>>8) ;
 			br[i] = (br[i]*(255-a)+tr[i]*a)>>8 ;
 			bg[i] = (bg[i]*(255-a)+tg[i]*a)>>8 ;
 			bb[i] = (bb[i]*(255-a)+tb[i]*a)>>8 ;
