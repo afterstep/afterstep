@@ -1403,6 +1403,10 @@ void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color );
 void toggle_image_output_direction( ASImageOutput *imout );
 void stop_image_output( ASImageOutput **pimout );
 
+XRectangle*
+get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, unsigned int *rects_count_ret );
+
+
 #ifdef __cplusplus
 }
 #endif

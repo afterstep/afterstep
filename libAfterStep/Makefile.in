@@ -9,7 +9,7 @@ LIB_INCS= asapp.h asdatabase.h aswindata.h \
 		  functions.h font.h hints.h \
                   moveresize.h myicon.h \
 		  mylook.h mystyle.h mystyle_property.h \
-		  parser.h screen.h \
+		  parser.h screen.h shape.h \
 		  session.h wmprops.h
 
 
@@ -22,7 +22,7 @@ LIB_OBJS= asapp.o asdatabase.o asfeel.o aswindata.o \
                   balloon.o clientprops.o colorscheme.o decor.o event.o \
                   freestor.o functions.o font.o hints.o module.o \
 		  moveresize.o myicon.o mylook.o mystyle.o mystyle_property.o \
-		  outline.o parser.o screen.o session.o wmprops.o
+		  outline.o parser.o screen.o session.o shape.o wmprops.o
 
 LIB_NAME        = LIBAFTERSTEP
 LIB_STATIC      = libAfterStep.a

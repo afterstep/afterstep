@@ -29,6 +29,7 @@ typedef struct ASCanvas
                                                 * also should monitor chnages in user defined shape,
                                                 * and update mask pixmap accordingly */
 #define CANVAS_FORCE_MASK           (0x01<<18)  /* forces rendering of the canvas mask even if MyStyle is not shaped */
+#define CANVAS_SHAPE_SET            (0x01<<19)  /* */
 
     ASFlagType  state ;
 	Window w;
@@ -36,7 +37,7 @@ typedef struct ASCanvas
 	unsigned int width, height ;
 
 	Pixmap canvas;
-	Pixmap mask;
+	ASVector *shape;                     /* vector of XRectangles */
     /* 32 bytes */
 }ASCanvas;
 
@@ -227,13 +228,14 @@ void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line);
 #else
 void update_canvas_display( ASCanvas *pc );
 #endif
-void update_canvas_display_mask (ASCanvas * pc);
+void update_canvas_display_mask (ASCanvas * pc, Bool force);
 
 
-Bool combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first, Bool use_window_shape );
-Bool combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_w, int child_h, int child_bw, Bool first, Bool use_window_shape );
-Bool combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool first, Bool use_window_shape );
-Bool replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool use_window_shape );
+Bool check_canvas_shaped( ASCanvas *pc);
+Bool refresh_container_shape( ASCanvas *pc );
+Bool combine_canvas_shape (ASCanvas *parent, ASCanvas *child );
+Bool combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_w, int child_h, int child_bw );
+Bool combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y );
 
 
 

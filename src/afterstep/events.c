@@ -194,7 +194,7 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
 	start_ticker (click_time);
     do
 	{
-        sleep_a_millisec (100);
+        sleep_a_millisec (10);
         if (ASCheckMaskEvent (end_mask, xevt))
         {
             DigestEvent( &tmp_event );
@@ -1239,6 +1239,9 @@ HandleShapeNotify (ASEvent *event)
 
     if (!event->client)
 		return;
+	if( event->client->w != sev->window )
+		return ;
+
     w = event->client->w ;
     while( ASCheckTypedWindowEvent( w, Scr.ShapeEventBase + ShapeNotify, &(event->x) ) )
     {
@@ -1248,7 +1251,7 @@ HandleShapeNotify (ASEvent *event)
             shaped = sev->shaped ;
         }
 		ASSync(False);
-		sleep_a_millisec(100);
+		sleep_a_millisec(10);
     }
 
     if( needs_update )
@@ -1257,8 +1260,8 @@ HandleShapeNotify (ASEvent *event)
             ASWIN_SET_FLAGS( event->client, AS_Shaped );
         else
             ASWIN_CLEAR_FLAGS( event->client, AS_Shaped );
-
-        SetShape (event->client, 0);
+		if( refresh_container_shape( event->client->client_canvas ) )
+        	SetShape (event->client, 0);
     }
 #endif /* SHAPE */
 }

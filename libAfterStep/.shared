@@ -22,6 +22,7 @@ LIBAFTERSTEP_OBJS = \
 		$(LIBAFTERSTEP_PATH)/parser.c \
 		$(LIBAFTERSTEP_PATH)/screen.c \
 		$(LIBAFTERSTEP_PATH)/session.c \
+		$(LIBAFTERSTEP_PATH)/shape.c \
 		$(LIBAFTERSTEP_PATH)/wmprops.c
 
 LIBAFTERSTEP_INCS = \
@@ -44,5 +45,6 @@ LIBAFTERSTEP_INCS = \
 		$(LIBAFTERSTEP_PATH)/mystyle_property.h \
 		$(LIBAFTERSTEP_PATH)/parser.h \
 		$(LIBAFTERSTEP_PATH)/screen.h \
+		$(LIBAFTERSTEP_PATH)/shape.h \
 		$(LIBAFTERSTEP_PATH)/session.h \
 		$(LIBAFTERSTEP_PATH)/wmprops.h

@@ -68,7 +68,8 @@
 		myicon.h \
 		decor.h \
 		event.h \
-		balloon.h
+		balloon.h \
+		shape.h
 
 ./event.o : \
 		../configure.h \
@@ -118,7 +119,8 @@
 		screen.h \
 		module.h \
 		wmprops.h \
-		session.h
+		session.h \
+		colorscheme.h
 
 ./moveresize.o : \
 		../configure.h \
@@ -202,6 +204,13 @@
 		screen.h \
 		functions.h \
 		session.h
+
+./shape.o : \
+		../configure.h \
+		asapp.h \
+		afterstep.h \
+		screen.h \
+		shape.h
 
 ./wmprops.o : \
 		../configure.h \

@@ -65,11 +65,11 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 			return;
 
 		total = 0;
-        while (total < Scr.Feel.EdgeResistanceScroll)
+        while (total < (int)Scr.Feel.EdgeResistanceScroll)
 		{
             register int i ;
-			sleep_a_millisec(1);
-			total += 5;
+			sleep_a_millisec(10);
+			total += 10;
             for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
                 if( Scr.PanFrame[i].isMapped )
                     if (ASCheckWindowEvent (Scr.PanFrame[i].win, LeaveWindowMask, &(event->x)))
@@ -366,9 +366,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 			XUngrabServer (dpy);
     }
 	/* yield to let modules handle desktop/viewport change */
-	sleep_a_millisec(500);
-
-
+	sleep_a_millisec(10);
 
     if( old_desk != new_desk )
 	{
@@ -394,8 +392,10 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
     	}
 
     	if( IsValidDesk(new_desk) )
+		{
         	restack_window_list( new_desk, False );
-
+			sleep_a_millisec(10);              /* yield to modules */
+		}
     	/* Change the look to this desktop's one if it really changed */
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
 		QuickRestart ("look&feel");

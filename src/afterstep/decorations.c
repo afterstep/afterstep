@@ -1186,6 +1186,7 @@ SetShape (ASWindow *asw, int w)
 
 	if( asw )
 	{
+
         if( ASWIN_GET_FLAGS(asw, AS_Dead) )
         {
             clear_canvas_shape( asw->frame_canvas );
@@ -1202,8 +1203,12 @@ SetShape (ASWindow *asw, int w)
 		    int child_y = 0 ;
         	unsigned int width, height, bw;
 			XRectangle    rect;
-			Bool first = True ;
 		    ASOrientation *od = get_orientation_data( asw );
+
+			if( asw->frame_canvas->shape )
+				flush_vector( asw->frame_canvas->shape );
+			else
+				asw->frame_canvas->shape = create_shape();
 
 			get_current_canvas_geometry( asw->client_canvas, &child_x, &child_y, &width, &height, &bw );
 	        rect.x = child_x ;
@@ -1211,45 +1216,35 @@ SetShape (ASWindow *asw, int w)
         	rect.width  = width+bw*2;
             rect.height = height+bw*2;
 
-			if( !ASWIN_GET_FLAGS(asw, AS_Shaped) )
-			{
-LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) setting bounding container's shape from rectangle %dx%d%+d%+d",  asw->frame, rect.width, rect.height, rect.x, rect.y );
-				XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
-                				            0, 0, &rect, 1, ShapeSet, Unsorted);
-				first = False ;
-			}
+			combine_canvas_shape_at_geom (asw->frame_canvas, asw->client_canvas, child_x, child_y, width, height, bw );
 
-			if( !ASWIN_GET_FLAGS( asw, AS_Shaded ) )
-			{
-          		for( i = 0 ; i < FRAME_SIDES ; ++i )
-              		if( asw->frame_sides[i] )
-					{
-                  		combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], first, False );
-						first = False ;
-					}
-				if( asw->shading_steps > 0 && asw->frame_sides[od->tbar_side] )
+          	for( i = 0 ; i < FRAME_SIDES ; ++i )
+              	if( asw->frame_sides[i] )
 				{
-					XShapeCombineRectangles (dpy, asw->frame_sides[od->tbar_side]->w, ShapeBounding,
-    				   				        0, 0, &rect, 1, ShapeSubtract, Unsorted);
+					LOCAL_DEBUG_OUT( " Frame side %d, tbar_side = %d", i, od->tbar_side );
+                  	combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i] );
 				}
-			}else if( asw->frame_sides[od->tbar_side] )
-			{
-				first = False ;
-				combine_canvas_shape (asw->frame_canvas, asw->frame_sides[od->tbar_side], first, False );
-				XShapeCombineRectangles (dpy, asw->frame_sides[od->tbar_side]->w, ShapeBounding,
-                				        0, 0, &rect, 1, ShapeSubtract, Unsorted);
-			}
 
-			if( ASWIN_GET_FLAGS(asw, AS_Shaped) )
+			update_canvas_display_mask (asw->frame_canvas, True);
+
+#if 0    /* no longer needed as we do not put client under titlebar anymore */
+			if( ( ASWIN_GET_FLAGS( asw, AS_Shaded ) || asw->shading_steps > 0 ) && asw->frame_sides[od->tbar_side])
 			{
-				if( !first )
+				ASCanvas *tbar_canvas = asw->frame_sides[od->tbar_side] ;
+				Bool overlaps_client = False ;
+				if( od->tbar_side != FR_N )
+					overlaps_client = ( tbar_canvas->root_y + tbar_canvas->height > asw->client_canvas->root_y );
+				else
+					overlaps_client = ( tbar_canvas->root_x + tbar_canvas->width > asw->client_canvas->root_x );
+
+				if( overlaps_client )
 				{
-LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) subtracting from bounding container's shape rectangle %dx%d%+d%+d",  asw->frame, rect.width, rect.height, rect.x, rect.y );
-					XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
-                					            0, 0, &rect, 1, ShapeSubtract, Unsorted);
+					XShapeCombineRectangles (dpy, tbar_canvas->w, ShapeBounding,
+    					   				     0, 0, &rect, 1, ShapeSubtract, Unsorted);
+					set_flags( tbar_canvas->state, CANVAS_SHAPE_SET );
 				}
-				combine_canvas_shape_at_geom (asw->frame_canvas, asw->client_canvas, child_x, child_y, width, height, bw, False, True );
 			}
+#endif
         }
     }
 #if 0 /*old code : */

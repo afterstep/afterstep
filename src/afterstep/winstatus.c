@@ -265,8 +265,6 @@ LOCAL_DEBUG_OUT( "@@ANIM to(%d)->from(%d)->delta(%d)->step(%d)", to_size, from_s
             return 0;
         }else
         {
-            if( asw->frame_sides[od->tbar_side] )
-                XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
             *(od->in_width) = asw->tbar->width ;
             *(od->in_height) = asw->tbar->height ;
             return *(od->out_height);
@@ -564,7 +562,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
                                     asw->frame_canvas->height-(frame_size[FR_N]+frame_size[FR_S]));
             }else if( normal_height != step_size )
             {
-                sleep_a_millisec(50);
+                sleep_a_millisec(10);
                 /* we get smoother animation if we move decoration ahead of actually
                  * resizing frame window : */
                 resize_canvases( asw, od, normal_width, step_size, frame_size );
@@ -619,7 +617,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
             update_canvas_display( asw->icon_title_canvas );
         }
         broadcast_config (M_CONFIGURE_WINDOW, asw);
-    }else  /* one of the frame canvases :*/
+    }else if( asw->shading_steps ==  0 ) /* one of the frame canvases :*/
     {
         Bool found = False;
         for( i = 0 ; i < FRAME_SIDES ; ++i )
@@ -1392,7 +1390,12 @@ void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
 		{
 		    ASOrientation *od = get_orientation_data( asw );
 	        if( asw->frame_sides[od->tbar_side] )
-  		        XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
+			{
+				Window ww[2] ;
+				ww[0] = asw->w ;
+				ww[1] = asw->frame_sides[od->tbar_side]->w ;
+  		        XRestackWindows( dpy, &(ww[0]), 2 );
+			}
 		}
         asw->shading_steps = Scr.Feel.ShadeAnimationSteps ;
 	}

@@ -53,6 +53,7 @@
 #include "../../libAfterStep/event.h"
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterStep/functions.h"
+#include "../../libAfterStep/shape.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -786,7 +787,7 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
 		for( i = 0 ; i < wb->contents_num ; ++i )
 		{
 			FunctionData *function = wb->contents[i].function ;
-LOCAL_DEBUG_OUT( "contents %d has function %p with func = %d", i, function, function?function->func:-1 );
+LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, function?function->func:-1 );
 	        if( function )
 			{
 				int func = function->func ;
@@ -958,18 +959,25 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
     if( (get_flags( Config->flags, WHARF_SHAPE_TO_CONTENTS ) && get_flags( aswf->flags, ASW_NeedsShaping))||
          WharfState.shaped_style )
     {
-        while ( --i >= 0 )
+		if( aswf->canvas->shape )
+			flush_vector( aswf->canvas->shape );
+		else
+			aswf->canvas->shape = create_shape();
+
+		while ( --i >= 0 )
         {
             register ASWharfButton *aswb = &(aswf->buttons[i]);
             if( aswb->canvas->width == aswb->folder_width && aswb->canvas->height == aswb->folder_height )
-                if( combine_canvas_shape_at (aswf->canvas, aswb->canvas, aswb->folder_x, aswb->folder_y, (set==0), False ) )
+                if( combine_canvas_shape_at (aswf->canvas, aswb->canvas, aswb->folder_x, aswb->folder_y ) )
                     ++set;
             if( aswb->swallowed )
             {
-                if( combine_canvas_shape_at (aswf->canvas, aswb->swallowed->current, aswb->folder_x, aswb->folder_y, (set==0), True ) )
+                if( combine_canvas_shape_at (aswf->canvas, aswb->swallowed->current, aswb->folder_x, aswb->folder_y ) )
                     ++set;
             }
         }
+		update_canvas_display_mask (aswf->canvas, True);
+
         if( set > 0 )
             set_flags( aswf->flags, ASW_Shaped);
     }
@@ -1802,9 +1810,9 @@ on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
     {
         update_canvas_display( aswb->canvas );
 #ifdef SHAPE
-        if( aswb->canvas->mask != None && aswb->swallowed )
+        if( get_flags( aswb->canvas->state, CANVAS_SHAPE_SET ) && aswb->swallowed )
         {
-            combine_canvas_shape_at (aswb->canvas, aswb->swallowed->current, 0, 0, False, True );
+			update_wharf_folder_shape( aswb->parent );
         }
 #endif
     }
@@ -1831,11 +1839,7 @@ void on_wharf_moveresize( ASEvent *event )
         {
 #ifdef SHAPE
             if( get_flags( aswb->parent->flags, ASW_Shaped) )
-            {
-                replace_canvas_shape_at( aswb->parent->canvas, aswb->canvas, aswb->folder_x, aswb->folder_y, False );
-                if( aswb->canvas->mask != None && aswb->swallowed )
-                    combine_canvas_shape_at (aswb->parent->canvas, aswb->swallowed->current, aswb->folder_x, aswb->folder_y, False, True );
-            }
+				update_wharf_folder_shape( aswb->parent );
 #endif
         }
     }else if( obj->magic == MAGIC_WHARF_FOLDER )

@@ -53,6 +53,7 @@
 #include "../../libAfterStep/event.h"
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterStep/moveresize.h"
+#include "../../libAfterStep/shape.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -710,11 +711,11 @@ render_desk( ASPagerDesk *d, Bool force )
     if( force || DoesBarNeedsRendering(d->background) )
         render_astbar( d->background, d->desk_canvas );
 
-    if( d->desk_canvas->mask == None && get_flags(d->flags, ASP_Shaped) )
+    if( d->desk_canvas->shape == NULL && get_flags(d->flags, ASP_Shaped) )
     {
         clear_flags(d->flags, ASP_Shaped);
         set_flags(d->flags, ASP_ShapeDirty);
-    }else if( d->desk_canvas->mask != None )
+    }else if( d->desk_canvas->shape != NULL )
     {
         set_flags(d->flags, ASP_Shaped);
         set_flags(d->flags, ASP_ShapeDirty);
@@ -731,13 +732,13 @@ render_desk( ASPagerDesk *d, Bool force )
 static void
 update_desk_shape( ASPagerDesk *d )
 {
-#ifdef SHAPE
+#if 0
     int i ;
 
     if( d == NULL )
         return;
 
-    update_canvas_display_mask (d->desk_canvas);
+    update_canvas_display_mask (d->desk_canvas, True);
 
     LOCAL_DEBUG_CALLER_OUT( "desk %p flags = 0x%lX", d, d->flags );
     if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
@@ -788,6 +789,7 @@ update_pager_shape()
 #ifdef SHAPE
     int i ;
     Bool shape_cleared = False ;
+	XRectangle border[2] ;
 
     if( get_flags( PagerState.flags, ASP_ReceivingWindowList ) )
         return ;
@@ -800,26 +802,60 @@ update_pager_shape()
         clear_flags( PagerState.flags, ASP_ShapeDirty );
     }
 
+	if( PagerState.main_canvas->shape )
+		flush_vector( PagerState.main_canvas->shape );
+	else
+		PagerState.main_canvas->shape = create_shape();
+
     for( i = 0 ; i < PagerState.desks_num; ++i )
     {
         ASPagerDesk *d = &(PagerState.desks[i]) ;
         int x, y ;
+		unsigned int d_width, d_height, bw ;
 
-        get_current_canvas_geometry( d->desk_canvas, &x, &y, NULL, NULL, NULL );
+        get_current_canvas_geometry( d->desk_canvas, &x, &y, &d_width, &d_height, &bw );
+		combine_canvas_shape_at_geom( PagerState.main_canvas, d->desk_canvas, x, y, d_width, d_height, bw );
 
-        if( get_flags( d->flags, ASP_Shaped) )
-        {
-            Bool update = get_flags( d->flags, ASP_ShapeDirty) ;
-            if( update )
-                update_desk_shape( d );
-            if( shape_cleared || update )
-                replace_canvas_shape_at( PagerState.main_canvas, d->desk_canvas, x, y, True );
-        }else if( shape_cleared || get_flags( d->flags, ASP_ShapeDirty) )
-        {
-            replace_canvas_shape_at( PagerState.main_canvas, d->desk_canvas, x, y, True );
-            clear_flags( d->flags, ASP_ShapeDirty);
-        }
+	    if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
+			add_shape_rectangles( PagerState.main_canvas->shape, &(PagerState.selection_bar_rects[0]), 4, x, y, PagerState.main_canvas->width, PagerState.main_canvas->height );
+
+		if( get_flags(Config->flags, PAGE_SEPARATOR) )
+			add_shape_rectangles( PagerState.main_canvas->shape, &(d->separator_bar_rects[0]), d->separator_bars_num, x, y, PagerState.main_canvas->width, PagerState.main_canvas->height );
+
+	    if( d->clients_num > 0 )
+    	{
+        	register ASWindowData **clients = d->clients ;
+        	int k = d->clients_num ;
+        	LOCAL_DEBUG_OUT( "clients_num %d", d->clients_num );
+        	while( --k >= 0 )
+        	{
+            	LOCAL_DEBUG_OUT( "client %d data %p", i, clients[k] );
+            	if( clients[k] )
+            	{
+			        int client_x, client_y ;
+					unsigned int client_width, client_height, client_bw ;
+					get_current_canvas_geometry( clients[k]->canvas, &client_x, &client_y, &client_width, &client_height, &client_bw );
+
+                	LOCAL_DEBUG_OUT( "combining client \"%s\"", clients[k]->icon_name );
+                	combine_canvas_shape_at_geom(PagerState.main_canvas, clients[k]->canvas, client_x+x, client_y+y, client_width, client_height, client_bw );
+            	}
+        	}
+		}
+	    clear_flags( d->flags, ASP_ShapeDirty );
     }
+	border[0].x = 0 ;
+	border[0].y = PagerState.main_canvas->height - 1 ;
+	border[0].width = PagerState.main_canvas->width ;
+	border[0].height = 1 ;
+	border[1].x = PagerState.main_canvas->width - 1 ;
+	border[1].y = 0 ;
+	border[1].width = 1 ;
+	border[1].height = PagerState.main_canvas->height ;
+
+	add_shape_rectangles( PagerState.main_canvas->shape, &(border[0]), 2, 0, 0, PagerState.main_canvas->width, PagerState.main_canvas->height );
+
+	update_canvas_display_mask (PagerState.main_canvas, True);
+
 #endif
 }
 
@@ -2138,7 +2174,7 @@ DispatchEvent (ASEvent * event)
                 event->x.xkey.window = wd->client;
                 XSendEvent (dpy, wd->client, False, KeyPressMask, &(event->x));
             }
-            break ;
+            return ;
         case KeyRelease :
             if( event->client != NULL )
             {
@@ -2146,23 +2182,23 @@ DispatchEvent (ASEvent * event)
                 event->x.xkey.window = wd->client;
                 XSendEvent (dpy, wd->client, False, KeyReleaseMask, &(event->x));
             }
-            break ;
+			return ;
         case ButtonPress:
             on_pager_pressure_changed( event );
-            break;
+            return ;
         case ButtonRelease:
 LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.state, event->x.xbutton.state&ButtonAnyMask );
             if( (event->x.xbutton.state&ButtonAnyMask) == (Button1Mask<<(event->x.xbutton.button-Button1)) )
                 release_pressure();
-            break;
+			return ;
         case EnterNotify :
 			if( event->x.xcrossing.window == Scr.Root )
 				withdraw_active_balloon();
-			break;
+			return ;
         case MotionNotify :
             if( (event->x.xbutton.state&Button3Mask) )
                 on_scroll_viewport( event );
-            break ;
+			return ;
 	    case ClientMessage:
             LOCAL_DEBUG_OUT("ClientMessage(\"%s\",data=(%lX,%lX,%lX,%lX,%lX)", XGetAtomName( dpy, event->x.xclient.message_type ), event->x.xclient.data.l[0], event->x.xclient.data.l[1], event->x.xclient.data.l[2], event->x.xclient.data.l[3], event->x.xclient.data.l[4]);
             if ( event->x.xclient.format == 32 &&
@@ -2175,7 +2211,7 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
                 set_desktop_pixmap( event->x.xclient.data.l[0]-PagerState.start_desk, event->x.xclient.data.l[1] );
             }
 
-	        break;
+			return ;
 	    case PropertyNotify:
             if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
             {
@@ -2209,7 +2245,7 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
 							set_client_look( clients[k], True );
                 }
 			}
-            break;
+			return ;
         default:
             return;
     }

@@ -31,27 +31,13 @@
 #include "decor.h"
 #include "event.h"
 #include "balloon.h"
+#include "shape.h"
 
-static GC           MaskGC = None;
 static ASTBarData  *FocusedBar = NULL;          /* currently focused bar with balloon shown for it */
 
 /********************************************************************/
 /* ASCanvas :                                                       */
 /********************************************************************/
-static Bool
-check_canvas_shaped( ASCanvas *pc)
-{
-    Bool           boundingShaped= False;
-#ifdef SHAPE
-    int           dumm;
-    unsigned      udumm;
-    XShapeQueryExtents (dpy, pc->w,
-                        &boundingShaped, &dumm, &dumm, &udumm, &udumm, &dumm, &dumm, &dumm, &udumm, &udumm);
-#endif
-    return boundingShaped ;
-}
-
-
 static ASFlagType
 refresh_canvas_config (ASCanvas * pc)
 {
@@ -87,25 +73,27 @@ refresh_canvas_config (ASCanvas * pc)
 				XFreePixmap (dpy, pc->canvas);
 				pc->canvas = None;
 			}
-            if (pc->mask && !get_flags( pc->state, CANVAS_CONTAINER ))
+            if (pc->shape )
 			{
-				XFreePixmap (dpy, pc->mask);
-				pc->mask = None;
+				destroy_shape( &(pc->shape) );
 #ifdef SHAPE
-		LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX) (none)",  pc->w );
-                XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, None, ShapeSet);
+				if( get_flags( pc->state, CANVAS_SHAPE_SET ) && !get_flags( pc->state, CANVAS_CONTAINER ))
+				{
+					LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX) (none)",  pc->w );
+                	XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, None, ShapeSet);
 #if 0
-                {
-                    XRectangle    rect;
-                    rect.x = 0;
-                    rect.y = 0;
-                    rect.width  = pc->width;
-                    rect.height = pc->height;
+                	{
+                    	XRectangle    rect;
+                    	rect.x = 0;
+                    	rect.y = 0;
+                    	rect.width  = pc->width;
+                    	rect.height = pc->height;
 
-                    XShapeCombineRectangles (dpy, pc->w, ShapeBounding,
-                                     0, 0, &rect, 1, ShapeSet, Unsorted);
-                }
+                    	XShapeCombineRectangles (dpy, pc->w, ShapeBounding,
+                                     	0, 0, &rect, 1, ShapeSet, Unsorted);
+                	}
 #endif
+				}
 #endif
 			}
 			set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
@@ -131,33 +119,6 @@ LOCAL_DEBUG_CALLER_OUT( "ASCanvas(%p)->canvas(%lX)", pc,pc->canvas );
         XSetWindowBackgroundPixmap (dpy, pc->w, pc->canvas);
     }
 	return pc->canvas;
-}
-
-Pixmap
-get_canvas_mask (ASCanvas * pc)
-{
-	if (pc == NULL)
-		return None;
-
-    if (pc->mask == None && !get_flags( pc->state, CANVAS_CONTAINER ))
-	{
-		pc->mask = create_visual_pixmap (Scr.asv, Scr.Root, pc->width, pc->height, 1);
-		if (pc->mask)
-		{
-			if (MaskGC == None)
-			{
-				XGCValues     gcv;
-
-				gcv.foreground = 0xFFFFFFFF;
-				gcv.background = 0;
-
-				MaskGC = XCreateGC (dpy, pc->mask, GCForeground | GCBackground, &gcv);
-			}
-			XFillRectangle (dpy, pc->mask, MaskGC, 0, 0, pc->width, pc->height);
-			set_flags (pc->state, CANVAS_DIRTY | CANVAS_MASK_OUT_OF_SYNC);
-		}
-	}
-	return pc->mask;
 }
 
 ASCanvas     *
@@ -203,8 +164,8 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 		{
 			if (pc->canvas)
 				XFreePixmap (dpy, pc->canvas);
-            if (pc->mask && !get_flags( pc->state, CANVAS_CONTAINER ))
-				XFreePixmap (dpy, pc->mask);
+            if (pc->shape)
+				destroy_shape( &(pc->shape));
 			memset (pc, 0x00, sizeof (ASCanvas));
 			free (pc);
 		}
@@ -233,7 +194,8 @@ invalidate_canvas_config( ASCanvas *pc )
         LOCAL_DEBUG_OUT( "resizing to %dx%d", pc->width+1, pc->height+1 );
         XResizeWindow( dpy, pc->w, pc->width+1, pc->height+1 );
 #ifdef SHAPE
-        if ( !get_flags( pc->state, CANVAS_CONTAINER )  && check_canvas_shaped( pc) )
+        if ( !get_flags( pc->state, CANVAS_CONTAINER )  &&
+			  get_flags( pc->state, CANVAS_SHAPE_SET ) )
         {
             XRectangle    rect;
             rect.x = 0;
@@ -253,11 +215,8 @@ invalidate_canvas_config( ASCanvas *pc )
 			XFreePixmap (dpy, pc->canvas);
 			pc->canvas = None;
 		}
-	        if (pc->mask && !get_flags( pc->state, CANVAS_CONTAINER ))
-		{
-			XFreePixmap (dpy, pc->mask);
-			pc->mask = None;
-		}
+	    if (pc->shape)
+			destroy_shape( &(pc->shape) );
 		set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
 		set_flags( pc->state, CANVAS_CONFIG_INVALID);
 	}
@@ -342,12 +301,12 @@ draw_canvas_image (ASCanvas * pc, ASImage * im, int x, int y)
 }
 
 void
-fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height, int val)
+fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height)
 {
 	int           real_x, real_y;
 	int           real_width, real_height;
 
-    if (pc->mask != None && !get_flags( pc->state, CANVAS_CONTAINER ) && MaskGC )
+    if (pc->shape != None && !get_flags( pc->state, CANVAS_CONTAINER ) )
 	{
 		real_x = MAX (win_x, 0);
 		real_y = MAX (win_y, 0);
@@ -356,13 +315,14 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height, in
 		if (real_width > 0 && real_height > 0 && real_x < pc->width && real_y < pc->height)
 		{
             int res ;
-			if (real_x + real_width > pc->width)
-				real_width = pc->width - real_x;
-			if (real_y + real_height > pc->height)
-				real_height = pc->height - real_y;
-            XSetForeground( dpy, MaskGC, val );
-            res = XFillRectangle (dpy, pc->mask, MaskGC, real_x, real_y, real_width, real_height);
-            LOCAL_DEBUG_OUT( "XFillRectangle returned %d", res );
+			XRectangle rect ;
+			rect.x = real_x ;
+			rect.y = real_y ;
+			rect.width  = real_width ;
+			rect.height = real_height ;
+			res = add_shape_rectangles( pc->shape, &rect, 1, 0, 0, pc->width, pc->height );
+			if( res )
+				set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
 		}
 	}
 }
@@ -371,35 +331,33 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height, in
 Bool
 draw_canvas_mask (ASCanvas * pc, ASImage * im, int x, int y)
 {
-	Pixmap        mask;
+	XRectangle *rects ;
+	unsigned int rects_count = 0;
+	Bool res ;
 	int           real_x, real_y;
 	int           width, height;
 
 	if (im == NULL || pc == NULL)
 		return False;
 
-    if ((mask = get_canvas_mask (pc)) == None || get_flags( pc->state, CANVAS_CONTAINER ))
-		return False;
-
 	if (!make_canvas_rectangle (pc, im, x, y, &real_x, &real_y, &width, &height))
 		return False;
-	LOCAL_DEBUG_OUT ("drawing mask %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y);
-#if 1
-    if (asimage2alpha_drawable (Scr.asv, mask, im, MaskGC, real_x - x, real_y - y, real_x, real_y, width, height, True))
-	{
-        LOCAL_DEBUG_OUT( "success%s","");
+
+	rects = get_asimage_channel_rects( im, IC_ALPHA, 10, &rects_count );
+	LOCAL_DEBUG_OUT("%d rectangles generated", rects_count );
+
+	if( rects == NULL || rects_count == 0 )
+		return False;
+
+	if( pc->shape == NULL )
+		pc->shape = create_shape();
+
+	res = add_shape_rectangles( pc->shape, rects, rects_count, real_x, real_y, width, height );
+	free( rects );
+
+	if( res )
 		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
-		return True;
-	}
-#else
-    fill_canvas_mask (pc, 0, 0, im->width, im->height/2, 0);
-    fill_canvas_mask (pc, 0, im->height/2, im->width, im->height/2, 1);
-    LOCAL_DEBUG_OUT( "faked success%s","");
-    set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
-    return True;
-#endif
-    LOCAL_DEBUG_OUT( "failure%s","");
-	return False;
+	return res;
 }
 
 #ifdef TRACE_update_canvas_display
@@ -457,6 +415,7 @@ set_canvas_shape_to_rectangle( ASCanvas * pc )
     LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) (%dx%d%+d%+d)", pc->w, rect.width, rect.height, -bw, -bw );
     XShapeCombineRectangles ( dpy, pc->w, ShapeBounding,
                                 -bw, -bw, &rect, 1, ShapeSet, Unsorted);
+	set_flags( pc->state, CANVAS_SHAPE_SET );
 }
 
 void
@@ -470,39 +429,42 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
             if (pc->canvas)
             {
 #ifdef SHAPE
-                if (pc->mask)
+                if (pc->shape)
                 {
-                    LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX)set canvas mask to %lX", pc->w, pc->mask );
-                    XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, pc->mask, ShapeSet);
-                }else
+                    LOCAL_DEBUG_OUT( "XShapeCombineREctangles(%lX)set canvas shape to %d rects", pc->w, PVECTOR_USED(pc->shape) );
+                    XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, PVECTOR_HEAD(XRectangle, pc->shape), PVECTOR_USED(pc->shape), ShapeSet, Unsorted);
+					set_flags( pc->state, CANVAS_SHAPE_SET );
+				}else if( get_flags( pc->state, CANVAS_SHAPE_SET ) )
                     set_canvas_shape_to_rectangle( pc );
 #endif
                 XSetWindowBackgroundPixmap (dpy, pc->w, pc->canvas);
                 XClearWindow (dpy, pc->w);
 
                 XSync (dpy, False);
-                clear_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
+                clear_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC | CANVAS_MASK_OUT_OF_SYNC );
             }
         }
 	}
 }
 
 void
-update_canvas_display_mask (ASCanvas * pc)
+update_canvas_display_mask (ASCanvas * pc, Bool force)
 {
 #ifdef SHAPE
 LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc, pc->w, pc->canvas, pc->width, pc->height );
     if (pc && pc->w != None )
 	{
-        if( !get_flags( pc->state, CANVAS_CONTAINER ))
+        if( force || !get_flags( pc->state, CANVAS_CONTAINER ))
         {
-            if (pc->mask)
+            if (pc->shape)
             {
-                LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX)set canvas mask to %lX", pc->w,	pc->mask );
-                XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, pc->mask, ShapeSet);
-            }else
+                LOCAL_DEBUG_OUT( "XShapeCombineREctangles(%lX)set canvas mask to %d rectangles", pc->w, PVECTOR_USED(pc->shape) );
+                XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, PVECTOR_HEAD(XRectangle, pc->shape), PVECTOR_USED(pc->shape), ShapeSet, Unsorted);
+				set_flags( pc->state, CANVAS_SHAPE_SET );
+            }else if( get_flags( pc->state, CANVAS_SHAPE_SET ) )
                 set_canvas_shape_to_rectangle( pc );
             XSync (dpy, False);
+            clear_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC );
         }
 	}
 #endif
@@ -517,134 +479,135 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 	{
         if( !get_flags( pc->state, CANVAS_CONTAINER ) )
         {
-            if (pc->canvas)
-            {
 #ifdef SHAPE
+            if (pc->canvas && get_flags( pc->state, CANVAS_SHAPE_SET ) )
                 set_canvas_shape_to_rectangle( pc );
-                if( pc->mask )
-                {
-                    XFreePixmap( dpy, pc->mask );
-                    pc->mask = None ;
-                    set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
-                }
 #endif
-            }
+            if( pc->shape )
+				destroy_shape( &pc->shape );
+            set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
         }
     }
 }
 
 Bool
-combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first, Bool use_window_shape )
+check_canvas_shaped( ASCanvas *pc)
 {
+    Bool           boundingShaped= False;
+#ifdef SHAPE
+    int           dumm;
+    unsigned      udumm;
+    XShapeQueryExtents (dpy, pc->w,
+                        &boundingShaped, &dumm, &dumm, &udumm, &udumm, &dumm, &dumm, &dumm, &udumm, &udumm);
+#endif
+    return boundingShaped ;
+}
+
+Bool
+refresh_container_shape( ASCanvas *pc )
+{
+	int res = False;
+	if( pc && get_flags( pc->state, CANVAS_CONTAINER ) )
+	{
+		int count, order ;
+		XRectangle *rects = XShapeGetRectangles( dpy, pc->w, ShapeBounding, &count, &order );
+		if( rects )
+		{
+			if( pc->shape == NULL )
+				pc->shape = create_shape();
+			else
+				flush_vector( pc->shape );
+
+			res = add_shape_rectangles( pc->shape, rects, count, 0, 0, pc->width, pc->height );
+			XFree( rects );
+
+			if( res )
+				set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
+		}else if( pc->shape )
+		{
+			destroy_shape( &(pc->shape) );
+			set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
+			res = True ;
+		}
+	}
+	return res;
+}
+
+
+Bool
+combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_width, int child_height, int child_bw )
+{
+	int res = False ;
+#ifdef SHAPE
+LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
+    if (parent && child )
+	{
+		unsigned int parent_width, parent_height ;
+		if( parent->shape == NULL )
+			return False;
+
+        get_current_canvas_size( parent, &parent_width, &parent_height );
+
+        if( child_x > parent_width || child_y > parent_height ||
+            child_x + child_width <= 0 || child_y + child_height <= 0 )
+        {
+#ifdef LOCAL_DEBUG
+            if( get_flags( child->state, CANVAS_CONTAINER ) )
+                LOCAL_DEBUG_OUT( "container shape ignored - out of bounds: %dx%d%+d%+d parents: %dx%d%+d%+d",
+                                 child_width, child_height, child_x, child_y,
+                                 parent_width, parent_height, parent->root_x, parent->root_y );
+#endif
+            return False;
+        }
+
+		if( child->shape )
+		{
+			res = add_shape_rectangles( parent->shape, PVECTOR_HEAD(XRectangle, child->shape), PVECTOR_USED(child->shape), child_x, child_y, parent_width, parent_height );
+		}else
+		{
+			XRectangle rect ;
+			rect.x = child_x - child_bw ;
+			rect.y = child_y - child_bw ;
+			rect.width = child_width + child_bw*2 ;
+			rect.height = child_height + child_bw*2 ;
+			res = add_shape_rectangles( parent->shape, &rect, 1, 0, 0, parent_width, parent_height );
+		}
+    }
+#endif
+    return res;
+}
+
+Bool
+combine_canvas_shape (ASCanvas *parent, ASCanvas *child )
+{
+	int res = False ;
 #ifdef SHAPE
     if (parent && child )
 	{
         int child_x = 0 ;
         int child_y = 0 ;
         unsigned int width, height, bw;
-        unsigned int parent_width, parent_height;
+
+		if( parent->shape == NULL )
+			return False;
 
         get_current_canvas_geometry( child, &child_x, &child_y, &width, &height, &bw );
-        get_current_canvas_size( parent, &parent_width, &parent_height );
-
-        if( child_x > parent_width || child_y > parent_height ||
-            child_x+width <= 0 || child_y+height <= 0 )
-        {
-#ifdef LOCAL_DEBUG
-            if( get_flags( child->state, CANVAS_CONTAINER ) )
-                LOCAL_DEBUG_OUT( "container shape ignored - out of bounds: %dx%d%+d%+d parents: %dx%d%+d%+d",
-                                 width, height, child_x, child_y,
-                                 parent_width, parent_height, parent->root_x, parent->root_y );
-#endif
-            return False;
-        }
-
-        return combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw, first, use_window_shape );
+		res = combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw );
     }
 #endif
-    return False;
+    return res;
 }
 
-Bool
-combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_width, int child_height, int child_bw, Bool first, Bool use_window_shape )
-{
-#ifdef SHAPE
-LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
-    if (parent && child )
-	{
-        if( get_flags( child->state, CANVAS_CONTAINER ) )
-        {
-            if( check_canvas_shaped( child) )
-            {
-LOCAL_DEBUG_OUT( "XShapeCombineShape(%lX) setting bounding container's shape from client at %+d%+d",  parent->w, child_x+child_bw, child_y+child_bw );
-                XShapeCombineShape (dpy, parent->w, ShapeBounding,
-                                    child_x+child_bw, child_y+child_bw,
-                                    child->w, ShapeBounding, first?ShapeSet:ShapeUnion);
-                return True;
-            }
-        }
-
-        if( child->mask == None || get_flags( child->state, CANVAS_CONTAINER ))
-        {
-            XRectangle    rect;
-            rect.x = child_x ;
-            rect.y = child_y ;
-            rect.width  = child_width+child_bw*2;
-            rect.height = child_height+child_bw*2;
-
-LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) setting bounding container's shape from rectangle %dx%d%+d%+d",  parent->w, rect.width, rect.height, rect.x, rect.y );
-            XShapeCombineRectangles (dpy, parent->w, ShapeBounding,
-                                0, 0, &rect, 1, first?ShapeSet:ShapeUnion, Unsorted);
-        }else
-        {
-            if( !use_window_shape )
-            {
-                LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX) setting bounding container's shape from mask %lX at %+d%+d",  parent->w, child->mask, child_x, child_y );
-                XShapeCombineMask  ( dpy, parent->w, ShapeBounding, child_x+child_bw, child_y+child_bw,
-                                     child->mask, first?ShapeSet:ShapeUnion);
-            }else
-            {
-                LOCAL_DEBUG_OUT( "XShapeCombineShape(%lX) setting bounding container's shape from shape %lX at %+d%+d",  parent->w, child->mask, child_x, child_y );
-                XShapeCombineShape (dpy, parent->w, ShapeBounding, child_x+child_bw, child_y+child_bw,
-                                    child->w, ShapeBounding, first?ShapeSet:ShapeUnion);
-            }
-        }
-        return True;
-    }
-#endif
-    return False;
-}
 
 Bool
-combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool first, Bool use_window_shape )
+combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y )
 {
 #ifdef SHAPE
     if( child )
     {
         unsigned int width, height, bw;
         get_current_canvas_geometry( child, NULL, NULL, &width, &height, &bw );
-        return combine_canvas_shape_at_geom ( parent, child, child_x, child_y, width, height, bw, first, use_window_shape );
-    }
-#endif
-    return False;
-}
-
-Bool
-replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool use_window_shape )
-{
-#ifdef SHAPE
-    unsigned int width, height, bw;
-    if( get_current_canvas_geometry( child, NULL, NULL, &width, &height, &bw ) )
-    {
-        XRectangle    rect;
-        rect.x = child_x ;
-        rect.y = child_y ;
-        rect.width  = width+bw*2;
-        rect.height = height+bw*2;
-
-LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) subtracting rectangle %dx%d%+d%+d from bounding container's shape",  parent->w, rect.width, rect.height, rect.x, rect.y );
-        XShapeCombineRectangles (dpy, parent->w, ShapeBounding, 0, 0, &rect, 1, ShapeSubtract, Unsorted);
-        return combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw, False, use_window_shape );
+        return combine_canvas_shape_at_geom ( parent, child, child_x, child_y, width, height, bw );
     }
 #endif
     return False;
@@ -1587,7 +1550,7 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
     if( get_flags( flip, FLIP_UPSIDEDOWN ) )
         align_flags = ((align_flags&0x0005)<<1)|((align_flags&(0x0005<<1))>>1)|(align_flags&RESIZE_MASK);
 
-	LOCAL_DEBUG_CALLER_OUT( "type = %d, col = %d, row = %d, flip = %d, align_flags = 0x%X", type, col, row, flip, align_flags );
+	LOCAL_DEBUG_CALLER_OUT( "type = %d, col = %d, row = %d, flip = %d, align_flags = 0x%lX", type, col, row, flip, align_flags );
 
 	clear_flags( align_flags, FIT_LABEL_SIZE);
 	if( get_flags( flip, FLIP_VERTICAL ) )
@@ -1604,7 +1567,7 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
     	if( get_flags( align, FIT_LABEL_HEIGHT ) )
         	set_flags( align_flags, FIT_LABEL_HEIGHT );
 	}
-	LOCAL_DEBUG_CALLER_OUT( "type = %d, flip = %d, align = 0x%X, align_flags = 0x%X", type, flip, align, align_flags );
+	LOCAL_DEBUG_CALLER_OUT( "type = %d, flip = %d, align = 0x%X, align_flags = 0x%lX", type, flip, align, align_flags );
     align_flags &= (PAD_MASK|RESIZE_MASK|FIT_LABEL_SIZE);
 
     memset( &(tbar->tiles[new_idx]), 0x00, sizeof(ASTile));
@@ -2189,8 +2152,8 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
     LOCAL_DEBUG_OUT( "render_mask = %d", render_mask );
     if ( render_mask )
 		fmt = ASA_ASImage;
-	else if (pc->mask)
-		fill_canvas_mask (pc, tbar->win_x, tbar->win_y, tbar->width, tbar->height, 1);
+	else if (pc->shape)
+		fill_canvas_mask (pc, tbar->win_x, tbar->win_y, tbar->width, tbar->height );
 #endif
     merged_im = merge_layers (Scr.asv, &layers[0], good_layers, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
     for( l = 0 ; l < good_layers ; ++l )

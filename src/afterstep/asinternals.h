@@ -15,6 +15,7 @@
 #include "../../libAfterStep/hints.h"
 #include "../../libAfterStep/balloon.h"
 #include "../../libAfterStep/parser.h"
+#include "../../libAfterStep/shape.h"
 
 #include "menus.h"
 

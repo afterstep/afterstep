@@ -48,18 +48,25 @@ int main(int argc, char* argv[])
 	}
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
-	
-	/* The following could be used to dump JPEG version of the image into 
+
+	/* The following could be used to dump JPEG version of the image into
 	 * stdout : */
 	/* ASImage2file( im, NULL, NULL, ASIT_Jpeg, NULL ); */
-	
-	
+
+
 	if( im != NULL )
 	{
 #ifndef X_DISPLAY_MISSING
 		Window w ;
 		ASVisual *asv ;
 		int screen, depth ;
+#if 0
+		XRectangle *rects ;	unsigned int rects_count =0; int i ;
+		rects = get_asimage_channel_rects( im, IC_ALPHA, 10, &rects_count );
+		fprintf( stderr, " %d rectangles generated : \n", rects_count );
+		for( i = 0 ; i < rects_count ; ++i )
+			fprintf( stderr, "\trect[%d]=%dx%d%+d%+d;\n", i, rects[i].width, rects[i].height, rects[i].x, rects[i].y );
+#endif
 
 	    dpy = XOpenDisplay(NULL);
 		_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
@@ -85,7 +92,7 @@ int main(int argc, char* argv[])
 		}
 		/* see common.c: wait_closedown() : */
 		wait_closedown(w);
-		
+
 #else
 		/* writing result into the file */
 		ASImage2file( im, NULL, "asview.jpg", ASIT_Jpeg, NULL );
