@@ -360,6 +360,7 @@ apply_window_status_size(register ASWindow *asw, ASOrientation *od)
         int step_size = make_shade_animation_step( asw, od );
 		int new_width = asw->status->width ;
 		int new_height = asw->status->height ;
+		Bool unshaded = True ;
 LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
                  asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname",
                  asw->status->width, asw->status->height, asw->status->x, asw->status->y,
@@ -368,19 +369,29 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
 
         if( step_size > 0 )
         {
+            if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+			{
+				if( new_width > step_size )
+					unshaded  = False ;
+				new_width = step_size ;
+            }else
+			{
+				if( new_height > step_size )
+					unshaded  = False ;
+				new_height = step_size ;
+			}
+        }
+		if( unshaded )
+        {
+            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+                XRaiseWindow( dpy, asw->w );
+        }else
+		{
             if( asw->frame_sides[od->tbar_side] )
                 XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
             if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
                 XLowerWindow( dpy, asw->w );
-            if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-				new_width = step_size ;
-            else
-				new_height = step_size ;
-        }else
-        {
-            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-                XRaiseWindow( dpy, asw->w );
-        }
+		}
 		moved = (	asw->frame_canvas->root_x != asw->status->x ||
 					asw->frame_canvas->root_y != asw->status->y ||
 					asw->frame_canvas->width != new_width ||
