@@ -443,7 +443,7 @@ LoadBaseConfig(void (*read_base_options_func) (const char *))
 
     if (Session->overriding_file == NULL )
 	{
-        char *configfile = make_session_file(Session, BASE_FILE, True );
+        char *configfile = make_session_file(Session, BASE_FILE, False/* no longer use #bpp in filenames */ );
         if( configfile != NULL )
         {
             read_base_options_func (configfile);

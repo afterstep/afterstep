@@ -460,13 +460,13 @@ ExecuteFunction ( FunctionCode func, char *action, ASEvent *event,
 	 case F_CHANGE_LOOK:
 		 if (Scr.screen == 0)
 #ifndef DIFFERENTLOOKNFEELFOREACHDESKTOP
-			 sprintf (tmpfile, LOOK_FILE, 0, Scr.d_depth);
+			 sprintf (tmpfile, LOOK_FILE, 0);
 		 else
-			 sprintf (tmpfile, LOOK_FILE ".scr%ld", 0, Scr.d_depth, Scr.screen);
+			 sprintf (tmpfile, LOOK_FILE ".scr%ld", 0, Scr.screen);
 #else /* DIFFERENTLOOKNFEELFOREACHDESKTOP */
-			 sprintf (tmpfile, LOOK_FILE, Scr.CurrentDesk, Scr.d_depth);
+			 sprintf (tmpfile, LOOK_FILE, Scr.CurrentDesk);
 		 else
-			 sprintf (tmpfile, LOOK_FILE ".scr%ld", Scr.CurrentDesk, Scr.d_depth, Scr.screen);
+			 sprintf (tmpfile, LOOK_FILE ".scr%ld", Scr.CurrentDesk, Scr.screen);
 #endif /* DIFFERENTLOOKNFEELFOREACHDESKTOP */
 
 		 realfilename = make_file_name (as_dirs.after_dir, tmpfile);

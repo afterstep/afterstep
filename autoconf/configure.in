@@ -221,6 +221,7 @@ AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
 PATH_XTRA_CHECKED=yes
 export PATH_XTRA_CHECKED
 export x_includes
+export x_libraries
 export X_CFLAGS
 export X_LIBS
 export X_EXTRA_LIBS
@@ -615,11 +616,7 @@ tools/Makefile \
 tools/installastheme.pl \
 tools/makeastheme.pl \
 \
-afterstep/base.8bpp \
-afterstep/base.15bpp \
-afterstep/base.16bpp \
-afterstep/base.24bpp \
-afterstep/base.32bpp \
+afterstep/base \
 afterstep/asetroot \
 afterstep/audio \
 afterstep/autoexec \

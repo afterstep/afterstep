@@ -65,9 +65,9 @@
 #define ASETROOT_FILE   "asetroot"                   /* legacy background configuration */
 #define THEME_OVERRIDE_FILE       "theme-override"
 #define BACK_FILE       "non-configurable/%d_background" /* desk */
-#define LOOK_FILE       "non-configurable/%d_look.%dbpp" /* desk,scrdepth */
-#define FEEL_FILE       "non-configurable/%d_feel.%dbpp" /* desk,scrdepth */
-#define THEME_FILE      "non-configurable/%d_theme.%dbpp" /* desk,scrdepth */
+#define LOOK_FILE       "non-configurable/%d_look" /* desk */
+#define FEEL_FILE       "non-configurable/%d_feel" /* desk */
+#define THEME_FILE      "non-configurable/%d_theme" /* desk */
 #define MENU_FILE	"non-configurable/startmenu"
 #define AUTOEXEC_FILE   "autoexec"
 #define DATABASE_FILE   "database"

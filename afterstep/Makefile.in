@@ -31,6 +31,7 @@ install:
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/fonts; \
 	$(CP) -r desktop/fonts/* $(AFTER_SHAREDIR)/desktop/fonts/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons; \
+	$(CP) desktop/icons/CREDITS $(AFTER_SHAREDIR)/desktop/icons/; \
 	if [ -d desktop/icons/xml ] ; then \
 		$(CP) -r desktop/icons/xml/* $(AFTER_SHAREDIR)/desktop/icons/; \
 	fi; \

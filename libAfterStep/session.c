@@ -135,12 +135,12 @@ find_default_look_file (ASSession *session)
     legacy = safemalloc( strlen(LOOK_FILE)+11+1+15 );
     if( session->scr->screen != 0 )
     {
-        sprintf( legacy, LOOK_FILE ".scr%ld", 0, session->colordepth, session->scr->screen);
+        sprintf( legacy, LOOK_FILE ".scr%ld", 0, session->scr->screen);
         file = find_default_file ( session, legacy, False);  /* legacy stuff */
     }
     if( file == NULL )
     {
-        sprintf( legacy, LOOK_FILE, 0, session->colordepth );
+        sprintf( legacy, LOOK_FILE, 0 );
         file = find_default_file ( session, legacy, True);  /* legacy stuff */
     }
     free( legacy );
@@ -160,12 +160,12 @@ find_default_feel_file (ASSession *session)
     legacy = safemalloc( strlen(FEEL_FILE)+11+1+15 );
     if( session->scr->screen != 0 )
     {
-        sprintf( legacy, FEEL_FILE ".scr%ld", 0, session->colordepth, session->scr->screen);
+        sprintf( legacy, FEEL_FILE ".scr%ld", 0, session->scr->screen);
         file = find_default_file ( session, legacy, False);  /* legacy stuff */
     }
     if( file == NULL )
     {
-        sprintf( legacy, FEEL_FILE, 0, session->colordepth );
+        sprintf( legacy, FEEL_FILE, 0 );
         file = find_default_file ( session, legacy, True);  /* legacy stuff */
     }
     free( legacy );
@@ -186,12 +186,12 @@ find_default_theme_file (ASSession *session)
     legacy = safemalloc( strlen(THEME_FILE)+11+1+15 );
     if( session->scr->screen != 0 )
     {
-        sprintf( legacy, THEME_FILE ".scr%ld", 0, session->colordepth, session->scr->screen);
+        sprintf( legacy, THEME_FILE ".scr%ld", 0, session->scr->screen);
         file = find_default_file ( session, legacy, False);  /* legacy stuff */
     }
     if( file == NULL )
     {
-        sprintf( legacy, THEME_FILE, 0, session->colordepth );
+        sprintf( legacy, THEME_FILE, 0 );
         file = find_default_file ( session, legacy, True);  /* legacy stuff */
     }
     free( legacy );

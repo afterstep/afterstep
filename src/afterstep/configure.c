@@ -1202,7 +1202,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         const char *const_configfile;
         if (get_flags(what, PARSE_BASE_CONFIG))
 		{
-            if( (configfile = make_session_file(Session, BASE_FILE, True )) != NULL )
+            if( (configfile = make_session_file(Session, BASE_FILE, False/* no longer use #bpp in filenames */ )) != NULL )
             {
                 char * old_pixmap_path = PixmapPath ;
 

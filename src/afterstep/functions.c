@@ -906,13 +906,13 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
     if (Scr.screen == 0)
     {
         file_template = (data->func == F_CHANGE_LOOK)? LOOK_FILE : ((data->func == F_CHANGE_THEME)?THEME_FILE:FEEL_FILE) ;
-        sprintf (tmpfile, file_template, desk, Scr.d_depth);
+        sprintf (tmpfile, file_template, desk);
     }else
     {
         file_template =  (data->func == F_CHANGE_LOOK )? LOOK_FILE  ".scr%ld" :
                         ((data->func == F_CHANGE_THEME)? THEME_FILE ".scr%ld" :
                                                          FEEL_FILE  ".scr%ld" );
-        sprintf (tmpfile, file_template, desk, Scr.d_depth, Scr.screen);
+        sprintf (tmpfile, file_template, desk, Scr.screen);
     }
 
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
