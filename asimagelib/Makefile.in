@@ -15,3 +15,6 @@ LIBVER          = 1.9
 LIBVERMAJOR     = 1
 
 @MAKEFILECOMMONLIB@
+
+install.inc
+
