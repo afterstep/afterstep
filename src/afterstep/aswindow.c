@@ -923,7 +923,7 @@ restack_window_list( int desk, Bool send_msg_only )
         ASWindow **members = PVECTOR_HEAD(ASWindow*,l[i]->members);
         if( end_k > ids->allocated )
             end_k = ids->allocated ;
-        LOCAL_DEBUG_OUT( "layer %ld, end_k = %d", i, end_k );
+        LOCAL_DEBUG_OUT( "layer[%ld] = %d, end_k = %d", i, l[i]->layer, end_k );
         for( k = 0 ; k < end_k ; k++ )
         {
             register ASWindow *asw = members[k] ;
@@ -953,12 +953,15 @@ restack_window_list( int desk, Bool send_msg_only )
         {
             register int k, end_k = PVECTOR_USED(l[i]->members) ;
             register ASWindow **members = PVECTOR_HEAD(ASWindow*,l[i]->members);
-            if( end_k > ids->allocated )
-                end_k = ids->allocated ;
-            LOCAL_DEBUG_OUT( "layer %ld, end_k = %d", i, end_k );
+            if( windows_num+end_k > ids->allocated )
+                end_k = ids->allocated - windows_num ;
+            LOCAL_DEBUG_OUT( "layer[%ld] = %d, end_k = %d", i, l[i]->layer, end_k );
             for( k = 0 ; k < end_k ; k++ )
                 if( ASWIN_DESK(members[k]) == desk && !ASWIN_GET_FLAGS(members[k], AS_Dead))
+				{
                     windows[windows_num++] = get_window_frame(members[k]);
+					LOCAL_DEBUG_OUT( "\t windows[%d] = %lX", k, windows[windows_num-1] );
+				}
         }
 
         LOCAL_DEBUG_OUT( "Setting stacking order: windows_num = %ld, ", windows_num );

@@ -861,7 +861,7 @@ Optional Features:
   --enable-audit           memory usage audit (for debugging) no
   --enable-shmimage        enable usage of MIT shared memory extention for image transfer no
   --enable-shaping        enable usage of MIT shaped windows extention yes
-  --enable-glx            enable usage of GLX extention yes
+  --enable-glx            enable usage of GLX extention no
   --enable-mmx-optimization  enable utilization of MMX instruction set to speed up imaging operations yes
 
 Optional Packages:
@@ -1445,7 +1445,7 @@ if test "${enable_glx+set}" = set; then
   enableval="$enable_glx"
   enable_glx=$enableval
 else
-  enable_glx="yes"
+  enable_glx="no"
 fi;
 
 # Check whether --enable-mmx_optimization or --disable-mmx_optimization was given.
@@ -6333,7 +6333,7 @@ fi
 
 image_format="xpm"
 
-AFTERIMAGE_LIBS=
+AFTERIMAGE_LIBS=$x_libs
 
 if test "$with_xpm" = no; then
   have_xpm=disabled

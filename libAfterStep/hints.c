@@ -2567,7 +2567,7 @@ print_status_hints (stream_func func, void *stream, ASStatusHints * status)
 	if (get_flags (status->flags, AS_Desktop))
 		func (stream, "STATUS.desktop = %d;\n", status->desktop);
 	if (get_flags (status->flags, AS_Layer))
-		func (stream, "STATUS.desktop = %d;\n", status->layer);
+		func (stream, "STATUS.layer = %d;\n", status->layer);
 	if (get_flags (status->flags, AS_StartViewportX | AS_StartViewportX))
 	{
 		func (stream, "STATUS.viewport_x = %d;\n", status->viewport_x);
