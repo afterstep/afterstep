@@ -37,21 +37,21 @@ MyStyle "focused_window_style"
   Inherit	"window_font"
   TextStyle	4
   ForeColor     ActiveText
-  BackPixmap    125 bars/empty
+  BackPixmap    125 tiles/empty
   ~MyStyle
 
 MyStyle "unfocused_window_style"
   Inherit       "window_font"
   TextStyle	4
   ForeColor     InactiveText1Dark
-  BackPixmap    125 bars/empty
+  BackPixmap    125 tiles/empty
   ~MyStyle
 
 MyStyle "sticky_window_style"
   Inherit       "window_font"
   ForeColor     InactiveText2
   BackColor	Inactive2
-  BackPixmap    125 bars/empty
+  BackPixmap    125 tiles/empty
   ~MyStyle
 
 MyStyle "focused_frame_style"
@@ -87,14 +87,14 @@ MyStyle "unfocused_menu_title_style"
   Inherit       "menu_title_font"
   ForeColor     InactiveText1
   BackColor     HighInactive
-  BackPixmap    125 bars/empty
+  BackPixmap    125 tiles/empty
   ~MyStyle
 
 MyStyle "focused_menu_title_style"
   Inherit       "menu_title_font"
   ForeColor	ActiveText
   BackColor     HighActive
-  BackPixmap    125 bars/empty
+  BackPixmap    125 tiles/empty
   ~MyStyle
 
 MyStyle "menu_item_style"
