@@ -1,0 +1,6 @@
+config.cache
+config.log
+Makefile.defines
+Makefile.common
+Makefile.common.lib
+.cvsignore
