@@ -198,7 +198,7 @@ style_init (name_list * nl)
 
 	nl->name = NULL;
 	nl->set_flags = 0;
-	nl->flags = 0;
+	nl->flags = 0 ; /*STYLE_DEFAULTS;*/
 	init_asgeometry (&(nl->default_geometry));
 	nl->icon_file = NULL;
 	nl->Desk = 0;

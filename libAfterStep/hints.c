@@ -709,23 +709,26 @@ encode_flags (ASFlagType * dst_flags, ASFlagsXref * xref, ASFlagType set_flags, 
 void
 check_motif_hints_sanity (MwmHints * motif_hints)
 {
-	if (get_flags (motif_hints->functions, MWM_FUNC_ALL))
-		motif_hints->functions = MWM_FUNC_EVERYTHING & ~(motif_hints->functions);
+
 	if (get_flags (motif_hints->decorations, MWM_DECOR_ALL))
 		motif_hints->decorations = MWM_DECOR_EVERYTHING & ~(motif_hints->decorations);
 
 	/* Now I have the un-altered decor and functions, but with the
 	   * ALL attribute cleared and interpreted. I need to modify the
 	   * decorations that are affected by the functions */
-	if (!get_flags (motif_hints->functions, MWM_FUNC_RESIZE))
-		motif_hints->decorations &= ~MWM_DECOR_RESIZEH;
-	/* MWM_FUNC_MOVE has no impact on decorations. */
-	if (!get_flags (motif_hints->functions, MWM_FUNC_MINIMIZE))
-		motif_hints->decorations &= ~MWM_DECOR_MINIMIZE;
-	if (!get_flags (motif_hints->functions, MWM_FUNC_MAXIMIZE))
-		motif_hints->decorations &= ~MWM_DECOR_MAXIMIZE;
-	/* MWM_FUNC_CLOSE has no impact on decorations. */
-
+	if( get_flags( motif_hints->flags, MWM_HINTS_FUNCTIONS )  )
+	{
+		if (get_flags (motif_hints->functions, MWM_FUNC_ALL))
+			motif_hints->functions = MWM_FUNC_EVERYTHING & ~(motif_hints->functions);
+		if (!get_flags (motif_hints->functions, MWM_FUNC_RESIZE))
+			motif_hints->decorations &= ~MWM_DECOR_RESIZEH;
+		/* MWM_FUNC_MOVE has no impact on decorations. */
+		if (!get_flags (motif_hints->functions, MWM_FUNC_MINIMIZE))
+			motif_hints->decorations &= ~MWM_DECOR_MINIMIZE;
+		if (!get_flags (motif_hints->functions, MWM_FUNC_MAXIMIZE))
+			motif_hints->decorations &= ~MWM_DECOR_MAXIMIZE;
+		/* MWM_FUNC_CLOSE has no impact on decorations. */
+	}
 	/* This rule is implicit, but its easier to deal with if
 	   * I take care of it now */
 	if (motif_hints->decorations & (MWM_DECOR_MENU | MWM_DECOR_MINIMIZE | MWM_DECOR_MAXIMIZE))
