@@ -241,13 +241,8 @@ typedef struct ASWindow
     int icon_pm_depth;		/* icon pixmap drawable depth */
 
     XWindowAttributes attr;	/* the child window attributes */
-    XSizeHints normal_hints;		/* normal hints */
-    XWMHints *wmhints;		/* WM hints */
-    int Desk;			/* Tells which desktop this window is on */
     int FocusDesk;		/* Where (if at all) was it focussed */
     int DeIconifyDesk;		/* Desk to deiconify to, for StubbornIcons */
-    int layer;			/* layer this window is in */
-    Window transientfor;
 
     unsigned long flags;
 
@@ -256,10 +251,6 @@ typedef struct ASWindow
     int orig_wd;		/* unmaximized window width */
     int orig_ht;		/* unmaximized window height */
 
-    int *mwm_hints;
-    int functions;
-    Window *cmap_windows;	/* Colormap windows property */
-    int number_cmap_windows;	/* Should generally be 0 */
     long focus_sequence;
     long circulate_sequence;
     unsigned long buttons;

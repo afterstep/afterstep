@@ -206,8 +206,7 @@ void SendName (int, unsigned long, unsigned long, unsigned long, unsigned long,
 void DeadPipe (int);
 unsigned long GetGnomeState (ASWindow * t);
 unsigned long SetGnomeState (ASWindow * t);
-void GetMwmHints (ASWindow *);
-void SelectDecor (ASWindow *, unsigned long, int, int);
+void SelectDecor (ASWindow *);
 void ComplexFunction (Window, ASWindow *, XEvent *, unsigned long, struct MenuRoot *);
 extern int DeferExecution (XEvent *, Window *, ASWindow **, unsigned long *, int, int);
 void send_clientmessage (Window, Atom, Time);

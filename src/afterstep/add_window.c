@@ -374,81 +374,19 @@ bind_aswindow_styles(ASWindow *t)
 void
 SelectDecor (ASWindow * t)
 {
-	int           decor;
 	int border_width =0, resize_width = 0;
+	ASHints *hints = t->hints ;
+	ASFlagType tflags = hints->flags ;
 
-	if (!(tflags & BW_FLAG))
-		border_width = Scr.NoBoundaryWidth;
-
-	if (!(tflags & NOBW_FLAG))
-		resize_width = Scr.BoundaryWidth;
-
-	decor = MWM_DECOR_ALL;
-	t->functions = MWM_FUNC_ALL;
-	if (t->mwm_hints)
-	{
-		prop = (MwmHints *) t->mwm_hints;
-		if ((Scr.flags & MWMDecorHints) && (prop->flags & MWM_HINTS_DECORATIONS))
-			decor = prop->decorations;
-
-		if ((Scr.flags & MWMFunctionHints) && (prop->flags & MWM_HINTS_FUNCTIONS))
-			t->functions = prop->functions;
-	}
-	/* functions affect the decorations! if the user says
-	 * no iconify function, then the iconify button doesn't show
-	 * up. */
-	if (t->functions & MWM_FUNC_ALL)
-	{
-		/* If we get ALL + some other things, that means to use
-		 * ALL except the other things... */
-		t->functions &= ~MWM_FUNC_ALL;
-		t->functions = (MWM_FUNC_RESIZE | MWM_FUNC_MOVE | MWM_FUNC_MINIMIZE |
-						MWM_FUNC_MAXIMIZE | MWM_FUNC_CLOSE) & (~(t->functions));
-	}
-
-	if ((Scr.flags & MWMFunctionHints) && (t->flags & TRANSIENT))
-		t->functions &= ~(MWM_FUNC_MAXIMIZE | MWM_FUNC_MINIMIZE);
-
-	if (decor & MWM_DECOR_ALL)
-	{
-		/* If we get ALL + some other things, that means to use
-		 * ALL except the other things... */
-		decor &= ~MWM_DECOR_ALL;
-		decor = (MWM_DECOR_BORDER | MWM_DECOR_RESIZEH | MWM_DECOR_TITLE |
-				 MWM_DECOR_MENU | MWM_DECOR_MINIMIZE | MWM_DECOR_MAXIMIZE) & (~decor);
-	}
-	/* Now I have the un-altered decor and functions, but with the
-	 * ALL attribute cleared and interpreted. I need to modify the
-	 * decorations that are affected by the functions */
-	if (!(t->functions & MWM_FUNC_RESIZE))
-		decor &= ~MWM_DECOR_RESIZEH;
-	/* MWM_FUNC_MOVE has no impact on decorations. */
-	if (!(t->functions & MWM_FUNC_MINIMIZE))
-		decor &= ~MWM_DECOR_MINIMIZE;
-	if (!(t->functions & MWM_FUNC_MAXIMIZE))
-		decor &= ~MWM_DECOR_MAXIMIZE;
-	/* MWM_FUNC_CLOSE has no impact on decorations. */
-
-	/* This rule is implicit, but its easier to deal with if
-	 * I take care of it now */
-	if (decor & (MWM_DECOR_MENU | MWM_DECOR_MINIMIZE | MWM_DECOR_MAXIMIZE))
-		decor |= MWM_DECOR_TITLE;
-
-	/* Selected the mwm-decor field, now trim down, based on configuration
-	 * files entries */
-	if ((tflags & NOTITLE_FLAG) || ((!(Scr.flags & DecorateTransients)) && (t->flags & TRANSIENT)))
-		decor &= ~MWM_DECOR_TITLE;
-
-	if ((tflags & NOHANDLES_FLAG)
-		|| ((!(Scr.flags & DecorateTransients)) && (t->flags & TRANSIENT)))
-		decor &= ~MWM_DECOR_RESIZEH;
-
-	if ((Scr.flags & MWMDecorHints) && (t->flags & TRANSIENT))
-		decor &= ~(MWM_DECOR_MAXIMIZE | MWM_DECOR_MINIMIZE);
-
+	border_width = get_flags(tflags, AS_Border)?hints->border_width:Scr.NoBoundaryWidth;
+	resize_width = get_flags(tflags, AS_Handles)?hints->handle_width:Scr.BoundaryWidth;
+	
 #ifdef SHAPE
 	if (t->wShaped)
-		decor &= ~(BORDER | MWM_DECOR_RESIZEH | FRAME);
+	{
+		tflags &= ~(AS_Border | AS_Frame);
+		clear_flags(hints->function_mask,AS_FuncResize);
+	}
 #endif
 	/* Assume no decorations, and build up */
 	t->flags &= ~(BORDER | TITLE | FRAME);
@@ -459,45 +397,161 @@ SelectDecor (ASWindow * t)
 	t->title_height = 0;
 	t->button_height = 0;
 
-	if (decor & MWM_DECOR_TITLE)
-	{
-		/* a titlebar with no buttons in it */
+	if (get_flags(tflags,AS_Titlebar))
 		t->flags |= TITLE;
-	}
-	if (decor & MWM_DECOR_RESIZEH)
+
+	if (!get_flags(hints->function_mask,AS_FuncResize))
 	{
 		/* a wide border, with corner tiles */
 #ifndef NO_TEXTURE
-		if (DecorateFrames)
+		if (DecorateFrames && get_flags(tflags,AS_Frame))
 			t->flags |= FRAME;
 		else
 #endif /* !NO_TEXTURE */
 			t->flags |= BORDER;
 	}
-	if (!(decor & MWM_DECOR_MENU))
+	if (!get_flags(hints->function_mask,AS_FuncPopup))
 		disable_titlebuttons_with_function (t, F_POPUP);
-	if (!(decor & MWM_DECOR_MINIMIZE))
+	if (!get_flags(hints->function_mask,AS_FuncMinimize))
 		disable_titlebuttons_with_function (t, F_ICONIFY);
-	if (!(decor & MWM_DECOR_MAXIMIZE))
+	if (!get_flags(hints->function_mask,AS_FuncMaximize))
 		disable_titlebuttons_with_function (t, F_MAXIMIZE);
 
 	t->boundary_width = 0;
 	t->boundary_height = (t->flags & BORDER) ? Scr.BoundaryWidth : 0;
 	t->corner_width = 16 + t->boundary_height;
 
-	if (t->flags & FRAME)
-		t->bw = 0;
+	if( get_flags(tflags,AS_Frame) )
+		t->bw = 0 ;
+	else if( get_flags(tflags, AS_Handles))
+		t->bw = border_width;
 	else
 		t->bw = 1;
-
-	if (tflags & NOHANDLES_FLAG)
-		t->bw = border_width;
+		
 	if (t->boundary_height == 0)
 		t->flags &= ~BORDER;
 	t->button_height = t->title_height - 7;
 }
 
+ASWindow *window2ASWindow( Window w )
+{
+	ASWindow *asw = Scr.ASRoot.next;
+	
+	while( asw && asw->w != w )	asw = asw->next;
+	
+	return asw;
+}
 
+/*
+ * The following function was written for
+ * new hints management code in libafterstep :
+ */
+Bool afterstep_parent_hints_func(Window parent, ASParentHints *dst )
+{
+	if( dst == NULL || parent == None ) return False ;
+
+	memset( dst, 0x00, sizeof(ASParentHints));
+	dst->parent = parent ;
+	if( parent != Scr.Root )
+	{
+		ASWindow     *p;
+
+        if ((p = window2ASWindow( parent )) == NULL) return False ;
+
+        dst->desktop = p->status->desktop ;
+		set_flags( dst->flags, AS_StartDesktop );
+
+		/* we may need to move our viewport so that the parent becomes visible : */
+        if ( !ASWIN_GET_FLAGS(p, AS_Iconic) )
+		{
+#if 0		
+            int x, y ;
+            unsigned int width, height ;
+            x = p->status->x - p->decor->west ;
+            y = p->status->y - p->decor->north ;
+            width = p->status->width + p->decor->west + p->decor->east ;
+            height = p->status->height + p->decor->north + p->decor->south ;
+
+            if( (dst->viewport_x = calculate_viewport( &x, width, p->scr->Vx, p->scr->MyDisplayWidth, p->scr->VxMax)) != p->scr->Vx )
+				set_flags( dst->flags, AS_StartViewportX );
+
+            if( (dst->viewport_y = calculate_viewport( &y, height, p->scr->Vy, p->scr->MyDisplayHeight, p->scr->VyMax)) != p->scr->Vy )
+				set_flags( dst->flags, AS_StartViewportY );
+#endif				
+		}
+	}
+	return True ;
+}
+
+Bool
+init_aswindow_status( ASWindow *t, ASStatusHints *status ) 
+{
+	extern int PPosOverride ;
+ASStatusHints adjusted_status ;
+	
+	if( t->status )
+		t->status = safecalloc(1, sizeof(ASStatusHints));
+
+    if( get_flags( status->flags, AS_StartDesktop) && status->desktop != Scr.CurrentDesk )
+        changeDesks( 0, status->desktop );
+    t->status->desktop = Scr.CurrentDesk ;
+
+    if( get_flags( status->flags, AS_StartViewportX))
+        t->status->viewport_x = MIN(status->viewport_x,Scr.VxMax) ;
+    else
+        t->status->viewport_x = Scr.Vx ;
+
+    if( get_flags( status->flags, AS_StartViewportY))
+        t->status->viewport_y = MIN(status->viewport_y,Scr.VyMax) ;
+    else
+        t->status->viewport_y = Scr.Vy ;
+    if( t->status->viewport_x != Scr.Vx || t->status->viewport_y != Scr.Vy )
+        MoveViewport (t->status->viewport_x, t->status->viewport_y, 0);
+
+    adjusted_status = *status ;
+
+    if( PPosOverride )
+        set_flags( adjusted_status.flags, AS_Position );
+	else if( get_flags(Scr.flags, NoPPosition) &&
+            !get_flags( status->flags, AS_StartPositionUser ) )
+        clear_flags( adjusted_status.flags, AS_Position );
+
+    if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
+        maximize_window_status( status, t->saved_status, &adjusted_status, status->flags );
+    else if( !get_flags( adjusted_status.flags, AS_Position ))
+        if( !place_aswindow( t, &adjusted_status ) )
+            return False;
+
+    if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+		print_status_hints( NULL, NULL, &adjusted_status );
+
+	/* invalidating position in status so that change_placement would always work */
+	t->status->x = adjusted_status.x-1000 ;
+	t->status->y = adjusted_status.y-1000 ;
+	t->status->width = adjusted_status.width-1000 ;
+	t->status->height = adjusted_status.height-1000 ;
+
+#if 0
+    if( change_placement( t->scr, t->hints, t->status, &(t->anchor), &adjusted_status, t->scr->Vx, t->scr->Vy, adjusted_status.flags ) != 0 )
+	{
+        anchor_decor_client( t->decor, t->hints, t->status, &(t->anchor), t->scr->Vx, t->scr->Vy );
+		configure_decor( t->decor, t->status );
+	}
+#endif	
+    /* TODO: AS_Iconic */
+	if (ASWIN_GET_FLAGS(t, AS_StartsIconic ))
+		t->flags |= STARTICONIC;
+
+	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
+		ASWIN_LAYER(t) = AS_LayerNormal ;
+
+    if( ASWIN_GET_FLAGS(t, AS_StartsSticky ) )
+		t->flags |= STICKY;
+
+    if( ASWIN_GET_FLAGS(t, AS_StartsShaded ) )
+		t->flags |= SHADED;
+	return True;
+}
 
 /***********************************************************************
  *
@@ -522,20 +576,19 @@ AddWindow (Window w)
 	int           a, b;
 	extern Bool   NeedToResizeToo;
 	extern ASWindow *colormap_win;
-	name_list     nl;
 
 #ifdef I18N
 	char        **list;
 	int           num;
 #endif
-	extern Bool   PPosOverride;
 	ASRawHints    raw_hints ;
     ASHints      *hints  = NULL;
     ASStatusHints status;
+	extern ASDatabase *Database;
 
 
 	/* allocate space for the afterstep window */
-	tmp_win = (ASWindow *) calloc (1, sizeof (ASWindow));
+	tmp_win = safecalloc (1, sizeof (ASWindow));
 	if (tmp_win == (ASWindow *) 0)
 		return NULL;
 
@@ -546,8 +599,6 @@ AddWindow (Window w)
 
 	tmp_win->flags = VISIBLE;
 	tmp_win->w = w;
-	tmp_win->cmap_windows = (Window *) NULL;
-	tmp_win->layer = 0;
 
 	if (XGetGeometry (dpy, tmp_win->w, &JunkRoot, &JunkX, &JunkY,
 					  &JunkWidth, &JunkHeight, &JunkBW, &JunkDepth) == 0)
@@ -555,6 +606,8 @@ AddWindow (Window w)
 		free ((char *)tmp_win);
 		return (NULL);
 	}
+
+    set_parent_hints_func( afterstep_parent_hints_func ); /* callback for collect_hints() */
 	
 	if( collect_hints( &Scr, w, HINT_ANY, &raw_hints ) )
     {
@@ -581,18 +634,21 @@ AddWindow (Window w)
 */
 	tmp_win->focus_sequence = 1;
 	SetCirculateSequence (tmp_win, -1);
+	
+	if (get_flags(tmp_win->hints->protocols,AS_DoesWmTakeFocus) )
+		tmp_win->flags |= DoesWmTakeFocus;
+	
+	if (get_flags(tmp_win->hints->protocols,AS_DoesWmTakeFocus) )
+		tmp_win->flags |= DoesWmDeleteWindow;
 
-	FetchWmProtocols (tmp_win);
-	FetchWmColormapWindows (tmp_win);
 	if (!XGetWindowAttributes (dpy, tmp_win->w, &tmp_win->attr))
 		tmp_win->attr.colormap = Scr.ASRoot.attr.colormap;
 
-	tmp_win->wmhints = XGetWMHints (dpy, tmp_win->w);
-
-	if (XGetTransientForHint (dpy, tmp_win->w, &tmp_win->transientfor))
-		tmp_win->flags |= TRANSIENT;
-	else
-		tmp_win->flags &= ~TRANSIENT;
+	if( ASWIN_GET_FLAGS(tmp_win,AS_Transient ) )
+	{
+		set_flags(tmp_win->flags, TRANSIENT);
+	}else
+		clear_flags(tmp_win->flags, ~TRANSIENT);
 
 	tmp_win->old_bw = tmp_win->attr.border_width;
 
@@ -610,128 +666,55 @@ AddWindow (Window w)
 	}
 #endif /* SHAPE */
 
-
-	/* if the window is in the NoTitle list, or is a transient,
-	 *  dont decorate it.
-	 * If its a transient, and DecorateTransients was specified,
-	 *  decorate anyway
-	 */
-#ifndef NO_TEXTURE
-	/*  Assume that we'll decorate */
-	if (DecorateFrames)
-		tmp_win->flags |= FRAME;
-	else
-#endif /* !NO_TEXTURE */
-		tmp_win->flags |= BORDER;
-	tmp_win->flags |= TITLE;
-
 	bind_aswindow_styles(tmp_win);
+
 	/* TODO add button translation everywhere */
 	tmp_win->buttons = ~(tmp_win->hints->disabled_buttons) ;
-	
-	/* Old stuff - needs to be updated to use tmp_win->hints :*/	
-	style_init (&nl);
-	style_fill_by_name (&nl, &(tmp_win->hints->names[0]));
-
-	SelectDecor (tmp_win, nl.off_flags, nl.border_width, nl.resize_width);
-	if (nl.ViewportX >= 0 || nl.ViewportY >= 0)
+	SelectDecor (tmp_win);
+	if( ASWIN_GET_FLAGS(tmp_win,AS_AcceptsFocus) )
 	{
-		if (nl.off_flags & STICKY_FLAG)
-			nl.ViewportX = nl.ViewportY = -1;
-		else
-		{
-			if (nl.ViewportX < 0)
-				nl.ViewportX = Scr.Vx;
-			if (nl.ViewportY < 0)
-				nl.ViewportY = Scr.Vy;
-			if (!PPosOverride)
-				MoveViewport (nl.ViewportX, nl.ViewportY, 0);
-		}
-	}
-
-	if (nl.off_flags & NOFOCUS_FLAG)
 		tmp_win->focus_var = 1;
-	else
+		tmp_win->flags |= NOFOCUS;
+	}else
 		tmp_win->focus_var = 0;
 
-	if (nl.off_flags & NOFOCUS_FLAG)
-		tmp_win->flags |= NOFOCUS;
-	if (nl.off_flags & START_ICONIC_FLAG)
-		tmp_win->flags |= STARTICONIC;
-	if (nl.off_flags & LAYER_FLAG)
-		tmp_win->layer = nl.layer;
-	if (nl.off_flags & AVOID_COVER_FLAG)
+	if (ASWIN_GET_FLAGS(tmp_win,AS_AvoidCover))
 		tmp_win->flags |= AVOID_COVER;
-	if (nl.off_flags & VERTICAL_TITLE_FLAG)
+	if (ASWIN_GET_FLAGS(tmp_win,AS_VerticalTitle))
 		tmp_win->flags |= VERTICAL_TITLE;
-	if (nl.off_flags & STICKY_FLAG)
-		tmp_win->flags |= STICKY;
-	if (nl.off_flags & LISTSKIP_FLAG)
+	if (ASWIN_GET_FLAGS(tmp_win,AS_SkipWinList))
 		tmp_win->flags |= WINDOWLISTSKIP;
-	if (nl.off_flags & CIRCULATESKIP_FLAG)
+	if (ASWIN_GET_FLAGS(tmp_win,AS_DontCirculate))
 		tmp_win->flags |= CIRCULATESKIP;
-
-	if (!(nl.off_flags & NOHANDLES_FLAG))
-		tmp_win->flags |= HANDLES;
-	else
-		tmp_win->flags &= ~FRAME;
-
-/*  if (!(nl.off_flags & NOFRAME_FLAG))
-   tmp_win->flags |= FRAME;     */
-
-	if (nl.off_flags & SUPPRESSICON_FLAG)
+	if (!ASWIN_GET_FLAGS(tmp_win,AS_Icon) || get_flags(Scr.flags, SuppressIcons))
 		tmp_win->flags |= SUPPRESSICON;
-	if (nl.off_flags & NOICON_TITLE_FLAG)
+	else
+	{	/* an icon was specified */
+		tmp_win->icon_pm_file = NULL ;
+		if( tmp_win->hints->icon.window != None )
+		{
+			
+		}else
+		{
+			tmp_win->icon_pm_file = tmp_win->hints->icon_file;
+			if(tmp_win->icon_pm_file == NULL )/* use default icon */
+		  		tmp_win->icon_pm_file = Scr.DefaultIcon;
+		}
+	}
+	tmp_win->icon_pm_pixmap = None;
+	tmp_win->icon_pm_mask = None;
+
+	if (!ASWIN_GET_FLAGS(tmp_win,AS_IconTitle))
 		tmp_win->flags |= NOICON_TITLE;
 
-	if (Scr.flags & SuppressIcons)
-		tmp_win->flags |= SUPPRESSICON;
-
-	/* find a suitable icon pixmap */
-	if (nl.off_flags & ICON_FLAG)
+	if( !init_aswindow_status( tmp_win, &status ) )
 	{
-		/* an icon was specified */
-		tmp_win->icon_pm_file = nl.icon_file;
-	} else if ((Scr.flags & KeepIconWindows) && (tmp_win->wmhints != NULL)
-			   && (tmp_win->wmhints->flags & (IconWindowHint | IconPixmapHint)))
-	{
-		/* window has its own icon */
-		tmp_win->icon_pm_file = NULL;
-	} else
-	{
-		/* use default icon */
-		tmp_win->icon_pm_file = Scr.DefaultIcon;
+		Destroy (tmp_win, False);
+		return NULL;
 	}
 
-	GetWindowSizeHints (tmp_win);
 
-	if (get_flags (nl.off_flags, PREPOS_FLAG))
-	{
-		if (!get_flags (tmp_win->normal_hints.flags, USPosition))
-		{
-			if (get_flags (nl.PreposFlags, XValue))
-			{
-				if (get_flags (nl.PreposFlags, XNegative))
-					tmp_win->attr.x = Scr.MyDisplayWidth + nl.PreposX;
-				else
-					tmp_win->attr.x = nl.PreposX;
-			}
-			if (get_flags (nl.PreposFlags, YValue))
-			{
-				if (get_flags (nl.PreposFlags, YNegative))
-					tmp_win->attr.y = Scr.MyDisplayHeight + nl.PreposY;
-				else
-					tmp_win->attr.y = nl.PreposY;
-			}
-		}
-		if (!get_flags (tmp_win->normal_hints.flags, USSize))
-		{
-			if (get_flags (nl.PreposFlags, WidthValue))
-				tmp_win->attr.width = nl.PreposWidth;
-			if (get_flags (nl.PreposFlags, HeightValue))
-				tmp_win->attr.height = nl.PreposHeight;
-		}
-	}
+	/* Old stuff - needs to be updated to use tmp_win->hints :*/	
 	/* size and place the window */
 	set_titlebar_geometry (tmp_win);
 
@@ -739,12 +722,6 @@ AddWindow (Window w)
 						tmp_win->attr.height, NULL, NULL, &tmp_win->frame_width,
 						&tmp_win->frame_height);
 	ConstrainSize (tmp_win, &tmp_win->frame_width, &tmp_win->frame_height);
-
-	if (!PlaceWindow (tmp_win, nl.off_flags, nl.Desk))
-	{
-		Destroy (tmp_win, False);
-		return NULL;
-	}
 
 	get_frame_geometry (tmp_win, tmp_win->attr.x, tmp_win->attr.y, tmp_win->attr.width,
 						tmp_win->attr.height, &tmp_win->frame_x, &tmp_win->frame_y,
@@ -761,7 +738,7 @@ AddWindow (Window w)
 	if (XGetGeometry (dpy, w, &JunkRoot, &JunkX, &JunkY,
 					  &JunkWidth, &JunkHeight, &JunkBW, &JunkDepth) == 0)
 	{
-		XFree (tmp_win->wmhints);
+		destroy_hints(tmp_win->hints, False);
 		free ((char *)tmp_win);
 		XUngrabServer (dpy);
 		return (NULL);
@@ -883,8 +860,6 @@ AddWindow (Window w)
 
 	XAddToSaveSet (dpy, tmp_win->w);
 
-	tmp_win->icon_pm_pixmap = None;
-	tmp_win->icon_pm_mask = None;
 
 	/*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
@@ -953,8 +928,6 @@ AddWindow (Window w)
 	BroadcastName (M_RES_NAME, tmp_win->w, tmp_win->frame,
 				   (unsigned long)tmp_win, tmp_win->hints->res_name);
 
-	FetchWmProtocols (tmp_win);
-	FetchWmColormapWindows (tmp_win);
 	if (!(XGetWindowAttributes (dpy, tmp_win->w, &(tmp_win->attr))))
 		tmp_win->attr.colormap = Scr.ASRoot.attr.colormap;
 	if (NeedToResizeToo)
@@ -1037,135 +1010,3 @@ GrabKeys (ASWindow * tmp_win)
 	return;
 }
 
-/***********************************************************************
- *
- *  Procedure:
- *	FetchWMProtocols - finds out which protocols the window supports
- *
- *  Inputs:
- *	tmp - the afterstep window structure to use
- *
- ***********************************************************************/
-void
-FetchWmProtocols (ASWindow * tmp)
-{
-	unsigned long flags = 0L;
-	Atom         *protocols = NULL, *ap;
-	int           i, n;
-	Atom          atype;
-	int           aformat;
-	unsigned long bytes_remain, nitems;
-
-	if (tmp == NULL)
-		return;
-	/* First, try the Xlib function to read the protocols.
-	 * This is what Twm uses. */
-	if (XGetWMProtocols (dpy, tmp->w, &protocols, &n))
-	{
-		for (i = 0, ap = protocols; i < n; i++, ap++)
-		{
-			if (*ap == (Atom) _XA_WM_TAKE_FOCUS)
-				flags |= DoesWmTakeFocus;
-			if (*ap == (Atom) _XA_WM_DELETE_WINDOW)
-				flags |= DoesWmDeleteWindow;
-		}
-		if (protocols)
-			XFree ((char *)protocols);
-	} else
-	{
-		/* Next, read it the hard way. mosaic from Coreldraw needs to 
-		 * be read in this way. */
-		if ((XGetWindowProperty (dpy, tmp->w, _XA_WM_PROTOCOLS, 0L, 10L, False,
-								 _XA_WM_PROTOCOLS, &atype, &aformat, &nitems,
-								 &bytes_remain, (unsigned char **)&protocols)) == Success)
-		{
-			for (i = 0, ap = protocols; i < nitems; i++, ap++)
-			{
-				if (*ap == (Atom) _XA_WM_TAKE_FOCUS)
-					flags |= DoesWmTakeFocus;
-				if (*ap == (Atom) _XA_WM_DELETE_WINDOW)
-					flags |= DoesWmDeleteWindow;
-			}
-			if (protocols)
-				XFree ((char *)protocols);
-		}
-	}
-	tmp->flags |= flags;
-	return;
-}
-
-/***********************************************************************
- *
- *  Procedure:
- *	GetWindowSizeHints - gets application supplied size info
- *
- *  Inputs:
- *	tmp - the afterstep window structure to use
- *
- ***********************************************************************/
-void
-GetWindowSizeHints (ASWindow * tmp)
-{
-	long          supplied = 0;
-
-	if (!XGetWMNormalHints (dpy, tmp->w, &tmp->normal_hints, &supplied))
-		tmp->normal_hints.flags = 0;
-
-	/* Beat up our copy of the hints, so that all important field are
-	 * filled in! */
-	if (tmp->normal_hints.flags & PResizeInc)
-	{
-		if (tmp->normal_hints.width_inc == 0)
-			tmp->normal_hints.width_inc = 1;
-		if (tmp->normal_hints.height_inc == 0)
-			tmp->normal_hints.height_inc = 1;
-	} else
-	{
-		tmp->normal_hints.width_inc = 1;
-		tmp->normal_hints.height_inc = 1;
-	}
-
-	/*
-	 * ICCCM says that PMinSize is the default if no PBaseSize is given,
-	 * and vice-versa.
-	 */
-
-	if (!(tmp->normal_hints.flags & PBaseSize))
-	{
-		if (tmp->normal_hints.flags & PMinSize)
-		{
-			tmp->normal_hints.base_width = tmp->normal_hints.min_width;
-			tmp->normal_hints.base_height = tmp->normal_hints.min_height;
-		} else
-		{
-			tmp->normal_hints.base_width = 0;
-			tmp->normal_hints.base_height = 0;
-		}
-	}
-	if (!(tmp->normal_hints.flags & PMinSize))
-	{
-		tmp->normal_hints.min_width = tmp->normal_hints.base_width;
-		tmp->normal_hints.min_height = tmp->normal_hints.base_height;
-	}
-	if (!(tmp->normal_hints.flags & PMaxSize))
-	{
-		tmp->normal_hints.max_width = MAX_WINDOW_WIDTH;
-		tmp->normal_hints.max_height = MAX_WINDOW_HEIGHT;
-	}
-	if (tmp->normal_hints.max_width < tmp->normal_hints.min_width)
-		tmp->normal_hints.max_width = MAX_WINDOW_WIDTH;
-	if (tmp->normal_hints.max_height < tmp->normal_hints.min_height)
-		tmp->normal_hints.max_height = MAX_WINDOW_HEIGHT;
-
-	/* Zero width/height windows are bad news! */
-	if (tmp->normal_hints.min_height <= 0)
-		tmp->normal_hints.min_height = 1;
-	if (tmp->normal_hints.min_width <= 0)
-		tmp->normal_hints.min_width = 1;
-
-	if (!(tmp->normal_hints.flags & PWinGravity))
-	{
-		tmp->normal_hints.win_gravity = NorthWestGravity;
-		tmp->normal_hints.flags |= PWinGravity;
-	}
-}
