@@ -1319,7 +1319,7 @@ move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_s
 				src_rows[i] = NULL ;
 			}
 		}else
-			show_debug( __FILE__,__FUNCTION__,__LINE__, "images size differ : %d and %d", src->width, dst->width );
+			show_debug( __FILE__,"move_asimage_channel",__LINE__, "images size differ : %d and %d", src->width, dst->width );
 	}
 }
 
