@@ -1440,22 +1440,16 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 		}
 		if( realfilename == NULL )
 		{
-			char capture_file_name[80];
+			char *capture_file_name = DEFAULT_CAPTURE_SCREEN_FILE;
+			char *default_template;
 			if (data->func == F_TAKE_WINDOWSHOT)
-			{
-			    strcpy(capture_file_name, DEFAULT_CAPTURE_WINDOW_FILE);
-			}
+			    capture_file_name = DEFAULT_CAPTURE_WINDOW_FILE;
 			else if (data->func == F_TAKE_FRAMESHOT)
-			{
-			    strcpy(capture_file_name, DEFAULT_CAPTURE_FRAMEDWINDOW_FILE);
-			}
-			else if (data->func == F_TAKE_SCREENSHOT)
-			{
-			    strcpy(capture_file_name, DEFAULT_CAPTURE_SCREEN_FILE);
-			}
-			char default_template[128];
-			sprintf(&(default_template[0]), strcat(capture_file_name, ".%lu.png"), time(NULL));
-			realfilename = PutHome(&(default_template[0]));
+			    capture_file_name = DEFAULT_CAPTURE_FRAMEDWINDOW_FILE;
+			default_template = safemalloc(strlen(capture_file_name)+100);
+			sprintf(default_template, "%s.%lu.png", capture_file_name, time(NULL));
+			realfilename = PutHome(default_template);
+			free( default_template );
 			compress = "9" ;
 			type = "png" ;
 		}
