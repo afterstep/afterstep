@@ -901,13 +901,25 @@ LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) 
 		strcpy (ptr, do_fork?" &\n":"\n");
 
         LOCAL_DEBUG_OUT("execl(\"%s\")", cmdl );
-        fprintf( stderr, "len=%d: execl(\"%s\")", len, cmdl );
+        /* fprintf( stderr, "len=%d: execl(\"%s\")", len, cmdl ); */
 
         /* CYGWIN does not handle close-on-exec gracefully - whave to do it ourselves : */
         if( CloseOnExec )
             CloseOnExec();
 
-        execl ("/bin/sh", "sh", "-c", cmdl, (char *)0);
+		{
+			const char     *shell;
+			char *argv0 ;
+
+	    	if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
+				shell = "/bin/sh";
+
+			parse_file_name(shell, NULL, &argv0);
+	    	/* argv0 = basename(shell); */
+
+        	execl (shell, argv0 , "-c", cmdl, (char *)0);
+		}
+
         if( screen >= 0 )
             show_error( "failed to start %s on the screen %d", cmd, screen );
         else

@@ -8882,7 +8882,7 @@ logged, mailed, broadcast or otherwise disclosed to unauthorized parties. So
 your secrets are safe with it.
 
 The only exception is when you compile it with --enable-gdb option or
---enable-audit. In this case sagnificant amounts of activity will be logged -
+--enable-audit. In this case significant amounts of activity will be logged -
 printed into console output. Make sure you keep it safe from all the malicious
 persons out there (and from overflowing your disk)! It is your responsibility
 now.
