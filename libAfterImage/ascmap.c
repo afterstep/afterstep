@@ -630,7 +630,6 @@ check_colorindex_counts( cmap->hash );
 			case 4 :
 				for( x = 0 ; x < im->width ; ++x )
 				{
-					LOCAL_DEBUG_OUT( "(%d,%d)", x, y );
 					if( dst[x] >= 0 )
 						dst[x] = get_color_index( cmap->hash, dst[x], ((dst[x]>>14)&0x03FF));
 					else

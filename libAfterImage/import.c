@@ -22,6 +22,7 @@
 
 /*#define LOCAL_DEBUG */
 /*#define DO_CLOCKING */
+/*#define DEBUG_TRANSP_GIF*/
 
 #include <time.h>
 #include <unistd.h>
@@ -1252,16 +1253,22 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		if( (status = get_gif_saved_images(gif, subimage, &sp, &count )) == GIF_OK )
 		{
 			GifPixelType *row_pointer ;
-/*			fprintf( stderr, "Ext block = %p, count = %d\n", sp->ExtensionBlocks, sp->ExtensionBlockCount );*/
+#ifdef DEBUG_TRANSP_GIF
+			fprintf( stderr, "Ext block = %p, count = %d\n", sp->ExtensionBlocks, sp->ExtensionBlockCount );
+#endif
 			if( sp->ExtensionBlocks )
 				for ( y = 0; y < sp->ExtensionBlockCount; y++)
 				{
-/*					fprintf( stderr, "%d: func = %X, bytes[0] = 0x%X\n", y, sp->ExtensionBlocks[y].Function, sp->ExtensionBlocks[y].Bytes[0]);*/
+#ifdef DEBUG_TRANSP_GIF
+					fprintf( stderr, "%d: func = %X, bytes[0] = 0x%X\n", y, sp->ExtensionBlocks[y].Function, sp->ExtensionBlocks[y].Bytes[0]);
+#endif
 					if( sp->ExtensionBlocks[y].Function == 0xf9 &&
 			 			(sp->ExtensionBlocks[y].Bytes[0]&0x01))
 					{
 			   		 	transparent = ((unsigned int) sp->ExtensionBlocks[y].Bytes[GIF_GCE_TRANSPARENCY_BYTE])&0x00FF;
-/*						fprintf( stderr, "transp = %u\n", transparent ); */
+#ifdef DEBUG_TRANSP_GIF
+						fprintf( stderr, "transp = %u\n", transparent );
+#endif
 					}
 				}
 			cmap = gif->SColorMap ;
@@ -1291,12 +1298,16 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 							buf.alpha[x] = 0 ;
 						}else
 							buf.alpha[x] = 0x00FF ;
-/*	                    fprintf( stderr, "%d(%X) ", row_pointer[x], buf.alpha[x] );*/
+#ifdef DEBUG_TRANSP_GIF
+	                    fprintf( stderr, "%d(%X) ", row_pointer[x], buf.alpha[x] );
+#endif
 						buf.red[x]   = cmap->Colors[c].Red;
 		        		buf.green[x] = cmap->Colors[c].Green;
 						buf.blue[x]  = cmap->Colors[c].Blue;
 	        		}
-/*                    fprintf( stderr, "\n" ); */
+#ifdef DEBUG_TRANSP_GIF
+                    fprintf( stderr, "\n" );
+#endif
 					row_pointer += x ;
 					asimage_add_line (im, IC_RED,   buf.red, y);
 					asimage_add_line (im, IC_GREEN, buf.green, y);

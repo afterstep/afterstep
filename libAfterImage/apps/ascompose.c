@@ -62,6 +62,7 @@ char* lcstring(char* str);
 Bool save_file(const char* file2bsaved, ASImage *im,
 	           const char* strtype,
 			   const char *compress,
+			   const char *opacity,
 			   int delay, int replace);
 
 Pixmap GetRootPixmap (Atom id);
@@ -220,7 +221,7 @@ int main(int argc, char** argv) {
 
 	// Save the result image if desired.
 	if (doc_save && doc_save_type) {
-		if(!save_file(doc_save, im, doc_save_type, NULL, 0, 1)) {
+		if(!save_file(doc_save, im, doc_save_type, NULL, NULL, 0, 1)) {
 			show_error("Save failed.");
 		} else {
 			show_error("Save successful.");
@@ -256,9 +257,10 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-Bool save_file(const char* file2bsaved, ASImage *im,
-	           const char* strtype,
+Bool save_file(const char *file2bsaved, ASImage *im,
+	           const char *strtype,
 			   const char *compress,
+			   const char *opacity,
 			   int delay, int replace)
 {
 	ASImageExportParams params ;
@@ -291,15 +293,22 @@ Bool save_file(const char* file2bsaved, ASImage *im,
 	} else if (!mystrcasecmp(strtype, "gif")) {
 		params.type = ASIT_Gif;
 		params.gif.flags |= EXPORT_APPEND ;
-		params.gif.opaque_threshold = 127 ;
+		params.gif.opaque_threshold = (opacity==NULL)?127:atoi(opacity) ;
 		params.gif.dither = (compress==NULL)?3:atoi(compress)/17;
 		if( params.gif.dither > 6 )
 			params.gif.dither = 6;
 		params.gif.animate_delay = delay ;
+	} else if (!mystrcasecmp(strtype, "xpm")) {
+		params.type = ASIT_Xpm;
+		params.xpm.opaque_threshold = (opacity==NULL)?127:atoi(opacity) ;
+		params.xpm.dither = (compress==NULL)?3:atoi(compress)/17;
+		if( params.xpm.dither > 6 )
+			params.xpm.dither = 6;
 	} else if (!mystrcasecmp(strtype, "xbm")) {
 		params.type = ASIT_Xbm;
 	} else if (!mystrcasecmp(strtype, "tiff")) {
 		params.type = ASIT_Tiff;
+		params.tiff.compression_type = TIFF_COMPRESSION_NONE ;
 		if( compress )
 		{
 			if( strcasecmp( compress, "deflate" ) == 0 )
@@ -506,15 +515,17 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		const char* dst = NULL;
 		const char* ext = NULL;
 		const char* compress = NULL ;
+		const char* opacity = NULL ;
 		int delay = 0 ;
 		int replace = 1;
-		/*<save id="" dst="" format="" compression="" delay="" replace=""> */
+		/*<save id="" dst="" format="" compression="" delay="" replace="" opacity=""> */
 		int autoext = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			else if (!strcmp(ptr->tag, "dst")) dst = ptr->parm;
 			else if (!strcmp(ptr->tag, "format")) ext = ptr->parm;
 			else if (!strncmp(ptr->tag, "compress", 8)) compress = ptr->parm;
+			else if (!strcmp(ptr->tag, "opacity")) opacity = ptr->parm;
 			else if (!strcmp(ptr->tag, "delay"))   delay = atoi(ptr->parm);
 			else if (!strcmp(ptr->tag, "replace")) replace = atoi(ptr->parm);
 		}
@@ -530,7 +541,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (autoext)
 				show_warning("No format given.  File extension [%s] used as format.", ext);
 			show_progress("Saving image to file [%s].", dst);
-			if (result && !save_file(dst, result, ext, compress, delay, replace)) {
+			if (result && !save_file(dst, result, ext, compress, opacity, delay, replace)) {
 				show_error("Unable to save image into file [%s].", dst);
 			}
 		}
@@ -834,6 +845,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		const char* srcy_str = NULL;
 		const char* width_str = NULL;
 		const char* height_str = NULL;
+		ARGB32 tint = 0 ;
 		int width = 0, height = 0, srcx = 0, srcy = 0;
 		ASImage* imtmp = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
@@ -843,6 +855,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!strcmp(ptr->tag, "srcy")) srcy_str = ptr->parm;
 			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
 			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+			if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(ptr, NULL);
@@ -865,7 +878,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (width > imtmp->width) width = imtmp->width;
 			if (height > imtmp->height) height = imtmp->height;
 			if (width > 0 && height > 0) {
-				result = tile_asimage(asv, imtmp, srcx, srcy, width, height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+				result = tile_asimage(asv, imtmp, srcx, srcy, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 				my_destroy_asimage(imtmp);
 			}
 			show_progress("Cropping image to [%dx%d].", width, height);
@@ -876,15 +889,21 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 	if (!strcmp(doc->tag, "tile")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* refid = NULL;
+		const char* xorig_str = NULL;
+		const char* yorig_str = NULL;
 		const char* width_str = "100%";
 		const char* height_str = "100%";
-		int width = 0, height = 0;
+		int width = 0, height = 0, xorig = 0, yorig = 0;
+		ARGB32 tint = 0 ;
 		ASImage* imtmp = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
+			if (!strcmp(ptr->tag, "x_origin")) xorig_str = ptr->parm;
+			if (!strcmp(ptr->tag, "y_origin")) yorig_str = ptr->parm;
 			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
 			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+			if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(ptr, NULL);
@@ -902,11 +921,61 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			}
 			if (width_str) width = parse_math(width_str, NULL, width);
 			if (height_str) height = parse_math(height_str, NULL, height);
+			if (xorig_str) xorig = parse_math(xorig_str, NULL, width);
+			if (yorig_str) yorig = parse_math(yorig_str, NULL, height);
 			if (width > 0 && height > 0) {
-				result = tile_asimage(asv, imtmp, 0, 0, width, height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+				result = tile_asimage(asv, imtmp, xorig, yorig, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 				my_destroy_asimage(imtmp);
 			}
 			show_progress("Tiling image to [%dx%d].", width, height);
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+
+	if (!strcmp(doc->tag, "pad")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* refid = NULL;
+		const char* left_str = "0";
+		const char* top_str  = "0";
+		const char* right_str  = "0";
+		const char* bottom_str  = "0";
+		ARGB32 color  = ARGB32_Black;
+		int left = 0, top = 0, right = 0, bottom = 0;
+		ASImage* imtmp = NULL;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			else if (!strcmp(ptr->tag, "refid"))  refid = ptr->parm;
+			else if (!strcmp(ptr->tag, "left"))   left_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "top"))    top_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "right"))  right_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "bottom")) bottom_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "color"))  parse_argb_color(ptr->parm, &color);
+		}
+		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+			imtmp = build_image_from_xml(ptr, NULL);
+		}
+		if (imtmp) {
+			int width = imtmp->width;
+			int height = imtmp->height;
+			if (refid) {
+				ASImage* refimg = NULL;
+				get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+				if (refimg) {
+					width = refimg->width;
+					height = refimg->height;
+				}
+			}
+			if (left_str) left = parse_math(left_str, NULL, width);
+			if (top_str)  top = parse_math(top_str, NULL, height);
+			if (right_str) right = parse_math(right_str, NULL, width);
+			if (bottom_str)  bottom = parse_math(bottom_str, NULL, height);
+			if (left > 0 || top > 0 || right > 0 || bottom > 0 )
+			{
+				result = pad_asimage(asv, imtmp, left, top, width+left+right, height+top+bottom,
+					                 color, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+				my_destroy_asimage(imtmp);
+			}
+			show_progress("Padding image to [%dx%d%+d%+d].", width+left+right, height+top+bottom, left, top);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -965,25 +1034,42 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (num) {
 			int width = 0, height = 0;
 			ASImageLayer *layers;
+			int i ;
 
 			// Build the layers first.
 			layers = create_image_layers( num );
 			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) {
 				int x = 0, y = 0;
+				int clip_x = 0, clip_y = 0;
+				int clip_width = 0, clip_height = 0;
 				ARGB32 tint = 0xffffffff;
+				Bool tile = False ;
 				xml_elem_t* sparm = NULL;
 				if (!strcmp(ptr->tag, cdata_str)) continue;
-				layers[num].im = build_image_from_xml(ptr, &sparm);
+				if( (layers[num].im = build_image_from_xml(ptr, &sparm)) != NULL )
+				{
+					clip_width = layers[num].im->width;
+					clip_height = layers[num].im->height;
+				}
 				if (sparm) {
 					xml_elem_t* tmp;
 					const char* x_str = NULL;
 					const char* y_str = NULL;
+					const char* clip_x_str = NULL;
+					const char* clip_y_str = NULL;
+					const char* clip_width_str = NULL;
+					const char* clip_height_str = NULL;
 					const char* refid = NULL;
 					for (tmp = sparm ; tmp ; tmp = tmp->next) {
 						if (!strcmp(tmp->tag, "crefid")) refid = tmp->parm;
-						if (!strcmp(tmp->tag, "x")) x_str = tmp->parm;
-						if (!strcmp(tmp->tag, "y")) y_str = tmp->parm;
-						if (!strcmp(tmp->tag, "tint")) parse_argb_color(tmp->parm, &tint);
+						else if (!strcmp(tmp->tag, "x")) x_str = tmp->parm;
+						else if (!strcmp(tmp->tag, "y")) y_str = tmp->parm;
+						else if (!strcmp(tmp->tag, "clip_x")) clip_x_str = tmp->parm;
+						else if (!strcmp(tmp->tag, "clip_y")) clip_y_str = tmp->parm;
+						else if (!strcmp(tmp->tag, "clip_width")) clip_width_str = tmp->parm;
+						else if (!strcmp(tmp->tag, "clip_height")) clip_height_str = tmp->parm;
+						else if (!strcmp(tmp->tag, "tint")) parse_argb_color(tmp->parm, &tint);
+						else if (!strcmp(tmp->tag, "tile")) tile = True;
 					}
 					if (refid) {
 						ASImage* refimg = NULL;
@@ -995,19 +1081,39 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 					}
 					x = x_str ? parse_math(x_str, NULL, x) : 0;
 					y = y_str ? parse_math(y_str, NULL, y) : 0;
+					clip_x = clip_x_str ? parse_math(clip_x_str, NULL, x) : 0;
+					clip_y = clip_y_str ? parse_math(clip_y_str, NULL, y) : 0;
+					if( clip_width_str )
+						clip_width = parse_math(clip_width_str, NULL, clip_width);
+					else if( tile )
+						clip_width = 0 ;
+					if( clip_height_str )
+						clip_height = parse_math(clip_height_str, NULL, clip_height);
+					 if( tile )
+						clip_height = 0 ;
 				}
 				if (layers[num].im) {
 					layers[num].dst_x = x;
 					layers[num].dst_y = y;
-					layers[num].clip_x = 0;
-					layers[num].clip_y = 0;
-					layers[num].clip_width = layers[num].im->width;
-					layers[num].clip_height = layers[num].im->height;
+					layers[num].clip_x = clip_x;
+					layers[num].clip_y = clip_y;
+					layers[num].clip_width = clip_width ;
+					layers[num].clip_height = clip_height ;
 					layers[num].tint = (tint >> 1) & 0x7f7f7f7f;
 					layers[num].bevel = 0;
 					layers[num].merge_scanlines = blend_scanlines_name2func(pop);
-					if (width < layers[num].im->width) width = layers[num].im->width;
-					if (height < layers[num].im->height) height = layers[num].im->height;
+					if( clip_width > 0 )
+					{
+						if( width < clip_width )
+							width = clip_width ;
+					}else
+					 	if (width < layers[num].im->width) width = layers[num].im->width;
+					if( clip_height > 0 )
+					{
+						if( height < clip_height )
+							height = clip_height ;
+					}else
+						if (height < layers[num].im->height) height = layers[num].im->height;
 					num++;
 				}
 				if (sparm) xml_elem_delete(NULL, sparm);
@@ -1017,11 +1123,16 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				width = layers[0].im->width;
 				height = layers[0].im->height;
 			}
+	   		for (i = 0 ; i < num ; i++) {
+				if( layers[i].clip_width == 0 )
+					layers[i].clip_width = width - layers[i].dst_x;
+				if( layers[i].clip_height == 0 )
+					layers[i].clip_height = height - layers[i].dst_y;
+			}
 
 			show_progress("Compositing [%d] image(s) with op [%s].  Final geometry [%dx%d].", num, pop, width, height);
 			if (keep_trans) show_progress("  Keeping transparency.");
 			if (verbose > 1) {
-				int i;
 				for (i = 0 ; i < num ; i++) {
 					show_progress("  Image [%d] geometry [%dx%d+%d+%d]", i, layers[i].clip_width, layers[i].clip_height, layers[i].dst_x, layers[i].dst_y);
 					if (layers[i].tint) show_progress(" tint (#%08x)", (unsigned int)layers[i].tint);
@@ -1031,8 +1142,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (num) {
 				result = merge_layers(asv, layers, num, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 				if (keep_trans && result && layers[0].im) {
-					// FIXME: This should be copy_asimage_channel(), or random crashes may occur.
-					move_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
+					copy_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
 				}
 				while (--num >= 0) my_destroy_asimage(layers[num].im);
 			}
@@ -1041,7 +1151,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-	// No match so far... see if one of our children can do any better.
+	/* No match so far... see if one of our children can do any better.*/
 	if (!result) {
 		xml_elem_t* tparm = NULL;
 		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
@@ -1076,10 +1186,11 @@ void my_destroy_asimage(ASImage* image) {
 	}
 }
 
-// Math expression parsing algorithm.  The basic math ops (add, subtract,
-// multiply, divide), unary minus, and parentheses are supported.
-// Operator precedence is NOT supported.  Percentages are allowed, and
-// apply to the "size" parameter of this function.
+/* Math expression parsing algorithm.  The basic math ops (add, subtract,
+ * multiply, divide), unary minus, and parentheses are supported.
+ * Operator precedence is NOT supported.  Percentages are allowed, and
+ * apply to the "size" parameter of this function.
+ */
 double parse_math(const char* str, char** endptr, double size) {
 	double total = 0;
 	char op = '+';

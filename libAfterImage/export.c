@@ -655,7 +655,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	Bool new_image = True ;
 	START_TIME(started);
 	int cmap_size = 1;
-	unsigned char gce_bytes[5] = {0x01, 0x0, 0x0, 0x0, 0x0 }; /* Graphic Control Extension bytes : 
+	unsigned char gce_bytes[5] = {0x01, 0x0, 0x0, 0x0, 0x0 }; /* Graphic Control Extension bytes :
 	                                                           * first byte - flags (0x01 for transparency )
 															   * second and third bytes - animation delay
 															   * forth byte - transoparent pixel value.
@@ -665,17 +665,21 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	if( params == NULL )
 		params = (ASImageExportParams *)&defaults ;
 
-	mapped_im = colormap_asimage( im, &cmap, 256, params->gif.dither, params->gif.opaque_threshold );
+	mapped_im = colormap_asimage( im, &cmap, 255, params->gif.dither, params->gif.opaque_threshold );
 
 	if( get_flags( params->gif.flags, EXPORT_ALPHA) &&
 		get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) )
 		gce_bytes[GIF_GCE_TRANSPARENCY_BYTE] = cmap.count ;
 	else
-		gce_bytes[0] = 0 ;		
-	gce_bytes[1] = (params->gif.animate_delay>>8)&0x00FF;
+		gce_bytes[0] = 0 ;
+#ifdef DEBUG_TRANSP_GIF
+	fprintf( stderr, "***> cmap.count = %d, transp_byte = %X, flags = %d, chanmask = %d\n", cmap.count, gce_bytes[GIF_GCE_TRANSPARENCY_BYTE],
+		     get_flags( params->gif.flags, EXPORT_ALPHA), get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) );
+#endif
+ 	gce_bytes[1] = (params->gif.animate_delay>>8)&0x00FF;
 	gce_bytes[2] =  params->gif.animate_delay&0x00FF;
 
-	while( cmap_size < 256 && cmap_size < cmap.count )
+	while( cmap_size < 256 && cmap_size < cmap.count+(gce_bytes[0]&0x01) )
 		cmap_size = cmap_size<<1 ;
 	if( (gif_cmap = MakeMapObject(cmap_size, NULL )) == NULL )
 	{
@@ -769,8 +773,8 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 		{
 			register int x = im->width ;
 			register int *src = mapped_im + x*y;
-			while( --x >= 0 )
-				row_pointer[x] = src[x] ;
+	  	    while( --x >= 0 )
+	  			row_pointer[x] = src[x] ;
 			if( EGifPutLine(gif, row_pointer, im->width)  == GIF_ERROR)
 				ASIM_PrintGifError();
 		}
