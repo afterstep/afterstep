@@ -3,7 +3,7 @@
 
 #include "asvisual.h"
 #include "blender.h"
-
+/*#define TRACK_ASIMAGES*/
 #ifdef __cplusplus
 extern "C" {
 #endif

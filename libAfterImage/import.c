@@ -71,6 +71,7 @@
 #include "ungif.h"
 #include "import.h"
 #include "asimagexml.h"
+#include "transform.h"
 
 
 /***********************************************************************************/
@@ -1526,6 +1527,16 @@ load_xml2ASImage( ASImageManager *imman, const char *path, unsigned int compress
 	else
 	{
 		im = compose_asimage_xml(&fake_asv, imman, NULL, doc_str, 0, 0, None, curr_path);
+		if( im != NULL && compression > 0 )
+		{
+			ASImage *tmp = tile_asimage( &fake_asv, im, 0, 0, im->width, im->height, TINT_NONE, ASA_ASImage, compression, ASIMAGE_QUALITY_DEFAULT );
+			if( tmp )
+			{
+				safe_asimage_destroy( im );
+				im = tmp ;
+			}		
+		}
+		
 		free( doc_str );
 	}
 

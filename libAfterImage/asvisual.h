@@ -635,7 +635,7 @@ XImage* create_visual_ximage( ASVisual *asv,
 							  unsigned int depth );
 
 #ifdef XSHMIMAGE
-void destroy_xshm_segment( unsigned long );
+Bool destroy_xshm_segment( unsigned long );
 #endif
 Bool enable_shmem_images ();
 void disable_shmem_images();

@@ -303,7 +303,7 @@ grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 	for( tick_count = 0 ; !XCheckWindowEvent( dpy, src, ExposureMask, &event ) && tick_count < 100 ; tick_count++)
   		wait_tick();
 	if( tick_count < 100 )
-        if( (root_im = pixmap2asimage( scr->asv, src, 0, 0, width, height, AllPlanes, False, 0 )) != NULL )
+        if( (root_im = pixmap2asimage( scr->asv, src, 0, 0, width, height, AllPlanes, False, 100 )) != NULL )
 		{
 			if( (scr->RootClipArea.y < 0 || scr->RootClipArea.y < 0) && !screenshot )
 			{

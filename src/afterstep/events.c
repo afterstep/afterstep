@@ -567,6 +567,7 @@ DispatchEvent ( ASEvent *event, Bool deffered )
                 HandleShapeNotify (event);
 #endif /* SHAPE */
 #ifdef XSHMIMAGE
+			LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : completion_type = %d, event->type = %d ", Scr.ShmCompletionEventType, event->x.type );
 			if( event->x.type == Scr.ShmCompletionEventType )
 				HandleShmCompletion(event);
 #endif /* SHAPE */
@@ -1227,6 +1228,7 @@ void HandleShmCompletion(ASEvent *event)
 {
 #ifdef XSHMIMAGE
     XShmCompletionEvent  *sev = (XShmCompletionEvent*) &(event->x);
+	LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : offset   %d(%lx)", sev->offset, sev->offset );
 	destroy_xshm_segment( sev->shmseg );
 #endif /* SHAPE */
 }

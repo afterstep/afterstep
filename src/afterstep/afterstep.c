@@ -118,7 +118,7 @@ main (int argc, char **argv)
     XSync (dpy, 0);
 
 #ifdef XSHMIMAGE
-//	enable_shmem_images ();
+	enable_shmem_images ();
 #endif
 
     SetupModules();

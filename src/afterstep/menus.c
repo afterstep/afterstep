@@ -294,7 +294,7 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
     if(get_flags( item->flags, AS_MenuItemSubitem ))
     {
         if( look->MenuArrow )
-    	    add_astbar_icon( item->bar, 1, 0, 0, NO_ALIGN, look->MenuArrow->image );
+    	    add_astbar_icon( item->bar, 1, 0, 0, ALIGN_VCENTER, look->MenuArrow->image );
         else
             add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, arrow_space, 1 );
     }
@@ -316,7 +316,7 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
     delete_astbar_tile( item->bar, MI_POPUP_IDX );
     /* now readd it as proper type : */
     if( look->MenuArrow && item->fdata->func == F_POPUP )
-        add_astbar_icon( item->bar, 7, 0, 0, NO_ALIGN, look->MenuArrow->image );
+        add_astbar_icon( item->bar, 7, 0, 0, ALIGN_VCENTER, look->MenuArrow->image );
     else
         add_astbar_spacer( item->bar, 7, 0, 0, NO_ALIGN, arrow_space, 1 );
 

@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 
 #include <malloc.h>
 #include <string.h>
@@ -231,7 +231,7 @@ static void find_useable_visual( ASVisual *asv, Display *dpy, int screen,
 			}else
 			{
 				attr->colormap = XCreateColormap( dpy, root, list[k].visual, AllocNone);
-				LOCAL_DEBUG_OUT( "DefaultVisual is 0x%lX, while ours is 0x%lX, so Created new colormap %lX", DefaultVisual( dpy, (screen) ), list[k].visual, attr->colormap );
+				LOCAL_DEBUG_OUT( "DefaultVisual is %p, while ours is %p, so Created new colormap %lX", DefaultVisual( dpy, (screen) ), list[k].visual, attr->colormap );
 			}
 		}
 		ASV_ALLOC_COLOR( asv, attr->colormap, &black_xcol );
@@ -1041,12 +1041,106 @@ typedef struct ASXShmImage
 	XShmSegmentInfo *segment ;
 	int 			 ref_count ;
 	Bool			 wait_completion_event ;
+	unsigned int 	 size ;
 }ASXShmImage;
+
+typedef struct ASShmArea
+{
+	unsigned int 	 size ;
+	char *shmaddr ;
+	int shmid ;
+	struct ASShmArea *next, *prev ;
+}ASShmArea;
 
 static ASHashTable	*xshmimage_segments = NULL ;
 static ASHashTable	*xshmimage_images = NULL ;
+/* attempt to reuse 256 Kb of shmem - no reason to reuse more than that, 
+ * since most XImages will be in range of 20K-100K */
+#define SHM_SAVED_MAX	0x40000  
+static ASShmArea  *shm_available_mem_head = NULL ; 
+static int shm_available_mem_used = 0 ;
 
 static Bool _as_use_shm_images = False ;
+
+void really_destroy_shm_area( char *shmaddr, int shmid )
+{
+	shmdt (shmaddr);
+	shmctl (shmid, IPC_RMID, 0);
+	LOCAL_DEBUG_OUT("XSHMIMAGE> DESTROY_SHM : freeing shmid = %d, remaining in cache = %d bytes ", shmid, shm_available_mem_used );
+}
+
+void remove_shm_area( ASShmArea *area, Bool free_resources )
+{
+	if( area ) 
+	{
+		if( area == shm_available_mem_head ) 
+			shm_available_mem_head = area->next ;
+		if( area->next ) 
+			area->next->prev = area->prev ;
+		if( area->prev ) 
+			area->prev->next = area->next ;
+		shm_available_mem_used -= area->size ;
+		if( free_resources ) 
+			really_destroy_shm_area( area->shmaddr, area->shmid );
+		else
+		{
+			LOCAL_DEBUG_OUT("XSHMIMAGE> REMOVE_SHM : reusing shmid = %d, size %d, remaining in cache = %d bytes ", area->shmid, area->size, shm_available_mem_used );
+		}
+		free( area );
+	}
+
+}
+
+void save_shm_area( char *shmaddr, int shmid, int size )
+{
+	ASShmArea *area;
+
+	if( shm_available_mem_used+size >= SHM_SAVED_MAX )
+	{
+	  	really_destroy_shm_area( shmaddr, shmid );
+		return ;
+	}
+
+	shm_available_mem_used+=size ;
+	area = safecalloc( 1, sizeof(ASShmArea) );
+	
+	area->shmaddr = shmaddr ;
+	area->shmid = shmid ;
+	area->size = size ;
+	LOCAL_DEBUG_OUT("XSHMIMAGE> SAVE_SHM : saving shmid = %d, size %d, remaining in cache = %d bytes ", area->shmid, area->size, shm_available_mem_used );
+
+	area->next = shm_available_mem_head ; 
+	if( shm_available_mem_head )
+		shm_available_mem_head->prev = area ;
+	shm_available_mem_head = area ;
+}
+
+char *get_shm_area( int size, int *shmid ) 
+{
+	ASShmArea *selected = NULL, *curr = shm_available_mem_head; 
+	
+	while( curr != NULL ) 
+	{
+		if( curr->size >= size && curr->size < (size * 4)/3 ) 
+		{
+			if( selected == NULL ) 
+				selected = curr ;
+			else if( selected->size > curr->size ) 
+				selected = curr ;
+		}
+		curr = curr->next ;
+	}
+	if( selected != NULL ) 
+	{
+		char *tmp = selected->shmaddr ;
+		*shmid = selected->shmid ;
+		remove_shm_area( selected, False );
+		return tmp ;
+	}
+	
+	*shmid = shmget (IPC_PRIVATE, size, IPC_CREAT|0777);
+	return shmat (*shmid, 0, 0);
+}
 
 void
 destroy_xshmimage_segment(ASHashableValue value, void *data)
@@ -1054,20 +1148,35 @@ destroy_xshmimage_segment(ASHashableValue value, void *data)
 	ASXShmImage *img_data = (ASXShmImage*)data ;
 	if( img_data->segment != NULL )
 	{
+		LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_SEG : segent to be freed: shminfo = %p, seg = %d ", img_data->segment, img_data->segment->shmid );
 		XShmDetach (dpy, img_data->segment);
-		shmdt (img_data->segment->shmaddr);
-		shmctl (img_data->segment->shmid, IPC_RMID, 0);
+		save_shm_area( img_data->segment->shmaddr, img_data->segment->shmid, img_data->size );
 		free( img_data->segment );
 		img_data->segment = NULL ;
 		if( img_data->ximage == NULL )
 			free( img_data );
+	}else
+	{
+		LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_SEG : segment data is NULL already value = %ld!!", value );
 	}
 }
 
-void destroy_xshm_segment( ShmSeg shmseg )
+Bool destroy_xshm_segment( ShmSeg shmseg )
 {
 	if( xshmimage_segments )
-		remove_hash_item( xshmimage_segments, AS_HASHABLE(shmseg), NULL, True );
+	{
+		if(remove_hash_item( xshmimage_segments, AS_HASHABLE(shmseg), NULL, True ) == ASH_Success)
+		{
+			LOCAL_DEBUG_OUT( "XSHMIMAGE> REMOVE_SEG : segment %ld removed from the hash successfully!", shmseg );
+			return True ;
+		}
+		LOCAL_DEBUG_OUT( "XSHMIMAGE> ERROR : could not find segment %ld(0x%lX) in the hash!", shmseg, shmseg );
+	}else
+	{
+		LOCAL_DEBUG_OUT( "XSHMIMAGE> ERROR : segments hash is %p!!", xshmimage_segments );
+	}		
+	
+	return False ;		
 }
 
 
@@ -1081,9 +1190,14 @@ destroy_xshmimage_image(ASHashableValue value, void *data)
 			orig_XShmImage_destroy_image( img_data->ximage );
 		else
 			XFree ((char *)img_data->ximage);
+		LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_XIM : ximage freed: xim = %p", img_data->ximage);
 		img_data->ximage = NULL ;
-		if( img_data->segment != NULL && img_data->wait_completion_event )
-			destroy_xshm_segment( img_data->segment->shmid );
+		if( img_data->segment != NULL && !img_data->wait_completion_event )
+		{
+			if( destroy_xshm_segment( img_data->segment->shmid ) ) 
+				return ;
+			img_data->segment = NULL ;
+		}
 		if( img_data->segment == NULL )
 			free( img_data );
 	}
@@ -1121,6 +1235,7 @@ int destroy_xshm_image( XImage *ximage )
 			if (ximage->obdata != NULL)
 				free ((char *)ximage->obdata);
 			XFree ((char *)ximage);
+			LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_XIM : ximage freed: xim = %p", ximage);
 		}
 	}
 	return 1;
@@ -1130,15 +1245,16 @@ int destroy_xshm_image( XImage *ximage )
 void registerXShmImage( XImage *ximage, XShmSegmentInfo* shminfo )
 {
 	ASXShmImage *data = safecalloc( 1, sizeof(ASXShmImage));
-
+	LOCAL_DEBUG_OUT( "XSHMIMAGE> CREATE_XIM : image created: xiom = %p, shminfo = %p, segment = %d, data = %p", ximage, shminfo, shminfo->shmid, ximage->data );
 	data->ximage = ximage ;
 	data->segment = shminfo ;
+	data->size = ximage->bytes_per_line * ximage->height ;
 
 	orig_XShmImage_destroy_image = ximage->f.destroy_image ;
 	ximage->f.destroy_image = destroy_xshm_image ;
 
 	add_hash_item( xshmimage_images, AS_HASHABLE(ximage), data );
-	add_hash_item( xshmimage_segments, AS_HASHABLE(shminfo->shmid), data );
+	add_hash_item( xshmimage_segments, AS_HASHABLE(shminfo->shmseg), data );
 }
 
 void *
@@ -1146,7 +1262,7 @@ check_XImage_shared( XImage *xim )
 {
 	ASXShmImage *img_data = NULL ;
 	if( _as_use_shm_images )
-		if(get_hash_item( xshmimage_images, AS_HASHABLE(xim), NULL ) != ASH_Success)
+		if(get_hash_item( xshmimage_images, AS_HASHABLE(xim), (void**)&img_data ) != ASH_Success)
 			img_data = NULL ;
 	return img_data ;
 }
@@ -1158,12 +1274,21 @@ Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim,
 	ASXShmImage *img_data = NULL ;
 	if( xim == NULL || asv == NULL )
 		return False ;
+
 	if( ( img_data = check_XImage_shared( xim )) != NULL )
 	{
-		img_data->wait_completion_event = True ;
-		return (XShmPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height, True ) == 0 );
+		int req_seq = NextRequest(asv->dpy);
+
+		LOCAL_DEBUG_OUT( "XSHMIMAGE> PUT_XIM : using shared memory Put = %p, req = %d(%x)", xim, req_seq, req_seq );
+		if( XShmPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height, True ) )
+		{
+//			add_hash_item( xshmimage_requests, AS_HASHABLE(req_seq), img_data->segment->shmid );
+			img_data->wait_completion_event = True ;
+			return True ;
+		}
 	}
-	return (XPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height ) == 0 );
+	LOCAL_DEBUG_OUT( "XSHMIMAGE> PUT_XIM : using normal Put = %p", xim );
+	return XPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height );
 }
 
 XImage *ASGetXImage( ASVisual *asv, Drawable d,
@@ -1202,7 +1327,7 @@ Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim,
 {
 	if( xim == NULL || asv == NULL )
 		return False ;
-	return (XPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height ) == 0 );
+	return XPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height );
 }
 
 XImage * ASGetXImage( ASVisual *asv, Drawable d,
@@ -1263,8 +1388,7 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 			free( shminfo );
 		else
 		{
-			shminfo->shmid = shmget (IPC_PRIVATE, ximage->bytes_per_line * ximage->height, IPC_CREAT|0777);
-			shminfo->shmaddr = ximage->data = shmat (shminfo->shmid, 0, 0);
+			shminfo->shmaddr = ximage->data = get_shm_area( ximage->bytes_per_line * ximage->height, &(shminfo->shmid) );
 			shminfo->readOnly = False;
 			XShmAttach (asv->dpy, shminfo);
 			registerXShmImage( ximage, shminfo );
