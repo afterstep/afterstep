@@ -1353,8 +1353,8 @@ void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 	register CARD16 *src = (CARD16*)xim_data ;
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
+#ifdef WORDS_BIGENDIAN
 SHOW_CHECKPOINT;
-#ifndef WORDS_BIGENDIAN
 	if( !asv->msb_first )
 #else
 	if( asv->msb_first )
@@ -1378,7 +1378,7 @@ SHOW_CHECKPOINT;
 						d |= 0x000000FF ;
 					c ^= d;
 				}
-/*fprintf( stderr, "c = 0x%X, d = 0x%X, c^d = 0x%X\n", c, d, c^d );*/
+fprintf( stderr, "%s:%c c = 0x%X, d = 0x%X, c^d = 0x%X\n", __FUNCTION__, __LINE__, c, d, c^d );
 			}
 		}while(1);
 	else
@@ -1401,7 +1401,7 @@ SHOW_CHECKPOINT;
 						d |= 0x000000FF ;
 					c ^= d;
 				}
-/*fprintf( stderr, "c = 0x%X, d = 0x%X, c^d = 0x%X\n", c, d, c^d );*/
+fprintf( stderr, "%s:%c c = 0x%X, d = 0x%X, c^d = 0x%X\n", __FUNCTION__, __LINE__, c, d, c^d );
 			}
 		}while(1);
 }
