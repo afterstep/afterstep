@@ -35,7 +35,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef DO_CLOCKING
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 #endif
 
 #ifdef HAVE_FREETYPE

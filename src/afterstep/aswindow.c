@@ -22,6 +22,9 @@
 #include "../../configure.h"
 
 #include "asinternals.h"
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
 Bool on_dead_aswindow( Window w );
 /********************************************************************************/

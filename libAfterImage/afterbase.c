@@ -874,7 +874,9 @@ int XQueryColors(void* a,Colormap c,void* x,int m){return 0;}
 /***************************************/
 /* from sleep.c                        */
 /***************************************/
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 #include <sys/times.h>
 static clock_t _as_ticker_last_tick = 0;
 static clock_t _as_ticker_tick_size = 1;

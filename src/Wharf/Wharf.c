@@ -37,8 +37,12 @@
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
+#ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 
 #include "../../libAfterStep/afterstep.h"
 #include "../../libAfterStep/screen.h"

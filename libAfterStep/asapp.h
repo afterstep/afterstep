@@ -76,8 +76,8 @@ struct ASSession;
 /************************************************************************
  * ReapChildren - wait() for all dead child processes
  ************************************************************************/
-#include <sys/wait.h>
 #ifdef HAVE_SYS_WAIT_H
+#include <sys/wait.h>
 #define ReapChildren()          while ((waitpid(-1, NULL, WNOHANG)) > 0)
 #define WAIT_CHILDREN(pstatus)  waitpid(-1, pstatus, WNOHANG)
 #elif defined (HAVE_WAIT3)

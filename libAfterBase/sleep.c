@@ -16,15 +16,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "config.h"
+
 #include <unistd.h>
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 #include <sys/times.h>
 
 #if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
 #include <sys/select.h>
 #endif
 
-#include "config.h"
 #include "astypes.h"
 #include "sleep.h"
 

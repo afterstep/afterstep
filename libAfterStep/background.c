@@ -27,7 +27,9 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
+#endif
 
 #define DO_CLOCKING
 #ifdef DO_CLOCKING

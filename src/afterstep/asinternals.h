@@ -401,10 +401,10 @@ Bool is_window_obscured (ASWindow * above, ASWindow * below);
 void restack_window( ASWindow *t, Window sibling_window, int stack_mode );
 
 #ifndef NO_DEBUG_OUTPUT
-#define RaiseWindow(asw)    do{show_progress(__FILE__ " " __FUNCTION__ ":%d R",__LINE__);restack_window((asw),None,Above);}while(0)
-#define LowerWindow(asw)    do{show_progress(__FILE__ " " __FUNCTION__ ":%d L",__LINE__);restack_window((asw),None,Below);}while(0)
-#define RaiseObscuredWindow(asw)  do{show_progress(__FILE__ " " __FUNCTION__ ":%d RO",__LINE__);restack_window((asw),None,TopIf);}while(0)
-#define RaiseLowerWindow(asw)     do{show_progress(__FILE__ " " __FUNCTION__ ":%d RL",__LINE__);restack_window((asw),None,Opposite);}while(0)
+#define RaiseWindow(asw)    do{show_progress(__FILE__ " %s:%d R",__FUNCTION__ ,__LINE__);restack_window((asw),None,Above);}while(0)
+#define LowerWindow(asw)    do{show_progress(__FILE__ " %s:%d L",__FUNCTION__ ,__LINE__);restack_window((asw),None,Below);}while(0)
+#define RaiseObscuredWindow(asw)  do{show_progress(__FILE__ " %s:%d RO",__FUNCTION__,__LINE__);restack_window((asw),None,TopIf);}while(0)
+#define RaiseLowerWindow(asw)     do{show_progress(__FILE__ " %s:%d RL",__FUNCTION__,__LINE__);restack_window((asw),None,Opposite);}while(0)
 #else
 #define RaiseWindow(asw)    restack_window((asw),None,Above)
 #define LowerWindow(asw)    restack_window((asw),None,Below)

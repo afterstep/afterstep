@@ -29,7 +29,9 @@
 /* #define DO_CLOCKING */
 
 #ifdef DO_CLOCKING
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 #endif
 #include <stdarg.h>
 

@@ -18,14 +18,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "config.h"
+
 #include <string.h>							   /* for memset */
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <signal.h>
-
-#include "config.h"
 
 #include "astypes.h"
 #include "output.h"
