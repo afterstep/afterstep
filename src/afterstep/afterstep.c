@@ -94,7 +94,6 @@ extern char *config_file_to_override;
 extern Bool shall_override_config_file;
 
 XErrorHandler CatchRedirectError (Display *, XErrorEvent *);
-XErrorHandler ASErrorHandler (Display *, XErrorEvent *);
 void newhandler (int sig);
 void InitModifiers (void);
 void CreateCursors (void);
