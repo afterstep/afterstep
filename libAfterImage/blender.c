@@ -404,7 +404,7 @@ allanon_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
 	{
-		if( ta[i] != 0 )
+		if( ta[i] != 0 ) 
 		{
 			br[i] = (br[i]+tr[i])>>1 ;
 			bg[i] = (bg[i]+tg[i])>>1 ;

@@ -574,7 +574,10 @@ init_image_layers( register ASImageLayer *l, int count )
 {
 	memset( l, 0x00, sizeof(ASImageLayer)*count );
 	while( --count >= 0 )
+	{
 		l[count].merge_scanlines = alphablend_scanlines ;
+		l[count].back_color = ARGB32_DEFAULT_BACK_COLOR ;
+	}		
 }
 
 ASImageLayer *
@@ -1751,7 +1754,10 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 				else if( chan_fill[color] != imout->chan_fill[color] )
 					asimage_add_line_mono( imout->im, color, chan_fill[color], imout->next_line);
 				else
+				{
+					LOCAL_DEBUG_OUT( "erasing line %d for component %d", imout->next_line, color );
 					asimage_erase_line( imout->im, color, imout->next_line );
+				}					
 			}
 		}
 	}

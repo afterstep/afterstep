@@ -1006,6 +1006,7 @@ LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count =
 				{
 					result.back_color = (result.back_color&(~MAKE_ARGB32_CHAN8(0xFF,color)))|
 										MAKE_ARGB32_CHAN16(chan_data[0],color);
+
 				}else
 				{
 					register CARD32  *dst = result.channels[color] ;
@@ -1014,7 +1015,9 @@ LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count =
 						register int x ;
 						register CARD32 d = chan_data[line] ;
 						for( x = line ; x < width ; x+=dither_lines_num )
+						{
 							dst[x] = d ;
+						}							
 					}
 					set_flags(result.flags, 0x01<<color);
 				}

@@ -500,11 +500,10 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			bevel.hilo_color = bevel.hi_color;
 			bevel.lolo_color = bevel.lo_color;
 			if (verbose) printf("Generating bevel with offsets [%d %d %d %d] and colors [#%08x #%08x].\n", bevel.left_inline, bevel.top_inline, bevel.right_inline, bevel.bottom_inline, (unsigned int)bevel.hi_color, (unsigned int)bevel.lo_color);
-			memset(&layer, 0, sizeof(layer));
+			init_image_layers( &layer, 1 );
 			layer.im = imtmp;
 			layer.clip_width = imtmp->width;
 			layer.clip_height = imtmp->height;
-			layer.merge_scanlines = alphablend_scanlines;
 			layer.bevel = &bevel;
 			result = merge_layers(asv, &layer, 1, imtmp->width, imtmp->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 			my_destroy_asimage(imtmp);
@@ -858,8 +857,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			ASImageLayer *layers;
 
 			// Build the layers first.
-			layers = NEW_ARRAY(ASImageLayer, num);
-			memset(layers, 0, sizeof(ASImageLayer) * num);
+			layers = create_image_layers( num );
 			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) {
 				int x = 0, y = 0;
 				ARGB32 tint = 0;
@@ -883,7 +881,6 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 					layers[num].clip_height = layers[num].im->height;
 					layers[num].tint = tint;
 					layers[num].bevel = 0;
-					layers[num].merge_mode = 0;
 					layers[num].merge_scanlines = blend_scanlines_name2func(pop);
 					if (width < layers[num].im->width) width = layers[num].im->width;
 					if (height < layers[num].im->height) height = layers[num].im->height;
