@@ -182,17 +182,27 @@ install.man:
 		done
 
 install.doc:
-	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; cd doc/html; \
-	    echo "$(MKDIR) $(AFTER_SHAREDIR)"; \
+	if [ -d doc/html ]; then \
+	    SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; cd doc/html; \
+	    if [ ! -d $(AFTER_SHAREDIR) ]; then \
+		echo "$(MKDIR) $(AFTER_SHAREDIR)"; \
 		$(MKDIR) $(AFTER_SHAREDIR); \
-	    echo "$(MKDIR) $(AFTER_DOC_DIR)"; \
+	    fi; \
+	    if [ ! -d $(AFTER_DOC_DIR) ]; then \
+		echo "$(MKDIR) $(AFTER_DOC_DIR)"; \
 		$(MKDIR) $(AFTER_DOC_DIR); \
-	    echo "$(MKDIR) $(AFTER_DOC_DIR)/html"; \
+	    fi; \
+	    if [ ! -d $(AFTER_DOC_DIR)/html ]; then \
+		echo "$(MKDIR) $(AFTER_DOC_DIR)/html"; \
 		$(MKDIR) $(AFTER_DOC_DIR)/html; \
-		for f in *.html; do \
+	    fi; \
+	    for f in *.html; do \
+		if [ "x$$f" != 'x*.html' ]; then \
 	  	  echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
 		  $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
-		done; cd ../..;
+		fi; \
+	    done; cd ../..; \
+	fi
 
 install:	install.lib install.man install.doc
 
