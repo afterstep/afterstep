@@ -177,6 +177,7 @@ void destroy_ascanvas( ASCanvas **pcanvas );
 
 ASFlagType handle_canvas_config( ASCanvas *canvas ); /* Returns True if moved/resized */
 Bool get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py );
+void invalidate_canvas_config( ASCanvas *canvas );
 
 Pixmap get_canvas_canvas( ASCanvas *pc );
 Pixmap get_canvas_mask( ASCanvas *pc );

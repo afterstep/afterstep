@@ -241,7 +241,8 @@ check_side_canvas( ASWindow *asw, FrameSide side, Bool required )
             register_aswindow( w, asw );
 			canvas = create_ascanvas( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->side(%d)->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname",side, canvas, canvas->w );
-        }
+        }else
+			invalidate_canvas_config( canvas );
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
 		w = canvas->w ;
@@ -289,7 +290,8 @@ check_frame_canvas( ASWindow *asw, Bool required )
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->FRAME->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
-        }
+        }else
+			invalidate_canvas_config( canvas );		
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         w = canvas->w ;
@@ -342,7 +344,8 @@ check_client_canvas( ASWindow *asw, Bool required )
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
-        }
+        }else
+			invalidate_canvas_config( canvas );		
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         XWindowChanges xwc;                    /* our withdrawn geometry */
@@ -424,7 +427,8 @@ check_icon_canvas( ASWindow *asw, Bool required )
             }
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICON->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
             register_aswindow( w, asw );
-        }
+        }else
+			invalidate_canvas_config( canvas );		
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         w = canvas->w ;
@@ -475,7 +479,8 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw-
             register_aswindow( w, asw );
             canvas = create_ascanvas( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
-        }
+        }else
+			invalidate_canvas_config( canvas );		
     }
 
     return (asw->icon_title_canvas = canvas);
@@ -657,6 +662,7 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
             frame = myframe_find( ASWIN_HFLAGS(asw, AS_Frame)?asw->hints->frame_name:NULL );
         has_tbar = (ASWIN_HFLAGS(asw, AS_Titlebar)!= 0);
     }
+
     if(  free_resources || asw->hints == NULL || asw->status == NULL )
     {/* destroy window decorations here : */
      /* destruction goes in reverese order ! */
@@ -682,12 +688,15 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
 
     if( asw->hints->mystyle_names[BACK_FOCUSED] )
         mystyle_name = asw->hints->mystyle_names[BACK_FOCUSED];
+
     /* 1) we need to create our frame window : */
     if( check_frame_canvas( asw, True ) == NULL )
         return;
+
     /* 2) we need to reparent our title window : */
     if( check_client_canvas( asw, True ) == NULL )
         return;
+
     /* 3) we need to prepare icon window : */
     check_icon_canvas( asw, (ASWIN_HFLAGS( asw, AS_Icon) && !get_flags(Scr.Feel.flags, SuppressIcons)) );
     /* 4) we need to prepare icon title window : */

@@ -203,6 +203,28 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->new__geom(%ux%u%+d%+d)->change
     return res;
 }
 
+void
+invalidate_canvas_config( ASCanvas *pc )
+{
+	if( pc ) 
+	{
+		XResizeWindow( dpy, pc->w, pc->width+1, pc->height+1 );
+		pc->width = 1;
+		pc->height = 1;
+		if (pc->canvas)
+		{
+			XFreePixmap (dpy, pc->canvas);
+			pc->canvas = None;
+		}
+        if (pc->mask && !get_flags( pc->state, CANVAS_CONTAINER ))
+		{
+			XFreePixmap (dpy, pc->mask);
+			pc->mask = None;
+		}
+		set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
+	}
+}
+
 Bool
 get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py )
 {
