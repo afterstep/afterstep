@@ -38,11 +38,11 @@ install.man:
 install.script:
 
 install.dyn:
-                $(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR) \
-                if test "x$$CONFIG_OBJS" != "x"; then $(INSTALL_SCRIPT) $(CONFIG_OBJS) $(AFTER_BIN_DIR);fi \
-                -@/bin/rm -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED) \
-                ln -sf $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) \
-                ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED) \
+		$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR) \
+		if test "x$$CONFIG_OBJS" != "x"; then $(INSTALL_SCRIPT) $(CONFIG_OBJS) $(AFTER_BIN_DIR);fi \
+		-@/bin/rm -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED) \
+		ln -sf $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) \
+		ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED) \
 		@( \
 		 if test `uname` = "Linux"; then \
 		   if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
