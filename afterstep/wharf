@@ -34,7 +34,7 @@
 #*WharfForceSize
 *WharfRows		1
 #*WharfColumns		1
-*WharfGeometry		+5+25
+*WharfGeometry		+5+30
 
 
 #-----------------------------------------------------------------------
@@ -51,30 +51,59 @@
 #
 # Midnight commander file manager in the term of choice :
 #
+*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" aterm -g 130x35 -tr -tint blue -fg yellow -bg black -e mc &
+*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" rxvt  -g 130x35 -tr -fg yellow -bg black -e mc  &
+*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" eterm -g 130x35 -tr -tint blue -fg yellow -bg black -e mc &
+*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" xterm -g 130x35 -fg yellow -bg blue -e mc &
 
 #
 # First available GUI file manager :
 #
+*Wharf GUIFileManager normal/Filecabinet2 Exec "Krusader" krusader &
+*Wharf GUIFileManager normal/Filecabinet2 Exec "Gentoo File Manager" gentoo &
+*Wharf GUIFileManager normal/Filecabinet2 Exec "Nautilus" nautilus --no-desktop &
+
+#
+# Konqueror is very nice web browser/filemanager and deserves an icon of its own : :
+#
+*Wharf Konqueror logos/konqueror Exec "Konqueror" konqueror &
+
 
 #
 # First available GUI Web Browser :
 #
+*Wharf WebBrowser logos/mozilla Exec "Mozilla" mozilla &
+*Wharf WebBrowser logos/Opera   Exec "Opera Web Browser" opera &
 
 #
 # First available GUI e-mail client :
 #
+*Wharf Mail	normal/MailBox2 Exec "kmail" kmail &
+*Wharf Mail	normal/MailBox2 Exec "mozilla-mail" mozilla --mail &
+*Wharf Mail	normal/MailBox2 Exec "balsa" balsa &
+*Wharf Mail	normal/MailBox2 Exec "Pine" aterm -tn "Pine e-mail and news reader" -tr -tint blue -fg yellow -bg black -e pine &
+*Wharf Mail	normal/MailBox2 Exec "Pine" rxvt  -tn "Pine e-mail and news reader" -tr -fg yellow -bg black -e pine  &
+*Wharf Mail	normal/MailBox2 Exec "Pine" eterm -tn "Pine e-mail and news reader" -tr -tint blue -fg yellow -bg black -e pine &
+*Wharf Mail	normal/MailBox2 Exec "Pine" xterm -tn "Pine e-mail and news reader" -fg yellow -bg blue -e pine &
+
 
 #
 # First available GUI image editor :
 #
+*Wharf ImageEditor logos/gimp Exec "GIMP" gimp &
+*Wharf ImageEditor normal/XV Exec "XV" xv &
 
 #
 # First available GUI text editor :
 #
+*Wharf TextEditor Text.xpm Exec "cooledit" cooledit --look next &
+*Wharf TextEditor Text.xpm Exec "VIM" vim &
+*Wharf TextEditor logos/GNU Exec "XEmacs" xemacs &
 
 #
 # First available Word processor :
 #
+*Wharf WordProcessor normal/Document Exec "AbiWord" abiword &
 
 #
 # Office Suites :
@@ -83,6 +112,13 @@
 #
 # First available Audio player :
 #
+*Wharf AudioPlayer logos/Xmms Exec "X Multi Media System" xmms &
+*Wharf AudioPlayer - Swallow "ascd" ascd &
+#
+# Mixer
+#
+*Wharf asmixer - Swallow "asmixer" asmixer -g -1-1 &
+*Wharf asmixer - Swallow "asMix" asmix -shape &
 
 #
 # First available Video player :
@@ -91,6 +127,12 @@
 #
 # First available IRC client :
 #
+*Wharf IRC  normal/IRCTransparent Exec "XCHAT" xchat &
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" aterm -tn "BitchX IRC" -tr -sh 50 -fg white -bg black -e BitchX irc.openprojects.net &
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" rxvt  -tn "Pine e-mail and news reader" -tr -fg yellow -bg black -e BitchX irc.openprojects.net  &
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" eterm -tn "Pine e-mail and news reader" -tr -sh 50 -fg yellow -bg black -e BitchX irc.openprojects.net &
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" xterm -tn "Pine e-mail and news reader" -fg yellow -bg blue -e BitchX irc.openprojects.net &
+
 
 
 #
@@ -138,113 +180,19 @@
 # Monitoring Applications :
 #
 
+*MonitorWharf afterstepdoc AfterStep3.xpm Exec "-" afterstepdoc &
+*MonitorWharf xeyes - Swallow "xeyes" xeyes &
+*MonitorWharf Recycler normal/Recycle Restart "" afterstep
+*MonitorWharf Quit normal/RedLight Quit "" afterstep
+
+*Wharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &
+*Wharf asload - Swallow "asload" asload -shape &
+*Wharf asmail - Swallow "asmail" asmail -geometry +0+0 &
+
+# one of the clocks - first available : 
+*MonitorWharf clock - Swallow "asclock" asclock -shape -12 -position +1+1 &
+*MonitorWharf clock - Swallow "xclock" xclock -bg gray10 -fg cyan -digital -brief &
+
 #
 #  End of the MonitorWharf configuration
 ##########################################################################
-
-
-#------------------------------------------------------------------------
-# Entries
-#
-# NOTE:	as<app-name> programs require the APPS
-#	tarball which is separate from the core release.
-#
-# AfterStep documentation
-#
-*Wharf afterstepdoc AfterStep3.xpm Exec "-" afterstepdoc &
-
-#
-# Time
-#
-*Wharf clock - Swallow "asclock" asclock -shape -12 -position +1+1 &
-
-#
-# Pagers
-# If you want to swallow Pager in Wharf, please don't start another one
-# for same desks from the autoexec, or it can cause excesive use of
-# system resources, and slow startup process.
-#
-#*Wharf Pagers Monitor.xpm,3_dots.xpm Folders
-# *Wharf Pager - MaxSwallowModule "Pager" Pager 0 3
-#*Wharf ~Folders
-
-#
-# File system
-#
-#*Wharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &
-
-#
-# System load
-#
-#*Wharf asload - Swallow "asload" asload -shape &
-
-#
-# Mail
-#
-#*Wharf asmail - Swallow "asmail" asmail -geometry +0+0 &
-
-#
-# Mixer
-#
-#*Wharf asmixer - Swallow "asmixer" asmixer -g -1-1 &
-#*Wharf asMix - Swallow "asMix" asmix -shape &
-
-#
-# CD player
-#
-#*Wharf ascd - Swallow "ascd" ascd &
-
-
-*Wharf Applications FileFolders.xpm,3_dots.xpm Folders
- #*Wharf Files Computer.xpm Exec "-" Files &
- *Wharf xterm linux-penguin.xpm Exec "-" (exec aterm) || (exec xterm) &
-
- *Wharf Helpme Info.xpm,3_dots.xpm Folders
-        *Wharf xman Bookshelf.xpm Exec "-" xman &
-#       *Wharf axinfo BookArrows.xpm Exec "-" axinfo &
-#       *Wharf xapm KeyPower.xpm Exec "-" xapm &
- *Wharf ~Folders
-
- #*Wharf Office spreadsheet2.xpm,3_dots.xpm Folders
-	#*Wharf nexs spreadsheet.xpm Exec "-" nexs &
-	#*Wharf xbru disk.builder.xpm Exec "-" xbru &
-        #*Wharf linuxconf widget.xpm Exec "-" linuxconf &
- #*Wharf ~Folders
-
- #*Wharf Pictures monalisa.xpm,3_dots.xpm Folders
-	#*Wharf xfig draw.xpm Exec "xfig" xfig &
-        #*Wharf 3d RayTracedGear.xpm,3_dots.xpm Folders
-                #*Wharf ac3d Plasma.xpm Exec "ac3d" ac3d &
-                #*Wharf moonlight 3dpaint.xpm Exec "moonlight" moonlight &
-        #*Wharf ~Folders
-	#*Wharf nil nil DropExec "gimp" ee %s &
-	#*Wharf gimp Paint.xpm Exec "image" gimp &
-	#*Wharf ee Eyecon.xpm Exec "image" gimp &
-	#*Wharf xpaint Brush.xpm Exec "xpaint" xpaint &
- #*Wharf ~Folders
- #*Wharf netscape netscape.xpm Exec "-" netscape &
-*Wharf ~Folders
-
-#
-# Screen saver
-#
-*Wharf xlock Recycler.xpm  Exec "-" xlock -nolock -nice 0 -mode random &
-
-#
-# X eyes
-#
-*Wharf xeyes nil Swallow "xeyes" xeyes &
-
-#
-# Exit
-#
-*Wharf QuitForm RedFire.xpm Module "QuitForm" Form QuitForm
-
-#
-# Restart
-#
-#*Wharf Recycler shutdown.xpm Restart "" afterstep
-
-#
-############################################################################
-

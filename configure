@@ -4432,13 +4432,10 @@ tools/installastheme.pl \
 tools/makeastheme.pl \
 \
 afterstep/base \
-afterstep/asetroot \
 afterstep/audio \
 afterstep/autoexec \
 afterstep/compatibility \
 afterstep/pager \
-afterstep/wharf \
-afterstep/zharf \
 afterstep/start/.include \
 afterstep/start/1_Desktop/Feel/.include \
 afterstep/start/1_Desktop/Color_Scheme/.include \
@@ -4658,13 +4655,10 @@ tools/installastheme.pl \
 tools/makeastheme.pl \
 \
 afterstep/base \
-afterstep/asetroot \
 afterstep/audio \
 afterstep/autoexec \
 afterstep/compatibility \
 afterstep/pager \
-afterstep/wharf \
-afterstep/zharf \
 afterstep/start/.include \
 afterstep/start/1_Desktop/Feel/.include \
 afterstep/start/1_Desktop/Color_Scheme/.include \

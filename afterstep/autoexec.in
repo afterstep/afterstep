@@ -7,8 +7,10 @@
 
 Function "InitFunction"
 #	Module  "I"     Animate
+	Module  "I"     MonitorWharf
+	Wait    "I"     MonitorWharf
 	Module  "I"     Wharf
-	Wait    "I"     Wharf
+#	Wait    "I"     Wharf
 	Module  "I"     Pager 0 @with_desktops_1@
 	Module  "I"     WinList
 #	Module  "I"	Banner
@@ -23,8 +25,10 @@ EndFunction
 Function "RestartFunction"
 # remove the following line if minimizing memory usage (see above):
 #	Module  "I"     Animate
+	Module  "I"     MonitorWharf
+	Wait    "I"     MonitorWharf
 	Module  "I"     Wharf
-	Wait    "I"     Wharf
+#	Wait    "I"     Wharf
 	Module  "I"     Pager 0 @with_desktops_1@
 	Module  "I"     WinList
 EndFunction

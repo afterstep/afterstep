@@ -179,7 +179,14 @@ MyStyle "*WharfTile"
 	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      InactiveText2
 	BackColor      Inactive2
-	BackMultiGradient   6 #10222222 0.0 alpha(20,Inactive2Dark) 0.3 alpha(30,Inactive2Light) 0.5 alpha(50,Active) 0.8 alpha(70,ActiveLight) 1.0
+	BackGradient   6 alpha(20,Inactive2Dark) alpha(30,Inactive2Light)
+~MyStyle
+
+MyStyle "*MonitorWharfTile"
+	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackPixmap     129 #DFDFDF
 ~MyStyle
 
 #----------WinList MyStyles---------#

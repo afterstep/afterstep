@@ -32,7 +32,7 @@ KeepIconWindows
 # ClickToFocus
 #
 # Click on titlebar to raise window (ie put it in the foreground)
-#ClickToRaise
+ClickToRaise
 #
 # Focus on window until pointer gets in another one
 SloppyFocus
@@ -158,10 +158,11 @@ EndFunction
 
 Popup "Window"
         Title           "This window :"
- MiniPixmap "mini-menu.xpm"
-        Exec 		"Take A WindowShot" exec xwd -frame -out window.xwd
+	TakeScreenShot  "Take a shot of entire screen"
  MiniPixmap "mini-app.xpm"
-        Exec 		"Take A ScreenShot" exec xwd -root -out screen.xwd
+	TakeWindowShot  "Take a shot of the window"
+ MiniPixmap "mini-app.xpm"
+	TakeFrameShot   "Take a shot of the entire window frame"
  MiniPixmap "mini-app.xpm"
         Move            "Move"
  MiniPixmap "mini-as.xpm"
@@ -227,9 +228,10 @@ EndPopup
 #   I = Icon Window
 #   T = TitleBar
 #   W = Application Window
+#   A = Any context except for inside the TitleBar Boxes
 # Third Column is the Context (ie, modifier keys)
 #   N = No modifiers
-#   A = Any context except for inside the TitleBar Boxes
+#   A = Any modifier
 #   C = Control
 #   S = Shift
 #   M = Meta
@@ -243,8 +245,8 @@ Mouse 1         R       A       PopUp "0"
 Mouse 2         R       A       GetHelp
 Mouse 3         R       A       WindowList
 Mouse 1         1       A       ChangeWindowUp
-Mouse 2         1       C       BookmarkWindow "bkmrk1" 
-Mouse 2         1       S       GoToBookmark "bkmrk1" 
+Mouse 2         1       C       BookmarkWindow "bkmrk1"
+Mouse 2         1       S       GoToBookmark "bkmrk1"
 Mouse 3         1       A       ChangeWindowDown
 Mouse 1         2       A       Delete
 Mouse 2         2       A       Close
@@ -266,7 +268,7 @@ Mouse 2         FS      A       Move
 Mouse 3         FS      A       Move
 Mouse 1         T       A       Function "Move-or-Top"
 Mouse 2         T       A       Function "Move-or-Normal"
-Mouse 2         T       A       RaiseLower
+#Mouse 2         T       A       RaiseLower
 Mouse 3         T       A       RaiseLower
 Mouse 0         I       A       Function "Move-or-Iconify"
 
@@ -327,7 +329,9 @@ Key Menu        A       A       Popup "0"
 Key Meta_L      A       A       WarpFore
 Key Meta_R      A       A       WarpBack
 # PC keys aren't always defined is keymaps
-Key Print       A       A       Exec "Take_ScreenShot" exec xwd -root -out screen.xwd
+Key Print       A       N       TakeScreenShot
+Key Print       A       M       TakeWindowShot
+Key Print       A       C       TakeFrameShot
 Key Pause       A       A       Exec "xlock" exec xlock -nolock -mode random
 Key Sys_Req     A       A       GetHelp
 Key Scroll_Lock A       A       Desk 0
