@@ -1441,11 +1441,21 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 		if( get_flags( aswf->flags, ASW_Vertical ) )
 		{	
 			if( aswf->gravity == SouthWestGravity || aswf->gravity == SouthEastGravity )
-				rect.y = max(to_height,from_height) - rect.height ;
+				rect.y = max(to_height,from_height) - (short)rect.height ;
+			if( rect.y < 0 ) 
+			{	
+				rect.y = 0 ; 
+				rect.height = to_height ;
+			}
 		}else 
 		{	
 			if( aswf->gravity == NorthEastGravity || aswf->gravity == SouthEastGravity )
-				rect.x = max(to_width,from_width) - rect.width ;
+				rect.x = max(to_width,from_width) - (short)rect.width ;
+			if( rect.x < 0 ) 
+			{	
+				rect.x = 0 ; 
+				rect.width = to_width ;
+			}
 		}
 		
 		/*fprintf( stderr, "%s: boundary = %dx%d%+d%+d, canvas = %dx%d\n", 

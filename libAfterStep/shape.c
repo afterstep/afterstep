@@ -204,7 +204,7 @@ subtract_rectangle( int new_x, int new_y, int new_width, int new_height, ASVecto
 	if( new_width == 0 || new_height == 0 )
 		return False;
 
-	LOCAL_DEBUG_OUT(" assimilating %dx%d%+d%+d", new_width, new_height, new_x, new_y );
+	LOCAL_DEBUG_OUT(" subtracting %dx%d%+d%+d", new_width, new_height, new_x, new_y );
 
 	/* pass 1 : find rectangles that are entirely inside us and delete them all :  */
 	i = shape_rect_count ;

@@ -1094,55 +1094,52 @@ void
 on_window_hilite_changed( ASWindow *asw, Bool focused )
 {
     ASOrientation *od = get_orientation_data( asw );
+    int i;
 
 LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
     if( AS_ASSERT(asw) )
         return;
 
-//    if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
-    {
-        register int i = FRAME_PARTS;
-
-	    for( i = FRAME_SIDES; --i >= 0; )
+	for( i = FRAME_SIDES; --i >= 0; )
+	{
+    	ASCanvas *update_canvas = asw->frame_sides[i] ;
+		int k ;
+		if( swap_save_canvas( update_canvas ) )
+		{	
+			LOCAL_DEBUG_OUT( "canvas save swapped for side %d", i );
+			update_canvas = NULL ;
+		}
+#if 0				  
+		if( focused )
 		{
-    	    ASCanvas *update_canvas = asw->frame_sides[i] ;
-			int k ;
-			if( swap_save_canvas( update_canvas ) )
-			{	
-				LOCAL_DEBUG_OUT( "canvas save swapped for side %d", i );
+			save_canvas(update_canvas);
+		}else
+		{
+			if( restore_canvas(asw->frame_sides[i]) )
+			{
+				LOCAL_DEBUG_OUT( "canvas restored for side %d", i );
 				update_canvas = NULL ;
 			}
-#if 0				  
-			if( focused )
-			{
-				save_canvas(update_canvas);
-			}else
-			{
-				if( restore_canvas(asw->frame_sides[i]) )
-				{
-					LOCAL_DEBUG_OUT( "canvas restored for side %d", i );
-					update_canvas = NULL ;
-				}
-			}
+		}
 #endif
 
-			if( i == od->tbar_side )
-				set_astbar_focused( asw->tbar, update_canvas, focused );
+		if( i == od->tbar_side )
+			set_astbar_focused( asw->tbar, update_canvas, focused );
 
-			for( k = 0 ; k < FRAME_PARTS ; ++k )
-				if( od->tbar2canvas_xref[k] == i )
-					set_astbar_focused( asw->frame_bars[k], update_canvas, focused );
-		}
-    	/* now posting all the changes on display :*/
-    	for( i = FRAME_SIDES; --i >= 0; )
-        	if( is_canvas_dirty(asw->frame_sides[i]) )
-            	update_canvas_display( asw->frame_sides[i] );
-        if( asw->internal && asw->internal->on_hilite_changed )
-            asw->internal->on_hilite_changed( asw->internal, NULL, focused );
-        if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor ) )
-            SetShape( asw, 0 );
-//    }else /* Iconic !!! */
-//    {
+		for( k = 0 ; k < FRAME_PARTS ; ++k )
+			if( od->tbar2canvas_xref[k] == i )
+				set_astbar_focused( asw->frame_bars[k], update_canvas, focused );
+	}
+    /* now posting all the changes on display :*/
+    for( i = FRAME_SIDES; --i >= 0; )
+        if( is_canvas_dirty(asw->frame_sides[i]) )
+            update_canvas_display( asw->frame_sides[i] );
+    if( asw->internal && asw->internal->on_hilite_changed )
+        asw->internal->on_hilite_changed( asw->internal, NULL, focused );
+    if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor ) )
+        SetShape( asw, 0 );
+    if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
+	{	
         set_astbar_focused( asw->icon_button, asw->icon_canvas, focused );
         set_astbar_focused( asw->icon_title, asw->icon_title_canvas, focused );
         if( is_canvas_dirty(asw->icon_canvas) )

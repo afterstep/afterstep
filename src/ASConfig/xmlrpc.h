@@ -140,17 +140,12 @@ typedef struct ASXmlRPCValue
 	SupportedXMLRPCTagIDs type ;  /* i4, int, double, base64, string, boolean, struct, array */ 
 	union
 	{
-		int		i;
-		double	d;
-		CARD8  	*b64;
-		char 	*string;
-		Bool    b;
-		ASBiDirList 	*s ;   /* list of named values - members of the struct */
-		ASBiDirList  	*a ;   /* list of values */
+		char 		*cdata;
+		ASBiDirList *members ;   /* either list of named values - members of the struct,
+								  * or array of nameless values */
+	}value ;
 	
-	}data ;
-	
-	int size ;
+	int cdata_size ;		   /* valid only if type != struct or array */
 	char *name ;               /* optional - only if data member of the struct */
 
 }ASXmlRPCValue;
@@ -159,16 +154,19 @@ typedef struct ASXmlRPCValue
 typedef struct ASXmlRPCPacket
 {
 	Bool response ;
-	const char *name ;
+	char *name ;
 	ASBiDirList *params ;      /* set of ASXmlRPCValue structures for different params */
-}ASXmlRPCPacket;
-
-typedef struct ASXmlRPCState {
-	ASXmlRPCPacket *curr_packet ;
-	ASXmlRPCValue  *curr_val ;
 
 	char *xml ;
 	int  size, allocated_size ;
+}ASXmlRPCPacket;
+
+typedef struct ASXmlRPCState {
+	ASXmlRPCPacket 	*curr_packet ;
+	char 			*curr_name ;
+	int last_tag_id ;
+	ASXmlRPCValue  	*curr_val ;
+
 }ASXmlRPCState;
 
 typedef void (*xmlrpc_tag_handler)( xml_elem_t *doc, xml_elem_t *parm, ASXmlRPCState *state );

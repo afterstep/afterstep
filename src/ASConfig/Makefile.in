@@ -1,4 +1,4 @@
-OBJS            = ASConfig.o asproperty.o configfile.o
+OBJS            = ASConfig.o asproperty.o configfile.o xmlrpc.o
 
 PROG		= ASConfig
 

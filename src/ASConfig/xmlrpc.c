@@ -67,14 +67,137 @@ init_xml_rpc_vocabulary()
 		for( i = 1 ; i < XMLRPC_SUPPORTED_IDS ; ++i )
 			add_hash_item( XmlRPCVocabulary, AS_HASHABLE(SupportedXmlRPCTagInfo[i].tag), (void*)(SupportedXmlRPCTagInfo[i].tag_id));
 	}
-}	  
+}
+
+void destroy_xml_rpc_value_func( void *data )
+{
+	ASXmlRPCValue *val = data ;
+	if( val ) 
+	{
+		if( val->type == XMLRPC_array_ID || val->type == XMLRPC_struct_ID )
+		{	
+			if( val->value.members != NULL ) 
+				destroy_asbidirlist( &(val->value.members) );
+		}else if( val->value.cdata ) 
+			free( val->value.cdata );
+		if( val->name ) 
+			free( val->name );
+		free( val );
+	}		 
+}	 
+
+ASXmlRPCValue *
+create_xml_rpc_value( SupportedXMLRPCTagIDs	type, char *name ) 
+{
+	ASXmlRPCValue *val = safecalloc( 1, sizeof( ASXmlRPCValue ) );
+	val->type = type ; 
+	if( val->type == XMLRPC_array_ID || val->type == XMLRPC_struct_ID )
+		val->value.members = create_asbidirlist(destroy_xml_rpc_value_func);
+	if( name ) 
+		val->name = mystrdup( name );
+}
+
+void
+set_xml_rpc_val_cdata( ASXmlRPCValue *val, const char *cdata )
+{
+	if( val->type != XMLRPC_array_ID && val->type != XMLRPC_struct_ID )
+	{	
+		val->value.cdata = mystrdup(cdata);
+		val->cdata_size = strlen(val->value.cdata);
+	}
+}
+	  
 /*************************************************************************/
+
+static void 
+convert_xml_rpc_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *state )
+{
+	xml_elem_t* parm = NULL;	
+	xml_elem_t* ptr ;
+	const char *tag_name = doc->tag;
+	ASXmlRPCTagHandlingInfo *tag_info = NULL ;
+	
+	parm = xml_parse_parm(doc->parm, XmlRPCVocabulary);	   
+	if( doc->tag_id > 0 && doc->tag_id < XMLRPC_SUPPORTED_IDS ) 
+		tag_info = &(SupportedXmlRPCTagInfo[doc->tag_id]);
+
+	if( tag_info && tag_info->handle_start_tag ) 
+		tag_info->handle_start_tag( doc, parm, state ); 
+	
+	for (ptr = doc->child ; ptr ; ptr = ptr->next) 
+	{
+		LOCAL_DEBUG_OUT( "handling tag's data \"%s\"", ptr->parm );
+		if (ptr->tag_id == XML_CDATA_ID ) 
+		{
+			const char *data_ptr = ptr->parm ;
+			int len = strlen( data_ptr ); 
+			if( state->last_tag_id == XMLRPC_methodName_ID ) 
+			{	               /* packet's name  */
+				set_string_value( &(state->curr_packet->name), mystrdup( ptr->parm ), NULL, 0 );
+			}else if( state->last_tag_id == XMLRPC_name_ID ) 
+			{                  /* value's name */
+				set_string_value( &(state->curr_name), mystrdup( ptr->parm ), NULL, 0 );
+			}else if( state->curr_val )
+			{                  /* value's data */
+				set_xml_rpc_val_cdata( state->curr_val, ptr->parm );
+			}
+		}else 
+			convert_xml_tag( ptr, NULL, state );
+	}
+	
+	
+	if( tag_info && tag_info->handle_end_tag ) 
+		tag_info->handle_end_tag( doc, parm, state ); 
+	
+	if( doc->tag_id > 0 && doc->tag_id < XMLRPC_SUPPORTED_IDS ) 
+		state->last_tag_id = doc->tag_id ;
+	   
+	if (rparm) *rparm = parm; 
+	else xml_elem_delete(NULL, parm);
+}
+
 
 Bool
 xml2rpc_packet( ASXmlRPCPacket* packet )
 {
-	
-	
+   	xml_elem_t* doc;
+
+   	
+	if( packet == NULL || packet->xml == NULL ) 
+		return False;
+
+	doc = xml_parse_doc(packet->xml, XmlRPCVocabulary);
+	if( doc->child ) 
+	{			   	
+		xml_elem_t* ptr;
+		ASXmlRPCState state ;
+
+		memset( &state, 0x00, sizeof(state));
+
+		state->curr_packet = packet ; 
+		if( packet->name )
+		{	
+			free( packet->name );
+			packet->name = NULL  ;
+		}
+		if( packet->params )
+			purge_asbidirlist( packet->params );
+		else
+			packet->params = create_asbidirlist(destroy_xml_rpc_value_func);
+
+
+		LOCAL_DEBUG_OUT( "child is %p", doc->child );
+		for (ptr = doc->child ; ptr ; ptr = ptr->next) 
+		{
+			LOCAL_DEBUG_OUT( "converting child <%s>", ptr->tag );
+	  		convert_xml_rpc_tag( ptr, NULL, packet );
+			LOCAL_DEBUG_OUT( "done converting child <%s>", ptr->tag );
+		}
+	}
+	/* Delete the xml. */
+	LOCAL_DEBUG_OUT( "deleting xml %p", doc );
+	xml_elem_delete(NULL, doc);
+
 }
 
 Bool
