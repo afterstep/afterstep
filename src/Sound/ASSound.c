@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (C) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (c) 1996 by Alfredo Kojima
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,9 +19,9 @@
  */
 
 /*
- * Todo: 
+ * Todo:
  * realtime audio mixing
- * replace the Audio module 
+ * replace the Audio module
  */
 
 #include "../../configure.h"
@@ -193,16 +193,16 @@ DoNothing (int foo)
  * HandleRequest --
  *       play requested sound
  * sound -1 is a quit command
- * 
+ *
  * Note:
- *      Something not good will happed if a new play request 
+ *      Something not good will happed if a new play request
  * arrives before exiting the handler
  */
 void
 HandleRequest (int foo)
 {
   int sound, timestamp;
-/*    
+/*
    signal(SIGUSR1, DoNothing);
  */
   read (fd[0], &sound, sizeof (sound));
@@ -257,8 +257,8 @@ usage (void)
 /*
  * Program startup.
  * Arguments:
- * argv[1] - pipe for reading data 
- * argv[2] - the name of the sound player to be used. ``-'' indicates 
+ * argv[1] - pipe for reading data
+ * argv[2] - the name of the sound player to be used. ``-'' indicates
  *      internal player.
  * argv[3]... - filenames of sound files with code n-3
  */

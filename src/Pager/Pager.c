@@ -2,7 +2,7 @@
  * Copyright (C) 1998 Eric Tremblay <deltax@pragma.net>
  * Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
  * Copyright (c) 1998 Doug Alcorn <alcornd@earthlink.net>
- * Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (c) 1997 ric@giccs.georgetown.edu
  * Copyright (C) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
  * Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
@@ -93,7 +93,7 @@ Pixmap GetRootPixmap (Atom);
 #define DEFAULT_BORDER_COLOR "grey50"
 
 /*************************************************************************
- * 
+ *
  * Screen, font, etc info
  *
  **************************************************************************/
@@ -362,7 +362,7 @@ DeadPipe (int nonsense)
 {
 #ifdef DEBUG_ALLOCS
   int i;
-/* normally, we let the system clean up, but when auditing time comes 
+/* normally, we let the system clean up, but when auditing time comes
  * around, it's best to have the books in order... */
   {
     DeleteWindows (Pager.Start);
@@ -868,7 +868,7 @@ list_end (void)
 }
 
 /*****************************************************************************
- * 
+ *
  * This routine is responsible for reading Styles from shared property
  * or config file
  *
@@ -1114,7 +1114,7 @@ OnLookUpdated ()
 }
 
 /*****************************************************************************
- * 
+ *
  * This routine is responsible for reading and parsing the config file
  *
  ****************************************************************************/
@@ -1130,9 +1130,9 @@ GetOptions (const char *filename)
 
   if (!config)
     exit (0);			/* something terrible has happend */
-/* example of using config writer :                                                                 
+/* example of using config writer :
  */
-/*   WritePagerOptions( filename, MyName, Pager.desk1, Pager.desk2, config, WF_DISCARD_UNKNOWN|WF_DISCARD_COMMENTS ); 
+/*   WritePagerOptions( filename, MyName, Pager.desk1, Pager.desk2, config, WF_DISCARD_UNKNOWN|WF_DISCARD_COMMENTS );
  */
 
   if (config->geometry.flags & WidthValue)
@@ -1248,7 +1248,7 @@ GetBaseOptions (const char *filename)
   replaceEnvVar (&pixmapPath);
   modulePath = config->module_path;
   replaceEnvVar (&modulePath);
-  config->pixmap_path = NULL;	/* setting it to NULL so it would not be 
+  config->pixmap_path = NULL;	/* setting it to NULL so it would not be
 				   deallocated by DestroyBaseConfig */
   config->module_path = NULL;
 

@@ -1,6 +1,6 @@
 /* This file contains code for unified image loading from JPEG file. */
 /********************************************************************/
-/* Copyright (c) 1998 Sasha Vasko   <sashav@sprintmail.com>         */
+/* Copyright (c) 1998 Sasha Vasko   <sasha at aftercode.net>         */
 /********************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -254,7 +254,7 @@ LoadPNGFile (LImageParams * pParams)
    * so the data will be available as RGBA quartets.
    */
 /*
-   LOG1( "\n converting to ALPHA" ) 
+   LOG1( "\n converting to ALPHA" )
    if( color_type& == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_GRAY )
    {
 
@@ -262,8 +262,8 @@ LoadPNGFile (LImageParams * pParams)
    {
    LOG1( "\n  png_set_expand  - to get ALPHA channel")
    png_set_expand(png_ptr);
-   }     
-   else  png_set_filler( png_ptr, 0xFF, PNG_FILLER_AFTER );   
+   }
+   else  png_set_filler( png_ptr, 0xFF, PNG_FILLER_AFTER );
    if( color_type == PNG_COLOR_TYPE_RGB ) color_type = PNG_COLOR_TYPE_RGB_ALPHA ;
    else color_type = PNG_COLOR_TYPE_GRAY_ALPHA ;
    }
@@ -289,7 +289,7 @@ LoadPNGFile (LImageParams * pParams)
    * Some suggestions as to how to get a screen gamma value */
 
   /* Note that screen gamma is (display_gamma/viewing_gamma) */
-  /*This is one way that applications share the same screen gamma value 
+  /*This is one way that applications share the same screen gamma value
      else */
   /* Tell libpng to handle the gamma conversion for you.  The second call
    * is a good guess for PC generated images, but it should be configurable
@@ -313,13 +313,13 @@ LoadPNGFile (LImageParams * pParams)
    *    png_uint_32 num_palette;
    *    png_colorp palette;
    *
-   * This reduces the image to the application supplied palette 
-   * An array of colors to which the image should be dithered 
-   *    
+   * This reduces the image to the application supplied palette
+   * An array of colors to which the image should be dithered
+   *
    *      png_color std_color_cube[MAX_SCREEN_COLORS];
    *
    *      png_set_dither(png_ptr, std_color_cube, MAX_SCREEN_COLORS,
-   *      MAX_SCREEN_COLORS, NULL, 0); 
+   *      MAX_SCREEN_COLORS, NULL, 0);
    * }
    */
   /* Turn on interlace handling.  REQUIRED if you are not using
@@ -347,7 +347,7 @@ LoadPNGFile (LImageParams * pParams)
 
       row_bytes = png_get_rowbytes (png_ptr, info_ptr);
 
-      /* allocating big chunk of memory at once, to enable mmap 
+      /* allocating big chunk of memory at once, to enable mmap
        * that will release memory to system right after free() */
       row_data = (png_bytep) safemalloc (row_bytes * height);
       for (offset = 0, row = 0; row < height; row++, offset += row_bytes)

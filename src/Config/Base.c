@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,8 +42,8 @@
 #include "../../include/confdefs.h"
 
 /*****************************************************************************
- * 
- * This routine is responsible for reading and parsing the base.<bpp> config 
+ *
+ * This routine is responsible for reading and parsing the base.<bpp> config
  * file
  *
  ****************************************************************************/

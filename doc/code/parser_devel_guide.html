@@ -2,7 +2,7 @@
 <HEAD><TITLE>AfterStep unifyed parsing code Developer's Guide.</TITLE></HEAD>
 <BODY>
 <H1><A href="http://www.afterstep.org">AfterStep</A> unifyed parsing code Developer's Guide.</H1>
-<font size="2" color="blue">Copyright Sasha Vasko <A href="mailto:sashav@sprintmail.com">< sashav@sprintmail.com ></A></font> 
+<font size="2" color="blue">Copyright Sasha Vasko <A href="mailto:sasha at aftercode.net">< sasha at aftercode.net ></A></font>
 <p>
 <H2>Table of Contents.</H2>
 <OL>
@@ -22,11 +22,11 @@
 
 <OL>
 <H2><LI><A name="overview"></A>Overview.</H2>
-The parsing code <A href="../../lib/parser.c">parser.c</A> is a part of 
-main AfterStep library - libafterstep. It allows for convinient parsing 
+The parsing code <A href="../../lib/parser.c">parser.c</A> is a part of
+main AfterStep library - libafterstep. It allows for convinient parsing
 of the plain text configuration files, or configuration information from plain text buffer.
 <p>
-Configuration information consists of two kinds of options - 
+Configuration information consists of two kinds of options -
 <OL>
 <LI>Executable name specific option.<br>This options must be prepended with '*'
 character, and specific executable name - like *PagerMyOption.
@@ -38,7 +38,7 @@ Configuration options are defined as a <b>syntax definition</b>.<br>
 <OL>
 <LI><I>terminator</i> - character terminating single option;
 <LI><I>config_terminator</I> - character terminating entire configuration data;
-<LI><I>terms</I> - an array of term definitions.<br> 
+<LI><I>terms</I> - an array of term definitions.<br>
 <B>Term definition</B> includes :
 <OL>
 <LI>term's <I>flags</I> - defining specific ways of treating that option;
@@ -63,19 +63,19 @@ option each.<br>
 to prevent splitting of the option's data into elements - in this case argc will be equal 1)
 <LI><I>argv</I> - array of pointers to space separated data elements, that will be terminated with '\0' each.
 </OL>
-In case option needs some special processing and possibly need not to be included into FreeStorage - 
-custom exception function can be supplied. ( like for processing ballons options in the module configuration.) 
+In case option needs some special processing and possibly need not to be included into FreeStorage -
+custom exception function can be supplied. ( like for processing ballons options in the module configuration.)
 <LI>Processing of <B>FreeStorage</B> into the application usable format:<br>
 In this step linked list is processed by custom made, application specific function,
 in order to convert it into the application readable data structure.<br>
-This data structure can be used later on for communication between 
-Centralized Configuration module and the rest of the AfterStep, 
+This data structure can be used later on for communication between
+Centralized Configuration module and the rest of the AfterStep,
 and between ascp and the rest of the AfterStep. Just my thoughts, anyway :).
 </OL>
 <p>
 The way it is implemented now - all app-specific config reading code for the step 2
 gothered together in the <A href="../../src/Config">src/Config</A> dir. It is all
-organized in the lib, but modules should link to specific object files to reduce 
+organized in the lib, but modules should link to specific object files to reduce
 executable's size.<br>
 Header file for that stuff is : <A href="../../include/confdefs.h">confdefs.h</A><p>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (C) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (C) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
  * Copyright (C) 1996 Michael Beam
  * Copyright (C) 1996 Takanori Kubota

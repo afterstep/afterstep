@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  * spawned from configure.c and module.c using code from various ppl :
  * Copyright (c) 1998 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
  * Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
@@ -9,7 +9,7 @@
  * Copyright (c) 1998 Mike Venaccio <venaccio@aero.und.edu>
  * Copyright (c) 1998 Chris Ridd <c.ridd@isode.com>
  * Copyright (c) 1997 Raphael Goulais <velephys@hol.fr>
- * Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca> 
+ * Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
  * Copyright (C) 1996 Frank Fejes
  * Copyright (C) 1995 Bo Yang
  * Copyright (C) 1993 Robert Nation
@@ -31,7 +31,7 @@
  */
 
 /****************************************************************************
- * 
+ *
  * Configure.c: reads the configuration files, interprets them,
  * and sets up menus, bindings, colors, and fonts as specified
  *
@@ -211,8 +211,8 @@ struct charstring key_modifiers[] =
 };
 
 
-/* 
- * Turns a  string context of context or modifier values into an array of 
+/*
+ * Turns a  string context of context or modifier values into an array of
  * true/false values (bits)
  * returns pointer to the fisrt character after context specification
  */
@@ -547,7 +547,7 @@ parse_func (const char *text, FunctionData * data, int quiet)
 /*
    if( data->func == F_SCROLL )
    {
-   fprintf( stderr,"Function parsed: [%s] [%s] [%s] [%d] [%d] [%c]\n",fterm->keyword,data->name,data->text,data->func_val[0], data->func_val[1],data->hotkey );         
+   fprintf( stderr,"Function parsed: [%s] [%s] [%s] [%d] [%d] [%c]\n",fterm->keyword,data->name,data->text,data->func_val[0], data->func_val[1],data->hotkey );
    fprintf( stderr,"from: [%s]\n", text );
    }
  */
@@ -850,7 +850,7 @@ MenuItemParse (MenuRoot * menu, const char *buf)
 }
 
 /****************************************************************************
- * 
+ *
  *  Processes a menu body definition
  *
  ****************************************************************************/
@@ -879,8 +879,8 @@ ParseMenuBody (MenuRoot * mr, FILE * fd)
 }
 
 /****************************************************************************
- * 
- *  Parses a popup definition 
+ *
+ *  Parses a popup definition
  *
  ****************************************************************************/
 void
@@ -889,7 +889,7 @@ ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2)
   MenuRoot *mr = CreateMenuRoot ();
   static char screen_init_func[128] ;
   static char screen_restart_func[128] ;
-  static int screen_initialized = 0 ; 
+  static int screen_initialized = 0 ;
   if (ParseMenuBody (mr, fd))
     {
       MenuRoot *old;
@@ -904,18 +904,18 @@ ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2)
       /* now let's attach us to the main tree */
       mr->next = Scr.first_menu;
       Scr.first_menu = mr;
-	  
-	  if( screen_initialized == 0 ) 
+
+	  if( screen_initialized == 0 )
 	  {
 		  sprintf( screen_init_func, "InitScreen%ldFunction", Scr.screen );
 		  sprintf( screen_restart_func, "RestartScreen%ldFunction", Scr.screen );
 		  screen_initialized = 1 ;
 	  }
-	  
-      if (strcmp (mr->name, "InitFunction") == 0 || 
+
+      if (strcmp (mr->name, "InitFunction") == 0 ||
 	      strcmp( mr->name, screen_init_func ) == 0 )
 			Scr.InitFunction = mr;
-      else if (strcmp (mr->name, "RestartFunction") == 0 || 
+      else if (strcmp (mr->name, "RestartFunction") == 0 ||
 	  	      strcmp( mr->name, screen_restart_func ) == 0 )
 			Scr.RestartFunction = mr;
     }
@@ -924,7 +924,7 @@ ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2)
 }
 
 /****************************************************************************
- * 
+ *
  *  Parses a mouse binding
  *
  ****************************************************************************/
@@ -971,7 +971,7 @@ ParseMouseEntry (char *tline, FILE * fd, char **junk, int *junk2)
   free_func_data (&fdata);	/* no longer need name and action text */
 }
 /****************************************************************************
- * 
+ *
  *  Processes a line with a key binding
  *
  ****************************************************************************/
@@ -1030,8 +1030,8 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
     free (name);
 }
 
-/**************************************************************************** 
- * copy src to dest, backslash-escaping all non-alphanumeric characters in 
+/****************************************************************************
+ * copy src to dest, backslash-escaping all non-alphanumeric characters in
  * src; write a maximum of maxlen chars to dest, including terminating zero
  ****************************************************************************/
 
@@ -1057,8 +1057,8 @@ quotestr (char *dest, const char *src, int maxlen)
   return maxlen - n;
 }
 
-/**************************************************************************** 
- * generates menu from directory tree 
+/****************************************************************************
+ * generates menu from directory tree
  ****************************************************************************/
 
  /* we assume buf is at least MAXLINELENGTH bytes */
@@ -1211,7 +1211,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 }
 
 /****************************************************************************
- * 
+ *
  * Generates the window for a menu
  *
  ****************************************************************************/
@@ -1366,8 +1366,8 @@ MakeMenu (MenuRoot * mr)
    if( mr->height >= Scr.MyDisplayHeight ) mr->height = Scr.MyDisplayHeight-20 ;
  */
   if( mr->width <= 0 ) mr->width = 2 ;
-  if( mr->height <= 0 ) mr->height = 2 ;  
- 
+  if( mr->height <= 0 ) mr->height = 2 ;
+
   mr->w = XCreateWindow (dpy, Scr.Root, 0, 0, (unsigned int) (mr->width),
 			 (unsigned int) mr->height, (unsigned int) 0,
 			 CopyFromParent, (unsigned int) InputOutput,
@@ -1403,7 +1403,7 @@ RunCommand (char *cmd, int channel, Window w)
  */
   if (parse_func (cmd, &fdata, False) < 0)
     return toret;
-/*fprintf( stderr,"Function parsed: [%s] [%s] [%d] [%d] [%c]\n",fdata.name,fdata.text,fdata.func_val[0], fdata.func_val[1] );   
+/*fprintf( stderr,"Function parsed: [%s] [%s] [%d] [%d] [%c]\n",fdata.name,fdata.text,fdata.func_val[0], fdata.func_val[1] );
  */
   switch (fdata.func)
     {

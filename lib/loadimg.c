@@ -1,7 +1,7 @@
-/* This file contains code for unified image loading from file  
+/* This file contains code for unified image loading from file
 
- *  Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>  
- * 
+ *  Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -340,7 +340,7 @@ int
 pixmap_ref_decrement (pixmap_ref_t * ref)
 {
   int c = --ref->refcount;
-/* don't delete the reference, the pixmap might be immediately reloaded; 
+/* don't delete the reference, the pixmap might be immediately reloaded;
    ** let the app tell us when to purge the pixmap via pixmap_ref_purge() */
 /*
    if (c <= 0)
@@ -368,7 +368,7 @@ pixmap_ref_purge (void)
 }
 
 /* UnloadImage()
- * if pixmap is found in reference list, decrements reference count; else 
+ * if pixmap is found in reference list, decrements reference count; else
  * XFreePixmap()'s the pixmap
  * returns number of remaining references to pixmap */
 #if defined(LOG_LOADIMG_CALLS) && defined(DEBUG_ALLOCS)
@@ -393,8 +393,8 @@ UnloadImage (Pixmap pixmap)
 }
 
 /* UnloadMask()
- * if mask is found in the reference list and there is no corresponding 
- * pixmap, decrements reference count; else if mask is found, does 
+ * if mask is found in the reference list and there is no corresponding
+ * pixmap, decrements reference count; else if mask is found, does
  * nothing; else XFreePixmap()'s the mask
  * returns number of remaining references to mask */
 #if defined(LOG_LOADIMG_CALLS) && defined(DEBUG_ALLOCS)

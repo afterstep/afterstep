@@ -1,8 +1,8 @@
 /*--------------------------------*-C-*---------------------------------*
- * File:	pixmap.c 
+ * File:	pixmap.c
  *----------------------------------------------------------------------*
  * Copyright (c) 1999 Ethan Fischer <allanon@crystaltokyo.com>
- * Copyright (c) 1999 Sasha Vasko   <sashav@sprintmail.com>
+ * Copyright (c) 1999 Sasha Vasko   <sasha at aftercode.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  *---------------------------------------------------------------------*/
 /*---------------------------------------------------------------------*
  * Originally written:
- *    1999	Sasha Vasko <sashav@sprintmail.com>
+ *    1999	Sasha Vasko <sasha at aftercode.net>
  *----------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -104,7 +104,7 @@ ShadeTiledPixmap (Pixmap src, Pixmap trg, int src_w, int src_h, int x, int y, in
 
 /****************************************************************************
  *
- * fill part of a pixmap with the root pixmap, offset properly to look 
+ * fill part of a pixmap with the root pixmap, offset properly to look
  * "transparent"
  *
  ***************************************************************************/
@@ -303,9 +303,9 @@ GetWinPosition (Window w, int *x, int *y)
 
 static Pixmap
 CutPixmap ( Pixmap src, Pixmap trg,
-            int x, int y, 
-	    unsigned int src_w, unsigned int src_h, 
-	    unsigned int width, unsigned int height, 
+            int x, int y,
+	    unsigned int src_w, unsigned int src_h,
+	    unsigned int width, unsigned int height,
 	    GC gc, ShadingInfo * shading)
 {
   Bool my_pixmap = (trg == None )?True:False ;
@@ -316,7 +316,7 @@ CutPixmap ( Pixmap src, Pixmap trg,
   if (width < 2 || height < 2 )
     return trg;
 
-  screen_w = DisplayWidth( Xdisplay, Scr.screen );   
+  screen_w = DisplayWidth( Xdisplay, Scr.screen );
   screen_h = DisplayHeight( Xdisplay, Scr.screen );
 
   while( x+(int)width < 0 )  x+= screen_w ;
@@ -324,13 +324,13 @@ CutPixmap ( Pixmap src, Pixmap trg,
   while( y+(int)height < 0 )  y+= screen_h ;
   while( y >= screen_h )  y-= screen_h ;
 
-  if( x < 0 )    
+  if( x < 0 )
   {
     offset_x = (-x);
     w -= offset_x ;
-    x = 0 ; 
+    x = 0 ;
   }
-  if( y < 0 )    
+  if( y < 0 )
   {
     offset_y = (-y) ;
     h -= offset_y;
@@ -339,9 +339,9 @@ CutPixmap ( Pixmap src, Pixmap trg,
   if( x+w >= screen_w )
     w = screen_w - x ;
 
-  if( y+height >= screen_h ) 
-    h = screen_h - y ;    
-  
+  if( y+height >= screen_h )
+    h = screen_h - y ;
+
   if (src == None) /* we don't have root pixmap ID */
     { /* we want to create Overrideredirect window overlapping out window
          with background type of Parent Relative and then grab it */
@@ -353,22 +353,22 @@ CutPixmap ( Pixmap src, Pixmap trg,
 	attr.backing_store = Always ;
 	attr.event_mask = ExposureMask ;
 	attr.override_redirect = True ;
-	src = XCreateWindow(Xdisplay, Xroot, x, y, w, h, 
-	                    0, 
+	src = XCreateWindow(Xdisplay, Xroot, x, y, w, h,
+	                    0,
 			    CopyFromParent, CopyFromParent, CopyFromParent,
 			    CWBackPixmap|CWBackingStore|CWOverrideRedirect|CWEventMask,
 			    &attr);
-        
+
 	if( src == None ) return trg ;
 	XGrabServer( Xdisplay );
 	grabbed = True ;
 	XMapRaised( Xdisplay, src );
 	XSync(Xdisplay, False );
 	start_ticker(1);
-	/* now we have to wait for our window to become mapped - waiting for Expose */			    
+	/* now we have to wait for our window to become mapped - waiting for Expose */
 	for( tick_count = 0 ; !XCheckWindowEvent( Xdisplay, src, ExposureMask, &event ) && tick_count < 100 ; tick_count++)
-	    wait_tick();	
-	if( tick_count < 100 )	
+	    wait_tick();
+	if( tick_count < 100 )
 	{
 	    if( trg == None )    trg = CREATE_TRG_PIXMAP (width, height);
 	    if (trg != None)
@@ -395,31 +395,31 @@ CutPixmap ( Pixmap src, Pixmap trg,
 		    XCopyArea (Xdisplay, src, trg, gc, 0, 0, w, h, offset_x, offset_y);
 	    }
         }
-	if( src ) 
+	if( src )
 	    XDestroyWindow( Xdisplay, src );
 	if( grabbed )
 	    XUngrabServer( Xdisplay );
 	return trg ;
     }
-  /* we have root pixmap ID */    
+  /* we have root pixmap ID */
   /* find out our coordinates relative to the root window */
   if (x + w > src_w || y + h > src_h)
     {			/* tiled pixmap processing here */
       Pixmap tmp ;
       w = min (w, src_w);
       h = min (h, src_h);
-      
+
       tmp = CREATE_TRG_PIXMAP (w, h);
       if (tmp != None)
       {
         ShadeTiledPixmap (src, tmp, src_w, src_h, x, y, w, h, gc, shading);
-        if( trg == None )    
+        if( trg == None )
 	{
            if( (trg = CREATE_TRG_PIXMAP (w+offset_x, h+offset_y)) != None )
 		XCopyArea (Xdisplay, tmp, trg, gc, 0, 0, w, h, offset_x, offset_y);
 	}else
-	   FillPixmapWithTile( trg, tmp, offset_x, offset_y, width, height, 0, 0 );	   
-	
+	   FillPixmapWithTile( trg, tmp, offset_x, offset_y, width, height, 0, 0 );
+
 	XFreePixmap( Xdisplay, tmp );
         return trg;
       }
@@ -481,7 +481,7 @@ CutWinPixmap (Window win, Drawable src, int src_w, int src_h, int width, int hei
 	}
 
       if (src == None || win == None)
-	return None;		/* it aint gonna happen, coz we always 
+	return None;		/* it aint gonna happen, coz we always
 				   have root window but just in case */
       XUnmapWindow (Xdisplay, win);
       bNeedToRemap = 1;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (C) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (C) 1995 Bo Yang
  * Copyright (C) 1993 Robert Nation
  *
@@ -85,7 +85,7 @@ CreateButtonIconWindow (button_info * button, Window * win)
   attributes.event_mask = ExposureMask;
   valuemask = CWEventMask | CWBackPixel;
 
-  /* make sure the window geometry does not match the button, so 
+  /* make sure the window geometry does not match the button, so
    * place_buttons() is forced to configure it */
   (*button).IconWin =
     XCreateWindow (dpy, *win, 0, 0, 1, 1, 0, CopyFromParent,

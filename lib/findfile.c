@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 1999 Sasha Vasko <sashav@sprintmail.com>
- * merged with envvar.c originally created by : 
+ * Copyright (C) 1999 Sasha Vasko <sasha at aftercode.net>
+ * merged with envvar.c originally created by :
  * Copyright (C) 1999 Ethan Fischer <allanon@crystaltokyo.com>
  * Copyright (C) 1998 Pierre Clerissi <clerissi@pratique.fr>
  */
@@ -23,8 +23,8 @@
  * Oh well.
  *
  ****************************************************************************/
-/* supposedly pathlist should not include any environment variables 
-   including things like ~/ 
+/* supposedly pathlist should not include any environment variables
+   including things like ~/
  */
 
 char *

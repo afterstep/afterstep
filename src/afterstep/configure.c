@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1998 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
- * Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
  * Copyright (c) 1998 Nat Makarevitch <nat@linux-france.com>
  * Copyright (c) 1998 Mike Venaccio <venaccio@aero.und.edu>
@@ -1363,17 +1363,17 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
       if (parse_look)
 	{
 	  Bool done = False ;
-	  if( Scr.screen != 0 ) 		
+	  if( Scr.screen != 0 )
 	  {
 		  sprintf (configfile, LOOK_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
 		  done = ( ParseConfigFile (configfile, &tline) > 0 );
 	  }
-	  if( !done )	  	  
+	  if( !done )
 	  {
 		  sprintf (configfile, LOOK_FILE, thisdesktop, Scr.d_depth);
 /*fprintf( stderr, "screen = %ld, look :[%s]\n", Scr.screen, configfile );*/
 		  ParseConfigFile (configfile, &tline);
-	  }		  
+	  }
 	}
       fprintf (stderr, ".");
       if (parse_menu)
@@ -1386,16 +1386,16 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
       if (parse_feel)
 	{
 	  Bool done = False ;
-	  if( Scr.screen != 0 ) 		
+	  if( Scr.screen != 0 )
 	  {
 		  sprintf (configfile, FEEL_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
 		  done = ( ParseConfigFile (configfile, &tline) > 0 );
 	  }
-	  if( !done )		  
+	  if( !done )
 	  {
 		  sprintf (configfile, FEEL_FILE, thisdesktop, Scr.d_depth);
 		  ParseConfigFile (configfile, &tline);
-	  }		  
+	  }
 	}
       fprintf (stderr, ".");
       ParseConfigFile (AUTOEXEC_FILE, &tline);

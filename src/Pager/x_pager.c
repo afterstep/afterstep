@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 1998 Eric Tremblay <deltax@pragma.net>
  * Copyright (c) 1998 Doug Alcorn <alcornd@earthlink.net>
- * Copyright (C) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (C) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (C) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
  * Copyright (C) 1998 Ric Lister <ric@giccs.georgetown.edu>
  * Copyright (C) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
@@ -628,7 +628,7 @@ DoViewPortMoving (PointerActionData * data, XEvent * event)
 	  WaitASResponse++;
 	}
 
-      /* first translating coordinates in our window into coordinates 
+      /* first translating coordinates in our window into coordinates
          on the actual virtual desktop */
       sx = data->curr_x * Pager.AspectX;
       sy = data->curr_y * Pager.AspectY;
@@ -709,7 +709,7 @@ DoWindowMoving (PointerActionData * data, XEvent * event)
       int vlines, hlines;
       view = (data->icon_action) ? t->IconView : t->PagerView;
       if (event->type == ButtonPress)
-	{			/* raising our window so that it does not get lost underneath 
+	{			/* raising our window so that it does not get lost underneath
 				   other windows while we are moving it */
 	  XTranslateCoordinates (dpy, event->xany.window, view,
 				 event->xbutton.x, event->xbutton.y,
@@ -799,7 +799,7 @@ DispatchEvent (XEvent * Event)
       break;
       /* mouse buttons :
          1 (right)        - switch page(&desk)
-         2 (middle)       - move window  
+         2 (middle)       - move window
          3 (left)         - move viewport
        */
     case ButtonPress:
@@ -1432,7 +1432,7 @@ DecoratePager ()
          border color, pixmap or back color,  */
       HilightDesk (i, -1);
 
-      /* lets set desk's background at this point - so DrawGrid will 
+      /* lets set desk's background at this point - so DrawGrid will
          correctly draw lines above it */
       /* to repaint grid over changed desk's background */
       DrawGrid (i);
@@ -1789,7 +1789,7 @@ RestackWindows( int desk )
 	    {
     		windows[count++] = t->PagerView;
 	    }
-	XRestackWindows (dpy, windows, count);  
+	XRestackWindows (dpy, windows, count);
 	if( desk == Scr.CurrentDesk )
 	{
 	    for (count = 0, t = Pager.Start; t != NULL; t = t->next)
@@ -1797,7 +1797,7 @@ RestackWindows( int desk )
 		{
     		    windows[count++] = t->IconView;
 		}
-	    XRestackWindows (dpy, windows, count);  
+	    XRestackWindows (dpy, windows, count);
 	}
 	free (windows);
     }
@@ -1807,7 +1807,7 @@ void
 RestackAllWindows()
 {
   register int desk = Pager.desk1;
-    while( desk < Pager.desk2 )   
+    while( desk < Pager.desk2 )
 	RestackWindows( desk++ );
 }
 

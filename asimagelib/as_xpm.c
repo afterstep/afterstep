@@ -1,6 +1,6 @@
 /* This file contains code for unified image loading from XPM file  */
 /********************************************************************/
-/* Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>            */
+/* Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>            */
 /********************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify

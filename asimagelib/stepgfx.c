@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 1999 Ethan Fischer <allanon@crystaltokyo.com>
- * Copyright (c) 1999 Sasha Vasko <sashav@sprintmail.com> 
+ * Copyright (c) 1999 Sasha Vasko <sasha at aftercode.net>
  * Copyright (c) 1996 Alfredo K. Kojima (kojima@inf.ufrgs.br)
- * 
+ *
  * This module is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * 
+ *
  */
 
 #include "../configure.h"
@@ -226,7 +226,7 @@ MyAllocColor (XColor * color)
 
 /**************************************************************************/
 /* will scatter supplied pair of colors over supplied array making
-   illusion of smooth gradient 
+   illusion of smooth gradient
  */
 static RND32 stepgfx_rnd32_seed = GRADIENT_SEED;
 
@@ -314,7 +314,7 @@ xcolor_manhattan_distance (XColor * a, XColor * b)
     (ABS ((int) a->blue - b->blue) >> (16 - ascolor_bbits));
 }
 
-/* draw dithered gradient to XImage, then put XImage to drawable; this 
+/* draw dithered gradient to XImage, then put XImage to drawable; this
  * algorithm cares about maxcolors and finesse */
 void
 draw_gradient_dither (Display * dpy, Drawable d, int tx, int ty, int tw, int th,
@@ -543,7 +543,7 @@ draw_gradient_dither (Display * dpy, Drawable d, int tx, int ty, int tw, int th,
     }
 }
 
-/* draw gradient using XDrawLine(); this algorithm assumes truecolor, and 
+/* draw gradient using XDrawLine(); this algorithm assumes truecolor, and
  * ignores maxcolors and finesse */
 void
 draw_gradient_true (Display * dpy, Drawable d, int tx, int ty, int tw, int th,
@@ -621,9 +621,9 @@ draw_gradient_true (Display * dpy, Drawable d, int tx, int ty, int tw, int th,
     }
 }
 
-/* 
+/*
 
- * relief : 
+ * relief :
  *  <0 - sunken
  *  =0 - flat
  *  >0 - rised
@@ -632,7 +632,7 @@ draw_gradient_true (Display * dpy, Drawable d, int tx, int ty, int tw, int th,
  *   TEXTURE_GRADIENT_BL2TR => bottom-left to top-right
  *   TEXTURE_GRADIENT_L2R   => left to right
  *   TEXTURE_GRADIENT_T2B   => top to bottom
- * when the gradient is dithered, only finesse lines will actually be 
+ * when the gradient is dithered, only finesse lines will actually be
  * drawn, and all other lines will be copies of them
  */
 
@@ -704,8 +704,8 @@ draw_gradient (Display * dpy, Drawable d, int tx, int ty, int tw, int th,
 	}
     }
 
-  /* choose whether or not to dither; dither if our visual uses dynamic 
-   * colors (ie, class is odd), or if bands of a single color which are 
+  /* choose whether or not to dither; dither if our visual uses dynamic
+   * colors (ie, class is odd), or if bands of a single color which are
    * wider than some minimum (we use 3) are found */
   if ((ascolor_visual->class & 1) && ascolor_visual->class != DirectColor)
     {
@@ -747,9 +747,9 @@ draw_gradient (Display * dpy, Drawable d, int tx, int ty, int tw, int th,
 
 
 /************************************************************************
- * 
+ *
  * Draws text with a texture
- * 
+ *
  * d - target drawable
  * font - font to draw text
  * x,y - position of text

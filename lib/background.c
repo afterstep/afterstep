@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 1999 Sasha Vasko <sasha at aftercode.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,7 +111,7 @@ BackgroundSetPixmap (Pixmap pix)
   if (RootPixmapProperty != None)
     {
       XChangeProperty (dpy, Scr.Root, RootPixmapProperty, XA_PIXMAP, 32, PropModeReplace, (char *) &pix, 1);
-      XFlush (dpy);		/* so that everyone has time to process this change 
+      XFlush (dpy);		/* so that everyone has time to process this change
 				 * before we go ahead and delete old background
 				 */
     }
@@ -180,7 +180,7 @@ sigchild_handler (int signum)
   LOG3 ("\n%s:Exiting SigChild_handler(%lu)", MyName, time (NULL))
 }
 
-/* 
+/*
    This should return 0 if process of running external app to draw background completed or killed.
    otherwise it returns > 0
  */
@@ -331,7 +331,7 @@ FreeDeskBackArray (ASDeskBackArray * backs, int free_pixmaps)
 		    Pixmap pix = None;
 		    XChangeProperty (dpy, Scr.Root, RootPixmapProperty, XA_PIXMAP, 32, PropModeReplace, (char *) &pix, 1);
 		    XFlush (dpy);
-		    /* so that everyone has time to process this change 
+		    /* so that everyone has time to process this change
 		     * before we go ahead and delet old background
 		     */
 		  }

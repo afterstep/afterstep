@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999 Sasha Vasko   <sashav@sprintmail.com>
+ * Copyright (C) 1999 Sasha Vasko   <sasha at aftercode.net>
  * Copyright (C) 1999 Ethan Fischer <allanon@crystaltokyo.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -148,7 +148,7 @@ DestroyASMessage (ASMessage * msg)
 /***********************************************************************
  *
  *  Procedure:
- *	SendInfo - send a command back to afterstep 
+ *	SendInfo - send a command back to afterstep
  *
  ***********************************************************************/
 void

@@ -1,6 +1,6 @@
 /* This file contains code for unified image loading from JPEG file. */
 /********************************************************************/
-/* Copyright (c) 1998 Sasha Vasko   <sashav@sprintmail.com>         */
+/* Copyright (c) 1998 Sasha Vasko   <sasha at aftercode.net>         */
 /* Copyright (c) 1998 Ethan Fischer <allanon@u.washington.edu>      */
 /********************************************************************/
 /*

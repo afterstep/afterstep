@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 1998 Michal Vitecek <M.Vitecek@sh.cvut.cz>
- * Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (C) 1998 Ethan Fischer
  * Copyright (C) 1998 Guylhem Aznar
  * Copyright (C) 1996 Alfredo K. Kojima
- * Copyright (C) 1996 Beat Christen 
+ * Copyright (C) 1996 Beat Christen
  * Copyright (C) 1996 Kaj Groner
  * Copyright (C) 1996 Frank Fejes
  * Copyright (C) 1996 mj@dfv.rwth-aachen.de
@@ -612,8 +612,8 @@ Loop (void)
 					   Event.xbutton.x, Event.xbutton.y,
 						 &x, &y, &junk);
 
-			  /* 
-			   * this is broken - if the first button and last button have 
+			  /*
+			   * this is broken - if the first button and last button have
 			   * different geometries, unexpected results could occur;
 			   * fortunately, this probably won't happen often -Ethan (6/10/98)
 			   */
@@ -726,7 +726,7 @@ Loop (void)
 	    case DestroyNotify:
 	      if ((button = find_button (Event.xdestroywindow.window, 0, 0)) != NULL)
 		{
-		  /* if a swallowed app died, go to swallow mode 5 (wait 
+		  /* if a swallowed app died, go to swallow mode 5 (wait
 		   * for button click to relaunch) */
 		  if (button->swallowed_win == Event.xdestroywindow.window)
 		    {
@@ -873,8 +873,8 @@ Loop (void)
 
 /*
  * the animations for OpenFolder and CloseFolder on the root are messed up!
- * I'm not sure which button to leave showing when the Wharf is withdrawn, 
- * and the calculation for final width and height is wrong for DIR_TOUP and 
+ * I'm not sure which button to leave showing when the Wharf is withdrawn,
+ * and the calculation for final width and height is wrong for DIR_TOUP and
  * DIR_TOLEFT anyway.
  * - Ethan (6/6/98)
  */
@@ -1248,7 +1248,7 @@ RedrawPushedOutline (button_info * button)
 }
 /************************************************************************
  *
- * Draw the window 
+ * Draw the window
  * draws the entire window if newbutton == NULL
  *
  ***********************************************************************/
@@ -1261,8 +1261,8 @@ RedrawWindow (folder_info * folder, button_info * newbutton)
   if (ready < 1)
     return;
 
-  /* 
-   * eat expose events for this window, if we're redrawing 
+  /*
+   * eat expose events for this window, if we're redrawing
    * the whole thing anyway
    */
   if (newbutton == NULL)
@@ -1281,9 +1281,9 @@ RedrawWindow (folder_info * folder, button_info * newbutton)
 
 
 /*******************************************************************
- * 
+ *
  * Create GC's
- * 
+ *
  ******************************************************************/
 void
 CreateShadowGC (void)
@@ -1307,9 +1307,9 @@ CreateShadowGC (void)
 }
 
 /*******************************************************************
- * 
+ *
  * Create the background icon pixmap
- * 
+ *
  ******************************************************************/
 void
 CreateIconPixmap (void)
@@ -1668,8 +1668,8 @@ update_look (folder_info * folder)
 
 /************************************************************************
  *
- * Sizes and creates the window for a folder, its buttons, and its 
- * child folders (recursively).  The direction of the top folder must 
+ * Sizes and creates the window for a folder, its buttons, and its
+ * child folders (recursively).  The direction of the top folder must
  * be set, but the direction of the child folders will be calculated.
  *
  ***********************************************************************/
@@ -1713,7 +1713,7 @@ CreateFolderWindow (folder_info * folder)
   place_buttons (folder);
 
   /*
-   * claim the user set the position, so the WM will let us 
+   * claim the user set the position, so the WM will let us
    * position our own window
    */
   hints.flags = USPosition;
@@ -1843,7 +1843,7 @@ DeadPipe (int nonsense)
   XSync (dpy, 0);
 
 #ifdef DEBUG_ALLOCS
-/* normally, we let the system clean up, but when auditing time comes 
+/* normally, we let the system clean up, but when auditing time comes
  * around, it's best to have the books in order... */
   {
     GC gc1, gc2, gc3, gc4;
@@ -1890,7 +1890,7 @@ DeadPipe (int nonsense)
 }
 
 /*****************************************************************************
- * 
+ *
  * This routine is responsible for reading and parsing the config file
  *
  ****************************************************************************/
@@ -1977,7 +1977,7 @@ ParseOptions (char *filename)
 		{
 		  DoWithdraw = strtol (tline + 13, NULL, 10);
 		}
-	      /* the NoWithdraw option is undocumented, deprecated, and 
+	      /* the NoWithdraw option is undocumented, deprecated, and
 	         ** may be removed at Wharf's maintainer's discretion */
 	      else if (!mystrncasecmp (tline, "NoWithdraw", 10))
 		{
@@ -2190,9 +2190,9 @@ get_token (char *tline, int index)
 }
 
 /**************************************************************************
- * 
+ *
  * Parses a sound binding
- * 
+ *
  **************************************************************************/
 void
 bind_sound (char *tline)
@@ -2249,7 +2249,7 @@ bind_sound (char *tline)
 
 /**************************************************************************
  *
- * Parses a button command line from the config file 
+ * Parses a button command line from the config file
  *
  *************************************************************************/
 void
@@ -2264,7 +2264,7 @@ match_stringWharf (char *tline)
   while (isspace (*tline) && (*tline != '\n'))
     tline++;
 
-  /* read next word. Its the button label. Users can specify "" 
+  /* read next word. Its the button label. Users can specify ""
    * NoIcon, or whatever to skip the label */
   /* read to next space */
   start = tline;
@@ -2321,7 +2321,7 @@ match_stringWharf (char *tline)
 	}
     }
 
-  /* read next word. Its the icon bitmap/pixmap label. Users can specify "" 
+  /* read next word. Its the icon bitmap/pixmap label. Users can specify ""
    * NoIcon, or whatever to skip the label */
   /* read to next space */
   start = end;
@@ -2622,7 +2622,7 @@ CheckForHangon (unsigned long *body)
 
 /**************************************************************************
  *
- * Process window list messages 
+ * Process window list messages
  *
  *************************************************************************/
 void
@@ -3039,7 +3039,7 @@ swallow (unsigned long *body)
 	      place_folders ((*button).parent);
 #endif /* SHAPE */
 	    }
-	  /* try to set the window border width; doesn't work very well, 
+	  /* try to set the window border width; doesn't work very well,
 	   * so we do it again when we get the window ConfigureNotify */
 	  XSetWindowBorderWidth (dpy, (*button).swallowed_win, 0);
 	  if (!XGetWMNormalHints (dpy, (*button).swallowed_win,
@@ -3102,7 +3102,7 @@ FindLockMods (void)
  *
  *      The general algorithm, especially the aspect ratio stuff, is
  *      borrowed from uwm's CheckConsistency routine.
- * 
+ *
  ***********************************************************************/
 void
 ConstrainSize (XSizeHints * hints, int *widthp, int *heightp)
@@ -3206,7 +3206,7 @@ ConstrainSize (XSizeHints * hints, int *widthp, int *heightp)
    *
    * minAspectX * dheight > minAspectY * dwidth
    * maxAspectX * dheight < maxAspectY * dwidth
-   * 
+   *
    */
 
   if (hints->flags & PAspect)

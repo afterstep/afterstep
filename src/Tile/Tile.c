@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (C) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
  * Copyright (c) 1996 Andrew Veliath
  *

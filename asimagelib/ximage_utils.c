@@ -1,8 +1,8 @@
 /*
- *  Copyright (c) 1999 Sasha Vasko <sashav@sprintmail.com>
+ *  Copyright (c) 1999 Sasha Vasko <sasha at aftercode.net>
  *  most of the code were taken from XFree86 sources
  *  below is the copyright notice for XFree86
- * 
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -76,7 +76,7 @@
 
 #ifndef ATERM
 #include "../include/aftersteplib.h"
-#define NO_XIMAGE_PROTO 
+#define NO_XIMAGE_PROTO
 #include "../include/XImage_utils.h"
 #else
 #define safemalloc(x) malloc(x)
@@ -86,7 +86,7 @@
 #ifndef LIBAFTERSTEP_HAS_XIMAGE_UTILS
 /*
  * Macros
- * 
+ *
  * The ROUNDUP macro rounds up a quantity to the specified boundary,
  * then truncates to bytes.
  *
@@ -94,10 +94,10 @@
 
 #define ROUNDUP(nbytes, pad) ((((nbytes) + ((pad)-1)) / (pad)) * ((pad)>>3))
 
-/* 
+/*
  * GetXImageDataSize calculates the size of memory needed to store XImage
  * pixel's data
- * 
+ *
  */
 
 #define XIMAGE_PLANE_SIZE(img)  ((img)->bytes_per_line*(img)->height)
@@ -115,17 +115,17 @@ GetXImageDataSize (XImage * ximage)
 
 /*
  * CreateXImageBySample
- * 
+ *
  * Creates a new image that has same characteristics as an existing one.
- * Allocates the memory necessary for the new XImage data structure. 
- * Pointer to new image is returned. Do not copy pixels from one image 
+ * Allocates the memory necessary for the new XImage data structure.
+ * Pointer to new image is returned. Do not copy pixels from one image
  * to another
  *
  */
  /*
     * _DestroyImage
-    *   
-    * Deallocates the memory associated with the ximage data structure. 
+    *
+    * Deallocates the memory associated with the ximage data structure.
     * this version handles the case of the image data being malloc'd
     * entirely by the library.
   */
@@ -217,11 +217,11 @@ CreateXImageAndData (Display * dpy, Visual * visual,
   return ximage;
 }
 
-/* 
+/*
  * This function does not perform any error checking becouse of the
  * performance considerations - do all the checks yourself !!!
  *
- * This function will copy entire line from source image into 
+ * This function will copy entire line from source image into
  * target image
  * Can be used for fast XImage transformations
  * XImages must be of the same type, and horizontal size
@@ -331,7 +331,7 @@ ScaleXImageToSize (XImage * src, int width, int height)
   if ((dst = CreateXImageBySample (src, width, height)) != NULL)
     {
       int dx, dy;
-/* scattering only looks good for small images; only do it if 
+/* scattering only looks good for small images; only do it if
    ** (width >= src->width * 3 && height >= src->height * 3) */
 #if defined SCALE_SCATTER
       for (dy = 0; dy < height; dy++)
@@ -353,8 +353,8 @@ ScaleXImageToSize (XImage * src, int width, int height)
       for (dy = 0; dy < height; dy++)
 	for (dx = 0; dx < width; dx++)
 	  XPutPixel (dst, dx, dy, XGetPixel (src, dx * src->width / width, dy * src->height / height));
-/* this one is slow, but very accurate; destination pixels are the sum 
-   ** of weighted source pixels; the weight is the percentage of the source 
+/* this one is slow, but very accurate; destination pixels are the sum
+   ** of weighted source pixels; the weight is the percentage of the source
    ** pixel that is contained in the destination pixel */
 #else /* SCALE_SLOW */
       double wx = (double) src->width / width;
@@ -565,7 +565,7 @@ ShadeXImage (XImage * srcImage, ShadingInfo * shading, GC gc)
   if (srcImage->bits_per_pixel <= 8)
     return;
   if (shading->shading < 0)
-    shade = 100 - shading->shading;	/*we want to lighten 
+    shade = 100 - shading->shading;	/*we want to lighten
 					   instead of darken */
   else
     shade = shading->shading;
@@ -603,7 +603,7 @@ ShadeXImage (XImage * srcImage, ShadingInfo * shading, GC gc)
 	break;
       }
 
-    if (srcImage->bits_per_pixel <= 16)		/* for better speed we don't want to check for it 
+    if (srcImage->bits_per_pixel <= 16)		/* for better speed we don't want to check for it
 						   inside the loop */
       {
 	for (y = 0; y < srcImage->height; y++)
@@ -638,10 +638,10 @@ ShadeXImage (XImage * srcImage, ShadingInfo * shading, GC gc)
     RUINT32T bk = VISUAL->blue_mask;
 
 /*      fprintf( stderr, "\n ATERM: RedMask = %x, GreenMask= %x, BlueMask = %x", rk, bk, bk ); */
-    /* The following code has been written by 
+    /* The following code has been written by
      * Ethan Fischer <allanon@crystaltokyo.com>
      * for AfterStep window manager. It's much faster then previous */
-    /* this code only works for TrueColor (and maybe DirectColor) modes; 
+    /* this code only works for TrueColor (and maybe DirectColor) modes;
      * it would do very odd things in PseudoColor */
     switch (srcImage->bits_per_pixel)
       {
@@ -782,7 +782,7 @@ CombineXImageWithXImage (XImage * dest, XImage * src)
 	break;
       }
 
-    if (src->bits_per_pixel <= 16)	/* for better speed we don't want to check for it 
+    if (src->bits_per_pixel <= 16)	/* for better speed we don't want to check for it
 					   inside the loop */
       {
 	for (y = 0; y < src->height; y++)
@@ -816,10 +816,10 @@ CombineXImageWithXImage (XImage * dest, XImage * src)
     RUINT32T gk = visual->green_mask;
     RUINT32T bk = visual->blue_mask;
 
-    /* The following code has been written by 
+    /* The following code has been written by
      * Ethan Fischer <allanon@crystaltokyo.com>
      * for AfterStep window manager. It's much faster then previous */
-    /* this code only works for TrueColor (and maybe DirectColor) modes; 
+    /* this code only works for TrueColor (and maybe DirectColor) modes;
      * it would do very odd things in PseudoColor */
     switch (src->bits_per_pixel)
       {

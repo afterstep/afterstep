@@ -1,7 +1,7 @@
  /*
     * Copyright (c) 1998 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
     * Copyright (c) 1998 Michal Vitecek <M.Vitecek@sh.cvut.cz>
-    * Copyright (C) 1998 Sasha Vasko <sashav@sprintmail.com>
+    * Copyright (C) 1998 Sasha Vasko <sasha at aftercode.net>
     * Copyright (c) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
     * Copyright (c) 1998 Rene Fichter <ceezaer@cyberspace.org>
     * Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
@@ -23,7 +23,7 @@
     * You should have received a copy of the GNU General Public License
     * along with this program; if not, write to the Free Software
     * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-    * $Id: WinList.c,v 1.1 2000/10/20 03:27:57 sashav Exp $
+    * $Id: WinList.c,v 1.2 2001/09/28 13:48:03 sashav Exp $
   */
 
 #define TRUE 1
@@ -166,7 +166,7 @@ error_handler (Display * disp, XErrorEvent * event)
 
 
 /***********************************************************************
-  Detected a broken pipe - time to exit 
+  Detected a broken pipe - time to exit
     Based on DeadPipe() from Ident:
       Copyright 1994, Robert Nation and Nobutaka Suzuki.
  **********************************************************************/
@@ -989,7 +989,7 @@ ShutMeDown (int exitstat)
   XCloseDisplay (dpy);
 
 #ifdef DEBUG_ALLOCS
-/* normally, we let the system clean up, but when auditing time comes 
+/* normally, we let the system clean up, but when auditing time comes
  * around, it's best to have the books in order... */
   {
     GC gc1, gc2, gc3, gc4;
@@ -1035,10 +1035,10 @@ ChangeWindowName (char *str)
 
 /**************************************************************************
  *
- * Sets mwm hints 
+ * Sets mwm hints
  *
  *************************************************************************/
-/* 
+/*
  *  Now, if we (hopefully) have MWW - compatible window manager ,
  *  say, mwm, ncdwm, or else, we will set useful decoration style.
  *  Never check for MWM_RUNNING property.May be considered bad.

@@ -2,7 +2,7 @@ dnl# -*- sh -*-
 dnl# Process this file with autoconf to produce a configure script.
 dnl#
 dnl#Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
-dnl#Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
+dnl#Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
 dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
@@ -34,7 +34,7 @@ AC_ARG_WITH(soundplayer,	[  --with-soundplayer=APP  used to play sounds from Aud
 
 dnl# look defaults
 AC_ARG_WITH(startsort,		[  --with-startsort=METHOD start menu sorting method [SORTBYALPHA] ],with_startsort=$withval, with_startsort="SORTBYALPHA")
-AC_ARG_ENABLE(different_looknfeels, [  --enable-different-looknfeels 
+AC_ARG_ENABLE(different_looknfeels, [  --enable-different-looknfeels
                           different look&feel for each desktop [no] ],enable_different_looknfeels=$enableval,enable_different_looknfeels="no")
 AC_ARG_WITH(desktops,		[  --with-desktops=DESKS   default desktops in pager [4] ],with_desktops=$withval, with_desktops="4")
 AC_ARG_WITH(deskgeometry,	[  --with-deskgeometry=GEOM desktop views as COLUMNSxROWS [2x2] ],with_deskgeometry=$withval, with_deskgeometry="2x2")
@@ -89,7 +89,7 @@ AC_C_BIGENDIAN
 
 dnl# Construct Gnu/AfterStep path from pieces
 with_gnustep_lib=${with_gnustep_dir}/${with_gnustep_lib}
-with_afterdir=${with_gnustep_lib}/${with_afterdir} 
+with_afterdir=${with_gnustep_lib}/${with_afterdir}
 
 dnl# Remove -g
 
@@ -172,7 +172,7 @@ LDFLAGS="$LDFLAGS $X_LDFLAGS $X_LIBS"
 x_libs="$LDFLAGS $X_EXTRA_LIBS $X_PRE_LIBS"
 AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
 
-dnl# We use pow from libm in libasimage, and in PNG as well, 
+dnl# We use pow from libm in libasimage, and in PNG as well,
 dnl# so if we don't have PNG - we need -lm :
 
 LIB_MATH=-lm
@@ -219,7 +219,7 @@ HAVEJPEG="NOJPEG"
 if test "x$have_jpeg" = "xyes"; then
   HAVEJPEG="JPEG"
 else
-  echo "You need the libJPEG v 6.0 or later, in order to use JPEG support in AfterStep";  
+  echo "You need the libJPEG v 6.0 or later, in order to use JPEG support in AfterStep";
 fi
 for x in $X_CFLAGS; do
   JPEG_CFLAGS=`echo " $JPEG_CFLAGS " | sed "s@ $x @ @"`
@@ -237,7 +237,7 @@ if test "x$have_png" = "xyes"; then
   HAVEPNG="PNG"
   LIB_MATH=
 else
-  echo "You need the libPNG v 1.0.2 or later, in order to use PNG support in AfterStep";  
+  echo "You need the libPNG v 1.0.2 or later, in order to use PNG support in AfterStep";
 fi
 for x in $X_CFLAGS; do
   PNG_CFLAGS=`echo " $PNG_CFLAGS " | sed "s@ $x @ @"`
@@ -252,18 +252,18 @@ fi
 
 LIBS=$saved_LIBS
 
-dnl# AFTERSTEP_LIB="-lafterstep" 
+dnl# AFTERSTEP_LIB="-lafterstep"
 dnl# ASIMAGE_LIB="-lasimage"
 dnl# WIDGETS_LIB="-lWidgets"
 if test "x$enable_staticlibs" = "xyes"; then
-   AFTERSTEP_LIB="../../lib/libafterstep.a" 
+   AFTERSTEP_LIB="../../lib/libafterstep.a"
    ASIMAGE_LIB="../../asimagelib/libasimage.a"
    WIDGETS_LIB="../Script/Widgets/libWidgets.a"
    CONFIG_LIB="../Config/libasConfig.a"
    LIBPROG='$(PROG)'
    LIBINSTALL=""
 else
-   AFTERSTEP_LIB="../../lib/libafterstep.so" 
+   AFTERSTEP_LIB="../../lib/libafterstep.so"
    ASIMAGE_LIB="../../asimagelib/libasimage.so"
    WIDGETS_LIB="../Script/Widgets/libWidgets.so"
    CONFIG_LIB="../Config/libasConfig.so"

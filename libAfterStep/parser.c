@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -352,14 +352,14 @@ GetToNextLine (ConfigDef * config)
   return (config->cursor);
 }
 /* this function finds next valid statement:
-   - not comments, 
-   - not an empty line, 
+   - not comments,
+   - not an empty line,
    - if prepended with * - should have MyName at the beginning
    and :
    - sets tline to the beginning of the keyword (not MyName),
    - copies arguments into the current_data
    - sets current_data_len
-   it will read data from the file as needed untill the end of file 
+   it will read data from the file as needed untill the end of file
    or config->syntax.file_terminator or EOF is reached
    Return: NULL if end of config reached, otherwise same as tline.
  */
@@ -1009,7 +1009,7 @@ InitConfigWriter (char *myname, SyntaxDef * syntax, ConfigDataType type, void *s
 /* functions used in writing config */
 #ifdef WITH_CONFIG_WRITER
 /* Finds element in FreeStorage that represents this particular term
- * it then removes it from the list of elems and returns pointer to it 
+ * it then removes it from the list of elems and returns pointer to it
  */
 FreeStorageElem *
 FindTermAndRemove (FreeStorageElem ** storage, TermDef * pterm)
@@ -1033,8 +1033,8 @@ FindTermAndRemove (FreeStorageElem ** storage, TermDef * pterm)
 }
 
 /* writes block of text in to the output buffer, enlarging it if needed.
- * it starts with block_start and end with block_end or '\0' 
- * if block_end is NULL 
+ * it starts with block_start and end with block_end or '\0'
+ * if block_end is NULL
  */
 struct WriteBuffer
 {
@@ -1071,8 +1071,8 @@ WriteBlock (struct WriteBuffer *t_buffer, char *block_start, char *block_end)
   t_buffer->used += bytes_to_add;
 }
 
-/* 
- * creates string representing freeStorage's elem and writes it into the 
+/*
+ * creates string representing freeStorage's elem and writes it into the
  * output buffer
  */
 void
@@ -1174,9 +1174,9 @@ WriteRemnants (ConfigDef * config, struct WriteBuffer *t_buffer, FreeStorageElem
  */
 /*  struct WriteBuffer rem_buffer ;
  *  int remnants_num = CountFreeStorageElems( pCurr );
- *  
+ *
  *    if( remnants_num<=0 ) return ;
- *    rem_buffer.allocated = remnants_num*NORMAL_CONFIG_LINE+t_buffer->used+2 ; 
+ *    rem_buffer.allocated = remnants_num*NORMAL_CONFIG_LINE+t_buffer->used+2 ;
  *    rem_buffer.buffer = (char*)safemalloc( rem_buffer.allocated );
  *    rem_buffer.used = 0 ;
  */
@@ -1184,7 +1184,7 @@ WriteRemnants (ConfigDef * config, struct WriteBuffer *t_buffer, FreeStorageElem
     {
       if (pCurr->term == NULL)
 	continue;
-/*      WriteFreeStorageElem( config, &rem_buffer, pCurr );   
+/*      WriteFreeStorageElem( config, &rem_buffer, pCurr );
  */ WriteFreeStorageElem (config, t_buffer, pCurr, 0);
     }
 

@@ -20,7 +20,7 @@ from the environment variable $DISPLAY. $DISPLAY may be unix:0.0, :0.0 or :0,
 which doesn't work too well when passed through rsh to another machine, so
 $HOSTDISPLAY will also be set, and will use a network-ready description
 of the display.  Unfortunately, $HOSTDISPLAY will use the TCP/IP transport
-protocol, even for a local connection, so $DISPLAY should be used for 
+protocol, even for a local connection, so $DISPLAY should be used for
 local connections, as it may use unix-domain sockets, which are faster.
 
 .IP "\--debug"
@@ -33,7 +33,7 @@ Causes \fBafterstep\fP to use the old \fIstreprc_file\fP format instead of
 the default \fI/usr/local/share/afterstep\fP or user specific
 \fI~/GNUstep/Library/AfterStep\fP directory, where the window manager
 configuration files are located. \fBafterstep\fP will set both the $DISPLAY
-and $HOSTDISPLAY environment variables which will be inherited by all of its 
+and $HOSTDISPLAY environment variables which will be inherited by all of its
 children; refer to the \-d \fIhost:display.screen\fP to override these.
 
 .IP "\-s"
@@ -60,7 +60,7 @@ if copied (and edited to suit a user's needs) to
 \fI~/GNUstep/Library/AfterStep\fP, these will override the global share
 files.  If the basic "working" configuration files are not found in either
 \fI/usr/local/share/afterstep/non-configurable\fP or
-\fI~/GNUstep/Library/AfterStep/non-configurable\fP, afterstep will exit. 
+\fI~/GNUstep/Library/AfterStep/non-configurable\fP, afterstep will exit.
 If these "working" configuration files have been corrupted or are from a
 previous incompatible version, afterstep will exit. Also realize that a
 system administrator or software packager might have these installed in
@@ -69,24 +69,24 @@ alternate locations, finding them should not be hard.
 .SH INVOCATION
 \fBafterstep\fP is typically invoked from users' \fI~/.xinitrc\fP as
 "exec afterstep", located as the last line in this file.  xdm or asdm et al
-use the \fI~/.xsession\fP file. 
+use the \fI~/.xsession\fP file.
 
 .SH ANATOMY OF THE DESKTOP
-The default AfterStep starts with the module \fBWinList(1)\fP running as 
-a dark grey bar originating from the upper left corner of the screen.  
-This is to function in a manner similar to the Windows(R) StartBar, where 
+The default AfterStep starts with the module \fBWinList(1)\fP running as
+a dark grey bar originating from the upper left corner of the screen.
+This is to function in a manner similar to the Windows(R) StartBar, where
 windows appear when opened and can be Maximized from. The \fBPager(1)\fP
 is also started in the upper right hand corner. This module controls which
 desktop and or view is visable as well as handles the graphics picked for
 the root background. Along the lower right hand of the screen and moving
-upwards is the module \fBWharf(1)\fP; this acts as a button bar in or from 
-which applications can be started. A default \fIstartmenu\fP was also 
-provided which was created from the default \fIstart/\fP directory 
-structure. Clicking with the left mouse button on the root background will 
-bring this menu up, from which applications can be launched. \fBafterstep\fP 
-itself creates the decorations for windows. The top decoration is called 
-the TitleBar; it contains various window action controlling buttons along 
-with the window's title. The lower decoration is called the Handles (or low 
+upwards is the module \fBWharf(1)\fP; this acts as a button bar in or from
+which applications can be started. A default \fIstartmenu\fP was also
+provided which was created from the default \fIstart/\fP directory
+structure. Clicking with the left mouse button on the root background will
+bring this menu up, from which applications can be launched. \fBafterstep\fP
+itself creates the decorations for windows. The top decoration is called
+the TitleBar; it contains various window action controlling buttons along
+with the window's title. The lower decoration is called the Handles (or low
 bar or BottomBar); it contains the window resizing handles.
 
 .SH MODULES
@@ -103,8 +103,8 @@ Modules are documented in their own man pages.
 
 .IP $SCREEN_GAMMA
 Value of this env variable is used to gamma-correct PNG and JPEG images,
-when loading them from files. Default value of 1.0 is used if this 
-variable is not defined - which means no correction at all. Try using 
+when loading them from files. Default value of 1.0 is used if this
+variable is not defined - which means no correction at all. Try using
 2.2 for some older monitors to get brighter images.
 
 .SH CONFIGURATION DIRECTORIES
@@ -113,10 +113,10 @@ provide configurations for \fBafterstep\fP.
 
 The \fIbackgrounds/\fP directory is where \fBafterstep\fP looks for
 root background images for insertion into the menu, so that picking one of
-these images causes \fBPager(1)\fP to load the image into the root 
-background. The \fBPager(1)\fP must be running to utilize the menu 
-\fIPictures\fP entry. Valid images are currently XPM, JPEG, and PNG; 
-provided the associated development libraries were located during compile 
+these images causes \fBPager(1)\fP to load the image into the root
+background. The \fBPager(1)\fP must be running to utilize the menu
+\fIPictures\fP entry. Valid images are currently XPM, JPEG, and PNG;
+provided the associated development libraries were located during compile
 and libraries are available during runtime.
 
 The \fIdesktop/\fP directory contains the \fIbuttons/\fP, \fIicons/\fP, and
@@ -124,32 +124,32 @@ The \fIdesktop/\fP directory contains the \fIbuttons/\fP, \fIicons/\fP, and
 
 The \fIdesktop/buttons/\fP directory is the location \fBafterstep\fP looks
 for the bitmaps or pixmaps to be used for the \fITitleButtons\fP.  These
-are the "icons" which control options for a window, e.g. \fIshaded\fP, 
+are the "icons" which control options for a window, e.g. \fIshaded\fP,
 \fIiconified\fP, and \fIquit\fP to name a few.  Pixmaps for the buttons are
 defined in the \fIlook.name\fP file and the actions taken are described in
 the \fIfeel.name\fP file.
 
-The \fIdesktop/icons/\fP directory contains the icons which \fBafterstep\fP 
-and its modules use. It is divided into three subdirectories, \fI8bpp/\fP, 
-\fI16bpp/\fP, and \fIcommon/\fP. With the default configuration, \fI8bpp/\fP 
-is used only when in 8bpp, \fI16bpp/\fP is used only when in 15bpp or 
+The \fIdesktop/icons/\fP directory contains the icons which \fBafterstep\fP
+and its modules use. It is divided into three subdirectories, \fI8bpp/\fP,
+\fI16bpp/\fP, and \fIcommon/\fP. With the default configuration, \fI8bpp/\fP
+is used only when in 8bpp, \fI16bpp/\fP is used only when in 15bpp or
 better, and \fIcommon/\fP is always used.
 
-The \fIdesktop/sounds/\fP directory contains the sounds used by 
-\fBafterstep\fP and its modules. See the \fBAudio(1)\fP man page for more 
+The \fIdesktop/sounds/\fP directory contains the sounds used by
+\fBafterstep\fP and its modules. See the \fBAudio(1)\fP man page for more
 details on sound in AfterStep.
 
-The \fIfeels/\fP directory contains configuration files used to customize 
+The \fIfeels/\fP directory contains configuration files used to customize
 the feel of AfterStep. Any feel files created should be placed within this
 directory, and upon the next rebuild of the \fIstartmenu\fP, they will
 appear under DeskTop->Feels in the menu. See the \fIfeel.name\fP section
 below for more details.
 
-The \fIlooks/\fP directory contains configuration files used to customize 
+The \fIlooks/\fP directory contains configuration files used to customize
 the look of AfterStep.  Any look files created should be placed within this
 directory, and upon the next rebuild of the \fIstartmenu\fP, they will
 appear under DeskTop->Looks in the menu.  See the \fIlook.name\fP section
-below for more details. 
+below for more details.
 
 The \fInon-configurable/\fP directory contains "working" copies of your
 configuration files; these are the \fBPager(1)\fP's image files, the current
@@ -157,15 +157,15 @@ configuration files; these are the \fBPager(1)\fP's image files, the current
 files is a futile attempt unless you know that these files get overwritten;
 ergo the name "non-configurable".
 
-When running \fBafterstep\fP in multiscreen environment (but with  
-\fBNO xinerama!\fP) it is possible to choose separate looks, feels and 
+When running \fBafterstep\fP in multiscreen environment (but with
+\fBNO xinerama!\fP) it is possible to choose separate looks, feels and
 backgrounds for each screen. Just select needed item from the menu, while
-staying on the specific screen, and if screen is not 0 (first screen), 
-then screen number will be appended to the "working" file name, and it will 
-be used subsequently by \fBafterstep\fP in favor of the default file from 
+staying on the specific screen, and if screen is not 0 (first screen),
+then screen number will be appended to the "working" file name, and it will
+be used subsequently by \fBafterstep\fP in favor of the default file from
 screen 0(first screen).
 
-The \fIstart/\fP directory contains the start menu directory tree, which 
+The \fIstart/\fP directory contains the start menu directory tree, which
 is used to build the popup desktop menu (startmenu). See the \fIstartmenu\fP
 section below for more details.
 
@@ -183,10 +183,10 @@ or during a restart called via the menu or other button:
 .fi
 Refer to the BUILT-IN COMMANDS/FUNCTIONS and EXAMPLES sections below.
 
-When running \fBafterstep\fP in multiscreen environment (but with  
-\fBNO xinerama!\fP) it is possible have separate Init/Restart functions 
-for each screen. For example if you want to run different Init function 
-on screen 1 (second screen), you should name it like so : 
+When running \fBafterstep\fP in multiscreen environment (but with
+\fBNO xinerama!\fP) it is possible have separate Init/Restart functions
+for each screen. For example if you want to run different Init function
+on screen 1 (second screen), you should name it like so :
 .nf
 	Function "InitScreen1Function"
 .sp
@@ -253,10 +253,10 @@ This file contains window properties for application windows which controls
 their "behavior" within \fBafterstep\fP.
 
 .IP "Style \fI""WM_NAME"" option[s]\fP"
-The \fI"WM_NAME"\fP can the window's name, class or resource string.  It can 
+The \fI"WM_NAME"\fP can the window's name, class or resource string.  It can
 also contain wildcards such as "*" or "?", which are matched in the usual
-UNIX filename manner. Using the standard X11 \fBxprop(1)\fP command at a 
-command prompt or the \fIWindow Properties\fP menu item entry under 
+UNIX filename manner. Using the standard X11 \fBxprop(1)\fP command at a
+command prompt or the \fIWindow Properties\fP menu item entry under
 \fIDesktop\fP menu entry will return this (and other) property.
 .RS
 The \fIoption[s]\fP is a comma separated list containing all or some of
@@ -264,26 +264,26 @@ the following keywords.  If conflicting style options are specified, the
 last one will be used:
 
 .IP "FocusStyle [\fIstyle\fP]"
-Specifies a MyStyle to be used for this window when it has the keyboard 
-focus.  If \fIstyle\fP is unspecified, the default focus style will be 
+Specifies a MyStyle to be used for this window when it has the keyboard
+focus.  If \fIstyle\fP is unspecified, the default focus style will be
 used instead (see \fIFWindowStyle\fP, below).
 
 .IP "StickyStyle \fIstyle\fP"
-Specifies a MyStyle to be used for this window when it does not have the 
-keyboard focus, and is sticky.  If \fIstyle\fP is unspecified, the default 
+Specifies a MyStyle to be used for this window when it does not have the
+keyboard focus, and is sticky.  If \fIstyle\fP is unspecified, the default
 sticky style will be used instead (see \fISWindowStyle\fP, below).
 
 .IP "UnfocusStyle \fIstyle\fP"
-Specifies a MyStyle to be used for this window when it does not have the 
-keyboard focus, and is not sticky.  If \fIstyle\fP is unspecified, the 
+Specifies a MyStyle to be used for this window when it does not have the
+keyboard focus, and is not sticky.  If \fIstyle\fP is unspecified, the
 default unfocus style will be used instead (see \fIUWindowStyle\fP, below).
 
 .IP "\fIAvoidCover\fP | \fIAllowCover\fP"
-Specifies that other windows should not be allowed to cover the app window. 
-Prevents other windows from moving in front of (or behind) the app window. 
-If \fISmartPlacement\fP is specified in the \fIfeel\fP file, windows will 
-not be allowed to automatically place themselves over the app window, if 
-possible. \fIAllowCover\fP turns off \fIAvoidCover\fP. The default is 
+Specifies that other windows should not be allowed to cover the app window.
+Prevents other windows from moving in front of (or behind) the app window.
+If \fISmartPlacement\fP is specified in the \fIfeel\fP file, windows will
+not be allowed to automatically place themselves over the app window, if
+possible. \fIAllowCover\fP turns off \fIAvoidCover\fP. The default is
 \fIAllowCover\fP.
 
 .IP "\fIBorderWidth width\fP"
@@ -309,11 +309,11 @@ default is to use the app's supplied icon or the icon specified with the
 WM_NAME of "Unknown" or "*".
 
 .IP "\fINoTitle\fP | \fITitle\fP"
-Specifies that \fIafterstep\fP should not put a title bar decoration on the 
+Specifies that \fIafterstep\fP should not put a title bar decoration on the
 app.  The default is \fITitle\fP implicitly for all windows.
 
 .IP "\fINoHandles\fP | \fIHandles\fP"
-Specifies that the app window will not display the "low bar" decoration. 
+Specifies that the app window will not display the "low bar" decoration.
 This also removes the ability to resize windows with the resize handles on
 the "low bar" ends.  The default is \fIHandles\fP implicitly for all
 windows.
@@ -341,11 +341,11 @@ order of open windows.
 \fINOTE: deprecated, use Layer instead.\fP
 
 .IP "Layer \fIlayer\fP"
-Specifies what layer this window should be in.  \fIlayer\fP may be any 
-integer (positive, negative, or zero).  Windows are grouped according to 
-their layer, and may not be moved out of their layer.  Windows in higher 
-layers will be above windows in lower layers.  By default, windows are 
-placed in layer 0.  \fIStaysOnBack\fP corresponds to \fILayer -1\fP, and 
+Specifies what layer this window should be in.  \fIlayer\fP may be any
+integer (positive, negative, or zero).  Windows are grouped according to
+their layer, and may not be moved out of their layer.  Windows in higher
+layers will be above windows in lower layers.  By default, windows are
+placed in layer 0.  \fIStaysOnBack\fP corresponds to \fILayer -1\fP, and
 \fIStaysOnTop\fP corresponds to \fILayer 1\fP.
 
 .IP "\fISticky\fP | \fISlippery\fP"
@@ -353,7 +353,7 @@ Causes the app window to stick to it's location for each desktop that
 becomes current, allowing the window to "follow" while changings desks/
 views.  The default is \fISlippery\fP implicitly for all windows.
 
-.IP "\fIStartIconic\fP | \fIStartNormal\fP" 
+.IP "\fIStartIconic\fP | \fIStartNormal\fP"
 Causes the app to start and immediately iconify itself to the \fIIconBox\fP.
 The default is \fIStartNormal\fP implicitly for all windows.
 
@@ -366,7 +366,7 @@ place it; unless it was called with geometry settings. Specific
 \fIStartsAnyWhere\fP implicitly for all windows.
 
 .IP "\fIVerticalTitle\fP | \fIHorizontalTitle\fP"
-Causes the window titlebar to be placed vertically along the left side of 
+Causes the window titlebar to be placed vertically along the left side of
 the window, instead of horizontally across the top.
 
 .IP "\fIViewportX number\fP"
@@ -405,8 +405,8 @@ similar to NoIcon.
 
 .IP "\fIAutoReverse 0|1|2\fP"
 Specifies the window Warping (also called alt-tabbing) style. \fI0\fP (the
-default) causes switching among windows in one direction.  \fI1\fP causes a 
-closed loop switching \- #1->#2->#3->#4 then #4->#3->#2->#1. \fI2\fP causes 
+default) causes switching among windows in one direction.  \fI1\fP causes a
+closed loop switching \- #1->#2->#3->#4 then #4->#3->#2->#1. \fI2\fP causes
 an open loop switching \- #1->#2->#3->#4 then #4->#1->#2->#3 etc.
 
 .IP "\fIAutoTabThroughDesks\fP"
@@ -424,19 +424,19 @@ Adds support for Motif window manager function hints.
 Adds support for Motif window manager decoration hints.
 
 .IP "\fIMWMHintOverride\fP"
-Allows Motif window manager function hints to be overridden by 
+Allows Motif window manager function hints to be overridden by
 \fBafterstep\fP window styles.
 
 .IP "\fIXzap number\fP"
-Specifies the horizontal offset of the cursor when warping. This offset 
-is relative to the upper-left corner of the window being warped to. 
+Specifies the horizontal offset of the cursor when warping. This offset
+is relative to the upper-left corner of the window being warped to.
 
 .IP "\fIYzap number\fP"
-Specifies the vertical offset of the cursor when warping. This offset is 
+Specifies the vertical offset of the cursor when warping. This offset is
 relative to the upper-left corner of the window being warped to.
 
 .IP "\fIKeepIconWindows\fP"
-Specifies that applications should be allowed to specify their own icon 
+Specifies that applications should be allowed to specify their own icon
 windows.
 
 .IP "\fITitlebarnopush\fP"
@@ -448,16 +448,16 @@ pressed in.
 .IP "\fIClickToFocus\fP"
 Specifies that the keyboard input (aka focus) stays with one window
 until a new window's TitleBar is clicked on, or gains focus through
-Warping or de-iconification.  
+Warping or de-iconification.
 
 .IP "\fIClickToRaise\fP \fIbuttons\fP"
-Specifies that windows should be raised when a button is clicked in the 
-titlebar, handle (low bar), or application area.  \fIbuttons\fP specifies 
+Specifies that windows should be raised when a button is clicked in the
+titlebar, handle (low bar), or application area.  \fIbuttons\fP specifies
 the list of buttons which triggers this function.
 
 In \fIAutoRaise\fP mode  this will simply raise the window if the click
-is before the delay  specified in \fIAutoRaise\fP.  In 
-\fIClickToFocus\fP mode, this will raise the window and give it focus.  
+is before the delay  specified in \fIAutoRaise\fP.  In
+\fIClickToFocus\fP mode, this will raise the window and give it focus.
 
 .IP "\fISloppyFocus\fP"
 Specifies that windows retain focus until the mouse moves to another window,
@@ -466,18 +466,18 @@ or Warping causes another window to gain focus.
 \fISloppyFocus\fP has no effect if \fIClickToFocus\fP is also specified.
 
 .IP "\fIStubbornIcons\fP"
-Specifies that icons should uniconify to their original desk. By default, 
+Specifies that icons should uniconify to their original desk. By default,
 icons uniconify to the current desk.
 
 .IP "\fIStubbornPlacement\fP"
-Specifies that new windows should avoid being placed over icons. 
+Specifies that new windows should avoid being placed over icons.
 
-.\" \fIStubbornIconPlacement\fP has no effect unless \fISmartPlacement\fP is 
+.\" \fIStubbornIconPlacement\fP has no effect unless \fISmartPlacement\fP is
 .\" also specified. ?
 
 .IP "\fIStubbornIconPlacement\fP"
 Specifies that icons should avoid being hidden behind windows placed over the
-\fIIconBox\fP by moving themselves around (dancing icons). 
+\fIIconBox\fP by moving themselves around (dancing icons).
 
 .IP "\fIIconTitle\fP"
 Specifies that a title should be displayed under an iconified app.  The
@@ -502,8 +502,8 @@ window to which the pointer is moving will be automatically selected and
 viewport, rather than just flipping to the desktop the window resides in.
 
 .IP "\fIClickTime delay\fP"
-Specifies that \fBafterstep\fP should consider two mouse clicks made within 
-\fIdelay\fP milliseconds to be a double mouse click, and not two single 
+Specifies that \fBafterstep\fP should consider two mouse clicks made within
+\fIdelay\fP milliseconds to be a double mouse click, and not two single
 mouse clicks. The default delay is 150 milliseconds.
 
 .IP "\fIOpaqueMove %\fP"
@@ -526,9 +526,9 @@ large values can slow down video response on slower systems.
 
 .IP "\fIEdgeScroll horizontal vertical\fP"
 Specifies the percentage of a page to scroll when the cursor hits the edge
-of a page. Setting \fIEdgeScroll\fP to \fI0 0\fP will disable scrolling.  
-Setting this option to \fI100 100\fP will scroll whole pages. Set to 
-\fI1000 1000\fP, scrolling will wrap around at the edge of the desktop. 
+of a page. Setting \fIEdgeScroll\fP to \fI0 0\fP will disable scrolling.
+Setting this option to \fI100 100\fP will scroll whole pages. Set to
+\fI1000 1000\fP, scrolling will wrap around at the edge of the desktop.
 Both \fIhorizontal\fP and \fIvertical\fP should be positive numbers.
 
 .IP "\fIEdgeResistance delay pixels\fP"
@@ -545,9 +545,9 @@ The \fIpixels\fP defines how far over the edge a window must "appear" to
 move before it actually moves partially off the screen.
 
 Note that with \fIEdgeScroll 0 0\fP, it is still possible to move or resize
-windows across the edge of the current screen. By setting the \fIpixels\fP 
-parameter of \fIEdgeResistance\fP to 10000, this type of motion is 
-impossible. However, with \fIEdgeResistances\fP less than 10000, but 
+windows across the edge of the current screen. By setting the \fIpixels\fP
+parameter of \fIEdgeResistance\fP to 10000, this type of motion is
+impossible. However, with \fIEdgeResistances\fP less than 10000, but
 greater than 0, moving over pages becomes difficult but not impossible.
 
 .IP "\fISmartPlacement\fP"
@@ -566,8 +566,8 @@ Adherence to the PPosition field is required for some applications.
 
 .IP "\fIDecorateTransients\fP"
 Specifies that transient windows (pop-up dialog boxes), which are normally
-not decorated, should be given the usual title and low bars.  Note: some 
-pop-up windows and menus are not managed by the window manager, so do not 
+not decorated, should be given the usual title and low bars.  Note: some
+pop-up windows and menus are not managed by the window manager, so do not
 get these decorations.
 
 .IP "\fIAppsBackingStore\fP"
@@ -664,7 +664,7 @@ Specifies a key-stroke binding definition, similar to \fIMouse\fP above.
 \fIkeyname\fP is the keyboard key name. Valid \fIkeyname\fP's are found in
 the /usr/X11/include/X11/keysymdef.h file and are specified here without
 the leading "XK_".  The \fIcontext\fP describes where the mouse is resting
-when the \fIkeyname\fP is pressed and can be any combinationof the 
+when the \fIkeyname\fP is pressed and can be any combinationof the
 following:
 
 .nf
@@ -711,37 +711,37 @@ Deprecated.  Use MyStyle "ButtonPixmap" instead.
 Deprecated.  Use MyStyle "ButtonPixmap" instead.
 
 .IP "DecorateFrames [\fI0|1\fP]"
-Specifies that windows should not have a lowbar, and should have a frame.  
-The frame width and height are defined by the width and height of the 
+Specifies that windows should not have a lowbar, and should have a frame.
+The frame width and height are defined by the width and height of the
 associated pixmaps (see \fIFrameNorth\fP, \fIFrameSouth\fP, etc).
 
 .IP "FrameNorth \fIpixmap_name\fP"
-Specifies the pixmap to be displayed in the top border of the window frame,  
-\fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for details on 
+Specifies the pixmap to be displayed in the top border of the window frame,
+\fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for details on
 what \fIpixmap_name\fPs are allowed.
 
 .IP "FrameSouth \fIpixmap_name\fP"
-Specifies the pixmap to be displayed in the bottom border of the window 
-frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for 
+Specifies the pixmap to be displayed in the bottom border of the window
+frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for
 details on what \fIpixmap_name\fPs are allowed.
 
 .IP "FrameEast \fIpixmap_name\fP"
-Specifies the pixmap to be displayed in the right border of the window 
-frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for 
+Specifies the pixmap to be displayed in the right border of the window
+frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for
 details on what \fIpixmap_name\fPs are allowed.
 
 .IP "FrameWest \fIpixmap_name\fP"
-Specifies the pixmap to be displayed in the left border of the window 
-frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for 
+Specifies the pixmap to be displayed in the left border of the window
+frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for
 details on what \fIpixmap_name\fPs are allowed.
 
 .IP "FrameNE \fIpixmap_name\fP"
 Specifies the pixmap to be displayed in the top right corner of the window
-frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for 
+frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for
 details on what \fIpixmap_name\fPs are allowed.
 
 .IP "FrameSE \fIpixmap_name\fP"
-Specifies the pixmap to be displayed in the bottom right corner of the 
+Specifies the pixmap to be displayed in the bottom right corner of the
 window frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below
 for details on what \fIpixmap_name\fPs are allowed.
 
@@ -751,45 +751,45 @@ frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below for
 details on what \fIpixmap_name\fPs are allowed.
 
 .IP "FrameSW \fIpixmap_name\fP"
-Specifies the pixmap to be displayed in the bottom left corner of the 
+Specifies the pixmap to be displayed in the bottom left corner of the
 window frame, if \fIDecorateFrames\fP is set. See \fIBackPixmap\fP below
 for details on what \fIpixmap_name\fPs are allowed.
 
 .IP "MArrowPixmap \fIpixmap_name\fP"
-Specifies a pixmap to use as the submenu indicator in popup menus. See 
-\fIBackPixmap\fP below for details on what \fIpixmap_name\fPs are 
+Specifies a pixmap to use as the submenu indicator in popup menus. See
+\fIBackPixmap\fP below for details on what \fIpixmap_name\fPs are
 allowed.
 
 .IP "MenuPinOn \fIpixmap_name\fP"
-Specifies a pixmap to use as the pinned menu indicator in popup menus. 
-See \fIBackPixmap\fP below for details on what \fIpixmap_name\fPs are 
+Specifies a pixmap to use as the pinned menu indicator in popup menus.
+See \fIBackPixmap\fP below for details on what \fIpixmap_name\fPs are
 allowed.
 
 .IP "MenuPinOff \fIpixmap_name\fP"
-Specifies a pixmap to use as the unpinned menu indicator in popup menus. 
-See \fIBackPixmap\fP below for details on what \fIpixmap_name\fPs are 
+Specifies a pixmap to use as the unpinned menu indicator in popup menus.
+See \fIBackPixmap\fP below for details on what \fIpixmap_name\fPs are
 allowed.
 
 .IP "TexturedHandle"
-Specifies that the resize handles on the bottom of windows should be 
+Specifies that the resize handles on the bottom of windows should be
 textured. The titlebar texture will be used.
 
 .IP "TextGradientColor \fIfrom\fP \fIto\fP"
-Specifies a gradient to be applied to the focused window titlebar text. 
-\fITextGradientColor\fP is ignored unless \fIGradientText\fP is also 
-given. The gradient colors start at \fIfrom\fP and end at \fIto\fP. 
+Specifies a gradient to be applied to the focused window titlebar text.
+\fITextGradientColor\fP is ignored unless \fIGradientText\fP is also
+given. The gradient colors start at \fIfrom\fP and end at \fIto\fP.
 \fIfrom\fP and \fIto\fP are standard X11 color definitions.
 
 .IP "GradientText"
-Specifies that the gradient specified by \fITextGradientColor\fP should 
+Specifies that the gradient specified by \fITextGradientColor\fP should
 be applied to the focused window titlebar text.
 
 .IP "ButtonNoBorder"
-Specifies that the border normally drawn around iconified windows should 
+Specifies that the border normally drawn around iconified windows should
 be omitted.
 
 .IP "DrawMenuBorders \fIborder_style\fP"
-Specifies the menu border style. \fIborder_style\fP can be one of the 
+Specifies the menu border style. \fIborder_style\fP can be one of the
 following:
 
 .nf
@@ -800,29 +800,29 @@ following:
 .fi
 
 .IP "TextureMenuItemsIndividually \fItexture_style\fP"
-Specifies how textures should be applied to menu items. If 
-\fItexture_style\fP is 0, menu items are textured as a group. If 
-\fItexture_style\fP is 1, menu items are textured individually.  This 
-option is ignored if the menu item MyStyle background uses a 
+Specifies how textures should be applied to menu items. If
+\fItexture_style\fP is 0, menu items are textured as a group. If
+\fItexture_style\fP is 1, menu items are textured individually.  This
+option is ignored if the menu item MyStyle background uses a
 transparency effect.
 
 .IP "SeparateButtonTitle \fIonoff\fP"
-Specifies where iconified window titles should be drawn.  If \fIonoff\fP 
-is 0, the title will be drawn at the top of the icon.  If \fIonoff\fP is 
-1, the title will be drawn in a separate window at the below the icon.  
+Specifies where iconified window titles should be drawn.  If \fIonoff\fP
+is 0, the title will be drawn at the top of the icon.  If \fIonoff\fP is
+1, the title will be drawn in a separate window at the below the icon.
 The default value of \fIonoff\fP is 1.
 
 .IP "ButtonSize \fIwidth\fP \fIheight\fP"
-Specifies the size of iconified windows.  Every iconified window button 
-will be exactly \fIwidth\fP pixels wide and \fIheight\fP pixels high.  
-This includes titles drawn at the top, but not the separate title window 
-created by \fISeparateButtonTitle\fP.  If either \fIwidth\fP or 
-\fIheight\fP is less than one, that dimension will not be fixed.  The 
+Specifies the size of iconified windows.  Every iconified window button
+will be exactly \fIwidth\fP pixels wide and \fIheight\fP pixels high.
+This includes titles drawn at the top, but not the separate title window
+created by \fISeparateButtonTitle\fP.  If either \fIwidth\fP or
+\fIheight\fP is less than one, that dimension will not be fixed.  The
 default is ButtonSize 0 0.
 
 .IP "ResizeMoveGeometry \fIgeom\fP"
-Specifies the location of the resize/move window. If this option is not 
-specified, the move/resize window will be centered on the screen. 
+Specifies the location of the resize/move window. If this option is not
+specified, the move/resize window will be centered on the screen.
 \fIgeom\fP may be any one of the following:
 
 .nf
@@ -833,39 +833,39 @@ specified, the move/resize window will be centered on the screen.
 .fi
 
 .IP "MenuMiniPixmaps \fIminis\fP"
-Specifies whether mini pixmaps should be included in menus. If 
-\fIminis\fP is 0, mini pixmaps are not included. If \fIminis\fP is 1, 
-mini pixmaps are included. Note that mini pixmaps will not be added to 
-menus until the next time menus are updated. Mini pixmaps can cause AS 
+Specifies whether mini pixmaps should be included in menus. If
+\fIminis\fP is 0, mini pixmaps are not included. If \fIminis\fP is 1,
+mini pixmaps are included. Note that mini pixmaps will not be added to
+menus until the next time menus are updated. Mini pixmaps can cause AS
 to take much longer to load over a network.
 
 .IP "IconFont \fIfont\fP"
-Deprecated.  Use MyStyle "ButtonPixmap", "ButtonTitleFocus", 
+Deprecated.  Use MyStyle "ButtonPixmap", "ButtonTitleFocus",
 "ButtonTitleSticky", and "ButtonTitleUnfocus" instead.
 
 .IP "IconBox \fIleft\fP \fItop\fP \fIright\fP \fIbottom\fP"
-Specifies a region of the screen in which to place iconified windows. Up 
-to four icon boxes can be defined. If an \fIIconBox\fP is provided, 
-icons will automatically be placed in them, if possible. Otherwise, they 
+Specifies a region of the screen in which to place iconified windows. Up
+to four icon boxes can be defined. If an \fIIconBox\fP is provided,
+icons will automatically be placed in them, if possible. Otherwise, they
 will be placed in the upper left corner of the screen. Each time a
-window is iconified, a new place is found for it, unless the icon has 
+window is iconified, a new place is found for it, unless the icon has
 been moved manually. An available space is searched for from left to
-right, then top to bottom. Icons will not be automatically placed on top 
-of other icons, but they may be placed underneath application windows if 
-\fIStubbornIconPlacement\fP has not been specified. If left or right is 
-negative, then \fBAfterStep\fP will add the screen width to it.  If top 
-or bottom is negative, then \fBAfterStep\fP will add the screen height 
+right, then top to bottom. Icons will not be automatically placed on top
+of other icons, but they may be placed underneath application windows if
+\fIStubbornIconPlacement\fP has not been specified. If left or right is
+negative, then \fBAfterStep\fP will add the screen width to it.  If top
+or bottom is negative, then \fBAfterStep\fP will add the screen height
 to it. Note that -0 is not parsed as the right or bottom pixel on the
-screen. Use -1 instead. The \fIIconBox\fP will normally be filled from 
-left to right, then top to bottom.  However, if the right edge of the 
-\fIIconBox\fP is closer to the right edge of the screen than the left 
-edge of the \fIIconBox\fP is to the left edge of the screen, then it 
-will be filled from right to left.  Similarly for top to bottom.  For 
-example, "2 2 -1 -1" will result in an \fIIconBox\fP which fills from 
+screen. Use -1 instead. The \fIIconBox\fP will normally be filled from
+left to right, then top to bottom.  However, if the right edge of the
+\fIIconBox\fP is closer to the right edge of the screen than the left
+edge of the \fIIconBox\fP is to the left edge of the screen, then it
+will be filled from right to left.  Similarly for top to bottom.  For
+example, "2 2 -1 -1" will result in an \fIIconBox\fP which fills from
 right to left, then bottom to top.
 
 .IP "RubberBand \fItype\fP"
-Specifies the \fIRubberBand\fP type to use when moving or resizing 
+Specifies the \fIRubberBand\fP type to use when moving or resizing
 non-opaque windows.  There are 3 styles:
 
 .nf
@@ -874,7 +874,7 @@ non-opaque windows.  There are 3 styles:
 2: one crossed-out rectangle the size of the window.
 
 .IP "TitleTextAlign \fIalignment\fP"
-Specifies the alignment of the window title in the titlebar.  The 
+Specifies the alignment of the window title in the titlebar.  The
 allowable values for \fIalignment\fP are as follows:
 
 .nf
@@ -884,13 +884,13 @@ allowable values for \fIalignment\fP are as follows:
 .fi
 
 .IP "TitlebarNoPush"
-Specifies that the titlebar should not to appear to be "pushed in" when 
-clicked with a mouse button. This is useful to reduce video strain or if 
+Specifies that the titlebar should not to appear to be "pushed in" when
+clicked with a mouse button. This is useful to reduce video strain or if
 textured pixmaps that do not look good "pushed in" are used.
 
 .IP "TitleButton \fInum\fP \fIpixmap_name\fP"
-Specifies a pixmap to use as a titlebar button.  Up to 10 buttons are 
-possible. \fInum\fP specifies the position of the button on the window 
+Specifies a pixmap to use as a titlebar button.  Up to 10 buttons are
+possible. \fInum\fP specifies the position of the button on the window
 and is an integer from 1 to 10. The positions are indicated as below:
 .nf
 [1] [3] [5] [7] [9] TitleBarText [10] [8] [6] [4] [2]
@@ -902,17 +902,17 @@ entry in the \fIfeel.name\fP file will cause the TitleButton icon to be
 displayed, but not react when pressed.
 
 .IP "TitleButtonStyle \fInum\fP"
-Specifies how much space is put between leftmost and rightmost titlebar 
-buttons, and the edges of the titlebar. If \fInum\fP is 0, there is a 
-two pixel buffer the buttons and the edge. If \fInum\fP is 1, there is 
+Specifies how much space is put between leftmost and rightmost titlebar
+buttons, and the edges of the titlebar. If \fInum\fP is 0, there is a
+two pixel buffer the buttons and the edge. If \fInum\fP is 1, there is
 no space between the buttons and the edge.
 
 .IP "TitleButtonSpacing \fInum\fP"
 Specifies how much space (in pixels) to put between titlebar buttons.
 
 .IP "TitleButtonBalloons"
-Turns on the balloon feature. A "balloon" is displayed showing the 
-function(s) bound to a titlebar button. The balloon background and text 
+Turns on the balloon feature. A "balloon" is displayed showing the
+function(s) bound to a titlebar button. The balloon background and text
 are configured with the MyStyle "TitleButtonBalloon".
 
 .IP "TitleButtonBalloonBorderWidth \fInumber\fP"
@@ -933,9 +933,9 @@ Specifies the period in milliseconds to delay the appearance of the
 balloon.
 
 .IP "DefaultStyle ""\fIstyle_name\fP"""
-Specifies the \fIMyStyle\fP to use when no style has been specifically 
-defined for a given situation. Note that if a style named "default" has 
-been defined and DefaultStyle has not, the "default" style will be used 
+Specifies the \fIMyStyle\fP to use when no style has been specifically
+defined for a given situation. Note that if a style named "default" has
+been defined and DefaultStyle has not, the "default" style will be used
 as the default.
 
 .IP "FWindowStyle ""\fIstyle_name\fP"""
@@ -960,45 +960,45 @@ Specifies the \fIMyStyle\fP to use for hilighted menu items.
 Specifies the \fIMyStyle\fP to use for stippled menu items.
 
 .IP "MyStyle ""ButtonPixmap"""
-Specifies the background tile of iconified windows.  Inherits from the 
-old ButtonPixmap, IconFont, ButtonTextureType, ButtonMaxColors, 
-ButtonBgColor, and ButtonTextureColor options, and also inherits from 
+Specifies the background tile of iconified windows.  Inherits from the
+old ButtonPixmap, IconFont, ButtonTextureType, ButtonMaxColors,
+ButtonBgColor, and ButtonTextureColor options, and also inherits from
 FWindowStyle.
 
 .IP "MyStyle ""ButtonTitleFocus"""
-Specifies how focused iconified window titles should look.  Inherits from 
+Specifies how focused iconified window titles should look.  Inherits from
 FWindowStyle.
 
 .IP "MyStyle ""ButtonTitleSticky"""
-Specifies how sticky iconified window titles should look.  Inherits from 
+Specifies how sticky iconified window titles should look.  Inherits from
 SWindowStyle.
 
 .IP "MyStyle ""ButtonTitleUnfocus"""
-Specifies how unfocused iconified window titles should look.  Inherits from 
+Specifies how unfocused iconified window titles should look.  Inherits from
 UWindowStyle.
 
 .IP "MyStyle ""\fIstyle_name\fP"""
 .IP "  \fIstyle_option\fP"
 .IP "~MyStyle"
-Specifies the beginning of a look style definition. The style can be 
-referred to later by \fIstyle_name\fP. \fI~MyStyle\fP ends a look style 
+Specifies the beginning of a look style definition. The style can be
+referred to later by \fIstyle_name\fP. \fI~MyStyle\fP ends a look style
 definition. The possible \fIstyle_option\fPs follow:
 
 .RS
 .IP "Font \fIfont\fP"
-Specifies the font associated with this style. \fIfont\fP is a standard 
+Specifies the font associated with this style. \fIfont\fP is a standard
 X11 font definition.
 
 .IP "ForeColor \fIcolor\fP"
-Specifies the text color associated with this style. \fIcolor\fP is a 
+Specifies the text color associated with this style. \fIcolor\fP is a
 standard X11 color definition.
 
 .IP "BackColor \fIcolor\fP"
-Specifies the background color associated with this style. \fIcolor\fP 
+Specifies the background color associated with this style. \fIcolor\fP
 is a standard X11 color definition.
 
 .IP "TextStyle \fIstyle\fP"
-Specifies the text \fIstyle\fP associated with this style. \fIstyle\fP 
+Specifies the text \fIstyle\fP associated with this style. \fIstyle\fP
 can be 0, 1, or 2:
 
 .nf
@@ -1008,20 +1008,20 @@ can be 0, 1, or 2:
 .fi
 
 .IP "DrawTextBackground [\fI0|1\fP]"
-Specifies that the area behind text drawn in this style should be cleared 
-to \fIBackColor\fP.  The argument is optional.  If the argument is 0, 
-this option is turned off; if it is omitted or is nonzero, the option is 
+Specifies that the area behind text drawn in this style should be cleared
+to \fIBackColor\fP.  The argument is optional.  If the argument is 0,
+this option is turned off; if it is omitted or is nonzero, the option is
 turned on.
 
 .IP "MaxColors \fImaximum\fP"
-Specifies the \fImaximum\fP number of colors that the \fIBackGradient\fP 
-can use. jpegs specified with \fIBackPixmap\fP will also be limited to 
+Specifies the \fImaximum\fP number of colors that the \fIBackGradient\fP
+can use. jpegs specified with \fIBackPixmap\fP will also be limited to
 this number of colors.
 
 .IP "BackGradient \fItype\fP \fIfrom\fP \fIto\fP"
-Specifies that a gradient should be used as a background instead of a 
-solid color. The gradient colors start at \fIfrom\fP and end at \fIto\fP. 
-\fIfrom\fP and \fIto\fP are standard X11 color definitions. \fItype\fP 
+Specifies that a gradient should be used as a background instead of a
+solid color. The gradient colors start at \fIfrom\fP and end at \fIto\fP.
+\fIfrom\fP and \fIto\fP are standard X11 color definitions. \fItype\fP
 can be 1, 2, 3, 4, or 5:
 
 .nf
@@ -1033,14 +1033,14 @@ can be 1, 2, 3, 4, or 5:
 .fi
 
 .IP "BackMultiGradient \fItype\fP \fIoffset1\fP \fIcolor1\fP ... \fIoffsetN\fP \fP colorN\fP"
-Specifies that a gradient should be used as a background instead of a 
-solid color. The gradient colors start at \fIcolor1\fP and end at 
-\fIcolorN\fP. Each color has an \fIoffset\fP associated with it. The 
-\fIoffset\fP is a number between 0.0 and 1.0, and specifies where in 
-the gradient the colors are to be placed.  The colors are standard X11 
-color definitions. At least two colors must be given. The offsets are 
-non-decreasing numbers between 0.0 and 1.0. If the first offset is not 
-0.0, it will be set to 0.0. If the last offset is not 1.0, it will be 
+Specifies that a gradient should be used as a background instead of a
+solid color. The gradient colors start at \fIcolor1\fP and end at
+\fIcolorN\fP. Each color has an \fIoffset\fP associated with it. The
+\fIoffset\fP is a number between 0.0 and 1.0, and specifies where in
+the gradient the colors are to be placed.  The colors are standard X11
+color definitions. At least two colors must be given. The offsets are
+non-decreasing numbers between 0.0 and 1.0. If the first offset is not
+0.0, it will be set to 0.0. If the last offset is not 1.0, it will be
 set to 1.0. \fItype\fP may be any of the following:
 
 .nf
@@ -1051,17 +1051,17 @@ set to 1.0. \fItype\fP may be any of the following:
 .fi
 
 .IP "BackPixmap \fItype\fP \fIpixmap_name|color_name\fP"
-Specifies that a pixmap should be used as a background instead of a 
-solid color. This option has two forms, depending on the value of 
-\fItype\fP. If \fItype\fP is 128, the second parameter, \fIpixmap_name\fP 
-must be the name of an xpm, jpeg, or png image which can be found in 
-\fIPixmapPath\fP. If \fItype\fP is 129, the root pixmap (desktop 
-background) will be used, and the optional second parameter must be a 
-color with which the root pixmap will be shaded.  If \fItype\fP is 130, 
-the root pixmap will be averaged with the specified pixmap, and the 
-result will be used as the background.  In order for \fItype\fP 129 
-or \fItype\fP 130 to work properly, your desktop background must be set 
-by a program that also sets the _XROOTPMAP_ID property on the root 
+Specifies that a pixmap should be used as a background instead of a
+solid color. This option has two forms, depending on the value of
+\fItype\fP. If \fItype\fP is 128, the second parameter, \fIpixmap_name\fP
+must be the name of an xpm, jpeg, or png image which can be found in
+\fIPixmapPath\fP. If \fItype\fP is 129, the root pixmap (desktop
+background) will be used, and the optional second parameter must be a
+color with which the root pixmap will be shaded.  If \fItype\fP is 130,
+the root pixmap will be averaged with the specified pixmap, and the
+result will be used as the background.  In order for \fItype\fP 129
+or \fItype\fP 130 to work properly, your desktop background must be set
+by a program that also sets the _XROOTPMAP_ID property on the root
 window, such as asetroot or Esetroot.
 
 .nf
@@ -1071,10 +1071,10 @@ window, such as asetroot or Esetroot.
 .fi
 
 .IP "Inherit ""\fIstyle_name\fP"""
-Specifies a \fIMyStyle\fP to inherit options from. Options from 
-\fIstyle_name\fP will override previously specified options for this 
-style. \fIInherit\fP is a good way to save memory and network bandwidth 
-if the same \fIBackPixmap\fP is used for several styles, as the pixmap 
+Specifies a \fIMyStyle\fP to inherit options from. Options from
+\fIstyle_name\fP will override previously specified options for this
+style. \fIInherit\fP is a good way to save memory and network bandwidth
+if the same \fIBackPixmap\fP is used for several styles, as the pixmap
 will only be loaded for the inherited style.
 
 .SH CONFIGURATION OPTIONS - \fIstartmenu\fP
@@ -1088,8 +1088,8 @@ structure of a command string is as follows:
 .sp
 Where \fIExec\fP is a built-in command (see below); \fI"name"\fP is what
 will appear as the entry in the created \fIstartmenu\fP; exec invokes a
-subprocess (via \fBexec(3)\fP) for the given "command"; and "command" is 
-whatever program is to be invoked along with any "-options" that might be 
+subprocess (via \fBexec(3)\fP) for the given "command"; and "command" is
+whatever program is to be invoked along with any "-options" that might be
 desired.
 
 .IP \fI.include\fP
@@ -1102,29 +1102,29 @@ entries for an \fI.include\fP file are as follows:
 .RS
 .IP "Command \fIcommand\fP [\fIargs\fP]"
 Specifies an AfterStep function to apply to all items in this directory.
-Does not apply to subdirectories or included directories. The resulting 
-function will be: 
+Does not apply to subdirectories or included directories. The resulting
+function will be:
 
 \fIcommand\fP "menu name" \fIargs\fP /menu/item/full/path
 
 .IP "Extension \fIext\fP"
 Specifies an extension to strip from all filenames in this directory
 prior to placing them in the menu as menu item names.  For example, an
-\fIext\fP of "look." will cause the file "look.DEFAULT" to show up as 
+\fIext\fP of "look." will cause the file "look.DEFAULT" to show up as
 "DEFAULT" in the menu, and an \fIext\fP of ".tar.gz" will cause the file
 "theme.tar.gz" to show up as "theme" in the menu.
 
 .IP "Include ""\fIpath\fP"" [\fIcommand\fP [\fIargs\fP]]"
 Specifies the path to another directory, whose contents will be included
 in this menu. If \fIcommand\fP is given, it will be applied to all items
-in the included directory as if a \fICommand\fP directive (see above) 
+in the included directory as if a \fICommand\fP directive (see above)
 had been given, except that subdirectories of the included directory are
 also affected.
 
 .IP "KeepName"
 Specifies that the directory name should be retained when creating the
 distilled menu, so that it can be referred to by name in a \fIPopUp\fP
-statement (see BUILT-IN COMMANDS/FUNCTIONS, below). The toplevel menu 
+statement (see BUILT-IN COMMANDS/FUNCTIONS, below). The toplevel menu
 (start) has this option on by default.
 
 .IP "MiniPixmap \fIpixmap\fP"
@@ -1165,10 +1165,10 @@ Make the window manager issue a beep - pretty useful eh? :)
 Exits \fIafterstep\fP, generally causing X to exit too.
 
 .IP "Restart \fI""name""\fP \fIWindowManagerName\fP"
-Restarts \fBX(1)\fP with the given \fIWindowManagerName\fP.  If 
-\fIWindowManagerName\fP is\fBafterstep\fP, then this forces 
-\fBafterstep\fP to reread all of its configuration files and reinitiate 
-the session.  If \fIWindowManagerName\fP is not in the default search 
+Restarts \fBX(1)\fP with the given \fIWindowManagerName\fP.  If
+\fIWindowManagerName\fP is\fBafterstep\fP, then this forces
+\fBafterstep\fP to reread all of its configuration files and reinitiate
+the session.  If \fIWindowManagerName\fP is not in the default search
 path, then the full path name should be given.
 
 .IP "Refresh [\fI""name""\fP]"
@@ -1187,35 +1187,35 @@ Allows the user to raise a window.
 Allows the user to lower a window.
 
 .IP "RaiseLower [\fI""name""\fP]"
-Alternately raises and lowers a window; i.e. if it's raised, the window 
+Alternately raises and lowers a window; i.e. if it's raised, the window
 will lower, and vice versa.
 
 .IP "PutOnTop"
-Moves the target window to the top of its layer, or up one layer if it 
+Moves the target window to the top of its layer, or up one layer if it
 is already at the top.
 
 .IP "PutOnBack"
-Moves the target window to the bottom of its layer, or down one layer if 
+Moves the target window to the bottom of its layer, or down one layer if
 it is already at the bottom.
 
 .IP "SetLayer \fIlayer\fP"
 Moves the target window to layer \fIlayer\fP.
 
 .IP "ToggleLayer \fIlayer1\fP \fIlayer2\fP"
-Specifies that if the window is in \fIlayer1\fP, it should be placed in 
-\fIlayer2\fP.  Otherwise, it is placed in \fIlayer1\fP.  In either case, 
+Specifies that if the window is in \fIlayer1\fP, it should be placed in
+\fIlayer2\fP.  Otherwise, it is placed in \fIlayer1\fP.  In either case,
 the window will be placed on top of other windows in the target layer.
 
 .IP "Shade [\fI""name""\fP]"
 Emulates the MacOS WindowShade feature.  Once activated the window will
 become a titlebar only.
 
-.IP "Delete [\fI""name""\fP]" 
+.IP "Delete [\fI""name""\fP]"
 Sends a WM_DELETE message to a window asking that it remove itself,
 frequently causing the application to exit.
 
 .IP "Destroy [\fI""name""\fP]"
-Sends the \fBXKillClient(3)\fP to a window. Guaranteed to get rid of the 
+Sends the \fBXKillClient(3)\fP to a window. Guaranteed to get rid of the
 window.
 
 .IP "Close [\fI""name""\fP]"
@@ -1236,7 +1236,7 @@ normal size.  Specifying the optional arguments of \fIhorizontal\fP and
 screen that the new size of the window becomes.  If \fIhorizontal\fP > 0,
 then the horizontal dimension of the window will be set to
 horizontal*screen_width/100. The vertical resizing is similar. Values
-larger than 100 can be used with caution.  The defaults for \fIhorizontal\fP 
+larger than 100 can be used with caution.  The defaults for \fIhorizontal\fP
 and \fIvertical\fP are 100s (ie, fullscreen).
 
 .IP "Stick [\fI""name""\fP]"
@@ -1300,17 +1300,17 @@ trying to start windows on specific desktops.
 
 .IP "Focus"
 Moves the view or window as needed to make the selected window visible.
-Sets the keyboard focus to the selected window. Raises the window if 
+Sets the keyboard focus to the selected window. Raises the window if
 needed to make it visible. Warps the pointer into the selected window in
 focus-follows-mouse  mode.  Does not de-iconify.  This function is
 primarily handy when used with a module such as the WinList.
 
 .IP "Desk \fIarg1\fP [\fIarg2\fP]"
 Changes current desk to another desk as surmised from the arguments
-supplied.  If only \fIarg1\fP is specified and is non-zero, then the 
-current desk will become "desk + arg1" and \fIarg2\fP is ignored.  
-If \fIarg1\fP is zero, then \fIarg2\fP must be specified or no desk 
-change will occur; and \fIarg2\fP will specify the desk to switch to.  
+supplied.  If only \fIarg1\fP is specified and is non-zero, then the
+current desk will become "desk + arg1" and \fIarg2\fP is ignored.
+If \fIarg1\fP is zero, then \fIarg2\fP must be specified or no desk
+change will occur; and \fIarg2\fP will specify the desk to switch to.
 Desk numbers are determined dynamically and must be between 2147483647
 and -2147483648; meaning they can also be negative.
 
@@ -1321,8 +1321,8 @@ Moves the selected window to the desktop specified as \fInew_desk\fP.
 Moves the desktop view to page \fIx y\fP. The upper left page is (0,0),
 the upper right is (N,0), where N is one less than the current number of
 horizontal pages specified in the \fIDeskTopSize\fP command detailed in the
-\fBPager(1)\fP man page. The lower left page is (0,M), and the lower right 
-page is (N,M), where M is the desktop's vertical size as specified in the 
+\fBPager(1)\fP man page. The lower left page is (0,M), and the lower right
+page is (N,M), where M is the desktop's vertical size as specified in the
 \fIDeskTopSize\fP command.
 
 The GotoPage function should not be used in a pop-up menu.
@@ -1332,7 +1332,7 @@ Specifies the internal popup menu in which the titles of each open
 application are displayed, should be popped up.  Selecting an item from the
 list will cause the current desk to switch to the application's desk, and
 will raise it if it's behind other windows.  If the application is currently
-iconified, then it will be de-iconified normally.  
+iconified, then it will be de-iconified normally.
 
 Generally, if \fIarg1\fP is an even number, then the windows will be listed
 using the window name (the name that shows up in the title-bar); if
@@ -1375,7 +1375,7 @@ Shortcut keys may be specified in the menu definition by preceding a
 character with an ampersand. The ampersand will not be displayed, but the
 character after it will be displayed at the right side of the same entry.
 .\" and if the user presses the corresponding key, then that item will be
-.\" activated as if it had been clicked upon.  
+.\" activated as if it had been clicked upon.
 Only alphanumeric characters
 may be used as shortcut keys.  The shift state of the keyboard is ignored
 when testing shortcut characters.
@@ -1441,12 +1441,12 @@ Refer to the \fIfeel.name\fP files and below in EXAMPLES for examples.
 .IP "Module \fIModuleName\fP [\fIarguments\fP]"
 Specifies that \fIModuleName\fP should be spawned.
 
-Currently, many modules are included with \fBafterstep\fP. \fBWharf(1x)\fP 
-and \fBPager(1x)\fP are two of the more popular ones. Wharf will normally 
-be spawned during initialization instead of in response to a mouse binding 
-or menu action. Modules can be short lived transient programs, or, like 
-Wharf, can be intended to remain for the duration of the X session. 
-Modules will be terminated by \fBafterstep\fP prior to restarts and quits, 
+Currently, many modules are included with \fBafterstep\fP. \fBWharf(1x)\fP
+and \fBPager(1x)\fP are two of the more popular ones. Wharf will normally
+be spawned during initialization instead of in response to a mouse binding
+or menu action. Modules can be short lived transient programs, or, like
+Wharf, can be intended to remain for the duration of the X session.
+Modules will be terminated by \fBafterstep\fP prior to restarts and quits,
 if possible.
 
 .SH FILES
@@ -1473,7 +1473,7 @@ specific requirements.  This file, if it exists, will override the system
 wide default file.
 
 .IP "\fI/usr/local/share/afterstep/base.[8|15|16|24|32]bpp\fP"
-The global configuration file setting the paths and a few \fBPager(1)\fP 
+The global configuration file setting the paths and a few \fBPager(1)\fP
 options for the desired colordepth.
 
 .IP "\fI$HOME/GNUstep/Library/AfterStep/base.[8|15|16|24|32]bpp\fP"
@@ -1590,11 +1590,11 @@ Mouse 3         R       A       PopUp "Window-Ops"
 
 .SH KEYBOARD SHORTCUTS
 All window-manager operations can be performed from the keyboard, so
-mouse-less operation should not be difficult. In addition to scrolling 
+mouse-less operation should not be difficult. In addition to scrolling
 around the desktop by binding the Scroll built-in to appropriate keys,
 Pop-ups, move, resize and most other built-ins can be bound to keys. Once
 a built-in function is started, the pointer is moved by using the up, down,
-left, and right arrows, and the action is terminated by pressing return.  
+left, and right arrows, and the action is terminated by pressing return.
 Holding down the shift key will cause the pointer movement to go in larger
 steps, and holding down the control key will cause the cursor movement to
 go in smaller steps. Standard emacs and vi cursor movement controls (^n,
@@ -1606,12 +1606,12 @@ used in conjunction with this virtual window manager. With XFree86, windows
 which appear on the virtual screen actually get drawn into video memory, so
 the virtual screen size is limited by available video memory.
 
-With AfterStep's virtual desktop manager, \fBPager(1)\fP, windows which do 
-not appear on the screen do not actually get drawn into video RAM. The size 
-of the virtual desktop is limited to about 32,000 by 32,000 pixels. It is 
-probably impractical to use a virtual desktop more than about 5 times the 
-visible screen in each direction. Note that memory usage with the virtual 
-desktop is a function of the number of windows which exist. The size of the 
+With AfterStep's virtual desktop manager, \fBPager(1)\fP, windows which do
+not appear on the screen do not actually get drawn into video RAM. The size
+of the virtual desktop is limited to about 32,000 by 32,000 pixels. It is
+probably impractical to use a virtual desktop more than about 5 times the
+visible screen in each direction. Note that memory usage with the virtual
+desktop is a function of the number of windows which exist. The size of the
 desktop makes no difference.
 
 When becoming familiar with AfterStep, it is recommended that you
@@ -1629,7 +1629,7 @@ Chris Ridd (C.Ridd@isode.com)
 Rob Malda (malda@imagegroup.com)
 Ethan Fischer <allanon@crystaltokyo.com>
 David Mihm <dmihm@swbell.net> [Man page]
-Sasha Vasko <sashav@sprintmail.com>
+Sasha Vasko <sasha at aftercode.net>
 .fi
 
 .SH SEE ALSO
@@ -1682,10 +1682,10 @@ PERFORMANCE OF THIS SOFTWARE.
 
 .SH HISTORY
 AfterStep is a continuation of the BowMan window manager which was
-originally put together by Bo Yang.  BowMan was based on the fvwm window 
-manager, written by Robert Nation.  Fvwm was based on code from twm.  And 
+originally put together by Bo Yang.  BowMan was based on the fvwm window
+manager, written by Robert Nation.  Fvwm was based on code from twm.  And
 so on....  It is designed not only to emulate some of the look and feel of
-the NEXTSTEP(tm) user interface, but also to add useful, requested, and neat 
+the NEXTSTEP(tm) user interface, but also to add useful, requested, and neat
 features.  The changes which comprise AfterStep's personality were
 originally part of BowMan development, but due to a desire to move past
 SIMPLE EMULATION and into a niche as its OWN valuable window manager, the
@@ -1694,25 +1694,25 @@ previous designers decided to change the project name and move on.
 Some major changes from \fBfvwm(1)\fP 1.24 include:
 .nf
 .sp
-1. NEXTSTEP(tm)-alike title bar, title buttons, borders 
+1. NEXTSTEP(tm)-alike title bar, title buttons, borders
    and corners.
-2. AfterStep's \fBWharf(1)\fP. To avoid copyright 
+2. AfterStep's \fBWharf(1)\fP. To avoid copyright
    complications it is not called a "Dock".
-3. NEXTSTEP(tm) style menus. However the menus are not 
-   controlled by applications, they are more like pop-up 
+3. NEXTSTEP(tm) style menus. However the menus are not
+   controlled by applications, they are more like pop-up
    service lists on the root window.
-4. NEXTSTEP(tm) style icons. The default icons are 
-   consistent with those in the NEXTSTEP(tm) interface, 
+4. NEXTSTEP(tm) style icons. The default icons are
+   consistent with those in the NEXTSTEP(tm) interface,
    but they are configurable.
-5. Dissociation of \fBPager(1)\fP desktops for background 
-   pixmaps and configuration: each desktop can have its 
-   own configuration, its own look, its own background 
-   picture and all this can be changed on fly with the 
+5. Dissociation of \fBPager(1)\fP desktops for background
+   pixmaps and configuration: each desktop can have its
+   own configuration, its own look, its own background
+   picture and all this can be changed on fly with the
    Start/Desktop menu.
 .fi
 .sp
 However, flexibility was not traded off. Initiation files, in
-\fI~/GNUstep/Library/AfterStep\fP, recognize most of the \fBfvwm(1)\fP 
+\fI~/GNUstep/Library/AfterStep\fP, recognize most of the \fBfvwm(1)\fP
 commands.
 
 .SH ICCCM COMPLIANCE

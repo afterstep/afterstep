@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (C) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (C) 1995 Bo Yang
  * Copyright (C) 1993 Robert Nation
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * 
+ *
  */
 
 #include "../../configure.h"
@@ -67,7 +67,7 @@ UpdateIconShape (ASWindow * tmp_win)
       tmp_win->icon_pm_mask == None)
     tmp_win->flags &= ~SHAPED_ICON;
 
-  /* initialize icon to completely transparent if we need to shape, else 
+  /* initialize icon to completely transparent if we need to shape, else
    * set the icon to completely opaque and return */
   if (tmp_win->flags & SHAPED_ICON)
     {
@@ -375,7 +375,7 @@ DrawIconWindow (ASWindow * win)
   if (win->icon_title_w != None)
     {
       int x, y, w, h;
-      /* if there is no icon pixmap window, the effective icon width is 
+      /* if there is no icon pixmap window, the effective icon width is
        * the same as the title width */
       int p_width = (win->icon_pixmap_w == None) ? win->icon_t_width : win->icon_p_width;
       /* if this is the focus window, show the whole title */
@@ -492,7 +492,7 @@ AutoPlace (ASWindow * t)
 	  int twidth = width, theight = height;
 
 	  /* If the window is taller than the icon box, ignore the icon height
-	   * when figuring where to put it. Same goes for the width. This 
+	   * when figuring where to put it. Same goes for the width. This
 	   * should permit reasonably graceful handling of big icons. */
 	  if (twidth >= Scr.IconBoxes[i][2] - Scr.IconBoxes[i][0])
 	    twidth = Scr.IconBoxes[i][2] - Scr.IconBoxes[i][0];
@@ -519,7 +519,7 @@ AutoPlace (ASWindow * t)
 	  if (theight < height && Scr.MyDisplayHeight - Scr.IconBoxes[i][3] < Scr.IconBoxes[i][1])
 	    real_y = Scr.IconBoxes[i][3] - height;
 	}
-      /* provide a default location, in case we have no icon boxes, 
+      /* provide a default location, in case we have no icon boxes,
        * or none of the icon boxes are suitable */
       if (!loc_ok)
 	{

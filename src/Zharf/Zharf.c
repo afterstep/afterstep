@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 1999 Sasha Vasko <sasha at aftercode.net>
  * Copyright (c) 1998 Guylhem Aznar <guylhem@oeil.qc.ca>
  * Copyright (c) 1993 Robert Nation
  *
@@ -421,7 +421,7 @@ DispatchEvent (XEvent * event)
 
 /************************************************************************
  *
- * Draw the window 
+ * Draw the window
  *
  ***********************************************************************/
 void
@@ -586,7 +586,7 @@ RelieveWindow (Window win, int x, int y, int w, int h,
 
 /************************************************************************
  *
- * Sizes and creates the window 
+ * Sizes and creates the window
  *
  ***********************************************************************/
 XSizeHints mysizehints;
@@ -849,7 +849,7 @@ DeadPipe (int nonsense)
 }
 
 /*****************************************************************************
- * 
+ *
  * This routine is responsible for reading and parsing the config file
  *
  ****************************************************************************/
@@ -968,7 +968,7 @@ ParseBaseOptions (const char *filename)
 
 /**************************************************************************
  *
- * Parses a button command line from the config file 
+ * Parses a button command line from the config file
  *
  *************************************************************************/
 void
@@ -998,7 +998,7 @@ match_string (char *tline)
   while (isspace (*tline) && (*tline != '\n') && (*tline != 0))
     tline++;
 
-  /* read next word. Its the button label. Users can specify "" 
+  /* read next word. Its the button label. Users can specify ""
    * NoIcon, or whatever to skip the label */
   /* read to next space */
   start = tline;
@@ -1011,7 +1011,7 @@ match_string (char *tline)
   ptr[len] = 0;
   Buttons[num_buttons].title = ptr;
 
-  /* read next word. Its the icon bitmap/pixmap label. Users can specify "" 
+  /* read next word. Its the icon bitmap/pixmap label. Users can specify ""
    * NoIcon, or whatever to skip the label */
   /* read to next space */
   start = end;
@@ -1151,7 +1151,7 @@ CheckForHangon (unsigned long *body)
 
 /**************************************************************************
  *
- * Process window list messages 
+ * Process window list messages
  *
  *************************************************************************/
 void
@@ -1280,7 +1280,7 @@ swallow (unsigned long *body)
  *
  *      The general algorithm, especially the aspect ratio stuff, is
  *      borrowed from uwm's CheckConsistency routine.
- * 
+ *
  ***********************************************************************/
 void
 ConstrainSize (XSizeHints * hints, int *widthp, int *heightp)
@@ -1384,7 +1384,7 @@ ConstrainSize (XSizeHints * hints, int *widthp, int *heightp)
    *
    * minAspectX * dheight > minAspectY * dwidth
    * maxAspectX * dheight < maxAspectY * dwidth
-   * 
+   *
    */
 
   if (hints->flags & PAspect)

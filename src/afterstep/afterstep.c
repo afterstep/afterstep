@@ -1,7 +1,7 @@
 /****************************************************************************
- * Copyright (c) 1999 Sasha Vasko <sashav@sprintmail.com>
- * This module is based on Twm, but has been SIGNIFICANTLY modified 
- * by Rob Nation 
+ * Copyright (c) 1999 Sasha Vasko <sasha at aftercode.net>
+ * This module is based on Twm, but has been SIGNIFICANTLY modified
+ * by Rob Nation
  * by Bo Yang
  * by Frank Fejes
  * by Alfredo Kojima
@@ -275,7 +275,7 @@ main (int argc, char **argv)
       afterstep_err ("close-on-exec failed", NULL, NULL, NULL);
       exit (1);
     }
-  	
+
   Scr.screen = DefaultScreen (dpy);
   screen = Scr.screen ;
   Scr.NumberOfScreens = ScreenCount (dpy);
@@ -413,7 +413,7 @@ main (int argc, char **argv)
 		 WhitePixel (dpy, Scr.screen), BlackPixel (dpy, Scr.screen),
 				     Scr.d_depth);
     }
-  /* create a window which will accept the keyboard focus when no other 
+  /* create a window which will accept the keyboard focus when no other
      windows have it */
   attributes.event_mask = KeyPressMask | FocusChangeMask;
   attributes.override_redirect = True;
@@ -517,7 +517,7 @@ CaptureAllWindows (void)
 
 
   /*
-   * map all of the non-override, non-menu windows (menus are handled 
+   * map all of the non-override, non-menu windows (menus are handled
    * elsewhere)
    */
 
@@ -610,7 +610,7 @@ Atom _XA_WIN_DESK;
 void
 InternUsefulAtoms (void)
 {
-  /* 
+  /*
    * Create priority colors if necessary.
    */
   _XA_MIT_PRIORITY_COLORS = XInternAtom (dpy, "_MIT_PRIORITY_COLORS", False);
@@ -1100,7 +1100,7 @@ Done (int restart, char *command)
       {				/* free up memory */
 	extern char *global_base_file;
 
-	/* free display strings; can't do this in main(), because some OS's 
+	/* free display strings; can't do this in main(), because some OS's
 	 * don't copy the environment variables properly */
 	free (display_string);
 	free (rdisplay_string);
@@ -1171,7 +1171,7 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 {
   extern int last_event_type;
 
-  /* some errors are acceptable, mostly they're caused by 
+  /* some errors are acceptable, mostly they're caused by
    * trying to update a lost  window */
   if ((event->error_code == BadWindow) || (event->request_code == X_GetGeometry) ||
       (event->error_code == BadDrawable) || (event->request_code == X_SetInputFocus) ||
@@ -1218,7 +1218,7 @@ usage (void)
 
 /***************************************************************************
  * checkPanFrames hides PanFrames if they are on the very border of the
- * VIRTUELL screen and EdgeWrap for that direction is off. 
+ * VIRTUELL screen and EdgeWrap for that direction is off.
  * (A special cursor for the EdgeWrap border could be nice) HEDU
  ****************************************************************************/
 void
@@ -1314,7 +1314,7 @@ raisePanFrames (void)
 
 /****************************************************************************
  *
- * Creates the windows for edge-scrolling 
+ * Creates the windows for edge-scrolling
  *
  ****************************************************************************/
 void

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (C) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (C) 1996 Robert Depenbrock (robert@eclipse.asta.uni-essen.de)
  * Copyright (C) 1994 Robert Nation
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *                                                                           
+ *
  */
 
 #include "../../configure.h"
@@ -76,7 +76,7 @@ typedef struct _XpmIcon
 XpmIcon;
 
 /**************************************************************************
- * A few function prototypes 
+ * A few function prototypes
  **************************************************************************/
 void RedrawWindow (void);
 void GetXPMData (char **);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  * Original idea: Copyright (c) 1998 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -94,7 +94,7 @@
 #endif
 
 /*************************************************************************
- * 
+ *
  * Screen, font, etc info
  *
  **************************************************************************/
@@ -103,8 +103,8 @@ ASAtom Atoms[] =
 {XROOTPMAP_ID_ATOM_DEF,
  {None, "_AS_STYLE", XA_INTEGER},
  AS_BACKGROUND_ATOM_DEF,
- {None, "WM_STATE", XA_INTEGER},	/*  it is actually of WM_STATE type, 
-					   but we don't know this atom untill 
+ {None, "WM_STATE", XA_INTEGER},	/*  it is actually of WM_STATE type,
+					   but we don't know this atom untill
 					   we get it from X */
  {None, NULL, None}
 };
@@ -171,7 +171,7 @@ ShowAsStarted ()
   XFree ((char *) name.value);
   XFlush (dpy);
   sleep (1);			/* we have to give AS a chance to spot us */
-  /* we will need to wait for PropertyNotify event indicating transition 
+  /* we will need to wait for PropertyNotify event indicating transition
      into Withdrawn state, so selecting event mask: */
   XSelectInput (dpy, w, PropertyChangeMask);
 
@@ -481,7 +481,7 @@ process_message (unsigned long type, unsigned long *body)
 void
 DeadPipe (int nonsense)
 {
-/* here we must remove our backgrounds from backgrounds information list 
+/* here we must remove our backgrounds from backgrounds information list
    as they are no longer valid */
   ASDeskBackArray dummy =
   {NULL, 0}, *saved;
@@ -509,7 +509,7 @@ DeadPipe (int nonsense)
     }
 
 #ifdef DEBUG_ALLOCS
-/* normally, we let the system clean up, but when auditing time comes 
+/* normally, we let the system clean up, but when auditing time comes
  * around, it's best to have the books in order... */
   {
     free (pixmapPath);
@@ -688,7 +688,7 @@ UpdateBackgroundProperty ()
 	    IsPurePixmap (&(current.desks[i])))
 	  {
 	    ASDeskBack *back;
-	    /* this background is about to be deleted - 
+	    /* this background is about to be deleted -
 	       let's see if anyone else is using it too : */
 	    for (k = 0; k < current.desks_num; k++)
 	      if (!IsDeskInRange (current.desks[k].desk) &&
@@ -905,9 +905,9 @@ ProcessNewBackground (MyBackgroundConfig * back, ASDeskBack * desk)
 
       prefix = mystrdup (XIMAGELOADER);
       if (!(back->flags & BGFLAG_FILE))
-	{			/* we should get all command options supplied so cut prefix to 
+	{			/* we should get all command options supplied so cut prefix to
 				   only a prog name */
-	  /*assuming we don't have spaces here in path to prog itself - only option 
+	  /*assuming we don't have spaces here in path to prog itself - only option
 	     separator spaces */
 	  char *ptr = strchr (prefix, ' ');
 	  if (ptr)
@@ -925,7 +925,7 @@ ProcessNewBackground (MyBackgroundConfig * back, ASDeskBack * desk)
 }
 
 /*****************************************************************************
- * 
+ *
  * This routine is responsible for reading and parsing the config file
  *
  ****************************************************************************/
@@ -970,7 +970,7 @@ GetOptions (const char *filename)
       set_use_tmp_heap (using_tmp_heap);
     }
 
-  /* now lets convert config into the list of desks and list 
+  /* now lets convert config into the list of desks and list
      ASDeskBack's */
   /* first let's see how many backgrounds we have defined max */
   for (curr_back = config->my_backs; curr_back;
@@ -1071,7 +1071,7 @@ GetBaseOptions (const char *filename)
     exit (0);			/* something terrible has happend */
 
   pixmapPath = config->pixmap_path;
-  config->pixmap_path = NULL;	/* setting it to NULL so it would not be 
+  config->pixmap_path = NULL;	/* setting it to NULL so it would not be
 				   deallocated by DestroyBaseConfig */
   DestroyBaseConfig (config);
 
