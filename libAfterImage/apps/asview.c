@@ -86,6 +86,7 @@ int main(int argc, char* argv[])
 			/* see ASView.5 : */
 			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL,
 				                False );
+			/* print_storage(NULL); */
 			destroy_asimage( &im );
 			/* see common.c:set_window_background_and_free(): */
 			p = set_window_background_and_free( w, p );

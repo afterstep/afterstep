@@ -147,6 +147,7 @@ int  threshold_stored_data(ASStorage *storage, ASStorageID id, unsigned int *run
 /* slot identified by id will be marked as unused */
 void forget_data(ASStorage *storage, ASStorageID id);
 
+void print_storage(ASStorage *storage);
 
 int print_storage_slot(ASStorage *storage, ASStorageID id);
 Bool query_storage_slot(ASStorage *storage, ASStorageID id, ASStorageSlot *dst );

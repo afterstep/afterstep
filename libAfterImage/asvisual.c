@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H

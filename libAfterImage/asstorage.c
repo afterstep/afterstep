@@ -1467,6 +1467,26 @@ print_storage_slot(ASStorage *storage, ASStorageID id)
 	return 0;	  
 }	 
 
+void  
+print_storage(ASStorage *storage)
+{
+	int i ;
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+	fprintf( stderr, " Printing Storage %p : \n\tblock_count = %d;\n", storage, storage->blocks_count );
+
+	for( i = 0 ; i < storage->blocks_count ; ++i ) 
+	{
+		fprintf( stderr, "\tBlock %d = %p;\n", i, storage->blocks[i] );			
+		if( storage->blocks[i] )
+		{
+			fprintf( stderr, "\t\tBlock[%d].size = %d;\n", i, storage->blocks[i]->size );			   
+			fprintf( stderr, "\t\tBlock[%d].slots_count = %d;\n", i, storage->blocks[i]->slots_count );			   
+			fprintf( stderr, "\t\tBlock[%d].last_used = %d;\n", i, storage->blocks[i]->last_used );			   
+		}	 
+	}	 
+}
+
 void 
 forget_data(ASStorage *storage, ASStorageID id)
 {

@@ -795,7 +795,16 @@ estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *h
     if( hints )
     {
         ASTBarData *tbar = create_astbar();
-        ASFlagType btn_mask = compile_titlebuttons_mask (hints);
+        ASFlagType btn_mask ; 
+		ASDatabaseRecord * db_rec ;
+		static char *ASMenuStyleNames[2] = {"ASMenu",NULL} ;
+
+
+		db_rec = fill_asdb_record (Database, &(ASMenuStyleNames[0]), NULL, False);
+		merge_asdb_hints ( hints, NULL, db_rec, NULL, HINT_GENERAL);
+		destroy_asdb_record( db_rec, False );
+		
+		btn_mask = compile_titlebuttons_mask (hints);
         tbar->h_spacing = DEFAULT_TBAR_SPACING ;
         tbar->v_spacing = DEFAULT_TBAR_SPACING ;
         /* left buttons : */
@@ -804,7 +813,8 @@ estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *h
                             Scr.Look.button_first_right,
                             Scr.Look.TitleButtonXOffset[0], Scr.Look.TitleButtonYOffset[0], Scr.Look.TitleButtonSpacing[0],
                             TBTN_ORDER_L2R );
-        /* label */
+        
+		/* label */
         add_astbar_label(   tbar, 1, 0, 0, ALIGN_LEFT, DEFAULT_TBAR_SPACING, DEFAULT_TBAR_SPACING, hints->names[0], hints->names_encoding[0]);
         /* right buttons : */
         add_astbar_btnblock(tbar, 2, 0, 0, NO_ALIGN,

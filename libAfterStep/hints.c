@@ -1129,9 +1129,9 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 
 	LOCAL_DEBUG_CALLER_OUT ("0x%lX", what);
 
-	if (raw == NULL || db_rec == NULL)
+	if ( db_rec == NULL)
 		return;
-	if (get_flags (what, HINT_STARTUP) && status != NULL)
+	if (get_flags (what, HINT_STARTUP) && status != NULL  )
 	{
 		if (get_flags (db_rec->set_data_flags, STYLE_STARTUP_DESK))
 		{
@@ -1156,7 +1156,7 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		}
 
 		/*not exactly clean solution for the default geometry, but I don't see any other way : */
-		if (get_flags (db_rec->set_data_flags, STYLE_DEFAULT_GEOMETRY) && !get_flags (status->flags, AS_StartPositionUser))
+		if ( raw != NULL && get_flags (db_rec->set_data_flags, STYLE_DEFAULT_GEOMETRY) && !get_flags (status->flags, AS_StartPositionUser))
 		{
 			register ASGeometry *g = &(db_rec->default_geometry);
 
