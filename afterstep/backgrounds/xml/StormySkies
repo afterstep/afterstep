@@ -1,0 +1,4 @@
+<scale width=$xroot.width height=$xroot.height>
+	<img src=".StormySkies"/>
+</scale>
+
