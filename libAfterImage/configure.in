@@ -185,8 +185,10 @@ else
   fi
 fi
 
+user_ldflags=$LDFLAGS
+
 if test "x$have_x" = "xyes"; then
-  x_libs="$LDFLAGS $X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
+  x_libs="$X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
   AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
 fi
 
@@ -507,6 +509,7 @@ AC_SUBST(version_major)
 AC_SUBST(lib_name)
 AC_SUBST(lib_file_name)
 AC_SUBST(with_locale)
+AC_SUBST(user_ldflags)
 AC_SUBST(x_libs)
 AC_SUBST(X_CFLAGS)
 AC_SUBST(LIBPROG)
