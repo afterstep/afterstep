@@ -725,7 +725,18 @@ create_wharf_folder_canvas(ASWharfFolder *aswf)
     attr.background_pixmap = ParentRelative ;
     if( Scr.asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy)) )
         mask |= CWBackPixel ;
-    w = create_visual_window( Scr.asv, Scr.Root, 0, 0, 1, 1, 0, InputOutput, mask, &attr );
+    w = create_visual_window( Scr.asv, Scr.Root, 0, 0, 2, 2, 0, InputOutput, mask, &attr );
+
+#ifdef SHAPE
+	{
+		XRectangle rect ;
+		rect.x = rect.y = 0 ;
+		rect.width = rect.height = 1 ;
+		XShapeCombineRectangles ( dpy, w, ShapeBounding,
+        	                      0, 0, &rect, 1, ShapeSet, Unsorted);
+	}
+#endif
+
     register_object( w, (ASMagic*)aswf );
     pc = create_ascanvas_container(w);
     LOCAL_DEBUG_OUT("folder canvas %p created for window %lX", pc, w );
@@ -1225,14 +1236,11 @@ update_wharf_folder_styles( ASWharfFolder *aswf, Bool force )
 
 void
 map_wharf_folder( ASWharfFolder *aswf,
-                  int x, int y, unsigned int width, unsigned int height,
                   int gravity )
 {
     XSizeHints      shints;
 	ExtendedWMHints extwm_hints ;
     ASFlagType protocols = 0;
-
-    moveresize_canvas( aswf->canvas, x, y, width, height );
 
 	set_folder_name( aswf, False );
 
@@ -1257,12 +1265,18 @@ map_wharf_folder( ASWharfFolder *aswf,
 
     set_client_hints( aswf->canvas->w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 
+//	ASSync(False);
+//	sleep_a_millisec (10);
 	/* showing window to let user see that we are doing something */
     map_canvas_window(aswf->canvas, True);
-    LOCAL_DEBUG_OUT( "mapping main window at %ux%u%+d%+d", width, height,  x, y );
+#ifdef SHAPE
+	XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding,
+                              0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+#endif
+    LOCAL_DEBUG_OUT( "mapping folder window for folder %p", aswf );
     /* final cleanup */
-    ASSync( False );
-    sleep_a_millisec (10);                                 /* we have to give AS a chance to spot us */
+//    ASSync( False );
+//    sleep_a_millisec (10);                                 /* we have to give AS a chance to spot us */
 }
 
 void
@@ -1677,8 +1691,8 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 	LOCAL_DEBUG_OUT("corrected  pos(%+d%+d)", x, y );
     LOCAL_DEBUG_OUT( "flags 0x%lX, reverse_order = %d", aswf->flags, get_flags( aswf->flags, ASW_ReverseOrder)?aswf->buttons_num-1:-1 );
 
+	moveresize_canvas( aswf->canvas, x, y, width, height );
 	set_wharf_clip_area( aswf, left, top );
-
     if( get_flags(Config->flags, WHARF_ANIMATE ) )
     {
 		set_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending );
@@ -1689,26 +1703,36 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 		aswf->boundary.x = aswf->boundary.y = 0 ; 
 		if( get_flags( aswf->flags, ASW_Vertical ) )
 		{		
-			aswf->boundary.height = (aswf->gravity == NorthEastGravity || aswf->gravity == NorthWestGravity )?aswf->canvas->height:1 ;
-			aswf->boundary.width = (aswf->boundary.height > 1)?aswf->canvas->width:1 ;
+			if( south )
+				aswf->boundary.y = height-1 ; 
+			aswf->boundary.height = 1 ;
+			aswf->boundary.width = 1 ;
 		}else
 		{
-			aswf->boundary.width = (aswf->gravity == NorthWestGravity || aswf->gravity == SouthWestGravity )?aswf->canvas->width:1 ;
-			aswf->boundary.height = (aswf->boundary.width > 1)?aswf->canvas->height:1 ;
+			if( east )
+				aswf->boundary.x = width-1 ; 
+			aswf->boundary.height = 1 ;
+			aswf->boundary.width = 1 ;
+
+/* 			aswf->boundary.width = (aswf->gravity == NorthWestGravity || aswf->gravity == SouthWestGravity )?aswf->canvas->width:1 ;
+			aswf->boundary.height = (aswf->boundary.width == 1)?aswf->canvas->height:1 ;
+ */ 
 		}	 
 #ifdef SHAPE		
+		LOCAL_DEBUG_OUT("boundary pos(%dx%d%+d%+d) shaping window %lX", aswf->boundary.width, aswf->boundary.height, aswf->boundary.x, aswf->boundary.y, aswf->canvas->w );
 		/* fprintf( stderr, "setting boundary to 1x1\n" );  */
 	    XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding,
                                   0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
 #endif
     }
     
-	map_wharf_folder( aswf, x, y, width, height, east?(south?SouthEastGravity:NorthEastGravity):
-                                                      (south?SouthWestGravity:NorthWestGravity) );
+	map_wharf_folder( aswf, east?(south?SouthEastGravity:NorthEastGravity):
+                                 (south?SouthWestGravity:NorthWestGravity) );
 
 	set_flags( aswf->flags, ASW_Mapped );
     clear_flags( aswf->flags, ASW_Withdrawn );
 	ASSync(False);
+
     return True;
 }
 
@@ -1887,7 +1911,9 @@ void
 update_wharf_folder_size( ASWharfFolder *aswf)
 {
     unsigned int total_width = 1, total_height = 1;
-    place_wharf_buttons( aswf, &total_width, &total_height );
+    if( !get_flags( aswf->flags, ASW_Mapped) )
+		return;		
+	place_wharf_buttons( aswf, &total_width, &total_height );
 
     if( total_width != 0 && total_height != 0 )
     {
@@ -2017,8 +2043,7 @@ check_swallow_window( ASWindowData *wd )
                        swidth, sheight );
     map_canvas_window( aswb->swallowed->current, True );
     send_swallowed_configure_notify(aswb);
-
-    update_wharf_folder_size( aswf );
+	update_wharf_folder_size( aswf );
 }
 
 
@@ -2382,6 +2407,11 @@ void on_wharf_moveresize( ASEvent *event )
         {
             int i = aswf->buttons_num ;
 LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
+#ifdef SHAPE
+            if( get_flags( changes, CANVAS_RESIZED ) && get_flags(aswf->flags,ASW_AnimationPending ) )
+				XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding,
+                              0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+#endif
 
 			if( !get_flags( aswf->flags, ASW_Withdrawn ) )
 			{	
@@ -2413,8 +2443,6 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 					update_canvas_display_mask(aswf->canvas, True);
 				}
 			}
-
-
         }
     }
 }
