@@ -380,13 +380,14 @@ Key Tab         A       S       Focus
 
 # Window keys
 Key Menu        A       A       Popup "0"
-Key Meta_L      A       A       WarpFore
-Key Meta_R      A       A       WarpBack
+#Key Meta_L      A       A       WarpFore
+#Key Meta_R      A       A       WarpBack
 # PC keys aren't always defined is keymaps
 Key Print       A       N       TakeScreenShot
 Key Print       A       M       TakeWindowShot
 Key Print       A       C       TakeFrameShot
 Key Pause       A       A       Exec "xlock" exec xlock -nolock -mode random
+#Key Pause       A       A       Exec "xlock" exec xscreensaver-command -lock
 Key Sys_Req     A       A       GetHelp
 Key Scroll_Lock A       A       Desk 0
 #
