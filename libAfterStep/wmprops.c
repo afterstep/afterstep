@@ -230,8 +230,10 @@ accure_wm_selection (ASWMProps * wmprops)
 		XGetWindowAttributes (dpy, wmprops->scr->Root, &attr);
 
 		old_handler = XSetErrorHandler ((XErrorHandler) catch_redirect_error);
+		
 		XSelectInput (dpy, wmprops->scr->Root, attr.your_event_mask | SubstructureRedirectMask);
 		XSync( dpy, False );
+
 		XSetErrorHandler (old_handler);
 
 		/* lets notify all the clients that we are new selection owner */
