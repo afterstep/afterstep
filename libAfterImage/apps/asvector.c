@@ -53,8 +53,10 @@ int main(int argc, char* argv[])
 	int dummy, geom_flags = 0;
 	unsigned int to_width= 200, to_height = 200;
 	ASVectorPalette  palette = { 9, &(points[0]), {&chan_blue[0], &chan_green[0], &chan_red[0], &chan_alpha[0]}, ARGB32_Black} ;
-	double vector[200*200] ;
+	double vector[5 * 5] ;
+/*	double vector[200*200] ; */
 	ASImage *vect_im = NULL;
+	ASImage *temp_im = NULL;
 	int x, y ;
 
 	/* see ASView.1 : */
@@ -63,9 +65,9 @@ int main(int argc, char* argv[])
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
 #endif
 
-	for( y = 200 ; y > 0 ; --y ) 
-		for( x = 1 ; x <= 200 ; ++x ) 
-		  vector[(200-y)*200+x-1] = (y-1)/40+(x-1)/40 ;
+	for( y = 5 ; y > 0 ; --y ) 
+		for( x = 1 ; x <= 5 ; ++x ) 
+		  vector[(5-y)*5+x-1] = (y-1)+(x-1);
 #ifndef X_DISPLAY_MISSING
     dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
@@ -76,8 +78,9 @@ int main(int argc, char* argv[])
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );
 	/* see ASGrad.2 : */
-	vect_im = create_asimage_from_vector( asv, &vector[0],
-							to_width, to_height,
+	temp_im = create_asimage_from_vector( asv, &vector[0],
+							5, 5,
+/*						to_width, to_height,  */
 							&palette,
 #ifndef X_DISPLAY_MISSING
 							 ASA_XImage,
@@ -86,6 +89,13 @@ int main(int argc, char* argv[])
 #endif
 							0, ASIMAGE_QUALITY_POOR );
 
+
+#if 0
+    vect_im = temp_im ;
+#else
+	vect_im = scale_asimage(asv, temp_im, to_width, to_height,
+                                   /* ASA_XImage */  ASA_ASImage, 100, ASIMAGE_QUALITY_POOR);
+#endif
 	if( vect_im )
 	{
 #ifndef X_DISPLAY_MISSING

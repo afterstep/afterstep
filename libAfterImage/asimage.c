@@ -2198,7 +2198,7 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 		chan_fill[IC_GREEN] = ARGB32_GREEN8(to_store->back_color);
 		chan_fill[IC_BLUE]  = ARGB32_BLUE8 (to_store->back_color);
 		chan_fill[IC_ALPHA] = ARGB32_ALPHA8(to_store->back_color);
-		if( imout->tiling_step > 1 )
+		if( imout->tiling_step > 0 )
 		{
 			int bytes_count ;
 			register int i, color ;
