@@ -1327,7 +1327,7 @@ ximage2shmseg( XImage *xim )
 	if( get_hash_item( xshmimage_images, AS_HASHABLE(xim), &data ) == ASH_Success )		
 	{
 		if( data->segment ) 
-			return data->segment->shmid;	
+			return data->segment->shmseg;	
 	}	
 	return 0; 
 }	 
