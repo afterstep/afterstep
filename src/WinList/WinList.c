@@ -23,13 +23,25 @@
     * You should have received a copy of the GNU General Public License
     * along with this program; if not, write to the Free Software
     * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-    * $Id: WinList.c,v 1.2 2001/09/28 13:48:03 sashav Exp $
+    * $Id: WinList.c,v 1.3 2002/05/01 06:15:00 sashav Exp $
   */
 
 #define TRUE 1
 #define FALSE 0
 
 #include "WinList.h"
+
+Window window = None; /* app window */
+ASImage *back_image = NULL ;
+int w_height = 5;              /* window height */
+int w_width = 5;               /* window width  */
+int Balloons = 0;               /* flag for running with balloons enabled */
+Display *dpy;                   /* display, needed by AS libs */
+int screen;	         /* for balloons and mystyles*/
+ScreenInfo Scr;                   /* root window */
+char *MyName = NULL;     /* module name, needed by AS libs */
+ButtonArray buttons;        /* array of buttons */
+List windows;                    /* list of same */
 
 /* Window and look related variables */
 static char *pixmap_path = NULL;
@@ -720,7 +732,6 @@ unhide_winlist (void)
 void
 update_winlist_background ()
 {
-  Pixmap transpix = None;
   int x, y, w, h;
 
   if (hidden)
@@ -738,24 +749,24 @@ update_winlist_background ()
       h = w_height;
     }
 
-  if (Style->texture_type != 0 && w > 0 && h > 0)
+	if (Style->texture_type != 0 && w > 0 && h > 0)
     {
-      if (Style->texture_type > 0 && Style->texture_type <= TEXTURE_PIXMAP)
-	transpix = mystyle_make_pixmap (Style, w, h, None);
-      else if (Style->texture_type > TEXTURE_PIXMAP)
-	transpix = mystyle_make_pixmap_overlay (Style, x, y, w, h, None);
+		if( back_image ) 
+		    destroy_asimage( &back_image );
+		back_image = mystyle_make_image( Style, x, y, w, h );
     }
-  if (transpix != None)
+	if (back_image != None)
     {
-      XSetWindowBackgroundPixmap (dpy, window, transpix);
-      XFreePixmap (dpy, transpix);
+		Pixmap transpix = asimage2pixmap( Scr.asv, Scr.Root, back_image, NULL, True );
+    	XSetWindowBackgroundPixmap (dpy, window, transpix);
+    	XFreePixmap (dpy, transpix);
     }
-  XClearWindow (dpy, window);
+    XClearWindow (dpy, window);
 
-  if (!hidden)
-    DrawButtonArray (Style, &buttons, TRUE);
+	if (!hidden)
+  		DrawButtonArray (Style, &buttons, TRUE);
 
-  XFlush (dpy);
+	XFlush (dpy);
 }
 
 /* update_look:

@@ -120,6 +120,12 @@ unload_font (MyFont * font)
 #if defined(LOG_FONT_CALLS) && defined(DEBUG_ALLOCS)
   log_call (file, line, "unload_font", font->name);
 #endif
+  if( font->as_font ) 
+  {
+	  release_font( font->as_font );
+	  font->as_font = NULL ;
+  }
+  
   if (font->name != NULL)
     free (font->name);
 #ifndef I18N

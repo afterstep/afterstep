@@ -19,7 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * $Id: WinList.h,v 1.2 2002/04/27 06:23:44 sashav Exp $
+ * $Id: WinList.h,v 1.3 2002/05/01 06:15:00 sashav Exp $
  */
 
 #include "../../configure.h"
@@ -109,16 +109,16 @@ typedef PropMotifWmHints        PropMwmHints;
 #define mask_off  0
 
 /* global variables */
-Window window = None; /* app window */
-int w_height = 5;              /* window height */
-int w_width = 5;               /* window width  */
-int Balloons = 0;               /* flag for running with balloons enabled */
-Display *dpy;                   /* display, needed by AS libs */
-int screen;	         /* for balloons and mystyles*/
-ScreenInfo Scr;                   /* root window */
-char *MyName = NULL;     /* module name, needed by AS libs */
-ButtonArray buttons;        /* array of buttons */
-List windows;                    /* list of same */
+extern Window window; /* app window */
+extern int w_height;              /* window height */
+extern int w_width;               /* window width  */
+extern int Balloons;               /* flag for running with balloons enabled */
+extern Display *dpy;                   /* display, needed by AS libs */
+extern int screen;	         /* for balloons and mystyles*/
+extern ScreenInfo Scr;                   /* root window */
+extern char *MyName;     /* module name, needed by AS libs */
+extern ButtonArray buttons;        /* array of buttons */
+extern List windows;                    /* list of same */
 
 /* macros */
 #ifndef min
