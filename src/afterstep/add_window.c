@@ -1186,10 +1186,6 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
         return ;
 
     od = get_orientation_data(asw);
-    *(od->in_width)  = width ;
-    *(od->in_height) = height ;
-    normal_width  = *(od->out_width)  ;
-    normal_height = *(od->out_height) ;
 
     if( w == asw->w )
     {  /* simply update client's size and position */
@@ -1202,9 +1198,15 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
         broadcast_config (M_CONFIGURE_WINDOW, asw);
     }else if( w == asw->frame )
     {/* resize canvases here :*/
-        Bool resized = (width != asw->frame_canvas->width || height != asw->frame_canvas->height);
-        Bool moved = handle_canvas_config (asw->frame_canvas);
-        if( resized )
+        int changes = handle_canvas_config (asw->frame_canvas);
+LOCAL_DEBUG_OUT( "changes=0x%X", changes );
+        /* we must resize using current window size instead of event's size */
+        *(od->in_width)  = asw->frame_canvas->width ;
+        *(od->in_height) = asw->frame_canvas->height ;
+        normal_width  = *(od->out_width)  ;
+        normal_height = *(od->out_height) ;
+
+        if( get_flags( changes, CANVAS_RESIZED ) )
         {
             register unsigned int *frame_size = &(asw->status->frame_size[0]) ;
             int step_size = make_shade_animation_step( asw, od );
@@ -1215,8 +1217,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
                     moveresize_canvas( asw->client_canvas,
                                     frame_size[FR_W],
                                     frame_size[FR_N],
-                                    width-(frame_size[FR_W]+frame_size[FR_E]),
-                                    height-(frame_size[FR_N]+frame_size[FR_S]));
+                                    asw->frame_canvas->width-(frame_size[FR_W]+frame_size[FR_E]),
+                                    asw->frame_canvas->height-(frame_size[FR_N]+frame_size[FR_S]));
             }else if( normal_height != step_size )
             {
                 sleep_a_little(10000);
@@ -1230,7 +1232,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
                                     x, y, *(od->out_width), *(od->out_height));
                 ASSync(False);
             }
-        }else if( moved )
+        }else if( get_flags( changes, CANVAS_MOVED ) )
         {
             update_window_frame_moved( asw, od );
             broadcast_config (M_CONFIGURE_WINDOW, asw);
@@ -1238,7 +1240,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
             /* also sent synthetic ConfigureNotify : */
         }
 
-        if( moved || resized )
+        if( changes != 0 )
             update_window_transparency( asw );
     }else if( asw->icon_canvas && w == asw->icon_canvas->w )
     {
@@ -1273,6 +1275,13 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
             if( asw->frame_sides[i] && asw->frame_sides[i]->w == w )
             {   /* canvas has beer resized - resize tbars!!! */
                 Bool canvas_moved = handle_canvas_config (asw->frame_sides[i]);
+
+                /* we must resize using current window size instead of event's size */
+                *(od->in_width)  = asw->frame_sides[i]->width ;
+                *(od->in_height) = asw->frame_sides[i]->height ;
+                normal_width  = *(od->out_width)  ;
+                normal_height = *(od->out_height) ;
+
                 /* don't redraw window decoration while in the middle of animation : */
                 if( asw->shading_steps<= 0 )
                 {

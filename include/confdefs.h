@@ -602,6 +602,9 @@ int WriteDatabaseOptions (const char *filename, char *myname,
 #define WHARF_ShowLabel_ID      (WHARF_ID_START+23)
 #define WHARF_LabelLocation_ID  (WHARF_ID_START+24)
 #define WHARF_FlipLabel_ID      (WHARF_ID_START+25)
+#define WHARF_FitContents_ID    (WHARF_ID_START+26)
+#define WHARF_ShapeToContents_ID    (WHARF_ID_START+27)
+#define WHARF_AlignContents_ID  (WHARF_ID_START+28)
 
 #define	WHARF_ID_END			(WHARF_ID_START+30)
 #define WFUNC_START_ID			(WHARF_ID_END)
@@ -643,8 +646,8 @@ typedef struct WharfButton
   char *title;
   char **icon;
   struct FunctionData *function;
-  struct WharfButton *next;
-  struct WharfButton *folder;
+  struct WharfButton  *next;
+  struct WharfButton  *folder;
 }
 WharfButton;
 
@@ -671,6 +674,10 @@ WharfButton;
 #define  WHARF_SHOW_LABEL       (0x01<<20)
 #define  WHARF_LABEL_LOCATION   (0x01<<21)
 #define  WHARF_FLIP_LABEL       (0x01<<22)
+#define  WHARF_FIT_CONTENTS     (0x01<<23)
+#define  WHARF_SHAPE_TO_CONTENTS (0x01<<24)
+#define  WHARF_ALIGN_CONTENTS   (0x01<<25)
+
 
 typedef struct
 {
@@ -679,6 +686,13 @@ typedef struct
 
     ASGeometry geometry;
     unsigned int rows, columns;
+#define NO_WITHDRAW                         0
+#define WITHDRAW_ON_ANY_BUTTON              1
+#define WITHDRAW_ON_EDGE_BUTTON             2
+#define WITHDRAW_ON_ANY_BUTTON_AND_SHOW     3
+#define WITHDRAW_ON_EDGE_BUTTON_AND_SHOW    4
+#define WITHDRAW_ON_ANY(c)   ((c)->withdraw_style == WITHDRAW_ON_ANY_BUTTON  || (c)->withdraw_style == WITHDRAW_ON_ANY_BUTTON_AND_SHOW )
+#define WITHDRAW_ON_EDGE(c)  ((c)->withdraw_style == WITHDRAW_ON_EDGE_BUTTON || (c)->withdraw_style == WITHDRAW_ON_EDGE_BUTTON_AND_SHOW )
     unsigned int withdraw_style;
     ASGeometry force_size;
     unsigned int texture_type, max_colors;
@@ -689,6 +703,7 @@ typedef struct
     WharfButton *root_folder;
 
     unsigned int label_location;
+    unsigned int align_contents;
 
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
@@ -702,7 +717,7 @@ WharfConfig;
 WharfButton *CreateWharfButton ();
 WharfConfig *CreateWharfConfig ();
 
-void DestroyWharfButton (WharfButton * btn, WharfButton ** folder);
+void DestroyWharfButton (WharfButton **pbtn);
 void DestroyWharfConfig (WharfConfig * config);
 
 WharfConfig *ParseWharfOptions (const char *filename, char *myname);

@@ -89,6 +89,10 @@ TermDef       WharfTerms[] = {
     {0, "ShowLabel", 9,         TT_FLAG, WHARF_ShowLabel_ID, NULL},
     {0, "LabelLocation", 13,    TT_UINTEGER, WHARF_LabelLocation_ID, NULL},
     {0, "FlipLabel", 9,         TT_FLAG, WHARF_FlipLabel_ID, NULL},
+    {0, "FitContents", 11,      TT_FLAG, WHARF_FitContents_ID, NULL},
+    {0, "ShapeToContents", 15,  TT_FLAG, WHARF_ShapeToContents_ID, NULL},
+    {0, "AlignContents", 13,    TT_UINTEGER, WHARF_AlignContents_ID, NULL},
+
 
 /* now special cases that should be processed by it's own handlers */
 	BALLOON_TERMS,
@@ -119,6 +123,8 @@ flag_options_xref WharfFlags[] = {
 	{WHARF_ANIMATE, WHARF_Animate_ID, 0},
     {WHARF_SHOW_LABEL, WHARF_ShowLabel_ID, 0},
     {WHARF_FLIP_LABEL, WHARF_FlipLabel_ID, 0},
+    {WHARF_FIT_CONTENTS, WHARF_FitContents_ID, 0},
+    {WHARF_SHAPE_TO_CONTENTS, WHARF_ShapeToContents_ID, 0 },
     {0, 0, 0}
 };
 
@@ -132,28 +138,16 @@ CreateWharfButton ()
 }
 
 void
-DestroyWharfButton (WharfButton * btn, WharfButton ** folder)
+DestroyWharfButton (WharfButton **pbtn)
 {
 	register int  i;
+    WharfButton *btn = *pbtn ;
 
 	if (btn == NULL)
 		return;
-	if (folder)
-	{
-		WharfButton  *b;
+    *pbtn = btn->next ;
 
-		/* find ourself in the list */
-		for (b = *folder; b != NULL; b = b->next)
-			if (b->next == btn)
-				break;
-
-		/* remove ourself from the list */
-		if (b != NULL)
-			b->next = btn->next;
-		else if (*folder == btn)
-			*folder = btn->next;
-	}
-	/* delete members */
+    /* delete members */
 	if (btn->title != NULL)
 		free (btn->title);
 
@@ -171,7 +165,7 @@ DestroyWharfButton (WharfButton * btn, WharfButton ** folder)
 	}
 
 	while (btn->folder)
-		DestroyWharfButton (btn->folder, &(btn->folder));
+        DestroyWharfButton (&(btn->folder));
 
 	free (btn);
 }
@@ -186,6 +180,8 @@ CreateWharfConfig ()
 	/* let's initialize Base config with some nice values: */
 	config->geometry.flags = WidthValue | HeightValue;
 	config->geometry.width = config->geometry.height = 64;
+    config->withdraw_style = WITHDRAW_ON_ANY_BUTTON ;
+    config->align_contents = ALIGN_CENTER ;
 
 	config->more_stuff = NULL;
 
@@ -208,7 +204,7 @@ DestroyWharfConfig (WharfConfig * config)
 			free (config->sounds[i]);
 
 	while (config->root_folder)
-		DestroyWharfButton (config->root_folder, &(config->root_folder));
+        DestroyWharfButton (&(config->root_folder));
 
 	Destroy_balloonConfig (config->balloon_conf);
 	DestroyFreeStorage (&(config->more_stuff));
@@ -385,49 +381,75 @@ WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
     return SPECIAL_SKIP;
 }
 
-WharfButton **ParseWharfFolder (FreeStorageElem ** storage_tail, WharfButton ** tail);
+void ParseWharfFolder (FreeStorageElem ** storage_tail, WharfButton ** tail);
 
-WharfButton **
-ParseWharfItem (FreeStorageElem * storage, WharfButton ** tail)
+void
+ParseWharfItem (FreeStorageElem * storage, WharfButton **folder)
 {
-    WharfButton *wb ;
+    WharfButton *wb = *folder, **insert = folder ;
+    Bool no_title ;
 
-	if (storage == NULL || tail == NULL)
-		return tail;
-    wb = *tail ;
-	if (storage->argc < 2)
-		return tail;
+    if (storage == NULL || folder == NULL)
+        return;
+    if (storage->argc < 2)
+        return;
+    no_title = (storage->argv[0][0] == '-' && storage->argv[0][1] == '\0') ||
+               (mystrcasecmp( storage->argv[0], "nil") == 0) ;
+    insert = folder ;
+    if( !no_title )
+    {
+        while( wb != NULL && ( wb->title == NULL || strcmp( wb->title, storage->argv[0]) != 0 ))
+        {
+            insert = &(wb->next) ;
+            wb = wb->next ;
+        }
+    }else
+        while( wb != NULL )
+        {
+            insert = &(wb->next) ;
+            wb = wb->next ;
+        }
+
     if (wb == NULL)
-        if ((wb = *tail = CreateWharfButton ()) == NULL)
-			return tail;
-
+    {
+        if ((wb = CreateWharfButton ()) == NULL)
+            return;
+        *insert = wb ;
+    }
     if (wb->title)
         free (wb->title);
     wb->title = mystrdup (storage->argv[0]);
 
-    if (wb->icon)
-        free (wb->icon);
-    wb->icon = comma_string2list (storage->argv[1]);
-    if (wb->icon)
-	{
-		register char *ptr;
-		register int  null_icon = 0;
+    {
+        char **new_icon_list = comma_string2list (storage->argv[1]);
+        if (new_icon_list)
+        {
+            register char *ptr;
+            register int  null_icon = 0;
 
-        if ((ptr = wb->icon[0]) == NULL)
-			null_icon++;
-		else if (*(ptr) == '-' && *(ptr + 1) == '\0')
-			null_icon++;
-		else if (mystrcasecmp (ptr, "nil") == 0)
-			null_icon++;
+            if ((ptr = new_icon_list[0]) == NULL)
+                null_icon++;
+            else if (*(ptr) == '-' && *(ptr + 1) == '\0')
+                null_icon++;
+            else if (mystrcasecmp (ptr, "nil") == 0)
+                null_icon++;
 
-		if (null_icon > 0)
-		{
-            if (wb->icon[0] != NULL)
-                free (wb->icon[0]);
-            free (wb->icon);
-            wb->icon = NULL;
-		}
-	}
+            if (null_icon > 0)
+            {
+                if (new_icon_list[0] != NULL)
+                    free (new_icon_list[0]);
+                free (new_icon_list);
+                new_icon_list = NULL;
+            }
+        }
+
+        if( new_icon_list != NULL )
+        {
+            if (wb->icon)
+               free (wb->icon);
+            wb->icon = new_icon_list ;
+        }
+    }
 
 LOCAL_DEBUG_OUT( "wharf button \"%s\" has substorage set to %p", wb->title, storage->sub );
 	if (storage->sub)
@@ -438,57 +460,47 @@ LOCAL_DEBUG_OUT( "wharf button \"%s\" has substorage set to %p", wb->title, stor
 		if (pterm != NULL)
 		{
 LOCAL_DEBUG_OUT( "term for keyword \"%s\" found in substorage", pterm->keyword );
-            if (pterm->type == TT_FUNCTION)
-			{
-				ConfigItem    item;
-
-				item.memory = NULL;
-				if (ReadConfigItem (&item, pstorage))
-				{
-                    if (wb->function)
-                        free_func_data (wb->function);
-                    wb->function = item.data.function;
-				}
-			}
-			switch (pterm->id)
-			{
-			 case F_Folder:
+            if( pterm->id == F_Folder )
+            {
 				 if (pstorage->sub)
 				 {
 					 pstorage = pstorage->sub;
                      ParseWharfFolder (&pstorage, &(wb->folder));
 				 }
-				 break;
+            }else if (pterm->type == TT_FUNCTION)
+			{
+				ConfigItem    item;
+				item.memory = NULL;
+				if (ReadConfigItem (&item, pstorage))
+				{
+                    if (wb->function)
+                        destroy_func_data (&(wb->function));
+                    wb->function = item.data.function;
+				}
 			}
-
 		}
 	}
-
-    return &(wb->next);
 }
 
-WharfButton **
-ParseWharfFolder (FreeStorageElem ** storage_tail, WharfButton ** tail)
+void
+ParseWharfFolder (FreeStorageElem ** storage_tail, WharfButton ** folder)
 {
-	register FreeStorageElem *folder_storage;
-
-	if (storage_tail == NULL || tail == NULL)
-		return tail;
-
-	folder_storage = (*storage_tail);
-	while (folder_storage != NULL)
-	{
-		if (folder_storage->term->id != WHARF_Wharf_ID)
-			break;
-		tail = ParseWharfItem (folder_storage, tail);
-		/* keep parameter pointing to the last processed item */
-		*storage_tail = folder_storage;
-		/* while advancing internal pointer ahead.
-		   we have to do that as our caller will
-		   expect storage_tail to be pointing to last  processed item */
-		folder_storage = folder_storage->next;
-	}
-	return ((*tail) == NULL) ? tail : &((*tail)->next);
+    if (storage_tail != NULL && folder != NULL)
+    {
+        register FreeStorageElem *folder_storage = (*storage_tail);
+        while (folder_storage != NULL)
+        {
+            if (folder_storage->term->id != WHARF_Wharf_ID)
+                break;
+            ParseWharfItem (folder_storage, folder);
+            /* keep parameter pointing to the last processed item */
+            *storage_tail = folder_storage;
+            /* while advancing internal pointer ahead.
+            we have to do that as our caller will
+            expect storage_tail to be pointing to last  processed item */
+            folder_storage = folder_storage->next;
+        }
+    }
 }
 
 
@@ -501,7 +513,6 @@ ParseWharfOptions (const char *filename, char *myname)
 	WharfConfig  *config = CreateWharfConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
-	WharfButton **btn_tail = &(config->root_folder);
 	MyStyleDefinition **styles_tail = &(config->style_defs);
 
 	if (!ConfigReader)
@@ -535,7 +546,7 @@ SHOW_CHECKPOINT;
 		{
 		 case WHARF_Wharf_ID:
 			 item.ok_to_free = 1;
-			 btn_tail = ParseWharfFolder (&pCurr, btn_tail);
+             ParseWharfFolder (&pCurr, &(config->root_folder));
 			 break;
 		 case WHARF_Geometry_ID:
 			 set_flags (config->set_flags, WHARF_GEOMETRY);
@@ -615,7 +626,11 @@ SHOW_CHECKPOINT;
              set_flags (config->set_flags, WHARF_LABEL_LOCATION);
              config->label_location = item.data.integer;
              break ;
-		 case MYSTYLE_START_ID:
+         case WHARF_AlignContents_ID :
+             set_flags (config->set_flags, WHARF_ALIGN_CONTENTS);
+             config->align_contents = item.data.integer;
+             break ;
+         case MYSTYLE_START_ID:
 			 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
 			 item.ok_to_free = 1;
 			 break;

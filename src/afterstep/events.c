@@ -19,10 +19,10 @@
  *
  */
 
-#include "../../configure.h"
-
 #define LOCAL_DEBUG
 #define EVENT_TRACE
+
+#include "../../configure.h"
 
 #include "../../include/asapp.h"
 #include <limits.h>
@@ -1203,6 +1203,7 @@ HandleConfigureRequest ( ASEvent *event )
         if( cre->value_mask&CWY )
             new_anchor.y = make_anchor_pos ( asw->status, cre->y, new_anchor.height, Scr.Vy, grav_y, Scr.VyMax+Scr.MyDisplayHeight );
 
+LOCAL_DEBUG_OUT( "old anchor(%dx%d%+d%+d), new_anchor(%dx%d%+d%+d)", asw->anchor.width, asw->anchor.height, asw->anchor.x, asw->anchor.y, new_anchor.width, new_anchor.height, new_anchor.x, new_anchor.y );
         asw->anchor = new_anchor ;
         on_window_status_changed( asw, True, True );
     }
