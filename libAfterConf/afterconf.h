@@ -1870,6 +1870,32 @@ int WriteAudioOptions (const char *filename, char *myname,
 void DestroyAudioConfig (AudioConfig * config);
 
 /**************************************************************************/
+/***************************************************************************/
+/*                        Ident pasring definitions                 */
+/***************************************************************************/
+
+
+#define IDENT_ID_START        	AUDIO_ID_END
+
+#define IDENT_ID_END        	IDENT_ID_START+10
+
+/* config data structure */
+
+typedef struct
+{
+  MyStyleDefinition *style_defs;
+  FreeStorageElem *more_stuff;
+
+}
+IdentConfig;
+
+IdentConfig *CreateIdentConfig ();
+IdentConfig *ParseIdentOptions (const char *filename, char *myname);
+int WriteIdentOptions (const char *filename, char *myname,
+		       IdentConfig * config, unsigned long flags);
+void DestroyIdentConfig (IdentConfig * config);
+
+/**************************************************************************/
 
 /***************************************************************************/
 /* ALL POSSIBLE aFTERsTEP CONFIGS : */

@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2004 Sasha Vasko <sasha@aftercode.net>
  * Copyright (c) 1999 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
  * Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
  * Copyright (c) 1994 Nobutaka Suzuki
@@ -19,175 +20,291 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#define TRUE 1
-#define FALSE
-
-#define YES "Yes"
-#define NO  "No"
+/*#define DO_CLOCKING      */
+#define LOCAL_DEBUG
+#define EVENT_TRACE
 
 #include "../../configure.h"
-
-#include <stdio.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <sys/time.h>
-#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
-#include <sys/select.h>
-#endif
-#include <unistd.h>
-#include <ctype.h>
-#include <stdlib.h>
-
-#include <X11/Intrinsic.h>
-#include <X11/cursorfont.h>
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
-
-#define IN_MODULE
-#define MODULE_X_INTERFACE
-#include "../../libAfterImage/afterimage.h"
-#include "../../include/afterstep.h"
 #include "../../libAfterStep/asapp.h"
+
+#include <signal.h>
+#include <unistd.h>
+
+#include "../../libAfterImage/afterimage.h"
+
+#include "../../libAfterStep/afterstep.h"
 #include "../../libAfterStep/screen.h"
 #include "../../libAfterStep/module.h"
-#include "Ident.h"
+#include "../../libAfterStep/mystyle.h"
+#include "../../libAfterStep/mystyle_property.h"
+#include "../../libAfterStep/parser.h"
+#include "../../libAfterStep/clientprops.h"
+#include "../../libAfterStep/wmprops.h"
+#include "../../libAfterStep/decor.h"
+#include "../../libAfterStep/aswindata.h"
+#include "../../libAfterStep/balloon.h"
+#include "../../libAfterStep/event.h"
 
-char *MyName;
-int fd_width;
-int fd[2];
+#include "../../libAfterConf/afterconf.h"
 
-Display *dpy;			/* which display are we talking to */
-int x_fd;
+/**********************************************************************/
+/*  AfterStep specific global variables :                             */
+/**********************************************************************/
+/**********************************************************************/
+/*  WinList local variables :                                         */
+/**********************************************************************/
+typedef struct {
+    Window       main_window;
+    ASCanvas    *main_canvas;
+}ASIdentState ;
 
-char *BackColor = "white";
-char *ForeColor = "black";
-char *font_string = "fixed";
+ASIdentState IdentState = {};
 
-Pixel back_pix, fore_pix;
-GC NormalGC;
-Window main_win;
-Window app_win;
-MyFont font;
-volatile int x_error = 0;
+IdentConfig *Config = NULL ;
+/**********************************************************************/
 
-int Width, Height, win_x, win_y;
-
-#define MW_EVENTS   (ExposureMask | ButtonReleaseMask | KeyReleaseMask)
-
-static Atom wm_del_win;
-
-struct target_struct target;
-int found = 0;
-
-ScreenInfo Scr;
-
-struct Item *itemlistRoot = NULL;
-int max_col1, max_col2;
-char id[15], desktop[10], swidth[10], sheight[10], borderw[10], geometry[30];
-
-void
-version (void)
-{
-  printf ("%s version %s\n", MyName, VERSION);
-  exit (0);
-}
-
-void
-usage (void)
-{
-  printf ("Usage:\n"
-	  "%s [-f [config file]] [-v|--version] [-h|--help] [--window window-id]\n", MyName);
-  exit (0);
-}
-
-/***********************************************************************
- *
- *  Procedure:
- *	main - start of module
- *
- ***********************************************************************/
 int
-main (int argc, char **argv)
+main( int argc, char **argv )
 {
-  char configfile[255];
-  char *realconfigfile;
-  char *temp;
-  int i;
-  char *global_config_file = NULL;
+    /* Save our program name - for error messages */
+    InitMyApp (CLASS_IDENT, argc, argv, NULL, NULL, 0 );
 
-  /* Save our program name - for error messages */
-  temp = strrchr (argv[0], '/');
-  MyName = temp ? temp + 1 : argv[0];
+    set_signal_handler( SIGSEGV );
 
-  for (i = 1; i < argc && *argv[i] == '-'; i++)
+    ConnectX( &Scr, 0 );
+    ConnectAfterStep (WINDOW_CONFIG_MASK |
+                      WINDOW_NAME_MASK |
+                      M_END_WINDOWLIST);
+    Config = CreateIdentConfig ();
+
+    /* Request a list of all windows, while we load our config */
+    SendInfo ("Send_WindowList", 0);
+
+    LoadBaseConfig ( GetBaseOptions);
+	LoadColorScheme();
+	LoadConfig ("ident", GetOptions);
+    CheckConfigSanity();
+
+	if (MyArgs.src_window == 0)
+		GetTargetWindow (&MyArgs.src_window);
+
+    IdentState.main_window = make_ident_window();
+    IdentState.main_canvas = create_ascanvas( IdentState.main_window );
+    set_root_clip_area( IdentState.main_canvas );
+    
+	/* And at long last our main loop : */
+    HandleEvents();
+	return 0 ;
+}
+
+void HandleEvents()
+{
+    ASEvent event;
+    Bool has_x_events = False ;
+    while (True)
     {
-      if (!strcmp (argv[i], "-h") || !strcmp (argv[i], "--help"))
-	usage ();
-      else if (!strcmp (argv[i], "-v") || !strcmp (argv[i], "--version"))
-	version ();
-      else if (!strcmp (argv[i], "-w") || !strcmp (argv[i], "--window"))
-	app_win = strtol (argv[++i], NULL, 16);
-      else if (!strcmp (argv[i], "-c") || !strcmp (argv[i], "--context"))
-	i++;
-      else if (!strcmp (argv[i], "-f") && i + 1 < argc)
-	global_config_file = argv[++i];
+        while((has_x_events = XPending (dpy)))
+        {
+            if( ASNextEvent (&(event.x), True) )
+            {
+                event.client = NULL ;
+                setup_asevent_from_xevent( &event );
+                DispatchEvent( &event );
+            }
+        }
+        module_wait_pipes_input ( process_message );
     }
+}
 
-#ifdef I18N
-  if (setlocale (LC_CTYPE, AFTER_LOCALE) == NULL)
-    fprintf (stderr, "%s: cannot set locale\n", MyName);
+void
+DeadPipe (int nonsense)
+{
+	static int already_dead = False ; 
+	if( already_dead ) 
+		return;/* non-reentrant function ! */
+	already_dead = True ;
+    
+	window_data_cleanup();
+
+    if( WinListState.main_canvas )
+        destroy_ascanvas( &WinListState.main_canvas );
+    if( WinListState.main_window )
+        XDestroyWindow( dpy, WinListState.main_window );
+    
+	FreeMyAppResources();
+    
+	if( Config )
+        DestroyIdentConfig(Config);
+
+#ifdef DEBUG_ALLOCS
+    print_unfreed_mem ();
+#endif /* DEBUG_ALLOCS */
+
+    XFlush (dpy);			/* need this for SetErootPixmap to take effect */
+	XCloseDisplay (dpy);		/* need this for SetErootPixmap to take effect */
+    exit (0);
+}
+
+void
+CheckConfigSanity()
+{
+    int i ;
+    char *default_winlist_style = safemalloc( 1+strlen(MyName)+1);
+	default_winlist_style[0] = '*' ;
+	strcpy( &(default_winlist_style[1]), MyName );
+
+    if( Config == NULL )
+        Config = CreateWinListConfig ();
+
+    if( Config->max_rows > MAX_WINLIST_WINDOW_COUNT || Config->max_rows == 0  )
+        Config->max_rows = MAX_WINLIST_WINDOW_COUNT;
+
+    if( Config->max_columns > MAX_WINLIST_WINDOW_COUNT || Config->max_columns == 0  )
+        Config->max_columns = MAX_WINLIST_WINDOW_COUNT;
+
+    Config->gravity = NorthWestGravity ;
+    if( get_flags(Config->geometry.flags, XNegative) )
+        Config->gravity = get_flags(Config->geometry.flags, YNegative)? SouthEastGravity:NorthEastGravity;
+    else if( get_flags(Config->geometry.flags, YNegative) )
+        Config->gravity = SouthWestGravity;
+
+    Config->anchor_x = get_flags( Config->geometry.flags, XValue )?Config->geometry.x:0;
+    if( get_flags(Config->geometry.flags, XNegative) )
+        Config->anchor_x += Scr.MyDisplayWidth ;
+
+    Config->anchor_y = get_flags( Config->geometry.flags, YValue )?Config->geometry.y:0;
+    if( get_flags(Config->geometry.flags, YNegative) )
+        Config->anchor_y += Scr.MyDisplayHeight ;
+
+    mystyle_get_property (Scr.wmprops);
+
+    /* we better not do this to introduce ppl to new concepts in WinList : */
+#if 0
+    if( Config->focused_style == NULL )
+        Config->focused_style = mystrdup( default_winlist_style );
+    if( Config->unfocused_style == NULL )
+        Config->unfocused_style = mystrdup( default_winlist_style );
+    if( Config->sticky_style == NULL )
+        Config->sticky_style = mystrdup( default_winlist_style );
 #endif
 
-  /* Dead pipe == dead AfterStep */
-  signal (SIGPIPE, DeadPipe);
-  set_signal_handler(SIGSEGV);
+    Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find( Config->unfocused_style );
+    Scr.Look.MSWindow[BACK_FOCUSED] = mystyle_find( Config->focused_style );
+    Scr.Look.MSWindow[BACK_STICKY] = mystyle_find( Config->sticky_style );
 
-  x_fd = ConnectX( &Scr, 0 );
-  /* connect to AfterStep */
-  fd[0] = fd[1] = ConnectAfterStep( M_CONFIGURE_WINDOW|
-								    M_WINDOW_NAME|
-								    M_ICON_NAME|
-									M_RES_CLASS|
-								    M_RES_NAME|
-									M_END_WINDOWLIST
-                                     );
-
-  /* scan config file for set-up parameters */
-  /* Colors and fonts */
-
-  if (global_config_file != NULL)
-    ParseOptions (global_config_file);
-  else
+    for( i = 0 ; i < BACK_STYLES ; ++i )
     {
-      sprintf (configfile, "%s/ident", AFTER_DIR);
-      realconfigfile = PutHome (configfile);
+        static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","unfocused_window_style","sticky_window_style", NULL};
+        if( Scr.Look.MSWindow[i] == NULL )
+            Scr.Look.MSWindow[i] = mystyle_find( default_window_style_name[i] );
+        if( Scr.Look.MSWindow[i] == NULL )
+            Scr.Look.MSWindow[i] = mystyle_find_or_default( default_winlist_style );
+    }
+    free( default_winlist_style );
 
-      if ((CheckFile (realconfigfile)) == -1)
-	{
-	  free (realconfigfile);
-	  sprintf (configfile, "%s/ident", AFTER_SHAREDIR);
-	  realconfigfile = PutHome (configfile);
-	}
-      ParseOptions (realconfigfile);
-      free (realconfigfile);
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    PrintWinListConfig (Config);
+    Print_balloonConfig ( Config->balloon_conf );
+#endif
+    balloon_config2look( &(Scr.Look), Config->balloon_conf );
+    LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
+                    Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
+    set_balloon_look( Scr.Look.balloon_look );
+
+}
+
+
+void
+GetBaseOptions (const char *filename)
+{
+	ReloadASEnvironment( NULL, NULL, NULL, False );
+}
+
+void
+GetOptions (const char *filename)
+{
+    int i ;
+    START_TIME(option_time);
+    WinListConfig *config = ParseWinListOptions( filename, MyName );
+
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    PrintWinListConfig (config);
+#endif
+    /* Need to merge new config with what we have already :*/
+    /* now lets check the config sanity : */
+    /* mixing set and default flags : */
+    Config->flags = (config->flags&config->set_flags)|(Config->flags & (~config->set_flags));
+    Config->set_flags |= config->set_flags;
+
+    Config->gravity = NorthWestGravity ;
+    if( get_flags(config->set_flags, WINLIST_Geometry) )
+        merge_geometry(&(config->geometry), &(Config->geometry) );
+
+    if( get_flags(config->set_flags, WINLIST_MinSize) )
+    {
+        Config->min_width = config->min_width;
+        Config->min_height = config->min_height;
     }
 
-  if (app_win == 0)
-    GetTargetWindow (&app_win);
+    if( get_flags(config->set_flags, WINLIST_MaxSize) )
+    {
+        Config->max_width = config->max_width;
+        Config->max_height = config->max_height;
+    }
+    if( get_flags(config->set_flags, WINLIST_MaxRows) )
+        Config->max_rows = config->max_rows;
+    if( get_flags(config->set_flags, WINLIST_MaxColumns) )
+        Config->max_columns = config->max_columns;
+    if( get_flags(config->set_flags, WINLIST_MaxColWidth) )
+        Config->max_col_width = config->max_col_width;
+    if( get_flags(config->set_flags, WINLIST_MinColWidth) )
+        Config->min_col_width = config->min_col_width;
 
-  fd_width = GetFdWidth ();
+    if( config->unfocused_style )
+        set_string_value( &(Config->unfocused_style), mystrdup(config->unfocused_style), NULL, 0 );
+    if( config->focused_style )
+        set_string_value( &(Config->focused_style), mystrdup(config->focused_style), NULL, 0 );
+    if( config->sticky_style )
+        set_string_value( &(Config->sticky_style), mystrdup(config->sticky_style), NULL, 0 );
 
-  /* Create a list of all windows */
-  /* Request a list of all windows,
-   * wait for ConfigureWindow packets */
-  SendInfo ("Send_WindowList", 0);
+    if( get_flags(config->set_flags, WINLIST_UseName) )
+        Config->show_name_type = config->show_name_type;
+    if( get_flags(config->set_flags, WINLIST_Align) )
+        Config->name_aligment = config->name_aligment;
+    if( get_flags(config->set_flags, WINLIST_FBevel) )
+        Config->fbevel = config->fbevel;
+    if( get_flags(config->set_flags, WINLIST_UBevel) )
+        Config->ubevel = config->ubevel;
+    if( get_flags(config->set_flags, WINLIST_SBevel) )
+        Config->sbevel = config->sbevel;
 
-  Loop (fd);
+    if( get_flags(config->set_flags, WINLIST_FCM) )
+        Config->fcm = config->fcm;
+    if( get_flags(config->set_flags, WINLIST_UCM) )
+        Config->ucm = config->ucm;
+    if( get_flags(config->set_flags, WINLIST_SCM) )
+        Config->scm = config->scm;
 
-  return 0;
+    if( get_flags(config->set_flags, WINLIST_H_SPACING) )
+        Config->h_spacing = config->h_spacing;
+    if( get_flags(config->set_flags, WINLIST_V_SPACING) )
+        Config->v_spacing = config->v_spacing;
+
+    for( i = 0 ; i < MAX_MOUSE_BUTTONS ; ++i )
+        if( config->mouse_actions[i] )
+        {
+            destroy_string_list( Config->mouse_actions[i] );
+            Config->mouse_actions[i] = config->mouse_actions[i];
+        }
+
+    if( Config->balloon_conf )
+        Destroy_balloonConfig( Config->balloon_conf );
+    Config->balloon_conf = config->balloon_conf ;
+    config->balloon_conf = NULL ;
+
+    if (config->style_defs)
+        ProcessMyStyleDefinitions (&(config->style_defs));
+    SHOW_TIME("Config parsing",option_time);
 }
 
 

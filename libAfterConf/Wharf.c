@@ -71,11 +71,11 @@ TermDef       WharfTerms[] = {
     {0, "Columns", 7,           TT_UINTEGER, WHARF_Columns_ID, NULL},
     {0, "NoPush", 6,            TT_FLAG, WHARF_NoPush_ID, NULL},
     {0, "FullPush", 8,          TT_FLAG, WHARF_FullPush_ID, NULL},
-    {0, "NoBorder", 8,          TT_FLAG, WHARF_NoBorder_ID, NULL},
+    {TF_OBSOLETE, "NoBorder", 8,          TT_FLAG, WHARF_NoBorder_ID, NULL},
     {0, "WithdrawStyle", 13,    TT_UINTEGER, WHARF_WithdrawStyle_ID, NULL},
 /* the NoWithdraw option is undocumented, deprecated, and
  ** may be removed at Wharf's maintainer's discretion */
-    {0, "NoWithdraw", 10,       TT_FLAG, WHARF_NoWithdraw_ID, NULL},
+    {TF_OBSOLETE, "NoWithdraw", 10,       TT_FLAG, WHARF_NoWithdraw_ID, NULL},
     {0, "ForceSize", 9,         TT_GEOMETRY, WHARF_ForceSize_ID, NULL},
 /* TextureType, MaxColors, BgColor, TextureColor, and Pixmap are obsolete */
 	{TF_OBSOLETE, "TextureType", 11, TT_UINTEGER, WHARF_TextureType_ID, NULL},
