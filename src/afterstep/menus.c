@@ -837,10 +837,10 @@ show_asmenu( ASMenu *menu, int x, int y )
         y = MAX_MENU_Y - menu->optimal_height ;
         gravity = (gravity == NorthWestGravity)?SouthWestGravity:SouthEastGravity ;
     }
-    
+
     hints->gravity = gravity ;
-    
-    
+
+
     /* status hints : */
     memset( &status, 0x00, sizeof( ASStatusHints ) );
     status.flags = AS_StartPosition|
@@ -850,14 +850,15 @@ show_asmenu( ASMenu *menu, int x, int y )
                    AS_StartViewportX|
                    AS_StartViewportY|
                    AS_StartDesktop|
-                   AS_StartLayer;
+                   AS_StartLayer|
+                   AS_StartsSticky;
 
     status.x = x;
     status.y = y;
     status.width = menu->optimal_width;
     status.height = menu->optimal_height;
-    status.viewport_x = Scr.Vy;
-    status.viewport_y = Scr.Vx;
+    status.viewport_x = Scr.Vx;
+    status.viewport_y = Scr.Vy;
     status.desktop = Scr.CurrentDesk;
     status.layer = AS_LayerMenu;
 

@@ -1881,14 +1881,12 @@ moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigne
 Bool
 init_aswindow_status( ASWindow *t, ASStatusHints *status )
 {
-	ASStatusHints adjusted_status ;
-
 	if( t->status == NULL )
 		t->status = safecalloc(1, sizeof(ASStatusHints));
 
+    *(t->status) = *status ;
     if( get_flags( status->flags, AS_StartDesktop) && status->desktop != Scr.CurrentDesk )
         ChangeDesks( status->desktop );
-    t->status->desktop = Scr.CurrentDesk ;
 
     if( get_flags( status->flags, AS_StartViewportX))
         t->status->viewport_x = MIN(status->viewport_x,Scr.VxMax) ;
@@ -1899,25 +1897,24 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
         t->status->viewport_y = MIN(status->viewport_y,Scr.VyMax) ;
     else
         t->status->viewport_y = Scr.Vy ;
+
     if( t->status->viewport_x != Scr.Vx || t->status->viewport_y != Scr.Vy )
         MoveViewport (t->status->viewport_x, t->status->viewport_y, False);
 
-    adjusted_status = *status ;
-
     if( !get_flags(AfterStepState, ASS_NormalOperation) )
-        set_flags( adjusted_status.flags, AS_Position );
+        set_flags( t->status->flags, AS_Position );
     else if( get_flags(Scr.Feel.flags, NoPPosition) &&
             !get_flags( status->flags, AS_StartPositionUser ) )
-        clear_flags( adjusted_status.flags, AS_Position );
+        clear_flags( t->status->flags, AS_Position );
 
     if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
-        maximize_window_status( status, t->saved_status, &adjusted_status, status->flags );
-    else if( !get_flags( adjusted_status.flags, AS_Position ))
-        if( !place_aswindow( t, &adjusted_status ) )
+        maximize_window_status( status, t->saved_status, t->status, status->flags );
+    else if( !get_flags( t->status->flags, AS_Position ))
+        if( !place_aswindow( t, t->status ) )
             return False;
 
     if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
-		print_status_hints( NULL, NULL, &adjusted_status );
+        print_status_hints( NULL, NULL, t->status );
 
     /* TODO: AS_Iconic */
 	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
@@ -1925,8 +1922,14 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 
     add_aswindow_to_layer( t, ASWIN_LAYER(t) );
 
-    t->status->flags = adjusted_status.flags ;
-    status2anchor( &(t->anchor), t->hints, &adjusted_status, Scr.VxMax, Scr.VyMax);
+    /* by now we have a valid position for the window: */
+    set_flags( t->status->flags, AS_Position );
+
+    status2anchor( &(t->anchor), t->hints, t->status, Scr.VxMax, Scr.VyMax);
+    LOCAL_DEBUG_OUT( "status->geom=%dx%d%+d%+d,status->viewport=%+d%+d,anchor=%dx%d%+d%+d",
+                     t->status->width, t->status->height, t->status->x, t->status->y,
+                     t->status->viewport_x, t->status->viewport_y,
+                     t->anchor.width, t->anchor.height, t->anchor.x, t->anchor.y );
 
 	return True;
 }
