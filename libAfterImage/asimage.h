@@ -16,7 +16,10 @@ ctrl_byte2    := 01NNNNNN (NNNNNN are high 6 bits of length)
 more_length_byte := low 8 bits of length
 
 direct_block  := <ctrl_byte3><value_byte><value_byte>...<value_byte>
-ctrl_byte3    := 1NNNNNNN (first bit is 1, remaining are length)
+ctrl_byte3    := [1NNNNNNN|11111111] (first bit is 1, remaining are length.
+ * 				If it is all 1's - then remaining part of the line up untill
+ * 			    image width is monolitic uncompressed direct block)
+
 */
 
 /* this is value */
@@ -32,7 +35,7 @@ ctrl_byte3    := 1NNNNNNN (first bit is 1, remaining are length)
 #define RLE_LONG_D 		0x3F
 #define RLE_SIMPLE_D  		0x3F
 
-#define RLE_MAX_DIRECT_LEN      127
+#define RLE_MAX_DIRECT_LEN      (RLE_DIRECT_D-1)
 #define RLE_MAX_SIMPLE_LEN     	63
 #define RLE_MAX_LONG_LEN     	(64*256)
 #define RLE_THRESHOLD		1
