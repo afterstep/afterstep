@@ -691,6 +691,26 @@ set_astbar_label (ASTBarData * tbar, const char *label)
 }
 
 Bool
+set_astbar_btns( ASTBarData *tbar, const ASTBtnBlock **btns, Bool left )
+{
+    Bool          changed = False;
+    ASTBtnBlock  **trg ;
+    if( tbar && btns )
+    {
+        trg = left?&(tbar->left_buttons):&(tbar->right_buttons);
+        if( (changed = (*trg != *btns )) )
+        {
+            if( *trg )
+                destroy_astbtn_block( trg );
+            *trg = *btns ;
+        }
+        *btns = NULL ;
+    }else if ( btns && *btns )
+        destroy_astbtn_block( btns );
+    return changed;
+}
+
+Bool
 move_astbar (ASTBarData * tbar, ASCanvas * pc, int win_x, int win_y)
 {
 	Bool          changed = False;

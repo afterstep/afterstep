@@ -146,6 +146,22 @@ check_canvas( ASWindow *asw, FrameSide side, Bool required )
     return (asw->frame_canvas[side] = canvas);
 }
 
+static ASTBarData*
+check_tbar( ASTBarData **tbar, Bool required )
+{
+    if( required )
+    {
+        if( *tbar == NULL )
+        {
+            *tbar = create_astbar();
+        }
+    }else if( *tbar )
+    {
+        destroy_astbar( tbar );
+    }
+    return *tbar;;
+}
+
 void
 redecorate_window( ASWindow *asw, Bool free_resources )
 {
@@ -154,7 +170,7 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     ASCanvas *left_canvas = NULL, *right_canvas = NULL ;
     Bool has_tbar = False ;
 	int i ;
-	
+
     if( AS_ASSERT(asw) )
         return ;
 
@@ -172,11 +188,8 @@ redecorate_window( ASWindow *asw, Bool free_resources )
         check_canvas( asw, FR_S, False );
         check_canvas( asw, FR_N, False );
 		for( i = 0 ; i < FRAME_PARTS ; ++i )
-			if( asw->frame_bars[i] ) 
-				destroy_astbar( &(asw->frame_bars[i]) ); 
-		if( asw->tbar ) 
-			destroy_astbar( &(asw->tbar) ); 
-
+            check_tbar( &(asw->frame_bars[i]), False );
+        check_tbar( &(asw->tbar), False );
         return ;
     }
 
@@ -195,39 +208,26 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     }
 	/* now wer have to create actuall bars - for each frame element plus one for the titlebar */
 	for( i = 0 ; i < FRAME_PARTS ; ++i )
-		if( IsFramePart(frame,i) )
-		{
-			if( asw->frame_bars[i] == NULL ) 
-			{
-				asw->frame_bars[i] = create_astbar(); 
-			}
-		}else if( asw->frame_bars[i] ) 
-		{
-			destroy_astbar( &(asw->frame_bars[i]) ); 
-		}
-	if( has_tbar )
-	{
-		if( asw->tbar == NULL ) 
-			asw->tbar = create_astbar();
-	}else if( asw->tbar ) 
-		destroy_astbar( &(asw->tbar) );
-		
-	if( asw->tbar ) 
+        check_tbar( &(asw->frame_bars[i]), IsFramePart(frame,i) );
+    check_tbar( &(asw->tbar), has_tbar );
+
+	if( asw->tbar )
 	{ /* need to add some titlebuttons */
 		ASTBtnBlock* btns ;
 		/* left buttons : */
-		btns = build_tbtn_block( &(Scr.buttons[0]), 
-		                         ~(asw->hints->disabled_buttons), 
-		                         TITLE_BUTTONS_PERSIDE, 1, 
-								 ASWIN_HFLAGS(AS_VerticalTitle)? 
+		btns = build_tbtn_block( &(Scr.buttons[0]),
+		                         ~(asw->hints->disabled_buttons),
+		                         TITLE_BUTTONS_PERSIDE, 1,
+								 ASWIN_HFLAGS(AS_VerticalTitle)?
 									TBTN_ORDER_B2T:TBTN_ORDER_L2R );
-		/* right buttons : */		
-		btns = build_tbtn_block( &(Scr.buttons[TITLE_BUTTONS_PERSIDE]), 
-		                         (~(asw->hints->disabled_buttons))>>TITLE_BUTTONS_PERSIDE, 
-		                         TITLE_BUTTONS_PERSIDE, 1, 
-								 ASWIN_HFLAGS(AS_VerticalTitle)? 
+        set_astbar_btns( asw->tbar, &btns, True );
+        /* right buttons : */
+		btns = build_tbtn_block( &(Scr.buttons[TITLE_BUTTONS_PERSIDE]),
+		                         (~(asw->hints->disabled_buttons))>>TITLE_BUTTONS_PERSIDE,
+		                         TITLE_BUTTONS_PERSIDE, 1,
+								 ASWIN_HFLAGS(AS_VerticalTitle)?
 									TBTN_ORDER_T2B:TBTN_ORDER_R2L );
-	
+        set_astbar_btns( asw->tbar, &btns, False );
 	}
 }
 
@@ -400,12 +400,12 @@ create_titlebutton_balloon (ASWindow * tmp_win, int b)
 	char         *str = NULL ;
 	Window 		  w = None;
 
-	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar) || 
+	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar) ||
 	    Scr.buttons[b].width <= 0 || IsBtnDisabled(tmp_win, b ))
 		return False;
-		
+
 	if (IsLeftButton(b))
-	{ 
+	{
 		str = list_functions_by_context (C_L1 << b);
 		w = tmp_win->left_w[b];
 	}else
@@ -416,7 +416,7 @@ create_titlebutton_balloon (ASWindow * tmp_win, int b)
 	}
 	if( str )
 	{
-		if( w ) 
+		if( w )
 			balloon_new_with_text (dpy, w, str);
 		free (str);
 	}
@@ -496,11 +496,11 @@ create_titlebutton_windows (ASWindow * tmp_win)
 	return True;
 }
 
-void 
+void
 bind_aswindow_styles(ASWindow *t)
 {
 	char **styles_names = t->hints->mystyle_names ;
-	
+
 	t->style_focus = styles_names[BACK_FOCUSED]?mystyle_find (styles_names[BACK_FOCUSED]):NULL ;
 	if( t->style_focus == NULL )
 		t->style_focus = Scr.MSFWindow;
@@ -525,7 +525,7 @@ SelectDecor (ASWindow * t)
 
 	border_width = get_flags(tflags, AS_Border)?hints->border_width:Scr.NoBoundaryWidth;
 	resize_width = get_flags(tflags, AS_Handles)?hints->handle_width:Scr.BoundaryWidth;
-	
+
 #ifdef SHAPE
 	if (t->wShaped)
 	{
@@ -567,16 +567,16 @@ SelectDecor (ASWindow * t)
 		t->bw = border_width;
 	else
 		t->bw = 1;
-		
+
 	t->button_height = t->title_height - 7;
 }
 
 ASWindow *window2ASWindow( Window w )
 {
 	ASWindow *asw = Scr.ASRoot.next;
-	
+
 	while( asw && asw->w != w )	asw = asw->next;
-	
+
 	return asw;
 }
 
@@ -602,7 +602,7 @@ Bool afterstep_parent_hints_func(Window parent, ASParentHints *dst )
 		/* we may need to move our viewport so that the parent becomes visible : */
         if ( !ASWIN_GET_FLAGS(p, AS_Iconic) )
 		{
-#if 0		
+#if 0
             int x, y ;
             unsigned int width, height ;
             x = p->status->x - p->decor->west ;
@@ -615,7 +615,7 @@ Bool afterstep_parent_hints_func(Window parent, ASParentHints *dst )
 
             if( (dst->viewport_y = calculate_viewport( &y, height, p->scr->Vy, p->scr->MyDisplayHeight, p->scr->VyMax)) != p->scr->Vy )
 				set_flags( dst->flags, AS_StartViewportY );
-#endif				
+#endif
 		}
 	}
 	return True ;
@@ -657,11 +657,11 @@ maximize_window_status( ASStatusHints *status, ASStatusHints *saved_status, ASSt
 
 
 Bool
-init_aswindow_status( ASWindow *t, ASStatusHints *status ) 
+init_aswindow_status( ASWindow *t, ASStatusHints *status )
 {
 	extern int PPosOverride ;
 	ASStatusHints adjusted_status ;
-	
+
 	if( t->status == NULL )
 		t->status = safecalloc(1, sizeof(ASStatusHints));
 

@@ -114,7 +114,7 @@ typedef struct MyFrame
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
 #define IsFramePart(f,p)   ((f)->parts[(p)] || ((f)->part_width[(p)] && (f)->part_height[(p)]))
-	
+
     unsigned int spacing ;
 }MyFrame;
 
@@ -150,6 +150,7 @@ unsigned int calculate_astbar_width( ASTBarData *tbar );
 Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height );
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
 Bool set_astbar_label( ASTBarData *tbar, const char *label );
+Bool set_astbar_btns( ASTBarData *tbar, const ASTBtnBlock *btns, Bool left );
 Bool move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y );
 Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 
