@@ -52,6 +52,19 @@ typedef struct ASImageOutput
 void output_image_line_fine( ASImageOutput *, ASScanline *, int );
 void output_image_line_fast( ASImageOutput *, ASScanline *, int );
 
+typedef struct ASImageDecoder
+{
+	ScreenInfo 	   *scr;
+	ASImage 	   *im ;
+	ARGB32			tint;
+	CARD8 		   *tint_red, *ting_green, *tint_blue, *tint_alpha ;
+	int             origin,    /* x origin on source image before which we skip everything */
+					out_len;   /* actuall length of the output scanline */
+	ASScanline 		buffer;
+	int 			next_line ;
+}ASImageDecoder;
+
+
 /**********************************************************************
  * quality control: we support several levels of quality to allow for
  * smooth work on older computers.
@@ -1053,12 +1066,22 @@ component_interpolation_hardcoded( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c
 {
 	register int i;
 	if( kind == 1 )
+	{
 		for( i = 0 ; i < len ; i++ )
 		{
-    		register int rc1 = c1[i], rc2 = c2[i], rc3 = c3[i] ;
-			T[i] = INTERPOLATE_COLOR2_V(rc1,rc2,rc3,c4[i]);
+#if 1       
+			/* its seems that this simple formula is completely sufficient 
+			   and even better then more complicated one : */
+			T[i] = (c2[i]+c3[i])>>1 ;
+#else
+    		register int minus = c1[i]+c4[i] ;
+			register int plus  = (c2[i]<<1)+c2[i]+(c3[i]<<1)+c3[i];
+					
+			T[i] = ( (plus>>1) < minus )?(c2[i]+c3[i])>>1 :
+								   		 (plus-minus)>>2; 
+#endif									
 		}
-	else if( kind == 2 )
+	}else if( kind == 2 )
 	{
 		for( i = 0 ; i < len ; i++ )
 		{

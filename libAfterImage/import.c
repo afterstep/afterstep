@@ -26,11 +26,14 @@
 
 #include <time.h>
 /* <setjmp.h> is used for the optional error recovery mechanism */
-#include <setjmp.h>
+
 #ifdef PNG
 /* Include file for users of png library. */
 #include <png.h>
+#else
+#include <setjmp.h>
 #endif
+
 #include "../include/aftersteplib.h"
 #ifdef JPEG
 /* Include file for users of png library. */
