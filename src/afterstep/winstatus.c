@@ -708,15 +708,6 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
             {
 				resize_frame_subwindows( asw, od, 	asw->frame_canvas->width,
 								  					asw->frame_canvas->height ); 					
-#if 0
-                resize_canvases( asw, od, normal_width, normal_height, frame_size );
-                if( !ASWIN_GET_FLAGS(asw, AS_Shaded ) )  /* leave shaded client alone ! */
-                    moveresize_canvas( asw->client_canvas,
-                                    frame_size[FR_W],
-                                    frame_size[FR_N],
-                                    asw->frame_canvas->width-(frame_size[FR_W]+frame_size[FR_E]),
-                                    asw->frame_canvas->height-(frame_size[FR_N]+frame_size[FR_S]));
-#endif     
 	        }else
 			{ 
 				if( normal_height != step_size )

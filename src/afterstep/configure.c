@@ -798,14 +798,14 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
             set_string_value(&(frame->part_filenames[i]), mystrdup(fd->parts[i]), NULL, 0);
         if( get_flags( fd->set_part_size, 0x01<<i ) )
         {
-            frame->part_width[i] = fd->part_width[i];
-            frame->part_length[i] = fd->part_length[i];
+            frame->part_width[i] = max(fd->part_width[i],1);
+            frame->part_length[i] = max(fd->part_length[i],1);
         }
-        if( IsPartFBevelSet(frame,i) )
+        if( IsPartFBevelSet(fd,i) )
             frame->part_fbevel[i] = fd->part_fbevel[i];
-        if( IsPartUBevelSet(frame,i) )
+        if( IsPartUBevelSet(fd,i) )
             frame->part_ubevel[i] = fd->part_ubevel[i];
-        if( IsPartSBevelSet(frame,i) )
+        if( IsPartSBevelSet(fd,i) )
             frame->part_sbevel[i] = fd->part_sbevel[i];
         if( get_flags( fd->set_part_align, 0x01<<i ) )
             frame->part_align[i] = fd->part_align[i];
