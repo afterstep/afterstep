@@ -406,7 +406,7 @@ CheckConfigSanity()
         Config->active_desk_bevel = NORMAL_HILITE ;
     if( !get_flags( Config->set_flags, PAGER_SET_INACTIVE_BEVEL ) )
         Config->inactive_desk_bevel = NORMAL_HILITE|NO_HILITE_OUTLINE;
-    LOCAL_DEBUG_OUT("active_bevel = %X, inactive_bevel = %X", Config->active_desk_bevel, Config->inactive_desk_bevel );
+    LOCAL_DEBUG_OUT("active_bevel = %lX, inactive_bevel = %lX", Config->active_desk_bevel, Config->inactive_desk_bevel );
 	mystyle_get_property (Scr.wmprops);
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
@@ -664,10 +664,10 @@ make_pager_window()
     else
         shints.flags |= PPosition ;
 
-    shints.min_width = Config->columns;
-    shints.min_height = Config->rows;
-    shints.width_inc = Config->columns;
-    shints.height_inc = Config->rows;
+    shints.min_width = Config->columns+Config->border_width;
+    shints.min_height = Config->rows+Config->border_width;
+    shints.width_inc = 1;
+    shints.height_inc = 1;
 	shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
@@ -928,7 +928,7 @@ void place_desk( ASPagerDesk *d, int x, int y, unsigned int width, unsigned int 
     int           win_x = 0, win_y = 0;
 	unsigned int bw ;
     get_canvas_position( d->desk_canvas, NULL, &win_x, &win_y, &bw );
-
+    LOCAL_DEBUG_OUT( "desk window %lX, curr_geom = %dx%d%+d%+d, bw = %d, new_geom = %dx%d%+d%+d", d->desk_canvas->w, d->desk_canvas->width, d->desk_canvas->height, win_x, win_y, bw, width, height, x, y );
     if( d->desk_canvas->width == width && d->desk_canvas->height == height && win_x == x && win_y == y )
     {
         on_desk_moveresize( d );
@@ -1122,8 +1122,8 @@ redecorate_pager_desks()
     int i ;
     char buf[256];
     XSetWindowAttributes attr;
-	int wasted_x = Config->border_width * (Config->columns+1) ;
-	int wasted_y = Config->border_width * (Config->rows+1);
+    int wasted_x = Config->border_width * (Config->columns) ;
+    int wasted_y = Config->border_width * (Config->rows);
 	int max_title_width = 0 ;
 	int max_title_height = 0 ;
 
@@ -1248,14 +1248,21 @@ redecorate_pager_desks()
         	ASPagerDesk *d = &(PagerState.desks[i]);
 
             if( get_flags( Config->flags, VERTICAL_LABEL ) )
-
                 d->title_width = max_title_width;
             else
                 d->title_height = max_title_height;
 			place_desk_title( d );
 		}
-		wasted_x += max_title_width*Config->columns ;
-		wasted_y += max_title_height*Config->rows ;
+        
+        if( get_flags( Config->flags, VERTICAL_LABEL ) )
+        {    
+            wasted_x += max_title_width*Config->columns ;
+            LOCAL_DEBUG_OUT( "title_width = %d", max_title_width );
+        }else 
+        {    
+            wasted_y += max_title_height*Config->rows ;
+            LOCAL_DEBUG_OUT( "title_height = %d", max_title_height );
+        }
 	}
 
 	/* if wasted space changed and configured geometry does not specify size -
@@ -1263,8 +1270,9 @@ redecorate_pager_desks()
 	 */
 	if( !get_flags( Config->geometry.flags, WidthValue ) )
 	{
-		int delta = ((wasted_x - PagerState.wasted_width)+(Config->columns/2))/Config->columns ;
-		if( delta != 0 )
+        int delta = (wasted_x - PagerState.wasted_width)/Config->columns ;
+        LOCAL_DEBUG_OUT( "wasted_x = %d, (old was = %d) - adjusting desk_width by %d", wasted_x, PagerState.wasted_width, delta );
+        if( delta != 0 )
 		{
 			PagerState.desk_width += delta ;
 			PagerState.wasted_width = delta * Config->columns  ;
@@ -1272,7 +1280,7 @@ redecorate_pager_desks()
 	}
 	if( !get_flags( Config->geometry.flags, HeightValue ) )
 	{
-		int delta = ((wasted_y - PagerState.wasted_height)+(Config->rows/2))/Config->rows ;
+        int delta = (wasted_y - PagerState.wasted_height)/Config->rows ;
 		LOCAL_DEBUG_OUT( "wasted_y = %d, (old was = %d) - adjusting desk_height by %d", wasted_y, PagerState.wasted_height, delta );
 		if( delta != 0 )
 		{
@@ -1324,9 +1332,11 @@ rearrange_pager_desks(Bool dont_resize_main )
 
             width = calculate_desk_width( d );
             height = calculate_desk_height( d );
-
+            
             if( height > row_height )
                 row_height = height;
+            
+            LOCAL_DEBUG_OUT( "desk = %d, size = %dx%d, pos = %+d%+d", i, width, height, all_width, all_height );
 
             if( ++col >= Config->columns )
             {
@@ -1344,8 +1354,10 @@ rearrange_pager_desks(Bool dont_resize_main )
             all_width = x ;
         if( all_height < y+row_height )
             all_height = y+row_height;
-		all_width += Config->border_width ;
-		all_height += Config->border_width ;
+        all_width += Config->border_width ;
+        all_height += Config->border_width ;
+        LOCAL_DEBUG_OUT( "resizing_main : all_size = %dx%d current size = %dx%d", 
+                         all_width, all_height, PagerState.main_canvas->width, PagerState.main_canvas->height );
         if( PagerState.main_canvas->width != all_width || PagerState.main_canvas->height != all_height )
         {
             resize_canvas( PagerState.main_canvas, all_width, all_height );
@@ -1354,7 +1366,8 @@ rearrange_pager_desks(Bool dont_resize_main )
     }
     /* Pass 2: now we can resize the rest of the windows : */
     col = 0;
-    x = y = row_height = 0;
+    x = y = 0;
+    row_height = 0 ;
     for( i = 0 ; i < PagerState.desks_num ; ++i )
     {
         ASPagerDesk *d = &(PagerState.desks[i]);

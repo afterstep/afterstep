@@ -244,7 +244,7 @@ check_client_canvas( ASWindow *asw, Bool required )
 			}
 		    quietly_reparent_window( w, asw->frame, 0, 0, attributes.event_mask );
 
-            valuemask = (CWEventMask | CWDontPropagate);
+            valuemask = (CWEventMask | CWDontPropagate );
             attributes.do_not_propagate_mask = ButtonPressMask | ButtonReleaseMask;
 
             if (get_flags(Scr.Feel.flags, AppsBackingStore))
@@ -835,7 +835,12 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	/* 5) we need to prepare windows for 4 frame decoration sides : */
 	if( has_tbar != had_tbar || frame != old_frame )
 	   	check_side_canvas( asw, od->tbar_side, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
-	if( frame != old_frame )
+    if( !ASWIN_HFLAGS(asw, AS_Handles) )
+    {
+        check_side_canvas( asw, od->sbar_side, False );
+        check_side_canvas( asw, od->left_side, False );
+        check_side_canvas( asw, od->right_side, False );
+    }else if( frame != old_frame || (get_flags( old_hints->flags, AS_Handles ) != ASWIN_HFLAGS(asw, AS_Handles)))
 	{
 	    check_side_canvas( asw, od->sbar_side, myframe_has_parts(frame, FRAME_BTM_MASK) );
   		check_side_canvas( asw, od->left_side, myframe_has_parts(frame, FRAME_LEFT_MASK) );
