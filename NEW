@@ -1,5 +1,9 @@
+version 2.0 beta3
+	* Added WinTabs module - to swallow windows with Class matching specified 
+	  pattern and arrange them in single window using tabs.
+
 version 2.0 beta2
-	* Added CirsorFore and CursorBack settings to look to adjust color of the mouse
+	* Added CursorFore and CursorBack settings to look to adjust color of the mouse
 	  cursor
 	* Cursor settings now must be in look and not in feel.
 	* Improved algorithm behind saving desktop state and restoring it on startup.

@@ -1,4 +1,9 @@
 
+2003-12-23 15:42  sasha
+
+	* AfterStep.spec, ChangeLog, NEW, configure, autoconf/configure.in:
+	  AfterStep 2.00.beta3 Release
+
 2003-12-23 10:05  sasha
 
 	* README.SOLARIS, libAfterImage/Makefile.in: Fixed README.SOLARIS
