@@ -1,4 +1,220 @@
 
+2005-01-20  sasha
+
+	* AfterStep 2.00.02 release
+
+2005-01-19  sasha
+
+	* fixed bug preventing maximized apps from being properly placed
+
+2005-01-18  sasha
+
+	* fixed configure for CYGWIN to build proper lib type. Implemented
+	  Image writing into memory buffer in PNG format - see
+	  ASImage2PNGBuff example in asvector.c
+	* added ability to bundle included sumenu's items under private
+	  user items
+	* fixed handling of <term> tag while generating man pages - nested
+	  doublequotes should be escaped
+	* fixed handling of Desk function arguments
+
+2005-01-17  sasha
+
+	*  configure fix
+
+2005-01-14  sasha
+
+	* changed everything to make possible libAfter* as a DLLs - Scr
+	  substituted to a pointer and same for MyArgs
+
+2005-01-13  sasha
+
+	* bunch of fixes to enable shared libs under CYGWIN - but there is
+	  still a problem of linking apps becouse of the Scr variable
+	* applyed 64bit AMD patch from Sean Dague
+
+2005-01-12  sasha
+
+	* Fixed bug in makefiles installing shared libraries
+	* fixed long standing bug with AS not restarting itself properly.
+	  Upped version to 2.00.02 in preparation to release
+	* fixed Makefiles and -config scripts
+
+2005-01-10  sasha
+
+	* ellipses, damn it
+	* fixed Wharf's animation delay to be in milliseconds and not in
+	  0.06 sec increments
+	* fixed aftereffect of having RaiseToClick working on menu windows
+	* fixed wm restarting with other wms
+	* fixed handling of ClickToRaise - now its only used if there are
+	  no other actions bound to a click. This also fixes ability to
+	  move/resize windows without raising them.
+
+2005-01-07  sasha
+
+	* ellipses
+
+2005-01-06  sasha
+
+	* more bloody ellips
+
+2005-01-05  sasha
+
+	* bloody ellips
+
+2005-01-04  sasha
+
+	* mostly done with ellips implementation using doubles - runs
+	  faster the approximation through beziers
+
+2005-01-03  sasha
+
+	* mocking about with ellips drawing algorithm - probably should
+	  switch to doubles instead of long longs
+
+2004-12-29  sasha
+
+	* some funky stuff to try to get alternative ellips algorithm going
+	  - doesn't work yet
+
+2004-12-27  sasha
+
+	* flood fill and more circle/ellipse code
+
+2004-12-26  born2late
+
+	* fixing afterstep restart config issues
+
+2004-12-25  sasha
+
+	* implemented solid fill for circles
+
+2004-12-23  sasha
+
+	* completed implementation of ellips and circle primitives
+
+2004-12-22  sasha
+
+	* improved cubic splines to not use recursion and implemented
+	  circle drawing
+	* Implemented antialiased cubical Bezier curves  drawing
+	* implemented anialiased line rendering
+
+2004-12-21  sasha
+
+	* implemented anialiased line rendering
+
+2004-12-20  sasha
+
+	* fixed afterstep-config to include extra X libs; implemented
+	  prototype anialiased drawing code
+
+2004-12-18  madarche
+
+	* M.-A. DARCHE: The file src/Banner/.depend should not be managed
+	  through CVS. It is either useless now or is a generated file.
+
+2004-12-17  sasha
+
+	* added test code for drawing
+	* added drawing functionality
+	* fixed performance hog introduced by data[1] changed to data[0] in
+	  asstorage during round of warnmings fixes
+	* changed WinList to not delay redrawing of the bars
+	* added one more hint to identify AS module windows as such, thus
+	  fixing bug in workspace saving where modules would get save d as
+	  well
+
+2004-12-16  sasha
+
+	* Fixed segfault in workspace saving code
+
+2004-12-15  sasha
+
+	* some kode to proxy keypresses and clicks to swallowed apps
+
+2004-12-14  born2late
+
+	* hopefully nice docs
+
+2004-12-14  sasha
+
+	* added ability to pull cmd line from /proc filesystem by pid
+
+2004-12-14  born2late
+
+	* missing crosslinks in doc
+
+2004-12-14  sasha
+
+	* fixed segfault when DontDrawBackground is requested in look
+	* Fixed segfault bug in iconification code when StickyIcons are
+	  disabled
+
+2004-12-13  sasha
+
+	* minor fixes to iconbox handling
+	* fixed scaping in ASDocGen and image/include4 file installation
+	  with leading .
+
+2004-12-10  born2late
+
+	* forgotten cvs commits
+	* again clean up of docs hopefully
+	* clean up of docs and added links to _related
+
+2004-12-10  sasha
+
+	* More compilation warnings fixed
+	* ttf always on under win32 and typo fix in mmx initialization code
+
+2004-12-09  sasha
+
+	* added list of standard X colornames
+	* numerous fixes from FonsRademaker and Valeriy Onuchin - to make
+	  it compile under win32
+
+2004-12-08  sasha
+
+	* fixed bunch of warnings for different compilers
+
+2004-12-08  born2late
+
+	* get quit->restartsession do what it's supposed to
+
+2004-12-07  born2late
+
+	* forgotten </emphasis>
+	* again some more docs coming in :)
+
+2004-12-07  sasha
+
+	* Fixed main makefile to not violate sandbox and simplify package
+	  creation for gentoo and others
+
+2004-12-06  sasha
+
+	* hopefully fixed bug where icon title would show up even if
+	  IconTitle is not set
+
+2004-12-06  madarche
+
+	* M.-A. DARCHE: - Captured image filenames have now different
+	  prefixes, "capture_window",	"capture_framedwindow" and
+	  "capture_screen".
+	* M.-A. DARCHE: - Renamed in the non-configurable/0_feel "Take
+	  screen shot" menu entries into:   * Capture window image   *
+	  Capture framed window image	* Capture screen image - The order
+	  is also changed so that it is more logical, from narrow (window)
+	  to   wide (screen) focus. This order should be more logical and
+	  thus more user   friendly.
+
+2004-12-02  madarche
+
+	* M.-A. DARCHE: - Wording "Capture window + frame image" ->
+	  "Capture framed window image".
+
 2004-11-30  sasha
 
 	* AfterStep 2.00.01 release
@@ -1052,8 +1268,6 @@
 
 2004-03-18  sasha
 
-	* removed XPM versions of images, as we now have libPNG embedded
-	  into libAfterImage
 	* Found and fixed very wierd heap corruption bug, causing segfault
 	  whenever bevelled rectang is drawn
 	* Added builtin libungif to libAfterImage, and enabled support for
@@ -2305,13 +2519,8 @@
 	* compiled set of logos
 	* added xpm2png conversion script
 
-2003-04-01  sasha
-
-	* fixed linux-penguin's commanet
-
 2003-03-31  sasha
 
-	* tossing xpms around to free up space for png's
 	* moving xpm files around
 	* Fixed all the problems with icons not being deiconified on
 	  correct viewport, icons not shown properly on Pager; shaded
@@ -2511,7 +2720,6 @@
 	* compilation fixes related to ASWindow relocation into
 	  asinternals.h
 	* [no log message]
-	* removed files in old locations
 	* completed updating includes for new libraries
 	* upgraded version, rearranged and renamed libraries to match
 	  as-devel; updated includes in libAfterConf and libAfterStep
@@ -3407,7 +3615,6 @@
 	* started implementing new tbar drawing
 	* more includes cleanup
 	*  cleaned up headers and fixed Makefiles
-	*  got rid of asimagelib
 	* added custom GetColor for Scroll - will have to be rewritten at
 	  some point ab=nyways, no nee dto waste too much time on it now
 
@@ -3981,7 +4188,6 @@
 	* Added new fixes from Fons Rademaker Implemented ASImage support
 	  for data in vector of doubles with additional pallette to
 	  translate into real ARGB.
-	* updated libAfterImage docs
 	* added automated check for MMX support to libAfterImage
 
 2001-11-12  sasha
@@ -4035,7 +4241,6 @@
 	* Added missing string_destroy into afterbase.c
 	* Added missing remove_hash_item into afterbase.c
 	* Fixed Makefile to work without libAfterBase
-	* Updated man and HTML documentation
 	* Updated ChangeLogs
 	* completed update of the documentation for libAfterImage
 	* updated documentation and deps
@@ -4440,7 +4645,6 @@
 
 2001-07-13  sasha
 
-	* removed dos end-of-lines - just neatpicking :)
 	* Added get_drawable_size to afterbase.c (damn allanon :) Added
 	  define for mystrcmp Added check for libAfterBase presence before
 	  setting output threshold in asmerge
@@ -4508,7 +4712,6 @@
 	* fixed installation of afterimage-libs script
 	* fixed standalon configure run
 	* fixed doc installation in Makefile
-	* updated documentation
 	* updated Makefile to install include files as well
 	* fixed configure in libAfterImage to have separate enablers for
 	  static and shared libs
@@ -4683,7 +4886,6 @@
 2001-06-20  sasha
 
 	* asimage.html and asimage.man updates
-	* autogenerate man page for asimage.h
 	* Implemented proper generation of mask XImage (1bpp)
 
 2001-06-19  sasha
@@ -4703,12 +4905,6 @@
 	  libAfterImage/asimage.h to allow for automagic documentation
 	  generation using robodoc package. Seems to be the only package
 	  that works decently.
-	* man pages writing
-	* libAfterImage manpages update
-
-2001-06-17  owsla
-
-	* fixed some typos for you Sasha :)
 
 2001-06-17  sasha
 
@@ -5443,7 +5639,6 @@
 
 2000-12-21  sasha
 
-	* renamed ShutDown.xpm to shutdown2.xpm
 	* restacking developments
 	* added -fPIC
 
@@ -5452,9 +5647,6 @@
 	* ChangeLog and configure fixed for the new version
 	* Some new basic ASWindow evelopment
 	* ASVector developed and tested - seems to be working just fine.
-	* Removed short term memory allocation code since it is useless
-	  anyways and was causing some compilation problems on older
-	  compilers.
 	* socket fix to make AS 1.8 work with CYGWIN under Windows NT/9x
 
 2000-12-13  sasha

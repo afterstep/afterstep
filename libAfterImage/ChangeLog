@@ -1,4 +1,113 @@
 
+2005-01-18  sasha
+
+	* fixed configure for CYGWIN to build proper lib type. Implemented
+	  Image writing into memory buffer in PNG format - see
+	  ASImage2PNGBuff example in asvector.c
+	* added ability to bundle included sumenu's items under private
+	  user items
+
+2005-01-17  sasha
+
+	*  configure fix
+
+2005-01-14  sasha
+
+	* changed everything to make possible libAfter* as a DLLs - Scr
+	  substituted to a pointer and same for MyArgs
+
+2005-01-13  sasha
+
+	* bunch of fixes to enable shared libs under CYGWIN - but there is
+	  still a problem of linking apps becouse of the Scr variable
+
+2005-01-12  sasha
+
+	* fixed long standing bug with AS not restarting itself properly.
+	  Upped version to 2.00.02 in preparation to release
+	* fixed Makefiles and -config scripts
+
+2005-01-10  sasha
+
+	* ellipses, damn it
+
+2005-01-07  sasha
+
+	* ellipses
+
+2005-01-06  sasha
+
+	* more bloody ellips
+
+2005-01-05  sasha
+
+	* bloody ellips
+
+2005-01-04  sasha
+
+	* mostly done with ellips implementation using doubles - runs
+	  faster the approximation through beziers
+
+2005-01-03  sasha
+
+	* mocking about with ellips drawing algorithm - probably should
+	  switch to doubles instead of long longs
+
+2004-12-29  sasha
+
+	* some funky stuff to try to get alternative ellips algorithm going
+	  - doesn't work yet
+
+2004-12-27  sasha
+
+	* flood fill and more circle/ellipse code
+
+2004-12-25  sasha
+
+	* implemented solid fill for circles
+
+2004-12-23  sasha
+
+	* completed implementation of ellips and circle primitives
+
+2004-12-22  sasha
+
+	* improved cubic splines to not use recursion and implemented
+	  circle drawing
+	* Implemented antialiased cubical Bezier curves  drawing
+	* implemented anialiased line rendering
+
+2004-12-21  sasha
+
+	* implemented anialiased line rendering
+
+2004-12-20  sasha
+
+	* fixed afterstep-config to include extra X libs; implemented
+	  prototype anialiased drawing code
+
+2004-12-17  sasha
+
+	* added test code for drawing
+	* added drawing functionality
+	* fixed performance hog introduced by data[1] changed to data[0] in
+	  asstorage during round of warnmings fixes
+
+2004-12-10  sasha
+
+	* More compilation warnings fixed
+	* ttf always on under win32 and typo fix in mmx initialization code
+
+2004-12-09  sasha
+
+	* added list of standard X colornames
+	* numerous fixes from FonsRademaker and Valeriy Onuchin - to make
+	  it compile under win32
+
+2004-12-08  sasha
+
+	* fixed bunch of warnings for different compilers
+
 2004-11-30  sasha
 
 	* AfterStep 2.00.01 release
@@ -1518,7 +1627,6 @@
 	* Added new fixes from Fons Rademaker Implemented ASImage support
 	  for data in vector of doubles with additional pallette to
 	  translate into real ARGB.
-	* updated libAfterImage docs
 	* added automated check for MMX support to libAfterImage
 
 2001-11-02  sasha
@@ -1548,7 +1656,6 @@
 	* Added missing string_destroy into afterbase.c
 	* Added missing remove_hash_item into afterbase.c
 	* Fixed Makefile to work without libAfterBase
-	* Updated man and HTML documentation
 	* Updated ChangeLogs
 	* completed update of the documentation for libAfterImage
 	* updated documentation and deps
@@ -1844,7 +1951,6 @@
 
 2001-07-13  sasha
 
-	* removed dos end-of-lines - just neatpicking :)
 	* Added get_drawable_size to afterbase.c (damn allanon :) Added
 	  define for mystrcmp Added check for libAfterBase presence before
 	  setting output threshold in asmerge
@@ -1903,7 +2009,6 @@
 	* fixed installation of afterimage-libs script
 	* fixed standalon configure run
 	* fixed doc installation in Makefile
-	* updated documentation
 	* updated Makefile to install include files as well
 	* fixed configure in libAfterImage to have separate enablers for
 	  static and shared libs
@@ -2061,7 +2166,6 @@
 2001-06-20  sasha
 
 	* asimage.html and asimage.man updates
-	* autogenerate man page for asimage.h
 	* Implemented proper generation of mask XImage (1bpp)
 
 2001-06-19  sasha
@@ -2081,12 +2185,6 @@
 	  libAfterImage/asimage.h to allow for automagic documentation
 	  generation using robodoc package. Seems to be the only package
 	  that works decently.
-	* man pages writing
-	* libAfterImage manpages update
-
-2001-06-17  owsla
-
-	* fixed some typos for you Sasha :)
 
 2001-06-17  sasha
 
@@ -2175,10 +2273,6 @@
 
 	* fixed bug found by allanon when asimage2ximage would produce
 	  black ximage due to unset flags in scanline
-
-2001-06-04  sasha
-
-	* started documenting libAfterImage
 
 2001-06-04  owsla
 
