@@ -855,10 +855,10 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
                 ptr += sprintf( ptr, " -g %s", MyArgs.override_share );
             if( MyArgs.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
                 ptr += sprintf( ptr, " -V %d", MyArgs.verbosity_level );
-
-			if( MyArgs.locale && MyArgs.locale[0] && !isspace(MyArgs.locale))
+LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d, locale = \"%s\", ptr-cmdl = %d", len, cmdl, strlen(cmdl), MyArgs.locale, ptr-cmdl );
+			if( MyArgs.locale && MyArgs.locale[0] && !isspace(MyArgs.locale[0]))
                 ptr += sprintf( ptr, " -L %s", MyArgs.locale );
-
+			
 #ifdef DEBUG_TRACE_X
             if( MyArgs.trace_calls )
                 ptr += sprintf( ptr, " --trace-func %s", MyArgs.trace_calls );
@@ -868,13 +868,16 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             if( context_str )
                 ptr += sprintf( ptr, " --context %s", context_str );
         }
-        va_start( ap, pass_args );
+        
+		va_start( ap, pass_args );
         while( (arg = va_arg(ap,char*)) != NULL )
         {
             *(ptr++) = ' ';
             strcpy( ptr, arg );
             while(*ptr) ptr++;
-        }
+LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) );
+        
+		}
         va_end(ap);
         if( do_fork )
         {
@@ -882,7 +885,9 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             while( --i >= 0 ) if( !isspace(cmdl[i]) ) break;
             do_fork = ( i < 0 || cmdl[i] != '&' );
         }
-        strcpy (ptr, do_fork?" &\n":"\n");
+LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) );
+     
+		strcpy (ptr, do_fork?" &\n":"\n");
 
         LOCAL_DEBUG_OUT("execl(\"%s\")", cmdl );
         fprintf( stderr, "len=%d: execl(\"%s\")", len, cmdl );

@@ -81,7 +81,7 @@ mkdir -p $RPM_BUILD_ROOT
 
 make DESTDIR=$RPM_BUILD_ROOT install
 rm -f $RPM_BUILD_ROOT/usr/X11R6/bin/{sessreg,xpmroot}
-for f in libAfter{Base,Image}; do
+for f in libAfter{Base,Conf,Image,Step}; do
    cp -a $f/$f.so* %{buildroot}/usr/X11R6/lib
 done
 

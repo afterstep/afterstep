@@ -733,6 +733,8 @@ parse_short_charset_name( const char *name )
 			case '8' : return CHARSET_ISO8859_14;
 		}
 	}
+	if( strncasecmp( &name[0], "en", 2 ) == 0 )
+		return CHARSET_ISO8859_1 ;     /* us */
 	if( strncasecmp( &name[0], "el_GR", 5 ) == 0 )
 		return CHARSET_ISO8859_7 ;     /* greece */
 	else if( strncasecmp( &name[0], "he", 2 ) == 0 )
@@ -753,12 +755,6 @@ parse_short_charset_name( const char *name )
 		return CHARSET_ISO8859_9 ;     /* Turkish */
 	else if( strncasecmp( &name[0], "cs", 2 ) == 0 )
 		return CHARSET_ISO8859_2 ;     /* Czech */
-	else if( strncasecmp( &name[0], "", 5 ) == 0 )
-		return CHARSET_ISO8859_7 ;     /*  */
-	else if( strncasecmp( &name[0], "", 5 ) == 0 )
-		return CHARSET_ISO8859_7 ;     /*  */
-	else if( strncasecmp( &name[0], "", 5 ) == 0 )
-		return CHARSET_ISO8859_7 ;     /*  */
 	else
 		return CHARSET_ISO8859_1 ;
 }
@@ -777,7 +773,7 @@ parse_charset_name( const char *name )
 	while(name[i] != '\0' && name[i] != '.' ) ++i ;
 
 	/* maybe LANG was set to some short thing such as just "RU" */
-	if( name[i] == '\0' && i == 2)
+	if( name[i] == '\0' && (i == 2 || i == 5))
 		return parse_short_charset_name( name );
 
 	if( name[i] == '.' )

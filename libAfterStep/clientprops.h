@@ -12,6 +12,8 @@ struct ASDatabase;
 struct ASDatabaseRecord;
 struct ASStatusHints;
 struct ScreenInfo;
+struct AtomXref;
+
 
 typedef enum
 {
@@ -175,7 +177,7 @@ extern Atom _XA_NET_WM_PID;
 extern Atom _XA_NET_WM_PROTOCOLS;
 extern Atom _XA_NET_WM_PING;
 
-extern AtomXref      *EXTWM_State;
+extern struct AtomXref      *EXTWM_State;
 
 #define IsNameProp(a) \
         ((a) == XA_WM_NAME ||  \

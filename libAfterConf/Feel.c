@@ -1040,7 +1040,7 @@ ParseThemeFile (const char *filename, char *myname)
     ConfigItem item;
 
 	cd.filename = filename ;
-	ConfigReader = InitConfigReader (myname, &ThemeSyntax, CDT_Filename, cd, NULL)
+	ConfigReader = InitConfigReader (myname, &ThemeSyntax, CDT_Filename, cd, NULL);
 	LOCAL_DEBUG_OUT( "ConfigReader is %p", ConfigReader );
     if (!ConfigReader)
         return NULL;
