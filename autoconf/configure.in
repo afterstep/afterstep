@@ -355,16 +355,20 @@ AC_CHECK_LIB(rplay,rplay,[AC_CHECK_HEADERS(rplay.h,[AUDIO_LIBS=-lrplay; AUDIO_PL
 AC_SUBST(AUDIO_LIBS)
 AC_SUBST(AUDIO_PLAY_CMD)
 
+
+xext_lib=""
 if test "x$add_lib_xext" = "xyes"; then
 	x_libs="$x_libs -lXext"
+	xext_lib="-lXext"
 	full_x_libs="$x_libs -lXext"
 fi
 
 dnl# Check for Xinerama extension
 
 HAVEXINE="NOXINE"
+xine_libs=""
 if test "x$enable_xinerama" = "xyes"; then
-  AC_CHECK_LIB(Xinerama, XineramaQueryScreens, [x_libs="-lXinerama $x_libs";AC_DEFINE(HAVE_XINERAMA,1,Support for Xinerama multiscreen)],,$full_x_libs)
+  AC_CHECK_LIB(Xinerama, XineramaQueryScreens, [x_libs="-lXinerama $x_libs";xine_libs="-lXinerama";AC_DEFINE(HAVE_XINERAMA,1,Support for Xinerama multiscreen)],,$full_x_libs)
 fi
 
 if test "x$enable_sigsegv" = "xyes"; then
@@ -565,6 +569,8 @@ AC_SUBST(ASCP_GTK_LIBS)
 AC_SUBST(ASCP_GTK_INCLUDES)
 AC_SUBST(user_ldflags)
 AC_SUBST(x_libs)
+AC_SUBST(xine_libs)
+AC_SUBST(xext_lib)
 AC_SUBST(x_includes)
 AC_SUBST(XEXT_LIB)
 AC_SUBST(AFTERBASE_LIB)

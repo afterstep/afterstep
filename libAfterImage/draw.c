@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#define LOCAL_DEBUG
+
 #ifdef _WIN32
 #include "win32/config.h"
 #else
@@ -116,21 +118,86 @@ apply_tool( ASDrawContext *ctx, int curr_x, int curr_y )
 	}
 	
 	if( corner_x + tw > cw ) 
-		aw = corner_x + tw - cw;
+		aw = cw - corner_x;
 	if( corner_y + th > ch ) 
-		ah = corner_y + th - ch;
+		ah = ch - corner_y;
 
 	for( y = 0 ; y < ah ; ++y ) 
 	{	
 		for( x = 0 ; x < aw ; ++x ) 
 		{
+			if( dst[x] < src[x] ) 
+				dst[x] = src[x] ;
+			/*
 			register CARD32 t = (CARD32)dst[x] + (CARD32)src[x] ;
 			dst[x] = t > 255? 255 : t ;
+			 */
 		}
 		src += tw ; 
 		dst += cw ; 
 	}
 }	   
+
+static inline void
+apply_tool_aa( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
+{
+	if( ratio  !=  0 ) 
+	{	
+		CARD8 *src = ctx->tool->matrix ;
+		int corner_x = curr_x - ctx->tool->center_x ; 
+		int corner_y = curr_y - ctx->tool->center_y ; 
+		int tw = ctx->tool->width ;
+		int th = ctx->tool->height ;
+		int cw = ctx->canvas_width ;
+		int ch = ctx->canvas_height ;
+		int aw = tw ; 
+		int ah = th ;
+		CARD8 *dst = ctx->canvas ; 
+		int x, y ;
+
+		if( corner_x+tw < 0 || corner_x >= cw || corner_y+th < 0 || corner_y >= ch ) 
+			return ;
+		 
+		if( corner_y > 0 ) 
+			dst += corner_y * cw ;
+		else if( corner_y < 0 ) 
+		{
+			ah -= -corner_y ;
+			src += -corner_y * tw ;
+		}
+
+		if( corner_x  > 0 ) 
+			dst += corner_x ;  
+		else if( corner_x < 0 )
+		{	
+			src += -corner_x ; 
+			aw -= -corner_x ;
+		}
+	
+		if( corner_x + tw > cw ) 
+			aw = cw - corner_x;
+		if( corner_y + th > ch ) 
+			ah = ch - corner_y;
+
+		for( y = 0 ; y < ah ; ++y ) 
+		{	
+			for( x = 0 ; x < aw ; ++x ) 
+			{
+				CARD32 v = ratio ;
+				v = (v*src[x])>>8 ;
+				if( dst[x] < v ) 
+					dst[x] = v ;
+				/*
+				register CARD32 t = (CARD32)dst[x] + (CARD32)src[x] ;
+				dst[x] = t > 255? 255 : t ;
+			 	*/
+			}
+			src += tw ; 
+			dst += cw ; 
+		}
+	}
+}	   
+
 
 /*********************************************************************************/
 /* drawing functions : 											 */
@@ -141,35 +208,40 @@ static Bool
 ctx_draw_line_solid( ASDrawContext *ctx )
 {
 	ASDrawPoint *dest = (ASDrawPoint*)(ctx->draw_data);
-	int start_x, start_y, end_x, end_y ; 
+	int x, y, end, dir = 1;
 
-	if( dest->y > ctx->curr_y ) 
-	{
-		start_x = ctx->curr_x ; 
-		start_y = ctx->curr_y ; 
-		end_x = dest->x ; 
-		end_y = dest->y ; 
-	}else
-	{
-		end_x = ctx->curr_x ; 
-		end_y = ctx->curr_y ; 
-		start_x = dest->x ; 
-		start_y = dest->y ; 
-	}		 
+	int dx = dest->x - ctx->curr_x ; 
+	int dy = dest->y - ctx->curr_y ; 
+	if( dx < 0 ) 
+		dx = -dx ; 
+	if( dy < 0 ) 
+		dy = -dy ;
 	
-	if( start_x < end_x ) 
-	{
-		int x = start_x, y = start_y;
-      	int dx = end_x - x;  
-	  	int dy = end_y - y;
+	if( dx >= dy ) 
+	{	
       	int Dy = -dx + 2*dy;
       	int inct = 2*dy;
-      	int incf = 2*(dy - dx);
+		int incf = 2*(dy - dx);
+		
+		if( dest->y > ctx->curr_y ) 
+		{
+			x = ctx->curr_x ; 
+			y = ctx->curr_y ; 
+			end = dest->x ; 
+		}else
+		{
+			x = dest->x ; 
+			y = dest->y ; 
+			end = ctx->curr_x ; 
+		}
+		
+		if( end < x ) 
+			dir = -1 ;				 
       	
 		apply_tool( ctx, x, y );
-      	while(x != end_x)
+      	while(x != end)
 		{
-        	++x;
+        	x += dir;
         	if(Dy > 0)
 			{
           		Dy += incf;
@@ -180,23 +252,35 @@ ctx_draw_line_solid( ASDrawContext *ctx )
       	}
 	}else
 	{
-		int x = start_x, y = start_y;
-      	int dx = end_x - x;  
-	  	int dy = end_y - y;
-      	int Dy = -dx + 2*dy;
-      	int inct = 2*dy;
-      	int incf = 2*(dy - dx);
+      	int Dx = -dy + 2*dx;
+      	int inct = 2*dx;
+		int incf = 2*(dx - dy);
+		
+		if( dest->x > ctx->curr_x ) 
+		{
+			y = ctx->curr_y ; 
+			x = ctx->curr_x ; 
+			end = dest->y ; 
+		}else
+		{
+			y = dest->y ; 
+			x = dest->x ; 
+			end = ctx->curr_y ; 
+		}
+		
+		if( end < y ) 
+			dir = -1 ;				 
       	
 		apply_tool( ctx, x, y );
-      	while(x != end_x)
+      	while(y != end)
 		{
-        	--x;
-        	if(Dy > 0)
+        	y += dir;
+        	if(Dx > 0)
 			{
-          		Dy += incf;
-          		++y;
+          		Dx += incf;
+          		++x;
         	}else 
-				Dy += inct;
+				Dx += inct;
         	apply_tool( ctx, x, y );
       	}
 	}		 
@@ -206,6 +290,125 @@ ctx_draw_line_solid( ASDrawContext *ctx )
 
 	return False ;
 }	 
+
+static Bool 
+ctx_draw_line_solid_aa( ASDrawContext *ctx )
+{
+	ASDrawPoint *dest = (ASDrawPoint*)(ctx->draw_data);
+	int x, y, end, dir = 1;
+
+	int dx = dest->x - ctx->curr_x ; 
+	int dy = dest->y - ctx->curr_y ; 
+	if( dx < 0 ) 
+		dx = -dx ;
+	if( dy < 0 ) 
+		dy = -dy ;
+
+	/* if( dx == 0 || dy == 0 || dx == dy ) 
+		return ctx_draw_line_solid( ctx ); */
+
+	
+	if( dx >= dy ) 
+	{	
+#define MAX_AA_INC		0x0000FFFF
+		CARD32 inc = ((CARD32)dy * MAX_AA_INC)/(CARD32)dx; 
+		CARD32 curr = 0;
+
+		if( dest->y >= ctx->curr_y ) 
+		{
+			x = ctx->curr_x ; 
+			y = ctx->curr_y ; 
+			end = dest->x ; 
+		}else
+		{
+			x = dest->x ; 
+			y = dest->y ; 
+			end = ctx->curr_x ; 
+		}
+		   
+		apply_tool_aa( ctx, x, y, 255 ) ; 
+		
+		if( end < x ) 
+			dir = -1 ;				 
+		
+		LOCAL_DEBUG_OUT( "inc = %ld, dx = %d, dy = %d, x = %d, y = %d, end = %d, dir = %d", inc, dx, dy, x, y, end, dir );
+		while( x != end ) 
+		{
+			curr += inc ; 	
+			if( curr >= MAX_AA_INC  )
+			{
+				curr = 0 ; 
+				++y	;
+			}	 
+			x += dir ;
+			{
+				register int above = ((curr&0x00FF00)>>8);
+				apply_tool_aa( ctx, x, y, 255 - above ) ; 
+				apply_tool_aa( ctx, x, y+1, above ) ;
+			}
+		}
+	}else
+	{
+      	int Dx = -dy + 2*dx;
+      	int inct = 2*dx;
+		int incf = 2*(dx - dy);
+//		int minDx = -incf ; 
+//		int maxDx = inct ;
+		int rangeDx = inct-incf ;
+		int ratio = 0x00FFFFFF/rangeDx ; 
+		CARD32 curr = (Dx-incf)*ratio; 
+
+		
+		if( dest->x > ctx->curr_x ) 
+		{
+			y = ctx->curr_y ; 
+			x = ctx->curr_x ; 
+			end = dest->y ; 
+		}else
+		{
+			y = dest->y ; 
+			x = dest->x ; 
+			end = ctx->curr_y ; 
+		}
+		
+		if( end < y ) 
+			dir = -1 ;				 
+      	
+		apply_tool( ctx, x, y );
+      	while(y != end)
+		{
+        	y += dir;
+        	if(Dx > 0)
+			{
+          		Dx += incf;
+				curr = (Dx-incf)*ratio ;
+          		++x;
+        	}else 
+			{	
+				Dx += inct;
+				curr += ratio*inct ; 
+			}
+			{
+				register int above = (curr&0x00FF0000)>>16;
+				if( above > 108 && above < 148 ) 
+				{
+					apply_tool_aa( ctx, x, y, 108 ) ; 
+					apply_tool_aa( ctx, x+1, y, 108 ) ;
+				}else
+				{		 
+					apply_tool_aa( ctx, x, y, 255 - above ) ; 
+					apply_tool_aa( ctx, x+1, y, above ) ;
+				}
+			}
+      	}
+	}		 
+
+	ctx->curr_x = dest->x ;
+	ctx->curr_y = dest->y ;
+
+	return False ;
+}	 
+
 
 /*********************************************************************************/
 /* context functions : 											 				 */
@@ -233,6 +436,19 @@ asim_line_to( ASDrawContext *ctx, int dst_x, int dst_y )
 
 	ctx->draw_data = &dst ; 
 	ctx_draw_line_solid( ctx );
+	ctx->draw_data = NULL ;
+}	 
+
+
+void
+asim_line_to_aa( ASDrawContext *ctx, int dst_x, int dst_y ) 
+{
+	ASDrawPoint dst ;
+	dst.x = dst_x ; 
+	dst.y = dst_y ; 
+
+	ctx->draw_data = &dst ; 
+	ctx_draw_line_solid_aa( ctx );
 	ctx->draw_data = NULL ;
 }	 
 
@@ -312,12 +528,18 @@ int main(int argc, char **argv )
 	ctx = create_draw_context(DRAW_TEST_SIZE, DRAW_TEST_SIZE);
 	/* actuall drawing starts here */
 
-	asim_line_to( ctx, 200, 200 ); 
-	asim_line_to( ctx, 100, 10 );
-	asim_line_to( ctx, 10, 300 );
+//	for( i = 0 ; i < 50000 ; ++i ) 
+	{
+		ctx->curr_x = 0 ; 	  
+		ctx->curr_y = 0 ; 
+		asim_line_to_aa( ctx, 200, 200 ); 
+	}
+	asim_line_to_aa( ctx, 100, 10 );
+	asim_line_to_aa( ctx, 10, 300 );
 
+#if 1
 	/* commit drawing : */
-	apply_draw_context( drawing1, ctx, ARGB32_ALPHA_CHAN ); 
+	apply_draw_context( drawing1, ctx, SCL_DO_ALPHA ); 
 	
 	layers_num = 2 ;
 	layers = create_image_layers( layers_num );
@@ -335,9 +557,9 @@ int main(int argc, char **argv )
 							  0, ASIMAGE_QUALITY_DEFAULT );
 
 
-	ASImage2file( merged_im, NULL, "test_asdraw.jpg", ASIT_Jpeg, NULL );
+	ASImage2file( merged_im, NULL, "test_asdraw.png", ASIT_Png, NULL );
 	destroy_asimage( &merged_im );
-
+#endif
 
 	return 1;
 }

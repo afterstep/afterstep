@@ -92,7 +92,7 @@ if test "$echo_cflags" = "yes" ; then
 fi
 
 if test "$echo_libs" = "yes" ; then
- libs="-lAfterStep"
+ libs="-lAfterStep @xine_libs@ @xext_lib@"
  if test "@libdir@" != "/usr/lib" ; then
  	echo -L@libdir@ $libs
  else
