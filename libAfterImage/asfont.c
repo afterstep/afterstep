@@ -1483,7 +1483,8 @@ free_glyph_map( ASGlyphMap *map, Bool reusable )
 {
     if( map )
     {
-        free( map->glyphs );
+		if( map->glyphs );
+	        free( map->glyphs );
         if( !reusable )
             free( map );
     }
