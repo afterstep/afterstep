@@ -1,4 +1,4 @@
-/* This file contains code for unified image loading from XPM file  */
+/* This file contains code for unified image loading from XCF file  */
 /********************************************************************/
 /* Copyright (c) 2001 Sasha Vasko <sashav@sprintmail.com>           */
 /********************************************************************/
@@ -89,7 +89,9 @@ xcf_skip_string (FILE *fp)
 	if( xcf_read32 (fp, &size, 1)< 1 )
 		return;
 	if( size > 0 )
+	{
 		fseek(fp, size, SEEK_CUR );
+	}
 }
 
 XcfImage *
@@ -266,7 +268,6 @@ print_xcf_channels( char* prompt, XcfChannel *head )
 		fprintf( stderr, "%s.channel[%d].offset = %ld\n", prompt, i, head->offset );
 		fprintf( stderr, "%s.channel[%d].width = %ld\n", prompt, i, head->width );
 		fprintf( stderr, "%s.channel[%d].height = %ld\n", prompt, i, head->height );
-		fprintf( stderr, "%s.channel[%d].type = %ld\n", prompt, i, head->type );
 		sprintf( p, "%s.channel[%d]", prompt, i );
 		print_xcf_properties( p, head->properties );
 		fprintf( stderr, "%s.channel[%d].opacity = %ld\n", prompt, i, head->opacity );
@@ -298,36 +299,6 @@ print_xcf_image( XcfImage *xcf_im )
 
 /*******************************************************************************/
 /* deallocation functions : 												   */
-
-static XcfProperty *
-read_xcf_props( FILE *fp )
-{
-	XcfProperty *head = NULL;
-	XcfProperty **tail = &head;
-	CARD32 prop_vals[2] ;
-
-	do
-	{
-		if( xcf_read32( fp, &(prop_vals[0]), 2 ) < 2 )
-			break;
-		if( prop_vals[0] != 0 )
-		{
-			*tail = safecalloc( 1, sizeof(XcfProperty));
-			(*tail)->id  = prop_vals[0] ;
-			(*tail)->len = prop_vals[1] ;
-			if( (*tail)->len > 0 )
-			{
-				if( (*tail)->len <= 8 )
-					(*tail)->data = (CARD8*)&((*tail)->buffer[0]) ;
-				else
-					(*tail)->data = safemalloc( (*tail)->len );
-				xcf_read8( fp, (*tail)->data, (*tail)->len );
-			}
-			tail = &((*tail)->next);
-		}
-	}while( prop_vals[0] != 0 );
-	return head;
-}
 
 void
 free_xcf_properties( XcfProperty *head )
@@ -424,6 +395,36 @@ free_xcf_image( XcfImage *xcf_im )
 /*******************************************************************************/
 /* detail loading functions : 												   */
 
+static XcfProperty *
+read_xcf_props( FILE *fp )
+{
+	XcfProperty *head = NULL;
+	XcfProperty **tail = &head;
+	CARD32 prop_vals[2] ;
+
+	do
+	{
+		if( xcf_read32( fp, &(prop_vals[0]), 2 ) < 2 )
+			break;
+		if( prop_vals[0] != 0 )
+		{
+			*tail = safecalloc( 1, sizeof(XcfProperty));
+			(*tail)->id  = prop_vals[0] ;
+			(*tail)->len = prop_vals[1] ;
+			if( (*tail)->len > 0 )
+			{
+				if( (*tail)->len <= 8 )
+					(*tail)->data = (CARD8*)&((*tail)->buffer[0]) ;
+				else
+					(*tail)->data = safemalloc( (*tail)->len );
+				xcf_read8( fp, (*tail)->data, (*tail)->len );
+			}
+			tail = &((*tail)->next);
+		}
+	}while( prop_vals[0] != 0 );
+	return head;
+}
+
 static XcfListElem *
 read_xcf_list_offsets( FILE *fp, size_t elem_size )
 {
@@ -510,14 +511,13 @@ read_xcf_channels( XcfImage *xcf_im, FILE *fp, XcfChannel *head )
 	while( head )
 	{
 		fseek( fp, head->offset, SEEK_SET );
-		if( xcf_read32( fp, &(head->width), 3 ) < 3 )
+		if( xcf_read32( fp, &(head->width), 2 ) < 2 )
 		{
 			head->width = 0 ;
 			head->height = 0 ;
-			head->type = 0 ;
 			continue;                          /* not enough data */
 		}
-		xcf_skip_string(fp);
+		xcf_skip_string(fp); 
 		head->properties = read_xcf_props( fp );
 		for( prop = head->properties ; prop != NULL ; prop = prop->next )
 		{
@@ -598,6 +598,8 @@ read_xcf_hierarchy( XcfImage *xcf_im, FILE *fp )
 	if( xcf_read32( fp, &(h_props[0]), 3 ) < 3 )
 		return NULL;
 	h = safecalloc(1, sizeof(XcfHierarchy));
+fprintf( stderr, "reading hierarchy %dx%d, bpp = %d\n", h_props[0], h_props[1], h_props[2] );		
+
 	h->width  = h_props[0] ;
 	h->height = h_props[1] ;
 	h->bpp	  = h_props[2] ;
