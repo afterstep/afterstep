@@ -313,6 +313,8 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 	register CARD8  *src = color_ptr[y];
 	register CARD32 *dst = to_buf;
 	/* that thing below is supposedly highly optimized : */
+	if( src == NULL )
+		return 0;
 	while ( *src != RLE_EOL)
 	{
 		if( src[0] == RLE_DIRECT_TAIL )
@@ -427,52 +429,14 @@ asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp,
 	return True;
 }
 
-#if 0
-unsigned int  asimage_scale_line_down (CARD8 * from, CARD8 * to, unsigned int from_width, unsigned int to_width);
-
-unsigned int
-asimage_scale_line_up (CARD8 * from, CARD8 * to, unsigned int from_width, unsigned int to_width)
-{
-	if (from == NULL || to == NULL)
-		return 0;
-	if (from_width > to_width)
-		return asimage_scale_line_down (from, to, from_width, to_width);
-	else if (from_width == to_width)
-		return asimage_copy_line (from, to);
-	/* TODO : implement scaling up :) */
-	return 0;
-}
-
-unsigned int
-asimage_scale_line_down (CARD8 * from, CARD8 * to, unsigned int from_width, unsigned int to_width)
-{
-	register CARD8 *src = from, *dst = to;
-
-	/* initializing Brsesengham algoritm parameters : */
-	int           bre_curr = from_width >> 1, bre_limit = from_width, bre_inc = to_width;
-
-	/* these are used for color averaging : */
-	CARD32        total;
-	unsigned int  count;
-
-	if (src == NULL || dst == NULL)
-		return 0;
-	if (from_width <= to_width)
-		return asimage_scale_line_up (src, dst, from_width, to_width);
-
-	while (*src != RLE_EOL)
-	{
-		int           n1, n2;
-
-		n1 = _asimage_get_length (src);
-	}
-	return (dst - to);
-}
-#endif
-
-
 typedef struct ASScanline
 {
+#define SCL_DO_RED          (0x01<<0)
+#define SCL_DO_GREEN        (0x01<<1)
+#define SCL_DO_BLUE         (0x01<<2)
+#define SCL_DO_ALPHA		(0x01<<3)
+#define SCL_DO_ALL			(SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE|SCL_DO_ALPHA)
+	ASFlagType 	   flags;
 	CARD32        *buffer ;
 	CARD32        *red, *green, *blue, *alpha;
 	unsigned int   width, shift;
@@ -583,17 +547,17 @@ fill_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode,
 		if (byte_order == MSBFirst)
 			for (i = 0 ; i < width; i++)
 			{
-				r[i] =  (src[0]&0xF8)>>3;
-				g[i] = ((src[0]&0x07)<<3)|((src[1]&0xE0)>>5);
-				b[i] =  (src[1]&0x1F);
+				r[i] =  (src[0]&0xF8);
+				g[i] = ((src[0]&0x07)<<5)|((src[1]&0xE0)>>3);
+				b[i] =  (src[1]&0x1F)<<3;
 				src += 2;
 			}
 		else
 			for (i = 0 ; i < width; i++)
 			{
-				r[i] =  (src[1]&0xF8) >> 3;
-				g[i] = ((src[1]&0x07)<<3)|((src[0]&0xE0)>>5);;
-				b[i] =  (src[0]&0x1F);
+				r[i] =  (src[1]&0xF8);
+				g[i] = ((src[1]&0x07)<<5)|((src[0]&0xE0)>>3);;
+				b[i] =  (src[0]&0x1F)<<3;
 				src += 2;
 			}
 	} else if (bpp == 15)
@@ -601,17 +565,17 @@ fill_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode,
 		if (byte_order == MSBFirst)
 			for (i = 0 ; i < width; i++)
 			{
-				r[i] =  (src[0]&0x7C)>>2;
-				g[i] = ((src[0]&0x03)<<3)|((src[1]&0xE0)>>5);
-				b[i] =  (src[1]&0x1F);
+				r[i] =  (src[0]&0x7C)<<1;
+				g[i] = ((src[0]&0x03)<<5)|((src[1]&0xE0)>>3);
+				b[i] =  (src[1]&0x1F)<<3;
 				src += 2;
 			}
 		else
 			for (i = 0 ; i < width; i++)
 			{
-				r[i] =  (src[1]&0x7C)>>2;
-				g[i] = ((src[1]&0x03)<<3)|((src[0]&0xE0)>>5);;
-				b[i] =  (src[0]&0x1F);
+				r[i] =  (src[1]&0x7C)<<1;
+				g[i] = ((src[1]&0x03)<<5)|((src[0]&0xE0)>>3);
+				b[i] =  (src[0]&0x1F)<<3;
 				src += 2;
 			}
 	} else
@@ -662,34 +626,50 @@ put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, 
 			}
 	} else if (bpp == 16)
 	{										   /* must add LSB/MSB checking */
+		CARD32 err_red = 0, err_green = 0, err_blue = 0;
+		CARD32 red, green, blue;
 		if (byte_order == MSBFirst)
 			for (i = 0 ; i < width; i++)
-			{
-				src[0] = (CARD8)((r[i] << 3) | (( g[i] >> 3) & 0x07 ));
-				src[1] = (CARD8)((g[i] << 5) |    b[i]);
+			{ /* diffusion to compensate for quantization error :*/
+				red = r[i]+err_red ; err_red = (red&0x07)>>1 ;
+				green = g[i]+err_green ; err_green = (green&0x03)>>1 ;
+				blue = g[i]+err_blue ; err_blue = (blue&0x07)>>1 ;
+				src[0] = (CARD8)((red << 3) | (( green >> 3) & 0x07 ));
+				src[1] = (CARD8)((green<<5) |    blue);
 				src += 2;
 			}
 		else
 			for (i = 0 ; i < width; i++)
-			{
-				src[1] = (CARD8)((r[i] << 3) | (( g[i] >> 3) & 0x07 ));
-				src[0] = (CARD8)((g[i] << 5) |    b[i]);
+			{/* diffusion to compensate for quantization error :*/
+				red = r[i]+err_red ; err_red = (red&0x07)>>1 ;
+				green = g[i]+err_green ; err_green = (green&0x03)>>1 ;
+				blue = g[i]+err_blue ; err_blue = (blue&0x07)>>1 ;
+				src[1] = (CARD8)((red << 3) | (( green >> 3) & 0x07 ));
+				src[0] = (CARD8)((green << 5) |  blue);
 				src += 2;
 			}
 	} else if (bpp == 15)
 	{										   /* must add LSB/MSB checking */
+		CARD32 err_red = 0, err_green = 0, err_blue = 0;
+		CARD32 red, green, blue;
 		if (byte_order == MSBFirst)
 			for (i = 0 ; i < width; i++)
-			{
-				src[0] = (CARD8)((r[i] << 2) | (( g[i] >> 3) & 0x03 ))&0x7F;
-				src[1] = (CARD8)((g[i] << 5) |    b[i]);
+			{/* diffusion to compensate for quantization error :*/
+				red = r[i]+err_red ; err_red = (red&0x07)>>1 ;
+				green = g[i]+err_green ; err_green = (green&0x07)>>1 ;
+				blue = g[i]+err_blue ; err_blue = (blue&0x07)>>1 ;
+				src[0] = (CARD8)((red << 2) | (( green >> 3) & 0x03 ))&0x7F;
+				src[1] = (CARD8)((green << 5) |  blue);
 				src += 2;
 			}
 		else
 			for (i = 0 ; i < width; i++)
-			{
-				src[1] = (CARD8)((r[i] << 2) | (( g[i] >> 3) & 0x03 ))&0x7F;
-				src[0] = (CARD8)((g[i] << 5) |    b[i]);
+			{/* diffusion to compensate for quantization error :*/
+				red = r[i]+err_red ; err_red = (red&0x07)>>1 ;
+				green = g[i]+err_green ; err_green = (green&0x07)>>1 ;
+				blue = g[i]+err_blue ; err_blue = (blue&0x07)>>1 ;
+				src[1] = (CARD8)((red << 2) | (( green >> 3) & 0x03 ))&0x7F;
+				src[0] = (CARD8)((green << 5) |  blue);
 				src += 2;
 			}
 	} else
@@ -699,159 +679,30 @@ put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, 
 	}
 }
 
-
-ASImage      *
-asimage_from_ximage (XImage * xim)
-{
-	ASImage      *im = NULL;
-	unsigned char *xim_line;
-	int           i, height, bpl;
-	ASScanline    xim_buf;
-#ifdef LOCAL_DEBUG
-	CARD32       *tmp ;
-#endif
-	if (xim == NULL)
-		return im;
-
-	im = (ASImage *) safemalloc (sizeof (ASImage));
-	asimage_init (im, False);
-	asimage_start (im, xim->width, xim->height);
-#ifdef LOCAL_DEBUG
-	tmp = safemalloc( xim->width * sizeof(CARD32));
-#endif
-	prepare_scanline( xim->width, 0, &xim_buf );
-
-	height = xim->height;
-	bpl = xim->bytes_per_line;
-	xim_line = xim->data;
-
-	if( ascolor_true_depth == 0 )
-		for (i = 0; i < height; i++)
-		{
-			fill_ximage_buffer_pseudo( xim, &xim_buf, i );
-			asimage_add_line (im, IC_RED,   xim_buf.red, i);
-			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
-			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
-		}
-	else                                       /* TRue color visual */
-		for (i = 0; i < height; i++)
-		{
-			fill_ximage_buffer (xim_line, &xim_buf, 0, xim->byte_order, xim->bits_per_pixel );
-			asimage_add_line (im, IC_RED,   xim_buf.red, i);
-			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
-			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
-#ifdef LOCAL_DEBUG
-			if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) )
-				exit(0);
-			if( !asimage_compare_line( im, IC_GREEN,  xim_buf.green, tmp, i, True ) )
-				exit(0);
-			if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) )
-				exit(0);
-#endif
-			xim_line += bpl;
-		}
-	free_scanline(&xim_buf, True);
-
-	return im;
-}
-
-XImage*
-ximage_from_asimage (ASImage *im, int depth)
-{
-	XImage        *xim = NULL;
-	unsigned char *xim_line;
-	int           i, height, bpl;
-	ASScanline    xim_buf;
-
-	if (im == NULL)
-		return xim;
-
-	xim = CreateXImageAndData( dpy, ascolor_visual, depth, ZPixmap, 0, im->width, im->height );
-
-	prepare_scanline( xim->width, 0, &xim_buf );
-
-	height = im->height;
-	bpl = 	   xim->bytes_per_line;
-	xim_line = xim->data;
-
-	if( ascolor_true_depth == 0 )
-		for (i = 0; i < height; i++)
-		{
-			asimage_decode_line (im, IC_RED,   xim_buf.red, i);
-			asimage_decode_line (im, IC_GREEN, xim_buf.green, i);
-			asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i);
-			put_ximage_buffer_pseudo( xim, &xim_buf, i );
-		}
-	else                                       /* TRue color visual */
-		for (i = 0; i < height; i++)
-		{
-			asimage_decode_line (im, IC_RED,   xim_buf.red, i);
-			asimage_decode_line (im, IC_GREEN, xim_buf.green, i);
-			asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i);
-			put_ximage_buffer (xim_line, &xim_buf, 0, xim->byte_order, xim->bits_per_pixel );
-			xim_line += bpl;
-		}
-	free_scanline(&xim_buf, True);
-
-	return xim;
-}
-
-ASImage      *
-asimage_from_pixmap (Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask)
-{
-	XImage       *xim = XGetImage (dpy, p, x, y, width, height, plane_mask, ZPixmap);
-	ASImage      *im = NULL;
-
-	if (xim)
-	{
-		im = asimage_from_ximage (xim);
-		XDestroyImage (xim);
-	}
-	return im;
-}
-
-Pixmap
-pixmap_from_asimage(ASImage *im, Window w, GC gc)
-{
-	XImage       *xim ;
-	Pixmap        p = None;
-	XWindowAttributes attr;
-
-	if( XGetWindowAttributes (dpy, w, &attr) )
-	{
-		set_ascolor_depth( w, attr.depth );
-		if ((xim = ximage_from_asimage( im, attr.depth )) != NULL )
-		{
-			p = XCreatePixmap( dpy, w, im->width, im->height, attr.depth );
-			XPutImage( dpy, p, gc, xim, 0, 0, 0, 0, im->width, im->height );
-			XDestroyImage (xim);
-		}
-	}
-	return p;
-}
-
 /*******************************************************************************/
 /* below goes all kinds of funky stuff we can do with scanlines : 			   */
 /*******************************************************************************/
 /* this will enlarge array based on count of items in dst per PAIR of src item with smoothing/scatter/dither */
 /* the following formulas use linear approximation to calculate   */
 /* color values for new pixels : 				  				  */
-/* note that we shift values by 16 to keep quanitzation error in  */
-/* lower 2 bytes for subsequent dithering 						  */
+/* note that we shift values by 8 to keep quanitzation error in   */
+/* lower 1 byte for subsequent dithering 	:					  */
+#define QUANT_ERR_BITS  	8
+#define QUANT_ERR_MASK  	0x000000FF
 /* for scale factor of 2 we use this formula :    */
 /* C = (-C1+3*C2+3*C3-C4)/4 					  */
 /* or better :				 					  */
 /* C = (-C1+5*C2+5*C3-C4)/8 					  */
-#define INTERPOLATE_COLOR1(c) 			   	((c)<<16)  /* nothing really to interpolate here */
-#define INTERPOLATE_COLOR2(c1,c2,c3,c4)    	((((c2)<<2)+(c2)+((c3)<<2)+(c3)-(c1)-(c4))<<13)
+#define INTERPOLATE_COLOR1(c) 			   	((c)<<QUANT_ERR_BITS)  /* nothing really to interpolate here */
+#define INTERPOLATE_COLOR2(c1,c2,c3,c4)    	((((c2)<<2)+(c2)+((c3)<<2)+(c3)-(c1)-(c4))<<(QUANT_ERR_BITS-3))
 /* for scale factor of 3 we use these formulas :  */
 /* Ca = (-2C1+8*C2+5*C3-2C4)/9 		  			  */
 /* Cb = (-2C1+5*C2+8*C3-2C4)/9 		  			  */
 /* or better : 									  */
 /* Ca = (-C1+5*C2+3*C3-C4)/6 		  			  */
 /* Cb = (-C1+3*C2+5*C3-C4)/6 		  			  */
-#define INTERPOLATE_A_COLOR3(c1,c2,c3,c4)  	(((((c2)<<2)+(c2)+((c3)<<1)+(c3)-(c1)-(c4))<<16)/6)
-#define INTERPOLATE_B_COLOR3(c1,c2,c3,c4)  	(((((c2)<<1)+(c2)+((c3)<<2)+(c3)-(c1)-(c4))<<16)/6)
+#define INTERPOLATE_A_COLOR3(c1,c2,c3,c4)  	(((((c2)<<2)+(c2)+((c3)<<1)+(c3)-(c1)-(c4))<<QUANT_ERR_BITS)/6)
+#define INTERPOLATE_B_COLOR3(c1,c2,c3,c4)  	(((((c2)<<1)+(c2)+((c3)<<2)+(c3)-(c1)-(c4))<<QUANT_ERR_BITS)/6)
 /* just a hypotesus, but it looks good for scale factors S > 3: */
 /* Cn = (-C1+(2*(S-n)+1)*C2+(2*n+1)*C3-C4)/2S  	  			   */
 /* or :
@@ -861,11 +712,11 @@ pixmap_from_asimage(ASImage *im, Window w, GC gc)
 #define INTERPOLATION_C3s(c3)	 		 	((c3)<<2)
 #define INTERPOLATION_TOTAL_START(c1,C2s,C3s,c4,S) 	((((S)<<2)+1)*(C2s)+((C3s)<<1)+(C3s)-c1-c4)
 #define INTERPOLATION_TOTAL_STEP(C2s,C3s)  	((C3s)-(C2s))
-#define INTERPOLATE_N_COLOR(T,S)		  	(((T)<<14)/(S))
+#define INTERPOLATE_N_COLOR(T,S)		  	(((T)<<(QUANT_ERR_BITS-1))/(S))
 
-#define AVERAGE_COLOR1(c) 					((c)<<16)
-#define AVERAGE_COLOR2(c1,c2)				(((c1)+(c2))<<15)
-#define AVERAGE_COLORN(T,N)					(((T)<<16)/N)
+#define AVERAGE_COLOR1(c) 					((c)<<QUANT_ERR_BITS)
+#define AVERAGE_COLOR2(c1,c2)				(((c1)+(c2))<<(QUANT_ERR_BITS-1))
+#define AVERAGE_COLORN(T,N)					(((T)<<QUANT_ERR_BITS)/N)
 
 static inline void
 enlarge_component12( register CARD32 *src, register CARD32 *dst, int *scales, int len )
@@ -1004,144 +855,408 @@ shrink_component( register CARD32 *src, register CARD32 *dst, int *scales, int l
 		}
 	}
 }
+/* for consistency sake : */
+static inline void
+copy_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+{
+	register int i ;
+	for( i = 0 ; i < len ; ++i )
+		dst[i] = src[i];
+}
 
-#define SCANLINE_FUNC(f,src,dst,scales,len) \
-do{	if((src).red   && (dst).red  ) f((src).red,  (dst).red,  (scales),(len));		\
-	if((src).green && (dst).green) f((src).green,(dst).green,(scales),(len)); \
-	if((src).blue  && (dst).blue ) f((src).blue, (dst).blue, (scales),(len));   \
-	if((src).alpha && (dst).alpha) f((src).alpha,(dst).alpha,(scales),(len)); \
+static inline void
+add_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+{
+	register int i ;
+	for( i = 0 ; i < len ; ++i )
+		src[i] += dst[i];
+}
+
+static inline int
+set_component( register CARD32 *src, register CARD32 value, int offset, int len )
+{
+	register int i ;
+	for( i = offset ; i < len ; ++i )
+		src[i] += value;
+	return len-offset;
+}
+
+static inline void
+divide_component( register CARD32 *data, int ratio, int len )
+{
+	register int i ;
+	for( i = 0 ; i < len ; ++i )
+		data[i] /= ratio;
+}
+
+static inline void
+rbitshift_component( register CARD32 *data, int bits, int len )
+{
+	register int i ;
+	for( i = 0 ; i < len ; ++i )
+		data[i] = data[i]>>bits;
+}
+
+static inline void
+simple_diffuse_shift_component( register CARD32 *data, int bits, int len )
+{/* we carry half of the quantization error onto the following pixel : */
+	register int i ;
+	register CARD32 err = 0;
+	for( i = 0 ; i < len ; ++i )
+	{
+		data[i] += err ;
+		err = (data[i]&QUANT_ERR_MASK)>>1 ;
+		data[i] = data[i]>>bits;
+	}
+}
+
+/* the following 5 macros will in fact unfold into huge but fast piece of code : */
+/* we make poor compiler work overtime unfolding all this macroses but I bet it  */
+/* is still better then C++ templates :)									     */
+
+#define DECODE_SCANLINE(im,dst,y) \
+do{												\
+	clear_flags( dst.flags,SCL_DO_ALL);			\
+	if( set_component(dst.red  ,0,asimage_decode_line(im,IC_RED  ,dst.red,  y),dst.width)<dst.width) \
+		set_flags( dst.flags,SCL_DO_RED);												 \
+	if( set_component(dst.green,0,asimage_decode_line(im,IC_GREEN,dst.green,y),dst.width)<dst.width) \
+		set_flags( dst.flags,SCL_DO_GREEN);												 \
+	if( set_component(dst.blue ,0,asimage_decode_line(im,IC_BLUE ,dst.blue, y),dst.width)<dst.width) \
+		set_flags( dst.flags,SCL_DO_BLUE);												 \
+	if( set_component(dst.alpha,0,asimage_decode_line(im,IC_ALPHA,dst.alpha,y),dst.width)<dst.width) \
+		set_flags( dst.flags,SCL_DO_ALPHA);												 \
   }while(0)
 
-static inline void
-shrink_scanline( ASScanline *src_line, ASScanline *dst_line, register int *scales )
-{
-	SCANLINE_FUNC(shrink_component,*src_line,*dst_line,scales,dst_line->width);
-}
+#define ENCODE_SCANLINE(im,src,y) \
+do{	asimage_add_line(im, IC_RED,   src.red,   y); \
+   	asimage_add_line(im, IC_GREEN, src.green, y); \
+   	asimage_add_line(im, IC_BLUE,  src.blue,  y); \
+	if( get_flags(src.flags,SCL_DO_ALPHA))asimage_add_line(im, IC_ALPHA, src.alpha, y); \
+  }while(0)
 
-static inline void
-enlarge_scanline12( ASScanline *src_line, ASScanline *dst_line, register int *scales )
-{
-	SCANLINE_FUNC(enlarge_component12,*src_line,*dst_line,scales,src_line->width);
-}
+#define SCANLINE_FUNC(f,src,dst,scales,len) \
+do{	f((src).red,  (dst).red,  (scales),(len));		\
+	f((src).green,(dst).green,(scales),(len)); 		\
+	f((src).blue, (dst).blue, (scales),(len));   	\
+	if(get_flags(src.flags,SCL_DO_ALPHA)) f((src).alpha,(dst).alpha,(scales),(len)); \
+  }while(0)
 
-static inline void
-enlarge_scanline23( ASScanline *src_line, ASScanline *dst_line, register int *scales )
-{
-	SCANLINE_FUNC(enlarge_component23,*src_line,*dst_line,scales,src_line->width);
-}
+#define CHOOSE_SCANLINE_FUNC(r,src,dst,scales,len) \
+ switch( r )                                              							\
+ {  case 0:	SCANLINE_FUNC(shrink_component,(src),(dst),(scales),(len));break;   	\
+	case 1: SCANLINE_FUNC(copy_component,  (src),(dst),(scales),(len));	break;  	\
+	case 2:	SCANLINE_FUNC(enlarge_component12,(src),(dst),(scales),(len));break ; 	\
+	case 3:	SCANLINE_FUNC(enlarge_component23,(src),(dst),(scales),(len));break;  	\
+	default:SCANLINE_FUNC(enlarge_component,  (src),(dst),(scales),(len));        	\
+ }
 
-static inline void
-enlarge_scanline( ASScanline *src_line, ASScanline *dst_line, register int *scales )
-{
-	SCANLINE_FUNC(enlarge_component,*src_line,*dst_line,scales,src_line->width);
-}
+#define SCANLINE_MOD(f,src,p,len) \
+do{	f((src).red,p,(len));		\
+	f((src).green,p,(len));		\
+	f((src).blue,p,(len));		\
+	if(get_flags(src.flags,SCL_DO_ALPHA)) f((src).alpha,p,(len));\
+  }while(0)
 
 Bool
 check_scale_parameters( ASImage *src, int *to_width, int *to_height )
 {
-	if( src == NULL ) 
+	if( src == NULL )
 		return False;
-  
-	if( *to_width < 0 ) 
+
+	if( *to_width < 0 )
 		*to_width = src->width ;
-	else if( *to_width < 2 ) 
-		*to_width = 2 ;		
-	if( *to_height < 0 ) 
+	else if( *to_width < 2 )
+		*to_width = 2 ;
+	if( *to_height < 0 )
 		*to_height = src->height ;
-	else if( *to_height < 2 ) 
+	else if( *to_height < 2 )
 		*to_height = 2 ;
-	return True;				
-}		
-
-
-void 
-scale_image_down( ASImage *src, ASImage *dst, int h_ratio )
-{
-	ASScanline *src_line, *dst_line, *total ;
-	
-	if( h_ratio < 1 ) 
-	{
-	}else if( h_ratio >= 1 && h_ratio <= 2) /* scaling up */
-	{
-	}else if( h_ratio > 2 && h_ratio <= 3) 
-	{
-	}else
-	{
-	}
+	return True;
 }
 
-void 
+int *
+make_scales( unsigned short from_size, unsigned short to_size )
+{
+	int *scales ;
+	unsigned short smaller = MIN(from_size,to_size);
+	unsigned short bigger  = MAX(from_size,to_size);
+	register int i = 0, k = 0;
+	int eps = 0;
+
+	if( smaller == 0 )
+		smaller = 1;
+	if( bigger == 0 )
+		bigger = 1;
+	scales = safecalloc( smaller, sizeof(int));
+	/* now using Bresengham algoritm to fiill the scales :
+	 * since scaling is merely transformation
+	 * from 0:bigger space (x) to 0:smaller space(y)*/
+	for ( i = 0 ; i < bigger ; i++ )
+	{
+		++scales[k];
+		eps += smaller;
+		if( (eps << 1) >= bigger )
+		{
+			++k ;
+			eps -= bigger ;
+		}
+	}
+	return scales;
+}
+
+void
+scale_image_down( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* scales_v, Bool to_xim)
+{
+	ASScanline src_line, dst_line, total ;
+	int i = 0, k = 0;
+	unsigned char *xim_line = NULL;
+	int            height = 0, bpl = 0;
+
+	if( to_xim  )
+	{
+		if( dst->ximage == NULL )
+			return;
+		height =   dst->ximage->height;
+		bpl = 	   dst->ximage->bytes_per_line;
+		xim_line = dst->ximage->data;
+	}
+	prepare_scanline( src->width, 0, &src_line );
+	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line );
+	prepare_scanline( dst->width, QUANT_ERR_BITS, &total );
+	while( k < dst->height )
+	{
+		int reps = scales_v[k] ;
+		DECODE_SCANLINE(src,src_line,i);
+		total.flags = src_line.flags ;
+		CHOOSE_SCANLINE_FUNC(h_ratio,src_line,dst_line,scales_h,total.width);
+		reps += i-1;
+		while ( reps > i )
+		{
+			++i ;
+			DECODE_SCANLINE(src,src_line,i);
+			total.flags |= src_line.flags ;
+			CHOOSE_SCANLINE_FUNC(h_ratio,src_line,dst_line,scales_h,dst_line.width);
+			SCANLINE_FUNC(add_component,total,dst_line,NULL,total.width);
+		}
+		if( (reps = scales_v[k])> 1 )
+		{
+			if( reps == 2 )
+				SCANLINE_MOD(rbitshift_component,total,1,total.width);
+			else
+				SCANLINE_MOD(divide_component,total,reps,total.width);
+			SCANLINE_MOD(simple_diffuse_shift_component,total,QUANT_ERR_BITS,total.width);
+		}else
+			SCANLINE_MOD(rbitshift_component,total,QUANT_ERR_BITS,total.width);
+		if( to_xim )
+		{
+			if( ascolor_true_depth == 0 )
+				put_ximage_buffer_pseudo( dst->ximage, &total, k );
+			else
+			{
+				put_ximage_buffer (xim_line, &total, 0, dst->ximage->byte_order, dst->ximage->bits_per_pixel );
+				xim_line += bpl;
+			}
+		}else
+			ENCODE_SCANLINE(dst,total,k);
+		++k;
+	}
+	free_scanline(&src_line, True);
+	free_scanline(&dst_line, True);
+	free_scanline(&total, True);
+}
+
+void
 scale_image_up12( ASImage *src, ASImage *dst, int h_ratio )
 {
-	ASScanline *src_line ;
-	
-	if( h_ratio < 1 ) 
-	{
-	}else if( h_ratio >= 1 && h_ratio <= 2) /* scaling up */
-	{
-	}else if( h_ratio > 2 && h_ratio <= 3) 
-	{
-	}else
-	{
-	}
 }
 
-void 
+void
 scale_image_up23( ASImage *src, ASImage *dst, int h_ratio )
 {
-	ASScanline *src_line ;
-	
-	if( h_ratio < 1 ) 
-	{
-	}else if( h_ratio >= 1 && h_ratio <= 2) /* scaling up */
-	{
-	}else if( h_ratio > 2 && h_ratio <= 3) 
-	{
-	}else
-	{
-	}
 }
 
-void 
+void
 scale_image_up( ASImage *src, ASImage *dst, int h_ratio )
 {
-	ASScanline *src_line ;
-	
-	if( h_ratio < 1 ) 
-	{
-	}else if( h_ratio >= 1 && h_ratio <= 2) /* scaling up */
-	{
-	}else if( h_ratio > 2 && h_ratio <= 3) 
-	{
-	}else
-	{
-	}
 }
 
-
 ASImage *
-scale_image( ASImage *src, int to_width, int to_height )
+scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth )
 {
 	ASImage *dst = NULL ;
 	int h_ratio, v_ratio ;
-	
-	if( !check_scale_parameters(src,&to_width,&to_height) ) 
+	int *scales_h = NULL, *scales_v = NULL;
+
+	if( !check_scale_parameters(src,&to_width,&to_height) )
 		return NULL;
 
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height);
+	if( to_xim )
+		dst->ximage = CreateXImageAndData( dpy, ascolor_visual, depth, ZPixmap, 0, to_width, to_height );
 
 	h_ratio = to_width/src->width;
+	if( to_width%src->width > 0 )
+		h_ratio++ ;
 	v_ratio = to_height/src->height;
-	
-	if( v_ratio < 1 ) 					   /* scaling down */
-		scale_image_down( src, dst, h_ratio );
-	else if( v_ratio >= 1 && v_ratio <= 2) /* scaling up */
+	if( to_height%src->height > 0 )
+		v_ratio++ ;
+
+	scales_h = make_scales( src->width, to_width );
+	scales_v = make_scales( src->height, to_height );
+
+	if( v_ratio <= 1 ) 					   /* scaling down */
+		scale_image_down( src, dst, h_ratio, scales_h, scales_v, to_xim );
+	else if( v_ratio > 1 && v_ratio <= 2) /* scaling up */
 		scale_image_up12( src, dst, h_ratio );
-	else if( v_ratio > 2 && v_ratio <= 3) 
+	else if( v_ratio > 2 && v_ratio <= 3)
 		scale_image_up23( src, dst, h_ratio );
 	else
 		scale_image_up( src, dst, h_ratio );
 
-	return dst;	
-} 
+	return dst;
+}
+
+/****************************************************************************/
+/* ASImage->XImage->pixmap->XImage->ASImage conversion						*/
+/****************************************************************************/
+
+ASImage      *
+asimage_from_ximage (XImage * xim)
+{
+	ASImage      *im = NULL;
+	unsigned char *xim_line;
+	int           i, height, bpl;
+	ASScanline    xim_buf;
+#ifdef LOCAL_DEBUG
+	CARD32       *tmp ;
+#endif
+	if (xim == NULL)
+		return im;
+
+	im = (ASImage *) safecalloc (1, sizeof (ASImage));
+	asimage_start (im, xim->width, xim->height);
+#ifdef LOCAL_DEBUG
+	tmp = safemalloc( xim->width * sizeof(CARD32));
+#endif
+	prepare_scanline( xim->width, 0, &xim_buf );
+
+	height = xim->height;
+	bpl = xim->bytes_per_line;
+	xim_line = xim->data;
+
+	if( ascolor_true_depth == 0 )
+		for (i = 0; i < height; i++)
+		{
+			fill_ximage_buffer_pseudo( xim, &xim_buf, i );
+			asimage_add_line (im, IC_RED,   xim_buf.red, i);
+			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
+			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
+		}
+	else                                       /* TRue color visual */
+		for (i = 0; i < height; i++)
+		{
+			fill_ximage_buffer (xim_line, &xim_buf, 0, xim->byte_order, xim->bits_per_pixel );
+			asimage_add_line (im, IC_RED,   xim_buf.red, i);
+			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
+			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
+#ifdef LOCAL_DEBUG
+			if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) )
+				exit(0);
+			if( !asimage_compare_line( im, IC_GREEN,  xim_buf.green, tmp, i, True ) )
+				exit(0);
+			if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) )
+				exit(0);
+#endif
+			xim_line += bpl;
+		}
+	free_scanline(&xim_buf, True);
+
+	return im;
+}
+
+XImage*
+ximage_from_asimage (ASImage *im, int depth)
+{
+	XImage        *xim = NULL;
+	unsigned char *xim_line;
+	int           i, height, bpl;
+	ASScanline    xim_buf;
+
+	if (im == NULL)
+		return xim;
+
+	xim = CreateXImageAndData( dpy, ascolor_visual, depth, ZPixmap, 0, im->width, im->height );
+
+	prepare_scanline( xim->width, 0, &xim_buf );
+
+	height = im->height;
+	bpl = 	   xim->bytes_per_line;
+	xim_line = xim->data;
+
+	if( ascolor_true_depth == 0 )
+		for (i = 0; i < height; i++)
+		{
+			asimage_decode_line (im, IC_RED,   xim_buf.red, i);
+			asimage_decode_line (im, IC_GREEN, xim_buf.green, i);
+			asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i);
+			put_ximage_buffer_pseudo( xim, &xim_buf, i );
+		}
+	else                                       /* TRue color visual */
+		for (i = 0; i < height; i++)
+		{
+			asimage_decode_line (im, IC_RED,   xim_buf.red, i);
+			asimage_decode_line (im, IC_GREEN, xim_buf.green, i);
+			asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i);
+			put_ximage_buffer (xim_line, &xim_buf, 0, xim->byte_order, xim->bits_per_pixel );
+			xim_line += bpl;
+		}
+	free_scanline(&xim_buf, True);
+
+	return xim;
+}
+
+ASImage      *
+asimage_from_pixmap (Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache)
+{
+	XImage       *xim = XGetImage (dpy, p, x, y, width, height, plane_mask, ZPixmap);
+	ASImage      *im = NULL;
+
+	if (xim)
+	{
+		im = asimage_from_ximage (xim);
+		if( keep_cache )
+			im->ximage = xim ;
+		else
+			XDestroyImage (xim);
+	}
+	return im;
+}
+
+Pixmap
+pixmap_from_asimage(ASImage *im, Window w, GC gc, Bool use_cached)
+{
+	XImage       *xim ;
+	Pixmap        p = None;
+	XWindowAttributes attr;
+
+	if( XGetWindowAttributes (dpy, w, &attr) )
+	{
+		set_ascolor_depth( w, attr.depth );
+		if ( !use_cached || im->ximage == NULL )
+			xim = ximage_from_asimage( im, attr.depth );
+		else
+			xim = im->ximage ;
+		if (xim != NULL )
+		{
+			p = XCreatePixmap( dpy, w, xim->width, xim->height, attr.depth );
+			XPutImage( dpy, p, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+			if( xim != im->ximage )
+				XDestroyImage (xim);
+		}
+	}
+	return p;
+}
+
+
+

@@ -79,14 +79,17 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
 #define VRB_CTRL_EXPLAIN 	(0x01<<2)
 #define VRB_EVERYTHING		(VRB_LINE_SUMMARY|VRB_CTRL_EXPLAIN|VRB_LINE_CONTENT)
 
+
 ASImage *asimage_from_ximage (XImage * xim);
 ASImage *asimage_from_pixmap (Pixmap p, int x, int y,
-			      unsigned int width,
-			      unsigned int height, unsigned long plane_mask);
+	                                    unsigned int width, unsigned int height,
+		  							    unsigned long plane_mask, Bool keep_cache);
 
 XImage* ximage_from_asimage (ASImage *im, int depth);
-Pixmap pixmap_from_asimage(ASImage *im, Window w, GC gc);
+Pixmap  pixmap_from_asimage(ASImage *im, Window w, GC gc, Bool use_cached);
 
+/* manipulations : */
+ASImage *scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth );
 
 
 #endif
