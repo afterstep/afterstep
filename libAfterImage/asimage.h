@@ -62,16 +62,20 @@ typedef struct ASImage
 }
 ASImage;
 
+/* Auxilary data structures : */
 typedef struct ASImageBevel
 {
 #define MAX_BEVEL_OUTLINE 10
 	ASFlagType type ;
-	ARGB32		hi_color, lo_color ;
+	ARGB32		hi_color, lo_color ;           /* primary bevel colors */
+	ARGB32		hihi_color, hilo_color, lolo_color ;  /* these will be placed in the corners */
 	unsigned short left_outline, top_outline, right_outline, bottom_outline;
 	unsigned short left_inline, top_inline, right_inline, bottom_inline;
 }ASImageBevel;
 
-/* Auxilary data structures : */
+struct ASImageDecoder;
+typedef void (*decode_image_scanline_func)( struct ASImageDecoder *imdec );
+
 typedef struct ASImageDecoder
 {
 	ASVisual 	   *asv;
@@ -92,6 +96,7 @@ typedef struct ASImageDecoder
 
 	ASScanline 		buffer;
 	int 			next_line ;
+	decode_image_scanline_func decode_image_scanline ;
 }ASImageDecoder;
 
 /* This is static piece of data that tell us what is the status of

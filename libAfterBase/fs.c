@@ -174,7 +174,7 @@ find_file (const char *file, const char *pathlist, int type)
 	if (*file == '/' || *file == '~' || ((pathlist == NULL) || (*pathlist == '\0')))
 	{
 		path = put_file_home (file);
-		if ( CheckFile (path) == 0 )
+		if ( access (path, type) == 0 )
 		{
 			return path;
 		}
@@ -206,7 +206,7 @@ find_file (const char *file, const char *pathlist, int type)
 		if( i > 0 )
 		{
 			strncpy( path+max_path-i, ptr, i );
-			if (CheckFile(path) == 0)
+			if (access(path, type) == 0)
 			{
 				char* res = mystrdup(path+max_path-i);
 				free( path );
