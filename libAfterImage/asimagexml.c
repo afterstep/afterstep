@@ -73,7 +73,7 @@
  *
  *****/
 
-
+char *interpret_ctrl_codes( char *text );
 
 /* Stolen from libAfterStep. */
 static Pixmap __GetRootPixmap (ASVisual *asv, Atom id)
@@ -1920,18 +1920,33 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		const char* var = NULL;
 		int val = 0 ;
 		Bool use_val = False ;
+		int arg_count = 0, i;
 		for (ptr = parm ; ptr ; ptr = ptr->next) 
 		{
 			if (!strcmp(ptr->tag, "format")) format = ptr->parm;
 			else if (!strcmp(ptr->tag, "var")) { var = ptr->parm; use_val = False; }
 			else if (!strcmp(ptr->tag, "val")) { val = parse_math(ptr->parm, NULL, 0); use_val = True; }
 		}
+   		
+		for( i = 0 ; format[i] != '\0' ; ++i )
+			if( format[i] == '%' )
+			{
+				if( format[i+1] != '%' ) 
+			 		++arg_count ; 
+				else 
+					++i ;
+			}
+		
 		if( format != NULL ) 
 		{	
-			if( use_val ) 
-				printf( format, val );
-			else if( var != NULL ) 
-				printf( format, asxml_var_get(var) );				
+			char *interpreted_format = interpret_ctrl_codes( strdup(format) );
+			if( use_val && arg_count == 1) 
+				printf( interpreted_format, val );
+			else if( var != NULL && arg_count == 1 ) 
+				printf( interpreted_format, asxml_var_get(var) );				
+			else if( arg_count == 0 )
+				fputs( interpreted_format, stdout );				   
+			free( interpreted_format );
 		}
 		if( result == NULL ) 
 			return NULL;
@@ -2271,5 +2286,41 @@ char* lcstring(char* str) {
 	return str;
 }
 
+char *interpret_ctrl_codes( char *text )
+{
+	register char *ptr = text ;
+	int len, curr = 0 ;
+	if( ptr == NULL )  return NULL ;	
 
+	len = strlen(ptr);
+	while( ptr[curr] != '\0' ) 
+	{
+		if( ptr[curr] == '\\' && ptr[curr+1] != '\0' ) 	
+		{
+			char subst = '\0' ;
+			switch( ptr[curr+1] ) 
+			{
+				case '\\' : subst = '\\';   break ;	
+				case 'a' : subst = '\a' ;  break ;	 
+				case 'b' : subst = '\b' ; break ;	 
+				case 'e' : subst = '\e' ;  break ;	 
+				case 'f' : subst = '\f' ;  break ;	 
+				case 'n' : subst = '\n' ;  break ;	 
+				case 'r' : subst = '\r' ;  break ;	
+				case 't' : subst = '\t' ;  break ;	
+				case 'v' : subst = '\v' ;  break ;	 
+			}	 
+			if( subst ) 
+			{
+				register int i = curr ; 
+				ptr[i] = subst ;
+				while( ++i < len ) 
+					ptr[i] = ptr[i+1] ; 
+				--len ; 
+			}
+		}	 
+		++curr ;
+	}	 
+	return text;
+}	 
 
