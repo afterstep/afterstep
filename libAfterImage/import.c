@@ -329,12 +329,13 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 #endif
 	ASXpmFile *xpm_file = NULL;
 	ASImage *im = NULL ;
+	int line = 0;
 
 	LOCAL_DEBUG_CALLER_OUT ("(\"%s\", 0x%lX)", path, what);
-	if( (xpm_file=open_xpm_file(test_file)) == NULL )
+	if( (xpm_file=open_xpm_file(path)) == NULL )
 	{
-		show_error( "failed to open file [%s].", test_file );
-		exit(1);
+		show_error("cannot open image file \"%s\" for reading. Please check permissions.", path);
+		return NULL;
 	}
 
 	LOCAL_DEBUG_OUT( "do_alpha is %d. im->height = %d, im->width = %d", do_alpha, im->height, im->width );
@@ -344,14 +345,14 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 
 			while( xpm_file->parse_state >= XPM_InFile )
 			{
-				if( !convert_xpm_scanline( xpm_file, i++ ) )
+				if( !convert_xpm_scanline( xpm_file, line ) )
 					break;
-				asimage_add_line (im, IC_RED,   xpm_file->scl.red, i);
-				asimage_add_line (im, IC_GREEN, xpm_file->scl.green, i);
-				asimage_add_line (im, IC_BLUE,  xpm_file->scl.blue, i);
-				if( do_alpha )
-					asimage_add_line (im, IC_ALPHA,  xpm_file->scl.alpha, i);
-
+				asimage_add_line (im, IC_RED,   xpm_file->scl.red, line);
+				asimage_add_line (im, IC_GREEN, xpm_file->scl.green, line);
+				asimage_add_line (im, IC_BLUE,  xpm_file->scl.blue, line);
+				if( xpm_file->do_alpha )
+					asimage_add_line (im, IC_ALPHA,  xpm_file->scl.alpha, line);
+				++line;
 #ifdef LOCAL_DEBUG
 				printf( "%d: \"%s\"\n",  i, xpm_file->str_buf );
 				print_component( xpm_file->scl.red, 0, xpm_file->width );
