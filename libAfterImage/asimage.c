@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2000,2001 Sasha Vasko <sasha at aftercode.net>
+ * Copyright (c) 2004 Valeriy Onuchin <Valeri dot Onoutchine at cern dot ch>
+ * Copyright (c) 2000-2004 Sasha Vasko <sasha at aftercode.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -63,6 +64,7 @@
 #include "asvisual.h"
 #include "blender.h"
 #include "asimage.h"
+#include "ascmap.h"
 
 static ASVisual __as_dummy_asvisual = {0};
 static ASVisual *__as_default_asvisual = &__as_dummy_asvisual ;
@@ -1025,6 +1027,67 @@ set_asimage_vector( ASImage *im, register double *vector )
 	}
 
 	return True;
+}
+
+ASVectorPalette*
+vectorize_asimage( ASImage *im, unsigned int max_colors, unsigned int dither,
+				   int opaque_threshold	)
+{
+	ASVectorPalette* pal ;
+	double *vec ;
+	ASColormap cmap;
+	int *res;
+    unsigned int r, g, b, v;
+	int x, y, j ;
+
+	if( im->alt.vector == NULL )
+		im->alt.vector = safemalloc( im->width*im->height*sizeof(double));
+	vec = im->alt.vector ;
+
+	/* contributed by Valeriy Onuchin from Root project at cern.ch */   
+
+ 	dither = dither > 7 ? 7 : dither;
+ 	res = colormap_asimage(im, &cmap, max_colors, dither, opaque_threshold);
+ 
+    for ( y = 0; y < im->height; y++) {
+       for ( x = 0; x < im->width; x++) {
+          int i = y*im->width + x;
+          g = INDEX_SHIFT_GREEN(cmap.entries[res[i]].green);
+          b = INDEX_SHIFT_BLUE(cmap.entries[res[i]].blue);
+          r = INDEX_SHIFT_RED(cmap.entries[res[i]].red);
+          v = MAKE_INDEXED_COLOR24(r,g,b);
+          v = (v>>12)&0x0FFF;
+          vec[(im->height - y - 1)*im->width + x] = ((double)v)/0x0FFF;
+       }
+    }
+
+    pal = safecalloc( 1, sizeof(ASVectorPalette));
+
+	pal->npoints = cmap.count ;	
+	pal->points = safemalloc( sizeof(double)*cmap.count);
+	pal->channels[IC_RED] = safemalloc( sizeof(CARD16)*cmap.count);
+	pal->channels[IC_GREEN] = safemalloc( sizeof(CARD16)*cmap.count);
+	pal->channels[IC_BLUE] = safemalloc( sizeof(CARD16)*cmap.count);
+	pal->channels[IC_ALPHA] = safemalloc( sizeof(CARD16)*cmap.count);
+ 
+    for ( j = 0; j < cmap.count; j++) {
+       g = INDEX_SHIFT_GREEN(cmap.entries[j].green);
+       b = INDEX_SHIFT_BLUE(cmap.entries[j].blue);
+       r = INDEX_SHIFT_RED(cmap.entries[j].red);
+       v = MAKE_INDEXED_COLOR24(r,g,b);
+ 
+       v = (v>>12)&0x0FFF;
+       pal->points[j] = ((double)v)/0x0FFF;
+ 
+       pal->channels[IC_RED][j] = cmap.entries[j].red << 8;
+       pal->channels[IC_GREEN][j] = cmap.entries[j].green << 8;
+       pal->channels[IC_BLUE][j] = cmap.entries[j].blue << 8;
+       pal->channels[IC_ALPHA][j] = 0xFFFF;
+    }
+ 
+    destroy_colormap(&cmap, True);
+
+	return pal;
 }
 
 /* ********************************************************************************/

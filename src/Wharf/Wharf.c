@@ -1746,7 +1746,6 @@ static inline void
 unmap_wharf_subfolders( ASWharfFolder *aswf )
 {
     int i = aswf->buttons_num;
-LOCAL_DEBUG_OUT( "unmapping canvas %p at %dx%d%+d%+d", aswf->canvas, aswf->canvas->width, aswf->canvas->height, aswf->canvas->root_x, aswf->canvas->root_y );
     while ( --i >= 0 )
     {
         if( aswf->buttons[i].folder &&
@@ -1784,14 +1783,6 @@ LOCAL_DEBUG_OUT( "folder->flags(%lX)", aswf->flags );
 
     if( get_flags(Config->flags, WHARF_ANIMATE ) )
     {
-        int i = aswf->buttons_num;
-        while ( --i >= 0 )
-        {
-            if( aswf->buttons[i].folder &&
-                get_flags( aswf->buttons[i].folder->flags, ASW_Mapped ) )
-            unmap_wharf_folder( aswf->buttons[i].folder );
-        }
-		
 		set_flags(aswf->flags,ASW_UseBoundary );
 		aswf->boundary.x = aswf->boundary.y = 0 ; 
 		aswf->boundary.width = aswf->canvas->width ;
@@ -1805,13 +1796,13 @@ LOCAL_DEBUG_OUT( "folder->flags(%lX)", aswf->flags );
 LOCAL_DEBUG_OUT( "unmapping folder %p", aswf );
     unmap_wharf_folder( aswf );
     ASSync( False );
+	sleep_a_millisec( 10 );
 }
 
 static inline void
 withdraw_wharf_subfolders( ASWharfFolder *aswf )
 {
     int i = aswf->buttons_num;
-LOCAL_DEBUG_OUT( "unmapping canvas %p at %dx%d%+d%+d", aswf->canvas, aswf->canvas->width, aswf->canvas->height, aswf->canvas->root_x, aswf->canvas->root_y );
     while ( --i >= 0 )
     {
         if( aswf->buttons[i].folder &&
@@ -2471,19 +2462,18 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 					LOCAL_DEBUG_OUT("animate from = %dx%d, to = %dx%d", aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h);
 					animate_wharf_loop( aswf, aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h );
 					clear_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending );
+				}else if( !withdrawn )
+				{
+					/* fprintf(stderr, "clearing or applying boundary\n");	  */
+					if( !update_wharf_folder_shape( aswf ) ) 
+					{	
+						/* fprintf(stderr, "forcing boundary\n");	  */
+						update_canvas_display_mask(aswf->canvas, True);
+					}
 				}
 			}
 #endif
 		
-			if( get_flags( changes, CANVAS_RESIZED ) && !withdrawn )
-			{
-				/* fprintf(stderr, "clearing or applying boundary\n");	  */
-				if( !update_wharf_folder_shape( aswf ) ) 
-				{	
-					/* fprintf(stderr, "forcing boundary\n");	  */
-					update_canvas_display_mask(aswf->canvas, True);
-				}
-			}
         }
     }
 }
@@ -2595,14 +2585,10 @@ on_wharf_pressed( ASEvent *event )
 					animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, wwidth, wheight );
 					clear_flags(aswf->flags,ASW_UseBoundary );
 
-
 					LOCAL_DEBUG_OUT( "withdrawing folder to %dx%d%+d%+d", wwidth, wheight, wx, wy );
                 	XRaiseWindow( dpy, aswb->canvas->w );
                 	while ( --i >= 0 )
                 	{
-                    	if( aswf->buttons[i].folder &&
-                        	get_flags( aswf->buttons[i].folder->flags, ASW_Mapped ) )
-                        	unmap_wharf_folder( aswf->buttons[i].folder );
                     	if( &(aswf->buttons[i]) != aswb && 
 							aswf->buttons[i].canvas->root_x == aswf->canvas->root_x && 
 							aswf->buttons[i].canvas->root_y == aswf->canvas->root_y)
