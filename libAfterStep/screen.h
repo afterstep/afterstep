@@ -344,9 +344,7 @@ Bool set_synchronous_mode (Bool enable);
 int ConnectX (ScreenInfo * scr, char *display_name, unsigned long event_mask);
 void setup_modifiers ();
 
-
-
-
-
+#define  create_screen_window(scr,p,x,y,w,h,bw,c,mask,attr) \
+    create_visual_window((scr)->asv,((p)==None)?((scr)->Root):(p),x,y,w,h,bw,c,mask,attr)
 
 #endif /* _SCREEN_ */

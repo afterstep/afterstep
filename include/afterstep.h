@@ -5,6 +5,10 @@
 #ifndef AFTERSTEP_H_HEADER_INCLUDED
 #define AFTERSTEP_H_HEADER_INCLUDED
 
+#define NO_ASRENDER
+
+#include "myicon.h"
+
 #ifndef WithdrawnState
 #define WithdrawnState 0
 #endif
@@ -204,7 +208,8 @@ FrameSide;
 #define INVALID_DESK		(10000)
 #define IsValidDesk(d)		(d!=INVALID_DESK)
 
-#include "myicon.h"
+
+#define MAX_RUBBER_BAND         6
 
 typedef struct button_t
   {
@@ -399,6 +404,17 @@ typedef struct ASWindow
     int orig_ht;		/* unmaximized window height */
 
 }ASWindow;
+
+/* synonim for backporting of parts of as-devel */
+#define ASWidget ASCanvas
+#define AS_WIDGET_SCREEN(c) (&Scr)
+#define AS_WIDGET_WINDOW(c) ((c)?(c)->w:None)
+#define AS_WIDGET_X(c)      ((c)?(c)->root_x:0)
+#define AS_WIDGET_Y(c)      ((c)?(c)->root_y:0)
+#define AS_WIDGET_WIDTH(c)  ((c)?(c)->width:0)
+#define AS_WIDGET_HEIGHT(c) ((c)?(c)->height:0)
+#define AS_WIDGET_FEEL(c)   (&(Scr.Feel))
+#define AS_WIDGET_LOOK(c)   (&(Scr.Look))
 
 typedef struct ASLayer
 {
