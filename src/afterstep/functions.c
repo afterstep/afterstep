@@ -95,8 +95,7 @@ extern ASDirs as_dirs;
  *
  ***********************************************************************/
 void
-ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_win,
-				 XEvent * eventp, unsigned long context, long val1, long val2,
+ExecuteFunction (FunctionCode func, char *action, ASEvent *event, long val1, long val2,
 				 int val1_unit, int val2_unit, MenuRoot * menu, int Module)
 {
 	ASWindow     *t = NULL;

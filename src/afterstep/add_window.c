@@ -239,7 +239,33 @@ Create_icon_windows (ASWindow *asw)
 		  Bottom or right canvas contains sidebar which is the same as south frame side with corners
 		  Remaining two canvasses contain east and west frame sides only ( if any );
 	  Canvasses surround main window and its sizes are actually the frame size.
+ *    For each frame part and title we have separate TBarData structure. ( 9 total )
+ *    In windows with vertical title we keep the orientation of canvases but turn
+ *    tbars counterclockwise 90 degrees. As The result Title tbar will be shown on FR_W canvas,
+ *    instead of FR_N canvas. Frame parts will be shown on the following canvases :
+ *      Frame part  |   Canvas
+ *    --------------+-----------
+ *      FR_N            FR_W
+ *      FR_NE           FR_W
+ *      FR_E            FR_N
+ *      FR_SE           FR_E
+ *      FR_S            FR_E
+ *      FR_SW           FR_E
+ *      FR_W            FR_S
+ *      FR_NW           FR_W
+ *
+ *      That has to be taken on account whenever we have to associate tbars and canvases,
+ *      like in moving/resizing, redrawing, hiliting, pressing and context lookup
+ *
+ * Icon is drawn on one or two canvases. If separate button titles are selected and Icon title
+ * is allowed for this style, then separate canvas will be created for the titlebar.
+ * Respectively icon_title_canvas will be different then icon_canvas. In all other cases
+ * Icon_title_canvas will be the same as icon_canvas.
  */
+/*                                                        N     E     S     W     NW    NE    SE    SW    TITLE */
+static int tbar2canvas_xref_normal  [FRAME_PARTS+1] = {FR_N, FR_E, FR_S, FR_W, FR_N, FR_N, FR_S, FR_S, FR_N };
+static int tbar2canvas_xref_vertical[FRAME_PARTS+1] = {FR_W, FR_N, FR_E, FR_S, FR_W, FR_W, FR_E, FR_E, FR_W };
+
 
 /* this gets called when Look changes or hints changes : */
 static ASCanvas *
@@ -516,7 +542,9 @@ get_window_icon_image( ASWindow *asw )
 }
 
 static ASTBarData*
-check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name, ASImage *img, unsigned short back_w, unsigned short back_h )
+check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name,
+            ASImage *img, unsigned short back_w, unsigned short back_h,
+            int context )
 {
     if( required )
     {
@@ -528,6 +556,7 @@ check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name, ASImage 
         set_astbar_image( *tbar, img );
         set_astbar_back_size( *tbar, back_w, back_h );
         set_astbar_size( *tbar, (back_w == 0)?1:back_w, (back_h == 0)?1:back_h );
+        (*tbar)->context = context ;
     }else if( *tbar )
     {
         destroy_astbar( tbar );
@@ -580,6 +609,11 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 	int i ;
     char *mystyle_name = Scr.MSFWindow?Scr.MSFWindow->name:NULL;
 	ASImage *icon_image = NULL ;
+    static int normal_frame_contexts[FRAME_PARTS] =
+        { C_FrameN, C_FrameE, C_FrameS, C_FrameW, C_FrameNW,C_FrameNE,C_FrameSW,C_FrameSE };
+    static int vert_frame_contexts[FRAME_PARTS] =
+        { C_FrameW, C_FrameN, C_FrameE, C_FrameS, C_FrameSW,C_FrameNW,C_FrameSE,C_FrameNE };
+    int *frame_contexts  = &(normal_frame_contexts[0]);
 
     if( AS_ASSERT(asw) )
         return ;
@@ -593,12 +627,12 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     if(  free_resources || asw->hints == NULL || asw->status == NULL )
     {/* destroy window decorations here : */
      /* destruction goes in reverese order ! */
-	    check_tbar( &(asw->icon_title), False, NULL, NULL, 0, 0 );
-	    check_tbar( &(asw->icon_button), False, NULL, NULL, 0, 0 );
-        check_tbar( &(asw->tbar), False, NULL, NULL, 0, 0 );
+        check_tbar( &(asw->icon_title), False, NULL, NULL, 0, 0, C_NO_CONTEXT );
+        check_tbar( &(asw->icon_button), False, NULL, NULL, 0, 0, C_NO_CONTEXT );
+        check_tbar( &(asw->tbar), False, NULL, NULL, 0, 0, C_NO_CONTEXT );
 		i = FRAME_PARTS ;
 		while( --i >= 0 )
-            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0 );
+            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, C_NO_CONTEXT );
 
         check_side_canvas( asw, FR_W, False );
         check_side_canvas( asw, FR_E, False );
@@ -633,6 +667,7 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     /* 5) we need to prepare windows for 4 frame decoration sides : */
     if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
     {
+        frame_contexts  = &(vert_frame_contexts[0]);
         tbar_canvas = check_side_canvas( asw, FR_W, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
         sidebar_canvas = check_side_canvas( asw, FR_E, myframe_has_parts(frame, FRAME_BTM_MASK) );
         left_canvas = check_side_canvas( asw, FR_S, myframe_has_parts(frame, FRAME_LEFT_MASK) );
@@ -653,12 +688,13 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 	if( asw->icon_canvas )
 		icon_image = get_window_icon_image( asw );
     check_tbar( &(asw->icon_button), (asw->icon_canvas != NULL), AS_ICON_MYSTYLE,
-                icon_image, icon_image?icon_image->width:0, icon_image?icon_image->height:0 );/* scaling icon image */
+                icon_image, icon_image?icon_image->width:0, icon_image?icon_image->height:0,/* scaling icon image */
+                C_IconButton );
 	if( icon_image )
         safe_asimage_destroy( icon_image );
     /* 7) now we have to create bar for icon title (optional) */
     check_tbar( &(asw->icon_title), (asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
-                NULL, 0, 0 );
+                NULL, 0, 0, C_IconTitle );
     /* 8) now we have to create actuall bars - for each frame element plus one for the titlebar */
 	for( i = 0 ; i < FRAME_PARTS ; ++i )
     {
@@ -685,9 +721,9 @@ redecorate_window( ASWindow *asw, Bool free_resources )
             }
         }
         check_tbar( &(asw->frame_bars[i]), IsFramePart(frame,i), mystyle_name,
-                    img, back_w, back_h );
+                    img, back_w, back_h, frame_contexts[i] );
     }
-    check_tbar( &(asw->tbar), has_tbar, mystyle_name, NULL, 0, 0 );
+    check_tbar( &(asw->tbar), has_tbar, mystyle_name, NULL, 0, 0, C_TITLE );
 
     /* 9) now we have to setup titlebar buttons */
     if( asw->tbar )
@@ -1059,10 +1095,79 @@ on_window_status_changed( ASWindow *asw, Bool update_display )
 }
 
 void
-on_hilite_changed( ASWindow *asw, Bool focused, Bool pressed_context )
+on_window_hilite_changed( ASWindow *asw, Bool focused )
 {
+    int  *tbar2canvas_xref = &(tbar2canvas_xref_normal[0]);
 
+    if( AS_ASSERT(asw) )
+        return;
 
+    if(ASWIN_HFLAGS(asw, AS_VerticalTitle))
+        tbar2canvas_xref = &(tbar2canvas_xref_vertical[0]);
+
+    if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
+    {
+        Bool dirty_canvases[FRAME_SIDES] = { False, False, False, False };
+        register int i = FRAME_PARTS;
+        /* Titlebar */
+        dirty_canvases[tbar2canvas_xref[FRAME_TITLE]] = set_astbar_focused( asw->tbar, asw->frame_sides[tbar2canvas_xref[FRAME_TITLE]], focused );
+        /* frame decor : */
+        for( i = FRAME_PARTS; --i >= 0; )
+            dirty_canvases[tbar2canvas_xref[i]] = set_astbar_focused( asw->frame_bars[i], asw->frame_sides[tbar2canvas_xref[i]], focused );
+        /* now posting all the changes on display :*/
+        for( i = FRAME_SIDES; --i >= 0; )
+            if( dirty_canvases[i] )
+                update_canvas_display( asw->frame_sides[i] );
+    }else /* Iconic !!! */
+    {
+        int dirty = set_astbar_focused( asw->icon_button, asw->icon_canvas, focused );
+        if( set_astbar_focused( asw->icon_title, asw->icon_title_canvas, focused ) )
+            dirty = True ;
+        if( dirty )
+        {
+            update_canvas_display( asw->icon_canvas );
+            if( asw->icon_title_canvas != asw->icon_canvas )
+                update_canvas_display( asw->icon_title_canvas );
+        }
+    }
+}
+
+void
+on_window_pressure_changed( ASWindow *asw, int pressed_context )
+{
+    int  *tbar2canvas_xref = &(tbar2canvas_xref_normal[0]);
+
+    if( AS_ASSERT(asw) )
+        return;
+
+    if(ASWIN_HFLAGS(asw, AS_VerticalTitle))
+        tbar2canvas_xref = &(tbar2canvas_xref_vertical[0]);
+
+    if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
+    {
+        Bool dirty_canvases[FRAME_SIDES] = { False, False, False, False };
+        register int i = FRAME_PARTS;
+        /* Titlebar */
+        dirty_canvases[tbar2canvas_xref[FRAME_TITLE]] =  set_astbar_pressed( asw->tbar, asw->frame_sides[tbar2canvas_xref[FRAME_TITLE]], pressed_context&C_TITLE );
+        /* frame decor : */
+        for( i = FRAME_PARTS; --i >= 0; )
+            dirty_canvases[tbar2canvas_xref[i]] =  set_astbar_pressed( asw->frame_bars[i], asw->frame_sides[tbar2canvas_xref[i]], pressed_context&(C_FrameN<<i) );
+        /* now posting all the changes on display :*/
+        for( i = FRAME_SIDES; --i >= 0; )
+            if( dirty_canvases[i] )
+                update_canvas_display( asw->frame_sides[i] );
+    }else /* Iconic !!! */
+    {
+        int dirty = set_astbar_pressed( asw->icon_button, asw->icon_canvas, pressed_context&C_IconButton );
+        if( set_astbar_pressed( asw->icon_title, asw->icon_title_canvas, pressed_context&C_IconTitle ) )
+            dirty = True ;
+        if( dirty )
+        {
+            update_canvas_display( asw->icon_canvas );
+            if( asw->icon_title_canvas != asw->icon_canvas )
+                update_canvas_display( asw->icon_title_canvas );
+        }
+    }
 }
 
 /********************************************************************/
@@ -1683,14 +1788,9 @@ AddWindow (Window w)
 
     BroadcastConfig (M_ADD_WINDOW, tmp_win);
 
-	BroadcastName (M_WINDOW_NAME, tmp_win->w, tmp_win->frame,
-				   (unsigned long)tmp_win, tmp_win->hints->names[0]);
-	BroadcastName (M_ICON_NAME, tmp_win->w, tmp_win->frame,
-				   (unsigned long)tmp_win, tmp_win->hints->icon_name);
-	BroadcastName (M_RES_CLASS, tmp_win->w, tmp_win->frame,
-				   (unsigned long)tmp_win, tmp_win->hints->res_class);
-	BroadcastName (M_RES_NAME, tmp_win->w, tmp_win->frame,
-				   (unsigned long)tmp_win, tmp_win->hints->res_name);
+    broadcast_window_name( asw );
+    broadcast_res_names( asw );
+    broadcast_icon_name( asw );
 
 	if (!(XGetWindowAttributes (dpy, tmp_win->w, &(tmp_win->attr))))
 		tmp_win->attr.colormap = Scr.ASRoot.attr.colormap;
@@ -1998,6 +2098,20 @@ focus_aswindow( ASWindow *asw, Bool circulated )
     XSync(dpy, False );
     return True;
 }
+
+void
+hilite_aswindow( ASWindow *asw )
+{
+    if( Scr.Hilite != asw )
+    {
+        if( Scr.Hilite )
+            on_window_hilite_changed (Scr.Hilite, False);
+        if( asw )
+            on_window_hilite_changed (asw, True);
+        Scr.Hilite = NULL ;
+    }
+}
+
 
 
 /**********************************************************************/

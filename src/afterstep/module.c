@@ -707,8 +707,48 @@ SendName (int module, unsigned long event_type,
 	free (body);
 }
 
+/*******************************************************************************/
+/* usefull functions to simplify life in other places :                        */
+/*******************************************************************************/
+void
+broadcast_focus _change( ASWindow *focused )
+{
+    if( focused == NULL )
+        Broadcast (M_FOCUS_CHANGE, 3, 0L, 0L, 0L);
+    else
+        Broadcast (M_FOCUS_CHANGE, 3, focused->w, focused->frame, (unsigned long)focused);
+}
 
+void
+broadcast_window_name( ASWindow *asw )
+{
+    if( asw )
+        BroadcastName( M_WINDOW_NAME, asw->w, asw->frame,
+                       (unsigned long)asw, ASWIN_NAME(asw));
+}
 
+void
+broadcast_icon_name( ASWindow *asw )
+{
+    if( asw )
+        BroadcastName( M_ICON_NAME, asw->w, asw->frame,
+                    (unsigned long)asw, ASWIN_ICON_NAME(asw));
+}
+
+void
+broadcast_res_names( ASWindow *asw )
+{
+    if( asw )
+    {
+        BroadcastName (M_RES_CLASS, asw->w, asw->frame,
+                    (unsigned long)asw, asw->hints->res_class);
+        BroadcastName (M_RES_NAME, asw->w, asw->frame,
+                    (unsigned long)asw, asw->hints->res_name);
+    }
+}
+/*******************************************************************************/
+/* Low level messaging queue handling :                                        */
+/*******************************************************************************/
 #include <sys/errno.h>
 AFTER_INLINE int
 PositiveWrite (int module, unsigned long *ptr, int size)

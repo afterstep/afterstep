@@ -915,13 +915,13 @@ set_astbar_focused (ASTBarData * tbar, ASCanvas * pc, Bool focused)
 {
 	if (tbar)
 	{
-		Bool          old_focused = get_flags (tbar->state, BAR_STATE_FOCUS_MASK);
+        int          old_focused = get_flags (tbar->state, BAR_STATE_FOCUS_MASK)?1:0;
 
 		if (focused)
 			set_flags (tbar->state, BAR_STATE_FOCUSED);
 		else
 			clear_flags (tbar->state, BAR_STATE_FOCUSED);
-		return old_focused;
+        return ((focused?1:0)!=old_focused);
 	}
 	return False;
 }
@@ -931,13 +931,13 @@ set_astbar_pressed (ASTBarData * tbar, ASCanvas * pc, Bool pressed)
 {
 	if (tbar)
 	{
-		Bool          old_pressed = get_flags (tbar->state, BAR_STATE_PRESSED_MASK);
+        Bool          old_pressed = get_flags (tbar->state, BAR_STATE_PRESSED_MASK)?1:0;
 
 		if (pressed)
 			set_flags (tbar->state, BAR_STATE_PRESSED);
 		else
 			clear_flags (tbar->state, BAR_STATE_PRESSED);
-		return old_pressed;
+        return ((pressed?1:0)!=old_pressed);
 	}
 	return False;
 }
@@ -986,7 +986,7 @@ check_astbar_point( ASTBarData *tbar, int root_x, int root_y )
              0 <= root_y && tbar->height > root_y )
         {
             int btn_context ;
-            context = C_TITLE ;
+            context = tbar->context ;
             if( (btn_context = check_tbtn_point( tbar->left_buttons, root_x, root_y )) != C_NO_CONTEXT )
                 context = btn_context ;
             else if( (btn_context = check_tbtn_point( tbar->right_buttons, root_x, root_y )) != C_NO_CONTEXT )

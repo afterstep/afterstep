@@ -1,14 +1,6 @@
 #ifndef _MISC_
 #define _MISC_
 
-#ifndef max
-#define max(x,y)  ((x>=y)?x:y)
-#endif
-
-#ifndef min
-#define min(x,y)  ((x<=y)?x:y)
-#endif
-
 #define SORTBYALPHA 1
 #define SORTBYDATE  2
 
@@ -56,15 +48,6 @@ void get_frame_geometry (ASWindow * t, int client_x, int client_y, int client_wi
 void get_resize_geometry (ASWindow * t, int client_x, int client_y, int client_width, int client_height, int *frame_x_out, int *frame_y_out, int *frame_width_out, int *frame_height_out);
 
 extern void MoveOutline ( /* Window, */ ASWindow *, int, int, int, int);
-extern void draw_fvwm_outline (int, int, int, int);
-extern void draw_box_outline (int, int, int, int);
-extern void draw_barndoor_outline (int, int, int, int);
-extern void draw_wmaker_outline (int, int, int, int, ASWindow *);
-extern void draw_tek_outline (int, int, int, int);
-extern void draw_tek2_outline (int, int, int, int);
-extern void draw_corners_outline (int, int, int, int);
-extern void draw_hash_outline (int, int, int, int);
-extern void draw_grid_outline (int, int, int, int);
 
 extern void DoResize (int, int, ASWindow *, Bool);
 extern void DisplaySize (ASWindow *, int, int, Bool);
@@ -74,40 +57,34 @@ extern void CreateGCs (void);
 extern void InstallWindowColormaps (ASWindow *);
 extern void InstallRootColormap (void);
 extern void UninstallRootColormap (void);
-extern void FetchWmProtocols (ASWindow *);
 extern void FetchWmColormapWindows (ASWindow *);
 extern void InitBase (Bool);
 extern void InitLook (Bool);
 extern void InitFeel (Bool);
 extern void InitDatabase (Bool);
 extern void LoadASConfig (const char *, int, Bool, Bool, Bool);
-extern void InitEvents (void);
-extern void HandleEvents (void);
-extern void HandleFocusIn (void);
-extern void HandleFocusOut (void);
-extern void HandleDestroyNotify (void);
-extern void HandleMapRequest (void);
-extern void HandleMapNotify (void);
-extern void HandleUnmapNotify (void);
-extern void HandleButtonPress (void);
-extern void HandleEnterNotify (void);
-extern void HandleLeaveNotify (void);
-extern void HandleConfigureRequest (void);
-extern void HandleClientMessage (void);
-extern void HandlePropertyNotify (void);
-extern void HandleKeyPress (void);
-extern void HandleVisibilityNotify (void);
-extern void HandleColormapNotify (void);
+extern void InitEvents (struct ASEvent *event);
+extern void HandleEvents (struct ASEvent *event);
+extern void HandleFocusIn (struct ASEvent *event);
+extern void HandleFocusOut (struct ASEvent *event);
+extern void HandleDestroyNotify (struct ASEvent *event);
+extern void HandleMapRequest (struct ASEvent *event);
+extern void HandleMapNotify (struct ASEvent *event);
+extern void HandleUnmapNotify (struct ASEvent *event);
+extern void HandleButtonPress (struct ASEvent *event);
+extern void HandleEnterNotify (struct ASEvent *event);
+extern void HandleLeaveNotify (struct ASEvent *event);
+extern void HandleConfigureRequest (struct ASEvent *event);
+extern void HandleClientMessage (struct ASEvent *event);
+extern void HandlePropertyNotify (struct ASEvent *event);
+extern void HandleKeyPress (struct ASEvent *event);
+extern void HandleVisibilityNotify (struct ASEvent *event);
+extern void HandleColormapNotify (struct ASEvent *event);
 extern int SetTransparency (ASWindow *);
-extern void SetTitleBar (ASWindow *, Bool, Bool);
 extern void RestoreWithdrawnLocation (ASWindow *, Bool);
 extern void Destroy (ASWindow *, Bool);
 extern void GetGravityOffsets (ASWindow *, int *, int *);
 extern void MoveViewport (int, int, Bool);
-extern void init_titlebar_windows (ASWindow *, Bool);
-extern Bool create_titlebar_windows (ASWindow *);
-extern void init_titlebutton_windows (ASWindow *, Bool);
-extern Bool create_titlebutton_windows (ASWindow *);
 extern ASWindow *AddWindow (Window);
 extern int MappedNotOverride (Window);
 extern void GrabButtons (ASWindow *);
@@ -161,7 +138,6 @@ extern void SetTimer (int);
 extern int flush_expose (Window);
 extern void do_windowList (int, int);
 extern void RaiseThisWindow (int);
-extern int GetContext (ASWindow *, XEvent *, Window *);
 extern void HandlePaging (ASWindow *, int, int, int *, int *, int *, int *, Bool);
 extern void SetShape (ASWindow *, int);
 extern void afterstep_err (const char *, const char *, const char *, const char *);
@@ -199,10 +175,14 @@ void Broadcast (unsigned long, unsigned long,...);
 void BroadcastConfig (unsigned long, ASWindow *);
 void SendPacket (int, unsigned long, unsigned long,...);
 void SendConfig (int, unsigned long, ASWindow *);
-void BroadcastName (unsigned long, unsigned long, unsigned long, unsigned long,
-		    char *);
-void SendName (int, unsigned long, unsigned long, unsigned long, unsigned long,
-	       char *);
+void BroadcastName (unsigned long, unsigned long, unsigned long, unsigned long, char *);
+void SendName (int, unsigned long, unsigned long, unsigned long, unsigned long, char *);
+/* simplified specialized interface to above functions : */
+void broadcast_focus _change( ASWindow *focused );
+void broadcast_window_name( ASWindow *asw );
+void broadcast_icon_name( ASWindow *asw );
+void broadcast_res_names( ASWindow *asw );
+
 void DeadPipe (int);
 unsigned long GetGnomeState (ASWindow * t);
 unsigned long SetGnomeState (ASWindow * t);

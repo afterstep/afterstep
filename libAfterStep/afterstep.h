@@ -93,7 +93,9 @@ typedef enum
   FR_SW,
   FR_SE,
   FRAME_CORNERS,
-  FRAME_PARTS = FRAME_CORNERS
+  FRAME_PARTS = FRAME_CORNERS,
+  FRAME_TITLE = FRAME_PARTS,
+  FRAME_ALL
 }
 FrameSide;
 
@@ -124,18 +126,20 @@ FrameSide;
 
 #define C_WINDOW        (0x01<<8)
 #define C_TITLE         (0x01<<9)
-#define C_ICON          (0x01<<10)
-#define C_ROOT          (0x01<<11)
-#define C_L1            (0x01<<12)
-#define C_L2            (0x01<<13)
-#define C_L3            (0x01<<14)
-#define C_L4            (0x01<<15)
-#define C_L5            (0x01<<16)
-#define C_R1            (0x01<<17)
-#define C_R2            (0x01<<18)
-#define C_R3            (0x01<<19)
-#define C_R4            (0x01<<20)
-#define C_R5            (0x01<<21)
+#define C_IconTitle     (0x01<<10)
+#define C_IconButton    (0x01<<11)
+#define C_ICON          (C_IconButton|C_IconTitle)
+#define C_ROOT          (0x01<<12)
+#define C_L1            (0x01<<13)
+#define C_L2            (0x01<<14)
+#define C_L3            (0x01<<15)
+#define C_L4            (0x01<<16)
+#define C_L5            (0x01<<17)
+#define C_R1            (0x01<<18)
+#define C_R2            (0x01<<19)
+#define C_R3            (0x01<<20)
+#define C_R4            (0x01<<21)
+#define C_R5            (0x01<<22)
 #define C_RALL			(C_R1|C_R2|C_R3|C_R4|C_R5)
 #define C_LALL			(C_L1|C_L2|C_L3|C_L4|C_L5)
 #define C_ALL			(C_WINDOW|C_TITLE|C_ICON|C_ROOT|C_FRAME|\
@@ -284,8 +288,8 @@ typedef struct ASWindow
 
     struct MyFrame    *frame_data;  /* currently selected frame decorations for this window */
 
-    struct ASTBarData *tbar ;
-	struct ASTBarData *frame_bars[FRAME_PARTS] ; /* regular sidebar is the same as frame with S, SE and SW parts */
+    struct ASTBarData *frame_bars[FRAME_PARTS] ; /* regular sidebar is the same as frame with S, SE and SW parts */
+    struct ASTBarData *tbar ;                    /* same as frame_bars[FRAME_PARTS] for convinience */
     struct ASTBarData *icon_button ;
 	struct ASTBarData *icon_title ;
 
@@ -341,6 +345,8 @@ void grab_window_input( ASWindow *asw, Bool release_grab );
 
 void hide_focus();
 Bool focus_aswindow( ASWindow *asw, Bool circulated );
+void hilite_aswindow( ASWindow *asw );         /* actually hilites focused window on reception of event */
+
 
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
@@ -348,6 +354,9 @@ void update_window_transparency( ASWindow *asw );
 void on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width, unsigned int height );
 void on_window_title_changed( ASWindow *asw, Bool update_display );
 void on_window_status_changed( ASWindow *asw, Bool update_display );
+void on_window_hilite_changed( ASWindow *asw, Bool focused );
+void on_window_pressure_changed( ASWindow *asw, int pressed_context );
+
 Bool iconify_window( ASWindow *asw, Bool iconify );
 
 /* from decorations.c :*/

@@ -71,8 +71,8 @@ extern int    menuFromFrameOrWindowOrTitlebar;
 #endif
 
 /* those are used for AutoReverse mode 1 */
-int           warp_in_process = 0;
-int           warping_direction = 0;
+static int warp_in_process = 0;
+static int warping_direction = 0;
 
 #ifdef SHAPE
 extern int    ShapeEventBase;
@@ -99,27 +99,28 @@ warp_grab (ASWindow * t)
 void
 warp_ungrab (ASWindow * t, Bool finished)
 {
-	if (t != NULL)
-	{
-		XWindowAttributes attributes;
+    if( warp_in_process )
+    {
+        if (t != NULL)
+        {
+            XWindowAttributes attributes;
 
-		/* we no longer need to watch keypresses or pointer motions */
-		XGetWindowAttributes (dpy, t->frame, &attributes);
-		XSelectInput (dpy, t->frame,
-					  attributes.your_event_mask & ~(PointerMotionMask | KeyPressMask));
-		if (t->w != None)
-		{
-			XGetWindowAttributes (dpy, t->w, &attributes);
-			XSelectInput (dpy, t->w,
-						  attributes.your_event_mask & ~(PointerMotionMask | KeyPressMask));
-		}
-	}
-	if (finished)
-	{
-		/* the window becomes the first one in the warp list now */
-		ChangeWarpIndex (t->warp_index, warping_direction);
-		warp_in_process = 0;
-	}
+            /* we no longer need to watch keypresses or pointer motions */
+            XGetWindowAttributes (dpy, t->frame, &attributes);
+            XSelectInput (dpy, t->frame,
+                        attributes.your_event_mask & ~(PointerMotionMask | KeyPressMask));
+            if (t->w != None)
+            {
+                XGetWindowAttributes (dpy, t->w, &attributes);
+                XSelectInput (dpy, t->w,
+                            attributes.your_event_mask & ~(PointerMotionMask | KeyPressMask));
+            }
+            if (finished)       /* the window becomes the first one in the warp list now */
+            ChangeWarpIndex (t->warp_index, warping_direction);
+        }
+        if (finished)
+            warp_in_process = 0;
+    }
 }
 
 /***********************************************************************
@@ -207,24 +208,27 @@ DigestEvent( ASEvent *event )
                     for( i = 0 ; i < FRAME_PARTS ; ++i )
                         if( asw->frame_bars[i] != NULL &&
                             (tbar_context = check_astbar_point( asw->frame_bars[i], xk->x_root, xk->y_root )) != C_NO_CONTEXT )
-                        {
-                            if( tbar_context == C_TITLE )
-                                event->context = C_FrameN<<i ;
-                            else
-                                event->context = tbar_context ;
                             break;
-                        }
                 }
             }
             event->w = w ;
         }else
         {
             if( asw->icon_canvas && w == asw->icon_canvas->w )
+            {
+                event->context = C_IconButton ;
                 canvas = asw->icon_canvas ;
-            else( asw->icon_title_canvas && w == asw->icon_title_canvas->w )
+                if( canvas == asw->icon_title_canvas )
+                {
+                    int c = check_astbar_point( asw->icon_title, xk->x_root, xk->y_root );
+                    if( c != C_NO_CONTEXT )
+                        event->context = c ;
+                }
+            }else( asw->icon_title_canvas && w == asw->icon_title_canvas->w )
+            {
                 canvas = asw->icon_title_canvas ;
-
-            event->context = C_ICON ;
+                event->context = C_IconTitle ;
+            }
         }
         event->widget  = canvas ;
     }
@@ -260,8 +264,7 @@ DispatchEvent ( ASEvent *event )
 	 case ButtonPress:
 		 /* if warping, a button press, non-warp keypress, or pointer motion
 		  * indicates that the warp is done */
-         if ((event->client != NULL) && (warp_in_process))
-             warp_ungrab (event->client, True);
+         warp_ungrab (event->client, True);
          HandleButtonPress (event);
 		 break;
 	 case EnterNotify:
@@ -272,8 +275,7 @@ DispatchEvent ( ASEvent *event )
 #if 0
 		 /* if warping, leaving a window means that we need to ungrab, but
 		  * the ungrab should be taken care of by the FocusOut */
-         if ((warp_in_process) && (event->client != NULL))
-             warp_ungrab (event->client, False);
+         warp_ungrab (event->client, False);
 #endif
 		 break;
 	 case FocusIn:
@@ -289,14 +291,12 @@ DispatchEvent ( ASEvent *event )
 	 case FocusOut:
 		 /* if warping, this is the normal way to determine that we should ungrab
 		  * window events */
-         if (event->client != NULL && warp_in_process)
-             warp_ungrab (event->client, False);
+         warp_ungrab (event->client, False);
 		 break;
 	 case MotionNotify:
 		 /* if warping, a button press, non-warp keypress, or pointer motion
 		  * indicates that the warp is done */
-         if ((warp_in_process) && (event->client != NULL))
-             warp_ungrab (event->client, True);
+         warp_ungrab (event->client, True);
 		 break;
 	 case ConfigureRequest:
          HandleConfigureRequest (event);
@@ -346,15 +346,10 @@ HandleFocusIn ( ASEvent *event )
     while (ASCheckTypedEvent (FocusIn, &event.x));
     DigestEvent( &event );
 
-    if (!event->client)
-	{
-        SetBorder (Scr.Hilite, False,  True, True, None);
-		Broadcast (M_FOCUS_CHANGE, 3, 0L, 0L, 0L);
-    } else if (event->client != Scr.Hilite)
-	{
-		SetBorder (Tmp_win, True, True, True, None);
-		Broadcast (M_FOCUS_CHANGE, 3, Tmp_win->w, Tmp_win->frame, (unsigned long)Tmp_win);
-	}
+    if (event->client != Scr.Hilite)
+        BroadcastFocusChange( event->client );
+    /* note that hilite_aswindow changes value of Scr.Hilite!!! */
+    hilite_aswindow( event->client );
 }
 
 /***********************************************************************
@@ -364,25 +359,22 @@ HandleFocusIn ( ASEvent *event )
  *
  ************************************************************************/
 void
-HandleKeyPress ()
+HandleKeyPress ( ASEvent *event )
 {
 	FuncKey      *key;
-	unsigned int  modifier;
 	Window        dummy;
+    XKeyEvent *xk = &(event->x.xkey);
+    unsigned int modifier = (xk->state & Scr.nonlock_mods);
 
-	Context = GetContext (Tmp_win, &Event, &dummy);
-
-	modifier = (Event.xkey.state & Scr.nonlock_mods);
 	for (key = Scr.FuncKeyRoot; key != NULL; key = key->next)
 	{
-		ButtonWindow = Tmp_win;
 		/* Here's a real hack - some systems have two keys with the
 		 * same keysym and different keycodes. This converts all
 		 * the cases to one keycode. */
-		Event.xkey.keycode = XKeysymToKeycode (dpy, XKeycodeToKeysym (dpy, Event.xkey.keycode, 0));
+        xk->keycode = XKeysymToKeycode (dpy, XKeycodeToKeysym (dpy, xk->keycode, 0));
 		if ((key->keycode == Event.xkey.keycode) &&
 			((key->mods == (modifier & (~LockMask))) ||
-			 (key->mods == AnyModifier)) && (key->cont & Context))
+             (key->mods == AnyModifier)) && (key->cont & event->context))
 		{
 			extern int    AutoReverse;
 
@@ -392,8 +384,7 @@ HandleKeyPress ()
 			if (warp_in_process)
 				warping_direction = key->func;
 
-			ExecuteFunction (key->func, key->action, Event.xany.window, Tmp_win,
-							 &Event, Context, key->val1, key->val2,
+            ExecuteFunction (key->func, key->action, event, key->val1, key->val2,
 							 key->val1_unit, key->val2_unit, key->menu, -1);
 			return;
 		}
@@ -401,27 +392,16 @@ HandleKeyPress ()
 
 	/* if a key has been pressed and it's not one of those that cause
 	   warping, we know the warping is finished */
-	if (warp_in_process)
-	{
-		if (Tmp_win != NULL)
-			warp_ungrab (Tmp_win, True);
-		warp_in_process = 0;
-		Tmp_win = NULL;
-	}
+    warp_ungrab (event->client, True);
 
 	/* if we get here, no function key was bound to the key.  Send it
-	 * to the client if it was in a window we know about.
-	 */
-
-	if (Tmp_win)
-	{
-		if (Event.xkey.window != Tmp_win->w && !warp_in_process)
+     * to the client if it was in a window we know about: */
+    if (event->client)
+        if (xk->window != event->client->w && !warp_in_process)
 		{
-			Event.xkey.window = Tmp_win->w;
-			XSendEvent (dpy, Tmp_win->w, False, KeyPressMask, &Event);
+            xk->window = event->client->w;
+            XSendEvent (dpy, event->client->w, False, KeyPressMask, &(event->x));
 		}
-	}
-	ButtonWindow = NULL;
 }
 
 
@@ -435,23 +415,22 @@ HandleKeyPress ()
 #define MAX_ICON_NAME_LEN 200L				   /* ditto */
 
 void
-HandlePropertyNotify ()
+HandlePropertyNotify (ASEvent *event)
 {
 #ifdef I18N
 	char        **list;
 	int           num;
 #endif
+    ASWindow       *asw;
+    XPropertyEvent *xprop = &(event->x);
 
 	/* force updates for "transparent" windows */
-	if (Event.xproperty.atom == _XROOTPMAP_ID && Event.xproperty.window == Scr.Root)
+    if (xprop->atom == _XROOTPMAP_ID && event->window == Scr.Root)
 	{
-		ASWindow     *win;
-
-		if (Scr.RootImage)
+        if (Scr.RootImage)
 			destroy_asimage (&(Scr.RootImage));
-		for (win = Scr.ASRoot.next; win != NULL; win = win->next)
-			if (SetTransparency (win))
-				SetBorder (win, Scr.Hilite == win, True, True, None);
+        for (asw = Scr.ASRoot.next; asw != NULL; asw = win->next)
+            update_window_transparency( asw );
 		/* use move_menu() to update transparent menus; this is a kludge, but it works */
 		if ((*Scr.MSMenuTitle).texture_type == 129 || (*Scr.MSMenuItem).texture_type == 129 ||
 			(*Scr.MSMenuHilite).texture_type == 129)
@@ -464,42 +443,33 @@ HandlePropertyNotify ()
 		}
 	}
 
-	if ((!Tmp_win) || (XGetGeometry (dpy, Tmp_win->w, &JunkRoot, &JunkX, &JunkY,
-									 &JunkWidth, &JunkHeight, &JunkBW, &JunkDepth) == 0))
-		return;
+    if( (asw = event->client) == NULL )
+        return ;
 
-	if( Event.xproperty.atom == XA_WM_NAME ||
-		Event.xproperty.atom == XA_WM_ICON_NAME ||
-		Event.xproperty.atom == _XA_NET_WM_NAME ||
-		Event.xproperty.atom == _XA_NET_WM_ICON_NAME ||
-		Event.xproperty.atom == _XA_NET_WM_VISIBLE_NAME ||
-		Event.xproperty.atom == _XA_NET_WM_VISIBLE_ICON_NAME )
+    if(  xprop->atom == XA_WM_NAME ||
+         xprop->atom == XA_WM_ICON_NAME ||
+         xprop->atom == _XA_NET_WM_NAME ||
+         xprop->atom == _XA_NET_WM_ICON_NAME ||
+         xprop->atom == _XA_NET_WM_VISIBLE_NAME ||
+         xprop->atom == _XA_NET_WM_VISIBLE_ICON_NAME)
 	{
 		show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
-		if( update_property_hints_manager( Tmp_win->w, Event.xproperty.atom,
+        if( update_property_hints_manager( asw->w, xprop->atom,
 		                                   Scr.supported_hints,
-                                           Tmp_win->hints, Tmp_win->status ) )
+                                           asw->hints, asw->status ) )
 		{
-			BroadcastName( M_WINDOW_NAME, Tmp_win->w, Tmp_win->frame,
-						   (unsigned long)Tmp_win, ASWIN_NAME(Tmp_win));
-			BroadcastName( M_ICON_NAME, Tmp_win->w, Tmp_win->frame,
-						   (unsigned long)Tmp_win, ASWIN_ICON_NAME(Tmp_win));
+            broadcast_window_name( asw );
+            broadcast_icon_name( asw );
 
-			show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\"", ASWIN_NAME(Tmp_win), ASWIN_ICON_NAME(Tmp_win) );
+            show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\"", ASWIN_NAME(asw), ASWIN_ICON_NAME(asw) );
 
 			if (Scr.flags & FollowTitleChanges)
-				ChangeIcon (Tmp_win);
+                on_icon_changed(asw);
 
 			/* fix the name in the title bar */
-			if (!(Tmp_win->flags & ICONIFIED))
-				SetTitleBar (Tmp_win, (Scr.Hilite == Tmp_win), True);
-			else
-			{
-				DrawIconWindow (Tmp_win);
-                if (Scr.look_flags & SeparateButtonTitle)
-					RedoIconName (Tmp_win);
-			}
-		}
+            if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
+                on_window_title_changed( asw, True );
+        }
 	}else
 	{
 #warning "fix handling of updated window management hints"
@@ -554,25 +524,20 @@ HandlePropertyNotify ()
  *
  ************************************************************************/
 void
-HandleClientMessage ()
+HandleClientMessage (ASEvent *event)
 {
-	XEvent        button;
-
-	if ((Event.xclient.message_type == _XA_WM_CHANGE_STATE) &&
-		(Tmp_win) && (Event.xclient.data.l[0] == IconicState) && !(Tmp_win->flags & ICONIFIED))
+    if ((event->x.xclient.message_type == _XA_WM_CHANGE_STATE) &&
+        (event->client) &&
+        (event->x.xclient.data.l[0] == IconicState) &&
+        !ASWIN_GET_FLAGS(event->client, AS_Iconic))
 	{
-		XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild,
-					   &(button.xmotion.x_root),
-					   &(button.xmotion.y_root), &JunkX, &JunkY, &JunkMask);
-		button.type = 0;
-		ExecuteFunction (F_ICONIFY, NULLSTR, Event.xany.window,
-						 Tmp_win, &button, C_FRAME, 0, 0, 0, 0, (MenuRoot *) 0, -1);
+        ExecuteFunction (F_ICONIFY, NULLSTR, event, 0, 0, 0, 0, NULL, -1);
 #ifdef ENABLE_DND
 		/* Pass the event to the client window */
-		if (Event.xclient.window != Tmp_win->w)
+        if (event->x.xclient.window != event->client->w)
 		{
-			Event.xclient.window = Tmp_win->w;
-			XSendEvent (dpy, Tmp_win->w, True, NoEventMask, &Event);
+            event->x.xclient.window = event->client->w;
+            XSendEvent (dpy, event->client->w, True, NoEventMask, &(event->x));
 		}
 #endif
 	}
@@ -585,52 +550,9 @@ HandleClientMessage ()
  *
  ***********************************************************************/
 void
-HandleExpose ()
+HandleExpose ( ASEvent *event )
 {
-	if (Event.xexpose.count != 0)
-		return;
-
-	if (Tmp_win)
-	{
-		Window        w = Event.xany.window;
-		int           i, title_only = 1;
-
-		flush_expose (Tmp_win->frame);
-		flush_expose (Tmp_win->Parent);
-
-		/* discard exposures of the frame or Parent windows */
-		if (Event.xexpose.window == Tmp_win->Parent)
-			return;
-		if (Event.xexpose.window == Tmp_win->frame)
-		{
-			/*  if (Tmp_win->flags & FRAME && (!(Tmp_win->flags & SHADED)))
-			   frame_draw_frame (Tmp_win); */
-			return;
-		}
-		flush_expose (Tmp_win->title_w);
-		for (i = 0; i < Scr.nr_left_buttons; i++)
-			if (Tmp_win->left_w[i] != None)
-				flush_expose (Tmp_win->left_w[i]);
-		for (i = 0; i < Scr.nr_right_buttons; i++)
-			if (Tmp_win->right_w[i] != None)
-				flush_expose (Tmp_win->right_w[i]);
-
-		if (flush_expose (Tmp_win->side) || w == Tmp_win->side)
-			title_only = 0;
-		if (flush_expose (Tmp_win->corners[0]) || w == Tmp_win->corners[0])
-			title_only = 0;
-		if (flush_expose (Tmp_win->corners[1]) || w == Tmp_win->corners[1])
-			title_only = 0;
-		if (flush_expose (Tmp_win->icon_pixmap_w) || w == Tmp_win->icon_pixmap_w)
-			title_only = 0;
-		if (flush_expose (Tmp_win->icon_title_w) || w == Tmp_win->icon_title_w)
-			title_only = 0;
-
-		if (title_only)
-			SetTitleBar (Tmp_win, (Scr.Hilite == Tmp_win), False);
-		else
-			SetBorder (Tmp_win, (Scr.Hilite == Tmp_win), True, True, Event.xany.window);
-	}
+    /* do nothing on expose - we use doublebuffering !!! */
 }
 
 
@@ -642,9 +564,9 @@ HandleExpose ()
  *
  ***********************************************************************/
 void
-HandleDestroyNotify ()
+HandleDestroyNotify (ASEvent *event )
 {
-	if (Tmp_win)
+    if (event->client)
 	{
 		Destroy (Tmp_win, True);
 		UpdateVisibility ();
