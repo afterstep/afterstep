@@ -730,6 +730,7 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
     if (CopyFile (data->text, realfilename) == 0)
     {
+		update_session ( Session, F_CHANGE_BACKGROUND );
         SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
         change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
     }
@@ -762,6 +763,7 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
     if (CopyFile (data->text, realfilename) == 0)
     {
+		update_session ( Session, data->func );
         if( data->func == F_CHANGE_THEME )
             QuickRestart ("look&feel");
         else

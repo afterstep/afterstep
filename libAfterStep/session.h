@@ -37,6 +37,9 @@ typedef struct ASSession
 
 ASSession *create_assession ( struct ScreenInfo *scr, char *ashome, char *asshare);
 void 	   destroy_assession (ASSession * session);
+
+void	   update_session ( ASSession *session, int func);
+
 void 	   set_session_override(ASSession * session, const char *overriding_file, int function );
 inline const char *get_session_override(ASSession * session, int function );
 

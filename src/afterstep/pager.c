@@ -381,11 +381,20 @@ load_myback_image( int desk, MyBackground *back )
 
     if( im == NULL )
     {
-        const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND);
-        if( const_configfile != NULL )
+	    char tmpfile[256], *realfilename ;	
+	    if (Scr.screen == 0)
+  		    sprintf (tmpfile, BACK_FILE, desk);
+	    else
+  		    sprintf (tmpfile, BACK_FILE ".scr%ld", desk, Scr.screen);
+
+  		realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
+		LOCAL_DEBUG_OUT( "loading image from \"%s\"", realfilename );
+        //const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND);
+        if( realfilename != NULL )
         {
-            im = get_asimage( Scr.image_manager, const_configfile, 0xFFFFFFFF, 100 );
-            show_progress("BACKGROUND for desktop %d loaded from \"%s\" ...", desk, const_configfile);
+            im = get_asimage( Scr.image_manager, realfilename, 0xFFFFFFFF, 100 );
+            show_progress("BACKGROUND for desktop %d loaded from \"%s\" ...", desk, realfilename);
+			free( realfilename );
         }else
             show_progress("BACKGROUND file cannot be found for desktop %d", desk );
     }
@@ -623,9 +632,10 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         bh->im = new_im;
 
         ASSync(False);
-        LOCAL_DEBUG_OUT( "width(%d)->height(%d)->pixmap(%lX)", new_im->width, new_im->height, bh->pmap );
+        LOCAL_DEBUG_OUT( "width(%d)->height(%d)->pixmap(%lX/%lu)", new_im->width, new_im->height, bh->pmap, bh->pmap );
 
-        asimage2drawable( Scr.asv, bh->pmap, new_im, NULL, 0, 0, 0, 0, new_im->width, new_im->height, True);
+        if( !asimage2drawable( Scr.asv, bh->pmap, new_im, NULL, 0, 0, 0, 0, new_im->width, new_im->height, True) )
+			show_warning( "failed to draw root background onto pixmap");
         flush_asimage_cache(new_im);
         XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
         XClearWindow( dpy, Scr.Root );
@@ -710,7 +720,7 @@ HandleBackgroundRequest( ASEvent *event )
     if( xcli->data.s[6] == xcli->data.s[7] == xcli->data.s[8] )
         do_tint = !(xcli->data.s[6] == 0 || xcli->data.s[6] == 0x7F );
 
-    LOCAL_DEBUG_OUT("pmap(%lX)->clip_pos(%+d%+d)->clip_size(%dx%d)->scale(%d)->tint(%lX)->window(%lX)", p, clip_x, clip_y, clip_width, clip_height, flags, tint, event->x.xclient.window );
+    LOCAL_DEBUG_OUT("pmap(%lX/%lu)->clip_pos(%+d%+d)->clip_size(%dx%d)->scale(%d)->tint(%lX)->window(%lX)", p, p, clip_x, clip_y, clip_width, clip_height, flags, tint, event->x.xclient.window );
 
     if( clip_width > 0 && clip_height > 0 && back != NULL && back->type != MB_BackCmd )
     {

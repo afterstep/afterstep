@@ -279,6 +279,34 @@ create_assession ( ScreenInfo *scr, char *ashome, char *asshare)
 }
 
 void
+update_session ( ASSession *session, int func)
+{
+	switch( func ) 
+	{
+		case F_CHANGE_LOOK :
+			if( session->defaults->look_file )
+				free( session->defaults->look_file );
+		    session->defaults->look_file = find_default_look_file (session);
+			break;
+		case F_CHANGE_FEEL :
+			if( session->defaults->feel_file ) 
+				free( session->defaults->feel_file );
+			session->defaults->feel_file = find_default_feel_file (session);
+			break;
+		case F_CHANGE_BACKGROUND :
+			if( session->defaults->background_file )
+				free( session->defaults->background_file );
+			session->defaults->background_file = find_default_background_file (session);
+			break;
+		case F_CHANGE_THEME : 
+			if( session->defaults->theme_file )
+				free( session->defaults->theme_file );
+			session->defaults->theme_file = find_default_theme_file (session);
+			break;
+	}
+}
+
+void
 destroy_assession (ASSession * session)
 {
 	register int i;
