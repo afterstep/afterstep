@@ -66,6 +66,9 @@ install:
 	if [ -d desktop/tiles/xml ] ; then \
 		$(CP) -r desktop/tiles/xml/* $(AFTER_SHAREDIR)/desktop/tiles/; \
 	fi; \
+	if [ -d desktop/tiles/jpg ] ; then \
+		$(CP) -r desktop/tiles/jpg/* $(AFTER_SHAREDIR)/desktop/tiles/; \
+	fi; \
 	$(CP) -r desktop/tiles/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/tiles/
 	@$(MKDIR) -p $(AFTER_SHAREDIR)/feels; \
 	$(CP) -r feels $(AFTER_SHAREDIR)/

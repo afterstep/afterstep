@@ -1,4 +1,4 @@
-<composite op=add>
+<composite op=tint>
 	<gradient width=$xroot.width height=$xroot.height colors="BaseDark BaseLight" angle=45/>
-	<img tile=1 src="tiles/SimpleTexture"/>
+	<img tile=1 src="tiles/DorchesterConsolidated"/>
 </composite>
