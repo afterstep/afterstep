@@ -238,7 +238,7 @@ else
 fi
 
 have_shmimage=no
-if test "x$enable_shmimage" = "xyes"; then
+if test "x$CYGWIN$enable_shmimage" = "xyes"; then
 	AC_CHECK_LIB(Xext, XShmCreateImage, [have_shmimage=yes],,$full_x_libs)
 	if test "x$have_shmimage" = "xyes"; then
 		AC_CHECK_HEADER(sys/ipc.h,,[have_shmimage=no])
