@@ -1,0 +1,8 @@
+./ascpui.h:
+
+./ascolor.o: \
+		../../configure.h \
+		../../libAfterStep/asapp.h \
+		../../libAfterImage/afterimage.h \
+		../../libAfterStep/afterstep.h \
+		../../libAfterStep/colorscheme.h
