@@ -94,8 +94,8 @@ unsigned long list_hash_items (ASHashTable * hash, ASHashableValue * values,
 
 Bool start_hash_iteration (ASHashTable * hash, ASHashIterator * iterator);
 Bool next_hash_item (ASHashIterator * iterator);
-ASHashableValue curr_hash_value (ASHashIterator * iterator);
-void *curr_hash_data (ASHashIterator * iterator);
+inline ASHashableValue curr_hash_value (ASHashIterator * iterator);
+inline void *curr_hash_data (ASHashIterator * iterator);
 void remove_curr_hash_item (ASHashIterator * iterator, Bool destroy);
 
 

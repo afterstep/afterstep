@@ -430,7 +430,7 @@ remove_curr_hash_item (ASHashIterator * iterator, Bool destroy)
 		}
 }
 
-ASHashableValue
+inline ASHashableValue
 curr_hash_value (ASHashIterator * iterator)
 {
 	if (iterator)
@@ -441,7 +441,7 @@ curr_hash_value (ASHashIterator * iterator)
 	return (ASHashableValue) ((char *)NULL);
 }
 
-void         *
+inline void         *
 curr_hash_data (ASHashIterator * iterator)
 {
 	if (iterator)
@@ -532,7 +532,7 @@ casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
 		hash_key += (((ASHashKey) c) << i);
 		++i;
 	}while(i < ((sizeof (ASHashKey) - sizeof (char)) << 3));
-	
+
 	return hash_key % hash_size;
 }
 
@@ -618,7 +618,7 @@ option_compare (ASHashableValue value1, ASHashableValue value2)
 		if (u1 != u2)
 			return (long)u1 - (long)u2;
 	}
-	if(  str1[i] == str2[i] ) 
+	if(  str1[i] == str2[i] )
 		return 0;
 	else if( str1[i] )
 		return ( VALID_OPTION_CHAR(str1[i]) )?(long)(str1[i]):0;
