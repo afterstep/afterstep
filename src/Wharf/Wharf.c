@@ -676,8 +676,7 @@ Loop (void)
 		break;
 
 	      if ((*CurrentButton).swallow == 1 ||
-		  (*CurrentButton).swallow == 2 ||
-		  (*CurrentButton).action == NULL)
+		  (*CurrentButton).swallow == 2)
 		break;
 
 	      if (CurrentButton->swallow == 4)
@@ -686,6 +685,9 @@ Loop (void)
 		  CurrentButton->swallow = 1;
 		  break;
 		}
+
+	      if ((*CurrentButton).action == NULL)
+		break;
 
 	      if (Pushable)
 		{
