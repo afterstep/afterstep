@@ -1,40 +1,58 @@
+
+Preload images.
+<img id="back" src=back.xpm/>
+<img id="fore" src=fore.xpm/>
+<img id="ice" src="/tmp/IceAlpha-0.5.png"/>
+<img id="redbrush" src="/tmp/RedbrushAlpha-0.5.png"/>
+<img id="root" src="xroot:"/>
+<img id="rose" src=rose512.jpg/>
+<img id="testimg" src="/tmp/testimg.jpg"/>
+
 "Burning Rose"
 <composite id="Burning Rose" op=hue>
   <composite op=add>
-    <scale width=512 height=384><img src=rose512.jpg/></scale>
-    <tile width=512 height=384><img src=back.xpm/></tile>
+    <scale width=512 height=384><recall srcid=rose/></scale>
+    <tile width=512 height=384><recall srcid=back/></tile>
   </composite>
-  <tile width=512 height=384><img src=fore.xpm/></tile>
+  <tile width=512 height=384><recall srcid=fore/></tile>
 </composite>
 
+"astext demo"
+<text id="tmp" fgimage="fore" font="test.ttf" point=32>Smart Brown Dog jumps
+ Over The Lazy Fox,
+ and falls into the ditch.</text>
+<bevel id="astext demo" color="#dfdfdfdf #df8f8f8f" border="10 10 10 10">
+  <composite>
+    <tile refid="tmp" width=100%+32 height=100%+32><recall srcid="back"/></tile>
+    <recall srcid="tmp" x="16" y="16"/>
+  </composite>
+</bevel>
+
 My current testing XML.
-<composite op=alphablend>
-  <scale width="640" height="512"><img src="/tmp/testimg.jpg"/></scale>
-  <rotate angle=90><scale width="640" height="512"><img src="/tmp/RedbrushAlpha-0.5.png"/></scale></rotate>
-  <scale width="640" height="512"><img src="/tmp/IceAlpha-0.5.png"/></scale>
-  <bevel edge-color="#dfdfdfdf #df8f8f8f" corner-color="#ffffffff #ffafafaf #ff2f2f2f" outer-edge="2 2 -1 -1" inner-edge="8 8 -6 -6">
+<composite id="test output">
+  <scale width="640" height="512"><recall srcid="testimg"/></scale>
+  <rotate angle=90><scale width="640" height="512"><recall srcid="redbrush"/></scale></rotate>
+  <scale width="640" height="512"><recall srcid="ice"/></scale>
+  <bevel color="#dfdfdfdf #df8f8f8f" border="8 8 6 6">
     <gradient x=20 y=6 angle=90 width=600 height=500 tint="#7d7f7f7f" colors="#ff007fff #7f00ffff #ff007fff #ff0000ff #ff000000 #ffffff00" offsets="0.0 0.125 0.25 0.5625 0.8 1.0"/>
   </bevel>
 </composite>
 
+<recall srcid="Burning Rose"/>
+<recall srcid="astext demo"/>
+<recall srcid="test output"/>
+<recall srcid="AfterStep owns!"/>
+
 "AfterStep owns!"
-<composite op=alphablend>
-  <tile width="400%" height="400%"><img src="xroot:"/></tile>
-  <scale width="640" height="512"><img src="/tmp/testimg.jpg"/></scale>
-  <scale width="640" height="512"><img src="/tmp/RedbrushAlpha-0.5.png"/></scale>
-  <scale width="640" height="512"><img src="/tmp/IceAlpha-0.5.png"/></scale>
-  <text x=20 y=150 bgcolor="#ffffffff" tint="#7f7f7f7f">AfterStep  owns jjjijijiji you
+<crop id="AfterStep owns! text" width=640 height=512>
+<text id="AfterStep owns! text mask" font=test.ttf fgcolor="#ffffffff" point=32>AfterStep  owns jjjijijiji you
 it owns your soul
 and all your relatives will pity you, when you discover just how devoted you are.</text>
-  <bevel edge-color="#dfdfdfdf #df8f8f8f" corner-color="#ffffffff #ffafafaf #ff2f2f2f" outer-edge="2 2 -1 -1" inner-edge="8 8 -6 -6"><gradient x=20 y=6 width=450 height=500 tint="#7d7f7f7f" colors="#ff007fff #7f00ffff #ff007fff #ff0000ff #ff000000 #ffffff00" offsets="0.0 0.125 0.25 0.5625 0.8 1.0"/></bevel>
-  <mirror dir="vertical" x=20 y=300><text bgcolor="#ffffffff" tint="#7f7f7f7f">AfterStep  owns jjjijijiji you
-it owns your soul
-and all your relatives will pity you, when you discover just how devoted you are.</text></mirror>
+</crop>
+<composite id="AfterStep owns!">
+  <tile width="640" height="512"><recall srcid="root"/></tile>
+  <bevel x=20 y=6 tint="#3d7f7f7f" color="#dfdfdfdf #df8f8f8f" border="8 8 6 6">
+    <gradient angle=90 width=450 height=500 colors="#ff007fff #7f00ffff #ff007fff #ff0000ff #ff000000 #ffffff00" offsets="0.0 0.125 0.25 0.5625 0.8 1.0"/>
+  </bevel>
 </composite>
 
-<recall srcid="Burning Rose"/>
-<img id="back" src=back.xpm/>
-<img id="fore" src=fore.xpm/>
-<text fgimage="fore" bgimage="back" font="test.ttf" x="16" y="16" width="100% + 32" height="100% + 32">Smart Brown Dog jumps
- Over The Lazy Fox,
- and falls into the ditch.</text>

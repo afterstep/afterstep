@@ -48,6 +48,7 @@ typedef struct xml_elem_t {
 char* load_file(const char* filename);
 void showimage(ASImage* im);
 ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm);
+void my_destroy_asimage(ASImage* image);
 double parse_math(const char* str, char** endptr, double size);
 xml_elem_t* xml_parse_parm(const char* parm);
 void xml_print(xml_elem_t* root);
@@ -68,10 +69,11 @@ int screen, depth;
 ASVisual *asv;
 int verbose = 0;
 ASHashTable* image_hash = NULL;
+struct ASFontManager *fontman = NULL;
 
 char* default_doc_str = "
-<composite type=hue>
-  <composite type=add>
+<composite op=hue>
+  <composite op=add>
     <scale width=512 height=384><img src=rose512.jpg/></scale>
     <tile width=512 height=384><img src=back.xpm/></tile>
   </composite>
@@ -99,7 +101,7 @@ void usage(void) {
 }
 
 int main(int argc, char** argv) {
-	ASImage* im;
+	ASImage* im = NULL;
 	xml_elem_t* doc;
 	char* doc_str = default_doc_str;
 	char* doc_file = NULL;
@@ -164,9 +166,13 @@ int main(int argc, char** argv) {
 		xml_elem_t* ptr;
 		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
 			ASImage* tmpim = build_image_from_xml(ptr, NULL);
+			if (tmpim && im) my_destroy_asimage(im);
 			if (tmpim) im = tmpim;
 		}
 	}
+
+	// Destroy the font manager, if we created one.
+	if (fontman) destroy_font_manager(fontman, False);
 
 	// Automagically determine the output type, if none was given.
 	if (doc_save && !doc_save_type) {
@@ -188,7 +194,7 @@ int main(int argc, char** argv) {
 		showimage(im);
 	}
 
-	destroy_asimage( &im );
+	destroy_asimage(&im);
 #ifdef DEBUG_ALLOCS
 	print_unfreed_mem();
 #endif
@@ -337,50 +343,41 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (srcid) {
 			if (verbose) printf("Recalling image id [%s].\n", srcid);
 			get_hash_item(image_hash, (ASHashableValue)(char*)srcid, (void**)&result);
+			if (result) result->ref_count++;
+			if (verbose > 1 && !result) printf("Image recall failed.\n");
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-#if 1 // This tag isn't finished yet.  Need fgcolor, bgcolor.
 	if (!strcmp(doc->tag, "text")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* text = NULL;
 		const char* font_name = "fixed";
-		int point = 32;
-		const char* bgimage_str = NULL;
 		const char* fgimage_str = NULL;
-		const char* width_str = NULL;
-		const char* height_str = NULL;
-		int x = 0, y = 0, width = 0, height = 0;
+		const char* bgimage_str = NULL;
+		const char* fgcolor_str = NULL;
+		const char* bgcolor_str = NULL;
+		ARGB32 fgcolor = ARGB32_White, bgcolor = ARGB32_Black;
+		int point = 12;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "x")) x = strtol(ptr->parm, NULL, 0);
-			if (!strcmp(ptr->tag, "y")) y = strtol(ptr->parm, NULL, 0);
 			if (!strcmp(ptr->tag, "font")) font_name = ptr->parm;
 			if (!strcmp(ptr->tag, "point")) point = strtol(ptr->parm, NULL, 0);
-			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
-			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
-			if (!strcmp(ptr->tag, "bgimage")) bgimage_str = ptr->parm;
 			if (!strcmp(ptr->tag, "fgimage")) fgimage_str = ptr->parm;
+			if (!strcmp(ptr->tag, "bgimage")) bgimage_str = ptr->parm;
+			if (!strcmp(ptr->tag, "fgcolor")) fgcolor_str = ptr->parm;
+			if (!strcmp(ptr->tag, "bgcolor")) bgcolor_str = ptr->parm;
 		}
 		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "CDATA")) text = ptr->parm;
 		}
 		if (text) {
-			struct ASFontManager *fontman = NULL;
 			struct ASFont *font = NULL;
-			if (verbose) printf("Rendering text [%s].\n", text);
-			if ((fontman = create_font_manager(dpy, NULL, NULL)) != NULL)
-				font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
+			if (verbose) printf("Rendering text [%s] with font [%s].\n", text, font_name);
+			if (!fontman) fontman = create_font_manager(dpy, NULL, NULL);
+			if (fontman) font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
 			if (font != NULL) {
 				result = draw_text(text, font, AST_ShadeBelow, 0);
-				destroy_font_manager(fontman, False);
-				if (result) {
-					width = result->width;
-					height = result->height;
-					if (width_str) width = parse_math(width_str, NULL, result->width);
-					if (height_str) height = parse_math(height_str, NULL, result->height);
-				}
 				if (result && fgimage_str) {
 					ASImage* fgimage = NULL;
 					get_hash_item(image_hash, (ASHashableValue)(char*)fgimage_str, (void**)&fgimage);
@@ -388,39 +385,45 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 					if (fgimage) {
 						fgimage = tile_asimage(asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 						move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
+						my_destroy_asimage(result);
 						result = fgimage;
 					}
 				}
-				if (result && bgimage_str) {
+				if (result && fgcolor_str) {
+					ASImage* fgimage = create_asimage(result->width, result->height, ASIMAGE_QUALITY_TOP);
+					parse_argb_color(fgcolor_str, &fgcolor);
+					fill_asimage(asv, fgimage, 0, 0, result->width, result->height, fgcolor);
+					move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
+					my_destroy_asimage(result);
+					result = fgimage;
+				}
+				if (result && (bgcolor_str || bgimage_str)) {
+					ASImageLayer layers[2];
 					ASImage* bgimage = NULL;
-					get_hash_item(image_hash, (ASHashableValue)(char*)bgimage_str, (void**)&bgimage);
-					if (verbose > 1) printf("Using image [%s] as background.\n", bgimage_str);
-					if (bgimage) {
-						ASImageLayer layers[2];
-						memset(layers, 0, sizeof(layers));
-						layers[0].im = bgimage;
-						layers[0].dst_x = 0;
-						layers[0].dst_y = 0;
-						layers[0].clip_width = width;
-						layers[0].clip_height = height;
-						layers[0].merge_scanlines = alphablend_scanlines;
-						layers[0].back_color = ARGB32_Black;
-						layers[0].bevel = NULL;
-						layers[1].im = result;
-						layers[1].dst_x = x;
-						layers[1].dst_y = y;
-						layers[1].clip_width = result->width;
-						layers[1].clip_height = result->height;
-						layers[1].back_color = ARGB32_White;
-						layers[1].merge_scanlines = alphablend_scanlines;
-						result = merge_layers(asv, layers, 2, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-					}
+					if (bgimage_str) get_hash_item(image_hash, (ASHashableValue)(char*)bgimage_str, (void**)&bgimage);
+					if (bgcolor_str) parse_argb_color(bgcolor_str, &bgcolor);
+					memset(layers, 0, sizeof(layers));
+					layers[0].im = bgimage;
+					layers[0].dst_x = 0;
+					layers[0].dst_y = 0;
+					layers[0].clip_width = result->width;
+					layers[0].clip_height = result->height;
+					layers[0].merge_scanlines = alphablend_scanlines;
+					layers[0].back_color = bgcolor;
+					layers[0].bevel = NULL;
+					layers[1].im = result;
+					layers[1].dst_x = 0;
+					layers[1].dst_y = 0;
+					layers[1].clip_width = result->width;
+					layers[1].clip_height = result->height;
+					layers[1].back_color = fgcolor;
+					layers[1].merge_scanlines = alphablend_scanlines;
+					result = merge_layers(asv, layers, 2, result->width, result->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 				}
 			}
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-#endif
 
 	if (!strcmp(doc->tag, "save")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -451,22 +454,15 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-#if 0
-<bevel
-  edge-color="#dfdfdfdf #df8f8f8f"
-  outer-edge="2 2 -1 -1"
-  inner-edge="8 8 -6 -6">
-#endif
 	if (!strcmp(doc->tag, "bevel")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		ASImage* imtmp = NULL;
-		char* edge_color_str = NULL;
-		char* outer_edge_str = NULL;
-		char* inner_edge_str = NULL;
+		char* color_str = NULL;
+		char* border_str = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "edge_color")) edge_color_str = ptr->parm;
-			if (!strcmp(ptr->tag, "outer_edge")) outer_edge_str = ptr->parm;
-			if (!strcmp(ptr->tag, "inner_edge")) inner_edge_str = ptr->parm;
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
+			if (!strcmp(ptr->tag, "border")) border_str = ptr->parm;
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(ptr, NULL);
@@ -474,67 +470,76 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (imtmp) {
 			ASImageBevel bevel;
 			ASImageLayer layer;
-			bevel.type = 0;
+			bevel.type = BEVEL_SOLID_INLINE;
 			bevel.hi_color = 0xffdddddd;
 			bevel.lo_color = 0xff555555;
 			bevel.top_outline = 0;
 			bevel.left_outline = 0;
-			bevel.right_outline = imtmp->width;
-			bevel.bottom_outline = imtmp->height;
+			bevel.right_outline = 0;
+			bevel.bottom_outline = 0;
 			bevel.top_inline = 10;
 			bevel.left_inline = 10;
-			bevel.right_outline = imtmp->width - 10;
-			bevel.bottom_outline = imtmp->height - 10;
-			if (edge_color_str) {
-				char* p = edge_color_str;
+			bevel.right_inline = 10;
+			bevel.bottom_inline = 10;
+			if (color_str) {
+				char* p = color_str;
 				while (isspace(*p)) p++;
 				parse_argb_color(p, &bevel.hi_color);
 				while (*p && !isspace(*p)) p++;
 				while (isspace(*p)) p++;
 				parse_argb_color(p, &bevel.lo_color);
 			}
-			if (inner_edge_str) {
-				char* p = (char*)inner_edge_str;
+			if (border_str) {
+				char* p = (char*)border_str;
 				bevel.left_inline = parse_math(p, &p, imtmp->width);
 				bevel.top_inline = parse_math(p, &p, imtmp->height);
 				bevel.right_inline = parse_math(p, &p, imtmp->width);
 				bevel.bottom_inline = parse_math(p, &p, imtmp->height);
 			}
-			if (outer_edge_str) {
-				char* p = (char*)outer_edge_str;
-				bevel.left_outline = parse_math(p, &p, imtmp->width);
-				bevel.top_outline = parse_math(p, &p, imtmp->height);
-				bevel.right_outline = parse_math(p, &p, imtmp->width);
-				bevel.bottom_outline = parse_math(p, &p, imtmp->height);
-			}
 			bevel.hihi_color = bevel.hi_color;
 			bevel.hilo_color = bevel.hi_color;
 			bevel.lolo_color = bevel.lo_color;
+			if (verbose) printf("Generating bevel with offsets [%d %d %d %d] and colors [#%08x #%08x].\n", bevel.left_inline, bevel.top_inline, bevel.right_inline, bevel.bottom_inline, (unsigned int)bevel.hi_color, (unsigned int)bevel.lo_color);
 			memset(&layer, 0, sizeof(layer));
 			layer.im = imtmp;
 			layer.clip_width = imtmp->width;
 			layer.clip_height = imtmp->height;
 			layer.merge_scanlines = alphablend_scanlines;
 			layer.bevel = &bevel;
-printf("size [%dx%d]\n", imtmp->width, imtmp->height);
-result = malloc(16384);
 			result = merge_layers(asv, &layer, 1, imtmp->width, imtmp->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			my_destroy_asimage(imtmp);
 		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
 	if (!strcmp(doc->tag, "gradient")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* refid = NULL;
+		const char* width_str = NULL;
+		const char* height_str = NULL;
 		int width = 0, height = 0;
 		double angle = 0;
 		char* color_str = NULL;
 		char* offset_str = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "width")) width = strtol(ptr->parm, NULL, 0);
-			if (!strcmp(ptr->tag, "height")) height = strtol(ptr->parm, NULL, 0);
+			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
+			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
 			if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
 			if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
 			if (!strcmp(ptr->tag, "offsets")) offset_str = ptr->parm;
+		}
+		if (refid && width_str && height_str) {
+			ASImage* refimg = NULL;
+			get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+			if (refimg) {
+				width = parse_math(width_str, NULL, refimg->width);
+				height = parse_math(height_str, NULL, refimg->height);
+			}
+		}
+		if (!refid && width_str && height_str) {
+			width = parse_math(width_str, NULL, width);
+			height = parse_math(height_str, NULL, height);
 		}
 		if (width && height && color_str) {
 			ASGradient gradient;
@@ -616,13 +621,13 @@ result = malloc(16384);
 						gradient.offset[i] = 1.0 - gradient.offset[i];
 					}
 				}
-				if (verbose) printf("Generating [%dx%d] gradient with angle [%f], colors [%s], offsets [%s], and npoints [%d/%d].\n", width, height, angle, color_str, offset_str ? offset_str : "(none given)", npoints1, npoints2);
+				if (verbose) printf("Generating [%dx%d] gradient with angle [%f] and npoints [%d/%d].\n", width, height, angle, npoints1, npoints2);
 				if (verbose > 1) {
 					for (i = 0 ; i < gradient.npoints ; i++) {
 						printf("  Point [%d] has color [#%08x] and offset [%f].\n", i, (unsigned int)gradient.color[i], gradient.offset[i]);
 					}
 				}
-				result = make_gradient(asv, &gradient, width, height, 0xFFFFFFFF, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				result = make_gradient(asv, &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 			}
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -641,7 +646,7 @@ result = malloc(16384);
 		}
 		if (imtmp) {
 			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			destroy_asimage(&imtmp);
+			my_destroy_asimage(imtmp);
 		}
 		if (verbose) printf("Mirroring image [%sally].\n", dir ? "horizont" : "vertic");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -672,7 +677,7 @@ result = malloc(16384);
 			}
 			if (dir) {
 				result = flip_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-				destroy_asimage(&imtmp);
+				my_destroy_asimage(imtmp);
 				if (verbose) printf("Rotating image [%f degrees].\n", angle);
 			} else {
 				result = imtmp;
@@ -683,11 +688,27 @@ result = malloc(16384);
 
 	if (!strcmp(doc->tag, "scale")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* refid = NULL;
+		const char* width_str = NULL;
+		const char* height_str = NULL;
 		int width = 0, height = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "width")) width = strtol(ptr->parm, NULL, 0);
-			if (!strcmp(ptr->tag, "height")) height = strtol(ptr->parm, NULL, 0);
+			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
+			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
+			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+		}
+		if (refid && width_str && height_str) {
+			ASImage* refimg = NULL;
+			get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+			if (refimg) {
+				width = parse_math(width_str, NULL, refimg->width);
+				height = parse_math(height_str, NULL, refimg->height);
+			}
+		}
+		if (!refid && width_str && height_str) {
+			width = parse_math(width_str, NULL, width);
+			height = parse_math(height_str, NULL, height);
 		}
 		if (width && height) {
 			ASImage* imtmp = NULL;
@@ -696,57 +717,152 @@ result = malloc(16384);
 			}
 			if (imtmp) {
 				result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-				destroy_asimage(&imtmp);
+				my_destroy_asimage(imtmp);
 			}
 			if (verbose) printf("Scaling image to [%dx%d].\n", width, height);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-	if (!strcmp(doc->tag, "tile")) {
+	if (!strcmp(doc->tag, "crop")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* refid = NULL;
+		const char* width_str = NULL;
+		const char* height_str = NULL;
 		int width = 0, height = 0;
+		ASImage* imtmp = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "width")) width = strtol(ptr->parm, NULL, 0);
-			if (!strcmp(ptr->tag, "height")) height = strtol(ptr->parm, NULL, 0);
+			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
+			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
+			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
 		}
-		if (width && height) {
-			ASImage* imtmp = NULL;
-			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-				imtmp = build_image_from_xml(ptr, NULL);
+		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+			imtmp = build_image_from_xml(ptr, NULL);
+		}
+		if (imtmp) {
+			if (refid && width_str && height_str) {
+				ASImage* refimg = NULL;
+				get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+				if (refimg) {
+					width = parse_math(width_str, NULL, refimg->width);
+					height = parse_math(height_str, NULL, refimg->height);
+				}
 			}
-			if (imtmp) {
+			if (!refid && width_str && height_str) {
+				width = parse_math(width_str, NULL, imtmp->width);
+				height = parse_math(height_str, NULL, imtmp->height);
+			}
+			if (width > imtmp->width) width = imtmp->width;
+			if (height > imtmp->height) height = imtmp->height;
+			if (width > 0 && height > 0) {
 				result = tile_asimage(asv, imtmp, 0, 0, width, height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-				destroy_asimage(&imtmp);
+				my_destroy_asimage(imtmp);
+			}
+			if (verbose) printf("Cropping image to [%dx%d].\n", width, height);
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+
+	if (!strcmp(doc->tag, "tile")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* refid = NULL;
+		const char* width_str = "100%";
+		const char* height_str = "100%";
+		int width = 0, height = 0;
+		ASImage* imtmp = NULL;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
+			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
+			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+		}
+		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+			imtmp = build_image_from_xml(ptr, NULL);
+		}
+		if (imtmp) {
+			if (refid && width_str && height_str) {
+				ASImage* refimg = NULL;
+				get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+				if (refimg) {
+					width = parse_math(width_str, NULL, refimg->width);
+					height = parse_math(height_str, NULL, refimg->height);
+				}
+			}
+			if (!refid && width_str && height_str) {
+				width = parse_math(width_str, NULL, imtmp->width);
+				height = parse_math(height_str, NULL, imtmp->height);
+			}
+			if (width > 0 && height > 0) {
+				result = tile_asimage(asv, imtmp, 0, 0, width, height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+				my_destroy_asimage(imtmp);
 			}
 			if (verbose) printf("Tiling image to [%dx%d].\n", width, height);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+	if (!strcmp(doc->tag, "solid")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* refid = NULL;
+		const char* width_str = NULL;
+		const char* height_str = NULL;
+		int width = 0, height = 0;
+		ARGB32 color = ARGB32_White;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
+			if (!strcmp(ptr->tag, "color")) parse_argb_color(ptr->parm, &color);
+			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
+			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+		}
+		if (refid && width_str && height_str) {
+			ASImage* refimg = NULL;
+			get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+			if (refimg) {
+				width = parse_math(width_str, NULL, refimg->width);
+				height = parse_math(height_str, NULL, refimg->height);
+			}
+		}
+		if (!refid && width_str && height_str) {
+			width = parse_math(width_str, NULL, 0);
+			height = parse_math(height_str, NULL, 0);
+		}
+		if (width && height) {
+			result = create_asimage(width, height, ASIMAGE_QUALITY_TOP);
+			if (result) fill_asimage(asv, result, 0, 0, width, height, color);
+			if (verbose) printf("Creating solid color [#%08x] image [%dx%d].\n", (unsigned int)color, width, height);
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+
 	if (!strcmp(doc->tag, "composite")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
-		char* pop = NULL;
+		const char* pop = "alphablend";
+		int keep_trans = 0;
+		int merge = 0;
 		int num;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "op")) pop = ptr->parm;
+			if (!strcmp(ptr->tag, "keep-transparency")) keep_trans = strtol(ptr->parm, NULL, 0);
+			if (!strcmp(ptr->tag, "merge") && !mystrcasecmp(ptr->parm, "clip")) merge = 1;
 		}
-		if (pop) {
-			// Find out how many subimages we have.
-			num = 0;
-			for (ptr = doc->child ; ptr ; ptr = ptr->next) {
-				if (strcmp(ptr->tag, "CDATA")) num++;
-			}
+		// Find out how many subimages we have.
+		num = 0;
+		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
+			if (strcmp(ptr->tag, "CDATA")) num++;
 		}
-		if (pop && num) {
-			int x = 0, y = 0, width = 0, height = 0;
+		if (num) {
+			int width = 0, height = 0;
 			ASImageLayer *layers;
 
 			// Build the layers first.
 			layers = NEW_ARRAY(ASImageLayer, num);
+			memset(layers, 0, sizeof(ASImageLayer) * num);
 			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) {
+				int x = 0, y = 0;
+				ARGB32 tint = 0;
 				xml_elem_t* sparm = NULL;
 				if (!strcmp(ptr->tag, "CDATA")) continue;
 				layers[num].im = build_image_from_xml(ptr, &sparm);
@@ -755,6 +871,7 @@ result = malloc(16384);
 					for (tmp = sparm ; tmp ; tmp = tmp->next) {
 						if (!strcmp(tmp->tag, "x")) x = strtol(tmp->parm, NULL, 0);
 						if (!strcmp(tmp->tag, "y")) y = strtol(tmp->parm, NULL, 0);
+						if (!strcmp(tmp->tag, "tint")) parse_argb_color(tmp->parm, &tint);
 					}
 				}
 				if (layers[num].im) {
@@ -764,7 +881,7 @@ result = malloc(16384);
 					layers[num].clip_y = 0;
 					layers[num].clip_width = layers[num].im->width;
 					layers[num].clip_height = layers[num].im->height;
-					layers[num].tint = 0;
+					layers[num].tint = tint;
 					layers[num].bevel = 0;
 					layers[num].merge_mode = 0;
 					layers[num].merge_scanlines = blend_scanlines_name2func(pop);
@@ -775,10 +892,33 @@ result = malloc(16384);
 				if (sparm) xml_elem_delete(NULL, sparm);
 			}
 
-			if (verbose) printf("Compositing [%d] image(s) with op [%s].\n", num, pop);
+			if (merge) {
+				width = layers[0].im->width;
+				height = layers[0].im->height;
+			}
 
-			result = merge_layers(asv, layers, num, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			while (--num >= 0) destroy_asimage(&layers[num].im);
+			if (verbose) {
+				printf("Compositing [%d] image(s) with op [%s].  Final geometry [%dx%d].", num, pop, width, height);
+				if (keep_trans) printf("  Keeping transparency.");
+				printf("\n");
+			}
+			if (verbose > 1) {
+				int i;
+				for (i = 0 ; i < num ; i++) {
+					printf("  Image [%d] geometry [%dx%d+%d+%d]", i, layers[i].clip_width, layers[i].clip_height, layers[i].dst_x, layers[i].dst_y);
+					if (layers[i].tint) printf(" tint (#%08x)", (unsigned int)layers[i].tint);
+					printf(".\n");
+				}
+			}
+
+			if (num) {
+				result = merge_layers(asv, layers, num, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				if (keep_trans && result && layers[0].im) {
+					// FIXME: This should be copy_asimage_channel(), or random crashes may occur.
+					move_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
+				}
+				while (--num >= 0) my_destroy_asimage(layers[num].im);
+			}
 			free(layers);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -786,19 +926,31 @@ result = malloc(16384);
 
 	// No match so far... see if one of our children can do any better.
 	if (!result) {
+		xml_elem_t* tparm = NULL;
 		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
 			xml_elem_t* sparm = NULL;
-			result = build_image_from_xml(ptr, &sparm);
-			if (result && rparm) *rparm = sparm; else xml_elem_delete(NULL, sparm);
+			ASImage* imtmp = build_image_from_xml(ptr, &sparm);
+			if (imtmp) {
+				if (tparm) xml_elem_delete(NULL, tparm);
+				tparm = NULL;
+				if (sparm) tparm = sparm; else xml_elem_delete(NULL, sparm);
+			}
 		}
 	}
 
 	if (id && result) {
 		if (verbose > 1) printf("Storing image id [%s].\n", id);
 		add_hash_item(image_hash, (ASHashableValue)id, result);
+		result->ref_count++;
 	}
 
 	return result;
+}
+
+void my_destroy_asimage(ASImage* image) {
+	image->ref_count--;
+	if (verbose > 1 && image->ref_count < 0) printf("Destroying image [%08x] with refcount [%d].\n", (unsigned int)image, image->ref_count);
+	if (image->ref_count < 0) destroy_asimage(&image);
 }
 
 // Math expression parsing algorithm.  The basic math ops (add, subtract, 

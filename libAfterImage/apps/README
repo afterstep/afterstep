@@ -59,21 +59,38 @@ possible XML tags are:
 
 <composite id="com" op="alphablend">
   id       Optional.  Image will be given this name for future reference.
-  op       Required.  The compositing operation.  Valid values are the 
-           standard AS blending ops: add, alphablend, allanon, colorize, 
-           darken, diff, dissipate, hue, lighten, overlay, saturate, 
-           screen, sub, tint, value.
+  op       Optional.  Default is "alphablend".  The compositing operation.  
+           Valid values are the standard AS blending ops: add, alphablend, 
+           allanon, colorize, darken, diff, dissipate, hue, lighten, 
+           overlay, saturate, screen, sub, tint, value.
+  merge    Optional.  Default is "expand".  Valid values are "clip" and 
+           "expand".  Determines whether final image will be expanded to 
+           the maximum size of the layers, or clipped to the bottom layer.
+  keep-transparency
+           Optional.  Default is "0".  Valid values are "0" and "1".  If 
+           set to "1", the transparency of the bottom layer will be 
+           kept for the final image.
   All images surrounded by this tag will be composited with the given op.
 <scale id="sca" width="512" height="384">
   id       Optional.  Image will be given this name for future reference.
+  refid    Optional.  An image ID defined with the "id" parameter for 
+           any previously created image.  If set, percentages in "width" 
+           and "height" will apply to the width and height of the refid 
+           image.
   width    Required.  The image will be scaled to this width.
   height   Required.  The image will be scaled to this height.
   This tag applies to the first image contained within the tag.  Any
   further images will be discarded.
 <tile id="til" width="512" height="384">
   id       Optional.  Image will be given this name for future reference.
-  width    Required.  The image will be tiled to this width.
-  height   Required.  The image will be tiled to this height.
+  refid    Optional.  An image ID defined with the "id" parameter for 
+           any previously created image.  If set, percentages in "width" 
+           and "height" will apply to the width and height of the refid 
+           image.
+  width    Optional.  Default is "100%".  The image will be tiled to this 
+           width.
+  height   Optional.  Default is "100%".  The image will be tiled to this 
+           height.
   This tag applies to the first image contained within the tag.  Any
   further images will be discarded.
 <img id="img" src=rose512.jpg/>
@@ -81,6 +98,10 @@ possible XML tags are:
   src      Required.  The filename (NOT URL) of the image file to load.
 <gradient id="gra" angle="90" width="600" height="500" colors="#ff007fff #7f00ffff #ff007fff" offsets="0.0 0.125 1.0"/>
   id       Optional.  Image will be given this name for future reference.
+  refid    Optional.  An image ID defined with the "id" parameter for 
+           any previously created image.  If set, percentages in "width" 
+           and "height" will apply to the width and height of the refid 
+           image.
   width    Required.  The gradient will have this width.
   height   Required.  The gradient will have this height.
   colors   Required.  Whitespace-separated list of colors.  At least two
@@ -119,11 +140,38 @@ possible XML tags are:
            extension of the "dst" parameter.  Valid values are the standard 
            AS image file formats: jpg, bmp, png, xcf, ppm, pnm, ico, cur, 
            gif, xbm, tiff.
+<text id="tex" font="myfont.ttf" point="12">My Text Here</text>
+  id       Optional.  Image will be given this name for future reference.
+  font     Optional.  Default is "fixed".  Font to use for text.
+  point    Optional.  Default is 12.  Size of text in points.
+  fgcolor  Optional.  No default.  The text will be drawn in this color.
+  bgcolor  Optional.  No default.  The area behind the text will be drawn 
+           in this color.
+  fgimage  Optional.  No default.  The text will be textured by this image.
+  bgimage  Optional.  No default.  The area behind the text will be filled 
+           with this image.
+  NOTE: <text> without bgcolor, fgcolor, fgimage, or bgimage will NOT 
+  produce visible output by itself.  See EXAMPLES below.
+<bevel id="bev" colors="#ffdddddd #ff555555" border="10 10 10 10">
+  id       Optional.  Image will be given this name for future reference.
+  colors   Optional.  Whitespace-separated list of colors.  Exactly two 
+           colors are required.  Default is "#ffdddddd #ff555555".  The 
+           first color is the color of the upper and left edges, and the 
+           second is the color of the lower and right edges.
+  borders  Optional.  Whitespace-separated list of integer values.  Default 
+           is "10 10 10 10".  The values represent the offsets toward the 
+           center of the image of each border: left, top, right, bottom.
+<solid id="sol" color="#ffffffff" width="64" height="64">
+  id       Optional.  Image will be given this name for future reference.
+  color    Optional.  Default is "#ffffffff".  An image will be created 
+           and filled with this color.
+  width    Required.  The image will have this width.
+  height   Required.  The image will have this height.
 
 As an example, the default XML used by ascompose is:
 
-  <composite type=hue>
-    <composite type=add>
+  <composite op=hue>
+    <composite op=add>
       <scale width=512 height=384><img src=rose512.jpg/></scale>
       <tile width=512 height=384><img src=back.xpm/></tile>
     </composite>
@@ -133,4 +181,34 @@ As an example, the default XML used by ascompose is:
 To see what this does, run "ascompose --verbose", and it will tell you
 what it is doing at each rendering step.
 
+To get visible output from <text>, use something like:
+
+  <text id="tmp">My Text</text>
+  <composite>
+    <solid refid="tmp" width=100% height=100% color="#ff000000"/>
+    <composite keep-transparency=1 merge="clip">
+      <recall srcid="tmp"/>
+      <solid refid="tmp" width=100% height=100% color="#ffffffff"/>
+    </composite>
+  </composite>
+
+This method isn't as easy as the shortcut fgcolor and bgcolor attributes 
+of <text>, but it's much more flexible.  The background image could be 
+a scaled image, for instance.
+
 -------------------------------------------------------------------------------
+
+<crop id="AfterStep owns! text" width=640 height=512>
+<text id="AfterStep owns! text mask" font=test.ttf fgcolor="#ffffffff" point=32>AfterStep  owns jjjijijiji you
+it owns your soul
+and all your relatives will pity you, when you discover just how devoted you are.</text>
+</crop>
+<composite id="AfterStep owns!">
+  <tile width="640" height="512"><recall srcid="root"/></tile>
+  <scale width="640" height="512"><recall srcid="testimg"/></scale>
+  <scale width="640" height="512"><recall srcid="redbrush"/></scale>
+  <scale width="640" height="512"><recall srcid="ice"/></scale>
+  <recall srcid="AfterStep owns! text" x=20 y=150 tint="#3d7f7f7f"/>
+  <bevel x=20 y=6 tint="#3d7f7f7f" color="#dfdfdfdf #df8f8f8f" border="8 8 6 6"><gradient angle=90 width=450 height=500 colors="#ff007fff #7f00ffff #ff007fff #ff0000ff #ff000000 #ffffff00" offsets="0.0 0.125 0.25 0.5625 0.8 1.0"/></bevel>
+  <mirror dir="vertical" x=20 y=300><recall srcid="AfterStep owns! text"/></mirror>
+</composite>
