@@ -1,7 +1,0 @@
-<varlistentry id="options.NoPush">
-	<term>NoPush</term>
-	<listitem>
-		<para>If  specified,  the entire <command>Wharf</command> button will not appear as if it
-		is being pushed in.</para>
-	</listitem>
-</varlistentry>
