@@ -41,8 +41,8 @@ AFTERIMAGE_OBJS= @AFTERBASE_C@ asimage.o ascmap.o asfont.o asimagexml.o asstorag
 ################################################################
 # library specifics :
 
-LIB_INCS= afterimage.h config.h afterbase.h ascmap.h asfont.h \
-		asimage.h asimagexml.h asvisual.h blender.h bmp.h char2uni.h \
+LIB_INCS= afterimage.h config.h afterbase.h ascmap.h asfont.h asim_afterbase.h \
+		asimage.h asimagexml.h asstorage.h asvisual.h blender.h bmp.h char2uni.h \
 		export.h imencdec.h import.h pixmap.h transform.h ungif.h \
 		xcf.h ximage.h xpm.h
 
