@@ -53,19 +53,27 @@ install.man:	$(PROG)
 
 install.data_html:  do_compile
 		@if [ -d $(AFTER_DOC_DIR)/html ] ; then \
-	  		echo $(RMF) -r $(AFTER_DOC_DIR)/html; \
-			$(RMF) -r $(AFTER_DOC_DIR)/html; \
+			if [ -z "$(NO_DATA_REINSTALL)" ] ; then \
+	  			echo $(RMF) -r $(AFTER_DOC_DIR)/html; \
+				$(RMF) -r $(AFTER_DOC_DIR)/html; \
+			fi; \
+			no_data_reinstall=$(NO_DATA_REINSTALL); \
+		else \
+	  		no_data_reinstall=""; \
+	  		echo "no previous installation detected"; \
 		fi; \
-		$(MKDIR) -p $(AFTER_DOC_DIR)/html/data; \
-		echo "Generating catalogue of installed data files ..." ; \
-		old_IMAGE_PATH=$(IMAGE_PATH); old_FONT_PATH=$(FONT_PATH); \
-		FONT_PATH="@with_afterdir@/desktop/fonts/:@datadir@/afterstep/desktop/fonts/:/usr/share/fonts/default/TrueType/:@x_libraries@/X11/fonts/TTF"; \
-		IMAGE_PATH="@with_afterdir@/desktop/icons/:@datadir@/afterstep/desktop/icons/:@with_afterdir@/desktop/:@datadir@/afterstep/desktop/:@with_afterdir@/desktop/buttons/:@datadir@/afterstep/desktop/buttons/:@with_afterdir@/backgrounds/:@datadir@/afterstep/backgrounds/:@x_includes@/X11/pixmaps/"; \
-		export IMAGE_PATH; export FONT_PATH; \
-		./ASDocGen -t html --data --css data_html_styles.css -S $(AFTER_SHAREDIR) -D $(AFTER_DOC_DIR)/html/data -l /dev/null  ; \
-		IMAGE_PATH=$(old_IMAGE_PATH); FONT_PATH=$(old_FONT_PATH); \
-		export IMAGE_PATH; export FONT_PATH; \
-		echo "Done"; \
+		if [ -z "$$no_data_reinstall" ]; then \
+			$(MKDIR) -p $(AFTER_DOC_DIR)/html/data; \
+			echo "Generating catalogue of installed data files ..." ; \
+			old_IMAGE_PATH=$(IMAGE_PATH); old_FONT_PATH=$(FONT_PATH); \
+			FONT_PATH="@with_afterdir@/desktop/fonts/:@datadir@/afterstep/desktop/fonts/:/usr/share/fonts/default/TrueType/:@x_libraries@/X11/fonts/TTF"; \
+			IMAGE_PATH="@with_afterdir@/desktop/icons/:@datadir@/afterstep/desktop/icons/:@with_afterdir@/desktop/:@datadir@/afterstep/desktop/:@with_afterdir@/desktop/buttons/:@datadir@/afterstep/desktop/buttons/:@with_afterdir@/backgrounds/:@datadir@/afterstep/backgrounds/:@x_includes@/X11/pixmaps/"; \
+			export IMAGE_PATH; export FONT_PATH; \
+			./ASDocGen -t html --data --css data_html_styles.css -S $(AFTER_SHAREDIR) -D $(AFTER_DOC_DIR)/html/data -l /dev/null  ; \
+			IMAGE_PATH=$(old_IMAGE_PATH); FONT_PATH=$(old_FONT_PATH); \
+			export IMAGE_PATH; export FONT_PATH; \
+			echo "Done"; \
+		fi
 
 		
 install.doc_html:	install.data_html  $(PROG)

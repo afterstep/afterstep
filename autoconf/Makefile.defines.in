@@ -64,10 +64,12 @@ AFTER_DOC_DIR	= $(AFTER_SHAREDIR)/doc
 GNOME_SHAREDIR  = @datadir@/gnome
 GNOME_SHAREDESTDIR  = $(DESTDIR)$(GNOME_SHAREDIR)
 AFTER_DIR	= @with_afterdir@
-AFTER_SAVE	= @with_afterdir@/.workspace_state
 AFTER_NONCF	= @with_afterdir@/non-configurable
 
 IMAGE_FORMAT    = @image_format@
+
+NO_DATA_REINSTALL = @no_data_reinstall@
+
 
 #
 # End of Make.defines

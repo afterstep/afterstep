@@ -34,7 +34,7 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 #		  src/Zharf @SCRIPT_DIR@
 
 all:	AfterStep.desktop.final
-	@for I in ${subdirs}; do (cd $$I; ${MAKE} $@ || exit 1); done
+	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} $@ || exit 1); fi; done
 
 AfterStep.desktop.final:
 	@$(CP) AfterStep.desktop AfterStep.desktop.final; \
@@ -55,19 +55,19 @@ mkdir.man:
 module.clean:
  
 install: install.desktop install.data mkdir
-	@for I in ${subdirs}; do (cd $$I; ${MAKE} install || exit 1); done
+	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install || exit 1); fi; done
 
 install.bin: mkdir.bin
-	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.bin || exit 1); done
+	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install.bin || exit 1); fi; done
 
 install.lib: mkdir.lib
-	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.lib || exit 1); done
+	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install.lib || exit 1); fi; done
 
 install.man: mkdir.man
-	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.man || exit 1); done
+	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install.man || exit 1); fi; done
   
 install.script: mkdir.bin
-	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.script || exit 1); done
+	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install.script || exit 1); fi; done
 
 install.desktop: AfterStep.desktop.final
 	@if [ -d /usr/share/xsessions ] && [ -w /usr/share/xsessions ] ; then \
@@ -101,19 +101,19 @@ install.data:
 	cd afterstep; ${MAKE} install || exit 1; cd ..
 
 uninstall:
-	@for I in ${subdirs}; do (cd $$I; ${MAKE} uninstall || exit 1); done
+	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} uninstall || exit 1); fi; done
 
 clean:
-	@for I in ${subdirs}; do (cd $$I; ${MAKE} clean || exit 1); done; \
+	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} clean || exit 1); fi; done; \
 	$(RMF) AfterStep.desktop.final
 
 
 distclean:
-	@for I in ${subdirs}; do (cd $$I; ${MAKE} distclean || exit 1); done
+	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} distclean || exit 1); fi; done
 	$(RMF) config.cache config.log config.status Makefile.bak Makefile config.h configure.h *.o *~ *% *.bak \#* core
 
 indent:
-	for i in ${subdirs}; do ${MAKE} -C $$i indent; done
+	for i in ${subdirs}; do if [ -d $$I ]; then ${MAKE} -C $$i indent; fi; done
 	@cd include; \
 	for i in *.h; do \
 	  if (indent < $$i > /tmp/$$i); then \
@@ -123,8 +123,8 @@ indent:
 	done
 
 deps:
-	for I in ${subdirs}; do (cd $$I; touch .depend || exit 1); done; \
-	for I in ${subdirs}; do (cd $$I; ${MAKE} deps || exit 1); done
+	for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; touch .depend || exit 1); fi; done; \
+	for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} deps || exit 1); fi; done
 
 config:
 	for I in ${confsdirs}; do \
