@@ -278,8 +278,8 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
         {
             feel->window_boxes[i].area.height = ASDefaultScr->MyDisplayHeight ;
             if( get_flags( feel->window_boxes[i].flags, ASA_Virtual ) )
-                feel->window_boxes[i].area.width += ASDefaultScr->VyMax ;
-            feel->window_boxes[i].area.width -= feel->window_boxes[i].area.y ;
+                feel->window_boxes[i].area.height += ASDefaultScr->VyMax ;
+            feel->window_boxes[i].area.height -= feel->window_boxes[i].area.y ;
         }
         if( !get_flags(feel->window_boxes[i].flags, ASA_DesktopSet) )
             feel->window_boxes[i].desk = INVALID_DESK;

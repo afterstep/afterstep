@@ -71,12 +71,12 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
         int r_top = rects[i].y, r_bottom = rects[i].y+rects[i].height ;
         Bool disected = False ;
         /* we can build at most 4 rectangles from each substraction : */
-        if( top < r_bottom && bottom >= r_top )
+        if( top < r_bottom && bottom > r_top )
         {   /* we may need to create 2 vertical rectangles ( left and right ) :*/
             /* left rectangle : */
             tmp.y = r_top ;
             tmp.height = r_bottom - r_top ;
-             if( left > r_left && left <= r_right )
+             if( left > r_left && left < r_right )
             {
                 rects[i].x = r_left ;
                 rects[i].width = left - r_left ;
@@ -84,7 +84,7 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
                 disected = True ;
             }
             /* right rectangle : */
-            if( right >= r_left && right < r_right )
+            if( right > r_left && right < r_right )
             {
                 tmp.x = right ;
                 tmp.width = r_right - right ;
@@ -99,12 +99,12 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
                 }
             }
         }
-        if( left < r_right && right >= r_left )
+        if( left < r_right && right > r_left )
         {   /* we may need to create 2 horizontal rectangles ( top and bottom ) :*/
             /* top rectangle : */
             tmp.x = r_left ;
             tmp.width = r_right - r_left ;
-            if( top > r_top && top <= r_bottom )
+            if( top > r_top && top < r_bottom )
             {
                 tmp.y = r_top ;
                 tmp.height = top- r_top ;
@@ -119,7 +119,7 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
                 }
             }
             /* bottom rectangle */
-            if( bottom >= r_top && bottom < r_bottom )
+            if( bottom > r_top && bottom < r_bottom )
             {
                 tmp.y = bottom ;
                 tmp.height = r_bottom- bottom ;
@@ -565,10 +565,18 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
     {
         int spacer_x = 0 ;
         int spacer_y = 0 ;
-		if( rects[selected].x > 0 && rects[selected].width > w)
-			spacer_x = 1;
-		if( rects[selected].y > 0 && rects[selected].height > h)
-			spacer_y = 1;
+		if( rects[selected].width > w )
+		{
+			int to_right = (area->x+(int)area->width) - (rects[selected].x + (int)rects[selected].width) ; 
+			if( to_right < rects[selected].x - area->x ) 
+				spacer_x = (int)rects[selected].width - (int)w ; 
+		}	 
+		if( rects[selected].height > h)
+		{	
+			int to_bottom = (area->y+(int)area->height) - (rects[selected].y + (int)rects[selected].height) ; 
+			if( to_bottom < rects[selected].y - area->y ) 
+				spacer_y = (int)rects[selected].height - (int)h ; 
+		}
         apply_placement_result_asw( asw, XValue|YValue, rects[selected].x+spacer_x, rects[selected].y+spacer_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else

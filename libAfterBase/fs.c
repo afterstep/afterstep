@@ -669,7 +669,13 @@ ignore_dots (const char *d_name)
 int
 no_dots_except_include (const char *d_name)
 {
-	return !(d_name[0] == '.' && mystrcasecmp (d_name, ".include"));
+	if( d_name[0] != '.' || mystrcasecmp (d_name, ".include") == 0 )
+	{	
+		register  int i = 0;
+		while( d_name[i] != '\0' ) ++i ; 
+		return (i > 0 && d_name[i-1] != '~');
+	}
+	return False;
 }
 
 

@@ -22,35 +22,46 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __CYGWIN__
+#define XWRAP_H_HEADER_INCLUDED
+#undef BOOL
+#undef INT32
+# include <w32api/windows.h>
+# include <w32api/imagehlp.h>
+#endif
+
+
 #include "astypes.h"
 #include "output.h"
 #include "selfdiag.h"
 
 
 #ifdef HAVE_EXECINFO_H
-#include <execinfo.h>
+# include <execinfo.h>
 #ifdef HAVE_BACKTRACE_SYMBOLS
-#define GLIBC_BACKTRACE_FUNC 	backtrace_symbols
+# define GLIBC_BACKTRACE_FUNC 	backtrace_symbols
 #else
-#define GLIBC_BACKTRACE_FUNC 	__backtrace_symbols
+# define GLIBC_BACKTRACE_FUNC 	__backtrace_symbols
 #endif
 #endif
 
+
 #ifdef HAVE_LINK_H
-#include <link.h>
+# include <link.h>
 #endif
 
 #ifdef HAVE_ELF_H
-#include <elf.h>
+# include <elf.h>
 #endif
 
 #include <signal.h>
 
 #ifdef HAVE_SIGCONTEXT
-#include <asm/sigcontext.h>
+# include <asm/sigcontext.h>
 #else
 struct sigcontext;							   /* just in case for easier portability */
 #endif
+
 
 
 typedef struct proc_tables
@@ -250,6 +261,39 @@ find_func_symbol (void *addr, long *offset)
 #endif
 	*offset = min_offset;
 	return selected;
+#elif defined(__CYGWIN__)
+
+	{
+		
+		*offset = 0 ;
+#if 0
+		{		
+			static int imhelp_symbols_inited = FALSE ; 
+#define MAX_IMAGEHLP_SYM_NAME_LEN	128
+    	    static BYTE symbolBuffer[ sizeof(IMAGEHLP_SYMBOL) + MAX_IMAGEHLP_SYM_NAME_LEN + 1 ];
+        	static PIMAGEHLP_SYMBOL pSymbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
+        	DWORD symDisplacement = 0;  // Displacement of the input address,
+		
+			pSymbol->SizeOfStruct = sizeof(symbolBuffer);
+        	pSymbol->MaxNameLength = MAX_IMAGEHLP_SYM_NAME_LEN;
+			
+			if( !imhelp_symbols_inited ) 
+			{
+				if ( !SymInitialize( GetCurrentProcess(), 0, TRUE ) )	
+					return unknown;
+				imhelp_symbols_inited = TRUE ;
+			}	 
+        
+			if ( SymGetSymFromAddr(GetCurrentProcess(), (DWORD)addr,
+                                	&symDisplacement, pSymbol) )
+        	{
+				*offset = symDisplacement ; 
+				return pSymbol->Name ;
+        	}
+		}
+#endif		
+		return unknown;
+	}		  
 #else
 	*offset = 0;
     return unknown;
@@ -274,7 +318,7 @@ print_lib_list ()
 #endif
 }
 
-#ifndef HAVE_SIGCONTEXT
+#if !defined(HAVE_SIGCONTEXT)
 void
 print_signal_context (struct sigcontext *psc)
 {}
@@ -313,9 +357,8 @@ print_signal_context (struct sigcontext *psc)
 void
 print_my_backtrace (long *ebp, long *esp, long *eip)
 {
-#if defined(_ASMi386_SIGCONTEXT_H)
+#if defined(_ASMi386_SIGCONTEXT_H) || defined(__CYGWIN__)
 	int           frame_no = 0;
-    char          **dummy ;
 
 	fprintf (stderr, " Stack Backtrace :\n");
 	if (ebp < (long *)0x08074000			   /* stack can't possibly go below that */
@@ -331,13 +374,15 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 			func_name = find_func_symbol ((void *)eip, &offset);
 			if (func_name != unknown)
 				fprintf (stderr, " in [%s+0x%lX(%lu)]", func_name, offset, offset);
+#if !defined(__CYGWIN__)
 			else
 			{
-                dummy = GLIBC_BACKTRACE_FUNC ((void **)&eip, 1);
+			    char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&eip, 1);
                 func_name = *dummy ;
 				if (*func_name != '[')
 					fprintf (stderr, " in %s()", func_name);
 			}
+#endif
 			fprintf (stderr, "\n");
 		}
 		return;
@@ -388,7 +433,7 @@ long**
 get_call_list()
 {
     static long * call_list[MAX_CALL_DEPTH+1] = {NULL};
-#if defined(__GNUC__) && defined(_ASMi386_SIGCONTEXT_H)
+#if (defined(__GNUC__)&& defined(_ASMi386_SIGCONTEXT_H)) || defined(__CYGWIN__)
     if( __builtin_frame_address(0) == NULL ) goto done ;
     if( __builtin_frame_address(1) == NULL ) goto done ;
 
@@ -495,7 +540,7 @@ char *
 get_caller_func ()
 {
     char         *func_name = unknown;
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__CYGWIN__)
     int           call_no = 0;
     long         **ret_addr ;
 
@@ -578,7 +623,7 @@ print_diag_info (struct sigcontext *psc)
 
 void
 sigsegv_handler (int signum
-#ifdef HAVE_SIGCONTEXT
+#if defined(HAVE_SIGCONTEXT)
 				 , struct sigcontext sc
 #endif
 	)
@@ -596,7 +641,7 @@ sigsegv_handler (int signum
 	} else
 		fprintf (stderr, "Non-critical Signal %d trapped in %s.\n", signum, MyName);
 
-#ifdef HAVE_SIGCONTEXT
+#if defined(HAVE_SIGCONTEXT)
 	print_diag_info (&sc);
 #else
     print_simple_backtrace ();
