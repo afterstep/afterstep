@@ -124,11 +124,15 @@ possible XML tags are:
   angle    Required.  Given in degrees.  Possible values are currently
            "90", "180", and "270".  Rotates the image through the given
            angle.
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
 <mirror id="mir" dir="vertical">
   id       Optional.  Image will be given this name for future reference.
   dir      Required.  Possible values are "vertical" and "horizontal".
            The image will be flipped over the x-axis if dir is vertical,
            and flipped over the y-axis if dir is horizontal.
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
 <recall id="rec" srcid="com">
   id       Optional.  Image will be given this name for future reference.
   srcid    Required.  An image ID defined with the "id" parameter for 
@@ -140,6 +144,9 @@ possible XML tags are:
            extension of the "dst" parameter.  Valid values are the standard 
            AS image file formats: jpg, bmp, png, xcf, ppm, pnm, ico, cur, 
            gif, xbm, tiff.
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.  Multi-image gifs should, however, 
+  be supported in the future.
 <text id="tex" font="myfont.ttf" point="12">My Text Here</text>
   id       Optional.  Image will be given this name for future reference.
   font     Optional.  Default is "fixed".  Font to use for text.
@@ -161,12 +168,26 @@ possible XML tags are:
   borders  Optional.  Whitespace-separated list of integer values.  Default 
            is "10 10 10 10".  The values represent the offsets toward the 
            center of the image of each border: left, top, right, bottom.
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
 <solid id="sol" color="#ffffffff" width="64" height="64">
   id       Optional.  Image will be given this name for future reference.
   color    Optional.  Default is "#ffffffff".  An image will be created 
            and filled with this color.
   width    Required.  The image will have this width.
   height   Required.  The image will have this height.
+<crop id="cro" srcx="0" srcy="0" width="512" height="384">
+  id       Optional.  Image will be given this name for future reference.
+  refid    Optional.  An image ID defined with the "id" parameter for 
+           any previously created image.  If set, percentages in "width" 
+           and "height" will apply to the width and height of the refid 
+           image.
+  srcx     Optional.  Default is "0".  Skip this many pixels from the left.
+  srcy     Optional.  Default is "0".  Skip this many pixels from the top.
+  width    Optional.  Default is "100%".  Keep this many pixels wide.
+  height   Optional.  Default is "100%".  Keep this many pixels tall.
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
 
 As an example, the default XML used by ascompose is:
 

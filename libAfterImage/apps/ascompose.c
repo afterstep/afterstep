@@ -371,9 +371,9 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "CDATA")) text = ptr->parm;
 		}
-		if (text) {
+		if (text && point > 0) {
 			struct ASFont *font = NULL;
-			if (verbose) printf("Rendering text [%s] with font [%s].\n", text, font_name);
+			if (verbose) printf("Rendering text [%s] with font [%s] size [%d].\n", text, font_name, point);
 			if (!fontman) fontman = create_font_manager(dpy, NULL, NULL);
 			if (fontman) font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
 			if (font != NULL) {
@@ -724,13 +724,17 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 	if (!strcmp(doc->tag, "crop")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* refid = NULL;
+		const char* srcx_str = NULL;
+		const char* srcy_str = NULL;
 		const char* width_str = NULL;
 		const char* height_str = NULL;
-		int width = 0, height = 0;
+		int width = 0, height = 0, srcx = 0, srcy = 0;
 		ASImage* imtmp = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
+			if (!strcmp(ptr->tag, "srcx")) srcx_str = ptr->parm;
+			if (!strcmp(ptr->tag, "srcy")) srcy_str = ptr->parm;
 			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
 			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
 		}
@@ -738,22 +742,24 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			imtmp = build_image_from_xml(ptr, NULL);
 		}
 		if (imtmp) {
-			if (refid && width_str && height_str) {
+			width = imtmp->width;
+			height = imtmp->height;
+			if (refid) {
 				ASImage* refimg = NULL;
 				get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
 				if (refimg) {
-					width = parse_math(width_str, NULL, refimg->width);
-					height = parse_math(height_str, NULL, refimg->height);
+					width = refimg->width;
+					height = refimg->height;
 				}
 			}
-			if (!refid && width_str && height_str) {
-				width = parse_math(width_str, NULL, imtmp->width);
-				height = parse_math(height_str, NULL, imtmp->height);
-			}
+			if (srcx_str) srcx = parse_math(srcx_str, NULL, width);
+			if (srcy_str) srcy = parse_math(srcy_str, NULL, height);
+			if (width_str) width = parse_math(width_str, NULL, width);
+			if (height_str) height = parse_math(height_str, NULL, height);
 			if (width > imtmp->width) width = imtmp->width;
 			if (height > imtmp->height) height = imtmp->height;
 			if (width > 0 && height > 0) {
-				result = tile_asimage(asv, imtmp, 0, 0, width, height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+				result = tile_asimage(asv, imtmp, srcx, srcy, width, height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 				my_destroy_asimage(imtmp);
 			}
 			if (verbose) printf("Cropping image to [%dx%d].\n", width, height);
@@ -778,18 +784,18 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			imtmp = build_image_from_xml(ptr, NULL);
 		}
 		if (imtmp) {
-			if (refid && width_str && height_str) {
+			width = imtmp->width;
+			height = imtmp->height;
+			if (refid) {
 				ASImage* refimg = NULL;
 				get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
 				if (refimg) {
-					width = parse_math(width_str, NULL, refimg->width);
-					height = parse_math(height_str, NULL, refimg->height);
+					width = refimg->width;
+					height = refimg->height;
 				}
 			}
-			if (!refid && width_str && height_str) {
-				width = parse_math(width_str, NULL, imtmp->width);
-				height = parse_math(height_str, NULL, imtmp->height);
-			}
+			if (width_str) width = parse_math(width_str, NULL, width);
+			if (height_str) height = parse_math(height_str, NULL, height);
 			if (width > 0 && height > 0) {
 				result = tile_asimage(asv, imtmp, 0, 0, width, height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 				my_destroy_asimage(imtmp);
@@ -864,11 +870,25 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				layers[num].im = build_image_from_xml(ptr, &sparm);
 				if (sparm) {
 					xml_elem_t* tmp;
+					const char* x_str = NULL;
+					const char* y_str = NULL;
+					const char* refid = NULL;
 					for (tmp = sparm ; tmp ; tmp = tmp->next) {
-						if (!strcmp(tmp->tag, "x")) x = strtol(tmp->parm, NULL, 0);
-						if (!strcmp(tmp->tag, "y")) y = strtol(tmp->parm, NULL, 0);
+						if (!strcmp(tmp->tag, "refid")) refid = tmp->parm;
+						if (!strcmp(tmp->tag, "x")) x_str = tmp->parm;
+						if (!strcmp(tmp->tag, "y")) y_str = tmp->parm;
 						if (!strcmp(tmp->tag, "tint")) parse_argb_color(tmp->parm, &tint);
 					}
+					if (refid) {
+						ASImage* refimg = NULL;
+						get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+						if (refimg) {
+							x = refimg->width;
+							y = refimg->height;
+						}
+					}
+					if (x_str) x = parse_math(x_str, NULL, x);
+					if (y_str) y = parse_math(y_str, NULL, y);
 				}
 				if (layers[num].im) {
 					layers[num].dst_x = x;
@@ -934,7 +954,10 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 	}
 
 	if (id && result) {
+		ASImage* imtmp = NULL;
 		if (verbose > 1) printf("Storing image id [%s].\n", id);
+		remove_hash_item(image_hash, (ASHashableValue)id, (void**)&imtmp, 1);
+		if (imtmp) my_destroy_asimage(imtmp);
 		add_hash_item(image_hash, (ASHashableValue)id, result);
 		result->ref_count++;
 	}
@@ -956,6 +979,7 @@ double parse_math(const char* str, char** endptr, double size) {
 	double total = 0;
 	char op = '+';
 	char minus = 0;
+	const char* startptr = str;
 	while (*str) {
 		while (isspace(*str)) str++;
 		if (!op) {
@@ -982,6 +1006,9 @@ double parse_math(const char* str, char** endptr, double size) {
 		}
 	}
 	if (endptr) *endptr = (char*)str;
+	if (verbose > 2) {
+		printf("Parsed math [%s] with reference [%.2f] into number [%.2f].\n", startptr, size, total);
+	}
 	return total;
 }
 

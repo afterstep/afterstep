@@ -28,6 +28,23 @@ Preload images.
   </composite>
 </bevel>
 
+"AfterStep owns!"
+<crop height="512" width="640" id="AfterStep owns! text">
+<text point="32" fgcolor="#ffffffff" font="test.ttf" id="AfterStep owns! text mask">AfterStep  owns jjjijijiji you
+it owns your soul
+and all your relatives will pity you, when you discover just how devoted you are.</text>
+</crop>
+<composite id="AfterStep owns!">
+  <tile width="640" height="512"><img src="/tmp/testimg.jpg"/></tile>
+  <scale tint="#27ffffff" width="640" height="512"><img src="/tmp/RedbrushAlpha-0.5.png"/></scale>
+  <crop width="640" height="512"><scale width="910" height="600"><img src="/tmp/IceAlpha-0.5.png"/></scale></crop>
+  <recall tint="#3f7f7f7f" x=20 y=150 srcid="AfterStep owns! text"/>
+  <bevel border="8 8 6 6" color="#dfdfdfdf #df8f8f8f" tint="#3d7f7f7f" y="6" x="20">
+    <gradient offsets="0.0 0.125 0.25 0.5625 0.8 1.0" colors="#fe007fff #fe00ffff #fe007fff #ff0000ff #ff000000 #ffffff00" height="500" width="600" angle="90"></gradient>
+  </bevel>
+  <mirror tint="#3f7f7f7f" x=20 y=300 dir="vertical"><recall srcid="AfterStep owns! text"/></mirror>
+</composite>
+
 My current testing XML.
 <composite id="test output">
   <scale width="640" height="512"><recall srcid="testimg"/></scale>
@@ -42,17 +59,3 @@ My current testing XML.
 <recall srcid="astext demo"/>
 <recall srcid="test output"/>
 <recall srcid="AfterStep owns!"/>
-
-"AfterStep owns!"
-<crop id="AfterStep owns! text" width=640 height=512>
-<text id="AfterStep owns! text mask" font=test.ttf fgcolor="#ffffffff" point=32>AfterStep  owns jjjijijiji you
-it owns your soul
-and all your relatives will pity you, when you discover just how devoted you are.</text>
-</crop>
-<composite id="AfterStep owns!">
-  <tile width="640" height="512"><recall srcid="root"/></tile>
-  <bevel x=20 y=6 tint="#3d7f7f7f" color="#dfdfdfdf #df8f8f8f" border="8 8 6 6">
-    <gradient angle=90 width=450 height=500 colors="#ff007fff #7f00ffff #ff007fff #ff0000ff #ff000000 #ffffff00" offsets="0.0 0.125 0.25 0.5625 0.8 1.0"/>
-  </bevel>
-</composite>
-
