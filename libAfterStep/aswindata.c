@@ -163,7 +163,7 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 	{/* read in the name */
 		char **dst = NULL ;
 		unsigned long encoding = data[3] ;
-        unsigned long *pbuf = &(data[4]);
+        CARD32 *pbuf = &(data[4]);
         char *new_name = deserialize_string( &pbuf, NULL );
 LOCAL_DEBUG_OUT( "name received \"%s\"", new_name );
 		switch(type)

@@ -888,8 +888,8 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-afterdir=DIR     user AfterStep dir [AfterStep]
-  --with-imageloader=APP  used to display non-XPMs [xli -onroot -quiet]
+  --with-afterdir=DIR     user AfterStep dir [~/.afterstep]
+  --with-imageloader=APP  used to display images in unsupported format  [xli -onroot -quiet]
   --with-helpcommand=APP  display manpage for window [xiterm -e man]
   --with-soundplayer=APP  used to play sounds from Audio [play] (from SOX package)
   --with-startsort=METHOD start menu sorting method [SORTBYALPHA]
@@ -902,8 +902,8 @@ Optional Packages:
   --with-jpeg-includes=DIR use JPEG includes in DIR
   --with-png               support PNG image format [yes]
   --with-png-includes=DIR  use PNG includes in DIR
-  --with-ungif             support GIF image format using libungif [yes]
-  --with-gif               support GIF image format using libgif   [no]
+  --with-ungif            compile support for gif image format using libungif [no]
+  --with-gif              compile support for gif image format using libgif [no]
   --with-gif-includes=DIR  use GIF includes in DIR
   --with-tiff              support TIFF image format [yes]
   --with-tiff-includes=DIR use TIFF includes in DIR
@@ -915,8 +915,6 @@ Optional Packages:
   --with-afterimage-lib=DIR  use libAfterImage library located in DIR
   --with-locale=LOCALE    locale name you want to use
   --with-libefence        compile with libefence to debug buffer overruns [no]
-  --with-gif              compile support for gif image format using libgif [no]
-  --with-ungif            compile support for gif image format using libungif [no]
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -1503,13 +1501,17 @@ fi;
 # Check whether --with-ungif or --without-ungif was given.
 if test "${with_ungif+set}" = set; then
   withval="$with_ungif"
-
+  with_ungif=$withval
+else
+  with_ungif="no"
 fi;
 
 # Check whether --with-gif or --without-gif was given.
 if test "${with_gif+set}" = set; then
   withval="$with_gif"
-
+  with_gif=$withval
+else
+  with_gif="no"
 fi;
 
 # Check whether --with-gif_includes or --without-gif_includes was given.
@@ -1718,22 +1720,6 @@ if test "${with_libefence+set}" = set; then
   with_libefence=$withval
 else
   with_libefence=""
-fi;
-
-# Check whether --with-gif or --without-gif was given.
-if test "${with_gif+set}" = set; then
-  withval="$with_gif"
-  with_gif=$withval
-else
-  with_gif="no"
-fi;
-
-# Check whether --with-ungif or --without-ungif was given.
-if test "${with_ungif+set}" = set; then
-  withval="$with_ungif"
-  with_ungif=$withval
-else
-  with_ungif="no"
 fi;
 # Check whether --enable-gdb or --disable-gdb was given.
 if test "${enable_gdb+set}" = set; then

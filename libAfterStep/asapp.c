@@ -22,6 +22,7 @@
 #include "../configure.h"
 
 #include <stdarg.h>
+#include <string.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
