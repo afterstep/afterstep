@@ -757,7 +757,7 @@ LOCAL_DEBUG_OUT( "found desk_config %p for dekstop %ld...", dc, desk );
 #endif
 				if( get_hash_item( look->backs_list, AS_HASHABLE(dc->back_name), &hdata.vptr) == ASH_Success )
 					myback = hdata.vptr ;
-LOCAL_DEBUG_OUT( "found back %p for dekstop %ld with name \"%s\". data = \"%s\" ", myback, desk, dc->back_name, myback?myback->data:"<null>" );
+				LOCAL_DEBUG_OUT( "found back %p for dekstop %ld with name \"%s\". data = \"%s\" ", myback, desk, dc->back_name, myback?(myback->data?myback->data:"<null>"):"<null>" );
 			}
 		}
 	}
