@@ -18,7 +18,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 
 #include "config.h"
 
@@ -520,6 +520,7 @@ is_executable_in_path (const char *name)
 			strcat (path, cache);
 			if ((stat (path, &st) != -1) && (st.st_mode & S_IXUSR))
 				cache_result = 1;
+			LOCAL_DEBUG_OUT( "%s found \"%s\"", cache_result?"":"not" );
 		}
 		free (path);
 	}
