@@ -155,6 +155,7 @@ create_ascanvas (Window w)
 	{
 		pc = safecalloc (1, sizeof (ASCanvas));
 		pc->w = w;
+		LOCAL_DEBUG_CALLER_OUT( "<<#########>>canvas %p created for window %lX", pc, pc->w );
 		refresh_canvas_config (pc);
 	}
 	return pc;
@@ -169,6 +170,7 @@ create_ascanvas_container (Window w)
 	{
 		pc = safecalloc (1, sizeof (ASCanvas));
 		pc->w = w;
+		LOCAL_DEBUG_CALLER_OUT( "<<#########>>container canvas %p created for window %lX", pc, pc->w );
         pc->state = CANVAS_CONTAINER ;
 		refresh_canvas_config (pc);
 	}
@@ -182,6 +184,7 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 	{
 		ASCanvas     *pc = *pcanvas;
 
+		LOCAL_DEBUG_CALLER_OUT( "<<#########>>destroying canvas %p for window %lX", pc, pc?pc->w:None );
 		if (pc)
 		{
 			if (pc->canvas)
@@ -554,8 +557,13 @@ combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first )
 #ifdef SHAPE
     if (parent && child )
 	{
-        int child_x = child->root_x - parent->root_x ;
-        int child_y = child->root_y - parent->root_y ;
+        int child_x = 0 ;
+        int child_y = 0 ;
+		Window        wdumm;
+
+		/* we must use Translate coordinates since some of the canvases may not have updated
+		 * their config at the time */
+		XTranslateCoordinates (dpy, child->w, parent->w, 0, 0, &child_x, &child_y, &wdumm);
         if( child_x > parent->width || child_y > parent->height ||
             child_x+child->width <= 0 || child_y+child->height <= 0 )
         {
@@ -1150,7 +1158,7 @@ create_astbar ()
 	ASTBarData   *tbar = safecalloc (1, sizeof (ASTBarData));
 
     set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
-
+	LOCAL_DEBUG_CALLER_OUT( "<<#########>>created tbar %p", tbar );
     tbar->rendered_root_x = tbar->rendered_root_y = 0xFFFF;
 	return tbar;
 }
@@ -1172,6 +1180,7 @@ destroy_astbar (ASTBarData ** ptbar)
 			ASTBarData   *tbar = *ptbar;
             register int  i;
 
+			LOCAL_DEBUG_CALLER_OUT( "<<#########>>destroying tbar %p", tbar );
             if( tbar->tiles )
             {
                 for( i = 0 ; i < tbar->tiles_num ; ++i )

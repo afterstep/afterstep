@@ -418,7 +418,7 @@ void apply_aswindow_move(struct ASMoveResizeData *data)
 {
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
 SHOW_CHECKPOINT;
-LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.x, data->curr.y, data->curr.width, data->curr.height);
+LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
     if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
         moveresize_aswindow_wm( asw,
                                 data->curr.x, data->curr.y,
@@ -437,12 +437,12 @@ void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
 	if( cancelled )
 	{
 SHOW_CHECKPOINT;
-        LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.x, data->start.y, data->start.width, data->start.height);
+        LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->start.x, data->start.y);
         moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height );
 	}else
 	{
 SHOW_CHECKPOINT;
-        LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.x, data->curr.y, data->curr.width, data->curr.height);
+        LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
         moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height );
 	}
     Scr.moveresize_in_progress = NULL ;

@@ -169,7 +169,8 @@ static void
 prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr,
 						  ASEvent *trigger,
                           as_interactive_apply_handler    apply_func,
-						  as_interactive_complete_handler complete_func )
+						  as_interactive_complete_handler complete_func,
+						  int opaque_size )
 {
 	XSetWindowAttributes attr;
 	int x = 0, y = 0;
@@ -184,7 +185,7 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
     data->look  = look = AS_WIDGET_LOOK(mr);
 
 	if( apply_func != NULL  &&
-		AS_WIDGET_WIDTH(mr)*AS_WIDGET_HEIGHT(mr) > (data->feel->OpaqueMove*AS_WIDGET_WIDTH(parent)*AS_WIDGET_HEIGHT(parent)) / 100)
+		AS_WIDGET_WIDTH(mr)*AS_WIDGET_HEIGHT(mr) < (opaque_size*AS_WIDGET_WIDTH(parent)*AS_WIDGET_HEIGHT(parent)) / 100)
 		data->apply_func = apply_func ;
 	else
 	{
@@ -695,7 +696,7 @@ move_widget_interactively( ASWidget *parent, ASWidget *mr, ASEvent *trigger,
 	}else
 	{
 		data->pointer_func = move_func ;
-		prepare_move_resize_data( data, parent, mr, trigger, apply_func, complete_func );
+		prepare_move_resize_data( data, parent, mr, trigger, apply_func, complete_func, AS_WIDGET_FEEL(mr)->OpaqueMove );
 	}
 	return data;
 }
@@ -715,7 +716,7 @@ resize_widget_interactively( ASWidget *parent, ASWidget *mr, ASEvent *trigger,
 	}else
 	{
 		data->pointer_func = resize_func ;
-		prepare_move_resize_data( data, parent, mr, trigger, apply_func, complete_func );
+		prepare_move_resize_data( data, parent, mr, trigger, apply_func, complete_func, AS_WIDGET_FEEL(mr)->OpaqueResize );
         data->side = (side >= FR_N && side < FRAME_PARTS)?side:FR_SW ;
 LOCAL_DEBUG_OUT( "requested side = %d, using side = %d", side, data->side );
     }

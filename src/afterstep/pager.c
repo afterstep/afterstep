@@ -404,7 +404,10 @@ load_myback_image( int desk, MyBackground *back )
 
         }
         /* scale */
-        if( get_flags(back->scale.flags, (WidthValue|HeightValue)) )
+		LOCAL_DEBUG_OUT( "scale.flags = 0x%X", back->scale.flags );
+		LOCAL_DEBUG_OUT( "scale.width = %d", back->scale.width );
+		LOCAL_DEBUG_OUT( "scale.height = %d", back->scale.height );
+		if( get_flags(back->scale.flags, (WidthValue|HeightValue)) )
         {
             ASImage *tmp_im ;
             int width = im->width ;
@@ -416,7 +419,8 @@ load_myback_image( int desk, MyBackground *back )
             if( width != im->width || height != im->height )
             {
                 tmp_im = scale_asimage( Scr.asv, im, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
-                if( tmp_im )
+				LOCAL_DEBUG_OUT( "image scaled to %dx%d. tmp_im = %p", width, height, tmp_im );
+                if( tmp_im && tmp_im != im )
                 {
                     safe_asimage_destroy( im );
                     im = tmp_im ;
@@ -597,6 +601,8 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         if( bh->pmap && (new_im->width != bh->pmap_width ||
             new_im->height != bh->pmap_height) )
         {
+			if( Scr.wmprops->root_pixmap == bh->pmap )
+				set_xrootpmap_id (Scr.wmprops, None );
             XFreePixmap( dpy, bh->pmap );
             bh->pmap = None ;
         }

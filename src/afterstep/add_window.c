@@ -2214,26 +2214,27 @@ SetShape (ASWindow *asw, int w)
         }else
         {
             int i ;
-            if( ASWIN_GET_FLAGS( asw, AS_Shaped ) )
+			Window        wdumm;
+			int client_x = 0, client_y = 0 ;
+
+			XTranslateCoordinates (dpy, asw->w, asw->frame, 0, 0, &client_x, &client_y, &wdumm);
+            if( ASWIN_GET_FLAGS( asw, AS_Shaped ) && !ASWIN_GET_FLAGS(asw, AS_Dead) )
             {
-                if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-                {
-    LOCAL_DEBUG_OUT( "combining client shape at %+d%+d", asw->client_canvas->root_x - asw->frame_canvas->root_x,
-                                        asw->client_canvas->root_y - asw->frame_canvas->root_y );
-                    XShapeCombineShape (dpy, asw->frame, ShapeBounding,
-                                        asw->client_canvas->root_x - asw->frame_canvas->root_x,
-                                        asw->client_canvas->root_y - asw->frame_canvas->root_y,
-                                        asw->w, ShapeBounding, ShapeSet);
-                }else
-                {
-    LOCAL_DEBUG_OUT( "setting empty shape - client's dead%s", "" );
-                    XShapeCombineMask (dpy, asw->frame, ShapeBounding, 0, 0, None, ShapeSet);
-                }
+				/* we must use Translate coordinates since some of the canvases may not have updated
+				 * their config at the time */
+    			LOCAL_DEBUG_OUT( "combining client shape at %+d%+d", client_x, client_y );
+                XShapeCombineShape (dpy, asw->frame, ShapeBounding,
+                                    client_x,
+                                    client_y,
+                                    asw->w, ShapeBounding, ShapeSet);
             }else
             {
                 XRectangle    rect;
-                rect.x = asw->client_canvas->root_x - asw->frame_canvas->root_x;
-                rect.y = asw->client_canvas->root_y - asw->frame_canvas->root_y;
+				/* we must use Translate coordinates since some of the canvases may not have updated
+				 * their config at the time */
+				rect.x = client_x ;
+				rect.y = client_y ;
+				LOCAL_DEBUG_OUT( "setting client shape to rectangle at %+d%+d", rect.x, rect.y );
                 rect.width  = asw->client_canvas->width;
                 rect.height = asw->client_canvas->height;
 

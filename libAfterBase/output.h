@@ -68,9 +68,9 @@ inline void nonGNUC_debugout_stub( const char *format, ...);
 
 #if (!defined(NO_DEBUG_OUTPUT))&&(defined(LOCAL_DEBUG)||defined(DEBUG_ALL))
 #define LOCAL_DEBUG_OUT(format,args...) \
-    do{ fprintf( stderr, "%s:%s:%s:%d:>" format "\n", ApplicationName, __FILE__, __FUNCTION__, __LINE__, ## args );}while(0)
+    do{ fprintf( stderr, "%s:%ld:%s:%s:%d:>" format "\n", ApplicationName, time(NULL),__FILE__, __FUNCTION__, __LINE__, ## args );}while(0)
 #define LOCAL_DEBUG_CALLER_OUT(format,args...) \
-    do{ fprintf( stderr, "%s:%s:%s:> called from [%s] with args(" format ")\n", ApplicationName, __FILE__, __FUNCTION__, get_caller_func(), ## args );}while(0)
+    do{ fprintf( stderr, "%s:%ld:%s:%s:> called from [%s] with args(" format ")\n", ApplicationName, time(NULL),__FILE__, __FUNCTION__, get_caller_func(), ## args );}while(0)
 #else
 #define LOCAL_DEBUG_OUT(format,args...)
 #define LOCAL_DEBUG_CALLER_OUT(format,args...)

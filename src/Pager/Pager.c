@@ -441,6 +441,8 @@ LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, 
     Scr.Feel.EdgeResistanceMove = 5;
     Scr.Feel.EdgeAttractionScreen = 5;
     Scr.Feel.EdgeAttractionWindow  = 10;
+    Scr.Feel.OpaqueMove = 100;
+    Scr.Feel.OpaqueResize = 100;
     Scr.Feel.no_snaping_mod = ShiftMask ;
 
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)

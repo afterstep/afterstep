@@ -205,6 +205,8 @@ ParseMyBackgroundOptions (FreeStorageElem * Storage, char *myname)
 		if (pCurr->term == NULL)
 			continue;
 
+        LOCAL_DEBUG_OUT( "options(%p)->keyword(\"%s\")", pCurr, pCurr->term->keyword );
+
 		if (pCurr->term->id == BGR_MYBACKGROUND_END)
 		{
 			config->flags |= BGFLAG_COMPLETE;
@@ -445,7 +447,14 @@ LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data 
     if( get_flags( back_config->flags, BGFLAG_CUT ) )
         myback->cut = back_config->cut ;
     if( get_flags( back_config->flags, BGFLAG_SCALE ) )
+	{
         myback->scale = back_config->scale ;
+		if( !get_flags( back_config->scale.flags, WidthValue ) )
+			myback->scale.width = Scr.MyDisplayWidth ;
+		if( !get_flags( back_config->scale.flags, HeightValue ) )
+			myback->scale.height = Scr.MyDisplayHeight ;
+		set_flags( myback->scale.flags, WidthValue|HeightValue );
+	}
 
     myback->tint = TINT_LEAVE_SAME ;
     if( get_flags( back_config->flags, BGFLAG_TINT ) && back_config->tint )
