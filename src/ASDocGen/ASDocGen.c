@@ -182,6 +182,11 @@ void gen_code_doc( 	const char *source_dir, const char *dest_dir,
 void
 DeadPipe (int foo)
 {
+	{
+		static int already_dead = False ; 
+		if( already_dead ) 	return;/* non-reentrant function ! */
+		already_dead = True ;
+	}
     FreeMyAppResources();
 #ifdef DEBUG_ALLOCS
     print_unfreed_mem ();

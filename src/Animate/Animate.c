@@ -361,6 +361,11 @@ AnimateClose (int x, int y, int w, int h)
 void
 DeadPipe (int foo)
 {
+	{
+		static int already_dead = False ; 
+		if( already_dead ) 	return;/* non-reentrant function ! */
+		already_dead = True ;
+	}
     if( Config )
         DestroyAnimateConfig (Config);
 

@@ -177,7 +177,12 @@ void HandleEvents()
 void
 DeadPipe (int nonsense)
 {
-    window_data_cleanup();
+	static int already_dead = False ; 
+	if( already_dead ) 
+		return;/* non-reentrant function ! */
+	already_dead = True ;
+    
+	window_data_cleanup();
 
     if( WinListState.idle_bar )
         destroy_astbar( &WinListState.idle_bar );

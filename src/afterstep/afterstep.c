@@ -592,6 +592,12 @@ Done (Bool restart, char *command )
 {
     int restart_screen = get_flags( AfterStepState, ASS_SingleScreen)?Scr.screen:-1;
     char *local_command = NULL ;
+	{
+		static int already_dead = False ; 
+		if( already_dead ) 	return;/* non-reentrant function ! */
+		already_dead = True ;
+	}
+
 
 LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?command:"");
 

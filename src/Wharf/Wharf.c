@@ -274,7 +274,12 @@ void HandleEvents()
 void
 DeadPipe (int nonsense)
 {
-    destroy_wharf_folder( &(WharfState.root_folder) );
+	static int already_dead = False ; 
+	if( already_dead ) 
+		return;/* non-reentrant function ! */
+	already_dead = True ;
+    
+	destroy_wharf_folder( &(WharfState.root_folder) );
     DestroyWharfConfig( Config );
     destroy_ashash( &(WharfState.win2obj_xref) );
     window_data_cleanup();

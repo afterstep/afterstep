@@ -285,6 +285,12 @@ void HandleEvents()
 void
 DeadPipe (int nonsense)
 {
+	static int already_dead = False ; 
+
+	if( already_dead ) 
+		return;
+	already_dead = True ;
+
     if( PagerState.main_canvas )
         destroy_ascanvas( &PagerState.main_canvas );
 

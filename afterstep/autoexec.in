@@ -30,7 +30,7 @@ Function "RestartFunction"
 	Module  "I"     MonitorWharf
 	Wait    "I"     MonitorWharf
 	Module  "I"     Wharf
-#	Wait    "I"     Wharf
+	Wait    "I"     Wharf
 	Module  "I"     Pager 0 @with_desktops_1@
 EndFunction
 

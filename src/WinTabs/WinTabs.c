@@ -200,7 +200,14 @@ DeadPipe (int nonsense)
 {
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
     int i = PVECTOR_USED(WinTabsState.tabs) ;
-    LOCAL_DEBUG_OUT( "reparenting %d clients back to the Root", i );
+	
+	{
+		static int already_dead = False ; 
+		if( already_dead ) 	return;/* non-reentrant function ! */
+		already_dead = True ;
+	}
+    
+	LOCAL_DEBUG_OUT( "reparenting %d clients back to the Root", i );
     while( --i >= 0  )
     {
         XReparentWindow( dpy, tabs[i].client, Scr.Root, i*10, i*10 );
