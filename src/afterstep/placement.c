@@ -358,31 +358,33 @@ void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
 /* placement routines : */
 /*************************************************************************/
 static void
-apply_placement_result( ASWindow *asw, ASFlagType flags, int vx, int vy, unsigned int width, unsigned int height )
+apply_placement_result( ASStatusHints *status, XRectangle *anchor, ASHints *hints, ASFlagType flags, int vx, int vy, unsigned int width, unsigned int height )
 {
+#define apply_placement_result_asw(asw,flags,vx,vy,width,height)  apply_placement_result((asw)->status, &((asw)->anchor), (asw)->hints, flags, vx, vy, width, height )    
+    
     if( get_flags( flags, XValue ) )
     {
-        asw->status->x = vx ;
-        if( !get_flags (asw->status->flags, AS_Sticky) )
-            asw->status->x -= asw->status->viewport_x ;
+        status->x = vx ;
+        if( !get_flags (status->flags, AS_Sticky) )
+            status->x -= status->viewport_x ;
         else
-            asw->status->y -= Scr.Vx ;
+            status->y -= Scr.Vx ;
     }
     if( get_flags( flags, YValue ) )
     {
-        asw->status->y = vy ;
-        if( !get_flags (asw->status->flags, AS_Sticky) )
-            asw->status->y -= asw->status->viewport_y ;
+        status->y = vy ;
+        if( !get_flags (status->flags, AS_Sticky) )
+            status->y -= status->viewport_y ;
         else
-            asw->status->y -= Scr.Vy ;
+            status->y -= Scr.Vy ;
     }
     if( get_flags( flags, WidthValue ) && width > 0 )
-        asw->status->width = width ;
+        status->width = width ;
 
     if( get_flags( flags, HeightValue ) && height > 0 )
-        asw->status->height = height ;
+        status->height = height ;
 
-    status2anchor( &(asw->anchor), asw->hints, asw->status, Scr.VxMax, Scr.VyMax);
+    status2anchor( anchor, hints, status, Scr.VxMax, Scr.VyMax);
 }
 
 
@@ -511,7 +513,7 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
     {
         int spacer_x = (rects[selected].width > w)? 1: 0;
         int spacer_y = (rects[selected].height > h)? 1: 0;
-        apply_placement_result( asw, XValue|YValue, rects[selected].x+spacer_x, rects[selected].y+spacer_y, 0, 0 );
+        apply_placement_result_asw( asw, XValue|YValue, rects[selected].x+spacer_x, rects[selected].y+spacer_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else
     {
@@ -577,7 +579,7 @@ static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
             new_y = (new_y % ( rects[selected].height - h ));
         }
 
-        apply_placement_result( asw, XValue|YValue, rects[selected].x+new_x, rects[selected].y+new_y, 0, 0 );
+        apply_placement_result_asw( asw, XValue|YValue, rects[selected].x+new_x, rects[selected].y+new_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else
     {
@@ -632,7 +634,7 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
 		if( asw->maximize_ratio_y > 0 )
 			max_height = (asw->maximize_ratio_y * max_height)/ 100 ;
 
-        apply_placement_result( asw, flags, rects[selected].x, rects[selected].y, max_width, max_height );
+        apply_placement_result_asw( asw, flags, rects[selected].x, rects[selected].y, max_width, max_height );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else
     {
@@ -700,7 +702,7 @@ static Bool do_tile_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *a
     {
         int spacer_x = (rects[selected].width > w)? 1: 0;
         int spacer_y = (rects[selected].height > h)? 1: 0;
-        apply_placement_result( asw, XValue|YValue, rects[selected].x+spacer_x, rects[selected].y+spacer_y, 0, 0 );
+        apply_placement_result_asw( asw, XValue|YValue, rects[selected].x+spacer_x, rects[selected].y+spacer_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else
     {
@@ -736,7 +738,7 @@ static Bool do_cascade_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
 
     aswbox->cascade_pos = newpos ;
 
-    apply_placement_result( asw, XValue|YValue, x, y, 0, 0 );
+    apply_placement_result_asw( asw, XValue|YValue, x, y, 0, 0 );
 
     return True;
 }
@@ -785,18 +787,18 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
      return (ASWIN_GET_FLAGS(asw,AS_Dead) == 0 && !get_flags(asw->wm_state_transition, ASWT_TO_WITHDRAWN ));
 }
 
-static Bool do_closest_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
+static Bool find_closest_position( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area, ASStatusHints *status, int *closest_x, int *closest_y )
 {
     ASVector *free_space_list =  build_free_space_list( asw, area, AS_LayerHighest );
     XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
     int i, selected = -1 ;
-    short x = asw->status->x+Scr.Vx;
-    short y = asw->status->y+Scr.Vy;
+    short x = status->x+Scr.Vx;
+    short y = status->y+Scr.Vy;
 	short selected_x = x ;
 	short selected_y = y ;
 	int selected_factor = 0;
-    unsigned short w = asw->status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
-    unsigned short h = asw->status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
+    unsigned short w = status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
+    unsigned short h = status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
 
     LOCAL_DEBUG_OUT( "current=%dx%d%+d%+d", w, h, x, y );
     /* now we have to find the optimal rectangle from the list */
@@ -824,18 +826,31 @@ static Bool do_closest_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
 			selected = i;
         }
     LOCAL_DEBUG_OUT( "selected: %d, %+d%+d", selected, selected_x, selected_y );
-
-    if( selected >= 0 )
+    destroy_asvector( &free_space_list );
+    if( selected >= 0 ) 
     {
-        apply_placement_result( asw, XValue|YValue, selected_x, selected_y, 0, 0 );
+        *closest_x = selected_x ;    
+        *closest_y = selected_y ;    
+    }    
+    return (selected >= 0);
+}
+
+static Bool do_closest_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
+{
+    int selected_x = 0 ;
+    int selected_y = 0 ;
+
+    if( find_closest_position( asw, aswbox, area, asw->status, &selected_x, &selected_y ) )
+    {
+        apply_placement_result_asw( asw, XValue|YValue, selected_x, selected_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
+        return True;
     }else
 	{
         LOCAL_DEBUG_OUT( "failed%s","");
     }
 
-    destroy_asvector( &free_space_list );
-    return (selected >= 0) ;
+    return False ;
 }
 
 static Bool
@@ -1003,7 +1018,7 @@ void enforce_avoid_cover(ASWindow *asw )
 	if( asw && ASWIN_HFLAGS( asw, AS_AvoidCover|AS_ShortLived ) == AS_AvoidCover )
 	{
 	    ASWindowBox aswbox ;
-		ASAvoidCoverAuxData aux_data ;
+        ASAvoidCoverAuxData aux_data ;
 		/* we need to move all the res of the window out of the area occupied by us */
 		LOCAL_DEBUG_OUT( "status = %dx%d%+d%+d, layer = %d", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_LAYER(asw) );
     /* if window has predefined named windowbox for it - we use only this windowbox
@@ -1027,9 +1042,41 @@ void enforce_avoid_cover(ASWindow *asw )
 
 		aux_data.area = &(aswbox.area);
 
-	    iterate_asbidirlist( Scr.Windows->clients, avoid_covering_aswin_iter_func, (void*)&aux_data, NULL, False );
+        iterate_asbidirlist( Scr.Windows->clients, avoid_covering_aswin_iter_func, (void*)&aux_data, NULL, False );
 
 	}
+}
+
+void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_anchor )
+{
+    if( asw )
+	{
+	    ASWindowBox aswbox ;
+        int selected_x = 0 ;
+        int selected_y = 0 ;
+
+        /* we need to move all the res of the window out of the area occupied by us */
+		LOCAL_DEBUG_OUT( "status = %dx%d%+d%+d, layer = %d", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_LAYER(asw) );
+    /* if window has predefined named windowbox for it - we use only this windowbox
+     * otherwise we use all suitable windowboxes in two passes :
+     *   we first try and apply main strategy to place window in the empty space for each box
+     *   if all fails we apply backup strategy of the default windowbox
+     */
+        aswbox.name = mystrdup("default");
+		aswbox.area.x = Scr.Vx;
+		aswbox.area.y = Scr.Vy ;
+        aswbox.area.width = Scr.MyDisplayWidth ;
+        aswbox.area.height = Scr.MyDisplayHeight ;
+        aswbox.main_strategy = ASP_Manual ;
+        aswbox.backup_strategy = ASP_Manual ;
+        /* we should enforce this one : */
+        aswbox.desk = INVALID_DESK ;
+        aswbox.min_layer = AS_LayerLowest;
+        aswbox.max_layer = AS_LayerHighest;
+            
+        if( find_closest_position( asw, &aswbox, &(aswbox.area), tmp_status, &selected_x, &selected_y ) )
+            apply_placement_result( tmp_status, tmp_anchor, asw->hints, XValue|YValue, selected_x, selected_y, 0, 0 );            
+    }
 }
 
 /**************************************************************************

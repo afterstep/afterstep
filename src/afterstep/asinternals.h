@@ -657,6 +657,8 @@ Bool place_aswindow( ASWindow *asw );
 void apply_aswindow_move(struct ASMoveResizeData *data);
 void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled);
 void enforce_avoid_cover(ASWindow *asw );
+void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_anchor );
+
 
 /******************************* theme.c ***********************************/
 Bool install_theme_file( const char *src );
@@ -680,6 +682,9 @@ void release_pressure();
 
 void save_aswindow_anchor( ASWindow *asw, Bool hor, Bool vert );
 void moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height, Bool save_anchor );
+
+void on_window_anchor_changed( ASWindow *asw );
+void validate_window_anchor( ASWindow *asw, XRectangle *new_anchor );
 
 
 Bool init_aswindow_status( ASWindow *t, ASStatusHints *status );

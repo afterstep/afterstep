@@ -885,6 +885,36 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
 }
 
 void
+on_window_anchor_changed( ASWindow *asw )
+{
+    if( asw ) 
+    {    
+        ASOrientation *od = get_orientation_data( asw );
+        anchor2status ( asw->status, asw->hints, &(asw->anchor));
+        LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->status->height, asw->status->x, asw->status->y );
+
+        /* now we need to move/resize our frame window */
+        if( !apply_window_status_size(asw, od) )
+            broadcast_config (M_CONFIGURE_WINDOW, asw);  /* must enforce status change propagation */
+        if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+            set_client_state( asw->w, asw->status );
+    }
+}
+
+void
+validate_window_anchor( ASWindow *asw, XRectangle *new_anchor )
+{
+    if( asw ) 
+    {    
+        ASStatusHints status = *(asw->status) ; 
+        anchor2status ( &status, asw->hints, new_anchor);
+        LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", status.width, status.height, status.x, status.y );
+
+        obey_avoid_cover(asw, &status, new_anchor );
+    }
+}
+
+void
 on_window_hilite_changed( ASWindow *asw, Bool focused )
 {
     ASOrientation *od = get_orientation_data( asw );
