@@ -38,6 +38,15 @@ char *parse_filename (const char *source, char **trg);
 /* will parse function values with unit - usefull in AS command parsing */
 char *parse_func_args (char *tline, char *unit, int *func_val);
 
+/* will parse geometry string in X format with AS extensions 
+( --10 as -0-10 for example )  */
+char         *
+parse_geometry (register char *tline, 
+                int *x_return, int *y_return, 
+                unsigned int *width_return, 
+  				unsigned int *height_return, 
+				int* flags_return );
+
 char *string_from_int (int param);
 char *hex_to_buffer_reverse(void *data, size_t bytes, char* buffer);
 char *hex_to_buffer(void *data, size_t bytes, char* buffer);

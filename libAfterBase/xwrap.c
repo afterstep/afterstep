@@ -24,7 +24,7 @@
 #include "audit.h"
 #include "output.h"
 
-Display *dpy;
+Display *dpy = NULL;
 
 #ifndef X_DISPLAY_MISSING
 static int
@@ -157,6 +157,15 @@ get_topmost_parent( Window w, Window *desktop_w )
 }
 
 #ifdef X_DISPLAY_MISSING
+int XParseGeometry (  char *string,int *x,int *y,
+                      unsigned int *width,    /* RETURN */
+					  unsigned int *height)    /* RETURN */
+{
+	int flags = 0 ;
+	parse_geometry( string, x, y, width, height, &flags );
+	return flags ;
+}
+
 void XDestroyImage( void* d){}
 int XGetWindowAttributes( void*d, Window w, unsigned long m, void* s){  return 0;}
 void *XGetImage( void* dpy,Drawable d,int x,int y,unsigned int width,unsigned int height, unsigned long m,int t)

@@ -9,8 +9,6 @@
 #include <X11/Xproto.h>
 #include <X11/Xresource.h>
 
-extern Display *dpy;
-
 #else
 
 #define Display  void 
@@ -169,8 +167,23 @@ typedef struct {
     Cursor cursor;		/* cursor to be displayed (or None) */
 } XSetWindowAttributes;
 
+int XParseGeometry (  char *string,int *x,int *y,
+                      unsigned int *width,    /* RETURN */
+					  unsigned int *height);    /* RETURN */
+
+/* needed by above function : */
+#define NoValue		0x0000
+#define XValue  	0x0001
+#define YValue		0x0002
+#define WidthValue  	0x0004
+#define HeightValue  	0x0008
+#define AllValues 	0x000F
+#define XNegative 	0x0010
+#define YNegative 	0x0020
+
 #endif
 
+extern Display *dpy;
 
 Bool     get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h);
 Drawable validate_drawable (Drawable d, unsigned int *pwidth, unsigned int *pheight);

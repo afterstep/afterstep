@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 {
 	Window w ;
 	ASVisual *asv ;
-	int screen, depth ;
+	int screen = 0, depth = 0;
 	char *image_file = "rose512.jpg" ;
 	ARGB32 tint_color = time(NULL);
 	int tile_x, tile_y, tile_width, tile_height, geom_flags = 0;
@@ -55,11 +55,14 @@ int main(int argc, char* argv[])
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 
-	/* parse_argb_color can only be useda after display is open : */
-    dpy = XOpenDisplay(NULL);
-	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
-	screen = DefaultScreen(dpy);
-	depth = DefaultDepth( dpy, screen );
+#ifndef X_DISPLAY_MISSING
+		/* parse_argb_color can only be used after display is open,
+		   otherwise we are limited to colors defined as ARGB values : */
+  		dpy = XOpenDisplay(NULL);
+		_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
+		screen = DefaultScreen(dpy);
+		depth = DefaultDepth( dpy, screen );
+#endif
 
 	if( argc > 1 )
 	{
@@ -121,6 +124,8 @@ int main(int argc, char* argv[])
 	{
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
+		w = None ;
+#ifndef X_DISPLAY_MISSING
 		/* see ASView.4 : */
 		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 			                         tile_width, tile_height, 1, 0, NULL,
@@ -130,7 +135,6 @@ int main(int argc, char* argv[])
 			Pixmap p ;
 			ASImage *tinted_im ;
 
-			XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
 	  		XMapRaised   (dpy, w);
 			/* see ASTile.3 : */
 			tinted_im = tile_asimage( asv, im, tile_x, tile_y,
@@ -145,29 +149,23 @@ int main(int argc, char* argv[])
 			/* see common.c: set_window_background_and_free() : */
 			p = set_window_background_and_free( w, p );
 		}
-		/* see ASView.6 : */
-	    while(w != None)
-  		{
-    		XEvent event ;
-	        XNextEvent (dpy, &event);
-  		    switch(event.type)
-			{
-		  		case ButtonPress:
-					break ;
-	  		    case ClientMessage:
-			        if ((event.xclient.format == 32) &&
-	  			        (event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
-		  			{
-						XDestroyWindow( dpy, w );
-						XFlush( dpy );
-						w = None ;
-				    }
-					break;
-			}
-  		}
+		/* see common.c: wait_closedown() : */
+		wait_closedown(w);
+#else
+		{
+			ASImage *tinted_im ;
+			/* see ASTile.3 : */
+			tinted_im = tile_asimage( asv, im, tile_x, tile_y,
+				                      tile_width, tile_height,
+				                      tint_color, ASA_ASImage, 0,
+									  ASIMAGE_QUALITY_TOP );
+			destroy_asimage( &im );
+			/* writing result into the file */
+			ASImage2file( tinted_im, NULL, "astile.jpg", ASIT_Jpeg, NULL );
+			destroy_asimage( &tinted_im );
+		}
+#endif
 	}
-    if( dpy )
-        XCloseDisplay (dpy);
     return 0 ;
 }
 /**************/

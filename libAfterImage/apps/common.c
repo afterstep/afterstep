@@ -163,7 +163,7 @@ wait_closedown( Window w )
     if( dpy == NULL || w == None )
 		return ;
 
-	XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
+	XSelectInput (dpy, w, (StructureNotifyMask | ButtonPressMask|ButtonReleaseMask));
 
 	while(w != None)
   	{
