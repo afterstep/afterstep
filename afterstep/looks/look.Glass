@@ -105,31 +105,6 @@ MyStyle "menu_subitem_style"
   Font		DefaultBold.ttf-12
   ~MyStyle
 
-MyFrame "glass"
-	TitleBevel 		None
-	LeftBtnBackground	glass/title_lbtn_glass
-	LeftBtnBackAlign	HScaled,VScaled,LabelSize
-	RightBtnBackground	glass/title_rbtn_glass
-	RightBtnBackAlign	HScaled,VScaled,LabelSize
-~MyFrame
-
-DefaultFrame "glass"
-DecorateFrames 1
-
-DefaultStyle "default"
-FWindowStyle "focused_window_style"
-UWindowStyle "unfocused_window_style"
-SWindowStyle "sticky_window_style"
-MenuItemStyle "menu_item_style"
-MenuTitleStyle "unfocused_menu_title_style"
-MenuHiliteStyle "menu_hilite_style"
-MenuStippleStyle "menu_stipple_style"
-MenuSubItemStyle  "menu_subitem_style"
-MenuHiTitleStyle  "focused_menu_title_style"
-
-
-
-
 #----------Pager MyStyles---------#
 
 MyStyle "*PagerBalloon"
@@ -207,7 +182,7 @@ MyStyle "*WinListBalloon"
 	Inherit "TitleButtonBalloon"
 ~MyStyle
 
-#----------Minimized window Button MyStyles---------#
+#----------iconized window  Button MyStyles---------#
 
 MyStyle "ButtonPixmap"
   	BackColor     Black
@@ -230,6 +205,94 @@ MyStyle "ButtonTitleUnfocus"
   ~MyStyle
 
 
+#---------- iconized window MyStyles end ---------#
+
+# [0|1] Show Title on Buttons how?
+SeparateButtonTitle 0
+# [x y] Size of application icons ?
+ButtonSize 64 64
+#  Border around iconifyied windows ?
+ButtonNoBorder
+
+#  [0-10] Allows selection of move/resize rubberband look
+RubberBand 2
+#  Corner where the resize box goes to: ++, +-, -+, -- (clockwise)
+#ResizeMoveGeometry ++
+
+# 3) TextStyle :
+#  Mode is either 0 (normal), 1 (big 3d), 2 (nice 3d)
+# 3-1) Text : fonts
+IconBox                 1 -80 -1 -1
+
+MyFrame "glass"
+	TitleBevel 		None
+	LeftBtnBackground	glass/title_lbtn_glass
+	LeftBtnBackAlign	HScaled,VScaled,LabelSize
+	LeftSpacerBackground	glass/title_lspacer_glass
+	LeftSpacerBackAlign	None
+	RightSpacerBackground	glass/title_rspacer_glass
+	RightSpacerBackAlign	None
+	RightBtnBackground	glass/title_rbtn_glass
+	RightBtnBackAlign	HScaled,VScaled,LabelSize
+~MyFrame
+
+DefaultFrame "glass"
+DecorateFrames 1
+
+DefaultStyle "default"
+FWindowStyle "focused_window_style"
+UWindowStyle "unfocused_window_style"
+SWindowStyle "sticky_window_style"
+
+MenuItemStyle "menu_item_style"
+MenuTitleStyle "unfocused_menu_title_style"
+MenuHiliteStyle "menu_hilite_style"
+MenuStippleStyle "menu_stipple_style"
+MenuSubItemStyle  "menu_subitem_style"
+MenuHiTitleStyle  "focused_menu_title_style"
+
+MArrowPixmap		arrow-dots.xpm
+#  [0/1/2] Draw lines between menu options ?
+DrawMenuBorders 1
+#  [0/1] Texture menu options individually, or the whole menu ?
+TextureMenuItemsIndividually 0
+# [0/1] Do you want minipixmaps in root menu ?
+MenuMiniPixmaps 1
+# [0/1] Sort Start menu entries by 1=alphabetical order, 0=date (default)
+StartMenuSortMode 1
+
+
+# 4) TileBar options :
+# [0/1/2] make a 3 pixel space(0);
+# 	or make a 1 pixel space (WM) beside buttons (1);
+#	or use custom offsets (2).
+TitleButtonStyle	2
+TitleButtonXOffset	6
+TitleButtonYOffset	5
+#  define the number of pixels between titlebar buttons ; 0
+TitleButtonSpacing	3
+
+TitleTextAlign          2
+
+# TitleButtons : [1] [3] [5] [7] [9] (title) [0] [8] [6] [4] [2]
+# order could be altered using TitleButtonOrder setting. Default is equivalent to :
+#
+# TitleButtonOrder 13579T08642
+#
+# for example all 10 buttons could be placed on one side of the title :
+# TitleButtonOrder 1357908642T
+
+
+# Normal buttons
+TitleButton 1 glass/glass-switchwindow 	 glass/glass-switchwindow-pressed
+TitleButton 2 glass/glass-kill   	 glass/glass-kill-pressed
+TitleButton 3 glass/glass-menu 		 glass/glass-menu-pressed
+TitleButton 4 glass/glass-shade  	 glass/glass-shade-pressed
+TitleButton 6 glass/glass-iconize 	 glass/glass-iconize-pressed
+
+# the following is used instead of MenuPinOn :
+TitleButton 5 glass/glass-pin	 	 glass/glass-pin-pressed
+
 TitleButtonBalloons
 TitleButtonBalloonBorderHilite	Right,Bottom
 TitleButtonBalloonXOffset	10
@@ -238,72 +301,4 @@ TitleButtonBalloonDelay		200
 TitleButtonBalloonCloseDelay	2000
 TitleButtonBalloonStyle 	"TitleButtonBalloon"
 
-#----------Window MyStyles---------#
-
-# [0|1] Show Title on Buttons how?
-SeparateButtonTitle 0
-# [x y] Size of application icons ?
-ButtonSize 64 64
-#--------------------------
-
-
-# 2-5) : misc options
-#  Border around iconifyied windows ?
-ButtonNoBorder
-#  [0/1/2] Draw lines between menu options ?
-DrawMenuBorders 1
-#  [0/1] Texture menu options individually, or the whole menu ?
-TextureMenuItemsIndividually 0
-#  Corner where the resize box goes to: ++, +-, -+, -- (clockwise)
-#ResizeMoveGeometry ++
-# [0/1] Do you want minipixmaps in root menu ?
-MenuMiniPixmaps 1
-# [0/1] Sort Start menu entries by 1=alphabetical order, 0=date (default)
-StartMenuSortMode 1
-# [0/1] make a space, or don't make a space (WM) beside buttons ; 1
-TitleButtonStyle	1
-#  define the number of pixels between titlebar buttons ; 0
-TitleButtonSpacing	2
-#  [0-10] Allows selection of move/resize rubberband look
-RubberBand 2
-
-# 3) TextStyle :
-#  Mode is either 0 (normal), 1 (big 3d), 2 (nice 3d)
-# 3-1) Text : fonts
-IconBox                 1 -80 -1 -1
-TitleTextAlign          2
-
-# 4) TileBar options :
-# TitleButtons : [1] [3] [5] [7] [9] (title) [0] [8] [6] [4] [2]
-
-# Flat buttons (shaped)
-#TitleButton 1 1.xpm 1p.xpm
-#TitleButton 2 2.xpm 2p.xpm
-#TitleButton 3 3.xpm 3p.xpm
-#TitleButton 4 4.xpm 4p.xpm
-#TitleButton 6 5.xpm 5p.xpm
-
-# Little buttons
-#TitleButton 2 os8-kill.xpm os8-kill-pressed.xpm
-#TitleButton 4 os8-shade.xpm os8-shade-pressed.xpm
-#TitleButton 3 os8-maximize.xpm os8-maximize-pressed.xpm
-#TitleButton 6 os8-iconize.xpm os8-iconize-pressed.xpm
-
-# Big buttons (shaped)
-#TitleButton 1 as1.5-menu.xpm as1.5-menu-p.xpm
-#TitleButton 3 as1.5-iconize.xpm as1.5-iconize-p.xpm
-#TitleButton 2 as1.5-kill.xpm as1.5-kill-p.xpm
-#TitleButton 4 as1.5-shade.xpm as1.5-shade-p.xpm
-
-# Normal buttons
-TitleButton 1 glass/glass-switchwindow-light 	 glass/glass-switchwindow-light-pressed
-TitleButton 2 glass/glass-kill-dark  		 glass/glass-kill-dark-pressed
-TitleButton 3 glass/glass-menu-light 		 glass/glass-menu-light-pressed
-TitleButton 4 glass/glass-shade-dark 		 glass/glass-shade-dark-pressed
-TitleButton 6 glass/glass-iconize-dark 	 	 glass/glass-iconize-dark-pressed
-
-# the following is used instead of MenuPinOn :
-TitleButton 5 glass/glass-pin-light	 	 glass/glass-pin-light-pressed
-
-MArrowPixmap		arrow-dots.xpm
 

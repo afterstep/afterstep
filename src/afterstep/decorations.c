@@ -744,7 +744,7 @@ estimate_titlebar_size( ASHints *hints )
                             Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                             TBTN_ORDER_L2R );
         /* label */
-        add_astbar_label(   tbar, 1, 0, 0, ALIGN_LEFT, hints->names[0], hints->names_encoding[0]);
+        add_astbar_label(   tbar, 1, 0, 0, ALIGN_LEFT, DEFAULT_TBAR_SPACING, DEFAULT_TBAR_SPACING, hints->names[0], hints->names_encoding[0]);
         /* right buttons : */
         add_astbar_btnblock(tbar, 2, 0, 0, NO_ALIGN,
                             &(Scr.Look.ordered_buttons[Scr.Look.button_first_right]), btn_mask,
@@ -881,6 +881,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 		{
 	        LOCAL_DEBUG_OUT( "setting icon label to %s", ASWIN_ICON_NAME(asw) );
 	        add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align,
+							  DEFAULT_TBAR_SPACING, DEFAULT_TBAR_SPACING,
 						      ASWIN_ICON_NAME(asw),
 							  (asw->hints->icon_name_idx < 0)?AS_Text_ASCII :
 														  asw->hints->names_encoding[asw->hints->icon_name_idx]);
@@ -964,11 +965,13 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 			}
 		}
 	    /* need to add some titlebuttons */
-		if( tbar_created )
-		{
-      		asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
-      		asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
-		}
+		/* Don't need to do this as we already have padding set for label
+		 * if( tbar_created )
+		 * 	{
+		 *     		asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
+		 *     		asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
+		 * 	}
+		 */
 
 		if( !tbar_created && old_hints != NULL )
 		{
@@ -983,26 +986,6 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 
 		if( tbar_created )
 		{
-			/* really is only 2 iterations - but still  - toghter code this way */
-			for( i = MYFRAME_TITLE_BACK_LBTN ; i <= MYFRAME_TITLE_BACK_LSPACER ; ++i )
-				if( frame->title_backs[i] && frame->title_backs[i]->image )
-				{
-					add_astbar_icon( asw->tbar,
-                             	od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN+i],
-                             	od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN+i],
-                             	od->flip, fix_background_align(frame->title_backs_align[i]),
-                             	frame->title_backs[i]->image);
-      			}
-			 /* left buttons : */
-	        add_astbar_btnblock(asw->tbar,
-  		                        od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],
-      		                    od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN],
-          		                0, NO_ALIGN,
-              		            &(Scr.Look.ordered_buttons[0]), btn_mask,
-                  		        Scr.Look.button_first_right,
-                      		    Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
-                          		od->left_btn_order );
-
 #if 1
       		if( frame->title_backs[MYFRAME_TITLE_BACK_LBL] &&
 				frame->title_backs[MYFRAME_TITLE_BACK_LBL]->image )
@@ -1041,7 +1024,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                           od->default_tbar_elem_col[ASO_TBAR_ELEM_LBL],
                           od->default_tbar_elem_row[ASO_TBAR_ELEM_LBL],
                           od->flip,
-                          title_align,
+                          title_align, DEFAULT_TBAR_SPACING, max( asw->tbar->top_bevel, asw->tbar->bottom_bevel),
                           asw->hints->names[0], asw->hints->names_encoding[0]);
 		}else if( old_hints == NULL ||
 				  mystrcmp( asw->hints->names[0], old_hints->names[0] ) != 0 )
@@ -1055,8 +1038,19 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
   		            update_canvas_display( canvas );
 				}
 		}
+		/* all the buttons go after the label to be rendered over it */
 		if( tbar_created )
 		{
+			/* really is only 2 iterations - but still  - toghter code this way */
+			for( i = MYFRAME_TITLE_BACK_LBTN ; i <= MYFRAME_TITLE_BACK_LSPACER ; ++i )
+				if( frame->title_backs[i] && frame->title_backs[i]->image )
+				{
+					add_astbar_icon( asw->tbar,
+                             	od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN+i],
+                             	od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN+i],
+                             	od->flip, fix_background_align(frame->title_backs_align[i]),
+                             	frame->title_backs[i]->image);
+      			}
 			/* really is only 2 iterations - but still  - toghter code this way */
 			for( i = MYFRAME_TITLE_BACK_RSPACER ; i <= MYFRAME_TITLE_BACK_RBTN ; ++i )
 				if( frame->title_backs[i] && frame->title_backs[i]->image )
@@ -1068,6 +1062,16 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                              	od->flip, fix_background_align(frame->title_backs_align[i]),
                              	frame->title_backs[i]->image);
       			}
+
+			 /* left buttons : */
+	        add_astbar_btnblock(asw->tbar,
+  		                        od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],
+      		                    od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN],
+          		                0, NO_ALIGN,
+              		            &(Scr.Look.ordered_buttons[0]), btn_mask,
+                  		        Scr.Look.button_first_right,
+                      		    Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+                          		od->left_btn_order );
 
 			/* right buttons : */
   		    add_astbar_btnblock(asw->tbar,

@@ -946,10 +946,10 @@ build_btn_block( ASTile *tile,
         if( get_flags(order, TBTN_ORDER_VERTICAL) )
         {
             tile->width = max_width + top_margin*2 ;
-            tile->height = left_margin ;
+            tile->height = left_margin*2 ;
         }else
         {
-            tile->width =  left_margin ;
+            tile->width =  left_margin*2 ;
             tile->height = max_height+ top_margin*2 ;
         }
 
@@ -989,9 +989,18 @@ build_btn_block( ASTile *tile,
             }
             ++k ;
         }
+		if( get_flags(order, TBTN_ORDER_VERTICAL) )
+		{
+			if( tile->height > left_margin*2 )
+				tile->height -= spacing ;
+		}else
+		{
+			if( tile->width > left_margin*2 )
+				tile->width -= spacing ;
+		}
         if( get_flags(order, TBTN_ORDER_REVERSE) )
         {
-	    k = real_count ;
+	    	k = real_count ;
             if( get_flags(order, TBTN_ORDER_VERTICAL) )
                 while(  --k >= 0 )
                     blk->buttons[k].y += tile->height ;
@@ -1188,6 +1197,15 @@ LOCAL_DEBUG_OUT( "state(%d)->style(\"%s\")->text(\"%s\")->image(%p)->flip(%d)", 
             if( tile->height < lbl->rendered[i]->height )
                 tile->height = lbl->rendered[i]->height;
         }
+	if( get_flags( flip, FLIP_VERTICAL ) )
+	{
+   		tile->width += lbl->v_padding*2 ;
+		tile->height += lbl->h_padding*2 ;
+	}else
+	{
+   		tile->width += lbl->h_padding*2 ;
+		tile->height += lbl->v_padding*2 ;
+	}
 }
 
 static int
@@ -1195,23 +1213,33 @@ set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImag
 {
     register ASLabel *lbl = &(tile->data.label);
     CARD32 alpha ;
+	short h_pad = lbl->h_padding ;
+	short v_pad = lbl->v_padding ;
+
     layer->im = lbl->rendered[state] ;
     if( layer->im == NULL )
         if( (layer->im = lbl->rendered[(~state)&BAR_STATE_FOCUS_MASK] ) == NULL )
             return 0;
-    layer->dst_x = tile->x ;
-    layer->dst_y = tile->y ;
+
+	if( get_flags( ASTileFlip(*tile), FLIP_VERTICAL ) )
+	{
+		h_pad = lbl->v_padding ;
+		v_pad = lbl->h_padding ;
+	}
+
+    layer->dst_x = tile->x + h_pad;
+    layer->dst_y = tile->y + v_pad ;
     if( layer->im->width < max_width )
     {
         if( layer->im->width < tile->width )
-            layer->dst_x += make_tile_pad( get_flags(tile->flags, AS_TilePadLeft), get_flags(tile->flags, AS_TilePadRight), tile->width, layer->im->width );
+            layer->dst_x += make_tile_pad( get_flags(tile->flags, AS_TilePadLeft), get_flags(tile->flags, AS_TilePadRight), tile->width-h_pad*2, layer->im->width );
         layer->clip_width  = layer->im->width ;
     }else
         layer->clip_width  = max_width ;
     if( layer->im->height < max_height )
     {
         if( layer->im->height < tile->height )
-            layer->dst_y += make_tile_pad( get_flags(tile->flags, AS_TilePadTop), get_flags(tile->flags, AS_TilePadBottom), tile->height, layer->im->height );
+            layer->dst_y += make_tile_pad( get_flags(tile->flags, AS_TilePadTop), get_flags(tile->flags, AS_TilePadBottom), tile->height-v_pad*2, layer->im->height );
         layer->clip_height  = layer->im->height ;
     }else
         layer->clip_height  = max_height ;
@@ -1253,7 +1281,9 @@ void print_astbar_tiles( ASTBarData *tbar)
     show_progress( "tbar %p has %d tiles :", tbar, tbar->tiles_num );
     for( l = 0 ; l < tbar->tiles_num ; ++l )
     {
-        show_progress( "\t %3.3d: %s flags(%X) %ux%u%+d%+d data.raw = (0x%lx, 0x%lx, 0x%lx)", l, ASTileTypeHandlers[ASTileType(tbar->tiles[l])].name,
+        show_progress( "\t %3.3d: [%2.2d][%2.2d] %s flags(%X) %ux%u%+d%+d data.raw = (0x%lx, 0x%lx, 0x%lx)",
+					   l, ASTileCol(tbar->tiles[l]), ASTileRow(tbar->tiles[l]),
+					   ASTileTypeHandlers[ASTileType(tbar->tiles[l])].name,
                        tbar->tiles[l].flags,
                        tbar->tiles[l].width, tbar->tiles[l].height, tbar->tiles[l].x, tbar->tiles[l].y,
                        tbar->tiles[l].data.raw[0], tbar->tiles[l].data.raw[1], tbar->tiles[l].data.raw[2] );
@@ -1646,7 +1676,7 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
 }
 
 int
-add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, const char *text, unsigned long encoding)
+add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, short h_padding, short v_padding, const char *text, unsigned long encoding)
 {
 LOCAL_DEBUG_CALLER_OUT( "label \"%s\"", text );
     if( tbar )
@@ -1655,6 +1685,8 @@ LOCAL_DEBUG_CALLER_OUT( "label \"%s\"", text );
         ASLabel *lbl = &(tile->data.label);
         lbl->text = mystrdup(text);
 		lbl->encoding = encoding ;
+		lbl->h_padding = h_padding ;
+		lbl->v_padding = v_padding ;
         set_astile_styles( tbar, tile, -1 );
 
         ASSetTileSublayers(*tile,1);
@@ -1750,9 +1782,9 @@ int make_tile_pad( Bool pad_before, Bool pad_after, int cell_size, int tile_size
 {
     if( cell_size <= tile_size )
         return 0;
-    if( !pad_before && pad_after )
+	if( !pad_before )
         return 0;
-    if( pad_before && !pad_after )
+    if( !pad_after )
         return cell_size-tile_size;
     return (cell_size-tile_size)>>1;
 }

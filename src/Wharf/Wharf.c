@@ -729,7 +729,7 @@ build_wharf_button_tbar(WharfButton *wb)
     set_astbar_composition_method( bar, BAR_STATE_UNFOCUSED, Config->composition_method );
 
     if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
-        add_astbar_label( bar, label_col, label_row, label_flip, label_align, wb->title, AS_Text_ASCII );
+        add_astbar_label( bar, label_col, label_row, label_flip, label_align, 2, 2, wb->title, AS_Text_ASCII );
 
     set_astbar_balloon( bar, 0, wb->title, AS_Text_ASCII );
 

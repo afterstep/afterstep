@@ -665,7 +665,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
                 char *banner = safemalloc( 9+1+2+1+strlen(VERSION)+1);
                 WinListState.idle_bar = create_astbar();
                 sprintf( banner, "AfterStep v. %s", VERSION );
-                add_astbar_label( WinListState.idle_bar, 0, 0, flip, ALIGN_CENTER, banner, AS_Text_ASCII );
+                add_astbar_label( WinListState.idle_bar, 0, 0, flip, ALIGN_CENTER, 0, 0, banner, AS_Text_ASCII );
                 free( banner );
                 set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
                 set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
@@ -963,10 +963,10 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
     {
         char *iconic_name = safemalloc(1+strlen(name)+1+1);
         sprintf(iconic_name, "(%s)", name );
-        add_astbar_label( tbar, 0, 0, 0, align, iconic_name, encoding);
+        add_astbar_label( tbar, 0, 0, 0, align, 0, 0, iconic_name, encoding);
         free( iconic_name );
     }else
-        add_astbar_label( tbar, 0, 0, 0, align, name, encoding);
+        add_astbar_label( tbar, 0, 0, 0, align, 0, 0, name, encoding);
     set_astbar_balloon( tbar, 0, name, encoding );
     set_astbar_focused( tbar, WinListState.main_canvas, wd->focused );
     if( wd->focused )

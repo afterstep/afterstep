@@ -69,8 +69,8 @@ typedef struct ASLabel {
     char            *text ;
 	unsigned long    encoding ;                /* one of those AS_Text_ values */
 	struct ASImage  *rendered[2] ;
-
-	/* 16 bytes */
+	short			 h_padding, v_padding ;
+	/* 20 bytes */
 }ASLabel;
 
 typedef struct ASTile {
@@ -273,7 +273,7 @@ int add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row
                          struct button_t **from_list, ASFlagType context_mask, unsigned int count,
                          int left_margin, int top_margin, int spacing, int order);
 int add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, struct ASImage *icon);
-int add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, const char *text, unsigned long encoding);
+int add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, short h_padding, short v_padding, const char *text, unsigned long encoding);
 Bool delete_astbar_tile( ASTBarData *tbar, int idx );
 
 Bool change_astbar_label (ASTBarData * tbar, int index, const char *label, unsigned long encoding);
