@@ -38,7 +38,6 @@
 #include "../include/trace.h"				   /* for deps */
 #include "../include/functions.h"
 #include "../include/hints.h"
-#include "../include/menus.h"
 #include "../include/misc.h"
 #include "../include/resources.h"
 
@@ -206,10 +205,13 @@ func_traceble (int func)
 }
 
 void
-printf_func (int func, char *action, long val1, long val2, int val1_unit, int val2_unit)
+printf_func (FunctionData *fdata)
 {
-	if (func >= 0 && func < F_FUNCTIONS_NUM)
-		fprintf (stderr, "<%s>,\"%s\",%ld,%ld,%d,%d", func_types[func].name, action, val1, val2, val1_unit, val2_unit);
+    if( fdata )
+        if (fdata->func >= 0 && fdata->func < F_FUNCTIONS_NUM)
+            fprintf (stderr, "<%s>,\"%s\",%ld,%ld,%d,%d", func_types[fdata->func].name, fdata->text,
+                                                          data->func_val[0], data->func_val[1],
+                                                          data->unit_val[0], data->unit_val[1]);
 }
 
 #endif /*TRACE_ExecuteFunction */
@@ -663,25 +665,21 @@ trace_ReparentIt (ASWindow * t, Window to_win, const char *filename, int line)
 
 #ifdef TRACE_ExecuteFunction
 #undef ExecuteFunction
-extern void   ExecuteFunction (FunctionCode func, char *action, Window in_w,
-							   ASWindow * tmp_win, XEvent * eventp,
-							   unsigned long context, long val1, long val2,
-							   int val1_unit, int val2_unit, MenuRoot * menu, int Module);
+extern void   ExecuteFunction ( FunctionData *data, Window in_w, ASWindow * tmp_win,
+                                XEvent * eventp, unsigned long context, int Module);
 void
-trace_ExecuteFunction (int func, char *action, Window in_w,
-					   ASWindow * tmp_win, XEvent * eventp,
-					   unsigned long context, long val1, long val2,
-					   int val1_unit, int val2_unit, MenuRoot * menu, int Module, const char *filename, int line)
+trace_ExecuteFunction (FunctionData *data, Window in_w, ASWindow * tmp_win,
+                       XEvent * eventp, unsigned long context, int Module, const char *filename, int line)
 {
 	if (func_traceble (func))
 	{
 		fprintf (stderr, "A>%s(%d):ExecuteFunction({", filename, line);
-		printf_func (func, action, val1, val2, val1_unit, val2_unit);
+        printf_func (data);
 		fprintf (stderr, "},0x%lX,{", in_w);
 		printf_aswindow (tmp_win);
 		fprintf (stderr, "},{");
 		printf_xevent (eventp);
-		fprintf (stderr, "},0x%lX,\"%s\",%d)\n", context, menu ? menu->name : "notmenu", Module);
+        fprintf (stderr, "},0x%lX,%d)\n", context, Module);
 	}
 	ExecuteFunction (func, action, in_w, tmp_win, eventp, context, val1, val2, val1_unit, val2_unit, menu, Module);
 }
@@ -706,7 +704,6 @@ trace_ExecuteFunction (int func, char *action, Window in_w,
 #include "../include/aswindow.h"
 #include "../include/trace.h"				   /* for deps */
 #include "../include/functions.h"
-#include "../include/menus.h"
 
 #undef XRaiseWindow
 #undef XLowerWindow
@@ -717,8 +714,8 @@ trace_ExecuteFunction (int func, char *action, Window in_w,
 
 #define trace_enabled_func(a) (trace_enabled_funcs & (1 << a))
 
-/* The order of the following enum and trace_func array must be exactly the 
-** same, and the enum must not have defined values in it!  The functions 
+/* The order of the following enum and trace_func array must be exactly the
+** same, and the enum must not have defined values in it!  The functions
 ** below require this to be true.
 */
 enum

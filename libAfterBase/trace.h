@@ -2,8 +2,8 @@
 #define AFTERSTEP_TRACE_H
 
 /*
- * This code is a (hopefully) nearly transparent way to keep track of 
- * memory allocations and deallocations, to make finding memory leaks 
+ * This code is a (hopefully) nearly transparent way to keep track of
+ * memory allocations and deallocations, to make finding memory leaks
  * easier.  GCC is required (for the __FUNCTION__ preprocessor macro).
  *
  * To use it, define DEBUG_TRACE before including this header
@@ -15,7 +15,7 @@
 #undef TRACE_XDestroyWindow
 #define TRACE_XGetGeometry
 #undef TRACE_XNextEvent		/* all of the Event retreival functions */
-/* the following allows filtering events using event masks 
+/* the following allows filtering events using event masks
    (It also applicable to the tracing of DispatchEvent) : */
 /* couple additional masks to compensate for X defaults :*/
 #define SelectionMask		(1L<<29)
@@ -194,13 +194,10 @@ extern void trace_ReparentIt (struct ASWindow *t, Window to_win,
 #endif
 
 #ifdef TRACE_ExecuteFunction
-#define ExecuteFunction(f,a,w,t,e,c,v1,v2,v1u,v2u,m,M) trace_ExecuteFunction(f,a,w,t,e,c,v1,v2,v1u,v2u,m,M,__FILE__,__LINE__)
-extern void trace_ExecuteFunction (int func, char *action, Window in_w,
-				   struct ASWindow *tmp_win, XEvent * eventp,
-				   unsigned long context, long val1,
-				   long val2, int val1_unit, int val2_unit,
-				   struct MenuRoot *menu, int Module,
-				   const char *filename, int line);
+#define ExecuteFunction(d,w,t,e,c,M) trace_ExecuteFunction(d,w,t,e,c,M,__FILE__,__LINE__)
+extern void trace_ExecuteFunction ( FunctionData *data, Window in_w, ASWindow * tmp_win,
+                                    XEvent * eventp, unsigned long context, int Module,
+                                    const char *filename, int line);
 #endif
 
 #endif /* DEBUG_TRACE */
