@@ -605,6 +605,93 @@ release_asimage_by_name( ASImageManager *imageman, char *name )
 	return res ;
 }
 
+/* ******************** ASGradient ****************************/
+
+void
+destroy_asgradient( ASGradient **pgrad )
+{
+	if( pgrad && *pgrad )
+	{
+		if( (*pgrad)->color )
+		{
+			free( (*pgrad)->color );
+			(*pgrad)->color = NULL ;
+		}
+		if( (*pgrad)->offset )
+		{
+			free( (*pgrad)->offset );
+			(*pgrad)->offset = NULL ;
+		}
+		(*pgrad)->npoints = 0 ;
+		free( *pgrad );
+		*pgrad = NULL ;
+	}
+
+}
+
+ASGradient *
+flip_gradient( ASGradient *orig, int flip )
+{
+	ASGradient *grad ;
+	int npoints ;
+	int type ;
+	Bool inverse_points = False ;
+
+	flip = flip&FLIP_MASK ;
+	if( orig == NULL || flip == 0 )
+		return orig;
+
+	grad = safecalloc( 1, sizeof(ASGradient));
+
+	grad->npoints = npoints = orig->npoints ;
+	type = orig->type ;
+    grad->color = safemalloc( npoints*sizeof(ARGB32) );
+    grad->offset = safemalloc( npoints*sizeof(double) );
+
+	if( get_flags(flip, FLIP_VERTICAL) )
+	{
+		Bool upsidedown = get_flags(flip, FLIP_UPSIDEDOWN) ;
+		switch(type)
+		{
+			case GRADIENT_Left2Right  :
+				type = GRADIENT_Top2Bottom ; inverse_points = !upsidedown ;
+				break;
+			case GRADIENT_TopLeft2BottomRight :
+				type = GRADIENT_BottomLeft2TopRight ; inverse_points = upsidedown ;
+				break;
+			case GRADIENT_Top2Bottom  :
+				type = GRADIENT_Left2Right ; inverse_points = upsidedown ;
+				break;
+			case GRADIENT_BottomLeft2TopRight :
+				type = GRADIENT_TopLeft2BottomRight ; inverse_points = !upsidedown ;
+				break;
+		}
+	}else if( flip == FLIP_UPSIDEDOWN )
+	{
+		inverse_points = True ;
+	}
+
+	if( inverse_points )
+    {
+        register int i = 0, k = npoints;
+        while( --k >= 0 )
+        {
+            grad->color[i] = orig->color[k] ;
+            grad->offset[i] = 1.0 - orig->offset[k] ;
+			++i ;
+        }
+    }else
+	{
+        register int i = npoints ;
+        while( --i >= 0 )
+        {
+            grad->color[i] = orig->color[i] ;
+            grad->offset[i] = orig->offset[i] ;
+        }
+    }
+	return grad;
+}
+
 /* ******************** ASImageDecoder ****************************/
 ASImageDecoder *
 start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,

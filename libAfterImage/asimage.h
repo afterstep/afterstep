@@ -43,6 +43,9 @@ struct ASScanline;
  *          release_asimage_by_name(), forget_asimage(),
  *          safe_asimage_destroy()
  *
+ *   Gradients helper functions :
+ *          flip_gradient(), destroy_asgradient()
+ *
  *   Layers helper functions :
  *          init_image_layers(), create_image_layers(),
  *          destroy_image_layers()
@@ -894,7 +897,27 @@ void	 forget_asimage( ASImage *im );
 void     forget_asimage_name( ASImageManager *imman, const char *name );
 int		 safe_asimage_destroy( ASImage *im );
 
-
+/****h* libAfterImage/asimage/Gradients
+ * DESCRIPTION
+ * flip_gradient()    - rotates gradient in 90 degree increments.
+ * destroy_asgradient() - destroy ASWGradient structure, deallocating all
+ * 						  associated memory
+ *********/
+/****f* libAfterImage/asimage/flip_gradient()
+ * SYNOPSIS
+ * ASGradient *flip_gradient( ASGradient *orig, int flip );
+ * INPUTS
+ * orig           - pointer to original ASGradient structure to be rotated.
+ * flip           - value defining desired rotation.
+ * RETURN VALUE
+ * Same as original gradient if flip is 0. New gradient structure in any
+ * other case.
+ * DESCRIPTION
+ * Rotates ( flips ) gradient data in 90 degree increments. When needed
+ * order of points is reversed.
+ *********/
+void  destroy_asgradient( ASGradient **pgrad );
+ASGradient *flip_gradient( ASGradient *orig, int flip );
 /****h* libAfterImage/asimage/Layers
  * DESCRIPTION
  * init_image_layers()    - initialize set of ASImageLayer structures.

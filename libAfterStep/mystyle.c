@@ -433,9 +433,14 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	 case TEXTURE_GRADIENT_BL2TR:
 	 case TEXTURE_GRADIENT_T2B:
 	 case TEXTURE_GRADIENT_L2R:
-		 im = make_gradient (Scr.asv, &(style->gradient), width, height, 0xFFFFFFFF, ASA_ASImage, 0,
+	 	{
+			ASGradient *grad = flip_gradient( &(style->gradient), flip );
+		 	im = make_gradient (Scr.asv, grad, width, height, 0xFFFFFFFF, ASA_ASImage, 0,
 							 ASIMAGE_QUALITY_DEFAULT);
-		 break;
+			if( grad != &(style->gradient) )
+				destroy_asgradient( &grad );
+		}
+		break;
 	 case TEXTURE_SHAPED_SCALED_PIXMAP:
 	 case TEXTURE_SCALED_PIXMAP:
 		 im = scale_asimage (Scr.asv, style->back_icon.image, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
