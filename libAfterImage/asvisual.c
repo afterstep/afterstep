@@ -1226,6 +1226,10 @@ void remove_shm_area( ASShmArea *area, Bool free_resources )
 
 void flush_shm_cache( )
 {
+	if( xshmimage_images ) 
+		destroy_ashash( &xshmimage_images );
+	if( xshmimage_segments )
+		destroy_ashash( &xshmimage_segments );
 	while( shm_available_mem_head != NULL )
 		remove_shm_area( shm_available_mem_head, True );
 }
@@ -1277,7 +1281,7 @@ char *get_shm_area( int size, int *shmid )
 		return tmp ;
 	}
 
-	*shmid = shmget (IPC_PRIVATE, size, IPC_CREAT|0777);
+	*shmid = shmget (IPC_PRIVATE, size, IPC_CREAT|0666);
 	return shmat (*shmid, 0, 0);
 }
 
