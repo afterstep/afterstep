@@ -1118,10 +1118,12 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 				sr.y = sr.height ;
 				sr.height = aswf->canvas->height - sr.height ;
 			}
+#if 0
 			fprintf( stderr, "substr_boundary = %dx%d%+d%+d canvas = %dx%d%+d%+d\n", 
 					 sr.width, sr.height, sr.x, sr.y,  
 					 aswf->canvas->width, aswf->canvas->height, aswf->canvas->root_x, aswf->canvas->root_y );
 			fprintf( stderr, "shape = %p, used = %d\n", aswf->canvas->shape, PVECTOR_USED(aswf->canvas->shape) );
+#endif			
 			if( sr.width > 0 && sr.height > 0 ) 
 				subtract_shape_rectangle( aswf->canvas->shape, &sr, 1, 0, 0, aswf->canvas->width, aswf->canvas->height );
 		}	 
@@ -1435,7 +1437,6 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 			return;			
 		} 
 		
-		fprintf( stderr, "boundary = %dx%d%+d%+d\n", rect.width, rect.height, rect.x, rect.y );
 		aswf->boundary = rect ;
 		update_wharf_folder_shape( aswf );
 		ASSync(False);
@@ -1621,16 +1622,14 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 
 	set_wharf_clip_area( aswf, left, top );
 
-	fprintf( stderr, "displaying folder\n" );
     if( get_flags(Config->flags, WHARF_ANIMATE ) )
     {
-#if 1
 		set_flags(aswf->flags,ASW_UseBoundary );
 		aswf->boundary.x = aswf->boundary.y = 0 ; 
 		aswf->boundary.width = aswf->boundary.height = 1 ;
+#ifdef SHAPE		
 	    XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding,
                                   0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
-
 #endif
     }
 	if( !get_flags( aswf->flags, ASW_Mapped ) )
@@ -1651,18 +1650,6 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 	set_flags( aswf->flags, ASW_Mapped );
     clear_flags( aswf->flags, ASW_Withdrawn );
 	ASSync(False);
-#if 0		   
-	if( !was_mapped )
-	{	
-		MapConfigureNotifyLoop();
-
-		animate_wharf_loop(aswf, 1, 1, total_width, total_height );
-		aswf->boundary.width = total_width ;
-		aswf->boundary.height = total_height ;
-		update_wharf_folder_shape( aswf );
-		clear_flags(aswf->flags,ASW_UseBoundary );
-	}
-#endif
     return True;
 }
 

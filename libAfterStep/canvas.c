@@ -55,6 +55,7 @@ get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwid
 static void
 set_canvas_shape_to_rectangle( ASCanvas * pc )
 {
+#ifdef SHAPE
     unsigned int width, height, bw ;
     XRectangle    rect;
     rect.x = 0;
@@ -72,6 +73,7 @@ set_canvas_shape_to_rectangle( ASCanvas * pc )
     XShapeCombineRectangles ( dpy, pc->w, ShapeBounding,
                                 -bw, -bw, &rect, 1, ShapeSet, Unsorted);
 	set_flags( pc->state, CANVAS_SHAPE_SET );
+#endif
 }
 
 static void
