@@ -81,7 +81,8 @@ typedef struct {
 
     ASTBarData  *pressed_bar;
 
-	Bool receiving_winlist ;
+	Bool postpone_display ;
+	time_t last_message_time ;
 
 }ASWinListState ;
 
@@ -147,7 +148,7 @@ main( int argc, char **argv )
     set_root_clip_area( WinListState.main_canvas );
     rearrange_winlist_window( False );
 
-	WinListState.receiving_winlist = True ;
+	WinListState.postpone_display = True ;
 
 	/* And at long last our main loop : */
     HandleEvents();
@@ -368,10 +369,15 @@ void
 process_message (send_data_type type, send_data_type *body)
 {
     LOCAL_DEBUG_OUT( "received message %lX", type );
+	WinListState.last_message_time = time(NULL) ;
+
 	if( type == M_END_WINDOWLIST )
 	{
-		WinListState.receiving_winlist = False ;
-		rearrange_winlist_window( False );
+		if( WinListState.postpone_display ) 
+		{	
+			WinListState.postpone_display = False ;
+			rearrange_winlist_window( False );
+		}
 	}else if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
@@ -577,6 +583,13 @@ render_winlist_button( ASTBarData *tbar )
   2) when we get StructureNotify event - we need to reposition and redraw
      everything accordingly
  */
+void
+postponed_rearrange_winlist( void *vdata )
+{
+	Bool dont_resize_main_canvas  = (Bool)vdata ;	
+	rearrange_winlist_window( dont_resize_main_canvas );	
+}
+
 Bool
 rearrange_winlist_window( Bool dont_resize_main_canvas )
 {
@@ -594,7 +607,11 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
 
     LOCAL_DEBUG_CALLER_OUT( "%sresize canvas. windows_num = %d",
                             dont_resize_main_canvas?"Don't ":"Do ", WinListState.windows_num );
-    if( dont_resize_main_canvas )
+    
+	if( WinListState.last_message_time == time(NULL) ) 
+		timer_new (100, postponed_rearrange_winlist, (void*)dont_resize_main_canvas);	  
+	
+	if( dont_resize_main_canvas )
     {
         LOCAL_DEBUG_OUT( "Main_canvas geometry = %dx%d", WinListState.main_canvas->width, WinListState.main_canvas->height );
         allowed_min_width  = allowed_max_width  = WinListState.main_canvas->width ;
@@ -978,7 +995,7 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
         WinListState.window_order[WinListState.windows_num] = wd ;
         ++(WinListState.windows_num);
         configure_tbar_props( tbar, wd );
-		if( !WinListState.receiving_winlist )
+		if( !WinListState.postpone_display )
 		    rearrange_winlist_window( False );
 	}
 }
@@ -993,7 +1010,7 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
         if( i < WinListState.windows_num )
         {
             configure_tbar_props( tbar, wd );
-			if( !WinListState.receiving_winlist )
+			if( !WinListState.postpone_display )
 			{
           		if( calculate_astbar_width( tbar ) > WinListState.col_width[WinListState.bar_col[i]] ||
               		calculate_astbar_height( tbar ) > WinListState.max_item_height )
@@ -1021,7 +1038,7 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
             WinListState.window_order[i-1] = WinListState.window_order[i] ;
         WinListState.window_order[i-1] = NULL ;
         --(WinListState.windows_num);
-		if( !WinListState.receiving_winlist )
+		if( !WinListState.postpone_display )
       		rearrange_winlist_window(False);
     }
 }
