@@ -22,6 +22,10 @@ void         *safecalloc (size_t num, size_t blength);
 #ifndef safefree
 void		  safefree (void *ptr);
 #endif
+#ifndef saferealloc
+void         *saferealloc (void *orig_ptr, size_t length);
+#endif
+
 void		  dump_memory();
 
 #define	NEW(a)              	((a *)malloc(sizeof(a)))

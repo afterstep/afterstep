@@ -37,6 +37,7 @@
 
 #undef malloc
 #undef safemalloc
+#undef safecalloc
 #undef calloc
 #undef realloc
 #undef add_hash_item
@@ -219,7 +220,7 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
                         deallocated_used, m, total_service, fname, line );
  */ }else
     {
-		m = calloc (1, sizeof (mem));
+		m = safecalloc (1, sizeof (mem));
         if( total_service+sizeof(mem) > AUDIT_SERVICE_MEM_LIMIT )
         {
             show_error( "<mem> too much auditing service memory used (%lu - was %lu)- aborting, please investigate.\n   Called from %s:%d",
@@ -354,7 +355,7 @@ countmalloc (const char *fname, int line, size_t length)
 void         *
 countcalloc (const char *fname, int line, size_t nrecords, size_t length)
 {
-	void         *ptr = calloc (nrecords, length);
+	void         *ptr = safecalloc (nrecords, length);
 
     if( (int)(length*nrecords) < 0 )
 	{
@@ -424,7 +425,7 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 		m->line = line;
 		m->length = length;
 		m->type = C_MEM | C_REALLOC;
-		m->ptr = realloc (ptr, length);
+		m->ptr = saferealloc (ptr, length);
 		m->freed = 0;
 		ptr = m->ptr;
 		if( (res = add_hash_item( allocs_hash, (ASHashableValue)ptr, m )) != ASH_Success )

@@ -233,7 +233,7 @@ ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail)
 		 case MYSTYLE_INHERIT_ID:
 		 	{
 				int pos = ((*tail)->inherit_num) ;
-				(*tail)->inherit = realloc( (*tail)->inherit, pos+1 );
+				(*tail)->inherit = realloc( (*tail)->inherit, sizeof(char*)*(pos+1) );
 				(*tail)->inherit[pos] = item.data.string;
 				++((*tail)->inherit_num);
 			}
