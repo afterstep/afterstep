@@ -2,20 +2,20 @@ version 2.0 beta4
 	* Reverted cursor settings back to feel file.
 	* Used ascompose as new Banner module
 	* Added to ascompose ability to process files tag by tag, allowing for animation.
-	* Added to look config : 
+	* Added to look config :
 		[DontAnimateBackground	0|1]
 		[CoverAnimationSteps   	<steps count>]
 		[CoverAnimationType	<type>]
-	  DontAnimateBackground disables non-blocking root background changing of 
-	full-screen backgrounds, that looks like slow animation. This is recommended 
+	  DontAnimateBackground disables non-blocking root background changing of
+	full-screen backgrounds, that looks like slow animation. This is recommended
 	for fast machines.
-	  CoverAnimationType determines what type of animation to use while removing 
+	  CoverAnimationType determines what type of animation to use while removing
 	blue-tinted desktop cover - use values from 0 to 13.
-	  CoverAnimationSteps is the number of animation steps to take while removing 
+	  CoverAnimationSteps is the number of animation steps to take while removing
 	blue-tinted cover window.
 
 version 2.0 beta3
-	* Added WinTabs module - to swallow windows with Class matching specified 
+	* Added WinTabs module - to swallow windows with Class matching specified
 	  pattern and arrange them in single window using tabs.
 
 version 2.0 beta2
@@ -79,14 +79,14 @@ version 2.0 beta1
              libAfterImage, with default being simple alphablending. See
              MyFrame configuration for more details. This is refrred to as
              "Composition Method".
-        1.4. Due to the fact that AfterSTep is using compression to store
+        1.4. Due to the fact that AfterStep is using compression to store
              images in memory - there is no need to have separate root
              background handler, and so asetroot has been discontinued and
              afterstep proper now does all the root background loading.
              You could simply copy-and-paste your asteroot config into your
-             look file. This has an added advantage of simplifing theme supprt
+             look file. This has an added advantage of simplifing theme support
              for root backgrounds.
-        1.5. Sugnificant work has been done to create libAfterConf which
+        1.5. Significant work has been done to create libAfterConf which
              provides easy means for reading configuration options, and
              facilitates implementation of any configuration tool.
         1.6. Some work has been done to improve support for themes. AfterStep
@@ -104,18 +104,18 @@ version 2.0 beta1
              Wharf, etc. To make some element shaped - MyStyle with BackPixmap
              type 125 or 126 should be used.
         1.8. Menus are now treated same as regular windows. They could be
-             configured in database file using p[reset Style "ASMenu" to have
+             configured in database file using preset Style "ASMenu" to have
              different titlebar buttons, frame decorations, stickiness, etc.
              MenuPinOn has been changed to be just another titlebar button,
              with PinMenu function assigned to it.
-        1.9. AfterStep no longer uses fixed scheme of 5  titlebar buttons on
+        1.9. AfterStep no longer uses fixed scheme of 5 titlebar buttons on
              each side, and order of buttons could be configured in look. There
              is still limitation to have no more then 10 buttons total.
 
 2. Look options
         2.1. Overview
-                Frame decoration seting has been greately enhanced. It is now
-             fashioned after MyStyle option and is called MyFrmae. It allows
+                Frame decoration settings have been greately enhanced. It is now
+             fashioned after MyStyle option and is called MyFrame. It allows
              for several named structures, with inheritance and ability to
              assign different structure to different apps using the database.
                 As mentioned above root background settings has been moved into
@@ -129,7 +129,7 @@ version 2.0 beta1
                 Balloons now support both X and Y offset as well as MyStyle
              instead of simple back and fore colors.
 
-        2.2. Window frame decorations (aka MyFrame )
+        2.2. Window frame decorations (aka MyFrame)
                 Each window is surrounded by so-called frame decoration. each
                 frame decoration could be built from 9 TBars:
                 1) Main Titlebar  with icons on left, label in the middle and
@@ -138,7 +138,7 @@ version 2.0 beta1
                    TitleButtonOrder setting ( see below ).
                 2) 4 frame sides. Each of this have wixed width that is
                    determined by SideSize setting  or image size if SideSize is
-                   ommited. Second dimention of the TBar changes to match the
+                   ommited. Second dimension of the TBar changes to match the
                    size of the window.
                 3) 4 frame corners. Each of this have both fixed width and
                    height, as determined by CornerSize setting or image size.
@@ -173,12 +173,12 @@ version 2.0 beta1
                                                                                            empty bevel will be drawn
                       [NoCorner    NorthEast|SouthEast|NorthWest|SouthWest|Any]
                   #new settings :
-                      [TitleUnfocusedStyle   <style>
-                      [TitleFocusedStyle     <style>
-                      [TitleStickyStyle      <style>
-                      [FrameUnfocusedStyle   <style>
-                      [FrameFocusedStyle     <style>
-                      [FrameStickyStyle      <style>
+                      [TitleUnfocusedStyle   <style>]
+                      [TitleFocusedStyle     <style>]
+                      [TitleStickyStyle      <style>]
+                      [FrameUnfocusedStyle   <style>]
+                      [FrameFocusedStyle     <style>]
+                      [FrameStickyStyle      <style>]
                       [TitleBackground       <pixmap>] - gets overlayed over background and under the text
                       [LeftBtnBackground     <pixmap>] - gets overlayed over background and under the left block of buttons
                       [LeftSpacerBackground  <pixmap>] - gets overlayed over background between left block of buttons and text label
@@ -329,14 +329,14 @@ version 2.0 beta1
 
                 Note: remaining Background options are valid only for type of 0!
 
-                The remaining options will perform transformations  on the
+                The remaining options will perform transformations on the
                 source image, in this order:
                      Cut->Tint->Scale->Align->Pad.
 
              *******************************************************************
                 Cut geometry
              *******************************************************************
-                    will cut piece with specified geometry  from the source image.
+                    will cut piece with specified geometry from the source image.
 
              *******************************************************************
                 Tint color
@@ -438,7 +438,7 @@ version 2.0 beta1
                 ****************************************************************
                 New style value 2 has been added. When 2 is used, then
                 distance between titlebar edge and titlebuttons is determined
-                by by TitleButtonXOffset and TitleButtonYOffset.
+                by TitleButtonXOffset and TitleButtonYOffset.
                 ****************************************************************
                 TitleButtonXOffset  <x_offset_val>
                 TitleButtonYOffset  <y_offset_val>
@@ -454,7 +454,7 @@ version 2.0 beta1
                 ****************************************************************
                 MenuPinOn  <image>
                 ****************************************************************
-                        MenuPinOn is depreciated and AfterSTep will reinterpret
+                        MenuPinOn is deprecated and AfterStep will reinterpret
                 it, and it will create new TitleButton using last unused
                 TitleButton context. It will then assign PinMenu function to
                 this button. This button will only be shown on titlebars
@@ -475,9 +475,9 @@ version 2.0 beta1
                 ****************************************************************
                 MenuSubItemStyle "mystyle"
                 ****************************************************************
-                        AfterStep now includes new feature: when you select an
-                item from menu - this item will be marked as recently used, and
-                next time menu is opened it will show all the recently used
+                        AfterStep now includes this new feature: when you select
+		an item from menu - this item will be marked as recently used,
+		and next time menu is opened it will show all the recently used
                 items from its SUBMENU. For exmaple you do :
 
                 Menu->Applications->rxvt
@@ -500,7 +500,7 @@ version 2.0 beta1
                 MenuHiliteCompositionMethod     <130-145>
                 MenuStippleCompositionMethod    <130-145>
                 ****************************************************************
-                This is fun feature - try it and see how you like different
+                This is a funny feature - try it and see how you like different
                 values :) If you use shades of grey for your item text - you
                 may not see any difference for some of this values.
 
@@ -535,10 +535,10 @@ version 2.0 beta1
         ************************************************************************
         EatFocusClick
         ************************************************************************
-        When this flag is specified in feel file - AfterSTep will "eat" mouse
+        When this flag is specified in feel file - AfterStep will "eat" mouse
         click, that was used to focus window in ClickToFocus mode. That means that
         if you have any function assigned to mouse clicks on the titlebars -
-        those functions will only be executed if window is already focused.
+        those functions will only be executed if the window is already focused.
 
         ************************************************************************
         ClickToFocus
@@ -563,13 +563,13 @@ version 2.0 beta1
         PersistentMenus
         ************************************************************************
         Right now if you try to open a menu when its already opened - that will
-        cause menu to close. To disablethis behaviour and instead pop-up a menu
+        cause menu to close. To disable this behaviour and instead pop-up a menu
         again - use this setting.
 
         ************************************************************************
         NoSnapKey   <key>
         ************************************************************************
-        AfterSTep now has feature that "snaps" window to different desktop
+        AfterSTep now has a feature that "snaps" windows to different desktop
         features, such as edges of other windows and edge of the screen. To
         disable it temorarily you can press and hold Shift key. Use this
         setting to request different modifier key instead of Shift.
@@ -649,8 +649,8 @@ version 2.0 beta1
                 ****************************************************************
                 BookmarkWindow "name" new_bookmark
                 ****************************************************************
-                Places bookmark on selected window, to be used later on to get
-                back to that window.
+                Places a bookmark on the selected window, to be used later on to
+		get back to that window.
 
                 ****************************************************************
                 GoToBookmark ["name" window_bookmark ]
@@ -712,9 +712,9 @@ version 2.0 beta1
         OverrideGravity  gravity
         ************************************************************************
         Some applications (notably xv) has been designed without reading widely
-        accepted and used standards such as ICCCM. Gravity value is one of of
+        accepted and used standards such as ICCCM. Gravity value is one of
         the hints that often gets misplaced by applications. As the result may
-        exhibit wierd placement behaviour - such as window moving to the
+        exhibit wierd placement behaviour - such as windows moving to the
         top-left with each resize or file opened. Try specifying StaticGravity
         for such apps. Also some applications do not set gravity correctly. For
         example you start an application with geometry +10-10 which means
@@ -865,7 +865,7 @@ version 2.0 beta1
         ************************************************************************
         ShapeToContents
         ************************************************************************
-        Will cause Wharf use X Shaped extentions and have a window of
+        Will cause Wharf to use X Shaped extentions and have a window of
         non-rectangular shape. Shape is composed from the overall geometry of
         buttons ( see FitContents ), shape of the MyStyle used to draw Wharf
         background ( if BackPixmap 126 or 125 is used ), contents of each
