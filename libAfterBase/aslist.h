@@ -16,6 +16,11 @@ typedef struct ASBiDirList
 	ASBiDirElem *head, *tail ;
 }ASBiDirList;
 
+#define LIST_START(l)  		((l)->head)
+#define LIST_END(l)    		((l)->tail)
+#define LISTELEM_DATA(e)    ((e)->data)
+
+
 ASBiDirList *create_asbidirlist(destroy_list_data_handler destroy_func);
 void purge_asbidirlist( register ASBiDirList *l );
 void destroy_asbidirlist( ASBiDirList **pl );

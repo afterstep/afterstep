@@ -318,7 +318,12 @@ size_t
 send_fifo_queue( ASFIFOQueue *fifo )
 {
 	size_t written = 0 ;
+	ASBiDirElem *curr ;
+	while( curr = LIST_START(fifo->queue) )
+	{
 
+
+	}
 	return written;
 }
 

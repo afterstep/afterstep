@@ -49,6 +49,9 @@ typedef struct ASFIFOQueue
 {
 	/* output pipe : */
 	int fd ;
+	enum {
+
+	} state ;
 	/* actuall queue : */
 	struct ASBiDirList  queue ;
 }ASFIFOQueue;
