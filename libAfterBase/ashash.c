@@ -455,18 +455,18 @@ ASHashKey
 string_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
 	ASHashKey     hash_key = 0;
-	register int  i;
+	register int  i = 0;
 	char         *string = value.string_val;
 	register char c;
 
-	for (i = 0; i < ((sizeof (ASHashKey) - sizeof (char)) << 3); i++)
-
+	do
 	{
-		c = *(string++);
+		c = string[i];
 		if (c == '\0')
 			break;
 		hash_key += (((ASHashKey) c) << i);
-	}
+		++i ;
+	}while( i < ((sizeof (ASHashKey) - sizeof (char)) << 3) );
 	return hash_key % hash_size;
 }
 
@@ -475,6 +475,7 @@ string_compare (ASHashableValue value1, ASHashableValue value2)
 {
 	register char *str1 = value1.string_val;
 	register char *str2 = value2.string_val;
+	register int   i = 0 ;
 
 	if (str1 == str2)
 		return 0;
@@ -482,14 +483,12 @@ string_compare (ASHashableValue value1, ASHashableValue value2)
 		return -1;
 	if (str2 == NULL)
 		return 1;
-	while (*str1 || *str2)
+	do
 	{
-		if (*str1 != *str2)
-			return (long)(*str1) - (long)(*str2);
+		if (str1[i] != str2[i])
+			return (long)(str1[i]) - (long)(str2[i]);
 
-		str1++;
-		str2++;
-	}
+	}while( str1[i++] );
 	return 0;
 }
 
@@ -513,20 +512,21 @@ ASHashKey
 casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
 	ASHashKey     hash_key = 0;
-	register int  i;
+	register int  i = 0;
 	char         *string = value.string_val;
 	register char c;
 
-	for (i = 0; i < ((sizeof (ASHashKey) - sizeof (char)) << 3); i++)
-
+	do
 	{
-		c = *(string++);
+		c = string[i];
 		if (c == '\0')
 			break;
 		if (isupper (c))
 			c = tolower (c);
 		hash_key += (((ASHashKey) c) << i);
-	}
+		++i;
+	}while(i < ((sizeof (ASHashKey) - sizeof (char)) << 3));
+	
 	return hash_key % hash_size;
 }
 
@@ -535,6 +535,7 @@ casestring_compare (ASHashableValue value1, ASHashableValue value2)
 {
 	register char *str1 = value1.string_val;
 	register char *str2 = value2.string_val;
+	register int   i = 0;
 
 	if (str1 == str2)
 		return 0;
@@ -542,19 +543,19 @@ casestring_compare (ASHashableValue value1, ASHashableValue value2)
 		return -1;
 	if (str2 == NULL)
 		return 1;
-	while (*str1 || *str2)
+	do
 	{
 		char          u1, u2;
 
-		u1 = *(str1++);
-		u2 = *(str2++);
+		u1 = str1[i];
+		u2 = str2[i];
 		if (islower (u1))
 			u1 = toupper (u1);
 		if (islower (u2))
 			u2 = toupper (u2);
 		if (u1 != u2)
 			return (long)u1 - (long)u2;
-	}
+	}while( str1[i++] );
 	return 0;
 }
 
@@ -563,28 +564,30 @@ ASHashKey
 option_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
 	ASHashKey     hash_key = 0;
-	register int  i;
+	register int  i = 0;
 	char         *opt = value.string_val;
 	register char c;
 
-	for (i = 0; i < ((sizeof (ASHashKey) - sizeof (char)) << 3); i++)
-
+	do
 	{
-		c = *(opt++);
-		if (c == '\0' || !(isalnum (c) || c == '~' || c == '_'))
+		c = opt[i];
+#define VALID_OPTION_CHAR(c)		(isalnum (c) || (c) == '~' || (c) == '_')
+		if (c == '\0' || !VALID_OPTION_CHAR(c))
 			break;
 		if (isupper (c))
 			c = tolower (c);
 		hash_key += (((ASHashKey) c) << i);
-	}
+		++i;
+	}while( i < ((sizeof (ASHashKey) - sizeof (char)) << 3) );
 	return hash_key % hash_size;
 }
 
 long
 option_compare (ASHashableValue value1, ASHashableValue value2)
 {
-	register char *str1 = value1.string_val;
-	register char *str2 = value2.string_val;
+	char *str1 = value1.string_val;
+	char *str2 = value2.string_val;
+	register int i = 0;
 
 	if (str1 == str2)
 		return 0;
@@ -592,12 +595,16 @@ option_compare (ASHashableValue value1, ASHashableValue value2)
 		return -1;
 	if (str2 == NULL)
 		return 1;
-	while ((*str1 && (isalnum (*str1) || *str1 == '_')) || (*str2 && (isalnum (*str2) || *str2 == '_')))
+	while ( str1[i] && str2[i] )
 	{
-		char          u1, u2;
+		register char          u1, u2;
 
-		u1 = *(str1++);
-		u2 = *(str2++);
+		u1 = str1[i];
+		u2 = str2[i];
+		if( !VALID_OPTION_CHAR(u1) )
+			return ( VALID_OPTION_CHAR(u2) )? (long)u1 - (long)u2: 0;
+		++i ;
+
 		if (islower (u1))
 			u1 = toupper (u1);
 		if (islower (u2))
@@ -605,7 +612,12 @@ option_compare (ASHashableValue value1, ASHashableValue value2)
 		if (u1 != u2)
 			return (long)u1 - (long)u2;
 	}
-	return 0;
+	if(  str1[i] == str2[i] ) 
+		return 0;
+	else if( str1[i] )
+		return ( VALID_OPTION_CHAR(str1[i]) )?(long)(str1[i]):0;
+	else
+		return ( VALID_OPTION_CHAR(str2[i]) )? 0 - (long)(str2[i]):0;
 }
 
 
