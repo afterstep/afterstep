@@ -184,6 +184,9 @@ static char* default_doc_str = "\
 <printf format=\"original image size in pixels=%d\n\" val=$rose.width*$rose.height/>\
 ";
 /*******/
+	
+char *load_stdin();	
+
 int main(int argc, char** argv) {
 	ASImage* im = NULL;
 	char* doc_str = default_doc_str;
@@ -253,26 +256,35 @@ int main(int argc, char** argv) {
 	}
 	
 	destroy_asvisual( asv, False );
+    
+	dpy = NULL ;
+#ifndef X_DISPLAY_MISSING
+    if( display )
+    {
+        dpy = XOpenDisplay(NULL);
+		if( dpy )
+		{	
+        	_XA_WM_DELETE_WINDOW = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+        	screen = DefaultScreen(dpy);
+        	depth = DefaultDepth(dpy, screen);
+		}
+    }
+#endif
+	if( dpy == NULL && doc_file == NULL && doc_str == default_doc_str )
+		doc_file = strdup("-");
 
 	/* Load the document from file, if one was given. */
 	if (doc_file) {
-		doc_str = load_file(doc_file);
+		if( strcmp( doc_file, "-") == 0 ) 
+			doc_str = load_stdin();
+		else
+			doc_str = load_file(doc_file);
 		if (!doc_str) {
 			fprintf(stderr, "Unable to load file [%s]: %s.\n", doc_file, strerror(errno));
 			exit(1);
 		}
 	}
 
-    dpy = NULL ;
-#ifndef X_DISPLAY_MISSING
-    if( display )
-    {
-        dpy = XOpenDisplay(NULL);
-        _XA_WM_DELETE_WINDOW = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-        screen = DefaultScreen(dpy);
-        depth = DefaultDepth(dpy, screen);
-    }
-#endif
 
 	asv = create_asvisual(dpy, screen, depth, NULL);
 
@@ -296,7 +308,7 @@ int main(int argc, char** argv) {
 	}
 
 	/* Display the image if desired. */
-	if (display) {
+	if (display && dpy) {
 		showimage(im, onroot);
 	}
 
@@ -344,4 +356,28 @@ void showimage(ASImage* im, int onroot) {
         XCloseDisplay (dpy);
 #endif /* X_DISPLAY_MISSING */
 }
+
+
+char *load_stdin()
+{
+#define BUFSIZE 512	
+	char buffer[BUFSIZE] ;
+	char *complete = safemalloc(8192) ; 
+	int complete_allocated = 8192 ;
+	int complete_curr = 0 ;
+	int len ;
+	
+	while( fgets( &buffer[0], BUFSIZE, stdin ) != NULL )
+	{
+		len = strlen( &buffer[0] );
+		if( complete_curr + len > complete_allocated ) 
+		{
+			complete_allocated+=len	  ;
+	 		complete = realloc( complete, complete_allocated );
+		}
+		memcpy( &complete[complete_curr], &buffer[0], len ); 	  
+		complete_curr += len ;
+	}		 
+	return complete;
+}	 
 

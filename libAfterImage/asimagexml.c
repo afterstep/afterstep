@@ -342,7 +342,7 @@ Bool save_asimage_to_file(const char *file2bsaved, ASImage *im,
 		return(0);
 	}
 
-	if( replace  )
+	if( replace && file2bsaved )
 		unlink( file2bsaved );
 
 	return ASImage2file(im, NULL, file2bsaved, params.type, &params);
@@ -769,18 +769,17 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (ext) ext++;
 			autoext = 1;
 		}
-		if (dst && ext) {
-			for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
-				result = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-			}
-			if (autoext)
-				show_warning("No format given.  File extension [%s] used as format.", ext);
-			show_progress("Saving image to file [%s].", dst);
-			if (result && get_flags( flags, ASIM_XML_ENABLE_SAVE) )
-			{
-				if( !save_asimage_to_file(dst, result, ext, compress, opacity, delay, replace))
-				show_error("Unable to save image into file [%s].", dst);
-			}
+		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
+			result = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
+		}
+		if ( autoext && ext )
+			show_warning("No format given.  File extension [%s] used as format.", ext);
+		show_progress("reSaving image to file [%s].", dst?dst:"stdout");
+		if (result && get_flags( flags, ASIM_XML_ENABLE_SAVE) )
+		{
+			show_progress("Saving image to file [%s].", dst?dst:"stdout");
+			if( !save_asimage_to_file(dst, result, ext, compress, opacity, delay, replace))
+				show_error("Unable to save image into file [%s].", dst?dst:"stdout");
 		}
 		if (rparm) *rparm = parm;
 		else xml_elem_delete(NULL, parm);
