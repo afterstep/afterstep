@@ -15,8 +15,8 @@ AutoReverse 2
 # AutoRaise 500
 #
 # While zapping, warp mouse pointer to
-Xzap 12
-Yzap 12
+Xzap 2
+Yzap 2
 #
 # Avoid problems with xpaint like applications which define their own icon
 # as a window and tell the window manager it's its icon
