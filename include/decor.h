@@ -155,6 +155,7 @@ void moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigne
 ASTBtnData *create_astbtn();
 void        set_tbtn_images( ASTBtnData* btn, struct button_t *from );
 ASTBtnData *make_tbtn( struct button_t *from );
+int         check_tbtn_point( ASTBtnBlock *bb, int x, int y );
 void        destroy_astbtn(ASTBtnData **ptbtn );
 
 ASTBtnBlock* create_astbtn_block( unsigned int btn_count );

@@ -495,6 +495,27 @@ build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int coun
     return blk ;
 }
 
+int
+check_tbtn_point( ASTBtnBlock *bb, int x, int y )
+{
+    if( bb )
+    {
+        register int i = bb->count ;
+        while( --i >= 0 )
+        {
+            register ASTBtnData *btn = &(bb->buttons[i]) ;
+            int tmp = x - btn->x ;
+            if( tmp >= 0 && tmp < btn->width )
+            {
+                tmp = y - btn->y ;
+                if( tmp >= 0 && tmp < btn->height )
+                    return btn->context;
+            }
+        }
+    }
+    return C_NO_CONTEXT;
+}
+
 void
 destroy_astbtn_block(ASTBtnBlock **pb )
 {

@@ -67,6 +67,7 @@ extern int    menuFromFrameOrWindowOrTitlebar;
     ASWindow     *ButtonWindow;                    /* button press window structure */
     XEvent        Event;                           /* the current event */
     ASWindow     *Tmp_win;                         /* the current afterstep window */
+    Window        PressedW;
 #endif
 
 /* those are used for AutoReverse mode 1 */
@@ -78,7 +79,6 @@ extern int    ShapeEventBase;
 void          HandleShapeNotify (void);
 #endif /* SHAPE */
 
-Window        PressedW;
 
 void
 warp_grab (ASWindow * t)

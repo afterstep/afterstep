@@ -1057,6 +1057,14 @@ on_window_status_changed( ASWindow *asw, Bool update_display )
         BroadcastConfig (M_CONFIGURE_WINDOW, asw);
     }
 }
+
+void
+on_hilite_changed( ASWindow *asw, Bool focused, Bool pressed_context )
+{
+
+
+}
+
 /********************************************************************/
 /* end of ASWindow frame decorations management                     */
 /********************************************************************/
