@@ -476,7 +476,7 @@ LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text,
 			}
 			if( move_astbar( tbar, WinListCanvas, x, y ) )
 				redraw = True ;
-			if( redraw ) 
+/*			if( redraw ) */
 				render_winlist_button( tbar );
 		}
 	}
@@ -539,7 +539,10 @@ refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 		if( tbar == WinListState.widest || tbar == WinListState.tallest )
 			rearrange_winlist_buttons();
 		else
+		{
 			render_winlist_button( tbar );
+			update_canvas_display( WinListCanvas );
+		}
 	}
 }
 

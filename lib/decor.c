@@ -429,6 +429,7 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc )
 	if( (label_im = tbar->label[state]) == NULL && tbar->label_text != NULL )
 	{
 		label_im = mystyle_draw_text_image( style, tbar->label_text );
+		tbar->label[state] = label_im ;
 	}
 
 	mystyle_make_bevel( style, &bevel, ASTBAR_HILITE, get_flags(tbar->state, BAR_STATE_PRESSED_MASK)  );
