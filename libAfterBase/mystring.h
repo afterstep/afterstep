@@ -10,4 +10,9 @@ char *mystrdup (const char *str);
 char *mystrndup (const char *str, size_t n);
 #endif
 
+/* use it to set string as well as flags and deallocate memory
+   referred to by the pointer */
+void set_string_value (char **target, char *string,
+		       unsigned long *set_flags, unsigned long flag);
+
 #endif /* MYSTRING_H_HEADER_INCLUDED */

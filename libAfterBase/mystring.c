@@ -105,3 +105,21 @@ mystrndup (const char *str, size_t n)
 	}
 	return c;
 }
+
+/* very usefull utility function to update the value of any string property */
+void
+set_string_value (char **target, char *string, unsigned long *set_flags, unsigned long flag)
+{
+	if (target != NULL && string != NULL)
+	{
+		if (*target != string)
+		{
+			if (*target)
+				free (*target);
+			*target = string;
+			if (set_flags)
+				set_flags (*set_flags, flag);
+		}
+	}
+}
+
