@@ -187,7 +187,7 @@ if test "x$enable_xlocale" = "xyes"; then
 fi
 
 dnl# Check for safe min/max - there still are some retarded compilers out there :
-AC_MSG_CHECKING(if we can use safe min/max macros)
+AC_MSG_CHECKING(if we can use sign safe min/max macros)
 AC_TRY_RUN([#define MIN(x,y) \
   		({ const typeof(x) _x = (x); const typeof(y) _y = (y);  (void) (&_x == &_y); \
      		 _x < _y ? _x : _y; })
