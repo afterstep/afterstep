@@ -484,6 +484,18 @@ static merge_scanlines_func mystyle_merge_scanlines_func_xref[] = {
 	NULL
 };
 
+merge_scanlines_func
+mystyle_translate_texture_type( int texture_type )
+{
+    register int index = 0 ;
+    if (texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
+        texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
+        index = texture_type - TEXTURE_SCALED_TRANSPIXMAP;
+    else if (texture_type >= TEXTURE_TRANSPIXMAP && texture_type < TEXTURE_TRANSPIXMAP_END)
+        index = texture_type - TEXTURE_TRANSPIXMAP;
+    return  mystyle_merge_scanlines_func_xref[index];
+}
+
 ASImage      *
 mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int height)
 {

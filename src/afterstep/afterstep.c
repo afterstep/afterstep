@@ -497,7 +497,14 @@ void
 Done (Bool restart, char *command )
 {
     int restart_screen = get_flags( AfterStepState, ASS_SingleScreen)?Scr.screen:-1;
+    char *local_command = NULL ;
+
 LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?command:"");
+
+    /* lets duplicate the string so we don't accidental;y delete it while closing self down */
+    if( restart )
+        local_command = mystrdup(command?command:MyName);
+
     set_flags( Scr.state, AS_StateShutdown );
     if( restart )
         set_flags( Scr.state, AS_StateRestarting );
@@ -534,7 +541,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 
 	if (restart)
 	{
-        spawn_child( command?command:MyName, -1, restart_screen,
+        spawn_child( local_command, -1, restart_screen,
                      None, C_NO_CONTEXT, False, False, NULL );
     } else
 	{

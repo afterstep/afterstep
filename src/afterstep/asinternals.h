@@ -419,6 +419,8 @@ ASWindow *AddInternalWindow (Window w,
 void Destroy (ASWindow *, Bool);
 void RestoreWithdrawnLocation (ASWindow *, Bool);
 void SetShape (ASWindow *, int);
+void SendConfigureNotify(ASWindow *asw);
+
 
 
 /*************************** colormaps.c : ********************************/
@@ -467,6 +469,7 @@ const char *context2text(int ctx);
 void DigestEvent    ( struct ASEvent *event );
 void DispatchEvent  ( struct ASEvent *event );
 void HandleEvents   ();
+void InteractiveMoveLoop ();
 void WaitForButtonsUpLoop ();
 Bool WaitEventLoop( struct ASEvent *event, int finish_event_type, long timeout );
 Bool IsClickLoop( struct ASEvent *event, unsigned int end_mask, unsigned int click_time );
@@ -593,8 +596,9 @@ void change_desktop_background( int desk, int old_desk );
 void HandleBackgroundRequest( struct ASEvent *event );
 
 /******************************* placement.c *******************************/
-ASGrid* make_desktop_grid(int desk, int min_layer, Bool frame_only );
+ASGrid* make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy );
 Bool place_aswindow( ASWindow *asw );
-
+void apply_aswindow_move(struct ASMoveResizeData *data);
+void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled);
 
 #endif /* ASINTERNALS_H_HEADER_INCLUDED */

@@ -20,7 +20,7 @@
 
 #undef DO_CLOCKING
 #undef UNKNOWN_KEYWORD_WARNING
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 
 #include "../configure.h"
 
@@ -445,9 +445,10 @@ LOCAL_DEBUG_OUT("argv=%p, arc=%d, sub=%p", stored->argv, stored->argc, stored->s
 		if (len > 2)
 		{									   /* we want to strip off those doubleqoutes */
 			pfunc->name = mystrndup (stored->argv[pos] + 1, len - 2);
-			pos++;
-			pfunc->hotkey = scan_for_hotkey (pfunc->name);
+            pfunc->hotkey = scan_for_hotkey (pfunc->name);
 		}
+        /* otherwise - empty name, but we should still skip it */
+        ++pos ;
 	}
 	/* now storing the rest of parameters as text */
 	if (pos < stored->argc && stored->argv[pos])

@@ -213,6 +213,7 @@ void mystyle_set_global_gcs (MyStyle * style);
 void mystyle_set_gcs (MyStyle * style, GC foreGC, GC backGC, GC reliefGC, GC shadowGC);
 void mystyle_get_global_gcs (MyStyle * style, GC * foreGC, GC * backGC, GC * reliefGC, GC * shadowGC);
 void mystyle_free_global_gcs();
+merge_scanlines_func mystyle_translate_texture_type( int texture_type );
 void mystyle_get_text_geometry (MyStyle * style, const char *str, int len, int *width, int *height);
 void mystyle_draw_text (Window w, MyStyle * style, const char *text, int x, int y);
 void mystyle_draw_vertical_text (Window w, MyStyle * style, const char *text, int ix, int y);

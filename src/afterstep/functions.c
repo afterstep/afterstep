@@ -408,40 +408,6 @@ void beep_func_handler( FunctionData *data, ASEvent *event, int module )
     XBell (dpy, event->scr->screen);
 }
 
-void apply_aswindow_move(struct ASMoveResizeData *data)
-{
-    ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
-SHOW_CHECKPOINT;
-LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
-    if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
-        moveresize_aswindow_wm( asw,
-                                data->curr.x, data->curr.y,
-                                asw->status->width, asw->status->height);
-    else
-        moveresize_aswindow_wm( asw,
-                                data->curr.x, data->curr.y,
-                                data->curr.width, data->curr.height);
-}
-
-
-void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
-{
-    ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
-
-	if( cancelled )
-	{
-SHOW_CHECKPOINT;
-        LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->start.x, data->start.y);
-        moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height );
-	}else
-	{
-SHOW_CHECKPOINT;
-        LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
-        moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height );
-	}
-    Scr.moveresize_in_progress = NULL ;
-}
-
 void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 {   /* gotta have a window */
     ASWindow *asw = event->client ;
@@ -507,8 +473,9 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
             mvrdata->below_sibling = get_lowest_panframe(&Scr);
             set_moveresize_restrains( mvrdata, asw->hints, asw->status);
 //            mvrdata->subwindow_func = on_deskelem_move_subwindow ;
-            mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False);
+            mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, 0, 0);
             Scr.moveresize_in_progress = mvrdata ;
+            ASWIN_SET_FLAGS( asw, AS_MoveresizeInProgress );
         }
     }
 }

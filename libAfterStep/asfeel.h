@@ -138,6 +138,10 @@ typedef struct ASWindowBox
     int min_layer, max_layer ;
 
     int desk ;
+
+    /* this store status : */
+    unsigned int cascade_pos ;                 /* gets incremented every time window is cascaded */
+
 }ASWindowBox;
 
 typedef enum {

@@ -1664,7 +1664,7 @@ ASGrid *make_pager_grid()
                     inner_gravity = -1 ;
 
                 if( inner_gravity != 0 )
-                    add_canvas_grid( grid, wd->canvas, outer_gravity, inner_gravity );
+                    add_canvas_grid( grid, wd->canvas, outer_gravity, inner_gravity, 0, 0 );
             }
     }
     /* add all the window edges for this desktop : */

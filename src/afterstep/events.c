@@ -77,6 +77,29 @@ HandleEvents ()
  * Discard superflous button events during this wait period.
  ***************************************************************************/
 void
+InteractiveMoveLoop ()
+{
+    ASEvent event;
+    Bool has_x_events = False ;
+    while (Scr.moveresize_in_progress != NULL )
+    {
+        while((has_x_events = XPending (dpy)))
+        {
+            if( ASNextEvent (&(event.x), True) )
+            {
+                DigestEvent( &event );
+                DispatchEvent( &event );
+            }
+            if( Scr.moveresize_in_progress == NULL )
+                return;
+        }
+        afterstep_wait_pipes_input ();
+    }
+}
+
+
+
+void
 WaitForButtonsUpLoop ()
 {
 	XEvent        JunkEvent;

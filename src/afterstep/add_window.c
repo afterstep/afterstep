@@ -1320,7 +1320,7 @@ SendConfigureNotify(ASWindow *asw)
 {
     XEvent client_event ;
 
-    if( ASWIN_GET_FLAGS(asw, AS_Dead) )
+    if( ASWIN_GET_FLAGS(asw, AS_Dead|AS_MoveresizeInProgress ) )
         return;
 
     client_event.type = ConfigureNotify;
@@ -1417,8 +1417,8 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         {
             update_window_frame_moved( asw, od );
             broadcast_config (M_CONFIGURE_WINDOW, asw);
-            SendConfigureNotify(asw);
             /* also sent synthetic ConfigureNotify : */
+            SendConfigureNotify(asw);
         }
 
         if( changes != 0 )
@@ -1857,10 +1857,13 @@ moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigne
 Bool
 init_aswindow_status( ASWindow *t, ASStatusHints *status )
 {
-	if( t->status == NULL )
-		t->status = safecalloc(1, sizeof(ASStatusHints));
+    Bool pending_placement = False;
 
-    *(t->status) = *status ;
+    if( t->status == NULL )
+    {
+        t->status = safecalloc(1, sizeof(ASStatusHints));
+        *(t->status) = *status ;
+    }
     if( get_flags( status->flags, AS_StartDesktop) && status->desktop != Scr.CurrentDesk )
         ChangeDesks( status->desktop );
 
@@ -1892,8 +1895,23 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
     if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
         maximize_window_status( status, t->saved_status, t->status, status->flags );
     else if( !get_flags( t->status->flags, AS_Position ))
-        if( !place_aswindow( t ) )
-            return False;
+    {
+        if( ! get_flags( t->status->flags, AS_StartsIconic ) )
+        {
+            int x, y ;
+            if( get_flags( t->hints->flags, AS_Transient ) )
+            {
+                x = Scr.MyDisplayWidth / 2 ;
+                y = Scr.MyDisplayHeight / 2 ;
+            }else
+            {
+                ASQueryPointerRootXY( &x, &y );
+                t->status->x = x - t->status->width/2 ;
+                t->status->y = y - t->status->height/2 ;
+            }
+            pending_placement = True ;
+        }
+    }
 
     if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
         print_status_hints( NULL, NULL, t->status );
@@ -1907,7 +1925,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
                      t->status->viewport_x, t->status->viewport_y,
                      t->anchor.width, t->anchor.height, t->anchor.x, t->anchor.y );
 
-	return True;
+    return pending_placement;
 }
 
 /***************************************************************************************/
@@ -2625,6 +2643,7 @@ AddWindow (Window w)
 	ASRawHints    raw_hints ;
     ASHints      *hints  = NULL;
     ASStatusHints status;
+    Bool pending_placement ;
 
 
 	/* allocate space for the afterstep window */
@@ -2669,11 +2688,7 @@ AddWindow (Window w)
 
     tmp_win->wm_state_transition = get_flags(status.flags, AS_Iconic)?ASWT_Withdrawn2Iconic:ASWT_Withdrawn2Normal ;
 
-    if( !init_aswindow_status( tmp_win, &status ) )
-	{
-		Destroy (tmp_win, False);
-		return NULL;
-	}
+    pending_placement = init_aswindow_status( tmp_win, &status );
 
 #ifdef SHAPE
     XShapeSelectInput (dpy, tmp_win->w, ShapeNotifyMask);
@@ -2700,8 +2715,20 @@ AddWindow (Window w)
     enlist_aswindow( tmp_win );
     redecorate_window  ( tmp_win, False );
     on_window_title_changed ( tmp_win, False );
+
+    if( pending_placement )
+    {
+        on_window_status_changed( tmp_win, False, True );
+        if( !place_aswindow( tmp_win ) )
+        {
+            LOCAL_DEBUG_OUT( "window status initialization failed for %lX - destroying it", w );
+            Destroy (tmp_win, False);
+            return NULL;
+        }
+    }
     set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
     RaiseWindow( tmp_win );
+
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
 	 * Set the map state to FALSE to prevent a transition back to
@@ -2770,11 +2797,7 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
 
     tmp_win->wm_state_transition = get_flags(status->flags, AS_Iconic)?ASWT_Withdrawn2Iconic:ASWT_Withdrawn2Normal ;
 
-    if( !init_aswindow_status( tmp_win, status ) )
-	{
-		Destroy (tmp_win, False);
-		return NULL;
-	}
+    init_aswindow_status( tmp_win, status );
 
 #ifdef SHAPE
     XShapeSelectInput (dpy, tmp_win->w, ShapeNotifyMask);

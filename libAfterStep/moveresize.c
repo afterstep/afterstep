@@ -104,11 +104,19 @@ Bool grab_widget_pointer( ASWidget *widget, ASEvent *trigger,
 {
     int i ;
     Window wjunk;
+    Time ttime = CurrentTime ;
+    ScreenInfo *scr = &Scr ;
 
-	if( widget == NULL || trigger == NULL )
+    if( widget == NULL )
 		return False;
     ASQueryPointerWinXYMask(AS_WIDGET_WINDOW(widget),root_x_return, root_y_return, x_return, y_return, mask_return);
 LOCAL_DEBUG_OUT("grabbing pointer at %+d%+d, mask = 0x%X, window(%lX)", *root_x_return, *root_y_return, *mask_return, AS_WIDGET_WINDOW(widget) );
+    if( trigger )
+    {
+        ttime = trigger->event_time ;;
+        if( trigger->scr )
+            scr =  trigger->scr ;
+    }
 
 /*	XUngrabPointer( dpy, trigger->event_time ); */
 #ifdef AS_WIDGET_H_HEADER_INCLUDED
@@ -118,9 +126,9 @@ LOCAL_DEBUG_OUT("grabbing pointer at %+d%+d, mask = 0x%X, window(%lX)", *root_x_
 					  GrabModeAsync, GrabModeAsync,
 					  None,
 					  None,
-                      trigger->event_time ) == 0 )
+                      ttime ) == 0 )
 #else
-    if( GrabEm(trigger->scr, trigger->scr->Feel.cursors[MOVE]))
+    if( GrabEm( scr, scr->Feel.cursors[MOVE]))
 #endif
     {
 SHOW_CHECKPOINT;
@@ -194,16 +202,18 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 	}
 	data->complete_func = complete_func;
 
-	data->curr.x = data->last.x = AS_WIDGET_X(mr);
-	data->curr.y = data->last.y = AS_WIDGET_Y(mr);
-	data->curr.width  = data->last.width  = AS_WIDGET_WIDTH(mr);
-	data->curr.height = data->last.height = AS_WIDGET_HEIGHT(mr);
+    data->start.x = data->curr.x = data->last.x = AS_WIDGET_X(mr);
+    data->start.y = data->curr.y = data->last.y = AS_WIDGET_Y(mr);
+    data->start.width  = data->curr.width  = data->last.width  = AS_WIDGET_WIDTH(mr);
+    data->start.height = data->curr.height = data->last.height = AS_WIDGET_HEIGHT(mr);
 
 	grab_widget_pointer( parent, trigger,
 						 ButtonPressMask|ButtonReleaseMask|PointerMotionMask|EnterWindowMask|LeaveWindowMask,
 	                     &(data->last_x), &(data->last_y),
 						 &root_x, &root_y,
 						 &(data->pointer_state) );
+
+    data->stop_on_button_press = ((data->pointer_state&ButtonAnyMask) == 0 );
 
 	data->origin_x = root_x - data->last_x ;
 	data->origin_y = root_y - data->last_y ;
@@ -387,9 +397,23 @@ LOCAL_DEBUG_OUT("widget(%p)->parent(%p)", event->widget, data->parent );
 		{
 			while (ASCheckMaskEvent(PointerMotionMask | ButtonMotionMask |
 									ButtonPressMask | ButtonRelease, &(event->x)))
-				if (event->x.type == ButtonRelease)
-					break;
-			if( !get_flags(event->x.xmotion.state, AllButtonMask) )
+            {
+                if( data->stop_on_button_press )
+                {
+                    if (event->x.type == ButtonRelease)
+                        break;
+                }else if (event->x.type == ButtonPress)
+                    break;
+            }
+            if( data->stop_on_button_press )
+            {
+                if( get_flags(event->x.xmotion.state, ButtonAnyMask) )
+                {
+                    /* some button is pressed !!! */
+                    complete_interactive_action( data, True );
+                    return 0;
+                }
+            }else if( !get_flags(event->x.xmotion.state, AllButtonMask) )
 			{/* all the buttons are depressed !!! */
 				complete_interactive_action( data, True );
 				return 0;
@@ -403,25 +427,19 @@ SHOW_CHECKPOINT;
 		case KeyPress:
 		/* Keyboard_shortcuts (&Event, ButtonRelease, 20); */
 			break;
-		case ButtonRelease:
+        case ButtonPress:
+        case ButtonRelease:
 SHOW_CHECKPOINT;
-			finished = True;
-		case MotionNotify:
+            if( (data->stop_on_button_press?1:0) == (event->x.type==ButtonPress?1:0))
+                finished = True;
+        case MotionNotify:
 			/* update location of the pager_view window */
 			new_x = event->x.xmotion.x_root;
 			new_y = event->x.xmotion.y_root;
 LOCAL_DEBUG_OUT("new = %+d%+d, finished = %d", new_x, new_y, finished );
 			data->pointer_func (data, new_x, new_y);
 			break;
-		case ButtonPress:
-SHOW_CHECKPOINT;
-/*			XAllowEvents (dpy, ReplayPointer, CurrentTime); */
-			if (event->x.xbutton.button == 2)
-			{
-			 		/* NeedToResizeToo = True; */
-			}else
-				break;
-		default:
+        default:
 SHOW_CHECKPOINT;
 			return 0;
 	}

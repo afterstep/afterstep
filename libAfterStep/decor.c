@@ -722,15 +722,17 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
 }
 
 void
-add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity )
+add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity, int vx, int vy )
 {
     if( canvas )
     {
+        int x = canvas->root_x + vx ;
+        int y = canvas->root_y + vy ;
 LOCAL_DEBUG_CALLER_OUT( "(%p,%ux%u%+d%+d)", canvas, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
-        add_gridline( &(grid->h_lines), canvas->root_y,                canvas->root_x, canvas->root_x+canvas->width,  outer_gravity, inner_gravity );
-        add_gridline( &(grid->h_lines), canvas->root_y+canvas->height, canvas->root_x, canvas->width+canvas->root_x,  inner_gravity, outer_gravity );
-        add_gridline( &(grid->v_lines), canvas->root_x,                canvas->root_y, canvas->height+canvas->root_y, outer_gravity, inner_gravity );
-        add_gridline( &(grid->v_lines), canvas->root_x+canvas->width,  canvas->root_y, canvas->height+canvas->root_y, inner_gravity, outer_gravity );
+        add_gridline( &(grid->h_lines), y,                x, x+canvas->width,  outer_gravity, inner_gravity );
+        add_gridline( &(grid->h_lines), y+canvas->height, x, x+canvas->width,  inner_gravity, outer_gravity );
+        add_gridline( &(grid->v_lines), x,                y, y+canvas->height, outer_gravity, inner_gravity );
+        add_gridline( &(grid->v_lines), x+canvas->width,  y, y+canvas->height, inner_gravity, outer_gravity );
     }
 }
 
@@ -1180,6 +1182,7 @@ create_astbar ()
     set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
 	LOCAL_DEBUG_CALLER_OUT( "<<#########>>created tbar %p", tbar );
     tbar->rendered_root_x = tbar->rendered_root_y = 0xFFFF;
+    tbar->composition_method = TEXTURE_TRANSPIXMAP_ALPHA ;
 	return tbar;
 }
 
@@ -1374,6 +1377,20 @@ set_astbar_hilite( ASTBarData *tbar, ASFlagType hilite )
 	}
 	return changed;
 }
+
+Bool set_astbar_composition_method( ASTBarData *tbar, unsigned char method )
+{
+    Bool          changed = False;
+    if (tbar)
+	{
+        changed = (tbar->composition_method != method);
+        tbar->composition_method = method ;
+        if (changed )
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+    }
+	return changed;
+}
+
 
 static inline void
 set_astile_styles( ASTBarData *tbar, ASTile *tile, int state )
@@ -1808,6 +1825,7 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
     int good_layers = 0;
     Bool res = False;
     Bool render_mask = False ;
+    merge_scanlines_func merge_func = alphablend_scanlines ;
 
 	/* input control : */
 LOCAL_DEBUG_CALLER_OUT("tbar(%p)->pc(%p)", tbar, pc );
@@ -1971,6 +1989,9 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             good_layers += ASTileTypeHandlers[type].set_layer_handler(&(tbar->tiles[l]), &(layers[good_layers]), state, &(scrap_images[good_layers]), col_width[col]-pad_x, row_height[row]-pad_y );
         }
     }
+    merge_func = mystyle_translate_texture_type( tbar->composition_method );
+    for( l = 1 ; l < good_layers ; ++l )
+        layers[l].merge_scanlines = merge_func ;
 
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     show_progress("MERGING TBAR %p image %dx%d FROM:",

@@ -126,7 +126,9 @@ typedef struct ASTile {
 #define ASTileScalable(t)       ((t).flags&(AS_TileHScale|AS_TileVScale))
 #define ASTileIgnoreSize(t)     ((t).flags&(AS_TileIgnoreSize))
 
+/* 28 */
 #define AS_TileFloatingOffset   AS_TilePadOffset
+/* 29 */
 #define AS_TileHFloatingMask    (AS_TileHResize|AS_TileHPadMask)
 #define AS_TileVFloatingMask    (AS_TileVResize|AS_TileVPadMask)
 #define AS_TileFloatingMask     (AS_TileHFloatingMask|AS_TileVFloatingMask)
@@ -186,7 +188,10 @@ typedef struct ASTBarData {
     /* 56 bytes */
     struct ASBalloon *balloon;
     /* 60 bytes */
-    int padding_unused;                        /* could be used for future extensions */
+    unsigned char composition_method ;
+    /* 61 byte */
+    char padding_unused;                        /* could be used for future extensions */
+    short padding_unused2;                        /* could be used for future extensions */
     /* 64 bytes */
 }ASTBarData ;
 
@@ -237,7 +242,7 @@ void quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool us
 
 Bool is_canvas_needs_redraw( ASCanvas *pc );
 Bool is_canvas_dirty( ASCanvas *pc );
-void add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity );
+void add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity, int vx, int vy );
 void set_root_clip_area( ASCanvas *canvas );
 
 
@@ -257,6 +262,7 @@ unsigned int calculate_astbar_width( ASTBarData *tbar );
 
 Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height );
 Bool set_astbar_hilite( ASTBarData *tbar, ASFlagType hilite );
+Bool set_astbar_composition_method( ASTBarData *tbar, unsigned char method );
 Bool set_astbar_style_ptr (ASTBarData * tbar, unsigned int state, struct MyStyle *style);
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
 

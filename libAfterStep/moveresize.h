@@ -113,6 +113,8 @@ typedef struct ASMoveResizeData
 	/* optional size constraints : */
     unsigned int min_width,  width_inc,  max_width, frame_width;
     unsigned int min_height, height_inc, max_height, frame_height;
+
+    Bool stop_on_button_press; /* when true operation will complete on ButtonPress event - not on ButtonRelease */
 }ASMoveResizeData;
 
 ASOutlineSegment *make_outline_segments( struct ASWidget *parent, struct MyLook *look );
