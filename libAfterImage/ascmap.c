@@ -29,7 +29,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <malloc.h>
 
 #include "afterbase.h"
 

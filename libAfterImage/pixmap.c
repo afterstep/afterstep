@@ -28,7 +28,6 @@
 /*#define LOCAL_DEBUG */
 /* #define DO_CLOCKING */
 
-#include <malloc.h>
 #ifdef DO_CLOCKING
 #include <sys/time.h>
 #endif

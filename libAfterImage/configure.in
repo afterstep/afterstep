@@ -458,6 +458,7 @@ else
 	else
 	    AC_MSG_RESULT(none found)
 	fi
+	AC_CHECK_HEADERS(malloc.h stdlib.h)
 fi
 AC_SUBST(HAVE_AFTERBASE_FLAG)
 AC_SUBST(AFTERBASE_CFLAGS)

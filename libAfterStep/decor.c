@@ -1035,11 +1035,14 @@ set_asbtn_block_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, AS
     while( --i >= 0 )
     {
         register ASTBtnData *btn = &(bb->buttons[i]) ;
-        layer[i].im = btn->current ;
-        layer[i].dst_x = tile->x + btn->x ;
-        layer[i].dst_y = tile->y + btn->y ;
-        layer[i].clip_width  = layer[i].im->width ;
-        layer[i].clip_height = layer[i].im->height ;
+		if( btn && btn->current ) 
+		{
+      		layer[i].im = btn->current ;
+	        layer[i].dst_x = tile->x + btn->x ;
+  		    layer[i].dst_y = tile->y + btn->y ;
+      		layer[i].clip_width  = layer[i].im->width ;
+	        layer[i].clip_height = layer[i].im->height ;
+		}
     }
     return bb->buttons_num;
 }

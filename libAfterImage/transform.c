@@ -24,7 +24,6 @@
 
 #include "config.h"
 
-#include <malloc.h>
 #ifdef DO_CLOCKING
 #include <time.h>
 #include <sys/time.h>

@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <malloc.h>
 /* <setjmp.h> is used for the optional error recovery mechanism */
 
 #ifdef HAVE_PNG

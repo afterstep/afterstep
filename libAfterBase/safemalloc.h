@@ -1,7 +1,13 @@
 #ifndef SAFEMALLOC_H_HEADER_INCLUDED
 #define SAFEMALLOC_H_HEADER_INCLUDED
 
+#ifdef HAVE_MALLOC_H
 #include <malloc.h>
+#else
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#endif
 
 #ifdef __cplusplus
 extern "C" {

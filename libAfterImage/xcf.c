@@ -25,7 +25,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <malloc.h>
 #include <time.h>
 
 #include "afterbase.h"

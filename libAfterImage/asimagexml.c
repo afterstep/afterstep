@@ -1721,7 +1721,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				if (sparm) xml_elem_delete(NULL, sparm);
 			}
 
-			if (num && merge) {
+			if (num && merge && layers[0].im ) {
 				width = layers[0].im->width;
 				height = layers[0].im->height;
 			}

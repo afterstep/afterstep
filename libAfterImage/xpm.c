@@ -24,7 +24,6 @@
 #include "config.h"
 
 #include <stdlib.h>
-#include <malloc.h>
 #include <ctype.h>
 #include <time.h>
 #include <sys/stat.h>

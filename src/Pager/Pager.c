@@ -390,10 +390,12 @@ CheckConfigSanity()
     {
         static char *window_style_names[BACK_STYLES] ={"*%sFWindowStyle", "*%sSWindowStyle", "*%sUWindowStyle", NULL };
         static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","sticky_window_style","unfocused_window_style", NULL};
-
-        sprintf( buf, window_style_names[i], MyName );
-        if( (Scr.Look.MSWindow[i] = mystyle_find( buf )) == NULL )
-            Scr.Look.MSWindow[i] = mystyle_find_or_default( default_window_style_name[i] );
+		if( window_style_names[i] )
+		{
+      		sprintf( &(buf[0]), window_style_names[i], MyName );
+	        if( (Scr.Look.MSWindow[i] = mystyle_find( buf )) == NULL )
+  		        Scr.Look.MSWindow[i] = mystyle_find_or_default( default_window_style_name[i] );
+		}
     }
 
     if( Config->small_font_name )

@@ -17,6 +17,14 @@
 #include <libAfterBase/trace.h>
 #else
 
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#else
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#endif
+ 
 /* our own version of X Wrapper : */
 #include "xwrap.h"
 

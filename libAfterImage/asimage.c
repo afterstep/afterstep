@@ -24,7 +24,6 @@
 
 #define USE_64BIT_FPU
 
-#include <malloc.h>
 #include <string.h>
 #ifdef DO_CLOCKING
 #include <sys/time.h>
