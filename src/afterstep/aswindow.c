@@ -150,7 +150,7 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 			
 		}
 
-        if( asw->hints->client_cmd == NULL && same_host )
+        if( asw->hints->client_cmd != NULL && same_host )
         {
 			char *pure_geometry = NULL ;
 			char *geom = make_client_geometry_string( &Scr, asw->hints, asw->status, &(asw->anchor), Scr.Vx, Scr.Vy, &pure_geometry );
