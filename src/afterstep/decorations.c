@@ -777,7 +777,7 @@ fix_background_align( ASFlagType align )
 	 * At the same time we would like to be able to scale backgrounds to the size of the
 	 * titlebar
 	 */
-    clear_flags(new_align , (RESIZE_H|RESIZE_V));
+	/* clear_flags(new_align , (RESIZE_H|RESIZE_V)); */
     if( get_flags( new_align, RESIZE_H_SCALE ) )
 		set_flags( new_align, FIT_LABEL_WIDTH );
 	if( get_flags( new_align, RESIZE_V_SCALE) )

@@ -1136,10 +1136,30 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
     {
         if( get_flags( tile->flags, AS_TileHScale ) )
             dst_width = max_width ;
+		else if( get_flags( tile->flags, AS_TileHResize ) && max_width < im->width )
+		{
+			if( get_flags( tile->flags, AS_TilePadLeft ) )
+			{
+				if( get_flags( tile->flags, AS_TilePadRight ) )
+					layer->clip_x = (im->width - max_width)>>1 ;
+				else
+					layer->clip_x = (im->width - max_width) ;
+			}
+		}
         if( get_flags( tile->flags, AS_TileVScale ) )
             dst_height = max_height ;
+		else if( get_flags( tile->flags, AS_TileVResize ) && max_height < im->height )
+		{
+			if( get_flags( tile->flags, AS_TilePadTop ) )
+			{
+				if( get_flags( tile->flags, AS_TilePadBottom ) )
+					layer->clip_y = (im->height - max_height)>>1 ;
+				else
+					layer->clip_y = (im->height - max_height) ;
+			}
+		}
     }
-	LOCAL_DEBUG_OUT( "dst_size = %dx%d, im_size = %dx%d, max_size = %dx%d", dst_width, dst_height, im->width, im->height, max_width, max_height );
+	LOCAL_DEBUG_OUT( "flags = %X, dst_size = %dx%d, im_size = %dx%d, max_size = %dx%d, clip = %+d%+d", tile->flags, dst_width, dst_height, im->width, im->height, max_width, max_height, layer->clip_x, layer->clip_y );
     if( im->width != dst_width || im->height != dst_height )
     {
         im = scale_asimage( Scr.asv, im, dst_width, dst_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
@@ -2071,15 +2091,21 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
         {
             register int pos = ASTileCol(tbar->tiles[l]);
             good_layers += ASTileSublayers(tbar->tiles[l]);
-            if( col_width[pos] < tbar->tiles[l].width && !ASTileIgnoreWidth(tbar->tiles[l]))
-                col_width[pos] = tbar->tiles[l].width;
-            if( ASTileHFloating(tbar->tiles[l]) )
-                ++floating_cols[pos] ;
+			if( !ASTileIgnoreWidth(tbar->tiles[l]) )
+			{
+            	if( col_width[pos] < tbar->tiles[l].width )
+                	col_width[pos] = tbar->tiles[l].width;
+            	if( ASTileHFloating(tbar->tiles[l]) )
+                	++floating_cols[pos] ;
+			}
             pos = ASTileRow(tbar->tiles[l]);
-            if( row_height[pos] < tbar->tiles[l].height && !ASTileIgnoreHeight(tbar->tiles[l]))
-                row_height[pos] = tbar->tiles[l].height;
-            if( ASTileVFloating(tbar->tiles[l]) )
-                ++floating_rows[pos] ;
+			if( !ASTileIgnoreHeight(tbar->tiles[l]) )
+			{
+            	if( row_height[pos] < tbar->tiles[l].height )
+                	row_height[pos] = tbar->tiles[l].height;
+            	if( ASTileVFloating(tbar->tiles[l]) )
+                	++floating_rows[pos] ;
+			}
         }
     /* pass 2: see how much space we have left that needs to be floating to some rows/columns : */
     space_left_x = tbar->width - (tbar->left_bevel+tbar->right_bevel+tbar->h_border*2);

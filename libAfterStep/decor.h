@@ -138,6 +138,7 @@ typedef struct ASTile {
 #define ASTileScalable(t)       ((t).flags&(AS_TileHScale|AS_TileVScale))
 #define ASTileIgnoreWidth(t)    ((t).flags&(AS_TileIgnoreWidth))
 #define ASTileIgnoreHeight(t)   ((t).flags&(AS_TileIgnoreHeight))
+#define ASTileIgnoreSize(t)     ((t).flags&(AS_TileIgnoreSize))
 
 /* 28 */
 #define AS_TileFloatingOffset   AS_TilePadOffset
