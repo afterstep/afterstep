@@ -11,7 +11,8 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  src/ascp \
 		  src/Pager \
 		  src/Wharf \
-		  src/WinList2
+		  src/WinList2 \
+		  src/WinTabs
 
 #		  src/asetroot \
 #		  src/Animate \

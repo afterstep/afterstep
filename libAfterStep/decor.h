@@ -219,7 +219,7 @@ void destroy_ascanvas( ASCanvas **pcanvas );
 
 ASFlagType handle_canvas_config( ASCanvas *canvas ); /* Returns True if moved/resized */
 Bool get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py, unsigned int *pbw );
-void clear_canvas_shape (ASCanvas * pc);
+void clear_canvas_shape (ASCanvas * pc, Bool force_for_container);
 void invalidate_canvas_config( ASCanvas *canvas );
 Bool get_current_canvas_size( ASCanvas * pc, unsigned int *pwidth, unsigned int *pheight );
 Bool get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwidth, unsigned int *pheight, unsigned int *pbw );

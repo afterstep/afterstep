@@ -59,7 +59,7 @@ ASTestState TestState = { 0 };
 /* Our configuration options :                                        */
 /**********************************************************************/
 
-void DoTest()
+void DoTest_locale()
 {
 	char *name ;
 	int i ;
@@ -79,6 +79,8 @@ void DoTest()
 	free( name );
 
 }
+
+
 /**********************************************************************/
 
 void GetBaseOptions (const char *filename);
@@ -106,7 +108,7 @@ main( int argc, char **argv )
     TestState.main_canvas = create_ascanvas( TestState.main_window );
     set_root_clip_area(TestState.main_canvas );
 
-	DoTest();
+	DoTest_locale();
 
 	/* And at long last our main loop : */
     HandleEvents();
@@ -243,11 +245,14 @@ make_test_window()
 	int x, y ;
     unsigned int width = 300;
     unsigned int height = 300;
+	XSetWindowAttributes attr ;
 
 	x = (Scr.MyDisplayWidth-width)/2;
 	y = (Scr.MyDisplayHeight-height)/2;
 
-	w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, 0, NULL);
+	attr.background_pixel = Scr.asv->black_pixel ;
+
+	w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, CWBackPixel, &attr);
 
 	set_client_names( w, "Test", "TEST", CLASS_TEST, MyName );
 

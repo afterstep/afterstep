@@ -1562,6 +1562,114 @@ void LoadColorScheme();                        /* high level easy to use functio
 
 
 /***************************************************************************/
+/*                        WinTabs config parsing definitions               */
+/***************************************************************************/
+/* New winlist config :
+ *
+ *	*WinTabsGeometry		WxH+X+Y
+ *  *WinTabsMaxRows			count
+ *  *WinTabsMaxColumns		count
+ *  *WinTabsMinColWidth		width
+ *  *WinTabsMaxColWidth		width
+ *  *WinTabsUnfocusedStyle 	"style"
+ *  *WinTabsFocusedStyle 	"style"
+ *  *WinTabsStickyStyle 	"style"
+ *  *WinTabsUseSkipList		width
+ *	*WinTabsPattern			0|1|2|3 <pattern>  # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
+ *  *WinTabsAlign           Left,Right,Top,Bottom
+ *  *WinTabsBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *WinTabsFBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *WinTabsUBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *WinTabsSBevel           None,Left,Right,Top, Bottom, NoOutline
+*/
+#define WINTABS_ID_START        		(COLOR_ID_END+1)
+#define WINTABS_Geometry_ID				(WINTABS_ID_START+1)
+#define WINTABS_MaxRows_ID				(WINTABS_ID_START+2)
+#define WINTABS_MaxColumns_ID			(WINTABS_ID_START+3)
+#define WINTABS_MaxColWidth_ID			(WINTABS_ID_START+4)
+#define WINTABS_MinColWidth_ID			(WINTABS_ID_START+5)
+#define WINTABS_Pattern_ID				(WINTABS_ID_START+6)
+#define WINTABS_UseSkipList_ID			(WINTABS_ID_START+7)
+#define WINTABS_Align_ID                (WINTABS_ID_START+8)
+#define WINTABS_Bevel_ID                (WINTABS_ID_START+9)
+#define WINTABS_FBevel_ID               (WINTABS_ID_START+10)
+#define WINTABS_UBevel_ID               (WINTABS_ID_START+11)
+#define WINTABS_SBevel_ID               (WINTABS_ID_START+12)
+#define WINTABS_UnfocusedStyle_ID       (WINTABS_ID_START+13)
+#define WINTABS_FocusedStyle_ID         (WINTABS_ID_START+14)
+#define WINTABS_StickyStyle_ID          (WINTABS_ID_START+15)
+#define WINTABS_CM_ID                   (WINTABS_ID_START+16)
+#define WINTABS_FCM_ID                  (WINTABS_ID_START+17)
+#define WINTABS_UCM_ID                  (WINTABS_ID_START+18)
+#define WINTABS_SCM_ID                  (WINTABS_ID_START+19)
+#define WINTABS_Spacing_ID              (WINTABS_ID_START+20)
+#define WINTABS_HSpacing_ID             (WINTABS_ID_START+21)
+#define WINTABS_VSpacing_ID             (WINTABS_ID_START+22)
+
+
+#define WINTABS_BALLOONS_ID             (WINTABS_ID_START+31)
+#define WINTABS_ID_END                  (WINTABS_ID_START+32)
+
+/* config data structure */
+
+typedef struct WinTabsConfig
+{
+#define WINTABS_UseSkipList		(0x01<<1)
+#define WINTABS_Geometry		(0x01<<2)
+#define WINTABS_MaxRows			(0x01<<5)
+#define WINTABS_MaxColumns		(0x01<<6)
+#define WINTABS_MaxColWidth		(0x01<<7)
+#define WINTABS_MinColWidth		(0x01<<8)
+#define WINTABS_Align           (0x01<<10)
+#define WINTABS_FBevel          (0x01<<11)
+#define WINTABS_UBevel          (0x01<<12)
+#define WINTABS_SBevel          (0x01<<13)
+#define WINTABS_Bevel           (WINTABS_FBevel|WINTABS_UBevel|WINTABS_SBevel)
+#define WINTABS_FCM             (0x01<<15)
+#define WINTABS_UCM             (0x01<<16)
+#define WINTABS_SCM             (0x01<<17)
+#define WINTABS_CM              (WINTABS_FCM|WINTABS_UCM|WINTABS_SCM)
+
+#define WINTABS_H_SPACING       (0x01<<18)
+#define WINTABS_V_SPACING       (0x01<<19)
+
+#define 	ASWT_UseSkipList	WINTABS_UseSkipList
+	ASFlagType	flags ;
+	ASFlagType	set_flags ;
+    ASGeometry geometry ;
+#define MAX_WINTABS_WINDOW_COUNT    64
+	unsigned int max_rows, max_columns ;
+	unsigned int min_col_width, max_col_width ;
+
+	char *unfocused_style ;
+	char *focused_style ;
+	char *sticky_style ;
+
+	ASNameTypes     pattern_type ; /* 0, 1, 2, 3 */
+	char 		   *pattern ;
+    ASFlagType      name_aligment ;
+    ASFlagType      fbevel, ubevel, sbevel ;
+    int             ucm, fcm, scm;             /* composition methods */
+    unsigned int    h_spacing, v_spacing ;
+
+    balloonConfig *balloon_conf;
+    MyStyleDefinition *style_defs;
+
+    struct FreeStorageElem *more_stuff;
+
+    /* calculated based on geometry : */
+    int anchor_x, anchor_y ;
+	int gravity ;
+
+
+}WinTabsConfig;
+
+WinTabsConfig *CreateWinTabsConfig ();
+void DestroyWinTabsConfig (WinTabsConfig * config);
+void PrintWinTabsConfig (WinTabsConfig * config);
+int WriteWinTabsOptions (const char *filename, char *myname, WinTabsConfig * config, unsigned long flags);
+WinTabsConfig *ParseWinTabsOptions (const char *filename, char *myname);
+/***************************************************************************/
 
 #ifdef __cplusplus
 }

@@ -1218,7 +1218,7 @@ SetShape (ASWindow *asw, int w)
 
         if( ASWIN_GET_FLAGS(asw, AS_Dead) )
         {
-            clear_canvas_shape( asw->frame_canvas );
+            clear_canvas_shape( asw->frame_canvas, True );
             return;
         }
 
@@ -1271,11 +1271,7 @@ ClearShape (ASWindow *asw)
 #ifdef SHAPE
     if( asw && asw->frame_canvas )
     {
-#ifdef SHAPE
-		XShapeCombineMask( dpy, asw->frame, ShapeBounding, 0, 0, None, ShapeSet );
-		clear_flags( asw->frame_canvas->state, CANVAS_SHAPE_SET );
-#endif
-
+		clear_canvas_shape( asw->frame_canvas, True );
 		clear_flags( asw->internal_flags, ASWF_PendingShapeRemoval );
     }
 #endif /* SHAPE */
