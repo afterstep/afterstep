@@ -887,6 +887,9 @@ void
 ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2)
 {
   MenuRoot *mr = CreateMenuRoot ();
+  static char screen_init_func[128] ;
+  static char screen_restart_func[128] ;
+  static int screen_initialized = 0 ; 
   if (ParseMenuBody (mr, fd))
     {
       MenuRoot *old;
@@ -901,10 +904,20 @@ ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2)
       /* now let's attach us to the main tree */
       mr->next = Scr.first_menu;
       Scr.first_menu = mr;
-      if (strcmp (mr->name, "InitFunction") == 0)
-	Scr.InitFunction = mr;
-      else if (strcmp (mr->name, "RestartFunction") == 0)
-	Scr.RestartFunction = mr;
+	  
+	  if( screen_initialized == 0 ) 
+	  {
+		  sprintf( screen_init_func, "InitScreen%ldFunction", Scr.screen );
+		  sprintf( screen_restart_func, "RestartScreen%ldFunction", Scr.screen );
+		  screen_initialized = 1 ;
+	  }
+	  
+      if (strcmp (mr->name, "InitFunction") == 0 || 
+	      strcmp( mr->name, screen_init_func ) == 0 )
+			Scr.InitFunction = mr;
+      else if (strcmp (mr->name, "RestartFunction") == 0 || 
+	  	      strcmp( mr->name, screen_restart_func ) == 0 )
+			Scr.RestartFunction = mr;
     }
   else
     free (mr);

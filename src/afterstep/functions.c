@@ -406,7 +406,11 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 		    Scr.Root, Scr.ASCursors[WAIT], CurrentTime);
       XSync (dpy, 0);
 
-      sprintf (tmpfile, BACK_FILE, Scr.CurrentDesk);
+	  if( Scr.screen == 0 ) 
+	      sprintf (tmpfile, BACK_FILE, Scr.CurrentDesk);
+	  else
+	      sprintf (tmpfile, BACK_FILE ".scr%ld", Scr.CurrentDesk, Scr.screen);
+	  		  
       realfilename = make_file_name (as_dirs.after_dir, tmpfile);
       if (CopyFile (action, realfilename) == 0)
 	Broadcast (M_NEW_BACKGROUND, 1, 1);
@@ -417,10 +421,15 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
       break;
 
     case F_CHANGE_LOOK:
+	  if( Scr.screen == 0 ) 
 #ifndef DIFFERENTLOOKNFEELFOREACHDESKTOP
-      sprintf (tmpfile, LOOK_FILE, 0, Scr.d_depth);
+        sprintf (tmpfile, LOOK_FILE, 0, Scr.d_depth);
+	  else		
+        sprintf (tmpfile, LOOK_FILE ".scr%ld", 0, Scr.d_depth, Scr.screen);
 #else /* DIFFERENTLOOKNFEELFOREACHDESKTOP */
-      sprintf (tmpfile, LOOK_FILE, Scr.CurrentDesk, Scr.d_depth);
+        sprintf (tmpfile, LOOK_FILE, Scr.CurrentDesk, Scr.d_depth);
+	  else		
+        sprintf (tmpfile, LOOK_FILE ".scr%ld", Scr.CurrentDesk, Scr.d_depth, Scr.screen);
 #endif /* DIFFERENTLOOKNFEELFOREACHDESKTOP */
 
       realfilename = make_file_name (as_dirs.after_dir, tmpfile);
@@ -431,10 +440,15 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
       break;
 
     case F_CHANGE_FEEL:
+	  if( Scr.screen == 0 ) 
 #ifndef DIFFERENTLOOKNFEELFOREACHDESKTOP
-      sprintf (tmpfile, FEEL_FILE, 0, Scr.d_depth);
+	      sprintf (tmpfile, FEEL_FILE, 0, Scr.d_depth);
+	  else		  
+		  sprintf (tmpfile, FEEL_FILE ".scr%ld", 0, Scr.d_depth, Scr.screen);
 #else /* DIFFERENTLOOKNFEELFOREACHDESKTOP */
-      sprintf (tmpfile, FEEL_FILE, Scr.CurrentDesk, Scr.d_depth);
+	      sprintf (tmpfile, FEEL_FILE, Scr.CurrentDesk, Scr.d_depth);
+	  else		  
+		  sprintf (tmpfile, FEEL_FILE ".scr%ld", Scr.CurrentDesk, Scr.d_depth, Scr.screen);
 #endif /* DIFFERENTLOOKNFEELFOREACHDESKTOP */
       realfilename = make_file_name (as_dirs.after_dir, tmpfile);
       if (CopyFile (action, realfilename) == 0)

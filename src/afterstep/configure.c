@@ -1361,7 +1361,9 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
       fprintf (stderr, ".");
       if (parse_look)
 	{
-	  sprintf (configfile, LOOK_FILE, thisdesktop, Scr.d_depth);
+	  sprintf (configfile, LOOK_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
+	  if( Scr.screen == 0 || CheckFile( configfile ) == -1 ) 		
+		  sprintf (configfile, LOOK_FILE, thisdesktop, Scr.d_depth);
 	  ParseConfigFile (configfile, &tline);
 	}
       fprintf (stderr, ".");
@@ -1374,7 +1376,9 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
       fprintf (stderr, ".");
       if (parse_feel)
 	{
-	  sprintf (configfile, FEEL_FILE, thisdesktop, Scr.d_depth);
+	  sprintf (configfile, FEEL_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
+	  if( Scr.screen == 0 || CheckFile( configfile ) == -1 ) 		
+		  sprintf (configfile, FEEL_FILE, thisdesktop, Scr.d_depth);
 	  ParseConfigFile (configfile, &tline);
 	}
       fprintf (stderr, ".");

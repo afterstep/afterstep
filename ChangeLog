@@ -1,3 +1,10 @@
+1.8.9 patch 1 (sasha)
+ o Implemented separate Feel, Look, Background and Init/Restart functions 
+   for different screens in multihead config with no Xinerama.
+ o We now read $TMPDIR in order to locate /tmp directory, and falling back 
+   to /tmp if envvar is not set.
+ o somewhat fixed Align and Pad fields in the Asetroot config parsing.
+
 1.8.8 patch 1 (sasha+allanon)
  o installastheme.pl now uses the first screen depth reported by xdpyinfo
    instead of the last; this fixes problems with the look not updating on

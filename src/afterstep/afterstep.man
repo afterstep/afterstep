@@ -149,13 +149,21 @@ The \fIlooks/\fP directory contains configuration files used to customize
 the look of AfterStep.  Any look files created should be placed within this
 directory, and upon the next rebuild of the \fIstartmenu\fP, they will
 appear under DeskTop->Looks in the menu.  See the \fIlook.name\fP section
-below for more details.
+below for more details. 
 
 The \fInon-configurable/\fP directory contains "working" copies of your
 configuration files; these are the \fBPager(1)\fP's image files, the current
 \fIfeel.name\fP, \fIlook.name\fP and \fIstartmenu\fP files. Editing these
 files is a futile attempt unless you know that these files get overwritten;
 ergo the name "non-configurable".
+
+When running \fBafterstep\fP in multiscreen environment (but with  
+\fBNO xinerama!\fP) it is possible to choose separate looks, feels and 
+backgrounds for each screen. Just select needed item from the menu, while
+staying on the specific screen, and if screen is not 0 (first screen), 
+then screen number will be appended to the "working" file name, and it will 
+be used subsequently by \fBafterstep\fP in favor of the default file from 
+screen 0(first screen).
 
 The \fIstart/\fP directory contains the start menu directory tree, which 
 is used to build the popup desktop menu (startmenu). See the \fIstartmenu\fP
@@ -174,6 +182,18 @@ or during a restart called via the menu or other button:
 	Function "RestartFunction"
 .fi
 Refer to the BUILT-IN COMMANDS/FUNCTIONS and EXAMPLES sections below.
+
+When running \fBafterstep\fP in multiscreen environment (but with  
+\fBNO xinerama!\fP) it is possible have separate Init/Restart functions 
+for each screen. For example if you want to run different Init function 
+on screen 1 (second screen), you should name it like so : 
+.nf
+	Function "InitScreen1Function"
+.sp
+respectfully separate restart function should be named :
+	Function "RestartScreen1Function"
+.fi
+
 
 .SH CONFIGURATION OPTIONS - \fIbase.#bpp\fP
 There should exist one base.#bpp configuration file for each colordepth.
