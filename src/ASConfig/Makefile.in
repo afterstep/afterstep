@@ -1,4 +1,4 @@
-OBJS            = ASConfig.o
+OBJS            = ASConfig.o asproperty.o configfile.o
 
 PROG		= ASConfig
 
