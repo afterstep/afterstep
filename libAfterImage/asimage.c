@@ -80,7 +80,7 @@ static void (*output_image_line)( ASImageOutput *, ASScanline *, int ) = output_
 static Bool asimage_use_mmx = True;
 #else
 static Bool asimage_use_mmx = False;
-#endif 
+#endif
 /**********************************************************************/
 /* initialization routines 											  */
 /**********************************************************************/
@@ -766,8 +766,9 @@ LOCAL_DEBUG_OUT( "len = %d", len );
 	--len; --len;
 	while( i <= len )
 	{
-		register int S = scales[i], step = INTERPOLATION_TOTAL_STEP(src[i],src[i+1]);
+		register int step = INTERPOLATION_TOTAL_STEP(src[i],src[i+1]);
 		register int n = 0, T ;
+		register short S = scales[i];
 
 /*		LOCAL_DEBUG_OUT( "pixel %d, S = %d, step = %d", i, S, step );*/
 		if( i < len )
@@ -821,7 +822,10 @@ LOCAL_DEBUG_OUT( "len = %d", len );
 				++i ;
 				c1 += src[i];
 			}
-			dst[k] = AVERAGE_COLORN(c1,scales[k]);
+			{
+				register short S = scales[i];
+				dst[k] = AVERAGE_COLORN(c1,S);
+			}
 		}
 	}
 }
@@ -900,7 +904,7 @@ set_component( register CARD32 *src, register CARD32 value, int offset, int len 
 }
 
 static inline void
-divide_component( register CARD32 *src, register CARD32 *dst, int ratio, int len )
+divide_component( register CARD32 *src, register CARD32 *dst, CARD16 ratio, int len )
 {
 	register int i = 0;
 	len += len&0x00000001;                     /* we are 8byte aligned/padded anyways */
@@ -974,7 +978,7 @@ fine_output_filter( register CARD32 *line1, register CARD32 *line2, int unused, 
 }
 
 static inline void
-fast_output_filter( register CARD32 *src, register CARD32 *dst, int ratio, int len )
+fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int len )
 {/* we carry half of the quantization error onto the following pixel and store it in dst: */
 	register int i = 0;
 	register CARD32 err = 0, c;
@@ -983,7 +987,7 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, int ratio, int l
   	    do
 		{
 			c = (((src[i]&0xFF000000)!=0)?0:src[i])+err;
-			err = (c&QUANT_ERR_MASK)>>1 ; 
+			err = (c&QUANT_ERR_MASK)>>1 ;
 			dst[i] = c>>QUANT_ERR_BITS ;
 		}while( ++i < len );
 	}else if( ratio == 2 )
@@ -991,7 +995,7 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, int ratio, int l
   	    do
 		{
 			c = (((src[i]&0xFF000000)!=0)?0:src[i]>>1)+err;
-			err = (c&QUANT_ERR_MASK)>>1 ; 
+			err = (c&QUANT_ERR_MASK)>>1 ;
 			dst[i] = c>>QUANT_ERR_BITS ;
 		}while( ++i < len );
 	}else
@@ -1004,7 +1008,7 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, int ratio, int l
 }
 
 static inline void
-start_component_interpolation( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, register CARD32 *T, register CARD32 *step, int S, int len)
+start_component_interpolation( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, register CARD32 *T, register CARD32 *step, CARD16 S, int len)
 {
 	register int i;
 	for( i = 0 ; i < len ; i++ )
@@ -1016,7 +1020,7 @@ start_component_interpolation( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, r
 }
 
 static inline void
-divide_component_mod( register CARD32 *data, int ratio, int len )
+divide_component_mod( register CARD32 *data, CARD16 ratio, int len )
 {
 	register int i ;
 	for( i = 0 ; i < len ; ++i )
@@ -1288,11 +1292,10 @@ put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, 
 			}
 	} else if (bpp == 16)
 	{										   /* must add LSB/MSB checking */
-		CARD32 err_red = 0, err_green = 0, err_blue = 0;
-		CARD32 red, green, blue;
 LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );
 		if (byte_order == MSBFirst)
 		{
+			CARD32 red, green, blue, err_red = 0, err_green = 0, err_blue = 0;
 			for (i = 0 ; i < width; i++)
 			{ /* diffusion to compensate for quantization error :*/
 				register CARD32 c;
@@ -1305,19 +1308,23 @@ LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 			}
 		}else
 		{
-			for (i = 0 ; i < width; i++)
+			for (i = 1 ; i < width; i++)
 			{/* diffusion to compensate for quantization error :*/
-				register CARD32 c;
-				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;
-				c = g[i]+err_green; green = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_green = (green&0x03)>>1 ;
-				c = b[i]+err_blue ; blue  = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_blue = (blue&0x07)>>1 ;
-#ifdef LOCAL_DEBUG
-				if( (red&0xFFFFFF00)!= 0|| (green&0xFFFFFF00)!= 0||
-					(blue&0xFFFFFF00)!= 0 )
-					fprintf( stderr, "overflow: 0x%8.8X 0x%8.8X 0x%8.8X\n", red, green, blue );
-#endif
-				src[1] = (CARD8)((red&0xF8)|(green>>5));
-				src[0] = (CARD8)(((green<<3)&0xE0)|(blue>>3));
+				register CARD32 c, green;
+			    green = g[i]+(g[i-1]&0x03>>1);
+				if( (green&0x00FFFF00) != 0 )
+				{
+					c =  r[i]+(r[i-1]&0x07>>1) ;
+					src[1] = (CARD8)(((c|((c&0x0100)-0x00FF))&0xF8)|(green>>5));
+					c =  b[i]+(b[i-1]&0x07>>1) ;
+					src[0] = (CARD8)(((green<<3)&0xE0)|(((c|((c&0x0100)-0x00FF))>>3)&0x1F));
+				}else
+				{
+					c =  r[i]+(r[i-1]&0x07>>1) ;
+					src[1] = (CARD8)(((c|((c&0x0100)-0x00FF))&0xF8)|0x07);
+					c =  b[i]+(b[i-1]&0x07>>1) ;
+					src[0] = (CARD8)(0xE0|((c|((c&0x0100)-0x00FF))>>3));
+				}
 #ifdef LOCAL_DEBUG
 				if( debug_count > 0 )
 				{
@@ -1579,7 +1586,7 @@ scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* sca
 	prepare_scanline( src->width, QUANT_ERR_BITS, &tmp );
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &step );
 
-	set_component(src_lines[0].red,0x00000F00,0,line_len*3); 
+	set_component(src_lines[0].red,0x00000F00,0,line_len*3);
 	DECODE_SCANLINE(src,tmp,0);
 	step.flags = src_lines[0].flags = tmp.flags ;
 LOCAL_DEBUG_OUT( "rescaling line #%d", 0 );
@@ -1609,20 +1616,21 @@ LOCAL_DEBUG_OUT( "rescaling line #%d", i+2 );
 		/* now we'll prepare total and step : */
 
 		SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,dst->width);
-		output_image_line( imout, c2, 1);
+ 		output_image_line( imout, c2, 1);
 
 		n = 0;
 		do
 		{
 			output_image_line( imout, c1, 1);
-			if( ++n >= S ) 
+			if( ++n >= S )
 				break;
-			SCANLINE_FUNC(add_component,*c1,step,NULL,dst->width ); 
-		}while (1);
+			SCANLINE_FUNC(add_component,*c1,step,NULL,dst->width );
+ 		}while (1);
 		k += n ;
 		++i;
 	}
 	output_image_line( imout, c4, 1);
+
 	for( i = 0 ; i < 4 ; i++ )
 		free_scanline(&(src_lines[i]), True);
 	free_scanline(&tmp, True);
