@@ -997,8 +997,9 @@ get_text_size( const char *text, ASFont *font, unsigned int *width, unsigned int
 	int i = -1;
 	ASGlyph *last_asg = NULL ;
 
-	if( text == NULL || font == NULL)
+	if( text == NULL || font == NULL )
 		return False;
+
 	do
 	{
 		++i ;
@@ -1006,6 +1007,7 @@ get_text_size( const char *text, ASFont *font, unsigned int *width, unsigned int
 		{
 			if( last_asg && last_asg->width+last_asg->lead > last_asg->step )
 				w += last_asg->width+last_asg->lead - last_asg->step ;
+			last_asg = NULL;
 			if( line_width > w )
 				w = line_width ;
 			line_width = 0 ;
@@ -1014,23 +1016,26 @@ get_text_size( const char *text, ASFont *font, unsigned int *width, unsigned int
 		{
 			last_asg = NULL ;
 			if( text[i] == ' ' )
+			{
 				line_width += font->space_size ;
-			else if( text[i] == '\t' )
+			}else if( text[i] == '\t' )
+			{
 				line_width += font->space_size*8 ;
-			else
+			}else
 			{
 				last_asg = get_character_glyph( &text[i], font );
-				line_width += last_asg->width ;
+				line_width += last_asg->step ;
 				i+=CHAR_SIZE(text[i])-1;
 			}
 		}
 	}while( text[i] != '\0' );
 
-	if( width )
-		*width = w ;
-	if( height )
-		*height = line_count * font->max_height ;
-	return True;
+	if( width ) 
+		*width = w;
+	if( height ) 
+		*height = line_count * font->max_height;
+
+	return True ;
 }
 
 

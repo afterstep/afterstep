@@ -37,6 +37,8 @@
  */
 
 #define TEXT_MARGIN 10
+#define BEVEL_HI_WIDTH 3
+#define BEVEL_LO_WIDTH 2
 
 int main(int argc, char* argv[])
 {
@@ -58,7 +60,15 @@ int main(int argc, char* argv[])
 	set_application_name( argv[0] );
 
 	if( argc > 1 )
-		font_name = argv[1] ;
+	{
+		char *ptr ;
+		if( (ptr = strchr(argv[1], ':' )) != NULL ) 
+		{
+			size = atoi( ptr+1 );
+			font_name = mystrndup( argv[1], ptr - argv[1] );
+		}else 
+			font_name = argv[1] ;
+	}
 	if( argc > 2 )
 		text = argv[2] ;
 	if( argc > 3 )
@@ -106,11 +116,11 @@ int main(int argc, char* argv[])
 				fore_im = tmp ;
 		}
 	}
-	width  += TEXT_MARGIN*2 ;
-	height += TEXT_MARGIN*2 ;
+	width  += BEVEL_HI_WIDTH+TEXT_MARGIN*2+BEVEL_LO_WIDTH ;
+	height += BEVEL_HI_WIDTH+TEXT_MARGIN*2+BEVEL_LO_WIDTH ;
 	/* see ASView.4 : */
 	w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-		                         width,	height, 1, 0, NULL, 
+		                         width, height, 1, 0, NULL, 
 								 "ASText" );
 	if( w != None )
 	{
@@ -118,6 +128,11 @@ int main(int argc, char* argv[])
 		ASImage *text_im ;
 		ASImage *rendered_im ;
 		ASImageLayer layers[2] ;
+		ASImageBevel bevel = {0, 0xFFDDDDDD, 0xFF555555, 0xFFFFFFFF, 0xFF777777, 0xFF444444,
+		                      BEVEL_HI_WIDTH, BEVEL_HI_WIDTH, 
+							  BEVEL_LO_WIDTH, BEVEL_LO_WIDTH, 
+							  BEVEL_HI_WIDTH, BEVEL_HI_WIDTH, 
+							  BEVEL_LO_WIDTH, BEVEL_LO_WIDTH } ;
 
 		XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
 	  	XMapRaised   (dpy, w);
@@ -136,6 +151,7 @@ int main(int argc, char* argv[])
 		layers[0].clip_width = width ;
 		layers[0].clip_height = height ;
 		layers[0].merge_scanlines = alphablend_scanlines ;
+		layers[0].bevel = &bevel ;
 		layers[1].im = fore_im ;
 		layers[1].dst_x = TEXT_MARGIN ;
 		layers[1].dst_y = TEXT_MARGIN ;

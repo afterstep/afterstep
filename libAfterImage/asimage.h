@@ -252,11 +252,8 @@ typedef struct ASImageDecoder
 	unsigned int    offset_x,    /* left margin on source image before
 								  * which we skip everything */
 					out_width;   /* actual length of the output scanline */
-	unsigned int 	offset_y;	 /* top margin */
-								 /* there is no need for out_height - if
-								  * we go out of the image size - we
-								  * simply reread lines from the beginning
-                                  */
+	unsigned int 	offset_y,	 /* top margin */
+                    out_height;  
 	ASImageBevel	*bevel;      /* bevel to wrap everything around with */
 
 	/* scanline buffer containing current scanline */
@@ -693,6 +690,7 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
  *                                       ASFlagType filter,
  *                                       int offset_x, int offset_y,
  *                                       unsigned int out_width,
+ *                                       unsigned int out_height,
  *                                       ASImageBevel *bevel );
  * INPUTS
  * asv      - pointer to valid ASVisual structure ( needed mostly
@@ -710,6 +708,9 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
  * out_width- width of the scanline needed. If it is larger then
  * 			source image - then image data will be tiled in it.
  * 			If it is smaller - then image data will be clipped.
+ * out_height - height of the output drawable. -1 means that same as
+ *          image height. if out_height is greater then image height,
+ *          then image will be tiled.
  * bevel    - NULL or pointer to valid ASImageBevel structure if
  * 			decoded data should be overlayed with bevel at the
  * 			time of decoding.
@@ -740,7 +741,9 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
 
 ASImageDecoder *start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 									  int offset_x, int offset_y,
-									  unsigned int out_width, ASImageBevel *bevel );
+									  unsigned int out_width, 
+									  unsigned int out_height, 
+									  ASImageBevel *bevel );
 void stop_image_decoding( ASImageDecoder **pimdec );
 
 /****h* libAfterImage/asimage/Output

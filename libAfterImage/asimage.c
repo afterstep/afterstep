@@ -195,7 +195,10 @@ destroy_asimage( ASImage **im )
 /* ******************** ASImageDecoder ****************************/
 ASImageDecoder *
 start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
-					  int offset_x, int offset_y, unsigned int out_width, ASImageBevel *bevel )
+					  int offset_x, int offset_y, 
+					  unsigned int out_width, 
+					  unsigned int out_height, 
+					  ASImageBevel *bevel )
 {
 	ASImageDecoder *imdec = NULL;
 	unsigned int bevel_addon = 0;
@@ -212,6 +215,8 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 		offset_y %= im->height ;
 	if( out_width == 0 )
 		out_width = im->width ;
+	if( out_height == 0 )
+		out_height = im->height ;
 
 	imdec = safecalloc( 1, sizeof(ASImageDecoder));
 	imdec->im = im ;
@@ -219,6 +224,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	imdec->offset_x = offset_x ;
 	imdec->out_width = out_width;
 	imdec->offset_y = offset_y ;
+	imdec->out_height = out_height;
 	imdec->next_line = offset_y ;
 	imdec->back_color = ARGB32_DEFAULT_BACK_COLOR ;
 	imdec->bevel = bevel ;
@@ -1669,7 +1675,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 {
 	size_t   			 count ;
 	register ASScanline *scl = &(imdec->buffer);
-	int 	 			 y = imdec->next_line%(imdec->im->height+imdec->bevel_v_addon);
+	int 	 			 y = imdec->next_line%imdec->out_height;
 	register ASImageBevel *bevel = imdec->bevel ;
 	ARGB32 bevel_color = bevel->hi_color, shade_color = bevel->lo_color;
 	ARGB32 hilo_corner_color = bevel->hilo_color, corner_color = bevel->hihi_color;
@@ -1677,9 +1683,9 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 	int offset_shade = 0, corner = 0;
 	int channel;
 
-	if( y >= imdec->im->height+bevel->top_outline )
+	if( y >= imdec->out_height-bevel->bottom_outline )
 	{
-		offset_shade = corner = imdec->bevel_v_addon-(y-imdec->im->height) ;
+		offset_shade = imdec->out_height-y ;
 		if( bevel->left_outline != bevel->bottom_outline )
 			offset_shade = (offset_shade*bevel->left_outline)/bevel->bottom_outline;
 		corner_color = bevel->lolo_color ;
@@ -1703,7 +1709,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 				scl->channels[channel][offset_shade-1] = ARGB32_CHAN8(hilo_corner_color,channel)<<scl->shift ;
 				scl->channels[channel][corner] = ARGB32_CHAN8(corner_color,channel)<<scl->shift ;
 			}
-		if( y == 0 || y == imdec->im->height+imdec->bevel_v_addon-1 )
+		if( y == 0 || y == imdec->out_height-1 )
 			scl->alpha[0] = scl->alpha[scl->width-1] = MIN(scl->alpha[0],0x5F<<scl->shift);
 
 		set_flags( scl->flags,imdec->filter);
@@ -1712,11 +1718,11 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 		int width = scl->width-imdec->bevel_h_addon ;
 		CARD32 a_bevel = ARGB32_ALPHA8(bevel_color), a_shade = ARGB32_ALPHA8(shade_color);
 	    CARD32 da_bevel = a_bevel/(bevel->left_inline+1), da_shade = a_shade/(bevel->right_inline+1) ;
-		int inline_bottom = imdec->im->height - bevel->bottom_inline ;
+		int inline_bottom = imdec->out_height - (imdec->bevel_v_addon + bevel->bottom_inline);
 
 		y -= bevel->top_outline ;
 		offset_shade = scl->width-bevel->right_outline ;
-
+fprintf( stderr, "y == %d, inline_bottom = %d, out_height = %d\n" , y, inline_bottom, imdec->out_height );
 		for( channel = 0 ; channel < ARGB32_CHANNELS ; ++channel )
 			if( get_flags(imdec->filter, (0x01<<channel)) )
 			{
@@ -2153,7 +2159,7 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 	if( !check_scale_parameters(src,&to_width,&to_height) )
 		return NULL;
 
-	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, src->width, NULL)) == NULL )
+	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, 0, 0, NULL)) == NULL )
 		return NULL;
 
 	dst = safecalloc(1, sizeof(ASImage));
@@ -2230,7 +2236,7 @@ tile_asimage( ASVisual *asv, ASImage *src,
 	ASImageDecoder *imdec ;
 	ASImageOutput  *imout ;
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
-	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, NULL)) == NULL )
+	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 		return NULL;
 
 	dst = safecalloc(1, sizeof(ASImage));
@@ -2323,7 +2329,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	for( i = 0 ; i < count ; i++ )
 		if( layers[i].im )
 		{
-			imdecs[i] = start_image_decoding(asv, layers[i].im, SCL_DO_ALL, layers[i].clip_x, layers[i].clip_y, layers[i].clip_width, layers[i].bevel);
+			imdecs[i] = start_image_decoding(asv, layers[i].im, SCL_DO_ALL, layers[i].clip_x, layers[i].clip_y, layers[i].clip_width, layers[i].clip_height, layers[i].bevel);
 			imdecs[i]->back_color = layers[i].back_color ;
 		}
 #ifdef HAVE_MMX
@@ -2701,7 +2707,9 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		int y;
 LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 		prepare_scanline( to_width, 0, &result, asv->BGR_mode );
-		if( (imdec = start_image_decoding(asv, src, filter, offset_x, offset_y, get_flags( flip, FLIP_VERTICAL )?to_height:to_width, NULL)) != NULL )
+		if( (imdec = start_image_decoding(asv, src, filter, offset_x, offset_y, 
+		                                  get_flags( flip, FLIP_VERTICAL )?to_height:to_width, 
+										  get_flags( flip, FLIP_VERTICAL )?to_width:to_height, NULL)) != NULL )
 		{
 			if( get_flags( flip, FLIP_VERTICAL ) )
 			{
