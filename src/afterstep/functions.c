@@ -939,8 +939,6 @@ QuickRestart (char *what)
 
 	if (parse_look || parse_feel || parse_menu || shall_override_config_file)
 	{
-		have_the_colors = 0;
-
 		/* Don't reset desktop position */
 		/* InitVariables(0); */
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1998 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
- * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
+ * Copyright (c) 1998,2002 Sasha Vasko <sasha at aftercode.net>
  * Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
  * Copyright (c) 1998 Nat Makarevitch <nat@linux-france.com>
  * Copyright (c) 1998 Mike Venaccio <venaccio@aero.und.edu>
@@ -38,48 +38,35 @@
 
 #include "../../configure.h"
 
-#include <stdio.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <fcntl.h>
+//#include <signal.h>
+//#include <stdarg.h>
+//#include <stdlib.h>
+//#include <fcntl.h>
 #include <unistd.h>
-#include <pwd.h>
-#include <dirent.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+//#include <pwd.h>
+//#include <dirent.h>
+//#include <sys/types.h>
+//#include <sys/stat.h>
 
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Xlib.h>						   /* for Bool, so Xutil.h will be happy */
-#include <X11/Xutil.h>						   /* for XSizeHints, so afterstep.h will be happy */
-
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
-#include "../../include/misc.h"
+#include "../../include/mystyle.h"
 #include "../../include/decor.h"
 #include "../../include/screen.h"
 #include "../../include/loadimg.h"
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
+#include "../../include/balloon.h"
 #include "../../libAfterImage/afterimage.h"
 #include "../../include/mystyle_property.h"
 
 #include "dirtree.h"
 #include "asinternals.h"
 
+char         *global_base_file = NULL;
 char         *PixmapPath;
 char         *CursorPath;
-
-char         *global_base_file = NULL;
 char         *IconPath;
 char         *ModulePath = AFTER_BIN_DIR;
 
@@ -150,24 +137,32 @@ int           dummy;
 /* value for the rubberband XORing */
 unsigned long XORvalue;
 int           RubberBand = 0;
-int           have_the_colors = 0;
 char         *RMGeom = NULL;
 int           Xzap = 12, Yzap = 12;
 int           DrawMenuBorders = 1;
 int           TextureMenuItemsIndividually = 1;
-int           AutoReverse = 0;
-int           MenuMiniPixmaps = 0;
 int           StartMenuSortMode = DEFAULTSTARTMENUSORT;
 int           ShadeAnimationSteps = 12;
-int           DecorateFrames = 0 ;
 
-void          SetCustomCursor (char *text, FILE * fd, char **arg, int *junk);
+void          SetInts               (char *text, FILE * fd, char **arg1, int *arg2);
+void          SetFlag               (char *text, FILE * fd, char **arg, int *another);
+void          SetFlag2              (char *text, FILE * fd, char **arg, int *var);
+void          SetBox                (char *text, FILE * fd, char **arg, int *junk);
+void          SetCursor             (char *text, FILE * fd, char **arg, int *junk);
+void          SetCustomCursor       (char *text, FILE * fd, char **arg, int *junk);
+void          SetButtonList         (char *text, FILE * fd, char **arg1, int *arg2);
+void          SetTitleText          (char *tline, FILE * fd, char **junk, int *junk2);
+void          SetTitleButton        (char *tline, FILE * fd, char **junk, int *junk2);
+void          SetFramePart          (char *text, FILE * fd, char **frame, int *id);
 
-void          assign_string (char *text, FILE * fd, char **arg, int *);
-void          assign_path (char *text, FILE * fd, char **arg, int *);
-void          assign_themable_path (char *text, FILE * fd, char **arg, int *);
-void          assign_pixmap (char *text, FILE * fd, char **arg, int *);
-void          text_gradient_obsolete (char *text, FILE * fd, char **arg, int *);
+void          assign_string         (char *text, FILE * fd, char **arg, int *);
+void          assign_path           (char *text, FILE * fd, char **arg, int *);
+void          assign_themable_path  (char *text, FILE * fd, char **arg, int *);
+void          assign_pixmap         (char *text, FILE * fd, char **arg, int *);
+void          text_gradient_obsolete(char *text, FILE * fd, char **arg, int *);
+
+void          match_string (struct config *table, char *text, char *error_msg, FILE * fd);
+
 
 /*
  * Order is important here! if one keyword is the same as the first part of
@@ -284,16 +279,16 @@ struct config main_config[] = {
     {"ButtonNoBorder", SetFlag2, (char **)IconNoBorder, (int *)&Scr.look_flags},
 	{"TextureMenuItemsIndividually", SetInts, (char **)&TextureMenuItemsIndividually,
 	 (int *)&dummy},
-	{"MenuMiniPixmaps", SetInts, (char **)&MenuMiniPixmaps, &dummy},
-	{"FrameNorth", assign_string, &FrameN, (int *)0},
-	{"FrameSouth", assign_string, &FrameS, (int *)0},
-	{"FrameEast", assign_string, &FrameE, (int *)0},
-	{"FrameWest", assign_string, &FrameW, (int *)0},
-	{"FrameNW", assign_string, &FrameNW, (int *)0},
-	{"FrameNE", assign_string, &FrameNE, (int *)0},
-	{"FrameSW", assign_string, &FrameSW, (int *)0},
-	{"FrameSE", assign_string, &FrameSE, (int *)0},
-	{"DecorateFrames", SetInts, (char **)&DecorateFrames, (int *)&dummy},
+    {"MenuMiniPixmaps", SetFlag2, (char **)MenuMiniPixmaps, (int *)&Scr.look_flags},
+    {"FrameNorth", SetFramePart, NULL, (int *)FR_N},
+    {"FrameSouth", SetFramePart, NULL, (int *)FR_S},
+    {"FrameEast",  SetFramePart, NULL, (int *)FR_E},
+    {"FrameWest",  SetFramePart, NULL, (int *)FR_W},
+    {"FrameNW", SetFramePart, NULL, (int *)FR_NW},
+    {"FrameNE", SetFramePart, NULL, (int *)FR_NE},
+    {"FrameSW", SetFramePart, NULL, (int *)FR_SW},
+    {"FrameSE", SetFramePart, NULL, (int *)FR_SE},
+    {"DecorateFrames", SetFlag2, (char **)DecorateFrames, (int *)&Scr.look_flags},
 #endif /* NO_TEXTURE */
 	{"TitleTextAlign", SetInts, (char **)&Scr.TitleTextAlign, &dummy},
 	{"TitleButtonSpacing", SetInts, (char **)&Scr.TitleButtonSpacing, (int *)&dummy},
@@ -465,15 +460,8 @@ GetIconFromFile (char *file, MyIcon * icon, int max_colors)
 		Scr.image_manager = create_image_manager( NULL, 2.2, ppath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
 	}
 
-	icon->image = NULL;
-	(*icon).pix = None;
-	(*icon).mask = None;
-	(*icon).alpha = None;
-	(*icon).width = 0;
-	(*icon).height = 0;
-	asimage2icon( get_asimage( Scr.image_manager, file, 0xFFFFFFFF, 100 ),
-				  icon, False );
-	return (icon->image != NULL);
+    memset( icon, 0x00, sizeof(icon_t));
+    return load_icon(icon, file, Scr.image_manager );
 }
 
 /*
@@ -710,7 +698,7 @@ merge_old_look_colors (MyStyle * style, int type, int maxcols, char *fore, char 
 				style->texture_type = type;
 				style->user_flags |= F_BACKGRADIENT;
 			} else
-				fprintf (stderr, "%s: bad gradient: %s\n", MyName, gradient);
+                show_error ("bad gradient definition in look file: %s", gradient);
 		}
 	} else if ((type == TEXTURE_PIXMAP) && !((*style).user_flags & F_BACKPIXMAP))
 	{
@@ -723,9 +711,7 @@ merge_old_look_colors (MyStyle * style, int type, int maxcols, char *fore, char 
 
 			if( GetIconFromFile (pixmap, &(style->back_icon), 0) )
 				(*style).user_flags |= F_BACKPIXMAP;
-			else
-				afterstep_err ("unable to load pixmap: '%s'", pixmap, NULL, NULL);
-		}
+        }
 	}
 #endif
 	(*style).set_flags = (*style).user_flags | (*style).inherit_flags;
@@ -924,8 +910,6 @@ InitLook (Bool free_resources)
         if( Scr.DefaultFrame )
             destroy_myframe( &(Scr.DefaultFrame) );
 		/* GCs */
-		if (Scr.LineGC != None)
-			XFreeGC (dpy, Scr.LineGC);
 		if (Scr.DrawGC != None)
 			XFreeGC (dpy, Scr.DrawGC);
 
@@ -988,12 +972,7 @@ InitLook (Bool free_resources)
     Scr.DefaultFrame = create_default_myframe();
 
 	/* GCs */
-	Scr.LineGC = None;
 	Scr.DrawGC = None;
-	Scr.NormalGC = None;
-	Scr.StippleGC = None;
-	Scr.ScratchGC1 = None;
-	Scr.ScratchGC2 = None;
 
 	/* fonts */
 	Scr.StdFont.name = NULL;
@@ -1023,8 +1002,6 @@ InitLook (Bool free_resources)
 	Scr.TitleTextAlign = 0;
 
 	/* titlebar buttons */
-	Scr.nr_right_buttons = 0;
-	Scr.nr_left_buttons = 0;
 	Scr.TitleButtonSpacing = 2;
 	Scr.TitleButtonStyle = 0;
 	for (i = 0; i < 10; i++)
@@ -1045,7 +1022,10 @@ InitLook (Bool free_resources)
 
 #ifndef NO_TEXTURE
 	/* frames */
-	frame_init (True);
+    if( Scr.DefaultFrame )
+        destroy_myframe( &(Scr.DefaultFrame) );
+    if( Scr.FramesList )
+        destroy_ashash( &(Scr.FramesList));
 #endif /* !NO_TEXTURE */
 
 	/* miscellaneous stuff */
@@ -1053,7 +1033,6 @@ InitLook (Bool free_resources)
 	DrawMenuBorders = 1;
 	TextureMenuItemsIndividually = 1;
     Scr.look_flags = SeparateButtonTitle;
-	MenuMiniPixmaps = 0;
     Scr.configured_icon_areas_num = 0;
     Scr.configured_icon_areas = NULL ;
     Scr.default_icon_box = NULL ;
@@ -1203,22 +1182,6 @@ redecorate_aswindow_iter_func(void *data, void *aux_data)
 
 
 void
-titlebar_sanity_check (void)
-{
-	int           i;
-	for (i = 4; i >= 0; --i)
-		if (Scr.buttons[i].unpressed.image)
-			break;
-	Scr.nr_left_buttons = i + 1;
-	for (i = 9; i >= 5; --i)
-		if (Scr.buttons[i].unpressed.image)
-			break;
-	Scr.nr_right_buttons = i - 4;
-	/* traverse window list and redo the titlebar/buttons if necessary */
-    iterate_asbidirlist( Scr.Windows->clients, redecorate_aswindow_iter_func, NULL, NULL, False );
-}
-
-void
 make_styles (void)
 {
 /* make sure the globals are defined */
@@ -1318,10 +1281,9 @@ ParseConfigFile (const char *file, char **tline)
 	/* this should not happen, but still checking */
 	if ((fp = fopen (realfilename, "r")) == (FILE *) NULL)
 	{
-		afterstep_err
-			("can't open %s, exiting now.\nMost likely you have incorrect permissions on the AfterStep configuration dir.",
-			 file, NULL, NULL);
-		exit (1);
+        show_error("can't open config file [%s] - skipping it for now.\nMost likely you have incorrect permissions on the AfterStep configuration dir.",
+             file);
+        return -1;
 	}
 	free (realfilename);
 
@@ -1544,8 +1506,14 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 			fprintf (stderr, "couldn't load menu arrow pixmap\n");
 
 		/* update frame geometries */
-		if (DecorateFrames)
-			frame_create_gcs ();
+        if (get_flags( Scr.look_flags, DecorateFrames))
+        {
+            if( Scr.DefaultFrame )
+                myframe_load ( Scr.DefaultFrame, Scr.image_manager );
+            else
+                Scr.DefaultFrame = create_default_myframe();
+            /* need to load the list as well (if we have any )*/
+        }
 #endif /* ! NO_TEXTURE */
 	}
 
@@ -1590,9 +1558,6 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 		XMoveResizeWindow (dpy, Scr.SizeWindow, x, y, width, height);
 	}
 
-	if (parse_look || shall_override_config_file)
-		GetColors ();
-
 	if (parse_feel || shall_override_config_file)
 	{
 		/* If no edge scroll line is provided in the setup file, use a default */
@@ -1630,7 +1595,6 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 	{
 		balloon_setup (dpy);
 		balloon_set_style (dpy, mystyle_find_or_default ("TitleButtonBalloon"));
-		titlebar_sanity_check ();
 	}
 
     /* force update of window frames */
@@ -2006,6 +1970,24 @@ SetBox (char *text, FILE * fd, char **arg, int *junk)
     }
 }
 
+void
+SetFramePart (char *text, FILE * fd, char **frame, int *id)
+{
+    char *fname = NULL;
+    MyFrame *pframe  = (MyFrame*)frame;
+    if( parse_filename (text, &fname) != text )
+    {
+        if( pframe == NULL )
+        {
+            if( Scr.DefaultFrame == NULL )
+                Scr.DefaultFrame = create_myframe();
+            pframe = Scr.DefaultFrame;
+        }
+        filename2myframe_part (pframe, (int)id, fname);
+        free( fname );
+    }
+}
+
 /****************************************************************************
  *
  * These routines put together files from start directory
@@ -2113,27 +2095,6 @@ MeltStartMenu (char *buf)
 
 /****************************************************************************
  *
- * This routine loads all needed colors, and fonts,
- * and creates the GC's
- *
- ***************************************************************************/
-
-void
-GetColors (void)
-{
-	if (have_the_colors)
-		return;
-
-	have_the_colors = 1;
-
-	/* create graphics contexts */
-	CreateGCs ();
-	XSync (dpy, 0);
-	return;
-}
-
-/****************************************************************************
- *
  * Matches text from config to a table of strings, calls routine
  * indicated in table.
  *
@@ -2142,51 +2103,15 @@ GetColors (void)
 void
 match_string (struct config *table, char *text, char *error_msg, FILE * fd)
 {
-	table = find_config (table, text);
+    register int i ;
+    table = find_config (table, text);
 	if (table != NULL)
 	{
-		for (text += strlen (table->keyword); isspace (*text); text++);
-		table->action (text, fd, table->arg, table->arg2);
+        i = strlen (table->keyword);
+        while(isspace(text[i])) ++i;
+        table->action (&(text[i]), fd, table->arg, table->arg2);
 	} else
 		tline_error (error_msg);
 }
 
 
-
-/***********************************************************************
- *
- *  Procedure:
- *	CreateGCs - open fonts and create all the needed GC's.  I only
- *		    want to do this once, hence the first_time flag.
- *
- ***********************************************************************/
-
-void
-CreateGCs (void)
-{
-	XGCValues     gcv;
-	unsigned long gcm;
-
-	gcm = GCForeground | GCBackground | GCGraphicsExposures;
-
-	gcv.foreground = (*Scr.MSFWindow).colors.fore;
-	gcv.background = (*Scr.MSFWindow).colors.back;
-	gcv.graphics_exposures = False;
-
-	gcm = GCLineWidth | GCForeground | GCBackground | GCFunction;
-	gcv.function = GXcopy;
-	gcv.line_width = 1;
-
-	gcv.foreground = (*Scr.MSFWindow).colors.fore;
-	gcv.background = (*Scr.MSFWindow).colors.back;
-
-	Scr.LineGC = XCreateGC (dpy, Scr.Root, gcm, &gcv);
-
-	gcm = GCFunction | GCLineWidth | GCForeground | GCSubwindowMode;
-	gcv.function = GXxor;
-	gcv.line_width = 0;
-	gcv.foreground = XORvalue;
-	gcv.subwindow_mode = IncludeInferiors;
-	Scr.DrawGC = XCreateGC (dpy, Scr.Root, gcm, &gcv);
-
-}

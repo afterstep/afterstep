@@ -1,12 +1,6 @@
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <X11/Xlib.h>						   /* For compatibility with older versions of XFree */
-#include <X11/Xutil.h>
-
 #include "../configure.h"
-#include "../include/aftersteplib.h"
+
+#include "../include/asapp.h"
 #include "../include/parse.h"
 
 /****************************************************************************

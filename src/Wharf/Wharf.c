@@ -1893,7 +1893,7 @@ ParseOptions (char *filename)
 #ifdef ENABLE_SOUND
 	      else if (!mystrncasecmp (tline, "Player", 6))
 		{
-		  CopyString (&SoundPlayer, tline + 6);
+          SoundPlayer = stripcpy( tline + 6);
 		}
 	      else if (!mystrncasecmp (tline, "Sound", 5))
 		{
@@ -1950,23 +1950,23 @@ ParseBaseOptions (char *filename)
 	{
 	  if (!mystrncasecmp (tline, "IconPath", 8))
 	    {
-	      CopyString (&iconPath, tline + 8);
+          iconPath = stripcpy( tline + 8);
 	      replaceEnvVar (&iconPath);
 	    }
 	  else if (!mystrncasecmp (tline, "PixmapPath", 10))
 	    {
-	      CopyString (&pixmapPath, tline + 10);
+          pixmapPath = stripcpy( tline + 10);
 	      replaceEnvVar (&pixmapPath);
 	    }
 #ifdef ENABLE_SOUND
 	  else if (!mystrncasecmp (tline, "AudioPath", 9))
 	    {
-	      CopyString (&SoundPath, tline + 9);
+           SoundPath = stripcpy( tline + 9);
 	      replaceEnvVar (&SoundPath);
 	    }
 	  else if (!mystrncasecmp (tline, "ModulePath", 11))
 	    {
-	      CopyString (&ModulePath, tline + 11);
+          ModulePath = stripcpy( tline + 11);
 	      replaceEnvVar (&ModulePath);
 	    }
 #endif

@@ -8,10 +8,10 @@
 #define _SCREEN_
 
 #include "afterstep.h"
-#include "style.h"
 #include "clientprops.h"
 #include "hints.h"
 #include "asdatabase.h"
+#include "font.h"
 
 #define SIZE_HINDENT 5
 #define SIZE_VINDENT 3
@@ -69,11 +69,17 @@ PanFrame;
 
 enum                /* look file flags, used in Scr.look_flags */
   {
-    TexturedHandle = (1 << 0),
-    TitlebarNoPush = (1 << 1),
-    IconNoBorder = (1 << 3),
-    SeparateButtonTitle = (1 << 4)	/* icon title is a separate window */
+    TexturedHandle      = (0x01<<0),
+    TitlebarNoPush      = (0x01<<1),
+    IconNoBorder        = (0x01<<3),
+    SeparateButtonTitle = (0x01<<4),  /* icon title is a separate window */
+    MenuMiniPixmaps     = (0x01<<5),
+    DecorateFrames      = (0x01<<6)
   };
+
+/* MENU SORT MODS : */
+#define SORTBYALPHA 1
+#define SORTBYDATE  2
 
 /* for the flags value - these used to be separate Bool's */
 enum				/* feel file flags */
@@ -110,6 +116,7 @@ enum				/* feel file flags */
     DoHandlePageing         = (1 << 29)
   };
 
+
 typedef enum
 {
     AS_StateShutdown   = (0x01<<0),
@@ -131,6 +138,9 @@ struct ASSupportedHints;
 struct MyFrame;
 struct ASHashTable;
 struct ComplexFunction;
+struct ASFontManager;
+struct ASImageManager;
+
 
 typedef struct ASDesktop
 {
@@ -185,28 +195,12 @@ typedef struct ScreenInfo
     int usePanFrames;		/* toggle to disable them */
 #endif
 
-    Pixmap gray_bitmap;		/*dark gray pattern for shaded out menu items */
-    Pixmap gray_pixmap;		/* dark gray pattern for inactive borders */
-    Pixmap light_gray_pixmap;	/* light gray pattern for inactive borders */
-    Pixmap sticky_gray_pixmap;	/* light gray pattern for sticky borders */
-
     struct MouseButton *MouseButtonRoot;
     struct FuncKey *FuncKeyRoot;
 
     Cursor ASCursors[MAX_CURSORS];
 
     char *DefaultIcon;		/* Icon to use when no other icons are found */
-
-    ColorPair MenuStippleColors;
-
-/* ß Currently unused */
-    ColorPair StdColors;	/* standard fore/back colors */
-    ColorPair StickyColors;	/* sticky fore/back colors */
-    ColorPair StickyRelief;	/* sticky hilight colors */
-    ColorPair HiColors;		/* standard fore/back colors */
-    ColorPair StdRelief;
-    ColorPair HiRelief;
-/* /ß */
 
     MyFont StdFont;		/* font structure */
     MyFont WindowFont;		/* font structure for window titles */
@@ -226,21 +220,12 @@ typedef struct ScreenInfo
     struct MyFrame *DefaultFrame;
     struct ASHashTable *FramesList ;/* hash table of named MyFrames */
 
-    GC NormalGC;		/* normal GC for menus, pager, resize window */
-    GC StippleGC;		/* normal GC for menus, pager, resize window */
-    GC DrawGC;			/* GC to draw lines for move and resize */
-    GC LineGC;			/* GC to draw lines on buttons */
-
-    GC ScratchGC1;
-    GC ScratchGC2;
+    GC DrawGC;          /* GC to draw lines for move and resize */
 
     int TitleTextType;
     int TitleTextY;
 
     int SizeStringWidth;	/* minimum width of size window */
-    int CornerWidth;		/* corner width for decoratedwindows */
-    int BoundaryWidth;		/* frame width for decorated windows */
-    int NoBoundaryWidth;	/* frame width for decorated windows */
     int TitleTextAlign;		/* alignment of title bar text */
 #ifndef NO_TEXTURE
     int TitleStyle;         /* old or new titlebar style */
@@ -268,9 +253,6 @@ typedef struct ScreenInfo
     int VyMax;
     int Vx;			/* Current loc for top left of virt desk */
     int Vy;
-
-    int nr_left_buttons;	/* number of left-side title-bar buttons */
-    int nr_right_buttons;	/* number of right-side title-bar buttons */
 
     int ClickTime;		/* Max buttonclickdelay for Function built-in */
     int AutoRaiseDelay;		/* Delay between setting focus and raisingwin */
@@ -312,8 +294,8 @@ typedef struct ScreenInfo
 	int xinerama_screens_num ;
 	XRectangle *xinerama_screens;
 
-	ASFontManager  *font_manager ;
-	ASImageManager *image_manager ;
+    struct ASFontManager  *font_manager ;
+    struct ASImageManager *image_manager ;
 
 	struct ASSupportedHints *supported_hints;
 

@@ -20,30 +20,15 @@
 
 #include "../configure.h"
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xproto.h>
-#include <X11/Xutil.h>
-
 /* #define LOCAL_DEBUG */
 
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 #include "../include/afterstep.h"
 #include "../include/parse.h"
-#include "../include/misc.h"
-#include "../include/style.h"
 #include "../include/loadimg.h"
 #include "../include/parser.h"
 #include "../include/confdefs.h"
 #include "../include/mystyle.h"
-/*#include "../include/ascolor.h"*/
-/*#include "../include/stepgfx.h"*/
 #include "../libAfterImage/afterimage.h"
 #include "../include/screen.h"
 
@@ -1307,9 +1292,8 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 				 {							   /* treat second parameter as an image filename : */
 					 ASImage      *im = get_asimage (Scr.image_manager, tmp, 0xFFFFFFFF, 100);
 
-					 if (im)
+                     if ( load_icon(&(style->back_icon), tmp, Scr.image_manager ))
 					 {
-						 asimage2icon (im, &(style->back_icon), False);
 						 set_flags (style->user_flags, style_func);
 						 if (type >= TEXTURE_TRANSPIXMAP)
 							 set_flags (style->user_flags, F_BACKTRANSPIXMAP);

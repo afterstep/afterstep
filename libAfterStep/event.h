@@ -111,6 +111,7 @@ int  peek_event (register XEvent * event_return);
 /* blocking UnmapNotify events since that may bring us into Withdrawn state */
 void quietly_unmap_window( Window w, long event_mask );
 void quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_mask );
+void safely_destroy_window (Window w);
 
 void add_window_event_mask( Window w, long event_mask );
 

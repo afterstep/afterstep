@@ -17,19 +17,10 @@
  *
  */
 
-#include <errno.h>
-#include <stdio.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "../configure.h"
 
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 #include "../include/afterstep.h"
-#include "../include/style.h"
-#include "../include/mystyle.h"
-#include "../include/misc.h"
 #include "../include/screen.h"
 #include "../include/event.h"
 
@@ -248,6 +239,23 @@ quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_m
     XSelectInput (dpy, w, event_mask & ~StructureNotifyMask);
     XReparentWindow( dpy, w, (new_parent!=None)?new_parent:Scr.Root, x, y );
     XSelectInput (dpy, w, event_mask );
+}
+
+int
+Empty_XErrorHandler (Display * dpy, XErrorEvent * event)
+{
+	return 0;
+}
+
+void
+safely_destroy_window (Window w)
+{
+	int           (*old_handler) (Display * dpy, XErrorEvent * event);
+
+	old_handler = XSetErrorHandler (Empty_XErrorHandler);
+	XDestroyWindow (dpy, w);
+	XSync (dpy, False);
+	XSetErrorHandler (old_handler);
 }
 
 /**********************************************************************/

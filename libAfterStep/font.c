@@ -1,17 +1,12 @@
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <X11/Xlib.h>
-
 #include "../configure.h"
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 #include "../include/screen.h"
+#include "../libAfterImage/afterimage.h"
 
 const char   *default_font = "fixed";
 
 /***************************************************************
- * 
+ *
  * load a font into a MyFont structure
  * if name == NULL, loads default font
  *

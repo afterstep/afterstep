@@ -6,7 +6,7 @@
    into configure stuff */
 #define WITH_CONFIG_WRITER
 
-struct syntax_definition;
+struct SyntaxDef;
 
 typedef struct term_definition
   {
@@ -54,7 +54,7 @@ typedef struct term_definition
 #define ID_ANY			0
 #define TT_CUSTOM_ID_START    	1024
     int id;			/* term's id */
-    struct syntax_definition *sub_syntax;	/* points to the SyntaxDef structure
+    struct SyntaxDef *sub_syntax;   /* points to the SyntaxDef structure
 						   of the syntax of complicated
 						   construct like PagerDecoration or
 						   MyStyle,
@@ -76,7 +76,7 @@ TermHashTable;
 typedef unsigned short int HashValue;
 
 
-typedef struct syntax_definition
+typedef struct SyntaxDef
   {
     /* user initialized members */
     char terminator;		/* character, terminating single term */
@@ -221,8 +221,8 @@ ConfigDef *InitConfigWriter (char *myname, SyntaxDef * syntax, ConfigDataType ty
 #define WF_DISCARD_UNKNOWN	(1<<4)
 #define WF_DISCARD_EVERYTHING   0xFFFFFFFF
 long WriteConfig (ConfigDef * config, FreeStorageElem ** storage, ConfigDataType target_type, void **target, unsigned long flags);
-/* Note: WriteConfig discards FreeStorage if everything is fine, 
- *       in which case *storage will be set to NULL 
+/* Note: WriteConfig discards FreeStorage if everything is fine,
+ *       in which case *storage will be set to NULL
  */
 
 void DestroyConfig (ConfigDef * config);
@@ -251,7 +251,7 @@ void StorageCleanUp (FreeStorageElem ** storage, FreeStorageElem ** garbadge_bin
 typedef struct
   {
     void *memory;		/* this one holds pointer to entire block of allocated memory */
-    int ok_to_free;		/* must be set in order to free memory allocated before and 
+    int ok_to_free;		/* must be set in order to free memory allocated before and
 				   stored in [memory] member */
     int type;
     int index;			/* valid only for those that has TF_INDEXED set */
@@ -281,7 +281,7 @@ void init_asgeometry (ASGeometry * geometry);
 
 
 /* string array manipulation functions */
-/* StringArray is an array of pointers to continuous block of memory, 
+/* StringArray is an array of pointers to continuous block of memory,
  * holding several zero terminated strings.
  * When such array is to be deallocated - only the first pointer from it needs to be
  * deallocated - that will deallocate entire storage.

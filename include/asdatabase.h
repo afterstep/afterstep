@@ -1,6 +1,8 @@
 #ifndef AS_STYLE_H
 #define AS_STYLE_H
 
+#include "afterstep.h"
+
 struct wild_reg_exp;
 
 /*  we clean up flags usage in style and use :

@@ -17,11 +17,7 @@
  *
  */
 
-#include <errno.h>
-#include <stdio.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include <unistd.h>
 #include <sys/socket.h>
@@ -29,28 +25,13 @@
 #include <sys/un.h>
 #include <sys/time.h>
 
-#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
-#include <sys/select.h>
-#endif
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-
 #include "../configure.h"
+#include "../include/asapp.h"
 
-#ifdef HAVE_XINERAMA
-#include <X11/extensions/Xinerama.h>
-#endif /* SHAPE */
-
-#include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
-#include "../include/style.h"
 #include "../include/mystyle.h"
 #include "../include/screen.h"
 #include "../include/module.h"
-#include "../libAfterBase/selfdiag.h"
 #include "../libAfterImage/afterimage.h"
 
 #ifdef HAVE_XINERAMA
@@ -156,12 +137,6 @@ is_synchronous_request (int request_code)
 }
 
 int
-Empty_XErrorHandler (Display * dpy, XErrorEvent * event)
-{
-	return 0;
-}
-
-int
 ASErrorHandler (Display * dpy, XErrorEvent * event)
 {
 	char         *err_text;
@@ -223,17 +198,6 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask)
 
 	XSelectInput (dpy, scr->Root, message_mask);
 	return x_fd;
-}
-
-void
-QuietlyDestroyWindow (Window w)
-{
-	int           (*old_handler) (Display * dpy, XErrorEvent * event);
-
-	old_handler = XSetErrorHandler (Empty_XErrorHandler);
-	XDestroyWindow (dpy, w);
-	XSync (dpy, False);
-	XSetErrorHandler (old_handler);
 }
 
 void

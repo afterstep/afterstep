@@ -376,7 +376,7 @@ parseOptions (int fd[2])
 	    {
 	      if (pixmapName == (char *) 0)
 		{
-		  CopyString (&pixmapName, &tline[clength + 7]);
+          pixmapName = stripcpy(&tline[clength + 7]);
 		  if (pixmapName[0] == 0)
 		    {
 		      free (pixmapName);
@@ -394,7 +394,7 @@ parseOptions (int fd[2])
 	    }
 	  if (mystrncasecmp (tline, "PixmapPath", 10) == 0)
 	    {
-	      CopyString (&pixmapPath, &tline[10]);
+          pixmapPath = stripcpy( &tline[10]);
 	      if (pixmapPath[0] == 0)
 		{
 		  free (pixmapPath);

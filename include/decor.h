@@ -29,9 +29,9 @@ typedef struct ASCanvas
 }ASCanvas;
 
 typedef struct ASTBtnData{
-    ASImage *unpressed ;
-    ASImage *pressed ;
-    ASImage *current ;
+    struct ASImage *unpressed ;
+    struct ASImage *pressed ;
+    struct ASImage *current ;
     unsigned short width, height ;
     short x, y ;
     unsigned long context ;
@@ -123,6 +123,7 @@ typedef struct MyFrame
     char      *name;
     ASFlagType flags; /* first 8 bits represent one enabled side/corner each */
     struct icon_t    *parts[FRAME_PARTS];
+    char             *part_filenames[FRAME_PARTS];
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
 #define MYFRAME_HOR_MASK    ((0x01<<FR_N)|(0x01<<FR_S))
@@ -145,7 +146,7 @@ void destroy_ascanvas( ASCanvas **pcanvas );
 Bool handle_canvas_config( ASCanvas *canvas ); /* Returns True if moved/resized */
 Pixmap get_canvas_canvas( ASCanvas *pc );
 Pixmap get_canvas_mask( ASCanvas *pc );
-Bool draw_canvas_image( ASCanvas *pc, ASImage *im, int x, int y );
+Bool draw_canvas_image( ASCanvas *pc, struct ASImage *im, int x, int y );
 void update_canvas_display( ASCanvas *pc );
 void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
 void moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height);
@@ -174,7 +175,7 @@ unsigned int calculate_astbar_width( ASTBarData *tbar );
 
 Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height );
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
-Bool set_astbar_image( ASTBarData *tbar, ASImage *image );
+Bool set_astbar_image( ASTBarData *tbar, struct ASImage *image );
 Bool set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short height );
 Bool set_astbar_label( ASTBarData *tbar, const char *label );
 Bool set_astbar_btns( ASTBarData *tbar, ASTBtnBlock **btns, Bool left );
@@ -190,6 +191,8 @@ int  check_astbar_point( ASTBarData *tbar, int root_x, int root_y );
 MyFrame *create_myframe();
 MyFrame *create_default_myframe();
 MyFrame *myframe_find( const char *name );
+void myframe_load ( MyFrame * frame, ASImageManager *imman );
+Bool filename2myframe_part (MyFrame *frame, int part, char *filename);
 Bool myframe_has_parts(const MyFrame *frame, ASFlagType mask);
 void destroy_myframe( MyFrame **pframe );
 

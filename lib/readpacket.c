@@ -1,21 +1,19 @@
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 
 #include "../configure.h"
-#include "../include/aftersteplib.h"
+
+#include "../include/asapp.h"
 #include "../include/module.h"
 
 void          DeadPipe (int nonsense);
 
 /************************************************************************
- * 
+ *
  * Reads a single packet of info from AfterStep. Prototype is:
  * unsigned long header[3];
  * unsigned long *body;
  * int fd[2];
- * void DeadPipe(int nonsense); 
+ * void DeadPipe(int nonsense);
  *  (Called if the pipe is no longer open )
  *
  * ReadASPacket(fd[1],header, &body);

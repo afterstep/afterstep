@@ -78,108 +78,7 @@
 #include "menus.h"
 #include "globals.h"
 
-#define	NEED_NAME 	(1<<0)
-#define	NEED_PATH 	(1<<1)
-#define	NEED_WINDOW 	(1<<2)
-#define	NEED_WINIFNAME 	(1<<3)
-#define	NEED_CMD 	(1<<4)
 
-#define FUNC_TERM(txt,len,func)         {TF_NO_MYNAME_PREPENDING,txt,len,TT_TEXT,func,NULL, NULL}
-#define FUNC_TERM2(flags,txt,len,func)  {TF_NO_MYNAME_PREPENDING|(flags),txt,len,TT_TEXT,func,NULL, NULL}
-
-TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
-	FUNC_TERM2 (NEED_NAME, "Nop", 3, F_NOP),   /* Nop      "name"|"" */
-	FUNC_TERM2 (NEED_NAME, "Title", 5, F_TITLE),	/* Title    "name"    */
-	FUNC_TERM ("Beep", 4, F_BEEP),			   /* Beep               */
-	FUNC_TERM ("Quit", 4, F_QUIT),			   /* Quit     ["name"] */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Restart", 7, F_RESTART),	/* Restart "name" WindowManagerName */
-	FUNC_TERM ("Refresh", 7, F_REFRESH),	   /* Refresh  ["name"] */
-#ifndef NO_VIRTUAL
-	FUNC_TERM ("Scroll", 6, F_SCROLL),		   /* Scroll     horiz vert */
-	FUNC_TERM ("GotoPage", 8, F_GOTO_PAGE),	   /* GotoPage   x     y    */
-	FUNC_TERM ("TogglePage", 10, F_TOGGLE_PAGE),	/* TogglePage ["name"]   */
-#endif
-	FUNC_TERM ("CursorMove", 10, F_MOVECURSOR),	/* CursorMove horiz vert */
-	FUNC_TERM2 (NEED_WINIFNAME, "WarpFore", 8, F_WARP_F),	/* WarpFore ["name" window_name] */
-	FUNC_TERM2 (NEED_WINIFNAME, "WarpBack", 8, F_WARP_B),	/* WarpBack ["name" window_name] */
-	FUNC_TERM2 (NEED_NAME | NEED_WINDOW, "Wait", 4, F_WAIT),	/* Wait      "name" window_name  */
-	FUNC_TERM ("Desk", 4, F_DESK),			   /* Desk arg1 [arg2] */
-#ifndef NO_WINDOWLIST
-	FUNC_TERM ("WindowList", 10, F_WINDOWLIST),	/* WindowList [arg1 arg2] */
-#endif
-	FUNC_TERM2 (NEED_NAME, "PopUp", 5, F_POPUP),	/* PopUp    "popup_name" [popup_name] */
-	FUNC_TERM2 (NEED_NAME, "Function", 8, F_FUNCTION),	/* Function "function_name" [function_name] */
-#ifndef NO_TEXTURE
-	FUNC_TERM ("MiniPixmap", 10, F_MINIPIXMAP),	/* MiniPixmap "name" */
-#endif
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Exec", 4, F_EXEC),	/* Exec   "name" command */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Module", 6, F_MODULE),	/* Module "name" command */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillModuleByName", 16, F_KILLMODULEBYNAME),	/* KillModuleByName "name" module */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "QuickRestart", 12, F_QUICKRESTART),	/* QuickRestart "name" what */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Background", 10, F_CHANGE_BACKGROUND),	/* Background "name" file_name */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeLook", 10, F_CHANGE_LOOK),	/* ChangeLook "name" file_name */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeFeel", 10, F_CHANGE_FEEL),	/* ChangeFeel "name" file_name */
-	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndFunction", 11, F_ENDFUNC),
-	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndPopup", 8, F_ENDPOPUP),
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", 4, F_Test),
-
-	/* this functions require window as aparameter */
-	FUNC_TERM ("&nonsense&", 10, F_WINDOW_FUNC_START),	/* not really a command */
-	FUNC_TERM ("Move", 4, F_MOVE),			   /* Move     ["name"] */
-	FUNC_TERM ("Resize", 6, F_RESIZE),		   /* Resize   ["name"] */
-	FUNC_TERM ("Raise", 5, F_RAISE),		   /* Raise    ["name"] */
-	FUNC_TERM ("Lower", 5, F_LOWER),		   /* Lower    ["name"] */
-	FUNC_TERM ("RaiseLower", 10, F_RAISELOWER),	/* RaiseLower ["name"] */
-	FUNC_TERM ("PutOnTop", 8, F_PUTONTOP),	   /* PutOnTop  */
-	FUNC_TERM ("PutOnBack", 9, F_PUTONBACK),   /* PutOnBack */
-	FUNC_TERM ("SetLayer", 8, F_SETLAYER),	   /* SetLayer    layer */
-	FUNC_TERM ("ToggleLayer", 11, F_TOGGLELAYER),	/* ToggleLayer layer1 layer2 */
-	FUNC_TERM ("Shade", 5, F_SHADE),		   /* Shade    ["name"] */
-	FUNC_TERM ("Delete", 6, F_DELETE),		   /* Delete   ["name"] */
-	FUNC_TERM ("Destroy", 7, F_DESTROY),	   /* Destroy  ["name"] */
-	FUNC_TERM ("Close", 5, F_CLOSE),		   /* Close    ["name"] */
-	FUNC_TERM ("Iconify", 7, F_ICONIFY),	   /* Iconify  ["name"] value */
-	FUNC_TERM ("Maximize", 8, F_MAXIMIZE),	   /* Maximize ["name"] [hori vert] */
-	FUNC_TERM ("Stick", 5, F_STICK),		   /* Stick    ["name"] */
-	FUNC_TERM ("Focus", 5, F_FOCUS),		   /* Focus */
-	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowUp", 14, F_CHANGEWINDOW_UP),	/* ChangeWindowUp   ["name" window_name ] */
-	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowDown", 16, F_CHANGEWINDOW_DOWN),	/* ChangeWindowDown ["name" window_name ] */
-    FUNC_TERM2 (NEED_WINIFNAME, "GoToBookmark", 12, F_GOTO_BOOKMARK),   /* GoToBookmark ["name" window_bookmark ] */
-	FUNC_TERM ("GetHelp", 7, F_GETHELP),	   /* */
-	FUNC_TERM ("PasteSelection", 14, F_PASTE_SELECTION),	/* */
-	FUNC_TERM ("WindowsDesk", 11, F_CHANGE_WINDOWS_DESK),	/* WindowDesk "name" new_desk */
-    FUNC_TERM ("BookmarkWindow", 14, F_BOOKMARK_WINDOW),    /* BookmarkWindow "name" new_bookmark */
-        /* end of window functions */
-	/* these are commands  to be used only by modules */
-	FUNC_TERM ("&nonsense&", 10, F_MODULE_FUNC_START),	/* not really a command */
-	FUNC_TERM ("Send_WindowList", 15, F_SEND_WINDOW_LIST),	/* */
-	FUNC_TERM ("SET_MASK", 8, F_SET_MASK),	   /* SET_MASK  mask */
-	FUNC_TERM2 (NEED_CMD, "SET_NAME", 8, F_SET_NAME),	/* SET_NAME  name */
-	FUNC_TERM ("UNLOCK", 6, F_UNLOCK),		   /* UNLOCK    1  */
-	FUNC_TERM ("SET_FLAGS", 9, F_SET_FLAGS),   /* SET_FLAGS flags */
-	/* these are internal commands */
-	FUNC_TERM ("&nonsense&", 10, F_INTERNAL_FUNC_START),	/* not really a command */
-	FUNC_TERM ("&raise_it&", 10, F_RAISE_IT),  /* should not be used by user */
-    /* wharf functions : */
-    {TF_NO_MYNAME_PREPENDING, "Folder", 6, TT_TEXT, F_Folder, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "Swallow", 7, TT_TEXT, F_Swallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallow", 10, TT_TEXT, F_MaxSwallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "SwallowModule", 13, TT_TEXT, F_Swallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallowModule", 16, TT_TEXT, F_MaxSwallow, NULL},
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "DropExec", 8, F_DropExec),	/* DropExec   "name" command */
-    {TF_NO_MYNAME_PREPENDING, "Size", 4, TT_TEXT, F_Size, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_TEXT, F_Transient, NULL},
-
-	{0, NULL, 0, 0, 0}
-};
-
-SyntaxDef     FuncSyntax = {
-	' ',
-	'\0',
-	FuncTerms,
-	0,										   /* use default hash size */
-	NULL
-};
 
 /* The keys must be in lower case! */
 struct charstring win_contexts[] = {
@@ -909,7 +808,7 @@ MenuItemParse (MenuRoot * menu, const char *buf)
 	if (fdata->func != F_ENDPOPUP && fdata->func != F_ENDFUNC)
 	{
 #ifndef NO_TEXTURE
-		if (fdata->func != F_MINIPIXMAP && !MenuMiniPixmaps)
+        if (fdata->func != F_MINIPIXMAP && !get_flags( Scr.look_flags, MenuMiniPixmaps))
 #endif /* !NO_TEXTURE */
 		{
 			MenuItemFromFunc (menu, fdata);
@@ -1149,7 +1048,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 	scan_for_hotkey (fdata->name);
 	MenuItemFromFunc (menu, fdata);
 #ifndef NO_TEXTURE
-	if (MenuMiniPixmaps)
+    if (get_flags( Scr.look_flags, MenuMiniPixmaps))
 	{
 		fdata = create_named_function( F_MINIPIXMAP,
 		                               tree->icon != NULL ? tree->icon : "mini-menu.xpm");
@@ -1186,7 +1085,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 
 			MenuItemFromFunc (menu, fdata);
 #ifndef NO_TEXTURE
-			if (MenuMiniPixmaps)
+            if (get_flags( Scr.look_flags, MenuMiniPixmaps))
 			{
 				fdata = create_named_function( F_MINIPIXMAP, t->icon != NULL ? t->icon : "mini-folder.xpm");
 				MenuItemFromFunc (menu, fdata);
@@ -1209,7 +1108,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 			MenuItemFromFunc (menu, fdata);
 
 #ifndef NO_TEXTURE
-			if (MenuMiniPixmaps && t->icon != NULL)
+            if (get_flags( Scr.look_flags, MenuMiniPixmaps) && t->icon != NULL)
 			{
 				fdata = create_named_function(F_MINIPIXMAP, t->icon);
 				MenuItemFromFunc (menu, fdata);
@@ -1238,7 +1137,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 
 #ifndef NO_TEXTURE
 			/* check for a MiniPixmap */
-			if (MenuMiniPixmaps)
+            if (get_flags( Scr.look_flags, MenuMiniPixmaps))
 			{
 				int           parsed = 0;
 

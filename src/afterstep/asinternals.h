@@ -1,7 +1,6 @@
 #ifndef ASINTERNALS_H_HEADER_INCLUDED
 #define ASINTERNALS_H_HEADER_INCLUDED
 
-#include "globals.h"
 #include "menus.h"
 
 #ifdef SHAPE
@@ -16,13 +15,42 @@ struct ASDatabase;
 struct ASWMProps;
 struct MoveResizeData;
 struct MenuItem;
+struct ASEvent;
+
+/******************************************************************/
+/* these are global functions and variables private for afterstep */
+
+/* from configure.c */
+void error_point();
+void tline_error(const char* err_text);
+void str_error(const char* err_format, const char* string);
+
+int is_executable_in_path (const char *name);
+
+typedef struct _as_dirs
+{
+    char* after_dir ;
+    char* after_sharedir;
+    char* afters_noncfdir;
+} ASDirs;
+
+/* from afterstep.c */
+extern ASDirs as_dirs;
+
+/* from dirtree.c */
+char * strip_whitespace (char *str);
+
+/* from configure.c */
+//extern XContext MenuContext;    /* context for afterstep menus */
+extern struct ASDatabase    *Database;
 
 /**************************************************************************/
 /* Global variables :                                                     */
 /**************************************************************************/
 
 #ifdef SHAPE
-extern int    ShapeEventBase, ShapeErrorBase;
+extern int    ShapeEventBase;
+extern int    ShapeErrorBase;
 #endif
 
 extern ASFlagType    AfterStepState;              /* see ASS_ flags above */
@@ -35,6 +63,16 @@ extern char         *PixmapPath;
 extern char         *CursorPath;
 extern char         *IconPath;
 extern char         *ModulePath;
+
+/* global variables for Look values : */
+extern unsigned long XORvalue;
+extern int           RubberBand;
+extern char         *RMGeom;
+extern int           Xzap, Yzap;
+extern int           DrawMenuBorders;
+extern int           TextureMenuItemsIndividually;
+extern int           StartMenuSortMode;
+extern int           ShadeAnimationSteps;
 
 extern int           fd_width, x_fd;
 
@@ -50,10 +88,6 @@ extern int           Module_npipes;
 extern Bool   		 menu_event_mask[LASTEvent];  /* menu event filter */
 
 extern int    menuFromFrameOrWindowOrTitlebar;
-
-#ifdef SHAPE
-extern int    ShapeEventBase;
-#endif /* SHAPE */
 
 /**************************************************************************/
 /**************************************************************************/
@@ -81,12 +115,12 @@ int check_allowed_function2 (int func, ASWindow * t);
 int check_allowed_function (struct MenuItem * mi);
 
 /*************************** events.c ********************************/
-void DigestEvent    ( ASEvent *event );
-void DispatchEvent  ( ASEvent *event );
+void DigestEvent    ( struct ASEvent *event );
+void DispatchEvent  ( struct ASEvent *event );
 void HandleEvents   ();
 void WaitForButtonsUpLoop ();
-Bool WaitEventLoop( ASEvent *event, int finish_event_type, long timeout );
-Bool IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time );
+Bool WaitEventLoop( struct ASEvent *event, int finish_event_type, long timeout );
+Bool IsClickLoop( struct ASEvent *event, unsigned int end_mask, unsigned int click_time );
 Bool WaitWindowLoop( char *pattern, long timeout );
 
 
@@ -127,7 +161,29 @@ void EndWarping();
 
 void PasteSelection (struct ScreenInfo *scr );
 
+/*************************** icons.c *********************************/
+void destroy_asiconbox( ASIconBox **pib );
+ASIconBox *get_iconbox( int desktop );
+Bool add_iconbox_icon( ASWindow *asw );
+Bool remove_iconbox_icon( ASWindow *asw );
+Bool change_iconbox_icon_desk( ASWindow *asw, int from_desk, int to_desk );
+void on_icon_changed( ASWindow *asw );
+void rearrange_iconbox_icons( int desktop );
+
+
 /*************************** menus.c *********************************/
+/*************************** misc.c *********************************/
+inline void ungrab_window_buttons( Window w );
+inline void ungrab_window_keys (Window w );
+void MyXGrabButton ( unsigned button, unsigned modifiers,
+                Window grab_window, Bool owner_events, unsigned event_mask,
+                int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor);
+void MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window);
+void grab_window_buttons (Window w, ASFlagType context_mask);
+void grab_window_keys (Window w, ASFlagType context_mask);
+void grab_focus_click( Window w );
+void ungrab_focus_click( Window w );
+
 /***************************** module.c ***********************************/
 void SetupModules(void);
 

@@ -1,15 +1,12 @@
-#include <stdio.h>
-#include <string.h>
-
 #include "../configure.h"
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 
 /*****************************************************************************
  *	Does `string' match `pattern'? '*' in pattern matches any sub-string
  *	(including the null string) '?' matches any single char. For use
  *	by filenameforall. Note that '*' matches across directory boundaries
  *
- *      This code donated by  Paul Hudson <paulh@harlequin.co.uk>    
+ *      This code donated by  Paul Hudson <paulh@harlequin.co.uk>
  *      It is public domain, no strings attached. No guarantees either.
  *		Modified by Emanuele Caratti <wiz@iol.it>
  *

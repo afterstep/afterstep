@@ -18,14 +18,14 @@
  *
  */
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <X11/Xlib.h>
+#include "../configure.h"
+
 #include <X11/Intrinsic.h>
 
-#include "../configure.h"
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
+#include "../include/mystyle.h"
+#include "../include/event.h"
+#include "../include/balloon.h"
 
 #ifdef I18N
 #ifdef __STDC__
@@ -131,7 +131,7 @@ balloon_init (int free_resources)
 		while (balloon_first != NULL)
 			balloon_delete (balloon_first);
 		if (balloon_window != None);
-		QuietlyDestroyWindow (balloon_window);
+        safely_destroy_window (balloon_window);
 	}
 
 	balloon_first = NULL;
@@ -147,7 +147,7 @@ balloon_init (int free_resources)
 
 /*
  * parent must be selecting EnterNotify and LeaveNotify events
- * if balloon_set_rectangle() will be used, parent must be selecting 
+ * if balloon_set_rectangle() will be used, parent must be selecting
  * MotionNotify
  */
 Balloon      *

@@ -24,31 +24,14 @@
 
 #include "../configure.h"
 
-#include <errno.h>
-#include <stdio.h>
-#include <signal.h>
 #include <fcntl.h>
-#include <string.h>
-#include <ctype.h>
-#include <sys/wait.h>
-#include <sys/time.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #ifdef DO_CLOCKING
 #include <time.h>
 #endif
 
-#ifdef ISC									   /* Saul */
-#include <sys/bsdtypes.h>					   /* Saul */
-#endif /* Saul */
-
-#include <stdlib.h>
-#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
-#include <sys/select.h>
-#endif
-
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 #include "../include/afterstep.h"
 #include "../include/parser.h"
 
@@ -192,7 +175,7 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 				 new_conf->fd = open (realfilename, O_RDONLY);
 #ifdef DEBUG_PARSER
 				 fprintf( stderr, "%s:%d > reading config from \"%s\"\n", __FILE__, __LINE__, realfilename );
-#endif				 
+#endif
 				 free (realfilename);
 				 new_conf->bNeedToCloseFile = 1;
 			 }
@@ -428,11 +411,11 @@ GetNextStatement (ConfigDef * config, int my_only)
 					}
 					config->current_flags |= CF_DISABLED_OPTION;
 					/* let's skip few spaces here */
-					while( isspace (cur[i]) && 
-						   cur[i] != terminator && 
+					while( isspace (cur[i]) &&
+						   cur[i] != terminator &&
 					       cur[i] != file_terminator ) ++i;
-					if ( cur[i] == '\0' || 
-					     cur[i] == terminator || 
+					if ( cur[i] == '\0' ||
+					     cur[i] == terminator ||
 					     cur[i] == file_terminator)
 						break;				   /* not a valid option */
 					cur += i;

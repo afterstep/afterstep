@@ -19,19 +19,11 @@
 
 #define LOCAL_DEBUG
 
-#include <errno.h>
-#include <stdio.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "../configure.h"
 
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 #include "../include/afterstep.h"
-#include "../include/style.h"
 #include "../include/mystyle.h"
-#include "../include/misc.h"
 #include "../include/screen.h"
 #include "../libAfterImage/afterimage.h"
 #include "../include/myicon.h"
@@ -1041,6 +1033,38 @@ myframe_find( const char *name )
     return frame ;
 }
 
+void
+myframe_load ( MyFrame * frame, ASImageManager *imman )
+{
+	register int  i;
+
+	if (frame == NULL)
+		return;
+	for (i = 0; i < FRAME_PARTS; i++)
+        if( frame->part_filenames[i] )
+        {
+            frame->parts[i] = safecalloc( 1, sizeof(icon_t));
+            if( !load_icon (frame->parts[i], frame->part_filenames[i], imman) )
+            {
+                free( frame->parts[i] );
+                frame->parts[i] = NULL;
+            }
+        }
+}
+
+Bool
+filename2myframe_part (MyFrame *frame, int part, char *filename)
+{
+    if (filename && frame && part>= 0 && part < FRAME_PARTS)
+	{
+        if( frame->part_filenames[part] )
+            free( frame->part_filenames[part] );
+        frame->part_filenames[part] = mystrdup(filename);
+        return True;
+    }
+    return False;
+}
+
 Bool
 myframe_has_parts(const MyFrame *frame, ASFlagType mask)
 {
@@ -1070,7 +1094,6 @@ destroy_myframe( MyFrame **pframe )
         free( pf );
         *pframe = NULL ;
     }
-
 }
 
 /*************************************************************************/

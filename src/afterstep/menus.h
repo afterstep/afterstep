@@ -4,7 +4,7 @@
 #define MAX_FILE_SIZE 4096	/* max chars to read from file for cut */
 
 #include "../../include/functions.h"
-
+struct ASEvent;
 /* using long type here as we can get large numbers in
    commands from modules (SET_MASK in particular) */
 typedef long val_type ;
@@ -196,7 +196,7 @@ int RunCommand( char* cmd, int channel, Window w );
 void do_menu(MenuRoot * menu, MenuRoot * parent);
 Bool configure_menu(MenuRoot * menu, MenuRoot * parent);
 void setup_menu_pixmaps(MenuRoot * menu);
-Bool HandleMenuEvent (MenuRoot * menu, ASEvent * event);
+Bool HandleMenuEvent (MenuRoot * menu, struct ASEvent * event);
 Bool map_menu(MenuRoot * menu, int context);
 Bool unmap_menu (MenuRoot * menu);
 Bool pin_menu(MenuRoot * menu);

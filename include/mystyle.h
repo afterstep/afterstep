@@ -2,6 +2,7 @@
 #define _MYSTYLE_
 
 #include "../libAfterImage/afterimage.h"
+#include "../include/font.h"
 
 /***********************************************************************
  *
@@ -12,39 +13,39 @@
 /*
  * To use:
  * 1. set extern globals (MyName, dpy, screen)
- * 2. parse config file, calling mystyle_parse() when a "MyStyle" 
+ * 2. parse config file, calling mystyle_parse() when a "MyStyle"
  *    keyword is seen
- * 3. call mystyle_fix_styles(), which will create the default style (if 
+ * 3. call mystyle_fix_styles(), which will create the default style (if
  *    necessary) and fill in unset style members
- * 4. call mystyle_find() to get style(s) by name; this pointer can be 
+ * 4. call mystyle_find() to get style(s) by name; this pointer can be
  *    safely stored for later use
  *
  * Styles are now ready for use.
  *
- * 5. when drawing using styles, normally call mystyle_get_global_gcs() 
- *    to get drawing GCs; for more control, call mystyle_set_gcs(), 
+ * 5. when drawing using styles, normally call mystyle_get_global_gcs()
+ *    to get drawing GCs; for more control, call mystyle_set_gcs(),
  *    which sets any arbitrary set of GCs (see Notes for caveat, however)
  *
  * Backward compatibility (replaces step 2, above):
  *
  * 2a. find (or create, if necessary) the appropriate style
  * 2b. convert the config line into MyStyle command(s)
- * 2c. call mystyle_parse_member() to parse the modified config line 
+ * 2c. call mystyle_parse_member() to parse the modified config line
  *     into the MyStyle
  *
  * Notes:
- *  o it is always safe to create a style, even if that style will be 
+ *  o it is always safe to create a style, even if that style will be
  *    later used by the parsing code
- *  o mystyle_set_gcs() will set the GC foreground, background, font, 
- *    and fill style, and may set the tile, stipple, tile/stipple origin, 
+ *  o mystyle_set_gcs() will set the GC foreground, background, font,
+ *    and fill style, and may set the tile, stipple, tile/stipple origin,
  *    function, clip mask, and clip origin
- *  o if the GCs returned by mystyle_get_global_gcs() are modified, 
+ *  o if the GCs returned by mystyle_get_global_gcs() are modified,
  *    change them back! otherwise, strange things could happen
- *  o mystyle_parse() and mystyle_parse_member() both need a pixmap path, 
- *    which should be a colon (:) delimited list of paths to search for 
+ *  o mystyle_parse() and mystyle_parse_member() both need a pixmap path,
+ *    which should be a colon (:) delimited list of paths to search for
  *    pixmaps (eg, "~/GNUstep/Library/Afterstep/backgrounds:.")
- *  o always call mystyle_fix_styles() after creating a style and before 
- *    using it! the MyStyle code assumes some style members are defined 
+ *  o always call mystyle_fix_styles() after creating a style and before
+ *    using it! the MyStyle code assumes some style members are defined
  *    (and it's mystyle_fix_styles()'s job to make sure they are)
  */
 
@@ -106,7 +107,7 @@ typedef struct MyStyle
   }
 MyStyle;
 
-/* 
+/*
  * values < 16 are sequential control codes
  * values >= 16 are bit flags
  */
@@ -126,7 +127,7 @@ enum				/* MyStyle options */
     F_BACKMULTIGRADIENT = (1 << 12),
     F_BACKTRANSPIXMAP = (1 << 13)	/* should never be set unless F_BACKPIXMAP is set!! */
   };
-  
+
   enum				/* texture types */
   {
     TEXTURE_SOLID = 0,
@@ -143,48 +144,48 @@ enum				/* MyStyle options */
 
 	TEXTURE_TEXTURED_START = 125,
     TEXTURE_SHAPED_SCALED_PIXMAP = 125,
-    TEXTURE_SHAPED_PIXMAP,        
+    TEXTURE_SHAPED_PIXMAP,
     TEXTURE_SCALED_PIXMAP = 127,
-    TEXTURE_PIXMAP,        
+    TEXTURE_PIXMAP,
     TEXTURE_TRANSPARENT = 129, /* tninted really */
-    TEXTURE_TRANSPIXMAP = 130, /* 130-145 represent different 
+    TEXTURE_TRANSPIXMAP = 130, /* 130-145 represent different
 	                              blending methods from libAfterImage */
-	TEXTURE_TRANSPIXMAP_ALLANON = TEXTURE_TRANSPIXMAP,							  
-	TEXTURE_TRANSPIXMAP_ALPHA, 
-	TEXTURE_TRANSPIXMAP_TINT, 
-	TEXTURE_TRANSPIXMAP_ADD, 
-	TEXTURE_TRANSPIXMAP_SUB, 
-	TEXTURE_TRANSPIXMAP_DIFF, 
-	TEXTURE_TRANSPIXMAP_DARKEN, 
-	TEXTURE_TRANSPIXMAP_LIGHTEN, 
-	TEXTURE_TRANSPIXMAP_SCREEN, 
-	TEXTURE_TRANSPIXMAP_OVERLAY, 
-	TEXTURE_TRANSPIXMAP_HUE, 
-	TEXTURE_TRANSPIXMAP_SATURATE, 
-	TEXTURE_TRANSPIXMAP_VALUE, 
-	TEXTURE_TRANSPIXMAP_COLORIZE, 
-	TEXTURE_TRANSPIXMAP_DISSIPATE, 
-	
-	TEXTURE_TRANSPIXMAP_END = 148, 
+	TEXTURE_TRANSPIXMAP_ALLANON = TEXTURE_TRANSPIXMAP,
+	TEXTURE_TRANSPIXMAP_ALPHA,
+	TEXTURE_TRANSPIXMAP_TINT,
+	TEXTURE_TRANSPIXMAP_ADD,
+	TEXTURE_TRANSPIXMAP_SUB,
+	TEXTURE_TRANSPIXMAP_DIFF,
+	TEXTURE_TRANSPIXMAP_DARKEN,
+	TEXTURE_TRANSPIXMAP_LIGHTEN,
+	TEXTURE_TRANSPIXMAP_SCREEN,
+	TEXTURE_TRANSPIXMAP_OVERLAY,
+	TEXTURE_TRANSPIXMAP_HUE,
+	TEXTURE_TRANSPIXMAP_SATURATE,
+	TEXTURE_TRANSPIXMAP_VALUE,
+	TEXTURE_TRANSPIXMAP_COLORIZE,
+	TEXTURE_TRANSPIXMAP_DISSIPATE,
+
+	TEXTURE_TRANSPIXMAP_END = 148,
 
     TEXTURE_TRANSPARENT_TWOWAY = 149, /* tinted both ways - lightened or darkened */
 
 	TEXTURE_SCALED_TRANSPIXMAP = 150,
 	TEXTURE_SCALED_TPM_ALLANON = TEXTURE_SCALED_TRANSPIXMAP,
-	TEXTURE_SCALED_TPM_ALPHA, 
-	TEXTURE_SCALED_TPM_TINT, 
-	TEXTURE_SCALED_TPM_ADD, 
-	TEXTURE_SCALED_TPM_SUB, 
-	TEXTURE_SCALED_TPM_DIFF, 
-	TEXTURE_SCALED_TPM_DARKEN, 
-	TEXTURE_SCALED_TPM_LIGHTEN, 
-	TEXTURE_SCALED_TPM_SCREEN, 
-	TEXTURE_SCALED_TPM_OVERLAY, 
-	TEXTURE_SCALED_TPM_HUE, 
-	TEXTURE_SCALED_TPM_SATURATE, 
-	TEXTURE_SCALED_TPM_VALUE, 
-	TEXTURE_SCALED_TPM_COLORIZE, 
-	TEXTURE_SCALED_TPM_DISSIPATE, 
+	TEXTURE_SCALED_TPM_ALPHA,
+	TEXTURE_SCALED_TPM_TINT,
+	TEXTURE_SCALED_TPM_ADD,
+	TEXTURE_SCALED_TPM_SUB,
+	TEXTURE_SCALED_TPM_DIFF,
+	TEXTURE_SCALED_TPM_DARKEN,
+	TEXTURE_SCALED_TPM_LIGHTEN,
+	TEXTURE_SCALED_TPM_SCREEN,
+	TEXTURE_SCALED_TPM_OVERLAY,
+	TEXTURE_SCALED_TPM_HUE,
+	TEXTURE_SCALED_TPM_SATURATE,
+	TEXTURE_SCALED_TPM_VALUE,
+	TEXTURE_SCALED_TPM_COLORIZE,
+	TEXTURE_SCALED_TPM_DISSIPATE,
 	TEXTURE_SCALED_TRANSPIXMAP_END = 168,
 	TEXTURE_TEXTURED_END = TEXTURE_SCALED_TRANSPIXMAP_END,
 

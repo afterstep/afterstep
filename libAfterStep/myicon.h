@@ -2,6 +2,7 @@
 #define AS_MYICON_H_HEADER_INCLUDED
 
 struct ASImage;
+struct ASImageManager;
 
 typedef struct icon_t
   {
@@ -17,7 +18,8 @@ icon_t;
 
 typedef icon_t MyIcon;
 
-void asimage2icon( ASImage *im, icon_t *icon, Bool ignore_alpha );
+void asimage2icon( struct ASImage *im, icon_t *icon, Bool ignore_alpha );
+Bool load_icon (icon_t *icon, const char *filename, struct ASImageManager *imman );
 void free_icon_resources( icon_t icon );
 void destroy_icon(icon_t **picon);
 

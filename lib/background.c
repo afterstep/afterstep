@@ -24,9 +24,8 @@
 
 #include "../configure.h"
 
-#include <stdio.h>
 #include <signal.h>
-#include <string.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/wait.h>
 
@@ -35,17 +34,12 @@
 #include <time.h>
 #endif
 
-#ifdef ISC									   /* Saul */
-#include <sys/bsdtypes.h>					   /* Saul */
-#endif /* Saul */
-
 #include <X11/Intrinsic.h>
 
 #define IN_MODULE
 
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 #include "../include/afterstep.h"
-#include "../include/style.h"
 #include "../include/screen.h"
 #include "../include/mystyle.h"
 #include "../include/loadimg.h"

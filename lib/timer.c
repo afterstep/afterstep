@@ -1,7 +1,7 @@
-#include <stdlib.h>
-#include <sys/time.h>
 #include "../configure.h"
-#include "../include/aftersteplib.h"
+
+#include <sys/time.h>
+#include "../include/asapp.h"
 
 static void   timer_get_time (time_t * sec, time_t * usec);
 static void   mytimer_delete (Timer * timer);

@@ -149,9 +149,9 @@ ParseOptions (char *filename)
       while (isspace (*tline))
 	tline++;
       if ((strlen (&tline[0]) > 1) && (mystrncasecmp (tline, "PixmapPath", 10) == 0))
-	CopyString (&pixmapPath, &tline[10]);
+    pixmapPath = stripcpy(&tline[10]);
       else if ((strlen (&tline[0]) > 1) && (mystrncasecmp (tline, "*ScriptPath", 11) == 0))
-	CopyString (&ScriptPath, &tline[11]);
+    ScriptPath = stripcpy( &tline[11]);
 
       tline = fgets (line, (sizeof line) - 1, fd);
       orig_tline = tline;

@@ -99,7 +99,7 @@ ASMessage;
 
 /* from lib/module.c */
 /* checks if there is message from Afterstep in incoming pipe,
- * and reads it if it is . Returns NULL if there is nothing available yet 
+ * and reads it if it is . Returns NULL if there is nothing available yet
  */
 ASMessage *CheckASMessageFine (int fd, int t_sec, int t_usec);
 #define CheckASMessage(fd,t_sec) CheckASMessageFine(fd,t_sec,0)
@@ -123,9 +123,6 @@ typedef struct as_atom
   }
 ASAtom;
 
-/* sets MyName global variable from supplied argv[0] */
-void SetMyName (char *argv0);
-
 void default_version_func (void);
 void (*custom_version_func) (void);
 int ProcessModuleArgs (int argc, char **argv, char **global_config_file, unsigned long *app_window, unsigned long *app_context, void (*custom_usage_func) (void));
@@ -137,6 +134,7 @@ int ConnectAfterStep (unsigned long message_mask);
 void LoadBaseConfig (char *global_config_file, void (*read_base_options_func) (const char *));
 void LoadConfig (char *global_config_file, char *config_file_name, void (*read_options_func) (const char *));
 
+
 /* only aplicable to modules with X connection : lib/Xmodule.c */
 #ifdef MODULE_X_INTERFACE
 /* returns fd of the X server connection */
@@ -146,6 +144,7 @@ int ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask);
 void InitAtoms (Display * dpy, ASAtom * atoms);
 /* X enabled version of RunModule */
 int My_XNextEvent (Display * dpy, int x_fd, int as_fd, void (*as_msg_handler) (unsigned long type, unsigned long *body), XEvent * event);
+
 #endif
 
 #endif /* MODULE_H */

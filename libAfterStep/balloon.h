@@ -1,6 +1,8 @@
 #ifndef BALLOON_H
 #define BALLOON_H
 
+struct MyStyle;
+
 /*
  * To use:
  * 1. set extern globals (MyName, dpy, screen)
@@ -11,10 +13,10 @@
  *
  * Notes:
  *  o EnterNotify and LeaveNotify must be selected for parent windows
- *  o if active rectangles are used, MotionNotify should be selected for 
+ *  o if active rectangles are used, MotionNotify should be selected for
  *    parent windows
  *  o balloons may be created (with balloon_new()) at any point
- *  o unless precise control of balloon position is required, 
+ *  o unless precise control of balloon position is required,
  *    set_position() should not be used
  */
 
@@ -45,7 +47,7 @@ Balloon *balloon_new (Display * dpy, Window parent);
 Balloon *balloon_new_with_text (Display * dpy, Window parent, char *text);
 Balloon *balloon_find (Window parent);
 void balloon_delete (Balloon * balloon);
-void balloon_set_style (Display * dpy, MyStyle * style);
+void balloon_set_style (Display * dpy, struct MyStyle * style);
 void balloon_set_text (Balloon * balloon, const char *text);
 void balloon_set_active_rectangle (Balloon * balloon, int x, int y, int width, int height);
 void balloon_set_position (Balloon * balloon, int x, int y);

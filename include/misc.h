@@ -1,9 +1,6 @@
 #ifndef _MISC_
 #define _MISC_
 
-#define SORTBYALPHA 1
-#define SORTBYDATE  2
-
 /************************************************************************
  * ReapChildren - wait() for all dead child processes
  ************************************************************************/

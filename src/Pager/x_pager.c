@@ -100,7 +100,7 @@ InitDesk (long Desk)
   char line[100];
   LOG2 ("\nEnter InitDesk %ld", Desk);
   sprintf (line, "Desk %lu", Desk + Pager.desk1);
-  CopyString (&Pager.Desks[Desk].label, line);
+  Pager.Desks[Desk].label = stripcpy(line);
   Pager.Desks[Desk].exposed = False;
 
   Pager.Desks[Desk].StyleName = NULL;

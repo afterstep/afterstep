@@ -19,20 +19,9 @@
 
 #include "../configure.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <X11/X.h>
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xutil.h>
-
 /*#define LOCAL_DEBUG*/
 
-#include "../include/aftersteplib.h"
-#include "../include/afterstep.h"
-#include "../include/parse.h"
-#include "../include/misc.h"
-#include "../include/style.h"
+#include "../include/asapp.h"
 #include "../include/screen.h"
 #include "../include/mystyle.h"
 #include "../include/mystyle_property.h"
@@ -206,7 +195,7 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
 			for (k = 0; k < style->gradient.npoints; k++)
 			{
 				style->gradient.color[k] = prop[i + 16 + k * 4 + 0];
-				/* 
+				/*
 				   style->gradient.color[k].green = prop[i + 16 + k * 4 + 1];
 				   style->gradient.color[k].blue = prop[i + 16 + k * 4 + 2];
 				 */

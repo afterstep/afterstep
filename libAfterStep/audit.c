@@ -21,17 +21,7 @@
 
 #ifdef DEBUG_ALLOCS
 
-#include <string.h>		/* for memset */
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#ifdef XPM
-#include <X11/xpm.h>
-#endif /* XPM */
-
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 
 #undef malloc
 #undef safemalloc

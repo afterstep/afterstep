@@ -418,7 +418,7 @@ DispatchEvent (XEvent * event)
 		{
 		  XFetchName (dpy, Buttons[button].IconWin, &temp);
 		  if (strcmp (Buttons[button].title, "-") != 0)
-		    CopyString (&Buttons[button].title, temp);
+            Buttons[button].title = stripcpy( temp);
 		  XFree (temp);
 		  XClearArea (dpy, main_win, j * ButtonWidth,
 			    i * ButtonHeight, ButtonWidth, ButtonHeight, 0);
@@ -911,7 +911,7 @@ ParseOptions (const char *filename)
 	    }
 	  else if (!mystrncasecmp (tline, "Font", 4))
 	    {
-	      CopyString (&font_string, tline + 4);
+          font_string = stripcpy( tline + 4);
 	    }
 	  else if (!mystrncasecmp (tline, "Rows", 4))
 	    {
@@ -925,11 +925,11 @@ ParseOptions (const char *filename)
 	    }
 	  else if (!mystrncasecmp (tline, "Fore", 4))
 	    {
-	      CopyString (&ZharfFore, tline + 4);
+          ZharfFore = stripcpy( tline + 4);
 	    }
 	  else if (!mystrncasecmp (tline, "Back", 4))
 	    {
-	      CopyString (&ZharfBack, tline + 4);
+          ZharfBack = stripcpy( tline + 4);
 	    }
 	  else if (num_buttons < MAX_BUTTONS)
 	    {
@@ -966,12 +966,12 @@ ParseBaseOptions (const char *filename)
 
       if (!mystrncasecmp (tline, "IconPath", 8))
 	{
-	  CopyString (&iconPath, tline + 8);
+      iconPath = stripcpy( tline + 8);
 	  replaceEnvVar (&iconPath);
 	}
       else if (!mystrncasecmp (tline, "PixmapPath", 10))
 	{
-	  CopyString (&pixmapPath, tline + 10);
+      pixmapPath = stripcpy( tline + 10);
 	  replaceEnvVar (&pixmapPath);
 	}
     }
@@ -1250,7 +1250,7 @@ swallow (unsigned long *body)
 	    XClearArea (dpy, main_win, j * ButtonWidth, i * ButtonHeight,
 			ButtonWidth, ButtonHeight, 0);
 	    if (strcmp (Buttons[button].title, "-") != 0)
-	      CopyString (&Buttons[button].title, temp);
+          Buttons[button].title = stripcpy( temp);
 	    RedrawWindow (-1);
 	    XFree (temp);
 	  }

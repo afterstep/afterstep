@@ -173,9 +173,9 @@ ParseOptions (const char *filename)
 	    {
 	      tline += len + 1;
 	      if (!mystrncasecmp (tline, "Fore", 4))
-		CopyString (&ForeColor, tline + 4);
+        ForeColor = stripcpy( tline + 4);
 	      else if (!mystrncasecmp (tline, "Back", 4))
-		CopyString (&BackColor, tline + 4);
+        BackColor = stripcpy( tline + 4);
 	    }
 	}
       free (line);

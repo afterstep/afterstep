@@ -195,6 +195,11 @@ typedef struct
 }
 ASGeometry;
 
+typedef struct ASRectangle
+{
+  int x, y;
+  unsigned int width, height;
+}ASRectangle;
 
 typedef struct fr_pos
   {

@@ -133,7 +133,7 @@ ScreenInfo Scr;			/* AS compatible screen information structure */
 Display *dpy;			/* which display are we talking to */
 int screen;
 
-int window_w = 0, window_h = 0, window_x = 0, window_y = 0, 
+int window_w = 0, window_h = 0, window_x = 0, window_y = 0,
     window_x_negative = 0, window_y_negative = 0;
 int icon_x = -10000, icon_y = -10000, icon_w = 0, icon_h = 0;
 int usposition = 0;
@@ -677,7 +677,7 @@ list_new_background (unsigned long *body)
 	  return;
 	}
       cmd = (char *) safemalloc (strlen (arg0) + 1 + 5 + 16 + 16);
-	  if( display_name == NULL ) 
+	  if( display_name == NULL )
 	      sprintf (cmd, "%s -l %d %d", arg0, Pager.desk1, Pager.desk2);
 	  else
 	      sprintf (cmd, "%s --display \"%s\" -l %d %d", arg0, display_name, Pager.desk1, Pager.desk2);
@@ -821,7 +821,7 @@ list_icon_name (unsigned long *body)
     {
       if (t->icon_name != NULL)
 	free (t->icon_name);
-      CopyString (&t->icon_name, (char *) (&body[3]));
+      t->icon_name = stripcpy( (char *) (&body[3]));
 
       if (t->PagerView != None)
 	{
@@ -1050,7 +1050,7 @@ FixLook ()
       if (!(Pager.Flags & DIFFERENT_GRID_COLOR))
 	Look.GridColor = (Look.Styles[STYLE_INADESK]->colors).fore;
 
-      ARGB2PIXEL(Scr.asv, Look.GridColor,&gcvalues.foreground); 
+      ARGB2PIXEL(Scr.asv, Look.GridColor,&gcvalues.foreground);
       Look.GridGC = create_visual_gc(Scr.asv, Scr.Root, GCForeground, &gcvalues);
     }
 
@@ -1146,7 +1146,7 @@ GetOptions (const char *filename)
 		  else
 			  clear_flags(Pager.Flags, (0x01<<i));
 	  }
-	  			  
+
   if( get_flags( config->set_flags, PAGER_SET_ALIGN ) )
 	  Look.TitleAlign = config->align;
   if( get_flags( config->set_flags, PAGER_SET_ROWS ) )
@@ -1154,11 +1154,11 @@ GetOptions (const char *filename)
   if( get_flags( config->set_flags, PAGER_SET_COLUMNS ) )
 	  Pager.Columns = config->columns;
 
-  if( Pager.Rows == 0 ) 
+  if( Pager.Rows == 0 )
 	  Pager.Rows = 1 ;
-  if( Pager.Columns == 0 ) 
+  if( Pager.Columns == 0 )
 	  Pager.Columns = ((Pager.desk2-Pager.desk1)+Pager.Rows-1) / Pager.Rows ;
-  else if( Pager.Rows*Pager.Columns  < Pager.desk2-Pager.desk1 ) 
+  else if( Pager.Rows*Pager.Columns  < Pager.desk2-Pager.desk1 )
   	  Pager.Rows = ((Pager.desk2-Pager.desk1)+Pager.Columns-1) / Pager.Columns ;
 
   if( get_flags( config->set_flags, PAGER_SET_GEOMETRY ) )
@@ -1173,7 +1173,7 @@ GetOptions (const char *filename)
     	usposition = 1;
         if (config->geometry.flags & XNegative)
 	  	  window_x_negative = 1;
-      }	
+      }
 	if (config->geometry.flags & YValue)
   	{
   	    window_y = config->geometry.y;
@@ -1183,9 +1183,9 @@ GetOptions (const char *filename)
     }
   }
 /*
-  if( window_w <= 0 ) 
+  if( window_w <= 0 )
 	window_w = Pager.xSize*Pager.Columns/Scr.VScale ;
-  if( window_h <= 0 ) 
+  if( window_h <= 0 )
 	window_h = Pager.ySize*Pager.Rows/Scr.VScale ;
 fprintf( stderr, "windows size will be %dx%d (%dx%d) %d\n", window_w, window_h, Pager.Columns, Pager.Rows, Scr.VScale );
 */
@@ -1218,15 +1218,15 @@ fprintf( stderr, "windows size will be %dx%d (%dx%d) %d\n", window_w, window_h, 
 			free (Pager.Desks[i].StyleName);
 	    Pager.Desks[i].StyleName = config->styles[i];
   	  }
-	}	  
+	}
 #endif
-/*  
-  if( icon_w <= 0 ) 
+/*
+  if( icon_w <= 0 )
 	icon_w = 64 ;
-  if( icon_h <= 0 ) 
+  if( icon_h <= 0 )
 	icon_h = 64 ;
 */
-  
+
   if (config->small_font_name)
     {
       load_font (config->small_font_name, &(Look.windowFont));

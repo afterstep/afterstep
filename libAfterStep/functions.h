@@ -95,6 +95,13 @@ typedef enum {
 F_FUNCTIONS_NUM
 } FunctionCode ;
 
+#define NEED_NAME   (1<<0)
+#define	NEED_PATH 	(1<<1)
+#define	NEED_WINDOW 	(1<<2)
+#define	NEED_WINIFNAME 	(1<<3)
+#define	NEED_CMD 	(1<<4)
+
+
 #define IsWindowFunc(f)  ((f)>F_WINDOW_FUNC_START&&(f)<F_MODULE_FUNC_START)
 #define IsModuleFunc(f)  ((f)>F_MODULE_FUNC_START&&(f)<F_INTERNAL_FUNC_START)
 #define IsInternFunc(f)  ((f)>F_INTERNAL_FUNC_START&&(f)<F_FUNCTIONS_NUM)

@@ -18,11 +18,7 @@
  *
  */
 
-#include <errno.h>
-#include <stdio.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include <unistd.h>
 #include <sys/socket.h>
@@ -30,17 +26,9 @@
 #include <sys/un.h>
 #include <sys/time.h>
 
-#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
-#include <sys/select.h>
-#endif
-
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-
 #include "../configure.h"
-#include "../include/aftersteplib.h"
-#include "../include/afterstep.h"
-#include "../include/style.h"
+#include "../include/asapp.h"
+#include "../libAfterImage/afterimage.h"
 #include "../include/screen.h"
 #include "../include/module.h"
 

@@ -24,12 +24,7 @@
 
 #include "../configure.h"
 
-#include <errno.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 #include "../include/afterstep.h"
 #include "../include/parser.h"
 

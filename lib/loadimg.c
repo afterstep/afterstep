@@ -20,28 +20,10 @@
 #define LIBASIMAGE
 /*#define DEBUG_LOADIMAGE */
 
-
 #include "../configure.h"
 
-#include <stdio.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <string.h>
-#include <unistd.h>
-#include <math.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-#include <X11/xpm.h>
-
-#include "../include/aftersteplib.h"
-#include "../include/afterstep.h"
-
+#include "../include/asapp.h"
 #include "../libAfterImage/afterimage.h"
-
 #include "../include/loadimg.h"
 
 #define SCREEN_GAMMA 1.0					   /* default gamma correction value - */

@@ -19,20 +19,11 @@
 
 #include "../configure.h"
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xproto.h>
-#include <X11/Xutil.h>
 
 /* #define LOCAL_DEBUG */
 
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 #include "../include/afterstep.h"
 #include "../include/loadimg.h"
 #include "../libAfterImage/afterimage.h"
@@ -58,6 +49,25 @@ asimage2icon (ASImage * im, icon_t * icon, Bool ignore_alpha)
 		icon->height = im->height;
 	}
 }
+
+Bool
+load_icon (icon_t *icon, const char *filename, ASImageManager *imman )
+{
+    if (icon && filename)
+	{
+        ASImage *im = get_asimage( imman, filename, ASFLAGS_EVERYTHING, 100 );
+        if( im == NULL )
+            show_error( "failed to locate icon file %s in the IconPath and PixmapPath", filename );
+        else
+		{
+            asimage2icon (im, icon, False);
+            LOCAL_DEBUG_OUT("icon file %s loaded into ASImage %p(imman %p) using imageman = %p and has size %dx%d", filename, im, im->imageman, imman, icon->width, icon->height );
+		}
+        return (icon->image != NULL);
+	}
+	return False;
+}
+
 
 void
 free_icon_resources (icon_t icon)

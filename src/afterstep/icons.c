@@ -40,13 +40,11 @@
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
-#include "../../include/misc.h"
-#include "../../include/style.h"
+#include "../../include/decor.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"
-#include "../../include/loadimg.h"
 
-#include "menus.h"
+#include "asinternals.h"
 
 /***********************************************************************/
 /* new IconBox handling :                                              */
@@ -61,7 +59,7 @@ destroy_asiconbox( ASIconBox **pib )
 		if( ib->areas )
 			free( ib->areas );
 		if( ib->icons )
-			destroy_asbidirlist( &ib->areas );
+            destroy_asbidirlist( &(ib->icons) );
 		free( ib );
 	  	*pib = NULL ;
 	}
@@ -77,7 +75,7 @@ get_iconbox( int desktop )
 			ib = Scr.default_icon_box ;
 		else
 			if( Scr.icon_boxes )
-				if( get_hash_item( Scr.icon_boxes, AS_HASHABLE(desktop), &ib ) != ASH_Success )
+                if( get_hash_item( Scr.icon_boxes, AS_HASHABLE(desktop), (void**)&ib ) != ASH_Success )
 					ib = NULL ;
 		if( ib == NULL )
 		{
@@ -116,7 +114,7 @@ Bool
 add_iconbox_icon( ASWindow *asw )
 {
     if( AS_ASSERT(asw) )
-        return;
+        return False;
     /* TODO: we need to add this window to the list of icons */
     if (asw->icon_canvas)
         XMapWindow (dpy, asw->icon_canvas->w);
@@ -127,24 +125,26 @@ add_iconbox_icon( ASWindow *asw )
     {  /* move it away so it is not visible */
 
     }
+    return True;
 }
 
 Bool
 remove_iconbox_icon( ASWindow *asw )
 {
     if( AS_ASSERT(asw) )
-        return;
+        return False;
     /* TODO: we need to add this window to the list of icons */
     if (asw->icon_canvas)
         XUnmapWindow (dpy, asw->icon_canvas->w);
     if (asw->icon_title_canvas != NULL && asw->icon_title_canvas != asw->icon_canvas)
         XUnmapWindow (dpy, asw->icon_title_canvas->w);
+    return True;
 }
 
 Bool
 change_iconbox_icon_desk( ASWindow *asw, int from_desk, int to_desk )
 {
-
+    return False;
 }
 
 void
@@ -175,6 +175,7 @@ rearrange_iconbox_icons( int desktop )
 
 }
 
+#if 0
 /***********************************************************************/
 /***********************************************************************/
 /***********************************************************************/
@@ -935,3 +936,5 @@ GetIconWindow (ASWindow * tmp_win)
 	tmp_win->flags &= ~ICON_OURS;
 	return 1;
 }
+#endif
+

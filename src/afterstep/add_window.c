@@ -67,24 +67,19 @@
  **********************************************************************/
 #include "../../configure.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
-#include "../../include/misc.h"
+#include "../../include/event.h"
 #include "../../include/decor.h"
 #include "../../include/screen.h"
-#include "../../include/module.h"
 #include "../../include/parser.h"
+#include "../../include/module.h"
+#include "../../include/mystyle.h"
 #include "../../include/clientprops.h"
 #include "../../include/hints.h"
+#include "../../include/balloon.h"
+#include "../../libAfterImage/afterimage.h"
 #include "asinternals.h"
 
 #ifdef SHAPE
@@ -1158,7 +1153,6 @@ list_functions_by_context (int context)
 	for (btn = Scr.MouseButtonRoot; btn != NULL; btn = btn->NextButton)
 		if (btn->Context & context)
 		{
-			extern SyntaxDef FuncSyntax;
 			TermDef      *fterm;
 
             fterm = FindTerm (&FuncSyntax, TT_ANY, btn->fdata->func);
@@ -1254,7 +1248,7 @@ SelectDecor (ASWindow * t)
 #endif
 
 #ifndef NO_TEXTURE
-	if (!get_flags(hints->function_mask,AS_FuncResize) || !DecorateFrames)
+    if (!get_flags(hints->function_mask,AS_FuncResize) || !get_flags( Scr.look_flags, DecorateFrames))
 #endif /* !NO_TEXTURE */
 	{
 		/* a wide border, with corner tiles */
@@ -1454,7 +1448,6 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
         quietly_unmap_window( asw->w, AS_CLIENT_EVENT_MASK );
         XUnmapWindow (dpy, asw->frame);
 
-		SetMapStateProp (asw, IconicState);
 
 		/* this transient logic is kinda broken - we need to exepriment with it and
 		   fix it eventually, less we want to end up with iconified transients
@@ -1465,6 +1458,13 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
         if( !ASWIN_HFLAGS(asw, AS_Transient))
 		{
             set_flags( asw->status->flags, AS_Iconic );
+            asw->status->icon_window = None ;
+            if( asw->icon_canvas )
+                asw->status->icon_window = asw->icon_canvas->w ;
+            else if( asw->icon_title_canvas )
+                asw->status->icon_window = asw->icon_title_canvas->w ;
+            set_client_state( asw->w, asw->status);
+
             add_iconbox_icon( asw );
             restack_window( asw, None, Below );
 

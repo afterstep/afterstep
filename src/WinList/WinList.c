@@ -23,7 +23,7 @@
     * You should have received a copy of the GNU General Public License
     * along with this program; if not, write to the Free Software
     * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-    * $Id: WinList.c,v 1.3 2002/05/01 06:15:00 sashav Exp $
+    * $Id: WinList.c,v 1.4 2002/10/31 22:25:09 sasha Exp $
   */
 
 #define TRUE 1
@@ -262,13 +262,13 @@ ParseOptions (const char *file)
 	    {
 	      if (geometry)
 		free (geometry);
-	      CopyString (&geometry, tline + 8);
+          geometry = stripcpy( tline + 8);
 	    }
 	  else if (!mystrncasecmp (tline, "HideGeometry", 12))
 	    {
 	      if (hide_geometry)
 		free (hide_geometry);
-	      CopyString (&hide_geometry, tline + 12);
+          hide_geometry = stripcpy( tline + 12);
 	    }
 	  else if (!mystrncasecmp (tline, "NoAnchor", 8))
 	    Anchor = 0;
@@ -685,25 +685,25 @@ LinkAction (char *string)
     {
       if (ClickAction[0])
 	free (ClickAction[0]);
-      CopyString (&ClickAction[0], &temp[6]);
+      ClickAction[0] = stripcpy( &temp[6]);
     }
   else if (mystrncasecmp (temp, "Click2", 6) == 0)
     {
       if (ClickAction[1])
 	free (ClickAction[1]);
-      CopyString (&ClickAction[1], &temp[6]);
+      ClickAction[1] = stripcpy( &temp[6]);
     }
   else if (mystrncasecmp (temp, "Click3", 6) == 0)
     {
       if (ClickAction[2])
 	free (ClickAction[2]);
-      CopyString (&ClickAction[2], &temp[6]);
+      ClickAction[2] = stripcpy( &temp[6]);
     }
   else if (mystrncasecmp (temp, "Enter", 5) == 0)
     {
       if (EnterAction)
 	free (EnterAction);
-      CopyString (&EnterAction, &temp[5]);
+      EnterAction = stripcpy( &temp[5]);
     }
 }
 
@@ -751,7 +751,7 @@ update_winlist_background ()
 
 	if (Style->texture_type != 0 && w > 0 && h > 0)
     {
-		if( back_image ) 
+		if( back_image )
 		    destroy_asimage( &back_image );
 		back_image = mystyle_make_image( Style, x, y, w, h );
     }

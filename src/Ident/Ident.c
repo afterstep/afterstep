@@ -155,7 +155,7 @@ main (int argc, char **argv)
 									M_RES_CLASS|
 								    M_RES_NAME|
 									M_END_WINDOWLIST
-                                     ); 
+                                     );
 
   /* scan config file for set-up parameters */
   /* Colors and fonts */
@@ -213,11 +213,11 @@ ParseOptions (const char *filename)
 	    {
 	      tline += len + 1;
 	      if (!mystrncasecmp (tline, "Font", 4))
-		CopyString (&font_string, tline + 4);
+        font_string = stripcpy(tline + 4);
 	      else if (!mystrncasecmp (tline, "Fore", 4))
-		CopyString (&ForeColor, tline + 4);
+        ForeColor = stripcpy( tline + 4);
 	      else if (!mystrncasecmp (tline, "Back", 4))
-		CopyString (&BackColor, tline + 4);
+        BackColor = stripcpy( tline + 4);
 	    }
 	}
       fclose (file);
@@ -227,7 +227,7 @@ ParseOptions (const char *filename)
 
 /**************************************************************************
  *
- * Read the entire window list from AfterStep 
+ * Read the entire window list from AfterStep
  *
  *************************************************************************/
 void
@@ -249,7 +249,7 @@ Loop (int *fd)
 
 /**************************************************************************
  *
- * Process window list messages 
+ * Process window list messages
  *
  *************************************************************************/
 void
@@ -286,7 +286,7 @@ process_message (unsigned long type, unsigned long *body)
 
 /***********************************************************************
  *
- * Detected a broken pipe - time to exit 
+ * Detected a broken pipe - time to exit
  *
  **********************************************************************/
 void
@@ -330,7 +330,7 @@ list_configure (unsigned long *body)
 
 /*************************************************************************
  *
- * Capture  Window name info 
+ * Capture  Window name info
  *
  ************************************************************************/
 void
@@ -344,7 +344,7 @@ list_window_name (unsigned long *body)
 
 /*************************************************************************
  *
- * Capture  Window Icon name info 
+ * Capture  Window Icon name info
  *
  ************************************************************************/
 void
@@ -359,7 +359,7 @@ list_icon_name (unsigned long *body)
 
 /*************************************************************************
  *
- * Capture  Window class name info 
+ * Capture  Window class name info
  *
  ************************************************************************/
 void
@@ -374,7 +374,7 @@ list_class (unsigned long *body)
 
 /*************************************************************************
  *
- * Capture  Window resource info 
+ * Capture  Window resource info
  *
  ************************************************************************/
 void
@@ -427,7 +427,7 @@ gnome_hints (Window id)
 
 /*************************************************************************
  *
- * End of window list, open an x window and display data in it  
+ * End of window list, open an x window and display data in it
  *
  ************************************************************************/
 XSizeHints mysizehints;
@@ -505,7 +505,7 @@ list_end (void)
   if (Scr.d_depth < 2)
     {
       back_pix = Scr.asv->black_pixel ;
-      fore_pix = Scr.asv->white_pixel ;	  
+      fore_pix = Scr.asv->white_pixel ;
     }
   else
     {
@@ -568,7 +568,7 @@ list_end (void)
 /**********************************************************************
  *
  * If no application window was indicated on the command line, prompt
- * the user to select one 
+ * the user to select one
  *
  *********************************************************************/
 void
@@ -606,7 +606,7 @@ GetTargetWindow (Window * app_win)
 
 /************************************************************************
  *
- * Draw the window 
+ * Draw the window
  *
  ***********************************************************************/
 void

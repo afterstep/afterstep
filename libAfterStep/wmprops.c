@@ -19,14 +19,7 @@
 
 #include "../configure.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-
-#include "../include/afterbase.h"
-
-#include "../include/aftersteplib.h"
+#include "../include/asapp.h"
 #include "../include/screen.h"
 #include "../include/clientprops.h"
 #include "../include/wmprops.h"

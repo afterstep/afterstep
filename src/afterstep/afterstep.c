@@ -115,18 +115,6 @@ Window        JunkRoot, JunkChild;			   /* junk window */
 unsigned int  JunkWidth, JunkHeight, JunkBW, JunkDepth, JunkMask;
 
 /* assorted gray bitmaps for decorative borders */
-#define g_width 2
-#define g_height 2
-static char   g_bits[] = { 0x02, 0x01 };
-
-#define l_g_width 4
-#define l_g_height 2
-static char   l_g_bits[] = { 0x08, 0x02 };
-Bool          debugging = False, PPosOverride;
-
-#define s_g_width 4
-#define s_g_height 4
-static char   s_g_bits[] = { 0x01, 0x02, 0x04, 0x08 };
 
 #ifdef SHAPE
 int           ShapeEventBase, ShapeErrorBase;
@@ -402,7 +390,6 @@ main (int argc, char **argv)
 	CreateCursors ();
 	InitVariables (1);
 	module_setup ();
-	Scr.gray_bitmap = XCreateBitmapFromData (dpy, Scr.Root, g_bits, g_width, g_height);
 
 	/* the SizeWindow will be moved into place in LoadASConfig() */
 	attributes.override_redirect = True;
@@ -411,23 +398,13 @@ main (int argc, char **argv)
 										   InputOutput, CWBitGravity | CWOverrideRedirect,
 										   &attributes);
 
+    CreateGCs();
+
 	/* read config file, set up menus, colors, fonts */
 	LoadASConfig (display_name, 0, 1, 1, 1);
 
 /*print_unfreed_mem();
  */
-	if (Scr.d_depth < 2)
-	{
-		Scr.gray_pixmap =
-			XCreatePixmapFromBitmapData (dpy, Scr.Root, g_bits, g_width, g_height,
-										 Scr.asv->white_pixel, Scr.asv->black_pixel, Scr.d_depth);
-		Scr.light_gray_pixmap =
-			XCreatePixmapFromBitmapData (dpy, Scr.Root, l_g_bits, l_g_width, l_g_height,
-										 Scr.asv->white_pixel, Scr.asv->black_pixel, Scr.d_depth);
-		Scr.sticky_gray_pixmap =
-			XCreatePixmapFromBitmapData (dpy, Scr.Root, s_g_bits, s_g_width, s_g_height,
-										 Scr.asv->white_pixel, Scr.asv->black_pixel, Scr.d_depth);
-	}
 	/* create a window which will accept the keyboard focus when no other
 	   windows have it */
 	attributes.event_mask = KeyPressMask | FocusChangeMask;
@@ -794,11 +771,25 @@ SaveWindowsOpened ()
 	fclose (savewindow_fd);
 }
 
+void
+CreateGCs (void)
+{
+    if( Scr.DrawGC == None )
+    {
+        XGCValues     gcv;
+        unsigned long gcm;
+        gcm = GCFunction | GCLineWidth | GCForeground | GCSubwindowMode;
+        gcv.function = GXxor;
+        gcv.line_width = 0;
+        gcv.foreground = XORvalue;
+        gcv.subwindow_mode = IncludeInferiors;
+        Scr.DrawGC = XCreateGC (dpy, Scr.Root, gcm, &gcv);
+    }
+}
+
 /***********************************************************************
- *
  *  Procedure:
  *	CreateCursors - Loads afterstep cursors
- *
  ***********************************************************************
  */
 void
@@ -841,9 +832,6 @@ InitVariables (int shallresetdesktop)
     Scr.MyDisplayWidth = DisplayWidth (dpy, Scr.screen);
 	Scr.MyDisplayHeight = DisplayHeight (dpy, Scr.screen);
 
-	Scr.NoBoundaryWidth = 0;
-	Scr.BoundaryWidth = BOUNDARY_WIDTH;
-	Scr.CornerWidth = CORNER_WIDTH;
     Scr.Windows = init_aswindow_list();
 
 	Scr.VScale = 32;
@@ -970,7 +958,7 @@ Reborder ()
 
     destroy_aswindow_list( &(Scr.Windows), True );
 #ifndef NO_TEXTURE
-	if (DecorateFrames)
+    if (get_flags( Scr.look_flags, DecorateFrames))
 		frame_free_data (NULL, True);
 #endif /* !NO_TEXTURE */
 
@@ -1120,10 +1108,6 @@ Done (int restart, char *command)
             /* global drawing GCs */
 			if (Scr.DrawGC != NULL)
 				XFreeGC (dpy, Scr.DrawGC);
-			if (Scr.LineGC != NULL)
-				XFreeGC (dpy, Scr.LineGC);
-			if (Scr.gray_bitmap != None)
-				XFreePixmap (dpy, Scr.gray_bitmap);
 			/* balloons */
 			balloon_init (1);
 			/* pixmap references */
