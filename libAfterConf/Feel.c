@@ -230,39 +230,13 @@ BindingSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
 	return TrailingFuncSpecial( config, storage, 3 );
 }
 
-KeyBindingConfig *
-CreateKeyBindingConfig()
-{
-	KeyBindingConfig *kb = safecalloc( 1, sizeof( KeyBindingConfig ) );
-
-	kb->contexts = safecalloc( 1, sizeof( ASInputContexts ) );
-	return kb ;
-}
-
 void
-DestroyKeyBindingConfig(KeyBindingConfig *kb)
-{
-	if( kb )
-	{
-		if( kb->next )
-			DestroyKeyBindingConfig(kb->next);
-		if( kb->name )
-			free( kb->name );
-		if( kb->contexts )
-		{
-			unbind_input_contexts( kb->contexts );
-			free( kb->contexts );
-		}
-		free( kb );
-	}
-}
-
-
-void
-ParseKeyBinding( ConfigItem *item, FreeStorageElem *func_elem, ASHashTable **keyboard )
+ParseKeyBinding( ConfigItem *item, FreeStorageElem *func_elem, struct FuncKey **keyboard )
 {
     KeySym        keysym;
+	KeyCode       keycode;
     int           context, mods ;
+	int 		  min = 0, max = 0 ;
 
     if( item == NULL )
 		return ;
@@ -273,8 +247,21 @@ ParseKeyBinding( ConfigItem *item, FreeStorageElem *func_elem, ASHashTable **key
     if( func_elem->term == NULL || func_elem->term->type != TT_FUNCTION )
         return ;
 
-    if( (keysym = XStringToKeysym (item->data.binding.sym)) == NoSymbol )
-        return ;
+	/*
+	 * Don't let a 0 keycode go through, since that means AnyKey to the
+	 * XGrabKey call in GrabKeys().
+	 */
+	if( (keysym = XStringToKeysym (item->data.binding.sym)) == NoSymbol ||
+		(keycode = XKeysymToKeycode (dpy, keysym)) == 0)
+		return ;
+
+	XDisplayKeycodes (dpy, &min, &max);
+	for (keycode = min; keycode <= max; keycode++)
+		if (XKeycodeToKeysym (dpy, keycode, 0) == keysym)
+			break;
+
+	if (keycode > max)
+		return ;
 
     context = item->data.binding.context ;
     mods = item->data.binding.mods ;
@@ -284,68 +271,60 @@ ParseKeyBinding( ConfigItem *item, FreeStorageElem *func_elem, ASHashTable **key
 
     if( item->data.function )
     { /* gotta add it to the keyboard hash */
-        ASInputContexts *ic ;
-        Bool             existing ;
-        ASHashableValue  hkey = (ASHashableValue)((unsigned long)keysym);
+		FuncKey *tmp ;
 
-        if( *keyboard == NULL )
-            init_keyboard( keyboard, True );
-        existing = ( get_hash_item( *keyboard, hkey, (void**)&ic ) == ASH_Success );
-        if( !existing )
-            ic = NULL ;
-        ic = spread_bindings( ic,
-                              context,
-                              mods,
-                              &(item->data.function) );
-        if( !existing && ic != NULL )
-            if( add_hash_item( *keyboard, hkey, ic ) != ASH_Success )
-                input_context_destroy(hkey, (void**)&ic);
+		tmp = (FuncKey *) safemalloc (sizeof (FuncKey));
 
-        item->ok_to_free = (item->data.function != NULL);
+        tmp->next = *keyboard;
+		*keyboard = tmp ;
+
+		tmp->name = mystrdup(item->data.binding.sym);
+		tmp->keycode = keycode;
+		tmp->cont = context;
+		tmp->mods = mods;
+		tmp->fdata = item->data.function;
+		item->data.function = NULL ;
     }
+    item->ok_to_free = (item->data.function != NULL);
 }
 
 
 FreeStorageElem **
-Contexts2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, char *sym, ASInputContexts *ic, int id )
+Keyboard2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, struct FuncKey *ic, int id )
 {
-    register int i;
     FreeStorageElem **d_tail;
 
-    if ( syntax == NULL || tail == NULL || sym == NULL || ic == NULL )
-        return tail ;
-    if( ic->mask == 0 )  /* nothing todo really */
+    if ( syntax == NULL || tail == NULL )
         return tail ;
 
-    for( i = 0 ; i < ic->bindings_num ; i++ )
+    while( ic != NULL )
     {
         d_tail = tail ;
-        tail = Binding2FreeStorage (syntax, tail, sym, ic->bindings[i].contexts, ic->bindings[i].mods, id);
+        tail = Binding2FreeStorage (syntax, tail, ic->name, ic->cont, ic->mods, id);
         if( tail != d_tail && *d_tail )   /* saving our function as a sub-elem */
-            Func2FreeStorage( &FuncSyntax, &((*d_tail)->sub), ic->bindings[i].action );
+            Func2FreeStorage( &FuncSyntax, &((*d_tail)->sub), ic->fdata );
+		ic = ic->next ;
     }
     return tail;
 }
 
-KeyBindingConfig **
-Contexts2KeyBindingConfig( SyntaxDef *syntax, KeyBindingConfig **tail, char *sym, ASInputContexts *ic )
+FreeStorageElem **
+Mouse2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, struct MouseButton *ic, int id )
 {
-    register int i;
-	FunctionData *new_action ;
+    FreeStorageElem **d_tail;
 
-    if ( syntax == NULL || tail == NULL || sym == NULL || ic == NULL )
-        return tail ;
-    if( ic->mask == 0 )  /* nothing todo really */
+    if ( syntax == NULL || tail == NULL )
         return tail ;
 
-    for( i = 0 ; i < ic->bindings_num ; i++ )
+    while( ic != NULL )
     {
-        *tail = CreateKeyBindingConfig();
-        (*tail)->name = mystrdup(sym);
-        new_action = safemalloc( sizeof(FunctionData ) );
-        dup_func_data( new_action, ic->bindings[i].action );
-        spread_bindings((*tail)->contexts, ic->bindings[i].contexts, ic->bindings[i].mods, &new_action );
-        tail = &((*tail)->next) ;
+		static char buffer[32] ;
+        d_tail = tail ;
+		sprintf( &(buffer[0]), "%d", ic->Button );
+        tail = Binding2FreeStorage (syntax, tail, buffer, ic->Context, ic->Modifier, id);
+        if( tail != d_tail && *d_tail )   /* saving our function as a sub-elem */
+            Func2FreeStorage( &FuncSyntax, &((*d_tail)->sub), ic->fdata );
+		ic = ic->NextButton ;
     }
     return tail;
 }
@@ -373,9 +352,6 @@ ParseFeelOptions (const char *filename, char *myname)
 	/* getting rid of all the crap first */
     StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
-    init_list_of_menus( &(config->feel->menus_list), False );
-    init_list_of_funcs( &(config->feel->funcs_list), False );
-
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
   	{
   	    if (pCurr->term == NULL)
@@ -388,67 +364,65 @@ ParseFeelOptions (const char *filename, char *myname)
 		{
             case FEEL_ClickTime_ID          :
                 config->feel->ClickTime = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_ClickTime);
+                set_flags (config->feel->set_val_flags, FEEL_ClickTime);
                 break ;
             case FEEL_OpaqueMove_ID         :
                 config->feel->OpaqueMove = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_OpaqueMove);
+                set_flags (config->feel->set_val_flags, FEEL_OpaqueMove);
                 break ;
             case FEEL_OpaqueResize_ID       :
                 config->feel->OpaqueResize = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_OpaqueResize);
+                set_flags (config->feel->set_val_flags, FEEL_OpaqueResize);
                 break ;
             case FEEL_AutoRaise_ID          :
                 config->feel->AutoRaiseDelay = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_AutoRaise);
+                set_flags (config->feel->set_val_flags, FEEL_AutoRaise);
                 break ;
             case FEEL_AutoReverse_ID        :
                 config->feel->AutoReverse = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_AutoReverse);
-                break ;
-            case FEEL_DeskAnimationType_ID  :
-                config->feel->DeskAnimationType = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_DeskAnimationType);
-                break ;
-            case FEEL_DeskAnimationSteps_ID :
-                config->feel->DeskAnimationSteps = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_DeskAnimationSteps);
+                set_flags (config->feel->set_val_flags, FEEL_AutoReverse);
                 break ;
             case FEEL_ShadeAnimationSteps_ID :
                 config->feel->ShadeAnimationSteps = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_ShadeAnimationSteps);
+                set_flags (config->feel->set_val_flags, FEEL_ShadeAnimationSteps);
                 break ;
 
             case FEEL_XorValue_ID           :
                 config->feel->XorValue = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_XorValue);
+                set_flags (config->feel->set_val_flags, FEEL_XorValue);
                 break ;
             case FEEL_Xzap_ID               :
                 config->feel->Xzap = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_Xzap);
+                set_flags (config->feel->set_val_flags, FEEL_Xzap);
                 break ;
             case FEEL_Yzap_ID               :
                 config->feel->Yzap = item.data.integer;
-                set_flags (config->feel->set_flags, FEEL_Yzap);
+                set_flags (config->feel->set_val_flags, FEEL_Yzap);
                 break ;
 
             case FEEL_Cursor_ID             :                   /* TT_INTEGER */
-                if ( item.index  > 0 && item.index < MAX_CURSORS)
+				/* TODO: backport from as-devel : */
+                /*if ( item.index  > 0 && item.index < MAX_CURSORS)
                     config->feel->standard_cursors[item.index] = item.data.integer ;
+				 */
                 break ;
             case FEEL_CustomCursor_ID       :                   /* TT_BUTTON  */
-                if ( item.index  > 0 && item.index < MAX_CURSORS)
-                {
-                    if( config->feel->custom_cursors[item.index] )
-                        destroy_ascursor( &(config->feel->custom_cursors[item.index]));
-                    config->feel->custom_cursors[item.index] = item.data.cursor ;
-                }
+				/* TODO: backport from as-devel : */
+				/*
+					if ( item.index  > 0 && item.index < MAX_CURSORS)
+                	{
+                    	if( config->feel->custom_cursors[item.index] )
+                        	destroy_ascursor( &(config->feel->custom_cursors[item.index]));
+                    	config->feel->custom_cursors[item.index] = item.data.cursor ;
+                	}
+				 */
                 break ;
 
             case FEEL_ClickToRaise_ID       :                   /* TT_BITLIST */
                 config->feel->RaiseButtons = item.data.integer ;
-                set_flags (config->feel->set_flags, FEEL_ClickToRaise);
+                set_flags (config->feel->set_val_flags, FEEL_ClickToRaise);
                 set_flags (config->feel->set_flags, ClickToRaise);
+				set_flags (config->feel->flags, ClickToRaise);
                 break ;
 
             case FEEL_EdgeScroll_ID         :                   /* TT_INTARRAY*/
@@ -458,7 +432,7 @@ ParseFeelOptions (const char *filename, char *myname)
                     config->feel->EdgeScrollX = item.data.int_array.array[0];
                     if( item.data.int_array.size > 1 )
                         config->feel->EdgeScrollY = item.data.int_array.array[1];
-                    set_flags (config->feel->set_flags, FEEL_EdgeScroll );
+                    set_flags (config->feel->set_val_flags, FEEL_EdgeScroll );
                 }
                 break ;
             case FEEL_EdgeResistance_ID     :                   /* TT_INTARRAY*/
@@ -468,15 +442,16 @@ ParseFeelOptions (const char *filename, char *myname)
                     config->feel->EdgeResistanceScroll = item.data.int_array.array[0];
                     if( item.data.int_array.size > 1 )
                         config->feel->EdgeResistanceMove = item.data.int_array.array[1];
-                    set_flags (config->feel->set_flags, FEEL_EdgeResistance );
+                    set_flags (config->feel->set_val_flags, FEEL_EdgeResistance );
                 }
                 break ;
 
             case FEEL_Popup_ID              :
-                FreeStorage2MenuData( pCurr, &item, config->feel->menus_list );
+				/* TODO: backport from as-devel : */
+                /* FreeStorage2MenuData( pCurr, &item, config->feel->Popups ); */
                 break ;
             case FEEL_Function_ID           :
-                FreeStorage2ComplexFunction( pCurr, &item, config->feel->funcs_list );
+                FreeStorage2ComplexFunction( pCurr, &item, config->feel->ComplexFunctions );
                 break ;
             case FEEL_Mouse_ID              :
                 if( item.data.binding.sym )
@@ -489,10 +464,16 @@ ParseFeelOptions (const char *filename, char *myname)
                             ConfigItem func_item ;
                             func_item.memory = NULL ;
                             if( ReadConfigItem( &func_item, pCurr->sub ) )
-                                spread_bindings( &(config->feel->mouse[button_num]),
-                                                 item.data.binding.context,
-                                                 item.data.binding.mods,
-                                                 &(func_item.data.function) );
+							{
+								MouseButton *tmp = safecalloc( 1, sizeof(MouseButton) );
+								tmp->Button = button_num ;
+								tmp->Modifier = item.data.binding.mods ;
+								tmp->Context = item.data.binding.context ;
+								tmp->fdata = func_item.data.function ;
+								func_item.data.function = NULL ;
+								tmp->NextButton = config->feel->MouseButtonRoot ;
+								config->feel->MouseButtonRoot = tmp ;
+							}
                             if( func_item.data.function )
                             {
                                 func_item.ok_to_free = 1;
@@ -503,7 +484,7 @@ ParseFeelOptions (const char *filename, char *myname)
                 item.ok_to_free = 1;
                 break ;
             case FEEL_Key_ID                :
-                ParseKeyBinding( &item, pCurr->sub, &(config->feel->keyboard) );
+                ParseKeyBinding( &item, pCurr->sub, &(config->feel->FuncKeyRoot) );
                 break ;
           default:
 				item.ok_to_free = 1;
@@ -527,12 +508,14 @@ load_feel_menu( ASFeel *feel, char *location )
     if( location && feel )
     {
         fullfilename = put_file_home( location );
+#if 0
         if ( CheckDir (fullfilename) == 0 )
             dir2menu_data( fullfilename, &(feel->menus_list));
         else if ( CheckFile (fullfilename) == 0 )
             file2menu_data( fullfilename, &(feel->menus_list));
         else
             show_error("unable to locate menu at location [%s].", fullfilename);
+#endif
         free( fullfilename );
     }
 }
@@ -564,7 +547,7 @@ LoadFeelMenus (FeelConfig *config)
 /**********************************************************************
  *  Feel Writing code :
  **********************************************************************/
-
+#if 0
 /* returns:
  *            0 on success
  *              1 if data is empty
@@ -706,6 +689,7 @@ WriteFeelOptions (const char *filename, char *myname,
 	return 0;
 }
 
+#endif
 /********************************************************************************/
 /*   AutoExec config :                                                          */
 /********************************************************************************/

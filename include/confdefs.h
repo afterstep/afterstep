@@ -11,9 +11,37 @@ extern struct SyntaxDef     *BevelSyntaxPtr;
 
 
 /***************************************************************************/
+/*                        ASFunction parsing definitions                   */
+/*                        this must go first as it is relying on IDs       */
+/*                        defined in functions.h                           */
+/****************************************************************************/
+
+#ifndef NorthWestGravity
+#include <X11/Xlib.h>
+#endif
+
+#define FUNC_ID_START           F_NOP   /* 0 */
+#define FUNC_ID_END           	F_FUNCTIONS_NUM
+
+extern TermDef FuncTerms[F_FUNCTIONS_NUM + 1];
+extern SyntaxDef FuncSyntax;
+
+/* used in some "special" function to correctly process trailing function definition */
+unsigned long TrailingFuncSpecial (ConfigDef * config, FreeStorageElem ** storage, int skip_tokens);
+
+FreeStorageElem **Func2FreeStorage (SyntaxDef * syntax,
+				    FreeStorageElem ** tail,
+				    FunctionData * func);
+
+TermDef          *txt2fterm (const char *txt, int quiet);
+TermDef          *func2fterm (FunctionCode func, int quiet);
+FunctionData     *String2Func ( const char *string, FunctionData *p_fdata, Bool quiet );
+
+
+/***************************************************************************/
 /*                        Base file pasring definitions                    */
 /***************************************************************************/
-#define BASE_ID_START        	0
+#define BASE_ID_START        	(FUNC_ID_END+1)
 #define BASE_MODULE_PATH_ID     BASE_ID_START
 #define BASE_AUDIO_PATH_ID      BASE_ID_START+1
 #define BASE_ICON_PATH_ID     	BASE_ID_START+2
@@ -216,7 +244,10 @@ FreeStorageElem **MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem *
 #define ALIGN_HScaled_ID    (ALIGN_ID_START+7)
 #define ALIGN_VScaled_ID    (ALIGN_ID_START+8)
 #define ALIGN_LabelSize_ID  (ALIGN_ID_START+9)
-#define ALIGN_ID_END        (ALIGN_ID_START+10)
+#define ALIGN_Center_ID     (ALIGN_ID_START+10)
+#define ALIGN_HCenter_ID    (ALIGN_ID_START+11)
+#define ALIGN_VCenter_ID    (ALIGN_ID_START+12)
+#define ALIGN_ID_END        (ALIGN_ID_START+16)
 
 #define BEVEL_ID_START      (ALIGN_ID_END+1)
 #define BEVEL_None_ID       (BEVEL_ID_START+1)
@@ -1223,15 +1254,6 @@ FreeStorageElem **ComplexFunction2FreeStorage( SyntaxDef *syntax, FreeStorageEle
  */
 struct ASFeel;
 
-/* this is usefull only for ASCP, but what the heck: */
-typedef struct KeyBindingConfig
-{
-	char 				    *name ;
-	struct ASInputContexts  *contexts ;
-
-	struct KeyBindingConfig *next ;
-}KeyBindingConfig;
-
 typedef struct FeelConfig
 {
 	struct ASFeel *feel ;
@@ -1246,12 +1268,6 @@ FeelConfig *CreateFeelConfig ();
 void DestroyFeelConfig (FeelConfig * config);
 FeelConfig *ParseFeelOptions (const char *filename, char *myname);
 void        LoadFeelMenus (FeelConfig *config);
-
-KeyBindingConfig *CreateKeyBindingConfig();
-void DestroyKeyBindingConfig(KeyBindingConfig *kb);
-void LinkKeyBindingConfig( KeyBindingConfig *kb, KeyBindingConfig **where );
-void UnlinkKeyBindingConfig( KeyBindingConfig **kb );
-KeyBindingConfig **Contexts2KeyBindingConfig( SyntaxDef *syntax, KeyBindingConfig **tail, char *sym, struct ASInputContexts *ic );
 
 int WriteFeelOptions (const char *filename, char *myname,  FeelConfig * config, unsigned long flags);
 

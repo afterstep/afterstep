@@ -1449,6 +1449,7 @@ check_swallow_window( ASWindowData *wd )
     ASWharfButton *aswb = NULL ;
     Window w;
     unsigned int total_width = 1, total_height = 1;
+	int try_num = 0 ;
 
     if( wd == NULL && !get_flags( wd->state_flags, AS_Mapped))
         return;
@@ -1467,7 +1468,20 @@ check_swallow_window( ASWindowData *wd )
     /* first lets check if window is still not swallowed : it should have no more then 2 parents before root */
     w = get_parent_window( wd->client );
     LOCAL_DEBUG_OUT( "first parent %lX, root %lX", w, Scr.Root );
-    if( w != Scr.Root && w != None )
+	while( w == Scr.Root && ++try_num  < 10 )
+	{/* we should wait for AfterSTep to complete AddWindow protocol */
+	    /* do the actuall swallowing here : */
+    	XUngrabServer( dpy );
+		sleep_a_little(1000*try_num);
+		XGrabServer( dpy );
+		w = get_parent_window( wd->client );
+	}
+	if( w == Scr.Root )
+	{
+		XUngrabServer( dpy );
+		return ;
+	}
+    if( w != None )
         w = get_parent_window( w );
     LOCAL_DEBUG_OUT( "second parent %lX, root %lX", w, Scr.Root );
     if( w == Scr.Root )

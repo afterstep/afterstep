@@ -41,6 +41,9 @@ TermDef       AlignTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "HScaled", 7,     TT_FLAG, ALIGN_HScaled_ID   , NULL},
     {TF_NO_MYNAME_PREPENDING, "VScaled", 7,     TT_FLAG, ALIGN_VScaled_ID   , NULL},
     {TF_NO_MYNAME_PREPENDING, "LabelSize", 9,   TT_FLAG, ALIGN_LabelSize_ID , NULL},
+    {TF_NO_MYNAME_PREPENDING, "Center", 6,      TT_FLAG, ALIGN_Center_ID    , NULL},
+    {TF_NO_MYNAME_PREPENDING, "HCenter", 7,     TT_FLAG, ALIGN_HCenter_ID   , NULL},
+    {TF_NO_MYNAME_PREPENDING, "VCenter", 7,     TT_FLAG, ALIGN_VCenter_ID   , NULL},
     {0, NULL, 0, 0, 0}
 };
 
@@ -473,7 +476,22 @@ ParseAlignOptions( FreeStorageElem * options )
 	{
         LOCAL_DEBUG_OUT( "options(%p)->keyword(\"%s\")", options, options->term->keyword );
         if (options->term != NULL)
-            ReadFlagItem (NULL, &align, options, AlignFlagsXref);
+		{
+			switch( options->term->id )
+			{
+				case ALIGN_Center_ID :
+					set_flags( align, ALIGN_CENTER );
+				    break ;
+				case ALIGN_HCenter_ID :
+					set_flags( align, ALIGN_HCENTER );
+				    break ;
+				case ALIGN_VCenter_ID :
+					set_flags( align, ALIGN_VCENTER );
+				    break ;
+				default:
+            		ReadFlagItem (NULL, &align, options, AlignFlagsXref);
+			}
+		}
         options = options->next;
     }
     return align;

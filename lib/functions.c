@@ -349,6 +349,7 @@ parse_func (const char *text, FunctionData * data, int quiet)
 	return 0;
 }
 
+#if 0
 FunctionData *
 String2Func ( const char *string, FunctionData *p_fdata, Bool quiet )
 {
@@ -369,6 +370,7 @@ String2Func ( const char *string, FunctionData *p_fdata, Bool quiet )
     return p_fdata;
 }
 
+#endif
 /****************************************************************************/
 /* FunctionData - related code 	                                            */
 void

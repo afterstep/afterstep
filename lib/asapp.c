@@ -98,17 +98,17 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Restart", 7, F_RESTART),	/* Restart "name" WindowManagerName */
 	FUNC_TERM ("Refresh", 7, F_REFRESH),	   /* Refresh  ["name"] */
 #ifndef NO_VIRTUAL
-	FUNC_TERM ("Scroll", 6, F_SCROLL),		   /* Scroll     horiz vert */
-	FUNC_TERM ("GotoPage", 8, F_GOTO_PAGE),	   /* GotoPage   x     y    */
+	FUNC_TERM2 (USES_NUMVALS, "Scroll", 6, F_SCROLL),	/* Scroll     horiz vert */
+	FUNC_TERM2 (USES_NUMVALS, "GotoPage", 8, F_GOTO_PAGE),	/* GotoPage   x     y    */
 	FUNC_TERM ("TogglePage", 10, F_TOGGLE_PAGE),	/* TogglePage ["name"]   */
 #endif
-	FUNC_TERM ("CursorMove", 10, F_MOVECURSOR),	/* CursorMove horiz vert */
+	FUNC_TERM2 (USES_NUMVALS, "CursorMove", 10, F_MOVECURSOR),	/* CursorMove horiz vert */
 	FUNC_TERM2 (NEED_WINIFNAME, "WarpFore", 8, F_WARP_F),	/* WarpFore ["name" window_name] */
 	FUNC_TERM2 (NEED_WINIFNAME, "WarpBack", 8, F_WARP_B),	/* WarpBack ["name" window_name] */
 	FUNC_TERM2 (NEED_NAME | NEED_WINDOW, "Wait", 4, F_WAIT),	/* Wait      "name" window_name  */
-	FUNC_TERM ("Desk", 4, F_DESK),			   /* Desk arg1 [arg2] */
+	FUNC_TERM2 (USES_NUMVALS, "Desk", 4, F_DESK),	/* Desk arg1 [arg2] */
 #ifndef NO_WINDOWLIST
-	FUNC_TERM ("WindowList", 10, F_WINDOWLIST),	/* WindowList [arg1 arg2] */
+	FUNC_TERM2 (USES_NUMVALS, "WindowList", 10, F_WINDOWLIST),	/* WindowList [arg1 arg2] */
 #endif
 	FUNC_TERM2 (NEED_NAME, "PopUp", 5, F_POPUP),	/* PopUp    "popup_name" [popup_name] */
 	FUNC_TERM2 (NEED_NAME, "Function", 8, F_FUNCTION),	/* Function "function_name" [function_name] */
@@ -129,21 +129,21 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 
 	/* this functions require window as aparameter */
 	FUNC_TERM ("&nonsense&", 10, F_WINDOW_FUNC_START),	/* not really a command */
-	FUNC_TERM ("Move", 4, F_MOVE),			   /* Move     ["name"] */
-	FUNC_TERM ("Resize", 6, F_RESIZE),		   /* Resize   ["name"] */
+	FUNC_TERM2 (USES_NUMVALS, "Move", 4, F_MOVE),	/* Move     ["name"] [whereX whereY] */
+	FUNC_TERM2 (USES_NUMVALS, "Resize", 6, F_RESIZE),	/* Resize   ["name"] [toWidth toHeight] */
 	FUNC_TERM ("Raise", 5, F_RAISE),		   /* Raise    ["name"] */
 	FUNC_TERM ("Lower", 5, F_LOWER),		   /* Lower    ["name"] */
 	FUNC_TERM ("RaiseLower", 10, F_RAISELOWER),	/* RaiseLower ["name"] */
 	FUNC_TERM ("PutOnTop", 8, F_PUTONTOP),	   /* PutOnTop  */
 	FUNC_TERM ("PutOnBack", 9, F_PUTONBACK),   /* PutOnBack */
-	FUNC_TERM ("SetLayer", 8, F_SETLAYER),	   /* SetLayer    layer */
-	FUNC_TERM ("ToggleLayer", 11, F_TOGGLELAYER),	/* ToggleLayer layer1 layer2 */
+	FUNC_TERM2 (USES_NUMVALS, "SetLayer", 8, F_SETLAYER),	/* SetLayer    layer */
+	FUNC_TERM2 (USES_NUMVALS, "ToggleLayer", 11, F_TOGGLELAYER),	/* ToggleLayer layer1 layer2 */
 	FUNC_TERM ("Shade", 5, F_SHADE),		   /* Shade    ["name"] */
 	FUNC_TERM ("Delete", 6, F_DELETE),		   /* Delete   ["name"] */
 	FUNC_TERM ("Destroy", 7, F_DESTROY),	   /* Destroy  ["name"] */
 	FUNC_TERM ("Close", 5, F_CLOSE),		   /* Close    ["name"] */
 	FUNC_TERM ("Iconify", 7, F_ICONIFY),	   /* Iconify  ["name"] value */
-	FUNC_TERM ("Maximize", 8, F_MAXIMIZE),	   /* Maximize ["name"] [hori vert] */
+	FUNC_TERM2 (USES_NUMVALS, "Maximize", 8, F_MAXIMIZE),	/* Maximize ["name"] [hori vert] */
 	FUNC_TERM ("Stick", 5, F_STICK),		   /* Stick    ["name"] */
 	FUNC_TERM ("Focus", 5, F_FOCUS),		   /* Focus */
 	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowUp", 14, F_CHANGEWINDOW_UP),	/* ChangeWindowUp   ["name" window_name ] */
@@ -151,7 +151,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
     FUNC_TERM2 (NEED_WINIFNAME, "GoToBookmark", 12, F_GOTO_BOOKMARK),   /* GoToBookmark ["name" window_bookmark ] */
 	FUNC_TERM ("GetHelp", 7, F_GETHELP),	   /* */
 	FUNC_TERM ("PasteSelection", 14, F_PASTE_SELECTION),	/* */
-	FUNC_TERM ("WindowsDesk", 11, F_CHANGE_WINDOWS_DESK),	/* WindowDesk "name" new_desk */
+	FUNC_TERM2 (USES_NUMVALS, "WindowsDesk", 11, F_CHANGE_WINDOWS_DESK),	/* WindowDesk "name" new_desk */
     FUNC_TERM ("BookmarkWindow", 14, F_BOOKMARK_WINDOW),    /* BookmarkWindow "name" new_bookmark */
     FUNC_TERM ("PinMenu", 7, F_PIN_MENU),    /* PinMenu ["name"] */
         /* end of window functions */
@@ -625,7 +625,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         int len;
         char *display = XDisplayString (dpy);
         register char *ptr ;
-	
+
         char *cmdl;
         char *arg, *screen_str = NULL, *w_str = NULL, *context_str = NULL ;
         va_list ap;
@@ -636,9 +636,9 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
 	    register int i = 0 ;
 	    while( display[i] ) ++i;
 	    while( i > 0 && isdigit(display[--i]) );
-	    if( display[i] == '.' ) 
+	    if( display[i] == '.' )
 		display[i+1] = '\0' ;
-	    
+
             if( screen >= 0 )
                 screen_str = string_from_int( screen );
             if( w != None )

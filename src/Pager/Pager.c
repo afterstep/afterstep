@@ -1799,13 +1799,7 @@ process_message (unsigned long type, unsigned long *body)
 void
 DispatchEvent (ASEvent * event)
 {
-#ifndef EVENT_TRACE
-    if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
-#endif
-    {
-        show_progress("****************************************************************");
-        show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name(event->x.type), event->x.xany.window, event->w, event->client, context2text(event->context), event->x.xany.send_event);
-    }
+	SHOW_EVENT_TRACE(event);
 
     LOCAL_DEBUG_OUT( "mvrdata(%p)->main_canvas(%p)->widget(%p)", Scr.moveresize_in_progress, PagerState.main_canvas, event->widget );
     if( Scr.moveresize_in_progress )

@@ -1215,7 +1215,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     show_progress("Done loading configuration.");
 
     CheckBaseSanity();
-    CheckFeelSanity( &Scr.Feel );
+    check_feel_sanity( &Scr.Feel );
 
     if (get_flags(what, PARSE_FEEL_CONFIG))
         ApplyFeel( &Scr.Feel );

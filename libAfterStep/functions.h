@@ -107,6 +107,9 @@ F_FUNCTIONS_NUM
 #define	NEED_WINDOW 	(1<<2)
 #define	NEED_WINIFNAME 	(1<<3)
 #define	NEED_CMD 	(1<<4)
+/* this one instructs us to append numeric arguments at the end of the
+   function definition */
+#define	USES_NUMVALS 	(1<<5)
 
 
 #define IsWindowFunc(f)  ((f)>F_WINDOW_FUNC_START&&(f)<F_MODULE_FUNC_START)

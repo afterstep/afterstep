@@ -119,7 +119,6 @@ main( int argc, char **argv )
     InitMyApp (CLASS_WINLIST, argc, argv, NULL, NULL, 0 );
 
     set_signal_handler( SIGSEGV );
-	set_output_threshold( OUTPUT_LEVEL_PROGRESS );
 
     ConnectX( &Scr, PropertyChangeMask );
     ConnectAfterStep (M_FOCUS_CHANGE |

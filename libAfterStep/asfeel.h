@@ -67,6 +67,31 @@ typedef enum                /* feel file flags */
 	PersistentMenus			= (1 << 28),
 }FeelFlags;
 
+/* since we have too many feel flags  - we want another enum for
+  feel set flags, that will indicate which option is set ny user */
+typedef enum			/* feel file set flags */
+{
+    FEEL_ClickTime              = (0x01<<0),
+    FEEL_OpaqueMove             = (0x01<<1),
+    FEEL_OpaqueResize           = (0x01<<2),
+    FEEL_AutoRaise              = (0x01<<3),
+    FEEL_AutoReverse            = (0x01<<4),
+    FEEL_DeskAnimationType      = (0x01<<5),
+    FEEL_DeskAnimationSteps     = (0x01<<6),
+
+    FEEL_XorValue               = (0x01<<7),
+    FEEL_Xzap                   = (0x01<<8),
+    FEEL_Yzap                   = (0x01<<9),
+
+    FEEL_ClickToRaise           = (0x01<<10),
+
+    FEEL_EdgeScroll             = (0x01<<11),
+    FEEL_EdgeResistance         = (0x01<<12),
+    FEEL_ShadeAnimationSteps    = (0x01<<13),
+	FEEL_ExternalMenus			= (0x01<<14)
+}FeelSetValFlags;
+
+
 
 typedef enum{
 	ASP_SmartPlacement = 0,
@@ -91,8 +116,9 @@ typedef struct ASWindowBox
 
 	ASFlagType 	set_flags;
 	ASFlagType 	flags;
+
 	char       *name ;
-	ASGeometry  area ;                          /* could be aither screen region or virtual region */
+	ASGeometry  area ;                         /* could be aither screen region or virtual region */
 
 	ASPlacementStrategy main_strategy;         /* how to place window in the empty space :Smart, Random Or Tile */
 	ASPlacementStrategy backup_strategy ;      /* how to place window if no empty space of
@@ -133,6 +159,8 @@ typedef struct ASFeel
 
     unsigned long set_flags;  /* what options were set by user */
     unsigned long flags;      /* feel file flags */
+
+	ASFlagType 	set_val_flags;                 /* see  enum FeelSetValFlags */
 
     unsigned int ClickTime;        /* Max buttonclickdelay for Function built-in */
     unsigned int OpaqueMove;       /* Keep showing window while being moved if size<N% */
@@ -184,6 +212,8 @@ ASFeel;
 void init_asfeel( ASFeel *feel );
 ASFeel *create_asfeel ();
 void destroy_asfeel( ASFeel *feel, Bool reusable );
+void check_feel_sanity(ASFeel *feel);
+
 
 
 
