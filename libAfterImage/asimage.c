@@ -20,6 +20,8 @@
 #include "../configure.h"
 
 /*#define LOCAL_DEBUG*/
+#define DO_CLOCKING
+
 #define HAVE_MMX
 
 #include "../include/aftersteplib.h"
@@ -167,7 +169,7 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height)
 		asimage_init (im, True);
 		im->width = width;
 		im->buf_len = width + width;
-		im->buffer = malloc (im->buf_len);
+		im->buffer = safemalloc (im->buf_len);
 
 		im->height = height;
 
@@ -287,10 +289,12 @@ start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int 
 	imout->im = im ;
 	imout->to_xim = to_xim ;
 	imout->xim = xim ;
-
-	imout->height = xim->height;
-	imout->bpl 	  = xim->bytes_per_line;
-	imout->xim_line = xim->data;
+	if( xim )
+	{
+		imout->height = xim->height;
+		imout->bpl 	  = xim->bytes_per_line;
+		imout->xim_line = xim->data;
+	}
 
 	prepare_scanline( im->width, 0, &(imout->buffer[0]), scr->BGR_mode);
 	prepare_scanline( im->width, 0, &(imout->buffer[1]), scr->BGR_mode);
@@ -507,25 +511,15 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	return ptr - color_ptr[y];
 }
 
-inline int
-asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y)
+inline static CARD32*
+asimage_decode_block32 (register CARD8 *src, CARD32 *to_buf, unsigned int width )
 {
-	CARD8       **color_ptr = asimage_get_color_ptr (im, color);
-	register CARD8  *src = color_ptr[y];
 	register CARD32 *dst = to_buf;
-	/* that thing below is supposedly highly optimized : */
-	if( src == NULL )
-	{                                          /* zero filling output : */
-		register int i;
-		for( i = 0 ; i < im->width ; i++ )
-			to_buf[i] = 0 ;
-		return im->width;
-	}
 	while ( *src != RLE_EOL)
 	{
 		if( src[0] == RLE_DIRECT_TAIL )
 		{
-			register int i = im->width - (dst-to_buf) ;
+			register int i = width - (dst-to_buf) ;
 			dst += i ;
 			src += i+1 ;
 			i = -i ;
@@ -570,7 +564,127 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 			src += 2;
 		}
 	}
-	return (dst - to_buf);
+	return dst;
+}
+
+inline static CARD8*
+asimage_decode_block8 (register CARD8 *src, CARD8 *to_buf, unsigned int width )
+{
+	register CARD8 *dst = to_buf;
+	while ( *src != RLE_EOL)
+	{
+		if( src[0] == RLE_DIRECT_TAIL )
+		{
+			register int i = width - (dst-to_buf) ;
+			dst += i ;
+			src += i+1 ;
+			i = -i ;
+			while( i < 0 )
+			{
+				dst[i] = src[i] ;
+				++i ;
+			}
+			break;
+		}else if( ((*src)&RLE_DIRECT_B) != 0 )
+		{
+			register int i = (((int)src[0])&RLE_DIRECT_D) + 1;
+			dst += i ;
+			src += i+1 ;
+			i = -i ;
+			while( i < 0 )
+			{
+				dst[i] = src[i] ;
+				++i ;
+			}
+		}else if( ((*src)&RLE_LONG_B) != 0 )
+		{
+			register int i = ((((int)src[0])&RLE_LONG_D)<<8|src[1]) + RLE_THRESHOLD;
+			dst += i ;
+			i = -i ;
+			while( i < 0 )
+			{
+				dst[i] = src[2] ;
+				++i ;
+			}
+			src += 3;
+		}else
+		{
+			register int i = (int)src[0] + RLE_THRESHOLD ;
+			dst += i ;
+			i = -i;
+			while( i <= 0 )
+			{
+				dst[i] = src[1] ;
+				++i ;
+			}
+			src += 2;
+		}
+	}
+	return dst;
+}
+
+inline int
+asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, Bool fill_empty, unsigned int skip, unsigned int out_width)
+{
+	CARD8       **color_ptr = asimage_get_color_ptr (im, color);
+	register CARD8  *src = color_ptr[y];
+	register CARD32 *dst = to_buf;
+	if( out_width == 0 ) out_width = im->width ;
+	/* that thing below is supposedly highly optimized : */
+	if( src == NULL )
+	{                                          /* zero filling output : */
+		if( fill_empty )
+		{
+			register int i;
+			if( color == IC_ALPHA )
+				for( i = 0 ; i < out_width ; i++ )
+					to_buf[i] = 0x00FF ;
+			else
+				for( i = 0 ; i < out_width ; i++ )
+					to_buf[i] = 0 ;
+			return out_width;
+		}
+		return 0;
+	}
+/*	if( skip > 0 || out_width+skip < im->width)
+	{
+		CARD8 *dst = asimage_decode_block8( src, im->buffer, im->width );
+		int max_i ;
+		register CARD8 *src ;
+		register int i = 0;
+
+		skip = skip%im->width ;
+		max_i = MIN(out_width,im->width-skip);
+		src += skip ;
+		while( i < out_width )
+		{
+			while( i < max_i )
+			{
+				to_buf[i] = src[i] ;
+				++i ;
+			}
+			src = dst-i ;
+			max_i = MIN(out_width,im->width+i) ;
+		}
+	}else
+	{
+		register int i = im->width ; */
+		asimage_decode_block32( src, to_buf, im->width );
+#if 0
+		while( i < out_width )
+		{   /* tiling code : */
+			register CARD32 *src = to_buf-i ;
+			int max_i = MIN(out_width,im->width+i);
+
+			while( i < max_i )
+			{
+				to_buf[i] = src[i] ;
+				++i ;
+			}
+		}
+}
+#endif
+	return out_width;
 }
 
 unsigned int
@@ -624,7 +738,7 @@ Bool
 asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp, unsigned int y, Bool verbose)
 {
 	register int i;
-	asimage_decode_line( im, color, tmp, y );
+	asimage_decode_line( im, color, tmp, y, True, 0, 0 );
 	for( i = 0 ; i < im->width ; i++ )
 		if( tmp[i] != to_buf[i] )
 		{
@@ -724,7 +838,7 @@ LOCAL_DEBUG_OUT( "scaling from %d", len );
 		++k;
 		++i;
 	}
-	--len; --len;
+	--len; --len ;
 	while( i < len )
 	{
 		register int c2 = src[i], c3 = src[i+1] ;
@@ -733,14 +847,14 @@ LOCAL_DEBUG_OUT( "scaling from %d", len );
 		if( scales[i] == 2 )
 		{
 			c3 = INTERPOLATE_COLOR2(c1,c2,c3,c3);
-			dst[++k] = (c3&0xFF000000 )?0:c3;
+			dst[++k] = (c3&0x7F000000 )?0:c3;
 		}else
 		{
 			dst[++k] = INTERPOLATE_A_COLOR3(c1,c2,c3,c4);
-			if( dst[k]&0xFF000000 )
+			if( dst[k]&0x7F000000 )
 				dst[k] = 0 ;
 			c3 = INTERPOLATE_B_COLOR3(c1,c2,c3,c3);
-			dst[++k] = (c3&0xFF000000 )?0:c3;
+			dst[++k] = (c3&0x7F000000 )?0:c3;
 		}
 		c1 = c2 ;
 		++k;
@@ -753,22 +867,22 @@ LOCAL_DEBUG_OUT( "scaling from %d", len );
 		if( scales[i] == 2 )
 		{
 			c2 = INTERPOLATE_COLOR2(c1,c2,c3,c3);
-			dst[k+1] = (c2&0xFF000000 )?0:c2;
+			dst[k+1] = (c2&0x7F000000 )?0:c2;
 		}else
 		{
 			if( scales[i] == 1 )
 				--k;
 			else
 			{
-				dst[++k] = INTERPOLATE_A_COLOR3(c1,c2,c3,c4);
-				if( dst[k]&0xFF000000 )
+				dst[++k] = INTERPOLATE_A_COLOR3(c1,c2,c3,c3);
+				if( dst[k]&0x7F000000 )
 					dst[k] = 0 ;
 				c2 = INTERPOLATE_B_COLOR3(c1,c2,c3,c3);
-				dst[k+1] = (c2&0xFF000000 )?0:c2;
+				dst[k+1] = (c2&0x7F000000 )?0:c2;
 			}
 		}
 	}
-	dst[k+2] = INTERPOLATE_COLOR1(c4) ;
+ 	dst[k+2] = INTERPOLATE_COLOR1(src[i+1]) ;
 }
 
 /* this case is more complex since we cannot really hardcode coefficients
@@ -1131,7 +1245,7 @@ fast_output_filter_mod( register CARD32 *data, int unused, int len )
 	}
 }
 
-static void
+void
 print_component( register CARD32 *data, int nonsense, int len )
 {
 	register int i ;
@@ -1147,13 +1261,13 @@ print_component( register CARD32 *data, int nonsense, int len )
 #define DECODE_SCANLINE(im,dst,y) \
 do{												\
 	clear_flags( (dst).flags,SCL_DO_ALL);			\
-	if( set_component((dst).red  ,0,asimage_decode_line((im),IC_RED  ,(dst).red,  (y)),(dst).width)<(dst).width) \
+	if( set_component((dst).red  ,0,asimage_decode_line((im),IC_RED  ,(dst).red,  (y), True, 0, 0),(dst).width)<(dst).width) \
 		set_flags( (dst).flags,SCL_DO_RED);												 \
-	if( set_component((dst).green,0,asimage_decode_line((im),IC_GREEN,(dst).green,(y)),(dst).width)<(dst).width) \
+	if( set_component((dst).green,0,asimage_decode_line((im),IC_GREEN,(dst).green,(y), True, 0, 0),(dst).width)<(dst).width) \
 		set_flags( (dst).flags,SCL_DO_GREEN);												 \
-	if( set_component((dst).blue ,0,asimage_decode_line((im),IC_BLUE ,(dst).blue, (y)),(dst).width)<(dst).width) \
+	if( set_component((dst).blue ,0,asimage_decode_line((im),IC_BLUE ,(dst).blue, (y), True, 0, 0),(dst).width)<(dst).width) \
 		set_flags( (dst).flags,SCL_DO_BLUE);												 \
-	if( set_component((dst).alpha,0,asimage_decode_line((im),IC_ALPHA,(dst).alpha,(y)),(dst).width)<(dst).width) \
+	if( set_component((dst).alpha,0,asimage_decode_line((im),IC_ALPHA,(dst).alpha,(y), False, 0, 0),(dst).width)<(dst).width) \
 		set_flags( (dst).flags,SCL_DO_ALPHA);												 \
   }while(0)
 
@@ -1455,7 +1569,7 @@ scale_image_up( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, 
 				do
 				{
 					output_image_line( imout, c1, 1);
-					if(!(--S))
+					if((--S)<=1)
 						break;
 					SCANLINE_FUNC(add_component,*c1,step,NULL,out_width );
  				}while(1);
@@ -1493,12 +1607,15 @@ scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool 
 		}
 	if( to_width == src->width )
 		h_ratio = 0;
-	else
+	else if( to_width < src->width )
+		h_ratio = 1;
+	else if( src->width > 1 )
 	{
-	    h_ratio = to_width/src->width;
-		if( to_width%src->width > 0 )
+		h_ratio = to_width/(src->width-1);
+		if( h_ratio*(src->width-1) < to_width )
 			h_ratio++ ;
-	}
+	}else
+		h_ratio = to_width ;
 
 	scales_h = make_scales( src->width, to_width );
 	scales_v = make_scales( src->height, to_height );
@@ -1543,7 +1660,7 @@ scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool 
 /****************************************************************************/
 
 ASImage      *
-asimage_from_ximage (ScreenInfo *scr, XImage * xim)
+ximage2asimage (ScreenInfo *scr, XImage * xim)
 {
 	ASImage      *im = NULL;
 	unsigned char *xim_line;
@@ -1566,7 +1683,6 @@ asimage_from_ximage (ScreenInfo *scr, XImage * xim)
 	tmp = safemalloc( xim->width * sizeof(CARD32));
 #endif
 	prepare_scanline( xim->width, 0, &xim_buf, scr->BGR_mode );
-
 	for (i = 0; i < height; i++)
 	{
 		GET_SCANLINE(scr,xim,&xim_buf,i,xim_line);
@@ -1589,12 +1705,15 @@ asimage_from_ximage (ScreenInfo *scr, XImage * xim)
 }
 
 XImage*
-ximage_from_asimage (ScreenInfo *scr, ASImage *im)
+asimage2ximage (ScreenInfo *scr, ASImage *im)
 {
 	XImage        *xim = NULL;
-	int           i;
-	ASScanline    xim_buf;
+	int            i;
+	ASScanline     xim_buf;
 	ASImageOutput *imout ;
+#ifdef DO_CLOCKING
+	clock_t       started = clock ();
+#endif
 
 	if (im == NULL)
 		return xim;
@@ -1604,11 +1723,43 @@ ximage_from_asimage (ScreenInfo *scr, ASImage *im)
 		return xim;
 
 	prepare_scanline( xim->width, 0, &xim_buf, scr->BGR_mode );
+#ifdef DO_CLOCKING
+	started = clock ();
+#endif
 	for (i = 0; i < im->height; i++)
 	{
-		asimage_decode_line (im, IC_RED,   xim_buf.red, i);
-		asimage_decode_line (im, IC_GREEN, xim_buf.green, i);
-		asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i);
+		asimage_decode_line (im, IC_RED,   xim_buf.red, i, True, 0, 0);
+		asimage_decode_line (im, IC_GREEN, xim_buf.green, i, True, 0, 0);
+		asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, True, 0, 0);
+		output_image_line( imout, &xim_buf, 1 );
+	}
+#ifdef DO_CLOCKING
+	fprintf (stderr, "asimage->ximage time (clocks): %lu\n", clock () - started);
+#endif
+	free_scanline(&xim_buf, True);
+
+	return xim;
+}
+
+XImage*
+asimage2mask_ximage (ScreenInfo *scr, ASImage *im)
+{
+	XImage        *xim = NULL;
+	int            i;
+	ASScanline     xim_buf;
+	ASImageOutput *imout ;
+
+	if (im == NULL)
+		return xim;
+
+	xim = create_screen_ximage( scr, im->width, im->height, 1 );
+	if( (imout = start_image_output( scr, im, xim, True, 0 )) == NULL )
+		return xim;
+
+	prepare_scanline( xim->width, 0, &xim_buf, scr->BGR_mode );
+	for (i = 0; i < im->height; i++)
+	{
+		asimage_decode_line (im, IC_RED, xim_buf.alpha, i, True, 0, 0);
 		output_image_line( imout, &xim_buf, 1 );
 	}
 	free_scanline(&xim_buf, True);
@@ -1617,14 +1768,14 @@ ximage_from_asimage (ScreenInfo *scr, ASImage *im)
 }
 
 ASImage      *
-asimage_from_pixmap (ScreenInfo *scr, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache)
+pixmap2asimage(ScreenInfo *scr, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache)
 {
 	XImage       *xim = XGetImage (dpy, p, x, y, width, height, plane_mask, ZPixmap);
 	ASImage      *im = NULL;
 
 	if (xim)
 	{
-		im = asimage_from_ximage (scr, xim);
+		im = ximage2asimage (scr, xim);
 		if( keep_cache )
 			im->ximage = xim ;
 		else
@@ -1634,36 +1785,46 @@ asimage_from_pixmap (ScreenInfo *scr, Pixmap p, int x, int y, unsigned int width
 }
 
 Pixmap
-pixmap_from_asimage(ScreenInfo *scr, ASImage *im, Window w, GC gc, Bool use_cached)
+asimage2pixmap(ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached)
 {
 	XImage       *xim ;
 	Pixmap        p = None;
-	XWindowAttributes attr;
 
-	if( XGetWindowAttributes (dpy, w, &attr) )
+	if ( !use_cached || im->ximage == NULL )
 	{
-		if ( !use_cached || im->ximage == NULL )
+		if( (xim = asimage2ximage( scr, im )) == NULL )
 		{
-			if( (xim = ximage_from_asimage( scr, im )) == NULL )
-			{
-				show_error("cannot export image into XImage.");
-				return None ;
-			}
-		}else
-			xim = im->ximage ;
-		if (xim != NULL )
-		{
-			p = create_screen_pixmap( scr, xim->width, xim->height, 0 );
-			XPutImage( dpy, p, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
-			if( xim != im->ximage )
-				XDestroyImage (xim);
+			show_error("cannot export image into XImage.");
+			return None ;
 		}
 	}else
-		show_error("cannot create pixmap for drawable 0x%X - drawable is invalid.", w);
-
+		xim = im->ximage ;
+	if (xim != NULL )
+	{
+		p = create_screen_pixmap( scr, xim->width, xim->height, 0 );
+		XPutImage( dpy, p, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+		if( xim != im->ximage )
+			XDestroyImage (xim);
+	}
 	return p;
 }
 
+Pixmap
+asimage2mask(ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached)
+{
+	XImage       *xim ;
+	Pixmap        mask = None;
+
+	if( (xim = asimage2mask_ximage( scr, im )) == NULL )
+	{
+		show_error("cannot export image's mask into XImage.");
+		return None ;
+	}
+	mask = create_screen_pixmap( scr, xim->width, xim->height, 1 );
+	XPutImage( dpy, mask, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+	XDestroyImage (xim);
+	return mask;
+}
 
 
 

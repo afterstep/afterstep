@@ -21,10 +21,11 @@
 
 #include "../configure.h"
 
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG */
 #define DO_CLOCKING
 
 #include <time.h>
+#include <unistd.h>
 /* <setjmp.h> is used for the optional error recovery mechanism */
 
 #ifdef PNG
@@ -42,6 +43,10 @@
 #ifdef GIF
 #include <gif_lib.h>
 #endif
+#ifdef HAVE_TIFF
+#include <tiff.h>
+#include <tiffio.h>
+#endif
 
 #include "../include/afterstep.h"
 #include "../include/screen.h"
@@ -51,10 +56,134 @@
 #include "../include/asimage.h"
 #include "../include/parse.h"
 
-#define MAX_IMPORT_IMAGE_SIZE 	4000
+
+/***********************************************************************************/
+/* High level interface : 														   */
+static char *locate_image_file( const char *file, char **paths );
+static ASImageFileTypes	check_image_type( const char *realfilename );
+
+as_image_loader_func as_image_file_loaders[ASIT_Unknown] =
+{
+	xpm2ASImage ,
+	xpm2ASImage ,
+	xpm2ASImage ,
+	png2ASImage ,
+	jpeg2ASImage,
+	xcf2ASImage ,
+	ppm2ASImage ,
+	ppm2ASImage ,
+	bmp2ASImage ,
+	ico2ASImage ,
+	ico2ASImage ,
+	gif2ASImage ,
+	tiff2ASImage,
+	NULL,
+	NULL,
+	NULL
+};
+
+ASImage *
+file2ASImage( const char *file, ASFlagType what, double gamma, ... )
+{
+	int 		  filename_len ;
+	int 		  subimage = -1 ;
+	char 		 *realfilename = NULL, *tmp = NULL ;
+	va_list       ap;
+	char 		 *paths[8] ;
+	register int i;
+
+	ASImage *im = NULL;
+	CARD8 *gamma_table = NULL;
+
+	if( file == NULL ) return NULL;
+
+	filename_len = strlen(file);
+
+	va_start (ap, gamma);
+	for( i = 0 ; i < 8 ; i++ )
+		if( (paths[i] = va_arg(ap,char*)) == NULL )
+			break;
+	paths[7] = NULL ;
+	va_end (ap);
+
+	/* first lets try to find file as it is */
+	if( (realfilename = locate_image_file(file,paths)) == NULL )
+	{
+		tmp = safemalloc( filename_len+3+1);
+		strcpy(tmp, file);
+	}
+	if( realfilename == NULL )
+	{ /* let's try and see if appending .gz will make any difference */
+		strcpy(&(tmp[filename_len]), ".gz");
+		realfilename = locate_image_file(tmp,paths);
+	}
+	if( realfilename == NULL )
+	{ /* let's try and see if appending .Z will make any difference */
+		strcpy(&(tmp[filename_len]), ".Z");
+		realfilename = locate_image_file(tmp,paths);
+	}
+	if( realfilename == NULL )
+	{ /* let's try and see if we have subimage number appended */
+		for( i = filename_len-1 ; i > 0; i-- )
+			if( !isdigit( tmp[i] ) )
+				break;
+		if( i < filename_len-1 && i > 0 )
+			if( tmp[i] == '.' )                 /* we have possible subimage number */
+			{
+				subimage = atoi( &tmp[i+1] );
+				tmp[i] = '\0';
+				filename_len = i ;
+				realfilename = locate_image_file(tmp,paths);
+				if( realfilename == NULL )
+				{ /* let's try and see if appending .gz will make any difference */
+					strcpy(&(tmp[filename_len]), ".gz");
+					realfilename = locate_image_file(tmp,paths);
+				}
+				if( realfilename == NULL )
+				{ /* let's try and see if appending .Z will make any difference */
+					strcpy(&(tmp[filename_len]), ".Z");
+					realfilename = locate_image_file(tmp,paths);
+				}
+			}
+	}
+	if( tmp != realfilename )
+		free( tmp );
+	if( realfilename )
+	{
+		ASImageFileTypes file_type = check_image_type( realfilename );
+		if( file_type == ASIT_Unknown )
+			show_error( "Unknown format of the image file \"%s\". Please check the manual", realfilename );
+		else if( as_image_file_loaders[file_type] )
+			im = as_image_file_loaders[file_type](realfilename, what, gamma, gamma_table, subimage);
+		else
+			show_error( "Support for the format of image file \"%s\" has not been implemented yet.", realfilename );
+
+		if( realfilename != file )
+			free( realfilename );
+	}
+	return im;
+}
 
 /***********************************************************************************/
 /* Some helper functions :                                                         */
+
+static char *
+locate_image_file( const char *file, char **paths )
+{
+	char *realfilename = NULL;
+	if( CheckFile( file ) == 0 )
+	{
+		realfilename = (char*)file;
+	}else
+	{	/* now lets try and find the file in any of the optional paths :*/
+		register int i = 0;
+		do
+		{
+			realfilename = findIconFile( file, paths[i], R_OK );
+		}while( paths[i++] != NULL );
+	}
+	return realfilename;
+}
 
 static FILE*
 open_image_file( const char *path )
@@ -66,6 +195,64 @@ open_image_file( const char *path )
 	return fp ;
 }
 
+static ASImageFileTypes
+check_image_type( const char *realfilename )
+{
+	int filename_len = strlen( realfilename );
+	CARD8 head[16] ;
+	int bytes_in = 0 ;
+	FILE *fp ;
+	/* lets check if we have compressed xpm file : */
+	if( filename_len > 6 && mystrncasecmp( realfilename+filename_len-3, "xpm.gz", 6 ) == 0 )
+		return ASIT_GZCompressedXpm;
+	if( filename_len > 5 && mystrncasecmp( realfilename+filename_len-3, "xpm.Z", 5 ) == 0 )
+		return ASIT_ZCompressedXpm;
+	if( (fp = open_image_file( realfilename )) != NULL )
+	{
+		bytes_in = fread( &(head[0]), sizeof(char), 16, fp );
+		head[15] = '\0' ;
+		fprintf( stderr, "%s|   head[0] = %d, head[2] = %d\n", realfilename+filename_len-4, head[0], head[2] );
+/*		fprintf( stderr, " IMAGE FILE HEADER READS : [%s][%c%c%c%c%c%c%c%c][%s], bytes_in = %d\n", (char*)&(head[0]),
+						head[0], head[1], head[2], head[3], head[4], head[5], head[6], head[7], strstr ((char *)&(head[0]), "XPM"),bytes_in );
+ */		fclose( fp );
+		if( bytes_in > 3 )
+		{
+			if( head[0] == 0xff && head[1] == 0xd8 && head[2] == 0xff)
+				return ASIT_Jpeg;
+			else if (strstr ((char *)&(head[0]), "XPM") != NULL)
+				return ASIT_Xpm;
+			else if (head[1] == 'P' && head[2] == 'N' && head[3] == 'G')
+				return ASIT_Png;
+			else if (head[0] == 'G' && head[1] == 'I' && head[2] == 'F')
+				return ASIT_Gif;
+			else if (head[0] == head[1] && (head[0] == 'I' || head[0] == 'M'))
+				return ASIT_Tiff;
+			else if (head[0] == 'P' && isdigit(head[1]))
+				return (head[1]!='5' && head[1]!='6')?ASIT_Pnm:ASIT_Ppm;
+			else if (head[0] == 0xa && head[1] <= 5 && head[2] == 1)
+				return ASIT_Pcx;
+			else if (head[0] == 'B' && head[1] == 'M')
+				return ASIT_Bmp;
+			else if (head[0] == 0 && head[2] == 1 && mystrncasecmp(realfilename+filename_len-4, ".ICO", 4)==0 )
+				return ASIT_Ico;
+			else if (head[0] == 0 && head[2] == 2 &&
+						(mystrncasecmp(realfilename+filename_len-4, ".CUR", 4)==0 ||
+						 mystrncasecmp(realfilename+filename_len-4, ".ICO", 4)==0) )
+				return ASIT_Cur;
+		}
+		if( bytes_in  > 8 )
+		{
+			if( strncmp((char *)&(head[0]), XCF_SIGNATURE, (size_t) XCF_SIGNATURE_LEN) == 0)
+				return ASIT_Xcf;
+	   		else if (head[0] == 0 && head[1] == 0 &&
+			    	 head[2] == 2 && head[3] == 0 && head[4] == 0 && head[5] == 0 && head[6] == 0 && head[7] == 0)
+				return ASIT_Targa;
+			else if (strncmp ((char *)&(head[0]), "#define", (size_t) 7) == 0)
+				return ASIT_Xbm;
+		}
+	}
+	return ASIT_Unknown;
+}
 
 static void
 raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned int width, Bool grayscale, Bool do_alpha )
@@ -444,7 +631,7 @@ Bool asimage_compare_line( ASImage*, int, CARD32*, CARD32*, int, Bool );
 #endif
 
 ASImage *
-xpm2ASImage( const char * path, ASFlagType what )
+xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
 	XpmImage      xpmImage;
 	ASImage 	 *im = NULL ;
@@ -526,7 +713,7 @@ LOCAL_DEBUG_OUT( "do_alpha is %d. im->height = %d, im->width = %d", do_alpha, im
 #else  			/* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 
 ASImage *
-xpm2ASImage( const char * path, ASFlagType what )
+xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
 	show_error( "unable to load file \"%s\" - XPM image format is not supported.\n", path );
 	return NULL ;
@@ -535,27 +722,22 @@ xpm2ASImage( const char * path, ASFlagType what )
 #endif 			/* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 /***********************************************************************************/
 
-
 /***********************************************************************************/
 #ifdef PNG		/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
-png2ASImage( const char * path, ASFlagType what )
+png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
 	static ASImage 	 *im = NULL ;
 
 	FILE 		 *fp ;
+	double 		  image_gamma = 1.0;
 	png_structp   png_ptr;
 	png_infop     info_ptr;
 	png_uint_32   width, height;
 	int           bit_depth, color_type, interlace_type;
 	int           intent;
-	double        image_gamma = 0.0;
-	double        screen_gamma = 1.0;
-
-
 	ASScanline    buf;
 	Bool 		  do_alpha = False, grayscale = False ;
-
 	png_bytep     *row_pointers, row;
 	unsigned int  y;
 	size_t		  row_bytes, offset ;
@@ -605,30 +787,33 @@ png2ASImage( const char * path, ASFlagType what )
 					color_type = PNG_COLOR_TYPE_RGB;
 				}
 
-		/* Expand paletted or RGB images with transparency to full alpha channels
-		 * so the data will be available as RGBA quartets.
-		 */
-/*
-   LOG1( "\n converting to ALPHA" )
-   if( color_type& == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_GRAY )
-   {
+				/* Expand paletted or RGB images with transparency to full alpha channels
+				 * so the data will be available as RGBA quartets.
+		 		 */
+   				if( color_type == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_GRAY )
+   				{
+				   	if( png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+					{
+						png_set_expand(png_ptr);
+						color_type |= PNG_COLOR_MASK_ALPHA;
+					}
+   				}else
+				{
+					png_set_filler( png_ptr, 0xFF, PNG_FILLER_AFTER );
+					color_type |= PNG_COLOR_MASK_ALPHA;
+				}
 
-   if( png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-   {
-   LOG1( "\n  png_set_expand  - to get ALPHA channel")
-   png_set_expand(png_ptr);
-   }
-   else  png_set_filler( png_ptr, 0xFF, PNG_FILLER_AFTER );
-   if( color_type == PNG_COLOR_TYPE_RGB ) color_type = PNG_COLOR_TYPE_RGB_ALPHA ;
-   else color_type = PNG_COLOR_TYPE_GRAY_ALPHA ;
-   }
- */
-			  	if (png_get_sRGB (png_ptr, info_ptr, &intent))
+/*				if( color_type == PNG_COLOR_TYPE_RGB )
+					color_type = PNG_COLOR_TYPE_RGB_ALPHA ;
+   				else
+					color_type = PNG_COLOR_TYPE_GRAY_ALPHA ;
+  */
+				if (png_get_sRGB (png_ptr, info_ptr, &intent))
 					png_set_sRGB (png_ptr, info_ptr, image_gamma);
 				else if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
-					png_set_gamma (png_ptr, screen_gamma, image_gamma);
+					png_set_gamma (png_ptr, gamma, image_gamma);
 				else
-					png_set_gamma (png_ptr, screen_gamma, 1.0);
+					png_set_gamma (png_ptr, gamma, 1.0);
 
 				/* Optional call to gamma correct and add the background to the palette
 				 * and update info structure.  REQUIRED if you are expecting libpng to
@@ -654,13 +839,22 @@ png2ASImage( const char * path, ASFlagType what )
 				png_read_image (png_ptr, row_pointers);
 				for (y = 0; y < height; y++)
 				{
+					register int i;
+/*					for ( i = 0 ; i < row_bytes ; ++i)
+						fprintf( stderr, "%2.2X ", row_pointers[y][i] );
+					fprintf( stderr, " do_alpha = %d\n", do_alpha);
+ */
 					raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
-
 					asimage_add_line (im, IC_RED,   buf.red, y);
 					asimage_add_line (im, IC_GREEN, buf.green, y);
 					asimage_add_line (im, IC_BLUE,  buf.blue, y);
 					if( do_alpha )
-						asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
+						for ( i = 0 ; i < buf.width ; ++i)
+							if( buf.alpha[i] != 0x00FF )
+							{
+								asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
+								break;
+							}
 				}
 				free (row_pointers);
 				free_scanline(&buf, True);
@@ -679,7 +873,7 @@ png2ASImage( const char * path, ASFlagType what )
 }
 #else 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
-png2ASImage( const char * path, ASFlagType what )
+png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
 	show_error( "unable to load file \"%s\" - PNG image format is not supported.\n", path );
 	return NULL ;
@@ -711,11 +905,8 @@ my_error_exit (j_common_ptr cinfo)
 }
 
 ASImage *
-jpeg2ASImage( const char * path, ASFlagType what )
+jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
-	/* TODO : implement gamma correction !!! */
-	double gamma = 1.0 ;
-	CARD8  *gamma_table = NULL ;
 	ASImage *im ;
 	/* This struct contains the JPEG decompression parameters and pointers to
 	 * working space (which is allocated as needed by the JPEG library).
@@ -838,7 +1029,7 @@ jpeg2ASImage( const char * path, ASFlagType what )
 }
 #else 			/* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
 ASImage *
-jpeg2ASImage( const char * path, ASFlagType what )
+jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
 	show_error( "unable to load file \"%s\" - JPEG image format is not supported.\n", path );
 	return NULL ;
@@ -851,19 +1042,14 @@ jpeg2ASImage( const char * path, ASFlagType what )
 /* XCF - GIMP's native file format : 											   */
 
 ASImage *
-xcf2ASImage( const char * path, ASFlagType what )
+xcf2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
-	/* TODO : implement gamma correction !!! */
-	double gamma = 1.0 ;
-	CARD8  *gamma_table = NULL ;
 	ASImage *im = NULL ;
 	/* More stuff */
 	FILE         *infile;					   /* source file */
 #ifdef DO_CLOCKING
 	clock_t       started = clock ();
 #endif
-	ASScanline    buf;
-	int y;
 	XcfImage  *xcf_im;
 
 	/* we want to open the input file before doing anything else,
@@ -881,7 +1067,9 @@ xcf2ASImage( const char * path, ASFlagType what )
 		return NULL;
 
 	LOCAL_DEBUG_OUT("stored image size %ldx%ld", xcf_im->width,  xcf_im->height);
+#ifdef LOCAL_DEBUG
 	print_xcf_image( xcf_im );
+#endif
 	{/* TODO : temporary workaround untill we implement layers merging */
 		XcfLayer *layer = xcf_im->layers ;
 		while ( layer )
@@ -937,11 +1125,8 @@ xcf2ASImage( const char * path, ASFlagType what )
 /***********************************************************************************/
 /* PPM/PNM file format : 											   				   */
 ASImage *
-ppm2ASImage( const char * path, ASFlagType what )
+ppm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
-	/* TODO : implement gamma correction !!! */
-	double gamma = 1.0 ;
-	CARD8  *gamma_table = NULL ;
 	ASImage *im = NULL ;
 	/* More stuff */
 	FILE         *infile;					   /* source file */
@@ -1240,11 +1425,8 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 }
 
 ASImage *
-bmp2ASImage( const char * path, ASFlagType what )
+bmp2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
-	/* TODO : implement gamma correction !!! */
-	double gamma = 1.0 ;
-	CARD8  *gamma_table = NULL ;
 	ASImage *im = NULL ;
 	/* More stuff */
 	FILE         *infile;					   /* source file */
@@ -1285,11 +1467,8 @@ bmp2ASImage( const char * path, ASFlagType what )
 /* Windows ICO/CUR file format :   									   			   */
 
 ASImage *
-ico2ASImage( const char * path, ASFlagType what )
+ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
-	/* TODO : implement gamma correction !!! */
-	double gamma = 1.0 ;
-	CARD8  *gamma_table = NULL ;
 	ASImage *im = NULL ;
 	/* More stuff */
 	FILE         *infile;					   /* source file */
@@ -1370,10 +1549,8 @@ ico2ASImage( const char * path, ASFlagType what )
 /***********************************************************************************/
 #ifdef GIF		/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 ASImage *
-gif2ASImage( const char * path, ASFlagType what )
+gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
-	double        		gamma = 1.0;
-	CARD8  			   *gamma_table = NULL ;
 	FILE			   *fp ;
 	int					status = GIF_ERROR;
 	GifFileType        *gif;
@@ -1388,89 +1565,89 @@ gif2ASImage( const char * path, ASFlagType what )
 
 	if ((fp = open_image_file(path)) == NULL)
 		return NULL;
-	
+
 	if( (gif = DGifOpenFileHandle(fileno(fp))) != NULL )
 	{
 		while((status = DGifGetRecordType(gif, &rec)) != GIF_ERROR)
 		{
-			if( rec == TERMINATE_RECORD_TYPE ) 
+			if( rec == TERMINATE_RECORD_TYPE )
 				break;
-			if( rec == IMAGE_DESC_RECORD_TYPE && rows == NULL ) 
+			if( rec == IMAGE_DESC_RECORD_TYPE && rows == NULL )
 			{
 				size_t offset = 0;
 		    	if ((status = DGifGetImageDesc(gif)) == GIF_ERROR)
   		  			break;
 			    width = gif->Image.Width;
-			    height = gif->Image.Height;				  
-				
+			    height = gif->Image.Height;
+
 				if( width >= MAX_IMPORT_IMAGE_SIZE || height >= MAX_IMPORT_IMAGE_SIZE )
 					break;
-				
+
 			    rows = safemalloc(height * sizeof(GifRowType *));
 				all_rows = safemalloc(height * width * sizeof(GifPixelType));
-				
-				for (y = 0; y < height; y++) 
+
+				for (y = 0; y < height; y++)
 				{
 					rows[y] = all_rows+offset ;
 					offset += width*sizeof(GifPixelType);
 				}
-				if (gif->Image.Interlace) 
-				{	
-					int i ;		
+				if (gif->Image.Interlace)
+				{
+					int i ;
 					static int intoffset[] = {0, 4, 2, 1};
 					static int intjump[] = {8, 8, 4, 2};
-					for (i = 0; i < 4; ++i) 
-			            for (y = intoffset[i]; y < height; y += intjump[i]) 
+					for (i = 0; i < 4; ++i)
+			            for (y = intoffset[i]; y < height; y += intjump[i])
 				            if( (status = DGifGetLine(gif, rows[y], width)) != GIF_OK )
 							{
 								i = 4;
 								break;
 							}
-		        }else 
-			        for (y = 0; y < height; ++y) 
+		        }else
+			        for (y = 0; y < height; ++y)
 			            if( (status = DGifGetLine(gif, rows[y], width)) != GIF_OK )
 							break;
-			}else if (rec == EXTENSION_RECORD_TYPE ) 
+			}else if (rec == EXTENSION_RECORD_TYPE )
 			{
 	    		int         ext_code = 0;
     			GifByteType *ext = NULL;
-		
+
 		  		DGifGetExtension(gif, &ext_code, &ext);
-  				while (ext) 
+  				while (ext)
 				{
 					if( transparent < 0 )
-      					if( ext_code == 0xf9 && (ext[1]&0x01))	
+      					if( ext_code == 0xf9 && (ext[1]&0x01))
 				  			transparent = (int) ext[4];
 		      		ext = NULL;
       				DGifGetExtensionNext(gif, &ext);
 				}
 			}
 
-			if( status != GIF_OK ) 
+			if( status != GIF_OK )
 				break;
   		}
 	}
-	
+
 	if( status == GIF_OK && rows  )
 	{
 		int bg_color =   gif->SBackGroundColor ;
 	  	ColorMapObject  *cmap = gif->SColorMap ;
-		  
+
 		im = safecalloc( 1, sizeof( ASImage ) );
 		asimage_start( im, width, height );
 		prepare_scanline( im->width, 0, &buf, False );
-	  
-		if( gif->Image.ColorMap != NULL) 
+
+		if( gif->Image.ColorMap != NULL)
 			cmap = gif->Image.ColorMap ; /* private colormap where available */
-		  
-		for (y = 0; y < height; ++y) 
+
+		for (y = 0; y < height; ++y)
 		{
 			int x ;
 			Bool do_alpha = False ;
-			for (x = 0; x < width; ++x) 
+			for (x = 0; x < width; ++x)
 			{
 				int c = rows[y][x];
-      			if ( c == transparent) 
+      			if ( c == transparent)
 				{
 					c = bg_color ;
 					do_alpha = True ;
@@ -1489,9 +1666,9 @@ gif2ASImage( const char * path, ASFlagType what )
 		}
 		free_scanline(&buf, True);
 	}
-	if( rows ) 
+	if( rows )
 		free( rows );
-	if( all_rows ) 
+	if( all_rows )
 		free( all_rows );
 
 	DGifCloseFile(gif);
@@ -1499,59 +1676,85 @@ gif2ASImage( const char * path, ASFlagType what )
 }
 #else 			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 ASImage *
-gif2ASImage( const char * path, ASFlagType what )
+gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
 	show_error( "unable to load file \"%s\" - missing GIF image format libraries.\n", path );
 	return NULL ;
 }
 #endif			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 
-#if 0
-#ifdef TIFF		/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
+#ifdef HAVE_TIFF/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
 ASImage *
-tiff2ASImage( const char * path, ASFlagType what )
+tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
+	TIFF 		 *tif ;
+
 	static ASImage 	 *im = NULL ;
-	FILE 		 *fp ;
-	double        image_gamma = 0.0;
-	double        screen_gamma = 1.0;
 	ASScanline    buf;
-	Bool 		  do_alpha = False, grayscale = False ;
-	unsigned int  y;
-	size_t		  row_bytes, offset ;
+	unsigned int  width, height;
+	CARD32		 *data;
 
-	if ((fp = open_image_file(path)) == NULL)
-		return NULL;
-
-	im = safecalloc( 1, sizeof( ASImage ) );
-	asimage_start( im, width, height );
-	prepare_scanline( im->width, 0, &buf, False );
-	do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
-
-	for (y = 0; y < height; y++)
+	if ((tif = TIFFOpen(path,"r")) == NULL)
 	{
-		raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
-
-		asimage_add_line (im, IC_RED,   buf.red, y);
-		asimage_add_line (im, IC_GREEN, buf.green, y);
-		asimage_add_line (im, IC_BLUE,  buf.blue, y);
-		if( do_alpha )
-			asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
+		show_error("cannot open image file \"%s\" for reading. Please check permissions.", path);
+		return NULL;
 	}
 
-	free_scanline(&buf, True);
-	/* read rest of file, and get additional chunks in info_ptr - REQUIRED */
+	if( subimage > 0 )
+		if( !TIFFSetDirectory(tif, subimage))
+			show_warning("failed to read subimage %d from image file \"%s\". Reading first available instead.", subimage, path);
+
+	TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
+	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
+	if( width < MAX_IMPORT_IMAGE_SIZE && height < MAX_IMPORT_IMAGE_SIZE )
+	{
+		if ((data = (CARD32*) _TIFFmalloc(width * height * sizeof (CARD32))) != NULL)
+		{
+			im = safecalloc( 1, sizeof( ASImage ) );
+			asimage_start( im, width, height );
+			prepare_scanline( im->width, 0, &buf, False );
+
+			if (TIFFReadRGBAImage(tif, width, height, data, 0))
+			{
+				register CARD32 *row = data ;
+				int y = height ;
+				while( --y >= 0 )
+				{
+					int x ;
+					for( x = 0 ; x < width ; ++x )
+					{
+						CARD32 c = row[x] ;
+						buf.alpha[x] = (c>>24)&0x00FF;
+						buf.red[x]   = (c    )&0x00FF ;
+						buf.green[x] = (c>>8 )&0x00FF ;
+						buf.blue[x]  = (c>>16)&0x00FF ;
+					}
+					asimage_add_line (im, IC_RED,   buf.red, y);
+					asimage_add_line (im, IC_GREEN, buf.green, y);
+					asimage_add_line (im, IC_BLUE,  buf.blue, y);
+					for( x = 0 ; x < width ; ++x )
+						if( buf.alpha[x] != 0x00FF )
+						{
+							asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
+							break;
+						}
+					row += width ;
+				}
+		    }
+			free_scanline(&buf, True);
+			_TIFFfree(data);
+		}
+	}
 	/* close the file */
-	fclose (fp);
+	TIFFClose(tif);
 	return im ;
 }
 #else 			/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
 
 ASImage *
-tiff2ASImage( const char * path, ASFlagType what )
+tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
 {
 	show_error( "unable to load file \"%s\" - missing TIFF image format libraries.\n", path );
 	return NULL ;
 }
 #endif			/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
-#endif

@@ -3,6 +3,8 @@
 
 struct ScreenInfo;
 
+#define MAX_IMPORT_IMAGE_SIZE 	4000
+
 /* RLE format :
 component := <line><line>...<line>
 line      := <block><block>...<block><EOL>
@@ -85,16 +87,56 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
 #define VRB_CTRL_EXPLAIN 	(0x01<<2)
 #define VRB_EVERYTHING		(VRB_LINE_SUMMARY|VRB_CTRL_EXPLAIN|VRB_LINE_CONTENT)
 
+/* what file formats we support : */
+ASImage *xpm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+ASImage *png2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+ASImage *jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+ASImage *xcf2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+ASImage *ppm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+ASImage *bmp2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+ASImage *ico2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+ASImage *gif2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
 
-ASImage *asimage_from_ximage (struct ScreenInfo *scr, XImage * xim);
-ASImage *asimage_from_pixmap (struct ScreenInfo *scr, Pixmap p, int x, int y,
-	                          unsigned int width, unsigned int height,
-		  					  unsigned long plane_mask, Bool keep_cache);
+typedef enum
+{
+	ASIT_Xpm = 0,
+	ASIT_ZCompressedXpm,
+	ASIT_GZCompressedXpm,
+	ASIT_Png,
+	ASIT_Jpeg,
+	ASIT_Xcf,
+	ASIT_Ppm,
+	ASIT_Pnm,
+	ASIT_Bmp,
+	ASIT_Ico,
+	ASIT_Cur,
+	ASIT_Gif,
+	ASIT_Tiff,
+	ASIT_Xbm,
+	ASIT_Targa,
+	ASIT_Pcx,
+	ASIT_Unknown
+}ASImageFileTypes;
 
-XImage* ximage_from_asimage (struct ScreenInfo *scr, ASImage *im);
-Pixmap  pixmap_from_asimage (struct ScreenInfo *scr, ASImage *im, Window w, GC gc, Bool use_cached);
+typedef ASImage* (*as_image_loader_func)( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+extern as_image_loader_func as_image_file_loaders[ASIT_Unknown];
+
+ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, ... );
+
+ASImage *ximage2asimage (struct ScreenInfo *scr, XImage * xim);
+ASImage *pixmap2asimage (struct ScreenInfo *scr, Pixmap p, int x, int y,
+	                     unsigned int width, unsigned int height,
+		  				 unsigned long plane_mask, Bool keep_cache);
+
+XImage* asimage2ximage  (struct ScreenInfo *scr, ASImage *im);
+XImage* asimage2mask_ximage (struct ScreenInfo *scr, ASImage *im);
+Pixmap  asimage2pixmap  (struct ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached);
+Pixmap  asimage2mask    (struct ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached);
 
 /* manipulations : */
 ASImage *scale_asimage( struct ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim );
+
+
 
 #endif
