@@ -648,7 +648,7 @@ setup_truecolor_visual( ASVisual *asv )
 				if( glXGetConfig(dpy, vi, GLX_DOUBLEBUFFER, &val) == 0 )
 					if( val ) set_flags( asv->glx_support, ASGLX_DoubleBuffer );
 				
-				if( (asv->glx_scratch_gc_indirect = glXCreateContext (dpy, &(asv->visual_info), NULL, True)) != NULL ) 
+				if( (asv->glx_scratch_gc_direct = glXCreateContext (dpy, &(asv->visual_info), NULL, True)) != NULL ) 
 					if( !glXIsDirect( dpy, asv->glx_scratch_gc_direct ) )
 					{	
 						glXDestroyContext(dpy, asv->glx_scratch_gc_direct );
