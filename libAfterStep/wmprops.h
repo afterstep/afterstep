@@ -52,7 +52,7 @@ extern Atom  _AS_DESK_NUMBERS            ;
 extern Atom  _AS_CURRENT_DESK            ;
 extern Atom  _AS_CURRENT_VIEWPORT        ;
 
-extern AtomXref WMPropAtoms[];    /*all top level atoms for purpose of easy interning */
+extern struct AtomXref *WMPropAtoms;    /*all top level atoms for purpose of easy interning */
 
 
 /***********************************************************************/

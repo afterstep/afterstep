@@ -130,7 +130,7 @@ LOCAL_DEBUG_OUT("grabbing pointer at window(%+d%+d) root(%+d%+d), mask = 0x%X, w
                       ttime ) == 0 )
 #else
     if( _as_grab_screen_func == NULL ||
-    	_as_grab_screen_func( scr, scr->Feel.cursors[MOVE]))
+    	_as_grab_screen_func( scr, scr->Feel.cursors[ASCUR_Move]))
 #endif
     {
 SHOW_CHECKPOINT;

@@ -184,22 +184,22 @@ apply_context_cursor( Window w, ASFeel *feel, unsigned long context )
 		Cursor c = None ;
 		switch( context )
 		{
-			case C_TITLE   : c = feel->cursors[TITLE_CURSOR] ; 	break ;
-			case C_FrameN  : c = feel->cursors[TOP] ; 			break ;
-			case C_FrameE  : c = feel->cursors[RIGHT] ; 			break ;
-			case C_FrameS  : c = feel->cursors[BOTTOM] ; 		break ;
-			case C_FrameW  : c = feel->cursors[LEFT] ; 			break ;
-			case C_FrameNW : c = feel->cursors[TOP_LEFT] ; 		break ;
-			case C_FrameNE : c = feel->cursors[TOP_RIGHT] ; 		break ;
-			case C_FrameSW : c = feel->cursors[BOTTOM_LEFT] ; 	break ;
-			case C_FrameSE : c = feel->cursors[BOTTOM_RIGHT] ; 	break ;
+			case C_TITLE   : c = feel->cursors[ASCUR_Title] ; 		break ;
+			case C_FrameN  : c = feel->cursors[ASCUR_Top] ; 		break ;
+			case C_FrameE  : c = feel->cursors[ASCUR_Right] ; 		break ;
+			case C_FrameS  : c = feel->cursors[ASCUR_Bottom] ; 		break ;
+			case C_FrameW  : c = feel->cursors[ASCUR_Left] ; 		break ;
+			case C_FrameNW : c = feel->cursors[ASCUR_TopLeft] ; 	break ;
+			case C_FrameNE : c = feel->cursors[ASCUR_TopRight] ; 	break ;
+			case C_FrameSW : c = feel->cursors[ASCUR_BottomLeft] ; 	break ;
+			case C_FrameSE : c = feel->cursors[ASCUR_BottomRight] ; break ;
 			default:
 				if( get_flags(context,C_FRAME) )
-					c = feel->cursors[MOVE] ;
+					c = feel->cursors[ASCUR_Move] ;
 		}
 
 		if( c == None && get_flags(context,C_FRAME) )
-			c = feel->cursors[MOVE] ;
+			c = feel->cursors[ASCUR_Move] ;
 		LOCAL_DEBUG_OUT( "context %s, selected cursor %ld, window %lX", context2text(context), c, w );
 		if( c != None )
 		{

@@ -357,7 +357,7 @@ setup_modifiers ()
 	nonlock_mods = ((ShiftMask | ControlMask | Mod1Mask | Mod2Mask
 	 				 | Mod3Mask | Mod4Mask | Mod5Mask) & ~lockmask);
 	
-	LOCAL_DEBUG_OUT( "lockmask = %lX, nonlock_mods = %lX", lockmask, nonlock_mods );
+	LOCAL_DEBUG_OUT( "lockmask = %X, nonlock_mods = %X", lockmask, nonlock_mods );
 
 	mp = lock_mods;
 	for (m = 0, i = 1; i < MAX_LOCK_MODS; i++)
@@ -487,7 +487,7 @@ check_screen_panframes(ScreenInfo *scr)
                 /* to maintain stacking order where first mapped pan frame is the lowest window :*/
                 LOCAL_DEBUG_OUT( "rasing PanFrame %d(%lX)", i, scr->PanFrame[i].win );
                 XRaiseWindow( dpy, scr->PanFrame[i].win );
-                XDefineCursor (dpy, scr->PanFrame[i].win, scr->Feel.cursors[TOP+i]);
+                XDefineCursor (dpy, scr->PanFrame[i].win, scr->Feel.cursors[ASCUR_Top+i]);
             }
         }
     }

@@ -9,32 +9,27 @@ extern "C" {
 #endif
 
 /* Cursor types */
-#ifndef POSITION
-#define POSITION 0		/* upper Left corner cursor */
-#endif
-#define TITLE_CURSOR 1		/* title-bar cursor */
-#define DEFAULT 2		/* cursor for apps to inherit */
-#define SYS 3			/* sys-menu and iconify boxes cursor */
-#define MOVE 4			/* resize cursor */
-#if defined(__alpha)		/* Do you honnestly think people will even */
-#ifdef WAIT			/* have to wait on alphas :-) */
-#undef WAIT
-#endif
-#endif
-#define WAIT 5			/* wait a while cursor */
-#define MENU 6			/* menu cursor */
-#define SELECT 7		/* dot cursor for f.move, etc. from menus */
-#define DESTROY 8		/* skull and cross bones, f.destroy */
-#define TOP 9
-#define RIGHT 10
-#define BOTTOM 11
-#define LEFT 12
-#define TOP_LEFT 13
-#define TOP_RIGHT 14
-#define BOTTOM_LEFT 15
-#define BOTTOM_RIGHT 16
-#define MAX_CURSORS 18
-
+enum ASCursorTypes
+{	
+	ASCUR_Position = 0,		/* upper Left corner cursor */
+	ASCUR_Title,			/* title-bar cursor */
+	ASCUR_Default,			/* cursor for apps to inherit */
+	ASCUR_Sys,				/* sys-menu and iconify boxes cursor */
+	ASCUR_Move,				/* resize cursor */
+	ASCUR_Wait,				/* wait a while cursor */
+	ASCUR_Menu,				/* menu cursor */
+	ASCUR_Select,			/* dot cursor for f.move, etc. from menus */
+	ASCUR_Destroy,			/* skull and cross bones, f.destroy */
+	ASCUR_Top,
+	ASCUR_Right,
+	ASCUR_Bottom,
+	ASCUR_Left,
+	ASCUR_TopLeft,
+	ASCUR_TopRight,
+	ASCUR_BottomLeft,
+	ASCUR_BottomRight,
+	ASCUR_UsefulCursors
+};
 
 /* MENU SORT MODS : */
 #define SORTBYALPHA 1

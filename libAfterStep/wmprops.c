@@ -79,7 +79,7 @@ Atom          _AS_CURRENT_VIEWPORT = None;
 /* Crossreferences of atoms into flag value for
    different atom list type of properties :*/
 
-AtomXref      WMPropAtoms[] = {
+AtomXref  _WMPropAtoms[] = {
 	{"_XA_MIT_PRIORITY_COLORS", &_XA_MIT_PRIORITY_COLORS},
 	{"_XA_WM_CHANGE_STATE", &_XA_WM_CHANGE_STATE},
 
@@ -125,6 +125,8 @@ AtomXref      WMPropAtoms[] = {
     {"_AS_CURRENT_VIEWPORT", &_AS_CURRENT_VIEWPORT},   /* current afterstep viewport */
     {NULL, NULL, 0, None}
 };
+
+AtomXref  *WMPropAtoms = &_WMPropAtoms[0];
 
 /******************** Window Manager Selection  ***************************/
 XErrorHandler

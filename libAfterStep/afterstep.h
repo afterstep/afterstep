@@ -74,6 +74,9 @@ extern "C" {
 /* The maximum number of titlebar buttons */
 #define MAX_BUTTONS 10
 
+#define MAX_CURSORS	32                         /* just for the heck of it! */
+
+
 /* the maximum number of mouse buttons afterstep knows about :
  * This is the better approach : */
 #define MAX_MOUSE_BUTTONS 	(Button5-Button1+1)
