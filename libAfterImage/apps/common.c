@@ -76,7 +76,8 @@ create_top_level_window( ASVisual *asv, Window root, int x, int y,
 						 unsigned int border_width, unsigned long attr_mask,
 						 XSetWindowAttributes *attr, char *app_class )
 {
-	Window w ;
+ 	Window w = None;
+#ifndef X_DISPLAY_MISSING
 	char *tmp ;
 	XTextProperty name;
 	XClassHint class1;
@@ -93,6 +94,7 @@ create_top_level_window( ASVisual *asv, Window root, int x, int y,
     /* final cleanup */
     XFree ((char *) name.value);
 
+#endif /* X_DISPLAY_MISSING */
 	return w;
 }
 /**************/
@@ -119,6 +121,7 @@ create_top_level_window( ASVisual *asv, Window root, int x, int y,
 Pixmap
 set_window_background_and_free( Window w, Pixmap p )
 {
+#ifndef X_DISPLAY_MISSING
 	if( p != None && w != None )
 	{
 		XSetWindowBackgroundPixmap( dpy, w, p );
@@ -127,6 +130,7 @@ set_window_background_and_free( Window w, Pixmap p )
 		XFreePixmap( dpy, p );
 		p = None ;
 	}
+#endif /* X_DISPLAY_MISSING */
 	return p ;
 }
 /**************/

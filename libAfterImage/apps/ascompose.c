@@ -18,6 +18,10 @@
  *
  */
 
+#warning TODO: No-X support (#ifndef X_DISPLAY_MISSING).
+#warning TODO: -onroot.
+#warning TODO: Document undocumented options.
+
 #include "config.h"
 
 #include <ctype.h>
@@ -60,11 +64,11 @@ void xml_insert(xml_elem_t* parent, xml_elem_t* child);
 char* lcstring(char* str);
 Bool save_file(const char* file2bsaved, ASImage *im, const char* type);
 
-
 Pixmap GetRootPixmap (Atom id);
 
-Display* dpy;
-int screen, depth;
+Display* dpy = NULL;
+int screen = 0, depth = 0;
+
 ASVisual *asv;
 int verbose = 0;
 ASHashTable* image_hash = NULL;
@@ -85,18 +89,33 @@ void version(void) {
 }
 
 void usage(void) {
+#ifndef X_DISPLAY_MISSING
 	printf(
 		"Usage:\n"
-		"ascompose [-h] [-f file] [-n] [-o file] [-s string] [-t type] [-v] [-V]\n"
+		"ascompose [-h] [-f file] [-n] [-o file] [-r] [-s string] [-t type] [-v] [-V]\n"
 		"  -h --help          display this help and exit\n"
 		"  -f --file file     an XML file to use as input\n"
-		"  -n --no-display    don't display the image\n"
+		"  -n --no-display    don't display the final image\n"
+		"  -o --output file   output to file\n"
+		"  -r --root-window   draw result image on root window\n"
+		"  -s --string string an XML string to use as input\n"
+		"  -t --type type     type of file to output to\n"
+		"  -v --version       display version and exit\n"
+		"  -V --verbose       increase verbosity\n"
+	);
+#else /* X_DISPLAY_MISSING */
+	printf(
+		"Usage:\n"
+		"ascompose [-h] [-f file] [-o file] [-s string] [-t type] [-v] [-V]\n"
+		"  -h --help          display this help and exit\n"
+		"  -f --file file     an XML file to use as input\n"
 		"  -o --output file   output to file\n"
 		"  -s --string string an XML string to use as input\n"
 		"  -t --type type     type of file to output to\n"
 		"  -v --version       display version and exit\n"
 		"  -V --verbose       increase verbosity\n"
 	);
+#endif /* X_DISPLAY_MISSING */
 }
 
 int main(int argc, char** argv) {
@@ -145,10 +164,13 @@ int main(int argc, char** argv) {
 		}
 	}
 
+#ifndef X_DISPLAY_MISSING
 	dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
 	screen = DefaultScreen(dpy);
 	depth = DefaultDepth(dpy, screen);
+#endif
+
 	asv = create_asvisual(dpy, screen, depth, NULL);
 
 	doc = xml_parse_doc(doc_str);
@@ -260,6 +282,7 @@ char* load_file(const char* filename) {
 }
 
 void showimage(ASImage* im) {
+#ifndef X_DISPLAY_MISSING
 	if( im != NULL )
 	{
 		/* see ASView.4 : */
@@ -302,6 +325,7 @@ void showimage(ASImage* im) {
 
     if( dpy )
         XCloseDisplay (dpy);
+#endif /* X_DISPLAY_MISSING */
 }
 
 // Each tag is only allowed to return ONE image.
@@ -376,6 +400,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!fontman) fontman = create_font_manager(dpy, NULL, NULL);
 			if (fontman) font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
 			if (font != NULL) {
+				set_asfont_glyph_spacing(font, 3, 0);
 				result = draw_text(text, font, AST_Plain, 0);
 				if (result && fgimage_str) {
 					ASImage* fgimage = NULL;
@@ -1287,6 +1312,7 @@ char* lcstring(char* str) {
 Pixmap GetRootPixmap (Atom id)
 {
 	Pixmap        currentRootPixmap = None;
+#ifndef X_DISPLAY_MISSING
 
 	if (id == None)
 		id = XInternAtom (dpy, "_XROOTPMAP_ID", True);
@@ -1310,6 +1336,6 @@ Pixmap GetRootPixmap (Atom id)
 			}
 		}
 	}
+#endif /* X_DISPLAY_MISSING */
 	return currentRootPixmap;
 }
-
