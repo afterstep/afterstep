@@ -98,29 +98,39 @@ module_setup_socket ()
 }
 
 void
-KillModule (module_t *module)
+KillModule (module_t *module, Bool dont_free_memory)
 {
 LOCAL_DEBUG_OUT( "module %p ", module );
 LOCAL_DEBUG_OUT( "module name \"%s\"", module->name );
     if (module->fd > 0)
         close (module->fd);
 
-    while (module->output_queue != NULL)
-        DeleteQueueBuff (module);
-    if (module->name != NULL)
-        free (module->name);
-    if (module->ibuf.text != NULL)
-        free (module->ibuf.text);
-
-    if (module->ibuf.func != NULL)
+	if( !dont_free_memory )
 	{
-        free_func_data (module->ibuf.func);
-        free (module->ibuf.func);
+    	while (module->output_queue != NULL)
+        	DeleteQueueBuff (module);
+    	if (module->name != NULL)
+        	free (module->name);
+    	if (module->ibuf.text != NULL)
+        	free (module->ibuf.text);
+
+    	if (module->ibuf.func != NULL)
+		{
+        	free_func_data (module->ibuf.func);
+        	free (module->ibuf.func);
+		}
+
+    	memset( module, 0x00, sizeof(module_t) );
+	}else
+	{
+		module->output_queue = NULL ;
+		module->name = NULL ;
+		module->ibuf.text = NULL ;
+		module->ibuf.func = NULL ;
 	}
 
-    memset( module, 0x00, sizeof(module_t) );
-    module->fd = -1;
-    module->active = -1;
+   	module->fd = -1;
+   	module->active = -1;
 }
 
 
@@ -296,7 +306,7 @@ LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
 	}
 
 	if (res < 0)
-        KillModule (module);
+        KillModule (module, False);
     else if (res > 0)
     {
         ibuf->done = 0;                        /* done reading command */
@@ -374,7 +384,7 @@ FlushQueue (module_t *module)
                return 0;
             }else
             {
-                KillModule (module);
+                KillModule (module, False);
                 return -1;
             }
         }
@@ -524,17 +534,23 @@ AcceptModuleConnection (int socket_fd)
 
 
 void
-ShutdownModules()
+ShutdownModules(Bool dont_free_memory)
 {
     if (Modules != NULL)
     {
         register int i = MODULES_NUM;
         register module_t *list = MODULES_LIST ;
-LOCAL_DEBUG_OUT( "total modules %d. list starts at %p", MODULES_NUM, MODULES_LIST );
+LOCAL_DEBUG_OUT( "pid(%d),total modules %d. list starts at %p", getpid(), MODULES_NUM, MODULES_LIST );
         while(--i >= 0 )
-            KillModule ( &(list[i]) );
-        destroy_asvector(&Modules);
-		free_vector( &module_output_buffer );
+            KillModule ( &(list[i]), dont_free_memory );
+		if( !dont_free_memory )
+		{
+LOCAL_DEBUG_OUT( "pid(%d),destroy_asvector", getpid() );
+        	destroy_asvector(&Modules);
+LOCAL_DEBUG_OUT( "pid(%d),free_vector", getpid() );
+			free_vector( &module_output_buffer );
+LOCAL_DEBUG_OUT( "pid(%d),modules are down", getpid() );
+		}
         Modules = NULL;
     }
 }
@@ -543,7 +559,7 @@ void
 SetupModules(void)
 {
     if( Modules )
-        ShutdownModules();
+        ShutdownModules(False);
 
     Module_npipes = get_fd_width ();
 	LOCAL_DEBUG_OUT( "max Module pipes = %d", Module_npipes );
@@ -623,7 +639,7 @@ KillModuleByName (char *name)
             {
                 LOCAL_DEBUG_OUT( "checking to kill module %d \"%s\", regexp \"%s\"", i, list[i].name, name);
                 if (match_wild_reg_exp( list[i].name, wrexp ) == 0 )
-                    KillModule (&(list[i]));
+                    KillModule (&(list[i]), False);
             }
         destroy_wild_reg_exp( wrexp );
     }

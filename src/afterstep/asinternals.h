@@ -269,7 +269,7 @@ void HandleModuleInOut(unsigned int channel, Bool has_input, Bool has_output);
 
 void KillModuleByName (char *name);
 void DeadPipe (int nonsense);
-void ShutdownModules();
+void ShutdownModules(Bool dont_free_memory);
 
 void RunCommand (FunctionData * fdata, unsigned int channel, Window w);
 

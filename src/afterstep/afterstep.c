@@ -77,9 +77,12 @@ Bool afterstep_parent_hints_func(Window parent, ASParentHints *dst );
 void
 ASCloseOnExec()
 {
-    ShutdownModules();
+LOCAL_DEBUG_OUT( "pid(%d),shutting down modukes...", getpid() );
+    ShutdownModules(True);
+LOCAL_DEBUG_OUT( "pid(%d),closing x_fd...", getpid() );
     if( x_fd )
         close(x_fd);
+LOCAL_DEBUG_OUT( "pid(%d),complete...", getpid() );
 }
 #endif
 
@@ -523,7 +526,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     CleanupScreen();
 
 	/* Close all my pipes */
-    ShutdownModules();
+    ShutdownModules(False);
 
 	/* freeing up memory */
     destroy_assession( Session );

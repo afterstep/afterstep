@@ -624,21 +624,24 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
 	}else
     {/* we get here only in child process. We now need to spawn new proggy here: */
         int len;
-        char *display = XDisplayString (dpy);
+        char *display = mystrdup(XDisplayString (dpy));
         register char *ptr ;
 
         char *cmdl;
         char *arg, *screen_str = NULL, *w_str = NULL, *context_str = NULL ;
         va_list ap;
 
+		LOCAL_DEBUG_OUT( "pid(%d), entered child process to spawn ...", pid );
         len = strlen(cmd);
         if( pass_args )
         {
-	    register int i = 0 ;
-	    while( display[i] ) ++i;
-	    while( i > 0 && isdigit(display[--i]) );
-	    if( display[i] == '.' )
-		display[i+1] = '\0' ;
+            register int i = 0 ;
+
+            while( display[i] ) ++i;
+
+            while( i > 0 && isdigit(display[--i]) );
+            if( display[i] == '.' )
+                display[i+1] = '\0' ;
 
             if( screen >= 0 )
                 screen_str = string_from_int( screen );
@@ -678,7 +681,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             len += 1+strlen(arg);
         va_end(ap);
 
-        len+=3;
+        len+=4;
 
         ptr = cmdl = safemalloc( len );
         strcpy( cmdl, cmd );

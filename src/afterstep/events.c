@@ -747,7 +747,7 @@ HandleMapRequest (ASEvent *event )
         if( (event->client = AddWindow (event->w)) == NULL )
             return;
     }else /* If no hints, or currently an icon, just "deiconify" */
-        set_window_wm_state( event->client, True );
+        set_window_wm_state( event->client, False );
 }
 
 /***********************************************************************
