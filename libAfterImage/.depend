@@ -11,7 +11,8 @@
 		afterbase.h \
 		asfont.h \
 		asimage.h \
-		asvisual.h
+		asvisual.h \
+		char2uni.h
 
 ./asimage.o : \
 		config.h \
@@ -36,6 +37,11 @@
 		asvisual.h \
 		blender.h
 
+./char2uni.o : \
+		config.h \
+		afterbase.h \
+		char2uni.h
+
 ./export.o : \
 		config.h \
 		afterbase.h \
@@ -55,7 +61,8 @@
 		xcf.h \
 		xpm.h \
 		ungif.h \
-		import.h
+		import.h \
+		asimagexml.h
 
 ./transform.o : \
 		config.h \

@@ -33,16 +33,24 @@ extern const unsigned short *as_current_charset ;
 #define UNICODE_CHAR	CARD32
 #endif
 
+/*
+#define CHAR2UNICODE(c) \
+  ((UNICODE_CHAR)(((((unsigned short)(c))&0x0080)!=0)? \
+					as_current_charset[((unsigned short)text[i])&0x007F]:\
+			       ((unsigned char)(c))))
+*/
 #ifdef  I18N
 #define CHAR2UNICODE(c) \
-  ((UNICODE_CHAR)((CARD16)(c)<128 || (CARD16)(c)>=256 )?\
-			      (CARD16)(c):\
-			      as_current_charset[(CARD16)(c)-128]))
+  ((UNICODE_CHAR)(((((unsigned short)(c))&0x0080)!=0)? \
+					as_current_charset[((unsigned short)(c))&0x007F]:\
+			       ((unsigned char)(c))))
 #else
-#define CHAR2UNICODE(c)   ((UNICODE_CHAR)(c))
+#define CHAR2UNICODE(c)   ((UNICODE_CHAR)(((unsigned short)(c))&0x00FF))
 #endif
 
 ASSupportedCharsets as_set_charset( ASSupportedCharsets new_charset );
+ASSupportedCharsets parse_charset_name( const char *name );
+
 
 /****d* libAfterImage/CHAR_SIZE
  * FUNCTION

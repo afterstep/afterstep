@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 /*#define DO_CLOCKING*/
 
 #define DO_X11_ANTIALIASING
@@ -59,6 +59,9 @@
 #include "asimage.h"
 #include "asvisual.h"
 #include "char2uni.h"
+
+#undef MAX_GLYPHS_PER_FONT
+
 
 /*********************************************************************************/
 /* TrueType and X11 font management functions :   								 */
@@ -172,9 +175,11 @@ LOCAL_DEBUG_OUT( "face load failed.%s", "" );
 LOCAL_DEBUG_OUT( "face found : %p", face );
 			if( face != NULL )
 			{
+#ifdef MAX_GLYPHS_PER_FONT
 				if( face->num_glyphs >  MAX_GLYPHS_PER_FONT )
 					show_error( "Font \"%s\" contains too many glyphs - %d. Max allowed is %d", realfilename, face->num_glyphs, MAX_GLYPHS_PER_FONT );
 				else
+#endif				
 				{
 					font = safecalloc( 1, sizeof(ASFont));
 					font->magic = MAGIC_ASFONT ;
@@ -201,7 +206,6 @@ open_X11_font( ASFontManager *fontman, const char *font_string)
 {
 	ASFont *font = NULL ;
 #ifndef X_DISPLAY_MISSING
-	XFontStruct *xfs ;
 #ifdef I18N
 	/* TODO: we have to use FontSet and loop through fonts instead filling
 	 * up 2 bytes per character table with glyphs */
@@ -209,6 +213,7 @@ open_X11_font( ASFontManager *fontman, const char *font_string)
 
 
 #else                                          /* assume ISO Latin 1 encoding */
+	XFontStruct *xfs ;
 
 	if( (xfs = XLoadQueryFont( fontman->dpy, font_string )) == NULL )
 	{
@@ -790,7 +795,7 @@ static int
 load_X11_glyphs( Display *dpy, ASFont *font, XFontStruct *xfs )
 {
 	GC gc = NULL;
-#ifdef I18N
+#if 0 /*I18N*/
 	if( xfs->max_byte1 > 0 && xfs->min_byte1 > 0 )
 	{
 
@@ -888,7 +893,7 @@ load_glyph_freetype( ASFont *font, ASGlyph *asg, int glyph )
 				asg->descend = bmap->rows - asg->ascend;
 				/* we only want to keep lead if it was negative */
 				asg->lead    = face->glyph->bitmap_left;
-	LOCAL_DEBUG_OUT( "glyph %p is %dx%d ascend = %d, lead = %d, bmap_top = %d",  asg, asg->width, asg->height, asg->ascend, asg->lead, face->glyph->bitmap_top );
+	LOCAL_DEBUG_OUT( "glyph for unicode %lu is %dx%d ascend = %d, lead = %d, bmap_top = %d", glyph, asg->width, asg->height, asg->ascend, asg->lead, face->glyph->bitmap_top );
 			}
 }
 
@@ -1503,7 +1508,7 @@ void print_asglyph( FILE* stream, ASFont* font, unsigned long c)
 	if( font )
 	{
 		int i, k ;
-		ASGlyph *asg = get_character_glyph( (char*)&c, font );
+		ASGlyph *asg = get_character_glyph( c, font );
 		if( asg == NULL )
 			return;
 

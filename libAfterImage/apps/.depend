@@ -40,3 +40,12 @@
 ./ascompose.o: \
 		config.h \
 		common.h
+
+./asi18n.o: \
+		config.h \
+		common.h \
+		../char2uni.h
+
+./asvector.o: \
+		config.h \
+		common.h

@@ -29,13 +29,15 @@
 
 #include "config.h"
 
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 /*#define DO_CLOCKING*/
 
 /* #define  I18N */
 
-#include "string.h"
+#include <string.h>
+#include "afterbase.h"
 #include "char2uni.h"
+
 
 /*
  * ISO-8859-1
@@ -918,6 +920,7 @@ as_set_charset( ASSupportedCharsets new_charset )
 	if( new_charset < 0 || new_charset >= SUPPORTED_CHARSETS_NUM ) 
 		new_charset = CHARSET_ISO8859_1 ;
 
+LOCAL_DEBUG_OUT( "Setting encoding to %d\n", new_charset );
 	as_current_charset = _as_supported_charsets[new_charset] ;
 	return new_charset ;
 #else
