@@ -2,11 +2,9 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
-# as_png.o as_jpeg.o as_xpm.o pixmap.o  stepgfx.o ximage_utils.o 
+# as_png.o as_jpeg.o as_xpm.o pixmap.o  stepgfx.o ximage_utils.o hashtable.o 
 
-LIB_OBJS= hashtable.o loadimg.o \
-		  mystyle.o mystyle_property.o \
-		  balloon.o background.o
+LIB_OBJS= loadimg.o mystyle.o mystyle_property.o balloon.o background.o
 
 LIB_NAME		= LIBASIMAGE
 LIB_STATIC      = libasimage.a

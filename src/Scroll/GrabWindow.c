@@ -31,6 +31,7 @@
 #include "../../include/afterbase.h"
 #include "../../include/aftersteplib.h"
 #include "../../include/module.h"
+#include "../../include/mystyle.h"
 #include "Scroll.h"
 
 int fd_width;
@@ -59,6 +60,34 @@ Atom wm_del_win;
 Atom _XA_WM_PROTOCOLS;
 Atom _XA_WM_COLORMAP_WINDOWS;
 
+unsigned long GetColor( char *color ) 
+{
+	ARGB32 argb ;
+	unsigned long pixel ;
+	
+	if( color == parse_argb_color( color, &argb ) )
+		return Scr.asv->black_pixel ;
+	
+	ARGB2PIXEL( Scr.asv, argb, &pixel );
+	return pixel ;
+}
+
+unsigned long MyGetHilite (char *color)
+{
+	ARGB32 argb ;
+	if( color == parse_argb_color( color, &argb ) )
+		return Scr.asv->black_pixel ;
+		
+	return GetHilite( argb );
+}
+
+unsigned long  MyGetShadow(char *color)
+{
+	ARGB32 argb ;
+	if( color == parse_argb_color( color, &argb ) )
+		return Scr.asv->black_pixel ;
+	return GetShadow( argb );
+}
 /****************************************************************************
  *
  *  Draws the relief pattern around a window
@@ -170,8 +199,8 @@ CreateWindow (int x, int y, int w, int h)
     {
       back_pix = GetColor (BackColor);
       fore_pix = GetColor (ForeColor);
-      hilite_pix = GetHilite (fore_pix);
-      shadow_pix = GetShadow (fore_pix);
+      hilite_pix = MyGetHilite (BackColor);
+      shadow_pix = MyGetShadow (ForeColor);
 
     }
 
