@@ -21,7 +21,7 @@
 
 #include "config.h"
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 
 #include <ctype.h>
 #include <errno.h>
@@ -132,7 +132,7 @@
  *****/
 
 
-void showimage(ASImage* im, int onroot);
+Bool showimage(ASImage* im, int onroot, Bool looping ); 
 
 int screen = 0, depth = 0;
 
@@ -338,7 +338,7 @@ int main(int argc, char** argv) {
 		}
 		/* Display the image if desired. */
 		if (display && dpy) 
-			showimage(im, onroot);
+			showimage(im, onroot, False);
 		/* Done with the image, finally. */
 		if( im ) 
 			destroy_asimage(&im);
@@ -346,6 +346,7 @@ int main(int argc, char** argv) {
 	{
 		FILE *fp = stdin ;
 		int doc_str_len = 0;
+		Bool closed = False ;
 		if (doc_file && strcmp( doc_file, "-") != 0 ) 
 			fp = fopen( doc_file, "rt" );
 		if( doc_str ) 
@@ -416,7 +417,8 @@ int main(int argc, char** argv) {
 						}
 						/* Display the image if desired. */
 						if (display && dpy) 
-							showimage(im, onroot);
+							if( !showimage(im, onroot, True) ) 
+				 				closed = True ;				
 						safe_asimage_destroy(im);
 						im = NULL ;
 					}					
@@ -441,7 +443,7 @@ int main(int argc, char** argv) {
 					printf("\" level=%d tag_count=%d/>\n", xb.level ,xb.tags_count );	  
 					break;
 				}
-			}while(1);
+			}while(!closed);
 			if( xb.buffer )
 				free( xb.buffer );
 			destroy_image_manager(my_imman, False);
@@ -463,9 +465,10 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-void showimage(ASImage* im, int onroot) {
+Bool showimage(ASImage* im, int onroot, Bool looping ) 
+{
 #ifndef X_DISPLAY_MISSING
-	Window w = None ;
+	static Window w = None ;
 	if (im && onroot) {
 		Pixmap p = asimage2pixmap(asv, DefaultRootWindow(dpy), im, NULL, False);
 		p = set_window_background_and_free(DefaultRootWindow(dpy), p);
@@ -473,9 +476,13 @@ void showimage(ASImage* im, int onroot) {
 	}else if(im && !onroot)
 	{
 		/* see ASView.4 : */
-		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-			                         im->width, im->height, 1, 0, NULL,
-									 "ASView" );
+		if( w == None ) 
+			w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+				                         im->width, im->height, 1, 0, NULL,
+										 "ASCompose" );
+		else
+			XResizeWindow( dpy, w, im->width, im->height );
+
 		if( w != None )
 		{
 			Pixmap p ;
@@ -497,21 +504,36 @@ void showimage(ASImage* im, int onroot) {
 		while(w != None)
   		{
     		XEvent event ;
+			Bool do_close = False ;
 	    	XNextEvent (dpy, &event);
   			switch(event.type)
 			{
 	  			case ClientMessage:
-			    	if ((event.xclient.format != 32) ||
-	  			    	(event.xclient.data.l[0] != _XA_WM_DELETE_WINDOW))
-						break ;
+			    	if (event.xclient.format == 32 &&
+	  			    	event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW)
+					{
+						do_close = True ;
+					}
+					break;
 		  		case ButtonPress:
-					XDestroyWindow( dpy, w );
-					XFlush( dpy );
-					w = None ;
-					break ;
+					LOCAL_DEBUG_OUT( "ButtonPress: looping = %d", looping);
+					if( looping ) 
+						return True;
+					do_close = True ;
+					break;
 			}
+			if( do_close ) 
+			{
+				if( w != DefaultRootWindow(dpy) )
+					XDestroyWindow( dpy, w );
+				XFlush( dpy );
+				w = None ;
+				return False;
+			}	 
   		}
 	}
+	
+	return False;
 #endif /* X_DISPLAY_MISSING */
 }
 
