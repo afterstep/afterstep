@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2000 Sasha Vasko <sashav@sprintmal.com>
+ * Copyright (c) 1999 Ethan Fischer <allanon@crystaltokyo.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -170,6 +171,36 @@ Bool read_text_property (Window w, Atom property, XTextProperty ** trg)
 	return res;
 }
 
+Bool read_string_property (Window w, Atom property, char **trg)
+{
+	Bool          res = False;
+
+    if (w != None && property != None && trg)
+	{
+        int           actual_format;
+        Atom          actual_type;
+        unsigned long junk;
+
+		if (*trg)
+		{
+            XFree (*trg);
+            *trg = NULL ;
+        }
+
+        if (XGetWindowProperty(dpy, w, property, 0, ~0, False, AnyPropertyType, &actual_type,
+             &actual_format, &junk, &junk, (unsigned char **)trg) == Success)
+        {
+            if (actual_type != XA_STRING || actual_format != 8)
+            {
+                XFree (*trg);
+                *trg = NULL ;
+            }else
+                res = True;
+        }
+	}
+	return res;
+}
+
 void
 print_text_property( stream_func func, void* stream, XTextProperty *tprop, const char *prompt )
 {
@@ -248,6 +279,51 @@ text_property2string( XTextProperty *tprop)
     return text;
 }
 
+/* AfterStep specific property : */
+Bool
+read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *version, unsigned long **trg)
+{
+    CARD32       *data = NULL;
+    CARD32       *header;
+	int           actual_format;
+	Atom          actual_type;
+    unsigned long junk, size;
+
+
+    if( w == None || property == None || trg == NULL )
+        return False;
+	/* try to get the property version and data size */
+    if (XGetWindowProperty (dpy, w, property, 0, 2, False, AnyPropertyType, &actual_type,
+		 &actual_format, &junk, &junk, (unsigned char **)&header) != Success)
+        return False;
+	if (header == NULL)
+        return False;
+
+    if( version )
+        *version   = (unsigned long)header[0];
+    size = (unsigned long)header[1];
+    if( data_size )
+        *data_size = size;
+    size /= sizeof(unsigned long);
+
+	XFree (header);
+	if (actual_type == XA_INTEGER)
+	{
+		/* try to get the actual information */
+        if (XGetWindowProperty(dpy, w, property, 2, size, False,
+                               AnyPropertyType, &actual_type, &actual_format, &size, &junk, (unsigned char **)&data) != Success)
+			data = NULL;
+	}
+    if( data )
+    {
+        trg = safemalloc( size*sizeof(unsigned long));
+        for( size-- ; size > 0 ; size-- )
+            (*trg)[size] = (unsigned long) (data[size]) ;
+        XFree( data );
+    }
+    return True;
+}
+
 /*************************************************************************/
 /* Writing properties here :                                             */
 /*************************************************************************/
@@ -287,4 +363,22 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
     }
 }
 
+/* AfterStep specific property : */
+void
+set_as_property ( Window w, Atom property, unsigned long *data, size_t data_size, unsigned long version)
+{
+    CARD32 *buffer;
+
+    buffer = safemalloc (2 * sizeof (CARD32) + data_size);
+	/* set the property version to 1.0 */
+	buffer[0] = version;
+	/* the size of meaningful data to store */
+	buffer[1] = data_size;
+	/* fill in the properties */
+	memcpy (&(buffer[2]), data, data_size);
+
+    XChangeProperty (dpy, w, property, XA_INTEGER, 32, PropModeReplace,
+					 (unsigned char *)buffer, 2 + data_size / sizeof (unsigned long));
+	free (buffer);
+}
 
