@@ -286,10 +286,16 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 static void
 update_geometry_display( ASMoveResizeData *data )
 {
-    int display_width = data->curr.width-data->frame_width ;
-    int display_height = data->curr.height-data->frame_height ;
+    int display_width = (int)data->curr.width-(int)data->frame_width ;
+    int display_height = (int)data->curr.height-(int)data->frame_height ;
     int display_x = data->curr.x - data->geom_x_origin;
     int display_y = data->curr.y - data->geom_y_origin;
+	
+	if( display_height < 0 ) 
+		display_height = 0 ;
+	if( display_width < 0 ) 
+		display_width = 0 ;
+
     if( data->geom_x_mult > 0 && data->geom_x_div > 0 )
     {
         display_x = (display_x*data->geom_x_mult)/data->geom_x_div ;
@@ -300,12 +306,18 @@ update_geometry_display( ASMoveResizeData *data )
         display_y = (display_y*data->geom_y_mult)/data->geom_y_div ;
         display_height = (display_height*data->geom_y_mult)/data->geom_y_div ;
     }
-    if( data->width_inc > 0 )
-        display_width /= data->width_inc ;
-    if( data->height_inc > 0 )
-        display_height /= data->height_inc ;
-    sprintf (data->geometry_string, "%u x %u %+d %+d",
-             display_width, display_height, display_x, display_y );
+	if( data->width_inc != 0 )
+        display_width /= (int)data->width_inc ;
+    if( data->height_inc != 0 )
+        display_height /= (int)data->height_inc ;
+    if( display_width == 0 && display_height != 0 ) 
+		sprintf (data->geometry_string, "x %d %+d %+d", display_height, display_x, display_y );
+	else if( display_width != 0 && display_height == 0 ) 
+		sprintf (data->geometry_string, "%d x  %+d %+d", display_width, display_x, display_y );
+	else if( display_width != 0 && display_height != 0 ) 
+		sprintf (data->geometry_string, "%d x %d %+d %+d", display_width, display_height, display_x, display_y );
+	else
+		sprintf (data->geometry_string, "%+d %+d",display_x, display_y );
 #ifndef NO_ASRENDER
     RendChangeLabel( AS_WIDGET_SCREEN(data->parent), data->geometry_display, 1, data->geometry_string );
 #else

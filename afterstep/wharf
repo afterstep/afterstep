@@ -192,7 +192,7 @@
 #
 
 *MonitorWharf afterstepdoc large/AfterStep3 Exec "-" afterstepdoc &
-*MonitorWharf xeyes - Swallow "xeyes" xeyes &
+*MonitorWharf xeyes - Swallow "xeyes" xeyes -geometry -100-100 &
 *MonitorWharf Recycler normal/Recycle Restart "" afterstep
 *MonitorWharf Quit normal/RedLight Quit "" afterstep
 

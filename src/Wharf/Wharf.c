@@ -184,6 +184,7 @@ void update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force );
 void update_wharf_folder_styles( ASWharfFolder *aswf, Bool force );
 void on_wharf_button_confreq( ASWharfButton *aswb, ASEvent *event );
 void update_root_clip_area();
+void do_wharf_animate_iter( void *vdata );
 
 
 /***********************************************************************
@@ -1418,6 +1419,7 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
             aswf->animation_steps = Config->animate_steps;
         else
             aswf->animation_steps = 12 ;
+		timer_new (10, do_wharf_animate_iter, aswf);	  
     }
 
     if( aswf->animation_steps > 0 )
@@ -1525,6 +1527,8 @@ LOCAL_DEBUG_OUT( "no animations left - unmapping folder %p", aswf );
         {
             int new_width = aswf->canvas->width ;
             int new_height = aswf->canvas->height ;
+
+			timer_new (10, do_wharf_animate_iter, aswf);	  
 
             aswf->animation_dir = -1;
             animate_wharf( aswf, &new_width, &new_height );
@@ -1954,6 +1958,36 @@ update_root_clip_area()
     }
 }
 
+void
+do_wharf_animate_iter( void *vdata )
+{
+	ASWharfFolder *aswf = (ASWharfFolder*)vdata ;
+	
+    if( aswf != NULL && aswf->animation_steps > 0 )
+    {
+        int new_width = 1, new_height = 1;
+        animate_wharf( aswf, &new_width, &new_height );
+        if( new_width == 0 || new_height == 0 ||
+            (new_width == aswf->canvas->width && new_height == aswf->canvas->height ))
+            unmap_wharf_folder( aswf );
+        else
+        {
+            LOCAL_DEBUG_OUT( "resizing folder from %dx%d to %dx%d", aswf->canvas->width, aswf->canvas->height, new_width, new_height );
+            resize_canvas( aswf->canvas, new_width, new_height) ;
+            ASSync( False ) ;
+            if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
+				timer_new (Config->animate_delay*100, do_wharf_animate_iter, vdata);	  
+            else
+				timer_new (10, do_wharf_animate_iter, vdata);	  
+        }
+//        while( --i >= 0 )
+//            if( aswf->buttons[i].swallowed )
+//                send_swallowed_configure_notify(&(aswf->buttons[i]));
+
+	}		  
+}
+
+
 void on_wharf_moveresize( ASEvent *event )
 {
     ASMagic *obj = NULL;
@@ -1992,36 +2026,19 @@ void on_wharf_moveresize( ASEvent *event )
         if( aswf->animation_steps == 0 && get_flags( aswf->flags, ASW_Mapped ) && aswf->animation_dir < 0 )
         {
             unmap_wharf_folder( aswf );
-        }else
+        }else if( changes != 0 )
         {
 LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
+			update_root_clip_area();
             if( aswf->animation_steps > 0 )
             {
-                int new_width = 1, new_height = 1, i = aswf->buttons_num ;
-                animate_wharf( aswf, &new_width, &new_height );
-                if( new_width == 0 || new_height == 0 ||
-                    (new_width == aswf->canvas->width && new_height == aswf->canvas->height ))
-                    unmap_wharf_folder( aswf );
-                else
-                {
-					if( changes&(CANVAS_MOVED) )
-						update_root_clip_area();
-                    LOCAL_DEBUG_OUT( "resizing folder from %dx%d to %dx%d", aswf->canvas->width, aswf->canvas->height, new_width, new_height );
-                    resize_canvas( aswf->canvas, new_width, new_height) ;
-                    ASSync( False ) ;
-                    if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
-                        sleep_a_millisec( Config->animate_delay*100 );
-                    else
-                        sleep_a_millisec( 10 );
-                }
+                int i = aswf->buttons_num ;
                 while( --i >= 0 )
                     if( aswf->buttons[i].swallowed )
                         send_swallowed_configure_notify(&(aswf->buttons[i]));
-
-            }else if( changes != 0 )
+            }else 
             {
                 int i = aswf->buttons_num ;
-				update_root_clip_area();
                 while( --i >= 0 )
                     on_wharf_button_moveresize( &(aswf->buttons[i]), event );
             }
