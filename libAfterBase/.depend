@@ -34,6 +34,13 @@
 		fs.h \
 		output.h
 
+./layout.o : \
+		config.h \
+		astypes.h \
+		safemalloc.h \
+		output.h \
+		layout.h
+
 ./mystring.o : \
 		config.h \
 		astypes.h \
@@ -109,6 +116,7 @@
 
 ./trace.o : \
 		config.h \
+		astypes.h \
 		trace.h \
 		trace.h
 
@@ -124,6 +132,6 @@
 
 ./xwrap.o : \
 		config.h \
+		xwrap.h \
 		audit.h \
-		output.h \
-		xwrap.h
+		output.h

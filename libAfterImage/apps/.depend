@@ -1,5 +1,7 @@
 ./common.h:
 
+./config.h:
+
 ./ascompose.o: \
 		config.h \
 		common.h
