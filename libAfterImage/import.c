@@ -118,7 +118,7 @@ as_image_loader_func as_image_file_loaders[ASIT_Unknown] =
 	NULL,
 	NULL
 };
-
+ 
 ASImage *
 file2ASImage_extra( const char *file, ASImageImportParams *iparams )
 {
