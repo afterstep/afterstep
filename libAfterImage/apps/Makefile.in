@@ -31,6 +31,8 @@ LIBS_XEXTS	=
 LIBS_AFTERIMAGE = @AFTERIMAGE_APPS_LIBS@
 LIBRARIES	= $(LIBS_AFTERIMAGE) $(LIBS_XEXTS) $(LIBS_X)
 
+prefix          = @prefix@
+exec_prefix     = @exec_prefix@
 LIBDIR		= $(DESTDIR)@libdir@
 BIN_DIR		= $(DESTDIR)@bindir@
 MAN_DIR		= $(DESTDIR)@mandir@/man1
@@ -152,9 +154,9 @@ ascompose: ascompose.o common.o @LIBPROG@
 .lo:	$*.c
 
 
-install:	install.bin install.man
+install:	install.bin
 
-uninstall:	uninstall.bin uninstall.man
+uninstall:	uninstall.bin
 
 include .depend
 
