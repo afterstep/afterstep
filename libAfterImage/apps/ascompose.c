@@ -69,7 +69,7 @@ int verbose = 0;
 ASHashTable* image_hash = NULL;
 struct ASFontManager *fontman = NULL;
 
-char* default_doc_str = "
+static char* default_doc_str = "
 <composite op=hue>
   <composite op=add>
     <scale width=512 height=384><img src=rose512.jpg/></scale>
@@ -78,6 +78,8 @@ char* default_doc_str = "
   <tile width=512 height=384><img src=fore.xpm/></tile>
 </composite>
 ";
+static char* cdata_str = "CDATA";
+static char* container_str = "CONTAINER";
 
 void version(void) {
 	printf("ascompose version 1.2\n");
@@ -176,6 +178,8 @@ int main(int argc, char** argv) {
 		printf("\n");
 	}
 
+	if (doc_str && doc_str != default_doc_str) free(doc_str);
+
 	// Initialize the image hash.
 	image_hash = create_ashash(53, &string_hash_value, &string_compare, &string_destroy);
 
@@ -215,7 +219,23 @@ int main(int argc, char** argv) {
 		showimage(im, onroot);
 	}
 
-	destroy_asimage(&im);
+	// Done with the image, finally.
+	my_destroy_asimage(im);
+
+#if 0 // This doesn't work; ascompose crashes in next_hash_item().
+	// Delete all the images stored in the hash.
+	{
+		ASHashIterator j;
+		start_hash_iteration(image_hash, &j);
+		while (next_hash_item(&j)) {
+			ASImage* tmp = curr_hash_data(&j);
+			if (tmp) my_destroy_asimage(tmp);
+			remove_curr_hash_item(&j, 1);
+		}
+		flush_ashash_memory_pool();
+	}
+#endif
+
 #ifdef DEBUG_ALLOCS
 	print_unfreed_mem();
 #endif
@@ -398,7 +418,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!strcmp(ptr->tag, "bgcolor")) bgcolor_str = ptr->parm;
 		}
 		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "CDATA")) text = ptr->parm;
+			if (!strcmp(ptr->tag, cdata_str)) text = ptr->parm;
 		}
 		if (text && point > 0) {
 			struct ASFont *font = NULL;
@@ -904,7 +924,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		// Find out how many subimages we have.
 		num = 0;
 		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
-			if (strcmp(ptr->tag, "CDATA")) num++;
+			if (strcmp(ptr->tag, cdata_str)) num++;
 		}
 		if (num) {
 			int width = 0, height = 0;
@@ -916,7 +936,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				int x = 0, y = 0;
 				ARGB32 tint = 0xffffffff;
 				xml_elem_t* sparm = NULL;
-				if (!strcmp(ptr->tag, "CDATA")) continue;
+				if (!strcmp(ptr->tag, cdata_str)) continue;
 				layers[num].im = build_image_from_xml(ptr, &sparm);
 				if (sparm) {
 					xml_elem_t* tmp;
@@ -1125,7 +1145,7 @@ xml_elem_t* xml_parse_parm(const char* parm) {
 
 void xml_print(xml_elem_t* root) {
 	xml_elem_t* child;
-	if (!strcmp(root->tag, "CDATA")) {
+	if (!strcmp(root->tag, cdata_str)) {
 		printf("%s", root->parm);
 	} else {
 		printf("<%s", root->tag);
@@ -1178,7 +1198,7 @@ void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem) {
 		xml_elem_t* ptr = elem;
 		elem = elem->next;
 		if (ptr->child) xml_elem_delete(NULL, ptr->child);
-		if (ptr->tag) free(ptr->tag);
+		if (ptr->tag && ptr->tag != cdata_str && ptr->tag != container_str) free(ptr->tag);
 		if (ptr->parm) free(ptr->parm);
 		free(ptr);
 	}
@@ -1186,7 +1206,7 @@ void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem) {
 
 xml_elem_t* xml_parse_doc(const char* str) {
 	xml_elem_t* elem = xml_elem_new();
-	elem->tag = "CONTAINER";
+	elem->tag = container_str;
 	xml_parse(str, elem);
 	return elem;
 }
@@ -1216,7 +1236,7 @@ int xml_parse(const char* str, xml_elem_t* current) {
 				if (!strncasecmp(oab + 2, current->tag, etag - (oab + 2))) {
 					if (oab - ptr) {
 						xml_elem_t* child = xml_elem_new();
-						child->tag = "CDATA";
+						child->tag = cdata_str;
 						child->parm = mystrndup(ptr, oab - ptr);
 						xml_insert(current, child);
 					}
@@ -1295,7 +1315,7 @@ int xml_parse(const char* str, xml_elem_t* current) {
 			// Save CDATA, if there is any.
 			if (oab - ptr) {
 				xml_elem_t* child = xml_elem_new();
-				child->tag = "CDATA";
+				child->tag = cdata_str;
 				child->parm = mystrndup(ptr, oab - ptr);
 				xml_insert(current, child);
 			}
