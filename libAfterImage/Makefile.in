@@ -15,7 +15,7 @@ LIB_OBJS=  ascmap.o asfont.o asimage.o asvisual.o \
 		ungif.o xcf.o ximage.o xpm.o
 
 LIB_DOCS= afterimage.h ascmap.h asfont.h asimage.h asvisual.h \
-		  blender.h export.h import.h
+		  blender.h export.h import.h transform.h ximage.h
 
 LIB_TUTORIALS= common.c asview.c asscale.c astile.c asmerge.c \
 		  asgrad.c asflip.c astext.c
