@@ -201,6 +201,7 @@ free_scanline( ASScanline *sl, Bool reusable )
 }
 
 /* ********************* ASVisual ************************************/
+ASVisual *_set_default_asvisual( ASVisual *new_v );
 
 #ifndef X_DISPLAY_MISSING
 static XColor black_xcol = { 0, 0x0000, 0x0000, 0x0000, DoRed|DoGreen|DoBlue };
@@ -428,6 +429,7 @@ create_asvisual_for_id( Display *dpy, int screen, int default_depth, VisualID vi
         }
     }
 #endif /*ifndef X_DISPLAY_MISSING */
+	_set_default_asvisual( asv );
 	return asv;
 }
 
@@ -449,6 +451,8 @@ destroy_asvisual( ASVisual *asv, Bool reusable )
 {
 	if( asv )
 	{
+		if( get_default_asvisual() == asv )
+			_set_default_asvisual( NULL );
 #ifndef X_DISPLAY_MISSING
 	 	if( asv->own_colormap )
 	 	{

@@ -75,8 +75,6 @@
 #include "export.h"
 #include "ascmap.h"
 
-inline int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width);
-
 /***********************************************************************************/
 /* High level interface : 														   */
 as_image_writer_func as_image_file_writers[ASIT_Unknown] =
@@ -320,13 +318,19 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	png_structp png_ptr  = NULL;
 	png_infop   info_ptr = NULL;
 	png_byte *row_pointer;
-	ASScanline imbuf ;
 	int y ;
 	Bool has_alpha;
 	Bool grayscale;
 	int compression;
+	ASImageDecoder *imdec ;
+	CARD32 *r, *g, *b, *a ;
+
 	START_TIME(started);
 	static ASPngExportParams defaults = { ASIT_Png, EXPORT_ALPHA, -1 };
+
+	if( im == NULL )
+		return False;
+
 
 	if ((outfile = open_writeable_image_file( path )) == NULL)
 		return False;
@@ -340,14 +344,6 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 				info_ptr = NULL ;
     		}
 
-	if( !info_ptr)
-	{
-		if( png_ptr )
-    		png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-		fclose( outfile );
-    	return False;
-    }
-	png_init_io(png_ptr, outfile);
 
 	if( params == NULL )
 	{
@@ -361,15 +357,36 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 		has_alpha = get_flags(params->png.flags, EXPORT_ALPHA );
 	}
 
-	if( compression > 0 )
-		png_set_compression_level(png_ptr,MIN(compression,99)/10);
-
 	/* lets see if we have alpha channel indeed : */
 	if( has_alpha )
 	{
 		if( !get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) )
 			has_alpha = False ;
 	}
+
+	if((imdec = start_image_decoding( NULL /* default visual */ , im,
+		                              has_alpha?SCL_DO_ALL:(SCL_DO_GREEN|SCL_DO_BLUE|SCL_DO_RED),
+									  0, 0, im->width, 0, NULL)) == NULL )
+	{
+		LOCAL_DEBUG_OUT( "failed to start image decoding%s", "");
+		png_destroy_write_struct(&png_ptr, &info_ptr);
+		fclose(outfile);
+		return False;
+	}
+
+	if( !info_ptr)
+	{
+		if( png_ptr )
+    		png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+		fclose( outfile );
+		stop_image_decoding( &imdec );
+    	return False;
+    }
+	png_init_io(png_ptr, outfile);
+
+	if( compression > 0 )
+		png_set_compression_level(png_ptr,MIN(compression,99)/10);
+
 	png_set_IHDR(png_ptr, info_ptr, im->width, im->height, 8,
 		         grayscale ? (has_alpha?PNG_COLOR_TYPE_GRAY_ALPHA:PNG_COLOR_TYPE_GRAY):
 		                     (has_alpha?PNG_COLOR_TYPE_RGB_ALPHA:PNG_COLOR_TYPE_RGB),
@@ -382,7 +399,11 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	/* starting writing the file : writing info first */
 	png_write_info(png_ptr, info_ptr);
 
-	prepare_scanline( im->width, 0, &imbuf, False );
+	r = imdec->buffer.red ;
+	g = imdec->buffer.green ;
+	b = imdec->buffer.blue ;
+	a = imdec->buffer.alpha ;
+
 	if( grayscale )
 	{
 		row_pointer = safemalloc( im->width*(has_alpha?2:1));
@@ -390,21 +411,18 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 		{
 			register int i = im->width;
 			CARD8   *ptr = (CARD8*)row_pointer;
-			asimage_decode_line (im, IC_RED,   imbuf.red, y, 0, imbuf.width);
-			asimage_decode_line (im, IC_GREEN, imbuf.green, y, 0, imbuf.width);
-			asimage_decode_line (im, IC_BLUE,  imbuf.blue, y, 0, imbuf.width);
+
+			imdec->decode_image_scanline( imdec );
 			if( has_alpha )
 			{
-				asimage_decode_line (im, IC_ALPHA,  imbuf.alpha, y, 0, imbuf.width);
-
 				while( --i >= 0 ) /* normalized graylevel computing :  */
 				{
-					ptr[(i<<1)] = (54*imbuf.red[i]+183*imbuf.green[i]+19*imbuf.blue[i])/256 ;
-					ptr[(i<<1)+1] = imbuf.alpha[i] ;
+					ptr[(i<<1)] = (54*r[i]+183*g[i]+19*b[i])/256 ;
+					ptr[(i<<1)+1] = a[i] ;
 				}
 			}else
 				while( --i >= 0 ) /* normalized graylevel computing :  */
-					ptr[i] = (54*imbuf.red[i]+183*imbuf.green[i]+19*imbuf.blue[i])/256 ;
+					ptr[i] = (54*r[i]+183*g[i]+19*b[i])/256 ;
 			png_write_rows(png_ptr, &row_pointer, 1);
 		}
 	}else
@@ -415,41 +433,25 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 		{
 			register int i = im->width;
 			CARD8   *ptr = (CARD8*)(row_pointer+(i-1)*(has_alpha?4:3)) ;
-			asimage_decode_line (im, IC_RED,   imbuf.red, y, 0, imbuf.width);
-			asimage_decode_line (im, IC_GREEN, imbuf.green, y, 0, imbuf.width);
-			asimage_decode_line (im, IC_BLUE,  imbuf.blue, y, 0, imbuf.width);
+			imdec->decode_image_scanline( imdec );
 			if( has_alpha )
 			{
-				int alpha_len = asimage_decode_line (im, IC_ALPHA,  imbuf.alpha, y, 0, imbuf.width);
-				CARD32 filler = ARGB32_ALPHA8(im->back_color);
-
-				while( --i >= alpha_len )
-				{
-					/* 0 is red, 1 is green, 2 is blue, 3 is alpha */
-		            ptr[0] = imbuf.red[i] ;
-					ptr[1] = imbuf.green[i] ;
-					ptr[2] = imbuf.blue[i] ;
-					ptr[3] = filler ;
-					ptr-=4;
-					/*fprintf( stderr, "#%2.2X%2.2X%2.2X%2.2X ", filler, imbuf.red[i], imbuf.green[i], imbuf.blue[i] );*/
-				}
-				++i ;
 				while( --i >= 0 )
 				{
 					/* 0 is red, 1 is green, 2 is blue, 3 is alpha */
-		            ptr[0] = imbuf.red[i] ;
-					ptr[1] = imbuf.green[i] ;
-					ptr[2] = imbuf.blue[i] ;
-					ptr[3] = imbuf.alpha[i] ;
+		            ptr[0] = r[i] ;
+					ptr[1] = g[i] ;
+					ptr[2] = b[i] ;
+					ptr[3] = a[i] ;
 					ptr-=4;
 					/*fprintf( stderr, "#%2.2X%2.2X%2.2X%2.2X ", imbuf.alpha[i], imbuf.red[i], imbuf.green[i], imbuf.blue[i] );*/
 				}
 			}else
 				while( --i >= 0 )
 				{
-					ptr[0] = imbuf.red[i] ;
-					ptr[1] = imbuf.green[i] ;
-					ptr[2] = imbuf.blue[i] ;
+					ptr[0] = r[i] ;
+					ptr[1] = g[i] ;
+					ptr[2] = b[i] ;
 					ptr-=3;
 					/*fprintf( stderr, "#%FFX%2.2X%2.2X%2.2X ", imbuf.red[i], imbuf.green[i], imbuf.blue[i] );*/
 				}
@@ -461,7 +463,7 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	png_write_end(png_ptr, info_ptr);
 	png_destroy_write_struct(&png_ptr, &info_ptr);
 	free( row_pointer );
-	free_scanline(&imbuf, True);
+	stop_image_decoding( &imdec );
 	fclose(outfile);
 
 	SHOW_TIME("image writing", started);
@@ -484,7 +486,6 @@ ASImage2png ( ASImage *im, const char *path,  ASImageExportParams *params )
 Bool
 ASImage2jpeg( ASImage *im, const char *path,  ASImageExportParams *params )
 {
-	ASScanline     imbuf;
 	/* This struct contains the JPEG decompression parameters and pointers to
 	 * working space (which is allocated as needed by the JPEG library).
 	 */
@@ -496,7 +497,12 @@ ASImage2jpeg( ASImage *im, const char *path,  ASImageExportParams *params )
 	int 		  y;
 	ASJpegExportParams defaults = { ASIT_Jpeg, 0, -1 };
 	Bool grayscale;
+	ASImageDecoder *imdec ;
+	CARD32 *r, *g, *b ;
 	START_TIME(started);
+
+	if( im == NULL )
+		return False;
 
 	if( params == NULL )
 		params = (ASImageExportParams *)&defaults ;
@@ -504,9 +510,18 @@ ASImage2jpeg( ASImage *im, const char *path,  ASImageExportParams *params )
 	if ((outfile = open_writeable_image_file( path )) == NULL)
 		return False;
 
+	if((imdec = start_image_decoding( NULL /* default visual */ , im,
+		                              (SCL_DO_GREEN|SCL_DO_BLUE|SCL_DO_RED),
+									  0, 0, im->width, 0, NULL)) == NULL )
+	{
+		LOCAL_DEBUG_OUT( "failed to start image decoding%s", "");
+		fclose(outfile);
+		return False;
+	}
+
+
 	grayscale = get_flags(params->jpeg.flags, EXPORT_GRAYSCALE );
 
-	prepare_scanline( im->width, 0, &imbuf, False );
 	/* Step 1: allocate and initialize JPEG compression object */
 	/* We have to set up the error handler first, in case the initialization
 	* step fails.  (Unlikely, but it could happen if you are out of memory.)
@@ -549,6 +564,10 @@ ASImage2jpeg( ASImage *im, const char *path,  ASImageExportParams *params )
 	* To keep things simple, we pass one scanline per call; you can pass
 	* more if you wish, though.
 	*/
+	r = imdec->buffer.red ;
+	g = imdec->buffer.green ;
+	b = imdec->buffer.blue ;
+
 	if( grayscale )
 	{
 		row_pointer[0] = safemalloc( im->width );
@@ -556,11 +575,9 @@ ASImage2jpeg( ASImage *im, const char *path,  ASImageExportParams *params )
 		{
 			register int i = im->width;
 			CARD8   *ptr = (CARD8*)row_pointer[0];
-			asimage_decode_line (im, IC_RED,   imbuf.red, y, 0, imbuf.width);
-			asimage_decode_line (im, IC_GREEN, imbuf.green, y, 0, imbuf.width);
-			asimage_decode_line (im, IC_BLUE,  imbuf.blue, y, 0, imbuf.width);
+			imdec->decode_image_scanline( imdec );
 			while( --i >= 0 ) /* normalized graylevel computing :  */
-				ptr[i] = (54*imbuf.red[i]+183*imbuf.green[i]+19*imbuf.blue[i])/256 ;
+				ptr[i] = (54*r[i]+183*g[i]+19*b[i])/256 ;
 			(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
 		}
 	}else
@@ -571,15 +588,13 @@ ASImage2jpeg( ASImage *im, const char *path,  ASImageExportParams *params )
 			register int i = im->width;
 			CARD8   *ptr = (CARD8*)(row_pointer[0]+(i-1)*3) ;
 LOCAL_DEBUG_OUT( "decoding  row %d", y );
-			asimage_decode_line (im, IC_RED,   imbuf.red, y, 0, imbuf.width);
-			asimage_decode_line (im, IC_GREEN, imbuf.green, y, 0, imbuf.width);
-			asimage_decode_line (im, IC_BLUE,  imbuf.blue, y, 0, imbuf.width);
+			imdec->decode_image_scanline( imdec );
 LOCAL_DEBUG_OUT( "building  row %d", y );
 			while( --i >= 0 )
 			{
-				ptr[0] = imbuf.red[i] ;
-				ptr[1] = imbuf.green[i] ;
-				ptr[2] = imbuf.blue[i] ;
+				ptr[0] = r[i] ;
+				ptr[1] = g[i] ;
+				ptr[2] = b[i] ;
 				ptr-=3;
 			}
 LOCAL_DEBUG_OUT( "writing  row %d", y );
@@ -593,7 +608,7 @@ LOCAL_DEBUG_OUT( "done writing image%s","" );
 	jpeg_finish_compress(&cinfo);
 	jpeg_destroy_compress(&cinfo);
 
-	free_scanline(&imbuf, True);
+	stop_image_decoding( &imdec );
 	fclose(outfile);
 
 	SHOW_TIME("image export",started);
@@ -837,13 +852,13 @@ ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params)
 	ASTiffExportParams defaults = { ASIT_Tiff, 0, -1, TIFF_COMPRESSION_NONE, 100 };
 	uint16 photometric = PHOTOMETRIC_RGB;
 	tsize_t linebytes, scanline;
-	ASScanline     imbuf;
+	ASImageDecoder *imdec ;
+	CARD32 *r, *g, *b, *a ;
 	unsigned char* buf;
 	CARD32  row ;
 	Bool has_alpha ;
 	int nsamples = 3 ;
 	START_TIME(started);
-
 
 	if( params == NULL )
 		params = (ASImageExportParams *)&defaults ;
@@ -867,6 +882,15 @@ ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params)
 			has_alpha = False ;
 		else
 			++nsamples ;
+	}
+
+	if((imdec = start_image_decoding( NULL /* default visual */ , im,
+		                              has_alpha?SCL_DO_ALL:(SCL_DO_GREEN|SCL_DO_BLUE|SCL_DO_RED),
+									  0, 0, im->width, 0, NULL)) == NULL )
+	{
+		LOCAL_DEBUG_OUT( "failed to start image decoding%s", "");
+		TIFFClose(out);
+		return False;
 	}
 
 	TIFFSetField(out, TIFFTAG_IMAGEWIDTH, (uint32) im->width);
@@ -907,49 +931,51 @@ ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params)
 	TIFFSetField(out, TIFFTAG_ROWSPERSTRIP,
 				 TIFFDefaultStripSize(out, params->tiff.rows_per_strip));
 
-	prepare_scanline( im->width, 0, &imbuf, False );
+	r = imdec->buffer.red ;
+	g = imdec->buffer.green ;
+	b = imdec->buffer.blue ;
+	a = imdec->buffer.alpha ;
 
 	for (row = 0; row < im->height; ++row)
 	{
 		register int i = im->width, k = (im->width-1)*nsamples ;
-		asimage_decode_line (im, IC_RED,   imbuf.red, row, 0, imbuf.width);
-		asimage_decode_line (im, IC_GREEN, imbuf.green, row, 0, imbuf.width);
-		asimage_decode_line (im, IC_BLUE,  imbuf.blue, row, 0, imbuf.width);
+		imdec->decode_image_scanline( imdec );
+
 		if( has_alpha )
 		{
-			asimage_decode_line (im, IC_ALPHA,  imbuf.alpha, row, 0, imbuf.width);
 			if( nsamples == 2 )
 				while ( --i >= 0 )
 				{
-					buf[k+1] = imbuf.alpha[i] ;
-					buf[k] = (54*imbuf.red[i]+183*imbuf.green[i]+19*imbuf.blue[i])/256 ;
+					buf[k+1] = a[i] ;
+					buf[k] = (54*r[i]+183*g[i]+19*b[i])/256 ;
 					k-= 2;
 				}
 			else
 				while ( --i >= 0 )
 				{
-					buf[k+3] = imbuf.alpha[i] ;
-					buf[k+2] = imbuf.blue[i] ;
-					buf[k+1] = imbuf.green[i] ;
-					buf[k] = imbuf.red[i] ;
+					buf[k+3] = a[i] ;
+					buf[k+2] = b[i] ;
+					buf[k+1] = g[i] ;
+					buf[k] = r[i] ;
 					k-= 4;
 				}
 		}else if( nsamples == 1 )
 			while ( --i >= 0 )
-				buf[k--] = (54*imbuf.red[i]+183*imbuf.green[i]+19*imbuf.blue[i])/256 ;
+				buf[k--] = (54*r[i]+183*g[i]+19*b[i])/256 ;
 		else
 			while ( --i >= 0 )
 			{
-				buf[k+2] = imbuf.blue[i] ;
-				buf[k+1] = imbuf.green[i] ;
-				buf[k] = imbuf.red[i] ;
+				buf[k+2] = b[i] ;
+				buf[k+1] = g[i] ;
+				buf[k] = r[i] ;
 				k-= 3;
 			}
 
 		if (TIFFWriteScanline(out, buf, row, 0) < 0)
 			break;
 	}
-	(void) TIFFClose(out);
+	stop_image_decoding( &imdec );
+	TIFFClose(out);
 	SHOW_TIME("image export",started);
 	return True;
 }

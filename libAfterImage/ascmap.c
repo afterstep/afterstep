@@ -384,14 +384,12 @@ LOCAL_DEBUG_OUT( "lesser = %lX(%ld), pnext = %lX(%ld)", lesser->indexed, lesser-
 	return stack->tail->cmap_idx;
 }
 
-inline int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width);
-
 int *
 colormap_asimage( ASImage *im, ASColormap *cmap, unsigned int max_colors, unsigned int dither, int opaque_threshold )
 {
 	int *mapped_im = NULL;
 	int buckets_num  = MAX_COLOR_BUCKETS;
-	ASScanline scl ;
+	ASImageDecoder *imdec ;
 	CARD32 *a, *r, *g, *b ;
 	START_TIME(started);
 
@@ -399,9 +397,16 @@ colormap_asimage( ASImage *im, ASColormap *cmap, unsigned int max_colors, unsign
 	int y ;
 	register int x ;
 
-
 	if( im == NULL || cmap == NULL || im->width == 0 )
 		return NULL;
+
+	if((imdec = start_image_decoding( NULL /* default visual */ , im,
+		                              SCL_DO_ALL, 0, 0, im->width, 0, NULL)) == NULL )
+	{
+		LOCAL_DEBUG_OUT( "failed to start image decoding%s", "");
+		return NULL;
+	}
+
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 #endif
@@ -432,36 +437,31 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 	cmap->hash = safecalloc( 1, sizeof(ASSortedColorHash) );
 	cmap->hash->buckets = safecalloc( buckets_num, sizeof( ASSortedColorBucket ) );
 	cmap->hash->buckets_num = buckets_num ;
-	prepare_scanline( im->width, 0, &scl, False );
 
-	a = scl.alpha ;
-	r = scl.red ;
-	g = scl.green ;
-	b = scl.blue ;
-
-	for( x = 0; x < scl.width ; x++ )
-		a[x] = 0x00FF ;
+	a = imdec->buffer.alpha ;
+	r = imdec->buffer.red ;
+	g = imdec->buffer.green ;
+	b = imdec->buffer.blue ;
 
 	for( y = 0 ; y < im->height ; y++ )
 	{
 		int red = 0, green = 0, blue = 0;
-		asimage_decode_line (im, IC_RED,   r,   y, 0, scl.width);
-		asimage_decode_line (im, IC_GREEN, g,   y, 0, scl.width);
-		asimage_decode_line (im, IC_BLUE,  b,   y, 0, scl.width);
-		if( opaque_threshold > 0 )
+		int im_width = im->width ;
+		imdec->decode_image_scanline( imdec );
+		if( opaque_threshold > 0 && !cmap->has_opaque)
 		{
-			if( (x = asimage_decode_line (im, IC_ALPHA, a, y, 0, scl.width)) <= scl.width )
-            {
-                LOCAL_DEBUG_OUT( "%d/%d pixels of alpha decoded", x, scl.width );
-				while( x < scl.width )
-					a[x++] = 0x00FF ;
-            }else
-				cmap->has_opaque = True;
+			x = im->width ;
+			while( --x >= 0  )
+			  	if( a[x] != 0x00FF )
+				{
+					cmap->has_opaque = True;
+					break;
+				}
 		}
 		switch( dither )
 		{
 			case 0 :
-				for( x = 0; x < scl.width ; x++ )
+				for( x = 0; x < im_width ; x++ )
 				{
 					if( a[x] < opaque_threshold )	dst[x] = -1 ;
 					else
@@ -475,7 +475,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 				}
 			    break ;
 			case 1 :
-				for( x = 0; x < scl.width ; x++ )
+				for( x = 0; x < im_width ; x++ )
 				{
 					if( a[x] < opaque_threshold )	dst[x] = -1 ;
 					else
@@ -490,7 +490,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 			    break ;
 			case 2 :                           /* 666 */
 				{
-					for( x = 0 ; x < scl.width ; ++x )
+					for( x = 0 ; x < im_width ; ++x )
 					{
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
@@ -510,7 +510,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 			    break ;
 			case 3 :                           /* 555 */
 				{
-					for( x = 0 ; x < scl.width ; ++x )
+					for( x = 0 ; x < im_width ; ++x )
 					{
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
@@ -531,7 +531,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 			    break ;
 			case 4 :                           /* 444 */
 				{
-					for( x = 0 ; x < scl.width ; ++x )
+					for( x = 0 ; x < im_width ; ++x )
 					{
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
@@ -551,7 +551,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 			    break ;
 			case 5 :                           /* 333 */
 				{
-					for( x = 0 ; x < scl.width ; ++x )
+					for( x = 0 ; x < im_width ; ++x )
 					{
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
@@ -571,7 +571,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 			    break ;
 			case 6 :                           /* 222 */
 				{
-					for( x = 0 ; x < scl.width ; ++x )
+					for( x = 0 ; x < im_width ; ++x )
 					{
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
@@ -591,7 +591,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 			    break ;
 			case 7 :                           /* 111 */
 				{
-					for( x = 0 ; x < scl.width ; ++x )
+					for( x = 0 ; x < im_width ; ++x )
 					{
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
@@ -610,9 +610,9 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 				}
 			    break ;
 		}
-		dst += im->width ;
+		dst += im_width ;
 	}
-	free_scanline(&scl, True);
+	stop_image_decoding( &imdec );
 	SHOW_TIME("color indexing",started);
 
 #ifdef LOCAL_DEBUG

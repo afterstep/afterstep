@@ -46,6 +46,22 @@
 #include "blender.h"
 #include "asimage.h"
 
+static ASVisual __as_dummy_asvisual = {0};
+static ASVisual *__as_default_asvisual = &__as_dummy_asvisual ;
+
+/* these are internal library things - user should not mess with it ! */
+ASVisual *_set_default_asvisual( ASVisual *new_v )
+{
+	ASVisual *old_v = __as_default_asvisual ;
+	__as_default_asvisual = new_v?new_v:&__as_dummy_asvisual ;
+	return old_v;
+}
+
+ASVisual *get_default_asvisual()
+{
+	return __as_default_asvisual?__as_default_asvisual:&__as_dummy_asvisual;
+}
+
 #ifdef TRACK_ASIMAGES
 static ASHashTable *__as_image_registry = NULL ;
 #endif
@@ -720,6 +736,9 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 {
 	ASImageDecoder *imdec = NULL;
 
+	if( asv == NULL )
+		asv = get_default_asvisual();
+
  	if( AS_ASSERT(filter) || AS_ASSERT(asv))
 		return NULL;
 	if( im != NULL )
@@ -915,6 +934,9 @@ start_image_output( ASVisual *asv, ASImage *im, ASAltImFormats format,
 		{
 			im = NULL ;
 		}
+
+	if( asv == NULL )
+		asv = get_default_asvisual();
 
 	if( AS_ASSERT(im) || AS_ASSERT(asv) )
 		return imout;
@@ -1330,6 +1352,9 @@ check_asimage_alpha (ASVisual *asv, ASImage *im )
 	int recomended_depth = 0 ;
 	int            i;
 	ASScanline     buf;
+
+	if( asv == NULL )
+		asv = get_default_asvisual();
 
 	if (im == NULL)
 		return 0;

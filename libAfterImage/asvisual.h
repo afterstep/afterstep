@@ -492,6 +492,7 @@ ASVisual *create_asvisual_for_id( Display *dpy, int screen, int default_depth,
 								  ASVisual *reusable_memory );
 ASVisual *create_asvisual( Display *dpy, int screen, int default_depth,
 	                       ASVisual *reusable_memory );
+ASVisual *get_default_asvisual();
 void destroy_asvisual( ASVisual *asv, Bool reusable );
 /****f* libAfterImage/asvisual/visual2visual_prop()
  * SYNOPSIS
@@ -641,7 +642,7 @@ void flush_shm_cache();
 Bool enable_shmem_images ();
 void disable_shmem_images();
 void* check_XImage_shared( XImage *xim );
-Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim, 
+Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim,
                   int src_x, int src_y, int dest_x, int dest_y,
 				  unsigned int width, unsigned int height );
 XImage * ASGetXImage( ASVisual *asv, Drawable d,
