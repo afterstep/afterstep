@@ -18,6 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+#define LOCAL_DEBUG
 
 #include "../../configure.h"
 
@@ -75,6 +76,7 @@ get_iconbox( int desktop )
                 ib->areas = safecalloc( 1, sizeof(ASGeometry) );
 				ib->areas->width = Scr.MyDisplayWidth ;
 				ib->areas->height = Scr.MyDisplayHeight ;
+                ib->areas->flags = 0;
 			}else
 			{
                 register int i = Scr.Look.configured_icon_areas_num ;
@@ -99,34 +101,137 @@ get_iconbox( int desktop )
 	return ib;
 }
 
+typedef struct ASIconRearrangeAux
+{
+    int curr_area ;
+    int last_x, last_y, last_width, last_height ;
+    ASIconBox *ib;
+}ASIconRearrangeAux;
+
+Bool rearrange_icon_iter_func(void *data, void *aux_data)
+{
+    ASWindow *asw = (ASWindow*) data ;
+    ASIconRearrangeAux *rd = (ASIconRearrangeAux *)aux_data ;
+    int width = 0, height = 0, title_width = 0, title_height = 0;
+    int whole_width = 0, whole_height = 0 ;
+    int x, y, box_x = 0, box_y = 0;
+
+    if( asw->icon_canvas == NULL )
+        return True;
+
+    if( asw->icon_button )
+    {
+        width = calculate_astbar_width( asw->icon_button );
+        height = calculate_astbar_height( asw->icon_button );
+    }
+    if( asw->icon_title )
+    {
+        title_width = calculate_astbar_width( asw->icon_title );
+        title_height = calculate_astbar_height( asw->icon_title );
+    }
+
+    whole_width = (width == 0)?title_width:width ;
+    whole_height = height + title_height ;
+    /* now we could determine where exactly to place icon to : */
+    x = -whole_width ;
+    y = -whole_height ;
+    while( rd->curr_area < rd->ib->areas_num )
+    {
+        ASGeometry *geom = &(rd->ib->areas[rd->curr_area]) ;
+        int new_x = -1, new_y = -1 ;
+
+LOCAL_DEBUG_OUT( "trying area #%d : %s%s, %dx%d%+d%+d", rd->curr_area, get_flags(geom->flags, XNegative)?"XNeg":"XPos", get_flags(geom->flags, YNegative)?"YNeg":"YPos", geom->width, geom->height, geom->x, geom->y );
+LOCAL_DEBUG_OUT( "last: %dx%d%+d%+d", rd->last_width, rd->last_height, rd->last_x, rd->last_y );
+        if( get_flags(geom->flags, XNegative) )
+            new_x = rd->last_x - whole_width ;
+        else
+            new_x = rd->last_x + rd->last_width ;
+        if( get_flags(geom->flags, YNegative) )
+            new_y = rd->last_y - whole_height ;
+        else
+            new_y = rd->last_y + rd->last_height ;
+LOCAL_DEBUG_OUT( "new : %+d%+d", new_x, new_y );
+        if( new_x >= 0 && new_x+whole_width < geom->width &&
+            new_y >= 0 && new_y+whole_height < geom->height )
+        {
+            x = new_x ;
+            y = new_y ;
+            box_x = geom->x ;
+            box_y = geom->y ;
+            break;
+        }
+
+        ++(rd->curr_area);
+        if( rd->curr_area < rd->ib->areas_num )
+        {
+            geom = &(rd->ib->areas[rd->curr_area]) ;
+            rd->last_x = get_flags( geom->flags, XNegative )?geom->width-1: 0 ;
+            rd->last_y = get_flags( geom->flags, YNegative )?geom->height-1: 0 ;
+        }else
+        {
+            rd->last_x = 0 ;
+            rd->last_y = 0 ;
+        }
+
+        rd->last_width = 0 ;
+        rd->last_height = 0 ;
+    }
+    /* placing the icon : */
+LOCAL_DEBUG_OUT( "placing an icon at %+d%+d, base %+d%+d whole %dx%d button %dx%d", x, y, box_x, box_y, whole_width, whole_height, width, height );
+    if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas )
+    {
+        moveresize_canvas( asw->icon_canvas, box_x+x, box_y+y, width, height );
+        moveresize_canvas( asw->icon_title_canvas, box_x+x, box_y+y+height, width, height );
+    }else
+        moveresize_canvas( asw->icon_canvas, box_x+x, box_y+y, whole_width, whole_height );
+
+    rd->last_x = x ;
+    rd->last_y = y ;
+    rd->last_width  = whole_width  ;
+    rd->last_height = whole_height ;
+    return True;
+}
+
+void
+rearrange_iconbox( ASIconBox *ib )
+{
+    ASIconRearrangeAux aux_data ;
+
+    aux_data.curr_area = 0 ;
+    aux_data.last_x = get_flags( ib->areas[0].flags, XNegative )?ib->areas[0].width-1: 0 ;
+    aux_data.last_y = get_flags( ib->areas[0].flags, YNegative )?ib->areas[0].height-1: 0 ;
+    aux_data.last_width = 0 ;
+    aux_data.last_height = 0 ;
+    aux_data.ib = ib ;
+
+    iterate_asbidirlist( ib->icons, rearrange_icon_iter_func, &aux_data, NULL, False);
+}
+
 Bool
 add_iconbox_icon( ASWindow *asw )
 {
+    ASIconBox *ib = NULL ;
     if( AS_ASSERT(asw) )
         return False;
-    /* TODO: we need to add this window to the list of icons */
-    if (asw->icon_canvas)
-        XMapWindow (dpy, asw->icon_canvas->w);
-    if (asw->icon_title_canvas != NULL && asw->icon_title_canvas != asw->icon_canvas)
-        XMapWindow (dpy, asw->icon_title_canvas->w);
 
-    if (ASWIN_DESK(asw) != Scr.CurrentDesk)
-    {  /* move it away so it is not visible */
-
-    }
+    /* TODO: we need to add this window to the list of icons,
+     * and then place it in appropriate position : */
+    ib = get_iconbox( ASWIN_DESK(asw) );
+    append_bidirelem( ib->icons, asw );
+    rearrange_iconbox( ib );
     return True;
 }
 
 Bool
 remove_iconbox_icon( ASWindow *asw )
 {
+    ASIconBox *ib = NULL ;
     if( AS_ASSERT(asw) )
         return False;
-    /* TODO: we need to add this window to the list of icons */
-    if (asw->icon_canvas)
-        XUnmapWindow (dpy, asw->icon_canvas->w);
-    if (asw->icon_title_canvas != NULL && asw->icon_title_canvas != asw->icon_canvas)
-        XUnmapWindow (dpy, asw->icon_title_canvas->w);
+    /* TODO: we need to remove this window from the list of icons */
+    ib = get_iconbox( ASWIN_DESK(asw) );
+    discard_bidirelem( ib->icons, asw );
+    rearrange_iconbox( ib );
     return True;
 }
 
@@ -139,7 +244,7 @@ change_iconbox_icon_desk( ASWindow *asw, int from_desk, int to_desk )
 void
 on_icon_changed( ASWindow *asw )
 {
-    if( AS_ASSERT(asw) )
+//    if( AS_ASSERT(asw) )
         return;
     /* we probably need to reshuffle entire iconbox when that happen : */
     if( asw->icon_title )
@@ -160,8 +265,7 @@ on_icon_changed( ASWindow *asw )
 void
 rearrange_iconbox_icons( int desktop )
 {
-
-
+    rearrange_iconbox( get_iconbox( desktop ) );
 }
 
 #if 0

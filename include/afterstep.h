@@ -332,14 +332,16 @@ struct ASTBarData;
                                      ButtonReleaseMask 	| \
 									 EnterWindowMask 	| \
 									 FocusChangeMask 	| \
-									 KeyPressMask )
+                                     KeyPressMask       | \
+                                     StructureNotifyMask)
 
 #define AS_ICON_EVENT_MASK 	 		(ButtonPressMask 	| \
 									 ButtonReleaseMask 	| \
 									 EnterWindowMask 	| \
 									 FocusChangeMask 	| \
 								     KeyPressMask 		| \
-									 LeaveWindowMask)
+                                     LeaveWindowMask    | \
+                                     StructureNotifyMask)
 
 #define AS_MENU_EVENT_MASK         ( ButtonPressMask    | \
 									 ButtonReleaseMask 	| \

@@ -552,7 +552,7 @@ merge_old_look_variables (MyLook *look)
 
 #ifndef NO_TEXTURE
 		{
-            MyStyle      *button_pixmap = mystyle_list_find (look->styles_list, "ButtonPixmap");
+            MyStyle      *button_pixmap = mystyle_list_find (look->styles_list, AS_ICON_MYSTYLE);
 
 			/* icon styles automagically inherit from window title styles */
 			if (button_pixmap != NULL)

@@ -60,16 +60,6 @@ void str_error(const char* err_format, const char* string);
 
 int is_executable_in_path (const char *name);
 
-typedef struct _as_dirs
-{
-    char* after_dir ;
-    char* after_sharedir;
-    char* afters_noncfdir;
-} ASDirs;
-
-/* from afterstep.c */
-extern ASDirs as_dirs;
-
 /* from dirtree.c */
 char * strip_whitespace (char *str);
 
@@ -230,7 +220,6 @@ ASIconBox *get_iconbox( int desktop );
 Bool add_iconbox_icon( ASWindow *asw );
 Bool remove_iconbox_icon( ASWindow *asw );
 Bool change_iconbox_icon_desk( ASWindow *asw, int from_desk, int to_desk );
-void on_icon_changed( ASWindow *asw );
 void rearrange_iconbox_icons( int desktop );
 
 

@@ -417,7 +417,7 @@ check_icon_canvas( ASWindow *asw, Bool required )
                 attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
                 w = create_visual_window ( Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, -10, -10, 1, 1, 0,
                                            InputOutput, valuemask, &attributes );
-                canvas = create_ascanvas_container( w );
+                canvas = create_ascanvas( w );
             }else
             { /* reuse client's provided window */
                 attributes.event_mask = AS_ICON_EVENT_MASK;
@@ -500,13 +500,22 @@ get_window_icon_image( ASWindow *asw )
 		                               asw->hints->icon_mask,
 									   0, 0, width, height,
 									   0xFFFFFFFF, False, 100 );
+        LOCAL_DEBUG_OUT( "converted client's pixmap into an icon %dx%d %p", width, height, im );
 	}
 	/* TODO: we also need to check for newfashioned ARGB icon from
 	 * extended WM specs here
 	 */
-	if( im == NULL && asw->hints->icon_file )
-		im = get_asimage( Scr.image_manager, asw->hints->icon_file, 0xFFFFFFFF, 100 );
-
+    if( im == NULL )
+    {
+        if( asw->hints->icon_file )
+        {
+            im = get_asimage( Scr.image_manager, asw->hints->icon_file, 0xFFFFFFFF, 100 );
+            LOCAL_DEBUG_OUT( "loaded icon from \"%s\" into %dx%d %p", asw->hints->icon_file, im?im->width:0, im?im->height:0, im );
+        }else
+        {
+            LOCAL_DEBUG_OUT( "no icon to use %s", "" );
+        }
+    }
 	return im;
 }
 
@@ -526,8 +535,11 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%x)", *tbar, context );
 
         set_astbar_style( *tbar, BAR_STATE_FOCUSED, mystyle_name );
         set_astbar_hilite( *tbar, DEFAULT_TBAR_HILITE );
-        set_astbar_image( *tbar, img );
-        set_astbar_back_size( *tbar, back_w, back_h );
+        if( img )
+        {
+            LOCAL_DEBUG_OUT("adding bar icon %p", img );
+            add_astbar_icon( *tbar, 0, 0, 0, 0, img );
+        }
         set_astbar_size( *tbar, (back_w == 0)?1:back_w, (back_h == 0)?1:back_h );
         (*tbar)->context = context ;
     }else if( *tbar )
@@ -648,10 +660,10 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 	int i ;
     char *mystyle_name = Scr.Look.MSWindow[BACK_FOCUSED]->name;
 	ASImage *icon_image = NULL ;
-
+    ASFlagType title_align = ALIGN_LEFT ;
     ASOrientation *od = get_orientation_data(asw);
-
     int *frame_contexts  = &(od->frame_contexts[0]);
+
 LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     if( AS_ASSERT(asw) )
         return ;
@@ -697,6 +709,11 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     if( check_client_canvas( asw, True ) == NULL )
         return;
 
+    if(Scr.Look.TitleTextAlign == JUSTIFY_RIGHT )
+        title_align = ALIGN_RIGHT ;
+    else if(Scr.Look.TitleTextAlign == JUSTIFY_CENTER )
+        title_align = ALIGN_CENTER ;
+
     /* 3) we need to prepare icon window : */
     check_icon_canvas( asw, (ASWIN_HFLAGS( asw, AS_Icon) && !get_flags(Scr.Feel.flags, SuppressIcons)) );
     /* 4) we need to prepare icon title window : */
@@ -724,9 +741,20 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
                 C_IconButton );
 	if( icon_image )
         safe_asimage_destroy( icon_image );
+    if( asw->icon_button )
+    {
+        set_astbar_style( asw->icon_button, BAR_STATE_UNFOCUSED, AS_ICON_MYSTYLE );
+        set_astbar_style( asw->icon_button, BAR_STATE_FOCUSED, AS_ICON_MYSTYLE );
+    }
+
     /* 7) now we have to create bar for icon title (optional) */
-    check_tbar( &(asw->icon_title), (asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
+    check_tbar( &(asw->icon_title), (asw->icon_canvas != NULL||asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
                 NULL, 0, 0, C_IconTitle );
+    if( asw->icon_title )
+    {
+        LOCAL_DEBUG_OUT( "setting icon label to %s", ASWIN_ICON_NAME(asw) );
+        add_astbar_label( asw->icon_title, 0, 0, 0, title_align, ASWIN_ICON_NAME(asw));
+    }
     /* 8) now we have to create actuall bars - for each frame element plus one for the titlebar */
     if( frame )
     {
@@ -756,7 +784,6 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     /* 9) now we have to setup titlebar buttons */
     if( asw->tbar )
 	{ /* need to add some titlebuttons */
-        ASFlagType title_align = ALIGN_LEFT ;
         ASFlagType btn_mask = compile_titlebuttons_mask (asw->hints);
         asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
         asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
@@ -769,11 +796,6 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
                             Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                             od->left_btn_order, C_L1 );
         /* label */
-        if(Scr.Look.TitleTextAlign == JUSTIFY_RIGHT )
-            title_align = ALIGN_RIGHT ;
-        else if(Scr.Look.TitleTextAlign == JUSTIFY_CENTER )
-            title_align = ALIGN_CENTER ;
-
         add_astbar_label( asw->tbar,
                           od->default_tbar_elem_col[1], od->default_tbar_elem_row[1],
                           od->flip, title_align, ASWIN_NAME(asw));
@@ -1180,7 +1202,6 @@ void
 on_window_moveresize( ASWindow *asw, Window w )
 {
     int i ;
-    Bool canvas_moved = False;
     ASOrientation *od ;
     unsigned int normal_width, normal_height ;
 
@@ -1256,15 +1277,18 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         }
     }else if( asw->icon_canvas && w == asw->icon_canvas->w )
     {
-        canvas_moved = handle_canvas_config (asw->icon_canvas);
-        if( canvas_moved )
+        ASFlagType changes = handle_canvas_config (asw->icon_canvas);
+        LOCAL_DEBUG_OUT( "icon resized to %dx%d%+d%+d", asw->icon_canvas->width, asw->icon_canvas->height, asw->icon_canvas->root_x, asw->icon_canvas->root_y );
+        if( get_flags(changes, CANVAS_RESIZED) )
         {
             unsigned short title_size = 0 ;
-            if( asw->icon_title && asw->icon_title_canvas == asw->icon_canvas )
+            if( asw->icon_title && (asw->icon_title_canvas == asw->icon_canvas || asw->icon_title_canvas == NULL ) )
             {
-                set_astbar_size( asw->icon_title, asw->icon_canvas->width, asw->icon_title->height );
-                title_size = asw->icon_title->height ;
+                title_size = calculate_astbar_height( asw->icon_title );
+                move_astbar( asw->icon_title, asw->icon_canvas, 0, asw->icon_canvas->height - title_size );
+                set_astbar_size( asw->icon_title, asw->icon_canvas->width, title_size );
                 render_astbar( asw->icon_title, asw->icon_canvas );
+                LOCAL_DEBUG_OUT( "title_size = %d", title_size );
             }
             set_astbar_size( asw->icon_button, asw->icon_canvas->width, asw->icon_canvas->height-title_size );
             render_astbar( asw->icon_button, asw->icon_canvas );
@@ -1275,6 +1299,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
     {
         if( handle_canvas_config(asw->icon_title_canvas) && asw->icon_title )
         {
+            LOCAL_DEBUG_OUT( "icon_title resized to %dx%d%+d%+d", asw->icon_title_canvas->width, asw->icon_title_canvas->height, asw->icon_title_canvas->root_x, asw->icon_title_canvas->root_y );
             set_astbar_size( asw->icon_title, asw->icon_title_canvas->width, asw->icon_title->height );
             render_astbar( asw->icon_title, asw->icon_title_canvas );
             update_canvas_display( asw->icon_title_canvas );
@@ -1856,9 +1881,6 @@ LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d", asw, iconify );
         else if( asw->icon_title_canvas )
             asw->status->icon_window = asw->icon_title_canvas->w ;
 
-        add_iconbox_icon( asw );
-        restack_window( asw, None, Below );
-
         if (get_flags(Scr.Feel.flags, ClickToFocus) || get_flags(Scr.Feel.flags, SloppyFocus))
         {
             if (asw == Scr.Windows->focused)
@@ -1882,9 +1904,12 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
             }
         }
         /* finally mapping the icon windows : */
+        add_iconbox_icon( asw );
+        restack_window( asw, None, Below );
         map_canvas_window(asw->icon_canvas, True );
         if( asw->icon_canvas != asw->icon_title_canvas )
             map_canvas_window(asw->icon_title_canvas, True );
+        on_window_status_changed( asw, False, True );
 LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_NAME(asw) );
     }else
     {   /* Performing transition IconicState->NormalState  */
@@ -1893,6 +1918,10 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
             asw->wm_state_transition = ASWT_Iconic2Normal ;
             clear_flags( asw->status->flags, AS_Iconic );
             remove_iconbox_icon( asw );
+            unmap_canvas_window(asw->icon_canvas );
+            if( asw->icon_canvas != asw->icon_title_canvas )
+                unmap_canvas_window(asw->icon_title_canvas );
+
             ASWIN_DESK(asw) = get_flags(Scr.Feel.flags, StubbornIcons)?asw->DeIconifyDesk:Scr.CurrentDesk;
             quietly_reparent_aswindow( asw, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, True );
         }
