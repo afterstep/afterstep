@@ -68,6 +68,7 @@
 #include "xpm.h"
 #include "ungif.h"
 #include "import.h"
+#include "asimagexml.h"
 
 
 /***********************************************************************************/
@@ -90,6 +91,7 @@ as_image_loader_func as_image_file_loaders[ASIT_Unknown] =
 	ico2ASImage ,
 	gif2ASImage ,
 	tiff2ASImage,
+	xml2ASImage ,
 	NULL,
 	NULL,
 	NULL
@@ -277,59 +279,96 @@ static ASImageFileTypes
 check_image_type( const char *realfilename )
 {
 	int filename_len = strlen( realfilename );
-	CARD8 head[16] ;
+#define FILE_HEADER_SIZE	512
+	CARD8 head[FILE_HEADER_SIZE+1] ;
 	int bytes_in = 0 ;
 	FILE *fp ;
+	ASImageFileTypes type = ASIT_Unknown ;
 	/* lets check if we have compressed xpm file : */
 	if( filename_len > 6 && mystrncasecmp( realfilename+filename_len-3, "xpm.gz", 6 ) == 0 )
-		return ASIT_GZCompressedXpm;
-	if( filename_len > 5 && mystrncasecmp( realfilename+filename_len-3, "xpm.Z", 5 ) == 0 )
-		return ASIT_ZCompressedXpm;
-	if( (fp = open_image_file( realfilename )) != NULL )
+		type = ASIT_GZCompressedXpm;
+	else if( filename_len > 5 && mystrncasecmp( realfilename+filename_len-3, "xpm.Z", 5 ) == 0 )
+		type = ASIT_ZCompressedXpm ;
+	else if( (fp = open_image_file( realfilename )) != NULL )
 	{
-		bytes_in = fread( &(head[0]), sizeof(char), 16, fp );
-		head[15] = '\0' ;
+		bytes_in = fread( &(head[0]), sizeof(char), FILE_HEADER_SIZE, fp );
+		head[FILE_HEADER_SIZE] = '\0' ;
 		DEBUG_OUT("%s: head[0]=0x%2.2X(%d),head[2]=0x%2.2X(%d)\n", realfilename+filename_len-4, head[0], head[0], head[2], head[2] );
 /*		fprintf( stderr, " IMAGE FILE HEADER READS : [%s][%c%c%c%c%c%c%c%c][%s], bytes_in = %d\n", (char*)&(head[0]),
 						head[0], head[1], head[2], head[3], head[4], head[5], head[6], head[7], strstr ((char *)&(head[0]), "XPM"),bytes_in );
- */		fclose( fp );
+ */		
 		if( bytes_in > 3 )
 		{
 			if( head[0] == 0xff && head[1] == 0xd8 && head[2] == 0xff)
-				return ASIT_Jpeg;
+				type = ASIT_Jpeg;
 			else if (strstr ((char *)&(head[0]), "XPM") != NULL)
-				return ASIT_Xpm;
+				type =  ASIT_Xpm;
 			else if (head[1] == 'P' && head[2] == 'N' && head[3] == 'G')
-				return ASIT_Png;
+				type = ASIT_Png;
 			else if (head[0] == 'G' && head[1] == 'I' && head[2] == 'F')
-				return ASIT_Gif;
+				type = ASIT_Gif;
 			else if (head[0] == head[1] && (head[0] == 'I' || head[0] == 'M'))
-				return ASIT_Tiff;
+				type = ASIT_Tiff;
 			else if (head[0] == 'P' && isdigit(head[1]))
-				return (head[1]!='5' && head[1]!='6')?ASIT_Pnm:ASIT_Ppm;
+				type = (head[1]!='5' && head[1]!='6')?ASIT_Pnm:ASIT_Ppm;
 			else if (head[0] == 0xa && head[1] <= 5 && head[2] == 1)
-				return ASIT_Pcx;
+				type = ASIT_Pcx;
 			else if (head[0] == 'B' && head[1] == 'M')
-				return ASIT_Bmp;
+				type = ASIT_Bmp;
 			else if (head[0] == 0 && head[2] == 1 && mystrncasecmp(realfilename+filename_len-4, ".ICO", 4)==0 )
-				return ASIT_Ico;
+				type = ASIT_Ico;
 			else if (head[0] == 0 && head[2] == 2 &&
 						(mystrncasecmp(realfilename+filename_len-4, ".CUR", 4)==0 ||
 						 mystrncasecmp(realfilename+filename_len-4, ".ICO", 4)==0) )
-				return ASIT_Cur;
+				type = ASIT_Cur;
 		}
-		if( bytes_in  > 8 )
+		if( type == ASIT_Unknown && bytes_in  > 8 )
 		{
 			if( strncmp((char *)&(head[0]), XCF_SIGNATURE, (size_t) XCF_SIGNATURE_LEN) == 0)
-				return ASIT_Xcf;
+				type = ASIT_Xcf;
 	   		else if (head[0] == 0 && head[1] == 0 &&
 			    	 head[2] == 2 && head[3] == 0 && head[4] == 0 && head[5] == 0 && head[6] == 0 && head[7] == 0)
-				return ASIT_Targa;
+				type = ASIT_Targa;
 			else if (strncmp ((char *)&(head[0]), "#define", (size_t) 7) == 0)
-				return ASIT_Xbm;
+				type = ASIT_Xbm;
+			else
+			{/* the nastiest check - for XML files : */
+				register int i ;
+				
+				type = ASIT_XMLScript ;
+				while( bytes_in > 0 && type == ASIT_XMLScript )
+				{
+					for( i = 0 ; i < bytes_in ; ++i ) if( !isspace(head[i]) ) break;
+					if( i >= bytes_in ) 
+						bytes_in = fread( &(head[0]), sizeof(CARD8), FILE_HEADER_SIZE, fp );
+					else if( head[i] != '<' )
+						type = ASIT_Unknown ;
+					else
+						break ;
+				}
+				while( bytes_in > 0 && type == ASIT_XMLScript )
+				{
+					for( i = 0 ; i < bytes_in ; ++i ) 
+						if( !isspace(head[i]) ) 
+						{
+							if( !isprint(head[i]) )
+							{
+								type = ASIT_Unknown ;
+								break ;
+							}else if( head[i] == '>' )
+								break ;
+						}
+							
+					if( i >= bytes_in ) 
+						bytes_in = fread( &(head[0]), sizeof(CARD8), FILE_HEADER_SIZE, fp );
+					else 
+						break ;
+				}
+			}
 		}
+		fclose( fp );
 	}
-	return ASIT_Unknown;
+	return type;
 }
 
 static void
@@ -1412,3 +1451,42 @@ tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 	return NULL ;
 }
 #endif			/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
+
+
+ASImage *
+load_xml2ASImage( ASImageManager *imman, const char *path, unsigned int compression )
+{
+	ASVisual fake_asv ;
+	char *slash, *curr_path = NULL ;
+	char *doc_str = NULL ;
+	ASImage *im = NULL ;
+	
+	memset( &fake_asv, 0x00, sizeof(ASVisual) );
+	if( (slash = strrchr( path, '/' )) != NULL )
+		curr_path = mystrndup( path, slash-path );
+	
+	if((doc_str = load_file(path)) == NULL )
+		show_error( "unable to load file \"%s\" file is either too big or is not readable.\n", path );
+	else
+	{
+		im = compose_asimage_xml(&fake_asv, imman, NULL, doc_str, 0, 0, None, curr_path);	
+		free( doc_str );
+	}
+	
+	if( curr_path ) 
+		free( curr_path );
+	return im ;
+}
+
+
+ASImage *
+xml2ASImage( const char *path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
+{
+	static ASImage 	 *im = NULL ;
+	START_TIME(started);
+
+	im = load_xml2ASImage( NULL, path, compression );
+	
+	SHOW_TIME("image loading",started);
+	return im ;
+}

@@ -212,6 +212,9 @@ int		asim_check_file_mode (const char *file, int mode);
 #define CheckDir(d) 	asim_check_file_mode(d,S_IFDIR)
 char   *asim_put_file_home (const char *path_with_home);
 #define put_file_home(p) asim_put_file_home(p)
+char   *asim_load_file     (const char *realfilename);
+#define load_file(r)     asim_load_file(r)
+
 char   *asim_find_file (const char *file, const char *pathlist, int type);
 #define find_file(f,p,t) asim_find_file(f,p,t)
 char   *asim_copy_replace_envvar (char *path);

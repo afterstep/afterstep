@@ -179,6 +179,30 @@ asim_put_file_home (const char *path_with_home)
 	return str;
 }
 
+char* 
+asim_load_file(const char* realfilename) 
+{
+	struct stat st;
+	FILE* fp;
+	char* str;
+	int len;
+
+	/* Get the file size. */
+	if (stat(realfilename, &st)) return NULL;
+
+	/* Open the file. */
+	fp = fopen(realfilename, "rb");
+	if (!(fp = fopen(realfilename, "rb"))) return NULL;
+
+	/* Read in the file. */
+	str = NEW_ARRAY(char, st.st_size + 1);
+	len = fread(str, 1, st.st_size, fp);
+	if (len >= 0) str[len] = '\0';
+
+	fclose(fp);
+	return str;
+}
+
 
 /****************************************************************************
  *

@@ -47,8 +47,9 @@ typedef enum
 	ASIT_Cur,
 	ASIT_Gif,
 	ASIT_Tiff,
-	ASIT_Xbm,
+	ASIT_XMLScript,
 	/* reserved for future implementation : */
+	ASIT_Xbm,
 	ASIT_Targa,
 	ASIT_Pcx,
 	ASIT_Unknown
@@ -67,6 +68,7 @@ ASImage *bmp2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *
 ASImage *ico2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
 ASImage *gif2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
 ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *xml2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
 
 
 /****f* libAfterImage/import/file2ASImage()

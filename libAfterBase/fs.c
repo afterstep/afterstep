@@ -89,6 +89,30 @@ copy_file (const char *realfilename1, const char *realfilename2)
 	return 0;
 }
 
+char* 
+load_file(const char* realfilename) 
+{
+	struct stat st;
+	FILE* fp;
+	char* str;
+	int len;
+
+	/* Get the file size. */
+	if (stat(realfilename, &st)) return NULL;
+
+	/* Open the file. */
+	fp = fopen(realfilename, "rb");
+	if (!(fp = fopen(realfilename, "rb"))) return NULL;
+
+	/* Read in the file. */
+	str = NEW_ARRAY(char, st.st_size + 1);
+	len = fread(str, 1, st.st_size, fp);
+	if (len >= 0) str[len] = '\0';
+
+	fclose(fp);
+	return str;
+}
+
 char         *
 make_file_name (const char *path, const char *file)
 {

@@ -532,12 +532,34 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 	if( scl && grad && filter != 0 )
 	{
 		int offset = 0, step, i, max_i = grad->npoints - 1 ;
-		for( i = 0  ; i < max_i ; i++ )
+		ARGB32 last_color = ARGB32_Black ;
+		double last_offset = 0., *offsets = grad->offset ;
+		for( i = 0 ; i <= max_i ; ++i ) 
+			if( offsets[i] <= 0. )
+			{
+				last_color = grad->color[i] ;
+				break;
+			}
+		 
+		for( i = 0  ; i <= max_i ; i++ )
 		{
-			if( i == max_i-1 )
-				step = scl->width - offset;
-			else
-				step = grad->offset[i+1] * scl->width - offset ;
+			register int k ;
+			int new_idx = -1 ;
+			for( k = 0 ; k <= max_i ; ++k )
+			{
+				if( offsets[k] > last_offset ) 
+				{
+					if( new_idx < 0 ) 
+						new_idx = k ;
+					else if( offsets[new_idx] > offsets[k] ) 
+						new_idx = k ;
+				}
+			}
+			if( new_idx < 0 ) 
+				break;
+			step = grad->offset[new_idx] * scl->width - offset ;
+/*			fprintf( stderr, __FUNCTION__":%d>last_offset = %f, last_color = %8.8X, new_idx = %d, max_i = %d, new_offset = %f, new_color = %8.8X, step = %d, offset = %d\n", __LINE__, last_offset, last_color, new_idx, max_i, offsets[new_idx], grad->color[new_idx], step, offset );*/
+			
 			if( step > 0 && step <= scl->width-offset )
 			{
 				int color ;
@@ -549,13 +571,15 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 	 	 ARGB32_CHAN8(grad->color[i],color)<<8, ARGB32_CHAN8(grad->color[i+1],color)<<8, offset, step );*/
 
 						make_component_gradient16( scl->channels[color]+offset,
-												   ARGB32_CHAN8(grad->color[i],color)<<8,
-												   ARGB32_CHAN8(grad->color[i+1],color)<<8,
+												   ARGB32_CHAN8(last_color,color)<<8,
+												   ARGB32_CHAN8(grad->color[new_idx],color)<<8,
 												   ARGB32_CHAN8(seed,color),
 												   step);
 					}
 				offset += step ;
 			}
+			last_offset = offsets[new_idx];
+			last_color = grad->color[new_idx];
 		}
 		scl->flags = filter ;
 	}

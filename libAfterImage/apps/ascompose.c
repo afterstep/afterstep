@@ -127,7 +127,6 @@
  *****/
 
 
-char* load_file(const char* filename);
 void showimage(ASImage* im, int onroot);
 
 int screen = 0, depth = 0;
@@ -277,29 +276,6 @@ int main(int argc, char** argv) {
 #endif
 
 	return 0;
-}
-
-char* load_file(const char* filename) {
-	struct stat st;
-	FILE* fp;
-	char* str;
-	int len;
-
-	/* Get the file size. */
-	if (stat(filename, &st)) return NULL;
-
-	/* Open the file. */
-	fp = fopen(filename, "rb");
-	if (!(fp = fopen(filename, "rb"))) return NULL;
-
-	/* Read in the file. */
-	str = NEW_ARRAY(char, st.st_size + 1);
-	len = fread(str, 1, st.st_size, fp);
-	if (len >= 0) str[len] = '\0';
-
-	fclose(fp);
-
-	return str;
 }
 
 void showimage(ASImage* im, int onroot) {

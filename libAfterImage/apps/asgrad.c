@@ -34,12 +34,13 @@ ARGB32 default_colors[] = {
 	0xFF00FFFF,                                /* cyan   */
 	0xFF00FF00,
 	0XFFFFFF00,
-	0XFFFF0000,
 	0XFF700000,
+	0XFFFF0000,
 	0xFF8080A0,
 	0xFFE0E0FF,
+	0xFFa0a0FF,
 };
-double default_offsets[] = { 0, 0.1, 0.15, 0.20, 0.35, 0.45, 0.50, 0.55, 0.65, 0.8, 1.0} ;
+double default_offsets[] = { 0, 0.1, 0.15, 0.20, 0.35, 0.45, 0.55, 0.50, 0.65, 0.8, 1.0} ;
 
 
 void usage()
@@ -61,7 +62,7 @@ int main(int argc, char* argv[])
 	int dummy, geom_flags = 0;
 	unsigned int to_width, to_height ;
 	ASGradient grad ;
-	ASGradient default_grad = { 1, 10, &(default_colors[0]), &(default_offsets[0])} ;
+	ASGradient default_grad = { 1, 11, &(default_colors[0]), &(default_offsets[0])} ;
 	ASImage *grad_im = NULL;
 
 	/* see ASView.1 : */
