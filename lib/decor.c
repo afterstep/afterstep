@@ -151,7 +151,7 @@ create_ascanvas_container (Window w)
 	{
 		pc = safecalloc (1, sizeof (ASCanvas));
 		pc->w = w;
-        pc->flags = CANVAS_CONTAINER ;
+        pc->state = CANVAS_CONTAINER ;
 		refresh_canvas_config (pc);
 	}
 	return pc;
@@ -698,7 +698,7 @@ set_astbar_image( ASTBarData *tbar, ASImage *image )
             }
             if( image )
                 if( (tbar->back_image = dup_asimage( image )) == NULL )
-					tbar->back_image = clone_asimage( image );
+                    tbar->back_image = clone_asimage( image, 0xFFFFFFFF );
 
             flush_tbar_backs(tbar);
 
@@ -951,6 +951,28 @@ update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc)
 		}
 		render_astbar (tbar, pc);
 	}
+}
+
+int
+check_astbar_point( ASTBarData *tbar, int root_x, int root_y )
+{
+    int context = C_NO_CONTEXT ;
+    if( tbar )
+    {
+        root_x -= tbar->root_x ;
+        root_y -= tbar->root_y ;
+        if(  0 <= root_x && tbar->width  > root_x &&
+             0 <= root_y && tbar->height > root_y )
+        {
+            int btn_context ;
+            context = C_TITLE ;
+            if( (btn_context = check_tbtn_point( tbar->left_buttons, root_x, root_y )) != C_NO_CONTEXT )
+                context = btn_context ;
+            else if( (btn_context = check_tbtn_point( tbar->right_buttons, root_x, root_y )) != C_NO_CONTEXT )
+                context = btn_context ;
+        }
+    }
+    return context;
 }
 
 /*************************************************************************/

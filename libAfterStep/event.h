@@ -54,8 +54,9 @@ typedef struct ASEvent
 	Window 	 	 		w ;
 	struct ScreenInfo  *scr;
     struct ASWindow    *client ;
-    struct ASWidget    *widget ;
-	ASContextValue  	context ;
+    struct ASCanvas    *widget ;
+//    ASContextValue      context ;
+    int                 context ;
 	XEvent 		 		x ;
 }ASEvent;
 
@@ -64,7 +65,6 @@ typedef struct ASEvent
 /* This is used for error handling : */
 extern int           last_event_type ;
 extern Window        last_event_window;
-extern int           SingleScreen ;
 
 void event_setup( Bool local );
 const char *event_type2name( int type );
@@ -75,9 +75,7 @@ const char *event_type2name( int type );
 #define ASCheckTypedWindowEvent(w,t,e) check_event_typed_windowed(w,t,e)
 #define ASCheckWindowEvent(w,m,e)   check_event_windowed(w,m,e)
 
-#define ASEventScreen(e) 			((SingleScreen>=0)? \
-									  (all_screens[SingleScreen]): \
-									  query_event_screen(e))
+#define ASEventScreen(e)            (&Scr)
 #define ASNextEvent(e)              next_event (e)
 #define ASMaskEvent(m,e)            mask_event (m,e)
 #define ASWindowEvent(w,m,e)        window_event(w,m,e)
@@ -95,6 +93,7 @@ void sync_event_queue(Bool forget);
 
 struct ScreenInfo *query_event_screen( register XEvent *event );
 
+Window get_xevent_window( XEvent *xevt );
 
 void setup_asevent_from_xevent( ASEvent *event );
 

@@ -441,26 +441,14 @@ HandlePaging (ASWindow * tmp_win, int HorWarpSize, int VertWarpSize, int *xl, in
 		{
 			sleep_a_little (10000);
 			total += 10;
-			if (XCheckWindowEvent (dpy, Scr.PanFrameTop.win, LeaveWindowMask, &Event))
-			{
-				StashEventTime (&Event);
+            if (ASCheckWindowEvent (Scr.PanFrameTop.win, LeaveWindowMask, &Event))
 				return;
-			}
-			if (XCheckWindowEvent (dpy, Scr.PanFrameBottom.win, LeaveWindowMask, &Event))
-			{
-				StashEventTime (&Event);
+            if (ASCheckWindowEvent (Scr.PanFrameBottom.win, LeaveWindowMask, &Event))
+                return;
+            if (ASCheckWindowEvent (Scr.PanFrameLeft.win, LeaveWindowMask, &Event))
 				return;
-			}
-			if (XCheckWindowEvent (dpy, Scr.PanFrameLeft.win, LeaveWindowMask, &Event))
-			{
-				StashEventTime (&Event);
+            if (ASCheckWindowEvent (Scr.PanFrameRight.win, LeaveWindowMask, &Event))
 				return;
-			}
-			if (XCheckWindowEvent (dpy, Scr.PanFrameRight.win, LeaveWindowMask, &Event))
-			{
-				StashEventTime (&Event);
-				return;
-			}
 		}
 
 		XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild, &x, &y, &JunkX, &JunkY, &JunkMask);

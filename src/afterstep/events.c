@@ -60,14 +60,14 @@
 
 extern int    menuFromFrameOrWindowOrTitlebar;
 
-int           Context = C_NO_CONTEXT;		   /* current button press context */
-int           Button = 0;
-ASWindow     *ButtonWindow;					   /* button press window structure */
-XEvent        Event;						   /* the current event */
-ASWindow     *Tmp_win;						   /* the current afterstep window */
-
-int           last_event_type = 0;
-Window        last_event_window = 0;
+#if 0
+    /* All this is so much evel that I just have to get rid of it : */
+    int           Context = C_NO_CONTEXT;          /* current button press context */
+    int           Button = 0;
+    ASWindow     *ButtonWindow;                    /* button press window structure */
+    XEvent        Event;                           /* the current event */
+    ASWindow     *Tmp_win;                         /* the current afterstep window */
+#endif
 
 /* those are used for AutoReverse mode 1 */
 int           warp_in_process = 0;
@@ -123,108 +123,202 @@ warp_ungrab (ASWindow * t, Bool finished)
 }
 
 /***********************************************************************
+ *  _______________________EVENT HANDLING ______________________________
  *
- *  Procedure:
- *	DispatchEvent - handle a single X event stored in global var Event
- *
+ *  HandleEvents  - event loop
+ *  DigestEvent   - preprocesses event - finds ASWindow, context etc.
+ *  DispatchEvent - calls appropriate handler for the event
  ************************************************************************/
+void DigestEvent    ( ASEvent *event );
+void DispatchEvent  ( ASEvent *event );
+
 void
-DispatchEvent ()
+HandleEvents ()
 {
-	Window        w = Event.xany.window;
+    ASEvent event;
+	while (True)
+	{
+        if ( AS_XNextEvent (dpy, &(event.x)) )
+		{
+/*fprintf( stderr, "%s:%d Received event %d\n", __FUNCTION__, __LINE__, event.x.type );*/
+            DigestEvent( &event );
+            DispatchEvent( &event );
+		}
+	}
+}
 
-	StashEventTime (&Event);
+void
+DigestEvent( ASEvent *event )
+{
+    setup_asevent_from_xevent( event );
+    event->client = window2ASWindow( event->w );
+    event->context = C_ROOT ;
+    event->widget = NULL ;
+    if( (event->event_class & ASE_POINTER_EVENTS) != 0 && event->client )
+    {
+        /* now lets determine the context of the event : (former GetContext)*/
+        Window   w = event->w ;
+        ASWindow *asw = event->client ;
+        XKeyEvent *xk = &(event->x.xkey);
+        ASCanvas  *canvas = asw->frame_canvas ;
+        /* Since key presses and button presses are grabbed in the frame
+         * when we have re-parented windows, we need to find out the real
+         * window where the event occured */
+        if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
+        {
+            if (xk->subwindow != None)
+                w = xk->subwindow;
+            if( w == asw->client_canvas->w )
+            {
+                canvas = asw->client_canvas ;
+                event->context = C_CLIENT ;
+            }else if( w != asw->frame )
+            {
+                register int i = FRAME_SIDES ;
+                while( --i >= 0 )
+                    if( asw->frame_sides[i]->w == w )
+                    {
+                        int tbar_context ;
+                        canvas = asw->frame_sides[i];
+                        /* determine what part of the frame : */
+                        event->context = C_FRAME ;
+                        break;
+                    }
+            }
 
-    Tmp_win = window2ASWindow( w );
-	last_event_type = Event.type;
-	last_event_window = w;
+            if( w != asw->frame )
+            {
+                if( event->w == asw->frame )
+                {
+                    xk->x = xk->x_root - canvas->root_x ;
+                    xk->y = xk->y_root - canvas->root_y ;
+                }else
+                {
+                    Window dumm;
+                    XTransalteCoordinates(dpy,Scr.Root,w,xk->x_root, xk->y_root, &(xk->x), &(xk->y), &dumm );
+                }
+            }
+            if( event->context == C_FRAME )
+            {
+                if( (tbar_context = check_astbar_point( asw->tbar, xk->x_root, xk->y_root )) != C_NO_CONTEXT )
+                    event->context = tbar_context ;
+                else
+                {
+                    for( i = 0 ; i < FRAME_PARTS ; ++i )
+                        if( asw->frame_bars[i] != NULL &&
+                            (tbar_context = check_astbar_point( asw->frame_bars[i], xk->x_root, xk->y_root )) != C_NO_CONTEXT )
+                        {
+                            if( tbar_context == C_TITLE )
+                                event->context = C_FrameN<<i ;
+                            else
+                                event->context = tbar_context ;
+                            break;
+                        }
+                }
+            }
+            event->w = w ;
+        }else
+        {
+            if( asw->icon_canvas && w == asw->icon_canvas->w )
+                canvas = asw->icon_canvas ;
+            else( asw->icon_title_canvas && w == asw->icon_title_canvas->w )
+                canvas = asw->icon_title_canvas ;
 
-	/* handle balloon events specially */
-	balloon_handle_event (&Event);
+            event->context = C_ICON ;
+        }
+        event->widget  = canvas ;
+    }
+}
+
+void
+DispatchEvent ( ASEvent *event )
+{
+    /* handle balloon events specially */
+    balloon_handle_event (&(event->x));
 
 	/* handle menu events specially */
-	if (HandleMenuEvent (NULL, &Event) == True)
+    if (HandleMenuEvent (NULL, event) == True)
 		return;
 
-	switch (Event.type)
+    switch (event->x.type)
 	{
 	 case Expose:
-		 HandleExpose ();
+         HandleExpose (event);
 		 break;
 	 case DestroyNotify:
-		 HandleDestroyNotify ();
+         HandleDestroyNotify (event);
 		 break;
 	 case MapRequest:
-		 HandleMapRequest ();
+         HandleMapRequest (event);
 		 break;
 	 case MapNotify:
-		 HandleMapNotify ();
+         HandleMapNotify (event);
 		 break;
 	 case UnmapNotify:
-		 HandleUnmapNotify ();
+         HandleUnmapNotify (event);
 		 break;
 	 case ButtonPress:
 		 /* if warping, a button press, non-warp keypress, or pointer motion
 		  * indicates that the warp is done */
-		 if ((Tmp_win != NULL) && (warp_in_process))
-			 warp_ungrab (Tmp_win, True);
-		 HandleButtonPress ();
+         if ((event->client != NULL) && (warp_in_process))
+             warp_ungrab (event->client, True);
+         HandleButtonPress (event);
 		 break;
 	 case EnterNotify:
-		 HandleEnterNotify ();
+         HandleEnterNotify (event);
 		 break;
 	 case LeaveNotify:
-		 HandleLeaveNotify ();
+         HandleLeaveNotify (event);
 #if 0
 		 /* if warping, leaving a window means that we need to ungrab, but
 		  * the ungrab should be taken care of by the FocusOut */
-		 if ((warp_in_process) && (Tmp_win != NULL))
-			 warp_ungrab (Tmp_win, False);
+         if ((warp_in_process) && (event->client != NULL))
+             warp_ungrab (event->client, False);
 #endif
 		 break;
 	 case FocusIn:
-		 HandleFocusIn ();
-		 if (Tmp_win != NULL)
+         HandleFocusIn (event);
+         if (event->client != NULL)
 		 {
 			 if (warp_in_process)
-				 warp_grab (Tmp_win);
+                 warp_grab (event->client);
 			 else
-				 ChangeWarpIndex (Tmp_win->warp_index, F_WARP_F);
+                 ChangeWarpIndex (event->client->warp_index, F_WARP_F);
 		 }
 		 break;
 	 case FocusOut:
 		 /* if warping, this is the normal way to determine that we should ungrab
 		  * window events */
-		 if (Tmp_win != NULL && warp_in_process)
-			 warp_ungrab (Tmp_win, False);
+         if (event->client != NULL && warp_in_process)
+             warp_ungrab (event->client, False);
 		 break;
 	 case MotionNotify:
 		 /* if warping, a button press, non-warp keypress, or pointer motion
 		  * indicates that the warp is done */
-		 if ((warp_in_process) && (Tmp_win != NULL))
-			 warp_ungrab (Tmp_win, True);
+         if ((warp_in_process) && (event->client != NULL))
+             warp_ungrab (event->client, True);
 		 break;
 	 case ConfigureRequest:
-		 HandleConfigureRequest ();
+         HandleConfigureRequest (event);
 		 break;
 	 case ClientMessage:
-		 HandleClientMessage ();
+         HandleClientMessage (event);
 		 break;
 	 case PropertyNotify:
-		 HandlePropertyNotify ();
+         HandlePropertyNotify (event);
 		 break;
 	 case KeyPress:
 		 /* if a key has been pressed and it's not one of those that cause
 		    warping, we know the warping is finished */
-		 HandleKeyPress ();
+         HandleKeyPress (event);
 		 break;
 	 case ColormapNotify:
-		 HandleColormapNotify ();
+         HandleColormapNotify (event);
 		 break;
 	 default:
 #ifdef SHAPE
-		 if (Event.type == (ShapeEventBase + ShapeNotify))
-			 HandleShapeNotify ();
+         if (event->x.type == (ShapeEventBase + ShapeNotify))
+             HandleShapeNotify (event);
 #endif /* SHAPE */
 
 		 break;
@@ -232,144 +326,10 @@ DispatchEvent ()
 	return;
 }
 
-
 /***********************************************************************
- *
- *  Procedure:
- *	HandleEvents - handle X events
- *
- ************************************************************************/
-void
-HandleEvents ()
-{
-	while (True)
-	{
-		last_event_type = 0;
-		if (AS_XNextEvent (dpy, &Event))
-		{
-/*fprintf( stderr, "%s:%d Received event %d\n", __FUNCTION__, __LINE__, Event.type );*/
-			DispatchEvent ();
-
-		}
-	}
-}
-
-/***********************************************************************
- *
- *  Procedure:
- *	Find the AS context for the Event.
- *
- ************************************************************************/
-int
-GetContext (ASWindow * t, XEvent * e, Window * w)
-{
-	int           i;
-
-	if (t == NULL || e->xany.window == None)
-		return C_ROOT;
-
-	*w = e->xany.window;
-
-	if ((*w == Scr.NoFocusWin) || (*w == Scr.Root))
-		return C_ROOT;
-
-	/* Since key presses and button presses are grabbed in the frame
-	 * when we have re-parented windows, we need to find out the real
-	 * window where the event occured */
-	if (!(t->flags & ICONIFIED))
-	{
-		if (e->type == KeyPress)
-		{
-			if (e->xkey.subwindow != None)
-				*w = e->xany.window = e->xkey.subwindow;
-		} else if (e->type == ButtonPress)
-		{
-			if (e->xbutton.subwindow != None)
-				*w = e->xany.window = e->xbutton.subwindow;
-			else if (*w == t->frame &&
-					 e->xbutton.x >= t->title_x &&
-					 e->xbutton.x < t->title_x + t->title_width + 2 * t->bw &&
-					 e->xbutton.y >= t->title_y &&
-					 e->xbutton.y < t->title_y + t->title_height + 2 * t->bw)
-				return C_TITLE;
-		}
-	}
-	/* make sure the button press isn't over a titlebar button */
-	if (*w == t->title_w)
-	{
-		for (i = 0; i < Scr.nr_left_buttons; i++)
-			if (t->left_w[i] != None)
-			{
-				Window        root;
-				int           x, y, width, height, junk;
-
-				XGetGeometry (dpy, t->left_w[i], &root, &x, &y, &width, &height, &junk, &junk);
-				if (e->xbutton.x >= x && e->xbutton.x < x + width &&
-					e->xbutton.y >= y && e->xbutton.y < y + height)
-				{
-					Button = i;
-					*w = t->left_w[i];
-					return C_L1 << i;
-				}
-			}
-		for (i = 0; i < Scr.nr_right_buttons; i++)
-			if (t->right_w[i] != None)
-			{
-				Window        root;
-				int           x, y, width, height, junk;
-
-				XGetGeometry (dpy, t->right_w[i], &root, &x, &y, &width, &height, &junk, &junk);
-				if (e->xbutton.x >= x && e->xbutton.x < x + width &&
-					e->xbutton.y >= y && e->xbutton.y < y + height)
-				{
-					Button = i;
-					*w = t->right_w[i];
-					return C_R1 << i;
-				}
-			}
-	}
-	if (*w == t->title_w)
-		return C_TITLE;
-	if (*w == t->icon_title_w)
-		return C_ICON;
-	if ((*w == t->icon_pixmap_w) || (t->flags & ICONIFIED))
-		return C_ICON;
-	if ((*w == t->frame) || (*w == t->side))
-		return C_SIDEBAR;
-
-	for (i = 0; i < 8; i++)
-	{
-		if (*w == t->fw[i])
-			return C_FRAME;
-	}
-	for (i = 0; i < 2; i++)
-	{
-		if (*w == t->corners[i])
-		{
-			Button = i;
-			return C_FRAME;
-		}
-	}
-	for (i = 0; i < Scr.nr_left_buttons; i++)
-	{
-		if (*w == t->left_w[i])
-		{
-			Button = i;
-			return (1 << i) * C_L1;
-		}
-	}
-	for (i = 0; i < Scr.nr_right_buttons; i++)
-	{
-		if (*w == t->right_w[i])
-		{
-			Button = i;
-			return (1 << i) * C_R1;
-		}
-	}
-
-	*w = t->w;
-	return C_WINDOW;
-}
+ * ___________________________ EVENT HANDLERS __________________________
+ * Now its time for event handlers :
+ ***********************************************************************/
 
 /***********************************************************************
  *
@@ -384,10 +344,9 @@ HandleFocusIn ()
 	Window        w;
 
 	w = Event.xany.window;
-	while (XCheckTypedEvent (dpy, FocusIn, &d))
-	{
+    while (ASCheckTypedEvent (FocusIn, &d))
 		w = d.xany.window;
-	}
+
 	Tmp_win = window2ASWindow( w );
 
 	if (!Tmp_win)
@@ -898,7 +857,7 @@ HandleUnmapNotify ()
 	}
 	XGrabServer (dpy);
 
-	if (XCheckTypedWindowEvent (dpy, Event.xunmap.window, DestroyNotify, &dummy))
+    if (ASCheckTypedWindowEvent ( Event.xunmap.window, DestroyNotify, &dummy))
 	{
 		Destroy (Tmp_win, True);
 		XUngrabServer (dpy);
@@ -918,7 +877,7 @@ HandleUnmapNotify ()
 		XEvent        ev;
 		Bool          reparented;
 
-		reparented = XCheckTypedWindowEvent (dpy, Event.xunmap.window, ReparentNotify, &ev);
+        reparented = ASCheckTypedWindowEvent ( Event.xunmap.window, ReparentNotify, &ev);
 		SetMapStateProp (Tmp_win, WithdrawnState);
 		if (reparented)
 		{
@@ -1100,10 +1059,9 @@ HandleEnterNotify ()
 	XEvent        d;
 
 	/* look for a matching leaveNotify which would nullify this enterNotify */
-	if (XCheckTypedWindowEvent (dpy, ewp->window, LeaveNotify, &d))
+    if (ASCheckTypedWindowEvent ( ewp->window, LeaveNotify, &d))
 	{
 		balloon_handle_event (&d);
-		StashEventTime (&d);
 		if ((d.xcrossing.mode == NotifyNormal) && (d.xcrossing.detail != NotifyInferior))
 			return;
 	}
@@ -1228,11 +1186,10 @@ HandleConfigureRequest ()
 	}
 	if (cre->value_mask & CWStackMode)
 	{
-		ASWindow     *otherwin;
+        ASWindow     *otherwin = window2ASWindow( cre->above);
 
 		xwc.sibling = (((cre->value_mask & CWSibling) &&
-						(window2ASWindow( cre->above) != NULL))
-					   ? otherwin->frame : cre->above);
+                        ( otherwin != NULL))?otherwin->frame : cre->above);
 		xwc.stack_mode = cre->detail;
 		XConfigureWindow (dpy, Tmp_win->frame, cre->value_mask & (CWSibling | CWStackMode), &xwc);
 		XSync (dpy, False);
@@ -1295,7 +1252,7 @@ HandleShapeNotify (void)
 	if (sev->kind != ShapeBounding)
 		return;
 	Tmp_win->wShaped = sev->shaped;
-	SetShape (Tmp_win, Tmp_win->frame_width);
+    SetShape (Tmp_win, 0/*Tmp_win->frame_width*/);
 }
 #endif /* SHAPE */
 
@@ -1334,8 +1291,7 @@ AS_XNextEvent (Display * dpy, XEvent * event)
 	XFlush (dpy);
 	if (XPending (dpy))
 	{
-		XNextEvent (dpy, event);
-		StashEventTime (event);
+        ASNextEvent (event);
 		return 1;
 	}
 
@@ -1402,8 +1358,7 @@ AS_XNextEvent (Display * dpy, XEvent * event)
 	 * flushed */
 	if (XPending (dpy))
 	{
-		XNextEvent (dpy, event);
-		StashEventTime (event);
+        ASNextEvent (event);
 		return 1;
 	}
 	/* Zap all those zombies! */

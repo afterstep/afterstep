@@ -27,9 +27,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <malloc.h>
 
-#include "../include/afterbase.h"
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
 #include "../include/asdatabase.h"

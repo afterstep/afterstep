@@ -1179,37 +1179,6 @@ CatchRedirectError (Display * dpy, XErrorEvent * event)
 }
 
 
-/***********************************************************************
- *
- *  Procedure:
- *	ASErrorHandler - displays info on internal errors
- *
- ************************************************************************/
-#if 0
-XErrorHandler
-ASErrorHandler (Display * dpy, XErrorEvent * event)
-{
-	extern int    last_event_type;
-
-	/* some errors are acceptable, mostly they're caused by
-	 * trying to update a lost  window */
-	if ((event->error_code == BadWindow) || (event->request_code == X_GetGeometry) ||
-		(event->error_code == BadDrawable) || (event->request_code == X_SetInputFocus) ||
-		(event->request_code == X_GrabButton) ||
-		(event->request_code == X_ChangeWindowAttributes) ||
-		(event->request_code == X_InstallColormap))
-		return 0;
-
-
-	afterstep_err ("internal error", NULL, NULL, NULL);
-	fprintf (stderr, "      Request %d, Error %d\n", event->request_code, event->error_code);
-	fprintf (stderr, "      EventType: %d", last_event_type);
-	fprintf (stderr, "\n");
-	return 0;
-}
-
-#endif
-
 void
 afterstep_err (const char *message, const char *arg1, const char *arg2, const char *arg3)
 {

@@ -26,7 +26,8 @@
 #define CLAMP_SIZE(a,b,c)   ((a)<(b) ? (b) : ((c)!=-1&&(a)>(c) ? (c) : (a)))
 
 
-#include "general.h"		/* because misc.h is already taken */
+#include "event.h"
+#include "general.h"        /* because misc.h is already taken */
 #include "font.h"
 #include "mystyle.h"
 #include "mystyle_property.h"

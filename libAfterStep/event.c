@@ -17,13 +17,19 @@
  *
  */
 
+#include <errno.h>
+#include <stdio.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "../configure.h"
 
-#include <stdlib.h>
-#include <time.h>
-
-#include "../include/afterbase.h"
+#include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
+#include "../include/style.h"
+#include "../include/mystyle.h"
+#include "../include/misc.h"
 #include "../include/screen.h"
 #include "../include/event.h"
 
@@ -185,39 +191,16 @@ inline Time stash_event_time (XEvent * xevent)
 /* here we will determine what screen event occured on : */
 inline ScreenInfo *
 query_event_screen( register XEvent *event )
-{
+{  /* stub since stable AS does not support multiscreen handling in one process */
     return &Scr;
+}
 
-    static ScreenInfo *pointer_screen = NULL;
-	static ScreenInfo *focus_screen = NULL;
-
-	switch( event->type )
-	{
-		case KeyPress		:
-		case KeyRelease		:
-		case ButtonPress	:
-		case ButtonRelease	:
-		case MotionNotify	:
-		case LeaveNotify	:
-		  if( pointer_screen )
-		  		return pointer_screen;
-		case EnterNotify	:
-		  {
-			int scr_num = is_root_window(event->xany.window);
-			if( scr_num >= 0 )
-				pointer_screen = all_screens[scr_num];
-		  }
-		  return pointer_screen;
-		case FocusOut		:
-		  if( focus_screen )
-		  		return focus_screen ;
-		case FocusIn		:
-		  focus_screen = get_window_screen(event->xany.window);
-		  return focus_screen ;
-		default :
-		  break;
-	}
-	return get_window_screen(event->xany.window);
+Window
+get_xevent_window( XEvent *xevt )
+{
+	int type = xevt->type;
+	register Window *pwin = (Window*)((void*)xevt + _as_event_types[type].window_offset);
+    return (pwin==(Window*)xevt || *pwin == None )?xevt->xany.window:*pwin;
 }
 
 void setup_asevent_from_xevent( ASEvent *event )

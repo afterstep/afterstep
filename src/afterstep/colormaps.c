@@ -70,7 +70,7 @@ HandleColormapNotify (void)
 		/* Some window installed its colormap, change it back */
 		ReInstall = True;
 	}
-	while (XCheckTypedEvent (dpy, ColormapNotify, &Event))
+    while (ASCheckTypedEvent (ColormapNotify, &Event))
 	{
         Tmp_win = window2aswindow( cevent->window );
 		if ((Tmp_win) && (cevent->new))

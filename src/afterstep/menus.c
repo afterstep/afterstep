@@ -98,7 +98,7 @@ enum
 menu_mode;
 
 /* when the grab took place */
-Time          menu_grab_time;
+//Time          menu_grab_time;
 
 void          DrawTrianglePattern (Window, GC, GC, GC, int, int, int, int);
 void          DrawSeparator (Window, GC, GC, int, int, int, int, int);
@@ -972,7 +972,7 @@ HandleMenuEvent (MenuRoot * menu, XEvent * event)
 	}
 	/* check the time and change modes if necessary */
 	if ((menu_has_pointer == True) && (menu_mode == MWAIT))
-		if (lastTimestamp > menu_grab_time + Scr.ClickTime)
+        if (Scr.last_Timestamp > Scr.menu_grab_Timestamp + Scr.ClickTime)
 			menu_mode = MHOLD;
 
 	switch ((*event).type)
@@ -1298,7 +1298,7 @@ unpin_menu (MenuRoot * menu)
 				menu_has_pointer = True;
 				pointer_menu = menu;
 				menu_mode = MWAIT;
-				menu_grab_time = lastTimestamp;
+                Scr.menu_grab_Timestamp = Scr.last_Timestamp;
 				InstallRootColormap ();
 			}
 		(*menu).is_pinned = !success;
@@ -1453,10 +1453,8 @@ WaitForButtonsUp ()
 			AllUp = True;
 	}
 	XSync (dpy, 0);
-	while (XCheckMaskEvent (dpy,
-							ButtonPressMask | ButtonReleaseMask | ButtonMotionMask, &JunkEvent))
+    while (ASCheckMaskEvent (ButtonPressMask | ButtonReleaseMask | ButtonMotionMask, &JunkEvent))
 	{
-		StashEventTime (&JunkEvent);
 		XAllowEvents (dpy, ReplayPointer, CurrentTime);
 	}
 

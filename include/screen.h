@@ -287,6 +287,9 @@ typedef struct ScreenInfo
 
     MyButton    buttons[TITLE_BUTTONS];
 
+    Time   last_Timestamp;                      /* last event timestamp */
+    Time   menu_grab_Timestamp;                 /* pointer grab time used in menus */
+
 /* obsolete :
     int button_style[10];
     Pixmap button_pixmap[10];

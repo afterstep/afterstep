@@ -1,6 +1,6 @@
 /****************************************************************************
- * This module is based on Twm, but has been SIGNIFICANTLY modified 
- * by Rob Nation 
+ * This module is based on Twm, but has been SIGNIFICANTLY modified
+ * by Rob Nation
  * by Bo Yang
  * by Frank Fejes
  * by Eric Tremblay
@@ -199,19 +199,14 @@ resize_window (Window w, ASWindow * tmp_win, int val1, int val2, int val1_unit, 
 	/* loop to resize */
 	while (!finished)
 	{
-		XMaskEvent (dpy, ButtonPressMask | ButtonReleaseMask | KeyPressMask |
-					ButtonMotionMask | PointerMotionMask | ExposureMask, &Event);
-		StashEventTime (&Event);
+        ASMaskEvent (ButtonPressMask | ButtonReleaseMask | KeyPressMask |
+                     ButtonMotionMask | PointerMotionMask | ExposureMask, &Event);
 
-		if (Event.type == MotionNotify)
-			/* discard any extra motion events before a release */
-			while (XCheckMaskEvent (dpy, ButtonMotionMask | ButtonReleaseMask |
-									PointerMotionMask, &Event))
-			{
-				StashEventTime (&Event);
+        if (Event.type == MotionNotify) /* discard any extra motion events before a release */
+            while (ASCheckMaskEvent (ButtonMotionMask|ButtonReleaseMask|PointerMotionMask, &Event))
 				if (Event.type == ButtonRelease)
 					break;
-			}
+
 		done = FALSE;
 		/* Handle a limited number of key press events to allow mouseless
 		 * operation */
@@ -422,7 +417,7 @@ DisplaySize (ASWindow * tmp_win, int width, int height, Bool Init)
  *
  *      The general algorithm, especially the aspect ratio stuff, is
  *      borrowed from uwm's CheckConsistency routine.
- * 
+ *
  ***********************************************************************/
 
 void
@@ -457,9 +452,9 @@ ConstrainSize (ASWindow * tmp_win, int *widthp, int *heightp)
 
 	xinc = tmp_win->hints->width_inc;
 	yinc = tmp_win->hints->height_inc;
-	if( xinc == 0 ) 
+	if( xinc == 0 )
 		xinc = 1 ;
-	if( yinc == 0 ) 
+	if( yinc == 0 )
 		yinc = 1;
 
 	/*
@@ -502,7 +497,7 @@ ConstrainSize (ASWindow * tmp_win, int *widthp, int *heightp)
 	 *
 	 * minAspectX * dheight > minAspectY * dwidth
 	 * maxAspectX * dheight < maxAspectY * dwidth
-	 * 
+	 *
 	 */
 
 	if (get_flags(tmp_win->hints->flags, AS_Aspect))
@@ -543,7 +538,7 @@ ConstrainSize (ASWindow * tmp_win, int *widthp, int *heightp)
 
 /***************
  *
- * Procedures: 
+ * Procedures:
  *
  *	draw_fvwm_outline ()
  *	draw_box_outline ()

@@ -877,9 +877,7 @@ DeferExecution (XEvent * eventp, Window * w, ASWindow ** tmp_win,
 	{
 		done = 0;
 		/* block until there is an event */
-		XMaskEvent (dpy, ButtonPressMask | ButtonReleaseMask | ExposureMask | KeyPressMask | ButtonMotionMask | PointerMotionMask	/* | EnterWindowMask |
-																																	   LeaveWindowMask */ , eventp);
-		StashEventTime (eventp);
+        ASMaskEvent (ButtonPressMask | ButtonReleaseMask | ExposureMask | KeyPressMask | ButtonMotionMask | PointerMotionMask, eventp);
 
 		if (eventp->type == KeyPress)
 			Keyboard_shortcuts (eventp, FinishEvent, 20);
@@ -1103,8 +1101,7 @@ MoveViewport (int newx, int newy, Bool grab)
 	checkPanFrames ();
 
 	/* do this with PanFrames too ??? HEDU */
-	while (XCheckTypedEvent (dpy, MotionNotify, &Event))
-		StashEventTime (&Event);
+    while (ASCheckTypedEvent (MotionNotify, &Event));
 #endif
 	UpdateVisibility ();
 	if (grab)
@@ -1646,16 +1643,12 @@ IsClick (int x, int y, unsigned EndMask, XEvent * d)
 	{
 		sleep_a_little (10000);
 		total += 10;
-		if (XCheckMaskEvent (dpy, EndMask, d))
-		{
-			StashEventTime (d);
+        if (ASCheckMaskEvent (EndMask, d))
 			return True;
-		}
-		if (XCheckMaskEvent (dpy, ButtonMotionMask | PointerMotionMask, d))
+        if (ASCheckMaskEvent (ButtonMotionMask | PointerMotionMask, d))
 		{
 			xcurrent = d->xmotion.x_root;
 			ycurrent = d->xmotion.y_root;
-			StashEventTime (d);
 		}
 	}
 	return False;

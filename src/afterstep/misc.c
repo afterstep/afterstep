@@ -180,7 +180,7 @@ flush_expose (Window w)
 	XEvent        dummy;
 	int           i = 0;
 
-	while (XCheckTypedWindowEvent (dpy, w, Expose, &dummy))
+    while (ASCheckTypedWindowEvent ( w, Expose, &dummy))
 		i++;
 	return i;
 }
@@ -367,60 +367,6 @@ send_clientmessage (Window w, Atom a, Time timestamp)
 	XSendEvent (dpy, w, False, 0L, (XEvent *) & ev);
 }
 
-
-
-
-
-/****************************************************************************
- *
- * Records the time of the last processed event. Used in XSetInputFocus
- *
- ****************************************************************************/
-Time          lastTimestamp = CurrentTime;	   /* until Xlib does this for us */
-
-Bool
-StashEventTime (XEvent * ev)
-{
-	Time          NewTimestamp = CurrentTime;
-
-	switch (ev->type)
-	{
-	 case KeyPress:
-	 case KeyRelease:
-		 NewTimestamp = ev->xkey.time;
-		 break;
-	 case ButtonPress:
-	 case ButtonRelease:
-		 NewTimestamp = ev->xbutton.time;
-		 break;
-	 case MotionNotify:
-		 NewTimestamp = ev->xmotion.time;
-		 break;
-	 case EnterNotify:
-	 case LeaveNotify:
-		 NewTimestamp = ev->xcrossing.time;
-		 break;
-	 case PropertyNotify:
-		 NewTimestamp = ev->xproperty.time;
-		 break;
-	 case SelectionClear:
-		 NewTimestamp = ev->xselectionclear.time;
-		 break;
-	 case SelectionRequest:
-		 NewTimestamp = ev->xselectionrequest.time;
-		 break;
-	 case SelectionNotify:
-		 NewTimestamp = ev->xselection.time;
-		 break;
-	 default:
-		 return False;
-	}
-	if (NewTimestamp > lastTimestamp)
-		lastTimestamp = NewTimestamp;
-	return True;
-}
-
-
 /******************************************************************************
  *
  * Move a window to the top (dir 1) or bottom (dir -1) of the circulate seq.
@@ -447,9 +393,6 @@ SetCirculateSequence (ASWindow * tw, int dir)
 
 	tw->circulate_sequence = best + dir;
 }
-
-
-
 
 /******************************************************************************
  *
@@ -641,3 +584,164 @@ fit_horizontal_text (MyFont font, char *text, int len, int maxwidth)
 
 	return trunct;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

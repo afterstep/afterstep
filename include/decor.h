@@ -182,6 +182,7 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 Bool set_astbar_focused( ASTBarData *tbar, ASCanvas *pc, Bool focused );
 Bool set_astbar_pressed( ASTBarData *tbar, ASCanvas *pc, Bool pressed );
 void update_astbar_transparency( ASTBarData *tbar, ASCanvas *pc );
+int  check_astbar_point( ASTBarData *tbar, int root_x, int root_y );
 
 
 MyFrame *create_myframe();

@@ -1897,14 +1897,12 @@ grab_aswindow_keys( ASWindow *asw )
 void
 hide_focus()
 {
-    extern Time   lastTimestamp;
-
     if (get_flags(Scr.flags, ClickToFocus) && Scr.Ungrabbed != NULL)
         grab_aswindow_buttons( Scr.Ungrabbed, False );
 
     Scr.Focus = NULL;
     Scr.Ungrabbed = NULL;
-    XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, lastTimestamp);
+    XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, Scr.last_Timestamp);
     XSync(dpy, False );
 }
 
@@ -1914,7 +1912,6 @@ hide_focus()
 Bool
 focus_aswindow( ASWindow *asw, Bool circulated )
 {
-    extern Time   lastTimestamp;
     Bool          do_hide_focus = False ;
     Bool          do_nothing = False ;
     Window        w = None;
@@ -1985,9 +1982,9 @@ focus_aswindow( ASWindow *asw, Bool circulated )
         w = asw->w ;
     }
 
-    XSetInputFocus (dpy, w, RevertToParent, lastTimestamp);
+    XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
     if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus))
-        send_clientmessage (asw->w, _XA_WM_TAKE_FOCUS, lastTimestamp);
+        send_clientmessage (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
     Scr.Focus = asw ;
 
     XSync(dpy, False );

@@ -191,20 +191,16 @@ moveLoop (ASWindow * tmp_win, int XOffset, int YOffset, int Width,
 	while (!finished)
 	{
 		/* block until there is an interesting event */
-		XMaskEvent (dpy, ButtonPressMask | ButtonReleaseMask | KeyPressMask |
-					PointerMotionMask | ButtonMotionMask | ExposureMask, &Event);
-		StashEventTime (&Event);
+        ASMaskEvent ( ButtonPressMask | ButtonReleaseMask | KeyPressMask |
+                      PointerMotionMask | ButtonMotionMask | ExposureMask, &Event);
 
 		/* discard any extra motion events before a logical release */
 		if (Event.type == MotionNotify)
 		{
-			while (XCheckMaskEvent (dpy, PointerMotionMask | ButtonMotionMask |
-									ButtonPressMask | ButtonRelease, &Event))
-			{
-				StashEventTime (&Event);
+            while (ASCheckMaskEvent ( PointerMotionMask | ButtonMotionMask |
+                                      ButtonPressMask | ButtonRelease, &Event))
 				if (Event.type == ButtonRelease)
 					break;
-			}
 		}
 		done = FALSE;
 		/* Handle a limited number of key press events to allow mouseless
@@ -342,7 +338,7 @@ DisplayPosition (ASWindow * tmp_win, int x, int y, int Init)
 
 /****************************************************************************
  *
- * For menus, move, and resize operations, we can effect keyboard 
+ * For menus, move, and resize operations, we can effect keyboard
  * shortcuts by warping the pointer.
  *
  ****************************************************************************/
@@ -431,7 +427,7 @@ InteractiveMove (Window * win, ASWindow * tmp_win, int *FinalX, int *FinalY, XEv
 	}
 	DragX = eventp->xbutton.x_root;
 	DragY = eventp->xbutton.y_root;
-	/* If this is left commented out, then the move starts from the button press 
+	/* If this is left commented out, then the move starts from the button press
 	 * location instead of the current location, which seems to be an
 	 * improvement */
 	/*  XQueryPointer(dpy, Scr.Root, &JunkRoot, &JunkChild,
