@@ -57,6 +57,10 @@
 /************************************************************************/
 /* Private Functions : 													*/
 /************************************************************************/
+
+#define StorageID2BlockIdx(id)    	(((((CARD32)(id))>>14)&0x0003FFFF)-1)
+#define StorageID2SlotIdx(id)    	 ((((CARD32)(id))&0x00003FFF)-1)
+
 static inline ASStorageID 
 make_asstorage_id( int block_id, int slot_id )
 {
@@ -66,12 +70,20 @@ make_asstorage_id( int block_id, int slot_id )
 	return id;
 }
 
-CARD8* 
+static CARD8* 
 compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType flags, int *compressed_size )
 {
 	/* TODO: just a stub for now - need to implement compression */
 	if( compressed_size ) 
 		*compressed_size = size ;
+	return data;
+}
+
+static CARD8 *
+decompress_stored_data( ASStorage *storage, CARD8 *data, int size, int uncompressed_size, 
+						ASFlagType flags )
+{
+	/* TODO - just a stub for now */
 	return data;
 }
 
@@ -85,7 +97,7 @@ create_asstorage_block( int useable_size )
 	ASStorageBlock *block = ptr ;
 	memset( block, 0x00, sizeof(ASStorageBlock));
 	block->size = allocate_size - sizeof(ASStorageBlock) ;
-	block->total_free = block->size ;
+	block->total_free = block->size - ASStorageSlot_SIZE ;
 	block->slots = calloc( AS_STORAGE_SLOTS_BATCH, sizeof(ASStorageSlot*));
 	block->slots_count = AS_STORAGE_SLOTS_BATCH ;
 	if( block->slots == NULL ) 
@@ -177,9 +189,10 @@ select_storage_slot( ASStorageBlock *block, int size )
 	int i = block->first_free, last_used = block->last_used ;
 	ASStorageSlot **slots = block->slots ;
 	
-	while( i < last_used )
+	while( i <= last_used )
 	{
 		ASStorageSlot *slot = slots[i] ;
+		LOCAL_DEBUG_OUT( "last_used = %d, slots[%d] = %p", last_used, i, slot );
 		if( slot != 0 )
 		{
 			int size_to_match = size ;
@@ -224,9 +237,7 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 	/* now we need to find where this slot's pointer we should store */		   
 	if( block->unused_count < block->slots_count/10 && block->last_used < block->slots_count-1 )
 	{	
-		new_slot->index = block->last_used ;
-		++(block->last_used) ;
-		--(block->unused_count);
+		new_slot->index = ++(block->last_used) ;
 	}else
 	{
 		register int i, max_i = block->slots_count ;
@@ -261,12 +272,15 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	ASStorageSlot *slot ;
 	CARD8 *dst ;
 	slot = select_storage_slot( block, compressed_size );
-	LOCAL_DEBUG_OUT( "selected block %p for size %d (compressed %d) and flags %lX", slot, size, compressed_size, flags );
+	LOCAL_DEBUG_OUT( "selected slot %p for size %d (compressed %d) and flags %lX", slot, size, compressed_size, flags );
 	if( slot == NULL ) 
 		return 0;
 	if( ASStorageSlot_USABLE_SIZE(slot) > compressed_size ) 
 		if( !split_storage_slot( block, slot, compressed_size ) ) 
 			return 0;
+
+	block->total_free -= ASStorageSlot_FULL_SIZE(slot);
+	
 	dst = &(slot->data[0]);
 	memcpy( dst, data, compressed_size );
 	slot->flags = (flags | ASStorage_Used) ;
@@ -284,6 +298,30 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	}
 		  
 	return slot->index+1 ;
+}
+
+
+static ASStorageSlot *
+find_storage_slot( ASStorage *storage, ASStorageID id )
+{	
+	if( id != 0 ) 
+	{
+		int block_idx = StorageID2BlockIdx(id);
+		if( block_idx >= 0 && block_idx < storage->blocks_count )  
+		{
+			ASStorageBlock *block ;
+			if( (block = storage->blocks[block_idx]) != NULL ) 
+			{
+				int slot_idx = StorageID2SlotIdx(id);
+				if( slot_idx >= 0 && slot_idx < block->slots_count ) 
+				{
+					if( block->slots[slot_idx] && block->slots[slot_idx]->flags != 0 )
+						return block->slots[slot_idx];
+				}
+			}	
+		}
+	}
+	return NULL ;
 }
 
 
@@ -333,17 +371,47 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags)
 	{
 		slot_id = store_data_in_block(  storage->blocks[block_id-1], 
 										buffer, size, compressed_size, flags );
-	
-		id = make_asstorage_id( block_id, slot_id );
+
+		if( slot_id > 0 )	
+			id = make_asstorage_id( block_id, slot_id );
 	}
 	return id ;		
 }
 
 
+
 int  
 fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int buf_size)
 {
-	/* TODO */
+	ASStorageSlot *slot = find_storage_slot( storage, id );
+	if( slot )
+	{
+		int uncomp_size = slot->uncompressed_size ;
+		if( buffer && buf_size > 0 ) 
+		{
+			int bytes_in = 0;
+			CARD8 *tmp = decompress_stored_data( storage, &(slot->data[0]), slot->size,
+													uncomp_size, slot->flags );
+			while( offset > uncomp_size ) offset -= uncomp_size ; 
+			while( offset < 0 ) offset += uncomp_size ; 
+			if( offset > 0 ) 
+			{
+				bytes_in = uncomp_size-offset ; 
+				if( bytes_in  < buf_size ) 
+					bytes_in = buf_size ;
+				memcpy( buffer, tmp+offset, bytes_in ); 															
+			}
+			while( bytes_in  < buf_size ) 
+			{
+				int to_copy = buf_size - bytes_in ; 
+				if( to_copy > uncomp_size ) 
+					to_copy = uncomp_size ;
+				memcpy( buffer+bytes_in, tmp, to_copy ); 															
+				bytes_in += to_copy;
+			}
+		}
+		return uncomp_size ;
+	}
 	return 0 ;	
 }
 
@@ -435,6 +503,7 @@ test_asstorage()
 		}		   
 	}	 
 
+	fgetc(stdin);
 	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
 	{
 		int size ;
