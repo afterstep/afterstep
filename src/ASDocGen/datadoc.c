@@ -436,8 +436,9 @@ gen_data_doc( const char *source_dir, const char *dest_dir,
 			free( dest_subdir );
 			free( subdir_display_name );
 		}
+		free(list[i]);
 	}
-	   
+	free( list );   
 	printf( "\nCataloguing %s  ", source_dir );
 	fflush( stdout );
 

@@ -662,3 +662,11 @@ ignore_dots (const char *d_name)
 	return (d_name[0] != '.');
 }
 
+int
+no_dots_except_include (const char *d_name)
+{
+	return !(d_name[0] == '.' && mystrcasecmp (d_name, ".include"));
+}
+
+
+

@@ -85,6 +85,37 @@ void input_context_destroy(ASHashableValue value, void *data);
 #define POPUP_TERM 		{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Popup",5                   , TT_QUOTED_TEXT, FEEL_Popup_ID             , &PopupFuncSyntax}
 #define FUNCTION_TERM 	{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Function",8                , TT_QUOTED_TEXT, FEEL_Function_ID          , &PopupFuncSyntax}
 
+TermDef includeTerms[] =
+{
+  /* focus : */
+  {TF_NO_MYNAME_PREPENDING, "include",12            , TT_FUNCTION   , INCLUDE_include_ID          	, NULL},
+  {TF_NO_MYNAME_PREPENDING, "keepname", 12          , TT_FLAG       , INCLUDE_keepname_ID          	, NULL},
+  {TF_NO_MYNAME_PREPENDING, "extension", 12         , TT_TEXT       , INCLUDE_extension_ID          , NULL},
+  {TF_NO_MYNAME_PREPENDING, "miniextension", 12     , TT_TEXT       , INCLUDE_miniextension_ID      , NULL},
+  {TF_NO_MYNAME_PREPENDING, "minipixmap", 12        , TT_FILENAME   , INCLUDE_minipixmap_ID         , NULL},
+  {TF_NO_MYNAME_PREPENDING, "command", 12           , TT_FLAG  		, INCLUDE_command_ID          	, &FuncSyntax},
+  {TF_NO_MYNAME_PREPENDING, "order", 12           	, TT_INTEGER    , INCLUDE_order_ID       		, NULL},
+  {TF_NO_MYNAME_PREPENDING, "RecentSubmenuItems", 12, TT_INTEGER    , INCLUDE_RecentSubmenuItems_ID , NULL},
+  {TF_NO_MYNAME_PREPENDING, "name", 12           	, TT_TEXT       , INCLUDE_name_ID          		, NULL},
+  {0, NULL, 0, 0, 0}
+};
+
+SyntaxDef includeSyntax =
+{
+  '\n',
+  '\0',
+  includeTerms,
+  0,				/* use default hash size */
+  '\t',
+  "",
+  "\t",
+  "include",
+  "include",
+  "include file for Popups",
+  NULL,
+  0
+};
+
 
 TermDef FeelTerms[] =
 {

@@ -47,6 +47,7 @@ extern struct SyntaxDef      DatabaseSyntax;
 extern struct SyntaxDef      FeelSyntax;
 extern struct SyntaxDef 	 FunctionSyntax;
 extern struct SyntaxDef 	 PopupSyntax;
+extern struct SyntaxDef 	 includeSyntax;
 
 extern struct SyntaxDef      AutoExecSyntax;
 extern struct SyntaxDef      LookSyntax;
@@ -114,9 +115,10 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_BaseFile_ID				(CONFIG_FILE_IDS+8)
 #define CONFIG_ColorSchemeFile_ID		(CONFIG_FILE_IDS+9)
 #define CONFIG_DatabaseFile_ID			(CONFIG_FILE_IDS+10)
+#define CONFIG_IncludeFile_ID			(CONFIG_FILE_IDS+11)
 
 
-#define CONFIG_FILES_IDS			    (CONFIG_FILE_IDS+11)
+#define CONFIG_FILES_IDS			    (CONFIG_FILE_IDS+12)
 #define CONFIG_FunctionsFiles_ID		(CONFIG_FILES_IDS)
 #define CONFIG_PopupsFiles_ID			(CONFIG_FILES_IDS+1)
 #define CONFIG_LookFiles_ID				(CONFIG_FILES_IDS+2)
@@ -1437,7 +1439,19 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 /*                        FEEL parsing definitions                         */
 /***************************************************************************/
 
-#define FEEL_ID_START                 (LOOK_ID_END+1)
+#define INCLUDE_ID_START              (LOOK_ID_END+1)
+#define INCLUDE_include_ID            (INCLUDE_ID_START)	
+#define INCLUDE_keepname_ID           (INCLUDE_ID_START+1)	
+#define INCLUDE_extension_ID          (INCLUDE_ID_START+2) 
+#define INCLUDE_miniextension_ID      (INCLUDE_ID_START+3)
+#define INCLUDE_minipixmap_ID         (INCLUDE_ID_START+4)
+#define INCLUDE_command_ID            (INCLUDE_ID_START+5)	
+#define INCLUDE_order_ID       		  (INCLUDE_ID_START+6)
+#define INCLUDE_RecentSubmenuItems_ID (INCLUDE_ID_START+7)
+#define INCLUDE_name_ID          	  (INCLUDE_ID_START+8)	
+#define INCLUDE_ID_END                (INCLUDE_ID_START+9)     
+
+#define FEEL_ID_START                 (INCLUDE_ID_END+1)
 
 #define FEEL_ClickToFocus_ID          (FEEL_ID_START)
 #define FEEL_SloppyFocus_ID           (FEEL_ID_START+1)

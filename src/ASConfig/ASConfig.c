@@ -170,6 +170,7 @@ typedef struct ASProperty {
 
 #define ASProp_Indexed				(0x01<<0)	
 #define ASProp_Merged				(0x01<<1)	  
+#define ASProp_Disabled				(0x01<<2)	  
 	ASFlagType flags ;
 	
 	ASStorageID id ;                 /* same a options IDs from autoconf.h */
@@ -577,6 +578,7 @@ void register_special_keywords()
 	REG_SPEC_KEYWORD(text);
 	REG_SPEC_KEYWORD(value);
 	REG_SPEC_KEYWORD(unit);
+	REG_SPEC_KEYWORD(IncludeFile);
 }	 
 /**************************************************************************/
 ASConfigFile *
@@ -787,7 +789,7 @@ void destroy_property( void *data )
 		free( prop );
 	}
 }
-
+/*************************************************************************/
 ASProperty *
 find_property_by_id( ASBiDirList *list, int id )	 
 {
@@ -800,6 +802,54 @@ find_property_by_id( ASBiDirList *list, int id )
 		LIST_GOTO_NEXT(curr);
 	}
 	return NULL;
+}
+
+ASProperty *
+find_property_by_id_name( ASBiDirList *list, int id, const char *name )	 
+{
+	ASBiDirElem *curr = LIST_START(list); 		
+	while( curr ) 
+	{
+		ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+		if( prop->id == id ) 
+			if( prop->name && name && strcmp(prop->name , name ) == 0 )
+				return prop;
+		LIST_GOTO_NEXT(curr);
+	}
+	return NULL;
+}
+/*************************************************************************/
+void
+remove_property_by_id( ASBiDirList *list, int id )	 
+{
+	ASBiDirElem *curr = LIST_START(list); 		
+	while( curr ) 
+	{
+		ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+		if( prop->id == id ) 
+		{	
+			destroy_bidirelem( list, curr );
+			return;
+		}
+		LIST_GOTO_NEXT(curr);
+	}
+}
+
+void
+remove_property_by_id_name( ASBiDirList *list, int id, const char *name )	 
+{
+	ASBiDirElem *curr = LIST_START(list); 		
+	while( curr ) 
+	{
+		ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+		if( prop->id == id ) 
+			if( prop->name && name && strcmp(prop->name , name ) == 0 )
+			{
+				destroy_bidirelem( list, curr );
+				return ;
+			}
+		LIST_GOTO_NEXT(curr);
+	}
 }
 
 
@@ -878,25 +928,31 @@ special_free_storage2property( FreeStorageElem **pcurr )
 					prop = create_property( curr->term->id, ASProp_Phony, pfunc->name, True );
 					if( pfunc->hotkey != '\0' )
 						add_char_property( CONFIG_hotkey_ID, pfunc->hotkey, prop->sub_props );				
-					if( pfunc->text ) 
+					if( pfunc->text )
 					{	
 						add_string_property( CONFIG_text_ID, pfunc->text, prop->sub_props );				   
 					
-						tmp = add_integer_property( CONFIG_value_ID, pfunc->func_val[0], prop->sub_props );
-						set_flags( tmp->flags, ASProp_Indexed );
-						if( pfunc->unit[0] != '\0' )
-						{	
-							tmp = add_char_property( CONFIG_unit_ID, pfunc->unit[0], prop->sub_props );				
+						if((pfunc->func < F_POPUP && pfunc->func > F_REFRESH) ||
+						  	pfunc->func == F_RESIZE || pfunc->func == F_MOVE ||
+						  	pfunc->func == F_SETLAYER || pfunc->func == F_REFRESH ||
+						  	pfunc->func == F_MAXIMIZE || pfunc->func == F_CHANGE_WINDOWS_DESK )
+						{
+							tmp = add_integer_property( CONFIG_value_ID, pfunc->func_val[0], prop->sub_props );
 							set_flags( tmp->flags, ASProp_Indexed );
-						}
-						tmp = add_integer_property( CONFIG_value_ID, pfunc->func_val[1], prop->sub_props );
-						set_flags( tmp->flags, ASProp_Indexed );
-						tmp->index = 1 ;
-						if( pfunc->unit[1] != '\0' )
-						{	
-							tmp = add_char_property( CONFIG_unit_ID, pfunc->unit[1], prop->sub_props );				
+							if( pfunc->unit[0] != '\0' )
+							{	
+								tmp = add_char_property( CONFIG_unit_ID, pfunc->unit[0], prop->sub_props );				
+								set_flags( tmp->flags, ASProp_Indexed );
+							}
+							tmp = add_integer_property( CONFIG_value_ID, pfunc->func_val[1], prop->sub_props );
 							set_flags( tmp->flags, ASProp_Indexed );
 							tmp->index = 1 ;
+							if( pfunc->unit[1] != '\0' )
+							{	
+								tmp = add_char_property( CONFIG_unit_ID, pfunc->unit[1], prop->sub_props );				
+								set_flags( tmp->flags, ASProp_Indexed );
+								tmp->index = 1 ;
+							}
 						}
 					}
 					if( curr->next != NULL ) 
@@ -927,12 +983,12 @@ special_free_storage2property( FreeStorageElem **pcurr )
 	return prop;
 }
 
-void 
+ASProperty* 
 free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 {
 	FreeStorageElem *curr = fs ;
 	ConfigItem    item;
-	ASProperty *prop ;
+	ASProperty *prop = NULL;
 	
 	LOCAL_DEBUG_CALLER_OUT("(%p,%p)", fs, pl );	  
 	item.memory = NULL;
@@ -1002,7 +1058,8 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 
 		if( prop ) 
 			append_bidirelem( pl->sub_props, prop );			   
-	}		   
+	}		
+	return prop;    
 }
 
 Bool
@@ -1055,11 +1112,13 @@ merge_property_list( ASProperty *src, ASProperty *dst )
 	iterate_asbidirlist( src->sub_props, merge_prop_into_list, dst->sub_props, NULL, False );		  	
 }
 /*************************************************************************/
+ASProperty* asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *owner_prop, int func );
+void melt_menu_props( ASProperty *file, ASProperty *opts );
+
 ASProperty* 
 load_current_config_fname( ASProperty* config, int id, const char *filename, const char *myname, 
 					 SyntaxDef *syntax, int files_id, int file_id, int options_id )
 {
-	const char *filename = get_config_file_name( file_id ); 
 	ASConfigFile *cf = NULL ;
 	ASProperty *files = NULL ;
 	ASProperty *file ;
@@ -1070,8 +1129,11 @@ load_current_config_fname( ASProperty* config, int id, const char *filename, con
 
 	if( filename )
 	{
-		LOCAL_DEBUG_OUT("loading file \"%s\"", filename );
-		cf = load_config_file(NULL, filename, myname?myname:"afterstep", syntax );
+		if( CheckDir(filename) )
+		{	
+			LOCAL_DEBUG_OUT("loading file \"%s\"", filename );
+			cf = load_config_file(NULL, filename, myname?myname:"afterstep", syntax );
+		}
 	}
 	
 
@@ -1096,10 +1158,7 @@ load_current_config_fname( ASProperty* config, int id, const char *filename, con
 	if( cf ) 
 		free_storage2property_list( cf->free_storage, file );
 	else if( file_id == CONFIG_StartDir_ID ) 
-	{
-		
-		
-	}	 
+		asmenu_dir2property( filename, "", file, F_NOP );	
 
 	if( options_id != 0 )
 	{	
@@ -1112,7 +1171,10 @@ load_current_config_fname( ASProperty* config, int id, const char *filename, con
 	}else
 		opts = config ;
 
-	merge_property_list( file, opts );
+	if( file_id == CONFIG_StartDir_ID )
+		melt_menu_props( file, opts );
+	else
+		merge_property_list( file, opts );
 	
 	return config;
 }	 
@@ -1125,7 +1187,117 @@ load_current_config( ASProperty* config, int id, const char *myname,
 	return load_current_config_fname( config, id, filename, myname, syntax, files_id, file_id, options_id );
 
 }
+/*************************************************************************/
 
+ASProperty* 
+asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *owner_prop, int func )
+{
+	struct direntry  **list;
+	int list_len, i ;
+	ASProperty *popup, *include_file = NULL ;
+	const char *ptr = strrchr(dirname,'/');
+	ASConfigFile *include_cf = NULL ;
+	char *new_path ;		
+	ASProperty *item = NULL ;
+	
+	if( ptr == NULL ) 
+		ptr = dirname ;
+	else
+		++ptr ;
+	while( isdigit(*ptr) ) ++ptr;
+	if( *ptr == '_' )
+		++ptr ;
+	
+	new_path = make_file_name( menu_path, ptr );
+	popup = create_property( F_POPUP, ASProp_Data, new_path, True );
+	popup->contents.data = encode_string( dirname );
+	append_bidirelem( owner_prop->sub_props, popup );			   
+
+	list_len = my_scandir ((char*)dirname, &list, no_dots_except_include, NULL);
+	for (i = 0; i < list_len; i++)
+		if( list[i]->d_name[0] == '.' ) 
+		{
+			include_cf = load_config_file(dirname, list[i]->d_name, "afterstep", &includeSyntax );
+			include_file = create_property( CONFIG_IncludeFile_ID, ASProp_File, NULL, True );
+			append_bidirelem( popup->sub_props, include_file );			   
+			include_file->contents.config_file = include_cf ;
+			free_storage2property_list( include_cf->free_storage, include_file );
+			break;	
+		}
+	for (i = 0; i < list_len; i++)
+	{	
+		char *sub_path = make_file_name( dirname, list[i]->d_name );
+		if ( S_ISDIR (list[i]->d_mode) )
+		{	
+			ASProperty *sub_menu = asmenu_dir2property( sub_path, new_path, owner_prop, func ) ;
+			item = create_property( F_POPUP, ASProp_Data, sub_menu->name, True );
+			item->contents.data = encode_string( sub_path );
+			append_bidirelem( popup->sub_props, item );			   
+		}else if( list[i]->d_name[0] != '.' ) 
+		{
+			if( func != F_NOP ) 
+			{
+				item = create_property( func, ASProp_Data, list[i]->d_name, True );
+				item->contents.data = encode_string( sub_path );
+				append_bidirelem( popup->sub_props, item );
+				add_string_property( CONFIG_text_ID, sub_path, popup->sub_props );				   
+			}else
+			{	
+				ASConfigFile *cf = NULL ;
+			
+				cf = load_config_file(dirname, list[i]->d_name, "afterstep", &FuncSyntax );
+				item = free_storage2property_list( cf->free_storage, popup );				
+				if( item )
+				{	
+					item->type = ASProp_File ;
+					item->contents.config_file = cf ;
+					if( item->name == NULL )
+						item->name = mystrdup( list[i]->d_name );
+				}else
+					destroy_config_file( cf ); 
+			}
+		}
+		free( sub_path );
+		free (list[i]);
+	}
+	free( list );
+	free( new_path );
+	return popup;
+}
+
+Bool
+melt_menu_props_into_list(void *data, void *aux_data)
+{
+	ASProperty *popup = (ASProperty*)data;
+	ASBiDirList *list = (ASBiDirList*)aux_data;
+	ASProperty *incl ;
+	ASProperty *dst_popup ;
+	ASProperty *tmp ;
+
+	incl = find_property_by_id( popup->sub_props, CONFIG_IncludeFile_ID );	 
+	dst_popup = find_property_by_id_name( list, popup->id, popup->name );
+	if( dst_popup == NULL ) 
+	{	
+		dst_popup = dup_property( popup ); 
+		append_bidirelem( list, dst_popup );
+	}else
+ 		merge_property_list( popup, dst_popup );		
+	
+	if( incl )
+		remove_property_by_id( dst_popup->sub_props, CONFIG_IncludeFile_ID );	 
+		
+
+	return True;
+}
+
+void 
+melt_menu_props( ASProperty *src, ASProperty *dst )
+{
+	if( src->sub_props == NULL && dst->sub_props == NULL ) 
+		return;
+	LOCAL_DEBUG_CALLER_OUT("(%p,%p)", src, dst );	
+	iterate_asbidirlist( src->sub_props, melt_menu_props_into_list, dst->sub_props, NULL, False );		  	
+}
 
 /*************************************************************************/
 void load_global_configs();
@@ -1188,9 +1360,9 @@ print_hierarchy( ASProperty *root, int level )
 		fputc( '\t', stderr);
 	fprintf( stderr, "%s(%ld) ", keyword_id2keyword(root->id), root->id );
 	if( get_flags( root->flags, ASProp_Indexed ) ) 
-	   	fprintf( stderr, "[%d]", root->index );
+	   	fprintf( stderr, "[%d] ", root->index );
 	else if( root->name )
-		fprintf( stderr, "\"%s\"", root->name );
+		fprintf( stderr, "\"%s\" ", root->name );
 	
 	if( root->type == ASProp_Integer ) 
 		fprintf( stderr, "= %d;", root->contents.integer );	
@@ -1210,9 +1382,9 @@ print_hierarchy( ASProperty *root, int level )
 	}else if( root->type == ASProp_File )    
 	{
 		if( root->contents.config_file )
-			fprintf( stderr, " loaded from [%s]", root->contents.config_file->fullname );
+			fprintf( stderr, "loaded from [%s]", root->contents.config_file->fullname );
 		else
-			fprintf( stderr, " not loaded" );
+			fprintf( stderr, "not loaded" );
 	}
 
 	fputc( '\n', stderr);
