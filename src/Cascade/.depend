@@ -1,7 +1,7 @@
 ./Cascade.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h

@@ -1,76 +1,76 @@
+./types.h: \
+		../../configure.h \
+		../../include/module.h \
+		../../include/aftersteplib.h
+
 ./y.tab.h:
 
-./types.h: \
-        ../../configure.h \
-        ../../include/module.h \
-        ../../include/aftersteplib.h
-
 ./Widgets/Tools.h: \
-        ../types.h
+		../types.h
+
+./Instructions.o: \
+		types.h
+
+./Script.o: \
+		../../configure.h \
+		types.h
 
 ./lex.o: \
-        y.tab.h \
-        types.h
-
-./y.o: \
-        types.h
+		y.tab.h \
+		types.h
 
 ./libyywrap.o:
 
-./Script.o: \
-        ../../configure.h \
-        types.h
-
-./Instructions.o: \
-        types.h
-
-./Widgets/Widget.o: \
-        Tools.h
-
-./Widgets/TextField.o: \
-        Tools.h
-
-./Widgets/PushButton.o: \
-        Tools.h
-
-./Widgets/RadioButton.o: \
-        Tools.h
-
-./Widgets/ItemDraw.o: \
-        Tools.h
+./y.o: \
+		types.h
 
 ./Widgets/CheckBox.o: \
-        Tools.h
-
-./Widgets/HScrollBar.o: \
-        Tools.h
-
-./Widgets/Tools.o: \
-        Tools.h
-
-./Widgets/VScrollBar.o: \
-        Tools.h
-
-./Widgets/PopupMenu.o: \
-        Tools.h
-
-./Widgets/Rectangle.o: \
-        Tools.h
-
-./Widgets/MiniScroll.o: \
-        Tools.h
-
-./Widgets/Swallow.o: \
-        Tools.h
-
-./Widgets/List.o: \
-        Tools.h
+		Tools.h
 
 ./Widgets/HDipstick.o: \
-        Tools.h
+		Tools.h
 
-./Widgets/VDipstick.o: \
-        Tools.h
+./Widgets/HScrollBar.o: \
+		Tools.h
+
+./Widgets/ItemDraw.o: \
+		Tools.h
+
+./Widgets/List.o: \
+		Tools.h
 
 ./Widgets/Menu.o: \
-        Tools.h
+		Tools.h
+
+./Widgets/MiniScroll.o: \
+		Tools.h
+
+./Widgets/PopupMenu.o: \
+		Tools.h
+
+./Widgets/PushButton.o: \
+		Tools.h
+
+./Widgets/RadioButton.o: \
+		Tools.h
+
+./Widgets/Rectangle.o: \
+		Tools.h
+
+./Widgets/Swallow.o: \
+		Tools.h
+
+./Widgets/TextField.o: \
+		Tools.h
+
+./Widgets/Tools.o: \
+		Tools.h
+
+./Widgets/VDipstick.o: \
+		Tools.h
+
+./Widgets/VScrollBar.o: \
+		Tools.h
+
+./Widgets/Widget.o: \
+		Tools.h

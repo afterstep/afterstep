@@ -335,7 +335,6 @@ if test "x$enable_staticlibs" = "xyes"; then
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.a"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.a"
    AFTERSTEP_LIB="../../lib/libafterstep.a"
-   ASIMAGE_LIB="../../asimagelib/libasimage.a"
    AFTERCONF_LIB="../Config/libasConfig.a"
    WIDGETS_LIB="../Script/Widgets/libWidgets.a"
    LIBPROG='$(LIB_STATIC)'
@@ -344,7 +343,6 @@ else
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.so"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
    AFTERSTEP_LIB="../../lib/libafterstep.so"
-   ASIMAGE_LIB="../../asimagelib/libasimage.so"
    AFTERCONF_LIB="../Config/libasConfig.so"
    WIDGETS_LIB="../Script/Widgets/libWidgets.so"
    LIBPROG='$(LIB_SHARED)'
@@ -509,7 +507,6 @@ AC_SUBST(AFTERIMAGE_LIB)
 AC_SUBST(AFTERIMAGE_LIBS)
 AC_SUBST(AFTERSTEP_LIB)
 AC_SUBST(AFTERCONF_LIB)
-AC_SUBST(ASIMAGE_LIB)
 AC_SUBST(WIDGETS_LIB)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)
@@ -553,13 +550,11 @@ MAKEFILECOMMONLIB=./autoconf/Makefile.common.lib
 LIBAFTERBASEFILES=./libAfterBase/.shared
 LIBAFTERIMAGEFILES=./libAfterImage/.shared
 LIBAFTERSTEPFILES=./lib/.shared
-LIBASIMAGEFILES=./asimagelib/.shared
 LIBAFTERCONFFILES=./src/Config/.shared
 
 AC_SUBST_FILE(LIBAFTERBASEFILES)
 AC_SUBST_FILE(LIBAFTERIMAGEFILES)
 AC_SUBST_FILE(LIBAFTERSTEPFILES)
-AC_SUBST_FILE(LIBASIMAGEFILES)
 AC_SUBST_FILE(LIBAFTERCONFFILES)
 
 AC_SUBST_FILE(MAKEFILEDEFINES)
@@ -577,7 +572,6 @@ doc/Makefile \
 doc/afterstepdoc \
 \
 lib/Makefile \
-asimagelib/Makefile \
 src/Config/Makefile \
 \
 src/afterstep/Makefile \

@@ -28,6 +28,7 @@ LIBAFTERIMAGE_INCS = \
 		$(LIBAFTERIMAGE_PATH)/char2uni.h \
 		$(LIBAFTERIMAGE_PATH)/export.h \
 		$(LIBAFTERIMAGE_PATH)/import.h \
+		$(LIBAFTERIMAGE_PATH)/pixmap.h \
 		$(LIBAFTERIMAGE_PATH)/transform.h \
 		$(LIBAFTERIMAGE_PATH)/ungif.h \
 		$(LIBAFTERIMAGE_PATH)/xcf.h \

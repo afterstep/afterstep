@@ -1,273 +1,276 @@
-./menus.h: \
-        functions.h
-
-./globals.h:
-
 ./dirtree.h: \
-        functions.h
+		functions.h
 
 ./functions.h:
 
+./globals.h:
+
+./menus.h: \
+		functions.h
+
 ./add_window.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h \
-        ../../include/parser.h \
-        menus.h
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		../../include/parser.h \
+		menus.h
 
 ./afterstep.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h \
-        ../../include/loadimg.h \
-        globals.h \
-        menus.h
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		../../include/loadimg.h \
+		../../libAfterBase/selfdiag.h \
+		../../libAfterImage/afterimage.h \
+		globals.h \
+		menus.h
 
 ./borders.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h \
-        ../../include/ascolor.h \
-        ../../include/stepgfx.h \
-        ../../include/XImage_utils.h \
-        ../../include/pixmap.h
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		../../include/ascolor.h \
+		../../include/stepgfx.h \
+		../../include/pixmap.h
 
 ./clientwin.o: \
-        ../../configure.h
+		../../configure.h
 
 ./colormaps.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h
 
 ./configure.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/ascolor.h \
-        ../../include/stepgfx.h \
-        ../../include/loadimg.h \
-        ../../include/mystyle_property.h \
-        dirtree.h \
-        menus.h \
-        globals.h
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/ascolor.h \
+		../../include/stepgfx.h \
+		../../include/loadimg.h \
+		../../libAfterImage/afterimage.h \
+		../../include/mystyle_property.h \
+		dirtree.h \
+		menus.h \
+		globals.h
 
 ./decorations.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/ascolor.h \
-        ../../include/stepgfx.h \
-        menus.h
-
-./events.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/module.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/loadimg.h \
-        menus.h
-
-./functions.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h \
-        globals.h \
-        menus.h
-
-./icons.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h \
-        ../../include/loadimg.h \
-        menus.h
-
-./misc.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h \
-        ../../include/loadimg.h \
-        menus.h
-
-./menus.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/ascolor.h \
-        ../../include/stepgfx.h \
-        ../../include/XImage_utils.h \
-        ../../include/pixmap.h \
-        menus.h
-
-./module.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h \
-        globals.h \
-        menus.h
-
-./style.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/style.h \
-        ../../include/parse.h \
-        ../../include/afterstep.h \
-        ../../include/misc.h \
-        ../../include/screen.h
-
-./move.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h
-
-./pager.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h \
-        menus.h
-
-./placement.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h
-
-./resize.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        functions.h
-
-./windows.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        menus.h
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/ascolor.h \
+		../../include/stepgfx.h \
+		menus.h
 
 ./dirtree.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/parse.h \
-        ../../include/parser.h \
-        ../../include/myscandir.h \
-        dirtree.h
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/parse.h \
+		../../include/parser.h \
+		../../include/myscandir.h \
+		dirtree.h
 
-./myscandir.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/myscandir.h
-
-./gnome.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h
-
-./menuitem.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/parser.h \
-        ../../include/loadimg.h \
-        ../../include/module.h \
-        dirtree.h \
-        menus.h \
-        globals.h
+./events.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/module.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/loadimg.h \
+		menus.h
 
 ./frame.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/afterstep.h \
-        ../../include/parse.h \
-        ../../include/misc.h \
-        ../../include/style.h \
-        ../../include/screen.h \
-        ../../include/module.h \
-        ../../include/ascolor.h \
-        ../../include/stepgfx.h \
-        ../../include/loadimg.h
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		../../include/ascolor.h \
+		../../include/stepgfx.h \
+		../../include/loadimg.h
+
+./functions.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		globals.h \
+		menus.h
+
+./gnome.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h
+
+./icons.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		../../include/loadimg.h \
+		menus.h
+
+./menuitem.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/parser.h \
+		../../include/loadimg.h \
+		../../include/module.h \
+		dirtree.h \
+		menus.h \
+		globals.h
+
+./menus.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/ascolor.h \
+		../../include/stepgfx.h \
+		../../include/pixmap.h \
+		menus.h
+
+./misc.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		../../include/loadimg.h \
+		menus.h
+
+./module.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		globals.h \
+		menus.h
+
+./move.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h
+
+./myscandir.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/myscandir.h
+
+./pager.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		menus.h
+
+./placement.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h
+
+./resize.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		functions.h
+
+./style.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/style.h \
+		../../include/parse.h \
+		../../include/afterstep.h \
+		../../include/misc.h \
+		../../include/screen.h
+
+./windows.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		menus.h
+
+./titlechange.o:

@@ -5265,7 +5265,6 @@ if test "x$enable_staticlibs" = "xyes"; then
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.a"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.a"
    AFTERSTEP_LIB="../../lib/libafterstep.a"
-   ASIMAGE_LIB="../../asimagelib/libasimage.a"
    AFTERCONF_LIB="../Config/libasConfig.a"
    WIDGETS_LIB="../Script/Widgets/libWidgets.a"
    LIBPROG='$(LIB_STATIC)'
@@ -5274,14 +5273,13 @@ else
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.so"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
    AFTERSTEP_LIB="../../lib/libafterstep.so"
-   ASIMAGE_LIB="../../asimagelib/libasimage.so"
    AFTERCONF_LIB="../Config/libasConfig.so"
    WIDGETS_LIB="../Script/Widgets/libWidgets.so"
    LIBPROG='$(LIB_SHARED)'
    LIBINSTALL="install.dyn"
 fi
 
-echo "$as_me:5284: checking libAfterBase library" >&5
+echo "$as_me:5282: checking libAfterBase library" >&5
 echo $ECHO_N "checking libAfterBase library... $ECHO_C" >&6
 AFTERBASE_LIBS=
 if test "$afterbase_lib" = NO; then
@@ -5291,10 +5289,10 @@ else
 	 AFTERBASE_LIB="-L$afterbase_lib -lAfterBase"
   fi
 fi
-echo "$as_me:5294: result: $AFTERBASE_LIBS" >&5
+echo "$as_me:5292: result: $AFTERBASE_LIBS" >&5
 echo "${ECHO_T}$AFTERBASE_LIBS" >&6
 
-echo "$as_me:5297: checking libAfterImage external libraries" >&5
+echo "$as_me:5295: checking libAfterImage external libraries" >&5
 echo $ECHO_N "checking libAfterImage external libraries... $ECHO_C" >&6
 AFTERIMAGE_LIBS=
 if test "$afterimage_lib" = NO; then
@@ -5308,7 +5306,7 @@ else
 	 AFTERIMAGE_LIBS=`$afterimage_lib/afterimage-libs --external-only`
   fi
 fi
-echo "$as_me:5311: result: $AFTERIMAGE_LIBS" >&5
+echo "$as_me:5309: result: $AFTERIMAGE_LIBS" >&5
 echo "${ECHO_T}$AFTERIMAGE_LIBS" >&6
 
 if test "x$LIBAFTERIMAGE_CFLAGS" = "x$LIBAFTERBASE_CFLAGS"; then
@@ -5322,7 +5320,7 @@ ASCP_INCLUDES=
 ASCP=
 
 if test "x$enable_ascp" = "xyes"; then
-    echo "$as_me:5325: checking libraries required by ascp" >&5
+    echo "$as_me:5323: checking libraries required by ascp" >&5
 echo $ECHO_N "checking libraries required by ascp... $ECHO_C" >&6
     if gtk-config --libs >/dev/null  ;then
 	ASCP=libAfterConf/ascp ;
@@ -5339,18 +5337,18 @@ echo $ECHO_N "checking libraries required by ascp... $ECHO_C" >&6
 			ASCP_LIBS="$ASCP_LIBS $l" ;
 	    fi;
 	done;
-	echo "$as_me:5342: result: $ASCP_LIBS" >&5
+	echo "$as_me:5340: result: $ASCP_LIBS" >&5
 echo "${ECHO_T}$ASCP_LIBS" >&6
     else
 	enable_ascp=no ;
-	echo "$as_me:5346: result: none found" >&5
+	echo "$as_me:5344: result: none found" >&5
 echo "${ECHO_T}none found" >&6
 	echo "You have to install GTK libaries in order to be able to compile ascp."
     fi;
 fi;
 
 if test "x$enable_ascp" = "xyes"; then
-    echo "$as_me:5353: checking headers required by ascp" >&5
+    echo "$as_me:5351: checking headers required by ascp" >&5
 echo $ECHO_N "checking headers required by ascp... $ECHO_C" >&6
     if gtk-config --cflags >/dev/null  ;then
 	ASCP=libAfterConf/ascp ;
@@ -5369,18 +5367,18 @@ echo $ECHO_N "checking headers required by ascp... $ECHO_C" >&6
 		ASCP_INCLUDES="$ASCP_INCLUDES $l" ;
 	    fi;
 	done;
-	echo "$as_me:5372: result: $ASCP_INCLUDES" >&5
+	echo "$as_me:5370: result: $ASCP_INCLUDES" >&5
 echo "${ECHO_T}$ASCP_INCLUDES" >&6
     else
 	enable_ascp=no ;
-	echo "$as_me:5376: result: none found" >&5
+	echo "$as_me:5374: result: none found" >&5
 echo "${ECHO_T}none found" >&6
 	echo "You have to install GTK in order to be able to compile ascp."
     fi;
 fi;
 
 if test "x$with_libefence" = "xyes"; then
-  echo "$as_me:5383: checking for malloc in -lefence" >&5
+  echo "$as_me:5381: checking for malloc in -lefence" >&5
 echo $ECHO_N "checking for malloc in -lefence... $ECHO_C" >&6
 if test "${ac_cv_lib_efence_malloc+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -5388,7 +5386,7 @@ else
   ac_check_lib_save_LIBS=$LIBS
 LIBS="-lefence  $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
-#line 5391 "configure"
+#line 5389 "configure"
 #include "confdefs.h"
 
 /* Override any gcc2 internal prototype to avoid an error.  */
@@ -5407,16 +5405,16 @@ malloc ();
 }
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:5410: \"$ac_link\"") >&5
+if { (eval echo "$as_me:5408: \"$ac_link\"") >&5
   (eval $ac_link) 2>&5
   ac_status=$?
-  echo "$as_me:5413: \$? = $ac_status" >&5
+  echo "$as_me:5411: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:5416: \"$ac_try\"") >&5
+  { (eval echo "$as_me:5414: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:5419: \$? = $ac_status" >&5
+  echo "$as_me:5417: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   ac_cv_lib_efence_malloc=yes
 else
@@ -5427,7 +5425,7 @@ fi
 rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-echo "$as_me:5430: result: $ac_cv_lib_efence_malloc" >&5
+echo "$as_me:5428: result: $ac_cv_lib_efence_malloc" >&5
 echo "${ECHO_T}$ac_cv_lib_efence_malloc" >&6
 if test $ac_cv_lib_efence_malloc = yes; then
   x_libs="$x_libs -lefence"
@@ -5512,10 +5510,9 @@ MAKEFILECOMMONLIB=./autoconf/Makefile.common.lib
 LIBAFTERBASEFILES=./libAfterBase/.shared
 LIBAFTERIMAGEFILES=./libAfterImage/.shared
 LIBAFTERSTEPFILES=./lib/.shared
-LIBASIMAGEFILES=./asimagelib/.shared
 LIBAFTERCONFFILES=./src/Config/.shared
 
-ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib configure.h Makefile doc/Makefile doc/afterstepdoc lib/Makefile asimagelib/Makefile src/Config/Makefile src/afterstep/Makefile src/asetroot/Makefile src/Animate/Makefile src/Audio/Makefile src/Banner/Makefile src/Cascade/Makefile src/Clean/Makefile src/Form/Makefile src/Gnome/Makefile src/Ident/Makefile src/Pager/Makefile src/Save/Makefile src/Script/Widgets/Makefile src/Script/Makefile src/Scroll/Makefile src/Sound/Makefile src/Tile/Makefile src/Wharf/Makefile src/WinList/Makefile src/Zharf/Makefile src/test/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl afterstep/base.8bpp afterstep/base.15bpp afterstep/base.16bpp afterstep/base.24bpp afterstep/base.32bpp afterstep/asetroot afterstep/audio afterstep/autoexec afterstep/compatibility afterstep/pager afterstep/wharf afterstep/zharf afterstep/start/.include afterstep/start/Desktop/Feel/.include afterstep/start/Desktop/Look/.include afterstep/start/Desktop/Theme/.include afterstep/start/Desktop/Pictures/.include"
+ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib configure.h Makefile doc/Makefile doc/afterstepdoc lib/Makefile src/Config/Makefile src/afterstep/Makefile src/asetroot/Makefile src/Animate/Makefile src/Audio/Makefile src/Banner/Makefile src/Cascade/Makefile src/Clean/Makefile src/Form/Makefile src/Gnome/Makefile src/Ident/Makefile src/Pager/Makefile src/Save/Makefile src/Script/Widgets/Makefile src/Script/Makefile src/Scroll/Makefile src/Sound/Makefile src/Tile/Makefile src/Wharf/Makefile src/WinList/Makefile src/Zharf/Makefile src/test/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl afterstep/base.8bpp afterstep/base.15bpp afterstep/base.16bpp afterstep/base.24bpp afterstep/base.32bpp afterstep/asetroot afterstep/audio afterstep/autoexec afterstep/compatibility afterstep/pager afterstep/wharf afterstep/zharf afterstep/start/.include afterstep/start/Desktop/Feel/.include afterstep/start/Desktop/Look/.include afterstep/start/Desktop/Theme/.include afterstep/start/Desktop/Pictures/.include"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -5595,7 +5592,7 @@ DEFS=-DHAVE_CONFIG_H
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
-{ echo "$as_me:5598: creating $CONFIG_STATUS" >&5
+{ echo "$as_me:5595: creating $CONFIG_STATUS" >&5
 echo "$as_me: creating $CONFIG_STATUS" >&6;}
 cat >$CONFIG_STATUS <<_ACEOF
 #! $SHELL
@@ -5768,7 +5765,7 @@ cat >>$CONFIG_STATUS <<\EOF
     echo "$ac_cs_version"; exit 0 ;;
   --he | --h)
     # Conflict between --help and --header
-    { { echo "$as_me:5771: error: ambiguous option: $1
+    { { echo "$as_me:5768: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -5795,7 +5792,6 @@ Try \`$0 --help' for more information." >&2;}
   'doc/Makefile' ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   'doc/afterstepdoc' ) CONFIG_FILES="$CONFIG_FILES doc/afterstepdoc" ;;
   'lib/Makefile' ) CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
-  'asimagelib/Makefile' ) CONFIG_FILES="$CONFIG_FILES asimagelib/Makefile" ;;
   'src/Config/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/Config/Makefile" ;;
   'src/afterstep/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/afterstep/Makefile" ;;
   'src/asetroot/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/asetroot/Makefile" ;;
@@ -5841,12 +5837,12 @@ Try \`$0 --help' for more information." >&2;}
   'config.h' ) CONFIG_HEADERS="$CONFIG_HEADERS config.h:autoconf/config.h.in" ;;
 
   # This is an error.
-  -*) { { echo "$as_me:5844: error: unrecognized option: $1
+  -*) { { echo "$as_me:5840: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
    { (exit 1); exit 1; }; } ;;
-  *) { { echo "$as_me:5849: error: invalid argument: $1" >&5
+  *) { { echo "$as_me:5845: error: invalid argument: $1" >&5
 echo "$as_me: error: invalid argument: $1" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -6008,7 +6004,6 @@ s,@AFTERIMAGE_LIB@,$AFTERIMAGE_LIB,;t t
 s,@AFTERIMAGE_LIBS@,$AFTERIMAGE_LIBS,;t t
 s,@AFTERSTEP_LIB@,$AFTERSTEP_LIB,;t t
 s,@AFTERCONF_LIB@,$AFTERCONF_LIB,;t t
-s,@ASIMAGE_LIB@,$ASIMAGE_LIB,;t t
 s,@WIDGETS_LIB@,$WIDGETS_LIB,;t t
 s,@LIBPROG@,$LIBPROG,;t t
 s,@LIBINSTALL@,$LIBINSTALL,;t t
@@ -6042,8 +6037,6 @@ s,@LIBAFTERBASEFILES@,,;t t
 s,@LIBAFTERIMAGEFILES@,,;t t
 /@LIBAFTERSTEPFILES@/r $LIBAFTERSTEPFILES
 s,@LIBAFTERSTEPFILES@,,;t t
-/@LIBASIMAGEFILES@/r $LIBASIMAGEFILES
-s,@LIBASIMAGEFILES@,,;t t
 /@LIBAFTERCONFFILES@/r $LIBAFTERCONFFILES
 s,@LIBAFTERCONFFILES@,,;t t
 /@MAKEFILEDEFINES@/r $MAKEFILEDEFINES
@@ -6166,7 +6159,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:6169: creating $ac_file" >&5
+    { echo "$as_me:6162: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -6184,7 +6177,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:6187: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:6180: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -6197,7 +6190,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:6200: error: cannot find input file: $f" >&5
+           { { echo "$as_me:6193: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -6258,7 +6251,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:6261: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:6254: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -6269,7 +6262,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:6272: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:6265: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -6282,7 +6275,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:6285: error: cannot find input file: $f" >&5
+           { { echo "$as_me:6278: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -6399,7 +6392,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:6402: $ac_file is unchanged" >&5
+      { echo "$as_me:6395: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \

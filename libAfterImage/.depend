@@ -24,7 +24,8 @@
 ./asimagexml.o : \
 		config.h \
 		afterbase.h \
-		afterimage.h
+		afterimage.h \
+		pixmap.h
 
 ./asvisual.o : \
 		config.h \

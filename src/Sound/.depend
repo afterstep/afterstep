@@ -1,4 +1,4 @@
 ./ASSound.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/module.h
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/module.h

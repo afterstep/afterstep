@@ -1,12 +1,17 @@
-./Scroll.h:
+./Scroll.h: \
+		../../include/module.h
 
 ./GrabWindow.o: \
-        ../../configure.h \
-        ../../include/module.h \
-        Scroll.h
+		../../configure.h \
+		../../include/afterbase.h \
+		../../include/aftersteplib.h \
+		../../include/module.h \
+		../../include/mystyle.h \
+		Scroll.h
 
 ./Scroll.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/module.h \
-        Scroll.h
+		../../configure.h \
+		../../include/afterbase.h \
+		../../include/aftersteplib.h \
+		../../include/module.h \
+		Scroll.h

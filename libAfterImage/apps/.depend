@@ -14,6 +14,11 @@
 		config.h \
 		common.h
 
+./asi18n.o: \
+		config.h \
+		common.h \
+		../char2uni.h
+
 ./asmerge.o: \
 		config.h \
 		common.h
@@ -30,22 +35,13 @@
 		config.h \
 		common.h
 
+./asvector.o: \
+		config.h \
+		common.h
+
 ./asview.o: \
 		config.h \
 		common.h
 
 ./common.o: \
 		config.h
-
-./ascompose.o: \
-		config.h \
-		common.h
-
-./asi18n.o: \
-		config.h \
-		common.h \
-		../char2uni.h
-
-./asvector.o: \
-		config.h \
-		common.h

@@ -6,7 +6,7 @@ confsdirs= autoconf libAfterBase libAfterImage
 ####		  @ASCP@  \
 
 subdirs		= libAfterBase libAfterImage lib \
-	      asimagelib src/Config \
+	      src/Config \
 		  doc tools \
 		  src/afterstep src/asetroot \
 		  src/Animate src/Audio \

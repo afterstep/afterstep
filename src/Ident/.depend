@@ -1,8 +1,12 @@
 ./Ident.h:
 
 ./Ident.o: \
-        ../../configure.h \
-        ../../include/aftersteplib.h \
-        ../../include/module.h \
-        ../../include/afterstep.h \
-        Ident.h
+		../../configure.h \
+		../../include/afterbase.h \
+		../../libAfterImage/afterimage.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		Ident.h
