@@ -267,6 +267,9 @@ else
 fi;
 AC_SUBST(TTF_INCLUDES)
 
+AFTERIMAGE_LIBS_EXTERNAL=$AFTERIMAGE_LIBS
+AC_SUBST(AFTERIMAGE_LIBS_EXTERNAL)
+
 if test "$with_afterbase" != "NO"; then
   AC_MSG_CHECKING(libAfterBase headers)
   have_afterbase=yes

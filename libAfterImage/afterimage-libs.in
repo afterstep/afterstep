@@ -2,5 +2,10 @@
 #
 
 export AFTERIMAGE_LIBS="@AFTERIMAGE_LIBS@"
-echo $AFTERIMAGE_LIBS
+export AFTERIMAGE_LIBS_EXTERNAL="@AFTERIMAGE_LIBS_EXTERNAL@"
+if test "x$1" = "x--external-only" ; then
+	echo $AFTERIMAGE_LIBS_EXTERNAL
+else
+	echo $AFTERIMAGE_LIBS
+fi
 exit 0
