@@ -131,7 +131,7 @@ show_system_error( const char *error_format, ...)
         va_start (ap, error_format);
         vfprintf (stderr, error_format, ap);
         va_end (ap);
-        fprintf (stderr, ". System error text :\n\t" );
+        fprintf (stderr, ".\n\tSystem error text" );
         perror("");
         return True;
     }
