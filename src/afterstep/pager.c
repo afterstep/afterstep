@@ -189,6 +189,13 @@ viewport_aswindow_iter_func( void *data, void *aux_data )
         asw->status->viewport_y = Scr.Vy ;
         if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
             on_window_status_changed( asw, True, True );
+
+        if( ASWIN_GET_FLAGS(asw,AS_Iconic) && get_flags(Scr.Feel.flags, StickyIcons))
+        {   /* we must update let all the modules know that icon viewport has changed
+             * we dont have to do that for Sticky non-iconified windows, since its assumed
+             * that those follow viewport, while Icons only do that when StckiIcons is set. */
+            broadcast_config (M_CONFIGURE_WINDOW, asw);
+        }
     }
     return True;
 }

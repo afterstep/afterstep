@@ -351,7 +351,11 @@ apply_window_status_size(register ASWindow *asw, ASOrientation *od)
     if( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
 	{
         int step_size = make_shade_animation_step( asw, od );
-LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_HFLAGS(asw, AS_VerticalTitle)?"Vert":"Horz", step_size>0?"Shaded":"Unshaded", asw->shading_steps, step_size );
+LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
+                 asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname",
+                 asw->status->width, asw->status->height, asw->status->x, asw->status->y,
+                 ASWIN_HFLAGS(asw, AS_VerticalTitle)?"Vert":"Horz",
+                 step_size>0?"Shaded":"Unshaded", asw->shading_steps, step_size );
         if( step_size > 0 )
         {
             if( asw->frame_sides[od->tbar_side] )
@@ -502,7 +506,6 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         }else if( get_flags( changes, CANVAS_MOVED ) )
         {
             update_window_frame_moved( asw, od );
-            broadcast_config (M_CONFIGURE_WINDOW, asw);
             /* also sent synthetic ConfigureNotify : */
             SendConfigureNotify(asw);
         }
@@ -512,6 +515,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
             update_window_transparency( asw );
             if( get_flags( changes, CANVAS_RESIZED ) && ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
                 SetShape( asw, 0 );
+            broadcast_config (M_CONFIGURE_WINDOW, asw);
         }
     }else if( asw->icon_canvas && w == asw->icon_canvas->w )
     {
@@ -1143,15 +1147,16 @@ bring_aswindow_on_vscreen( ASWindow *asw )
     {
         int new_x = asw->status->x ;
         int new_y = asw->status->y ;
-        if( asw->status->x + asw->status->width < min_x + margin )
-            new_x = min_x + margin - asw->status->width ;
+        if( asw->status->x + (int)asw->status->width < min_x + margin )
+            new_x = min_x + margin - (int)asw->status->width ;
         else if( asw->status->x > max_x - margin )
             new_x = max_x - margin ;
 
-        if( asw->status->y + asw->status->height < min_y + margin )
-            new_y = min_y + margin - asw->status->height ;
+        if( asw->status->y + (int)asw->status->height < min_y + margin )
+            new_y = min_y + margin - (int)asw->status->height ;
         else if( asw->status->y > max_y - margin )
             new_y = max_y - margin ;
+        LOCAL_DEBUG_OUT( "min_pos = (%+d%+d), max_pos = (%+d%+d), new_pos = (%+d%+d)", min_x, min_y, max_x, max_y, new_x, new_y );
         if( new_x != asw->status->x || new_y != asw->status->y )
             moveresize_aswindow_wm( asw, new_x, new_y, asw->status->width, asw->status->height, False );
     }

@@ -1339,16 +1339,28 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_upd
     {
         int client_x = wd->frame_rect.x ;
         int client_y = wd->frame_rect.y ;
-        if( get_flags( wd->state_flags, AS_Sticky )  )
+        int client_width  = wd->frame_rect.width ;
+        int client_height = wd->frame_rect.height ;
+        if( get_flags( wd->state_flags, AS_Iconic )  )
+        {
+            client_x = wd->icon_rect.x+Scr.Vx ;
+            client_y = wd->icon_rect.y+Scr.Vy ;
+            client_width  = wd->icon_rect.width ;
+            client_height = wd->icon_rect.height ;
+        }else if( get_flags( wd->state_flags, AS_Sticky )  )
         {
             client_x += Scr.Vx ;
             client_y += Scr.Vy ;
+            if( get_flags( wd->flags, AS_VerticalTitle )  )
+                client_width  = (PagerState.vscreen_width *2)/desk_width ;
+            else
+                client_height = (PagerState.vscreen_height*2)/desk_height;
         }
-        LOCAL_DEBUG_OUT( "+PLACE->client(%lX)->frame_geom(%ldx%ld%+ld%+ld)", wd->client, wd->frame_rect.width, wd->frame_rect.height, wd->frame_rect.x, wd->frame_rect.y );
+        LOCAL_DEBUG_OUT( "+PLACE->client(%lX)->frame_geom(%dx%d%+d%+d)", wd->client, client_width, client_height, client_x, client_y );
         x = ( client_x * desk_width )/PagerState.vscreen_width ;
         y = ( client_y * desk_height)/PagerState.vscreen_height;
-        width  = ( wd->frame_rect.width  * desk_width )/PagerState.vscreen_width ;
-        height = ( wd->frame_rect.height * desk_height)/PagerState.vscreen_height;
+        width  = ( client_width  * desk_width )/PagerState.vscreen_width ;
+        height = ( client_height * desk_height)/PagerState.vscreen_height;
         if( x < 0 )
         {
             width += x ;
