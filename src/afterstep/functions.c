@@ -338,7 +338,7 @@ DoExecuteFunction ( ASScheduledFunction *sf )
     {
         ASWindow *asw ;
         asw = event->client = window2ASWindow( sf->client );
-        if( sf->canvas )
+        if( sf->canvas && asw != NULL )
         {
             ASCanvas  *canvas = NULL ;
             if( sf->canvas == asw->client_canvas->w )
@@ -826,14 +826,18 @@ void movecursor_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void iconify_func_handler( FunctionData *data, ASEvent *event, int module )
 {
+	if( event->client ) 
+	{	
+	
 LOCAL_DEBUG_CALLER_OUT( "function %ld (val0 = %ld), event %d, window 0x%lX, window_name \"%s\", module %d",
                         data?data->func:0, data?data->func_val[0]:0, event?event->x.type:-1, event?(unsigned long)event->w:0, event->client?ASWIN_NAME(event->client):"none", module );
-    if (ASWIN_GET_FLAGS(event->client, AS_Iconic) )
-    {
-        if (data->func_val[0] <= 0)
-            set_window_wm_state( event->client, False );
-    }else if (data->func_val[0] >= 0)
-        set_window_wm_state( event->client, True );
+    	if (ASWIN_GET_FLAGS(event->client, AS_Iconic) )
+    	{
+        	if (data->func_val[0] <= 0)
+            	set_window_wm_state( event->client, False );
+    	}else if (data->func_val[0] >= 0)
+        	set_window_wm_state( event->client, True );
+	}
 }
 
 void raiselower_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -960,23 +964,26 @@ void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void close_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	Window w = event->client->w ;
+	if( event->client )
+	{	
+		Window w = event->client->w ;
 
-    LOCAL_DEBUG_OUT( "window(0x%lX)->protocols(0x%lX)", w, event->client->hints->protocols );
-	if ( get_flags(event->client->hints->protocols, AS_DoesWmDeleteWindow) &&
-		 data->func != F_DESTROY)
-    {
-        LOCAL_DEBUG_OUT( "sending delete window request to 0x%lX", w );
-		send_wm_protocol_request(w, _XA_WM_DELETE_WINDOW, CurrentTime);
-    }else
-	{
-        if( event->client->internal != NULL || validate_drawable(w, NULL, NULL) == None)
-            Destroy (event->client, True);
-        else if (data->func == F_DELETE )
-            XBell (dpy, event->scr->screen);
-        else
-			XKillClient (dpy, w);
-		XSync (dpy, 0);
+    	LOCAL_DEBUG_OUT( "window(0x%lX)->protocols(0x%lX)", w, event->client->hints->protocols );
+		if ( get_flags(event->client->hints->protocols, AS_DoesWmDeleteWindow) &&
+		 	data->func != F_DESTROY)
+    	{
+        	LOCAL_DEBUG_OUT( "sending delete window request to 0x%lX", w );
+			send_wm_protocol_request(w, _XA_WM_DELETE_WINDOW, CurrentTime);
+    	}else
+		{
+        	if( event->client->internal != NULL || validate_drawable(w, NULL, NULL) == None)
+            	Destroy (event->client, True);
+        	else if (data->func == F_DELETE )
+            	XBell (dpy, event->scr->screen);
+        	else
+				XKillClient (dpy, w);
+			XSync (dpy, 0);
+		}
 	}
 }
 

@@ -438,6 +438,10 @@ SOURCE=.\asimagexml.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\asstorage.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\asvisual.c
 # End Source File
 # Begin Source File

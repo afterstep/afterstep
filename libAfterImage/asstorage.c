@@ -697,8 +697,8 @@ create_asstorage_block( int useable_size )
 		UsedMemory -= allocate_size ;
 		return NULL;
 	}
-	block->start = (ASStorageSlot*)(ptr+((sizeof(ASStorageBlock)/ASStorageSlot_SIZE)+1)*ASStorageSlot_SIZE);
-	block->end = (ASStorageSlot*)(ptr+(allocate_size-ASStorageSlot_SIZE));
+	block->start = (ASStorageSlot*)((unsigned char*)ptr+((sizeof(ASStorageBlock)/ASStorageSlot_SIZE)+1)*ASStorageSlot_SIZE);
+	block->end = (ASStorageSlot*)((unsigned char*)ptr+(allocate_size-ASStorageSlot_SIZE));
 	block->slots[0] = block->start ;
 	block->slots[0]->flags = 0 ;  /* slot of the free memory */ 
 	block->slots[0]->ref_count = 0 ;

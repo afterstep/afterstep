@@ -2142,17 +2142,30 @@ draw_text_xrender(  ASVisual *asv, const void *text, ASFont *font, ASTextAttribu
 	if( font->xrender_glyphset == 0 ) 
 		font->xrender_glyphset = XRenderCreateGlyphSet (asv->dpy, asv->xrender_mask_format);
 	/* Step 2: we have to make sure all the glyphs are in GlyphSet */
+	for( i = 0 ; map.glyphs[i] != GLYPH_EOT ; ++i ) 
+		if( map.glyphs[i]->xrender_gid == 0 ) 
+		{
+			glyphs_bmap_size += map.glyphs[i]->width * map.glyphs[i]->height ;
+			++missing_glyphs;
+		}
 	
 	if( missing_glyphs > 0 ) 
 	{
 		Glyph		*gids;
 		XGlyphInfo	*glyphs;
-		char *bitmap ;
-		int	 nbytes_bitmap ;
+		char *bitmap, *bmap_ptr ;
+		int	 nbytes_bitmap = 0;
 			  
-		bitmap = safemalloc( glyphs_bmap_size );
+		bmap_ptr = bitmap = safemalloc( glyphs_bmap_size );
 		glyphs = safecalloc( missing_glyphs, sizeof(XGlyphInfo));
 		gids = safecalloc( missing_glyphs, sizeof(Glyph));
+		for( i = 0 ; map.glyphs[i] != GLYPH_EOT ; ++i ) 
+			if( map.glyphs[i]->xrender_gid == 0 ) 
+			{	
+				ASGlyph *asg = map.glyphs[i];
+
+				bmap_ptr += asg->width*asg->height ; 				
+			}
 		XRenderAddGlyphs( asv->dpy, font->xrender_glyphset, gids, glyphs, missing_glyphs, bitmap, nbytes_bitmap );
 		free( gids );
 		free( glyphs );
