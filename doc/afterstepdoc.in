@@ -11,7 +11,7 @@
 
 for app in mozilla firefox konqueror opera netscape; do 
 	full_path=`which $app`
-	if [ "x$full_path != "x" ]
+	if [ "x$full_path" != "x" ] ; then
      		$app @datadir@/afterstep/doc/html/index.html & exit
 	fi
 done
