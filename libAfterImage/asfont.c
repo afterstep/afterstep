@@ -242,6 +242,7 @@ void print_asfont( FILE* stream, ASFont* font)
 		fprintf( stream, "font.max_height = %d\n", font->max_height );
 		fprintf( stream, "font.space_size = %d\n" , font->space_size );
 		fprintf( stream, "font.max_ascend = %d\n", font->max_ascend );
+		fprintf( stream, "font.pen_move_dir = %d\n", font->pen_move_dir );
 	}
 }
 
@@ -251,13 +252,18 @@ void print_asglyph( FILE* stream, ASFont* font, unsigned int glyph_index)
 	{
 		int i, k ;
 		ASGlyph *asg = &(font->glyphs[glyph_index]);
+		fprintf( stream, "glyph[%d].ASCII = %c\n", glyph_index, (char)(glyph_index+font->min_char) );
 		fprintf( stream, "glyph[%d].width = %d\n", glyph_index, asg->width  );
 		fprintf( stream, "glyph[%d].height = %d\n", glyph_index, asg->height  );
-		for( i = 0 ; i < asg->height ; i++ )
+		fprintf( stream, "glyph[%d].lead = %d\n", glyph_index, asg->lead  );
+		fprintf( stream, "glyph[%d].ascend = %d\n", glyph_index, asg->ascend);
+		fprintf( stream, "glyph[%d].descend = %d\n", glyph_index, asg->descend );
+		k = 0 ;
+		for( i = 0 ; i < asg->height*asg->width ; i++ )
 		{
-			for( k = 0 ; k < asg->width ; k++ )
-				fprintf( stream, "%2.2X ", asg->pixmap[i*asg->width+k]);
-			fprintf( stream, "\n" );
+			fprintf( stream, "%d(%2.2X) ", asg->pixmap[k+1], asg->pixmap[k]);
+			i += asg->pixmap[k+1] ;
+			k++;
 		}
 	}
 }
@@ -287,51 +293,93 @@ load_glyph_freetype( ASFont *font, ASGlyph *asg, int glyph )
 		if( !FT_Render_Glyph( face->glyph, ft_render_mode_normal ) )
 		{
 			FT_Bitmap 	*bmap = &(face->glyph->bitmap) ;
-			int k, src_inc = bmap->pitch, dst_inc = bmap->width;
-			register CARD8 *dst, *src ;
-			dst = asg->pixmap = safemalloc( bmap->rows*bmap->width );
+			int i, k;
+			register CARD8 *buf, *dst, *src ;
+			int hpad = (face->glyph->bitmap_left<0)? -face->glyph->bitmap_left: face->glyph->bitmap_left ;
+
+			buf = dst = safemalloc( bmap->rows*(bmap->width+hpad)*2);
 			src = bmap->buffer ;
 			if( bmap->pitch < 0 )
+				src += -bmap->pitch*bmap->rows ;
+			/* we better do some RLE encoding in attempt to preserv memory */
+			dst[0] = 0 ;
+			dst[1] = hpad-1 ;
+			for( i = 0 ; i < bmap->rows ; i++ )
 			{
-				src_inc = -bmap->pitch ;
-				dst_inc = -bmap->width ;
-				dst += bmap->width*(bmap->rows-1) ;
+				for( k = 0 ; k < bmap->width  ; ++k )
+				{
+					if( src[k] == dst[0] && dst[1] < 255 )
+						++dst[1];
+					else
+					{
+						++dst ; ++dst ;
+						dst[0] = src[k];
+						dst[1] = 0 ;
+					}
+				}
+				src += bmap->pitch ;
+				if( hpad > 0 )
+				{
+					if( dst[0] == 0 && dst[1]+hpad < 255)
+						dst[1] += hpad ;
+					else
+					{
+						++dst ; ++dst ;
+						dst[0] = 0 ;
+						dst[1] = hpad-1 ;
+					}
+				}
 			}
-			for( k = 0 ; k < bmap->rows ; ++k )
+			if( dst[1] > 0 )
 			{
-				memcpy( dst, src, bmap->width );
-				dst+= dst_inc ;
-				src+= src_inc ;
+				++dst ; ++dst ;
 			}
-			asg->width   = bmap->width ;
+			asg->pixmap  = safemalloc( dst - buf );
+			memcpy( asg->pixmap, buf, dst-buf );
+			free( buf );
+			asg->width   = bmap->width+hpad ;
 			asg->height  = bmap->rows ;
 			asg->ascend  = face->glyph->bitmap_top;
-			asg->descend = bmap->rows-face->glyph->bitmap_top;
-			asg->lead    = (face->glyph->bitmap_left<0)? 0 : face->glyph->bitmap_left ;
+			asg->descend = bmap->rows - asg->ascend;
+			/* we only want to keep lead if it was negative */
+			asg->lead    = face->glyph->bitmap_left ;
 LOCAL_DEBUG_OUT( "glyph %p is %dx%d ascend = %d, lead = %d, bmap_top = %d",  asg, asg->width, asg->height, asg->ascend, asg->lead, face->glyph->bitmap_top );
 		}
 }
-
 
 static int
 load_freetype_glyphs( ASFont *font )
 {
 	int max_ascend = 0, max_descend = 0;
-	int i ;
+	unsigned long i ;
 #ifdef I18N
 	/* TODO: add font drawing internationalization : */
 
+	font->pen_move_dir = RIGHT_TO_LEFT ;
 #else
-	font->glyphs = safecalloc( 128+1, sizeof(ASGlyph));
-	font->glyphs_num = 128 ;
-	for( i = 0 ; i < font->glyphs_num ; ++i )
+	font->min_char = 0x20 ;
+	font->max_char = 0xFF ;
+	font->glyphs_num = font->max_char-font->min_char ;
+	font->pen_move_dir = LEFT_TO_RIGHT ;
+#endif
+	font->glyphs = safecalloc( font->glyphs_num+1, sizeof(ASGlyph));
+
+	if( font->max_char != 0 )
 	{
-		if( i != ' ' && i != '\t' && i!= '\n' )
-			load_glyph_freetype( font, &(font->glyphs[i]), FT_Get_Char_Index( font->ft_face, i ));
+		for( i = font->min_char ; i < font->max_char ; ++i )
+		{
+			if( i != ' ' && i != '\t' && i!= '\n' )
+			{
+				ASGlyph *asg = &(font->glyphs[i-font->min_char]);
+				load_glyph_freetype( font, asg, FT_Get_Char_Index( font->ft_face, i ));
+				if( asg->lead >= 0 || asg->lead+asg->width > 3 )
+					font->pen_move_dir = LEFT_TO_RIGHT ;
+			}
+		}
 	}
+
 	load_glyph_freetype( font, &(font->glyphs[font->glyphs_num]), 0);/* special no-symbol glyph */
 	font->glyphs_num++ ;
-#endif
 	for( i = 0 ; i < font->glyphs_num ; ++i )
 	{
 		if( font->glyphs[i].ascend > max_ascend )
@@ -345,16 +393,27 @@ load_freetype_glyphs( ASFont *font )
 }
 #endif
 
-inline ASGlyph *get_character_glyph( char *c, ASFont *font )
+inline ASGlyph *get_character_glyph( const char *c, ASFont *font )
 {
+	unsigned long uc;
 #ifdef I18N
-	/* TODO: add font drawing internationalization : */
-
+	/* TODO: we need to convert UTF-8 character into Unicode */
 #else
-	if( font->glyphs_num > (unsigned int)*c )
-		return &(font->glyphs[(unsigned int)*c]);
-	return &(font->glyphs[font->glyphs_num-1]);
+	uc = (unsigned long)*c;
 #endif
+	/* TODO: add font drawing internationalization : */
+	if( font->max_char != 0 )
+	{
+		if( uc >= font->min_char && uc <= font->max_char )
+			return &(font->glyphs[uc - font->min_char]);
+	}else if( font->locale_xref )
+	{
+		unsigned long idx;
+		if( get_hash_item( font->locale_xref, (ASHashableValue)uc, (void**)&idx ) == ASH_Success )
+			return &(font->glyphs[idx]);
+	}else if( font->glyphs_num > uc )
+		return &(font->glyphs[uc]);
+	return &(font->glyphs[font->glyphs_num-1]);
 }
 
 /*********************************************************************************/
@@ -363,7 +422,7 @@ inline ASGlyph *get_character_glyph( char *c, ASFont *font )
 
 typedef struct ASGlyphMap
 {
-	unsigned int  width, height;
+	unsigned int  height, width ;
 #define GLYPH_TAB	((ASGlyph*)0x00000003)
 #define GLYPH_SPACE	((ASGlyph*)0x00000002)
 #define GLYPH_EOL	((ASGlyph*)0x00000001)
@@ -417,7 +476,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map )
 			{
 				ASGlyph *asg = get_character_glyph( &text[i], font );
 				map->glyphs[i] = asg;
-				line_width += asg->width+asg->lead ;
+				line_width += asg->width ;
 				i+=CHAR_SIZE(text[i])-1;
 			}
 		}
@@ -455,7 +514,7 @@ get_text_size( const char *text, ASFont *font, unsigned int *width, unsigned int
 			else
 			{
 				register ASGlyph *asg = get_character_glyph( &text[i], font );
-				line_width += asg->width+asg->lead ;
+				line_width += asg->width ;
 				i+=CHAR_SIZE(text[i])-1;
 			}
 		}
@@ -497,6 +556,8 @@ LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 	}while ( ++i < line_height );
 
 	i = -1 ;
+	if(font->pen_move_dir == RIGHT_TO_LEFT)
+		pen_x = map.width;
 	do
 	{
 		++i;
@@ -508,24 +569,33 @@ LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 			{
 				register int x = pen_x;
 				register CARD32 *line = scanlines[y];
-				while( x < map.width )
-					line[x++] = 0 ;
+				if( font->pen_move_dir == RIGHT_TO_LEFT )
+					while( x >= 0 )
+						line[x--] = 0 ;
+				else
+					while( x < map.width )
+						line[x++] = 0 ;
 
 /*				x = 0;
 				while( x < map.width )
 					fprintf( stderr, "%2.2X ", scanlines[y][x++] );
 				fprintf( stderr, "\n" );
- */
+*/
  				asimage_add_line (im, IC_ALPHA, line, pen_y+y);
 			}
-			pen_x = 0;
+			pen_x = (font->pen_move_dir == RIGHT_TO_LEFT)? map.width : 0;
 			pen_y += line_height;
 		}else
 		{
 			if( map.glyphs[i] == GLYPH_SPACE || map.glyphs[i] == GLYPH_TAB )
 			{
 				int x = pen_x;
-				pen_x += (map.glyphs[i] == GLYPH_TAB)?space_size*8 : space_size;
+				int d_pen = (map.glyphs[i] == GLYPH_TAB)?space_size*8 : space_size;
+				if( font->pen_move_dir == RIGHT_TO_LEFT )
+					x 	  -= d_pen ;
+				else
+					pen_x += d_pen ;
+
 				while( x < pen_x )
 				{
 					register int y ;
@@ -533,44 +603,54 @@ LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 						scanlines[y][x] = 0 ;
 					++x;
 				}
+				if( font->pen_move_dir == RIGHT_TO_LEFT )
+					pen_x  -= d_pen ;
 			}else
-			{  /* now comes the fun part : */
+			{
+				/* now comes the fun part : */
 				ASGlyph *asg = map.glyphs[i] ;
-				int start_x = pen_x + asg->lead, width = asg->width+asg->lead ;
-				int start_y = base_line - asg->ascend;
-				int max_y = start_y+asg->height, y = 0;
+				int start_y = base_line - asg->ascend, y = 0;
+				int max_y = start_y + asg->height;
 				register CARD8 *row = asg->pixmap;
-/*fprintf( stderr, "rendering glyph %d( %p) - start_x = %d, start_y = %d\n", i, asg, start_x, y );*/
+				int width = asg->width ;
+				register int x = 0;
+				int count = row[1];
+
+				if( font->pen_move_dir == RIGHT_TO_LEFT )
+					pen_x  -= width ;
 				while( y < start_y )
 				{
 					register CARD32 *dst = scanlines[y]+pen_x;
-					register int x = 0;
 					while( x < width ) dst[x++] = 0;
 					++y;
 				}
-				width = asg->width ;
-				do
+				while( y < max_y )
 				{
-					register int x = pen_x;
-					register CARD32 *dst = scanlines[y];
-					while( x < start_x ) dst[x++] = 0;
-					dst += x;
-					x = 0 ;
-					do
+					register CARD32 *dst = scanlines[y]+pen_x;
+					register CARD32 data = row[0];
+					for( x = 0 ; x < width ; ++x )
 					{
-						dst[x] = row[x];
-					}while( ++x < width );
-					row += width;
-				}while( ++y < max_y );
-				width = asg->width+asg->lead;
+/*fprintf( stderr, "data = %X, count = %d, x = %d, y = %d\n", data, count, x, y );*/
+						if( count < 0 )
+						{
+							++row, ++row ;
+							data = row[0];
+						 	count = row[1];
+						}
+						dst[x] = data ;
+						--count;
+					}
+					++y;
+				}
 				while( y < line_height )
 				{
 					register CARD32 *dst = scanlines[y]+pen_x;
-					register int x = 0;
-					while( x < width ) dst[x++] = 0;
+					for( x = 0 ; x < width ; ++x )
+						dst[x] = 0;
 					++y;
 				}
-				pen_x += width;
+				if( font->pen_move_dir == LEFT_TO_RIGHT )
+					pen_x  += width ;
 			}
 		}
 	}while( map.glyphs[i] != GLYPH_EOT );

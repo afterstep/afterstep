@@ -25,7 +25,7 @@ typedef struct ASGlyph
 {
 	CARD8 		   *pixmap ;
 	unsigned short 	width, height ;	  /* meaningfull width and height of the glyphs pixmap */
-	unsigned short  lead ;			  /* distance from previous glyph */
+	short  lead ;			          /* distance from previous glyph */
 	short  ascend, descend ;          /* distance of the top of the glyph from the baseline */
 }ASGlyph;
 
@@ -43,8 +43,16 @@ typedef struct ASFont
 	ASGlyph		   *glyphs;
 	size_t          glyphs_num;
 	unsigned int 	max_height, max_ascend, space_size;
+#define LEFT_TO_RIGHT    1
+#define RIGHT_TO_LEFT   -1
+	int 			pen_move_dir ;
 
-	ASHashTable    *locale_xref;  /* crossreference from unicode characters used so far to glyph indexes */
+	unsigned long   min_char, max_char;        /* for some locales that would be sufficient to
+												* simply set range of characteres supported
+												* by font */
+	/* for others we need a more cumbersome ways : */
+	ASHashTable    *locale_xref;  			   /* crossreference from unicode characters
+												* to glyph indexes */
 }ASFont;
 
 typedef struct ASFontManager
