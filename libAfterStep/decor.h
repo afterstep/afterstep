@@ -2,6 +2,12 @@
 #define DECOR_H_HEADER
 #ifndef NO_TEXTURE		/* NO_TEXTURE == No Frames! */
 
+#if !defined(DEBUG_ALLOCS) && defined(DEBUG_TRACE)
+#define TRACE_update_canvas_display
+#define TRACE_render_astbar
+#endif
+
+
 struct MyStyle ;
 struct ASImage;
 struct icon_t;
@@ -121,10 +127,12 @@ typedef struct ASTBarData {
 #define BAR_STATE_PRESSED		(0x01<<1)
 #define BAR_STATE_PRESSED_MASK	(0x01<<1)
 
-#define BAR_FLAGS_VERTICAL      (0x01<<16)     /* vertical label */
-#define BAR_FLAGS_IMAGE_BACK    (0x01<<17)     /* back represents an icon instead of  */
+#define BAR_FLAGS_REND_PENDING  (0x01<<16)     /* has been moved, resized or otherwise changed and needs rerendering */
+#define DoesBarNeedsRendering(pb) get_flags((pb)->state, BAR_FLAGS_REND_PENDING )
+#define BAR_FLAGS_VERTICAL      (0x01<<17)     /* vertical label */
+#define BAR_FLAGS_IMAGE_BACK    (0x01<<18)     /* back represents an icon instead of  */
 
-#define BAR_FLAGS_HILITE_OFFSET 18
+#define BAR_FLAGS_HILITE_OFFSET 24
 #define BAR_FLAGS_HILITE_MASK   (HILITE_MASK<<BAR_FLAGS_HILITE_OFFSET)
 #define BAR_FLAGS2HILITE(f)     (((f)&BAR_FLAGS_HILITE_MASK)>>BAR_FLAGS_HILITE_OFFSET)
 #define HILITE2BAR_FLAGS(h)     (((h)<<BAR_FLAGS_HILITE_OFFSET)&BAR_FLAGS_HILITE_MASK)
@@ -217,7 +225,15 @@ ASFlagType handle_canvas_config( ASCanvas *canvas ); /* Returns True if moved/re
 Pixmap get_canvas_canvas( ASCanvas *pc );
 Pixmap get_canvas_mask( ASCanvas *pc );
 Bool draw_canvas_image( ASCanvas *pc, struct ASImage *im, int x, int y );
+
+
+#ifdef TRACE_update_canvas_display
+void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line);
+#define update_canvas_display(p)  trace_update_canvas_display((p),__FILE__,__LINE__)
+#else
 void update_canvas_display( ASCanvas *pc );
+#endif
+
 void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
 void move_canvas (ASCanvas * pc, int x, int y);
 void moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height);
@@ -262,13 +278,18 @@ Bool change_astbar_first_label (ASTBarData * tbar, const char *label);
 
 
 Bool move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y );
-Bool update_astbar_root_pos( ASTBarData *tbar, ASCanvas *pc );
-Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
-
 Bool set_astbar_focused( ASTBarData *tbar, ASCanvas *pc, Bool focused );
 Bool set_astbar_pressed( ASTBarData *tbar, ASCanvas *pc, Bool pressed );
-void update_astbar_transparency( ASTBarData *tbar, ASCanvas *pc );
+Bool update_astbar_transparency( ASTBarData *tbar, ASCanvas *pc );
 int  check_astbar_point( ASTBarData *tbar, int root_x, int root_y );
+
+#ifdef TRACE_render_astbar
+Bool  trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, int line);
+#define render_astbar(t,p)  trace_render_astbar ((t),(p),__FILE__,__LINE__)
+#else
+Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
+#endif
+
 
 
 MyFrame *create_myframe();

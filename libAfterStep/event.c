@@ -334,13 +334,37 @@ check_event_windowed (Window w, long event_mask, register XEvent * event_return)
     return res;
 }
 
+Bool
+recursively_find_motion_notify(int depth)
+{
+    XEvent junk_event ;
+    if( XCheckMaskEvent(dpy, 0xFFFFFFFF, &junk_event) )
+    {
+        XPutBackEvent( dpy, &junk_event );
+        if( junk_event.type == MotionNotify )
+            return True;
+        if( depth > 0 )
+            return recursively_find_motion_notify(depth-1);
+    }
+    return False;
+}
+
 int
-next_event (register XEvent * event_return)
+next_event (register XEvent * event_return, Bool compress_motion)
 {
     register int           res;
-    res = XNextEvent (dpy, event_return);
+    res = (XNextEvent (dpy, event_return)==0);
     if (res)
+    {
         stash_event_time(event_return);
+        if( compress_motion && event_return->type == MotionNotify )
+        {
+            XFlush( dpy );
+            sleep_a_little( 10000 );
+            if( recursively_find_motion_notify(10) )
+                return False;
+        }
+    }
     return res;
 }
 

@@ -258,8 +258,6 @@ typedef struct MyLook
     char *DefaultIcon;      /* Icon to use when no other icons are found */
 
     struct icon_t *MenuArrow;
-    struct icon_t *MenuPinOn;
-    struct icon_t *MenuPinOff;
 
     MyButton    buttons[TITLE_BUTTONS];
 

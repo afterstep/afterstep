@@ -746,6 +746,7 @@ redecorate_window( ASWindow *asw, Bool free_resources )
         ASFlagType btn_mask = compile_titlebuttons_mask (asw);
         asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
         asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
+        delete_astbar_tile( asw->tbar, -1 );
 		/* left buttons : */
         add_astbar_btnblock(asw->tbar,
                             od->default_tbar_elem_col[0], od->default_tbar_elem_row[0],
@@ -1094,16 +1095,16 @@ on_frame_bars_moved( ASWindow *asw, unsigned int side, ASOrientation *od)
 {
     ASCanvas *canvas = asw->frame_sides[side];
 
-    update_astbar_root_pos(asw->frame_bars[side], canvas);
+    update_astbar_transparency(asw->frame_bars[side], canvas);
     if( side == od->tbar_side )
     {
-        update_astbar_root_pos(asw->tbar, canvas);
-        update_astbar_root_pos(asw->frame_bars[od->tbar_mirror_corners[0]], canvas);
-        update_astbar_root_pos(asw->frame_bars[od->tbar_mirror_corners[1]], canvas);
+        update_astbar_transparency(asw->tbar, canvas);
+        update_astbar_transparency(asw->frame_bars[od->tbar_mirror_corners[0]], canvas);
+        update_astbar_transparency(asw->frame_bars[od->tbar_mirror_corners[1]], canvas);
     }else if( side == od->sbar_side )
     {
-        update_astbar_root_pos(asw->frame_bars[od->sbar_mirror_corners[0]], canvas);
-        update_astbar_root_pos(asw->frame_bars[od->sbar_mirror_corners[1]], canvas);
+        update_astbar_transparency(asw->frame_bars[od->sbar_mirror_corners[0]], canvas);
+        update_astbar_transparency(asw->frame_bars[od->sbar_mirror_corners[1]], canvas);
     }
 
 }

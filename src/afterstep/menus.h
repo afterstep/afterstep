@@ -130,7 +130,7 @@ void ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2);
 void ParseMouseEntry (char *tline, FILE * fd, char **junk, int *junk2);
 void ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2);
 
-MenuData *dirtree_make_menu2 (struct dirtree_t* tree, char* buf);
+MenuData *dirtree_make_menu2 (struct dirtree_t* tree, char* buf, Bool reload_submenus);
 MenuData *update_windowList (void);
 
 
@@ -139,6 +139,9 @@ MenuData *update_windowList (void);
 /*************************************************************************/
 void run_menu( const char *name );
 ASMenu *run_submenu( ASMenu *supermenu, MenuData *md, int x, int y );
+ASMenu *find_asmenu( const char *name );
+void pin_asmenu( ASMenu *menu );
+Bool is_menu_pinnable( ASMenu *menu );
 
 
 #endif /* _MENUS_ */

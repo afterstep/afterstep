@@ -76,7 +76,13 @@ check_allowed_function2 (int func, ASWindow * t)
 	if( t )
 	{
         int mask = function2mask( func );
-        if( func == F_SHADE )
+        if( func == F_PIN_MENU )
+        {
+            if( t->internal == NULL )
+                return 0;
+            else
+                return is_menu_pinnable((ASMenu*)(t->internal->data));
+        }if( func == F_SHADE )
             return get_flags( t->hints->flags, AS_Titlebar ) ;
         else if( mask != 0 )
             return get_flags( t->hints->function_mask, mask );

@@ -783,7 +783,7 @@ CreateMenuData (char *name)
 }
 
 void
-MenuDataItemFromFunc (MenuData * menu, FunctionData * fdata)
+menu_data_item_from_func (MenuData * menu, FunctionData * fdata)
 {
     MenuDataItem     *item = NULL;
 
@@ -811,6 +811,15 @@ MenuDataItemFromFunc (MenuData * menu, FunctionData * fdata)
 		free( fdata );
 	}
 }
+
+void print_func_data(const char *file, const char *func, int line, FunctionData *data);
+
+
+#define MenuDataItemFromFunc(m,f) \
+do{fprintf(stderr,"MenuDataItemFromFunc called:");print_func_data(__FILE__, __FUNCTION__, __LINE__,  fdata);menu_data_item_from_func((m),(f));}while(0)
+
+
+
 
 Bool
 MenuDataItemParse (void *data, const char *buf)
@@ -950,16 +959,16 @@ ParseMouseEntry (char *tline, FILE * fd, char **junk, int *junk2)
 		tline++;
 	}
 
-	tline = parse_context (tline, &contexts, win_contexts);
-	tline = parse_context (tline, &mods, key_modifiers);
-	fdata = safecalloc( 1, sizeof(FunctionData) );
-	if (parse_func (tline, fdata, False) < 0)
+    tline = parse_context (tline, &contexts, win_contexts);
+    tline = parse_context (tline, &mods, key_modifiers);
+    fdata = safecalloc( 1, sizeof(FunctionData) );
+    if (parse_func (tline, fdata, False) < 0)
 	{
 		free_func_data (fdata);				   /* just in case */
 		free(fdata);
 		return;
 	}
-	if ((contexts & C_WINDOW) && (((mods == 0) || mods == AnyModifier)))
+    if ((contexts & C_WINDOW) && (((mods == 0) || mods == AnyModifier)))
         Scr.Feel.buttons2grab &= ~(1 << (button - 1));
 
     temp = Scr.Feel.MouseButtonRoot;
@@ -1052,7 +1061,7 @@ create_named_function( int func, char *name)
  /* we assume buf is at least MAXLINELENGTH bytes */
 
 MenuData     *
-dirtree_make_menu2 (dirtree_t * tree, char *buf)
+dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 {
 /*  extern struct config* func_config; */
 	dirtree_t    *t;
@@ -1098,8 +1107,12 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 		{
 /************* Creating Popup Title entry : ************************/
 			fdata = create_named_function(F_POPUP, t->name);
-			if ((fdata->popup = dirtree_make_menu2 (t, buf)) == NULL)
-				fdata->func = F_NOP;
+            if( reload_submenus )
+                fdata->popup = dirtree_make_menu2 (t, buf, reload_submenus);
+            else
+                fdata->popup = FindPopup( t->name, True );
+            if( fdata->popup == NULL )
+                fdata->func = F_NOP;
 
 			fdata->hotkey = scan_for_hotkey (fdata->name);
 			if (t->flags & DIRTREE_KEEPNAME)

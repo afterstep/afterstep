@@ -55,7 +55,7 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 			return NULL ;
 	if( xim == NULL && alpha_xim == NULL )
 		return NULL ;
-		
+
 	width = xim?xim->width:alpha_xim->width;
 	height = xim?xim->height:alpha_xim->height;
 
@@ -96,12 +96,12 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 		for (i = 0; i < height; i++)
 		{
 			register int x = width;
-			if( alpha_xim->depth == 8 ) 
+			if( alpha_xim->depth == 8 )
 			{
 				while(--x >= 0 ) dst[x] = (CARD32)(xim_line[x]);
 			}else
 			{
-				while(--x >= 0 ) 
+				while(--x >= 0 )
 #ifndef X_DISPLAY_MISSING
 					dst[x] = (XGetPixel(alpha_xim, x, i) == 0)?0x00:0xFF;
 #else
@@ -197,7 +197,7 @@ asimage2alpha_ximage (ASVisual *asv, ASImage *im, Bool bitmap )
 
 	if (im == NULL)
 		return xim;
-	
+
 	if( im->alt.mask_ximage )
 		if( (im->flags & ASIM_XIMAGE_8BIT_MASK )^flag)
 		{
@@ -291,7 +291,7 @@ pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsign
 	return picture2asimage(asv, p, None, x, y, width, height, plane_mask, keep_cache, compression);
 }
 
-static Bool 
+static Bool
 put_ximage( ASVisual *asv, XImage *xim, Drawable d, GC gc,
             int src_x, int src_y, int dest_x, int dest_y,
   		    unsigned int width, unsigned int height )
@@ -343,7 +343,7 @@ asimage2drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
 		Bool res = False;
 		if ( !use_cached || im->alt.ximage == NULL )
 		{
-			if( (xim = asimage2ximage( asv, im )) == NULL )
+            if( (xim = asimage2ximage( asv, im )) == NULL )
 			{
 				show_error("cannot export image into XImage.");
 				return None ;
@@ -352,7 +352,7 @@ asimage2drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
 			xim = im->alt.ximage ;
 		if (xim != NULL )
 		{
-			res = put_ximage( asv, xim, d, gc,	src_x, src_y, dest_x, dest_y, width, height );
+            res = put_ximage( asv, xim, d, gc,  src_x, src_y, dest_x, dest_y, width, height );
 			if( xim != im->alt.ximage )
 				XDestroyImage (xim);
 		}
@@ -372,7 +372,7 @@ asimage2alpha_drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
 	if( im )
 	{
 		XImage       *xim ;
-		unsigned int  alpha_depth = 1 ;		
+		unsigned int  alpha_depth = 1 ;
 		int dumm; unsigned int udumm; Window root ;
 		Bool res = False ;
 
@@ -428,10 +428,10 @@ asimage2alpha(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached, B
 	XImage       *xim ;
 	Pixmap        mask = None;
 	GC 			  my_gc = gc ;
-	
+
 	int target_depth = bitmap?1:8;
 
-	if ( !use_cached || im->alt.mask_ximage == NULL || 
+	if ( !use_cached || im->alt.mask_ximage == NULL ||
 	     im->alt.mask_ximage->depth != target_depth )
 	{
 		if( (xim = asimage2alpha_ximage( asv, im, bitmap )) == NULL )

@@ -18,6 +18,7 @@
  */
 
 //#define LOCAL_DEBUG
+//#define DO_CLOCKING
 
 #include "../configure.h"
 
@@ -97,7 +98,8 @@ LOCAL_DEBUG_CALLER_OUT( "ASCanvas(%p)->canvas(%lX)", pc,pc->canvas );
 	{
 		pc->canvas = create_visual_pixmap (Scr.asv, Scr.Root, pc->width, pc->height, 0);
 		set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
-	}
+        XSetWindowBackgroundPixmap (dpy, pc->w, pc->canvas);
+    }
 	return pc->canvas;
 }
 
@@ -226,21 +228,22 @@ draw_canvas_image (ASCanvas * pc, ASImage * im, int x, int y)
 
 	LOCAL_DEBUG_CALLER_OUT ("pc(%p)->im(%p)->x(%d)->y(%d)", pc, im, x, y);
 	if (im == NULL || pc == NULL)
-		return False;
-
+        return False;
 	if ((p = get_canvas_canvas (pc)) == None)
-		return False;
+        return False;
 
-	if (!make_canvas_rectangle (pc, im, x, y, &real_x, &real_y, &width, &height))
-		return False;
+    if (!make_canvas_rectangle (pc, im, x, y, &real_x, &real_y, &width, &height))
+        return False;
 
-	LOCAL_DEBUG_OUT ("drawing image %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y);
+    LOCAL_DEBUG_OUT ("drawing image %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y);
 	if (asimage2drawable (Scr.asv, p, im, NULL, real_x - x, real_y - y, real_x, real_y, width, height, True))
 	{
 		set_flags (pc->state, CANVAS_OUT_OF_SYNC);
-		return True;
+        XClearArea( dpy, pc->w, real_x, real_y, width, height, True );
+        XSync (dpy, False);
+        return True;
 	}
-	return False;
+    return False;
 }
 
 
@@ -291,6 +294,16 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height, in
 	}
 }
 
+#ifdef TRACE_update_canvas_display
+#undef update_canvas_display
+void update_canvas_display (ASCanvas * pc);
+void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
+{
+    fprintf (stderr, "D>%s(%d):update_canvas_display(%p)\n", file, line, pc);
+    update_canvas_display(pc);
+}
+#endif
+
 void
 update_canvas_display (ASCanvas * pc)
 {
@@ -330,13 +343,17 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u)", pc, pc->w, width
 	 * while resizing */
     if( width>MAX_POSITION )
     {
+#ifdef DEBUG_ALLOCS
         AS_ASSERT(0);
+#endif
         width = pc->width ;
     }else if( AS_ASSERT(width))
         width = 1 ;
     if( height>MAX_POSITION )
     {
+#ifdef DEBUG_ALLOCS
         AS_ASSERT(0);
+#endif
         height = pc->height ;
     }else if( AS_ASSERT(height))
         height = 1;
@@ -353,13 +370,17 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w,
 	 * while resizing */
     if( width>MAX_POSITION )
     {
+#ifdef DEBUG_ALLOCS
         AS_ASSERT(0);
+#endif
         width = pc->width ;
     }else if( AS_ASSERT(width))
         width = 1 ;
     if( height>MAX_POSITION )
     {
+#ifdef DEBUG_ALLOCS
         AS_ASSERT(0);
+#endif
         height = pc->height ;
     }else if( AS_ASSERT(height))
         height = 1;
@@ -771,6 +792,8 @@ create_astbar ()
 {
 	ASTBarData   *tbar = safecalloc (1, sizeof (ASTBarData));
 
+    set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+
     tbar->rendered_root_x = tbar->rendered_root_y = 0xFFFF;
 	return tbar;
 }
@@ -912,6 +935,7 @@ set_astbar_size (ASTBarData * tbar, unsigned int width, unsigned int height)
 			for (i = 0; i < BAR_STATE_NUM; ++i)
 				if (tbar->back[i])
 					destroy_asimage (&(tbar->back[i]));
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
 		}
 	}
 	return changed;
@@ -948,7 +972,10 @@ set_astbar_hilite( ASTBarData *tbar, ASFlagType hilite )
         changed = (BAR_FLAGS2HILITE(tbar->state) != (hilite&HILITE_MASK));
         tbar->state = (tbar->state&BAR_FLAGS_HILITE_MASK)|HILITE2BAR_FLAGS(hilite);
         if (changed )
+        {
             update_astbar_bevel_size (tbar);
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+        }
 	}
 	return changed;
 }
@@ -984,9 +1011,10 @@ LOCAL_DEBUG_OUT( "bar(%p)->state(%d)->style_name(\"%s\")", tbar, state, style?st
                 destroy_asimage (&(tbar->back[state]));
                 tbar->back[state] = NULL;
             }
-		}
-		update_astbar_bevel_size (tbar);
-	}
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+            update_astbar_bevel_size (tbar);
+        }
+    }
 	return changed;
 }
 
@@ -1015,6 +1043,7 @@ set_astbar_image( ASTBarData *tbar, ASImage *image )
                     tbar->back_image = clone_asimage( image, 0xFFFFFFFF );
 
             flush_tbar_backs(tbar);
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
             return True;
         }
     return False;
@@ -1029,7 +1058,7 @@ set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short hei
             tbar->back_width = width ;
             tbar->back_height = height ;
             flush_tbar_backs(tbar);
-
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
             return True;
         }
     return False;
@@ -1067,6 +1096,7 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
                                  ((row<<AS_TileRowOffset)&AS_TileRowMask)|
                                  ((flip<<AS_TileFlipOffset)&AS_TileFlipMask)|
                                  ((align_flags<<AS_TilePadOffset)&AS_TilePadMask);
+    set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
     return &(tbar->tiles[new_idx]);
 }
 
@@ -1089,6 +1119,7 @@ delete_astbar_tile( ASTBarData *tbar, int idx )
                     tbar->tiles[i].flags = AS_TileFreed ;
                 }
             }
+        set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
         return True;
     }
     return False;
@@ -1192,7 +1223,10 @@ LOCAL_DEBUG_CALLER_OUT( "tbar(%p)->index(%d)->label(\"%s\")", tbar, index, label
             lbl->text = mystrdup (label);
 		}
 		if (changed)
+        {
             set_astile_styles( tbar, &(tbar->tiles[index]), -1 );
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+        }
     }
 	return changed;
 }
@@ -1233,24 +1267,9 @@ move_astbar (ASTBarData * tbar, ASCanvas * pc, int win_x, int win_y)
 		changed = changed || (win_x != tbar->win_x || win_y != tbar->win_y);
 		tbar->win_x = win_x;
 		tbar->win_y = win_y;
+        if( changed )
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
 LOCAL_DEBUG_OUT( "tbar(%p)->root_geom(%ux%u%+d%+d)->win_pos(%+d%+d)->changed(%x)", tbar, tbar->width, tbar->height, root_x, root_y, win_x, win_y, changed );
-	}
-	return changed;
-}
-
-Bool
-update_astbar_root_pos( ASTBarData *tbar, ASCanvas *pc )
-{
-    Bool          changed = False;
-
-	if (tbar && pc)
-	{
-        int           root_x = pc->root_x + tbar->win_x, root_y = pc->root_y + tbar->win_y;
-
-		changed = (root_x != tbar->root_x || root_y != tbar->root_y);
-		tbar->root_x = root_x;
-		tbar->root_y = root_y;
-LOCAL_DEBUG_OUT( "tbar(%p)->root_pos(%+d%+d)", tbar, root_x, root_y );
 	}
 	return changed;
 }
@@ -1267,8 +1286,98 @@ int make_tile_pad( Bool pad_before, Bool pad_after, int cell_size, int tile_size
 }
 
 Bool
+set_astbar_focused (ASTBarData * tbar, ASCanvas * pc, Bool focused)
+{
+	if (tbar)
+	{
+        int          old_focused = get_flags (tbar->state, BAR_STATE_FOCUS_MASK)?1:0;
+
+		if (focused)
+			set_flags (tbar->state, BAR_STATE_FOCUSED);
+		else
+			clear_flags (tbar->state, BAR_STATE_FOCUSED);
+        if( old_focused != focused && pc != NULL )
+            render_astbar( tbar, pc );
+        return ((focused?1:0)!=old_focused);
+	}
+	return False;
+}
+
+Bool
+set_astbar_pressed (ASTBarData * tbar, ASCanvas * pc, Bool pressed)
+{
+	if (tbar)
+	{
+        Bool          old_pressed = get_flags (tbar->state, BAR_STATE_PRESSED_MASK)?1:0;
+
+		if (pressed)
+			set_flags (tbar->state, BAR_STATE_PRESSED);
+		else
+			clear_flags (tbar->state, BAR_STATE_PRESSED);
+        if( old_pressed != pressed && pc != NULL )
+            render_astbar( tbar, pc );
+        return ((pressed?1:0)!=old_pressed);
+	}
+	return False;
+}
+
+Bool
+update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc)
+{
+	int           root_x, root_y;
+    Bool          changed = False;
+    Bool          redraw = False;
+
+	if (tbar == NULL || pc == NULL)
+        return False;;
+
+	root_x = pc->root_x + tbar->win_x;
+	root_y = pc->root_y + tbar->win_y;
+	if ((changed = (root_x != tbar->root_x || root_y != tbar->root_y)))
+	{
+        register int  i = BAR_STATE_NUM;
+
+        tbar->root_x = pc->root_x + tbar->win_x;
+		tbar->root_y = pc->root_y + tbar->win_y;
+
+		while (--i >= 0)
+		{
+			if (tbar->style[i] && tbar->style[i]->texture_type >= TEXTURE_TRANSPARENT)
+            {
+				if (tbar->back[i])
+					destroy_asimage (&(tbar->back[i]));
+                if( i == ((tbar->state)&BAR_STATE_FOCUS_MASK) )
+                    redraw = True;
+            }
+		}
+        if( redraw )
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+    }
+    return redraw;
+}
+
+#ifdef TRACE_render_astbar
+#undef render_astbar
+Bool render_astbar (ASTBarData * tbar, ASCanvas * pc);
+Bool
+trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, int line)
+{
+    Bool res;
+    fprintf (stderr, "D>%s(%d):render_astbar(%p,%p)\n", file, line, tbar, pc);
+    res = render_astbar (tbar, pc);
+	fprintf (stderr,
+             "D>%s(%d):render_astbar(%p,%p) returned %d\n", file, line, tbar, pc, res);
+    if( tbar && res <= 0 )
+        fprintf( stderr, "D>%s(%d):render_astbar tbar data: state %lX, %ux%u%+d%+d, root %+d%+d, styles %p,%p, tiles_num %d, tiles %p, canvas %X\n" ,
+                 file, line, tbar->state, tbar->width, tbar->height, tbar->win_x, tbar->win_y, tbar->root_x, tbar->root_y, tbar->style[0], tbar->style[1], tbar->tiles_num, tbar->tiles, pc->canvas );
+    return res;
+}
+#endif
+
+Bool
 render_astbar (ASTBarData * tbar, ASCanvas * pc)
 {
+    START_TIME(started);
     ASImage      *back;
 	MyStyle      *style;
 	ASImageBevel  bevel;
@@ -1287,16 +1396,17 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
     short space_left_x, space_left_y ;
     int x = 0, y = 0 ;
     int good_layers = 0;
+    Bool res = False;
 
 	/* input control : */
 LOCAL_DEBUG_CALLER_OUT("tbar(%p)->pc(%p)", tbar, pc );
 	if (tbar == NULL || pc == NULL || pc->w == None)
-		return False;
+        return -3;
 	state = get_flags (tbar->state, BAR_STATE_FOCUS_MASK);
 	style = tbar->style[state];
 LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)", style, tbar->width, tbar->height, tbar->root_x, tbar->root_y );
 	if (style == NULL)
-		return False;
+        return -2;
 	/* validating our images : */
 	if ((back = tbar->back[state]) != NULL)
 	{
@@ -1314,9 +1424,8 @@ LOCAL_DEBUG_OUT("back(%p)", back );
 		tbar->back[state] = back = mystyle_make_image (style, tbar->root_x, tbar->root_y, tbar->width, tbar->height);
 LOCAL_DEBUG_OUT("back-try2(%p)", back );
 		if (back == NULL)
-			return False;
+            return -1;
 	}
-
     mystyle_make_bevel (style, &bevel, BAR_FLAGS2HILITE(tbar->state), get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
 	/* in unfocused and unpressed state we render pixmap and set
 	 * window's background to it
@@ -1324,7 +1433,6 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 	 * the window directly, and we'll need to be handling the expose
 	 * events
 	 */
-
     /* very complicated layout code : */
     /* pass 1: first we determine width/height of each row/column, as well as count of layers : */
     for( l = 0 ; l < tbar->tiles_num ; ++l )
@@ -1342,7 +1450,6 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             if( get_flags( tbar->tiles[l].flags, AS_TileVPadMask ) )
                 ++padded_rows[pos] ;
         }
-
     /* pass 2: see how much space we have left that needs to be padded to some rows/columns : */
     space_left_x = tbar->width - (tbar->left_bevel+tbar->right_bevel+tbar->h_border*2);
     space_left_y = tbar->height- (tbar->top_bevel+tbar->bottom_bevel+tbar->v_border*2);
@@ -1464,85 +1571,18 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 
 	if (merged_im)
 	{
-		Bool          res = draw_canvas_image (pc, merged_im, tbar->win_x, tbar->win_y);
+        res = draw_canvas_image (pc, merged_im, tbar->win_x, tbar->win_y);
 
 #ifdef SHAPE
 		if (style->texture_type == TEXTURE_SHAPED_PIXMAP || style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP)
 			draw_canvas_mask (pc, merged_im, tbar->win_x, tbar->win_y);
 #endif
 		destroy_asimage (&merged_im);
-		return res;
-	}
-
-	return False;
-}
-
-Bool
-set_astbar_focused (ASTBarData * tbar, ASCanvas * pc, Bool focused)
-{
-	if (tbar)
-	{
-        int          old_focused = get_flags (tbar->state, BAR_STATE_FOCUS_MASK)?1:0;
-
-		if (focused)
-			set_flags (tbar->state, BAR_STATE_FOCUSED);
-		else
-			clear_flags (tbar->state, BAR_STATE_FOCUSED);
-        if( old_focused != focused && pc != NULL )
-            render_astbar( tbar, pc );
-        return ((focused?1:0)!=old_focused);
-	}
-	return False;
-}
-
-Bool
-set_astbar_pressed (ASTBarData * tbar, ASCanvas * pc, Bool pressed)
-{
-	if (tbar)
-	{
-        Bool          old_pressed = get_flags (tbar->state, BAR_STATE_PRESSED_MASK)?1:0;
-
-		if (pressed)
-			set_flags (tbar->state, BAR_STATE_PRESSED);
-		else
-			clear_flags (tbar->state, BAR_STATE_PRESSED);
-        if( old_pressed != pressed && pc != NULL )
-            render_astbar( tbar, pc );
-        return ((pressed?1:0)!=old_pressed);
-	}
-	return False;
-}
-
-void
-update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc)
-{
-	int           root_x, root_y;
-	Bool          changed = False;;
-
-	if (tbar == NULL || pc == NULL)
-		return;
-
-	root_x = pc->root_x + tbar->win_x;
-	root_y = pc->root_y + tbar->win_y;
-	if ((changed = (root_x != tbar->root_x || root_y != tbar->root_y)))
-	{
-		tbar->root_x = pc->root_x + tbar->win_x;
-		tbar->root_y = pc->root_y + tbar->win_y;
-		changed = True;
-	}
-
-	if (changed)
-	{
-		register int  i = BAR_STATE_NUM;
-
-		while (--i >= 0)
-		{
-			if (tbar->style[i] && tbar->style[i]->texture_type >= TEXTURE_TRANSPARENT)
-				if (tbar->back[i])
-					destroy_asimage (&(tbar->back[i]));
-		}
-		render_astbar (tbar, pc);
-	}
+        if( res )
+            clear_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+    }
+    SHOW_TIME("rendering",started);
+    return res;
 }
 
 int

@@ -30,7 +30,7 @@
  ***********************************************************************/
 #include "../../configure.h"
 
-//#define LOCAL_DEBUG
+/* #define LOCAL_DEBUG */
 
 #include "../../include/asapp.h"
 #include <X11/keysym.h>
@@ -43,6 +43,9 @@
 #include "../../include/event.h"
 #include "asinternals.h"
 #include "menus.h"
+
+#define START_LONG_DRAW_OPERATION   XGrabServer(dpy)
+#define STOP_LONG_DRAW_OPERATION    XUngrabServer(dpy)
 
 
 static ASMenu *ASTopmostMenu = NULL;
@@ -59,7 +62,7 @@ make_menu_window( Window parent )
         parent = Scr.Root ;
 
     attr.event_mask = AS_MENU_EVENT_MASK ;
-    w = create_visual_window( Scr.asv, parent, -10, -10, 5, 5, 0, InputOutput, CWEventMask, &attr );
+    w = create_visual_window( Scr.asv, parent, -10, -10, 1, 1, 0, InputOutput, CWEventMask, &attr );
 
     if( w && parent != Scr.Root )
         XMapRaised( dpy, w );
@@ -154,7 +157,7 @@ close_asmenu( ASMenu **pmenu)
         if( menu )
         {
 LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmostMenu, menu->supermenu, menu, menu->submenu );
-	    if( menu->submenu ) 
+	    if( menu->submenu )
 		close_asmenu( &(menu->submenu) );
             if( menu->owner )
             {
@@ -266,6 +269,32 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
     return True;
 }
 
+static void
+render_asmenu_bars( ASMenu *menu )
+{
+    int i = menu->items_num ;
+    Bool rendered = False;
+    START_LONG_DRAW_OPERATION;
+    for( i = 0 ; i < menu->items_num ; ++i )
+    {
+        int prev_y = -10000 ;
+        register ASTBarData *bar = menu->items[i].bar ;
+        if( DoesBarNeedsRendering(bar) &&
+            bar->win_y + (int)(bar->height) > 0 && (int)(bar->win_y) > prev_y )
+        {
+            if( render_astbar( bar, menu->main_canvas ) )
+                rendered = True ;
+        }
+        prev_y = bar->win_y ;
+    }
+    STOP_LONG_DRAW_OPERATION;
+    if( rendered )
+    {
+        update_canvas_display( menu->main_canvas );
+        ASSync(False);
+    }
+}
+
 /*************************************************************************/
 /* midium level ASMenu functionality :                                      */
 /*************************************************************************/
@@ -298,7 +327,6 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
             }else
             {
                 set_asmenu_item_data( &(menu->items[real_items_num]), mdi );
-
                 if( menu->items[real_items_num].icon )
                     if( menu->items[real_items_num].icon->width > max_icon_size )
                         max_icon_size = menu->items[real_items_num].icon->width ;
@@ -378,7 +406,8 @@ LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
 
     /* setting up desired size  - may or maynot be overriden by user actions -
      * so we'll use ConfigureNotify events later on to keep ourselves up to date*/
-    resize_canvas( menu->main_canvas, max_width, display_size );
+    if( menu->owner != NULL )
+        resize_canvas( menu->main_canvas, max_width, display_size );
     menu->optimal_width  = max_width ;
     menu->optimal_height = display_size ;
 
@@ -405,9 +434,10 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
         selection = menu->items_num - 1 ;
 
     if( selection != menu->selected_item )
+    {
         close_asmenu_submenu( menu );
-
-    set_astbar_focused( menu->items[menu->selected_item].bar, menu->main_canvas, False );
+        set_astbar_focused( menu->items[menu->selected_item].bar, menu->main_canvas, False );
+    }
     set_astbar_focused( menu->items[selection].bar, menu->main_canvas, True );
     menu->selected_item = selection ;
 
@@ -415,8 +445,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
         set_asmenu_scroll_position( menu, MAX(selection-1, 0) );
     else if( selection >= menu->top_item + menu->visible_items_num )
         set_asmenu_scroll_position( menu, (selection-menu->visible_items_num)+1);
-    else
-        update_canvas_display( menu->main_canvas );
+    render_asmenu_bars(menu);
 }
 
 void
@@ -441,15 +470,13 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
         curr_y -= menu->item_height ;
         move_astbar( menu->items[i].bar, menu->main_canvas, 0, curr_y );
     }
-
     menu->top_item = pos ;
     if( menu->selected_item < menu->top_item )
         select_menu_item( menu, menu->top_item );
     else if( menu->selected_item >= menu->top_item + menu->visible_items_num )
         select_menu_item( menu, menu->top_item + menu->visible_items_num - 1 );
-    else /* selection update canvas display just as well */
-        update_canvas_display( menu->main_canvas );
-    ASSync(False);
+
+    render_asmenu_bars(menu);
 }
 
 static inline void
@@ -467,7 +494,6 @@ run_item_submenu( ASMenu *menu, int item )
 void
 press_menu_item( ASMenu *menu, int pressed )
 {
-    Bool update_display = False ;
 LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
 
     if( AS_ASSERT(menu) || menu->items_num == 0 )
@@ -477,10 +503,8 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
         pressed = menu->items_num - 1 ;
 
     if( menu->pressed_item >= 0 )
-    {
         set_astbar_pressed( menu->items[menu->pressed_item].bar, menu->main_canvas, False );
-        update_display = True ;
-    }
+
     if( pressed >= 0 )
     {
         if( get_flags(menu->items[pressed].flags, AS_MenuItemDisabled) )
@@ -491,15 +515,12 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
             {
                 set_astbar_pressed( menu->items[pressed].bar, NULL, True );/* don't redraw yet */
                 select_menu_item( menu, pressed );  /* this one updates display already */
-                update_display = False ;
             }else
-            {
                 set_astbar_pressed( menu->items[pressed].bar, menu->main_canvas, True );
-                update_display = True ;
-            }
             run_item_submenu( menu, pressed );
         }
     }
+    render_asmenu_bars(menu);
 /* LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pressed_item, menu->focused );*/
     if( pressed < 0 && menu->pressed_item >= 0 && menu->focused )
     {
@@ -513,9 +534,6 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
         }
     }
     menu->pressed_item = pressed ;
-    if( update_display )
-        update_canvas_display( menu->main_canvas );
-    ASSync(False);
 }
 /*************************************************************************/
 /* Menu event handlers  - ASInternalWindow interface :                   */
@@ -544,28 +562,24 @@ LOCAL_DEBUG_OUT( "changed(%lX)->main_width(%d)->main_height(%d)->item_height(%d)
             if( get_flags( changed, CANVAS_WIDTH_CHANGED) )
             {
                 while ( --i >= 0 )
-                {
                     set_astbar_size(menu->items[i].bar, menu->main_canvas->width, menu->item_height);
-                    render_astbar( menu->items[i].bar, menu->main_canvas );
-                }
             }
             if( get_flags( changed, CANVAS_HEIGHT_CHANGED) )
             {
                 menu->visible_items_num = menu->main_canvas->height / menu->item_height ;
+LOCAL_DEBUG_OUT( "update_canvas_display via set_asmenu_scroll_position from move_resize %s", "");
                 set_asmenu_scroll_position( menu, menu->top_item );
-            }else
-                update_canvas_display( menu->main_canvas );
+            }
         }else if( get_flags( changed, CANVAS_MOVED) )
         {
+            Bool update_display = False ;
             while ( --i >= 0 )
-            {
-                update_astbar_root_pos(menu->items[i].bar, menu->main_canvas);
-                render_astbar( menu->items[i].bar, menu->main_canvas );
-            }
-            update_canvas_display( menu->main_canvas );
-            /* optionally update transparency */
+                update_astbar_transparency(menu->items[i].bar, menu->main_canvas);
+            if( update_display )
+                update_canvas_display( menu->main_canvas );
         }
-        ASSync(False);
+        if( changed != 0 )
+            render_asmenu_bars(menu);
     }
 }
 
@@ -633,12 +647,11 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
                 if( xmev->state & ButtonAnyMask )
                     press_menu_item( menu, selection );
                 else
-                {
                     select_menu_item( menu, selection );
-                    if( px > canvas->width-menu->arrow_space )
-                        run_item_submenu( menu, selection );
-                }
             }
+            if( px > canvas->width - ( menu->arrow_space + DEFAULT_MENU_SPACING ) &&
+                menu->submenu == NULL )
+                run_item_submenu( menu, selection );
         }
     }
 }
@@ -674,6 +687,7 @@ on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, A
         }
         set_asmenu_look( menu, look );
         set_asmenu_scroll_position( menu, 0 );
+        render_asmenu_bars(menu);
     }
 }
 
@@ -836,7 +850,7 @@ run_submenu( ASMenu *supermenu, MenuData *md, int x, int y )
         menu = create_asmenu(md->name);
         set_asmenu_data( menu, md );
         set_asmenu_look( menu, &Scr.Look );
-        set_asmenu_scroll_position( menu, 0 );
+        /* will set scroll position when ConfigureNotify arrives */
         menu->supermenu = supermenu;
         show_asmenu(menu, x, y );
     }
@@ -861,5 +875,49 @@ run_menu( const char *name )
         y = (Scr.MyDisplayHeight*3)/ 4;
     }
     ASTopmostMenu = run_submenu(NULL, md, x, y );
+}
+
+ASMenu *
+find_asmenu( const char *name )
+{
+    if( name )
+    {
+        ASMenu *menu = ASTopmostMenu ;
+        while( menu )
+        {
+            if( mystrcasecmp(menu->name, name) == 0 ||
+                mystrcasecmp(menu->title, name) == 0)
+                return menu;
+            menu = menu->submenu ;
+        }
+    }
+    return NULL;
+}
+
+
+void
+pin_asmenu( ASMenu *menu )
+{
+    if( menu )
+    {
+        close_asmenu_submenu( menu );
+        if( menu == ASTopmostMenu )
+            ASTopmostMenu = NULL ;
+        else if( menu->supermenu &&
+                 menu->supermenu->magic == MAGIC_ASMENU &&
+                 menu->supermenu->submenu == menu )
+            menu->supermenu->submenu = NULL ;
+        menu->pinned = True ;
+        if( menu->owner )
+            redecorate_window( menu->owner, False );
+    }
+}
+
+Bool
+is_menu_pinnable( ASMenu *menu )
+{
+    if( menu && menu->magic == MAGIC_ASMENU )
+        return !(menu->pinned);
+    return False;
 }
 

@@ -27,7 +27,7 @@ typedef struct
 BaseConfig;
 
 BaseConfig *ParseBaseOptions (const char *filename, char *myname);
-/* 
+/*
  * all data members that has been used from BaseConfig structure, returned
  * by this call must be set to NULL, or memory allocated for them will be
  * deallocated by the following DestroyBaseConfig function !
@@ -103,21 +103,21 @@ typedef struct mystyle_definition
 #define SET_SET_FLAG(d,f)  d.set_flags |= f
     unsigned long set_flags;
     int finished;		/* if this one is set to 0 - MyStyle was not terminated with ~MyStyle
-				 * error should be displayed as the result and this definition 
+				 * error should be displayed as the result and this definition
 				 * should be ignored
 				 */
     FreeStorageElem *more_stuff;
 
-    struct mystyle_definition *next;	/* as long as there could be several MyStyle definitions 
-					 * per config file, we arrange them all into the linked list 
+    struct mystyle_definition *next;	/* as long as there could be several MyStyle definitions
+					 * per config file, we arrange them all into the linked list
 					 */
   }
 MyStyleDefinition;
-/* this function will process consequent MyStyle options from FreeStorage, 
- * create (if needed ) and initialize MyStyleDefinition structure 
+/* this function will process consequent MyStyle options from FreeStorage,
+ * create (if needed ) and initialize MyStyleDefinition structure
  * new structures will be added at the tail of linked list.
- * it will return the new tail. 
- * [options] will be changed to point to the next non-MyStyle FreeStorageElem 
+ * it will return the new tail.
+ * [options] will be changed to point to the next non-MyStyle FreeStorageElem
  */
 void DestroyMyStyleDefinitions (MyStyleDefinition ** list);
 MyStyleDefinition **ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail);
@@ -165,9 +165,9 @@ extern char *pixmapPath;
 #define PAGER_SET_ROWS 				(1<<20)
 #define PAGER_SET_COLUMNS 			(1<<21)
 #define PAGER_SET_SELECTION_COLOR	(1<<22)
-#define PAGER_SET_GRID_COLOR		(1<<23)	
-#define PAGER_SET_BORDER_COLOR		(1<<24)	
-#define PAGER_SET_BORDER_WIDTH		(1<<25)	
+#define PAGER_SET_GRID_COLOR		(1<<23)
+#define PAGER_SET_BORDER_COLOR		(1<<24)
+#define PAGER_SET_BORDER_WIDTH		(1<<25)
 
 
 /* ID's used in our config */
@@ -283,7 +283,7 @@ typedef struct
 ASetRootConfig;
 
 ASetRootConfig *ParseASetRootOptions (const char *filename, char *myname);
-/* 
+/*
  * all data members that has been used from ASetRootConfig structure, returned
  * by this call must be set to NULL, or memory allocated for them will be
  * deallocated by the following DestroyBaseConfig function !
@@ -293,7 +293,7 @@ void DestroyASetRootConfig (ASetRootConfig * config);
 
 
 /* New winlist config :
- *	
+ *
  *	*WinListGeometry		+x+y
  *  *WinListMinSize			WxH
  *  *WinListMaxSize			WxH
@@ -301,17 +301,17 @@ void DestroyASetRootConfig (ASetRootConfig * config);
  *  *WinListMaxColumns		count
  *  *WinListMinColWidth		width
  *  *WinListMaxColWidth		width
- *  *WinListFillRowsFirst 
- *  *WinListUseSkipList 
+ *  *WinListFillRowsFirst
+ *  *WinListUseSkipList
  *  *WinListUnfocusedStyle 	"style"
  *  *WinListFocusedStyle 	"style"
  *  *WinListStickyStyle 	"style"
  *	*WinListUseName			0|1|2|3   # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
  *	*WinListJustify			l|c|r     # l - Left, c - Center, r - Right
  *  *WinListAction			[Click]1|2|3|4|5
- *    
+ *
  * Obsolete functions :
- * 
+ *
  *  *WinListHideGeometry	WxH+x+y
  *  *WinListNoAnchor
  *  *WinListUseIconNames
@@ -349,24 +349,24 @@ void DestroyASetRootConfig (ASetRootConfig * config);
 
 /* config data structure */
 
-typedef enum 
+typedef enum
 { ASN_Name = 0, ASN_IconName, ASN_ResClass, ASN_ResName, ASN_NameTypes }ASNameTypes ;
-typedef enum 
+typedef enum
 { ASA_Left = 0, ASA_Center, ASA_Right, ASA_AligmentTypes } ASAligmentTypes;
 
 typedef struct WinListConfig
 {
-#define WINLIST_FillRowsFirst	(0x01<<0)			
-#define WINLIST_UseSkipList		(0x01<<1)			
+#define WINLIST_FillRowsFirst	(0x01<<0)
+#define WINLIST_UseSkipList		(0x01<<1)
 #define WINLIST_Geometry		(0x01<<2)
 #define WINLIST_MinSize			(0x01<<3)
-#define WINLIST_MaxSize			(0x01<<4)			
-#define WINLIST_MaxRows			(0x01<<5)				
-#define WINLIST_MaxColumns		(0x01<<6)				
-#define WINLIST_MaxColWidth		(0x01<<7)			
-#define WINLIST_MinColWidth		(0x01<<8)			
-#define WINLIST_UseName			(0x01<<9)			
-#define WINLIST_Justify			(0x01<<10)			
+#define WINLIST_MaxSize			(0x01<<4)
+#define WINLIST_MaxRows			(0x01<<5)
+#define WINLIST_MaxColumns		(0x01<<6)
+#define WINLIST_MaxColWidth		(0x01<<7)
+#define WINLIST_MinColWidth		(0x01<<8)
+#define WINLIST_UseName			(0x01<<9)
+#define WINLIST_Justify			(0x01<<10)
 
 #define 	ASWL_RowsFirst 		WINLIST_FillRowsFirst
 #define 	ASWL_UseSkipList	WINLIST_UseSkipList
@@ -378,14 +378,14 @@ typedef struct WinListConfig
 	unsigned int max_width, max_height ;
 	unsigned int max_rows, max_columns ;
 	unsigned int min_col_width, max_col_width ;
-	
+
 	char *unfocused_style ;
 	char *focused_style ;
 	char *sticky_style ;
-	
+
 	ASNameTypes     show_name_type ; /* 0, 1, 2, 3 */
-	ASAligmentTypes name_aligment ;  
-	
+	ASAligmentTypes name_aligment ;
+
 	char *mouse_actions[MAX_MOUSE_BUTTONS];
 
     MyStyleDefinition *style_defs;
@@ -485,6 +485,7 @@ WinListConfig *ParseWinListOptions (const char *filename, char *myname);
 struct name_list;
 
 unsigned int translate_title_button (unsigned int user_button);
+unsigned int translate_title_button_back (unsigned int title_button);
 struct name_list *ParseDatabaseOptions (const char *filename, char *myname);
 int WriteDatabaseOptions (const char *filename, char *myname,
 			  struct name_list *config, unsigned long flags);

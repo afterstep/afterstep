@@ -68,6 +68,7 @@ void paste_selection_func_handler( FunctionData *data, ASEvent *event, int modul
 void warp_func_handler( FunctionData *data, ASEvent *event, int module );
 void goto_bookmark_func_handler( FunctionData *data, ASEvent *event, int module );
 void bookmark_window_func_handler( FunctionData *data, ASEvent *event, int module );
+void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module );
 void close_func_handler( FunctionData *data, ASEvent *event, int module );
 void restart_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -129,6 +130,7 @@ void SetupFunctionHandlers()
     function_handlers[F_PASTE_SELECTION]    = paste_selection_func_handler ;
     function_handlers[F_GOTO_BOOKMARK]      = goto_bookmark_func_handler ;
     function_handlers[F_BOOKMARK_WINDOW]    = bookmark_window_func_handler ;
+    function_handlers[F_PIN_MENU]           = pin_menu_func_handler ;
     function_handlers[F_DESTROY] =
         function_handlers[F_DELETE] =
         function_handlers[F_CLOSE]          = close_func_handler ;
@@ -783,6 +785,24 @@ void paste_selection_func_handler( FunctionData *data, ASEvent *event, int modul
 void goto_bookmark_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 }
+
+void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+    ASMenu *menu = NULL;
+    if( data->name )
+        menu = find_asmenu( data->name );
+    else if( event->client && event->client->internal )
+    {
+        ASMagic *data = event->client->internal->data ;
+        if( data->magic == MAGIC_ASMENU )
+            menu = (ASMenu*)data;
+    }
+    if( menu == NULL )
+        XBell (dpy, event->scr->screen);
+    else
+        pin_asmenu( menu );
+}
+
 
 void bookmark_window_func_handler( FunctionData *data, ASEvent *event, int module )
 {

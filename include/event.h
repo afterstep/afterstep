@@ -4,9 +4,15 @@
 struct ScreenInfo;
 
 /* couple additional event masks to compensate for X defaults :*/
+#ifndef SelectionMask
 #define SelectionMask	(1L<<28)
-#define ClientMask		(1L<<29)
-#define MappingMask		(1L<<30)
+#endif
+#ifndef ClientMask
+#define ClientMask      (1L<<29)
+#endif
+#ifndef MappingMask
+#define MappingMask     (1L<<30)
+#endif
 
 #define ButtonAnyMask	(Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)
 
@@ -84,7 +90,7 @@ const char *event_type2name( int type );
 #define ASCheckWindowEvent(w,m,e)   check_event_windowed(w,m,e)
 
 #define ASEventScreen(e)            (&Scr)
-#define ASNextEvent(e)              next_event (e)
+#define ASNextEvent(e,compress_motion)              next_event (e,compress_motion)
 #define ASMaskEvent(m,e)            mask_event (m,e)
 #define ASWindowEvent(w,m,e)        window_event(w,m,e)
 
@@ -110,7 +116,7 @@ Bool check_event_typed( register int event_type, register XEvent * event_return)
 Bool check_event_typed_windowed( Window w, int event_type, register XEvent *event_return );
 Bool check_event_windowed (Window w, long event_mask, register XEvent * event_return);
 
-int  next_event (register XEvent * event_return);
+int  next_event (register XEvent * event_return, Bool compress_motion);
 int  mask_event (long event_mask, register XEvent * event_return);
 int  window_event (Window w, long event_mask, register XEvent * event_return);
 

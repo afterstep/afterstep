@@ -70,6 +70,7 @@ typedef enum {
   F_PASTE_SELECTION,
   F_CHANGE_WINDOWS_DESK,
   F_BOOKMARK_WINDOW,
+  F_PIN_MENU,
   /* end of window functions */
   /* these are commands  to be used only by modules */
 /* end of window functions */

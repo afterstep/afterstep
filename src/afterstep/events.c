@@ -171,9 +171,11 @@ HandleEvents ()
     {
         while((has_x_events = XPending (dpy)))
         {
-            ASNextEvent (&(event.x));
-            DigestEvent( &event );
-            DispatchEvent( &event );
+            if( ASNextEvent (&(event.x), True) )
+            {
+                DigestEvent( &event );
+                DispatchEvent( &event );
+            }
         }
         afterstep_wait_pipes_input ();
     }
@@ -290,16 +292,18 @@ WaitWindowLoop( char *pattern, long timeout )
             ASFlush();
 			while((has_x_events = XPending (dpy)))
 			{
-                ASNextEvent (&(event.x));
+                if( ASNextEvent (&(event.x), True) )
+                {
 
-                DigestEvent( &event );
-                DispatchEvent( &event );
-                if( event.x.type == MapNotify && event.client )
-                    if( match_string_list (event.client->hints->names, MAX_WINDOW_NAMES, wrexp) == 0 )
-                    {
-                        destroy_wild_reg_exp( wrexp );
-                        return True;
-					}
+                    DigestEvent( &event );
+                    DispatchEvent( &event );
+                    if( event.x.type == MapNotify && event.client )
+                        if( match_string_list (event.client->hints->names, MAX_WINDOW_NAMES, wrexp) == 0 )
+                        {
+                            destroy_wild_reg_exp( wrexp );
+                            return True;
+                        }
+                }
 			}
 		}while( has_x_events );
 

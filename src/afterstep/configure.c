@@ -85,6 +85,9 @@ static int           TitleTextType = 0;
 static int           TitleTextY = 0;
 static int           IconTexType = TEXTURE_BUILTIN;
 
+static char         *MenuPinOn = NULL ;
+
+
 /* parsing handling functions for different data types : */
 
 void          SetInts               (char *text, FILE * fd, char **arg1, int *arg2);
@@ -213,8 +216,8 @@ struct config main_config[] = {
     {"UTitlePixmap", assign_string, &WindowPixmap[BACK_UNFOCUSED], (int *)0},    /* unfoc tit */
     {"STitlePixmap", assign_string, &WindowPixmap[BACK_STICKY], (int *)0},    /* stick tit */
 
-    {"MenuPinOn", assign_pixmap, (char **)&Scr.Look.MenuPinOn, (int *)0},    /* menu pin */
-    {"MenuPinOff", assign_pixmap, (char **)&Scr.Look.MenuPinOff, (int *)0},
+    {"MenuPinOn", assign_string, &MenuPinOn, (int *)0},    /* menu pin */
+    {"MenuPinOff", obsolete, (char **)NULL, (int *)0},
     {"MArrowPixmap", assign_pixmap, (char **)&Scr.Look.MenuArrow, (int *)0},   /* menu arrow */
 
     {"TexturedHandle", SetFlag2, (char **)TexturedHandle, (int *)&Scr.Look.flags},
@@ -747,14 +750,12 @@ InitLook (MyLook *look, Bool free_resources)
 		/* icons */
         if (look->MenuArrow != NULL)
             destroy_icon( &(look->MenuArrow) );
-        if (look->MenuPinOn != NULL)
-            destroy_icon( &(look->MenuPinOn) );
-        if (look->MenuPinOff != NULL)
-            destroy_icon( &(look->MenuPinOff) );
+        if( MenuPinOn != NULL )
+            free( MenuPinOn );
 
 #endif /* !NO_TEXTURE */
 		/* titlebar buttons */
-		for (i = 0; i < 10; i++)
+        for (i = 0; i < TITLE_BUTTONS; i++)
 		{
             free_icon_resources( look->buttons[i].unpressed );
             free_icon_resources( look->buttons[i].pressed );
@@ -786,7 +787,7 @@ InitLook (MyLook *look, Bool free_resources)
 	/* titlebar buttons */
     look->TitleButtonSpacing = 2;
     look->TitleButtonStyle = 0;
-	for (i = 0; i < 10; i++)
+    for (i = 0; i < TITLE_BUTTONS; i++)
         memset(&(look->buttons[i]), 0x00, sizeof(MyButton));
 
     look->ButtonWidth = 0;
@@ -794,8 +795,7 @@ InitLook (MyLook *look, Bool free_resources)
 
     /* icons */
     look->MenuArrow = NULL;
-    look->MenuPinOn = NULL;
-    look->MenuPinOff = NULL;
+    MenuPinOn = NULL;
 
 	/* resize/move window geometry */
     memset( &(look->resize_move_geometry), 0x00, sizeof(ASGeometry));
@@ -878,6 +878,29 @@ FixLook( MyLook *look )
 #endif /* ! NO_TEXTURE */
     if( look->DefaultFrame == NULL )
         look->DefaultFrame = create_default_myframe();
+
+    if (MenuPinOn != NULL)
+    {
+        register int i = TITLE_BUTTONS ;
+        while ( --i >= 0 )
+		{
+            if( look->buttons[i].unpressed.image == NULL && look->buttons[i].pressed.image == NULL )
+                break;
+        }
+        if( i >= 0 )
+        {
+            if( GetIconFromFile (MenuPinOn, &(Scr.Look.buttons[i].unpressed), 0) )
+            {
+                static char binding[128];
+                Scr.Look.buttons[i].width = Scr.Look.buttons[i].unpressed.image->width ;
+                Scr.Look.buttons[i].height = Scr.Look.buttons[i].unpressed.image->height ;
+                sprintf( binding, "1 %d A PinMenu\n", translate_title_button_back (i));
+                /* also need to add mouse binding for this one */
+                ParseMouseEntry (binding, NULL, NULL, NULL);
+            }
+        }
+        show_warning( "MenuPinOn setting is depreciated - instead add a Title button and bind PinMenu function to it." );
+    }
 
     /* updating balloons look */
     balloon_setup (dpy);
@@ -1643,7 +1666,7 @@ MeltStartMenu (char *buf)
 	/* make sure one copy of the root menu uses the name "0" */
 	(*tree).flags &= ~DIRTREE_KEEPNAME;
 
-	dirtree_make_menu2 (tree, buf);
+    dirtree_make_menu2 (tree, buf, True);
 	/* to keep backward compatibility, make a copy of the root menu with
 	 * the name "start" */
 	{
@@ -1651,7 +1674,7 @@ MeltStartMenu (char *buf)
 			free ((*tree).name);
 		(*tree).name = mystrdup ("start");
 		(*tree).flags |= DIRTREE_KEEPNAME;
-		dirtree_make_menu2 (tree, buf);
+        dirtree_make_menu2 (tree, buf, False);
 	}
 	/* cleaning up cache of the searcher */
 	is_executable_in_path (NULL);
