@@ -37,10 +37,6 @@ typedef struct
 
 #endif
 
-/* MENU SORT MODS : */
-#define SORTBYALPHA 1
-#define SORTBYDATE  2
-
 /* look file flags */
 typedef enum
 {
@@ -161,7 +157,7 @@ typedef struct ScreenInfo
 
     struct ASFontManager  *font_manager ;
     struct ASImageManager *image_manager ;
-	
+
 	Bool (*on_dead_window)( Window w );
 
 }ScreenInfo;

@@ -161,10 +161,10 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
     ASEvent tmp_event ;
     register XEvent *xevt = &(tmp_event.x) ;
 
+    ASSync(False);
     do
 	{
-        ASFlush();
-		sleep_a_little (1000);
+        sleep_a_little (1000);
         if (ASCheckMaskEvent (end_mask, xevt))
         {
             DigestEvent( &tmp_event );
@@ -174,6 +174,7 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
         if( total++ > click_time )
 			break;
 
+        LOCAL_DEBUG_OUT( "total=%d/click_time = %d", total, click_time );
         if (ASCheckMaskEvent ( ButtonMotionMask | PointerMotionMask, xevt))
 		{
 			dx = x_orig - xevt->xmotion.x_root;

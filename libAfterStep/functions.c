@@ -428,6 +428,18 @@ dup_func_data (FunctionData * dst, FunctionData * src)
 	}
 }
 
+inline FunctionData *
+create_named_function( int func, char *name)
+{
+	FunctionData *fdata = safecalloc( 1, sizeof(FunctionData) );
+	init_func_data (fdata);
+	fdata->func = func;
+    if( name )
+        fdata->name = mystrdup (name);
+	return fdata ;
+}
+
+
 
 void
 set_func_val (FunctionData * data, int arg, int value)
@@ -622,6 +634,11 @@ LOCAL_DEBUG_OUT( "freeing func data %p", mdi->fdata );
             }
             if( mdi->minipixmap )
                 free(mdi->minipixmap);
+            if( mdi->minipixmap_image )
+            {
+                safe_asimage_destroy (mdi->minipixmap_image);
+                mdi->minipixmap_image = NULL ;
+            }
             if (mdi->item != NULL)
                 free (mdi->item);
             if (mdi->item2 != NULL)
@@ -631,6 +648,20 @@ LOCAL_DEBUG_OUT( "freeing func data %p", mdi->fdata );
     }
 }
 
+void
+purge_menu_data_items(MenuData *md)
+{
+    if( md )
+    {
+        MenuDataItem *mdi ;
+        while( (mdi=md->first) != NULL )
+        {
+            md->first = mdi->next ;
+            mdi->next = NULL ;
+            menu_data_item_destroy( mdi );
+        }
+    }
+}
 
 void
 menu_data_destroy(ASHashableValue value, void *data)
@@ -641,20 +672,13 @@ LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", (char*)value, data );
         free( (char*)value );
     if( md )
     {
-        MenuDataItem *mdi ;
         if( md->magic == MAGIC_MENU_DATA )
         {
-            md->magic = 0 ;
             if( md->name != (char*)value )
                 free( md->name );
 
-            while( (mdi=md->first) != NULL )
-            {
-                md->first = mdi->next ;
-                mdi->next = NULL ;
-                menu_data_item_destroy( mdi );
-            }
-
+            purge_menu_data_items(md);
+            md->magic = 0 ;
         }
         free(data);
     }
@@ -721,6 +745,8 @@ assign_minipixmap( MenuDataItem *mdi, char *minipixmap )
 #ifndef NO_TEXTURE
     if( mdi && minipixmap )
     {
+        if( mdi->minipixmap )
+            free( mdi->minipixmap );
         mdi->minipixmap = mystrdup( minipixmap );
     }
 #endif
@@ -756,17 +782,22 @@ add_menu_data_item( MenuData *menu, int func, char *name, char *minipixmap )
 }
 
 void
-add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap )
+add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img )
 {
     MenuDataItem *mdi ;
 
     if( fdata )
         if( (mdi = new_menu_data_item(menu)) != NULL )
         {
+            mdi->fdata = safecalloc( 1, sizeof(FunctionData) );
             copy_func_data( mdi->fdata, fdata);
             memset( fdata, 0x00, sizeof( FunctionData ) );
+            parse_menu_item_name (mdi, &(mdi->fdata->name)) ;
             check_availability( mdi );
             assign_minipixmap( mdi, minipixmap );
+            if( mdi->minipixmap_image )
+                safe_asimage_destroy(mdi->minipixmap_image);
+            mdi->minipixmap_image = img ;
         }
 }
 

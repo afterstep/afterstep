@@ -22,6 +22,8 @@ typedef struct ASMenuItem
     struct MenuData   *submenu;
     struct ASImage    *icon;
     struct FunctionData *fdata;
+    /* we don't really use this one except to set up last use time when item is selected :*/
+    struct MenuDataItem *source ;
 }ASMenuItem;
 
 typedef struct ASMenu
@@ -106,6 +108,7 @@ MenuData *update_windowList (void);
 /* menu execution code :                                                 */
 /*************************************************************************/
 void run_menu( const char *name );
+void run_menu_data( MenuData *md );
 ASMenu *run_submenu( ASMenu *supermenu, MenuData *md, int x, int y );
 ASMenu *find_asmenu( const char *name );
 void pin_asmenu( ASMenu *menu );

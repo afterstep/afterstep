@@ -890,8 +890,9 @@ void quit_func_handler( FunctionData *data, ASEvent *event, int module )
 void windowlist_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_WINDOWLIST
-    /* TODO : implement menus : */
-    /*do_menu_new( event->scr, make_window_list_name(data->text == NULL ? event->scr->CurrentDesk: data->func_val[0]), event->client, event->context, windowlist_menu);*/
+    MenuData *md =  make_desk_winlist_menu( Scr.Windows, data->text == NULL ? event->scr->CurrentDesk: data->func_val[0], 0, False );
+    if( md != NULL )
+        run_menu_data( md );
 #endif /* ! NO_WINDOWLIST */
 }
 

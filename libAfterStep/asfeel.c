@@ -63,6 +63,8 @@ init_asfeel( ASFeel *feel )
     feel->ComplexFunctions = NULL;
     feel->ShadeAnimationSteps = 12;
 
+    feel->recent_submenu_items = 0 ;
+
     for( i = 0 ; i < MAX_CURSORS; ++i )
         if( feel->cursors[i] )
             feel->cursors[i] = Scr.standard_cursors[i] ;

@@ -231,7 +231,6 @@ typedef struct ASWindowList
      *          some other window. To do that we substitute focused pointer to new window
      *          right before UngrabEm. In this case focused != ( ungrabbed == hilited )
      */
-
 }ASWindowList;
 
 
@@ -368,6 +367,7 @@ void restack_window( ASWindow *t, Window sibling_window, int stack_mode );
 ASWindow     *get_next_window (ASWindow * curr_win, char *action, int dir);
 ASWindow     *warp_aswindow_list ( ASWindowList *list, Bool backwards );
 
+MenuData *make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon_name );
 
 /*************************** from add_window.c : *************************/
 void destroy_icon_windows( ASWindow *asw );
@@ -375,6 +375,8 @@ Bool get_icon_root_geometry( ASWindow *asw, ASRectangle *geom );
 
 /* swiss army knife - does everything about grabbing : */
 void grab_window_input( ASWindow *asw, Bool release_grab );
+ASImage* get_window_icon_image( ASWindow *asw );
+
 
 void hide_focus();
 Bool focus_aswindow( ASWindow *asw );

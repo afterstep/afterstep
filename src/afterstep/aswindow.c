@@ -860,37 +860,61 @@ LOCAL_DEBUG_OUT("checking i(%d)->end_i(%d)->dir(%d)->AutoReverse(%d)", i, end_i,
 }
 
 /********************************************************************************/
-/* Placement management */
-/*
- * There are several reasons why window has to be moved/resized :
- * Client actions :
- * 1) Initial Placement :
- *      - we take initial placement and calculate anchor based on it.
- *      - additionally we may choose to let user interactively place window ( see below )
- * 2) ConfigureRequest :
- *      - if new position is requested, or new border width is requested -
- *        we recalculate the anchor point.
- *      - if new width is requested - we move/resize window around anchor point.
- * AfterStep actions :
- * 3) Maximize-ing :
- *      - we have to resize/move frame to requested size, and save original position
- *        for the future possible restartion to the original size.
- * 4) UnMaximize-ing
- *      - we have to restore window size/placement from previously saved data.
- * 4) Moving :
- *      - we are moving frame to the requested position.
- * 5) Resizing :
- *      - we are resizing frame to the specified size around the anchor point.
- * 6) look changed and decorartions size changed as well
- *      - we are resizing frame to the new size around the anchor point.
- */
-Bool
-place_window( ASWindow *t, ASStatusHints *status )
+/* window list menus regeneration :                                             */
+/********************************************************************************/
+MenuData *
+make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon_name )
 {
+    char menu_name[256];
+    MenuData *md ;
+    FunctionData  fdata ;
+    char          scut = '0';                  /* Current short cut key */
 
-//#warning TODO: implement window placement
-	return True ;
+    if( list == NULL )
+        return NULL;;
+
+    if( IsValidDesk( desk ) )
+        sprintf( menu_name, "Windows on Desktop #%d", desk );
+    else
+        sprintf( menu_name, "Windows on All Desktops" );
+
+    if( (md = CreateMenuData (menu_name)) == NULL )
+        return NULL;
+
+    purge_menu_data_items( md );
+
+    memset(&fdata, 0x00, sizeof(FunctionData));
+    fdata.func = F_TITLE ;
+    fdata.name = mystrdup(menu_name);
+    add_menu_fdata_item( md, &fdata, NULL, NULL );
+
+    if( sort_order == ASO_Circulation )
+    {
+        ASWindow **clients = PVECTOR_HEAD(ASWindow*,list->circulate_list);
+        int i = -1, max_i = PVECTOR_USED(list->circulate_list);
+        while( ++i < max_i )
+        {
+            if ((ASWIN_DESK(clients[i]) == desk || !IsValidDesk(desk)) && !ASWIN_HFLAGS(clients[i], AS_SkipWinList))
+			{
+                fdata.func = F_RAISE_IT ;
+                fdata.name = mystrdup(icon_name? ASWIN_ICON_NAME(clients[i]) : ASWIN_NAME(clients[i]));
+                fdata.func_val[0] = (long) clients[i];
+                fdata.func_val[1] = (long) clients[i]->w;
+				if (++scut == ('9' + 1))
+					scut = 'A';				   /* Next shortcut key */
+                fdata.hotkey = scut;
+                add_menu_fdata_item( md, &fdata, NULL, get_window_icon_image(clients[i]));
+            }
+        }
+    }else if( sort_order == ASO_Stacking )
+    {
+
+    }else
+    {
+
+
+    }
+    return md ;
 }
-
 
 

@@ -32,6 +32,16 @@
 #define MAX_CURSORS 18
 
 
+/* MENU SORT MODS : */
+#define SORTBYALPHA 1
+#define SORTBYDATE  2
+
+enum {
+    ASO_Circulation = 0,
+    /* TODO: */
+    ASO_Stacking,
+    ASO_Creation
+}ASWinListSortOrder;
 
 /* for the flags value - these used to be separate Bool's */
 typedef enum                /* feel file flags */
@@ -218,6 +228,8 @@ typedef struct ASFeel
 	ASWindowBox        *default_window_box ;
     char               *default_window_box_name ;
 	unsigned int        window_boxes_num ;
+
+    unsigned int        recent_submenu_items;
 }
 ASFeel;
 

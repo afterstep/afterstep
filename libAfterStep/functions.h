@@ -9,6 +9,7 @@
 
 struct ASHashTable;
 struct TermDef;
+struct ASImage;
 
 typedef enum {
   F_NOP = 0,
@@ -166,8 +167,11 @@ typedef struct MenuDataItem
     ASFlagType            flags ;
     struct FunctionData  *fdata ;
     char                 *minipixmap ;         /* we always read filename from config !! */
+    struct ASImage       *minipixmap_image ;
     char *item;         /* the character string displayed on left */
     char *item2;		/* the character string displayed on right */
+
+    time_t                last_used_time ;
 }MenuDataItem;
 
 typedef struct MenuData
@@ -217,6 +221,7 @@ FunctionData *String2Func ( const char *string, FunctionData *p_fdata, Bool quie
 void init_func_data (FunctionData * data);
 void copy_func_data (FunctionData * dst, FunctionData * src);
 void dup_func_data (FunctionData * dst, FunctionData * src);
+inline FunctionData *create_named_function( int func, char *name);
 void set_func_val (FunctionData * data, int arg, int value);
 int free_func_data (FunctionData * data);
 void destroy_func_data( FunctionData **pdata );
@@ -228,6 +233,7 @@ void init_list_of_funcs(struct ASHashTable **list, Bool force);
 ComplexFunction *new_complex_func( struct ASHashTable *list, char *name );
 ComplexFunction *find_complex_func( struct ASHashTable *list, char *name );
 void menu_data_item_destroy(MenuDataItem *mdi);
+void purge_menu_data_items(MenuData *md);
 void menu_data_destroy(ASHashableValue value, void *data);
 void init_list_of_menus ( ASHashTable **list, Bool force);
 MenuData *new_menu_data ( ASHashTable *list, char *name );
@@ -235,12 +241,13 @@ MenuData *find_menu_data( ASHashTable *list, char *name );
 MenuDataItem *new_menu_data_item( MenuData *menu );
 int parse_menu_item_name (MenuDataItem * item, char **name);
 
+void add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img );
 void menu_data_item_from_func (MenuData * menu, FunctionData * fdata);
 void print_func_data(const char *file, const char *func, int line, FunctionData *data);
 
 #if defined(LOCAL_DEBUG) || defined(DEBUG)
 #define MenuDataItemFromFunc(m,f) \
-do{fprintf(stderr,"MenuDataItemFromFunc called:");print_func_data(__FILE__, __FUNCTION__, __LINE__,  fdata);menu_data_item_from_func((m),(f));}while(0)
+do{fprintf(stderr,"MenuDataItemFromFunc called:");print_func_data(__FILE__, __FUNCTION__, __LINE__,f);menu_data_item_from_func((m),(f));}while(0)
 #else
 #define MenuDataItemFromFunc(m,f) menu_data_item_from_func((m),(f))
 #endif

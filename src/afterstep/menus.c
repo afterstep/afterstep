@@ -186,6 +186,10 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
 static void
 set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
 {
+    ASImage *icon_im = NULL ;
+
+    item->source = mdi ;
+
     if( item->bar == NULL )
         item->bar = create_astbar();
 
@@ -194,8 +198,40 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
         safe_asimage_destroy( item->icon );
         item->icon = NULL ;
     }
-    if( mdi->minipixmap )
-        item->icon = GetASImageFromFile( mdi->minipixmap );
+    if( mdi->minipixmap_image )
+        icon_im = mdi->minipixmap_image ;
+    else if( mdi->minipixmap )
+        icon_im = GetASImageFromFile( mdi->minipixmap );
+    if( icon_im )
+    {
+        int w = icon_im->width ;
+        int h = icon_im->height ;
+        if( w > h )
+        {
+            if( w > MAX_MENU_ITEM_HEIGHT )
+            {
+                w = MAX_MENU_ITEM_HEIGHT ;
+                h = (h * w)/icon_im->width ;
+                if( h == 0 )
+                    h = 1 ;
+            }
+        }else if( h > MAX_MENU_ITEM_HEIGHT )
+        {
+            h = MAX_MENU_ITEM_HEIGHT ;
+            w = (w * h)/icon_im->height ;
+            if( w == 0 )
+                w = 1 ;
+        }
+        if( w != icon_im->width || h != icon_im->height )
+        {
+            item->icon = scale_asimage( Scr.asv, icon_im, w, h, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+            if( icon_im != mdi->minipixmap_image )
+                safe_asimage_destroy( icon_im );
+        }else if( icon_im == mdi->minipixmap_image )
+            item->icon = dup_asimage( icon_im );
+        else
+            item->icon = icon_im ;
+    }
 LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item, mdi->minipixmap?mdi->minipixmap:NULL, item->icon );
 
     /* reserve space for minipixmap */
@@ -245,7 +281,7 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
         delete_astbar_tile( item->bar, MI_LEFT_ICON_IDX );
         /* now readd it as minipixmap :*/
         if( item->icon )
-            add_astbar_icon( item->bar, 0, 0, 0, NO_ALIGN, item->icon );
+            add_astbar_icon( item->bar, 0, 0, 0, ALIGN_VCENTER, item->icon );
         else
             add_astbar_spacer( item->bar, 0, 0, 0, NO_ALIGN, icon_space, 1 );
     }
@@ -349,6 +385,9 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
     int i = 0 ;
     int real_items_num = 0;
     int max_icon_size  = 0;
+    MenuDataItem **subitems = NULL ;
+
+
     if( menu->items_num < items_num )
     {
         menu->items = realloc( menu->items, items_num*(sizeof(ASMenuItem)));
@@ -364,21 +403,68 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
     if( items_num > 0 )
     {
         MenuDataItem *mdi = md->first ;
+
+        if( Scr.Feel.recent_submenu_items > 0 )
+            subitems = safecalloc( Scr.Feel.recent_submenu_items, sizeof(MenuDataItem*));
+
         for(mdi = md->first; real_items_num < items_num && mdi != NULL ; mdi = mdi->next )
             if( mdi->fdata->func == F_TITLE && menu->title == NULL )
             {
                 menu->title = mystrdup( mdi->item );
             }else
             {
-                set_asmenu_item_data( &(menu->items[real_items_num]), mdi );
-                if( menu->items[real_items_num].icon )
-                    if( menu->items[real_items_num].icon->width > max_icon_size )
-                        max_icon_size = menu->items[real_items_num].icon->width ;
+                ASMenuItem *item = &(menu->items[real_items_num]);
+                set_asmenu_item_data( item, mdi );
 
                 ++real_items_num;
+                if( mdi->fdata->func == F_POPUP && item->submenu != NULL && subitems != NULL )
+                {
+                    int used = 0, max_subitems = Scr.Feel.recent_submenu_items ;
+                    MenuDataItem *smdi = item->submenu->first ;
+                    while( smdi != NULL )
+                    {
+                        if( smdi->last_used_time > 0 )
+                        {
+                            if( used < max_subitems )
+                            {
+                                subitems[used] = smdi ;
+                                ++used ;
+                            }else
+                            {
+                                i = used ;
+                                while( --i >= 0 )
+                                    if( subitems[i]->last_used_time  > smdi->last_used_time )
+                                    {
+                                        subitems[i] = smdi ;
+                                        break;
+                                    }
+                            }
+                        }
+                        smdi = smdi->next ;
+                    }/* while smdi */
+                    items_num += used ;
+                    if( menu->items_num < items_num )
+                    {
+                        menu->items = realloc( menu->items, items_num*(sizeof(ASMenuItem)));
+                        memset( &(menu->items[menu->items_num]), 0x00, (items_num-menu->items_num)*sizeof(ASMenuItem));
+                    }
+
+                    for( i = 0 ; i < used ; ++i )
+                    {
+                        set_asmenu_item_data( &(menu->items[real_items_num]), subitems[i] );
+                        ++real_items_num;
+                    }
+                }
             }
         if( real_items_num > 0 )
         {
+            for( i = 0 ; i < real_items_num ; ++i )
+            {
+                register ASMenuItem *item = &(menu->items[i]);
+                if( item->icon )
+                    if( item->icon->width > max_icon_size )
+                        max_icon_size = item->icon->width ;
+            }
             set_flags( menu->items[0].flags, AS_MenuItemFirst );
             set_flags( menu->items[real_items_num-1].flags, AS_MenuItemLast );
         }
@@ -464,6 +550,28 @@ LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
     ASSync(False);
 }
 
+static void
+set_menu_item_used( ASMenu *menu, MenuDataItem *mdi )
+{
+    MenuData *md = FindPopup( menu->name, False );
+    if( md && md->magic == MAGIC_MENU_DATA )
+    {
+        register MenuDataItem *i = md->first ;
+        while( i != NULL )
+        {
+            if( i == mdi )
+            {
+                i->last_used_time = time(NULL);
+                break;
+            }
+            i = i->next ;
+        }
+    }
+
+}
+
+
+
 void set_asmenu_scroll_position( ASMenu *menu, int pos );
 
 void
@@ -533,15 +641,17 @@ LOCAL_DEBUG_CALLER_OUT( "%p, %d, submenu(%p)", menu, item, menu->items[item].sub
         int y ;
         ASQueryPointerRootXY( &x, &y );
         x -= 5 ;
+#if 0
         if( x  < menu->main_canvas->root_x + (menu->item_width/3) )
         {
-            int max_dx = Scr.MyDisplayWidth / 20 ;
+            int max_dx = Scr.MyDisplayWidth / 40 ;
             if( menu->main_canvas->root_x + (menu->item_width/3) - x  < max_dx )
                 x = menu->main_canvas->root_x + (menu->item_width/3) ;
             else
-            x += max_dx ;
+                x += max_dx ;
         }
-        y = menu->main_canvas->root_y+(menu->item_height*(item+1-(int)menu->top_item))-5 ;
+#endif
+        y = menu->main_canvas->root_y+(menu->item_height*(item+1-(int)menu->top_item)) - 5 ;
 /*	if( x > menu->main_canvas->root_x+menu->item_width-5 )
 	    x = menu->main_canvas->root_x+menu->item_width-5 ;
 */      close_asmenu_submenu( menu );
@@ -575,6 +685,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
                 select_menu_item( menu, pressed );  /* this one updates display already */
             }else
                 set_astbar_pressed( menu->items[pressed].bar, menu->main_canvas, True );
+            set_menu_item_used( menu, menu->items[pressed].source );
             run_item_submenu( menu, pressed );
         }
     }
@@ -586,6 +697,7 @@ LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pre
         if( !get_flags(item->flags, AS_MenuItemDisabled) &&
             item->fdata->func != F_POPUP )
         {
+            set_menu_item_used( menu, item->source );
             ExecuteFunction( item->fdata, NULL, -1 );
             if( !menu->pinned )
                 close_asmenu( &ASTopmostMenu );
@@ -949,9 +1061,8 @@ run_submenu( ASMenu *supermenu, MenuData *md, int x, int y )
 
 
 void
-run_menu( const char *name )
+run_menu_data( MenuData *md )
 {
-    MenuData *md;
     int x = 0, y = 0;
 	Bool persistent = (get_flags( Scr.Feel.flags, PersistentMenus ) || ASTopmostMenu == NULL );
 
@@ -959,7 +1070,7 @@ run_menu( const char *name )
 
 	if( persistent )
 	{
-	    if( (md = FindPopup (name, False)) == NULL )
+        if( md == NULL )
     	    return;
 
     	if( !ASQueryPointerRootXY(&x,&y) )
@@ -970,6 +1081,14 @@ run_menu( const char *name )
     	ASTopmostMenu = run_submenu(NULL, md, x, y );
 	}
 }
+
+void
+run_menu( const char *name )
+{
+    MenuData *md = FindPopup (name, False);
+    run_menu_data( md );
+}
+
 
 ASMenu *
 find_asmenu( const char *name )

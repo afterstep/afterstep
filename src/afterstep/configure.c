@@ -186,6 +186,7 @@ struct config main_config[] = {
     {"DontRestoreFocus", SetFlag, (char **)DontRestoreFocus, &dummy},
     {"WindowBox", windowbox_parse, (char**)&(Scr.Feel.window_boxes), (int*)&(Scr.Feel.window_boxes_num)},
     {"DefaultWindowBox", assign_quoted_string, (char**)&(Scr.Feel.default_window_box_name), (int*)0},
+    {"RecentSubmenuItems", SetInts, (char**)&Scr.Feel.recent_submenu_items, (int*)&dummy},
 
     /* look options */
 	{"Font", assign_string, &Stdfont, (int *)0},

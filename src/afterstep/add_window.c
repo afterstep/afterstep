@@ -29,48 +29,6 @@
 
 #include "asinternals.h"
 
-#if 0
-/************************************************************************/
-/* artifacts of ASWindow icon handling - assimilate in other functions: */
-/************************************************************************/
-void
-Create_icon_windows (ASWindow *asw)
-{
-	unsigned long valuemask;				   /* mask for create windows */
-	XSetWindowAttributes attributes;		   /* attributes for create windows */
-
-	asw->flags &= ~(ICON_OURS | XPM_FLAG | PIXMAP_OURS | SHAPED_ICON);
-
-	if ( !ASWIN_HFLAGS( asw, AS_Icon ) )
-		return;
-	/* First, see if it was specified in config. files  */
-	if ( !ASWIN_HFLAGS( asw, AS_ClientIcon ) )
-    GetIcon (tmp_win);
-	ResizeIconWindow (tmp_win);
-
-	if (tmp_win->icon_title_w != None)
-	{
-        register_aswindow( tmp_win->icon_title_w, tmp_win );
-		XDefineCursor (dpy, tmp_win->icon_title_w, Scr.ASCursors[DEFAULT]);
-		GrabIconButtons (tmp_win, tmp_win->icon_title_w);
-		GrabIconKeys (tmp_win, tmp_win->icon_title_w);
-	}
-
-	if (tmp_win->icon_pixmap_w != None)
-	{
-        register_aswindow( tmp_win->icon_pixmap_w, tmp_win );
-		XDefineCursor (dpy, tmp_win->icon_pixmap_w, Scr.ASCursors[DEFAULT]);
-		GrabIconButtons (tmp_win, tmp_win->icon_pixmap_w);
-		GrabIconKeys (tmp_win, tmp_win->icon_pixmap_w);
-	}
-
-#ifdef SHAPE
-	UpdateIconShape (tmp_win);
-#endif /* SHAPE */
-
-}
-#endif
-
 /********************************************************************/
 /* ASWindow frame decorations :                                     */
 /********************************************************************/
@@ -477,34 +435,37 @@ LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw-
     return (asw->icon_title_canvas = canvas);
 }
 
-static ASImage*
+ASImage*
 get_window_icon_image( ASWindow *asw )
 {
 	ASImage *im = NULL ;
-    if( ASWIN_HFLAGS( asw, AS_ClientIcon|AS_ClientIconPixmap ) == (AS_ClientIcon|AS_ClientIconPixmap) &&
-        get_flags( Scr.Feel.flags, KeepIconWindows )&&
-		asw->hints->icon.pixmap != None )
-	{/* convert client's icon into ASImage */
-		unsigned int width, height ;
-		get_drawable_size( asw->hints->icon.pixmap, &width, &height );
-		im = picture2asimage( Scr.asv, asw->hints->icon.pixmap,
-		                               asw->hints->icon_mask,
-									   0, 0, width, height,
-									   0xFFFFFFFF, False, 100 );
-        LOCAL_DEBUG_OUT( "converted client's pixmap into an icon %dx%d %p", width, height, im );
-	}
-	/* TODO: we also need to check for newfashioned ARGB icon from
-	 * extended WM specs here
-	 */
-    if( im == NULL )
+    if( asw )
     {
-        if( asw->hints->icon_file )
+        if( ASWIN_HFLAGS( asw, AS_ClientIcon|AS_ClientIconPixmap ) == (AS_ClientIcon|AS_ClientIconPixmap) &&
+            get_flags( Scr.Feel.flags, KeepIconWindows )&&
+            asw->hints->icon.pixmap != None )
+        {/* convert client's icon into ASImage */
+            unsigned int width, height ;
+            get_drawable_size( asw->hints->icon.pixmap, &width, &height );
+            im = picture2asimage( Scr.asv, asw->hints->icon.pixmap,
+                                        asw->hints->icon_mask,
+                                        0, 0, width, height,
+                                        0xFFFFFFFF, False, 100 );
+            LOCAL_DEBUG_OUT( "converted client's pixmap into an icon %dx%d %p", width, height, im );
+        }
+        /* TODO: we also need to check for newfashioned ARGB icon from
+        * extended WM specs here
+        */
+        if( im == NULL )
         {
-            im = get_asimage( Scr.image_manager, asw->hints->icon_file, 0xFFFFFFFF, 100 );
-            LOCAL_DEBUG_OUT( "loaded icon from \"%s\" into %dx%d %p", asw->hints->icon_file, im?im->width:0, im?im->height:0, im );
-        }else
-        {
-            LOCAL_DEBUG_OUT( "no icon to use %s", "" );
+            if( asw->hints->icon_file )
+            {
+                im = get_asimage( Scr.image_manager, asw->hints->icon_file, 0xFFFFFFFF, 100 );
+                LOCAL_DEBUG_OUT( "loaded icon from \"%s\" into %dx%d %p", asw->hints->icon_file, im?im->width:0, im?im->height:0, im );
+            }else
+            {
+                LOCAL_DEBUG_OUT( "no icon to use %s", "" );
+            }
         }
     }
 	return im;

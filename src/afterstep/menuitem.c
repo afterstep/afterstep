@@ -318,17 +318,6 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
  * generates menu from directory tree
  ****************************************************************************/
 
-inline FunctionData *
-create_named_function( int func, char *name)
-{
-	FunctionData *fdata = safecalloc( 1, sizeof(FunctionData) );
-	init_func_data (fdata);
-	fdata->func = func;
-    if( name )
-        fdata->name = mystrdup (name);
-	return fdata ;
-}
-
  /* we assume buf is at least MAXLINELENGTH bytes */
 
 MenuData     *
