@@ -35,8 +35,11 @@
  * The next likely value will be from 2 to 7 
  * and only few cases will fall in other categories
  * 
+ * For bitmaps we store lengths of ones and zerous, assuming that each string tsarts with 0
+ * 
  * */
 
+/* The following lines is used only for non-bitmaps : */
 #define RLE_ZERO_MASK				0x0080  /* M        */  
 #define RLE_ZERO_LENGTH				0x007F  /*  LLLLLLL */  
 #define RLE_ZERO_SIG				0x0000  /* 0LLLLLLL - identical to a string of LLLLLLL zeros */  
@@ -54,6 +57,9 @@
                                                that change sign from byte to byte starting with positive */     
 #define RLE_9BIT_NEG_SIG	  		0x0090  /* 1001LLLL followed by stream of LLLL 1 byte values 
                                                that change sign from byte to byte starting with negative */     
+
+#define AS_STORAGE_DEFAULT_BMAP_THRESHOLD 0x7F
+#define AS_STORAGE_DEFAULT_BMAP_VALUE	  0xFF
 
 
 typedef struct ASStorageSlot
@@ -126,11 +132,11 @@ typedef struct ASStorage
 typedef CARD32 ASStorageID ;
 
 
-ASStorageID store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags);
+ASStorageID store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bitmap_threshold);
 /* data will be fetched fromthe slot identified by id and placed into buffer. 
  * Data will be fetched from offset  and will count buf_size bytes if buf_size is greater then
  * available data - data will be tiled to accomodate this size, unless NotTileable is set */
-int  fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int buf_size);
+int  fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int buf_size, CARD8 bitmap_value);
 /* slot identified by id will be marked as unused */
 void forget_data(ASStorage *storage, ASStorageID id);
 
@@ -139,6 +145,12 @@ void forget_data(ASStorage *storage, ASStorageID id);
  * its data will be erased, and it will point to the data of src_id: 
  */				
 ASStorageID dup_data(ASStorage *storage, ASStorageID src_id);
+
+/* this will provide access to default storage heap that is used whenever above functions get
+ * NULL passed as ASStorage parameter :
+ */
+ASStorage *get_default_asstorage();
+void flush_default_asstorage();
 
 
 #endif

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #include "config.h"
 
 #include <stdlib.h>
@@ -100,7 +100,7 @@ get_guarded_memory_size( char *ptr )
 {
 	unsigned long long_ptr = (unsigned long)ptr ;
 	size_t *size_ptr ;
-	if( (long_ptr&0x00000FFF) == 0 )
+	if( (long_ptr&0x00000FFF) < sizeof(size_t)*2 )
 		long_ptr -= WIN32_PAGE_SIZE ;
 	size_ptr = (size_t*) (long_ptr&0xFFFFF000) ;
 #ifdef LOCAL_DEBUG
@@ -118,7 +118,7 @@ free_guarded_memory( void *ptr )
 {
 	unsigned long long_ptr = (unsigned long)ptr ;
 	size_t *size_ptr ;
-	if( (long_ptr&0x00000FFF) == 0 )
+	if( (long_ptr&0x00000FFF) < sizeof(size_t)*2 )
 		long_ptr -= WIN32_PAGE_SIZE ;
 	size_ptr = (size_t*) (long_ptr&0xFFFFF000) ;
 	if( size_ptr[1] != AS_WIN32_PAGE_MAGIC  )

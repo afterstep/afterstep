@@ -19,8 +19,8 @@
  *
  */
 
-#define LOCAL_DEBUG
-#define DEBUG_COMPRESS
+#undef LOCAL_DEBUG
+#undef DEBUG_COMPRESS
 #undef DO_CLOCKING
 
 #ifdef _WIN32
@@ -61,6 +61,11 @@
 
 #include "asstorage.h"
 
+/* default storage : */
+
+ASStorage *_as_default_storage = NULL ;
+
+
 /************************************************************************/
 /* Private Functions : 													*/
 /************************************************************************/
@@ -81,9 +86,27 @@ make_asstorage_id( int block_id, int slot_id )
 }
 
 static int 
-rlediff_compress_bitmap( CARD8 *buffer,  CARD8* data, int size )
+rlediff_compress_bitmap( CARD8 *buffer,  CARD8* data, int size, CARD8 bitmap_threshold )
 {
-	return 0;	
+	int i = 0 ; 
+	CARD8 last_val = 0 ;
+	int comp_size = 0 ;
+	
+	while( i < size ) 
+	{
+		int count = 0 ;
+		while( count < 255 	&& i < size ) 
+		{
+			if( (( data[i] > bitmap_threshold )?1:0) != last_val ) 	  
+				break;
+			++count ;
+			++i ;
+		}	 
+		last_val = (last_val == 1)?0:1 ;
+		buffer[comp_size++] = count ;
+	}
+			   
+	return comp_size;	
 }	 
 
 static int 
@@ -301,6 +324,26 @@ rlediff_compress( CARD8 *buffer,  CARD8* data, int size )
 }	 
 
 static int
+rlediff_decompress_bitmap( CARD8 *buffer,  CARD8* data, int size, CARD8 bitmap_value )
+{
+	unsigned int count ;
+	int out_bytes = 0 ;
+	int in_bytes = 0 ;
+	CARD8 curr_val = 0;
+
+	while( in_bytes < size ) 
+	{
+		count = ((unsigned int)(data[in_bytes++])+1) ;
+		while( --count > 0 ) 
+			buffer[out_bytes++] = curr_val ;
+		curr_val = (curr_val == bitmap_value)? 0 : bitmap_value ;
+	}
+	
+	LOCAL_DEBUG_OUT( "in_bytes = %d, out_bytes = %d, size = %d", in_bytes, out_bytes, size );
+	return out_bytes;
+}
+
+static int
 rlediff_decompress( CARD8 *buffer,  CARD8* data, int size )
 {
 	int count ;
@@ -400,7 +443,8 @@ rlediff_decompress( CARD8 *buffer,  CARD8* data, int size )
 
 
 static CARD8* 
-compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *flags, int *compressed_size )
+compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *flags, int *compressed_size, 
+					  CARD8 bitmap_threshold )
 {
 	/* TODO: just a stub for now - need to implement compression */
 	int comp_size = size ;
@@ -420,7 +464,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 		if( buffer ) 
 		{
 			if( get_flags( *flags, ASStorage_Bitmap ) )
-				comp_size = rlediff_compress_bitmap( buffer, data, size );
+				comp_size = rlediff_compress_bitmap( buffer, data, size, bitmap_threshold );
 			else 
 				comp_size = rlediff_compress( buffer, data, size );
 
@@ -447,7 +491,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 
 static CARD8 *
 decompress_stored_data( ASStorage *storage, CARD8 *data, int size, int uncompressed_size, 
-						ASFlagType flags )
+						ASFlagType flags, CARD8 bitmap_value )
 {
 	CARD8  *buffer = data ;
 
@@ -455,7 +499,10 @@ decompress_stored_data( ASStorage *storage, CARD8 *data, int size, int uncompres
 	if( get_flags( flags, ASStoprage_RLEDiffCompress ) && uncompressed_size > 8)
 	{
 		buffer = storage->comp_buf ;
-		rlediff_decompress( buffer,  data, size );	
+		if( get_flags( flags, ASStorage_Bitmap ) )
+			rlediff_decompress_bitmap( buffer, data, size, bitmap_value );	 
+		else			
+			rlediff_decompress( buffer, data, size );	 
 		/* need to check decompressed size */
 	}
 	
@@ -930,7 +977,11 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 ASStorage *
 create_asstorage()
 {
+#ifndef DEBUG_ALLOCS
 	ASStorage *storage = calloc(1, sizeof(ASStorage));
+#else
+	ASStorage *storage = guarded_calloc(1, sizeof(ASStorage));
+#endif
 	UsedMemory += sizeof(ASStorage) ;
 	if( storage )
 		storage->default_block_size = AS_STORAGE_DEF_BLOCK_SIZE ;
@@ -951,16 +1002,40 @@ destroy_asstorage(ASStorage **pstorage)
 				if( storage->blocks[i] ) 
 					destroy_asstorage_block( storage->blocks[i] );
 			UsedMemory -= storage->blocks_count * sizeof(ASStorageBlock*) ;
+#ifndef DEBUG_ALLOCS
 			free( storage->blocks );
+#else	
+			guarded_free( storage->blocks );
+#endif
+
 		}	
 		UsedMemory -= sizeof(ASStorage) ;
+#ifndef DEBUG_ALLOCS
 		free( storage );
+#else	
+		guarded_free( storage );
+#endif
 		*pstorage = NULL;
 	}
 }
 
+ASStorage *
+get_default_asstorage()
+{
+	if( _as_default_storage == NULL )
+		_as_default_storage = create_asstorage();
+	return _as_default_storage ;
+}
+
+void 
+flush_default_asstorage()
+{
+	if( _as_default_storage != NULL )
+		destroy_asstorage(&_as_default_storage);
+}
+
 ASStorageID 
-store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags)
+store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bitmap_threshold)
 {
 	int id = 0 ;
 	int block_id ;
@@ -968,12 +1043,16 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags)
 	int compressed_size = size ;
 	CARD8 *buffer = data;
 
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+
 	LOCAL_DEBUG_CALLER_OUT( "data = %p, size = %d, flags = %lX", data, size, flags );
 	if( size <= 0 || data == NULL || storage == NULL ) 
 		return 0;
-		
+	if( bitmap_threshold == 0 ) 
+		bitmap_threshold = AS_STORAGE_DEFAULT_BMAP_THRESHOLD ;
 	if( get_flags( flags, ASStorage_CompressionType ) && !get_flags(flags, ASStorage_Reference))
-		buffer = compress_stored_data( storage, data, size, &flags, &compressed_size );
+		buffer = compress_stored_data( storage, data, size, &flags, &compressed_size, bitmap_threshold );
 	block_id = select_storage_block( storage, compressed_size, flags );
 	LOCAL_DEBUG_OUT( "selected block %d", block_id );
 	if( block_id > 0 ) 
@@ -990,8 +1069,11 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags)
 
 
 int  
-fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int buf_size)
+fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int buf_size, CARD8 bitmap_value)
 {
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+	
 	if( storage != NULL && id != 0 )
 	{	
 		ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
@@ -1004,16 +1086,19 @@ fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int bu
 				ASStorageID target_id = 0;
 			 	memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
 				LOCAL_DEBUG_OUT( "target_id = %ld", target_id );
-				return fetch_data(storage, target_id, buffer, offset, buf_size);
+				return fetch_data(storage, target_id, buffer, offset, buf_size, bitmap_value);
 			}	 
 
 			LOCAL_DEBUG_OUT( "flags = %X, index = %d, size = %ld, uncompressed_size = %d", 
 							 slot->flags, slot->index, slot->size, uncomp_size );
+			if( bitmap_value == 0 ) 
+				bitmap_value = AS_STORAGE_DEFAULT_BMAP_VALUE ;
+
 			if( buffer && buf_size > 0 ) 
 			{
 				int bytes_in = 0;
 				CARD8 *tmp = decompress_stored_data( storage, &(slot->data[0]), slot->size,
-														uncomp_size, slot->flags );
+														uncomp_size, slot->flags, bitmap_value );
 				while( offset > uncomp_size ) offset -= uncomp_size ; 
 				while( offset < 0 ) offset += uncomp_size ; 
 				if( offset > 0 ) 
@@ -1041,6 +1126,9 @@ fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int bu
 void 
 forget_data(ASStorage *storage, ASStorageID id)
 {
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+	
 	if( storage != NULL && id != 0 ) 
 	{
 		ASStorageBlock *block = find_storage_block( storage, id );
@@ -1069,6 +1157,10 @@ ASStorageID
 dup_data(ASStorage *storage, ASStorageID id)
 {
 	ASStorageID new_id = 0 ;
+
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+	   
 	if( storage != NULL && id != 0 )
 	{	
 		ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
@@ -1092,7 +1184,7 @@ dup_data(ASStorage *storage, ASStorageID id)
 			/* doing it here as store_data() may change slot pointers */
 			++(target_slot->ref_count);			   
 
-			new_id = store_data( storage, (CARD8*)&target_id, sizeof(ASStorageID), ASStorage_Reference);
+			new_id = store_data( storage, (CARD8*)&target_id, sizeof(ASStorageID), ASStorage_Reference, 0);
 		}
 	}
 	return new_id;
@@ -1115,8 +1207,8 @@ static int StorageTestKinds[STORAGE_TEST_KINDS][2] =
 };	 
 
 CARD8 Buffer[1024*1024] ;
-#define STORAGE_TEST_COUNT  800
-/* #define STORAGE_TEST_COUNT  8+16+32+64+4096 */
+/*#define STORAGE_TEST_COUNT  800*/
+#define STORAGE_TEST_COUNT  8+16+32+64+4096
 typedef struct ASStorageTest {
 	int size ;
 	CARD8 *data;
@@ -1150,7 +1242,12 @@ make_storage_test_data( ASStorageTest *test, int min_size, int max_size )
 		size += min_size ;
  	
 	test->size = size ; 	   
+#ifndef DEBUG_ALLOCS
 	test->data = malloc(size);
+#else
+	test->data = guarded_malloc(size);
+#endif
+
 	test->linked = False ;
 	
 
@@ -1179,12 +1276,19 @@ make_storage_test_data( ASStorageTest *test, int min_size, int max_size )
 }
 
 int 
-test_data_integrity( CARD8 *a, CARD8* b, int size ) 
+test_data_integrity( CARD8 *a, CARD8* b, int size, ASFlagType flags ) 
 {
 	register int i ;
 	for( i = 0 ; i < size ; ++i ) 
 	{
-		if( a[i] != b[i] ) 
+		Bool fail = False ;
+		if( get_flags( flags, ASStorage_Bitmap ) )
+			fail = ( (a[i] >  AS_STORAGE_DEFAULT_BMAP_THRESHOLD && b[i] <= AS_STORAGE_DEFAULT_BMAP_THRESHOLD )||
+				     (a[i] <= AS_STORAGE_DEFAULT_BMAP_THRESHOLD && b[i] >  AS_STORAGE_DEFAULT_BMAP_THRESHOLD));
+		else
+			fail = ( a[i] != b[i] );
+				
+		if( fail ) 
 		{
 			int k ;
 			fprintf( stderr, "\tBytes %d differ : a[%d] == 0x%2.2X, b[%d] == 0x%2.2X\na: ", i, i, a[i], i, b[i] );
@@ -1201,15 +1305,17 @@ test_data_integrity( CARD8 *a, CARD8* b, int size )
 }
 	  
 Bool 
-test_asstorage(Bool interactive )
+test_asstorage(Bool interactive, ASFlagType test_flags )
 {
 	ASStorage *storage ;
 	ASStorageID id ;
 	int i, kind, test_count;
 	int min_size, max_size ;
-	ASFlagType test_flags = ASStoprage_RLEDiffCompress ;
-	
-	
+
+	UsedMemory = 0 ;
+	UncompressedSize = 0 ;
+	CompressedSize = 0 ;
+	   
 	fprintf(stderr, "Testing storage creation ...");
 	storage = create_asstorage();
 #define TEST_EVAL(val)   do{ \
@@ -1219,7 +1325,7 @@ test_asstorage(Bool interactive )
 	
 	fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...", NULL, 0,
 			test_flags);
-	id = store_data( storage, NULL, 0, test_flags );
+	id = store_data( storage, NULL, 0, test_flags, 0 );
 	TEST_EVAL( id == 0 ); 
 
 	kind = 0 ; 
@@ -1231,7 +1337,7 @@ test_asstorage(Bool interactive )
 		make_storage_test_data( &(Tests[i]), min_size, max_size );
 		fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...", Tests[i].data, Tests[i].size,
 				test_flags);
-		Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags );
+		Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags, 0 );
 		TEST_EVAL( Tests[i].id != 0 ); 
 		fprintf(stderr, "\tstored with id = %lX...\n", Tests[i].id );
 
@@ -1246,7 +1352,7 @@ test_asstorage(Bool interactive )
 	}	 
 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
-	fprintf( stderr, "%d :compressed_size = %d, uncompressed_size = %d, ratio = %d %% ###########\n", __LINE__, CompressedSize, UncompressedSize, CompressedSize/(UncompressedSize/100) );
+	fprintf( stderr, "%d :compressed_size = %d, uncompressed_size = %d, ratio = %d %% ###########\n", __LINE__, CompressedSize, UncompressedSize, (UncompressedSize==0)?0:(CompressedSize/(UncompressedSize/100)) );
 	if( interactive )
 	   fgetc(stdin);
 	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
@@ -1254,11 +1360,11 @@ test_asstorage(Bool interactive )
 		int size ;
 		int res ;
 		fprintf(stderr, "Testing fetch_data for id %lX size = %d ...", Tests[i].id, Tests[i].size);
-		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0);
 		TEST_EVAL( size == Tests[i].size ); 
 		
 		fprintf(stderr, "Testing fetched data integrity ...");
-		res = test_data_integrity( &(Buffer[0]), Tests[i].data, size );
+		res = test_data_integrity( &(Buffer[0]), Tests[i].data, size, test_flags );
 		TEST_EVAL( res == 0 ); 
 	}	 
 
@@ -1273,10 +1379,14 @@ test_asstorage(Bool interactive )
 			continue;
 		fprintf(stderr, "%d: Testing forget_data for id %lX size = %d ...\n", __LINE__, Tests[i].id, Tests[i].size);
 		forget_data(storage, Tests[i].id);
-		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0 );
 		TEST_EVAL( size != Tests[i].size ); 
 		Tests[i].id = 0;
+#ifndef DEBUG_ALLOCS
 		free( Tests[i].data );
+#else
+		guarded_free( Tests[i].data );
+#endif
 		Tests[i].data = NULL ; 
 		Tests[i].size = 0 ;
 	}	 
@@ -1294,7 +1404,7 @@ test_asstorage(Bool interactive )
 			make_storage_test_data( &(Tests[i]), min_size, max_size );
 			fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...\n", Tests[i].data, Tests[i].size,
 					test_flags);
-			Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags );
+			Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags, 0 );
 			TEST_EVAL( Tests[i].id != 0 ); 
 		}
 		if( --test_count <= 0 )
@@ -1314,11 +1424,11 @@ test_asstorage(Bool interactive )
 		int size ;
 		int res ;
 		fprintf(stderr, "Testing fetch_data for id %lX size = %d ...", Tests[i].id, Tests[i].size);
-		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0);
 		TEST_EVAL( size == Tests[i].size ); 
 		
 		fprintf(stderr, "Testing fetched data integrity ...");
-		res = test_data_integrity( &(Buffer[0]), Tests[i].data, size );
+		res = test_data_integrity( &(Buffer[0]), Tests[i].data, size, test_flags );
 		TEST_EVAL( res == 0 ); 
 	}	 
 
@@ -1333,10 +1443,14 @@ test_asstorage(Bool interactive )
 			continue;
 		fprintf(stderr, "%d: Testing forget_data for id %lX size = %d ...\n", __LINE__, Tests[i].id, Tests[i].size);
 		forget_data(storage, Tests[i].id);
-		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0);
 		TEST_EVAL( size != Tests[i].size ); 
 		Tests[i].id = 0;
+#ifndef DEBUG_ALLOCS
 		free( Tests[i].data );
+#else
+		guarded_free( Tests[i].data );
+#endif
 		Tests[i].data = NULL ; 
 		Tests[i].size = 0 ;
 	}	 
@@ -1366,11 +1480,11 @@ test_asstorage(Bool interactive )
 		Tests[i].size = Tests[k].size ;
 		Tests[i].data = Tests[k].data ;
 		Tests[i].linked = True ;
-		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0);
 		TEST_EVAL( size == Tests[i].size ); 
 		
 		fprintf(stderr, "Testing dupped data integrity ...\n");
-		res = test_data_integrity( &(Buffer[0]), Tests[i].data, size );
+		res = test_data_integrity( &(Buffer[0]), Tests[i].data, size, test_flags );
 		TEST_EVAL( res == 0 ); 
 	
 	}	 
@@ -1386,12 +1500,17 @@ test_asstorage(Bool interactive )
 			continue;
 		fprintf(stderr, "%d: Testing forget_data for id %lX size = %d ...\n", __LINE__, Tests[i].id, Tests[i].size);
 		forget_data(storage, Tests[i].id);
-		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size, 0);
 		TEST_EVAL( size != Tests[i].size ); 
 		Tests[i].id = 0;
 		if( !Tests[i].linked ) 
+		{	
+#ifndef DEBUG_ALLOCS
 			free( Tests[i].data );
-		else
+#else
+			guarded_free( Tests[i].data );
+#endif
+		}else
 			Tests[i].linked = False ;
 		Tests[i].data = NULL ; 
 		Tests[i].size = 0 ;
@@ -1411,7 +1530,7 @@ test_asstorage(Bool interactive )
 			make_storage_test_data( &(Tests[i]), min_size, max_size );
 			fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...\n", Tests[i].data, Tests[i].size,
 					test_flags);
-			Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags );
+			Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags, 0 );
 			TEST_EVAL( Tests[i].id != 0 ); 
 		}
 		if( --test_count <= 0 )
@@ -1424,12 +1543,27 @@ test_asstorage(Bool interactive )
 		}		   
 	}	 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
-	fprintf( stderr, "%d :compressed_size = %d, uncompressed_size = %d, ratio = %d %% ###########\n", __LINE__, CompressedSize, UncompressedSize, CompressedSize/(UncompressedSize/100) );
+	fprintf( stderr, "%d :compressed_size = %d, uncompressed_size = %d, ratio = %d %% ###########\n", __LINE__, CompressedSize, UncompressedSize, (UncompressedSize==0)?0:(CompressedSize/(UncompressedSize/100)) );
 
 	fprintf(stderr, "Testing storage destruction ...");
 	destroy_asstorage(&storage);
 	TEST_EVAL( storage == NULL ); 
-	
+
+	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+		if( Tests[i].data ) 
+		{
+			if( !Tests[i].linked ) 
+			{	
+#ifndef DEBUG_ALLOCS
+				free( Tests[i].data );
+#else
+				guarded_free( Tests[i].data );
+#endif
+			}
+			Tests[i].data = NULL ;
+			Tests[i].size = 0 ;
+		}
+
 	return 0 ;
 }
 
@@ -1461,7 +1595,11 @@ int main(int argc, char **argv )
 		fprintf( stderr, "imdec = %p\n", imdec );
 	}
 
-	res = test_asstorage(interactive);
+	res = test_asstorage(interactive, 0);
+	if( res == 0 )
+		res = test_asstorage(interactive, ASStoprage_RLEDiffCompress);
+	if( res == 0 )
+		res = test_asstorage(interactive, ASStoprage_RLEDiffCompress|ASStorage_Bitmap);
 	
 	stop_image_decoding( &imdec );
 	return res;
