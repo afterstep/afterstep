@@ -550,6 +550,7 @@ my_scandir (char *dirname, struct direntry *(*namelist[]),
 	char         *p;						   /* Place where filename starts */
 	struct stat   buf;
 
+	*namelist = NULL ;
 
 	d = opendir (dirname);
 

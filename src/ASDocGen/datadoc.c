@@ -383,7 +383,7 @@ gen_data_doc( const char *source_dir, const char *dest_dir,
 	ASData2xmlState		  xml_state ;
 	char *slash ;
 	char *short_fname ;
-	struct direntry  **list;
+	struct direntry  **list = NULL;
 	int list_len, i ;
 	xml_elem_t* dir_header_section = NULL ;
 	xml_elem_t* dir_header_varlist = NULL ;
@@ -438,7 +438,8 @@ gen_data_doc( const char *source_dir, const char *dest_dir,
 		}
 		free(list[i]);
 	}
-	free( list );   
+	if( list ) 
+		free( list );   
 	printf( "\nCataloguing %s  ", source_dir );
 	fflush( stdout );
 

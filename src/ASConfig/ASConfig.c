@@ -841,7 +841,8 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 		free( sub_path );
 		free (list[i]);
 	}
-	free( list );
+	if( list ) 
+		free( list );
 	free( new_path );
 	return popup;
 }
