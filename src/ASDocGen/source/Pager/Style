@@ -1,6 +1,11 @@
 <varlistentry id="options.Style">
 	<term>Style</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Sets  the  style  to be used for the desk desk representation in
+		the Pager. Where style can be the name of any  style  definition
+		in  the  look  file,  and  desk is a number coresponding  to the
+		desktop number: 0,1,2,3,N.... Use it if you want  to  specify  a
+		different  style  for  Pager  background other than the default;
+		which is the scaled down *PagerDesktopImage.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,8 @@
 <varlistentry id="options.ShapeToContents">
 	<term>ShapeToContents</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>When Shaped extensions are available - it will cause
+		WinList to have non-rectangular shape to wrap around
+		columns/rows of buttons.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.Label">
 	<term>Label</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Assigns the text label to desk desk in the pager window.  Useful
+		for assigning symbolic names to desktops</para>
 	</listitem>
 </varlistentry>

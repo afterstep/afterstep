@@ -1,6 +1,9 @@
 <varlistentry id="options.FillRowsFirst">
 	<term>FillRowsFirst</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Flag, indicating that WinList should should add new row
+		when new button	is added, and only if MaxRows or max height
+		is reached - add new column. By Default WinLIst adds columns
+		first.</para>
 	</listitem>
 </varlistentry>

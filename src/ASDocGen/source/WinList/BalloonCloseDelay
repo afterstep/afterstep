@@ -1,6 +1,7 @@
 <varlistentry id="options.BalloonCloseDelay">
 	<term>BalloonCloseDelay</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Determines the delay in ms between when balloon is shown and
+		before it disapears.</para>
 	</listitem>
 </varlistentry>

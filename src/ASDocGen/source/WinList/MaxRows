@@ -1,6 +1,6 @@
 <varlistentry id="options.MaxRows">
 	<term>MaxRows</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Maximum number of rows in WinList.</para>
 	</listitem>
 </varlistentry>

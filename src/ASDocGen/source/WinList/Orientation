@@ -1,6 +1,6 @@
 <varlistentry id="options.Orientation">
 	<term>Orientation</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>down|across - Will make a vertical or horizontal winlist.</para>
 	</listitem>
 </varlistentry>

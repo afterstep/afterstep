@@ -1,6 +1,9 @@
 <varlistentry id="options.Balloons">
 	<term>Balloons</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Turns  on  the balloon feature. A "balloon" is displayed showing
+		the name of the button the pointer is resting on in the WinList.
+		The  balloon background and text are configured with the MyStyle
+		"*WinListBalloon"</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.CompositionMethod">
 	<term>CompositionMethod</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Sets composition method to be used to draw WinList buttons. Default is
+		alpha-blending. Valid values are in range 130-145.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,10 @@
 <varlistentry id="options.Action">
 	<term>Action</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines what function should be executed on the window
+		when specific mouse button is clicked over window's button.
+		parameters are : mousebutton(number) and action/function to
+		be executed.
+		</para>
 	</listitem>
 </varlistentry>

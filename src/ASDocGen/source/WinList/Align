@@ -1,7 +1,7 @@
 <varlistentry id="options.Align">
 	<term>Align</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Sets align of the text label in WinList buttons.</para>
 		<para>See Also: <ulink url="Align#synopsis">Alignment flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

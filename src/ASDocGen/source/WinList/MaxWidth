@@ -1,6 +1,7 @@
 <varlistentry id="options.MaxWidth">
 	<term>MaxWidth</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>This is depreciated and just there for compatibility.
+		Please use WinListMaxColWidth instead.</para>
 	</listitem>
 </varlistentry>

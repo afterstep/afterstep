@@ -1,6 +1,7 @@
 <varlistentry id="options.UCompositionMethod">
 	<term>UCompositionMethod</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>CompositionMethod for WinList buttons representing
+		unfocused windows.</para>
 	</listitem>
 </varlistentry>

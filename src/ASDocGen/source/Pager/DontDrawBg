@@ -1,6 +1,7 @@
 <varlistentry id="options.DontDrawBg">
 	<term>DontDrawBg</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>If specified, will not display background image, use  this  with
+		xearth or xfishtank.</para>
 	</listitem>
 </varlistentry>

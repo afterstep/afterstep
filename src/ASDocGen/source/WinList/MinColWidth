@@ -1,6 +1,6 @@
 <varlistentry id="options.MinColWidth">
 	<term>MinColWidth</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Minimum width of the column</para>
 	</listitem>
 </varlistentry>

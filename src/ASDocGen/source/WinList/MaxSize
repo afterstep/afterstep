@@ -1,6 +1,10 @@
 <varlistentry id="options.MaxSize">
 	<term>MaxSize</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Maximum size of the WinList. WinList will not grow larger then
+		this size, when number of buttons increase, but instead it will shrink
+		buttons to fit in allowed space. You can set only Width, only
+		Height or both. extra rows/columns could be added when max size is
+		reached in one direction.</para>
 	</listitem>
 </varlistentry>

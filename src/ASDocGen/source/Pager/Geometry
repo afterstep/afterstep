@@ -1,6 +1,9 @@
 <varlistentry id="options.Geometry">
 	<term>Geometry</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Completely or partially specifies the pager window location and
+		geometry,  in  standard  X11  notation.  In order to maintain an
+		undistorted aspect ratio, you might want to leave out either the
+		width or height dimension of the geometry specification.</para>
 	</listitem>
 </varlistentry>

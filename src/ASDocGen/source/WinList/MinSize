@@ -1,6 +1,9 @@
 <varlistentry id="options.MinSize">
 	<term>MinSize</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Minimum size of the WinList. WinList will not shrink smaller then this
+		size, when number of buttons is small, but instead it will enlarge
+		buttons to fill extra space. You can set only Width, only Height or
+		both.</para>
 	</listitem>
 </varlistentry>

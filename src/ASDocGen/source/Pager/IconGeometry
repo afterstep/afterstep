@@ -1,6 +1,12 @@
 <varlistentry id="options.IconGeometry">
 	<term>IconGeometry</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies  a  size  (optional)  and  location (optional) for the
+		pager's icon window. Since there is no easy  way  for  Pager  to
+		determine  the height of the icon's label, you will have to make
+		an allowance for the icon  label height when using  negative
+		y-coordinates  in the icon location specification (used to specify
+		a location relative to the bottom instead  of  the  top  of  the
+		screen).</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,9 @@
 <varlistentry id="options.UseName">
 	<term>UseName</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Tells WinList what type of name to use for displaying in
+		WinList label.
+		# 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
+		</para>
 	</listitem>
 </varlistentry>

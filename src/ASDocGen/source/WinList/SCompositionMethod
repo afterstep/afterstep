@@ -1,6 +1,7 @@
 <varlistentry id="options.SCompositionMethod">
 	<term>SCompositionMethod</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>CompositionMethod for WinList buttons representing sticky
+		windows.</para>
 	</listitem>
 </varlistentry>

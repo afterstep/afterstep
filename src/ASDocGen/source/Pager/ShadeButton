@@ -1,6 +1,9 @@
 <varlistentry id="options.ShadeButton">
 	<term>ShadeButton</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>You should be able to "shade" row or column of desks by pressing
+		special Shade button on desk's title. Define images to be used for it
+		with this option. If no images are defined - then there will be no
+		button and feature will be disabled.</para>
 	</listitem>
 </varlistentry>
