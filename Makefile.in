@@ -51,6 +51,8 @@ mkdir.lib:
 
 mkdir.man:
 	@$(MKDIR) -p $(AFTER_MAN_DIR); $(MKDIR) -p $(AFTER_MAN_API_DIR);
+
+module.clean:
  
 install: install.desktop install.data mkdir
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} install || exit 1); done

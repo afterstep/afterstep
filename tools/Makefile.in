@@ -3,6 +3,8 @@ SCRIPTS		= ascommand.pl importasmenu makeastheme.pl installastheme.pl
 
 @MAKEFILECOMMON@
 
+module.clean:
+
 install:	install.script
 
 uninstall:	uninstall.script

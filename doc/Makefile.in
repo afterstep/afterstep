@@ -3,6 +3,8 @@ SCRIPTS		= afterstepdoc
 
 @MAKEFILECOMMON@
 
+module.clean:
+
 install: install.script install.data
 
 uninstall: uninstall.script uninstall.data

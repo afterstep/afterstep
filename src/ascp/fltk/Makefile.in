@@ -12,6 +12,9 @@ LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) $(LIB_AFTE
 
 @MAKEFILECOMMON@
 
+module.clean:
+ 
+
 
 ascp-fltk:	        $(OBJS_ASCP) $(LIBS_DEPEND)
 		$(CC) $(OBJS_ASCP) $(LIBS_ALL) -o $(@)
