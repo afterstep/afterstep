@@ -37,30 +37,6 @@
 #include "../include/XImage_utils.h"
 #include "../include/asimage.h"
 
-/*
- * We Store images using RLE encoding - see asimage.h for more
- */
-
-#ifndef NO_INLINE
-inline unsigned int
-_asimage_get_length (CARD8 * cblock)
-{
-	if ((cblock[0] & RLE_DIRECT_B) != 0)
-		return ((unsigned int)cblock[0] & (RLE_DIRECT_D)) + 1;
-	if ((cblock[0] & RLE_LONG_B) != 0)
-		return ((((unsigned int)cblock[0] & RLE_LONG_D) << 8) | (unsigned int)cblock[1])+ RLE_THRESHOLD;
-	return ((unsigned int)cblock[0] & RLE_SIMPLE_D ) + RLE_THRESHOLD;
-}
-#else
-
-/*#define _asimage_get_length(cblock) \
-    ((((*cblock)&RLE_DIRECT_B)!= 0 )?   (*cblock) & (RLE_DIRECT_D): \
-     ((((*cblock)&RLE_LONG_B) != 0 )?((((*cblock) & RLE_LONG_D)<<8)| *(cblock+1)): \
-                                        (*cblock) & (RLE_SIMPLE_D)))
-*/
-#endif
-
-
 void
 asimage_free_color (ASImage * im, CARD8 ** color)
 {
@@ -181,14 +157,14 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 		im->buf_used = 2;
 	}else
 	{
-		do 
+		do
 		{
 			while( i < width && data[i] == data[ccolor])
 			{
 /*				fprintf( stderr, "%d<%2.2X ", i, data[i] ); */
 				++i ;
-			}				
-			if( i > ccolor + RLE_THRESHOLD ) 
+			}
+			if( i > ccolor + RLE_THRESHOLD )
 			{ /* we have to write repetition count and length */
 				register unsigned int rep_count = i - ccolor - RLE_THRESHOLD;
 
@@ -211,29 +187,29 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 			while( i < width )
 			{
 /*				fprintf( stderr, "%d<%2.2X ", i, data[i] ); */
-				if( data[i] != data[ccolor] ) 
+				if( data[i] != data[ccolor] )
 					ccolor = i ;
 				else if( i-ccolor > RLE_THRESHOLD )
 					break;
 				++i ;
 			}
-			if( i == width ) 
+			if( i == width )
 				ccolor = i ;
 			while( ccolor > bstart )
 			{/* we have to write direct block */
 				int dist = ccolor-bstart ;
-				
-				if( tail-bstart < best_size ) 
+
+				if( tail-bstart < best_size )
 				{
 					best_tail = tail ;
 					best_bstart = bstart ;
 					best_size = tail-bstart ;
 				}
-				if( dist > RLE_MAX_DIRECT_LEN ) 
+				if( dist > RLE_MAX_DIRECT_LEN )
 					dist = RLE_MAX_DIRECT_LEN ;
 				dst[tail] = RLE_DIRECT_B | ((CARD8)(dist-1));
 /*				fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, tail, dst[tail] ); */
-				dist += bstart ; 
+				dist += bstart ;
 				++tail ;
 				while ( bstart < dist )
 				{
@@ -245,7 +221,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 			}
 /*			fprintf( stderr, "\n"); */
 		}while( i < width );
-		if( best_size+width < tail ) 
+		if( best_size+width < tail )
 		{
 			LOCAL_DEBUG_OUT( " %d:%d >resetting bytes starting with offset %d(%d) (0x%2.2X) to DIRECT_TAIL( %d bytes total )", y, color, best_tail, best_bstart, dst[best_tail], width-best_bstart );
 			dst[best_tail] = RLE_DIRECT_TAIL;
@@ -298,7 +274,7 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 
 		if (((*ptr) & RLE_DIRECT_B) != 0)
 		{
-			if( *ptr == RLE_DIRECT_TAIL ) 
+			if( *ptr == RLE_DIRECT_TAIL )
 			{
 				if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
 					fprintf (stderr, " is RLE_DIRECT_TAIL ( %d bytes ) !", im->width-uncopressed_size);
@@ -345,11 +321,11 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 	/* that thing below is supposedly highly optimized : */
 	while ( *src != RLE_EOL)
 	{
-		if( src[0] == RLE_DIRECT_TAIL ) 
+		if( src[0] == RLE_DIRECT_TAIL )
 		{
 			register int i = im->width - (dst-to_buf) ;
-			dst += i ; 
-			src += i+1 ; 
+			dst += i ;
+			src += i+1 ;
 			i = -i ;
 			while( i < 0 )
 			{
@@ -448,13 +424,13 @@ asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp,
 	register int i;
 	asimage_decode_line( im, color, tmp, y );
 	for( i = 0 ; i < im->width ; i++ )
-		if( tmp[i] != to_buf[i] ) 
-		{			
+		if( tmp[i] != to_buf[i] )
+		{
 			if( verbose )
-				fprintf( stderr, "line %d, component %d differ at offset %d ( 0x%X(compresed) != 0x%X(orig) )\n", y, color, i, tmp[i], to_buf[i] );
+				show_error( "line %d, component %d differ at offset %d ( 0x%lX(compresed) != 0x%lX(orig) )\n", y, color, i, tmp[i], to_buf[i] );
 			return False ;
 		}
-	return True;	
+	return True;
 }
 
 #if 0
@@ -737,15 +713,16 @@ asimage_from_ximage (XImage * xim)
 	unsigned char *xim_line;
 	int           i, height, bpl;
 	ASScanline    xim_buf;
+#ifdef LOCAL_DEBUG
 	CARD32       *tmp ;
-
+#endif
 	if (xim == NULL)
 		return im;
 
 	im = (ASImage *) safemalloc (sizeof (ASImage));
 	asimage_init (im, False);
 	asimage_start (im, xim->width, xim->height);
-#ifdef LOCAL_DEBUG	
+#ifdef LOCAL_DEBUG
 	tmp = safemalloc( xim->width * sizeof(CARD32));
 #endif
 	prepare_scanline( xim->width, 0, &xim_buf );
@@ -770,13 +747,13 @@ asimage_from_ximage (XImage * xim)
 			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
 			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
 #ifdef LOCAL_DEBUG
-			if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) ) 
+			if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) )
 				exit(0);
-			if( !asimage_compare_line( im, IC_GREEN,  xim_buf.green, tmp, i, True ) ) 
+			if( !asimage_compare_line( im, IC_GREEN,  xim_buf.green, tmp, i, True ) )
 				exit(0);
-			if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) ) 
+			if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) )
 				exit(0);
-#endif				
+#endif
 			xim_line += bpl;
 		}
 	free_scanline(&xim_buf, True);
@@ -889,78 +866,145 @@ shrink_component( register CARD32 *src, register CARD32 *dst, int *scales, int l
 }
 
 /* this will enlarge array based on count of items in dst per PAIR of src item with smoothing/scatter/dither */
-#if 0
-/* for scale factors up to and including 3 we do not do dithering */
 /* the following formulas use linear approximation to calculate   */
 /* color values for new pixels : 				  				  */
+/* note that we shift values by 16 to keep quanitzation error in  */
+/* lower 2 bytes for subsequent dithering 						  */
 /* for scale factor of 2 we use this formula :    */
 /* C = (-C1+3*C2+3*C3-C4)/4 					  */
+/* or better :				 					  */
+/* C = (-C1+5*C2+5*C3-C4)/8 					  */
+#define INTERPOLATE_COLOR1(c) 			   	((c)<<16)  /* nothing really to interpolate here */
+#define INTERPOLATE_COLOR2(c1,c2,c3,c4)    	((((c2)<<2)+(c2)+((c3)<<2)+(c3)-(c1)-(c4))<<13)
 /* for scale factor of 3 we use these formulas :  */
 /* Ca = (-2C1+8*C2+5*C3-2C4)/9 		  			  */
 /* Cb = (-2C1+5*C2+8*C3-2C4)/9 		  			  */
+/* or better : 									  */
+/* Ca = (-C1+5*C2+3*C3-C4)/6 		  			  */
+/* Cb = (-C1+3*C2+5*C3-C4)/6 		  			  */
+#define INTERPOLATE_A_COLOR3(c1,c2,c3,c4)  	(((((c2)<<2)+(c2)+((c3)<<1)+(c3)-(c1)-(c4))<<16)/6)
+#define INTERPOLATE_B_COLOR3(c1,c2,c3,c4)  	(((((c2)<<1)+(c2)+((c3)<<2)+(c3)-(c1)-(c4))<<16)/6)
+/* just a hypotesus, but it looks good for scale factors S > 3: */
+/* Cn = (-C1+(2*(S-n)+1)*C2+(2*n+1)*C3-C4)/2S  	  			   */
+/* or :
+ * Cn = (-C1+(2*S+1)*C2+C3-C4-n*2*C2+n*2*C3)/2S  			   */
+/*       [ T                   [C2s]  [C3s]]   			       */
+#define INTERPOLATION_C2s(c2)	 		 	((c2)<<2)
+#define INTERPOLATION_C3s(c3)	 		 	((c3)<<2)
+#define INTERPOLATION_TOTAL_START(c1,C2s,C3s,c4,S) 	((((S)<<2)+1)*(C2s)+((C3s)<<1)+(C3s)-c1-c4)
+#define INTERPOLATION_TOTAL_STEP(C2s,C3s)  	((C3s)-(C2s))
+#define INTERPOLATE_N_COLOR(T,S)		  	(((T)<<14)/(S))
+
 
 
 static inline void
 enlarge_component12( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+{/* expected len >= 2  */
+	register int i = 0, k = 0;
+	register int c1 = src[0], c4 = src[1];
+	--len; --len ;
+	while( i < len )
+	{
+		c4 = src[i+2];
+		if( scales[i] == 0 )
+		{
+			c1 = src[i];     /* that's right we can do that PRIOR as we calculate nothing */
+			dst[k] = INTERPOLATE_COLOR1(c1) ;
+			++k;
+		}else
+		{
+			register int c2 = src[i], c3 = src[i+1] ;
+			dst[k] = INTERPOLATE_COLOR1(c2) ;
+			dst[++k] = INTERPOLATE_COLOR2(c1,c2,c3,c4);
+			++k;
+			c1 = c2;
+		}
+		++i;
+	}
+
+	/* to avoid one more if() in loop we moved tail part out of the loop : */
+	if( scales[i] == 0 )
+		dst[k] = INTERPOLATE_COLOR1(src[i]);
+	else
+	{
+		register int c2 = src[i], c3 = src[i+1] ;
+		dst[k] = INTERPOLATE_COLOR1(c2) ;
+		dst[++k] = INTERPOLATE_COLOR2(c1,c2,c3,c3);
+	}
+	dst[k+1] = INTERPOLATE_COLOR1(src[i+1]);
+}
 
 static inline void
 enlarge_component23( register CARD32 *src, register CARD32 *dst, int *scales, int len )
-
-static inline void
-enlarge_component_big( register CARD32 *src, register CARD32 *dst, int *scales, int len )
-{/* we skip all checks as it is static function and we want to optimize it
-  * as much as possible */
-	register int i = -1, start = 0;
-	--len;
-	while( ++i < len )
+{/* expected len >= 2  */
+	register int i = 0, k = 0;
+	register int c1 = src[0], c4 = src[1];
+	--len; --len;
+	while( i < len )
 	{
-		register int scale = scales[k] ;
-		register int end = start + scale;
-		dst[start] = src[i] ;
-		dst[end] = src[i+1] ;
-		if( scale > 1 )
+		register int c2 = src[i], c3 = src[i+1] ;
+		c4 = src[i+2];
+		dst[k] = INTERPOLATE_COLOR1(c2) ;
+		if( scales[0] == 1 )
 		{
-			static int randomizer = 0 ;
-			if( scale == 2 )
-			{
-				dst[start] = src[i] ;
-				dst[start+1] = ((src[i]+src[i+1])>>1)+((++randomizer)&0x01);
-				dst[end] = src[i+1] ;
-			}else
-			{
-				CARD32 diff = src[i]-src[i+1] ;
-				if( diff < 0 )
-					diff = -diff ;
-				if( diff > (scale>>1) )
-				{
-					register CARD32 point = src[i]*(scale-1)+src[i+1] ;
-					while( ++start < end )
-					{
-						dst[start] = point/scale + ((++randomizer)&0x01) ;
-						point += src[i+1]-src[i] ;
-					}
-				}else
-				{
-					register CARD32 point = src[i]*(scale-1)+src[i+1] ;
-					while( ++start < end )
-					{
-						dst[start] = point/scale + ((++randomizer)&0x01) ;
-						point += src[i+1]-src[i] ;
-					}
-				}
-					register CARD32 point = src[++i] ;
-				if( reps == 2 )
-					dst[k] = (point + src[++i])>>1 ;
-				else
-				{
-					while( --reps )
-						point += src[++i];
-					dst[k] = point/scales[k] ;
-				}
+			dst[++k] = INTERPOLATE_COLOR2(c1,c2,c3,c4);
+		}else
+		{
+			dst[++k] = INTERPOLATE_A_COLOR3(c1,c2,c3,c4);
+			dst[++k] = INTERPOLATE_B_COLOR3(c1,c2,c3,c4);
+		}
+		c1 = c2 ;
+		++k;
+		++i;
+	}
+	/* to avoid one more if() in loop we moved tail part out of the loop : */
+	{
+		register int c2 = src[i], c3 = src[i+1] ;
+		dst[k] = INTERPOLATE_COLOR1(c2) ;
+		if( scales[0] == 1 )
+		{
+			dst[k+1] = INTERPOLATE_COLOR2(c1,c2,c3,c4);
+		}else
+		{
+			dst[++k] = INTERPOLATE_A_COLOR3(c1,c2,c3,c4);
+			dst[k+1] = INTERPOLATE_B_COLOR3(c1,c2,c3,c4);
 		}
 	}
+	dst[k+2] = INTERPOLATE_COLOR1(c4) ;
 }
-#endif
+
+/* this case is more complex since we cannot really hardcode coefficients
+ * visible artifacts on smooth gradient-like images
+ */
+static inline void
+enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+{/* we skip all checks as it is static function and we want to optimize it
+  * as much as possible */
+	int i = 0;
+	int c1 = src[0], c4 = src[1];
+	register int k = 0;
+	--len; --len;
+	while( i <= len )
+	{
+		register int C2s = INTERPOLATION_C2s(src[i]), C3s = INTERPOLATION_C3s(src[i+1]) ;
+		register int n, T ;
+		int S = scales[i]+1 ;
+
+		if( i < len )
+			c4 = src[i+2];
+		T = INTERPOLATION_TOTAL_START(c1,C2s,C3s,c4,S);
+		for( n = 1 ; n < S ; n++ )
+		{
+			dst[k+n] = INTERPOLATE_N_COLOR(T,S);
+			T += INTERPOLATION_TOTAL_STEP(C2s,C3s);
+		}
+		c1 = src[i];
+		dst[k] = INTERPOLATE_COLOR1(c1) ;
+		k += n ;
+		++i;
+	}
+	dst[k] = INTERPOLATE_COLOR1(c4) ;
+}
 
 static inline void
 shrink_scanline( ASScanline *src_line, ASScanline *dst_line, register int *scales )
