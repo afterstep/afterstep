@@ -354,6 +354,9 @@ AC_CHECK_HEADERS(sys/time.h malloc.h stdlib.h)
 
 AC_CHECK_HEADERS(sys/wait.h,,AC_FUNC_WAIT3)
 
+dnl# Check for decls
+AC_CHECK_DECLS(environ,,,[#include <unistd.h>])
+
 dnl# Check for librplay for Audio
 
 AUDIO_LIBS=

@@ -438,6 +438,13 @@ void ASDeadPipe( int nonsense )
 		exit (0);
 }	 
 
+static char **AS_environ = NULL ; 
+
+void override_environ( char **envp )
+{
+	AS_environ = envp ; 	
+}	 
+
 void
 InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) (void), void (*custom_usage_func) (void), ASFlagType opt_mask )
 {
@@ -805,21 +812,31 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
 
         char *cmdl;
         char *arg, *screen_str = NULL, *w_str = NULL, *context_str = NULL ;
-		int env_s ;
+		int env_s = 0;
+		char **envvars = AS_environ ; 
 
         va_list ap;
 		LOCAL_DEBUG_OUT( "dpy = %p, DisplayString = \"%s\"", dpy, display );
 		LOCAL_DEBUG_OUT( "pid(%d), entered child process to spawn ...", pid );
 
-		for( env_s = 0  ; environ[env_s] != NULL ; ++env_s );
-		envp = safecalloc( env_s+2, sizeof(char*));
-		/* environment variabless to pass to child process */
-		for( env_s = 0  ; environ[env_s] != NULL ; ++env_s )
+#if HAVE_DECL_ENVIRON
+		if( envvars == NULL ) 
 		{
-			envp[env_s] = environ[env_s] ;	
+			envvars = environ ;
 		}	 
+#else
+/* how the hell could we get environment otherwise ? */
+#endif
+		if( envvars ) 
+			for( env_s = 0  ; envvars[env_s] != NULL ; ++env_s );
+		envp = safecalloc( env_s+2, sizeof(char*));
 
-        envp[env_s] = safemalloc(8+strlen(display)+1);
+		/* environment variabless to pass to child process */
+		if( envvars ) 
+			for( env_s = 0  ; envvars[env_s] != NULL ; ++env_s )
+				envp[env_s] = envvars[env_s] ;	
+        
+		envp[env_s] = safemalloc(8+strlen(display)+1);
 		sprintf( envp[env_s], "DISPLAY=%s", display );
 
 			

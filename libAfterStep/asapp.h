@@ -216,6 +216,9 @@ void ASDeadPipe( int nonsense );
 
 void InitMyApp (  const char *app_class, int agrc, char **argv, void (*version_func) (void), void (*custom_usage_func) (void), ASFlagType opt_mask );
 void SetMyName (char *argv0);
+/* overrides envvars supplied on startup : */
+void override_environ( char **envp );
+
 
 void FreeMyAppResources();
 

@@ -81,7 +81,7 @@ LOCAL_DEBUG_OUT( "pid(%d),complete...", getpid() );
  *	main - start of afterstep
  ************************************************************************/
 int
-main (int argc, char **argv)
+main (int argc, char **argv, char **envp)
 {
     register int i ;
 	
@@ -113,6 +113,10 @@ main (int argc, char **argv)
 	trace_window_id2name_hook = &window_id2name;
 #endif
 	set_DeadPipe_handler(DeadPipe);
+
+#if !HAVE_DECL_ENVIRON
+	override_environ( envp );
+#endif
     InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0);
 	for( i = 1 ; i< argc ; ++i)
 	{
