@@ -182,8 +182,22 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_value_ID					(CONFIG_SUBOPTIONS_IDS+10)
 #define CONFIG_unit_ID					(CONFIG_SUBOPTIONS_IDS+11)
 
- 
-#define CONFIG_ID_END					(CONFIG_SUBOPTIONS_IDS+12)
+#define CONFIG_unpressed_ID				(CONFIG_SUBOPTIONS_IDS+12)
+#define CONFIG_pressed_ID 				(CONFIG_SUBOPTIONS_IDS+13)
+
+#define CONFIG_source_ID 				(CONFIG_SUBOPTIONS_IDS+14)
+#define CONFIG_context_ID 				(CONFIG_SUBOPTIONS_IDS+15)
+#define CONFIG_mod_ID		 			(CONFIG_SUBOPTIONS_IDS+16)
+
+#define CONFIG_left_ID	  				(CONFIG_SUBOPTIONS_IDS+17)
+#define CONFIG_right_ID	  				(CONFIG_SUBOPTIONS_IDS+18)
+#define CONFIG_top_ID	  				(CONFIG_SUBOPTIONS_IDS+19)
+#define CONFIG_bottom_ID  				(CONFIG_SUBOPTIONS_IDS+20)
+
+#define CONFIG_image_ID  				(CONFIG_SUBOPTIONS_IDS+21)
+#define CONFIG_mask_ID  				(CONFIG_SUBOPTIONS_IDS+22)
+
+#define CONFIG_ID_END					(CONFIG_SUBOPTIONS_IDS+23)
 
 /***************************************************************************/
 /*                        Base file pasring definitions                    */

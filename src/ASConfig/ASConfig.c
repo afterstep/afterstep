@@ -631,6 +631,21 @@ void register_special_keywords()
 	REG_SPEC_KEYWORD(value);
 	REG_SPEC_KEYWORD(unit);
 	REG_SPEC_KEYWORD(IncludeFile);
+
+	REG_SPEC_KEYWORD(unpressed);
+	REG_SPEC_KEYWORD(pressed);
+
+	REG_SPEC_KEYWORD(source);
+	REG_SPEC_KEYWORD(context);
+	REG_SPEC_KEYWORD(mod);
+
+	REG_SPEC_KEYWORD(left);
+	REG_SPEC_KEYWORD(right);
+	REG_SPEC_KEYWORD(top);
+	REG_SPEC_KEYWORD(bottom);
+
+	REG_SPEC_KEYWORD(image);
+	REG_SPEC_KEYWORD(mask);
 }	 
 /**************************************************************************/
 ASConfigFile *
@@ -981,35 +996,23 @@ special_free_storage2property( FreeStorageElem **pcurr )
 	
 	ReadConfigItem (&item, curr);
 
-	if( type == MYSTYLE_BACKGRADIENT_ID ) 
+	if( curr->term->id == MYSTYLE_BACKGRADIENT_ID ) 
 	{
 				/* TODO */				   
-	}else if( type == MYSTYLE_BACKGRADIENT_ID ) 
+	}else if( curr->term->id == MYSTYLE_BACKGRADIENT_ID ) 
 	{
 				/* TODO */				   
-	}else if( type == MYSTYLE_BACKPIXMAP_ID )
+	}else if( curr->term->id == MYSTYLE_BACKPIXMAP_ID )
 	{
-		ASStorageID text_id = 0 ;
-		ASProperty *type = NULL ;
-		ASProperty *val = NULL ;
-
 		prop = create_property( curr->term->id, ASProp_Phony, NULL, True );	 				   
-		type = create_property( CONFIG_type_ID, ASProp_Integer, NULL, False );	 				   
-		type->contents.integer = item.data.integer;
-		append_property( prop, type );			   
+		add_integer_property( CONFIG_type_ID, item.data.integer, prop );
 
 		if (curr->argc > 1)
-			text_id = encode_string( curr->argv[1] ); 
-		if( text_id != 0 ) 
 		{	
-			if( item.data.integer == TEXTURE_TRANSPARENT || 
-				item.data.integer == TEXTURE_TRANSPARENT_TWOWAY ) 
-			{
-				val = create_property( CONFIG_type_ID, ASProp_Data, NULL, False );	 				   							
-			}else
-				val = create_property( CONFIG_pixmap_ID, ASProp_Data, NULL, False );	 				   							   
-			val->contents.data = text_id;
-			append_property( prop, val );			   
+			if( item.data.integer == TEXTURE_TRANSPARENT || item.data.integer == TEXTURE_TRANSPARENT_TWOWAY ) 
+		  		add_string_property( CONFIG_tint_ID, curr->argv[1], prop );				   
+			else
+		  		add_string_property( CONFIG_pixmap_ID, curr->argv[1], prop );				   
 		}
 	}
 
@@ -1086,11 +1089,48 @@ special_free_storage2property( FreeStorageElem **pcurr )
 					}	 
 				}
 				break ;
-	 		case TT_BOX :		/* TODO */ break ;
-	 		case TT_BUTTON :	/* TODO */ break ;
-	 		case TT_BINDING : 	/* TODO */ break ;
+	 		case TT_BOX :
+				prop = create_property( curr->term->id, ASProp_Phony, NULL, True );
+				add_integer_property( CONFIG_flags_ID, item.data.box.flags, prop );
+				if( get_flags(item.data.box.flags, LeftValue ) )
+					add_integer_property( CONFIG_left_ID, item.data.box.left, prop );
+				if( get_flags(item.data.box.flags, RightValue ) )
+					add_integer_property( CONFIG_right_ID, item.data.box.right, prop );
+				if( get_flags(item.data.box.flags, TopValue ) )
+					add_integer_property( CONFIG_top_ID, item.data.box.top, prop );
+				if( get_flags(item.data.box.flags, BottomValue ) )
+					add_integer_property( CONFIG_bottom_ID, item.data.box.bottom, prop );
+				break ;
+	 		case TT_BUTTON :	
+				prop = create_property( curr->term->id, ASProp_Phony, NULL, True );
+				set_property_index( prop, item.index );
+				if( item.data.button )
+				{	
+					if( item.data.button->shapes[ASB_State_Up] )
+						add_string_property( CONFIG_unpressed_ID, item.data.button->shapes[ASB_State_Up], prop );				   
+					if( item.data.button->shapes[ASB_State_Down] )
+						add_string_property( CONFIG_pressed_ID, item.data.button->shapes[ASB_State_Down], prop );				   
+				}
+				break ;
+	 		case TT_BINDING : 	
+				prop = create_property( curr->term->id, ASProp_Phony, NULL, True );
+				if( item.data.binding.sym )
+					add_string_property( CONFIG_source_ID, item.data.binding.sym, prop );				   
+				add_integer_property( CONFIG_context_ID, item.data.binding.context, prop );
+				add_integer_property( CONFIG_mod_ID, item.data.binding.mods, prop );
+				break ;
 	 		case TT_INTARRAY : 	/* TODO */ break ;
-	 		case TT_CURSOR : 	/* TODO */ break ;
+	 		case TT_CURSOR :
+				prop = create_property( curr->term->id, ASProp_Phony, NULL, True );
+				if( item.data.cursor )
+				{	
+					if( item.data.cursor->image_file )
+						add_string_property( CONFIG_image_ID, item.data.cursor->image_file, prop );				   
+					if( item.data.cursor->mask_file )
+						add_string_property( CONFIG_mask_ID, item.data.cursor->mask_file, prop );				   
+				}
+				break ;
+				
 		}
 	}
 	ReadConfigItem (&item, NULL);
@@ -1227,6 +1267,8 @@ merge_property_list( ASProperty *src, ASProperty *dst )
 ASProperty* asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *owner_prop, int func, const char *extension, const char *mini_ext );
 void melt_menu_props( ASProperty *file, ASProperty *opts );
 void melt_func_props( ASProperty *file, ASProperty *opts );
+void melt_binding_props( ASProperty *src, ASProperty *dst );
+
 
 ASProperty* 
 load_current_config_fname( ASProperty* config, int id, const char *filename, const char *myname, 
@@ -1289,7 +1331,9 @@ load_current_config_fname( ASProperty* config, int id, const char *filename, con
 	else if( syntax == &FunctionSyntax ) 
 	{
 		melt_func_props( file, opts );	  
-	}else
+	}else if( id == CONFIG_KeyBindings_ID || id == CONFIG_MouseBindings_ID ) 
+		melt_binding_props( file, opts );	  
+	else
 		merge_property_list( file, opts );
 	
 	return config;
@@ -1728,7 +1772,29 @@ melt_func_props( ASProperty *src, ASProperty *dst )
 	LOCAL_DEBUG_CALLER_OUT("(%p,%p)", src, dst );	
 	iterate_asbidirlist( src->sub_props, melt_func_props_into_list, dst, NULL, False );		  	
 }
-	
+/*************************************************************************/
+void 
+melt_binding_props( ASProperty *src, ASProperty *dst )
+{
+	LOCAL_DEBUG_CALLER_OUT("(%p,%p)", src, dst );	  
+	if( src->sub_props != NULL && dst != NULL ) 
+	{	
+		int index = 0 ;
+		ASBiDirElem *curr = LIST_START(src->sub_props); 		   
+		while( curr ) 
+		{
+			ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+			ASProperty *copy ;
+			copy = dup_property( prop, True ); 
+			set_property_index( copy, index );
+			append_property( dst, copy );
+		
+			++index ;
+		
+			LIST_GOTO_NEXT(curr);
+		}
+	}
+}
 /*************************************************************************/
 void load_global_configs();
 void add_module_config( const char *module_class, const char *module_name );
