@@ -58,6 +58,7 @@
 #include "asfont.h"
 #include "asimage.h"
 #include "asvisual.h"
+#include "char2uni.h"
 
 /*********************************************************************************/
 /* TrueType and X11 font management functions :   								 */
@@ -895,20 +896,16 @@ static ASGlyphRange*
 split_freetype_glyph_range( unsigned long min_char, unsigned long max_char, FT_Face face )
 {
 	ASGlyphRange *first = NULL, **r = &first;
-#ifdef  I18N
-#else
-#define TO_UNICODE(i)   i
-#endif
 LOCAL_DEBUG_CALLER_OUT( "min_char = %lu, max_char = %lu, face = %p", min_char, max_char, face );
 	while( min_char <= max_char )
 	{
 		register long i = min_char;
-		while( i <= max_char && FT_Get_Char_Index( face, TO_UNICODE(i)) == 0 ) i++ ;
+		while( i <= max_char && FT_Get_Char_Index( face, CHAR2UNICODE(i)) == 0 ) i++ ;
 		if( i <= max_char )
 		{
 			*r = safecalloc( 1, sizeof(ASGlyphRange));
 			(*r)->min_char = i ;
-			while( i <= max_char && FT_Get_Char_Index( face, TO_UNICODE(i)) != 0 ) i++ ;
+			while( i <= max_char && FT_Get_Char_Index( face, CHAR2UNICODE(i)) != 0 ) i++ ;
 			(*r)->max_char = i ;
 LOCAL_DEBUG_OUT( "created glyph range from %lu to %lu", (*r)->min_char, (*r)->max_char );
 			r = &((*r)->above);
@@ -924,14 +921,13 @@ load_freetype_glyphs( ASFont *font )
 	int max_ascend = 0, max_descend = 0;
 	unsigned long i ;
 	ASGlyphRange *r ;
-#ifdef I18N
-	/* TODO: add font drawing internationalization : */
-	font->codemap = split_freetype_glyph_range( 0x21, 0xFFFFFF, font->ft_face );
-	font->pen_move_dir = RIGHT_TO_LEFT ;
-#else                                          /* assume ISO Latin 1 encoding */
+
+    /* we preload only codes in range 0x21-0xFF in current charset */
+	/* if draw_unicode_text is used and we need some other glyphs 
+	 * we'll just need to add them on demand */
 	font->codemap = split_freetype_glyph_range( 0x21, 0xFF, font->ft_face );
 	font->pen_move_dir = LEFT_TO_RIGHT ;
-#endif
+
 	load_glyph_freetype( font, &(font->default_glyph), 0);/* special no-symbol glyph */
 	if( font->codemap == NULL )
 	{
@@ -952,7 +948,7 @@ load_freetype_glyphs( ASFont *font )
 				if( i != ' ' && i != '\t' && i!= '\n' )
 				{
 					ASGlyph *asg = &(r->glyphs[i-min_char]);
-					load_glyph_freetype( font, asg, FT_Get_Char_Index( font->ft_face, TO_UNICODE(i)));
+					load_glyph_freetype( font, asg, FT_Get_Char_Index( font->ft_face, CHAR2UNICODE(i)));
 					if( asg->lead >= 0 || asg->lead+asg->width > 3 )
 						font->pen_move_dir = LEFT_TO_RIGHT ;
 					if( asg->ascend > max_ascend )
@@ -971,14 +967,9 @@ load_freetype_glyphs( ASFont *font )
 }
 #endif
 
-inline ASGlyph *get_character_glyph( const char *c, ASFont *font )
+inline ASGlyph *get_unicode_glyph( const UNICODE_CHAR uc, ASFont *font )
 {
-	unsigned long uc;
 	register ASGlyphRange *r;
-#ifdef I18N
-#else
-	uc = (unsigned long)*c;
-#endif
 
 	for( r = font->codemap ; r != NULL ; r = r->above )
 		if( r->max_char >= uc )
@@ -989,6 +980,81 @@ inline ASGlyph *get_character_glyph( const char *c, ASFont *font )
 					return &(r->glyphs[uc - r->min_char]);
 			}
 	return &(font->default_glyph);
+}
+
+
+inline ASGlyph *get_character_glyph( const char c, ASFont *font )
+{
+	return get_unicode_glyph( CHAR2UNICODE(c), font );
+}
+
+static UNICODE_CHAR
+utf8_to_unicode ( const unsigned char *s )
+{
+	unsigned char c = s[0];
+
+	if (c < 0x80) 
+	{
+  		return (UNICODE_CHAR)c;
+	} else if (c < 0xc2) 
+	{
+  		return 0;
+    } else if (c < 0xe0) 
+	{
+	    if (!((s[1] ^ 0x80) < 0x40))
+    		return 0;
+	    return ((UNICODE_CHAR) (c & 0x1f) << 6)
+  		       |(UNICODE_CHAR) (s[1] ^ 0x80);
+    } else if (c < 0xf0) 
+	{
+	    if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40
+  		      && (c >= 0xe1 || s[1] >= 0xa0)))
+	        return 0;
+		return ((UNICODE_CHAR) (c & 0x0f) << 12)
+        	 | ((UNICODE_CHAR) (s[1] ^ 0x80) << 6)
+          	 |  (UNICODE_CHAR) (s[2] ^ 0x80);
+	} else if (c < 0xf8 && sizeof(UNICODE_CHAR)*8 >= 32) 
+	{
+	    if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40
+  	        && (s[3] ^ 0x80) < 0x40
+    	    && (c >= 0xf1 || s[1] >= 0x90)))
+    		return 0;
+	    return ((UNICODE_CHAR) (c & 0x07) << 18)
+             | ((UNICODE_CHAR) (s[1] ^ 0x80) << 12)
+	         | ((UNICODE_CHAR) (s[2] ^ 0x80) << 6)
+  	         |  (UNICODE_CHAR) (s[3] ^ 0x80);
+	} else if (c < 0xfc && sizeof(UNICODE_CHAR)*8 >= 32) 
+	{
+	    if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40
+  	        && (s[3] ^ 0x80) < 0x40 && (s[4] ^ 0x80) < 0x40
+    	    && (c >= 0xf9 || s[1] >= 0x88)))
+	        return 0;
+		return ((UNICODE_CHAR) (c & 0x03) << 24)
+             | ((UNICODE_CHAR) (s[1] ^ 0x80) << 18)
+	         | ((UNICODE_CHAR) (s[2] ^ 0x80) << 12)
+  	         | ((UNICODE_CHAR) (s[3] ^ 0x80) << 6)
+    	     |  (UNICODE_CHAR) (s[4] ^ 0x80);
+	} else if (c < 0xfe && sizeof(UNICODE_CHAR)*8 >= 32) 
+	{
+	    if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40
+  		    && (s[3] ^ 0x80) < 0x40 && (s[4] ^ 0x80) < 0x40
+      	    && (s[5] ^ 0x80) < 0x40
+        	&& (c >= 0xfd || s[1] >= 0x84)))
+	  		return 0;
+		return ((UNICODE_CHAR) (c & 0x01) << 30)
+      	     | ((UNICODE_CHAR) (s[1] ^ 0x80) << 24)
+        	 | ((UNICODE_CHAR) (s[2] ^ 0x80) << 18)
+             | ((UNICODE_CHAR) (s[3] ^ 0x80) << 12)
+	         | ((UNICODE_CHAR) (s[4] ^ 0x80) << 6)
+  	    	 |  (UNICODE_CHAR) (s[5] ^ 0x80);
+    }
+    return 0;
+}
+
+inline ASGlyph *get_utf8_glyph( const char *utf8, ASFont *font )
+{
+	UNICODE_CHAR uc = utf8_to_unicode ( utf8 );
+	return get_unicode_glyph( uc, font );
 }
 
 /*********************************************************************************/
@@ -1030,15 +1096,64 @@ apply_text_3D_type( ASText3DType type,
 	}
 }
 
+#define FILL_TEXT_GLYH_MAP(name,type,getglyph,incr) \
+static unsigned int \
+name( const type *text, ASFont *font, ASGlyphMap *map, int space_size, unsigned int offset_3d_x ) \
+{ \
+	unsigned int w = 0, line_count = 0, line_width = 0; \
+	int i = -1, g = 0 ; \
+	ASGlyph *last_asg = NULL ; \
+	do \
+	{ \
+		++i ; \
+		if( text[i] == '\n' || text[i] == '\0' ) \
+		{ \
+			if( last_asg && last_asg->width+last_asg->lead > last_asg->step ) \
+				line_width += last_asg->width+last_asg->lead - last_asg->step ; \
+			last_asg = NULL; \
+			if( line_width > w ) \
+				w = line_width ; \
+			line_width = 0 ; \
+			++line_count ; \
+			map->glyphs[g++] = (text[i] == '\0')?GLYPH_EOT:GLYPH_EOL; \
+		}else \
+		{ \
+			last_asg = NULL ; \
+			if( text[i] == ' ' ) \
+			{ \
+				line_width += space_size ; \
+				map->glyphs[g++] = GLYPH_SPACE; \
+			}else if( text[i] == '\t' ) \
+			{ \
+				line_width += space_size*8 ; \
+				map->glyphs[g++] = GLYPH_TAB; \
+			}else \
+			{ \
+				last_asg = getglyph; \
+				map->glyphs[g++] = last_asg; \
+				line_width += last_asg->step+offset_3d_x ; \
+				incr; /* i+=CHAR_SIZE(text[i])-1; */ \
+			} \
+		} \
+	}while( text[i] != '\0' );  \
+	map->width = MAX( w, (unsigned int)1 ); \
+	return line_count ; \
+} 
+
+FILL_TEXT_GLYH_MAP(fill_text_glyph_map_Char,char,get_character_glyph(text[i],font),/* */)
+FILL_TEXT_GLYH_MAP(fill_text_glyph_map_UTF8,char,get_utf8_glyph(&text[i],font),i+=UTF8_CHAR_SIZE(text[i])-1)
+FILL_TEXT_GLYH_MAP(fill_text_glyph_map_Unicode,UNICODE_CHAR,get_unicode_glyph(text[i],font),/* */)
+
+typedef enum {
+  ASCT_UTF8 = 0,
+  ASCT_Char	= 1,
+  ASCT_Unicode=sizeof(UNICODE_CHAR)
+}ASCharType;
 
 static Bool
-get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMap *map )
+get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMap *map, ASCharType char_type )
 {
-	unsigned int w = 0;
-	unsigned int line_count = 0, line_width = 0;
-	int i = -1, g = 0 ;
-	const char *ptr = text;
-	ASGlyph *last_asg = NULL ;
+	unsigned int line_count = 0;
 	unsigned int offset_3d_x = 0, offset_3d_y = 0 ;
 	int space_size  = (font->space_size>>1)+1+font->spacing_x;
 
@@ -1051,50 +1166,37 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 	offset_3d_y += font->spacing_y ;
 
 	map->glyphs_num = 1;
-	while( *ptr != 0 )
+	if( char_type == ASCT_Char )
 	{
-		++(map->glyphs_num);
-		ptr += CHAR_SIZE(*ptr);
+		register int count = 0 ;
+		register char *ptr = (char*)text ;
+		while( ptr[count] != 0 )++count;
+		map->glyphs_num += count ;
+	}else if( char_type == ASCT_UTF8 )
+	{
+		register int count = 0 ;
+		register char *ptr = (char*)text ;
+		while( *ptr != 0 ){	++count; ptr += UTF8_CHAR_SIZE(*ptr); }
+		map->glyphs_num += count ;
+	}else if( char_type == ASCT_Unicode )
+	{
+		register int count = 0 ;
+		register UNICODE_CHAR *uc_ptr = (UNICODE_CHAR*)text ;
+		while( uc_ptr[count] != 0 )	++count; 
+		map->glyphs_num += count ;
 	}
 
 	if( map->glyphs_num == 0 )
 		return False;
 	map->glyphs = safecalloc( map->glyphs_num, sizeof(ASGlyph*));
-	do
-	{
-		++i ;
-		if( text[i] == '\n' || text[i] == '\0' )
-		{
-			if( last_asg && last_asg->width+last_asg->lead > last_asg->step )
-				line_width += last_asg->width+last_asg->lead - last_asg->step ;
-			last_asg = NULL;
-			if( line_width > w )
-				w = line_width ;
-			line_width = 0 ;
-			++line_count ;
-			map->glyphs[g++] = (text[i] == '\0')?GLYPH_EOT:GLYPH_EOL;
-		}else
-		{
-			last_asg = NULL ;
-			if( text[i] == ' ' )
-			{
-				line_width += space_size ;
-				map->glyphs[g++] = GLYPH_SPACE;
-			}else if( text[i] == '\t' )
-			{
-				line_width += space_size*8 ;
-				map->glyphs[g++] = GLYPH_TAB;
-			}else
-			{
-				last_asg = get_character_glyph( &text[i], font );
-				map->glyphs[g++] = last_asg;
-				line_width += last_asg->step+offset_3d_x ;
-				i+=CHAR_SIZE(text[i])-1;
-			}
-		}
-	}while( text[i] != '\0' );
-
-	map->width = MAX( w, (unsigned int)1 );
+	
+	if( char_type == ASCT_Char )
+		line_count = fill_text_glyph_map_Char( text, font, map, space_size, offset_3d_x );
+	else if( char_type == ASCT_UTF8 )	
+		line_count = fill_text_glyph_map_UTF8( text, font, map, space_size, offset_3d_x );
+	else if( char_type == ASCT_Unicode )
+		line_count = fill_text_glyph_map_Unicode( (UNICODE_CHAR*)text, font, map, space_size, offset_3d_x );
+	
 	map->height = line_count * (font->max_height+offset_3d_y);
 	map->height -= font->spacing_y ;
 
@@ -1145,9 +1247,9 @@ get_text_size( const char *text, ASFont *font, ASText3DType type, unsigned int *
 				line_width += space_size*8 ;
 			}else
 			{
-				last_asg = get_character_glyph( &text[i], font );
+				last_asg = get_character_glyph( text[i], font );
 				line_width += last_asg->step+offset_3d_x ;
-				i+=CHAR_SIZE(text[i])-1;
+				/* i+=CHAR_SIZE(text[i])-1; */
 			}
 		}
 	}while( text[i] != '\0' );
@@ -1218,7 +1320,7 @@ draw_text( const char *text, ASFont *font, ASText3DType type, int compression )
 #endif
 
 LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font, compression );
-	if( !get_text_glyph_map( text, font, type, &map) )
+	if( !get_text_glyph_map( text, font, type, &map, ASCT_Char) )
 		return NULL;
 
 	apply_text_3D_type( type, &(offset_3d_x), &(offset_3d_y) );

@@ -1,7 +1,7 @@
 #ifndef CHAR2UNI_H_HEADER_INCLUDED
 #define CHAR2UNI_H_HEADER_INCLUDED
 
-enum {
+typedef enum {
    CHARSET_ISO8859_1 = 0,     /* Does not require translation */
    CHARSET_ISO8859_2, 
    CHARSET_ISO8859_3, 
@@ -25,13 +25,39 @@ enum {
    SUPPORTED_CHARSETS_NUM
 }ASSupportedCharsets ;
 
-extern unsigned short *current_ascharset ;
+extern const unsigned short *as_current_charset ;
 
+#ifdef WIN32 
+#define UNICODE_CHAR	CARD16
+#else
+#define UNICODE_CHAR	CARD32
+#endif
+
+#ifdef  I18N
 #define CHAR2UNICODE(c) \
-  ((CARD16)(c)<128 || (CARD16)(c)>=256 )?\
-   (CARD16)(c):\
-   current_ascharset[(CARD16)(c)-128])
+  ((UNICODE_CHAR)((CARD16)(c)<128 || (CARD16)(c)>=256 )?\
+			      (CARD16)(c):\
+			      as_current_charset[(CARD16)(c)-128]))
+#else
+#define CHAR2UNICODE(c)   ((UNICODE_CHAR)(c))
+#endif
 
-ASSupportedCharsets switch_ascharset( ASSupportedCharsets new_charset );
+ASSupportedCharsets as_set_charset( ASSupportedCharsets new_charset );
+
+/****d* libAfterImage/CHAR_SIZE
+ * FUNCTION
+ * Convinient macro so we can transparently determine the number of
+ * bytes that character spans. It assumes UTF-8 encoding when I18N is
+ * enabled.
+ * SOURCE
+ */
+/* size of the UTF-8 encoded character is based on value of the first byte : */
+#define UTF8_CHAR_SIZE(c) 	(((c)&0x80)?(((c)&0x40)?(((c)&0x20)?(((c)&0x10)?5:4):3):2):1)
+#ifdef WIN32
+#define UNICODE_CHAR_SIZE(c)	sizeof(UNICODE_CHAR)
+#endif
+#define CHAR_SIZE(c) 			1
+/*************/
+
 
 #endif

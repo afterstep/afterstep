@@ -27,6 +27,11 @@
  * Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
+
+/*#define LOCAL_DEBUG*/
+/*#define DO_CLOCKING*/
+
 #include "char2uni.h"
 
 /*
@@ -61,6 +66,7 @@ static const unsigned short _as_iso8859_1_2uni[128] = {
   0x00f8, 0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x00fd, 0x00fe, 0x00ff 
 };
 
+#ifdef  I18N
 /*
  * ISO-8859-2
  */
@@ -677,15 +683,21 @@ static unsigned short *_as_supported_charset[SUPPORTED_CHARSETS_NUM] = {
  &_as_cp1251_2uni[0], 
  &_as_cp1252_2uni[0]
 };
+#endif
 
-unsigned short *current_ascharset = &_as_iso8859_1_2uni[0];
+const unsigned short *as_current_charset = &_as_iso8859_1_2uni[0];
 
 ASSupportedCharsets 
-switch_ascharset( ASSupportedCharsets new_charset )
+as_set_charset( ASSupportedCharsets new_charset )
 {
+#ifdef  I18N
+
 	if( new_charset < 0 || new_charset >= SUPPORTED_CHARSETS_NUM ) 
 		new_charset = CHARSET_ISO8859_1 ;
 
-	current_ascharset = _as_supported_charsets[new_charset] ;
+	as_current_charset = _as_supported_charsets[new_charset] ;
 	return new_charset ;
+#else
+	return CHARSET_ISO8859_1 ;
+#endif
 }

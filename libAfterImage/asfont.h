@@ -78,21 +78,6 @@ typedef enum
 struct ASFontManager;
 struct ASFont;
 
-/****d* libAfterImage/CHAR_SIZE
- * FUNCTION
- * Convinient macro so we can transparently determine the number of
- * bytes that character spans. It assumes UTF-8 encoding when I18N is
- * enabled.
- * SOURCE
- */
-#ifdef I18N
-/* size of the UTF-8 encoded character is based on value of the first byte : */
-#define CHAR_SIZE(c) 	(((c)&0x80)?(((c)&0x40)?(((c)&0x20)?(((c)&0x10)?5:4):3):2):1)
-#else
-#define CHAR_SIZE(c) 	1
-#endif
-/*************/
-
 /****s* libAfterImage/ASGlyph
  * NAME
  * ASGlyph
@@ -421,7 +406,19 @@ void 	print_asglyph( FILE* stream, struct ASFont* font, unsigned long c);
 struct ASImage *draw_text( const char *text,
 	                       struct ASFont *font, ASText3DType type,
 						   int compression );
+struct ASImage *draw_utf8_text( const char *text,
+	                       struct ASFont *font, ASText3DType type,
+						   int compression );
+struct ASImage *draw_unicode_text( const CARD32 *text,
+	                       struct ASFont *font, ASText3DType type,
+						   int compression );
 Bool get_text_size( const char *text,
+	                struct ASFont *font, ASText3DType type,
+                    unsigned int *width, unsigned int *height );
+Bool get_utf8_text_size( const char *text,
+	                struct ASFont *font, ASText3DType type,
+                    unsigned int *width, unsigned int *height );
+Bool get_unicode_text_size( const CARD32 *text,
 	                struct ASFont *font, ASText3DType type,
                     unsigned int *width, unsigned int *height );
 /****f* libAfterImage/asfont/get_asfont_glyph_spacing()

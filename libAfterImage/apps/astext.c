@@ -202,6 +202,10 @@ int main(int argc, char* argv[])
 
 	/* see ASText.3 : */
 	text_im = draw_text( text, font, type_3d, 0 );
+/*
+show_progress( "text_im->width = %d, text_im->height = %d", text_im->width, text_im->height );	
+show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore_im->height );	
+*/
 	if( fore_im )
 	{
 		move_asimage_channel( fore_im, IC_ALPHA, text_im, IC_ALPHA );
