@@ -39,6 +39,8 @@
 #include "../../libAfterStep/event.h"
 #include "../../libAfterStep/wmprops.h"
 
+#include <X11/keysym.h>
+
 struct
 {
 	Window main_window ;
@@ -291,6 +293,15 @@ int main(int argc, char** argv)
 	if( ASColorState.display )
 		ASColorState.main_window = create_main_window();
 
+	{
+		CARD32 hue16, sat16, val16 ;
+
+		hue16 = rgb2hsv( ARGB32_RED16(ASColorState.base_color), ARGB32_GREEN16(ASColorState.base_color), ARGB32_BLUE16(ASColorState.base_color), &sat16, &val16 );
+
+		ASColorState.base_hue = hue162degrees(hue16);
+		ASColorState.base_sat = val162percent(sat16);
+		ASColorState.base_val = val162percent(val16);
+	}
 	do_colorscheme();
 
 	HandleEvents();
@@ -354,6 +365,33 @@ DispatchEvent (ASEvent * event)
 	    case ConfigureNotify:
             break;
         case KeyPress :
+			{
+				int val = 10 ;
+				if( (event->x.xkey.state&ControlMask) )
+					val = 1 ;
+				LOCAL_DEBUG_OUT( "keysym = 0x%X", XLookupKeysym (&(event->x.xkey),0) );
+				switch( XLookupKeysym (&(event->x.xkey), 0) )
+				{
+					case XK_a : ASColorState.curr_param = ASC_PARAM_Angle ;
+						do_colorscheme();
+					    break ;
+					case XK_h : ASColorState.curr_param = ASC_PARAM_BaseHue ;
+						do_colorscheme();
+				    	break ;
+					case XK_s : ASColorState.curr_param = ASC_PARAM_BaseSat ;
+						do_colorscheme();
+					    break ;
+					case XK_v : ASColorState.curr_param = ASC_PARAM_BaseVal ;
+						do_colorscheme();
+					    break ;
+					case XK_Left :
+						do_change_param( -val );
+				    	break ;
+					case XK_Right :
+						do_change_param( val );
+				    	break ;
+				}
+			}
             break ;
         case KeyRelease :
             break ;
@@ -427,7 +465,7 @@ create_main_window()
             y = ASColorState.geometry.y ;
 			break;
 	}
-    attr.event_mask = StructureNotifyMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|PropertyChangeMask ;
+    attr.event_mask = StructureNotifyMask|ButtonPressMask|KeyPressMask|ButtonReleaseMask|PointerMotionMask|PropertyChangeMask ;
     w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 4, InputOutput, CWEventMask, &attr);
     set_client_names( w, MyName, MyName, CLASS_ASCOLOR, MyName );
 
@@ -484,10 +522,6 @@ do_colorscheme()
 	/* now we need to calculate color scheme and populate XML env vars with colors */
 	ASColorState.cs = make_ascolor_scheme( ASColorState.base_color, ASColorState.angle );
 
-	ASColorState.base_hue = ASColorState.cs->base_hue ;
-	ASColorState.base_sat = ASColorState.cs->base_sat ;
-	ASColorState.base_val = ASColorState.cs->base_val ;
-
 	populate_ascs_colors_rgb( ASColorState.cs );
 	populate_ascs_colors_xml( ASColorState.cs );
 
@@ -502,31 +536,82 @@ do_colorscheme()
 	/* Save the result image if desired. */
 	if (ASColorState.img_save && ASColorState.img_save_type)
 	{
-        if(!save_asimage_to_file(ASColorState.img_save, ASColorState.cs_im, ASColorState.img_save_type, ASColorState.img_compress, NULL, 0, 1))
+		char *fname = ASColorState.img_save;
+		if( strchr( fname ,'%' ) != NULL )
+		{
+			fname = safemalloc( strlen( ASColorState.img_save ) + 64 ) ;
+			sprintf( fname, ASColorState.img_save, ASColorState.cs->main_colors[ASMC_Base] );
+		}
+        if(!save_asimage_to_file(fname, ASColorState.cs_im, ASColorState.img_save_type, ASColorState.img_compress, NULL, 0, 1))
 			show_error("Image Save failed.");
 		else
 			show_progress("Image Save successful.");
+
+		if( fname != ASColorState.img_save )
+			free( fname );
 	}
 
 	/* Save the result colorscheme if desired. */
 	if ( ASColorState.cs_save )
 	{
 		ColorConfig *config = ASColorScheme2ColorConfig( ASColorState.cs );
-
-		if( WriteColorOptions (ASColorState.cs_save, MyName, config, 0) == 0 )
-			show_error("Color Scheme Saved to \"%s\".", ASColorState.cs_save);
+		char *fname = ASColorState.cs_save;
+		if( strchr( fname ,'%' ) != NULL )
+		{
+			fname = safemalloc( strlen( ASColorState.cs_save ) + 64 ) ;
+			sprintf( fname, ASColorState.cs_save, ASColorState.cs->main_colors[ASMC_Base] );
+		}
+		if( WriteColorOptions (fname, MyName, config, 0) == 0 )
+			show_progress("Color Scheme Saved to \"%s\".", fname);
 		else
-			show_progress("Color Scheme Save to \"%s\" unsuccessful.", ASColorState.cs_save);
+			show_error("Color Scheme Save to \"%s\" unsuccessful.", fname);
+		if( fname != ASColorState.cs_save )
+			free( fname );
 	}
 
 	/* Display the image if desired. */
 	if (ASColorState.display)
 	{
 		Pixmap p = asimage2pixmap( Scr.asv, Scr.Root, ASColorState.cs_im, NULL, False );
+		char  legend_str [256] ;
+		Pixmap legend_p ;
+		ASImage *legend_im ;
+
+		if( ASColorState.base_hue == -1 ||
+			(ASColorState.base_hue == 0 && ASColorState.base_sat == 0 )  )
+		{
+			sprintf( &(legend_str[0]), "<text font=\"DefaultBold.ttf\" fgcolor=white bgcolor=black>Base color : #%8.8lX</text>", ASColorState.cs->main_colors[ASMC_Base] );
+		}else
+		{
+			char *param_text[] = {	"hue", "Saturation", "Value", "Angle" };
+			sprintf( &(legend_str[0]), "<text font=\"DefaultBold.ttf\" fgcolor=white bgcolor=black>"
+			                           "Base color : #%8.8lX; "
+									   "Hue %d; "
+									   "Saturation %d; "
+									   "Value %d; "
+									   "Angle %d; "
+									   "[Now Changing (%s)]"
+									   "</text>",
+									   ASColorState.cs->main_colors[ASMC_Base],
+									   ASColorState.cs->base_hue,
+									   ASColorState.cs->base_sat,
+									   ASColorState.cs->base_val,
+									   ASColorState.angle,
+									   param_text[ASColorState.curr_param]);
+		}
+
+		legend_im = compose_asimage_xml(Scr.asv, NULL, NULL, legend_str, ASFLAGS_EVERYTHING, False, None, NULL);
+		legend_p = asimage2pixmap( Scr.asv, Scr.Root, legend_im, NULL, False );
+
+		XCopyArea( dpy, legend_p, p, DefaultGC(dpy, Scr.screen), 0, 0, legend_im->width, legend_im->height,
+		           0, ASColorState.cs_im->height - legend_im->height );
+
 		XSetWindowBackgroundPixmap( dpy, ASColorState.main_window, p );
 		XClearWindow( dpy, ASColorState.main_window );
 		XFlush( dpy );
 		XFreePixmap( dpy, p );
+		XFreePixmap( dpy, legend_p );
+		safe_asimage_destroy( legend_im );
 	}
 }
 
@@ -535,18 +620,18 @@ do_colorscheme()
 void
 do_change_param( int val )
 {
-	if( ASColorState.base_hue == -1 || 
+	if( ASColorState.base_hue == -1 ||
 		(ASColorState.base_hue == 0 && ASColorState.base_sat == 0 )  )
 	{
 		CARD32 base_alpha = ARGB32_ALPHA16(ASColorState.base_color);
-		int shade = ARGB32_RED16(ASColorState.base_color);
+		int shade = ARGB32_GREEN16(ASColorState.base_color);
 		shade = val162percent( shade );
-		shade += val ; 
+		shade += val ;
 		while( shade > 100 ) shade -= 100 ;
-		while( shade < 0 )   shade += 100 ;		
-		
-		shade = percent2val16(shade);
-		ASColorState.base_color = MAKE_ARGB32_GREY(base_alpha, shade);
+		while( shade < 0 )   shade += 100 ;
+
+		shade = percent2val16(shade)>>8;
+		ASColorState.base_color = MAKE_ARGB32_GREY8(base_alpha, shade);
 	}else
 	{
 		switch( ASColorState.curr_param )

@@ -82,7 +82,7 @@ typedef CARD32 ARGB32;
                                  (((g)&0x00FF)<<8)|((b)&0x00FF))
 #endif
 
-#define MAKE_ARGB32_GREY(a,l)	(((a)<<24)|(((l)&0x00FF)<<16)| \
+#define MAKE_ARGB32_GREY8(a,l)	(((a)<<24)|(((l)&0x00FF)<<16)| \
                                  (((l)&0x00FF)<<8)|((l)&0x00FF))
 #define ARGB32_ALPHA8(c)		(((c)>>24)&0x00FF)
 #define ARGB32_RED8(c)			(((c)>>16)&0x00FF)

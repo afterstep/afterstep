@@ -602,12 +602,13 @@ HandleKeyPress ( ASEvent *event )
     XKeyEvent *xk = &(event->x.xkey);
     unsigned int modifier = (xk->state & nonlock_mods);
 
+	/* Here's a real hack - some systems have two keys with the
+		* same keysym and different keycodes. This converts all
+		* the cases to one keycode. */
+    xk->keycode = XKeysymToKeycode (dpy, XKeycodeToKeysym (dpy, xk->keycode, 0));
+
     for (key = Scr.Feel.FuncKeyRoot; key != NULL; key = key->next)
 	{
-		/* Here's a real hack - some systems have two keys with the
-		 * same keysym and different keycodes. This converts all
-		 * the cases to one keycode. */
-        xk->keycode = XKeysymToKeycode (dpy, XKeycodeToKeysym (dpy, xk->keycode, 0));
         if ((key->keycode == xk->keycode) &&
 			((key->mods == (modifier & (~LockMask))) ||
              (key->mods == AnyModifier)) && (key->cont & event->context))
@@ -668,7 +669,7 @@ HandlePropertyNotify (ASEvent *event)
         read_xrootpmap_id (Scr.wmprops, (xprop->state == PropertyDelete));
         if(Scr.RootImage)
         {
-			
+
             safe_asimage_destroy (Scr.RootImage);
             Scr.RootImage = NULL ;
         }
