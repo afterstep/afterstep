@@ -27,6 +27,7 @@ install:
 		if [ -d $$D/xml ] ; then \
 			echo "$(CP) $$D/xml/* $(AFTER_SHAREDIR)/$$D/"; \
 			$(CP) $$D/xml/* $(AFTER_SHAREDIR)/$$D/; \
+			$(CP) $$D/xml/.* $(AFTER_SHAREDIR)/$$D/; \
 		fi; \
 		if [ -d $$D/$(IMAGE_FORMAT) ] ; then \
 			echo "$(CP) $$D/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/$$D/"; \
