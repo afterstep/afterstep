@@ -76,7 +76,7 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
             /* left rectangle : */
             tmp.y = r_top ;
             tmp.height = r_bottom - r_top ;
-             if( left > r_left && left < r_right )
+             if( left > r_left && left <= r_right )
             {
                 rects[i].x = r_left ;
                 rects[i].width = left - r_left ;
@@ -84,7 +84,7 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
                 disected = True ;
             }
             /* right rectangle : */
-            if( right > r_left && right < r_right )
+            if( right >= r_left && right < r_right )
             {
                 tmp.x = right ;
                 tmp.width = r_right - right ;
@@ -104,7 +104,7 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
             /* top rectangle : */
             tmp.x = r_left ;
             tmp.width = r_right - r_left ;
-            if( top > r_top && top < r_bottom )
+            if( top > r_top && top <= r_bottom )
             {
                 tmp.y = r_top ;
                 tmp.height = top- r_top ;
@@ -119,7 +119,7 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
                 }
             }
             /* bottom rectangle */
-            if( bottom > r_top && bottom < r_bottom )
+            if( bottom >= r_top && bottom < r_bottom )
             {
                 tmp.y = bottom ;
                 tmp.height = r_bottom- bottom ;
@@ -533,7 +533,8 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
             {
                 int dw = (rects[i].width > w)?rects[i].width - w:1;
                 int dw_sel = (rects[selected].width > w)?rects[selected].width - w:1;
-                if( (rects[i].height - h)/dw > (rects[selected].height - h)/dw_sel  )
+                if( ((rects[i].height - h)*Scr.MyDisplayWidth)/dw > 
+					((rects[selected].height - h)*Scr.MyDisplayWidth)/dw_sel  )
                     selected = i;
             }
     }
@@ -553,7 +554,8 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
             {
                 int dh = (rects[i].height > h)?rects[i].height - h:1;
                 int dh_sel = (rects[selected].height > h)?rects[selected].height - h:1;
-                if( (rects[i].width - w)/dh > (rects[selected].width - w)/dh_sel  )
+                if( ((rects[i].width - w)*Scr.MyDisplayHeight)/dh > 
+					((rects[selected].width - w)*Scr.MyDisplayHeight)/dh_sel  )
                     selected = i;
             }
     }
