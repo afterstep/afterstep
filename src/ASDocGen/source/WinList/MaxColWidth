@@ -1,5 +1,5 @@
 <varlistentry id="options.MaxColWidth">
-	<term>MaxColWidth <emphasis remap='I'>width</emphasis</term>
+	<term>MaxColWidth <emphasis remap='I'>width</emphasis></term>
 	<listitem>
 		<para>Maximum width of the column.
 		Older *WinListMaxWidth is still supported for compatibility, but

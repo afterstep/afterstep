@@ -1,5 +1,5 @@
 <varlistentry id="options.CompositionMethod">
-	<term>CompositionMethod <emphasis remap='I'>testure_type</term>
+	<term>CompositionMethod <emphasis remap='I'>testure_type</emphasis></term>
 	<listitem>
 		<para>Determines algorithm used to blend all the icons and
 		Wharf background to form the button's image. Valid es are
