@@ -839,7 +839,7 @@ update_pager_shape()
     	{
         	register ASWindowData **clients = d->clients ;
         	int k = d->clients_num ;
-        	LOCAL_DEBUG_OUT( "clients_num %d", d->clients_num );
+        	LOCAL_DEBUG_OUT( "desk %d clients_num %d", i, d->clients_num );
         	while( --k >= 0 )
         	{
             	LOCAL_DEBUG_OUT( "client %d data %p", i, clients[k] );
@@ -1577,13 +1577,12 @@ void forget_desk_client( int desk, ASWindowData *wd )
             if( d->clients[i] == wd )
             {
                 register int k = i, last_k = d->clients_num ;
+		        LOCAL_DEBUG_OUT( "client found at %d", i );
                 while( ++k < last_k )
                     d->clients[k-1] = d->clients[k] ;
                 d->clients[k-1] = NULL;
                 --(d->clients_num);
-                break;
             }
-        LOCAL_DEBUG_OUT( "client found at %d", i );
         if( i >= 0 )
             set_flags( d->flags, ASP_ShapeDirty);
     }
@@ -1594,6 +1593,10 @@ void add_desk_client( ASPagerDesk *d, ASWindowData *wd )
     LOCAL_DEBUG_OUT( "%p, %p, index %d", d, wd, d?d->clients_num:-1 );
     if( d && wd )
     {
+		int i = d->clients_num; 
+		while( --i >= 0 ) 
+			if( d->clients[i] == wd ) 
+				return ; /* already belongs to that desk */
         d->clients = realloc( d->clients, (d->clients_num+1)*sizeof(ASWindowData*));
         d->clients[d->clients_num] = wd ;
         ++(d->clients_num);
@@ -1658,7 +1661,7 @@ void
 change_desk_stacking( int desk, unsigned int clients_num, Window *clients )
 {
     ASPagerDesk *d = get_pager_desk( desk );
-    int i ;
+    int i, real_clients_count = 0 ;
     if( d == NULL )
         return;
 
@@ -1669,9 +1672,20 @@ change_desk_stacking( int desk, unsigned int clients_num, Window *clients )
     }
     for( i = 0 ; i < clients_num ; ++i )
     {
-        d->clients[i] = fetch_window_by_id( clients[i] );
-        LOCAL_DEBUG_OUT( "id(%lX)->wd(%p)", clients[i], d->clients[i] );
+		ASWindowData *wd = fetch_window_by_id( clients[i] );;
+		int k = d->clients_num; 
+		while( --k >= 0 ) 
+			if( d->clients[k] == wd ) 
+				break ; /* already belongs to that desk */
+		if( k < 0  )
+		{
+      		d->clients[i] = wd ;
+			++real_clients_count ;
+  		    LOCAL_DEBUG_OUT( "id(%lX)->wd(%p)", clients[i], d->clients[i] );
+		}
     }
+	d->clients_num = real_clients_count ;
+    set_flags( d->flags, ASP_ShapeDirty);
     restack_desk_windows( d );
 }
 
@@ -2098,8 +2112,11 @@ process_message (unsigned long type, unsigned long *body)
             refresh_client( saved_desk, wd );
 		else if( res == WP_DataDeleted )
         {
+			int i = PagerState.desks_num ;
             LOCAL_DEBUG_OUT( "client deleted (%p)->window(%lX)->desk(%d)", saved_wd, saved_w, saved_desk );
-            forget_desk_client( saved_desk, saved_wd );
+			/* we really want to make sure that no desk is referencing this client : */
+			while( --i  >= 0 )
+	            forget_desk_client( i, saved_wd );
             unregister_client( saved_w );
         }
 		if( !get_flags( PagerState.flags, ASP_ReceivingWindowList ) )
