@@ -1519,6 +1519,7 @@ make_aswindow_visible( ASWindow *asw, Bool deiconify )
             x = asw->frame_canvas->root_x;
             y = asw->frame_canvas->root_y;
         }
+		LOCAL_DEBUG_OUT( "Warping pointer to : %+d%+d", x + Scr.Feel.Xzap, y + Scr.Feel.Yzap);
         XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, x + Scr.Feel.Xzap, y + Scr.Feel.Yzap);
     }
     return True;

@@ -188,6 +188,7 @@ typedef struct ASWindowList
     struct ASBiDirList *clients ;
     struct ASHashTable *aswindow_xref;         /* xreference of window/resource IDs to ASWindow structures */
     struct ASHashTable *layers ;               /* list of ASLayer structures from above hashed by layer num */
+    struct ASHashTable *bookmarks ;            /* list of windows with bookmark names assignet to them */
 
     /* lists of pointers to the ASWindow structures */
     struct ASVector    *circulate_list ;
@@ -389,6 +390,8 @@ ASWindow *window2ASWindow( Window w );
 Bool register_aswindow( Window w, ASWindow *asw );
 Bool unregister_aswindow( Window w );
 Bool destroy_registered_window( Window w );
+Bool bookmark_aswindow( ASWindow *asw, char *bookmark );
+ASWindow *bookmark2ASWindow( const char *bookmark );
 ASWindow *pattern2ASWindow( const char *pattern );
 ASWindow *complex_pattern2ASWindow( char *pattern );
 ASLayer *get_aslayer( int layer, ASWindowList *list );

@@ -161,6 +161,7 @@ long casestring_compare (ASHashableValue value1, ASHashableValue value2);
 ASHashKey string_hash_value (ASHashableValue value, ASHashKey hash_size);
 long string_compare (ASHashableValue value1, ASHashableValue value2);
 void string_destroy (ASHashableValue value, void *data);
+void string_destroy_without_data (ASHashableValue value, void *data);
 void string_print (ASHashableValue value);
 
 /* basically any long value, but was written originally for colors hash */

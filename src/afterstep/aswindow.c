@@ -59,6 +59,7 @@ init_aswindow_list()
     list->clients = create_asbidirlist(auto_destroy_aswindow);
     list->aswindow_xref = create_ashash( 0, NULL, NULL, NULL );
     list->layers = create_ashash( 7, NULL, desc_long_compare_func, destroy_aslayer );
+	list->bookmarks = create_ashash( 7, string_hash_value, string_compare, string_destroy_without_data );
 
     list->circulate_list = create_asvector( sizeof(ASWindow*) );
     list->sticky_list = create_asvector( sizeof(ASWindow*) );
@@ -258,6 +259,7 @@ destroy_aswindow_list( ASWindowList **list, Bool restore_root )
             destroy_asbidirlist( &((*list)->clients ));
             destroy_ashash(&((*list)->aswindow_xref));
             destroy_ashash(&((*list)->layers));
+			destroy_ashash(&((*list)->bookmarks));
             destroy_asvector(&((*list)->sticky_list));
             destroy_asvector(&((*list)->circulate_list));
             free(*list);
@@ -305,27 +307,74 @@ Bool destroy_registered_window( Window w )
     return res;
 }
 
+Bool 
+bookmark_aswindow( ASWindow *asw, char *bookmark )
+{
+	Bool success = False ;
+	if( bookmark ) 
+	{	
+		remove_hash_item(  Scr.Windows->bookmarks, AS_HASHABLE(bookmark), NULL, False );
+		LOCAL_DEBUG_OUT( "Bookmark \"%s\" cleared", bookmark );
+    	if( asw )
+		{
+			ASHashData hd ;
+			char *tmp = mystrdup(bookmark) ;
+			hd.c32 = asw->w ;
+			success = (add_hash_item( Scr.Windows->bookmarks, AS_HASHABLE(tmp), hd.vptr ) == ASH_Success );
+			if( !success ) 
+				free(tmp);
+			LOCAL_DEBUG_OUT( "Added Bookmark for window %p, ID=%8.8lX, -> \"%s\"", asw, asw->w, bookmark );
+		}
+    }
+	return success;
+}
+
+
+ASWindow *
+bookmark2ASWindow( const char *bookmark )
+{
+	ASWindow *asw = NULL ;
+	Bool success = False;
+	ASHashData hd ;
+	hd.c32 = None ;
+	if( bookmark ) 
+	{	
+		if( get_hash_item( Scr.Windows->bookmarks, AS_HASHABLE(bookmark), &(hd.vptr) ) == ASH_Success )
+		{	
+			success = True ;
+			asw = window2ASWindow( hd.c32 );
+		}
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+		print_ashash ( Scr.Windows->bookmarks, string_print);
+#endif
+	}
+	LOCAL_DEBUG_OUT( "Window %p, ID=%8.8lX, %sfetched for bookmark \"%s\"", asw, hd.c32, success?"":"not ", bookmark );
+	return asw;
+}
+
 ASWindow *
 pattern2ASWindow( const char *pattern )
 {
-    wild_reg_exp *wrexp = compile_wild_reg_exp( pattern );
-
-    if( wrexp )
-    {
-        ASBiDirElem *e = LIST_START(Scr.Windows->clients) ;
-        while( e != NULL )
-        {
-            ASWindow *curr = (ASWindow*)LISTELEM_DATA(e);
-            if( match_string_list (curr->hints->names, MAX_WINDOW_NAMES, wrexp) == 0 )
-            {
-                destroy_wild_reg_exp( wrexp );
-                return curr;
-            }
-            LIST_GOTO_NEXT(e);
-        }
-    }
-    destroy_wild_reg_exp( wrexp );
-    return NULL;
+    ASWindow *asw = bookmark2ASWindow( pattern );
+	if( asw == NULL ) 
+	{	
+		wild_reg_exp *wrexp = compile_wild_reg_exp( pattern );
+		if( wrexp != NULL )
+    	{
+        	ASBiDirElem *e = LIST_START(Scr.Windows->clients) ;
+        	while( e != NULL )
+        	{
+            	asw = (ASWindow*)LISTELEM_DATA(e);
+            	if( match_string_list (asw->hints->names, MAX_WINDOW_NAMES, wrexp) == 0 )
+					break;
+				else
+					asw = NULL ;
+            	LIST_GOTO_NEXT(e);
+        	}
+    	}
+    	destroy_wild_reg_exp( wrexp );
+	}
+    return asw;
 }
 
 char *parse_semicolon_token( char *src,  char *dst, int *len )

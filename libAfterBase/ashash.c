@@ -579,6 +579,13 @@ string_destroy (ASHashableValue value, void *data)
 }
 
 void
+string_destroy_without_data (ASHashableValue value, void *data)
+{
+	if ((char*)value != NULL)
+		free ((char*)value);
+}
+
+void
 string_print (ASHashableValue value)
 {
 	fprintf (stderr, "[%s]", (char*)value);

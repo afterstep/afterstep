@@ -931,6 +931,14 @@ void paste_selection_func_handler( FunctionData *data, ASEvent *event, int modul
 //#warning implement window bookmarking.
 void goto_bookmark_func_handler( FunctionData *data, ASEvent *event, int module )
 {
+	ASWindow *asw = bookmark2ASWindow( data->text );
+	if( asw ) 
+	 	activate_aswindow( asw, True, False );	
+}
+
+void bookmark_window_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	bookmark_aswindow( event->client, data->text );
 }
 
 void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -950,10 +958,6 @@ void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module )
         pin_asmenu( menu );
 }
 
-
-void bookmark_window_func_handler( FunctionData *data, ASEvent *event, int module )
-{
-}
 
 void close_func_handler( FunctionData *data, ASEvent *event, int module )
 {
