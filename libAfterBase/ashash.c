@@ -383,7 +383,10 @@ next_hash_item (ASHashIterator * iterator)
 					if (iterator->hash->buckets[i] != NULL)
 						break;
 				if (i < iterator->hash->size)
+				{
 					iterator->curr_item = iterator->hash->buckets[i];
+					iterator->curr_bucket = i ;
+				}
 			}
 			return (iterator->curr_item != NULL);
 		}
