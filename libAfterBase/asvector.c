@@ -83,6 +83,14 @@ realloc_vector( ASVector *v, size_t new_size )
 
         if( v->memory )
         {
+#ifdef DEBUG_ALLOCS
+			if( v->allocated > 10000 )
+			{
+				show_error( "attempt to reallocate too much memory (%d) at : ", v->allocated );
+				print_simple_backtrace();
+				exit(0);
+			}
+#endif		
             v->memory = realloc( v->memory, v->allocated * v->unit );
             if ( v->memory == NULL )
             {

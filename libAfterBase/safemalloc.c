@@ -34,6 +34,14 @@ safemalloc (size_t length)
 
 	if (length <= 0)
 		length = 1;
+#ifdef DEBUG_ALLOCS
+	else if( length > 1000000 )
+	{
+		show_error( "attempt to allocate too much memory (%d) at : ", length );
+		print_simple_backtrace();
+		exit(0);
+	}
+#endif		
 
 	if( length > MAX_BLOCK )
 		longer_then_max_block++ ;
@@ -57,6 +65,14 @@ safecalloc (size_t num, size_t blength)
 
     if (blength <= 0)
         blength = 1;
+#ifdef DEBUG_ALLOCS
+	else if( blength > 1000000 )
+	{
+		show_error( "attempt to allocate too much memory (%d) at : ", blength );
+		print_simple_backtrace();
+		exit(0);
+	}
+#endif		
     if (num <= 0)
         num = 1;
 
