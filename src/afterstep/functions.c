@@ -120,9 +120,9 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 	{
 	  fin_event = ButtonRelease;
 	  if (func != F_DESTROY && func != F_DELETE && func != F_CLOSE)
-	    cursor = DESTROY;
-	  else
 	    cursor = SELECT;
+	  else
+	    cursor = DESTROY;
 	}
       else
 	{
