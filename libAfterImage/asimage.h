@@ -656,6 +656,7 @@ ASImageManager *create_image_manager( struct ASImageManager *reusable_memory, do
 void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
 Bool     store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
 ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
+ASImage *dup_asimage  ( ASImage* im );         /* increment ref countif applicable */
 int      release_asimage( ASImage *im );
 
 /****h* libAfterImage/asimage/Encoding

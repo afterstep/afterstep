@@ -323,6 +323,17 @@ fetch_asimage( ASImageManager* imageman, const char *name )
 	return im;
 }
 
+ASImage *
+dup_asimage( ASImage* im )
+{
+	if( im && im->imageman )
+	{
+		im->ref_count++ ;
+		return im;
+	}
+	return NULL ;
+}
+
 int
 release_asimage( ASImage *im )
 {
