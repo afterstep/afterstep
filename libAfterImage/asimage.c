@@ -195,6 +195,8 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 	sl->green[aligned_width-1] = 0;
 	sl->blue[aligned_width-1]  = 0;
 	sl->alpha[aligned_width-1] = 0;
+	
+	sl->back_color = 0xFF000000;
 
 	return sl;
 }
@@ -437,13 +439,15 @@ asimage_add_line_mono (ASImage * im, ColorPart color, register CARD8 value, unsi
 	{
 		dst[0] = (CARD8) rep_count;
 		dst[1] = (CARD8) value;
-		im->buf_used = 2;
+		dst[2] = 0 ;
+		im->buf_used = 3;
 	} else
 	{
 		dst[0] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
 		dst[1] = (CARD8) ((rep_count) & 0x00FF);
 		dst[2] = (CARD8) value;
-		im->buf_used = 3;
+		dst[3] = 0 ;
+		im->buf_used = 4;
 	}
 	asimage_apply_buffer (im, color, y);
 	return im->buf_used;
