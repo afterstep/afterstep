@@ -1,6 +1,6 @@
 <varlistentry id="options.HighInactiveText">
 	<term>HighInactiveText</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Color of the text on unfocused menu titlebar. Should be highly contrasting with HighInactive color.</para>
 	</listitem>
 </varlistentry>

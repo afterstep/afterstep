@@ -1,6 +1,6 @@
 <varlistentry id="options.Inactive2Dark">
 	<term>Inactive2Dark</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Should be 10% darker then Inactive2. Usefull for gradiented background of sticky windows.</para>
 	</listitem>
 </varlistentry>

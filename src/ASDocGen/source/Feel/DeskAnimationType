@@ -1,6 +1,6 @@
 <varlistentry id="options.DeskAnimationType">
 	<term>DeskAnimationType</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>This requests particular type of animation to be rendered while switching desktops. Available values are in range of 0 to 12.</para>
 	</listitem>
 </varlistentry>

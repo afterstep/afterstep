@@ -1,6 +1,6 @@
 <varlistentry id="options.ShadeAnimationSteps">
 	<term>ShadeAnimationSteps</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines how many steps to use to render animation when window gets shaded/unshaded.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.DeskAnimationSteps">
 	<term>DeskAnimationSteps</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies how many animation steps should be rendered while switching desktops/removing blue cover.
+Reduce that number to speedup animation.</para>
 	</listitem>
 </varlistentry>

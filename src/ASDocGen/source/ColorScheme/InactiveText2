@@ -1,6 +1,6 @@
 <varlistentry id="options.InactiveText2">
 	<term>InactiveText2</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Color of the text on sticky titlebars. Should be highly contrasting with Inactive2.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.Static">
 	<term>Static</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>when window decorations are added to client window - frame window is moved so that client window remains in exact position it was mapped at.</para>
 	</listitem>
 </varlistentry>

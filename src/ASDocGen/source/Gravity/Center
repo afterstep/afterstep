@@ -1,6 +1,7 @@
 <varlistentry id="options.Center">
 	<term>Center</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>when window decorations are added to client window - window is moved so that center of the resulting 
+framed window will be in the same location as the center of mapped client window without decorations.</para>
 	</listitem>
 </varlistentry>

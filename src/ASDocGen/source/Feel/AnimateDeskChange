@@ -1,6 +1,6 @@
 <varlistentry id="options.AnimateDeskChange">
 	<term>AnimateDeskChange</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>That setting requests nice animation to be drawn over the desktop, during desktop switching.Comment it out to speed up desktop switching.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.Inactive2">
 	<term>Inactive2</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Secondary color used for unfocused window titlebar's background. Should be used for unfocused sticky windows.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.West">
 	<term>West</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Decorated window is moved so that its left side is located at same position as left side of undecorated client window.</para>
 	</listitem>
 </varlistentry>

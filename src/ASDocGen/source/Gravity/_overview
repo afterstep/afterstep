@@ -1,2 +1,17 @@
 <section label="overview" id="overview">
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>When client window is mapped on screen - Window Manager draws some frame decorations around it, such as Titlebar, 
+resize handles, etc. As such decorations take additional space, it is nesseccary to specify if resulting larger window should be 
+moved on screen in any particular direction in order to compensate for discrepancy in size. This is determined by Gravity hint. 
+</para><para>
+Usually Gravity is set by client itself, depending on geometry specified by the user. 
+For example geometry -10+100 will set gravity to NorthEast, while +10+100 will set gravity to NorthWest.
+Sometimes this gravity setting requested by application is incorrect though, due to longstanding tradition of misinterpretation of its meaning.
+In this cases it may be desired to override gravity. AfterStep users can accomplish that using database file, and definig new Style
+for specific application with Gravity attribute set. For example it is recommended to set gravity of popular image viewver XV to be Static, 
+as it tends to move self assuming that it knows everything.
+</para><para>
+Below are the list of possible gravity values with explanation of its meaning.
+</para>
+</refsect1>
 </section>

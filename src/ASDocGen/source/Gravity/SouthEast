@@ -1,6 +1,6 @@
 <varlistentry id="options.SouthEast">
 	<term>SouthEast</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Decorated window is moved so that its right-bottom corner is located at same position as right-bottom corner of undecorated client window.</para>
 	</listitem>
 </varlistentry>
