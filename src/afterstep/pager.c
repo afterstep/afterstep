@@ -675,12 +675,12 @@ release_old_background( int desk, Bool forget )
         {                                      /* always do that ! */
             safe_asimage_destroy( im );
             Scr.RootImage = NULL ;
-        }
-        
-		if( forget || im->width*im->height >= Scr.Look.KillBackgroundThreshold )
+			im = NULL ;
+        }else if( forget || im->width*im->height >= Scr.Look.KillBackgroundThreshold )
         {
             LOCAL_DEBUG_OUT( "im = %p, ref_count = %d", im, im->ref_count );
             safe_asimage_destroy( im );
+			im = NULL ;
         }else if( strcmp( im->name, imname) != 0 )	 /* we need to store it for future use ! */
 		{	                                     	 /* for future references we store image under imname */
 			if( im->ref_count > 1 )
@@ -692,8 +692,13 @@ release_old_background( int desk, Bool forget )
 			store_asimage( Scr.image_manager, im, imname );
 		}	 
 		if( back->loaded_im_name )
-		{	
+		{
 			free( back->loaded_im_name );
+			back->loaded_im_name = NULL ; 
+		}
+
+		if( im )
+		{	
 			back->loaded_im_name = mystrdup(im->name); 
 			LOCAL_DEBUG_OUT( "loaded_im_name = \"%s\"", back->loaded_im_name );
 		}
