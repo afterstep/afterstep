@@ -20,6 +20,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include  <X11/X.h>
+#include  "../include/aftersteplib.h"
+
+
 #ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
 #endif
@@ -589,3 +593,28 @@ set_signal_handler (int sig_num)
 {
 	signal (sig_num, (void *)sigsegv_handler);
 }
+
+void
+backtrace_window (Window w)
+{
+	Window        root, parent, *children;
+	unsigned int  nchildren;
+
+    fprintf (stderr, "Backtracing [%lX]", w);
+	while (XQueryTree (dpy, w, &root, &parent, &children, &nchildren))
+	{
+		int x, y ;
+		unsigned int width, height, border, depth ;
+		XGetGeometry( dpy, w, &root, &x, &y, &width, &height, &border, &depth );
+	    fprintf (stderr, "(%dx%d%+d%+d)", width, height, x, y );
+		
+		if (children)
+			XFree (children);
+		w = parent;
+        fprintf (stderr, "->[%lX] ", w);
+		if( w == None ) 
+			break;
+	}
+    fprintf (stderr, "\n");
+}
+
