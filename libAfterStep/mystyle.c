@@ -484,14 +484,16 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	 case TEXTURE_SHAPED_SCALED_PIXMAP:
 	 case TEXTURE_SCALED_PIXMAP:
 		 im = scale_asimage (Scr.asv, style->back_icon.image, preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-		 im = mystyle_flip_image( im, width, height, flip );
+		 if( flip != 0 )
+		 	im = mystyle_flip_image( im, width, height, flip );
 		 break;
 	 case TEXTURE_SHAPED_PIXMAP:
 	 case TEXTURE_PIXMAP:
 		 im = tile_asimage (Scr.asv, style->back_icon.image,
 							0, 0, preflip_width, preflip_height, TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 		 LOCAL_DEBUG_OUT( "back_icon.image = %p,im = %p, preflip_size=%dx%d", style->back_icon.image, im, preflip_width, preflip_height );
-		 im = mystyle_flip_image( im, width, height, flip );
+		 if( flip != 0 )
+		 	im = mystyle_flip_image( im, width, height, flip );
 		 break;
 	}
 
@@ -565,8 +567,8 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 							    style->texture_type == TEXTURE_SHAPED_PIXMAP)
 							{
 								/*we need to keep alpha channel intact */
-								copy_asimage_channel(tmp, IC_ALPHA, im, IC_ALPHA);
 								LOCAL_DEBUG_OUT( "copying alpha channel from %p to %p", im, tmp );
+								copy_asimage_channel(tmp, IC_ALPHA, im, IC_ALPHA);
 							}
 							safe_asimage_destroy (im);
 						}

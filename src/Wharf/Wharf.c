@@ -396,7 +396,7 @@ SHOW_CHECKPOINT;
         Config->withdraw_style = config->withdraw_style;
 
     if( get_flags( config->set_flags, WHARF_FORCE_SIZE ) )
-        merge_geometry( &(Config->force_size), &(config->force_size));
+        merge_geometry( &(config->force_size), &(Config->force_size));
 
     if( get_flags( config->set_flags, WHARF_ANIMATE_STEPS ) )
         Config->animate_steps = config->animate_steps;
@@ -1021,6 +1021,9 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 		while ( --i >= 0 )
         {
             register ASWharfButton *aswb = &(aswf->buttons[i]);
+			LOCAL_DEBUG_OUT( "Adding shape of the button %d with geometry %dx%d%+d%+d, and geometry inside folder %dx%d%+d%+d", 
+							 i, aswb->canvas->width, aswb->canvas->height, aswb->canvas->root_x, aswb->canvas->root_y,
+							 aswb->folder_width, aswb->folder_height, aswb->folder_x, aswb->folder_y );
             if( aswb->canvas->width == aswb->folder_width && aswb->canvas->height == aswb->folder_height )
                 if( combine_canvas_shape_at (aswf->canvas, aswb->canvas, aswb->folder_x, aswb->folder_y ) )
                     ++set;

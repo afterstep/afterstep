@@ -1921,9 +1921,11 @@ copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_s
 {
 	if( !AS_ASSERT(dst) && !AS_ASSERT(src) && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
 		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
+	{
+		register int i = MIN(dst->height, src->height);
+		LOCAL_DEBUG_OUT( "src = %p, dst = %p, dst->width = %d, src->width = %d", src, dst, dst->width, src->width );
 		if( dst->width == src->width )
 		{
-			register int i = MIN(dst->height, src->height);
 			register CARD8 **dst_rows = dst->channels[channel_dst] ;
 			register CARD8 **src_rows = src->channels[channel_src] ;
 			while( --i >= 0 )
@@ -1932,7 +1934,18 @@ copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_s
 					free( dst_rows[i] );
 				dst_rows[i] = asimage_copy_line( src_rows[i], dst->width );
 			}
-		}
+		}else
+		{
+			CARD32 *buffer = safemalloc( dst->width * sizeof(CARD32));			
+			while( --i >= 0 )
+			{
+				int decoded = asimage_decode_line (src, channel_src, buffer, i, 0, dst->width );
+				LOCAL_DEBUG_OUT( "decoded = %d", decoded );
+				if( decoded == dst->width ) 
+				asimage_add_line (dst, channel_dst, buffer, i) ;
+			}		
+		}	 
+	}
 }
 
 void

@@ -596,6 +596,7 @@ LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
     if (parent && child )
 	{
 		unsigned int parent_width, parent_height ;
+		LOCAL_DEBUG_OUT( "parent->shape(%p)", parent->shape );
 		if( parent->shape == NULL )
 			return False;
 

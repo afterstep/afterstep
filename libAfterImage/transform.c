@@ -712,20 +712,24 @@ scale_image_down( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int 
 void
 scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *scales_h, int* scales_v)
 {
-	ASScanline step, src_lines[4], *c1, *c2, *c3, *c4 = NULL;
+	ASScanline src_lines[4], *c1, *c2, *c3, *c4 = NULL;
 	int i = 0, max_i,
 		line_len = MIN(imout->im->width, imdec->out_width),
 		out_width = imout->im->width;
+	ASScanline step ;
 
-	for( i = 0 ; i < 4 ; i++ )
-		prepare_scanline( out_width, 0, &(src_lines[i]), imout->asv->BGR_mode);
+	prepare_scanline( out_width, 0, &(src_lines[0]), imout->asv->BGR_mode);
+	prepare_scanline( out_width, 0, &(src_lines[1]), imout->asv->BGR_mode);
+	prepare_scanline( out_width, 0, &(src_lines[2]), imout->asv->BGR_mode);
+	prepare_scanline( out_width, 0, &(src_lines[3]), imout->asv->BGR_mode);
 	prepare_scanline( out_width, QUANT_ERR_BITS, &step, imout->asv->BGR_mode );
-
 
 /*	set_component(src_lines[0].red,0x00000000,0,out_width*3); */
 	imdec->decode_image_scanline( imdec );
-	step.flags = src_lines[0].flags = src_lines[1].flags = imdec->buffer.flags ;
+	src_lines[1].flags = imdec->buffer.flags ;
 	CHOOSE_SCANLINE_FUNC(h_ratio,imdec->buffer,src_lines[1],scales_h,line_len);
+
+	step.flags = src_lines[0].flags = src_lines[1].flags ;
 
 	SCANLINE_FUNC(copy_component,src_lines[1],src_lines[0],0,out_width);
 
@@ -780,10 +784,11 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
         }
 	}while( ++i < max_i );
     imout->output_image_scanline( imout, c3, 1);
-
-	for( i = 0 ; i < 4 ; i++ )
-		free_scanline(&(src_lines[i]), True);
 	free_scanline(&step, True);
+	free_scanline(&(src_lines[3]), True);
+	free_scanline(&(src_lines[2]), True);
+	free_scanline(&(src_lines[1]), True);
+	free_scanline(&(src_lines[0]), True);
 }
 
 void
@@ -871,7 +876,7 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 	{
 		if( to_height <= src->height ) 					   /* scaling down */
 			scale_image_down( imdec, imout, h_ratio, scales_h, scales_v );
-		else if( quality == ASIMAGE_QUALITY_POOR )
+		else if( quality == ASIMAGE_QUALITY_POOR || src->height <= 3 ) 
 			scale_image_up_dumb( imdec, imout, h_ratio, scales_h, scales_v );
 		else
 			scale_image_up( imdec, imout, h_ratio, scales_h, scales_v );
