@@ -96,6 +96,7 @@ SyntaxDef     BevelSyntax = {
 	NULL,
 	0
 };
+struct SyntaxDef     *BevelSyntaxPtr = &BevelSyntax;
 
 flag_options_xref BevelFlagsXref[] = {
     {LEFT_HILITE, BEVEL_Left_ID, BEVEL_None_ID},
@@ -251,11 +252,12 @@ TermDef       LookTerms[] = {
 #endif /* NO_TEXTURE */
 /* TitleButtonBalloons */
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloons", 19, TT_FLAG, BALLOON_USED_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonBorderColor", 29, TT_COLOR, BALLOON_BorderColor_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonBorderWidth", 29, TT_UINTEGER, BALLOON_BorderWidth_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonBorderHilite", 29, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonXOffset", 25, TT_INTEGER, BALLOON_XOffset_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonYOffset", 25, TT_INTEGER, BALLOON_YOffset_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonDelay", 23, TT_UINTEGER, BALLOON_Delay_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonCloseDelay", 28, TT_UINTEGER, BALLOON_CloseDelay_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonStyle", 23, TT_QUOTED_TEXT, BALLOON_Style_ID, NULL},
 
     {TF_NO_MYNAME_PREPENDING, "TitleTextAlign", 14, TT_UINTEGER, LOOK_TitleTextAlign_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleButtonSpacing", 18, TT_INTEGER, LOOK_TitleButtonSpacing_ID, NULL},
@@ -427,6 +429,41 @@ ParseBevelOptions( FreeStorageElem * options )
     }
     return bevel;
 }
+
+void
+bevel_parse(char *tline, FILE * fd, char **myname, int *pbevel)
+{
+    FilePtrAndData fpd ;
+    ConfigDef    *ConfigReader ;
+    FreeStorageElem *Storage = NULL, *more_stuff = NULL;
+
+    if( pbevel == NULL )
+        return;
+
+    fpd.fp = fd ;
+    fpd.data = safemalloc( strlen(tline)+1+1 ) ;
+    sprintf( fpd.data, "%s\n", tline );
+LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
+    ConfigReader = InitConfigReader ((char*)myname, &BevelSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+    free( fpd.data );
+
+    if (!ConfigReader)
+        return ;
+
+	PrintConfigReader (ConfigReader);
+	ParseConfig (ConfigReader, &Storage);
+	PrintFreeStorage (Storage);
+
+	/* getting rid of all the crap first */
+    StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
+    DestroyFreeStorage (&more_stuff);
+
+    *pbevel = ParseBevelOptions(Storage);
+
+	DestroyConfig (ConfigReader);
+	DestroyFreeStorage (&Storage);
+}
+
 
 ASFlagType
 ParseAlignOptions( FreeStorageElem * options )

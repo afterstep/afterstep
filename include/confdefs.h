@@ -3,6 +3,11 @@
 
 #include "../libAfterImage/asvisual.h"
 struct ASFontManager;
+struct SyntaxDef;
+extern struct SyntaxDef      BevelSyntax;
+extern struct SyntaxDef     *BevelSyntaxPtr;
+
+
 /***************************************************************************/
 /*                        Base file pasring definitions                    */
 /***************************************************************************/
@@ -305,37 +310,40 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 #define BALLOON_ID_START            (BEVEL_ID_END+1)
 
 #define BALLOON_USED_ID	 			 BALLOON_ID_START
-#define BALLOON_BorderColor_ID		(BALLOON_ID_START+1)
-#define BALLOON_BorderWidth_ID		(BALLOON_ID_START+2)
-#define BALLOON_YOffset_ID			(BALLOON_ID_START+3)
-#define BALLOON_Delay_ID			(BALLOON_ID_START+4)
-#define BALLOON_CloseDelay_ID			(BALLOON_ID_START+5)
+#define BALLOON_BorderHilite_ID     (BALLOON_ID_START+1)
+#define BALLOON_XOffset_ID          (BALLOON_ID_START+2)
+#define BALLOON_YOffset_ID          (BALLOON_ID_START+3)
+#define BALLOON_Delay_ID            (BALLOON_ID_START+4)
+#define BALLOON_CloseDelay_ID       (BALLOON_ID_START+5)
+#define BALLOON_Style_ID            (BALLOON_ID_START+6)
 
 #define	BALLOON_ID_END				(BALLOON_ID_START+10)
 
 #define BALLOON_TERMS \
- {0, "Balloons",		 8, TT_FLAG	, BALLOON_USED_ID	, NULL}, \
- {0, "BalloonBorderColor",18, TT_COLOR	, BALLOON_BorderColor_ID	, NULL}, \
- {0, "BalloonBorderWidth",18, TT_UINTEGER	, BALLOON_BorderWidth_ID, NULL}, \
- {0, "BalloonYOffset", 	14, TT_INTEGER	, BALLOON_YOffset_ID		, NULL}, \
- {0, "BalloonDelay",	12, TT_UINTEGER	, BALLOON_Delay_ID		, NULL}, \
- {0, "BalloonCloseDelay", 17, TT_UINTEGER	, BALLOON_CloseDelay_ID	, NULL}
+ {0, "Balloons", 8, TT_FLAG , BALLOON_USED_ID   , NULL}, \
+ {0, "BalloonBorderHilite",19, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax}, \
+ {0, "BalloonXOffset", 14, TT_INTEGER, BALLOON_XOffset_ID        , NULL}, \
+ {0, "BalloonYOffset", 14, TT_INTEGER, BALLOON_YOffset_ID        , NULL}, \
+ {0, "BalloonDelay", 12, TT_UINTEGER, BALLOON_Delay_ID      , NULL}, \
+ {0, "BalloonCloseDelay", 17, TT_UINTEGER, BALLOON_CloseDelay_ID , NULL}, \
+ {0, "BalloonStyle", 12, TT_QUOTED_TEXT, BALLOON_Style_ID , NULL}
+
 
 typedef struct balloonConfig
 {
   unsigned long set_flags;	/* identifyes what option is set */
 #define BALLOON_USED				(0x01<<0)
-#define BALLOON_COLOR				(0x01<<1)
-#define BALLOON_WIDTH				(0x01<<2)
-#define BALLOON_OFFSET				(0x01<<3)
-#define BALLOON_DELAY				(0x01<<4)
+#define BALLOON_HILITE              (0x01<<1)
+#define BALLOON_XOFFSET             (0x01<<2)
+#define BALLOON_YOFFSET             (0x01<<3)
+#define BALLOON_DELAY               (0x01<<4)
 #define BALLOON_CLOSE_DELAY			(0x01<<5)
-  char *border_color;
-  unsigned int border_width;
-  int y_offset;
+#define BALLOON_STYLE               (0x01<<6)
+  ASFlagType border_hilite;
+  int x_offset, y_offset;
   unsigned int delay, close_delay;
-}
-balloonConfig;
+  char *style ;
+}balloonConfig;
 
 struct BalloonLook;
 
@@ -1077,6 +1085,8 @@ LookConfig;
 LookConfig *CreateLookConfig ();
 void DestroyLookConfig (LookConfig * config);
 
+ASFlagType ParseBevelOptions( FreeStorageElem * options );
+void bevel_parse(char *text, FILE * fd, char **myname, int *pbevel);
 LookConfig *ParseLookOptions (const char *filename, char *myname);
 struct MyLook *LookConfig2MyLook ( struct LookConfig *config, struct MyLook *look,
 			  			   	       struct ASImageManager *imman,

@@ -234,6 +234,8 @@ typedef struct MyLook
     struct MyFrame *DefaultFrame;
     struct ASHashTable *FramesList ;/* hash table of named MyFrames */
 
+    struct ASBalloonLook *balloon_look ;
+
 }MyLook;
 
 MyFrame *create_myframe();

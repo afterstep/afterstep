@@ -51,8 +51,8 @@ Destroy_balloonConfig (balloonConfig * config)
 {
   if (!config)
 	return;
-  if (config->border_color)
-    free (config->border_color);
+  if (config->style)
+    free (config->style);
   free (config);
   config = NULL;
 }
@@ -61,79 +61,77 @@ void
 Print_balloonConfig (balloonConfig *config )
 {
     if( config == NULL )
-	fprintf( stderr, "No balloon configuration available \n");
+        fprintf( stderr, "No balloon configuration available \n");
     else
     {
-	fprintf( stderr,"set_flags = 0x%lX\n",config->set_flags);
-	fprintf( stderr,"BalloonBorderColor [%s]\n",config->border_color);
-	fprintf( stderr,"BalloonBorderWidth %u\n",config->border_width);
-	fprintf( stderr,"BalloonYOffset %d\n",config->y_offset);
-	fprintf( stderr,"BalloonDelay %d\n",config->delay);
-	fprintf( stderr,"BalloonCloseDelay %d\n",config->close_delay);
+        fprintf( stderr,"set_flags = 0x%lX\n",config->set_flags);
+        fprintf( stderr,"BalloonBorderHilite 0x%lX\n",config->border_hilite);
+        fprintf( stderr,"BalloonXOffset %d\n",config->x_offset);
+        fprintf( stderr,"BalloonYOffset %d\n",config->y_offset);
+        fprintf( stderr,"BalloonDelay %d\n",config->delay);
+        fprintf( stderr,"BalloonCloseDelay %d\n",config->close_delay);
+        fprintf( stderr,"BalloonStyle \"%s\"\n",config->style);
     }
 }
 
 balloonConfig*
 Process_balloonOptions (FreeStorageElem * options, balloonConfig *config)
 {
-  ConfigItem item;
-  item.memory = NULL;
+    ConfigItem item;
+    item.memory = NULL;
 
-  if( config == NULL )
-    config = Create_balloonConfig();
+    if( config == NULL )
+        config = Create_balloonConfig();
 
-  for (; options; options = options->next)
+    for (; options; options = options->next)
     {
-      if (options->term->id < BALLOON_ID_START
-	  || options->term->id > BALLOON_ID_END)
-	continue;
+        if (options->term->id < BALLOON_ID_START || options->term->id > BALLOON_ID_END )
+            continue;
 
-      if (options->term == NULL)
-	continue;
-      if (options->term->type == TT_FLAG)
-	{
-	  switch (options->term->id)
-	    {
-	    case BALLOON_USED_ID:
-	      config->set_flags |= BALLOON_USED ;
-	      break;
-	    }
-	  continue;
-	}
+        if (options->term == NULL)
+            continue;
+        if (options->term->type == TT_FLAG)
+        {
+            if(options->term->id == BALLOON_USED_ID )
+                config->set_flags |= BALLOON_USED ;
+            else if( options->term->id ==  BALLOON_BorderHilite_ID )
+            {
+                set_flags( config->set_flags, BALLOON_HILITE );
+                config->border_hilite = ParseBevelOptions( options->sub );
+            }
+            continue;
+        }
 
-      if (!ReadConfigItem (&item, options))
-	continue;
+        if (!ReadConfigItem (&item, options))
+            continue;
 
-      item.ok_to_free = 1;
-      switch (options->term->id)
-	{
-	case BALLOON_BorderColor_ID:
-	  set_string_value( &(config->border_color), item.data.string,
-			    &(config->set_flags),BALLOON_COLOR);
-
-	  item.ok_to_free = 0;
-	  break;
-	case BALLOON_BorderWidth_ID :
-	  config->set_flags |= BALLOON_WIDTH ;
-	  config->border_width = item.data.integer;
-	  break;
-	case BALLOON_YOffset_ID :
-	  config->set_flags |= BALLOON_OFFSET ;
-	  config->y_offset = item.data.integer;
-	  break;
-	case BALLOON_Delay_ID :
-	  config->set_flags |= BALLOON_DELAY ;
-	  config->delay = item.data.integer;
-	  break;
-	case BALLOON_CloseDelay_ID :
-	  config->set_flags |= BALLOON_CLOSE_DELAY ;
-	  config->close_delay = item.data.integer;
-	  break;
-	default:
-	}
+        switch (options->term->id)
+        {
+            case BALLOON_XOffset_ID :
+                set_flags(config->set_flags, BALLOON_XOFFSET );
+                config->x_offset = item.data.integer;
+                break;
+            case BALLOON_YOffset_ID :
+                set_flags(config->set_flags, BALLOON_YOFFSET );
+                config->y_offset = item.data.integer;
+                break;
+            case BALLOON_Delay_ID :
+                set_flags(config->set_flags, BALLOON_DELAY );
+                config->delay = item.data.integer;
+                break;
+            case BALLOON_CloseDelay_ID :
+                set_flags(config->set_flags, BALLOON_CLOSE_DELAY );
+                config->close_delay = item.data.integer;
+                break;
+            case BALLOON_Style_ID :
+                set_string_value( &(config->style), item.data.string, &(config->set_flags), BALLOON_STYLE );
+                break;
+            default:
+                item.ok_to_free = 1;
+        }
     }
-  ReadConfigItem (&item, NULL);
-  return config;
+    ReadConfigItem (&item, NULL);
+    return config;
 }
 
 #if 0

@@ -657,6 +657,61 @@ grab_window_input( ASWindow *asw, Bool release_grab )
     }
 }
 
+/*
+ ** returns a newline delimited list of the Mouse functions bound to a
+ ** given context, in human readable form
+ */
+char         *
+list_functions_by_context (int context)
+{
+	MouseButton  *btn;
+	char         *str = NULL;
+	int           allocated_bytes = 0;
+
+    for (btn = Scr.Feel.MouseButtonRoot; btn != NULL; btn = btn->NextButton)
+		if (btn->Context & context)
+		{
+			TermDef      *fterm;
+
+            fterm = FindTerm (&FuncSyntax, TT_ANY, btn->fdata->func);
+			if (fterm != NULL)
+			{
+				char         *ptr;
+
+				if (str)
+				{
+					str = realloc (str, allocated_bytes + 1 + fterm->keyword_len + 32);
+					ptr = str + allocated_bytes;
+					*(ptr++) = '\n';
+				} else
+					ptr = str = safemalloc (fterm->keyword_len + 32);
+
+				sprintf (ptr, "%s: ", fterm->keyword);
+				ptr += fterm->keyword_len + 2;
+				if (btn->Modifier & ShiftMask)
+				{
+					strcat (ptr, "Shift+");
+					ptr += 8;
+				}
+				if (btn->Modifier & ControlMask)
+				{
+					strcat (ptr, "Ctrl+");
+					ptr += 7;
+				}
+				if (btn->Modifier & Mod1Mask)
+				{
+					strcat (ptr, "Meta+");
+					ptr += 7;
+				}
+				sprintf (ptr, "Button %d", btn->Button);
+				allocated_bytes = strlen (str);
+			}
+		}
+	return str;
+}
+
+
+
 void
 redecorate_window( ASWindow *asw, Bool free_resources )
 {
@@ -824,6 +879,26 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
                             TITLE_BUTTONS_PERSIDE,
                             Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                             od->right_btn_order, C_R1 );
+        /* titlebar balloons */
+        for( i = 0 ; i < TITLE_BUTTONS_PERSIDE ; ++i )
+        {
+            char *str ;
+            if( !get_flags( btn_mask, 0x01<<i) )
+            {
+                str = list_functions_by_context (C_L1<<i);
+                set_astbar_balloon( asw->tbar, C_L1<<i, str );
+                if( str )
+                    free( str );
+            }
+            if( !get_flags( btn_mask, 0x01<<(i+TITLE_BUTTONS_PERSIDE)) )
+            {
+                str = list_functions_by_context (C_R1<<i);
+                set_astbar_balloon( asw->tbar, C_R1<<i, str );
+                if( str )
+                    free( str );
+            }
+        }
+
 	}
 
     /* we also need to setup label, unfocused/sticky style and tbar sizes -
@@ -1609,96 +1684,6 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s)", asw, context2text(pressed_context));
 
 /********************************************************************/
 /* end of ASWindow frame decorations management                     */
-/********************************************************************/
-/*
-   ** returns a newline delimited list of the Mouse functions bound to a
-   ** given context, in human readable form
- */
-char         *
-list_functions_by_context (int context)
-{
-	MouseButton  *btn;
-	char         *str = NULL;
-	int           allocated_bytes = 0;
-
-    for (btn = Scr.Feel.MouseButtonRoot; btn != NULL; btn = btn->NextButton)
-		if (btn->Context & context)
-		{
-			TermDef      *fterm;
-
-            fterm = FindTerm (&FuncSyntax, TT_ANY, btn->fdata->func);
-			if (fterm != NULL)
-			{
-				char         *ptr;
-
-				if (str)
-				{
-					str = realloc (str, allocated_bytes + 1 + fterm->keyword_len + 32);
-					ptr = str + allocated_bytes;
-					*(ptr++) = '\n';
-				} else
-					ptr = str = safemalloc (fterm->keyword_len + 32);
-
-				sprintf (ptr, "%s: ", fterm->keyword);
-				ptr += fterm->keyword_len + 2;
-				if (btn->Modifier & ShiftMask)
-				{
-					strcat (ptr, "Shift+");
-					ptr += 8;
-				}
-				if (btn->Modifier & ControlMask)
-				{
-					strcat (ptr, "Ctrl+");
-					ptr += 7;
-				}
-				if (btn->Modifier & Mod1Mask)
-				{
-					strcat (ptr, "Meta+");
-					ptr += 7;
-				}
-				sprintf (ptr, "Button %d", btn->Button);
-				allocated_bytes = strlen (str);
-			}
-		}
-	return str;
-}
-
-/*
-   ** button argument - is translated button number !!!!
-   ** 0 1 2 3 4  text 9 8 7 6 5
-   ** none of that old crap !!!!
- */
-Bool
-create_titlebutton_balloon (ASWindow * tmp_win, int b)
-{
-/*	int           n = button / 2 + 5 * (button & 1); */
-	char         *str = NULL ;
-	Window 		  w = None;
-
-	if (!ASWIN_HFLAGS(tmp_win, AS_Titlebar) ||
-        Scr.Look.buttons[b].width <= 0 || IsBtnDisabled(tmp_win, b ))
-		return False;
-
-#if 0                                          /* TODO: fix balloons */
-	if (IsLeftButton(b))
-	{
-		str = list_functions_by_context (C_L1 << b);
-		w = tmp_win->left_w[b];
-	}else
-	{
-		int rb = RightButtonIdx(b);
-		str = list_functions_by_context (C_R1 << rb);
-		w = tmp_win->right_w[rb];
-	}
-#endif
-	if( str )
-	{
-		if( w )
-			balloon_new_with_text (dpy, w, str);
-		free (str);
-	}
-	return True;
-}
 
 /****************************************************************************
  * Interprets the property MOTIF_WM_HINTS, sets decoration and functions

@@ -157,6 +157,11 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
         if( look->configured_icon_areas && get_flags (what_flags, LL_Icons) )
             free( look->configured_icon_areas );
 
+        if( look->balloon_look && get_flags (what_flags, LL_Balloons))
+        {
+            free( look->balloon_look );
+        }
+
 	}/* free_resources */
 
 	if (get_flags (what_flags, LL_MyStyles))
@@ -234,6 +239,9 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 
     if (get_flags (what_flags, LL_SupportedHints))
         look->supported_hints = NULL ;
+
+    if( look->balloon_look && get_flags (what_flags, LL_Balloons))
+        look->balloon_look = NULL;
 }
 
 MyLook       *

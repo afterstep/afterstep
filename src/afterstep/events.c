@@ -247,6 +247,7 @@ DigestEvent( ASEvent *event )
         ASWindow *asw = event->client ;
         XKeyEvent *xk = &(event->x.xkey);
         ASCanvas  *canvas = asw->frame_canvas ;
+        ASTBarData *pointer_bar = NULL ;
         /* Since key presses and button presses are grabbed in the frame
          * when we have re-parented windows, we need to find out the real
          * window where the event occured */
@@ -289,14 +290,17 @@ DigestEvent( ASEvent *event )
                 int tbar_context ;
                 if( asw->tbar != NULL &&
                     (tbar_context = check_astbar_point( asw->tbar, xk->x_root, xk->y_root )) != C_NO_CONTEXT )
+                {
                     event->context = tbar_context ;
-                else
+                    pointer_bar = asw->tbar ;
+                }else
                 {
                     for( i = 0 ; i < FRAME_PARTS ; ++i )
                         if( asw->frame_bars[i] != NULL &&
                             (tbar_context = check_astbar_point( asw->frame_bars[i], xk->x_root, xk->y_root )) != C_NO_CONTEXT )
                         {
                             event->context = tbar_context ;
+                            pointer_bar = asw->frame_bars[i] ;
                             break;
                         }
                 }
@@ -308,18 +312,26 @@ DigestEvent( ASEvent *event )
             {
                 event->context = C_IconButton ;
                 canvas = asw->icon_canvas ;
+                pointer_bar = asw->icon_button ;
                 if( canvas == asw->icon_title_canvas )
                 {
                     int c = check_astbar_point( asw->icon_title, xk->x_root, xk->y_root );
                     if( c != C_NO_CONTEXT )
+                    {
                         event->context = c ;
+                        pointer_bar = asw->icon_title ;
+                    }
                 }
             }else if( asw->icon_title_canvas && w == asw->icon_title_canvas->w )
             {
                 canvas = asw->icon_title_canvas ;
                 event->context = C_IconTitle ;
+                pointer_bar = asw->icon_title ;
             }
         }
+
+        on_astbar_pointer_action( pointer_bar, event->context, (event->x.type == LeaveNotify) );
+
         event->widget  = canvas ;
         /* we have to do this at all times !!!! */
         if( event->x.type == ButtonRelease && Scr.Windows->pressed )
@@ -407,9 +419,6 @@ KeyboardShortcuts (XEvent * xevent, int return_event, int move_size)
 void
 DispatchEvent ( ASEvent *event )
 {
-    /* handle balloon events specially */
-    balloon_handle_event (&(event->x));
-
     if( Scr.moveresize_in_progress )
         if( check_moveresize_event( event ) )
             return;
@@ -954,8 +963,8 @@ HandleEnterNotify (ASEvent *event)
 	/* look for a matching leaveNotify which would nullify this enterNotify */
     if (ASCheckTypedWindowEvent ( ewp->window, LeaveNotify, &d))
 	{
-		balloon_handle_event (&d);
-		if ((d.xcrossing.mode == NotifyNormal) && (d.xcrossing.detail != NotifyInferior))
+        on_astbar_pointer_action( NULL, 0, True );
+        if ((d.xcrossing.mode == NotifyNormal) && (d.xcrossing.detail != NotifyInferior))
 			return;
 	}
 /* an EnterEvent in one of the PanFrameWindows activates the Paging */

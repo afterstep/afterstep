@@ -179,6 +179,7 @@ main (int argc, char **argv)
     /* read config file, set up menus, colors, fonts */
     InitBase (False);
     InitDatabase (False);
+    balloon_init (False);
     LoadASConfig (0, PARSE_EVERYTHING);
 
     /* Reparent all the windows and setup pan frames : */
@@ -533,7 +534,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     if( lock_mods );
         free (lock_mods);
     /* balloons */
-    balloon_init (1);
+    balloon_init (True);
     /* pixmap references */
     pixmap_ref_purge ();
     build_xpm_colormap (NULL);

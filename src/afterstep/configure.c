@@ -91,6 +91,8 @@ static char         *MenuPinOn = NULL ;
 static MyFrameDefinition *MyFrameList = NULL ;
 static char         *DefaultFrameName = NULL ;
 
+static balloonConfig BalloonConfig = {0, 0, 0, 0, 0, 0, NULL };
+
 
 /* parsing handling functions for different data types : */
 
@@ -262,8 +264,7 @@ struct config main_config[] = {
     {"TitleTextAlign", SetInts, (char **)&Scr.Look.TitleTextAlign, &dummy},
     {"TitleButtonSpacing", SetInts, (char **)&Scr.Look.TitleButtonSpacing, (int *)&dummy},
     {"TitleButtonStyle", SetInts, (char **)&Scr.Look.TitleButtonStyle, (int *)&dummy},
-	{"TitleButton", SetTitleButton, (char **)1, (int *)0},
-	{"TitleTextMode", SetTitleText, (char **)1, (int *)0},
+    {"TitleTextMode", SetTitleText, (char **)1, (int *)0},
     {"ResizeMoveGeometry", assign_geometry, (char**)&Scr.Look.resize_move_geometry, (int *)0},
     {"StartMenuSortMode", SetInts, (char **)&Scr.Look.StartMenuSortMode, (int *)&dummy},
     {"DrawMenuBorders", SetInts, (char **)&Scr.Look.DrawMenuBorders, (int *)&dummy},
@@ -279,6 +280,14 @@ struct config main_config[] = {
     {"MenuHiliteStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_HILITE], (int *)0},
     {"MenuStippleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_STIPPLE], (int *)0},
     {"ShadeAnimationSteps", SetInts, (char **)&Scr.Feel.ShadeAnimationSteps, (int *)&dummy},
+    {"TitleButtonBalloonBorderHilite", bevel_parse, (char**)"afterstep", (int*)&(BalloonConfig.border_hilite)},
+    {"TitleButtonBalloonXOffset", SetInts, (char**)&(BalloonConfig.x_offset), NULL},
+    {"TitleButtonBalloonYOffset", SetInts, (char**)&(BalloonConfig.y_offset), NULL},
+    {"TitleButtonBalloonDelay", SetInts, (char**)&(BalloonConfig.delay), NULL},
+    {"TitleButtonBalloonCloseDelay", SetInts, (char**)&(BalloonConfig.close_delay), NULL},
+    {"TitleButtonBalloonStyle", assign_quoted_string, &(BalloonConfig.style), NULL},
+    {"TitleButtonBalloons", SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
+    {"TitleButton", SetTitleButton, (char **)1, (int *)0},
 	{"", 0, (char **)0, (int *)0}
 };
 
@@ -770,6 +779,8 @@ InitLook (MyLook *look, Bool free_resources)
         DestroyMyFrameDefinitions (&MyFrameList);
         if( DefaultFrameName )
             free( DefaultFrameName );
+        if( BalloonConfig.style )
+            free( BalloonConfig.style );
     }
     MenuPinOn = NULL;
 
@@ -783,6 +794,7 @@ InitLook (MyLook *look, Bool free_resources)
     memset(&IconFont, 0x00, sizeof(MyFont));
     MyFrameList = NULL ;
     DefaultFrameName = NULL ;
+    memset( &BalloonConfig, 0x00, sizeof(BalloonConfig));
 }
 
 void
@@ -969,8 +981,20 @@ FixLook( MyLook *look )
     }
 
     /* updating balloons look */
-    balloon_setup (dpy);
-    balloon_set_style (dpy, mystyle_find_or_default ("TitleButtonBalloon"));
+    if( BalloonConfig.style == NULL )
+        BalloonConfig.style = mystrdup( "TitleButtonBalloon" );
+
+    look->balloon_look = safecalloc( 1, sizeof(ASBalloonLook) );
+
+    look->balloon_look->show = get_flags( BalloonConfig.set_flags, BALLOON_USED );
+    look->balloon_look->border_hilite = BalloonConfig.border_hilite ;
+    look->balloon_look->xoffset = BalloonConfig.x_offset ;
+    look->balloon_look->yoffset = BalloonConfig.y_offset ;
+    look->balloon_look->delay = BalloonConfig.delay ;
+    look->balloon_look->close_delay = BalloonConfig.close_delay ;
+
+    look->balloon_look->style = mystyle_list_find_or_default (look->styles_list, BalloonConfig.style);
+    set_balloon_look( look->balloon_look );
 
     /* checking sanity of the move-resize window geometry :*/
     if( !get_flags(look->resize_move_geometry.flags, WidthValue ) )
@@ -1400,9 +1424,6 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
     char          *files[2] = {NULL, NULL};
     int           offset = 0;
 	int           n;
-
-	if (balloon_parse (tline, fd))
-		return;
 
     if ((n = sscanf (tline, "%d", &num)) <= 0)
 	{

@@ -30,12 +30,14 @@
 #include "../include/myicon.h"
 #include "../include/decor.h"
 #include "../include/event.h"
+#include "../include/balloon.h"
 
 #ifdef SHAPE
 #include <X11/extensions/shape.h>
 #endif
 
-static GC     MaskGC = None;
+static GC           MaskGC = None;
+static ASTBarData  *FocusedBar = NULL;          /* currently focused bar with balloon shown for it */
 
 /********************************************************************/
 /* ASCanvas :                                                       */
@@ -716,6 +718,8 @@ destroy_astbtn(ASTBtnData **ptbtn )
         if( btn )
         {
             free_tbtn_images( btn );
+            if( btn->balloon )
+                destroy_asballoon( &(btn->balloon) );
             memset( btn, 0x00, sizeof(ASTBtnData ));
             free( btn );
         }
@@ -1117,6 +1121,11 @@ destroy_astbar (ASTBarData ** ptbar)
 				if (tbar->back[i])
 					destroy_asimage (&(tbar->back[i]));
             }
+            if( tbar->balloon )
+                destroy_asballoon( &(tbar->balloon) );
+
+            if( tbar == FocusedBar )
+                FocusedBar = NULL;
 
 			memset (tbar, 0x00, sizeof (ASTBarData));
             free( tbar );
@@ -1311,43 +1320,6 @@ set_astbar_style (ASTBarData * tbar, unsigned int state, const char *style_name)
     if (tbar && state < BAR_STATE_NUM)
         return set_astbar_style_ptr (tbar, state, mystyle_find_or_default (style_name));
     return changed;
-}
-
-Bool
-set_astbar_image( ASTBarData *tbar, ASImage *image )
-{
-    if( tbar )
-        if( tbar->back_image != image )
-        {
-            if( tbar->back_image )
-            {
-                safe_asimage_destroy( tbar->back_image );
-                tbar->back_image = NULL ;
-            }
-            if( image )
-                if( (tbar->back_image = dup_asimage( image )) == NULL )
-                    tbar->back_image = clone_asimage( image, 0xFFFFFFFF );
-
-            flush_tbar_backs(tbar);
-            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
-            return True;
-        }
-    return False;
-}
-
-Bool
-set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short height )
-{
-    if( tbar )
-        if ( width != tbar->back_width || height != tbar->back_height )
-        {
-            tbar->back_width = width ;
-            tbar->back_height = height ;
-            flush_tbar_backs(tbar);
-            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
-            return True;
-        }
-    return False;
 }
 
 static ASTile *
@@ -1951,6 +1923,85 @@ check_astbar_point( ASTBarData *tbar, int root_x, int root_y )
         }
     }
     return context;
+}
+
+void
+on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave )
+{
+    if( tbar == NULL )
+    {
+        tbar = FocusedBar ;
+        leave = True ;
+    }
+    if( tbar && tbar->balloon )
+    {
+        ASBalloon *balloon = tbar->balloon;
+        if( context != 0 && context != C_TITLE && context != tbar->context)
+        {
+            int i = tbar->tiles_num ;
+            while( --i >= 0 )
+            {
+                if( ASTileType(tbar->tiles[i]) == AS_TileBtnBlock )
+                {
+                    ASBtnBlock *bb = (ASBtnBlock*)&(tbar->tiles[i]) ;
+                    int k = bb->buttons_num ;
+                    while( --k >= 0 )
+                        if( bb->buttons[k].context == context )
+                        {
+                            balloon = bb->buttons[k].balloon ;
+                            break;
+                        }
+                    if( k >= 0 )
+                        break;
+                }
+            }
+        }
+        if( leave )
+        {
+            withdraw_balloon( balloon );
+            if( tbar == FocusedBar )
+                FocusedBar = NULL ;
+        }else if( tbar != FocusedBar )
+        {
+            display_balloon( balloon );
+            FocusedBar = tbar ;
+        }
+    }
+}
+
+void
+set_astbar_balloon( ASTBarData *tbar, int context, const char *text )
+{
+    if( tbar != NULL )
+    {
+        if( context != 0 && context != C_TITLE && context != tbar->context)
+        {
+            int i = tbar->tiles_num ;
+            while( --i >= 0 )
+            {
+                if( ASTileType(tbar->tiles[i]) == AS_TileBtnBlock )
+                {
+                    ASBtnBlock *bb = (ASBtnBlock*)&(tbar->tiles[i]) ;
+                    int k = bb->buttons_num ;
+                    while( --k >= 0 )
+                        if( bb->buttons[k].context == context )
+                        {
+                            if( bb->buttons[k].balloon != NULL )
+                                balloon_set_text (bb->buttons[k].balloon, text);
+                            else
+                                bb->buttons[k].balloon = create_asballoon_with_text( tbar, text );
+                            return ;
+                        }
+                }
+            }
+        }else
+        {
+            if( tbar->balloon != NULL )
+                balloon_set_text (tbar->balloon, text);
+            else
+                tbar->balloon = create_asballoon_with_text( tbar, text );
+        }
+    }
 }
 
 /*************************************************************************/

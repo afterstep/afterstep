@@ -25,17 +25,221 @@
 #include "../include/asapp.h"
 #include "../include/mystyle.h"
 #include "../include/event.h"
+#include "../include/screen.h"
+#include "../include/decor.h"
 #include "../include/balloon.h"
 
-#ifdef I18N
-#ifdef __STDC__
-#define XTextWidth(x,y,z)	XmbTextEscapement(x ## set,y,z)
-#else
-#define XTextWidth(x,y,z)	XmbTextEscapement(x/**/set,y,z)
-#endif
-#define XDrawString(t,u,v,w,x,y,z)	XmbDrawString(t,u,FONTSET,v,w,x,y,z)
-#endif
+static ASBalloonState BalloonState = {{0},NULL, NULL, NULL, None};
 
+static void balloon_timer_handler (void *data);
+
+static void
+set_active_balloon_look()
+{
+    int x = 0, y = 0;
+    unsigned int width, height ;
+    if( BalloonState.active_bar )
+    {
+        set_astbar_style_ptr( BalloonState.active_bar, BAR_STATE_UNFOCUSED, BalloonState.look.style );
+        set_astbar_hilite( BalloonState.active_bar, BalloonState.look.border_hilite );
+        width = calculate_astbar_width( BalloonState.active_bar );
+        if( width > Scr.MyDisplayWidth )
+            width = Scr.MyDisplayWidth ;
+        height = calculate_astbar_width( BalloonState.active_bar );
+        if( height > Scr.MyDisplayHeight )
+            height = Scr.MyDisplayHeight ;
+
+        ASQueryPointerRootXY(&x,&y);
+        x += BalloonState.look.xoffset ;
+        if( x < 0 )
+            x = 0 ;
+        else if( x + width > Scr.MyDisplayWidth )
+            x = Scr.MyDisplayWidth - width ;
+
+        y += BalloonState.look.yoffset ;
+        if( y < 0 )
+            y = 0 ;
+        else if( y + height > Scr.MyDisplayHeight )
+            y = Scr.MyDisplayHeight - height ;
+
+        moveresize_canvas( BalloonState.active_canvas, x, y, width, height );
+        render_astbar( BalloonState.active_bar, BalloonState.active_canvas );
+    }
+}
+
+static void
+display_active_balloon()
+{
+    if( BalloonState.active != NULL && BalloonState.active_window != None &&
+        BalloonState.active_canvas == NULL )
+    {
+        while (timer_remove_by_data (BalloonState.active));
+        BalloonState.active_canvas = create_ascanvas(BalloonState.active_window);
+        BalloonState.active_bar = create_astbar();
+        add_astbar_label( BalloonState.active_bar, 0, 0, 0, ALIGN_CENTER, BalloonState.active->text );
+        set_active_balloon_look();
+        map_canvas_window( BalloonState.active_canvas, True );
+
+        BalloonState.active->timer_action = BALLOON_TIMER_CLOSE;
+        timer_new (BalloonState.look.close_delay, &balloon_timer_handler, (void *)BalloonState.active);
+    }
+}
+
+static void
+withdraw_active_balloon()
+{
+    if( BalloonState.active != NULL )
+    {
+        while (timer_remove_by_data (BalloonState.active));
+        if( BalloonState.active_bar != NULL )
+            destroy_astbar( &(BalloonState.active_bar) );
+        if( BalloonState.active_canvas != NULL )
+        {
+            unmap_canvas_window( BalloonState.active_canvas );
+            destroy_ascanvas( &(BalloonState.active_canvas) );
+        }
+        BalloonState.active = NULL ;
+    }
+}
+
+static void
+balloon_timer_handler (void *data)
+{
+    ASBalloon      *balloon = (ASBalloon *) data;
+
+	switch (balloon->timer_action)
+	{
+        case BALLOON_TIMER_OPEN:
+            if( balloon == BalloonState.active )
+                display_active_balloon ();
+            break;
+        case BALLOON_TIMER_CLOSE:
+            if( balloon == BalloonState.active )
+                withdraw_active_balloon ();
+            break;
+	}
+}
+/*************************************************************************/
+void
+balloon_init (int free_resources)
+{
+    if( free_resources )
+    {
+        if( BalloonState.active != NULL )
+            withdraw_balloon (BalloonState.active);
+        if( BalloonState.active_window != None )
+        {
+            safely_destroy_window (BalloonState.active_window );
+            BalloonState.active_window = None ;
+        }
+    }else
+    {
+        XSetWindowAttributes attr ;
+        attr.override_redirect = True;
+        BalloonState.active_window = create_visual_window( Scr.asv, Scr.Root, -10, -10, 1, 1, 1, InputOutput, CWOverrideRedirect, &attr );
+    }
+    memset(&(BalloonState.look), 0x00, sizeof(ASBalloonLook));
+    BalloonState.look.close_delay = 10000;
+    BalloonState.look.xoffset = 5 ;
+    BalloonState.look.yoffset = 5 ;
+    BalloonState.active = NULL ;
+    BalloonState.active_bar = NULL ;
+    BalloonState.active_canvas = NULL ;
+}
+
+void
+display_balloon( ASBalloon *balloon )
+{
+    if( balloon == NULL )
+        return;
+
+    if( !BalloonState.look.show || BalloonState.active == balloon )
+        return;
+
+    if( BalloonState.active != NULL )
+        withdraw_active_balloon();
+
+    BalloonState.active = balloon ;
+    if( BalloonState.look.delay <= 0 )
+        display_active_balloon();
+    else
+    {
+        while (timer_remove_by_data (balloon));
+        balloon->timer_action = BALLOON_TIMER_OPEN;
+        timer_new (BalloonState.look.delay, &balloon_timer_handler, (void *)balloon);
+    }
+}
+
+void
+withdraw_balloon( ASBalloon *balloon )
+{
+    if( balloon == BalloonState.active )
+        withdraw_active_balloon();
+}
+
+void
+set_balloon_look( ASBalloonLook *blook )
+{
+    BalloonState.look = *blook ;
+    set_active_balloon_look();
+}
+
+ASBalloon *
+create_asballoon (ASTBarData *owner)
+{
+    ASBalloon *balloon = NULL ;
+    if( owner )
+    {
+        balloon = safecalloc( 1, sizeof(ASBalloon) );
+        balloon->owner = owner ;
+    }
+    return balloon;
+}
+
+ASBalloon *
+create_asballoon_with_text ( ASTBarData *owner, const char *text)
+{
+    ASBalloon *balloon = create_asballoon(owner);
+    if( balloon )
+        balloon->text = mystrdup(text);
+    return balloon;
+}
+
+void
+destroy_asballoon( ASBalloon **pballoon )
+{
+    if( pballoon && *pballoon )
+    {
+        if( *pballoon == BalloonState.active )
+            withdraw_active_balloon();
+        if( (*pballoon)->text )
+            free( (*pballoon)->text );
+        free( *pballoon );
+        *pballoon = NULL ;
+    }
+}
+
+
+void
+balloon_set_text (ASBalloon * balloon, const char *text)
+{
+    if( balloon->text == text )
+        return ;
+    if( balloon->text )
+        free( balloon->text );
+    balloon->text = mystrdup( text );
+    if( balloon == BalloonState.active &&
+        BalloonState.active_bar != NULL )
+    {
+        if( change_astbar_first_label (BalloonState.active_bar, balloon->text ) )
+            set_active_balloon_look();
+    }
+}
+
+/*************************************************************************/
+/* old stuff :                                                           */
+/*************************************************************************/
+#if 0
 Bool          balloon_show = 0;
 
 static void   balloon_draw (Balloon * balloon);
@@ -333,22 +537,6 @@ balloon_unmap (Balloon * balloon)
 	}
 }
 
-static void
-balloon_timer_handler (void *data)
-{
-	Balloon      *balloon = (Balloon *) data;
-
-	switch (balloon->timer_action)
-	{
-	 case BALLOON_TIMER_OPEN:
-		 balloon_map (balloon);
-		 break;
-	 case BALLOON_TIMER_CLOSE:
-		 balloon_unmap (balloon);
-		 break;
-	}
-}
-
 void
 balloon_set_active_rectangle (Balloon * balloon, int x, int y, int width, int height)
 {
@@ -444,3 +632,4 @@ balloon_handle_event (XEvent * event)
 
 	return True;
 }
+#endif

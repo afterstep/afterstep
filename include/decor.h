@@ -7,12 +7,12 @@
 #define TRACE_render_astbar
 #endif
 
-
 struct MyStyle ;
 struct ASImage;
 struct icon_t;
 struct button_t;
 struct ASImageManager;
+struct ASBalloon;
 
 typedef struct ASCanvas
 {
@@ -43,7 +43,8 @@ typedef struct ASTBtnData{
     unsigned short width, height ;
     short x, y ;                               /* relative to the button block origin !*/
     unsigned long context ;
-    /* 20 bytes */
+    struct ASBalloon *balloon ;
+    /* 24 bytes */
 }ASTBtnData;
 
 #define TBTN_ORDER_L2R      0
@@ -171,17 +172,19 @@ typedef struct ASTBarData {
     /* 28 bytes */
     /* this is what we make our background from :*/
     struct MyStyle      *style[2] ;
-    struct ASImage      *back_image ;
-    unsigned short       back_width, back_height;
     /* this is the actuall generated background : */
     struct ASImage      *back [2] ;
-    /* 52 bytes */
+    /* 44 bytes */
     unsigned char h_border, v_border;
 	unsigned char h_spacing, v_spacing;
-	/* 56 bytes */
+    /* 48 bytes */
 	ASTile *tiles;
 	unsigned int tiles_num ;
-	/* 64 bytes */
+    /* 56 bytes */
+    struct ASBalloon *balloon;
+    /* 60 bytes */
+    int padding_unused;                        /* could be used for future extensions */
+    /* 64 bytes */
 }ASTBarData ;
 
 ASCanvas* create_ascanvas(Window w);
@@ -248,8 +251,6 @@ Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height 
 Bool set_astbar_hilite( ASTBarData *tbar, ASFlagType hilite );
 Bool set_astbar_style_ptr (ASTBarData * tbar, unsigned int state, struct MyStyle *style);
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
-Bool set_astbar_image( ASTBarData *tbar, struct ASImage *image );
-Bool set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short height );
 
 
 int add_astbar_spacer( ASTBarData *tbar, unsigned char col, unsigned char row, int flip, int align, unsigned short width, unsigned short height);
@@ -279,6 +280,9 @@ Bool  trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, i
 #else
 Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 #endif
+
+void on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave );
+void set_astbar_balloon( ASTBarData *tbar, int context, const char *text );
 
 #endif /* !NO_TEXTURE */
 #endif /* DECOR_H_HEADER */
