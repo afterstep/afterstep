@@ -296,7 +296,7 @@ sort_hash_items (ASHashTable * hash, ASHashableValue * values, void **data, unsi
 					if (hash->compare_func (buckets[k]->value, buckets[i]->value) > 0)
 						k = i;
 			}
-			if (values)
+            if (values)
 				*(values++) = buckets[k]->value;
 			if (data)
 				*(data++) = buckets[k]->data;
