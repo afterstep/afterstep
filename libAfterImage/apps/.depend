@@ -1,0 +1,36 @@
+./common.h:
+
+./ascompose.o: \
+		config.h \
+		common.h
+
+./asflip.o: \
+		config.h \
+		common.h
+
+./asgrad.o: \
+		config.h \
+		common.h
+
+./asmerge.o: \
+		config.h \
+		common.h
+
+./asscale.o: \
+		config.h \
+		common.h
+
+./astext.o: \
+		config.h \
+		common.h
+
+./astile.o: \
+		config.h \
+		common.h
+
+./asview.o: \
+		config.h \
+		common.h
+
+./common.o: \
+		config.h

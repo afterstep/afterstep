@@ -4,6 +4,7 @@
 #undef  DEBUG_ALLOCS
 
 #undef  HAVE_MMX
+#undef  SHAPE
 
 #undef  HAVE_XPM
 #undef  HAVE_LIBXPM

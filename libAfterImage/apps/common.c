@@ -2,12 +2,8 @@
 
 #include <string.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-
-#include "afterimage.h"
+#include <libAfterImage/afterbase.h>
+#include <libAfterImage/afterimage.h>
 
 /****h* libAfterImage/tutorials/common.h
  * SYNOPSIS

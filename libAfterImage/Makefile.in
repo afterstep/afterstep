@@ -20,6 +20,12 @@ LIB_DOCS= afterimage.h ascmap.h asfont.h asimage.h asvisual.h \
 LIB_TUTORIALS= common.c asview.c asscale.c astile.c asmerge.c \
 		  asgrad.c asflip.c astext.c
 
+APPS_SRCS=apps/common.c apps/ascompose.c apps/asview.c \
+		  apps/asscale.c apps/astile.c apps/asmerge.c \
+		  apps/asgrad.c apps/asflip.c apps/astext.c
+
+APPS_INCS=apps/common.h 
+
 # end specifics
 ################################################################
 # generic makefile stuff :
@@ -74,7 +80,7 @@ AFTER_MAN_DIR	= @mandir@/man3
 AFTER_SHAREDIR	= @datadir@/libAfterImage
 AFTER_DOC_DIR	= $(AFTER_SHAREDIR)/doc
 
-all:            @LIBPROG@ $(INSTALLONBUILD)
+all:            @LIBPROG@ $(INSTALLONBUILD) apps
 
 install.bin:
 
@@ -159,6 +165,9 @@ install.inc:
 		 fi \
 		)
 
+install.apps: install.lib
+		cd apps; make install; cd ..
+
 uninstall.bin:
 
 uninstall.lib:
@@ -168,10 +177,12 @@ uninstall.man:
 uninstall.script:
 
 clean:
-		$(RMF) $(LIB_SHARED) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core
+		$(RMF) $(LIB_SHARED) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core ; \
+		cd apps; make clean; cd .. 
 
 distclean:
-		$(RMF) $(LIB_SHARED) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
+		$(RMF) $(LIB_SHARED) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile ; \
+		cd apps; make distclean; cd .. 
 
 indent:
 		@SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
@@ -181,7 +192,8 @@ indent:
 		    echo "indent $$i"; \
 		    mv /tmp/$$i $$i; \
 		  fi; \
-		done
+		done ; \
+		cd apps; make indent; cd .. 
 
 deps:
 		echo -n > .depend ; \
@@ -214,7 +226,11 @@ deps:
 		  echo " \\" >> .shared ; \
 		  echo -n '		$$('$(LIB_NAME)_PATH')'/$$f >> .shared ; \
 		done; \
-		echo "" >> .shared ;
+		echo "" >> .shared ; \
+		cd apps; make deps; cd .. 
+
+apps: 	@LIBPROG@ $(LIB_OBJS) $(LIB_INCS) $(APPS_SRCS) $(APPS_INCS)
+		cd apps; make ; cd ..
 
 
 $(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS)
@@ -298,7 +314,7 @@ install.doc:
 		  $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
 		done; cd ../..;
 
-install:	install.lib install.man install.doc
+install:	install.lib install.man install.doc install.apps
 
 
 uninstall:	uninstall.lib

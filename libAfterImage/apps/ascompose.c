@@ -27,10 +27,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "afterimage.h"
+#include <libAfterImage/afterbase.h>
+#include <libAfterImage/afterimage.h>
 #include "common.h"
-
-#include <X11/Xatom.h> // For XA_PIXMAP.
 
 #define xml_tagchar(a) (isalnum(a) || (a) == '-' || (a) == '_')
 
