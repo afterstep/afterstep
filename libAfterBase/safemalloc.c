@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2001 Sasha Vasko <sashav@sprintmail.com>
  *   and many others, who has not left their copyrights here :)
- * 
+ *
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "config.h"
+#include "astypes.h"
+#include "output.h"
 #include "selfdiag.h"
+#include "safemalloc.h"
 
 #ifdef DEBUG_ALLOCS
 #include <string.h>
@@ -128,7 +131,7 @@ dump_memory()
 	char filename[512];/* = malloc(strlen(MyName)+1+6+1);*/
 	FILE *f ;
 
-	sprintf( filename, "%s.allocs", MyName );
+	sprintf( filename, "%s.allocs", ApplicationName );
 
 	f = fopen( filename, "w" );
 	for( i = 0 ; i < MAX_BLOCK ; i++ )

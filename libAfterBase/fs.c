@@ -27,7 +27,10 @@
 #include <sys/stat.h>
 
 #include "config.h"
+#include "astypes.h"
 #include "mystring.h"
+#include "safemalloc.h"
+#include "fs.h"
 
 /*
  * get the date stamp on a file
@@ -131,7 +134,7 @@ PutHome (const char *path_with_home)
 
 	for (i = 2; path_with_home[i]; i++);
 	str = safemalloc (home_len + i);
-	
+
 	for (ptr = str + home_len-1; i > 0; i--)
 		ptr[i] = path_with_home[i];
 	for (i = 0; i < home_len; i++)
@@ -192,7 +195,7 @@ find_file (const char *file, const char *pathlist, int type)
 	{
 		if (pathlist[0] == ':')
 			++pathlist;
-		ptr = pathlist ;
+		ptr = (char*)pathlist ;
 		for (i = 0; ptr[i] && ptr[i] != ':'; i++)
 			path[i] = ptr[i];
 		pathlist += i;
@@ -205,7 +208,7 @@ find_file (const char *file, const char *pathlist, int type)
 		{
 			++i;
 			ptr[i] = file[i];
-		}while( file[i] != '\0' );					
+		}while( file[i] != '\0' );
 		if (access (path, type) == 0)
 			return path;
 	}

@@ -17,15 +17,15 @@
  *
  */
 
-#include "config.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <X11/Xmd.h>
-
 /*#define LOCAL_DEBUG*/
 
+#include "config.h"
+#include "astypes.h"
+#include "output.h"
+#include "safemalloc.h"
 #include "asvector.h"
 
 ASVector *create_asvector( size_t unit )
@@ -89,7 +89,7 @@ realloc_vector( ASVector *v, size_t new_size )
 				print_simple_backtrace();
 				exit(0);
 			}
-#endif		
+#endif
             v->memory = realloc( v->memory, v->allocated * v->unit );
             if ( v->memory == NULL )
             {

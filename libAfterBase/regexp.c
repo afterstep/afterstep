@@ -17,14 +17,17 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "../include/aftersteplib.h"
-#include "../include/afterstep.h"
-#include "../include/regexp.h"
+#include "audit.h"
+#include "astypes.h"
+#include "mystring.h"
+#include "safemalloc.h"
+#include "regexp.h"
 
 /************************************************************************/
 /************************************************************************/

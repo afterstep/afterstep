@@ -18,15 +18,23 @@
  */
 #include <ctype.h>
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 
+#include <X11/Xlib.h>
+#include <X11/Xmd.h>
+
 #include "config.h"
+#include "astypes.h"
+#include "audit.h"
+#include "mystring.h"
+#include "safemalloc.h"
 #include "parse.h"
 
 /****************************************************************************
  * parse_argb_color - should be used for all your color parsing needs
  ***************************************************************************/
-const char *parse_argb_color( const char *color, CARD32 *pargb )
+const char *parse_argb_color( Display *dpy, const char *color, CARD32 *pargb )
 {
 #define hextoi(h)   (isdigit(h)?((h)-'0'):(isupper(h)?((h)-'A'+10):((h)-'a'+10)))
 	if( color )
@@ -81,7 +89,7 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 			XColor xcol, xcol_scr ;
 			register const char *ptr = &(color[0]);
 			/* does not really matter here what screen to use : */
-			if( XLookupColor( dpy, DefaultColormap(dpy,Scr.screen), color, &xcol, &xcol_scr) )
+			if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), color, &xcol, &xcol_scr) )
 				*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
 			while( !isspace(*ptr) && *ptr != '\0' ) ptr++;
 			return ptr;

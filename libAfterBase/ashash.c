@@ -27,11 +27,17 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#include <X11/Xlib.h>
 #include <X11/Xmd.h>
 
 /*#define LOCAL_DEBUG*/
 
+#include "astypes.h"
 #include "ashash.h"
+#include "safemalloc.h"
+#include "audit.h"
+#include "output.h"
+
 
 ASHashKey default_hash_func (ASHashableValue value, ASHashKey hash_size)
 {
@@ -130,16 +136,6 @@ LOCAL_DEBUG_CALLER_OUT( " hash = %p, *hash = %p", hash, *hash  );
 	}
 }
 
-#ifdef DEBUG_ALLOCS
-#undef add_hash_item
-#undef safemalloc
-#undef free
-#endif
-
-#define DEALLOC_CACHE_SIZE      1024
-static ASHashItem*  deallocated_mem[DEALLOC_CACHE_SIZE+10] ;
-static unsigned int deallocated_used = 0 ;
-
 static        ASHashResult
 add_item_to_bucket (ASHashBucket * bucket, ASHashItem * item, long (*compare_func) (ASHashableValue, ASHashableValue))
 {
@@ -160,6 +156,16 @@ add_item_to_bucket (ASHashBucket * bucket, ASHashItem * item, long (*compare_fun
 	*tmp = item;
 	return ASH_Success;
 }
+
+#ifdef DEBUG_ALLOCS
+#undef add_hash_item
+#undef safemalloc
+#undef free
+#endif
+
+#define DEALLOC_CACHE_SIZE      1024
+static ASHashItem*  deallocated_mem[DEALLOC_CACHE_SIZE+10] ;
+static unsigned int deallocated_used = 0 ;
 
 ASHashResult
 add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
@@ -191,7 +197,6 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
 		hash->items_num++;
 		if (hash->buckets[key]->next == NULL)
 			hash->buckets_used++;
-/*LOCAL_DEBUG_CALLER_OUT( "0x%lX", (unsigned long)item );*/
 	} else
 		free (item);
 	return res;
@@ -267,14 +272,10 @@ get_hash_item (ASHashTable * hash, ASHashableValue value, void **trg)
 void flush_ashash_memory_pool()
 {
 	/* we better disable errors as some of this data will belong to memory audit : */
-#ifdef DEBUG_ALLOCS
     int old_cleanup_mode = set_audit_cleanup_mode(1);
-#endif
 	while( deallocated_used > 0 )
 		free( deallocated_mem[--deallocated_used] );
-#ifdef DEBUG_ALLOCS
 	set_audit_cleanup_mode(old_cleanup_mode);
-#endif
 }
 
 ASHashResult

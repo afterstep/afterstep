@@ -18,7 +18,7 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -35,11 +35,12 @@
 
 /*#define LOCAL_DEBUG*/
 
-#include "../include/aftersteplib.h"
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/parse.h"
-#include "../include/xprop.h"
+#include "astypes.h"
+#include "output.h"
+#include "audit.h"
+#include "parse.h"
+#include "xprop.h"
+#include "safemalloc.h"
 
 /* X property access : */
 Bool

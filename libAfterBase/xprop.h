@@ -1,7 +1,8 @@
 #ifndef XPROP_H_HEADER_INCLUDED
 #define XPROP_H_HEADER_INCLUDED
 
-#include <X11/Xmd.h>
+#include "astypes.h"
+#include "output.h"
 
 /************************************************************************/
 /*                Utility data structures :				*/

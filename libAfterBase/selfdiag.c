@@ -16,11 +16,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
-#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <X11/X.h>
+#include  <X11/Xlib.h>
+
+#include "config.h"
+#include "astypes.h"
+#include "output.h"
+#include "selfdiag.h"
 
 
 #ifdef HAVE_EXECINFO_H
@@ -600,7 +604,7 @@ xquiet_error_handler (Display * dpy, XErrorEvent * error)
 }
 
 void
-backtrace_window (Window w)
+backtrace_window ( void *dpy, CARD32 w)
 {
     Window        root, parent, *children = NULL;
 	unsigned int  nchildren;

@@ -19,10 +19,6 @@
  *
  */
 
-#include "config.h"
-
-#ifdef DEBUG_ALLOCS
-
 #include <string.h>							   /* for memset */
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,11 +30,16 @@
 #include <X11/Xutil.h>
 #include <X11/Xproto.h>
 #include <X11/Xmd.h>
-#ifdef XPM
-#include <X11/xpm.h>
-#endif /* XPM */
 
+#include "config.h"
+
+#include "astypes.h"
+#include "output.h"
 #include "ashash.h"
+#include "audit.h"
+#include "selfdiag.h"
+
+#ifdef DEBUG_ALLOCS
 
 #undef malloc
 #undef safemalloc
@@ -48,16 +49,6 @@
 #undef free
 #undef mystrdup
 #undef mystrndup
-
-void *countmalloc (const char *fname, int line, size_t length);
-void *countcalloc (const char *fname, int line, size_t nrecords,
-		   size_t length);
-void *countrealloc (const char *fname, int line, void *ptr, size_t length);
-void countfree (const char *fname, int line, void *ptr);
-ASHashResult countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHashableValue value, void *data );
-char* mystrdup( const char *a);
-char* mystrndup( const char *a, int len);
-
 
 #undef XCreatePixmap
 #undef XCreateBitmapFromData
@@ -72,9 +63,6 @@ char* mystrndup( const char *a, int len);
 #undef XSubImage
 #undef XDestroyImage
 
-#undef XpmReadFileToPixmap
-#undef XpmCreateImageFromXpmImage
-
 #undef XGetWindowProperty
 #undef XListProperties
 #undef XGetTextProperty
@@ -88,6 +76,11 @@ char* mystrndup( const char *a, int len);
 #undef XGetAtomName
 #undef XStringListToTextProperty
 #undef XFree
+
+#endif /* DEBUG_ALLOCS */
+
+#include "mystring.h"
+#include "safemalloc.h"
 
 int
 as_assert (void *p, const char *fname, int line, const char *call)
@@ -122,9 +115,8 @@ enum
 
 	C_PIXMAP = 1,
 	C_CREATEPIXMAP = 0x100,
-	C_XPMFILE = 0x200,
-	C_BITMAPFROMDATA = 0x300,
-	C_FROMBITMAP = 0x400,
+	C_BITMAPFROMDATA = 0x200,
+	C_FROMBITMAP = 0x300,
 
 	C_GC = 2,
 
@@ -475,7 +467,7 @@ output_unfreed_mem (FILE *stream)
     if( stream == NULL )
         stream = stderr ;
     fprintf (stream, "===============================================================================\n");
-    fprintf (stream, "Memory audit: %s\n", MyName);
+    fprintf (stream, "Memory audit: %s\n", ApplicationName);
     fprintf (stream, "\n");
     fprintf (stream, "   Total   allocs: %lu\n", allocations);
     fprintf (stream, "   Total reallocs: %lu\n", reallocations);
@@ -553,9 +545,6 @@ output_unfreed_mem (FILE *stream)
 				  case C_CREATEPIXMAP:
                       fprintf (stream, " (XCreatePixmap)");
 					  break;
-				  case C_XPMFILE:
-                      fprintf (stream, " (XpmReadFileToPixmap)");
-					  break;
 				  case C_BITMAPFROMDATA:
                       fprintf (stream, " (XCreateBitmapFromData)");
 					  break;
@@ -579,9 +568,6 @@ output_unfreed_mem (FILE *stream)
 					  break;
 				  case C_SUBIMAGE:
                       fprintf (stream, " (XSubImage)");
-					  break;
-				  case C_XPMFILE:
-                      fprintf (stream, " (XpmCreateImageFromXpmImage)");
 					  break;
 				 }
 				 break;
@@ -640,7 +626,7 @@ spool_unfreed_mem (char *filename, const char *comments)
     FILE *spoolfile = fopen(filename, "w+");
     if( spoolfile )
     {
-        fprintf( spoolfile, "%s: Memory Usage Snapshot <%s>", MyName, comments?comments:"no comments\n" );
+        fprintf( spoolfile, "%s: Memory Usage Snapshot <%s>", ApplicationName, comments?comments:"no comments\n" );
         output_unfreed_mem( spoolfile );
         fclose( spoolfile );
     }
@@ -656,11 +642,11 @@ void
 print_unfreed_mem_stats (const char *file, const char *func, int line, const char *msg)
 {
     if( msg )
-        fprintf( stderr, "%s:%s:%s:%d: Memory audit %s\n", MyName, file, func, line, msg );
+        fprintf( stderr, "%s:%s:%s:%d: Memory audit %s\n", ApplicationName, file, func, line, msg );
     fprintf( stderr, "%s:%s:%s:%d: Memory audit counts: allocs %lu, reallocs: %lu, deallocs: %lu, max simultaneous %lu\n",
-                     MyName, file, func, line, allocations, reallocations, deallocations, max_allocations);
+                     ApplicationName, file, func, line, allocations, reallocations, deallocations, max_allocations);
     fprintf( stderr, "%s:%s:%s:%d: Memory audit used memory: private %lu, X %lu, audit %lu, max private %lu, max X %lu, max audit %lu\n",
-                     MyName, file, func, line, total_alloc, total_x_alloc, total_service - deallocated_used*sizeof(mem), max_alloc, max_x_alloc, max_service);
+                     ApplicationName, file, func, line, total_alloc, total_x_alloc, total_service - deallocated_used*sizeof(mem), max_alloc, max_x_alloc, max_service);
 }
 
 Pixmap
@@ -812,65 +798,6 @@ count_xsubimage (const char *fname, int line, XImage *img,
 				 sizeof (*image) + image->height * image->bytes_per_line, C_IMAGE | C_SUBIMAGE);
 	return image;
 }
-
-#ifdef XPM
-int
-count_xpmreadfiletopixmap (const char *fname, int line, Display * display,
-						   Drawable drawable, char *filename, Pixmap * pmap, Pixmap * mask, void *attributes)
-{
-	XpmAttributes *xpm_attributes = attributes;
-	int           val;
-
-	val = XpmReadFileToPixmap (display, drawable, filename, pmap, mask, xpm_attributes);
-	if (pmap != NULL && *pmap != None)
-	{
-		size_t        size = 0;
-
-		if (xpm_attributes->valuemask & XpmSize)
-			size = xpm_attributes->width * xpm_attributes->height * DefaultDepth (display, DefaultScreen (display)) / 8;
-		count_alloc (fname, line, (void *)*pmap, size, C_PIXMAP | C_XPMFILE);
-	}
-	if (mask != NULL && *mask != None)
-	{
-		size_t        size = 0;
-
-		if (xpm_attributes->valuemask & XpmSize)
-			size = xpm_attributes->width * xpm_attributes->height * 1 / 8;
-		count_alloc (fname, line, (void *)*mask, size, C_PIXMAP | C_XPMFILE);
-	}
-	return val;
-}
-
-int
-count_xpmcreateimagefromxpmimage (const char *fname, int line,
-								  Display * display, void *xpm_image_v,
-								  XImage ** image, XImage ** mask, void *attributes)
-{
-	XpmAttributes *xpm_attributes = attributes;
-	XpmImage     *xpm_image = xpm_image_v;
-	int           val;
-
-	val = XpmCreateImageFromXpmImage (display, xpm_image, image, mask, xpm_attributes);
-	if (image != NULL && *image != NULL)
-	{
-		size_t        size = 0;
-
-		if (xpm_attributes->valuemask & XpmSize)
-			size = xpm_attributes->width * xpm_attributes->height * DefaultDepth (display, DefaultScreen (display)) / 8;
-		count_alloc (fname, line, (void *)*image, size, C_IMAGE | C_XPMFILE);
-	}
-	if (mask != NULL && *mask != NULL)
-	{
-		size_t        size = 0;
-
-		if (xpm_attributes->valuemask & XpmSize)
-			size = xpm_attributes->width * xpm_attributes->height * 1 / 8;
-		count_alloc (fname, line, (void *)*mask, size, C_IMAGE | C_XPMFILE);
-	}
-	return val;
-}
-
-#endif /* XPM */
 
 int
 count_xdestroyimage (const char *fname, int line, XImage * image)
@@ -1102,4 +1029,3 @@ count_xfree (const char *fname, int line, void *data)
 	return Success;
 }
 
-#endif /* DEBUG_ALLOCS */

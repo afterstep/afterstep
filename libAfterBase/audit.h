@@ -14,15 +14,16 @@
  * #endif
  */
 
-#ifndef DEBUG_ALLOCS
-#define AS_ASSERT(p)            ((p)==NULL)
-#define PRINT_MEM_STATS(m)      do{}while(0)
-
-#else
+#include <stdio.h>
+#include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include "ashash.h"
 
-int as_assert (void *p, const char *fname, int line, const char *call);
+#ifndef DEBUG_ALLOCS
+#define AS_ASSERT(p)            ((p)==NULL)
+#define PRINT_MEM_STATS(m)      do{}while(0)
+#else
+
 #define AS_ASSERT(p) as_assert(p,__FILE__, __LINE__ ,__FUNCTION__)
 
 #define malloc(a) countmalloc(__FUNCTION__, __LINE__, a)
@@ -36,20 +37,54 @@ int as_assert (void *p, const char *fname, int line, const char *call);
 #define mystrdup(a) countadd_mystrdup(__FUNCTION__, __LINE__,a)
 #define mystrndup(a,b) countadd_mystrndup(__FUNCTION__, __LINE__,a,b)
 
+#define XCreatePixmap(a, b, c, d, e) count_xcreatepixmap(__FUNCTION__, __LINE__, a, b, c, d, e)
+#define XCreateBitmapFromData(a, b, c, d, e) count_xcreatebitmapfromdata(__FUNCTION__, __LINE__, a, b, c, d, e)
+#define XCreatePixmapFromBitmapData(a, b, c, d, e, f, g, h) count_xcreatepixmapfrombitmapdata(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h)
+#define XFreePixmap(a, b) count_xfreepixmap(__FUNCTION__, __LINE__, a, b)
+
+#define XCreateGC(a, b, c, d) count_xcreategc(__FUNCTION__, __LINE__, a, b, c, d)
+#define XFreeGC(a, b) count_xfreegc(__FUNCTION__, __LINE__, a, b)
+
+#undef XDestroyImage		/* this is normally a macro */
+
+#define XCreateImage(a, b, c, d, e, f, g, h, i, j) count_xcreateimage(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j)
+#define XGetImage(a, b, c, d, e, f, g, h) count_xgetimage(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h)
+#undef XSubImage
+#define XSubImage(a, b, c, d, e) count_xsubimage(__FUNCTION__, __LINE__, a, b, c, d, e)
+#define XDestroyImage(a) count_xdestroyimage(__FUNCTION__, __LINE__, a)
+
+#define XGetWindowProperty(a, b, c, d, e, f, g, h, i, j, k, l) count_xgetwindowproperty(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j, k, l)
+#define XListProperties(a,b,c) count_xlistproperties(__FUNCTION__, __LINE__, a, b, c)
+#define XGetTextProperty(a,b,c,d) count_xgettextproperty(__FUNCTION__,__LINE__,a,b,c,d)
+#define XAllocClassHint()   count_xallocclasshint(__FUNCTION__,__LINE__)
+#define XAllocSizeHints()   count_xallocsizehints(__FUNCTION__,__LINE__)
+#define XQueryTree(a, b, c, d, e, f) count_xquerytree(__FUNCTION__, __LINE__, a, b, c, d, e, f)
+#define XGetWMHints(a, b) count_xgetwmhints(__FUNCTION__, __LINE__, a, b)
+#define XGetWMProtocols(a, b, c, d) count_xgetwmprotocols(__FUNCTION__, __LINE__, a, b, c, d)
+#define XGetWMName(a, b, c) count_xgetwmname(__FUNCTION__, __LINE__, a, b, c)
+#define XGetClassHint(a, b, c) count_xgetclasshint(__FUNCTION__, __LINE__, a, b, c)
+#define XGetAtomName(a, b) count_xgetatomname(__FUNCTION__, __LINE__, a, b)
+#define XStringListToTextProperty(a, b, c) count_xstringlisttotextproperty(__FUNCTION__, __LINE__, a, b, c)
+#define XFree(a) count_xfree(__FUNCTION__, __LINE__, a)
+
+#define PRINT_MEM_STATS(m)     print_unfreed_mem_stats(__FILE__,__FUNCTION__, __LINE__,(m))
+
+#endif /* DEBUG_ALLOCS */
+
+/* count_* prototypes, that are actually used to proxy and count allocation calls.
+ * That is always compiled, but used only when app explicetely uses it, or
+ * DEBUG_ALLOC is defined:
+ */
+
+int as_assert (void *p, const char *fname, int line, const char *call);
+
 void *countmalloc (const char *fname, int line, size_t length);
-void *countcalloc (const char *fname, int line, size_t nrecords,
-		   size_t length);
+void *countcalloc (const char *fname, int line, size_t nrecords, size_t length);
 void *countrealloc (const char *fname, int line, void *ptr, size_t length);
 void countfree (const char *fname, int line, void *ptr);
 ASHashResult countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHashableValue value, void *data );
 char* countadd_mystrdup(const char *fname, int line, const char *a);
 char* countadd_mystrndup(const char *fname, int line, const char *a, int len);
-
-#define XCreatePixmap(a, b, c, d, e) count_xcreatepixmap(__FUNCTION__, __LINE__, a, b, c, d, e)
-#define XCreateBitmapFromData(a, b, c, d, e) count_xcreatebitmapfromdata(__FUNCTION__, __LINE__, a, b, c, d, e)
-#define XCreatePixmapFromBitmapData(a, b, c, d, e, f, g, h) count_xcreatepixmapfrombitmapdata(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h)
-#define XpmReadFileToPixmap(a, b, c, d, e, f) count_xpmreadfiletopixmap(__FUNCTION__, __LINE__, a, b, c, d, e, f)
-#define XFreePixmap(a, b) count_xfreepixmap(__FUNCTION__, __LINE__, a, b)
 
 Pixmap count_xcreatepixmap (const char *fname, int line, Display * display,
 			    Drawable drawable, unsigned int width,
@@ -72,21 +107,9 @@ int count_xpmreadfiletopixmap (const char *fname, int line, Display * display,
 int count_xfreepixmap (const char *fname, int line, Display * display,
 		       Pixmap pmap);
 
-#define XCreateGC(a, b, c, d) count_xcreategc(__FUNCTION__, __LINE__, a, b, c, d)
-#define XFreeGC(a, b) count_xfreegc(__FUNCTION__, __LINE__, a, b)
-
 GC count_xcreategc (const char *fname, int line, Display * display,
 		    Drawable drawable, unsigned int mask, XGCValues * values);
 int count_xfreegc (const char *fname, int line, Display * display, GC gc);
-
-#undef XDestroyImage		/* this is normally a macro */
-
-#define XCreateImage(a, b, c, d, e, f, g, h, i, j) count_xcreateimage(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j)
-#define XGetImage(a, b, c, d, e, f, g, h) count_xgetimage(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h)
-#undef XSubImage
-#define XSubImage(a, b, c, d, e) count_xsubimage(__FUNCTION__, __LINE__, a, b, c, d, e)
-#define XpmCreateImageFromXpmImage(a, b, c, d, e) count_xpmcreateimagefromxpmimage(__FUNCTION__, __LINE__, a, b, c, d, e)
-#define XDestroyImage(a) count_xdestroyimage(__FUNCTION__, __LINE__, a)
 
 XImage *count_xcreateimage (const char *fname, int line, Display * display,
 			    Visual * visual, unsigned int depth, int format,
@@ -104,20 +127,6 @@ int count_xpmcreateimagefromxpmimage (const char *fname, int line,
 				      XImage ** image, XImage ** mask,
 				      void *attributes);
 int count_xdestroyimage (const char *fname, int line, XImage * image);
-
-#define XGetWindowProperty(a, b, c, d, e, f, g, h, i, j, k, l) count_xgetwindowproperty(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j, k, l)
-#define XListProperties(a,b,c) count_xlistproperties(__FUNCTION__, __LINE__, a, b, c)
-#define XGetTextProperty(a,b,c,d) count_xgettextproperty(__FUNCTION__,__LINE__,a,b,c,d)
-#define XAllocClassHint()   count_xallocclasshint(__FUNCTION__,__LINE__)
-#define XAllocSizeHints()   count_xallocsizehints(__FUNCTION__,__LINE__)
-#define XQueryTree(a, b, c, d, e, f) count_xquerytree(__FUNCTION__, __LINE__, a, b, c, d, e, f)
-#define XGetWMHints(a, b) count_xgetwmhints(__FUNCTION__, __LINE__, a, b)
-#define XGetWMProtocols(a, b, c, d) count_xgetwmprotocols(__FUNCTION__, __LINE__, a, b, c, d)
-#define XGetWMName(a, b, c) count_xgetwmname(__FUNCTION__, __LINE__, a, b, c)
-#define XGetClassHint(a, b, c) count_xgetclasshint(__FUNCTION__, __LINE__, a, b, c)
-#define XGetAtomName(a, b) count_xgetatomname(__FUNCTION__, __LINE__, a, b)
-#define XStringListToTextProperty(a, b, c) count_xstringlisttotextproperty(__FUNCTION__, __LINE__, a, b, c)
-#define XFree(a) count_xfree(__FUNCTION__, __LINE__, a)
 
 int count_xgetwindowproperty (const char *fname, int line, Display * display,
 			      Window w, Atom property, long long_offset,
@@ -159,8 +168,5 @@ void print_unfreed_mem (void);
 void output_unfreed_mem (FILE *stream);
 void spool_unfreed_mem (char *filename, const char *comments);
 void print_unfreed_mem_stats (const char *file, const char *func, int line, const char *msg);
-#define PRINT_MEM_STATS(m)     print_unfreed_mem_stats(__FILE__,__FUNCTION__, __LINE__,(m))
 
-
-#endif /* DEBUG_ALLOCS */
 #endif /* AUDIT_H_HEADER_INCLUDED */

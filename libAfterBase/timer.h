@@ -3,15 +3,15 @@
 
 /*
  * To use:
- * 1. call timer_handle() in event loop; use timer_delay_till_next_alarm() 
- *    to determine how long app should wait (so the app can block with 
+ * 1. call timer_handle() in event loop; use timer_delay_till_next_alarm()
+ *    to determine how long app should wait (so the app can block with
  *    select())
  *
  * Notes:
- *  o this timer code is not intended to handle large numbers of timeout 
- *    events; if large numbers of events are needed, timer should be 
+ *  o this timer code is not intended to handle large numbers of timeout
+ *    events; if large numbers of events are needed, timer should be
  *    rewritten to be a priority queue
- *  o timers may be created (with timer_new()) at any point, including 
+ *  o timers may be created (with timer_new()) at any point, including
  *    inside a timer handler
  *  o example of use:
  *    {

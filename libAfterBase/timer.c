@@ -21,6 +21,9 @@
 #include <sys/time.h>
 
 #include "config.h"
+#include "astypes.h"
+#include "output.h"
+#include "safemalloc.h"
 #include "timer.h"
 
 static void   timer_get_time (time_t * sec, time_t * usec);

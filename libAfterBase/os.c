@@ -23,6 +23,12 @@
 #include <sys/types.h>
 
 #include "config.h"
+#include "astypes.h"
+#include "output.h"
+#include "audit.h"
+#include "mystring.h"
+#include "safemalloc.h"
+#include "os.h"
 
 #if defined (__sun__) && defined (SVR4)
 /* Solaris has sysinfo instead of gethostname.  */
@@ -40,7 +46,7 @@ mygethostname (char *client, size_t length)
 	struct utsname sysname;
 
     if( client == NULL )
-        return False;
+        return 0;
     uname (&sysname);
 	strncpy (client, sysname.nodename, length);
     return (*client != '\0');

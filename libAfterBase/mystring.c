@@ -23,8 +23,12 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "../configure.h"
-#include "../include/aftersteplib.h"
+#include "config.h"
+#include "astypes.h"
+#include "output.h"
+#include "audit.h"
+#include "safemalloc.h"
+#include "mystring.h"
 
 int
 mystrcasecmp (const char *s1, const char *s2)

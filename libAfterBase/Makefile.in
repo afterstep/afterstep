@@ -9,18 +9,19 @@
 # asapp.c, parse.c screen.c trace.c needs to be split up into
 # generic and AS-specific code :
 
-LIB_OBJS=	asapp.o \
-			ashash.o asvector.o audit.o \
-			event.o findfile.o \
-			getfdwidth.o homeanddirs.o \
-			hostname.o mystring.o parse.o \
-			regexp.o safemalloc.o \
-			screen.o selfdiag.o sleep.o timer.o trace.o \
-			xprop.o
+LIB_INCS=	ashash.h asvector.h astypes.h audit.h \
+		fs.h mystring.h os.h output.h parse.h \
+		regexp.h safemalloc.h selfdiag.h \
+		sleep.h timer.h trace.h xprop.h
+
+LIB_OBJS=	ashash.o asvector.o audit.o \
+		fs.o mystring.o os.o output.o parse.o \
+		regexp.o safemalloc.o selfdiag.o \
+		sleep.o timer.o trace.o xprop.o
 
 # end specifics
 ################################################################
-# generic makefile stuff : 
+# generic makefile stuff :
 
 LIB_NAME        = @lib_name@
 LIB_STATIC      = @lib_file_name@.a
@@ -56,29 +57,8 @@ INSTALL_HEADER	= @INSTALL@ -m 644
 INSTALL_LIB	= @INSTALL@ -m 755
 INSTALL_SCRIPT	= @INSTALL@ -m 755
 
-INCS_X		= @X_CFLAGS@
-INCS_XPM	= @XPM_CFLAGS@
-INCS_JPEG	= @JPEG_CFLAGS@
-INCS_PNG	= @PNG_CFLAGS@
-INCS_TTF	= @TTF_INCLUDES@
-INCLUDES	= $(INCS_X) $(INCS_XPM) $(INCS_JPEG) $(INCS_PNG) $(INCS_TTF) $(INCS_PRIVATE)
-
-LIBS_X		= @x_libs@
-LIBS_XPM	= 
-LIBS_JPEG	= @JPEG_LIBS@
-LIBS_PNG	= @PNG_LIBS@
-LIBS_GIF	= @GIF_LIBS@
-LIBS_TIFF	= @TIFF_LIBS@
-LIBS_TTF	= @TTF_LIBS@
-LIBS_AUDIO	= @AUDIO_LIBS@
-LIBS_XEXTS	= 
-LIB_AFTERSTEP	= @AFTERSTEP_LIB@  
-LIB_ASGUI       = @ASGUI_LIB@
-LIB_ASGADGET    = @ASGADGET_LIB@
-LIB_WIDGETS     = @WIDGETS_LIB@
-LIBS_ASGUI    = $(LIB_ASGUI) $(LIB_AFTERSTEP) $(LIBS_TIFF) $(LIBS_JPEG) $(LIBS_GIF) $(LIBS_PNG) $(LIBS_XPM) $(LIBS_TTF)
-LIB_ASCONFIG    = @CONFIG_LIB@
-LIBRARIES	= $(LIBS_PRIVATE) $(LIBS_XEXTS) $(LIBS_X)
+#INCS_X		= @x_includes@
+INCLUDES	= $(INCS_X) $(INCS_PRIVATE)
 
 LIBDIR		= $(DESTDIR)@libdir@
 INCLUDEDIR	= $(DESTDIR)@includedir@
@@ -193,7 +173,7 @@ deps:
 		fi; \
 		echo "">> .shared \
 
-$(LIB_STATIC):	$(LIB_OBJS)
+$(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS)
 		$(RMF) $(LIB_STATIC)
 		$(AR) $(LIB_STATIC) $(LIB_OBJS)
 		$(RANLIB) $(LIB_STATIC)
@@ -219,7 +199,7 @@ $(LIB_SHARED): $(LIB_SHARED).$(LIBVERMAJOR)
 $(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
 	ln -sf $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
 
-$(LIB_SHARED).$(LIBVER): $(LIB_OBJS)
+$(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS)
 	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
 	 $(LIB_OBJS)
 
