@@ -14,5 +14,5 @@ else
   else
     radius=$3;
   fi
-  ascompose -n -o $out_fname -t png -s "<blur horz=$radius vert=$radius channels=\"a\"><img src=$1/> </blur>";
+  ascompose -n -o $out_fname -t png -c 9 -s "<blur horz=$radius vert=$radius channels=\"a\"><img src=$1/> </blur>";
 fi
