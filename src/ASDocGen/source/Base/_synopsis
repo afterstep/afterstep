@@ -1,0 +1,4 @@
+<section label="synopsis" id="synopsis">
+<para> base config file contains most important AfterStep configuration options - Paths to diferent files, virtual screen size, etc. It is loaded prior to any other configuration files.
+</para>
+</section>
