@@ -1640,6 +1640,6 @@ scanline2ximage_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y, 
 		}while(i);
 	}
 }
-#endif /*ifndef X_DISPLAY_MISSING */
+#endif /* ifndef X_DISPLAY_MISSING */
 
 
