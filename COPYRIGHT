@@ -1,5 +1,5 @@
 ///
-///	This is AfterStep 1.8.0 COPYRIGHT
+///	This is AfterStep 2 COPYRIGHT
 ///
 
 Copyright (C) 2000  All Rights Reserved.
@@ -21,220 +21,25 @@ BRIAN PAUL BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
 AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-lib
-Copyright (c) 1997 Guylhem AZNAR <guylhem@oeil.qc.ca>
-Copyright (c) 1998 Chris Ridd <c.ridd@isode.com>
-Copyright (c) 1998 Michael Vitecek <M.Vitecek@sh.cvut.cz>
-Copyright (c) 1998 Pierre Clerissi <clerissi@pratique.fr>
-Copyright (c) 1999 Ethan Fischer <allanon@crystaltokyo.com>
+libAfterBase
+	Copyright (C) 1999-2004 Sasha Vasko   	<sasha at aftercode.net>
+	Copyright (c) 2000,2001 Andrew Ferguson <andrew@owsla.cjb.net>
+	Copyright (C) 1999 Ethan Fischer 	<allanon@crystaltokyo.com>
+	Copyright (C) 1998 Pierre Clerissi 	<clerissi@pratique.fr>
 
-asimagelib
-Copyright 1986, 1998 The Open Group
-Copyright (c) 1997 Alfredo K. Kojima <kojima@inf.ufrgs.br>
-Copyright (c) 1999 Ethan Fischer <allanon@crystaltokyo.com>
-Copyright (c) 1999 Sasha Vasko <sasha at aftercode.net>
+libAfterImage
+	Copyright (C) 1999-2004 Sasha Vasko <sasha at aftercode.net>
+	Copyright (c) 2004 Valeriy Onuchin <Valeri dot Onoutchine at cern dot ch>
+	Copyright (c) 2001 Eric Kowalski <eric@beancrock.net>
+	Copyright (c) 1999,2001 Ethan Fisher <allanon@crystaltokyo.com>
+	Copyright (C) 1999-2001 Free Software Foundation, Inc.
+	Copyright (c) 2004 Maxim Nikulin <nikulin at gorodok.net>        */
 
+libAfterStep
+libAfterConf
 afterstep
-Copyright (c) 1989 X Consortium
-Copyright (c) 1994 Robert Nation
-Copyright (c) 1995 Bo Yang
-Copyright (c) 1996 Frank Fejes
-Copyright (c) 1997 Alfredo K. Kojima
-Copyright (c) 1997 Dong-hwa Oh <siage@nownuri.net>
-Copyright (c) 1997 Raphael Goulais <velephys@hol.fr>
-Copyright (c) 1997 Tomonori <manome@itlb.te.noda.sut.ac.jp>
-Copyright (c) 1998 Chris Ridd <c.ridd@isode.com>
-Copyright (c) 1998 Guylhem Aznar <guylhem@oeil.qc.ca>
-Copyright (c) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
-Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
-Copyright (c) 1998 Mike Venaccio <venaccio@aero.und.edu>
-Copyright (c) 1998 Nat Makarevitch <nat@linux-france.com>
-Copyright (c) 1998 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-Copyright (c) 1999 Ethan Fischer <allanon@crystaltokyo.com>
-
-Animate
-Copyright (c) 1996 Alfredo Kengi Kojima (kojima@inf.ufrgs.br)
-Copyright (c) 1996 Kaj Groner <kajg@mindspring.com>
-Copyright (c) 1997 Frank Scheelen <scheelen@worldonline.nl>
-
-Audio
-Copyright (c) 1994 Mark Boyns <boyns@sdsu.edu>
-Copyright (c) 1994 Mark Scott <mscott@mcd.mot.com>
-Copyright (c) 1994 Robert Nation
-Copyright (c) 1994 Szijarto Szabolcs <saby@sch.bme.hu>
-Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
-
-Auto
-Copyright (c) 1994 Robert Nation
-Copyright (c) 1996 Frank Fejes
-
-Banner
-Copyright (c) 1994 Robert Nation
-Copyright (c) 1996 Robert Depenbrock (robert@eclipse.asta.uni-essen.de)
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-
-Cascade
-Copyright (c) 1996 Andrew Veliath
-Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
-Clean
-Copyright (c) 1994 Robert Nation
-Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
-
-Form
-Copyright (c) 1995 Thomas Zuwei Feng
-Copyright (c) 1996 Michael Beam
-Copyright (c) 1996 Takanori Kubota
-Copyright (c) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-
+ASDocGen
 Pager
-Copyright (c) 1995 Rob Nation
-Copyright (c) 1996 Dan Weeks
-Copyright (c) 1996 Rainer M. Canavan (canavan@Zeus.cs.bonn.edu)
-Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
-Copyright (c) 1997 ric@giccs.georgetown.edu
-Copyright (c) 1998 Doug Alcorn <alcornd@earthlink.net>
-Copyright (c) 1998 Eric Tremblay <deltax@pragma.net>
-Copyright (c) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
-Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
-Copyright (c) 1998 Ric Lister <ric@giccs.georgetown.edu>
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-
-Save
-Copyright (c) 1994 Per Persson <pp@solace.mh.se>
-Copyright (c) 1994 Robert Nation
-Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
-
-Script
-Copyright (c) 1984, 1989, 1990 Free Software Foundation, Inc.
-Copyright (c) 1996 Frederic Cordier <cordier@cui.unige.ch>
-Copyright (c) 1998 Guylhem Aznar <guylhem@oeil.qc.ca>
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-
-Scroll
-Copyright (c) 1994 Nobutaka Suzuki <nobuta-s@is.aist-nara.ac.jp>
-Copyright (c) 1994 Robert Nation
-Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
-
-Sound
-Copyright (c) 1996 Alfredo Kojima
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-
-Tile
-Copyright (c) 1996 Andrew Veliath
-Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-
 Wharf
-Copyright (c) 1993 Robert Nation
-Copyright (c) 1995 Bo Yang
-Copyright (c) 1996 Alfredo K. Kojima
-Copyright (c) 1996 Beat Christen
-Copyright (c) 1996 Frank Fejes
-Copyright (c) 1996 Kaj Groner
-Copyright (c) 1996 mj@dfv.rwth-aachen.de
-Copyright (c) 1998 Ethan Fischer
-Copyright (c) 1998 Guylhem Aznar
-Copyright (c) 1998 Michal Vitecek <M.Vitecek@sh.cvut.cz>
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-
 WinList
-Copyright (c) 1994 Mike Finger <mfinger@mermaid.micro.umn.edu>
-Copyright (c) 1994 Nobutaka Suzuki
-Copyright (c) 1994 Robert Nation and Nobutaka Suzuki
-Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
-Copyright (c) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
-Copyright (c) 1998 Michal Vitecek <M.Vitecek@sh.cvut.cz>
-Copyright (c) 1998 Rene Fichter <ceezaer@cyberspace.org>
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-Copyright (c) 1999 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
-
-Zharf
-Copyright (c) 1993 Robert Nation
-Copyright (c) 1998 Guylhem Aznar <guylhem@oeil.qc.ca>
-Copyright (c) 1998 Ethan Fischer
-Copyright (c) 1998 Guylhem Aznar
-Copyright (c) 1998 Michal Vitecek <M.Vitecek@sh.cvut.cz>
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-
-WinList
-Copyright (c) 1994 Mike Finger <mfinger@mermaid.micro.umn.edu>
-Copyright (c) 1994 Nobutaka Suzuki
-Copyright (c) 1994 Robert Nation and Nobutaka Suzuki
-Copyright (c) 1997 Guylhem Aznar <guylhem@oeil.qc.ca>
-Copyright (c) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
-Copyright (c) 1998 Michal Vitecek <M.Vitecek@sh.cvut.cz>
-Copyright (c) 1998 Rene Fichter <ceezaer@cyberspace.org>
-Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
-Copyright (c) 1999 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
-
-Zharf
-Copyright (c) 1993 Robert Nation
-Copyright (c) 1998 Guylhem Aznar <guylhem@oeil.qc.ca>
-
-asetroot
-Copyright (c) 1994 Robert Nation and Nobutaka Suzuki
-Copyright (c) 1998 Rafal Wierzbicki
-
- LEGAL
-+------+
-
- o Implicit copyrights:
-
-SINCE BERNE CONVENTION, COPYRIGHTS ARE IMPLICIT, EVEN IF AUTHORS DO NOT
-WRITE "COPYRIGHT" WORD IN THE FILE THEY OWN INTELLECTUAL PROPERTY !
-
-Therefore, every file is Copyright (C) by his (or its) respective(s) owner(s)
-at the date of writing.
-
- o License
-
-The whole program called AfterStep is distribued under GNU GPL v2 license.
-AfterStep library is distributed under LGPL license.
-AfterStep documentation is distributed under LDP license.
-
-See doc/licenses/ files for more informations.
-
- o Exceptions
-
-	1. MIT/Evans & Sutherland copyright
-
-Some files from src/, initially from twm, are covered by a different
-license :
-add_window.c afterstep.c borders.c clientwin.c functions.c
-
-	2. Headers
-
-Headers files are public domain ; Robert Nation stated in decorations.c :
-
-<<
-
-  Definitions of the hint structure and the constants are courtesy of
-  mitnits@bgumail.bgu.ac.il (Roman Mitnitski ), who sent this note,
-  after conferring with a friend at the OSF:
-
- >  Hi, Rob
- >
- >  I'm happy to announce, that you can use motif public
- >  headers in any way you can... I just got the letter from
- >  my friend, it says literally:
- >
- >>    Hi.
- >>
- >> Yes, you can use motif public header files, in particular because there is
- >> NO limitation on inclusion of this files in your programms....Also, no one
- >> can put copyright to the NUMBERS (I mean binary flags for decorations) or
- >> DATA STRUCTURES (I mean little structure used by motif to pass description
- >> of the decorations to the mwm). Call it another name, if you are THAT MUCH
- >> concerned.
- >>
- >> You can even use the little piece of code I've passed to you - we are
- >> talking about 10M distribution against two pages of code.
- >>
- >> Don't be silly.
- >>
- >> Best wishes.
- >> Eli
-
->>
+WinTabs
