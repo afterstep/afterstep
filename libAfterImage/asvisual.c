@@ -210,13 +210,19 @@ static void find_useable_visual( ASVisual *asv, Display *dpy, int screen,
 		unsigned int width, height, ujunk ;
 		int          junk;
 		/* try and use default colormap when possible : */
-		if( asv->visual_info.visual == DefaultVisual( dpy, (screen) ) )
+		if( list[k].visual == DefaultVisual( dpy, (screen) ) )
+		{
 			attr->colormap = DefaultColormap( dpy, screen );
-		else
+			LOCAL_DEBUG_OUT( "Using Default colormap %lX", attr->colormap );
+		}else
+		{
 			attr->colormap = XCreateColormap( dpy, root, list[k].visual, AllocNone);
+			LOCAL_DEBUG_OUT( "DefaultVisual is 0x%lX, while ours is 0x%lX, so Created new colormap %lX", DefaultVisual( dpy, (screen) ), list[k].visual, attr->colormap );
+		}
 		ASV_ALLOC_COLOR( asv, attr->colormap, &black_xcol );
 		ASV_ALLOC_COLOR( asv, attr->colormap, &white_xcol );
 		attr->border_pixel = black_xcol.pixel ;
+
 /*fprintf( stderr, "checking out visual ID %d, class %d, depth = %d mask = %X,%X,%X\n", list[k].visualid, list[k].class, list[k].depth, list[k].red_mask, list[k].green_mask, list[k].blue_mask 	);*/
 		w = XCreateWindow (dpy, root, -10, -10, 10, 10, 0, list[k].depth, CopyFromParent, list[k].visual, CWColormap|CWBorderPixel, attr );
 		if( w != None && XGetGeometry (dpy, w, &wjunk, &junk, &junk, &width, &height, &ujunk, &ujunk))
