@@ -629,6 +629,7 @@ src/ascp/gtk/Makefile \
 src/asetroot/Makefile \
 src/Animate/Makefile \
 src/Audio/Makefile \
+src/Banner/Banner \
 src/Banner/Makefile \
 src/Cascade/Makefile \
 src/Clean/Makefile \
