@@ -1288,7 +1288,7 @@ update_property_hints (Window w, Atom property, ASHints * hints, ASStatusHints *
 		return False;
 	memset (&raw, 0x00, sizeof (ASRawHints));
 	raw.wm_state_icon_win = status->icon_window;
-	raw.scr = &Scr;
+	raw.scr = ASDefaultScr;
 	if (handle_client_property_update (w, property, &raw))
 	{
 		/* Here we are only interested in properties updtaed by the Window Manager : */
@@ -1339,7 +1339,7 @@ update_cmd_line_hints (Window w, Atom property,
 	ASRawHints    raw;
 
 	memset (&raw, 0x00, sizeof (ASRawHints));
-	raw.scr = &Scr;
+	raw.scr = ASDefaultScr;
 	show_debug (__FILE__, __FUNCTION__, __LINE__, "trying to handle property change for WM_COMMAND");
 	if (handle_manager_property_update (w, property, &raw))
 	{
@@ -1357,7 +1357,7 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 	Bool          changed = False;
 
 	memset (&raw, 0x00, sizeof (ASRawHints));
-	raw.scr = &Scr;
+	raw.scr = ASDefaultScr;
 	if (status)
 		raw.wm_state_icon_win = status->icon_window;
 	show_debug (__FILE__, __FUNCTION__, __LINE__, "trying to handle property change");
@@ -1684,7 +1684,7 @@ translate_asgeometry (ScreenInfo * scr, ASGeometry * asg, int *px, int *py, unsi
 	unsigned int  width = 1, height = 1;
 
 	if (scr == NULL)
-		scr = &Scr;
+		scr = ASDefaultScr;
 
 	if (asg)
 	{

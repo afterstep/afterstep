@@ -127,7 +127,7 @@ mystyle_list_fix_styles (ASHashTable *list)
     ASHashIterator iterator ;
 
     if( list == NULL )
-        if( (list = Scr.Look.styles_list) == NULL )
+        if( (list = ASDefaultScr->Look.styles_list) == NULL )
             return;
 
 /*
@@ -240,7 +240,7 @@ grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 	int width = scr->RootClipArea.width, height = scr->RootClipArea.height ;
 
 	if( scr == NULL )
-		scr = &Scr ;
+		scr = ASDefaultScr ;
 	/* this only works if we use DefaultVisual - same visual as the Root window :*/
 	if( scr->asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy) ) )
 		return NULL ;
@@ -273,10 +273,10 @@ grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 		height += y ;
 		y = 0 ;
 	}
-	if( x + width > Scr.MyDisplayWidth )
-		width = (int)(Scr.MyDisplayWidth) - x ;
-	if( y + height > Scr.MyDisplayHeight )
-		height = (int)(Scr.MyDisplayHeight) - y ;
+	if( x + width > ASDefaultScrWidth )
+		width = (int)(ASDefaultScrWidth) - x ;
+	if( y + height > ASDefaultScrHeight )
+		height = (int)(ASDefaultScrHeight) - y ;
 
 	if( height < 0 || width < 0 )
 		return NULL ;
@@ -370,7 +370,7 @@ mystyle_flip_image( ASImage *im, int width, int height, int flip )
 	ASImage *tmp ;
 	if(flip == 0)
 		return im;
-	tmp = flip_asimage( Scr.asv, im, 0, 0, width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+	tmp = flip_asimage( ASDefaultVisual, im, 0, 0, width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
 	if( tmp != NULL )
 	{
 		safe_asimage_destroy( im );
@@ -383,50 +383,51 @@ static ASImage *
 clip_root_pixmap( Pixmap root_pixmap, int width, int height )
 {
 	ASImage *result = NULL ;
+	XRectangle *clip_area = &(ASDefaultScr->RootClipArea) ; 
 
 	if (root_pixmap)
 	{
     	ASImage *tmp_root ;
 		int root_x = 0, root_y = 0 ;
-		int clip_x = Scr.RootClipArea.x ;
-		int clip_y = Scr.RootClipArea.y ;
+		int clip_x = clip_area->x ;
+		int clip_y = clip_area->y ;
 
 		while( clip_x < 0 )
-			clip_x += Scr.MyDisplayWidth ;
+			clip_x += ASDefaultScrWidth ;
 		clip_x %= width ;
 		while( clip_y < 0 )
-			clip_y += Scr.MyDisplayHeight ;
+			clip_y += ASDefaultScrHeight ;
 		clip_y %= height ;
 
 		/* at this point clip_x and clip_y fall into root pixmap */
 
-		if( clip_x + Scr.RootClipArea.width  <= width  ) 
+		if( clip_x + clip_area->width  <= width  ) 
 		{
 			root_x = clip_x ; 
-			width = Scr.RootClipArea.width ;
+			width = clip_area->width ;
 		}
-		if( clip_y + Scr.RootClipArea.height <= height  ) 
+		if( clip_y + clip_area->height <= height  ) 
 		{
 			root_y = clip_y ; 
-			height = Scr.RootClipArea.height  ;
+			height = clip_area->height  ;
 		}
 		/* fprintf( stderr, "RootPixmap2RootImage %dx%d%+d%+d", root_w, root_h, root_x,
 		root_y); */
-    	tmp_root = pixmap2asimage (Scr.asv, root_pixmap, root_x, root_y, width, height, AllPlanes, False, 100);
+    	tmp_root = pixmap2asimage (ASDefaultVisual, root_pixmap, root_x, root_y, width, height, AllPlanes, False, 100);
 
 		LOCAL_DEBUG_OUT ("Root pixmap ASImage = %p, size = %dx%d", tmp_root, tmp_root?tmp_root->width:0, tmp_root?tmp_root->height:0);
     	if( tmp_root )
     	{
         	if( clip_x == root_x && clip_y == root_y &&
-            	Scr.RootClipArea.width == width && Scr.RootClipArea.height == height )
+            	clip_area->width == width && clip_area->height == height )
         	{
             	result = tmp_root ;
         	}else
         	{
-            	result = tile_asimage ( Scr.asv, tmp_root,
-										(clip_x == root_x)?0:Scr.RootClipArea.x, 
-										(clip_y == root_y)?0:Scr.RootClipArea.y,
-                                        Scr.RootClipArea.width, Scr.RootClipArea.height, TINT_NONE,
+            	result = tile_asimage ( ASDefaultVisual, tmp_root,
+										(clip_x == root_x)?0:clip_area->x, 
+										(clip_y == root_y)?0:clip_area->y,
+                                        clip_area->width, clip_area->height, TINT_NONE,
                                         ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
             	destroy_asimage( &tmp_root );
         	}
@@ -455,17 +456,17 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 
 	if(  transparency )
 	{	/* in this case we need valid root image : */
-		if (Scr.RootImage == NULL)
+		if (ASDefaultScr->RootImage == NULL)
 		{
 			unsigned int  root_w, root_h;
 			root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
 			LOCAL_DEBUG_OUT ("obtained Root pixmap = %lX", root_pixmap);
-			Scr.RootImage = clip_root_pixmap( root_pixmap, root_w, root_h );
+			ASDefaultScr->RootImage = clip_root_pixmap( root_pixmap, root_w, root_h );
              
-			if( Scr.RootImage == NULL )
-                Scr.RootImage = grab_root_asimage( &Scr, None, False );
+			if( ASDefaultScr->RootImage == NULL )
+                ASDefaultScr->RootImage = grab_root_asimage( ASDefaultScr, None, False );
 		}
-        LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", Scr.RootImage, Scr.RootClipArea.width, Scr.RootClipArea.height, Scr.RootClipArea.x, Scr.RootClipArea.y, Scr.RootImage?Scr.RootImage->width:0, Scr.RootImage?Scr.RootImage->height:0);
+        LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", ASDefaultScr->RootImage, ASDefaultScr->RootClipArea.width, ASDefaultScr->RootClipArea.height, ASDefaultScr->RootClipArea.x, ASDefaultScr->RootClipArea.y, ASDefaultScr->RootImage?ASDefaultScr->RootImage->width:0, ASDefaultScr->RootImage?ASDefaultScr->RootImage->height:0);
 	}
 	if( get_flags( flip, FLIP_VERTICAL )  )
 	{
@@ -498,7 +499,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	 	{
 			ASGradient *grad = flip_gradient( &(style->gradient), flip );
  			LOCAL_DEBUG_OUT( "orig grad type = %d, translated grad_type = %d, texture_type = %d", style->gradient.type, grad->type, style->texture_type );
-		 	im = make_gradient (Scr.asv, grad, width, height, 0xFFFFFFFF, ASA_ASImage, 0,
+		 	im = make_gradient (ASDefaultVisual, grad, width, height, 0xFFFFFFFF, ASA_ASImage, 0,
 							 ASIMAGE_QUALITY_DEFAULT);
 			if( grad != &(style->gradient) )
 				destroy_asgradient( &grad );
@@ -506,13 +507,13 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		break;
 	 case TEXTURE_SHAPED_SCALED_PIXMAP:
 	 case TEXTURE_SCALED_PIXMAP:
-		 im = scale_asimage (Scr.asv, style->back_icon.image, preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 im = scale_asimage (ASDefaultVisual, style->back_icon.image, preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 		 if( flip != 0 )
 		 	im = mystyle_flip_image( im, width, height, flip );
 		 break;
 	 case TEXTURE_SHAPED_PIXMAP:
 	 case TEXTURE_PIXMAP:
-		 im = tile_asimage (Scr.asv, style->back_icon.image,
+		 im = tile_asimage (ASDefaultVisual, style->back_icon.image,
 							0, 0, preflip_width, preflip_height, TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 		 LOCAL_DEBUG_OUT( "back_icon.image = %p,im = %p, preflip_size=%dx%d", style->back_icon.image, im, preflip_width, preflip_height );
 		 if( flip != 0 )
@@ -522,11 +523,11 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 
 	if( transparency )
 	{
-		if (Scr.RootImage != NULL)
+		if (ASDefaultScr->RootImage != NULL)
 		{
 			if (style->texture_type == TEXTURE_TRANSPARENT || style->texture_type == TEXTURE_TRANSPARENT_TWOWAY)
 			{
-                im = tile_asimage (Scr.asv, Scr.RootImage, root_x-Scr.RootClipArea.x, root_y-Scr.RootClipArea.y,
+                im = tile_asimage (ASDefaultVisual, ASDefaultScr->RootImage, root_x-ASDefaultScr->RootClipArea.x, root_y-ASDefaultScr->RootClipArea.y,
 									width, height, style->tint, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 			} else
 			{
@@ -536,7 +537,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 
 				 init_image_layers (&layers[0], 2);
 
-				 layers[0].im = Scr.RootImage;
+				 layers[0].im = ASDefaultScr->RootImage;
 				 if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP &&
 					 style->texture_type == TEXTURE_SHAPED_PIXMAP)
 				 {
@@ -551,8 +552,8 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index];
                  layers[0].dst_x = 0;
                  layers[0].dst_y = 0;
-                 layers[0].clip_x = root_x-Scr.RootClipArea.x;
-                 layers[0].clip_y = root_y-Scr.RootClipArea.y;
+                 layers[0].clip_x = root_x-ASDefaultScr->RootClipArea.x;
+                 layers[0].clip_y = root_y-ASDefaultScr->RootClipArea.y;
 				 layers[0].clip_width = width;
 				 layers[0].clip_height = height;
 
@@ -560,7 +561,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
 					 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
 				 {
-					 scaled_im = scale_asimage (Scr.asv, layers[1].im, preflip_width, preflip_height,
+					 scaled_im = scale_asimage (ASDefaultVisual, layers[1].im, preflip_width, preflip_height,
 												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 					 /* here layers[1].im is always style->back_icon.image, so we should not destroy it ! */
 					 if (scaled_im)
@@ -570,7 +571,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 if( flip != 0 && layers[1].im == style->back_icon.image )
 				 {
 					/* safely assuming that im is NULL at this point,( see logic above ) */
-					 layers[1].im = im = flip_asimage( Scr.asv, layers[1].im, 0, 0, width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+					 layers[1].im = im = flip_asimage( ASDefaultVisual, layers[1].im, 0, 0, width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
 				 }
 				 layers[1].merge_scanlines = layers[0].merge_scanlines;
 				 layers[1].dst_x = 0;
@@ -581,7 +582,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 layers[1].clip_height = height;
 
 				{
-					ASImage *tmp = merge_layers (Scr.asv, &layers[0], 2, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					ASImage *tmp = merge_layers (ASDefaultVisual, &layers[0], 2, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 					if( tmp )
 					{
 						if( im )
@@ -703,9 +704,9 @@ mystyle_list_new (struct ASHashTable *list, char *name)
 
     if( list == NULL )
     {
-        if( Scr.Look.styles_list == NULL )
-            if( (Scr.Look.styles_list = mystyle_list_init())== NULL ) return NULL;
-        list = Scr.Look.styles_list ;
+        if( ASDefaultScr->Look.styles_list == NULL )
+            if( (ASDefaultScr->Look.styles_list = mystyle_list_init())== NULL ) return NULL;
+        list = ASDefaultScr->Look.styles_list ;
     }
 
     if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr ) == ASH_Success )
@@ -748,7 +749,7 @@ void
 mystyle_list_destroy_all( ASHashTable **plist )
 {
     if( plist == NULL )
-        plist = &Scr.Look.styles_list ;
+        plist = &(ASDefaultScr->Look.styles_list) ;
     destroy_ashash( plist );
 }
 
@@ -767,7 +768,7 @@ mystyle_list_find (struct ASHashTable *list, const char *name)
 {
     ASHashData hdata = {0};
     if( list == NULL )
-        list = Scr.Look.styles_list ;
+        list = ASDefaultScr->Look.styles_list ;
 
     if( list && name )
         if( get_hash_item( list, AS_HASHABLE((char*)name), &hdata.vptr ) != ASH_Success )
@@ -781,7 +782,7 @@ mystyle_list_find_or_default (struct ASHashTable *list, const char *name)
     ASHashData hdata = {0};
 
     if( list == NULL )
-        list = Scr.Look.styles_list ;
+        list = ASDefaultScr->Look.styles_list ;
 
     if( name == NULL )
         name = DefaultMyStyleName ;
@@ -955,11 +956,11 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 					set_flags (child->inherit_flags, F_BACKTRANSPIXMAP);
 			} else
 			{
-				GC            gc = create_visual_gc (Scr.asv, Scr.Root, 0, NULL);
+				GC            gc = create_visual_gc (ASDefaultVisual, ASDefaultRoot, 0, NULL);
 
 				child->back_icon.pix =
-					XCreatePixmap (dpy, Scr.Root, parent->back_icon.width, parent->back_icon.height,
-								   Scr.asv->visual_info.depth);
+					XCreatePixmap (dpy, ASDefaultRoot, parent->back_icon.width, parent->back_icon.height,
+								   ASDefaultVisual->visual_info.depth);
 				XCopyArea (dpy, parent->back_icon.pix, child->back_icon.pix, gc, 0, 0, parent->back_icon.width,
 						   parent->back_icon.height, 0, 0);
 				if (parent->back_icon.mask != None)
@@ -967,7 +968,7 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 					GC            mgc = XCreateGC (dpy, parent->back_icon.mask, 0, NULL);
 
 					child->back_icon.mask =
-						XCreatePixmap (dpy, Scr.Root, parent->back_icon.width, parent->back_icon.height, 1);
+						XCreatePixmap (dpy, ASDefaultRoot, parent->back_icon.width, parent->back_icon.height, 1);
 					XCopyArea (dpy, parent->back_icon.mask, child->back_icon.mask, mgc, 0, 0, parent->back_icon.width,
 							   parent->back_icon.height, 0, 0);
 					XFreeGC (dpy, mgc);
@@ -977,7 +978,7 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 					GC            mgc = XCreateGC (dpy, parent->back_icon.alpha, 0, NULL);
 
 					child->back_icon.alpha =
-						XCreatePixmap (dpy, Scr.Root, parent->back_icon.width, parent->back_icon.height, 8);
+						XCreatePixmap (dpy, ASDefaultRoot, parent->back_icon.width, parent->back_icon.height, 8);
 					XCopyArea (dpy, parent->back_icon.alpha, child->back_icon.alpha, mgc, 0, 0, parent->back_icon.width,
 							   parent->back_icon.height, 0, 0);
 					XFreeGC (dpy, mgc);
@@ -1134,7 +1135,7 @@ mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back,
 		if (pixmap != NULL)
 		{
 /* treat second parameter as an image filename : */
-            if ( load_icon(&(style->back_icon), pixmap, Scr.image_manager ))
+            if ( load_icon(&(style->back_icon), pixmap, ASDefaultScr->image_manager ))
             {
                 style->texture_type = type;
                 set_flags(style->user_flags, F_BACKPIXMAP);

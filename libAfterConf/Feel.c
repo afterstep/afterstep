@@ -191,17 +191,16 @@ ProcessWindowBoxOptions (FreeStorageElem * options)
 }
 
 void
-windowbox_parse (char *tline, FILE * fd, char **list, int *count)
+windowbox_parse (char *tline, FILE * fd, char **unused1, int *unused2)
 {
     FilePtrAndData fpd ;
     ConfigDef    *ConfigReader ;
     FreeStorageElem *Storage = NULL, *more_stuff = NULL;
-    ASWindowBox **aswbox_list = (ASWindowBox**)list ;
+    ASWindowBox **aswbox_list = &(ASDefaultScr->Feel.window_boxes);
+	int *count = &(ASDefaultScr->Feel.window_boxes_num);
     ASWindowBox *new_box ;
 	ConfigData cd ;
 
-    if( list == NULL || count == NULL )
-        return;
     fpd.fp = fd ;
     fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
     sprintf( fpd.data, "WindowBox %s\n", tline );

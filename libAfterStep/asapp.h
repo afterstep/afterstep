@@ -224,7 +224,8 @@ void free_func_hash ();
 
 
 /* Command Line stuff : */
-extern ASProgArgs  MyArgs;	/* some typical progy cmd line options - set by SetMyArgs( argc, argv )*/
+extern ASProgArgs *MyArgsPtr;
+#define MyArgs   (*MyArgsPtr)	/* some typical progy cmd line options - set by SetMyArgs( argc, argv )*/
 extern char 	  *MyName;	/* name are we known by - set by SetMyName(argv[0]) */
 #define MAX_MY_CLASS    64
 extern char        MyClass[MAX_MY_CLASS+1]; /* application Class name ( Pager, Wharf, etc. ) - set by SetMyClass(char *) */
@@ -253,8 +254,16 @@ extern unsigned int  nonlock_mods;	/* a mask for non-locking modifiers */
 #define MAX_LOCK_MODS	256
 extern unsigned int  lock_mods[MAX_LOCK_MODS];  	/* all combinations of lock modifier masks */
 /* Now for each display we may have one or several screens ; */
-extern struct ScreenInfo   Scr;						   /* ScreenInfo for the default screen */
 extern int x_fd;                                       /* descriptor of the X Windows connection  */
+extern struct ScreenInfo   *ASDefaultScr;				   /* ScreenInfo for the default screen */
+#define ASDefaultRoot	 	(ASDefaultScr->Root)
+#define ASDefaultScrWidth	(ASDefaultScr->MyDisplayWidth)
+#define ASDefaultScrHeight	(ASDefaultScr->MyDisplayHeight)
+#define ASDefaultVisual	 	(ASDefaultScr->asv)
+#define ASDefaultDrawGC	 	(ASDefaultScr->DrawGC)
+
+/* this is for compatibility with old code : */
+#define Scr	 	(*ASDefaultScr)
 
 
 /* this two are unused in as-stable yet : */

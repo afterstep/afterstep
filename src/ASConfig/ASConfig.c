@@ -146,7 +146,7 @@ int
 main (int argc, char **argv)
 {
 	Bool interactive = False ;
-	Bool print_hierarchy = True ;
+	Bool do_print_hierarchy = True ;
 	int i ;
 	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
@@ -172,7 +172,7 @@ main (int argc, char **argv)
 	if( interactive ) 
 	{
 	 	interactive_loop();	
-	}else if( print_hierarchy )
+	}else if( do_print_hierarchy )
 		print_hierarchy(Root, 0);
 	
 	if( dpy )   
@@ -1264,7 +1264,7 @@ void interactive_loop()
 	while( fgets( &buffer[0], BUFFER_SIZE, stdin ) != NULL )
 	{
 		/* now we need to process the command */
-		handle_asconfig_command(buffer, strlen(buffer)-1, STDOUT);		   
+/*		handle_asconfig_command(buffer, strlen(buffer)-1, stdout);		   */
 		
 	}	 
 }	 

@@ -367,7 +367,7 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
 	LOCAL_DEBUG_OUT( "flags = %lX, dst_size = %dx%d, im_size = %dx%d, max_size = %dx%d, clip = %+d%+d", tile->flags, dst_width, dst_height, im->width, im->height, max_width, max_height, layer->clip_x, layer->clip_y );
     if( im->width != dst_width || im->height != dst_height )
     {
-        im = scale_asimage( Scr.asv, im, dst_width, dst_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+        im = scale_asimage( ASDefaultVisual, im, dst_width, dst_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
         if( im == NULL )
             im = tile->data.icon ;
         else
@@ -433,7 +433,7 @@ LOCAL_DEBUG_OUT( "state(%d)->style(\"%s\")->text(\"%s\")->image(%p)->flip(%d)", 
             w = im->height ;
             h = im->width ;
         }
-        lbl->rendered[state] = flip_asimage ( Scr.asv,
+        lbl->rendered[state] = flip_asimage ( ASDefaultVisual,
                                               im,
                                               0, 0, w, h,
                                               flip, ASA_ASImage,
@@ -985,7 +985,7 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
 				dst_width = icon->height ;
 				dst_height = icon->width ;
 			}
-            tile->data.icon = flip_asimage( Scr.asv, icon, 0, 0, dst_width, dst_height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+            tile->data.icon = flip_asimage( ASDefaultVisual, icon, 0, 0, dst_width, dst_height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
 		}
         tile->width = tile->data.icon->width;
         tile->height = tile->data.icon->height;
@@ -1198,7 +1198,7 @@ update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc, Bool force)
 
 	root_x = pc->root_x + (int)pc->bw + tbar->win_x;
 	root_y = pc->root_y + (int)pc->bw + tbar->win_y;
-    if ((changed = (root_x != tbar->root_x || root_y != tbar->root_y || Scr.RootImage == NULL || force )))
+    if ((changed = (root_x != tbar->root_x || root_y != tbar->root_y || ASDefaultScr->RootImage == NULL || force )))
 	{
         register int  i = BAR_STATE_NUM;
 
@@ -1525,7 +1525,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 	}else if (pc->shape)
  		fill_canvas_mask (pc, tbar->win_x, tbar->win_y, tbar->width, tbar->height );
 #endif
-    merged_im = merge_layers (Scr.asv, &layers[0], good_layers, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
+    merged_im = merge_layers (ASDefaultVisual, &layers[0], good_layers, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
     for( l = 0 ; l < good_layers ; ++l )
         if( scrap_images[l] )
             destroy_asimage( &(scrap_images[l]) );

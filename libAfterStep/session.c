@@ -298,7 +298,7 @@ create_assession ( ScreenInfo *scr, char *ashome, char *asshare)
 
 
 
-	session->scr = ( scr == NULL )?&Scr:scr ;     /* sensible default */
+	session->scr = ( scr == NULL )?ASDefaultScr:scr ;     /* sensible default */
 
     session->colordepth = session->scr->d_depth ;
     session->ashome = ashome ;
@@ -700,19 +700,19 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 	  					}
 						fprintf(p, ";\n");
 					}
-					if( Scr.MyDisplayWidth > 0 )
+					if( ASDefaultScrWidth > 0 )
 					{
-						fprintf( p, "AS_Screen=%ld;\n", Scr.screen );
-						fprintf( p, "AS_RootGeometry=%dx%d;\n", Scr.MyDisplayWidth, Scr.MyDisplayHeight );
+						fprintf( p, "AS_Screen=%ld;\n", ASDefaultScr->screen );
+						fprintf( p, "AS_RootGeometry=%dx%d;\n", ASDefaultScrWidth, ASDefaultScrHeight );
 					}
-					if( Scr.asv )
+					if( ASDefaultVisual )
 					{
-						fprintf( p, "AS_Visual=0x%lx;\n", Scr.asv->visual_info.visualid );
-						fprintf( p, "AS_Colordepth=%d;\n", Scr.asv->visual_info.depth );
-						fprintf( p, "AS_RedMask=0x%lX;\n", Scr.asv->visual_info.red_mask );
-						fprintf( p, "AS_GreenMask=0x%lX;\n", Scr.asv->visual_info.green_mask );
-						fprintf( p, "AS_BlueMask=0x%lX;\n", Scr.asv->visual_info.blue_mask );
-						fprintf( p, "AS_ByteOrdering=%s;\n", (ImageByteOrder(Scr.asv->dpy)==MSBFirst)?"MSBFirst":"LSBFirst" );
+						fprintf( p, "AS_Visual=0x%lx;\n", ASDefaultVisual->visual_info.visualid );
+						fprintf( p, "AS_Colordepth=%d;\n", ASDefaultVisual->visual_info.depth );
+						fprintf( p, "AS_RedMask=0x%lX;\n", ASDefaultVisual->visual_info.red_mask );
+						fprintf( p, "AS_GreenMask=0x%lX;\n", ASDefaultVisual->visual_info.green_mask );
+						fprintf( p, "AS_BlueMask=0x%lX;\n", ASDefaultVisual->visual_info.blue_mask );
+						fprintf( p, "AS_ByteOrdering=%s;\n", (ImageByteOrder(ASDefaultVisual->dpy)==MSBFirst)?"MSBFirst":"LSBFirst" );
 					}
 			    }
 
@@ -1073,7 +1073,7 @@ GetNCASSession (ScreenInfo *scr, const char *home, const char *share )
     char         *asshare = put_file_home (share?share:as_share_dir_name);
 
     if( scr == NULL )
-		scr = &Scr ;
+		scr = ASDefaultScr ;
 
     check_AfterStep_dirtree (ashome, True);
 

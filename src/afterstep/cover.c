@@ -370,7 +370,7 @@ remove_desktop_cover()
             XSync (dpy, False);
 
             if (steps > 0 && type >= 0 && DeskAnimations[type % ANIMATIONS_NUM])
-				DeskAnimations[type % ANIMATIONS_NUM] (&Scr, _as_desktop_cover, steps);
+				DeskAnimations[type % ANIMATIONS_NUM] (ASDefaultScr, _as_desktop_cover, steps);
 			else
             	XDestroyWindow (dpy, _as_desktop_cover);
             _as_desktop_cover = None ;

@@ -173,7 +173,7 @@ Xinit (int IsFather)
   __bounds_debug_no_checking = True;
 #endif
 
-  x_fd = ConnectX( &Scr, display_name, PropertyChangeMask );
+  x_fd = ConnectX( ASDefaultScr, display_name, PropertyChangeMask );
   x11base->display = dpy;
 #ifdef DEBUG
   __bounds_debug_no_checking = False;

@@ -46,11 +46,11 @@ set_active_balloon_look()
         set_astbar_style_ptr( BalloonState.active_bar, BAR_STATE_UNFOCUSED, BalloonState.look.style );
         set_astbar_hilite( BalloonState.active_bar, BAR_STATE_UNFOCUSED, BalloonState.look.border_hilite );
         width = calculate_astbar_width( BalloonState.active_bar );
-        if( width > Scr.MyDisplayWidth )
-            width = Scr.MyDisplayWidth ;
+        if( width > ASDefaultScrWidth )
+            width = ASDefaultScrWidth ;
         height = calculate_astbar_height( BalloonState.active_bar );
-        if( height > Scr.MyDisplayHeight )
-            height = Scr.MyDisplayHeight ;
+        if( height > ASDefaultScrHeight )
+            height = ASDefaultScrHeight ;
 
         ASQueryPointerRootXY(&pointer_x, &pointer_y);
         x = pointer_x;
@@ -58,14 +58,14 @@ set_active_balloon_look()
         x += BalloonState.look.xoffset ;
         if( x < 0 )
             x = 0 ;
-        else if( x + width > Scr.MyDisplayWidth )
-            x = Scr.MyDisplayWidth - width ;
+        else if( x + width > ASDefaultScrWidth )
+            x = ASDefaultScrWidth - width ;
 
         y += BalloonState.look.yoffset ;
         if( y < 0 )
             y = 0 ;
-        else if( y + height > Scr.MyDisplayHeight )
-            y = Scr.MyDisplayHeight - height ;
+        else if( y + height > ASDefaultScrHeight )
+            y = ASDefaultScrHeight - height ;
         /* we have to make sure that new window will not be under the pointer,
          * which will cause LeaveNotify and create a race condition : */
         dl = pointer_x - x ;
@@ -74,7 +74,7 @@ set_active_balloon_look()
             dr = x+ (int)width - pointer_x;
             if( dr >= 0 )
             {
-                if( x+dl >= Scr.MyDisplayWidth )
+                if( x+dl >= ASDefaultScrWidth )
                     dl = dr+1 ;                /* dl is not a good alternative since it
                                                 * will move us off the screen */
                 du = pointer_y - y ;
@@ -85,7 +85,7 @@ set_active_balloon_look()
                     {
                         int dh = min(dl,dr);
                         int dv = min(du,dd);
-                        if( y+du >= Scr.MyDisplayHeight )
+                        if( y+du >= ASDefaultScrHeight )
                         {
                             du = dd+1 ;
                             dv = dd ;
@@ -252,7 +252,7 @@ set_balloon_look( ASBalloonLook *blook )
     {
         XSetWindowAttributes attr ;
         attr.override_redirect = True;
-        BalloonState.active_window = create_visual_window( Scr.asv, Scr.Root, -10, -10, 1, 1, 0, InputOutput, CWOverrideRedirect, &attr );
+        BalloonState.active_window = create_visual_window( ASDefaultVisual, ASDefaultRoot, -10, -10, 1, 1, 0, InputOutput, CWOverrideRedirect, &attr );
         LOCAL_DEBUG_OUT( "Balloon window is %lX", BalloonState.active_window );
     }
     set_active_balloon_look();

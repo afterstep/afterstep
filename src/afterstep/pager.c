@@ -238,7 +238,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%+d%+d), old(%+d%+d), max(%+d,%+d)", newx, newy, Sc
         /* traverse window list and redo the titlebar/buttons if necessary */
         iterate_asbidirlist( Scr.Windows->clients, viewport_aswindow_iter_func, NULL, NULL, False );
         /* TODO: autoplace sticky icons so they don't wind up over a stationary icon */
-	    check_screen_panframes(&Scr);
+	    check_screen_panframes(ASDefaultScr);
 		if (grab)
 			ungrab_server();
     }
@@ -406,7 +406,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
         /* traverse window list and redo the titlebar/buttons if necessary */
         iterate_asbidirlist( Scr.Windows->clients, deskviewport_aswindow_iter_func, desk_id.ptr, NULL, False );
         /* TODO: autoplace sticky icons so they don't wind up over a stationary icon */
-	    check_screen_panframes(&Scr);
+	    check_screen_panframes(ASDefaultScr);
 		if ( force_grab)
 			ungrab_server();
     }

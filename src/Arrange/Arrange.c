@@ -116,7 +116,7 @@ main( int argc, char **argv )
 
     set_signal_handler( SIGSEGV );
 
-    ConnectX( &Scr, 0 );
+    ConnectX( ASDefaultScr, 0 );
 
 	if( mystrcasecmp( MyName , "Tile" ) == 0 )
 		set_flags( ArrangeState.flags, ARRANGE_Tile	);

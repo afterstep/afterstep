@@ -448,10 +448,10 @@ MyFrame *
 myframe_find( const char *name )
 {
     ASHashData hdata;
-	hdata.vptr = Scr.Look.DefaultFrame ;
-    if( name && Scr.Look.FramesList )
-        if( get_hash_item( Scr.Look.FramesList, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
-            return Scr.Look.DefaultFrame ;
+	hdata.vptr = ASDefaultScr->Look.DefaultFrame ;
+    if( name && ASDefaultScr->Look.FramesList )
+        if( get_hash_item( ASDefaultScr->Look.FramesList, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
+            return ASDefaultScr->Look.DefaultFrame ;
     return (MyFrame *)hdata.vptr ;
 }
 
@@ -646,13 +646,13 @@ void myback_delete( MyBackground **myback, ASImageManager *imman )
 			free( (*myback)->loaded_im_name );
 		if( (*myback)->loaded_pixmap )
 		{	
-			if( Scr.RootBackground && Scr.RootBackground->pmap == (*myback)->loaded_pixmap )
+			if( ASDefaultScr->RootBackground && ASDefaultScr->RootBackground->pmap == (*myback)->loaded_pixmap )
 			{	
-	            if( Scr.wmprops && Scr.wmprops->root_pixmap == Scr.RootBackground->pmap )
-    	            set_xrootpmap_id (Scr.wmprops, None );
-				Scr.RootBackground->pmap = None;
+	            if( ASDefaultScr->wmprops && ASDefaultScr->wmprops->root_pixmap == ASDefaultScr->RootBackground->pmap )
+    	            set_xrootpmap_id (ASDefaultScr->wmprops, None );
+				ASDefaultScr->RootBackground->pmap = None;
 			}
-			destroy_visual_pixmap( Scr.asv, &((*myback)->loaded_pixmap) );
+			destroy_visual_pixmap( ASDefaultVisual, &((*myback)->loaded_pixmap) );
 		}
 		(*myback)->magic = 0 ;
 		free( *myback );
@@ -707,7 +707,7 @@ MyBackground *
 add_myback( MyLook *look, MyBackground *back )
 {
     check_mybacks_list( look );
-    return add_myback_to_list( look->backs_list, back, Scr.image_manager );
+    return add_myback_to_list( look->backs_list, back, ASDefaultScr->image_manager );
 }
 
 

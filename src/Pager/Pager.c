@@ -213,7 +213,7 @@ main (int argc, char **argv)
     for( i = 0; i< PagerState.desks_num; ++i )
         PagerState.desks[i].desk = PagerState.start_desk+i ;
 
-    ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
+    ConnectX( ASDefaultScr, PropertyChangeMask|EnterWindowMask );
     ConnectAfterStep (  M_ADD_WINDOW |
                         M_CONFIGURE_WINDOW |
                         M_DESTROY_WINDOW |

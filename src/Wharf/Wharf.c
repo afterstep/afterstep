@@ -225,7 +225,7 @@ main (int argc, char **argv)
 
     memset( &WharfState, 0x00, sizeof(WharfState));
 
-    ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
+    ConnectX( ASDefaultScr, PropertyChangeMask|EnterWindowMask );
     ConnectAfterStep (M_TOGGLE_PAGING |
                     M_NEW_DESKVIEWPORT |
                     M_END_WINDOWLIST |

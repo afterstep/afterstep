@@ -40,7 +40,8 @@
 #include "../libAfterImage/char2uni.h"
 
 
-ASProgArgs    MyArgs = {0, NULL, 0, NULL, NULL, NULL, 0, 0};/* some typical progy cmd line options - set by SetMyArgs( argc, argv )*/
+ASProgArgs    as_app_args = {0, NULL, 0, NULL, NULL, NULL, 0, 0};/* some typical progy cmd line options - set by SetMyArgs( argc, argv )*/
+ASProgArgs	 *MyArgsPtr = &as_app_args ; 
 char         *MyName = NULL;                    /* name are we known by */
 char          MyClass[MAX_MY_CLASS+1]="unknown";/* application Class name ( Pager, Wharf, etc. ) - set by SetMyClass(char *) */
 void        (*MyVersionFunc)   (void) = NULL;
@@ -67,7 +68,8 @@ int       fd_width;
 unsigned int  nonlock_mods = 0;				   /* a mask for non-locking modifiers */
 unsigned int  lock_mods[MAX_LOCK_MODS] = {0};  /* all combinations of lock modifier masks */
 /* Now for each display we may have one or several screens ; */
-ScreenInfo    Scr;							   /* ScreenInfo for the default screen */
+ScreenInfo    *ASDefaultScr;					   /* ScreenInfo for the default screen */
+//#define Scr	(*DefaultScr);
 int x_fd = 0;                                  /* descriptor of the X Windows connection  */
 
 
@@ -244,39 +246,39 @@ CommandLineOpts as_standard_cmdl_options[20] =
 /* 0*/{"v", "version", "Display version information and stop", NULL, handler_show_info, NULL, SHOW_VERSION  },
 /* 1*/{"c", "config",  "Display Config information and stop",  NULL, handler_show_info, NULL, SHOW_CONFIG},
 /* 2*/{"h", "help",    "Display uasge information and stop",   NULL, handler_show_info, NULL, SHOW_USAGE},
-/* 3*/{NULL,"debug",   "Debugging: Run in Synchronous mode",  NULL, handler_set_flag, &(MyArgs.flags), ASS_Debugging},
-/* 4*/{"s", "single",  "Run on single screen only", NULL, handler_set_flag, &(MyArgs.flags), ASS_SingleScreen},
+/* 3*/{NULL,"debug",   "Debugging: Run in Synchronous mode",  NULL, handler_set_flag, &(as_app_args.flags), ASS_Debugging},
+/* 4*/{"s", "single",  "Run on single screen only", NULL, handler_set_flag, &(as_app_args.flags), ASS_SingleScreen},
 /* 5*/{"r", "restart", "Run as if it was restarted","same as regular startup, only runs RestartFunction\ninstead of InitFunction",
-                                                           handler_set_flag, &(MyArgs.flags), ASS_Restarting},
+                                                           handler_set_flag, &(as_app_args.flags), ASS_Restarting},
 #define OPTION_HAS_ARGS     6
 /* 6*/{"d", "display", "Specify what X display we should connect to","Overrides $DISPLAY environment variable",
-                                                           handler_set_string, &(MyArgs.display_name), 0, CMO_HasArgs },
+                                                           handler_set_string, &(as_app_args.display_name), 0, CMO_HasArgs },
 /* 7*/{"f", "config-file", "Read all config from requested file","Use it if you want to use .steprc\ninstead of standard config files",
-                                                           handler_set_string, &(MyArgs.override_config), 0, CMO_HasArgs },
+                                                           handler_set_string, &(as_app_args.override_config), 0, CMO_HasArgs },
 /* 8*/{"p", "user-dir","Read all the config from requested dir","Use it to override config location\nrequested in compile time" ,
-                                                           handler_set_string, &(MyArgs.override_home), 0, CMO_HasArgs },
+                                                           handler_set_string, &(as_app_args.override_home), 0, CMO_HasArgs },
 /* 9*/{"g", "global-dir","Use requested dir as a shared config dir","Use it to override shared config location\nrequested in compile time" ,
-                                                           handler_set_string, &(MyArgs.override_share), 0, CMO_HasArgs },
+                                                           handler_set_string, &(as_app_args.override_share), 0, CMO_HasArgs },
 /*10*/{"V", "verbosity-level","Change verbosity of the AfterStep output","0 - will disable any output;\n1 - will allow only error messages;\n5 - both errors and warnings(default)",
-                                                           handler_set_int, &(MyArgs.verbosity_level), 0, CMO_HasArgs },
+                                                           handler_set_int, &(as_app_args.verbosity_level), 0, CMO_HasArgs },
 /*11*/{NULL, "window", "Internal Use: Window in which action occured", "interface part which has triggered our startup",
-                                                           handler_set_int, &(MyArgs.src_window), 0, CMO_HasArgs },
+                                                           handler_set_int, &(as_app_args.src_window), 0, CMO_HasArgs },
 /*12*/{NULL, "context","Internal Use: Context in which action occured", "interface part which has triggered our startup",
-                                                           handler_set_int, &(MyArgs.src_context), 0, CMO_HasArgs },
+                                                           handler_set_int, &(as_app_args.src_context), 0, CMO_HasArgs },
 /*13*/{NULL, "look","Read look config from requested file","Use it if you want to use different look\ninstead of what was selected from the menu",
-                                                           handler_set_string, &(MyArgs.override_look), 0, CMO_HasArgs },
+                                                           handler_set_string, &(as_app_args.override_look), 0, CMO_HasArgs },
 /*14*/{NULL, "feel","Read feel config from requested file","Use it if you want to use different feel\ninstead of what was selected from the menu",
-                                                           handler_set_string, &(MyArgs.override_feel), 0, CMO_HasArgs },
+                                                           handler_set_string, &(as_app_args.override_feel), 0, CMO_HasArgs },
 /*15*/{NULL, "theme","Read theme config from requested file","Use it if you want to use different theme\ninstead of what was selected from the menu",
-                                                           handler_set_string, &(MyArgs.override_feel), 0, CMO_HasArgs },
+                                                           handler_set_string, &(as_app_args.override_feel), 0, CMO_HasArgs },
 #ifdef DEBUG_TRACE_X
 /*16*/{NULL, "trace-func","Debugging: Trace calls to a function with requested name", NULL,
-                                                           handler_set_string, &(MyArgs.trace_calls), 0, CMO_HasArgs },
+                                                           handler_set_string, &(as_app_args.trace_calls), 0, CMO_HasArgs },
 #endif
 /*17*/{"l", "log","Save all output into the file instead of printing it to console", NULL,
-                                                           handler_set_string, &(MyArgs.log_file), 0, CMO_HasArgs },
+                                                           handler_set_string, &(as_app_args.log_file), 0, CMO_HasArgs },
 /*18*/{"L", "locale","Set language locale to be used while displaying text", NULL,
-                                                           handler_set_string, &(MyArgs.locale), 0, CMO_HasArgs },
+                                                           handler_set_string, &(as_app_args.locale), 0, CMO_HasArgs },
       {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
 };
 
@@ -346,7 +348,7 @@ standard_usage()
         MyUsageFunc();
     else
         printf (OPTION_USAGE_FORMAT "\n", MyName );
-    print_command_line_opt("standard_options are :", as_standard_cmdl_options, MyArgs.mask);
+    print_command_line_opt("standard_options are :", as_standard_cmdl_options, as_app_args.mask);
 }
 
 void  handler_show_info( char *argv, void *trg, long param )
@@ -451,32 +453,32 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
     MyVersionFunc = version_func ;
     MyUsageFunc = custom_usage_func ;
 
-    memset( &MyArgs, 0x00, sizeof(ASProgArgs) );
-	MyArgs.locale = mystrdup(AFTER_LOCALE);
-	if (strlen(MyArgs.locale) == 0)
+    memset( &as_app_args, 0x00, sizeof(ASProgArgs) );
+	as_app_args.locale = mystrdup(AFTER_LOCALE);
+	if (strlen(as_app_args.locale) == 0)
 	{
-		free( MyArgs.locale );
-		MyArgs.locale = mystrdup(getenv("LANG"));
+		free( as_app_args.locale );
+		as_app_args.locale = mystrdup(getenv("LANG"));
 	}
 
-    MyArgs.mask = opt_mask ;
+    as_app_args.mask = opt_mask ;
 #ifndef NO_DEBUG_OUTPUT
-    MyArgs.verbosity_level = OUTPUT_VERBOSE_THRESHOLD ;
+    as_app_args.verbosity_level = OUTPUT_VERBOSE_THRESHOLD ;
 #else
-    MyArgs.verbosity_level = OUTPUT_DEFAULT_THRESHOLD ;
+    as_app_args.verbosity_level = OUTPUT_DEFAULT_THRESHOLD ;
 #endif
 
 
-    memset( &Scr, 0x00, sizeof(ScreenInfo) );
+    ASDefaultScr = safecalloc(1, sizeof(ScreenInfo));
 
     if( argc > 0 && argv )
     {
         int i ;
 
-		MyArgs.saved_argc = argc ;
-		MyArgs.saved_argv = safecalloc( argc, sizeof(char*));
+		as_app_args.saved_argc = argc ;
+		as_app_args.saved_argv = safecalloc( argc, sizeof(char*));
 		for( i = 0 ; i < argc ; ++i )
-			MyArgs.saved_argv[i] = argv[i] ;
+			as_app_args.saved_argv[i] = argv[i] ;
 
         SetMyName( argv[0] );
 
@@ -485,7 +487,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
             register int opt ;
             if( (opt = match_command_line_opt( &(argv[i][0]), as_standard_cmdl_options )) < 0 )
                 continue;
-            if( get_flags( (0x01<<opt), MyArgs.mask) )
+            if( get_flags( (0x01<<opt), as_app_args.mask) )
                 continue;
             if( get_flags( as_standard_cmdl_options[opt].flags, CMO_HasArgs ) )
             {
@@ -504,17 +506,17 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 
     if (FuncSyntax.term_hash == NULL)
 		PrepareSyntax (&FuncSyntax);
-    set_output_threshold( MyArgs.verbosity_level );
-    if(MyArgs.log_file)
-		if( freopen( MyArgs.log_file, get_flags( MyArgs.flags, ASS_Restarting)?"a":"w", stderr ) == NULL )
-	    	show_system_error( "failed to redirect output into file \"%s\"", MyArgs.log_file );
+    set_output_threshold( as_app_args.verbosity_level );
+    if(as_app_args.log_file)
+		if( freopen( as_app_args.log_file, get_flags( as_app_args.flags, ASS_Restarting)?"a":"w", stderr ) == NULL )
+	    	show_system_error( "failed to redirect output into file \"%s\"", as_app_args.log_file );
 
-	if( MyArgs.locale && strlen(MyArgs.locale) > 0)
+	if( as_app_args.locale && strlen(as_app_args.locale) > 0)
 	{
-		as_set_charset( parse_charset_name( MyArgs.locale ));
+		as_set_charset( parse_charset_name( as_app_args.locale ));
 #ifdef I18N
-		if (strlen(MyArgs.locale) > 0)
-			if (setlocale (LC_CTYPE, MyArgs.locale) == NULL)
+		if (strlen(as_app_args.locale) > 0)
+			if (setlocale (LC_CTYPE, as_app_args.locale) == NULL)
 			{
   			    show_error ("unable to set locale");
 			}
@@ -527,7 +529,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 	}	
 
 #ifdef DEBUG_TRACE_X
-    trace_enable_function(MyArgs.trace_calls);
+    trace_enable_function(as_app_args.trace_calls);
 #endif
 
 	asxml_var_insert("minipixmap.width", 48);
@@ -640,13 +642,13 @@ void
 InitSession()
 {
     /* initializing our dirs names */
-    Session = GetNCASSession(&Scr, MyArgs.override_home, MyArgs.override_share);
-    if( MyArgs.override_config )
-        set_session_override( Session, MyArgs.override_config, 0 );
-    if( MyArgs.override_look )
-        set_session_override( Session, MyArgs.override_look, F_CHANGE_LOOK );
-    if( MyArgs.override_feel )
-        set_session_override( Session, MyArgs.override_feel, F_CHANGE_FEEL );
+    Session = GetNCASSession(ASDefaultScr, as_app_args.override_home, as_app_args.override_share);
+    if( as_app_args.override_config )
+        set_session_override( Session, as_app_args.override_config, 0 );
+    if( as_app_args.override_look )
+        set_session_override( Session, as_app_args.override_look, F_CHANGE_LOOK );
+    if( as_app_args.override_feel )
+        set_session_override( Session, as_app_args.override_feel, F_CHANGE_FEEL );
 }
 
 
@@ -656,25 +658,25 @@ FreeMyAppResources()
 	
     balloon_init (True);
     mystyle_destroy_all();
-    destroy_image_manager( Scr.image_manager, False );
-    destroy_font_manager( Scr.font_manager, False );
+    destroy_image_manager( ASDefaultScr->image_manager, False );
+    destroy_font_manager( ASDefaultScr->font_manager, False );
     clientprops_cleanup ();
-    destroy_wmprops (Scr.wmprops, False);
+    destroy_wmprops (ASDefaultScr->wmprops, False);
     wmprops_cleanup ();
     free_func_hash();
     purge_asimage_registry();
     flush_ashash_memory_pool();
-    destroy_screen_gcs(&Scr);
-	if( Scr.RootImage ) 
+    destroy_screen_gcs(ASDefaultScr);
+	if( ASDefaultScr->RootImage ) 
 	{	
-		safe_asimage_destroy( Scr.RootImage );
-		Scr.RootImage = NULL ;
+		safe_asimage_destroy( ASDefaultScr->RootImage );
+		ASDefaultScr->RootImage = NULL ;
 	}
 	asxml_var_cleanup();
-	destroy_asvisual( Scr.asv, False );
+	destroy_asvisual( ASDefaultScr->asv, False );
 	custom_color_cleanup();
     flush_asbidirlist_memory_pool();
-    free( MyArgs.saved_argv );
+    free( as_app_args.saved_argv );
     destroy_assession( Session );
 	destroy_asenvironment( &Environment );
     build_xpm_colormap( NULL );
@@ -682,6 +684,7 @@ FreeMyAppResources()
 #ifdef XSHMIMAGE
 	flush_shm_cache();
 #endif
+	free( ASDefaultScr );
 }
 
 
@@ -826,25 +829,25 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             if( screen_str )
                 len += strlen(screen_str);
             len += 3 ;                         /* for "-s " */
-            if ( get_flags( MyArgs.flags, ASS_Debugging) )
+            if ( get_flags( as_app_args.flags, ASS_Debugging) )
                 len += 8 ;
-            if ( get_flags( MyArgs.flags, ASS_Restarting) )
+            if ( get_flags( as_app_args.flags, ASS_Restarting) )
                 len += 3 ;
-            if ( MyArgs.override_config )
-                len += 4+strlen(MyArgs.override_config);
-            if ( MyArgs.override_home )
-                len += 4+strlen(MyArgs.override_home);
-            if ( MyArgs.override_share )
-                len += 4+strlen(MyArgs.override_share);
+            if ( as_app_args.override_config )
+                len += 4+strlen(as_app_args.override_config);
+            if ( as_app_args.override_home )
+                len += 4+strlen(as_app_args.override_home);
+            if ( as_app_args.override_share )
+                len += 4+strlen(as_app_args.override_share);
 
-			if ( MyArgs.locale )
-                len += 4+strlen(MyArgs.locale);
+			if ( as_app_args.locale )
+                len += 4+strlen(as_app_args.locale);
 
-            if( MyArgs.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
+            if( as_app_args.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
                 len += 4+32 ;
 #ifdef DEBUG_TRACE_X
-            if( MyArgs.trace_calls )
-                len += 13+strlen( MyArgs.trace_calls );
+            if( as_app_args.trace_calls )
+                len += 13+strlen( as_app_args.trace_calls );
 #endif
             if( w_str )
                 len += 1+8+1+strlen(w_str);
@@ -865,31 +868,31 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         if( pass_args )
         {
             ptr += sprintf( ptr, " -d %s%s -s", display, screen_str?screen_str:"" );
-            if ( get_flags( MyArgs.flags, ASS_Debugging) )
+            if ( get_flags( as_app_args.flags, ASS_Debugging) )
             {
                 strcpy( ptr, " --debug");
                 ptr+=8 ;
             }
-            if ( get_flags( MyArgs.flags, ASS_Restarting) )
+            if ( get_flags( as_app_args.flags, ASS_Restarting) )
             {
                 strcpy( ptr, " -r");
                 ptr += 3 ;
             }
-            if ( MyArgs.override_config )
-                ptr += sprintf( ptr, " -f %s", MyArgs.override_config );
-            if ( MyArgs.override_home )
-                ptr += sprintf( ptr, " -p %s", MyArgs.override_home );
-            if ( MyArgs.override_share )
-                ptr += sprintf( ptr, " -g %s", MyArgs.override_share );
-            if( MyArgs.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
-                ptr += sprintf( ptr, " -V %d", MyArgs.verbosity_level );
-LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d, locale = \"%s\", ptr-cmdl = %d", len, cmdl, strlen(cmdl), MyArgs.locale, ptr-cmdl );
-			if( MyArgs.locale && MyArgs.locale[0] && !isspace(MyArgs.locale[0]))
-                ptr += sprintf( ptr, " -L %s", MyArgs.locale );
+            if ( as_app_args.override_config )
+                ptr += sprintf( ptr, " -f %s", as_app_args.override_config );
+            if ( as_app_args.override_home )
+                ptr += sprintf( ptr, " -p %s", as_app_args.override_home );
+            if ( as_app_args.override_share )
+                ptr += sprintf( ptr, " -g %s", as_app_args.override_share );
+            if( as_app_args.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
+                ptr += sprintf( ptr, " -V %d", as_app_args.verbosity_level );
+LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d, locale = \"%s\", ptr-cmdl = %d", len, cmdl, strlen(cmdl), as_app_args.locale, ptr-cmdl );
+			if( as_app_args.locale && as_app_args.locale[0] && !isspace(as_app_args.locale[0]))
+                ptr += sprintf( ptr, " -L %s", as_app_args.locale );
 			
 #ifdef DEBUG_TRACE_X
-            if( MyArgs.trace_calls )
-                ptr += sprintf( ptr, " --trace-func %s", MyArgs.trace_calls );
+            if( as_app_args.trace_calls )
+                ptr += sprintf( ptr, " --trace-func %s", as_app_args.trace_calls );
 #endif
             if( w_str )
                 ptr += sprintf( ptr, " --window %s", w_str );

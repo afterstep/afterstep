@@ -206,15 +206,15 @@ typedef struct MenuData
 	unsigned int    recent_items ;
 }MenuData;
 
-#define MAX_MENU_ITEM_HEIGHT    (Scr.MyDisplayHeight>>4)
-#define MAX_MENU_WIDTH          (Scr.MyDisplayWidth>>1)
-#define MAX_MENU_HEIGHT         ((Scr.MyDisplayHeight*9)/10)
+#define MAX_MENU_ITEM_HEIGHT    (ASDefaultScrHeight>>4)
+#define MAX_MENU_WIDTH          (ASDefaultScrWidth>>1)
+#define MAX_MENU_HEIGHT         ((ASDefaultScrHeight*9)/10)
 #define MIN_MENU_X              5
-#define MAX_MENU_X              (Scr.MyDisplayWidth-5)
+#define MAX_MENU_X              (ASDefaultScrWidth-5)
 #define MIN_MENU_Y              5
-#define MAX_MENU_Y              (Scr.MyDisplayHeight-5)
-#define DEFAULT_ARROW_SIZE      (Scr.MyDisplayWidth>>7)
-#define DEFAULT_SCROLLBAR_SIZE      (Scr.MyDisplayWidth>>6)
+#define MAX_MENU_Y              (ASDefaultScrHeight-5)
+#define DEFAULT_ARROW_SIZE      (ASDefaultScrWidth>>7)
+#define DEFAULT_SCROLLBAR_SIZE  (ASDefaultScrWidth>>6)
 
 /* Types of events for the FUNCTION builtin */
 #define MOTION                       'm'

@@ -54,7 +54,7 @@ init_asfeel( ASFeel *feel )
     feel->AutoRaiseDelay = 0;
     feel->RaiseButtons = 0;
     feel->flags = DoHandlePageing;
-    feel->XorValue = (((unsigned long)1) << Scr.d_depth) - 1;
+    feel->XorValue = (((unsigned long)1) << ASDefaultScr->d_depth) - 1;
 
     feel->no_snaping_mod = ShiftMask|ControlMask ;
 
@@ -71,7 +71,7 @@ init_asfeel( ASFeel *feel )
 
     for( i = 0 ; i < MAX_CURSORS; ++i )
         if( feel->cursors[i] )
-            feel->cursors[i] = Scr.standard_cursors[i] ;
+            feel->cursors[i] = ASDefaultScr->standard_cursors[i] ;
 }
 
 ASFeel *
@@ -122,7 +122,7 @@ destroy_asfeel( ASFeel *feel, Bool reusable )
 				free (fk);
 			}
         	for( i = 0 ; i < MAX_CURSORS; ++i )
-            	if( feel->cursors[i] && feel->cursors[i] != Scr.standard_cursors[i] )
+            	if( feel->cursors[i] && feel->cursors[i] != ASDefaultScr->standard_cursors[i] )
             	{
                 	XFreeCursor( dpy, feel->cursors[i] );
                 	feel->cursors[i] = None ;
@@ -253,15 +253,15 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
         feel->flags |= EdgeWrapY;
 	}
 
-	feel->EdgeScrollX = feel->EdgeScrollX * Scr.MyDisplayWidth / 100;
-    feel->EdgeScrollY = feel->EdgeScrollY * Scr.MyDisplayHeight / 100;
+	feel->EdgeScrollX = feel->EdgeScrollX * ASDefaultScr->MyDisplayWidth / 100;
+    feel->EdgeScrollY = feel->EdgeScrollY * ASDefaultScr->MyDisplayHeight / 100;
 
     if( feel->no_snaping_mod == 0 )
         feel->no_snaping_mod = ShiftMask ;
 
-    if (Scr.VxMax == 0)
+    if (ASDefaultScr->VxMax == 0)
         clear_flags(feel->flags, EdgeWrapX);
-    if (Scr.VyMax == 0)
+    if (ASDefaultScr->VyMax == 0)
         clear_flags(feel->flags, EdgeWrapY);
 
     i = feel->window_boxes_num ;
@@ -269,16 +269,16 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
     {
         if( !get_flags(feel->window_boxes[i].area.flags, WidthValue) )
         {
-            feel->window_boxes[i].area.width = Scr.MyDisplayWidth ;
+            feel->window_boxes[i].area.width = ASDefaultScr->MyDisplayWidth ;
             if( get_flags( feel->window_boxes[i].flags, ASA_Virtual ) )
-                feel->window_boxes[i].area.width += Scr.VxMax ;
+                feel->window_boxes[i].area.width += ASDefaultScr->VxMax ;
             feel->window_boxes[i].area.width -= feel->window_boxes[i].area.x ;
         }
         if( !get_flags(feel->window_boxes[i].area.flags, HeightValue) )
         {
-            feel->window_boxes[i].area.height = Scr.MyDisplayHeight ;
+            feel->window_boxes[i].area.height = ASDefaultScr->MyDisplayHeight ;
             if( get_flags( feel->window_boxes[i].flags, ASA_Virtual ) )
-                feel->window_boxes[i].area.width += Scr.VyMax ;
+                feel->window_boxes[i].area.width += ASDefaultScr->VyMax ;
             feel->window_boxes[i].area.width -= feel->window_boxes[i].area.y ;
         }
         if( !get_flags(feel->window_boxes[i].flags, ASA_DesktopSet) )
@@ -311,8 +311,8 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
         feel->default_window_box = &(feel->window_boxes[i]);
         memset( feel->default_window_box, 0x00, sizeof(ASWindowBox));
         feel->default_window_box->name = mystrdup("default");
-        feel->default_window_box->area.width = Scr.MyDisplayWidth ;
-        feel->default_window_box->area.height = Scr.MyDisplayHeight ;
+        feel->default_window_box->area.width = ASDefaultScr->MyDisplayWidth ;
+        feel->default_window_box->area.height = ASDefaultScr->MyDisplayHeight ;
         feel->default_window_box->main_strategy = ASP_Manual ;
         feel->default_window_box->backup_strategy = ASP_Manual ;
         /* we should enforce this one : */

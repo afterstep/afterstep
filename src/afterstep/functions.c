@@ -253,7 +253,7 @@ ExecuteFunctionExt (FunctionData *data, ASEvent *event, int module, Bool defered
     sf->module = module ;
 
     sf->event.event_time = Scr.last_Timestamp ;
-    sf->event.scr = &Scr ;
+    sf->event.scr = ASDefaultScr ;
 	sf->defered = defered ;
     if( event )
     {
@@ -470,7 +470,7 @@ LOCAL_DEBUG_CALLER_OUT( "cursor %d, event %d, window 0x%lX, window_name \"%s\", 
 	    (finish_event == ButtonRelease && event->x.type != ButtonPress))
 	    return False;
 */
-    if (!(res = !GrabEm (&Scr, Scr.Feel.cursors[cursor])))
+    if (!(res = !GrabEm (ASDefaultScr, Scr.Feel.cursors[cursor])))
 	{
 	WaitEventLoop( event, finish_event, -1 );
 	LOCAL_DEBUG_OUT( "window(%lX)->root(%lX)->subwindow(%lX)", event->x.xbutton.window, event->x.xbutton.root, event->x.xbutton.subwindow );
@@ -583,7 +583,7 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
 			return;
 		}
     }
-    if (!GrabEm (&Scr, Scr.Feel.cursors[ASCUR_Select]))
+    if (!GrabEm (ASDefaultScr, Scr.Feel.cursors[ASCUR_Select]))
 	{
 	show_warning( "failed to grab pointer while executing complex function \"%s\"", name );
 	XBell (dpy, Scr.screen);
@@ -739,8 +739,8 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 	if( mvrdata )
 	{
 			mvrdata->move_only = (data->func == F_MOVE) ;
-	    raise_scren_panframes( &Scr );
-	    mvrdata->below_sibling = get_lowest_panframe(&Scr);
+	    raise_scren_panframes( ASDefaultScr );
+	    mvrdata->below_sibling = get_lowest_panframe(ASDefaultScr);
 	    set_moveresize_restrains( mvrdata, asw->hints, asw->status);
 	    mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, Scr.Vx, Scr.Vy, asw);
 	    Scr.moveresize_in_progress = mvrdata ;
@@ -810,7 +810,7 @@ void movecursor_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     int curr_x, curr_y ;
     int x, y ;
-    register ScreenInfo *scr = &Scr;
+    register ScreenInfo *scr = ASDefaultScr;
 
     ASQueryPointerRootXY(&curr_x, &curr_y);
     x = make_scroll_pos( data->func_val[0], data->unit_val[0], scr->Vx+curr_x, scr->VxMax+scr->MyDisplayWidth ,scr->MyDisplayWidth );
@@ -931,7 +931,7 @@ void warp_func_handler( FunctionData *data, ASEvent *event, int module )
     {
 	event->client = t;
 	event->w = get_window_frame(t);
-	StartWarping(&Scr);
+	StartWarping(ASDefaultScr);
 	warp_to_aswindow(t, (data->func == F_WARP_F || data->func == F_WARP_B));
     }
 }
@@ -1271,7 +1271,7 @@ void toggle_page_func_handler( FunctionData *data, ASEvent *event, int module )
 	set_flags( Scr.Feel.flags, DoHandlePageing );
 
     SendPacket( -1, M_TOGGLE_PAGING, 1, get_flags( Scr.Feel.flags, DoHandlePageing ));
-    check_screen_panframes(&Scr);
+    check_screen_panframes(ASDefaultScr);
 #endif
 }
 
@@ -1415,7 +1415,7 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 	sleep_a_millisec(500);
 	if( event->client && data->func != F_TAKE_SCREENSHOT)
 		target = (data->func == F_TAKE_WINDOWSHOT)?event->client->w:event->client->frame;
-	im = grab_root_asimage( &Scr, target, True );
+	im = grab_root_asimage( ASDefaultScr, target, True );
 	LOCAL_DEBUG_OUT( "grab_root_image returned %p", im );
 	if( im != NULL )
 	{
@@ -1502,7 +1502,7 @@ QuickRestart (char *what)
     if (what)
 	{
 	InstallRootColormap();
-	GrabEm (&Scr, Scr.Feel.cursors[ASCUR_Wait]);
+	GrabEm (ASDefaultScr, Scr.Feel.cursors[ASCUR_Wait]);
 	LoadASConfig (Scr.CurrentDesk, what_flags);
 	UngrabEm ();
 	}

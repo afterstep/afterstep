@@ -119,7 +119,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	ConnectX( &Scr, PropertyChangeMask );
+	ConnectX( ASDefaultScr, PropertyChangeMask );
 /*    ConnectAfterStep ( 0 ); */
 	InitSession();
 

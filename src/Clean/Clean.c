@@ -108,7 +108,7 @@ main (int argc, char **argv)
   /* Dead pipes mean AfterStep died */
   signal (SIGPIPE, DeadPipe);
 
-  ConnectX (&Scr, display_name, 0);
+  ConnectX (ASDefaultScr, display_name, 0);
   screen = Scr.screen ;
 
   /* connect to AfterStep */

@@ -33,23 +33,23 @@ make_icon_pixmaps (icon_t * icon, Bool ignore_alpha)
 {
 	if (icon->image)
 	{
-		icon->pix = asimage2pixmap (Scr.asv, Scr.Root, icon->image, NULL, False);
+		icon->pix = asimage2pixmap (ASDefaultVisual, ASDefaultRoot, icon->image, NULL, False);
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
 #endif
 		if (!ignore_alpha)
 		{
-			int           depth = check_asimage_alpha (Scr.asv, icon->image);
+			int           depth = check_asimage_alpha (ASDefaultVisual, icon->image);
 
 			if (depth > 0)
-				icon->mask = asimage2alpha (Scr.asv, Scr.Root, icon->image, NULL, False, True);
+				icon->mask = asimage2alpha (ASDefaultVisual, ASDefaultRoot, icon->image, NULL, False, True);
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
 #endif
             if (depth == 8)
-				icon->alpha = asimage2alpha (Scr.asv, Scr.Root, icon->image, NULL, False, False);
+				icon->alpha = asimage2alpha (ASDefaultVisual, ASDefaultRoot, icon->image, NULL, False, False);
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);

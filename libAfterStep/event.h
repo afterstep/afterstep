@@ -95,7 +95,7 @@ const char *context2text(int ctx);
 #define ASCheckTypedWindowEvent(w,t,e) check_event_typed_windowed(w,t,e)
 #define ASCheckWindowEvent(w,m,e)   check_event_windowed(w,m,e)
 
-#define ASEventScreen(e)            (&Scr)
+#define ASEventScreen(e)            (ASDefaultScr)
 #define ASNextEvent(e,compress_motion)              next_event (e,compress_motion)
 #define ASMaskEvent(m,e)            mask_event (m,e)
 #define ASWindowEvent(w,m,e)        window_event(w,m,e)

@@ -97,9 +97,11 @@ static char         *MSMenuName[MENU_BACK_STYLES] = {NULL };
 /* parsing handling functions for different data types : */
 
 void          SetInts               (char *text, FILE * fd, char **arg1, int *arg2);
-void          SetInts2               (char *text, FILE * fd, char **arg1, int *arg2);
+void          SetInts2              (char *text, FILE * fd, char **arg1, int *arg2);
 void          SetFlag               (char *text, FILE * fd, char **arg, int *another);
+void		  SetLookFlag           (char *text, FILE * fd, char **arg, int *another);
 void          SetFlag2              (char *text, FILE * fd, char **arg, int *var);
+void          SetLookFlag           (char *text, FILE * fd, char **arg, int *junk);
 void          SetBox                (char *text, FILE * fd, char **arg, int *junk);
 void          SetCursor             (char *text, FILE * fd, char **arg, int *junk);
 void          SetCustomCursor       (char *text, FILE * fd, char **arg, int *junk);
@@ -128,6 +130,9 @@ int           MeltStartMenu (char *buf);
 /* scratch variable : */
 static int dummy;
 
+static ASFeel TmpFeel ;
+static MyLook TmpLook ;
+
 /*
  * Order is important here! if one keyword is the same as the first part of
  * another keyword, the shorter one must come first!
@@ -142,16 +147,16 @@ struct config main_config[] = {
 	{"KeepIconWindows", SetFlag, (char **)KeepIconWindows, (int *)0},
 	{"NoPPosition", SetFlag, (char **)NoPPosition, (int *)0},
 	{"CirculateSkipIcons", SetFlag, (char **)CirculateSkipIcons, (int *)0},
-    {"EdgeScroll", SetInts, (char **)&Scr.Feel.EdgeScrollX, &Scr.Feel.EdgeScrollY},
+    {"EdgeScroll", SetInts, (char **)&TmpFeel.EdgeScrollX, &TmpFeel.EdgeScrollY},
 	{"RandomPlacement", SetFlag, (char **)RandomPlacement, (int *)0},
 	{"SmartPlacement", SetFlag, (char **)SMART_PLACEMENT, (int *)0},
 	{"DontMoveOff", obsolete, (char **)NULL, (int *)0},
 	{"DecorateTransients", SetFlag, (char **)DecorateTransients, (int *)0},
 	{"CenterOnCirculate", SetFlag, (char **)CenterOnCirculate, (int *)0},
-    {"AutoRaise", SetInts, (char **)&Scr.Feel.AutoRaiseDelay, &dummy},
-    {"ClickTime", SetInts, (char **)&Scr.Feel.ClickTime, &dummy},
-    {"OpaqueMove", SetInts, (char **)&Scr.Feel.OpaqueMove, &dummy},
-    {"OpaqueResize", SetInts, (char **)&Scr.Feel.OpaqueResize, &dummy},
+    {"AutoRaise", SetInts, (char **)&TmpFeel.AutoRaiseDelay, &dummy},
+    {"ClickTime", SetInts, (char **)&TmpFeel.ClickTime, &dummy},
+    {"OpaqueMove", SetInts, (char **)&TmpFeel.OpaqueMove, &dummy},
+    {"OpaqueResize", SetInts, (char **)&TmpFeel.OpaqueResize, &dummy},
     {"XorValue", obsolete, (char **)NULL, &dummy},
 	{"Mouse", ParseMouseEntry, (char **)1, (int *)0},
     {"Popup", ParsePopupEntry, (char **)1, (int *)0},
@@ -159,31 +164,31 @@ struct config main_config[] = {
 	{"Key", ParseKeyEntry, (char **)1, (int *)0},
 	{"ClickToFocus", SetFlag, (char **)ClickToFocus, (int *)EatFocusClick},
     {"EatFocusClick", SetFlag, (char **)EatFocusClick, (int *)0},
-    {"ClickToRaise", SetButtonList, (char **)&Scr.Feel.RaiseButtons, (int *)0},
+    {"ClickToRaise", SetButtonList, (char **)NULL, (int *)0},
 	{"MenusHigh", obsolete, (char **)NULL, (int *)0},
 	{"SloppyFocus", SetFlag, (char **)SloppyFocus, (int *)0},
     {"PagingDefault", obsolete, (char **)NULL, NULL},
-    {"EdgeResistance", SetInts, (char **)&Scr.Feel.EdgeResistanceScroll, &Scr.Feel.EdgeResistanceMove},
+    {"EdgeResistance", SetInts, (char **)&TmpFeel.EdgeResistanceScroll, &TmpFeel.EdgeResistanceMove},
 	{"BackingStore", SetFlag, (char **)BackingStore, (int *)0},
 	{"AppsBackingStore", SetFlag, (char **)AppsBackingStore, (int *)0},
 	{"SaveUnders", SetFlag, (char **)SaveUnders, (int *)0},
-    {"Xzap", SetInts, (char **)&Scr.Feel.Xzap, (int *)&dummy},
-    {"Yzap", SetInts, (char **)&Scr.Feel.Yzap, (int *)&dummy},
-    {"AutoReverse", SetInts, (char **)&Scr.Feel.AutoReverse, (int *)&dummy},
+    {"Xzap", SetInts, (char **)&TmpFeel.Xzap, (int *)&dummy},
+    {"Yzap", SetInts, (char **)&TmpFeel.Yzap, (int *)&dummy},
+    {"AutoReverse", SetInts, (char **)&TmpFeel.AutoReverse, (int *)&dummy},
     {"AutoTabThroughDesks", SetFlag, (char **)AutoTabThroughDesks, NULL},
     {"MWMFunctionHints", obsolete, (char **)0, NULL},
     {"MWMDecorHints", obsolete, (char **)0, NULL},
     {"MWMHintOverride", obsolete, (char **)0, NULL},
     {"FollowTitleChanges", SetFlag, (char **)FollowTitleChanges, (int *)0},
     {"PersistentMenus", SetFlag, (char **)PersistentMenus, (int *)0},
-    {"NoSnapKey", SetModifier, (char **)&(Scr.Feel.no_snaping_mod), (int *)0},
-    {"ScreenEdgeAttraction", SetInts, (char **)&Scr.Feel.EdgeAttractionScreen, &dummy},
-    {"WindowEdgeAttraction", SetInts, (char **)&Scr.Feel.EdgeAttractionWindow, &dummy},
+    {"NoSnapKey", SetModifier, (char **)&(TmpFeel.no_snaping_mod), (int *)0},
+    {"ScreenEdgeAttraction", SetInts, (char **)&TmpFeel.EdgeAttractionScreen, &dummy},
+    {"WindowEdgeAttraction", SetInts, (char **)&TmpFeel.EdgeAttractionWindow, &dummy},
     {"DontRestoreFocus", SetFlag, (char **)DontRestoreFocus, &dummy},
-    {"WindowBox", windowbox_parse, (char**)&(Scr.Feel.window_boxes), (int*)&(Scr.Feel.window_boxes_num)},
-    {"DefaultWindowBox", assign_string, (char**)&(Scr.Feel.default_window_box_name), (int*)0},
-    {"RecentSubmenuItems", SetInts, (char**)&Scr.Feel.recent_submenu_items, (int*)&dummy},
-	{"WinListSortOrder", SetInts, (char**)&Scr.Feel.winlist_sort_order, (int *)&dummy},
+    {"WindowBox", windowbox_parse, (char**)NULL, (int*)NULL},
+    {"DefaultWindowBox", assign_string, (char**)&(TmpFeel.default_window_box_name), (int*)0},
+    {"RecentSubmenuItems", SetInts, (char**)&TmpFeel.recent_submenu_items, (int*)&dummy},
+	{"WinListSortOrder", SetInts, (char**)&TmpFeel.winlist_sort_order, (int *)&dummy},
 	{"WinListHideIcons", SetFlag, (char**)WinListHideIcons, (int *)&dummy},
 
     /* look options */
@@ -223,12 +228,12 @@ struct config main_config[] = {
     {"TextGradientColor", obsolete, (char **)NULL, (int *)0}, /* title text */
     {"GradientText", obsolete, (char **)NULL, (int *)0},
 
-    {"ButtonTextureType", SetInts, (char **)&IconTexType, &dummy},
+    {"ButtonTextureType", SetInts, (char **)&IconTexType, (int*)&dummy},
 	{"ButtonBgColor", assign_string, &IconBgColor, (int *)0},
 	{"ButtonTextureColor", assign_string, &IconTexColor, (int *)0},
     {"ButtonMaxColors", obsolete, (char **)NULL, NULL},
 	{"ButtonPixmap", assign_string, &IconPixmapFile, (int *)0},
-    {"ButtonNoBorder", SetFlag2, (char **)IconNoBorder, (int *)&Scr.Look.flags},
+    {"ButtonNoBorder", SetLookFlag, (char **)IconNoBorder, NULL},
     {"FrameNorth", SetFramePart, NULL, (int *)FR_N},
     {"FrameSouth", SetFramePart, NULL, (int *)FR_S},
     {"FrameEast",  SetFramePart, NULL, (int *)FR_E},
@@ -237,7 +242,7 @@ struct config main_config[] = {
     {"FrameNE", SetFramePart, NULL, (int *)FR_NE},
     {"FrameSW", SetFramePart, NULL, (int *)FR_SW},
     {"FrameSE", SetFramePart, NULL, (int *)FR_SE},
-    {"DecorateFrames", SetFlag2, (char **)DecorateFrames, (int *)&Scr.Look.flags},
+    {"DecorateFrames", SetLookFlag, (char **)DecorateFrames, NULL},
 	{"TitleButtonBalloonBorderWidth", obsolete, NULL, NULL },
 	{"TitleButtonBalloonBorderColor", obsolete, NULL, NULL },
     {"TitleTextMode", SetTitleText, (char **)1, (int *)0},
@@ -250,36 +255,36 @@ struct config main_config[] = {
     {"*asetrootDeskBack"				, deskback_parse, NULL, NULL },        /* pretending to be asteroot here */
     {"MyFrame"							, myframe_parse, (char**)"afterstep", (int*)&MyFrameList},
     {"DefaultFrame"						, assign_string, (char**)&DefaultFrameName, (int*)0},
-    {"DontDrawBackground"				, SetFlag2, (char **)DontDrawBackground, (int *)&Scr.Look.flags},
-    {"CursorFore"						, assign_string, &Scr.Look.CursorFore, (int *)0},    /* foreground color to be used for coloring pointer's cursor */
-    {"CursorBack"						, assign_string, &Scr.Look.CursorBack, (int *)0},    /* background color to be used for coloring pointer's cursor */
+    {"DontDrawBackground"				, SetLookFlag, (char **)DontDrawBackground, NULL},
+    {"CursorFore"						, assign_string, &TmpLook.CursorFore, (int *)0},    /* foreground color to be used for coloring pointer's cursor */
+    {"CursorBack"						, assign_string, &TmpLook.CursorBack, (int *)0},    /* background color to be used for coloring pointer's cursor */
 	/* this two a really from the feel */
 	{"CustomCursor"						, SetCustomCursor, (char **)0, (int *)0},
 	{"Cursor"							, SetCursor, (char **)0, (int *)0},
     /***********************************/
 	{"MenuPinOn"						, assign_string, &MenuPinOn, (int *)0},    /* menu pin */
-    {"MArrowPixmap"						, assign_pixmap, (char **)&Scr.Look.MenuArrow, (int *)0},   /* menu arrow */
-    {"TitlebarNoPush"					, SetFlag2, (char **)TitlebarNoPush, (int *)&Scr.Look.flags},
-    {"TextureMenuItemsIndividually"		, SetFlag2, (char **)TxtrMenuItmInd,(int *)&Scr.Look.flags},
-    {"MenuMiniPixmaps"					, SetFlag2, (char **)MenuMiniPixmaps, (int *)&Scr.Look.flags},
-	{"TitleTextAlign"					, SetInts, (char **)&Scr.Look.TitleTextAlign, &dummy},
-    {"TitleButtonSpacingLeft"			, SetInts, (char **)&Scr.Look.TitleButtonSpacing[0], &dummy},
-    {"TitleButtonSpacingRight"			, SetInts, (char **)&Scr.Look.TitleButtonSpacing[1], &dummy},
-    {"TitleButtonSpacing"				, SetInts2, (char **)&Scr.Look.TitleButtonSpacing[0], &Scr.Look.TitleButtonSpacing[1]},
-    {"TitleButtonXOffsetLeft"			, SetInts, (char **)&Scr.Look.TitleButtonXOffset[0], &dummy},
-    {"TitleButtonXOffsetRight"			, SetInts, (char **)&Scr.Look.TitleButtonXOffset[1], &dummy},
-    {"TitleButtonXOffset"				, SetInts2, (char **)&Scr.Look.TitleButtonXOffset[0], &Scr.Look.TitleButtonXOffset[1]},
-    {"TitleButtonYOffsetLeft"			, SetInts, (char **)&Scr.Look.TitleButtonYOffset[0], &dummy},
-    {"TitleButtonYOffsetRight"			, SetInts, (char **)&Scr.Look.TitleButtonYOffset[1], &dummy},
-    {"TitleButtonYOffset"				, SetInts2, (char **)&Scr.Look.TitleButtonYOffset[0], &Scr.Look.TitleButtonYOffset[1]},
-    {"TitleButtonStyle"					, SetInts, (char **)&Scr.Look.TitleButtonStyle, (int *)&dummy},
-    {"TitleButtonOrder"					, SetTButtonOrder, (char **)&(Scr.Look.button_xref[0]), (int*)&(Scr.Look.button_first_right)},
-    {"ResizeMoveGeometry"				, assign_geometry, (char**)&Scr.Look.resize_move_geometry, (int *)0},
-    {"StartMenuSortMode"				, SetInts, (char **)&Scr.Look.StartMenuSortMode, (int *)&dummy},
-    {"DrawMenuBorders"					, SetInts, (char **)&Scr.Look.DrawMenuBorders, (int *)&dummy},
-    {"ButtonSize"						, SetInts, (char **)&Scr.Look.ButtonWidth, (int *)&Scr.Look.ButtonHeight},
-    {"SeparateButtonTitle"				, SetFlag2, (char **)SeparateButtonTitle, (int *)&Scr.Look.flags},
-    {"RubberBand"						, SetInts, (char **)&Scr.Look.RubberBand, &dummy},
+    {"MArrowPixmap"						, assign_pixmap, (char **)&TmpLook.MenuArrow, (int *)0},   /* menu arrow */
+    {"TitlebarNoPush"					, SetLookFlag, (char **)TitlebarNoPush, NULL},
+    {"TextureMenuItemsIndividually"		, SetLookFlag, (char **)TxtrMenuItmInd,NULL},
+    {"MenuMiniPixmaps"					, SetLookFlag, (char **)MenuMiniPixmaps, NULL},
+	{"TitleTextAlign"					, SetInts, (char **)&TmpLook.TitleTextAlign, &dummy},
+    {"TitleButtonSpacingLeft"			, SetInts, (char **)&TmpLook.TitleButtonSpacing[0], &dummy},
+    {"TitleButtonSpacingRight"			, SetInts, (char **)&TmpLook.TitleButtonSpacing[1], &dummy},
+    {"TitleButtonSpacing"				, SetInts2, (char **)&TmpLook.TitleButtonSpacing[0], &TmpLook.TitleButtonSpacing[1]},
+    {"TitleButtonXOffsetLeft"			, SetInts, (char **)&TmpLook.TitleButtonXOffset[0], &dummy},
+    {"TitleButtonXOffsetRight"			, SetInts, (char **)&TmpLook.TitleButtonXOffset[1], &dummy},
+    {"TitleButtonXOffset"				, SetInts2, (char **)&TmpLook.TitleButtonXOffset[0], &TmpLook.TitleButtonXOffset[1]},
+    {"TitleButtonYOffsetLeft"			, SetInts, (char **)&TmpLook.TitleButtonYOffset[0], &dummy},
+    {"TitleButtonYOffsetRight"			, SetInts, (char **)&TmpLook.TitleButtonYOffset[1], &dummy},
+    {"TitleButtonYOffset"				, SetInts2, (char **)&TmpLook.TitleButtonYOffset[0], &TmpLook.TitleButtonYOffset[1]},
+    {"TitleButtonStyle"					, SetInts, (char **)&TmpLook.TitleButtonStyle, (int *)&dummy},
+    {"TitleButtonOrder"					, SetTButtonOrder, NULL, NULL},
+    {"ResizeMoveGeometry"				, assign_geometry, (char**)&TmpLook.resize_move_geometry, (int *)0},
+    {"StartMenuSortMode"				, SetInts, (char **)&TmpLook.StartMenuSortMode, (int *)&dummy},
+    {"DrawMenuBorders"					, SetInts, (char **)&TmpLook.DrawMenuBorders, (int *)&dummy},
+    {"ButtonSize"						, SetInts, (char **)&TmpLook.ButtonWidth, (int *)&TmpLook.ButtonHeight},
+    {"SeparateButtonTitle"				, SetLookFlag, (char **)SeparateButtonTitle, NULL},
+    {"RubberBand"						, SetInts, (char **)&TmpLook.RubberBand, &dummy},
     {"DefaultStyle"						, assign_string, (char **)&MSWindowName[BACK_DEFAULT], (int *)0},
     {"FWindowStyle"						, assign_string, (char **)&MSWindowName[BACK_FOCUSED], (int *)0},
     {"UWindowStyle"						, assign_string, (char **)&MSWindowName[BACK_UNFOCUSED], (int *)0},
@@ -290,10 +295,10 @@ struct config main_config[] = {
     {"MenuStippleStyle"					, assign_string, (char **)&MSMenuName[MENU_BACK_STIPPLE], (int *)0},
     {"MenuSubItemStyle"					, assign_string, (char **)&MSMenuName[MENU_BACK_SUBITEM], (int *)0},
     {"MenuHiTitleStyle"					, assign_string, (char **)&MSMenuName[MENU_BACK_HITITLE], (int *)0},
-    {"MenuItemCompositionMethod"		, SetInts, (char **)&Scr.Look.menu_icm, &dummy},
-    {"MenuHiliteCompositionMethod"		, SetInts, (char **)&Scr.Look.menu_hcm, &dummy},
-    {"MenuStippleCompositionMethod"		, SetInts, (char **)&Scr.Look.menu_scm, &dummy},
-    {"ShadeAnimationSteps"				, SetInts, (char **)&Scr.Feel.ShadeAnimationSteps, (int *)&dummy},
+    {"MenuItemCompositionMethod"		, SetInts, (char **)&TmpLook.menu_icm, &dummy},
+    {"MenuHiliteCompositionMethod"		, SetInts, (char **)&TmpLook.menu_hcm, &dummy},
+    {"MenuStippleCompositionMethod"		, SetInts, (char **)&TmpLook.menu_scm, &dummy},
+    {"ShadeAnimationSteps"				, SetInts, (char **)&TmpFeel.ShadeAnimationSteps, (int *)&dummy},
     {"TitleButtonBalloonBorderHilite"	, bevel_parse, (char**)"afterstep", (int*)&(BalloonConfig.border_hilite)},
     {"TitleButtonBalloonXOffset"		, SetInts, (char**)&(BalloonConfig.x_offset), NULL},
     {"TitleButtonBalloonYOffset"		, SetInts, (char**)&(BalloonConfig.y_offset), NULL},
@@ -302,10 +307,10 @@ struct config main_config[] = {
     {"TitleButtonBalloonStyle"			, assign_string, &(BalloonConfig.style), NULL},
     {"TitleButtonBalloons"				, SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
     {"TitleButton"						, SetTitleButton, (char **)1, (int *)0},
-    {"KillBackgroundThreshold"			, SetInts, (char**)&(Scr.Look.KillBackgroundThreshold), NULL },
+    {"KillBackgroundThreshold"			, SetInts, (char**)&(TmpLook.KillBackgroundThreshold), NULL },
 	{"DontAnimateBackground"			, SetFlag, (char**)DontAnimateBackground, &dummy},
-	{"CoverAnimationSteps"				, SetInts, (char**)&(Scr.Feel.desk_cover_animation_steps), NULL },
-	{"CoverAnimationType"				, SetInts, (char**)&(Scr.Feel.desk_cover_animation_type), NULL },
+	{"CoverAnimationSteps"				, SetInts, (char**)&(TmpFeel.desk_cover_animation_steps), NULL },
+	{"CoverAnimationType"				, SetInts, (char**)&(TmpFeel.desk_cover_animation_type), NULL },
 	{"AnimateDeskChange"				, SetFlag, (char**)AnimateDeskChange, &dummy },
 	{"", 0, (char **)0, (int *)0}
 };
@@ -607,11 +612,36 @@ InitFeel (ASFeel *feel, Bool free_resources)
 
 }
 
+void 
+merge_feel( ASFeel *to, ASFeel *from )
+{
+    to->EdgeScrollX = from->EdgeScrollX ; 
+	to->EdgeScrollY = from->EdgeScrollY ; 
+    to->AutoRaiseDelay = from->AutoRaiseDelay ; 
+    to->ClickTime = from->ClickTime ; 
+    to->OpaqueMove = from->OpaqueMove ; 
+    to->OpaqueResize = from->OpaqueResize ; 
+    to->EdgeResistanceScroll = from->EdgeResistanceScroll  ; 
+	to->EdgeResistanceMove = from->EdgeResistanceMove ; 
+    to->Xzap = from->Xzap ; 
+    to->Yzap = from->Yzap ; 
+    to->AutoReverse = from->AutoReverse ; 
+    to->no_snaping_mod = from->no_snaping_mod ; 
+    to->EdgeAttractionScreen = from->EdgeAttractionScreen ; 
+    to->EdgeAttractionWindow = from->EdgeAttractionWindow ; 
+    to->default_window_box_name = from->default_window_box_name ; 
+    to->recent_submenu_items = from->recent_submenu_items ; 
+	to->winlist_sort_order = from->winlist_sort_order ; 
+    to->ShadeAnimationSteps = from->ShadeAnimationSteps ; 
+    to->desk_cover_animation_steps = from->desk_cover_animation_steps ; 
+	to->desk_cover_animation_type = from->desk_cover_animation_type ; 
+
+}	 
 
 void
 ApplyFeel( ASFeel *feel )
 {
-    check_screen_panframes(&Scr);
+    check_screen_panframes(ASDefaultScr);
 }
 
 /*
@@ -676,6 +706,34 @@ InitLook (MyLook *look, Bool free_resources)
 	LegacyFrameDef = NULL ;
     memset( &BalloonConfig, 0x00, sizeof(BalloonConfig));
 }
+
+void
+merge_look( MyLook *to, MyLook *from )
+{
+	int i  ;
+  	to->CursorFore = from->CursorFore ; 
+    to->CursorBack = from->CursorBack ; 
+	to->MenuArrow = from->MenuArrow ; 
+	to->TitleTextAlign = from->TitleTextAlign;
+	for( i = 0 ; i < 2 ; ++i ) 
+	{
+    	to->TitleButtonSpacing[i] = from->TitleButtonSpacing[i] ;
+	    to->TitleButtonXOffset[i] = from->TitleButtonXOffset[i] ;
+	    to->TitleButtonYOffset[i] = from->TitleButtonYOffset[i] ;
+	}
+	to->TitleButtonStyle = from->TitleButtonStyle ; 
+    to->resize_move_geometry = from->resize_move_geometry ; 
+    to->StartMenuSortMode = from->StartMenuSortMode ; 
+    to->DrawMenuBorders = from->DrawMenuBorders ; 
+    to->ButtonWidth  = from->ButtonWidth ; 
+	to->ButtonHeight = from->ButtonHeight ; 
+    to->RubberBand = from->RubberBand ; 
+    to->menu_icm = from->menu_icm ; 
+    to->menu_hcm = from->menu_hcm ; 
+    to->menu_scm = from->menu_scm ;
+    to->KillBackgroundThreshold = from->KillBackgroundThreshold ; 
+}
+
 
 void
 make_styles (MyLook *look)
@@ -1283,7 +1341,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             }
         }else if(get_flags(what, PARSE_LOOK_CONFIG))
 		{  /* must reload Image manager so that changed images would get updated */
-			reload_screen_image_manager( &Scr, &old_image_manager );
+			reload_screen_image_manager( ASDefaultScr, &old_image_manager );
 		}
 
         if (get_flags(what, PARSE_LOOK_CONFIG))
@@ -1295,6 +1353,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_LOOK, False) ) != NULL )
             {
                 InitLook (&Scr.Look, True);
+				memset( &TmpLook, 0x00, sizeof(TmpLook));
+				InitLook (&TmpLook, False );
                 ParseConfigFile (const_configfile, &tline);
                 show_progress("LOOK configuration loaded from \"%s\" ...", const_configfile);
                 display_progress( True, "LOOK configuration loaded from \"%s\".", const_configfile);
@@ -1313,6 +1373,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		            }
 				}
 #endif
+				merge_look( &Scr.Look, &TmpLook );
             }else
             {
                 show_warning("LOOK configuration file cannot be found!");
@@ -1325,6 +1386,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_FEEL, False) ) != NULL )
             {
 				const char *ws_file = get_session_ws_file( Session, True );
+				memset( &TmpFeel , 0x00, sizeof(TmpFeel));
+				InitFeel (&TmpFeel, True);
                 InitFeel (&Scr.Feel, True);
                 if (tline == NULL)
                     tline = safemalloc (MAXLINELENGTH + 1);
@@ -1355,6 +1418,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                     show_progress("WORKSPACE STATE file cannot be not found!");
                     display_progress( True, "WORKSPACE STATE file cannot be not found!");
                 }
+				merge_feel( &Scr.Feel, &TmpFeel );
             }else
             {
                 show_warning("FEEL configuration file cannot be found!");
@@ -1399,10 +1463,16 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 	{
 		ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, True );
 		LoadColorScheme();
+		memset( &TmpLook, 0x00, sizeof(TmpLook));
+		InitLook (&TmpLook, False );
 		InitLook (&Scr.Look, True);
+		memset( &TmpFeel, 0x00, sizeof(TmpFeel));
+		InitFeel (&TmpFeel, False );
         InitFeel (&Scr.Feel, True);
         InitDatabase (True);
         ParseConfigFile (Session->overriding_file, &tline);
+		merge_look( &Scr.Look, &TmpLook );
+		merge_feel( &Scr.Feel, &TmpFeel );
         show_progress("AfterStep configuration loaded from \"%s\" ...", Session->overriding_file);
         display_progress( True, "AfterStep configuration loaded from \"%s\".", Session->overriding_file);
         what = PARSE_EVERYTHING ;
@@ -1414,7 +1484,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     show_progress("Done loading configuration.");
     display_progress( True, "Done loading configuration.");
 
-    check_desksize_sanity( &Scr );
+    check_desksize_sanity( ASDefaultScr );
 	set_desktop_geometry_prop ( Scr.wmprops, Scr.VxMax+Scr.MyDisplayWidth, Scr.VyMax+Scr.MyDisplayHeight);
 
     if (get_flags(what, PARSE_FEEL_CONFIG))
@@ -1747,6 +1817,21 @@ SetFlag (char *text, FILE * fd, char **arg, int *another)
 }
 
 void
+SetLookFlag (char *text, FILE * fd, char **arg, int *another)
+{
+	unsigned long *flags = (unsigned long *)another;
+	char         *ptr;
+	int           val = strtol (text, &ptr, 0);
+
+	if (flags == NULL)
+        flags = &Scr.Look.flags;
+	if (ptr != text && val == 0)
+		*flags &= ~(unsigned long)arg;
+	else
+		*flags |= (unsigned long)arg;
+}
+
+void
 SetFlag2 (char *text, FILE * fd, char **arg, int *var)
 {
 	unsigned long *flags = (unsigned long *)var;
@@ -1889,10 +1974,10 @@ SetModifier (char *text, FILE * fd, char **mod, int *junk2)
 }
 
 void
-SetTButtonOrder(char *text, FILE * fd, char **pxref, int *prbtn)
+SetTButtonOrder(char *text, FILE * fd, char **unused1, int *unused2)
 {
-    unsigned int *xref = (unsigned int*)pxref ;
-    unsigned int *rbtn = (unsigned int*)prbtn ;
+    unsigned int *xref = (unsigned int*)&(Scr.Look.button_xref[0]);
+    unsigned int *rbtn = (unsigned int*)&(Scr.Look.button_first_right) ;
     if( xref && rbtn )
     {
         register int i = 0, btn = 0;

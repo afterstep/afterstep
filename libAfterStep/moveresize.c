@@ -34,6 +34,7 @@
 #include "hints.h"
 #ifdef NO_ASRENDER
 #include "decor.h"
+#include "canvas.h"
 #endif
 #include "moveresize.h"
 
@@ -105,7 +106,7 @@ Bool grab_widget_pointer( ASWidget *widget, ASEvent *trigger,
     int i ;
     Window wjunk;
     Time ttime = CurrentTime ;
-    ScreenInfo *scr = &Scr ;
+    ScreenInfo *scr = ASDefaultScr ;
 
     if( widget == NULL )
 		return False;

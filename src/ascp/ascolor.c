@@ -280,7 +280,7 @@ int main(int argc, char** argv)
 
 	if( ASColorState.display )
 	{	
-		ConnectX( &Scr, PropertyChangeMask );
+		ConnectX( ASDefaultScr, PropertyChangeMask );
     	ConnectAfterStep ( 0 );
 		LoadBaseConfig (GetBaseOptions);
 	}else

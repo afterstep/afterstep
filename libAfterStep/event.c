@@ -206,7 +206,7 @@ inline Time stash_event_time (XEvent * xevent)
 		{
 	    	register Time  NewTimestamp = *ptime;
 
-        	if (NewTimestamp < Scr.last_Timestamp)
+        	if (NewTimestamp < ASDefaultScr->last_Timestamp)
         	{
             	if(as_xserver_is_local)
             	{   /* hack to detect local time change and try to work around it */
@@ -215,19 +215,19 @@ inline Time stash_event_time (XEvent * xevent)
 
                 	if( time(&curr_time) < last_system_time )
                 	{   /* local time has been changed !!!!!!!! */
-                    	Scr.last_Timestamp = NewTimestamp ;
-                    	Scr.menu_grab_Timestamp = NewTimestamp ;
+                    	ASDefaultScr->last_Timestamp = NewTimestamp ;
+                    	ASDefaultScr->menu_grab_Timestamp = NewTimestamp ;
                 	}
                 	last_system_time = curr_time ;
             	}
-            	if( Scr.last_Timestamp - NewTimestamp > 0x7FFFFFFF ) /* detecting time lapse */
+            	if( ASDefaultScr->last_Timestamp - NewTimestamp > 0x7FFFFFFF ) /* detecting time lapse */
             	{
-                	Scr.last_Timestamp = NewTimestamp;
-                	if( Scr.menu_grab_Timestamp - NewTimestamp > 0x7FFFFFFF )
-                    	Scr.menu_grab_Timestamp = 0 ;
+                	ASDefaultScr->last_Timestamp = NewTimestamp;
+                	if( ASDefaultScr->menu_grab_Timestamp - NewTimestamp > 0x7FFFFFFF )
+                    	ASDefaultScr->menu_grab_Timestamp = 0 ;
             	}
         	}else
-				Scr.last_Timestamp = NewTimestamp;
+				ASDefaultScr->last_Timestamp = NewTimestamp;
 			return (_as_event_types[xevent->type].last_time = *ptime) ;
     	}
 	}
@@ -237,7 +237,7 @@ inline Time stash_event_time (XEvent * xevent)
 inline ScreenInfo *
 query_event_screen( register XEvent *event )
 {  /* stub since stable AS does not support multiscreen handling in one process */
-    return &Scr;
+    return ASDefaultScr;
 }
 
 Window
@@ -273,7 +273,7 @@ void setup_asevent_from_xevent( ASEvent *event )
 		event->w = xevt->xany.window;
 		event->event_time = 0;
 
-		event->scr 			= &Scr;
+		event->scr 			= ASDefaultScr;
 		event->mask 		= 0 ;
 		event->eclass 		= 0 ;
 		event->last_time 	= 0 ;
@@ -307,7 +307,7 @@ quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_m
 {
     /* blocking UnmapNotify events since that may bring us into Withdrawn state */
     XSelectInput (dpy, w, event_mask & ~StructureNotifyMask);
-    XReparentWindow( dpy, w, (new_parent!=None)?new_parent:Scr.Root, x, y );
+    XReparentWindow( dpy, w, (new_parent!=None)?new_parent:ASDefaultRoot, x, y );
     XSelectInput (dpy, w, event_mask );
 }
 
@@ -340,7 +340,7 @@ query_pointer( Window w,
     int win_x, win_y;
     unsigned int mask;
 
-    if( !XQueryPointer (dpy, ((w==None)?Scr.Root:w), &root, &child, &root_x, &root_y, &win_x, &win_y, &mask) )
+    if( !XQueryPointer (dpy, ((w==None)?ASDefaultRoot:w), &root, &child, &root_x, &root_y, &win_x, &win_y, &mask) )
         return False;
 
     if( root_return )

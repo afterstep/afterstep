@@ -143,7 +143,7 @@ main (int argc, char **argv)
     IgnoreSignal(SIGQUIT);
     IgnoreSignal(SIGTERM);
 
-    if( ConnectX( &Scr, AS_ROOT_EVENT_MASK ) < 0  )
+    if( ConnectX( ASDefaultScr, AS_ROOT_EVENT_MASK ) < 0  )
 	{
 		show_error( "Hostile X server encountered - unable to proceed :-(");
 		return 1;/* failed to accure window management selection - other wm is running */
@@ -198,7 +198,7 @@ SHOW_CHECKPOINT;
             }
         }else
         {
-            make_screen_envvars(&Scr);
+            make_screen_envvars(ASDefaultScr);
             putenv (Scr.rdisplay_string);
             putenv (Scr.display_string);
             if( is_output_level_under_threshold( OUTPUT_LEVEL_PROGRESS ) )
@@ -260,11 +260,11 @@ SHOW_CHECKPOINT;
 #ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
 	grab_server();                		/* grabbed   !!!!!*/
 #endif										/* grabbed   !!!!!*/
-    init_screen_panframes(&Scr);            /* grabbed   !!!!!*/
+    init_screen_panframes(ASDefaultScr);            /* grabbed   !!!!!*/
     display_progress( True, "Capturing all windows ..." );
-    CaptureAllWindows (&Scr);               /* grabbed   !!!!!*/
+    CaptureAllWindows (ASDefaultScr);               /* grabbed   !!!!!*/
     display_progress( False, "Done." );
-    check_screen_panframes(&Scr);           /* grabbed   !!!!!*/
+    check_screen_panframes(ASDefaultScr);           /* grabbed   !!!!!*/
     ASSync( False );
 #ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
 	ungrab_server();					/* UnGrabbed !!!!!*/
@@ -461,7 +461,7 @@ LOCAL_DEBUG_OUT("destroying font manager : %p", Scr.font_manager);
     destroy_font_manager( Scr.font_manager, False );
 
 LOCAL_DEBUG_OUT("destroying visual : %p", Scr.asv);
-    destroy_screen_gcs(&Scr);
+    destroy_screen_gcs(ASDefaultScr);
 	destroy_asvisual( Scr.asv, False );
 
 LOCAL_DEBUG_OUT("selecting input mask for Root window to 0 : %s","");

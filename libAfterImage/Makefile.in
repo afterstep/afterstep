@@ -176,10 +176,13 @@ install.dyn:
 		)
 
 install.cyg:
-		@( echo "$(INSTALL_LIB) $(LIB_SHARED_CYG) $(LIBDIR)"; \
+		@( echo "$(INSTALL_LIB) $(LIB_SHARED_CYG) $(AFTER_BIN_DIR)"; \
+		$(INSTALL_LIB) $(LIB_SHARED_CYG) $(AFTER_BIN_DIR); \
+		echo "$(INSTALL_LIB) $(LIB_SHARED_CYG) $(LIBDIR)"; \
 		$(INSTALL_LIB) $(LIB_SHARED_CYG) $(LIBDIR); \
 		echo "$(INSTALL_LIB) $(LIB_SHARED_CYG_AR) $(LIBDIR)"; \
 		$(INSTALL_LIB) $(LIB_SHARED_CYG_AR) $(LIBDIR); \
+		echo "$(INSTALL_SCRIPT) afterimage-libs afterimage-config $(AFTER_BIN_DIR)"; \
 		$(INSTALL_SCRIPT) afterimage-libs afterimage-config $(AFTER_BIN_DIR); \
 		)
 

@@ -814,7 +814,7 @@ on_window_hints_changed( ASWindow *asw )
     if( AS_ASSERT(asw) )
         return ;
 
-    if( !collect_hints( &Scr, asw->w, HINT_ANY, &raw_hints ) )
+    if( !collect_hints( ASDefaultScr, asw->w, HINT_ANY, &raw_hints ) )
         return ;
     if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
         print_hints( NULL, NULL, &raw_hints );
@@ -1813,7 +1813,7 @@ LOCAL_DEBUG_OUT("current focused is %p, active is %p", Scr.Windows->focused, Scr
 
     if( force )
     {
-        GrabEm (&Scr, Scr.Feel.cursors[ASCUR_Select]);     /* to prevent Enter Notify events to
+        GrabEm (ASDefaultScr, Scr.Feel.cursors[ASCUR_Select]);     /* to prevent Enter Notify events to
                                                       be sent to us while shifting windows around */
         if( (res = make_aswindow_visible( asw, deiconify )) )
             Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */

@@ -389,17 +389,6 @@ struct ASTBarData;
 
 
 
-/* synonim for backporting of parts of as-devel */
-#define ASWidget ASCanvas
-#define AS_WIDGET_SCREEN(c) (&Scr)
-#define AS_WIDGET_WINDOW(c) ((c)?(c)->w:None)
-#define AS_WIDGET_X(c)      ((c)?(c)->root_x:0)
-#define AS_WIDGET_Y(c)      ((c)?(c)->root_y:0)
-#define AS_WIDGET_WIDTH(c)  ((c)?(c)->width:0)
-#define AS_WIDGET_HEIGHT(c) ((c)?(c)->height:0)
-#define AS_WIDGET_BW(c) 	((c)?(c)->bw:0)
-#define AS_WIDGET_FEEL(c)   (&(Scr.Feel))
-#define AS_WIDGET_LOOK(c)   (&(Scr.Look))
 
 
 #define TITLE_OLD		0	/* old (NEXTSTEP 3) style titlebar */

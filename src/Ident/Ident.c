@@ -105,7 +105,7 @@ main( int argc, char **argv )
 
     set_signal_handler( SIGSEGV );
 
-    ConnectX( &Scr, 0 );
+    ConnectX( ASDefaultScr, 0 );
     ConnectAfterStep (WINDOW_CONFIG_MASK |
                       WINDOW_NAME_MASK |
                       M_END_WINDOWLIST);
@@ -583,7 +583,7 @@ fill_window_data()
 	
 	add_property("Specified hint values:", buf, AS_Text_ASCII, True);
 
-    if( collect_hints( &Scr, wd->client, HINT_ANY, &raw ) )
+    if( collect_hints( ASDefaultScr, wd->client, HINT_ANY, &raw ) )
 	{
 		ExtendedWMHints *eh = &(raw.extwm_hints);
 		GnomeHints *gh = &(raw.gnome_hints);

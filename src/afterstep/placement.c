@@ -861,8 +861,8 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
                                         complete_aswindow_move );
     if( mvrdata )
     {
-		raise_scren_panframes( &Scr );
-        mvrdata->below_sibling = get_lowest_panframe(&Scr);
+		raise_scren_panframes( ASDefaultScr );
+        mvrdata->below_sibling = get_lowest_panframe(ASDefaultScr);
         set_moveresize_restrains( mvrdata, asw->hints, asw->status);
         mvrdata->grid = make_desktop_grid( ASWIN_DESK(asw), ASWIN_LAYER(asw), False, Scr.Vx, Scr.Vy, asw );
         Scr.moveresize_in_progress = mvrdata ;

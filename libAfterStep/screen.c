@@ -46,42 +46,42 @@ static Bool   as_X_synchronous_mode = False;
 int get_screen_width(ScreenInfo *scr)
 {
 	if( scr == NULL ) 
-		scr = &Scr;
+		scr = ASDefaultScr;
 	return scr->MyDisplayWidth;	
 }	 
 
 int get_screen_height(ScreenInfo *scr)
 {
 	if( scr == NULL ) 
-		scr = &Scr;
+		scr = ASDefaultScr;
 	return scr->MyDisplayHeight;	
 }	 
 
 int get_screen_current_desk(ScreenInfo *scr)
 {
 	if( scr == NULL ) 
-		scr = &Scr;
+		scr = ASDefaultScr;
 	return scr->CurrentDesk;	
 }	 
 
 struct MyLook *get_screen_look(ScreenInfo *scr)
 {
 	if( scr == NULL ) 
-		scr = &Scr;
+		scr = ASDefaultScr;
 	return &(scr->Look);	
 }	 
 
 struct ASImageManager *get_screen_image_manager(ScreenInfo *scr)
 {
 	if( scr == NULL ) 
-		scr = &Scr;
+		scr = ASDefaultScr;
 	return scr->image_manager;	
 }	 
 
 
 ScreenInfo *get_current_screen()
 {
-	return &Scr ;
+	return ASDefaultScr ;
 }	 
 
 void
@@ -89,7 +89,7 @@ reload_screen_image_manager( ScreenInfo *scr, ASImageManager **old_imageman )
 {
 	char *env_path1 = NULL, *env_path2 = NULL ;
 	if( scr == NULL ) 
-		scr = &Scr ;
+		scr = ASDefaultScr ;
 	if( old_imageman )
 	{
 		*old_imageman = scr->image_manager ;
@@ -213,9 +213,9 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 	fprintf (stderr, "%s has encountered a problem interacting with X Windows :\n", MyName);
 	if (event && dpy)
 	{
-        if( event->error_code == BadWindow && Scr.Windows != NULL )
-            if( Scr.on_dead_window )
-                if( Scr.on_dead_window( event->resourceid ) )
+        if( event->error_code == BadWindow && ASDefaultScr->Windows != NULL )
+            if( ASDefaultScr->on_dead_window )
+                if( ASDefaultScr->on_dead_window( event->resourceid ) )
                     return 0;
 
         err_text = safemalloc (128);
@@ -333,7 +333,7 @@ make_screen_envvars( ScreenInfo *scr )
  * as some OS's don't copy the environment variables properly
  */
 	if( scr == NULL )
-		return;
+		scr = ASDefaultScr;
 
 	if( scr->display_string )
         free( scr->display_string );
@@ -371,18 +371,22 @@ make_screen_envvars( ScreenInfo *scr )
 void
 init_screen_gcs(ScreenInfo *scr)
 {
-    if( scr )
-	{
-		XGCValues     gcv;
-    	unsigned long gcm = GCGraphicsExposures;
-		gcv.graphics_exposures = False;
-        scr->DrawGC = create_visual_gc( scr->asv, scr->Root, gcm, &gcv );
-    }
+	XGCValues     gcv;
+   	unsigned long gcm = GCGraphicsExposures;
+	
+	if( scr == NULL )
+		scr = ASDefaultScr;
+	
+	gcv.graphics_exposures = False;
+    scr->DrawGC = create_visual_gc( scr->asv, scr->Root, gcm, &gcv );
 }
 
 void
 destroy_screen_gcs(ScreenInfo *scr)
 {
+	if( scr == NULL )
+		scr = ASDefaultScr;
+	
 	if( scr->DrawGC )
 	{	
 		XFreeGC(dpy, scr->DrawGC);
@@ -457,24 +461,27 @@ init_screen_panframes(ScreenInfo *scr)
     XSetWindowAttributes attributes;           /* attributes for create */
     register int i ;
 
+	if( scr == NULL ) 
+		scr =  ASDefaultScr ;
+
     frame_rects[0].x = frame_rects[0].y = 0;
-    frame_rects[0].width = Scr.MyDisplayWidth;
+    frame_rects[0].width = scr->MyDisplayWidth;
     frame_rects[0].height = SCROLL_REGION;
 
-    frame_rects[1].x = Scr.MyDisplayWidth - SCROLL_REGION;
+    frame_rects[1].x = scr->MyDisplayWidth - SCROLL_REGION;
     frame_rects[1].y = SCROLL_REGION;
     frame_rects[1].width = SCROLL_REGION;
-    frame_rects[1].height = Scr.MyDisplayHeight - 2 * SCROLL_REGION;
+    frame_rects[1].height = scr->MyDisplayHeight - 2 * SCROLL_REGION;
 
     frame_rects[2].x = 0;
-    frame_rects[2].y = Scr.MyDisplayHeight - SCROLL_REGION;
-    frame_rects[2].width = Scr.MyDisplayWidth;
+    frame_rects[2].y = scr->MyDisplayHeight - SCROLL_REGION;
+    frame_rects[2].width = scr->MyDisplayWidth;
     frame_rects[2].height = SCROLL_REGION;
 
     frame_rects[3].x = 0;
     frame_rects[3].y = SCROLL_REGION;
     frame_rects[3].width = SCROLL_REGION;
-    frame_rects[3].height = Scr.MyDisplayHeight - 2 * SCROLL_REGION;
+    frame_rects[3].height = scr->MyDisplayHeight - 2 * SCROLL_REGION;
 
     frame_rects[2].width = frame_rects[0].width = scr->MyDisplayWidth;
     frame_rects[1].x = scr->MyDisplayWidth - SCROLL_REGION;
@@ -511,7 +518,8 @@ check_screen_panframes(ScreenInfo *scr)
     register int  i;
 
 	if( scr == NULL )
-		scr = &Scr ;
+		scr = ASDefaultScr;
+ ;
 
     wrapX = get_flags(scr->Feel.flags, EdgeWrapX);
     wrapY = get_flags(scr->Feel.flags, EdgeWrapY);
@@ -572,7 +580,7 @@ raise_scren_panframes (ScreenInfo *scr)
 #ifndef NO_VIRTUAL
     register int i ;
 	if( scr == NULL )
-		scr = &Scr ;
+		scr = ASDefaultScr ;
     for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
         if( scr->PanFrame[i].isMapped )
         {
@@ -586,6 +594,8 @@ Window
 get_lowest_panframe(ScreenInfo *scr)
 {
     register int i;
+	if( scr == NULL )
+		scr = ASDefaultScr ;
     for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
         if( scr->PanFrame[i].isMapped )
             return scr->PanFrame[i].win;
@@ -618,7 +628,7 @@ void
 check_desksize_sanity( ScreenInfo *scr )
 {
 	if( scr == NULL )
-		scr = &Scr ;
+		scr = ASDefaultScr ;
 
     if( scr->VxMax <= 0 )
         scr->VxMax = 0 ;
@@ -628,6 +638,6 @@ check_desksize_sanity( ScreenInfo *scr )
     if( scr->VyMax <= 0 )
         scr->VyMax = 0 ;
     else if( scr->VyMax < 32000/scr->MyDisplayHeight )
-        scr->VyMax = (Scr.VyMax * scr->MyDisplayHeight) - scr->MyDisplayHeight ;
+        scr->VyMax = (scr->VyMax * scr->MyDisplayHeight) - scr->MyDisplayHeight ;
 }
 

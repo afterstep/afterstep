@@ -89,7 +89,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 void
 mystyle_set_property (ASWMProps *wmprops)
 {
-    mystyle_list_set_property (wmprops,Scr.Look.styles_list);
+    mystyle_list_set_property (wmprops,ASDefaultScr->Look.styles_list);
 }
 
 
@@ -214,11 +214,11 @@ mystyle_get_property (ASWMProps *wmprops)
 			else
 			{
 				if (style->back_icon.mask)
-					style->back_icon.image = picture2asimage (Scr.asv, style->back_icon.pix, style->back_icon.mask,
+					style->back_icon.image = picture2asimage (ASDefaultVisual, style->back_icon.pix, style->back_icon.mask,
 															  0, 0, style->back_icon.width, style->back_icon.height,
 															  AllPlanes, False, 0);
 				else
-					style->back_icon.image = picture2asimage (Scr.asv, style->back_icon.pix, style->back_icon.alpha,
+					style->back_icon.image = picture2asimage (ASDefaultVisual, style->back_icon.pix, style->back_icon.alpha,
 															  0, 0, style->back_icon.width, style->back_icon.height,
 															  AllPlanes, False, 0);
 			}
@@ -252,8 +252,8 @@ mystyle_get_property (ASWMProps *wmprops)
 void 
 mystyle_handle_property_event( XEvent *event )
 {	 
-	handle_wmprop_event (Scr.wmprops, event);
-	mystyle_list_destroy_all(&(Scr.Look.styles_list));
-	mystyle_get_property(Scr.wmprops);
+	handle_wmprop_event (ASDefaultScr->wmprops, event);
+	mystyle_list_destroy_all(&(ASDefaultScr->Look.styles_list));
+	mystyle_get_property(ASDefaultScr->wmprops);
 }
 

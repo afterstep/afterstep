@@ -157,7 +157,7 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
         if( asw->hints->client_cmd != NULL && same_host )
         {
 			char *pure_geometry = NULL ;
-			char *geom = make_client_geometry_string( &Scr, asw->hints, asw->status, &(asw->anchor), Scr.Vx, Scr.Vy, &pure_geometry );
+			char *geom = make_client_geometry_string( ASDefaultScr, asw->hints, asw->status, &(asw->anchor), Scr.Vx, Scr.Vy, &pure_geometry );
 			/* format :   [<res_class>]:[<res_name>]:[[#<seq_no>]|<name>]  */
 			int app_no = get_res_name_count( swad->res_name_counts, asw->hints->res_name );
 			char *rname = asw->hints->res_name?asw->hints->res_name:"*" ;
@@ -949,7 +949,7 @@ restack_window_list( int desk, Bool send_msg_only )
                 XRestackWindows( dpy, windows, windows_num );
             XSync(dpy, False);
         }
-        raise_scren_panframes (&Scr);
+        raise_scren_panframes (ASDefaultScr);
         XRaiseWindow(dpy, Scr.ServiceWin);
     }
 }

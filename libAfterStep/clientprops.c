@@ -604,7 +604,7 @@ default_parent_hints_func (Window parent, ASParentHints * dst)
 		return False;
 	if (!XGetGeometry (dpy, parent, &root, &dummy, &dummy, &udummy, &udummy, &udummy, &udummy))
 		return False;
-	if (parent != Scr.Root)
+	if (parent != ASDefaultRoot)
 	{
 		CARD32        desktop;
 
@@ -740,7 +740,7 @@ collect_hints (ScreenInfo * scr, Window w, ASFlagType what, ASRawHints * reusabl
 			memset (hints, 0x00, sizeof (ASRawHints));
 		}
 
-		hints->scr = scr ? scr : &Scr;
+		hints->scr = scr ? scr : ASDefaultScr;
 
 		if (get_flags (what, HINT_STARTUP))
 		{									   /* we also need to get window position, size and border width */
@@ -867,7 +867,7 @@ print_parent_hints (stream_func func, void *stream, ASParentHints * hints, const
 	if (!pre_print_check (&func, &stream, hints, prompt))
 		return;
 
-	if (hints->parent != Scr.Root)
+	if (hints->parent != ASDefaultRoot)
 		func (stream, "%s.PARENT.parent = 0x%lX;\n", prompt, hints->parent);
 	else
 		func (stream, "%s.PARENT.parent = root;\n", prompt);

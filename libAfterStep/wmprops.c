@@ -882,7 +882,7 @@ set_prop_updated (ASHashTable * handlers, Atom prop)
 /*    prop_description_struct *descr ;
     ASHashableValue  hprop = (ASHashableValue)((unsigned long)prop);
     if( get_hash_item( handlers, hprop, (void**)&descr ) == ASH_Success )
-        descr->update_time = Scr.last_Timestamp ;
+        descr->update_time = ASDefaultScr->last_Timestamp ;
  */
 }
 

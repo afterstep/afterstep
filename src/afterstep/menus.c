@@ -1362,7 +1362,7 @@ show_asmenu( ASMenu *menu, int x, int y )
         raw.placement.y = status.y ;
         raw.placement.width = menu->optimal_width ;
         raw.placement.height = menu->optimal_height ;
-        raw.scr = &Scr ;
+        raw.scr = ASDefaultScr ;
         raw.border_width = 0 ;
 
 /*		LOCAL_DEBUG_OUT( "printing db record %p for names %p and db %p", pdb_rec, clean->names, db );
@@ -1372,8 +1372,8 @@ show_asmenu( ASMenu *menu, int x, int y )
 		destroy_asdb_record( db_rec, False );
     }
     /* lets make sure we got everything right : */
-    check_hints_sanity (&Scr, hints );
-    check_status_sanity (&Scr, &status);
+    check_hints_sanity (ASDefaultScr, hints );
+    check_status_sanity (ASDefaultScr, &status);
 
 #if 0
     {

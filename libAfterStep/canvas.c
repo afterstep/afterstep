@@ -106,7 +106,7 @@ refresh_canvas_config (ASCanvas * pc)
 		Window        wdumm;
 		unsigned int  bw ;
 
-		XTranslateCoordinates (dpy, pc->w, Scr.Root, 0, 0, &root_x, &root_y, &wdumm);
+		XTranslateCoordinates (dpy, pc->w, ASDefaultRoot, 0, 0, &root_x, &root_y, &wdumm);
         XGetGeometry( dpy, pc->w, &wdumm, &dumm, &dumm, &udumm, &udumm, &bw, &udumm );
 		root_x -= bw ;
 		root_y -= bw ;
@@ -129,8 +129,8 @@ refresh_canvas_config (ASCanvas * pc)
 
 		if (width != pc->width || height != pc->height)
 		{
-			destroy_visual_pixmap(Scr.asv, &(pc->saved_canvas));
-			destroy_visual_pixmap(Scr.asv, &(pc->canvas));
+			destroy_visual_pixmap(ASDefaultVisual, &(pc->saved_canvas));
+			destroy_visual_pixmap(ASDefaultVisual, &(pc->canvas));
 
 			if (pc->saved_shape )
 				destroy_shape( &(pc->saved_shape) );
@@ -157,7 +157,7 @@ get_canvas_canvas (ASCanvas * pc)
 LOCAL_DEBUG_CALLER_OUT( "ASCanvas(%p)->canvas(%lX)", pc,pc->canvas );
 	if (pc->canvas == None)
 	{
-		pc->canvas = create_visual_pixmap (Scr.asv, Scr.Root, pc->width, pc->height, 0);
+		pc->canvas = create_visual_pixmap (ASDefaultVisual, ASDefaultRoot, pc->width, pc->height, 0);
 		set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
         XSetWindowBackgroundPixmap (dpy, pc->w, pc->canvas);
     }
@@ -205,8 +205,8 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 		LOCAL_DEBUG_CALLER_OUT( "<<#########>>destroying canvas %p for window %lX", pc, pc?pc->w:None );
 		if (pc)
 		{
-			destroy_visual_pixmap(Scr.asv, &(pc->saved_canvas));
-			destroy_visual_pixmap(Scr.asv, &(pc->canvas));
+			destroy_visual_pixmap(ASDefaultVisual, &(pc->saved_canvas));
+			destroy_visual_pixmap(ASDefaultVisual, &(pc->canvas));
             if (pc->saved_shape)
 				destroy_shape( &(pc->saved_shape));
             if (pc->shape)
@@ -246,8 +246,8 @@ invalidate_canvas_config( ASCanvas *pc )
 
 		pc->width = 0;
 		pc->height = 0;
-		destroy_visual_pixmap(Scr.asv, &(pc->canvas));
-		destroy_visual_pixmap(Scr.asv, &(pc->saved_canvas));
+		destroy_visual_pixmap(ASDefaultVisual, &(pc->canvas));
+		destroy_visual_pixmap(ASDefaultVisual, &(pc->saved_canvas));
 	    if (pc->shape)
 			destroy_shape( &(pc->shape) );
 	    if (pc->saved_shape)
@@ -325,7 +325,7 @@ draw_canvas_image (ASCanvas * pc, ASImage * im, int x, int y)
         return False;
 
     LOCAL_DEBUG_OUT ("drawing image %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y);
-	if (asimage2drawable (Scr.asv, p, im, Scr.DrawGC, real_x - x, real_y - y, real_x, real_y, width, height, True))
+	if (asimage2drawable (ASDefaultVisual, p, im, ASDefaultDrawGC, real_x - x, real_y - y, real_x, real_y, width, height, True))
 	{
 		set_flags (pc->state, CANVAS_OUT_OF_SYNC);
         XClearArea( dpy, pc->w, real_x, real_y, width, height, True );
@@ -504,7 +504,7 @@ invalidate_canvas_save( ASCanvas *pc )
 {
 	if( pc )
 	{
-		destroy_visual_pixmap( Scr.asv, &(pc->saved_canvas) );
+		destroy_visual_pixmap( ASDefaultVisual, &(pc->saved_canvas) );
 		destroy_shape( &(pc->saved_shape) );
 	}
 }
@@ -518,7 +518,7 @@ restore_canvas( ASCanvas *pc )
 		if( pc->saved_canvas == None )
 			return False ;
 
-		destroy_visual_pixmap( Scr.asv, &(pc->canvas) );
+		destroy_visual_pixmap( ASDefaultVisual, &(pc->canvas) );
 		pc->canvas = pc->saved_canvas ;
 		pc->saved_canvas = None ;
 
@@ -538,7 +538,7 @@ save_canvas( ASCanvas *pc )
 {
 	if( pc )
 	{
-		destroy_visual_pixmap( Scr.asv, &(pc->saved_canvas) );
+		destroy_visual_pixmap( ASDefaultVisual, &(pc->saved_canvas) );
 		pc->saved_canvas = pc->canvas ;
 		pc->canvas = None ;
 
@@ -912,7 +912,7 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
         Window parent = None ;
         
         if( dst == None ) 
-            dst = Scr.Root ;            
+            dst = ASDefaultRoot ;            
 
         if( use_root_pos )
         {
@@ -930,13 +930,13 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
 			{
 				Window w[2] ;
 				XUnmapWindow( dpy, pc->w );
-				XReparentWindow( dpy, pc->w, (dst!=None)?dst:Scr.Root, x, y );
+				XReparentWindow( dpy, pc->w, (dst!=None)?dst:ASDefaultRoot, x, y );
 				w[0] = below ; 
 				w[1] = pc->w ; 
 				XRestackWindows( dpy, w, 2 );
 				XMapWindow( dpy, pc->w );
 			}else		  
-    			XReparentWindow( dpy, pc->w, (dst!=None)?dst:Scr.Root, x, y );
+    			XReparentWindow( dpy, pc->w, (dst!=None)?dst:ASDefaultRoot, x, y );
     		XSelectInput (dpy, pc->w, event_mask );
         }
     }
@@ -948,7 +948,7 @@ reparent_canvas_window( ASCanvas *pc, Window dst, int x, int y )
     if( pc )
     {
         if( dst == None ) 
-            dst = Scr.Root ;            
+            dst = ASDefaultRoot ;            
         LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, +0+0 )", pc->w, dst );
         XReparentWindow( dpy, pc->w, dst, 0, 0 );
     }
@@ -972,14 +972,14 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%ux%u%+d%+d)", canvas, canvas->width, canvas->heigh
 void
 set_root_clip_area( ASCanvas *canvas )
 {
-    Scr.RootClipArea.x = canvas->root_x+(int)canvas->bw;
-    Scr.RootClipArea.y = canvas->root_y+(int)canvas->bw;
-    Scr.RootClipArea.width  = canvas->width;
-    Scr.RootClipArea.height = canvas->height;
-    if( Scr.RootImage )
+    ASDefaultScr->RootClipArea.x = canvas->root_x+(int)canvas->bw;
+    ASDefaultScr->RootClipArea.y = canvas->root_y+(int)canvas->bw;
+    ASDefaultScr->RootClipArea.width  = canvas->width;
+    ASDefaultScr->RootClipArea.height = canvas->height;
+    if( ASDefaultScr->RootImage )
     {
-        safe_asimage_destroy( Scr.RootImage );
-        Scr.RootImage = NULL ;
+        safe_asimage_destroy( ASDefaultScr->RootImage );
+        ASDefaultScr->RootImage = NULL ;
     }
 }
 
@@ -1011,7 +1011,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%p", parent, canvas );
     	    /* what if we don't have a title ????? */
         	client_event.xconfigure.above = parent->w;
 		}else
-			client_event.xconfigure.above = Scr.Root;
+			client_event.xconfigure.above = ASDefaultRoot;
         client_event.xconfigure.override_redirect = False;
 		LOCAL_DEBUG_OUT( "geom= %dx%d%+d%+d", client_event.xconfigure.width, client_event.xconfigure.height, client_event.xconfigure.x, client_event.xconfigure.y );
         XSendEvent (dpy, canvas->w, False, StructureNotifyMask, &client_event);

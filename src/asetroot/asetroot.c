@@ -339,7 +339,7 @@ main (int argc, char **argv)
   signal (SIGKILL, DeadPipe);
 
   LOG2 ("\n%s connecting to X ...", MyName)
-    Pipes.x_fd = ConnectX (&Scr, display_name, 0);
+    Pipes.x_fd = ConnectX (ASDefaultScr, display_name, 0);
   InitAtoms (dpy, Atoms);
   /* enable root pixmap property setting */
   SetRootPixmapPropertyID (Atoms[ROOTPIXMAP_ATOM].atom);

@@ -128,7 +128,7 @@ main( int argc, char **argv )
 
     set_signal_handler( SIGSEGV );
 
-    ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
+    ConnectX( ASDefaultScr, PropertyChangeMask|EnterWindowMask );
     ConnectAfterStep (M_FOCUS_CHANGE |
                       M_DESTROY_WINDOW |
                       WINDOW_CONFIG_MASK |

@@ -943,7 +943,7 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
             event.x.xbutton.y = 0;
             event.x.xbutton.subwindow = None;
             event.context = C_FRAME;
-            event.scr = &Scr ;
+            event.scr = ASDefaultScr ;
             event.event_time = Scr.last_Timestamp ;
             /* there must be no deffering on module commands ! */
             ExecuteFunctionExt (fdata, &event, channel, True);

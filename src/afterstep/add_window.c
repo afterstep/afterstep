@@ -184,7 +184,7 @@ AddWindow (Window w)
 	 */
 	XSelectInput( dpy, w, AS_CLIENT_EVENT_MASK );
 		
-    if( collect_hints( &Scr, w, HINT_ANY, &raw_hints ) )
+    if( collect_hints( ASDefaultScr, w, HINT_ANY, &raw_hints ) )
     {
         if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
             print_hints( NULL, NULL, &raw_hints );

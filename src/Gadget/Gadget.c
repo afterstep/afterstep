@@ -129,7 +129,7 @@ main( int argc, char **argv )
 
     set_signal_handler( SIGSEGV );
 
-    ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
+    ConnectX( ASDefaultScr, PropertyChangeMask|EnterWindowMask );
     ConnectAfterStep ();
     balloon_init (False);
     Config = CreateGadgetConfig ();

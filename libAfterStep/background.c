@@ -95,17 +95,17 @@ BackgroundSetPixmap (Pixmap pix)
 
 	if (current_root == pix)
 	{
-		XClearWindow (dpy, Scr.Root);
+		XClearWindow (dpy, ASDefaultRoot);
 		return;
 	}
 
-	XSetWindowBackgroundPixmap (dpy, Scr.Root, pix);
-	XClearWindow (dpy, Scr.Root);
+	XSetWindowBackgroundPixmap (dpy, ASDefaultRoot, pix);
+	XClearWindow (dpy, ASDefaultRoot);
 
 	/* we shell be setting root pixmap ID in X property with specifyed ID */
 	if (RootPixmapProperty != None)
 	{
-		XChangeProperty (dpy, Scr.Root, RootPixmapProperty, XA_PIXMAP, 32, PropModeReplace, (char *)&pix, 1);
+		XChangeProperty (dpy, ASDefaultRoot, RootPixmapProperty, XA_PIXMAP, 32, PropModeReplace, (char *)&pix, 1);
 		XFlush (dpy);						   /* so that everyone has time to process this change
 											      * before we go ahead and delete old background
 											    */
@@ -128,12 +128,12 @@ BackgroundSetMyStyle (char *style_name)
 			BackgroundSetPixmap (style->back_icon.pix);
 			return None;
 		} else if (style->set_flags & F_BACKGRADIENT)
-			pix = mystyle_make_pixmap (style, Scr.MyDisplayWidth, Scr.MyDisplayHeight, None);
+			pix = mystyle_make_pixmap (style, ASDefaultScrWidth, ASDefaultScrHeight, None);
 		if (pix == None)
 		{
 			GC            backGC, foreGC;
 
-			pix = XCreatePixmap (dpy, Scr.Root, 1, 1, Scr.d_depth);
+			pix = XCreatePixmap (dpy, ASDefaultRoot, 1, 1, Scr.d_depth);
 /*			mystyle_get_global_gcs (style, &foreGC, &backGC, NULL, NULL);
 			XDrawPoint (dpy, pix, (backGC != None) ? backGC : foreGC, 1, 1);
   */		}
@@ -320,7 +320,7 @@ FreeDeskBackArray (ASDeskBackArray * backs, int free_pixmaps)
 					{
 						Pixmap        pix = None;
 
-						XChangeProperty (dpy, Scr.Root, RootPixmapProperty, XA_PIXMAP, 32, PropModeReplace,
+						XChangeProperty (dpy, ASDefaultRoot, RootPixmapProperty, XA_PIXMAP, 32, PropModeReplace,
 										 (char *)&pix, 1);
 						XFlush (dpy);
 						/* so that everyone has time to process this change
@@ -380,7 +380,7 @@ SetBackgroundsProperty (ASDeskBackArray * backs, Atom property)
 		return;
 	if (backs->desks == NULL || backs->desks_num <= 0)
 		return;
-	set_as_property (Scr.Root, property, (unsigned long *)(backs->desks), backs->desks_num * sizeof (ASDeskBack),
+	set_as_property (ASDefaultRoot, property, (unsigned long *)(backs->desks), backs->desks_num * sizeof (ASDeskBack),
 					 (1 << 8) + 0);
 }
 
@@ -394,7 +394,7 @@ GetBackgroundsProperty (ASDeskBackArray * backs, Atom property)
 		return;
 	if (backs->desks != NULL || backs->desks_num > 0)
 		FreeDeskBackArray (backs, FALSE);
-	data = get_as_property (Scr.Root, property, (size_t *) & (backs->desks_num), &version);
+	data = get_as_property (ASDefaultRoot, property, (size_t *) & (backs->desks_num), &version);
 	if (data && backs->desks_num > 0 && version == (1 << 8) + 0)
 	{
 		backs->desks = (ASDeskBack *) safemalloc (backs->desks_num);

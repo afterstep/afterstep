@@ -25,13 +25,13 @@ load_font (const char *name, MyFont * font)
 #if defined(LOG_FONT_CALLS) && defined(DEBUG_ALLOCS)
 	log_call (file, line, "load_font", name);
 #endif
-	if (Scr.font_manager == NULL)
+	if (ASDefaultScr->font_manager == NULL)
 	{
 		char         *path = getenv ("FONT_PATH");
 
 		if (path == NULL)
 			path = getenv ("PATH");
-		Scr.font_manager = create_font_manager (dpy, path, NULL);
+		ASDefaultScr->font_manager = create_font_manager (dpy, path, NULL);
 	}
 
 	if( clean_name != NULL )
@@ -51,17 +51,17 @@ load_font (const char *name, MyFont * font)
 	}
 	if( clean_name != NULL )
 	{
-		if( (font->as_font = get_asfont (Scr.font_manager, clean_name, 0, font_size, ASF_Freetype)) != NULL )
+		if( (font->as_font = get_asfont (ASDefaultScr->font_manager, clean_name, 0, font_size, ASF_Freetype)) != NULL )
 			show_progress( "Successfully loaded freetype font \"%s\"", clean_name );
 	}
 	if( font->as_font == NULL && name != NULL )
 	{
-		if( (font->as_font = get_asfont (Scr.font_manager, name, 0, font_size, ASF_GuessWho)) != NULL )
+		if( (font->as_font = get_asfont (ASDefaultScr->font_manager, name, 0, font_size, ASF_GuessWho)) != NULL )
 			show_progress( "Successfully loaded font \"%s\"", name );
 	}
 	if( font->as_font == NULL )
 	{
-		font->as_font = get_asfont (Scr.font_manager, default_font, 0, font_size, ASF_GuessWho);
+		font->as_font = get_asfont (ASDefaultScr->font_manager, default_font, 0, font_size, ASF_GuessWho);
 		show_warning( "failed to load font \"%s\" - using default instead", name );
 	}
 	if( clean_name && clean_name != name )

@@ -470,7 +470,7 @@ main (int argc, char *argv[])
   signal (SIGSEGV, DeadPipe);
   signal (SIGTERM, DeadPipe);
 
-  x_fd = ConnectX (&Scr, display_name, PropertyChangeMask);
+  x_fd = ConnectX (ASDefaultScr, display_name, PropertyChangeMask);
   XSetErrorHandler (error_handler);
 
   /* connect to AfterStep */

@@ -412,8 +412,8 @@ decode_func_units (FunctionData * data)
     register int  i;
     int defaults[MAX_FUNC_ARGS];
 
-	defaults[0] = Scr.MyDisplayWidth;
-	defaults[1] = Scr.MyDisplayHeight;
+	defaults[0] = ASDefaultScrWidth;
+	defaults[1] = ASDefaultScrHeight;
 	for (i = 0; i < MAX_FUNC_ARGS; i++)
 		switch (data->unit[i])
 		{
@@ -605,7 +605,7 @@ new_menu_data( ASHashTable *list, char *name )
     md = (MenuData*) safecalloc (1, sizeof(MenuData));
     md->name = mystrdup(name);
     md->magic = MAGIC_MENU_DATA ;
-	md->recent_items = Scr.Feel.recent_submenu_items ;
+	md->recent_items = ASDefaultScr->Feel.recent_submenu_items ;
 
     if( add_hash_item( list, AS_HASHABLE(md->name), md) != ASH_Success )
     {
@@ -735,7 +735,7 @@ check_scale_menu_pmap( ASImage *im )
         }
         if( w != im->width || h != im->height )
         {
-			return scale_asimage( Scr.asv, im, w, h, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+			return scale_asimage( ASDefaultVisual, im, w, h, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
         }
     }
 	return im;
@@ -746,9 +746,9 @@ reload_menu_pmaps( MenuData *menu )
 {
     MenuDataItem *curr ;
 	
-	LOCAL_DEBUG_OUT( "menu = %p, image_manager = %p", menu, Scr.image_manager );
+	LOCAL_DEBUG_OUT( "menu = %p, image_manager = %p", menu, ASDefaultScr->image_manager );
 
-	if( menu && Scr.image_manager ) 
+	if( menu && ASDefaultScr->image_manager ) 
 		for( curr = menu->first ; curr != NULL ; curr = curr->next )
 		{	
     		if( curr->minipixmap )
@@ -756,7 +756,7 @@ reload_menu_pmaps( MenuData *menu )
 				ASImage *tmp ;
             	if( curr->minipixmap_image )
                 	safe_asimage_destroy(curr->minipixmap_image);
-            	tmp = get_asimage( Scr.image_manager, curr->minipixmap, ASFLAGS_EVERYTHING, 100 );
+            	tmp = get_asimage( ASDefaultScr->image_manager, curr->minipixmap, ASFLAGS_EVERYTHING, 100 );
 				curr->minipixmap_image = check_scale_menu_pmap( tmp ); 
 				if( tmp != curr->minipixmap_image )
 				{	
@@ -765,7 +765,7 @@ reload_menu_pmaps( MenuData *menu )
 					/* we also need to add our icon into the image_manager ! : */
 					n = safemalloc( strlen( curr->minipixmap ) + 64 );
 					sprintf( n, "%s_scaled_to_%dx%d",curr->minipixmap, curr->minipixmap_image->width, curr->minipixmap_image->height );
-					store_asimage( Scr.image_manager, curr->minipixmap_image, n );					 
+					store_asimage( ASDefaultScr->image_manager, curr->minipixmap_image, n );					 
 				}
         	}
 			LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );

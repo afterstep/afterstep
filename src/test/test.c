@@ -158,7 +158,7 @@ main( int argc, char **argv )
 
     set_signal_handler( SIGSEGV );
 
-    ConnectX( &Scr, 0 );
+    ConnectX( ASDefaultScr, 0 );
     ConnectAfterStep (0);
     balloon_init (False);
 

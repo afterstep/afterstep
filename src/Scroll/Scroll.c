@@ -102,7 +102,7 @@ main (int argc, char **argv)
   signal (SIGPIPE, DeadPipe);
   set_signal_handler (SIGSEGV);
 
-  x_fd = ConnectX( &Scr, display_name, 0 );
+  x_fd = ConnectX( ASDefaultScr, display_name, 0 );
   /* connect to AfterStep */
   fd[0] = fd[1] = ConnectAfterStep (0);
 
