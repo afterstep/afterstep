@@ -682,10 +682,12 @@ is_canvas_dirty( ASCanvas *pc )
     return pc?get_flags (pc->state, CANVAS_DIRTY|CANVAS_OUT_OF_SYNC|CANVAS_MASK_OUT_OF_SYNC):False;
 }
 
-void
+ASFlagType 
 resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 {
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u)", pc, pc->w, width, height );
+    ASFlagType changes = 0 ;        
+
+    LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u)", pc, pc->w, width, height );
     /* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
     if( width>MAX_POSITION )
@@ -708,14 +710,22 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u)", pc, pc->w, width
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
     LOCAL_DEBUG_OUT( "XResizeWindow( %lX, %dx%d );", pc->w, width, height );
     XResizeWindow (dpy, pc->w, width, height);
+
+    if( width != pc->width ) set_flags( changes, CANVAS_WIDTH_CHANGED );
+    if( height != pc->height ) set_flags( changes, CANVAS_HEIGHT_CHANGED );
+    return changes;
+
 }
 
-void
+ASFlagType
 moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height)
 {
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w, width, height, x, y );
+    ASFlagType changes = 0 ;
+    LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w, width, height, x, y );
     /* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
+
+
     if( width>MAX_POSITION )
     {
 #ifdef DEBUG_ALLOCS
@@ -737,7 +747,13 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w,
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
     LOCAL_DEBUG_OUT( "XMoveResizeWindow( %lX, %dx%d%+d%+d );", pc->w, width, height, x, y );
     XMoveResizeWindow (dpy, pc->w, x, y, width, height);
+
+    set_flags( changes, CANVAS_X_CHANGED|CANVAS_Y_CHANGED );
+    if( width != pc->width ) set_flags( changes, CANVAS_WIDTH_CHANGED );
+    if( height != pc->height ) set_flags( changes, CANVAS_HEIGHT_CHANGED );
+    return changes;
 }
+
 
 void
 move_canvas (ASCanvas * pc, int x, int y)
@@ -770,11 +786,14 @@ map_canvas_window( ASCanvas *pc, Bool raised )
 void
 quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_root_pos )
 {
-    if( pc && dst != None )
+    if( pc )
     {
         int x = 0, y = 0 ;
 		unsigned int bw = pc->bw;
         Window parent = None ;
+        
+        if( dst == None ) 
+            dst = Scr.Root ;            
 
         if( use_root_pos )
         {
@@ -788,6 +807,18 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
             LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, %+d%+d ), bw = %d", pc->w, dst, x, y, bw );
             quietly_reparent_window( pc->w, dst, x, y, event_mask );
         }
+    }
+}
+
+void
+reparent_canvas_window( ASCanvas *pc, Window dst, int x, int y )
+{
+    if( pc )
+    {
+        if( dst == None ) 
+            dst = Scr.Root ;            
+        LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, +0+0 )", pc->w, dst );
+        XReparentWindow( dpy, pc->w, dst, 0, 0 );
     }
 }
 

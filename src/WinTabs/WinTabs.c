@@ -64,7 +64,7 @@ typedef struct ASWinTab
 }ASWinTab;
 
 typedef struct {
-	Window main_window ;
+    Window main_window, tabs_window ;
 	ASCanvas *main_canvas ;
 	ASCanvas *tabs_canvas ;
 
@@ -105,8 +105,9 @@ void DispatchEvent (ASEvent * Event);
 Window make_wintabs_window();
 Window make_tabs_window( Window parent );
 void check_swallow_window( ASWindowData *wd );
-
-
+void rearrange_tabs();
+void render_tabs( Bool canvas_resized );
+void on_destroy_notify(Window w);
 
 int
 main( int argc, char **argv )
@@ -143,8 +144,14 @@ main( int argc, char **argv )
 
     WinTabsState.main_window = make_wintabs_window();
     WinTabsState.main_canvas = create_ascanvas_container( WinTabsState.main_window );
-	WinTabsState.tabs_canvas = create_ascanvas( make_tabs_window( WinTabsState.main_window ) );
+    WinTabsState.tabs_window = make_tabs_window( WinTabsState.main_window );
+    WinTabsState.tabs_canvas = create_ascanvas( WinTabsState.tabs_window );
+    map_canvas_window( WinTabsState.tabs_canvas, True );
     set_root_clip_area(WinTabsState.main_canvas );
+    map_canvas_window( WinTabsState.main_canvas, True );
+    /* final cleanup */
+	XFlush (dpy);
+	sleep (1);								   /* we have to give AS a chance to spot us */
 
 	/* And at long last our main loop : */
     HandleEvents();
@@ -269,6 +276,19 @@ GetOptions (const char *filename)
     if( get_flags(config->set_flags, WINTABS_Geometry) )
         merge_geometry(&(config->geometry), &(Config->geometry) );
 
+    if( config->pattern )
+    {    
+        set_string_value( &(Config->pattern), mystrdup(config->pattern), NULL, 0 );
+        Config->pattern_type = config->pattern_type ; 
+    }
+    if( get_flags(config->set_flags, WINTABS_MaxRows) )
+        Config->max_rows = config->max_rows;
+    if( get_flags(config->set_flags, WINTABS_MaxColumns) )
+        Config->max_columns = config->max_columns;
+    if( get_flags(config->set_flags, WINTABS_MinTabWidth) )
+        Config->min_tab_width = config->min_tab_width;
+    if( get_flags(config->set_flags, WINTABS_MaxTabWidth) )
+        Config->max_tab_width = config->max_tab_width;
 
     if( config->unfocused_style )
         set_string_value( &(Config->unfocused_style), mystrdup(config->unfocused_style), NULL, 0 );
@@ -276,6 +296,15 @@ GetOptions (const char *filename)
         set_string_value( &(Config->focused_style), mystrdup(config->focused_style), NULL, 0 );
     if( config->sticky_style )
         set_string_value( &(Config->sticky_style), mystrdup(config->sticky_style), NULL, 0 );
+
+    if( get_flags(config->set_flags, WINTABS_Align) )
+        Config->name_aligment = config->name_aligment;
+    if( get_flags(config->set_flags, WINTABS_FBevel) )
+        Config->fbevel = config->fbevel;
+    if( get_flags(config->set_flags, WINTABS_UBevel) )
+        Config->ubevel = config->ubevel;
+    if( get_flags(config->set_flags, WINTABS_SBevel) )
+        Config->sbevel = config->sbevel;
 
     if( get_flags(config->set_flags, WINTABS_FCM) )
         Config->fcm = config->fcm;
@@ -332,27 +361,35 @@ process_message (unsigned long type, unsigned long *body)
 void
 DispatchEvent (ASEvent * event)
 {
-    ASWindowData *pointer_wd = NULL ;
+/*    ASWindowData *pointer_wd = NULL ; */
+    ASCanvas *mc = WinTabsState.main_canvas ;
 
     SHOW_EVENT_TRACE(event);
 
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
     {
     }
-
+    LOCAL_DEBUG_OUT( "mc.geom = %dx%d%+d%+d", mc->width, mc->height, mc->root_x, mc->root_y );
     switch (event->x.type)
     {
 	    case ConfigureNotify:
             {
-                ASFlagType changes = handle_canvas_config( WinTabsState.main_canvas );
-                if( changes != 0 )
-                    set_root_clip_area( WinTabsState.main_canvas );
-
-                if( get_flags( changes, CANVAS_RESIZED ) )
-				{
-				}else if( changes != 0 )        /* moved - update transparency ! */
-				{
-				}
+                if( event->w == WinTabsState.main_window ) 
+                {                        
+                    ASFlagType changes = handle_canvas_config( WinTabsState.main_canvas );
+                    if( get_flags( changes, CANVAS_RESIZED ) )
+                        rearrange_tabs();
+                  
+                    if( changes != 0 ) 
+                        set_root_clip_area( WinTabsState.main_canvas );
+                }else if( event->w == WinTabsState.tabs_window ) 
+                {
+                    ASFlagType changes = handle_canvas_config( WinTabsState.tabs_canvas );
+                    if( get_flags( changes, CANVAS_RESIZED ) )
+                    {
+                        render_tabs( True );
+                    }    
+                }
             }
 	        break;
         case ButtonPress:
@@ -368,7 +405,11 @@ DispatchEvent (ASEvent * event)
         case LeaveNotify :
         case MotionNotify :
             break ;
-	    case ClientMessage:
+        case DestroyNotify:
+            on_destroy_notify(event->w);
+            break;
+
+        case ClientMessage:
             if ((event->x.xclient.format == 32) &&
                 (event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
 			{
@@ -408,7 +449,9 @@ make_wintabs_window()
     unsigned int width = max(Config->geometry.width,1);
     unsigned int height = max(Config->geometry.height,1);
 
-	switch( Config->gravity )
+    XSetWindowAttributes attributes;
+    attributes.background_pixmap = ParentRelative;
+    switch( Config->gravity )
 	{
 		case NorthEastGravity :
             x = Config->anchor_x - width ;
@@ -428,26 +471,19 @@ make_wintabs_window()
 			y = Config->anchor_y ;
 			break;
 	}
-
-	w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, 0, NULL);
+    LOCAL_DEBUG_OUT( "creating main window with geometry %dx%d%+d%+d", width, height, x, y );
+    w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, CWBackPixmap, &attributes);
     set_client_names( w, "WinTabs", "WINTABS", CLASS_GADGET, MyName );
 
-	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize|PWinGravity;
-	shints.min_width = shints.min_height = 4;
-	shints.base_width = shints.base_height = 4;
-	shints.win_gravity = Config->gravity ;
+    shints.flags = USPosition|USSize|PWinGravity;
+    shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
 	extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeDock ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 
-	/* showing window to let user see that we are doing something */
-	XMapRaised (dpy, w);
-	/* final cleanup */
-	XFlush (dpy);
-	sleep (1);								   /* we have to give AS a chance to spot us */
-	/* we will need to wait for PropertyNotify event indicating transition
+    /* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
     XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|
                           ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
@@ -462,9 +498,10 @@ Window
 make_tabs_window( Window parent )
 {
 	static XSetWindowAttributes attr ;
-
+    Window w ;
 	attr.event_mask = WINTABS_TAB_EVENT_MASK ;
-    return create_visual_window( Scr.asv, parent, 0, 0, 1, 1, 0, InputOutput, CWEventMask, &attr );
+    w = create_visual_window( Scr.asv, parent, 0, 0, 1, 1, 0, InputOutput, CWEventMask, &attr );
+    return w;
 }
 /**************************************************************************
  * add/remove a tab code
@@ -496,34 +533,130 @@ add_tab( Window client, const char *name, INT32 encoding )
 
 	append_vector( WinTabsState.tabs, &aswt, 1 );
 
-	return PVECTOR_TAIL(ASWinTab,WinTabsState.tabs);
+    return PVECTOR_TAIL(ASWinTab,WinTabsState.tabs)-1;
+}
+
+void
+delete_tab( int index ) 
+{
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    destroy_astbar( &(tabs[index].bar) );
+    destroy_ascanvas( &(tabs[index].client_canvas) );
+    if( tabs[index].name ) 
+        free( tabs[index].name );
+    vector_remove_index( WinTabsState.tabs, index );
+}    
+
+void
+place_tabs_line( ASWinTab *tabs, int y, int first, int last, int spare, int max_width, int tab_height )
+{
+    int i ;
+    int x = 0;
+    int delta = spare / (last+1-first) ;
+
+    for( i = first ; i <= last ; ++i ) 
+    {
+        int width  = calculate_astbar_width( tabs[i].bar );
+        if( width < Config->min_tab_width ) 
+            width = Config->min_tab_width ;
+        if( width > max_width )
+            width = max_width ;
+        width += delta ;
+        spare -= delta ; 
+        if( i < last ) 
+            delta = spare / (last - i) ;
+
+        set_astbar_size( tabs[i].bar, width, tab_height );
+        move_astbar( tabs[i].bar, WinTabsState.tabs_canvas, x, y );
+        x += width ;
+    }    
+
+    
 }
 
 void
 rearrange_tabs()
 {
-	int total_length = 0, max_total_length = 0 ;
-	int max_height = 0 ;
+    int tab_height = 0 ;
 	ASCanvas *mc = WinTabsState.main_canvas ;
 	int i ;
 	ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    int tabs_num = PVECTOR_USED(WinTabsState.tabs) ;
+    int x = 0, y = 0 ; 
+    int max_x = mc->width ; 
+    int max_y = mc->height ; 
+    int max_width = Config->max_tab_width ; 
+    int start = 0 ;
 
-	if( Config->max_rows > 0 )
-		max_total_length = mc->width * Config->max_rows ;
+    if( max_width <= 0 || max_width > max_x )
+        max_width = max_x ;
 
-	i = PVECTOR_USED(WinTabsState.tabs) ;
+    LOCAL_DEBUG_OUT( "max_x = %d, max_y = %d, max_width = %d", max_x, max_y, max_width );
+    i = tabs_num ;
 	while( --i >= 0 )
 	{
-		int width  = calculate_astbar_width( tabs[i].bar );
-		int height = calculate_astbar_height( tabs[i].bar );
+        int height = calculate_astbar_height( tabs[i].bar );
+        if( height > tab_height )
+            tab_height = height ;
+    }
 
-		if( height > max_height )
-			max_height = height ;
-		total_length += width ;
+    if( tab_height == 0 || max_x <= 0 || max_y <= 0 )
+        return ;
+    i = tabs_num ; 
+    for( i = 0 ; i < tabs_num ; ++i ) 
+    {    
+        int width  = calculate_astbar_width( tabs[i].bar );
+        if( width < Config->min_tab_width ) 
+            width = Config->min_tab_width ;
+        if( width > max_width )
+            width = max_width ;
+        if( x + width > max_x )
+        {    
+            place_tabs_line( tabs, y, start, i - 1, max_x - x, max_width, tab_height );
+            if( y + tab_height > max_y ) 
+                break;
+            y += tab_height ; 
+            x = 0 ;
+        }else if( i == tabs_num - 1 )
+        {    
+            place_tabs_line( tabs, y, start, i, max_x - (x+width), max_width, tab_height );
+            x = 0 ;
+        }else
+            x += width ;
+    }
+    if( i >= tabs_num )    
+        y += tab_height ; 
+    
+    if( (moveresize_canvas( WinTabsState.tabs_canvas, 0, 0, max_x, y ) & CANVAS_RESIZED) == 0 ) 
+        render_tabs( False );
+    
+    max_y -= y ;
+    i = tabs_num ; 
+    LOCAL_DEBUG_OUT( "moveresaizing %d client canvases to %dx%d%+d%+d", i, max_x, max_y, 0, y );
+    while( --i >= 0 ) 
+    {    
+        moveresize_canvas( tabs[i].client_canvas, 0, y, max_x, max_y );    
+    }
+}
+
+void
+render_tabs( Bool canvas_resized )
+{        
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    int i = PVECTOR_USED(WinTabsState.tabs) ;
+
+    while( --i >= 0  )
+    {
+        register ASTBarData   *tbar = tabs[i].bar ;
+        if( tbar != NULL )
+            if( DoesBarNeedsRendering(tbar) || canvas_resized )
+                render_astbar( tbar, WinTabsState.tabs_canvas );
+    }
+    if( is_canvas_dirty( WinTabsState.tabs_canvas ) )
+	{
+        update_canvas_display( WinTabsState.tabs_canvas );
+        update_canvas_display_mask (WinTabsState.tabs_canvas, True);
 	}
-
-
-
 }
 
 /**************************************************************************
@@ -544,10 +677,8 @@ check_swallow_window( ASWindowData *wd )
 {
     Window w;
     int try_num = 0 ;
-	Bool withdraw_btn ;
     ASCanvas *nc ;
-    int swidth, sheight ;
-	char *name = NULL ;
+    char *name = NULL ;
 	INT32 encoding ;
 	ASWinTab *aswt = NULL ;
 	int i = 0;
@@ -601,7 +732,7 @@ check_swallow_window( ASWindowData *wd )
     /* create swallow object : */
 	name = get_window_name( wd, ASN_Name, &encoding );
 	aswt = add_tab( wd->client, name, encoding );
-    LOCAL_DEBUG_OUT( "crerated new #%d for window \"%s\" client = %8.8X", PVECTOR_USED(WinTabsState.tabs), name, wd->client );
+    LOCAL_DEBUG_OUT( "crerated new #%d for window \"%s\" client = %8.8lX", PVECTOR_USED(WinTabsState.tabs), name, wd->client );
 
 	if( aswt == NULL )
 	{
@@ -642,4 +773,16 @@ check_swallow_window( ASWindowData *wd )
     XUngrabServer( dpy );
 }
 
-
+void 
+on_destroy_notify(Window w)
+{
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    int i = PVECTOR_USED(WinTabsState.tabs) ;
+    while( --i >= 0 ) 
+        if( tabs[i].client == w ) 
+        {
+            delete_tab( i );
+            rearrange_tabs();
+            return ; 
+        }    
+}    

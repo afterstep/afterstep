@@ -40,9 +40,9 @@ TermDef       WinTabsTerms[] = {
     {0, "Geometry", 8, TT_GEOMETRY, WINTABS_Geometry_ID, NULL},
     {0, "MaxRows", 7, TT_INTEGER, WINLIST_MaxRows_ID, NULL},
     {0, "MaxColumns", 10, TT_INTEGER, WINTABS_MaxColumns_ID, NULL},
-    {0, "MaxColWidth", 11, TT_INTEGER, WINTABS_MaxColWidth_ID, NULL},
-    {0, "MinColWidth", 11, TT_INTEGER, WINTABS_MinColWidth_ID, NULL},
-    {TF_INDEXED, "Pattern", 7, TT_INTEGER, WINTABS_Pattern_ID, NULL},
+    {0, "MaxTabWidth", 11, TT_INTEGER, WINTABS_MaxTabWidth_ID, NULL},
+    {0, "MinTabWidth", 11, TT_INTEGER, WINTABS_MinTabWidth_ID, NULL},
+    {TF_INDEXED, "Pattern", 7, TT_QUOTED_TEXT, WINTABS_Pattern_ID, NULL},
     {0, "Align", 5, TT_FLAG, WINTABS_Align_ID, &AlignSyntax},
     {0, "Bevel", 5, TT_FLAG, WINTABS_Bevel_ID, &BevelSyntax},
     {0, "FBevel", 6, TT_FLAG, WINTABS_FBevel_ID, &BevelSyntax},
@@ -130,12 +130,12 @@ PrintWinTabsConfig (WinTabsConfig * config)
 			 get_flags (config->flags, WINTABS_UseSkipList) ? "True" : "False");
 	fprintf (stderr, "WINTABSConfig.set_flags = 0x%lX;\n", config->set_flags);
     fprintf (stderr, "WINTABSConfig.geometry.flags = 0x%X;\n", config->geometry.flags);
-    fprintf (stderr, "WINTABSConfig.geometry = %+d%+d;\n", config->geometry.x, config->geometry.y);
+    fprintf (stderr, "WINTABSConfig.geometry = %dx%d%+d%+d;\n", config->geometry.width, config->geometry.height, config->geometry.x, config->geometry.y);
 	fprintf (stderr, "WINTABSConfig.gravity = %d;\n", config->gravity);
 	fprintf (stderr, "WINTABSConfig.MaxRows = %d;\n", config->max_rows);
 	fprintf (stderr, "WINTABSConfig.MaxColumns = %d;\n", config->max_columns);
-	fprintf (stderr, "WINTABSConfig.min_col_width = %d;\n", config->min_col_width);
-	fprintf (stderr, "WINTABSConfig.max_col_width = %d;\n", config->max_col_width);
+    fprintf (stderr, "WINTABSConfig.min_tab_width = %d;\n", config->min_tab_width);
+    fprintf (stderr, "WINTABSConfig.max_tab_width = %d;\n", config->max_tab_width);
 
 	fprintf (stderr, "WINTABSConfig.pattern_type = %d;\n", config->pattern_type);	/* 0, 1, 2, 3 */
 	fprintf (stderr, "WINTABSConfig.pattern = \"%s\";\n", config->pattern);	/* 0, 1, 2, 3 */
@@ -236,16 +236,17 @@ ParseWinTabsOptions (const char *filename, char *myname)
                     set_flags (config->set_flags, WINTABS_MaxColumns);
                     config->max_columns = item.data.integer;
                     break;
-                case WINTABS_MinColWidth_ID:
-                    set_flags (config->set_flags, WINTABS_MinColWidth);
-                    config->min_col_width = item.data.integer;
+                case WINTABS_MinTabWidth_ID:
+                    set_flags (config->set_flags, WINTABS_MinTabWidth);
+                    config->min_tab_width = item.data.integer;
                     break;
-                case WINTABS_MaxColWidth_ID:
-                    set_flags (config->set_flags, WINTABS_MaxColWidth);
-                    config->max_col_width = item.data.integer;
+                case WINTABS_MaxTabWidth_ID:
+                    set_flags (config->set_flags, WINTABS_MaxTabWidth);
+                    config->max_tab_width = item.data.integer;
                     break;
                 case WINTABS_Pattern_ID:
                     config->pattern_type = item.index % ASN_NameTypes;
+                    LOCAL_DEBUG_OUT( "old_pattern = %p, new pattern = %s", config->pattern, item.data.string );
 					set_string_value( &(config->pattern), item.data.string, NULL, 0 );
                     break;
                 case WINTABS_UnfocusedStyle_ID:

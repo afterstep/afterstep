@@ -1565,18 +1565,18 @@ void LoadColorScheme();                        /* high level easy to use functio
 /***************************************************************************/
 /* New winlist config :
  *
- *	*WinTabsGeometry		WxH+X+Y
- *  *WinTabsMaxRows			count
- *  *WinTabsMaxColumns		count
- *  *WinTabsMinColWidth		width
- *  *WinTabsMaxColWidth		width
- *  *WinTabsUnfocusedStyle 	"style"
- *  *WinTabsFocusedStyle 	"style"
- *  *WinTabsStickyStyle 	"style"
- *  *WinTabsUseSkipList		width
- *	*WinTabsPattern			0|1|2|3 <pattern>  # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
- *  *WinTabsAlign           Left,Right,Top,Bottom
- *  *WinTabsBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *WinTabsGeometry         WxH+X+Y
+ *  *WinTabsMinTabMaxRows    rows
+ *  *WinTabsMinTabMaxColumns cols
+ *  *WinTabsMinTabWidth      width
+ *  *WinTabsMaxTabWidth      width
+ *  *WinTabsUnfocusedStyle   "style"
+ *  *WinTabsFocusedStyle     "style"
+ *  *WinTabsStickyStyle      "style"
+ *  *WinTabsUseSkipList      width
+ *  *WinTabsPattern          0|1|2|3 <pattern>  # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
+ *  *WinTabsAlign            Left,Right,Top,Bottom
+ *  *WinTabsBevel            None,Left,Right,Top, Bottom, NoOutline
  *  *WinTabsFBevel           None,Left,Right,Top, Bottom, NoOutline
  *  *WinTabsUBevel           None,Left,Right,Top, Bottom, NoOutline
  *  *WinTabsSBevel           None,Left,Right,Top, Bottom, NoOutline
@@ -1585,8 +1585,8 @@ void LoadColorScheme();                        /* high level easy to use functio
 #define WINTABS_Geometry_ID				(WINTABS_ID_START+1)
 #define WINTABS_MaxRows_ID				(WINTABS_ID_START+2)
 #define WINTABS_MaxColumns_ID			(WINTABS_ID_START+3)
-#define WINTABS_MaxColWidth_ID			(WINTABS_ID_START+4)
-#define WINTABS_MinColWidth_ID			(WINTABS_ID_START+5)
+#define WINTABS_MaxTabWidth_ID          (WINTABS_ID_START+4)
+#define WINTABS_MinTabWidth_ID          (WINTABS_ID_START+5)
 #define WINTABS_Pattern_ID				(WINTABS_ID_START+6)
 #define WINTABS_UseSkipList_ID			(WINTABS_ID_START+7)
 #define WINTABS_Align_ID                (WINTABS_ID_START+8)
@@ -1617,8 +1617,8 @@ typedef struct WinTabsConfig
 #define WINTABS_Geometry		(0x01<<2)
 #define WINTABS_MaxRows			(0x01<<5)
 #define WINTABS_MaxColumns		(0x01<<6)
-#define WINTABS_MaxColWidth		(0x01<<7)
-#define WINTABS_MinColWidth		(0x01<<8)
+#define WINTABS_MaxTabWidth     (0x01<<7)
+#define WINTABS_MinTabWidth     (0x01<<8)
 #define WINTABS_Align           (0x01<<10)
 #define WINTABS_FBevel          (0x01<<11)
 #define WINTABS_UBevel          (0x01<<12)
@@ -1638,7 +1638,7 @@ typedef struct WinTabsConfig
     ASGeometry geometry ;
 #define MAX_WINTABS_WINDOW_COUNT    64
 	unsigned int max_rows, max_columns ;
-	unsigned int min_col_width, max_col_width ;
+    unsigned int min_tab_width, max_tab_width ;
 
 	char *unfocused_style ;
 	char *focused_style ;
