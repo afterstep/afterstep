@@ -779,7 +779,7 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
         fullfilename = make_file_name (ashome, AFTER_NONCF);
         /* legacy non-configurable dir: */
         CheckOrCreate(fullfilename);
-		postcard_fname = make_file_name( fullfilename, "send_postacrd.sh" );
+		postcard_fname = make_file_name( fullfilename, "send_postcard.sh" );
         free( fullfilename );
 		
 		f = fopen( postcard_fname, "wt" );

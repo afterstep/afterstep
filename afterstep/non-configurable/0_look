@@ -22,12 +22,12 @@ MyStyle "TitleButtonBalloon"
   ~MyStyle
 
 MyStyle "window_font"
-  Font		DefaultSans.ttf-16
-  TextStyle	0
+  Font		DefaultSansBold.ttf-16
+  TextStyle	7
   ~MyStyle
 
 MyStyle "focused_window_style"
-  Inherit	"window_font"
+  Font		DefaultSans.ttf-16
   TextStyle	3
   ForeColor     ActiveText
   BackColor	Active
@@ -52,7 +52,7 @@ MyStyle "sticky_window_style"
 #----------Menu MyStyles---------#
 MyStyle "menu_title_font"
   Font          DefaultFancy.ttf-17
-  TextStyle     0
+  TextStyle     7
   ~MyStyle
 
 MyStyle "menu_font"
@@ -83,6 +83,7 @@ MyStyle "menu_item_style"
 
 MyStyle "menu_hilite_style"
   Font          DefaultBoldOblique.ttf-16
+  TextStyle     7
   ForeColor     HighActiveText
   BackColor     HighActiveBack
   BackGradient  9  HighActiveBackLight HighActiveBackDark
@@ -177,11 +178,19 @@ MyStyle "*WharfTile"
 	BackMultiGradient   6 #10222222 0.0 alpha(20,Inactive2Dark) 0.3 alpha(30,Inactive2Light) 0.5 alpha(60,Active) 0.8 alpha(30,ActiveLight) 1.0
 ~MyStyle
 
+MyStyle "*WharfFocusedTile"
+	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      ActiveText
+	BackColor      Active
+	BackMultiGradient   6 #10222222 0.0 ActiveDark 0.3 ActiveLight 0.5 Inactive2 0.8 Inactive2Light) 1.0
+~MyStyle
+
+
 MyStyle "*MonitorWharfTile"
 	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      InactiveText2
 	BackColor      Inactive2
-	BackPixmap     129 #7f7f7f
+	BackPixmap     149 Inactive2
 ~MyStyle
 
 #----------WinList MyStyles---------#
@@ -189,6 +198,15 @@ MyStyle "*MonitorWharfTile"
 MyStyle "*WinListBalloon"
 	Inherit "TitleButtonBalloon"
 ~MyStyle
+
+#----------aterm MyStyles---------#
+
+MyStyle "*aterm"
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackGradient   6 Inactive2Light  alpha(50,Inactive2Dark)
+~MyStyle
+
 
 #----------Minimized window Button MyStyles---------#
 
@@ -198,7 +216,7 @@ MyStyle "ButtonPixmap"
   ~MyStyle
 
 MyStyle "ButtonTitleFocus"
-  	Inherit	"focused_window_style"
+  	Inherit		"focused_window_style"
   	Font		DefaultSansBoldOblique.ttf-13
   ~MyStyle
 
@@ -348,13 +366,41 @@ MArrowPixmap		arrow-dots.xpm
 #     [TitleUnfocusedBevel   None|[Left,Top,Right,Bottom,Extra,NoOutline]
 #     [TitleStickyBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
 #     [TitleAlign      None|[Left,Top,Right,Bottom]
-#     [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+#     [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
 #
 # texture_type is the same as in MyStyle definitions for BackPIxmap ( valid values are in 130-160 range ):
 #     [TitleCompositionMethod   testure_type]
 #     [TitleFocusedCompositionMethod     testure_type]
 #     [TitleUnfocusedCompositionMethod   testure_type]
 #     [TitleStickyCompositionMethod      testure_type]
+#
+#     More fine tuned control of what makes up a titlebar 
+#     ( note that these pixmap will be overlayed over Tbar MyStyle BackPixmap ): 
+#     [LeftBtnBackground	<pixmap>
+#     [LeftBtnBackAlign		None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [LeftSpacerBackground	<pixmap>
+#     [LeftSpacerBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [LeftTitleSpacerBackground	<pixmap>
+#     [LeftTitleSpacerBackAlign		None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [RightTitleSpacerBackground	<pixmap>
+#     [RightTitleSpacerBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [RightSpacerBackground	<pixmap>
+#     [RightSpacerBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [RightBtnBackground	<pixmap>
+#     [RightBtnBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+
+#  These gives you more options for the order of above titlebar pixmaps :
+#     [LeftTitlebarLayout	Buttons,Spacer,TitleSpacer]
+#     [RightTitlebarLayout	Buttons,Spacer,TitleSpacer]
+#     [CondenseTitlebar		[Left[,Right]]]
+#
+#default layout is : Buttons,Spacer,TitleSpacer   Title   TitleSpacer,Spacer,Buttons
+# The following lines will swap it around : 
+#	LeftTitlebarLayout	Spacer,Buttons
+#	RightTitlebarLayout	Buttons,Spacer
+# This will make titlebar not to be sized same as the window :
+#	CondenseTitlebar	Left
+#
 #~MyFrame
 #
 #
@@ -392,4 +438,5 @@ MArrowPixmap		arrow-dots.xpm
 #
 #DeskBack  0  "back2"
 
+KillBackgroundThreshold 10000000
 
