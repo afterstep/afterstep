@@ -87,6 +87,7 @@ ASMessage;
 ASMessage *CheckASMessageFine (int fd, int t_sec, int t_usec);
 #define CheckASMessage(fd,t_sec) CheckASMessageFine(fd,t_sec,0)
 void DestroyASMessage (ASMessage * msg);
+void module_wait_pipes_input ( int x_fd, int as_fd, void (*as_msg_handler) (unsigned long type, unsigned long *body) );
 
 /* more usefull stuff removing duplicate code from modules */
 

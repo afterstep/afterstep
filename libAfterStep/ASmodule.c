@@ -116,6 +116,51 @@ DestroyASMessage (ASMessage * msg)
 	}
 }
 
+
+void
+module_wait_pipes_input ( int x_fd, int as_fd, void (*as_msg_handler) (unsigned long type, unsigned long *body) )
+{
+    fd_set        in_fdset, out_fdset;
+	int           retval;
+	struct timeval tv;
+	struct timeval *t = NULL;
+    int           max_fd = 0;
+    ASMessage     msg;
+
+	FD_ZERO (&in_fdset);
+	FD_ZERO (&out_fdset);
+
+	FD_SET (x_fd, &in_fdset);
+    max_fd = x_fd ;
+
+    if (as_fd >= 0)
+    {
+        FD_SET (as_fd, &in_fdset);
+        if (max_fd < as_fd)
+            max_fd = as_fd;
+    }
+
+    if (timer_delay_till_next_alarm ((time_t *) & tv.tv_sec, (time_t *) & tv.tv_usec))
+        t = &tv;
+
+    retval = PORTABLE_SELECT(min (max_fd + 1, fd_width),&in_fdset,&out_fdset,NULL,t);
+
+	if (retval > 0)
+	{
+        /* check for incoming module connections */
+        if (as_fd >= 0)
+            if (FD_ISSET (as_fd, &in_fdset))
+                if (ReadASPacket (as_fd, msg.header, &(msg.body)) > 0)
+                {
+                    as_msg_handler (msg.header[1], msg.body);
+                    free (msg.body);
+                }
+    }
+
+	/* handle timeout events */
+	timer_handle ();
+}
+
 /***********************************************************************
  *
  *  Procedure:

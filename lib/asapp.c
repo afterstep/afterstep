@@ -30,6 +30,7 @@
 #include "../include/parser.h"
 #include "../include/screen.h"
 #include "../include/functions.h"
+#include "../include/session.h"
 
 ASProgArgs    MyArgs = {0, NULL, 0, NULL, NULL, NULL, 0, 0};/* some typical progy cmd line options - set by SetMyArgs( argc, argv )*/
 char         *MyName = NULL;                    /* name are we known by */

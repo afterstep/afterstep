@@ -1,6 +1,7 @@
 #ifndef CONF_DEFS_H_FILE_INCLUDED
 #define CONF_DEFS_H_FILE_INCLUDED
 
+#include "../libAfterImage/asvisual.h"
 /***************************************************************************/
 /*                        Base file pasring definitions                    */
 /***************************************************************************/
@@ -218,19 +219,21 @@ typedef struct
     char *selection_color;
     char *grid_color;
     char *border_color;
+    MyStyleDefinition *style_defs;
+    FreeStorageElem *more_stuff;
 
     /* these are generated after reading the config : */
     int gravity ;
     ARGB32  selection_color_argb;
     ARGB32  grid_color_argb;
     ARGB32  border_color_argb;
+#define DESK_ACTIVE     0
+#define DESK_INACTIVE   1
+#define DESK_STYLES     2
+    struct MyStyle *MSDeskTitle[DESK_STYLES];
+    struct MyStyle **MSDeskBack;
 
-    MyStyleDefinition *style_defs;
-
-    FreeStorageElem *more_stuff;
-
-  }
-PagerConfig;
+}PagerConfig;
 
 PagerConfig *CreatePagerConfig (int ndesks);
 PagerConfig *ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2);

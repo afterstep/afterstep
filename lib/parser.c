@@ -19,8 +19,7 @@
 
 /*#define DO_CLOCKING      */
 
-#define TRUE 1
-#define FALSE
+#undef UNKNOWN_KEYWORD_WARNING
 
 #include "../configure.h"
 
@@ -34,19 +33,6 @@
 #include "../include/asapp.h"
 #include "../include/afterstep.h"
 #include "../include/parser.h"
-
-#ifdef DEBUG_PARSER
-#define LOG1(a)       fprintf( stderr, a );
-#define LOG2(a,b)    fprintf( stderr, a, b );
-#define LOG3(a,b,c)    fprintf( stderr, a, b, c );
-#define LOG4(a,b,c,d)    fprintf( stderr, a, b, c, d );
-#else
-#define LOG1(a)
-#define LOG2(a,b)
-#define LOG3(a,b,c)
-#define LOG4(a,b,c,d)
-#endif
-
 
 char         *_disabled_keyword = DISABLED_KEYWORD;
 
@@ -134,7 +120,7 @@ PushStorage (ConfigDef * config, FreeStorageElem ** tail)
 int
 PopStorage (ConfigDef * config)
 {
-	if (config->current_tail->next)
+    if ( config->current_tail && config->current_tail->next)
 	{
 		StorageStack *pold = config->current_tail;
 
@@ -501,14 +487,14 @@ GetNextStatement (ConfigDef * config, int my_only)
 				/* now we should copy everything from after the first space to
 				   config->current_data and set current_data_len ; */
 				i = 0 ;
-				while ( cur[i] && !isspace ((int)cur[i]) && 
+				while ( cur[i] && !isspace ((int)cur[i]) &&
 				        cur[i] != terminator && cur[i] != file_terminator) ++i;
-				while ( cur[i] && isspace ((int)cur[i]) && 
+				while ( cur[i] && isspace ((int)cur[i]) &&
 				        cur[i] != terminator && cur[i] != file_terminator) ++i;
-				
+
 				config->tdata = cur = &(cur[i]); /* that will be the beginning of our data */
 				data = config->current_data;
-				
+
 				for (i = 0; cur[i] && cur[i] != terminator && cur[i] != file_terminator; i++)
 				{
 					/* buffer overrun prevention */
@@ -558,7 +544,7 @@ GetNextStatement (ConfigDef * config, int my_only)
 		if ((cur = GetToNextLine (config)) == NULL)
 			return NULL;
 	}
-	
+
 	return NULL;
 }
 
@@ -724,7 +710,9 @@ ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 					break;
 			}else
 			{
+#ifdef UNKNOWN_KEYWORD_WARNING
 				config_error (config, " unknown keyword encountered");
+#endif
 				if (IsLastOption (config))
 					break;
 			}
@@ -1114,8 +1102,8 @@ void
 init_asgeometry (ASGeometry * geometry)
 {
 	geometry->flags = XValue | YValue;
-	geometry->x = geometry->y = 1;
-	geometry->width = geometry->height = 0;
+    geometry->x = geometry->y = 0;
+    geometry->width = geometry->height = 1;
 }
 
 /***************************************************************************/
