@@ -1510,8 +1510,6 @@ else
 fi;
 
 
-if test "x$FROM_AFTERSTEP_CONFIGURE" = "xyes"; then
-
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -2471,6 +2469,9 @@ if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
   fi
   LDFLAGS="$LDFLAGS -rdynamic"
 fi
+
+
+if test "x$FROM_AFTERSTEP_CONFIGURE" = "xyes"; then
 
 	aaa=bbb
 
@@ -4562,7 +4563,7 @@ if test "${ac_cv_lib_X11_XOpenDisplay+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lX11 $x_libs $LIBS"
+LIBS="-lX11 "$LDFLAGS $x_libs" $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -5331,7 +5332,7 @@ if test "${ac_cv_lib_Xext_XShmCreateImage+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lXext $x_libs $LIBS"
+LIBS="-lXext "$LDFLAGS $x_libs" $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
