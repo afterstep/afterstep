@@ -592,6 +592,7 @@ libAfterStep/Makefile \
 libAfterConf/Makefile \
 \
 src/afterstep/Makefile \
+src/ascp/Makefile \
 src/asetroot/Makefile \
 src/Animate/Makefile \
 src/Audio/Makefile \
