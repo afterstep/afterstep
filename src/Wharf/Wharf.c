@@ -1753,7 +1753,10 @@ LOCAL_DEBUG_OUT( "folder->flags(%lX)", aswf->flags );
 		aswf->boundary.width = aswf->canvas->width ;
 		aswf->boundary.height = aswf->canvas->height ;
 		
-		animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, 1, 1 );
+		if( get_flags(aswf->flags,ASW_Vertical) )
+			animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, aswf->canvas->width, 1 );
+		else
+			animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, 1, aswf->canvas->height );
     }
 LOCAL_DEBUG_OUT( "unmapping folder %p", aswf );
     unmap_wharf_folder( aswf );
