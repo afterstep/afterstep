@@ -56,7 +56,8 @@ write_doc_header( ASXMLInterpreterState *state )
 			fprintf( state->dest_fp, "</head>\n"
 					  				 "<body>\n"
 									 "<A name=\"page_top\"></A>\n"
-									 "<A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A><p>\n" );
+									 "<A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A><p>\n",
+									 TopicIndexName, GlossaryName );
 			if( state->display_purpose[0] != '\0' )
 				fprintf( state->dest_fp, "<h1>%s</h1><font size=4>%s</font><hr>\n", state->display_name, state->display_purpose );
 			else
@@ -70,9 +71,9 @@ write_doc_header( ASXMLInterpreterState *state )
 			else
 				fprintf( state->dest_fp, PHPCurrPageFormat, "Topics" );
 			if( state->doc_class != DocClass_Glossary )
-				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Glossary","Glossary", "" );
+				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc",GlossaryName,"Glossary", "" );
 			else
-				fprintf( state->dest_fp, PHPCurrPageFormat, "Glossary" );
+				fprintf( state->dest_fp, PHPCurrPageFormat, GlossaryName );
 			for( i = 0 ; i < DocClass_TopicIndex ; ++i ) 
 			{
 				if( get_flags( state->doc_class_mask, (0x01<<i)	) )
@@ -135,7 +136,8 @@ write_options_header( ASXMLInterpreterState *state )
 			break;
 		case DocType_HTML :
 			if( state->pre_options_size > 1024 )
-				fprintf( state->dest_fp,"<p><A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A>&nbsp;&nbsp;<A href=\"#page_top\">Back to Top</A><hr>\n" );
+				fprintf( state->dest_fp,"<p><A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A>&nbsp;&nbsp;<A href=\"#page_top\">Back to Top</A><hr>\n", 
+						 TopicIndexName, GlossaryName );
 			fprintf( state->dest_fp,"\n<UL><LI><A NAME=\"options\"></A><h3>CONFIGURATION OPTIONS :</h3>\n"
 							  		"<DL>\n");   
 			break;

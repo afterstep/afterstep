@@ -72,8 +72,12 @@ const char *PHPXrefFormatUseSrc = "&nbsp;<? if ($src==\"\") $src=\"%s\"; local_d
 const char *PHPCurrPageFormat = "&nbsp;<b>%s</b>\n";
 
 const char *AfterStepName = "AfterStep" ;
-const char *GlossaryName = "Glossary :" ; 
-const char *TopicIndexName = "Topic index :" ; 
+const char *UserGlossaryName = "Glossary" ; 
+const char *UserTopicIndexName = "Topic index" ; 
+const char *APIGlossaryName = "API Glossary" ; 
+const char *APITopicIndexName = "API Topic index" ; 
+const char *GlossaryName; 
+const char *TopicIndexName; 
 
 const char *ASDocTypeExtentions[DocTypes_Count] = 
 {
@@ -104,6 +108,7 @@ ASHashTable *DocBookVocabulary = NULL ;
 ASHashTable *ProcessedSyntaxes = NULL ;
 ASHashTable *Glossary = NULL ;
 ASHashTable *Index = NULL ;
+ASHashTable *Links = NULL ;
 
 #define DATE_SIZE 64
 char CurrentDateLong[DATE_SIZE] = "06/23/04";
@@ -111,8 +116,8 @@ char CurrentDateShort[DATE_SIZE] = "Jun 23,2004";
 
 void check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module );
 void gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax, ASDocType doc_type );
-void gen_glossary( const char *dest_dir, ASDocType doc_type );
-void gen_index( const char *dest_dir, ASDocType doc_type );
+void gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type );
+void gen_index( const char *dest_dir, const char *file, ASDocType doc_type );
 
 void write_doc_header( ASXMLInterpreterState *state );
 void write_options_header( ASXMLInterpreterState *state );
@@ -201,6 +206,11 @@ main (int argc, char **argv)
 	ProcessedSyntaxes = create_ashash( 7, pointer_hash_value, NULL, NULL );
 	Glossary = create_ashash( 0, string_hash_value, string_compare, string_destroy );
 	Index = create_ashash( 0, string_hash_value, string_compare, string_destroy );
+	Links = create_ashash( 0, string_hash_value, string_compare, string_destroy );
+
+	GlossaryName = UserGlossaryName ; 
+	TopicIndexName = UserTopicIndexName ; 
+
 	if( target_type < DocType_Source )
 	{	
 		time_t curtime;
@@ -227,23 +237,35 @@ main (int argc, char **argv)
 		else	/* 2) create directory structure for source docs and all the missing files */
 			check_syntax_source( source_dir, TopLevelSyntaxes[i], (i >= MODULE_SYNTAX_START) );
 		++i ;	
-	}	 
+	}
 	/* we need to generate some top level files for afterstep itself : */
 	if( target_type < DocType_Source ) /* 1) generate HTML doc structure */
 	{
+		char *api_dest_dir ;
+		
 		gen_syntax_doc( source_dir, destination_dir, NULL, target_type );
+		gen_glossary( destination_dir, "Glossary", target_type );
+		gen_index( destination_dir, "index", target_type );
+		flush_ashash( Glossary );
+		flush_ashash( Index );
+		
 		gen_code_doc( "../../libAfterImage", destination_dir, 
 			  		  "asimagexml.c", 
 			  		  "AfterImage XML",
 			  		  "XML schema to be used for scripting image manipulation by AfterStep and ascompose",
 			  		  target_type );
-		gen_code_doc( "../../libAfterImage", destination_dir, 
+		
+		
+		api_dest_dir = make_file_name( destination_dir, "API" );
+		GlossaryName = APIGlossaryName ; 
+		TopicIndexName = APITopicIndexName ; 
+		gen_code_doc( "../../libAfterImage", api_dest_dir, 
 			  		  "asimage.h", 
 			  		  "ASImage",
 			  		  "internal structures and methods used for image manipulation in libAfterImage",
 			  		  target_type );
-		gen_glossary( destination_dir, target_type );
-		gen_index( destination_dir, target_type );
+		//gen_glossary( api_dest_dir, "Glossary", target_type );
+		//gen_index( api_dest_dir, "index", target_type );
 	}else
 		check_syntax_source( source_dir, NULL, True );
 
@@ -601,7 +623,7 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 }
 
 void 
-gen_glossary( const char *dest_dir, ASDocType doc_type )
+gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type )
 {
 	ASXMLInterpreterState state;
 	if( (doc_type == DocType_HTML	|| doc_type == DocType_PHP ) && Glossary->items_num > 0 )
@@ -612,7 +634,7 @@ gen_glossary( const char *dest_dir, ASDocType doc_type )
 		int col_end[3], col_curr[3], col_count = 3 ;
 		Bool has_items = True, col_skipped[3] = {True, True, True};
 		char c = '\0' ; 
-		if( !start_doc_file( dest_dir, "Glossary", NULL, doc_type, NULL, NULL, NULL, &state, DOC_CLASS_None, DocClass_Glossary ) )	 
+		if( !start_doc_file( dest_dir, file, NULL, doc_type, NULL, NULL, NULL, &state, DOC_CLASS_None, DocClass_Glossary ) )	 
 			return ;
 		items_num = sort_hash_items (Glossary, values, (void**)data, 0);
 		
@@ -673,7 +695,7 @@ gen_glossary( const char *dest_dir, ASDocType doc_type )
 }
 
 void 
-gen_index( const char *dest_dir, ASDocType doc_type )
+gen_index( const char *dest_dir, const char *file, ASDocType doc_type )
 {
 	ASXMLInterpreterState state;
 	if( (doc_type == DocType_HTML	|| doc_type == DocType_PHP ) && Index->items_num > 0 )
@@ -684,12 +706,13 @@ gen_index( const char *dest_dir, ASDocType doc_type )
 		Bool sublist = False ; 
 		char *sublist_name= NULL ; 
 		int sublist_name_len = 1 ;
-		if( !start_doc_file( dest_dir, "index", NULL, doc_type, NULL, NULL, NULL, &state, DOC_CLASS_None, DocClass_TopicIndex ) )	
+		if( !start_doc_file( dest_dir, file, NULL, doc_type, NULL, NULL, NULL, &state, DOC_CLASS_None, DocClass_TopicIndex ) )	
 			return ;
+		LOCAL_DEBUG_OUT( "sorting hash items : ... %s", "" );
 		items_num = sort_hash_items (Index, values, (void**)data, 0);
-		
+		LOCAL_DEBUG_OUT( "checkpoint at %d", __LINE__ );
 		fprintf( state.dest_fp, "<hr>\n<p><UL class=\"dense\">\n" );
-
+		LOCAL_DEBUG_OUT( "checkpoint at %d", __LINE__ );
 		for( i = 0 ; i < items_num ; ++i ) 
 		{
 			char *item_text = (char*)values[i];
@@ -732,14 +755,16 @@ gen_index( const char *dest_dir, ASDocType doc_type )
 			}
 			fprintf( state.dest_fp, "</LI>\n" );
 		}	 
-			
+		LOCAL_DEBUG_OUT( "checkpoint at %d", __LINE__ );	
 		if( sublist ) 
 			fprintf( state.dest_fp, "</UL>\n" );
 		fprintf( state.dest_fp, "</UL>\n" );
-
-		free( data );
-		free( values );
+		LOCAL_DEBUG_OUT( "checkpoint at %d", __LINE__ );
+		//free( data );
+		//free( values );
+		LOCAL_DEBUG_OUT( "checkpoint at %d", __LINE__ );
 		end_doc_file( &state );	 	  
+		LOCAL_DEBUG_OUT( "checkpoint at %d", __LINE__ );
 	}
 }
 
@@ -748,6 +773,7 @@ typedef struct ASRobodocState
 
 #define ASRS_InsideSection			(0x01<<0)	  
 #define ASRS_VarlistSubsection		(0x01<<1)	  
+#define ASRS_FormalPara				(0x01<<2)	  
 
 	ASFlagType flags ;
  	const char *source ;
@@ -979,20 +1005,12 @@ append_cdata( xml_elem_t *cdata_tag, const char *line, int len )
 void 
 append_CDATA_line( xml_elem_t *tag, const char *line, int len )
 {
-	xml_elem_t *cdata_tag = tag->child ;
+	xml_elem_t *cdata_tag = find_tag_by_id(tag->child, XML_CDATA_ID );
 	LOCAL_DEBUG_CALLER_OUT("tag->tag = \"%s\", line_len = %d", tag->tag, len );
 
-	while( cdata_tag != NULL ) 
-	{
-		if( cdata_tag->tag_id == XML_CDATA_ID ) 
-			break;
-		cdata_tag = cdata_tag->next ;
-	}	 
 	if( cdata_tag == NULL ) 
 	{
-		cdata_tag = xml_elem_new();
-		cdata_tag->tag = mystrdup(XML_CDATA_STR) ;
-		cdata_tag->tag_id = XML_CDATA_ID ;
+		cdata_tag = create_CDATA_tag() ;
 		xml_insert(tag, cdata_tag);
 	}	 
 	append_cdata( cdata_tag, line, len );
@@ -1084,12 +1102,153 @@ robodoc_section_header2xml( ASRobodocState *robo_state )
 	return section;		   
 }
 
+xml_elem_t*
+handle_varlist_line( ASRobodocState *robo_state, xml_elem_t* sec_tag, int len, int *skipped )
+{
+	xml_elem_t* ll_tag = NULL ;
+	xml_elem_t* varlist_tag = NULL;		
+	xml_elem_t* tmp ;
+	const char *ptr = &(robo_state->source[robo_state->curr]);
+	Bool is_term = !isspace(ptr[0]);
+
+	*skipped = 0 ;
+
+	for(tmp = sec_tag->child; tmp != NULL ; tmp = tmp->next ) 
+		if( tmp->next == NULL && tmp->tag_id == DOCBOOK_variablelist_ID ) 
+			varlist_tag = tmp ;
+	if( varlist_tag != NULL || is_term )
+	{	
+		xml_elem_t* varentry_tag = NULL;		   
+		xml_elem_t* item_tag = NULL;		   
+		if( varlist_tag == NULL ) 
+		{
+			varlist_tag = xml_elem_new();
+			varlist_tag->tag = mystrdup("variablelist") ;
+			varlist_tag->tag_id = DOCBOOK_variablelist_ID ;
+			xml_insert(sec_tag, varlist_tag);
+		}	 
+		if( !is_term )
+		{	
+			for(tmp = varlist_tag->child; tmp != NULL ; tmp = tmp->next ) 
+				if( tmp->next == NULL && tmp->tag_id == DOCBOOK_varlistentry_ID ) 
+					varentry_tag = tmp ;
+		}
+		if( varentry_tag == NULL ) 
+		{
+			xml_elem_t* term_tag = NULL;		   
+			char *ptr_body, *ptr_term ;
+			varentry_tag = xml_elem_new();
+			varentry_tag->tag = mystrdup("varlistentry") ;
+			varentry_tag->tag_id = DOCBOOK_varlistentry_ID ;
+			xml_insert(varlist_tag, varentry_tag);
+				
+			term_tag = xml_elem_new();
+			term_tag->tag = mystrdup("term") ;
+			term_tag->tag_id = DOCBOOK_term_ID ;
+			xml_insert(varentry_tag, term_tag);
+
+			ptr_term = tokencpy (ptr);
+			append_CDATA_line( term_tag, ptr_term, strlen(ptr_term) ); 
+			free( ptr_term );
+
+			ptr_body = tokenskip( (char*)ptr, 1 );
+			if( ptr_body - ptr  > len ) 
+				*skipped = len ;	  
+			else
+				*skipped = ptr_body - ptr ;
+		}	
+		for(tmp = varentry_tag->child; tmp != NULL ; tmp = tmp->next ) 
+			if( tmp->next == NULL && tmp->tag_id == DOCBOOK_listitem_ID ) 
+				item_tag = tmp ;
+		if( item_tag == NULL ) 
+		{
+			item_tag = xml_elem_new();
+			item_tag->tag = mystrdup("listitem") ;
+			item_tag->tag_id = DOCBOOK_listitem_ID ;
+			xml_insert(varentry_tag, item_tag);
+		}	 
+		ll_tag = item_tag ;
+	}
+	return ll_tag;
+}
+
+xml_elem_t*
+handle_formalpara_line( ASRobodocState *robo_state, xml_elem_t* sec_tag, int len, int *skipped )
+{
+	xml_elem_t* ll_tag = NULL ;
+	xml_elem_t* fp_tag = NULL;		
+	xml_elem_t* tmp ;
+	const char *ptr = &(robo_state->source[robo_state->curr]);
+	Bool is_term = !isspace(ptr[0]);
+
+	*skipped = 0 ;
+
+	for(tmp = sec_tag->child; tmp != NULL ; tmp = tmp->next ) 
+		if( tmp->next == NULL && tmp->tag_id == DOCBOOK_formalpara_ID ) 
+			fp_tag = tmp ;
+	if( fp_tag != NULL || is_term )
+	{	
+		xml_elem_t* title_tag = NULL;		   
+		xml_elem_t* para_tag = NULL;		   
+		if( fp_tag == NULL ) 
+		{
+			fp_tag = xml_elem_new();
+			fp_tag->tag = mystrdup("formalpara") ;
+			fp_tag->tag_id = DOCBOOK_formalpara_ID ;
+			xml_insert(sec_tag, fp_tag);
+		}	 
+		if( is_term )
+		{	
+			title_tag = find_tag_by_id(fp_tag->child, DOCBOOK_title_ID );
+			
+			if( title_tag != NULL ) 
+				is_term = False ;
+			else
+			{
+				char *ptr_title ;
+				char *ptr_body ;
+				title_tag = xml_elem_new();
+				title_tag->tag = mystrdup("title") ;
+				title_tag->tag_id = DOCBOOK_title_ID ;
+				xml_insert(fp_tag, title_tag);
+				
+				ptr_title = tokencpy (ptr);
+				append_CDATA_line( title_tag, ptr_title, strlen(ptr_title) ); 
+				fp_tag->parm = safemalloc( 4+strlen(ptr_title)+1+1 );
+				sprintf( fp_tag->parm, "id=\"%s\"", ptr_title );
+				free( ptr_title );
+
+				ptr_body = tokenskip( (char*)ptr, 1 );
+				if( ptr_body - ptr  > len ) 
+					*skipped = len ;	  
+				else 
+					*skipped = ptr_body - ptr ;
+			}	 
+		}
+		for(tmp = fp_tag->child; tmp != NULL ; tmp = tmp->next ) 
+			if( tmp->next == NULL && tmp->tag_id == DOCBOOK_para_ID ) 
+				para_tag = tmp ;
+
+		if( para_tag == NULL ) 
+		{			   
+			para_tag = xml_elem_new();
+			para_tag->tag = mystrdup("para") ;
+			para_tag->tag_id = DOCBOOK_para_ID ;
+			xml_insert(fp_tag, para_tag);
+		}	
+		ll_tag = para_tag ;
+	}
+	return ll_tag;
+}
+
+
 void 
 append_robodoc_line( ASRobodocState *robo_state, int len )
 {
 	xml_elem_t* sec_tag = NULL;
 	xml_elem_t* ll_tag = NULL;
 	const char *ptr = &(robo_state->source[robo_state->curr]);
+	int skipped = 0 ;
 
 	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
 	if( robo_state->curr_subsection == NULL ) 
@@ -1097,80 +1256,18 @@ append_robodoc_line( ASRobodocState *robo_state, int len )
 	else
 		sec_tag = robo_state->curr_subsection ;
 
-	if( robo_state->curr_subsection != NULL && 
-		get_flags( robo_state->flags, ASRS_VarlistSubsection )) 
-	{
-		xml_elem_t* varlist_tag = NULL;		
-		xml_elem_t* tmp ;
-		Bool is_term = !isspace(ptr[0]);
-
-		for(tmp = sec_tag->child; tmp != NULL ; tmp = tmp->next ) 
-			if( tmp->next == NULL && tmp->tag_id == DOCBOOK_variablelist_ID ) 
-				varlist_tag = tmp ;
-		if( varlist_tag != NULL || is_term )
-		{	
-			xml_elem_t* varentry_tag = NULL;		   
-			xml_elem_t* item_tag = NULL;		   
-			if( varlist_tag == NULL ) 
-			{
-				varlist_tag = xml_elem_new();
-				varlist_tag->tag = mystrdup("variablelist") ;
-				varlist_tag->tag_id = DOCBOOK_variablelist_ID ;
-				xml_insert(sec_tag, varlist_tag);
-			}	 
-			if( !is_term )
-			{	
-				for(tmp = varlist_tag->child; tmp != NULL ; tmp = tmp->next ) 
-					if( tmp->next == NULL && tmp->tag_id == DOCBOOK_varlistentry_ID ) 
-						varentry_tag = tmp ;
-			}
-			if( varentry_tag == NULL ) 
-			{
-				xml_elem_t* term_tag = NULL;		   
-				char *ptr_body, *ptr_term ;
-				varentry_tag = xml_elem_new();
-				varentry_tag->tag = mystrdup("varlistentry") ;
-				varentry_tag->tag_id = DOCBOOK_varlistentry_ID ;
-				xml_insert(varlist_tag, varentry_tag);
-				
-				term_tag = xml_elem_new();
-				term_tag->tag = mystrdup("term") ;
-				term_tag->tag_id = DOCBOOK_term_ID ;
-				xml_insert(varentry_tag, term_tag);
-
-				ptr_term = tokencpy (ptr);
-				append_CDATA_line( term_tag, ptr_term, strlen(ptr_term) ); 
-				free( ptr_term );
-
-				ptr_body = tokenskip( (char*)ptr, 1 );
-				if( ptr_body - ptr  > len ) 
-				{
-					ptr += len ;	  
-					len = 0 ;
-				}else 
-				{	
-					len -= ptr_body - ptr ;
-					ptr = ptr_body ;
-				}
-			}	
-			for(tmp = varentry_tag->child; tmp != NULL ; tmp = tmp->next ) 
-				if( tmp->next == NULL && tmp->tag_id == DOCBOOK_listitem_ID ) 
-					item_tag = tmp ;
-			if( item_tag == NULL ) 
-			{
-				item_tag = xml_elem_new();
-				item_tag->tag = mystrdup("listitem") ;
-				item_tag->tag_id = DOCBOOK_listitem_ID ;
-				xml_insert(varentry_tag, item_tag);
-			}	 
-			ll_tag = item_tag ;
-		}
-	}	 
+	if( robo_state->curr_subsection != NULL )
+	{	
+		if( get_flags( robo_state->flags, ASRS_FormalPara )) 
+			ll_tag = handle_formalpara_line( robo_state, sec_tag, len, &skipped );
+		else if( get_flags( robo_state->flags, ASRS_VarlistSubsection )) 
+			ll_tag = handle_varlist_line( robo_state, sec_tag, len, &skipped );
+		ptr += skipped ; 
+		len -= skipped ;
+	}
 
 	if( ll_tag == NULL )
-		for(ll_tag = sec_tag->child; ll_tag != NULL ; ll_tag = ll_tag->next ) 
-			if( ll_tag->tag_id == DOCBOOK_literallayout_ID ) 
-				break;
+		ll_tag = find_tag_by_id(sec_tag->child, DOCBOOK_literallayout_ID ); 
 	if( ll_tag == NULL )
 	{
 		ll_tag = xml_elem_new();
@@ -1218,6 +1315,7 @@ handle_robodoc_subtitle( ASRobodocState *robo_state, int len )
 	xml_insert(robo_state->curr_section, sec_tag);
 	
 	robo_state->curr_subsection = sec_tag ;
+	clear_flags( robo_state->flags, ASRS_VarlistSubsection|ASRS_FormalPara );
 	if( robodoc_id == ROBODOC_ATTRIBUTES_ID || 
 		robodoc_id == ROBODOC_NEW_ATTRIBUTES_ID ||
  		robodoc_id == ROBODOC_INPUTS_ID ||
@@ -1225,19 +1323,17 @@ handle_robodoc_subtitle( ASRobodocState *robo_state, int len )
 		robodoc_id == ROBODOC_OPTIONS_ID ||
 		robodoc_id == ROBODOC_PARAMETERS_ID ||
 		robodoc_id == ROBODOC_SWITCHES_ID ||
- 		robodoc_id == ROBODOC_OUTPUT_ID )
+ 		robodoc_id == ROBODOC_OUTPUT_ID)
 	{
 		set_flags( robo_state->flags, ASRS_VarlistSubsection );
-	}else
-		clear_flags( robo_state->flags, ASRS_VarlistSubsection );
+	}else if( robodoc_id == ROBODOC_NAME_ID )
+		set_flags( robo_state->flags, ASRS_FormalPara );
 
 	title_tag = xml_elem_new();
 	title_tag->tag = mystrdup("title") ;
 	title_tag->tag_id = DOCBOOK_title_ID ;
 	xml_insert(sec_tag, title_tag);
-	title_text_tag = xml_elem_new();
-	title_text_tag->tag = mystrdup(XML_CDATA_STR) ;
-	title_text_tag->tag_id = XML_CDATA_ID ;
+	title_text_tag = create_CDATA_tag();
 	title_text_tag->parm = mystrdup(SupportedRoboDocTagInfo[i].tag);
 	LOCAL_DEBUG_OUT("subtitle title = >%s<", title_text_tag->parm );
 	xml_insert(title_tag, title_text_tag);
@@ -1303,7 +1399,7 @@ handle_robodoc_section( ASRobodocState *robo_state )
 	Bool section_end = False ;
 	if( robodoc_section_header2xml( robo_state ) == NULL ) 
 		return;
-
+	set_flags(robo_state->flags, ASRS_InsideSection);
 	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
 	while( !section_end && robo_state->curr < robo_state->len ) 
 	{
@@ -1340,6 +1436,7 @@ handle_robodoc_section( ASRobodocState *robo_state )
 			handle_robodoc_line( robo_state, i+1 );
 	}	 
 	robo_state->curr_subsection = NULL ;
+	clear_flags(robo_state->flags, ASRS_InsideSection);
 }
 
 xml_elem_t* 

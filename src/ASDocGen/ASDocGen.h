@@ -57,6 +57,8 @@ typedef struct ASXMLInterpreterState {
 #define ASXMLI_InsideExample		(0x01<<5)	  
 #define ASXMLI_ProcessingOptions	(0x01<<6)	  
 #define ASXMLI_RefSection			(0x01<<7)	  
+#define ASXMLI_FormalPara			(0x01<<8)	  
+
 	
 	ASFlagType flags;
 

@@ -24,6 +24,9 @@ void end_option_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *s
 void start_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
+void start_formalpara_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+void end_formalpara_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+
 void start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
@@ -146,6 +149,7 @@ typedef enum
 	DOCBOOK_refsect1_ID,	  
 	DOCBOOK_emphasis_ID,	  
 	DOCBOOK_listitem_ID,	  
+	DOCBOOK_formalpara_ID,
 	DOCBOOK_cmdsynopsis_ID,	  
 	DOCBOOK_replaceable_ID,	  
 	DOCBOOK_variablelist_ID,	  

@@ -53,6 +53,7 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 	{ TAG_INFO_AND_ID(refsect1), start_refsect1_tag, end_refsect1_tag },
 	{ TAG_INFO_AND_ID(emphasis), start_emphasis_tag, end_emphasis_tag },
 	{ TAG_INFO_AND_ID(listitem), start_listitem_tag, end_listitem_tag },
+	{ TAG_INFO_AND_ID(formalpara), start_formalpara_tag, end_formalpara_tag },	
 	{ TAG_INFO_AND_ID(cmdsynopsis), start_cmdsynopsis_tag, end_cmdsynopsis_tag },
 	{ TAG_INFO_AND_ID(replaceable), start_emphasis_tag, end_emphasis_tag },
 	{ TAG_INFO_AND_ID(variablelist), start_variablelist_tag, end_variablelist_tag },
@@ -61,6 +62,71 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 };	 
 
 /*************************************************************************/
+char 
+translate_special_sequence( const char *ptr, int len,  int *seq_len )
+{
+	int c = '\0' ;
+	int c_len = 0 ;
+	if( ptr[0] == '&') 
+	{ 
+		if( 4 < len ) 
+		{	
+			c_len = 4 ;
+			if( strncmp(ptr,"&lt;", c_len ) == 0 ) c = '<' ;
+			else if( strncmp(ptr,"&gt;", c_len ) == 0 ) c = '>' ;
+		}
+		if( c != '\0' && 5 < len ) 
+		{	
+			c_len = 5 ;
+			if( strncmp(ptr,"&amp;", c_len ) == 0 ) c = '&' ;
+		}
+				
+		if( c != '\0' && 6 < len ) 
+		{	
+			c_len = 6 ;
+			if(      strncmp(ptr,"&quot;", c_len ) == 0 ) c = '"' ;
+			else if( strncmp(ptr,"&circ;", c_len ) == 0 ) c = 'ˆ' ;
+			else if( strncmp(ptr,"&nbsp;", c_len ) == 0 ) c = ' ' ;
+			else if( strncmp(ptr,"&ensp;", c_len ) == 0 ) c = ' ' ;
+			else if( strncmp(ptr,"&emsp;", c_len ) == 0 ) c = ' ' ;
+			else if( strncmp(ptr,"&Yuml;", c_len ) == 0 ) c = 'Ÿ' ;
+			else if( strncmp(ptr,"&euro;", c_len ) == 0 ) c = '€' ;					 
+		}
+
+		if( c != '\0' && 7 < len ) 
+		{	
+			c_len = 7 ;
+			if( strncmp(ptr,"&OElig;", c_len ) == 0 ) c = 'Œ' ;
+			else if( strncmp(ptr,"&oelig;", c_len ) == 0 ) c = 'œ' ;
+			else if( strncmp(ptr,"&tilde;", c_len ) == 0 ) c = '˜' ;
+			else if( strncmp(ptr,"&ndash;", c_len ) == 0 ) c = '–' ;
+			else if( strncmp(ptr,"&mdash;", c_len ) == 0 ) c = '—' ;
+			else if( strncmp(ptr,"&lsquo;", c_len ) == 0 ) c = '‘' ;
+			else if( strncmp(ptr,"&rsquo;", c_len ) == 0 ) c = '’' ;
+			else if( strncmp(ptr,"&sbquo;", c_len ) == 0 ) c = '‚' ;
+			else if( strncmp(ptr,"&ldquo;", c_len ) == 0 ) c = '“' ;
+			else if( strncmp(ptr,"&rdquo;", c_len ) == 0 ) c = '”' ;
+			else if( strncmp(ptr,"&bdquo;", c_len ) == 0 ) c = '„' ;
+		}				
+		if( c != '\0' && 8 < len ) 
+		{	
+			c_len = 8 ;
+			if( strncmp(ptr,"&Scaron;", c_len ) == 0 ) c = 'Š' ;
+			else if( strncmp(ptr,"&scaron;", c_len ) == 0 ) c = 'š' ;
+			else if( strncmp(ptr,"&thinsp;", c_len ) == 0 ) c = ' ' ;
+			else if( strncmp(ptr,"&dagger;", c_len ) == 0 ) c = '†' ;
+			else if( strncmp(ptr,"&Dagger;", c_len ) == 0 ) c = '‡' ;
+			else if( strncmp(ptr,"&permil;", c_len ) == 0 ) c = '‰' ;
+			else if( strncmp(ptr,"&lsaquo;", c_len ) == 0 ) c = '‹' ;
+			else if( strncmp(ptr,"&rsaquo;", c_len ) == 0 ) c = '›' ;
+		}
+	}		
+						
+	if( seq_len )    
+		*seq_len = (c == '\0')?c_len:0 ;
+	return c;   				 
+}
+
 void
 write_doc_cdata( const char *cdata, int len, ASXMLInterpreterState *state )
 {
@@ -69,14 +135,34 @@ write_doc_cdata( const char *cdata, int len, ASXMLInterpreterState *state )
 		state->doc_type == DocType_HTML || 
 		state->doc_type == DocType_PHP )	  
 	{
+		int token_start = 0;
+		Bool special = False ;
 		for( i = 0 ; i < len ; ++i ) 
 		{
+			if( !isalnum(cdata[i]) && cdata[i] != '_' )
+			{
+				if( token_start+1 < i && !special ) 	
+				{
+					/* need to try and insert an URL here if token is a keyword */
+				}	 
+				token_start = i ;
+				
+				if( cdata[i] == '&' )
+					special = ( translate_special_sequence( &(cdata[i]), len-i,  NULL ) == '\0' );
+				if( cdata[i] == ';' && special ) 		   
+					special = False ;
+			}
 			switch( cdata[i] )
 			{
 				case '<' : fwrite( "&lt;", 1, 4, state->dest_fp );     break ;	
 				case '>' : fwrite( "&gt;", 1, 4, state->dest_fp );     break ;	 
-				case '&' : fwrite( "&amp;", 1, 5, state->dest_fp );     break ;	 
 				case '"' : fwrite( "&quot;", 1, 6, state->dest_fp );     break ;	 
+				case '&' : 	if( !special ) 
+							{			
+								fwrite( "&amp;", 1, 5, state->dest_fp );     
+								break ;	 
+							}
+							/* otherwise falling through ! */
 				default:
 					fputc( cdata[i], state->dest_fp );
 			}	 
@@ -85,62 +171,9 @@ write_doc_cdata( const char *cdata, int len, ASXMLInterpreterState *state )
 	{
 		for( i = 0 ; i < len ; ++i ) 
 		{
-			int c = '\0' ;
 			int c_len = 0 ;
-			if( cdata[i] == '&') 
-			{ 
-				if( i + 4 < len ) 
-				{	
-					c_len = 4 ;
-					if( strncmp(&(cdata[i]),"&lt;", c_len ) == 0 ) c = '<' ;
-					else if( strncmp(&(cdata[i]),"&gt;", c_len ) == 0 ) c = '>' ;
-				}
-				if( c != '\0' && i + 5 < len ) 
-				{	
-					c_len = 5 ;
-					if( strncmp(&(cdata[i]),"&amp;", c_len ) == 0 ) c = '&' ;
-				}
-				
-				if( c != '\0' && i + 6 < len ) 
-				{	
-					c_len = 6 ;
-					if(      strncmp(&(cdata[i]),"&quot;", c_len ) == 0 ) c = '"' ;
-					else if( strncmp(&(cdata[i]),"&circ;", c_len ) == 0 ) c = 'ˆ' ;
-					else if( strncmp(&(cdata[i]),"&nbsp;", c_len ) == 0 ) c = ' ' ;
-					else if( strncmp(&(cdata[i]),"&ensp;", c_len ) == 0 ) c = ' ' ;
-					else if( strncmp(&(cdata[i]),"&emsp;", c_len ) == 0 ) c = ' ' ;
-					else if( strncmp(&(cdata[i]),"&Yuml;", c_len ) == 0 ) c = 'Ÿ' ;
-					else if( strncmp(&(cdata[i]),"&euro;", c_len ) == 0 ) c = '€' ;					 
-				}
-
-				if( c != '\0' && i + 7 < len ) 
-				{	
-					c_len = 7 ;
-					if( strncmp(&(cdata[i]),"&OElig;", c_len ) == 0 ) c = 'Œ' ;
-					else if( strncmp(&(cdata[i]),"&oelig;", c_len ) == 0 ) c = 'œ' ;
-					else if( strncmp(&(cdata[i]),"&tilde;", c_len ) == 0 ) c = '˜' ;
-					else if( strncmp(&(cdata[i]),"&ndash;", c_len ) == 0 ) c = '–' ;
-					else if( strncmp(&(cdata[i]),"&mdash;", c_len ) == 0 ) c = '—' ;
-					else if( strncmp(&(cdata[i]),"&lsquo;", c_len ) == 0 ) c = '‘' ;
-					else if( strncmp(&(cdata[i]),"&rsquo;", c_len ) == 0 ) c = '’' ;
-					else if( strncmp(&(cdata[i]),"&sbquo;", c_len ) == 0 ) c = '‚' ;
-					else if( strncmp(&(cdata[i]),"&ldquo;", c_len ) == 0 ) c = '“' ;
-					else if( strncmp(&(cdata[i]),"&rdquo;", c_len ) == 0 ) c = '”' ;
-					else if( strncmp(&(cdata[i]),"&bdquo;", c_len ) == 0 ) c = '„' ;
-				}				
-				if( c != '\0' && i + 8 < len ) 
-				{	
-					c_len = 8 ;
-					if( strncmp(&(cdata[i]),"&Scaron;", c_len ) == 0 ) c = 'Š' ;
-					else if( strncmp(&(cdata[i]),"&scaron;", c_len ) == 0 ) c = 'š' ;
-					else if( strncmp(&(cdata[i]),"&thinsp;", c_len ) == 0 ) c = ' ' ;
-					else if( strncmp(&(cdata[i]),"&dagger;", c_len ) == 0 ) c = '†' ;
-					else if( strncmp(&(cdata[i]),"&Dagger;", c_len ) == 0 ) c = '‡' ;
-					else if( strncmp(&(cdata[i]),"&permil;", c_len ) == 0 ) c = '‰' ;
-					else if( strncmp(&(cdata[i]),"&lsaquo;", c_len ) == 0 ) c = '‹' ;
-					else if( strncmp(&(cdata[i]),"&rsaquo;", c_len ) == 0 ) c = '›' ;
-				}
-			}											 
+			int c = translate_special_sequence( &(cdata[i]), len-i, &c_len ) ;
+			
 			if( c != '\0' )
 				i += c_len-1 ;	
 			else
@@ -430,6 +463,30 @@ add_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
 	}	 
 }	 
 
+const char*
+add_glossary_item( xml_elem_t* doc, ASXMLInterpreterState *state )
+{	   
+	xml_elem_t *cdata = find_tag_by_id( doc->child, XML_CDATA_ID );
+	const char *term_text = cdata?cdata->parm:NULL ;
+	if( term_text != NULL ) /* need to add glossary term */
+	{
+	 	char *target = NULL ;
+		char *term = NULL ;
+		char *ptr = &(state->dest_file[strlen(state->dest_file)-4]);
+		if( state->doc_type == DocType_PHP && *ptr == '.')
+			*ptr = '\0' ;
+		target = safemalloc( strlen( state->dest_file)+5+1+strlen(state->curr_url_anchor)+1);
+		sprintf( target, "%s#%s", state->dest_file, state->curr_url_anchor );
+		if( state->doc_type == DocType_PHP && *ptr == '\0' )
+			*ptr = '.' ;
+				
+		term = safemalloc( strlen( term_text)+ 1 + 1 +strlen( state->doc_name ) + 1 +1 );
+		sprintf( term, "%s (%s)", term_text, state->doc_name );
+		add_hash_item( Glossary, AS_HASHABLE(term), (void*)target );   
+	}	 
+	return term_text;
+}
+
 /*************************************************************************/
 /* DocBook XML tags handlers :											 */
 /*************************************************************************/
@@ -457,6 +514,19 @@ end_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 		fprintf( state->dest_fp, "\n" );
 }
 
+void 
+start_formalpara_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+{
+	add_anchor( parm, state );
+	set_flags( state->flags, ASXMLI_FormalPara );
+}
+
+void 
+end_formalpara_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+{
+	close_link(state);
+	clear_flags( state->flags, ASXMLI_FormalPara );
+}
 
 void 
 start_command_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
@@ -556,38 +626,12 @@ end_varlistentry_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *
 void 
 start_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	char *term_text = NULL ; 
 #if 1
 	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
 	{	
 		if( get_flags( state->flags, ASXMLI_InsideLink ) && state->curr_url_anchor != NULL ) 
-		{                                         
-			xml_elem_t *ptr = doc->child ;
-			while( ptr ) 
-			{	
-				if( ptr->tag_id == XML_CDATA_ID ) 
-				{
-					term_text = ptr->parm ;
-					break;
-				}
-				ptr = ptr->next ;
-			}
-			if( term_text != NULL ) /* need to add glossary term */
-			{
-	 			char *target = NULL ;
-				char *term = NULL ;
-				char *ptr = &(state->dest_file[strlen(state->dest_file)-4]);
-				if( state->doc_type == DocType_PHP && *ptr == '.')
-					*ptr = '\0' ;
-				target = safemalloc( strlen( state->dest_file)+5+1+strlen(state->curr_url_anchor)+1);
-				sprintf( target, "%s#%s", state->dest_file, state->curr_url_anchor );
-				if( state->doc_type == DocType_PHP && *ptr == '\0' )
-					*ptr = '.' ;
-				
-				term = safemalloc( strlen( term_text)+ 1 + 1 +strlen( state->doc_name ) + 1 +1 );
-				sprintf( term, "%s (%s)", term_text, state->doc_name );
-			   	add_hash_item( Glossary, AS_HASHABLE(term), (void*)target );   
-			}	 
+		{            
+			add_glossary_item( doc, state ); 
 			close_link(state);
 		}	 
 	}
@@ -675,12 +719,19 @@ start_title_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 {
 	if( state->doc_type == DocType_HTML	 )
 	{
-		if( get_flags( state->flags, ASXMLI_RefSection ) ) 
-			fprintf( state->dest_fp, "<p class=\"refsect_header\"><B>" );	
+		if( get_flags( state->flags, ASXMLI_FormalPara ) )
+		{
+			add_glossary_item( doc, state ); 	  
+			close_link(state);
+			fprintf( state->dest_fp, "<B>" );	
+		}else if( get_flags( state->flags, ASXMLI_RefSection ) ) 
+			fprintf( state->dest_fp, "<p class=\"refsect_header\"><B>" );	  
 		else
 			fprintf( state->dest_fp, "<p class=\"sect_header\"><B>" );	   
 	}else if( state->doc_type == DocType_PHP )
+	{	
 		fprintf( state->dest_fp, "<B>");	
+	}
 }
 
 void 
@@ -688,9 +739,15 @@ end_title_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	if( state->doc_type == DocType_HTML	 )
 	{	
-		fprintf( state->dest_fp, "</B></p>" );	   
+		fprintf( state->dest_fp, "</B>" );	   
+		if( !get_flags( state->flags, ASXMLI_FormalPara ) )
+			fprintf( state->dest_fp, "</p>");	  
 	}else if( state->doc_type == DocType_PHP )
-		fprintf( state->dest_fp, "</B><br>");	
+	{	
+		fprintf( state->dest_fp, "</B>");	
+		if( !get_flags( state->flags, ASXMLI_FormalPara ) )
+			fprintf( state->dest_fp, "<br>");	  
+	}
 	close_link(state);
 }
 

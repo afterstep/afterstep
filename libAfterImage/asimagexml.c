@@ -2364,6 +2364,28 @@ void xml_insert(xml_elem_t* parent, xml_elem_t* child) {
 	parent->next = child;
 }
 
+
+xml_elem_t *
+find_tag_by_id( xml_elem_t *chain, int id )
+{
+	while( chain ) 
+	{	
+		if( chain->tag_id == id ) 
+			return chain;
+		chain = chain->next ;
+	}
+	return NULL ;
+}
+
+xml_elem_t *
+create_CDATA_tag()	
+{ 
+	xml_elem_t *cdata = xml_elem_new();
+	cdata->tag = mystrdup(XML_CDATA_STR) ;
+	cdata->tag_id = XML_CDATA_ID ;
+	return cdata;
+}
+
 char* lcstring(char* str) {
 	char* ptr = str;
 	for ( ; *ptr ; ptr++) if (isupper((int)*ptr)) *ptr = tolower((int)*ptr);

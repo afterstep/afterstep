@@ -113,6 +113,10 @@ void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem);
 xml_elem_t* xml_parse_doc(const char* str, ASHashTable *vocabulary);
 int xml_parse(const char* str, xml_elem_t* current, ASHashTable *vocabulary);
 void xml_insert(xml_elem_t* parent, xml_elem_t* child);
+xml_elem_t *find_tag_by_id( xml_elem_t *chain, int id );
+xml_elem_t *create_CDATA_tag();
+
+
 char* lcstring(char* str);
 Bool save_asimage_to_file(const char* file2bsaved, ASImage *im,
 	    			      const char* strtype,
