@@ -30,6 +30,7 @@ typedef struct xml_elem_t {
 #define ASIM_XML_ENABLE_SAVE 	(0x01<<0)
 #define ASIM_XML_ENABLE_SHOW 	(0x01<<1)
 
+/* bb change : code moved to asimagexml.c
 enum
 {
 	ASXML_Start 			= 0,			               
@@ -52,7 +53,7 @@ enum
 	ASXML_BadAttrName = -5,
 	ASXML_MissingAttrEq = -6
 } ASXML_ParserError;
-
+*/
 
 typedef struct 
 {

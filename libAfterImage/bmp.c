@@ -172,3 +172,37 @@ LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, 
 	return bmp_info;
 }
 
+ASImage      *
+bitmap2asimage (unsigned char *xim, int width, int height, unsigned int compression)
+{
+	ASImage      *im = NULL;
+	int           i, bpl;
+	ASScanline    xim_buf;
+
+    if( xim == NULL )
+		return NULL ;
+
+	im = create_asimage( width, height, compression);
+	prepare_scanline( width, 0, &xim_buf, True );
+
+	if( xim )
+	{
+	    bpl = (width*32)>>3 ;
+	    if( bpl == 0 )
+		    bpl = 1 ;
+	    else
+		    bpl = (bpl+3)/4;
+	    bpl *= 4;
+		for (i = 0; i < height; i++) {
+			raw2scanline( xim, &xim_buf, 0, width, False, True);
+   		    asimage_add_line (im, IC_RED,   xim_buf.red, i);
+		    asimage_add_line (im, IC_GREEN, xim_buf.green, i);
+		    asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
+			xim += bpl;
+		}
+	}
+	free_scanline(&xim_buf, True);
+
+	return im;
+}
+

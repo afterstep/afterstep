@@ -658,7 +658,9 @@ release_asimage_by_name( ASImageManager *imageman, char *name )
 void
 print_asimage_manager(ASImageManager *imageman)
 {
+#ifdef TRACK_ASIMAGES
     print_ashash( imageman->image_hash, string_print );
+#endif    
 }
 
 /* ******************** ASGradient ****************************/

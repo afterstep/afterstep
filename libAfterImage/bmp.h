@@ -64,6 +64,9 @@ ASImage2DBI( ASVisual *asv, ASImage *im,
 			 unsigned int to_height,
   			 void **pBits );
 
+ASImage      *
+bitmap2asimage (unsigned char *xim, int width, int height,
+                unsigned int compression);
 
 #ifdef __cplusplus
 }

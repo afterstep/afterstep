@@ -91,6 +91,29 @@
  *
  *****/
 
+enum
+{
+	ASXML_Start 			= 0,			               
+	ASXML_TagOpen 			= 1,
+	ASXML_TagName 			= 2,
+	ASXML_TagAttrOrClose 	= 3,
+	ASXML_AttrName 			= 4,
+	ASXML_AttrEq 			= 5,
+	ASXML_AttrValueStart 	= 6,
+	ASXML_AttrValue 		= 7,
+	ASXML_AttrSlash 		= 8
+} ASXML_ParserState;
+
+enum
+{
+	ASXML_BadStart = -1,
+	ASXML_BadTagName = -2,
+	ASXML_UnexpectedSlash = -3,
+	ASXML_UnmatchedClose = -4,
+	ASXML_BadAttrName = -5,
+	ASXML_MissingAttrEq = -6
+} ASXML_ParserError;
+
 char *interpret_ctrl_codes( char *text );
 
 static char* cdata_str = XML_CDATA_STR;

@@ -458,6 +458,10 @@ SOURCE=.\export.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\imencdec.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\import.c
 # End Source File
 # Begin Source File
@@ -539,6 +543,10 @@ SOURCE=.\win32\config.h
 # Begin Source File
 
 SOURCE=.\export.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\imencdec.h
 # End Source File
 # Begin Source File
 

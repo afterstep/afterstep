@@ -56,6 +56,7 @@ CLEAN :
 	-@erase "$(INTDIR)\gif_err.obj"
 	-@erase "$(INTDIR)\gifalloc.obj"
 	-@erase "$(INTDIR)\gzio.obj"
+	-@erase "$(INTDIR)\imencdec.obj"
 	-@erase "$(INTDIR)\import.obj"
 	-@erase "$(INTDIR)\infback.obj"
 	-@erase "$(INTDIR)\inffast.obj"
@@ -222,6 +223,10 @@ LIB32_OBJS= \
 	"$(INTDIR)\trees.obj" \
 	"$(INTDIR)\uncompr.obj" \
 	"$(INTDIR)\zutil.obj" \
+	"$(INTDIR)\dgif_lib.obj" \
+	"$(INTDIR)\egif_lib.obj" \
+	"$(INTDIR)\gif_err.obj" \
+	"$(INTDIR)\gifalloc.obj" \
 	"$(INTDIR)\afterbase.obj" \
 	"$(INTDIR)\ascmap.obj" \
 	"$(INTDIR)\asfont.obj" \
@@ -239,10 +244,7 @@ LIB32_OBJS= \
 	"$(INTDIR)\xcf.obj" \
 	"$(INTDIR)\ximage.obj" \
 	"$(INTDIR)\xpm.obj" \
-	"$(INTDIR)\gifalloc.obj" \
-	"$(INTDIR)\egif_lib.obj" \
-	"$(INTDIR)\gif_err.obj" \
-	"$(INTDIR)\dgif_lib.obj"
+	"$(INTDIR)\imencdec.obj"
 
 ".\libAfterImage.lib" : "$(OUTDIR)" $(DEF_FILE) $(LIB32_OBJS)
     $(LIB32) @<<
@@ -280,6 +282,7 @@ CLEAN :
 	-@erase "$(INTDIR)\gif_err.obj"
 	-@erase "$(INTDIR)\gifalloc.obj"
 	-@erase "$(INTDIR)\gzio.obj"
+	-@erase "$(INTDIR)\imencdec.obj"
 	-@erase "$(INTDIR)\import.obj"
 	-@erase "$(INTDIR)\infback.obj"
 	-@erase "$(INTDIR)\inffast.obj"
@@ -447,6 +450,10 @@ LIB32_OBJS= \
 	"$(INTDIR)\trees.obj" \
 	"$(INTDIR)\uncompr.obj" \
 	"$(INTDIR)\zutil.obj" \
+	"$(INTDIR)\dgif_lib.obj" \
+	"$(INTDIR)\egif_lib.obj" \
+	"$(INTDIR)\gif_err.obj" \
+	"$(INTDIR)\gifalloc.obj" \
 	"$(INTDIR)\afterbase.obj" \
 	"$(INTDIR)\ascmap.obj" \
 	"$(INTDIR)\asfont.obj" \
@@ -464,10 +471,7 @@ LIB32_OBJS= \
 	"$(INTDIR)\xcf.obj" \
 	"$(INTDIR)\ximage.obj" \
 	"$(INTDIR)\xpm.obj" \
-	"$(INTDIR)\gifalloc.obj" \
-	"$(INTDIR)\egif_lib.obj" \
-	"$(INTDIR)\gif_err.obj" \
-	"$(INTDIR)\dgif_lib.obj"
+	"$(INTDIR)\imencdec.obj"
 
 "$(OUTDIR)\libAfterImage.lib" : "$(OUTDIR)" $(DEF_FILE) $(LIB32_OBJS)
     $(LIB32) @<<
@@ -1039,6 +1043,11 @@ SOURCE=.\char2uni.c
 SOURCE=.\export.c
 
 "$(INTDIR)\export.obj" : $(SOURCE) "$(INTDIR)"
+
+
+SOURCE=.\imencdec.c
+
+"$(INTDIR)\imencdec.obj" : $(SOURCE) "$(INTDIR)"
 
 
 SOURCE=.\import.c
