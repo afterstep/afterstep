@@ -606,7 +606,9 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 	/* Close all my pipes */
     ShutdownModules(False);
 
-    /* remove window frames */
+    desktop_cover_cleanup();
+    
+	/* remove window frames */
     CleanupScreen();
     /* Really make sure that the connection is closed and cleared! */
     XSync (dpy, 0);
@@ -621,10 +623,10 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     /* pixmap references */
     build_xpm_colormap (NULL);
 #ifdef XSHMIMAGE
+	/* may not need to do that as server may still have some of the shared 
+	 * memory and work in it */
 	flush_shm_cache();
 #endif
-
-    desktop_cover_cleanup();
 
 	if (restart)
 	{
