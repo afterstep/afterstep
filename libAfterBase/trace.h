@@ -14,7 +14,7 @@
 /* Xlib calls */
 #undef TRACE_XDestroyWindow
 #undef TRACE_XGetGeometry
-#define TRACE_XNextEvent  	/* all of the Event retreival functions */
+#undef TRACE_XNextEvent  	/* all of the Event retreival functions */
 /* the following allows filtering events using event masks 
    (It also applicable to the tracing of DispatchEvent) : */
 /* couple additional masks to compensate for X defaults :*/
@@ -33,7 +33,7 @@
 
 /* afterstep functions */
 #undef TRACE_AddWindow
-#define TRACE_SetFocus
+#undef TRACE_SetFocus
 #undef TRACE_SetupFrame
 #undef TRACE_ResizeFrame       /* both ResizeFrame and ResizeClent */ 
 #define TRACE_DispatchEvent     /* see also EVENT_TRACE_MASK above */
