@@ -598,12 +598,17 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         {
 			if( Scr.wmprops->root_pixmap == bh->pmap )
 				set_xrootpmap_id (Scr.wmprops, None );
-            XFreePixmap( dpy, bh->pmap );
+      	    LOCAL_DEBUG_OUT( "root pixmap with id %X destroyed", bh->pmap );
+		    XFreePixmap( dpy, bh->pmap );
             bh->pmap = None ;
         }
         if( bh->pmap == None )
+		{
             bh->pmap = create_visual_pixmap( Scr.asv, Scr.Root, new_im->width, new_im->height, 0 );
-
+			LOCAL_DEBUG_OUT( "new root pixmap created with id %X and size %dx%d", bh->pmap, new_im->width, new_im->height );
+		}else
+			LOCAL_DEBUG_OUT( "using root pixmap created with id %X", bh->pmap );
+		
         bh->pmap_width = new_im->width ;
         bh->pmap_height = new_im->height ;
         bh->im = new_im;
