@@ -61,6 +61,7 @@
 #define ARRANGE_NoRaise		(0x01<<10)
 #define ARRANGE_NoStretch	(0x01<<11)
 #define ARRANGE_Resize		(0x01<<12)
+#define ARRANGE_Tile		(0x01<<13)
 
 struct ASArrangeState
 {
@@ -68,6 +69,11 @@ struct ASArrangeState
 	int incx, incy ;
 	int count ;
 	
+	int offset_x, offset_y ; 
+	int max_width, max_height ;
+	
+	int curr_x, curr_y ;
+	   
 }ArrangeState;
 
 /**********************************************************************/
@@ -79,12 +85,30 @@ struct ASArrangeState
 void GetBaseOptions (const char *filename);
 void HandleEvents();
 void process_message (send_data_type type, send_data_type *body);
+void tile_windows();
+void cascade_windows();
+
+
+int
+atopixel (char *s, int size)
+{
+  	int l = strlen (s);
+  	if (l < 1)
+    	return 0;
+  	if (s[l-1] == 'p' || s[l-1] == 'P' )
+    {
+		s[l-1] = '\0' ;
+		return atoi (s);
+    }
+  	return (atoi (s) * size) / 100;
+}
 
 
 int
 main( int argc, char **argv )
 {
 	int i ;
+	int nargc = 0 ;
     /* Save our program name - for error messages */
     InitMyApp (CLASS_ARRANGE, argc, argv, NULL, NULL, OPTION_SINGLE|OPTION_RESTART );
 
@@ -92,13 +116,24 @@ main( int argc, char **argv )
 
     ConnectX( &Scr, 0 );
 
+	if( mystrcasecmp( MyName , "Tile" ) == 0 )
+		set_flags( ArrangeState.flags, ARRANGE_Tile	);
+
 	for( i = 1 ; i< argc ; ++i)
 	{
 		if( argv[i] == NULL )
 			continue;
 		if( isdigit( argv[i][0] ) )
 		{
-			
+			if( nargc == 0 ) 
+				ArrangeState.offset_x = atoi( argv[i] );
+			if( nargc == 1 ) 
+				ArrangeState.offset_y = atoi( argv[i] );
+			if( nargc == 2 ) 
+				ArrangeState.max_width = atoi( argv[i] );
+			if( nargc == 3 ) 
+				ArrangeState.max_height = atoi( argv[i] );
+			++nargc ;
 		}else if( argv[i][0] == '-' ) 
 		{
 			if( argv[i][1] == '\0' ) 
@@ -138,7 +173,7 @@ main( int argc, char **argv )
 			{ 
 				/* Inhibits border height increment. */
 				set_flags( ArrangeState.flags, ARRANGE_FlatY );
-			}else if( mystrcasecmp( argv[i], "-incx" ) == 0 && i+1 < argc )
+			}else if( mystrcasecmp( argv[i], "-incx" ) == 0 && i+1 < argc && argv[i+1] != NULL )
 			{ 
 				/* Specifies a horizontal increment which is successively added to
 					cascaded windows.  \fIarg\fP is a percentage of screen width, or pixel
@@ -147,7 +182,7 @@ main( int argc, char **argv )
 				++i ;
 				ArrangeState.incx = atopixel (argv[i], Scr.MyDisplayWidth);
 				set_flags( ArrangeState.flags, ARRANGE_IncX );
-			}else if( mystrcasecmp( argv[i], "-incy" ) == 0 && i+1 < argc )
+			}else if( mystrcasecmp( argv[i], "-incy" ) == 0 && i+1 < argc && argv[i+1] != NULL )
 			{
 				/* Specifies a vertical increment which is successively added to cascaded
 					windows.  \fIarg\fP is a percentage of screen height, or pixel value
@@ -170,7 +205,8 @@ main( int argc, char **argv )
 			{ 
 				/* Forces all windows to resize to the constrained width and height (if given). */
 				set_flags( ArrangeState.flags, ARRANGE_Resize );
-			}	
+			}else if( mystrcasecmp( argv[i], "-tile") == 0 )
+				set_flags( ArrangeState.flags, ARRANGE_Tile	);
 			/* these applies to tiling only : */    
 			else if( mystrcasecmp( argv[i], "-mn") == 0 && i+1 < argc )
 			{
@@ -243,6 +279,10 @@ process_message (send_data_type type, send_data_type *body)
 	if( type == M_END_WINDOWLIST )
 	{
 		/* rearrange windows */		
+		if( set_flags( ArrangeState.flags, ARRANGE_Tile	) ) 
+			tile_windows();
+		else
+			cascade_windows();
 		/* exit */
 		DeadPipe (0);
 	}else if( (type&WINDOW_PACKET_MASK) != 0 )
@@ -258,4 +298,46 @@ process_message (send_data_type type, send_data_type *body)
 /********************************************************************/
 /* showing our main window :                                        */
 /********************************************************************/
+void 
+tile_windows()
+{
+	
+	
+}	 
+
+
+Bool 
+cascade_winlist_iter(void *data, void *aux_data)
+{
+	ASWindowData *wd = data ;	
+	static char msg[256];
+	if( !get_flags( ArrangeState.flags, ARRANGE_Untitled ) && get_flags( wd->flags, AS_Titlebar ) )
+		return True;
+	if( !get_flags( ArrangeState.flags, ARRANGE_Transient ) && get_flags( wd->flags, AS_Transient ) )
+		return True;
+	if( !get_flags( ArrangeState.flags, ARRANGE_Sticky ) && get_flags( wd->state_flags, AS_Sticky ) )
+		return True;
+	if( !get_flags( ArrangeState.flags, ARRANGE_Maximized ) && get_flags( wd->state_flags, AS_MaximizedX|AS_MaximizedY ) )
+		return True;
+
+	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
+		SendInfo ( "Raise", wd->client );
+
+	sprintf( &msg[0], "Move %up %up", ArrangeState.curr_x, ArrangeState.curr_y);
+	SendInfo( &msg[0], wd->client );
+
+	ArrangeState.curr_x += ArrangeState.incx ;
+	ArrangeState.curr_y += ArrangeState.incy ;
+
+	return True;   
+}
+	
+
+void 
+cascade_windows()
+{
+	ArrangeState.curr_x = ArrangeState.offset_x ;
+	ArrangeState.curr_y = ArrangeState.offset_y ;
+	iterate_window_data( cascade_winlist_iter, NULL);	
+}
 
