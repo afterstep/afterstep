@@ -225,22 +225,14 @@ iterate_window_data( iter_list_data_handler iter_func, void *aux_data)
 {
     if( iter_func && _as_Winlist )
     {
-        if( start_hash_iteration (_as_Winlist, ASHashIterator * iterator);
-Bool next_hash_item (ASHashIterator * iterator);
-inline ASHashableValue curr_hash_value (ASHashIterator * iterator);
-inline void *curr_hash_data (ASHashIterator * iterator);
-
-        if( l && iter_func )
-        {
-            ASBiDirElem *curr = (start_from != NULL)?find_bidirelem( l, start_from ):
-                                                     (reverse?l->tail:l->head);
-            while( curr != NULL )
+        ASHashIterator  i;
+        if( start_hash_iteration (_as_Winlist, &i) )
+            do
             {
-                if( !iter_func( curr->data, aux_data ) )
+                ASWindowData *data = curr_hash_data (&i);
+                if( !iter_func( data, aux_data ) )
                     break;
-                curr = reverse?curr->prev:curr->next ;
-            }
-        }
+            }while( next_hash_item( &i ));
     }
 }
 
