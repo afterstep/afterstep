@@ -1248,6 +1248,9 @@ destroy_hints (ASHints * clean, Bool reusable)
 				break;
 			else
 				free (clean->names[i]);
+		
+		if( clean->matched_name0 )
+			free( clean->matched_name0 );
 
 		if (clean->cmap_windows)
 			free (clean->cmap_windows);

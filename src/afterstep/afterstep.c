@@ -669,6 +669,9 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
         flush_ashash_memory_pool();
         flush_asbidirlist_memory_pool();
         free( MyArgs.saved_argv );
+		asxml_var_cleanup();
+		custom_color_cleanup(); 
+		flush_default_asstorage();
         print_unfreed_mem ();
 #endif /*DEBUG_ALLOCS */
     }

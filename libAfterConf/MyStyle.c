@@ -366,6 +366,7 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 	if ((style = mystyle_find (def->name)) == NULL)
 	{
 		style = mystyle_new_with_name (def->name);
+		free( def->name );
 		def->name = NULL;					   /* so it wont get deallocated */
 	}
 

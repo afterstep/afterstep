@@ -171,7 +171,7 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 {
 	int comp_size = 1 ;
 	int i = 1;
-
+	//return 0;
 	buffer[0] = diff[0] ; 
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
  	fprintf(stderr, "first byte: 0x%2.2X \n", buffer[0] );
@@ -194,9 +194,10 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 			fprintf( stderr, "comp_size = %d at line %d\n", comp_size, __LINE__ );
 #endif
-			if( comp_size + 1 > size )
+/*			if( comp_size + 1 > size )
 				return 0; 
-			buffer[comp_size] = RLE_ZERO_SIG | (zero_size&RLE_ZERO_LENGTH) ;
+ */
+			buffer[comp_size] = RLE_ZERO_SIG | zero_size ;
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 			fprintf(stderr, "in %d out %d: 0x%2.2X  - %d zeros\n", i, comp_size, buffer[comp_size], zero_size+1 );
 #endif
@@ -236,10 +237,11 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 					fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_step, __LINE__ );
 #endif
-					if( comp_size + 1 + run_step/2 > size )
+/*					if( comp_size + 1 + run_step/2 > size )
 						return 0; 
+ */ 
 
-					buffer[comp_size] = RLE_NOZERO_SHORT_SIG | ((run_step-1)&RLE_NOZERO_SHORT_LENGTH) ;											   
+					buffer[comp_size] = RLE_NOZERO_SHORT_SIG | (run_step-1) ;											   
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 					fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 4bits things\n", i, comp_size, buffer[comp_size], run_step );
 #endif				
@@ -266,10 +268,11 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 					fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_size2, __LINE__ );
 #endif
-					if( comp_size + 1 + run_size2/4 > size )
+/*					if( comp_size + 1 + run_size2/4 > size )
 						return 0; 
+ */ 
 
-					buffer[comp_size] = RLE_NOZERO_LONG1_SIG | ((run_size2-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+					buffer[comp_size] = RLE_NOZERO_LONG1_SIG | (run_size2-1) ;											   
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 					fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 2bits things\n", i, comp_size, buffer[comp_size], run_size2 );
 #endif				
@@ -317,10 +320,11 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 				fprintf( stderr, "comp_size = %d, run_step = %d, size = %d at line %d\n", comp_size, run_step, size, __LINE__ );
 #endif
-				if( comp_size + 1 + run_step > size )
+/*				if( comp_size + 1 + run_step > size )
 					return 0; 
+ */
 
-				buffer[comp_size] = RLE_NOZERO_LONG2_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+				buffer[comp_size] = RLE_NOZERO_LONG2_SIG | (run_step-1) ;											   
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 				fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 8bits things\n", i, comp_size, buffer[comp_size], run_step );
 #endif				
@@ -351,14 +355,15 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 					fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_step, __LINE__ );
 #endif
-				if( comp_size + 1 + run_step > size )
+/*				if( comp_size + 1 + run_step > size )
 					return 0; 
+ */ 
 				
 				k = i - run_step ;
 				if( diff[k] > 0 ) 
-					buffer[comp_size] = RLE_9BIT_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+					buffer[comp_size] = RLE_9BIT_SIG | (run_step-1) ;											   
 				else
-					buffer[comp_size] = RLE_9BIT_NEG_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+					buffer[comp_size] = RLE_9BIT_NEG_SIG | (run_step-1) ;											   
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 				fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 9bit things\n", i, comp_size, buffer[comp_size], run_step );
 #endif				
@@ -380,6 +385,10 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #endif
 	}	 
 	/* fprintf( stderr, "compressed from %d to %d\n", size, comp_size ); */
+	/* its better to do it here from performance point of view since most of
+	 * the data will be well compressed */
+	if( comp_size > size ) 
+		return 0;
 	return comp_size ;
 }	 
 
@@ -1130,7 +1139,7 @@ find_storage_block( ASStorage *storage, ASStorageID id )
 	return NULL ;
 }
 
-static ASStorageSlot *
+static inline ASStorageSlot *
 find_storage_slot( ASStorageBlock *block, ASStorageID id )
 {	
 	if( block != NULL ) 
@@ -1273,10 +1282,9 @@ static void card8_card8_cpy( ASStorageDstBuffer *dst, void *src, size_t size)
 
 static void card8_card32_cpy( ASStorageDstBuffer *dst, void *src, size_t size)
 {
-	register CARD32 *dst32 = (CARD32*)dst->buffer ;
+	register CARD32 *dst32 = (CARD32*)dst->buffer + dst->offset ;
 	register CARD8  *src8  = (CARD8*)src ;
-	register int i ;
-	dst32 += dst->offset ;
+	register int i;
 	for( i = 0 ;  i < size ; ++i ) 
 		dst32[i] = src8[i] ;
 }	 
@@ -1446,13 +1454,7 @@ destroy_asstorage(ASStorage **pstorage)
 	}
 }
 
-ASStorage *
-get_default_asstorage()
-{
-	if( _as_default_storage == NULL )
-		_as_default_storage = create_asstorage();
-	return _as_default_storage ;
-}
+#define get_default_asstorage()   (_as_default_storage?_as_default_storage:(_as_default_storage=create_asstorage()))
 
 void 
 flush_default_asstorage()

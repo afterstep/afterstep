@@ -1158,6 +1158,8 @@ void enforce_avoid_cover(ASWindow *asw )
 
         iterate_asbidirlist( Scr.Windows->clients, avoid_covering_aswin_iter_func, (void*)&aux_data, NULL, False );
 
+		free( aswbox.name );
+
 	}
 }
 
@@ -1190,6 +1192,8 @@ void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_
             
         if( find_closest_position( asw, &aswbox, &(aswbox.area), tmp_status, &selected_x, &selected_y ) )
             apply_placement_result( tmp_status, tmp_anchor, asw->hints, XValue|YValue, selected_x, selected_y, 0, 0 );            
+
+		free( aswbox.name );
     }
 }
 

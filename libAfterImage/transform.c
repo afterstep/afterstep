@@ -815,13 +815,11 @@ scale_image_up_dumb( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, i
 }
 
 
-static ASImage *
+static inline ASImage *
 create_destination_image( unsigned int width, unsigned int height, ASAltImFormats format, 
 						  unsigned int compression, ARGB32 back_color )
 {
-	ASImage *dst = NULL ; 
-	
-	dst = create_asimage(width, height, compression);
+	ASImage *dst = create_asimage(width, height, compression);
 	if( dst )
 	{
 		if( format != ASA_ASImage )

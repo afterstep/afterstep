@@ -736,7 +736,7 @@ decode_asscanline_native( ASImageDecoder *imdec, unsigned int skip, int y )
 		{
 			register CARD32 *chan = scl->channels[i]+skip;
 			if( imdec->im )
-				count = asimage_decode_line(imdec->im, i, chan, y, imdec->offset_x, width);
+				count = fetch_data32( NULL, imdec->im->channels[i][y], chan, imdec->offset_x, width, 0);
 			else
 				count = 0 ;
 			if( scl->shift )

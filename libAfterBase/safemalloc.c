@@ -36,6 +36,7 @@
 #include "safemalloc.h"
 
 #define DETECT_BUFFER_UNDERRUN
+#define NOGUARD
 
 #ifdef DEBUG_ALLOCS
 #include <string.h>
@@ -187,7 +188,7 @@ failed_alloc( const char * function, size_t size )
 void         *
 safemalloc (size_t length)
 {
-#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS)
+#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS) && !defined(NOGUARD)
 	return guarded_malloc (length);
 #else
 	char         *ptr = NULL ;
@@ -229,7 +230,7 @@ guarded_malloc (size_t length)
 void         *
 saferealloc (void *orig_ptr, size_t length)
 {
-#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS)
+#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS) && !defined(NOGUARD)
 	return guarded_realloc( orig_ptr, length );
 #else
 	char         *ptr = NULL ;
@@ -284,7 +285,7 @@ guarded_realloc (void *orig_ptr, size_t length)
 void         *
 safecalloc (size_t num, size_t blength)
 {
-#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS)
+#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS) && !defined(NOGUARD)
 	return guarded_calloc( num, blength );
 #else
 	char         *ptr;
@@ -331,7 +332,7 @@ void
 safefree (void *ptr)
 {
     if (ptr)
-#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS)
+#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS) && !defined(NOGUARD)
 		free_guarded_memory( ptr );		   
 #else
 		free (ptr);

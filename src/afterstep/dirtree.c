@@ -295,7 +295,10 @@ dirtree_parse (dirtree_t * tree, const char *file)
 			for (ptr += 9; isspace (*ptr); ptr++);
 			for (tmp = ptr + strlen (ptr); tmp > ptr && isspace (*(tmp - 1)); tmp--);
 			if (tmp != ptr)
+			{
+				if( tree->extension ) free( tree->extension );
 				tree->extension = mystrndup (ptr, tmp - ptr);
+			}
 		}else if (!mystrncasecmp (ptr, "miniextension", 13))
 		{
 			char         *tmp;

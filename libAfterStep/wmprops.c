@@ -837,6 +837,8 @@ destroy_wmprops (ASWMProps * wmprops, Bool reusable)
 				free (wmprops->desktop_names[0]);
 			free (wmprops->desktop_names);
 		}
+		if( wmprops->desktop_viewport ) 
+			free( wmprops->desktop_viewport );
 		if (wmprops->client_list)
 			free (wmprops->client_list);
 		if (wmprops->stacking_order)
