@@ -1304,17 +1304,21 @@ set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImag
     if( layer->im->width < max_width )
     {
         if( layer->im->width < tile->width )
-            layer->dst_x += make_tile_pad( get_flags(tile->flags, AS_TilePadLeft), get_flags(tile->flags, AS_TilePadRight), tile->width-h_pad*2, layer->im->width );
+            layer->dst_x += make_tile_pad( get_flags(tile->flags, AS_TilePadLeft), 
+                                           get_flags(tile->flags, AS_TilePadRight), 
+                                           tile->width-h_pad*2, layer->im->width );
         layer->clip_width  = layer->im->width ;
     }else
-        layer->clip_width  = max_width ;
+        layer->clip_width  = max_width - h_pad;
     if( layer->im->height < max_height )
     {
         if( layer->im->height < tile->height )
-            layer->dst_y += make_tile_pad( get_flags(tile->flags, AS_TilePadTop), get_flags(tile->flags, AS_TilePadBottom), tile->height-v_pad*2, layer->im->height );
+            layer->dst_y += make_tile_pad( get_flags(tile->flags, AS_TilePadTop), 
+                                           get_flags(tile->flags, AS_TilePadBottom), 
+                                           tile->height-v_pad*2, layer->im->height );
         layer->clip_height  = layer->im->height ;
     }else
-        layer->clip_height  = max_height ;
+        layer->clip_height  = max_height - v_pad;
 
     layer->clip_height = min(layer->im->height, max_height) ;
     alpha = ARGB32_ALPHA8(layer->im->back_color);
@@ -2148,8 +2152,8 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             }
         }
     /* pass 2: see how much space we have left that needs to be floating to some rows/columns : */
-    space_left_x = tbar->width - (h_bevel_size+tbar->h_border*2);
-    space_left_y = tbar->height- (v_bevel_size+tbar->v_border*2);
+    space_left_x = tbar->width - (h_bevel_size+tbar->h_border*2+bevel.left_inline+bevel.right_inline);
+    space_left_y = tbar->height- (v_bevel_size+tbar->v_border*2+bevel.top_inline+bevel.bottom_inline);
     LOCAL_DEBUG_OUT( "from: space_left_x = %d, space_left_y = %d", space_left_x, space_left_y );
     for( l = 0 ; l < AS_TileColumns ; ++l )
     {
@@ -2168,7 +2172,9 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
     }
     space_left_x += tbar->h_spacing ;
     space_left_y += tbar->v_spacing ;
-    LOCAL_DEBUG_OUT( "to  : space_left_x = %d, space_left_y = %d, floating_cols = %d, floating_rows = %d", space_left_x, space_left_y, floating_cols_count, floating_rows_count );
+    LOCAL_DEBUG_OUT( "to  : space_left_x = %d, space_left_y = %d, floating_cols = %d, floating_rows = %d", 
+                     space_left_x, space_left_y, floating_cols_count, floating_rows_count );
+    LOCAL_DEBUG_OUT( "h_spacing = %d, v_spacing = %d", tbar->h_spacing, tbar->v_spacing );
     /* pass 3: now we determine spread padding among affected cols : */
     if( floating_cols_count > 0 && space_left_x != 0)
         for( l = 0 ; l < AS_TileColumns ; ++l )
@@ -2213,8 +2219,8 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
         }
 
     /* pass 5: now we determine offset of each row/column : */
-    x = bevel.left_outline+tbar->h_border ;
-    y = bevel.top_outline+tbar->v_border ;
+    x = bevel.left_outline+bevel.left_inline+tbar->h_border ;
+    y = bevel.top_outline +bevel.top_inline+tbar->v_border ;
     for( l = 0 ; l < AS_TileColumns ; ++l )
     {
         col_x[l] = x ;

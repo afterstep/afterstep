@@ -168,9 +168,9 @@ main( int argc, char **argv )
     TestState.main_canvas = create_ascanvas( TestState.main_window );
     set_root_clip_area(TestState.main_canvas );
 
-    //DoTest_locale();
+    DoTest_locale();
 
-    DoTest_colorscheme();
+    //DoTest_colorscheme();
 
 	/* And at long last our main loop : */
     HandleEvents();
