@@ -123,15 +123,30 @@ int main(int argc, char* argv[])
 		if( w != None )
 		{
 			Pixmap p ;
-			START_TIME(started);
+			int i ;
+			XImage       *xim ;
+			GC my_gc ; 
+			XGCValues gcv ;
 
 	  		XMapRaised   (dpy, w);
 			XSync(dpy,False);
 			/* see ASView.5 : */
 			show_warning( "asimage2pmap");
-			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL,
-				                False );
-			SHOW_TIME("", started);
+	  		p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
+	
+			xim = asimage2ximage(asv, im);
+			my_gc = XCreateGC( asv->dpy, p, 0, &gcv );
+			{
+				START_TIME(started);
+				time_t t = time(NULL);
+				for( i = 0 ; i < 100 ; ++i ) 
+				{	
+					put_ximage( asv, xim, p, my_gc,	0, 0, 0, 0, im->width, im->height );
+//					asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
+				}
+				SHOW_TIME("", started);
+				fprintf( stderr, "runtime = %d sec\n", time(NULL)-t );
+			}
 			show_warning( "asimage2pmap Done");
 			/* print_storage(NULL); */
 			destroy_asimage( &im );
