@@ -1,8 +1,170 @@
+2002-01-10  sashav
+		added XGCValues to xwrap code
+
+		Fixed makefile to install ascompose man page into correct
+		location, since it is an app it should go into man1
+
+		updated libs configure script with new version and correct help/options
+
+		Fixed bug in bevel drawing where right solid line would not be drawn
+
+		updated man pages
+
+2002-01-09  sashav
+		Completed documenting libAfterImage's latest additions.
+
+2002-01-08  sashav
+		Completed documenting ascompose.c
+		Regenerated .HTML docs
+
+2002-01-07  sashav
+		done with about 50% of ascompose documentation.
+
+2001-12-31  sashav
+		added HSV transformation
+
+		Fixed HSV and HLS colorspaces to correctly assign meaningfull HUE values
+		with straight mapping onto 360 degree colorcircle with red being 0, green 120 and
+		blue 240 degrees.
+		Fixed adjust_asimage_hsv to correctly translate degrees.
+		debugged <hsv> tag in ascompose.
+		Added ARGB32_RED16 macro and the likes.
+
+2001-12-28  sashav
+		Fixed alpha handling in allanon and add methods of blender.c
+		Fixed minor bugs in ascompose related to clip_height handling in composite tag.
+
+2001-12-27  sashav
+		greateluy improved ascompose
+		fixed bug when colormap had 128 entries in gif transparency
+
+2001-12-26  sashav
+		Added compress, replace and delay attributes to save tag in
+		ascompose.
+
+2001-12-25  sashav
+		debugged GIF and XPM transparency
+
+2001-12-24  sashav
+		Fixed bug in PNG with alpha writing, where alpha channel could get lost.
+		Fixed bug in Gif reading where extensions where lost.
+		Updated ascompose to use show_progress/error instead of plain printf
+		fixed libAfterBase to compile
+
+2001-12-14  sashav
+		Fixed Visual Autodetection code to correctly create windows for visuals
+		other then default visual.
+
+		Fixed visual detection code to not create new Colormap when Default Visual
+		is in use.
+
+		Lots of fixes for session handling, look/feel loading and non
+		default-visual handling
+
+2001-12-12  sashav
+		Added ability to specify preferred Visual ID via env. variable AFTERIMAGE_VISUAL_ID
+
+2001-12-07  sashav
+		When scale_asimage is called with quality set to POOR it will not interpolate pixels,
+		but merely duplicate existing ones. When scaling down is perfomed it will it will keep
+		averaging pixels values nevertheless.
+		Added tiling_range to ASImageOutput to allow filling of portion of the image with the
+		same scanline.
+		Fixed bug in enlarging algorithm causing corruption of the image near the right edge.
+
+2001-12-06  sashav
+		Fixed minor compilation problems reported by Reiner Rohlfs.
+
+		added ARGB2pixel conversion for 16/15bpp; Fixed bug where root
+		position of window was not updated on move
+
+2001-12-05  sashav
+		fixed bug in merge_aslayers that was not traversing layers list correctly
+
+		Fixed bugs in merge_asimage and bevel drawing causing segfaults and
+		wrong images when negative destination is used.
+
+2001-12-04  sashav
+		continued debugging of image rendering with varying dest
+		position in layers
+
+2001-12-03  sashav
+		Removed unneeded ASVisual arg from clone_asimage.
+
+		Completed rewriting bevel rendering. It should now correctly
+		trim bevel when requested to do so.
+
+2001-11-30  sashav
+		More rendering/look debugging. Fixed Titlebuttons handling.
+		Started rewriting bevel drawing to enable drawing of bevel on clipped images when some parts
+		of the bevel maybe outside of the clip rectangle.
+
+2001-11-29  sashav
+		Extensive debugging of new rendering code.
+
+2001-11-28  sashav
+		Implemented actiuall dubblebuffered drawing.
+		Fixed all the compile time bug - need to get asclook to actually draw something.
+
+2001-11-25  sashav
+		Added check for correct libPNG
+
+2001-11-20  sashav
+		portability and compilation fixes
+
+		ByteOrder debugging
+
+		ByteOrder debugging - fixed misaligned green channel in ASImage-> XImage conversion
+		in MSBFirst != BigEndian configuration
+
+		Added desktop layout to ornaments - incomplete
+
+2001-11-15  sashav
+		Debugged Vector data drawing code and added optimizations for
+		repetitive data.
+
+2001-11-14  sashav
+		updated libAfterImage docs
+
+		Added new fixes from Fons Rademaker
+		Implemented ASImage support for data in vector of doubles with additional
+		pallette to translate into real ARGB.
+
+		added automated check for MMX support to libAfterImage
+
+2001-11-02  sashav
+		Applied next batch of diffs from Fons Rademakers. Fixed several
+		cuel bugs in libAfterWidget, causing memory corruption. Changed
+		ASHashableValue to be simply unsigned long - for portability.
+
+2001-10-26  sashav
+		moved widget event handling into widgetevent.c/.h
+
+		Added patches for compilation into C++ proggrams ( contributed by
+		Fons Rademakers)
+		Implemented export filter into TIFF.
+		Hopefully fixed library order when compiling apps from libAfterImage
+
+2001-10-22  sashav
+		Added viewport changing functionality
+
+2001-10-12  sashav
+		Moved per-desktop look/feel management into session.c.
+		Made asclook compile and debugged libAfterImage's use of AS_ASSERT.
+
 2001-10-10  sashav
 		updated documentation and deps
 
+		Fixed Makefile to work without libAfterBase
+
+		Added missing string_destroy into afterbase.c
+
+		Updated man and HTML documentation
+
 		Fixed configure script to be able to compile libAfterImage and
 		libAfterBase at once
+
+		Added missing remove_hash_item into afterbase.c
 
 		completed update of the documentation for libAfterImage
 

@@ -1,3 +1,94 @@
+2002-01-10  sashav
+		added XGCValues to xwrap code
+
+		included safemalloc.h into socket.c to avoid warnings
+
+		updated libs configure script with new version and correct help/options
+
+		updated man pages
+
+2001-12-24  sashav
+		Fixed bug in PNG with alpha writing, where alpha channel could get lost.
+		Fixed bug in Gif reading where extensions where lost.
+		Updated ascompose to use show_progress/error instead of plain printf
+		fixed libAfterBase to compile
+
+2001-12-20  sashav
+		minor things
+
+2001-12-18  sashav
+		Lots of work for proper implementation of scrollbars.
+		Since we need interwidget messaging - started implementing messaging,
+		That moved onto proper implementation of socket FIFO and
+		that in turn led to addition of ASBiDirList datatype with appropriate methods.
+
+2001-12-05  sashav
+		fixed bug in merge_aslayers that was not traversing layers list correctly
+
+		Added destroy_asgrid function for grid cleanup.
+
+2001-12-04  sashav
+		continued debugging of image rendering with varying dest
+		position in layers
+
+2001-12-03  sashav
+		Fixed desktop background loading and fetching by look.
+		Made Look loader to skip image loading when imman is NULL,
+		while handling root backgrounds.
+
+2001-11-28  sashav
+		Implemented actiuall dubblebuffered drawing.
+		Fixed all the compile time bug - need to get asclook to actually draw something.
+
+2001-11-27  sashav
+		Updated deps files
+
+2001-11-20  sashav
+		portability and compilation fixes
+
+2001-11-14  sashav
+		Added new fixes from Fons Rademaker
+		Implemented ASImage support for data in vector of doubles with additional
+		pallette to translate into real ARGB.
+
+2001-11-13  sashav
+		fixed lots of bugs in layouting, wmdecor border, hints handling
+		etc. Boredom at the time of ALS,2001 has been quite productive
+		:)
+
+2001-11-08  sashav
+		Implemented Wharf, Pager and WinList prototypes in asclook; 
+		Fixed Layout handling of empty cells, Added AvoidCover handling
+		to movement of windows; fixed grid generation
+
+2001-11-05  sashav
+		Implemented and debugged snapping to edges of interface elements
+		while moving window
+
+2001-11-02  sashav
+		implemented buildup of ASGrid from Layout
+
+		Applied next batch of diffs from Fons Rademakers. Fixed several
+		cuel bugs in libAfterWidget, causing memory corruption. Changed
+		ASHashableValue to be simply unsigned long - for portability.
+
+2001-10-26  sashav
+		Added patches for compilation into C++ proggrams ( contributed by
+		Fons Rademakers)
+		Implemented export filter into TIFF.
+		Hopefully fixed library order when compiling apps from libAfterImage
+
+		blunder in set_application_name
+
+2001-10-17  sashav
+		Updated ASWMDecor and ASDesktop to possibly have an owner, such as desktop for decor and
+		root for desktop.
+		Updated asclook to use ASDesktop and Client.
+
+2001-10-12  sashav
+		Moved per-desktop look/feel management into session.c.
+		Made asclook compile and debugged libAfterImage's use of AS_ASSERT.
+
 2001-10-10  sashav
 		completed update of the documentation for libAfterImage
 
