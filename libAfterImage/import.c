@@ -56,9 +56,7 @@
 #include "../include/screen.h"
 #include "../include/asimage.h"
 #include "../include/xcf.h"
-#include "../include/ashash.h"
 #include "../include/asimage.h"
-#include "../include/parse.h"
 
 
 /***********************************************************************************/
@@ -183,7 +181,7 @@ locate_image_file( const char *file, char **paths )
 		register int i = 0;
 		do
 		{
-			realfilename = findIconFile( file, paths[i], R_OK );
+			realfilename = find_file( file, paths[i], R_OK );
 		}while( paths[i++] != NULL );
 	}
 	return realfilename;

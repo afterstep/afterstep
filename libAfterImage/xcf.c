@@ -30,9 +30,6 @@
 #include "../include/afterstep.h"
 #include "../include/screen.h"
 #include "../include/asimage.h"
-#include "../include/ashash.h"
-#include "../include/asimage.h"
-#include "../include/parse.h"
 #include "../include/xcf.h"
 
 static XcfProperty *read_xcf_props( FILE *fp );

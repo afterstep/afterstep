@@ -5,6 +5,5 @@ long**	get_call_list();
 char *  get_caller_func ();
 void	print_simple_backtrace ();
 void	set_signal_handler (int sig_num);
-void	backtrace_window (void *dpy, CARD32 w);
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef AFTERSTEP_TRACE_H
-#define AFTERSTEP_TRACE_H
+#ifndef TRACE_H_HEADER_INCLUDED
+#define TRACE_H_HEADER_INCLUDED
 
 /*
  * This code is a (hopefully) nearly transparent way to keep track of
@@ -24,42 +24,8 @@
 /* use standard X event masks here : */
 #define EVENT_TRACE_MASK	(0xFFFFFFFF)
 
-/* libafterstep functions */
-#undef TRACE_load_font		/* both load and unload actually */
 #undef TRACE_mystrdup		/* both mystrdup and mystrndup */
-
-/* libasGUI functions */
-#undef TRACE_UnloadImage	/* both UnloadMask and UnloadImage */
-
-/* afterstep functions */
-#define TRACE_AddWindow
-#undef TRACE_SetFocus
-#define TRACE_SetupFrame
-#define TRACE_ResizeFrame	/* both ResizeFrame and ResizeClent */
-#define TRACE_DispatchEvent	/* see also EVENT_TRACE_MASK above */
-
-#define TRACE_ReparentIt
-
-#undef TRACE_ExecuteFunction
-/* this will allow for selection of the particular type of functions to trace: */
-#define MiscFuncMask		(1L<<1)
-#define StateFuncMask		(1L<<2)
-#define ConfigFuncMask		(1L<<3)
-#define VirtualFuncMask		(1L<<4)
-#define WindowFuncMask		(1L<<5)
-#define ModuleFuncMask		(1L<<6)
-#define MenuFuncMask		(1L<<7)
-/* use any combination of those in here : */
-#define FUNC_TRACE_MASK		0xFFFFFFFF
-
 /* End of the Select section */
-
-
-
-struct ASWindow;
-struct MyFont;
-struct ASRectangle;
-struct MenuRoot;
 
 /* Xlib calls */
 #ifdef TRACE_XDestroyWindow
@@ -125,79 +91,11 @@ extern int trace_XWindowEvent (Display * dpy, Window w, long event_mask,
 
 #endif
 
-
-/* libafterstep functions */
-#ifdef TRACE_load_font
-#define load_font(a,b)	trace_load_font(a,b,__FUNCTION__,__LINE__)
-#define unload_font(a)	trace_unload_font(a,__FUNCTION__,__LINE__)
-Bool trace_load_font (const char *font_name, MyFont * font, const char *file,
-		      int line);
-void trace_unload_font (MyFont * font, const char *file, int line);
-#endif
-
 #ifdef TRACE_mystrdup
 #define mystrdup(a)	trace_mystrdup(a,__FUNCTION__,__LINE__)
 #define mystrndup(a,b)	trace_mystrndup(a,b,__FUNCTION__,__LINE__)
 char *trace_mystrdup (const char *str, const char *file, int line);
 char *trace_mystrndup (const char *str, size_t n, const char *file, int line);
-#endif
-
-/* libasGUI functions */
-#ifdef TRACE_UnloadImage
-#define UnloadImage(a)	trace_UnloadImage(a,__FUNCTION__,__LINE__)
-#define UnloadMask(a)	trace_UnloadMask(a,__FUNCTION__,__LINE__)
-int trace_UnloadImage (Pixmap pixmap, const char *file, int line);
-int trace_UnloadMask (Pixmap mask, const char *file, int line);
-#endif
-
-/* afterstep functions */
-#ifdef TRACE_AddWindow
-#define AddWindow(w) 		trace_AddWindow(w,__FILE__,__LINE__)
-extern struct ASWindow *trace_AddWindow (Window w, const char *filename,
-					 int line);
-#endif
-
-#ifdef TRACE_SetFocus
-#define SetFocus(w,fw)	trace_SetFocus(w,fw,__FILE__,__LINE__)
-extern Bool trace_SetFocus (Window w, struct ASWindow *Fw,
-			    const char *filename, int line);
-#endif
-
-#ifdef TRACE_SetupFrame
-#define SetupFrame(t,s) 	trace_SetupFrame(t,s,__FILE__,__LINE__)
-extern void trace_SetupFrame (struct ASWindow *tmp_win, Bool sendEvent,
-			      const char *filename, int line);
-#endif
-
-#ifdef TRACE_ResizeFrame
-#define ResizeFrame(t,n,td) 	trace_ResizeFrame(t,n,td,__FILE__,__LINE__)
-extern unsigned int trace_ResizeFrame (struct ASWindow *t,
-				       struct ASRectangle *new_frame,
-				       unsigned int todo,
-				       const char *filename, int line);
-#define ResizeClient(t,n) 	trace_ResizeClient(t,n,__FILE__,__LINE__)
-extern void trace_ResizeClient (struct ASWindow *t,
-				struct ASRectangle *new_client,
-				const char *filename, int line);
-#endif
-
-#ifdef TRACE_DispatchEvent
-#define DispatchEvent(e) 	trace_DispatchEvent(e,__FILE__,__LINE__)
-extern void trace_DispatchEvent (XEvent * event, const char *filename,
-				 int line);
-#endif
-
-#ifdef TRACE_ReparentIt
-#define ReparentIt(t,w)	trace_ReparentIt (t,w,__FILE__,__LINE__)
-extern void trace_ReparentIt (struct ASWindow *t, Window to_win,
-			      const char *filename, int line);
-#endif
-
-#ifdef TRACE_ExecuteFunction
-#define ExecuteFunction(d,w,t,e,c,M) trace_ExecuteFunction(d,w,t,e,c,M,__FILE__,__LINE__)
-extern void trace_ExecuteFunction ( FunctionData *data, Window in_w, ASWindow * tmp_win,
-                                    XEvent * eventp, unsigned long context, int Module,
-                                    const char *filename, int line);
 #endif
 
 #endif /* DEBUG_TRACE */

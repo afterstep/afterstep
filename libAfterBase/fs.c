@@ -35,7 +35,7 @@
 /*
  * get the date stamp on a file
  */
-time_t FileModifiedTime (const char *filename)
+time_t get_file_modified_time (const char *filename)
 {
 	struct stat   st;
 	time_t        stamp = 0;
@@ -46,7 +46,7 @@ time_t FileModifiedTime (const char *filename)
 }
 
 int
-CheckMode (const char *file, int mode)
+check_file_mode (const char *file, int mode)
 {
 	struct stat   st;
 
@@ -58,7 +58,7 @@ CheckMode (const char *file, int mode)
 
 /* copy file1 into file2 */
 int
-CopyFile (const char *realfilename1, const char *realfilename2)
+copy_file (const char *realfilename1, const char *realfilename2)
 {
 	FILE         *targetfile, *sourcefile;
 	int           c;
@@ -111,7 +111,7 @@ make_file_name (const char *path, const char *file)
 }
 
 char         *
-PutHome (const char *path_with_home)
+put_file_home (const char *path_with_home)
 {
 	static char  *home = NULL;				   /* the HOME environment variable */
 	static char   default_home[3] = "./";
@@ -170,7 +170,7 @@ find_file (const char *file, const char *pathlist, int type)
 		return NULL;
 	if (*file == '/' || *file == '~' || ((pathlist == NULL) || (*pathlist == '\0')))
 	{
-		path = PutHome (file);
+		path = put_file_home (file);
 		if (access (path, type) == 0)
 			return path;
 		free (path);
@@ -243,7 +243,7 @@ find_envvar (char *var_start, int *end_pos)
 }
 
 void
-replaceEnvVar (char **path)
+replace_envvar (char **path)
 {
 	char         *data = *path, *tmp;
 	char         *home = getenv ("HOME");
@@ -379,7 +379,7 @@ is_executable_in_path (const char *name)
 		if (env_path == NULL)
 		{
 			env_path = mystrdup (getenv ("PATH"));
-			replaceEnvVar (&env_path);
+			replace_envvar (&env_path);
 			for (ptr = env_path; *ptr; ptr += i)
 			{
 				if (*ptr == ':')

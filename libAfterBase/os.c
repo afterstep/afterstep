@@ -97,7 +97,7 @@ mygetostype (void)
 #endif
 
 int
-GetFdWidth (void)
+get_fd_width (void)
 {
 	int           r;
 

@@ -39,8 +39,9 @@
 #include "output.h"
 #include "audit.h"
 #include "parse.h"
-#include "xprop.h"
 #include "safemalloc.h"
+#include "xwrap.h"
+#include "xprop.h"
 
 /* X property access : */
 Bool

@@ -29,12 +29,13 @@
 #include "audit.h"
 #include "mystring.h"
 #include "safemalloc.h"
+#include "xwrap.h"
 #include "parse.h"
 
 /****************************************************************************
  * parse_argb_color - should be used for all your color parsing needs
  ***************************************************************************/
-const char *parse_argb_color( Display *dpy, const char *color, CARD32 *pargb )
+const char *parse_argb_color( const char *color, CARD32 *pargb )
 {
 #define hextoi(h)   (isdigit(h)?((h)-'0'):(isupper(h)?((h)-'A'+10):((h)-'a'+10)))
 	if( color )

@@ -5,7 +5,7 @@
 
 Bool  mygethostname (char *client, size_t length);
 char* mygetostype (void);
-int   GetFdWidth (void);
+int   get_fd_width (void);
 
 
 #endif /* OS_H_HEADER_INCLUDED */

@@ -48,7 +48,6 @@
 
 #include "../include/afterstep.h"
 #include "../include/screen.h"
-#include "../include/ashash.h"
 #include "../include/asimage.h"
 #include "../include/asfont.h"
 
@@ -123,7 +122,7 @@ open_freetype_font( ASFontManager *fontman, const char *font_string, int face_no
 		char *realfilename;
 		FT_Face face ;
 LOCAL_DEBUG_OUT( "looking for \"%s\"", font_string );
-		if( (realfilename = findIconFile( font_string, fontman->font_path, R_OK )) == NULL )
+		if( (realfilename = find_file( font_string, fontman->font_path, R_OK )) == NULL )
 		{/* we might have face index specifier at the end of the filename */
 			char *tmp = mystrdup( font_string );
 			register int i = 0;
@@ -139,7 +138,7 @@ LOCAL_DEBUG_OUT( "looking for \"%s\"", font_string );
 					break;
 				}
 			if( i >= 0 && font_string[i] != '\0' )
-				realfilename = findIconFile( tmp, fontman->font_path, R_OK );
+				realfilename = find_file( tmp, fontman->font_path, R_OK );
 			free( tmp );
 		}
 

@@ -19,8 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <X11/Xlib.h>
-
 #include "config.h"
 #include "astypes.h"
 #include "output.h"
@@ -595,39 +593,5 @@ void
 set_signal_handler (int sig_num)
 {
 	signal (sig_num, (void *)sigsegv_handler);
-}
-
-static int
-xquiet_error_handler (Display * dpy, XErrorEvent * error)
-{
-    return 0;
-}
-
-void
-backtrace_window ( void *dpy, CARD32 w)
-{
-    Window        root, parent, *children = NULL;
-	unsigned int  nchildren;
-    int           (*oldXErrorHandler) (Display *, XErrorEvent *) = NULL;
-
-    oldXErrorHandler = XSetErrorHandler (xquiet_error_handler);
-    fprintf (stderr, "Backtracing [%lX]", w);
-	while (XQueryTree (dpy, w, &root, &parent, &children, &nchildren))
-	{
-		int x, y ;
-		unsigned int width, height, border, depth ;
-		XGetGeometry( dpy, w, &root, &x, &y, &width, &height, &border, &depth );
-	    fprintf (stderr, "(%dx%d%+d%+d)", width, height, x, y );
-
-		if (children)
-			XFree (children);
-        children = NULL ;
-		w = parent;
-        fprintf (stderr, "->[%lX] ", w);
-		if( w == None )
-			break;
-	}
-    XSetErrorHandler (oldXErrorHandler);
-    fprintf (stderr, "\n");
 }
 

@@ -12,8 +12,8 @@ AC_CONFIG_HEADER(config.h:config.h.in)
 
 version="1.99"
 version_major="1"
-lib_name="LIBAFTERSTEP"
-lib_file_name="libAfterStep"
+lib_name="LIBAFTERBASE"
+lib_file_name="libAfterBase"
 
 dnl# Setup command-line options
 
