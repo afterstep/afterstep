@@ -241,7 +241,7 @@ if test "$with_xpm" = no; then
 else
   if test "$with_builtin_xpm" = no; then
   	SAVED_CFLAGS=$CPPFLAGS
-  	if test "$xpm_includes" != NO; then
+  	if test "x$xpm_includes" != "xNO"; then
 		XPM_CFLAGS="-I$xpm_includes"
 		CPPFLAGS="$CPPFLAGS $XPM_CFLAGS"
   	fi
@@ -271,7 +271,7 @@ if test "$with_jpeg" = no; then
   have_jpeg=disabled
 else
   SAVED_CFLAGS=$CPPFLAGS
-  if test "$jpeg_includes" != NO; then
+  if test "x$jpeg_includes" != "xNO"; then
 	JPEG_CFLAGS="-I$jpeg_includes"
 	CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
   fi
@@ -357,7 +357,7 @@ TTF_INCLUDES=
 if test "x$with_ttf" = "xNO"; then
   have_ttf=disabled
 else
-  if test "$ttf_includes" = NO; then
+  if test "x$ttf_includes" = "xNO"; then
     AC_MSG_CHECKING(headers required by TTF support)
     if freetype-config --cflags >/dev/null  ;then
 	  present_incs="$CCFLAGS $x_includes";
@@ -428,9 +428,9 @@ AC_SUBST(AFTERIMAGE_LIBS_EXTERNAL)
 USE_DEFAULT_AFTERBASE=0
 AFTERBASE_INCS_PATH=
 AC_MSG_CHECKING(libAfterBase headers)
-if test "$with_afterbase" != "no"; then
+if test "x$with_afterbase" != "xno"; then
   have_afterbase=yes
-  if test "$afterbase_includes" = NO; then
+  if test "x$afterbase_includes" = "xNO"; then
 	  if test -r "../libAfterBase/astypes.h"; then
 		AFTERBASE_INCS_PATH="../"
 	  else

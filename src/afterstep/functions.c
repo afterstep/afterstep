@@ -361,13 +361,18 @@ DoExecuteFunction ( ASScheduledFunction *sf )
         else
             fin_event = ButtonPress ;
 
-       if (data->text != NULL && event->client == NULL)
-           if (*(data->text) != '\0')
-               if ((event->client = pattern2ASWindow (data->text)) != NULL)
-               {
-                   event->w = get_window_frame(event->client);
-                   do_defer = False ;
-               }
+       	if (data->text != NULL && event->client == NULL)
+        	if (*(data->text) != '\0')
+            	if ((event->client = pattern2ASWindow (data->text)) != NULL)
+               	{
+                	event->w = get_window_frame(event->client);
+                   	do_defer = False ;
+               	}
+
+		if( event->x.type == KeyPress || event->x.type == KeyRelease ) 
+			if( event->client != NULL ) 
+				do_defer = False;
+				 
 
         if( do_defer && (fin_event != ButtonRelease || !is_interactive_action(data)) )
         {

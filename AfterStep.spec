@@ -1,6 +1,6 @@
 %define	name	AfterStep
-%define	fver	2.00.beta3
-%define	version	2.00.beta3
+%define	fver	2.00.beta2
+%define	version	2.00.beta2
 %define	release	1
 %define	serial	1
 
@@ -14,13 +14,12 @@ Group:		User Interface/Desktops
 URL:		http://www.afterstep.org
 Vendor:		The AfterStep Team (see TEAM in docdir)
 Source:		ftp://ftp.afterstep.org/devel/snapshots/%{name}-%{fver}.tar.bz2
-Source1:	AfterStep-redhat.tar.gz
+#Source1:	AfterStep-redhat.tar.gz
 #Patch0:
-
 Distribution:	The AfterStep TEAM
 Packager:	David Mihm <webmaster@afterstep.org>
-
-BuildRoot:	/tmp/%{name}-%{version}-root
+BuildRoot:	%{_tmppath}/%{name}-%{version}-root
+Requires: %{name}-libs
 
 %description
   AfterStep is a Window Manager for X which started by emulating the
@@ -36,16 +35,40 @@ BuildRoot:	/tmp/%{name}-%{version}-root
   features, AfterStep still works nicely in environments where memory is
   at a premium.
 
+%package libs
+summary:	libraries required by afterstep 2.0
+version:	%{version}
+release:	%{release}
+copyright:	GPL
+group:		User Interface/Desktops
+
+%description libs
+  Libraries neeeded by AfterStep 2.0
+
+%package devel
+summary:	AftterStep libs include files
+version:	%{version}
+release:	%{release}
+copyright:	GPL
+group:		User Interface/Desktops
+Requires: %{name}-libs
+
+%description devel
+  AftterStep libs include files
+
 %prep
 %setup -q -n %{name}-%{fver}
 #%patch0 -p1
 
 # RedHat's version of the startmenu
-rm -rf afterstep/start
-tar xzf $RPM_SOURCE_DIR/AfterStep-redhat.tar.gz
+# rm -rf afterstep/start
+# tar xzf $RPM_SOURCE_DIR/AfterStep-redhat.tar.gz
 
 CFLAGS=$RPM_OPT_FLAGS \
-./configure --prefix=/usr/X11R6 --datadir=/usr/share --disable-staticlibs
+./configure --prefix=/usr/X11R6 --datadir=/usr/share \
+    --disable-staticlibs --enable-sharedlibs \
+	 --with-helpcommand="aterm -e man" \
+	 --with-desktops=1 --with-imageloader="qiv --root"
 
 %build
 make
@@ -58,11 +81,12 @@ mkdir -p $RPM_BUILD_ROOT
 
 make DESTDIR=$RPM_BUILD_ROOT install
 rm -f $RPM_BUILD_ROOT/usr/X11R6/bin/{sessreg,xpmroot}
+for f in libAfter{Base,Image}; do
+   cp -a $f/$f.so* %{buildroot}/usr/X11R6/lib
+done
 
 %clean
-DESTDIR=$RPM_BUILD_ROOT; export DESTDIR
-[ -n "`echo $DESTDIR | sed -n 's:^/tmp/[^.].*$:OK:p'`" ] && rm -rf $DESTDIR ||
-(echo "\$DESTDIR='$DESTDIR' not in '/tmp'?! Check your .spec..."; exit 1)
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
@@ -71,6 +95,16 @@ DESTDIR=$RPM_BUILD_ROOT; export DESTDIR
 /usr/X11R6/lib/*
 /usr/X11R6/man/*/*
 %config /usr/share/afterstep
+
+%files libs
+%defattr(-,root,root)
+%doc libAfterImage/doc/* libAfterImage/README
+/usr/X11R6/lib/*
+
+%files devel
+%defattr(-,root,root)
+/usr/X11R6/include/libAfterBase/*
+/usr/X11R6/include/libAfterImage/*
 
 %pre
 for i in /usr /usr/local /usr/X11R6 ; do
@@ -89,6 +123,13 @@ done
 %postun -p /sbin/ldconfig
 
 %changelog
+* Sun Dec 14 2003 Andre Costa <acosta@ar.microlink.com.br>
+- split into three different RPMs
+- AfterStep-libs is now required for AfterStep
+- use qiv instead of xv for root image
+- removed check for buildroot location on %clean
+- removed references to RH startmenu
+
 * Mon Dec 6 1999 David Mihm <webmaster@afterstep.org>
   [AfterStep-1.7.149-1]
 - Updated to current version
