@@ -306,6 +306,7 @@ void showimage(ASImage* im, int onroot) {
 	if (im && onroot) {
 		Pixmap p = asimage2pixmap(asv, DefaultRootWindow(dpy), im, NULL, False);
 		p = set_window_background_and_free(DefaultRootWindow(dpy), p);
+		wait_closedown(DefaultRootWindow(dpy));
 	}
 
 	if(im && !onroot)
@@ -326,26 +327,8 @@ void showimage(ASImage* im, int onroot) {
 			/* see common.c:set_window_background_and_free(): */
 			p = set_window_background_and_free( w, p );
 		}
-		/* see ASView.6 : */
-	    while(w != None)
-  		{
-    		XEvent event ;
-	        XNextEvent (dpy, &event);
-  		    switch(event.type)
-			{
-		  		case ButtonPress:
-					break ;
-	  		    case ClientMessage:
-			        if ((event.xclient.format == 32) &&
-	  			        (event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
-		  			{
-						XDestroyWindow( dpy, w );
-						XFlush( dpy );
-						w = None ;
-				    }
-					break;
-			}
-  		}
+		/* see common.c: wait_closedown() : */
+		wait_closedown(w);
 	}
 
     if( dpy )
