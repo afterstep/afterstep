@@ -92,8 +92,8 @@ TermDef       WharfTerms[] = {
     {0, "FlipLabel", 9,         TT_FLAG, WHARF_FlipLabel_ID, NULL},
     {0, "FitContents", 11,      TT_FLAG, WHARF_FitContents_ID, NULL},
     {0, "ShapeToContents", 15,  TT_FLAG, WHARF_ShapeToContents_ID, NULL},
-    {0, "AlignContents", 13,    TT_UINTEGER, WHARF_AlignContents_ID, &AlignSyntax},
-    {0, "Bevel", 5, TT_UINTEGER, WHARF_Bevel_ID, &BevelSyntax},
+    {0, "AlignContents", 13,    TT_FLAG, WHARF_AlignContents_ID, &AlignSyntax},
+    {0, "Bevel", 5, 			TT_FLAG, WHARF_Bevel_ID, &BevelSyntax},
     {0, "CompositionMethod", 17,TT_INTEGER, WHARF_CompositionMethod_ID, NULL},
 
 
