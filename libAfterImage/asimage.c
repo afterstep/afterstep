@@ -640,12 +640,15 @@ asimage_decode_block8 (register CARD8 *src, CARD8 *to_buf, unsigned int width )
 	return dst;
 }
 
+void print_component( register CARD32 *data, int nonsense, int len );
+
 inline int
 asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width)
 {
 	CARD8       **color_ptr = asimage_get_color_ptr (im, color);
 	register CARD8  *src = color_ptr[y];
 	/* that thing below is supposedly highly optimized : */
+LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_width = %d, src = %X, color_ptr = %X, color_ptr[0] = %X", im->width, color, y, skip, out_width, src, color_ptr, color_ptr[0] );	
 	if( src )
 	{
 		register int i = 0;
@@ -673,7 +676,7 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 		{
 #endif		
 			i = asimage_decode_block32( src, to_buf, im->width ) - to_buf;
-#if 1
+#if 0
 	  		while( i < out_width )
 			{   /* tiling code : */
 				register CARD32 *src = to_buf-i ;
@@ -685,8 +688,8 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 					++i ;
 				}
 			}
-		}
 #endif		
+		}
 		return i;
 	}
 	return 0;
@@ -1694,7 +1697,7 @@ tile_asimage( ScreenInfo *scr, ASImage *src,
 	ASImage *dst = NULL ;
 	ASImageDecoder *imdec ;
 	ASImageOutput  *imout ;
-
+LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
 	if( (imdec = start_image_decoding(scr, src, SCL_DO_ALL, offset_x, to_width, to_height)) == NULL )
 		return NULL;
 
@@ -1719,6 +1722,7 @@ tile_asimage( ScreenInfo *scr, ASImage *src,
 	}else
 	{
 		int y ;
+LOCAL_DEBUG_OUT("tiling actually...%s", "");
 		for( y = 0 ; y < to_height ; y++  )
 		{
 			decode_image_scanline( imdec );
