@@ -767,7 +767,7 @@ print_func_data(const char *file, const char *func, int line, FunctionData *data
     {
         TermDef      *term = func2fterm (data->func, True);
         if( term == NULL )
-            fprintf( stderr, "Invalid Function %d\n", data->func);
+            fprintf( stderr, "Invalid Function %ld\n", data->func);
         else
         {
             fprintf( stderr, "%s \"%s\" text[%s] ", term->keyword, data->name?data->name:"", data->text?data->text:"" );

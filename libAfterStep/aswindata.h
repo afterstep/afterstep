@@ -18,7 +18,7 @@ typedef struct ASWindowData
 	ASRectangle 	frame_rect ;
     ASRectangle      icon_rect ;
 
-    int             desk ;
+    long             desk ;
     unsigned long   state_flags, flags ;
 
     XSizeHints      hints ;       /* not sure why we need it here */

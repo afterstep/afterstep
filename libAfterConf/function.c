@@ -132,7 +132,7 @@ Func2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, FunctionData * fu
 		if (get_flags (pterm->flags, USES_NUMVALS))
 		{
             int max_args = MAX_FUNC_ARGS ;
-            long default_val = 0 ;
+            CARD32 default_val = 0 ;
 
             if( (default_val = default_func_val( func->func ))!= 0 )
                 for ( ; 0 < max_args; max_args--)

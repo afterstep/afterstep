@@ -320,6 +320,12 @@ CheckConfigSanity()
         }
     }
 
+    if( !get_flags( Config->balloon_conf->set_flags, BALLOON_STYLE ) )
+    {
+        Config->balloon_conf->style = mystrdup("*WharfBalloon");
+        set_flags( Config->balloon_conf->set_flags, BALLOON_STYLE );
+    }
+
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     show_progress( "printing wharf config : ");
     PrintWharfConfig(Config);

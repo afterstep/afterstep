@@ -80,6 +80,7 @@ static int           TitleTextY = 0;
 static int           IconTexType = TEXTURE_BUILTIN;
 
 static char         *MenuPinOn = NULL ;
+static int           MenuPinOnButton = -1 ;
 
 static MyFrameDefinition *MyFrameList = NULL ;
 static char         *DefaultFrameName = NULL ;

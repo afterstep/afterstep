@@ -263,9 +263,9 @@ typedef struct
 ASGeometry;
 
 typedef struct ASRectangle
-{
-  int x, y;
-  unsigned int width, height;
+{/* 64 bit safe : */
+  long x, y;
+  unsigned long width, height;
 }ASRectangle;
 
 typedef struct

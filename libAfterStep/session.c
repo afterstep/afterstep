@@ -702,24 +702,40 @@ make_session_filedir   (ASSession * session, const char *source, Bool use_depth,
     if( source )
     {
         char *filename = (char*)source ;
-        if( use_depth )
+        if( session->scr->screen != 0 )
         {
-            filename = safemalloc( strlen(source) + 1 + 32 );
-            sprintf( filename, "%s.%dbpp", source, session->colordepth );
-        }
+            filename = safemalloc( strlen(source) + 1 + 32 + 32 );
+            if( use_depth )
+                sprintf( filename, "%s.scr%ld.%dbpp", source, session->scr->screen, session->colordepth );
+            else
+                sprintf( filename, "%s.scr%ld", source, session->scr->screen );
 
-        realfilename = (char *)make_file_name (session->ashome, filename);
-        if (check_file_mode(realfilename, mode) != 0)
+            realfilename = (char *)make_file_name (session->ashome, filename);
+            free( filename );
+            filename = (char*)source ;
+        }
+        if( realfilename == NULL || check_file_mode(realfilename, mode) != 0 )
         {
-            free (realfilename);
-            realfilename = make_file_name (session->asshare, filename);
+            if( use_depth )
+            {
+                filename = safemalloc( strlen(source) + 1 + 32 );
+                sprintf( filename, "%s.%dbpp", source, session->colordepth );
+            }
+            if( realfilename )
+                free( realfilename );
+            realfilename = (char *)make_file_name (session->ashome, filename);
             if (check_file_mode(realfilename, mode) != 0)
             {
                 free (realfilename);
-                realfilename = NULL;
+                realfilename = make_file_name (session->asshare, filename);
+                if (check_file_mode(realfilename, mode) != 0)
+                {
+                    free (realfilename);
+                    realfilename = NULL;
+                }
             }
         }
-        if( use_depth )
+        if( filename != source )
             free( filename );
     }
 

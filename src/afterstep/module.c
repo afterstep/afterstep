@@ -667,9 +667,9 @@ SendPacket ( int channel, unsigned long msg_type, unsigned long num_datum, ...)
 void
 SendConfig (int module, unsigned long event_type, ASWindow * t)
 {
-    int frame_x = 0, frame_y = 0, frame_width = 0, frame_height = 0;
+    long frame_x = 0, frame_y = 0, frame_width = 0, frame_height = 0;
     Window icon_title_w = None, icon_pixmap_w = None ;
-    int icon_x = 0, icon_y = 0, icon_width = 0, icon_height = 0 ;
+    long icon_x = 0, icon_y = 0, icon_width = 0, icon_height = 0 ;
 
     if( t->frame_canvas )
     {
@@ -716,7 +716,7 @@ SendString ( int channel, unsigned long msg_type,
              unsigned long w, unsigned long frame, unsigned long asw_ptr, char *string )
 {
     unsigned long data[3];
-    int           len = 0;
+    long           len = 0;
 
     if (string == NULL)
 		return;
