@@ -66,7 +66,7 @@ void
 usage (void)
 {
   printf ("Usage:\n"
-	  "%s [--version] [--help]\n", MyName);
+	  "%s [-f [config file]] [-v|--version] [-h|--help]\n", MyName);
   exit (0);
 }
 

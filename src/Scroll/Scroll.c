@@ -81,7 +81,7 @@ void
 usage (void)
 {
   printf ("Usage:\n"
-	  "%s [--version] [--help] [--window window-id] [x y]\n", MyName);
+	  "%s [-v|--version] [-h|--help] [--window window-id] [x y]\n", MyName);
   exit (0);
 }
 

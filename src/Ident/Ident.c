@@ -101,7 +101,7 @@ void
 usage (void)
 {
   printf ("Usage:\n"
-	  "%s [--version] [--help] [--window window-id]\n", MyName);
+	  "%s [-f [config file]] [-v|--version] [-h|--help] [--window window-id]\n", MyName);
   exit (0);
 }
 

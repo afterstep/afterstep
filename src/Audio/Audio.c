@@ -145,7 +145,7 @@ char  		 *ext_cmd = NULL;
 void
 usage (void)
 {
-	printf ("Usage:\n" "%s [--version] [--help]\n", MyName);
+  printf ("Usage:\n" "%s [-f [config file]] [-v|--version] [-h|--help]\n", MyName);
 	exit (0);
 }
 

@@ -1930,7 +1930,7 @@ void
 usage (void)
 {
   printf ("Usage:\n"
-    "%s [--version] [--help] [--window window-id] [script-name]\n", MyName);
+    "%s [-v|--version] [-h|--help] [--window window-id] [script-name]\n", MyName);
   exit (0);
 }
 

@@ -148,7 +148,7 @@ void
 usage (void)
 {
   printf ("Usage:\n"
-	  "%s [-d|--display display_name] [--version] [--help] n m\n"
+	  "%s [-d|--display display_name] [-v|--version] [-h|--help] n m\n"
 	  "%*s where desktops n through m are displayed\n"
 	  ,MyName, (int) strlen (MyName), MyName);
   exit (0);

@@ -25,7 +25,7 @@
  */
 
 #undef DEBUG
-static char *cvsident = "$Id: Gnome.c,v 1.1 2000/10/20 03:27:57 sashav Exp $";
+static char *cvsident = "$Id: Gnome.c,v 1.2 2002/01/18 23:10:50 geoff Exp $";
 
 #include <X11/Intrinsic.h>
 #include <X11/Xlib.h>
@@ -1149,7 +1149,7 @@ static void
 usage (void)
 {
   printf ("Usage:\n"
-	  "%s [--version] [--help]\n", MyName);
+	  "%s [-f [config file]] [-v|--version] [-h|--help]\n", MyName);
   exit (0);
 }
 
