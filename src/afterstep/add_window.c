@@ -569,8 +569,36 @@ AddWindow (Window w)
 
   GetWindowSizeHints (tmp_win);
 
+  if ( get_flags(nl.off_flags, PREPOS_FLAG) )
+  {
+      if( get_flags(tmp_win->hints.flags, USPosition))
+	  {
+		  if( get_flags( nl.PreposFlags, XValue ) ) 
+		  {
+			  if( get_flags( nl.PreposFlags, XNegative ) ) 
+				  tmp_win->attr.x = Scr.MyDisplayWidth + nl.PreposX;
+			  else
+				  tmp_win->attr.x = nl.PreposX ;
+		  }
+		  if( get_flags( nl.PreposFlags, YValue ) ) 
+		  {
+			  if( get_flags( nl.PreposFlags, YNegative ) ) 
+			      tmp_win->attr.y = Scr.MyDisplayHeight + nl.PreposY;
+			  else
+		  		  tmp_win->attr.y = nl.PreposY;
+		  }
+	  }
+	  if( get_flags(tmp_win->hints.flags, USSize))
+	  {
+		  if( get_flags( nl.PreposFlags, WidthValue ) ) 
+			  tmp_win->attr.width = nl.PreposWidth ;
+		  if( get_flags( nl.PreposFlags, HeightValue ) ) 
+			  tmp_win->attr.height = nl.PreposHeight ;
+	  }
+  }
   /* size and place the window */
   set_titlebar_geometry (tmp_win);
+
   get_frame_geometry (tmp_win, tmp_win->attr.x, tmp_win->attr.y, tmp_win->attr.width, tmp_win->attr.height, NULL, NULL, &tmp_win->frame_width, &tmp_win->frame_height);
   ConstrainSize (tmp_win, &tmp_win->frame_width, &tmp_win->frame_height);
 

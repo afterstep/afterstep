@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <X11/Xutil.h>
+
 #include "../configure.h"
 #include "../include/aftersteplib.h"
 #include "../include/parse.h"
@@ -234,34 +236,6 @@ parse_tab_token (const char *source, char **trg)
 }
 
 
-/* used in ParseMouse and in communication with modules */
-char *
-parse_func_args (char *tline, char *unit, int *func_val)
-{
-  int sign = 0;
-  while (isspace (*tline))
-    tline++;
-  *func_val = 0;
-  if (*tline == '-')
-    sign = -1;
-  else if (*tline == '+')
-    sign = 1;
-  if (sign != 0)
-    tline++;
-  while (isdigit (*tline))
-    {
-      *func_val = (*func_val) * 10 + (int) ((*tline) - '0');
-      tline++;
-    }
-  if (*tline && !isspace (*tline))
-    *unit = *tline;
-  else
-    *unit = '\0';
-  if (sign != 0)
-    *func_val *= sign;
-  return tline;
-}
-
 char *
 string_from_int (int param)
 {
@@ -283,4 +257,116 @@ string_from_int (int param)
     mem[0] = '-';
   sprintf (&(mem[neg]), "%u", param);
   return mem;
+}
+
+/**************************************************************/
+/* Backported from afterstep-devel on 01/06/2002 by Sasha Vasko : */
+
+char         *
+parse_signed_int (register char *tline, int *val_return, int *sign_return)
+{
+	int  val = 0, sign = 0;
+	register int i = 0 ;
+
+	while (isspace ((int)tline[i])) ++i;
+
+	switch( tline[i] )
+	{ /* handling constructs like --10 or -+10 which is equivalent to -0-10or -0+10 */
+		case '\0' : sign = 5 ; --i; break ;
+		case '-' : 	sign = -1;
+					if( tline[i+1] == '-' )
+					{ ++i ; sign = -2 ; }
+					else if( tline[i+1] == '+' )
+					{ ++i ; sign = 3 ; }
+					break;
+		case '+' :	++sign;
+					if( tline[i+1] == '-' )
+					{ ++i ; sign = -3 ; }
+					else if( tline[i+1] == '+' )
+					{ ++i ; sign = 2 ; }
+					break;
+		case '=' :  break; /* skipping */
+		case 'x' :
+		case 'X' :  sign = 4; break;
+	  default : --i ;
+	}
+	while (isdigit ((int)tline[++i]))
+		val = val * 10 + (int)(tline[i] - '0');
+
+	if( val_return )
+		*val_return = (sign < 0)?-val:val ;
+	if( sign_return )
+		*sign_return = sign;
+	return tline+i;
+}
+
+char         *
+parse_func_args (char *tline, char *unit, int *func_val)
+{
+	tline = parse_signed_int( tline, func_val, NULL );
+
+	*unit = *tline;
+	if (isspace ((int)*tline))
+		*unit = '\0' ;
+	return tline[0]?tline+1:tline;
+}
+
+char         *
+parse_geometry (register char *tline,
+                int *x_return, int *y_return,
+                unsigned int *width_return,
+  				unsigned int *height_return,
+				int* flags_return )
+{
+	int flags = 0 ;
+	int sign, val ;
+
+	tline = parse_signed_int( tline, &val, &sign );
+	if( sign == 0 )
+	{
+		if( width_return )
+		{
+			*width_return = val ;
+			set_flags( flags, WidthValue );
+		}
+		tline = parse_signed_int( tline, &val, &sign );
+	}
+	if( sign == 4 )
+	{
+		if( height_return )
+		{
+			*height_return = val ;
+			set_flags( flags, HeightValue );
+		}
+		tline = parse_signed_int( tline, &val, &sign );
+	}
+	if( sign == 0 )
+		sign = 1 ;
+	if( sign == 1 || sign == -1)
+	{
+		if( x_return )
+		{
+			*x_return = val ;
+			set_flags( flags, ( sign < 0 )?XNegative|XValue:XValue );
+		}
+		tline = parse_signed_int( tline, &val, &sign );
+	}else if( sign != 5 )
+	{
+		if( x_return )
+		{
+			*x_return = 0 ;
+			set_flags( flags, ( sign == -2 || sign == 3 )?XNegative|XValue:XValue );
+		}
+	}
+
+	if( sign != 5 && y_return )
+	{
+		*y_return = val ;
+		set_flags( flags, ( sign < 0 )?YNegative|YValue:YValue );
+	}
+
+	if( flags_return )
+		*flags_return = flags ;
+
+	return tline;
 }

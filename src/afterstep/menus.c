@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2002 Jan Fedak <jack at mobil dot cz>
  * Copyright (C) 1993 Rob Nation
  * Copyright (C) 1995 Bo Yang
  * Copyright (C) 1996 Frank Fejes
@@ -562,13 +563,15 @@ PaintEntry (MenuRoot * mr, MenuItem * mi)
     mystyle_draw_text (mr->w, style, mi->item, mi->x, text_y);
   if (mi->strlen2 > 0)
     mystyle_draw_text (mr->w, style, mi->item2, mi->x2, text_y);
-  if (mi->func != F_POPUP && mi->hotkey != 0)
+  if (mi->hotkey != 0)
     {
       int x;
       char hk[2];
       hk[0] = mi->hotkey;
       hk[1] = '\0';
       x = mr->width - 6 - XTextWidth ((*style).font.font, hk, 1);
+      if (mi->func == F_POPUP)
+	x -= 15;
       mystyle_draw_text (mr->w, style, hk, x, text_y);
     }
 }

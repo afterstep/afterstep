@@ -399,6 +399,15 @@ all windows.
 .IP "\fISuppressIcons\fP"
 Specifies that no icon should be shown for any window being iconified,
 similar to NoIcon.
+
+.IP "\fIDefaultGeometry WIDTHxHEIGHT+X+Y\fP"
+Specifies initial placement for the given window, to be used in absense of 
+USPosition geometry (command line specifyed one). Default behaviour is to
+either do Random or Smart placement or let user drag window around.
+Any of the geometry values can be ommited, and either of position values 
+could be negative, in which case it will be added to screen size, effectively 
+allowing placement relative to right/bottom edge. Just like standard X 
+geometry.
 .RE
 
 .SH CONFIGURATION OPTIONS - \fIfeel.name\fP

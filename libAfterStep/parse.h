@@ -37,4 +37,12 @@ char *parse_tab_token (const char *source, char **trg);
 char *parse_func_args (char *tline, char *unit, int *func_val);
 char *string_from_int (int param);
 
+char         *parse_func_args (char *tline, char *unit, int *func_val);
+char         *parse_geometry (register char *tline,
+                int *x_return, int *y_return,
+                unsigned int *width_return,
+  				unsigned int *height_return,
+				int* flags_return );
+
+
 #endif /* _PARSE_ */

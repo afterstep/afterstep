@@ -1,3 +1,11 @@
+1.8.11
+Added DefaultGeometry option to database. That should allow to place 
+window with specifyed geometry when no USPosition was requested, 
+instead of dragging it around. Usefull for things like Netscape.
+Example: 
+  Style "*escape*" DefaultGeometry 800x600+10-100
+
+
 1.8.10
 Xinerama support and Multiple configs on multi-head setup support.
 There could be separate InitFunction, RestartFunction, Feel, Look,

@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2002 Jan Fedak <jack at mobil dot cz> 
  * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  * spawned from configure.c and module.c using code from various ppl :
  * Copyright (c) 1998 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
@@ -317,7 +318,7 @@ scan_for_hotkey (char *txt)
 	  if (*txt != '&')	/* Not Just an escaped &            */
 	    hotkey = *txt;
 	}
-  return hotkey;
+  return toupper(hotkey);
 }
 
 void
@@ -1084,6 +1085,8 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
   /* make title */
   fdata.func = F_TITLE;
   fdata.name = mystrdup (tree->name);
+  /* We exploit that scan_for_hotkey removes & (marking hotkey) from name */
+  scan_for_hotkey(fdata.name);
   MenuItemFromFunc (menu, &fdata);
 #ifndef NO_TEXTURE
   if (MenuMiniPixmaps)
@@ -1115,6 +1118,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 	  if ((fdata.popup = dirtree_make_menu2 (t, buf)) == NULL)
 	    fdata.func = F_NOP;
 
+	  fdata.hotkey = scan_for_hotkey(fdata.name);
 	  if (t->flags & DIRTREE_KEEPNAME)
 	    fdata.text = mystrdup (t->name);
 	  else
@@ -1256,7 +1260,9 @@ MakeMenu (MenuRoot * mr)
 
       if ((*cur).icon.pix != None)
 	width += (*cur).icon.width + 5;
-      if (cur->func == F_POPUP || cur->hotkey)
+      if (cur->func == F_POPUP)
+	width += 15;
+      if (cur->hotkey)
 	width += 15;
       if (width <= 0)
 	width = 1;

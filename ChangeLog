@@ -1,3 +1,6 @@
+ o Applied patch from Jan Fedak to add startup geometry to database 
+   parameters.
+ o Applied patch from Jan Fedak to fix hotkeys in menus.
  o Applied patch to get AfterStep to change Icon when Title is changing.
    New feel option  - FollowTitleChanges in feel has to be used to enable 
    this feature.

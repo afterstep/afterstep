@@ -279,6 +279,14 @@ style_parse (char *text, FILE * fd, char **list, int *junk)
 	  restofline += 14;
 	  nl->on_flags |= STAYSONDESK_FLAG;
 	}
+      else if (mystrncasecmp (restofline, "DefaultGeometry", 15) == 0)
+	{
+	  restofline = parse_geometry( restofline+15,
+				                  &nl->PreposX, &nl->PreposY,
+              					  &nl->PreposWidth, &nl->PreposHeight,
+								  &(nl->PreposFlags) );
+	  nl->off_flags |= PREPOS_FLAG;
+	}
       while (isspace ((unsigned char) *restofline))
 	restofline++;
       if (*restofline == ',')
@@ -316,6 +324,8 @@ style_init (name_list * nl)
   nl->resize_width = 0;
   nl->ViewportX = -1;
   nl->ViewportY = -1;
+  nl->PreposX = -1;
+  nl->PreposY = -1;
 
   nl->off_buttons = 0;
   nl->on_buttons = 0;
@@ -409,6 +419,14 @@ style_fill_by_name (name_list * nl, const char *name, const char *icon_name, con
 	    nl->ViewportX = nptr->ViewportX;
 	  if (nptr->off_flags & VIEWPORTY_FLAG)
 	    nl->ViewportY = nptr->ViewportY;
+	  if (nptr->off_flags & PREPOS_FLAG)
+	  {
+	    nl->PreposX = nptr->PreposX;
+	    nl->PreposY = nptr->PreposY;
+	    nl->PreposWidth = nptr->PreposWidth;
+	    nl->PreposHeight = nptr->PreposHeight;
+	    nl->PreposFlags = nptr->PreposFlags;
+	  }
 	  if (nptr->off_flags & BW_FLAG)
 	    nl->border_width = nptr->border_width;
 	  if (nptr->off_flags & NOBW_FLAG)

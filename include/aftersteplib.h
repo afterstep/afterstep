@@ -20,6 +20,12 @@
 #define	NEW_ARRAY(a, b)     ((a *)malloc(sizeof(a) * (b)))
 #define SWAP(a, b, type)    { type SWAP_NaMe = a; a = b; b = SWAP_NaMe; }
 
+#ifndef get_flags
+#define set_flags(v,f)  	((v)|=(f)) 
+#define clear_flags(v,f)	((v)&=~(f))
+#define get_flags(v,f)  	((v)&(f))
+#endif
+
 #include <X11/Xlib.h>
 #ifdef I18N
 #include <X11/Xlocale.h>

@@ -25,6 +25,7 @@
 #define LAYER_FLAG		(1 << 20)	/* layer is defined */
 #define NOFRAME_FLAG		(1 << 21)
 #define NOHANDLES_FLAG		(1 << 22)
+#define PREPOS_FLAG		(1 << 23)
 
 typedef struct name_list
   {
@@ -34,6 +35,9 @@ typedef struct name_list
     int Desk;			/* Desktop number */
     int layer;			/* layer number */
     int ViewportX, ViewportY;
+    int PreposX, PreposY;
+    unsigned int PreposWidth, PreposHeight;
+	int PreposFlags ;
     unsigned long on_flags;
     unsigned long off_flags;
     int border_width;

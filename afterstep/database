@@ -9,7 +9,8 @@
 #			StartsOnDesk #, ViewportX x, ViewportY y
 #                       BorderWidth #, StartIconic, CirculateSkip,
 #                       NoFocus, NoBorder (== BorderWidth 0),
-#			NoTitle, SuppressIcons, AvoidCover, VerticalTitle
+#			NoTitle, SuppressIcons, AvoidCover, VerticalTitle,
+#			Prepos x y
 
 # For all window to have the NEW and COOL Vertical Title bar on the side:
 # Style	"*"		VerticalTitle

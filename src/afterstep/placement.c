@@ -333,7 +333,9 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
    *  If
    *     o  the window is a transient, or
    * 
-   *     o  a USPosition was requested
+   *     o  a USPosition was requested, or
+   *     
+   *     o  Prepos flag was given
    * 
    *   then put the window where requested.
    *
@@ -344,6 +346,7 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
       !(tmp_win->hints.flags & USPosition) &&
       ((Scr.flags & NoPPosition) || !(tmp_win->hints.flags & PPosition)) &&
       !(PPosOverride) &&
+      !(tflag & PREPOS_FLAG) &&
       !((tmp_win->wmhints) &&
 	(tmp_win->wmhints->flags & StateHint) &&
 	(tmp_win->wmhints->initial_state == IconicState)))
