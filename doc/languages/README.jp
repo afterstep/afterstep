@@ -189,14 +189,13 @@ FAQ $B$rFI$s$G$/$@$5$$!#(Bdoc/1.0_to_1.5 $B%U%!%$%k$O!"(B1.5.x $B$K;j$k$^$G
 
 $B$h$jB?$/$N>pJs(B	:		www.afterstep.org
 $B3+H/%P!<%8%g%s(B	:		ftp.afterstep.org
-$B%X%k%W(B		:		mail afterstep@linuxcenter.com
-					subject: subscribe
-$B%3!<%I$N4IM}(B	:		mail afterstep@linuxcenter.com
-					subject: subscribe
-$B%A%c%C%H(B	:		#afterstep on EFNet
-EFNet $B$X%"%/%;%9$9$k$K$O!"0J2<$N%5!<%P$J$I$N(B efnet irc $B%5!<%P$K@\B3$9$k$3$H(B
+$B%X%k%W(B		:		http://mail.afterstep.org/mailman/listinfo/as-users
+$B%3!<%I$N4IM}(B	:		mail majordomo@crystaltokyo.com
+					subject: subscribe as-devel
+$B%A%c%C%H(B	:		#afterstep on OpenProjects
+OpenProjects $B$X%"%/%;%9$9$k$K$O!"0J2<$N%5!<%P$J$I$N(B OpenProjects irc $B%5!<%P$K@\B3$9$k$3$H(B
 $B$G2DG=$G$"$k(B :
-	irc.concentric.net ; irc.prison.net ; ircd.txdirect.net
+irc.us.openprojects.net ; irc.eu.openprojects.net ; irc.au.openprojects.net
 
 
  TODO

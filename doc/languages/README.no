@@ -178,12 +178,11 @@ I TODO/ finner du saker som skal puttes inn i distribusjonen.
 
 Mer informasjon		:		www.afterstep.org
 Utvikler-versjoner	:		ftp.afterstep.org
-Hjelp			:		mail afterstep@linuxcenter.com
-					subject: subscribe
-Codere			:		mail afterstep@linuxcenter.com
-					subject: subscribe
-Chat			:		#afterstep on EFNet
-En EFNet server til de som ikke vet om noen: irc.homelien.no
+Hjelp			:		http://mail.afterstep.org/mailman/listinfo/as-users
+Codere			:		mail majordomo@crystaltokyo.com
+					subject: subscribe as-devel
+Chat			:		#afterstep on OpenProjects
+En OpenProjects server til de som ikke vet om noen: adams.openprojects.net
 
 
  MAINTAINERS

@@ -162,7 +162,7 @@ decorations.c :
 
 3-2. De nouvelles versions : ftp.afterstep.org
 
-3-3. De l'aide : mail afterstep@linuxcenter.com avec en sujet : subscribe
+3-3. De l'aide : http://mail.afterstep.org/mailman/listinfo/as-users
 
 
 

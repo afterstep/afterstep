@@ -182,13 +182,12 @@ README_new.options 列出新的選項。
 
 更多資訊		:		www.afterstep.org
 新版本: 		:		ftp.afterstep.org
-協助			:		mail afterstep@linuxcenter.com
-					subject: subscribe
-程式設計師		:		mail afterstep@linuxcenter.com
-					subject: subscribe
-聊天			:		#afterstep on EFNet
-要進入 EFNet 的話，只要連接到任何 efnet irc 伺服器即可:
-	irc.concentric.net ; irc.prison.net ; ircd.txdirect.net
+協助			:		http://mail.afterstep.org/mailman/listinfo/as-users
+程式設計師		:		mail majordomo@crystaltokyo.com
+					subject: subscribe as-devel
+聊天			:		#afterstep on OpenProjects
+要進入 OpenProjects 的話，只要連接到任何 OpenProjects irc 伺服器即可:
+irc.us.openprojects.net ; irc.au.openprojects.net ; irc.eu.openprojects.net
 
   維護者
 +--------+

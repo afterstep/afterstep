@@ -155,13 +155,14 @@ Headers files are public domain ; Robert Nation stated in decorations.c :
 
 3-2. Nowe wersje : ftp.afterstep.org
 
-3-3. Pomoc : mail afterstep@linuxcenter.com w subject: subscribe
+3-3. Pomoc : http://mail.afterstep.org/mailman/listinfo/as-users
 
-3-4. Programisci : mail afterstep@linuxcenter.com w subject: subscribe
+3-4. Programisci : mail majordomo@crystaltokyo.com 
+w subject: subscribe as-devel
 
-3-5. IRC : #afterstep na EFNet
-EFNet jest dostepny, miedzy innymi, przez serwer irc.concentric.net,
-nie mam pojecia, czy istnieja polskie serwery EFNet. (pomocy!)
+3-5. IRC : #afterstep na OpenProjects
+OpenProjects jest dostepny, miedzy innymi, przez serwer irc.openprojects.net,
+nie mam pojecia, czy istnieja polskie serwery OpenProjects. (pomocy!)
 
 
 4. AfterStep koordynator :

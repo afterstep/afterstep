@@ -208,14 +208,13 @@ metaglwttish me mia apo tis parapanw entoles.
 
 Perissoteres plhrofories	:	http://www.afterstep.org/
 Nees ypo ekseliksh ekdoseis	:	ftp://ftp.afterstep.org/
-Voitheia			:	mail afterstep@linuxcenter.com
-					subject: subscribe
-Programmatistes			:	mail afterstep@linuxcenter.com
-					subject: subscribe
-Zwntanh omilia (irc)		:	#afterstep on EFNet
-	Prosvash sto EFNet mporei na ginei me syndesh se opoiodhpote EFNet
-	server :
-	irc.concentric.net ; irc.prison.net ; ircd.txdirect.net
+Voitheia			:	http://mail.afterstep.org/mailman/listinfo/as-users
+Programmatistes			:	mail majordomo@crystaltokyo.com
+					subject: subscribe as-devel
+Zwntanh omilia (irc)		:	#afterstep on OpenProjects
+	Prosvash sto EFNet mporei na ginei me syndesh se opoiodhpote 
+	OpenProjects server :
+irc.us.openprojects.net ; irc.eu.openprojects.net ; irc.au.openprojects.net
 
  YPEYTHYNOI EKSELIKSHS
 +---------------------+

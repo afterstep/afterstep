@@ -166,9 +166,10 @@ add_window.c afterstep.c borders.c clientwin.c functions.c
 
 3-2. Новые версии : ftp.afterstep.org
 
-3-3. Помощь : пишите на afterstep@linuxcenter.com с заголовком: subscribe
+3-3. Помощь : http://mail.afterstep.org/mailman/listinfo/as-users
 
-3-4. Программисты : пишите на afterstep@linuxcenter.com с заголовком: subscribe
+3-4. Программисты : пишите на majordomo@crystaltokyo.com 
+с заголовком: subscribe as-devel
 
 
 

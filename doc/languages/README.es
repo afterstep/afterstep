@@ -204,14 +204,13 @@ opciones.
 
 Mas informacion			:	www.afterstep.org
 Nuevas versiones en desarrollo	:	ftp.afterstep.org
-Ayuda				:	mail afterstep@linuxcenter.com
-					subject: subscribe
-Codificadores			:	mail afterstep@linuxcenter.com
-					subject: subscribe
-Chat				:	#afterstep on EFNet
-Se puede acceder a la red EFNet conectando a cualquier servidor IRC de la
-red efnet:
-	irc.concentric.net ; irc.prison.net ; ircd.txdirect.net
+Ayuda				:	http://mail.afterstep.org/mailman/listinfo/as-users
+Codificadores			:	mail majordomo@crystaltokyo.com
+					subject: subscribe as-devel
+Chat				:	#afterstep on OpenProjects
+Se puede acceder a la red OpenProjects conectando a cualquier servidor IRC 
+de la red OpenProjects:
+irc.us.openprojects.net ; irc.eu.openprojects.net ; irc.au.openprojects.net
 
  TODO
 +----+

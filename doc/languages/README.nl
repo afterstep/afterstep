@@ -101,13 +101,12 @@ aanpassingen er zijn gemaakt.
 
 Voor meer informatie	:		www.afterstep.org
 Nieuwe versies		:		ftp.afterstep.org
-Help			:		mail majordomo@afterstep.org
-					Body: subscribe as-users <email>
+Help			:		http://mail.afterstep.org/mailman/listinfo/as-users
 Coders			:		mail majordomo@crystaltokyo.com
 					Body: subscribe as-devel <email>
 Bugs			:		mail bugs@afterstep.org
-Chat			:		#afterstep op EFnet
-
+Chat			:		#afterstep op OpenProjects
+					Server: irc.openprojects.net
 
 
  ONTWIKKELAARS 
