@@ -309,7 +309,7 @@ text_property2string( XTextProperty *tprop)
             }
 #endif
             if( text == NULL && *(tprop->value) )
-                text = stripcpy(tprop->value);
+                text = stripcpy((const char*)(tprop->value));
         }
     }
     return text;

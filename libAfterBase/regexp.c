@@ -95,14 +95,14 @@ typedef struct reg_exp
 reg_exp;
 
 unsigned char
-parse_singlechar (unsigned char **data, unsigned char *reserved)
+parse_singlechar (unsigned char **data, char *reserved)
 {
 	register unsigned char c = **data;
 
     if( c != '\0' )
     {
         while (*reserved)
-            if ((c == *(reserved++)))
+            if ((c == (unsigned char)*(reserved++)))
                 return 0x00;
 
         if (c == '\\')
@@ -305,7 +305,7 @@ parse_reg_exp (short int lead_len, unsigned char **data)
 
 	if (p_sym)
 	{
-		int           len = strlen (*data) + p_sym->size + 1;
+		int           len = strlen ((char*)*data) + p_sym->size + 1;
 		unsigned char *sym_buf, *sym_next, *neg_buf;
 		register unsigned char *src, *dst;
 		int           i;
@@ -631,7 +631,7 @@ compile_wild_reg_exp (const char *pattern)
 	trg = parse_wild_reg_exp (&ptr);
 	free (buffer);
 
-	trg->raw = flatten_wild_reg_exp (trg);
+	trg->raw = (unsigned char*)flatten_wild_reg_exp (trg);
 	make_offsets (trg);
 	return trg;
 }
@@ -835,7 +835,7 @@ compare_wild_reg_exp (wild_reg_exp * wrexp1, wild_reg_exp * wrexp2)
 		return -1;
 	if (wrexp2 == NULL)
 		return 1;
-	strcmp_res = strcmp (wrexp1->raw, wrexp2->raw);
+	strcmp_res = strcmp ((const char*)(wrexp1->raw), (const char*)(wrexp2->raw));
 	if (strcmp_res == 0)
 		return 0;
 	cmp_res = wrexp1->hard_total - wrexp2->hard_total;
