@@ -230,7 +230,7 @@ typedef struct ASWindow
 	struct ASCanvas   *frame_canvas[FRAME_SIDES] ;
 	struct ASTBarData *tbar ;
 	struct ASTBarData *frame_bars[FRAME_PARTS] ; /* regular sidebar is the same as frame with S, SE and SW parts */
-
+	struct MyFrame 	  *frame_data;  /* currently selected frame decorations for this window */
 	/********************************************************************/
 	/* END of NEW ASWindow frame decorations                            */
 	/********************************************************************/
