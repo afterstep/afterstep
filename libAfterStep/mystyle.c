@@ -561,11 +561,12 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 					{
 						if( im )
 						{
-							if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP &&
+							if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
 							    style->texture_type == TEXTURE_SHAPED_PIXMAP)
 							{
 								/*we need to keep alpha channel intact */
 								copy_asimage_channel(tmp, IC_ALPHA, im, IC_ALPHA);
+								LOCAL_DEBUG_OUT( "copying alpha channel from %p to %p", im, tmp );
 							}
 							safe_asimage_destroy (im);
 						}

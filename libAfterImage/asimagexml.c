@@ -1369,7 +1369,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			else if (!strcmp(ptr->tag, "affected_hue"))
 			{
 				if( isdigit( (int)ptr->parm[0] ) )
-					affected_hue = atoi(ptr->parm);
+					affected_hue = parse_math(ptr->parm, NULL, 360);
 				else
 				{
 					ARGB32 color = 0;
@@ -1379,10 +1379,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 												ARGB32_BLUE16(color)));
 				}
 			}
-			else if (!strcmp(ptr->tag, "affected_radius")) 	affected_radius = atoi(ptr->parm);
-			else if (!strcmp(ptr->tag, "hue_offset")) 		hue_offset = atoi(ptr->parm);
-			else if (!strcmp(ptr->tag, "saturation_offset"))saturation_offset = atoi(ptr->parm);
-			else if (!strcmp(ptr->tag, "value_offset")) 	value_offset = atoi(ptr->parm);
+			else if (!strcmp(ptr->tag, "affected_radius")) 	affected_radius = parse_math(ptr->parm, NULL, 360);
+			else if (!strcmp(ptr->tag, "hue_offset")) 		hue_offset = parse_math(ptr->parm, NULL, 360);
+			else if (!strcmp(ptr->tag, "saturation_offset"))saturation_offset = parse_math(ptr->parm, NULL, 100);
+			else if (!strcmp(ptr->tag, "value_offset")) 	value_offset = parse_math(ptr->parm, NULL, 100);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
@@ -1410,7 +1410,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				                            ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 				safe_asimage_destroy(imtmp);
 			}
-			show_progress("adjusting HSV of the image by [%d,%d,%d] affected hues are %d-%d.", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius);
+			show_progress("adjusting HSV of the image by [%d,%d,%d] affected hues are %+d-%+d.result = %p", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius, result);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}

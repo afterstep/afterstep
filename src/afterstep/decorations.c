@@ -760,6 +760,22 @@ estimate_titlebar_size( ASHints *hints )
     return width;
 }
 
+inline static ASFlagType
+fix_background_align( ASFlagType align )
+{
+	/* don't ask why - simply magic :)
+	 * Well not really - we want to disregard background size in calculations of overall
+	 * titlebar size. Overall titlebar size is determined only by text size and button sizes.
+	 * At the same time we would like to be able to scale backgrounds to the size of the
+	 * titlebar
+	 */
+    clear_flags(align , (RESIZE_H|RESIZE_V));
+    if( get_flags( align, (RESIZE_H_SCALE|RESIZE_V_SCALE)))
+    	set_flags( align, FIT_LABEL_SIZE );
+	return align;
+}
+
+
 Bool
 hints2decorations( ASWindow *asw, ASHints *old_hints )
 {
@@ -967,6 +983,16 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 
 		if( tbar_created )
 		{
+			/* really is only 2 iterations - but still  - toghter code this way */
+			for( i = MYFRAME_TITLE_BACK_LBTN ; i <= MYFRAME_TITLE_BACK_LSPACER ; ++i )
+				if( frame->title_backs[i] && frame->title_backs[i]->image )
+				{
+					add_astbar_icon( asw->tbar,
+                             	od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN+i],
+                             	od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN+i],
+                             	od->flip, fix_background_align(frame->title_backs_align[i]),
+                             	frame->title_backs[i]->image);
+      			}
 			 /* left buttons : */
 	        add_astbar_btnblock(asw->tbar,
   		                        od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],
@@ -977,16 +1003,6 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                       		    Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                           		od->left_btn_order );
 
-			/* really is only 2 iterations - but still  - toghter code this way */
-			for( i = MYFRAME_TITLE_BACK_LBTN ; i <= MYFRAME_TITLE_BACK_LSPACER ; ++i )
-				if( frame->title_backs[i] && frame->title_backs[i]->image )
-				{
-					add_astbar_icon( asw->tbar,
-                             	od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN+i],
-                             	od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN+i],
-                             	od->flip, frame->title_backs_align[i],
-                             	frame->title_backs[i]->image);
-      			}
 #if 1
       		if( frame->title_backs[MYFRAME_TITLE_BACK_LBL] &&
 				frame->title_backs[MYFRAME_TITLE_BACK_LBL]->image )
@@ -1010,11 +1026,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                                      od->flip, PAD_RIGHT, 1, 1);
             		title_align = 0 ;
           		}
-          		/* don't ask why - simply magic :) */
-          		clear_flags(title_back_align , (RESIZE_H|RESIZE_V));
-          		if( get_flags( title_back_align, (RESIZE_H_SCALE|RESIZE_V_SCALE)))
-              		set_flags( title_back_align, FIT_LABEL_SIZE );
-          		/* end of the magic */
+				title_back_align = fix_background_align( title_back_align );
 
         		add_astbar_icon( asw->tbar,
                              od->default_tbar_elem_col[ASO_TBAR_ELEM_LBL],
@@ -1053,7 +1065,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 					add_astbar_icon( asw->tbar,
                              	od->default_tbar_elem_col[idx],
                              	od->default_tbar_elem_row[idx],
-                             	od->flip, frame->title_backs_align[i],
+                             	od->flip, fix_background_align(frame->title_backs_align[i]),
                              	frame->title_backs[i]->image);
       			}
 

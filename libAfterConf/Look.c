@@ -179,11 +179,11 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "TitleBackground", 15,    TT_FILENAME,     MYFRAME_TitleBackground_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "RightSpacerBackground", 21,  TT_FILENAME, MYFRAME_RightSpacerBackground_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "RightBtnBackground", 18,  TT_FILENAME,    MYFRAME_RightBtnBackground_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "LeftBtnBackAlign", 16,       TT_FILENAME,     MYFRAME_LeftBtnBackAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackAlign", 19,    TT_FILENAME,     MYFRAME_LeftSpacerBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "LeftBtnBackAlign", 16,       TT_FLAG,     MYFRAME_LeftBtnBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackAlign", 19,    TT_FLAG,     MYFRAME_LeftSpacerBackAlign_ID, &AlignSyntax},
 	{TF_NO_MYNAME_PREPENDING, "TitleBackgroundAlign", 20,   TT_FLAG,         MYFRAME_TitleBackgroundAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING, "RightSpacerBackAlign", 20,   TT_FILENAME,     MYFRAME_RightSpacerBackAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING, "RightBtnBackAlign", 17,      TT_FILENAME,     MYFRAME_RightBtnBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "RightSpacerBackAlign", 20,   TT_FLAG,     MYFRAME_RightSpacerBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "RightBtnBackAlign", 17,      TT_FLAG,     MYFRAME_RightBtnBackAlign_ID, &AlignSyntax},
 	{0, NULL, 0, 0, 0}
 };
 

@@ -38,7 +38,7 @@
  *
  ***************************************************************************/
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 
 #include "../../configure.h"
 
@@ -427,7 +427,6 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 LOCAL_DEBUG_OUT( "checking availability for \"%s\"", fdata->name?fdata->name:"nameless" );
 			if (IsSwallowFunc(fdata->func) || IsExecFunc(fdata->func))
 			{
-LOCAL_DEBUG_OUT( "now really checking availability for \"%s\"", fdata->name?fdata->name:"nameless" );
 				if (!is_executable_in_path (fdata->text))
 				{
 					fdata->func = F_NOP;
@@ -435,10 +434,7 @@ LOCAL_DEBUG_OUT( "unavailable :  \"%s\"", fdata->name?fdata->name:"nameless" );
 				}
 			}
 #endif /* NO_AVAILABILITYCHECK */
-LOCAL_DEBUG_OUT( "1:fdata->name = \"%s\"", t->name );
-LOCAL_DEBUG_OUT( "2:fdata->name = %p\"%s\"", fdata->name, fdata->name );
             MenuDataItemFromFunc (menu, fdata);
-LOCAL_DEBUG_OUT( "3:fdata->name = %p\"%s\"", fdata->name, fdata->name );
             /* check for a MiniPixmap */
             if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
 			{
