@@ -60,7 +60,11 @@ alloc_guarded_memory( size_t length	)
     LPVOID commit, commit_guard; 
  
 	/* Reserve whole page per allocation, plus another page - for guard */
-    cbSize = (((length+sizeof(size_t)*2)/WIN32_PAGE_SIZE)+1)*WIN32_PAGE_SIZE; 
+	cbSize = length+sizeof(size_t)*2; 
+	if( cbSize%WIN32_PAGE_SIZE == 0 )
+		cbSize = (cbSize/WIN32_PAGE_SIZE)*WIN32_PAGE_SIZE; 
+	else
+		cbSize = ((cbSize/WIN32_PAGE_SIZE)+1)*WIN32_PAGE_SIZE; 
  
     /* Try to allocate some memory. */
     lpvAddr = VirtualAlloc(NULL,cbSize+WIN32_PAGE_SIZE,MEM_RESERVE,PAGE_NOACCESS); 
@@ -120,7 +124,7 @@ free_guarded_memory( void *ptr )
 	if( size_ptr[1] != AS_WIN32_PAGE_MAGIC  )
 	{	
 		char *suicide = NULL;
-		fprintf( stderr, "FREE: warning - freeing ptr %p that was not allocated properly\n", ptr );		   
+		fprintf( stderr, "FREE: warning - freeing ptr %p that was not allocated properly (size_ptr = %p)\n", ptr, size_ptr );		   
 		fflush( stderr );
 		*suicide = 1 ;		
 	}else

@@ -30,6 +30,7 @@ typedef struct ASStorageSlot
 #define ASStorage_CompressionType	(0x0F<<0) /* allow for 16 compression schemes */
 #define ASStorage_Used				(0x01<<4)
 #define ASStorage_NotTileable		(0x01<<5)
+#define ASStorage_Reference			(0x01<<6)  /* data is the id of some other slot */ 
 
 	CARD16  flags ;
 	CARD16  ref_count ;
@@ -92,18 +93,11 @@ int  fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, i
 /* slot identified by id will be marked as unused */
 void forget_data(ASStorage *storage, ASStorageID id);
 
-/* data will be copied starting with src_offset, and counting dst_size bytes.
- * it will be stored in slot identifyed by optional dst_id, or in the new slot,
- * if dst_id is 0. 
- */
-ASStorageID copy_data(  ASStorage *storage, ASStorageID src_id, 
-						ASStorageID dst_id, int src_offset, int dst_size, ASFlagType dst_flags);
-
 /* returns new ID without copying data. Data will be stored as copy-on-right. 
  * Reference count of the data will be increased. If optional dst_id is specified - 
  * its data will be erased, and it will point to the data of src_id: 
  */				
-ASStorageID dup_data(ASStorage *storage, ASStorageID src_id, ASStorageID dst_id);
+ASStorageID dup_data(ASStorage *storage, ASStorageID src_id);
 
 
 #endif
