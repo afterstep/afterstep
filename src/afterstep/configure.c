@@ -182,7 +182,7 @@ struct config main_config[] = {
     {"WindowBox", windowbox_parse, (char**)&(Scr.Feel.window_boxes), (int*)&(Scr.Feel.window_boxes_num)},
     {"DefaultWindowBox", assign_string, (char**)&(Scr.Feel.default_window_box_name), (int*)0},
     {"RecentSubmenuItems", SetInts, (char**)&Scr.Feel.recent_submenu_items, (int*)&dummy},
-	{"WinListSortOrder", SetInts, &Scr.Feel.winlist_sort_order, (int *)&dummy},
+	{"WinListSortOrder", SetInts, (char**)&Scr.Feel.winlist_sort_order, (int *)&dummy},
 	{"WinListHideIcons", SetFlag, (char**)WinListHideIcons, (int *)&dummy},
 
     /* look options */
@@ -778,7 +778,7 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
     if( get_flags( fd->set_title_attr, MYFRAME_LeftTitlebarLayoutSet ) )
 	{
         frame->left_layout = fd->left_layout;
-		LOCAL_DEBUG_OUT( "LeftTitlebarLayout = 0x%X", fd->left_layout );		
+		LOCAL_DEBUG_OUT( "LeftTitlebarLayout = 0x%lX", fd->left_layout );		
 	}
     if( get_flags( fd->set_title_attr, MYFRAME_RightTitlebarLayoutSet ) )
         frame->right_layout = fd->right_layout;
@@ -1280,6 +1280,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 
         if (get_flags(what, PARSE_LOOK_CONFIG))
 		{
+			stop_all_background_xfer();
 			LoadColorScheme();
 
 			/* now we can proceed to loading them look and theme */
@@ -1425,7 +1426,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 				free( new_back->loaded_im_name );  
 				new_back->loaded_im_name = NULL ;
 			}
-            change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
+            change_desktop_background( Scr.CurrentDesk );
 		}
     }
 

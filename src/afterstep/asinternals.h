@@ -660,9 +660,11 @@ void HandlePaging (int HorWarpSize, int VertWarpSize, int *xl,
 void ChangeDesks (int new_desk);
 void ChangeDeskAndViewport ( int new_desk, int new_vx, int new_vy, Bool force_grab);
 MyBackground *get_desk_back_or_default( int desk, Bool old_desk );
-void change_desktop_background( int desk, int old_desk );
+void change_desktop_background( int desk );
 void HandleBackgroundRequest( struct ASEvent *event );
 Bool is_background_xfer_ximage( unsigned long id );
+void stop_all_background_xfer();
+
 
 
 

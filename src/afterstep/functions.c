@@ -1028,7 +1028,7 @@ commit_config_change( int func )
 				free( new_back->loaded_im_name );  
 				new_back->loaded_im_name = NULL ;
 			}
-        	change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
+        	change_desktop_background( Scr.CurrentDesk );
 			_as_background_change_count = 0 ;
     	}
 		if ( _as_config_change_count > 0 )

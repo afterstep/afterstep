@@ -624,7 +624,10 @@ Bool     store_asimage( ASImageManager* imageman, ASImage *im, const char *name 
  * name            - unique name of the image.
  * DESCRIPTION
  * Looks for image with the name in ASImageManager's list and if found,
- * it will increment reference count, and returns pointer to it.
+ * returns pointer to it. Note that query_asimage() does not increment 
+ * reference count, while fetch_asimage() does. Therefore if fetch_asimage()
+ * is used - release_asimage() should be called , when image is no longer 
+ * in use.
  *********/
 ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
 ASImage *query_asimage( ASImageManager* imageman, const char *name );
