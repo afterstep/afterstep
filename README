@@ -44,7 +44,7 @@ Themes are a simple 3 1/2 step procedure:
 Several "looks" (theme-ish) are included within the distribution.  Any of
 these can be started by selecting the name of the look from the menu.
 
-	(startmeu)->Desktop->Looks->*
+	(startmenu)->Desktop->Looks->*
 
 There are several "feels" (key bindings and window reactions), background
 Pictures, and Animations to try out as well.  These all work the same way,
@@ -57,7 +57,7 @@ first create the file, either under the share tree or in a created start dir
 tree in the users ~/GNUstep/Library/AfterStep/start tree, then inform AfterStep
 about the menu change by.
 
-	(startmeu)->Desktop->Update startmenu
+	(startmenu)->Desktop->Update startmenu
 
  TOOLS
 +------+
@@ -87,7 +87,7 @@ format.
 Now before asking any questions, be sure to read the FAQ that is included
 in this distribution by clicking on the top Wharf button, or selecting
 AfterStepDoc from the menu.  The doc/1.0_to_1.5 file lists several
-differemces along the way to 1.5.x and the README_new.options lists new
+differences along the way to 1.5.x and the README_new.options lists new
 options.
 
  SITES
