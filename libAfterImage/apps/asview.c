@@ -27,7 +27,6 @@ int main(int argc, char* argv[])
 {
 	char *image_file = "rose512.jpg" ;
 	ASImage *im ;
-	int i ;
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 #if (HAVE_AFTERBASE_FLAG==1)
@@ -69,7 +68,7 @@ int main(int argc, char* argv[])
 									 "ASView" );
 		if( w != None )
 		{
-			Pixmap p, p1 ;
+			Pixmap p ;
 
 	  		XMapRaised   (dpy, w);
 			/* see ASView.5 : */
