@@ -97,6 +97,8 @@ write_doc_header( ASXMLInterpreterState *state )
 
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","F.A.Q.","faq", "" );
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Copyright","authors", "" );
+			fprintf( state->dest_fp, "<hr>\n" );
+fprintf( state->dest_fp, "<br><b>%s</b><br><br><hr>\n", state->display_name );
 			for( i = 0 ; i < DocClass_TopicIndex ; ++i ) 
 			{
 				if( get_flags( state->doc_class_mask, (0x01<<i)	) )
