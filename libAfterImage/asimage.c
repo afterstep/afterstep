@@ -45,6 +45,7 @@
 #include "../include/mystyle.h"
 #include "../include/background.h"
 #include "../include/asimage.h"
+#include "../include/XImage_utils.h"
 
 /*
  * We Store images using RLE encoding - see asimage.h for more
@@ -96,6 +97,8 @@ asimage_init (ASImage * im, Bool free_resources)
 			asimage_free_color (im, im->alpha);
 			if (im->buffer)
 				free (im->buffer);
+			if( im->ximage )
+				XDestroyImage( im->ximage );
 		}
 		memset (im, 0x00, sizeof (ASImage));
 	}
@@ -162,12 +165,12 @@ asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y)
 }
 
 void
-asimage_add_line (ASImage * im, ColorPart color, CARD8 * data, unsigned int y)
+asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y)
 {
 	int           i;
 	register int  rep_count, block_count;
-	register CARD8 *ptr = data;
-	register CARD8 *bstart, *ccolor;
+	register CARD32 *ptr = data;
+	register CARD32 *bstart, *ccolor;
 	unsigned int  width;
 	CARD8        *tail;
 	Bool          direct = True;
@@ -195,13 +198,15 @@ asimage_add_line (ASImage * im, ColorPart color, CARD8 * data, unsigned int y)
 			{
 				if (rep_count <= RLE_MAX_SIMPLE_LEN)
 				{
-					*(tail++) = (CARD8) rep_count;
-					*(tail++) = *ccolor;
+					tail[0] = (CARD8)  rep_count;
+					tail[1] = (CARD8) *ccolor;
+					tail += 2 ;
 				} else
 				{
-					*(tail++) = ((CARD8) (rep_count >> 8)) & RLE_LONG_D;
-					*(tail++) = (CARD8) (rep_count) & 0xFF;
-					*(tail++) = *ccolor;
+					tail[0] = ((CARD8) (rep_count >> 8)) & RLE_LONG_D;
+					tail[1] = (CARD8) (rep_count) & 0xFF;
+					tail[2] = (CARD8) *ccolor;
+					tail += 3 ;
 				}
 				block_count = 0;
 				bstart = ptr;
@@ -214,10 +219,13 @@ asimage_add_line (ASImage * im, ColorPart color, CARD8 * data, unsigned int y)
 		if (!direct || block_count >= RLE_MAX_DIRECT_LEN)
 			if (bstart < ccolor)
 			{
+				register int i = ccolor - bstart ;
 				block_count -= rep_count + 1 + 1;
 				*(tail++) = RLE_DIRECT_B | (CARD8) block_count;
-				while (bstart < ccolor)
-					*(tail++) = *(bstart++);
+				while ( --i >= 0 )
+					tail[i] = (CARD8)bstart[i];
+				tail += ccolor - bstart ;
+				bstart = ccolor;
 				block_count = rep_count;
 			}
 		ptr++;
@@ -226,22 +234,26 @@ asimage_add_line (ASImage * im, ColorPart color, CARD8 * data, unsigned int y)
 	{
 		if (bstart < ccolor || rep_count == 0)
 		{									   /* count of 1 is represented by 0 */
+			register int i = ptr - bstart;
 			*(tail++) = RLE_DIRECT_B | (CARD8) (block_count - 1);
-			while (bstart < ptr)
-				*(tail++) = *(bstart++);
+			while (--i >= 0 )
+				tail[i] = (CARD8)bstart[i];
+			tail  += ptr - bstart;
+			bstart = ptr;
 		} else
 		{
 			if (rep_count <= RLE_MAX_SIMPLE_LEN)
 			{								   /* count of 1 is represented by 0 as well but it should not be less the 2 :) */
-				*(tail++) = (CARD8) rep_count;
-				*(tail++) = *ccolor;
+				tail[0] = (CARD8) rep_count;
+				tail[1] = (CARD8) *ccolor;
+				tail += 2 ;
 			} else
 			{
-				*(tail++) = ((CARD8) (rep_count >> 8)) & RLE_LONG_D;
-				*(tail++) = (CARD8) (rep_count) & 0xFF;
-				*(tail++) = *ccolor;
+				tail[0] = ((CARD8) (rep_count >> 8)) & RLE_LONG_D;
+				tail[1] = (CARD8) (rep_count) & 0xFF;
+				tail[2] = (CARD8) *ccolor;
+				tail += 3 ;
 			}
-
 		}
 	}
 
@@ -310,10 +322,11 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 }
 
 unsigned int
-asimage_decode_line (ASImage * im, ColorPart color, unsigned int y, CARD8 * to_buf)
+asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y)
 {
 	CARD8       **color_ptr;
-	register CARD8 *src, *dst;
+	register CARD8  *src ;
+	register CARD32 *dst;
 	register int  to_write;
 
 	if (im == NULL || to_buf == NULL)
@@ -332,16 +345,21 @@ asimage_decode_line (ASImage * im, ColorPart color, unsigned int y, CARD8 * to_b
 
 		if (((*src) & RLE_DIRECT_B) != 0)
 		{
+			register int i = -1 ;
 			src++;
-			while (to_write-- >= 0)			   /* we start counting from 0 - 0 is actually count of 1 */
-				*(dst++) = *(src++);
+			while (to_write >= ++i)			   /* we start counting from 0 - 0 is actually count of 1 */
+				dst[i] = src[i];
+			src += i ;
+			dst += i ;
 		} else
 		{
+			register int i = -1 ;
 			if (((*src) & RLE_LONG_B) != 0)
 				src++;
 			src++;
-			while (to_write-- >= 0)
-				*(dst++) = *src;
+			while (to_write >= ++i )
+				dst[i] = *src;
+    		dst += i ;
 			src++;
 		}
 	}
@@ -366,13 +384,17 @@ asimage_copy_line (CARD8 * from, CARD8 * to)
 				*(dst++) = *(src++);
 		} else if (((*src) & RLE_SIMPLE_B_INV) == 0)
 		{
-			*(dst++) = *(src++);
-			*(dst++) = *(src++);
+			dst[0] = src[0];
+			dst[1] = src[1];
+			dst += 2 ;
+			src += 2 ;
 		} else if (((*src) & RLE_LONG_B) != 0)
 		{
-			*(dst++) = *(src++);
-			*(dst++) = *(src++);
-			*(dst++) = *(src++);
+			dst[0] = src[0];
+			dst[1] = src[1];
+			dst[2] = src[2];
+			dst += 3 ;
+			src += 3 ;
 		}
 	}
 	return (dst - to);
@@ -393,6 +415,7 @@ asimage_scale_line_up (CARD8 * from, CARD8 * to, unsigned int from_width, unsign
 	return 0;
 }
 
+#if 0
 unsigned int
 asimage_scale_line_down (CARD8 * from, CARD8 * to, unsigned int from_width, unsigned int to_width)
 {
@@ -418,96 +441,236 @@ asimage_scale_line_down (CARD8 * from, CARD8 * to, unsigned int from_width, unsi
 	}
 	return (dst - to);
 }
+#endif
 
-typedef struct XImageBuffer
+
+typedef struct ASScanline
 {
-
-	CARD8        *red, *green, *blue;
-
-	int           bpp, byte_order, BGR_mode;
+	CARD32        *buffer ;
+	CARD32        *red, *green, *blue;
+	unsigned int   width, shift;
 /*    CARD32 r_mask, g_mask, b_mask ; */
+}ASScanline;
 
-}
-XImageBuffer;
-
-static void
-asimage_line_from_ximage (unsigned char *xim_line, unsigned int y, ASImage * im, XImageBuffer * xim_buf)
+static ASScanline*
+prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory  )
 {
-	int           i;
-	ColorPart     color1 = IC_RED, color2 = IC_BLUE;
-	register CARD8 *r = xim_buf->red, *g = xim_buf->green, *b = xim_buf->blue;
+	register ASScanline *sl = reusable_memory ;
 
-	if (xim_buf->bpp == 24)
-	{
-		register CARD8 *src = xim_line;
+	if( sl == NULL )
+		sl = safecalloc( 1, sizeof( ASScanline ) );
 
-		if (xim_buf->BGR_mode != xim_buf->byte_order)
-		{
-			color1 = IC_BLUE;
-			color2 = IC_RED;
-		}
-		for (i = im->width; i > 0; i--)
-		{
-			*(r++) = *(src++);
-			*(g++) = *(src++);
-			*(b++) = *(src++);
-		}
-	} else if (xim_buf->bpp == 32)
-	{
-		register CARD8 *src = xim_line;
-
-		if (xim_buf->BGR_mode != xim_buf->byte_order)
-		{
-			color1 = IC_BLUE;
-			color2 = IC_RED;
-		}
-		if (xim_buf->byte_order == MSBFirst)
-			for (i = im->width; i > 0; i--)
-			{
-				src++;
-				*(r++) = *(src++);
-				*(g++) = *(src++);
-				*(b++) = *(src++);
-		} else
-			for (i = im->width; i > 0; i--)
-			{
-				*(r++) = *(src++);
-				*(g++) = *(src++);
-				*(b++) = *(src++);
-				src++;
-			}
-
-	} else if (xim_buf->bpp == 16)
-	{										   /* must add LSB/MSB checking + BGR checking */
-		register CARD16 *src = (CARD16 *) xim_line;
-
-		for (i = im->width; i > 0; i--)
-		{
-			*(r++) = ((*src) & 0xF800) >> 11;
-			*(g++) = (((*src) & 0x07E0) >> 5) & 0x003F;
-			*(b++) = ((*src) & 0x001F);
-			src++;
-		}
-	} else if (xim_buf->bpp == 15)
-	{										   /* must add LSB/MSB checking + BGR checking */
-		register CARD16 *src = (CARD16 *) xim_line;
-
-		for (i = im->width; i > 0; i--)
-		{
-			*(r++) = ((*src) & 0x7C00) >> 10;
-			*(g++) = (((*src) & 0x03E0) >> 5) & 0x001F;
-			*(b++) = ((*src) & 0x001F);
-			src++;
-		}
-	} else
-	{										   /* add 8bpp and below handling */
-
-	}
-
-	asimage_add_line (im, color1, xim_buf->red, y);
-	asimage_add_line (im, IC_GREEN, xim_buf->green, y);
-	asimage_add_line (im, color2, xim_buf->blue, y);
+	sl->width 	= width ;
+	sl->shift   = shift ;
+	sl->red 	= sl->buffer = safemalloc (width*3);
+	sl->green 	= sl->buffer + width;
+	sl->blue 	= sl->buffer + (width<<1);
+	return sl;
 }
+
+void
+free_scanline( ASScanline *sl, Bool reusable )
+{
+	if( sl )
+	{
+		if( sl->buffer )
+			free( sl->buffer );
+		if( !reusable )
+			free( sl );
+	}
+}
+
+static inline void
+fill_ximage_buffer_pseudo (XImage *xim, ASScanline * xim_buf, unsigned int line)
+{
+ 	XColor        color;
+	register int i ;
+	for( i = 0 ; i < xim_buf->width ; i++ )
+	{
+		color.pixel = XGetPixel( xim, i, line );
+		XQueryColor (dpy, ascolor_colormap, &color);
+		xim_buf->red[i] = color.red ;
+		xim_buf->green[i] = color.green ;
+		xim_buf->blue[i] = color.blue ;
+	}
+}
+
+static inline void
+put_ximage_buffer_pseudo (XImage *xim, ASScanline * xim_buf, unsigned int line)
+{
+ 	XColor        color;
+	register int i ;
+	for( i = 0 ; i < xim_buf->width ; i++ )
+	{
+		color.red   = xim_buf->red[i] ;
+		color.green = xim_buf->green[i] ;
+		color.blue  = xim_buf->blue[i] ;
+		XAllocColor (dpy, ascolor_colormap, &color);
+		XPutPixel( xim, i, line, color.pixel );
+	}
+}
+
+
+static inline void
+fill_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, int byte_order, int bpp)
+{
+	int           i, width = xim_buf->width;
+	register CARD32 *r = xim_buf->red, *g = xim_buf->green, *b = xim_buf->blue;
+	register CARD8  *src = (CARD8 *) xim_line;
+
+	if (BGR_mode != byte_order)
+	{
+		r = xim_buf->blue;
+		b = xim_buf->red ;
+	}
+	if ( bpp == 24)
+	{
+		for (i = 0 ; i < width; i++)
+		{   						   			/* must add LSB/MSB checking */
+			r[i] = src[0];
+			g[i] = src[1];
+			b[i] = src[2];
+			src += 3;
+		}
+	} else if (bpp == 32)
+	{
+		if (byte_order == MSBFirst)
+			for (i = 0 ; i < width; i++)
+			{
+				r[i] = src[1];
+				g[i] = src[2];
+				b[i] = src[3];
+				src+= 4;
+			}
+		else
+			for (i = 0 ; i < width; i++)
+			{
+				r[i] = src[0];
+				g[i] = src[1];
+				b[i] = src[2];
+				src+=4;
+			}
+	} else if (bpp == 16)
+	{										   /* must add LSB/MSB checking */
+		if (byte_order == MSBFirst)
+			for (i = 0 ; i < width; i++)
+			{
+				r[i] =  (src[0]&0xF8)>>3;
+				g[i] = ((src[0]&0x07)<<3)|((src[1]&0xE0)>>5);
+				b[i] =  (src[1]&0x1F);
+				src += 2;
+			}
+		else
+			for (i = 0 ; i < width; i++)
+			{
+				r[i] =  (src[1]&0xF8) >> 3;
+				g[i] = ((src[1]&0x07)<<3)|((src[0]&0xE0)>>5);;
+				b[i] =  (src[0]&0x1F);
+				src += 2;
+			}
+	} else if (bpp == 15)
+	{										   /* must add LSB/MSB checking */
+		if (byte_order == MSBFirst)
+			for (i = 0 ; i < width; i++)
+			{
+				r[i] =  (src[0]&0x7C)>>2;
+				g[i] = ((src[0]&0x03)<<3)|((src[1]&0xE0)>>5);
+				b[i] =  (src[1]&0x1F);
+				src += 2;
+			}
+		else
+			for (i = 0 ; i < width; i++)
+			{
+				r[i] =  (src[1]&0x7C)>>2;
+				g[i] = ((src[1]&0x03)<<3)|((src[0]&0xE0)>>5);;
+				b[i] =  (src[0]&0x1F);
+				src += 2;
+			}
+	} else
+	{										   /* below 8 bpp handling */
+		for (i = 0 ; i < width; i++)
+			pixel_to_color_low( src[i], r+i, g+i, b+i );
+	}
+}
+
+static inline void
+put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, int byte_order, int bpp)
+{
+	int           i, width = xim_buf->width;
+	register CARD32 *r = xim_buf->red, *g = xim_buf->green, *b = xim_buf->blue;
+	register CARD8  *src = (CARD8 *) xim_line;
+
+	if (BGR_mode != byte_order)
+	{
+		r = xim_buf->blue;
+		b = xim_buf->red ;
+	}
+	if ( bpp == 24)
+	{
+		for (i = 0 ; i < width; i++)
+		{   						   			/* must add LSB/MSB checking */
+			src[0] = r[i];
+			src[1] = g[i];
+			src[2] = b[i];
+			src += 3;
+		}
+	} else if (bpp == 32)
+	{
+		if (byte_order == MSBFirst)
+			for (i = 0 ; i < width; i++)
+			{
+				src[1] = r[i];
+				src[2] = g[i];
+				src[3] = b[i];
+				src+= 4;
+			}
+		else
+			for (i = 0 ; i < width; i++)
+			{
+				src[0] = r[i];
+				src[1] = g[i];
+				src[2] = b[i];
+				src+=4;
+			}
+	} else if (bpp == 16)
+	{										   /* must add LSB/MSB checking */
+		if (byte_order == MSBFirst)
+			for (i = 0 ; i < width; i++)
+			{
+				src[0] = (CARD8)((r[i] << 3) | (( g[i] >> 3) & 0x07 ));
+				src[1] = (CARD8)((g[i] << 5) |    b[i]);
+				src += 2;
+			}
+		else
+			for (i = 0 ; i < width; i++)
+			{
+				src[1] = (CARD8)((r[i] << 3) | (( g[i] >> 3) & 0x07 ));
+				src[0] = (CARD8)((g[i] << 5) |    b[i]);
+				src += 2;
+			}
+	} else if (bpp == 15)
+	{										   /* must add LSB/MSB checking */
+		if (byte_order == MSBFirst)
+			for (i = 0 ; i < width; i++)
+			{
+				src[0] = (CARD8)((r[i] << 2) | (( g[i] >> 3) & 0x03 ))&0x7F;
+				src[1] = (CARD8)((g[i] << 5) |    b[i]);
+				src += 2;
+			}
+		else
+			for (i = 0 ; i < width; i++)
+			{
+				src[1] = (CARD8)((r[i] << 2) | (( g[i] >> 3) & 0x03 ))&0x7F;
+				src[0] = (CARD8)((g[i] << 5) |    b[i]);
+				src += 2;
+			}
+	} else
+	{										   /* below 8 bpp handling */
+		for (i = 0 ; i < width; i++)
+			src[i] = color_to_pixel_low( r[i], g[i], b[i] );
+	}
+}
+
 
 ASImage      *
 asimage_from_ximage (XImage * xim)
@@ -515,38 +678,82 @@ asimage_from_ximage (XImage * xim)
 	ASImage      *im = NULL;
 	unsigned char *xim_line;
 	int           i, height, bpl;
-	XImageBuffer  xim_buf;
+	ASScanline    xim_buf;
 
 	if (xim == NULL)
 		return im;
 
 	im = (ASImage *) safemalloc (sizeof (ASImage));
 	asimage_init (im, False);
-
-	xim_buf.red = safemalloc (xim->width);
-	xim_buf.green = safemalloc (xim->width);
-	xim_buf.blue = safemalloc (xim->width);
-	xim_buf.bpp = xim->depth;
-	xim_buf.byte_order = xim->byte_order;
-	xim_buf.BGR_mode = 0;					   /* will change later */
-
 	asimage_start (im, xim->width, xim->height);
+
+	prepare_scanline( xim->width, 0, &xim_buf );
 
 	height = xim->height;
 	bpl = xim->bytes_per_line;
 	xim_line = xim->data;
 
-	for (i = 0; i < height; i++)
-	{
-		asimage_line_from_ximage (xim_line, i, im, &xim_buf);
-		xim_line += bpl;
-	}
-
-	free (xim_buf.red);
-	free (xim_buf.green);
-	free (xim_buf.blue);
+	if( ascolor_true_depth == 0 )
+		for (i = 0; i < height; i++)
+		{
+			fill_ximage_buffer_pseudo( xim, &xim_buf, i );
+			asimage_add_line (im, IC_RED,   xim_buf.red, i);
+			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
+			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
+		}
+	else                                       /* TRue color visual */
+		for (i = 0; i < height; i++)
+		{
+			fill_ximage_buffer (xim_line, &xim_buf, 0, xim->byte_order, xim->bits_per_pixel );
+			asimage_add_line (im, IC_RED,   xim_buf.red, i);
+			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
+			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
+			xim_line += bpl;
+		}
+	free_scanline(&xim_buf, True);
 
 	return im;
+}
+
+XImage*
+ximage_from_asimage (ASImage *im, int depth)
+{
+	XImage        *xim = NULL;
+	unsigned char *xim_line;
+	int           i, height, bpl;
+	ASScanline    xim_buf;
+
+	if (im == NULL)
+		return xim;
+
+	xim = CreateXImageAndData( dpy, ascolor_visual, depth, ZPixmap, 0, im->width, im->height );
+
+	prepare_scanline( xim->width, 0, &xim_buf );
+
+	height = im->height;
+	bpl = 	   xim->bytes_per_line;
+	xim_line = xim->data;
+
+	if( ascolor_true_depth == 0 )
+		for (i = 0; i < height; i++)
+		{
+			asimage_decode_line (im, IC_RED,   xim_buf.red, i);
+			asimage_decode_line (im, IC_GREEN, xim_buf.green, i);
+			asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i);
+			put_ximage_buffer_pseudo( xim, &xim_buf, i );
+		}
+	else                                       /* TRue color visual */
+		for (i = 0; i < height; i++)
+		{
+			asimage_decode_line (im, IC_RED,   xim_buf.red, i);
+			asimage_decode_line (im, IC_GREEN, xim_buf.green, i);
+			asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i);
+			put_ximage_buffer (xim_line, &xim_buf, 0, xim->byte_order, xim->bits_per_pixel );
+			xim_line += bpl;
+		}
+	free_scanline(&xim_buf, True);
+
+	return xim;
 }
 
 ASImage      *
@@ -562,3 +769,21 @@ asimage_from_pixmap (Pixmap p, int x, int y, unsigned int width, unsigned int he
 	}
 	return im;
 }
+
+Pixmap
+pixmap_from_asimage(ASImage *im, Drawable d, GC gc)
+{
+	XImage       *xim ;
+	Pixmap        p = None;
+	XWindowAttributes attr;
+
+	if( XGetWindowAttributes (dpy, d, &attr) )
+		if ((xim = ximage_from_asimage( im, attr.depth )) != NULL )
+		{
+			p = XCreatePixmap( dpy, d, im->width, im->height, attr.depth );
+			XPutImage( dpy, p, gc, xim, 0, 0, 0, 0, im->width, im->height );
+			XDestroyImage (xim);
+		}
+	return p;
+}
+

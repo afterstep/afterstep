@@ -46,6 +46,7 @@ typedef struct ASImage
   CARD8 *buffer;
   unsigned int buf_used, buf_len;
 
+  XImage *ximage ;
 }
 ASImage;
 
@@ -62,7 +63,7 @@ void asimage_free_color (ASImage * im, CARD8 ** color);
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height);
 void asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y);
-void asimage_add_line (ASImage * im, ColorPart color, CARD8 * data,
+void asimage_add_line (ASImage * im, ColorPart color, CARD32 * data,
 		       unsigned int y);
 
 /* usefull for debugging : (returns memory usage)*/
@@ -74,13 +75,16 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
 #define VRB_CTRL_EXPLAIN 	(0x01<<2)
 #define VRB_EVERYTHING		(VRB_LINE_SUMMARY|VRB_CTRL_EXPLAIN|VRB_LINE_CONTENT)
 
-unsigned int asimage_decode_line (ASImage * im, ColorPart color,
-				  unsigned int y, CARD8 * to_buf);
+unsigned int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y);
 
 ASImage *asimage_from_ximage (XImage * xim);
 ASImage *asimage_from_pixmap (Pixmap p, int x, int y,
 			      unsigned int width,
 			      unsigned int height, unsigned long plane_mask);
+
+XImage* ximage_from_asimage (ASImage *im, int depth);
+Pixmap pixmap_from_asimage(ASImage *im, Drawable d, GC gc);
+
 
 
 #endif
