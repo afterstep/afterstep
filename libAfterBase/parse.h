@@ -62,4 +62,7 @@ char *get_comma_item (char *ptr, char **item_start, char **item_end);
 char **comma_string2list (char *string);
 char *list2comma_string (char **list);
 
+char *make_tricky_text( char *src );
+
+
 #endif /* _PARSE_ */

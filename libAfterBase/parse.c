@@ -545,3 +545,52 @@ list2comma_string (char **list)
 	}
 	return string;
 }
+
+char *
+make_tricky_text( char *src )
+{
+    int len = 0, longest_line = 0;
+    int pos = 0;
+    char *trg ;
+    register int i, k ;
+
+    for( i = 0 ; src[i] ; i++ )
+        if( src[i] == '\n' )
+        {
+            if( len > longest_line )
+                longest_line = len;
+            len = 0 ;
+            pos++ ;
+        }else
+            len++ ;
+
+    if( len > longest_line )
+        longest_line = len;
+    pos++ ;
+    trg = safemalloc( longest_line*(pos+1)+1 );
+    i = 0 ;
+    for( pos = 0 ; pos < longest_line ; pos++ )
+    {
+        len = 0 ;
+        for( k = 0 ; src[k] ; k++ )
+        {
+            if( src[k] == '\n' )
+            {
+                if( len <= pos )
+                    trg[i++] = ' ';
+                len = 0 ;
+            }else
+            {
+                if( len == pos )
+                    trg[i++] = src[k] ;
+                len++ ;
+            }
+        }
+        trg[i++] = '\n' ;
+    }
+    if( i )
+        i-- ;
+    trg[i] = '\0' ;
+    return trg;
+}
+
