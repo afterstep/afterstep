@@ -33,6 +33,7 @@
 
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
+#include "../include/aswindow.h"
 #include "../include/trace.h" /* for deps */
 #include "../include/functions.h"
 #include "../include/menus.h"
