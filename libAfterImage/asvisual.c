@@ -1054,10 +1054,10 @@ typedef struct ASShmArea
 
 static ASHashTable	*xshmimage_segments = NULL ;
 static ASHashTable	*xshmimage_images = NULL ;
-/* attempt to reuse 256 Kb of shmem - no reason to reuse more than that, 
+/* attempt to reuse 256 Kb of shmem - no reason to reuse more than that,
  * since most XImages will be in range of 20K-100K */
-#define SHM_SAVED_MAX	0x40000  
-static ASShmArea  *shm_available_mem_head = NULL ; 
+#define SHM_SAVED_MAX	0x40000
+static ASShmArea  *shm_available_mem_head = NULL ;
 static int shm_available_mem_used = 0 ;
 
 static Bool _as_use_shm_images = False ;
@@ -1071,16 +1071,16 @@ void really_destroy_shm_area( char *shmaddr, int shmid )
 
 void remove_shm_area( ASShmArea *area, Bool free_resources )
 {
-	if( area ) 
+	if( area )
 	{
-		if( area == shm_available_mem_head ) 
+		if( area == shm_available_mem_head )
 			shm_available_mem_head = area->next ;
-		if( area->next ) 
+		if( area->next )
 			area->next->prev = area->prev ;
-		if( area->prev ) 
+		if( area->prev )
 			area->prev->next = area->next ;
 		shm_available_mem_used -= area->size ;
-		if( free_resources ) 
+		if( free_resources )
 			really_destroy_shm_area( area->shmaddr, area->shmid );
 		else
 		{
@@ -1103,41 +1103,41 @@ void save_shm_area( char *shmaddr, int shmid, int size )
 
 	shm_available_mem_used+=size ;
 	area = safecalloc( 1, sizeof(ASShmArea) );
-	
+
 	area->shmaddr = shmaddr ;
 	area->shmid = shmid ;
 	area->size = size ;
 	LOCAL_DEBUG_OUT("XSHMIMAGE> SAVE_SHM : saving shmid = %d, size %d, remaining in cache = %d bytes ", area->shmid, area->size, shm_available_mem_used );
 
-	area->next = shm_available_mem_head ; 
+	area->next = shm_available_mem_head ;
 	if( shm_available_mem_head )
 		shm_available_mem_head->prev = area ;
 	shm_available_mem_head = area ;
 }
 
-char *get_shm_area( int size, int *shmid ) 
+char *get_shm_area( int size, int *shmid )
 {
-	ASShmArea *selected = NULL, *curr = shm_available_mem_head; 
-	
-	while( curr != NULL ) 
+	ASShmArea *selected = NULL, *curr = shm_available_mem_head;
+
+	while( curr != NULL )
 	{
-		if( curr->size >= size && curr->size < (size * 4)/3 ) 
+		if( curr->size >= size && curr->size < (size * 4)/3 )
 		{
-			if( selected == NULL ) 
+			if( selected == NULL )
 				selected = curr ;
-			else if( selected->size > curr->size ) 
+			else if( selected->size > curr->size )
 				selected = curr ;
 		}
 		curr = curr->next ;
 	}
-	if( selected != NULL ) 
+	if( selected != NULL )
 	{
 		char *tmp = selected->shmaddr ;
 		*shmid = selected->shmid ;
 		remove_shm_area( selected, False );
 		return tmp ;
 	}
-	
+
 	*shmid = shmget (IPC_PRIVATE, size, IPC_CREAT|0777);
 	return shmat (*shmid, 0, 0);
 }
@@ -1174,9 +1174,9 @@ Bool destroy_xshm_segment( ShmSeg shmseg )
 	}else
 	{
 		LOCAL_DEBUG_OUT( "XSHMIMAGE> ERROR : segments hash is %p!!", xshmimage_segments );
-	}		
-	
-	return False ;		
+	}
+
+	return False ;
 }
 
 
@@ -1194,7 +1194,7 @@ destroy_xshmimage_image(ASHashableValue value, void *data)
 		img_data->ximage = NULL ;
 		if( img_data->segment != NULL && !img_data->wait_completion_event )
 		{
-			if( destroy_xshm_segment( img_data->segment->shmid ) ) 
+			if( destroy_xshm_segment( img_data->segment->shmid ) )
 				return ;
 			img_data->segment = NULL ;
 		}
@@ -1389,9 +1389,18 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 		else
 		{
 			shminfo->shmaddr = ximage->data = get_shm_area( ximage->bytes_per_line * ximage->height, &(shminfo->shmid) );
-			shminfo->readOnly = False;
-			XShmAttach (asv->dpy, shminfo);
-			registerXShmImage( ximage, shminfo );
+			if( shminfo->shmid == -1 )
+			{
+				show_warning( "unable to allocate shared image memory - switching shared memory extension use off!") ;
+				_as_use_shm_images = False ;
+				free( shminfo );
+				ximage = NULL ;
+			}else
+			{
+				shminfo->readOnly = False;
+				XShmAttach (asv->dpy, shminfo);
+				registerXShmImage( ximage, shminfo );
+			}
 		}
 	}
 #endif
