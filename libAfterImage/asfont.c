@@ -24,8 +24,10 @@
 
 #define DO_X11_ANTIALIASING
 #define DO_2STEP_X11_ANTIALIASING
+#undef DO_3STEP_X11_ANTIALIASING
 #define X11_AA_HEIGHT_THRESHOLD 14
 #define X11_2STEP_AA_HEIGHT_THRESHOLD 15
+#define X11_3STEP_AA_HEIGHT_THRESHOLD 15
 
 
 #include <unistd.h>
@@ -254,18 +256,30 @@ asfont_destroy (ASHashableValue value, void *data)
 	}
 }
 
+/*************************************************************************/
+/* Low level bitmap handling - compression and antialiasing              */
+/*************************************************************************/
+
 static unsigned char *
 compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
                        unsigned int width, unsigned int height,
 					   unsigned int hpad,
 					   int src_step )
 {/* very simple RLE compression - should work well on glyphs */
+ /* we reducing value range to 7bit - quite sufficient even for advanced
+  * antialiasing. If topmost bit is 1 - then data is direct, otherwise
+  * second byte is repitition count. Can't go with plain run length -
+  * antialiasing introduces lots of randomization into pixel values,
+  * so single count bytes are quite common, as the result we get memory
+  * usage increase - not decrease. Thus we'll be employing more
+  * complicated scheme described above.
+  */
 	unsigned char *pixmap ;
 	register unsigned char *dst = buffer ;
 	register int i, k = 0;
 	if( hpad == 0 )
 	{
-		dst[0] = src[0] ;
+		dst[0] = src[0]>>1 ;
 		dst[1] = 0 ;
 		k = 1 ;
 	}else
@@ -277,19 +291,23 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 	{
 		for( ; k < width  ; ++k )
 		{
-			if( src[k] == dst[0] && dst[1] < 255 )
+			if( src[k] == dst[0] && dst[1] < 127 )
 				++dst[1];
 			else
 			{
-				++dst ; ++dst ;
-				dst[0] = src[k];
+				if( dst[1] == 0 )
+					dst[0] |= 0x80;
+				else
+					++dst ;
+				++dst ;
+				dst[0] = src[k]>>1;
 				dst[1] = 0 ;
 			}
 		}
 		src += src_step ;
 		if( hpad > 0 )
 		{
-			if( dst[0] == 0 && dst[1]+hpad < 255)
+			if( dst[0] == 0 && dst[1]+hpad < 127)
 				dst[1] += hpad ;
 			else
 			{
@@ -305,6 +323,7 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 		++dst ; ++dst ;
 	}
 	pixmap  = safemalloc( dst - buffer );
+fprintf( stderr, "used up %d\n", dst - buffer );
 	memcpy( pixmap, buffer, dst-buffer );
 	return pixmap;
 }
@@ -405,6 +424,38 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
 			row2 += width ;
 		}
 	}
+#endif
+#ifdef DO_3STEP_X11_ANTIALIASING
+	if( height  > X11_3STEP_AA_HEIGHT_THRESHOLD )
+	{
+		row1 = &(buffer[0]);
+		row = &(buffer[width]);
+		row2 = &(buffer[width+width]);
+		for( y = 1 ; y < height-1 ; y++ )
+		{
+			for( x = 1 ; x < width-1 ; x++ )
+			{
+				if( row[x] == 0xFF )
+				{/* antialiasing here : */
+					if( row1[x] < 0xFE || row2[x] < 0xFE )
+						if( row[x+1] < 0xFE || row[x-1] < 0xFE )
+							row[x] = 0xFE;
+				}
+			}
+			row  += width ;
+			row1 += width ;
+			row2 += width ;
+		}
+		row = &(buffer[width]);
+		for( y = 1 ; y < height-1 ; y++ )
+		{
+			for( x = 1 ; x < width-1 ; x++ )
+				if( row[x] == 0xFE )
+					row[x] = 0xCF ;
+			row  += width ;
+		}
+	}
+
 #endif
 }
 #endif
@@ -696,16 +747,18 @@ load_glyph_freetype( ASFont *font, ASGlyph *asg, int glyph )
 			{
 				FT_Bitmap 	*bmap = &(face->glyph->bitmap) ;
 				register CARD8 *buf, *src = bmap->buffer ;
-				int hpad = (face->glyph->bitmap_left<0)? -face->glyph->bitmap_left: face->glyph->bitmap_left ;
+ 				int hpad = (face->glyph->bitmap_left<0)? -face->glyph->bitmap_left: face->glyph->bitmap_left ;
+
+				asg->width   = bmap->width+hpad ;
+				asg->height  = bmap->rows ;
 
 				if( bmap->pitch < 0 )
 					src += -bmap->pitch*bmap->rows ;
-				buf = safemalloc( bmap->rows*(bmap->width+hpad)*2);
+fprintf( stderr, "allocated %d\n", asg->width*asg->height*2 );
+				buf = safemalloc( asg->width*asg->height*3);
 				/* we better do some RLE encoding in attempt to preserv memory */
 				asg->pixmap  = compress_glyph_pixmap( src, buf, bmap->width, bmap->rows, hpad, bmap->pitch );
 				free( buf );
-				asg->width   = bmap->width+hpad ;
-				asg->height  = bmap->rows ;
 				asg->ascend  = face->glyph->bitmap_top;
 				asg->descend = bmap->rows - asg->ascend;
 				/* we only want to keep lead if it was negative */
@@ -1005,7 +1058,7 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 				register CARD8 *row = asg->pixmap;
 				int width = asg->width ;
 				register int x = 0;
-				int count = row[1];
+				int count = ((row[0]&0x80)==0)?row[1]:0;
 
 				if( font->pen_move_dir == RIGHT_TO_LEFT )
 					pen_x  -= width ;
@@ -1026,9 +1079,18 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 /*fprintf( stderr, "data = %X, count = %d, x = %d, y = %d\n", data, count, x, y );*/
 						if( count < 0 )
 						{
-							++row, ++row ;
-							data = row[0];
-						 	count = row[1];
+							if( (row[0]&0x80) == 0 )
+								++row;
+							++row;
+							if( (row[0]&0x80) != 0 )
+							{
+								data = (row[0]&0x7F)<<1;
+								count = 0;
+							}else
+							{
+								data = row[0]<<1;
+						 		count = row[1];
+							}
 						}
 						dst[x] = data ;
 						--count;
