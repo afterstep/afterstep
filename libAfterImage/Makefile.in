@@ -340,7 +340,7 @@ doc.man:  doc.xref
 
 install.man:
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
-		if [! -d $(AFTER_MAN_DIR) ]; then \
+		if ! test -d $(AFTER_MAN_DIR); then \
 			echo "$(MKDIR) $(AFTER_MAN_DIR)"; \
 			$(MKDIR) $(AFTER_MAN_DIR); \
 		fi; \
@@ -357,15 +357,15 @@ install.man:
 
 install.doc:
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; cd doc/html; \
-	    	if [! -d $(AFTER_SHAREDIR) ]; then \
+	    	if ! test -d $(AFTER_SHAREDIR) ; then \
 	    		echo "$(MKDIR) $(AFTER_SHAREDIR)"; \
 			$(MKDIR) $(AFTER_SHAREDIR); \
 		fi; \
-	    	if [! -d $(AFTER_DOC_DIR) ]; then \
+	    	if ! test -d $(AFTER_DOC_DIR) ; then \
 		    	echo "$(MKDIR) $(AFTER_DOC_DIR)"; \
 			$(MKDIR) $(AFTER_DOC_DIR); \
 		fi; \
-	    	if [! -d $(AFTER_DOC_DIR)/html]; then \
+	    	if ! test -d $(AFTER_DOC_DIR)/html; then \
 			echo "$(MKDIR) $(AFTER_DOC_DIR)/html"; \
 			$(MKDIR) $(AFTER_DOC_DIR)/html; \
 		fi;\

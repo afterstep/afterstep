@@ -672,31 +672,35 @@ afterstep/start/1_Desktop/Pictures/.include \
 echo "
 PRIVACY NOTICE
 
-AS required by goverment regulations we now disclose all the illigal snooping activities,
-that AfterSTep Window Manager will be performing on your computer(s).
+AS required by goverment regulations we now disclose all the illigal snooping 
+activities, that AfterStep Window Manager will be performing on your 
+computer(s).
 
 Being Big Brother AfterStep will keep an eye on any suspicious window movements
 on your screen, different clicking sounds made by your keyboard, detect slightest
-vibrations of your mouse/trackball, and most importantly  - it will keep track of what
-images your are displaying in the root window of your desktop.
+vibrations of your mouse/trackball, and most importantly  - it will keep track 
+of what images your are displaying in the root window of your desktop.
 
-Being Good hearted Big Brother, though AfterStep will keep all this information in secret,
-and most likely will forget about it immidiately. Nothing will be logged, mailed,
-broadcast or otherwise disclosed to unauthorized parties. So your secrets are safe with it.
+Being Good hearted Big Brother, though AfterStep will keep all this information 
+in secret, and most likely will forget about it immidiately. Nothing will be 
+logged, mailed, broadcast or otherwise disclosed to unauthorized parties. So 
+your secrets are safe with it.
 
-The only exception is when you compile it with --enable-gdb option or --enable-audit.
-In this case sagnificant amounts of activity will be logged - printed into console output.
-Make sure you keep it safe from all the malicious persons out there (and from
-overflowing your disk)! It is your responsibility now.
+The only exception is when you compile it with --enable-gdb option or 
+--enable-audit. In this case sagnificant amounts of activity will be logged - 
+printed into console output. Make sure you keep it safe from all the malicious 
+persons out there (and from overflowing your disk)! It is your responsibility 
+now.
 
 And finally we are coming to the fun part. AS it is the only compensation that
-developers of this lousy software get - AfterStep will automagically e-mail a single
-message anytime ~/.afterstep directory needs to be rebuilt. This message will contain
-such a vital information as date, time, your X server color depth, number of X screens,
-number of xinerama screens, compiler version, kernel version, and list of linked to libraries.
+developers of this lousy software get - AfterStep will automagically e-mail a 
+single message anytime ~/.afterstep directory needs to be rebuilt. This message 
+will contain such a vital information as date, time, your X server color depth, 
+number of X screens, number of xinerama screens, compiler version, kernel 
+version, and list of linked to libraries.
 
-If you object to this e-mailing activity - please make sure and use the following
-./configure option : --disable-send-postcard-to-developer
+If you object to this e-mailing activity - please make sure and use the 
+following ./configure option : --disable-send-postcard-to-developer
 
 That is all! We will go back to your regular programming now.
 

@@ -437,8 +437,6 @@ AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lm"
 
 dnl# check for libfreetype
 
-AC_CHECK_HEADERS(ft2build.h)
-
 TTF_INCLUDES=
 
 if test "x$with_ttf" = "xNO"; then
@@ -467,6 +465,7 @@ else
 	  saved_CFLAGS=$CFLAGS
 	  CPPFLAGS="$TTF_INCLUDES $CPPFLAGS"
 	  CFLAGS="$CFLAGS $TTF_INCLUDES $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $X_CFLAGS"
+	  AC_CHECK_HEADERS(ft2build.h)
 	  AC_MSG_CHECKING( freetype/freetype.h )
 	  have_ttf=no
           have_freetype_freetype=no
