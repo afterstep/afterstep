@@ -54,8 +54,9 @@ BalloonBorderHilite	Right,Bottom
 *PagerLabel          1       WWW
 *PagerLabel          2       Mail
 *PagerLabel          3       Games
-*PagerRows	     1
-*PagerColumns        @with_desktops@
+*PagerRows	     	 @with_desktops@
+*PagerColumns        1
+*PagerShadeButton	 default-shade-dark 		 default-shade-dark-pressed
 #*PagerIconGeometry	+0-0
 #*PagerStartIconic
 

@@ -561,7 +561,6 @@ get_visible_window_name( ASWindowData *wd, unsigned long *encoding )
 							if( encoding )
 								*encoding = wd->res_name_encoding ;
 							break ;
-	 default :
 	}
 	if( vname == NULL )
 	{

@@ -107,8 +107,9 @@
 *Wharf WordProcessor normal/Document Exec "AbiWord" abiword &
 
 #
-# Office Suites :
+# First available Spreadsheet processor :
 #
+*Wharf Spreadsheet normal/Table Exec "KSpread" kspread &
 
 #
 # First available Audio player :
@@ -128,8 +129,8 @@
 #
 # First available IRC client :
 #
-*Wharf IRC  normal/IRCTransparent Exec "XCHAT" xchat &
 *Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" aterm -tn "BitchX IRC" -tr -sh 50 -fg white -bg black -e BitchX irc.openprojects.net &
+*Wharf IRC  normal/IRCTransparent Exec "XCHAT" xchat &
 *Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" rxvt  -tn "Pine e-mail and news reader" -tr -fg yellow -bg black -e BitchX irc.openprojects.net  &
 *Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" eterm -tn "Pine e-mail and news reader" -tr -sh 50 -fg yellow -bg black -e BitchX irc.openprojects.net &
 *Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" xterm -tn "Pine e-mail and news reader" -fg yellow -bg blue -e BitchX irc.openprojects.net &
@@ -187,9 +188,11 @@
 *MonitorWharf Recycler normal/Recycle Restart "" afterstep
 *MonitorWharf Quit normal/RedLight Quit "" afterstep
 
-*Wharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &
-*Wharf asload - Swallow "asload" asload -shape &
-*Wharf asmail - Swallow "asmail" asmail -geometry +0+0 &
+*MonitorWharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &
+*MonitorWharf asload - Swallow "asload" asload -shape &
+*MonitorWharf asmon  - Swallow "asmon" asmon &
+*MonitorWharf wmnd   - Swallow "wmnd"  wmnd &
+*MonitorWharf asmail - Swallow "asmail" asmail -geometry +0+0 &
 
 # one of the clocks - first available :
 *MonitorWharf clock - Swallow "asclock" asclock -shape -12 -position +1+1 &

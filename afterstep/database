@@ -15,11 +15,10 @@
 # For all window to have the NEW and COOL Vertical Title bar on the side:
 # Style	"*"		VerticalTitle
 Style   "*"             Icon interface.xpm
-Style	"Unknown"	Icon Unknown.xpm
+Style	"Unknown"	    Icon Unknown.xpm
 Style   "Untitled*"     Icon AfterStep3.xpm
-Style   "*Wharf"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles, AvoidCover
-Style   "Zharf"         NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles, AvoidCover
-Style   "Banner"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
+Style   "*Wharf"        NoTitle, Sticky, StaysOnTop, AvoidCover
+Style   "Banner"        NoTitle, Sticky, StaysOnTop 
 Style   "*Pager"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles, AvoidCover
 Style   "WinList"       NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles, AvoidCover
 Style   "*clock"        StaysOnTop, WindowListSkip, NoHandles
@@ -31,17 +30,6 @@ Style   "xcalc"         Icon xcalc.xpm
 Style   "xli"           Icon monalisa.xpm
 Style   "xman"          Icon xman.xpm
 Style   "XMcd"          Icon CDrom.xpm
-Style   "Popup menu*"   Sticky, BorderWidth 3
-Style   "Alert*"        Sticky, BorderWidth 4, StaysOnTop
-Style   "Question*"     Sticky, BorderWidth 4, StaysOnTop
-Style   "XPlaycd*"      Icon CDrom.xpm
-Style   "QPlayCD*"      Icon CDrom2, NoTitle, Sticky, WindowListSkip, NoHandles
-Style   "kdeplay"       Icon OldFashionedRadio.xpm
-Style   "kmidi"         Icon OldFashionedRadio.xpm
-Style   "kmix"          Icon OldFashionedRadio.xpm
-Style   "kmpg"          Icon OldFashionedRadio.xpm
-Style   "XConsole"      NoTitle, Sticky, WindowListSkip, NoHandles
-Style   "xconsole"      NoTitle, Sticky, WindowListSkip, NoHandles
 Style   "wmppp"         NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmcdplay"      NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "Mixer.app"     Sticky, StaysOnTop, WindowListSkip, NoHandles
@@ -52,9 +40,9 @@ Style   "wmmail"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmmixer"       NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmrack"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "asload"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
-Style   "x11amp"        Icon x11amp.xpm, NoTitle, NoHandles
+Style   "xmms"          Icon x11amp.xpm, NoTitle, NoHandles
 Style   "XFce*"         NoTitle, Sticky, BorderWidth 4, WindowListSkip, NoHandles
 Style   "XFBD*"         Sticky
-Style	"XPostit*"	Icon Text.xpm
+Style	"XPostit*"	    Icon Text.xpm
 Style	"xkhfm@Programs" NoTitle, Sticky, WindowListSkip
 ##########################################################################
