@@ -136,6 +136,48 @@ disable_titlebuttons_with_function (ASWindow * t, int function)
 
 /****************************************************************************
  * 
+ * Checks the function "function", and sees if it
+ * is an allowed function for window t,  according to the motif way of life.
+ * This routine is used to decide if we should refuse to perform a function.
+ *
+ ****************************************************************************/
+int
+check_allowed_function2 (int func, ASWindow * t)
+{
+	if (func == F_NOP)
+		return 0;
+		
+	if( t )
+	{
+		ASHints *hints = t->hints ;
+		switch( func )
+		{
+			case F_DELETE : 
+				if( !get_flags( hints->protocols, AS_DoesWmDeleteWindow ) )
+					return 0;
+			case F_CLOSE : 
+				return ( get_flags( hints->function_mask, AS_FuncClose ) )?1:0 ;
+			case F_DESTROY : 
+				return ( get_flags( hints->function_mask, AS_FuncKill ) )?1:0 ;
+			case F_MOVE :
+				return (get_flags( hints->function_mask, AS_FuncMove ) )?1:0 ;
+			case F_RESIZE :
+				return (get_flags( hints->function_mask, AS_FuncResize ) )?1:0 ;
+			case F_ICONIFY :
+				return (!get_flags( t->status->flags, AS_Iconic) &&
+				         get_flags( hints->function_mask, AS_FuncMinimize ) )?1:0 ;
+			case F_MAXIMIZE :
+				return (!get_flags( t->status->flags, AS_MaximizedX|AS_MaximizedY) &&
+				         get_flags( hints->function_mask, AS_FuncMaximize ) )?1:0 ;
+			case F_SHADE :
+				return (!get_flags( t->status->flags, AS_Shaded) &&
+				         get_flags( hints->flags, AS_Titlebar ) )?1:0 ;
+		}
+	}
+	return 1;
+}
+/****************************************************************************
+ * 
  * Checks the function described in menuItem mi, and sees if it
  * is an allowed function for window Tmp_Win,
  * according to the motif way of life.
@@ -147,128 +189,32 @@ int
 check_allowed_function (MenuItem * mi)
 {
 	/* Complex functions are a little tricky... ignore them for now */
-
-	if ((Tmp_win) && (!(Tmp_win->flags & DoesWmDeleteWindow)) && (mi->func == F_DELETE))
-		return 0;
-
-	/* Move is a funny hint. Keeps it out of the menu, but you're still allowed
-	 * to move. */
-	if ((mi->func == F_MOVE) && (Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_MOVE)))
-		return 0;
-
-	if ((mi->func == F_RESIZE) && (Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_RESIZE)))
-		return 0;
-
-	if ((mi->func == F_ICONIFY) && (Tmp_win) &&
-		(!(Tmp_win->flags & ICONIFIED)) && (!(Tmp_win->functions & MWM_FUNC_MINIMIZE)))
-		return 0;
-
-	if ((mi->func == F_MAXIMIZE) && (Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_MAXIMIZE)))
-		return 0;
-
-	if ((mi->func == F_SHADE) && (Tmp_win) &&
-		(!(Tmp_win->functions & MWM_FUNC_MAXIMIZE) || !(Tmp_win->flags & TITLE)))
-		return 0;
-
-	if ((mi->func == F_DELETE) && (Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_CLOSE)))
-		return 0;
-
-	if ((mi->func == F_CLOSE) && (Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_CLOSE)))
-		return 0;
-
-	if ((mi->func == F_DESTROY) && (Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_CLOSE)))
-		return 0;
-
-	if (mi->func == F_NOP)
-		return 0;
-
-	if (mi->func == F_FUNCTION && mi->item != NULL && Tmp_win)
+	int func = mi->func ;
+	
+	if (func == F_FUNCTION && mi->item != NULL)
 	{
 		/* Hard part! What to do now? */
 		/* Hate to do it, but for lack of a better idea,
 		 * check based on the menu entry name */
-		if ((!(Tmp_win->functions & MWM_FUNC_MOVE)) &&
-			(mystrncasecmp (mi->item, MOVE_STRING, strlen (MOVE_STRING)) == 0))
-			return 0;
-
-		if ((!(Tmp_win->functions & MWM_FUNC_RESIZE)) &&
-			(mystrncasecmp (mi->item, RESIZE_STRING1, strlen (RESIZE_STRING1)) == 0))
-			return 0;
-
-		if ((!(Tmp_win->functions & MWM_FUNC_RESIZE)) &&
-			(mystrncasecmp (mi->item, RESIZE_STRING2, strlen (RESIZE_STRING2)) == 0))
-			return 0;
-
-		if ((!(Tmp_win->functions & MWM_FUNC_MINIMIZE)) &&
-			(!(Tmp_win->flags & ICONIFIED)) &&
-			(mystrncasecmp (mi->item, MINIMIZE_STRING, strlen (MINIMIZE_STRING)) == 0))
-			return 0;
-
-		if ((!(Tmp_win->functions & MWM_FUNC_MINIMIZE)) &&
-			(mystrncasecmp (mi->item, MINIMIZE_STRING2, strlen (MINIMIZE_STRING2)) == 0))
-			return 0;
-
-		if ((!(Tmp_win->functions & MWM_FUNC_MAXIMIZE)) &&
-			(mystrncasecmp (mi->item, MAXIMIZE_STRING, strlen (MAXIMIZE_STRING)) == 0))
-			return 0;
-
-		if ((!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
-			(mystrncasecmp (mi->item, CLOSE_STRING1, strlen (CLOSE_STRING1)) == 0))
-			return 0;
-
-		if ((!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
-			(mystrncasecmp (mi->item, CLOSE_STRING2, strlen (CLOSE_STRING2)) == 0))
-			return 0;
-
-		if ((!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
-			(mystrncasecmp (mi->item, CLOSE_STRING3, strlen (CLOSE_STRING3)) == 0))
-			return 0;
-
-		if ((!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
-			(mystrncasecmp (mi->item, CLOSE_STRING4, strlen (CLOSE_STRING4)) == 0))
-			return 0;
-
+		if (mystrncasecmp (mi->item, MOVE_STRING, strlen (MOVE_STRING)) == 0)
+			func = F_MOVE;
+		else if ( mystrncasecmp (mi->item, RESIZE_STRING1, strlen (RESIZE_STRING1)) == 0 ||
+		          mystrncasecmp (mi->item, RESIZE_STRING2, strlen (RESIZE_STRING2)) == 0)
+			func = F_RESIZE ;
+		else if ( mystrncasecmp (mi->item, MINIMIZE_STRING, strlen (MINIMIZE_STRING)) == 0 ||
+		          mystrncasecmp (mi->item, MINIMIZE_STRING2, strlen (MINIMIZE_STRING2)) == 0)
+			func = F_ICONIFY ;
+		else if ( mystrncasecmp (mi->item, MAXIMIZE_STRING, strlen (MAXIMIZE_STRING)) == 0)
+			func = F_MAXIMIZE ;
+		else if ( mystrncasecmp (mi->item, CLOSE_STRING1, strlen (CLOSE_STRING1)) == 0 ||
+				  mystrncasecmp (mi->item, CLOSE_STRING2, strlen (CLOSE_STRING2)) == 0 ||
+				  mystrncasecmp (mi->item, CLOSE_STRING3, strlen (CLOSE_STRING3)) == 0 ||
+				  mystrncasecmp (mi->item, CLOSE_STRING4, strlen (CLOSE_STRING4)) == 0 )
+			func = F_CLOSE;
+		else
+			return 1;
 	}
-	return 1;
+	
+	return check_allowed_function2 (func, Tmp_win);
 }
 
-
-/****************************************************************************
- * 
- * Checks the function "function", and sees if it
- * is an allowed function for window t,  according to the motif way of life.
- * This routine is used to decide if we should refuse to perform a function.
- *
- ****************************************************************************/
-int
-check_allowed_function2 (int function, ASWindow * t)
-{
-
-	if (Scr.flags & MWMHintOverride)
-		return 1;
-
-	if ((t) && (!(t->flags & DoesWmDeleteWindow)) && (function == F_DELETE))
-		return 0;
-
-	if ((function == F_RESIZE) && (t) && (!(t->functions & MWM_FUNC_RESIZE)))
-		return 0;
-
-	if ((function == F_ICONIFY) && (t) &&
-		(!(t->flags & ICONIFIED)) && (!(t->functions & MWM_FUNC_MINIMIZE)))
-		return 0;
-
-	if ((function == F_MAXIMIZE) && (t) && (!(t->functions & MWM_FUNC_MAXIMIZE)))
-		return 0;
-
-	if ((function == F_SHADE) && (t) &&
-		(!(t->functions & MWM_FUNC_MAXIMIZE) || !(t->flags & TITLE)))
-		return 0;
-
-	if ((function == F_DELETE) && (t) && (!(t->functions & MWM_FUNC_CLOSE)))
-		return 0;
-
-	if ((function == F_DESTROY) && (t) && (!(t->functions & MWM_FUNC_CLOSE)))
-		return 0;
-
-	return 1;
-}

@@ -89,6 +89,7 @@ get_window_geometry (ASWindow * t, int flags, int *x, int *y, int *w, int *h)
 		*h = th;
 }
 
+#if 0
 /*
  * pass 0: do not ignore windows behind the target window's layer
  * pass 1: ignore windows behind the target window's layer
@@ -453,7 +454,7 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 }
 
 
-
+#endif
 /************************************************************************
  *
  *  Procedure:
@@ -482,8 +483,7 @@ GetGravityOffsets (ASWindow * tmp, int *xp, int *yp)
 		{1, 1},								   /* SouthEastGravity */
 		{0, 0},								   /* StaticGravity */
 	};
-	register int  g = ((tmp->normal_hints.flags & PWinGravity)
-					   ? tmp->normal_hints.win_gravity : NorthWestGravity);
+	register int  g = tmp->hints->gravity;
 
 	if (g < ForgetGravity || g > StaticGravity)
 		*xp = *yp = 0;

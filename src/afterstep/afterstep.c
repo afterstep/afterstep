@@ -844,7 +844,6 @@ InitVariables (int shallresetdesktop)
 	XGetWindowAttributes (dpy, Scr.Root, &(Scr.ASRoot.attr));
 	Scr.root_pushes = 0;
 	Scr.pushed_window = &Scr.ASRoot;
-	Scr.ASRoot.number_cmap_windows = 0;
 
 	Scr.MyDisplayWidth = DisplayWidth (dpy, Scr.screen);
 	Scr.MyDisplayHeight = DisplayHeight (dpy, Scr.screen);
