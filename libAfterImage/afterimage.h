@@ -125,7 +125,7 @@
  * ASTile  - image loading from file, tiling and tinting to arbitrary
  *           size and color.
  * ASMerge - imgae loading and merging with another image.
- * ASGrad  - mutlipoint gradient drawing.
+ * ASGradient - mutlipoint gradient drawing.
  * ASFlip  - image loading from file and rotation.
  * ASText  - trexturized semitransparent antialised text drawing.
  *

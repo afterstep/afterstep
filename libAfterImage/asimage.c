@@ -1945,7 +1945,7 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 				step = scl->width - offset;
 			else
 				step = grad->offset[i+1] * scl->width - offset ;
-			if( step > 0 )
+			if( step > 0 && step <= scl->width-offset )
 			{
 				int color ;
 				for( color = 0 ; color < IC_NUM_CHANNELS ; ++color )
