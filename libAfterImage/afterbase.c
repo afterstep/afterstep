@@ -89,6 +89,22 @@ Bool asim_show_warning( const char *warning_format, ...)
     return False;
 }
 
+Bool asim_show_progress( const char *msg_format, ...)
+{
+    if( OUTPUT_LEVEL_PROGRESS <= get_output_threshold())
+    {
+        va_list ap;
+        fprintf (stderr, "%s : ", get_application_name() );
+        va_start (ap, msg_format);
+        vfprintf (stderr, msg_format, ap);
+        va_end (ap);
+        fprintf (stderr, "\n" );
+        return True;
+    }
+    return False;
+}
+
+
 Bool asim_show_debug( const char *file, const char *func, int line, const char *msg_format, ...)
 {
     if( OUTPUT_LEVEL_DEBUG <= get_output_threshold())
@@ -235,6 +251,107 @@ asim_find_file (const char *file, const char *pathlist, int type)
 	free (path);
 	return NULL;
 }
+
+static char         *
+find_envvar (char *var_start, int *end_pos)
+{
+	char          backup, *name_start = var_start;
+	register int  i;
+	char         *var = NULL;
+
+	if (var_start[0] == '{')
+	{
+		name_start++;
+		for (i = 1; var_start[i] && var_start[i] != '}'; i++);
+	} else
+		for (i = 0; isalnum ((int)var_start[i]) || var_start[i] == '_'; i++);
+
+	backup = var_start[i];
+	var_start[i] = '\0';
+	var = getenv (name_start);
+	var_start[i] = backup;
+
+	*end_pos = i;
+	if (backup == '}')
+		(*end_pos)++;
+	return var;
+}
+
+static char *
+do_replace_envvar (char *path)
+{
+	char         *data = path, *tmp;
+	char         *home = getenv ("HOME");
+	int           pos = 0, len, home_len = 0;
+
+	if (path == NULL)
+		return NULL;
+	if (*path == '\0')
+		return path;
+	len = strlen (path);
+	if (home)
+		home_len = strlen (home);
+
+	while (*(data + pos))
+	{
+		char         *var;
+		int           var_len, end_pos;
+
+		while (*(data + pos) != '$' && *(data + pos))
+		{
+			if (*(data + pos) == '~' && *(data + pos + 1) == '/')
+			{
+				if (pos > 0)
+					if (*(data + pos - 1) != ':')
+					{
+						pos += 2;
+						continue;
+					}
+				if (home == NULL)
+					*(data + (pos++)) = '.';
+				else
+				{
+					len += home_len;
+					tmp = safemalloc (len);
+					strncpy (tmp, data, pos);
+					strcpy (tmp + pos, home);
+					strcpy (tmp + pos + home_len, data + pos + 1);
+					if( data != path )
+						free (data);
+					data = tmp;
+					pos += home_len;
+				}
+			}
+			pos++;
+		}
+		if (*(data + pos) == '\0')
+			break;
+		/* found $ sign - trying to replace var */
+		if ((var = find_envvar (data + pos + 1, &end_pos)) == NULL)
+		{
+			++pos;
+			continue;
+		}
+		var_len = strlen (var);
+		len += var_len;
+		tmp = safemalloc (len);
+		strncpy (tmp, data, pos);
+		strcpy (tmp + pos, var);
+		strcpy (tmp + pos + var_len, data + pos + end_pos + 1);
+		if( data != path )
+			free (data);
+		data = tmp;
+	}
+	return data;
+}
+
+char*
+asim_copy_replace_envvar (char *path)
+{
+	char         *res = do_replace_envvar( path );
+	return ( res == path )?mystrdup( res ):res;
+}
+
 
 /*******************************************************************/
 /* from mystring.c : */

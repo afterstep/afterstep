@@ -33,6 +33,8 @@
 #include <sys/select.h>
 #endif
 
+/* #define LOCAL_DEBUG */
+
 #include "afterbase.h"
 #include "afterimage.h"
 
@@ -98,31 +100,16 @@ static Pixmap __GetRootPixmap (ASVisual *asv, Atom id)
 	return currentRootPixmap;
 }
 
-#if !(HAVE_AFTERBASE_FLAG==1)
-Bool show_progress( const char *msg_format, ...)
-{
-    if( OUTPUT_LEVEL_PROGRESS <= get_output_threshold())
-    {
-        va_list ap;
-        fprintf (stderr, "%s : ", get_application_name() );
-        va_start (ap, msg_format);
-        vfprintf (stderr, msg_format, ap);
-        va_end (ap);
-        fprintf (stderr, "\n" );
-        return True;
-    }
-    return False;
-}
-#endif
-
 static char* cdata_str = "CDATA";
 static char* container_str = "CONTAINER";
 
 ASImage *
-compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win) 
+compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path) 
 {
 	ASImage* im = NULL;
 	xml_elem_t* doc;
+	ASImageManager *my_imman = imman ;
+	ASFontManager  *my_fontman = fontman ;
 
 	doc = xml_parse_doc(doc_str);
 	if (verbose > 1) {
@@ -131,22 +118,67 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 	}
 
 	/* Build the image(s) from the xml document structure. */
-	if (doc) {
+	
+	if (doc) 
+	{
 		xml_elem_t* ptr;
+		char *path2 ;
+		if( my_imman == NULL ) 
+		{
+			path2 = copy_replace_envvar( getenv( ASIMAGE_PATH_ENVVAR ) );
+			if( path == NULL ) 
+				my_imman = create_image_manager( NULL, SCREEN_GAMMA, path, path2, NULL );
+			else
+				my_imman = create_image_manager( NULL, SCREEN_GAMMA, path2, NULL );
+			if( path2 )
+				free( path2 );
+		}
+		if( my_fontman == NULL ) 
+		{
+			path2 = copy_replace_envvar( getenv( ASFONT_PATH_ENVVAR ) );
+			if( path != NULL )
+			{
+				if( path2 != NULL ) 
+				{
+					int path_len = strlen(path);
+					char *full_path = safemalloc( path_len+1+strlen(path2)+1);
+					strcpy( full_path, path );
+					full_path[path_len] = ':';
+					strcpy( &(full_path[path_len+1]), path2 );
+					free( path2 );
+					path2 = full_path ;
+				}else
+					path2 = (char*)path ;
+			}
+			my_fontman = create_font_manager( asv->dpy, path2, NULL );
+			if( path2 && path2 != path )
+				free( path2 );
+		}
 		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
-			ASImage* tmpim = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-			if (tmpim && im) destroy_asimage(&im);
+			ASImage* tmpim = build_image_from_xml(asv, my_imman, my_fontman, ptr, NULL, flags, verbose, display_win);
+			if (tmpim && im) safe_asimage_destroy(im);
 			if (tmpim) im = tmpim;
 		}
+LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.8X", im, im?im->imageman:NULL, my_imman, im?im->magic:0 );
+		
+		if( my_imman != imman ) 
+		{
+			if( im->imageman == my_imman ) 
+				forget_asimage( im );
+			destroy_image_manager(my_imman, False);
+		}
+		if( my_fontman != fontman ) 
+			destroy_font_manager(my_fontman, False);
 	}
 
 	/* Delete the xml. */
 	if (doc) xml_elem_delete(NULL, doc);
 
+LOCAL_DEBUG_OUT( "returning im = %p, im->imman	= %p, im->magic = %8.8X", im, im?im->imageman:NULL, im?im->magic:0 );
 	return im;
 }
 
-Bool save_file(const char *file2bsaved, ASImage *im,
+Bool save_asimage_to_file(const char *file2bsaved, ASImage *im,
 	           const char *strtype,
 			   const char *compress,
 			   const char *opacity,
@@ -220,7 +252,7 @@ Bool save_file(const char *file2bsaved, ASImage *im,
 
 }
 
-void showimage(ASVisual *asv, ASImage* im, Window w, long delay) 
+void show_asimage(ASVisual *asv, ASImage* im, Window w, long delay) 
 {
 #ifndef X_DISPLAY_MISSING
 	if ( im && w ) 
@@ -440,10 +472,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					fgimage = fetch_asimage(imman, fgimage_str );
 					show_progress("Using image [%s] as foreground.", fgimage_str);
 					if (fgimage) {
-						release_asimage( fgimage );
+						safe_asimage_destroy( fgimage );
 						fgimage = tile_asimage(asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 						move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
-						destroy_asimage(&result);
+						safe_asimage_destroy(result);
 						result = fgimage;
 					}
 				}
@@ -452,7 +484,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					parse_argb_color(fgcolor_str, &fgcolor);
 					fill_asimage(asv, fgimage, 0, 0, result->width, result->height, fgcolor);
 					move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
-					destroy_asimage(&result);
+					safe_asimage_destroy(result);
 					result = fgimage;
 				}
 				if (result && (bgcolor_str || bgimage_str)) {
@@ -479,7 +511,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					layers[1].clip_width = result->width;
 					layers[1].clip_height = result->height;
 					result = merge_layers(asv, layers, 2, result->width, result->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-					release_asimage( layers[0].im );
+					safe_asimage_destroy( layers[0].im );
 				}
 			}
 		}
@@ -553,7 +585,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			show_progress("Saving image to file [%s].", dst);
 			if (result && get_flags( flags, ASIM_XML_ENABLE_SAVE) )
 			{
-				if( !save_file(dst, result, ext, compress, opacity, delay, replace)) 
+				if( !save_asimage_to_file(dst, result, ext, compress, opacity, delay, replace)) 
 				show_error("Unable to save image into file [%s].", dst);
 			}
 		}
@@ -633,7 +665,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			layer.clip_height = imtmp->height;
 			layer.bevel = &bevel;
 			result = merge_layers(asv, &layer, 1, imtmp->width, imtmp->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			release_asimage(imtmp);
+			safe_asimage_destroy(imtmp);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -692,7 +724,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				width = parse_math(width_str, NULL, refimg->width);
 				height = parse_math(height_str, NULL, refimg->height);
 			}
-			release_asimage(refimg);
+			safe_asimage_destroy(refimg);
 		}
 		if (!refid && width_str && height_str) {
 			width = parse_math(width_str, NULL, width);
@@ -817,7 +849,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (imtmp) {
 			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			release_asimage(imtmp);
+			safe_asimage_destroy(imtmp);
 		}
 		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -849,7 +881,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (imtmp) {
 			result = blur_asimage_gauss(asv, imtmp, horz, vert, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			release_asimage(imtmp);
+			safe_asimage_destroy(imtmp);
 		}
 		show_progress("Blurring image.");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -894,7 +926,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			}
 			if (dir) {
 				result = flip_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-				release_asimage(imtmp);
+				safe_asimage_destroy(imtmp);
 				show_progress("Rotating image [%f degrees].", angle);
 			} else {
 				result = imtmp;
@@ -938,7 +970,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				width = parse_math(width_str, NULL, refimg->width);
 				height = parse_math(height_str, NULL, refimg->height);
 			}
-			release_asimage( refimg );
+			safe_asimage_destroy( refimg );
 		}
 		if (!refid && width_str && height_str) {
 			width = parse_math(width_str, NULL, width);
@@ -951,7 +983,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			}
 			if (imtmp) {
 				result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-				release_asimage(imtmp);
+				safe_asimage_destroy(imtmp);
 			}
 			show_progress("Scaling image to [%dx%d].", width, height);
 		}
@@ -1013,7 +1045,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					width = refimg->width;
 					height = refimg->height;
 				}
-				release_asimage( refimg );
+				safe_asimage_destroy( refimg );
 			}
 			if (srcx_str) srcx = parse_math(srcx_str, NULL, width);
 			if (srcy_str) srcy = parse_math(srcy_str, NULL, height);
@@ -1023,7 +1055,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (height > imtmp->height) height = imtmp->height;
 			if (width > 0 && height > 0) {
 				result = tile_asimage(asv, imtmp, srcx, srcy, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-				release_asimage(imtmp);
+				safe_asimage_destroy(imtmp);
 			}
 			show_progress("Cropping image to [%dx%d].", width, height);
 		}
@@ -1090,7 +1122,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					width = refimg->width;
 					height = refimg->height;
 				}
-				release_asimage( refimg );
+				safe_asimage_destroy( refimg );
 			}
 			if (width_str) width = parse_math(width_str, NULL, width);
 			if (height_str) height = parse_math(height_str, NULL, height);
@@ -1098,7 +1130,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (yorig_str) yorig = parse_math(yorig_str, NULL, height);
 			if (width > 0 && height > 0) {
 				result = tile_asimage(asv, imtmp, xorig, yorig, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-				release_asimage(imtmp);
+				safe_asimage_destroy(imtmp);
 			}
 			show_progress("Tiling image to [%dx%d].", width, height);
 		}
@@ -1207,7 +1239,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					width = refimg->width;
 					height = refimg->height;
 				}
-				release_asimage( refimg );
+				safe_asimage_destroy( refimg );
 			}
 			if (width_str) width = parse_math(width_str, NULL, width);
 			if (height_str) height = parse_math(height_str, NULL, height);
@@ -1219,7 +1251,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				                            affected_hue, affected_radius,
 											hue_offset, saturation_offset, value_offset,
 				                            ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-				release_asimage(imtmp);
+				safe_asimage_destroy(imtmp);
 			}
 			show_progress("adjusting HSV of the image by [%d,%d,%d] affected hues are %d-%d.", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius);
 		}
@@ -1279,7 +1311,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					width = refimg->width;
 					height = refimg->height;
 				}
-				release_asimage( refimg );
+				safe_asimage_destroy( refimg );
 			}
 			if (left_str) left = parse_math(left_str, NULL, width);
 			if (top_str)  top = parse_math(top_str, NULL, height);
@@ -1289,7 +1321,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			{
 				result = pad_asimage(asv, imtmp, left, top, width+left+right, height+top+bottom,
 					                 color, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-				release_asimage(imtmp);
+				safe_asimage_destroy(imtmp);
 			}
 			show_progress("Padding image to [%dx%d%+d%+d].", width+left+right, height+top+bottom, left, top);
 		}
@@ -1328,7 +1360,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				width = parse_math(width_str, NULL, refimg->width);
 				height = parse_math(height_str, NULL, refimg->height);
 			}
-			release_asimage( refimg );
+			safe_asimage_destroy( refimg );
 		}
 		if (!refid && width_str && height_str) {
 			width = parse_math(width_str, NULL, 0);
@@ -1460,7 +1492,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 							x = refimg->width;
 							y = refimg->height;
 						}
-						release_asimage(refimg );
+						safe_asimage_destroy(refimg );
 					}
 					x = x_str ? parse_math(x_str, NULL, x) : 0;
 					y = y_str ? parse_math(y_str, NULL, y) : 0;
@@ -1527,7 +1559,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				if (keep_trans && result && layers[0].im) {
 					copy_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
 				}
-				while (--num >= 0) release_asimage(layers[num].im);
+				while (--num >= 0) safe_asimage_destroy(layers[num].im);
 			}
 			free(layers);
 		}
@@ -1552,10 +1584,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		show_progress("Storing image id [%s].", id);
 		if( !store_asimage( imman, result, id ) ) 
 		{
-			if( result->imageman ) 
-				release_asimage( result );
-			else
-				destroy_asimage( &result );
+			safe_asimage_destroy(result );
 			result = fetch_asimage( imman, id );	 
 		}
 	}

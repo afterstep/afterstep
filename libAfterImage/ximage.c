@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-/* #define LOCAL_DEBUG */
+/*#define LOCAL_DEBUG */
 /* #define DO_CLOCKING */
 
 #include <malloc.h>
@@ -105,9 +105,15 @@ asimage2ximage (ASVisual *asv, ASImage *im)
 #endif
 
 	if (im == NULL)
+	{
+LOCAL_DEBUG_OUT( "Attempt to convert NULL ASImage into XImage.", "" );
 		return xim;
+	}
 	if( (imout = start_image_output( asv, im, ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
+	{
+LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p", im, asv );
 		return xim;
+	}
 	xim = im->alt.ximage ;
 	prepare_scanline( im->width, 0, &xim_buf, asv->BGR_mode );
 #ifdef DO_CLOCKING

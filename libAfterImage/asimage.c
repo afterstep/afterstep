@@ -389,6 +389,23 @@ release_asimage( ASImage *im )
 	return res ;
 }
 
+void
+forget_asimage( ASImage *im )
+{
+	if( !AS_ASSERT(im) )
+	{
+		if( im->magic == MAGIC_ASIMAGE )
+		{
+			ASImageManager *imman = im->imageman ;
+			if( !AS_ASSERT(imman) )
+				remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, False);
+			im->ref_count = 0;
+			im->imageman = NULL;
+		}
+	}
+}
+
+
 inline int
 safe_asimage_destroy( ASImage *im )
 {
@@ -398,7 +415,7 @@ safe_asimage_destroy( ASImage *im )
 		if( im->magic == MAGIC_ASIMAGE )
 		{
 			ASImageManager *imman = im->imageman ;
-			if( !AS_ASSERT(imman) )
+			if( imman != NULL )
 			{
 				if( --(im->ref_count) < 0 )
 					remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, True);
@@ -603,14 +620,14 @@ start_image_output( ASVisual *asv, ASImage *im, ASAltImFormats format,
 
 	if( im != NULL )
 		if( im->magic != MAGIC_ASIMAGE )
+		{
 			im = NULL ;
+		}
 
 	if( AS_ASSERT(im) || AS_ASSERT(asv) )
 		return imout;
-
 	if( format < 0 || format == ASA_Vector || format >= ASA_Formats)
 		return NULL;
-
 	if( asimage_format_handlers[format].check_create_asim_format )
 		if( !asimage_format_handlers[format].check_create_asim_format(asv, im, format) )
 			return NULL;

@@ -98,10 +98,12 @@ unsigned int get_output_threshold();
 /* Returns True if something was actually printed  */
 Bool asim_show_error( const char *error_format, ...);
 Bool asim_show_warning( const char *warning_format, ...);
+Bool asim_show_progress( const char *msg_format, ...);
 Bool asim_show_debug( const char *file, const char *func, int line, const char *msg_format, ...);
 
 #define show_error asim_show_error
 #define show_warning asim_show_warning
+#define show_progress asim_show_progress
 #define show_debug asim_show_debug
 
 void asim_nonGNUC_debugout( const char *format, ...);
@@ -212,6 +214,8 @@ char   *asim_put_file_home (const char *path_with_home);
 #define put_file_home(p) asim_put_file_home(p)
 char   *asim_find_file (const char *file, const char *pathlist, int type);
 #define find_file(f,p,t) asim_find_file(f,p,t)
+char   *asim_copy_replace_envvar (char *path);
+#define copy_replace_envvar(p) asim_copy_replace_envvar(p)
 
 const char *asim_parse_argb_color( const char *color, CARD32 *pargb );
 #define parse_argb_color(c,p) asim_parse_argb_color((c),(p))

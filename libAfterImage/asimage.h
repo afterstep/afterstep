@@ -35,7 +35,8 @@ struct ASScanline;
  *   ImageManager Reference counting and managing :
  *          create_image_manager(), destroy_image_manager(),
  *          store_asimage(), fetch_asimage(), dup_asimage(),
- *          release_asimage(), release_asimage_by_name()
+ *          release_asimage(), release_asimage_by_name(),
+ *          forget_asimage(), safe_asimage_destroy()
  *
  *   Layers helper functions :
  *          init_image_layers(), create_image_layers(),
@@ -63,6 +64,9 @@ struct ASScanline;
  * Sasha Vasko <sasha at aftercode dot net>
  ******
  */
+
+#define ASIMAGE_PATH_ENVVAR		"IMAGE_PATH"
+#define ASFONT_PATH_ENVVAR		"FONT_PATH"
 
 /* this is value */
 #define RLE_EOL					0x00
@@ -749,6 +753,9 @@ Bool set_asimage_vector( ASImage *im, register double *vector );
  * dup_asimage()           - increment reference count of stored ASImage.
  * release_asimage()       - decrement reference count/destroy ASImage.
  * release_asimage_by_name()
+ * forget_asimage()        - remove ASImage from ASImageManager's hash.
+ * safe_asimage_destroy()  - either release or destroy asimage, checking 
+ *                           if it is attached to ASImageManager.
  *********/
 /****f* libAfterImage/asimage/create_image_manager()
  * SYNOPSIS
@@ -843,6 +850,9 @@ ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
 ASImage *dup_asimage  ( ASImage* im );         /* increment ref countif applicable */
 int      release_asimage( ASImage *im );
 int		 release_asimage_by_name( ASImageManager *imman, char *name );
+void	 forget_asimage( ASImage *im );
+int		 safe_asimage_destroy( ASImage *im );
+
 
 /****h* libAfterImage/asimage/Layers
  * DESCRIPTION
