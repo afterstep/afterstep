@@ -1,3 +1,25 @@
+./AfterStep.o : \
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/hints.h \
+		../libAfterStep/mystyle.h \
+		../libAfterStep/screen.h \
+		../libAfterStep/mylook.h \
+		afterconf.h
+
+./AlignBevel.o : \
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/hints.h \
+		../libAfterStep/mystyle.h \
+		../libAfterStep/screen.h \
+		../libAfterStep/mylook.h \
+		afterconf.h
+
 ./Animate.o : \
 		../configure.h \
 		../libAfterStep/asapp.h \
@@ -97,6 +119,17 @@
 		afterconf.h
 
 ./Look.o : \
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/hints.h \
+		../libAfterStep/mystyle.h \
+		../libAfterStep/screen.h \
+		../libAfterStep/mylook.h \
+		afterconf.h
+
+./MyFrame.o : \
 		../configure.h \
 		../libAfterStep/asapp.h \
 		../libAfterStep/afterstep.h \

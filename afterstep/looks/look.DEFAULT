@@ -357,13 +357,41 @@ MArrowPixmap		arrow-dots.xpm
 #     [TitleUnfocusedBevel   None|[Left,Top,Right,Bottom,Extra,NoOutline]
 #     [TitleStickyBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
 #     [TitleAlign      None|[Left,Top,Right,Bottom]
-#     [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+#     [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
 #
 # texture_type is the same as in MyStyle definitions for BackPIxmap ( valid values are in 130-160 range ):
 #     [TitleCompositionMethod   testure_type]
 #     [TitleFocusedCompositionMethod     testure_type]
 #     [TitleUnfocusedCompositionMethod   testure_type]
 #     [TitleStickyCompositionMethod      testure_type]
+#
+#     More fine tuned control of what makes up a titlebar 
+#     ( note that these pixmap will be overlayed over Tbar MyStyle BackPixmap ): 
+#     [LeftBtnBackground	<pixmap>
+#     [LeftBtnBackAlign		None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [LeftSpacerBackground	<pixmap>
+#     [LeftSpacerBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [LeftTitleSpacerBackground	<pixmap>
+#     [LeftTitleSpacerBackAlign		None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [RightTitleSpacerBackground	<pixmap>
+#     [RightTitleSpacerBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [RightSpacerBackground	<pixmap>
+#     [RightSpacerBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [RightBtnBackground	<pixmap>
+#     [RightBtnBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+
+#  These gives you more options for the order of above titlebar pixmaps :
+#     [LeftTitlebarLayout	Buttons,Spacer,TitleSpacer]
+#     [RightTitlebarLayout	Buttons,Spacer,TitleSpacer]
+#     [CondenseTitlebar		[Left[,Right]]]
+#
+#default layout is : Buttons,Spacer,TitleSpacer   Title   TitleSpacer,Spacer,Buttons
+# The following lines will swap it around : 
+#	LeftTitlebarLayout	Spacer,Buttons
+#	RightTitlebarLayout	Buttons,Spacer
+# This will make titlebar not to be sized same as the window :
+#	CondenseTitlebar	Left
+#
 #~MyFrame
 #
 #

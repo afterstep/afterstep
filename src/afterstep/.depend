@@ -36,7 +36,8 @@
 ./aswindow.o: \
 		../../configure.h \
 		asinternals.h \
-		../../libAfterStep/session.h
+		../../libAfterStep/session.h \
+		../../libAfterStep/wmprops.h
 
 ./colormaps.o: \
 		../../configure.h \
@@ -48,6 +49,7 @@
 		dirtree.h \
 		../../libAfterStep/session.h \
 		../../libAfterStep/mystyle_property.h \
+		../../libAfterStep/wmprops.h \
 		../../libAfterConf/afterconf.h
 
 ./cover.o: \
@@ -124,4 +126,5 @@
 
 ./winstatus.o: \
 		../../configure.h \
-		asinternals.h
+		asinternals.h \
+		../../libAfterStep/wmprops.h

@@ -129,7 +129,7 @@ get_orientation_data( ASWindow *asw )
 void 
 compile_tbar_layout( unsigned int *tbar_layout, unsigned int *default_tbar_layout, unsigned long left_layout, unsigned long right_layout )
 {
-	int l; 	
+	int l, r; 	
 
 	Bool used[MYFRAME_TITLE_BACKS] = {False, False, False, False, False, False, False };
 
@@ -138,23 +138,29 @@ compile_tbar_layout( unsigned int *tbar_layout, unsigned int *default_tbar_layou
 		tbar_layout[l] = -1 ;
 	for( l = 0 ; l < MYFRAME_TITLE_SIDE_ELEMS ; ++l ) 
 	{
-		int r = MYFRAME_TITLE_BACK_LEFT2RIGHT(l);
-		int left_elem = MYFRAME_GetTbarLayoutElem(left_layout,l);	
-		/* second arg to GetTbarLayout should be from 0 to   MYFRAME_TITLE_SIDE_ELEMS - so we use l for both left and right */
-		int right_elem = MYFRAME_GetTbarLayoutElem(right_layout,l/* no mistake(see above)! */);	
-		if( left_elem != MYFRAME_TITLE_BACK_INVALID && !used[l]) 
+		int elem =  MYFRAME_GetTbarLayoutElem(left_layout,l);
+		
+		if( elem != MYFRAME_TITLE_BACK_INVALID && !used[l] )
 		{	
-			tbar_layout[left_elem] = default_tbar_layout[l] ;
-			LOCAL_DEBUG_OUT( "l = %d, left_elem %d has slot = %d", l, left_elem, tbar_layout[left_elem] );
+			tbar_layout[elem] = default_tbar_layout[l] ; 
 			used[l] = True ;
 		}
-		if( right_elem != MYFRAME_TITLE_BACK_INVALID && !used[r] ) 
+	}
+	for( r = MYFRAME_TITLE_BACKS ; r > MYFRAME_TITLE_SIDE_ELEMS+1 ; ) 
+	{
+		int elem =  MYFRAME_GetTbarLayoutElem(right_layout,(MYFRAME_TITLE_BACKS-r));
+		--r ;
+		LOCAL_DEBUG_OUT( "r = %d, elem = %d, used = %d", r, elem, used[r] );
+		if( elem != MYFRAME_TITLE_BACK_INVALID && !used[r] )
 		{	
-			tbar_layout[right_elem] = default_tbar_layout[r] ;
-			LOCAL_DEBUG_OUT( "r = %d, right_elem %d has slot = %d", r, right_elem, tbar_layout[right_elem] );
+			/* right layout is in reverse order ! */
+			elem = MYFRAME_TITLE_BACKS - MYFRAME_TITLE_SIDE_ELEMS + elem;
+			tbar_layout[elem] = default_tbar_layout[r] ; 
+			LOCAL_DEBUG_OUT( "right_elem %d has slot = %d", elem, tbar_layout[elem] );
 			used[r] = True ;
 		}
-	}	 
+	}
+	
 	tbar_layout[MYFRAME_TITLE_BACK_LBL] = default_tbar_layout[MYFRAME_TITLE_BACK_LBL];
 	used[MYFRAME_TITLE_BACK_LBL] = True ;
 	for( l = 0 ; l < MYFRAME_TITLE_BACKS ; ++l )

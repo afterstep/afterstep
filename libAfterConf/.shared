@@ -1,4 +1,6 @@
 LIBAFTERCONF_OBJS = \
+		$(LIBAFTERCONF_PATH)/AfterStep.c \
+		$(LIBAFTERCONF_PATH)/AlignBevel.c \
 		$(LIBAFTERCONF_PATH)/Animate.c \
 		$(LIBAFTERCONF_PATH)/ASetRoot.c \
 		$(LIBAFTERCONF_PATH)/ASConfig.c \
@@ -11,6 +13,7 @@ LIBAFTERCONF_OBJS = \
 		$(LIBAFTERCONF_PATH)/function.c \
 		$(LIBAFTERCONF_PATH)/Ident.c \
 		$(LIBAFTERCONF_PATH)/Look.c \
+		$(LIBAFTERCONF_PATH)/MyFrame.c \
 		$(LIBAFTERCONF_PATH)/MyStyle.c \
 		$(LIBAFTERCONF_PATH)/Pager.c \
 		$(LIBAFTERCONF_PATH)/Wharf.c \

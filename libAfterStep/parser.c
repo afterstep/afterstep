@@ -864,7 +864,7 @@ file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, Special
 
 	/* getting rid of all the crap first */
 	if( foreign_options )
-		StorageCleanUp (&storage, foreign_options, CF_DISABLED_OPTION|CF_PHONY_OPTION);
+		StorageCleanUp (&storage, foreign_options, CF_DISABLED_OPTION|CF_PHONY_OPTION|CF_FOREIGN_OPTION);
 
 	DestroyConfig (config_reader);   
 	return storage;

@@ -218,12 +218,19 @@ SyntaxDef includeSyntax =
     {TF_NO_MYNAME_PREPENDING, "DontDrawBackground", 18, TT_FLAG, LOOK_DontDrawBackground_ID, NULL}
 
 #define AFTERSTEP_TITLEBUTTON_TERMS \
+    {TF_NO_MYNAME_PREPENDING, "Balloons", 8, TT_FLAG, BALLOON_USED_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloons", 19, TT_FLAG, BALLOON_USED_ID, NULL}, \
+    {TF_NO_MYNAME_PREPENDING, "BalloonBorderHilite", 18, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonBorderHilite", 29, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax}, \
+    {TF_NO_MYNAME_PREPENDING, "BalloonXOffset", 14, TT_INTEGER, BALLOON_XOffset_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonXOffset", 25, TT_INTEGER, BALLOON_XOffset_ID, NULL}, \
+    {TF_NO_MYNAME_PREPENDING, "BalloonYOffset", 14, TT_INTEGER, BALLOON_YOffset_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonYOffset", 25, TT_INTEGER, BALLOON_YOffset_ID, NULL}, \
+    {TF_NO_MYNAME_PREPENDING, "BalloonDelay", 12, TT_UINTEGER, BALLOON_Delay_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonDelay", 23, TT_UINTEGER, BALLOON_Delay_ID, NULL}, \
+    {TF_NO_MYNAME_PREPENDING, "BalloonCloseDelay", 17, TT_UINTEGER, BALLOON_CloseDelay_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonCloseDelay", 28, TT_UINTEGER, BALLOON_CloseDelay_ID, NULL}, \
+    {TF_NO_MYNAME_PREPENDING, "BalloonStyle", 12, TT_QUOTED_TEXT, BALLOON_Style_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonStyle", 23, TT_QUOTED_TEXT, BALLOON_Style_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonSpacingLeft", 22, TT_INTEGER, LOOK_TitleButtonSpacingLeft_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonSpacingRight", 23, TT_INTEGER, LOOK_TitleButtonSpacingRight_ID, NULL}, \

@@ -65,8 +65,8 @@ int WinListFeelFiles[] 		= {CONFIG_FeelFile_ID, CONFIG_WinListFile_ID, -1} ;
 int WinListLookFiles[] 		= {CONFIG_LookFile_ID, CONFIG_WinListFile_ID, -1} ;
 int WinListPrivateFiles[] 	= {CONFIG_WinListFile_ID, -1} ;
 
-int WharfFeelFiles[] 		= {CONFIG_WharfFile_ID, CONFIG_WharfFile_ID, -1} ;
-int WharfLookFiles[] 		= {CONFIG_WharfFile_ID, CONFIG_WharfFile_ID, -1} ;
+int WharfFeelFiles[] 		= {CONFIG_FeelFile_ID, CONFIG_WharfFile_ID, -1} ;
+int WharfLookFiles[] 		= {CONFIG_LookFile_ID, CONFIG_WharfFile_ID, -1} ;
 int WharfPrivateFiles[] 	= {CONFIG_WharfFile_ID, -1} ;
 
 ASModuleSyntax MyStylesSyntaxes[] ={{CONFIG_MyStyles_ID,  &ModuleMyStyleSyntax, 	NULL,  CONFIG_LookFiles_ID, PagerLookFiles, 0, NULL },
@@ -563,7 +563,7 @@ load_current_config_fname( ASProperty* config, int id, const char *filename, con
 	{
 		if( CheckDir(filename) )
 		{	
-			LOCAL_DEBUG_OUT("loading file \"%s\"", filename );
+			LOCAL_DEBUG_OUT("loading file \"%s\", myname = \"%s\", syntax = %p, syntax name = \"%s\"", filename, myname, syntax, syntax->display_name );
 			cf = load_config_file(NULL, filename, myname?myname:"afterstep", syntax, special );
 		}
 	}

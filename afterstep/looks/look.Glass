@@ -264,6 +264,14 @@ MyFrame "glass"
 	RightSpacerBackAlign	VScaled
 	RightBtnBackground	bars/title_rbtn_glass
 	RightBtnBackAlign	HScaled,VScaled,LabelSize
+
+#default layout is : Buttons,Spacer,TitleSpacer   Title   TitleSpacer,Spacer,Buttons
+# The following lines will swap it around : 
+#	LeftTitlebarLayout	Spacer,Buttons
+#	RightTitlebarLayout	Buttons,Spacer
+# This will make titlebar not to be sized same as the window :
+#	CondenseTitlebar	Left
+
 	Side North		bars/frame_north_glass_transp
 	Side East		bars/frame_east_glass_transp
 	Side South		bars/frame_south_glass_transp

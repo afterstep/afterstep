@@ -105,7 +105,8 @@
 		screen.h \
 		parser.h \
 		functions.h \
-		freestor.h
+		freestor.h \
+		../libAfterImage/afterimage.h
 
 ./font.o : \
 		../configure.h \
@@ -162,6 +163,7 @@
 		screen.h \
 		balloon.h \
 		event.h \
+		wmprops.h \
 		../libAfterImage/afterimage.h
 
 ./mystyle.o : \

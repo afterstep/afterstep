@@ -126,6 +126,7 @@ ASConfigFile *
 load_config_file(const char *dirname, const char *filename, const char *myname, SyntaxDef *syntax, SpecialFunc special)
 {
 	ASConfigFile * ascf ;
+	FreeStorageElem *discarded = NULL;
 		
 	if( (dirname == NULL && filename == NULL) || syntax == NULL ) 
 		return NULL;
@@ -143,7 +144,10 @@ load_config_file(const char *dirname, const char *filename, const char *myname, 
 	ascf->writeable = (check_file_mode (ascf->fullname, W_OK) == 0);
 	ascf->myname = mystrdup(myname);
 
-	ascf->free_storage = file2free_storage(ascf->fullname, ascf->myname, syntax, special, NULL );
+	ascf->free_storage = file2free_storage(ascf->fullname, ascf->myname, syntax, special, &discarded );
+	if( discarded ) 
+		DestroyFreeStorage( &discarded );
+		
 	ascf->syntax = syntax ;
 
 	return ascf;
