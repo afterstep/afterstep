@@ -10,10 +10,6 @@
 		../../include/screen.h \
 		../../include/module.h \
 		../../include/parse.h \
-		../../include/ascolor.h \
-		../../include/stepgfx.h \
-		../../include/XImage_utils.h \
-		../../include/pixmap.h \
 		../../include/loadimg.h \
 		ButtonArray.h \
 		List.h
@@ -32,8 +28,6 @@
 		../../include/afterstep.h \
 		../../include/style.h \
 		../../include/screen.h \
-		../../include/ascolor.h \
-		../../include/stepgfx.h \
 		ButtonArray.h
 
 ./WinList.o: \

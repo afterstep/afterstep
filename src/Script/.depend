@@ -1,7 +1,7 @@
 ./types.h: \
 		../../configure.h \
-		../../include/module.h \
-		../../include/aftersteplib.h
+		../../include/aftersteplib.h \
+		../../include/module.h
 
 ./y.tab.h:
 

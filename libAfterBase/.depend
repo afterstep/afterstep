@@ -1,28 +1,28 @@
 ./ashash.o : \
 		config.h \
 		astypes.h \
-		audit.h \
 		ashash.h \
 		safemalloc.h \
-		output.h
+		output.h \
+		audit.h
 
 ./aslist.o : \
 		config.h \
 		astypes.h \
-		audit.h \
 		output.h \
 		safemalloc.h \
 		selfdiag.h \
-		aslist.h
+		aslist.h \
+		audit.h
 
 ./asvector.o : \
 		config.h \
 		astypes.h \
-		audit.h \
 		output.h \
 		safemalloc.h \
 		selfdiag.h \
-		asvector.h
+		asvector.h \
+		audit.h
 
 ./audit.o : \
 		config.h \
@@ -36,37 +36,37 @@
 
 ./fs.o : \
 		config.h \
-		audit.h \
 		astypes.h \
 		mystring.h \
 		safemalloc.h \
 		fs.h \
-		output.h
+		output.h \
+		audit.h
 
 ./layout.o : \
 		config.h \
 		astypes.h \
-		audit.h \
 		safemalloc.h \
 		output.h \
-		layout.h
+		layout.h \
+		audit.h
 
 ./mystring.o : \
 		config.h \
 		astypes.h \
-		audit.h \
 		output.h \
 		safemalloc.h \
-		mystring.h
+		mystring.h \
+		audit.h
 
 ./os.o : \
 		config.h \
 		astypes.h \
 		output.h \
-		audit.h \
 		mystring.h \
 		safemalloc.h \
-		os.h
+		os.h \
+		audit.h
 
 ./output.o : \
 		config.h \
@@ -78,19 +78,19 @@
 ./parse.o : \
 		config.h \
 		astypes.h \
-		audit.h \
 		mystring.h \
 		safemalloc.h \
 		xwrap.h \
-		parse.h
+		parse.h \
+		audit.h
 
 ./regexp.o : \
 		config.h \
-		audit.h \
 		astypes.h \
 		mystring.h \
 		safemalloc.h \
-		regexp.h
+		regexp.h \
+		audit.h
 
 ./safemalloc.o : \
 		config.h \
@@ -113,11 +113,11 @@
 ./socket.o : \
 		config.h \
 		astypes.h \
-		audit.h \
 		safemalloc.h \
 		aslist.h \
 		output.h \
-		socket.h
+		socket.h \
+		audit.h
 
 ./timer.o : \
 		config.h \
@@ -136,11 +136,11 @@
 		config.h \
 		astypes.h \
 		output.h \
-		audit.h \
 		parse.h \
 		safemalloc.h \
 		xwrap.h \
-		xprop.h
+		xprop.h \
+		audit.h
 
 ./xwrap.o : \
 		config.h \
