@@ -296,7 +296,6 @@ mem          *
 count_find_and_extract (const char *fname, int line, void *ptr, int type)
 {
 	mem          *m = NULL;
-
 	if( allocs_hash && ptr )
 	{
 		ASHashData hd ;
@@ -324,6 +323,7 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
         }
         service_mode-- ;
 	}
+	/* fprintf( stderr, "looking for ptr %p, produced result %p at %s:%d", ptr, m, fname, line ); */
 	if( m )
 	{
 		if ((m->type & 0xff) == C_MEM)
@@ -446,6 +446,7 @@ countfree (const char *fname, int line, void *ptr)
 {
 	mem          *m ;
 
+	/* fprintf( stderr, "Service mode = %d, alloca_hash = %p ptr = %p at %s:%d\n", service_mode, allocs_hash, ptr, fname, line );*/
     if( service_mode > 0 || allocs_hash == NULL )
 		return ;
 
@@ -461,7 +462,7 @@ countfree (const char *fname, int line, void *ptr)
 	m = count_find_and_extract (fname, line, ptr, C_MEM);
 	if (m == NULL)
 	{
-		if( cleanup_mode == 0 )
+		if( cleanup_mode == 0 ) 
 		{
 			show_error( "countfree:attempt in %s:%d to free memory(%p) that was never allocated!", fname, line, ptr);
 #ifdef DEBUG_ALLOC_STRICT
@@ -487,6 +488,7 @@ countfree (const char *fname, int line, void *ptr)
 	m1->fname = fname;
 	m1->line = line;
 #else
+	/*fprintf( stderr, "%s: freeing %p at %s:%d\n", __FUNCTION__, m->ptr, fname, line );*/
 	safefree (m->ptr);
 	mem_destroy( (ASHashableValue)NULL, m );
 #endif
