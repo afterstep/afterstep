@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>AfterStep XML Images</title>
+</head>
+<body>
+<h3>AfterStep XML Images</h3>
+AfterStep's graphics engine - libAfterImage includes processor of XML
+scripts that specify transformation of images. Such XML script may
+include any function supported by libAfterImage, which includes
+loading/saving files, scaling, tiling, cropping, Hue-Saturation-Value
+adjustment, image blending, Text rendering, gradients rendering,
+tinting, solid fill, etc.<br>
+<br>
+Here is the example of such xml script : <br>
+<br>
+<div style="margin-left: 40px;"><span
+ style="font-weight: bold; font-style: italic;">&lt;composite
+merge="clip"&gt;</span><br
+ style="font-weight: bold; font-style: italic;">
+<span style="font-weight: bold; font-style: italic;">&nbsp;&nbsp;&nbsp;
+&lt;img src="large/Monitor1"/&gt;</span><br
+ style="font-weight: bold; font-style: italic;">
+<span style="font-weight: bold; font-style: italic;">&nbsp;&nbsp;&nbsp;
+&lt;scale width=42 height=42 x=7 y=1&gt;</span><br
+ style="font-weight: bold; font-style: italic;">
+<span style="font-weight: bold; font-style: italic;">&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &lt;img src="logos/AfterStep"/&gt;</span><br
+ style="font-weight: bold; font-style: italic;">
+<span style="font-weight: bold; font-style: italic;">&nbsp;&nbsp;&nbsp;
+&lt;/scale&gt;</span><br style="font-weight: bold; font-style: italic;">
+<span style="font-weight: bold; font-style: italic;">&lt;composite&gt;</span><br>
+</div>
+<br>
+This specific script scales down AfterSATep logo to 42x42, and then
+blends it over the icon of computer monitor, producing new icon.<br>
+<br>
+Here is another script : <br>
+<br>
+<div style="margin-left: 40px;"><span
+ style="font-weight: bold; font-style: italic;">&lt;composite
+merge=clip&gt;</span><br style="font-weight: bold; font-style: italic;">
+<span style="font-weight: bold; font-style: italic;">&nbsp;&nbsp;&nbsp;
+&lt;tile height=308&gt;&lt;scale width=24 height=24&gt;&lt;img
+src=AfterStep3/&gt;&lt;/scale&gt;&lt;/tile&gt;</span><br
+ style="font-weight: bold; font-style: italic;">
+<span style="font-weight: bold; font-style: italic;">&nbsp;&nbsp;&nbsp;
+&lt;tile height=308 width=24 tint=#557f7f7f&gt;&lt;img
+src="main_back.jpg"/&gt;&lt;/tile&gt;</span><br
+ style="font-weight: bold; font-style: italic;">
+<span style="font-weight: bold; font-style: italic;">&lt;/composite&gt;</span><br>
+</div>
+<br>
+This one renders border image as could be seen at the top of this page.<br>
+<br>
+Great advantage of&nbsp; such scripting capabilities is that numerous
+images could be produced from the single clipart image. For example
+most modern system assign different icons to different file types. When
+two different file types should have similar icons - icon simply gets
+duplicated. The result of it is huge waste of HDD space and large
+number of identical files. XML scripts solve that problem, allowing to
+create shortcuts to image files.<br>
+For examle xml file with&nbsp; : <br>
+<br>
+<div style="margin-left: 40px;"><span
+ style="font-weight: bold; font-style: italic;">&lt;img
+src="logos/AfterStep5"/&gt;</span><br>
+</div>
+<br>
+is a simply a shortcut to clipart image.<br>
+<br>
+Also it allows to create minipixmaps, or reduced size version of icons.
+<br>
+For example : <br>
+<br>
+<div style="margin-left: 40px;"><span
+ style="font-weight: bold; font-style: italic;">&lt;scale width=16
+height=16&gt;&lt;img src=logos/GNUStep&gt;&lt;/scale&gt;</span><br>
+</div>
+<br>
+Will create 16x16 version of GNUStep icon, which could be used as
+minipixmap for application.<br>
+<br>
+Very powerfull feature of&nbsp; AfterStep is colorschemes. That means
+that at each moment AfterStep defines 31 additional color name, exact
+color values of which will depend on choosen colorscheme. Now XML
+scripts may include HSV conversion commands. As the result it is
+possible to have images change its colors depending on the colorscheme
+choosen.<br>
+<br>
+For example : <br>
+<br>
+<div style="margin-left: 40px; font-style: italic; font-weight: bold;">&lt;hsv
+hue_offset=$ascs.Active.hue
+saturation_offset=$ascs.Active.saturation-30
+value_offset=$ascs.Active.value-72&gt;<br>
+&nbsp; &lt;img src="bars/title_tile_glass_red_a50"/&gt;<br>
+&lt;/hsv&gt;<br>
+</div>
+<br>
+Above image will produce focused titlebar background that changes
+colors according to coloracheme choosen.<br>
+<br>
+<br>
+<br>
+</body>
+</html>

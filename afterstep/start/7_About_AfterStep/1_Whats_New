@@ -1,1 +1,1 @@
-Exec "Whats new ?" exec xterm -n VI -T VI -e vi &
+Exec "Whats new in version 2.0?" exec xterm -n VI -T VI -e vi &
