@@ -838,6 +838,7 @@ shrink_component11( register CARD32 *src, register CARD32 *dst, int *scales, int
 static inline void
 copy_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
 {
+#if 1
 #ifdef CARD64
 	CARD64 *dsrc = (CARD64*)src;
 	CARD64 *ddst = (CARD64*)dst;
@@ -853,6 +854,17 @@ copy_component( register CARD32 *src, register CARD32 *dst, int *scales, int len
 	{
 		ddst[i] = dsrc[i];
 	}while(++i < len );
+#else
+	register int i = 0;
+
+	len += len&0x01;
+	do
+	{
+		dst[i] = src[i];
+	}while(++i < len );
+
+#endif	
+	
 }
 
 static inline void
@@ -1351,12 +1363,15 @@ scale_image_up( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, 
 	prepare_scanline( src->width, QUANT_ERR_BITS, &tmp, imout->scr->BGR_mode );
 	prepare_scanline( out_width, QUANT_ERR_BITS, &step, imout->scr->BGR_mode );
 
-	set_component(src_lines[0].red,0x00000F00,0,line_len*3);
+
+/*	set_component(src_lines[0].red,0x00000000,0,out_width*3); */
 
 	DECODE_SCANLINE(src,tmp,0);
 	step.flags = src_lines[0].flags = tmp.flags ;
 	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,src_lines[1],scales_h,line_len);
 
+	SCANLINE_FUNC(copy_component,src_lines[1],src_lines[0],0,out_width);
+	
 	DECODE_SCANLINE(src,tmp,1);
 	src_lines[1].flags = tmp.flags ;
 	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,src_lines[2],scales_h,line_len);
