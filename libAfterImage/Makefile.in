@@ -311,7 +311,7 @@ $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) config.h
 install.man:
 		@if [ -d doc/man ] ; then \
 			cd doc/man; \
-			for f in *.man; do \
+			for f in `ls *.man`; do \
 				page_name=`echo $$f| awk -F . '{print $$1}'`; \
 	  			echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
 	  			$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
@@ -325,7 +325,7 @@ install.doc:
 				$(MKDIR) -p $(AFTER_DOC_DIR)/html; \
 			fi; \
 			cd doc/html; \
-			for f in *.html; do \
+			for f in `ls *.html`; do \
 		  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
 		  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
 			done; \
