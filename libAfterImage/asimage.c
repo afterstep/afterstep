@@ -185,24 +185,6 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 	}
 }
 
-void
-move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src )
-{
-	if( dst && src && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
-		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
-		if( dst->width == src->width )
-		{
-			register int i = MIN(dst->height, src->height);
-			register CARD8 **dst_rows = dst->channels[channel_dst] ;
-			register CARD8 **src_rows = src->channels[channel_src] ;
-			while( --i >= 0 )
-			{
-				dst_rows[i] = src_rows[i] ;
-				src_rows[i] = NULL ;
-			}
-		}
-}
-
 ASImage *
 create_asimage( unsigned int width, unsigned int height, unsigned int compression)
 {
@@ -992,7 +974,7 @@ asimage_decode_block32 (register CARD8 *src, CARD32 *to_buf, unsigned int width 
 			register int i = (int)src[0] + RLE_THRESHOLD ;
 			dst += i ;
 			i = -i;
-			while( i <= 0 )
+			while( i < 0 )
 			{
 				dst[i] = src[1] ;
 				++i ;
@@ -1048,7 +1030,7 @@ asimage_decode_block8 (register CARD8 *src, CARD8 *to_buf, unsigned int width )
 			register int i = (int)src[0] + RLE_THRESHOLD ;
 			dst += i ;
 			i = -i;
-			while( i <= 0 )
+			while( i < 0 )
 			{
 				dst[i] = src[1] ;
 				++i ;
@@ -1158,6 +1140,48 @@ asimage_copy_line (CARD8 * from, CARD8 * to, int width)
 	}
 	return (dst - to);
 }
+
+void
+move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src )
+{
+	if( dst && src && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
+		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
+		if( dst->width == src->width )
+		{
+			register int i = MIN(dst->height, src->height);
+			register CARD8 **dst_rows = dst->channels[channel_dst] ;
+			register CARD8 **src_rows = src->channels[channel_src] ;
+			while( --i >= 0 )
+			{
+				if( dst_rows[i] )
+					free( dst_rows[i] );
+				dst_rows[i] = src_rows[i] ;
+				src_rows[i] = NULL ;
+			}
+		}
+}
+
+
+void
+copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src )
+{
+	if( dst && src && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
+		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
+		if( dst->width == src->width )
+		{
+			register int i = MIN(dst->height, src->height);
+			register CARD8 **dst_rows = dst->channels[channel_dst] ;
+			register CARD8 **src_rows = src->channels[channel_src] ;
+			while( --i >= 0 )
+			{
+				if( dst_rows[i] )
+					free( dst_rows[i] );
+				asimage_copy_line( dst_rows[i], src_rows[i], dst->width );
+			}
+		}
+}
+
+
 
 Bool
 asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp, unsigned int y, Bool verbose)
@@ -1410,6 +1434,7 @@ decode_asscanline( register ASScanline *scl, ASImage *im, ARGB32 back_color, ARG
 			if( count < width )
 				set_component( chan, ARGB32_CHAN8(back_color, i)<<scl->shift, count, width );
 		}
+
 	clear_flags( scl->flags,SCL_DO_ALL);
 	set_flags( scl->flags,filter);
 }
@@ -1768,7 +1793,7 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 				{
 					LOCAL_DEBUG_OUT( "erasing line %d for component %d", imout->next_line, color );
 					asimage_erase_line( imout->im, color, imout->next_line );
-				}					
+				}
 			}
 		}
 	}

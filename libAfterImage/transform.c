@@ -1433,9 +1433,21 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
 				imout->output_image_scanline( imout, &result, 1);
 		}else if ((imdec = start_image_decoding(asv, im, SCL_DO_ALL, 0, y, im->width, height, NULL)) != NULL )
 		{
+			CARD32 alpha = ARGB32_ALPHA8(color), red = ARGB32_RED8(color),
+				   green = ARGB32_GREEN8(color), blue = ARGB32_BLUE8(color);
+			CARD32 *a = imdec->buffer.alpha, *r = imdec->buffer.red, *g = imdec->buffer.green,
+				   *b = imdec->buffer.blue  ;
 			for( i = 0 ; i < height ; i++ )
 			{
+				register int k ;
 				imdec->decode_image_scanline( imdec );
+				for( k = x ; k < width ; ++k )
+				{
+					a[k] = alpha ;
+					r[k] = red ;
+					g[k] = green ;
+					b[k] = blue ;
+				}
 				imout->output_image_scanline( imout, &(imdec->buffer), 1);
 			}
 			stop_image_decoding( &imdec );

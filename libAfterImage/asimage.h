@@ -622,25 +622,6 @@ int mmx_off(void);
  * called, asimage_init() must be invoked to free all the memory, and
  * then asimage_start() has to be called with new dimensions.
  *********/
-/****f* libAfterImage/asimage/asimage_sta()
- * SYNOPSIS
- * void move_asimage_channel( ASImage *dst, int channel_dst,
- *                            ASImage *src, int channel_src );
- * INPUTS
- * dst         - ASImage which will have its channel substituted;
- * channel_dst - what channel to move data to;
- * src         - ASImage which will donate its channel to dst;
- * channel_src - what source image channel to move data from.
- * DESCRIPTION
- * MOves channel data from one ASImage to another, while discarding
- * what was already in destination's channel.
- * NOTES
- * Source image (donor) will loose its channel data, as it will be
- * moved to destination ASImage. Also there is a condition that both
- * images must be of the same width - otherwise function returns
- * without doing anything. If height is different - the minimum of
- * two will be used.
- *********/
 /****f* libAfterImage/asimage/create_asimage()
  * SYNOPSIS
  * ASImage *create_asimage( unsigned int width,
@@ -671,7 +652,6 @@ int mmx_off(void);
  *********/
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
-void move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
 void destroy_asimage( ASImage **im );
 
@@ -766,10 +746,45 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  * encodes ASImage channel scanline to have same color components
  * value in every pixel. Useful for vertical gradients for example.
  *********/
+/****f* libAfterImage/asimage/move_asimage_channel()
+ * SYNOPSIS
+ * void move_asimage_channel( ASImage *dst, int channel_dst,
+ *                            ASImage *src, int channel_src );
+ * INPUTS
+ * dst         - ASImage which will have its channel substituted;
+ * channel_dst - what channel to move data to;
+ * src         - ASImage which will donate its channel to dst;
+ * channel_src - what source image channel to move data from.
+ * DESCRIPTION
+ * MOves channel data from one ASImage to another, while discarding
+ * what was already in destination's channel.
+ * NOTES
+ * Source image (donor) will loose its channel data, as it will be
+ * moved to destination ASImage. Also there is a condition that both
+ * images must be of the same width - otherwise function returns
+ * without doing anything. If height is different - the minimum of
+ * two will be used.
+ *********/
+/****f* libAfterImage/asimage/copy_asimage_channel()
+ * SYNOPSIS
+ * void copy_asimage_channel( ASImage *dst, int channel_dst,
+ *                            ASImage *src, int channel_src );
+ * INPUTS
+ * dst         - ASImage which will have its channel substituted;
+ * channel_dst - what channel to copy data to;
+ * src         - ASImage which will donate its channel to dst;
+ * channel_src - what source image channel to copy data from.
+ * DESCRIPTION
+ * Same as move_asimage_channel() but makes copy of channel's data
+ * instead of simply moving it from one image to another.
+ *********/
+
 size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y);
 size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsigned int y);
 ASFlagType get_asimage_chanmask( ASImage *im);
 inline int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width);
+void move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
+void copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
 
 /****d* libAfterImage/asimage/verbosity
  * FUNCTION

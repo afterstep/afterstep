@@ -379,6 +379,7 @@ alphablend_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 	while( ++i < max_i )
 	{
 		int a = ta[i] ;
+/*fprintf( stderr, "%4.4x%4.4x%4.4x%4.4x+%4.4x%4.4x%4.4x%4.4x ", ba[i], br[i], bg[i], bb[i], ta[i], tr[i], tg[i], tb[i] );*/
 		if( a >= 0x0000FF00 )
 		{
 			br[i] = tr[i] ;
@@ -396,6 +397,7 @@ alphablend_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 			bb[i] = (bb[i]*(255-a)+tb[i]*a)>>8 ;
 		}
 	}
+/*	fputc( '\n', stderr );*/
 }
 
 void    /* this one was first implemented on XImages by allanon :) - mode 131  */
@@ -404,7 +406,7 @@ allanon_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
 	{
-		if( ta[i] != 0 ) 
+		if( ta[i] != 0 )
 		{
 			br[i] = (br[i]+tr[i])>>1 ;
 			bg[i] = (bg[i]+tg[i])>>1 ;
