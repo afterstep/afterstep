@@ -750,7 +750,7 @@ LOCAL_DEBUG_OUT( "\t\tcolor = 0x%8.8lX\n",  color );
 		{
 			char *name = mystrndup(xpm_file->str_buf, xpm_file->bpp);
 LOCAL_DEBUG_OUT( "\t\tname = \"%s\"\n", name );
-			add_hash_item( xpm_file->cmap_name_xref, (ASHashableValue)name, (void*)((long)color) );
+			add_hash_item( xpm_file->cmap_name_xref, (ASHashableValue)name, (void*)color );
 		}
 #endif
 	}
