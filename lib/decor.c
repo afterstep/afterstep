@@ -379,7 +379,7 @@ move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y )
 	Bool changed = False ;
 	if( tbar && pc )
 	{
-		int root_x = pc->root_x + tbar->root_x, root_y = pc->root_y + tbar->root_y ;
+		int root_x = pc->root_x + win_x, root_y = pc->root_y + win_y ;
 		changed = (root_x != tbar->root_x || root_y != tbar->root_y );
 		tbar->root_x = root_x ;
 		tbar->root_y = root_y ;
@@ -390,21 +390,21 @@ move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y )
 	return changed ;
 }
 
-Bool render_astbar( ASTBarData *tbar, ASCanvas *pc, 
-                    unsigned int state, Bool pressed )
+Bool render_astbar( ASTBarData *tbar, ASCanvas *pc )
 {
 	ASImage *back, *label_im ;
 	MyStyle *style ;
 	ASImageBevel bevel ;
 	ASImageLayer layers[2] ;
 	ASImage *merged_im ;
+	int state ;
 
 	/* input control : */
-	if( tbar == NULL || pc == NULL || pc->w == None || state >= BAR_STATE_NUM )
+	if( tbar == NULL || pc == NULL || pc->w == None )
 		return False ;
+	state = get_flags(tbar->state, BAR_STATE_FOCUS_MASK );
 	if( (style = tbar->style[state]) == NULL ) 
 		return False ;
-		
 	/* validating our images : */	 
 	if( (back = tbar->back[state]) != NULL ) 
 	{
@@ -431,7 +431,7 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc,
 		label_im = mystyle_draw_text_image( style, tbar->label_text );
 	}
 
-	mystyle_make_bevel( style, &bevel, ASTBAR_HILITE, pressed );
+	mystyle_make_bevel( style, &bevel, ASTBAR_HILITE, get_flags(tbar->state, BAR_STATE_PRESSED_MASK)  );
 	/* in unfocused and unpressed state we render pixmap and set 
 	 * window's background to it 
 	 * in focused state or in pressed state we render to 
@@ -464,4 +464,62 @@ LOCAL_DEBUG_CALLER_OUT( "MERGING TBAR %p image %dx%d from %p %dx%d and %p %dx%d"
 		return res;
 	}
 	return False ;
+}
+
+Bool set_astbar_focused( ASTBarData *tbar, ASCanvas *pc, Bool focused )
+{
+	if( tbar )
+	{
+		Bool old_focused = get_flags(tbar->state, BAR_STATE_FOCUS_MASK);
+		if( focused )
+			set_flags(tbar->state, BAR_STATE_FOCUSED);
+		else
+			clear_flags(tbar->state, BAR_STATE_FOCUSED);
+		return old_focused ;
+	}
+	return False ;
+}
+
+Bool set_astbar_pressed( ASTBarData *tbar, ASCanvas *pc, Bool pressed )
+{
+	if( tbar ) 
+	{
+		Bool old_pressed = get_flags(tbar->state, BAR_STATE_PRESSED_MASK);
+		if( pressed )
+			set_flags(tbar->state, BAR_STATE_PRESSED);
+		else
+			clear_flags(tbar->state, BAR_STATE_PRESSED);
+	  	return old_pressed ;
+	}
+	return False ;
+}
+
+void update_astbar_transparency( ASTBarData *tbar, ASCanvas *pc )
+{
+	int root_x, root_y ;
+	Bool changed = False ;;	
+
+	if( tbar == NULL || pc == NULL )
+		return ; 	
+
+	root_x = pc->root_x + tbar->win_x ;
+	root_y = pc->root_y + tbar->win_y;
+	if( (changed = ( root_x != tbar->root_x || root_y != tbar->root_y )) )
+	{
+		tbar->root_x = pc->root_x + tbar->win_x ;
+		tbar->root_y = pc->root_y + tbar->win_y;
+		changed = True ;
+	}
+	
+	if( changed )
+	{
+		register int i = BAR_STATE_NUM ;
+		while( --i >= 0 )
+		{
+			if( tbar->style[i] && tbar->style[i]->texture_type >= TEXTURE_TRANSPARENT )
+				if( tbar->back[i] )
+					destroy_asimage( &(tbar->back[i]) );
+		}
+		render_astbar( tbar, pc );
+	}
 }

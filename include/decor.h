@@ -17,8 +17,13 @@ typedef struct ASCanvas
 
 typedef struct ASTBarData {
 #define BAR_STATE_UNFOCUSED		0
-#define BAR_STATE_FOCUSED		1
+#define BAR_STATE_FOCUSED		(0x01<<0)
 #define BAR_STATE_NUM			2
+#define BAR_STATE_FOCUS_MASK	(0x01<<0)
+#define BAR_STATE_PRESSED		(0x01<<1)
+#define BAR_STATE_PRESSED_MASK	(0x01<<1)
+
+	ASFlagType	state ;
 	int win_x, win_y ;
 	int root_x, root_y;
 	int rendered_root_x, rendered_root_y;
@@ -56,7 +61,11 @@ Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height 
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
 Bool set_astbar_label( ASTBarData *tbar, const char *label );
 Bool move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y );
-Bool render_astbar( ASTBarData *tbar, ASCanvas *pc, unsigned int state, Bool pressed );
+Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
+
+Bool set_astbar_focused( ASTBarData *tbar, ASCanvas *pc, Bool focused );
+Bool set_astbar_pressed( ASTBarData *tbar, ASCanvas *pc, Bool pressed );
+void update_astbar_transparency( ASTBarData *tbar, ASCanvas *pc );
 
 #endif /* !NO_TEXTURE */
 #endif /* DECOR_H_HEADER */

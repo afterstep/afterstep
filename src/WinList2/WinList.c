@@ -294,13 +294,18 @@ DispatchEvent (XEvent * Event)
 	    case ConfigureNotify:
 			if( handle_canvas_config( WinListCanvas ) )
 			{
+				ASBiDirElem *elem ;
+
 				if( WinListState.width  != WinListCanvas->width || 
 				    WinListState.height != WinListCanvas->height)			
 				{
 					WinListState.width  = WinListCanvas->width; 
 				    WinListState.height = WinListCanvas->height;
 					rearrange_winlist_buttons();
-				}
+				}else
+					for( elem = WinList->head ; elem ; elem = elem->next )
+						update_astbar_transparency( elem->data, WinListCanvas );
+							  
 			}
 	        break;
 	    case Expose:
@@ -351,7 +356,7 @@ make_winlist_window()
 	sleep (1);								   /* we have to give AS a chance to spot us */
 	/* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
-	XSelectInput (dpy, w, PropertyChangeMask);
+	XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask);
 	
 	return w ;
 }
@@ -389,7 +394,7 @@ static Bool
 render_winlist_button( ASTBarData *tbar )
 {
 	LOCAL_DEBUG_CALLER_OUT("tbar %p", tbar );
-	return render_astbar( tbar, WinListCanvas, BAR_STATE_UNFOCUSED, False );
+	return render_astbar( tbar, WinListCanvas );
 }
 
 static void 
@@ -477,13 +482,18 @@ LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text,
 	}
 	if( get_flags(Config.flags, ASWL_RowsFirst) )
 	{
-		WinListState.width = allowed_max_width ;
+		WinListState.width = (curr_row>1)?allowed_max_width:next_x ;
 		WinListState.height = next_y + max_height ;
 	}else
 	{
-		WinListState.height = allowed_max_height ;
-		WinListState.width = next_x ;
+		WinListState.height = (curr_col>1)? allowed_max_height:((next_x>0)?next_y+max_height:next_y) ;
+		WinListState.width = next_x + max_width ;
 	}
+	if( WinListState.width <= 0 ) 
+		WinListState.width = 1 ;
+	if( WinListState.height <= 0 )
+		WinListState.height = 1 ;
+		
 	LOCAL_DEBUG_OUT("Resizing Winlist window to %dx%d", WinListState.width, WinListState.height );
 	if( WinListCanvas->width != WinListState.width || WinListCanvas->height != WinListState.height )
 		XResizeWindow( dpy, WinListWindow, WinListState.width, WinListState.height );
