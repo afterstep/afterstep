@@ -1351,7 +1351,7 @@ void quit_func_handler( FunctionData *data, ASEvent *event, int module )
 void windowlist_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_WINDOWLIST
-    MenuData *md =  make_desk_winlist_menu( Scr.Windows, data->text == NULL ? event->scr->CurrentDesk: data->func_val[0], 0, False );
+    MenuData *md =  make_desk_winlist_menu( Scr.Windows, data->text == NULL ? event->scr->CurrentDesk: data->func_val[0], Scr.Feel.winlist_sort_order, False );
     if( md != NULL )
         run_menu_data( md );
 #endif /* ! NO_WINDOWLIST */

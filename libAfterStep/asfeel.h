@@ -35,12 +35,19 @@ enum ASCursorTypes
 #define SORTBYALPHA 1
 #define SORTBYDATE  2
 
-enum {
+typedef enum ASWinListSortOrderVals {
     ASO_Circulation = 0,
+    ASO_Alpha,
     /* TODO: */
     ASO_Stacking,
-    ASO_Creation
-}ASWinListSortOrder;
+    ASO_Creation,
+    ASO_Default = ASO_Circulation
+}ASWinListSortOrderVals;
+
+struct name2const {
+	const char*	name;
+	const int	value;
+};
 
 /* for the flags value - these used to be separate Bool's */
 typedef enum                /* feel file flags */
@@ -74,7 +81,8 @@ typedef enum                /* feel file flags */
     DoHandlePageing         = (1 << 26),
     DontRestoreFocus        = (1 << 27),
 	PersistentMenus			= (1 << 28),
-	DontAnimateBackground   = (1 << 29)
+	DontAnimateBackground   = (1 << 29),
+	WinListHideIcons	    = (1 << 30)
 }FeelFlags;
 
 /* since we have too many feel flags  - we want another enum for
@@ -235,8 +243,9 @@ typedef struct ASFeel
     unsigned int        desk_cover_animation_type ;
 
 	int 				conserve_memory ;
-}
-ASFeel;
+	
+	ASWinListSortOrderVals winlist_sort_order;
+}ASFeel;
 
 
 

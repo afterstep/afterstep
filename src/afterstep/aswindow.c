@@ -1407,6 +1407,14 @@ LOCAL_DEBUG_OUT("checking i(%d)->end_i(%d)->dir(%d)->AutoReverse(%d)", i, end_i,
 /********************************************************************************/
 /* window list menus regeneration :                                             */
 /********************************************************************************/
+static int
+make_desk_winlist_menu_strcmp(const void *a, const void *b) {
+	FunctionData *fda = *(FunctionData **)a;
+	FunctionData *fdb = *(FunctionData **)b;
+
+	return strcmp(fda->name ? fda->name : "", fdb->name ? fdb->name : "");
+}
+
 MenuData *
 make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon_name )
 {
@@ -1445,21 +1453,42 @@ make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon
                 fdata.name = mystrdup(icon_name? ASWIN_ICON_NAME(clients[i]) : ASWIN_NAME(clients[i]));
                 fdata.func_val[0] = (long) clients[i];
                 fdata.func_val[1] = (long) clients[i]->w;
-				if (++scut == ('9' + 1))
-					scut = 'A';				   /* Next shortcut key */
+		if (++scut == ('9' + 1))
+			scut = 'A';		   /* Next shortcut key */
                 fdata.hotkey = scut;
-                add_menu_fdata_item( md, &fdata, NULL, get_window_icon_image(clients[i]));
+                add_menu_fdata_item( md, &fdata, NULL, get_flags( Scr.Feel.flags, WinListHideIcons)? NULL : get_window_icon_image(clients[i]));
             }
         }
-    }else if( sort_order == ASO_Stacking )
-    {
-
-    }else
-    {
-
-
+    } else if( sort_order == ASO_Alpha ) {
+        ASWindow **clients = PVECTOR_HEAD(ASWindow*,list->circulate_list);
+        int i = -1, max_i = PVECTOR_USED(list->circulate_list);
+	FunctionData **menuitems = safecalloc(sizeof(FunctionData *), max_i);
+    	FunctionData *sfdata;
+	int numitems = 0;
+        while( ++i < max_i ) {
+            if ((ASWIN_DESK(clients[i]) == desk || !IsValidDesk(desk)) && !ASWIN_HFLAGS(clients[i], AS_SkipWinList)) {
+		sfdata = safecalloc(1, sizeof(FunctionData));
+                sfdata->func = F_RAISE_IT;
+                sfdata->name = mystrdup(icon_name ? ASWIN_ICON_NAME(clients[i]) : ASWIN_NAME(clients[i]));
+                sfdata->func_val[0] = (long) clients[i];
+                sfdata->func_val[1] = (long) clients[i]->w;
+		if (++scut == ('9' + 1))
+			scut = 'A';		/* Next shortcut key */
+                sfdata->hotkey = scut;
+		menuitems[numitems++] = sfdata;
+            }
+        }
+	qsort(menuitems, numitems, sizeof(FunctionData *), make_desk_winlist_menu_strcmp);
+	i = 0;
+	while (i < numitems) {
+		add_menu_fdata_item( md, menuitems[i], NULL, get_flags( Scr.Feel.flags, WinListHideIcons) ? NULL : get_window_icon_image(clients[i]));
+		safefree(menuitems[i++]); /* scrubba-dub-dub */
+	}
+	safefree(menuitems);
+    } else if( sort_order == ASO_Stacking ) {
+    } else {
     }
-    return md ;
+    return md;
 }
 
 

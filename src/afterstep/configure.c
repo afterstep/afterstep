@@ -182,6 +182,8 @@ struct config main_config[] = {
     {"WindowBox", windowbox_parse, (char**)&(Scr.Feel.window_boxes), (int*)&(Scr.Feel.window_boxes_num)},
     {"DefaultWindowBox", assign_string, (char**)&(Scr.Feel.default_window_box_name), (int*)0},
     {"RecentSubmenuItems", SetInts, (char**)&Scr.Feel.recent_submenu_items, (int*)&dummy},
+	{"WinListSortOrder", SetInts, &Scr.Feel.winlist_sort_order, (int *)&dummy},
+	{"WinListHideIcons", SetFlag, (char**)WinListHideIcons, (int *)&dummy},
 
     /* look options */
 	/* obsolete stuff */
