@@ -282,26 +282,24 @@ IconBox                 1 -80 -1 -1
 MyFrame "unity"
 	TitleBevel		    None
 	BtnBackAlign	    	    Top
-	LeftSpacerBackground	    bars/title_leftSpacer_xml_unity
+	LeftSpacerBackground	    bars/title_lspacer_unity
 	LeftSpacerBackAlign	    Bottom,
-	LeftTitleSpacerBackground   bars/title_leftTitleSpacer_xml_unity
+	LeftTitleSpacerBackground   bars/title_ltitle_spacer_unity
 	LeftTitleSpacerBackAlign    Top,
 	LeftTitlebarLayout	    Spacer,Buttons,TitleSpacer
 	LeftBtnAlign		    Top,
 	
 
-#	RightBtnBackground	    buttons/button_back_unity
-#	RightBtnBackAlign	    HScaled,Bottom
-	RightSpacerBackground	    bars/title_rightSpacer_unity
+	RightSpacerBackground	    bars/title_rspacer_unity
 	RightSpacerBackAlign	    Bottom
-	RightTitleSpacerBackground  bars/title_rightTitleSpacer_xml_unity
+	RightTitleSpacerBackground  bars/title_rtitle_spacer_unity
 	RightTitleSpacerBackAlign   Top
 	RightTitlebarLayout	    Spacer,TitleSpacer,Buttons
 	RightBtnAlign		    Bottom
 
 	TitleAlign		    Right,Top
 	TitleBackgroundAlign	    Top,HTiled,
-	TitleBackground		    bars/title_tileBG_xml_unity
+	TitleBackground		    bars/title_tile_unity
 #default layout is : Buttons,Spacer,TitleSpacer   Title   TitleSpacer,Spacer,Buttons
 
 	Side East    bars/frame_east_unity
