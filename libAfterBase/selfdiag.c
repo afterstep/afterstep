@@ -198,7 +198,6 @@ char         *
 find_func_symbol (void *addr, long *offset)
 {
 #ifdef HAVE_ELF_H
-	register int  i;
 	long          min_offset = 0x0fffffff, curr_offset;
 	char         *selected = unknown;
 
@@ -206,28 +205,7 @@ find_func_symbol (void *addr, long *offset)
 	if (_ptabs.symbols == NULL || _ptabs.strings == NULL)
 		return unknown;
 
-#ifdef HAVE_ELF32_ADDR
-	if (_ptabs.sym_ent_size == sizeof (Elf32_Sym))
-	{
-		Elf32_Sym    *ptr = _ptabs.symbols + 1;
-		Elf32_Addr    addr32 = (Elf32_Addr)addr;
-
-		for (i = 1; i < _ptabs.sym_ent_num; i++)
-		{
-			if (ptr->st_value <= addr32 && ELF32_ST_TYPE (ptr->st_info) == STT_FUNC)
-			{
-				curr_offset = addr32 - ptr->st_value;
-				if (curr_offset < min_offset && curr_offset < ptr->st_size)
-				{
-					selected = _ptabs.strings + (ptr->st_name);
-					min_offset = curr_offset;
-				}
-			}
-			ptr++;
-		}
-	}
-#endif
-#ifdef HAVE_ELF64_ADDR	
+#if defined(HAVE_ELF64_ADDR)	 
 	if (_ptabs.sym_ent_size == sizeof (Elf64_Sym))
 	{
 		int           i;
@@ -239,6 +217,27 @@ find_func_symbol (void *addr, long *offset)
 			if (ptr->st_value <= addr64 && ELF64_ST_TYPE (ptr->st_info) == STT_FUNC)
 			{
 				curr_offset = addr64 - ptr->st_value;
+				if (curr_offset < min_offset && curr_offset < ptr->st_size)
+				{
+					selected = _ptabs.strings + (ptr->st_name);
+					min_offset = curr_offset;
+				}
+			}
+			ptr++;
+		}
+	}
+#elif defined(HAVE_ELF32_ADDR)
+	if (_ptabs.sym_ent_size == sizeof (Elf32_Sym))
+	{
+		int           i; 
+		Elf32_Sym    *ptr = _ptabs.symbols + 1;
+		Elf32_Addr    addr32 = (Elf32_Addr)addr;
+
+		for (i = 1; i < _ptabs.sym_ent_num; i++)
+		{
+			if (ptr->st_value <= addr32 && ELF32_ST_TYPE (ptr->st_info) == STT_FUNC)
+			{
+				curr_offset = addr32 - ptr->st_value;
 				if (curr_offset < min_offset && curr_offset < ptr->st_size)
 				{
 					selected = _ptabs.strings + (ptr->st_name);
