@@ -286,7 +286,7 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 {
 	mem          *m = NULL;
 
-	if( allocs_hash )
+	if( allocs_hash && ptr )
 	{
 		service_mode++ ;
 		if( remove_hash_item (allocs_hash, (ASHashableValue)ptr, (void**)&m, False) == ASH_Success )
@@ -297,14 +297,8 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
                 		show_error( "it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ptr, fname, line );
          		else
 		                total_service -= sizeof(ASHashItem);
-        	}
-		else
-		{
-			/* Item was not in hash, abort */
-			service_mode--;
-			return NULL;
-		}
-        	service_mode-- ;
+        }
+        service_mode-- ;
 	}
 	if( m )
 	{
@@ -312,9 +306,8 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 			total_alloc -= m->length;
 		else
 			total_x_alloc -= m->length;
+		deallocations++;
 	}
-	deallocations++;
-
 	return m;
 }
 
@@ -903,12 +896,14 @@ count_xdestroyimage (const char *fname, int line, XImage * image)
 		mem_destroy( (ASHashableValue)NULL, m );
 
 	/* find and free the image->data pointer if it is in our list */
-	if ((m = count_find_and_extract (fname, line, image_data, C_MEM)) != NULL)
-		mem_destroy( (ASHashableValue)NULL, m );
+	if( image_data )
+		if ((m = count_find_and_extract (fname, line, image_data, C_MEM)) != NULL)
+			mem_destroy( (ASHashableValue)NULL, m );
 
 	/* find and free the image->obdata pointer if it is in our list */
-	if ((m = count_find_and_extract (fname, line, image_obdata, C_MEM)) != NULL)
-		mem_destroy( (ASHashableValue)NULL, m );
+	if( image_obdata )
+		if ((m = count_find_and_extract (fname, line, image_obdata, C_MEM)) != NULL)
+			mem_destroy( (ASHashableValue)NULL, m );
 
 	return Success;
 }
