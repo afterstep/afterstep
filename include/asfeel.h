@@ -107,12 +107,13 @@ typedef struct ASWindowBox
 #define ASA_Virtual				(0x01<<0)
 #define ASA_ReverseOrder		(0x01<<1)
 #define ASA_VerticalPriority	(0x01<<2)
-#define ASA_MainStrategySet		(0x01<<3)
-#define ASA_BackupStrategySet  	(0x01<<4)
-#define ASA_MinWidthSet			(0x01<<5)
-#define ASA_MinHeightSet		(0x01<<6)
-#define ASA_MaxWidthSet			(0x01<<7)
-#define ASA_MaxHeightSet		(0x01<<8)
+#define ASA_AreaSet				(0x01<<3)
+#define ASA_MainStrategySet		(0x01<<4)
+#define ASA_BackupStrategySet  	(0x01<<5)
+#define ASA_MinWidthSet			(0x01<<6)
+#define ASA_MinHeightSet		(0x01<<7)
+#define ASA_MaxWidthSet			(0x01<<8)
+#define ASA_MaxHeightSet		(0x01<<9)
 
 	ASFlagType 	set_flags;
 	ASFlagType 	flags;
@@ -215,6 +216,9 @@ void destroy_asfeel( ASFeel *feel, Bool reusable );
 void check_feel_sanity(ASFeel *feel);
 
 
+ASWindowBox *create_aswindow_box( const char *name );
+void destroy_aswindow_box( ASWindowBox **aswbox );
+void print_window_box (ASWindowBox *aswbox, int index);
 
 
 #endif /* SFEEL_HEADER_FILE_INCLUDED */

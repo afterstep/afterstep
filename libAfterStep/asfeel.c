@@ -203,9 +203,11 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
 /*************************************************************************
  * WindowBox utility functions
  *************************************************************************/
-ASWindowBox *create_aswindow_box()
+ASWindowBox *create_aswindow_box( const char *name )
 {
-	return safecalloc( 1, sizeof(ASWindowBox) );
+	ASWindowBox *aswbox = safecalloc( 1, sizeof(ASWindowBox) );
+	aswbox->name = mystrdup( name );
+	return aswbox;
 }
 
 void
@@ -216,9 +218,27 @@ destroy_aswindow_box( ASWindowBox **aswbox )
 		{
 			if( (*aswbox)->name )
 				free( (*aswbox)->name );
-
+			free( *aswbox );
+			*aswbox = NULL ;
 		}
 }
 
+void
+print_window_box (ASWindowBox *aswbox, int index)
+{
+	if (aswbox)
+	{
+        if (aswbox->name)
+            fprintf (stderr, "WindowBox[%d].name = \"%s\";\n", index, aswbox->name);
+        fprintf (stderr, "WindowBox[%d].set_flags = 0x%lX;\n", index, aswbox->set_flags);
+        fprintf (stderr, "WindowBox[%d].flags = 0x%lX;\n", index, aswbox->flags);
+		fprintf (stderr, "WindowBox[%d].area.flags = 0x%X;\n", index, aswbox->area.flags);
+		fprintf (stderr, "WindowBox[%d].area.geometry = %dx%d%+d%+d;\n", index, aswbox->area.width, aswbox->area.height, aswbox->area.x, aswbox->area.y);
+		fprintf (stderr, "WindowBox[%d].min_size = %dx%d;\n", index, aswbox->min_width, aswbox->min_height);
+		fprintf (stderr, "WindowBox[%d].max_size = %dx%d;\n", index, aswbox->max_width, aswbox->max_height);
+		fprintf (stderr, "WindowBox[%d].main_strategy = %d;\n", index, aswbox->main_strategy);
+		fprintf (stderr, "WindowBox[%d].backup_strategy = %d;\n", index, aswbox->backup_strategy);
+	}
+}
 
 

@@ -63,6 +63,13 @@ SyntaxDef     WindowBoxSyntax = {
 	0
 };
 
+flag_options_xref WindowBoxFlagsXref[] = {
+    { ASA_Virtual			, WINDOWBOX_Virtual_ID, 0},
+    { ASA_VerticalPriority	, WINDOWBOX_VerticalPriority_ID, 0},
+    { ASA_ReverseOrder		, WINDOWBOX_ReverseOrder_ID, 0},
+    {0, 0, 0}
+};
+
 
 /*****************************************************************************
  *
@@ -218,104 +225,12 @@ SyntaxDef AutoExecSyntax =
 /**************************************************************************************
  * WindowBox code :
  **************************************************************************************/
-#if 0
-/********************************************************************/
-/* First MyFrame processing code				    */
-/********************************************************************/
-MyFrameDefinition *
-AddMyFrameDefinition (MyFrameDefinition ** tail)
-{
-    MyFrameDefinition *new_def = safecalloc (1, sizeof (MyFrameDefinition));
-	*tail = new_def;
-	return new_def;
-}
 
-void
-DestroyMyFrameDefinitions (MyFrameDefinition ** list)
-{
-	if (*list)
-	{
-		register int  i;
-        MyFrameDefinition *fd = *list;
-
-        DestroyMyFrameDefinitions (&(fd->next));
-        if (fd->name)
-            free (fd->name);
-		for (i = 0; i < FRAME_PARTS; i++)
-            if (fd->parts[i])
-                free (fd->parts[i]);
-
-        for( i = 0 ; i < BACK_STYLES ; ++i )
-        {
-            if( fd->title_styles[i] )
-                free(fd->title_styles[i]);
-            if( fd->frame_styles[i] )
-                free(fd->frame_styles[i]);
-        }
-        if( fd->title_back )
-            free( fd->title_back );
-        if( fd->inheritance_list )
-        {
-            i = fd->inheritance_num-1 ;
-            while( --i >= 0 )
-                if( fd->inheritance_list[i] )
-                    free( fd->inheritance_list[i] );
-            free( fd->inheritance_list );
-        }
-        free (fd);
-        *list = NULL;
-	}
-}
-
-void
-PrintMyFrameDefinitions (MyFrameDefinition * list, int index)
-{
-	if (list)
-	{
-		register int  i;
-
-        if (list->name)
-            fprintf (stderr, "MyFrame[%d].name = \"%s\";\n", index, list->name);
-        fprintf (stderr, "MyFrame[%d].set_parts = 0x%lX;\n", index, list->set_parts);
-        fprintf (stderr, "MyFrame[%d].parts_mask = 0x%lX;\n", index, list->parts_mask);
-        for (i = 0; i < FRAME_PARTS; i++)
-			if (list->parts[i])
-                fprintf (stderr, "MyFrame[%d].Side[%d] = \"%s\";\n", index, i, list->parts[i]);
-        for( i = 0 ; i < BACK_STYLES ; ++i )
-            if( list->title_styles[i])
-                fprintf (stderr, "MyFrame[%d].TitleStyle[%d] = \"%s\";\n", index, i, list->title_styles[i]);
-        for( i = 0 ; i < BACK_STYLES ; ++i )
-            if( list->frame_styles[i])
-                fprintf (stderr, "MyFrame[%d].FrameStyle[%d] = \"%s\";\n", index, i, list->frame_styles[i]);
-        if( list->title_back )
-            fprintf (stderr, "MyFrame[%d].TitleBack = \"%s\";\n", index, list->title_back);
-        fprintf (stderr, "MyFrame[%d].set_part_size = 0x%lX;\n", index, list->set_part_size);
-        fprintf (stderr, "MyFrame[%d].set_part_bevel = 0x%lX;\n", index, list->set_part_bevel);
-        fprintf (stderr, "MyFrame[%d].set_part_align = 0x%lX;\n", index, list->set_part_align);
-        for( i = 0 ; i < FRAME_PARTS ; ++i )
-        {
-            fprintf (stderr, "MyFrame[%d].Part[%d].width = %d;\n", index, i, list->part_width[i]);
-            fprintf (stderr, "MyFrame[%d].Part[%d].length = %d;\n", index, i, list->part_length[i]);
-            fprintf (stderr, "MyFrame[%d].Part[%d].bevel = 0x%lX;\n", index, i, list->part_bevel[i]);
-            fprintf (stderr, "MyFrame[%d].Part[%d].align = 0x%lX;\n", index, i, list->part_align[i]);
-        }
-        fprintf (stderr, "MyFrame[%d].set_title_attr = 0x%lX;\n", index, list->set_title_attr);
-        fprintf (stderr, "MyFrame[%d].title_bevel = 0x%lX;\n", index, list->title_bevel);
-        fprintf (stderr, "MyFrame[%d].title_align = 0x%lX;\n", index, list->title_align);
-        fprintf (stderr, "MyFrame[%d].title_back_align = 0x%lX;\n", index, list->title_back_align);
-        if( list->inheritance_list )
-            for( i = 0 ; i < list->inheritance_num ; ++i )
-                fprintf (stderr, "MyFrame[%d].Inherit[%d] = \"%s\";\n", index, i, list->inheritance_list[i]);
-        PrintMyFrameDefinitions (list->next, index+1);
-    }
-}
-
-MyFrameDefinition **
-ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
+ASWindowBox *
+ProcessWindowBoxOptions (FreeStorageElem * options)
 {
 	ConfigItem    item;
-	int           rel_id;
-    MyFrameDefinition *fd = NULL ;
+    ASWindowBox  *aswbox = NULL ;
 
 	item.memory = NULL;
 
@@ -323,61 +238,18 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
 	{
 		if (options->term == NULL)
 			continue;
-        LOCAL_DEBUG_OUT( "MyFrame(%p)->options(%p)->keyword(\"%s\")", fd, options, options->term->keyword );
-		if (options->term->id < MYFRAME_ID_START || options->term->id > MYFRAME_ID_END)
+        LOCAL_DEBUG_OUT( "WindowBox(%p)->options(%p)->keyword(\"%s\")", aswbox, options, options->term->keyword );
+		if (options->term->id < WINDOWBOX_ID_START || options->term->id > WINDOWBOX_ID_END)
 			continue;
 
 		if (options->term->type == TT_FLAG)
 		{
-            if( fd != NULL  )
+            if( aswbox != NULL  )
             {
-                if( options->term->id == MYFRAME_DONE_ID )
+                if( options->term->id == WINDOWBOX_DONE_ID )
                     break;                     /* for loop */
-                switch( options->term->id )
-                {
-                    case MYFRAME_TitleBevel_ID :
-                        fd->title_bevel = ParseBevelOptions( options->sub );
-                        set_flags( fd->set_title_attr, MYFRAME_TitleBevelSet );
-                        break;
-                    case MYFRAME_TitleAlign_ID :
-                        fd->title_align = ParseAlignOptions( options->sub );
-                        set_flags( fd->set_title_attr, MYFRAME_TitleAlignSet );
-                        break;
-                    case MYFRAME_TitleBackgroundAlign_ID :
-                        fd->title_back_align = ParseAlignOptions( options->sub );
-                        set_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet );
-                        break;
-                    default:
-                        if (!ReadConfigItem (&item, options))
-                            continue;
-                        LOCAL_DEBUG_OUT( "item.index = %d", item.index );
-                        if( item.index < 0 || item.index >= FRAME_PARTS )
-                        {
-                            item.ok_to_free = 1;
-                            continue;
-                        }
-                        switch( options->term->id )
-                        {
-                            case MYFRAME_NoSide_ID :
-                            case MYFRAME_NoCorner_ID :
-                                clear_flags( fd->parts_mask, 0x01<<item.index );
-                                set_flags( fd->set_parts, 0x01<<item.index );
-                                break;
-                            case MYFRAME_SideAlign_ID :
-                            case MYFRAME_CornerAlign_ID :
-                                fd->part_align[item.index] = ParseAlignOptions( options->sub );
-                                set_flags( fd->set_part_align, 0x01<<item.index );
-                                break;
-                            case MYFRAME_SideBevel_ID :
-                            case MYFRAME_CornerBevel_ID :
-                                fd->part_bevel[item.index] = ParseBevelOptions( options->sub );
-                                set_flags( fd->set_part_bevel, 0x01<<item.index );
-                                break;
-                            default:
-                                show_warning( "Unexpected MyFrame definition keyword \"%s\" . Ignoring.", options->term->keyword );
-                                item.ok_to_free = 1;
-                        }
-                }
+		        if (ReadFlagItem (&(aswbox->set_flags), &(aswbox->flags), options, WindowBoxFlagsXref))
+        		    continue;
             }
             continue;
         }
@@ -387,136 +259,41 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
             LOCAL_DEBUG_OUT( "ReadConfigItem has failed%s","");
 			continue;
         }
-		if (*tail == NULL)
-            fd = AddMyFrameDefinition (tail);
-
-        rel_id = options->term->id - MYFRAME_START_ID;
-        if (rel_id == 0)
+		if( options->term->id == WINDOWBOX_START_ID )
 		{
-            if (fd->name != NULL)
+			if( aswbox != NULL )
 			{
-				show_error("MyFrame \"%s\": Previous MyFrame definition [%s] was not terminated correctly, and will be ignored.",
-                           item.data.string, fd->name);
-				DestroyMyFrameDefinitions (tail);
-                fd = AddMyFrameDefinition (tail);
+				show_error( "Unterminated WindowBox found - will be ignored" );
+				destroy_aswindow_box( &aswbox );
 			}
-            set_string_value (&(fd->name), item.data.string, NULL, 0);
-        } else if( rel_id <= FRAME_PARTS )
+			aswbox = create_aswindow_box( item.data.string );
+			item.ok_to_free = 1;
+		}else if( aswbox != NULL )
 		{
-            --rel_id ;
-            set_string_value (&(fd->parts[rel_id]), item.data.string, &(fd->set_parts), (0x01<<rel_id));
-            set_flags( fd->parts_mask, (0x01<<rel_id));
-        }else
-        {
-            rel_id = item.index ;
-            LOCAL_DEBUG_OUT( "item.index = %d", item.index );
-            if( rel_id < 0 || rel_id >= FRAME_PARTS )
-                rel_id = 0 ;
-            switch( options->term->id )
-            {
-                case MYFRAME_Side_ID :
-                case MYFRAME_Corner_ID :
-                    set_string_value (&(fd->parts[rel_id]), item.data.string, &(fd->set_parts), (0x01<<rel_id));
-                    set_flags( fd->parts_mask, (0x01<<rel_id));
-                    break;
-                case MYFRAME_TitleUnfocusedStyle_ID :
-                    set_string_value (&(fd->title_styles[BACK_UNFOCUSED]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_TitleFocusedStyle_ID :
-                    set_string_value (&(fd->title_styles[BACK_FOCUSED]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_TitleStickyStyle_ID :
-                    set_string_value (&(fd->title_styles[BACK_STICKY]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_FrameUnfocusedStyle_ID :
-                    set_string_value (&(fd->frame_styles[BACK_UNFOCUSED]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_FrameFocusedStyle_ID :
-                    set_string_value (&(fd->frame_styles[BACK_FOCUSED]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_FrameStickyStyle_ID :
-                    set_string_value (&(fd->frame_styles[BACK_STICKY]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_TitleBackground_ID :
-                    set_string_value (&(fd->title_back), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_SideSize_ID :
-                case MYFRAME_CornerSize_ID :
-                    if( get_flags( item.data.geometry.flags, WidthValue) )
-                        fd->part_width[rel_id] = item.data.geometry.width ;
-                    else
-                        fd->part_width[rel_id] = 0 ;
-                    if( get_flags( item.data.geometry.flags, HeightValue) )
-                        fd->part_length[rel_id] = item.data.geometry.height ;
-                    else
-                        fd->part_length[rel_id] = 0 ;
-                    set_flags( fd->set_part_size, (0x01<<rel_id));
-                    break;
-                case MYFRAME_Inherit_ID :
-                    {
-                        fd->inheritance_list = realloc( fd->inheritance_list, (fd->inheritance_num+1)*sizeof(char*));
-                        fd->inheritance_list[fd->inheritance_num] = item.data.string ;
-                        ++(fd->inheritance_num);
-                    }
-                    break;
-                default:
-                    item.ok_to_free = 1;
-                    show_warning( "Unexpected MyFrame definition keyword \"%s\" . Ignoring.", options->term->keyword );
-            }
-        }
+			switch( options->term->id )
+			{
+				case WINDOWBOX_Area_ID   	  	  :
+					aswbox->area = item.data.geometry;
+		            set_flags( aswbox->set_flags, ASA_AreaSet);
+			    break ;
+				case WINDOWBOX_MinWidth_ID	  	  :				    break ;
+				case WINDOWBOX_MinHeight_ID	     :				    break ;
+				case WINDOWBOX_MaxWidth_ID	  	  :				    break ;
+				case WINDOWBOX_MaxHeight_ID	     :				    break ;
+				case WINDOWBOX_FirstTry_ID	  	  :				    break ;
+				case WINDOWBOX_ThenTry_ID 	  	  :				    break ;
+				default:
+					item.ok_to_free = 1;
+                    show_warning( "Unexpected WindowBox definition keyword \"%s\" . Ignoring.", options->term->keyword );
+			}
+		}
     }
-    if (fd != NULL )
-    {
-        if( fd->name == NULL)
-        {
-            show_warning( "MyFrame with no name encoutered. Discarding." );
-            DestroyMyFrameDefinitions (tail);
-        }else
-        {
-            LOCAL_DEBUG_OUT("done parsing myframe: [%s]", fd->name);
-            while (*tail)
-                tail = &((*tail)->next);    /* just in case */
-        }
-    }
+    LOCAL_DEBUG_OUT("done parsing WindowBox: [%s]", aswbox->name);
     ReadConfigItem (&item, NULL);
-	return tail;
+	return aswbox;
 }
 
-static FreeStorageElem **
-MyFrameDef2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyFrameDefinition * def)
-{
-	register int  i;
-	FreeStorageElem **new_tail;
-
-	if (def == NULL)
-		return tail;
-
-	new_tail = QuotedString2FreeStorage (syntax, tail, NULL, def->name, MYFRAME_START_ID);
-	if (new_tail == tail)
-		return tail;
-
-    tail = &((*tail)->sub);
-
-	for (i = 0; i < FRAME_PARTS; i++)
-		tail = Path2FreeStorage (&MyFrameSyntax, tail, NULL, def->parts[i], MYFRAME_START_ID + i + 1);
-
-	tail = Flag2FreeStorage (&MyFrameSyntax, tail, MYFRAME_DONE_ID);
-    /* TODO: implement the rest of the MyFrame writing : */
-
-	return new_tail;
-}
-
-FreeStorageElem **
-MyFrameDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyFrameDefinition * defs)
-{
-	while (defs)
-	{
-		tail = MyFrameDef2FreeStorage (syntax, tail, defs);
-		defs = defs->next;
-	}
-	return tail;
-}
-
+#if 0
 void
 myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list)
 {

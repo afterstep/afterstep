@@ -198,39 +198,41 @@ void sync_event_queue(Bool forget)
  ****************************************************************************/
 inline Time stash_event_time (XEvent * xevent)
 {
-	register Time *ptime = (Time*)((void*)xevent + _as_event_types[xevent->type].time_offset);
-
-    last_event_type   = xevent->type;
-    last_event_window = xevent->xany.window;
-
-	if( ptime != (Time*)xevent )
+	if( xevent->type < LASTEvent )
 	{
-	    register Time  NewTimestamp = *ptime;
+		register Time *ptime = (Time*)((void*)xevent + _as_event_types[xevent->type].time_offset);
+    	last_event_type   = xevent->type;
+    	last_event_window = xevent->xany.window;
 
-        if (NewTimestamp < Scr.last_Timestamp)
-        {
-            if(as_xserver_is_local)
-            {   /* hack to detect local time change and try to work around it */
-                static time_t        last_system_time = 0;
-                time_t               curr_time ;
+		if( ptime != (Time*)xevent )
+		{
+	    	register Time  NewTimestamp = *ptime;
 
-                if( time(&curr_time) < last_system_time )
-                {   /* local time has been changed !!!!!!!! */
-                    Scr.last_Timestamp = NewTimestamp ;
-                    Scr.menu_grab_Timestamp = NewTimestamp ;
-                }
-                last_system_time = curr_time ;
-            }
-            if( Scr.last_Timestamp - NewTimestamp > 0x7FFFFFFF ) /* detecting time lapse */
-            {
-                Scr.last_Timestamp = NewTimestamp;
-                if( Scr.menu_grab_Timestamp - NewTimestamp > 0x7FFFFFFF )
-                    Scr.menu_grab_Timestamp = 0 ;
-            }
-        }else
-			Scr.last_Timestamp = NewTimestamp;
-		return (_as_event_types[xevent->type].last_time = *ptime) ;
-    }
+        	if (NewTimestamp < Scr.last_Timestamp)
+        	{
+            	if(as_xserver_is_local)
+            	{   /* hack to detect local time change and try to work around it */
+                	static time_t        last_system_time = 0;
+                	time_t               curr_time ;
+
+                	if( time(&curr_time) < last_system_time )
+                	{   /* local time has been changed !!!!!!!! */
+                    	Scr.last_Timestamp = NewTimestamp ;
+                    	Scr.menu_grab_Timestamp = NewTimestamp ;
+                	}
+                	last_system_time = curr_time ;
+            	}
+            	if( Scr.last_Timestamp - NewTimestamp > 0x7FFFFFFF ) /* detecting time lapse */
+            	{
+                	Scr.last_Timestamp = NewTimestamp;
+                	if( Scr.menu_grab_Timestamp - NewTimestamp > 0x7FFFFFFF )
+                    	Scr.menu_grab_Timestamp = 0 ;
+            	}
+        	}else
+				Scr.last_Timestamp = NewTimestamp;
+			return (_as_event_types[xevent->type].last_time = *ptime) ;
+    	}
+	}
 	return 0;
 }
 /* here we will determine what screen event occured on : */
@@ -244,24 +246,40 @@ Window
 get_xevent_window( XEvent *xevt )
 {
 	int type = xevt->type;
-	register Window *pwin = (Window*)((void*)xevt + _as_event_types[type].window_offset);
-    return (pwin==(Window*)xevt || *pwin == None )?xevt->xany.window:*pwin;
+	if( type < LASTEvent )
+	{
+		register Window *pwin = (Window*)((void*)xevt + _as_event_types[type].window_offset);
+    	return (pwin==(Window*)xevt || *pwin == None )?xevt->xany.window:*pwin;
+	}else
+		return xevt->xany.window ;
 }
 
 void setup_asevent_from_xevent( ASEvent *event )
 {
 	XEvent *xevt = &(event->x);
 	int type = xevt->type;
-	register Time *ptime = (Time*)((void*)xevt + _as_event_types[type].time_offset);
-	register Window *pwin = (Window*)((void*)xevt + _as_event_types[type].window_offset);
+	if( type < LASTEvent )
+	{
+		register Time *ptime = (Time*)((void*)xevt + _as_event_types[type].time_offset);
+		register Window *pwin = (Window*)((void*)xevt + _as_event_types[type].window_offset);
 
-	event->w = (pwin==(Window*)xevt || *pwin == None )?xevt->xany.window:*pwin;
-	event->event_time = (ptime==(Time*)xevt)?0:*ptime;
+		event->w = (pwin==(Window*)xevt || *pwin == None )?xevt->xany.window:*pwin;
+		event->event_time = (ptime==(Time*)xevt)?0:*ptime;
 
-	event->scr 			= ASEventScreen( xevt );
-	event->mask 		= _as_event_types[type].mask ;
-	event->eclass 		= _as_event_types[type].event_class ;
-	event->last_time 	= _as_event_types[type].last_time ;
+		event->scr 			= ASEventScreen( xevt );
+		event->mask 		= _as_event_types[type].mask ;
+		event->eclass 		= _as_event_types[type].event_class ;
+		event->last_time 	= _as_event_types[type].last_time ;
+	}else
+	{
+		event->w = xevt->xany.window;
+		event->event_time = 0;
+
+		event->scr 			= &Scr;
+		event->mask 		= 0 ;
+		event->eclass 		= 0 ;
+		event->last_time 	= 0 ;
+	}
 }
 
 /**********************************************************************/
