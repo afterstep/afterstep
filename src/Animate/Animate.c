@@ -531,7 +531,11 @@ process_message (send_data_type type, send_data_type *body)
 		WindowPacketResult res ;
         /* saving relevant client info since handle_window_packet could destroy the actuall structure */
 		ASFlagType old_state = wd?wd->state_flags:0 ; 
-			
+		ASRectangle saved_icon_rect = {0, 0, 0, 0}; 
+		if( get_flags(old_state, AS_Iconic) ) 
+		{
+		 	saved_icon_rect = wd->icon_rect ;
+		}				   
         show_activity( "message %lX window %X data %p", type, body[0], wd );
 		res = handle_window_packet( type, body, &wd );
 		LOCAL_DEBUG_OUT( "result = %d", res );
@@ -547,7 +551,7 @@ process_message (send_data_type type, send_data_type *body)
 
 				if( !get_flags( wd->state_flags, AS_Iconic)	)
 				{                              	/* deiconified :  */
-					from = wd->icon_rect ;
+					from = saved_icon_rect ;
 					to = wd->frame_rect ;
 					if( !get_flags( wd->state_flags, AS_Sticky ) )
 					{	

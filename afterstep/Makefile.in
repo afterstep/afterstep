@@ -76,7 +76,7 @@ install:
 	$(FIND) $(AFTER_SHAREDIR) -name '*.orig' -print | $(XARGS) $(RMF) -r
 	$(FIND) $(AFTER_SHAREDIR) -name CVS -print | $(XARGS) $(RMF) -r
 	$(FIND) $(AFTER_SHAREDIR) -name .cvsignore -print | $(XARGS) $(RMF)
-	$(CP) autoexec banner base database pager wharf winlist $(AFTER_SHAREDIR)
+	$(CP) animate autoexec banner base database pager wharf winlist $(AFTER_SHAREDIR)
 
 uninstall:
 	$(RMF) -r $(AFTER_SHAREDIR)
