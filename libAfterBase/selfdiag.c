@@ -247,10 +247,34 @@ void print_signal_context( struct sigcontext *psc )
     }
 }
 
-void print_my_backtrace( long* ebp, long *esp )
+void print_my_backtrace( long* ebp, long *esp, long *eip )
 {
 #if defined(_ASMi386_SIGCONTEXT_H)
+  int frame_no = 0 ;
     fprintf( stderr, " Stack Backtrace :\n");
+    if( ebp < (long*)0x08074000  /* stack can't possibly go below that */
+	 ) 
+    {
+      long offset = 0 ;
+      char* func_name = NULL;
+	fprintf( stderr, "  heh, looks like we've got corrupted stack, so no backtrace for you.\n" );
+	if( eip != NULL )
+	{
+	    fprintf( stderr, "  all I can say is that we failed at 0x%lX", (unsigned long)eip );
+    	    func_name = find_func_symbol((void*)eip, &offset);
+	    if( func_name != unknown )
+		fprintf( stderr, " in [%s+0x%lX(%lu)]", func_name, offset, offset );
+	    else 
+	    {
+		func_name = *__backtrace_symbols( (void**)&eip, 1 );
+    		if( *func_name != '[' )
+		fprintf( stderr, " in %s()", func_name );
+	    }
+	    fprintf( stderr, "\n");
+	}
+	return ;
+    }
+
     fprintf( stderr, "   FRAME       NEXT FRAME  FUNCTION\n");
     while( ebp != NULL && 
            ebp > (long*)0x08074000  /* stack can't possibly go below that */
@@ -258,6 +282,7 @@ void print_my_backtrace( long* ebp, long *esp )
     {
       long offset = 0 ;
       char* func_name = NULL;
+        frame_no++;
 	fprintf( stderr, "   0x%8.8lX", (unsigned long)ebp);
 	fprintf( stderr, "  0x%8.8lX", (unsigned long)*(ebp));
 	fprintf( stderr, "  0x%8.8lX", (unsigned long)esp);
@@ -266,6 +291,9 @@ void print_my_backtrace( long* ebp, long *esp )
 	else	
 	{
     	    func_name = find_func_symbol((void*)esp, &offset);
+	    if( func_name == unknown && frame_no == 1 ) /* good fallback for current frame */
+    		func_name = find_func_symbol((void*)eip, &offset);
+	    
 	    if( func_name == unknown ) 
 	    {
 #ifdef HAVE_EXECINFO_H
@@ -277,7 +305,7 @@ void print_my_backtrace( long* ebp, long *esp )
 #endif
 		    fprintf( stderr, "  [some silly code]" );
 	    }else
-    		fprintf( stderr, "  [%s+0x%lX]", func_name, offset );
+    		fprintf( stderr, "  [%s+0x%lX(%lu)]", func_name, offset, offset );
 	    fprintf( stderr, "\n" );
 	}
 	esp = (long*)*(ebp+1) ;
@@ -297,7 +325,7 @@ void print_diag_info( struct sigcontext *psc )
     {
 	print_signal_context( psc );
 #if defined(_ASMi386_SIGCONTEXT_H)
-        print_my_backtrace((long*)(psc->ebp), (long*)(psc->esp));
+        print_my_backtrace((long*)(psc->ebp), (long*)(psc->esp), (long*)(psc->eip));
 #endif
     }
 }
@@ -340,6 +368,6 @@ void sigsegv_handler(int signum
 
 void set_signal_handler(int sig_num)
 {
-    signal( sig_num, sigsegv_handler );
+    signal( sig_num, (void*)sigsegv_handler );
 }
 
