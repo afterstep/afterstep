@@ -796,7 +796,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         bh->pmap_width = new_im->width ;
         bh->pmap_height = new_im->height ;
         bh->im = new_im;
-
+		/*print_asimage( new_im, 0xFFFFFFFF, __FUNCTION__, __LINE__ );*/
         ASSync(False);
         LOCAL_DEBUG_OUT( "width(%d)->height(%d)->pixmap(%lX/%lu)", new_im->width, new_im->height, bh->pmap, bh->pmap );
 

@@ -1128,20 +1128,31 @@ asimage_add_line_mono (ASImage * im, ColorPart color, register CARD8 value, unsi
 		return 0;
 
 	dst = im->buffer;
-	rep_count = im->width - RLE_THRESHOLD;
-	if (rep_count <= RLE_MAX_SIMPLE_LEN)
+	if( im->width <= RLE_THRESHOLD )
 	{
-		dst[0] = (CARD8) rep_count;
-		dst[1] = (CARD8) value;
-		dst[2] = 0 ;
-		im->buf_used = 3;
-	} else
+		int i = im->width ;
+		dst[0] = (CARD8) RLE_DIRECT_TAIL;
+		dst[i+1] = 0 ;
+		while( --i >= 0 )
+			dst[i+1] = (CARD8) value;
+		im->buf_used = 1+im->width+1;
+	}else
 	{
-		dst[0] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
-		dst[1] = (CARD8) ((rep_count) & 0x00FF);
-		dst[2] = (CARD8) value;
-		dst[3] = 0 ;
-		im->buf_used = 4;
+		rep_count = im->width - RLE_THRESHOLD;
+		if (rep_count <= RLE_MAX_SIMPLE_LEN)
+		{
+			dst[0] = (CARD8) rep_count;
+			dst[1] = (CARD8) value;
+			dst[2] = 0 ;
+			im->buf_used = 3;
+		} else
+		{
+			dst[0] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
+			dst[1] = (CARD8) ((rep_count) & 0x00FF);
+			dst[2] = (CARD8) value;
+			dst[3] = 0 ;
+			im->buf_used = 4;
+		}
 	}
 	asimage_apply_buffer (im, color, y);
 	return im->buf_used;
@@ -2545,6 +2556,7 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 					asimage_add_line(imout->im, color, to_store->channels[color]+to_store->offset_x, imout->next_line);
 				}else if( chan_fill[color] != imout->chan_fill[color] )
 				{
+					LOCAL_DEBUG_OUT( "filling line %d for component %d with value %X", imout->next_line, color, chan_fill[color] );
 					asimage_add_line_mono( imout->im, color, chan_fill[color], imout->next_line);
 				}else
 				{

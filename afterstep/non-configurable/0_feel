@@ -8,7 +8,7 @@
 #  AutoReverse 0: default switching among the windows in one direction
 #  AutoReverse 1: #1->#2->#3->#4 and then #4->#3->#2->#1
 #  AutoReverse 2: #1->#2->#3->#4 and then #4->#1->#3->#2 etc.
-AutoReverse 0
+AutoReverse 2
 #
 # window switching through desks?
 #AutoTabThroughDesks
@@ -16,14 +16,6 @@ AutoReverse 0
 # Automatically raise a window if mouse stays > 500 msec on it
 # AutoRaise 500
 #
-# Support Motif window manager function hints
-MWMFunctionHints
-#
-# Support Motif window manager decoration hints
-MWMDecorHints
-#
-# Allow overriding of Motif function hints
-MWMHintOverride
 #
 # While zapping, warp mouse pointer to
 Xzap 12
@@ -79,13 +71,13 @@ OpaqueResize 100
 EdgeScroll 100 100
 #
 # To avoid unwanted moving, edges resist during N ms
-EdgeResistance 200 80
+EdgeResistance 800 80
 #
 # Place window in empty zones
-#SmartPlacement
+SmartPlacement
 #
 # Random window placement
-RandomPlacement
+#RandomPlacement
 #
 # Windows can't chose where to place
 NoPPosition
@@ -123,9 +115,17 @@ DecorateTransients
 #
 # while /usr/include/X11/cursorfont.h contains available cursors
 #
+#Cursor 0
+Cursor 1 68
+Cursor 2 68
+Cursor 3 22
+#Cursor 4
 Cursor 5 150
-Cursor 7 58
+Cursor 6 68
+Cursor 7 68
 Cursor 8 88
+Cursor 9 68
+Cursor 10 68
 #
 ##########################################################################
 
@@ -138,7 +138,13 @@ Cursor 8 88
 Function "Move-or-Top"
         Move            "Motion"
         RaiseLower      "Click"
-        PutOnTop        "DoubleClick"
+        ToggleLayer     "DoubleClick" 0 1
+EndFunction
+
+Function "Move-or-Normal"
+        Move            "Motion"
+        RaiseLower      "Click"
+        ToggleLayer     "DoubleClick" 1 0
 EndFunction
 
 # Used to move windows on desktop
@@ -234,13 +240,14 @@ EndPopup
 # Mouse actions
 #
 Mouse 1         R       A       PopUp "0"
-Mouse 2         R       A       WindowList 2
+Mouse 2         R       A       GetHelp
 Mouse 3         R       A       WindowList
 Mouse 1         1       A       ChangeWindowUp
-Mouse 2         1       A       GetHelp
+Mouse 2         1       C       BookmarkWindow "bkmrk1" 
+Mouse 2         1       S       GoToBookmark "bkmrk1" 
 Mouse 3         1       A       ChangeWindowDown
 Mouse 1         2       A       Delete
-Mouse 2         2       A       Destroy
+Mouse 2         2       A       Close
 Mouse 3         2       A       Destroy
 Mouse 1         3       A       PopUp "Window"
 Mouse 2         3       A       WindowList 2
@@ -248,6 +255,9 @@ Mouse 3         3       A       WindowList
 Mouse 1         4       A       Shade
 Mouse 2         4       A       Stick
 Mouse 3         4       A       Stick
+Mouse 1         5       A       PinMenu
+Mouse 2         5       A       PinMenu
+Mouse 3         5       A       PinMenu
 Mouse 1         6       A       Iconify
 Mouse 2         6       A       Maximize
 Mouse 3         6       A       Maximize
@@ -255,7 +265,8 @@ Mouse 1         FS      A       Resize
 Mouse 2         FS      A       Move
 Mouse 3         FS      A       Move
 Mouse 1         T       A       Function "Move-or-Top"
-Mouse 2         T       A       RaiseLower
+Mouse 2         T       A       Function "Move-or-Normal"
+#Mouse 2         T       A       RaiseLower
 Mouse 3         T       A       RaiseLower
 Mouse 0         I       A       Function "Move-or-Iconify"
 
@@ -274,11 +285,11 @@ Key Right       A       M       Scroll +10 +0
 Key Up          A       M       Scroll +0  -10
 Key Down        A       M       Scroll +0  +10
 
-# shift + arrow = move cursor
-Key Left        A       S       CursorMove -1 0
-Key Right       A       S       CursorMove +1 +0
-Key Up          A       S       CursorMove +0 -1
-Key Down        A       S       CursorMove +0 +1
+# alt + shift + arrow = move cursor
+Key Left        A       MS       CursorMove -1 0
+Key Right       A       MS       CursorMove +1 +0
+Key Up          A       MS       CursorMove +0 -1
+Key Down        A       MS       CursorMove +0 +1
 
 # shift + control + arrow = change desktop
 Key Left        A       SC      Desk 0 0
@@ -294,7 +305,7 @@ Key F3          A       SC      Resize
 Key F4          A       SC      Delete
 Key F5          A       SC      Move
 Key F6          A       SC      Destroy
-Key F7          A       SC      CirculateWindowUp
+Key F7          A       SC      ChangeWindowUp
 Key F8          A       SC      Module "Run"  Form RUNForm
 Key F9          A       SC      WindowList
 Key F10         A       SC      PutOnBack

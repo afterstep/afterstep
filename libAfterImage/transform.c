@@ -1124,6 +1124,7 @@ LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count =
 
 		result.flags = 0 ;
 		result.back_color = ARGB32_DEFAULT_BACK_COLOR ;
+		LOCAL_DEBUG_OUT( "line: %d", y );
 		for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
 			if( get_flags( filter, 0x01<<color ) )
 			{
@@ -1141,11 +1142,13 @@ LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count =
 					if( chan_data[line] != chan_data[0] )
 						dithered = True;
 				}
+				LOCAL_DEBUG_OUT( "channel: %d. Dithered ? %d", color, dithered );
+
 				if( !dithered )
 				{
 					result.back_color = (result.back_color&(~MAKE_ARGB32_CHAN8(0xFF,color)))|
 										MAKE_ARGB32_CHAN16(chan_data[0],color);
-
+					LOCAL_DEBUG_OUT( "back_color = %8.8lX", result.back_color);
 				}else
 				{
 					register CARD32  *dst = result.channels[color] ;
