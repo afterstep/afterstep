@@ -27,13 +27,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <varargs.h>
 #include <sys/time.h>
 #include <sys/times.h>
-
-#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
-#include <sys/select.h>
-#endif
 
 #include "afterbase.h"
 #include "afterimage.h"
