@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <X11/Xlib.h>
+#include <X11/Xlib.h>	/* For compatibility with older versions of XFree */
 #include <X11/Xutil.h>
 
 #include "../configure.h"
