@@ -460,7 +460,7 @@ LOCAL_DEBUG_OUT( " layout %lX FIXED WIDTH is %d FIXED HEIGHT is %d", (unsigned l
 }
 
 ASFlagType
-set_layout_context_fixed_size( ASLayout *layout, int context, unsigned int width, unsigned int height )
+set_layout_context_fixed_size( ASLayout *layout, int context, unsigned int width, unsigned int height, unsigned short flags )
 {
     if( layout && layout->count > 0 )
     {
@@ -469,9 +469,11 @@ set_layout_context_fixed_size( ASLayout *layout, int context, unsigned int width
 		if( pelem != NULL )
 		{
             register ASLayoutElem *elem = *pelem ;
-			elem->fixed_width = width ;
-			elem->fixed_height = height ;
-			return elem->flags&LF_FixedSize;
+			if( get_flags( flags, LF_FixedWidth ) )
+				elem->fixed_width = width ;
+			if( get_flags( flags, LF_FixedHeight ) )
+				elem->fixed_height = height ;
+			return elem->flags&LF_FixedSize&flags;
 		}
     }
 	return 0;

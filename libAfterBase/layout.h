@@ -115,7 +115,8 @@ ASLayoutElem *find_layout_point( ASLayout *layout, int x, int y, ASLayoutElem *s
 
 ASFlagType set_layout_context_fixed_size( ASLayout *layout, int context,
 			                              unsigned int width,
-										  unsigned int height );
+										  unsigned int height,
+										  unsigned short flags );
 
 Bool moveresize_layout( ASLayout *layout,
 	                    unsigned int width, unsigned int height,
