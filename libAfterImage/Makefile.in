@@ -74,7 +74,7 @@ all:            @LIBPROG@ $(INSTALLONBUILD)
 
 install.bin:
 
-install.lib:	@LIBPROG@ @LIBINSTALL@
+install.lib:	@LIBPROG@ @LIBINSTALL@ install.inc
 
 install.static:
 		@( \
@@ -115,6 +115,41 @@ install.dyn:
 		   fi; \
 		   echo "$(LDCONFIG)"; \
 		   $(LDCONFIG); \
+		 fi \
+		)
+
+install.inc:
+		@( \
+		 if test -d $(AFTER_INC_DIR); then \
+		    echo "$(RM) $(AFTER_INC_DIR)/*"; \
+		    $(RM) $(AFTER_INC_DIR)/*; \
+		 else \
+		    if test -d $(INCLUDEDIR); then \
+		       echo "$(MKDIR) $(AFTER_INC_DIR)"; \
+		       if $(MKDIR) $(AFTER_INC_DIR); then \
+		          echo " ">/dev/null; \
+		       else \
+		    	  echo "failed to create include directory: $(AFTER_INC_DIR)"; \
+		       fi; \
+		    else \
+		       echo "$(MKDIR) $(INCLUDEDIR)"; \
+		       if $(MKDIR) $(INCLUDEDIR); then \
+		          echo "$(MKDIR) $(AFTER_INC_DIR)"; \
+		          if $(MKDIR) $(AFTER_INC_DIR) >/dev/null; then \
+		             echo " ">/dev/null; \
+		          else \
+		             echo "failed to create include directory: $(AFTER_INC_DIR)"; \
+			  fi; \
+		       else \
+		          echo "failed to create include directory: $(INCLUDEDIR)"; \
+		       fi; \
+		    fi; \
+		 fi; \
+		 if test -d $(AFTER_INC_DIR); then \
+		    for file in $(LIB_INCS) ; do  \
+			echo "$(INSTALL_HEADER) $$file $(AFTER_INC_DIR)"; \
+			$(INSTALL_HEADER) $$file $(AFTER_INC_DIR); \
+		    done; \
 		 fi \
 		)
 
