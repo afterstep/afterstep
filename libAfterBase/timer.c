@@ -3,6 +3,7 @@
 #include "../configure.h"
 
 #include "../include/aftersteplib.h"
+#include "../include/timer.h"
 
 static void   timer_get_time (time_t * sec, time_t * usec);
 static void   mytimer_delete (Timer * timer);

@@ -210,7 +210,7 @@ find_func_symbol (void *addr, long *offset)
 	return selected;
 #else
 	*offset = 0;
-	return NULL;
+    return unknown;
 #endif
 }
 
@@ -311,7 +311,7 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 		else
 		{
 			func_name = find_func_symbol ((void *)esp, &offset);
-			if (func_name == unknown && frame_no == 1)	/* good fallback for current frame */
+            if (func_name == unknown && frame_no == 1 && eip != NULL )  /* good fallback for current frame */
 				func_name = find_func_symbol ((void *)eip, &offset);
 
 			if (func_name == unknown)
@@ -331,6 +331,89 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 		esp = (long *)*(ebp + 1);
 		ebp = (long *)*(ebp);
 	}
+#endif
+}
+
+#define MAX_CALL_DEPTH 32                      /* if you change it here  - then change below as well!!! */
+
+long**
+get_call_list()
+{
+    static long * call_list[MAX_CALL_DEPTH+1] = {NULL};
+    int i = 0 ;
+#if defined(HAVE__BUILTIN_RETURN_ADDRESS)
+
+    if( (call_list[i++]= __builtin_return_address(2)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(3)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(4)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(5)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(6)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(7)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(8)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(9)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(10)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(11)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(12)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(13)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(14)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(15)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(16)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(17)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(18)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(19)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(20)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(21)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(22)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(23)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(24)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(25)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(26)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(27)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(28)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(29)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(30)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(31)) == NULL ) goto done ;
+    if( (call_list[i++] = __builtin_return_address(32)) == NULL ) goto done ;
+    call_list[i++] = NULL;
+done:
+#endif
+    return call_list;
+}
+void
+print_simple_backtrace ()
+{
+#if defined(HAVE__BUILTIN_RETURN_ADDRESS)
+    int           call_no = 0;
+    long         **ret_addr ;
+
+    ret_addr = get_call_list();
+    if( ret_addr[0] == NULL )
+        return ;
+    fprintf (stderr, " Call Backtrace :\n");
+    fprintf (stderr, " CALL#: ADDRESS:      FUNCTION:\n");
+    while (ret_addr[call_no] != NULL )
+    {
+		long          offset = 0;
+		char         *func_name = NULL;
+
+        fprintf (stderr, " %6u  0x%8.8lX", call_no, (unsigned long)(ret_addr[call_no]) );
+
+        func_name = find_func_symbol ((void *)ret_addr[call_no], &offset);
+        if (func_name == unknown)
+        {
+#ifdef HAVE_EXECINFO_H
+            dummy = __backtrace_symbols ((void **)&(ret_addr[call_no]), 1);
+            func_name = *dummy;
+            if (*func_name != '[')
+                fprintf (stderr, "  [%s]", func_name);
+            else
+#endif
+                fprintf (stderr, "  [some silly code]");
+        } else
+            fprintf (stderr, "  [%s+0x%lX(%lu)]", func_name, offset, offset);
+        fprintf (stderr, "\n");
+        call_no++;
+    }
 #endif
 }
 
@@ -374,6 +457,8 @@ sigsegv_handler (int signum
 
 #ifdef HAVE_SIGCONTEXT
 	print_diag_info (&sc);
+#else
+    print_simple_backtrace ();
 #endif
 	if (signum == SIGSEGV)
 	{
