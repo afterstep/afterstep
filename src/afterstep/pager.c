@@ -827,6 +827,7 @@ typedef struct ASBackgroundXferData
 	Pixmap       target_pmap ;
 	int 		 lines_per_iteration, lines_done, total_lines ;
 	XImage		*shm_ximage ;
+	int step ;
 }ASBackgroundXferData;
 
 static unsigned long background_xfer_shmseg = 0 ;
@@ -856,21 +857,25 @@ LOCAL_DEBUG_CALLER_OUT( "%p:\"%s\", pmap %lX ", vdata, data->im_name, data->targ
 				{
 					XImage *xim = data->shm_ximage ;
 					int lines = data->lines_per_iteration ;
+					int y = data->lines_done/2;
 
 					if( lines > data->total_lines - data->lines_done )
 						lines = data->total_lines - data->lines_done ;
+					if( data->step & 0x000001 )
+						y = (data->total_lines - y) - lines ;
 						
 					if( xim == NULL ) 
 						xim = create_visual_scratch_ximage( Scr.asv, im->width, lines, 0 );
 					LOCAL_DEBUG_OUT( "making ximage %p, starting at %d, and including %d lines", xim, data->lines_done, lines );
-					if( subimage2ximage (Scr.asv, im, 0, data->lines_done, xim)	)
+					if( subimage2ximage (Scr.asv, im, 0, y, xim)	)
 					{	
 						Bool res ;
 						LOCAL_DEBUG_OUT( "done, copying to pixmap at %d,", data->lines_done );
 						res = put_ximage( Scr.asv, xim, Scr.RootBackground->pmap, 
-					            	Scr.DrawGC,  0, 0, 0, data->lines_done, im->width, lines );	
+					            	Scr.DrawGC,  0, 0, 0, y, im->width, lines );	
 						LOCAL_DEBUG_OUT( "%s", res?"Success":"Failure" );
 						data->lines_done += lines ;
+						++(data->step);
 						XClearWindow( dpy, Scr.Root );
 						ASSync(False);
 					}
@@ -898,7 +903,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p:\"%s\", pmap %lX ", vdata, data->im_name, data->targ
 		free( data );
 	}else
 	{
-		timer_new (600, do_background_xfer_iter, vdata);	
+		timer_new (30, do_background_xfer_iter, vdata);	
 	}		 
 	
 }	 
@@ -911,7 +916,7 @@ start_background_xfer( ASImage *new_im )
 	data->im_name = mystrdup(new_im->name); 
 	data->im_ptr = new_im ; 
 	data->target_pmap = Scr.RootBackground->pmap ; 
-	data->lines_per_iteration = ASSHM_SAVED_MAX / (new_im->width * 4);
+	data->lines_per_iteration = 5/*ASSHM_SAVED_MAX / (new_im->width * 4)*/;
 	if( data->lines_per_iteration == 0 ) 
 		data->lines_per_iteration = 1 ;
 	data->lines_done = 0 ;
@@ -951,7 +956,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         desk != old_desk ) /* if desks are the same then we are reloading current background !!! */
         return;
     
-    /*cover_desktop();*/
+    cover_desktop();
     display_progress( True, "Changing background for desktop #%d ...", desk);
 
 #ifdef LOCAL_DEBUG
@@ -1028,8 +1033,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
     ASSync(False);
     print_asimage_registry();
     LOCAL_DEBUG_OUT("done%s","" );
-    /*remove_desktop_cover();;*/
-
+    remove_desktop_cover();
 }
 
 /*************************************************************************
