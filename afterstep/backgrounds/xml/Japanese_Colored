@@ -1,7 +1,7 @@
 <bevel border="20 20 20 20" colors="BaseDark Base">
 	<pad left=20 right=20 top=20 bottom=20 color=Base>
 		<scale width=$xroot.width-40 height=$xroot.height-40>
-			<hsv hue_offset=$ascs.base_hue value_offset=1>
+			<hsv hue_offset=$ascs.Base.hue value_offset=1>
 				<img src=".Japanese"/>
 			</hsv>
 		</scale>

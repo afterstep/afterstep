@@ -269,24 +269,8 @@ ColorConfig2ASColorScheme( ColorConfig *config )
 			if( i != ASMC_Base && get_flags( config->set_main_colors, (0x01<<i)) )
 				cs->main_colors[i]  = config->main_colors[i] ;
 
-		if( get_flags( config->set_main_colors, COLOR_Inactive1 ) )
-			make_color_scheme_hsv( cs->main_colors[ASMC_Inactive1], &(cs->inactive1_hue), &(cs->inactive1_sat), &(cs->inactive1_val)) ;
-		if( get_flags( config->set_main_colors, COLOR_Inactive2 ) )
-			make_color_scheme_hsv( cs->main_colors[ASMC_Inactive2], &(cs->inactive2_hue), &(cs->inactive2_sat), &(cs->inactive2_val)) ;
-		if( get_flags( config->set_main_colors, COLOR_Active ) )
-			make_color_scheme_hsv( cs->main_colors[ASMC_Active], &(cs->active_hue), &(cs->active_sat), &(cs->active_val));
-		if( get_flags( config->set_main_colors, COLOR_InactiveText1 ) )
-			make_color_scheme_hsv( cs->main_colors[ASMC_InactiveText1], &(cs->inactive_text1_hue), &(cs->inactive_text1_sat), &(cs->inactive_text1_val));
-		if( get_flags( config->set_main_colors, COLOR_InactiveText2 ) )
-			make_color_scheme_hsv( cs->main_colors[ASMC_InactiveText2], &(cs->inactive_text2_hue), &(cs->inactive_text2_sat), &(cs->inactive_text2_val)) ;
-
-		if( get_flags( config->set_main_colors, COLOR_ActiveText ) )
-			make_color_scheme_hsv( cs->main_colors[ASMC_ActiveText], NULL, &(cs->active_text_sat), &(cs->active_text_val)) ;
-
-		if( get_flags( config->set_main_colors, COLOR_HighInactiveText ) )
-			make_color_scheme_hsv( cs->main_colors[ASMC_HighInactiveText], NULL, &(cs->high_inactive_text_sat), &(cs->high_inactive_text_val)) ;
-		if( get_flags( config->set_main_colors, COLOR_HighActiveText ) )
-			make_color_scheme_hsv( cs->main_colors[ASMC_HighActiveText], NULL, &(cs->high_active_text_sat), &(cs->high_active_text_val)) ;
+		for( i = 0 ; i < ASMC_MainColors ; ++i )
+			make_color_scheme_hsv( cs->main_colors[i], &(cs->main_hues[i]), &(cs->main_saturations[i]), &(cs->main_values[i])) ;
 
 		cs->set_main_colors = config->set_main_colors ;
 	}

@@ -195,7 +195,7 @@ CreateWharfConfig ()
 	/* let's initialize Base config with some nice values: */
 	config->geometry.flags = WidthValue | HeightValue;
 	config->geometry.width = config->geometry.height = 64;
-        config->withdraw_style = WITHDRAW_ON_ANY_BUTTON ;
+        config->withdraw_style = WITHDRAW_ON_EDGE_BUTTON_AND_SHOW ;
         config->align_contents = ALIGN_CENTER ;
 
 	config->more_stuff = NULL;

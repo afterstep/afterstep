@@ -100,16 +100,6 @@ extern char *ASMainColorNames[ASMC_MainColors];
 typedef struct ASColorScheme
 {
 	int angle ;
-	int base_hue, base_sat, base_val ;
-	int inactive1_hue, inactive1_sat, inactive1_val ;
-	int inactive2_hue, inactive2_sat, inactive2_val ;
-	int active_hue, active_sat, active_val ;
-	int inactive_text1_hue, inactive_text1_sat, inactive_text1_val ;
-	int inactive_text2_hue, inactive_text2_sat, inactive_text2_val ;
-
-	int 		 active_text_sat, active_text_val ;
-	int 		 high_inactive_text_sat, high_inactive_text_val ;
-	int 		 high_active_text_sat, high_active_text_val ;
 
 	ASFlagType   set_main_colors ;             /* set bits represent colors
 												* set manually, instead of
@@ -164,7 +154,7 @@ typedef struct ASColorScheme
 
 
 
-ARGB32 make_color_scheme_argb( CARD32 base_alpha16, CARD32 hue360, CARD32 sat100, CARD32 val100 );
+ARGB32 make_color_scheme_argb( ASColorScheme *cs, int id, CARD32 base_alpha16, CARD32 hue360, CARD32 sat100, CARD32 val100 );
 void make_color_scheme_hsv( ARGB32 argb, int *phue, int *psat, int *pval );
 
 ASColorScheme *make_ascolor_scheme( ARGB32 base, int angle );

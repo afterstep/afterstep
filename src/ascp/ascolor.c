@@ -619,9 +619,9 @@ do_colorscheme()
 									   "[Now Changing (%s)]"
 									   "</text>",
 									   ASColorState.cs->main_colors[ASMC_Base],
-									   ASColorState.cs->base_hue,
-									   ASColorState.cs->base_sat,
-									   ASColorState.cs->base_val,
+									   ASColorState.cs->main_hues[ASMC_Base],
+									   ASColorState.cs->main_saturations[ASMC_Base],
+									   ASColorState.cs->main_values[ASMC_Base],
 									   ASColorState.angle,
 									   param_text[ASColorState.curr_param]);
 		}
@@ -682,7 +682,7 @@ do_change_param( int val )
 		LOCAL_DEBUG_OUT( "val = %d, base hsv: %d, %d, %d", val, ASColorState.base_hue,
 			                                                      ASColorState.base_sat,
 																  ASColorState.base_val );
-		ASColorState.base_color = make_color_scheme_argb( 0xFFFF, ASColorState.base_hue,
+		ASColorState.base_color = make_color_scheme_argb( NULL, 0, 0xFFFF, ASColorState.base_hue,
 			                                                      ASColorState.base_sat,
 																  ASColorState.base_val );
 	}

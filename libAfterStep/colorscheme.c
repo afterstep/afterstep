@@ -43,9 +43,8 @@ char *ASMainColorNames[ASMC_MainColors] = {
 	"HighActiveBackLight"
 };
 
-
 ARGB32
-make_color_scheme_argb( CARD32 base_alpha16, CARD32 hue360, CARD32 sat100, CARD32 val100 )
+make_color_scheme_argb( ASColorScheme *cs, int id, CARD32 base_alpha16, CARD32 hue360, CARD32 sat100, CARD32 val100 )
 {
 	CARD32 red16, green16, blue16 ;
 	ARGB32 argb ;
@@ -55,11 +54,20 @@ make_color_scheme_argb( CARD32 base_alpha16, CARD32 hue360, CARD32 sat100, CARD3
 	if( sat100 > 100 )
 		sat100 = 100 ;
 
+
 	hsv2rgb(degrees2hue16(hue360), percent2val16(sat100), percent2val16(val100), &red16, &green16, &blue16);
 	argb = 	MAKE_ARGB32_CHAN16(base_alpha16,ARGB32_ALPHA_CHAN)|
 			MAKE_ARGB32_CHAN16(red16,ARGB32_RED_CHAN)|
 			MAKE_ARGB32_CHAN16(green16,ARGB32_GREEN_CHAN)|
 			MAKE_ARGB32_CHAN16(blue16,ARGB32_BLUE_CHAN);
+
+	if( cs )
+	{
+		cs->main_hues[id] = hue360 ;
+		cs->main_values[id] = val100 ;
+		cs->main_saturations[id] = sat100 ;
+		cs->main_colors[id] = argb ;
+	}
 	return argb;
 }
 
@@ -106,7 +114,7 @@ compare_color_lightness( ARGB32 c1, ARGB32 c2 )
 }
 
 inline void
-make_grad_argb( ARGB32 *grad, ARGB32 base_alpha16, int hue360, int sat100, int val100, Bool base )
+make_grad_argb( ASColorScheme *cs, int id,  ARGB32 base_alpha16, int hue360, int sat100, int val100, Bool base )
 {
 	int dark_val = val100-ASCS_GRADIENT_BRIGHTNESS_OFFSET ;
 	int light_val = val100+ASCS_GRADIENT_BRIGHTNESS_OFFSET ;
@@ -125,8 +133,8 @@ make_grad_argb( ARGB32 *grad, ARGB32 base_alpha16, int hue360, int sat100, int v
 	else if( dark_val < 0 )
 		dark_val = 0 ;
 
-	grad[0] = make_color_scheme_argb( base_alpha16, hue360, sat100, dark_val );
-	grad[1] = make_color_scheme_argb( base_alpha16, hue360, sat100, light_val );
+	make_color_scheme_argb( cs, id, base_alpha16, hue360, sat100, dark_val );
+	make_color_scheme_argb( cs, id+1, base_alpha16, hue360, sat100, light_val );
 }
 
 static inline ARGB32 MAKE_ARGB32_SHADE100(CARD32 a,int s100)
@@ -137,7 +145,7 @@ static inline ARGB32 MAKE_ARGB32_SHADE100(CARD32 a,int s100)
 }
 
 inline void
-make_mono_grad_argb( ARGB32 *grad, ARGB32 base_alpha16, int shade100 )
+make_mono_grad_argb( ARGB32 *grad, ARGB32 base_alpha16, int shade100, int *val_ret )
 {
 	int dark_val = shade100 - ASCS_MONO_GRADIENT_OFFSET ;
 	int light_val = shade100 + ASCS_MONO_GRADIENT_OFFSET ;
@@ -152,6 +160,11 @@ make_mono_grad_argb( ARGB32 *grad, ARGB32 base_alpha16, int shade100 )
 
 	grad[0] = MAKE_ARGB32_SHADE100( base_alpha16, dark_val );
 	grad[1] = MAKE_ARGB32_SHADE100( base_alpha16, light_val );
+	if( val_ret )
+	{
+		val_ret[0] = dark_val ;
+		val_ret[1] = light_val ;
+	}
 }
 
 inline int
@@ -192,6 +205,7 @@ make_mono_ascolor_scheme( ARGB32 base )
 	int base_shade = val162percent(ARGB32_GREEN16(base));
 	int shade ;
 	CARD32 base_alpha16 ;
+	int active_val, inactive1_val ;
 
 	if( base_shade < ASCS_MONO_MIN_BASE_SHADE )
 		base_shade = ASCS_MONO_MIN_BASE_SHADE ;
@@ -202,63 +216,79 @@ make_mono_ascolor_scheme( ARGB32 base )
 	base_alpha16 = ARGB32_ALPHA16(base);
 
 	cs->main_colors[ASMC_Base] = MAKE_ARGB32_SHADE100(base_alpha16,base_shade); ;
+	cs->main_values[ASMC_Base] =  base_shade ;
 	cs->angle = 0 ;
 
-	make_mono_grad_argb( &(cs->main_colors[ASMC_BaseDark]), base_alpha16, base_shade );
+	make_mono_grad_argb( &(cs->main_colors[ASMC_BaseDark]), base_alpha16, base_shade,
+						 &(cs->main_values[ASMC_BaseDark]) );
 
 	shade = offset_shade( base_shade,  - ASCS_MONO_SIMILAR_OFFSET, False);
 	LOCAL_DEBUG_OUT( "base_shade = %d, Inactive1 shade = %d", base_shade, shade );
 	cs->main_colors[ASMC_Inactive1] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
+	cs->main_values[ASMC_Inactive1] 	= shade;
 	LOCAL_DEBUG_OUT( "Inactive1 color = #%8.8lX", cs->main_colors[ASMC_Inactive1] );
-	make_mono_grad_argb( &(cs->main_colors[ASMC_Inactive1Dark]), base_alpha16, shade );
-	cs->inactive1_val = shade ;
+	make_mono_grad_argb( &(cs->main_colors[ASMC_Inactive1Dark]), base_alpha16, shade,
+						 &(cs->main_values[ASMC_Inactive1Dark]) );
 	shade = make_text_shade( shade );
 	cs->main_colors[ASMC_InactiveText1] = MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	cs->inactive_text1_val = shade ;
+	cs->main_values[ASMC_InactiveText1] 	= shade;
+	inactive1_val = shade ;
 
 
 	shade = offset_shade( base_shade, ASCS_MONO_SIMILAR_OFFSET, False) ;
 	cs->main_colors[ASMC_Inactive2] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	make_mono_grad_argb( &(cs->main_colors[ASMC_Inactive2Dark]), base_alpha16, shade );
-	cs->inactive2_val = shade ;
+	cs->main_values[ASMC_Inactive2] 	= shade;
+	make_mono_grad_argb( &(cs->main_colors[ASMC_Inactive2Dark]), base_alpha16, shade,
+						 &(cs->main_values[ASMC_Inactive2Dark]) );
 	shade = make_text_shade( shade );
 	cs->main_colors[ASMC_InactiveText2] = MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	cs->inactive_text2_val = shade ;
+	cs->main_values[ASMC_InactiveText2] = shade;
 
 
 	shade = offset_shade( base_shade, ASCS_MONO_CONTRAST_OFFSET, True ) ;
-	cs->main_colors[ASMC_Active] 		= MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	make_mono_grad_argb( &(cs->main_colors[ASMC_ActiveDark]), base_alpha16, shade );
-	cs->active_val = shade;
+	cs->main_colors[ASMC_Active] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
+	cs->main_values[ASMC_Active] 	= shade;
+	make_mono_grad_argb( &(cs->main_colors[ASMC_ActiveDark]), base_alpha16, shade,
+						 &(cs->main_values[ASMC_ActiveDark]) );
+	active_val = shade;
 	shade = make_text_shade( shade );
 	cs->main_colors[ASMC_ActiveText] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	cs->active_text_val = shade ;
+	cs->main_values[ASMC_ActiveText] 	= shade;
 
-	shade = offset_shade( cs->inactive1_val, ASCS_MONO_HIGH_OFFSET, False );
+	shade = offset_shade( inactive1_val, ASCS_MONO_HIGH_OFFSET, False );
 	cs->main_colors[ASMC_HighInactive] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	make_mono_grad_argb( &(cs->main_colors[ASMC_HighInactiveDark]), base_alpha16, shade );
+	cs->main_values[ASMC_HighInactive] 	= shade;
+	make_mono_grad_argb( &(cs->main_colors[ASMC_HighInactiveDark]), base_alpha16, shade,
+						 &(cs->main_values[ASMC_HighInactiveDark]) );
 
-	shade = offset_shade( cs->active_val, ASCS_MONO_HIGH_OFFSET, False );
+	shade = offset_shade( active_val, ASCS_MONO_HIGH_OFFSET, False );
 	cs->main_colors[ASMC_HighActive]   	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	make_mono_grad_argb( &(cs->main_colors[ASMC_HighActiveDark]), base_alpha16, shade );
+	cs->main_values[ASMC_HighActive] 	= shade;
+	make_mono_grad_argb( &(cs->main_colors[ASMC_HighActiveDark]), base_alpha16, shade,
+						 &(cs->main_values[ASMC_HighActiveDark]) );
 
 	shade = offset_shade( base_shade, ASCS_MONO_HIGH_OFFSET, False );
 	cs->main_colors[ASMC_HighInactiveBack] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	make_mono_grad_argb( &(cs->main_colors[ASMC_HighInactiveBackDark]), base_alpha16, shade );
+	cs->main_values[ASMC_HighInactiveBack] 	= shade;
+	make_mono_grad_argb( &(cs->main_colors[ASMC_HighInactiveBackDark]), base_alpha16, shade,
+						 &(cs->main_values[ASMC_HighInactiveBackDark]) );
 
 	shade = offset_shade(shade, ASCS_MONO_SIMILAR_OFFSET, False );
 	cs->main_colors[ASMC_DisabledText] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
+	cs->main_values[ASMC_DisabledText] 	= shade;
 
 	shade = make_text_shade( shade );
 	cs->main_colors[ASMC_HighInactiveText] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	cs->high_inactive_text_val = shade ;
+	cs->main_values[ASMC_HighInactiveText] 	= shade;
 
 	shade = offset_shade( base_shade, ASCS_MONO_CONTRAST_OFFSET - ASCS_MONO_HIGH_OFFSET, False );
 	cs->main_colors[ASMC_HighActiveBack] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	make_mono_grad_argb( &(cs->main_colors[ASMC_HighActiveBackDark]), base_alpha16, shade );
+	cs->main_values[ASMC_HighActiveBack] 	= shade;
+	make_mono_grad_argb( &(cs->main_colors[ASMC_HighActiveBackDark]), base_alpha16, shade,
+						 &(cs->main_values[ASMC_HighActiveBackDark]) );
 	shade = make_text_shade( shade );
 	cs->main_colors[ASMC_HighActiveText] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
-	cs->high_active_text_val = shade ;
+	cs->main_values[ASMC_HighActiveText] 	= shade;
 
 	/* all of the colors are computed by now */
 	cs->set_main_colors = 0 ;
@@ -269,7 +299,7 @@ ASColorScheme *
 make_NeXTish_ascolor_scheme()
 {
 	ASColorScheme *cs = safecalloc( 1, sizeof(ASColorScheme));
-
+	int i ;
 
 	cs->main_colors[ASMC_Base] = 0xFF555577 ;
 	cs->main_colors[ASMC_BaseDark] = 0xFF444466;
@@ -308,14 +338,8 @@ make_NeXTish_ascolor_scheme()
 	cs->main_colors[ASMC_HighActiveBackLight] = 0xFFfEfEfE ;
 	cs->main_colors[ASMC_HighActiveText] = 0xFF000000 ;
 
-	make_color_scheme_hsv( cs->main_colors[ASMC_Inactive1], &(cs->inactive1_hue), &(cs->inactive1_sat), &(cs->inactive1_val)) ;
-	make_color_scheme_hsv( cs->main_colors[ASMC_Inactive2], &(cs->inactive2_hue), &(cs->inactive2_sat), &(cs->inactive2_val)) ;
-	make_color_scheme_hsv( cs->main_colors[ASMC_Active], &(cs->active_hue), &(cs->active_sat), &(cs->active_val));
-	make_color_scheme_hsv( cs->main_colors[ASMC_InactiveText1], &(cs->inactive_text1_hue), &(cs->inactive_text1_sat), &(cs->inactive_text1_val));
-	make_color_scheme_hsv( cs->main_colors[ASMC_InactiveText2], &(cs->inactive_text2_hue), &(cs->inactive_text2_sat), &(cs->inactive_text2_val)) ;
-	make_color_scheme_hsv( cs->main_colors[ASMC_ActiveText], NULL, &(cs->active_text_sat), &(cs->active_text_val)) ;
-	make_color_scheme_hsv( cs->main_colors[ASMC_HighInactiveText], NULL, &(cs->high_inactive_text_sat), &(cs->high_inactive_text_val)) ;
-	make_color_scheme_hsv( cs->main_colors[ASMC_HighActiveText], NULL, &(cs->high_active_text_sat), &(cs->high_active_text_val)) ;
+	for( i = 0 ; i < ASMC_MainColors ; ++i )
+		make_color_scheme_hsv( cs->main_colors[i], &(cs->main_hues[i]), &(cs->main_saturations[i]), &(cs->main_values[i])) ;
 
 	/* all of the colors are set manually by now */
 	cs->set_main_colors = 0xFFFFFFFF ;
@@ -330,6 +354,15 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	CARD32 hue16, sat16, val16 ;
 	CARD32 base_alpha16 ;
 	int sat, val;
+	int base_val, base_sat, base_hue ;
+	int inactive1_hue, inactive1_sat, inactive1_val ;
+	int inactive2_hue, inactive2_sat, inactive2_val ;
+	int active_hue, active_sat, active_val ;
+	int inactive_text1_hue, inactive_text1_sat, inactive_text1_val ;
+	int inactive_text2_hue, inactive_text2_sat, inactive_text2_val ;
+	int active_text_sat, active_text_val ;
+	int high_inactive_text_sat, high_inactive_text_val ;
+	int high_active_text_sat, high_active_text_val ;
 
 	/* handling base color */
 	base_alpha16 = ARGB32_ALPHA16(base);
@@ -343,135 +376,142 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	angle = FIT_IN_RANGE( ASCS_MIN_ANGLE, angle, ASCS_MAX_ANGLE );
 	cs->angle = angle ;
 
-	cs->base_hue = hue162degrees(hue16);
 	sat = val162percent(sat16);
 	LOCAL_DEBUG_OUT( "sat16 = %ld(0x%lX), sat = %d", sat16, sat16, sat );
 	val = val162percent(val16);
-	cs->base_sat = max(sat,ASCS_MIN_PRIMARY_SATURATION);
-	cs->base_val = FIT_IN_RANGE(ASCS_MIN_PRIMARY_BRIGHTNESS, val, ASCS_MAX_PRIMARY_BRIGHTNESS);
-	cs->main_colors[ASMC_Base] = make_color_scheme_argb( base_alpha16, cs->base_hue, cs->base_sat, cs->base_val ) ;
+	base_hue = hue162degrees(hue16);
+	base_sat = max(sat,ASCS_MIN_PRIMARY_SATURATION);
+	base_val = FIT_IN_RANGE(ASCS_MIN_PRIMARY_BRIGHTNESS, val, ASCS_MAX_PRIMARY_BRIGHTNESS);
+	make_color_scheme_argb( cs, ASMC_Base, base_alpha16, base_hue, base_sat, base_val ) ;
 
-	cs->inactive1_hue = normalize_degrees_val(cs->base_hue + angle) ;
-	if( cs->inactive1_hue > ASCS_MIN_COLD_HUE && cs->inactive1_hue < ASCS_MAX_COLD_HUE &&
-		cs->base_sat > ASCS_MIN_PRIMARY_SATURATION + ASCS_COLD_SATURATION_OFFSET )
-		cs->inactive1_sat = cs->base_sat - ASCS_COLD_SATURATION_OFFSET ;
+	inactive1_hue = normalize_degrees_val(base_hue + angle) ;
+	if( inactive1_hue > ASCS_MIN_COLD_HUE && inactive1_hue < ASCS_MAX_COLD_HUE &&
+		base_sat > ASCS_MIN_PRIMARY_SATURATION + ASCS_COLD_SATURATION_OFFSET )
+		inactive1_sat = base_sat - ASCS_COLD_SATURATION_OFFSET ;
 	else
-		cs->inactive1_sat = cs->base_sat ;
-	cs->inactive1_val = cs->base_val + ASCS_NORMAL_BRIGHTNESS_OFFSET  ;
-	cs->main_colors[ASMC_Inactive1] = make_color_scheme_argb( base_alpha16, cs->inactive1_hue, cs->inactive1_sat, cs->inactive1_val );
+		inactive1_sat = base_sat ;
 
-	cs->inactive2_hue = normalize_degrees_val(cs->base_hue - angle);
-	if( cs->inactive2_hue > ASCS_MIN_COLD_HUE && cs->inactive2_hue < ASCS_MAX_COLD_HUE &&
-		cs->base_sat > ASCS_MIN_PRIMARY_SATURATION + ASCS_COLD_SATURATION_OFFSET )
-		cs->inactive2_sat = cs->base_sat - ASCS_COLD_SATURATION_OFFSET ;
+	inactive1_val = base_val + ASCS_NORMAL_BRIGHTNESS_OFFSET  ;
+	make_color_scheme_argb( cs, ASMC_Inactive1, base_alpha16, inactive1_hue, inactive1_sat, inactive1_val );
+
+	inactive2_hue = normalize_degrees_val(base_hue - angle);
+	if( inactive2_hue > ASCS_MIN_COLD_HUE && inactive2_hue < ASCS_MAX_COLD_HUE &&
+		base_sat > ASCS_MIN_PRIMARY_SATURATION + ASCS_COLD_SATURATION_OFFSET )
+		inactive2_sat = base_sat - ASCS_COLD_SATURATION_OFFSET ;
 	else
-		cs->inactive2_sat = cs->base_sat ;
-	cs->inactive2_val = cs->base_val + ASCS_NORMAL_BRIGHTNESS_OFFSET ;
-	cs->main_colors[ASMC_Inactive2] = make_color_scheme_argb( base_alpha16, cs->inactive2_hue, cs->inactive2_sat, cs->inactive2_val );
+		inactive2_sat = base_sat ;
+	inactive2_val = base_val + ASCS_NORMAL_BRIGHTNESS_OFFSET ;
+	make_color_scheme_argb( cs, ASMC_Inactive2, base_alpha16, inactive2_hue, inactive2_sat, inactive2_val );
 
 	/* we want to make sure that Inactive2 is whiter then Inactive1 at all times */
 	if( compare_color_lightness( cs->main_colors[ASMC_Inactive1], cs->main_colors[ASMC_Inactive2] ) > 0 )
 	{
 		ARGB32 argb_tmp = cs->main_colors[ASMC_Inactive1] ;
-		int itmp  = cs->inactive1_hue ;
-		cs->inactive1_hue = cs->inactive2_hue ;
-		cs->inactive2_hue = itmp ;
-		itmp  = cs->inactive1_sat ;
-		cs->inactive1_sat = cs->inactive2_sat ;
-		cs->inactive2_sat = itmp ;
-		itmp  = cs->inactive1_val ;
-		cs->inactive1_val = cs->inactive2_val ;
-		cs->inactive2_val = itmp ;
+		int itmp  = inactive1_hue ;
+		inactive1_hue = inactive2_hue ;
+		inactive2_hue = itmp ;
+		itmp  = inactive1_sat ;
+		inactive1_sat = inactive2_sat ;
+		inactive2_sat = itmp ;
+		itmp  = inactive1_val ;
+		inactive1_val = inactive2_val ;
+		inactive2_val = itmp ;
 		cs->main_colors[ASMC_Inactive1] = cs->main_colors[ASMC_Inactive2] ;
 		cs->main_colors[ASMC_Inactive2] = argb_tmp ;
 	}
+	cs->main_hues       [ASMC_Inactive1] = inactive1_hue ;
+	cs->main_saturations[ASMC_Inactive1] = inactive1_sat ;
+	cs->main_values     [ASMC_Inactive1] = inactive1_val  ;
+	cs->main_hues	    [ASMC_Inactive2] = inactive2_hue ;
+	cs->main_saturations[ASMC_Inactive2] = inactive2_sat ;
+	cs->main_values     [ASMC_Inactive2] = inactive2_val  ;
 
-	cs->active_hue = normalize_degrees_val(cs->base_hue - 180);
-	cs->active_sat = cs->base_sat ;
-	cs->active_val = cs->base_val + ASCS_NORMAL_BRIGHTNESS_OFFSET  ;
-	cs->main_colors[ASMC_Active] = make_color_scheme_argb( base_alpha16, cs->active_hue, cs->active_sat, cs->active_val );
+	active_hue = normalize_degrees_val(base_hue - 180);
+	active_sat = base_sat ;
+	active_val = base_val + ASCS_NORMAL_BRIGHTNESS_OFFSET  ;
+	make_color_scheme_argb( cs, ASMC_Active, base_alpha16, active_hue, active_sat, active_val );
 
-	cs->inactive_text1_hue = normalize_degrees_val(cs->inactive1_hue - 180);
-	cs->inactive_text1_sat = cs->base_sat ;
-	cs->inactive_text1_val = cs->base_val ;
-	if( is_light_hsv(cs->inactive1_hue, cs->inactive1_sat, cs->inactive1_val) )
-		cs->inactive_text1_val = ASCS_BLACKING_BRIGHTNESS_LEVEL ;
+	inactive_text1_hue = normalize_degrees_val(inactive1_hue - 180);
+	inactive_text1_sat = base_sat ;
+	inactive_text1_val = base_val ;
+	if( is_light_hsv(inactive1_hue, inactive1_sat, inactive1_val) )
+		inactive_text1_val = ASCS_BLACKING_BRIGHTNESS_LEVEL ;
 	else
 	{
-		if( cs->inactive_text1_hue > ASCS_MIN_COLD_HUE && cs->inactive_text1_hue < ASCS_MAX_COLD_HUE )
-			cs->inactive_text1_sat = ASCS_WHITING_SATURATION_LEVEL ;
+		if( inactive_text1_hue > ASCS_MIN_COLD_HUE && inactive_text1_hue < ASCS_MAX_COLD_HUE )
+			inactive_text1_sat = ASCS_WHITING_SATURATION_LEVEL ;
 		else
-			cs->inactive_text1_sat = 0 ;
-		if( cs->inactive_text1_val < ASCS_WHITING_MIN_BRIGHTNESS_LEVEL )
-			cs->inactive_text1_val = ASCS_WHITING_MIN_BRIGHTNESS_LEVEL ;
+			inactive_text1_sat = 0 ;
+		if( inactive_text1_val < ASCS_WHITING_MIN_BRIGHTNESS_LEVEL )
+			inactive_text1_val = ASCS_WHITING_MIN_BRIGHTNESS_LEVEL ;
 	}
-	cs->main_colors[ASMC_InactiveText1] = make_color_scheme_argb( base_alpha16, cs->inactive_text1_hue, cs->inactive_text1_sat, cs->inactive_text1_val );
+	make_color_scheme_argb( cs, ASMC_InactiveText1, base_alpha16, inactive_text1_hue, inactive_text1_sat, inactive_text1_val );
 
-	cs->inactive_text2_hue = normalize_degrees_val(cs->inactive2_hue - 180);
-	cs->inactive_text2_sat = cs->base_sat ;
-	cs->inactive_text2_val = cs->base_val ;
-	if( is_light_hsv(cs->inactive2_hue, cs->inactive2_sat, cs->inactive2_val) )
-		cs->inactive_text2_val = ASCS_BLACKING_BRIGHTNESS_LEVEL ;
+	inactive_text2_hue = normalize_degrees_val(inactive2_hue - 180);
+	inactive_text2_sat = base_sat ;
+	inactive_text2_val = base_val ;
+	if( is_light_hsv(inactive2_hue, inactive2_sat, inactive2_val) )
+		inactive_text2_val = ASCS_BLACKING_BRIGHTNESS_LEVEL ;
 	else
 	{
-		if( cs->inactive_text2_hue > ASCS_MIN_COLD_HUE && cs->inactive_text2_hue < ASCS_MAX_COLD_HUE )
-			cs->inactive_text2_sat = ASCS_WHITING_SATURATION_LEVEL ;
+		if( inactive_text2_hue > ASCS_MIN_COLD_HUE && inactive_text2_hue < ASCS_MAX_COLD_HUE )
+			inactive_text2_sat = ASCS_WHITING_SATURATION_LEVEL ;
 		else
-			cs->inactive_text2_sat = 0 ;
-		if( cs->inactive_text2_val < ASCS_WHITING_MIN_BRIGHTNESS_LEVEL )
-			cs->inactive_text2_val = ASCS_WHITING_MIN_BRIGHTNESS_LEVEL ;
+			inactive_text2_sat = 0 ;
+		if( inactive_text2_val < ASCS_WHITING_MIN_BRIGHTNESS_LEVEL )
+			inactive_text2_val = ASCS_WHITING_MIN_BRIGHTNESS_LEVEL ;
 	}
-	cs->main_colors[ASMC_InactiveText2] = make_color_scheme_argb( base_alpha16, cs->inactive_text2_hue, cs->inactive_text2_sat, cs->inactive_text2_val );
+	make_color_scheme_argb( cs, ASMC_InactiveText2, base_alpha16, inactive_text2_hue, inactive_text2_sat, inactive_text2_val );
 
-	cs->active_text_sat = cs->base_sat ;
-	cs->active_text_val = cs->base_val ;
-	if( is_light_hsv(cs->active_hue, cs->active_sat, cs->active_val) )
-		cs->active_text_val = ASCS_BLACKING_BRIGHTNESS_LEVEL ;
+	active_text_sat = base_sat ;
+	active_text_val = base_val ;
+	if( is_light_hsv(active_hue, active_sat, active_val) )
+		active_text_val = ASCS_BLACKING_BRIGHTNESS_LEVEL ;
 	else
 	{
-		if( cs->base_hue > ASCS_MIN_COLD_HUE && cs->base_hue < ASCS_MAX_COLD_HUE )
-			cs->active_text_sat = ASCS_WHITING_SATURATION_LEVEL ;
+		if( base_hue > ASCS_MIN_COLD_HUE && base_hue < ASCS_MAX_COLD_HUE )
+			active_text_sat = ASCS_WHITING_SATURATION_LEVEL ;
 		else
-			cs->active_text_sat = 0 ;
-		if( cs->active_text_val < ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL )
-			cs->active_text_val = ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL ;
+			active_text_sat = 0 ;
+		if( active_text_val < ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL )
+			active_text_val = ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL ;
 	}
-	cs->main_colors[ASMC_ActiveText] = make_color_scheme_argb( base_alpha16, cs->base_hue, cs->active_text_sat, cs->active_text_val );
+	make_color_scheme_argb( cs, ASMC_ActiveText, base_alpha16, base_hue, active_text_sat, active_text_val );
 
-	cs->main_colors[ASMC_HighInactive] = make_color_scheme_argb( base_alpha16, cs->inactive1_hue, cs->inactive1_sat, cs->inactive1_val + ASCS_HIGH_BRIGHTNESS_OFFSET);
-	cs->main_colors[ASMC_HighActive]   = make_color_scheme_argb( base_alpha16, cs->active_hue, cs->active_sat, cs->active_val + ASCS_HIGH_BRIGHTNESS_OFFSET);
-	cs->main_colors[ASMC_HighInactiveBack] = make_color_scheme_argb( base_alpha16, cs->base_hue, cs->base_sat, cs->base_val + ASCS_HIGH_BRIGHTNESS_OFFSET); ;
-	cs->main_colors[ASMC_HighActiveBack] = make_color_scheme_argb( base_alpha16, cs->active_hue, cs->active_sat, cs->active_val - ASCS_HIGH_BRIGHTNESS_OFFSET);
+	make_color_scheme_argb( cs, ASMC_HighInactive, base_alpha16, inactive1_hue, inactive1_sat, inactive1_val + ASCS_HIGH_BRIGHTNESS_OFFSET);
+	make_color_scheme_argb( cs, ASMC_HighActive, base_alpha16, active_hue, active_sat, active_val + ASCS_HIGH_BRIGHTNESS_OFFSET);
+	make_color_scheme_argb( cs, ASMC_HighInactiveBack, base_alpha16, base_hue, base_sat, base_val + ASCS_HIGH_BRIGHTNESS_OFFSET); ;
+	make_color_scheme_argb( cs, ASMC_HighActiveBack, base_alpha16, active_hue, active_sat, active_val - ASCS_HIGH_BRIGHTNESS_OFFSET);
 	/* active hue */
-	cs->high_inactive_text_sat = cs->base_sat ;
-	cs->high_inactive_text_val = cs->base_val + ASCS_HIGH_BRIGHTNESS_OFFSET ;
-	if( is_light_hsv(cs->base_hue, cs->base_sat, cs->base_val+ASCS_HIGH_BRIGHTNESS_OFFSET) )
-		cs->high_inactive_text_val = ASCS_BLACKING_BRIGHTNESS_LEVEL ;
+	high_inactive_text_sat = base_sat ;
+	high_inactive_text_val = base_val + ASCS_HIGH_BRIGHTNESS_OFFSET ;
+	if( is_light_hsv(base_hue, base_sat, base_val+ASCS_HIGH_BRIGHTNESS_OFFSET) )
+		high_inactive_text_val = ASCS_BLACKING_BRIGHTNESS_LEVEL ;
 	else
 	{
-		if( cs->active_hue > ASCS_MIN_COLD_HUE && cs->active_hue < ASCS_MAX_COLD_HUE )
-			cs->high_inactive_text_sat = ASCS_WHITING_SATURATION_LEVEL ;
+		if( active_hue > ASCS_MIN_COLD_HUE && active_hue < ASCS_MAX_COLD_HUE )
+			high_inactive_text_sat = ASCS_WHITING_SATURATION_LEVEL ;
 		else
-			cs->high_inactive_text_sat = 0 ;
-		if( cs->high_inactive_text_val < ASCS_WHITING_MIN_BRIGHTNESS_LEVEL )
-			cs->high_inactive_text_val = ASCS_WHITING_MIN_BRIGHTNESS_LEVEL ;
+			high_inactive_text_sat = 0 ;
+		if( high_inactive_text_val < ASCS_WHITING_MIN_BRIGHTNESS_LEVEL )
+			high_inactive_text_val = ASCS_WHITING_MIN_BRIGHTNESS_LEVEL ;
 	}
-	cs->main_colors[ASMC_HighInactiveText] = make_color_scheme_argb( base_alpha16, cs->active_hue, cs->high_inactive_text_sat, cs->high_inactive_text_val);
+	make_color_scheme_argb( cs, ASMC_HighInactiveText, base_alpha16, active_hue, high_inactive_text_sat, high_inactive_text_val);
 	/* base hue */
-	cs->high_active_text_sat = cs->active_sat ;
-	cs->high_active_text_val = cs->active_val + ASCS_HIGH_BRIGHTNESS_OFFSET ;
-	if( is_light_hsv(cs->active_hue, cs->active_sat, cs->active_val-ASCS_HIGH_BRIGHTNESS_OFFSET) )
-		cs->high_active_text_val = ASCS_BLACKING_BRIGHTNESS_LEVEL ;
+	high_active_text_sat = active_sat ;
+	high_active_text_val = active_val + ASCS_HIGH_BRIGHTNESS_OFFSET ;
+	if( is_light_hsv(active_hue, active_sat, active_val-ASCS_HIGH_BRIGHTNESS_OFFSET) )
+		high_active_text_val = ASCS_BLACKING_BRIGHTNESS_LEVEL ;
 	else
 	{
-		if( cs->base_hue > ASCS_MIN_COLD_HUE && cs->base_hue < ASCS_MAX_COLD_HUE )
-			cs->high_active_text_sat = ASCS_WHITING_SATURATION_LEVEL ;
+		if( base_hue > ASCS_MIN_COLD_HUE && base_hue < ASCS_MAX_COLD_HUE )
+			high_active_text_sat = ASCS_WHITING_SATURATION_LEVEL ;
 		else
-			cs->high_active_text_sat = 0 ;
-		if( cs->high_active_text_val < ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL )
-			cs->high_active_text_val = ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL ;
+			high_active_text_sat = 0 ;
+		if( high_active_text_val < ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL )
+			high_active_text_val = ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL ;
 	}
-	cs->main_colors[ASMC_HighActiveText] = make_color_scheme_argb( base_alpha16, cs->base_hue, cs->high_active_text_sat, cs->high_active_text_val);
+	make_color_scheme_argb( cs, ASMC_HighActiveText, base_alpha16, base_hue, high_active_text_sat, high_active_text_val);
 
 #if 0
 	if( cs->base_sat  >  ASCS_DISABLED_SATURATION_LEVEL )
@@ -481,19 +521,19 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	else
 		cs->main_colors[ASMC_DisabledText] = make_color_scheme_argb( base_alpha16, cs->base_hue, cs->base_sat + ASCS_DISABLED_SATURATION_LEVEL, cs->high_inactive_text_val);
 #endif
-	if( cs->base_val > 50 )
-		cs->main_colors[ASMC_DisabledText] = make_color_scheme_argb( base_alpha16, cs->base_hue, (cs->base_sat*80)/100, cs->base_val - ASCS_GRADIENT_BRIGHTNESS_OFFSET/2);
+	if( base_val > 50 )
+		make_color_scheme_argb( cs, ASMC_DisabledText, base_alpha16, base_hue, (base_sat*80)/100, base_val - ASCS_GRADIENT_BRIGHTNESS_OFFSET/2);
 	else
-		cs->main_colors[ASMC_DisabledText] = make_color_scheme_argb( base_alpha16, cs->base_hue, (cs->base_sat*80)/100, cs->base_val - ASCS_GRADIENT_BRIGHTNESS_OFFSET/2);
+		make_color_scheme_argb( cs, ASMC_DisabledText, base_alpha16, base_hue, (base_sat*80)/100, base_val - ASCS_GRADIENT_BRIGHTNESS_OFFSET/2);
 
-	make_grad_argb( &(cs->main_colors[ASMC_BaseDark]), base_alpha16, cs->base_hue, cs->base_sat, cs->base_val, True );
-	make_grad_argb( &(cs->main_colors[ASMC_Inactive1Dark]), base_alpha16, cs->inactive1_hue, cs->inactive1_sat, cs->inactive1_val, False );
-	make_grad_argb( &(cs->main_colors[ASMC_Inactive2Dark]), base_alpha16, cs->inactive2_hue, cs->inactive2_sat, cs->inactive2_val, False );
-	make_grad_argb( &(cs->main_colors[ASMC_ActiveDark]), base_alpha16, cs->active_hue, cs->active_sat, cs->active_val, False );
-	make_grad_argb( &(cs->main_colors[ASMC_HighInactiveDark]), base_alpha16, cs->inactive1_hue, cs->inactive1_sat, cs->inactive1_val + ASCS_HIGH_BRIGHTNESS_OFFSET, False );
-	make_grad_argb( &(cs->main_colors[ASMC_HighActiveDark]), base_alpha16, cs->active_hue, cs->active_sat, cs->active_val + ASCS_HIGH_BRIGHTNESS_OFFSET, False );
-	make_grad_argb( &(cs->main_colors[ASMC_HighInactiveBackDark]), base_alpha16, cs->base_hue, cs->base_sat, cs->base_val + ASCS_HIGH_BRIGHTNESS_OFFSET, False );
-	make_grad_argb( &(cs->main_colors[ASMC_HighActiveBackDark]), base_alpha16, cs->active_hue, cs->active_sat, cs->active_val - ASCS_HIGH_BRIGHTNESS_OFFSET, False );
+	make_grad_argb( cs, ASMC_BaseDark, base_alpha16, base_hue, base_sat, base_val, True );
+	make_grad_argb( cs, ASMC_Inactive1Dark, base_alpha16, inactive1_hue, inactive1_sat, inactive1_val, False );
+	make_grad_argb( cs, ASMC_Inactive2Dark, base_alpha16, inactive2_hue, inactive2_sat, inactive2_val, False );
+	make_grad_argb( cs, ASMC_ActiveDark, base_alpha16,    active_hue,   active_sat,  active_val, False );
+	make_grad_argb( cs, ASMC_HighInactiveDark, base_alpha16, inactive1_hue, inactive1_sat, inactive1_val + ASCS_HIGH_BRIGHTNESS_OFFSET, False );
+	make_grad_argb( cs, ASMC_HighActiveDark, base_alpha16, active_hue, active_sat, active_val + ASCS_HIGH_BRIGHTNESS_OFFSET, False );
+	make_grad_argb( cs, ASMC_HighInactiveBackDark, base_alpha16, base_hue, base_sat, base_val + ASCS_HIGH_BRIGHTNESS_OFFSET, False );
+	make_grad_argb( cs, ASMC_HighActiveBackDark, base_alpha16, active_hue, active_sat, active_val - ASCS_HIGH_BRIGHTNESS_OFFSET, False );
 
 	/* all of the colors are computed by now */
 	cs->set_main_colors = 0 ;
@@ -512,32 +552,26 @@ populate_ascs_colors_rgb( ASColorScheme *cs )
 void
 populate_ascs_colors_xml( ASColorScheme *cs )
 {
-	asxml_var_insert( "ascs.angle", cs->angle );
-	asxml_var_insert( "ascs.base_hue", cs->base_hue );
-	asxml_var_insert( "ascs.base_saturation", cs->base_sat );
-	asxml_var_insert( "ascs.base_value", cs->base_val );
-	asxml_var_insert( "ascs.inactive1_hue", cs->inactive1_hue );
-	asxml_var_insert( "ascs.inactive1_saturation", cs->inactive1_sat );
-	asxml_var_insert( "ascs.inactive1_value", cs->inactive1_val );
-	asxml_var_insert( "ascs.inactive2_hue", cs->inactive2_hue );
-	asxml_var_insert( "ascs.inactive2_saturation", cs->inactive2_sat );
-	asxml_var_insert( "ascs.inactive2_value", cs->inactive2_val );
-	asxml_var_insert( "ascs.active_hue", cs->active_hue );
-	asxml_var_insert( "ascs.active_saturation", cs->active_sat );
-	asxml_var_insert( "ascs.active_value", cs->active_val );
-	asxml_var_insert( "ascs.inactive_text1_hue", cs->inactive_text1_hue );
-	asxml_var_insert( "ascs.inactive_text1_saturation", cs->inactive_text1_sat );
-	asxml_var_insert( "ascs.inactive_text1_value", cs->inactive_text1_val );
-	asxml_var_insert( "ascs.inactive_text2_hue", cs->inactive_text2_hue );
-	asxml_var_insert( "ascs.inactive_text2_saturation", cs->inactive_text2_sat );
-	asxml_var_insert( "ascs.inactive_text2_value", cs->inactive_text2_val );
-	asxml_var_insert( "ascs.active_text_saturation", cs->active_text_sat );
-	asxml_var_insert( "ascs.active_text_value", cs->active_text_val );
-	asxml_var_insert( "ascs.high_inactive_text_saturation", cs->high_inactive_text_sat );
-	asxml_var_insert( "ascs.high_inactive_text_value", cs->high_inactive_text_val );
-	asxml_var_insert( "ascs.high_active_text_saturation", cs->high_active_text_sat );
-	asxml_var_insert( "ascs.high_active_text_value", cs->high_active_text_val );
+	int i ;
+	static char tmp[256];
+	for( i = 0 ; i < ASMC_MainColors ; ++i )
+	{
+		sprintf( tmp, "ascs.%s.alpha", ASMainColorNames[i] );
+		asxml_var_insert( tmp, ARGB32_ALPHA8(cs->main_colors[i]) );
+		sprintf( tmp, "ascs.%s.red", ASMainColorNames[i] );
+		asxml_var_insert( tmp, ARGB32_RED8(cs->main_colors[i]) );
+		sprintf( tmp, "ascs.%s.green", ASMainColorNames[i] );
+		asxml_var_insert( tmp, ARGB32_GREEN8(cs->main_colors[i]) );
+		sprintf( tmp, "ascs.%s.blue", ASMainColorNames[i] );
+		asxml_var_insert( tmp, ARGB32_BLUE8(cs->main_colors[i]) );
 
+		sprintf( tmp, "ascs.%s.hue", ASMainColorNames[i] );
+		asxml_var_insert( tmp, cs->main_hues[i] );
+		sprintf( tmp, "ascs.%s.saturation", ASMainColorNames[i] );
+		asxml_var_insert( tmp, cs->main_saturations[i] );
+		sprintf( tmp, "ascs.%s.value", ASMainColorNames[i] );
+		asxml_var_insert( tmp, cs->main_values[i] );
+	}
 }
 
 
