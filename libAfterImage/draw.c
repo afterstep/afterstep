@@ -1092,44 +1092,91 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 		long long yr = -C/xr ;
 		long long x1 = xt ; 
 		long long x2 = xt ; 
-		long long start = A*xt*xt + B*yt*yt + 2*C*xt*yt+F ;
-		long long d1 = start -(2*A+C)*xt-(2*C+B)*yt+A+C+(B>>2);
-		long long d2 = start +(2*A-C)*xt+(2*C-B)*yt+A-C+(B>>2);
 		long long y1 = yt ; 
+		long long old_x1 = x1 ; 
+		long long old_x2 = x2 ; 
+		int dy1 = 0 ;
+
 
 		fprintf( stderr, "sin = %lld, cos = %lld, rx2 = %lld, ry2 = %lld, c2 = %lld, xc2 = %lld, yc2 = %lld\n", 
 				 sin_val, cos_val, rx2, ry2, c2, xc2, yc2 );
 		fprintf( stderr, "A = %lld, B = %lld, C = %lld, F = %lld\n", A, B, C, F );
-		fprintf( stderr, "yt = %lld, xt = %lld, xr = %lld, yr = %lld, d1 = %lld, d2 = %lld\n", yt, xt, xr, yr, d1, d2 );
+		fprintf( stderr, "yt = %lld, xt = %lld, xr = %lld, yr = %lld\n", yt, xt, xr, yr );
 		while( y1 >= 0 ) 
 		{
-			while( d1 < 0 ) 
+			long long d = A*x1*x1 + B*y1*y1+2*C*x1*y1+F ;
+			fprintf( stderr, "d1 = %lld\n", d );
+			if( d < 0 ) 
+			{       
+				long long L = B*y1+C*x1-(B>>2) ; 
+				long long G = -2*A*x1-2*C*y1+C ;
+				long long k = 1 ; 
+				long long D = A+G ; 
+
+				while( d - L + D < 0 ) 
+				{
+					D += 2*A*k + A+G ;	  
+					++k ;
+				}
+				old_x1 = x1 ;
+				x1 -= k ; 
+			}
+			d = A*x2*x2 + B*y1*y1+2*C*x2*y1+F ;
+			fprintf( stderr, "d2 = %lld\n", d );
+			if( (d < 0 && y1 > yr) || (d >= 0 && y1 <= yr))
 			{
-				long long delta = -2*A*x1 - 2*C*y1+A+C ;
-				fprintf( stderr, "delta = %lld, d1 = %lld\n", delta, d1 );
-				d1 += delta ;
-				--x1 ;
-			}	  
-			while( d2 < 0 ) 
-			{
-				long long delta = (y1 > yr)? 2*A*x2 + 2*C*y1+A-C : -2*A*x2 - 2*C*y1+A+C ;
-				fprintf( stderr, "delta = %lld, d2 = %lld\n", delta, d2 );
-				d2 += delta ;
-				if(y1 <= yr)
-					--x2 ;
-				else
-					++x2 ;
-			}	 
-			fprintf( stderr, "y1 = %lld, x1 = %lld, x2 = %lld, d1 = %lld, d2 = %lld\n", y1, x1, x2, d1, d2 );
+				long long L = B*y1+C*x2-(B>>2) ; 
+				long long G = 2*A*x2+2*C*y1-C ;
+				long long k = 1 ; 
+				long long D = A+G ; 
+				
+				if( y1 <= yr )
+				{	
+					D = A-G ; 
+					while( d - L + D >= 0 ) 
+					{
+						D += 2*A*k+A-G ;	  
+						++k ;
+					}
+					x2 -= k ; 
+				}else
+				{	
+					while( d - L + D < 0 ) 
+					{
+						D += 2*A*k+A+G ;	  
+						++k ;
+					}
+					x2 += k ; 
+				}
+			}					   
 			CTX_FILL_HLINE(ctx,x+x1,y-y1,x+x2,255);
-			CTX_FILL_HLINE(ctx,x-x1,y+y1,x-x2,255);
-			d1 += -2*(A+C)*x1-2*(C+B)*y1+A+5*C+2*B ;
-			if(y1 <= yr)
-				d2 += -2*(A+C)*x2-2*(C+B)*y1+A+5*C+2*B ;
-			else
-				d2 += 2*(A-C)*x2+2*(C-B)*y1+A-C ;
+			CTX_FILL_HLINE(ctx,x-x2,y+y1,x-x1,255);
+			++dy1 ;				   
+			if( old_x1 > x1 ) 
+			{
+				int k ;
+				int y11 = y-y1 ;
+				int y12 = y+y1 ;
+				for( k = 1 ; k <= dy1 ; ++k ) 
+				{	
+					int i = x1+dy1-k;
+					int delta = 0x0000DFFF/((old_x1-i+1)*(dy1-(k-1))) ; 
+					int val = delta ; 
+					fprintf( stderr, "\t\tdy1 = %d, delta = %X, k = %d\n", dy1, delta, k ); 
+					for( ; i < old_x1 ; ++i ) 
+					{	
+						CARD32 v = (val>>8);
+		 				CTX_PUT_PIXEL( ctx, x+i, y11-(dy1+1)+k, v ) ; 			
+						fprintf( stderr, "\t\tx = %d, y = %d, val = %X, v = %X\n", x+i, y11-(dy1+1)+k, val, v ); 
+						CTX_PUT_PIXEL( ctx, x-i, y12+dy1+1-k, v ) ;
+						val += delta ; 
+					}
+				}
+				old_x1 = x1 ; 
+				dy1 = 0 ;			   
+			}	 
+
 			--y1 ;
-			fprintf( stderr, "y1 = %lld, d1 = %lld, d2 = %lld\n", y1, d1, d2 );
 		}	 
 	}		
 }	 
