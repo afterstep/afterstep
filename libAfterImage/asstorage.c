@@ -949,6 +949,8 @@ select_storage_slot( ASStorageBlock *block, int size )
 	/* no free slots of sufficient size - need to do defragmentation */
 	defragment_storage_block( block );
 	i = block->first_free;
+	if( i >= block->slots_count ) 
+		return NULL;
     if( block->slots[i] == NULL || block->slots[i]->size < size ) 
 		return NULL;
 	return block->slots[i];		   
@@ -1032,7 +1034,7 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	LOCAL_DEBUG_OUT( "selected slot %p for size %d (compressed %d) and flags %lX", slot, size, compressed_size, flags );
 	
 	if( slot == NULL ) 
-		show_error( "cannot find suitable storage slot to store %d bytes compressed down to %d", size, compressed_size );
+		return 0;           /* not a error condition */
 	else if( slot > block->end || slot < block->start) 
 		show_error( "storage slot selected falls outside of allocated memory. Slot = %p, start = %p, end = %p", slot, block->start, block->end );
 	else if( &(slot->data[slot->size]) > ((CARD8*)(block->start)) + block->size) 
