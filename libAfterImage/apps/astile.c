@@ -103,9 +103,9 @@ int main(int argc, char* argv[])
 	if( !get_flags(geom_flags, YValue ) )
 		tile_y = im->height/2 ;
 	if( !get_flags(geom_flags, WidthValue ) )
-		tile_width = im->width ;
+		tile_width = im->width*2 ;
 	if( !get_flags(geom_flags, HeightValue ) )
-		tile_height = im->height;
+		tile_height = im->height*2;
 	printf( "%s: tiling image \"%s\" to %dx%d%+d%+d tinting with #%8.8lX\n",
 		    get_application_name(), image_file, tile_width, tile_height,
 			tile_x, tile_y, tint_color );
