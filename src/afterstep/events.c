@@ -226,18 +226,27 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
 	return False;
 }
 
-Bool
+ASWindow *
 WaitWindowLoop( char *pattern, long timeout )
 {
-	wild_reg_exp *wrexp = compile_wild_reg_exp( pattern );
 	Bool done = False ;
 	ASEvent event ;
 	Bool has_x_events ;
-	time_t end_time = time(NULL) + (timeout<=0?DEFAULT_WINDOW_WAIT_TIMEOUT:timeout)/100 ;
+	time_t end_time = (timeout<=0?DEFAULT_WINDOW_WAIT_TIMEOUT:timeout)/100 ;
+	time_t click_end_time = end_time / 4;
+	time_t start_time = time(NULL);
+	ASWindow *asw = NULL ;
 
-	if( wrexp == NULL )
-		return False;
+	end_time += start_time ;
+	click_end_time += start_time ;
+	
+	if( pattern == NULL || pattern[0] == '\0' )
+		return NULL ;
 
+	LOCAL_DEBUG_OUT( "waiting for \"%s\"", pattern );		
+    if( (asw = complex_pattern2ASWindow( pattern )) != NULL ) 
+  		return asw;
+		
 	while (!done)
 	{
 		do
@@ -252,12 +261,15 @@ WaitWindowLoop( char *pattern, long timeout )
 					/* we do not want user to do anything interactive at that time - hence
 					   deffered == True */
                     DispatchEvent( &event, True );
-                    if( event.x.type == MapNotify && event.client )
-                        if( match_string_list (event.client->hints->names, MAX_WINDOW_NAMES, wrexp) == 0 )
-                        {
-                            destroy_wild_reg_exp( wrexp );
-                            return True;
-                        }
+					if( event.x.type == ButtonPress || event.x.type == KeyPress ) 
+					{
+						end_time = click_end_time ; 
+						break;
+					}
+						
+                    if( (event.x.type == MapNotify || event.x.type == PropertyNotify )&& event.client )
+                        if( (asw = complex_pattern2ASWindow( pattern )) != NULL ) 
+                            return asw;
                 }
 			}
 			if( time(NULL) > end_time )
@@ -272,8 +284,7 @@ WaitWindowLoop( char *pattern, long timeout )
 			break;
 		afterstep_wait_pipes_input ();
 	}
-	destroy_wild_reg_exp( wrexp );
-    return False;
+    return NULL;
 }
 
 /*************************************************************************
@@ -1284,7 +1295,7 @@ void HandleShmCompletion(ASEvent *event)
 {
 #ifdef XSHMIMAGE
     XShmCompletionEvent  *sev = (XShmCompletionEvent*) &(event->x);
-	LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : offset   %d(%lx)", sev->offset, sev->offset );
+	LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : offset   %ld(%lx)", (long)sev->offset, (unsigned long)(sev->offset) );
 	destroy_xshm_segment( sev->shmseg );
 #endif /* SHAPE */
 }

@@ -535,7 +535,7 @@ void DoAutoexec( Bool restarting )
     if( Scr.screen > 0 )
     {
         sprintf (screen_func_name, restarting?"RestartScreen%ldFunction":"InitScreen%ldFunction", Scr.screen);
-        if( find_complex_func( Scr.Feel.ComplexFunctions, &(screen_func_name[0])) == NULL )
+        if( find_complex_func( Scr.Feel.ComplexFunctions, &(screen_func_name[0])) != NULL )
             func.name = &(screen_func_name[0]);
     }
     ExecuteFunction (&func, &event, -1);

@@ -477,7 +477,7 @@ LOCAL_DEBUG_OUT( "result %d, event %d, window 0x%lX, window_name \"%s\"",
 void
 ExecuteComplexFunction ( ASEvent *event, char *name )
 {
-    ComplexFunction *func ;
+    ComplexFunction *func = NULL;
     int              clicks = 0 ;
     register int     i ;
     Bool             persist = False;
@@ -488,8 +488,15 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
     LOCAL_DEBUG_CALLER_OUT( "event %d, window 0x%lX, asw(%p), window_name \"%s\", function name \"%s\"",
                         event?event->x.type:-1, event?(unsigned long)event->w:0, event->client, event->client?ASWIN_NAME(event->client):"none", name);
 
-    if( (func = get_complex_function( name ) ) == NULL )
-        return ;
+
+	if( name && (name[0] == IMMEDIATE || name[0] == IMMEDIATE_UPPER) )
+		if( name[1] == ':' ) 
+			if( (func = get_complex_function( &(name[2]) ) ) == NULL )
+        		return ;
+	if( func == NULL ) 
+	    if( (func = get_complex_function( name ) ) == NULL )
+			return ;
+
     LOCAL_DEBUG_OUT( "function data found  %p ...\n   proceeding to execution of immidiate items...", func );
     if( event->w == None && event->client != NULL )
         event->w = get_window_frame(event->client);
@@ -1229,7 +1236,12 @@ void gethelp_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void wait_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	WaitWindowLoop( data->text, -1 );
+	char *complex_pattern = data->text ;
+	if( data->name && data->name[1] == ':' ) 
+		complex_pattern = &(data->name[2]);
+	
+	WaitWindowLoop( complex_pattern, -1 );
+	LOCAL_DEBUG_OUT( "Wait completed for \"%s\"", complex_pattern );
 	XSync (dpy, 0);
 }
 

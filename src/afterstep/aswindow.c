@@ -63,10 +63,6 @@ init_aswindow_list()
     list->circulate_list = create_asvector( sizeof(ASWindow*) );
     list->sticky_list = create_asvector( sizeof(ASWindow*) );
 
-//    list->root = safecalloc (0, sizeof (ASWindow ));
-//    list->root->w = Scr.Root ;
-//    add_hash_item( list->clients, (ASHashableValue)Scr.Root, list->root );
-
     Scr.on_dead_window = on_dead_aswindow ;
 
     return list;
@@ -86,12 +82,11 @@ get_res_name_count( ASHashTable *res_name_counts, char *res_name )
 
 	if( res_name == NULL || res_name_counts == NULL )
 		return 0;
-#if 1
-	if( get_hash_item( res_name_counts, AS_HASHABLE(res_name), hdata.vptr ) == ASH_Success )
+	if( get_hash_item( res_name_counts, AS_HASHABLE(res_name), &hdata.vptr ) == ASH_Success )
 	{
 		int val = *(hdata.iptr) ;
 		++val ;
-		//*(hdata.iptr) = val ;
+		*(hdata.iptr) = val ;
 		return val;
 	}else
 	{
@@ -99,14 +94,12 @@ get_res_name_count( ASHashTable *res_name_counts, char *res_name )
 		*(hdata.iptr) = 1 ;
 		add_hash_item( res_name_counts, AS_HASHABLE(mystrdup(res_name)), hdata.vptr );
 	}
-#endif
 	return 1;
 }
 
 Bool
 check_aswindow_name_unique( char *name, ASWindow *asw )
 {
-#if 1
     ASBiDirElem *e = LIST_START(Scr.Windows->clients) ;
     while( e != NULL )
     {
@@ -115,7 +108,6 @@ check_aswindow_name_unique( char *name, ASWindow *asw )
 			return False;
         LIST_GOTO_NEXT(e);
     }
-#endif
 	return True;
 }
 
@@ -145,7 +137,8 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 				 * 4) must not match class or res_name
 				 * 5) Unique
 				 */
-
+				if( name == rname || name == rclass ) 
+					name = NULL ;
 				if(	name )
 				{
 					while( name[i] != '\0' )
@@ -167,7 +160,6 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 								name = NULL ;
 					}
 				}
-
 				if( name == NULL )
 				{
 					app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+1+15+1 );
@@ -194,8 +186,10 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 									asw->status->viewport_x,
 									asw->status->viewport_y,
 									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
-				free( pure_geometry );
-				free( geom );
+				if( pure_geometry ) 
+					free( pure_geometry );
+				if( geom )
+					free( geom );
 				free( app_name );
             }
         return True;
@@ -353,6 +347,7 @@ complex_pattern2ASWindow( char *pattern )
 {
 	ASWindow *asw = NULL ;
 	/* format :   [<res_class>]:[<res_name>]:[[#<seq_no>]|<name>]  */
+	LOCAL_DEBUG_OUT( "looking for window matchng pattern \"%s\"", pattern );
 	if( pattern && pattern[0] )
     {
 		wild_reg_exp *res_class_wrexp = NULL ;
@@ -365,39 +360,47 @@ complex_pattern2ASWindow( char *pattern )
 		int tmp_len = 0;
 
 		ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
+		LOCAL_DEBUG_OUT( "res_class pattern = \"%s\"", tmp );
 		if( tmp[0] )
 		{
 			res_class_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
 			ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
+			LOCAL_DEBUG_OUT( "res_name pattern = \"%s\"", tmp );
 			if( tmp[0] )
 			{
 				res_name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
 				ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
+				LOCAL_DEBUG_OUT( "final pattern = \"%s\"", tmp );
 				if( tmp[0] == '#' && isdigit(tmp[1]) )
+				{
 					res_name_no = atoi( tmp+1 ) ;
-				else
+					LOCAL_DEBUG_OUT( "res_name_no = %d", res_name_no );					
+				}else
 					name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
 			}
 		}
 		free( tmp );
 
-        while( e != NULL && (asw == NULL || res_name_no <= 0 ) )
+        for( ; e != NULL && (asw == NULL || res_name_no > 0 ) ; LIST_GOTO_NEXT(e) )
         {
             ASWindow *curr = (ASWindow*)LISTELEM_DATA(e);
+			LOCAL_DEBUG_OUT( "matching res_class \"%s\"", curr->hints->res_class );
 			if( res_class_wrexp != NULL )
 				if( match_wild_reg_exp( curr->hints->res_class, res_class_wrexp) != 0 )
 					continue;
+			LOCAL_DEBUG_OUT( "matching res_name \"%s\"", curr->hints->res_name );
 			if( res_name_wrexp != NULL )
 				if( match_wild_reg_exp( curr->hints->res_name, res_name_wrexp) != 0 )
 					continue;
+			LOCAL_DEBUG_OUT( "matching name \"%s\"", curr->hints->names[0] );
 			if( name_wrexp != NULL )
 				if( match_wild_reg_exp( curr->hints->names[0], name_wrexp) != 0 &&
 					match_wild_reg_exp( curr->hints->icon_name, name_wrexp) != 0  )
 					continue;
 
+			asw = curr ;
 			--res_name_no ;
-
-			LIST_GOTO_NEXT(e);
+			LOCAL_DEBUG_OUT( "res_name_no = %d, asw = %p", res_name_no, asw  );
         }
 
 		if( res_class_wrexp )

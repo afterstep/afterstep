@@ -35,7 +35,7 @@
 			/* Global configured options */
 			/* ######################### */
 
-#define DEFAULT_WINDOW_WAIT_TIMEOUT		3000  /* mlsec */
+#define DEFAULT_WINDOW_WAIT_TIMEOUT		1000  /* mlsec */
 
 #define	@sgmltools@
 #define VERSION		"@version@"
