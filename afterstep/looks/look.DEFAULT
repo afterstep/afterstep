@@ -174,26 +174,13 @@ MyStyle "*WharfTile"
 	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      InactiveText2
 	BackColor      Inactive2
-	BackGradient   6 Inactive2Dark Inactive2Light
+	BackMultiGradient   6 #10222222 0.0 alpha(30,Inactive2Dark) 0.3 alpha(60,Inactive2Light) 0.5 alpha(90,Active) 0.8 ActiveLight 1.0
 ~MyStyle
 
 #----------WinList MyStyles---------#
 
 MyStyle "*WinListBalloon"
-  Font		-b&h-lucida-medium-r-normal-*-10-*-*-*-p-*-iso8859-1
-  ForeColor	Black
-  BackColor	Wheat
-~MyStyle
-
-MyStyle "*WinList"
-  ForeColor     white
-  BackColor     gray10
-  Font		-b&h-lucida-medium-r-normal-*-*-100-*-*-p-*-iso8859-1
-  TextStyle  2
-  BackPixmap 129 #a8a8a8
-# BackPixmap 128 title.png
-# BackGradient 5 #606060 #d0d0d0
-  MaxColors 10
+	Inherit "TitleButtonBalloon"
 ~MyStyle
 
 #----------Minimized window Button MyStyles---------#

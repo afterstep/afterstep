@@ -201,7 +201,7 @@ main (int argc, char **argv)
     for( i = 0; i< PagerState.desks_num; ++i )
         PagerState.desks[i].desk = PagerState.start_desk+i ;
 
-    ConnectX( &Scr, PropertyChangeMask );
+    ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
     ConnectAfterStep (  M_ADD_WINDOW |
                         M_CONFIGURE_WINDOW |
                         M_DESTROY_WINDOW |
@@ -613,7 +613,7 @@ make_pager_window()
 			break;
 	}
     attr.event_mask = StructureNotifyMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask ;
-    w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 4, InputOutput, CWEventMask, &attr);
+    w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, CWEventMask, &attr);
     set_client_names( w, MyName, MyName, CLASS_PAGER, MyName );
 
     Scr.RootClipArea.x = x;
@@ -2155,6 +2155,10 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
             if( (event->x.xbutton.state&ButtonAnyMask) == (Button1Mask<<(event->x.xbutton.button-Button1)) )
                 release_pressure();
             break;
+        case EnterNotify :
+			if( event->x.xcrossing.window == Scr.Root )
+				withdraw_active_balloon();
+			break;
         case MotionNotify :
             if( (event->x.xbutton.state&Button3Mask) )
                 on_scroll_viewport( event );

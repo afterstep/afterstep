@@ -18,7 +18,7 @@
  *
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 
 #include "../configure.h"
 
@@ -191,7 +191,7 @@ mystyle_get_property (ASWMProps *wmprops)
 		style->gradient.npoints = prop[i + 15];
 /*	  show_warning( "checking if gradient data in style \"%s\": (set flags are : 0x%X)", style->name, style->inherit_flags);
  */
-		if (style->inherit_flags & F_BACKGRADIENT)
+		if (style->gradient.npoints > 0 )
 		{
 			size_t        k;
 
@@ -235,7 +235,7 @@ mystyle_get_property (ASWMProps *wmprops)
 															  AllPlanes, False, 0);
 			}
 		}
-		if (style->back_icon.pix == None && style->texture_type != 129)
+		if (style->back_icon.pix == None && style->texture_type != TEXTURE_TRANSPARENT)
 		{
 			if (style->inherit_flags & F_BACKPIXMAP)
 			{
@@ -250,37 +250,10 @@ mystyle_get_property (ASWMProps *wmprops)
 			}
 		}
 
-		/* set back_icon.image if necessary */
-#if 0
-		if (style->inherit_flags & F_BACKTRANSPIXMAP)
-		{
-			MyStyle      *tmp;
-
-			/* try to find another style with the same pixmap to inherit from */
-			for (tmp = mystyle_first; tmp != NULL; tmp = tmp->next)
-			{
-				if (tmp == style)
-					continue;
-				if ((tmp->set_flags & (F_BACKPIXMAP | F_BACKTRANSPIXMAP)) && style->back_icon.pix == tmp->back_icon.pix)
-				{
-					style->back_icon.image = tmp->back_icon.image;
-					break;
-				}
-			}
-			/* that failed, so create the XImage here */
-			if (tmp == NULL)
-			{
-				style->back_icon.image =
-					pixmap2asimage (Scr.asv, style->back_icon.pix, 0, 0, style->back_icon.width,
-									style->back_icon.height, AllPlanes, False, 100);
-				style->user_flags |= F_BACKTRANSPIXMAP;
-				style->inherit_flags &= ~F_BACKTRANSPIXMAP;
-			}
-		}
-#endif
 		i += 7 + style->gradient.npoints * 4;
 #endif /* NO_TEXTURE */
 		i += 9;
+		LOCAL_DEBUG_OUT( "user_flags = 0x%lX, inherit_flags = 0x%lX", style->user_flags, style->inherit_flags );
 		style->set_flags = style->user_flags | style->inherit_flags;
 	}
 

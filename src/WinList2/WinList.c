@@ -122,7 +122,7 @@ main( int argc, char **argv )
 
     set_signal_handler( SIGSEGV );
 
-    ConnectX( &Scr, PropertyChangeMask );
+    ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
     ConnectAfterStep (M_FOCUS_CHANGE |
                       M_DESTROY_WINDOW |
                       WINDOW_CONFIG_MASK |
@@ -428,6 +428,11 @@ DispatchEvent (ASEvent * event)
                 release_winlist_button( pointer_wd, event->x.xbutton.button );
 			break;
         case EnterNotify :
+			if( event->x.xcrossing.window == Scr.Root )
+			{
+				withdraw_active_balloon();
+				break;
+			}
         case LeaveNotify :
         case MotionNotify :
             if( pointer_wd )
@@ -701,6 +706,8 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
         if( height > max_item_height )
             max_item_height = height ;
     }
+	LOCAL_DEBUG_OUT( "calculated max_item_height = %d", max_item_height );
+
     max_rows = (allowed_max_height + max_item_height - 1 ) / max_item_height ;
     if( max_rows > Config->max_rows )
         max_rows = Config->max_rows ;

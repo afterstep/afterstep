@@ -19,14 +19,12 @@
 *WharfAnimateStepsMain	5
 
 *WharfBalloons
-*WharfBalloonFore	Black
-*WharfBalloonBack	Grey70
-*WharfBalloonFont	-adobe-helvetica-bold-o-*-*-12-*-*-*-*-*-*-*
-#*WharfBalloonBorderWidth 0
-#*WharfBalloonBorderColor Grey30
-#*WharfBalloonDelay	120
-*WharfBalloonYOffset	-5
-*WharfBalloonXOffset	-5
+*WharfBalloonXOffset		10
+*WharfBalloonYOffset		-15
+*WharfBalloonDelay		120
+*WharfBalloonCloseDelay		1200
+*WharfBalloonStyle		"*WharfBalloon"
+*WharfBalloonBorderHilite	Right,Bottom
 
 #------------------------------------------------------------------------
 # Buttons

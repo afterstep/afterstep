@@ -951,6 +951,7 @@ typedef struct WharfButton
 #define WHARF_BUTTON_HEIGHT	  		(0x01<<1)
 #define WHARF_BUTTON_SIZE	  		(WHARF_BUTTON_HEIGHT|WHARF_BUTTON_WIDTH)
 #define WHARF_BUTTON_TRANSIENT		(0x01<<2)
+#define WHARF_BUTTON_DISABLED		(0x01<<3)
 
   unsigned long set_flags;
   char *title;

@@ -78,6 +78,47 @@ get_custom_color(const char* name, CARD32 *color) {
 	return False ;
 }
 
+const char *parse_argb_part( const char *color, int part, CARD32 *pargb )
+{
+	CARD32 new_val = 0x00FF;
+	char buf[4] = "100";
+	register char *ptr = (char*)&(color[0]);
+	register int i = 0;
+	CARD32 old_argb = 0xFF000000 ;
+	const char *tail = color ;
+
+	for( i = 0 ; i < 3 ; ++i )
+	{
+		if( !isdigit(ptr[i]) )
+			break;
+		buf[i] = ptr[i] ;
+	}
+	if( i > 0 )
+		buf[i] = '\0' ;
+
+	new_val = ((atoi( &(buf[0]) ) * 255)/100) &0x000000FF;
+
+	if( ptr[i] == ',' )
+	{
+		++i ;
+		tail = parse_argb_color( &(ptr[i]), &old_argb );
+		if( tail != color )
+		{
+			switch( part )
+			{
+				case 0 : *pargb = (old_argb&0x00FFFFFF)|((new_val<<24)&0xFF000000); break ;
+				case 1 : *pargb = (old_argb&0xFF00FFFF)|((new_val<<16)&0x00FF0000); break ;
+				case 2 : *pargb = (old_argb&0xFFFF00FF)|((new_val<<8)&0x0000FF00); break ;
+				case 3 : *pargb = (old_argb&0xFFFFFF00)|((new_val)&0x000000FF); break ;
+			}
+			if( *tail ==')' )
+				++tail ;
+		}
+	}
+	return tail;
+}
+
+
 const char *parse_argb_dec( const char *color, Bool has_alpha, Bool hsv, CARD32 *pargb )
 {
 	unsigned int dec_val[4] = {0xFF, 0, 0, 0} ;
@@ -89,14 +130,35 @@ const char *parse_argb_dec( const char *color, Bool has_alpha, Bool hsv, CARD32 
 
 	for( k = has_alpha?0:1 ; k < 4 ; ++k )
 	{
-		for( i = 0 ; i < 3 ; ++i )
+		if( !isdigit(ptr[0]) )
 		{
-			if( !isdigit(ptr[i]) )
+			CARD32 tmp_argb = 0xFF000000 ;
+			const char *tmp = parse_argb_color( ptr, &tmp_argb );
+			if( tmp == &(ptr[i]) )
 				break;
-			buf[i] = ptr[i] ;
+			if( k == 0 )
+				dec_val[0] = (((tmp_argb>>24)&0x00FF)*100)>>8;
+			else
+			{   /* cannot translate argb to hsv here :( so handling only argb */
+				switch( k )
+				{
+					case 1 : dec_val[1] = (((tmp_argb>>16)&0x00FF)*100)>>8;   break ;
+					case 2 : dec_val[2] = (((tmp_argb>>8)&0x00FF)*100)>>8;   break ;
+					case 3 : dec_val[3] = (((tmp_argb)&0x00FF)*100)>>8;   break ;
+				}
+			}
+			i = tmp - ptr ;
+		}else
+		{
+			for( i = 0 ; i < 3 ; ++i )
+			{
+				if( !isdigit(ptr[i]) )
+					break;
+				buf[i] = ptr[i] ;
+			}
+			buf[i] = '\0' ;
+			dec_val[k] = atoi( &(buf[0]) );
 		}
-		buf[i] = '\0' ;
-		dec_val[k] = atoi( &(buf[0]) );
 		if( !isdigit(ptr[i]) )
 		{
 			if( ptr[i] != ',' )
@@ -233,12 +295,24 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 		{
 			if( mystrncasecmp( &color[1], "gb(", 3) == 0 )
 				return parse_argb_dec( &color[4], False, False, pargb );
+			else if( mystrncasecmp( &color[1], "ed(", 3) == 0 )
+				return parse_argb_part( &color[4], 1, pargb );
 		}else if( color[0] == 'a' || color[0] == 'A' )
 		{
 			if( mystrncasecmp( &color[1], "hsv(", 4) == 0)
 				return parse_argb_dec( &color[5], True, True, pargb );
 			else if( mystrncasecmp( &color[1], "rgb(", 4) == 0 )
 				return parse_argb_dec( &color[5], True, False, pargb );
+			else if( mystrncasecmp( &color[1], "lpha(", 5) == 0 )
+				return parse_argb_part( &color[6], 0, pargb );
+		}else if( color[0] == 'g' || color[0] == 'G' )
+		{
+			if( mystrncasecmp( &color[1], "reen(", 5) == 0 )
+				return parse_argb_part( &color[6], 2, pargb );
+		}else if( color[0] == 'b' || color[0] == 'B' )
+		{
+			if( mystrncasecmp( &color[1], "lue(", 4) == 0 )
+				return parse_argb_part( &color[5], 3, pargb );
 		}
 
 		/* parsing as named color : */

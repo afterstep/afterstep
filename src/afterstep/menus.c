@@ -45,6 +45,8 @@
 
 static ASMenu *ASTopmostMenu = NULL;
 
+
+ASHints *make_menu_hints( ASMenu *menu );
 /*************************************************************************/
 /* low level ASMenu functionality :                                      */
 /*************************************************************************/
@@ -192,6 +194,9 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
 
     if( item->bar == NULL )
         item->bar = create_astbar();
+	else
+		delete_astbar_tile( item->bar, -1 );  /* delete all tiles */
+
 
     if( item->icon )
     {
@@ -391,6 +396,7 @@ render_asmenu_bars( ASMenu *menu )
             prev_y = bar->win_y ;
         }
         STOP_LONG_DRAW_OPERATION;
+		LOCAL_DEBUG_OUT( "%s menu items rendered!", rendered?"some":"none" );
         if( rendered )
         {
             update_canvas_display( menu->main_canvas );
@@ -432,7 +438,7 @@ extract_recent_subitems( MenuData *md, MenuDataItem **subitems, unsigned int max
 }
 
 void
-set_asmenu_data( ASMenu *menu, MenuData *md )
+set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time )
 {
     int items_num = md->items_num ;
     int i = 0 ;
@@ -517,9 +523,13 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
     }
     menu->items_num = real_items_num ;
     menu->top_item = 0 ;
-    menu->selected_item = 0 ;
-    if( menu->items && menu->items[0].bar )
-        set_astbar_focused( menu->items[0].bar, menu->main_canvas, True );
+	if( first_time )
+	{
+	    menu->selected_item = 0 ;
+    	if( menu->items && menu->items[0].bar )
+        	set_astbar_focused( menu->items[0].bar, menu->main_canvas, True );
+	}else
+		menu->selected_item = -1 ;
     menu->pressed_item = -1;
 }
 
@@ -626,7 +636,8 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
     if( selection != menu->selected_item )
     {
         close_asmenu_submenu( menu );
-        set_astbar_focused( menu->items[menu->selected_item].bar, menu->main_canvas, False );
+		if( menu->selected_item >= 0 )
+        	set_astbar_focused( menu->items[menu->selected_item].bar, menu->main_canvas, False );
     }
     set_astbar_focused( menu->items[selection].bar, menu->main_canvas, True );
     menu->selected_item = selection ;
@@ -663,9 +674,11 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
     menu->top_item = pos ;
     if( menu->selected_item < menu->top_item )
         select_menu_item( menu, menu->top_item );
-    else if( menu->visible_items_num > 0 && menu->selected_item >= menu->top_item + menu->visible_items_num )
+    else if( menu->selected_item >= 0 )
+	{
+		if( menu->visible_items_num > 0 && menu->selected_item >= (int)menu->top_item + (int)menu->visible_items_num )
         select_menu_item( menu, menu->top_item + menu->visible_items_num - 1 );
-
+	}
     render_asmenu_bars(menu);
 }
 
@@ -882,7 +895,19 @@ on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, A
     ASMenu   *menu = (ASMenu*)(asiw->data) ;
     if( menu != NULL && menu->magic == MAGIC_ASMENU )
     {
-        set_asmenu_look( menu, look );
+		ASHints *hints ;
+		int tbar_width ;
+
+        if( menu->items )
+        {
+            register int i = menu->items_num;
+            while ( --i >= 0 )
+                free_asmenu_item( &(menu->items[i]));
+            free( menu->items );
+            menu->items = NULL ;
+			menu->items_num = 0 ;
+        }
+
         if( get_flags( what, FEEL_CONFIG_CHANGED ) )
         {
             MenuData *md = FindPopup (menu->name, False);
@@ -891,10 +916,30 @@ on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, A
                 menu_destroy( asiw );
                 return ;
             }
-            set_asmenu_data( menu, md );
+            set_asmenu_data( menu, md, False );
         }
-        set_asmenu_scroll_position( menu, 0 );
-        render_asmenu_bars(menu);
+        set_asmenu_look( menu, look );
+		hints = make_menu_hints( menu );
+	    tbar_width = estimate_titlebar_size( hints );
+   	    destroy_hints( hints, False );
+
+    	if( tbar_width > MAX_MENU_WIDTH )
+        	tbar_width = MAX_MENU_WIDTH ;
+    	if( tbar_width > menu->optimal_width )
+		{
+			int i = menu->items_num ;
+        	menu->optimal_width = tbar_width ;
+			LOCAL_DEBUG_OUT( "menu_tbar_width = %d - resizing items!", tbar_width );
+	        resize_canvas( menu->main_canvas, tbar_width, menu->optimal_height );
+		    while ( --i >= 0 )
+        		set_astbar_size( menu->items[i].bar, tbar_width, menu->item_height );
+		}
+	    if( menu->items && menu->items[0].bar )
+    	    set_astbar_focused( menu->items[0].bar, menu->main_canvas, False );
+		menu->selected_item = -1 ;
+		set_asmenu_scroll_position( menu, 0 );
+
+//        render_asmenu_bars(menu);
     }
 }
 
@@ -915,33 +960,18 @@ menu_destroy( ASInternalWindow *asiw )
     destroy_asmenu( (ASMenu**)&(asiw->data) );
 }
 
-/*************************************************************************/
-/* End of Menu event handlers:                                           */
-/*************************************************************************/
-void
-show_asmenu( ASMenu *menu, int x, int y )
+ASHints *
+make_menu_hints( ASMenu *menu )
 {
-    ASStatusHints status ;
-    ASHints *hints = safecalloc( 1, sizeof(ASHints) );
-    ASInternalWindow *asiw = safecalloc( 1, sizeof(ASInternalWindow));
-    int gravity = NorthWestGravity ;
-    int tbar_width = 0 ;
-    ASRawHints raw ;
-    static char *ASMenuStyleNames[2] = {"ASMenu",NULL} ;
-    ASDatabaseRecord db_rec;
 
-    asiw->data = (ASMagic*)menu;
+    ASHints *hints = NULL ;
 
-    asiw->register_subwindows = menu_register_subwindows;
-    asiw->on_moveresize = on_menu_moveresize;
-    asiw->on_hilite_changed = on_menu_hilite_changed ;
-    asiw->on_pressure_changed = on_menu_pressure_changed;
-    asiw->on_pointer_event = on_menu_pointer_event;
-    asiw->on_keyboard_event = on_menu_keyboard_event;
-    asiw->on_look_feel_changed = on_menu_look_feel_changed;
-    asiw->destroy = menu_destroy;
+	if( menu == NULL )
+		return NULL ;
 
-    /* normal hints : */
+	hints = safecalloc( 1, sizeof(ASHints) );
+
+	/* normal hints : */
     hints->names[0] = mystrdup(menu->title?menu->title:menu->name);
     hints->names[1] = mystrdup(ASMENU_RES_CLASS);
     /* these are merely shortcuts to the above list DON'T FREE THEM !!! */
@@ -968,7 +998,7 @@ show_asmenu( ASMenu *menu, int x, int y )
     hints->max_height = MIN(MAX_MENU_HEIGHT,menu->items_num*menu->item_height);
     hints->width_inc  = 0 ;
     hints->height_inc = menu->item_height;
-    hints->gravity = gravity ;
+    hints->gravity = NorthWestGravity ;
     hints->border_width = BW ;
     hints->handle_width = BOUNDARY_WIDTH;
 
@@ -981,6 +1011,35 @@ show_asmenu( ASMenu *menu, int x, int y )
 
     hints->min_width  = menu->optimal_width ;
     hints->min_height = menu->item_height ;
+
+	return hints;
+}
+
+/*************************************************************************/
+/* End of Menu event handlers:                                           */
+/*************************************************************************/
+void
+show_asmenu( ASMenu *menu, int x, int y )
+{
+    ASStatusHints status ;
+    ASHints *hints = make_menu_hints( menu );
+	ASInternalWindow *asiw = safecalloc( 1, sizeof(ASInternalWindow));
+    int gravity = NorthWestGravity ;
+    int tbar_width = 0 ;
+    ASRawHints raw ;
+    static char *ASMenuStyleNames[2] = {"ASMenu",NULL} ;
+    ASDatabaseRecord db_rec;
+
+    asiw->data = (ASMagic*)menu;
+
+    asiw->register_subwindows = menu_register_subwindows;
+    asiw->on_moveresize = on_menu_moveresize;
+    asiw->on_hilite_changed = on_menu_hilite_changed ;
+    asiw->on_pressure_changed = on_menu_pressure_changed;
+    asiw->on_pointer_event = on_menu_pointer_event;
+    asiw->on_keyboard_event = on_menu_keyboard_event;
+    asiw->on_look_feel_changed = on_menu_look_feel_changed;
+    asiw->destroy = menu_destroy;
 
     tbar_width = estimate_titlebar_size( hints );
     if( tbar_width > MAX_MENU_WIDTH )
@@ -1086,7 +1145,7 @@ run_submenu( ASMenu *supermenu, MenuData *md, int x, int y )
     if( md )
     {
         menu = create_asmenu(md->name);
-        set_asmenu_data( menu, md );
+        set_asmenu_data( menu, md, True );
         set_asmenu_look( menu, &Scr.Look );
         /* will set scroll position when ConfigureNotify arrives */
         menu->supermenu = supermenu;

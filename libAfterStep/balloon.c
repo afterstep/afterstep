@@ -125,7 +125,20 @@ display_active_balloon()
     if( BalloonState.active != NULL && BalloonState.active_window != None &&
         BalloonState.active_canvas == NULL )
     {
+		int prx, pry ;
+		ASTBarData *tbar = BalloonState.active->owner ;
         while (timer_remove_by_data (BalloonState.active));
+		/* we must check if active_window still has mouse pointer !!! */
+		if( ASQueryPointerRootXY( &prx, &pry ) )
+			if( prx < tbar->root_x && pry < tbar->root_y &&
+				prx >= tbar->root_x + tbar->width && pry >= tbar->root_y + tbar->height )
+			{
+				LOCAL_DEBUG_OUT( "active_geom = %dx%d%+d%+d, pointer at %+d%+d",
+								 tbar->width, tbar->height, tbar->root_x, tbar->root_y, prx, pry );
+				BalloonState.active = NULL ;
+				BalloonState.active_window = None ;
+				return ;
+			}
         BalloonState.active_canvas = create_ascanvas(BalloonState.active_window);
         BalloonState.active_bar = create_astbar();
         add_astbar_label( BalloonState.active_bar, 0, 0, 0, ALIGN_CENTER, BalloonState.active->text, AS_Text_ASCII );
@@ -138,7 +151,7 @@ display_active_balloon()
     }
 }
 
-static void
+void
 withdraw_active_balloon()
 {
     if( BalloonState.active != NULL )

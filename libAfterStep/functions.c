@@ -712,18 +712,29 @@ parse_menu_item_name (MenuDataItem * item, char **name)
 	if (ptr == NULL || item == NULL)
 		return -1;
 
-	for (i = 0; *ptr && *ptr != '\t'; ptr++, i++);
-	if (*ptr == '\0')
+	for (i = 0; ptr[i] && ptr[i] != '\t';  i++);
+
+	if (ptr[i] == '\0')
 	{
-		item->item = *name;					   /* avoid memory allocation as much as possible */
+		item->item = *name;
 		*name = NULL;						   /* that will prevent us from memory deallocation */
 		item->item2 = NULL;
 	} else
 	{
 		item->item = mystrndup (*name, i);
-		ptr++;
-        item->item2 = mystrdup (ptr);
+        item->item2 = mystrdup (&(ptr[i+1]));
 	}
+
+	if( (ptr = item->item) != NULL )
+		for (i = 0; ptr[i] ; i++)
+			if( ptr[i] == '_' )
+				ptr[i] = ' ';
+
+	if( (ptr = item->item2) != NULL )
+		for (i = 0; ptr[i] ; i++)
+			if( ptr[i] == '_' )
+				ptr[i] = ' ';
+
 	return 0;
 }
 

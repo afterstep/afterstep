@@ -577,10 +577,8 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 				for( color = 0 ; color < IC_NUM_CHANNELS ; ++color )
 					if( get_flags( filter, 0x01<<color ) )
 					{
-
-/*fprintf( stderr, __FUNCTION__" :make_component_gradient16( from #%8.8lX to #%8.8lX, ofset = %d, step = %d\n",
-	 	 ARGB32_CHAN8(grad->color[i],color)<<8, ARGB32_CHAN8(grad->color[i+1],color)<<8, offset, step );*/
-
+						LOCAL_DEBUG_OUT("channel %d from #%4.4lX to #%4.4lX, ofset = %d, step = %d",
+	 	 									color, ARGB32_CHAN8(last_color,color)<<8, ARGB32_CHAN8(grad->color[new_idx],color)<<8, offset, step );
 						make_component_gradient16( scl->channels[color]+offset,
 												   ARGB32_CHAN8(last_color,color)<<8,
 												   ARGB32_CHAN8(grad->color[new_idx],color)<<8,

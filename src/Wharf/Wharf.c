@@ -182,7 +182,7 @@ main (int argc, char **argv)
 
     memset( &WharfState, 0x00, sizeof(WharfState));
 
-    ConnectX( &Scr, PropertyChangeMask );
+    ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
     ConnectAfterStep (M_TOGGLE_PAGING |
                     M_NEW_DESKVIEWPORT |
                     M_END_WINDOWLIST |
@@ -559,6 +559,11 @@ DispatchEvent (ASEvent * event)
         case MotionNotify :
             break ;
         case EnterNotify :
+			if( event->x.xcrossing.window == Scr.Root )
+			{
+				withdraw_active_balloon();
+				break;
+			}
         case LeaveNotify :
             {
                 ASMagic *obj = fetch_object( event->w ) ;
@@ -759,7 +764,23 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
     WharfButton *wb = list ;
     while( wb )
     {
-        ++count ;
+		Bool disabled = False ;
+        if( wb->function )
+		{
+			int func = wb->function->func ;
+			if( func == F_EXEC ||
+				(func >=  F_SWALLOW_FUNC_START &&
+				 func <=  F_SWALLOW_FUNC_END ) )
+			{
+			   disabled = (!is_executable_in_path (wb->function->text));
+			}
+		}
+		if( disabled )
+		{
+			set_flags( wb->set_flags, WHARF_BUTTON_DISABLED );
+			show_warning( "Application \"%s\" cannot be found in the PATH. Button will be disabled", wb->function->text );
+		}else
+			++count ;
         wb = wb->next ;
     }
 
@@ -775,6 +796,12 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
         wb = list;
         while( wb )
         {
+			if( get_flags( wb->set_flags, WHARF_BUTTON_DISABLED ) )
+			{
+				wb = wb->next ;
+				continue;
+			}
+
             aswb->name = mystrdup( wb->title );
             if( wb->function )
             {

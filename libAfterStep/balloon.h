@@ -46,6 +46,7 @@ typedef struct ASBalloonState
 
 void balloon_init (int free_resources);
 void withdraw_balloon( ASBalloon *balloon );
+void withdraw_active_balloon();
 void display_balloon( ASBalloon *balloon );
 void set_balloon_look( ASBalloonLook *blook );
 ASBalloon *create_asballoon (struct ASTBarData *owner);

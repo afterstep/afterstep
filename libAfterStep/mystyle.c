@@ -521,7 +521,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 			{
 				 ASImageLayer  layers[2];
 				 ASImage      *scaled_im = NULL;
-				 int           index = 0;
+				 int           index = 1;      /* default is alphablending !!! */
 
 				 init_image_layers (&layers[0], 2);
 
@@ -1153,7 +1153,6 @@ mystyle_parse_member (MyStyle * style, char *str)
                  mystyle_error(style->name, "unable to parse Forecolor \"%s\"", style_arg);
 			 break;
 		 case F_BACKCOLOR:
-			 style->texture_type = 0;
 			 if (parse_argb_color (style_arg, &(style->colors.back)) != style_arg)
 			 {
 				 style->relief.fore = GetHilite (style->colors.back);

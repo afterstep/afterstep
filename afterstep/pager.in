@@ -4,11 +4,12 @@
 
 # Generalities
 Balloons
-BalloonFont		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
-#BalloonBorderWidth	2
-#BalloonBorderColor	Grey30
-#BalloonYOffset		2
-#BalloonDelay		120
+BalloonXOffset		10
+BalloonYOffset		-15
+BalloonDelay		120
+BalloonCloseDelay	3000
+BalloonStyle		"*PagerBalloon"
+BalloonBorderHilite	Right,Bottom
 
 # Pager-executables name specific options
 # That will override font specifyed in look. file styles
@@ -34,7 +35,7 @@ BalloonFont		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
 
 #*PagerDecoration  DeskBorderWidth 1, DeskBorderColor red, NoPageSeparator, GridColor green, NoSelection
 
-*PagerGeometry       -1+19
+*PagerGeometry       -1+27
 
 # PagerStyle is used to define look of Pager's desk window.
 # Relevant look must be defined in your look file or in this file
