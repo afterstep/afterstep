@@ -27,118 +27,12 @@
 #include "screen.h"
 #include "parser.h"
 #include "functions.h"
+#include "freestor.h"
+
 
 /*************************************************************************/
 /* parsing code :
  */
-/*************************************************************************/
-/*The keys must be in lower case! */
-struct charstring win_contexts[] = {
-	{'w', C_WINDOW},
-	{'t', C_TITLE},
-	{'i', C_ICON},
-	{'r', C_ROOT},
-	{'f', C_FRAME},
-	{'s', C_SIDEBAR},
-	{'1', C_L1},
-	{'2', C_R1},
-	{'3', C_L2},
-	{'4', C_R2},
-	{'5', C_L3},
-	{'6', C_R3},
-	{'7', C_L4},
-	{'8', C_R4},
-	{'9', C_L5},
-	{'0', C_R5},
-	{'a', C_WINDOW | C_TITLE | C_ICON | C_ROOT | C_FRAME | C_SIDEBAR |
-	 C_L1 | C_L2 | C_L3 | C_L4 | C_L5 | C_R1 | C_R2 | C_R3 | C_R4 | C_R5},
-	{0, 0}
-};
-
-/* The keys musat be in lower case! */
-struct charstring key_modifiers[] = {
-	{'s', ShiftMask},
-	{'c', ControlMask},
-	{'m', Mod1Mask},
-	{'1', Mod1Mask},
-	{'2', Mod2Mask},
-	{'3', Mod3Mask},
-	{'4', Mod4Mask},
-	{'5', Mod5Mask},
-	{'a', AnyModifier},
-	{'n', 0},
-	{0, 0}
-};
-
-
-/*
- * Turns a  string context of context or modifier values into an array of
- * true/false values (bits)
- * returns pointer to the fisrt character after context specification
- */
-
-char         *
-parse_context (char *string, int *output, struct charstring *table)
-{
-	register int  j;
-	register char *ptr;
-	char          tmp1;
-
-	*output = 0;
-	for (ptr = string; isspace (*ptr); ptr++);
-	for (; *ptr && !isspace (*ptr); ptr++)
-	{
-		/* in some BSD implementations, tolower(c) is not defined
-		 * unless isupper(c) is true */
-		tmp1 = *ptr;
-		if (isupper (tmp1))
-			tmp1 = tolower (tmp1);
-		/* end of ugly BSD patch */
-		for (j = 0; table[j].key != 0; j++)
-			if (tmp1 == table[j].key)
-			{
-				*output |= table[j].value;
-				break;
-			}
-		if (table[j].key == 0)
-		{
-            show_error("undefined context specifyer [%c] encountered in [%s].", *ptr, string);
-		}
-	}
-	return ptr;
-}
-
-int
-parse_modifier( char *tline )
-{
-    int mods = 0;
-    parse_context (tline, &mods, key_modifiers);
-    return mods;
-}
-
-int parse_win_context (char *tline)
-{
-    int ctxs = 0;
-    parse_context (tline, &ctxs, win_contexts);
-    return ctxs;
-}
-
-char *parse_modifier_str( char *tline, int *mods_ret )
-{
-    int mods = 0;
-    tline = parse_context (tline, &mods, key_modifiers);
-    *mods_ret = mods;
-    return tline;
-}
-
-char *parse_win_context_str (char *tline, int *ctxs_ret)
-{
-    int ctxs = 0;
-    tline = parse_context (tline, &ctxs, win_contexts);
-    *ctxs_ret = ctxs ;
-    return tline;
-}
-
 TermDef      *
 txt2fterm (const char *txt, int quiet)
 {

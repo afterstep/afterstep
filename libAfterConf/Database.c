@@ -435,34 +435,6 @@ delete_name_list (name_list ** head)
 		style_delete (*head, head);
 }
 
-unsigned int
-translate_title_button (unsigned int user_button)
-{
-/* translates crazy notion of:
-   TitleButtons : [1] [3] [5] [7] [9] (title) [0] [8] [6] [4] [2]
-   into more sensible : 0 1 2 3 4  (title) 9 8 7 6 5
- */
-	static unsigned int buttons_table[MAX_BUTTONS] = { 9, 0, 5, 1, 6, 2, 7, 3, 8, 4 };
-
-	if (user_button < MAX_BUTTONS)
-		return buttons_table[user_button];
-	return MAX_BUTTONS - 1;
-}
-
-unsigned int
-translate_title_button_back (unsigned int title_button)
-{
-/* reverse translates crazy notion of:
-   TitleButtons : [1] [3] [5] [7] [9] (title) [0] [8] [6] [4] [2]
-   into more sensible : 0 1 2 3 4  (title) 9 8 7 6 5
- */
-	static unsigned int rev_buttons_table[MAX_BUTTONS] = { 1, 3, 5, 7, 9, 2, 4, 6, 8, 0 };
-
-	if (title_button < MAX_BUTTONS)
-		return rev_buttons_table[title_button];
-	return MAX_BUTTONS - 1;
-}
-
 static unsigned long window_style_cross[][2] = { {DATABASE_FocusStyle_ID, BACK_FOCUSED},
 {DATABASE_UnfocusStyle_ID, BACK_UNFOCUSED},
 {DATABASE_StickyStyle_ID, BACK_STICKY},
@@ -517,10 +489,10 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 				 }
 			 break;
 		 case DATABASE_NoButton_ID:
-			 style->off_buttons |= (1 << translate_title_button (item.data.integer));
+             style->off_buttons |= (C_TButton0<< item.data.integer );
 			 break;
 		 case DATABASE_Button_ID:
-			 style->on_buttons |= (1 << translate_title_button (item.data.integer));
+             style->on_buttons |= (C_TButton0 << item.data.integer );
 			 break;
 		 case DATABASE_Layer_ID:
 			 style->layer = item.data.integer;
@@ -690,14 +662,10 @@ WriteSingleStyle (name_list * style, FreeStorageElem ** tail)
 		}
 
 		for (i = 0; i < MAX_BUTTONS; i++)
-			if (style->off_buttons & (1 << i))
-				d_tail =
-					Integer2FreeStorage (&StyleSyntax, d_tail, NULL, translate_title_button_back (i),
-										 DATABASE_NoButton_ID);
-			else if (style->on_buttons & (1 << i))
-				d_tail =
-					Integer2FreeStorage (&StyleSyntax, d_tail, NULL, translate_title_button_back (i),
-										 DATABASE_Button_ID);
+            if (style->off_buttons & (C_TButton0 << i))
+                d_tail = Integer2FreeStorage (&StyleSyntax, d_tail, NULL, i, DATABASE_NoButton_ID);
+            else if (style->on_buttons & (C_TButton0 << i))
+                d_tail = Integer2FreeStorage (&StyleSyntax, d_tail, NULL, i, DATABASE_Button_ID);
 
 		if (get_flags (style->set_flags, STYLE_DEFAULT_GEOMETRY))
 			d_tail =

@@ -58,6 +58,11 @@ StorageStack;
 
 void init_asgeometry (ASGeometry * geometry);
 
+int parse_modifier( char *tline );
+int parse_win_context (char *tline);
+char *parse_modifier_str( char *tline, int *mods_ret );
+char *parse_win_context_str (char *tline, int *ctxs_ret);
+
 /* pelem must be preinitialized with pointer to particular term */
 void args2FreeStorage (FreeStorageElem * pelem, char *data, int data_len);
 

@@ -203,22 +203,21 @@ FrameSide;
 #define C_IconButton    (0x01<<11)
 #define C_ICON          (C_IconButton|C_IconTitle)
 #define C_ROOT          (0x01<<12)
-#define C_L1            (0x01<<13)
-#define C_L2            (0x01<<14)
-#define C_L3            (0x01<<15)
-#define C_L4            (0x01<<16)
-#define C_L5            (0x01<<17)
-#define C_R1            (0x01<<18)
-#define C_R2            (0x01<<19)
-#define C_R3            (0x01<<20)
-#define C_R4            (0x01<<21)
-#define C_R5            (0x01<<22)
-#define C_RALL			(C_R1|C_R2|C_R3|C_R4|C_R5)
-#define C_LALL			(C_L1|C_L2|C_L3|C_L4|C_L5)
-#define C_ALL			(C_WINDOW|C_TITLE|C_ICON|C_ROOT|C_FRAME|\
-				 C_SIDEBAR|C_L1|C_L2|C_L3|C_L4|C_L5|\
-				 C_R1|C_R2|C_R3|C_R4|C_R5)
+#define C_TButton0      (0x01<<13)
+#define C_TButton1      (0x01<<14)
+#define C_TButton2      (0x01<<15)
+#define C_TButton3      (0x01<<16)
+#define C_TButton4      (0x01<<17)
+#define C_TButton5      (0x01<<18)
+#define C_TButton6      (0x01<<19)
+#define C_TButton7      (0x01<<20)
+#define C_TButton8      (0x01<<21)
+#define C_TButton9      (0x01<<22)
+#define C_TButtonAll    (C_TButton0|C_TButton1|C_TButton2|C_TButton3|C_TButton4| \
+                         C_TButton5|C_TButton6|C_TButton7|C_TButton8|C_TButton9)
+#define C_ALL           (C_WINDOW|C_TITLE|C_ICON|C_ROOT|C_FRAME|C_SIDEBAR|C_TButtonAll)
 
+#define TITLE_BUTTONS       10
 
 /* possible flags to identify which tasks needs to be done on
    frame decorations/handles */
@@ -366,13 +365,6 @@ struct ASTBarData;
 #define AS_ICON_TITLE_MYSTYLE			"ButtonTitleFocus"
 #define AS_ICON_TITLE_STICKY_MYSTYLE	"ButtonTitleSticky"
 #define AS_ICON_TITLE_UNFOCUS_MYSTYLE	"ButtonTitleUnfocus"
-
-#define TITLE_BUTTONS		10
-#define TITLE_BUTTONS_PERSIDE 5
-#define FIRST_RIGHT_TBTN    TITLE_BUTTONS_PERSIDE
-#define IsLeftButton(b) 	((b)<FIRST_RIGHT_TBTN)
-#define IsRightButton(b) 	((b)>=FIRST_RIGHT_TBTN)
-#define RightButtonIdx(b) 	((b)-FIRST_RIGHT_TBTN)
 
 
 

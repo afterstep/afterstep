@@ -231,7 +231,14 @@ typedef struct MyLook
 
     struct icon_t *MenuArrow;
 
-    MyButton    buttons[TITLE_BUTTONS];
+    /* here buttons are mentioned in the same order they are in look and feel file */
+    MyButton     buttons[TITLE_BUTTONS];
+    /* thes is compiled set of pointers to above buttons : */
+    unsigned int button_xref[TITLE_BUTTONS];   /* translates button numbering in look and feel into indexes in array */
+    MyButton    *ordered_buttons[TITLE_BUTTONS];
+#define DEFAULT_FIRST_RIGHT_BUTTON  5
+    unsigned int button_first_right ;          /* index of pointer to the first right button in the above array */
+
 
     /* Menu parameters */
 #define DRAW_MENU_BORDERS_NONE          0

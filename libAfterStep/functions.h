@@ -208,10 +208,6 @@ struct ASEvent;
 
 typedef void (*as_function_handler)(struct FunctionData *data, struct ASEvent *event, int module);
 
-int parse_modifier( char *tline );
-int parse_win_context (char *tline);
-char *parse_modifier_str( char *tline, int *mods_ret );
-char *parse_win_context_str (char *tline, int *ctxs_ret);
 struct TermDef *txt2fterm (const char *txt, int quiet);
 struct TermDef *func2fterm (FunctionCode func, int quiet);
 int txt2func (const char *text, FunctionData * fdata, int quiet);

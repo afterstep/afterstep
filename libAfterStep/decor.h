@@ -262,9 +262,8 @@ int make_tile_pad( Bool pad_before, Bool pad_after, int cell_size, int tile_size
 
 int add_astbar_spacer( ASTBarData *tbar, unsigned char col, unsigned char row, int flip, int align, unsigned short width, unsigned short height);
 int add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align,
-                     struct button_t *from_list, ASFlagType mask, unsigned int count,
-                     int left_margin, int top_margin, int spacing, int order,
-                     unsigned long context_base);
+                         struct button_t **from_list, ASFlagType context_mask, unsigned int count,
+                         int left_margin, int top_margin, int spacing, int order);
 int add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, struct ASImage *icon);
 int add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, const char *text);
 Bool delete_astbar_tile( ASTBarData *tbar, int idx );

@@ -856,26 +856,27 @@ free_asbtn_block( ASTile* tile )
 
 static void
 build_btn_block( ASTile *tile,
-                 struct button_t *from_list, ASFlagType mask, unsigned int count,
-                 int left_margin, int top_margin, int spacing, int order,
-                 unsigned long context_base )
+                 struct button_t **from_list, ASFlagType context_mask, unsigned int count,
+                 int left_margin, int top_margin, int spacing, int order )
 {
 
     unsigned int real_count = 0 ;
     unsigned short max_width = 0, max_height = 0 ;
     register int i = count ;
     ASBtnBlock *blk = &(tile->data.bblock) ;
-    LOCAL_DEBUG_CALLER_OUT( "lm(%d),tm(%d),sp(%d),or(%d),cb(%lX)", left_margin, top_margin, spacing, order, context_base );
+    LOCAL_DEBUG_CALLER_OUT( "lm(%d),tm(%d),sp(%d),or(%d)", left_margin, top_margin, spacing, order );
     if( count > 0 )
         if( !AS_ASSERT( from_list ) )
             while( --i >= 0 )
-                if( (mask&(0x01<<i)) != 0 && (from_list[i].unpressed.image || from_list[i].pressed.image))
+                if( from_list[i] != NULL &&
+                    (context_mask&from_list[i]->context) != 0 &&
+                    (from_list[i]->unpressed.image || from_list[i]->pressed.image))
                 {
                     ++real_count ;
-                    if( from_list[i].width > max_width )
-                        max_width = from_list[i].width ;
-                    if( from_list[i].height > max_height )
-                        max_height = from_list[i].height ;
+                    if( from_list[i]->width > max_width )
+                        max_width = from_list[i]->width ;
+                    if( from_list[i]->height > max_height )
+                        max_height = from_list[i]->height ;
                 }
     if( real_count > 0 )
     {
@@ -887,10 +888,12 @@ build_btn_block( ASTile *tile,
         i = count-1 ;
         while( i >= 0 && k >= 0 )
         {
-            if( (mask&(0x01<<i)) != 0 && (from_list[i].unpressed.image || from_list[i].pressed.image))
+            if( from_list[i] != NULL &&
+                ( context_mask&from_list[i]->context) != 0 &&
+                (from_list[i]->unpressed.image || from_list[i]->pressed.image))
             {
-                set_tbtn_images( &(blk->buttons[k]), &(from_list[i]) );
-                blk->buttons[k].context = context_base<<i ;
+                set_tbtn_images( &(blk->buttons[k]), from_list[i] );
+                blk->buttons[k].context = from_list[i]->context ;
                 --k ;
             }
             --i ;
@@ -954,6 +957,10 @@ build_btn_block( ASTile *tile,
                     blk->buttons[k].x += tile->width ;
         }
 LOCAL_DEBUG_OUT( "real_count=%d", real_count );
+    }else
+    {
+        tile->width = 1 ;
+        tile->height = 1 ;
     }
     ASSetTileSublayers(*tile,real_count);
 }
@@ -1063,8 +1070,16 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
     layer->im = im;
     layer->dst_x = tile->x;
     layer->dst_y = tile->y ;
-    layer->clip_width  = ASTileHResizeable(*tile)?max_width:layer->im->width ;
-    layer->clip_height = ASTileVResizeable(*tile)?max_height:layer->im->height ;
+    if( ASTileHResizeable(*tile) )
+        layer->clip_width  = max_width ;
+    else
+        layer->clip_width  = layer->im->width ;
+
+    if( ASTileVResizeable(*tile) )
+        layer->clip_height = max_height ;
+    else
+        layer->clip_height = layer->im->height ;
+
     return 1;
 }
 /********************************************************************/
@@ -1145,13 +1160,15 @@ set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImag
     layer->dst_y = tile->y ;
     if( layer->im->width < max_width )
     {
-        layer->dst_x += make_tile_pad( get_flags(tile->flags, AS_TilePadLeft), get_flags(tile->flags, AS_TilePadRight), max_width, layer->im->width );
+        if( layer->im->width < tile->width )
+            layer->dst_x += make_tile_pad( get_flags(tile->flags, AS_TilePadLeft), get_flags(tile->flags, AS_TilePadRight), tile->width, layer->im->width );
         layer->clip_width  = layer->im->width ;
     }else
         layer->clip_width  = max_width ;
     if( layer->im->height < max_height )
     {
-        layer->dst_y += make_tile_pad( get_flags(tile->flags, AS_TilePadTop), get_flags(tile->flags, AS_TilePadBottom), max_height, layer->im->height );
+        if( layer->im->height < tile->height )
+            layer->dst_y += make_tile_pad( get_flags(tile->flags, AS_TilePadTop), get_flags(tile->flags, AS_TilePadBottom), tile->height, layer->im->height );
         layer->clip_height  = layer->im->height ;
     }else
         layer->clip_height  = max_height ;
@@ -1550,15 +1567,14 @@ add_astbar_spacer( ASTBarData *tbar, unsigned char col, unsigned char row, int f
 
 int
 add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align,
-                     struct button_t *from_list, ASFlagType mask, unsigned int count,
-                     int left_margin, int top_margin, int spacing, int order,
-                     unsigned long context_base)
+                     struct button_t **from_list, ASFlagType context_mask, unsigned int count,
+                     int left_margin, int top_margin, int spacing, int order)
 {
     if( tbar )
     {
         ASTile *tile = add_astbar_tile( tbar, AS_TileBtnBlock, col, row, flip, align );
-        build_btn_block( tile, from_list, mask, count, left_margin, top_margin,
-                         spacing, order, context_base );
+        build_btn_block( tile, from_list, context_mask, count, left_margin, top_margin,
+                         spacing, order );
         return tbar->tiles_num-1;
     }
     return -1;
@@ -1976,6 +1992,12 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
         if( row_height[l] > 0 )
             y += row_height[l]+tbar->v_spacing ;
     }
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    for( l = 0 ; l < AS_TileColumns ; ++l )
+        show_progress("\tcolumn[%d] = %d%+d", l, col_width[l], col_x[l]);
+    for( l = 0 ; l < AS_TileRows ; ++l )
+        show_progress("\trow[%d] = x%d%+d", l, row_height[l], row_y[l]);
+#endif
     /* Done with layout */
 
     layers = create_image_layers (good_layers+1);

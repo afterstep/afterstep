@@ -29,7 +29,13 @@
 #include "balloon.h"
 #include "../libAfterImage/afterimage.h"
 
-int    _as_frame_corner_xref[FRAME_SIDES+1] = {FR_NW, FR_NE, FR_SE, FR_SW, FR_NW};
+int _as_frame_corner_xref[FRAME_SIDES+1] = {FR_NW, FR_NE, FR_SE, FR_SW, FR_NW};
+
+unsigned int _as_default_button_xref[TITLE_BUTTONS] =
+    { C_TButton1, C_TButton3, C_TButton5, C_TButton7, C_TButton9,
+      C_TButton0, C_TButton8, C_TButton6, C_TButton4, C_TButton2 };
+
+
 
 /* TODO: fix MyLook loading to store everything in ARGB and thus be multiscreen
  * compatible */
@@ -192,7 +198,12 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
         look->TitleButtonSpacing = 2;
         look->TitleButtonStyle = 0;
         for (i = 0; i < TITLE_BUTTONS; i++)
+        {
             memset(&(look->buttons[i]), 0x00, sizeof(MyButton));
+            look->button_xref[i] = _as_default_button_xref[i] ;
+            look->ordered_buttons[i] = NULL ;
+        }
+        look->button_first_right = DEFAULT_FIRST_RIGHT_BUTTON ;
     }
 
 	if (get_flags (what_flags, LL_Layouts))

@@ -433,7 +433,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
             width = new_val1;
             height = new_val2;
         }
-        moveresize_aswindow_wm( asw, x, y, width, height );
+        moveresize_aswindow_wm( asw, x, y, width, height, False );
     }else
     {
         ASMoveResizeData *mvrdata;

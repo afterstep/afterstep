@@ -1451,20 +1451,9 @@ ParseLookOptions (const char *filename, char *myname)
 			 case LOOK_TitleButton_ID:
 				 if (item.data.button != NULL)
 				 {
-				     int btn_num = translate_title_button(item.index);
-                     if (config->normal_buttons[btn_num])
-                         destroy_asbutton (config->normal_buttons[btn_num], False);
-					 config->normal_buttons[btn_num] = item.data.button;
-				 } else
-					 item.ok_to_free = 1;
-				 break;
-             case LOOK_IconTitleButton_ID:
-				 if (item.data.button != NULL)
-				 {
-				     int btn_num = translate_title_button(item.index);
-                     if (config->icon_buttons[btn_num])
-                         destroy_asbutton (config->icon_buttons[btn_num], False);
-                     config->icon_buttons[btn_num] = item.data.button;
+                     if (config->normal_buttons[item.index])
+                         destroy_asbutton (config->normal_buttons[item.index], False);
+                     config->normal_buttons[item.index] = item.data.button;
 				 } else
 					 item.ok_to_free = 1;
 				 break;

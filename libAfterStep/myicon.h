@@ -36,6 +36,7 @@ typedef struct button_t
     MyIcon pressed;		    /* icon to draw when button is pressed */
 /*    Bool is_pressed;         is the button pressed? */
 	unsigned int width, height ;
+    int context ;
 }button_t;
 
 typedef button_t MyButton ;

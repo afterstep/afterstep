@@ -106,11 +106,11 @@ LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.
     if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
         moveresize_aswindow_wm( asw,
                                 data->curr.x, data->curr.y,
-                                asw->status->width, asw->status->height);
+                                asw->status->width, asw->status->height, False);
     else
         moveresize_aswindow_wm( asw,
                                 data->curr.x, data->curr.y,
-                                data->curr.width, data->curr.height);
+                                data->curr.width, data->curr.height, False);
 }
 
 
@@ -122,12 +122,12 @@ void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
 	{
 SHOW_CHECKPOINT;
         LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->start.x, data->start.y);
-        moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height );
+        moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height, False );
 	}else
 	{
 SHOW_CHECKPOINT;
         LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
-        moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height );
+        moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height, False );
 	}
     ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
     SendConfigureNotify(asw);

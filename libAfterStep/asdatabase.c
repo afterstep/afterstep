@@ -51,7 +51,7 @@ make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord 
 		db_rec->flags = nl->flags;
 		/* TODO: implement set_buttons/buttons in name_list as well */
 		db_rec->set_buttons = nl->on_buttons | nl->off_buttons;
-		db_rec->buttons = nl->on_buttons;
+        db_rec->buttons = nl->on_buttons;
 
 		if (db_rec->set_buttons != 0)
 			set_flags (db_rec->set_flags, STYLE_BUTTONS);

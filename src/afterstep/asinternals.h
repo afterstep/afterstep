@@ -91,8 +91,8 @@ typedef struct ASWindow
      * canvases represent factual geometry/state of the window
      */
 	struct ASStatusHints *status;
-	struct ASStatusHints *saved_status; /* status prior to maximization */
     XRectangle            anchor ;
+    XRectangle            saved_anchor; /* status prior to maximization */
 
     struct ASWindow      *transient_owner,  *group_lead ;
     struct ASVector      *transients,       *group_members ;
@@ -233,6 +233,47 @@ typedef struct ASWindowList
      */
 }ASWindowList;
 
+/* Mirror Note :
+ *
+ * For the purpose of sizing/placing left and right sides and corners - we employ somewhat
+ * twisted logic - we mirror sides over lt2rb diagonal in case of
+ * vertical title orientation. That allows us to apply simple x/y switching instead of complex
+ * calculations. Note that we only do that for placement purposes. Contexts and images are
+ * still taken from MyFrame parts as if it was rotated counterclockwise instead of mirrored.
+ */
+
+
+typedef struct ASOrientation
+{
+    unsigned int frame_contexts[FRAME_PARTS];
+    unsigned int frame_rotation[FRAME_PARTS];
+    unsigned int tbar2canvas_xref[FRAME_PARTS+1];
+    unsigned int tbar_side;
+    unsigned int tbar_corners[2];
+    unsigned int tbar_mirror_corners[2];               /* see note below */
+    unsigned int sbar_side;
+    unsigned int sbar_corners[2];
+    unsigned int sbar_mirror_corners[2];               /* see note below */
+    unsigned int left_side, right_side;
+    unsigned int left_mirror_side, right_mirror_side;  /* see note below */
+    unsigned long horz_side_mask;
+    int left_btn_order, right_btn_order;
+    int *in_x, *in_y;
+    unsigned int *in_width, *in_height;
+    int *out_x, *out_y;
+    unsigned int *out_width, *out_height;
+    int flip;
+#define ASO_TBAR_ELEM_LBTN      0
+#define ASO_TBAR_ELEM_LSPACER   1
+#define ASO_TBAR_ELEM_LBL       2
+#define ASO_TBAR_ELEM_RSPACER   3
+#define ASO_TBAR_ELEM_RBTN      4
+#define ASO_TBAR_ELEM_NUM       5
+    unsigned int default_tbar_elem_col[ASO_TBAR_ELEM_NUM];
+    unsigned int default_tbar_elem_row[ASO_TBAR_ELEM_NUM];
+    ASFlagType left_spacer_needed_align ;
+    ASFlagType right_spacer_needed_align ;
+}ASOrientation;
 
 
 typedef struct queue_buff_struct
@@ -324,6 +365,12 @@ extern int    menuFromFrameOrWindowOrTitlebar;
 
 #define BACKGROUND_DRAW_CHILD   (MAX_SINGLETONS_NUM-1)
 
+
+
+extern ASOrientation HorzOrientation ;
+extern ASOrientation VertOrientation ;
+
+
 /**************************************************************************/
 /**************************************************************************/
 /* Function prototypes :                                                  */
@@ -392,7 +439,7 @@ Bool activate_aswindow( ASWindow *asw, Bool force, Bool deiconify );
 void press_aswindow( ASWindow *asw, int context );
 void release_pressure();
 
-void moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height );
+void moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height, Bool save_anchor );
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
 void update_window_transparency( ASWindow *asw );
@@ -460,6 +507,9 @@ void InitFeel (struct ASFeel *feel, Bool free_resources);
 
 void LoadASConfig (int thisdesktop, ASFlagType what);
 /*************************** decorations.c ********************************/
+inline ASOrientation* get_orientation_data( ASWindow *asw );
+void grab_aswindow_buttons( ASWindow *asw, Bool focused );
+
 int check_allowed_function2 (int func, ASHints *hints);
 int check_allowed_function (FunctionData *fdata, ASHints *hints);
 ASFlagType compile_titlebuttons_mask (ASHints *hints);

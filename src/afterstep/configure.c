@@ -100,6 +100,7 @@ void          SetTitleText          (char *tline, FILE * fd, char **junk, int *j
 void          SetTitleButton        (char *tline, FILE * fd, char **junk, int *junk2);
 void          SetFramePart          (char *text, FILE * fd, char **frame, int *id);
 void          SetModifier           (char *text, FILE * fd, char **mod, int *junk2);
+void          SetTButtonOrder       (char *text, FILE * fd, char **mod, int *junk2);
 
 void          assign_string         (char *text, FILE * fd, char **arg, int *idx);
 void          assign_quoted_string  (char *text, FILE * fd, char **arg, int *junk);
@@ -262,6 +263,7 @@ struct config main_config[] = {
     {"TitleTextAlign", SetInts, (char **)&Scr.Look.TitleTextAlign, &dummy},
     {"TitleButtonSpacing", SetInts, (char **)&Scr.Look.TitleButtonSpacing, (int *)&dummy},
     {"TitleButtonStyle", SetInts, (char **)&Scr.Look.TitleButtonStyle, (int *)&dummy},
+    {"TitleButtonOrder", SetTButtonOrder, (char **)&(Scr.Look.button_xref[0]), (int*)&(Scr.Look.button_first_right)},
     {"TitleTextMode", SetTitleText, (char **)1, (int *)0},
     {"ResizeMoveGeometry", assign_geometry, (char**)&Scr.Look.resize_move_geometry, (int *)0},
     {"StartMenuSortMode", SetInts, (char **)&Scr.Look.StartMenuSortMode, (int *)&dummy},
@@ -833,6 +835,7 @@ void
 FixLook( MyLook *look )
 {
     ASFlagType default_title_align = ALIGN_LEFT ;
+    int i ;
     /* make sure all needed styles are created */
     make_styles (look);
     /* merge pre-1.5 compatibility keywords */
@@ -864,7 +867,7 @@ FixLook( MyLook *look )
         for( fd = MyFrameList ; fd != NULL ; fd = fd->next )
         {
             LOCAL_DEBUG_OUT( "processing MyFrameDefinition %p", fd );
-            frame = add_myframe_from_def( look->FramesList, fd, default_title_align );
+            frame = add_myframe_from_def( look->FramesList, fd, default_title_align|ALIGN_VCENTER );
             myframe_load ( frame, Scr.image_manager );
         }
         DestroyMyFrameDefinitions (&MyFrameList);
@@ -878,7 +881,7 @@ FixLook( MyLook *look )
     }
 #endif /* ! NO_TEXTURE */
     if( look->DefaultFrame == NULL )
-        look->DefaultFrame = create_default_myframe(default_title_align);
+        look->DefaultFrame = create_default_myframe(default_title_align|ALIGN_VCENTER);
 
     if (MenuPinOn != NULL)
     {
@@ -895,12 +898,41 @@ FixLook( MyLook *look )
                 static char binding[128];
                 Scr.Look.buttons[i].width = Scr.Look.buttons[i].unpressed.image->width ;
                 Scr.Look.buttons[i].height = Scr.Look.buttons[i].unpressed.image->height ;
-                sprintf( binding, "1 %d A PinMenu\n", translate_title_button_back (i));
+                sprintf( binding, "1 %d A PinMenu\n", i );
                 /* also need to add mouse binding for this one */
                 ParseMouseEntry (binding, NULL, NULL, NULL);
             }
         }
         show_warning( "MenuPinOn setting is depreciated - instead add a Title button and bind PinMenu function to it." );
+    }
+
+    /* checking that all the buttons have assigned slots in the button xref : */
+    for( i = 0 ; i < TITLE_BUTTONS ; ++i )
+    {
+        if( Scr.Look.buttons[i].unpressed.image != NULL )
+        {
+            int context = C_TButton0<<i ;
+            register int k ;
+            if( Scr.Look.buttons[i].context == C_NO_CONTEXT )
+                Scr.Look.buttons[i].context = context ;
+            context = Scr.Look.buttons[i].context ;
+            for( k = 0 ; k < TITLE_BUTTONS ; ++k )
+                if( Scr.Look.button_xref[k] == context )
+                    break;
+            if( k == TITLE_BUTTONS )
+            {
+                while( --k >= 0 )
+                    if( Scr.Look.button_xref[k] == C_NO_CONTEXT )
+                    {
+                        Scr.Look.button_xref[k] =context ;
+                        break;
+                    }
+            }
+            if( k >= 0 && k < TITLE_BUTTONS )
+                Scr.Look.ordered_buttons[k] = &(Scr.Look.buttons[i]) ;
+            else
+                show_warning( "there is no slot on the titlebar to place button %d into. Check yout TitleButtonOrder setting.", i );
+        }
     }
 
     /* updating balloons look */
@@ -1346,16 +1378,14 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 
     if ((n = sscanf (tline, "%d", &num)) <= 0)
 	{
-		fprintf (stderr, "wrong number of parameters given with TitleButton\n");
+        show_error("wrong number of parameters given with TitleButton");
 		return;
 	}
-	if (num < 0 || num > 9)
+    if (num < 0 || num >= TITLE_BUTTONS)
 	{
-		fprintf (stderr, "invalid Titlebar button number: %d\n", num);
+        show_error("invalid Titlebar button number: %d", num);
 		return;
 	}
-
-	num = translate_title_button(num);
 
     /* going the hard way to prevent buffer overruns */
     while (isspace (tline[offset]))   offset++;
@@ -1612,6 +1642,56 @@ SetModifier (char *text, FILE * fd, char **mod, int *junk2)
     if( pmod )
         *pmod = parse_modifier( text );
 }
+
+void
+SetTButtonOrder(char *text, FILE * fd, char **pxref, int *prbtn)
+{
+    unsigned int *xref = (unsigned int*)pxref ;
+    unsigned int *rbtn = (unsigned int*)prbtn ;
+    if( xref && rbtn )
+    {
+        register int i = 0, btn = 0;
+        *rbtn = TITLE_BUTTONS ;
+        while( !isspace(text[i]) && text[i] != '\0' )
+        {
+            int context = C_NO_CONTEXT ;
+            switch(text[i])
+            {
+                case '0' : context = C_TButton0;  break ;
+                case '1' : context = C_TButton1;  break ;
+                case '2' : context = C_TButton2;  break ;
+                case '3' : context = C_TButton3;  break ;
+                case '4' : context = C_TButton4;  break ;
+                case '5' : context = C_TButton5;  break ;
+                case '6' : context = C_TButton6;  break ;
+                case '7' : context = C_TButton7;  break ;
+                case '8' : context = C_TButton8;  break ;
+                case '9' : context = C_TButton9;  break ;
+                case 'T' :
+                case 't' : context = C_TITLE ; break;
+                default:
+                    show_warning("invalid context specifier '%c' in TitleButtonOrder setting", text[i] );
+            }
+            if( context == C_TITLE )
+            {
+                *rbtn = btn ;
+            }else if( context != C_NO_CONTEXT )
+            {
+                xref[btn] = context ;
+
+                if( ++btn >= TITLE_BUTTONS )
+                    break;
+            }
+            ++i;
+        }
+        while( btn < TITLE_BUTTONS )
+        {
+            xref[btn] = C_NO_CONTEXT ;
+            ++btn ;
+        }
+    }
+}
+
 
 /****************************************************************************
  *
