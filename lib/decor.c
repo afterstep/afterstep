@@ -1874,7 +1874,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
         }
     }
 
-#ifdef LOCAL_DEBUG
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     show_progress("MERGING TBAR %p image %dx%d FROM:",
                   tbar, tbar->width, tbar->height );
     print_astbar_tiles(tbar);
