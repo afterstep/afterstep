@@ -135,12 +135,58 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags 
 	return new_block+1;
 }
 
+#define AS_STORAGE_GetNextSlot(slot) ((ASStorageSlot*)(((void*)((slot)+1))+(slot)->size))
+
+void 
+join_storage_slots( ASStorageBlock *block, ASStorageSlot *from_slot, ASStorageSlot *to_slot )
+{
+	ASStorageSlot *s = AS_STORAGE_GetNextSlot(from_slot);
+	
+	do
+	{
+		from_slot->size += s->size ;	
+	
+	}while( s != to_slot );	
+}
+
+
 ASStorageSlot *
 select_storage_slot( ASStorageBlock *block, int size )
 {
-	ASStorageSlot *slot = NULL ;
-	/* TODO : */
-	return slot;		   
+	int i = block->first_free;
+	int batch_no = AS_STORAGE_Index2Batch(i); 
+	ASStorageSlot **batch = block->slots[batch_no] ;
+	i = AS_STORAGE_Index2BatchIdx(i);
+	while( batch != NULL )
+	{
+		while( i < AS_STORAGE_SLOTS_BATCH )
+		{
+			ASStorageSlot *slot = batch[i] ;
+			if( slot != 0 )
+			{
+				int size_to_match = size ;
+				while( slot->flags == 0 )
+				{
+					if( slot->size >= size )
+						return slot;
+					if( slot->size >= size_to_match )
+					{
+						join_storage_slots( block, batch[i]->index, slot->index );
+						return batch[i];
+					}	
+					size_to_match -= slot->size ;
+					slot = AS_STORAGE_GetNextSlot(slot);											
+				}			
+			}
+			++i ;
+		}
+		
+		if( ++batch_no < AS_STORAGE_SLOTS_BATCH_CNT ) 
+			break ;
+		batch = block->slots[batch_no];
+		i = 0;
+	}
+	return NULL;		   
 }
 
 Bool

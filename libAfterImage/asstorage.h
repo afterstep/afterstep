@@ -8,6 +8,8 @@
  */
 #define AS_STORAGE_SLOTS_BATCH		1024  /* so that batch of pointer occupies 1 page  */ 
 #define AS_STORAGE_SLOTS_BATCH_CNT	16
+#define AS_STORAGE_Index2Batch(i)   (((i)>>10)&0x0F)
+#define AS_STORAGE_Index2BatchIdx(i)   ((i)&0x03FF)
 #define AS_STORAGE_SLOT_ID_BITS		14  /* 32*512 == 2^14 */ 
 #define AS_STORAGE_MAX_SLOTS_CNT	(0x01<<AS_STORAGE_SLOT_ID_BITS)
 
