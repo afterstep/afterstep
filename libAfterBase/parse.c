@@ -32,6 +32,11 @@
 # endif
 #endif
 #endif
+
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "astypes.h"
 #include "ashash.h"
 #include "mystring.h"
@@ -40,10 +45,6 @@
 #include "parse.h"
 #include "audit.h"
 #include "output.h"
-
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
 
 /****************************************************************************
  * parse_argb_color - should be used for all your color parsing needs

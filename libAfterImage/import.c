@@ -273,7 +273,7 @@ get_asimage_list( ASVisual *asv, const char *dir,
 	ASImageListEntry *im_list = NULL ;
 	ASImageListEntry **curr = &im_list, *last = NULL ;
 	struct direntry  **list;
-	int           i, n;
+	int n, i, count = 0;
 	int dir_name_len ;
 
 
@@ -291,16 +291,18 @@ get_asimage_list( ASVisual *asv, const char *dir,
 				ASImageFileTypes file_type ;
 				char *realfilename ;
 
-				realfilename = safemalloc( dir_name_len + 1 + strlen(list[i]->d_name));
+				realfilename = safemalloc( dir_name_len + 1 + strlen(list[i]->d_name)+1);
 				sprintf( realfilename, "%s/%s", dir, list[i]->d_name );
 				file_type = check_image_type( realfilename );
 				if( file_type != ASIT_Unknown && as_image_file_loaders[file_type] == NULL )
 					file_type = ASIT_Unknown ;
 
+				++count ;
 				*curr = safecalloc( 1, sizeof(ASImageListEntry) );
 				if( last )
 					last->next = *curr ;
 				last = *curr ;
+				curr = &(last->next);
 
 				last->name = mystrdup( list[i]->d_name );
 				last->fullfilename = realfilename ;
@@ -308,7 +310,7 @@ get_asimage_list( ASVisual *asv, const char *dir,
 
 				if( last->type != ASIT_Unknown && preview_type != 0 )
 				{
-					ASImage *im = as_image_file_loaders[file_type](realfilename, 0xFFFFFFFF, gamma, NULL, 0, 100);
+					ASImage *im = as_image_file_loaders[file_type](realfilename, 0xFFFFFFFF, gamma, NULL, 0, preview_compression);
 					if( im )
 					{
 						int scale_width = im->width ;
@@ -332,7 +334,7 @@ get_asimage_list( ASVisual *asv, const char *dir,
 						}
 						if( scale_width != im->width || scale_height != im->height )
 						{
-							ASImage *tmp = scale_asimage( asv, im, scale_width, scale_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+							ASImage *tmp = scale_asimage( asv, im, scale_width, scale_height, ASA_ASImage, preview_compression, ASIMAGE_QUALITY_DEFAULT );
 							if( tmp != NULL )
 							{
 								destroy_asimage( &im );
@@ -341,7 +343,7 @@ get_asimage_list( ASVisual *asv, const char *dir,
 						}
 						if( tile_width != im->width || tile_height != im->height )
 						{
-							ASImage *tmp = tile_asimage( asv, im, 0, 0, tile_width, tile_height, TINT_NONE, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+							ASImage *tmp = tile_asimage( asv, im, 0, 0, tile_width, tile_height, TINT_NONE, ASA_ASImage, preview_compression, ASIMAGE_QUALITY_DEFAULT );
 							if( tmp != NULL )
 							{
 								destroy_asimage( &im );
@@ -350,11 +352,16 @@ get_asimage_list( ASVisual *asv, const char *dir,
 						}
 					}
 
-					last->preview = im ;
+			  		last->preview = im ;
 				}
 			}
+			free( list[i] );
 		}
+		free (list);
 	}
+
+	if( count_ret )
+		*count_ret = count ;
 	return im_list;
 }
 
@@ -667,7 +674,6 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	im = NULL ;
 	if ((fp = open_image_file(path)) == NULL)
 		return NULL;
-
 	/* Create and initialize the png_struct with the desired error handler
 	 * functions.  If you want to use the default stderr and longjump method,
 	 * you can supply NULL for the last three parameters.  We also supply the
@@ -760,21 +766,27 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 				for (y = 0; y < height; y++)
 				{
 					register int i;
-/*					for ( i = 0 ; i < row_bytes ; ++i)
+					/*
+					for ( i = 0 ; i < row_bytes ; ++i)
 						fprintf( stderr, "%2.2X ", row_pointers[y][i] );
 					fprintf( stderr, " do_alpha = %d\n", do_alpha);
- */
+					*/
 					raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
 					asimage_add_line (im, IC_RED,   buf.red, y);
 					asimage_add_line (im, IC_GREEN, buf.green, y);
 					asimage_add_line (im, IC_BLUE,  buf.blue, y);
 					if( do_alpha )
+					{
 						for ( i = 0 ; i < buf.width ; ++i)
+						{
+							/*fprintf( stderr, "%2.2X          ", buf.alpha[i] );*/
 							if( buf.alpha[i] != 0x00FF )
 							{
 								asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
 								break;
 							}
+						}
+					}
 				}
 				free (row_pointers);
 				free_scanline(&buf, True);

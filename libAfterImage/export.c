@@ -409,6 +409,7 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 		}
 	}else
 	{
+/*		fprintf( stderr, "saving : %s\n", path );*/
 		row_pointer = safecalloc( im->width * (has_alpha?4:3), 1 );
 		for (y = 0; y < im->height; y++)
 		{
@@ -419,7 +420,20 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 			asimage_decode_line (im, IC_BLUE,  imbuf.blue, y, 0, imbuf.width);
 			if( has_alpha )
 			{
-				asimage_decode_line (im, IC_ALPHA,  imbuf.alpha, y, 0, imbuf.width);
+				int alpha_len = asimage_decode_line (im, IC_ALPHA,  imbuf.alpha, y, 0, imbuf.width);
+				CARD32 filler = ARGB32_ALPHA8(im->back_color);
+
+				while( --i >= alpha_len )
+				{
+					/* 0 is red, 1 is green, 2 is blue, 3 is alpha */
+		            ptr[0] = imbuf.red[i] ;
+					ptr[1] = imbuf.green[i] ;
+					ptr[2] = imbuf.blue[i] ;
+					ptr[3] = filler ;
+					ptr-=4;
+					/*fprintf( stderr, "#%2.2X%2.2X%2.2X%2.2X ", filler, imbuf.red[i], imbuf.green[i], imbuf.blue[i] );*/
+				}
+				++i ;
 				while( --i >= 0 )
 				{
 					/* 0 is red, 1 is green, 2 is blue, 3 is alpha */
@@ -428,6 +442,7 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 					ptr[2] = imbuf.blue[i] ;
 					ptr[3] = imbuf.alpha[i] ;
 					ptr-=4;
+					/*fprintf( stderr, "#%2.2X%2.2X%2.2X%2.2X ", imbuf.alpha[i], imbuf.red[i], imbuf.green[i], imbuf.blue[i] );*/
 				}
 			}else
 				while( --i >= 0 )
@@ -436,7 +451,9 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 					ptr[1] = imbuf.green[i] ;
 					ptr[2] = imbuf.blue[i] ;
 					ptr-=3;
+					/*fprintf( stderr, "#%FFX%2.2X%2.2X%2.2X ", imbuf.red[i], imbuf.green[i], imbuf.blue[i] );*/
 				}
+			/*fprintf( stderr, "\n");*/
 			png_write_rows(png_ptr, &row_pointer, 1);
 		}
 	}

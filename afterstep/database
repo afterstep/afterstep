@@ -44,11 +44,11 @@ Style   "*clock"        StaysOnTop, WindowListSkip, NoHandles
 Style   "ghostview"     Icon text.xpm
 Style   "gimp"          Icon logos/gimp,
 Style	"GIMP Startup"	Icon logos/gimp, NoButton 1, NoButton 2, NoButton 3, NoButton 4
-Style   "aterm"         Icon aterm
 Style   "*term"         Icon linux-penguin.xpm
+Style   "aterm"         Icon aterm
 Style   "xcalc"         Icon xcalc.xpm
 Style   "xli"           Icon monalisa.xpm
-Style   "xman"          Icon xman.xpm
+Style   "*man"          Icon xman.xpm
 Style   "XMcd"          Icon CDrom.xpm
 
 #different windows in xmms app
@@ -60,6 +60,68 @@ Style   "Load file*"    Title, Handles
 Style  "MPlayer*"       Icon normal/MovieProjector, NoTitle, NoHandles
 Style  "MPlayer-Video*" Title, Handles
 
+# contributed by Dhaval Patel <dhaval at patel dot sh>
+Style   "toolbox"       NoButton 1, NoButton 2, NoButton 3, NoButton 4
+Style   "Popup menu*"   Sticky
+Style   "Alert*"        Sticky, StaysOnTop
+Style   "Question*"     Sticky, StaysOnTop
+Style   "Buddy List"    NoTitle, WindowListSkip
+
+# gnome panel ( contributed by Greg Norris <haphazard at kc dot rr dot com> ):
+Style   "gnome-panel"   NoTitle, Sticky, StaysOnTop, WindowListSkip, AvoidCover, NoHandles
+
+# contributed by David William Thornton <dwt at softhome dot net>
+#KDE kicker
+Style	"kicker"		AvoidCover, NoTitle, NoHandles, WindowListSkip, CirculateSkip, Layer 0, Sticky
+Style	"KChart"		Icon kchart.png
+Style	"KIllustrator"		Icon killustrator.png
+Style	"KPresenter"		Icon kpresenter.png
+Style	"KOshell"		Icon koshell.png
+Style	"KSpread"		Icon kspread.xpm
+Style	"KWord"			Icon kword.xpm
+Style	"kab"			Icon kab.png, StartsOnDesk 1
+Style	"kate"			Icon kwrite.png
+Style	"kcalc"			Icon kcalc.png
+Style	"kedit"			Icon kedit.png
+Style	"kfm"			Icon FileFolders.xpm
+Style	"kmail"			Icon kmail.png, StartsOnDesk 0
+Style	"knode"			Icon knode.png, StartsOnDesk 1
+Style	"konsole"		Icon konsole.png, StartsOnDesk 2
+Style	"korganizer"		Icon karm.png, StartsOnDesk 0
+Style	"konqueror"		Icon konqueror.xpm, StartsOnDesk 1
+Style	"kppp"	        	Icon kppp.png, StartsOnDesk 2
+Style	"ksysguard"		Icon ksysguard.png, StartsOnDesk 2
+Style	"kvt"			Icon Computer.xpm, StartsOnDesk 2
+Style	"kwrite"		Icon kwrite.png
+
+# gnome apps :
+Style	"GQview"		Icon gqview.png, StartsOnDesk 0
+
+# web browsers :
+Style	"Galeon"		Icon galeon.png, StartsOnDesk 1
+Style	"Mozilla-bin"		Icon mozilla-star.png, StartsOnDesk 1
+Style	"Netscape"		Icon netscape.png, StartsOnDesk 1
+
+Style	"RealPlayer"    	Icon real.xpm
+Style	"VCLApplication" 	Icon staroffice.xpm, Layer 0, StartsOnDesk 0
+#
+Style	"alarmd"		Icon korganizer.xpm, AvoidCover, NoTitle, NoHandles, WindowListSkip, CirculateSkip, Layer 0, Sticky
+Style	"calc"			Icon ooo_calc.xpm, StartsOnDesk 0
+Style	"evolution"		Icon ximian.png, StartsOnDesk 0
+Style   "gdiskfree"     	Icon hdd_unmount.png, AvoidCover, Layer 0
+Style	"gnorpm"		Icon /usr/share/pixmaps/redhat/rpmlogo-64.xpm, StartsOnDesk 2
+Style	"impress"		Icon ooo_impress.xpm, StartsOnDesk 0
+Style	"math"			Icon ooo_math.xpm, StartsOnDesk 0
+Style	"nt"			Icon nt.xpm, StartsOnDesk 1
+Style	"vmware-ui"		Icon Network.xpm, StartsOnDesk 3, NoButton 2
+Style	"writer"		Icon ooo_writer.xpm, StartsOnDesk 0
+Style	"xdos"		        Icon file-dot-bat.xpm, StartsOnDesk 2, NoButton 2
+
+# contributed by M.-A. DARCHE <ma dot darche at cynode dot org>
+Style   "Blender"       	NoTitle, NoHandles
+
+# contributed by Christian B. Wiik <christbw at tihlde dot org>
+Style   "Licq*"  		Sticky, NoButton 1, NoButton 4, NoButton 6
 
 #some other apps
 Style   "XFce*"         NoTitle, Sticky, BorderWidth 4, WindowListSkip, NoHandles

@@ -42,7 +42,8 @@
 struct
 {
 	Window main_window ;
-	char *cs_save ;
+	char *dir ;
+	char *html_save, *html_save_dir ;
 	Bool display ;
 	ASGeometry geometry ;
 	Bool user_geometry ;
@@ -75,8 +76,10 @@ void HandleEvents();
 void do_colorscheme();
 void do_change_param( int val );
 void DispatchEvent (ASEvent * event);
+void generate_dir_html();
 
-char *default_cs_save = "asimbrowser";
+char *default_html_save = "index.html";
+char *default_html_save_dir = "html";
 
 int main(int argc, char** argv)
 {
@@ -86,7 +89,8 @@ int main(int argc, char** argv)
     InitMyApp (CLASS_ASIMBROWSER, argc, argv, asimbrowser_usage, NULL, 0 );
 
 	memset( &ASIMBrowserState, 0x00, sizeof(ASIMBrowserState ));
-	ASIMBrowserState.cs_save = default_cs_save;
+	ASIMBrowserState.html_save = default_html_save;
+	ASIMBrowserState.html_save_dir = default_html_save_dir;
 	ASIMBrowserState.display = 1;
 
 	/* Parse command line. */
@@ -94,14 +98,19 @@ int main(int argc, char** argv)
 		if( argv[i] == NULL )
 			continue;
 		if ((!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) && i < argc + 1) {
-			ASIMBrowserState.cs_save = argv[++i];
+			ASIMBrowserState.html_save = argv[++i];
+		}else if ((!strcmp(argv[i], "--output-dir") || !strcmp(argv[i], "-O")) && i < argc + 1) {
+			ASIMBrowserState.html_save_dir = argv[++i];
+		} else if ((!strcmp(argv[i], "--dir") || !strcmp(argv[i], "-D")) && i < argc + 1) {
+			ASIMBrowserState.dir = argv[++i];
 		} else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
 			ASIMBrowserState.display = 0;
 		}
 	}
 
 	ConnectX( &Scr, PropertyChangeMask );
-    ConnectAfterStep ( 0 );
+//    ConnectAfterStep ( 0 );
+	InitSession();
 
 	LoadBaseConfig (GetBaseOptions);
 
@@ -119,6 +128,8 @@ int main(int argc, char** argv)
 
 	if( ASIMBrowserState.display )
 		HandleEvents();
+	else
+		generate_dir_html(ASIMBrowserState.dir, ASIMBrowserState.html_save_dir);
 	return 0;
 }
 
@@ -303,3 +314,163 @@ create_main_window()
 }
 
 
+void generate_dir_html( char *dir, char *html_dir )
+{
+	FILE *of = stdout ;
+	int count = 0;
+	ASImageListEntry *im_list = get_asimage_list( Scr.asv, dir,
+	              						     LOAD_PREVIEW, Scr.image_manager->gamma, 0, 0,
+											 0, &count );
+
+	if( im_list && count > 0 )
+	{
+		ASImageListEntry *curr = im_list ;
+		int im_no = 0 ;
+		if( ASIMBrowserState.html_save )
+		{
+			char *html_save = safemalloc( (html_dir?strlen( html_dir )+1:0)+ strlen(ASIMBrowserState.html_save)+1 );
+			if( html_dir )
+				sprintf( html_save, "%s/%s", html_dir, ASIMBrowserState.html_save );
+			else
+				strcpy( html_save, ASIMBrowserState.html_save);
+
+			if( (of = fopen( html_save, "wb" )) == NULL )
+			{
+				show_error( "failed to open output file \"%s\"", html_save );
+				exit(1);
+			}
+			free( html_save );
+		}
+		fprintf( of, "<HTML><HEAD><title>%s</title></head><body><h3>%s</h3>", dir, dir );
+		while( curr )
+		{
+			if( mystrcasecmp(curr->name, "CREDITS") != 0)
+			{
+				int name_len = strlen( curr->name );
+				int odir_name_len = html_dir?strlen( html_dir )+1:0;
+				char *preview_name = safemalloc( odir_name_len + name_len + 1 + 3 + 1 );
+				char *ext_name = safemalloc(odir_name_len + name_len + 1 + 4 + 1 );
+				ASImageExportParams params ;
+				if( odir_name_len > 0 )
+				{
+					sprintf( preview_name, "%s/%s.png", html_dir, curr->name );
+					sprintf( ext_name, "%s/%s.html", html_dir, curr->name );
+				}else
+				{
+					strcpy( preview_name, curr->name );
+					strcpy( &(preview_name[name_len]), ".png" );
+					strcpy( ext_name, curr->name );
+					strcpy( &(ext_name[name_len]), ".html" );
+				}
+#if 1
+				params.png.flags = EXPORT_ALPHA ;
+				params.png.compression = 6 ;
+				params.png.type = ASIT_Png ;
+				if( !ASImage2file( curr->preview, NULL, preview_name,ASIT_Png, &params ) )
+#else
+				params.jpeg.flags = EXPORT_ALPHA ;
+				params.jpeg.quality = 100 ;
+				params.jpeg.type = ASIT_Jpeg ;
+				if( !ASImage2file( curr->preview, NULL, preview_name,ASIT_Jpeg, &params ) )
+#endif
+				{
+					show_warning( "failed to save \"%s\" as png preview - skipping", curr->name );
+				}else
+				{
+					FILE *frame_of ;
+					fprintf( of, "<A href=\"%s.html\"><IMG ALT=\"%s\" SRC=\"%s.png\"></A>\n", curr->name, curr->name, curr->name );
+
+					frame_of = fopen( ext_name, "wb" );
+					if( frame_of )
+					{
+						static char *img_type_names[ASIT_Unknown+1] =
+						{
+							"Xpm",
+							"ZCompressedXpm",
+							"GZCompressedXpm",
+							"Png",
+							"Jpeg",
+							"Xcf",
+							"Ppm",
+							"Pnm",
+							"Bmp",
+							"Ico",
+							"Cur",
+							"Gif",
+							"Tiff",
+							"XMLScript",
+							"Xbm",
+							"Targa",
+							"Pcx",
+							"Unknown"
+						};
+						fprintf( frame_of, "<HTML>\n<HEAD><TITLE>%s</TITLE></HEAD>\n<BODY>\n", curr->name );
+						fprintf( frame_of, "<h3>%s</h3>\n", curr->name );
+						fprintf( frame_of, "<h4>Size :</h4>&nbsp;&nbsp;&nbsp;&nbsp;%dx%d\n",
+						     	curr->preview?curr->preview->width:0, curr->preview?curr->preview->height:0 );
+						fprintf( frame_of, "<h4>Full path :</h4>&nbsp;&nbsp;&nbsp;&nbsp;%s\n", curr->fullfilename );
+						fprintf( frame_of, "<h4>Preview :</h4>&nbsp;&nbsp;&nbsp;&nbsp;<IMG ALT=\"%s\" SRC=\"%s.png\">\n", curr->name, curr->name );
+						fprintf( frame_of, "<h4>Type :</h4>&nbsp;&nbsp;&nbsp;&nbsp;%s\n", img_type_names[curr->type] );
+						if( curr->type == ASIT_XMLScript )
+						{
+							FILE *xml_of = fopen( curr->fullfilename, "rb" );
+							int c;
+							fprintf( frame_of, "<h4>XML text :</h4><PRE>\n" );
+							if( xml_of )
+							{
+	   							while( (c = fgetc(xml_of)) != EOF )
+								{
+									if( c == '<' )
+										fprintf( frame_of, "&lt;" );
+									else if( c == '>' )
+										fprintf( frame_of, "&gt;" );
+									else
+										fputc( c, frame_of );
+								}
+								fclose( xml_of );
+							}else
+								fprintf( frame_of, "error: failed to open xml file!\n" );
+							fprintf( frame_of, "</PRE>\n" );
+						}
+						fprintf( frame_of, "\n</body></HTML>\n");
+						fclose( frame_of );
+					}
+				}
+				free( preview_name );
+				free( ext_name );
+			}
+			curr = curr->next ;
+			++im_no ;
+		}
+		curr = im_list ;
+		while( curr )
+		{
+			if( mystrcasecmp(curr->name, "CREDITS") == 0)
+			{
+				FILE *credits_of = fopen( curr->fullfilename, "rb" );
+				int c;
+				fprintf( of, "<h4>CREDITS :</h4><PRE>\n" );
+				if( credits_of )
+				{
+					while( (c = fgetc(credits_of)) != EOF )
+					{
+						if( c == '<' )
+							fprintf( of, "&lt;" );
+						else if( c == '>' )
+							fprintf( of, "&gt;" );
+						else
+							fputc( c, of );
+					}
+					fclose( credits_of );
+				}else
+					fprintf( of, "error: failed to open CREDITS file!\n" );
+				fprintf( of, "</PRE>\n" );
+			}
+			curr = curr->next ;
+		}
+		fprintf( of, "\n</body></HTML>");
+
+		if( of != stdout )
+			fclose( of );
+	}
+}
