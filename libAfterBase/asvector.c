@@ -115,7 +115,7 @@ LOCAL_DEBUG_CALLER_OUT("0x%lX, 0x%lX, %lu", (unsigned long)v, (unsigned long)dat
 
 	if( data )
 	{
-        memcpy( v->memory+(v->used*v->unit), data, size*v->unit );
+        memcpy( (CARD8*)(v->memory)+(v->used*v->unit), data, size*v->unit );
 	    v->used += size ;
 	}
 
