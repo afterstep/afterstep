@@ -190,6 +190,25 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->new__geom(%ux%u%+d%+d)->change
 }
 
 Bool
+get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py )
+{
+    Window wdumm;
+    int dumm;
+    unsigned int udumm;
+
+    if( pparent == NULL )
+        pparent = &wdumm;
+    if( px == NULL )
+        px = &dumm;
+    if( py == NULL )
+        py = &dumm;
+    if( pc )
+        if( XGetGeometry( dpy, pc->w, pparent, px, py, &udumm, &udumm, &udumm, &udumm ) )
+            return True;
+    return False;
+}
+
+Bool
 make_canvas_rectangle (ASCanvas * pc, ASImage * im, int x, int y, int *cx, int *cy, int *cwidth, int *cheight)
 {
 	*cwidth = im->width;

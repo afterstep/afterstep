@@ -223,6 +223,8 @@ void destroy_ascanvas( ASCanvas **pcanvas );
 #define CANVAS_RESIZED              (CANVAS_WIDTH_CHANGED|CANVAS_HEIGHT_CHANGED)
 
 ASFlagType handle_canvas_config( ASCanvas *canvas ); /* Returns True if moved/resized */
+Bool get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py );
+
 Pixmap get_canvas_canvas( ASCanvas *pc );
 Pixmap get_canvas_mask( ASCanvas *pc );
 Bool draw_canvas_image( ASCanvas *pc, struct ASImage *im, int x, int y );
