@@ -1,13 +1,53 @@
 #ifndef _ASVISUAL_H_HEADER_INCLUDED
 #define _ASVISUAL_H_HEADER_INCLUDED
 
-/***********************************************************************
- * afterstep per-screen data include file
- ***********************************************************************/
+/****h* libAfterImage/asvisual.h
+ * DESCRIPTION
+ * Defines abstraction layer on top of X Visuals, as well as several
+ * fundamental color datatypes.
+ * SEE ALSO
+ * Structures:
+ *  	    ColorPair
+ *  	    ASScanline
+ *  	    ASVisual
+ *
+ * Functions :
+ *   ASScanline handling:
+ *  	    prepare_scanline(), free_scanline()
+ *
+ *   ASVisual initialization :
+ *  	    query_screen_visual(), setup_truecolor_visual(),
+ *  	    setup_pseudo_visual(), setup_as_colormap(),create_asvisual(),
+ *  	    destroy_asvisual()
+ *
+ *   ASVisual encoding/decoding :
+ *  	    visual2visual_prop(), visual_prop2visual()
+ *
+ *   ASVisual convenience functions :
+ *  	    create_visual_window(), create_visual_pixmap(),
+ *  	    create_visual_ximage()
+ * AUTHOR
+ * Sasha Vasko <sashav at sprintmail dot com>
+ ******************/
+
+/****d* libAfterImage/ARGB32
+ * FUNCTION
+ * ARGB32 is fundamental datatype that hold 32bit value corresponding to
+ * pixels color and transparency value (alpha channel). It is encoded
+ * as follows :
+ * Lowermost 8 bits - Blue channel
+ * bits 8 to 15     - Green channel
+ * bits 16 to 23    - Red channel
+ * bits 24 to 31    - Alpha channel
+ * Alpha channel's value of 0xFF signifies complete visibility, while 0
+ * makes pixel completely transparent.
+ * SOURCE
+ */
 typedef CARD32 ARGB32;
 #define ARGB32_White    		0xFFFFFFFF
 #define ARGB32_Black    		0xFF000000
-#define ARGB32_DEFAULT_BACK_COLOR	ARGB32_Black  /* default background color is #FF000000 */
+/* default background color is #FF000000 : */
+#define ARGB32_DEFAULT_BACK_COLOR	ARGB32_Black
 
 #define ARGB32_ALPHA_CHAN		3
 #define ARGB32_RED_CHAN			2
@@ -15,6 +55,24 @@ typedef CARD32 ARGB32;
 #define ARGB32_BLUE_CHAN		0
 #define ARGB32_CHANNELS			4
 
+#define MAKE_ARGB32(a,r,g,b)	(((a)<<24)|(((r)&0x00FF)<<16)| \
+                                 (((g)&0x00FF)<<8)|((b)&0x00FF))
+#define MAKE_ARGB32_GREY(a,l)	(((a)<<24)|(((l)&0x00FF)<<16)| \
+                                 (((l)&0x00FF)<<8)|((l)&0x00FF))
+#define ARGB32_ALPHA8(c)		(((c)>>24)&0x00FF)
+#define ARGB32_RED8(c)			(((c)>>16)&0x00FF)
+#define ARGB32_GREEN8(c)	 	(((c)>>8 )&0x00FF)
+#define ARGB32_BLUE8(c)			( (c)     &0x00FF)
+#define ARGB32_CHAN8(c,i)		(((c)>>((i)<<3))&0x00FF)
+#define MAKE_ARGB32_CHAN8(v,i)	(((v)&0x0000FF)<<((i)<<3))
+#define MAKE_ARGB32_CHAN16(v,i)	((((v)&0x00FF00)>>8)<<((i)<<3))
+/*******************/
+/****d* libAfterImage/ColorPart
+ * FUNCTION
+ * Ids of the channels. These are basically synonyms to related ARGB32
+ * channel numbers
+ * SOURCE
+ */
 typedef enum
 {
   IC_BLUE	= ARGB32_BLUE_CHAN ,
@@ -24,23 +82,46 @@ typedef enum
   IC_NUM_CHANNELS = ARGB32_CHANNELS
 }
 ColorPart;
-
-#define MAKE_ARGB32(a,r,g,b)	(((a)<<24)|(((r)&0x00FF)<<16)|(((g)&0x00FF)<<8)|((b)&0x00FF))
-#define MAKE_ARGB32_GREY(a,l)	(((a)<<24)|(((l)&0x00FF)<<16)|(((l)&0x00FF)<<8)|((l)&0x00FF))
-#define ARGB32_ALPHA8(c)		(((c)>>24)&0x00FF)
-#define ARGB32_RED8(c)			(((c)>>16)&0x00FF)
-#define ARGB32_GREEN8(c)	 	(((c)>>8 )&0x00FF)
-#define ARGB32_BLUE8(c)			( (c)     &0x00FF)
-#define ARGB32_CHAN8(c,i)		(((c)>>((i)<<3))&0x00FF)
-#define MAKE_ARGB32_CHAN8(v,i)	(((v)&0x0000FF)<<((i)<<3))
-#define MAKE_ARGB32_CHAN16(v,i)	((((v)&0x00FF00)>>8)<<((i)<<3))
-
+/*******************/
+/****s* libAfterImage/ColorPair
+ * NAME
+ * ColorPair
+ * DESCRIPTION
+ * Convenient structure to hold pair of colors.
+ * SOURCE
+ */
 typedef struct ColorPair
 {
   ARGB32 fore;
   ARGB32 back;
 }ColorPair;
-
+/*******************/
+/****s* libAfterImage/ASScanline
+ * NAME
+ * ASScanline
+ * SYNOPSIS
+ * ASScanline is a structure to hold contents of the single scanline.
+ * DESCRIPTION
+ * ASScanline holds data for the single scanline, split into channels
+ * with 32 bits per pixel per channel. All the memory is allocated at
+ * once, and then split in between channels. There are three ways to
+ * access channel data :
+ * 1) using blue, green, red, alpha pointers.
+ * 2) using channels[] array of pointers - convenient in loops
+ * 4) using xc3, xc2, xc1 pointers. These are different from red, green,
+ * blue in the way that xc3 will point to blue when BGR mode is specified
+ * at the time of creation, otherwise it will point to red channel.
+ * Likewise xc1 will point to red in BGR mode and blue otherwise.
+ * xc2 always points to green channel's data. This is convenient while
+ * writing XImages and when channels in source and destination has to be
+ * reversed, while reading images from files.
+ * Channel data is always aligned by 8 byte boundary allowing for
+ * utilization of MMX, floating point and other 64bit registers for
+ * transfer and processing.
+ * SEE ALSO
+ * ASImage
+ * SOURCE
+ */
 typedef struct ASScanline
 {
 #define SCL_DO_BLUE         (0x01<<ARGB32_BLUE_CHAN )
@@ -48,41 +129,107 @@ typedef struct ASScanline
 #define SCL_DO_RED          (0x01<<ARGB32_RED_CHAN  )
 #define SCL_DO_ALPHA		(0x01<<ARGB32_ALPHA_CHAN)
 #define SCL_DO_COLOR		(SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE)
-#define SCL_DO_ALL			(SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE|SCL_DO_ALPHA)
-	CARD32	 	   flags ;
+#define SCL_DO_ALL			(SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE| \
+                             SCL_DO_ALPHA)
+	CARD32	 	   flags ;            /* combination of  the above values */
 	CARD32        *buffer ;
 	CARD32        *blue, *green, *red, *alpha ;
 	CARD32	      *channels[IC_NUM_CHANNELS];
-	CARD32        *xc3, *xc2, *xc1;            /* since some servers require
-												* BGR mode here we store what
-												* goes into what color component in XImage */
+	CARD32        *xc3, *xc2, *xc1;   /* since some servers require
+									   * BGR mode here we store what
+									   * goes into what color component
+									   * in XImage */
 	ARGB32         back_color;
 	unsigned int   width, shift;
 	unsigned int   offset_x ;
-/*    CARD32 r_mask, g_mask, b_mask ; */
 }ASScanline;
+/*******************/
 
-/****f* libAfterImage/asimage/prepare_scanline()
+/****f* libAfterImage/asvisual/prepare_scanline()
  * SYNOPSIS
- * 	ASScanline *prepare_scanline ( unsigned int width,
- * 							  	   unsigned int shift,
- * 								   ASScanline *reusable_memory,
- * 								   Bool BGR_mode);
- * DESCRIPTION
- * 	This function allocates memory ( if reusable_memory is NULL ) for the new
- * 	ASScanline structure. Structures buffers gets allocated to hold scanline
- * 	data of at least width pixel wide.
+ * ASScanline *prepare_scanline ( unsigned int width,
+ *                                unsigned int shift,
+ *                                ASScanline *reusable_memory,
+ *                                Bool BGR_mode);
  * INPUTS
+ * width           - width of the scanline.
+ * shift           - format of contained data. 0 means - 32bit unshifted
+ *                   8 means - 24.8bit ( 8 bit left shifted ).
+ * reusable_memory - preallocated object.
+ * BGR_mode        - if True will cause xc3 to point to Blue and xc1 to
+ *                   point to red.
+ * DESCRIPTION
+ * This function allocates memory ( if reusable_memory is NULL ) for
+ * the new ASScanline structure. Structures buffers gets allocated to
+ * hold scanline data of at least width pixel wide. Buffers are adjusted
+ * to start on 8 byte boundary.
  *********/
-/****f* libAfterImage/asimage/free_scanline()
+/****f* libAfterImage/asvisual/free_scanline()
  * SYNOPSIS
- * 	void       free_scanline ( ASScanline *sl, Bool reusable );
- * DESCRIPTION
+ * void       free_scanline ( ASScanline *sl, Bool reusable );
  * INPUTS
+ * sl       - pointer to previously allocated ASScanline structure to be
+ *            deallocated.
+ * reusable - if true then ASScanline object itself will not be
+ *            deallocated.
+ * DESCRIPTION
+ * free_scanline() frees all the buffer memory allocated for ASScanline.
+ * If reusable is false then object itself in not freed. That is usable
+ * for declaring ASScanline on stack.
  *********/
-ASScanline*prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode);
+ASScanline* prepare_scanline( unsigned int width, unsigned int shift,
+	                          ASScanline *reusable_memory, Bool BGR_mode);
 void       free_scanline( ASScanline *sl, Bool reusable );
 
+/****s* libAfterImage/ASVisual
+ * NAME
+ * ASVisual
+ * SYNOPSIS
+ * ASVisual is abstraction layer on top of X Server Visual.
+ * DESCRIPTION
+ * This structure has been introduced in order to compensate for the
+ * fact that X may have so many different types of Visuals. It provides
+ * shortcuts to most Visual data, compensated for differences in Visuals.
+ * For PseudoColor visual it also contains preallocated set of colors.
+ * This colormap allows us to write XImages very fast and without
+ * exhausting available X colors. This colormap consist of 8, 64, or 4096
+ * colors and constitutes fraction of colors available in particular
+ * colordepth. This colors are allocated to be evenly spread around RGB
+ * spectrum. Thus when converting from internal presentation - all we
+ * need to do is to discard unused bits, and use rest of them bits as
+ * an index in our colormap. Opposite conversion is much trickier and we
+ * engage into nasty business of having hash table mapping pixel values
+ * into colors, or straight table doing same in lower colordepths.
+ * Idea is that we do all internal processing in 32bit colordepth, and
+ * ASVisual provides us with means to convert it to actual X display
+ * format. Respectively ASVisual has methods to write out XImage lines
+ * and read XImage lines.
+ * ASVisual creation is a tricky process. Basically first we have to go
+ * through the list of available Visuals and choose the best suitable.
+ * Then based on the type of this Visual we have to setup our data
+ * members and method hooks. Several functions provided for that :
+ *  query_screen_visual()    - will lookup best suitable visual
+ *  setup_truecolor_visual() - will setup hooks if visual is TrueColor
+ *  setup_pseudo_visual()	 - will setup hooks and data if Visual is
+ *                             PseudoColor.
+ *  setup_as_colormap()      - will preallocate colors for PseudoColor.
+ * Alternative to the above is :
+ *  create_asvisual()        - it encapsulates all of the above
+ *                             functionality, and returns completely set
+ *                             up ASVisual object.
+ * Since Visual selected for ASVisual may differ from default
+ * ( we choose the best suitable ), all the window creation function
+ * must provide colormap and some other parameters, like border color
+ * for example. Thus we created some convenience functions.
+ * These should be used instead of standard Xlib calls :
+ *  create_visual_window() - to create window
+ *  create_visual_pixmap() - to create pixmap
+ *  create_visual_ximage() - to create XImage
+ * ASVisual could be dealolocated and its resources freed with :
+ *  destroy_asvisual()
+ * SEE ALSO
+ * SOURCE
+ */
 typedef struct ASVisual
 {
 	Display      *dpy;
@@ -90,13 +237,14 @@ typedef struct ASVisual
 	/* this things are calculated based on Visual : */
 	unsigned long rshift, gshift, bshift;
 	unsigned long rbits,  gbits,  bbits;
-	unsigned long true_depth;			   /* could be 15 when X reports 16 */
+	unsigned long true_depth;	/* could be 15 when X reports 16 */
 	Bool          BGR_mode;
 	Bool 		  msb_first;
-	/* we must have colormap so that we can safely create windows with different visuals
-	 * even if we are in TrueColor mode : */
+	/* we must have colormap so that we can safely create windows
+	 * with different visuals even if we are in TrueColor mode : */
 	Colormap 	  colormap;
-	Bool          own_colormap;                /* tells us to free colormap when we done */
+	Bool          own_colormap; /* tells us to free colormap when we
+								 * done */
 	unsigned long black_pixel, white_pixel;
 	/* for PseudoColor mode we need some more stuff : */
 	enum {
@@ -104,46 +252,258 @@ typedef struct ASVisual
 		ACM_3BPP,
 		ACM_6BPP,
 		ACM_12BPP,
-	} as_colormap_type ;/* there can only be 64 or 4096 entries so far ( 6 or 12 bpp) */
-	unsigned long *as_colormap;     /* array of preallocated colors for PseudoColor mode */
-	union
+	} as_colormap_type ;        /* there can only be 64 or 4096 entries
+								 * so far ( 6 or 12 bpp) */
+	unsigned long *as_colormap; /* array of preallocated colors for
+								 * PseudoColor mode */
+	union                       /* reverse color lookup tables : */
 	{
 		ARGB32 		  		*xref;
 		struct ASHashTable  *hash;
 	}as_colormap_reverse ;
 
-	/* different usefull callbacks : */
-	CARD32 (*color2pixel_func) 	  ( struct ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
-	void   (*pixel2color_func)    ( struct ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
-	void   (*ximage2scanline_func)( struct ASVisual *asv, XImage *xim, ASScanline *sl, int y,  unsigned char *xim_data );
-	void   (*scanline2ximage_func)( struct ASVisual *asv, XImage *xim, ASScanline *sl, int y,  unsigned char *xim_data );
-#define ARGB2PIXEL(asv,argb,pixel) 			(asv)->color2pixel_func((asv),(argb),(pixel))
-#define GET_SCANLINE(asv,xim,sl,y,xim_data) (asv)->ximage2scanline_func((asv),(xim),(sl),(y),(xim_data))
-#define PUT_SCANLINE(asv,xim,sl,y,xim_data) (asv)->scanline2ximage_func((asv),(xim),(sl),(y),(xim_data))
+	/* different useful callbacks : */
+	CARD32 (*color2pixel_func) 	  ( struct ASVisual *asv,
+		                            CARD32 encoded_color,
+									unsigned long *pixel);
+	void   (*pixel2color_func)    ( struct ASVisual *asv,
+		                            unsigned long pixel,
+									CARD32 *red, CARD32 *green,
+									CARD32 *blue);
+	void   (*ximage2scanline_func)( struct ASVisual *asv, XImage *xim,
+		                            ASScanline *sl, int y,
+								    unsigned char *xim_data );
+	void   (*scanline2ximage_func)( struct ASVisual *asv, XImage *xim,
+									ASScanline *sl, int y,
+									unsigned char *xim_data );
+#define ARGB2PIXEL(asv,argb,pixel) 		   \
+	(asv)->color2pixel_func((asv),(argb),(pixel))
+#define GET_SCANLINE(asv,xim,sl,y,xim_data) \
+	(asv)->ximage2scanline_func((asv),(xim),(sl),(y),(xim_data))
+#define PUT_SCANLINE(asv,xim,sl,y,xim_data) \
+	(asv)->scanline2ximage_func((asv),(xim),(sl),(y),(xim_data))
 
 }ASVisual;
+/*******************/
 
-Bool query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int default_depth );
+/****f* libAfterImage/asvisual/query_screen_visual()
+ * SYNOPSIS
+ * Bool query_screen_visual( ASVisual *asv, Display *dpy, int screen,
+ *                           Window root, int default_depth );
+ * INPUTS
+ * asv  		- preallocated ASVisual structure.
+ * dpy  		- valid pointer to opened X display.
+ * screen   	- screen number on which to query visuals.
+ * root     	- root window on that screen.
+ * default_depth- default colordepth of the screen.
+ * RETURN VALUE
+ * True on success, False on failure
+ * ASVisual structure pointed by asv will have the following data
+ * members set on success :
+ * dpy, visual_info, colormap, own_colormap, black_pixel, white_pixel.
+ * DESCRIPTION
+ * query_screen_visual() will go though prioritized list of possible
+ * Visuals and attempt to match those to what is available on the
+ * specified screen. If all items from list fail, then it goes about
+ * querying default visual.
+ * Once X Visual has been identified, we create X colormap and allocate
+ * white and black pixels from it.
+ *********/
+/****f* libAfterImage/asvisual/setup_truecolor_visual()
+ * SYNOPSIS
+ * Bool setup_truecolor_visual( ASVisual *asv );
+ * INPUTS
+ * asv  		- preallocated ASVisual structure.
+ * RETURN VALUE
+ * True on success, False if visual is not TrueColor.
+ * DESCRIPTION
+ * setup_truecolor_visual() checks if Visual is indeed TrueColor and if
+ * so it goes about querying color masks, deducing real XImage
+ * colordepth, and whether we work in BGR mode. It then goes about
+ * setting up correct hooks to X IO functions.
+ *********/
+/****f* libAfterImage/asvisual/setup_pseudo_visual()
+ * SYNOPSIS
+ * void setup_pseudo_visual( ASVisual *asv  );
+ * INPUTS
+ * asv  		- preallocated ASVisual structure.
+ * DESCRIPTION
+ * setup_pseudo_visual() assumes that Visual is PseudoColor. It then
+ * tries to decide as to how many colors preallocate, and goes about
+ * setting up correct X IO hooks and possibly initialization of reverse
+ * colormap in case ASVisual already has colormap preallocated.
+ *********/
+/****f* libAfterImage/asvisual/setup_as_colormap()
+ * SYNOPSIS
+ * void setup_as_colormap( ASVisual *asv );
+ * INPUTS
+ * asv  		- preallocated ASVisual structure.
+ * DESCRIPTION
+ * That has to be called in order to pre-allocate sufficient number of
+ * colors. It uses colormap size identification supplied in ASVisual
+ * structure. If colors where preallocated successfully - it will also
+ * create reverse lookup colormap.
+ *********/
+Bool query_screen_visual( ASVisual *asv, Display *dpy, int screen,
+	                      Window root, int default_depth );
 Bool setup_truecolor_visual( ASVisual *asv );
 void setup_pseudo_visual( ASVisual *asv  );
 void setup_as_colormap( ASVisual *asv );
-/* the following is a shortcut aggregating above function together : */
-ASVisual *create_asvisual( Display *dpy, int screen, int default_depth, ASVisual *reusable_memory );
+/****f* libAfterImage/asvisual/create_asvisual()
+ * SYNOPSIS
+ * ASVisual *create_asvisual( Display *dpy, int screen,
+ *                            int default_depth,
+ *                            ASVisual *reusable_memory );
+ * INPUTS
+ * dpy  		- valid pointer to opened X display.
+ * screen   	- screen number on which to query visuals.
+ * root     	- root window on that screen.
+ * default_depth- default colordepth of the screen.
+ * reusable_memory - pointer to preallocated ASVisual structure.
+ * RETURN VALUE
+ * Pointer to ASVisual structure initialized with enough information
+ * to be able to deal with current X Visual.
+ * DESCRIPTION
+ * This function calls all the needed functions in order to setup new
+ * ASVisual structure for the specified screen. If reusable_memory is
+ * not null - it will not allocate new ASVisual structure, but instead
+ * will use supplied one. Useful for allocating ASVisual on stack.
+ *********/
+/****f* libAfterImage/asvisual/destroy_asvisual()
+ * SYNOPSIS
+ * void destroy_asvisual( ASVisual *asv, Bool reusable );
+ * INPUTS
+ * asv      - valid ASVisual structure.
+ * reusable - if True it will cause function to not free object
+ *            itself.
+ * DESCRIPTION
+ * Cleanup function. Frees all the memory and deallocates all the
+ * resources. If reusable is False it will also free the object, pointed
+ * to by asv.
+ *********/
+ASVisual *create_asvisual( Display *dpy, int screen, int default_depth,
+	                       ASVisual *reusable_memory );
 void destroy_asvisual( ASVisual *asv, Bool reusable );
-Bool visual2visual_prop( ASVisual *asv, size_t *size, unsigned long *version, unsigned long **data );
+/****f* libAfterImage/asvisual/visual2visual_prop()
+ * SYNOPSIS
+ * Bool visual2visual_prop( ASVisual *asv, size_t *size,
+ *                          unsigned long *version, unsigned long **data );
+ * INPUTS
+ * asv      	- valid ASVisual structure.
+ * RETURN VALUE
+ * size         - size of the encoded memory block.
+ * version      - version of the encoding
+ * data         - actual encoded memory block
+ * True on success, False on failure
+ * DESCRIPTION
+ * This function will encode ASVisual structure into memory block of
+ * 32 bit values, suitable for storing in X property.
+ *********/
+/****f* libAfterImage/asvisual/visual_prop2visual()
+ * SYNOPSIS
+ * Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
+ *                          size_t size,
+ *                          unsigned long version, unsigned long *data );
+ * INPUTS
+ * asv       - valid ASVisual structure.
+ * dpy       - valid pointer to open X display.
+ * screen    - screen number.
+ * size      - encoded memory block's size.
+ * version   - version of encoding.
+ * data      - actual encoded memory block.
+ * RETURN VALUE
+ * True on success, False on failure
+ * DESCRIPTION
+ * visual_prop2visual() will read ASVisual data from the memory block
+ * encoded by visual2visual_prop(). It could be used to read data from
+ * X property and convert it into usable information - such as colormap,
+ * visual info, etc.
+ * Note: setup_truecolor_visual() or setup_pseudo_visual() has to be
+ * invoked in order to complete ASVisual setup.
+ *********/
+Bool visual2visual_prop( ASVisual *asv, size_t *size,
+	                     unsigned long *version, unsigned long **data );
 Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
-								   size_t size, unsigned long version, unsigned long *data );
+						 size_t size,
+						 unsigned long version, unsigned long *data );
 /* handy utility functions for creation of windows/pixmaps/XImages : */
-
 /* this is from xc/programs/xserver/dix/window.h */
 #define INPUTONLY_LEGAL_MASK (CWWinGravity | CWEventMask | \
-		   				      CWDontPropagate | CWOverrideRedirect | CWCursor )
-
+		   				      CWDontPropagate | CWOverrideRedirect | \
+							  CWCursor )
+/****f* libAfterImage/asvisual/create_visual_window()
+ * SYNOPSIS
+ * Window  create_visual_window( ASVisual *asv, Window parent,
+ *                               int x, int y,
+ *                               unsigned int width, unsigned int height,
+ *                               unsigned int border_width,
+ *                               unsigned int class,
+ *                               unsigned long mask,
+ *                               XSetWindowAttributes *attributes );
+ * INPUTS
+ * asv           - pointer to the valid ASVisual structure.
+ * parent        - Window ID of the parent the window.
+ * x, y          - initial position of the new window.
+ * width, height - initial size of the new window.
+ * border_width  - initial border width of the new window.
+ * class         - Window class  - InputOnly or InputOutput.
+ * mask          - defines what attributes are set.
+ * attributes    - different window attributes.
+ * RETURN VALUE
+ * ID of the newly created window on success. None on failure.
+ * DESCRIPTION
+ * create_visual_window() will do sanity checks on passed parameters,
+ * it will then add mandatory attributes if needed, and attempt to
+ * create window for the specified ASVisual.
+ *********/
+/****f* libAfterImage/asvisual/create_visual_pixmap()
+ * SYNOPSIS
+ * Pixmap  create_visual_pixmap( ASVisual *asv, Window root,
+ *                               unsigned int width, unsigned int height,
+ *                               unsigned int depth );
+ * INPUTS
+ * asv            - pointer to the valid ASVisual structure.
+ * root           - Window ID of the root window of destination screen
+ * width, height  - size of the pixmap to create.
+ * depth          - depth of the pixmap to create. If 0 asv->true_depth
+ *                  will be used.
+ * RETURN VALUE
+ * ID of the newly created pixmap on success. None on failure.
+ * DESCRIPTION
+ * create_visual_pixmap() will perform sanity checks on passed
+ * parameters, and attempt to create pixmap for the specified ASVisual,
+ * root and depth.
+ *********/
+/****f* libAfterImage/asvisual/create_visual_ximage()
+ * SYNOPSIS
+ * XImage* create_visual_ximage( ASVisual *asv,
+ *                               unsigned int width, unsigned int height,
+ *                               unsigned int depth );
+ * INPUTS
+ * asv            - pointer to the valid ASVisual structure.
+ * width, height  - size of the XImage to create.
+ * depth          - depth of the XImage to create. If 0 asv->true_depth
+ *                  will be used.
+ * RETURN VALUE
+ * pointer to newly created XImage on success. NULL on failure.
+ * DESCRIPTION
+ * create_visual_ximage() will perform sanity checks on passed
+ * parameters, and it will attempt to create XImage of sufficient size,
+ * and specified colordepth. It will also setup hooks for XImage
+ * deallocation to be handled by custom function.
+ *********/
 Window  create_visual_window( ASVisual *asv, Window parent,
-							  int x, int y, unsigned int width, unsigned int height,
-							  unsigned int border_width, unsigned int class,
- 					  		  unsigned long mask, XSetWindowAttributes *attributes );
-Pixmap  create_visual_pixmap( ASVisual *asv, Window root, unsigned int width, unsigned int height, unsigned int depth );
-XImage* create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, unsigned int depth );
+							  int x, int y,
+							  unsigned int width, unsigned int height,
+							  unsigned int border_width,
+							  unsigned int class,
+ 					  		  unsigned long mask,
+							  XSetWindowAttributes *attributes );
+Pixmap  create_visual_pixmap( ASVisual *asv, Window root,
+	                          unsigned int width, unsigned int height,
+							  unsigned int depth );
+XImage* create_visual_ximage( ASVisual *asv,
+	                          unsigned int width, unsigned int height,
+							  unsigned int depth );
 
 #endif /* _SCREEN_ */
