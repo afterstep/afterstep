@@ -37,7 +37,7 @@ libRplay. It will try to autodetect it at the time of running configure
 and if it finds it  - "builtin-rplay" will be placed as the default
 AudioPlay type.
 
-In addition Audio can copy Audion samples from .au files into /dev/audio
+In addition Audio can copy Audio samples from .au files into /dev/audio
 on itself, or it can dump contents of the specified files into STDOUT, 
 so you can redirect it anywhere you want.
 
