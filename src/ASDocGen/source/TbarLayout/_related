@@ -1,2 +1,10 @@
 <section label="related" id="related">
+ <ulink url="Look">Look</ulink>
+ <ulink url="Align">Alignment flags</ulink>
+ <ulink url="Bevel">Bevel flags</ulink>
+ <ulink url="MyBackground">MyBackground</ulink>
+ <ulink url="MyFrame">MyFrame</ulink>
+ <ulink url="MyStyle">MyStyle</ulink>
+ <ulink url="SupportedHints">Suported hints</ulink>
+ Titlebar layout
 </section>
