@@ -381,7 +381,7 @@ draw_canvas_mask (ASCanvas * pc, ASImage * im, int x, int y)
 	if( pc->shape == NULL )
 		pc->shape = create_shape();
 
-	res = add_shape_rectangles( pc->shape, rects, rects_count, real_x, real_y, pc->width, pc->height );
+	res = add_shape_rectangles( pc->shape, rects, rects_count, real_x, real_y, pc->width+pc->bw, pc->height+pc->bw );
 	free( rects );
 
 	if( res )
@@ -415,37 +415,6 @@ void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
 #endif
 
 void
-update_canvas_display (ASCanvas * pc)
-{
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc, pc->w, pc->canvas, pc->width, pc->height );
-    if (pc && pc->w != None )
-	{
-        if( !get_flags( pc->state, CANVAS_CONTAINER ) )
-        {
-            if (pc->canvas)
-            {
-#ifdef SHAPE
-                if (pc->shape && PVECTOR_USED(pc->shape) > 0 )
-                {
-                    LOCAL_DEBUG_OUT( "XShapeCombineREctangles(%lX)set canvas shape to %d rects", pc->w, PVECTOR_USED(pc->shape) );
-                    XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, PVECTOR_HEAD(XRectangle, pc->shape), PVECTOR_USED(pc->shape), ShapeSet, Unsorted);
-					set_flags( pc->state, CANVAS_SHAPE_SET );
-				}else if( get_flags( pc->state, CANVAS_SHAPE_SET ) )
-				{
-					set_canvas_shape_to_nothing( pc );
-				}
-#endif
-                XSetWindowBackgroundPixmap (dpy, pc->w, pc->canvas);
-                XClearWindow (dpy, pc->w);
-
-                XSync (dpy, False);
-                clear_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC | CANVAS_MASK_OUT_OF_SYNC );
-            }
-        }
-	}
-}
-
-void
 update_canvas_display_mask (ASCanvas * pc, Bool force)
 {
 #ifdef SHAPE
@@ -458,6 +427,27 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
             {
                 LOCAL_DEBUG_OUT( "XShapeCombineREctangles(%lX)set canvas mask to %d rectangles", pc->w, PVECTOR_USED(pc->shape) );
                 XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, PVECTOR_HEAD(XRectangle, pc->shape), PVECTOR_USED(pc->shape), ShapeSet, Unsorted);
+				if( pc->bw > 0 ) 
+				{
+					XRectangle border[4] ; 
+					border[0].x = -pc->bw ; 	
+					border[0].y = -pc->bw ; 
+					border[0].width = pc->width+pc->bw*2 ; 
+					border[0].height = pc->bw ; 
+					border[1].x = -pc->bw ; 	   
+					border[1].y = -pc->bw ; 
+					border[1].width = pc->bw ; 
+					border[1].height = pc->height+pc->bw*2 ; 
+					border[2].x = -pc->bw ; 	   
+					border[2].y = pc->height ; 
+					border[2].width = pc->width+pc->bw*2 ; 
+					border[2].height = pc->bw ; 
+					border[3].x = pc->width ; 	   
+					border[3].y = -pc->bw ; 
+					border[3].width = pc->bw ; 
+					border[3].height = pc->height+pc->bw*2 ; 
+					XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, &(border[0]), 4, ShapeUnion, Unsorted);					
+				}	 
 				set_flags( pc->state, CANVAS_SHAPE_SET );
             }else if( get_flags( pc->state, CANVAS_SHAPE_SET ) )
                 set_canvas_shape_to_nothing( pc );
@@ -466,6 +456,31 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
         }
 	}
 #endif
+}
+
+
+
+void
+update_canvas_display (ASCanvas * pc)
+{
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc, pc->w, pc->canvas, pc->width, pc->height );
+    if (pc && pc->w != None )
+	{
+        if( !get_flags( pc->state, CANVAS_CONTAINER ) )
+        {
+            if (pc->canvas)
+            {
+#ifdef SHAPE
+				update_canvas_display_mask (pc, False);
+#endif
+                XSetWindowBackgroundPixmap (dpy, pc->w, pc->canvas);
+                XClearWindow (dpy, pc->w);
+
+                XSync (dpy, False);
+                clear_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC | CANVAS_MASK_OUT_OF_SYNC );
+            }
+        }
+	}
 }
 
 Bool
@@ -571,7 +586,7 @@ refresh_container_shape( ASCanvas *pc )
 			else
 				flush_vector( pc->shape );
 			get_drawable_size( pc->w, &curr_width, &curr_height );
-			res = add_shape_rectangles( pc->shape, rects, count, 0, 0, curr_width, curr_height );
+			res = add_shape_rectangles( pc->shape, rects, count, 0, 0, curr_width+pc->bw*2, curr_height+pc->bw*2 );
 			XFree( rects );
 
 			if( res )
@@ -614,11 +629,43 @@ LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
             return False;
         }
 
+#if 1
 		if( child->shape && PVECTOR_USED(child->shape) > 0 )
 		{
 			LOCAL_DEBUG_OUT( "adding %d child's shape rectangles", PVECTOR_USED(child->shape) );
-			res = add_shape_rectangles( parent->shape, PVECTOR_HEAD(XRectangle, child->shape), PVECTOR_USED(child->shape), child_x, child_y, parent_width, parent_height );
-		}else
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+			{
+				int i, max_i = PVECTOR_USED(child->shape) ;
+				XRectangle *r = PVECTOR_HEAD(XRectangle, child->shape);
+				for ( i = 0 ; i < max_i ; ++i  )
+					fprintf( stderr, "\t\t r[%d] = %dx%d%+d%+d\n", i, r[i].width, r[i].height, r[i].x, r[i].y );
+			}
+			LOCAL_DEBUG_OUT( "child geom = %dx%d%+d%+d, bw = %d", child_width, child_height, child_x, child_y, child_bw );			   
+#endif
+			res = add_shape_rectangles( parent->shape, PVECTOR_HEAD(XRectangle, child->shape), PVECTOR_USED(child->shape), child_x+child_bw, child_y+child_bw, parent_width, parent_height );
+			if( res && child_bw > 0 ) 
+			{
+		 		XRectangle border[4] ;		
+				border[0].x = 0 ; 
+				border[0].y = 0 ; 
+				border[0].width = child_width+child_bw ; 
+				border[0].height = child_bw ; 
+				border[1].x = 0 ; 
+				border[1].y = child_bw ; 
+				border[1].width = child_bw ; 
+				border[1].height = child_height ; 
+				border[2].x = child_width+child_bw ; 
+				border[2].y = 0 ; 
+				border[2].width = child_bw ; 
+				border[2].height = child_height+child_bw*2 ; 
+				border[3].x = 0 ; 
+				border[3].y = child_height+child_bw ; 
+				border[3].width = child_width+child_bw*2 ; 
+				border[3].height = child_bw ; 
+				res = add_shape_rectangles( parent->shape, &(border[0]), 4, child_x, child_y, parent_width, parent_height );
+			}				   
+ 		}else
+#endif			
 		{
 			XRectangle rect ;
 			rect.x = child_x ;
@@ -627,7 +674,7 @@ LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
 			rect.height = child_height + child_bw*2 ;
             LOCAL_DEBUG_OUT( "adding child's shape as whole rectangle: %dx%d%+d%+d", rect.width, rect.height, rect.x, rect.y );
 
-			res = add_shape_rectangles( parent->shape, &rect, 1, 0, 0, parent_width, parent_height );
+			res = add_shape_rectangles( parent->shape, &rect, 1, 0, 0, parent_width+parent->bw*2, parent_height+parent->bw*2 );
 		}
     }
 #endif

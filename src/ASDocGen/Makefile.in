@@ -61,7 +61,7 @@ install.data_html:  do_compile
 		old_IMAGE_PATH=$(IMAGE_PATH); old_FONT_PATH=$(FONT_PATH); \
 		export FONT_PATH="@with_afterdir@/desktop/fonts/:@datadir@/afterstep/desktop/fonts/:/usr/share/fonts/default/TrueType/:@x_libraries@/X11/fonts/TTF"; \
 		export IMAGE_PATH="@with_afterdir@/desktop/icons/:@datadir@/afterstep/desktop/icons/:@with_afterdir@/desktop/:@datadir@/afterstep/desktop/:@with_afterdir@/desktop/buttons/:@datadir@/afterstep/desktop/buttons/:@with_afterdir@/backgrounds/:@datadir@/afterstep/backgrounds/:@x_includes@/X11/pixmaps/"; \
-		./ASDocGen -t html --data --css data_html_styles.css -S $(AFTER_SHAREDIR) -D $(AFTER_DOC_DIR)/html/data ; \
+		./ASDocGen -t html --data --css data_html_styles.css -S $(AFTER_SHAREDIR) -D $(AFTER_DOC_DIR)/html/data -l /dev/null  ; \
 		export IMAGE_PATH=$(old_IMAGE_PATH); export FONT_PATH=$(old_FONT_PATH); \
 		echo "Done"; \
 

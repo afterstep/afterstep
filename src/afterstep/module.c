@@ -961,8 +961,12 @@ void
 broadcast_window_name( ASWindow *asw )
 {
     if( asw )
+	{	
         SendString( -1, M_WINDOW_NAME, asw->w, asw->frame,
                     asw, ASWIN_NAME(asw), asw->hints->names_encoding[0]);
+        SendString( -1, M_WINDOW_NAME_MATCHED, asw->w, asw->frame,
+                    asw, asw->hints->matched_name0, asw->hints->matched_name0_encoding );
+	}
 }
 
 void

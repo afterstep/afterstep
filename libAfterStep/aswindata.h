@@ -16,6 +16,7 @@ typedef enum
 	ASN_IconName,
 	ASN_ResClass,
 	ASN_ResName,
+	ASN_NameMatched,
 	ASN_NameTypes
 }ASNameTypes ;
 
@@ -41,10 +42,12 @@ typedef struct ASWindowData
 	Window          icon ;
 
     char            *window_name ;
+    char            *window_name_matched ;
 	char 			*icon_name ;
 	char 			*res_class ;
 	char 			*res_name ;
-	INT32		 	 window_name_encoding, icon_name_encoding, res_class_encoding, res_name_encoding ;
+	INT32		 	 window_name_encoding, window_name_matched_encoding ;
+	INT32		 	 icon_name_encoding, res_class_encoding, res_name_encoding ;
 
     Bool             focused;
 
@@ -59,7 +62,7 @@ typedef struct ASWindowData
 /* w, frame, t and the rest of the full window config */
 #define WINDOW_CONFIG_MASK (M_ADD_WINDOW|M_CONFIGURE_WINDOW|M_MAP)
 /* w, frame, t, and then text :*/
-#define WINDOW_NAME_MASK   (M_WINDOW_NAME|M_ICON_NAME|M_RES_CLASS|M_RES_NAME)
+#define WINDOW_NAME_MASK   (M_WINDOW_NAME|M_WINDOW_NAME_MATCHED|M_ICON_NAME|M_RES_CLASS|M_RES_NAME)
 /* w, frame and t */
 #define WINDOW_STATE_MASK  (M_FOCUS_CHANGE|M_DESTROY_WINDOW)
 

@@ -132,6 +132,10 @@ typedef struct ASHints
 
   unsigned char names_encoding[MAX_WINDOW_NAMES+1];  /* one of the AS_Text_ values */
 
+  /* these are copy of above done, when ASDatabase was last matched */
+  char *matched_name0 ;
+  unsigned char matched_name0_encoding;  
+
   ASFlagType flags ;
   ASFlagType protocols ;
   ASFlagType function_mask ;

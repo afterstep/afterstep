@@ -363,7 +363,10 @@ gen_data_doc( const char *source_dir, const char *dest_dir,
 	xml_elem_t* dir_header_varlist = NULL ;
 	xml_elem_t* ptr ;
 
-	fprintf( stderr, "Cataloguing %s ...\n", source_dir );
+	
+	printf( "Cataloguing %s ...\n", source_dir );
+
+
 	if( (slash = strrchr( source_dir, '/' )) != NULL )
 		short_fname = mystrdup( slash+1 );
 	else

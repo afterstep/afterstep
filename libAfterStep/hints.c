@@ -304,6 +304,12 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 
 	pdb_rec = fill_asdb_record (db, clean->names, &db_rec, False);
 
+	if( clean->matched_name0 ) 
+		free(clean->matched_name0);
+	clean->matched_name0 = mystrdup(clean->names[0]);
+  	clean->matched_name0_encoding = clean->names_encoding[0];  
+
+
 	LOCAL_DEBUG_OUT( "printing db record %p for names %p and db %p", pdb_rec, clean->names, db );
     if (is_output_level_under_threshold (OUTPUT_LEVEL_DATABASE))
 		print_asdb_matched_rec (NULL, NULL, db, pdb_rec);

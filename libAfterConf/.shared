@@ -9,6 +9,7 @@ LIBAFTERCONF_OBJS = \
 		$(LIBAFTERCONF_PATH)/Database.c \
 		$(LIBAFTERCONF_PATH)/Feel.c \
 		$(LIBAFTERCONF_PATH)/function.c \
+		$(LIBAFTERCONF_PATH)/Ident.c \
 		$(LIBAFTERCONF_PATH)/Look.c \
 		$(LIBAFTERCONF_PATH)/MyStyle.c \
 		$(LIBAFTERCONF_PATH)/Pager.c \

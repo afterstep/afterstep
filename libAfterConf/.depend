@@ -88,6 +88,14 @@
 		../libAfterStep/screen.h \
 		afterconf.h
 
+./Ident.o : \
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/mystyle.h \
+		../libAfterStep/parser.h \
+		afterconf.h
+
 ./Look.o : \
 		../configure.h \
 		../libAfterStep/asapp.h \

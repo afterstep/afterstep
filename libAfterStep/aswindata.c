@@ -49,6 +49,8 @@ window_data_destroy( ASHashableValue val, void *data )
 		{
 			if( wd->window_name )
 				free( wd->window_name );
+			if( wd->window_name_matched )
+				free( wd->window_name_matched );
 			if( wd->icon_name )
 				free( wd->icon_name );
 			if( wd->res_class )
@@ -169,6 +171,8 @@ LOCAL_DEBUG_OUT( "name received \"%s\"", new_name );
 		{
 			case M_WINDOW_NAME : dst = &(wd->window_name);
 								 wd->window_name_encoding = encoding ;break;
+			case M_WINDOW_NAME_MATCHED : dst = &(wd->window_name_matched);
+								 wd->window_name_matched_encoding = encoding ;break;
 			case M_ICON_NAME   : dst = &(wd->icon_name);
 								 wd->icon_name_encoding = encoding ; break;
 			case M_RES_CLASS   : dst = &(wd->res_class);
@@ -244,6 +248,7 @@ char *
 get_window_name( ASWindowData *wd, ASNameTypes type, INT32 *encoding )
 {
 	char *vname = NULL ;
+	
 	if( wd != NULL ) 
 	{	
 		switch( type )
@@ -263,6 +268,10 @@ get_window_name( ASWindowData *wd, ASNameTypes type, INT32 *encoding )
 			case ASN_ResName :  vname = wd->res_name ;
 								if( encoding )
 									*encoding = wd->res_name_encoding ;
+								break ;
+			case ASN_NameMatched :     vname = wd->window_name_matched ;
+								if( encoding )
+									*encoding = wd->window_name_matched_encoding ;
 								break ;
 			case ASN_NameTypes :
 		    	break ;

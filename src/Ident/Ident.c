@@ -505,6 +505,8 @@ fill_window_data()
 	name = get_window_name(wd, ASN_Name, &encoding );
 	   
 	add_property( "Window name:", name, encoding, True );
+	name = get_window_name(wd, ASN_NameMatched, &encoding );
+	add_property( "Window name matched:", name, encoding, True );
 	name = get_window_name(wd, ASN_IconName, &encoding );
 	add_property( "Icon name:", name, encoding, True );		
 	name = get_window_name(wd, ASN_ResClass, &encoding );
@@ -701,7 +703,7 @@ fill_window_data()
 		}
 	}
 
-	names[0] = get_window_name(wd, ASN_Name, &encoding );
+	names[0] = get_window_name(wd, ASN_NameMatched, &encoding );
 	names[1] = get_window_name(wd, ASN_IconName, &encoding );
 	names[2] = get_window_name(wd, ASN_ResClass, &encoding );
 	names[3] = get_window_name(wd, ASN_ResName, &encoding );

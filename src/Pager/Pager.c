@@ -716,13 +716,13 @@ place_desk_title( ASPagerDesk *d )
         if( get_flags(Config->flags, VERTICAL_LABEL) )
         {
             if( get_flags(Config->flags, LABEL_BELOW_DESK) )
-                x = PagerState.desk_width - width;
-            height = PagerState.desk_height ;
+                x = PagerState.desk_width - width - Config->border_width;
+            height = PagerState.desk_height-Config->border_width ;
         }else
         {
             if( get_flags(Config->flags, LABEL_BELOW_DESK) )
-                y = PagerState.desk_height - height;
-            width = PagerState.desk_width ;
+                y = PagerState.desk_height - height - Config->border_width;
+            width = PagerState.desk_width-Config->border_width ;
         }
         move_astbar( d->title, d->desk_canvas, x, y);
         set_astbar_size( d->title, width, height );
@@ -742,7 +742,7 @@ place_desk_background( ASPagerDesk *d )
     }
 
     move_astbar( d->background, d->desk_canvas, x, y);
-    set_astbar_size( d->background, PagerState.desk_width-x, PagerState.desk_height-y );
+    set_astbar_size( d->background, PagerState.desk_width-(x+Config->border_width), PagerState.desk_height-y-Config->border_width );
 }
 
 static Bool
@@ -770,6 +770,7 @@ render_desk( ASPagerDesk *d, Bool force )
     if( is_canvas_dirty( d->desk_canvas) )
     {
         update_canvas_display( d->desk_canvas );
+//		update_pager_shape();
         return True;
     }
     return False;
@@ -835,7 +836,7 @@ update_pager_shape()
 #ifdef SHAPE
     int i ;
     Bool shape_cleared = False ;
-	XRectangle border[2] ;
+	XRectangle border[4] ;
 
     if( get_flags( PagerState.flags, ASP_ReceivingWindowList ) )
         return ;
@@ -890,6 +891,7 @@ update_pager_shape()
 		}
 	    clear_flags( d->flags, ASP_ShapeDirty );
     }
+	
 	border[0].x = 0 ;
 	border[0].y = PagerState.main_canvas->height - Config->border_width ;
 	border[0].width = PagerState.main_canvas->width ;
@@ -898,8 +900,18 @@ update_pager_shape()
 	border[1].y = 0 ;
 	border[1].width = Config->border_width ;
 	border[1].height = PagerState.main_canvas->height ;
+#if 1
+	border[2].x = 0 ;
+	border[2].y = 0 ;
+	border[2].width = PagerState.main_canvas->width ;
+	border[2].height = Config->border_width ;
+	border[3].x = 0 ;
+	border[3].y = 0 ;
+	border[3].width = Config->border_width ;
+	border[3].height = PagerState.main_canvas->height ;
+#endif	
 
-	add_shape_rectangles( PagerState.main_canvas->shape, &(border[0]), 2, 0, 0, PagerState.main_canvas->width, PagerState.main_canvas->height );
+	add_shape_rectangles( PagerState.main_canvas->shape, &(border[0]), 4, 0, 0, PagerState.main_canvas->width, PagerState.main_canvas->height );
 
 	update_canvas_display_mask (PagerState.main_canvas, True);
 
@@ -2019,7 +2031,7 @@ void complete_client_move(struct ASMoveResizeData *data, Bool cancelled)
     ASWindowData *wd = fetch_client( AS_WIDGET_WINDOW(data->mr));
     int real_x = 0, real_y = 0;
     ASPagerDesk  *d = NULL ;
-    XRectangle *rect = &(data->curr);
+    MRRectangle *rect = &(data->curr);
 
     if( cancelled )
         rect = &(data->start);
