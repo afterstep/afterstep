@@ -314,8 +314,17 @@ AC_SUBST(AUDIO_PLAY_CMD)
 
 dnl# Check for X shaped window extension
 HAVESHAPE="NOSHAPE"
+add_lib_xext=no
 if test "x$enable_shaping" = "xyes"; then
-  AC_CHECK_LIB(Xext, XShapeCombineMask, [x_libs="$x_libs -lXext";AC_DEFINE(SHAPE,)],,$x_libs)
+  	AC_CHECK_LIB(Xext, XShapeCombineMask, [add_lib_xext=yes;AC_DEFINE(SHAPE,)],,$x_libs)
+fi
+
+if test "x$enable_xshm" = "xyes"; then
+	AC_CHECK_LIB(Xext, XShmCreateImage, [add_lib_xext=yes;AC_DEFINE(XSHMIMAGE,)],,$x_libs)
+fi
+
+if test "x$add_lib_xext" = "xyes"; then
+	x_libs="$x_libs -lXext"
 fi
 
 dnl# Check for Xinerama extension

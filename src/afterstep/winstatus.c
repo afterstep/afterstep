@@ -622,7 +622,8 @@ void
 on_window_hints_changed( ASWindow *asw )
 {
     static ASRawHints raw_hints ;
-    ASHints *hints = NULL;
+    ASHints *hints = NULL, *old_hints = NULL;
+	Bool tie_changed = False;
 
     if( AS_ASSERT(asw) )
         return ;
@@ -644,15 +645,26 @@ on_window_hints_changed( ASWindow *asw )
         return ;
     }
 
-    untie_aswindow( asw );
-    destroy_hints (asw->hints, True);
+	old_hints = asw->hints ;
+	tie_changed = ((old_hints->transient_for != hints->transient_for)||
+				   (old_hints->group_lead != hints->group_lead ));
+
+	if( tie_changed )
+    	untie_aswindow( asw );
+
     asw->hints = hints ;
-    tie_aswindow( asw );
+
+	if( tie_changed )
+    	tie_aswindow( asw );
+
     SelectDecor (asw);
 
-    /* we need to do the complete refresh of decorations : */
     LOCAL_DEBUG_OUT( "redecorating window %p(\"%s\") to update to new hints...", asw, hints->names[0]?hints->names[0]:"none" );
-    redecorate_window       ( asw, False );
+    /* we do not want to do a complete refresh of decorations -
+	 * we want to do only what is neccessary: */
+
+	hints2decorations( asw, old_hints )
+    /*redecorate_window       ( asw, False ); */
 
     on_window_title_changed ( asw, False );
     on_window_status_changed( asw, False, True );
@@ -662,6 +674,9 @@ on_window_hints_changed( ASWindow *asw )
     broadcast_window_name( asw );
     broadcast_res_names( asw );
     broadcast_icon_name( asw );
+
+
+	destroy_hints (old_hints, True);
 }
 
 void

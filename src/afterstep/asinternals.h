@@ -505,6 +505,7 @@ int check_allowed_function (FunctionData *fdata, ASHints *hints);
 ASFlagType compile_titlebuttons_mask (ASHints *hints);
 int estimate_titlebar_size( ASHints *hints );
 void disable_titlebuttons_with_function (ASWindow * t, int function);
+void hints2decorations( ASWindow *asw, ASHints *old_hints );
 
 /*************************** events.c ********************************/
 const char *context2text(int ctx);
