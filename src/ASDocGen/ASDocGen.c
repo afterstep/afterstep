@@ -137,7 +137,7 @@ ASApiSourceDescr libAfterImage_Sources[] =
 
 const char *HTML_CSS_File = "html_styles.css" ;
 static const char *HTML_DATA_BACKGROUND_File = "background.jpg" ;
-static const char *HTML_HELP_BACKGROUND_File = NULL ;
+/*static const char *HTML_HELP_BACKGROUND_File = NULL ; */
 const char *CurrHtmlBackFile = NULL ;
 
 ASHashTable *DocBookVocabulary = NULL ;
@@ -578,8 +578,8 @@ check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module )
 			if( !get_flags( syntax->terms[i].flags, TF_OBSOLETE) )
 			{	
 				SyntaxDef *sub_syntax = syntax->terms[i].sub_syntax ; 
-				if( sub_syntax == &PopupFuncSyntax ) 
-					sub_syntax = &FuncSyntax ;
+				if( sub_syntax == pPopupFuncSyntax ) 
+					sub_syntax = pFuncSyntax ;
 				if (sub_syntax)
 					check_syntax_source( source_dir, sub_syntax, False );
 				if( isalnum( syntax->terms[i].keyword[0] ) )					
@@ -705,8 +705,8 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 		for (i = 0; syntax->terms[i].keyword; i++)
 		{	
 			SyntaxDef *sub_syntax = syntax->terms[i].sub_syntax ; 
-			if( sub_syntax == &PopupFuncSyntax ) 
-				sub_syntax = &FuncSyntax ;
+			if( sub_syntax == pPopupFuncSyntax ) 
+				sub_syntax = pFuncSyntax ;
 			
 			if (sub_syntax)
 				gen_syntax_doc( source_dir, dest_dir, sub_syntax, doc_type );

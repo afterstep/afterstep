@@ -251,9 +251,10 @@ SyntaxDef includeSyntax =
 /**************************************************************************
  * FEEL terms : 
  **************************************************************************/
+extern struct SyntaxDef PopupFuncSyntax;
+extern struct SyntaxDef FuncSyntax;
 
 #define POPUP_TERM 		{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Popup",5                   , TT_QUOTED_TEXT, FEEL_Popup_ID             , &PopupFuncSyntax}
-
 #define FUNCTION_TERM 	{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Function",8                , TT_QUOTED_TEXT, FEEL_Function_ID          , &PopupFuncSyntax}
   
 #define AFTERSTEP_FEEL_TERMS \

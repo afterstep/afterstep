@@ -16,7 +16,7 @@ struct ASHashTable;
 struct TermDef;
 struct ASImage;
 
-typedef enum {
+typedef enum FunctionCode{
   F_NOP = 0,
   F_TITLE,
   F_BEEP,
@@ -241,7 +241,6 @@ struct ASEvent;
 typedef void (*as_function_handler)(struct FunctionData *data, struct ASEvent *event, int module);
 
 struct TermDef *txt2fterm (const char *txt, int quiet);
-struct TermDef *func2fterm (FunctionCode func, int quiet);
 int txt2func (const char *text, FunctionData * fdata, int quiet);
 int parse_func (const char *text, FunctionData * data, int quiet);
 FunctionData *String2Func ( const char *string, FunctionData *p_fdata, Bool quiet );

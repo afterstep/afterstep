@@ -34,21 +34,6 @@
  ****************************************************************************/
 extern SyntaxDef WharfSyntax;
 
-SyntaxDef     PopupFuncSyntax = {
-	'\n',
-	'\0',
-	FuncTerms,
-	0,										   /* use default hash size */
-	' ',
-	"\t",
-	"\t",
-    "Popup/Complex function definition",
-	"Popup",
-	"",
-	NULL,
-	0
-};
-
 void ProcessStatement (ConfigDef * config);
 
 unsigned long
@@ -321,9 +306,9 @@ ComplexFunction2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, ComplexF
     tail = &((*tail)->sub);
 
     for (i = 0; i < cf->items_num; i++)
-        tail = Func2FreeStorage(&PopupFuncSyntax, tail, &(cf->items[i]));
+        tail = Func2FreeStorage(pPopupFuncSyntax, tail, &(cf->items[i]));
 
-    tail = Flag2FreeStorage (&PopupFuncSyntax, tail, F_ENDFUNC);
+    tail = Flag2FreeStorage (pPopupFuncSyntax, tail, F_ENDFUNC);
 
     return new_tail;
 

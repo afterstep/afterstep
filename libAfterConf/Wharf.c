@@ -852,12 +852,13 @@ WriteWharfOptions (const char *filename, char *myname, WharfConfig * config, uns
 {
 	ConfigDef    *WharfConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
+	TermDef *folder_term = func2fterm( F_Folder, True);
 	int i ;
 
 	if (config == NULL)
 		return 1;
 
-    FuncTerms[F_Folder].sub_syntax = &WharfSyntax ;
+    folder_term->sub_syntax = &WharfSyntax ;
 
     if ((WharfConfigWriter = InitConfigWriter (myname, &WharfSyntax, CDT_Filename, (void *)filename)) == NULL)
 		return 2;

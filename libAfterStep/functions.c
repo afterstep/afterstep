@@ -39,31 +39,12 @@ txt2fterm (const char *txt, int quiet)
 {
 	TermDef      *fterm;
 
-	if (FuncSyntax.term_hash == NULL)
-        PrepareSyntax (&FuncSyntax);
-    if ((fterm = FindStatementTerm ((char *)txt, &FuncSyntax)) == NULL && !quiet)
+	if (pFuncSyntax->term_hash == NULL)
+        PrepareSyntax ((SyntaxDef*)pFuncSyntax);
+    if ((fterm = FindStatementTerm ((char *)txt, (SyntaxDef*)pFuncSyntax)) == NULL && !quiet)
         show_error ("unknown function name in function specification [%s].\n", txt);
 
 	return fterm;
-}
-
-TermDef      *
-func2fterm (FunctionCode func, int quiet)
-{
-	register int  i;
-
-	/* in most cases that should work : */
-	if( func < F_FUNCTIONS_NUM )
-		if (FuncTerms[func].id == func)
-			return &(FuncTerms[func]);
-
-	/* trying fallback if it did not : */
-	for (i = 0; i < F_FUNCTIONS_NUM; i++)
-		if (FuncTerms[i].id == func)
-			return &(FuncTerms[i]);
-
-	/* something terribly wrong has happened : */
-	return NULL;
 }
 
 int

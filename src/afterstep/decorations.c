@@ -679,7 +679,7 @@ list_functions_by_context (int context, ASHints *hints )
 		{
 			TermDef      *fterm;
 
-            fterm = FindTerm (&FuncSyntax, TT_ANY, btn->fdata->func);
+            fterm = func2fterm(btn->fdata->func, True);
 			if (fterm != NULL)
 			{
 				char         *ptr;

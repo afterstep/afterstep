@@ -197,21 +197,45 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 };
 
 struct SyntaxDef FuncSyntax = {
-    '\0',
-    '\n',
-	FuncTerms,
-	0,										   /* use default hash size */
-    ' ',
-	"",
-	"\t",
+    '\0',   '\n',	FuncTerms,
+	0, 		' ',	"",			"\t",
 	"AfterStep Function",
 	"Functions",
 	"built in AfterStep functions",
-	NULL,
-	0
+	NULL,	0
+};
+SyntaxDef     PopupFuncSyntax = {
+	'\n',	'\0',	FuncTerms,
+	0, 		' ',	"\t",		"\t",
+    "Popup/Complex function definition",
+	"Popup",
+	"",	
+	NULL,	0
 };
 
+
+
 struct SyntaxDef     *pFuncSyntax = &FuncSyntax;
+struct SyntaxDef     *pPopupFuncSyntax = &PopupFuncSyntax;
+
+TermDef      *
+func2fterm (FunctionCode func, int quiet)
+{
+	register int  i;
+
+	/* in most cases that should work : */
+	if( func < F_FUNCTIONS_NUM )
+		if (FuncTerms[func].id == func)
+			return &(FuncTerms[func]);
+
+	/* trying fallback if it did not : */
+	for (i = 0; i < F_FUNCTIONS_NUM; i++)
+		if (FuncTerms[i].id == func)
+			return &(FuncTerms[i]);
+
+	/* something terribly wrong has happened : */
+	return NULL;
+}
 
 /************************************************************************************/
 /* Command Line Processing/ App initialization here :                               */

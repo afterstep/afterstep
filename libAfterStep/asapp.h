@@ -279,8 +279,12 @@ extern int SingleScreen ;                              /* if >= 0 then [points t
 extern unsigned int  NumberOfScreens;   			   /* number of screens on display */
 extern int PointerScreen ;							   /* screen that currently has pointer */
 
-extern struct TermDef	FuncTerms[F_FUNCTIONS_NUM + 1];
-extern struct SyntaxDef FuncSyntax, *pFuncSyntax ;
+enum FunctionCode;
+
+extern struct SyntaxDef *pFuncSyntax ;
+extern struct SyntaxDef *pPopupFuncSyntax;
+
+struct TermDef  *func2fterm (enum FunctionCode func, int quiet);
 
 extern struct ASSession *Session;          /* filenames of look, feel and background */
 extern struct ASEnvironment *Environment;
