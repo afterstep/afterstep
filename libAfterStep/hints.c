@@ -101,7 +101,7 @@ merge_command_line (ASHints * clean, ASStatusHints * status, ASRawHints * raw)
 		{"-xrm", NULL, XrmoptionResArg, (caddr_t) NULL},
 	};
 
-	if (status == NULL || raw == NULL)
+	if ( raw == NULL)
 		return;
 	if (raw->wm_cmd_argc > 0 && raw->wm_cmd_argv != NULL)
 	{
@@ -111,15 +111,17 @@ merge_command_line (ASHints * clean, ASStatusHints * status, ASRawHints * raw)
 		init_xrm ();
 
 		XrmParseCommand (&cmd_db, xrm_cmd_opts, 2, "afterstep", &(raw->wm_cmd_argc), raw->wm_cmd_argv);
-		found = get_afterstep_resources (cmd_db, status);
+		if (status != NULL )
+		{
+			found = get_afterstep_resources (cmd_db, status);
 
-		if (!get_flags (found, AS_StartDesktop))
-		{									   /* checking for CDE workspace specification */
-			if (read_int_resource (cmd_db, "*workspaceList", "*WorkspaceList", &(status->desktop)))
-				set_flags (status->flags, AS_StartDesktop);
+			if (!get_flags (found, AS_StartDesktop))
+			{									   /* checking for CDE workspace specification */
+				if (read_int_resource (cmd_db, "*workspaceList", "*WorkspaceList", &(status->desktop)))
+					set_flags (status->flags, AS_StartDesktop);
+			}
+			XrmDestroyDatabase (cmd_db);
 		}
-		XrmDestroyDatabase (cmd_db);
-
 		if (raw->wm_client_machine && clean)
 			clean->client_host = text_property2string (raw->wm_client_machine);
 
@@ -309,8 +311,7 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 				LOCAL_DEBUG_OUT ("merging hints %d - flags == 0x%lX", i, clean->flags);
 			}
 		}
-
-	if (get_flags (what, HINT_STARTUP))
+	if (get_flags (what, HINT_STARTUP) )
 		merge_command_line (clean, status, raw);
 
 	check_hints_sanity (raw->scr, clean);
@@ -1306,7 +1307,7 @@ update_cmd_line_hints (Window w, Atom property,
 
 	memset (&raw, 0x00, sizeof (ASRawHints));
 	raw.scr = &Scr;
-	show_debug (__FILE__, __FUNCTION__, __LINE__, "trying to handle property change");
+	show_debug (__FILE__, __FUNCTION__, __LINE__, "trying to handle property change for WM_COMMAND");
 	if (handle_manager_property_update (w, property, &raw))
 	{
 		merge_command_line (hints, status, &raw);

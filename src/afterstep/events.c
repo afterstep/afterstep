@@ -345,6 +345,9 @@ DigestEvent( ASEvent *event )
         XKeyEvent *xk = &(event->x.xkey);
         ASCanvas  *canvas = asw->frame_canvas ;
         ASTBarData *pointer_bar = NULL ;
+		int pointer_root_x = xk->x_root;
+		int pointer_root_y = xk->y_root;
+
         /* Since key presses and button presses are grabbed in the frame
          * when we have re-parented windows, we need to find out the real
          * window where the event occured */
@@ -368,14 +371,25 @@ DigestEvent( ASEvent *event )
                         event->context = C_FRAME ;
                         break;
                     }
-            }
+            }else
+			{	/* we are on the border of the frame : see what side ofthe frame we are on */              	
+				event->context = C_FRAME ;
+				if( pointer_root_x < asw->frame_canvas->root_x+(int)asw->frame_canvas->bw )
+					pointer_root_x = asw->frame_canvas->root_x+(int)asw->frame_canvas->bw ;
+				else if( pointer_root_x >= asw->frame_canvas->root_x+(int)asw->frame_canvas->bw+(int)asw->frame_canvas->width )
+					pointer_root_x = asw->frame_canvas->root_x+(int)asw->frame_canvas->bw+(int)asw->frame_canvas->width-1;
+				if( pointer_root_y < asw->frame_canvas->root_y+(int)asw->frame_canvas->bw )
+					pointer_root_y = asw->frame_canvas->root_y+(int)asw->frame_canvas->bw ;
+				else if( pointer_root_y >= asw->frame_canvas->root_y+(int)asw->frame_canvas->bw+(int)asw->frame_canvas->height )
+					pointer_root_y = asw->frame_canvas->root_y+(int)asw->frame_canvas->bw+(int)asw->frame_canvas->height-1;
+			}
 
             if( w != asw->frame )
             {
                 if( event->w == asw->frame )
                 {
-                    xk->x = xk->x_root - canvas->root_x ;
-                    xk->y = xk->y_root - canvas->root_y ;
+                    xk->x = pointer_root_x - (canvas->root_x+(int)canvas->bw) ;
+                    xk->y = pointer_root_y - (canvas->root_y+(int)canvas->bw) ;
                 }else
                 {
                     Window dumm;
@@ -386,7 +400,7 @@ DigestEvent( ASEvent *event )
             {
                 int tbar_context ;
                 if( asw->tbar != NULL &&
-                    (tbar_context = check_astbar_point( asw->tbar, xk->x_root, xk->y_root )) != C_NO_CONTEXT )
+                    (tbar_context = check_astbar_point( asw->tbar, pointer_root_x, pointer_root_y )) != C_NO_CONTEXT )
                 {
                     event->context = tbar_context ;
                     pointer_bar = asw->tbar ;
@@ -394,7 +408,7 @@ DigestEvent( ASEvent *event )
                 {
                     for( i = 0 ; i < FRAME_PARTS ; ++i )
                         if( asw->frame_bars[i] != NULL &&
-                            (tbar_context = check_astbar_point( asw->frame_bars[i], xk->x_root, xk->y_root )) != C_NO_CONTEXT )
+                            (tbar_context = check_astbar_point( asw->frame_bars[i], pointer_root_x, pointer_root_y )) != C_NO_CONTEXT )
                         {
                             event->context = tbar_context ;
                             pointer_bar = asw->frame_bars[i] ;
@@ -412,7 +426,7 @@ DigestEvent( ASEvent *event )
                 pointer_bar = asw->icon_button ;
                 if( canvas == asw->icon_title_canvas )
                 {
-                    int c = check_astbar_point( asw->icon_title, xk->x_root, xk->y_root );
+                    int c = check_astbar_point( asw->icon_title, pointer_root_x, pointer_root_y );
                     if( c != C_NO_CONTEXT )
                     {
                         event->context = c ;

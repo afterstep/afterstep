@@ -1651,8 +1651,8 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%p", aswb, aswb->swallowed );
                                          &(client_event.xconfigure.width),
                                          &(client_event.xconfigure.height),
                                          &(client_event.xconfigure.border_width));
-        client_event.xconfigure.x += aswb->canvas->root_x;
-        client_event.xconfigure.y += aswb->canvas->root_y;
+        client_event.xconfigure.x += aswb->canvas->root_x+(int)aswb->canvas->bw;
+        client_event.xconfigure.y += aswb->canvas->root_y+(int)aswb->canvas->bw;
 
         /* Real ConfigureNotify events say we're above title window, so ... */
         /* what if we don't have a title ????? */

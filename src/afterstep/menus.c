@@ -786,16 +786,16 @@ run_item_submenu( ASMenu *menu, int item )
 LOCAL_DEBUG_CALLER_OUT( "%p, %d, submenu(%p)", menu, item, menu->items[item].submenu );
     if( menu->items[item].submenu )
     {
-        int x = menu->main_canvas->root_x ;
+        int x = menu->main_canvas->root_x+(int)menu->main_canvas->bw ;
         int y ;
         ASQueryPointerRootXY( &x, &y );
         x -= 5 ;
 #if 0
-        if( x  < menu->main_canvas->root_x + (menu->item_width/3) )
+        if( x  < menu->main_canvas->root_x + (int)(menu->item_width/3) )
         {
             int max_dx = Scr.MyDisplayWidth / 40 ;
-            if( menu->main_canvas->root_x + (menu->item_width/3) - x  < max_dx )
-                x = menu->main_canvas->root_x + (menu->item_width/3) ;
+            if( menu->main_canvas->root_x + (int)(menu->item_width/3) - x  < max_dx )
+                x = menu->main_canvas->root_x + (int)(menu->item_width/3) ;
             else
                 x += max_dx ;
         }
@@ -987,8 +987,8 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
 		   tend to accumulate while we are drawing and we start getting
 		   late with menu selection, creating an illusion of slowness */
 		ASQueryPointerRootXY( &pointer_x, &pointer_y );
-        px = pointer_x - canvas->root_x;
-		py = pointer_y - canvas->root_y;
+        px = pointer_x - (canvas->root_x+(int)canvas->bw);
+		py = pointer_y - (canvas->root_y+(int)canvas->bw);
 
         if( px >= 0 && px < canvas->width &&  py >= 0 && py < canvas->height )
         {

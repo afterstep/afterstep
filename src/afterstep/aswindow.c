@@ -672,6 +672,7 @@ update_visibility( int desk )
     {
         ASCanvas *client = asws[i]->client_canvas ;
         ASCanvas *frame = asws[i]->frame_canvas ;
+		int client_left, client_right, client_bottom, client_top ; 
         int r ;
 
         if( ASWIN_GET_FLAGS( asws[i], AS_Iconic ) )
@@ -685,12 +686,16 @@ update_visibility( int desk )
         ASWIN_CLEAR_FLAGS( asws[0], AS_Visible );
 
         r = VECTOR_USED(*rects);
+		client_left = client->root_x ;
+		client_top = client->root_y ;		
+		client_right = client_left + (int)client->width+(int)client->bw*2 ;		
+		client_bottom = client_top + (int)client->height+(int)client->bw*2 ;
         while( --r >= 0 )
         {
-            if( client->root_x+(int)client->width > vrect[r].x &&
-                client->root_x < vrect[r].x+(int)vrect[r].width &&
-                client->root_y+(int)client->height > vrect[r].y &&
-                client->root_y < vrect[r].y+(int)vrect[r].height )
+            if( client_right  > vrect[r].x &&
+                client_left   < vrect[r].x+(int)vrect[r].width &&
+                client_bottom > vrect[r].y &&
+                client_top    < vrect[r].y+(int)vrect[r].height )
             {
                 ASWIN_SET_FLAGS( asws[0], AS_Visible );
                 break;
@@ -844,9 +849,23 @@ is_canvas_overlaping (ASCanvas * above, ASCanvas *below)
 		return False;
 	if (below == NULL)
 		return True;
-
-    return (above->root_x < below->root_x + below->width && above->root_x + above->width > below->root_x &&
-            above->root_y < below->root_y + below->height && above->root_y + above->height > below->root_y);
+	else
+	{
+		int below_left = below->root_x ;
+		int below_right = below_left + (int)below->width + (int)below->bw*2 ;
+		int above_left = above->root_x ;
+		int above_right = above_left + (int)above->width + (int)above->bw*2 ;
+	    if( above_left < below_right && above_right > below_left ) 
+		{
+			int below_top = below->root_y ;
+			int below_bottom = below_top + (int)below->height + (int)below->bw*2 ;
+			int above_top = above->root_y ;
+			int above_bottom = above_top + (int)above->height + (int)above->bw*2 ;
+		  	
+			return (above_top < below_bottom && above_bottom > below_top);
+		}
+	}
+	return False ;
 }
 
 #define IS_OVERLAPING(a,b)    is_canvas_overlaping((a)->frame_canvas,(b)->frame_canvas)

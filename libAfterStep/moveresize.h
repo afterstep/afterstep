@@ -92,6 +92,8 @@ typedef struct ASMoveResizeData
 	char 	   	    *geometry_string;
 	Window           geometry_display;
 	XRectangle 		 curr, last, start;
+	int 			 bw ; /* bloody border width */
+	
     unsigned int     geometry_window_width ;
     unsigned int     geometry_window_height ;
 #ifdef NO_ASRENDER

@@ -45,17 +45,22 @@ refresh_canvas_config (ASCanvas * pc)
 
 	if (pc && pc->w != None)
 	{
-		int           root_x = pc->root_x, root_y = pc->root_y;
-        unsigned int  width = pc->width, height = pc->height;
+		int           root_x = pc->root_x, root_y = pc->root_y, dumm;
+        unsigned int  width = pc->width, height = pc->height, udumm;
 		Window        wdumm;
+		unsigned int  bw ;
 
 		XTranslateCoordinates (dpy, pc->w, Scr.Root, 0, 0, &root_x, &root_y, &wdumm);
+        XGetGeometry( dpy, pc->w, &wdumm, &dumm, &dumm, &udumm, &udumm, &bw, &udumm );
+		root_x -= bw ;
+		root_y -= bw ;
         if(root_x != pc->root_x)
             set_flags(changed, CANVAS_X_CHANGED);
         if( root_y != pc->root_y)
             set_flags(changed, CANVAS_Y_CHANGED);
 		pc->root_x = root_x;
 		pc->root_y = root_y;
+		pc->bw = bw ;
 
         if( !get_drawable_size(pc->w, &width, &height) )
 			return 0;/* drawable is bad */
@@ -779,19 +784,15 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
     if( pc && dst != None )
     {
         int x = 0, y = 0 ;
-		unsigned int bw = 0;
+		unsigned int bw = pc->bw;
         Window parent = None ;
 
         if( use_root_pos )
         {
             x = pc->root_x ;
             y = pc->root_y ;
-            get_canvas_position( pc, NULL, NULL, NULL, &bw );
         }else
             get_canvas_position( pc, &parent, &x, &y, &bw );
-
-		x -= (int)bw ;
-		y -= (int)bw ;
 
         if( parent != dst )
         {
@@ -809,18 +810,18 @@ add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gr
         int x = canvas->root_x + vx ;
         int y = canvas->root_y + vy ;
 LOCAL_DEBUG_CALLER_OUT( "(%p,%ux%u%+d%+d)", canvas, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
-        add_gridline( &(grid->h_lines), y,                x, x+canvas->width,  outer_gravity, inner_gravity );
-        add_gridline( &(grid->h_lines), y+canvas->height, x, x+canvas->width,  inner_gravity, outer_gravity );
-        add_gridline( &(grid->v_lines), x,                y, y+canvas->height, outer_gravity, inner_gravity );
-        add_gridline( &(grid->v_lines), x+canvas->width,  y, y+canvas->height, inner_gravity, outer_gravity );
+        add_gridline( &(grid->h_lines), y,                x, x+canvas->width+canvas->bw*2,  outer_gravity, inner_gravity );
+        add_gridline( &(grid->h_lines), y+canvas->height+canvas->bw*2, x, x+canvas->width+canvas->bw*2,  inner_gravity, outer_gravity );
+        add_gridline( &(grid->v_lines), x,                y, y+canvas->height+canvas->bw*2, outer_gravity, inner_gravity );
+        add_gridline( &(grid->v_lines), x+canvas->width+canvas->bw*2,  y, y+canvas->height+canvas->bw*2, inner_gravity, outer_gravity );
     }
 }
 
 void
 set_root_clip_area( ASCanvas *canvas )
 {
-    Scr.RootClipArea.x = canvas->root_x;
-    Scr.RootClipArea.y = canvas->root_y;
+    Scr.RootClipArea.x = canvas->root_x+(int)canvas->bw;
+    Scr.RootClipArea.y = canvas->root_y+(int)canvas->bw;
     Scr.RootClipArea.width  = canvas->width;
     Scr.RootClipArea.height = canvas->height;
     if( Scr.RootImage )
@@ -1159,7 +1160,7 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
 			}
 		}
     }
-	LOCAL_DEBUG_OUT( "flags = %X, dst_size = %dx%d, im_size = %dx%d, max_size = %dx%d, clip = %+d%+d", tile->flags, dst_width, dst_height, im->width, im->height, max_width, max_height, layer->clip_x, layer->clip_y );
+	LOCAL_DEBUG_OUT( "flags = %lX, dst_size = %dx%d, im_size = %dx%d, max_size = %dx%d, clip = %+d%+d", tile->flags, dst_width, dst_height, im->width, im->height, max_width, max_height, layer->clip_x, layer->clip_y );
     if( im->width != dst_width || im->height != dst_height )
     {
         im = scale_asimage( Scr.asv, im, dst_width, dst_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
@@ -1835,8 +1836,8 @@ move_astbar (ASTBarData * tbar, ASCanvas * pc, int win_x, int win_y)
         if( win_y >= MAX_POSITION || win_y <= -MAX_POSITION)
             win_y = tbar->win_y ;
 
-        root_x = pc->root_x + win_x;
-        root_y = pc->root_y + win_y;
+        root_x = pc->root_x + (int)pc->bw + win_x;
+        root_y = pc->root_y + (int)pc->bw + win_y;
 
 		changed = (root_x != tbar->root_x || root_y != tbar->root_y);
 		tbar->root_x = root_x;
@@ -1949,14 +1950,14 @@ update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc, Bool force)
 	if (tbar == NULL || pc == NULL)
         return False;;
 
-	root_x = pc->root_x + tbar->win_x;
-	root_y = pc->root_y + tbar->win_y;
+	root_x = pc->root_x + (int)pc->bw + tbar->win_x;
+	root_y = pc->root_y + (int)pc->bw + tbar->win_y;
     if ((changed = (root_x != tbar->root_x || root_y != tbar->root_y || Scr.RootImage == NULL || force )))
 	{
         register int  i = BAR_STATE_NUM;
 
-        tbar->root_x = pc->root_x + tbar->win_x;
-		tbar->root_y = pc->root_y + tbar->win_y;
+        tbar->root_x = root_x;
+		tbar->root_y = root_y;
 
 		while (--i >= 0)
 		{
@@ -2054,8 +2055,8 @@ LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width
     /* validating our images : */
 	if ((back = tbar->back[state]) != NULL)
 	{
-        if( tbar->root_x != pc->root_x + tbar->win_x ||
-            tbar->root_y != pc->root_y + tbar->win_y )
+        if( tbar->root_x != pc->root_x + (int)pc->bw + tbar->win_x ||
+            tbar->root_y != pc->root_y + (int)pc->bw + tbar->win_y )
             update_astbar_transparency( tbar, pc, False );
 
         if (back->width != tbar->width || back->height != tbar->height ||
@@ -2277,6 +2278,7 @@ check_astbar_point( ASTBarData *tbar, int root_x, int root_y )
     int context = C_NO_CONTEXT ;
     if( tbar )
     {
+LOCAL_DEBUG_OUT( "bar's geometry = %dx%d%+d%+d, pointer posish = %+d%+d", tbar->width, tbar->height, tbar->root_x, tbar->root_y, 	root_x, root_y );
         root_x -= tbar->root_x ;
         root_y -= tbar->root_y ;
         if(  0 <= root_x && tbar->width  > root_x &&

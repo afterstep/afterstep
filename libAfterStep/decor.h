@@ -34,7 +34,8 @@ typedef struct ASCanvas
     ASFlagType  state ;
 	Window w;
 	int root_x, root_y;
-	unsigned int width, height ;
+	unsigned short width, height ;
+	unsigned int bw ;
 
 	Pixmap 		saved_canvas ;
 	ASVector 	*saved_shape ;

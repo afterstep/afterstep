@@ -746,8 +746,8 @@ SendConfig (int module, send_data_type event_type, ASWindow * t)
             frame_x += t->status->viewport_x ;
             frame_y += t->status->viewport_y ;
         }
-        frame_width = t->frame_canvas->width ;
-        frame_height = t->frame_canvas->height ;
+        frame_width = t->frame_canvas->width+t->frame_canvas->bw*2 ;
+        frame_height = t->frame_canvas->height+t->frame_canvas->bw*2 ;
     }
 
     if( t->icon_canvas )
@@ -762,8 +762,8 @@ SendConfig (int module, send_data_type event_type, ASWindow * t)
         {
             icon_x = ic->root_x ;
             icon_y = ic->root_y ;
-            icon_width = ic->width ;
-            icon_height = ic->height;
+            icon_width = ic->width+ic->bw*2 ;
+            icon_height = ic->height+ic->bw*2;
         }
     }
 
@@ -919,8 +919,8 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
                 event.x.xbutton.y_root = 0;
             } else
             {
-                event.x.xbutton.x_root = event.client->frame_canvas->root_x;
-                event.x.xbutton.y_root = event.client->frame_canvas->root_y;
+                event.x.xbutton.x_root = event.client->frame_canvas->root_x+1;
+                event.x.xbutton.y_root = event.client->frame_canvas->root_y+1;
             }
             event.x.xany.type = ButtonRelease;
             event.x.xbutton.button = 1;

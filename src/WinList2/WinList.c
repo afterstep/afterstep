@@ -406,8 +406,8 @@ DispatchEvent (ASEvent * event)
 
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
     {
-        int i  = find_button_by_position( event->x.xmotion.x_root - WinListState.main_canvas->root_x,
-                                          event->x.xmotion.y_root - WinListState.main_canvas->root_y );
+        int i  = find_button_by_position( event->x.xmotion.x_root - (WinListState.main_canvas->root_x+(int)WinListState.main_canvas->bw),
+                                          event->x.xmotion.y_root - (WinListState.main_canvas->root_y+(int)WinListState.main_canvas->bw) );
         if( i < WinListState.windows_num )
             pointer_wd = WinListState.window_order[i] ;
     }

@@ -47,6 +47,9 @@ typedef int (*moveresize_event_func)(struct ASMoveResizeData*, struct ASEvent *e
 Bool (*_as_grab_screen_func)( struct ScreenInfo *scr, Cursor cursor ) = NULL;
 void (*_as_ungrab_screen_func) () = NULL;
 
+void move_func (struct ASMoveResizeData *data, int x, int y);
+
+
 static ASMoveResizeData *_as_curr_moveresize_data = NULL ;
 static moveresize_event_func    _as_curr_moveresize_handler = NULL ;
 /* We need to track what widgets has received ButtonPress so that we can
@@ -205,7 +208,8 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
     data->start.y = data->curr.y = data->last.y = AS_WIDGET_Y(mr) - AS_WIDGET_Y(parent);
     data->start.width  = data->curr.width  = data->last.width  = AS_WIDGET_WIDTH(mr);
     data->start.height = data->curr.height = data->last.height = AS_WIDGET_HEIGHT(mr);
-
+	data->bw = AS_WIDGET_BW(mr);
+	
 	grab_widget_pointer( parent, trigger,
 						 ButtonPressMask|ButtonReleaseMask|PointerMotionMask|EnterWindowMask|LeaveWindowMask,
 	                     &(data->last_x), &(data->last_y),
@@ -216,7 +220,6 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 
     data->origin_x = parent->root_x + data->last_x - mr->root_x;
     data->origin_y = parent->root_y + data->last_y - mr->root_y;
-
     /* we should be using this methinks: */
     //data->last_x = root_x ;
     //data->last_y = root_y ;
@@ -274,6 +277,7 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
     XMapRaised( dpy, data->geometry_display );
     data->below_sibling = data->geometry_display ;
 #endif
+	LOCAL_DEBUG_OUT( "curr(%+d%+d)->last(%+d%+d)", data->curr.x, data->curr.y, data->last_x, data->last_y );
 
 	if( data->pointer_func != NULL )
 		data->pointer_func( data, data->last_x, data->last_y );
@@ -361,12 +365,36 @@ flush_move_resize_data( ASMoveResizeData *data )
  ***********************************************************************/
 void complete_interactive_action( ASMoveResizeData *data, Bool cancel )
 {
+	XEvent client_event ;
+
 	if( data->outline )
 		destroy_outline_segments( &(data->outline) );
 
 	if( data->complete_func )
 		data->complete_func(data, cancel);
+	if( !cancel && data->pointer_func == move_func )
+	{
+	    client_event.type = ConfigureNotify;
+  		client_event.xconfigure.display = dpy;
+	    client_event.xconfigure.event  = AS_WIDGET_WINDOW(data->mr);
+	    client_event.xconfigure.window = client_event.xconfigure.event ;
 
+  		client_event.xconfigure.x = data->curr.x ; 
+	    client_event.xconfigure.y = data->curr.y ;
+  		client_event.xconfigure.width = data->curr.width ;
+	    client_event.xconfigure.height = data->curr.height ;
+
+  		client_event.xconfigure.border_width = 0;
+	    /* Real ConfigureNotify events say we're above title window, so ... */
+  		/* what if we don't have a title ????? */
+	    client_event.xconfigure.above = AS_WIDGET_SCREEN(data->mr)->Root;
+  		client_event.xconfigure.override_redirect = False;
+		/* only send it ourselves */
+	    XSendEvent (dpy, client_event.xconfigure.event, False, 0, &client_event);
+	}
+
+	/* its a good idea to send out a syntetic ConfigureNotify */
+	
 	stop_widget_moveresize();
 	flush_move_resize_data( data );
 	free( data );
@@ -424,6 +452,8 @@ SHOW_CHECKPOINT;
 	switch (event->x.type)
 	{   /* Handle a limited number of key press events to allow mouseless
 		 * operation */
+		case ConfigureNotify :
+			return (data->pointer_func==move_func)?ASE_Consumed:0 ;
 		case KeyPress:
 		/* Keyboard_shortcuts (&Event, ButtonRelease, 20); */
 			break;
@@ -523,7 +553,7 @@ resist_east_side( register ASGridLine *l, short pos, short new_pos, short lim1, 
 }
 
 Bool
-attract_corner( ASGrid *grid, short *x_inout, short *y_inout, XRectangle *curr )
+attract_corner( ASGrid *grid, short *x_inout, short *y_inout, XRectangle *curr, int bw )
 {
 	int new_left ;
 	int new_top ;
@@ -531,17 +561,18 @@ attract_corner( ASGrid *grid, short *x_inout, short *y_inout, XRectangle *curr )
 
 	if( grid )
 	{
-		new_left = attract_side( grid->v_lines, *x_inout, curr->width,  *y_inout, *y_inout+curr->height);
-		new_top  = attract_side( grid->h_lines, *y_inout, curr->height, *x_inout, *x_inout+curr->width );
+		int bw_addon = bw*2 ;
+		new_left = attract_side( grid->v_lines, *x_inout, curr->width+bw_addon,  *y_inout, *y_inout+curr->height);
+		new_top  = attract_side( grid->h_lines, *y_inout, curr->height+bw_addon, *x_inout, *x_inout+curr->width );
 LOCAL_DEBUG_OUT( "attracted(%+d%+d) orinal(%+d%+d)", new_left, new_top, curr->x, curr->y );
 		if( new_left > curr->x )  /* moving eastwards : */
-			new_left = resist_east_side( grid->v_lines, curr->x+curr->width, new_left+curr->width, new_top, new_top+curr->height )-curr->width;
+			new_left = resist_east_side( grid->v_lines, curr->x+curr->width+bw_addon, new_left+curr->width+bw_addon, new_top, new_top+curr->height+bw_addon )-(curr->width+bw_addon);
 		else if( new_left != curr->x )
-			new_left = resist_west_side( grid->v_lines, curr->x, new_left, new_top, new_top+curr->height );
+			new_left = resist_west_side( grid->v_lines, curr->x, new_left, new_top, new_top+curr->height+bw_addon );
 		if( new_top > curr->y )  /* moving southwards : */
-			new_top = resist_east_side( grid->h_lines, curr->y+curr->height, new_top+curr->height, new_left, new_left+curr->width )-curr->height;
+			new_top = resist_east_side( grid->h_lines, curr->y+curr->height+bw_addon, new_top+curr->height+bw_addon, new_left, new_left+curr->width+bw_addon )-(curr->height+bw_addon);
 		else if( new_top != curr->y )
-			new_top = resist_west_side( grid->h_lines, curr->y, new_top, new_left, new_left+curr->width );
+			new_top = resist_west_side( grid->h_lines, curr->y, new_top, new_left, new_left+curr->width+bw_addon );
 		res = (new_top != *y_inout || new_left != *x_inout );
 		*x_inout = new_left ;
 		*y_inout = new_top ;
@@ -621,7 +652,7 @@ move_func (struct ASMoveResizeData *data, int x, int y)
 	int dx, dy ;
 	short new_x, new_y ;
 
-LOCAL_DEBUG_CALLER_OUT( "data = %p, pos = (%dx%d)", data, x, y );
+LOCAL_DEBUG_CALLER_OUT( "data = %p, pos = (%+d%+d)", data, x, y );
 	dx = x-(data->last_x+data->lag_x) ;
 	dy = y-(data->last_y+data->lag_y) ;
 
@@ -631,7 +662,7 @@ LOCAL_DEBUG_OUT( "pointer_state = %X, no_snap_mod = %X", data->pointer_state&All
 LOCAL_DEBUG_OUT( "pos(%+d%+d)->delta(%+d%+d)->new(%+d%+d)->lag(%+d%+d)->last(%+d%+d)", x, y, dx, dy, new_x, new_y, data->lag_x, data->lag_y, data->last_x, data->last_y );
     if( data->grid && (data->pointer_state&AllModifierMask) != data->feel->no_snaping_mod )
 	{
-		attract_corner( data->grid, &new_x, &new_y, &(data->curr) );
+		attract_corner( data->grid, &new_x, &new_y, &(data->curr), data->bw );
 		dx = new_x-data->curr.x ;
 		dy = new_y-data->curr.y ;
 	}
@@ -641,13 +672,15 @@ LOCAL_DEBUG_OUT( "pos(%+d%+d)->delta(%+d%+d)->new(%+d%+d)->lag(%+d%+d)->last(%+d
 	data->curr.y = new_y ;
 	data->last_x = x ;
 	data->last_y = y ;
-LOCAL_DEBUG_OUT( "curr(%+d%+d)->delta(%+d%+d)->lag(%+d%+d)->last(%+d%+d)", data->curr.x, data->curr.y, dx, dy, data->lag_x, data->lag_y, data->last_x, data->last_y );
+LOCAL_DEBUG_OUT( "last_geom(%+d%+d)->curr_geom(%+d%+d)->delta(%+d%+d)->lag(%+d%+d)->last(%+d%+d)", data->last.x, data->last.y, data->curr.x, data->curr.y, dx, dy, data->lag_x, data->lag_y, data->last_x, data->last_y );
 
 /*  fprintf( stderr, "move_func: (x,y) =(%d,%d) to %+d%+d\n", x, y, pdata->new_x, pdata->new_y );
 */
 /*	resist_move (pdata); */
-	data->apply_func( data );
-	ASSync(False);
+	if( data->curr.x != data->last.x || data->curr.y != data->last.y ) 
+	{
+		data->apply_func( data );
+	}
 	update_geometry_display( data );
 }
 
@@ -666,6 +699,7 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 		v_lines = data->grid->v_lines ;
 	}
 
+	/* TODO: accound for the border width !!!!! */
 	switch( data->side )
 	{
 		case FR_N :
@@ -701,8 +735,9 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 	data->last_x = x ;
 	data->last_y = y ;
 
-	data->apply_func( data );
-	ASSync(False);
+	if( data->curr.x != data->last.x || data->curr.y != data->last.y ||
+		data->curr.width != data->last.width || data->curr.height != data->last.height ) 
+		data->apply_func( data );
 	update_geometry_display( data );
 
 LOCAL_DEBUG_OUT( " dx = %d, width  = %d, x = %d, lag_x = %d", dx, data->curr.width, data->curr.x, data->lag_x );

@@ -49,8 +49,8 @@ Bool get_icon_root_geometry( ASWindow *asw, ASRectangle *geom )
     {
         geom->x = canvas->root_x ;
         geom->y = canvas->root_y ;
-        geom->width  = canvas->width ;
-        geom->height += canvas->height ;
+        geom->width  = canvas->width + canvas->bw*2;
+        geom->height += canvas->height + canvas->bw*2 ;
         return True;
     }
     return False;
