@@ -80,7 +80,7 @@ add_data_section_header2xml( ASData2xmlState *xml_state, const char *id )
 	sect->parm = safemalloc( 4+strlen(id)+32+1 );
 	sprintf(sect->parm, "id=\"%s\"", id );
 
-	LOCAL_DEBUG_OUT("parm = \"%s\"", sect->parm );
+	LOCAL_DEBUG_OUT("parm = \"%s\"", sect->parm?sect->parm:"(NULL)" );
 
 	xml_state->curr_section = sect ;
 

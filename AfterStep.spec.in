@@ -3,6 +3,7 @@
 %define	version	@version@
 %define	release	1
 %define	serial	1
+%define	prefix	/usr/X11R6
 
 Summary:	AfterStep Window Manager (NeXTalike)
 Name:		%{name}
@@ -65,7 +66,7 @@ Requires: %{name}-libs
 # tar xzf $RPM_SOURCE_DIR/AfterStep-redhat.tar.gz
 
 CFLAGS=$RPM_OPT_FLAGS \
-./configure --prefix=/usr/X11R6 --datadir=/usr/share \
+./configure --prefix=%{prefix} --datadir=/usr/share \
     --disable-staticlibs --enable-sharedlibs \
 	 --with-helpcommand="aterm -e man" \
 	 --with-desktops=1 --with-imageloader="qiv --root"
@@ -81,9 +82,9 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 mkdir -p $RPM_BUILD_ROOT
 
 make DESTDIR=$RPM_BUILD_ROOT install
-rm -f $RPM_BUILD_ROOT/usr/X11R6/bin/{sessreg,xpmroot}
+rm -f $RPM_BUILD_ROOT%{prefix}/bin/{sessreg,xpmroot}
 for f in libAfter{Base,Conf,Image,Step}; do
-   cp -a $f/$f.so* %{buildroot}/usr/X11R6/lib
+   cp -a $f/$f.so* %{buildroot}%{prefix}/lib
 done
 
 %clean
@@ -92,19 +93,21 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root)
 %doc ChangeLog NEW README* TEAM UPGRADE doc/languages doc/licences doc/code TODO doc/*.html
-/usr/X11R6/bin/*
-/usr/X11R6/lib/*
+%{prefix}/bin/*
+%{prefix}/lib/*
 %config /usr/share/afterstep
+%config /usr/share/gnome/wm-properties/AfterStep.desktop
 
 %files libs
 %defattr(-,root,root)
 %doc libAfterImage/README src/ASDocGen/html/*
-/usr/X11R6/lib/*
+%{prefix}/lib/*
+%{prefix}/man/*/*
 
 %files devel
 %defattr(-,root,root)
-/usr/X11R6/include/libAfterBase/*
-/usr/X11R6/include/libAfterImage/*
+%{prefix}/include/libAfterBase/*
+%{prefix}/include/libAfterImage/*
 
 %pre
 for i in /usr /usr/local /usr/X11R6 ; do
@@ -123,6 +126,10 @@ done
 %postun -p /sbin/ldconfig
 
 %changelog
+* Wed Sep 28 2004 Graydon Saunders <graydon@epiphyte.net> 2.00.00
+- added %%{prefix}
+- added the man pages to the -libs package
+
 * Sun Dec 14 2003 Andre Costa <acosta@ar.microlink.com.br>
 - split into three different RPMs
 - AfterStep-libs is now required for AfterStep
