@@ -147,7 +147,7 @@ dnl# we are alone - have to do all the checks ourselves :
 fi
 
 dnl# Check for MMX :
-if test "x$enable_mmx_optimization" = "xyes"; then 
+if test "x$enable_mmx_optimization" = "xyes"; then
   AC_MSG_CHECKING(for MMX support)
   if test -z "`echo $build_cpu 2>&1 | grep i*86 >/dev/null`"; then
 	AC_TRY_RUN([int main(){int mmx_available = 0;
@@ -166,7 +166,7 @@ if test "x$enable_mmx_optimization" = "xyes"; then
                       : "=m" (mmx_available)
                       : /* no input */
 					  : "ebx", "ecx", "edx"
-				);return mmx_available!=0?0:1;}], 
+				);return mmx_available!=0?0:1;}],
 				[AC_DEFINE(HAVE_MMX) AC_MSG_RESULT(yes)],AC_MSG_RESULT(no))
   else
 	  AC_MSG_RESULT(skipped)
@@ -270,11 +270,11 @@ else
 	   AC_MSG_CHECKING(for png_get_sRGB in png.h)
        AC_EGREP_HEADER(png_get_sRGB,png.h,,have_png=no)
        AC_MSG_RESULT($have_png)
-	fi	   
+	fi
 	if test "$have_png" = yes; then
-	   AC_DEFINE(HAVE_PNG) 
-	   AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lpng" 
-	fi	   
+	   AC_DEFINE(HAVE_PNG)
+	   AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lpng"
+	fi
   CPPFLAGS=$SAVED_CFLAGS
 fi
 AC_SUBST(PNG_CFLAGS)
@@ -353,20 +353,30 @@ else
 	  CPPFLAGS="$TTF_INCLUDES $CPPFLAGS"
 	  CFLAGS="$CFLAGS $TTF_INCLUDES $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $X_CFLAGS"
 	  AC_MSG_CHECKING( freetype/freetype.h )
+	  have_ttf=no
+          have_freetype_freetype=no
+	  have_freetype=no
 	  AC_EGREP_HEADER(FT_Face,freetype/freetype.h,
-	                  [AC_DEFINE(HAVE_FREETYPE_FREETYPE) AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],
+	                  [have_freetype_freetype=yes],
 	                  [AC_MSG_RESULT(no);AC_MSG_CHECKING(freetype.h); \
-					   AC_EGREP_HEADER(FT_Face,freetype.h,
-					                   [AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],
-									   AC_MSG_RESULT(no))]
+                                             AC_EGREP_HEADER(FT_Face,freetype.h,
+					                   [have_freetype=yes], AC_MSG_RESULT(no))]
 					  )
-dnl#	  AC_TRY_COMPILE([#include <freetype/freetype.h>],[FT_Face aaa; aaa=(FT_Face)1],
-dnl#	                 [AC_DEFINE(HAVE_FREETYPE_FREETYPE) AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],
-dnl#            		 [AC_MSG_RESULT(no); AC_MSG_CHECKING(freetype.h); \
-dnl#					  AC_EGREP_HEADER(FT_Face,freetype/freetype.h,[AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],AC_MSG_RESULT(no))] )
+    	  if test "x$have_freetype_freetype" != "xyes" ; then
+		AC_TRY_RUN([#include <freetype/freetype.h>
+                            int main(){FT_Face f; return 0;}],
+	                   [AC_DEFINE(HAVE_FREETYPE_FREETYPE) have_ttf=yes],AC_MSG_RESULT(no))
+	  elif test "x$have_freetype" != "xyes" ; then
+		AC_TRY_RUN([#include <freetype.h>
+                            int main(){FT_Face f; return 0;}],
+	                   [have_ttf=yes],AC_MSG_RESULT(no))
+	  fi;
+    	  if test "x$have_ttf" != "xyes" ; then
+		AC_DEFINE(HAVE_FREETYPE)
+                AC_MSG_RESULT(yes)
+	  fi;
 	  CPPFLAGS=$saved_CPPFLAGS
 	  CFLAGS=$saved_CFLAGS
-	  have_ttf=yes
     else
 		enable_ttf=no ;
 		AC_MSG_RESULT(none found, ttf disabled)
