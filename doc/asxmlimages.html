@@ -16,6 +16,7 @@
   </head>
   <body>
     <h1>AfterStep XML Images</h1>
+    <h2>Introduction</h2>
     <p>
       AfterStep's graphics engine - libAfterImage includes processor of XML
       scripts that specify transformation of images. Such XML script may
@@ -25,7 +26,48 @@
       tinting, solid fill, etc.
     </p>
     <p>
-      Here is the example of such xml script:
+      Great advantage of&nbsp; such scripting capabilities is that numerous
+      images could be produced from the single clipart image. For example
+      most modern system assign different icons to different file types. When
+      two different file types should have similar icons - icon simply gets
+      duplicated. The result of it is huge waste of HDD space and large
+      number of identical files. XML scripts solve that problem, allowing to
+      create shortcuts to image files.
+    </p>
+    <p>
+      For example xml file with:
+    </p>
+    <p class="codeBlock">
+      <code>
+	&lt;img src="logos/AfterStep5"/&gt;
+      </code>
+    </p>
+    <p>
+      is a simply a shortcut to clipart image.
+    </p>
+    <p>
+      Also it allows to create minipixmaps, or reduced size version of icons.
+    </p>
+    <p>
+      For example:
+    </p>
+    <p class="codeBlock">
+      <code>
+	&lt;scale width="16" height="16"&gt;<br/>
+	&nbsp;&nbsp;
+	&lt;img src="logos/GNUStep"&gt;<br/>
+	&lt;/scale&gt;
+      </code>
+    </p>
+    <p>
+      Will create 16x16 version of GNUStep icon, which could be used as
+      minipixmap for application.
+    </p>
+
+    <h2>Examples</h2>
+    <p>
+      This specific script scales down AfterStep logo to 42x42, and then
+      blends it over the icon of computer monitor, producing new icon.
     </p>
     <p class="codeBlock">
       <code>
@@ -41,10 +83,6 @@
 	&lt;/scale&gt;<br/>
 	&lt;composite&gt;
       </code>
-    </p>
-    <p>
-      This specific script scales down AfterStep logo to 42x42, and then
-      blends it over the icon of computer monitor, producing new icon.<br />
     </p>
     <p>
       Here is another script:
@@ -80,50 +118,12 @@
       This one renders border image as could be seen at the top of this page.
     </p>
     <p>
-      Great advantage of&nbsp; such scripting capabilities is that numerous
-      images could be produced from the single clipart image. For example
-      most modern system assign different icons to different file types. When
-      two different file types should have similar icons - icon simply gets
-      duplicated. The result of it is huge waste of HDD space and large
-      number of identical files. XML scripts solve that problem, allowing to
-      create shortcuts to image files.
-    </p>
-    <p>
-      For examle xml file with:
-    </p>
-    <p class="codeBlock">
-      <code>
-	&lt;img src="logos/AfterStep5"/&gt;
-      </code>
-    </p>
-    <p>
-      is a simply a shortcut to clipart image.
-    </p>
-    <p>
-      Also it allows to create minipixmaps, or reduced size version of icons.
-    </p>
-    <p>
-      For example:
-    </p>
-    <p class="codeBlock">
-      <code>
-	&lt;scale width="16" height="16"&gt;<br/>
-	&nbsp;&nbsp;
-	&lt;img src="logos/GNUStep"&gt;<br/>
-	&lt;/scale&gt;
-      </code>
-    </p>
-    <p>
-      Will create 16x16 version of GNUStep icon, which could be used as
-      minipixmap for application.
-    </p>
-    <p>
-      Very powerfull feature of&nbsp; AfterStep is colorschemes. That means
+      Very powerful feature of&nbsp; AfterStep is colorschemes. That means
       that at each moment AfterStep defines 31 additional color name, exact
-      color values of which will depend on choosen colorscheme. Now XML
+      color values of which will depend on chosen colorscheme. Now XML
       scripts may include HSV conversion commands. As the result it is
       possible to have images change its colors depending on the colorscheme
-      choosen.
+      chosen.
     </p>
     <p>
       For example:
@@ -141,14 +141,40 @@
     </p>
     <p>
       Above image will produce focused titlebar background that changes
-      colors according to coloracheme choosen.
+      colors according to colorcheme chosen.
     </p>
-    <h2>Tiling</h2>
 
+    <h2>Tiling</h2>
     <h3>Simple tiling</h3>
+    <h4>Tiled gradient</h4>
     <p>
-      This example produces a tile which is mirrored through the X and Y axis
-      and which repeats itself endlessly:
+      The following example produces a tile that repeats itself endlessly
+      with the addition of a gradient that goes from top-left corner to bottom-right corner.
+      This is the default background used by AfterStep for all desktops.
+    </p>
+    <p class="codeBlock">
+      <code>
+	&lt;img id="texturedTile" src="~/.afterstep/desktop/tiles/simpleTexture.png"/&gt;<br/>
+	<br/>
+	&lt;composite op="add"&gt;<br/>
+	&nbsp;&nbsp;
+	&lt;gradient width="$xroot.width" height="$xroot.height" colors="BaseDark BaseLight" angle="45"/&gt;<br/>
+	&nbsp;&nbsp;
+	&lt;tile tile="1"&gt;<br/>
+	&nbsp;&nbsp;
+	&nbsp;&nbsp;
+	&lt;recall srcid="texturedTile"/&gt;<br/>
+	&nbsp;&nbsp;
+	&lt;/tile&gt;<br/>
+	&lt;/composite&gt;
+      </code>
+    </p>
+
+    <h3>Complex tiling</h3>
+    <h4>X Y mirrored tiling</h4>
+    <p>
+      The following example produces a tile which is mirrored through the X and Y axis
+      and which repeats itself endlessly.
     </p>
     <p class="codeBlock">
       <code>
@@ -180,10 +206,10 @@
       </code>
     </p>
 
-    <h3>Complex tiling</h3>
+    <h4>Plain tiling</h4>
     <p>
-      This example produces a tile which is mirrored through the X and Y axis
-      and which repeats itself only 4 plain times:
+      The following example produces a tile which is mirrored through the X and Y axis
+      and which repeats itself only 4 plain times.
     </p>
     <p class="codeBlock">
       <code>
