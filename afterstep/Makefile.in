@@ -74,11 +74,12 @@ install:
 	$(CP) -r start/* $(AFTER_SHAREDIR)/start/; 
 	@$(RMF) $(AFTER_SHAREDIR)/start/.include.in; \
 	$(INSTALL_DATA) start/.include $(AFTER_SHAREDIR)/start/.include; \
-	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Feel/.include.in; \
-	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Color_Scheme/.include.in; \
-	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Look/.include.in; \
-	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Theme/.include.in; \
-	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Pictures/.include.in; \
+	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Feel/.include.in; \
+	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Color_Scheme/.include.in; \
+	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Look/.include.in; \
+	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Theme/.include.in; \
+	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Pictures/.include.in; \
+	$(RMF) $(AFTER_SHAREDIR)/start/2_Modules/Pager.in; \
 	$(RMF) $(AFTER_SHAREDIR)/non-configurable/*.in
 	$(FIND) $(AFTER_SHAREDIR) -name '*.in' -print | $(XARGS) $(RMF) -r
 	$(FIND) $(AFTER_SHAREDIR) -name '*.orig' -print | $(XARGS) $(RMF) -r
