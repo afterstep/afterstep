@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 	struct ASFont  *font = NULL;
 	unsigned int width, height ;
 	int i;
-	int text_margin = size/2 ;
+	int text_margin = size/2, text_height ;
 
 
 	/* see ASView.1 : */
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 #endif
 
 	/* see ASText.1 : */
-	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
+	if( (fontman = create_font_manager( dpy, getenv("FONT_PATH"), NULL )) != NULL )
 		font = get_asfont( fontman, font_name, 0, size, ASF_GuessWho );
 
 	if( font == NULL )
@@ -205,6 +205,7 @@ int main(int argc, char* argv[])
 		fore_im = text_im ;
 
 	/* see ASText.1 : */
+	text_height	= ((int)font->max_height-(int)font->max_ascend) ;
 	release_font( font );
 	destroy_font_manager( fontman, False );
 
@@ -230,7 +231,7 @@ int main(int argc, char* argv[])
 		layers[0].bevel = &bevel ;
 		layers[1].im = fore_im ;
 		layers[1].dst_x = text_margin+BEVEL_HI_WIDTH*2 ;
-		layers[1].dst_y = text_margin+MIN((int)text_margin,((int)font->max_height-(int)font->max_ascend))/2+BEVEL_HI_WIDTH*2;
+		layers[1].dst_y = text_margin+MIN((int)text_margin,text_height)/2+BEVEL_HI_WIDTH*2;
 		layers[1].clip_width = fore_im->width ;
 		layers[1].clip_height = fore_im->height ;
 		rendered_im = merge_layers( asv, &(layers[0]), 2,
@@ -277,6 +278,8 @@ int main(int argc, char* argv[])
 #endif
 		}
 	}
+
     return 0 ;
+
 }
 

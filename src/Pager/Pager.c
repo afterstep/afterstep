@@ -1549,6 +1549,7 @@ set_client_name( ASWindowData *wd, Bool redraw )
 {
     if( wd->bar )
     {
+		LOCAL_DEBUG_OUT( "name_enc = %d, name = \"%s\"", wd->window_name_encoding, wd->window_name);
         change_astbar_first_label( wd->bar, wd->window_name, wd->window_name_encoding );
         set_astbar_balloon( wd->bar, 0, wd->window_name, wd->window_name_encoding );
     }

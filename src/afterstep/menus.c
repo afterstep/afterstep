@@ -239,10 +239,11 @@ LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item?mdi->it
     /* optional menu items : */
     /* add label */
     if( mdi->item )
-        add_astbar_label( item->bar, 3, 0, 0, ALIGN_LEFT|ALIGN_VCENTER, 0, 0, mdi->item, AS_Text_ASCII );
+        add_astbar_label( item->bar, 3, 0, 0, ALIGN_LEFT|ALIGN_VCENTER, 0, 0, mdi->item,
+		mdi->fdata->name_encoding );
     /* add hotkey */
     if( mdi->item2 )
-        add_astbar_label( item->bar, 4, 0, 0, ALIGN_RIGHT|ALIGN_VCENTER, 0, 0, mdi->item2, AS_Text_ASCII );
+        add_astbar_label( item->bar, 4, 0, 0, ALIGN_RIGHT|ALIGN_VCENTER, 0, 0, mdi->item2, mdi->fdata->name_encoding );
 
     item->flags = 0 ;
     if( mdi->fdata->func == F_POPUP )

@@ -101,6 +101,7 @@ typedef struct ASWindow
 
 
 #define ASWIN_NAME(t)       ((t)->hints->names[0])
+#define ASWIN_NAME_ENCODING(t)       ((t)->hints->names_encoding[0])
 #define ASWIN_CLASS(t)      ((t)->hints->res_class)
 #define ASWIN_RES_NAME(t)   ((t)->hints->res_name)
 #define ASWIN_ICON_NAME(t)  ((t)->hints->icon_name)

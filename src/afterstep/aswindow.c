@@ -1548,6 +1548,10 @@ make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon
 			{
                 fdata.func = F_RAISE_IT ;
                 fdata.name = mystrdup(icon_name? ASWIN_ICON_NAME(clients[i]) : ASWIN_NAME(clients[i]));
+				if( !icon_name )
+	 				fdata.name_encoding = ASWIN_NAME_ENCODING(clients[i]) ;
+				LOCAL_DEBUG_OUT( "item's encoding = %d, name = \"%s\"", fdata.name_encoding,
+				fdata.name );
                 fdata.func_val[0] = (long) clients[i];
                 fdata.func_val[1] = (long) clients[i]->w;
 		if (++scut == ('9' + 1))
@@ -1567,6 +1571,8 @@ make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon
 		sfdata = safecalloc(1, sizeof(FunctionData));
                 sfdata->func = F_RAISE_IT;
                 sfdata->name = mystrdup(icon_name ? ASWIN_ICON_NAME(clients[i]) : ASWIN_NAME(clients[i]));
+				if( !icon_name )
+	 				sfdata->name_encoding = ASWIN_NAME_ENCODING(clients[i]) ;
                 sfdata->func_val[0] = (long) clients[i];
                 sfdata->func_val[1] = (long) clients[i]->w;
 		if (++scut == ('9' + 1))

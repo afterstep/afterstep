@@ -108,7 +108,7 @@ make_absolute (const char *path1, const char *path2)
 {
 	char         *path;
 
-	if (*path2 == '/' || *path2 == '~')
+	if (*path2 == '/' || *path2 == '~' || *path2 == '$')
 		path = PutHome (path2);
 	else
 		/* relative path */

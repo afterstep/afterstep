@@ -333,7 +333,7 @@ draw_canvas_image (ASCanvas * pc, ASImage * im, int x, int y)
 			   						pc->width, pc->height, 
 									False );
 	if( !done ) 		
-		asimage2drawable (ASDefaultVisual, p, im, ASDefaultDrawGC, real_x - x, real_y - y, real_x, real_y, width, height, True);
+		done = asimage2drawable (ASDefaultVisual, p, im, ASDefaultDrawGC, real_x - x, real_y - y, real_x, real_y, width, height, True);
 
 	if ( done )
 	{

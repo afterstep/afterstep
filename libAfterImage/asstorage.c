@@ -195,9 +195,9 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 			fprintf( stderr, "comp_size = %d at line %d\n", comp_size, __LINE__ );
 #endif
-/*			if( comp_size + 1 > size )
+			if( comp_size + 1 > size )
 				return 0; 
- */
+
 			buffer[comp_size] = RLE_ZERO_SIG | zero_size ;
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 			fprintf(stderr, "in %d out %d: 0x%2.2X  - %d zeros\n", i, comp_size, buffer[comp_size], zero_size+1 );
@@ -238,9 +238,9 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 					fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_step, __LINE__ );
 #endif
-/*					if( comp_size + 1 + run_step/2 > size )
+					if( comp_size + 1 + run_step/2 > size )
 						return 0; 
- */ 
+ 
 
 					buffer[comp_size] = RLE_NOZERO_SHORT_SIG | (run_step-1) ;											   
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
@@ -269,9 +269,9 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 					fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_size2, __LINE__ );
 #endif
-/*					if( comp_size + 1 + run_size2/4 > size )
+					if( comp_size + 1 + run_size2/4 > size )
 						return 0; 
- */ 
+ 
 
 					buffer[comp_size] = RLE_NOZERO_LONG1_SIG | (run_size2-1) ;											   
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
@@ -321,9 +321,9 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 				fprintf( stderr, "comp_size = %d, run_step = %d, size = %d at line %d\n", comp_size, run_step, size, __LINE__ );
 #endif
-/*				if( comp_size + 1 + run_step > size )
+				if( comp_size + 1 + run_step > size )
 					return 0; 
- */
+
 
 				buffer[comp_size] = RLE_NOZERO_LONG2_SIG | (run_step-1) ;											   
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
@@ -356,9 +356,9 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 					fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_step, __LINE__ );
 #endif
-/*				if( comp_size + 1 + run_step > size )
+				if( comp_size + 1 + run_step > size )
 					return 0; 
- */ 
+ 
 				
 				k = i - run_step ;
 				if( diff[k] > 0 ) 

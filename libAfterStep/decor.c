@@ -1051,7 +1051,7 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
 int
 add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, short h_padding, short v_padding, const char *text, unsigned long encoding)
 {
-LOCAL_DEBUG_CALLER_OUT( "label \"%s\"", text?text:"null" );
+LOCAL_DEBUG_CALLER_OUT( "encoding = %ld, label \"%s\"", encoding, text?text:"null" );
     if( tbar )
     {
         ASTile *tile = add_astbar_tile( tbar, AS_TileLabel, col, row, flip, align );
@@ -1073,7 +1073,7 @@ change_astbar_label (ASTBarData * tbar, int index, const char *label, unsigned l
 {
 	Bool          changed = False;
 
-LOCAL_DEBUG_CALLER_OUT( "tbar(%p)->index(%d)->label(\"%s\")", tbar, index, label?label:"null" );
+LOCAL_DEBUG_CALLER_OUT( "tbar(%p)->index(%d)->label(ENC = %ld, TXT=\"%s\")", tbar, index, encoding, label?label:"null" );
     if (tbar && tbar->tiles)
 	{
         ASLabel *lbl = &(tbar->tiles[index].data.label);
@@ -1727,13 +1727,14 @@ set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned lo
                             if( bb->buttons[k].balloon != NULL )
                             {
                                 balloon_set_text (bb->buttons[k].balloon, text, encoding);
-                                LOCAL_DEBUG_OUT( "changed balloon for tbar(%p)->context(0x%X)->button(%d)->text(%s)->balloon(%p)",
-                                                 tbar, context, k, text, bb->buttons[k].balloon );
+                                LOCAL_DEBUG_OUT( "changed balloon for tbar(%p)->context(0x%X)->button(%d)->encoding(%ld)->text(%s)->balloon(%p)",
+                                                 tbar, context, k, encoding, text, bb->buttons[k].balloon
+												  );
                             }else
                             {
                                 bb->buttons[k].balloon = create_asballoon_with_text( tbar, text, encoding );
-                                LOCAL_DEBUG_OUT( "created balloon for tbar(%p)->context(0x%X)->button(%d)->text(%s)->balloon(%p)",
-                                                 tbar, context, k, text, bb->buttons[k].balloon );
+                                LOCAL_DEBUG_OUT( "created balloon for tbar(%p)->ct(0x%X)->btn(%d)->enc(%ld)->text(%s)->balloon(%p)",
+								               tbar, context, k, encoding, text, bb->buttons[k].balloon );
                             }
                             return ;
                         }

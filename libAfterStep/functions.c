@@ -285,6 +285,7 @@ init_func_data (FunctionData * data)
 		}
 		data->hotkey = '\0';
 		data->name = data->text = NULL;
+		data->name_encoding = 0 ;
         data->popup = NULL ;
 	}
 }
@@ -298,6 +299,7 @@ copy_func_data (FunctionData * dst, FunctionData * src)
 
 		dst->func = src->func;
 		dst->name = src->name;
+		dst->name_encoding = src->name_encoding;
 		dst->text = src->text;
 		for (i = 0; i < MAX_FUNC_ARGS; i++)
 		{
@@ -707,6 +709,9 @@ add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, stru
             if( mdi->minipixmap_image )
                 safe_asimage_destroy(mdi->minipixmap_image);
             mdi->minipixmap_image = img ;
+			
+			LOCAL_DEBUG_OUT( "mdi_fdata_encoding = %d, fdata_encoding = %d",
+			mdi->fdata->name_encoding, fdata->name_encoding );
         }
 }
 

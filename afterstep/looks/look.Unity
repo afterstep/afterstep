@@ -159,21 +159,26 @@ MyStyle "*PagerInActiveDesk"
    	BackPixmap    125 bars/title_tile_glass_menu
  ~MyStyle
 
+MyStyle "Pager_font"
+  Font          DefaultBold.ttf-8
+  TextStyle     0
+  ~MyStyle
+
 MyStyle "*PagerFWindowStyle"
     Inherit	"focused_window_style"
-    Font	5x8
+	Inherit "Pager_font"
 # gradients, pixmap allowed, but no transparency
 ~MyStyle
 
 MyStyle "*PagerUWindowStyle"
     Inherit	"unfocused_window_style"
-    Font	5x8
+	Inherit "Pager_font"
 # gradients, pixmap allowed, but no transparency
 ~MyStyle
 
 MyStyle "*PagerSWindowStyle"
     Inherit	"sticky_window_style"
-    Font	5x8
+	Inherit "Pager_font"
 # gradients, pixmap allowed, but no transparency
 ~MyStyle
 

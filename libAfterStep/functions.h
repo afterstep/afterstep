@@ -164,6 +164,7 @@ typedef struct FunctionData
 #define COMPLEX_FUNCTION_NAME(pd)  (((pd)->text)?(pd)->text:(pd)->name)
     char hotkey ;
     void* popup ; /* actually a MenuRoot pointer */
+	int name_encoding ;
 } FunctionData ;
 
 typedef struct ComplexFunction
