@@ -98,7 +98,7 @@ create_asstorage_block( int useable_size )
 	block->slots[0][0]->ref_count = 0 ;
 	block->slots[0][0]->size = block->size ;
 	block->slots[0][0]->uncompressed_size = block->size ;
-	block->used_slots = 1 ;
+	block->last_used = 1 ;
 
 	return block;
 }
@@ -115,7 +115,7 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags 
 		if( block )
 		{	
 			if( block->total_free > compressed_size && 
-				block->used_slots < AS_STORAGE_MAX_SLOTS_CNT )
+				block->last_used < AS_STORAGE_MAX_SLOTS_CNT )
 				return i+1;
 		}else if( new_block < 0 ) 
 			new_block = i ;
@@ -137,29 +137,58 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags 
 
 #define AS_STORAGE_GetNextSlot(slot) ((ASStorageSlot*)(((void*)((slot)+1))+(slot)->size))
 
-void 
+static inline void
+destroy_storage_slot( ASStorageBlock *block, int index )
+{
+	int batch_no = AS_STORAGE_Index2Batch(index); 
+	ASStorageSlot **batch = block->slots[batch_no] ;
+	int i = AS_STORAGE_Index2BatchIdx(index);
+	
+	batch[i] = NULL ; 
+	if( block->last_used == index ) 
+	{	
+		while( batch_no >= 0 )
+		{	
+			while( --i > 0 ) 
+				if( batch[i] == NULL ) 
+					break;
+			if( i >= 0 ) 
+				break;
+			i = AS_STORAGE_SLOTS_BATCH ;
+			--batch_no ;
+		}
+		block->last_used = (batch_no<0)?0:(batch_no*AS_STORAGE_SLOTS_BATCH)+i;	 
+	}
+}
+
+static inline void 
 join_storage_slots( ASStorageBlock *block, ASStorageSlot *from_slot, ASStorageSlot *to_slot )
 {
 	ASStorageSlot *s = AS_STORAGE_GetNextSlot(from_slot);
-	
 	do
 	{
 		from_slot->size += s->size ;	
-	
+		destroy_storage_slot( block, s->index );
 	}while( s != to_slot );	
 }
 
+static inline void
+defragment_storage_block( ASStorageBlock *block )
+{
+	/* TODO */
+	
+}
 
 ASStorageSlot *
 select_storage_slot( ASStorageBlock *block, int size )
 {
-	int i = block->first_free;
+	int i = block->first_free, last_used = block->last_used ;
 	int batch_no = AS_STORAGE_Index2Batch(i); 
 	ASStorageSlot **batch = block->slots[batch_no] ;
 	i = AS_STORAGE_Index2BatchIdx(i);
 	while( batch != NULL )
 	{
-		while( i < AS_STORAGE_SLOTS_BATCH )
+		while( i < AS_STORAGE_SLOTS_BATCH && i < last_used )
 		{
 			ASStorageSlot *slot = batch[i] ;
 			if( slot != 0 )
@@ -171,7 +200,7 @@ select_storage_slot( ASStorageBlock *block, int size )
 						return slot;
 					if( slot->size >= size_to_match )
 					{
-						join_storage_slots( block, batch[i]->index, slot->index );
+						join_storage_slots( block, batch[i], slot );
 						return batch[i];
 					}	
 					size_to_match -= slot->size ;
@@ -182,17 +211,29 @@ select_storage_slot( ASStorageBlock *block, int size )
 		}
 		
 		if( ++batch_no < AS_STORAGE_SLOTS_BATCH_CNT ) 
-			break ;
+			return NULL ;
 		batch = block->slots[batch_no];
 		i = 0;
+		last_used -= AS_STORAGE_SLOTS_BATCH ;
 	}
-	return NULL;		   
+	/* no free slots of sufficient size - need to do defragmentation */
+	defragment_storage_block( block );
+	batch_no = AS_STORAGE_Index2Batch(block->first_free); 
+	i = AS_STORAGE_Index2BatchIdx(block->first_free);
+    if( block->slots[batch_no][i] == NULL || block->slots[batch_no][i]->size  < size ) 
+		return NULL;
+	return block->slots[batch_no][i];		   
 }
 
-Bool
+static inline Bool
 split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 {
-	
+	if( block->last_used < AS_STORAGE_MAX_SLOTS_CNT-1 )
+	{
+			
+		
+	}	 
+			 
 	return True;
 }
 

@@ -62,7 +62,7 @@ typedef struct ASStorageBlock
 	/* array of pointers to slots is allocated separately, so that we can reallocate it 
 	   in case we have lots of small slots */
 	ASStorageSlot **slots[AS_STORAGE_SLOTS_BATCH_CNT];
-	int used_slots ;
+	int first_free, last_used ;
 
 }ASStorageBlock;
 
