@@ -79,6 +79,7 @@ typedef enum                /* feel file flags */
     DoHandlePageing         = (1 << 26),
     DontRestoreFocus        = (1 << 27),
 	PersistentMenus			= (1 << 28),
+	DontAnimateBackground   = (1 << 29),
 }FeelFlags;
 
 /* since we have too many feel flags  - we want another enum for

@@ -90,7 +90,7 @@ desk_anim_shape_blocks (ScreenInfo *scr, Window cover, unsigned int steps)
 	data->cover = cover ; 
 	data->steps = steps ; 
 	
-	do_anim_shape_blocks( data );
+	timer_new (20, do_anim_shape_blocks, data);	   	 
 #endif
 }
 
@@ -179,6 +179,7 @@ struct ASDeskAniMove
 };
 
 void  do_anim_slide( void *vdata );
+void  do_anim_shrink( void *vdata );
 
 void
 desk_anim_slide (ScreenInfo *scr, Window cover, int dirx, int diry, unsigned int steps)
@@ -190,7 +191,7 @@ desk_anim_slide (ScreenInfo *scr, Window cover, int dirx, int diry, unsigned int
 	data->diry = diry ;
 	data->steps = steps ;
 
-	do_anim_slide( data );
+	timer_new (20, do_anim_slide, data);	   	 
 }
 
 void 
@@ -212,35 +213,51 @@ do_anim_slide( void *vdata )
 		XDestroyWindow (dpy, data->cover);
 		free( data );
 	}else
-		timer_new (5, do_anim_slide, vdata);	   	 
+		timer_new (20, do_anim_slide, vdata);	   	 
 }
+
 
 void
 desk_anim_shrink (ScreenInfo *scr, Window cover, int dirx, int diry, unsigned int steps)
 {
-    int           i, inc = scr->MyDisplayWidth / steps;
-	int           px = scr->MyDisplayWidth, py = scr->MyDisplayHeight;
+    
+	struct ASDeskAniMove *data = safecalloc( 1, sizeof(struct ASDeskAniMove)); 	
 
-    start_ticker (10);
-	if (dirx > 0)
-		dirx = 0;
-	if (diry > 0)
-		diry = 0;
+	data->cover = cover ;
+	data->dirx = dirx ;
+	data->diry = diry ;
+	data->steps = steps ;
+	data->px = scr->MyDisplayWidth ;
+	data->py = scr->MyDisplayHeight ;
+
+	timer_new (20, do_anim_shrink, data);	   	 
+}
+	  
+void 
+do_anim_shrink( void *vdata )
+{
+	struct ASDeskAniMove *data = (struct ASDeskAniMove*)vdata ;
+	int           inc = Scr.MyDisplayWidth / data->steps;
+	
 	if (inc == 0)
 		inc = 1;
-    for (i = 0; i < steps; i++)
+	
+	data->px += data->dirx * inc;
+	if (data->px < 1)
+		data->px = 1;
+	data->py += data->diry * inc;
+	if (data->py < 1)
+		data->py = 1;
+	XResizeWindow (dpy, data->cover, data->px, data->py);
+	XSync (dpy, False);
+
+	++(data->steps_done);
+	if( data->steps_done >= data->steps ) 
 	{
-		if (i > 0)
-			wait_tick ();
-		px += dirx * inc;
-		if (px < 1)
-			px = 1;
-		py += diry * inc;
-		if (py < 1)
-			py = 1;
-		XResizeWindow (dpy, cover, px, py);
-		XSync (dpy, False);
-	}
+		XDestroyWindow (dpy, data->cover);
+		free( data );
+	}else
+		timer_new (20, do_anim_shrink, data);	   	 
 }
 
 void
@@ -353,8 +370,7 @@ remove_desktop_cover()
             XSync (dpy, False);
 
             if (steps > 0 && type >= 0 && DeskAnimations[type % ANIMATIONS_NUM])
-				desk_anim_slideNW(&Scr, _as_desktop_cover, steps);
-                //DeskAnimations[type % ANIMATIONS_NUM] (&Scr, _as_desktop_cover, steps);
+				DeskAnimations[type % ANIMATIONS_NUM] (&Scr, _as_desktop_cover, steps);
 			else
             	XDestroyWindow (dpy, _as_desktop_cover);
             _as_desktop_cover = None ;

@@ -870,13 +870,15 @@ LOCAL_DEBUG_CALLER_OUT( "%p:\"%s\", pmap %lX ", vdata, data->im_name, data->targ
 					if( subimage2ximage (Scr.asv, im, 0, y, xim)	)
 					{	
 						Bool res ;
-						LOCAL_DEBUG_OUT( "done, copying to pixmap at %d,", data->lines_done );
+						LOCAL_DEBUG_OUT( "done, copying to pixmap at %d, (bytes_per_line = %d)", data->lines_done, xim->bytes_per_line );
 						res = put_ximage( Scr.asv, xim, Scr.RootBackground->pmap, 
 					            	Scr.DrawGC,  0, 0, 0, y, im->width, lines );	
 						LOCAL_DEBUG_OUT( "%s", res?"Success":"Failure" );
 						data->lines_done += lines ;
 						++(data->step);
-						XClearWindow( dpy, Scr.Root );
+
+						if( im->width >= Scr.MyDisplayWidth && im->height >= Scr.MyDisplayHeight )
+							XClearWindow( dpy, Scr.Root );/* only if not tiled ! */
 						ASSync(False);
 					}
 					if( xim != data->shm_ximage )
@@ -909,7 +911,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p:\"%s\", pmap %lX ", vdata, data->im_name, data->targ
 	
 }	 
 
-static void 
+static ASBackgroundXferData *
 start_background_xfer( ASImage *new_im )
 {
  	ASBackgroundXferData *data = safecalloc( 1, sizeof(ASBackgroundXferData));
@@ -917,7 +919,17 @@ start_background_xfer( ASImage *new_im )
 	data->im_name = mystrdup(new_im->name); 
 	data->im_ptr = new_im ; 
 	data->target_pmap = Scr.RootBackground->pmap ; 
-	data->lines_per_iteration = 8/*ASSHM_SAVED_MAX / (new_im->width * 4)*/;
+	if( new_im->width < Scr.MyDisplayWidth || new_im->height < Scr.MyDisplayHeight )
+		data->lines_per_iteration = ASSHM_SAVED_MAX / (new_im->width * 4) ;
+	else
+	{	
+#ifdef __CYGWIN__		
+		/* under Windows XImage must not exceed 32K , or performance drops sagnificantly */
+		data->lines_per_iteration = 7800/new_im->width ;
+#else		
+		data->lines_per_iteration = Scr.MyDisplayHeight/90;
+#endif
+	}
 	if( data->lines_per_iteration == 0 ) 
 		data->lines_per_iteration = 1 ;
 	data->lines_done = 0 ;
@@ -932,6 +944,7 @@ start_background_xfer( ASImage *new_im )
 #endif	   
 
 	do_background_xfer_iter( data );
+	return data;
 }
 
 
@@ -942,6 +955,8 @@ change_desktop_background( int desk, int old_desk )
     MyBackground *new_back = get_desk_back_or_default( desk, False );
     MyBackground *old_back = get_desk_back_or_default( old_desk, True );
     ASImage *new_im = NULL ;
+	static ASBackgroundXferData *last_back_xfer = NULL ; 
+
 LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", desk, old_desk, new_back, old_back );
     if( new_back == NULL )
         return ;
@@ -1017,14 +1032,29 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         ASSync(False);
         LOCAL_DEBUG_OUT( "width(%d)->height(%d)->pixmap(%lX/%lu)", new_im->width, new_im->height, bh->pmap, bh->pmap );
 		
-		if( new_im->width * new_im->height * 4 >= ASSHM_SAVED_MAX/2 &&
-			/* can't animate if pixmap is tiled - X specifics */
-			new_im->width >= Scr.MyDisplayWidth &&
-			new_im->height >= Scr.MyDisplayHeight ) 
+		/* cancel last background xfer is there was any  */
+		if( last_back_xfer )
 		{	
-			if( old_pmap != bh->pmap ) 
-				XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
-		 	start_background_xfer( new_im );  /* we need to do it in small steps! */
+			timer_remove_by_data( last_back_xfer );
+			last_back_xfer = NULL ;
+		}
+		
+		if( new_im->width * new_im->height * 4 >= ASSHM_SAVED_MAX/2 &&
+			/* can't animate if pixmap is tiled - X is slow then */
+			!get_flags( Scr.Feel.flags, DontAnimateBackground) ) 
+		{	
+			Bool tiled = ( new_im->width < Scr.MyDisplayWidth || new_im->height < Scr.MyDisplayHeight );
+			if( old_pmap != bh->pmap )
+			{	
+				if( !tiled ) 
+					XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
+			}else if( tiled ) 
+			{
+				/* animation of tiled backgrounds causes X to be very slow */
+				XSetWindowBackgroundPixmap( dpy, Scr.Root, None );
+			}
+
+		 	last_back_xfer = start_background_xfer( new_im );  /* we need to do it in small steps! */
 		}else
 		{	
         	if( !asimage2drawable( Scr.asv, bh->pmap, new_im, Scr.DrawGC, 0, 0, 0, 0, new_im->width, new_im->height, True) )

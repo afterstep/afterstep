@@ -302,6 +302,9 @@ struct config main_config[] = {
     {"TitleButtonBalloons", SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
     {"TitleButton", SetTitleButton, (char **)1, (int *)0},
     {"KillBackgroundThreshold", SetInts, (char**)&(Scr.Look.KillBackgroundThreshold), NULL },
+	{"DontAnimateBackground",SetFlag, (char **)DontAnimateBackground, &dummy},
+	{"CoverAnimationSteps", SetInts, (char**)&(Scr.Feel.desk_cover_animation_steps), NULL },
+	{"CoverAnimationType", SetInts, (char**)&(Scr.Feel.desk_cover_animation_type), NULL },
 	{"", 0, (char **)0, (int *)0}
 };
 
