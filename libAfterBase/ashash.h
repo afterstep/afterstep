@@ -30,6 +30,13 @@ typedef struct ASHashTable
     void 	(*item_destroy_func)(ASHashableValue value, void *data);
 }ASHashTable;
 
+typedef struct ASHashIterator
+{
+    ASHashKey  	 curr_bucket ;
+    ASHashItem  *curr_item ;
+    ASHashTable *hash ;
+}ASHashIterator;
+
 void init_ashash( ASHashTable *hash, Bool freeresources );
 /* Note that all parameters are optional here. 
    If it is set to NULL - defaults will be used */
@@ -65,6 +72,12 @@ ASHashResult get_hash_item( ASHashTable *hash, ASHashableValue value, void **trg
 ASHashResult remove_hash_item( ASHashTable *hash, ASHashableValue value, void**trg, Bool destroy);
 
 unsigned long sort_hash_items( ASHashTable *hash, ASHashableValue *values, void **data, unsigned long max_items );
+
+Bool start_hash_iteration( ASHashTable *hash, ASHashIterator *iterator );
+Bool next_hash_item( ASHashIterator *iterator );
+ASHashableValue curr_hash_value( ASHashIterator *iterator );
+void* curr_hash_data( ASHashIterator *iterator );
+
 
 /**************************************************************************/
 /**************************************************************************/

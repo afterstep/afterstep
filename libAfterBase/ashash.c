@@ -295,7 +295,60 @@ sort_hash_items( ASHashTable *hash, ASHashableValue *values, void **data, unsign
 
 /***** Iterator functionality *****/
 
+Bool start_hash_iteration( ASHashTable *hash, ASHashIterator *iterator )
+{
+    if( iterator && hash )
+    {
+      register int i ;
+	for(i = 0 ; i < hash->size ; i++) if(hash->buckets[i] != NULL) break;
+	if( i < hash->size )
+	{
+	    iterator->hash = hash ;
+	    iterator->curr_bucket = i ;
+	    iterator->curr_item = hash->buckets[i] ;
+    	    return True ;
+	}
+    }
+    return False ;
+}
+Bool next_hash_item( ASHashIterator *iterator )
+{
+    if( iterator )
+	if( iterator->hash && iterator->curr_item )
+	{
+	    iterator->curr_item = iterator->curr_item->next ;
+	    if( iterator->curr_item == NULL )
+	    {
+    	      register int i;
+    		for(i = iterator->curr_bucket+1 ; 
+		    i < iterator->hash->size ; i++) 
+		    if(iterator->hash->buckets[i] != NULL) break;
+		if( i < iterator->hash->size )
+		    iterator->curr_item = iterator->hash->buckets[i] ;
+	    }
+	    return ( iterator->curr_item != NULL );
+	}
+    return False ;
+}
+ASHashableValue curr_hash_value( ASHashIterator *iterator )
+{
+    if( iterator )
+    {
+	if( iterator->curr_item )
+	    return iterator->curr_item->value ;
+    }
+    return (ASHashableValue)((char*)NULL);
+}
 
+void* curr_hash_data( ASHashIterator *iterator )
+{
+    if( iterator )
+    {
+	if( iterator->curr_item )
+	    return iterator->curr_item->data ;
+    }
+    return NULL;
+}
 
 /************************************************************************/
 /************************************************************************/
