@@ -402,6 +402,14 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 			bevel->right_outline = MAX_BEVEL_OUTLINE ;
 		if( bevel->bottom_outline > MAX_BEVEL_OUTLINE )
 			bevel->bottom_outline = MAX_BEVEL_OUTLINE ;
+		if( bevel->left_inline >= out_width )
+			bevel->left_inline = out_width-1 ;
+		if( bevel->top_inline >= out_height )
+			bevel->top_inline = out_height-1 ;
+		if( bevel->left_inline+bevel->right_inline >= out_width )
+			bevel->right_inline = out_width-5-bevel->left_inline ;
+		if( bevel->top_inline+bevel->bottom_inline >= out_height )
+			bevel->bottom_inline = out_height-1-bevel->top_inline ;
 
 		imdec->bevel_h_addon = bevel->left_outline+bevel->right_outline ;
 		imdec->bevel_v_addon = bevel->top_outline+bevel->bottom_outline ;
@@ -1420,13 +1428,13 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 				}
 				if( y < bevel->top_inline )
 				{                              /* semitransparent line at the top */
-					ca = (a_bevel/(bevel->top_inline+1))*(bevel->top_inline-y);
+					ca = (a_bevel*(bevel->top_inline-y)/(bevel->top_inline+1));
 					for( i = 0 ; i < width ; i++ )
 						chan_img_start[i] = (chan_img_start[i]*(255-ca)+chan_bevel*ca)>>8 ;
 				}else if( y >= inline_bottom )
 				{                              /* semitransparent line at the bottom */
-					ca = (a_shade/(bevel->bottom_inline+1));
-					ca += ca*(y-inline_bottom);
+					ca = (a_shade*256/(bevel->bottom_inline+1));
+					ca += ca*(y-inline_bottom)/256;
 					for( i = 0 ; i < width ; i++ )
 						chan_img_start[i] = (chan_img_start[i]*(255-ca)+chan_shade*ca)>>8 ;
 				}
