@@ -1423,6 +1423,7 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 		char *realfilename = NULL;
 		Bool replace = True ;
 		char *type = NULL ;
+		char *compress = NULL ;  /* default compression */ 
 #ifdef DONT_REPLACE_SCREENSHOT_FILES
 		replace = False ;
 #endif
@@ -1431,16 +1432,22 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 			realfilename = PutHome(data->text);
 			type = strrchr( realfilename, '.' );
 			if( type != NULL )
+			{	
 				++type ;
+				if( mystrcasecmp(type, "jpg") == 0 || mystrcasecmp(type, "jpeg") == 0 ) 
+					compress = "0" ;
+			}
 		}
 		if( realfilename == NULL )
 		{
 			char default_template[128];
-			sprintf(&(default_template[0]), DEFAULT_SCREENSHOT_FILE ".%lu.jpg", time(NULL));
+			sprintf(&(default_template[0]), DEFAULT_SCREENSHOT_FILE ".%lu.png", time(NULL));
 			realfilename = PutHome(&(default_template[0]));
+			compress = "9" ;
+			type = "png" ;
 		}
         
-		if( save_asimage_to_file(realfilename, im, type, "4", NULL, 0, replace) )
+		if( save_asimage_to_file(realfilename, im, type, compress, NULL, 0, replace) )
 			show_warning( "screenshot saved as \"%s\"", realfilename );
 		free( realfilename ) ;
 	}
