@@ -135,7 +135,8 @@ main( int argc, char **argv )
     SendInfo ("Send_WindowList", 0);
 
     LoadBaseConfig ( GetBaseOptions);
-    LoadConfig ("winlist", GetOptions);
+	LoadColorScheme();
+	LoadConfig ("winlist", GetOptions);
     CheckConfigSanity();
 
     WinListState.main_window = make_winlist_window();
@@ -449,8 +450,19 @@ DispatchEvent (ASEvent * event)
                 Scr.RootImage = NULL ;
                 for( i = 0 ; i < WinListState.windows_num ; ++i )
                     update_astbar_transparency( WinListState.window_order[i]->bar, WinListState.main_canvas, True );
-            }
-            break;
+            }else if( event->x.xproperty.atom == _AS_STYLE )
+			{
+                int i ;
+				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
+				handle_wmprop_event (Scr.wmprops, &(event->x));
+				mystyle_list_destroy_all(&(Scr.Look.styles_list));
+				LoadColorScheme();
+				CheckConfigSanity();
+				/* now we need to update everything */
+				rearrange_winlist_window( False );
+                for( i = 0 ; i < WinListState.windows_num ; ++i )
+					refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i] );
+			}
 			break;
     }
 }

@@ -302,7 +302,7 @@ void apply_aswindow_move(struct ASMoveResizeData *data)
 {
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
 LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
-    if( asw )
+    if( asw && !ASWIN_GET_FLAGS(asw,AS_Dead) )
     {
 		int new_width = data->curr.width ;
 		int new_height = data->curr.height ;
@@ -321,7 +321,7 @@ LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.
 void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
 {
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
-    if( asw )
+    if( asw && !ASWIN_GET_FLAGS(asw,AS_Dead))
     {
         if( cancelled )
         {

@@ -134,16 +134,16 @@ MyStyle "DeskStyle"
 
 MyStyle "*PagerActiveDesk"
    	Font 	       DefaultSansOblique.ttf-12
-	BackGradient        8      ActiveDark  ActiveLight
 	ForeColor      ActiveText
    	BackColor      Active
+	BackGradient   8 ActiveDark  ActiveLight
  ~MyStyle
 
 MyStyle "*PagerInActiveDesk"
    	Font 	       DefaultSansOblique.ttf-12
-   	BackMultiGradient   8      Inactive1Dark  Inactive1Light
-	ForeColor      InactiveText1
-   	BackColor      Inactive1
+	ForeColor      HighInactiveText
+   	BackColor      HighInactiveBack
+   	BackGradient   6  HighInactiveBackDark HighInactiveBackLight
  ~MyStyle
 
 MyStyle "*PagerFWindowStyle"
@@ -167,22 +167,14 @@ MyStyle "*PagerSWindowStyle"
 #----------Wharf MyStyles---------#
 
 MyStyle "*WharfBalloon"
-  Font		-adobe-helvetica-bold-o-*-*-12-*-*-*-*-*-*-*
-  ForeColor	Black
-  BackColor	Grey70
+	Inherit "TitleButtonBalloon"
 ~MyStyle
 
 MyStyle "*WharfTile"
-  BackColor	grey50
-##  Gradiated Wharf Tile
-#  BackGradient	1 DarkBlue DarkGreen
-##  Pimapped Wharf Tile
-  BackPixmap	128 ASBBlockDefault.xpm
-##  Transparent Wharf Tile
-#  BackPixmap	129 ASBBlockDefault.xpm
-##  Translucent Wharf Tile tinted <color>
-#  BackPixmap	129 #a8a8a8
-  MaxColors	10
+	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackGradient   6 Inactive2Dark Inactive2Light
 ~MyStyle
 
 #----------WinList MyStyles---------#

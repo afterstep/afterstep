@@ -11,10 +11,13 @@ install:
 	$(MKDIR) -p $(AFTER_DOC_DIR)
 	@$(MKDIR) -p $(AFTER_SHAREDIR)/backgrounds; \
 	if [ -d desktop/bars/xml ] ; then \
+		echo "$(CP) -r backgrounds/xml/* $(AFTER_SHAREDIR)/backgrounds/"; \
 		$(CP) -r backgrounds/xml/* $(AFTER_SHAREDIR)/backgrounds/; \
 	fi; \
-	echo "$(CP) -r backgrounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/backgrounds/"; \
-	$(CP) -r backgrounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/backgrounds/
+	if [ -r backgrounds/$(IMAGE_FORMAT)/* ] ; then \
+		echo "$(CP) -r backgrounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/backgrounds/"; \
+		$(CP) -r backgrounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/backgrounds/; \
+	fi;
 	@$(MKDIR) -p $(AFTER_SHAREDIR)/desktop; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/bars; \
 	if [ -d desktop/bars/xml ] ; then \

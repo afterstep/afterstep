@@ -31,7 +31,7 @@ MyStyle "focused_window_style"
   TextStyle	3
   ForeColor     ActiveText
   BackColor	Active
-  BackGradient	2	ActiveDark	ActiveLight
+  BackGradient	6	ActiveDark	ActiveLight
   ~MyStyle
 
 MyStyle "unfocused_window_style"
@@ -64,28 +64,28 @@ MyStyle "unfocused_menu_title_style"
   Inherit       menu_title_font
   ForeColor     InactiveText1
   BackColor     HighInactive
-  BackGradient 2   HighInactiveDark HighInactiveLight
+  BackGradient  6   HighInactiveDark HighInactiveLight
   ~MyStyle
 
 MyStyle "focused_menu_title_style"
   Inherit       menu_title_font
   ForeColor	ActiveText1
   BackColor     HighActive
-  BackGradient 2   HighActiveLight HighActiveDark
+  BackGradient  6  HighActiveDark HighActiveLight
   ~MyStyle
 
 MyStyle "menu_item_style"
   Inherit       menu_font
   ForeColor     HighInactiveText
   BackColor     HighInactiveBack
-  BackGradient 2   HighInactiveBackDark HighInactiveBackLight
+  BackGradient  9   HighInactiveBackDark HighInactiveBackLight
   ~MyStyle
 
 MyStyle "menu_hilite_style"
   Font          DefaultBoldOblique.ttf-16
   ForeColor     HighActiveText
   BackColor     HighActiveBack
-  BackGradient 2   HighActiveBackLight HighActiveBackDark
+  BackGradient  9  HighActiveBackLight HighActiveBackDark
   ~MyStyle
 
 
@@ -116,39 +116,35 @@ MenuHiTitleStyle  "focused_menu_title_style"
 #----------Pager MyStyles---------#
 
 MyStyle "*PagerBalloon"
-  Font		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
-  ForeColor	Black
-  BackColor	Grey70
+	Inherit "TitleButtonBalloon"
 ~MyStyle
 
 MyStyle "DeskStyle"
-# Considered to be Default
-  ForeColor	grey70
-  BackColor	grey30
+# semitransparent gradient  :
+	BackGradient	6	#05444444 #05bbbbbb
 ##  Gradiated Pager -
-# BackGradient	2 cyan gray30
+# 	BackGradient	2 cyan gray30
 ##  Pixmapped Pager -
-# BackPixmap	128 Back.xpm
+# 	BackPixmap	128 Back.xpm
 ##  Transparent Pager -
-  BackPixmap	129
+#	BackPixmap	129
 ##  Translucent Pager tinted <color>
-# BackPixmap	129 #a8a8a8
-  MaxColors	10
+# 	BackPixmap	129 #a8a8a8
 ~MyStyle
 
 MyStyle "*PagerActiveDesk"
-   Font 		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
-   BackColor           #475293
-   ForeColor           Grey70
-# gradients, pixmap and transparency allowed here
-~MyStyle
+   	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      ActiveText
+   	BackColor      Active
+	BackGradient   8 ActiveDark  ActiveLight
+ ~MyStyle
 
 MyStyle "*PagerInActiveDesk"
-   Font 		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
-    BackColor           Grey30
-    ForeColor           Grey70
-# gradients, pixmap and transparency allowed here
-~MyStyle
+   	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      HighInactiveText
+   	BackColor      HighInactiveBack
+   	BackGradient   6  HighInactiveBackDark HighInactiveBackLight
+ ~MyStyle
 
 MyStyle "*PagerFWindowStyle"
     Inherit	focused_window_style
@@ -171,22 +167,14 @@ MyStyle "*PagerSWindowStyle"
 #----------Wharf MyStyles---------#
 
 MyStyle "*WharfBalloon"
-  Font		-adobe-helvetica-bold-o-*-*-12-*-*-*-*-*-*-*
-  ForeColor	Black
-  BackColor	Grey70
+	Inherit "TitleButtonBalloon"
 ~MyStyle
 
 MyStyle "*WharfTile"
-  BackColor	grey50
-##  Gradiated Wharf Tile
-#  BackGradient	1 DarkBlue DarkGreen
-##  Pimapped Wharf Tile
-  BackPixmap	128 ASBBlockDefault.xpm
-##  Transparent Wharf Tile
-#  BackPixmap	129 ASBBlockDefault.xpm
-##  Translucent Wharf Tile tinted <color>
-#  BackPixmap	129 #a8a8a8
-  MaxColors	10
+	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackGradient   6 Inactive2Dark Inactive2Light
 ~MyStyle
 
 #----------WinList MyStyles---------#
@@ -208,66 +196,47 @@ MyStyle "*WinList"
   MaxColors 10
 ~MyStyle
 
-#----------Button MyStyles---------#
+#----------Minimized window Button MyStyles---------#
 
 MyStyle "ButtonPixmap"
-  BackColor     Black
-  BackPixmap    128 ASBBlockDefault.xpm
+  	BackColor     Black
+  	BackPixmap    128 ASBBlockDefault.xpm
   ~MyStyle
 
 MyStyle "ButtonTitleFocus"
-  Font		-*-helvetica-bold-r-*-*-10-*-*-*-*-*-*-*
-  ForeColor     grey70
-  BackColor     Black
+  	Inherit	focused_window_style
+  	Font		DefaultSansBoldOblique.ttf-13
   ~MyStyle
 
 MyStyle "ButtonTitleSticky"
-  Font          -*-helvetica-bold-r-*-*-10-*-*-*-*-*-*-*
-  ForeColor     grey70
-  BackColor     Black
-  ~MyStyle
+	Inherit sticky_window_style
+	Font    DefaultSansBoldOblique.ttf-13
+ ~MyStyle
 
 MyStyle "ButtonTitleUnfocus"
-  Font          -*-helvetica-bold-r-*-*-10-*-*-*-*-*-*-*
-  ForeColor     grey70
-  BackColor     Black
+	Inherit unfocused_window_style
+	Font    DefaultSansBoldOblique.ttf-13
   ~MyStyle
 
+
+TitleButtonBalloons
+TitleButtonBalloonBorderHilite	Right,Bottom
+TitleButtonBalloonXOffset	10
+TitleButtonBalloonYOffset	10
+TitleButtonBalloonDelay		200
+TitleButtonBalloonCloseDelay	2000
+TitleButtonBalloonStyle 	"TitleButtonBalloon"
 
 #----------Window MyStyles---------#
 
-TitleButtonBalloons
-TitleButtonBalloonBorderColor	gray30
-TitleButtonBalloonBorderWidth	2
-TitleButtonBalloonDelay		200
-
 # [0|1] Show Title on Buttons how?
 SeparateButtonTitle 0
-# [x y] Size of buttons?
+# [x y] Size of application icons ?
 ButtonSize 64 64
 #--------------------------
 
 
-# 2) Textures : avoid them on 8bpp !
-
-#   0 - No texture
-#   1 - Wharf-style gradient                            ^-
-#   2 - Horizontal one way gradient                     ¯-_
-#   3 - Horizontal from top/bottom to center            =-=
-#   4 - Vertical one way gradient from left to right    ||| | |  | |
-#   5 - Vertical from left/right to center              >>>>>><<<<<<
-# 128 - User defined pixmap
-# 129 - Transparent/Transluceny menu + valid xpm OR tint color
-
-MenuPinOn		as1.5-kill.xpm
-#MenuPinOff		as1.5-kill.xpm
-MArrowPixmap		arrow-dots.xpm
-
 # 2-5) : misc options
-#  Textures/Pixmaps on windows lowbar ?
-TexturedHandle
-#  Gradient on windows title ?
-#GradientText
 #  Border around iconifyied windows ?
 ButtonNoBorder
 #  [0/1/2] Draw lines between menu options ?
@@ -290,8 +259,7 @@ RubberBand 2
 # 3) TextStyle :
 #  Mode is either 0 (normal), 1 (big 3d), 2 (nice 3d)
 # 3-1) Text : fonts
-IconFont                -adobe-helvetica-medium-r-*-*-8-*-*-*-*-*-*-*
-IconBox                 1 -64 -1 -1
+IconBox                 1 -80 -1 -1
 TitleTextAlign          2
 
 # 4) TileBar options :
@@ -317,8 +285,14 @@ TitleTextAlign          2
 #TitleButton 4 as1.5-shade.xpm as1.5-shade-p.xpm
 
 # Normal buttons
-TitleButton 1 as-switchwindow-a.xpm as-switchwindow-a-pressed.xpm
-TitleButton 2 as-kill.xpm as-kill-pressed.xpm
-TitleButton 3 as-menu-a.xpm as-menu-a-pressed.xpm
-TitleButton 4 as-shade-a.xpm as-shade-a-pressed.xpm
-TitleButton 6 as-iconize.xpm as-iconize-pressed.xpm
+TitleButton 1 default-switchwindow-light 	 default-switchwindow-light-pressed
+TitleButton 2 default-kill-dark  		 default-kill-dark-pressed
+TitleButton 3 default-menu-light 		 default-menu-light-pressed
+TitleButton 4 default-shade-dark 		 default-shade-dark-pressed
+TitleButton 6 default-iconize-dark 		 default-iconize-dark-pressed
+
+# the following is used instead of MenuPinOn :
+TitleButton 5 default-pin-light	 		 default-pin-light-pressed
+
+MArrowPixmap		arrow-dots.xpm
+

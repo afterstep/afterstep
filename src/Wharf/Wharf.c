@@ -159,6 +159,7 @@ void CheckConfigSanity();
 ASWharfFolder *build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical );
 Bool display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bottom );
 Bool display_main_folder();
+void withdraw_wharf_folder( ASWharfFolder *aswf );
 void on_wharf_moveresize( ASEvent *event );
 void destroy_wharf_folder( ASWharfFolder **paswf );
 void on_wharf_pressed( ASEvent *event );
@@ -167,6 +168,7 @@ Bool check_pending_swallow( ASWharfFolder *aswf );
 void exec_pending_swallow( ASWharfFolder *aswf );
 void check_swallow_window( ASWindowData *wd );
 void update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force );
+void update_wharf_folder_styles( ASWharfFolder *aswf, Bool force );
 
 
 /***********************************************************************
@@ -192,6 +194,7 @@ main (int argc, char **argv)
 
     LOCAL_DEBUG_OUT("parsing Options ...%s","");
     LoadBaseConfig (GetBaseOptions);
+	LoadColorScheme();
     LoadConfig ("wharf", GetOptions);
 
     CheckConfigSanity();
@@ -595,7 +598,16 @@ DispatchEvent (ASEvent * event)
                 safe_asimage_destroy( Scr.RootImage );
                 Scr.RootImage = NULL ;
                 update_wharf_folder_transprency( WharfState.root_folder, True );
-            }
+            }else if( event->x.xproperty.atom == _AS_STYLE )
+			{
+				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
+				handle_wmprop_event (Scr.wmprops, &(event->x));
+				mystyle_list_destroy_all(&(Scr.Look.styles_list));
+				LoadColorScheme();
+				CheckConfigSanity();
+				/* now we need to update everything */
+				update_wharf_folder_styles( WharfState.root_folder, True );
+			}
             break;
     }
 }
@@ -912,6 +924,27 @@ update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force )
 			}
 			if( aswb->folder && get_flags( aswb->folder->flags, ASW_Mapped )  );
 				update_wharf_folder_transprency( aswb->folder, force );
+		}
+		update_wharf_folder_shape( aswf );
+	}
+}
+
+void
+update_wharf_folder_styles( ASWharfFolder *aswf, Bool force )
+{
+	if( aswf )
+	{
+		int i = aswf->buttons_num;
+		while( --i >= 0 )
+		{
+			ASWharfButton *aswb= &(aswf->buttons[i]);
+			if( set_astbar_style_ptr( aswb->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] ))
+			{
+				render_astbar( aswb->bar, aswb->canvas );
+				update_canvas_display( aswb->canvas );
+			}
+			if( aswb->folder && get_flags( aswb->folder->flags, ASW_Mapped )  );
+				update_wharf_folder_styles( aswb->folder, force );
 		}
 		update_wharf_folder_shape( aswf );
 	}
