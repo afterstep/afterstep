@@ -142,7 +142,7 @@ AtomXref      EXTWM_State[] = {
 	{"_NET_WM_STATE_MAXIMIZED_VERT", &_XA_NET_WM_STATE_MAXIMIZED_VERT, EXTWM_StateMaximizedV},
 	{"_NET_WM_STATE_MAXIMIZED_HORZ", &_XA_NET_WM_STATE_MAXIMIZED_HORZ, EXTWM_StateMaximizedH},
 	{"_NET_WM_STATE_SHADED", &_XA_NET_WM_STATE_SHADED, EXTWM_StateShaded},
-	{"_NET_WM_STATE_SKIP_TASKBAR", &_XA_NET_WM_STATE_SKIP_TASKBAR, EXTWM_StateSkipTaskbar},
+    {"_NET_WM_STATE_SKIP_TASKBAR", &_XA_NET_WM_STATE_SKIP_TASKBAR, EXTWM_StateSkipTaskbar},
 	{"_NET_WM_STATE_SKIP_PAGER", &_XA_NET_WM_STATE_SKIP_TASKBAR, EXTWM_StateSkipPager},
 	{NULL, NULL, 0, None}
 };
@@ -553,7 +553,7 @@ read_extwm_state (ASRawHints * hints, Window w)
 		Atom         *protocols;
 		long          nprotos = 0;
 
-		if (read_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, 6, &protocols, &nprotos))
+        if (read_32bit_proplist (w, _XA_NET_WM_STATE, 6, &protocols, &nprotos))
 		{
 			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_State, protocols, nprotos);
 			XFree (protocols);
@@ -1293,12 +1293,14 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 		{
 			set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, list, nitems);
 			free (list);
+            list = NULL ;
 		}
-		encode_atom_list (&(EXTWM_Protocols[0]), &list, &nitems, extwm_hints->flags);
+        encode_atom_list (&(EXTWM_Protocols[0]), &list, &nitems, extwm_hints->flags);
 		if (nitems > 0)
 		{
 			set_32bit_proplist (w, _XA_NET_WM_PROTOCOLS, XA_ATOM, list, nitems);
 			free (list);
+            list = NULL ;
 		}
 		if (get_flags (extwm_hints->flags, EXTWM_DESKTOP))
 			set_32bit_property (w, _XA_NET_WM_DESKTOP, XA_CARDINAL, extwm_hints->desktop);

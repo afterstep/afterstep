@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/*#define LOCAL_DEBUG */
+#define LOCAL_DEBUG
 #include "config.h"
 
 #include <stdio.h>
@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <time.h>
 
 
 #include "astypes.h"
@@ -94,13 +95,20 @@ translate_atom_list (ASFlagType *trg, AtomXref * xref, Atom * list, long nitems)
 void
 print_list_hints( stream_func func, void* stream, ASFlagType flags, AtomXref *xref, const char *prompt )
 {
-  register int i ;
+    register int i ;
+    ASFlagType  effective_flags = 0 ;
     if( !pre_print_check( &func, &stream, (void*)flags, NULL ) ) return ;
 
-    func( stream, "%s.flags = 0x%X;\n", prompt, flags );
     for( i = 0 ; xref[i].name ; i++ )
         if( get_flags(flags, xref[i].flag) )
+            set_flags( effective_flags, xref[i].flag);
+    func( stream, "%s.flags = 0x%X;\n", prompt, effective_flags );
+    for( i = 0 ; xref[i].name ; i++ )
+    {
+        LOCAL_DEBUG_OUT("comparing flag 0x%lX, name \"%s\";", xref[i].flag, xref[i].name );
+        if( get_flags(flags, xref[i].flag) )
             func( stream, "%s.atom[%d] = %s;\n", prompt, i, xref[i].name );
+    }
 }
 
 void
@@ -111,8 +119,13 @@ encode_atom_list ( AtomXref * xref, Atom **list, long *nitems, ASFlagType flags)
 		register int  i, k = 0;
 
 	    for( i = 0 ; xref[i].name ; i++ )
-			if( get_flags(flags, xref[i].flag) )
-				k++;
+        {
+            if( get_flags(flags, xref[i].flag) )
+            {
+                LOCAL_DEBUG_OUT( "flag %lX matches", xref[i].flag );
+                k++;
+            }
+        }
 		*list = NULL;
 		*nitems = k ;
 		if( k > 0 )
@@ -127,6 +140,7 @@ encode_atom_list ( AtomXref * xref, Atom **list, long *nitems, ASFlagType flags)
 					k++;
 				}
 		}
+        LOCAL_DEBUG_OUT( "list = %p, count = %ld", *list, *nitems );
 	}
 }
 

@@ -54,17 +54,24 @@ HandleEvents ()
 {
     /* this is the only loop that allowed to run ExecutePendingFunctions(); */
     ASEvent event;
-    Bool has_x_events = False ;
     while (True)
     {
-        while((has_x_events = XPending (dpy)))
+        while(XPending (dpy))
         {
             if( ASNextEvent (&(event.x), True) )
             {
                 DigestEvent( &event );
                 DispatchEvent( &event, False );
             }
-
+            ASSync( False );
+            /* before we exec any function - we ought to process any Unmap and Destroy
+             * events to handle all the pending window destroys : */
+            while( ASCheckTypedEvent( DestroyNotify, &(event.x)) ||
+                   ASCheckTypedEvent( UnmapNotify, &(event.x)))
+            {
+                DigestEvent( &event );
+                DispatchEvent( &event, False );
+            }
             ExecutePendingFunctions();
         }
         afterstep_wait_pipes_input ();
@@ -941,12 +948,12 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 		} /* !deffered */
 
         press_aswindow( asw, event->context );
-        
+
 		if( focus_accepted )
             return;
     }
-	
-	if( !deffered ) 
+
+	if( !deffered )
 	{
 	    /* we have to execute a function or pop up a menu : */
   		modifier = (xbtn->state & nonlock_mods);

@@ -223,7 +223,6 @@ ExecuteFunction (FunctionData *data, ASEvent *event, int module)
 #if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
     if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
 #endif
-        print_func_data(__FILE__, "ExecuteFunction", __LINE__, data);
 LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)",
                          event?event->x.type:-1,
                          event?event_type2name(event->x.type):"n/a",
@@ -264,12 +263,22 @@ LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)"
  *  Procedure:
  *  DoExecuteFunction - execute an afterstep built in function
  ***********************************************************************/
+static Bool
+is_interactive_action(FunctionData *data)
+{
+    if( data->func == F_MOVE || data->func == F_RESIZE )
+        return (data->func_val[0] == INVALID_POSITION && data->func_val[1] == INVALID_POSITION);
+    return False;
+}
+
 static void
 DoExecuteFunction ( ASScheduledFunction *sf )
 {
     FunctionData *data = &(sf->fdata) ;
     ASEvent *event = &(sf->event);
     register FunctionCode  func = data->func;
+
+    print_func_data(__FILE__, "DoExecuteFunction", __LINE__, data);
 
     if( sf->client != None )
     {
@@ -304,23 +313,35 @@ DoExecuteFunction ( ASScheduledFunction *sf )
     /* Defer Execution may wish to alter this value */
     if (IsWindowFunc (func))
 	{
-		int           cursor, fin_event;
+        int           do_defer = True, fin_event;
 
-        fin_event = ( event->x.type == ButtonPress )? ButtonRelease: ButtonPress ;
-        if (func != F_RESIZE && func != F_MOVE)
-            cursor = (func!=F_DESTROY && func!=F_DELETE && func!=F_CLOSE)?SELECT:DESTROY;
+        if( event->x.type == ButtonPress )
+            fin_event = ButtonRelease ;
+        else if ( event->x.type == MotionNotify )
+            fin_event = (event->x.xmotion.state&AllButtonMask) != 0 ? ButtonRelease : ButtonPress ;
         else
-            cursor = MOVE;
+            fin_event = ButtonPress ;
 
-        if (data->text != NULL && event->client == NULL)
-            if (*(data->text) != '\0')
-                if ((event->client = pattern2ASWindow (data->text)) != NULL)
-                    event->w = get_window_frame(event->client);
+       if (data->text != NULL && event->client == NULL)
+           if (*(data->text) != '\0')
+               if ((event->client = pattern2ASWindow (data->text)) != NULL)
+               {
+                   event->w = get_window_frame(event->client);
+                   do_defer = False ;
+               }
 
-        if (DeferExecution (event, cursor, fin_event))
-            func = F_NOP;
-        else if (event->client == NULL)
-            func = F_NOP;
+        if( do_defer && (fin_event != ButtonRelease || !is_interactive_action(data)) )
+        {
+
+            int cursor = MOVE ;
+            if (func != F_RESIZE && func != F_MOVE)
+                cursor = (func!=F_DESTROY && func!=F_DELETE && func!=F_CLOSE)?SELECT:DESTROY;
+
+            if (DeferExecution (event, cursor, fin_event))
+                func = F_NOP;
+            else if (event->client == NULL)
+                func = F_NOP;
+        }
 	}
 
     if( function_handlers[func] || func == F_FUNCTION )
@@ -374,10 +395,10 @@ DeferExecution ( ASEvent *event, int cursor, int finish_event)
 LOCAL_DEBUG_CALLER_OUT( "cursor %d, event %d, window 0x%lX, window_name \"%s\", finish event %d",
                         cursor, event?event->x.type:-1, event?(unsigned long)event->w:0, event->client?ASWIN_NAME(event->client):"none", finish_event );
 
-    if (event->context != C_ROOT && event->context != C_NO_CONTEXT)
-        if ( finish_event == ButtonPress ||
-            (finish_event == ButtonRelease && event->x.type != ButtonPress))
-			return False;
+//    if (event->context != C_ROOT && event->context != C_NO_CONTEXT)
+//        if ( finish_event == ButtonPress ||
+//            (finish_event == ButtonRelease && event->x.type != ButtonPress))
+//            return False;
 
     if (!(res = !GrabEm (&Scr, Scr.Feel.cursors[cursor])))
 	{
@@ -424,8 +445,8 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
     char             c ;
     static char clicks_upper[MAX_CLICKS_HANDLED+1] = {CLICKS_TRIGGERS_UPPER};
     static char clicks_lower[MAX_CLICKS_HANDLED+1] = {CLICKS_TRIGGERS_LOWER};
-    LOCAL_DEBUG_CALLER_OUT( "event %d, window 0x%lX, window_name \"%s\", function name \"%s\"",
-                        event?event->x.type:-1, event?(unsigned long)event->w:0, event->client?ASWIN_NAME(event->client):"none", name);
+    LOCAL_DEBUG_CALLER_OUT( "event %d, window 0x%lX, asw(%p), window_name \"%s\", function name \"%s\"",
+                        event?event->x.type:-1, event?(unsigned long)event->w:0, event->client, event->client?ASWIN_NAME(event->client):"none", name);
 
     if( (func = get_complex_function( name ) ) == NULL )
         return ;
@@ -451,7 +472,7 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
     if( !persist )
         return ;
 
-    if (need_window)
+    if (need_window && event->client == NULL )
     {
         if (DeferExecution (event, SELECT, ButtonPress))
 		{
@@ -478,8 +499,8 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
     {
         /* some functions operate on button release instead of
          * presses. These gets really weird for complex functions ... */
-        if (event->x.type == ButtonPress)
-            event->x.type = ButtonRelease;
+//        if (event->x.type == ButtonPress)
+//            event->x.type = ButtonRelease;
         /* first running all the Imediate actions : */
         for( i = 0 ; i < func->items_num ; i++ )
             if( func->items[i].name )
@@ -491,6 +512,8 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
     }
 //    WaitForButtonsUpLoop ();
 	UngrabEm ();
+    LOCAL_DEBUG_OUT( "at the end : event %d, window 0x%lX, asw(%p), window_name \"%s\", function name \"%s\"",
+                        event?event->x.type:-1, event?(unsigned long)event->w:0, event->client, event->client?ASWIN_NAME(event->client):"none", name);
 }
 
 
@@ -514,9 +537,9 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
     if (asw == NULL)
 		return;
 
-    if ( data->func_val[0] != INVALID_POSITION || data->func_val[1] != INVALID_POSITION)
+    if ( !is_interactive_action(data) )
     {
-        int new_val1, new_val2 ;
+        int new_val1 = 0, new_val2 = 0;
         int x = asw->status->x ;
         int y = asw->status->y ;
         int width = asw->status->width ;
@@ -526,12 +549,16 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
         new_val2 = APPLY_VALUE_UNIT(Scr.MyDisplayHeight,data->func_val[1],data->unit_val[1]);
         if( data->func == F_MOVE )
         {
-            x = new_val1;
-            y = new_val2;
+            if( data->func_val[0] != INVALID_POSITION )
+                x = new_val1;
+            if( data->func_val[1] != INVALID_POSITION )
+                y = new_val2;
         }else
         {
-            width = new_val1;
-            height = new_val2;
+            if( data->func_val[0] != INVALID_POSITION )
+                width = new_val1;
+            if( data->func_val[1] != INVALID_POSITION )
+                height = new_val2;
         }
         moveresize_aswindow_wm( asw, x, y, width, height, False );
     }else

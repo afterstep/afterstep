@@ -991,8 +991,8 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 			clean->pid = eh->pid;
 			set_flags (clean->flags, AS_PID);
 		}
-		if (get_flags (eh->flags, EXTWM_StateSkipTaskbar))
-			set_flags (status->flags, AS_SkipWinList);
+        if (get_flags (eh->flags, EXTWM_StateSkipTaskbar))
+            set_flags (clean->flags, AS_SkipWinList);
 
 		if (get_flags (eh->flags, EXTWM_TypeEverything))
 		{

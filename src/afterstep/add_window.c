@@ -1240,9 +1240,11 @@ change_aswindow_layer( ASWindow *asw, int layer )
     if( ASWIN_LAYER(asw) != layer )
     {
         remove_aswindow_from_layer( asw, ASWIN_LAYER(asw));
-	ASWIN_LAYER(asw) = layer ;
+        ASWIN_LAYER(asw) = layer ;
         add_aswindow_to_layer( asw, layer );
         restack_window_list( ASWIN_DESK(asw), False );
+        ASWIN_SET_FLAGS(asw, AS_Layer);
+        set_client_state (asw->w, asw->status);
     }
 }
 
@@ -1267,13 +1269,18 @@ void change_aswindow_desktop( ASWindow *asw, int new_desk )
 
     old_desk = ASWIN_DESK(asw) ;
     ASWIN_DESK(asw) = new_desk ;
-    /* desktop changing : */
-    if( new_desk == Scr.CurrentDesk )
+    if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
     {
-        quietly_reparent_aswindow( asw, Scr.Root, True );
-    }else if( old_desk == Scr.CurrentDesk )
-        quietly_reparent_aswindow( asw, Scr.ServiceWin, True );
-    broadcast_config (M_CONFIGURE_WINDOW, asw);
+        set_client_desktop( asw->w, new_desk );
+
+        /* desktop changing : */
+        if( new_desk == Scr.CurrentDesk )
+        {
+            quietly_reparent_aswindow( asw, Scr.Root, True );
+        }else if( old_desk == Scr.CurrentDesk )
+            quietly_reparent_aswindow( asw, Scr.ServiceWin, True );
+        broadcast_config (M_CONFIGURE_WINDOW, asw);
+    }
 }
 
 void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
@@ -1857,6 +1864,8 @@ AddWindow (Window w)
             return NULL;
         }
     }
+    /* saving window management properties : */
+    set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win) );
     set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
     RaiseWindow( tmp_win );
 
