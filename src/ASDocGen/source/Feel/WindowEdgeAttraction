@@ -1,0 +1,7 @@
+<varlistentry id="options.WindowEdgeAttraction">
+	<term>WindowEdgeAttraction<emphasis remap='I'>distance</emphasis></term>
+	<listitem>
+	<para>Defines distance from which window will be attracted to the other
+        window's edge, while being interactively moved/resized.</para>
+	</listitem>
+</varlistentry>
