@@ -5,12 +5,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -532,6 +532,32 @@ stop_image_output( ASImageOutput **pimout )
 		}
 	}
 }
+
+/* ******************** ASImageLayer ****************************/
+void
+destroy_image_layer( ASImageLayer **pl )
+{
+	if( pl )
+	{
+		register ASImageLayer *l = *pl ;
+		if( l )
+		{
+			if( l->im )
+			{
+				if( l->im->imageman )
+					release_asimage( l->im );
+				else
+					destroy_asimage( &(l->im) );
+			}
+			if( l->bevel )
+				free( l->bevel );
+			free( l );
+			*pl = NULL ;
+		}
+	}
+}
+
+
 
 /* **********************************************************************/
 /*  Compression/decompression 										   */
@@ -2505,6 +2531,7 @@ merge_layers( ASVisual *asv,
 	ASImageDecoder **imdecs ;
 	ASImageOutput  *imout ;
 	ASScanline dst_line, tmp_line ;
+	ASImageLayer *pcurr = layers;
 	int i ;
 #ifdef DO_CLOCKING
 	time_t started = clock ();
@@ -2519,15 +2546,26 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	tmp_line.flags = SCL_DO_ALL ;
 
 	imdecs = safecalloc( count, sizeof(ASImageDecoder*));
-	if( layers[0].im == NULL )
-		layers[0].im = fake_bg = create_asimage( 1, 1, 0 );
+	if( pcurr->im == NULL )
+		pcurr->im = fake_bg = create_asimage( 1, 1, 0 );
 
 	for( i = 0 ; i < count ; i++ )
-		if( layers[i].im )
+	{
+		if( pcurr->im )
 		{
-			imdecs[i] = start_image_decoding(asv, layers[i].im, SCL_DO_ALL, layers[i].clip_x, layers[i].clip_y, layers[i].clip_width, layers[i].clip_height, layers[i].bevel);
-			imdecs[i]->back_color = layers[i].back_color ;
+			imdecs[i] = start_image_decoding(asv, pcurr->im, SCL_DO_ALL,
+				                             pcurr->clip_x, pcurr->clip_y,
+											 pcurr->clip_width, pcurr->clip_height,
+											 pcurr->bevel);
+			imdecs[i]->back_color = pcurr->back_color ;
 		}
+		if( pcurr->next == pcurr )
+			break;
+		else
+			pcurr = (pcurr->next!=NULL)?pcurr->next:pcurr+1 ;
+	}
+	if( i < count )
+		count = i ;
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
@@ -2544,16 +2582,20 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 		int bg_tint = (layers[0].tint==0)?0x7F7F7F7F:layers[0].tint ;
 		int bg_bottom = layers[0].dst_y+layers[0].clip_height+imdecs[0]->bevel_v_addon ;
 LOCAL_DEBUG_OUT("blending actually...%s", "");
+		pcurr = layers ;
 		for( i = 0 ; i < count ; i++ )
+		{
 			if( imdecs[i] )
 			{
-				unsigned int layer_bottom = layers[i].dst_y+layers[i].clip_height ;
-				if( layers[i].dst_y < min_y )
-					min_y = layers[i].dst_y;
+				unsigned int layer_bottom = pcurr->dst_y+pcurr->clip_height ;
+				if( pcurr->dst_y < min_y )
+					min_y = pcurr->dst_y;
 				layer_bottom += imdecs[i]->bevel_v_addon ;
 				if( layer_bottom > max_y )
 					max_y = layer_bottom;
 			}
+			pcurr = (pcurr->next!=NULL)?pcurr->next:pcurr+1 ;
+		}
 		if( min_y < 0 )
 			min_y = 0 ;
 		if( max_y > dst_height )
@@ -2581,13 +2623,18 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 				imdecs[0]->buffer.flags = 0 ;
 			}
 			copytintpad_scanline( &(imdecs[0]->buffer), &dst_line, layers[0].dst_x, bg_tint );
+			pcurr = layers ;
 			for( i = 1 ; i < count ; i++ )
-				if( imdecs[i] && layers[i].dst_y <= y && layers[i].dst_y+layers[i].clip_height+imdecs[i]->bevel_v_addon > y )
+			{
+				if( imdecs[i] && pcurr->dst_y <= y &&
+					pcurr->dst_y+pcurr->clip_height+imdecs[i]->bevel_v_addon > y )
 				{
 					imdecs[i]->decode_image_scanline( imdecs[i] );
-					copytintpad_scanline( &(imdecs[i]->buffer), &tmp_line, layers[i].dst_x, (layers[i].tint==0)?0x7F7F7F7F:layers[i].tint );
-					layers[i].merge_scanlines( &dst_line, &tmp_line, layers[i].merge_mode );
+					copytintpad_scanline( &(imdecs[i]->buffer), &tmp_line, pcurr->dst_x, (pcurr->tint==0)?0x7F7F7F7F:pcurr->tint );
+					pcurr->merge_scanlines( &dst_line, &tmp_line, pcurr->merge_mode );
 				}
+				pcurr = (pcurr->next!=NULL)?pcurr->next:pcurr+1 ;
+			}
 			imout->output_image_scanline( imout, &dst_line, 1);
 		}
 		dst_line.back_color = layers[0].back_color ;

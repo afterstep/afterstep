@@ -449,6 +449,24 @@ typedef struct ASImageOutput
  * There are 15 different merge_scanline methods implemented in
  * libAfterImage, including alpha-blending, tinting, averaging,
  * HSV and HSL colorspace operations, etc.
+ * NOTES
+ * ASImageLayer s could be organized into chains using next pointers.
+ * Since there could be a need to rearrange layers and maybe bypass some
+ * layers - we need to provide for flexibility, while at the same time
+ * allowing for simplicity of arrays. As the result next pointers could
+ * be used to link together continuous arrays of layer, like so :
+ * array1: [layer1(next==NULL)][layer2(next!=NULL)]
+ *          ____________________________|
+ *          V
+ * array2: [layer3(next==NULL)][layer4(next==NULL)][layer5(next!=NULL)]
+ *          ________________________________________________|
+ *          V
+ * array3: [layer6(next==NULL)][layer7(next==layer7)]
+ *                                ^______|
+ *
+ * While iterating throught such a list we check for two conditions -
+ * exceeding count of layers and layer pointing to self. When any of
+ * that is met - we stopping iteration.
  * SEE ALSO
  * merge_layers()
  * blender.h
@@ -474,6 +492,10 @@ typedef struct ASImageLayer
 											 * (for buttons, etc.)*/
 	int merge_mode ;                     	/* reserved for future use */
 	merge_scanlines_func merge_scanlines ;	/* overlay method */
+	struct ASImageLayer *next;              /* optional pointer to next
+											 * layer. If it points to
+											 * itself - then end of the
+											 * chain.*/
 	void *data;                           	/* hook to hung data on */
 }ASImageLayer;
 /********/
@@ -544,6 +566,7 @@ typedef struct ASGradient
  */
 #define FLIP_VERTICAL       (0x01<<0)
 #define FLIP_UPSIDEDOWN		(0x01<<1)
+#define FLIP_MASK			(FLIP_UPSIDEDOWN|FLIP_VERTICAL)
 /********/
 /****d* libAfterImage/asimage/tint
  * FUNCTION
@@ -659,6 +682,16 @@ typedef struct ASGradient
  * EXAMPLE
  * asview.c: ASView.5
  *********/
+/****f* libAfterImage/asimage/destroy_image_layer()
+ * SYNOPSIS
+ * void destroy_image_layer( ASImageLayer **pl );
+ * INPUTS
+ * pl				- pointer to pointer to valid ASImageLayer structure.
+ * DESCRIPTION
+ * frees all the memory allocated for specified ASImageLayer. If there
+ * was ASImage and/or ASImageBevel attached to it - it will be
+ * deallocated as well.
+ *********/
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
 void move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
@@ -672,6 +705,7 @@ ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
 ASImage *dup_asimage  ( ASImage* im );         /* increment ref countif applicable */
 int      release_asimage( ASImage *im );
 
+void     destroy_image_layer( ASImageLayer **pl );
 /****h* libAfterImage/asimage/Encoding
  * DESCRIPTION
  * asimage_add_line()       - encode raw scanline data
