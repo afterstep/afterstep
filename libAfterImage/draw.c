@@ -571,7 +571,8 @@ asim_line_to_generic( ASDrawContext *ctx, int dst_x, int dst_y, void (*func)(ASD
 			if( !clip_line( k, x0, y0, cw, ch, &to_x, &to_y ) ) 
 				return ; 	 
 		}			
-		func( ctx, from_x, from_y, to_x, to_y );
+		if( from_x != to_x || from_y != to_y ) 
+			func( ctx, from_x, from_y, to_x, to_y );
 	}	 
 } 
 	   
