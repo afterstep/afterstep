@@ -95,6 +95,62 @@
 extern int    LastWarpIndex;
 char          NoName[] = "Untitled";		   /* name if no name is specified */
 
+
+/********************************************************************/
+/* ASWindow frame decorations :                                     */
+/********************************************************************/
+/* window frame decoration consists of : 
+  Top level window 
+	  4 canvases - one for each side :
+	  	  Top or left canvas contains titlebar+ adjusen frame side+corners if any
+		  Bottom or right canvas contains sidebar which is the same as south frame side with corners
+		  Remaining two canvasses contain east and west frame sides only ( if any );
+	  Canvasses surround main window and its sizes are actually the frame size.		  		  
+ */
+
+/* on startup we dress window in decorations : */
+void 
+dress_window( ASWindow *asw )
+{
+
+
+}
+
+/* when window gets destroyed - we strip all the decor off of it : */
+void 
+strip_window( ASWindow *asw )
+{
+
+
+}
+
+/* this gets called when Root background changes : */
+void 
+update_window_transparency( ASWindow *asw )
+{
+
+
+}
+
+/* this gets called when Look changes or hints changes : */
+void 
+on_window_config( ASWindow *asw )
+{
+
+
+}
+
+/* this gets called when StructureNotify/SubstractureNotify arrives : */
+void 
+on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width, unsigned int height )
+{
+
+
+}
+/********************************************************************/
+/* end of ASWindow frame decorations management                     */
+/********************************************************************/
+
 void
 init_titlebar_windows (ASWindow * tmp_win, Bool free_resources)
 {

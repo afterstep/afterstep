@@ -159,6 +159,9 @@ fr_pos;
 
 struct ASHints;
 struct ASStatusHints;
+struct ASCanvas;
+struct ASTBarData;
+
 
 /* for each window that is on the display, one of these structures
  * is allocated and linked into a list 
@@ -197,9 +200,27 @@ typedef struct ASWindow
 #define IsBtnEnabled(t,b)   (!get_flags((t)->hints->disabled_buttons,(0x01<<(b))))
 #define DisableBtn(t,b)  	clear_flags((t)->hints->disabled_buttons,(0x01<<(b)))
 
+	/********************************************************************/
+	/* ASWindow frame decorations :                                     */
+	/********************************************************************/
+	/* window frame decoration consists of : 
+	  Top level window 
+		  4 canvases - one for each side :
+		  	  Top or left canvas contains titlebar+ adjusen frame side+corners if any
+			  Bottom or right canvas contains sidebar which is the same as south frame side with corners
+			  Remaining two canvasses contain east and west frame sides only ( if any );
+		  Canvasses surround main window and its sizes are actually the frame size.		  		  
+	 */
+	
+    Window 			   frame;		/* the frame window */
+	struct ASCanvas   *frame_canvas[FRAME_SIDES] ;
+	struct ASTBarData *tbar ;
+	struct ASTBarData *frame_bars[FRAME_PARTS] ; /* regular sidebar is the same as frame with S, SE and SW parts */
 
+	/********************************************************************/
+	/* END of NEW ASWindow frame decorations                            */
+	/********************************************************************/
     int old_bw;			/* border width before reparenting */
-    Window frame;		/* the frame window */
     Window Parent;		/* Ugly Ugly Ugly - it looks like you
 				 * HAVE to reparent the app window into
 				 * a window whose size = app window,
