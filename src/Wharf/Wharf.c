@@ -158,6 +158,10 @@ typedef struct ASWharfState
 
 	ASWharfFolder *root_image_folder ; /* points to a folder that owns current Scr.RootImage */
 
+	int buttons_render_pending ;
+
+	ASWharfButton *focused_button ;
+
 }ASWharfState;
 
 ASWharfState WharfState;
@@ -196,6 +200,7 @@ void clear_root_image_cache( ASWharfFolder *aswf );
 Bool render_wharf_button( ASWharfButton *aswb );
 void set_wharf_clip_area( ASWharfFolder *aswf, int x, int y );
 void set_withdrawn_clip_area( ASWharfFolder *aswf, int x, int y, unsigned int w, unsigned int h );
+void change_button_focus(ASWharfButton *aswb, Bool focused ); 
 
 /***********************************************************************
  *   main - start of module
@@ -308,6 +313,9 @@ CheckConfigSanity()
     LOCAL_DEBUG_OUT("Attempting to use style \"%s\"", buf);
     Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find_or_default( buf );
     LOCAL_DEBUG_OUT("Will use style \"%s\"", Scr.Look.MSWindow[BACK_UNFOCUSED]->name);
+    sprintf( buf, "*%sFocusedTile", get_application_name() );
+    LOCAL_DEBUG_OUT("Attempting to use style \"%s\" for focused tile", buf);
+    Scr.Look.MSWindow[BACK_FOCUSED] = mystyle_find( buf );
 
 	if( get_flags( Config->set_flags, WHARF_FORCE_SIZE ) )
     {
@@ -588,6 +596,8 @@ DispatchEvent (ASEvent * event)
         case MotionNotify :
             break ;
         case EnterNotify :
+			if( WharfState.focused_button ) 
+				change_button_focus(WharfState.focused_button, False ); 
 			if( event->x.xcrossing.window == Scr.Root )
 			{
 				withdraw_active_balloon();
@@ -600,6 +610,8 @@ DispatchEvent (ASEvent * event)
                 {
                     ASWharfButton *aswb = (ASWharfButton*)obj;
                     on_astbar_pointer_action( aswb->bar, 0, (event->x.type==LeaveNotify));
+					if(event->x.type == EnterNotify)
+						change_button_focus(aswb, True ); 
                 }
             }
             break ;
@@ -781,6 +793,8 @@ build_wharf_button_tbar(WharfButton *wb)
 	}
 
     set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+	set_astbar_style_ptr( bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[Scr.Look.MSWindow[BACK_FOCUSED]?BACK_FOCUSED:BACK_UNFOCUSED] );
+
     LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
                         get_flags( Config->set_flags, WHARF_BEVEL )? "set":"unset",
                         Config->bevel,
@@ -788,11 +802,19 @@ build_wharf_button_tbar(WharfButton *wb)
     if( get_flags( Config->set_flags, WHARF_BEVEL ) )
     {
         if( get_flags( Config->flags, WHARF_NO_BORDER ) )
+		{	
             set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, 0 );
-        else
+            set_astbar_hilite( bar, BAR_STATE_FOCUSED, 0 );
+        }else
+		{	
             set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, Config->bevel );
+            set_astbar_hilite( bar, BAR_STATE_FOCUSED, Config->bevel );
+		}
     }else
-       set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, RIGHT_HILITE|BOTTOM_HILITE );
+	{	
+       	set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, RIGHT_HILITE|BOTTOM_HILITE );
+		set_astbar_hilite( bar, BAR_STATE_FOCUSED, RIGHT_HILITE|BOTTOM_HILITE );
+	}
     return bar;
 }
 
@@ -1078,6 +1100,21 @@ update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force )
 	}
 }
 
+void 
+change_button_focus(ASWharfButton *aswb, Bool focused )
+{
+	
+	if( aswb == NULL && focused && Scr.Look.MSWindow[BACK_FOCUSED] == NULL ) 
+		return ;
+	
+	set_astbar_focused( aswb->bar, NULL, focused );			   
+	render_wharf_button( aswb );
+	update_canvas_display( aswb->canvas );
+
+	if( focused ) 
+		WharfState.focused_button = aswb ;
+}	 
+
 void
 update_wharf_folder_styles( ASWharfFolder *aswf, Bool force )
 {
@@ -1087,6 +1124,7 @@ update_wharf_folder_styles( ASWharfFolder *aswf, Bool force )
 		while( --i >= 0 )
 		{
 			ASWharfButton *aswb= &(aswf->buttons[i]);
+			set_astbar_style_ptr( aswb->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[Scr.Look.MSWindow[BACK_FOCUSED]?BACK_FOCUSED:BACK_UNFOCUSED] );
 			if( set_astbar_style_ptr( aswb->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] ))
 			{
 				render_wharf_button( aswb );
@@ -1318,6 +1356,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
     LOCAL_DEBUG_OUT( "total_size_return(%dx%d)", *total_width_return, *total_height_return );
 
     ASSync( False );
+	WharfState.buttons_render_pending = aswf->buttons_num ;
     if( needs_shaping )
         set_flags( aswf->flags, ASW_NeedsShaping );
     else
@@ -2037,6 +2076,8 @@ Bool render_wharf_button( ASWharfButton *aswb )
 	}
 	LOCAL_DEBUG_OUT( "rendering button %p for folder %p. Root Image = %p", aswb, aswf, Scr.RootImage );
 	result = render_astbar( aswb->bar, aswb->canvas );
+	ASSync( False );
+	--WharfState.buttons_render_pending ;
 
 	if ( withdrawn_root )
 	 	WharfState.withdrawn_root_image = Scr.RootImage ;
@@ -2126,9 +2167,11 @@ do_wharf_animate_iter( void *vdata )
             LOCAL_DEBUG_OUT( "resizing folder from %dx%d to %dx%d", aswf->canvas->width, aswf->canvas->height, new_width, new_height );
             resize_canvas( aswf->canvas, new_width, new_height) ;
             ASSync( False ) ;
-            if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
-				timer_new (Config->animate_delay*10, do_wharf_animate_iter, vdata);	  
-            else
+			if( WharfState.buttons_render_pending <= 3 && 
+				get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
+			{	
+				timer_new (Config->animate_delay*100, do_wharf_animate_iter, vdata);	  
+            }else
 				timer_new (10, do_wharf_animate_iter, vdata);	  
         }
 	}		  
