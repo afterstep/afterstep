@@ -534,10 +534,13 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 		int offset = 0, step, i, max_i = grad->npoints - 1 ;
 		ARGB32 last_color = ARGB32_Black ;
 		double last_offset = 0., *offsets = grad->offset ;
+		int *used = safecalloc(max_i+1, sizeof(int));
+		/* lets find the color of the very first point : */
 		for( i = 0 ; i <= max_i ; ++i ) 
 			if( offsets[i] <= 0. )
 			{
 				last_color = grad->color[i] ;
+				used[i] = 1 ;
 				break;
 			}
 		 
@@ -545,9 +548,10 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 		{
 			register int k ;
 			int new_idx = -1 ;
+			/* now lets find the next point  : */
 			for( k = 0 ; k <= max_i ; ++k )
 			{
-				if( offsets[k] > last_offset ) 
+				if( used[k]==0 && offsets[k] >= last_offset ) 
 				{
 					if( new_idx < 0 ) 
 						new_idx = k ;
@@ -557,10 +561,12 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 			}
 			if( new_idx < 0 ) 
 				break;
+			used[new_idx] = 1 ;
 			step = grad->offset[new_idx] * scl->width - offset ;
-/*			fprintf( stderr, __FUNCTION__":%d>last_offset = %f, last_color = %8.8X, new_idx = %d, max_i = %d, new_offset = %f, new_color = %8.8X, step = %d, offset = %d\n", __LINE__, last_offset, last_color, new_idx, max_i, offsets[new_idx], grad->color[new_idx], step, offset );*/
-			
-			if( step > 0 && step <= scl->width-offset )
+/*			fprintf( stderr, __FUNCTION__":%d>last_offset = %f, last_color = %8.8X, new_idx = %d, max_i = %d, new_offset = %f, new_color = %8.8X, step = %d, offset = %d\n", __LINE__, last_offset, last_color, new_idx, max_i, offsets[new_idx], grad->color[new_idx], step, offset ); */
+			if( step > scl->width-offset )
+				step = scl->width-offset ;
+			if( step > 0 )
 			{
 				int color ;
 				for( color = 0 ; color < IC_NUM_CHANNELS ; ++color )
@@ -582,6 +588,7 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 			last_color = grad->color[new_idx];
 		}
 		scl->flags = filter ;
+		free( used );
 	}
 }
 

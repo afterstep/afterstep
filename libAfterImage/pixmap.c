@@ -57,6 +57,7 @@
 int
 FillPixmapWithTile (Pixmap pixmap, Pixmap tile, int x, int y, int width, int height, int tile_x, int tile_y)
 {
+#ifndef X_DISPLAY_MISSING
   if (tile != None && pixmap != None)
     {
       GC gc;
@@ -71,6 +72,7 @@ FillPixmapWithTile (Pixmap pixmap, Pixmap tile, int x, int y, int width, int hei
       XFreeGC (dpy, gc);
       return 1;
     }
+#endif
   return 0;
 }
 
@@ -78,6 +80,7 @@ Pixmap
 GetRootPixmap (Atom id)
 {
 	Pixmap currentRootPixmap = None;
+#ifndef X_DISPLAY_MISSING
 	if (id == None)
   		id = XInternAtom (dpy, "_XROOTPMAP_ID", True);
 
@@ -101,23 +104,26 @@ GetRootPixmap (Atom id)
 		    }
 		}
     }
+#endif
     return currentRootPixmap;
 }
 
+#ifndef X_DISPLAY_MISSING
 static int
 pixmap_error_handler (Display * dpy, XErrorEvent * error)
 {
 #ifdef DEBUG_IMAGING
-	fprintf (stderr, "\n aterm caused XError # %u, in resource %lu, Request: %d.%d",
-					 error->error_code, error->resourceid, error->request_code, error->minor_code);
+	show_error ("XError # %u, in resource %lu, Request: %d.%d",
+				 error->error_code, error->resourceid, error->request_code, error->minor_code);
 #endif
   return 0;
 }
-
+#endif
 
 Pixmap
 ValidatePixmap (Pixmap p, int bSetHandler, int bTransparent, unsigned int *pWidth, unsigned int *pHeight)
 {
+#ifndef X_DISPLAY_MISSING
 	int (*oldXErrorHandler) (Display *, XErrorEvent *) = NULL;
     /* we need to check if pixmap is still valid */
 	Window root;
@@ -141,11 +147,15 @@ ValidatePixmap (Pixmap p, int bSetHandler, int bTransparent, unsigned int *pWidt
   		XSetErrorHandler (oldXErrorHandler);
 
 	return p;
+#else
+	return None ;
+#endif
 }
 
 int
 GetRootDimensions (int *width, int *height)
 {
+#ifndef X_DISPLAY_MISSING
 	Window root;
 	int w_x, w_y;
 	unsigned int junk;
@@ -156,11 +166,15 @@ GetRootDimensions (int *width, int *height)
     	*height = 0;
     }
 	return (*width > 0 && *height > 0) ? 1 : 0;
+#else
+	return 0;
+#endif
 }
 
 int
 GetWinPosition (Window w, int *x, int *y)
 {
+#ifndef X_DISPLAY_MISSING
 	Window root, parent, *children;
 	unsigned int nchildren;
 	static int rootWidth = 0, rootHeight = 0;
@@ -213,6 +227,7 @@ GetWinPosition (Window w, int *x, int *y)
 		}
     	w = parent;
     }
+#endif
 	*x = 0;
 	*y = 0;
 	return 0;
@@ -236,6 +251,7 @@ Pixmap
 scale_pixmap (ASVisual *asv, Pixmap src, int src_w, int src_h, int width, int height, GC gc, ARGB32 tint)
 {
 	Pixmap trg = None;
+#ifndef X_DISPLAY_MISSING
 
 	if (src != None)
     {
@@ -267,19 +283,22 @@ scale_pixmap (ASVisual *asv, Pixmap src, int src_w, int src_h, int width, int he
 			}
 		}
 	}
+#endif
 	return trg;
 }
 
 Pixmap
 ScalePixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, ShadingInfo * shading)
 {
+	Pixmap p = None ;
+#ifndef X_DISPLAY_MISSING
 	ASVisual asv ;
 	int screen = DefaultScreen(dpy);
-	Pixmap p ;
 	
 	create_asvisual( dpy, screen, DefaultDepth(dpy, screen), &asv );
 	p = scale_pixmap( &asv, src, src_w, src_h, width, height, gc, shading2tint32(shading) );
 	destroy_asvisual( &asv, True );
+#endif
 	return p;
 }
 
@@ -290,6 +309,7 @@ copyshade_drawable_area( ASVisual *asv, Drawable src, Pixmap trg,
 				  		 int trg_x, int trg_y,
 				  		 GC gc, ARGB32 tint) 		
 {
+#ifndef X_DISPLAY_MISSING
 	if( tint == TINT_LEAVE_SAME || asv == NULL )
 	{
 		XCopyArea (dpy, src, trg, gc, x, y, w, h, trg_x, trg_y);
@@ -312,6 +332,7 @@ copyshade_drawable_area( ASVisual *asv, Drawable src, Pixmap trg,
 			}
 		}		
 	}
+#endif
 }
 
 void
@@ -320,6 +341,7 @@ CopyAndShadeArea ( Drawable src, Pixmap trg,
 				   int trg_x, int trg_y,
 				   GC gc, ShadingInfo * shading)
 {
+#ifndef X_DISPLAY_MISSING
 	int screen = DefaultScreen(dpy);
 	ARGB32 tint = shading2tint32( shading );
 
@@ -336,17 +358,19 @@ CopyAndShadeArea ( Drawable src, Pixmap trg,
 		copyshade_drawable_area( &asv, src, trg, x, y, w, h, trg_x, trg_y, gc, tint );
 		destroy_asvisual( &asv, True );
 	}
+#endif
 }
 
 void
 tile_pixmap (ASVisual *asv, Pixmap src, Pixmap trg, int src_w, int src_h, int x, int y, int w, int h, GC gc, ARGB32 tint)
 {
+#ifndef X_DISPLAY_MISSING
 	int tile_x, tile_y, left_w, bott_h;
   
     tile_x = x % src_w;
 	tile_y = y % src_h;
-	left_w = min (src_w - tile_x, w);
-	bott_h = min (src_h - tile_y, h);
+	left_w = MIN (src_w - tile_x, w);
+	bott_h = MIN (src_h - tile_y, h);
 
 /*fprintf( stderr, "\nShadeTiledPixmap(): tile_x = %d, tile_y = %d, left_w = %d, bott_h = %d, SRC = %dx%d TRG=%dx%d", tile_x, tile_y, left_w, bott_h, src_w, src_h, w, h); */
 
@@ -364,11 +388,13 @@ tile_pixmap (ASVisual *asv, Pixmap src, Pixmap trg, int src_w, int src_h, int x,
     	if (bott_h < h)		/* left-top parts */
 			copyshade_drawable_area( asv, src, trg, 0, 0, w - left_w, h - bott_h, left_w, bott_h, gc, tint);
     }
+#endif
 }
 
 void
 ShadeTiledPixmap (Pixmap src, Pixmap trg, int src_w, int src_h, int x, int y, int w, int h, GC gc, ShadingInfo * shading)
 {
+#ifndef X_DISPLAY_MISSING
 	ASVisual *asv = NULL;
 	ARGB32 tint = shading2tint32( shading );
   
@@ -381,24 +407,30 @@ ShadeTiledPixmap (Pixmap src, Pixmap trg, int src_w, int src_h, int x, int y, in
 	tile_pixmap (asv, src, trg, src_w, src_h, x, y, w, h, gc, tint);
 	if( asv )
 		destroy_asvisual( asv, False );
+#endif
 }
 
 Pixmap
 shade_pixmap (ASVisual *asv, Pixmap src, int x, int y, int width, int height, GC gc, ARGB32 tint)
 {
+#ifndef X_DISPLAY_MISSING
     Pixmap trg = CREATE_TRG_PIXMAP (asv, width, height);
   
 	if (trg != None)
     	copyshade_drawable_area (asv, src, trg, x, y, width, height, 0, 0, gc, tint);
 	return trg;
+#else
+	return None ;
+#endif
 }
 
 Pixmap
 ShadePixmap (Pixmap src, int x, int y, int width, int height, GC gc, ShadingInfo * shading)
 {
+    Pixmap trg = None;
+#ifndef X_DISPLAY_MISSING
 	ASVisual *asv = NULL;
 	ARGB32 tint = shading2tint32( shading );
-    Pixmap trg ;
   
 	if( tint != TINT_LEAVE_SAME )
 	{
@@ -412,14 +444,16 @@ ShadePixmap (Pixmap src, int x, int y, int width, int height, GC gc, ShadingInfo
     }
 	if( asv )
 		destroy_asvisual( asv, False );
+#endif
 	return trg;
 }
 
 Pixmap
 center_pixmap (ASVisual *asv, Pixmap src, int src_w, int src_h, int width, int height, GC gc, ARGB32 tint)
 {
+	Pixmap trg = None;
+#ifndef X_DISPLAY_MISSING
     int x, y, w, h, src_x = 0, src_y = 0;
-	Pixmap trg;
 	/* create target pixmap of the size of the window */
 	trg = CREATE_TRG_PIXMAP (asv,width, height);
 	if (trg != None)
@@ -432,30 +466,31 @@ center_pixmap (ASVisual *asv, Pixmap src, int src_w, int src_h, int width, int h
     	if (x < 0)
 		{
 			src_x -= x;
-			w = min (width, src_w + x);
+			w = MIN (width, src_w + x);
 			x = 0;
 		}else
-			w = min (width, src_w);
+			w = MIN (width, src_w);
     	if (y < 0)
 		{
 			src_y -= y;
-			h = min (height, src_h + y);
+			h = MIN (height, src_h + y);
 			y = 0;
 		}else
-			h = min (height, src_h);
+			h = MIN (height, src_h);
 
     	copyshade_drawable_area ( asv, src, trg, src_x, src_y, w, h, x, y, gc, tint);
     }
-
+#endif
 	return trg;
 }
 
 Pixmap
 CenterPixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, ShadingInfo * shading)
 {
+	Pixmap trg = None;
+#ifndef X_DISPLAY_MISSING
 	ASVisual *asv = NULL;
 	ARGB32 tint = shading2tint32( shading );
-	Pixmap trg ;
   
 	if( tint != TINT_LEAVE_SAME )
 	{
@@ -465,14 +500,16 @@ CenterPixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, Sh
 	trg = center_pixmap( asv, src, src_w, src_h, width, height, gc, tint );
 	if( asv )
 		destroy_asvisual( asv, False );
+#endif		
 	return trg ;	
 }
 
 Pixmap
 grow_pixmap (ASVisual *asv, Pixmap src, int src_w, int src_h, int width, int height, GC gc, ARGB32 tint )
 {
+	Pixmap trg = None;
+#ifndef X_DISPLAY_MISSING
 	int w, h;
-	Pixmap trg;
 	/* create target pixmap of the size of the window */
 	trg = CREATE_TRG_PIXMAP (asv,width, height);
 	if (trg != None)
@@ -480,20 +517,22 @@ grow_pixmap (ASVisual *asv, Pixmap src, int src_w, int src_h, int width, int hei
     	/* fill it with background color */
     	XFillRectangle (dpy, trg, gc, 0, 0, width, height);
     	/* place image at the center of it */
-    	w = min (width, src_w);
-    	h = min (height, src_h);
+    	w = MIN (width, src_w);
+    	h = MIN (height, src_h);
 
     	copyshade_drawable_area(asv, src, trg, 0, 0, w, h, 0, 0, gc, tint);
     }
+#endif	
 	return trg;
 }
 
 Pixmap
 GrowPixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, ShadingInfo * shading)
 {
+	Pixmap trg = None;
+#ifndef X_DISPLAY_MISSING
 	ASVisual *asv = NULL;
 	ARGB32 tint = shading2tint32( shading );
-	Pixmap trg;
   
 	if( tint != TINT_LEAVE_SAME )
 	{
@@ -503,6 +542,7 @@ GrowPixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, Shad
 	trg = grow_pixmap( asv, src, src_w, src_h, width, height, gc, tint );
 	if( asv )
 		destroy_asvisual( asv, False );
+#endif		
 	return trg ;	
 }
 
@@ -516,6 +556,7 @@ cut_pixmap ( ASVisual *asv, Pixmap src, Pixmap trg,
 	  		 unsigned int width, unsigned int height,
 	  		 GC gc, ARGB32 tint )
 {
+#ifndef X_DISPLAY_MISSING
 	Bool my_pixmap = (trg == None )?True:False ;
 	int screen_w, screen_h ;
 	int w = width, h = height;
@@ -620,8 +661,8 @@ cut_pixmap ( ASVisual *asv, Pixmap src, Pixmap trg,
 	if (x + w > src_w || y + h > src_h)
     {			/* tiled pixmap processing here */
   		Pixmap tmp ;
-    	w = MIN (w, src_w);
-    	h = MIN (h, src_h);
+    	w = MIN (w, (int)src_w);
+    	h = MIN (h, (int)src_h);
 
     	tmp = CREATE_TRG_PIXMAP (asv, w, h);
     	if (tmp != None)
@@ -646,8 +687,10 @@ cut_pixmap ( ASVisual *asv, Pixmap src, Pixmap trg,
     {	/* cut area */
 		copyshade_drawable_area( asv, src, trg, x, y, w, h, offset_x, offset_y, gc, tint); 		
     }
-
 	return trg;
+#else
+	return None ;
+#endif	
 }
 
 static Pixmap
@@ -657,14 +700,16 @@ CutPixmap ( Pixmap src, Pixmap trg,
 	    unsigned int width, unsigned int height,
 	    GC gc, ShadingInfo * shading)
 {
+	Pixmap res = None;
+#ifndef X_DISPLAY_MISSING
 	ASVisual *asv = NULL;
 	ARGB32 tint = shading2tint32( shading );
-	Pixmap res;
 	int screen = DefaultScreen(dpy);
     asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
 	res = cut_pixmap( asv, src, trg, x, y, src_w, src_h, width, height, gc, tint );
 	if( asv )
 		destroy_asvisual( asv, False );
+#endif		
 	return res ;	
 }
 
@@ -696,6 +741,7 @@ CutWinPixmap (Window win, Drawable src, int src_w, int src_h, int width,
 int
 fill_with_darkened_background (ASVisual *asv, Pixmap * pixmap, ARGB32 tint, int x, int y, int width, int height, int root_x, int root_y, int bDiscardOriginal, ASImage *root_im)
 {
+#ifndef X_DISPLAY_MISSING
 	unsigned int root_w, root_h;
 	Pixmap root_pixmap;
 	int screen = DefaultScreen(dpy);
@@ -735,6 +781,7 @@ fill_with_darkened_background (ASVisual *asv, Pixmap * pixmap, ARGB32 tint, int 
 	    	FillPixmapWithTile (*pixmap, root_pixmap, x, y, width, height, root_x, root_y);
         return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -744,6 +791,7 @@ fill_with_darkened_background (ASVisual *asv, Pixmap * pixmap, ARGB32 tint, int 
 int
 fill_with_pixmapped_background (ASVisual *asv, Pixmap * pixmap, ASImage *image, int x, int y, int width, int height, int root_x, int root_y, int bDiscardOriginal, ASImage *root_im)
 {
+#ifndef X_DISPLAY_MISSING
 	unsigned int root_w, root_h;
 	Pixmap root_pixmap;
 	int screen = DefaultScreen(dpy);
@@ -792,6 +840,7 @@ fill_with_pixmapped_background (ASVisual *asv, Pixmap * pixmap, ASImage *image, 
 		}			
     	return 1;
     }
+#endif
 	return 0;
 }
 /************************************************/

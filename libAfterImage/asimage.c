@@ -1725,6 +1725,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 		/* We also need to decode mask if we have one :*/
 		if( (xim = imdec->im->alt.mask_ximage ) != NULL ) 
 		{
+#ifndef X_DISPLAY_MISSING
 			CARD32 *dst = xim_scl->alpha ;
 			register int x = MIN((int)xim_scl->width,xim->width);
 			if( xim->depth == 8 ) 
@@ -1735,6 +1736,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 			{
 				while(--x >= 0 ) dst[x] = (XGetPixel(xim, x, y) == 0)?0x00:0xFF;
 			}
+#endif
 		}
 		for( i = 0 ; i < IC_NUM_CHANNELS ; i++ )
 			if( get_flags(filter, 0x01<<i) )
@@ -1743,7 +1745,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 				register CARD32 *dst = scl->channels[i]+skip;
 				register int k  = 0;
 				count = xim_width-offset_x ;
-				if( count >= width )
+				if( count > width )
 					count = width ;
 
 #define COPY_TILE_CHAN(op) \
@@ -1775,6 +1777,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 		/* We also need to decode mask if we have one :*/
 		if( (xim = imdec->im->alt.mask_ximage ) != NULL ) 
 		{
+#ifndef X_DISPLAY_MISSING
 			CARD32 *dst = scl->alpha+skip ;
 			register int x = MIN(width,xim_width);
 			if( xim->depth == 8 ) 
@@ -1785,6 +1788,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 			{
 				while(--x >= 0 ) dst[x] = (XGetPixel(xim, x, y) == 0)?0x00:0xFF;
 			}
+#endif
 		}
 		count = MIN(width,xim_width);  	
 		scl->offset_x = old_offset ;

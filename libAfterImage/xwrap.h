@@ -9,8 +9,6 @@
 #include <X11/Xproto.h>
 #include <X11/Xresource.h>
 
-extern Display *dpy;
-
 #else
 
 #define Display  void 
@@ -198,6 +196,27 @@ typedef struct {
     Colormap colormap;		/* color map to be associated with window */
     Cursor cursor;		/* cursor to be displayed (or None) */
 } XSetWindowAttributes;
+
+typedef struct {
+	unsigned long pixel;
+	unsigned short red, green, blue;
+	char flags;  /* do_red, do_green, do_blue */
+	char pad;
+} XColor;
+
+int XParseGeometry (  char *string,int *x,int *y,
+                      unsigned int *width,    /* RETURN */
+					  unsigned int *height);    /* RETURN */
+
+/* needed by above function : */
+#define NoValue		0x0000
+#define XValue  	0x0001
+#define YValue		0x0002
+#define WidthValue  	0x0004
+#define HeightValue  	0x0008
+#define AllValues 	0x000F
+#define XNegative 	0x0010
+#define YNegative 	0x0020
 
 #endif
 

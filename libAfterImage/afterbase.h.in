@@ -326,6 +326,11 @@ long 		 asim_casestring_compare (ASHashableValue value1, ASHashableValue value2)
 #define	casestring_hash_value		 asim_casestring_hash_value
 #define	casestring_compare     		 asim_casestring_compare
 
+/* from sleep.c */
+void asim_start_ticker (unsigned int size);
+void asim_wait_tick ();
+#define start_ticker 	asim_start_ticker
+#define wait_tick 		asim_wait_tick
 
 #endif /* HAVE_AFTERBASE */
 

@@ -402,8 +402,8 @@ AC_SUBST(AFTERIMAGE_LIBS_EXTERNAL)
 
 AFTERBASE_CFLAGS=
 APPS_AFTERBASE_CFLAGS=
-if test "$with_afterbase" != "NO"; then
-  AC_MSG_CHECKING(libAfterBase headers)
+AC_MSG_CHECKING(libAfterBase headers)
+if test "$with_afterbase" != "no"; then
   have_afterbase=yes
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
@@ -432,7 +432,11 @@ if test "x$have_afterbase" = "xyes"; then
 	AC_MSG_RESULT($AFTERBASE_CFLAGS)
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
-    AC_MSG_RESULT("none found")
+	if test "$with_afterbase" == "no"; then	
+	    AC_MSG_RESULT(disabled)
+	else
+	    AC_MSG_RESULT(none found)
+	fi
 fi
 AC_SUBST(HAVE_AFTERBASE_FLAG)
 AC_SUBST(AFTERBASE_CFLAGS)

@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include <X11/Xlib.h>
+/*#include <X11/Xlib.h>*/
 
 #include "config.h"
 #include "afterbase.h"
@@ -446,15 +446,20 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 			}
 		}else if( *color )
 		{
-			XColor xcol, xcol_scr ;
-			register const char *ptr = &(color[0]);
 			/* does not really matter here what screen to use : */
 			if( dpy == NULL )
 				return color ;
-			if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), color, &xcol, &xcol_scr) )
-				*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
-			while( !isspace((int)*ptr) && *ptr != '\0' ) ptr++;
-			return ptr;
+			else
+			{
+				register const char *ptr = &(color[0]);
+#ifndef X_DISPLAY_MISSING
+				XColor xcol, xcol_scr ;
+				if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), color, &xcol, &xcol_scr) )
+					*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
+#endif			
+				while( !isspace((int)*ptr) && *ptr != '\0' ) ptr++;
+				return ptr;
+			}	
 		}
 	}
 	return color;
@@ -821,18 +826,29 @@ asim_casestring_compare (ASHashableValue value1, ASHashableValue value2)
 int
 asim_get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h)
 {
-	Window        root;
-	unsigned int  ujunk;
-	int           junk;
 	*ret_w = 0;
 	*ret_h = 0;
+#ifndef X_DISPLAY_MISSING
 	if( d )
+	{
+		Window        root;
+		unsigned int  ujunk;
+		int           junk;
 		if (XGetGeometry (dpy, d, &root, &junk, &junk, ret_w, ret_h, &ujunk, &ujunk) != 0)
 			return 1;
+	}
+#endif
 	return 0;
 }
 
 #ifdef X_DISPLAY_MISSING
+int XParseGeometry (  char *string,int *x,int *y,
+                      unsigned int *width,    /* RETURN */
+					  unsigned int *height)    /* RETURN */
+{
+	show_error( "Parsing of geometry is not supported without either Xlib opr libAfterBase" );
+	return 0;
+}
 void XDestroyImage( void* d){}
 int XGetWindowAttributes( void*d, Window w, unsigned long m, void* s){  return 0;}
 void *XGetImage( void* dpy,Drawable d,int x,int y,unsigned int width,unsigned int height, unsigned long m,int t)
@@ -841,4 +857,70 @@ unsigned long XGetPixel(void* d, int x, int y){return 0;}
 int XQueryColors(void* a,Colormap c,void* x,int m){return 0;}
 #endif
 
+
+/***************************************/
+/* from sleep.c                        */
+/***************************************/
+#include <sys/time.h>
+#include <sys/times.h>
+static clock_t _as_ticker_last_tick = 0;
+static clock_t _as_ticker_tick_size = 1;
+static clock_t _as_ticker_tick_time = 0;
+
+/**************************************************************************
+ * Sleep for n microseconds
+ *************************************************************************/
+void
+sleep_a_little (int n)
+{
+	struct timeval value;
+
+	if (n <= 0)
+		return;
+
+	value.tv_usec = n % 1000000;
+	value.tv_sec = n / 1000000;
+
+#ifndef PORTABLE_SELECT
+#ifdef __hpux
+#define PORTABLE_SELECT(w,i,o,e,t)	select((w),(int *)(i),(int *)(o),(e),(t))
+#else
+#define PORTABLE_SELECT(w,i,o,e,t)	select((w),(i),(o),(e),(t))
+#endif
+#endif
+	PORTABLE_SELECT (1, 0, 0, 0, &value);
+}
+
+void
+asim_start_ticker (unsigned int size)
+{
+	struct tms    t;
+
+	_as_ticker_last_tick = times (&t);		   /* in system ticks */
+	if (_as_ticker_tick_time == 0)
+	{
+		register clock_t delta = _as_ticker_last_tick;
+		/* calibrating clock - how many ms per cpu tick ? */
+		sleep_a_little (100);
+		_as_ticker_last_tick = times (&t);
+		delta = _as_ticker_last_tick - delta ;
+		if( delta <= 0 )
+			_as_ticker_tick_time = 100;
+		else
+			_as_ticker_tick_time = 101 / delta;
+	}
+	_as_ticker_tick_size = size;			   /* in ms */
+}
+
+void
+asim_wait_tick ()
+{
+	struct tms    t;
+	register clock_t curr = (times (&t) - _as_ticker_last_tick) * _as_ticker_tick_time;
+
+	if (curr < _as_ticker_tick_size)
+		sleep_a_little (_as_ticker_tick_size - curr);
+
+	_as_ticker_last_tick = times (&t);
+}
 
