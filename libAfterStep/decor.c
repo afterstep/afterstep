@@ -35,6 +35,23 @@
 
 static ASTBarData  *FocusedBar = NULL;          /* currently focused bar with balloon shown for it */
 
+inline Bool
+get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwidth, unsigned int *pheight, unsigned int *pbw )
+{
+    Window wdumm ;
+    unsigned int udumm ;
+    int dumm;
+    if( pc == NULL )
+        return False;
+
+    if( px == NULL ) px = &dumm ;
+    if( py == NULL ) py = &dumm ;
+    if( pwidth == NULL ) pwidth = &udumm ;
+    if( pheight == NULL ) pheight = &udumm ;
+    if( pbw == NULL ) pbw = &udumm ;
+
+    return (XGetGeometry(dpy, pc->w, &wdumm, px, py, pwidth, pheight, pbw, &udumm )!= 0);
+}
 
 static void
 set_canvas_shape_to_rectangle( ASCanvas * pc )
@@ -64,7 +81,6 @@ set_canvas_shape_to_nothing( ASCanvas * pc )
     if( pc->shape )
 		destroy_shape( &pc->shape );
 }
-
 
 
 
@@ -387,23 +403,7 @@ get_current_canvas_size( ASCanvas * pc, unsigned int *pwidth, unsigned int *phei
     return True;
 }
 
-inline Bool
-get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwidth, unsigned int *pheight, unsigned int *pbw )
-{
-    Window wdumm ;
-    unsigned int udumm ;
-    int dumm;
-    if( pc == NULL )
-        return False;
 
-    if( px == NULL ) px = &dumm ;
-    if( py == NULL ) py = &dumm ;
-    if( pwidth == NULL ) pwidth = &udumm ;
-    if( pheight == NULL ) pheight = &udumm ;
-    if( pbw == NULL ) pbw = &udumm ;
-
-    return (XGetGeometry(dpy, pc->w, &wdumm, px, py, pwidth, pheight, pbw, &udumm )!= 0);
-}
 
 #ifdef TRACE_update_canvas_display
 #undef update_canvas_display
@@ -2399,4 +2399,37 @@ set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned lo
 }
 
 /*************************************************************************/
+
+void
+send_canvas_configure_notify(ASCanvas *parent, ASCanvas *canvas)
+{
+LOCAL_DEBUG_CALLER_OUT( "%p,%p", parent, canvas );
+	if( canvas )
+	{
+   		XEvent client_event ;
+
+        client_event.type = ConfigureNotify;
+        client_event.xconfigure.display = dpy;
+        client_event.xconfigure.event = canvas->w;
+        client_event.xconfigure.window = canvas->w;
+
+        get_current_canvas_geometry( canvas, &(client_event.xconfigure.x),
+                                         &(client_event.xconfigure.y),
+                                         &(client_event.xconfigure.width),
+                                         &(client_event.xconfigure.height),
+                                         &(client_event.xconfigure.border_width));
+		if( parent )
+		{
+        	client_event.xconfigure.x += parent->root_x+(int)parent->bw;
+        	client_event.xconfigure.y += parent->root_y+(int)parent->bw;
+	        /* Real ConfigureNotify events say we're above title window, so ... */
+    	    /* what if we don't have a title ????? */
+        	client_event.xconfigure.above = parent->w;
+		}else
+			client_event.xconfigure.above = Scr.Root;
+        client_event.xconfigure.override_redirect = False;
+        XSendEvent (dpy, canvas->w, False, StructureNotifyMask, &client_event);
+    }
+}
+
 

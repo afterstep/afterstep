@@ -18,6 +18,7 @@ typedef struct ASVector
 #define PVECTOR_HEAD(t,v)    ((t*)((v)->memory))
 #define VECTOR_HEAD_RAW(v)  ((v).memory)
 #define VECTOR_TAIL(t,v)    (((t*)((v).memory)) + ((v).used))
+#define PVECTOR_TAIL(t,v)    (((t*)((v)->memory)) + ((v)->used))
 #define VECTOR_TAIL_RAW(v)  (((v).memory) + ((v).used*(v).unit))
 #define VECTOR_USED(v)      ((v).used)
 #define VECTOR_UNIT(v)      ((v).unit)

@@ -53,10 +53,14 @@
 /**********************************************************************/
 /*  Gadget local variables :                                         */
 /**********************************************************************/
-typedef struct ASWinTab{
-	unsigned short	 row, col ;                /* needed for layout purposes */
+typedef struct ASWinTab
+{
+	char 			*name ;
+	Window 			 client ;
+
 	ASTBarData 		*bar ;
-	ASCanvas 		*client ;
+	ASCanvas 		*client_canvas ;
+
 }ASWinTab;
 
 typedef struct {
@@ -66,8 +70,10 @@ typedef struct {
 
 	wild_reg_exp *pattern_wrexp ;
 
-	ASWinTab *tabs ;
-	int tabs_num ;
+	ASVector *tabs ;
+
+	int rows ;
+	int row_height ;
 
 }ASWinTabsState ;
 
@@ -133,6 +139,7 @@ main( int argc, char **argv )
 
 	SendInfo ("Send_WindowList", 0);
 
+	WinTabsState.tabs = create_asvector( sizeof(ASWinTab) );
 
     WinTabsState.main_window = make_wintabs_window();
     WinTabsState.main_canvas = create_ascanvas_container( WinTabsState.main_window );
@@ -459,10 +466,58 @@ make_tabs_window( Window parent )
 	attr.event_mask = WINTABS_TAB_EVENT_MASK ;
     return create_visual_window( Scr.asv, parent, 0, 0, 1, 1, 0, InputOutput, CWEventMask, &attr );
 }
+/**************************************************************************
+ * add/remove a tab code
+ **************************************************************************/
+void
+set_tab_look( ASWinTab *aswt )
+{
+	set_astbar_hilite( aswt->bar, BAR_STATE_UNFOCUSED, Config->ubevel );
+	set_astbar_hilite( aswt->bar, BAR_STATE_FOCUSED,   Config->fbevel );
+	set_astbar_composition_method( aswt->bar, BAR_STATE_UNFOCUSED, Config->ucm );
+	set_astbar_composition_method( aswt->bar, BAR_STATE_FOCUSED,   Config->fcm );
+	set_astbar_style_ptr (aswt->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED]);
+	set_astbar_style_ptr (aswt->bar, BAR_STATE_FOCUSED,   Scr.Look.MSWindow[BACK_FOCUSED]);
+}
+
+ASWinTab *
+add_tab( Window client, const char *name, INT32 encoding )
+{
+	ASWinTab aswt ;
+
+	if( AS_ASSERT(client) )
+		return NULL ;
+	aswt.client = client ;
+	aswt.name = mystrdup(name);
+
+	aswt.bar = create_astbar();
+	set_tab_look( &aswt );
+	add_astbar_label( aswt.bar, 0, 0, 0, Config->name_aligment, Config->h_spacing, Config->v_spacing, name, encoding);
+
+	append_vector( WinTabsState.tabs, &aswt, 1 );
+
+	return PVECTOR_TAIL(ASWinTab,WinTabsState.tabs);
+}
+
+void
+rearrange_tabs()
+{
+
+
+}
 
 /**************************************************************************
  * Swallowing code
  **************************************************************************/
+void
+send_swallowed_configure_notify(ASWinTab *aswt)
+{
+    if( aswt->client_canvas )
+    {
+		send_canvas_configure_notify(WinTabsState.main_canvas, aswt->client_canvas );
+    }
+}
+
 
 void
 check_swallow_window( ASWindowData *wd )
@@ -474,23 +529,28 @@ check_swallow_window( ASWindowData *wd )
     int swidth, sheight ;
 	char *name = NULL ;
 	INT32 encoding ;
+	ASWinTab *aswt = NULL ;
+	int i = 0;
 
     if( wd == NULL && !get_flags( wd->state_flags, AS_Mapped))
         return;
 
+	/* first lets check if we have already swallowed this one : */
+	i = PVECTOR_USED(WinTabsState.tabs);
+	aswt = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+	while( --i >= 0 )
+		if( aswt[i].client == wd->client )
+			return ;
+
+	/* now lets try and match its name : */
 	name = get_window_name( wd, Config->pattern_type, &encoding );
     LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
                      wd->window_name, wd->icon_name, wd->res_class, wd->res_name );
-
 	if( match_wild_reg_exp( name, WinTabsState.pattern_wrexp) != 0 )
 		return ;
 
-#if 0
-    LOCAL_DEBUG_OUT( "swallow target is %p, swallowed = %p", aswb, aswb->swallowed );
-	aswf = aswb->parent ;
-    if( aswb->swallowed != NULL )
-        return;
-    /* do the actuall swallowing here : */
+	/* we have a match */
+	/* now we actually swallow the window : */
     XGrabServer( dpy );
     /* first lets check if window is still not swallowed : it should have no more then 2 parents before root */
     w = get_parent_window( wd->client );
@@ -517,19 +577,24 @@ check_swallow_window( ASWindowData *wd )
 		XUngrabServer( dpy );
 		return ;
 	}
-    withdraw_btn = (WITHDRAW_ON_EDGE(Config) &&
-					(&(aswf->buttons[0]) == aswb || &(aswf->buttons[aswf->buttons_num-1]) == aswb)) ||
-                    WITHDRAW_ON_ANY(Config) ;
     /* its ok - we can swallow it now : */
     /* create swallow object : */
-    aswb->swallowed = safecalloc( 1, sizeof(ASSwallowed ));
-    /* first thing - we reparent window and its icon if there is any */
-    nc = aswb->swallowed->normal = create_ascanvas_container( wd->client );
-    XReparentWindow( dpy, wd->client, aswb->canvas->w, (aswb->canvas->width - nc->width)/2, (aswb->canvas->height - nc->height)/2 );
-    register_object( wd->client, (ASMagic*)aswb );
-    XSelectInput (dpy, wd->client, StructureNotifyMask);
-    grab_swallowed_canvas_btns( nc, (aswb->folder!=NULL), withdraw_btn && aswb->parent == WharfState.root_folder);
+	name = get_window_name( wd, ASN_Name, &encoding );
+	aswt = add_tab( wd->client, name, encoding );
+    LOCAL_DEBUG_OUT( "crerated new #%d for window \"%s\" client = %8.8X", PVECTOR_USED(WinTabsState.tabs), name, wd->client );
 
+	if( aswt == NULL )
+	{
+		XUngrabServer( dpy );
+		return ;
+	}
+
+    /* first thing - we reparent window and its icon if there is any */
+    nc = aswt->client_canvas = create_ascanvas_container( wd->client );
+    XReparentWindow( dpy, wd->client, WinTabsState.main_window, WinTabsState.main_canvas->width - nc->width, WinTabsState.main_canvas->height - nc->height );
+    XSelectInput (dpy, wd->client, StructureNotifyMask);
+
+#if 0   /* TODO : implement support for icons : */
     if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) &&
 		wd->icon != None )
     {
@@ -543,33 +608,18 @@ check_swallow_window( ASWindowData *wd )
     aswb->swallowed->current = ( get_flags( wd->state_flags, AS_Iconic ) &&
                                     aswb->swallowed->iconic != NULL )?
                                 aswb->swallowed->iconic:aswb->swallowed->normal;
-    handle_canvas_config( aswb->swallowed->current );
     LOCAL_DEBUG_OUT( "client(%lX)->icon(%lX)->current(%lX)", wd->client, wd->icon, aswb->swallowed->current->w );
 
-    if( get_flags( aswb->flags, ASW_MaxSwallow ) ||
-		(Config->force_size.width == 0 && !get_flags(aswb->flags, ASW_FixedWidth)))
-        aswb->desired_width = aswb->swallowed->current->width;
-    if( get_flags( aswb->flags, ASW_MaxSwallow ) ||
-		(Config->force_size.height == 0 && !get_flags(aswb->flags, ASW_FixedHeight)) )
-        aswb->desired_height = aswb->swallowed->current->height;
-    swidth = min( aswb->desired_width, aswb->swallowed->current->width );
-    sheight = min( aswb->desired_height, aswb->swallowed->current->height );
-    moveresize_canvas( aswb->swallowed->current,
-                       make_tile_pad( get_flags(Config->align_contents,PAD_LEFT),
-                                      get_flags(Config->align_contents,PAD_RIGHT),
-                                      aswb->canvas->width, swidth      ),
-                       make_tile_pad( get_flags(Config->align_contents,PAD_TOP),
-                                      get_flags(Config->align_contents,PAD_BOTTOM),
-                                      aswb->canvas->height, sheight    ),
-                       swidth, sheight );
-    map_canvas_window( aswb->swallowed->current, True );
-    send_swallowed_configure_notify(aswb);
+#endif
+    handle_canvas_config( nc );
 
-    update_wharf_folder_size( aswf );
+    map_canvas_window( nc, True );
+    send_swallowed_configure_notify(aswt);
+
+    rearrange_tabs();
 
     ASSync(False);
     XUngrabServer( dpy );
-#endif
 }
 
 

@@ -1638,27 +1638,7 @@ send_swallowed_configure_notify(ASWharfButton *aswb)
 LOCAL_DEBUG_CALLER_OUT( "%p,%p", aswb, aswb->swallowed );
     if( aswb->swallowed )
     {
-        ASCanvas *sc = aswb->swallowed->current ;
-        XEvent client_event ;
-
-        client_event.type = ConfigureNotify;
-        client_event.xconfigure.display = dpy;
-        client_event.xconfigure.event = sc->w;
-        client_event.xconfigure.window = sc->w;
-
-        get_current_canvas_geometry( sc, &(client_event.xconfigure.x),
-                                         &(client_event.xconfigure.y),
-                                         &(client_event.xconfigure.width),
-                                         &(client_event.xconfigure.height),
-                                         &(client_event.xconfigure.border_width));
-        client_event.xconfigure.x += aswb->canvas->root_x+(int)aswb->canvas->bw;
-        client_event.xconfigure.y += aswb->canvas->root_y+(int)aswb->canvas->bw;
-
-        /* Real ConfigureNotify events say we're above title window, so ... */
-        /* what if we don't have a title ????? */
-        client_event.xconfigure.above = aswb->canvas->w;
-        client_event.xconfigure.override_redirect = False;
-        XSendEvent (dpy, sc->w, False, StructureNotifyMask, &client_event);
+		send_canvas_configure_notify(aswb->canvas, aswb->swallowed->current );
     }
 }
 

@@ -315,6 +315,9 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 void on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave );
 void set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned long encoding );
 
+void send_canvas_configure_notify(ASCanvas *parent, ASCanvas *canvas);
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -218,8 +218,14 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
     if( (scr->wmprops = setup_wmprops( scr, (event_mask&SubstructureRedirectMask), 0xFFFFFFFF, NULL )) == NULL )
         return -1;
 
-    scr->asv = create_asvisual (dpy, scr->screen, scr->d_depth, NULL);
-    scr->d_depth = scr->asv->visual_info.depth;
+    scr->asv = create_asvisual (dpy, scr->screen, DefaultDepth(dpy,scr->screen), NULL);
+	if (scr->asv == NULL)
+	{
+        show_error("Failed to find suitable visual for screen %d. Exiting.", (int)scr->screen);
+		exit (1);
+	}
+
+	scr->d_depth = scr->asv->visual_info.depth;
 
     scr->last_Timestamp = CurrentTime ;
     scr->menu_grab_Timestamp = CurrentTime ;
@@ -390,7 +396,7 @@ init_screen_panframes(ScreenInfo *scr)
 
     frame_rects[2].width = frame_rects[0].width = scr->MyDisplayWidth;
     frame_rects[1].x = scr->MyDisplayWidth - SCROLL_REGION;
-    frame_rects[3].height = frame_rects[1].height = 
+    frame_rects[3].height = frame_rects[1].height =
       scr->MyDisplayHeight - (SCROLL_REGION*2) ;
 
     attributes.event_mask = AS_PANFRAME_EVENT_MASK;
