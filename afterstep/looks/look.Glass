@@ -77,7 +77,7 @@ MyStyle "menu_title_font"
   ~MyStyle
 
 MyStyle "menu_font"
-  Font          Default.ttf-16
+  Font          Default.ttf-17
   TextStyle     0
   ~MyStyle
 
@@ -85,28 +85,28 @@ MyStyle "unfocused_menu_title_style"
   Inherit       menu_title_font
   ForeColor     InactiveText1
   BackColor     HighInactive
-  BackGradient  6   HighInactiveDark HighInactiveLight
+  BackPixmap    125 bars/title_tile_glass_menu
   ~MyStyle
 
 MyStyle "focused_menu_title_style"
   Inherit       menu_title_font
-  ForeColor	ActiveText1
+  ForeColor	ActiveText
   BackColor     HighActive
-  BackGradient  6  HighActiveDark HighActiveLight
+  BackPixmap    125 bars/title_tile_glass_menu_focused
   ~MyStyle
 
 MyStyle "menu_item_style"
   Inherit       menu_font
   ForeColor     HighInactiveText
   BackColor     HighInactiveBack
-  BackGradient  9   HighInactiveBackDark HighInactiveBackLight
+  BackPixmap    151 bars/title_tile_glass_mi
   ~MyStyle
 
 MyStyle "menu_hilite_style"
-  Font          DefaultBoldOblique.ttf-16
+  Font          DefaultBoldOblique.ttf-17
   ForeColor     HighActiveText
   BackColor     HighActiveBack
-  BackGradient  9  HighActiveBackLight HighActiveBackDark
+  BackPixmap    151 bars/title_tile_glass_mi_high
   ~MyStyle
 
 
@@ -145,14 +145,14 @@ MyStyle "*PagerActiveDesk"
    	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      ActiveText
    	BackColor      Active
-	BackGradient   8 ActiveDark  ActiveLight
+	BackPixmap    125 bars/title_tile_glass_focused
  ~MyStyle
 
 MyStyle "*PagerInActiveDesk"
    	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      HighInactiveText
    	BackColor      HighInactiveBack
-   	BackGradient   6  HighInactiveBackDark HighInactiveBackLight
+   	BackPixmap    125 bars/title_tile_glass_menu
  ~MyStyle
 
 MyStyle "*PagerFWindowStyle"
@@ -222,6 +222,56 @@ MyStyle "ButtonTitleUnfocus"
   ~MyStyle
 
 
+##########################################################################
+# Cursor
+#
+# Cursor THISTYPE THISCURSOR where type is :
+#
+#  0 POSITION      - used when initially placing windows
+#  1 TITLE         - used in a window title-bar
+#  2 DEFAULT       - used in windows that don't bother to set their cursor
+#  3 SYS           - used in one of the title-bar buttons
+#  4 MOVE          - used when moving or resizing windows.
+#  5 WAIT          - used during an EXEC builtin command.
+#  6 MENU          - used in a menus.
+#  7 SELECT        - used for various builtin commands such as iconify.
+#  8 DESTROY       - used for DESTROY and DELETE built-ins.
+#  9 TOP           - used in the top side-bar of a window
+# 10 RIGHT        - used in the right side-bar of a window
+# 11 BOTTOM
+# 12 LEFT
+# 13 TOP_LEFT
+# 14 TOP_RIGHT
+# 15 BOTTOM_LEFT
+# 16 BOTTOM_RIGHT
+#
+# while /usr/include/X11/cursorfont.h contains available cursors
+#
+#Cursor 0
+Cursor 1 58
+Cursor 2 68
+Cursor 3 22
+Cursor 4 120
+Cursor 5 150
+Cursor 6 60
+Cursor 7 68
+Cursor 8 88
+Cursor 9 138
+Cursor 10 96
+Cursor 11 16
+Cursor 12 70
+Cursor 13 134
+Cursor 14 136
+Cursor 15 12
+Cursor 16 14
+
+# Also lets define colors for the cursor ( from selected colorscheme ) :
+
+CursorFore "Cursor"
+CursorBack "ActiveText"
+#####################################################################
+
+
 #---------- iconized window MyStyles end ---------#
 
 # [0|1] Show Title on Buttons how?
@@ -281,7 +331,7 @@ MenuHiTitleStyle  "focused_menu_title_style"
 
 MArrowPixmap		arrow-dots.xpm
 #  [0/1/2] Draw lines between menu options ?
-DrawMenuBorders 1
+DrawMenuBorders 2
 #  [0/1] Texture menu options individually, or the whole menu ?
 TextureMenuItemsIndividually 0
 # [0/1] Do you want minipixmaps in root menu ?

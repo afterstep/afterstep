@@ -161,8 +161,6 @@ struct config main_config[] = {
     {"ClickToRaise", SetButtonList, (char **)&Scr.Feel.RaiseButtons, (int *)0},
 	{"MenusHigh", obsolete, (char **)NULL, (int *)0},
 	{"SloppyFocus", SetFlag, (char **)SloppyFocus, (int *)0},
-	{"Cursor", SetCursor, (char **)0, (int *)0},
-	{"CustomCursor", SetCustomCursor, (char **)0, (int *)0},
     {"PagingDefault", obsolete, (char **)NULL, NULL},
     {"EdgeResistance", SetInts, (char **)&Scr.Feel.EdgeResistanceScroll, &Scr.Feel.EdgeResistanceMove},
 	{"BackingStore", SetFlag, (char **)BackingStore, (int *)0},
@@ -228,8 +226,10 @@ struct config main_config[] = {
     {"UTitlePixmap", assign_string, &WindowPixmap[BACK_UNFOCUSED], (int *)0},    /* unfoc tit */
     {"STitlePixmap", assign_string, &WindowPixmap[BACK_STICKY], (int *)0},    /* stick tit */
 
-    {"PointerFore", assign_string, &Scr.Look.PointerFore, (int *)0},    /* foreground color to be used for coloring pointer's cursor */
-    {"PointerBack", assign_string, &Scr.Look.PointerBack, (int *)0},    /* background color to be used for coloring pointer's cursor */
+	{"CustomCursor", SetCustomCursor, (char **)0, (int *)0},
+    {"CursorFore", assign_string, &Scr.Look.CursorFore, (int *)0},    /* foreground color to be used for coloring pointer's cursor */
+    {"CursorBack", assign_string, &Scr.Look.CursorBack, (int *)0},    /* background color to be used for coloring pointer's cursor */
+	{"Cursor", SetCursor, (char **)0, (int *)0},
 
     {"MenuPinOn", assign_string, &MenuPinOn, (int *)0},    /* menu pin */
     {"MenuPinOff", obsolete, (char **)NULL, (int *)0},
@@ -1378,10 +1378,10 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 
 		fix_menu_pin_on( &Scr.Look );
 		/* also need to recolor cursors ! */
-		if( Scr.Look.PointerFore )
-			parse_argb_color( Scr.Look.PointerFore, &cursor_fore );
-		if( Scr.Look.PointerBack )
-	   		parse_argb_color( Scr.Look.PointerBack, &cursor_back );
+		if( Scr.Look.CursorFore )
+			parse_argb_color( Scr.Look.CursorFore, &cursor_fore );
+		if( Scr.Look.CursorBack )
+	   		parse_argb_color( Scr.Look.CursorBack, &cursor_back );
 		recolor_feel_cursors( &Scr.Feel, cursor_fore, cursor_back );
 	}
 

@@ -1,0 +1,3 @@
+<hsv hue_offset=$ascs.HighInactive.hue saturation_offset=$ascs.HighInactive.saturation-30 value_offset=$ascs.HighInactive.value-72>
+	<img src="bars/title_tile_glass_red_a50"/>
+</hsv>

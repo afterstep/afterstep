@@ -1496,7 +1496,7 @@ ThemeConfig *ParseThemeFile (const char *filename, char *myname);
 #define COLOR_HighInactiveBackLight_ID 	(COLOR_ID_START+ASMC_HighInactiveBackLight)
 #define COLOR_HighActiveBackDark_ID		(COLOR_ID_START+ASMC_HighActiveBackDark		 )
 #define COLOR_HighActiveBackLight_ID	(COLOR_ID_START+ASMC_HighActiveBackLight  )
-#define COLOR_Pointer_ID				(COLOR_ID_START+ASMC_Pointer  )
+#define COLOR_Cursor_ID					(COLOR_ID_START+ASMC_Cursor  )
 #define COLOR_Angle_ID					(COLOR_ID_START+ASMC_MainColors)
 #define COLOR_ID_END            		(COLOR_ID_START+ASMC_MainColors+1)
 
@@ -1534,7 +1534,7 @@ typedef enum
 	COLOR_SET_FLAG(HighInactiveBackLight),
 	COLOR_SET_FLAG(HighActiveBackDark),
 	COLOR_SET_FLAG(HighActiveBackLight),
-	COLOR_SET_FLAG(Pointer),
+	COLOR_SET_FLAG(Cursor),
 	COLOR_Angle = (0x01<<ASMC_MainColors)
 
 }ColorConfigSetFlags;

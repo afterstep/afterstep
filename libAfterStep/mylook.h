@@ -250,7 +250,7 @@ typedef struct MyLook
 
     struct icon_t *MenuArrow;
 
-	char *PointerFore, *PointerBack ;
+	char *CursorFore, *CursorBack ;
 
     /* here buttons are mentioned in the same order they are in look and feel file */
     MyButton     buttons[TITLE_BUTTONS];

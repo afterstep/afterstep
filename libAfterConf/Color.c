@@ -70,7 +70,7 @@ TermDef       ColorTerms[] = {
 	COLOR_TERM(HighInactiveBackLight,21),
 	COLOR_TERM(HighActiveBackDark,24),
 	COLOR_TERM(HighActiveBackLight,25),
-	COLOR_TERM(Pointer,7),
+	COLOR_TERM(Cursor,7),
 	{TF_NO_MYNAME_PREPENDING, "Angle", 5, TT_UINTEGER, COLOR_Angle_ID, NULL},
 
 	{0, NULL, 0, 0, 0}

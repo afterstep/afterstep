@@ -172,10 +172,10 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 
 		if (get_flags (what_flags, LL_Misc))
 		{
-			if( look->PointerFore )
-				free( look->PointerFore );
-			if(	look->PointerBack )
-				free( look->PointerBack );
+			if( look->CursorFore )
+				free( look->CursorFore );
+			if(	look->CursorBack )
+				free( look->CursorBack );
     	}
 	}/* free_resources */
 
@@ -255,8 +255,8 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 	if (get_flags (what_flags, LL_Misc))
 	{
 		look->RubberBand = 0;
-		look->PointerFore = NULL ;
-		look->PointerBack = NULL ;
+		look->CursorFore = NULL ;
+		look->CursorBack = NULL ;
     }
 
 	if (get_flags (what_flags, LL_Flags))

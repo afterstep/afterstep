@@ -10,7 +10,7 @@ HighActive #FF101010  		# or ahsv(255,-1,0,6) or argb(255,16,16,16)
 HighInactiveBack #FFC0C0C0  		# or ahsv(255,-1,0,75) or argb(255,192,192,192)
 HighActiveBack #FFEEEEEE  		# or ahsv(255,-1,0,93) or argb(255,238,238,238)
 HighInactiveText #FF000000  		# or ahsv(255,-1,0,0) or argb(255,0,0,0)
-HighActiveText #FF000000  		# or ahsv(255,-1,0,0) or argb(255,0,0,0)
+HighActiveText #FF000000
 DisabledText #FFA0A0A0  		# or ahsv(255,-1,0,63) or argb(255,160,160,160)
 BaseDark #FF666688 			# or ahsv(255,240,24,53) or argb(255,102,102,136)
 BaseLight #FF707088
@@ -28,4 +28,5 @@ HighInactiveBackLight #FFD0D0D0  		# or ahsv(255,-1,0,81) or argb(255,208,208,20
 HighActiveBackDark #FFDEDEDE  		# or ahsv(255,-1,0,87) or argb(255,222,222,222)
 HighActiveBackLight #FFFEFEFE  		# or ahsv(255,-1,0,99) or argb(255,254,254,254)
 ActiveDark #FF000000  		# or ahsv(255,-1,0,0) or argb(255,0,0,0)
+Cursor #FF101000
 Angle 0

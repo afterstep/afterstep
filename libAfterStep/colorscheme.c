@@ -41,7 +41,7 @@ char *ASMainColorNames[ASMC_MainColors] = {
 	"HighInactiveBackLight"	,
 	"HighActiveBackDark"	,
 	"HighActiveBackLight"	,
-	"Pointer"
+	"Cursor"
 };
 
 ARGB32
@@ -249,8 +249,8 @@ make_mono_ascolor_scheme( ARGB32 base )
 	shade = offset_shade( base_shade, ASCS_MONO_CONTRAST_OFFSET, True ) ;
 	cs->main_colors[ASMC_Active] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
 	cs->main_values[ASMC_Active] 	= shade;
-	cs->main_colors[ASMC_Pointer] 	= cs->main_colors[ASMC_Active];
-	cs->main_values[ASMC_Pointer] 	= shade;
+	cs->main_colors[ASMC_Cursor] 	= cs->main_colors[ASMC_Active];
+	cs->main_values[ASMC_Cursor] 	= shade;
 	make_mono_grad_argb( &(cs->main_colors[ASMC_ActiveDark]), base_alpha16, shade,
 						 &(cs->main_values[ASMC_ActiveDark]) );
 	active_val = shade;
@@ -320,7 +320,7 @@ make_NeXTish_ascolor_scheme()
 
 	cs->main_colors[ASMC_Active] 	= 0xFF000033 ;
 	cs->main_colors[ASMC_ActiveDark] = 0xFF000000 ;
-	cs->main_colors[ASMC_Pointer] 	= cs->main_colors[ASMC_Active];
+	cs->main_colors[ASMC_Cursor] 	= cs->main_colors[ASMC_Active];
 	cs->main_colors[ASMC_ActiveLight] = 0xFF000066 ;
 	cs->main_colors[ASMC_ActiveText] 	= 0xFFF0F0E0 ;
 
@@ -367,6 +367,8 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	int active_text_sat, active_text_val ;
 	int high_inactive_text_sat, high_inactive_text_val ;
 	int high_active_text_sat, high_active_text_val ;
+	int pointer_hue, pointer_val ;
+	Bool active_light ;
 
 	/* handling base color */
 	base_alpha16 = ARGB32_ALPHA16(base);
@@ -387,7 +389,6 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	base_sat = max(sat,ASCS_MIN_PRIMARY_SATURATION);
 	base_val = FIT_IN_RANGE(ASCS_MIN_PRIMARY_BRIGHTNESS, val, ASCS_MAX_PRIMARY_BRIGHTNESS);
 	make_color_scheme_argb( cs, ASMC_Base, base_alpha16, base_hue, base_sat, base_val ) ;
-    make_color_scheme_argb( cs, ASMC_Pointer, base_alpha16, base_hue+90, base_sat, base_val);
 
 	inactive1_hue = normalize_degrees_val(base_hue + angle) ;
 	if( inactive1_hue > ASCS_MIN_COLD_HUE && inactive1_hue < ASCS_MAX_COLD_HUE &&
@@ -482,6 +483,17 @@ make_ascolor_scheme( ARGB32 base, int angle )
 			active_text_val = ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL ;
 	}
 	make_color_scheme_argb( cs, ASMC_ActiveText, base_alpha16, base_hue, active_text_sat, active_text_val );
+
+	pointer_hue = normalize_degrees_val((base_hue>120 && base_hue < 340)? base_hue-90:base_hue+90);
+	active_light = (active_text_val <= ASCS_BLACKING_BRIGHTNESS_LEVEL);
+	if( is_light_hsv(base_hue, base_sat, base_val) && !active_light )
+	    pointer_val = 20 ;
+	else if( active_light )
+		pointer_val = 95 ;
+	else
+		pointer_val = 50 ;
+	make_color_scheme_argb( cs, ASMC_Cursor, base_alpha16, pointer_hue, 90, pointer_val);
+
 
 	make_color_scheme_argb( cs, ASMC_HighInactive, base_alpha16, inactive1_hue, inactive1_sat, inactive1_val + ASCS_HIGH_BRIGHTNESS_OFFSET);
 	make_color_scheme_argb( cs, ASMC_HighActive, base_alpha16, active_hue, active_sat, active_val + ASCS_HIGH_BRIGHTNESS_OFFSET);
