@@ -721,18 +721,24 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
 #endif
     if (Scr.screen == 0)
     {
-        file_template = (data->func == F_CHANGE_LOOK)? LOOK_FILE : FEEL_FILE ;
+        file_template = (data->func == F_CHANGE_LOOK)? LOOK_FILE : ((data->func == F_CHANGE_THEME)?THEME_FILE:FEEL_FILE) ;
         sprintf (tmpfile, file_template, desk, Scr.d_depth);
     }else
     {
-        file_template = (data->func == F_CHANGE_LOOK)? LOOK_FILE ".scr%ld" :
-                                                       FEEL_FILE ".scr%ld";
+        file_template =  (data->func == F_CHANGE_LOOK )? LOOK_FILE  ".scr%ld" :
+                        ((data->func == F_CHANGE_THEME)? THEME_FILE ".scr%ld" :
+                                                         FEEL_FILE  ".scr%ld" );
         sprintf (tmpfile, file_template, desk, Scr.d_depth, Scr.screen);
     }
 
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
     if (CopyFile (data->text, realfilename) == 0)
-        QuickRestart ((data->func == F_CHANGE_LOOK)?"look":"feel");
+    {
+        if( data->func == F_CHANGE_THEME )
+            QuickRestart ("look&feel");
+        else
+            QuickRestart ((data->func == F_CHANGE_LOOK)?"look":"feel");
+    }
 }
 
 void refresh_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -892,52 +898,35 @@ void test_func_handler( FunctionData *data, ASEvent *event, int module )
 void
 QuickRestart (char *what)
 {
-    Bool          parse_menu = False;
-    Bool          shall_override_config_file = (MyArgs.override_config != NULL);
-    Bool          parse_look = shall_override_config_file;
-	Bool          parse_feel = shall_override_config_file;
-	Bool          update_background = False;
+    Bool          what_flags = 0;
+    Bool          update_background = False;
 
 	if (what == NULL)
 		return;
 
-	if (strcmp (what, "all") == 0)
-		parse_menu = parse_look = parse_feel = update_background = True;
-	else if (strcmp (what, "look&feel") == 0)
-		parse_look = parse_feel = True;
-	else if (strcmp (what, "startmenu") == 0)
-		parse_menu = True;
-	else if (strcmp (what, "look") == 0)
-		parse_look = True;
-	else if (strcmp (what, "feel") == 0)
-		parse_feel = True;
-	else if (strcmp (what, "background") == 0)
+    if (strcasecmp (what, "all") == 0)
+        what_flags = PARSE_EVERYTHING;
+    else if (strcasecmp (what, "look&feel") == 0)
+        what_flags = PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG;
+    else if (strcasecmp (what, "startmenu") == 0 || strcasecmp (what, "feel") == 0)
+        what_flags = PARSE_FEEL_CONFIG;
+    else if (strcasecmp (what, "look") == 0)
+        what_flags = PARSE_LOOK_CONFIG;
+    else if (strcasecmp (what, "base") == 0)
+        what_flags = PARSE_BASE_CONFIG;
+    else if (strcasecmp (what, "database") == 0)
+        what_flags = PARSE_DATABASE_CONFIG;
+    else if (strcasecmp (what, "background") == 0)
 		update_background = True;
 
 	/* Force reinstall */
-	if (parse_look || parse_feel || parse_menu || shall_override_config_file)
+    if (what)
 	{
         InstallRootColormap();
         GrabEm (&Scr, Scr.Feel.cursors[WAIT]);
-	}
 
-	/* Don't kill modules */
-	/* ClosePipes(); */
-
-#if 0
-    /* TODO: delete menus - only if necessary */
-	if (shall_override_config_file || parse_menu)
-		while (Scr.first_menu != NULL)
-			DeleteMenuRoot (Scr.first_menu);
-#endif
-
-	if (parse_look || parse_feel || parse_menu || shall_override_config_file)
-	{
-		/* Don't reset desktop position */
-		/* InitVariables(0); */
-
-		/* LoadASConfig must be called, or AS will be left in an unusable state */
-        LoadASConfig (Scr.CurrentDesk, parse_menu, parse_look, parse_feel);
+        /* LoadASConfig must be called, or AS will be left in an unusable state */
+        LoadASConfig (Scr.CurrentDesk, what_flags);
 
 #ifndef NO_VIRTUAL
 		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
@@ -949,7 +938,6 @@ QuickRestart (char *what)
 
         CheckPanFrames ();
 #endif
-
 		UngrabEm ();
 	}
 

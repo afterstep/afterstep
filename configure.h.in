@@ -42,8 +42,8 @@
 #define GNUSTEP         "@with_gnustep_dir@"
 #define GNUSTEPLIB      "@with_gnustep_lib@"
 #define AFTER_DIR       "@with_afterdir@"
-#define AFTER_SAVE      "@with_afterdir@/.workspace_state"
-#define AFTER_NONCF     "@with_afterdir@/non-configurable"
+#define AFTER_SAVE      ".workspace_state"
+#define AFTER_NONCF     "non-configurable"
 #define AFTER_LOCALE	"@with_locale@"
 
 		      /* ############################## */
@@ -58,7 +58,7 @@
 #define FEEL_DIR        "feels"
 #define COMP_FILE	"compatibility"                  /* with -f oldrc */
 #define BASE_FILE       "base"                           /* scrdepth */
-#define THEME_OVERRIDE_FILE       "theme-override"       
+#define THEME_OVERRIDE_FILE       "theme-override"
 #define BACK_FILE       "non-configurable/%d_background" /* desk */
 #define LOOK_FILE       "non-configurable/%d_look.%dbpp" /* desk,scrdepth */
 #define FEEL_FILE       "non-configurable/%d_feel.%dbpp" /* desk,scrdepth */

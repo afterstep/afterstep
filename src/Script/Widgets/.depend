@@ -1,50 +1,50 @@
-./Widget.o: \
-        Tools.h
+./CheckBox.o : \
+		Tools.h
 
-./TextField.o: \
-        Tools.h
+./HDipstick.o : \
+		Tools.h
 
-./PushButton.o: \
-        Tools.h
+./HScrollBar.o : \
+		Tools.h
 
-./RadioButton.o: \
-        Tools.h
+./ItemDraw.o : \
+		Tools.h
 
-./ItemDraw.o: \
-        Tools.h
+./List.o : \
+		Tools.h
 
-./CheckBox.o: \
-        Tools.h
+./Menu.o : \
+		Tools.h
 
-./HScrollBar.o: \
-        Tools.h
+./MiniScroll.o : \
+		Tools.h
 
-./Tools.o: \
-        Tools.h
+./PopupMenu.o : \
+		Tools.h
 
-./VScrollBar.o: \
-        Tools.h
+./PushButton.o : \
+		Tools.h
 
-./PopupMenu.o: \
-        Tools.h
+./RadioButton.o : \
+		Tools.h
 
-./Rectangle.o: \
-        Tools.h
+./Rectangle.o : \
+		Tools.h
 
-./MiniScroll.o: \
-        Tools.h
+./Swallow.o : \
+		Tools.h
 
-./Swallow.o: \
-        Tools.h
+./TextField.o : \
+		Tools.h
 
-./List.o: \
-        Tools.h
+./Tools.o : \
+		Tools.h
 
-./HDipstick.o: \
-        Tools.h
+./VDipstick.o : \
+		Tools.h
 
-./VDipstick.o: \
-        Tools.h
+./VScrollBar.o : \
+		Tools.h
 
-./Menu.o: \
-        Tools.h
+./Widget.o : \
+		Tools.h

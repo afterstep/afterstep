@@ -1,0 +1,52 @@
+./ASetRoot.o : \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/background.h
+
+./Base.o : \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/parser.h \
+		../../include/confdefs.h
+
+./Database.o : \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/asdatabase.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/hints.h
+
+./MyStyle.o : \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/mystyle.h \
+		../../include/loadimg.h \
+		../../include/parser.h \
+		../../include/parse.h \
+		../../include/screen.h \
+		../../include/confdefs.h
+
+./Pager.o : \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/mystyle.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/balloon.h
+
+./WinList.o : \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/mystyle.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/balloon.h

@@ -152,8 +152,12 @@ void InitDatabase (Bool free_resources);
 void InitLook (struct MyLook *look, Bool free_resources);
 void InitFeel (struct ASFeel *feel, Bool free_resources);
 
-void LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel);
-
+#define PARSE_BASE_CONFIG       (0x01<<0)
+#define PARSE_LOOK_CONFIG       (0x01<<1)
+#define PARSE_FEEL_CONFIG       (0x01<<2)
+#define PARSE_DATABASE_CONFIG   (0x01<<3)
+#define PARSE_EVERYTHING        (0xFFFFFFFF)
+void LoadASConfig (int thisdesktop, ASFlagType what);
 /*************************** decorations.c ********************************/
 int check_allowed_function2 (int func, ASWindow * t);
 int check_allowed_function (struct MenuItem * mi, struct ASWindow *asw);

@@ -424,17 +424,21 @@ parse_func (const char *text, FunctionData * data, int quiet)
 int
 free_func_data (FunctionData * data)
 {
-	if (data->name)
-	{
-		free (data->name);
-		data->name = NULL;
-	}
-	if (data->text)
-	{
-		free (data->text);
-		data->text = NULL;
-	}
-	return data->func;
+    if( data )
+    {
+        if (data->name)
+        {
+            free (data->name);
+            data->name = NULL;
+        }
+        if (data->text)
+        {
+            free (data->text);
+            data->text = NULL;
+        }
+        return data->func;
+    }
+    return 0;
 }
 
 FunctionData *
@@ -591,8 +595,11 @@ LOCAL_DEBUG_CALLER_OUT( "menu_data_item_destroy(\"%s\")", ((mdi!=NULL)?(mdi->dat
         if( mdi->magic == MAGIC_MENU_DATA_ITEM )
         {
             mdi->magic = 0 ;
-            free_func_data( mdi->fdata );
-            free( mdi->fdata );
+            if( mdi->fdata )
+            {
+                free_func_data( mdi->fdata );
+                free( mdi->fdata );
+            }
 #ifndef NO_TEXTURE
             if( mdi->minipixmap )
                 free(mdi->minipixmap);
@@ -765,6 +772,8 @@ MenuItemFromFunc (MenuRoot * menu, FunctionData * fdata)
 {
 	MenuItem     *item = NULL;
 
+    if( fdata == NULL )
+        return ;
 #ifndef NO_TEXTURE
 	if (fdata->func == F_MINIPIXMAP)
 	{
@@ -790,20 +799,21 @@ MenuItemFromFunc (MenuRoot * menu, FunctionData * fdata)
 	}
 }
 
-MenuItem     *
-MenuItemParse (MenuRoot * menu, const char *buf)
+Bool
+MenuItemParse (void *data, const char *buf)
 {
+    MenuRoot *menu = (MenuRoot*)data;
 	FunctionData  *fdata;
 
 	if (buf == NULL)
-		return NULL;
+        return False;
 	for (; isspace (*buf); buf++);
 	if (*buf == '\0' || *buf == '#' || *buf == '*')
-		return NULL;
+        return False;
 
 	fdata = safecalloc( 1, sizeof(FunctionData));
 	if (parse_func (buf, fdata, False) < 0)
-		return NULL;
+        return False;
 	if (fdata->func != F_ENDPOPUP && fdata->func != F_ENDFUNC)
 	{
 #ifndef NO_TEXTURE
@@ -812,7 +822,7 @@ MenuItemParse (MenuRoot * menu, const char *buf)
 		{
 			MenuItemFromFunc (menu, fdata);
 			fdata = NULL ;
-			return menu->last;
+            return True;
 		}
 	}
 	if( fdata )
@@ -820,7 +830,36 @@ MenuItemParse (MenuRoot * menu, const char *buf)
 		free_func_data (fdata);
 		free( fdata );
 	}
-	return NULL ;
+    return False ;
+}
+
+Bool
+FunctionItemParse (void *data, const char *buf)
+{
+    ComplexFunction *func = (ComplexFunction*)data;
+    FunctionData  fdata;
+
+	if (buf == NULL)
+        return False;
+	for (; isspace (*buf); buf++);
+	if (*buf == '\0' || *buf == '#' || *buf == '*')
+        return False;
+
+    init_func_data( &fdata );
+    if (parse_func (buf, &fdata, False) < 0)
+        return False;
+    if (fdata.func != F_ENDPOPUP && fdata.func != F_ENDFUNC)
+	{
+        if (fdata.func != F_MINIPIXMAP)
+        {
+            func->items = realloc(func->items, sizeof(FunctionData)*(func->items_num+1));
+            func->items[func->items_num] = fdata ;
+            ++(func->items_num);
+            return True;
+		}
+	}
+    free_func_data (&fdata);
+    return False ;
 }
 
 /****************************************************************************
@@ -830,7 +869,7 @@ MenuItemParse (MenuRoot * menu, const char *buf)
  ****************************************************************************/
 
 int
-ParseMenuBody (MenuRoot * mr, FILE * fd)
+ParseBody (void *data, FILE * fd, Bool (*item_func)(void *, const char*))
 {
 	int           success = 0;
 	char         *buf;
@@ -841,7 +880,7 @@ ParseMenuBody (MenuRoot * mr, FILE * fd)
 	{
 		while (isspace (*ptr))
 			ptr++;
-		if (MenuItemParse (mr, ptr) == NULL)
+        if (!item_func(data, ptr))
 			if (mystrncasecmp ("End", ptr, 3) == 0)
 			{
 				success = 1;
@@ -852,12 +891,6 @@ ParseMenuBody (MenuRoot * mr, FILE * fd)
 	return success;
 }
 
-int
-ParseFunctionBody (ComplexFunction *func, FILE * fd)
-{
-    /* TODO: implement this thing */
-    return True;
-}
 /****************************************************************************
  *  Parses a popup definition
  ****************************************************************************/
@@ -867,7 +900,7 @@ ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2)
     char         *name =  stripcpy2 (tline, 0);
     MenuRoot     *mr = CreateMenuRoot (name);
     free( name );
-    ParseMenuBody (mr, fd);
+    ParseBody(mr, fd, MenuItemParse);
 }
 
 /****************************************************************************
@@ -888,7 +921,7 @@ ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2)
     func = new_complex_func( Scr.Feel.ComplexFunctions, name);
     free( name );
 
-    ParseFunctionBody (func, fd);
+    ParseBody(func, fd, FunctionItemParse);
     if (screen_initialized == 0)
     {
         sprintf (screen_init_func, "InitScreen%ldFunction", Scr.screen);

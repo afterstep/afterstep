@@ -176,6 +176,30 @@ FrameSide;
 				 C_R1|C_R2|C_R3|C_R4|C_R5)
 
 
+/* possible flags to identify which tasks needs to be done on
+   frame decorations/handles */
+#define TODO_EVENT		(0x01)
+#define TODO_RESIZE_X		(0x01<<1)
+#define TODO_RESIZE_Y		(0x01<<2)
+#define TODO_RESIZE		(TODO_RESIZE_X|TODO_RESIZE_Y)
+#define TODO_MOVE_X		(0x01<<3)
+#define TODO_MOVE_Y		(0x01<<4)
+#define TODO_MOVE		(TODO_MOVE_Y|TODO_MOVE_X)
+#define TODO_TITLE		(0x01<<5)
+#define TODO_SIDE		(0x01<<6)
+#define TODO_DECOR		(TODO_TITLE|TODO_SIDE)
+#define TODO_REDRAW_TITLE 	(0x01<<7)
+#define TODO_REDRAW_SIDE  	(0x01<<8)
+#define TODO_REDRAW		(TODO_REDRAW_TITLE|TODO_REDRAW_SIDE)
+#define TODO_PAGE_X		(0x01<<9)
+#define TODO_PAGE_Y		(0x01<<10)
+#define TODO_PAGE		(TODO_PAGE_X|TODO_PAGE_Y)
+/* this 2 are used in MyWidgets : */
+#define TODO_REBUILD_CACHE	(0x01<<11)
+#define TODO_REDRAW_WIDGET	(0x01<<12)
+/* */
+
+
 #define INVALID_POSITION	(-30000)
 #define INVALID_DESK		(10000)
 #define IsValidDesk(d)		(d!=INVALID_DESK)

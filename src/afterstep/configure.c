@@ -971,29 +971,24 @@ ParseConfigFile (const char *file, char **tline)
  ****************************************************************************/
 /* MakeMenus - for those who can't remember LoadASConfig's real name        */
 void
-LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel)
+LoadASConfig (int thisdesktop, ASFlagType what)
 {
-    int           parse_base = True, parse_database = True;
-	char         *tline = NULL;
-
-	ASImageManager *old_image_manager = Scr.image_manager ;
+    char            *tline = NULL;
+    ASImageManager  *old_image_manager = Scr.image_manager ;
 
 #ifndef DIFFERENTLOOKNFEELFOREACHDESKTOP
 	/* only one look & feel should be used */
 	thisdesktop = 0;
 #endif /* !DIFFERENTLOOKNFEELFOREACHDESKTOP */
 
-	/* kludge: make sure functions get updated */
-    parse_feel = parse_feel||parse_menu;
-
-    show_progress("Detected colordepth : %d. Loading configuration ...", Scr.d_depth);
+    show_progress("Loading configuration files ...");
     if (Session->overriding_file == NULL )
 	{
         char *configfile;
         const char *const_configfile;
-        if (parse_base)
+        if (get_flags(what, PARSE_BASE_CONFIG))
 		{
-            if( (configfile = make_session_file(Session, BASE_FILE ".%dbpp", True )) != NULL )
+            if( (configfile = make_session_file(Session, BASE_FILE, True )) != NULL )
             {
                 char * old_pixmap_path = PixmapPath ;
 
@@ -1006,7 +1001,7 @@ LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel
                 {
                     Scr.image_manager = create_image_manager( NULL, 2.2, PixmapPath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
                     InitLook (&Scr.Look, True);
-                    parse_look = True ;
+                    set_flags(what, PARSE_LOOK_CONFIG);
                 }
                 free( old_pixmap_path );
                 show_progress("BASE configuration loaded from \"%s\" ...", configfile);
@@ -1014,10 +1009,10 @@ LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel
             }else
             {
                 show_warning("BASE configuration file cannot be found");
-                parse_base = False ;
+                clear_flags(what, PARSE_BASE_CONFIG);
             }
         }
-        if (parse_look)
+        if (get_flags(what, PARSE_LOOK_CONFIG))
 		{
             if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_LOOK) ) != NULL )
             {
@@ -1027,29 +1022,33 @@ LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel
             }else
             {
                 show_warning("LOOK configuration file cannot be found");
-                parse_look = False ;
+                clear_flags(what, PARSE_LOOK_CONFIG);
             }
         }
-        if (parse_menu)
-		{
-			if (tline == NULL)
-				tline = safemalloc (MAXLINELENGTH + 1);
-			MeltStartMenu (tline);
-        }
-        if (parse_feel)
+        if (get_flags(what, PARSE_FEEL_CONFIG))
 		{
             if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_FEEL) ) != NULL )
             {
                 InitFeel (&Scr.Feel, True);
+                if (tline == NULL)
+                    tline = safemalloc (MAXLINELENGTH + 1);
+                MeltStartMenu (tline);
                 ParseConfigFile (const_configfile, &tline);
+                if( (configfile = make_session_file(Session, AUTOEXEC_FILE, False )) != NULL )
+                {
+                    ParseConfigFile (configfile, &tline);
+                    show_progress("AUTOEXEC configuration loaded from \"%s\" ...", configfile);
+                    free( configfile );
+                }else
+                    show_warning("AUTOEXEC configuration file cannot be found");
                 show_progress("FEEL configuration loaded from \"%s\" ...", const_configfile);
             }else
             {
                 show_warning("FEEL configuration file cannot be found");
-                parse_feel = False ;
+                clear_flags(what, PARSE_FEEL_CONFIG);
             }
         }
-		if (parse_feel || parse_look)
+        if (get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 		{
             if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_THEME) ) != NULL )
             {
@@ -1063,26 +1062,21 @@ LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel
                 }
             }
         }
-        if( (configfile = make_session_file(Session, AUTOEXEC_FILE, False )) != NULL )
-        {
-            ParseConfigFile (configfile, &tline);
-            show_progress("AUTOEXEC configuration loaded from \"%s\" ...", configfile);
-            free( configfile );
-        }else
-            show_warning("AUTOEXEC configuration file cannot be found");
 
-        if( (configfile = make_session_file(Session, DATABASE_FILE, False )) != NULL )
+        if (get_flags(what, PARSE_DATABASE_CONFIG))
         {
-            InitDatabase (True);
-            ParseDatabase (configfile);
-            show_progress("DATABASE configuration loaded from \"%s\" ...", configfile);
-            free( configfile );
-        }else
-        {
-            show_warning("DATABASE configuration file cannot be found");
-            parse_database = False ;
+            if( (configfile = make_session_file(Session, DATABASE_FILE, False )) != NULL )
+            {
+                InitDatabase (True);
+                ParseDatabase (configfile);
+                show_progress("DATABASE configuration loaded from \"%s\" ...", configfile);
+                free( configfile );
+            }else
+            {
+                show_warning("DATABASE configuration file cannot be found");
+                clear_flags(what, PARSE_DATABASE_CONFIG);
+            }
         }
-
 	} else
 	{
 		Scr.image_manager = NULL ;
@@ -1093,7 +1087,7 @@ LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel
         InitDatabase (True);
         ParseConfigFile (Session->overriding_file, &tline);
         show_progress("AfterStep configuration loaded from \"%s\" ...", Session->overriding_file);
-        parse_base = parse_feel = parse_look = parse_database = True ;
+        what = PARSE_EVERYTHING ;
     }
 
 	/* let's free the memory used for parsing */
@@ -1101,20 +1095,19 @@ LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel
 		free (tline);
     show_progress("Done loading configuration.");
 
-
     CheckBaseSanity();
     CheckFeelSanity( &Scr.Feel );
 
-    if (parse_look)
+    if (get_flags(what, PARSE_LOOK_CONFIG))
         FixLook( &Scr.Look );
 
     /* TODO: update the menus */
-    if (parse_look || parse_feel|| parse_base || parse_menu)
+    if (get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 	{
     }
 
     /* force update of window frames */
-    if (parse_look || parse_feel || parse_base || parse_database)
+    if (get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG|PARSE_DATABASE_CONFIG))
         iterate_asbidirlist( Scr.Windows->clients, redecorate_aswindow_iter_func, NULL, NULL, False );
 
     if( old_image_manager && old_image_manager != Scr.image_manager )
@@ -1144,18 +1137,22 @@ assign_string (char *text, FILE * fd, char **arg, int *junk)
 void
 assign_themable_path (char *text, FILE * fd, char **arg, int *junk)
 {
-    char         *as_theme_data = make_session_dir(Session, THEME_DATA_DIR, False);
-	char         *tmp = stripcpy (text);
+    char         *tmp = stripcpy (text);
 	int           tmp_len;
+    char         *as_theme_data = make_session_dir(Session, THEME_DATA_DIR, False);
 
 	replaceEnvVar (&tmp);
-	tmp_len = strlen (tmp);
-	*arg = safemalloc (tmp_len + 1 + strlen (as_theme_data) + 1);
-	strcpy (*arg, tmp);
-	(*arg)[tmp_len] = ':';
-	strcpy ((*arg) + tmp_len + 1, as_theme_data);
-	free (tmp);
-	free (as_theme_data);
+    if( as_theme_data )
+    {
+        tmp_len = strlen (tmp);
+        *arg = safemalloc (tmp_len + 1 + strlen (as_theme_data) + 1);
+        strcpy (*arg, tmp);
+        (*arg)[tmp_len] = ':';
+        strcpy ((*arg) + tmp_len + 1, as_theme_data);
+        free (tmp);
+        free (as_theme_data);
+    }else
+        *arg = tmp;
 }
 
 
@@ -1552,6 +1549,7 @@ MeltStartMenu (char *buf)
 
     as_start = make_session_dir (Session, START_DIR, False);
     tree = dirtree_new_from_dir (as_start);
+    show_progress("MENU loaded from \"%s\" ...", as_start);
 	free (as_start);
 
 #ifdef FIXED_DIR
@@ -1565,6 +1563,7 @@ MeltStartMenu (char *buf)
 			free (as_fixeddir);
 			dirtree_move_children (tree, fixed_tree);
 			dirtree_delete (fixed_tree);
+            show_progress("FIXED MENU loaded from \"%s\" ...", as_fixeddir);
 		} else
             show_error("unable to locate the fixed menu directory at \"%s\"", as_fixeddir);
 		free (as_fixeddir);

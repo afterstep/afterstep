@@ -22,14 +22,14 @@
  */
 
 
-#include "../configure.h"
+#include "../../configure.h"
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/asdatabase.h"
-#include "../include/parser.h"
-#include "../include/confdefs.h"
-#include "../include/hints.h"
+#include "../../include/asapp.h"
+#include "../../include/afterstep.h"
+#include "../../include/asdatabase.h"
+#include "../../include/parser.h"
+#include "../../include/confdefs.h"
+#include "../../include/hints.h"
 
 /*****************************************************************************
  *

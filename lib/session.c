@@ -28,8 +28,6 @@
 #include "../include/afterstep.h"
 #include "../include/screen.h"
 #include "../include/functions.h"
-//#include "asfeel.h"
-//#include "mylook.h"
 #include "../include/session.h"
 
 static inline ASDeskSession *
@@ -573,13 +571,26 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 	/* Create missing directories & put there defaults */
 	if (CheckDir (ashome) != 0)
 	{
-		CheckOrCreate (as_gnustep_dir_name);
+        char         *fullfilename;
+        CheckOrCreate (as_gnustep_dir_name);
 		CheckOrCreate (as_gnusteplib_dir_name);
 		CheckOrCreate (ashome);
-		CheckOrCreateFile (as_save_dir_name);
+
+        fullfilename = make_file_name (ashome, AFTER_SAVE);
+        CheckOrCreateFile (fullfilename);
+        free( fullfilename );
+
+        fullfilename = make_file_name (ashome, THEME_DATA_DIR);
+        CheckOrCreate(fullfilename);
+        free( fullfilename );
+
         if( create_non_conf )
+        {
+            fullfilename = make_file_name (ashome, AFTER_NONCF);
             /* legacy non-configurable dir: */
-            CheckOrCreate(AFTER_NONCF);
+            CheckOrCreate(fullfilename);
+            free( fullfilename );
+        }
 	}
 }
 
@@ -863,9 +874,6 @@ GetNCASSession (ScreenInfo *scr, const char *home, const char *share )
     /* TODO : add check of non-cf dir for desktop specific configs : */
 #endif
     session->scr = scr ;
-
-    free( asshare );
-    free( ashome );
 
     return session;
 }

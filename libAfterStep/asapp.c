@@ -37,12 +37,12 @@ char          MyClass[MAX_MY_CLASS+1]="unknown";/* application Class name ( Page
 void        (*MyVersionFunc)   (void) = NULL;
 void        (*MyUsageFunc)   (void) = NULL;
 
-char 	 *as_gnustep_dir_name = GNUSTEP;
-char 	 *as_gnusteplib_dir_name= GNUSTEPLIB;
-char 	 *as_afterstep_dir_name = AFTER_DIR;
-char     *as_save_dir_name  = AFTER_SAVE;
-char 	 *as_start_dir_name = START_DIR;
-char 	 *as_share_dir_name = AFTER_SHAREDIR;
+char     *as_gnustep_dir_name   = GNUSTEP;
+char     *as_gnusteplib_dir_name= GNUSTEP "/" GNUSTEPLIB;
+char     *as_afterstep_dir_name = GNUSTEP "/" GNUSTEPLIB "/" AFTER_DIR;
+char     *as_save_dir_name      = GNUSTEP "/" GNUSTEPLIB "/" AFTER_DIR "/" AFTER_SAVE;
+char     *as_start_dir_name     = GNUSTEP "/" GNUSTEPLIB "/" AFTER_DIR "/" START_DIR;
+char     *as_share_dir_name     = AFTER_SHAREDIR;
 
 
 unsigned int  nonlock_mods = 0;				   /* a mask for non-locking modifiers */

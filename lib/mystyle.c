@@ -809,8 +809,8 @@ mystyle_list_new (struct ASHashTable *list, char *name)
 
     style = (MyStyle *) safecalloc (1, sizeof (MyStyle));
 
-    style->name = mystrdup( name );
     mystyle_init(style);
+    style->name = mystrdup( name );
 
     if( add_hash_item( list, AS_HASHABLE(style->name), style ) != ASH_Success )
     {   /* something terrible has happen */

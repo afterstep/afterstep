@@ -349,7 +349,10 @@ wait_event( XEvent *event, Window w, int mask, int max_wait )
     start_ticker (1);
     /* now we have to wait for our window to become mapped - waiting for PropertyNotify */
     for (tick_count = 0; !XCheckWindowEvent (dpy, w, mask, event) && tick_count < max_wait; tick_count++)
+    {
+        XSync(dpy, False);
         wait_tick ();
+    }
     return (tick_count < max_wait);
 }
 

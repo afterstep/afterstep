@@ -44,13 +44,6 @@ InitAtoms (Display * dpy, ASAtom * atoms)
 		atoms[i].atom = XInternAtom (dpy, atoms[i].name, False);
 }
 
-void
-InternUsefulAtoms (void)
-{
-    intern_wmprop_atoms();
-	intern_hint_atoms ();
-}
-
 void          DeadPipe (int nonsense);
 
 int

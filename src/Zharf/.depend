@@ -1,5 +1,14 @@
 ./Zharf.h:
 
+./icons.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/loadimg.h \
+		Zharf.h
+
 ./Zharf.o: \
 		../../configure.h \
 		../../include/aftersteplib.h \
@@ -10,13 +19,4 @@
 		../../include/mystyle.h \
 		../../include/parser.h \
 		../../include/confdefs.h \
-		Zharf.h
-
-./icons.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/style.h \
-		../../include/screen.h \
-		../../include/loadimg.h \
 		Zharf.h

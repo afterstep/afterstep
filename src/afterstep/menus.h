@@ -177,7 +177,6 @@ MenuRoot *NewMenuRoot (char *name);
 void DeleteMenuRoot (MenuRoot * menu);
 
 void MenuItemFromFunc( MenuRoot* menu, FunctionData* fdata );
-MenuItem* MenuItemParse(MenuRoot* menu, const char* buf);
 
 int ParseMenuBody (MenuRoot *mr, FILE * fd);
 void ParseMenuEntry (char *tline, FILE * fd, char **junk, int *junk2);

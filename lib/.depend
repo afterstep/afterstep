@@ -1,0 +1,174 @@
+./ASmodule.o : \
+		../configure.h \
+		../include/asapp.h \
+		../libAfterImage/afterimage.h \
+		../include/screen.h \
+		../include/module.h
+
+./Xmodule.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/mystyle.h \
+		../include/screen.h \
+		../include/module.h \
+		../include/wmprops.h \
+		../libAfterImage/afterimage.h
+
+./asapp.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/parser.h \
+		../include/screen.h \
+		../include/functions.h
+
+./asdatabase.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/asdatabase.h
+
+./background.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/screen.h \
+		../include/mystyle.h \
+		../include/loadimg.h \
+		../include/background.h
+
+./balloon.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/mystyle.h \
+		../include/event.h \
+		../include/balloon.h
+
+./clientprops.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/screen.h \
+		../include/clientprops.h \
+		../include/hints.h
+
+./decor.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/mystyle.h \
+		../include/screen.h \
+		../libAfterImage/afterimage.h \
+		../include/myicon.h \
+		../include/decor.h
+
+./event.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/screen.h \
+		../include/event.h
+
+./font.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/screen.h \
+		../libAfterImage/afterimage.h
+
+./hints.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/asdatabase.h \
+		../include/screen.h \
+		../include/functions.h \
+		../include/clientprops.h \
+		../include/hints.h
+
+./loadimg.o : \
+		../configure.h \
+		../include/asapp.h \
+		../libAfterImage/afterimage.h \
+		../include/loadimg.h
+
+./myicon.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/loadimg.h \
+		../libAfterImage/afterimage.h \
+		../include/screen.h
+
+./mystyle.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/parse.h \
+		../include/loadimg.h \
+		../include/parser.h \
+		../include/confdefs.h \
+		../include/mystyle.h \
+		../libAfterImage/afterimage.h \
+		../include/screen.h
+
+./mystyle_property.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/screen.h \
+		../include/mystyle.h \
+		../include/mystyle_property.h \
+		../include/wmprops.h
+
+./parse.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/parse.h
+
+./parser.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/parser.h
+
+./termhash.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/parser.h
+
+./readpacket.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/module.h
+
+./screen.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/mystyle.h \
+		../include/screen.h \
+		../include/module.h \
+		../include/wmprops.h \
+		../libAfterImage/afterimage.h
+
+./session.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/screen.h \
+		../include/functions.h \
+		../include/session.h
+
+./timer.o : \
+		../configure.h \
+		../include/asapp.h
+
+./wild.o : \
+		../configure.h \
+		../include/asapp.h
+
+./wmprops.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/screen.h \
+		../include/clientprops.h \
+		../include/wmprops.h

@@ -14,14 +14,6 @@
 		ButtonArray.h \
 		List.h
 
-./List.o: \
-		../../configure.h \
-		List.h \
-		../../include/aftersteplib.h \
-		../../include/module.h \
-		../../include/sun_headers.h \
-		../../include/alpha_header.h
-
 ./ButtonArray.o: \
 		../../configure.h \
 		../../include/aftersteplib.h \
@@ -29,6 +21,14 @@
 		../../include/style.h \
 		../../include/screen.h \
 		ButtonArray.h
+
+./List.o: \
+		../../configure.h \
+		List.h \
+		../../include/aftersteplib.h \
+		../../include/module.h \
+		../../include/sun_headers.h \
+		../../include/alpha_header.h
 
 ./WinList.o: \
 		WinList.h

@@ -1026,10 +1026,10 @@ create_default_myframe()
 MyFrame *
 myframe_find( const char *name )
 {
-    MyFrame *frame = Scr.DefaultFrame ;
-    if( name && Scr.FramesList )
-        if( get_hash_item( Scr.FramesList, AS_HASHABLE(name), (void**)&frame) != ASH_Success )
-            frame = Scr.DefaultFrame ;
+    MyFrame *frame = Scr.Look.DefaultFrame ;
+    if( name && Scr.Look.FramesList )
+        if( get_hash_item( Scr.Look.FramesList, AS_HASHABLE(name), (void**)&frame) != ASH_Success )
+            frame = Scr.Look.DefaultFrame ;
     return frame ;
 }
 

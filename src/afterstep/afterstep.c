@@ -95,7 +95,7 @@ main (int argc, char **argv)
 #ifdef DEBUG_TRACE_X
 	trace_window_id2name_hook = &window_id2name;
 #endif
-    InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0xFFFFFFFF );
+    InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0);
     AfterStepState = MyArgs.flags ;
 
 #if defined(LOG_FONT_CALLS)
@@ -138,8 +138,6 @@ main (int argc, char **argv)
     if( MyArgs.override_feel )
         set_session_override( Session, MyArgs.override_feel, F_CHANGE_FEEL );
 
-    InternUsefulAtoms ();
-
 #ifdef SHAPE
 	XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
 #endif /* SHAPE */
@@ -151,7 +149,7 @@ main (int argc, char **argv)
     /*
      *  Lets init each and every screen separately :
      */
-    for (i = 0; i < NumberOfScreens; i++)
+    for (i = 0; i < Scr.NumberOfScreens; i++)
 	{
         show_progress( "Initializing screen %d ...", i );
         if (i != Scr.screen)
@@ -169,10 +167,10 @@ main (int argc, char **argv)
             if( is_output_level_under_threshold( OUTPUT_LEVEL_PROGRESS ) )
             {
                 show_progress( "\t screen[%d].size = %ux%u", Scr.screen, Scr.MyDisplayWidth, Scr.MyDisplayHeight );
-                show_progress( "\t screen[%d].root = %d", Scr.screen, Scr.Root );
+                show_progress( "\t screen[%d].root = %lX", Scr.screen, Scr.Root );
                 show_progress( "\t screen[%d].color_depth = %d", Scr.screen, Scr.asv->true_depth );
                 show_progress( "\t screen[%d].colormap    = 0x%lX", Scr.screen, Scr.asv->colormap );
-                show_progress( "\t screen[%d].visual.id         = %d",  Scr.screen, Scr.asv->visual_info.visualid );
+                show_progress( "\t screen[%d].visual.id         = %X",  Scr.screen, Scr.asv->visual_info.visualid );
                 show_progress( "\t screen[%d].visual.class      = %d",  Scr.screen, Scr.asv->visual_info.class );
                 show_progress( "\t screen[%d].visual.red_mask   = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.red_mask   );
                 show_progress( "\t screen[%d].visual.green_mask = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.green_mask );
@@ -194,7 +192,7 @@ main (int argc, char **argv)
     /* read config file, set up menus, colors, fonts */
     InitBase (False);
     InitDatabase (False);
-    LoadASConfig (0, 1, 1, 1);
+    LoadASConfig (0, PARSE_EVERYTHING);
 
     /* Reparent all the windows and setup pan frames : */
     XSync (dpy, 0);

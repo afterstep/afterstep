@@ -160,9 +160,10 @@ accure_wm_selection (ASWMProps * wmprops)
 	intern_selection_atom (wmprops);
 
 	{										   /* now we need to obtain a valid timestamp : */
-		long          data;
+        long          data = 0xAAAAAAAA;
 
-		XChangeProperty (dpy, w, wmprops->_XA_WM_S, wmprops->_XA_WM_S, 32, PropModeAppend, (unsigned char *)&data, 0);
+        XChangeProperty (dpy, w, wmprops->_XA_WM_S, wmprops->_XA_WM_S, 32, PropModeAppend, (unsigned char *)&data, 1);
+        XSync( dpy, False );
 		/* now lets sit quiet and wait for event to come back : */
 		if (wait_event (&event, w, PropertyChangeMask, 100))
 			wmprops->selection_time = event.xproperty.time;
@@ -174,7 +175,8 @@ accure_wm_selection (ASWMProps * wmprops)
 	XSync (dpy, False);
 	for (tick_count = 0; tick_count < 100; tick_count++)
 	{
-		if (XGetSelectionOwner (dpy, wmprops->_XA_WM_S) == w)
+        Window present_owner = XGetSelectionOwner (dpy, wmprops->_XA_WM_S);
+        if ( present_owner == w)
 			break;
 		sleep_a_little (100);
 	}

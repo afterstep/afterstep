@@ -1,7 +1,7 @@
 #ifndef PARSER_HEADER_FILE_INCLUDED
 #define PARSER_HEADER_FILE_INCLUDED
 
-#define DEBUG_PARSER
+/*#define DEBUG_PARSER*/
 /* put it in here for now - later should probably be moved
    into configure stuff */
 #define WITH_CONFIG_WRITER

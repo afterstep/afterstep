@@ -167,7 +167,7 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long event_mask)
 	/* Initialize X connection */
 	if (!(dpy = XOpenDisplay (display_name)))
 	{
-		fprintf (stderr, "%s: can't open display %s", MyName, XDisplayName (display_name));
+        show_error("Can't open display %s. Exiting!", XDisplayName (display_name));
 		exit (1);
 	}
 	x_fd = XConnectionNumber (dpy);
@@ -177,6 +177,7 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long event_mask)
         set_synchronous_mode (True);
 
     intern_hint_atoms ();
+    intern_wmprop_atoms ();
 
 	memset (scr, 0x00, sizeof (ScreenInfo));
 
@@ -184,11 +185,11 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long event_mask)
 	scr->Root = RootWindow (dpy, scr->screen);
 	if (scr->Root == None)
 	{
-		fprintf (stderr, "%s: Screen %d is not valid ", MyName, (int)scr->screen);
+        show_error("Screen %d is not valid. Exiting.", (int)scr->screen);
 		exit (1);
 	}
 
-    scr->NumberOfScreens = ScreenCount (dpy);
+    scr->NumberOfScreens = NumberOfScreens = ScreenCount (dpy);
 	scr->MyDisplayWidth = DisplayWidth (dpy, scr->screen);
 	scr->MyDisplayHeight = DisplayHeight (dpy, scr->screen);
 	scr->CurrentDesk = -1;
