@@ -1,6 +1,7 @@
 <varlistentry id="options.TitleButtonBalloonStyle">
-	<term>TitleButtonBalloonStyle <emphasis remap='I'>"style_name"</emphasis></term>
+	<term>TitleButtonBalloonStyle <emphasis remap='I'>"mystyle_name"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>MyStyle to be used to draw balloon. Note that balloons could be
+             shaped (BackPixmap 125 and 126 ).</para>
 	</listitem>
 </varlistentry>

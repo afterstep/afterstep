@@ -1,5 +1,5 @@
 <varlistentry id="options.MaxRows">
-	<term>MaxRows</term>
+	<term>MaxRows <emphasis remap='I'>count</emphasis></term>
 	<listitem>
 		<para>Maximum number of rows in WinList.</para>
 	</listitem>

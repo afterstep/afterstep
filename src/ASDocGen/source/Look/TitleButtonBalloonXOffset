@@ -1,5 +1,5 @@
 <varlistentry id="options.TitleButtonBalloonXOffset">
-	<term>TitleButtonBalloonXOffset</term>
+	<term>TitleButtonBalloonXOffset<emphasis remap='I'>value_in_pixels</emphasis></term>
 	<listitem>
 		<para>FIXME: add proper description here.</para>
 	</listitem>

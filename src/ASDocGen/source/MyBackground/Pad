@@ -1,11 +1,11 @@
 <varlistentry id="options.Pad">
-	<term>Pad<emphasis remap='I'>[type color]</emphasis></term>
+	<term>Pad <emphasis remap='I'>[type color]</emphasis></term>
 	<listitem>
 		<para>will pad image if it is smaller then screen  with  specified
-		color.  Possible type values are :
-                1: - pad horizontally and tile vertically
-                2: - pad vertically and tile horizontally
-                3: - pad both vertically and horizontally to make the image the
+		color.  Possible type values are :</para>
+                <para>1: - pad horizontally and tile vertically</para>
+                <para>2: - pad vertically and tile horizontally</para>
+                <para>3: - pad both vertically and horizontally to make the image the
 		size of the screen.</para>
 	</listitem>
 </varlistentry>

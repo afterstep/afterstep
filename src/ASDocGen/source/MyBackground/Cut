@@ -1,5 +1,5 @@
 <varlistentry id="options.Cut">
-	<term>Cut<emphasis='I'>"geometry"</emphasis></term>
+	<term>Cut <emphasis='I'>"geometry"</emphasis></term>
 	<listitem>
 		<para>will cut piece with specified geometry from the source
                 image.</para>

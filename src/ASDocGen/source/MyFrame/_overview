@@ -1,2 +1,147 @@
 <section label="overview" id="overview">
+<term>Window frame decorations (aka MyFrame)</term>
+<para>Each window is surrounded by so-called frame decoration. each
+frame decoration could be built from 9 TBars:</para>
+               <para>1) Main Titlebar  with icons on left, label in the middle and
+                   icons on right. Label may also have special underlying image -
+                   so called Title Background. Ordering of this elements is set by
+                   TitleButtonOrder setting ( see below ).</para>
+                <para>2) 4 frame sides. Each of this have fixed width that is
+                   determined by SideSize setting  or image size if SideSize is
+                   ommited. Second dimension of the TBar changes to match the
+                   size of the window.</para>
+                <para>3) 4 frame corners. Each of this have both fixed width and
+                   height, as determined by CornerSize setting or image size.</para>
+
+                   <para>Each of above elements is rendered by generating background
+                using respective MyStyle, and then overlaying images/buttons
+                and text on top of it. Default overlaying is done using
+                composition method alpha-blend. In case of main Titlebar that
+                could be changed. Bevel is then drawn on top of the image as
+                specified in respective setting.</para>
+
+
+
+<para>  MyFrame allows different MyStyles to be used for titlebar and
+                frame decorations. If any of those are ommited - default
+                setting from FWindowStyle/UWindowStyle/SWindowStyle will be
+                used.</para>
+
+<para>                   Important:
+                        If you use semi-transparent images for frame sides -
+                they will be overlayed on top of MyStyle generated background,
+                so if you want it to be overlayed over root background - you
+                should use MyStyle with BackPixmap set to 129 or 149.</para>
+<para>                        Also note that unless you use MYStyle with BackPixmap
+                126 and 125 - frame decorations will not be shaped. Likewise if
+                you want frame part to have only the shape of the image, you
+                specified, with no background at all - use MyStyle with
+                BackPixmap set like so :</para>
+
+<para>                 BackPixmap  126  empty.xpm</para>
+
+<para>                Where empty.xpm is 1x1 completely transparent image (supplied
+                as desktop/icons/common/empty.xpm ).</para>
+
+<para>                   To identify side/corner it is possible to use abbreviations,
+                such as: N, NW, SW, etc.</para>
+<para>                   All the CompositionMethod settings must have one of the
+                BackPixmap types from MyStyles ( ie 130-143 )</para>
+<para>                   Align setting may have different meaning/capabilities for
+                different items. When applied to text - it simply aligns text
+                to sides mentioned. When applied to image - such as title
+                background or frame side pixmap - it also specifies if image
+                should be tiled, scaled or left same size. Make sure that you
+                use HTiled,VTiled or HScaled,VScaled for frame sides -
+                otherwise images on they will not be resized to match window
+                size (this is also a feature :).</para>
+                  <para>To center item specify Align to include both sides. For
+                example : </para>
+
+                   <para>Align Left,Right</para>
+
+<para>                   will center item horizontally.</para>
+
+<para>                Note that TitleBackground option allows you to specify an
+                image to be used under titlebar label in addition to the MyStyle.
+                This was done for better shaped titlebars. You may have MyStyle
+                to be completely transparent shape, while TitleBackground some
+                non-transparent image, and that will provide better visibility
+                for the titlebar text.</para>
+
+<literallayout>
+MyFrame "name"
+        Inherit     "name"]
+    #traditional form :
+        [North       <pixmap>]
+	[East        <pixmap>]
+        [South       <pixmap>]
+	[West        <pixmap>]
+        [NorthEast   <pixmap>]
+        [NorthWest   <pixmap>]
+        [SouthEast   <pixmap>]
+	[SouthWest   <pixmap>]
+    #alternative form :
+	[Side        North|South|East|West|Any [<pixmap>]] 
+	if pixmap is ommited - empty bevel will be drawn
+        [NoSide      North|South|East|West|Any]
+        [Corner      NorthEast|SouthEast|NorthWest|SouthWest|Any <pixmap>] 
+	if pixmap is ommited - empty bevel will be drawn
+        [NoCorner    NorthEast|SouthEast|NorthWest|SouthWest|Any]
+    #new settings :
+        [TitleUnfocusedStyle   <style>]
+        [TitleFocusedStyle     <style>]
+        [TitleStickyStyle      <style>]
+        [FrameUnfocusedStyle   <style>]
+        [FrameFocusedStyle     <style>]
+        [FrameStickyStyle      <style>]
+        [TitleBackground       <pixmap>] 
+	    gets overlayed over background and under the text
+        [LeftBtnBackground     <pixmap>]
+	    gets overlayed over background and under the left block of buttons
+        [LeftSpacerBackground  <pixmap>]
+	    gets overlayed over background between left block of buttons and text label
+        [RightSpacerBackground <pixmap>] 
+	    gets overlayed over background between right block of buttons and text label
+        [RightBtnBackground    <pixmap>] 
+	    gets overlayed over background and under the right block of buttons
+
+    #additional attributes :
+	[SideSize        North|South|East|West|Any <WIDTHxLENGTH>] - pixmap will be scaled to this size
+        [SideAlign       North|South|East|West|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+    	    default is HTiled,VTiled
+        [SideBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+        [SideFocusedBevel      North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+        [SideUnfocusedBevel    North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+        [SideStickyBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+    	    default bevel is Right,Bottom
+
+        [CornerAlign     NorthEast|SouthEast|NorthWest|SouthWest|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+    	    default is HTiled,VTiled
+        [CornerBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+        [CornerFocusedBevel    NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+        [CornerUnfocusedBevel  NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+                     
+                               
+        [TitleBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
+        [TitleFocusedBevel     None|[Left,Top,Right,Bottom,Extra,NoOutline]
+        [TitleUnfocusedBevel   None|[Left,Top,Right,Bottom,Extra,NoOutline]
+        [TitleStickyBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
+    	    default bevel is Right,Bottom
+        [TitleAlign      None|[Left,Top,Right,Bottom]
+    	    default is Left
+        [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+        [LeftBtnBackAlign	     None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+        [LeftSpacerBackAlign   None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+        [RightSpacerBackAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+        [RightBtnBackAlign     None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+
+        [TitleCompositionMethod   testure_type]
+        [TitleFocusedCompositionMethod     testure_type]
+        [TitleUnfocusedCompositionMethod   testure_type]
+        [TitleStickyCompositionMethod      testure_type]
+    	default is 131 ( alpha-blending )
+~MyFrame
+</literallayout>
+
 </section>

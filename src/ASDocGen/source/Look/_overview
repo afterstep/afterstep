@@ -1,2 +1,16 @@
 <section label="overview" id="overview">
+<para>   Frame decoration settings have been greately enhanced. It is now
+             fashioned after MyStyle option and is called MyFrame. It allows
+             for several named structures, with inheritance and ability to
+             assign different structure to different apps using the database.
+                As mentioned above root background settings has been moved into
+             look - hence MyBackground and Desk back as look options.
+                MyStyle has far greater number of BackPixmap types reflecting
+             new functionality in libAfterImage.
+                CompositionMethod setting has been added to different aspects
+             of look.
+                New options for more flexible placing of titlebar buttons has
+             been added.
+                Balloons now support both X and Y offset as well as MyStyle
+             instead of simple back and fore colors.</para>
 </section>

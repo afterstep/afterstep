@@ -1,5 +1,5 @@
 <varlistentry id="options.MinSize">
-	<term>MinSize</term>
+	<term>MinSize <emphasis remap='I'>WxH</emphasis></term>
 	<listitem>
 		<para>Minimum size of the WinList. WinList will not shrink smaller then this
 		size, when number of buttons is small, but instead it will enlarge

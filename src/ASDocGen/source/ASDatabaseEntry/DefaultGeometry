@@ -1,12 +1,15 @@
 <varlistentry id="options.DefaultGeometry">
       <term>DefaultGeometry <emphasis remap='I'>WIDTHxHEIGHT+X+Y</emphasis></term>
       <listitem>
-<para>Specifies initial placement for the given window, to be used in absense of
-USPosition geometry (command line specified one). Default behaviour is to
-either do Random or Smart placement or let user drag window around.
-Any of the geometry values can be ommited, and either of position values
-could be negative, in which case it will be added to screen size, effectively
-allowing placement relative to right/bottom edge. Just like standard X
-geometry.</para>
+<para>This will force AfterStep to replace parts of window initial placement with
+        predefined values. For example :</para>
+
+<para>Style "*mozilla*"  DefaultGeometry 1024x500</para>
+
+<para>will force mozilla windows (or any windows that have "mozilla" in its
+        name ) to have initial size 1024x500.</para>
+<para>Note that in case of mozilla its usefull to define several Styles so
+        that you will get different geometries for different dialog boxes, such
+        as search/download/ etc</para>
       </listitem>
 </varlistentry>

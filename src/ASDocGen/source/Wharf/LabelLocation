@@ -1,5 +1,5 @@
 <varlistentry id="options.LabelLocation">
-	<term>LabelLocation</term>
+	<term>LabelLocation <emphasis remap='I'>number</term>
 	<listitem>
 		<para>Specifies the location of the label. Correct values are
 		integers from 0-32. label could be drawn on each side of

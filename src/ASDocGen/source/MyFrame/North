@@ -1,5 +1,5 @@
 <varlistentry id="options.North">
-	<term>North<emphasis remap='I'>"pixmap_name"</emphasis></term>
+	<term>North <emphasis remap='I'>"pixmap_name"</emphasis></term>
 	<listitem>
 		<para>Specifies the pixmap to be displayed in the top border
 		of the window frame, if DecorateFrames is set.</para>

@@ -1,7 +1,7 @@
 <varlistentry id="options.Tint">
-	<term>Tint<emphasis remap='I'>color</emphasis></term>
+	<term>Tint <emphasis remap='I'>color</emphasis></term>
 	<listitem>
-		<para>will tint image with color. Use shades of gray to obtain
-                darkened image. Note: this only works on TrueColor displays.</para>
-	</listitem>
+		<para>Will  tint  image  with specified color. Gray60 will make image
+                    lighter, while Gray40 will make image darker. Tinting
+                    it two way !</listitem>
 </varlistentry>

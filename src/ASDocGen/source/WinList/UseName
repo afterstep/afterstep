@@ -1,9 +1,9 @@
 <varlistentry id="options.UseName">
-	<term>UseName</term>
+	<term>UseName <emphasis remap='I'>0|1|2|3</emphasis></term>
 	<listitem>
 		<para>Tells WinList what type of name to use for displaying in
-		WinList label.
-		# 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
+		WinList label.</para>
+		<para># 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
 		</para>
 	</listitem>
 </varlistentry>

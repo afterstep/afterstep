@@ -1,5 +1,5 @@
 <varlistentry id="options.Scale">
-	<term>Scale<emphasis remap='I'>[geometry]</emphasis></term>
+	<term>Scale <emphasis remap='I'>[geometry]</emphasis></term>
 	<listitem>
 		<para>scale image to specified geometry. If geometry is omitted
                 the image will be scaled to the screen size.</para>

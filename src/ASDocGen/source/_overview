@@ -1,2 +1,81 @@
 <section label="overview" id="overview">
+<para>AfterStep has been almost entirely rewritten in this new incarnation.
+        Here is the short list of new architectural changes:</para>
+<para>        1.1. New high performance and high quality image handling engine has
+             been developed to fulfill GUI needs. It includes different image
+             transformations, such as scaling, tiling, cropping, blurring,
+             blending of arbitrary number of layers, in-memory image compression,
+             support for 12 different file formats, including its own parser/writer
+             of XPM files, capable of achieving much better performance then
+             default libXpm. Supported image formats are :</para>
+<para>        XPM, PNG, JPEG, XCF(GIMP image format), PPM, PNM, BMP, ICO,
+             CUR, GIF, TIFF, and XML scripts. Where XML scripts allow for user to
+             create script of transformations to be performed on the image at the
+             time when it gets loaded./para>
+<para>             libAfterImage also provides support for TTF fonts ( using libfreetype )
+             and smoothed standard X raster fonts.</para>
+<para>        1.2. Window hints handling has been rewriten and reorganized, and most of the
+             Extended WM specs has been incorporated, as well, as better support for
+             Motif, ICCCM and old GNOME hints has been implemented.</para>
+<para>        1.3. All the GUI rendering code has been aggregated into libAfterStep
+             and now all the GUI elements are rendered using consistent approach
+             in every module and every part of the AfterStep proper. From now on
+             interface is build from so called TBars. TBar is rectangular area
+             that may be focused(hilited) or unfocused and pressed or unpressed.
+             Each TBar has the following structure :</para>
+<para>                - the background of the TBar, which is defined by MyStyle and state
+                  of the bar - there are two MyStyles assigned to each TBar - one
+                  for focused and one for unfocused state.</para>
+<para>                - tiles of the TBar. Tiles are smaller features that gets arranged
+                  inside the bar according to its size, alignment, position and
+                  order. Tiles could be static icons ( cannot be pressed );
+                  blocks of buttons - each having two shapes - pressed and normal;
+                  Text labels; Empty space tiles.</para>
+<para>                  There could be upto 256 tiles, each residing on one of the cells
+                  in 16x16 grid. Several tiles could reside in single cell, in
+                  which case they get superimposed on top of each other.</para>
+<para>          - bevel of the TBar. When TBar is rendered all of its tiles are
+                  superimposed on top of its background, and resulting image
+                  will have a 3D bevel drawn on it, using colors from same
+                  MyStyle as used for background. Bevel could be switched off
+                  partially or entirely. Respective configuration options has
+                  been added  where appropriate. When TBar is pressed - its
+                  bevel is inverted.</para>
+
+<para>       When TBar is rendered all of its elements gets superimposed on top
+             of each other using one of 13 blending methods supported by
+             libAfterImage, with default being simple alphablending. See
+             MyFrame configuration for more details. This is refrred to as
+             "Composition Method".</para>
+<para>       1.4. Due to the fact that AfterStep is using compression to store
+             images in memory - there is no need to have separate root
+             background handler, and so asetroot has been discontinued and
+             afterstep proper now does all the root background loading.
+             You could simply copy-and-paste your asteroot config into your
+             look file. This has an added advantage of simplifing theme support
+             for root backgrounds.</para>
+<para>        1.5. Significant work has been done to create libAfterConf which
+             provides easy means for reading configuration options, and
+             facilitates implementation of any configuration tool.</para>
+<para>       1.6. Some work has been done to improve support for themes. AfterStep
+             proper and modules now load configuration files is this order :</para>
+<para>       #1 - base config;
+             #2 - look, feel, menu, database, autoexec and module specific config;
+             #3 - theme file;
+             #4 - theme override file;</para>
+<para>       Theme override file is needed so that user may have a list of
+             critical options that he/she does not want to be changed by any
+             theme. What is missing here is a comprehensive theme building tool.</para>
+<para>       1.7. AfterStep now make extensive use of X shaped extensions ( where
+             available ) Everything could be shaped now - titlebars, Pager,
+             Wharf, etc. To make some element shaped - MyStyle with BackPixmap
+             type 125 or 126 should be used.</para>
+<para>       1.8. Menus are now treated same as regular windows. They could be
+             configured in database file using preset Style "ASMenu" to have
+             different titlebar buttons, frame decorations, stickiness, etc.
+             MenuPinOn has been changed to be just another titlebar button,
+             with PinMenu function assigned to it.</para>
+<para>       1.9. AfterStep no longer uses fixed scheme of 5 titlebar buttons on
+             each side, and order of buttons could be configured in look. There
+             is still limitation to have no more then 10 buttons total.</para>
 </section>

@@ -1,7 +1,20 @@
 <varlistentry id="options.OverrideGravity">
-	<term>OverrideGravity</term>
+	<term>OverrideGravity <emphasis remap='I'>NorthWest | North | NorthEast | West | Center | East | SouthWest | South | SouthEast | Static</emphasis>
+</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Some applications (notably xv) have been designed without reading widely
+        accepted and used standards such as ICCCM. Gravity value is one of
+        the hints that often get misplaced by applications. As the result may
+        exhibit wierd placement behaviour - such as windows moving to the
+        top-left with each resize or file opened. Try specifying StaticGravity
+        for such apps. Also some applications do not set gravity correctly. For
+        example you start an application with geometry +10-10 which means
+        SouthWestGravity and that should fix position of left and bottom sides
+        of the window. But window set its gravity to NorthWestGravity instead
+        and as the result window gets placed further down to the bottom by the
+        size of the framne decorations. In this cases you can specify whatever
+        gravity you want and thus override those stupid apps.
+</para>
 		<para>See Also: <ulink url="Gravity#synopsis">Gravity type specification</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.TitleButtonXOffset">
-	<term>TitleButtonXOffset</term>
+	<term>TitleButtonXOffset <emphasis remap='I'>x_offset_val</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Determines the distance of the titlebar buttons from the edge of the titlebar.</para>
 	</listitem>
 </varlistentry>

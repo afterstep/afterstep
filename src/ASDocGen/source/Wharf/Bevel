@@ -1,7 +1,10 @@
 <varlistentry id="options.Bevel">
-	<term>Bevel</term>
+	<term>Bevel <emphasis remap=´'I'>None|[Left,Top,Right,Bottom,Extra,NoOutline]</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Determines exact size and shape of the 3D bevel drawn around each
+        button. This option is somewhat synonymous to NoBorder. If NoBorder is
+        encountered after Bevel - then it will override Bevel, otherwise Bevel
+        will override NoBorder.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

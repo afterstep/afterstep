@@ -2,6 +2,6 @@
 	<term>MaxWidth</term>
 	<listitem>
 		<para>This is depreciated and just there for compatibility.
-		Please use WinListMaxColWidth instead.</para>
+		Please use MaxSize/MinSize instead.</para>
 	</listitem>
 </varlistentry>

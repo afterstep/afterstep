@@ -1,6 +1,7 @@
 <varlistentry id="options.FocusedStyle">
-	<term>FocusedStyle</term>
+	<term>FocusedStyle <emphasis remap='I'>"style"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>MyStyle to be used for rendering of window buttons for windows thar are
+        in focused state.</para>
 	</listitem>
 </varlistentry>

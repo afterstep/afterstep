@@ -2,5 +2,6 @@
 	<term>Orientation</term>
 	<listitem>
 		<para>down|across - Will make a vertical or horizontal winlist.</para>
+		<para>This is depreciated. Use FillRowsFirst instead.</para>
 	</listitem>
 </varlistentry>

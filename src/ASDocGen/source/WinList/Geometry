@@ -1,5 +1,5 @@
 <varlistentry id="options.Geometry">
-	<term>Geometry</term>
+	<term>Geometry <emphasis remap='I'>+x+y</emphasis></term>
 	<listitem>
 		<para>Specifies the location of the  WinList  window.
 		Note that only position can be specified - size is defined by

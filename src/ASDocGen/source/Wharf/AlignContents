@@ -1,7 +1,8 @@
 <varlistentry id="options.AlignContents">
-	<term>AlignContents</term>
+	<term>AlignContents <emphasis remap='I'>Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,HCenter,VCenter</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>That will force contents of each Wharf's button to be aligned to either
+        side of the button, when FitContents is not used.</para>
 		<para>See Also: <ulink url="Align#synopsis">Alignment flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

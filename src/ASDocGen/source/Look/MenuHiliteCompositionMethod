@@ -1,6 +1,8 @@
 <varlistentry id="options.MenuHiliteCompositionMethod">
-	<term>MenuHiliteCompositionMethod</term>
+	<term>MenuHiliteCompositionMethod <emphasis remap='I'>130-145</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>This is a funny feature - try it and see how you like different
+                values :) If you use shades of grey for your item text - you
+                may not see any difference for some of this values.</para>
 	</listitem>
 </varlistentry>

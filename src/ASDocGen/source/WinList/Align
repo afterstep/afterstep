@@ -1,5 +1,5 @@
 <varlistentry id="options.Align">
-	<term>Align</term>
+	<term>Align <emphasis>Left,Right,Top,Bottom</emphasis></term>
 	<listitem>
 		<para>Sets align of the text label in WinList buttons.</para>
 		<para>See Also: <ulink url="Align#synopsis">Alignment flags</ulink> for further details.</para>

@@ -2,7 +2,7 @@
 	<term>FitContents</term>
 	<listitem>
 		<para>Wharf will draw each button so that it fits its contents perfectly
-		(icon or swallowed app ). That will cause some of th eWharf's buttons to
+		(icon or swallowed app ). That will cause some of the Wharf's buttons to
 		differ in size from others. Use in conjunction with ShapeToContents.</para>
 	</listitem>
 </varlistentry>

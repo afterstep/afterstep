@@ -1,5 +1,5 @@
 <varlistentry id="options.MaxSize">
-	<term>MaxSize</term>
+	<term>MaxSize <emphasis remap='I'>WxH</emphasis></term>
 	<listitem>
 		<para>Maximum size of the WinList. WinList will not grow larger then
 		this size, when number of buttons increase, but instead it will shrink

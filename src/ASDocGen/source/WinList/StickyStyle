@@ -1,6 +1,7 @@
 <varlistentry id="options.StickyStyle">
-	<term>StickyStyle</term>
+	<term>StickyStyle <emphasis remap='I'></emaphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>MyStyle to be used for rendering of window buttons for windows thar are
+        in sticky state.</para>
 	</listitem>
 </varlistentry>

@@ -1,5 +1,5 @@
 <varlistentry id="options.Bevel">
-	<term>Bevel</term>
+	<term>Bevel <emphasis remap='I'>None,Left,Right,Top, Bottom, NoOutline</emphasis></term>
 	<listitem>
 		<para>Defines 3D bevel of WinList buttons.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>

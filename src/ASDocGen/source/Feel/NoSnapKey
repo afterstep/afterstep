@@ -1,7 +1,7 @@
 <varlistentry id="options.NoSnapKey">
 	<term>NoSnapKey <emphasis remap='I'>key</emphasis></term>
 	<listitem>
-	<para>AfterSTep now has a feature that "snaps" windows to different
+	<para>AfterStep now has a feature that "snaps" windows to different
 	desktop features, such as edges of other windows and edge of the screen.
 	To disable it temorarily you can press and hold Shift key. Use this
         setting to request different modifier key instead of Shift.</para>

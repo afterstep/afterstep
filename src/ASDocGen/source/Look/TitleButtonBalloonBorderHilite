@@ -1,7 +1,7 @@
 <varlistentry id="options.TitleButtonBalloonBorderHilite">
-	<term>TitleButtonBalloonBorderHilite</term>
+	<term>TitleButtonBalloonBorderHilite <emphasis remap='I'>None|[Left,Top,Right,Bottom,Extra,NoOutline</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines bevel to be drawn around balloons - replaces BorderWidth setting.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>
