@@ -161,16 +161,6 @@ SendInfo (int *fd, char *message, unsigned long window)
 }
 
 
-/* some */
-void
-SetMyName (char *argv0)
-{
-	char         *temp = strrchr (argv0, '/');
-
-	/* Save our program name - for error messages */
-	MyName = temp ? temp + 1 : argv0;
-}
-
 void          DeadPipe (int nonsense);
 
 int
