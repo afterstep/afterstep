@@ -18,12 +18,12 @@ manner:
 	Wait	"I"	asetroot	
 .sp
 .fi
-In case you use asetroot to switch your root backgrounds 
+In case you use \fBasetroot\fP to switch your root backgrounds, 
 \fIWait\fP can be used as shown above.  This will insure that the 
 \fBasetroot\fP has set the root background before you start
 any further apps (like transparent aterms and Eterms).
 .sp
-or from within an afterstep menu file by 'asetroot':
+This module can also be spawned from within an afterstep menu file:
 .nf
 .sp
 % cat "~/GNUstep/Library/AfterStep/start/Modules/asetroot"
@@ -39,10 +39,10 @@ To stop the \fBasetroot\fP module, a menu item can be used:
 	MiniPixmap "mini-as.xpm"
 .fi
 
-Note: if asetroot used with either  -k(--kill) or -l(--loadonly) 
+Note: if \fBasetroot\fP used with either  -k(--kill) or -l(--loadonly) 
 options it can be started both as a module or as regular app, as it 
 does not communicate with AfterStep in that case. You can even add it
-to your .xinitrc to load X root background prior to starting 
+to your .xinitrc to load X root background prior to starting the
 window manager.
 
 .SH DESCRIPTION
@@ -50,7 +50,7 @@ Depending on the options it is started with, \fBasetroot\fP can perform
 different tasks:
 .sp
 Normal mode: \fBasetroot\fP will load root backgrounds for specified 
-range of desks into memory, it will set X property containing
+range of desks into memory, set X property containing
 information  allowing usage of this backgrounds by other
 modules/applications, and will remain resident, tracking desk changes
 and changing root background accordingly. It is recommended that you
@@ -58,15 +58,15 @@ don't use any other apps to switch backgrounds in this mode for this
 particular range of desks.
 .sp
 Load-only mode: \fBasetroot\fP will load root backgrounds for specified
-range of desks into memory, it will set X property containing
+range of desks into memory, and will set X property containing
 information allowing usage of this backgrounds by other
 modules/applications. It will then quit,  leaving all the required
 images resident in X memory, leaving it to other apps to switch
 backgrounds (like Pager). That provides some memory savings, as you run
 only one module instead of two. 
 .sp
-Kill mode: It's not good to litter memory with multimegabyte images in
-the  memory. You can use kill mode of \fBasetroot\fP to cleanup memory
+Kill mode: It's not good to litter the memory with multimegabyte images.
+You can use kill mode of \fBasetroot\fP to cleanup memory
 from loaded images when they are no longer needed, for example when
 quiting AfterStep, or when using same background on all desks (in that
 latter case it's enough to set background once and it will stay there
@@ -75,9 +75,9 @@ range here!
 .sp
 \fBasetroot\fP was designed to be as bulletproof as possible, but
 improper usage can lead it to cause crashes in AfterStep, Pager, Wharf
-and transparent aterms, if you havily using transparency. By all means
-avoid running two  different asetroots on the same range of desks, at
-the same time.
+and transparent aterms, if you are heavily using transparency features. By
+all means avoid running two  different asetroots on the same range of
+desks, at the same time.
 
 .SH ENVIRONMENT VARIABLES
 
@@ -149,8 +149,8 @@ xli is used. Change it to something else, if you want, in options to
 Note: remaining Background options are valid only for type of 0 !!!
 
 .sp
-remaining options will perform trasformations on the source image, 
-in this order: Cut->Tint->Scale->Align->Pad.
+The remaining options will perform transformations on the source
+image, in this order: Cut->Tint->Scale->Align->Pad.
 
 .IP "Cut \fIgeometry\fP"
 will cut piece with specified \fIgeometry\fP from the source image.
@@ -179,14 +179,13 @@ will pad image if it is smaller then screen with specified \fIcolor\fP.
 Possible \fItype\fP values are :
 .nf
 1: - pad horizontally and tile vertically 
-2: - pad vertically and tile
-horizontally 
-3: - pad both vertically and horizontally to make image the
+2: - pad vertically and tile horizontally 
+3: - pad both vertically and horizontally to make the image the
 size of the screen.
 .fi
 
 .SH BUGS
-SCALE is produces low quality images.
+SCALE produces low quality images.
 
 .SH AUTHOR
 Rafal Wierzbicki
