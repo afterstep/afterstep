@@ -1,7 +1,38 @@
 <varlistentry id="options.Key">
-	<term>Key</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>Key <emphasis remap='I'>keyname</emphasis> <emphasis remap='I'>context</emphasis> <emphasis remap='I'>modifier</emphasis> <emphasis remap='I'>Command</emphasis></term>
+  <listitem>
+<para>Specifies a key-stroke binding definition, similar to <emphasis remap='I'>Mouse</emphasis>.
+<emphasis remap='I'>keyname</emphasis> is the keyboard key name. Valid <emphasis remap='I'>keyname</emphasis>'s are found in
+the /usr/X11/include/X11/keysymdef.h file and are specified here without
+the leading "XK_".  The <emphasis remap='I'>context</emphasis> describes where the mouse is resting
+when the <emphasis remap='I'>keyname</emphasis> is pressed and can be any combination of the
+following:</para>
+
+<programlisting remap='.nf'>
+   R = Root window (main background)
+   F = Window Frame (the BottomBar handle corners)
+   S = Window TitleBar or BottomBar
+   I = Iconified Button (minimized window icon)
+   T = Window TitleBar
+   W = Application Window
+   A = Any of the above except for TitleButtons
+1-10 = TitleButton number of the TitleBar [ not very useful here ]
+</programlisting> <!-- .fi -->
+
+<para><emphasis remap='I'>modifier</emphasis> is the key-stroke combination associated with the
+<emphasis remap='I'>context</emphasis> entry, to issue the <emphasis remap='I'>Command</emphasis>. Valid <emphasis remap='I'>modifier</emphasis>'s
+are:</para>
+
+<literallayout remap='.nf'>
+   N = No modifiers
+   C = Control
+   S = Shift
+   M = Meta
+   A = Any modifier
+</literallayout> <!-- .fi -->
+
+<para><emphasis remap='I'>Command</emphasis> can be any <command>afterstep</command> <emphasis remap='I'>Built-in</emphasis> command/
+function, <emphasis remap='I'>Popup</emphasis> or user defined <emphasis remap='I'>Function</emphasis>.</para>
 		<para>See Also: <ulink url="Functions#synopsis">AS Function</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

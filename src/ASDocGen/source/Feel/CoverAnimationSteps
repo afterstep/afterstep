@@ -1,6 +1,7 @@
 <varlistentry id="options.CoverAnimationSteps">
-	<term>CoverAnimationSteps</term>
+	<term>CoverAnimationSteps <emphasis remap='I'>steps count</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>CoverAnimationSteps is the number of animation steps to take while removing
+blue-tinted cover window.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.CoverAnimationType">
-	<term>CoverAnimationType</term>
+	<term>CoverAnimationType <emphasis remap='I'>type</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>CoverAnimationType determines what type of animation to use while removing
+blue-tinted desktop cover - use values from 0 to 13.</para>
 	</listitem>
 </varlistentry>

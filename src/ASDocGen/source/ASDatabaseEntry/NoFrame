@@ -1,6 +1,6 @@
 <varlistentry id="options.NoFrame">
 	<term>NoFrame</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Disables frame decorations for this window.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.Font">
-	<term>Font</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>Font <emphasis remap='I'>font</emphasis></term>
+      <listitem>
+<para>Specifies the font associated with this style. <emphasis remap='I'>font</emphasis> is a standard
+X11 font definition. Since AfterStep 2.0 true type fonts are also supported.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,10 @@
 <varlistentry id="options.DropExec">
-	<term>DropExec</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>DropExec "<emphasis remap='I'>label</emphasis>" <emphasis remap='I'>command %s %d</emphasis></term>
+ <listitem>
+<para>Specifies a <emphasis remap='I'>command</emphasis> to run when the associated button receives a 
+Offix Drag &amp; Drop event.  <emphasis remap='I'>%s</emphasis> (if present) will be replaced with 
+the dropped data, and <emphasis remap='I'>%d</emphasis> (if present) will be replaced with the 
+data type. See <emphasis remap='B'>EXAMPLES</emphasis> below for an example.</para>
+<para>This is a Wharf specific Function.</para>
 	</listitem>
 </varlistentry>

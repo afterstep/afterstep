@@ -1,6 +1,7 @@
 <varlistentry id="options.MaxSwallowModule">
-	<term>MaxSwallowModule</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+<term>MaxSwallowModule "<emphasis remap='I'>window-name</emphasis>" <emphasis remap='I'>command</emphasis></term>
+  <listitem>
+<para>Like <emphasis remap='I'>MaxSwallow</emphasis>, except the <emphasis remap='I'>command</emphasis> is an AfterStep module.</para>
+<para>This is a Wharf specific Function.</para>
+</listitem>
 </varlistentry>

@@ -1,6 +1,18 @@
 <varlistentry id="options.Size">
-	<term>Size</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+<term>Size <emphasis remap='I'>width</emphasis> <emphasis remap='I'>height</emphasis></term>
+  <listitem>
+<para>Sets the size of the associated button, overriding any other size 
+consideration.</para>
+
+<para>The <command>Wharf</command> button size depends on several things.  The order of
+precedence is:</para>
+
+<literallayout remap='.nf'>
+1) Size definition
+2) MaxSwallow'd window size
+3) <emphasis remap='I'>WharfPixmap</emphasis> size
+4) Use 64x64.
+</literallayout> <!-- .fi -->
+<para>This is a Wharf specific Function.</para>
+</listitem>
 </varlistentry>

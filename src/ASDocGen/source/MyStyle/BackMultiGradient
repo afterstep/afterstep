@@ -1,6 +1,21 @@
 <varlistentry id="options.BackMultiGradient">
-	<term>BackMultiGradient</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>BackMultiGradient <emphasis remap='I'>type</emphasis> <emphasis remap='I'>offset1</emphasis> <emphasis remap='I'>color1</emphasis> ... <emphasis remap='I'>offsetN</emphasis> <emphasis remap='P->I'> colorN</emphasis></term>
+      <listitem>
+<para>Specifies that a gradient should be used as a background instead of a
+solid color. The gradient colors start at <emphasis remap='I'>color1</emphasis> and end at
+<emphasis remap='I'>colorN</emphasis>. Each color has an <emphasis remap='I'>offset</emphasis> associated with it. The
+<emphasis remap='I'>offset</emphasis> is a number between 0.0 and 1.0, and specifies where in
+the gradient the colors are to be placed.  The colors are standard X11
+color definitions. At least two colors must be given. The offsets are
+non-decreasing numbers between 0.0 and 1.0. If the first offset is not
+0.0, it will be set to 0.0. If the last offset is not 1.0, it will be
+set to 1.0. <emphasis remap='I'>type</emphasis> may be any of the following:</para>
+
+<literallayout remap='.nf'>
+6: diagonal from top-left to bottom-right
+7: diagonal from bottom-left to top-right
+8: top to bottom
+9: left to right
+</literallayout> <!-- .fi -->
 	</listitem>
 </varlistentry>

@@ -1,6 +1,13 @@
 <varlistentry id="options.TextStyle">
-	<term>TextStyle</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>TextStyle <emphasis remap='I'>style</emphasis></term>
+      <listitem>
+<para>Specifies the text <emphasis remap='I'>style</emphasis> associated with this style. <emphasis remap='I'>style</emphasis>
+can be 0, 1, or 2:</para>
+
+<literallayout remap='.nf'>
+0: normal text
+1: 3d effect #1
+2: 3d effect #2
+</literallayout> <!-- .fi -->
 	</listitem>
 </varlistentry>

@@ -1,6 +1,8 @@
 <varlistentry id="options.Transient">
 	<term>Transient</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies that this button will not perform any action, will not be 
+		pushable, and will not have an associated balloon.</para>
+		<para>This is a Wharf specific Function. Having it in an AfterStep menu will be essentially equal to Nop.
 	</listitem>
 </varlistentry>

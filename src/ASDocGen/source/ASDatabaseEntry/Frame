@@ -1,6 +1,6 @@
 <varlistentry id="options.Frame">
-	<term>Frame</term>
+	<term>Frame <emphasis remap='I'>"frame_name"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Enables "frame_name" to be used for decoration of this window.</para>
 	</listitem>
 </varlistentry>

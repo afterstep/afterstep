@@ -1,6 +1,6 @@
 <varlistentry id="options.NoMotifHints">
 	<term>NoMotifHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Forces AfterStep to disregard Motif decoration and functionality hints.</para>
 	</listitem>
 </varlistentry>

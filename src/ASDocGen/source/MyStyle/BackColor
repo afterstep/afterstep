@@ -1,6 +1,7 @@
 <varlistentry id="options.BackColor">
-	<term>BackColor</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>BackColor <emphasis remap='I'>color</emphasis></term>
+      <listitem>
+<para>Specifies the background color associated with this style. <emphasis remap='I'>color</emphasis>
+is a standard X11 color definition.</para>
 	</listitem>
 </varlistentry>

@@ -1,5 +1,8 @@
 <varlistentry id="options.ShadeButton">
-	<term>ShadeButton</term>
+	<term>ShadeButton
+	<emphasis remap='I'> "unpressed_image"</emphasis>
+	<emphasis remap='I'>["pressed_image"]</emphasis>
+	</term>
 	<listitem>
 		<para>You should be able to "shade" row or column of desks by pressing
 		special Shade button on desk's title. Define images to be used for it

@@ -1,6 +1,10 @@
 <varlistentry id="options.MyStyle">
-	<term>MyStyle</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>MyStyle "<emphasis remap='I'>style_name</emphasis>"</term>
+  <term>  <emphasis remap='I'>style_option</emphasis></term>
+  <term>~MyStyle</term>
+  <listitem>
+<para>Specifies the beginning of a look style definition. The style can be
+referred to later by <emphasis remap='I'>style_name</emphasis>. <emphasis remap='I'>~MyStyle</emphasis> ends a look style
+definition.
 	</listitem>
 </varlistentry>

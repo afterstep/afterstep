@@ -1,6 +1,23 @@
 <varlistentry id="options.BackPixmap">
-	<term>BackPixmap</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>BackPixmap <emphasis remap='I'>type</emphasis> <emphasis remap='I'>pixmap_name|color_name</emphasis></term>
+      <listitem>
+<para>Specifies that a pixmap should be used as a background instead of a
+solid color. This option has two forms, depending on the value of
+<emphasis remap='I'>type</emphasis>. If <emphasis remap='I'>type</emphasis> is 128, the second parameter, <emphasis remap='I'>pixmap_name</emphasis>
+must be the name of an xpm, jpeg, or png image which can be found in
+<emphasis remap='I'>PixmapPath</emphasis>. If <emphasis remap='I'>type</emphasis> is 129, the root pixmap (desktop
+background) will be used, and the optional second parameter must be a
+color with which the root pixmap will be shaded.  If <emphasis remap='I'>type</emphasis> is 130,
+the root pixmap will be averaged with the specified pixmap, and the
+result will be used as the background.</para>
+<para>Note: if you wish to use an external program to change your desktop background, make sure it also sets
+the _XROOTPMAP_ID property on the root window (like Esetroot) or <emphasis remap='I'>type</emphasis> 129 and <emphasis remap='I'>type</emphasis> 130
+won't work properly.</para>
+
+<literallayout remap='.nf'>
+128: tiled pixmap from the upper left
+129: "transparent" (or tinted with color)
+130: translucent pixmap
+</literallayout> <!-- .fi -->
 	</listitem>
 </varlistentry>

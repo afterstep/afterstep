@@ -1,6 +1,7 @@
 <varlistentry id="options.NoXResources">
 	<term>NoXResources</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+	<para>Forces AfterStep to disregard XResources database when it comes to
+        window placement.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.EndFunction">
 	<term>EndFunction</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Terminates a Function definition.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,10 @@
 <varlistentry id="options.Swallow">
-	<term>Swallow</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+<term>Swallow "<emphasis remap='I'>window-name</emphasis>" <emphasis remap='I'>command</emphasis></term>
+  <listitem>
+<para>Causes <command>Wharf</command> to run <emphasis remap='I'>command</emphasis>, capture the first window whose 
+name or resource is <emphasis remap='I'>window-name</emphasis>, and display it in the associated 
+button. The application window will be shrunk to fit the size of the 
+button.</para>
+<para>This is a Wharf specific Function.</para>
+</listitem>
 </varlistentry>

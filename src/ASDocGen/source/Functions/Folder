@@ -1,6 +1,10 @@
 <varlistentry id="options.Folder">
-	<term>Folder</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>Folder "<emphasis remap='I'>folder-name</emphasis>"</term>
+  <listitem>
+<para>Defines a slide-out folder inside the current folder.  The following 
+button definitions will be placed inside of the subfolder, until a 
+<emphasis remap='I'>*Wharf ~Folder</emphasis> line is encountered.  See the <emphasis remap='B'>EXAMPLES</emphasis> 
+section below for an example. Folders may be nested.</para>
+<para>This is a Wharf specific Function.</para>
 	</listitem>
 </varlistentry>

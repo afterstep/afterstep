@@ -1,6 +1,10 @@
 <varlistentry id="options.Inherit">
-	<term>Inherit</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>Inherit "<emphasis remap='I'>style_name</emphasis>"</term>
+      <listitem>
+<para>Specifies a <emphasis remap='I'>MyStyle</emphasis> to inherit options from. Options from
+<emphasis remap='I'>style_name</emphasis> will override previously specified options for this
+style. <emphasis remap='I'>Inherit</emphasis> is a good way to save memory and network bandwidth
+if the same <emphasis remap='I'>BackPixmap</emphasis> is used for several styles, as the pixmap
+will only be loaded for the inherited style.</para>
 	</listitem>
 </varlistentry>

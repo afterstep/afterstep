@@ -1,6 +1,9 @@
 <varlistentry id="options.DrawTextBackground">
-	<term>DrawTextBackground</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>DrawTextBackground [<emphasis remap='I'>0|1</emphasis>]</term>
+      <listitem>
+<para>Specifies that the area behind text drawn in this style should be cleared
+to <emphasis remap='I'>BackColor</emphasis>.  The argument is optional.  If the argument is 0,
+this option is turned off; if it is omitted or is nonzero, the option is
+turned on.</para>
 	</listitem>
 </varlistentry>

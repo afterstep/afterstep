@@ -1,6 +1,7 @@
 <varlistentry id="options.XorValue">
-	<term>XorValue</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term><emphasis remap='I'>XorValue value</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>value</emphasis> with which bits are XOR'ed when doing rubber-band
+window moving or resizing. Setting this value is a trial-and-error process.</para>
 	</listitem>
 </varlistentry>

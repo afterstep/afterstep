@@ -1,6 +1,7 @@
 <varlistentry id="options.SwallowModule">
-	<term>SwallowModule</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+<term>SwallowModule "<emphasis remap='I'>window-name</emphasis>" <emphasis remap='I'>command</emphasis></term>
+  <listitem>
+<para>Like <emphasis remap='I'>Swallow</emphasis>, except the <emphasis remap='I'>command</emphasis> is an AfterStep module.</para>
+<para>This is a Wharf specific Function.</para>
+</listitem>
 </varlistentry>

@@ -1,5 +1,5 @@
 <varlistentry id="options.ButtonSize">
-	<term>ButtonSize</term>
+<term>ButtonSize <emphasis remap='I'>width</emphasis> <emphasis remap='I'>height</emphasis></term>
 	<listitem>
 		<para>Specifies the size of iconified windows.  Every iconified window
 		button will be exactly width pixels wide and height pixels high.

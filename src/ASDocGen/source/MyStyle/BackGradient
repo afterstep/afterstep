@@ -1,6 +1,17 @@
 <varlistentry id="options.BackGradient">
-	<term>BackGradient</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>BackGradient <emphasis remap='I'>type</emphasis> <emphasis remap='I'>from</emphasis> <emphasis remap='I'>to</emphasis></term>
+      <listitem>
+<para>Specifies that a gradient should be used as a background instead of a
+solid color. The gradient colors start at <emphasis remap='I'>from</emphasis> and end at <emphasis remap='I'>to</emphasis>.
+<emphasis remap='I'>from</emphasis> and <emphasis remap='I'>to</emphasis> are standard X11 color definitions. <emphasis remap='I'>type</emphasis>
+can be 1, 2, 3, 4, or 5:</para>
+
+<literallayout remap='.nf'>
+1: Wharf-style diagonal gradient
+2: Horizontal from top to bottom
+3: Horizontal from top/bottom to center
+4: Vertical from left to right
+5: Vertical from left/right to center
+</literallayout> <!-- .fi -->
 	</listitem>
 </varlistentry>

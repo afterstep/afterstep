@@ -1,6 +1,7 @@
 <varlistentry id="options.MiniPixmap">
-	<term>MiniPixmap</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>MiniPixmap <emphasis remap='I'>pixmap</emphasis></term>
+      <listitem>
+<para>Specifies a pixmap to display to the left of the menu item which invokes
+this menu, and in the title of this menu.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.Xzap">
-	<term>Xzap</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term><emphasis remap='I'>Xzap number</emphasis></term>
+  <listitem>
+<para>Specifies the horizontal offset of the cursor when warping. This offset
+is relative to the upper-left corner of the window being warped to.</para>
 	</listitem>
 </varlistentry>

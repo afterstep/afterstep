@@ -1,6 +1,7 @@
 <varlistentry id="options.WindowBox">
-	<term>WindowBox</term>
+	<term>WindowBox <emphasis remap='I'>"window_box_name"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Requires AfterStep to use the specified WindowBox for placement of this
+        window.</para>
 	</listitem>
 </varlistentry>

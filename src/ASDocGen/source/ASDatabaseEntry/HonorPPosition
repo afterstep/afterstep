@@ -1,6 +1,10 @@
 <varlistentry id="options.HonorPPosition">
 	<term>HonorPPosition</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+	<para>Forces AfterStep to use PPosition hint for this window. PPosition hint
+        normally means that application has determined its position due to some
+        of its own configuration settings, and position has not been
+        explicitely requested on the command line. This setting overrides
+        NoPPosition setting in feel file.</para>
 	</listitem>
 </varlistentry>
