@@ -385,7 +385,8 @@ else
   fi
 fi
 AC_MSG_RESULT($AFTERIMAGE_LIBS)
-
+AC_MSG_CHECKING(preferred image format)
+AC_MSG_RESULT($image_format)
 
 if test "x$LIBAFTERIMAGE_CFLAGS" = "x$LIBAFTERBASE_CFLAGS"; then
   LIBAFTERIMAGE_CFLAGS=
@@ -506,6 +507,7 @@ AC_SUBST(libafterconf_version_major)
 AC_SUBST(libafterconf_name)
 AC_SUBST(libafterconf_file_name)
 AC_SUBST(with_locale)
+AC_SUBST(image_format)
 AC_SUBST(ASCP)
 AC_SUBST(ASCP_LIBS)
 AC_SUBST(ASCP_INCLUDES)
