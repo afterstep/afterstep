@@ -32,6 +32,9 @@
 /*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
 
+/* #define  I18N */
+
+#include "string.h"
 #include "char2uni.h"
 
 /*
@@ -634,7 +637,7 @@ static const unsigned short _as_cp1251_2uni[128] = {
  * CP1252 - Western European
  */
 
-static const unsigned short _as_cp1252_2uni[128]{
+static const unsigned short _as_cp1252_2uni[128] = {
   /* 0x80 */
   0x20ac, 0xfffd, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021,
   0x02c6, 0x2030, 0x0160, 0x2039, 0x0152, 0xfffd, 0x017d, 0xfffd,
@@ -661,7 +664,7 @@ static const unsigned short _as_cp1252_2uni[128]{
   0x00f8, 0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x00fd, 0x00fe, 0x00ff 
 };
 
-static unsigned short *_as_supported_charset[SUPPORTED_CHARSETS_NUM] = {
+static const unsigned short *_as_supported_charsets[SUPPORTED_CHARSETS_NUM] = {
  &_as_iso8859_1_2uni[0], 
  &_as_iso8859_2_2uni[0], 
  &_as_iso8859_3_2uni[0], 
@@ -684,13 +687,14 @@ static unsigned short *_as_supported_charset[SUPPORTED_CHARSETS_NUM] = {
  &_as_cp1252_2uni[0]
 };
 
+#if 0
 static unsigned short *_as_charset_names[SUPPORTED_CHARSETS_NUM][] = {
 /* Standard 8-bit encodings */
 {"ISO-8859-1", "ISO_8859-1", "ISO_8859-1:1987", "ISO-IR-100", "LATIN1", "L1", "csISOLatin1", 	"ISO8859-1", "ISO8859_1", "CP819", "IBM819", "" },
 {"ISO-8859-2", "ISO_8859-2", "ISO_8859-2:1987", "ISO-IR-101", "LATIN2", "L2", "csISOLatin2", 	"ISO8859-2", "ISO8859_2", "" },
 {"ISO-8859-3", "ISO_8859-3", "ISO_8859-3:1988", "ISO-IR-109", "LATIN3", "L3", "csISOLatin3", 	"ISO8859-3", "ISO8859_3", "" },
 {"ISO-8859-4", "ISO_8859-4", "ISO_8859-4:1988", "ISO-IR-110", "LATIN4", "L4", "csISOLatin4", 	"ISO8859-4", "ISO8859_4", "" },
-{"ISO-8859-5", "ISO_8859-5", "ISO_8859-5:1988", "ISO-IR-144", "CYRILLIC", "csISOLatinCyrill"/*ic*/,"ISO8859-5", "ISO8859_5", "" },
+{"ISO-8859-5", "ISO_8859-5", "ISO_8859-5:1988", "ISO-IR-144", "CYRILLIC", "csISOLatinCyrillic","ISO8859-5", "ISO8859_5", "" },
 {"ISO-8859-6", "ISO_8859-6", "ISO_8859-6:1987", "ISO-IR-127", "ARABIC",   "csISOLatinArabic", 	"ISO8859-6", "ISO8859_6", "ECMA-114", "ASMO-708", "" },
 {"ISO-8859-7", "ISO_8859-7", "ISO_8859-7:1987", "ISO-IR-126", "GREEK",    "csISOLatinGreek", 	"ISO8859-7", "ISO8859_7", "ECMA-118", "ELOT_928", "GREEK8", "" },
 {"ISO-8859-8", "ISO_8859-8", "ISO_8859-8:1988", "ISO-IR-138", "HEBREW",   "csISOLatinHebrew",   "ISO8859-8", "ISO8859_8", "" },
@@ -711,6 +715,8 @@ static unsigned short *_as_charset_names[SUPPORTED_CHARSETS_NUM][] = {
 };
 #endif
 
+#endif
+
 
 ASSupportedCharsets 
 parse_charset_name( const char *name )
@@ -720,11 +726,168 @@ parse_charset_name( const char *name )
 	if( name == NULL || name[0] == '\0' || name[1] == '\0' ) /* that includes locale "C" */
 		return CHARSET_ISO8859_1 ;
      
-	if( name[0] == 'K' || name[0] == 'k' )
-		set = CHARSET_KOI8_R ;
-	else if( name[0] == 'M' || name[0] == 'm' )
+	if( name[0] == 'L' || name[0] == 'l' ) /* L. or Latin... */
+	{
+		char latin_n = name[1] ;
+		if( strncasecmp( &name[1], "ATIN", 4 ) == 0 ) 
+			latin_n = name[5] ;
+		switch( latin_n ) 
+		{  /* L# latins : */
+			case '1' : return CHARSET_ISO8859_1;
+			case '2' : return CHARSET_ISO8859_2;
+			case '3' : return CHARSET_ISO8859_3;
+			case '4' : return CHARSET_ISO8859_4;
+			case '5' : return CHARSET_ISO8859_9;
+			case '6' : return CHARSET_ISO8859_10;
+			case '7' : return CHARSET_ISO8859_13;
+			case '8' : return CHARSET_ISO8859_14;
+		}
+		return CHARSET_ISO8859_1;
+	}else if( name[0] == 'I' || name[0] == 'i' ) /* ISO... or IBM819*/
+	{
+		if( name[1] == 'S' && name[1] == 's' )
+			if( name[2] == 'O' && name[2] == 'o' )
+			{
+				int pos = ( name[3] == '-' || name[3] == '_' )?4:3 ;
+				if( name[pos] == '8' )
+				{
+					if( name[++pos] == '8' )
+						if( name[++pos] == '5' )
+							if( name[++pos] == '9' )
+							{
+								pos += 2 ;
+								switch( name[pos] ) 
+								{
+									case '1' : 
+										{	switch(name[pos+1] )
+											{	case '0' : return CHARSET_ISO8859_10;
+												case '1' : 
+												case '2' : break;
+												case '3' : return CHARSET_ISO8859_13;
+												case '4' : return CHARSET_ISO8859_14;
+												case '5' : return CHARSET_ISO8859_15;
+												case '6' : return CHARSET_ISO8859_16;
+											}
+										}
+										return CHARSET_ISO8859_1;
+									case '2' : return CHARSET_ISO8859_2;
+									case '3' : return CHARSET_ISO8859_3;
+				  					case '4' : return CHARSET_ISO8859_4;
+									case '5' : return CHARSET_ISO8859_5;
+									case '6' : return CHARSET_ISO8859_6;
+									case '7' : return CHARSET_ISO8859_7;
+									case '8' : return CHARSET_ISO8859_8;
+									case '9' : return CHARSET_ISO8859_9;
+								}
+							}
+				}else if( strncasecmp( &name[pos], "IR-", 3 ) == 0 )
+				{
+					pos += 3 ;
+					switch( name[pos+2] )
+					{
+						case '0' : if( name[pos+1] == '0' ) break;
+							return CHARSET_ISO8859_4;
+						case '1' : return CHARSET_ISO8859_2;
+						case '2' : break;
+						case '3' : return CHARSET_ISO8859_15;
+	  					case '4' : return CHARSET_ISO8859_5;
+						case '5' : break;
+						case '6' : return (name[pos]  =='2')?CHARSET_ISO8859_16:CHARSET_ISO8859_7;
+						case '7' : return (name[pos+1]=='2')?CHARSET_ISO8859_6:CHARSET_ISO8859_10;
+						case '8' : return (name[pos+1]=='3')?CHARSET_ISO8859_8:CHARSET_ISO8859_9;
+						case '9' : return (name[pos+1]=='0')?CHARSET_ISO8859_3:
+						                  ((name[pos+1]=='7')?CHARSET_ISO8859_13:CHARSET_ISO8859_14);
+					}
+				}
+			}
+		return CHARSET_ISO8859_1;
+	}else if( name[0] == 'C' || name[0] == 'c' ) /* cs or CP ... or CYRILLIC*/
+	{
+		if( name[1] == 'S' || name[1] == 's' )
+		{/* cs* */
+			if( strncasecmp( &name[2], "KOI8", 4 ) == 0 )
+				return CHARSET_KOI8_R ;
+			if( strncasecmp( &name[2], "ISOLatin", 8 ) == 0 )
+			{
+				switch( name[10] ) 
+				{
+					case '1' : return CHARSET_ISO8859_1;
+					case '2' : return CHARSET_ISO8859_2;
+					case '3' : return CHARSET_ISO8859_3;
+					case '4' : return CHARSET_ISO8859_4;
+					case '5' : return CHARSET_ISO8859_9;
+					case '6' : return CHARSET_ISO8859_10;
+					case '7' : return CHARSET_ISO8859_13;
+					case '8' : return CHARSET_ISO8859_14;
+				}
+				if( name[10] == 'A' || name[10] == 'a' )
+					return CHARSET_ISO8859_6;
+				if( name[10] == 'C' || name[10] == 'c' )
+					return CHARSET_ISO8859_5;
+				if( name[10] == 'H' || name[10] == 'h' )
+					return CHARSET_ISO8859_8;
+				if( name[10] == 'G' || name[10] == 'g' )
+					return CHARSET_ISO8859_7;
+			}
+			return CHARSET_ISO8859_1;
+		}else if( name[1] == 'P' || name[1] == 'p' )
+		{/* CP- */
+			if( strncmp( &name[2], "125", 3 ) == 0 ) 
+			{
+				if( name[5] == '1')
+					return CHARSET_CP1251;
+				if( name[5] == '2')	
+					return CHARSET_CP1252;
+				return CHARSET_CP1250;
+			}
+			return CHARSET_ISO8859_1;	
+		}
+		return CHARSET_ISO8859_5 ; /* CYRILLIC */
+	}else if( name[0] == 'K' || name[0] == 'k' ) /* KOI... */
+	{
+		if( strncasecmp( &name[1], "OI8-", 4) == 0 )
+		{
+			if( name[5] == 'U' || name[5] == 'u' )
+				return CHARSET_KOI8_U;
+			if( name[5] == 'R' || name[5] == 'r' )
+			    if( name[6] == 'U' || name[6] == 'u' )
+					return CHARSET_KOI8_RU;
+		}
+		return CHARSET_KOI8_R ;
+	}else if( name[0] == 'E' || name[0] == 'e' ) /* ECMA... */
+	{
+		if( strncasecmp( &name[1], "CMA-11", 6 ) == 0 ) 
+		{
+			if( name[7] == '4' )
+				return CHARSET_ISO8859_6 ;
+		}
+		/* ELOT_928 or ECMA-118 */
+		return CHARSET_ISO8859_7 ;
+	}else if( name[0] == 'M' || name[0] == 'm' ) /* MS-... */
+	{
+		if( name[1] == 'S' || name[1] == 's' ) /* MS-... */
+			if( name[2] == '-' )
+			{
+				if( name[3] == 'C' || name[3] == 'c' )
+					return CHARSET_CP1251 ;
+				if( name[3] == 'A' || name[3] == 'a' )
+					return CHARSET_CP1252 ;
+			}	
 		set = CHARSET_CP1250 ;
+	}else if( name[0] == 'A' || name[0] == 'a' ) /* ARABIC or ASMO-708 */
+	{
+		return CHARSET_ISO8859_6 ;
+	}else if( name[0] == 'G' || name[0] == 'g' ) /* GREEK or GREEK8 */
+	{
+		/* if( strncasecmp( &name[1], "REEK", 4 ) == 0 ) */
+		return CHARSET_ISO8859_7 ;
+	}else if( name[0] == 'H' || name[0] == 'h' ) /* HEBREW */
+	{
+		/* if( strncasecmp( &name[1], "EBREW", 5 ) == 0 ) */
+		return CHARSET_ISO8859_8 ;
+	}
 	
+#if 0
 	while( set < SUPPORTED_CHARSETS_NUM )
 	{
 		char **aliases =&(_as_charset_names[set][0]) ;
@@ -739,6 +902,7 @@ parse_charset_name( const char *name )
 		}
 		++set;
 	}
+#endif
 #endif
 	return CHARSET_ISO8859_1 ;
 }
