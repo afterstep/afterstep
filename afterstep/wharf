@@ -56,7 +56,7 @@
 #
 # Midnight commander file manager in the term of choice :
 #
-*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" aterm -g 130x35 -e mc &
+*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" aterm -g 130x35 -tr -fg yellow -tint blue -e mc --colors directory=,default:executable=,default:link=,default:device=,default:special=,default:normal=,default:selected=,transparent:marked=yellow,default:markselect=yellow,brown:core=cyan,default &
 *Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" rxvt  -g 130x35 -tr -fg yellow -bg black -e mc  &
 *Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" eterm -g 130x35 -tr -tint blue -fg yellow -bg black -e mc &
 *Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" xterm -g 130x35 -fg yellow -bg blue -e mc &
