@@ -16,6 +16,7 @@ int     copy_file (const char *realfilename1, const char *realfilename2);
 
 char   *find_envvar (char *var_start, int *end_pos);
 void	replace_envvar (char **path);
+char   *copy_replace_envvar (char *path);
 
 char   *make_file_name (const char *path, const char *file);
 char   *put_file_home (const char *path_with_home);

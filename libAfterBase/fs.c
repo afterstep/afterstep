@@ -260,18 +260,18 @@ find_envvar (char *var_start, int *end_pos)
 	return var;
 }
 
-void
-replace_envvar (char **path)
+static char *
+do_replace_envvar (char *path)
 {
-	char         *data = *path, *tmp;
+	char         *data = path, *tmp;
 	char         *home = getenv ("HOME");
 	int           pos = 0, len, home_len = 0;
 
-	if (*path == NULL)
-		return;
-	if (**path == '\0')
-		return;
-	len = strlen (*path);
+	if (path == NULL)
+		return NULL;
+	if (*path == '\0')
+		return path;
+	len = strlen (path);
 	if (home)
 		home_len = strlen (home);
 
@@ -299,7 +299,8 @@ replace_envvar (char **path)
 					strncpy (tmp, data, pos);
 					strcpy (tmp + pos, home);
 					strcpy (tmp + pos + home_len, data + pos + 1);
-					free (data);
+					if( data != path )
+						free (data);
 					data = tmp;
 					pos += home_len;
 				}
@@ -311,7 +312,7 @@ replace_envvar (char **path)
 		/* found $ sign - trying to replace var */
 		if ((var = find_envvar (data + pos + 1, &end_pos)) == NULL)
 		{
-			pos++;
+			++pos;
 			continue;
 		}
 		var_len = strlen (var);
@@ -320,11 +321,29 @@ replace_envvar (char **path)
 		strncpy (tmp, data, pos);
 		strcpy (tmp + pos, var);
 		strcpy (tmp + pos + var_len, data + pos + end_pos + 1);
-		free (data);
+		if( data != path )
+			free (data);
 		data = tmp;
-
 	}
-	*path = data;
+	return data;
+}
+
+void
+replace_envvar (char **path)
+{
+	char         *res = do_replace_envvar( *path );
+	if( res != *path ) 
+	{
+		free( *path );
+		*path = res ;
+	}
+}
+
+char*
+copy_replace_envvar (char *path)
+{
+	char         *res = do_replace_envvar( path );
+	return ( res == path )?mystrdup( res ):res;
 }
 
 /*
