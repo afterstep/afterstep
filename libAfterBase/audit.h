@@ -153,6 +153,7 @@ Status count_xstringlisttotextproperty (const char *fname, int line,
 					char **list, int count,
 					void *text_prop_return);
 int count_xfree (const char *fname, int line, void *data);
+int set_audit_cleanup_mode(int mode);
 
 void print_unfreed_mem (void);
 void output_unfreed_mem (FILE *stream);

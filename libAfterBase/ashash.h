@@ -88,6 +88,9 @@ ASHashResult get_hash_item (ASHashTable * hash, ASHashableValue value,
 ASHashResult remove_hash_item (ASHashTable * hash, ASHashableValue value,
 			       void **trg, Bool destroy);
 
+/* need to run this in order to free up cached memory */
+void flush_ashash_memory_pool();
+
 /* if max_items == 0 then all hash items will be returned */
 unsigned long sort_hash_items (ASHashTable * hash, ASHashableValue * values,
 			       void **data, unsigned long max_items);

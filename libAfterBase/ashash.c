@@ -55,6 +55,7 @@ desc_long_compare_func (ASHashableValue value1, ASHashableValue value2)
 void
 init_ashash (ASHashTable * hash, Bool freeresources)
 {
+LOCAL_DEBUG_CALLER_OUT( " has = %p, free ? %d", hash, freeresources );
 	if (hash)
 	{
 		if (freeresources)
@@ -116,6 +117,7 @@ destroy_ashash_bucket (ASHashBucket * bucket, void (*item_destroy_func) (ASHasha
 void
 destroy_ashash (ASHashTable ** hash)
 {
+LOCAL_DEBUG_CALLER_OUT( " hash = %p, *hash = %p", hash, *hash  );
 	if (*hash)
 	{
 		register int  i;
@@ -139,7 +141,6 @@ destroy_ashash (ASHashTable ** hash)
 #define DEALLOC_CACHE_SIZE      1024
 static ASHashItem*  deallocated_mem[DEALLOC_CACHE_SIZE+10] ;
 static unsigned int deallocated_used = 0 ;
-
 
 static        ASHashResult
 add_item_to_bucket (ASHashBucket * bucket, ASHashItem * item, long (*compare_func) (ASHashableValue, ASHashableValue))
@@ -265,6 +266,19 @@ get_hash_item (ASHashTable * hash, ASHashableValue value, void **trg)
 	return ASH_ItemNotExists;
 }
 
+void flush_ashash_memory_pool()
+{
+	/* we better disable errors as some of this data will belong to memory audit : */
+#ifdef DEBUG_ALLOCS
+    int old_cleanup_mode = set_audit_cleanup_mode(1);
+#endif
+	while( deallocated_used > 0 )
+		free( deallocated_mem[--deallocated_used] );
+#ifdef DEBUG_ALLOCS
+	set_audit_cleanup_mode(old_cleanup_mode);
+#endif
+}
+
 ASHashResult
 remove_hash_item (ASHashTable * hash, ASHashableValue value, void **trg, Bool destroy)
 {
@@ -294,9 +308,6 @@ remove_hash_item (ASHashTable * hash, ASHashableValue value, void **trg, Bool de
 
             if( deallocated_used < DEALLOC_CACHE_SIZE )
             {
-#ifdef DEBUG_ALLOCS
-                countfree (__FILE__, __LINE__, *pitem);
-#endif
                 deallocated_mem[deallocated_used++] = *pitem ;
             }else
                 free( *pitem );

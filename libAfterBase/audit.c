@@ -169,6 +169,10 @@ static unsigned long max_service = 0;
 static unsigned long total_service = 0;
 
 static int    service_mode = 0 ;
+static int    cleanup_mode = 0 ;
+
+int set_audit_cleanup_mode(int mode) 
+{ int old = cleanup_mode; cleanup_mode = mode ; return old;}
 
 void          count_alloc (const char *fname, int line, void *ptr, size_t length, int type);
 mem          *count_find (const char *fname, int line, void *ptr, int type);
@@ -291,6 +295,8 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 		service_mode++ ;
 		if( remove_hash_item (allocs_hash, (ASHashableValue)ptr, (void**)&m, False) == ASH_Success )
 		{
+			if( allocs_hash->items_num <= 0 ) 
+				destroy_ashash(&allocs_hash);
 			if( (m->type & 0xff) != (type & 0xff) )
                 		show_error( "while deallocating pointer %p discovered that it was allocated with different type\n   Called from %s:%d", ptr, fname, line );
             		if( total_service < sizeof(ASHashItem) )
@@ -398,7 +404,7 @@ countfree (const char *fname, int line, void *ptr)
 {
 	mem          *m ;
 
-    if( service_mode > 0 )
+    if( service_mode > 0 || allocs_hash == NULL )
 		return ;
 
 	if (ptr == NULL)
@@ -410,8 +416,9 @@ countfree (const char *fname, int line, void *ptr)
 	m = count_find_and_extract (fname, line, ptr, C_MEM);
 	if (m == NULL)
 	{
-		fprintf (stderr,
-				 "%s:attempt in %s:%d to free memory(%p) that was never allocated!\n", __FUNCTION__, fname, line, ptr);
+		if( cleanup_mode == 0 )
+			fprintf (stderr,
+					 "%s:attempt in %s:%d to free memory(%p) that was never allocated!\n", __FUNCTION__, fname, line, ptr);
 		return;
 	}
 #if 0
