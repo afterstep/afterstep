@@ -63,6 +63,15 @@ ASIdentState IdentState = {};
 IdentConfig *Config = NULL ;
 /**********************************************************************/
 Window get_target_window();
+void GetBaseOptions (const char *filename);
+void GetOptions (const char *filename);
+void CheckConfigSanity();
+
+void HandleEvents();
+void DispatchEvent (ASEvent * event);
+void process_message (send_data_type type, send_data_type *body);
+
+Window make_ident_window();
 
 
 int
@@ -128,10 +137,10 @@ DeadPipe (int nonsense)
     
 	window_data_cleanup();
 
-    if( WinListState.main_canvas )
-        destroy_ascanvas( &WinListState.main_canvas );
-    if( WinListState.main_window )
-        XDestroyWindow( dpy, WinListState.main_window );
+    if( IdentState.main_canvas )
+        destroy_ascanvas( &IdentState.main_canvas );
+    if( IdentState.main_window )
+        XDestroyWindow( dpy, IdentState.main_window );
     
 	FreeMyAppResources();
     
@@ -173,7 +182,6 @@ GetBaseOptions (const char *filename)
 void
 GetOptions (const char *filename)
 {
-    int i ;
     START_TIME(option_time);
     IdentConfig *config = ParseIdentOptions( filename, MyName );
 
@@ -283,6 +291,82 @@ DispatchEvent (ASEvent * event)
 			break;
     }
 }
+
+Window
+make_ident_window()
+{
+	Window        w;
+	XSizeHints    shints;
+	ExtendedWMHints extwm_hints ;
+	int x, y ;
+    int width = Config->geometry.width;
+    int height = Config->geometry.height;
+    XSetWindowAttributes attr;
+    LOCAL_DEBUG_OUT("configured geometry is %dx%d%+d%+d", width, height, Config->geometry.x, Config->geometry.y );
+	switch( Config->gravity )
+	{
+		case NorthEastGravity :
+            x = Scr.MyDisplayWidth - width + Config->geometry.x ;
+            y = Config->geometry.y ;
+			break;
+		case SouthEastGravity :
+            x = Scr.MyDisplayWidth - width + Config->geometry.x ;
+            y = Scr.MyDisplayHeight - height + Config->geometry.y ;
+			break;
+		case SouthWestGravity :
+            x = Config->geometry.x ;
+            y = Scr.MyDisplayHeight - height + Config->geometry.y ;
+			break;
+		case NorthWestGravity :
+		default :
+            x = Config->geometry.x ;
+            y = Config->geometry.y ;
+			break;
+	}
+    attr.event_mask = StructureNotifyMask ;
+    w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, CWEventMask, &attr);
+    set_client_names( w, MyName, MyName, CLASS_IDENT, MyName );
+
+    Scr.RootClipArea.x = x;
+    Scr.RootClipArea.y = y;
+    Scr.RootClipArea.width = width;
+    Scr.RootClipArea.height = height;
+
+    shints.flags = USSize|PMinSize|PResizeInc|PWinGravity;
+    if( get_flags( Config->set_flags, IDENT_SET_GEOMETRY ) )
+        shints.flags |= USPosition ;
+    else
+        shints.flags |= PPosition ;
+
+    shints.width_inc = 1;
+    shints.height_inc = 1;
+	shints.win_gravity = Config->gravity ;
+
+	extwm_hints.pid = getpid();
+    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeMenu ;
+
+	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+
+	/* showing window to let user see that we are doing something */
+	XMapRaised (dpy, w);
+    LOCAL_DEBUG_OUT( "mapping main window at %ux%u%+d%+d", width, height,  x, y );
+    /* final cleanup */
+	XFlush (dpy);
+	sleep (1);								   /* we have to give AS a chance to spot us */
+	/* we will need to wait for PropertyNotify event indicating transition
+	   into Withdrawn state, so selecting event mask: */
+	XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask);
+	return w ;
+}
+
+
+/*************************************************************************/
+/*************************************************************************/
+/*************************************************************************/
+/*************************************************************************/
+/*************************************************************************/
+#if 0
+
 /**********************************************************************
  * If no application window was indicated on the command line, prompt
  * the user to select one
@@ -605,16 +689,4 @@ MakeList (void)
   AddToList ("Geometry:", geometry);
 }
 
-void
-freelist (void)
-{
-  struct Item *cur = itemlistRoot, *cur2;
-
-  while (cur != NULL)
-    {
-      cur2 = cur;
-      cur = cur->next;
-      free (cur2);
-    }
-}
-
+#endif

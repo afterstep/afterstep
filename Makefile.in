@@ -49,21 +49,11 @@ mkdir.lib:
 mkdir.man:
 	@$(MKDIR) -p $(AFTER_MAN_DIR); $(MKDIR) -p $(AFTER_MAN_API_DIR);
  
-install: install.data mkdir
+install: install.desktop install.data mkdir
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} install || exit 1); done
 
 install.bin: mkdir.bin
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.bin || exit 1); done
-	@$(CP) AfterStep.desktop AfterStep.desktop.final; \
-	echo "Exec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.final ; \
-	echo "Icon=$(AFTER_SHAREDIR)/desktop/icons/large/AfterStep3" >> AfterStep.desktop.final ; \
-	if [ -d /usr/share/xsessions ] ; then \
-		$(INSTALL_DATA)  AfterStep.desktop.final /usr/share/xsessions/AfterStep.desktop ; \
-	else if [ -d /etc/X11/sessions ] ; then \
-		$(INSTALL_DATA)  AfterStep.desktop.final /etc/X11/xsessions/AfterStep.desktop ; \
-	fi		
-	
-	
 
 install.lib: mkdir.lib
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.lib || exit 1); done
@@ -73,6 +63,18 @@ install.man: mkdir.man
   
 install.script: mkdir.bin
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.script || exit 1); done
+
+install.desktop: 
+	@$(CP) AfterStep.desktop AfterStep.desktop.final; \
+	echo "Exec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.final ; \
+	echo "Icon=$(AFTER_SHAREDIR)/desktop/icons/large/AfterStep3" >> AfterStep.desktop.final ; \
+	if [ -d /usr/share/xsessions ] ; then \
+		echo "installing AfterStep.desktop into /usr/share/xsessions/" ; \
+		$(INSTALL_DATA)  AfterStep.desktop.final /usr/share/xsessions/AfterStep.desktop ; \
+	else if [ -d /etc/X11/sessions ] ; then \
+		echo "installing AfterStep.desktop /etc/X11/xsessions/" ; \
+		$(INSTALL_DATA)  AfterStep.desktop.final /etc/X11/xsessions/AfterStep.desktop ; \
+	fi; fi
 
 install.data:
 	@if [ -d /usr/local/share/gnome/wm-properties ] ; then \

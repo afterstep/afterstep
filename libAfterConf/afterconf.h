@@ -1877,14 +1877,24 @@ void DestroyAudioConfig (AudioConfig * config);
 
 #define IDENT_ID_START        	AUDIO_ID_END
 
+#define IDENT_Geometry_ID 		(IDENT_ID_START)
+
 #define IDENT_ID_END        	IDENT_ID_START+10
 
 /* config data structure */
 
 typedef struct
 {
-  MyStyleDefinition *style_defs;
-  struct FreeStorageElem *more_stuff;
+#define IDENT_SET_GEOMETRY  (0x01<<0)
+	ASFlagType set_flags ;
+		   
+	ASGeometry geometry;
+	
+	MyStyleDefinition *style_defs;
+	struct FreeStorageElem *more_stuff;
+
+
+	int gravity ;
 
 }
 IdentConfig;
