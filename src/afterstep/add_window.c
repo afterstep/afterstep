@@ -529,17 +529,24 @@ check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name,
         if( *tbar == NULL )
         {
             *tbar = create_astbar();
-LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%x)", *tbar, context );
+LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) );
         }else
             delete_astbar_tile( *tbar, -1 );
 
         set_astbar_style( *tbar, BAR_STATE_FOCUSED, mystyle_name );
-        set_astbar_hilite( *tbar, DEFAULT_TBAR_HILITE );
+        delete_astbar_tile( *tbar, -1 );
         if( img )
         {
-            LOCAL_DEBUG_OUT("adding bar icon %p", img );
-            add_astbar_icon( *tbar, 0, 0, 0, 0, img );
-        }
+            LOCAL_DEBUG_OUT("adding bar icon %p %ux%u", img, img->width, img->height );
+            add_astbar_icon( *tbar, 0, 0, 0, RESIZE_H|RESIZE_V, img );
+            if( back_w == 0 )
+                back_w = img->width ;
+            if( back_h == 0 )
+                back_h = img->height ;
+            set_astbar_hilite( *tbar, 0 );
+        }else
+            set_astbar_hilite( *tbar, DEFAULT_TBAR_HILITE );
+
         set_astbar_size( *tbar, (back_w == 0)?1:back_w, (back_h == 0)?1:back_h );
         (*tbar)->context = context ;
     }else if( *tbar )
@@ -850,6 +857,23 @@ update_window_transparency( ASWindow *asw )
 
 }
 
+#define GetNormalBarHeight(h,b,od)  \
+    do{if((b)!=NULL){ *((od)->in_width)=(b)->width; *((od)->in_height)=(b)->height;(h) = *((od)->out_height);} \
+       else (h) = 0; \
+      }while(0)
+
+
+static unsigned int make_corner_addon( ASOrientation *od, ASTBarData *longbar, ASTBarData *corner1, ASTBarData *corner2 )
+{
+    unsigned int longbar_height = 0, c1_height = 0, c2_height = 0 ;
+    GetNormalBarHeight( longbar_height, longbar, od );
+    GetNormalBarHeight( c1_height, corner1, od );
+    GetNormalBarHeight( c2_height, corner2, od );
+    if( c1_height >= c2_height )
+        return (c1_height > longbar_height)?c1_height - longbar_height:0;
+    else
+        return (c2_height > longbar_height)?c2_height - longbar_height:0;
+}
 
 static void
 resize_canvases( ASWindow *asw, ASOrientation *od, unsigned int normal_width, unsigned int normal_height, unsigned int *frame_sizes )
@@ -857,14 +881,18 @@ resize_canvases( ASWindow *asw, ASOrientation *od, unsigned int normal_width, un
     unsigned short tbar_size = frame_sizes[od->tbar_side] ;
     unsigned short sbar_size = frame_sizes[od->sbar_side] ;
 
+    /* we need to determine if corners are bigger then frame bars on sbar and tbar : */
+    tbar_size += make_corner_addon( od, asw->frame_bars[od->tbar_side], asw->frame_bars[od->tbar_mirror_corners[0]], asw->frame_bars[od->tbar_mirror_corners[1]] );
+    sbar_size += make_corner_addon( od, asw->frame_bars[od->sbar_side], asw->frame_bars[od->sbar_mirror_corners[0]], asw->frame_bars[od->sbar_mirror_corners[1]] );
+
     *(od->in_width)  = normal_width ;
-    *(od->in_height) = tbar_size ;
+    *(od->in_height) = tbar_size;
     if( asw->frame_sides[od->tbar_side] )
         moveresize_canvas( asw->frame_sides[od->tbar_side], 0, 0, *(od->out_width), *(od->out_height) );
 
     *(od->in_x) = 0 ;
     *(od->in_y) = normal_height - sbar_size ;
-    *(od->in_height) = sbar_size ;
+    *(od->in_height) = sbar_size;
     if( asw->frame_sides[od->sbar_side] )
         moveresize_canvas( asw->frame_sides[od->sbar_side], *(od->out_x), *(od->out_y), *(od->out_width), *(od->out_height) );
 
@@ -1050,7 +1078,9 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
     ASCanvas *canvas = asw->frame_sides[side];
     ASTBarData *title = NULL, *corner1 = NULL, *longbar = NULL, *corner2 = NULL;
     Bool vertical = False ;
+    int corner_height1 = 0, corner_height2 = 0 ;
 
+    LOCAL_DEBUG_CALLER_OUT("%p,%d, %ux%u, %s", asw, side, normal_width, normal_height, force_render?"force":"don't force" );
     longbar = asw->frame_bars[side];
     if( side == od->tbar_side )
     {
@@ -1077,6 +1107,7 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
             rendered = True ;
 
         corner_size1 = *(od->out_width);
+        corner_height1 = *(od->out_height);
     }
     /* mirror_corner 1 */
     if( corner2 )
@@ -1085,10 +1116,20 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
             rendered = True ;
 
         corner_size2 = *(od->out_width);
+        corner_height2 = *(od->out_height);
     }
     /* side */
     if( longbar )
     {
+        if( title == NULL )                    /* we are in the sbar */
+        {
+            tbar_size = (corner_height1 >= corner_height2)?corner_height1:corner_height2 ;
+            *(od->in_width) = longbar->width ;
+            *(od->in_height) = longbar->height ;
+            tbar_size -= (int)(*(od->out_height));
+            if( tbar_size < 0 )
+                tbar_size = 0 ;
+        }
         if( move_resize_longbar( longbar, canvas, od,
                                  tbar_size, vertical?normal_height:normal_width,
                                  corner_size1, corner_size2,

@@ -885,7 +885,7 @@ set_tbtn_pressed( ASBtnBlock *bb, int context )
 
 
 static int
-set_asbtn_block_layer( ASTile* tile, ASImageLayer *layer, unsigned int state )
+set_asbtn_block_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage **scrap_images, int max_width, int max_height )
 {
     register ASBtnBlock *bb = &(tile->data.bblock);
     register int i = bb->buttons_num ;
@@ -917,15 +917,39 @@ free_asicon( ASTile* tile )
 }
 
 static int
-set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state )
+set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage **scrap_images, int max_width, int max_height )
 {
-    layer->im = tile->data.icon;
-    if( layer->im == NULL )
+    int dst_width, dst_height ;
+    ASImage *im = tile->data.icon ;
+
+    if( im == NULL )
         return 0;
+
+    dst_width  = im->width ;
+    dst_height = im->height ;
+
+    if( ASTileResizeable( *tile ) )
+    {
+        if( get_flags( tile->flags, AS_TileHScale ) )
+            dst_width = max_width ;
+        if( get_flags( tile->flags, AS_TileVScale ) )
+            dst_height = max_height ;
+    }
+
+    if( im->width != dst_width || im->height != dst_height )
+    {
+        im = scale_asimage( Scr.asv, im, dst_width, dst_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+        if( im == NULL )
+            im = tile->data.icon ;
+        else
+            *scrap_images = im ;
+    }
+
+    layer->im = im;
     layer->dst_x = tile->x;
     layer->dst_y = tile->y ;
-    layer->clip_width  = layer->im->width ;
-    layer->clip_height = layer->im->height ;
+    layer->clip_width  = ASTileHResizeable(*tile)?max_width:layer->im->width ;
+    layer->clip_height = ASTileVResizeable(*tile)?max_height:layer->im->height ;
     return 1;
 }
 /********************************************************************/
@@ -994,7 +1018,7 @@ LOCAL_DEBUG_OUT( "state(%d)->style(\"%s\")->text(\"%s\")->image(%p)->flip(%d)", 
 }
 
 static int
-set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state )
+set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage **scrap_images, int max_width, int max_height )
 {
     register ASLabel *lbl = &(tile->data.label);
     CARD32 alpha ;
@@ -1022,7 +1046,7 @@ struct
     void (*free_astile_handler)( ASTile* tile );
     int  (*check_point_handler)( ASTile* tile, int x, int y );
     void (*on_style_changed_handler)( ASTile* tile, MyStyle *style, unsigned int state );
-    int  (*set_layer_handler)( ASTile* tile, ASImageLayer *layer, unsigned int state );
+    int  (*set_layer_handler)( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage **scrap_images, int max_width, int max_height );
 
 }ASTileTypeHandlers[AS_TileTypes] =
 {
@@ -1232,7 +1256,7 @@ set_astbar_hilite( ASTBarData *tbar, ASFlagType hilite )
     if (tbar)
 	{
         changed = (BAR_FLAGS2HILITE(tbar->state) != (hilite&HILITE_MASK));
-        tbar->state = (tbar->state&BAR_FLAGS_HILITE_MASK)|HILITE2BAR_FLAGS(hilite);
+        tbar->state = (tbar->state&(~BAR_FLAGS_HILITE_MASK))|HILITE2BAR_FLAGS(hilite);
         if (changed )
         {
             update_astbar_bevel_size (tbar);
@@ -1347,17 +1371,19 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
 
     if( get_flags( flip, FLIP_VERTICAL ) )
         align_flags = (((align&PAD_H_MASK)>>PAD_H_OFFSET)<<PAD_V_OFFSET)|
-                      (((align&PAD_V_MASK)>>PAD_V_OFFSET)<<PAD_H_OFFSET) ;
+                      (((align&PAD_V_MASK)>>PAD_V_OFFSET)<<PAD_H_OFFSET)|
+                      (((align&RESIZE_H_MASK)>>RESIZE_H_OFFSET)<<RESIZE_V_OFFSET)|
+                      (((align&RESIZE_V_MASK)>>RESIZE_V_OFFSET)<<RESIZE_H_OFFSET) ;
 
     if( get_flags( flip, FLIP_UPSIDEDOWN ) )
-        align_flags = ((align_flags&0x0005)<<1)|((align_flags&(0x0005<<1))>>1);
+        align_flags = ((align_flags&0x0005)<<1)|((align_flags&(0x0005<<1))>>1)|(align_flags&RESIZE_MASK);
 
     memset( &(tbar->tiles[new_idx]), 0x00, sizeof(ASTile));
     tbar->tiles[new_idx].flags = (type&AS_TileTypeMask)|
                                  ((col<<AS_TileColOffset)&AS_TileColMask)|
                                  ((row<<AS_TileRowOffset)&AS_TileRowMask)|
                                  ((flip<<AS_TileFlipOffset)&AS_TileFlipMask)|
-                                 ((align_flags<<AS_TilePadOffset)&AS_TilePadMask);
+                                 ((align_flags<<AS_TileFloatingOffset)&AS_TileFloatingMask);
     set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
     return &(tbar->tiles[new_idx]);
 }
@@ -1667,6 +1693,7 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 	MyStyle      *style;
 	ASImageBevel  bevel;
     ASImageLayer *layers;
+    ASImage     **scrap_images = NULL;
 	ASImage      *merged_im;
 	int           state;
 	ASAltImFormats fmt = ASA_XImage;
@@ -1675,9 +1702,9 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
     short row_height[AS_TileRows] = {0};
     short col_x[AS_TileColumns] = {0};
     short row_y[AS_TileRows] = {0};
-    unsigned char padded_cols[AS_TileColumns] = {0};
-    unsigned char padded_rows[AS_TileRows] = {0};
-    int padded_cols_count = 0, padded_rows_count = 0;
+    unsigned char floating_cols[AS_TileColumns] = {0};
+    unsigned char floating_rows[AS_TileRows] = {0};
+    int floating_cols_count = 0, floating_rows_count = 0;
     short space_left_x, space_left_y ;
     int x = 0, y = 0 ;
     int good_layers = 0;
@@ -1713,6 +1740,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             return -1;
 	}
     mystyle_make_bevel (style, &bevel, BAR_FLAGS2HILITE(tbar->state), get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
+    //mystyle_make_bevel (style, &bevel, 0, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
 	/* in unfocused and unpressed state we render pixmap and set
 	 * window's background to it
 	 * in focused state or in pressed state we render to
@@ -1728,15 +1756,15 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             good_layers += ASTileSublayers(tbar->tiles[l]);
             if( col_width[pos] < tbar->tiles[l].width )
                 col_width[pos] = tbar->tiles[l].width;
-            if( get_flags( tbar->tiles[l].flags, AS_TileHPadMask ) )
-                ++padded_cols[pos] ;
+            if( ASTileHFloating(tbar->tiles[l]) )
+                ++floating_cols[pos] ;
             pos = ASTileRow(tbar->tiles[l]);
             if( row_height[pos] < tbar->tiles[l].height )
                 row_height[pos] = tbar->tiles[l].height;
-            if( get_flags( tbar->tiles[l].flags, AS_TileVPadMask ) )
-                ++padded_rows[pos] ;
+            if( ASTileVFloating(tbar->tiles[l]) )
+                ++floating_rows[pos] ;
         }
-    /* pass 2: see how much space we have left that needs to be padded to some rows/columns : */
+    /* pass 2: see how much space we have left that needs to be floating to some rows/columns : */
     space_left_x = tbar->width - (tbar->left_bevel+tbar->right_bevel+tbar->h_border*2);
     space_left_y = tbar->height- (tbar->top_bevel+tbar->bottom_bevel+tbar->v_border*2);
     for( l = 0 ; l < AS_TileColumns ; ++l )
@@ -1745,20 +1773,20 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             space_left_x -= col_width[l]+tbar->h_spacing ;
         if( row_height[l] > 0 )
             space_left_y -= row_height[l]+tbar->v_spacing ;
-        if( padded_cols[l] )
-            ++padded_cols_count;
-        if( padded_rows[l] )
-            ++padded_rows_count;
+        if( floating_cols[l] )
+            ++floating_cols_count;
+        if( floating_rows[l] )
+            ++floating_rows_count;
     }
     space_left_x += tbar->h_spacing ;
     space_left_y += tbar->v_spacing ;
     /* pass 3: now we determine spread padding among affected cols : */
-    if( padded_cols_count > 0 && space_left_x != 0)
+    if( floating_cols_count > 0 && space_left_x != 0)
         for( l = 0 ; l < AS_TileColumns ; ++l )
         {
-            if( padded_cols[l] > 0 )
+            if( floating_cols[l] > 0 )
             {
-                register int change = space_left_x/padded_cols_count ;
+                register int change = space_left_x/floating_cols_count ;
                 if( change == 0 )
                     change = (space_left_x>0)?1:-1 ;
                 col_width[l] += change;
@@ -1773,12 +1801,12 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             }
         }
     /* pass 4: now we determine spread padding among affected rows : */
-    if( padded_rows_count > 0 && space_left_y != 0)
+    if( floating_rows_count > 0 && space_left_y != 0)
         for( l = 0 ; l < AS_TileRows ; ++l )
         {
-            if( padded_rows[l] > 0 )
+            if( floating_rows[l] > 0 )
             {
-                register int change = space_left_y/padded_rows_count ;
+                register int change = space_left_y/floating_rows_count ;
                 if( change == 0 )
                     change = (space_left_y>0)?1:-1 ;
                 row_height[l] += change;
@@ -1808,10 +1836,18 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
     /* Done with layout */
 
     layers = create_image_layers (good_layers+1);
+    scrap_images = safecalloc( good_layers+1, sizeof(ASImage*));
 	layers[0].im = back;
 	layers[0].bevel = &bevel;
-	layers[0].clip_width = tbar->width - (tbar->left_bevel + tbar->right_bevel);
-	layers[0].clip_height = tbar->height - (tbar->top_bevel + tbar->bottom_bevel);
+    if( tbar->width > (tbar->left_bevel + tbar->right_bevel) )
+        layers[0].clip_width = tbar->width - (tbar->left_bevel + tbar->right_bevel);
+    else
+        layers[0].clip_width = 1;
+
+    if( tbar->height > (tbar->top_bevel + tbar->bottom_bevel) )
+        layers[0].clip_height = tbar->height - (tbar->top_bevel + tbar->bottom_bevel);
+    else
+        layers[0].clip_height = 1;
 
     /* now we need to loop through tiles and add them to the layers list at correct locations */
     good_layers = 1;
@@ -1822,23 +1858,27 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
         {
             int row =  ASTileRow(tbar->tiles[l]);
             int col =  ASTileCol(tbar->tiles[l]);
+            int pad_x = 0, pad_y = 0 ;
+            if( !ASTileHResizeable( tbar->tiles[l] ) )
+                pad_x = make_tile_pad(  get_flags(tbar->tiles[l].flags, AS_TilePadLeft),
+                                        get_flags(tbar->tiles[l].flags, AS_TilePadRight),
+                                        col_width[col], tbar->tiles[l].width ) ;
+            tbar->tiles[l].x = col_x[col] + pad_x;
 
-            tbar->tiles[l].x = col_x[col] + make_tile_pad(  get_flags(tbar->tiles[l].flags, AS_TilePadLeft),
-                                                            get_flags(tbar->tiles[l].flags, AS_TilePadRight),
-                                                            col_width[col], tbar->tiles[l].width );
-            tbar->tiles[l].y = row_y[row] + make_tile_pad(  get_flags(tbar->tiles[l].flags, AS_TilePadTop),
-                                                            get_flags(tbar->tiles[l].flags, AS_TilePadBottom),
-                                                            row_height[row],tbar->tiles[l].height);
-            good_layers += ASTileTypeHandlers[type].set_layer_handler(&(tbar->tiles[l]), &(layers[good_layers]), state );
+            if( !ASTileHResizeable( tbar->tiles[l] ) )
+                pad_y = make_tile_pad(  get_flags(tbar->tiles[l].flags, AS_TilePadTop),
+                                        get_flags(tbar->tiles[l].flags, AS_TilePadBottom),
+                                        row_height[row],tbar->tiles[l].height);
+            tbar->tiles[l].y = row_y[row] + pad_y;
+            good_layers += ASTileTypeHandlers[type].set_layer_handler(&(tbar->tiles[l]), &(layers[good_layers]), state, &(scrap_images[good_layers]), col_width[col]-pad_x, row_height[row]-pad_y );
         }
     }
 
 #ifdef LOCAL_DEBUG
     show_progress("MERGING TBAR %p image %dx%d FROM:",
-                  tbar, tbar->width, tbar->height, tbar->tiles_num);
+                  tbar, tbar->width, tbar->height );
     print_astbar_tiles(tbar);
-    show_progress("USING %d layers:",
-                  tbar, tbar->width, tbar->height, good_layers);
+    show_progress("USING %d layers:", good_layers);
     for( l = 0 ; l < good_layers ; ++l )
     {
         show_progress( "\t %3.3d: %p %+d%+d %ux%u%+d%+d", l, layers[l].im,
@@ -1856,6 +1896,10 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 		fill_canvas_mask (pc, tbar->win_x, tbar->win_y, tbar->width, tbar->height, 1);
 #endif
     merged_im = merge_layers (Scr.asv, &layers[0], good_layers, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
+    for( l = 0 ; l < good_layers ; ++l )
+        if( scrap_images[l] )
+            destroy_asimage( &(scrap_images[l]) );
+    free( scrap_images );
     free( layers );
 
 	if (merged_im)

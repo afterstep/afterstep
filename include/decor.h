@@ -84,32 +84,52 @@ typedef struct ASTile {
 #define AS_TileColMask      (0x07<<AS_TileColOffset)
 #define ASTileCol(t)        (((t).flags&AS_TileColMask)>>AS_TileColOffset)
 
-#define AS_TileRowOffset    (AS_TileColOffset+3)
+#define AS_TileRowOffset    (AS_TileColOffset+3)  /* 7 */
 #define AS_TileRows         8
 #define AS_TileRowMask      (0x07<<AS_TileRowOffset)
 #define ASTileRow(t)        (((t).flags&AS_TileRowMask)>>AS_TileRowOffset)
 
-#define AS_TileFlipOffset   (AS_TileRowOffset+3)
+#define AS_TileFlipOffset   (AS_TileRowOffset+3)  /* 10 */
 #define AS_TileVFlip        (0x01<<AS_TileFlipOffset)
 #define AS_TileUFlip        (0x01<<(AS_TileFlipOffset+1))
 #define AS_TileFlipMask     (AS_TileVFlip|AS_TileUFlip)
 #define ASTileFlip(t)       (((t).flags&AS_TileFlipMask)>>AS_TileFlipOffset)
 
-#define AS_TileSublayersOffset  (AS_TileFlipOffset+2)
+#define AS_TileSublayersOffset  (AS_TileFlipOffset+2)  /* 12 */
 #define AS_TileSublayersMask    (0x00FF<<AS_TileSublayersOffset)  /* max 256 sublayers */
 #define ASTileSublayers(t)      (((t).flags&AS_TileSublayersMask)>>AS_TileSublayersOffset)
 #define ASSetTileSublayers(t,c)  ((t).flags = ((t).flags&(~AS_TileSublayersMask))|((c<<AS_TileSublayersOffset)&AS_TileSublayersMask))
 
-#define AS_TilePadOffset    (AS_TileSublayersOffset+8)
-#define AS_TilePadLeft      (0x01<<AS_TilePadOffset)
-#define AS_TilePadRight     (0x01<<(AS_TilePadOffset+1))
-#define AS_TileHPadMask     (0x03<<AS_TilePadOffset)
-#define AS_TilePadBottom    (0x01<<(AS_TilePadOffset+2))  /* rotated with Top on purpose */
-#define AS_TilePadTop       (0x01<<(AS_TilePadOffset+3))
-#define AS_TileVPadMask     (0x03<<(AS_TilePadOffset+2))
+/* PAD_ stuff begins with 0 offset (see afterstep.h) */
+#define AS_TilePadOffset    (AS_TileSublayersOffset+8)  /* 20 */
+#define AS_TilePadLeft      (PAD_LEFT  <<AS_TilePadOffset)
+#define AS_TilePadRight     (PAD_RIGHT <<AS_TilePadOffset)
+#define AS_TileHPadMask     (PAD_H_MASK<<AS_TilePadOffset)
+#define AS_TilePadBottom    (PAD_BOTTOM<<AS_TilePadOffset)  /* rotated with Top on purpose */
+#define AS_TilePadTop       (PAD_TOP   <<AS_TilePadOffset)
+#define AS_TileVPadMask     (PAD_V_MASK<<AS_TilePadOffset)
 #define AS_TilePadMask      (AS_TileVPadMask|AS_TileHPadMask)
+/* RESIZE_ stuff is already offset as related to PAD_ (see afterstep.h) */
+#define AS_TileHResize      (RESIZE_H       <<AS_TilePadOffset) /* either tile or scale in H direction*/
+#define AS_TileHScale       (RESIZE_H_SCALE <<AS_TilePadOffset) /* otherwise tiled in H direction */
+#define AS_TileHResizeMask  (RESIZE_H_MASK  <<AS_TilePadOffset)
+#define AS_TileVResize      (RESIZE_V       <<AS_TilePadOffset) /* either tile or scale in V direction*/
+#define AS_TileVScale       (RESIZE_V_SCALE <<AS_TilePadOffset) /* otherwise tiled in V direction */
+#define AS_TileVResizeMask  (RESIZE_V_MASK  <<AS_TilePadOffset)
+#define AS_TileResizeMask   (AS_TileHResizeMask|AS_TileVResizeMask)
+#define ASTileHResizeable(t)    ((t).flags&AS_TileHResize)
+#define ASTileVResizeable(t)    ((t).flags&AS_TileVResize)
+#define ASTileResizeable(t)     ((t).flags&(AS_TileHResize|AS_TileVResize))
+#define ASTileScalable(t)       (ASTileResizeable(t)&&((t).flags&(AS_TileHScale|AS_TileVScale)))
 
-	ASFlagType flags;
+#define AS_TileFloatingOffset   AS_TilePadOffset
+#define AS_TileHFloatingMask    (AS_TileHResizeMask|AS_TileHPadMask)
+#define AS_TileVFloatingMask    (AS_TileVResizeMask|AS_TileVPadMask)
+#define AS_TileFloatingMask     (AS_TileHFloatingMask|AS_TileVFloatingMask)
+#define ASTileHFloating(t)      ((t).flags&(AS_TileHResize|AS_TileHPadMask))
+#define ASTileVFloating(t)      ((t).flags&(AS_TileVResize|AS_TileVPadMask))
+
+    ASFlagType flags;
     short x, y;
     unsigned short width, height;
 	union {
