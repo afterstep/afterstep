@@ -2357,8 +2357,8 @@ void on_wharf_moveresize( ASEvent *event )
             unmap_wharf_folder( aswf );
         }else if( changes != 0 )
         {
-LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
             int i = aswf->buttons_num ;
+LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 
 			if( !get_flags( aswf->flags, ASW_Withdrawn ) )
 			{	
