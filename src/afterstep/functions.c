@@ -30,6 +30,8 @@
 
 #include "../../configure.h"
 
+#define LOCAL_DEBUG
+
 #include "../../include/asapp.h"
 #include "../../libAfterImage/afterimage.h"
 
@@ -38,6 +40,7 @@
 
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
+#include "../../include/parser.h"
 #include "../../include/decor.h"
 #include "../../include/event.h"
 #include "../../include/screen.h"
@@ -172,6 +175,30 @@ get_complex_function( char *name )
     return find_complex_func( Scr.Feel.ComplexFunctions, name );
 }
 
+void
+print_func_data(const char *file, const char *func, int line, FunctionData *data)
+{
+    fprintf( stderr, "%s:%s:%s:%d>!!FUNC ", get_application_name(), file, func, line);
+    if( data == NULL )
+        fprintf( stderr, "NULL Function\n");
+    else
+    {
+        TermDef      *term = func2fterm (data->func, True);
+        if( term == NULL )
+            fprintf( stderr, "Invalid Function %d\n", data->func);
+        else
+        {
+            fprintf( stderr, "%s \"%s\" %s ", term->keyword, data->name?data->name:"", data->text?data->text:"" );
+            if( data->text == NULL )
+            {
+                fprintf( stderr, "%ld%c ", data->func_val[0], (data->unit[0]=='\0')?' ':data->unit[0] );
+                fprintf( stderr, "%ld%c ", data->func_val[0], (data->unit[0]=='\0')?' ':data->unit[0] );
+            }
+            fprintf( stderr, "(popup=%p)\n", data->popup );
+        }
+    }
+}
+
 /***********************************************************************
  *  Procedure:
  *	ExecuteFunction - execute a afterstep built in function
@@ -188,10 +215,18 @@ ExecuteFunction (FunctionData *data, ASEvent *event, int module)
 #endif
 {
     register FunctionCode  func = data->func;
-LOCAL_DEBUG_CALLER_OUT( "function %d, event %d, window 0x%lX, window_name \"%s\", module %d",
-                        data?data->func:0, event?event->x.type:-1, event?(unsigned long)event->w:0, event->client?ASWIN_NAME(event->client):"none", module );
-/*fprintf( stderr, "ExecuteFunction(%d, vals = %d(%d, %d), %d(%d, %d)) - starting up\n",data->func, data->func_val[0], val1, val1_unit, data->func_val[1], val2, val2_unit ); */
-	/* Defer Execution may wish to alter this value */
+#ifndef LOCAL_DEBUG
+    if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
+#endif
+        print_func_data(__FILE__, "ExecuteFunction", __LINE__, data);
+LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)",
+                         event?event->x.type:-1,
+                         event?event_type2name(event->x.type):"n/a",
+                         event?(unsigned long)event->w:0,
+                         event?event->client:NULL,
+                         event?(event->client?ASWIN_NAME(event->client):"none"):"none",
+                         module );
+    /* Defer Execution may wish to alter this value */
     if (IsWindowFunc (func))
 	{
 		int           cursor, fin_event;
@@ -247,9 +282,11 @@ LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the specifyed window (mask 
 	 *   heritage
 	 *                  Sasha Vasko.
 	 */
-	if (func != F_FUNCTION && func != F_POPUP &&
+#if 0
+    if (func != F_FUNCTION && func != F_POPUP &&
 	    function_handlers[func] != module_func_handler )
 		WaitForButtonsUpLoop ();
+#endif
 }
 
 /***********************************************************************

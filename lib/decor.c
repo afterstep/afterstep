@@ -305,6 +305,12 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)", pc, pc->w
 	}
 }
 
+Bool
+is_canvas_dirty( ASCanvas *pc )
+{
+    return pc?get_flags (pc->state, CANVAS_DIRTY|CANVAS_OUT_OF_SYNC):False;
+}
+
 void
 resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 {
@@ -421,10 +427,10 @@ create_astbtn_block( unsigned int btn_count )
     return blk ;
 }
 
-
 ASTBtnBlock*
 build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int count,
-                  int left_margin, int top_margin, int spacing, int order )
+                  int left_margin, int top_margin, int spacing, int order,
+                  unsigned long context_base )
 {
     ASTBtnBlock *blk = NULL ;
     unsigned int real_count = 0 ;
@@ -454,7 +460,7 @@ build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int coun
             if( (mask&(0x01<<i)) != 0 && (from_list[i].unpressed.image || from_list[i].pressed.image))
             {
                 set_tbtn_images( &(blk->buttons[k]), &(from_list[i]) );
-                blk->buttons[k].context = i ;
+                blk->buttons[k].context = context_base<<i ;
                 --k ;
             }
             --i ;
@@ -521,6 +527,8 @@ check_tbtn_point( ASTBtnBlock *bb, int x, int y )
     if( bb )
     {
         register int i = bb->count ;
+        x -= bb->x ;
+        y -= bb->y ;
         while( --i >= 0 )
         {
             register ASTBtnData *btn = &(bb->buttons[i]) ;
@@ -925,13 +933,15 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
             btn_offset = (label_height - btns->height)/2;
         else
             btn_offset = 0;
+        btns->x = 0 ;
+        btns->y = btn_offset ;
 
         while( --i >= 0 )
             if( btns->buttons[i].current )
             {
                 layers[l].im = btns->buttons[i].current;
                 layers[l].dst_x = btns->buttons[i].x;
-                layers[l].dst_y = btns->buttons[i].y + btn_offset;
+                layers[l].dst_y = btns->buttons[i].y;
                 layers[l].clip_width = btns->buttons[i].width;
                 layers[l].clip_height = btns->buttons[i].height;
                 ++l ;
@@ -948,6 +958,9 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
             btn_offset = (label_height - btns->height)/2;
         else
             btn_offset = 0 ;
+
+        btns->x = btn_left ;
+        btns->y = btn_offset ;
 
         while( --i >= 0 )
             if( btns->buttons[i].current )
@@ -1002,6 +1015,8 @@ set_astbar_focused (ASTBarData * tbar, ASCanvas * pc, Bool focused)
 			set_flags (tbar->state, BAR_STATE_FOCUSED);
 		else
 			clear_flags (tbar->state, BAR_STATE_FOCUSED);
+        if( old_focused != focused && pc != NULL )
+            render_astbar( tbar, pc );
         return ((focused?1:0)!=old_focused);
 	}
 	return False;
@@ -1018,6 +1033,8 @@ set_astbar_pressed (ASTBarData * tbar, ASCanvas * pc, Bool pressed)
 			set_flags (tbar->state, BAR_STATE_PRESSED);
 		else
 			clear_flags (tbar->state, BAR_STATE_PRESSED);
+        if( old_pressed != pressed && pc != NULL )
+            render_astbar( tbar, pc );
         return ((pressed?1:0)!=old_pressed);
 	}
 	return False;

@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-/* #define LOCAL_DEBUG */
+#define LOCAL_DEBUG
 /*#define DO_CLOCKING*/
 
 #define DO_X11_ANTIALIASING
@@ -105,7 +105,7 @@ destroy_font_manager( ASFontManager *fontman, Bool reusable )
 	if( fontman )
 	{
 
-		destroy_ashash( &(fontman->fonts_hash) );
+        destroy_ashash( &(fontman->fonts_hash) );
 
 #ifdef HAVE_FREETYPE
 		FT_Done_FreeType( fontman->ft_library);
@@ -179,7 +179,7 @@ LOCAL_DEBUG_OUT( "face found : %p", face );
 				if( face->num_glyphs >  MAX_GLYPHS_PER_FONT )
 					show_error( "Font \"%s\" contains too many glyphs - %d. Max allowed is %d", realfilename, face->num_glyphs, MAX_GLYPHS_PER_FONT );
 				else
-#endif				
+#endif
 				{
 					font = safecalloc( 1, sizeof(ASFont));
 					font->magic = MAGIC_ASFONT ;
@@ -310,31 +310,37 @@ release_font( ASFont *font )
 	return res ;
 }
 
-static inline void 
+static inline void
 free_glyph_data( register ASGlyph *asg )
 {
-	if( asg->pixmap )
-		free( asg->pixmap );
-	asg->pixmap = NULL ;
+    if( asg->pixmap )
+        free( asg->pixmap );
+/*fprintf( stderr, "\t\t%p\n", asg->pixmap );*/
+    asg->pixmap = NULL ;
 }
 
-static void 
+static void
 destroy_glyph_range( ASGlyphRange **pgr )
 {
 	ASGlyphRange *gr = *pgr;
 	if( gr )
 	{
 		*pgr = gr->above ;
-		if( gr->below ) 
+        if( gr->below )
 			gr->below->above = gr->above ;
-		if( gr->above ) 
-			gr->above->below = gr->below ;	
-		if( gr->glyphs ) 
+        if( gr->above )
+			gr->above->below = gr->below ;
+        if( gr->glyphs )
 		{
-			register int i = gr->max_char+1-gr->min_char ;
-			while( --i >= 0 ) 
+            int max_i = ((int)gr->max_char-(int)gr->min_char)+1 ;
+            register int i = -1 ;
+/*fprintf( stderr, " max_char = %d, min_char = %d, i = %d", gr->max_char, gr->min_char, max_i);*/
+            while( ++i < max_i )
+            {
+/*fprintf( stderr, "%d >", i );*/
 				free_glyph_data( &(gr->glyphs[i]) );
-			free( gr->glyphs );
+            }
+            free( gr->glyphs );
 			gr->glyphs = NULL ;
 		}
 		free( gr );
@@ -347,16 +353,17 @@ destroy_font( ASFont *font )
 	if( font )
 	{
 #ifdef HAVE_FREETYPE
-		if( font->type == ASF_Freetype && font->ft_face )
+        if( font->type == ASF_Freetype && font->ft_face )
 			FT_Done_Face(font->ft_face);
 #endif
-		if( font->name ) 
+        if( font->name )
 			free( font->name );
-		while( font->codemap ) 
+        while( font->codemap )
 			destroy_glyph_range( &(font->codemap) );
-		if( font->locale_glyphs ) 
-			destroy_ashash( &(font->locale_glyphs) ); 
-		font->magic = 0 ;
+        free_glyph_data( &(font->default_glyph) );
+        if( font->locale_glyphs )
+			destroy_ashash( &(font->locale_glyphs) );
+        font->magic = 0 ;
 		free( font );
 	}
 }
@@ -376,10 +383,14 @@ asfont_destroy (ASHashableValue value, void *data)
 {
 	if( data )
 	{
-		free( (char*)value );
-		if( ((ASMagic*)data)->magic == MAGIC_ASFONT )
-			destroy_font( (ASFont*)data );
-	}
+        if( ((ASMagic*)data)->magic == MAGIC_ASFONT )
+        {
+/*              fprintf( stderr,"freeing font \"%s\"...", (char*) value ); */
+              destroy_font( (ASFont*)data );
+/*              fprintf( stderr,"   done.\n"); */
+        }
+        free( (char*)value );
+    }
 }
 
 /*************************************************************************/
@@ -436,7 +447,8 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 			count |= 0x40 ;
 		dst[i++] = count;
 	}
-	pixmap  = safemalloc( i );
+    pixmap  = safemalloc( i/*+(32-(i&0x01F) )*/);
+/*fprintf( stderr, "pixmap alloced %p size %d(%d)", pixmap, i, i+(32-(i&0x01F) )); */
 	memcpy( pixmap, buffer, i );
 
 #if 0
@@ -649,7 +661,7 @@ static ASGlyphRange*
 split_X11_glyph_range( unsigned int min_char, unsigned int max_char, XCharStruct *chars )
 {
 	ASGlyphRange *first = NULL, **r = &first;
-	int c = 0, delta = max_char-min_char+1;
+    int c = 0, delta = (max_char-min_char)+1;
 LOCAL_DEBUG_CALLER_OUT( "min_char = %u, max_char = %u, chars = %p", min_char, max_char, chars );
 	while( c < delta )
 	{
@@ -686,7 +698,7 @@ load_X11_glyph_range( Display *dpy, ASFont *font, XFontStruct *xfs, size_t char_
 	for( r = all ; r != NULL ; r = r->above )
 	{
 		XCharStruct *chars = &(xfs->per_char[char_offset+r->min_char-min_char]);
-	    int len = (r->max_char-r->min_char+1);
+        int len = ((int)r->max_char-(int)r->min_char)+1;
 		unsigned char char_base = r->min_char&0x00FF;
 		register int i ;
 		Pixmap p;
@@ -852,7 +864,7 @@ load_X11_glyphs( Display *dpy, ASFont *font, XFontStruct *xfs )
 		int i;
 		int min_byte1 = (xfs->min_char_or_byte2>>8)&0x00FF;
 		int max_byte1 = (xfs->max_char_or_byte2>>8)&0x00FF;
-		size_t offset = MAX(0x00FF,xfs->max_char_or_byte2-(min_byte1<<8)) ;
+        size_t offset = MAX(0x00FF,(int)xfs->max_char_or_byte2-(int)(min_byte1<<8)) ;
 
 		load_X11_glyph_range( dpy, font, xfs, 0, min_byte1,
 											xfs->min_char_or_byte2-(min_byte1<<8),
@@ -867,7 +879,7 @@ load_X11_glyphs( Display *dpy, ASFont *font, XFontStruct *xfs )
 			}
 			load_X11_glyph_range( dpy, font, xfs, offset, max_byte1,
 				                                     0,
-													 xfs->max_char_or_byte2-(max_byte1<<8), &gc );
+                                                     (int)xfs->max_char_or_byte2-(int)(max_byte1<<8), &gc );
 		}
 	}
 #else
@@ -898,7 +910,7 @@ load_X11_glyphs( Display *dpy, ASFont *font, XFontStruct *xfs )
 		our_min_char = MAX(our_min_char,min_char);
 		our_max_char = MIN(our_max_char,max_char);
 
-		load_X11_glyph_range( dpy, font, xfs, our_min_char-min_char, byte1, our_min_char&0x00FF, our_max_char&0x00FF, &gc );
+        load_X11_glyph_range( dpy, font, xfs, (int)our_min_char-(int)min_char, byte1, our_min_char&0x00FF, our_max_char&0x00FF, &gc );
 	}
 #endif
 	if( font->default_glyph.pixmap == NULL )
@@ -971,7 +983,7 @@ static ASGlyph*
 load_freetype_locale_glyph( ASFont *font, UNICODE_CHAR uc )
 {
 	ASGlyph *asg = NULL ;
-	if( FT_Get_Char_Index( font->ft_face, uc) != 0 ) 
+	if( FT_Get_Char_Index( font->ft_face, uc) != 0 )
 	{
 		asg = safecalloc( 1, sizeof(ASGlyph));
 		load_glyph_freetype( font, asg, FT_Get_Char_Index( font->ft_face, uc));
@@ -981,13 +993,13 @@ load_freetype_locale_glyph( ASFont *font, UNICODE_CHAR uc )
 			asg = NULL ;
 		}else
 		{
-			if( asg->ascend > font->max_ascend ) 
+			if( asg->ascend > font->max_ascend )
 				font->max_ascend = asg->ascend ;
-			if( asg->ascend+asg->descend > font->max_height ) 
+			if( asg->ascend+asg->descend > font->max_height )
 				font->max_height = asg->ascend+asg->descend ;
 		}
 	}else
-		add_hash_item( font->locale_glyphs, AS_HASHABLE(uc), NULL );	
+		add_hash_item( font->locale_glyphs, AS_HASHABLE(uc), NULL );
 	return asg;
 }
 
@@ -996,7 +1008,7 @@ load_freetype_locale_glyphs( unsigned long min_char, unsigned long max_char, ASF
 {
 	register int i = min_char ;
 LOCAL_DEBUG_CALLER_OUT( "min_char = %lu, max_char = %lu, font = %p", min_char, max_char, font );
-	if( font->locale_glyphs == NULL ) 
+	if( font->locale_glyphs == NULL )
 		font->locale_glyphs = create_ashash( 0, NULL, NULL, asglyph_destroy );
 	while( i <= max_char )
 	{
@@ -1014,7 +1026,7 @@ load_freetype_glyphs( ASFont *font )
 	ASGlyphRange *r ;
 
     /* we preload only codes in range 0x21-0xFF in current charset */
-	/* if draw_unicode_text is used and we need some other glyphs 
+	/* if draw_unicode_text is used and we need some other glyphs
 	 * we'll just need to add them on demand */
 	font->codemap = split_freetype_glyph_range( 0x0021, 0x007F, font->ft_face );
 	font->pen_move_dir = LEFT_TO_RIGHT ;
@@ -1034,7 +1046,7 @@ load_freetype_glyphs( ASFont *font )
 			int min_char = r->min_char ;
 			int max_char = r->max_char ;
 
-			r->glyphs = safecalloc( max_char - min_char + 1, sizeof(ASGlyph));
+            r->glyphs = safecalloc( ((int)max_char - (int)min_char) + 1, sizeof(ASGlyph));
 			for( i = min_char ; i < max_char ; ++i )
 			{
 				if( i != ' ' && i != '\t' && i!= '\n' )
@@ -1069,7 +1081,7 @@ inline ASGlyph *get_unicode_glyph( const UNICODE_CHAR uc, ASFont *font )
 			if( r->min_char <= uc )
 			{
 				asg = &(r->glyphs[uc - r->min_char]);
-LOCAL_DEBUG_OUT( "Found glyph for char %lu", uc );				
+LOCAL_DEBUG_OUT( "Found glyph for char %lu", uc );
 				if( asg->width > 0 && asg->pixmap != NULL )
 					return asg;
 				break;
@@ -1079,8 +1091,8 @@ LOCAL_DEBUG_OUT( "Found glyph for char %lu", uc );
 #ifdef HAVE_FREETYPE
 		asg = load_freetype_locale_glyph( font, uc );
 #endif
-	}  
-LOCAL_DEBUG_OUT( "%sFound glyph for char %lu", asg?"":"Did not ", uc );				
+	}
+LOCAL_DEBUG_OUT( "%sFound glyph for char %lu", asg?"":"Did not ", uc );
 	return asg?asg:&(font->default_glyph) ;
 }
 
@@ -1095,19 +1107,19 @@ utf8_to_unicode ( const unsigned char *s )
 {
 	unsigned char c = s[0];
 
-	if (c < 0x80) 
+	if (c < 0x80)
 	{
   		return (UNICODE_CHAR)c;
-	} else if (c < 0xc2) 
+	} else if (c < 0xc2)
 	{
   		return 0;
-    } else if (c < 0xe0) 
+    } else if (c < 0xe0)
 	{
 	    if (!((s[1] ^ 0x80) < 0x40))
     		return 0;
 	    return ((UNICODE_CHAR) (c & 0x1f) << 6)
   		       |(UNICODE_CHAR) (s[1] ^ 0x80);
-    } else if (c < 0xf0) 
+    } else if (c < 0xf0)
 	{
 	    if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40
   		      && (c >= 0xe1 || s[1] >= 0xa0)))
@@ -1115,7 +1127,7 @@ utf8_to_unicode ( const unsigned char *s )
 		return ((UNICODE_CHAR) (c & 0x0f) << 12)
         	 | ((UNICODE_CHAR) (s[1] ^ 0x80) << 6)
           	 |  (UNICODE_CHAR) (s[2] ^ 0x80);
-	} else if (c < 0xf8 && sizeof(UNICODE_CHAR)*8 >= 32) 
+	} else if (c < 0xf8 && sizeof(UNICODE_CHAR)*8 >= 32)
 	{
 	    if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40
   	        && (s[3] ^ 0x80) < 0x40
@@ -1125,7 +1137,7 @@ utf8_to_unicode ( const unsigned char *s )
              | ((UNICODE_CHAR) (s[1] ^ 0x80) << 12)
 	         | ((UNICODE_CHAR) (s[2] ^ 0x80) << 6)
   	         |  (UNICODE_CHAR) (s[3] ^ 0x80);
-	} else if (c < 0xfc && sizeof(UNICODE_CHAR)*8 >= 32) 
+	} else if (c < 0xfc && sizeof(UNICODE_CHAR)*8 >= 32)
 	{
 	    if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40
   	        && (s[3] ^ 0x80) < 0x40 && (s[4] ^ 0x80) < 0x40
@@ -1136,7 +1148,7 @@ utf8_to_unicode ( const unsigned char *s )
 	         | ((UNICODE_CHAR) (s[2] ^ 0x80) << 12)
   	         | ((UNICODE_CHAR) (s[3] ^ 0x80) << 6)
     	     |  (UNICODE_CHAR) (s[4] ^ 0x80);
-	} else if (c < 0xfe && sizeof(UNICODE_CHAR)*8 >= 32) 
+	} else if (c < 0xfe && sizeof(UNICODE_CHAR)*8 >= 32)
 	{
 	    if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40
   		    && (s[3] ^ 0x80) < 0x40 && (s[4] ^ 0x80) < 0x40
@@ -1240,7 +1252,7 @@ name( const type *text, ASFont *font, ASGlyphMap *map, int space_size, unsigned 
 	}while( text[i] != '\0' );  \
 	map->width = MAX( w, (unsigned int)1 ); \
 	return line_count ; \
-} 
+}
 
 FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Char,char,get_character_glyph(text[i],font),/* */)
 FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_UTF8,char,get_utf8_glyph(&text[i],font),i+=UTF8_CHAR_SIZE(text[i])-1)
@@ -1284,21 +1296,21 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 	{
 		register int count = 0 ;
 		register UNICODE_CHAR *uc_ptr = (UNICODE_CHAR*)text ;
-		while( uc_ptr[count] != 0 )	++count; 
+		while( uc_ptr[count] != 0 )	++count;
 		map->glyphs_num += count ;
 	}
 
 	if( map->glyphs_num == 0 )
 		return False;
 	map->glyphs = safecalloc( map->glyphs_num, sizeof(ASGlyph*));
-	
+
 	if( char_type == ASCT_Char )
 		line_count = fill_text_glyph_map_Char( text, font, map, space_size, offset_3d_x );
-	else if( char_type == ASCT_UTF8 )	
+	else if( char_type == ASCT_UTF8 )
 		line_count = fill_text_glyph_map_UTF8( text, font, map, space_size, offset_3d_x );
 	else if( char_type == ASCT_Unicode )
 		line_count = fill_text_glyph_map_Unicode( (UNICODE_CHAR*)text, font, map, space_size, offset_3d_x );
-	
+
 	map->height = line_count * (font->max_height+offset_3d_y);
 	map->height -= font->spacing_y ;
 
@@ -1356,7 +1368,7 @@ get_text_size_localized( const char *src_text, ASFont *font, ASText3DType type, 
 		char *text = (char*)&src_text[0] ;
 		GET_TEXT_SIZE_LOOP(get_character_glyph(text[i],font),/* */);
 	}else if( char_type == ASCT_UTF8 )
-	{	
+	{
 		char *text = (char*)&src_text[0] ;
 		GET_TEXT_SIZE_LOOP(get_utf8_glyph(&text[i],font),i+=UTF8_CHAR_SIZE(text[i])-1);
 	}else if( char_type == ASCT_Unicode )

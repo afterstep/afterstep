@@ -124,9 +124,6 @@ Create_icon_windows (ASWindow *asw)
  * Respectively icon_title_canvas will be different then icon_canvas. In all other cases
  * Icon_title_canvas will be the same as icon_canvas.
  */
-/*                                                        N     E     S     W     NW    NE    SE    SW    TITLE */
-static int tbar2canvas_xref_normal  [FRAME_PARTS+1] = {FR_N, FR_E, FR_S, FR_W, FR_N, FR_N, FR_S, FR_S, FR_N };
-static int tbar2canvas_xref_vertical[FRAME_PARTS+1] = {FR_W, FR_N, FR_E, FR_S, FR_W, FR_W, FR_E, FR_E, FR_W };
 
 static int NormalX, NormalY;
 static unsigned int NormalWidth, NormalHeight ;
@@ -200,7 +197,9 @@ ASOrientation VertOrientation =
 static inline ASOrientation*
 get_orientation_data( ASWindow *asw )
 {
-    return ASWIN_HFLAGS(asw, AS_VerticalTitle)?&VertOrientation:&HorzOrientation;
+    if( asw )
+        return ASWIN_HFLAGS(asw, AS_VerticalTitle)?&VertOrientation:&HorzOrientation;
+    return &HorzOrientation;
 }
 
 /* this gets called when Look changes or hints changes : */
@@ -727,16 +726,17 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 		                         ~(asw->hints->disabled_buttons),
                                  TITLE_BUTTONS_PERSIDE,
                                  Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
-                                 od->left_btn_order );
+                                 od->left_btn_order, C_L1 );
         set_astbar_btns( asw->tbar, &btns, True );
         /* right buttons : */
         btns = build_tbtn_block( &(Scr.Look.buttons[TITLE_BUTTONS_PERSIDE]),
 		                         (~(asw->hints->disabled_buttons))>>TITLE_BUTTONS_PERSIDE,
                                  TITLE_BUTTONS_PERSIDE,
                                  Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
-                                 od->right_btn_order );
+                                 od->right_btn_order, C_R1 );
         set_astbar_btns( asw->tbar, &btns, False );
 	}
+
     /* we also need to setup label, unfocused/sticky style and tbar sizes -
      * it all is done when we change windows state, or move/resize it */
     /*since we might have destroyed/created some windows - we have to refresh grabs :*/
@@ -814,6 +814,7 @@ resize_canvases( ASWindow *asw, ASOrientation *od, unsigned int normal_width, un
         moveresize_canvas( asw->frame_sides[od->right_mirror_side], *(od->out_x), *(od->out_y), *(od->out_width), *(od->out_height));
 }
 
+#if 0
 static unsigned short
 frame_side_height(ASCanvas *c1, ASCanvas *c2 )
 {
@@ -857,6 +858,7 @@ frame_corner_width(ASTBarData *c1, ASTBarData *c2 )
         w += c2->width ;
     return w;
 }
+#endif
 
 inline static Bool
 move_resize_frame_bar( ASTBarData *tbar, ASCanvas *canvas, int normal_x, int normal_y, unsigned int normal_width, unsigned int normal_height, Bool force_render )
@@ -1082,10 +1084,12 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
     int i ;
     Bool changed = False;
     unsigned short tbar_size = 0;
+    ASOrientation *od = get_orientation_data( asw );
 
     if( AS_ASSERT(asw) )
         return ;
 
+LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_display?"":"Don't", reconfigured?"":"Not" );
     if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
     {
         unfocus_mystyle = ASWIN_GET_FLAGS(asw, AS_Sticky )?
@@ -1118,12 +1122,10 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
                 changed = True ;
         if( changed || reconfigured )
         {/* now we need to update frame sizes in status */
-            int tbar_side = FR_N ;
             unsigned int *frame_size = &(asw->status->frame_size[0]) ;
             if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
             {
                 tbar_size = calculate_astbar_width( asw->tbar );
-                tbar_side = FR_W ;
                 /* we need that to set up tbar size : */
                 set_astbar_size( asw->tbar, tbar_size, asw->tbar?asw->tbar->height:0 );
             }else
@@ -1140,7 +1142,7 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
                 else
                     frame_size[i] = 0;
             }
-            frame_size[tbar_side] += tbar_size ;
+            frame_size[od->tbar_side] += tbar_size ;
             anchor2status ( asw->status, asw->hints, &(asw->anchor));
         }else if( asw->tbar )
             tbar_size = ASWIN_HFLAGS(asw, AS_VerticalTitle )?asw->tbar->width:asw->tbar->height;
@@ -1162,9 +1164,13 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s)", asw->w, A
                                 asw->status->x, asw->status->y,
                                 asw->status->width, tbar_size );
         }else
+        {
             XMoveResizeWindow( dpy, asw->frame,
                             asw->status->x, asw->status->y,
                             asw->status->width, asw->status->height );
+            if( asw->frame_sides[od->tbar_side] )
+                XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
+        }
         broadcast_config (M_CONFIGURE_WINDOW, asw);
     }
     set_client_state( asw->w, asw->status );
@@ -1173,76 +1179,64 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s)", asw->w, A
 void
 on_window_hilite_changed( ASWindow *asw, Bool focused )
 {
-    int  *tbar2canvas_xref = &(tbar2canvas_xref_normal[0]);
+    ASOrientation *od = get_orientation_data( asw );
 
+LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
     if( AS_ASSERT(asw) )
         return;
 
-    if(ASWIN_HFLAGS(asw, AS_VerticalTitle))
-        tbar2canvas_xref = &(tbar2canvas_xref_vertical[0]);
-
     if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
     {
-        Bool dirty_canvases[FRAME_SIDES] = { False, False, False, False };
         register int i = FRAME_PARTS;
         /* Titlebar */
-        dirty_canvases[tbar2canvas_xref[FRAME_TITLE]] = set_astbar_focused( asw->tbar, asw->frame_sides[tbar2canvas_xref[FRAME_TITLE]], focused );
+        set_astbar_focused( asw->tbar, asw->frame_sides[od->tbar_side], focused );
         /* frame decor : */
         for( i = FRAME_PARTS; --i >= 0; )
-            dirty_canvases[tbar2canvas_xref[i]] = set_astbar_focused( asw->frame_bars[i], asw->frame_sides[tbar2canvas_xref[i]], focused );
+            set_astbar_focused( asw->frame_bars[i], asw->frame_sides[od->tbar2canvas_xref[i]], focused );
         /* now posting all the changes on display :*/
         for( i = FRAME_SIDES; --i >= 0; )
-            if( dirty_canvases[i] )
+            if( is_canvas_dirty(asw->frame_sides[i]) )
                 update_canvas_display( asw->frame_sides[i] );
     }else /* Iconic !!! */
     {
-        int dirty = set_astbar_focused( asw->icon_button, asw->icon_canvas, focused );
-        if( set_astbar_focused( asw->icon_title, asw->icon_title_canvas, focused ) )
-            dirty = True ;
-        if( dirty )
-        {
+        set_astbar_focused( asw->icon_button, asw->icon_canvas, focused );
+        set_astbar_focused( asw->icon_title, asw->icon_title_canvas, focused );
+        if( is_canvas_dirty(asw->icon_canvas) )
             update_canvas_display( asw->icon_canvas );
-            if( asw->icon_title_canvas != asw->icon_canvas )
-                update_canvas_display( asw->icon_title_canvas );
-        }
+        if( is_canvas_dirty(asw->icon_title_canvas) )
+            update_canvas_display( asw->icon_title_canvas );
     }
 }
 
 void
 on_window_pressure_changed( ASWindow *asw, int pressed_context )
 {
-    int  *tbar2canvas_xref = &(tbar2canvas_xref_normal[0]);
+    ASOrientation *od = get_orientation_data( asw );
+LOCAL_DEBUG_CALLER_OUT( "(%p,%s)", asw, context2text(pressed_context));
 
-    if( AS_ASSERT(asw) )
+    if( AS_ASSERT(asw))
         return;
-
-    if(ASWIN_HFLAGS(asw, AS_VerticalTitle))
-        tbar2canvas_xref = &(tbar2canvas_xref_vertical[0]);
 
     if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
     {
-        Bool dirty_canvases[FRAME_SIDES] = { False, False, False, False };
         register int i = FRAME_PARTS;
         /* Titlebar */
-        dirty_canvases[tbar2canvas_xref[FRAME_TITLE]] =  set_astbar_pressed( asw->tbar, asw->frame_sides[tbar2canvas_xref[FRAME_TITLE]], pressed_context&C_TITLE );
+        set_astbar_pressed( asw->tbar, asw->frame_sides[od->tbar_side], pressed_context&C_TITLE );
         /* frame decor : */
         for( i = FRAME_PARTS; --i >= 0; )
-            dirty_canvases[tbar2canvas_xref[i]] =  set_astbar_pressed( asw->frame_bars[i], asw->frame_sides[tbar2canvas_xref[i]], pressed_context&(C_FrameN<<i) );
+            set_astbar_pressed( asw->frame_bars[i], asw->frame_sides[od->tbar2canvas_xref[i]], pressed_context&(C_FrameN<<i) );
         /* now posting all the changes on display :*/
         for( i = FRAME_SIDES; --i >= 0; )
-            if( dirty_canvases[i] )
+            if( is_canvas_dirty(asw->frame_sides[i]) )
                 update_canvas_display( asw->frame_sides[i] );
     }else /* Iconic !!! */
     {
-        int dirty = set_astbar_pressed( asw->icon_button, asw->icon_canvas, pressed_context&C_IconButton );
-        if( set_astbar_pressed( asw->icon_title, asw->icon_title_canvas, pressed_context&C_IconTitle ) )
-            dirty = True ;
-        if( dirty )
-        {
+        set_astbar_pressed( asw->icon_button, asw->icon_canvas, pressed_context&C_IconButton );
+        set_astbar_pressed( asw->icon_title, asw->icon_title_canvas, pressed_context&C_IconTitle );
+        if( is_canvas_dirty(asw->icon_canvas) )
             update_canvas_display( asw->icon_canvas );
-            if( asw->icon_title_canvas != asw->icon_canvas )
-                update_canvas_display( asw->icon_title_canvas );
-        }
+        if( is_canvas_dirty(asw->icon_title_canvas) )
+            update_canvas_display( asw->icon_title_canvas );
     }
 }
 
@@ -1894,6 +1888,34 @@ hide_hilite()
     {
         on_window_hilite_changed (Scr.Windows->hilited, False);
         Scr.Windows->hilited = NULL ;
+    }
+}
+
+void
+press_aswindow( ASWindow *asw, int context )
+{
+    if( context == C_NO_CONTEXT )
+    {
+        if( Scr.Windows->pressed == asw )
+            Scr.Windows->pressed = NULL;
+    }else if( Scr.Windows->pressed != asw )
+    {
+        if( Scr.Windows->pressed != NULL )
+            on_window_pressure_changed( Scr.Windows->pressed, C_NO_CONTEXT );
+        Scr.Windows->pressed = asw ;
+    }
+
+    if( asw )
+       on_window_pressure_changed( asw, context );
+}
+
+void
+release_pressure()
+{
+    if( Scr.Windows->pressed != NULL )
+    {
+        on_window_pressure_changed (Scr.Windows->pressed, C_NO_CONTEXT);
+        Scr.Windows->pressed = NULL ;
     }
 }
 

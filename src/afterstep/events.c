@@ -46,17 +46,6 @@
 
 #include <X11/keysym.h>
 
-
-#if 0
-    /* All this is so much evel that I just have to get rid of it : */
-    int           Context = C_NO_CONTEXT;          /* current button press context */
-    int           Button = 0;
-    ASWindow     *ButtonWindow;                    /* button press window structure */
-    XEvent        Event;                           /* the current event */
-    ASWindow     *Tmp_win;                         /* the current afterstep window */
-    Window        PressedW;
-#endif
-
 /* those are used for AutoReverse mode 1 */
 static int warp_in_process = 0;
 static int warping_direction = 0;
@@ -117,6 +106,61 @@ void afterstep_wait_pipes_input ();
 void SetTimer (int delay);
 
 
+static struct ContextDescr{
+    int context;
+    char *name ;
+}context_description[] =
+{
+#define CONTEXT_DESCR(ctx)  {ctx, #ctx}
+    CONTEXT_DESCR(C_NO_CONTEXT),
+    CONTEXT_DESCR(C_FrameN),
+    CONTEXT_DESCR(C_FrameE),
+    CONTEXT_DESCR(C_FrameS),
+    CONTEXT_DESCR(C_FrameW),
+    CONTEXT_DESCR(C_FrameNW),
+    CONTEXT_DESCR(C_FrameNE),
+    CONTEXT_DESCR(C_FrameSW),
+    CONTEXT_DESCR(C_FrameSE),
+    CONTEXT_DESCR(C_SIDEBAR),
+    CONTEXT_DESCR(C_VERTICAL_SIDEBAR),
+    CONTEXT_DESCR(C_FRAME),
+
+    CONTEXT_DESCR(C_FrameStart),
+    CONTEXT_DESCR(C_FrameEnd),
+
+    CONTEXT_DESCR(C_WINDOW),
+    CONTEXT_DESCR(C_CLIENT),
+    CONTEXT_DESCR(C_TITLE),
+    CONTEXT_DESCR(C_IconTitle),
+    CONTEXT_DESCR(C_IconButton),
+    CONTEXT_DESCR(C_ICON),
+    CONTEXT_DESCR(C_ROOT),
+    CONTEXT_DESCR(C_L1),
+    CONTEXT_DESCR(C_L2),
+    CONTEXT_DESCR(C_L3),
+    CONTEXT_DESCR(C_L4),
+    CONTEXT_DESCR(C_L5),
+    CONTEXT_DESCR(C_R1),
+    CONTEXT_DESCR(C_R2),
+    CONTEXT_DESCR(C_R3),
+    CONTEXT_DESCR(C_R4),
+    CONTEXT_DESCR(C_R5),
+    CONTEXT_DESCR(C_RALL),
+    CONTEXT_DESCR(C_LALL),
+    CONTEXT_DESCR(C_ALL),
+    {-1, NULL}
+};
+
+const char *
+context2text(int ctx)
+{
+    register int i = -1;
+    while( context_description[++i].name )
+        if( context_description[i].context == ctx )
+            return context_description[i].name;
+    return "unknown";
+}
+
 void
 HandleEvents ()
 {
@@ -128,10 +172,13 @@ HandleEvents ()
         {
             ASNextEvent (&(event.x));
             DigestEvent( &event );
-#ifdef EVENT_TRACE
-show_progress("****************************************************************");
-show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)", __FILE__, __FUNCTION__, __LINE__, event.x.type, event_type2name(event.x.type), event.x.xany.window, event.w, event.client );
+#ifndef EVENT_TRACE
+            if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
 #endif
+            {
+                show_progress("****************************************************************");
+                show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)", __FILE__, __FUNCTION__, __LINE__, event.x.type, event_type2name(event.x.type), event.x.xany.window, event.w, event.client, context2text(event.context));
+            }
             DispatchEvent( &event );
         }
         afterstep_wait_pipes_input ();
@@ -449,6 +496,12 @@ DispatchEvent ( ASEvent *event )
             * indicates that the warp is done */
             warp_ungrab (event->client, True);
             HandleButtonPress (event);
+            break;
+        case ButtonRelease:
+            /* if warping, a button press, non-warp keypress, or pointer motion
+            * indicates that the warp is done */
+            warp_ungrab (event->client, True);
+            HandleButtonRelease (event);
             break;
         case MotionNotify:
             /* if warping, a button press, non-warp keypress, or pointer motion
@@ -940,7 +993,7 @@ HandleButtonPress ( ASEvent *event )
         if( focus_accepted )
             return;
 
-        on_window_pressure_changed( asw, event->context );
+        press_aswindow( asw, event->context );
     }
 
     /* we have to execute a function or pop up a menu : */
@@ -970,6 +1023,19 @@ HandleButtonPress ( ASEvent *event )
         XUngrabPointer (dpy, CurrentTime);
         XSendEvent (dpy, Scr.wmprops->wm_event_proxy, False, SubstructureNotifyMask, &(event->x));
 	}
+}
+
+/***********************************************************************
+ *  Procedure:
+ *  HandleButtonRelease - De-press currently pressed window if all buttons are up
+ ***********************************************************************/
+void
+HandleButtonRelease ( ASEvent *event )
+{   /* click to focus stuff goes here */
+//    if( Scr.Windows->pressed != NULL )
+//        if( (event->x.xbutton.state&(Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)) == 0 )
+                 press_aswindow( Scr.Windows->pressed, 0 );
+            //release_pressure();
 }
 
 /***********************************************************************

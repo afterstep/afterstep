@@ -33,7 +33,7 @@ typedef struct ASTBtnData{
     struct ASImage *pressed ;
     struct ASImage *current ;
     unsigned short width, height ;
-    short x, y ;
+    short x, y ;                               /* relative to the button block origin !*/
     unsigned long context ;
     /* 20 bytes */
 }ASTBtnData;
@@ -48,8 +48,9 @@ typedef struct ASTBtnData{
 
 typedef struct ASTBtnBlock {
     ASTBtnData      *buttons;                  /* array of [count] structures */
-    unsigned int  count ;
-    unsigned int  width, height;
+    unsigned int     count ;
+    short            x, y;                     /* relative to the tbar origin ! */
+    unsigned short   width, height;
     /* 16 bytes */
 }ASTBtnBlock;
 
@@ -151,6 +152,7 @@ void update_canvas_display( ASCanvas *pc );
 void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
 void moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height);
 void unmap_canvas_window( ASCanvas *pc );
+Bool is_canvas_dirty( ASCanvas *pc );
 
 
 
@@ -162,7 +164,8 @@ void        destroy_astbtn(ASTBtnData **ptbtn );
 
 ASTBtnBlock* create_astbtn_block( unsigned int btn_count );
 ASTBtnBlock* build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int count,
-                               int left_margin, int top_margin, int spacing, int order );
+                               int left_margin, int top_margin, int spacing, int order,
+                               unsigned long context_base );
 void         destroy_astbtn_block(ASTBtnBlock **pb );
 
 

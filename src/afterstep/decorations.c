@@ -119,14 +119,11 @@ check_allowed_function2 (int func, ASWindow * t)
 			case F_RESIZE :
 				return (get_flags( hints->function_mask, AS_FuncResize ) )?1:0 ;
 			case F_ICONIFY :
-				return (!get_flags( t->status->flags, AS_Iconic) &&
-				         get_flags( hints->function_mask, AS_FuncMinimize ) )?1:0 ;
+                return (get_flags( hints->function_mask, AS_FuncMinimize ) )?1:0 ;
 			case F_MAXIMIZE :
-				return (!get_flags( t->status->flags, AS_MaximizedX|AS_MaximizedY) &&
-				         get_flags( hints->function_mask, AS_FuncMaximize ) )?1:0 ;
+                return (get_flags( hints->function_mask, AS_FuncMaximize ) )?1:0 ;
 			case F_SHADE :
-				return (!get_flags( t->status->flags, AS_Shaded) &&
-				         get_flags( hints->flags, AS_Titlebar ) )?1:0 ;
+                return (get_flags( hints->flags, AS_Titlebar ) )?1:0 ;
 		}
 	}
 	return 1;

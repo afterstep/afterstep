@@ -39,7 +39,7 @@
  ***************************************************************************/
 
 #include "../../configure.h"
-
+#define LOCAL_DEBUG
 #include "../../include/asapp.h"
 #include <signal.h>
 #include <stdarg.h>
@@ -485,7 +485,7 @@ parse_menu_item_name (MenuItem * item, char **name)
 		item->item = mystrndup (*name, i);
 		ptr++;
 		item->strlen2 = strlen (ptr);
-		item->item = mystrndup (ptr, item->strlen2);
+        item->item2 = mystrndup (ptr, item->strlen2);
 	}
 	return 0;
 }
@@ -589,12 +589,13 @@ find_complex_func( struct ASHashTable *list, char *name )
 void
 menu_data_item_destroy(MenuDataItem *mdi)
 {
-LOCAL_DEBUG_CALLER_OUT( "menu_data_item_destroy(\"%s\")", ((mdi!=NULL)?(mdi->data.name):"NULL"));
+LOCAL_DEBUG_CALLER_OUT( "menu_data_item_destroy(\"%s\",%p)", ((mdi && mdi->fdata)?(mdi->fdata->name):"NULL"), mdi);
     if( mdi )
     {
         if( mdi->magic == MAGIC_MENU_DATA_ITEM )
         {
             mdi->magic = 0 ;
+LOCAL_DEBUG_OUT( "freeing func data %p", mdi->fdata );
             if( mdi->fdata )
             {
                 free_func_data( mdi->fdata );
@@ -619,7 +620,7 @@ void
 menu_data_destroy(ASHashableValue value, void *data)
 {
     MenuData *md = data ;
-LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", 0x%lX)", value.string_val, (unsigned long)data );
+LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", (char*)value, data );
     if( (char*)value )
         free( (char*)value );
     if( md )
@@ -1036,7 +1037,8 @@ create_named_function( int func, char *name)
 	FunctionData *fdata = safecalloc( 1, sizeof(FunctionData) );
 	init_func_data (fdata);
 	fdata->func = func;
-	fdata->name = mystrdup (name);
+    if( name )
+        fdata->name = mystrdup (name);
 	return fdata ;
 }
 
@@ -1090,6 +1092,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 		}
 		if (t->flags & DIRTREE_DIR)
 		{
+/************* Creating Popup Title entry : ************************/
 			fdata = create_named_function(F_POPUP, t->name);
 			if ((fdata->popup = dirtree_make_menu2 (t, buf)) == NULL)
 				fdata->func = F_NOP;
@@ -1108,6 +1111,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 				MenuItemFromFunc (menu, fdata);
 			}
 #endif /* !NO_TEXTURE */
+/************* Done creating Popup Title entry : ************************/
 		} else if (t->command.func != F_NOP)
 		{
 			fdata = create_named_function(t->command.func, t->name);
@@ -1136,8 +1140,8 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 			FILE         *fp2 = fopen (t->path, "r");
 
 			/* try to load a command */
-			fdata = create_named_function(F_EXEC, t->name);
-			if (fp2 != NULL && fgets (buf, MAXLINELENGTH, fp2) != NULL)
+            fdata = create_named_function(F_EXEC, NULL);
+            if (fp2 != NULL && fgets (buf, MAXLINELENGTH, fp2) != NULL)
 			{
 				if (parse_func (buf, fdata, True) < 0) /* data is actuall shell command line */
 					fdata->text = stripcpy (buf);
@@ -1145,13 +1149,17 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 					fdata->func = F_NOP ;
 			} else
 				fdata->text = mystrdup (t->name);
+            if( fdata->name == NULL )
+                fdata->name = mystrdup( t->name );
 #ifndef NO_AVAILABILITYCHECK
 			if (fdata->func == F_EXEC)
 				if (!is_executable_in_path (fdata->text))
 					fdata->func = F_NOP;
 #endif /* NO_AVAILABILITYCHECK */
+LOCAL_DEBUG_OUT( "1:fdata->name = \"%s\"", t->name );
+LOCAL_DEBUG_OUT( "2:fdata->name = %p\"%s\"", fdata->name, fdata->name );
 			MenuItemFromFunc (menu, fdata);
-
+LOCAL_DEBUG_OUT( "3:fdata->name = %p\"%s\"", fdata->name, fdata->name );
 #ifndef NO_TEXTURE
 			/* check for a MiniPixmap */
             if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
@@ -1164,7 +1172,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 					if (parse_func (buf, fdata, True) >= 0)
 						parsed = (fdata->func == F_MINIPIXMAP);
 				}
-				if (t->icon != NULL && parsed == 0)
+                if (t->icon != NULL && !parsed)
 				{
 					free_func_data (fdata);
 					fdata->func = F_MINIPIXMAP;
@@ -1173,6 +1181,11 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 				}
 				if (parsed)
 					MenuItemFromFunc (menu, fdata);
+                else
+                {
+                    free_func_data(fdata);
+                    free(fdata);
+                }
 			}
 #endif /* !NO_TEXTURE */
 			if (fp2)

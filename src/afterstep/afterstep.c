@@ -18,14 +18,15 @@
  */
 
 #include "../../configure.h"
+#define LOCAL_DEBUG
 
+#include "../../include/asapp.h"
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
 
 #include <X11/cursorfont.h>
 
-#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
 #include "../../include/screen.h"
@@ -223,7 +224,6 @@ main (int argc, char **argv)
     /* all system Go! we are completely Operational! */
     set_flags( AfterStepState, ASS_NormalOperation);
 
-    LOCAL_DEBUG_OUT( "TOTAL SCREENS INITIALIZED : %d", good_screen_count );
 #if (defined(LOCAL_DEBUG)||defined(DEBUG)) && defined(DEBUG_ALLOCS)
     LOCAL_DEBUG_OUT( "printing memory%s","");
     spool_unfreed_mem( "afterstep.allocs.startup", NULL );
@@ -342,7 +342,6 @@ CleanupScreen()
         destroy_aswindow_list( &(Scr.Windows), True );
         XUngrabServer (dpy);
     }
-
     DestroyManagementWindows();
     CleanupColormaps();
 
@@ -385,7 +384,9 @@ CleanupScreen()
 
     destroy_wmprops( Scr.wmprops, False);
     destroy_image_manager( Scr.image_manager, False );
+LOCAL_DEBUG_OUT("destroying font manager : ","");
     destroy_font_manager( Scr.font_manager, False );
+LOCAL_DEBUG_OUT("screen cleanup complete.","");
 }
 
 /*************************************************************************/
@@ -514,12 +515,12 @@ void
 Done (Bool restart, char *command )
 {
     int restart_screen = get_flags( AfterStepState, ASS_SingleScreen)?Scr.screen:-1;
-
+LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?command:"");
     set_flags( Scr.state, AS_StateShutdown );
     if( restart )
         set_flags( Scr.state, AS_StateRestarting );
 #ifndef NO_VIRTUAL
-	MoveViewport (0, 0, False);
+//    MoveViewport (0, 0, False);
 #endif
 #ifndef NO_SAVEWINDOWS
 	if (!restart)
@@ -529,7 +530,7 @@ Done (Bool restart, char *command )
         free( fname );
     }
 #endif
-	/* remove window frames */
+    /* remove window frames */
     CleanupScreen();
 
 	/* Close all my pipes */
@@ -563,6 +564,7 @@ Done (Bool restart, char *command )
         print_unfreed_mem ();
 #endif /*DEBUG_ALLOCS */
     }
+    exit(0);
 }
 
 

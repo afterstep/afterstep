@@ -436,6 +436,7 @@ typedef struct ASWindowList
                               * to show that it is focused. May not be same as focused/ungrabbed
                               * right after focus is handed over and before FocusIn event */
     ASWindow *previous_active;        /* last active client */
+    ASWindow *pressed;       /* the client wich has one of its frame parts pressed at the moment */
     /* Focus management is somewhat tricky.
      * Firstly, we have to track pointer movements to see when mouse enters the window
      *          so we can switch focus to that window. ( or mouse clicked in the window
@@ -497,6 +498,10 @@ void hide_hilite();                            /* unhilites currently highlited 
 void hilite_aswindow( ASWindow *asw );         /* actually hilites focused window on reception of event */
 void warp_to_aswindow( ASWindow *asw, Bool deiconify );
 Bool activate_aswindow( ASWindow *asw, Bool force, Bool deiconify );
+void press_aswindow( ASWindow *asw, int context );
+void release_pressure();
+
+
 
 
 void redecorate_window( ASWindow *asw, Bool free_resources );

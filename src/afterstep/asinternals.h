@@ -163,6 +163,7 @@ int check_allowed_function2 (int func, ASWindow * t);
 int check_allowed_function (struct MenuItem * mi, struct ASWindow *asw);
 
 /*************************** events.c ********************************/
+const char *context2text(int ctx);
 void DigestEvent    ( struct ASEvent *event );
 void DispatchEvent  ( struct ASEvent *event );
 void HandleEvents   ();
@@ -182,6 +183,7 @@ extern void HandleDestroyNotify (struct ASEvent *event);
 extern void HandleMapRequest (struct ASEvent *event);
 extern void HandleMapNotify (struct ASEvent *event);
 extern void HandleUnmapNotify (struct ASEvent *event);
+extern void HandleButtonRelease(struct ASEvent *event);
 extern void HandleButtonPress (struct ASEvent *event);
 extern void HandleEnterNotify (struct ASEvent *event);
 extern void HandleLeaveNotify (struct ASEvent *event);

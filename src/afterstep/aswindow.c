@@ -99,15 +99,16 @@ save_aswindow_list( ASWindowList *list, char *file )
     if( (realfilename = PutHome( file )) == NULL )
         return;
 
-    if ( (swad.f = fopen (realfilename, "w+")) == NULL)
-	{
-        free (realfilename);
-        show_error( "Unable to save your session into the %s - cannot open file for writing!", file);;
-		return;
-	}
+    swad.f = fopen (realfilename, "w+");
+    free (realfilename);
 
-    iterate_asbidirlist( list->clients, make_aswindow_cmd_iter_func, &swad, NULL, False );
-    fclose( swad.f );
+    if ( swad.f == NULL)
+        show_error( "Unable to save your session into the %s - cannot open file for writing!", file);
+    else
+    {
+        iterate_asbidirlist( list->clients, make_aswindow_cmd_iter_func, &swad, NULL, False );
+        fclose( swad.f );
+    }
 }
 
 void

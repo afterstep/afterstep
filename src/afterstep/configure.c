@@ -759,6 +759,11 @@ InitLook (MyLook *look, Bool free_resources)
     look->ButtonWidth = 0;
     look->ButtonHeight = 0;
 
+    /* icons */
+    look->MenuArrow = NULL;
+    look->MenuPinOn = NULL;
+    look->MenuPinOff = NULL;
+
 	/* resize/move window geometry */
     memset( &(look->resize_move_geometry), 0x00, sizeof(ASGeometry));
 
@@ -1194,7 +1199,9 @@ assign_pixmap (char *text, FILE * fd, char **arg, int *junk)
     char *fname = NULL ;
     if( parse_filename(text, &fname) != text )
     {
-        GetIconFromFile (fname, (MyIcon *) arg, -1);
+        MyIcon **picon = (MyIcon**)arg ;
+        *arg = safecalloc( 1, sizeof(icon_t));
+        GetIconFromFile (fname, *arg, -1);
         free (fname);
     }
 }
