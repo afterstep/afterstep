@@ -63,8 +63,6 @@
 #include "menus.h"
 
 extern int    ShadeAnimationSteps;
-extern XEvent Event;
-extern ASWindow *Tmp_win;
 extern int    menuFromFrameOrWindowOrTitlebar;
 extern int    Xzap, Yzap;
 extern int    AutoReverse;
@@ -78,7 +76,6 @@ long          LastWarpIndex = -1;
 long          LastWarpedWindow = 0;
 
 extern ASDirs as_dirs;
-
 
 static inline int
 make_scroll_pos( int val, int unit, int curr, int max, int size )

@@ -272,11 +272,11 @@ DispatchEvent ( ASEvent *event )
             break;
         case LeaveNotify:
             HandleLeaveNotify (event);
-    #if 0
+#if 0
             /* if warping, leaving a window means that we need to ungrab, but
             * the ungrab should be taken care of by the FocusOut */
             warp_ungrab (event->client, False);
-    #endif
+#endif
             break;
         case FocusIn:
             HandleFocusIn (event);
@@ -332,10 +332,10 @@ DispatchEvent ( ASEvent *event )
             HandleClientMessage (event);
             break;
         default:
-    #ifdef SHAPE
+#ifdef SHAPE
             if (event->x.type == (ShapeEventBase + ShapeNotify))
                 HandleShapeNotify (event);
-    #endif /* SHAPE */
+#endif /* SHAPE */
 
             break;
 	}

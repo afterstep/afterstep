@@ -15,26 +15,30 @@ typedef struct MenuItem
     struct MenuItem *prev;	/* prev menu item */
     char *item;			/* the character string displayed on left */
     char *item2;		/* the character string displayed on right */
-    char *action;		/* action to be performed */
     short item_num;		/* item number of this menu */
     short x;			/* x coordinate for text (item) */
     short x2;			/* x coordinate for text (item2) */
     short y_offset;		/* y coordinate for item */
     short y_height;		/* y height for item */
-    FunctionCode func;		/* AfterStep built in function */
-    val_type val1;		/* values needed for F_SCROLL */
-    val_type val2;
-    val_type val1_unit;		/* units for val1, val2 */
-    val_type val2_unit;		/* pixels (unit=1) or percent of screen
-				 * (unit = Scr.MyDisplayWidth/Height */
+
     Bool is_hilited;		/* is the item selected? */
     short strlen;		/* strlen(item) */
     short strlen2;		/* strlen(item2) */
-    char  hotkey;		/* Hot key */
-    struct MenuRoot *menu;	/* sub-menu */
     MyIcon icon;		/* mini icon displayed on left */
-  }
-MenuItem;
+
+    struct FunctionData *fdata ;
+/* old stuff : */	
+/*    FunctionCode func;	   AfterStep built in function */
+/*    val_type val1;		                               */
+/*    val_type val2;                                       */
+/*    val_type val1_unit;	   units for val1, val2        */
+/*    val_type val2_unit;	   pixels (unit=1) or percent of screen
+				 * (unit = Scr.MyDisplayWidth/Height       */
+/*    char  hotkey;		       same as fdata->hotkey -  Hot key               */
+/*    char *action;		       same as fdata->text   - action to be performed */
+/*    struct MenuRoot *menu;   same as fdata->popup  - sub-menu               */
+
+}MenuItem;
 
 typedef struct MenuRoot
   {
@@ -62,37 +66,41 @@ MenuRoot;
 
 typedef struct MouseButton
   {
-    FunctionCode func;		/* AfterStep built in function */
-    MenuRoot *menu;		/* menu if func is F_POPUP */
-    char* action;		/* action to perform if func != F_POPUP */
     int Button;
     int Context;
     int Modifier;
-    val_type val1;
-    val_type val2;
-    val_type val1_unit;		/* units for val1, val2 */
-    val_type val2_unit;		/* pixels (unit=1) or percent of screen
-				 * (unit = Scr.MyDisplayWidth/Height */
     struct MouseButton *NextButton;
-  }
-MouseButton;
+
+    struct FunctionData *fdata;
+/*  OLD STUFF	: */
+/*    FunctionCode func;	AfterStep built in function */
+/*    val_type val1;
+/*    val_type val2;
+/*    val_type val1_unit;	units for val1, val2 */
+/*    val_type val2_unit;	pixels (unit=1) or percent of screen
+				            (unit = Scr.MyDisplayWidth/Height */
+/*    char* action;		    same as fdata->text   - action to perform if func != F_POPUP */
+/*    MenuRoot *menu;		same as fdata->popup  - menu if func is F_POPUP */
+
+}MouseButton;
 
 typedef struct FuncKey
-  {
+{
     struct FuncKey *next;	/* next in the list of function keys */
     char *name;			/* key name */
     KeyCode keycode;		/* X keycode */
     int cont;			/* context */
     int mods;			/* modifiers */
-    FunctionCode func;		/* AfterStep built in function */
-    val_type val1;		/* values needed for F_SCROLL */
-    val_type val2;
-    val_type val1_unit;		/* units for val1, val2 */
-    val_type val2_unit;		/* pixels (unit=1) or percent of screen  */
-    MenuRoot *menu;		/* menu if func is F_POPUP */
-    char *action;		/* action string (if any) */
-  }
-FuncKey;
+
+	struct FunctionData *fdata ;
+/*    FunctionCode func;	AfterStep built in function */
+/*    val_type val1;		values needed for F_SCROLL */
+/*    val_type val2;
+/*    val_type val1_unit;	units for val1, val2 */
+/*    val_type val2_unit; same as fdata->unit[1] - pixels (unit=1) or percent of screen  */
+/*    char *action;		same as fdata->text  - action string (if any) */
+/*    MenuRoot *menu;		same as fdata->popup -  menu if func is F_POPUP */
+}FuncKey;
 
 #define MENU_ERROR -1
 #define MENU_NOP 0
