@@ -613,7 +613,7 @@ int  AcceptModuleConnection (int socket_fd);
 void SendVector (int channel, send_data_type msg_type, ASVector *vector);
 void SendPacket ( int channel, send_data_type msg_type, send_data_type num_datum, ...);
 void SendConfig (int module, send_data_type event_type, ASWindow * t);
-void SendString ( int channel, send_data_type long msg_type,
+void SendString ( int channel, send_data_type msg_type,
              Window w, Window frame, ASWindow *asw_ptr,
 			 char *string, send_data_type encoding );
 void SendStackingOrder (int channel, send_data_type msg_type, send_data_type desk, ASVector *ids);

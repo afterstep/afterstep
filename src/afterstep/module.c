@@ -779,7 +779,7 @@ SendConfig (int module, send_data_type event_type, ASWindow * t)
 }
 
 void
-SendString ( int channel, send_data_type long msg_type,
+SendString ( int channel, send_data_type msg_type,
              Window w, Window frame, ASWindow *asw_ptr,
 			 char *string, send_data_type encoding )
 {
