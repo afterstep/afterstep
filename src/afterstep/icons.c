@@ -130,7 +130,7 @@ ResizeIconWindow (ASWindow * tmp_win)
 	MyStyle      *button_title_sticky = mystyle_find_or_default ("ButtonTitleSticky");
 	MyStyle      *button_title_unfocus = mystyle_find_or_default ("ButtonTitleUnfocus");
 	const char   *name =
-		ASWIN_ICON_NAME(tmp_win)!= NULL ? ASWIN_ICON_NAME(tmp_win) : 
+		ASWIN_ICON_NAME(tmp_win)!= NULL ? ASWIN_ICON_NAME(tmp_win) :
 		(ASWIN_NAME(tmp_win) !=	NULL )? ASWIN_NAME(tmp_win) : "";
 	int           len, width, height, t_width, t_height;
 
@@ -271,7 +271,7 @@ CreateIconWindow (ASWindow * tmp_win)
 
 	if (tmp_win->icon_title_w != None)
 	{
-		XSaveContext (dpy, tmp_win->icon_title_w, ASContext, (caddr_t) tmp_win);
+        register_aswindow( tmp_win->icon_title_w, tmp_win );
 		XDefineCursor (dpy, tmp_win->icon_title_w, Scr.ASCursors[DEFAULT]);
 		GrabIconButtons (tmp_win, tmp_win->icon_title_w);
 		GrabIconKeys (tmp_win, tmp_win->icon_title_w);
@@ -279,7 +279,7 @@ CreateIconWindow (ASWindow * tmp_win)
 
 	if (tmp_win->icon_pixmap_w != None)
 	{
-		XSaveContext (dpy, tmp_win->icon_pixmap_w, ASContext, (caddr_t) tmp_win);
+        register_aswindow( tmp_win->icon_pixmap_w, tmp_win );
 		XDefineCursor (dpy, tmp_win->icon_pixmap_w, Scr.ASCursors[DEFAULT]);
 		GrabIconButtons (tmp_win, tmp_win->icon_pixmap_w);
 		GrabIconKeys (tmp_win, tmp_win->icon_pixmap_w);
@@ -297,7 +297,7 @@ DrawIconWindow (ASWindow * win)
 {
 	GC            ForeGC, BackGC, Shadow, Relief;
 	const char   *name =
-		ASWIN_ICON_NAME(win) != NULL ? ASWIN_ICON_NAME(win) : 
+		ASWIN_ICON_NAME(win) != NULL ? ASWIN_ICON_NAME(win) :
 		(ASWIN_NAME(win) != NULL) ? ASWIN_NAME(win) : "";
 	MyStyle      *button_pixmap, *button_title;
 
@@ -616,96 +616,20 @@ GrabIconKeys (ASWindow * tmp_win, Window w)
 void
 DeIconify (ASWindow * tmp_win)
 {
-	ASWindow     *t, *tn, *tmp;
+    ASWindow     *t;
 	int           new_x, new_y, w2, h2;
 
 	/* now de-iconify transients */
-	for (t = Scr.ASRoot.next; t != NULL; t = tn)
+    for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 	{
-		tn = t->next;
-		if ((t == tmp_win) || 
+		if ((t == tmp_win) ||
 		    (get_flags(t->hints->flags, AS_Transient) && t->hints->transient_for == tmp_win->w))
 		{
-			t->flags |= MAPPED;
-			if (Scr.flags & StubbornIcons)
-				ASWIN_DESK(t) = t->DeIconifyDesk;
-			else
-				ASWIN_DESK(t) = Scr.CurrentDesk;
-			set_client_desktop( t->w, ASWIN_DESK(t));
-
-			if (Scr.Hilite == t)
-				SetBorder (t, False, True, True, None);
-			/* make sure that the window is on this screen */
-			if ((t->frame_x < 0) || (t->frame_y < 0) ||
-				(t->frame_x >= Scr.MyDisplayWidth) || (t->frame_y >= Scr.MyDisplayHeight))
-			{
-				/* try to put at least half the window
-				 * in the current screen, if the current desktop
-				 * is the windows desktop */
-				if (ASWIN_DESK(t) == Scr.CurrentDesk)
-				{
-					new_x = t->frame_x;
-					new_y = t->frame_y;
-					w2 = (t->frame_width >> 1);
-					h2 = (t->frame_height >> 1);
-					if (!(Scr.flags & StubbornIcons))
-					{
-						if ((new_x < -w2) || (new_x > (Scr.MyDisplayWidth - w2)))
-						{
-							new_x = new_x % Scr.MyDisplayWidth;
-							if (new_x < -w2)
-								new_x += Scr.MyDisplayWidth;
-						}
-						if ((new_y < -h2) || (new_y > (Scr.MyDisplayHeight - h2)))
-						{
-							new_y = new_y % Scr.MyDisplayHeight;
-							if (new_y < -h2)
-								new_y += Scr.MyDisplayHeight;
-						}
-					}
-					SetupFrame (t, new_x, new_y, t->frame_width, t->frame_height, False);
-				}
-			}
-			if (t->icon_pixmap_w != None)
-				XUnmapWindow (dpy, t->icon_pixmap_w);
-			if (t->icon_title_w != None)
-				XUnmapWindow (dpy, t->icon_title_w);
-			Broadcast (M_DEICONIFY, 7, t->w, t->frame, (unsigned long)t,
-					   t->icon_p_x, t->icon_p_y, t->icon_p_width, t->icon_p_height);
-			XFlush (dpy);
-
-			XMapWindow (dpy, t->w);
-			if (ASWIN_DESK(t) == Scr.CurrentDesk)
-			{
-				XMapWindow (dpy, t->frame);
-				t->flags |= MAP_PENDING;
-			}
-			XMapWindow (dpy, t->Parent);
-			SetMapStateProp (t, NormalState);
-			t->flags &= ~ICONIFIED;
-			t->flags &= ~ICON_UNMAPPED;
-			/* Need to make sure the border is colored correctly,
-			 * in case it was stuck or unstuck while iconified. */
-			tmp = Scr.Hilite;
-			Scr.Hilite = t;
-			SetBorder (t, False, True, True, None);
-			Scr.Hilite = tmp;
-			XRaiseWindow (dpy, t->w);
-			/* this is overkill, but need to tell modules about desk change */
-			/*if (t->Desk != t->DeIconifyDesk) */
-			/* removed by sasha due to problems with pager when StickyPagerIcons is set.
-			   in this case Pager changes Desk for window while traveling between desks,
-			   and deiconifyes  it on wrong desk */
-			BroadcastConfig (M_CONFIGURE_WINDOW, t);
-		}
+            iconify_window( t, False );
+        }
 	}
 
-	if ((Scr.flags & StubbornIcons) || (Scr.flags & ClickToFocus))
-		FocusOn (tmp_win, 1, False);
-	else
-		RaiseWindow (tmp_win);
-
-	/* autoplace sticky icons so they don't wind up over a stationary icon */
+    /* autoplace sticky icons so they don't wind up over a stationary icon */
 	AutoPlaceStickyIcons ();
 }
 
@@ -732,7 +656,7 @@ Iconify (ASWindow * tmp_win)
 	/* iconify transients first */
 	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 	{
-		if ((t == tmp_win) || 
+		if ((t == tmp_win) ||
 		    (get_flags(t->hints->flags, AS_Transient) && t->hints->transient_for == tmp_win->w))
 		{
 			/*
@@ -988,7 +912,7 @@ GetIconBitmap (ASWindow * tmp_win)
 	tmp_win->icon_pm_depth = JunkDepth;
 
 	tmp_win->icon_pm_mask = tmp_win->hints->icon_mask;
-		
+
 	tmp_win->flags |= ICON_OURS;
 	tmp_win->flags &= ~PIXMAP_OURS;
 

@@ -128,6 +128,8 @@ typedef struct ScreenInfo
 	struct ASImage  *RootImage;
 
     ASWindow ASRoot;		/* the head of the afterstep window list */
+    struct ASHashTable *aswindow_xref;         /* xreference of window/resource IDs to ASWindow structures */
+
     Window Root;		/* the root window */
     Window SizeWindow;		/* the resize dimensions window */
     Window NoFocusWin;		/* Window which will own focus when no other

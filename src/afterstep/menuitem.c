@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Jan Fedak <jack at mobil dot cz> 
+ * Copyright (c) 2002 Jan Fedak <jack at mobil dot cz>
  * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  * spawned from configure.c and module.c using code from various ppl :
  * Copyright (c) 1998 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
@@ -1377,7 +1377,7 @@ RunCommand (char *cmd, int channel, Window w)
 			 int           xorflag;
 			 Bool          update = False;
 
-			 if (XFindContext (dpy, w, ASContext, (caddr_t *) & tmp_win) == XCNOENT)
+             if ((tmp_win = window2aswindow(w)) == XCNOENT)
 				 break;
 			 xorflag = tmp_win->hints->flags ^ fdata.func_val[0];
 			 /*if (xorflag & STICKY)

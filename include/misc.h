@@ -69,7 +69,7 @@ extern void draw_grid_outline (int, int, int, int);
 extern void DoResize (int, int, ASWindow *, Bool);
 extern void DisplaySize (ASWindow *, int, int, Bool);
 extern void DisplayPosition (ASWindow *, int, int, Bool);
-extern void SetupFrame (ASWindow *, int, int, int, int, Bool);
+//extern void SetupFrame (ASWindow *, int, int, int, int, Bool);
 extern void CreateGCs (void);
 extern void InstallWindowColormaps (ASWindow *);
 extern void InstallRootColormap (void);

@@ -216,15 +216,15 @@ main (int argc, char **argv)
 #if defined(LOG_FONT_CALLS)
 	fprintf (stderr, "logging font calls now\n");
 #endif
-	set_output_threshold(OUTPUT_LEVEL_PROGRESS); 
+	set_output_threshold(OUTPUT_LEVEL_PROGRESS);
 	for (i = 1; i < argc; i++)
 	{
 		show_progress("argv[%d] = \"%s\"", i, argv[i]);
 		if (!strcmp (argv[i], "--debug"))
 		{
 			debugging = True;
-			set_output_level(OUTPUT_LEVEL_DEBUG); 
-			set_output_threshold(OUTPUT_LEVEL_DEBUG); 
+			set_output_level(OUTPUT_LEVEL_DEBUG);
+			set_output_threshold(OUTPUT_LEVEL_DEBUG);
 			show_progress("running in debug mode.");
 		}else if (!strcmp (argv[i], "-v") || !strcmp (argv[i], "--version"))
 		{
@@ -328,6 +328,7 @@ main (int argc, char **argv)
     enable_hints_support( Scr.supported_hints, HINTS_Transient );
 
 
+
 	if (debugging)
 		set_synchronous_mode (True);
 	/* initializing our dirs names */
@@ -370,6 +371,7 @@ main (int argc, char **argv)
 		afterstep_err ("Screen %d is not a valid screen", (char *)Scr.screen, NULL, NULL);
 		exit (1);
 	}
+
 #ifdef SHAPE
 	XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
 #endif /* SHAPE */
@@ -438,8 +440,9 @@ main (int argc, char **argv)
 	XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, CurrentTime);
 
 	XSync (dpy, 0);
-	
-	
+
+    register_aswindow( Scr.Root, &Scr.ASRoot );
+
    /***********************************************************/
 #ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
 	XGrabServer (dpy);                		/* grabbed   !!!!!*/

@@ -72,8 +72,7 @@ HandleColormapNotify (void)
 	}
 	while (XCheckTypedEvent (dpy, ColormapNotify, &Event))
 	{
-		if (XFindContext (dpy, cevent->window, ASContext, (caddr_t *) & Tmp_win) == XCNOENT)
-			Tmp_win = NULL;
+        Tmp_win = window2aswindow( cevent->window );
 		if ((Tmp_win) && (cevent->new))
 		{
 			XGetWindowAttributes (dpy, Tmp_win->w, &(Tmp_win->attr));
@@ -88,7 +87,7 @@ HandleColormapNotify (void)
 		} else if ((Tmp_win) &&
 				   (cevent->state == ColormapInstalled) && (last_cmap == cevent->colormap))
 		{
-			/* The last color map installed was the correct one. Don't 
+			/* The last color map installed was the correct one. Don't
 			 * change anything */
 			ReInstall = False;
 		}
@@ -102,7 +101,7 @@ HandleColormapNotify (void)
 
 /************************************************************************
  *
- * Re-Install the active colormap 
+ * Re-Install the active colormap
  *
  *************************************************************************/
 void

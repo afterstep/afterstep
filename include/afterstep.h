@@ -195,7 +195,7 @@ typedef struct ASWindow
 	struct ASHints       *hints;
 	struct ASStatusHints *status;
 	struct ASStatusHints *saved_status; /* status prior to maximization */
-	XPoint 				  anchor ;
+    XRectangle            anchor ;
 
 #define ASWIN_NAME(t)       ((t)->hints->names[0])
 #define ASWIN_CLASS(t)      ((t)->hints->res_class)
@@ -234,7 +234,7 @@ typedef struct ASWindow
 	 */
 
     Window 			   frame;		/* the frame window */
-	struct ASCanvas   *frame_canvas[FRAME_SIDES] ;
+    struct ASCanvas   *frame_canvas[FRAME_SIDES] ;
 	struct ASTBarData *tbar ;
 	struct ASTBarData *frame_bars[FRAME_PARTS] ; /* regular sidebar is the same as frame with S, SE and SW parts */
 	struct MyFrame 	  *frame_data;  /* currently selected frame decorations for this window */
@@ -321,8 +321,17 @@ typedef struct ASWindow
   }
 ASWindow;
 
-void bind_aswindow_styles(ASWindow *t);
+ASWindow *window2ASWindow( Window w );
+Bool register_aswindow( Window w, ASWindow *asw );
 
+void redecorate_window( ASWindow *asw, Bool free_resources );
+void update_window_transparency( ASWindow *asw );
+void on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width, unsigned int height );
+void on_window_title_changed( ASWindow *asw, Bool update_display );
+void on_window_status_changed( ASWindow *asw, Bool update_display );
+Bool iconify_window( ASWindow *asw, Bool iconify );
+
+void bind_aswindow_styles(ASWindow *t);
 
 
 #define TITLE_OLD		0	/* old (NEXTSTEP 3) style titlebar */

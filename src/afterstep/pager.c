@@ -332,7 +332,7 @@ LowerWindow (ASWindow * t)
  *
  * Get the correct window stacking order from the X server and
  * make sure everything that depends on the order is fine and dandy
- * 
+ *
  *****************************************************************************/
 
 void
@@ -349,7 +349,7 @@ CorrectStackOrder (void)
 		ASWindow     *t;
 
 		for (cp = children; nchildren-- > 0; cp++)
-			if (XFindContext (dpy, *cp, ASContext, (caddr_t *) & t) == XCSUCCESS && t->frame == *cp)
+            if (t = window2aswindow( *cp)) && t->frame == *cp)
 				list_prepend (Scr.ASRoot.next, list_extract (t));
 		XFree (children);
 	} else
@@ -410,9 +410,9 @@ CorrectStackOrder (void)
 }
 
 /***************************************************************************
- * 
+ *
  * Check to see if the pointer is on the edge of the screen, and scroll/page
- * if needed 
+ * if needed
  ***************************************************************************/
 void
 HandlePaging (ASWindow * tmp_win, int HorWarpSize, int VertWarpSize, int *xl, int *yt,

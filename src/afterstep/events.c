@@ -135,6 +135,7 @@ DispatchEvent ()
 
 	StashEventTime (&Event);
 
+    Tmp_win = window2aswindow( w );
 	if (XFindContext (dpy, w, ASContext, (caddr_t *) & Tmp_win) == XCNOENT)
 		Tmp_win = NULL;
 	last_event_type = Event.type;
@@ -521,10 +522,10 @@ HandlePropertyNotify ()
 		Event.xproperty.atom == _XA_NET_WM_ICON_NAME ||
 		Event.xproperty.atom == _XA_NET_WM_VISIBLE_NAME ||
 		Event.xproperty.atom == _XA_NET_WM_VISIBLE_ICON_NAME )
-	{	
+	{
 		show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
-		if( update_property_hints_manager( Tmp_win->w, Event.xproperty.atom, 
-		                                   Scr.supported_hints, 
+		if( update_property_hints_manager( Tmp_win->w, Event.xproperty.atom,
+		                                   Scr.supported_hints,
                                            Tmp_win->hints, Tmp_win->status ) )
 		{
 			BroadcastName( M_WINDOW_NAME, Tmp_win->w, Tmp_win->frame,
@@ -549,8 +550,8 @@ HandlePropertyNotify ()
 		}
 	}else
 	{
-#warning "fix handling of updated window management hints"	
-#if 0		
+#warning "fix handling of updated window management hints"
+#if 0
 		switch (Event.xproperty.atom)
 		{
 	  	 case XA_WM_HINTS:
@@ -1281,7 +1282,7 @@ HandleConfigureRequest ()
 	 * requested client window width; the inner height is the same as the
 	 * requested client window height plus any title bar slop.
 	 */
-	SetupFrame (Tmp_win, x, y, width, height, FALSE);
+    on_window_status_changed( Tmp_win, True );
 	UpdateVisibility ();
 
 }

@@ -65,7 +65,7 @@
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
 #include "../../include/misc.h"
-#include "../../include/style.h"
+#include "../../include/decor.h"
 #include "../../include/screen.h"
 #include "../../include/loadimg.h"
 #include "../../include/parser.h"
@@ -1206,15 +1206,9 @@ titlebar_sanity_check (void)
 	{
 		if (ASWIN_HFLAGS(t, AS_Titlebar))
 		{
-			int           width = t->frame_width;
-			int           height = t->frame_height;
-
-			init_titlebutton_windows (t, True);
-			create_titlebutton_windows (t);
-			t->frame_width = t->frame_height = 0;	/* force reconfigure titlebar */
-			SetupFrame (t, t->frame_x, t->frame_y, width, height, 0);
-			XMapSubwindows (dpy, t->frame);
-		}
+            redecorate_window( t, False );
+            on_window_status_changed( t, True );
+        }
 	}
 }
 
@@ -1679,9 +1673,9 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 #ifndef NO_TEXTURE
 			win->bp_width = -1;				   /* force recreate gradients */
 #endif
-			SetupFrame (win, win->frame_x, win->frame_y, win->frame_width, win->frame_height, 0);
-			SetBorder (win, Scr.Hilite == win, True, True, None);
-		}
+            redecorate_window( win, False );
+            on_window_status_changed( win, True );
+        }
 	}
 
 	/* redo icons in case IconBox, ButtonSize, SeparateButtonTitle, or one
@@ -1813,9 +1807,9 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 		fprintf (stderr, "invalid Titlebar button number: %d\n", num);
 		return;
 	}
-	
+
 	num = translate_title_button(num);
-	
+
 	/* going the hard way to prevent buffer overruns */
 	while (isspace (*(tline + offset)) && offset < linelen)
 		offset++;

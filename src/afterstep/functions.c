@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (c) 2001 James <james@piku.org.uk> 
+ * Copyright (c) 2001 James <james@piku.org.uk>
  * Copyright (c) 1999 Sasha Vasko <sasha at aftercode.net>
  * This module is based on Twm, but has been SIGNIFICANTLY modified
  * by Rob Nation
@@ -914,7 +914,7 @@ DeferExecution (XEvent * eventp, Window * w, ASWindow ** tmp_win,
 		UngrabEm ();
 		return TRUE;
 	}
-	if (XFindContext (dpy, *w, ASContext, (caddr_t *) tmp_win) == XCNOENT)
+    if ((tmp_win = window2aswindow( *w )) == NULL)
 	{
 		*tmp_win = NULL;
 		XBell (dpy, Scr.screen);
@@ -1006,7 +1006,15 @@ MoveViewport (int newx, int newy, Bool grab)
 
 	if (deltax || deltay)
 	{
-		/* Here's an attempt at optimization by reducing (hopefully) the expose
+        for (t = Scr.ASRoot.next; t != NULL; t = t->next)
+        {
+            t->status->viewport_x = newx ;
+            t->status->viewport_y = newy ;
+            on_window_status_changed( t, True );
+        }
+
+#if 0                                          /* old cruft : */
+        /* Here's an attempt at optimization by reducing (hopefully) the expose
 		 * events sent to moved windows.  Move the windows which will be on the
 		 * new desk, from the front window to the back one.  Move the other
 		 * windows from the back one to the front.  Thus if a window is totally
@@ -1086,8 +1094,9 @@ MoveViewport (int newx, int newy, Bool grab)
 						}
 					}
 				}
-			}
-		/* autoplace sticky icons so they don't wind up over a stationary icon */
+            }
+#endif
+        /* autoplace sticky icons so they don't wind up over a stationary icon */
 		AutoPlaceStickyIcons ();
 	}
 #ifndef NO_VIRTUAL
