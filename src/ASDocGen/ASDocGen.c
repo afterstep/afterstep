@@ -125,7 +125,11 @@ Bool start_doc_file( const char * dest_dir, const char *doc_path, const char *do
 				ASFlagType doc_class_mask, ASDocClass doc_class );
 void end_doc_file( ASXMLInterpreterState *state );
 
-
+void gen_code_doc( 	const char *source_dir, const char *dest_dir, 
+	 			  	const char *file, 
+				  	const char *display_name,
+				  	const char *display_purpose,
+			  		ASDocType doc_type );
 
 /*************************************************************************/
 /*************************************************************************/
@@ -230,6 +234,11 @@ main (int argc, char **argv)
 		gen_syntax_doc( source_dir, destination_dir, NULL, target_type );
 		gen_glossary( destination_dir, target_type );
 		gen_index( destination_dir, target_type );
+		gen_code_doc( "../../libAfterImage", destination_dir, 
+			  		  "asimagexml.c", 
+			  		  "libAfterImage XML tags",
+			  		  "XML tags supported by ascompose and AfterStep in xml images",
+			  		  target_type );
 	}else
 		check_syntax_source( source_dir, NULL, True );
 
@@ -747,10 +756,14 @@ typedef struct ASRobodocState
 void 
 skip_robodoc_line( ASRobodocState *robo_state )
 {
-	register int curr = robo_state->curr;
-	register const char *ptr = &(robo_state->source[curr]) ;
+	register int curr = 0;
+	register const char *ptr = &(robo_state->source[robo_state->curr]) ;
+	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d, ptr[curr] = 0x%x", robo_state->curr, robo_state->len, ptr[curr] );
 	while( ptr[curr] && ptr[curr] != '\n' ) ++curr ;
-	robo_state->curr = ptr[curr]?curr+1:curr ;
+	if( ptr[curr] || curr < robo_state->len ) 
+		++curr ;
+	LOCAL_DEBUG_OUT("robo_state> curr = %d(0x%x), len = %d, ptr[curr] = '%c'(0x%x)", robo_state->curr, robo_state->curr, robo_state->len, ptr[curr], ptr[curr] );
+	robo_state->curr += curr ;
 }	
 
 void
@@ -758,6 +771,7 @@ find_robodoc_section( ASRobodocState *robo_state )
 {
 	while( robo_state->curr < (robo_state->len - 7) )
 	{
+		LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
 		if( robo_state->source[robo_state->curr] == '/' ) 
 		{
 			int count = 0 ;
@@ -918,10 +932,12 @@ robodoc_section_header2xml( ASRobodocState *robo_state )
 	int id_length = 0 ;
 	char *id = "";
 	char saved = ' ';
-		
+	
+	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
+		   
 	section->tag = mystrdup( "section" );
 	section->tag_id = DOCBOOK_section_ID ;  
-
+	
 	while( ptr[i] != 0 && ptr[i] != '\n' ) ++i ;
 	robo_state->curr += i+1 ;
 	while( i > 0 && isspace(ptr[i])) --i ;
@@ -955,6 +971,7 @@ void
 append_CDATA_line( xml_elem_t *tag, const char *line, int len )
 {
 	xml_elem_t *cdata_tag = tag->child ;
+	LOCAL_DEBUG_CALLER_OUT("tag->tag = \"%s\", line_len = %d", tag->tag, len );
 
 	while( cdata_tag != NULL ) 
 	{
@@ -986,6 +1003,7 @@ append_robodoc_line( ASRobodocState *robo_state, int len )
 {
 	xml_elem_t* sec_tag = NULL;
 	xml_elem_t* ll_tag = NULL;
+	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
 	if( robo_state->curr_subsection == NULL ) 
 		sec_tag = robo_state->curr_section ;
 	else
@@ -1014,6 +1032,7 @@ handle_robodoc_subtitle( ASRobodocState *robo_state, int len )
 	xml_elem_t* title_tag = NULL;
 	xml_elem_t* title_text_tag = NULL;
 
+	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
 	while( isspace(ptr[i]) && i < len ) ++i ;
 	while( isspace(ptr[len]) && i < len ) --len ;
 
@@ -1055,6 +1074,7 @@ void
 handle_robodoc_line( ASRobodocState *robo_state, int len )
 {
 	 /* skipping first 3 characters of the line */
+	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d, line_len = %d", robo_state->curr, robo_state->len, len );
 	if( len < 4 ) 
 	{	
 		robo_state->curr += len ;
@@ -1074,6 +1094,7 @@ handle_robodoc_quotation(  ASRobodocState *robo_state )
 	int end = 0 ;
 	find_robodoc_section( robo_state );
 	end = robo_state->curr-1 ; 
+	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
 	if( end > start ) 
 	{
 		xml_elem_t *sec_tag = NULL ;
@@ -1104,17 +1125,22 @@ handle_robodoc_section( ASRobodocState *robo_state )
 	Bool section_end = False ;
 	robodoc_section_header2xml( robo_state );
 
+	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
 	while( !section_end && robo_state->curr < robo_state->len ) 
 	{
 		const char *ptr = &(robo_state->source[robo_state->curr]) ;
 		int i = 0 ;
 		section_end = False ;
+		LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
+
 		while( ptr[i] && ptr[i] != '\n' && !section_end) 
 		{	
 			section_end = ( ptr[i] == '*' && ptr[i+1] == '/' );
 			++i ;
 		}
 		
+		if( i == 0 )
+			++i ;
 		if( section_end )
 		{	
 			if( strncmp( ptr, " */", 3 ) == 0 )
@@ -1125,7 +1151,6 @@ handle_robodoc_section( ASRobodocState *robo_state )
 				handle_robodoc_line( robo_state, i );		 	  
 		}else
 			handle_robodoc_line( robo_state, i );
-		
 		ptr = &(robo_state->source[robo_state->curr]) ;
 		i = 0 ;
 		while( ptr[i] && ptr[i] != '\n' ) ++i ;
@@ -1138,18 +1163,26 @@ xml_elem_t*
 robodoc2xml(const char *doc_str)
 {
 	xml_elem_t* doc = NULL ;
-#if 1
 	ASRobodocState	robo_state ;
 
 	memset( &robo_state, 0x00, sizeof(ASRobodocState));
 	robo_state.source = doc_str ;
 	robo_state.len = strlen( doc_str );
 
+	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state.curr, robo_state.len );
+	doc = xml_elem_new();
+	doc->tag = mystrdup(XML_CONTAINER_STR) ;
+	doc->tag_id = XML_CONTAINER_ID ;
+	robo_state.doc = doc ;		
+#if 1
 	while( robo_state.curr < robo_state.len )
 	{
+		LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state.curr, robo_state.len );
 		find_robodoc_section( &robo_state );
+		LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state.curr, robo_state.len );
 		if( robo_state.curr < robo_state.len )
 			handle_robodoc_section( &robo_state );
+		break;
 	}	 
 #endif	
 	return doc;
@@ -1164,7 +1197,7 @@ convert_code_file( const char *source_dir, const char *file, ASXMLInterpreterSta
 	
 	source_file = make_file_name( source_dir, file );
 	doc_str = load_file(source_file);
-	LOCAL_DEBUG_OUT( "file %s loaded into {%s}", source_file, doc_str );
+/* 	LOCAL_DEBUG_OUT( "file %s loaded into {%s}", source_file, doc_str ); */
 	if( doc_str != NULL )
 	{
 		xml_elem_t* doc;
