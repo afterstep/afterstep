@@ -20,6 +20,11 @@
 		blender.h \
 		asimage.h
 
+./asimagexml.o : \
+		config.h \
+		afterbase.h \
+		afterimage.h
+
 ./asvisual.o : \
 		config.h \
 		afterbase.h \

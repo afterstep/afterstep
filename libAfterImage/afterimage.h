@@ -12,6 +12,7 @@
 #include "asfont.h"
 #include "ximage.h"
 #include "transform.h"
+#include "asimagexml.h"
 #include "import.h"
 #include "export.h"
 

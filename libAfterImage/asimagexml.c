@@ -33,8 +33,8 @@
 #include <sys/select.h>
 #endif
 
-#include <libAfterImage/afterbase.h>
-#include <libAfterImage/afterimage.h>
+#include "afterbase.h"
+#include "afterimage.h"
 
 /****h* libAfterImage/compose_asimage_xml
  * NAME
@@ -67,45 +67,15 @@
  *****/
 
 
-#define xml_tagchar(a) (isalnum(a) || (a) == '-' || (a) == '_')
-
-/* We don't trust the math library to actually provide this number.*/
-#undef PI
-#define PI 180
-
-typedef struct xml_elem_t {
-	struct xml_elem_t* next;
-	struct xml_elem_t* child;
-	char* tag;
-	char* parm;
-} xml_elem_t;
-
-void showimage(ASImage* im, Window w);
-ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm);
-double parse_math(const char* str, char** endptr, double size);
-xml_elem_t* xml_parse_parm(const char* parm);
-void xml_print(xml_elem_t* root);
-xml_elem_t* xml_elem_new(void);
-xml_elem_t* xml_elem_remove(xml_elem_t** list, xml_elem_t* elem);
-void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem);
-xml_elem_t* xml_parse_doc(const char* str);
-int xml_parse(const char* str, xml_elem_t* current);
-void xml_insert(xml_elem_t* parent, xml_elem_t* child);
-char* lcstring(char* str);
-Bool save_file(const char* file2bsaved, ASImage *im,
-	           const char* strtype,
-			   const char *compress,
-			   const char *opacity,
-			   int delay, int replace);
 
 /* Stolen from libAfterStep. */
-static Pixmap __GetRootPixmap (Atom id)
+static Pixmap __GetRootPixmap (ASVisual *asv, Atom id)
 {
 	Pixmap        currentRootPixmap = None;
 #ifndef X_DISPLAY_MISSING
 
 	if (id == None)
-		id = XInternAtom (dpy, "_XROOTPMAP_ID", True);
+		id = XInternAtom (asv->dpy, "_XROOTPMAP_ID", True);
 
 	if (id != None)
 	{
@@ -114,7 +84,7 @@ static Pixmap __GetRootPixmap (Atom id)
 		unsigned long nitems, bytes_after;
 		unsigned char *prop = NULL;
 
-		if (XGetWindowProperty (dpy, RootWindow(dpy, screen), id, 0, 1, False, XA_PIXMAP,
+		if (XGetWindowProperty (asv->dpy, RootWindow(asv->dpy, asv->visual_info.screen), id, 0, 1, False, XA_PIXMAP,
 								&act_type, &act_format, &nitems, &bytes_after, &prop) == Success)
 		{
 			if (prop)
@@ -148,24 +118,17 @@ Bool show_progress( const char *msg_format, ...)
 static char* cdata_str = "CDATA";
 static char* container_str = "CONTAINER";
 
-int compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win) 
+ASImage *
+compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win) 
 {
 	ASImage* im = NULL;
 	xml_elem_t* doc;
-	char* doc_file = NULL;
-	char* doc_save = NULL;
-	char* doc_save_type = NULL;
-	int i;
-	int display = 1, onroot = 0;
-
 
 	doc = xml_parse_doc(doc_str);
 	if (verbose > 1) {
 		xml_print(doc);
 		fprintf(stderr, "\n");
 	}
-
-	if (doc_file && doc_str && doc_str != default_doc_str) free(doc_str);
 
 	/* Build the image(s) from the xml document structure. */
 	if (doc) {
@@ -257,7 +220,7 @@ Bool save_file(const char *file2bsaved, ASImage *im,
 
 }
 
-void showimage(ASImage* im, Window w, long delay) 
+void showimage(ASVisual *asv, ASImage* im, Window w, long delay) 
 {
 #ifndef X_DISPLAY_MISSING
 	if ( im && w ) 
@@ -270,14 +233,14 @@ void showimage(ASImage* im, Window w, long delay)
 		XFlush( dpy );
 		XFreePixmap( dpy, p );
 		p = None ;
-		value.tv_usec = n % 10000;
-		value.tv_sec = n / 10000;
+		value.tv_usec = delay % 10000;
+		value.tv_sec = delay / 10000;
 		PORTABLE_SELECT (1, 0, 0, 0, &value);
 	}
 #endif /* X_DISPLAY_MISSING */
 }
 
-/****** libAfterImage/ascompose/tags
+/****** libAfterImage/asimagexml/tags
  * TAGS
  * Here is the list and description of possible XML tags to use in the
  * script :
@@ -351,12 +314,14 @@ double parse_math(const char* str, char** endptr, double size) {
 
 
 /* Each tag is only allowed to return ONE image. */
-ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, xml_elem_t* doc, xml_elem_t** rparm, ASFlagType flags, int verbose, Window display_win) {
+ASImage* 
+build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, xml_elem_t* doc, xml_elem_t** rparm, ASFlagType flags, int verbose, Window display_win) 
+{
 	xml_elem_t* ptr;
 	char* id = NULL;
 	ASImage* result = NULL;
 
-/****** libAfterImage/ascompose/tags/img
+/****** libAfterImage/asimagexml/tags/img
  * NAME
  * img - load image from the file.
  * SYNOPSIS
@@ -378,7 +343,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		}
 		if (src && !strcmp(src, "xroot:")) {
 			unsigned int width, height;
-			Pixmap rp = __GetRootPixmap(None);
+			Pixmap rp = __GetRootPixmap(asv, None);
 			show_progress("Getting root pixmap.");
 			if (rp) {
 				get_drawable_size(rp, &width, &height);
@@ -391,7 +356,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/recall
+/****** libAfterImage/asimagexml/tags/recall
  * NAME
  * recall - recall previously generated and named image by its id.
  * SYNOPSIS
@@ -417,7 +382,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/text
+/****** libAfterImage/asimagexml/tags/text
  * NAME
  * text - render text string into new image, using specific font, size
  *        and texture.
@@ -521,7 +486,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/save
+/****** libAfterImage/asimagexml/tags/save
  * NAME
  * save - write generated/loaded image into the file of one of the
  *        supported types
@@ -581,12 +546,14 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		}
 		if (dst && ext) {
 			for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
-				result = build_image_from_xml(ptr, NULL);
+				result = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 			}
 			if (autoext)
 				show_warning("No format given.  File extension [%s] used as format.", ext);
 			show_progress("Saving image to file [%s].", dst);
-			if (result && !save_file(dst, result, ext, compress, opacity, delay, replace)) {
+			if (result && get_flags( flags, ASIM_XML_ENABLE_SAVE) )
+			{
+				if( !save_file(dst, result, ext, compress, opacity, delay, replace)) 
 				show_error("Unable to save image into file [%s].", dst);
 			}
 		}
@@ -594,7 +561,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/bevel
+/****** libAfterImage/asimagexml/tags/bevel
  * NAME
  * bevel - draws solid bevel frame around the image.
  * SYNOPSIS
@@ -625,7 +592,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 			if (!strcmp(ptr->tag, "border")) border_str = ptr->parm;
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(ptr, NULL);
+			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);;
 		}
 		if (imtmp) {
 			ASImageBevel bevel;
@@ -671,7 +638,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/gradient
+/****** libAfterImage/asimagexml/tags/gradient
  * NAME
  * gradient - render multipoint gradient.
  * SYNOPSIS
@@ -823,7 +790,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/mirror
+/****** libAfterImage/asimagexml/tags/mirror
  * NAME
  * mirror - create new image as mirror copy of an old one.
  * SYNOPSIS
@@ -846,7 +813,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 			if (!strcmp(ptr->tag, "dir")) dir = !mystrcasecmp(ptr->parm, "vertical");
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(ptr, NULL);
+			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 		}
 		if (imtmp) {
 			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
@@ -855,7 +822,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-/****** libAfterImage/ascompose/tags/blur
+/****** libAfterImage/asimagexml/tags/blur
  * NAME
  * blur - perform a gaussian blurr on an image.
  * SYNOPSIS
@@ -878,7 +845,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 			if (!strcmp(ptr->tag, "vert")) vert = strtod(ptr->parm, NULL);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(ptr, NULL);
+			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 		}
 		if (imtmp) {
 			result = blur_asimage_gauss(asv, imtmp, horz, vert, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
@@ -888,7 +855,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/rotate
+/****** libAfterImage/asimagexml/tags/rotate
  * NAME
  * rotate - rotate an image in 90 degree increments (flip).
  * SYNOPSIS
@@ -911,7 +878,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 			if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(ptr, NULL);
+			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);;
 		}
 		if (imtmp) {
 			int dir = 0;
@@ -936,7 +903,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/scale
+/****** libAfterImage/asimagexml/tags/scale
  * NAME
  * scale - scale image to arbitrary size
  * SYNOPSIS
@@ -980,7 +947,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (width && height) {
 			ASImage* imtmp = NULL;
 			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-				imtmp = build_image_from_xml(ptr, NULL);
+				imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 			}
 			if (imtmp) {
 				result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
@@ -991,7 +958,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/crop
+/****** libAfterImage/asimagexml/tags/crop
  * NAME
  * crop - crop image to arbitrary area within it.
  * SYNOPSIS
@@ -1035,7 +1002,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 			if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(ptr, NULL);
+			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 		}
 		if (imtmp) {
 			width = imtmp->width;
@@ -1062,7 +1029,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-/****** libAfterImage/ascompose/tags/tile
+/****** libAfterImage/asimagexml/tags/tile
  * NAME
  * tile - tile an image to specified area.
  * SYNOPSIS
@@ -1112,7 +1079,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 			else if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(ptr, NULL);
+			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 		}
 		if (imtmp) {
 			width = imtmp->width;
@@ -1137,7 +1104,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-/****** libAfterImage/ascompose/tags/hsv
+/****** libAfterImage/asimagexml/tags/hsv
  * NAME
  * hsv - adjust Hue, Saturation and/or Value of an image and optionally
  * tile an image to arbitrary area.
@@ -1229,7 +1196,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 			else if (!strcmp(ptr->tag, "value_offset")) 	value_offset = atoi(ptr->parm);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(ptr, NULL);
+			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 		}
 		if (imtmp) {
 			width = imtmp->width;
@@ -1259,7 +1226,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/pad
+/****** libAfterImage/asimagexml/tags/pad
  * NAME
  * pad - pad an image with solid color rectangles.
  * SYNOPSIS
@@ -1301,7 +1268,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 			else if (!strcmp(ptr->tag, "color"))  parse_argb_color(ptr->parm, &color);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(ptr, NULL);
+			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 		}
 		if (imtmp) {
 			int width = imtmp->width;
@@ -1329,7 +1296,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/solid
+/****** libAfterImage/asimagexml/tags/solid
  * NAME
  * solid - generate image of specified size and fill it with solid color.
  * SYNOPSIS
@@ -1375,7 +1342,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/ascompose/tags/composite
+/****** libAfterImage/asimagexml/tags/composite
  * NAME
  * composite - superimpose arbitrary number of images on top of each
  * other.
@@ -1462,7 +1429,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 				Bool tile = False ;
 				xml_elem_t* sparm = NULL;
 				if (!strcmp(ptr->tag, cdata_str)) continue;
-				if( (layers[num].im = build_image_from_xml(ptr, &sparm)) != NULL )
+				if( (layers[num].im = build_image_from_xml(asv, imman, fontman, ptr, &sparm, flags, verbose, display_win)) != NULL )
 				{
 					clip_width = layers[num].im->width;
 					clip_height = layers[num].im->height;
@@ -1572,7 +1539,7 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 		xml_elem_t* tparm = NULL;
 		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
 			xml_elem_t* sparm = NULL;
-			ASImage* imtmp = build_image_from_xml(ptr, &sparm);
+			ASImage* imtmp = build_image_from_xml(asv, imman, fontman, ptr, &sparm, flags, verbose, display_win);
 			if (imtmp) {
 				if (tparm) xml_elem_delete(NULL, tparm);
 				tparm = NULL;
@@ -1582,11 +1549,10 @@ ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManag
 	}
 
 	if (id && result) {
-		ASImage* imtmp = NULL;
 		show_progress("Storing image id [%s].", id);
 		if( !store_asimage( imman, result, id ) ) 
 		{
-			if( result->imman ) 
+			if( result->imageman ) 
 				release_asimage( result );
 			else
 				destroy_asimage( &result );

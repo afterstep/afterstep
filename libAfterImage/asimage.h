@@ -83,6 +83,23 @@ struct ASScanline;
 #define RLE_MAX_LONG_LEN     	(64*256)
 #define RLE_THRESHOLD			1
 
+/****d* libAfterImage/ASAltImFormats
+ * FUNCTION
+ * Identifies what output format should be used for storing the
+ * transformation result. Also identifies what data is currently stored
+ * in alt member of ASImage structure.
+ * SOURCE
+ */
+typedef enum {
+	ASA_ASImage = 0,
+    ASA_XImage,
+	ASA_MaskXImage,
+	ASA_ARGB32,
+	ASA_Vector,       /* This cannot be used for transformation's result
+					   * format */
+	ASA_Formats
+}ASAltImFormats;
+/*******/
 /****s* libAfterImage/ASImage
  * NAME
  * ASImage
@@ -123,24 +140,6 @@ struct ASImageManager;
 
 /* magic number identifying ASFont data structure */
 #define MAGIC_ASIMAGE            0xA3A314AE
-
-/****d* libAfterImage/ASAltImFormats
- * FUNCTION
- * Identifies what output format should be used for storing the
- * transformation result. Also identifies what data is currently stored
- * in alt member of ASImage structure.
- * SOURCE
- */
-typedef enum {
-	ASA_ASImage = 0,
-    ASA_XImage,
-	ASA_MaskXImage,
-	ASA_ARGB32,
-	ASA_Vector,       /* This cannot be used for transformation's result
-					   * format */
-	ASA_Formats
-}ASAltImFormats;
-/*******/
 
 typedef struct ASImage
 {

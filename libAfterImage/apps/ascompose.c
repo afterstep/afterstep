@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include <libAfterImage/afterbase.h>
+#define ASIMAGEXML_HEADER_FILE_INCLUDED
 #include <libAfterImage/afterimage.h>
 #include "common.h"
 

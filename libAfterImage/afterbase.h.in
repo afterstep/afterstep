@@ -12,6 +12,7 @@
 #include <libAfterBase/fs.h>
 #include <libAfterBase/parse.h>
 #include <libAfterBase/selfdiag.h>
+#include <libAfterBase/sleep.h>
 #include <libAfterBase/socket.h>
 #include <libAfterBase/trace.h>
 #else
