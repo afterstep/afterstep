@@ -190,8 +190,15 @@ user_ldflags=$LDFLAGS
 
 if test "x$have_x" = "xyes"; then
   x_libs="$X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
-  AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,"$LDFLAGS $x_libs")
+  if test "x$user_ldflags" = "x"; then
+  	full_x_libs=$x_libs
+  else
+	full_x_libs="$user_ldflags $x_libs"
+  fi
+  AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$full_x_libs)
 fi
+
+
 
 dnl# Construct Gnu/AfterStep path from pieces
 with_gnustep_lib=${with_gnustep_dir}/${with_gnustep_lib}
