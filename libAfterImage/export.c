@@ -735,6 +735,8 @@ LOCAL_DEBUG_OUT( "done writing image%s","" );
 	jpeg_finish_compress(&cinfo);
 	jpeg_destroy_compress(&cinfo);
 
+	free( row_pointer[0] );
+	
 	stop_image_decoding( &imdec );
 	fclose(outfile);
 

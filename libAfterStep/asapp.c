@@ -672,6 +672,9 @@ FreeMyAppResources()
     wmprops_cleanup ();
     free_func_hash();
     purge_asimage_registry();
+	asxml_var_cleanup();
+	custom_color_cleanup();
+    build_xpm_colormap( NULL );
     flush_ashash_memory_pool();
     destroy_screen_gcs(ASDefaultScr);
 	if( ASDefaultScr->RootImage ) 
@@ -679,19 +682,18 @@ FreeMyAppResources()
 		safe_asimage_destroy( ASDefaultScr->RootImage );
 		ASDefaultScr->RootImage = NULL ;
 	}
-	asxml_var_cleanup();
 	destroy_asvisual( ASDefaultScr->asv, False );
-	custom_color_cleanup();
     flush_asbidirlist_memory_pool();
     free( as_app_args.saved_argv );
     destroy_assession( Session );
 	destroy_asenvironment( &Environment );
-    build_xpm_colormap( NULL );
 	is_executable_in_path ( NULL );
 #ifdef XSHMIMAGE
 	flush_shm_cache();
 #endif
 	free( ASDefaultScr );
+	flush_default_asstorage();
+
 }
 
 

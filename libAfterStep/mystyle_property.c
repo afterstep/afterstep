@@ -221,6 +221,7 @@ mystyle_get_property (ASWMProps *wmprops)
 					style->back_icon.image = picture2asimage (ASDefaultVisual, style->back_icon.pix, style->back_icon.alpha,
 															  0, 0, style->back_icon.width, style->back_icon.height,
 															  AllPlanes, False, 0);
+				clear_flags (style->inherit_flags, F_BACKPIXMAP|F_BACKTRANSPIXMAP);
 			}
 		}
 		if (style->back_icon.pix == None && 

@@ -19,7 +19,7 @@
  *
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #ifdef _WIN32
 #include "win32/config.h"
 #else
@@ -161,7 +161,7 @@ asxml_var_init(void)
 	int w, h;
 	if ( asxml_var == NULL )
 	{
-    	asxml_var = create_ashash(0, string_hash_value, string_compare, string_destroy);
+    	asxml_var = create_ashash(0, string_hash_value, string_compare, string_destroy_without_data);
     	if (!asxml_var) return;
     	if (dpy != NULL && GetRootDimensions(&w, &h))
 		{
@@ -184,7 +184,7 @@ asxml_var_insert(const char* name, int value)
 
     show_progress("Defining var [%s] == %d.", name, value);
 
-    hdata.iptr = NEW(int); *(hdata.iptr) = value;
+    hdata.i = value;
     add_hash_item(asxml_var, AS_HASHABLE(mystrdup(name)), hdata.vptr);
 }
 
@@ -195,10 +195,12 @@ asxml_var_get(const char* name)
 
     if (!asxml_var) asxml_var_init();
     if (!asxml_var) return 0;
-    get_hash_item(asxml_var, AS_HASHABLE(name), &hdata.vptr);
-	if (!hdata.iptr)
+    if( get_hash_item(asxml_var, AS_HASHABLE(name), &hdata.vptr) != ASH_Success ) 
+	{	
 		show_debug(__FILE__, "asxml_var_get", __LINE__, "Use of undefined variable [%s].", name);
-    return hdata.iptr ? *hdata.iptr : 0;
+		return 0;
+	}
+    return hdata.i;
 }
 
 int
@@ -300,7 +302,7 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 			if (tmpim && im) safe_asimage_destroy(im);
 			if (tmpim) im = tmpim;
 		}
-LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.8X", im, im?im->imageman:NULL, my_imman, im?im->magic:0 );
+LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.8lX", im, im?im->imageman:NULL, my_imman, im?im->magic:0 );
 
 		if( my_imman != imman && my_imman != old_as_xml_imman )
 		{/* detach created image from imman to be destroyed : */
@@ -317,7 +319,7 @@ LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.
 		/* Delete the xml. */
 		xml_elem_delete(NULL, doc);
 	}
-	LOCAL_DEBUG_OUT( "returning im = %p, im->imman	= %p, im->magic = %8.8X", im, im?im->imageman:NULL, im?im->magic:0 );
+	LOCAL_DEBUG_OUT( "returning im = %p, im->imman	= %p, im->magic = %8.8lX", im, im?im->imageman:NULL, im?im->magic:0 );
 	return im;
 }
 
@@ -457,6 +459,53 @@ double parse_math(const char* str, char** endptr, double size) {
 	return total;
 }
 
+typedef struct ASImageXMLState
+{
+	ASFlagType 		flags ;
+ 	ASVisual 		*asv;
+	ASImageManager 	*imman ;
+	ASFontManager 	*fontman ;
+	
+}ASImageXMLState;
+
+
+ASImage *commit_xml_image_built( ASImageXMLState *state, char *id, ASImage *result )
+{	
+	if (state && id && result) 
+	{
+    	char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
+		show_progress("Storing image id [%s] with image manager %p .", id, state->imman);
+        sprintf(buf, "%s.width", id);
+        asxml_var_insert(buf, result->width);
+        sprintf(buf, "%s.height", id);
+        asxml_var_insert(buf, result->height);
+        free(buf);
+		if( result->imageman != NULL )
+		{
+			ASImage *tmp = clone_asimage(result, SCL_DO_ALL );
+			safe_asimage_destroy(result );
+			result = tmp ;
+		}
+		if( result )
+		{
+			if( !store_asimage( state->imman, result, id ) )
+			{
+				show_warning("Failed to store image id [%s].", id);
+				safe_asimage_destroy(result );
+				result = fetch_asimage( state->imman, id );
+				/*show_warning("Old image with the name fetched as %p.", result);*/
+			}else
+			{
+				/* normally generated image will be destroyed right away, so we need to
+			 	* increase ref count, in order to preserve it for future uses : */
+				dup_asimage( result );
+			}
+		}
+	}
+	return result;
+}
+
+
 
 /* Each tag is only allowed to return ONE image. */
 ASImage*
@@ -466,6 +515,12 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 	char* id = NULL;
 	ASImage* result = NULL;
 
+	ASImageXMLState state ; 
+
+	memset( &state, 0x00, sizeof(state));
+	state.asv = asv ; 
+	state.imman = imman ; 
+	state.fontman = fontman ; 
 /****** libAfterImage/asimagexml/img
  * NAME
  * img - load image from the file.
@@ -1046,6 +1101,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					}
 				}
 				result = make_gradient(asv, &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				if( gradient.color ) 
+					free( gradient.color );
+				if( gradient.offset )
+					free( gradient.offset );
 			}
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -2006,7 +2065,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		
 		if( format != NULL ) 
 		{	
-			char *interpreted_format = interpret_ctrl_codes( strdup(format) );
+			char *interpreted_format = interpret_ctrl_codes( mystrdup(format) );
 			if( use_val && arg_count == 1) 
 				printf( interpreted_format, val );
 			else if( var != NULL && arg_count == 1 ) 
@@ -2029,6 +2088,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		{
 			xml_elem_t* sparm = NULL;
 			ASImage* imtmp = build_image_from_xml(asv, imman, fontman, ptr, &sparm, flags, verbose, display_win);
+			LOCAL_DEBUG_OUT("imtmp = %p", imtmp );
 			if (imtmp) 
 			{
 				if (tparm) xml_elem_delete(NULL, tparm);
@@ -2039,6 +2099,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		else xml_elem_delete(NULL, tparm);
 	}
 
+	result = commit_xml_image_built( &state, id, result );
+#if 0	
 	if (id && result) 
 	{
     	char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
@@ -2070,7 +2132,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			}
 		}
 	}
-
+#endif
 	return result;
 }
 

@@ -143,7 +143,6 @@ encode_atom_list ( AtomXref * xref, CARD32 **list, long *nitems, ASFlagType flag
 		    for( i = 0 ; xref[i].name ; i++ )
 				if( get_flags(flags, xref[i].flag) )
 				{
-                    LOCAL_DEBUG_OUT( "flag %lX encoded as atom \"%s\"(0x%lX)", xref[i].flag, XGetAtomName(dpy,xref[i].atom), xref[i].atom );
                     (*list)[k] = xref[i].atom;
 					k++;
 				}

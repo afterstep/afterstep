@@ -288,20 +288,49 @@ void
 DeadPipe (int nonsense)
 {
 	static int already_dead = False ; 
+	int i ;
 
 	if( already_dead ) 
 		return;
 	already_dead = True ;
 
-    if( PagerState.main_canvas )
-        destroy_ascanvas( &PagerState.main_canvas );
+	window_data_cleanup();
+	destroy_ashash( &PagerClients );
+	for( i = 0 ; i < PagerState.desks_num ; ++i ) 
+	{
+		ASPagerDesk *d = &PagerState.desks[i] ;	
+		destroy_astbar( &(d->title) );
+		destroy_astbar( &(d->background) );
+		destroy_ascanvas( &(d->desk_canvas) );
+		if( d->separator_bars ) 
+		{
+			int p ;
+            for( p = 0 ; p < d->separator_bars_num ; ++p )
+                if( d->separator_bars[p] )
+                    XDestroyWindow( dpy, d->separator_bars[p] );
+            free( d->separator_bars );
+            free( d->separator_bar_rects );
+		}	 
+		if( d->clients ) 
+			free( d->clients );
+		if( d->back ) 
+			safe_asimage_destroy( d->back );
+	}	    
+    destroy_ascanvas( &PagerState.main_canvas );
+    destroy_ascanvas( &PagerState.icon_canvas );
+    
+	for( i = 0 ; i < 4 ; ++i ) 
+	{	
+		if( PagerState.selection_bars[i] ) 
+			XDestroyWindow( dpy, PagerState.selection_bars[i] );
+	}
 
     if( Config )
         DestroyPagerConfig (Config);
 
     FreeMyAppResources();
 #ifdef DEBUG_ALLOCS
-    print_unfreed_mem ();
+	print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
 
     XFlush (dpy);
@@ -1048,6 +1077,7 @@ restack_desk_windows( ASPagerDesk *d )
 
     XRaiseWindow( dpy, list[0] );
     XRestackWindows( dpy, list, k );
+	free( list );
 }
 
 void
@@ -1260,6 +1290,7 @@ redecorate_pager_desks()
             free( d->separator_bar_rects );
             d->separator_bars_num = 0 ;
             d->separator_bars = NULL ;
+			d->separator_bar_rects = NULL ;
         }
         if( get_flags( Config->flags, PAGE_SEPARATOR ) )
         {

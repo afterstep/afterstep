@@ -358,7 +358,7 @@ ASHashResult asim_remove_hash_item (ASHashTable * hash, ASHashableValue value, v
 void 		 asim_flush_ashash_memory_pool();
 ASHashKey 	 asim_string_hash_value (ASHashableValue value, ASHashKey hash_size);
 long 		 asim_string_compare (ASHashableValue value1, ASHashableValue value2);
-void		 asim_string_destroy (ASHashableValue value, void *data);
+void		 asim_string_destroy_without_data (ASHashableValue value, void *data);
 /* variation for case-unsensitive strings */
 ASHashKey 	 asim_casestring_hash_value (ASHashableValue value, ASHashKey hash_size);
 long 		 asim_casestring_compare (ASHashableValue value1, ASHashableValue value2);
@@ -373,7 +373,7 @@ long 		 asim_casestring_compare (ASHashableValue value1, ASHashableValue value2)
 
 #define	string_hash_value 	 	 asim_string_hash_value
 #define	string_compare 		 	 asim_string_compare
-#define	string_destroy 		 	 asim_string_destroy
+#define	string_destroy_without_data  asim_string_destroy_without_data
 #define	casestring_hash_value		 asim_casestring_hash_value
 #define	casestring_compare     		 asim_casestring_compare
 

@@ -195,6 +195,7 @@ CreatePagerConfig (int ndesks)
 	/* let's initialize Pager's config with some nice values: */
 	init_asgeometry (&(config->icon_geometry));
 	init_asgeometry (&(config->geometry));
+	config->ndesks = ndesks ;
 	config->labels = CreateStringArray (ndesks);
 	config->styles = CreateStringArray (ndesks);
 	config->align = 0;
@@ -234,6 +235,8 @@ DestroyPagerConfig (PagerConfig * config)
     Destroy_balloonConfig (config->balloon_conf);
     DestroyFreeStorage (&(config->more_stuff));
 	DestroyMyStyleDefinitions (&(config->style_defs));
+	if( Config->shade_btn ) 
+		free( Config->shade_btn );
 	free (config);
 }
 
@@ -317,7 +320,8 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 {
 	ConfigData    cd ;
 	ConfigDef    *PagerConfigReader;
-	PagerConfig  *config = CreatePagerConfig ((desk2 - desk1) + 1);
+	int ndesks = (desk2 - desk1) + 1;
+	PagerConfig  *config = CreatePagerConfig (ndesks);
 
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
@@ -413,10 +417,10 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 				 set_flags (config->set_flags, PAGER_SET_COLUMNS);
 				 break;
 			 case PAGER_LABEL_ID:
-				 config->labels[item.index - desk1] = item.data.string;
+			 	config->labels[item.index - desk1] = item.data.string;
 				 break;
 			 case PAGER_STYLE_ID:
-				 config->styles[item.index - desk1] = item.data.string;
+			 	config->styles[item.index - desk1] = item.data.string;
 				 break;
 			 case PAGER_SHADE_BUTTON_ID:
 				 if (item.data.string)

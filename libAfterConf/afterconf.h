@@ -734,6 +734,7 @@ typedef struct
   {
     int    rows, columns;
     ASGeometry geometry, icon_geometry;
+	int ndesks ;
     char **labels;
     char **styles;
     int    align;

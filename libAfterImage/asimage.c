@@ -201,11 +201,10 @@ alloc_asimage_channels ( ASImage *im )
 {
 	/* we want result to be 32bit aligned and padded */
 	im->red = safecalloc (1, sizeof (ASStorageID) * im->height * 4);
+	LOCAL_DEBUG_OUT( "allocated %p for channels of the image %p", im->red, im );
 	if( im->red == NULL )
 	{
 		show_error( "Insufficient memory to create image %dx%d!", im->width, im->height );
-		if( im->red )
-			free( im->red );
 		return ;
 	}
 
@@ -829,7 +828,7 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
         {
             int z = -1 ;
             while( ++z < i )
-                fprintf( stderr, "%X ", to_buf[z] );
+                fprintf( stderr, "%lX ", to_buf[z] );
             fprintf( stderr, "\n");
 
         }

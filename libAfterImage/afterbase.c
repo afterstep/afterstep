@@ -866,12 +866,10 @@ asim_string_compare (ASHashableValue value1, ASHashableValue value2)
 }
 
 void
-asim_string_destroy (ASHashableValue value, void *data)
+asim_string_destroy_without_data (ASHashableValue value, void *data)
 {
 	if ((char*)value != NULL)
 		free ((char*)value);
-	if (data != (void*)value && data != NULL)
-		free (data);
 }
 
 /* variation for case-unsensitive strings */
