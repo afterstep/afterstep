@@ -330,8 +330,8 @@ update_geometry_display( ASMoveResizeData *data )
 	if( !get_flags( data->look->resize_move_geometry.flags, XValue|YValue ) )
 	{
 		int x, y ;
-        unsigned int width = data->geometry_window_width ;
-        unsigned int height = data->geometry_window_height ;
+        int width = data->geometry_window_width ;
+        int height = data->geometry_window_height ;
 		x = data->last_x + 10;
 		y = data->last_y + 10;
 		if( x + width > AS_WIDGET_SCREEN(data->parent)->MyDisplayWidth )
@@ -524,11 +524,11 @@ SHOW_CHECKPOINT;
 	{ 	if( (t) < (band)+(grav) && (t) > (band) )	(t) = (band) ; \
 	  	else if( size > 0 && (b) < (band)+(grav) && (b) > (band)) (t) = (band)-(size);} \
 
-short
-attract_side( register ASGridLine *l, short pos, unsigned short size, short lim1, short lim2 )
+int
+attract_side( register ASGridLine *l, int pos, int size, int lim1, int lim2 )
 {
-	short head = pos;
-	short tail = head+size ;
+	int head = pos;
+	int tail = head+size ;
 
 	while( l != NULL )
 	{
@@ -547,8 +547,8 @@ LOCAL_DEBUG_OUT( "attracted by %d, %d-%d, %d,%d", l->band, l->start, l->end, l->
 	return pos;
 }
 
-short
-resist_west_side( register ASGridLine *l, short pos, short new_pos, short lim1,  short lim2 )
+int
+resist_west_side( register ASGridLine *l, int pos, int new_pos, int lim1,  int lim2 )
 {
 	while( l != NULL )
 	{
@@ -561,8 +561,8 @@ resist_west_side( register ASGridLine *l, short pos, short new_pos, short lim1, 
 	return MIN(pos, new_pos);
 }
 
-short
-resist_east_side( register ASGridLine *l, short pos, short new_pos, short lim1,  short lim2 )
+int
+resist_east_side( register ASGridLine *l, int pos, int new_pos, int lim1,  int lim2 )
 {
 	while( l != NULL )
 	{
@@ -575,7 +575,7 @@ resist_east_side( register ASGridLine *l, short pos, short new_pos, short lim1, 
 }
 
 Bool
-attract_corner( ASGrid *grid, short *x_inout, short *y_inout, XRectangle *curr, int bw )
+attract_corner( ASGrid *grid, int *x_inout, int *y_inout, struct MRRectangle *curr, int bw )
 {
 	int new_left ;
 	int new_top ;
@@ -602,9 +602,9 @@ LOCAL_DEBUG_OUT( "attracted(%+d%+d) orinal(%+d%+d)", new_left, new_top, curr->x,
 	return res ;
 }
 
-short adjust_west_side( ASGridLine *gridlines, short dpos, short *pos_inout, unsigned short *size_inout, short lim1, short lim2 )
+int adjust_west_side( ASGridLine *gridlines, int dpos, int *pos_inout, int *size_inout, int lim1, int lim2 )
 {
-	short pos = *pos_inout, new_pos = pos+dpos ;
+	int pos = *pos_inout, new_pos = pos+dpos ;
 	int adjusted_dpos = dpos;
 
 	if( gridlines )
@@ -623,10 +623,10 @@ LOCAL_DEBUG_OUT( "pos = %d, new_pos = %d, lim1 = %d, lim2 = %d, dpos = %d, adjus
 	return adjusted_dpos;
 }
 
-short adjust_east_side( ASGridLine *gridlines, short dpos, short pos, unsigned short *size_inout, short lim1, short lim2 )
+int adjust_east_side( ASGridLine *gridlines, int dpos, int pos, int *size_inout, int lim1, int lim2 )
 {
-	short adjusted_dpos = dpos;
-	short new_pos = pos;
+	int adjusted_dpos = dpos;
+	int new_pos = pos;
 
 	if( gridlines )
 	{
@@ -640,17 +640,17 @@ short adjust_east_side( ASGridLine *gridlines, short dpos, short pos, unsigned s
 		adjusted_dpos = new_pos-pos ;
 	}
 	if( adjusted_dpos + *size_inout <= 0 )
-		adjusted_dpos = 1-(short)(*size_inout) ;
+		adjusted_dpos = 1-(int)(*size_inout) ;
 
 	*size_inout += adjusted_dpos ;
 LOCAL_DEBUG_OUT( "pos = %d, new_pos = %d, lim1 = %d, lim2 = %d, dpos = %d, adjusted_dpos = %d", pos, new_pos, lim1, lim2, dpos, adjusted_dpos );
 	return adjusted_dpos;
 }
 
-short restrain_east_side( short dpos, unsigned short *size_inout, short min_val, short incr, short max_val )
+int restrain_east_side( int dpos, int *size_inout, int min_val, int incr, int max_val )
 {
-	short adjusted_dpos = dpos;
-    short size = *size_inout;
+	int adjusted_dpos = dpos;
+    int size = *size_inout;
 
     if( size < min_val )
         size = min_val ;
@@ -672,7 +672,7 @@ void
 move_func (struct ASMoveResizeData *data, int x, int y)
 {
 	int dx, dy ;
-	short new_x, new_y ;
+	int new_x, new_y ;
 
 LOCAL_DEBUG_CALLER_OUT( "data = %p, pos = (%+d%+d)", data, x, y );
 	dx = x-(data->last_x+data->lag_x) ;
@@ -695,7 +695,7 @@ LOCAL_DEBUG_OUT( "pos(%+d%+d)->delta(%+d%+d)->new(%+d%+d)->lag(%+d%+d)->last(%+d
 	data->last_x = x ;
 	data->last_y = y ;
 LOCAL_DEBUG_OUT( "last_geom(%+d%+d)->curr_geom(%+d%+d)->delta(%+d%+d)->lag(%+d%+d)->last(%+d%+d)", data->last.x, data->last.y, data->curr.x, data->curr.y, dx, dy, data->lag_x, data->lag_y, data->last_x, data->last_y );
-
+ 
 /*  fprintf( stderr, "move_func: (x,y) =(%d,%d) to %+d%+d\n", x, y, pdata->new_x, pdata->new_y );
 */
 /*	resist_move (pdata); */
@@ -848,7 +848,7 @@ set_moveresize_restrains( ASMoveResizeData *data, ASHints *hints, ASStatusHints 
 }
 
 void
-set_moveresize_aspect( ASMoveResizeData *data, unsigned int x_mult, unsigned int x_div, unsigned int y_mult, unsigned int y_div, int x_origin, int y_origin  )
+set_moveresize_aspect( ASMoveResizeData *data, int x_mult, int x_div, int y_mult, int y_div, int x_origin, int y_origin  )
 {
     if( data )
     {

@@ -283,10 +283,14 @@ deskviewport_aswindow_iter_func(void *data, void *aux_data)
     }else
     {
 		if( old_desk.id != new_desk )
-        	quietly_reparent_aswindow( asw, (ASWIN_DESK(asw)==new_desk)?Scr.Root:Scr.ServiceWin, True );
+		{	
+			Window dest = (ASWIN_DESK(asw)==new_desk)?Scr.Root:Scr.ServiceWin;
+        	quietly_reparent_aswindow( asw, dest, True );
+		}
 		if( dvx != 0 || dvy != 0 )
 			on_window_status_changed( asw, True, True );
     }
+	display_progress( False, ".");
     return True;
 }
 
@@ -312,6 +316,7 @@ ChangeDeskAndViewport ( int new_desk, int new_vx, int new_vy, Bool force_grab)
 {
 	int dvx, dvy;
     int old_desk = Scr.CurrentDesk ;
+	Bool desk_covered = False ;
 
 LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, new_vx, new_vy, Scr.CurrentDesk, Scr.Vx, Scr.Vy, Scr.VxMax, Scr.VyMax );
 
@@ -333,11 +338,15 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
     /* we have to handle all the pending ConfigureNotifys here : */
     ConfigureNotifyLoop();
 
-    cover_desktop();
-
     if( old_desk != new_desk && IsValidDesk( old_desk ) )
     {
         int client_count = 0 ;
+	    if( get_flags( AfterStepState, ASS_NormalOperation) )
+		{	
+			cover_desktop();
+			desk_covered = True ;
+		}
+
         iterate_asbidirlist( Scr.Windows->clients, count_desk_client_iter_func, (void*)&client_count, NULL, False );
         if( client_count != 0 )
             old_desk = INVALID_DESK ;
@@ -359,7 +368,9 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 		Scr.Vy = new_vy;
     	set_current_viewport_prop (Scr.wmprops, Scr.Vx, Scr.Vy, get_flags( AfterStepState, ASS_NormalOperation));
 	}
-   	SendPacket( -1, M_NEW_DESKVIEWPORT, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
+   	display_progress( True, "Notifying modules of desk/viewport change ...");
+
+	SendPacket( -1, M_NEW_DESKVIEWPORT, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
 
 	if (dvx != 0 || dvy != 0 || old_desk != new_desk )
 	{
@@ -369,6 +380,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 			int id ;
 		}desk_id;
 
+		display_progress( True, "Moving off-desktop windows back to desktop #%d ...", new_desk);
 		if ( force_grab )
 			grab_server();
 		if( Scr.moveresize_in_progress && !Scr.moveresize_in_progress->move_only )
@@ -376,15 +388,20 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 			ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(Scr.moveresize_in_progress->mr));
 			if( !get_flags (asw->status->flags, AS_Sticky) )
 			{
+				Scr.moveresize_in_progress->last_x += dvx ;
+				Scr.moveresize_in_progress->last_y += dvy ;
 				Scr.moveresize_in_progress->curr.x += dvx ;
 				Scr.moveresize_in_progress->curr.y += dvy ;
-				Scr.moveresize_in_progress->curr.width -= dvx ;
-				Scr.moveresize_in_progress->curr.height -= dvy ;
-
-				Scr.moveresize_in_progress->start.x += dvx ;
-				Scr.moveresize_in_progress->start.y += dvy ;
-				Scr.moveresize_in_progress->start.width  -= dvx ;
-				Scr.moveresize_in_progress->start.height -= dvy ;
+	//			Scr.moveresize_in_progress->start.x += dvx ;
+	//			Scr.moveresize_in_progress->start.y += dvy ;
+				
+//				if( Scr.moveresize_in_progress->pointer_func == resize_func ) 
+				{	
+   //					Scr.moveresize_in_progress->curr.width += dvx ;
+   //					Scr.moveresize_in_progress->curr.height += dvy ;
+  //					Scr.moveresize_in_progress->start.width  -= dvx ;
+  //					Scr.moveresize_in_progress->start.height -= dvy ;
+				}
 			}
 		}
 		desk_id.id = old_desk ;
@@ -433,13 +450,20 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 #endif
 
     	/* we need to set the desktop background : */
-		if( (IsValidDesk( new_desk ) && IsValidDesk( old_desk )) ||
-			Scr.LastValidDesk != new_desk )
-		{
-	    	change_desktop_background(new_desk, Scr.LastValidDesk);
+		if( !get_flags( AfterStepState, ASS_SuppressDeskBack ) )
+		{	
+			if( (IsValidDesk( new_desk ) && IsValidDesk( old_desk )) ||
+				Scr.LastValidDesk != new_desk )
+			{
+			
+				display_progress( True, "Changing desktop background ...");
+	    		change_desktop_background(new_desk, Scr.LastValidDesk);
+			}
 		}
 	}
-    remove_desktop_cover();
+    
+	if( desk_covered )
+		remove_desktop_cover();
 }
 
 

@@ -767,7 +767,10 @@ void
 unmap_canvas_window( ASCanvas *pc )
 {
     if( pc && pc->w != None )
+	{	
         XUnmapWindow( dpy, pc->w );
+		clear_flags( pc->state, CANVAS_MAPPED );
+	}
 }
 
 void
@@ -780,11 +783,12 @@ map_canvas_window( ASCanvas *pc, Bool raised )
             XMapRaised( dpy, pc->w );
         else
             XMapWindow( dpy, pc->w );
+		set_flags( pc->state, CANVAS_MAPPED );
     }
 }
 
 void
-quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_root_pos )
+quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_root_pos, Window below )
 {
     if( pc )
     {
@@ -807,7 +811,17 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
             /* blocking UnmapNotify events since that may bring us into Withdrawn state */
     		XSelectInput (dpy, pc->w, event_mask & ~StructureNotifyMask);
             LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, %+d%+d ), bw = %d", pc->w, dst, x, y, bw );
-    		XReparentWindow( dpy, pc->w, (dst!=None)?dst:Scr.Root, x, y );
+			if( below != None && get_flags( pc->state, CANVAS_MAPPED )) 
+			{
+				Window w[2] ;
+				XUnmapWindow( dpy, pc->w );
+				XReparentWindow( dpy, pc->w, (dst!=None)?dst:Scr.Root, x, y );
+				w[0] = below ; 
+				w[1] = pc->w ; 
+				XRestackWindows( dpy, w, 2 );
+				XMapWindow( dpy, pc->w );
+			}else		  
+    			XReparentWindow( dpy, pc->w, (dst!=None)?dst:Scr.Root, x, y );
     		XSelectInput (dpy, pc->w, event_mask );
         }
     }

@@ -730,8 +730,8 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
             mvrdata = resize_widget_interactively(  Scr.RootCanvas,
                                                     asw->frame_canvas,
                                                     event,
-                                                    apply_aswindow_move,
-                                                    complete_aswindow_move,
+                                                    apply_aswindow_moveresize,
+                                                    complete_aswindow_moveresize,
                                                     side );
         }
         if( mvrdata )
@@ -740,7 +740,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
             raise_scren_panframes( &Scr );
             mvrdata->below_sibling = get_lowest_panframe(&Scr);
             set_moveresize_restrains( mvrdata, asw->hints, asw->status);
-            mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, 0, 0, asw);
+            mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, Scr.Vx, Scr.Vy, asw);
             Scr.moveresize_in_progress = mvrdata ;
             ASWIN_SET_FLAGS( asw, AS_MoveresizeInProgress );
         }

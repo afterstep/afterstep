@@ -1170,8 +1170,12 @@ focus_window( ASWindow *asw, Window w )
 
     ASSync(False);
     LOCAL_DEBUG_OUT( "focusing window %lX, client %lX, frame %lX, asw %p", w, asw->w, asw->frame, asw );
-	if( w != None )/* using last_Timestamp here causes problems when moving between screens */
-	    XSetInputFocus (dpy, w, RevertToParent, CurrentTime /*Scr.last_Timestamp*/);
+	/* using last_Timestamp here causes problems when moving between screens */
+	/* at the same time using CurrentTime all the time seems to cause some apps to fail,
+	 * most noticeably GTK-perl */
+	if( w != None )
+	    XSetInputFocus ( dpy, w, RevertToParent, 
+						(Scr.Windows->focused == NULL)?CurrentTime:Scr.last_Timestamp);
 
     ASSync(False );
     return (w!=None);
@@ -1396,10 +1400,10 @@ LOCAL_DEBUG_OUT("checking i(%d)->end_i(%d)->dir(%d)->AutoReverse(%d)", i, end_i,
         list->warp_curr_index = i ;
         if( !(ASWIN_HFLAGS(clients[i], AS_DontCirculate)) &&
             !(ASWIN_GET_FLAGS(clients[i], AS_Iconic) && get_flags(Scr.Feel.flags, CirculateSkipIcons)) &&
-            !(ASWIN_DESK(clients[i]) != Scr.CurrentDesk && get_flags(Scr.Feel.flags,AutoTabThroughDesks )))
-        {
+			 (ASWIN_DESK(clients[i]) == Scr.CurrentDesk || get_flags(Scr.Feel.flags,AutoTabThroughDesks )))
+	    {
             return clients[i];
-        }
+		}
         i += dir ;
     }while(1);
     return NULL;

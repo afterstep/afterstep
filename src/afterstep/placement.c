@@ -300,7 +300,13 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
         }
     destroy_asvector( &free_space_list );
 
-    add_canvas_grid( grid_data.grid, Scr.RootCanvas, resist, attract, vx, vy );
+//    add_canvas_grid( grid_data.grid, Scr.RootCanvas, resist, attract, vx, vy );
+
+	add_gridline( &(grid_data.grid->h_lines), 0,                   0, Scr.MyDisplayWidth,  resist, attract );
+    add_gridline( &(grid_data.grid->h_lines), Scr.MyDisplayHeight, 0, Scr.MyDisplayWidth,  resist, attract );
+    add_gridline( &(grid_data.grid->v_lines), 0,                   0, Scr.MyDisplayHeight, resist, attract );
+    add_gridline( &(grid_data.grid->v_lines), Scr.MyDisplayWidth , 0, Scr.MyDisplayHeight, resist, attract );
+
     /* add all the window edges for this desktop : */
     iterate_asbidirlist( Scr.Windows->clients, get_aswindow_grid_iter_func, (void*)&grid_data, NULL, False );
 
@@ -311,7 +317,7 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
     return grid_data.grid;
 }
 
-void apply_aswindow_move(struct ASMoveResizeData *data)
+void apply_aswindow_moveresize(struct ASMoveResizeData *data)
 {
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
 LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
@@ -331,8 +337,20 @@ LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.
     }
 }
 
+void apply_aswindow_move(struct ASMoveResizeData *data)
+{
+    ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
+LOCAL_DEBUG_OUT( "%dx%d%+d%+d", asw->status->width, asw->status->height, data->curr.x, data->curr.y);
+    if( asw && !ASWIN_GET_FLAGS(asw,AS_Dead) )
+    {
+		/* lets only move us as we maybe in shaded state : */
+        move_canvas(  asw->frame_canvas, data->curr.x, data->curr.y );
+		ASSync(False);
+        moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, asw->status->width, asw->status->height, False);
+    }
+}
 
-void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
+void complete_aswindow_moveresize(struct ASMoveResizeData *data, Bool cancelled)
 {
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
     if( asw && !ASWIN_GET_FLAGS(asw,AS_Dead))
@@ -354,6 +372,30 @@ void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
     }
     Scr.moveresize_in_progress = NULL ;
 }
+
+void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
+{
+    ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
+    if( asw && !ASWIN_GET_FLAGS(asw,AS_Dead))
+    {
+        if( cancelled )
+        {
+    		SHOW_CHECKPOINT;
+            LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->start.x, data->start.y);
+            moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height, False );
+        }else
+        {
+    		SHOW_CHECKPOINT;
+            LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->curr.x, data->curr.y);
+            moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->start.width, data->start.height, False );
+        }
+        ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
+        SendConfigureNotify(asw);
+        broadcast_config (M_CONFIGURE_WINDOW, asw);
+    }
+    Scr.moveresize_in_progress = NULL ;
+}
+
 /*************************************************************************/
 /* placement routines : */
 /*************************************************************************/
@@ -789,8 +831,17 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
  */
     if( asw->status->width*asw->status->height < (Scr.Feel.OpaqueMove*Scr.MyDisplayWidth*Scr.MyDisplayHeight) / 100 )
     {
-        map_canvas_window( asw->frame_canvas, True );
         map_canvas_window( asw->client_canvas, True );
+        map_canvas_window( asw->frame_canvas, False );
+		if( get_desktop_cover_window() != None ) 
+		{
+			Window w[2] ;
+			w[0] = get_desktop_cover_window() ;
+			w[1] = asw->frame ;
+			XRaiseWindow( dpy, w[0] );
+            XRestackWindows( dpy, w, 2 );
+			ASSync(False);
+		}			   
     }
     ASSync(False);
     ASWIN_SET_FLAGS( asw, AS_MoveresizeInProgress );
@@ -804,7 +855,7 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
 		raise_scren_panframes( &Scr );
         mvrdata->below_sibling = get_lowest_panframe(&Scr);
         set_moveresize_restrains( mvrdata, asw->hints, asw->status);
-        mvrdata->grid = make_desktop_grid( ASWIN_DESK(asw), ASWIN_LAYER(asw), False, 0, 0, asw );
+        mvrdata->grid = make_desktop_grid( ASWIN_DESK(asw), ASWIN_LAYER(asw), False, Scr.Vx, Scr.Vy, asw );
         Scr.moveresize_in_progress = mvrdata ;
         InteractiveMoveLoop ();
     }else

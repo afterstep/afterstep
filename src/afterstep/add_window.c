@@ -116,10 +116,12 @@ void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos )
 {
     if( asw )
     {
-        quietly_reparent_canvas( asw->frame_canvas, dst, AS_FRAME_EVENT_MASK, user_root_pos );
-        quietly_reparent_canvas( asw->icon_canvas, dst, AS_ICON_EVENT_MASK, user_root_pos );
+		Window cover = get_desktop_cover_window();
+		LOCAL_DEBUG_OUT( "cover = %lX", cover );
+        quietly_reparent_canvas( asw->frame_canvas, dst, AS_FRAME_EVENT_MASK, user_root_pos, cover );
+        quietly_reparent_canvas( asw->icon_canvas, dst, AS_ICON_EVENT_MASK, user_root_pos, cover );
         if( asw->icon_title_canvas != asw->icon_canvas )
-            quietly_reparent_canvas( asw->icon_title_canvas, dst, AS_ICON_TITLE_EVENT_MASK, user_root_pos );
+            quietly_reparent_canvas( asw->icon_title_canvas, dst, AS_ICON_TITLE_EVENT_MASK, user_root_pos, cover );
     }
 }
 
@@ -249,6 +251,7 @@ AddWindow (Window w)
 
     if( pending_placement )
     {
+		RaiseWindow(tmp_win);
         on_window_status_changed( tmp_win, False, True );
         if( !place_aswindow( tmp_win ) )
         {
@@ -260,7 +263,8 @@ AddWindow (Window w)
     /* saving window management properties : */
     set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win) );
     set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
-
+	RaiseObscuredWindow(tmp_win);
+ 
 	if( ASWIN_HFLAGS( tmp_win, AS_AvoidCover )  )
 		enforce_avoid_cover( tmp_win );
 
@@ -346,9 +350,8 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
     redecorate_window       ( tmp_win, False );
     on_window_title_changed ( tmp_win, False );
     set_window_wm_state( tmp_win, get_flags(status->flags, AS_Iconic) );
-/*  RaiseWindow( tmp_win );
-    activate_aswindow( tmp_win, False, False );
- */
+	RaiseWindow( tmp_win );
+//    activate_aswindow( tmp_win, False, False );
 
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.

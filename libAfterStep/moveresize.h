@@ -53,12 +53,14 @@ struct ASGrid;
 struct ASHints;
 struct ASStatusHints;
 
+typedef struct MRRectangle { int x, y, width, height ; } MRRectangle ;
+
 typedef	void (*as_interactive_pointer_handler)  (struct ASMoveResizeData *data, int x, int y);
 typedef	void (*as_interactive_apply_handler)    (struct ASMoveResizeData *data);
 typedef void (*as_interactive_subwindow_handler)(struct ASMoveResizeData *data, struct ASEvent *event);
 typedef	void (*as_interactive_complete_handler) (struct ASMoveResizeData *data, Bool cancelled);
 typedef int  (*as_outline_handler)              (struct ASOutlineSegment *s,
-	                                             XRectangle *geom,
+	                                             struct MRRectangle *geom,
 	                                             unsigned int scr_width,
 									             unsigned int scr_height);
 
@@ -90,7 +92,7 @@ typedef struct ASMoveResizeData
 
 	char 	   	    *geometry_string;
 	Window           geometry_display;
-	XRectangle 		 curr, last, start;
+	MRRectangle curr, last, start;
 	int 			 bw ; /* bloody border width */
 	
     unsigned int     geometry_window_width ;
@@ -146,12 +148,17 @@ resize_widget_interactively( struct ASWidget *parent,
 							 as_interactive_complete_handler complete_func,
 							 int side );
 void set_moveresize_restrains( ASMoveResizeData *data, struct ASHints *hints, struct ASStatusHints *status );
-void set_moveresize_aspect( ASMoveResizeData *data, unsigned int x_mult, unsigned int x_div, unsigned int y_mult, unsigned int y_div, int x_origin, int y_origin );
+void set_moveresize_aspect( ASMoveResizeData *data, int x_mult, int x_div, int y_mult, int y_div, int x_origin, int y_origin );
 
 
 
 Bool check_moveresize_event( struct ASEvent *event );
 void complete_interactive_action( ASMoveResizeData *data, Bool cancel );
+
+
+void move_func (struct ASMoveResizeData *data, int x, int y);
+void resize_func (struct ASMoveResizeData *data, int x, int y);
+
 
 #ifdef __cplusplus
 }

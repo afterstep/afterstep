@@ -670,7 +670,9 @@ Bool is_background_xfer_ximage( unsigned long id );
 ASGrid* make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWindow *target );
 Bool place_aswindow( ASWindow *asw );
 void apply_aswindow_move(struct ASMoveResizeData *data);
+void apply_aswindow_moveresize(struct ASMoveResizeData *data);
 void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled);
+void complete_aswindow_moveresize(struct ASMoveResizeData *data, Bool cancelled);
 void enforce_avoid_cover(ASWindow *asw );
 void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_anchor );
 

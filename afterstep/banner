@@ -8,31 +8,16 @@
 </tile>
 
 <tile tint=#0f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#177f7f7f><recall srcid=banner/></tile>
 <tile tint=#1f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#277f7f7f><recall srcid=banner/></tile>
 <tile tint=#2f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#377f7f7f><recall srcid=banner/></tile>
 <tile tint=#3f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#477f7f7f><recall srcid=banner/></tile>
 <tile tint=#4f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#577f7f7f><recall srcid=banner/></tile>
 <tile tint=#5f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#677f7f7f><recall srcid=banner/></tile>
 <tile tint=#6f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#777f7f7f><recall srcid=banner/></tile>
 <tile tint=#7f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#877f7f7f><recall srcid=banner/></tile>
 <tile tint=#8f7f7f7f id=fbanner><recall srcid=banner/></tile>
 <recall srcid=fbanner/>
 <recall srcid=fbanner/>
 <recall srcid=fbanner/>
-<recall srcid=fbanner/>
-<recall srcid=fbanner/>
-<recall srcid=fbanner/>
-<recall srcid=fbanner/>
-<recall srcid=fbanner/>
 <tile tint=#7f9f9f9f><recall srcid=banner/></tile>
-<tile tint=#7fbfbfbf><recall srcid=banner/></tile>
-<tile tint=#7fefefef><recall srcid=banner/></tile>
 <tile tint=#7fffffff><recall srcid=banner/></tile>

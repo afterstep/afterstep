@@ -259,6 +259,7 @@ check_frame_canvas( ASWindow *asw, Bool required )
 									  0, 0, 
 									  asw->status->width, asw->status->height,
                                       asw->status?asw->status->border_width:0, InputOutput, valuemask, &attributes);
+			XLowerWindow( dpy, w );
             asw->frame = w ;
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );

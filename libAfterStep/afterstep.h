@@ -61,6 +61,7 @@ extern "C" {
 #define ASS_PointerOutOfScreen  (0x01<<8)      /*  */
 #define ASS_ScreenGrabbed		(0x01<<9)      /* XGrabScreen had been issued - we should try and
 												  avoid deadlocks ! */
+#define ASS_SuppressDeskBack	(0x01<<10)      
 
 #define AS_Text_ASCII			0
 #define AS_Text_UTF8			1

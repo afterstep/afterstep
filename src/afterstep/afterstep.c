@@ -111,7 +111,8 @@ main (int argc, char **argv)
 #endif
     InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0);
     AfterStepState = MyArgs.flags ;
-    clear_flags( AfterStepState, ASS_NormalOperation);
+    clear_flags( AfterStepState, ASS_NormalOperation );
+	set_flags( AfterStepState, ASS_SuppressDeskBack );
 
 #ifdef __CYGWIN__
     CloseOnExec = ASCloseOnExec ;
@@ -134,6 +135,7 @@ main (int argc, char **argv)
 		show_error( "Hostile X server encountered - unable to proceed :-(");
 		return 1;/* failed to accure window management selection - other wm is running */
 	}
+	XSetWindowBackground( dpy, Scr.Root, Scr.asv->black_pixel );
     cover_desktop();
     show_progress( "AfterStep is starting up ..." );
 
@@ -260,6 +262,7 @@ SHOW_CHECKPOINT;
 	
 	/* once all the windows are swallowed and placed in its proper desks - we cas restore proper
 	   desktop/viewport : */
+	clear_flags( AfterStepState, ASS_SuppressDeskBack );
 	ChangeDeskAndViewport ( start_desk, start_viewport_x, start_viewport_y, False);
 
     /* all system Go! we are completely Operational! */
@@ -527,7 +530,10 @@ CaptureAllWindows (ScreenInfo *scr)
 				free( state_prop );
 			}
             if( (wm_state == IconicState) || (attr.map_state != IsUnmapped))
+			{
+				LOCAL_DEBUG_OUT( "adding window %lX", children[i] );	  
                 AddWindow( children[i] );
+			}
 		}
 
     if (children)

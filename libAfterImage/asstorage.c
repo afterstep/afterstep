@@ -1212,6 +1212,8 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 		ref_slot->index = body_index ;
 
 		target_id = make_asstorage_id( block_idx+1, slot_id );
+		if( target_id == id ) 
+			show_error( "Reference ID is the same as target_id: id = %lX, slot_id = %d", id, slot_id );
 		body_slot->ref_count = 1;
 	}else
 	{/* otherwise we have to relocate the actuall body into a different block, 
@@ -1224,6 +1226,8 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 										   ref_slot->size, ref_slot->ref_count+1, ref_slot->flags );
 		if( target_id == 0 ) 
 			return NULL;		
+		if( target_id == id ) 
+			show_error( "Reference ID is the same as target_id: id = %lX" );
 		
 		split_storage_slot( block, ref_slot, sizeof(ASStorageID));
 		ref_slot->uncompressed_size = sizeof(ASStorageID) ; 
@@ -1532,7 +1536,7 @@ fetch_data32(ASStorage *storage, ASStorageID id, CARD32 *buffer, int offset, int
 		ASStorageDstBuffer buf ; 
 		buf.offset = 0 ; 
 		buf.buffer = buffer ;
-	  
+	  	
 		return fetch_data_int( storage, id, &buf, offset, buf_size, bitmap_value, card8_card32_cpy );
 	}
 	return 0 ;	
@@ -1590,6 +1594,11 @@ query_storage_slot(ASStorage *storage, ASStorageID id, ASStorageSlot *dst )
 				ASStorageID target_id = 0;
 			 	memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
 				LOCAL_DEBUG_OUT( "target_id = %ld", target_id );
+				if( target_id == id ) 
+				{
+					show_error( "reference refering to self id = %lX", id );
+					return False;
+				}
 				return query_storage_slot(storage, target_id, dst);
 			}	 
 			*dst = *slot ;
@@ -1617,6 +1626,11 @@ print_storage_slot(ASStorage *storage, ASStorageID id)
 				ASStorageID target_id = 0;
 			 	memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
 				fprintf (stderr, " : References storage ID 0x%lX\n\t>", target_id);
+				if( target_id == id ) 
+				{	
+					show_error( "reference refering to self id = %lX", id );
+					return 0;
+				}
 				return print_storage_slot(storage, target_id);
 			}	 
 			fprintf( stderr, " : {0x%X, %u, %lu, %lu, %u, {", 
@@ -1668,7 +1682,10 @@ forget_data(ASStorage *storage, ASStorageID id)
 			{
 				ASStorageID target_id = 0;
 			 	memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
-				forget_data( storage, target_id );					
+				if( target_id != id ) 
+					forget_data( storage, target_id );					
+				else
+					show_error( "reference refering to self id = %lX", id );
 			}	 
 			if( slot->ref_count > 1 ) 
 				--(slot->ref_count);
@@ -1696,7 +1713,7 @@ dup_data(ASStorage *storage, ASStorageID id)
 		LOCAL_DEBUG_OUT( "slot = %p", slot );
 		if( slot )
 		{
-			ASStorageSlot *target_slot;
+			ASStorageSlot *target_slot = NULL;
 			ASStorageID target_id = id ;
 			if( !get_flags( slot->flags, ASStorage_Reference )) 
 			{	
@@ -1710,7 +1727,10 @@ dup_data(ASStorage *storage, ASStorageID id)
 				memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));
 				/* from now on - slot is a reference slot, so we just need to 
 			 	 * duplicate it and increase ref_count of target */
-				target_slot = find_storage_slot( find_storage_block( storage, target_id ), target_id );
+				if( target_id != id ) 
+					target_slot = find_storage_slot( find_storage_block( storage, target_id ), target_id );
+				else
+					show_error( "reference refering to self id = %lX", id );
 			}else
 				target_slot = slot ; 	
 			

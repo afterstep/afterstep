@@ -1170,18 +1170,48 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 
     t->status->desktop = Scr.CurrentDesk ;
 	
-    if( get_flags( status->flags, AS_StartViewportX))
+    if( get_flags( status->flags, AS_StartViewportX) && get_flags(AfterStepState, ASS_NormalOperation) )
+	{	
         t->status->viewport_x = MIN(status->viewport_x,Scr.VxMax) ;
-    else
-        t->status->viewport_x = Scr.Vx ;
+		t->status->x %= Scr.MyDisplayWidth ;
+		if( !get_flags (t->status->flags, AS_Sticky) )
+			t->status->x += t->status->viewport_x ;
+	}else
+	{	
+		if( t->status->x  < 0 ) 
+			t->status->viewport_x = 0 ;
+		else
+        	t->status->viewport_x = (t->status->x/Scr.MyDisplayWidth)*Scr.MyDisplayWidth ;
+	}
 
-    if( get_flags( status->flags, AS_StartViewportY))
+    if( get_flags( status->flags, AS_StartViewportY) && get_flags(AfterStepState, ASS_NormalOperation) )
+	{	
         t->status->viewport_y = MIN(status->viewport_y,Scr.VyMax) ;
-    else
-        t->status->viewport_y = Scr.Vy ;
-
-    if( t->status->viewport_x != Scr.Vx || t->status->viewport_y != Scr.Vy )
-        MoveViewport (t->status->viewport_x, t->status->viewport_y, False);
+		t->status->y %= Scr.MyDisplayWidth ;
+		if( !get_flags (t->status->flags, AS_Sticky) )
+			t->status->y += t->status->viewport_y ;
+    }else
+	{	  
+		if( t->status->y  < 0 ) 
+			t->status->viewport_y = 0 ;
+		else
+        	t->status->viewport_y = (t->status->y/Scr.MyDisplayHeight)*Scr.MyDisplayHeight ;
+	}
+    
+	if( t->status->viewport_x != Scr.Vx || t->status->viewport_y != Scr.Vy )
+	{	
+		int new_vx = get_flags( status->flags, AS_StartViewportX)?t->status->viewport_x:Scr.Vx ;
+		int new_vy = get_flags( status->flags, AS_StartViewportY)?t->status->viewport_y:Scr.Vy ;
+        MoveViewport (new_vx, new_vy, False);
+		t->status->viewport_x = Scr.Vx ;
+		t->status->viewport_y = Scr.Vy ;
+	}
+	if (!get_flags (t->status->flags, AS_Sticky))
+	{
+		t->status->x -= t->status->viewport_x;
+		t->status->y -= t->status->viewport_y;
+	}
+	LOCAL_DEBUG_OUT( "status->pos = %+d%+d, Scr.Vpos = %+d%+d", t->status->x, t->status->y, Scr.Vx, Scr.Vy );
 
     if( !get_flags(AfterStepState, ASS_NormalOperation) )
     {
@@ -1190,9 +1220,9 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
         if (!ASWIN_GET_FLAGS( t, AS_Sticky ))
         {
             min_x = -Scr.Vx ;
-            max_x = Scr.VxMax+Scr.MyDisplayWidth - Scr.Vx ;
+            max_x = Scr.VxMax+Scr.MyDisplayWidth ;
             min_y = -Scr.Vy ;
-            max_y = Scr.VyMax+Scr.MyDisplayHeight - Scr.Vy ;
+            max_y = Scr.VyMax+Scr.MyDisplayHeight ;
         }else
         {
             min_x = 0 ;
@@ -1201,14 +1231,17 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
             max_y = Scr.MyDisplayHeight ;
         }
         /* we have to make sure that window is visible !!!! */
-        if( t->status->x < min_x + margin )
-            t->status->x = min_x ;
-        else if( t->status->x +t->status->width > max_x-margin )
-            t->status->x = max_x - t->status->width ;
-        if( t->status->y < min_y + margin )
-            t->status->y = min_y ;
-        else if( t->status->y +t->status->height > max_y-margin )
-            t->status->y = max_y - t->status->height ;
+		LOCAL_DEBUG_OUT( "x_range(%d,%d), y_range(%d,%d), margin = %d", min_x, max_x, min_y, max_y, margin );
+        if( (int)t->status->x + (int)t->status->width < min_x + margin )
+            t->status->x = min_x + margin - (int)t->status->width ;
+        else if( (int)t->status->x > max_x-margin )
+            t->status->x = max_x - margin ;
+        if( (int)t->status->y + (int)t->status->height < min_y + margin )
+            t->status->y = min_y + margin - (int)t->status->height ;
+        else if( (int)t->status->y > max_y-margin )
+            t->status->y = max_y - margin ;
+
+		LOCAL_DEBUG_OUT( "status->pos = %+d%+d, Scr.Vpos = %+d%+d", t->status->x, t->status->y, Scr.Vx, Scr.Vy );
 
         set_flags( t->status->flags, AS_Position );
 
@@ -1218,7 +1251,8 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 		    !get_flags( status->flags, AS_StartPositionUser ) )
 	        clear_flags( t->status->flags, AS_Position );
 	}
-    /* TODO: AS_Iconic */
+    
+	/* TODO: AS_Iconic */
 	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
         ASWIN_LAYER(t) = AS_LayerNormal ;
     else if( ASWIN_LAYER(t) < AS_LayerLowest )
@@ -1255,6 +1289,8 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 
             t->status->x = x ;
             t->status->y = y ;
+
+			LOCAL_DEBUG_OUT( "status->pos = %+d%+d, Scr.Vpos = %+d%+d", t->status->x, t->status->y, Scr.Vx, Scr.Vy );
         }
     }
 
@@ -1288,9 +1324,9 @@ complete_wm_state_transition( ASWindow *asw, int state )
     if( state == NormalState )
     {
 		LOCAL_DEBUG_OUT("mapping frame subwindows for client %lX, frame canvas = %p", asw->w, asw->frame_canvas );
-        restack_desktop_cover();
         XMapSubwindows(dpy, asw->frame);
         map_canvas_window(asw->frame_canvas, False);
+		restack_desktop_cover();
     }else if( state == IconicState )
     {
         unmap_canvas_window (asw->frame_canvas);

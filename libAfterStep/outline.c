@@ -93,7 +93,7 @@ make_br_corner_segments (ASOutlineSegment *s, int x, int y, unsigned int width, 
 }
 
 int
-make_fvwm_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_width, unsigned int scr_height)
+make_fvwm_segments (ASOutlineSegment *s, struct MRRectangle *geom, unsigned int scr_width, unsigned int scr_height)
 {
 	int count = 0 ;
 	/* Outline box : */
@@ -105,13 +105,13 @@ make_fvwm_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_widt
 }
 
 int
-make_box_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_width, unsigned int scr_height)
+make_box_segments (ASOutlineSegment *s, struct MRRectangle *geom, unsigned int scr_width, unsigned int scr_height)
 {
 	return make_rectangle_segments(s, geom->x, geom->y, geom->width, geom->height);
 }
 
 int
-make_wmaker_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_width, unsigned int scr_height)
+make_wmaker_segments (ASOutlineSegment *s, struct MRRectangle *geom, unsigned int scr_width, unsigned int scr_height)
 {
 	int count = 0 ;
 	/* Outline box : */
@@ -130,7 +130,7 @@ make_wmaker_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_wi
 }
 
 int
-make_tek_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_width, unsigned int scr_height)
+make_tek_segments (ASOutlineSegment *s, struct MRRectangle *geom, unsigned int scr_width, unsigned int scr_height)
 {
 	int count = 0 ;
 	count += make_rectangle_segments(s, geom->x, geom->y, geom->width, geom->height);
@@ -141,7 +141,7 @@ make_tek_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_width
 }
 
 int
-make_tek2_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_width, unsigned int scr_height)
+make_tek2_segments (ASOutlineSegment *s, struct MRRectangle *geom, unsigned int scr_width, unsigned int scr_height)
 {
 	int count = 0 ;
 	count += make_rectangle_segments(s, geom->x, geom->y, geom->width, geom->height);
@@ -153,7 +153,7 @@ make_tek2_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_widt
 }
 
 int
-make_corner_segments(ASOutlineSegment *s, XRectangle *geom, unsigned int scr_width, unsigned int scr_height)
+make_corner_segments(ASOutlineSegment *s, struct MRRectangle *geom, unsigned int scr_width, unsigned int scr_height)
 {
 	int           corner_height, corner_width;
 	int count = 0 ;
@@ -186,7 +186,7 @@ make_corner_segments(ASOutlineSegment *s, XRectangle *geom, unsigned int scr_wid
 }
 
 int
-make_hash_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_width, unsigned int scr_height)
+make_hash_segments (ASOutlineSegment *s, struct MRRectangle *geom, unsigned int scr_width, unsigned int scr_height)
 {
 	int count = 0 ;
 	count += make_rectangle_segments(s, geom->x, geom->y, geom->width, geom->height);
@@ -210,7 +210,7 @@ make_hash_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_widt
 }
 
 int
-make_twm_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_width, unsigned int scr_height)
+make_twm_segments (ASOutlineSegment *s, struct MRRectangle *geom, unsigned int scr_width, unsigned int scr_height)
 {
        int count = 0 ;
        /* Outline box : */
@@ -257,7 +257,7 @@ make_outline_segments( ASWidget *parent, MyLook *look )
 	XSetWindowAttributes attr;           /* attributes for create */
 	int count = 0, i ;
 	ScreenInfo *scr ;
-	XRectangle rdum = {0, 0, 10, 10};
+    MRRectangle rdum = {0, 0, 10, 10};
 
 	count = outline_handlers[look->RubberBand%(MAX_RUBBER_BAND+1)](NULL, &rdum, 0, 0 );
 

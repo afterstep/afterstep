@@ -68,10 +68,10 @@ install.script: mkdir.bin
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.script || exit 1); done
 
 install.desktop: AfterStep.desktop.final
-	@if [ -d /usr/share/xsessions ] ; then \
+	@if [ -d /usr/share/xsessions ] && [ -w /usr/share/xsessions ] ; then \
 		echo "installing AfterStep.desktop into /usr/share/xsessions/" ; \
 		$(INSTALL_DATA)  AfterStep.desktop.final /usr/share/xsessions/AfterStep.desktop ; \
-	else if [ -d /etc/X11/sessions ] ; then \
+	else if [ -d /etc/X11/sessions ] && [ -w /etc/X11/sessions ] ; then \
 		echo "installing AfterStep.desktop /etc/X11/xsessions/" ; \
 		$(INSTALL_DATA)  AfterStep.desktop.final /etc/X11/xsessions/AfterStep.desktop ; \
 	fi; fi

@@ -44,7 +44,8 @@ init_asfeel( ASFeel *feel )
     feel->Xzap = 12;
     feel->Yzap = 12;
     feel->EdgeScrollX = feel->EdgeScrollY = -100000;
-    feel->EdgeResistanceScroll = feel->EdgeResistanceMove = 0;
+    feel->EdgeResistanceScroll = 0;
+	feel->EdgeResistanceMove = 30 ;
     feel->EdgeAttractionScreen = 20;
     feel->EdgeAttractionWindow = 10;
     feel->OpaqueMove = 5;

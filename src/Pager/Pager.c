@@ -1751,7 +1751,7 @@ void refresh_client( INT32 old_desk, ASWindowData *wd )
 		{
 	        add_desk_client( d, wd );
   		    LOCAL_DEBUG_OUT( "reparenting client to desk %ld", d->desk );
-      		quietly_reparent_canvas( wd->canvas, d->desk_canvas->w, CLIENT_EVENT_MASK, False );
+      		quietly_reparent_canvas( wd->canvas, d->desk_canvas->w, CLIENT_EVENT_MASK, False, None );
 		}
     }
     set_client_name( wd, False );
@@ -1847,7 +1847,7 @@ move_sticky_clients()
 					{/* in order to make an illusion of smooth desktop
 					  * switching - we'll reparent window ahead of time */
 				        LOCAL_DEBUG_OUT( "reparenting client to desk %ld", d->desk );
-        				quietly_reparent_canvas( clients[i]->canvas, current_desk->desk_canvas->w, CLIENT_EVENT_MASK, False );
+        				quietly_reparent_canvas( clients[i]->canvas, current_desk->desk_canvas->w, CLIENT_EVENT_MASK, False, None );
     				}
                     place_client( d, clients[i], True, True );
 				}
