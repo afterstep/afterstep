@@ -64,6 +64,25 @@ typedef enum
 }ASImageFileTypes;
 /*************/
 
+/****s* libAfterImage/ASImageListEntry
+ * NAME
+ * ASImageListEntry
+ * DESCRIPTION
+ * entry in linked list of images loaded from single directory.
+ * SOURCE
+ */
+typedef struct ASImageListEntry
+{
+	struct ASImageListEntry *next ;
+	char   *name ;
+	char   *fullfilename ;
+
+	ASImageFileTypes 	type;
+	ASImage 		   *preview;
+
+}ASImageListEntry;
+/*************/
+
 typedef ASImage* (*as_image_loader_func)( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
 extern as_image_loader_func as_image_file_loaders[ASIT_Unknown];
 
@@ -136,6 +155,18 @@ ASImage *xml2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *
  *********/
 ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... );
 ASImage *get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression );
+
+#define NO_PREVIEW		 0
+#define LOAD_PREVIEW   	(0x01<<0)
+#define SCALE_PREVIEW_H	(0x01<<1)
+#define SCALE_PREVIEW_V	(0x01<<2)
+
+ASImageListEntry *get_asimage_list( ASImageManager* imageman, const char *dir,
+	                                ASFlagType preview_type,
+									unsigned int preview_width, unsigned int preview_height,
+									unsigned int preview_compression,
+									unsigned int *count_ret );
+
 
 /****f* libAfterImage/import/file2pixmap()
  * SYNOPSIS
