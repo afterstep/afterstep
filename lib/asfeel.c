@@ -223,6 +223,15 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
                 feel->window_boxes[i].area.width += Scr.VyMax ;
             feel->window_boxes[i].area.width -= feel->window_boxes[i].area.y ;
         }
+        if( !get_flags(feel->window_boxes[i].flags, ASA_DesktopSet) )
+            feel->window_boxes[i].desk = INVALID_DESK;
+
+        if( !get_flags(feel->window_boxes[i].flags, ASA_MinLayerSet) )
+            feel->window_boxes[i].min_layer = AS_LayerLowest;
+
+        if( !get_flags(feel->window_boxes[i].flags, ASA_MaxLayerSet) )
+            feel->window_boxes[i].max_layer = AS_LayerHighest;
+
         if( feel->default_window_box_name != NULL )
         {
             if( feel->window_boxes[i].name &&
@@ -248,6 +257,10 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
         feel->default_window_box->area.height = Scr.MyDisplayHeight ;
         feel->default_window_box->main_strategy = ASP_Manual ;
         feel->default_window_box->backup_strategy = ASP_Manual ;
+        /* we should enforce this one : */
+        feel->default_window_box->desk = INVALID_DESK ;
+        feel->default_window_box->min_layer = AS_LayerLowest;
+        feel->default_window_box->max_layer = AS_LayerHighest;
         if( get_flags( feel->flags, SMART_PLACEMENT )  )
         {
             feel->default_window_box->main_strategy = ASP_SmartPlacement ;
@@ -302,7 +315,22 @@ print_window_box (ASWindowBox *aswbox, int index)
 		fprintf (stderr, "WindowBox[%d].max_size = %dx%d;\n", index, aswbox->max_width, aswbox->max_height);
 		fprintf (stderr, "WindowBox[%d].main_strategy = %d;\n", index, aswbox->main_strategy);
 		fprintf (stderr, "WindowBox[%d].backup_strategy = %d;\n", index, aswbox->backup_strategy);
-	}
+        fprintf (stderr, "WindowBox[%d].desk = %d;\n", index, aswbox->desk);
+    }
+}
+
+ASWindowBox*
+find_window_box( ASFeel *feel, const char *name )
+{
+    if( feel && name )
+    {
+        int i = feel->window_boxes_num ;
+        ASWindowBox *aswbox = &(feel->window_boxes[0]) ;
+        while(--i >= 0)
+            if( mystrcasecmp( aswbox[i].name, name ) == 0 )
+                return &(aswbox[i]);
+    }
+    return NULL;
 }
 
 /*************************************************************************

@@ -153,9 +153,9 @@ TermDef       StyleTerms[] = {
 	,
 	{TF_NO_MYNAME_PREPENDING, "NoFrame", 7, TT_FLAG, DATABASE_NoFrame_ID, NULL}
 	,
-	{TF_NO_MYNAME_PREPENDING, "Frame", 5, TT_TEXT, DATABASE_Frame_ID, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "DefaultGeometry", 15, TT_GEOMETRY, DATABASE_DefaultGeometry_ID, NULL}
+    {TF_NO_MYNAME_PREPENDING, "Frame", 5, TT_TEXT, DATABASE_Frame_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "WindowBox", 9, TT_TEXT, DATABASE_Windowbox_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "DefaultGeometry", 15, TT_GEOMETRY, DATABASE_DefaultGeometry_ID, NULL}
 	,
 	{TF_NO_MYNAME_PREPENDING, "OverrideGravity", 15, TT_FLAG, DATABASE_OverrideGravity_ID, &GravitySyntax}
 	,
@@ -295,6 +295,7 @@ style_init (name_list * nl)
 	for (i = 0; i < BACK_STYLES; i++)
 		nl->window_styles[i] = NULL;
 	nl->frame_name = NULL;
+    nl->windowbox_name = NULL ;
 }
 
 name_list    *
@@ -355,7 +356,8 @@ style_copy (name_list * to, name_list * from)
 		for (i = 0; i < BACK_STYLES; i++)
 			to->window_styles[i] = from->window_styles[i];
 		to->frame_name = from->frame_name;
-	}
+        to->windowbox_name = from->windowbox_name;
+    }
 }
 
 /* you must style_delete the resulting style !!! */
@@ -379,7 +381,9 @@ style_dup (name_list * from)
 			to->window_styles[i] = mystrdup (from->window_styles[i]);
 		if (from->frame_name != NULL)
 			to->frame_name = mystrdup (from->frame_name);
-	}
+        if (from->windowbox_name != NULL)
+            to->windowbox_name = mystrdup (from->windowbox_name);
+    }
 	return to;
 }
 
@@ -416,6 +420,8 @@ style_delete (name_list * style, name_list ** phead)
 
 	if (style->frame_name != NULL)
 		free (style->frame_name);
+    if (style->windowbox_name != NULL)
+        free (style->windowbox_name);
 
 	/* free our own mem */
 	free (style);
@@ -574,10 +580,16 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 		 case DATABASE_Frame_ID:
 			 set_flags (style->set_flags, STYLE_FRAME);
 			 set_string_value (&(style->frame_name), item.data.string, &(style->flags), STYLE_FRAME);
-			 if (strlen (style->icon_file) <= 0)
+             if (strlen (style->frame_name) <= 0)
 				 clear_flags (style->flags, STYLE_FRAME);
 			 break;
-		 case DATABASE_OverrideGravity_ID:
+         case DATABASE_Windowbox_ID:
+             set_flags (style->set_flags, STYLE_WINDOWBOX);
+             set_string_value (&(style->windowbox_name), item.data.string, &(style->flags), STYLE_FRAME);
+             if (strlen (style->windowbox_name) <= 0)
+                 clear_flags (style->flags, STYLE_WINDOWBOX);
+			 break;
+         case DATABASE_OverrideGravity_ID:
 			 if (storage->sub)
 				 if (storage->sub->term)
 				 {
@@ -725,7 +737,11 @@ WriteSingleStyle (name_list * style, FreeStorageElem ** tail)
 			if (get_flags (style->flags, STYLE_FRAME) && strlen (style->frame_name) > 0)
 				d_tail = String2FreeStorage (&StyleSyntax, d_tail, style->frame_name, DATABASE_Frame_ID);
 
-		if (get_flags (style->set_flags, STYLE_GRAVITY))
+        if (get_flags (style->set_flags, STYLE_WINDOWBOX) && style->windowbox_name)
+            if (get_flags (style->flags, STYLE_WINDOWBOX) && strlen (style->windowbox_name) > 0)
+                d_tail = String2FreeStorage (&StyleSyntax, d_tail, style->windowbox_name, DATABASE_Windowbox_ID);
+
+        if (get_flags (style->set_flags, STYLE_GRAVITY))
 		{
 			FreeStorageElem **grav_tail = d_tail;
 

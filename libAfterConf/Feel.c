@@ -43,9 +43,12 @@ TermDef       WindowBoxTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "MaxHeight", 9,         TT_INTEGER, WINDOWBOX_MaxHeight_ID	 , NULL},
     {TF_NO_MYNAME_PREPENDING, "FirstTry", 8,          TT_INTEGER, WINDOWBOX_FirstTry_ID	  	 , NULL},
     {TF_NO_MYNAME_PREPENDING, "ThenTry", 7,           TT_INTEGER, WINDOWBOX_ThenTry_ID 	  	 , NULL},
+    {TF_NO_MYNAME_PREPENDING, "Desk", 4,              TT_INTEGER, WINDOWBOX_Desk_ID          , NULL},
+    {TF_NO_MYNAME_PREPENDING, "MinLayer", 8,          TT_INTEGER, WINDOWBOX_MinLayer_ID      , NULL},
+    {TF_NO_MYNAME_PREPENDING, "MaxLayer", 8,          TT_INTEGER, WINDOWBOX_MaxLayer_ID      , NULL},
     {TF_NO_MYNAME_PREPENDING, "VerticalPriority", 16, TT_FLAG,    WINDOWBOX_VerticalPriority_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING, "ReverseOrder", 12,     TT_FLAG,    WINDOWBOX_ReverseOrder_ID    , NULL},
-	{TF_NO_MYNAME_PREPENDING |
+    {TF_NO_MYNAME_PREPENDING |
 	 TF_SYNTAX_TERMINATOR,    "~WindowBox", 10, TT_FLAG, WINDOWBOX_DONE_ID, NULL},
 	{0, NULL, 0, 0, 0}
 };
@@ -300,6 +303,18 @@ ProcessWindowBoxOptions (FreeStorageElem * options)
                 case WINDOWBOX_ThenTry_ID         :
                     aswbox->backup_strategy = item.data.integer ;
                     set_flags( aswbox->set_flags, ASA_BackupStrategySet);
+                    break ;
+                case WINDOWBOX_Desk_ID            :
+                    aswbox->desk = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_DesktopSet);
+                    break ;
+                case WINDOWBOX_MinLayer_ID        :
+                    aswbox->min_layer = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_MinLayerSet);
+                    break ;
+                case WINDOWBOX_MaxLayer_ID        :
+                    aswbox->max_layer = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_MaxLayerSet);
                     break ;
                 default:
 					item.ok_to_free = 1;

@@ -74,7 +74,12 @@ make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord 
 			db_rec->frame_name = nl->frame_name;
 			nl->frame_name = NULL;
 		}
-		for (i = 0; i < BACK_STYLES; i++)
+        if (nl->windowbox_name)
+		{
+            db_rec->windowbox_name = nl->windowbox_name;
+            nl->windowbox_name = NULL;
+		}
+        for (i = 0; i < BACK_STYLES; i++)
 			if (nl->window_styles[i])
 			{
 				db_rec->window_styles[i] = nl->window_styles[i];
@@ -129,7 +134,8 @@ typedef enum
 
 	MATCH_Icon = STYLE_ICON,
 	MATCH_Frame = STYLE_FRAME,
-	MATCH_MyStyle = STYLE_MYSTYLES
+    MATCH_Windowbox = STYLE_WINDOWBOX,
+    MATCH_MyStyle = STYLE_MYSTYLES
 }
 DBMatchType;
 
@@ -255,7 +261,10 @@ match_string (ASDatabase * db, DBMatchType type, unsigned int index, Bool dup_st
 				 case MATCH_Frame:
 					 res = db_rec->frame_name;
 					 break;
-				 case MATCH_MyStyle:
+                 case MATCH_Windowbox:
+                     res = db_rec->windowbox_name;
+					 break;
+                 case MATCH_MyStyle:
 					 res = db_rec->window_styles[(index < BACK_STYLES) ? index : 0];
 				 default:
 					 break;
@@ -318,6 +327,8 @@ fill_asdb_record (ASDatabase * db, char **names, ASDatabaseRecord * reusable_mem
 				db_rec->icon_file = match_string (db, MATCH_Icon, 0, dup_strings);
 			if (get_flags (db_rec->set_flags, STYLE_FRAME))
 				db_rec->frame_name = match_string (db, MATCH_Frame, 0, dup_strings);
+            if (get_flags (db_rec->set_flags, STYLE_WINDOWBOX))
+                db_rec->windowbox_name = match_string (db, MATCH_Windowbox, 0, dup_strings);
 			if (get_flags (db_rec->set_flags, STYLE_MYSTYLES))
 				for (i = 0; i < BACK_STYLES; i++)
 					if (db_rec->window_styles[i])
@@ -345,7 +356,9 @@ destroy_asdb_record (ASDatabaseRecord * rec, Bool reusable)
 			free (rec->icon_file);
 		if (rec->frame_name)
 			free (rec->frame_name);
-		for (i = 0; i < BACK_STYLES; i++)
+        if (rec->windowbox_name)
+            free (rec->windowbox_name);
+        for (i = 0; i < BACK_STYLES; i++)
 			if (rec->window_styles[i])
 				free (rec->window_styles[i]);
 	}
@@ -560,7 +573,9 @@ print_asdb_record (stream_func func, void *stream, ASDatabaseRecord * db_rec, co
 		func (stream, "%s.icon_file = \"%s\";\n", prompt, db_rec->icon_file);
 	if (db_rec->frame_name)
 		func (stream, "%s.frame_name = \"%s\";\n", prompt, db_rec->frame_name);
-	for (i = 0; i < BACK_STYLES; i++)
+    if (db_rec->windowbox_name)
+        func (stream, "%s.windowbox_name = \"%s\";\n", prompt, db_rec->windowbox_name);
+    for (i = 0; i < BACK_STYLES; i++)
 		if (db_rec->window_styles[i])
 			func (stream, "%s.MyStyle[%d] = \"%s\";\n", prompt, i, db_rec->window_styles[i]);
 

@@ -77,6 +77,7 @@ struct ScreenInfo;
 #define AS_ClientIcon           (1<<20)
 #define AS_ClientIconPixmap     (1<<21)
 #define AS_ClientIconPosition   (1<<22)
+#define AS_Windowbox            (1<<23)
 
 /***********************************************************/
 /* AS supported protocols :                                */
@@ -97,6 +98,7 @@ struct ScreenInfo;
 #define AS_FuncPinMenu          (1<<9)
 /***********************************************************/
 /* AS layers :                                             */
+#define AS_LayerLowest          AS_LayerDesktop
 #define AS_LayerDesktop         -10000  /* our desktop - just for the heck of it */
 #define AS_LayerOtherDesktop    -2      /* for all those other file managers, KDE, GNOME, etc. */
 #define AS_LayerBack            -1      /* normal windows below */
@@ -106,6 +108,7 @@ struct ScreenInfo;
 #define AS_LayerUrgent           3      /* for modal dialogs that needs urgent answer (System Modal)*/
 #define AS_LayerOtherMenu        4      /* for all those other menus - KDE, GNOME, etc. */
 #define AS_LayerMenu             10000  /* our menu  - can't go wrong with that */
+#define AS_LayerHighest          AS_LayerMenu
 
 #define ASHINTS_STATIC_DATA 	 28     /* number of elements below that are not */
                                         /* dynamic arrays */
@@ -145,6 +148,7 @@ typedef struct ASHints
   int pid ;
 
   char *frame_name ;
+  char *windowbox_name ;
   char *mystyle_names[BACK_STYLES];
 
   ASFlagType disabled_buttons ;

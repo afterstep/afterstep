@@ -19,24 +19,25 @@ struct wild_reg_exp;
 #define STYLE_GRAVITY           (1 << 7)   /* if user wants us to override gravity from WM_NORMAL_HINTS */
 #define STYLE_LAYER             (1 << 8)   /* style->layer - layer is defined */
 #define STYLE_FRAME             (1 << 9)   /* style->frame - frame is defined */
+#define STYLE_WINDOWBOX         (1 << 10)  /* style->windowbox - windowbox is defined */
 /* this are pure flags */
-#define STYLE_STICKY            (1 << 10)
-#define STYLE_TITLE             (1 << 11)
-#define STYLE_CIRCULATE         (1 << 12)
-#define STYLE_WINLIST           (1 << 13)
-#define STYLE_START_ICONIC      (1 << 14)
-#define STYLE_ICON_TITLE        (1 << 15)
-#define STYLE_FOCUS             (1 << 16)
-#define STYLE_AVOID_COVER       (1 << 17)
-#define STYLE_VERTICAL_TITLE    (1 << 18)    /* if this window has a vertical titlebar */
-#define STYLE_HANDLES           (1 << 19)
-#define STYLE_PPOSITION         (1 << 20)    /* if set - then we should honor PPosition */
-#define STYLE_GROUP_HINTS       (1 << 21)    /* if set - then we should use Group Hint for initial placement */
-#define STYLE_TRANSIENT_HINTS   (1 << 22)    /* if set - then we should use Transient Hint for initial placement */
-#define STYLE_MOTIF_HINTS       (1 << 23)    /* if set - then we should honor Motif Hints */
-#define STYLE_GNOME_HINTS       (1 << 24)    /* if set - then we should honor Gnome Hints */
-#define STYLE_EXTWM_HINTS       (1 << 25)    /* if set - then we should honor Extended WM Hints */
-#define STYLE_XRESOURCES_HINTS  (1 << 26)    /* if set - then we should honor data from .XDefaults */
+#define STYLE_STICKY            (1 << 11)
+#define STYLE_TITLE             (1 << 12)
+#define STYLE_CIRCULATE         (1 << 13)
+#define STYLE_WINLIST           (1 << 14)
+#define STYLE_START_ICONIC      (1 << 15)
+#define STYLE_ICON_TITLE        (1 << 16)
+#define STYLE_FOCUS             (1 << 17)
+#define STYLE_AVOID_COVER       (1 << 18)
+#define STYLE_VERTICAL_TITLE    (1 << 19)    /* if this window has a vertical titlebar */
+#define STYLE_HANDLES           (1 << 20)
+#define STYLE_PPOSITION         (1 << 21)    /* if set - then we should honor PPosition */
+#define STYLE_GROUP_HINTS       (1 << 22)    /* if set - then we should use Group Hint for initial placement */
+#define STYLE_TRANSIENT_HINTS   (1 << 23)    /* if set - then we should use Transient Hint for initial placement */
+#define STYLE_MOTIF_HINTS       (1 << 24)    /* if set - then we should honor Motif Hints */
+#define STYLE_GNOME_HINTS       (1 << 25)    /* if set - then we should honor Gnome Hints */
+#define STYLE_EXTWM_HINTS       (1 << 26)    /* if set - then we should honor Extended WM Hints */
+#define STYLE_XRESOURCES_HINTS  (1 << 27)    /* if set - then we should honor data from .XDefaults */
 
 /* the following is needed for MATCH_ enum - see styledb.c for more */
 #define STYLE_MYSTYLES          (1 << 29)   /*  */
@@ -83,6 +84,7 @@ typedef struct name_list
 
   char *window_styles[BACK_STYLES];
   char *frame_name;
+  char *windowbox_name;
 
   unsigned long on_buttons;
   unsigned long off_buttons;
@@ -112,6 +114,7 @@ typedef struct ASDatabaseRecord
 
   char *icon_file;
   char *frame_name;
+  char *windowbox_name;
   char *window_styles[BACK_STYLES];
 
   Bool  own_strings ;

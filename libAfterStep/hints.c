@@ -203,7 +203,9 @@ check_hints_sanity (ScreenInfo * scr, ASHints * clean)
 
 		if (clean->frame_name == NULL)
 			clear_flags (clean->flags, AS_Frame);
-	}
+        if (clean->windowbox_name == NULL)
+            clear_flags (clean->flags, AS_Windowbox);
+    }
 }
 
 void
@@ -1142,7 +1144,9 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		}
 		if (get_flags (db_rec->set_flags, STYLE_FRAME))
 			set_string_value (&(clean->frame_name), mystrdup (db_rec->frame_name), &(clean->flags), AS_Frame);
-		if (get_flags (db_rec->set_flags, STYLE_MYSTYLES))
+        if (get_flags (db_rec->set_flags, STYLE_WINDOWBOX))
+            set_string_value (&(clean->windowbox_name), mystrdup (db_rec->windowbox_name), &(clean->flags), AS_Windowbox);
+        if (get_flags (db_rec->set_flags, STYLE_MYSTYLES))
 		{
 			register int  i;
 
@@ -1177,7 +1181,9 @@ destroy_hints (ASHints * clean, Bool reusable)
 			free (clean->icon_file);
 		if (clean->frame_name)
 			free (clean->frame_name);
-		for (i = 0; i < BACK_STYLES; i++)
+        if (clean->windowbox_name)
+            free (clean->windowbox_name);
+        for (i = 0; i < BACK_STYLES; i++)
 			if (clean->mystyle_names[i])
 				free (clean->mystyle_names[i]);
 
@@ -2328,6 +2334,8 @@ print_clean_hints (stream_func func, void *stream, ASHints * clean)
 		func (stream, "CLEAN.pid = %d;\n", clean->pid);
 	if (clean->frame_name && get_flags (clean->flags, AS_Frame))
 		func (stream, "CLEAN.frame_name = \"%s\";\n", clean->frame_name);
+    if (clean->windowbox_name && get_flags (clean->flags, AS_Windowbox))
+        func (stream, "CLEAN.windowbox_name = \"%s\";\n", clean->windowbox_name);
 
 	for (i = 0; i < BACK_STYLES; i++)
 		if (clean->mystyle_names[i])
@@ -2499,6 +2507,7 @@ serialize_clean_hints (ASHints * clean, ASVector * buf)
 
 	serialize_string (clean->icon_file, buf);
 	serialize_string (clean->frame_name, buf);
+    serialize_string (clean->windowbox_name, buf);
 
 	for (i = 0; i < BACK_STYLES; i++)
 		serialize_string (clean->mystyle_names[i], buf);
@@ -2680,6 +2689,9 @@ deserialize_clean_hints (CARD32 ** pbuf, size_t * buf_size, ASHints * reusable_m
 	if (clean->frame_name)
 		free (clean->frame_name);
 	clean->frame_name = deserialize_string (pbuf, buf_size);
+    if (clean->windowbox_name)
+        free (clean->windowbox_name);
+    clean->windowbox_name = deserialize_string (pbuf, buf_size);
 
 	for (i = 0; i < BACK_STYLES; i++)
 	{

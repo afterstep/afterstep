@@ -101,6 +101,12 @@ typedef enum{
 	ASP_Manual
 }ASPlacementStrategy ;
 
+typedef enum
+{
+    ASP_UseMainStrategy = 0,
+    ASP_UseBackupStrategy
+}ASUsePlacementStrategy ;
+
 typedef struct ASWindowBox
 {
 
@@ -114,6 +120,9 @@ typedef struct ASWindowBox
 #define ASA_MinHeightSet		(0x01<<7)
 #define ASA_MaxWidthSet			(0x01<<8)
 #define ASA_MaxHeightSet		(0x01<<9)
+#define ASA_DesktopSet          (0x01<<10)
+#define ASA_MinLayerSet         (0x01<<11)
+#define ASA_MaxLayerSet         (0x01<<12)
 
 	ASFlagType 	set_flags;
 	ASFlagType 	flags;
@@ -126,6 +135,9 @@ typedef struct ASWindowBox
 												* sufficient size exists: Random, Cascade or Manual*/
 	unsigned int min_width, min_height ;
 	unsigned int max_width, max_height ;
+    int min_layer, max_layer ;
+
+    int desk ;
 }ASWindowBox;
 
 typedef enum {
@@ -220,6 +232,7 @@ void check_feel_sanity(ASFeel *feel);
 ASWindowBox *create_aswindow_box( const char *name );
 void destroy_aswindow_box( ASWindowBox *aswbox, Bool reusable );
 void print_window_box (ASWindowBox *aswbox, int index);
+ASWindowBox* find_window_box( ASFeel *feel, const char *name );
 
 
 void init_list_of_menus(ASHashTable **list, Bool force);

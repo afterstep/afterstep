@@ -758,22 +758,23 @@ WinListConfig *ParseWinListOptions (const char *filename, char *myname);
 #define DATABASE_StartsAnywhere_ID	(DATABASE_ID_START+37)
 #define DATABASE_NoFrame_ID         (DATABASE_ID_START+38)
 #define DATABASE_Frame_ID           (DATABASE_ID_START+39)
-#define DATABASE_DefaultGeometry_ID        (DATABASE_ID_START+40)
-#define DATABASE_OverrideGravity_ID        (DATABASE_ID_START+41)
-#define DATABASE_HonorPPosition_ID         (DATABASE_ID_START+42)
-#define DATABASE_NoPPosition_ID            (DATABASE_ID_START+43)
-#define DATABASE_HonorGroupHints_ID        (DATABASE_ID_START+44)
-#define DATABASE_NoGroupHints_ID           (DATABASE_ID_START+45)
-#define DATABASE_HonorTransientHints_ID    (DATABASE_ID_START+46)
-#define DATABASE_NoTransientHints_ID       (DATABASE_ID_START+47)
-#define DATABASE_HonorMotifHints_ID        (DATABASE_ID_START+48)
-#define DATABASE_NoMotifHints_ID           (DATABASE_ID_START+49)
-#define DATABASE_HonorGnomeHints_ID        (DATABASE_ID_START+50)
-#define DATABASE_NoGnomeHints_ID           (DATABASE_ID_START+51)
-#define DATABASE_HonorExtWMHints_ID        (DATABASE_ID_START+52)
-#define DATABASE_NoExtWMHints_ID           (DATABASE_ID_START+53)
-#define DATABASE_HonorXResources_ID        (DATABASE_ID_START+54)
-#define DATABASE_NoXResources_ID           (DATABASE_ID_START+55)
+#define DATABASE_Windowbox_ID       (DATABASE_ID_START+40)
+#define DATABASE_DefaultGeometry_ID        (DATABASE_ID_START+41)
+#define DATABASE_OverrideGravity_ID        (DATABASE_ID_START+42)
+#define DATABASE_HonorPPosition_ID         (DATABASE_ID_START+43)
+#define DATABASE_NoPPosition_ID            (DATABASE_ID_START+44)
+#define DATABASE_HonorGroupHints_ID        (DATABASE_ID_START+45)
+#define DATABASE_NoGroupHints_ID           (DATABASE_ID_START+46)
+#define DATABASE_HonorTransientHints_ID    (DATABASE_ID_START+47)
+#define DATABASE_NoTransientHints_ID       (DATABASE_ID_START+48)
+#define DATABASE_HonorMotifHints_ID        (DATABASE_ID_START+49)
+#define DATABASE_NoMotifHints_ID           (DATABASE_ID_START+50)
+#define DATABASE_HonorGnomeHints_ID        (DATABASE_ID_START+51)
+#define DATABASE_NoGnomeHints_ID           (DATABASE_ID_START+52)
+#define DATABASE_HonorExtWMHints_ID        (DATABASE_ID_START+53)
+#define DATABASE_NoExtWMHints_ID           (DATABASE_ID_START+54)
+#define DATABASE_HonorXResources_ID        (DATABASE_ID_START+55)
+#define DATABASE_NoXResources_ID           (DATABASE_ID_START+56)
 
 #define DATABASE_ID_END             (DATABASE_ID_START+64)
 
@@ -1262,6 +1263,9 @@ FreeStorageElem **ComplexFunction2FreeStorage( SyntaxDef *syntax, FreeStorageEle
  * 		ThenTry 	RandomPlacement|Cascade|Manual
  * 		VerticalPriority
  * 		ReverseOrder
+ *      Desk        desk
+ *      MinLayer    min_layer
+ *      MaxLayer    max_layer
  * ~WindowBox
  */
 
@@ -1275,9 +1279,12 @@ FreeStorageElem **ComplexFunction2FreeStorage( SyntaxDef *syntax, FreeStorageEle
 #define WINDOWBOX_MaxHeight_ID	  		(WINDOWBOX_ID_START+6)
 #define WINDOWBOX_FirstTry_ID	  		(WINDOWBOX_ID_START+7)
 #define WINDOWBOX_ThenTry_ID 	  		(WINDOWBOX_ID_START+8)
-#define WINDOWBOX_VerticalPriority_ID  	(WINDOWBOX_ID_START+9)
-#define WINDOWBOX_ReverseOrder_ID  		(WINDOWBOX_ID_START+10)
-#define WINDOWBOX_DONE_ID				(WINDOWBOX_ID_START+11)
+#define WINDOWBOX_Desk_ID               (WINDOWBOX_ID_START+9)
+#define WINDOWBOX_MinLayer_ID           (WINDOWBOX_ID_START+10)
+#define WINDOWBOX_MaxLayer_ID           (WINDOWBOX_ID_START+11)
+#define WINDOWBOX_VerticalPriority_ID   (WINDOWBOX_ID_START+12)
+#define WINDOWBOX_ReverseOrder_ID       (WINDOWBOX_ID_START+13)
+#define WINDOWBOX_DONE_ID               (WINDOWBOX_ID_START+14)
 
 #define WINDOWBOX_ID_END            	(WINDOWBOX_ID_START+16)
 

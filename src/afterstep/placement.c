@@ -19,75 +19,175 @@
  *
  */
 
+#define LOCAL_DEBUG
 #include "../../configure.h"
 
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xutil.h>
-#include <X11/Xresource.h>
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/misc.h"
-#include "../../include/style.h"
 #include "../../include/screen.h"
+#include "../../include/decor.h"
 
-void
-get_window_geometry (ASWindow * t, int flags, int *x, int *y, int *w, int *h)
+#include "asinternals.h"
+
+
+struct ASWindowGridAuxData{
+    ASGrid *grid;
+    long    desk;
+    int     min_layer;
+    Bool    frame_only ;
+};
+
+Bool
+get_aswindow_grid_iter_func(void *data, void *aux_data)
 {
-	int           tx = -999, ty = -999, tw = 0, th = 0;
+    ASWindow *asw = (ASWindow*)data ;
+    struct ASWindowGridAuxData *grid_data = (struct ASWindowGridAuxData*)aux_data;
 
-	if (flags & ICONIFIED)
-	{
-		if (t->icon_pixmap_w != None)
-		{
-			tw = t->icon_p_width;
-			th = t->icon_p_height;
-			if ((Scr.flags & IconTitle) && ASWIN_HFLAGS(t, AS_IconTitle) &&
-                (Scr.look_flags & SeparateButtonTitle))
-				th += t->icon_t_height;
-			tx = t->icon_p_x;
-			ty = t->icon_p_y;
-		} else if (t->icon_title_w != None)
-		{
-			tw = t->icon_t_width;
-			th = t->icon_t_height;
-			tx = t->icon_p_x;
-			ty = t->icon_p_y;
-		} else
-		{
-			tw = 0;
-			th = 0;
-			tx = t->frame_x;
-			ty = t->frame_y;
-		}
-	} else if (flags & SHADED)
-	{
-		tw = t->title_width + 2 * t->boundary_width;
-		th = t->title_height + 2 * t->boundary_width;
-		tx = t->frame_x;
-		ty = t->frame_y;
-	} else
-	{
-		tw = t->frame_width;
-		th = t->frame_height;
-		tx = t->frame_x;
-		ty = t->frame_y;
-	}
-	if (x != NULL)
-		*x = tx;
-	if (y != NULL)
-		*y = ty;
-	if (w != NULL)
-		*w = tw;
-	if (h != NULL)
-		*h = th;
+    if( asw && ASWIN_DESK(asw) == grid_data->desk )
+    {
+        int outer_gravity = Scr.Feel.EdgeAttractionWindow ;
+        int inner_gravity = Scr.Feel.EdgeAttractionWindow ;
+        if( ASWIN_HFLAGS(asw, AS_AvoidCover) )
+            inner_gravity = -1 ;
+        else if( inner_gravity == 0 )
+            return True;
+
+        if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+        {
+            add_canvas_grid( grid_data->grid, asw->icon_canvas, outer_gravity, inner_gravity );
+            if( asw->icon_canvas != asw->icon_title_canvas )
+                add_canvas_grid( grid_data->grid, asw->icon_title_canvas, outer_gravity, inner_gravity );
+        }else
+        {
+            add_canvas_grid( grid_data->grid, asw->frame_canvas, outer_gravity, inner_gravity );
+            add_canvas_grid( grid_data->grid, asw->client_canvas, outer_gravity/2, (inner_gravity*2)/3 );
+        }
+    }
+    return True;
 }
+
+ASGrid*
+make_desktop_grid(int desk, int min_layer, Bool frame_only )
+{
+    struct ASWindowGridAuxData grid_data ;
+    int resist = Scr.Feel.EdgeResistanceMove ;
+    int attract = Scr.Feel.EdgeAttractionScreen ;
+
+    grid_data.desk = desk ;
+    grid_data.min_layer = min_layer ;
+    grid_data.frame_only = frame_only ;
+    grid_data.grid = safecalloc( 1, sizeof(ASGrid));
+    add_canvas_grid( grid_data.grid, Scr.RootCanvas, resist, attract );
+    /* add all the window edges for this desktop : */
+    iterate_asbidirlist( Scr.Windows->clients, get_aswindow_grid_iter_func, (void*)&grid_data, NULL, False );
+
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    print_asgrid( grid_data.grid );
+#endif
+
+    return grid_data.grid;
+}
+
+static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox )
+{
+    return False;
+}
+
+static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, Bool free_space_only )
+{
+    return False;
+}
+
+static Bool do_tile_placement( ASWindow *asw, ASWindowBox *aswbox )
+{
+    return False;
+}
+
+static Bool do_cascade_placement( ASWindow *asw, ASWindowBox *aswbox )
+{
+    return False;
+}
+
+static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox )
+{
+    return False;
+}
+
+
+static Bool
+place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementStrategy which)
+{
+    if( which == ASP_UseMainStrategy )
+    {
+        if( aswbox->main_strategy == ASP_SmartPlacement )
+            return do_smart_placement( asw, aswbox );
+        else if( aswbox->main_strategy == ASP_RandomPlacement )
+            return do_random_placement( asw, aswbox, True );
+        else if( aswbox->main_strategy == ASP_Tile )
+            return do_tile_placement( asw, aswbox );
+    }else
+    {
+        if( aswbox->backup_strategy == ASP_RandomPlacement )
+            return do_random_placement( asw, aswbox, False );
+        else if( aswbox->backup_strategy == ASP_Cascade )
+            return do_cascade_placement( asw, aswbox );
+        else if( aswbox->backup_strategy == ASP_Manual )
+            return do_manual_placement( asw, aswbox );
+    }
+    return False;
+}
+
+
+Bool place_aswindow( ASWindow *asw )
+{
+    /* if window has predefined named windowbox for it - we use only this windowbox
+     * otherwise we use all suitable windowboxes in two passes :
+     *   we first try and apply main strategy to place window in the empty space for each box
+     *   if all fails we apply backup strategy of the default windowbox
+     */
+    ASWindowBox *aswbox = NULL ;
+
+    if( AS_ASSERT(asw))
+        return False;
+    if( AS_ASSERT(asw->hints) || AS_ASSERT(asw->status)  )
+        return False;
+
+    if( asw->hints->windowbox_name )
+    {
+        aswbox = find_window_box( &(Scr.Feel), asw->hints->windowbox_name );
+        if( aswbox != NULL )
+        {
+            if( !place_aswindow_in_windowbox( asw, aswbox, ASP_UseMainStrategy ) )
+                return place_aswindow_in_windowbox( asw, aswbox, ASP_UseBackupStrategy );
+            return True;
+        }
+    }
+
+    if( aswbox == NULL )
+    {
+        int i = Scr.Feel.window_boxes_num;
+        aswbox = &(Scr.Feel.window_boxes[0]);
+        while( --i >= 0 )
+        {
+            if( aswbox[i].desk != asw->status->desktop )
+                continue;
+            if( aswbox[i].min_layer > asw->status->layer || aswbox[i].max_layer < asw->status->layer )
+                continue;
+            if( aswbox[i].min_width > asw->status->width || (aswbox[i].max_width > 0 && aswbox[i].max_width < asw->status->width) )
+                continue;
+            if( aswbox[i].min_height > asw->status->height || (aswbox[i].max_height > 0 && aswbox[i].max_height < asw->status->height) )
+                continue;
+
+            if( place_aswindow_in_windowbox( asw, &(aswbox[i]), ASP_UseMainStrategy ) )
+                return True;
+        }
+    }
+    return place_aswindow_in_windowbox( asw, Scr.Feel.default_window_box, ASP_UseBackupStrategy );
+}
+
+#if 0
+
+
 
 /*
  * pass 0: do not ignore windows behind the target window's layer
@@ -173,128 +273,6 @@ SmartPlacement (ASWindow * t, int *x, int *y, int width, int height, int rx, int
 	return loc_ok;
 }
 
-void place_aswindow( ASWindow *t, ASStatusHints *status )
-{
-#warning "Implement proper manuall placing of windows"
-	return ;
-}
-
-#if 0
-
-/* Used to parse command line of clients for specific desk requests. */
-/* Todo: check for multiple desks. */
-static XrmDatabase db;
-static XrmOptionDescRec table[] = {
-	/* Want to accept "-workspace N" or -xrm "afterstep*desk:N" as options
-	 * to specify the desktop. I have to include dummy options that
-	 * are meaningless since Xrm seems to allow -w to match -workspace
-	 * if there would be no ambiguity. */
-	{"-workspacf", "*junk", XrmoptionSepArg, (caddr_t) NULL},
-	{"-workspace", "*desk", XrmoptionSepArg, (caddr_t) NULL},
-	{"-xrn", NULL, XrmoptionResArg, (caddr_t) NULL},
-	{"-xrm", NULL, XrmoptionResArg, (caddr_t) NULL},
-};
-
-/**************************************************************************
- * figure out where a window belongs, in this order:
- * 1. if sticky, use current desk
- * 2. _XA_WIN_DESK, if set
- * 3. if the client requested a specific desk on the command line, use that
- * 4. if part of a window group, same desk as another member of the group
- * 5. if a transient, same desk as parent
- * 6. use StartsOnDesk from database, if set
- * 7. the current desk
- */
-int
-InvestigateWindowDesk (ASWindow * tmp_win)
-{
-	name_list     nl;
-
-	style_init (&nl);
-	style_fill_by_name (&nl, &(tmp_win->hints->names[0]));
-
-	/* sticky windows always use the current desk */
-	if (nl.off_flags & STICKY_FLAG)
-		return Scr.CurrentDesk;
-
-	/* determine desk property, if set */
-	{
-		Atom          atype;
-		int           aformat;
-		unsigned long nitems, bytes_remain;
-		unsigned char *prop;
-		extern Atom   _XA_WIN_DESK;
-
-		if (XGetWindowProperty (dpy, tmp_win->w, _XA_WIN_DESK, 0L, 1L, True,
-								AnyPropertyType, &atype, &aformat, &nitems,
-								&bytes_remain, &prop) == Success && prop != NULL)
-		{
-			int           desk = *(unsigned long *)prop;
-
-			XFree (prop);
-			return desk;
-		}
-	}
-
-	/* Find out if the client requested a specific desk on the command line. */
-	{
-		int           client_argc = 0;
-		char        **client_argv = NULL, *str_type;
-		XrmValue      rm_value;
-		int           desk = 0;
-		Bool          status;
-
-		if (XGetCommand (dpy, tmp_win->w, &client_argv, &client_argc))
-		{
-			XrmParseCommand (&db, table, 4, "afterstep", &client_argc, client_argv);
-			XFreeStringList (client_argv);
-			status = XrmGetResource (db, "afterstep.desk", "AS.Desk", &str_type, &rm_value);
-			if (status == True && rm_value.size)
-				desk = strtol (rm_value.addr, NULL, 0);
-			else
-				status = False;
-			XrmDestroyDatabase (db);
-			db = NULL;
-			if (status == True)
-				return desk;
-		}
-	}
-
-	/* Try to find the group leader or another window in the group */
-	if ((tmp_win->wmhints) && (tmp_win->wmhints->flags & WindowGroupHint) &&
-		(tmp_win->wmhints->window_group != None) && (tmp_win->wmhints->window_group != Scr.Root))
-	{
-		ASWindow     *t;
-
-		for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-		{
-			if ((t->w == tmp_win->wmhints->window_group) ||
-				((t->wmhints) && (t->wmhints->flags & WindowGroupHint) &&
-				 (t->wmhints->window_group == tmp_win->wmhints->window_group)))
-				return t->Desk;
-		}
-	}
-
-	/* Try to find the parent's desktop */
- 	if (ASWIN_HFLAGS(tmp_win, AS_Transient) && (tmp_win->hints->transient_for != None) &&
-		(tmp_win->hints->transient_for != Scr.Root))
-	{
-		ASWindow     *t;
-
-		for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-		{
-			if (t->w == tmp_win->hints->transient_for)
-				return t->Desk;
-		}
-	}
-
-	/* use StartsOnDesk, if set */
-	if (nl.off_flags & STAYSONDESK_FLAG)
-		return nl.Desk;
-
-	return Scr.CurrentDesk;
-}
-
 /**************************************************************************
  *
  * Handles initial placement and sizing of a new window
@@ -345,11 +323,11 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 	/*
 	 *  If
 	 *     o  the window is a transient, or
-	 * 
+	 *
 	 *     o  a USPosition was requested, or
-	 *     
+	 *
 	 *     o  Prepos flag was given
-	 * 
+	 *
 	 *   then put the window where requested.
 	 *
 	 *   If RandomPlacement was specified,
@@ -434,7 +412,7 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 		tmp_win->attr.x = xl;
 	} else
 	{
-		/* the USPosition was specified, or the window is a transient, 
+		/* the USPosition was specified, or the window is a transient,
 		 * or it starts iconic so let it place itself */
 		if (!(tmp_win->normal_hints.flags & USPosition))
 		{
@@ -462,42 +440,4 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 
 
 #endif
-/************************************************************************
- *
- *  Procedure:
- *	GetGravityOffsets - map gravity to (x,y) offset signs for adding
- *		to x and y when window is mapped to get proper placement.
- * 
- ************************************************************************/
-struct _gravity_offset
-{
-	int           x, y;
-};
 
-void
-GetGravityOffsets (ASWindow * tmp, int *xp, int *yp)
-{
-	static struct _gravity_offset gravity_offsets[11] = {
-		{0, 0},								   /* ForgetGravity */
-		{-1, -1},							   /* NorthWestGravity */
-		{0, -1},							   /* NorthGravity */
-		{1, -1},							   /* NorthEastGravity */
-		{-1, 0},							   /* WestGravity */
-		{0, 0},								   /* CenterGravity */
-		{1, 0},								   /* EastGravity */
-		{-1, 1},							   /* SouthWestGravity */
-		{0, 1},								   /* SouthGravity */
-		{1, 1},								   /* SouthEastGravity */
-		{0, 0},								   /* StaticGravity */
-	};
-	register int  g = tmp->hints->gravity;
-
-	if (g < ForgetGravity || g > StaticGravity)
-		*xp = *yp = 0;
-	else
-	{
-		*xp = (int)gravity_offsets[g].x;
-		*yp = (int)gravity_offsets[g].y;
-	}
-	return;
-}

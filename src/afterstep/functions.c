@@ -451,61 +451,6 @@ SHOW_CHECKPOINT;
     Scr.moveresize_in_progress = NULL ;
 }
 
-struct ASWindowGridAuxData{
-    ASGrid *grid;
-    long desk;
-};
-
-Bool
-get_aswindow_grid_iter_func(void *data, void *aux_data)
-{
-    ASWindow *asw = (ASWindow*)data ;
-    struct ASWindowGridAuxData *grid_data = (struct ASWindowGridAuxData*)aux_data;
-
-    if( asw && ASWIN_DESK(asw) == grid_data->desk )
-    {
-        int outer_gravity = Scr.Feel.EdgeAttractionWindow ;
-        int inner_gravity = Scr.Feel.EdgeAttractionWindow ;
-        if( ASWIN_HFLAGS(asw, AS_AvoidCover) )
-            inner_gravity = -1 ;
-        else if( inner_gravity == 0 )
-            return True;
-
-        if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
-        {
-            add_canvas_grid( grid_data->grid, asw->icon_canvas, outer_gravity, inner_gravity );
-            if( asw->icon_canvas != asw->icon_title_canvas )
-                add_canvas_grid( grid_data->grid, asw->icon_title_canvas, outer_gravity, inner_gravity );
-        }else
-        {
-            add_canvas_grid( grid_data->grid, asw->frame_canvas, outer_gravity, inner_gravity );
-            add_canvas_grid( grid_data->grid, asw->client_canvas, outer_gravity/2, (inner_gravity*2)/3 );
-        }
-    }
-    return True;
-}
-
-ASGrid*
-make_desktop_grid(int desk)
-{
-    struct ASWindowGridAuxData grid_data ;
-    int resist = Scr.Feel.EdgeResistanceMove ;
-    int attract = Scr.Feel.EdgeAttractionScreen ;
-
-    grid_data.desk = desk ;
-    grid_data.grid = safecalloc( 1, sizeof(ASGrid));
-    add_canvas_grid( grid_data.grid, Scr.RootCanvas, resist, attract );
-    /* add all the window edges for this desktop : */
-    iterate_asbidirlist( Scr.Windows->clients, get_aswindow_grid_iter_func, (void*)&grid_data, NULL, False );
-
-#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-    print_asgrid( grid_data.grid );
-#endif
-
-    return grid_data.grid;
-}
-
-
 void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 {   /* gotta have a window */
     ASWindow *asw = event->client ;
@@ -571,7 +516,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
             mvrdata->below_sibling = get_lowest_panframe(&Scr);
             set_moveresize_restrains( mvrdata, asw->hints, asw->status);
 //            mvrdata->subwindow_func = on_deskelem_move_subwindow ;
-            mvrdata->grid = make_desktop_grid(Scr.CurrentDesk);
+            mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False);
             Scr.moveresize_in_progress = mvrdata ;
         }
     }

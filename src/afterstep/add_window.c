@@ -1843,13 +1843,6 @@ maximize_window_status( ASStatusHints *status, ASStatusHints *saved_status, ASSt
     set_flags( adjusted_status->flags, AS_Position|AS_Size );
 }
 
-Bool
-place_aswindow( ASWindow *asw, ASStatusHints *status )
-{
-
-    return True;
-}
-
 void
 moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height )
 {
@@ -1907,20 +1900,20 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
             !get_flags( status->flags, AS_StartPositionUser ) )
         clear_flags( t->status->flags, AS_Position );
 
-    if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
-        maximize_window_status( status, t->saved_status, t->status, status->flags );
-    else if( !get_flags( t->status->flags, AS_Position ))
-        if( !place_aswindow( t, t->status ) )
-            return False;
-
-    if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
-        print_status_hints( NULL, NULL, t->status );
-
     /* TODO: AS_Iconic */
 	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
         ASWIN_LAYER(t) = AS_LayerNormal ;
 
     add_aswindow_to_layer( t, ASWIN_LAYER(t) );
+
+    if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
+        maximize_window_status( status, t->saved_status, t->status, status->flags );
+    else if( !get_flags( t->status->flags, AS_Position ))
+        if( !place_aswindow( t ) )
+            return False;
+
+    if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+        print_status_hints( NULL, NULL, t->status );
 
     /* by now we have a valid position for the window: */
     set_flags( t->status->flags, AS_Position );

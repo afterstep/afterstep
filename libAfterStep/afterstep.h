@@ -674,7 +674,6 @@ ASWindow *AddInternalWindow (Window w,
 void Destroy (ASWindow *, Bool);
 void RestoreWithdrawnLocation (ASWindow *, Bool);
 void SetShape (ASWindow *, int);
-void ClearShape (ASWindow *asw);
 
 
 /* from decorations.c :*/

@@ -287,5 +287,9 @@ void ChangeDesks (int new_desk);
 void change_desktop_background( int desk, int old_desk );
 void HandleBackgroundRequest( struct ASEvent *event );
 
+/******************************* placement.c *******************************/
+ASGrid* make_desktop_grid(int desk, int min_layer, Bool frame_only );
+Bool place_aswindow( ASWindow *asw );
+
 
 #endif /* ASINTERNALS_H_HEADER_INCLUDED */
