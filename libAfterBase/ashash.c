@@ -497,10 +497,18 @@ curr_hash_data (ASHashIterator * iterator)
 /************************************************************************/
 ASHashKey pointer_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
-	register ASHashKey key = (ASHashKey)value.ptr ;
-	if( hash_size == 256 )
+    union
+    {
+        void *ptr;
+        ASHashKey key[2];
+    } mix;
+    register  ASHashKey key;
+
+    mix.ptr = value.ptr;
+    key = mix.key[0]^mix.key[1] ;
+    if( hash_size == 256 )
 		return (key>>4)&0x0FF;
-	return (key>>4) % hash_size;
+    return (key>>4) % hash_size;
 }
 
 /* case sensitive strings hash */
