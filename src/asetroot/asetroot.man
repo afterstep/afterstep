@@ -144,9 +144,10 @@ filename.
 should specify one of the MyStyle names defined in your look file.
 
 2: Use external application to set root background. \fI""data""\fP
-should  specify command line options to this external app. By default
-xli is used. Change it to something else, if you want, in options to
-./configure.
+should  specify command line options to this external app. (\fIasetroot\fP
+is coded by default to use xli. If you wish to use another application
+to display the root background, you need to set the "--with-imageloader"
+flag to use that application then recompile AfterStep.)
 .fi
 .sp
 Note: remaining Background options are valid only for type of 0 !!!
