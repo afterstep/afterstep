@@ -24,7 +24,8 @@
 
 #include <X11/Xmd.h>
 
-#include "../configure.h"
+#define LOCAL_DEBUG
+
 #include "../include/aftersteplib.h"
 #include "../include/asvector.h"
 
@@ -71,6 +72,7 @@ alloc_vector( ASVector *v, size_t new_size )
 void *
 realloc_vector( ASVector *v, size_t new_size )
 {
+LOCAL_DEBUG_CALLER_OUT("0x%lX, %lu(*%d)", (unsigned long)v, (unsigned long)new_size, v?v->unit:0 );
     if( v == NULL || new_size == 0  ) return NULL ;
     if( v->allocated < new_size )
     {
@@ -96,17 +98,18 @@ realloc_vector( ASVector *v, size_t new_size )
 ASVector *
 append_vector( ASVector *v, void * data, size_t size )
 {
+LOCAL_DEBUG_CALLER_OUT("0x%lX, 0x%lX, %lu", (unsigned long)v, (unsigned long)data, (unsigned long)size );
     if( v == NULL || size == 0 ) return v ;
 
     if( v->allocated < v->used+size )
-        realloc_vector( v, v->used+size + ((v->used+size)>>3) );
+        realloc_vector( v, v->used+size + (v->used+size)/8 );
 
-	if( data ) 
+	if( data )
 	{
-  		memcpy( v->memory+v->used, data, size*v->unit );
+        memcpy( v->memory+(v->used*v->unit), data, size*v->unit );
 	    v->used += size ;
 	}
-	
+
     return v;
 }
 
@@ -243,12 +246,13 @@ int
 vector_insert_elem( ASVector *v, void *data, size_t size, void *sibling, int before )
 {
     size_t index = 0;
+LOCAL_DEBUG_CALLER_OUT("0x%lX, 0x%lX, %lu, 0x%lX, %d", (unsigned long)v, (unsigned long)data, (unsigned long)size, (unsigned long)sibling, before );
 
     if( v == NULL || data == NULL || size == 0 )
         return -1;
 
     if( v->allocated < v->used+size )
-        realloc_vector( v, v->used+size + ((v->used+size)>>3) );
+        realloc_vector( v, v->used+size + (v->used+size)/8 );
 
     if( sibling == NULL )
     {

@@ -134,14 +134,14 @@ enum
 };
 
 static mem   *first_mem = NULL;
-static int    allocations = 0;
-static int    reallocations = 0;
-static int    deallocations = 0;
-static int    max_allocations = 0;
-static int    max_alloc = 0;
-static int    max_x_alloc = 0;
-static int    total_alloc = 0;
-static int    total_x_alloc = 0;
+static unsigned long allocations = 0;
+static unsigned long reallocations = 0;
+static unsigned long deallocations = 0;
+static unsigned long max_allocations = 0;
+static unsigned long max_alloc = 0;
+static unsigned long max_x_alloc = 0;
+static unsigned long total_alloc = 0;
+static unsigned long total_x_alloc = 0;
 
 void          count_alloc (const char *fname, int line, void *ptr, size_t length, int type);
 mem          *count_find (const char *fname, int line, void *ptr, int type, mem ** pm2);
@@ -365,14 +365,14 @@ print_unfreed_mem (void)
 	fprintf (stderr, "===============================================================================\n");
 	fprintf (stderr, "Memory audit: %s\n", MyName);
 	fprintf (stderr, "\n");
-	fprintf (stderr, "   Total   allocs: %d\n", allocations);
-	fprintf (stderr, "   Total reallocs: %d\n", reallocations);
-	fprintf (stderr, "   Total deallocs: %d\n", deallocations);
-	fprintf (stderr, "Max allocs at any one time: %d\n", max_allocations);
-	fprintf (stderr, "      Lost memory: %d\n", total_alloc);
-	fprintf (stderr, "    Lost X memory: %d\n", total_x_alloc);
-	fprintf (stderr, "  Max memory used: %d\n", max_alloc);
-	fprintf (stderr, "Max X memory used: %d\n", max_x_alloc);
+    fprintf (stderr, "   Total   allocs: %lu\n", allocations);
+    fprintf (stderr, "   Total reallocs: %lu\n", reallocations);
+    fprintf (stderr, "   Total deallocs: %lu\n", deallocations);
+    fprintf (stderr, "Max allocs at any one time: %lu\n", max_allocations);
+    fprintf (stderr, "      Lost memory: %lu\n", total_alloc);
+    fprintf (stderr, "    Lost X memory: %lu\n", total_x_alloc);
+    fprintf (stderr, "  Max memory used: %lu\n", max_alloc);
+    fprintf (stderr, "Max X memory used: %lu\n", max_x_alloc);
 	fprintf (stderr, "\n");
 	fprintf (stderr, "List of unfreed memory\n");
 	fprintf (stderr, "----------------------\n");
@@ -500,6 +500,18 @@ print_unfreed_mem (void)
 			fprintf (stderr, "\n");
 		}
 	fprintf (stderr, "===============================================================================\n");
+}
+
+
+void
+print_unfreed_mem_stats (const char *file, const char *func, int line, const char *msg)
+{
+    if( msg )
+        fprintf( stderr, "%s:%s:%s:%d: Memory audit %s\n", MyName, file, func, line, msg );
+    fprintf( stderr, "%s:%s:%s:%d: Memory audit counts: allocs %lu, reallocs: %lu, deallocs: %lu, max simultaneous %lu\n",
+                     MyName, file, func, line, allocations, reallocations, deallocations, max_allocations);
+    fprintf( stderr, "%s:%s:%s:%d: Memory audit used memory: private %lu, X %lu, max private %lu, max X %lu\n",
+                     MyName, file, func, line, total_alloc, total_x_alloc, max_alloc, max_x_alloc);
 }
 
 Pixmap

@@ -15,7 +15,8 @@
  */
 
 #ifndef DEBUG_ALLOCS
-#define AS_ASSERT(p) ((p)==NULL)
+#define AS_ASSERT(p)            ((p)==NULL)
+#define PRINT_MEM_STATS(m)      do{}while(0)
 
 #else
 #include <X11/Xutil.h>
@@ -146,6 +147,9 @@ Status count_xstringlisttotextproperty (const char *fname, int line,
 int count_xfree (const char *fname, int line, void *data);
 
 void print_unfreed_mem (void);
+void print_unfreed_mem_stats (const char *file, const char *func, int line, const char *msg);
+#define PRINT_MEM_STATS(m)     print_unfreed_mem_stats(__FILE__,__FUNCTION__, __LINE__,(m))
+
 
 #endif /* DEBUG_ALLOCS */
 
