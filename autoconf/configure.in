@@ -221,12 +221,28 @@ fi
 
 dnl# Check for X :
 AC_PATH_XTRA
-x_libs="$LDFLAGS $X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
-AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
+
+user_ldflags=$LDFLAGS
+
+x_libs="$X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
+if test "x$user_ldflags" = "x"; then
+	full_x_libs=$x_libs
+else
+	full_x_libs="$user_ldflags $x_libs"
+fi
+
+AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$full_x_libs)
+
+dnl# have to update full_x_libs again as x_libs may have changed above
+if test "x$user_ldflags" = "x"; then
+	full_x_libs=$x_libs
+else
+	full_x_libs="$user_ldflags $x_libs"
+fi
 
 have_shmimage=no
 if test "x$enable_shmimage" = "xyes"; then
-	AC_CHECK_LIB(Xext, XShmCreateImage, [have_shmimage=yes],,$x_libs)
+	AC_CHECK_LIB(Xext, XShmCreateImage, [have_shmimage=yes],,$full_x_libs)
 	if test "x$have_shmimage" = "xyes"; then
 		AC_CHECK_HEADER(sys/ipc.h,,[have_shmimage=no])
 	fi
@@ -337,18 +353,19 @@ dnl# Check for X shaped window extension
 HAVESHAPE="NOSHAPE"
 add_lib_xext=no
 if test "x$enable_shaping" = "xyes"; then
-  	AC_CHECK_LIB(Xext, XShapeCombineMask, [add_lib_xext=yes;AC_DEFINE(SHAPE,)],,$x_libs)
+  	AC_CHECK_LIB(Xext, XShapeCombineMask, [add_lib_xext=yes;AC_DEFINE(SHAPE,)],,$full_x_libs)
 fi
 
 if test "x$add_lib_xext" = "xyes"; then
 	x_libs="$x_libs -lXext"
+	full_x_libs="$x_libs -lXext"
 fi
 
 dnl# Check for Xinerama extension
 
 HAVEXINE="NOXINE"
 if test "x$enable_xinerama" = "xyes"; then
-  AC_CHECK_LIB(Xinerama, XineramaQueryScreens, [x_libs="-lXinerama $x_libs";AC_DEFINE(HAVE_XINERAMA,)],,$x_libs)
+  AC_CHECK_LIB(Xinerama, XineramaQueryScreens, [x_libs="-lXinerama $x_libs";AC_DEFINE(HAVE_XINERAMA,)],,$full_x_libs)
 fi
 
 dnl# disable internal sigsegv handler if requested :
@@ -554,6 +571,7 @@ AC_SUBST(image_format)
 AC_SUBST(ASCP)
 AC_SUBST(ASCP_LIBS)
 AC_SUBST(ASCP_INCLUDES)
+AC_SUBST(user_ldflags)
 AC_SUBST(x_libs)
 AC_SUBST(x_includes)
 AC_SUBST(XEXT_LIB)
