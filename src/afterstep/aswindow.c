@@ -19,18 +19,10 @@
 
 #include "../../configure.h"
 
-#ifdef SHAPE
-#include <X11/extensions/shape.h>
-#endif /* SHAPE */
-
 #include "../../include/asapp.h"
 #include "../../include/afterstep.h"
-#include "../../include/clientprops.h"
 #include "../../include/hints.h"
 #include "../../include/screen.h"
-#include "../../include/module.h"
-#include "../../include/parser.h"
-#include "../../include/confdefs.h"
 #include "asinternals.h"
 
 /********************************************************************************/
@@ -155,26 +147,14 @@ ASWindow *window2ASWindow( Window w )
 Bool register_aswindow( Window w, ASWindow *asw )
 {
     if( w && asw )
-    {
-        if( Scr.Windows->aswindow_xref == NULL )
-
-
-        if( add_hash_item( Scr.Windows->aswindow_xref, AS_HASHABLE(w), asw ) == ASH_Success )
-            return True;
-    }
+        return (add_hash_item( Scr.Windows->aswindow_xref, AS_HASHABLE(w), asw ) == ASH_Success );
     return False;
 }
 
 Bool unregister_aswindow( Window w )
 {
     if( w )
-    {
-        if( Scr.Windows->aswindow_xref != NULL )
-		{
-            if( remove_hash_item( Scr.Windows->aswindow_xref, AS_HASHABLE(w), NULL, False ) == ASH_Success )
-  		        return True;
-		}
-    }
+        return (remove_hash_item( Scr.Windows->aswindow_xref, AS_HASHABLE(w), NULL, False ) == ASH_Success);
     return False;
 }
 

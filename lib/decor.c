@@ -281,6 +281,7 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height, in
 void
 update_canvas_display (ASCanvas * pc)
 {
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)", pc, pc->w, pc->canvas );
     if (pc && pc->w != None && !get_flags( pc->state, CANVAS_CONTAINER ))
 	{
 		if (pc->canvas)
@@ -315,7 +316,8 @@ resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 void
 moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height)
 {
-	/* Setting background to None to avoid background pixmap tiling
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w, width, height, x, y );
+    /* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
     if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);

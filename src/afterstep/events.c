@@ -21,6 +21,9 @@
 
 #include "../../configure.h"
 
+#define LOCAL_DEBUG
+#define EVENT_TRACE
+
 #include "../../include/asapp.h"
 #include <limits.h>
 #include <sys/types.h>
@@ -124,9 +127,11 @@ HandleEvents ()
         while((has_x_events = XPending (dpy)))
         {
             ASNextEvent (&(event.x));
-
-/*fprintf( stderr, "%s:%d Received event %d\n", __FUNCTION__, __LINE__, event.x.type );*/
             DigestEvent( &event );
+#ifdef EVENT_TRACE
+show_progress("****************************************************************");
+show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)", __FILE__, __FUNCTION__, __LINE__, event.x.type, event_type2name(event.x.type), event.x.xany.window, event.w, event.client );
+#endif
             DispatchEvent( &event );
         }
         afterstep_wait_pipes_input ();

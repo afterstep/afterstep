@@ -259,7 +259,8 @@ struct ASTBarData;
                                      FocusChangeMask 	| \
 									 ExposureMask 		| \
 									 LeaveWindowMask 	| \
-									 SubstructureRedirectMask)
+                                     SubstructureRedirectMask| \
+                                     StructureNotifyMask)
 
 #define AS_CANVAS_EVENT_MASK 		(ButtonPressMask 	| \
 									 ButtonReleaseMask 	| \

@@ -78,6 +78,7 @@ SIGNAL_T      Restart (int nonsense);
 SIGNAL_T      SigDone (int nonsense);
 
 void          CaptureAllWindows (ScreenInfo *scr);
+void          DoAutoexec( Bool restarting );
 
 Bool afterstep_parent_hints_func(Window parent, ASParentHints *dst );
 
@@ -216,15 +217,8 @@ main (int argc, char **argv)
    /* make sure we're on the right desk, and the _WIN_DESK property is set */
     ChangeDesks (Scr.wmprops->desktop_current);
 
-    {
-        ASEvent event = {0};
-        FunctionData restart_func ;
-        init_func_data( &restart_func );
-        restart_func.func = F_FUNCTION ;
-        restart_func.popup = get_flags( AfterStepState, ASS_Restarting)?Scr.Feel.RestartFunction:Scr.Feel.InitFunction ;
-        if (restart_func.popup)
-            ExecuteFunction (&restart_func, &event, -1);
-    }
+    SetupFunctionHandlers();
+    DoAutoexec(get_flags( AfterStepState, ASS_Restarting));
 
     /* all system Go! we are completely Operational! */
     set_flags( AfterStepState, ASS_NormalOperation);
@@ -468,6 +462,27 @@ CaptureAllWindows (ScreenInfo *scr)
         if( t )
             activate_aswindow( t, False, False );
     }
+}
+
+/***********************************************************************
+ * running Autoexec code ( if any ) :
+ ************************************************************************/
+void DoAutoexec( Bool restarting )
+{
+    FunctionData func ;
+    ASEvent event = {0};
+    char   screen_func_name[128];
+
+    init_func_data( &func );
+    func.func = F_FUNCTION ;
+    func.name = restarting?"RestartFunction":"InitFunction";
+    if( Scr.screen > 0 )
+    {
+        sprintf (screen_func_name, restarting?"RestartScreen%ldFunction":"InitScreen%ldFunction", Scr.screen);
+        if( find_complex_func( Scr.Feel.ComplexFunctions, &(screen_func_name[0])) == NULL )
+            func.name = &(screen_func_name[0]);
+    }
+    ExecuteFunction (&func, &event, -1);
 }
 
 /***********************************************************************

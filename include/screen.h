@@ -194,8 +194,6 @@ typedef struct ASFeel
 
     struct ASHashTable *Popups ;
     struct ASHashTable *ComplexFunctions ;
-    struct ComplexFunction *InitFunction;
-    struct ComplexFunction *RestartFunction;
 
     struct MouseButton *MouseButtonRoot;
     struct FuncKey *FuncKeyRoot;

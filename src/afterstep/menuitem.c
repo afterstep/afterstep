@@ -910,9 +910,6 @@ void
 ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2)
 {
     char         *name =  stripcpy2 (tline, 0);
-    static char   screen_init_func[128];
-	static char   screen_restart_func[128];
-	static int    screen_initialized = 0;
     ComplexFunction  *func = NULL ;
 
     if( Scr.Feel.ComplexFunctions == NULL )
@@ -922,18 +919,6 @@ ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2)
     free( name );
 
     ParseBody(func, fd, FunctionItemParse);
-    if (screen_initialized == 0)
-    {
-        sprintf (screen_init_func, "InitScreen%ldFunction", Scr.screen);
-        sprintf (screen_restart_func, "RestartScreen%ldFunction", Scr.screen);
-        screen_initialized = 1;
-    }
-
-    if (strcmp (func->name, "InitFunction") == 0 || strcmp (func->name, screen_init_func) == 0)
-        Scr.Feel.InitFunction = func;
-    else if (strcmp (func->name, "RestartFunction") == 0 ||
-             strcmp (func->name, screen_restart_func) == 0)
-        Scr.Feel.RestartFunction = func;
 }
 
 /****************************************************************************

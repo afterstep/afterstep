@@ -24,6 +24,7 @@
  *
  **********************************************************************/
 #include "../../configure.h"
+#define LOCAL_DEBUG
 
 #include "../../include/asapp.h"
 #include "../../include/afterstep.h"
@@ -156,10 +157,12 @@ check_side_canvas( ASWindow *asw, FrameSide side, Bool required )
 									  valuemask, &attributes);
             register_aswindow( w, asw );
 			canvas = create_ascanvas( w );
+LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->side(%d)->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname",side, canvas, canvas->w );
         }
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
 		w = canvas->w ;
+LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->side(%d)->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname",side, canvas, canvas->w );
         destroy_ascanvas( &canvas );
         destroy_registered_window( w );
     }
@@ -202,11 +205,12 @@ check_frame_canvas( ASWindow *asw, Bool required )
             asw->frame = w ;
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );
-
+LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->FRAME->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         }
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         w = canvas->w ;
+LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->FRAME->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         destroy_ascanvas( &canvas );
         destroy_registered_window( w );
     }
@@ -246,6 +250,7 @@ check_client_canvas( ASWindow *asw, Bool required )
 
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );
+LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         }
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
@@ -270,6 +275,7 @@ check_client_canvas( ASWindow *asw, Bool required )
         xwc.width = withdrawn_status.width ;
         xwc.height = withdrawn_status.height ;
 
+LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         destroy_ascanvas( &canvas );
         unregister_aswindow( w );
 
@@ -323,11 +329,13 @@ check_icon_canvas( ASWindow *asw, Bool required )
                 XChangeWindowAttributes (dpy, w, valuemask, &attributes);
                 canvas = create_ascanvas_container( w );
             }
+LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICON->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
             register_aswindow( w, asw );
         }
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         w = canvas->w ;
+LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->ICON->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         destroy_ascanvas( &canvas );
         if( asw->hints && asw->hints->icon.window == w )
             unregister_aswindow( w );
@@ -349,6 +357,7 @@ check_icon_title_canvas( ASWindow *asw, Bool required, Bool reuse_icon_canvas )
         ((reuse_icon_canvas && canvas != asw->icon_canvas) || !required) )
     {
         w = canvas->w ;
+LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         destroy_ascanvas( &canvas );
         destroy_registered_window( w );
     }
@@ -372,6 +381,7 @@ check_icon_title_canvas( ASWindow *asw, Bool required, Bool reuse_icon_canvas )
 
             register_aswindow( w, asw );
             canvas = create_ascanvas( w );
+LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         }
     }
 
@@ -607,6 +617,7 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     /* make sure all our decoration windows are mapped and in proper order: */
     XRaiseWindow( dpy, asw->w );
     XMapSubwindows (dpy, asw->frame);
+    XMapWindow (dpy, asw->frame);
 
     /* 6) now we have to create bar for icon - if it is not client's animated icon */
 	if( asw->icon_canvas )
@@ -740,11 +751,11 @@ resize_canvases( ASWindow *asw, ASCanvas *tbar, ASCanvas *sbar, ASCanvas *left, 
         }
         if( sbar )
         {
-            sbar_size = sbar->width ;
+            sbar_size = sbar->height ;
             moveresize_canvas( sbar, 0, height-(tbar_size+sbar_size), width, sbar_size );
         }
         if( left )
-            moveresize_canvas( left, 0, tbar_size, left->width, height-(tbar_size+sbar_size));
+            moveresize_canvas( left, 0,                   tbar_size, left->width,  height-(tbar_size+sbar_size));
         if( right )
             moveresize_canvas( right, width-right->width, tbar_size, right->width, height-(tbar_size+sbar_size));
     }
@@ -801,6 +812,7 @@ on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width,
     int i ;
     Bool canvas_moved = False;
 
+LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,%ux%u%+d%+d)", asw, w, width, height, x, y );
     if( AS_ASSERT(asw) || w == asw->w )
         return ;
 
@@ -818,10 +830,20 @@ on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width,
                                     asw->frame_sides[FR_N],
                                     asw->frame_sides[FR_S], width, height );
             }else
+            {
                 resize_canvases( asw, asw->frame_sides[FR_N],
                                     asw->frame_sides[FR_S],
                                     asw->frame_sides[FR_W],
                                     asw->frame_sides[FR_E], width, height );
+            }
+            {
+                register unsigned int *frame_size = &(asw->status->frame_size[0]) ;
+                moveresize_canvas( asw->client_canvas,
+                                frame_size[FR_W],
+                                frame_size[FR_N],
+                                width-(frame_size[FR_W]+frame_size[FR_E]),
+                                height-(frame_size[FR_N]+frame_size[FR_S]));
+            }
         }
         if( handle_canvas_config (asw->frame_canvas) )
             update_window_transparency( asw );
@@ -994,6 +1016,7 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
     /* note that icons are handled by iconbox */
     if( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
 	{
+LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_HFLAGS(asw, AS_VerticalTitle)?"Vert":"Horz", (ASWIN_GET_FLAGS(asw,AS_Shaded)&&tbar_size>0)?"Shaded":"Unshaded" );
         if( ASWIN_GET_FLAGS( asw, AS_Shaded ) && tbar_size > 0 )
         {
             if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
@@ -1357,7 +1380,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 Bool
 iconify_window( ASWindow *asw, Bool iconify )
 {
-LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d, batch = %d", asw, iconify, batch );
+LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d", asw, iconify );
 
     if( AS_ASSERT(asw) )
         return False;
