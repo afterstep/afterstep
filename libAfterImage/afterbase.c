@@ -63,8 +63,8 @@ asim_get_output_threshold()
 unsigned int
 asim_set_output_threshold( unsigned int threshold )
 {
-    unsigned int old = as_output_threshold;
-    as_output_threshold = threshold ;
+    unsigned int old = asim_as_output_threshold;
+    asim_as_output_threshold = threshold ;
     return old;
 }
 
@@ -467,7 +467,7 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 				XColor xcol, xcol_scr ;
 /* XXX Not sure if Scr.asv->colormap is always defined here.  If not, 
 ** change back to DefaultColormap(dpy,DefaultScreen(dpy)). */
-				if( XLookupColor( dpy, Scr.asv->colormap, color, &xcol, &xcol_scr) )
+				if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), color, &xcol, &xcol_scr) )
 					*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
 #endif			
 				while( !isspace((int)*ptr) && *ptr != '\0' ) ptr++;
