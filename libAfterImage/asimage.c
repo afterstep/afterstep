@@ -443,13 +443,13 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 		if( bevel->bottom_outline > MAX_BEVEL_OUTLINE )
 			bevel->bottom_outline = MAX_BEVEL_OUTLINE ;
 		if( bevel->left_inline >= out_width )
-			bevel->left_inline = out_width-1 ;
+			bevel->left_inline = MAX((int)out_width-1,0) ;
 		if( bevel->top_inline >= out_height )
-			bevel->top_inline = out_height-1 ;
+			bevel->top_inline = MAX((int)out_height-1,0) ;
 		if( bevel->left_inline+bevel->right_inline >= out_width )
-			bevel->right_inline = out_width-5-bevel->left_inline ;
+			bevel->right_inline = MAX((int)out_width-5-(int)bevel->left_inline,0) ;
 		if( bevel->top_inline+bevel->bottom_inline >= out_height )
-			bevel->bottom_inline = out_height-1-bevel->top_inline ;
+			bevel->bottom_inline = MAX((int)out_height-1-(int)bevel->top_inline,0) ;
 
 		imdec->bevel_h_addon = bevel->left_outline+bevel->right_outline ;
 		imdec->bevel_v_addon = bevel->top_outline+bevel->bottom_outline ;

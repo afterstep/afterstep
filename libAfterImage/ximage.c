@@ -197,7 +197,6 @@ asimage2drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
 	if( im )
 	{
 		XImage       *xim ;
-		Pixmap        p = None;
 		GC 			  my_gc = gc ;
 
 		if( src_x < 0 )
@@ -231,7 +230,7 @@ asimage2drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
 			if( my_gc == NULL )
 			{
 				XGCValues gcv ;
-				my_gc = XCreateGC( asv->dpy, p, 0, &gcv );
+				my_gc = XCreateGC( asv->dpy, d, 0, &gcv );
 			}
 			XPutImage( asv->dpy, d, my_gc, xim, src_x, src_y, dest_x, dest_y, width, height );
 			if( my_gc != gc )
