@@ -1035,8 +1035,8 @@ component_interpolation2( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, regist
 	register int i;
 	for( i = 0 ; i < len ; i++ )
 	{
-		register int rc2 = c2[i], rc3 = c3[i] ;
-		T[i] = INTERPOLATE_COLOR2(c1[i],rc2,rc3,c4[i]);
+		register int rc1 = c1[i], rc3 = c3[i] ;
+		T[i] = INTERPOLATE_COLOR2(rc1,c2[i],rc3,c4[i]);
 	}
 }
 
