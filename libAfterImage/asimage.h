@@ -67,6 +67,38 @@ typedef enum
 }
 ColorPart;
 
+/* Auxilary data structures : */
+typedef struct ASImageDecoder
+{
+	ScreenInfo 	   *scr;
+	ASImage 	   *im ;
+	ASFlagType 		filter;
+	unsigned int    offset_x,    /* left margin on source image before which we skip everything */
+					out_width;   /* actuall length of the output scanline */
+	unsigned int 	offset_y;	 /* top margin */
+								 /* there is no need for out_height - if we go out of the 
+								  * image size - we simply reread lines from the beginning	
+                                  */									
+	ASScanline 		buffer;
+	int 			next_line ;
+}ASImageDecoder;
+
+/* This is static piece of data that tell us what is the status of
+ * the output stream, and allows us to easily put stuff out :       */
+typedef struct ASImageOutput
+{
+	ScreenInfo *scr;
+	ASImage *im ;
+	XImage *xim ;
+	Bool to_xim ;
+	unsigned char *xim_line;
+	int            height, bpl;
+	ASScanline buffer[2], *used, *available;
+	int buffer_shift;   /* -1 means - buffer is empty */
+	int next_line ;
+}ASImageOutput;
+
+
 void asimage_free_color (ASImage * im, CARD8 ** color);
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height);
@@ -136,6 +168,9 @@ Pixmap  asimage2mask    (struct ScreenInfo *scr, ASImage *im, GC gc, Bool use_ca
 
 /* manipulations : */
 ASImage *scale_asimage( struct ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim );
+ASImage *tile_asimage ( struct ScreenInfo *scr, ASImage *src, int offset_x, int offset_y,  
+															  unsigned int to_width, 
+															  unsigned int to_height, Bool to_xim );
 
 
 
