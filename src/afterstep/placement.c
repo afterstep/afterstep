@@ -445,12 +445,138 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
 
 static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area, Bool free_space_only )
 {
-    return False;
+    int selected = -1 ;
+    unsigned int w = asw->status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
+    unsigned int h = asw->status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
+    static   CARD32 rnd32_seed = 345824357;
+    ASVector *free_space_list = NULL;
+    XRectangle *rects = NULL;
+    int i ;
+
+#ifndef MY_RND32
+#define MAX_MY_RND32		0x00ffffffff
+#ifdef WORD64
+#define MY_RND32() (rnd32_seed = ((1664525L*rnd32_seed)&MAX_MY_RND32)+1013904223L)
+#else
+#define MY_RND32() (rnd32_seed = (1664525L*rnd32_seed)+1013904223L)
+#endif
+#endif
+
+    if( rnd32_seed == 345824357)
+        rnd32_seed += time(NULL);
+
+    /* even though we are not limited to free space - it is best to avoid windows with AvoidCover
+     * bit set */
+    free_space_list =  build_free_space_list( asw, aswbox, area,
+                                              free_space_only?ASWIN_LAYER(asw):AS_LayerHighest );
+    rects = PVECTOR_HEAD(XRectangle,free_space_list);
+
+    i = PVECTOR_USED(free_space_list);
+    while( --i >= 0 )
+        if( rects[i].width >= w && rects[i].height >=  h )
+        {
+            if( selected > 0 )
+            {
+                CARD32 r = MY_RND32();
+                if( (r & 0x00000100) == 0 )
+                    continue;;
+            }
+            selected = i ;
+        }
+    if( selected >= 0 )
+    {
+        unsigned int new_x = 0, new_y = 0;
+        if( rects[selected].width > w )
+        {
+            new_x = MY_RND32();
+            new_x = (new_x % ( rects[selected].width - w ));
+        }
+
+        if( rects[selected].height > h )
+        {
+            new_y = MY_RND32();
+            new_y = (new_y % ( rects[selected].height - h ));
+        }
+
+        asw->status->x = rects[selected].x + new_x ;
+        asw->status->y = rects[selected].y + new_y ;
+        status2anchor( &(asw->anchor), asw->hints, asw->status, Scr.VxMax, Scr.VyMax);
+        LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
+    }else
+    {
+        LOCAL_DEBUG_OUT( "failed%s","");
+    }
+
+    destroy_asvector( &free_space_list );
+    return (selected >= 0);
 }
 
 static Bool do_tile_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
-    return False;
+    int selected = -1 ;
+    unsigned short w = asw->status->width;
+    unsigned short h = asw->status->height;
+    ASVector *free_space_list = NULL;
+    XRectangle *rects = NULL;
+    int i ;
+
+    free_space_list =  build_free_space_list( asw, aswbox, area, ASWIN_LAYER(asw) );
+    rects = PVECTOR_HEAD(XRectangle,free_space_list);
+
+    i = PVECTOR_USED(free_space_list);
+    while( --i >= 0 )
+        if( rects[i].width >= w && rects[i].height >=  h )
+        {
+            if( selected > 0 )
+            {
+                if( get_flags( aswbox->flags, ASA_VerticalPriority ) )
+                {
+                    if( get_flags( aswbox->flags, ASA_ReverseOrder ) )
+                    {
+                        if( rects[selected].x > rects[i].x )
+                            continue;
+                        if( rects[selected].x == rects[i].x && rects[selected].y > rects[i].y )
+                            continue;
+                    }else
+                    {
+                        if( rects[selected].x < rects[i].x )
+                            continue;
+                        if( rects[selected].x == rects[i].x && rects[selected].y < rects[i].y )
+                            continue;
+                    }
+                }else if( get_flags( aswbox->flags, ASA_ReverseOrder ) )
+                {
+                    if( rects[selected].y > rects[i].y )
+                        continue;
+                    if( rects[selected].y == rects[i].y && rects[selected].x > rects[i].x )
+                        continue;
+                }else
+                {
+                    if( rects[selected].y < rects[i].y )
+                        continue;
+                    if( rects[selected].y == rects[i].y && rects[selected].x < rects[i].x )
+                        continue;
+                }
+
+            }
+            selected = i ;
+        }
+
+    if( selected >= 0 )
+    {
+        int spacer_x = (rects[selected].width > w)? 1: 0;
+        int spacer_y = (rects[selected].height > h)? 1: 0;
+        asw->status->x = rects[selected].x+spacer_x ;
+        asw->status->y = rects[selected].y+spacer_y ;
+        status2anchor( &(asw->anchor), asw->hints, asw->status, Scr.VxMax, Scr.VyMax);
+        LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
+    }else
+    {
+        LOCAL_DEBUG_OUT( "failed%s","");
+    }
+
+    destroy_asvector( &free_space_list );
+    return (selected >= 0) ;
 }
 
 static Bool do_cascade_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
