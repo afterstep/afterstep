@@ -55,12 +55,12 @@ void usage()
 
 int main(int argc, char* argv[])
 {
-	Window w ;
 	ASVisual *asv ;
-	int screen, depth ;
+	int screen = 0, depth = 0;
 	int to_width = 1, to_height = 1;
 	ASImageLayer *layers ;
 	int layers_num = 0, i;
+	ASImage *merged_im ;
 
 
 	/* see ASView.1 : */
@@ -84,11 +84,12 @@ int main(int argc, char* argv[])
 		argc = 6;
 	}
 
+#ifndef X_DISPLAY_MISSING
 	dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 	screen = DefaultScreen(dpy);
 	depth = DefaultDepth( dpy, screen );
-
+#endif
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );
 
@@ -163,56 +164,44 @@ int main(int argc, char* argv[])
 		return 2;
 	}
 
-	/* see ASView.4 : */
-	w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-		                         to_width, to_height, 1, 0, NULL,
-								 "ASMerge" );
-	if( w != None )
-	{
-		Pixmap p ;
-		ASImage *merged_im ;
+	/* see ASMerge.4 */
+	merged_im = merge_layers( asv, layers, layers_num,
+		                      to_width, to_height,
+		                      ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+	while( --layers_num >= 0 )
+		destroy_asimage( &(layers[layers_num].im) );
+	free( layers );
 
-		XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
-	  	XMapRaised   (dpy, w);
-		/* see ASMerge.4 */
-		merged_im = merge_layers( asv, layers, layers_num,
-			                      to_width, to_height,
-			                      ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
-		while( --layers_num >= 0 )
-			destroy_asimage( &(layers[layers_num].im) );
-		free( layers );
-		/* see ASView.5 : */
-		p = asimage2pixmap( asv, DefaultRootWindow(dpy), merged_im,
+	if( merged_im )
+	{
+#ifndef X_DISPLAY_MISSING
+	/* see ASView.4 : */
+  		Window w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+					                         to_width, to_height, 1, 0, NULL,
+											 "ASMerge" );
+		if( w != None )
+		{
+			Pixmap p ;
+
+			XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
+		  	XMapRaised   (dpy, w);
+			/* see ASView.5 : */
+			p = asimage2pixmap( asv, DefaultRootWindow(dpy), merged_im,
 			                NULL, True );
+			destroy_asimage( &merged_im );
+			/* see common.c: set_window_background_and_free() : */
+			p = set_window_background_and_free( w, p );
+			wait_closedown(w);
+		}
+		/* see common.c: wait_closedown() : */
+		if( dpy )
+  	  		XCloseDisplay (dpy);
+#else
 		/* writing result into the file */
 		ASImage2file( merged_im, NULL, "asmerge.jpg", ASIT_Jpeg, NULL );
 		destroy_asimage( &merged_im );
-		/* see common.c: set_window_background_and_free() : */
-		p = set_window_background_and_free( w, p );
+#endif
 	}
-	/* see ASView.6 : */
-    while(w != None)
-	{
-    	XEvent event ;
-	    XNextEvent (dpy, &event);
-  		switch(event.type)
-		{
-		  	case ButtonPress:
-				break ;
-	  		case ClientMessage:
-			    if ((event.xclient.format == 32) &&
-	  			    (event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
-		  		{
-					XDestroyWindow( dpy, w );
-					XFlush( dpy );
-					w = None ;
-				}
-				break;
-		}
-  	}
-
-	if( dpy )
-        XCloseDisplay (dpy);
     return 0 ;
 }
 /**************/
