@@ -25,6 +25,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 
 #include <libAfterImage/afterbase.h>
@@ -58,7 +59,10 @@ xml_elem_t* xml_parse_doc(const char* str);
 int xml_parse(const char* str, xml_elem_t* current);
 void xml_insert(xml_elem_t* parent, xml_elem_t* child);
 char* lcstring(char* str);
-Bool save_file(const char* file2bsaved, ASImage *im, const char* type);
+Bool save_file(const char* file2bsaved, ASImage *im,
+	           const char* strtype,
+			   const char *compress,
+			   int delay, int replace);
 
 Pixmap GetRootPixmap (Atom id);
 
@@ -216,7 +220,7 @@ int main(int argc, char** argv) {
 
 	// Save the result image if desired.
 	if (doc_save && doc_save_type) {
-		if(!save_file(doc_save, im, doc_save_type)) {
+		if(!save_file(doc_save, im, doc_save_type, NULL, 0, 1)) {
 			show_error("Save failed.");
 		} else {
 			show_error("Save successful.");
@@ -252,38 +256,70 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-Bool save_file(const char* file2bsaved, ASImage *im, const char* strtype) {
+Bool save_file(const char* file2bsaved, ASImage *im,
+	           const char* strtype,
+			   const char *compress,
+			   int delay, int replace)
+{
+	ASImageExportParams params ;
 
-	int type;
-
+	memset( &params, 0x00, sizeof(params) );
+	params.gif.flags = EXPORT_ALPHA ;
 	if (!mystrcasecmp(strtype, "jpeg") || !mystrcasecmp(strtype, "jpg"))  {
-		type = ASIT_Jpeg;
+		params.type = ASIT_Jpeg;
+		params.jpeg.quality = (compress==NULL)?-1:100-atoi(compress);
+		if( params.jpeg.quality > 100 )
+			params.jpeg.quality = 100;
+		fprintf( stderr, "jpeg quality is %d\n", params.jpeg.quality );
 	} else if (!mystrcasecmp(strtype, "bitmap") || !mystrcasecmp(strtype, "bmp")) {
-		type = ASIT_Bmp;
+		params.type = ASIT_Bmp;
 	} else if (!mystrcasecmp(strtype, "png")) {
-		type = ASIT_Png;
+		params.type = ASIT_Png;
+		params.png.compression = (compress==NULL)?-1:atoi(compress)/10;
+		if( params.png.compression > 9 )
+			params.png.compression = 9;
 	} else if (!mystrcasecmp(strtype, "xcf")) {
-		type = ASIT_Xcf;
+		params.type = ASIT_Xcf;
 	} else if (!mystrcasecmp(strtype, "ppm")) {
-		type = ASIT_Ppm;
+		params.type = ASIT_Ppm;
 	} else if (!mystrcasecmp(strtype, "pnm")) {
-		type = ASIT_Pnm;
+		params.type = ASIT_Pnm;
 	} else if (!mystrcasecmp(strtype, "ico")) {
-		type = ASIT_Ico;
+		params.type = ASIT_Ico;
 	} else if (!mystrcasecmp(strtype, "cur")) {
-		type = ASIT_Cur;
+		params.type = ASIT_Cur;
 	} else if (!mystrcasecmp(strtype, "gif")) {
-		type = ASIT_Gif;
+		params.type = ASIT_Gif;
+		params.gif.flags |= EXPORT_APPEND ;
+		params.gif.opaque_threshold = 127 ;
+		params.gif.dither = (compress==NULL)?3:atoi(compress)/17;
+		if( params.gif.dither > 6 )
+			params.gif.dither = 6;
+		params.gif.animate_delay = delay ;
 	} else if (!mystrcasecmp(strtype, "xbm")) {
-		type = ASIT_Xbm;
+		params.type = ASIT_Xbm;
 	} else if (!mystrcasecmp(strtype, "tiff")) {
-		type = ASIT_Tiff;
+		params.type = ASIT_Tiff;
+		if( compress )
+		{
+			if( strcasecmp( compress, "deflate" ) == 0 )
+				params.tiff.compression_type = TIFF_COMPRESSION_DEFLATE ;
+			else if( strcasecmp( compress, "jpeg" ) == 0 )
+				params.tiff.compression_type = TIFF_COMPRESSION_JPEG ;
+			else if( strcasecmp( compress, "ojpeg" ) == 0 )
+				params.tiff.compression_type = TIFF_COMPRESSION_OJPEG ;
+			else if( strcasecmp( compress, "packbits" ) == 0 )
+				params.tiff.compression_type = TIFF_COMPRESSION_PACKBITS ;
+		}
 	} else {
 		show_error("File type not found.");
 		return(0);
 	}
 
-	return ASImage2file(im, NULL, file2bsaved, type, NULL);
+	if( replace  )
+		unlink( file2bsaved );
+
+	return ASImage2file(im, NULL, file2bsaved, params.type, &params);
 
 }
 
@@ -469,11 +505,18 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* dst = NULL;
 		const char* ext = NULL;
+		const char* compress = NULL ;
+		int delay = 0 ;
+		int replace = 1;
+		/*<save id="" dst="" format="" compression="" delay="" replace=""> */
 		int autoext = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "dst")) dst = ptr->parm;
-			if (!strcmp(ptr->tag, "format")) ext = ptr->parm;
+			else if (!strcmp(ptr->tag, "dst")) dst = ptr->parm;
+			else if (!strcmp(ptr->tag, "format")) ext = ptr->parm;
+			else if (!strncmp(ptr->tag, "compress", 8)) compress = ptr->parm;
+			else if (!strcmp(ptr->tag, "delay"))   delay = atoi(ptr->parm);
+			else if (!strcmp(ptr->tag, "replace")) replace = atoi(ptr->parm);
 		}
 		if (dst && !ext) {
 			ext = strrchr(dst, '.');
@@ -487,11 +530,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (autoext)
 				show_warning("No format given.  File extension [%s] used as format.", ext);
 			show_progress("Saving image to file [%s].", dst);
-			if (result && !save_file(dst, result, ext)) {
+			if (result && !save_file(dst, result, ext, compress, delay, replace)) {
 				show_error("Unable to save image into file [%s].", dst);
 			}
 		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+		if (rparm) *rparm = parm;
+		else xml_elem_delete(NULL, parm);
 	}
 
 	if (!strcmp(doc->tag, "bevel")) {

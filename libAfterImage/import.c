@@ -1252,10 +1252,11 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		if( (status = get_gif_saved_images(gif, subimage, &sp, &count )) == GIF_OK )
 		{
 			GifPixelType *row_pointer ;
-/*			fprintf( stderr, "Ext block = %p\n", sp->ExtensionBlocks );*/
+/*			fprintf( stderr, "Ext block = %p, count = %d\n", sp->ExtensionBlocks, sp->ExtensionBlockCount );*/
 			if( sp->ExtensionBlocks )
 				for ( y = 0; y < sp->ExtensionBlockCount; y++)
 				{
+/*					fprintf( stderr, "%d: func = %X, bytes[0] = 0x%X\n", y, sp->ExtensionBlocks[y].Function, sp->ExtensionBlocks[y].Bytes[0]);*/
 					if( sp->ExtensionBlocks[y].Function == 0xf9 &&
 			 			(sp->ExtensionBlocks[y].Bytes[0]&0x01))
 					{
@@ -1295,7 +1296,7 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		        		buf.green[x] = cmap->Colors[c].Green;
 						buf.blue[x]  = cmap->Colors[c].Blue;
 	        		}
-                    fprintf( stderr, "\n" );
+/*                    fprintf( stderr, "\n" ); */
 					row_pointer += x ;
 					asimage_add_line (im, IC_RED,   buf.red, y);
 					asimage_add_line (im, IC_GREEN, buf.green, y);
