@@ -74,30 +74,34 @@ void output_image_line_fast( ASImageOutput *, ASScanline *, int );
 #define ASIMAGE_QUALITY_FAST	1
 #define ASIMAGE_QUALITY_GOOD	2
 #define ASIMAGE_QUALITY_TOP		3
-static int asimage_quality_level = ASIMAGE_QUALITY_POOR;
-static void (*output_image_line)( ASImageOutput *, ASScanline *, int ) = output_image_line_fast;
+static int asimage_quality_level = ASIMAGE_QUALITY_GOOD;
+static void (*output_image_line)( ASImageOutput *, ASScanline *, int ) = output_image_line_fine;
+#ifdef HAVE_MMX
+static Bool asimage_use_mmx = True;
+#else
 static Bool asimage_use_mmx = False;
-
+#endif 
 /**********************************************************************/
 /* initialization routines 											  */
 /**********************************************************************/
 /*************************** MMX **************************************/
 /*inline extern*/
-int mmx_init(void)
+void mmx_init(void)
 {
-	int mmx_available = 0;
+int mmx_available;
 #ifdef HAVE_MMX
-	__asm__ __volatile__ (
+	asm volatile (
                       /* Get CPU version information */
                       "movl $1, %%eax\n\t"
                       "cpuid\n\t"
-                      "andl $0x800000, %%edx\n\t"
-                      "movl %%edx, %0\n\t"
-                      : "=q" (mmx_available)
+                      "andl $0x800000, %%edx \n\t"
+					  "movl %%edx, %0\n\t"
+                      : "=m" (mmx_available)
                       : /* no input */
+					  : "ebx", "ecx", "edx"
 			  );
 #endif
-	return mmx_available;
+/*	return mmx_available; */
 }
 
 int mmx_off(void)
@@ -851,27 +855,25 @@ copy_component( register CARD32 *src, register CARD32 *dst, int *scales, int len
 	}while(++i < len );
 }
 
-void
+static inline void
 add_component( CARD32 *src, CARD32 *incr, int *scales, int len )
 {
-	register int i = 0;
+	int i = 0;
 	len += len&0x01;
 #ifdef HAVE_MMX
 	if( asimage_use_mmx )
 	{
 		double *ddst = (double*)&(src[0]);
-		double *dsrc = (double*)&(src[0]);
 		double *dinc = (double*)&(incr[0]);
 		len = len>>1;
 		do{
 			asm volatile
        		(
-            	"movq %1, %%mm0  \n\t" /* load 8 bytes from src[i] into MM0 */
-            	"paddd %2, %%mm0 \n\t" /* MM0=src[i]>>1              */
+            	"movq %0, %%mm0  \n\t" /* load 8 bytes from src[i] into MM0 */
+            	"paddd %1, %%mm0 \n\t" /* MM0=src[i]>>1              */
             	"movq %%mm0, %0  \n\t" /* store the result in dest */
 				: "=m" (ddst[i])       /* %0 */
-				: "m"  (dsrc[i]),      /* %1 */
-				  "m"  (dinc[i])       /* %2 */
+				:  "m"  (dinc[i])       /* %2 */
 	        );
 		}while( ++i < len );
 	}else
@@ -981,7 +983,7 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, int ratio, int l
   	    do
 		{
 			c = (((src[i]&0xFF000000)!=0)?0:src[i])+err;
-			err = (c&QUANT_ERR_MASK)>>1 ;
+			err = (c&QUANT_ERR_MASK)>>1 ; 
 			dst[i] = c>>QUANT_ERR_BITS ;
 		}while( ++i < len );
 	}else if( ratio == 2 )
@@ -989,7 +991,7 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, int ratio, int l
   	    do
 		{
 			c = (((src[i]&0xFF000000)!=0)?0:src[i]>>1)+err;
-			err = (c&QUANT_ERR_MASK)>>1 ;
+			err = (c&QUANT_ERR_MASK)>>1 ; 
 			dst[i] = c>>QUANT_ERR_BITS ;
 		}while( ++i < len );
 	}else
@@ -1009,8 +1011,8 @@ start_component_interpolation( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, r
 	for( i = 0 ; i < len ; i++ )
 	{
 		register int rc2 = c2[i], rc3 = c3[i] ;
-		T[i] = INTERPOLATION_TOTAL_START(c1[i],rc2,rc3,c4[i],S)/S2;
-		step[i] = INTERPOLATION_TOTAL_STEP(rc2,rc3)/S2;
+		T[i] = INTERPOLATION_TOTAL_START(c1[i],rc2,rc3,c4[i],S);
+		step[i] = INTERPOLATION_TOTAL_STEP(rc2,rc3);
 	}
 }
 
@@ -1076,20 +1078,25 @@ do{	asimage_add_line((im), IC_RED,   (src).red,   (y)); \
 	if( get_flags((src).flags,SCL_DO_ALPHA))asimage_add_line((im), IC_ALPHA, (src).alpha, (y)); \
   }while(0)
 
-#define SCANLINE_FUNC(f,src,dst,scales,len) \
+#define SCANLINE_FUNC_slow(f,src,dst,scales,len) \
 do{	f((src).red,  (dst).red,  (scales),(len));		\
 	f((src).green,(dst).green,(scales),(len)); 		\
 	f((src).blue, (dst).blue, (scales),(len));   	\
 	if(get_flags((src).flags,SCL_DO_ALPHA)) f((src).alpha,(dst).alpha,(scales),(len)); \
   }while(0)
 
+#define SCANLINE_FUNC(f,src,dst,scales,len) \
+do{	f((src).red,  (dst).red,  (scales),(len+(len&0x01))*3);		\
+	if(get_flags((src).flags,SCL_DO_ALPHA)) f((src).alpha,(dst).alpha,(scales),(len)); \
+  }while(0)
+
 #define CHOOSE_SCANLINE_FUNC(r,src,dst,scales,len) \
  switch(r)                                              							\
- {  case 0:	SCANLINE_FUNC(shrink_component11,(src),(dst),(scales),(len));break;   	\
-	case 1: SCANLINE_FUNC(shrink_component, (src),(dst),(scales),(len));	break;  \
-	case 2:	SCANLINE_FUNC(enlarge_component12,(src),(dst),(scales),(len));break ; 	\
-	case 3:	SCANLINE_FUNC(enlarge_component23,(src),(dst),(scales),(len));break;  	\
-	default:SCANLINE_FUNC(enlarge_component,  (src),(dst),(scales),(len));        	\
+ {  case 0:	SCANLINE_FUNC_slow(shrink_component11,(src),(dst),(scales),(len));break;   	\
+	case 1: SCANLINE_FUNC_slow(shrink_component, (src),(dst),(scales),(len));	break;  \
+	case 2:	SCANLINE_FUNC_slow(enlarge_component12,(src),(dst),(scales),(len));break ; 	\
+	case 3:	SCANLINE_FUNC_slow(enlarge_component23,(src),(dst),(scales),(len));break;  	\
+	default:SCANLINE_FUNC_slow(enlarge_component,  (src),(dst),(scales),(len));        	\
  }
 
 #define SCANLINE_MOD(f,src,p,len) \
@@ -1099,13 +1106,17 @@ do{	f((src).red,(p),(len));		\
 	if(get_flags((src).flags,SCL_DO_ALPHA)) f((src).alpha,(p),(len));\
   }while(0)
 
-#define SCANLINE_COMBINE(f,c1,c2,c3,c4,o1,o2,p,len)						   \
+#define SCANLINE_COMBINE_slow(f,c1,c2,c3,c4,o1,o2,p,len)						   \
 do{	f((c1).red,(c2).red,(c3).red,(c4).red,(o1).red,(o2).red,(p),(len));		\
 	f((c1).green,(c2).green,(c3).green,(c4).green,(o1).green,(o2).green,(p),(len));	\
 	f((c1).blue,(c2).blue,(c3).blue,(c4).blue,(o1).blue,(o2).blue,(p),(len));		\
 	if(get_flags((c1).flags,SCL_DO_ALPHA)) f((c1).alpha,(c2).alpha,(c3).alpha,(c4).alpha,(o1).alpha,(o2).alpha,(p),(len));	\
   }while(0)
 
+#define SCANLINE_COMBINE(f,c1,c2,c3,c4,o1,o2,p,len)						   \
+do{	f((c1).red,(c2).red,(c3).red,(c4).red,(o1).red,(o2).red,(p),(len+(len&0x01))*3);		\
+	if(get_flags((c1).flags,SCL_DO_ALPHA)) f((c1).alpha,(c2).alpha,(c3).alpha,(c4).alpha,(o1).alpha,(o2).alpha,(p),(len));	\
+  }while(0)
 
 /**********************************************************************/
 /* ASImage->XImage low level conversion routines : 					  */
@@ -1569,6 +1580,7 @@ scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* sca
 		prepare_scanline( dst->width, 0, &(src_lines[i]));
 	prepare_scanline( src->width, QUANT_ERR_BITS, &tmp );
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &total );
+	set_component(total.red,0x00000F00,0,total.width*3); 
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &step );
 
 	c2 = c1 = &(src_lines[0]);
@@ -1598,13 +1610,14 @@ LOCAL_DEBUG_OUT( "rescaling line #%d", i+2 );
 		}
 		/* now we'll prepare total and step : */
 		SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,total,step,S,dst->width);
+		output_image_line( imout, c2, 1);
 
-		n = 0;
+		n = 1;
 		do
 		{
-			output_image_line( imout, &total, 1);
+			output_image_line( imout, &total, S<<1);
 			if( ++n >= S ) break;
-			SCANLINE_FUNC(add_component,total,step,NULL,dst->width );
+			SCANLINE_FUNC(add_component,total,step,NULL,dst->width ); 
 		}while (1);
 		{
 		  ASScanline *tmp = c1;
@@ -1673,9 +1686,6 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth
 	  fprintf( stderr, "\n" );
 	}
 #endif
-#ifdef HAVE_MMX
-	asimage_use_mmx = (mmx_init()!=0);
-#endif
 	if( v_ratio <= 1 ) 					   /* scaling down */
 		scale_image_down( src, dst, h_ratio, scales_h, scales_v, to_xim );
 	else /*if( v_ratio > 1 && v_ratio <= 2)
@@ -1685,7 +1695,7 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth
 	else */
 		scale_image_up( src, dst, h_ratio, scales_h, scales_v, to_xim );
 #ifdef HAVE_MMX
-	asimage_use_mmx = mmx_off();
+	mmx_off();
 #endif
 	free( scales_h );
 	free( scales_v );
