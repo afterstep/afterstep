@@ -206,6 +206,7 @@ asimage2alpha_ximage (ASVisual *asv, ASImage *im, Bool bitmap )
 #endif
 			im->alt.mask_ximage = NULL ;
 		}
+    clear_flags( im->flags, ASIM_XIMAGE_8BIT_MASK );
 	set_flags( im->flags, flag );
 
 	if( (imout = start_image_output( asv, im, ASA_MaskXImage, 0, ASIMAGE_QUALITY_POOR )) == NULL )
