@@ -283,6 +283,7 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 			imdec->decode_image_scanline( imdec ); 
 			imout->output_image_scanline( imout, &(imdec->buffer), 1);
 		}
+		stop_image_decoding( &imdec );
 	}
 #else	  
 	{	

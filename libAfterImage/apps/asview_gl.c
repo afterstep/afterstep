@@ -18,6 +18,10 @@
 #include "../afterimage.h"
 #include "common.h"
 
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <GL/glu.h>
+
 void usage()
 {
 	printf( "Usage: asview [-h]|[image]\n");
@@ -76,6 +80,11 @@ int main(int argc, char* argv[])
 
 	    dpy = XOpenDisplay(NULL);
 		XSynchronize (dpy, True);
+		if (! glXQueryExtension (dpy, NULL, NULL))
+		{	
+    		show_error("X server does not support OpenGL GLX extension");
+			return 0 ;
+		}
 		_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", 
 											False);
 		screen = DefaultScreen(dpy);
@@ -106,14 +115,65 @@ int main(int argc, char* argv[])
 									 "ASView", image_file );
 		if( w != None )
 		{
-			Pixmap p ;
+			Pixmap    p;
+			GLXPixmap glxp;
+			GLXContext glctx;
+			ASImageDecoder *imdec  ;
+		  GLboolean bparam;
 
 	  		XMapRaised   (dpy, w);
 			XSync(dpy,False);
+			//sleep_a_millisec(1000);
+			//XSync(dpy,False);
 			/* see ASView.5 : */
 			show_warning( "asimage2pmap");
-			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL,
-				                False );
+			p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
+			glxp = glXCreateGLXPixmap( dpy, &(asv->visual_info), p);
+			glctx = glXCreateContext (dpy, &(asv->visual_info), NULL, False);
+			//fprintf( stderr, "p = %lX, glxp = %lX, glctx = %p\n", p, glxp, glctx );
+			glXMakeCurrent (dpy, glxp, glctx);
+			//fprintf( stderr, "line = %d, glerror = %d\n", __LINE__, glGetError() );
+			
+			glDisable(GL_BLEND);		/* optimize pixel transfer rates */
+  			glDisable (GL_DEPTH_TEST);
+  			glDisable (GL_DITHER);
+  			glDisable (GL_FOG);
+  			glDisable (GL_LIGHTING);
+	
+			glViewport(-(im->width/2), -(im->height/2), im->width, im->height);
+
+			glGetBooleanv (GL_DOUBLEBUFFER, &bparam);
+			//fprintf( stderr, "doublebuffer = %d\n", bparam );
+  			if (bparam == GL_TRUE) 
+    			glDrawBuffer (GL_FRONT);
+
+			/* now put pixels on */
+			if ((imdec = start_image_decoding(asv, im, SCL_DO_COLOR, 0, 0, im->width, im->height, NULL)) != NULL )
+			{	 
+				int i, l = 3 * im->width * im->height;
+				CARD8 *glbuf = safemalloc( l );
+				for (i = 0; i < (int)im->height; i++)
+				{	
+					int k = im->width;
+					imdec->decode_image_scanline( imdec ); 
+					while( --k >= 0 ) 
+					{
+						glbuf[--l] = imdec->buffer.blue[k] ;
+						glbuf[--l] = imdec->buffer.green[k] ;
+						glbuf[--l] = imdec->buffer.red[k] ;
+					}	 
+				}
+				glRasterPos3i( 0, 0, 0 );
+				//fprintf( stderr, "line = %d, glerror = %d\n", __LINE__, glGetError() );
+				//fprintf( stderr, "i = %d\n", i );
+				glDrawPixels( im->width, im->height, GL_RGB, GL_UNSIGNED_BYTE, glbuf );
+				free( glbuf );
+				//fprintf( stderr, "line = %d, glerror = %d\n", __LINE__, glGetError() );
+				stop_image_decoding( &imdec );
+			}
+
+			glFinish(); 				
+			glXMakeCurrent (dpy, None, NULL);	
 			show_warning( "asimage2pmap Done");
 			/* print_storage(NULL); */
 			destroy_asimage( &im );
