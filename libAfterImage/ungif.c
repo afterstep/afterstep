@@ -115,7 +115,8 @@ append_gif_saved_image( SavedImage *src, SavedImage **ret, int *ret_images )
  */
 int fread_gif( GifFileType *gif, GifByteType* buf, int len )
 {
-	return fread( buf, 1, len, gif->UserData );
+	int ret = fread( buf, 1, len, gif->UserData );
+	return ret;
 }
 
 GifFileType*
@@ -151,11 +152,11 @@ get_gif_image_desc( GifFileType *gif, SavedImage *im )
 		if( gif->Image.ColorMap )
 		{
 			im->ImageDesc.ColorMap = MakeMapObject(gif->Image.ColorMap->ColorCount, NULL);
-			fseek( gif->UserData, start_pos+9, SEEK_SET );
+			fseek( gif->UserData, start_pos+9, SEEK_SET ); 
 			fread( im->ImageDesc.ColorMap->Colors, 1, gif->Image.ColorMap->ColorCount*3, gif->UserData);
 			fseek( gif->UserData, end_pos, SEEK_SET );
 			gif->Image.ColorMap = NULL ;
-		}
+ 		}
 	}
 	return status;
 }
@@ -173,8 +174,9 @@ get_gif_saved_images( GifFileType *gif, int subimage, SavedImage **ret, int *ret
 	do
 	{
 		if ( (status = DGifGetRecordType(gif, &RecordType)) == GIF_ERROR)
+		{
 			break;
-
+		}
 		switch (RecordType)
 		{
 	    	case IMAGE_DESC_RECORD_TYPE:
@@ -182,7 +184,8 @@ get_gif_saved_images( GifFileType *gif, int subimage, SavedImage **ret, int *ret
 				{
 					int size = temp_save.ImageDesc.Width*temp_save.ImageDesc.Height ;
 					temp_save.RasterBits = realloc( temp_save.RasterBits, size );
-					if ((status = DGifGetLine(gif, (unsigned char*)temp_save.RasterBits, size))== GIF_OK)
+					status = DGifGetLine(gif, (unsigned char*)temp_save.RasterBits, size);
+					if (status == GIF_OK)
 					{
 						if( curr_image == subimage || subimage < 0 )
 						{

@@ -215,7 +215,6 @@ int DGifGetImageDesc(GifFileType *GifFile)
 	_GifError = D_GIF_ERR_NOT_READABLE;
 	return GIF_ERROR;
     }
-
     if (DGifGetWord(GifFile, &GifFile->Image.Left) == GIF_ERROR ||
 	DGifGetWord(GifFile, &GifFile->Image.Top) == GIF_ERROR ||
 	DGifGetWord(GifFile, &GifFile->Image.Width) == GIF_ERROR ||
@@ -233,7 +232,6 @@ int DGifGetImageDesc(GifFileType *GifFile)
 	    FreeMapObject(GifFile->Image.ColorMap);
 
 	GifFile->Image.ColorMap = MakeMapObject(1 << BitsPerPixel, NULL);
-    
 	/* Get the image local color map: */
 	for (i = 0; i < GifFile->Image.ColorMap->ColorCount; i++) {
 	    if (READ(GifFile,Buf, 3) != 3) {
@@ -245,7 +243,6 @@ int DGifGetImageDesc(GifFileType *GifFile)
 	    GifFile->Image.ColorMap->Colors[i].Blue = Buf[2];
 	}
     }
-
     if (GifFile->SavedImages) {
 	    if ((GifFile->SavedImages = (SavedImage *)realloc(GifFile->SavedImages,
 		     sizeof(SavedImage) * (GifFile->ImageCount + 1))) == NULL) {
@@ -477,16 +474,23 @@ int DGifGetCodeNext(GifFileType *GifFile, GifByteType **CodeBlock)
 {
     GifByteType Buf;
     GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
-
     if (READ(GifFile,&Buf, 1) != 1) {
 	_GifError = D_GIF_ERR_READ_FAILED;
 	return GIF_ERROR;
     }
-
     if (Buf > 0) {
+		int ret ; 
 	*CodeBlock = Private->Buf;	       /* Use private unused buffer. */
 	(*CodeBlock)[0] = Buf;  /* Pascal strings notation (pos. 0 is len.). */
-	if (READ(GifFile,&((*CodeBlock)[1]), Buf) != Buf) {
+	ret = READ(GifFile,&((*CodeBlock)[1]), Buf);
+	if ( ret != Buf) 
+	{
+		if( Buf == 59 ) 
+		{
+			fseek( GifFile->UserData, -1, SEEK_END );	
+			*CodeBlock = NULL ; 
+			return GIF_OK;
+		}	 
 	    _GifError = D_GIF_ERR_READ_FAILED;
 	    return GIF_ERROR;
 	}
