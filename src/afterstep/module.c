@@ -45,7 +45,7 @@
 
 #include "../../libAfterStep/wmprops.h"
 
-typedef CARD32 send_data_type;
+typedef unsigned long send_data_type;
 static DECL_VECTOR(send_data_type, module_output_buffer);
 
 static void       DeleteQueueBuff (module_t *module);
