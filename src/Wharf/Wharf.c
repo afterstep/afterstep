@@ -1081,7 +1081,7 @@ map_wharf_folder( ASWharfFolder *aswf,
     LOCAL_DEBUG_OUT( "mapping main window at %ux%u%+d%+d", width, height,  x, y );
     /* final cleanup */
     ASSync( False );
-    sleep_a_millisec (200);                                 /* we have to give AS a chance to spot us */
+    sleep_a_millisec (100);                                 /* we have to give AS a chance to spot us */
 }
 
 void
@@ -1869,7 +1869,7 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
                     if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
                         sleep_a_millisec( Config->animate_delay*100 );
                     else
-                        sleep_a_millisec( 100 );
+                        sleep_a_millisec( 10 );
                 }
                 while( --i >= 0 )
                     if( aswf->buttons[i].swallowed )
