@@ -191,6 +191,9 @@ struct config main_config[] = {
     {"ScreenEdgeAttraction", SetInts, (char **)&Scr.Feel.EdgeAttractionScreen, &dummy},
     {"WindowEdgeAttraction", SetInts, (char **)&Scr.Feel.EdgeAttractionWindow, &dummy},
     {"DontRestoreFocus", SetFlag, (char **)DontRestoreFocus, &dummy},
+    {"WindowBox", windowbox_parse, (char**)&(Scr.Feel.window_boxes), (int*)&(Scr.Feel.window_boxes_num)},
+    {"DefaultWindowBox", assign_quoted_string, (char**)&(Scr.Feel.default_window_box_name), (int*)0},
+
     /* look options */
 	{"Font", assign_string, &Stdfont, (int *)0},
 	{"WindowFont", assign_string, &Windowfont, (int *)0},
@@ -643,43 +646,6 @@ InitFeel (ASFeel *feel, Bool free_resources)
 
 }
 
-void
-CheckFeelSanity( ASFeel *feel )
-{
-    /* If no edge scroll line is provided in the setup file, use a default */
-    if (feel->EdgeScrollX == -100000)
-        feel->EdgeScrollX = 25;
-    if (feel->EdgeScrollY == -100000)
-        feel->EdgeScrollY = feel->EdgeScrollX;
-
-    if (get_flags(feel->flags, ClickToRaise) && feel->AutoRaiseDelay == 0)
-        feel->AutoRaiseDelay = -1;
-
-    /* if edgescroll >1000 and < 100000m
-        * wrap at edges of desktop (a "spherical" desktop) */
-    if (feel->EdgeScrollX >= 1000)
-    {
-        feel->EdgeScrollX /= 1000;
-        set_flags(feel->flags, EdgeWrapX);
-    }
-    if (feel->EdgeScrollY >= 1000)
-    {
-        feel->EdgeScrollY /= 1000;
-        set_flags(feel->flags, EdgeWrapY);
-    }
-    feel->EdgeScrollX = feel->EdgeScrollX * Scr.MyDisplayWidth / 100;
-    feel->EdgeScrollY = feel->EdgeScrollY * Scr.MyDisplayHeight / 100;
-
-    if( feel->no_snaping_mod == 0 )
-        feel->no_snaping_mod = ShiftMask ;
-
-    if (Scr.VxMax == 0)
-        clear_flags(feel->flags, EdgeWrapX);
-    if (Scr.VyMax == 0)
-        clear_flags(feel->flags, EdgeWrapY);
-
-
-}
 
 void
 ApplyFeel( ASFeel *feel )

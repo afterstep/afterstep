@@ -38,7 +38,7 @@
  *
  ***************************************************************************/
 
-//#define LOCAL_DEBUG
+#define LOCAL_DEBUG
 
 #include "../../configure.h"
 #include "../../include/asapp.h"

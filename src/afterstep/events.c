@@ -964,7 +964,9 @@ HandleEnterNotify (ASEvent *event)
 /* an EnterEvent in one of the PanFrameWindows activates the Paging */
 #ifndef NO_VIRTUAL
     for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
-        if( Scr.PanFrame[i].isMapped && ewp->window == Scr.PanFrame[0].win)
+    {
+        LOCAL_DEBUG_OUT("checking panframe %d, mapped %d", i, Scr.PanFrame[i].isMapped );
+        if( Scr.PanFrame[i].isMapped && ewp->window == Scr.PanFrame[i].win)
         {
             int           delta_x = 0, delta_y = 0;
 
@@ -973,6 +975,7 @@ HandleEnterNotify (ASEvent *event)
                         &(ewp->x_root), &(ewp->y_root), &delta_x, &delta_y, True, event);
             return;
         }
+    }
 #endif /* NO_VIRTUAL */
 
     if (ewp->window == Scr.Root)

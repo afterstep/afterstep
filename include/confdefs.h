@@ -5,6 +5,7 @@
 struct ASFontManager;
 struct SyntaxDef;
 struct MyLook;
+struct ASWindowBox ;
 extern struct SyntaxDef      BevelSyntax;
 extern struct SyntaxDef      AlignSyntax;
 extern struct SyntaxDef     *BevelSyntaxPtr;
@@ -1300,6 +1301,8 @@ FeelConfig *CreateFeelConfig ();
 void DestroyFeelConfig (FeelConfig * config);
 FeelConfig *ParseFeelOptions (const char *filename, char *myname);
 void        LoadFeelMenus (FeelConfig *config);
+struct ASWindowBox *ProcessWindowBoxOptions (FreeStorageElem * options);
+void windowbox_parse (char *tline, FILE * fd, char **list, int *count);
 
 int WriteFeelOptions (const char *filename, char *myname,  FeelConfig * config, unsigned long flags);
 

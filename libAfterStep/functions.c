@@ -660,20 +660,6 @@ LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", (char*)value, data );
     }
 }
 
-void
-init_list_of_menus(ASHashTable **list, Bool force)
-{
-    if( list == NULL ) return ;
-
-    if( force && *list != NULL )
-        destroy_ashash( list );
-
-    if( *list == NULL )
-        *list = create_ashash( 0, casestring_hash_value,
-                                  casestring_compare,
-                                  menu_data_destroy);
-}
-
 MenuData    *
 new_menu_data( ASHashTable *list, char *name )
 {

@@ -133,11 +133,11 @@ destroy_aswindow_list( ASWindowList **list, Bool restore_root )
             if( restore_root )
                 InstallRootColormap ();
 
+            destroy_asbidirlist( &((*list)->clients ));
+            destroy_ashash(&((*list)->aswindow_xref));
+            destroy_ashash(&((*list)->layers));
             destroy_asvector(&((*list)->sticky_list));
             destroy_asvector(&((*list)->circulate_list));
-            destroy_ashash(&((*list)->layers));
-            destroy_ashash(&((*list)->aswindow_xref));
-            destroy_asbidirlist( &((*list)->clients ));
             free(*list);
             *list = NULL ;
         }
@@ -239,9 +239,11 @@ get_aslayer( int layer, ASWindowList *list )
             {
                 l->members = create_asvector( sizeof(ASWindow*) );
                 l->layer = layer ;
+                LOCAL_DEBUG_OUT( "added new layer %p(%d) to hash", l, layer );
             }else
             {
                 free( l );
+                LOCAL_DEBUG_OUT( "failed to add new layer %p(%d) to hash", l, layer );
                 l = NULL ;
             }
         }
@@ -255,6 +257,7 @@ destroy_aslayer  (ASHashableValue value, void *data)
     if( data )
     {
         ASLayer *l = data ;
+        LOCAL_DEBUG_OUT( "destroying layer %p(%d)", l, l->layer );
         destroy_asvector( &(l->members));
         free( data );
     }
@@ -311,10 +314,10 @@ add_aswindow_to_layer( ASWindow *asw, int layer )
 {
     if( !AS_ASSERT(asw) )
     {
-        ASLayer  *dst_layer = get_aslayer( ASWIN_LAYER(asw), Scr.Windows );
+        ASLayer  *dst_layer = get_aslayer( layer, Scr.Windows );
         /* inserting window into the top of the new layer */
-	if( !AS_ASSERT(dst_layer) )
-	    vector_insert_elem( dst_layer->members, &asw, 1, NULL, False );
+        if( !AS_ASSERT(dst_layer) )
+            vector_insert_elem( dst_layer->members, &asw, 1, NULL, False );
     }
 }
 
@@ -324,14 +327,14 @@ remove_aswindow_from_layer( ASWindow *asw, int layer )
     if( !AS_ASSERT(asw) )
     {
         ASLayer  *src_layer = get_aslayer( layer, Scr.Windows );
-	LOCAL_DEBUG_OUT( "removing window %p from layer %p", src_layer, asw );
+    LOCAL_DEBUG_OUT( "removing window %p from layer %p (%d)", asw, src_layer, layer );
         if( !AS_ASSERT(src_layer) )
 	{
 LOCAL_DEBUG_OUT( "can be found at index %d", vector_find_data(	src_layer->members, &asw ) );
 	    while( vector_find_data( src_layer->members, &asw ) < src_layer->members->used )
 	    {
     	        vector_remove_elem( src_layer->members, &asw );
-		LOCAL_DEBUG_OUT( "after delition can be found at index %d", vector_find_data(	src_layer->members, &asw ) );	
+		LOCAL_DEBUG_OUT( "after delition can be found at index %d", vector_find_data(	src_layer->members, &asw ) );
 	    }
 	}
     }
@@ -360,6 +363,8 @@ delist_aswindow( ASWindow *t )
     if( Scr.Windows == NULL )
         return ;
 
+    if( AS_ASSERT(t) )
+        return;
     /* set desktop for window */
     if( t->w != Scr.Root )
         vector_remove_elem( Scr.Windows->circulate_list, &t );
@@ -649,7 +654,7 @@ is_window_obscured (ASWindow * above, ASWindow * below)
         l = get_aslayer( ASWIN_LAYER(below), Scr.Windows );
 	if( AS_ASSERT(l) )
 	    return False;
-	    
+
         end_i = l->members->used ;
         members = VECTOR_HEAD(ASWindow*,*(l->members));
         for (i = 0 ; i < end_i ; i++ )

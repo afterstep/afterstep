@@ -264,7 +264,8 @@ ProcessWindowBoxOptions (FreeStorageElem * options)
 			if( aswbox != NULL )
 			{
 				show_error( "Unterminated WindowBox found - will be ignored" );
-				destroy_aswindow_box( &aswbox );
+                destroy_aswindow_box( aswbox, False );
+                aswbox = NULL ;
 			}
 			aswbox = create_aswindow_box( item.data.string );
 			item.ok_to_free = 1;
@@ -276,13 +277,31 @@ ProcessWindowBoxOptions (FreeStorageElem * options)
 					aswbox->area = item.data.geometry;
 		            set_flags( aswbox->set_flags, ASA_AreaSet);
 			    break ;
-				case WINDOWBOX_MinWidth_ID	  	  :				    break ;
-				case WINDOWBOX_MinHeight_ID	     :				    break ;
-				case WINDOWBOX_MaxWidth_ID	  	  :				    break ;
-				case WINDOWBOX_MaxHeight_ID	     :				    break ;
-				case WINDOWBOX_FirstTry_ID	  	  :				    break ;
-				case WINDOWBOX_ThenTry_ID 	  	  :				    break ;
-				default:
+                case WINDOWBOX_MinWidth_ID        :
+                    aswbox->min_width = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_MinWidthSet);
+                    break ;
+                case WINDOWBOX_MinHeight_ID      :
+                    aswbox->min_height = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_MinHeightSet);
+                    break ;
+                case WINDOWBOX_MaxWidth_ID        :
+                    aswbox->max_width = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_MaxWidthSet);
+                    break ;
+                case WINDOWBOX_MaxHeight_ID      :
+                    aswbox->max_height = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_MaxHeightSet);
+                    break ;
+                case WINDOWBOX_FirstTry_ID        :
+                    aswbox->main_strategy = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_MainStrategySet);
+                    break ;
+                case WINDOWBOX_ThenTry_ID         :
+                    aswbox->backup_strategy = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_BackupStrategySet);
+                    break ;
+                default:
 					item.ok_to_free = 1;
                     show_warning( "Unexpected WindowBox definition keyword \"%s\" . Ignoring.", options->term->keyword );
 			}
@@ -293,24 +312,22 @@ ProcessWindowBoxOptions (FreeStorageElem * options)
 	return aswbox;
 }
 
-#if 0
 void
-myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list)
+windowbox_parse (char *tline, FILE * fd, char **list, int *count)
 {
     FilePtrAndData fpd ;
     ConfigDef    *ConfigReader ;
     FreeStorageElem *Storage = NULL, *more_stuff = NULL;
-    MyFrameDefinition **list = (MyFrameDefinition**)myframe_list, **tail ;
+    ASWindowBox **aswbox_list = (ASWindowBox**)list ;
+    ASWindowBox *new_box ;
 
-    if( list == NULL )
+    if( list == NULL || count == NULL )
         return;
-    for( tail = list ; *tail != NULL ; tail = &((*tail)->next) );
-
     fpd.fp = fd ;
     fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
-    sprintf( fpd.data, "MyFrame %s\n", tline );
-LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-    ConfigReader = InitConfigReader ((char*)myname, &MyFrameSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+    sprintf( fpd.data, "WindowBox %s\n", tline );
+    LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
+    ConfigReader = InitConfigReader ((char*)get_application_name(), &WindowBoxSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
     free( fpd.data );
 
     if (!ConfigReader)
@@ -324,12 +341,18 @@ LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data 
     StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
     DestroyFreeStorage (&more_stuff);
 
-    ProcessMyFrameOptions (Storage, tail);
+    if( (new_box = ProcessWindowBoxOptions (Storage)) != NULL )
+    {
+        int i = *count ;
+        ++(*count) ;
+        *aswbox_list = realloc( *aswbox_list, sizeof(ASWindowBox)*(i+1));
+        (*aswbox_list)[i] = *new_box ;
+        free( new_box );
+    }
 
 	DestroyConfig (ConfigReader);
 	DestroyFreeStorage (&Storage);
 }
-#endif
 
 
 /**************************************************************************************

@@ -94,7 +94,7 @@ typedef enum			/* feel file set flags */
 
 
 typedef enum{
-	ASP_SmartPlacement = 0,
+    ASP_SmartPlacement = 0,
 	ASP_RandomPlacement,
 	ASP_Tile,
 	ASP_Cascade,
@@ -200,6 +200,7 @@ typedef struct ASFeel
 
 	ASWindowBox		   *window_boxes ;
 	ASWindowBox        *default_window_box ;
+    char               *default_window_box_name ;
 	unsigned int        window_boxes_num ;
 }
 ASFeel;
@@ -217,8 +218,10 @@ void check_feel_sanity(ASFeel *feel);
 
 
 ASWindowBox *create_aswindow_box( const char *name );
-void destroy_aswindow_box( ASWindowBox **aswbox );
+void destroy_aswindow_box( ASWindowBox *aswbox, Bool reusable );
 void print_window_box (ASWindowBox *aswbox, int index);
 
+
+void init_list_of_menus(ASHashTable **list, Bool force);
 
 #endif /* SFEEL_HEADER_FILE_INCLUDED */

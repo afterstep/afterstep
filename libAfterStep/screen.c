@@ -17,17 +17,16 @@
  *
  */
 
-#include <signal.h>
+#define LOCAL_DEBUG
+#include "../configure.h"
 
-#include <unistd.h>
+#include "../include/asapp.h"
+
+#include <signal.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/fcntl.h>
 #include <sys/un.h>
-#include <sys/time.h>
-
-#include "../configure.h"
-#include "../include/asapp.h"
 
 #include "../include/afterstep.h"
 #include "../include/mystyle.h"
@@ -359,7 +358,7 @@ init_screen_panframes(ScreenInfo *scr)
     register int i ;
 
 	frame_rects[2].width = frame_rects[0].width = scr->MyDisplayWidth ;
-	frame_rects[2].x = frame_rects[1].x = scr->MyDisplayWidth - SCROLL_REGION ;
+    frame_rects[1].x = scr->MyDisplayWidth - SCROLL_REGION ;
 	frame_rects[3].height = frame_rects[1].height = scr->MyDisplayHeight - (SCROLL_REGION*2) ;
 
 
@@ -371,6 +370,8 @@ init_screen_panframes(ScreenInfo *scr)
 								  frame_rects[i].x, frame_rects[i].y,
               		              frame_rects[i].width, frame_rects[i].height, 0, /* no border */
 	                              InputOnly, (CWEventMask), &attributes);
+        LOCAL_DEBUG_OUT( "creating PanFrame %d(%lX) at %dx%d%+d%+d", i, scr->PanFrame[i].win,
+                         frame_rects[i].width, frame_rects[i].height, frame_rects[i].x, frame_rects[i].y );
         scr->PanFrame[i].isMapped = False ;
     }
 #endif /* NO_VIRTUAL */
@@ -423,6 +424,7 @@ check_screen_panframes(ScreenInfo *scr)
             {
                 if( map_frame[i] )
                 {
+                    LOCAL_DEBUG_OUT( "mapping PanFrame %d(%lX)", i, scr->PanFrame[i].win );
                     XMapRaised (dpy, scr->PanFrame[i].win);
                 }else
                     XUnmapWindow (dpy, scr->PanFrame[i].win);
@@ -432,6 +434,7 @@ check_screen_panframes(ScreenInfo *scr)
             if( map_frame[i] )
             {
                 /* to maintain stacking order where first mapped pan frame is the lowest window :*/
+                LOCAL_DEBUG_OUT( "rasing PanFrame %d(%lX)", i, scr->PanFrame[i].win );
                 XRaiseWindow( dpy, scr->PanFrame[i].win );
                 XDefineCursor (dpy, scr->PanFrame[i].win, scr->Feel.cursors[TOP+i]);
             }
@@ -453,7 +456,10 @@ raise_scren_panframes (ScreenInfo *scr)
 		scr = &Scr ;
     for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
         if( scr->PanFrame[i].isMapped )
+        {
+            LOCAL_DEBUG_OUT( "rasing PanFrame %d(%lX)", i, scr->PanFrame[i].win );
             XRaiseWindow (dpy, scr->PanFrame[i].win);
+        }
 #endif
 }
 

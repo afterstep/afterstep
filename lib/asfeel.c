@@ -44,7 +44,8 @@ void
 init_asfeel( ASFeel *feel )
 {
     int i ;
-
+    memset( feel, 0x00, sizeof(ASFeel));
+    feel->magic = MAGIC_ASFEEL ;
     feel->buttons2grab = 7;
     feel->AutoReverse = 0;
     feel->Xzap = 12;
@@ -79,9 +80,7 @@ create_asfeel()
 {
 	ASFeel *feel ;
 
-	feel = safecalloc( 1, sizeof(ASFeel));
-
-    feel->magic = MAGIC_ASFEEL ;
+    feel = safemalloc( sizeof(ASFeel));
 	init_asfeel( feel );
 	return feel;
 }
@@ -133,6 +132,13 @@ destroy_asfeel( ASFeel *feel, Bool reusable )
             	destroy_ashash( &feel->Popups );
         	if( feel->ComplexFunctions )
             	destroy_ashash( &feel->ComplexFunctions );
+            if( feel->window_boxes )
+            {
+                i = feel->window_boxes_num;
+                while( --i >= 0 )
+                    destroy_aswindow_box( &(feel->window_boxes[i]), True );
+                free( feel->window_boxes );
+            }
         }
 		if( !reusable )
 			free(feel);
@@ -163,6 +169,8 @@ free_feel_cursors (ASFeel *feel)
 void
 check_feel_sanity(ASFeel *feel)
 {
+    int i ;
+
 LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
     /* If no edge scroll line is provided in the setup file, use a default */
     if (feel->EdgeScrollX == -100000)
@@ -198,6 +206,61 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
     if (Scr.VyMax == 0)
         clear_flags(feel->flags, EdgeWrapY);
 
+    i = feel->window_boxes_num ;
+    while( --i >= 0 )
+    {
+        if( !get_flags(feel->window_boxes[i].area.flags, WidthValue) )
+        {
+            feel->window_boxes[i].area.width = Scr.MyDisplayWidth ;
+            if( get_flags( feel->window_boxes[i].flags, ASA_Virtual ) )
+                feel->window_boxes[i].area.width += Scr.VxMax ;
+            feel->window_boxes[i].area.width -= feel->window_boxes[i].area.x ;
+        }
+        if( !get_flags(feel->window_boxes[i].area.flags, HeightValue) )
+        {
+            feel->window_boxes[i].area.height = Scr.MyDisplayHeight ;
+            if( get_flags( feel->window_boxes[i].flags, ASA_Virtual ) )
+                feel->window_boxes[i].area.width += Scr.VyMax ;
+            feel->window_boxes[i].area.width -= feel->window_boxes[i].area.y ;
+        }
+        if( feel->default_window_box_name != NULL )
+        {
+            if( feel->window_boxes[i].name &&
+                mystrcasecmp( feel->window_boxes[i].name, feel->default_window_box_name ) == 0 )
+                feel->default_window_box = &(feel->window_boxes[i]);
+        }
+#if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
+        if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
+#endif
+           print_window_box (&(feel->window_boxes[i]), i);
+    }
+
+#if 0
+    if( feel->default_window_box == NULL )
+    { /* build new default windowbox */
+        i = feel->window_boxes_num ;
+        feel->window_boxes = realloc( feel->window_boxes, sizeof(ASWindowBox)*(i+1) );
+        ++(feel->window_boxes);
+        feel->default_window_box = &(feel->window_boxes[i]);
+        memset( feel->default_window_box, 0x00, sizeof(ASWindowBox));
+        feel->default_window_box->name = mystrdup("default");
+        feel->default_window_box->area.width = Scr.MyDisplayWidth ;
+        feel->default_window_box->area.height = Scr.MyDisplayHeight ;
+        feel->default_window_box->main_strategy = ASP_Manual ;
+        feel->default_window_box->backup_strategy = ASP_Manual ;
+        if( get_flags( feel->flags, SMART_PLACEMENT )  )
+        {
+            feel->default_window_box->main_strategy = ASP_SmartPlacement ;
+            if( get_flags( feel->flags, RandomPlacement )  )
+                feel->default_window_box->backup_strategy = ASP_RandomPlacement ;
+        }else if( get_flags( feel->flags, RandomPlacement )  )
+            feel->default_window_box->main_strategy = ASP_RandomPlacement ;
+#if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
+        if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
+#endif
+           print_window_box (&(feel->window_boxes[i]), i);
+    }
+#endif
 }
 
 /*************************************************************************
@@ -211,16 +274,17 @@ ASWindowBox *create_aswindow_box( const char *name )
 }
 
 void
-destroy_aswindow_box( ASWindowBox **aswbox )
+destroy_aswindow_box( ASWindowBox *aswbox, Bool reusable )
 {
-	if( aswbox )
-		if( *aswbox )
-		{
-			if( (*aswbox)->name )
-				free( (*aswbox)->name );
-			free( *aswbox );
-			*aswbox = NULL ;
-		}
+    if( aswbox )
+    {
+        if( aswbox->name )
+            free( aswbox->name );
+        if( !reusable )
+            free(aswbox);
+        else
+            memset( aswbox, 0x00, sizeof(ASWindowBox) );
+    }
 }
 
 void
@@ -240,5 +304,27 @@ print_window_box (ASWindowBox *aswbox, int index)
 		fprintf (stderr, "WindowBox[%d].backup_strategy = %d;\n", index, aswbox->backup_strategy);
 	}
 }
+
+/*************************************************************************
+ * Menus :
+ *************************************************************************/
+void
+init_list_of_menus(ASHashTable **list, Bool force)
+{
+    if( list == NULL ) return ;
+
+    if( force && *list != NULL )
+        destroy_ashash( list );
+
+    if( *list == NULL )
+    {
+        *list = create_ashash( 0, casestring_hash_value,
+                                  casestring_compare,
+                                  menu_data_destroy);
+        LOCAL_DEBUG_OUT( "created the list of Popups %p", *list );
+    }
+}
+
+
 
 
