@@ -225,13 +225,13 @@ AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
 have_xshmimage=no
 if test "x$enable_shmimage" = "xyes"; then
 	AC_CHECK_LIB(Xext, XShmCreateImage, [have_xshmimage=yes],,$x_libs)
-	if test "x$have_xshmimage=yes" = "xyes"; then
+	if test "x$have_xshmimage" = "xyes"; then
 		AC_CHECK_HEADER(sys/ipc.h,,[have_xshmimage=no])
 	fi
-	if test "x$have_xshmimage=yes" = "xyes"; then
+	if test "x$have_xshmimage" = "xyes"; then
 		AC_CHECK_HEADER(sys/shm.h,,[have_xshmimage=no])
 	fi
-	if test "x$have_xshmimage=yes" = "xyes"; then
+	if test "x$have_xshmimage" = "xyes"; then
 		add_lib_xext=yes
 		AC_DEFINE(XSHMIMAGE,)
 	fi
