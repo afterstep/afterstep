@@ -33,9 +33,9 @@
 
 void usage()
 {
-	printf( "  Usage:   asflip [-h]|[image [flip]]\n");
-	printf( "  Where: image - is image filename\n");
-	printf( "         flip  - rotation angle in degrees. 90, 180 and 270 degrees supported\n");
+	printf( "Usage: asflip [-h]|[image [flip]]\n");
+	printf( "Where: image - is image filename\n");
+	printf( "       flip  - rotation angle in degrees. 90, 180 and 270 degrees supported\n");
 }
 
 int main(int argc, char* argv[])
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 
 	if( argc > 1 )
 	{
-		if( strcmp( argv[1], "-h" ) )
+		if( strcmp( argv[1], "-h" ) == 0 )
 		{
 			usage();
 			return 0;

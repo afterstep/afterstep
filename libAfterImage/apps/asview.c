@@ -20,6 +20,13 @@
 #include "afterimage.h"
 #include "common.h"
 
+void usage()
+{
+	printf( "Usage: asview [-h]|[image]\n");
+	printf( "Where: image - filename of the image to display.\n");
+}
+
+
 int main(int argc, char* argv[])
 {
 	Window w ;
@@ -31,7 +38,18 @@ int main(int argc, char* argv[])
 	set_application_name( argv[0] );
 
 	if( argc > 1 )
+	{
+		if( strcmp( argv[1], "-h" ) == 0 )
+		{
+			usage();
+			return 0;
+		}	
 		image_file = argv[1] ;
+	}else
+	{
+		show_warning( "Image filename was not specified. Using default: \"%s\"", image_file );
+		usage();
+	}
 
     dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
@@ -82,6 +100,7 @@ int main(int argc, char* argv[])
 			}
   		}
 	}
+	
     if( dpy )
         XCloseDisplay (dpy);
     return 0 ;

@@ -37,6 +37,14 @@
 #include "afterimage.h"
 #include "common.h"
 
+void usage()
+{
+	printf( "Usage: astile [-h]|[image [geometry]]\n");
+	printf( "Where: image    - source image filename.\n");
+	printf( "       geometry - width and height of the resulting image,\n");
+	printf( "                  and x, y of the origin of the tiling on source image.\n");
+}
+
 int main(int argc, char* argv[])
 {
 	Window w ;
@@ -58,6 +66,11 @@ int main(int argc, char* argv[])
 
 	if( argc > 1 )
 	{
+		if( strncmp( argv[1], "-h", 2 ) == 0 ) 
+		{
+			usage();
+			return 0;
+		}  
 		image_file = argv[1] ;
 		if( argc > 2 )
 		{   /* see ASTile.1 : */
@@ -69,11 +82,17 @@ int main(int argc, char* argv[])
 				geom_flags = XParseGeometry( argv[3], &tile_x, &tile_y,
 				                             &tile_width, &tile_height );
 		}else
+		{
 			show_warning( "no tint color specified - default used: #%8.8lX",
 			              tint_color );
+			usage();
+		}
 	}else
+	{
 		show_warning( "no image file or tint color specified - defaults used: \"%s\" #%8.8lX",
 		              image_file, tint_color );
+		usage();
+	}
 
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );

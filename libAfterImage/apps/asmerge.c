@@ -37,6 +37,16 @@
 #include "afterimage.h"
 #include "common.h"
 
+void usage()
+{
+	printf( "Usage: asmerge [-h]|[image op1 image1 [op2 image2 [...]]]\n");
+	printf( "Where: image  - is background image filename\n");
+	printf( "       image1 - is first overlay's filename\n");
+	printf( "       op1,op2,... - overlay operation. Supported operations are :\n");
+	list_scanline_merging( stdout, 
+	        "         %-15.15s- %s\n");
+}
+
 int main(int argc, char* argv[])
 {
 	Window w ;
@@ -50,11 +60,15 @@ int main(int argc, char* argv[])
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 
+	if( argc == 2 && strncmp(argv[1],"-h", 2) == 0 )
+	{
+		usage();
+		return 0;
+	}
 	if( argc <= 3 )
 	{
-		show_error( "not enough arguments.\n Usage: astile <image1[:geom1]> <op1> <image2[:geom2]> [<op2> <image3[:geom3]> ...]");
-		fprintf( stderr, " where op1, op2, ... are one of the following: \n");
-		list_scanline_merging( stderr, "\t%-15.15s- %s\n");
+		show_error( "not enough arguments.");
+		usage() ;
 		return 1;
 	}
 
@@ -141,7 +155,7 @@ int main(int argc, char* argv[])
 	/* see ASView.4 : */
 	w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 		                         to_width, to_height, 1, 0, NULL,
-								 "ASScale" );
+								 "ASMerge" );
 	if( w != None )
 	{
 		Pixmap p ;

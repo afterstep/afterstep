@@ -30,6 +30,14 @@
 #include "afterimage.h"
 #include "common.h"
 
+void usage()
+{
+	printf( "Usage: asscale [-h]|[image [WIDTH[xHEIGHT]]]\n");
+	printf( "Where: image - is image filename.\n");
+	printf( "       WIDTH - width to scale image to.( Naturally :)\n");
+	printf( "       HEIGHT- height to scale image to.\n");
+}
+
 int main(int argc, char* argv[])
 {
 	Window w ;
@@ -44,14 +52,21 @@ int main(int argc, char* argv[])
 
 	if( argc > 1 )
 	{
+		if( strncmp( argv[1], "-h", 2 ) == 0 ) 
+		{
+			usage();
+			return 0;
+		}  
 		image_file = argv[1] ;
 		if( argc > 2 )   /* see ASScale.1 : */
 			geom_flags = XParseGeometry( argv[2], &dummy, &dummy,
 			                             &to_width, &to_height );
 	}else
-		show_warning( "no image file or tint color specified - defaults used: \"%s\" ",
+	{
+		show_warning( "no image file or scale geometry - defaults used: \"%s\" ",
 		              image_file );
-
+		usage();
+	}
     dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 	screen = DefaultScreen(dpy);
@@ -59,16 +74,16 @@ int main(int argc, char* argv[])
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
 
-	/* Making sure tiling geometry is sane : */
-	if( !get_flags(geom_flags, WidthValue ) )
-		to_width = im->width*2 ;
-	if( !get_flags(geom_flags, HeightValue ) )
-		to_height = im->height*2;
-	printf( "%s: scaling image \"%s\" to %dx%d\n",
-		    get_application_name(), image_file, to_width, to_height );
-
 	if( im != NULL )
 	{
+		/* Making sure tiling geometry is sane : */
+		if( !get_flags(geom_flags, WidthValue ) )
+			to_width = im->width*2 ;
+		if( !get_flags(geom_flags, HeightValue ) )
+			to_height = im->height*2;
+		printf( "%s: scaling image \"%s\" to %dx%d\n",
+			    get_application_name(), image_file, to_width, to_height );
+
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
 		/* see ASView.4 : */

@@ -160,7 +160,7 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	{
 		ASImageFileTypes file_type = check_image_type( realfilename );
 		if( file_type == ASIT_Unknown )
-			show_error( "Unknown format of the image file \"%s\". Please check the manual", realfilename );
+			show_error( "Hmm, I don't seem to know anything about format of the image file \"%s\"\n.\tPlease check the manual", realfilename );
 		else if( as_image_file_loaders[file_type] )
 			im = as_image_file_loaders[file_type](realfilename, what, gamma, gamma_table, subimage, compression);
 		else
@@ -168,7 +168,9 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 
 		if( realfilename != file )
 			free( realfilename );
-	}
+	}else
+		show_error( "I'm terribly sorry, but image file \"%s\" is nowhere to be found.", file );
+	
 	return im;
 }
 

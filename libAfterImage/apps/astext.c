@@ -42,6 +42,7 @@
 /* Usage:  astext [-f font] [-s size] [-t text] [-S 3D_style]
                   [-c text_color] [-b background_color]
                   [-T foreground_texture] [-B background_image]
+				  [-r foreground_resize_type] [-R background_resize_type]
  */
 
 #define TEXT_MARGIN 10
@@ -54,12 +55,16 @@ void usage()
 	printf( "  Usage:   astext [-h] [-f font] [-s size] [-t text] [-S 3D_style] \n"); 
 	printf( "                  [-c text_color] [-b background_color]\n");
 	printf( "                  [-T foreground_texture] [-B background_image]\n");
+	printf( "      			   [-r foreground_resize_type] [-R background_resize_type]\n");
 	printf( "  Where: font - TrueType font's filename or X font spec or alias;\n");
 	printf( "         size - size in points for TrueType fonts;\n");
 	printf( "         text - text to be drawn;\n");
 	printf( "         3D_style - 3D style of text. One of the following:\n");	
 	printf( "             0 - plain 2D tetx, 1 - embossed, 2 - sunken, 3 - shade above,\n");
 	printf( "             4 - shade below, 5 - embossed thick 6 - sunken thick.\n");
+	printf( "         resize_type - tells how texture/image should be transformed to fit\n");
+	printf( "                       the text size. Could be: scale or tile. Default is tile\n");
+	                
 }
 
 int main(int argc, char* argv[])
@@ -72,9 +77,10 @@ int main(int argc, char* argv[])
 	char *text = "Smart Brown Dog jumps Over The Lazy Fox, and falls into the ditch.";
 	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
 	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
-	char *fore_image_file = NULL, *back_image_file = "test.xpm" ;
+	char *fore_image_file = "fore.xpm", *back_image_file = "back.xpm" ;
+	Bool scale_fore_image = False, scale_back_image = False ;
 	ASImage *fore_im = NULL, *back_im = NULL;
-	ASText3DType type_3d = AST_Sunken ;
+	ASText3DType type_3d = AST_ShadeBelow ;
 	struct ASFontManager *fontman = NULL;
 	struct ASFont  *font = NULL;
 	unsigned int width, height ;
@@ -118,6 +124,10 @@ int main(int argc, char* argv[])
 				fore_image_file = argv[i+1] ;	
 			else if( strncmp( argv[i], "-B", 2 ) == 0 ) 
 				back_image_file = argv[i+1] ;	
+			else if( strncmp( argv[i], "-r", 2 ) == 0 ) 
+				scale_fore_image = (strcmp( argv[i+1], "scale") == 0);	
+			else if( strncmp( argv[i], "-R", 2 ) == 0 ) 
+				scale_back_image = (strcmp( argv[i+1], "scale") == 0);	
 		}
 	}
 
@@ -142,9 +152,6 @@ int main(int argc, char* argv[])
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );
 
-	if( back_image_file ) /* see ASView.2 : */
-		back_im = file2ASImage( back_image_file, 0xFFFFFFFF,
-		                        SCREEN_GAMMA, 0, NULL );
 	/* see ASText.2 : */
 	get_text_size( text, font, type_3d, &width, &height );
 	if( fore_image_file )
@@ -155,8 +162,12 @@ int main(int argc, char* argv[])
 		{
 			if( tmp->width != width || tmp->height != height )
 			{   /* see ASScale.2 : */
-				fore_im = scale_asimage( asv, tmp, width, height,
-				                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+				if( scale_fore_image )
+					fore_im = scale_asimage( asv, tmp, width, height,
+  					                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+				else
+					fore_im = tile_asimage( asv, tmp, 0, 0, width, height, 0, 
+  					                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
 				destroy_asimage( &tmp );
 			}else
 				fore_im = tmp ;
@@ -164,6 +175,21 @@ int main(int argc, char* argv[])
 	}
 	width  += TEXT_MARGIN*2 ;
 	height += TEXT_MARGIN*2 ;
+	if( back_image_file )
+	{ /* see ASView.2 : */
+		ASImage *tmp = file2ASImage( back_image_file, 0xFFFFFFFF,
+			                        SCREEN_GAMMA, 0, NULL );
+		if( tmp )
+		{
+			if( scale_back_image && (tmp->width != width || tmp->height != height) )
+			{   /* see ASScale.2 : */
+				back_im = scale_asimage( asv, tmp, width, height,
+				                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+				destroy_asimage( &tmp );
+			}else
+				back_im = tmp ;
+		}
+	}
 	/* see ASView.4 : */
 	w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 		                         width+BEVEL_ADDON, height+BEVEL_ADDON, 1, 0, NULL,

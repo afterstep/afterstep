@@ -1236,11 +1236,11 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00CF );
 					    break ;
 					case AST_ShadeAbove :
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x008F );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x007F );
 						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x00FF );
 					    break ;
 					case AST_ShadeBelow :
-						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x008F );
+						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x007F );
 						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF );
 					    break ;
 					case AST_EmbossedThick :
