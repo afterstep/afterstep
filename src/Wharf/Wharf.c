@@ -156,7 +156,7 @@ WharfConfig *Config = NULL;
 
 #define WHARF_BUTTON_EVENT_MASK   (ButtonReleaseMask |\
                                    ButtonPressMask | LeaveWindowMask | EnterWindowMask |\
-                                   StructureNotifyMask)
+                                   StructureNotifyMask | SubstructureRedirectMask )
 #define WHARF_FOLDER_EVENT_MASK   (StructureNotifyMask)
 
 

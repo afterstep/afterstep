@@ -64,8 +64,7 @@ typedef struct {
 	ASCanvas *main_canvas ;
 	ASCanvas *tabs_canvas ;
 
-	wild_reg_exp *res_class_wrexp ;
-   	wild_reg_exp *res_name_wrexp ;
+	wild_reg_exp *pattern_wrexp ;
 
 	ASWinTab *tabs ;
 	int tabs_num ;
@@ -73,6 +72,11 @@ typedef struct {
 }ASWinTabsState ;
 
 ASWinTabsState WinTabsState = { 0 };
+
+
+#define WINTABS_TAB_EVENT_MASK    (ButtonReleaseMask | ButtonPressMask | \
+	                               LeaveWindowMask   | EnterWindowMask | \
+                                   StructureNotifyMask )
 
 /**********************************************************************/
 /**********************************************************************/
@@ -93,6 +97,10 @@ void HandleEvents();
 void process_message (unsigned long type, unsigned long *body);
 void DispatchEvent (ASEvent * Event);
 Window make_wintabs_window();
+Window make_tabs_window( Window parent );
+void check_swallow_window( ASWindowData *wd );
+
+
 
 int
 main( int argc, char **argv )
@@ -103,7 +111,9 @@ main( int argc, char **argv )
     set_signal_handler( SIGSEGV );
 
     ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
-    ConnectAfterStep ( 0 );
+    ConnectAfterStep (  M_END_WINDOWLIST |
+                    	WINDOW_CONFIG_MASK |
+                    	WINDOW_NAME_MASK );
     balloon_init (False);
     Config = CreateWinTabsConfig ();
 
@@ -112,8 +122,21 @@ main( int argc, char **argv )
 	LoadConfig ("wintabs", GetOptions);
     CheckConfigSanity();
 
+	if( Config->pattern != NULL )
+	{
+		WinTabsState.pattern_wrexp = compile_wild_reg_exp( Config->pattern ) ;
+	}else
+	{
+		show_error( "Empty Pattern requested for windows to be captured and tabbed - Abborting!");
+		DeadPipe(0);
+	}
+
+	SendInfo ("Send_WindowList", 0);
+
+
     WinTabsState.main_window = make_wintabs_window();
-    WinTabsState.main_canvas = create_ascanvas( WinTabsState.main_window );
+    WinTabsState.main_canvas = create_ascanvas_container( WinTabsState.main_window );
+	WinTabsState.tabs_canvas = create_ascanvas( make_tabs_window( WinTabsState.main_window ) );
     set_root_clip_area(WinTabsState.main_canvas );
 
 	/* And at long last our main loop : */
@@ -210,6 +233,7 @@ CheckConfigSanity()
     LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
                     Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
     set_balloon_look( Scr.Look.balloon_look );
+
 }
 
 
@@ -275,6 +299,27 @@ void
 process_message (unsigned long type, unsigned long *body)
 {
     LOCAL_DEBUG_OUT( "received message %lX", type );
+	if( (type&WINDOW_PACKET_MASK) != 0 )
+	{
+		struct ASWindowData *wd = fetch_window_by_id( body[0] );
+        WindowPacketResult res ;
+        /* saving relevant client info since handle_window_packet could destroy the actuall structure */
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+        Window               saved_w = (wd && wd->canvas)?wd->canvas->w:None;
+        int                  saved_desk = wd?wd->desk:INVALID_DESK;
+        struct ASWindowData *saved_wd = wd ;
+#endif
+        LOCAL_DEBUG_OUT( "message %lX window %lX data %p", type, body[0], wd );
+        res = handle_window_packet( type, body, &wd );
+        LOCAL_DEBUG_OUT( "\t res = %d, data %p", res, wd );
+        if( res == WP_DataCreated || res == WP_DataChanged )
+        {
+            check_swallow_window( wd );
+        }else if( res == WP_DataDeleted )
+        {
+            LOCAL_DEBUG_OUT( "client deleted (%p)->window(%lX)->desk(%d)", saved_wd, saved_w, saved_desk );
+        }
+    }
 }
 
 void
@@ -400,8 +445,131 @@ make_wintabs_window()
     XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|
                           ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
                           KeyPressMask|KeyReleaseMask|
-                          EnterWindowMask|LeaveWindowMask);
+                          EnterWindowMask|LeaveWindowMask|
+						  SubstructureRedirectMask);
 
 	return w ;
 }
+
+Window
+make_tabs_window( Window parent )
+{
+	static XSetWindowAttributes attr ;
+
+	attr.event_mask = WINTABS_TAB_EVENT_MASK ;
+    return create_visual_window( Scr.asv, parent, 0, 0, 1, 1, 0, InputOutput, CWEventMask, &attr );
+}
+
+/**************************************************************************
+ * Swallowing code
+ **************************************************************************/
+
+void
+check_swallow_window( ASWindowData *wd )
+{
+    Window w;
+    int try_num = 0 ;
+	Bool withdraw_btn ;
+    ASCanvas *nc ;
+    int swidth, sheight ;
+	char *name = NULL ;
+	INT32 encoding ;
+
+    if( wd == NULL && !get_flags( wd->state_flags, AS_Mapped))
+        return;
+
+	name = get_window_name( wd, Config->pattern_type, &encoding );
+    LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
+                     wd->window_name, wd->icon_name, wd->res_class, wd->res_name );
+
+	if( match_wild_reg_exp( name, WinTabsState.pattern_wrexp) != 0 )
+		return ;
+
+#if 0
+    LOCAL_DEBUG_OUT( "swallow target is %p, swallowed = %p", aswb, aswb->swallowed );
+	aswf = aswb->parent ;
+    if( aswb->swallowed != NULL )
+        return;
+    /* do the actuall swallowing here : */
+    XGrabServer( dpy );
+    /* first lets check if window is still not swallowed : it should have no more then 2 parents before root */
+    w = get_parent_window( wd->client );
+    LOCAL_DEBUG_OUT( "first parent %lX, root %lX", w, Scr.Root );
+	while( w == Scr.Root && ++try_num  < 10 )
+	{/* we should wait for AfterSTep to complete AddWindow protocol */
+	    /* do the actuall swallowing here : */
+    	XUngrabServer( dpy );
+		sleep_a_millisec(200*try_num);
+		XGrabServer( dpy );
+		w = get_parent_window( wd->client );
+		LOCAL_DEBUG_OUT( "attempt %d:first parent %lX, root %lX", try_num, w, Scr.Root );
+	}
+	if( w == Scr.Root )
+	{
+		XUngrabServer( dpy );
+		return ;
+	}
+    if( w != None )
+        w = get_parent_window( w );
+    LOCAL_DEBUG_OUT( "second parent %lX, root %lX", w, Scr.Root );
+    if( w != Scr.Root )
+	{
+		XUngrabServer( dpy );
+		return ;
+	}
+    withdraw_btn = (WITHDRAW_ON_EDGE(Config) &&
+					(&(aswf->buttons[0]) == aswb || &(aswf->buttons[aswf->buttons_num-1]) == aswb)) ||
+                    WITHDRAW_ON_ANY(Config) ;
+    /* its ok - we can swallow it now : */
+    /* create swallow object : */
+    aswb->swallowed = safecalloc( 1, sizeof(ASSwallowed ));
+    /* first thing - we reparent window and its icon if there is any */
+    nc = aswb->swallowed->normal = create_ascanvas_container( wd->client );
+    XReparentWindow( dpy, wd->client, aswb->canvas->w, (aswb->canvas->width - nc->width)/2, (aswb->canvas->height - nc->height)/2 );
+    register_object( wd->client, (ASMagic*)aswb );
+    XSelectInput (dpy, wd->client, StructureNotifyMask);
+    grab_swallowed_canvas_btns( nc, (aswb->folder!=NULL), withdraw_btn && aswb->parent == WharfState.root_folder);
+
+    if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) &&
+		wd->icon != None )
+    {
+        ASCanvas *ic = create_ascanvas_container( wd->icon );
+        aswb->swallowed->iconic = ic;
+        XReparentWindow( dpy, wd->icon, aswb->canvas->w, (aswb->canvas->width-ic->width)/2, (aswb->canvas->height-ic->height)/2 );
+        register_object( wd->icon, (ASMagic*)aswb );
+        XSelectInput (dpy, wd->icon, StructureNotifyMask);
+        grab_swallowed_canvas_btns(  ic, (aswb->folder!=NULL), withdraw_btn && aswb->parent == WharfState.root_folder);
+    }
+    aswb->swallowed->current = ( get_flags( wd->state_flags, AS_Iconic ) &&
+                                    aswb->swallowed->iconic != NULL )?
+                                aswb->swallowed->iconic:aswb->swallowed->normal;
+    handle_canvas_config( aswb->swallowed->current );
+    LOCAL_DEBUG_OUT( "client(%lX)->icon(%lX)->current(%lX)", wd->client, wd->icon, aswb->swallowed->current->w );
+
+    if( get_flags( aswb->flags, ASW_MaxSwallow ) ||
+		(Config->force_size.width == 0 && !get_flags(aswb->flags, ASW_FixedWidth)))
+        aswb->desired_width = aswb->swallowed->current->width;
+    if( get_flags( aswb->flags, ASW_MaxSwallow ) ||
+		(Config->force_size.height == 0 && !get_flags(aswb->flags, ASW_FixedHeight)) )
+        aswb->desired_height = aswb->swallowed->current->height;
+    swidth = min( aswb->desired_width, aswb->swallowed->current->width );
+    sheight = min( aswb->desired_height, aswb->swallowed->current->height );
+    moveresize_canvas( aswb->swallowed->current,
+                       make_tile_pad( get_flags(Config->align_contents,PAD_LEFT),
+                                      get_flags(Config->align_contents,PAD_RIGHT),
+                                      aswb->canvas->width, swidth      ),
+                       make_tile_pad( get_flags(Config->align_contents,PAD_TOP),
+                                      get_flags(Config->align_contents,PAD_BOTTOM),
+                                      aswb->canvas->height, sheight    ),
+                       swidth, sheight );
+    map_canvas_window( aswb->swallowed->current, True );
+    send_swallowed_configure_notify(aswb);
+
+    update_wharf_folder_size( aswf );
+
+    ASSync(False);
+    XUngrabServer( dpy );
+#endif
+}
+
 

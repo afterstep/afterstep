@@ -130,19 +130,24 @@ main (int argc, char **argv)
 		show_error( "Hostile X server encountered - unable to proceed :-(");
 		return 1;/* failed to accure window management selection - other wm is running */
 	}
-
+SHOW_CHECKPOINT;
 	InitSession();
-    XSync (dpy, 0);
-
+SHOW_CHECKPOINT;
+	XSync (dpy, 0);
+SHOW_CHECKPOINT;
 #ifdef XSHMIMAGE
 	enable_shmem_images ();
+SHOW_CHECKPOINT;
 #endif
     set_parent_hints_func( afterstep_parent_hints_func ); /* callback for collect_hints() */
-
+SHOW_CHECKPOINT;
     SetupModules();
-    SetupScreen();
-    event_setup( True /*Bool local*/ );
-    /*
+SHOW_CHECKPOINT;
+	SetupScreen();
+SHOW_CHECKPOINT;
+	event_setup( True /*Bool local*/ );
+SHOW_CHECKPOINT;
+	/*
      *  Lets init each and every screen separately :
      */
     for (i = 0; i < Scr.NumberOfScreens; i++)

@@ -10,6 +10,15 @@ struct ASTBarData;
 
 #include "module.h"
 
+typedef enum
+{
+	ASN_Name = 0,
+	ASN_IconName,
+	ASN_ResClass,
+	ASN_ResName,
+	ASN_NameTypes
+}ASNameTypes ;
+
 typedef struct ASWindowData
 {
 #define MAGIC_ASWindowData	0xA3817D08
@@ -73,6 +82,9 @@ WindowPacketResult handle_window_packet(send_data_type type, send_data_type *dat
 void iterate_window_data( iter_list_data_handler iter_func, void *aux_data);
 
 void window_data_cleanup();
+
+char *get_window_name( ASWindowData *wd, ASNameTypes type, INT32 *encoding );
+
 
 #ifdef __cplusplus
 }

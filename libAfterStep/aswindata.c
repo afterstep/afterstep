@@ -241,3 +241,59 @@ iterate_window_data( iter_list_data_handler iter_func, void *aux_data)
     }
 }
 
+char *
+get_window_name( ASWindowData *wd, ASNameTypes type, INT32 *encoding )
+{
+	char *vname = NULL ;
+	switch( type )
+	{
+		case ASN_Name :     vname = wd->window_name ;
+							if( encoding )
+								*encoding = wd->window_name_encoding ;
+							break ;
+		case ASN_IconName : vname = wd->icon_name ;
+							if( encoding )
+								*encoding = wd->icon_name_encoding ;
+							break ;
+		case ASN_ResClass : vname = wd->res_class ;
+							if( encoding )
+								*encoding = wd->res_class_encoding ;
+							break ;
+		case ASN_ResName :  vname = wd->res_name ;
+							if( encoding )
+								*encoding = wd->res_name_encoding ;
+							break ;
+		case ASN_NameTypes :
+		    break ;
+	}
+	if( vname == NULL )
+	{
+		if( wd->window_name )
+		{
+			if( encoding )
+				*encoding = wd->window_name_encoding ;
+			return wd->window_name ;
+		}
+		if( wd->icon_name )
+		{
+			if( encoding )
+				*encoding = wd->icon_name_encoding ;
+			return wd->icon_name ;
+		}
+		if( wd->res_class )
+		{
+			if( encoding )
+				*encoding = wd->res_class_encoding ;
+			return wd->res_class ;
+		}
+		if( wd->res_name )
+		{
+			if( encoding )
+				*encoding = wd->res_name_encoding ;
+			return wd->res_name ;
+		}
+	}
+	return vname ;
+}
+
+

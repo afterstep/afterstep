@@ -551,60 +551,6 @@ make_winlist_window()
 /* WinList buttons handling :                                       */
 /********************************************************************/
 /* Private stuff : **************************************************/
-static char *
-get_visible_window_name( ASWindowData *wd, INT32 *encoding )
-{
-	char *vname = NULL ;
-	switch( Config->show_name_type )
-	{
-		case ASN_Name :     vname = wd->window_name ;
-							if( encoding )
-								*encoding = wd->window_name_encoding ;
-							break ;
-		case ASN_IconName : vname = wd->icon_name ;
-							if( encoding )
-								*encoding = wd->icon_name_encoding ;
-							break ;
-		case ASN_ResClass : vname = wd->res_class ;
-							if( encoding )
-								*encoding = wd->res_class_encoding ;
-							break ;
-		case ASN_ResName :  vname = wd->res_name ;
-							if( encoding )
-								*encoding = wd->res_name_encoding ;
-							break ;
-		case ASN_NameTypes :
-		    break ;
-	}
-	if( vname == NULL )
-	{
-		if( wd->window_name )
-		{
-			if( encoding )
-				*encoding = wd->window_name_encoding ;
-			return wd->window_name ;
-		}
-		if( wd->icon_name )
-		{
-			if( encoding )
-				*encoding = wd->icon_name_encoding ;
-			return wd->icon_name ;
-		}
-		if( wd->res_class )
-		{
-			if( encoding )
-				*encoding = wd->res_class_encoding ;
-			return wd->res_class ;
-		}
-		if( wd->res_name )
-		{
-			if( encoding )
-				*encoding = wd->res_name_encoding ;
-			return wd->res_name ;
-		}
-	}
-	return vname ;
-}
 
 static Bool
 render_winlist_button( ASTBarData *tbar )
@@ -970,7 +916,7 @@ static void
 configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
 {
 	INT32 encoding = AS_Text_ASCII ;
-	char *name = get_visible_window_name(wd, &encoding );
+	char *name = get_window_name(wd, Config->show_name_type, &encoding );
     ASFlagType align = ALIGN_TOP|ALIGN_BOTTOM ;
 
     delete_astbar_tile( tbar, -1 );

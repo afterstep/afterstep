@@ -5,6 +5,7 @@
 #include "../libAfterStep/clientprops.h"
 #include "../libAfterStep/colorscheme.h"
 #include "../libAfterStep/mylook.h"
+#include "../libAfterStep/aswindata.h"
 
 /***************************************************************************/
 /*                        ASFunction parsing definitions                   */
@@ -731,8 +732,6 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 
 /* config data structure */
 
-typedef enum
-{ ASN_Name = 0, ASN_IconName, ASN_ResClass, ASN_ResName, ASN_NameTypes }ASNameTypes ;
 
 typedef struct WinListConfig
 {
