@@ -16,7 +16,7 @@ typedef enum
 
 typedef struct ASXpmFile
 {
- 	FILE 	*fp;
+	int 	 fd ;
 	char   **data;                             /* preparsed and preloaded data */
 
 #define AS_XPM_BUFFER_UNDO		8
@@ -25,7 +25,7 @@ typedef struct ASXpmFile
 #ifdef HAVE_LIBXPM
 	XpmImage xpmImage;
 #else
-	char 	 buffer[AS_XPM_BUFFER_UNDO+AS_XPM_BUFFER_SIZE];
+	char 	 *buffer;
 	size_t   bytes_in;
 	size_t   curr_byte;
 #endif
@@ -42,7 +42,7 @@ typedef struct ASXpmFile
 	size_t     cmap_size;
 	ASScanline scl ;
 
-	ARGB32		*cmap;
+	ARGB32		*cmap, **cmap2;
 	ASHashTable *cmap_name_xref;
 
 	Bool do_alpha ;

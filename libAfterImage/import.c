@@ -51,6 +51,13 @@
 #include <tiff.h>
 #include <tiffio.h>
 #endif
+#ifdef HAVE_LIBXPM      
+#ifdef HAVE_LIBXPM_X11
+#include <X11/xpm.h>
+#else
+#include <xpm.h>
+#endif
+#endif
 
 #include "asimage.h"
 #include "xcf.h"
@@ -338,12 +345,11 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		return NULL;
 	}
 
-	LOCAL_DEBUG_OUT( "do_alpha is %d. im->height = %d, im->width = %d", do_alpha, im->height, im->width );
+	LOCAL_DEBUG_OUT( "do_alpha is %d. im->height = %d, im->width = %d", xpm_file->do_alpha, xpm_file->height, xpm_file->width );
 	if( build_xpm_colormap( xpm_file ) )
 		if( (im = create_xpm_image( xpm_file, compression )) != NULL )
 		{
-
-			while( xpm_file->parse_state >= XPM_InFile )
+			for( line = 0 ; line < xpm_file->height ; ++line )
 			{
 				if( !convert_xpm_scanline( xpm_file, line ) )
 					break;
@@ -352,9 +358,8 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 				asimage_add_line (im, IC_BLUE,  xpm_file->scl.blue, line);
 				if( xpm_file->do_alpha )
 					asimage_add_line (im, IC_ALPHA,  xpm_file->scl.alpha, line);
-				++line;
 #ifdef LOCAL_DEBUG
-				printf( "%d: \"%s\"\n",  i, xpm_file->str_buf );
+				printf( "%d: \"%s\"\n",  line, xpm_file->str_buf );
 				print_component( xpm_file->scl.red, 0, xpm_file->width );
 				print_component( xpm_file->scl.green, 0, xpm_file->width );
 				print_component( xpm_file->scl.blue, 0, xpm_file->width );

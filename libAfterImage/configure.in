@@ -137,10 +137,17 @@ else
 		XPM_CFLAGS="-I$xpm_includes"
 		CPPFLAGS="$CPPFLAGS $XPM_CFLAGS"
   	fi
-  	AC_CHECK_HEADER(xpm.h,have_libxpm=yes,
-				  	[AC_CHECK_HEADER(X11/xpm.h,[have_libxpm=yes AC_DEFINE(HAVE_LIBXPM_X11)])
-				  	])
+	have_libxpm=no
+  	AC_CHECK_HEADER(xpm.h,have_libxpm=yes)
+	if test "x$have_libxpm" = "xno"; then 
+		AC_CHECK_HEADER(X11/xpm.h,have_libxpm_x11="yes")
+		if test "x$have_libxpm_x11" = "xyes"; then 
+			 AC_DEFINE(HAVE_LIBXPM_X11)
+			 have_libxpm=yes
+		fi			 
+	fi		
   	if test "x$have_libxpm" = "xyes"; then
+		AC_DEFINE(HAVE_XPM)
 		AC_DEFINE(HAVE_LIBXPM)
 		AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lXpm"
   	fi
@@ -160,7 +167,7 @@ else
 	JPEG_CFLAGS="-I$jpeg_includes"
 	CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
   fi
-  AC_CHECK_HEADER(jpeglib.h,[AC_DEFINE(HAVE_JPEG) EXT_IMAGE_LIBS="$AFTERIMAGE_LIBS -ljpeg"])
+  AC_CHECK_HEADER(jpeglib.h,[AC_DEFINE(HAVE_JPEG) AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -ljpeg"])
   CPPFLAGS=$SAVED_CFLAGS
 fi
 AC_SUBST(JPEG_CFLAGS)

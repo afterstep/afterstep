@@ -28,6 +28,10 @@
 #include <malloc.h>
 #include <ctype.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #ifdef HAVE_LIBXPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 #ifdef HAVE_LIBXPM_X11
@@ -304,7 +308,8 @@ get_xpm_char( ASXpmFile *xpm_file )
 			register int i;
 			for( i = 0 ; i < AS_XPM_BUFFER_UNDO ; i++ )
 				dst[i] = src[i];
-			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+fread( &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]), 1, AS_XPM_BUFFER_SIZE, xpm_file->fp );
+/*			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+fread( &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]), 1, AS_XPM_BUFFER_SIZE, xpm_file->fp );*/
+			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+read( xpm_file->fd, &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]), AS_XPM_BUFFER_SIZE );
 			xpm_file->curr_byte = AS_XPM_BUFFER_UNDO ;
 		}
 		if( xpm_file->bytes_in <= AS_XPM_BUFFER_UNDO )
@@ -406,6 +411,7 @@ read_next_xpm_string( ASXpmFile *xpm_file )
 	return True;
 }
 
+#ifndef HAVE_LIBXPM
 static Bool
 parse_xpm_cmap_entry( ASXpmFile *xpm_file, char **colornames )
 {
@@ -452,7 +458,7 @@ parse_xpm_cmap_entry( ASXpmFile *xpm_file, char **colornames )
 	}while( *ptr );
 	return success;
 }
-
+#endif
 /*************************************************************************
  * High level xpm reading interface ;
  *************************************************************************/
@@ -462,16 +468,26 @@ close_xpm_file( ASXpmFile **xpm_file )
 	if( xpm_file )
 		if( *xpm_file )
 		{
-			if( (*xpm_file)->fp )
-				fclose( (*xpm_file)->fp );
+			if( (*xpm_file)->fd )
+				close( (*xpm_file)->fd );
 			if( (*xpm_file)->str_buf )
 				free( (*xpm_file)->str_buf );
 #ifdef HAVE_LIBXPM
 			XpmFreeXpmImage (&((*xpm_file)->xpmImage));
+#else
+			if( (*xpm_file)->buffer ) 
+				free( (*xpm_file)->buffer );  			
 #endif
 			free_scanline(&((*xpm_file)->scl), True);
 			if( (*xpm_file)->cmap )
 				free( (*xpm_file)->cmap );
+			if( (*xpm_file)->cmap2 )
+			{
+				register int i ;
+				for( i = 0 ; i < 256 ; i++ ) 
+					free( (*xpm_file)->cmap2[i] );
+				free( (*xpm_file)->cmap2 );					
+			}				
 			if( (*xpm_file)->cmap_name_xref )
 				destroy_ashash( &((*xpm_file)->cmap_name_xref) );
 #if 0
@@ -489,22 +505,26 @@ open_xpm_file( const char *realfilename )
 	if( realfilename )
 	{
 		Bool success = False ;
-		FILE *fp ;
+		int fd ;
 		xpm_file = safecalloc( 1, sizeof(ASXpmFile));
 #ifndef HAVE_LIBXPM
-		fp = fopen( realfilename, "rt" );
-		if( fp )
+		fd = open( realfilename, O_RDONLY );
+		if( fd >= 0 )
 		{
-			xpm_file->fp = fp;
+			xpm_file->fd = fd;
 			xpm_file->parse_state = XPM_InFile ;
-			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+fread( &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]), 1, AS_XPM_BUFFER_SIZE, fp );
+			xpm_file->buffer = safemalloc(AS_XPM_BUFFER_UNDO+AS_XPM_BUFFER_SIZE+1);
+/*			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+fread( &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]), 1, AS_XPM_BUFFER_SIZE, fp ); */
+			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+read( fd, &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]),  AS_XPM_BUFFER_SIZE );
 			xpm_file->curr_byte = AS_XPM_BUFFER_UNDO ;
 			if( get_xpm_string( xpm_file ) )
 				success = parse_xpm_header( xpm_file );
+
 		}
 #else                                          /* libXpm interface : */
-		if( XpmReadFileToXpmImage ((char *)path, &(xpm_file->xpmImage), NULL) == XpmSuccess)
+		if( XpmReadFileToXpmImage ((char *)realfilename, &(xpm_file->xpmImage), NULL) == XpmSuccess)
 		{
+			fd = NULL ;
 			xpm_file->width = xpm_file->xpmImage.width;
 			xpm_file->height= xpm_file->xpmImage.height;
 			xpm_file->cmap_size = xpm_file->xpmImage.ncolors;
@@ -673,6 +693,9 @@ build_xpm_colormap( ASXpmFile *xpm_file )
 	{
 		real_cmap_size = 256 ;
 		xpm_file->cmap = safecalloc( real_cmap_size, sizeof(ARGB32));
+	}else if( xpm_file->bpp == 2 )
+	{
+		xpm_file->cmap2 = safecalloc( 256, sizeof(ARGB32*));
 	}else
 		xpm_file->cmap_name_xref = create_ashash( 0, string_hash_value,
 													 string_compare,
@@ -692,6 +715,7 @@ build_xpm_colormap( ASXpmFile *xpm_file )
 		if( i < real_cmap_size )
 		{
 			color = lookup_xpm_color((char**)&(xpm_cmap[i].string), xpm_color_names);
+LOCAL_DEBUG_OUT( "cmap[%d]: 0x%X\n",  i, color );
 			xpm_file->cmap[i] = color;
 			if( ARGB32_ALPHA8(color) != 0x00FF )
 				xpm_file->do_alpha = True ;
@@ -709,6 +733,13 @@ LOCAL_DEBUG_OUT( "\t\tcolor = 0x%8.8lX\n",  color );
 			xpm_file->do_alpha = True ;
 		if( xpm_file->bpp == 1 )
 			xpm_file->cmap[(unsigned int)(xpm_file->str_buf[0])] = color ;
+		if( xpm_file->bpp == 2 )	
+		{
+			ARGB32 **slot = &(xpm_file->cmap2[(unsigned int)(xpm_file->str_buf[0])]) ;
+			if( *slot == NULL ) 
+				*slot = safecalloc( 256, sizeof(ARGB32)); 
+			(*slot)[(unsigned int)(xpm_file->str_buf[1])] = color ;
+		}
 		else if( i < real_cmap_size )
 		{
 			char *name = mystrndup(xpm_file->str_buf, xpm_file->bpp);
@@ -748,6 +779,22 @@ convert_xpm_scanline( ASXpmFile *xpm_file, unsigned int line )
 				if( a )
 					a[k]  = ARGB32_ALPHA8(c);
 			}
+	}else if( xpm_file->cmap2 )
+	{
+		ARGB32 **cmap2 = xpm_file->cmap2 ;
+		while( --k >= 0 )
+		{
+			ARGB32 *slot = cmap2[data[k<<1]] ;
+			if( slot != NULL )
+			{
+				register CARD32 c = slot[data[(k<<1)+1]] ;
+				r[k] = ARGB32_RED8(c);
+				g[k] = ARGB32_GREEN8(c);
+				b[k] = ARGB32_BLUE8(c);
+				if( a )
+					a[k]  = ARGB32_ALPHA8(c);
+			}
+		}			
 	}else if( xpm_file->cmap_name_xref )
 	{
 		char *pixel ;

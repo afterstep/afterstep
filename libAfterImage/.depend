@@ -28,6 +28,7 @@
 		afterbase.h \
 		asimage.h \
 		xcf.h \
+		xpm.h \
 		import.h
 
 ./xcf.c: \
@@ -35,3 +36,9 @@
 		afterbase.h \
 		asimage.h \
 		xcf.h
+
+./xpm.c: \
+		config.h \
+		afterbase.h \
+		asimage.h \
+		xpm.h
