@@ -1315,7 +1315,7 @@ put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, 
 	} else if (ascolor_true_depth == 16)
 	{										   /* must add LSB/MSB checking */
 #if 1
-			register CARD32 c = (g[-step]<<20) | (g[0]<<10) | (g[step]);
+			register CARD32 c = (r[0]<<20) | (g[0]<<10) | (b[0]);
 			register CARD16 *src = (CARD16*)xim_line;
 LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );
 			i = 0 ;
@@ -1328,7 +1328,8 @@ LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 				if( ++i >= width )
 					break;
 				/* carry over quantization error allow for error diffusion:*/
-				c = ((c>>1)&0x00300403)+((g[i-step]<<20) | (g[i]<<10) | (g[i+step]));
+/*				c = ((c>>1)&0x00300403)+((g[i-step]<<20) | (g[i]<<10) | (g[i+step]));*/
+				c = ((c>>1)&0x00300403)+((r[i]<<20) | (g[i]<<10) | (b[i]));
 				{
 					register CARD32 d = c&0x300C0300 ;
 					if( d )
@@ -1389,7 +1390,7 @@ LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 #endif
 	} else if (ascolor_true_depth == 15)
 	{										   /* must add LSB/MSB checking */
-			register CARD32 c = (g[-step]<<20) | (g[0]<<10) | (g[step]);
+			register CARD32 c = (r[0]<<20) | (g[0]<<10) | (b[0]);
 			register CARD16 *src = (CARD16*)xim_line;
 LOCAL_DEBUG_OUT( "writing row in 15bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );
 			i = 0;
@@ -1404,7 +1405,7 @@ LOCAL_DEBUG_OUT( "writing row in 15bpp with %s: ", (byte_order == MSBFirst)?"MSB
 				if( ++i >= width )
 					break;
 			 	/* carry over quantization error allow for error diffusion:*/
-				c = ((c>>1)&0x00300C03)+((g[i-step]<<20) | (g[i]<<10) | (g[i+step]));
+				c = ((c>>1)&0x00300C03)+((r[i]<<20) | (g[i]<<10) | (b[i]));
 				{
 					register CARD32 d = c&0x300C0300 ;
 					if( d )
