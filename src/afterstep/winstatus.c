@@ -523,6 +523,22 @@ on_frame_bars_moved( ASWindow *asw, unsigned int side, ASOrientation *od)
     }
 }
 
+Bool
+check_window_offscreen( ASWindow *asw )
+{
+	if( !ASWIN_GET_FLAGS(asw, AS_Sticky ) &&
+		ASWIN_DESK(asw) != Scr.CurrentDesk )
+		return True;
+
+	if( asw->client_canvas->root_x >= Scr.MyDisplayWidth || 
+		asw->client_canvas->root_y >= Scr.MyDisplayHeight ||
+		asw->client_canvas->root_x+asw->client_canvas->width < 0 || 
+		asw->client_canvas->root_y+asw->client_canvas->height < 0 )
+		return True;                /* don't redraw frame if we are moved off-screen */
+
+	return False;
+}	 
+
 void
 update_window_frame_moved( ASWindow *asw, ASOrientation *od )
 {
@@ -532,7 +548,11 @@ update_window_frame_moved( ASWindow *asw, ASOrientation *od )
         return;
 
     handle_canvas_config (asw->client_canvas);
-    if( asw->internal && asw->internal->on_moveresize )
+
+	if( check_window_offscreen( asw ) )
+		return ;
+    
+	if( asw->internal && asw->internal->on_moveresize )
         asw->internal->on_moveresize( asw->internal, None );
 
     for( i = 0 ; i < FRAME_SIDES ; ++i )
@@ -645,7 +665,8 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
 
         if( changes != 0 )
         {
-            update_window_transparency( asw, False );
+			if( !check_window_offscreen(asw) )
+            	update_window_transparency( asw, False );
             if( get_flags( changes, CANVAS_RESIZED ) )
 			{
 				if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
@@ -1706,7 +1727,7 @@ LOCAL_DEBUG_OUT( "flags = %lx, on_flags = %lx, off_flags = %lx", flags, on_flags
         place_aswindow( asw );
 
     on_window_status_changed( asw, True, reconfigured );
-    if( get_flags( flags, AS_Sticky) )
+    if( get_flags( flags, AS_Sticky))
 		update_window_transparency( asw, False );
 	LOCAL_DEBUG_OUT( "Window is %sticky", ASWIN_GET_FLAGS(asw,AS_Sticky)?"S":"NotS");
 }

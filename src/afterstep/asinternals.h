@@ -693,6 +693,8 @@ void change_aswindow_layer( ASWindow *asw, int layer );
 void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos );
 void change_aswindow_desktop( ASWindow *asw, int new_desk );
 void toggle_aswindow_status( ASWindow *asw, ASFlagType flags );
+Bool check_window_offscreen( ASWindow *asw );
+
 
 void hide_hilite();                            /* unhilites currently highlited window */
 void hilite_aswindow( ASWindow *asw );         /* actually hilites focused window on reception of event */

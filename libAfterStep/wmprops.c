@@ -410,7 +410,7 @@ read_extwm_desk_viewport (ASWMProps * wmprops, Bool deleted)
             wmprops->desktop_viewport = NULL;
         }
         wmprops->desktop_viewports_num = nitems>>1 ;
-        if (nitems > 2)
+        if (nitems >= 2)
 		{
             register int i = nitems;
             wmprops->desktop_viewport = safemalloc( nitems*sizeof(CARD32));

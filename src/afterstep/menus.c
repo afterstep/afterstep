@@ -410,10 +410,12 @@ render_asmenu_bars( ASMenu *menu, Bool force )
         }
 		if( menu->visible_items_num < menu->items_num )
 		{
-            if( render_astbar( menu->scroll_up_bar, menu->main_canvas ) )
-                rendered = True ;
-            if( render_astbar( menu->scroll_down_bar, menu->main_canvas ) )
-                rendered = True ;
+			if( force || DoesBarNeedsRendering(menu->scroll_up_bar))
+            	if( render_astbar( menu->scroll_up_bar, menu->main_canvas ) )
+                	rendered = True ;
+			if( force || DoesBarNeedsRendering(menu->scroll_down_bar))
+            	if( render_astbar( menu->scroll_down_bar, menu->main_canvas ) )
+                	rendered = True ;
 		}
         STOP_LONG_DRAW_OPERATION;
 		LOCAL_DEBUG_OUT( "%s menu items rendered!", rendered?"some":"none" );
@@ -1053,6 +1055,7 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
 
 /* reconfiguration : */
 void menu_destroy( ASInternalWindow *asiw );
+
 void
 on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, ASFlagType what )
 {
@@ -1112,8 +1115,13 @@ on_menu_root_background_changed( ASInternalWindow *asiw )
 {
     ASMenu   *menu = (ASMenu*)(asiw->data) ;
     if( menu != NULL && menu->magic == MAGIC_ASMENU )
-    {
-    /* TODO : update transparency here */
+    {	/* update transparency here */
+        register int i = menu->items_num ;
+        while ( --i >= 0 )
+        	update_astbar_transparency(menu->items[i].bar, menu->main_canvas, True);
+		update_astbar_transparency(menu->scroll_up_bar, menu->main_canvas, True);
+		update_astbar_transparency(menu->scroll_down_bar, menu->main_canvas, True);
+    	render_asmenu_bars(menu, False);
     }
 }
 
@@ -1203,6 +1211,8 @@ show_asmenu( ASMenu *menu, int x, int y )
     asiw->on_pointer_event = on_menu_pointer_event;
     asiw->on_keyboard_event = on_menu_keyboard_event;
     asiw->on_look_feel_changed = on_menu_look_feel_changed;
+	asiw->on_look_feel_changed = on_menu_look_feel_changed;
+	asiw->on_root_background_changed = on_menu_root_background_changed ;
     asiw->destroy = menu_destroy;
 
 	db_rec = fill_asdb_record (Database, &(ASMenuStyleNames[0]), NULL, False);

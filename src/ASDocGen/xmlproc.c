@@ -582,12 +582,26 @@ add_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
 	}	 
 }	 
 
-const char*
+void
 add_glossary_item( xml_elem_t* doc, ASXMLInterpreterState *state )
 {	   
 	xml_elem_t *cdata = find_tag_by_id( doc->child, XML_CDATA_ID );
-	const char *term_text = cdata?cdata->parm:NULL ;
-	if( term_text != NULL ) /* need to add glossary term */
+	char *term_text = mystrdup(cdata?cdata->parm:"") ;
+	char *orig_term_text = term_text ;
+	int i ; 
+
+	LOCAL_DEBUG_OUT( "term_text = \"%s\"", term_text );
+	while(*term_text)
+	{	
+		if( isalnum(*term_text) )
+			break;
+		++term_text ;
+	}
+	i = 0 ;
+	while( isalnum(term_text[i]) ) ++i ;
+	term_text[i] = '\0' ;
+
+	if( term_text[0] != '\0' ) /* need to add glossary term */
 	{
 	 	char *target = NULL, *target2 ;
 		char *term = NULL, *term2 ;
@@ -606,16 +620,17 @@ add_glossary_item( xml_elem_t* doc, ASXMLInterpreterState *state )
 			free( target2 );
 			free( term2 );	   
 		}	 
-				
 		term = safemalloc( strlen( term_text)+ 1 + 1 +strlen( state->doc_name ) + 1 +1 );
 		sprintf( term, "%s (%s)", term_text, state->doc_name );
+		LOCAL_DEBUG_OUT( "term = \"%s\"", term );				   
 		if( add_hash_item( Glossary, AS_HASHABLE(term), (void*)target ) != ASH_Success ) 
 		{
 			free( target );
 			free( term );	   
 		}
 	}	 
-	return term_text;
+	
+	free(orig_term_text);
 }
 
 /*************************************************************************/
