@@ -240,7 +240,7 @@ ASImage2png ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 	FILE *outfile;
 	png_structp png_ptr  = NULL;
 	png_infop   info_ptr = NULL;
-	Bool has_alpha = False ;
+	Bool has_alpha ;
 	Bool greyscale = (depth == 1) ;
 	png_byte *row_pointer;
 	ASScanline imbuf ;
@@ -273,6 +273,7 @@ ASImage2png ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 		png_set_compression_level(png_ptr,MIN(compression,99)/10);
 
 	/* lets see if we have alpha channel indeed : */
+	has_alpha = False ;
 	for( y = 0 ; y < im->height ; y++ )
 		if( im->alpha[y] != NULL )
 		{

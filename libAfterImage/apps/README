@@ -1,41 +1,52 @@
 This directory contains 7 examples of what libAfterImage can do.
-This examples are not built automagically, since most users are not 
+This examples are not built automagically, since most users are not
 likely to need these. They are intended for developers primarily.
 
 Here is how to build examples in this directory :
 
 All of the examples require that libAfterImage is built first.
-As libAfterImage may utilize libAfterBase, for some of the low level 
-tasks, it is recommended to build libAfterBase prior to anything 
+As libAfterImage may utilize libAfterBase, for some of the low level
+tasks, it is recommended to build libAfterBase prior to anything
 else. After that libAfterImage has to be built and installed.
 Both of the above steps can be accomplished by simply doing :
 
   ./configure ; make ; make install
 
 in respective directory.
+
+!!!!!!!!!!!!!!!!!!!!!!!!! MMX NOTICE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Note:
+libAfterImage gets compiled with inline MMX assembly enabled.
+If you have CPU that does not support it - you'll
+have to manually turn that off by using --disable-mmx-optimization
+option to configure script.
+Otherwise you gonna get wierd segfaults and Illigal Instruction
+exceptions.
+!!!!!!!!!!!!!!!!!!!!!!!!! MMX NOTICE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 Once both libraries are installed we can proceed to compiling
 the examples. Top do that you will need to execute :
 
   ./configure ; make
-  
+
 in this directory. Easy. That should build all the examples.
 
-If something goes wrong and you need to update your system and 
-repeat above commands, don't forget to remove config.cache, prior 
+If something goes wrong and you need to update your system and
+repeat above commands, don't forget to remove config.cache, prior
 to running configure script.
 
 All the examples accept command line parameters, and description
 of those can be obtained by running example with -h option.
-Arguments are not required, and examples should display some 
-sensible defaults. 
+Arguments are not required, and examples should display some
+sensible defaults.
 
-This set of examples comes with 3 test images and 1 TTF font 
-file. Defaults are set to use this files. 
+This set of examples comes with 3 test images and 1 TTF font
+file. Defaults are set to use this files.
 
-Note that you will not be able to see TTF font rendered if you do 
+Note that you will not be able to see TTF font rendered if you do
 not have FreeType library version 2 installed.
 
-Thanks for using libAfterImage. Contributions and bug reports are 
+Thanks for using libAfterImage. Contributions and bug reports are
 always welcome. Please e-mail yours to <sashav at sprintmail dot com>,
 or any of the AfterStep mailing lists.
 
@@ -43,52 +54,52 @@ or any of the AfterStep mailing lists.
 ascompose
 -------------------------------------------------------------------------------
 
-ascompose uses an XML input file to compose an image and display it.  The 
+ascompose uses an XML input file to compose an image and display it.  The
 possible XML tags are:
 
 <composite type="alphablend">
-  type     Required.  The compositing operation.  Valid values are the 
-           standard AS blending ops: add, alphablend, allanon, colorize, 
-           darken, diff, dissipate, hue, lighten, overlay, saturate, 
+  type     Required.  The compositing operation.  Valid values are the
+           standard AS blending ops: add, alphablend, allanon, colorize,
+           darken, diff, dissipate, hue, lighten, overlay, saturate,
            screen, sub, tint, value.
   All images surrounded by this tag will be composited with the given type.
 <scale width="512" height="384">
   width    Required.  The image will be scaled to this width.
   height   Required.  The image will be scaled to this height.
-  This tag applies to the first image contained within the tag.  Any 
-  further images will be discarded.  
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
 <tile width="512" height="384">
   width    Required.  The image will be tiled to this width.
   height   Required.  The image will be tiled to this height.
-  This tag applies to the first image contained within the tag.  Any 
-  further images will be discarded.  
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
 <img src=rose512.jpg/>
   src      Required.  The filename (NOT URL) of the image file to load.
 <gradient angle="90" width="600" height="500" colors="#ff007fff #7f00ffff #ff007fff" offsets="0.0 0.125 1.0"/>
   width    Required.  The gradient will have this width.
   height   Required.  The gradient will have this height.
-  colors   Required.  Whitespace-separated list of colors.  At least two 
-           colors are required.  Each color in this list will be visited 
+  colors   Required.  Whitespace-separated list of colors.  At least two
+           colors are required.  Each color in this list will be visited
            in turn, at the intervals given by the offsets attribute.
-  offsets  Optional.  Whitespace-separated list of floating point values 
-           ranging from 0.0 to 1.0.  The colors from the colors attribute 
-           are given these offsets, and the final gradient is rendered 
-           from the combination of the two.  If both colors and offsets 
-           are given but the number of colors and offsets do not match, 
-           the minimum of the two will be used, and the other will be 
-           truncated to match.  If offsets are not given, a smooth 
+  offsets  Optional.  Whitespace-separated list of floating point values
+           ranging from 0.0 to 1.0.  The colors from the colors attribute
+           are given these offsets, and the final gradient is rendered
+           from the combination of the two.  If both colors and offsets
+           are given but the number of colors and offsets do not match,
+           the minimum of the two will be used, and the other will be
+           truncated to match.  If offsets are not given, a smooth
            stepping from 0.0 to 1.0 will be used.
-  angle    Optional.  Given in degrees.  Default is 0.  This is the 
-           direction of the gradient.  Currently the only supported 
-           values are 0, 45, 90, 135, 180, 225, 270, 315.  0 means left 
+  angle    Optional.  Given in degrees.  Default is 0.  This is the
+           direction of the gradient.  Currently the only supported
+           values are 0, 45, 90, 135, 180, 225, 270, 315.  0 means left
            to right, 90 means top to bottom, etc.
 <rotate angle="90">
-  angle    Required.  Given in degrees.  Possible values are currently 
-           "90", "180", and "270".  Rotates the image through the given 
+  angle    Required.  Given in degrees.  Possible values are currently
+           "90", "180", and "270".  Rotates the image through the given
            angle.
 <mirror dir="vertical">
-  dir      Required.  Possible values are "vertical" and "horizontal".  
-           The image will be flipped over the x-axis if dir is vertical, 
+  dir      Required.  Possible values are "vertical" and "horizontal".
+           The image will be flipped over the x-axis if dir is vertical,
            and flipped over the y-axis if dir is horizontal.
 
 As an example, the default XML used by ascompose is:
@@ -101,7 +112,7 @@ As an example, the default XML used by ascompose is:
     <tile width=512 height=384><img src=fore.xpm/></tile>
   </composite>
 
-To see what this does, run "ascompose --verbose", and it will tell you 
+To see what this does, run "ascompose --verbose", and it will tell you
 what it is doing at each rendering step.
 
 -------------------------------------------------------------------------------
