@@ -64,6 +64,9 @@ modules/applications. It will then quit,  leaving all the required
 images resident in X memory, leaving it to other apps to switch
 backgrounds (like Pager). That provides some memory savings, as you run
 only one module instead of two. 
+Caveat : You should not run asetroot like that on screens other then first 
+one, or whenever you use executable name other then "asetroot". This is 
+related to the fact that Pager only knows about asetroot named as asetroot.
 .sp
 Kill mode: It's not good to litter the memory with multimegabyte images.
 You can use kill mode of \fBasetroot\fP to cleanup memory

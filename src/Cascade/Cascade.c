@@ -458,7 +458,6 @@ main (int argc, char *argv[])
   char *config_line;
   int i;
   char *global_config_file = NULL;
-  char *display_name = NULL;
 
   /* Save our program name - for error messages */
   SetMyName (argv[0]);

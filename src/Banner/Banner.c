@@ -196,7 +196,6 @@ error_handler (Display * disp, XErrorEvent * event)
 int
 main (int argc, char **argv)
 {
-  char *display_name = NULL;
   int retval = 0;
   XEvent Event;
   fd_set in_fdset;

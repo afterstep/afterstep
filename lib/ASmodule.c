@@ -41,6 +41,7 @@
 #include "../include/aftersteplib.h"
 #include "../include/module.h"
 
+char *display_name = NULL ;
 
 char *
 module_get_socket_property (Window w)
@@ -283,6 +284,7 @@ int
 ProcessModuleArgs (int argc, char **argv, char **global_config_file, unsigned long *app_window, unsigned long *app_context, void (*custom_usage_func) (void))
 {
   int i;
+  display_name = getenv( "DISPLAY" );
   for (i = 1; i < argc && *argv[i] == '-'; i++)
     {
       if (!strcmp (argv[i], "-h") || !strcmp (argv[i], "--help"))
@@ -291,6 +293,10 @@ ProcessModuleArgs (int argc, char **argv, char **global_config_file, unsigned lo
 	    custom_usage_func ();
 	  else
 	    exit (0);
+	}
+      else if (!strcmp (argv[i], "-d") || !strcmp (argv[i], "--display"))
+	{
+	  display_name = argv[++i] ;
 	}
       else if (!strcmp (argv[i], "-v") || !strcmp (argv[i], "--version"))
 	{

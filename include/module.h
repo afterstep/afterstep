@@ -34,6 +34,7 @@ module_t;
 extern int module_fd;
 extern int npipes;
 extern module_t *Module;
+extern char *display_name ;
 
 #define START_FLAG 0xffffffff
 

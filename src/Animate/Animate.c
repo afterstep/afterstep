@@ -512,7 +512,6 @@ main (int argc, char **argv)
   char *global_config_file = NULL;
   unsigned long color;
   XGCValues gcv;
-  char *display_name = NULL;
 
   /* Save our program name - for error messages */
   SetMyName (argv[0]);

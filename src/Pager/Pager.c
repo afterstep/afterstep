@@ -148,7 +148,7 @@ void
 usage (void)
 {
   printf ("Usage:\n"
-	  "%s [--version] [--help] n m\n"
+	  "%s [-d|--display display_name] [--version] [--help] n m\n"
 	  "%*s where desktops n through m are displayed\n"
 	  ,MyName, (int) strlen (MyName), MyName);
   exit (0);
@@ -165,7 +165,6 @@ main (int argc, char **argv)
 {
   int itemp, i;
   char *cptr;
-  char *display_name = NULL;
   char *global_config_file = NULL;
 
   /* explicitly initializing parameters before everything else */
@@ -177,7 +176,6 @@ main (int argc, char **argv)
   i = ProcessModuleArgs (argc, argv, &(global_config_file), NULL, NULL, usage);
   if (i == argc)
     usage ();
-
 
 #ifdef I18N
   if (setlocale (LC_ALL, AFTER_LOCALE) == NULL)
@@ -679,7 +677,10 @@ list_new_background (unsigned long *body)
 	  return;
 	}
       cmd = (char *) safemalloc (strlen (arg0) + 1 + 5 + 16 + 16);
-      sprintf (cmd, "%s -l %d %d", arg0, Pager.desk1, Pager.desk2);
+	  if( display_name == NULL ) 
+	      sprintf (cmd, "%s -l %d %d", arg0, Pager.desk1, Pager.desk2);
+	  else
+	      sprintf (cmd, "%s --display \"%s\" -l %d %d", arg0, display_name, Pager.desk1, Pager.desk2);
       BackgroundSetCommand (cmd);
       free (cmd);
       free (arg0);

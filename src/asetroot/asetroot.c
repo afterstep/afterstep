@@ -260,7 +260,6 @@ main (int argc, char **argv)
 {
   int i, desks[2] =
   {-1, -1}, curr_desk = 0;
-  char *display_name = NULL;
 
   set_use_tmp_heap (FALSE);
   /* it's too complicated to track when to purge pixmap cache in case

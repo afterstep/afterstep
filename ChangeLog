@@ -1,3 +1,10 @@
+ o Debugged background setting on multihead config. It apperas that 
+   asetroot cannot be run with -l if it is named other then asetroot.
+   Otherwise background selection from the menu does not work.
+ o Updated Clean to use ProcessModuleArgs. Added global var display_name
+   that is set to --display argument value or env var $DISPLAY 's value.
+   MOst modules must be updated to remove var with the same name from 
+   main().
  o Applied patch from Jan Fedak to add startup geometry to database 
    parameters.
  o Applied patch from Jan Fedak to fix hotkeys in menus.

@@ -19,6 +19,8 @@
 
 #define TRUE 1
 #define FALSE
+#define IN_MODULE
+#define MODULE_X_INTERFACE
 
 #include "../../configure.h"
 #ifdef ISC
@@ -39,7 +41,14 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stdlib.h>
+
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
 #include "../../include/aftersteplib.h"
+#include "../../include/afterstep.h"
+#include "../../include/style.h"
+#include "../../include/screen.h"
 #include "../../include/module.h"
 
 #include "Clean.h"
@@ -47,6 +56,7 @@
 char *MyName;
 Display *dpy;			/* which display are we talking to */
 int screen;
+ScreenInfo Scr;
 
 int fd_width;
 int fd[2];
@@ -86,74 +96,30 @@ usage (void)
 int
 main (int argc, char **argv)
 {
-  char configfile[255];
-  char *realconfigfile;
-  struct stat st;
-  char *temp;
   int i;
   char *global_config_file = NULL;
 
   /* Save our program name - for error messages */
-  temp = strrchr (argv[0], '/');
-  MyName = temp ? temp + 1 : argv[0];
-
-  for (i = 1; i < argc && *argv[i] == '-'; i++)
-    {
-      if (!strcmp (argv[i], "-h") || !strcmp (argv[i], "--help"))
-	usage ();
-      else if (!strcmp (argv[i], "-v") || !strcmp (argv[i], "--version"))
-	version ();
-      else if (!strcmp (argv[i], "-w") || !strcmp (argv[i], "--window"))
-	i++;
-      else if (!strcmp (argv[i], "-c") || !strcmp (argv[i], "--context"))
-	i++;
-      else if (!strcmp (argv[i], "-f") && i + 1 < argc)
-	global_config_file = argv[++i];
-    }
-
+  SetMyName (argv[0]);
+  i = ProcessModuleArgs (argc, argv, &(global_config_file), NULL, NULL, usage);
+  if (i == argc)
+    usage ();
+  
   /* Dead pipes mean AfterStep died */
   signal (SIGPIPE, DeadPipe);
 
-  if ((dpy = XOpenDisplay ("")) == NULL)
-    {
-      fprintf (stderr, "%s: couldn't open display %s\n",
-	       MyName, XDisplayName (""));
-      exit (1);
-    }
-  screen = DefaultScreen (dpy);
+  ConnectX (&Scr, display_name, 0);
+  screen = Scr.screen ;
 
   /* connect to AfterStep */
-  temp = module_get_socket_property (RootWindow (dpy, screen));
-  fd[0] = fd[1] = module_connect (temp);
-  XFree (temp);
-  if (fd[0] < 0)
-    {
-      fprintf (stderr, "%s: unable to establish connection to AfterStep\n", MyName);
-      exit (1);
-    }
-  temp = safemalloc (9 + strlen (MyName) + 1);
-  sprintf (temp, "SET_NAME %s", MyName);
-  SendInfo (fd, temp, None);
-  free (temp);
+  fd[0] = fd[1] = ConnectAfterStep (M_ADD_WINDOW |
+						M_CONFIGURE_WINDOW |
+						M_DESTROY_WINDOW |
+						M_FOCUS_CHANGE |
+						M_END_WINDOWLIST);
 
   /* scan config file for set-up parameters */
-
-  if (global_config_file != NULL)
-    ParseOptions (global_config_file);
-  else
-    {
-      sprintf (configfile, "%s/clean", AFTER_DIR);
-      realconfigfile = PutHome (configfile);
-
-      if ((stat (realconfigfile, &st) == -1) || (st.st_mode & S_IFMT) != S_IFREG)
-	{
-	  free (realconfigfile);
-	  sprintf (configfile, "%s/clean", AFTER_SHAREDIR);
-	  realconfigfile = PutHome (configfile);
-	}
-      ParseOptions (realconfigfile);
-      free (realconfigfile);
-    }
+  LoadConfig (global_config_file, "clean", ParseOptions);
 
   if (num_commands == 0)
     {
