@@ -20,6 +20,7 @@
  */
 
 /*#define DO_CLOCKING      */
+#define LOCAL_DEBUG
 
 #include "../configure.h"
 
@@ -148,7 +149,9 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 	if( (type&WINDOW_NAME_MASK) )
 	{/* read in the name */
 		char **dst = NULL ;
-		char *new_name = (char*)&(data[3]);
+        unsigned long *pbuf = &(data[3]);
+        char *new_name = deserialize_string( &pbuf, NULL );
+LOCAL_DEBUG_OUT( "name received \"%s\"", new_name );
 		switch(type)
 		{
 			case M_WINDOW_NAME : dst = &(wd->window_name); break;
@@ -156,43 +159,23 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 			case M_RES_CLASS   : dst = &(wd->res_class); break;
 			case M_RES_NAME    : dst = &(wd->res_name ); break;
 			default :
-				return WP_Error ;
+                free( new_name );
+                return WP_Error ;
 		}
 		if( *dst )
 		{
 			if( strcmp(*dst, new_name ) == 0 )
+            {
+                free( new_name );
 				return WP_Handled ;
+            }
 			free( *dst );
 		}
-		*dst = mystrdup( new_name );
+        *dst = new_name ;
 		return WP_DataChanged ;
 	}
 
-	if( (type&WINDOW_ICON_MASK) )
-	{ /* read in the icon data */
-		if( !wd->iconic && type!=M_ICONIFY )
-			return WP_Handled ; /* redundand deiconify */
-
-		if( (wd->iconic?1:0) != ((type == M_ICONIFY)?1:0) )
-			res = WP_DataChanged ;
-
-		wd->iconic = (type == M_ICONIFY);
-		if( wd->iconic )
-		{
-			if( data[3] == wd->icon_rect.x &&
-				data[4] == wd->icon_rect.y &&
-				data[5] == wd->icon_rect.width &&
-				data[6] == wd->icon_rect.height )
-				return res ;
-			wd->icon_rect.x = data[3] ;
-			wd->icon_rect.y = data[4] ;
-			wd->icon_rect.width = data[5] ;
-			wd->icon_rect.height = data[6] ;
-		}
-		return res ;
-	}
-
-	/* otherwise we need to read full config */
+    /* otherwise we need to read full config */
 #define CHECK_CHANGE_VAL(v,n,r) do{if((v)!=(n)){(r)=WP_DataChanged;(v)=(n);};}while(0)
 	CHECK_CHANGE_VAL(wd->frame_rect.x		,data[3],res);
 	CHECK_CHANGE_VAL(wd->frame_rect.y		,data[4],res);
@@ -201,19 +184,21 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 	CHECK_CHANGE_VAL(wd->desk				,data[7],res);
     CHECK_CHANGE_VAL(wd->state_flags        ,data[8],res);
     CHECK_CHANGE_VAL(wd->flags              ,data[9],res);
-    CHECK_CHANGE_VAL(wd->tbar_height        ,data[10],res);
-    CHECK_CHANGE_VAL(wd->sbar_height        ,data[11],res);
-    CHECK_CHANGE_VAL(wd->hints.base_width   ,data[12],res);
-    CHECK_CHANGE_VAL(wd->hints.base_height  ,data[13],res);
-    CHECK_CHANGE_VAL(wd->hints.width_inc    ,data[14],res);
-    CHECK_CHANGE_VAL(wd->hints.height_inc   ,data[15],res);
-    CHECK_CHANGE_VAL(wd->hints.min_width    ,data[16],res);
-    CHECK_CHANGE_VAL(wd->hints.min_height   ,data[17],res);
-    CHECK_CHANGE_VAL(wd->hints.max_width    ,data[18],res);
-    CHECK_CHANGE_VAL(wd->hints.max_height   ,data[19],res);
-    CHECK_CHANGE_VAL(wd->icon_title         ,data[20],res);
-    CHECK_CHANGE_VAL(wd->icon               ,data[21],res);
-    CHECK_CHANGE_VAL(wd->hints.win_gravity  ,data[22],res);
+    CHECK_CHANGE_VAL(wd->hints.base_width   ,data[10],res);
+    CHECK_CHANGE_VAL(wd->hints.base_height  ,data[11],res);
+    CHECK_CHANGE_VAL(wd->hints.width_inc    ,data[12],res);
+    CHECK_CHANGE_VAL(wd->hints.height_inc   ,data[13],res);
+    CHECK_CHANGE_VAL(wd->hints.min_width    ,data[14],res);
+    CHECK_CHANGE_VAL(wd->hints.min_height   ,data[15],res);
+    CHECK_CHANGE_VAL(wd->hints.max_width    ,data[16],res);
+    CHECK_CHANGE_VAL(wd->hints.max_height   ,data[17],res);
+    CHECK_CHANGE_VAL(wd->hints.win_gravity  ,data[18],res);
+    CHECK_CHANGE_VAL(wd->icon_title         ,data[19],res);
+    CHECK_CHANGE_VAL(wd->icon               ,data[20],res);
+    CHECK_CHANGE_VAL(wd->icon_rect.x        ,data[21],res);
+    CHECK_CHANGE_VAL(wd->icon_rect.y        ,data[22],res);
+    CHECK_CHANGE_VAL(wd->icon_rect.width    ,data[23],res);
+    CHECK_CHANGE_VAL(wd->icon_rect.height   ,data[24],res);
 
 	/* returning result : */
 	res = (*pdata != wd)?WP_DataCreated:res ;

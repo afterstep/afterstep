@@ -977,34 +977,39 @@ mystyle_find_or_default (const char *name)
  *   inherit if the parent style could go away before the child
  */
 void
+mystyle_merge_font( MyStyle *style, MyFont *font, Bool override, Bool copy)
+{
+    if ((override == True) && (style->user_flags & F_FONT))
+        unload_font (&style->font);
+    if ((override == True) || !(style->set_flags & F_FONT))
+    {
+        if (copy == False)
+        {
+#ifdef I18N
+            load_font (font->name, &style->font);
+#else
+            style->font = *font;
+#endif
+            style->user_flags &= ~F_FONT;
+            style->inherit_flags |= F_FONT;
+        } else
+        {
+            if (load_font (font->name, &style->font) == True)
+            {
+                style->user_flags |= F_FONT;
+                style->inherit_flags &= ~F_FONT;
+            }
+        }
+    }
+}
+
+void
 mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool copy)
 {
 	if (parent->set_flags & F_FONT)
-	{
-		if ((override == True) && (child->user_flags & F_FONT))
-			unload_font (&child->font);
-		if ((override == True) || !(child->set_flags & F_FONT))
-		{
-			if (copy == False)
-			{
-#ifdef I18N
-				load_font (parent->font.name, &child->font);
-#else
-				child->font = parent->font;
-#endif
-				child->user_flags &= ~F_FONT;
-				child->inherit_flags |= F_FONT;
-			} else
-			{
-				if (load_font (parent->font.name, &child->font) == True)
-				{
-					child->user_flags |= F_FONT;
-					child->inherit_flags &= ~F_FONT;
-				}
-			}
-		}
-	}
-	if (parent->set_flags & F_TEXTSTYLE)
+        mystyle_merge_font( child, &(parent->font), override, copy);
+
+    if (parent->set_flags & F_TEXTSTYLE)
 	{
 		if ((override == True) || !(child->set_flags & F_TEXTSTYLE))
 		{
@@ -1627,7 +1632,7 @@ mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back,
 }
 
 void
-mystyle_merge_font (MyStyle * style, MyFont * font)
+mystyle_inherit_font (MyStyle * style, MyFont * font)
 {
 	/* NOTE: these should have inherit_flags set, so the font is only
 	 *       unloaded once */

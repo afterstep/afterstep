@@ -471,22 +471,22 @@ merge_old_look_variables (MyLook *look)
             exit(1);
         else
             for( i = MENU_BACK_ITEM ; i < MENU_BACK_STYLES ; ++i )
-                mystyle_merge_font (look->MSMenu[i], &StdFont);
+                mystyle_inherit_font (look->MSMenu[i], &StdFont);
     }
 	if (Windowfont != NULL)
 	{
         if (load_font (Windowfont, &WindowFont) == False)
             exit(1);
         for( i = 0 ; i < BACK_STYLES ; ++i )
-            mystyle_merge_font (look->MSWindow[i], &WindowFont);
-        mystyle_merge_font (look->MSMenu[MENU_BACK_TITLE], &WindowFont);
+            mystyle_inherit_font (look->MSWindow[i], &WindowFont);
+        mystyle_inherit_font (look->MSMenu[MENU_BACK_TITLE], &WindowFont);
 	}
 	if (Iconfont != NULL)
 	{
         if (load_font (Iconfont, &IconFont) == False)
             exit (1);
         for( i = 0 ; i < BACK_STYLES ; ++i )
-            mystyle_merge_font (button_styles[i], &IconFont);
+            mystyle_inherit_font (button_styles[i], &IconFont);
     }
 	/* the text type */
     if (TitleTextType != 0)

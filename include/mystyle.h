@@ -235,6 +235,7 @@ MyStyle *mystyle_new_with_name (char *name);
 void mystyle_list_destroy_all( ASHashTable **plist );
 void mystyle_destroy_all();
 
+void mystyle_merge_font( MyStyle *style, MyFont *font, Bool override, Bool copy);
 void mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool copy);
 
 MyStyle *mystyle_list_find (struct ASHashTable *list, const char *name);
@@ -247,7 +248,7 @@ void mystyle_parse (char *tline, FILE * fd, char **junk, int *junk2);
 int mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath);
 void mystyle_parse_set_style (char *text, FILE * fd, char **style, int *junk2);
 int mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient *gradient);
-void mystyle_merge_font (MyStyle * style, struct MyFont * font);
+void mystyle_inherit_font (MyStyle * style, struct MyFont * font);
 void mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back, char *gradient, char *pixmap);
 
 void set_func_arg (char *text, FILE * fd, char **value, int *junk);

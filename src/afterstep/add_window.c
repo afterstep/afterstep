@@ -1698,7 +1698,7 @@ LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d", asw, iconify );
     if( (iconify?1:0) == (ASWIN_GET_FLAGS(asw, AS_Iconic )?1:0) )
         return False;
 
-    broadcast_status_change( iconify?M_ICONIFY:M_DEICONIFY, asw );
+    broadcast_config(M_CONFIGURE_WINDOW, asw );
 
     if( iconify )
     {

@@ -1020,16 +1020,6 @@ send_aswindow_data_iter_func(void *data, void *aux_data)
     SendString (module, M_ICON_NAME, asw->w, asw->frame, (unsigned long)asw, asw->hints->icon_name);
     SendString (module, M_RES_CLASS, asw->w, asw->frame, (unsigned long)asw, asw->hints->res_class);
     SendString (module, M_RES_NAME,  asw->w, asw->frame, (unsigned long)asw, asw->hints->res_name);
-
-    if (ASWIN_GET_FLAGS(asw,AS_Iconic))
-    {
-        ASCanvas *ic = asw->icon_canvas?asw->icon_canvas:asw->icon_title_canvas ;
-        if( ic != NULL )
-            SendPacket (module, M_ICONIFY, 7, asw->w, asw->frame,
-                        (unsigned long)asw, ic->root_x, ic->root_y, ic->width, ic->height);
-        else
-            SendPacket (module, M_ICONIFY, 7, asw->w, asw->frame, (unsigned long)asw, 0, 0, 0, 0);
-    }
     return True;
 }
 

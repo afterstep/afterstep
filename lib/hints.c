@@ -2394,7 +2394,7 @@ serialize_string (char *string, ASVector * buf)
 		ptr = VECTOR_TAIL (CARD32, *buf);
 		VECTOR_USED (*buf) += i + 1;
 		ptr[0] = i + 1;
-		ptr++;
+        ++ptr;
 		if (string == NULL)
 		{
 			ptr[0] = 0;
@@ -2403,18 +2403,21 @@ serialize_string (char *string, ASVector * buf)
 		src = &(string[i << 2]);
 		/* unrolling loop here : */
 		ptr[i] = src[0];
-		if (src[1])
-		{									   /* we don't really want to use bitwise operations */
-			/* so we get "true" number and later can do ENDIANNES transformations */
-			ptr[i] += 0x0FF * (CARD32) src[1];
-			if (src[2])
-				ptr[i] += 0x0FFFF * (CARD32) src[2];
-		}
+        if( src[0] )
+        {
+            if (src[1])
+            {   /* we don't really want to use bitwise operations */
+                /* so we get "true" number and later can do ENDIANNES transformations */
+                ptr[i] |=  ((CARD32)src[1]) <<8 ;
+                if (src[2])
+                    ptr[i] |= ((CARD32) src[2])<<16;
+            }
+        }
 		while (--i >= 0)
 		{
 			src -= 4;
 			ptr[i] =
-				(CARD32) src[0] + 0x0FFL * (CARD32) src[1] + 0x0FFFFL * (CARD32) src[2] + 0x0FFFFFFL * (CARD32) src[3];
+                ((CARD32) src[0]) | ((CARD32) src[1]<<8) |((CARD32) src[2]<<16)|((CARD32) src[3]<<24);
 		}
 	}
 }
@@ -2571,23 +2574,26 @@ deserialize_string (CARD32 ** pbuf, size_t * buf_size)
 	register int  i;
 	register char *str;
 
-	if (*pbuf == NULL || *buf_size < 2)
+    if (*pbuf == NULL )
 		return NULL;
+    if( buf_size && *buf_size < 2)
+        return NULL;
 	len = buf[0];
-	if (len > *buf_size + 1)
+    if( buf_size && len > *buf_size + 1)
 		return NULL;
 	buf++;
 	str = string = safemalloc (len << 2);
 	for (i = 0; i < len; i++)
 	{
-		str[0] = buf[i] % 0x0FFL;
-		str[1] = (buf[i] % 0x0FFFFL) >> 8;
-		str[2] = (buf[i] % 0x0FFFFFFL) >> 16;
-		str[3] = buf[i] >> 24;
+        str[0] = (buf[i] & 0x0FF);
+        str[1] = (buf[i] >> 8)&0x0FF;
+        str[2] = (buf[i] >> 16)&0x0FF;
+        str[3] = (buf[i] >> 24)&0x0FF;
 		str += 4;
 	}
 
-	*buf_size -= len;
+    if( buf_size )
+        *buf_size -= len;
 	*pbuf += len;
 
 	return string;

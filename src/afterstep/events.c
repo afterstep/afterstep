@@ -853,7 +853,7 @@ HandleMapNotify ( ASEvent *event )
         XMapWindow (dpy, asw->frame);
 	}
 
-    broadcast_status_change( ASWIN_GET_FLAGS(asw, AS_Iconic)?M_DEICONIFY:M_MAP, asw );
+    broadcast_config( M_MAP, asw );
 
     if (get_flags( Scr.Feel.flags, ClickToFocus) )
         focus_aswindow (asw, False);

@@ -66,6 +66,9 @@ typedef struct ASPagerDesk {
     Window     *separator_bars;                /* (rows-1)*(columns-1) */
     unsigned int separator_bars_num ;
     unsigned int title_width, title_height;
+
+    ASWindowData **clients ;
+    unsigned int   clients_num ;
 }ASPagerDesk;
 
 typedef struct ASPagerState
@@ -95,6 +98,9 @@ typedef struct ASPagerState
 
 ASPagerState PagerState ={ 0, NULL, NULL, NULL, 0, 0 };
 #define DEFAULT_BORDER_COLOR 0xFF808080
+
+/* Storing window list as hash table hashed by client window ID :     */
+ASHashTable *PagerClients = NULL;
 
 PagerConfig *Config = NULL;
 
@@ -197,13 +203,10 @@ main (int argc, char **argv)
                                             M_NEW_PAGE |
                                             M_NEW_DESK |
                                             M_NEW_BACKGROUND |
-                                            M_RAISE_WINDOW |
-                                            M_LOWER_WINDOW |
-                                            M_ICONIFY |
-                                            M_ICON_LOCATION |
-                                            M_DEICONIFY |
+                                            M_WINDOW_NAME |
                                             M_ICON_NAME |
-                                            M_END_WINDOWLIST);
+                                            M_END_WINDOWLIST|
+                                            M_STACKING_ORDER);
 
     Config = CreatePagerConfig (PagerState.desks_num);
 
@@ -390,6 +393,19 @@ CheckConfigSanity()
         if( (Scr.Look.MSWindow[i] = mystyle_find( buf )) == NULL )
             Scr.Look.MSWindow[i] = mystyle_find_or_default( default_window_style_name[i] );
     }
+
+    if( Config->small_font_name )
+    {
+        MyFont small_font ;
+        if( load_font (Config->small_font_name, &small_font) )
+        {
+            mystyle_merge_font( Scr.Look.MSWindow[0], &small_font, True, False );
+            for( i = 1 ; i < BACK_STYLES ; ++i )
+                if( Scr.Look.MSWindow[i] )
+                    mystyle_merge_font( Scr.Look.MSWindow[i], &small_font, True, True );
+        }
+    }
+
     for( i = 0 ; i < DESK_STYLES ; ++i )
     {
         static char *desk_style_names[DESK_STYLES] ={"*%sActiveDesk", "*%sInActiveDesk" };
@@ -398,6 +414,7 @@ CheckConfigSanity()
         Config->MSDeskTitle[i] = mystyle_find_or_default( buf );
 LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, Config->MSDeskTitle[i], Config->MSDeskTitle[i]->name, Config->MSDeskTitle[i]->colors.fore, Config->MSDeskTitle[i]->colors.back );
     }
+
     if( Config->MSDeskBack == NULL )
         Config->MSDeskBack = safecalloc( PagerState.desks_num, sizeof(MyStyle*));
     for( i = 0 ; i < PagerState.desks_num ; ++i )
@@ -769,6 +786,62 @@ get_pager_desk( int desk )
 }
 
 void
+restack_desk_windows( ASPagerDesk *d )
+{
+    Window *list, *curr ;
+    int win_count = 0 ;
+    int i ;
+    if( d == NULL )
+        return;
+
+    win_count = d->clients_num ;
+    if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
+        win_count += 4 ;
+    if( get_flags(Config->flags, PAGE_SEPARATOR) )
+        win_count += d->separator_bars_num ;
+
+    if( win_count <= 1 )
+        return ;
+
+    curr = list = safecalloc( win_count, sizeof(Window));
+
+    if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
+    {
+        for( i = 0 ; i < 4 ; ++i )
+            curr[i] = PagerState.selection_bars[i] ;
+        curr += 4 ;
+    }
+    if( get_flags(Config->flags, PAGE_SEPARATOR) )
+    {
+        register Window *sbars = d->separator_bars;
+        i = d->separator_bars_num ;
+        while( --i >= 0 )
+            curr[i] = sbars[i] ;
+        curr += d->separator_bars_num ;
+    }
+
+    if( d->clients_num > 0 )
+    {
+        register ASWindowData **clients = d->clients ;
+        i = d->clients_num ;
+        while( --i >= 0 )
+        {
+            if( clients[i] )
+                curr[i] = clients[i]->canvas->w ;
+            else
+            {
+                --curr ;
+                --win_count ;
+            }
+        }
+    }
+
+    XRaiseWindow( dpy, list[0] );
+    XRestackWindows( dpy, list, win_count );
+}
+
+
+void
 place_selection()
 {
      ASPagerDesk *sel_desk ;
@@ -797,8 +870,7 @@ LOCAL_DEBUG_OUT( "sel_pos(%+d%+d)->page_size(%dx%d)->desk(%d)", sel_x, sel_y, pa
             XMoveResizeWindow( dpy, PagerState.selection_bars[3], sel_x+page_width+1, sel_y-1, 1, page_height+2 );
         }
 
-        XRaiseWindow( dpy, PagerState.selection_bars[0] );
-        XRestackWindows( dpy, PagerState.selection_bars, 4 );
+        restack_desk_windows( sel_desk );
         XMapSubwindows( dpy, sel_desk->desk_canvas->w );
     }
 }
@@ -1093,29 +1165,170 @@ shade_desk_row( ASPagerDesk *d, Bool shade )
 /*************************************************************************
  *
  *************************************************************************/
+void
+set_client_name( ASWindowData *wd, Bool redraw )
+{
+    if( wd->bar )
+        change_astbar_first_label( wd->bar, wd->window_name );
+    if( redraw && wd->canvas )
+        render_astbar( wd->bar, wd->canvas );
+}
+
+void
+place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw )
+{
+    int x = 0, y = 0, width = 1, height = 1;
+    int curr_x, curr_y ;
+    int desk_width = d->background->width ;
+    int desk_height = d->background->height ;
+
+LOCAL_DEBUG_OUT( "+PLACE->client(%lX)->frame_geom(%dx%d%+d%+d)", wd->client, wd->frame_rect.width, wd->frame_rect.height, wd->frame_rect.x, wd->frame_rect.y );
+    x = ( wd->frame_rect.x * desk_width )/PagerState.vscreen_width ;
+    y = ( wd->frame_rect.y * desk_height)/PagerState.vscreen_height;
+    width  = ( wd->frame_rect.width  * desk_width )/PagerState.vscreen_width ;
+    height = ( wd->frame_rect.height * desk_height)/PagerState.vscreen_height;
+    if( x < 0 )
+    {
+        width += x ;
+        x = 0 ;
+    }
+    if( y < 0 )
+    {
+        height += y ;
+        y = 0 ;
+    }
+    if( width <= 0 )
+        width = 1;
+    if( height <= 0 )
+        height = 1 ;
+
+    x += (int)d->background->win_x ;
+    y += (int)d->background->win_y ;
+
+    if( wd->canvas )
+    {
+        ASCanvas *canvas = wd->canvas ;
+        get_canvas_position( canvas, NULL, &curr_x, &curr_y );
+        if( curr_x == x && curr_y == y && width == canvas->width && height == canvas->height  )
+        {
+            if( force_redraw )
+            {
+                render_astbar( wd->bar, canvas );
+                update_canvas_display( canvas );
+            }
+        }else
+            moveresize_canvas( canvas, x, y, width, height );
+LOCAL_DEBUG_OUT( "+PLACE->canvas(%p)->geom(%dx%d%+d%+d)", wd->canvas, width, height, x, y );
+    }
+}
+
+void
+set_client_look( ASWindowData *wd, Bool redraw )
+{
+    if( wd->bar )
+    {
+        set_astbar_style_ptr( wd->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+        set_astbar_style_ptr( wd->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
+    }
+
+    if( redraw && wd->canvas )
+        render_astbar( wd->bar, wd->canvas );
+}
+
+void
+on_client_moveresize(ASWindowData *wd )
+{
+    if( handle_canvas_config( wd->canvas ) != 0 )
+    {
+        set_astbar_size( wd->bar, wd->canvas->width, wd->canvas->height );
+        render_astbar( wd->bar, wd->canvas );
+        update_canvas_display( wd->canvas );
+    }
+}
+
+Bool
+register_client( ASWindowData *wd )
+{
+    if( PagerClients == NULL )
+        PagerClients = create_ashash(0, NULL, NULL, NULL);
+
+    return (add_hash_item(PagerClients, AS_HASHABLE(wd->canvas->w), wd) == ASH_Success);
+}
+
+ASWindowData *
+fetch_client( Window w )
+{
+    ASWindowData *wd = NULL ;
+    if( PagerClients )
+        get_hash_item( PagerClients, AS_HASHABLE(w), (void**)&wd );
+    return wd ;
+}
+
+void
+unregister_client( Window w )
+{
+    if( PagerClients )
+        remove_hash_item( PagerClients, AS_HASHABLE(w), NULL, False );
+}
+
 void add_client( ASWindowData *wd )
 {
     ASPagerDesk *d = get_pager_desk( wd->desk );
+    Window w;
     XSetWindowAttributes attr ;
 
     if( d == NULL )
         return;
 
+    attr.event_mask = StructureNotifyMask ;
     /* create window, canvas and tbar : */
-    //wd->canvas =
+    w = create_visual_window( Scr.asv, d->desk_canvas->w, -1, -1, 1, 1, 0, InputOutput, CWEventMask, &attr );
+    if( w == None )
+        return;
 
+    wd->canvas = create_ascanvas( w );
+    wd->bar = create_astbar();
+
+    register_client( wd );
+
+    set_astbar_hilite( wd->bar, NORMAL_HILITE|NO_HILITE_OUTLINE );
+    add_astbar_label( wd->bar, 0, 0, 0, NO_ALIGN, NULL );
+    move_astbar( wd->bar, wd->canvas, 0, 0 );
+
+    set_client_name( wd, False);
+    set_client_look( wd, False );
+    place_client( d, wd, True );
+    map_canvas_window( wd->canvas, True );
+    LOCAL_DEBUG_OUT( "+CREAT->canvas(%p)->bar(%p)->client_win(%lX)", wd->canvas, wd->bar, wd->client );
 }
 
 void refresh_client( ASWindowData *wd )
 {
-
+    LOCAL_DEBUG_OUT( "client(%lX)->name(%s)->icon_name(%s)", wd->client, wd->window_name, wd->icon_name );
+    set_client_name( wd, True );
 }
 
 void delete_client( ASWindowData *wd )
 {
 
-
+    unregister_client( wd->canvas->w );
 }
+
+void
+change_desk_stacking( int desk, unsigned int clients_num, Window *clients )
+{
+    ASPagerDesk *d = get_pager_desk( desk );
+    int i ;
+    if( d == NULL )
+        return;
+
+    if( d->clients_num < clients_num )
+        d->clients = realloc( d->clients, clients_num*sizeof(ASWindowData*));
+    for( i = 0 ; i < clients_num ; ++i )
+        d->clients[i] = fetch_window_by_id( clients[i] );
+    restack_desk_windows( d );
+}
+
 
 /*************************************************************************
  * individuaL Desk manipulation
@@ -1126,6 +1339,7 @@ void delete_client( ASWindowData *wd )
 void
 process_message (unsigned long type, unsigned long *body)
 {
+    LOCAL_DEBUG_OUT( "received message %lX", type );
 	if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
@@ -1133,7 +1347,7 @@ process_message (unsigned long type, unsigned long *body)
 		WindowPacketResult res ;
 
 
-		show_progress( "message %X window %X data %p", type, body[0], wd );
+        show_progress( "message %lX window %X data %p", type, body[0], wd );
 		res = handle_window_packet( type, body, &wd );
         if( res == WP_DataCreated )
             add_client( wd );
@@ -1171,6 +1385,12 @@ process_message (unsigned long type, unsigned long *body)
                     place_selection();
                 }
                 break ;
+            case M_STACKING_ORDER :
+                {
+                    LOCAL_DEBUG_OUT("M_STACKING_ORDER(desk=%ld, clients_num=%ld)", body[0], body[1]);
+                    change_desk_stacking( body[0], body[1], &(body[2]) );
+                }
+                break ;
         }
     }
 }
@@ -1193,11 +1413,16 @@ DispatchEvent (ASEvent * event)
     switch (event->x.type)
     {
 	    case ConfigureNotify:
-            on_pager_window_moveresize( event->client, event->w,
-                                  event->x.xconfigure.x,
-                                  event->x.xconfigure.y,
-                                  event->x.xconfigure.width,
-                                  event->x.xconfigure.height );
+            if( (event->client = (ASWindow*)fetch_client( event->w )) != NULL )
+                on_client_moveresize( (ASWindowData*)event->client );
+            else
+            {
+                on_pager_window_moveresize( event->client, event->w,
+                                    event->x.xconfigure.x,
+                                    event->x.xconfigure.y,
+                                    event->x.xconfigure.width,
+                                    event->x.xconfigure.height );
+            }
             break;
         case ButtonPress:
             on_pager_pressure_changed( event->client, event->w,

@@ -25,6 +25,7 @@
 #include "../../include/hints.h"
 #include "../../include/screen.h"
 #include "../../include/decor.h"
+#include "../../include/module.h"
 #include "asinternals.h"
 
 /********************************************************************************/
@@ -359,6 +360,9 @@ restack_window_list( int desk )
             if( ASWIN_DESK(members[k]) == desk )
                 windows[windows_num++] = get_window_frame(members[k]);
     }
+
+    SendStackingOrder (-1, M_STACKING_ORDER, desk, ids);
+
     if( windows_num > 0 )
     {
         XRaiseWindow( dpy, windows[0] );

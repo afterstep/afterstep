@@ -330,6 +330,7 @@ DeleteQueueBuff (module_t *module)
     if ( a )
     {
         module->output_queue = a->next;
+LOCAL_DEBUG_OUT( "deleting buffer %p sent to module %p - next %p ", a, module, a->next );
         free (a->data);
         free (a);
     }
@@ -357,6 +358,7 @@ FlushQueue (module_t *module)
         {
             if( (bytes_written = write (fd, &dptr[curr->done], curr->size - curr->done)) > 0 )
                 curr->done += bytes_written ;
+            LOCAL_DEBUG_OUT( "wrote %d bytes into the module %p pipe", bytes_written, module );
         }while( curr->done < curr->size && bytes_written > 0);
 
 		/* the write returns EWOULDBLOCK or EAGAIN if the pipe is full.
@@ -388,8 +390,9 @@ static inline int
 PositiveWrite (unsigned int channel, send_data_type *ptr, int size)
 {
     module_t *module = &(MODULES_LIST[channel]);
-	register unsigned long mask = 0x01<<ptr[1] ;
+    register unsigned long mask = ptr[1] ;
 
+    LOCAL_DEBUG_OUT( "module(%p)->active(%d)->module_mask(0x%lX)->mask(0x%lX)", module, module->active, module->mask, mask );
     if (module->active < 0 || !get_flags(module->mask, mask))
 		return -1;
 
@@ -582,6 +585,7 @@ HandleModuleInOut(unsigned int channel, Bool has_input, Bool has_output)
     if( Modules && channel < MODULES_NUM )
     {
         register module_t *module = &(MODULES_LIST[channel]);
+LOCAL_DEBUG_OUT( "module %d has %s input and %s output", channel, has_input?"":"no", has_output?"":"no" );
         if( has_input )
         {
             res = HandleModuleInput( module );
@@ -651,11 +655,17 @@ SendConfig (int module, unsigned long event_type, ASWindow * t)
 {
     int frame_x = 0, frame_y = 0, frame_width = 0, frame_height = 0;
     Window icon_title_w = None, icon_pixmap_w = None ;
+    int icon_x = 0, icon_y = 0, icon_width = 0, icon_height = 0 ;
 
     if( t->frame_canvas )
     {
         frame_x = t->frame_canvas->root_x ;
         frame_y = t->frame_canvas->root_y ;
+        if( !ASWIN_GET_FLAGS(t, AS_Sticky) )
+        {
+            frame_x += t->status->viewport_x ;
+            frame_y += t->status->viewport_y ;
+        }
         frame_width = t->frame_canvas->width ;
         frame_height = t->frame_canvas->height ;
     }
@@ -665,14 +675,26 @@ SendConfig (int module, unsigned long event_type, ASWindow * t)
     if( t->icon_title_canvas && t->icon_title_canvas != t->icon_canvas )
         icon_title_w = t->icon_title_canvas->w ;
 
+    if (ASWIN_GET_FLAGS(t,AS_Iconic))
+    {
+        ASCanvas *ic = t->icon_canvas?t->icon_canvas:t->icon_title_canvas ;
+        if( ic != NULL )
+        {
+            icon_x = ic->root_x ;
+            icon_y = ic->root_y ;
+            icon_width = ic->width ;
+            icon_height = ic->height;
+        }
+    }
 
-    SendPacket (module, event_type, 24, t->w, t->frame, (unsigned long)t,
-                frame_x, frame_y, frame_width, frame_height,
-                ASWIN_DESK(t), t->status->flags, t->hints->flags, 0,
-				t->hints->base_width, t->hints->base_height, t->hints->width_inc,
-				t->hints->height_inc, t->hints->min_width, t->hints->min_height,
-                t->hints->max_width,  t->hints->max_height,
-                icon_title_w,         icon_pixmap_w, t->hints->gravity);
+    SendPacket (module, event_type, 25,
+                t->w,                 t->frame,              (unsigned long)t,
+                frame_x,              frame_y,               frame_width,         frame_height,
+                ASWIN_DESK(t),        t->status->flags,      t->hints->flags,
+                t->hints->base_width, t->hints->base_height, t->hints->width_inc, t->hints->height_inc,
+                t->hints->min_width,  t->hints->min_height,  t->hints->max_width,  t->hints->max_height,
+                t->hints->gravity,    icon_title_w,          icon_pixmap_w,
+                icon_x,               icon_y,                icon_width,           icon_height );
 }
 
 void
@@ -713,6 +735,25 @@ SendVector (int channel, unsigned long msg_type, ASVector *vector)
     SendBuffer( channel );
 }
 
+void
+SendStackingOrder (int channel, unsigned long msg_type, unsigned long desk, ASVector *ids)
+{
+    unsigned long data[2];
+
+    if (ids == NULL )
+		return;
+
+    flush_vector( &module_output_buffer );
+    append_vector( &module_output_buffer,
+                    make_msg_header(msg_type,VECTOR_USED(*ids)+2),
+                    MSG_HEADER_SIZE );
+    data[0] = desk ;
+    data[1] = VECTOR_USED(*ids);
+    append_vector( &module_output_buffer, &(data[0]), 2);
+    append_vector( &module_output_buffer, VECTOR_HEAD(CARD32,*ids), VECTOR_USED(*ids));
+
+    SendBuffer( channel );
+}
 
 /* this will run command received from module */
 void
@@ -851,13 +892,7 @@ broadcast_res_names( ASWindow *asw )
 void
 broadcast_status_change( int message, ASWindow *asw )
 {
-    if( message == M_DEICONIFY || message == M_ICONIFY )
-    {
-        ASRectangle geom = {INVALID_POSITION, INVALID_POSITION, 0, 0} ;
-        get_icon_root_geometry( asw, &geom );
-        SendPacket( -1, message, 7, asw->w, asw->frame, (unsigned long)asw,
-                    geom.x, geom.y, geom.width, geom.height);
-    }else if( message == M_MAP )
+    if( message == M_MAP )
         SendPacket( -1, M_MAP, 3, asw->w, asw->frame, (unsigned long)asw);
 }
 
