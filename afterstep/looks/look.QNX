@@ -177,7 +177,7 @@ MyStyle "*MonitorWharfTile"
 	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      InactiveText2
 	BackColor      Inactive2
-	BackPixmap     129 #7f7f7f
+	BackPixmap     149 Inactive2
 ~MyStyle
 
 #----------WinList MyStyles---------#

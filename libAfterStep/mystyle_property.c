@@ -222,7 +222,9 @@ mystyle_get_property (ASWMProps *wmprops)
 															  AllPlanes, False, 0);
 			}
 		}
-		if (style->back_icon.pix == None && style->texture_type != TEXTURE_TRANSPARENT)
+		if (style->back_icon.pix == None && 
+			style->texture_type != TEXTURE_TRANSPARENT && 
+			style->texture_type != TEXTURE_TRANSPARENT_TWOWAY)
 		{
 			if (style->inherit_flags & F_BACKPIXMAP)
 			{

@@ -148,69 +148,17 @@ DeadPipe (int nonsense)
 void
 CheckConfigSanity()
 {
-    int i ;
-    char *default_winlist_style = safemalloc( 1+strlen(MyName)+1);
-	default_winlist_style[0] = '*' ;
-	strcpy( &(default_winlist_style[1]), MyName );
+    char buf[256];
 
     if( Config == NULL )
-        Config = CreateWinListConfig ();
-
-    if( Config->max_rows > MAX_WINLIST_WINDOW_COUNT || Config->max_rows == 0  )
-        Config->max_rows = MAX_WINLIST_WINDOW_COUNT;
-
-    if( Config->max_columns > MAX_WINLIST_WINDOW_COUNT || Config->max_columns == 0  )
-        Config->max_columns = MAX_WINLIST_WINDOW_COUNT;
-
-    Config->gravity = NorthWestGravity ;
-    if( get_flags(Config->geometry.flags, XNegative) )
-        Config->gravity = get_flags(Config->geometry.flags, YNegative)? SouthEastGravity:NorthEastGravity;
-    else if( get_flags(Config->geometry.flags, YNegative) )
-        Config->gravity = SouthWestGravity;
-
-    Config->anchor_x = get_flags( Config->geometry.flags, XValue )?Config->geometry.x:0;
-    if( get_flags(Config->geometry.flags, XNegative) )
-        Config->anchor_x += Scr.MyDisplayWidth ;
-
-    Config->anchor_y = get_flags( Config->geometry.flags, YValue )?Config->geometry.y:0;
-    if( get_flags(Config->geometry.flags, YNegative) )
-        Config->anchor_y += Scr.MyDisplayHeight ;
+        Config = CreateIdentConfig ();
 
     mystyle_get_property (Scr.wmprops);
 
-    /* we better not do this to introduce ppl to new concepts in WinList : */
-#if 0
-    if( Config->focused_style == NULL )
-        Config->focused_style = mystrdup( default_winlist_style );
-    if( Config->unfocused_style == NULL )
-        Config->unfocused_style = mystrdup( default_winlist_style );
-    if( Config->sticky_style == NULL )
-        Config->sticky_style = mystrdup( default_winlist_style );
-#endif
-
-    Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find( Config->unfocused_style );
-    Scr.Look.MSWindow[BACK_FOCUSED] = mystyle_find( Config->focused_style );
-    Scr.Look.MSWindow[BACK_STICKY] = mystyle_find( Config->sticky_style );
-
-    for( i = 0 ; i < BACK_STYLES ; ++i )
-    {
-        static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","unfocused_window_style","sticky_window_style", NULL};
-        if( Scr.Look.MSWindow[i] == NULL )
-            Scr.Look.MSWindow[i] = mystyle_find( default_window_style_name[i] );
-        if( Scr.Look.MSWindow[i] == NULL )
-            Scr.Look.MSWindow[i] = mystyle_find_or_default( default_winlist_style );
-    }
-    free( default_winlist_style );
-
-#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-    PrintWinListConfig (Config);
-    Print_balloonConfig ( Config->balloon_conf );
-#endif
-    balloon_config2look( &(Scr.Look), Config->balloon_conf );
-    LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
-                    Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
-    set_balloon_look( Scr.Look.balloon_look );
-
+    sprintf( buf, "*%sTile", get_application_name() );
+    LOCAL_DEBUG_OUT("Attempting to use style \"%s\"", buf);
+    Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find_or_default( buf );
+    LOCAL_DEBUG_OUT("Will use style \"%s\"", Scr.Look.MSWindow[BACK_UNFOCUSED]->name);
 }
 
 
@@ -225,190 +173,113 @@ GetOptions (const char *filename)
 {
     int i ;
     START_TIME(option_time);
-    WinListConfig *config = ParseWinListOptions( filename, MyName );
-
-#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-    PrintWinListConfig (config);
-#endif
-    /* Need to merge new config with what we have already :*/
-    /* now lets check the config sanity : */
-    /* mixing set and default flags : */
-    Config->flags = (config->flags&config->set_flags)|(Config->flags & (~config->set_flags));
-    Config->set_flags |= config->set_flags;
-
-    Config->gravity = NorthWestGravity ;
-    if( get_flags(config->set_flags, WINLIST_Geometry) )
-        merge_geometry(&(config->geometry), &(Config->geometry) );
-
-    if( get_flags(config->set_flags, WINLIST_MinSize) )
-    {
-        Config->min_width = config->min_width;
-        Config->min_height = config->min_height;
-    }
-
-    if( get_flags(config->set_flags, WINLIST_MaxSize) )
-    {
-        Config->max_width = config->max_width;
-        Config->max_height = config->max_height;
-    }
-    if( get_flags(config->set_flags, WINLIST_MaxRows) )
-        Config->max_rows = config->max_rows;
-    if( get_flags(config->set_flags, WINLIST_MaxColumns) )
-        Config->max_columns = config->max_columns;
-    if( get_flags(config->set_flags, WINLIST_MaxColWidth) )
-        Config->max_col_width = config->max_col_width;
-    if( get_flags(config->set_flags, WINLIST_MinColWidth) )
-        Config->min_col_width = config->min_col_width;
-
-    if( config->unfocused_style )
-        set_string_value( &(Config->unfocused_style), mystrdup(config->unfocused_style), NULL, 0 );
-    if( config->focused_style )
-        set_string_value( &(Config->focused_style), mystrdup(config->focused_style), NULL, 0 );
-    if( config->sticky_style )
-        set_string_value( &(Config->sticky_style), mystrdup(config->sticky_style), NULL, 0 );
-
-    if( get_flags(config->set_flags, WINLIST_UseName) )
-        Config->show_name_type = config->show_name_type;
-    if( get_flags(config->set_flags, WINLIST_Align) )
-        Config->name_aligment = config->name_aligment;
-    if( get_flags(config->set_flags, WINLIST_FBevel) )
-        Config->fbevel = config->fbevel;
-    if( get_flags(config->set_flags, WINLIST_UBevel) )
-        Config->ubevel = config->ubevel;
-    if( get_flags(config->set_flags, WINLIST_SBevel) )
-        Config->sbevel = config->sbevel;
-
-    if( get_flags(config->set_flags, WINLIST_FCM) )
-        Config->fcm = config->fcm;
-    if( get_flags(config->set_flags, WINLIST_UCM) )
-        Config->ucm = config->ucm;
-    if( get_flags(config->set_flags, WINLIST_SCM) )
-        Config->scm = config->scm;
-
-    if( get_flags(config->set_flags, WINLIST_H_SPACING) )
-        Config->h_spacing = config->h_spacing;
-    if( get_flags(config->set_flags, WINLIST_V_SPACING) )
-        Config->v_spacing = config->v_spacing;
-
-    for( i = 0 ; i < MAX_MOUSE_BUTTONS ; ++i )
-        if( config->mouse_actions[i] )
-        {
-            destroy_string_list( Config->mouse_actions[i] );
-            Config->mouse_actions[i] = config->mouse_actions[i];
-        }
-
-    if( Config->balloon_conf )
-        Destroy_balloonConfig( Config->balloon_conf );
-    Config->balloon_conf = config->balloon_conf ;
-    config->balloon_conf = NULL ;
+    IdentConfig *config = ParseIdentOptions( filename, MyName );
 
     if (config->style_defs)
         ProcessMyStyleDefinitions (&(config->style_defs));
     SHOW_TIME("Config parsing",option_time);
 }
-
-
+/****************************************************************************/
+/* PROCESSING OF AFTERSTEP MESSAGES :                                       */
+/****************************************************************************/
 void
-ParseOptions (const char *filename)
+process_message (send_data_type type, send_data_type *body)
 {
-  FILE *file;
-  char *line, *tline;
-  int len;
-
-  file = fopen (filename, "r");
-  if (file != NULL)
-    {
-      line = (char *) safemalloc (MAXLINELENGTH);
-      len = strlen (MyName);
-      while ((tline = fgets (line, MAXLINELENGTH, file)) != NULL)
+    LOCAL_DEBUG_OUT( "received message %lX", type );
+	if( type == M_END_WINDOWLIST )
 	{
-	  while (isspace (*tline))
-	    tline++;
-	  if ((*tline == '*') && (!mystrncasecmp (tline + 1, MyName, len)))
-	    {
-	      tline += len + 1;
-	      if (!mystrncasecmp (tline, "Font", 4))
-        font_string = stripcpy(tline + 4);
-	      else if (!mystrncasecmp (tline, "Fore", 4))
-        ForeColor = stripcpy( tline + 4);
-	      else if (!mystrncasecmp (tline, "Back", 4))
-        BackColor = stripcpy( tline + 4);
-	    }
-	}
-      fclose (file);
-      free (line);
-    }
-}
-
-/**************************************************************************
- *
- * Read the entire window list from AfterStep
- *
- *************************************************************************/
-void
-Loop (int *fd)
-{
-  unsigned long header[3], *body;
-  int count;
-
-  while (1)
-    {
-      if ((count = ReadASPacket (fd[1], header, &body)) > 0)
+	}else if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
-	  process_message (header[1], body);
-	  free (body);
+		struct ASWindowData *wd = fetch_window_by_id( body[0] );
+        struct ASWindowData *saved_wd = wd ;
+        ASTBarData *tbar = wd?wd->bar:NULL;
+        WindowPacketResult res ;
+
+		show_progress( "message %X window %X data %p", type, body[0], wd );
+		res = handle_window_packet( type, body, &wd );
+		if( res == WP_DataCreated )
+        {
+        }else if( res == WP_DataChanged )
+		{	
+		}else if( res == WP_DataDeleted )
+		{	
+		}
 	}
-    }
 }
 
-
-/**************************************************************************
- *
- * Process window list messages
- *
- *************************************************************************/
 void
-process_message (unsigned long type, unsigned long *body)
+DispatchEvent (ASEvent * event)
 {
-  switch (type)
+    ASWindowData *pointer_wd = NULL ;
+
+    SHOW_EVENT_TRACE(event);
+
+    switch (event->x.type)
     {
-    case M_CONFIGURE_WINDOW:
-      list_configure (body);
-      break;
-    case M_WINDOW_NAME:
-      list_window_name (body);
-      break;
-    case M_ICON_NAME:
-      list_icon_name (body);
-      break;
-    case M_RES_CLASS:
-      list_class (body);
-      break;
-    case M_RES_NAME:
-      list_res_name (body);
-      break;
-    case M_END_WINDOWLIST:
-      list_end ();
-      break;
-    default:
-      break;
+	    case ConfigureNotify:
+            {
+                ASFlagType changes = handle_canvas_config( IdentState.main_canvas );
+                if( changes != 0 )
+                    set_root_clip_area( IdentState.main_canvas );
 
+                if( get_flags( changes, CANVAS_RESIZED ) )
+				{	
+                
+				}else if( changes != 0 )        /* moved - update transparency ! */
+                {
+					
+                   /*  int i ;
+                    	for( i = 0 ; i < Ident.windows_num ; ++i )
+                        	update_astbar_transparency( WinListState.window_order[i]->bar, WinListState.main_canvas, False );
+					*/
+                }
+            }
+	        break;
+        case ButtonPress:
+            break;
+        case ButtonRelease:
+			break;
+        case EnterNotify :
+        case LeaveNotify :
+        case MotionNotify :
+            break ;
+	    case ClientMessage:
+            if ((event->x.xclient.format == 32) &&
+                (event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
+			{
+                DeadPipe(0);
+			}
+	        break;
+	    case PropertyNotify:
+			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
+            if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
+            {
+                int i ;
+                LOCAL_DEBUG_OUT( "root background updated!%s","");
+                safe_asimage_destroy( Scr.RootImage );
+                Scr.RootImage = NULL ;
+				/*
+                for( i = 0 ; i < WinListState.windows_num ; ++i )
+                    if( update_astbar_transparency( WinListState.window_order[i]->bar, WinListState.main_canvas, True ) )
+						render_astbar( WinListState.window_order[i]->bar, WinListState.main_canvas );
+				 */
+		        if( is_canvas_dirty( IdentState.main_canvas ) )
+				{
+            		update_canvas_display( IdentState.main_canvas );
+					update_canvas_display_mask (IdentState.main_canvas, True);
+				}
+            }else if( event->x.xproperty.atom == _AS_STYLE )
+			{
+                int i ;
+				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
+				handle_wmprop_event (Scr.wmprops, &(event->x));
+				mystyle_list_destroy_all(&(Scr.Look.styles_list));
+				LoadColorScheme();
+				CheckConfigSanity();
+				/* now we need to update everything */
+			}
+			break;
     }
-}
-
-
-
-
-/***********************************************************************
- *
- * Detected a broken pipe - time to exit
- *
- **********************************************************************/
-void
-DeadPipe (int nonsense)
-{
-  freelist ();
-  exit (0);
 }
 
 /***********************************************************************

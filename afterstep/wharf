@@ -194,8 +194,11 @@
 
 *MonitorWharf afterstepdoc large/AfterStep3 Exec "-" afterstepdoc &
 *MonitorWharf xeyes - Swallow "xeyes" xeyes -geometry -100-100 &
-*MonitorWharf Recycler normal/Recycle Restart "" afterstep
-*MonitorWharf Quit normal/RedLight Quit "" afterstep
+
+*MonitorWharf QuitFolder normal/RedLight,dots/3_dots Folder
+*MonitorWharf 	Recycler normal/Recycle Restart "" afterstep
+*MonitorWharf 	Quit normal/Stopsign Quit "" afterstep
+*MonitorWharf ~Folder
 
 *MonitorWharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &
 *MonitorWharf loadmonitor - Swallow "asload" asload -shape &

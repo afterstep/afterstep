@@ -1884,7 +1884,7 @@ void DestroyAudioConfig (AudioConfig * config);
 typedef struct
 {
   MyStyleDefinition *style_defs;
-  FreeStorageElem *more_stuff;
+  struct FreeStorageElem *more_stuff;
 
 }
 IdentConfig;

@@ -811,7 +811,8 @@ make_desktop_image( int desk, MyBackground *new_back )
         int root_height = Scr.MyDisplayHeight ;
         ASImage *old_root = Scr.RootImage;
 
-        if( style->texture_type == TEXTURE_SOLID || style->texture_type == TEXTURE_TRANSPARENT ||
+        if( style->texture_type == TEXTURE_SOLID || 
+			style->texture_type == TEXTURE_TRANSPARENT ||
             style->texture_type == TEXTURE_TRANSPARENT_TWOWAY )
             root_width = root_height = 1 ;
         else if( style->texture_type == TEXTURE_PIXMAP || style->texture_type == TEXTURE_SHAPED_PIXMAP ||
