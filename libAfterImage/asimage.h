@@ -559,11 +559,13 @@ typedef struct ASGradient
  *********/
 /****f* libAfterImage/asimage/asimage_sta()
  * SYNOPSIS
- * void move_asimage_channel( ASImage *dst, ASImage *src, int channel );
+ * void move_asimage_channel( ASImage *dst, int channel_dst,
+ *                            ASImage *src, int channel_src );
  * INPUTS
- * dst     - ASImage which will have its channel substituted
- * src     - ASImage which will donate its channel to dst.
- * channel - what channel to move.
+ * dst         - ASImage which will have its channel substituted;
+ * channel_dst - what channel to move data to;
+ * src         - ASImage which will donate its channel to dst;
+ * channel_src - what source image channel to move data from.
  * DESCRIPTION
  * MOves channel data from one ASImage to another, while discarding
  * what was already in destination's channel.
@@ -604,7 +606,7 @@ typedef struct ASGradient
  *********/
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
-void move_asimage_channel( ASImage *dst, ASImage *src, int channel );
+void move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
 void destroy_asimage( ASImage **im );
 

@@ -180,16 +180,19 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 }
 
 void
-move_asimage_channel( ASImage *dst, ASImage *src, int channel )
+move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src )
 {
-	if( dst && src && channel >= 0 && channel < IC_NUM_CHANNELS )
+	if( dst && src && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
+		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
 		if( dst->width == src->width )
 		{
-			int i = MIN(dst->height, src->height);
+			register int i = MIN(dst->height, src->height);
+			register CARD8 **dst_rows = dst->channels[channel_dst] ;
+			register CARD8 **src_rows = src->channels[channel_src] ;
 			while( --i >= 0 )
 			{
-				dst->channels[channel][i] = src->channels[channel][i] ;
-				src->channels[channel][i] = NULL ;
+				dst_rows[i] = src_rows[i] ;
+				src_rows[i] = NULL ;
 			}
 		}
 }

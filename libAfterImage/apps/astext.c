@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 	int screen, depth ;
 	char *font_name = "test.ttf";
 	int size = 32 ;
-	char *text = "Smart Brown Dog jumps Over The Lazy Fox,\nand falls into the ditch.";
+	char *text = "Smart Brown Dog jumps\n Over The Lazy Fox,\n and falls into the ditch.";
 	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
 	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
 	char *fore_image_file = "fore.xpm", *back_image_file = "back.xpm" ;
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 		text_im = draw_text( text, font, type_3d, 0 );
 		if( fore_im )
 		{
-			move_asimage_channel( fore_im, text_im, IC_ALPHA );
+			move_asimage_channel( fore_im, IC_ALPHA, text_im, IC_ALPHA );
 			destroy_asimage( &text_im );
 		}else
 			fore_im = text_im ;
@@ -291,14 +291,23 @@ int main(int argc, char* argv[])
  * and same font manger can be used throughout entire application. It
  * contains information about used external libraries, hash of opened
  * fonts, and some other info.
+ *
+ * When ASFontManager is created it could be used to obtain actuall fonts.
+ * get_asfont() call is used to query cahce of the ASFontManager, to see
+ * if the font has been loaded already, and if not - then it will load
+ * the font and prepare it for drawing.
+ *
  * EXAMPLE
  *     if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
  *         font = get_asfont( fontman, font_name, 0, size, ASF_GuessWho);
  *     if( font == NULL )
  *     {
- *         show_error( "unable to load requested font \"%s\". Aborting.",
- *                     font_name );
- *         return 1;
+ *         font = get_asfont( fontman, "fixed", 0, size, ASF_GuessWho );
+ *         if( font == NULL )
+ *         {
+ *             show_error( "font \"fixed\" is not available either. Aborting.");
+ *             return 1;
+ *         }
  *     }
  *     ...
  *     destroy_font( font );
@@ -311,8 +320,13 @@ int main(int argc, char* argv[])
  * SYNOPSIS
  * Step 2. Approximating rendered text size.
  * DESCRIPTION
+ * Prior to actually drawing the text it is usefull to estimate the size
+ * of the image, that rendered text will occupy, So that window can be
+ * created of appropriate size, and othe interface elements laid out
+ * accordingly. get_text_size() could be used to obtain rendered text
+ * size without actually drawing it.
  * EXAMPLE
- *     get_text_size( text, font, &width, &height );
+ *     get_text_size( text, font, type_3d, &width, &height );
  *     if( fore_image_file )
  *     {
  *         ASImage *tmp = file2ASImage( fore_image_file, 0xFFFFFFFF,
@@ -321,30 +335,54 @@ int main(int argc, char* argv[])
  *         {
  *             if( tmp->width != width || tmp->height != height )
  *             {
- *                 fore_im = scale_asimage( asv, tmp, width, height,
- *                     False, 0, ASIMAGE_QUALITY_DEFAULT );
+ *                 if( scale_fore_image )
+ *                     fore_im = scale_asimage( asv, tmp, width, height,
+ *                                              ASA_ASImage, 0,
+ *                                              ASIMAGE_QUALITY_DEFAULT );
+ *                 else
+ *                     fore_im = tile_asimage( asv, tmp, 0, 0,
+ *                                             width, height, 0,
+ *                                             ASA_ASImage, 0,
+ *                                             ASIMAGE_QUALITY_DEFAULT );
  *                 destroy_asimage( &tmp );
  *             }else
  *                 fore_im = tmp ;
  *         }
  *     }
  * NOTES
+ * In this particular example we either tile or scale foreground texture
+ * to fit the text. In order to texturize the text  - we need to use
+ * rendered text as an alpha channel on texture image. That can easily
+ * be done only if both images are the same size.
  * SEE ALSO
- * get_text_size(), scale_asimage()
+ * get_text_size(), scale_asimage(), tile_asimage(), ASText.3
  ********/
 /****f* libAfterImage/tutorials/ASText.3 [7.3]
  * SYNOPSIS
  * Step 3. Rendering texturized text.
  * DESCRIPTION
+ * The most effective text texturization technique provided by
+ * libAfterImage consists of substitution of the alpha channel of the
+ * texture, with rendered text. That is possible since all the text is
+ * rendered into alpha channel only. move_asimage_channel() call is used
+ * to accomplish this operation. This call actually removes channel
+ * data from the original image and stores it in destination image. If
+ * there was something in destination image's channel  already - it will
+ * be destroyed.
+ * All kinds of nifty things could be done using this call, actually.
+ * Like, for example, rendered text can be moved into green channel of
+ * the texture, creating funky effect.
  * EXAMPLE
  *     text_im = draw_text( text, font, 0 );
  *     if( fore_im )
  *     {
- *         move_asimage_channel( fore_im, text_im, IC_ALPHA );
+ *         move_asimage_channel( fore_im, IC_ALPHA, text_im, IC_ALPHA );
  *         destroy_asimage( &text_im );
  *     }else
  *         fore_im = text_im ;
  * NOTES
+ * move_asimage_channel() will only work if both images have exactly the
+ * same size. It will do nothing otherwise.
  * SEE ALSO
  * draw_text(), move_asimage_channel()
  ********/
