@@ -561,8 +561,8 @@ ASImage2ico ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 Bool ASImage2gif( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
 {
 	START_TIME(started);
-	show_error( "I'm sorry but GIF image export is disabled due to stupid licensing issues. Blame UNISYS"):
- ÿÿÿSHOW_TIME("image export",started);
+	show_error( "I'm sorry but GIF image export is disabled due to stupid licensing issues. Blame UNISYS");
+    SHOW_TIME("image export",started);
 	return False ;
 }
 #else 			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
