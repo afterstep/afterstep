@@ -49,7 +49,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pwd.h>
-#include <dirent.h>
+/*#include <dirent.h>*/
 #include <sys/types.h>
 #include <sys/stat.h>
 

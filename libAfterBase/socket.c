@@ -26,14 +26,20 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <time.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
 #include <sys/file.h>
 #include <sys/stat.h>						   /* for chmod() */
 

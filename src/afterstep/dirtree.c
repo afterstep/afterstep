@@ -104,9 +104,9 @@ dirtree_delete (dirtree_t * tree)
 }
 
 int
-no_dots_except_include (struct dirent *e)
+no_dots_except_include (const char *d_name)
 {
-	return !(e->d_name[0] == '.' && mystrcasecmp (e->d_name, ".include"));
+	return !(d_name[0] == '.' && mystrcasecmp (d_name, ".include"));
 }
 
 char         *

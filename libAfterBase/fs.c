@@ -30,6 +30,29 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <limits.h>
+
+#if HAVE_DIRENT_H
+# include <dirent.h>
+# define NAMLEN(dirent) strlen((dirent)->d_name)
+#else
+# if HAVE_SYS_DIRENT_H
+#  include <dirent.h>
+#  define NAMLEN(dirent) strlen((dirent)->d_name)
+# else
+#  define dirent direct
+#  define NAMLEN(dirent) (dirent)->d_namlen
+#  if HAVE_SYS_NDIR_H
+#   include <sys/ndir.h>
+#  endif
+#  if HAVE_SYS_DIR_H
+#   include <sys/dir.h>
+#  endif
+#  if HAVE_NDIR_H
+#   include <ndir.h>
+#  endif
+# endif
+#endif
+
 /* Even if limits.h is included, allow PATH_MAX to sun unices */
 #ifndef PATH_MAX
 #define PATH_MAX 255
@@ -511,7 +534,7 @@ is_executable_in_path (const char *name)
  */
 int
 my_scandir (char *dirname, struct direntry *(*namelist[]),
-			int (*select) (struct dirent *), int (*dcomp) (struct direntry **, struct direntry **))
+			int (*select) (const char *), int (*dcomp) (struct direntry **, struct direntry **))
 {
 	DIR          *d;
 	struct dirent *e;						   /* Pointer to static struct inside readdir() */
@@ -548,7 +571,7 @@ my_scandir (char *dirname, struct direntry *(*namelist[]),
 
 	while ((e = readdir (d)) != NULL)
 	{
-		if ((select == NULL) || select (e))
+		if ((select == NULL) || select (&(e->d_name[0])))
 		{
 			/* add */
 			if (sizenl == n)

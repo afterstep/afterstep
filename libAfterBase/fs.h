@@ -4,7 +4,6 @@
 #include <time.h>
 
 #include <sys/types.h>
-#include <dirent.h>
 
 #if !defined(S_IFREG) || !defined(S_IFDIR)
 #include <sys/stat.h>
@@ -14,7 +13,7 @@
 extern "C" {
 #endif
 
-
+struct dirent;
 struct direntry
   {
     mode_t d_mode;		/* S_IFDIR if a directory */
@@ -24,7 +23,7 @@ struct direntry
 
 typedef int (*my_sort_f) (struct direntry ** d1, struct direntry ** d2);
 
-int my_scandir (char *, struct direntry *(*[]), int (*select) (struct dirent *),
+int my_scandir (char *, struct direntry *(*[]), int (*select) (const char *),
 		my_sort_f dcomp);
 int ignore_dots (struct dirent *e);
 
@@ -47,7 +46,7 @@ char   *put_file_home (const char *path_with_home);
 char   *find_file (const char *file, const char *pathlist, int type);
 int 	is_executable_in_path (const char *name);
 int		my_scandir (char *dirname, struct direntry *(*namelist[]),
-					int (*select) (struct dirent *),
+					int (*select) (const char *),
 					int (*dcomp) (struct direntry **, struct direntry **));
 
 #ifdef __cplusplus

@@ -2,7 +2,7 @@
  * Copyright (c) 1997 Frank Scheelen <scheelen@worldonline.nl>
  * Copyright (c) 1996 Alfredo Kengi Kojima (kojima@inf.ufrgs.br)
  * Copyright (c) 1996 Kaj Groner <kajg@mindspring.com>
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -24,7 +24,16 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 #include <string.h>
 
 #include <limits.h>

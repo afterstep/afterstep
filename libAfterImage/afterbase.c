@@ -190,8 +190,8 @@ asim_put_file_home (const char *path_with_home)
 	return str;
 }
 
-char* 
-asim_load_file(const char* realfilename) 
+char*
+asim_load_file(const char* realfilename)
 {
 	struct stat st;
 	FILE* fp;
@@ -465,14 +465,14 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 				register const char *ptr = &(color[0]);
 #ifndef X_DISPLAY_MISSING
 				XColor xcol, xcol_scr ;
-/* XXX Not sure if Scr.asv->colormap is always defined here.  If not, 
+/* XXX Not sure if Scr.asv->colormap is always defined here.  If not,
 ** change back to DefaultColormap(dpy,DefaultScreen(dpy)). */
 				if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), color, &xcol, &xcol_scr) )
 					*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
-#endif			
+#endif
 				while( !isspace((int)*ptr) && *ptr != '\0' ) ptr++;
 				return ptr;
-			}	
+			}
 		}
 	}
 	return color;
@@ -874,8 +874,15 @@ int XQueryColors(void* a,Colormap c,void* x,int m){return 0;}
 /***************************************/
 /* from sleep.c                        */
 /***************************************/
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
 #endif
 #include <sys/times.h>
 static clock_t _as_ticker_last_tick = 0;

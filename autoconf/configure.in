@@ -320,9 +320,8 @@ AC_C_BIGENDIAN
 AC_C_INLINE
 
 dnl# Check for headers
-AC_HEADER_DIRENT
 AC_HEADER_TIME
-AC_CHECK_HEADERS(sys/wait.h sys/time.h malloc.h stdlib.h)
+AC_CHECK_HEADERS(sys/wait.h malloc.h stdlib.h)
 
 dnl# Check for librplay for Audio
 
