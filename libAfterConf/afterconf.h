@@ -278,7 +278,7 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define MYFRAME_TitleBackground_ID      	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_LBL	)
 #define MYFRAME_RightSpacerBackground_ID 	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_RSPACER)
 #define MYFRAME_RightBtnBackground_ID   	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_RBTN	)
-#define MYFRAME_TitleBackground_ID_END	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACKS)
+#define MYFRAME_TitleBackground_ID_END      (MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACKS)
 
 #define MYFRAME_TitleBackgroundAlign_ID_START	(MYFRAME_TitleBackground_ID_END)
 #define MYFRAME_LeftBtnBackAlign_ID				(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_LBTN	)
@@ -286,7 +286,9 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define MYFRAME_TitleBackgroundAlign_ID 		(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_LBL	 )
 #define MYFRAME_RightSpacerBackAlign_ID 		(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_RSPACER)
 #define MYFRAME_RightBtnBackAlign_ID			(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_RBTN	 )
-#define MYFRAME_TitleBackgroundAlign_ID_END	(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACKS)
+#define MYFRAME_TitleBackgroundAlign_ID_END     (MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACKS)
+
+#define MYFRAME_CondenseTitlebar_ID             (MYFRAME_TitleBackgroundAlign_ID_END+1) 
 
 #define MYFRAME_ID_END      (MYFRAME_ID_START+64)
 
@@ -401,6 +403,7 @@ typedef struct MyFrameDefinition
     ASFlagType   title_align ;
 	ASFlagType   title_backs_align[MYFRAME_TITLE_BACKS];
     int          title_fcm, title_ucm, title_scm;
+    ASFlagType   condense_titlebar ;
 
     char       **inheritance_list ;
     int          inheritance_num ;

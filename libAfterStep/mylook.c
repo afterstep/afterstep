@@ -353,6 +353,7 @@ create_default_myframe(ASFlagType default_title_align)
     frame->title_fcm = TEXTURE_TRANSPIXMAP_ALPHA;
     frame->title_ucm = TEXTURE_TRANSPIXMAP_ALPHA;
     frame->title_scm = TEXTURE_TRANSPIXMAP_ALPHA;
+    frame->condense_titlebar = 0 ;
 
     frame->spacing = 1;
     return frame ;
@@ -412,6 +413,9 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleAlignSet ) )
             frame->title_align = ancestor->title_align;
 
+        if( get_flags( ancestor->set_title_attr, MYFRAME_CondenseTitlebarSet ) )
+            frame->condense_titlebar = ancestor->condense_titlebar;
+        
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFCMSet ) )
             frame->title_fcm = ancestor->title_fcm;
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUCMSet ) )

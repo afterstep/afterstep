@@ -987,6 +987,10 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	{  /* 9) now we have to setup titlebar buttons */
         ASFlagType title_align = frame->title_align ;
         ASFlagType btn_mask = compile_titlebuttons_mask (asw->hints);
+#ifdef SHAPE
+        if( get_flags( frame->condense_titlebar, ALIGN_LEFT|ALIGN_RIGHT )  )
+            ASWIN_SET_FLAGS( asw, AS_ShapedDecor );
+#endif
 
 		if( old_hints == NULL ||
  		    get_flags(old_hints->flags, AS_VerticalTitle) != ASWIN_HFLAGS(asw, AS_VerticalTitle) )

@@ -188,6 +188,8 @@ TermDef       MyFrameTerms[] = {
 	{TF_NO_MYNAME_PREPENDING, "TitleBackgroundAlign", 20,   TT_FLAG,         MYFRAME_TitleBackgroundAlign_ID, &AlignSyntax},
     {TF_NO_MYNAME_PREPENDING, "RightSpacerBackAlign", 20,   TT_FLAG,     MYFRAME_RightSpacerBackAlign_ID, &AlignSyntax},
     {TF_NO_MYNAME_PREPENDING, "RightBtnBackAlign", 17,      TT_FLAG,     MYFRAME_RightBtnBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "CondenseTitlebar", 16,       TT_FLAG,     MYFRAME_CondenseTitlebar_ID, &AlignSyntax},
+
 	{0, NULL, 0, 0, 0}
 };
 
@@ -611,6 +613,10 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                     case MYFRAME_TitleAlign_ID :
                         fd->title_align = ParseAlignOptions( options->sub );
                         set_flags( fd->set_title_attr, MYFRAME_TitleAlignSet );
+                        break;
+                    case MYFRAME_CondenseTitlebar_ID :
+                        fd->condense_titlebar = ParseAlignOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_CondenseTitlebarSet );
                         break;
                     default:
                         if (!ReadConfigItem (&item, options))

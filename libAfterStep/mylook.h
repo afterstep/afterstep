@@ -185,17 +185,21 @@ typedef struct MyFrame
 #define MYFRAME_TitleSCMSet         (0x01<<7)
 #define MYFRAME_TitleCMSet          (MYFRAME_TitleFCMSet|MYFRAME_TitleUCMSet|MYFRAME_TitleSCMSet)
 
-#define MYFRAME_TitleBackAlignSet_Start	(0x01<<8)
+#define MYFRAME_TitleBackAlignSet_Start     (0x01<<8)
 #define MYFRAME_TitleBackAlignSet_LBtn  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LBTN)
 #define MYFRAME_TitleBackAlignSet_LSpacer  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LSPACER)
 #define MYFRAME_TitleBackAlignSet_Lbl  		(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LBL)
 #define MYFRAME_TitleBackAlignSet_RSpacer  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_RSPACER)
 #define MYFRAME_TitleBackAlignSet_RBtn  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_RBTN)
-#define MYFRAME_TitleBackAlignSet_End	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACKS)
+#define MYFRAME_TitleBackAlignSet_End       (MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACKS)
+
+#define MYFRAME_CondenseTitlebarSet   (0x01<<16)
 
     ASFlagType   title_fbevel, title_ubevel, title_sbevel;
     unsigned int title_fcm, title_ucm, title_scm ;
     ASFlagType   title_align, title_backs_align[MYFRAME_TITLE_BACKS];
+
+    ASFlagType   condense_titlebar ;
 
 #define MYFRAME_HOR_MASK    ((0x01<<FR_N)|(0x01<<FR_S))
 #define MYFRAME_VERT_MASK   ((0x01<<FR_W)|(0x01<<FR_E))
