@@ -1,1 +1,1 @@
-Restart "Restart this session" afterstep
+Restart "Restart this session" afterstep -r
