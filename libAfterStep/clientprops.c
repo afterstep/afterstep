@@ -807,14 +807,16 @@ collect_hints (ScreenInfo * scr, Window w, ASFlagType what, ASRawHints * reusabl
 		{
 			while (props_num-- > 0)
 			{
-				if (get_hash_item (hint_handlers, (ASHashableValue) all_props[props_num], (void **)&descr) ==
-					ASH_Success)
-					if (descr != NULL)
+				ASHashData hdata = {0} ;
+				if (get_hash_item (hint_handlers, AS_HASHABLE(all_props[props_num]), &hdata.vptr) == ASH_Success)
+				{
+					if ((descr = hdata.vptr) != NULL)
 						if (get_flags (descr->hint_class, what) && descr->read_func != NULL)
 						{
 							descr->read_func (hints, w);
 							set_flags (hints->hints_types, (0x01 << descr->hint_type));
 						}
+				}
 			}
 			XFree (all_props);
 		}

@@ -663,7 +663,6 @@ create_xpm_image( ASXpmFile *xpm_file, int compression )
 static ARGB32
 lookup_xpm_color( char **colornames, ASHashTable *xpm_color_names )
 {
-    void *data = NULL ;
     ARGB32 color = 0;
 	register int key = 5 ;
 	do
@@ -671,12 +670,15 @@ lookup_xpm_color( char **colornames, ASHashTable *xpm_color_names )
 		if( colornames[key] )
 		{
 			if( *(colornames[key]) != '#' )
-                if( get_hash_item( xpm_color_names, (ASHashableValue)colornames[key], &data ) == ASH_Success )
+			{
+				ASHashData hdata ;
+                if( get_hash_item( xpm_color_names, AS_HASHABLE(colornames[key]), &hdata.vptr ) == ASH_Success )
 				{
-                    color = PTR2CARD32(data) ;
+                    color = hdata.c32 ;
 					LOCAL_DEBUG_OUT(" xpm color \"%s\" matched into 0x%lX", colornames[key], color );
 					break;
 				}
+			}
 			if( parse_argb_color( colornames[key], &color ) != colornames[key] )
 			{
 				LOCAL_DEBUG_OUT(" xpm color \"%s\" parsed into 0x%lX", colornames[key], color );
@@ -844,14 +846,14 @@ convert_xpm_scanline( ASXpmFile *xpm_file, unsigned int line )
 		while( --k >= 0 )
 		{
 			register int i = xpm_file->bpp;
-            void *hash_data = NULL ;
+            ASHashData hdata = {0} ;
             CARD32 c = 0;
 			while( --i >= 0 )
 				pixel[i] = data[i] ;
 			data -= xpm_file->bpp ;
-            get_hash_item( xpm_file->cmap_name_xref, (ASHashableValue)pixel, &hash_data );
+            get_hash_item( xpm_file->cmap_name_xref, AS_HASHABLE(pixel), &hdata.vptr );
             /* on 64 bit system we must do that since pointers are 64 bit */
-            c = PTR2CARD32(hash_data);
+            c = hdata.c32;
 			r[k] = ARGB32_RED8(c);
 			g[k] = ARGB32_GREEN8(c);
 			b[k] = ARGB32_BLUE8(c);

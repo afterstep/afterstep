@@ -59,8 +59,13 @@ get_iconbox( int desktop )
 			ib = Scr.default_icon_box ;
 		else
 			if( Scr.icon_boxes )
-                if( get_hash_item( Scr.icon_boxes, AS_HASHABLE(desktop), (void**)&ib ) != ASH_Success )
+			{
+				ASHashData hdata ;
+                if( get_hash_item( Scr.icon_boxes, AS_HASHABLE(desktop), &hdata.vptr ) != ASH_Success )
 					ib = NULL ;
+				else
+					ib = hdata.vptr ;
+			}
 		if( ib == NULL )
 		{
 			ib = safecalloc( 1, sizeof( ASIconBox ));

@@ -413,11 +413,12 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
 MyFrame *
 myframe_find( const char *name )
 {
-    MyFrame *frame = Scr.Look.DefaultFrame ;
+    ASHashData hdata;
+	hdata.vptr = Scr.Look.DefaultFrame ;
     if( name && Scr.Look.FramesList )
-        if( get_hash_item( Scr.Look.FramesList, AS_HASHABLE(name), (void**)&frame) != ASH_Success )
-            frame = Scr.Look.DefaultFrame ;
-    return frame ;
+        if( get_hash_item( Scr.Look.FramesList, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
+            return Scr.Look.DefaultFrame ;
+    return (MyFrame *)hdata.vptr ;
 }
 
 void
@@ -692,20 +693,22 @@ mylook_get_style(MyLook *look, const char *name)
 inline MyBackground *
 mylook_get_desk_back(MyLook *look, long desk)
 {
-    MyDesktopConfig *dc = NULL ;
 	MyBackground *myback = NULL ;
     if( look )
 	{
+		ASHashData hdata = {0} ;
 LOCAL_DEBUG_OUT( "looking for desk_config for dekstop %ld...", desk );
-		if( get_hash_item( look->desk_configs, AS_HASHABLE(desk), (void**)&dc) == ASH_Success )
+		if( get_hash_item( look->desk_configs, AS_HASHABLE(desk), &hdata.vptr) == ASH_Success )
 		{
+		    MyDesktopConfig *dc = hdata.vptr ;
 LOCAL_DEBUG_OUT( "found desk_config %p for dekstop %ld...", dc, desk );
 			if( dc->back_name )
 			{
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 				print_ashash( look->backs_list, string_print );
 #endif
-				get_hash_item( look->backs_list, AS_HASHABLE(dc->back_name), (void**)&myback);
+				if( get_hash_item( look->backs_list, AS_HASHABLE(dc->back_name), &hdata.vptr) == ASH_Success )
+					myback = hdata.vptr ;
 LOCAL_DEBUG_OUT( "found back %p for dekstop %ld with name \"%s\"...", myback, desk, dc->back_name );
 			}
 		}
@@ -716,9 +719,10 @@ LOCAL_DEBUG_OUT( "found back %p for dekstop %ld with name \"%s\"...", myback, de
 inline MyBackground *
 mylook_get_back(MyLook *look, char *name)
 {
-    MyBackground *myback = NULL ;
+    ASHashData hdata = {0};
     if( look && name )
-        get_hash_item( look->backs_list, AS_HASHABLE(name), (void**)&myback);
-    return myback ;
+        if( get_hash_item( look->backs_list, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
+			hdata.vptr = NULL ;
+    return (MyBackground *)hdata.vptr ;
 }
 

@@ -69,15 +69,15 @@ unregister_custom_color(const char* name)
 
 Bool
 get_custom_color(const char* name, CARD32 *color) {
-	void *value = NULL;
+	ASHashData hdata = {0} ;
 	if( custom_argb_colornames )
 	{
-      	if( get_hash_item(custom_argb_colornames, AS_HASHABLE(name), &value) != ASH_Success )
+      	if( get_hash_item(custom_argb_colornames, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
 		{
 			show_debug(__FILE__, "asvar_get", __LINE__, "Use of undefined variable [%s].", name);
 		}else
 		{
-			*color = (CARD32)value ;
+			*color = hdata.c32 ;
 			return True;
 		}
 	}

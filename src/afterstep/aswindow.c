@@ -145,11 +145,11 @@ destroy_aswindow_list( ASWindowList **list, Bool restore_root )
  *************************************************************************/
 ASWindow *window2ASWindow( Window w )
 {
-    ASWindow *asw = NULL ;
+	ASHashData hdata = {0} ;
     if( Scr.Windows->aswindow_xref )
-        if( get_hash_item( Scr.Windows->aswindow_xref, AS_HASHABLE(w), (void**)&asw ) == ASH_Success )
-            return asw;
-    return asw;
+        if( get_hash_item( Scr.Windows->aswindow_xref, AS_HASHABLE(w), &hdata.vptr ) != ASH_Success )
+            hdata.vptr = NULL;
+    return hdata.vptr;
 }
 
 Bool register_aswindow( Window w, ASWindow *asw )
@@ -226,7 +226,8 @@ get_aslayer( int layer, ASWindowList *list )
     if( list && list->layers )
     {
         ASHashableValue hlayer = AS_HASHABLE(layer);
-        if( get_hash_item( list->layers, hlayer, (void**)&l ) != ASH_Success )
+		ASHashData hdata = {0} ;
+        if( get_hash_item( list->layers, hlayer, &hdata.vptr ) != ASH_Success )
         {
             l = safecalloc( 1, sizeof(ASLayer));
             if( add_hash_item( list->layers, hlayer, l ) == ASH_Success )
@@ -240,7 +241,8 @@ get_aslayer( int layer, ASWindowList *list )
                 LOCAL_DEBUG_OUT( "failed to add new layer %p(%d) to hash", l, layer );
                 l = NULL ;
             }
-        }
+        }else
+			l = hdata.vptr ;
     }
     return l;
 }
@@ -714,12 +716,12 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
     /* 2. do all the occlusion checks whithin our layer */
 	if (stack_mode == TopIf)
 	{
-		LOCAL_DEBUG_OUT( "stack_mode = %s", "TopIf");			
+		LOCAL_DEBUG_OUT( "stack_mode = %s", "TopIf");
         if (is_window_obscured (sibling, t))
 			occlusion = OCCLUSION_BELOW;
 	} else if (stack_mode == BottomIf)
 	{
-		LOCAL_DEBUG_OUT( "stack_mode = %s", "BottomIf");			
+		LOCAL_DEBUG_OUT( "stack_mode = %s", "BottomIf");
         if (is_window_obscured (t, sibling))
 			occlusion = OCCLUSION_ABOVE;
 	} else if (stack_mode == Opposite)
@@ -727,14 +729,14 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
         if (is_window_obscured (sibling, t))
 		{
 			occlusion = OCCLUSION_BELOW;
-			LOCAL_DEBUG_OUT( "stack_mode = opposite, occlusion = %s", "below");			
+			LOCAL_DEBUG_OUT( "stack_mode = opposite, occlusion = %s", "below");
         }else if (is_window_obscured (t, sibling))
 		{
 			occlusion = OCCLUSION_ABOVE;
 			LOCAL_DEBUG_OUT( "stack_mode = opposite, occlusion = %s", "above");
 		}else
 		{
-			LOCAL_DEBUG_OUT( "stack_mode = opposite, occlusion = %s","none" ); 
+			LOCAL_DEBUG_OUT( "stack_mode = opposite, occlusion = %s","none" );
 		}
 	}
 	if (sibling)
@@ -855,11 +857,11 @@ Bool
 focus_window( ASWindow *asw, Window w )
 {
     LOCAL_DEBUG_OUT( "focusing window %lX, client %lX, frame %lX, asw %p", w, asw->w, asw->frame, asw );
-  	if( asw != NULL ) 
+  	if( asw != NULL )
         if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus) && !ASWIN_GET_FLAGS(asw, AS_Dead))
             send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
 
-	if( w != None ) 		
+	if( w != None )
 	    XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
 
     XSync(dpy, False );
@@ -947,7 +949,7 @@ focus_aswindow( ASWindow *asw )
         show_warning( "unable to focus window %lX that is about to be unmapped for client %lX, frame %lX", w, asw->w, asw->frame );
     else
     {
-	
+
 		focus_window( asw, w );
 
         Scr.Windows->focused = asw ;

@@ -30,6 +30,7 @@
 #endif
 #include <stdarg.h>
 #include <math.h>
+#include <stdlib.h>
 
 
 #include "afterbase.h"

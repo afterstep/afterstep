@@ -131,29 +131,33 @@ asxml_var_init(void)
 }
 
 void
-asxml_var_insert(const char* name, int value) {
-      int* val = NULL;
+asxml_var_insert(const char* name, int value)
+{
+	ASHashData hdata;
 
-      if (!asxml_var) asxml_var_init();
-      if (!asxml_var) return;
+    if (!asxml_var) asxml_var_init();
+    if (!asxml_var) return;
 
-      /* Destroy any old data associated with this name. */
-      remove_hash_item(asxml_var, (ASHashableValue)name, NULL, 1);
+    /* Destroy any old data associated with this name. */
+    remove_hash_item(asxml_var, AS_HASHABLE(name), NULL, True);
 
-      show_progress("Defining var [%s] == %d.", name, value);
+    show_progress("Defining var [%s] == %d.", name, value);
 
-      val = NEW(int); *val = value;
-      add_hash_item(asxml_var, (ASHashableValue)mystrdup(name), val);
+    hdata.iptr = NEW(int); *(hdata.iptr) = value;
+    add_hash_item(asxml_var, AS_HASHABLE(mystrdup(name)), hdata.vptr);
 }
 
 int
-asxml_var_get(const char* name) {
-      int* value = NULL;
-      if (!asxml_var) asxml_var_init();
-      if (!asxml_var) return 0;
-      get_hash_item(asxml_var, (ASHashableValue)name, (void**)&value);
-			if (!value) show_debug(__FILE__, "asxml_var_get", __LINE__, "Use of undefined variable [%s].", name);
-      return value ? *value : 0;
+asxml_var_get(const char* name)
+{
+	ASHashData hdata = {0};
+
+    if (!asxml_var) asxml_var_init();
+    if (!asxml_var) return 0;
+    get_hash_item(asxml_var, AS_HASHABLE(name), &hdata.vptr);
+	if (!hdata.iptr)
+		show_debug(__FILE__, "asxml_var_get", __LINE__, "Use of undefined variable [%s].", name);
+    return hdata.iptr ? *hdata.iptr : 0;
 }
 
 int
@@ -1179,8 +1183,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (srcy_str) srcy = parse_math(srcy_str, NULL, height);
 			if (width_str) width = parse_math(width_str, NULL, width);
 			if (height_str) height = parse_math(height_str, NULL, height);
-			if (width > imtmp->width) width = imtmp->width;
-			if (height > imtmp->height) height = imtmp->height;
+			if (width > (int)imtmp->width) width = imtmp->width;
+			if (height > (int)imtmp->height) height = imtmp->height;
 			if (width > 0 && height > 0) {
 				result = tile_asimage(asv, imtmp, srcx, srcy, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 				safe_asimage_destroy(imtmp);
@@ -1529,7 +1533,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			result = create_asimage(width, height, ASIMAGE_QUALITY_TOP);
 			if( opacity < 0 ) opacity = 0 ;
 			else if( opacity > 100 )  opacity = 100 ;
-			a = opacity_set? (0x000000FF * opacity)/100: ARGB32_ALPHA8(color);
+			a = opacity_set? (0x000000FF * (CARD32)opacity)/100: ARGB32_ALPHA8(color);
 			r = ARGB32_RED8(color);
 			g = ARGB32_GREEN8(color);
 			b = ARGB32_BLUE8(color);
@@ -1709,13 +1713,13 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 						if( width < clip_width + x )
 							width = clip_width + x;
 					}else
-					 	if (width < layers[num].im->width) width = layers[num].im->width;
+					 	if (width < (int)(layers[num].im->width)) width = layers[num].im->width;
 					if( clip_height + y > 0 )
 					{
 						if( height < clip_height + y )
 							height = clip_height + y ;
 					}else
-						if (height < layers[num].im->height) height = layers[num].im->height;
+						if (height < (int)(layers[num].im->height)) height = layers[num].im->height;
 					num++;
 				}
 				if (sparm) xml_elem_delete(NULL, sparm);

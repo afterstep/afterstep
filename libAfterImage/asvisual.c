@@ -1267,8 +1267,13 @@ check_XImage_shared( XImage *xim )
 {
 	ASXShmImage *img_data = NULL ;
 	if( _as_use_shm_images )
-		if(get_hash_item( xshmimage_images, AS_HASHABLE(xim), (void**)&img_data ) != ASH_Success)
+	{
+		ASHashData hdata ;
+		if(get_hash_item( xshmimage_images, AS_HASHABLE(xim), &hdata.vptr ) != ASH_Success)
 			img_data = NULL ;
+		else
+			img_data = hdata.vptr ;
+	}
 	return img_data ;
 }
 
@@ -1737,13 +1742,13 @@ ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y, 
 		register CARD16 *src = (CARD16*)xim_data ;
 		do
 		{
-            void *hash_data = NULL ;
+            ASHashData hdata ;
             ARGB32 c ;
-            if( get_hash_item( asv->as_colormap_reverse.hash, (ASHashableValue)((unsigned long)src[i]), &hash_data ) != ASH_Success )
+            if( get_hash_item( asv->as_colormap_reverse.hash, AS_HASHABLE((unsigned long)src[i]), &hdata.vptr ) != ASH_Success )
 				query_pixel_color( asv, src[i], r+i, g+i, b+i );
 			else
 			{
-                c = PTR2CARD32(hash_data);
+                c = hdata.c32;
 				r[i] =  ARGB32_RED8(c);
 				g[i] =  ARGB32_GREEN8(c);
 				b[i] =  ARGB32_BLUE8(c);
@@ -1754,13 +1759,13 @@ ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y, 
 		do
 		{
 			unsigned long pixel = XGetPixel( xim, i, y );
-            void *hash_data = NULL ;
+            ASHashData hdata ;
 			ARGB32 c ;
-            if( get_hash_item( asv->as_colormap_reverse.hash, (ASHashableValue)pixel, &hash_data ) != ASH_Success )
+            if( get_hash_item( asv->as_colormap_reverse.hash, (ASHashableValue)pixel, &hdata.vptr ) != ASH_Success )
 				query_pixel_color( asv, pixel, r+i, g+i, b+i );
 			else
 			{
-                c = PTR2CARD32(hash_data);
+                c = hdata.c32;
 				r[i] =  ARGB32_RED8(c);
 				g[i] =  ARGB32_GREEN8(c);
 				b[i] =  ARGB32_BLUE8(c);

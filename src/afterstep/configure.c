@@ -717,9 +717,9 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
     frame->name = mystrdup( fd->name );
     for( i = 0 ; i < fd->inheritance_num ; ++i )
     {
-        MyFrame *ancestor = NULL ;
-        if( get_hash_item( list, AS_HASHABLE(fd->inheritance_list[i]), (void**)&ancestor ) == ASH_Success )
-            inherit_myframe( frame, ancestor );
+		ASHashData hdata ;
+        if( get_hash_item( list, AS_HASHABLE(fd->inheritance_list[i]), &hdata.vptr ) == ASH_Success )
+            inherit_myframe( frame, hdata.vptr );
     }
     frame->parts_mask = (frame->parts_mask&(~fd->set_parts))|fd->parts_mask;
     frame->set_parts |= fd->set_parts ;
@@ -962,7 +962,9 @@ FixLook( MyLook *look )
 		DestroyMyFrameDefinitions (&LegacyFrameDef);
         if( look->DefaultFrame == NULL && DefaultFrameName != NULL )
         {
-            get_hash_item( look->FramesList, AS_HASHABLE(DefaultFrameName), (void**)&(look->DefaultFrame));
+			ASHashData hdata ;
+            if( get_hash_item( look->FramesList, AS_HASHABLE(DefaultFrameName), &hdata.vptr) == ASH_Success )
+				look->DefaultFrame = hdata.vptr ;
             LOCAL_DEBUG_OUT( "DefaultFrameName is \"%s\": found frame %p with that name.", DefaultFrameName, look->DefaultFrame );
         }
     }else if( look->DefaultFrame != NULL )

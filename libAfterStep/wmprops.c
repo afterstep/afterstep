@@ -687,9 +687,9 @@ read_root_wmprops (ASWMProps * wmprops, Bool do_cleanup)
 	{
 		while (props_num-- > 0)
 		{
-			if (get_hash_item (wmprop_root_handlers, (ASHashableValue) all_props[props_num], (void **)&descr) ==
-				ASH_Success)
-				if (descr != NULL)
+			ASHashData hdata ;
+			if (get_hash_item (wmprop_root_handlers, (ASHashableValue) all_props[props_num], &hdata.vptr) == ASH_Success)
+				if ((descr = hdata.vptr) != NULL)
 				{
 					if (get_flags (descr->flags, WMP_NeedsCleanup) && do_cleanup)
 						XDeleteProperty (dpy, wmprops->scr->Root, all_props[props_num]);
@@ -724,12 +724,12 @@ LOCAL_DEBUG_OUT( "XListProperties returned %d volitile props", props_num );
 	{
 		while (props_num-- > 0)
 		{
+			ASHashData hdata ;
 LOCAL_DEBUG_OUT( "checking property %d [%s]...", props_num, XGetAtomName (dpy, all_props[props_num]) );
-            if (get_hash_item (wmprop_volitile_handlers, (ASHashableValue) all_props[props_num], (void **)&descr) ==
-				ASH_Success)
+            if (get_hash_item (wmprop_volitile_handlers, (ASHashableValue) all_props[props_num], &hdata.vptr) == ASH_Success)
             {
-LOCAL_DEBUG_OUT( "\tfound description %p", descr );
-				if (descr != NULL)
+LOCAL_DEBUG_OUT( "\tfound description %p", hdata.vptr );
+				if ((descr = hdata.vptr) != NULL)
 					if (descr->read_func != NULL)
 						if (descr->read_func (wmprops, False))
 						{
@@ -1124,17 +1124,16 @@ handle_wmprop_event (ASWMProps * wmprops, XEvent * event)
 		if (event->type == PropertyNotify)
 		{
 			prop_description_struct *descr = NULL;
+			ASHashData hdata = {0} ;
 
 			if (event->xproperty.window == wmprops->selection_window)
 			{
-				if (get_hash_item (wmprop_volitile_handlers, (ASHashableValue) (event->xproperty.atom), (void **)&descr)
-					!= ASH_Success)
-					descr = NULL;
+				if (get_hash_item (wmprop_volitile_handlers, AS_HASHABLE(event->xproperty.atom), &hdata.vptr)!= ASH_Success)
+					hdata.vptr = NULL;
 			} else if (event->xproperty.window == wmprops->scr->Root)
-				if (get_hash_item (wmprop_root_handlers, (ASHashableValue) (event->xproperty.atom), (void **)&descr) !=
-					ASH_Success)
-					descr = NULL;
-			if (descr)
+				if (get_hash_item (wmprop_root_handlers, AS_HASHABLE(event->xproperty.atom), &hdata.vptr) != ASH_Success)
+					hdata.vptr = NULL;
+			if ((descr = hdata.vptr) != NULL )
 			{
 				result = descr->prop_class;
 				if (event->xproperty.state == PropertyDelete)

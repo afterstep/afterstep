@@ -55,12 +55,12 @@ BuildHash (SyntaxDef * syntax)
 TermDef      *
 FindStatementTerm (char *tline, SyntaxDef * syntax)
 {
-    TermDef *pterm = NULL;
+    ASHashData hdata = {0};
     LOCAL_DEBUG_OUT( "looking for pterm in hash table  %p of the syntax %s ", syntax->term_hash, syntax->display_name );
-    if (get_hash_item (syntax->term_hash, AS_HASHABLE(tline), (void**)&pterm)!=ASH_Success  )
-		pterm = NULL;
-    LOCAL_DEBUG_OUT( "FOUND pterm %p", syntax->term_hash );
-    return pterm;
+    if (get_hash_item (syntax->term_hash, AS_HASHABLE(tline), &hdata.vptr)!=ASH_Success  )
+		hdata.vptr = NULL;
+    LOCAL_DEBUG_OUT( "FOUND pterm %p", hdata.vptr );
+    return hdata.vptr;
 }
 
 void

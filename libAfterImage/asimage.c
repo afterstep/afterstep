@@ -486,8 +486,10 @@ query_asimage( ASImageManager* imageman, const char *name )
 	ASImage *im = NULL ;
 	if( !AS_ASSERT(imageman) && !AS_ASSERT(name) )
 	{
-		if( get_hash_item( imageman->image_hash, (ASHashableValue)((char*)name), (void**)&im) == ASH_Success )
+		ASHashData hdata = {0} ;
+		if( get_hash_item( imageman->image_hash, AS_HASHABLE((char*)name), &hdata.vptr) == ASH_Success )
 		{
+			im = hdata.vptr ;
 			if( im->magic != MAGIC_ASIMAGE )
 				im = NULL ;
         }
@@ -600,8 +602,14 @@ release_asimage_by_name( ASImageManager *imageman, char *name )
 	int res = -1 ;
 	ASImage *im = NULL ;
 	if( !AS_ASSERT(imageman) && !AS_ASSERT(name) )
-		if( get_hash_item( imageman->image_hash, (ASHashableValue)((char*)name), (void**)&im) == ASH_Success )
+	{
+		ASHashData hdata ;
+		if( get_hash_item( imageman->image_hash, AS_HASHABLE((char*)name), &hdata.vptr) == ASH_Success )
+		{
+			im = hdata.vptr ;
 			res = release_asimage( im );
+		}
+	}
 	return res ;
 }
 
@@ -2974,7 +2982,7 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 								tmp_runs[tmp_count] = runs[k] ;
 								tmp_runs[tmp_count+1] = start-1 ;
 								tmp_height[tmp_count] = 1 ;
-/*								fprintf( stderr, "*%d: tmp_run %d added : %d ... %d, height = %d\n", __LINE__, tmp_count, runs[k], start-1, 1 ); 
+/*								fprintf( stderr, "*%d: tmp_run %d added : %d ... %d, height = %d\n", __LINE__, tmp_count, runs[k], start-1, 1 );
 */								++tmp_count ; ++tmp_count ;
 								runs[k] = start ;
 							}
@@ -3000,13 +3008,13 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 							{/* eliminating new run - it was all used up :) */
 								runs[k] = src->width ;
 								runs[k+1] = src->width ;
-/*								fprintf( stderr, "*%d: eliminating new run %d\n", __LINE__, k ); 
+/*								fprintf( stderr, "*%d: eliminating new run %d\n", __LINE__, k );
 */								++k ; ++k ;
 							}
 							tmp_runs[tmp_count] = start ;
 							tmp_runs[tmp_count+1] = end ;
 							tmp_height[tmp_count] = height[l]+1 ;
-/*							fprintf( stderr, "*%d: tmp_run %d added : %d ... %d, height = %d\n", __LINE__, tmp_count, start, end, height[l]+1 ); 
+/*							fprintf( stderr, "*%d: tmp_run %d added : %d ... %d, height = %d\n", __LINE__, tmp_count, start, end, height[l]+1 );
 */							++tmp_count ; ++tmp_count ;
 							last_k = k ;
 							break;

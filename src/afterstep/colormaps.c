@@ -115,13 +115,15 @@ static void
 uninstall_colormap( Colormap cmap, Window w )
 {
     Bool freed = False ;
+	ASHashData hdata ;
 
     if( cmap == None )
     {
         freed = True ;
         /* Colormap as well as other IDs are 64 bit on 64 bit systems - safe to use instead of pointer */
-        if( get_hash_item( Cmap2WindowXref, AS_HASHABLE(w), (void**)&cmap ) != ASH_Success )
+        if( get_hash_item( Cmap2WindowXref, AS_HASHABLE(w), &hdata.vptr ) != ASH_Success )
             return;
+		cmap = hdata.c32 ;
     }
     if( InstalledCmapList && cmap != None )
     {
@@ -168,10 +170,11 @@ install_colormap( Colormap cmap, Window w )
         /* lets check if the window is already known to us : */
         if( w != None )
         {
-            Colormap old_cmap = None ;
+			ASHashData hdata ;
             /* Colormap as well as other IDs are 64 bit on 64 bit systems - safe to use instead of pointer */
-            if( get_hash_item( Cmap2WindowXref, AS_HASHABLE(w), (void**)&old_cmap) == ASH_Success )
+            if( get_hash_item( Cmap2WindowXref, AS_HASHABLE(w), &hdata.vptr) == ASH_Success )
             {
+				Colormap old_cmap = hdata.c32 ;
                 if( cmap == None )
                     cmap = old_cmap ;
                 else if( cmap != old_cmap )
@@ -182,7 +185,9 @@ install_colormap( Colormap cmap, Window w )
             return ;
         if( w != None )
         {
-            add_hash_item( Cmap2WindowXref, AS_HASHABLE(w), (void*)cmap);
+			ASHashData hdata ;
+			hdata.c32 = cmap ;
+            add_hash_item( Cmap2WindowXref, AS_HASHABLE(w), hdata.vptr);
             add_window_event_mask( w, ColormapChangeMask );
         }
         /* now lets pop this colormap to the top of the list : */

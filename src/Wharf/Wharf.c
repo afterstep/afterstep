@@ -460,10 +460,11 @@ register_object( Window w, ASMagic *obj)
 ASMagic *
 fetch_object( Window w )
 {
-    ASMagic *obj = NULL ;
+	ASHashData hdata = {0} ;
     if( WharfState.win2obj_xref )
-        get_hash_item( WharfState.win2obj_xref, AS_HASHABLE(w), (void**)&obj );
-    return obj ;
+        if( get_hash_item( WharfState.win2obj_xref, AS_HASHABLE(w), &hdata.vptr ) != ASH_Success )
+			hdata.vptr = NULL ;
+    return hdata.vptr ;
 }
 
 void
@@ -489,10 +490,11 @@ register_swallow_target( char *name, ASWharfButton *aswb)
 ASWharfButton *
 fetch_swallow_target( char *name )
 {
-    ASWharfButton *aswb = NULL ;
+    ASHashData hdata = {0};
     if( WharfState.swallow_targets && name )
-        get_hash_item( WharfState.swallow_targets, AS_HASHABLE(name), (void**)&aswb );
-    return aswb ;
+        if( get_hash_item( WharfState.swallow_targets, AS_HASHABLE(name), &hdata.vptr ) != ASH_Success )
+			hdata.vptr = NULL ;
+    return hdata.vptr ;
 }
 
 void

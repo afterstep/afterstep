@@ -506,11 +506,11 @@ new_complex_func( struct ASHashTable *list, char *name )
 ComplexFunction *
 find_complex_func( struct ASHashTable *list, char *name )
 {
-    ComplexFunction *cf = NULL ;
+    ASHashData hdata = {0} ;
     if( name && list )
-        if( get_hash_item( list, AS_HASHABLE(name), (void**)&cf) != ASH_Success )
-            cf = NULL ; /* we are being paranoid */
-    return cf;
+        if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
+            hdata.vptr = NULL ; /* we are being paranoid */
+    return (ComplexFunction *)hdata.vptr ;
 }
 
 /***************************************************************
@@ -589,21 +589,22 @@ LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", (char*)value, data );
 MenuData    *
 new_menu_data( ASHashTable *list, char *name )
 {
+	ASHashData hdata = {0} ;
     MenuData *md = NULL ;
 
     if( name == NULL )
         return NULL ;
     if( list == NULL ) return NULL;
 
-    if( get_hash_item( list, (ASHashableValue)name, (void**)&md) == ASH_Success )
-        return md;
+    if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr) == ASH_Success )
+        return (MenuData*)hdata.vptr;
 
     md = (MenuData*) safecalloc (1, sizeof(MenuData));
     md->name = mystrdup(name);
     md->magic = MAGIC_MENU_DATA ;
-    if( add_hash_item( list, (ASHashableValue)(md->name), md) != ASH_Success )
+    if( add_hash_item( list, AS_HASHABLE(md->name), md) != ASH_Success )
     {
-        menu_data_destroy( (ASHashableValue)md->name, md );
+        menu_data_destroy( AS_HASHABLE(md->name), md );
         md = NULL ;
     }
     return md;
@@ -612,12 +613,12 @@ new_menu_data( ASHashTable *list, char *name )
 MenuData*
 find_menu_data( ASHashTable *list, char *name )
 {
-    MenuData *md = NULL ;
+	ASHashData hdata = {0} ;
 
     if( name && list )
-        if( get_hash_item( list, AS_HASHABLE(name), (void**)&md) != ASH_Success )
-            md = NULL ; /* we are being paranoid */
-    return md;
+        if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
+            hdata.vptr = NULL ; /* we are being paranoid */
+    return (MenuData*)hdata.vptr;
 }
 
 

@@ -242,7 +242,8 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 
 	if( fontman && font_string )
 	{
-		if( get_hash_item( fontman->fonts_hash, (ASHashableValue)((char*)font_string), (void**)&font) != ASH_Success )
+		ASHashData hdata = { 0 };
+		if( get_hash_item( fontman->fonts_hash, AS_HASHABLE((char*)font_string), &hdata.vptr) != ASH_Success )
 		{
 			char *ff_name ;
 			int len = strlen( font_string)+1 ;
@@ -250,8 +251,7 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 			len += ((face_no>=10)?2:1)+1 ;
 			ff_name = safemalloc( len );
 			sprintf( ff_name, "%s$%d$%d", font_string, size, face_no );
-			if( get_hash_item( fontman->fonts_hash, (ASHashableValue)((char*)ff_name), (void**)&font) != ASH_Success )
-
+			if( get_hash_item( fontman->fonts_hash, AS_HASHABLE((char*)ff_name), &hdata.vptr) != ASH_Success )
 			{	/* not loaded just yet - lets do it :*/
 				if( type == ASF_Freetype || type == ASF_GuessWho )
 					font = open_freetype_font( fontman, font_string, face_no, size, (type == ASF_Freetype));
@@ -268,12 +268,16 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 						ff_name = NULL ;
 					}else
 						font->name = mystrdup( font_string );
-					add_hash_item( fontman->fonts_hash, (ASHashableValue)(char*)font->name, font);
+					add_hash_item( fontman->fonts_hash, AS_HASHABLE((char*)font->name), font);
 				}
 			}
 			if( ff_name != NULL )
 				free( ff_name );
 		}
+
+		if( font == NULL )
+			font = hdata.vptr ;
+
 		if( font )
 			font->ref_count++ ;
 	}
@@ -1087,10 +1091,11 @@ inline ASGlyph *get_unicode_glyph( const UNICODE_CHAR uc, ASFont *font )
 {
 	register ASGlyphRange *r;
 	ASGlyph *asg = NULL ;
+	ASHashData hdata = {0} ;
 	for( r = font->codemap ; r != NULL ; r = r->above )
 	{
-LOCAL_DEBUG_OUT( "looking for glyph for char %lu (%p) if range (%d,%d)", uc, asg, r->min_char, r->max_char);	
-	
+LOCAL_DEBUG_OUT( "looking for glyph for char %lu (%p) if range (%d,%d)", uc, asg, r->min_char, r->max_char);
+
 		if( r->max_char >= uc )
 			if( r->min_char <= uc )
 			{
@@ -1101,12 +1106,13 @@ LOCAL_DEBUG_OUT( "Found glyph for char %lu (%p)", uc, asg );
 				break;
 			}
 	}
-	if( get_hash_item( font->locale_glyphs, AS_HASHABLE(uc), (void**)&asg ) != ASH_Success )
+	if( get_hash_item( font->locale_glyphs, AS_HASHABLE(uc), &hdata.vptr ) != ASH_Success )
 	{
 #ifdef HAVE_FREETYPE
 		asg = load_freetype_locale_glyph( font, uc );
 #endif
-	}
+	}else
+		asg = hdata.vptr ;
 LOCAL_DEBUG_OUT( "%sFound glyph for char %lu ( %p )", asg?"":"Did not ", uc, asg );
 	return asg?asg:&(font->default_glyph) ;
 }

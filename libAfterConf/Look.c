@@ -1867,8 +1867,13 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
 			frame_def = frame_def->next;
 		}
         if( config->menu_frame )
-            if( get_hash_item( look->layouts, (ASHashableValue) config->menu_frame, (void**)&(look->menu_frame)) != ASH_Success )
+		{
+			ASHashData hdata = {0};
+            if( get_hash_item( look->layouts, (ASHashableValue) config->menu_frame, &hdata.vptr) != ASH_Success )
                 look->menu_frame = NULL;
+			else
+				look->menu_frame = hdata.vptr ;
+		}
 	}
 
 	if (get_flags (what_flags, LL_Buttons) && look->layouts )

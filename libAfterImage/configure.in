@@ -203,7 +203,7 @@ AC_C_INLINE
 dnl# Check for headers
 AC_HEADER_DIRENT
 AC_HEADER_TIME
-AC_CHECK_HEADERS(sys/wait.h sys/time.h)
+AC_CHECK_HEADERS(sys/wait.h sys/time.h malloc.h stdlib.h)
 
 dnl# Check for X shaped window extension
 have_shmimage=no
@@ -458,7 +458,6 @@ else
 	else
 	    AC_MSG_RESULT(none found)
 	fi
-	AC_CHECK_HEADERS(malloc.h stdlib.h)
 fi
 AC_SUBST(HAVE_AFTERBASE_FLAG)
 AC_SUBST(AFTERBASE_CFLAGS)

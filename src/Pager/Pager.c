@@ -1541,10 +1541,11 @@ register_client( ASWindowData *wd )
 ASWindowData *
 fetch_client( Window w )
 {
-    ASWindowData *wd = NULL ;
+	ASHashData hdata  = {0};
     if( PagerClients )
-        get_hash_item( PagerClients, AS_HASHABLE(w), (void**)&wd );
-    return wd ;
+        if( get_hash_item( PagerClients, AS_HASHABLE(w), &hdata.vptr ) != ASH_Success )
+			hdata.vptr = NULL ;
+    return hdata.vptr ;
 }
 
 void
@@ -2119,7 +2120,7 @@ process_message (unsigned long type, unsigned long *body)
                 return;
         }
     }
-    
+
 }
 /*************************************************************************
  * Event handling :

@@ -193,6 +193,7 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 {
     mem          *m = NULL;
 	ASHashResult  res ;
+	ASHashData hdata = {0};
 
     if( service_mode > 0 )
 		return ;
@@ -203,8 +204,9 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 		service_mode-- ;
 	}
 
-	if( get_hash_item( allocs_hash, (ASHashableValue)ptr, (void**)&m ) == ASH_Success )
+	if( get_hash_item( allocs_hash, (ASHashableValue)ptr, &hdata.vptr ) == ASH_Success )
 	{
+		m = (mem*)hdata.vptr ;
 		show_error( "Same pointer value 0x%lX is being counted twice!\n  Called from %s:%d - previously allocated in %s:%d", (unsigned long)ptr, fname, line, m->fname, m->line );
 		print_simple_backtrace();
 #ifdef DEBUG_ALLOC_STRICT
@@ -278,12 +280,15 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 mem          *
 count_find (const char *fname, int line, void *ptr, int type)
 {
-	mem          *m;
+	ASHashData hdata = {0};
 
 	if( allocs_hash != NULL )
-		if( get_hash_item( allocs_hash, (ASHashableValue)ptr, (void**)&m) == ASH_Success )
+		if( get_hash_item( allocs_hash, (ASHashableValue)ptr, &hdata.vptr) == ASH_Success )
+		{
+			mem *m = hdata.vptr ;
 			if( (m->type & 0xff) == (type & 0xff) )
 				return m ;
+		}
 	return NULL ;
 }
 

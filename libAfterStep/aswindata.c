@@ -86,11 +86,10 @@ destroy_window_data(ASWindowData *wd)
 ASWindowData *
 fetch_window_by_id( Window w )
 {
-	ASWindowData *wd = NULL ;
+	ASHashData hdata = {0} ;
 	if( _as_Winlist != NULL )
-		if( get_hash_item( _as_Winlist, AS_HASHABLE(w), (void**)&wd ) != ASH_Success )
-			wd = NULL ;
-	return wd ;
+		get_hash_item( _as_Winlist, AS_HASHABLE(w), &hdata.vptr );
+	return (ASWindowData *)hdata.vptr ;
 }
 
 ASWindowData *

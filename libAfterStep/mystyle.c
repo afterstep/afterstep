@@ -738,7 +738,8 @@ mystyle_list_init()
 MyStyle *
 mystyle_list_new (struct ASHashTable *list, char *name)
 {
-    MyStyle      *style ;
+    MyStyle      *style = NULL ;
+	ASHashData   hdata = {0} ;
 
     if( name == NULL ) return NULL ;
 
@@ -749,15 +750,16 @@ mystyle_list_new (struct ASHashTable *list, char *name)
         list = Scr.Look.styles_list ;
     }
 
-    if( get_hash_item( list, AS_HASHABLE(name), (void**)&style ) == ASH_Success )
-        if( style )
+    if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr ) == ASH_Success )
+	{
+        if( (style = hdata.vptr) != NULL )
         {
             if( style->magic == MAGIC_MYSTYLE )
                 return style;
             else
                 remove_hash_item( list, (ASHashableValue)name, NULL, True );
         }
-
+	}
     style = (MyStyle *) safecalloc (1, sizeof (MyStyle));
 
     mystyle_init(style);
@@ -805,20 +807,20 @@ mystyle_destroy_all()
 MyStyle *
 mystyle_list_find (struct ASHashTable *list, const char *name)
 {
-    MyStyle *style = NULL;
+    ASHashData hdata = {0};
     if( list == NULL )
         list = Scr.Look.styles_list ;
 
     if( list && name )
-        if( get_hash_item( list, AS_HASHABLE((char*)name), (void**)&style ) != ASH_Success )
-            style = NULL ;
-    return style;
+        if( get_hash_item( list, AS_HASHABLE((char*)name), &hdata.vptr ) != ASH_Success )
+            hdata.vptr = NULL ;
+    return hdata.vptr;
 }
 
 MyStyle *
 mystyle_list_find_or_default (struct ASHashTable *list, const char *name)
 {
-    MyStyle *style = NULL;
+    ASHashData hdata = {0};
 
     if( list == NULL )
         list = Scr.Look.styles_list ;
@@ -826,10 +828,10 @@ mystyle_list_find_or_default (struct ASHashTable *list, const char *name)
     if( name == NULL )
         name = DefaultMyStyleName ;
     if( list && name )
-        if( get_hash_item( list, AS_HASHABLE((char*)name), (void**)&style ) != ASH_Success )
-            if( get_hash_item( list, AS_HASHABLE(DefaultMyStyleName), (void**)&style ) != ASH_Success )
-                style = NULL ;
-    return style;
+        if( get_hash_item( list, AS_HASHABLE((char*)name), &hdata.vptr ) != ASH_Success )
+            if( get_hash_item( list, AS_HASHABLE(DefaultMyStyleName), &hdata.vptr ) != ASH_Success )
+                hdata.vptr = NULL ;
+    return hdata.vptr;
 }
 
 /* find a style by name */

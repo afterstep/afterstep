@@ -23,6 +23,24 @@ typedef union ASHashableValue
 typedef unsigned long ASHashableValue;
 #endif
 
+typedef union ASHashData
+{
+ 	void  *vptr ;
+ 	int   *iptr ;
+ 	unsigned int   *uiptr ;
+ 	long  *lptr ;
+ 	unsigned long   *ulptr ;
+	char  *cptr ;
+	int    i ;
+	unsigned int ui ;
+	long   l ;
+	unsigned long ul ;
+	CARD32 c32 ;
+	CARD16 c16 ;
+	CARD8  c8 ;
+}ASHashData;
+
+
 #define AS_HASHABLE(v)  ((ASHashableValue)((unsigned long)(v)))
 
 typedef struct ASHashItem
