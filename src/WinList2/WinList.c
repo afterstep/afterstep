@@ -412,7 +412,7 @@ void
 DispatchEvent (ASEvent * event)
 {
     ASWindowData *pointer_wd = NULL ;
-
+	static Bool root_pointer_moved = True ;
     SHOW_EVENT_TRACE(event);
 
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
@@ -457,8 +457,13 @@ DispatchEvent (ASEvent * event)
 			}
         case LeaveNotify :
         case MotionNotify :
+			if( event->x.type == MotionNotify ) 
+				root_pointer_moved = True ; 
             if( pointer_wd )
-                on_astbar_pointer_action( pointer_wd->bar, 0, (event->x.type == LeaveNotify) );
+			{	
+                on_astbar_pointer_action( pointer_wd->bar, 0, (event->x.type == LeaveNotify), root_pointer_moved );
+				root_pointer_moved = False ; 
+			}
             break ;
 	    case ClientMessage:
             if ((event->x.xclient.format == 32) &&

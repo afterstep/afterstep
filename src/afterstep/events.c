@@ -365,6 +365,7 @@ DigestEvent( ASEvent *event )
         ASTBarData *pointer_bar = NULL ;
 		int pointer_root_x = xk->x_root;
 		int pointer_root_y = xk->y_root;
+		static int last_pointer_root_x = -1, last_pointer_root_y ; 
 
         /* Since key presses and button presses are grabbed in the frame
          * when we have re-parented windows, we need to find out the real
@@ -463,7 +464,13 @@ DigestEvent( ASEvent *event )
             }
         }
 
-        on_astbar_pointer_action( pointer_bar, event->context, (event->x.type == LeaveNotify) );
+        on_astbar_pointer_action( pointer_bar, event->context, 
+								  (event->x.type == LeaveNotify),
+								  (last_pointer_x != pointer_x || last_pointer_y != pointer_y );
+		
+		last_pointer_x = pointer_x ;
+		last_pointer_y != pointer_y ;
+
 		if( asw != NULL && w != asw->w && w != asw->frame )
 			apply_context_cursor( w, &(Scr.Feel), event->context );
         event->widget  = canvas ;
@@ -1162,7 +1169,7 @@ HandleEnterNotify (ASEvent *event)
     if (ewp->window != Scr.Root)
     	if (ASCheckTypedWindowEvent ( ewp->window, LeaveNotify, &d))
 		{
-        	on_astbar_pointer_action( NULL, 0, True );
+        	on_astbar_pointer_action( NULL, 0, True, False );
         	if ((d.xcrossing.mode == NotifyNormal) && (d.xcrossing.detail != NotifyInferior))
 				return;
 		}

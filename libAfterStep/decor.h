@@ -228,7 +228,7 @@ Bool  trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, i
 Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 #endif
 
-void on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave );
+void on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave, Bool pointer_moved );
 void set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned long encoding );
 
 

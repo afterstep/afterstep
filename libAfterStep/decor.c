@@ -1657,14 +1657,18 @@ LOCAL_DEBUG_OUT( "bar's geometry = %dx%d%+d%+d, pointer posish = %+d%+d", tbar->
 }
 
 void
-on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave )
+on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave, Bool pointer_moved )
 {
     LOCAL_DEBUG_CALLER_OUT( "%p, %s, %d", tbar, context2text(context), leave );
-    if( tbar == NULL )
+	static ASBalloon *last_balloon = NULL ;
+    
+	if( tbar == NULL )
     {
         tbar = FocusedBar ;
         leave = True ;
     }
+	if( pointer_moved ) 
+		last_balloon = NULL ; 
     LOCAL_DEBUG_OUT( "%p, %s, %d", tbar, context2text(context), leave );
     if( tbar )
     {
@@ -1697,11 +1701,12 @@ on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave )
             withdraw_balloon( balloon );
             if( tbar == FocusedBar )
                 FocusedBar = NULL ;
-        }else
+        }else if( balloon != last_balloon ) 
         {
             display_balloon( balloon );
             FocusedBar = tbar ;
         }
+		last_balloon = balloon ;
     }
 }
 

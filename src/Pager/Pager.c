@@ -2353,6 +2353,7 @@ process_message (send_data_type type, send_data_type *body)
 void
 DispatchEvent (ASEvent * event)
 {
+	static Bool root_pointer_moved = True ;
     SHOW_EVENT_TRACE(event);
 
     LOCAL_DEBUG_OUT( "mvrdata(%p)->main_canvas(%p)->widget(%p)", Scr.moveresize_in_progress, PagerState.main_canvas, event->widget );
@@ -2380,7 +2381,10 @@ DispatchEvent (ASEvent * event)
                 event->client = (void*)wd;
                 event->widget = ((ASWindowData*)(event->client))->canvas ;
                 if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
-                    on_astbar_pointer_action( ((ASWindowData*)(event->client))->bar, 0, (event->x.type == LeaveNotify) );
+				{	
+                    on_astbar_pointer_action( ((ASWindowData*)(event->client))->bar, 0, (event->x.type == LeaveNotify), root_pointer_moved );
+					root_pointer_moved = False ;
+				}
             }
         }
     }
@@ -2428,6 +2432,7 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
 				withdraw_active_balloon();
 			return ;
         case MotionNotify :
+			root_pointer_moved = True ;
             if( (event->x.xbutton.state&Button3Mask) )
                 on_scroll_viewport( event );
 			return ;

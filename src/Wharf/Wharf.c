@@ -612,6 +612,7 @@ process_message (send_data_type type, send_data_type *body)
 void
 DispatchEvent (ASEvent * event)
 {
+	static Bool root_pointer_moved = True ;
     SHOW_EVENT_TRACE(event);
 
     event->client = NULL ;
@@ -655,6 +656,7 @@ DispatchEvent (ASEvent * event)
 			}
             break;
         case MotionNotify :
+			root_pointer_moved = True ;
             break ;
         case EnterNotify :
 			if( event->x.xcrossing.window == Scr.Root )
@@ -672,7 +674,8 @@ DispatchEvent (ASEvent * event)
                 if( obj != NULL && obj->magic == MAGIC_WHARF_BUTTON )
                 {
                     ASWharfButton *aswb = (ASWharfButton*)obj;
-                    on_astbar_pointer_action( aswb->bar, 0, (event->x.type==LeaveNotify));
+                    on_astbar_pointer_action( aswb->bar, 0, (event->x.type==LeaveNotify), root_pointer_moved);
+					root_pointer_moved = False ;
 					if(event->x.type == EnterNotify)
 						change_button_focus(aswb, True ); 
                 }
