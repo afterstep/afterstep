@@ -1314,8 +1314,10 @@ change will occur; and \fIarg2\fP will specify the desk to switch to.
 Desk numbers are determined dynamically and must be between 2147483647
 and -2147483648; meaning they can also be negative.
 
-.IP "WindowsDesk \fInew_desk\fP"
+.IP "WindowsDesk \fInew_desk\fP [\fI10000\fP]"
 Moves the selected window to the desktop specified as \fInew_desk\fP.
+If second argument is set to 10000 then first is treated as relative 
+desktop number.
 
 .IP "GotoPage \fIx y\fP"
 Moves the desktop view to page \fIx y\fP. The upper left page is (0,0),

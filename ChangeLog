@@ -1,4 +1,6 @@
 1.8.9 patch 1 (sasha)
+ o Added functionality to WindowsDesk function. If second argument is 
+   10000 then first is relative desk number, instead of exact.
  o Implemented Xinerama support. When window is initially placed - it
    will be appropriately moved to not appear in between monitors, unless 
    user requested geometry explicetely.
