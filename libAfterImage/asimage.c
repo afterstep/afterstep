@@ -236,10 +236,15 @@ Bool create_image_xim( ASVisual *asv, ASImage *im, ASAltImFormats format )
 {
 	XImage **dst = (format == ASA_MaskXImage )? &(im->alt.mask_ximage):&(im->alt.ximage);
 	if( *dst == NULL )
-		if( (*dst = create_visual_ximage( asv, im->width, im->height, (format == ASA_MaskXImage )?1:0 )) == NULL )
+	{
+		int depth = 0 ;
+		if( format == ASA_MaskXImage ) 
+			depth = get_flags(im->flags, ASIM_XIMAGE_8BIT_MASK )? 8: 1;
+		if( (*dst = create_visual_ximage( asv, im->width, im->height, depth )) == NULL )
 			show_error( "Unable to create %sXImage for the visual %d",
 				        (format == ASA_MaskXImage )?"mask ":"",
 						asv->visual_info.visualid );
+	}
 	return ( *dst != NULL );
 }
 
@@ -1705,30 +1710,44 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 {
 	int i ;
 	ASScanline *scl = &(imdec->buffer);
-	int count, width = scl->width-skip ;
 	XImage *xim = imdec->im->alt.ximage ;
+	int count, width = scl->width-skip, xim_width = xim->width ;
 	ASFlagType filter = imdec->filter ;
 #if 1
-	if( width > xim->width || imdec->offset_x > 0 )
+	if( width > xim_width || imdec->offset_x > 0 )
 	{/* need to tile :( */
 		ASScanline *xim_scl = imdec->xim_buffer;
-		int offset_x = imdec->offset_x%xim->width ;
+		int offset_x = imdec->offset_x%xim_width ;
 /*fprintf( stderr, __FILE__ ":" __FUNCTION__ ": width=%d, xim_width=%d, skip = %d, offset_x = %d - tiling\n", width, xim->width, skip, imdec->offset_x );	*/
   
 		GET_SCANLINE(imdec->asv,xim,xim_scl,y,xim->data+xim->bytes_per_line*y);
+		/* We also need to decode mask if we have one :*/
+		if( (xim = imdec->im->alt.mask_ximage ) != NULL ) 
+		{
+			CARD32 *dst = xim_scl->alpha ;
+			register int x = MIN(xim_scl->width,xim->width);
+			if( xim->depth == 8 ) 
+			{
+				CARD8  *src = xim->data+xim->bytes_per_line*y ;
+				while(--x >= 0 ) dst[x] = (CARD32)(src[x]);
+			}else
+			{
+				while(--x >= 0 ) dst[x] = (XGetPixel(xim, x, y) == 0)?0x00:0xFF;
+			}
+		}
 		for( i = 0 ; i < IC_NUM_CHANNELS ; i++ )
 			if( get_flags(filter, 0x01<<i) )
 			{
 				register CARD32 *src = xim_scl->channels[i]+offset_x ;
 				register CARD32 *dst = scl->channels[i]+skip;
 				register int k  = 0;
-				count = xim->width-offset_x ;
+				count = xim_width-offset_x ;
 
 #define COPY_TILE_CHAN(op) \
 		for(; k < count ; k++ )	dst[k] = op; \
 		while( k < width ) \
 		{	src = xim_scl->channels[i]-k ; \
-			count = MIN(xim->width+k,width); \
+			count = MIN(xim_width+k,width); \
 			for(; k < count ; k++ ) dst[k] = op; \
 		}	
 
@@ -1750,7 +1769,21 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 		int old_offset = scl->offset_x ;
 		scl->offset_x = skip ;
 		GET_SCANLINE(imdec->asv,xim,scl,y,xim->data+xim->bytes_per_line*y);
-		count = MIN(width,xim->width);  	
+		/* We also need to decode mask if we have one :*/
+		if( (xim = imdec->im->alt.mask_ximage ) != NULL ) 
+		{
+			CARD32 *dst = scl->alpha+skip ;
+			register int x = MIN(width,xim_width);
+			if( xim->depth == 8 ) 
+			{
+				CARD8  *src = xim->data+xim->bytes_per_line*y ;
+				while(--x >= 0 ) dst[x] = (CARD32)(src[x]);
+			}else
+			{
+				while(--x >= 0 ) dst[x] = (XGetPixel(xim, x, y) == 0)?0x00:0xFF;
+			}
+		}
+		count = MIN(width,xim_width);  	
 		scl->offset_x = old_offset ;
 		for( i = 0 ; i < IC_NUM_CHANNELS ; i++ )
 			if( get_flags(filter, 0x01<<i) )
@@ -2102,15 +2135,25 @@ void
 encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
 {
 #ifndef X_DISPLAY_MISSING
-	register XImage *xim = imout->im->alt.mask_ximage ;
+	ASImage *im = imout->im ;
+	register XImage *xim = im->alt.mask_ximage ;
 	if( imout->next_line < xim->height && imout->next_line >= 0 )
 	{
 		if( get_flags(to_store->flags, SCL_DO_ALPHA) )
 		{
-			register int x ;
-			for ( x = MIN((unsigned int)(xim->width), to_store->width)-1 ; x >= 0 ; --x )
-				XPutPixel( xim, x, imout->next_line,
-				           (to_store->alpha[x] >= 0x7F)?1:0 );
+			CARD32 *a = to_store->alpha ;
+			register int x = MIN((unsigned int)(xim->width), to_store->width);
+			if( xim->depth == 8 )
+			{
+				CARD8 *dst = xim->data+xim->bytes_per_line*imout->next_line ;
+				while( --x >= 0 )
+					dst[x] = (CARD8)(a[x]);
+			}else 
+			{
+				unsigned int nl = imout->next_line ;
+				while( --x >= 0 )
+					XPutPixel( xim, x, nl, (a[x] >= 0x7F)?1:0 );
+			}
 		}
 		if( imout->tiling_step > 0 )
 			tile_ximage_line( xim, imout->next_line,
