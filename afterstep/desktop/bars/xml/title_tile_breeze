@@ -1,0 +1,15 @@
+
+
+<composite >
+<pad top="1" color="Black">
+   <pad top="1" color="White">
+      <pad bottom="1" color="#d5d6d5">
+	 <pad bottom="1" color="Base">
+	    <solid color="Base" width="8" height="17" opacity="100" />
+	 </pad>
+      </pad>
+   </pad>
+</pad>
+<img src="bars/title_tile_breeze_gloss" />
+</composite >
+

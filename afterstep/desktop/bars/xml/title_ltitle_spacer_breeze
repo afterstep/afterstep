@@ -1,0 +1,18 @@
+
+
+<composite >
+
+<pad top="1" color="Black">
+      <pad bottom="2" color="#d5d6d5">
+	    <solid color="Base" width="4" height="18" opacity="100" />
+      </pad>
+   </pad>
+</pad>
+
+<pad top="1" color="Black">
+   <pad top="1" color="White">
+      <solid color="#d5d6d5" width="3" height="19" opacity="100" />
+   </pad>
+</pad>
+</composite >
+

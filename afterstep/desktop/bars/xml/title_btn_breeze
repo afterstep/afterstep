@@ -1,0 +1,5 @@
+<pad id="bg1" top="1" color="Black">
+   <pad  top="1" color="White">
+      <solid color="#d5d6d5" width="1" height="19" />
+   </pad>
+</pad>
