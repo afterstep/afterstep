@@ -11,16 +11,18 @@
 #define XDrawImageString(t,u,v,w,x,y,z) XmbDrawImageString(t,u,FONTSET,v,w,x,y,z)
 #endif
 
+struct ASFont;
 typedef struct MyFont
   {
-    char *name;			/* name of the font */
+    char *name;				/* name of the font */
+	struct ASFont *as_font ;   	/* libAfterImage's font */
     XFontStruct *font;		/* font structure */
 #ifdef I18N
     XFontSet fontset;
 #endif
-    int height;			/* height of the font */
-    int width;			/* width of the font */
-    int y;			/* Y coordinate to draw characters */
+    int height;				/* height of the font */
+    int width;				/* width of the font */
+    int y;					/* Y coordinate to draw characters */
   }
 MyFont;
 

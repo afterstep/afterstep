@@ -30,7 +30,7 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 
-/*#define LOCAL_DEBUG*/
+//#define LOCAL_DEBUG
 
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
@@ -414,7 +414,7 @@ mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int heig
 #ifndef NO_TEXTURE
     if( width < 1 )    width = 1 ;
     if( height < 1 )   height = 1 ;
-LOCAL_DEBUG_OUT( "style \"%s\", texture_type = %d, im = %p", style->name, style->texture_type, style->back_icon.image );
+LOCAL_DEBUG_OUT( "style \"%s\", texture_type = %d, im = %p, tint = 0x%X", style->name, style->texture_type, style->back_icon.image, style->tint );
 	switch( style->texture_type )
 	{
 	    case TEXTURE_SOLID :
@@ -1266,6 +1266,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 				style->tint = (style->tint>>1)&0x7F7F7F7F; /* converting old style tint */
 /*LOCAL_DEBUG_OUT( "tint is 0x%X (from %s)",  style->tint, tmp);*/
 			set_flags( style->user_flags, style_func );
+			style->texture_type = type ;
 		}else
 		{ /* treat second parameter as an image filename : */
 			ASImage *im = get_asimage(Scr.image_manager, tmp, 0xFFFFFFFF, 100 ); 
@@ -1279,9 +1280,11 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 				set_flags( style->user_flags, style_func );
 				if( type >= TEXTURE_TRANSPIXMAP )
 					set_flags( style->user_flags, F_BACKTRANSPIXMAP );
+				style->texture_type = type ;
 			}else
 				show_error( "failed to load image file \"%s\" in MyStyle \"%s\".", tmp, style->name );	
 		}
+LOCAL_DEBUG_OUT( "MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%X", style->name, style->texture_type, style->back_icon.image, style->tint );
 	    free (tmp);
 	  }
 	  break;

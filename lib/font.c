@@ -6,6 +6,7 @@
 
 #include "../configure.h"
 #include "../include/aftersteplib.h"
+#include "../include/screen.h"
 
 const char *default_font = "fixed";
 
@@ -29,11 +30,23 @@ load_font (const char *name, MyFont * font)
   char *ds;
 #endif
   Bool success = True;
+  int font_size = 15 ;  
 #if defined(LOG_FONT_CALLS) && defined(DEBUG_ALLOCS)
   log_call (file, line, "load_font", name);
 #endif
   if (name == NULL)
     name = default_font;
+	
+  if( Scr.font_manager == NULL ) 
+  {
+	  char *path = getenv("FONT_PATH");
+	  if( path == NULL ) 
+		  path = getenv("PATH");
+	  Scr.font_manager = create_font_manager( dpy, path, NULL );
+  }	
+  
+  font->as_font = get_asfont( Scr.font_manager, name, 0, font_size, ASF_GuessWho );
+	
 #ifdef I18N
   /* first try the given name */
   if ((font->fontset = XCreateFontSet (dpy, name, &ml, &mc, &ds)) == NULL)
