@@ -492,9 +492,9 @@ asimage2drawable_gl(	ASVisual *asv, Drawable d, ASImage *im,
 		{	 
 			int i, l = glbuf_size;
 			glbuf = safemalloc( glbuf_size );
-			for (i = 0; i < (int)im->height; i++)
+			for (i = 0; i < (int)height; i++)
 			{	
-				int k = im->width;
+				int k = width;
 				imdec->decode_image_scanline( imdec ); 
 				if( get_flags( asv->glx_support, ASGLX_RGBA ) ) 
 				{	  

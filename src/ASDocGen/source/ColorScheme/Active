@@ -1,6 +1,7 @@
 <varlistentry id="options.Active">
 	<term>Active</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Color that will be used for background of different focused elemets, 
+such as focused window's titlebar, selected menu item, etc. This color should be contrasting with Base, Inactive1 and Inactive2 in hue, but similar in saturation.</para>
 	</listitem>
 </varlistentry>

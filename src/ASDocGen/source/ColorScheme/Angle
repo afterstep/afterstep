@@ -1,6 +1,7 @@
 <varlistentry id="options.Angle">
 	<term>Angle</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines angle on the hue circle between Inactive1, Base and Inactive2 colors in color schemes, that are automagically calculated by AfterStep.
+Default angle is 30 degrees. Use smaller angle to make Inactive and Base colors more similar.</para>
 	</listitem>
 </varlistentry>

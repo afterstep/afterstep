@@ -1,6 +1,7 @@
 <varlistentry id="options.ActiveDark">
 	<term>ActiveDark</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>This color should have slightly lesser value then Active (be 5-10% darker).
+This is usefull when background of focused titlebar is a gradient.</para>
 	</listitem>
 </varlistentry>

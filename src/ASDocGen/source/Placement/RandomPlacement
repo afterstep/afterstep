@@ -1,6 +1,6 @@
 <varlistentry id="options.RandomPlacement">
 	<term>RandomPlacement</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Windows will be placed randomply, in space unobstructed by windows that have AvoidCover attribute set.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.HighActiveBack">
 	<term>HighActiveBack</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Used for current menu item's background. Should be similar, but somewhat brighter them Active color.</para>
 	</listitem>
 </varlistentry>

@@ -493,6 +493,13 @@ destroy_asvisual( ASVisual *asv, Bool reusable )
 					free( asv->as_colormap_reverse.xref );
 			}
 		}
+#ifdef HAVE_GLX
+		if( asv->glx_scratch_gc_direct )
+			glXDestroyContext(dpy, asv->glx_scratch_gc_direct );
+		if( asv->glx_scratch_gc_indirect )
+			glXDestroyContext(dpy, asv->glx_scratch_gc_indirect );
+#endif
+
 #endif /*ifndef X_DISPLAY_MISSING */
 		if( !reusable )
 			free( asv );
@@ -647,7 +654,7 @@ setup_truecolor_visual( ASVisual *asv )
 						glXDestroyContext(dpy, asv->glx_scratch_gc_direct );
 						asv->glx_scratch_gc_direct = NULL ;
 					}
-#ifdef __CYGWIN__
+#if 0                          /* that needs some more research :  */
 				/* under Cygwin that seems to be 40% faster then regular XImage for some reason */
 				set_flags( asv->glx_support, ASGLX_UseForImageTx );
 #endif

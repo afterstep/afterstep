@@ -1,6 +1,6 @@
 <varlistentry id="options.Cursor">
 	<term>Cursor</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>This color will be used for pmouse pointer, and it should be in high contrast with all the other colors.</para>
 	</listitem>
 </varlistentry>

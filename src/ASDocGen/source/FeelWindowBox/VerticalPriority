@@ -1,8 +1,6 @@
 <varlistentry id="options.VerticalPriority">
 	<term>VerticalPriority</term>
 	<listitem>
-		<para>ReverseOrder alter behaviour of some strategies  -
-                Tile and Cascade, from what Sasha Vasko remembers.</para>
-<para>FIXME: add proper description here.</para>
+		<para>Cascading and Tiling will be done in Vertical direction first.</para>
 	</listitem>
 </varlistentry>

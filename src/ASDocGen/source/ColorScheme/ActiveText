@@ -1,6 +1,6 @@
 <varlistentry id="options.ActiveText">
 	<term>ActiveText</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Color of the text on focused titlebars. It should be in high value contrast with Active color.</para>
 	</listitem>
 </varlistentry>

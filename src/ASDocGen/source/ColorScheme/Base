@@ -1,6 +1,7 @@
 <varlistentry id="options.Base">
 	<term>Base</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>This color is defining color of the color scheme. It will be used for desktop background.
+When AfterStep is allowed to calculate color scheme automagically - it will use this color in conjunction with the Angle value as base of calculations.</para>
 	</listitem>
 </varlistentry>

@@ -58,7 +58,9 @@ TermDef       PlacementStrategyTerms[] =
     {0, NULL, 0, 0, 0}
 };
 
-SyntaxDef PlacementStrategySyntax = {',','\n',PlacementStrategyTerms,7,' '," ","\t","Window Placement types","Placement","",NULL,0};
+SyntaxDef PlacementStrategySyntax = {',','\n',PlacementStrategyTerms,7,' '," ","\t","Window Placement types","Placement",
+	"AfterStep supports several different window placement policies."
+	" Some of them designed to fill free space, and some allowing for windows to be placed on top of others.",NULL,0};
 
 
 extern SyntaxDef     MyBackgroundSyntax ;      /* see ASetRoot.c */
@@ -95,7 +97,8 @@ SyntaxDef     WindowBoxSyntax = {
 	"\t",
 	"Feel WindowBox definition",
 	"FeelWindowBox",
-	"defines placement policy for certain type of windows",
+	"defines placement policy for certain type of windows, based on desk, window attributes, window size, etc."
+	" Usefull for xinerama configurations, where windows should not be placed in between screens.",
 	NULL,
 	0
 };

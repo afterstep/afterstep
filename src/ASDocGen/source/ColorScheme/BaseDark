@@ -1,6 +1,7 @@
 <varlistentry id="options.BaseDark">
 	<term>BaseDark</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Color that should be about 10% darker then the Base color, but have similar hue and saturation.
+Usefull for drawing gradiented desktop background.</para>
 	</listitem>
 </varlistentry>

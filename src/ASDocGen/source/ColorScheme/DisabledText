@@ -1,6 +1,6 @@
 <varlistentry id="options.DisabledText">
 	<term>DisabledText</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Color of the text of disabled menu items. Should be very similar to menu item's background color.</para>
 	</listitem>
 </varlistentry>

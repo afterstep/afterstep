@@ -1,6 +1,9 @@
 <varlistentry id="options.Tile">
 	<term>Tile</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Windows will be tiled in free space. If no space of suitable size is found, 
+then secondary placement strategy is engaged, or window will have to be placed manually. 
+This is similar to SmartPlacement, except that suitable space is chosen following direction left-to-right, top-to-bottom, 
+instead of looking for space, most fitting the window size (the way SmartPlacement works).</para>
 	</listitem>
 </varlistentry>

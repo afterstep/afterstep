@@ -1,6 +1,6 @@
 <varlistentry id="options.HighInactive">
 	<term>HighInactive</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Used for unfocused menus. Should be similar to Inactive1 color, but somewhat lighter.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.HighActiveBackLight">
 	<term>HighActiveBackLight</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Should be 10% lighter then HighActiveBack color. Usefull for gradiented background of selected menu item.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,8 @@
 <varlistentry id="options.SmartPlacement">
 	<term>SmartPlacement</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Most suitable free space area will be chosen to place window in. 
+If no such area is found of sufficient size - window will be placed using secondary placement strategy, or manually, 
+if no secondary strategy is specified.</para>
 	</listitem>
 </varlistentry>
