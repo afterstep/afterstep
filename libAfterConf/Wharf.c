@@ -17,7 +17,7 @@
  *
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #include "../configure.h"
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/afterstep.h"

@@ -756,10 +756,13 @@ build_wharf_button_tbar(WharfButton *wb)
 
     set_astbar_composition_method( bar, BAR_STATE_UNFOCUSED, Config->composition_method );
 
-    if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
-        add_astbar_label( bar, label_col, label_row, label_flip, label_align, 2, 2, wb->title, AS_Text_ASCII );
-
-    set_astbar_balloon( bar, 0, wb->title, AS_Text_ASCII );
+	if( !get_flags( wb->set_flags, WHARF_BUTTON_TRANSIENT ) )
+	{	
+    	if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
+        	add_astbar_label( bar, label_col, label_row, label_flip, label_align, 2, 2, wb->title, AS_Text_ASCII );
+    	
+		set_astbar_balloon( bar, 0, wb->title, AS_Text_ASCII );
+	}
 
     set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
     LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
@@ -811,30 +814,34 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
     {
 		Bool disabled = True ;
 		int i = 0 ;
-		for( i = 0 ; i < wb->contents_num ; ++i )
-		{
-			FunctionData *function = wb->contents[i].function ;
-LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, function?function->func:-1 );
-	        if( function )
-			{
-				int func = function->func ;
-				if( IsSwallowFunc(func) || IsExecFunc(func) )
-				{
-			   		disabled = (!is_executable_in_path (function->text));
-					if( disabled )
-						show_warning( "Application \"%s\" cannot be found in the PATH.", function->text );
-
-				}else
-					disabled = False ;
-			}
-			if( !disabled )
-			{
-				wb->selected_content = i ;
-				break;
-			}
-		}
-		if( wb->folder != NULL )
+		if( get_flags( wb->set_flags, WHARF_BUTTON_TRANSIENT ) )
 			disabled = False ;
+		else			
+		{	
+			for( i = 0 ; i < wb->contents_num ; ++i )
+			{
+				FunctionData *function = wb->contents[i].function ;
+LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, function?function->func:-1 );
+	        	if( function )
+				{
+					int func = function->func ;
+					if( IsSwallowFunc(func) || IsExecFunc(func) )
+					{
+			   			disabled = (!is_executable_in_path (function->text));
+						if( disabled )
+							show_warning( "Application \"%s\" cannot be found in the PATH.", function->text );
+					}else
+						disabled = False ;
+				}
+				if( !disabled )
+				{
+					wb->selected_content = i ;
+					break;
+				}
+			}
+			if( wb->folder != NULL )
+				disabled = False ;
+		}
 
 		if( wb->contents_num == 0 && disabled )
 		{
@@ -862,7 +869,7 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
         wb = list;
         while( wb )
         {
-			FunctionData *function ;
+			FunctionData *function = NULL ;
 
 			if( get_flags( wb->set_flags, WHARF_BUTTON_DISABLED ) )
 			{
@@ -871,7 +878,9 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 			}
 
             aswb->name = mystrdup( wb->title );
-			function = wb->contents[wb->selected_content].function ;
+			if( wb->contents )
+				function = wb->contents[wb->selected_content].function ;
+
             if( function )
             {
                 aswb->fdata = safecalloc( 1, sizeof(FunctionData) );
@@ -885,12 +894,15 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
                         set_flags( aswb->flags, ASW_MaxSwallow );
                 }
             }
-			/* TODO: TRansient buttons are just spacers - they should not 
-			 * have any balloons displayed on them , nor they should 
-			 * interpret any clicks
+			/* TODO:	Transient buttons are just spacers - they should not 
+			 * 			have any balloons displayed on them , nor they should 
+			 * 			interpret any clicks
 			 */
 			if( get_flags( wb->set_flags, WHARF_BUTTON_TRANSIENT ) )
+			{
+				LOCAL_DEBUG_OUT( "Markip button %p as transient", aswb );	  
 				set_flags( aswb->flags, ASW_Transient );
+			}
 
 			if( get_flags( wb->set_flags, WHARF_BUTTON_SIZE ) )
 			{
@@ -2115,7 +2127,11 @@ on_wharf_pressed( ASEvent *event )
     {
         ASWharfButton *aswb = (ASWharfButton*)obj;
         ASWharfFolder *aswf = aswb->parent;
-        if( event->x.xbutton.button == Button3 && aswb->parent == WharfState.root_folder )
+
+		if( get_flags( aswb->flags, ASW_Transient ) )
+			return ;
+		        
+		if( event->x.xbutton.button == Button3 && aswb->parent == WharfState.root_folder )
             if( (WITHDRAW_ON_EDGE(Config) && (&(aswf->buttons[0]) == aswb || &(aswf->buttons[aswf->buttons_num-1]) == aswb)) ||
                  WITHDRAW_ON_ANY(Config))
         {

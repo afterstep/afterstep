@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 /*#define DO_CLOCKING */
 
 #ifdef DO_CLOCKING
