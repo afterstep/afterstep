@@ -2,7 +2,8 @@
 
 #CREATE_SHAREDIR_LIST= desktop backgrounds
 
-IMAGE_DIR_LIST= backgrounds backgrounds/Plain_Textures backgrounds/Mirrored_Tiles \
+IMAGE_DIR_LIST= backgrounds backgrounds/Gradient_Textures backgrounds/Plain_Textures \
+				backgrounds/Mirrored_Tiles \
 				desktop/bars desktop/buttons desktop/icons \
 				desktop/icons/dots desktop/icons/large desktop/icons/logos \
 				desktop/icons/mini desktop/icons/normal desktop/tiles
