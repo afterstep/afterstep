@@ -9,7 +9,7 @@
 # asapp.c, parse.c screen.c trace.c needs to be split up into
 # generic and AS-specific code :
 
-LIB_INCS=	ashash.h asvector.h astypes.h audit.h \
+LIB_INCS=	config.h ashash.h asvector.h astypes.h audit.h \
 		fs.h mystring.h os.h output.h parse.h \
 		regexp.h safemalloc.h selfdiag.h \
 		sleep.h socket.h timer.h trace.h xprop.h xwrap.h
@@ -23,11 +23,11 @@ LIB_OBJS=	ashash.o asvector.o audit.o \
 ################################################################
 # generic makefile stuff :
 
-LIB_NAME        = @lib_name@
-LIB_STATIC      = @lib_file_name@.a
-LIB_SHARED      = @lib_file_name@.so
-LIBVER          = @version@
-LIBVERMAJOR     = @version_major@
+LIB_NAME        = LIBAFTERBASE
+LIB_STATIC      = libAfterBase.a
+LIB_SHARED      = libAfterBase.so
+LIBVER          = 0.80
+LIBVERMAJOR     = 0
 
 CC		= @CC@
 CCFLAGS         = @CFLAGS@
