@@ -369,7 +369,7 @@ draw_canvas_mask (ASCanvas * pc, ASImage * im, int x, int y)
 {
 	XRectangle *rects ;
 	unsigned int rects_count = 0;
-	Bool res ;
+	Bool res = True;
 	int           real_x, real_y;
 	int           width, height;
 
@@ -382,14 +382,14 @@ draw_canvas_mask (ASCanvas * pc, ASImage * im, int x, int y)
 	rects = get_asimage_channel_rects( im, IC_ALPHA, 10, &rects_count );
 	LOCAL_DEBUG_OUT("%d rectangles generated", rects_count );
 
-	if( rects == NULL || rects_count == 0 )
-		return False;
-
 	if( pc->shape == NULL )
 		pc->shape = create_shape();
 
-	res = add_shape_rectangles( pc->shape, rects, rects_count, real_x, real_y, pc->width+pc->bw, pc->height+pc->bw );
-	free( rects );
+	if( rects != NULL && rects_count > 0 )
+	{	
+		res = add_shape_rectangles( pc->shape, rects, rects_count, real_x, real_y, pc->width+pc->bw, pc->height+pc->bw );
+		free( rects );
+	}
 
 	if( res )
 		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
@@ -420,10 +420,19 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 	{
         if( force || !get_flags( pc->state, CANVAS_CONTAINER ))
         {
-            if (pc->shape && PVECTOR_USED(pc->shape) > 0 )
+            if (pc->shape  )
             {
                 LOCAL_DEBUG_OUT( "XShapeCombineREctangles(%lX)set canvas mask to %d rectangles", pc->w, PVECTOR_USED(pc->shape) );
-                XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, PVECTOR_HEAD(XRectangle, pc->shape), PVECTOR_USED(pc->shape), ShapeSet, Unsorted);
+				if( PVECTOR_USED(pc->shape) > 0 )
+                	XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, PVECTOR_HEAD(XRectangle, pc->shape), PVECTOR_USED(pc->shape), ShapeSet, Unsorted);
+				else           /* we are still shaped - but completely opaque */
+				{
+					XRectangle nothing ;
+					nothing.x = pc->width/2 ;
+					nothing.y = pc->height/2 ;
+					nothing.width = nothing.height = 1 ;
+					XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, &nothing, 1, ShapeSet, Unsorted);
+				}	 
 				if( pc->bw > 0 ) 
 				{
 					XRectangle border[4] ; 
@@ -647,6 +656,14 @@ LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
 		LOCAL_DEBUG_OUT( "parent->shape(%p)", parent->shape );
 		if( parent->shape == NULL )
 			return False;
+
+		LOCAL_DEBUG_OUT( "child->shape(%p)", child->shape );
+		if( child->shape!= NULL && PVECTOR_USED(child->shape) == 0 )
+		{
+			LOCAL_DEBUG_OUT( "child->shape has no rectangles%s", "" );	  
+			return False ;     /* child has an empty shape */
+		}
+
 #ifdef STRICT_GEOMETRY
         get_current_canvas_size( parent, &parent_width, &parent_height );
 #else

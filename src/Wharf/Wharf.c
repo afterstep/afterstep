@@ -1106,14 +1106,17 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 		while ( --i >= 0 )
         {
             register ASWharfButton *aswb = &(aswf->buttons[i]);
-			LOCAL_DEBUG_OUT( "Adding shape of the button %d with geometry %dx%d%+d%+d, and geometry inside folder %dx%d%+d%+d", 
-							 i, aswb->canvas->width, aswb->canvas->height, aswb->canvas->root_x, aswb->canvas->root_y,
+			LOCAL_DEBUG_OUT( "Adding shape of the button %d (%p) with geometry %dx%d%+d%+d, and geometry inside folder %dx%d%+d%+d", 
+							 i, aswb, aswb->canvas->width, aswb->canvas->height, aswb->canvas->root_x, aswb->canvas->root_y,
 							 aswb->folder_width, aswb->folder_height, aswb->folder_x, aswb->folder_y );
             if( aswb->canvas->width == aswb->folder_width && aswb->canvas->height == aswb->folder_height )
                 if( combine_canvas_shape_at (aswf->canvas, aswb->canvas, aswb->folder_x, aswb->folder_y ) )
                     ++set;
             if( aswb->swallowed )
             {
+				refresh_container_shape( aswb->swallowed->current );
+				combine_canvas_shape_at (aswb->canvas, aswb->swallowed->current, 0, 0 );
+				update_canvas_display_mask (aswb->canvas, True);
                 if( combine_canvas_shape_at (aswf->canvas, aswb->swallowed->current, aswb->folder_x, aswb->folder_y ) )
                     ++set;
             }
@@ -1160,9 +1163,11 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 			fprintf( stderr, "shape = %p, used = %d\n", aswf->canvas->shape, PVECTOR_USED(aswf->canvas->shape) );
 #endif			
 			if( sr.width > 0 && sr.height > 0 && do_subtract > 0 ) 
+			{	
 				subtract_shape_rectangle( aswf->canvas->shape, &sr, 1, 0, 0, aswf->canvas->width, aswf->canvas->height );
+			}
 		}	 
-
+		
 		update_canvas_display_mask (aswf->canvas, True);
 
         if( set > 0 )
