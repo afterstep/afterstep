@@ -1536,7 +1536,7 @@ Bool
 bring_aswindow_on_vscreen( ASWindow *asw )
 {
     int min_x, min_y, max_x, max_y ;
-    int margin = Scr.MyDisplayWidth>>5 ;
+    int margin_x = Scr.MyDisplayWidth>>5, margin_y = Scr.MyDisplayHeight>>5 ;
 
     if( asw == NULL )
         return False;
@@ -1558,15 +1558,31 @@ bring_aswindow_on_vscreen( ASWindow *asw )
     {
         int new_x = asw->status->x ;
         int new_y = asw->status->y ;
-        if( asw->status->x + (int)asw->status->width < min_x + margin )
-            new_x = min_x + margin - (int)asw->status->width ;
-        else if( asw->status->x > max_x - margin )
-            new_x = max_x - margin ;
+		int w = asw->status->width ;
+		int h = asw->status->height ;
 
-        if( asw->status->y + (int)asw->status->height < min_y + margin )
-            new_y = min_y + margin - (int)asw->status->height ;
-        else if( asw->status->y > max_y - margin )
-            new_y = max_y - margin ;
+		if( margin_x > w>>2 ) 
+		{	
+			margin_x = w>>2 ;
+			if( margin_x == 0 ) 
+				margin_x = 1 ;
+		}
+		if( margin_y > h>>2 ) 
+		{	
+			margin_y = h>>2 ;
+			if( margin_y == 0 ) 
+				margin_y = 1 ;
+		}
+
+        if( new_x + w < min_x + margin_x )
+            new_x = min_x + margin_x - w ;
+        else if( new_x > max_x - margin_x )
+            new_x = max_x - margin_x ;
+
+        if( new_y + h < min_y + margin_y )
+            new_y = min_y + margin_y - h ;
+        else if( new_y > max_y - margin_y )
+            new_y = max_y - margin_y ;
         LOCAL_DEBUG_OUT( "min_pos = (%+d%+d), max_pos = (%+d%+d), new_pos = (%+d%+d)", min_x, min_y, max_x, max_y, new_x, new_y );
         if( new_x != asw->status->x || new_y != asw->status->y )
             moveresize_aswindow_wm( asw, new_x, new_y, asw->status->width, asw->status->height, False );
