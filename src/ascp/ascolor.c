@@ -262,7 +262,7 @@ static char* default_doc_str = " \
 			<bevel colors=\"HighActiveLight HighActiveDark\" border=\"2 2 3 3\" solid=0> \
 				<gradient angle=90 width=180 height=20 colors=\"HighActiveDark HighActiveLight\"/> \
 			</bevel> \
-			<text x=5 y=3 font=\"DefaultBold.ttf\" point=20 fgcolor=\"ActiveText\">Unfocused menu</text> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=20 fgcolor=\"ActiveText\">Focused menu</text> \
 		</composite> \
 		<composite x=220 y=250> \
 			<recall srcid=\"inactive_menu_item_back\"/> \
@@ -277,6 +277,25 @@ static char* default_doc_str = " \
 		<composite x=220 y=290> \
 			<recall srcid=\"inactive_menu_item_back\"/> \
 			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"DisabledText\">Disabled item </text> \
+		</composite> \
+		\
+		<composite x=320 y=380> \
+			<bevel colors=\"HighInactiveLight HighInactiveDark\" border=\"2 2 3 3\" solid=0> \
+				<gradient angle=90 width=180 height=20 colors=\"HighInactiveDark HighInactiveLight\"/> \
+			</bevel> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=20 fgcolor=\"InactiveText1\">Unfocused menu</text> \
+		</composite> \
+		<composite x=320 y=400> \
+			<recall srcid=\"inactive_menu_item_back\"/> \
+			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"DisabledText\">Disabled item </text> \
+		</composite> \
+		<composite x=320 y=420> \
+			<recall srcid=\"inactive_menu_item_back\"/> \
+			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"HighInactiveText\">Menu item 2</text> \
+		</composite> \
+		<composite x=320 y=440> \
+			<recall srcid=\"inactive_menu_item_back\"/> \
+			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"HighInactiveText\">Menu item 3</text> \
 		</composite> \
 		\
 	</composite> \
