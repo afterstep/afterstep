@@ -1,0 +1,3 @@
+<hsv hue_offset=$ascs.base_hue saturation_offset=$ascs.base_saturation-30 value_offset=$ascs.base_value-70>
+	<img src="tiles/SimpleTexture"/>
+</hsv>
