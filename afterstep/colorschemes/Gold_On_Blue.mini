@@ -1,0 +1,6 @@
+<composite>
+    <gradient width=48 height=48 colors="#FF17204C #FF4C6DFF" angle=45/>
+    <gradient x=10 y=10 width=20 height=10 colors="#FF514C99 #FF8880FF" angle=90/>
+    <gradient x=20 y=20 width=20 height=10 colors="#FF99852E #FFFFDF4C" angle=90/>
+    <gradient x=13 y=30 width=20 height=10 colors="#FF4C6E99 #FF80B7FF" angle=90/>
+</composite>

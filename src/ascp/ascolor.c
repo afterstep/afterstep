@@ -292,8 +292,8 @@ int main(int argc, char** argv)
 		ASColorState.geometry.x = (Scr.MyDisplayWidth - ASColorState.geometry.width)/2 ;
 	if( !get_flags( ASColorState.geometry.flags, YValue ) )
 		ASColorState.geometry.y = (Scr.MyDisplayHeight - ASColorState.geometry.height)/2 ;
-		
-			
+
+
 
 	if( ASColorState.display )
 		ASColorState.main_window = create_main_window();
@@ -309,7 +309,8 @@ int main(int argc, char** argv)
 	}
 	do_colorscheme();
 
-	HandleEvents();
+	if( ASColorState.display )
+		HandleEvents();
 	return 0;
 }
 
@@ -525,7 +526,7 @@ do_colorscheme()
 	forget_asimage_name( Scr.image_manager, "inactive_menu_item_back" );
 
 	/* now we need to calculate color scheme and populate XML env vars with colors */
-	if( ASColorState.default_only ) 
+	if( ASColorState.default_only )
 	{
 	    ASColorState.cs = make_default_ascolor_scheme();
 	    ASColorState.default_only = False ;
@@ -572,8 +573,23 @@ do_colorscheme()
 			sprintf( fname, ASColorState.cs_save, ASColorState.cs->main_colors[ASMC_Base] );
 		}
 		if( WriteColorOptions (fname, MyName, config, 0) == 0 )
+		{
+			char *minipixmap_file = safemalloc( strlen( fname ) +6 ) ;
+			FILE *mini_f ;
+			sprintf( minipixmap_file, "%s.mini", fname );
 			show_progress("Color Scheme Saved to \"%s\".", fname);
-		else
+			if( (mini_f = fopen( minipixmap_file, "w" )) != NULL )
+			{
+				fprintf( mini_f, "<composite>\n" );
+				fprintf( mini_f, "    <gradient width=48 height=48 colors=\"#%8.8lX #%8.8lX\" angle=45/>\n", ASColorState.cs->main_colors[ASMC_BaseDark], ASColorState.cs->main_colors[ASMC_BaseLight] );
+				fprintf( mini_f, "    <gradient x=10 y=10 width=20 height=10 colors=\"#%8.8lX #%8.8lX\" angle=90 />\n", ASColorState.cs->main_colors[ASMC_Inactive1Dark], ASColorState.cs->main_colors[ASMC_Inactive1Light] );
+				fprintf( mini_f, "    <gradient x=20 y=20 width=20 height=10 colors=\"#%8.8lX #%8.8lX\" angle=90 />\n", ASColorState.cs->main_colors[ASMC_ActiveDark], ASColorState.cs->main_colors[ASMC_ActiveLight] );
+				fprintf( mini_f, "    <gradient x=13 y=30 width=20 height=10 colors=\"#%8.8lX #%8.8lX\" angle=90 />\n", ASColorState.cs->main_colors[ASMC_Inactive2Dark], ASColorState.cs->main_colors[ASMC_Inactive2Light] );
+				fprintf( mini_f, "</composite>\n" );
+				fclose( mini_f );
+			}
+			free( minipixmap_file );
+		}else
 			show_error("Color Scheme Save to \"%s\" unsuccessful.", fname);
 		if( fname != ASColorState.cs_save )
 			free( fname );
