@@ -2284,6 +2284,8 @@ clone_asimage( ASImage *src, ASFlagType filter )
 	{
 		int chan ;
 		dst = create_asimage(src->width, src->height, (src->max_compressed_width*100)/src->width);
+		if( get_flags( src->flags, ASIM_DATA_NOT_USEFUL ) ) 
+			set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 		dst->back_color = src->back_color ;
 		for( chan = 0 ; chan < IC_NUM_CHANNELS;  chan++ )
 			if( get_flags( filter, 0x01<<chan) )

@@ -192,6 +192,11 @@ typedef struct ASImage
   int                    ref_count ;/* this will tell us what us how many
 									 * times */
   char                  *name ;     /* readonly copy of image name */
+  
+#define ASIM_DATA_NOT_USEFUL	(0x01<<0)
+#define ASIM_VECTOR_TOP2BOTTOM	(0x01<<1)
+#define ASIM_XIMAGE_8BIT_MASK	(0x01<<2)
+  ASFlagType			 flags ;    /* combination of the above flags */ 
 } ASImage;
 /*******/
 

@@ -786,6 +786,8 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, 0, 0, NULL)) == NULL )
 		return NULL;
 	dst = create_asimage(to_width, to_height, compression_out);
+	if( out_format != ASA_ASImage ) 
+		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 	dst->back_color = src->back_color ;
 	if( to_width == src->width )
 		h_ratio = 0;
@@ -863,6 +865,9 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		return NULL;
 
 	dst = create_asimage (to_width, to_height, compression_out);
+	if( out_format != ASA_ASImage ) 
+		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
+
 	dst->back_color = src->back_color ;
 #ifdef HAVE_MMX
 	mmx_init();
@@ -927,6 +932,9 @@ merge_layers( ASVisual *asv,
 
 LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height );
 	dst = create_asimage ( dst_width, dst_height, compression_out);
+	if( out_format != ASA_ASImage ) 
+		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
+
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
 	dst_line.flags = SCL_DO_ALL ;
 	imdecs = safecalloc( count, sizeof(ASImageDecoder*));
@@ -1296,6 +1304,9 @@ LOCAL_DEBUG_CALLER_OUT( "type = 0x%X, width=%d, height = %d, filter = 0x%X", gra
 		height = 2;
 
 	im = create_asimage ( width, height, compression_out);
+	if( out_format != ASA_ASImage ) 
+		set_flags( im->flags, ASIM_DATA_NOT_USEFUL );
+
 	im->back_color = get_best_grad_back_color( grad );
 
 	if( get_flags(grad->type,GRADIENT_TYPE_ORIENTATION) )
@@ -1373,6 +1384,9 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		filter = get_asimage_chanmask(src);
 
 	dst = create_asimage(to_width, to_height, compression_out);
+	if( out_format != ASA_ASImage ) 
+		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
+
 	dst->back_color = src->back_color ;
 
 #ifdef HAVE_MMX
@@ -1490,6 +1504,9 @@ mirror_asimage( ASVisual *asv, ASImage *src,
 
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
 	dst = create_asimage(to_width, to_height, compression_out);
+	if( out_format != ASA_ASImage ) 
+		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
+
 	dst->back_color = src->back_color ;
 
 #ifdef HAVE_MMX
@@ -1565,6 +1582,9 @@ LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d",
 		return clone_asimage( src, SCL_DO_ALL );
 
 	dst = create_asimage(to_width, to_height, compression_out);
+	if( out_format != ASA_ASImage ) 
+		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
+
 	clip_width = src->width ;
 	clip_height = src->height ;
 	if( dst_x < 0 )
@@ -1769,7 +1789,8 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 		return False;
 	/* as per ROOT ppl request double data goes from bottom to top,
 	 * instead of from top to bottom : */
-	toggle_image_output_direction(imout);
+	if( !get_flags( im->flags, ASIM_VECTOR_TOP2BOTTOM) )
+		toggle_image_output_direction(imout);
 	
 	prepare_scanline( im->width, QUANT_ERR_BITS, &buf, asv->BGR_mode );
 	curr_point = palette->npoints/2 ;
@@ -1865,10 +1886,13 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 
 	if( vector != NULL )
 		if( (im = create_asimage( width, height, compression ) ) != NULL )
+		{
+			if( out_format != ASA_ASImage ) 
+				set_flags( im->flags, ASIM_DATA_NOT_USEFUL );
 			if( set_asimage_vector( im, vector ) )
 				if( palette )
 					colorize_asimage_vector( asv, im, palette, out_format, quality );
-
+		}
 	return im ;
 }
 
@@ -1910,6 +1934,9 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 	if (!src) return NULL;
 
 	dst = create_asimage(src->width, src->height, compression_out);
+	if( out_format != ASA_ASImage ) 
+		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
+
 	dst->back_color = src->back_color;
 
 #ifdef HAVE_MMX
@@ -2008,6 +2035,9 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		return NULL;
 
 	dst = create_asimage (to_width, to_height, compression_out);
+	if( out_format != ASA_ASImage ) 
+		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
+
 	dst->back_color = src->back_color ;
 #ifdef HAVE_MMX
 	mmx_init();
