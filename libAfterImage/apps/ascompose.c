@@ -377,7 +377,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!fontman) fontman = create_font_manager(dpy, NULL, NULL);
 			if (fontman) font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
 			if (font != NULL) {
-				result = draw_text(text, font, AST_ShadeBelow, 0);
+				result = draw_text(text, font, AST_Plain, 0);
 				if (result && fgimage_str) {
 					ASImage* fgimage = NULL;
 					get_hash_item(image_hash, (ASHashableValue)(char*)fgimage_str, (void**)&fgimage);
@@ -887,8 +887,8 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 							y = refimg->height;
 						}
 					}
-					if (x_str) x = parse_math(x_str, NULL, x);
-					if (y_str) y = parse_math(y_str, NULL, y);
+					x = x_str ? parse_math(x_str, NULL, x) : 0;
+					y = y_str ? parse_math(y_str, NULL, y) : 0;
 				}
 				if (layers[num].im) {
 					layers[num].dst_x = x;
