@@ -35,6 +35,7 @@
 #include "selfdiag.h"
 #include "safemalloc.h"
 
+#define DETECT_BUFFER_UNDERRUN
 
 #ifdef DEBUG_ALLOCS
 #include <string.h>
@@ -58,7 +59,9 @@ alloc_guarded_memory( size_t length	)
 	LPVOID lpvAddr; 
     DWORD cbSize; 
     LPVOID commit, commit_guard; 
- 
+#ifdef DETECT_BUFFER_UNDERRUN		
+	LPVOID commit_size;       
+#endif 
 	/* Reserve whole page per allocation, plus another page - for guard */
 	cbSize = length+sizeof(size_t)*2; 
 	if( cbSize%WIN32_PAGE_SIZE == 0 )
@@ -67,14 +70,31 @@ alloc_guarded_memory( size_t length	)
 		cbSize = ((cbSize/WIN32_PAGE_SIZE)+1)*WIN32_PAGE_SIZE; 
  
     /* Try to allocate some memory. */
-    lpvAddr = VirtualAlloc(NULL,cbSize+WIN32_PAGE_SIZE,MEM_RESERVE,PAGE_NOACCESS); 
- 
-    if(lpvAddr == NULL) 
+    lpvAddr = VirtualAlloc(NULL,
+#ifndef DETECT_BUFFER_UNDERRUN		
+							cbSize+WIN32_PAGE_SIZE,
+#else
+							cbSize+WIN32_PAGE_SIZE+WIN32_PAGE_SIZE,
+#endif							   
+							MEM_RESERVE,PAGE_NOACCESS); 
+   
+	if(lpvAddr == NULL) 
         fprintf(stderr,"MEMORY ERROR: VirtualAlloc failed on RESERVE with %ld\n", GetLastError()); 
 	else
 	{	/* Try to commit the allocated memory.  */
-    	commit = VirtualAlloc(lpvAddr,cbSize,MEM_COMMIT,PAGE_READWRITE); 
+#ifndef DETECT_BUFFER_UNDERRUN
+		commit = VirtualAlloc(lpvAddr,cbSize,MEM_COMMIT,PAGE_READWRITE); 
 		commit_guard = VirtualAlloc(lpvAddr+cbSize,WIN32_PAGE_SIZE,MEM_COMMIT,PAGE_READONLY|PAGE_GUARD); 
+#else
+		commit_size = VirtualAlloc(lpvAddr,WIN32_PAGE_SIZE,MEM_COMMIT,PAGE_READWRITE); 
+    	if(commit_size == NULL ) 
+		{	
+        	fprintf(stderr,"MEMORY ERROR: VirtualAlloc failed on COMMIT SIZE with %ld\n", GetLastError()); 
+			return NULL ;
+		}
+		commit_guard = VirtualAlloc(lpvAddr+WIN32_PAGE_SIZE,WIN32_PAGE_SIZE,MEM_COMMIT,PAGE_READONLY|PAGE_GUARD); 
+		commit = VirtualAlloc(lpvAddr+WIN32_PAGE_SIZE+WIN32_PAGE_SIZE,cbSize,MEM_COMMIT,PAGE_READWRITE); 
+#endif
  
     	if(commit == NULL ) 
         	fprintf(stderr,"MEMORY ERROR: VirtualAlloc failed on COMMIT with %ld\n", GetLastError()); 
@@ -82,8 +102,13 @@ alloc_guarded_memory( size_t length	)
         	fprintf(stderr,"MEMORY ERROR: VirtualAlloc failed on COMMIT GUARD with %ld\n", GetLastError()); 
 		if( commit && commit_guard ) 
 		{ 
+#ifndef DETECT_BUFFER_UNDERRUN			
 			size_t *size_ptr = (size_t*)commit;
 			void *ptr = commit + (cbSize - length);	 
+#else
+			size_t *size_ptr = (size_t*)commit_size;
+			void *ptr = commit;	 
+#endif			   
 			size_ptr[0] = length ;
 			size_ptr[1] = AS_WIN32_PAGE_MAGIC ;
 #ifdef LOCAL_DEBUG
@@ -98,11 +123,16 @@ alloc_guarded_memory( size_t length	)
 static size_t
 get_guarded_memory_size( char *ptr )
 {
-	unsigned long long_ptr = (unsigned long)ptr ;
 	size_t *size_ptr ;
+#ifndef DETECT_BUFFER_UNDERRUN			   
+	unsigned long long_ptr = (unsigned long)ptr ;
 	if( (long_ptr&0x00000FFF) < sizeof(size_t)*2 )
 		long_ptr -= WIN32_PAGE_SIZE ;
 	size_ptr = (size_t*) (long_ptr&0xFFFFF000) ;
+#else
+	size_ptr = (size_t*)(ptr - (WIN32_PAGE_SIZE + WIN32_PAGE_SIZE)) ;
+#endif
+
 #ifdef LOCAL_DEBUG
 	fprintf( stderr, "ALLOC: ptr %p seems to point to a block of %d bytes\n", ptr, *size_ptr );
 #endif
@@ -116,11 +146,16 @@ get_guarded_memory_size( char *ptr )
 static void
 free_guarded_memory( void *ptr )
 {
-	unsigned long long_ptr = (unsigned long)ptr ;
 	size_t *size_ptr ;
+#ifndef DETECT_BUFFER_UNDERRUN			   
+	unsigned long long_ptr = (unsigned long)ptr ;
 	if( (long_ptr&0x00000FFF) < sizeof(size_t)*2 )
-		long_ptr -= WIN32_PAGE_SIZE ;
+		long_ptr -= WIN32_PAGE_SIZE  ;
 	size_ptr = (size_t*) (long_ptr&0xFFFFF000) ;
+#else
+	size_ptr = (size_t*)(ptr - (WIN32_PAGE_SIZE + WIN32_PAGE_SIZE)) ;
+#endif
+	
 	if( size_ptr[1] != AS_WIN32_PAGE_MAGIC  )
 	{	
 		char *suicide = NULL;

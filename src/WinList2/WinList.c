@@ -177,7 +177,6 @@ void
 DeadPipe (int nonsense)
 {
     window_data_cleanup();
-    FreeMyAppResources();
 
     if( WinListState.idle_bar )
         destroy_astbar( &WinListState.idle_bar );
@@ -185,7 +184,10 @@ DeadPipe (int nonsense)
         destroy_ascanvas( &WinListState.main_canvas );
     if( WinListState.main_window )
         XDestroyWindow( dpy, WinListState.main_window );
-    if( Config )
+    
+	FreeMyAppResources();
+    
+	if( Config )
         DestroyWinListConfig(Config);
 
 #ifdef DEBUG_ALLOCS

@@ -1264,6 +1264,8 @@ LOCAL_DEBUG_CALLER_OUT("tbar(%p)->pc(%p)", tbar, pc );
 	state = get_flags (tbar->state, BAR_STATE_FOCUS_MASK);
 	style = tbar->style[state];
 LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width, tbar->height, tbar->root_x, tbar->root_y, tbar->hilite[state] );
+	if( tbar->width == 0 || tbar->height == 0 ) 
+		return True;              /* nothing to draw anyways */
 
     if (style == NULL)
         return -2;

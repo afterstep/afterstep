@@ -168,6 +168,7 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 	else
 		memset( sl, 0x00, sizeof(ASScanline));
 
+	if( width == 0 ) width = 1 ;
 	sl->width 	= width ;
 	sl->shift   = shift ;
 	/* we want to align data by 8 byte boundary (double)
@@ -198,7 +199,7 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 	sl->green[aligned_width-1] = 0;
 	sl->blue[aligned_width-1]  = 0;
 	sl->alpha[aligned_width-1] = 0;
-
+	
 	sl->back_color = ARGB32_DEFAULT_BACK_COLOR;
 
 	return sl;
