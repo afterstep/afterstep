@@ -25,16 +25,12 @@
 #define HAVE_MMX
 #define USE_64BIT_FPU
 
+#include <malloc.h>
 #include "../include/aftersteplib.h"
 #include <X11/Intrinsic.h>
 
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/ascolor.h"
-#include "../include/mytexture.h"
-#include "../include/XImage_utils.h"
+#include "../include/asvisual.h"
 #include "../include/asimage.h"
-#include "../include/mytexture.h"
 
 
 void encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store );
@@ -217,14 +213,12 @@ free_scanline( ASScanline *sl, Bool reusable )
 
 /********************* ASImageDecoder ****************************/
 ASImageDecoder *
-start_image_decoding( ScreenInfo *scr,ASImage *im, ASFlagType filter,
+start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 					  int offset_x, int offset_y, unsigned int out_width )
 {
 	ASImageDecoder *imdec = NULL;
-	if( im == NULL || filter == 0 )
+	if( im == NULL || filter == 0 || asv == NULL )
 		return NULL;
-	if( scr == NULL )
-		scr = &Scr ;
 
 	if( offset_x < 0 )
 		offset_x = im->width - (offset_x%im->width);
@@ -245,7 +239,7 @@ start_image_decoding( ScreenInfo *scr,ASImage *im, ASFlagType filter,
 	imdec->offset_y = offset_y ;
 	imdec->next_line = offset_y ;
 	imdec->back_color = ARGB32_DEFAULT_BACK_COLOR ;
-	prepare_scanline(out_width, 0, &(imdec->buffer), scr->BGR_mode );
+	prepare_scanline(out_width, 0, &(imdec->buffer), asv->BGR_mode );
 
 	return imdec;
 }
@@ -264,18 +258,18 @@ stop_image_decoding( ASImageDecoder **pimdec )
 
 /********************* ASImageOutput ****************************/
 ASImageOutput *
-start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality )
+start_image_output( ASVisual *asv, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality )
 {
 	register ASImageOutput *imout= NULL;
 
-	if( im == NULL )
+	if( im == NULL || asv == NULL)
 		return imout;
 	if( xim == NULL )
 		xim = im->ximage ;
 	if( to_xim && xim == NULL )
 		return imout;
 	imout = safecalloc( 1, sizeof(ASImageOutput));
-	imout->scr = scr?scr:&Scr;
+	imout->asv = asv;
 	imout->im = im ;
 	imout->to_xim = to_xim ;
 	imout->encode_image_scanline = (to_xim)?encode_image_scanline_xim:
@@ -290,8 +284,8 @@ start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int 
 	}else
 		imout->height = im->height;
 
-	prepare_scanline( im->width, 0, &(imout->buffer[0]), scr->BGR_mode);
-	prepare_scanline( im->width, 0, &(imout->buffer[1]), scr->BGR_mode);
+	prepare_scanline( im->width, 0, &(imout->buffer[0]), asv->BGR_mode);
+	prepare_scanline( im->width, 0, &(imout->buffer[1]), asv->BGR_mode);
 
 	imout->chan_fill[IC_RED]   = ARGB32_RED8(ARGB32_DEFAULT_BACK_COLOR);
 	imout->chan_fill[IC_GREEN] = ARGB32_GREEN8(ARGB32_DEFAULT_BACK_COLOR);
@@ -602,19 +596,19 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 	return im->buf_used;
 }
 
-ASFlagType 
+ASFlagType
 get_asimage_chanmask( ASImage *im)
 {
     ASFlagType mask = 0 ;
 	int color ;
-	
+
 	if( im )
 		for( color = 0; color < IC_NUM_CHANNELS ; color++ )
 		{
 			register CARD8 **chan = im->channels[color];
 			register int y, height = im->height ;
 			for( y = 0 ; y < height ; y++ )
-				if( chan[y] ) 
+				if( chan[y] )
 				{
 					set_flags( mask, 0x01<<color );
 					break;
@@ -1676,7 +1670,7 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 		if( !get_flags(to_store->flags, SCL_DO_BLUE) )
 			set_component( to_store->blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
 
-		PUT_SCANLINE(imout->scr,imout->xim,to_store,imout->next_line,imout->xim_line);
+		PUT_SCANLINE(imout->asv, imout->xim,to_store,imout->next_line,imout->xim_line);
 		if( imout->tiling_step > 0 )
 		{
 			register int i ;
@@ -1841,7 +1835,7 @@ output_image_line_direct( ASImageOutput *imout, ASScanline *new_line, int ratio 
 /* drawing gradient on scanline :  															   */
 /***********************************************************************************************/
 void
-make_gradient_scanline( ASScanline *scl, gradient_t *grad, ASFlagType filter, ARGB32 seed )
+make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, ARGB32 seed )
 {
 	if( scl && grad && filter != 0 )
 	{
@@ -1931,8 +1925,8 @@ scale_image_down( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int 
 	int max_k 	 = imout->im->height,
 		line_len = MIN(imout->im->width,imdec->im->width);
 
-	prepare_scanline( imout->im->width, QUANT_ERR_BITS, &dst_line, imout->scr->BGR_mode );
-	prepare_scanline( imout->im->width, QUANT_ERR_BITS, &total, imout->scr->BGR_mode );
+	prepare_scanline( imout->im->width, QUANT_ERR_BITS, &dst_line, imout->asv->BGR_mode );
+	prepare_scanline( imout->im->width, QUANT_ERR_BITS, &total, imout->asv->BGR_mode );
 	while( ++k < max_k )
 	{
 		int reps = scales_v[k] ;
@@ -1963,8 +1957,8 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
 		out_width = imout->im->width;
 
 	for( i = 0 ; i < 4 ; i++ )
-		prepare_scanline( out_width, 0, &(src_lines[i]), imout->scr->BGR_mode);
-	prepare_scanline( out_width, QUANT_ERR_BITS, &step, imout->scr->BGR_mode );
+		prepare_scanline( out_width, 0, &(src_lines[i]), imout->asv->BGR_mode);
+	prepare_scanline( out_width, QUANT_ERR_BITS, &step, imout->asv->BGR_mode );
 
 
 /*	set_component(src_lines[0].red,0x00000000,0,out_width*3); */
@@ -2033,7 +2027,7 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
 /* ASImage transformations : 												  */
 /******************************************************************************/
 ASImage *
-scale_asimage( ScreenInfo *scr, ASImage *src, unsigned int to_width, unsigned int to_height,
+scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int to_height,
 			   Bool to_xim, unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
@@ -2045,15 +2039,15 @@ scale_asimage( ScreenInfo *scr, ASImage *src, unsigned int to_width, unsigned in
 	if( !check_scale_parameters(src,&to_width,&to_height) )
 		return NULL;
 
-	if( (imdec = start_image_decoding(scr, src, SCL_DO_ALL, 0, 0, src->width)) == NULL )
+	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, src->width)) == NULL )
 		return NULL;
 
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height, compression_out);
 	if( to_xim )
-		if( (dst->ximage = create_screen_ximage( scr, to_width, to_height, 0 )) == NULL )
+		if( (dst->ximage = create_visual_ximage( asv, to_width, to_height, 0 )) == NULL )
 		{
-			show_error( "Unable to create XImage for the screen %d", scr->screen );
+			show_error( "Unable to create XImage for the visual %d", asv->visual_info.visualid );
 			asimage_init(dst, True);
 			free( dst );
 			stop_image_decoding( &imdec );
@@ -2088,7 +2082,7 @@ scale_asimage( ScreenInfo *scr, ASImage *src, unsigned int to_width, unsigned in
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
-	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, QUANT_ERR_BITS, quality )) == NULL )
+	if((imout = start_image_output( asv, dst, dst->ximage, to_xim, QUANT_ERR_BITS, quality )) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
@@ -2111,7 +2105,7 @@ scale_asimage( ScreenInfo *scr, ASImage *src, unsigned int to_width, unsigned in
 }
 
 ASImage *
-tile_asimage( ScreenInfo *scr, ASImage *src,
+tile_asimage( ASVisual *asv, ASImage *src,
 		      int offset_x, int offset_y,
 			  unsigned int to_width,
 			  unsigned int to_height,
@@ -2122,15 +2116,15 @@ tile_asimage( ScreenInfo *scr, ASImage *src,
 	ASImageDecoder *imdec ;
 	ASImageOutput  *imout ;
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
-	if( (imdec = start_image_decoding(scr, src, SCL_DO_ALL, offset_x, offset_y, to_width)) == NULL )
+	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width)) == NULL )
 		return NULL;
 
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height, compression_out);
 	if( to_xim )
-		if( (dst->ximage = create_screen_ximage( scr, to_width, to_height, 0 )) == NULL )
+		if( (dst->ximage = create_visual_ximage( asv, to_width, to_height, 0 )) == NULL )
 		{
-			show_error( "Unable to create XImage for the screen %d", scr->screen );
+			show_error( "Unable to create XImage for the visual %d", asv->visual_info.visualid );
 			asimage_init(dst, True);
 			free( dst );
 			stop_image_decoding( &imdec );
@@ -2139,7 +2133,7 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
-	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, (tint!=0)?8:0, quality)) == NULL )
+	if((imout = start_image_output( asv, dst, dst->ximage, to_xim, (tint!=0)?8:0, quality)) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
@@ -2180,7 +2174,7 @@ LOCAL_DEBUG_OUT("tiling actually...%s", "");
 }
 
 ASImage *
-merge_layers( ScreenInfo *scr,
+merge_layers( ASVisual *asv,
 				ASImageLayer *layers, int count,
 			  	unsigned int dst_width,
 			  	unsigned int dst_height,
@@ -2195,15 +2189,15 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, dst_width, dst_height, compression_out);
 	if( to_xim )
-		if( (dst->ximage = create_screen_ximage( scr, dst_width, dst_height, 0 )) == NULL )
+		if( (dst->ximage = create_visual_ximage( asv, dst_width, dst_height, 0 )) == NULL )
 		{
-			show_error( "Unable to create XImage for the screen %d", scr->screen );
+			show_error( "Unable to create XImage for the visual %d", asv->visual_info.visualid );
 			asimage_init(dst, True);
 			free( dst );
 			return NULL ;
 		}
-	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line, scr->BGR_mode );
-	prepare_scanline( dst->width, QUANT_ERR_BITS, &tmp_line, scr->BGR_mode );
+	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
+	prepare_scanline( dst->width, QUANT_ERR_BITS, &tmp_line, asv->BGR_mode );
 	dst_line.flags = SCL_DO_ALL ;
 	tmp_line.flags = SCL_DO_ALL ;
 
@@ -2211,14 +2205,14 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	for( i = 0 ; i < count ; i++ )
 		if( layers[i].im )
 		{
-			imdecs[i] = start_image_decoding(scr, layers[i].im, SCL_DO_ALL, layers[i].clip_x, layers[i].clip_y, layers[i].clip_width);
+			imdecs[i] = start_image_decoding(asv, layers[i].im, SCL_DO_ALL, layers[i].clip_x, layers[i].clip_y, layers[i].clip_width);
 			imdecs[i]->back_color = layers[i].back_color ;
 		}
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
 
-	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, QUANT_ERR_BITS, quality)) == NULL )
+	if((imout = start_image_output( asv, dst, dst->ximage, to_xim, QUANT_ERR_BITS, quality)) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
@@ -2301,7 +2295,7 @@ make_gradient_top2bottom( ASImageOutput *imout, ASScanline *dither_lines, int di
 	ASScanline result;
 	CARD32 chan_data[MAX_GRADIENT_DITHER_LINES] = {0,0,0,0};
 LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count = %d", width, height, filter, dither_lines_num );
-	prepare_scanline( width, QUANT_ERR_BITS, &result, imout->scr->BGR_mode );
+	prepare_scanline( width, QUANT_ERR_BITS, &result, imout->asv->BGR_mode );
 	for( y = 0 ; y < height ; y++ )
 	{
 		int color ;
@@ -2388,7 +2382,7 @@ make_gradient_diag_height( ASImageOutput *imout, ASScanline *dither_lines, int d
 	ASScanline result;
 	int *offsets ;
 
-	prepare_scanline( width, QUANT_ERR_BITS, &result, imout->scr->BGR_mode );
+	prepare_scanline( width, QUANT_ERR_BITS, &result, imout->asv->BGR_mode );
 	offsets = safemalloc( sizeof(int)*width );
 	offsets[0] = 0 ;
 
@@ -2455,7 +2449,7 @@ make_gradient_diag_height( ASImageOutput *imout, ASScanline *dither_lines, int d
 }
 
 ASImage*
-make_gradient( ScreenInfo *scr, gradient_t *grad,
+make_gradient( ASVisual *asv, ASGradient *grad,
                unsigned int width, unsigned int height, ASFlagType filter,
   			   Bool to_xim, unsigned int compression_out, int quality  )
 {
@@ -2463,9 +2457,7 @@ make_gradient( ScreenInfo *scr, gradient_t *grad,
 	ASImageOutput *imout;
 	int line_len = width;
 
-	if( scr == NULL )
-		scr = &Scr ;
-	if( grad == NULL )
+	if( asv == NULL || grad == NULL )
 		return NULL;
 	if( width == 0 )
 		width = 2;
@@ -2474,9 +2466,9 @@ make_gradient( ScreenInfo *scr, gradient_t *grad,
 	im = safecalloc( 1, sizeof(ASImage) );
 	asimage_start (im, width, height, compression_out);
 	if( to_xim )
-		if( (im->ximage = create_screen_ximage( scr, width, height, 0 )) == NULL )
+		if( (im->ximage = create_visual_ximage( asv, width, height, 0 )) == NULL )
 		{
-			show_error( "Unable to create XImage for the screen %d", scr->screen );
+			show_error( "Unable to create XImage for the visual %d", asv->visual_info.visualid );
 			asimage_init(im, True);
 			free( im );
 			return NULL ;
@@ -2485,7 +2477,7 @@ make_gradient( ScreenInfo *scr, gradient_t *grad,
 		line_len = height ;
 	if( get_flags(grad->type,GRADIENT_TYPE_DIAG) )
 		line_len = MAX(width,height)<<1 ;
-	if((imout = start_image_output( scr, im, im->ximage, to_xim, QUANT_ERR_BITS, quality)) == NULL )
+	if((imout = start_image_output( asv, im, im->ximage, to_xim, QUANT_ERR_BITS, quality)) == NULL )
 	{
 		asimage_init(im, True);
 		free( im );
@@ -2503,26 +2495,26 @@ make_gradient( ScreenInfo *scr, gradient_t *grad,
 		lines = safecalloc( dither_lines, sizeof(ASScanline));
 		for( line = 0 ; line < dither_lines ; line++ )
 		{
-			prepare_scanline( line_len, QUANT_ERR_BITS, &(lines[line]), scr->BGR_mode );
+			prepare_scanline( line_len, QUANT_ERR_BITS, &(lines[line]), asv->BGR_mode );
 			make_gradient_scanline( &(lines[line]), grad, filter, dither_seeds[line] );
 		}
 
-		switch( grad->type )
+		switch( get_flags(grad->type,GRADIENT_TYPE_MASK) )
 		{
-			case TEXTURE_Left2Right :
+			case GRADIENT_Left2Right :
 				make_gradient_left2right( imout, lines, dither_lines, filter );
   	    		break ;
-			case TEXTURE_Top2Bottom :
+			case GRADIENT_Top2Bottom :
 				make_gradient_top2bottom( imout, lines, dither_lines, filter );
 				break ;
-			case TEXTURE_TopLeft2BottomRight :
-			case TEXTURE_BottomLeft2TopRight :
+			case GRADIENT_TopLeft2BottomRight :
+			case GRADIENT_BottomLeft2TopRight :
 				if( width >= height )
 					make_gradient_diag_width( imout, lines, dither_lines, filter,
-											 (grad->type==TEXTURE_BottomLeft2TopRight));
+											 (grad->type==GRADIENT_BottomLeft2TopRight));
 				else
 					make_gradient_diag_height( imout, lines, dither_lines, filter,
-											  (grad->type==TEXTURE_BottomLeft2TopRight));
+											  (grad->type==GRADIENT_BottomLeft2TopRight));
 				break ;
 			default:
 		}
@@ -2538,7 +2530,7 @@ make_gradient( ScreenInfo *scr, gradient_t *grad,
 /* Image flipping(rotation)													*/
 /****************************************************************************/
 ASImage *
-flip_asimage( ScreenInfo *scr, ASImage *src,
+flip_asimage( ASVisual *asv, ASImage *src,
 		      int offset_x, int offset_y,
 			  unsigned int to_width,
 			  unsigned int to_height,
@@ -2550,18 +2542,18 @@ flip_asimage( ScreenInfo *scr, ASImage *src,
 	ASImageOutput  *imout ;
 	ASFlagType filter = SCL_DO_ALL;
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
-	if( src ) 
-		filter = get_asimage_chanmask(src); 
-	if( (imdec = start_image_decoding(scr, src, filter, offset_x, offset_y, to_width)) == NULL )
+	if( src )
+		filter = get_asimage_chanmask(src);
+	if( (imdec = start_image_decoding(asv, src, filter, offset_x, offset_y, to_width)) == NULL )
 		return NULL;
 
 
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height, compression_out);
 	if( to_xim )
-		if( (dst->ximage = create_screen_ximage( scr, to_width, to_height, 0 )) == NULL )
+		if( (dst->ximage = create_visual_ximage( asv, to_width, to_height, 0 )) == NULL )
 		{
-			show_error( "Unable to create XImage for the screen %d", scr->screen );
+			show_error( "Unable to create XImage for the visual %d", asv->visual_info.visualid );
 			asimage_init(dst, True);
 			free( dst );
 			stop_image_decoding( &imdec );
@@ -2570,7 +2562,7 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
-	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, 0, quality)) == NULL )
+	if((imout = start_image_output( asv, dst, dst->ximage, to_xim, 0, quality)) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
@@ -2585,7 +2577,7 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 		{
 			ASScanline result ;
 			toggle_image_output_direction( imout );
-			prepare_scanline( to_width, 0, &result, scr->BGR_mode );
+			prepare_scanline( to_width, 0, &result, asv->BGR_mode );
 			for( y = 0 ; y < max_y ; y++  )
 			{
 				decode_image_scanline( imdec );
@@ -2611,7 +2603,7 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 /****************************************************************************/
 
 ASImage      *
-ximage2asimage (ScreenInfo *scr, XImage * xim, unsigned int compression)
+ximage2asimage (ASVisual *asv, XImage * xim, unsigned int compression)
 {
 	ASImage      *im = NULL;
 	unsigned char *xim_line;
@@ -2633,10 +2625,10 @@ ximage2asimage (ScreenInfo *scr, XImage * xim, unsigned int compression)
 #ifdef LOCAL_DEBUG
 	tmp = safemalloc( xim->width * sizeof(CARD32));
 #endif
-	prepare_scanline( xim->width, 0, &xim_buf, scr->BGR_mode );
+	prepare_scanline( xim->width, 0, &xim_buf, asv->BGR_mode );
 	for (i = 0; i < height; i++)
 	{
-		GET_SCANLINE(scr,xim,&xim_buf,i,xim_line);
+		GET_SCANLINE(asv,xim,&xim_buf,i,xim_line);
 		asimage_add_line (im, IC_RED,   xim_buf.red, i);
 		asimage_add_line (im, IC_GREEN, xim_buf.green, i);
 		asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
@@ -2656,7 +2648,7 @@ ximage2asimage (ScreenInfo *scr, XImage * xim, unsigned int compression)
 }
 
 XImage*
-asimage2ximage (ScreenInfo *scr, ASImage *im)
+asimage2ximage (ASVisual *asv, ASImage *im)
 {
 	XImage        *xim = NULL;
 	int            i;
@@ -2669,11 +2661,11 @@ asimage2ximage (ScreenInfo *scr, ASImage *im)
 	if (im == NULL)
 		return xim;
 
-	xim = create_screen_ximage( scr, im->width, im->height, 0 );
-	if( (imout = start_image_output( scr, im, xim, True, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
+	xim = create_visual_ximage( asv, im->width, im->height, 0 );
+	if( (imout = start_image_output( asv, im, xim, True, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
 		return xim;
 
-	prepare_scanline( xim->width, 0, &xim_buf, scr->BGR_mode );
+	prepare_scanline( xim->width, 0, &xim_buf, asv->BGR_mode );
 #ifdef DO_CLOCKING
 	started = clock ();
 #endif
@@ -2693,7 +2685,7 @@ asimage2ximage (ScreenInfo *scr, ASImage *im)
 }
 
 XImage*
-asimage2mask_ximage (ScreenInfo *scr, ASImage *im)
+asimage2mask_ximage (ASVisual *asv, ASImage *im)
 {
 	XImage        *xim = NULL;
 	int            i;
@@ -2703,11 +2695,11 @@ asimage2mask_ximage (ScreenInfo *scr, ASImage *im)
 	if (im == NULL)
 		return xim;
 
-	xim = create_screen_ximage( scr, im->width, im->height, 1 );
-	if( (imout = start_image_output( scr, im, xim, True, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
+	xim = create_visual_ximage( asv, im->width, im->height, 1 );
+	if( (imout = start_image_output( asv, im, xim, True, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
 		return xim;
 
-	prepare_scanline( xim->width, 0, &xim_buf, scr->BGR_mode );
+	prepare_scanline( xim->width, 0, &xim_buf, asv->BGR_mode );
 	for (i = 0; i < im->height; i++)
 	{
 		asimage_decode_line (im, IC_RED, xim_buf.alpha, i, 0, xim_buf.width);
@@ -2719,14 +2711,14 @@ asimage2mask_ximage (ScreenInfo *scr, ASImage *im)
 }
 
 ASImage      *
-pixmap2asimage(ScreenInfo *scr, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache, unsigned int compression)
+pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache, unsigned int compression)
 {
-	XImage       *xim = XGetImage (dpy, p, x, y, width, height, plane_mask, ZPixmap);
+	XImage       *xim = XGetImage (asv->dpy, p, x, y, width, height, plane_mask, ZPixmap);
 	ASImage      *im = NULL;
 
 	if (xim)
 	{
-		im = ximage2asimage (scr, xim, compression);
+		im = ximage2asimage (asv, xim, compression);
 		if( keep_cache )
 			im->ximage = xim ;
 		else
@@ -2736,14 +2728,14 @@ pixmap2asimage(ScreenInfo *scr, Pixmap p, int x, int y, unsigned int width, unsi
 }
 
 Pixmap
-asimage2pixmap(ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached)
+asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 {
 	XImage       *xim ;
 	Pixmap        p = None;
 
 	if ( !use_cached || im->ximage == NULL )
 	{
-		if( (xim = asimage2ximage( scr, im )) == NULL )
+		if( (xim = asimage2ximage( asv, im )) == NULL )
 		{
 			show_error("cannot export image into XImage.");
 			return None ;
@@ -2752,8 +2744,8 @@ asimage2pixmap(ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached)
 		xim = im->ximage ;
 	if (xim != NULL )
 	{
-		p = create_screen_pixmap( scr, xim->width, xim->height, 0 );
-		XPutImage( dpy, p, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+		p = create_visual_pixmap( asv, root, xim->width, xim->height, 0 );
+		XPutImage( asv->dpy, p, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
 		if( xim != im->ximage )
 			XDestroyImage (xim);
 	}
@@ -2761,18 +2753,18 @@ asimage2pixmap(ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached)
 }
 
 Pixmap
-asimage2mask(ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached)
+asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 {
 	XImage       *xim ;
 	Pixmap        mask = None;
 
-	if( (xim = asimage2mask_ximage( scr, im )) == NULL )
+	if( (xim = asimage2mask_ximage( asv, im )) == NULL )
 	{
 		show_error("cannot export image's mask into XImage.");
 		return None ;
 	}
-	mask = create_screen_pixmap( scr, xim->width, xim->height, 1 );
-	XPutImage( dpy, mask, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+	mask = create_visual_pixmap( asv, root, xim->width, xim->height, 1 );
+	XPutImage( asv->dpy, mask, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
 	XDestroyImage (xim);
 	return mask;
 }

@@ -1,8 +1,7 @@
 #ifndef ASIMAGE_HEADER_FILE_INCLUDED
 #define ASIMAGE_HEADER_FILE_INCLUDED
 
-struct ScreenInfo;
-struct gradient_t;
+struct ASVisual;
 
 #define MAX_IMPORT_IMAGE_SIZE 	4000
 
@@ -65,7 +64,7 @@ ASImage;
 /* Auxilary data structures : */
 typedef struct ASImageDecoder
 {
-	ScreenInfo 	   *scr;
+	ASVisual 	   *asv;
 	ASImage 	   *im ;
 	ASFlagType 		filter;
 
@@ -100,7 +99,7 @@ typedef void (*output_image_scanline_func)( struct ASImageOutput *, ASScanline *
 
 typedef struct ASImageOutput
 {
-	ScreenInfo *scr;
+	ASVisual 	   *asv;
 	ASImage *im ;
 	XImage *xim ;
 	Bool to_xim ;
@@ -122,7 +121,7 @@ typedef struct ASImageOutput
 														 * encoding only */
 }ASImageOutput;
 
-ASImageOutput *start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality );
+ASImageOutput *start_image_output( struct ASVisual *asv, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality );
 void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color );
 void toggle_image_output_direction( ASImageOutput *imout );
 void stop_image_output( ASImageOutput **pimout );
@@ -159,6 +158,25 @@ typedef struct ASImageLayer
 	merge_scanlines_func merge_scanlines ;
 }ASImageLayer;
 
+typedef struct ASGradient
+{
+#define GRADIENT_TYPE_MASK          0x0003
+#define GRADIENT_TYPE_ORIENTATION   0x0002
+#define GRADIENT_TYPE_DIAG          0x0001
+
+#define GRADIENT_Left2Right        		0
+#define GRADIENT_TopLeft2BottomRight	GRADIENT_TYPE_DIAG
+#define GRADIENT_Top2Bottom				GRADIENT_TYPE_ORIENTATION
+#define GRADIENT_BottomLeft2TopRight    (GRADIENT_TYPE_DIAG|GRADIENT_TYPE_ORIENTATION)
+	int			type;
+
+	int         npoints;
+	ARGB32     *color;
+    double     *offset;
+}ASGradient;
+
+#define FLIP_VERTICAL       (0x01<<0)
+#define FLIP_UPSIDEDOWN		(0x01<<1)
 
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
@@ -215,29 +233,29 @@ extern as_image_loader_func as_image_file_loaders[ASIT_Unknown];
 
 ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... );
 
-ASImage *ximage2asimage (struct ScreenInfo *scr, XImage * xim, unsigned int compression);
-ASImage *pixmap2asimage (struct ScreenInfo *scr, Pixmap p, int x, int y,
+ASImage *ximage2asimage (struct ASVisual *asv, XImage * xim, unsigned int compression);
+ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
 	                     unsigned int width, unsigned int height,
 		  				 unsigned long plane_mask, Bool keep_cache, unsigned int compression);
 
-XImage* asimage2ximage  (struct ScreenInfo *scr, ASImage *im);
-XImage* asimage2mask_ximage (struct ScreenInfo *scr, ASImage *im);
-Pixmap  asimage2pixmap  (struct ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached);
-Pixmap  asimage2mask    (struct ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached);
+XImage* asimage2ximage  (struct ASVisual *asv, ASImage *im);
+XImage* asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
+Pixmap  asimage2pixmap  (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
+Pixmap  asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
 
 /* manipulations : */
-ASImage *scale_asimage( struct ScreenInfo *scr, ASImage *src, unsigned int to_width, unsigned int to_height,
+ASImage *scale_asimage( struct ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int to_height,
 						Bool to_xim, unsigned int compression_out, int quality );
-ASImage *tile_asimage ( struct ScreenInfo *scr, ASImage *src, int offset_x, int offset_y,
+ASImage *tile_asimage ( struct ASVisual *asv, ASImage *src, int offset_x, int offset_y,
   					    unsigned int to_width,  unsigned int to_height, ARGB32 tint,
 						Bool to_xim, unsigned int compression_out, int quality );
-ASImage *merge_layers ( struct ScreenInfo *scr, ASImageLayer *layers, int count,
+ASImage *merge_layers ( struct ASVisual *asv, ASImageLayer *layers, int count,
 			  		    unsigned int dst_width, unsigned int dst_height,
 			  		    Bool to_xim, unsigned int compression_out, int quality );
-ASImage *make_gradient( struct ScreenInfo *scr, struct gradient_t *grad,
+ASImage *make_gradient( struct ASVisual *asv, struct ASGradient *grad,
                			unsigned int width, unsigned int height, ASFlagType filter,
   			   			Bool to_xim, unsigned int compression_out, int quality  );
-ASImage *flip_asimage( ScreenInfo *scr, ASImage *src,
+ASImage *flip_asimage( struct ASVisual *asv, ASImage *src,
 		 		       int offset_x, int offset_y,
 			  		   unsigned int to_width, unsigned int to_height,
 					   int flip, Bool to_xim, unsigned int compression_out, int quality );
