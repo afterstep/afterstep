@@ -349,7 +349,7 @@ CreateManagementWindows()
 	LOCAL_DEBUG_OUT( "Scr.SizeWindow = %lX;", Scr.SizeWindow );
     /* create a window which will accept the keyboard focus when no other
 	   windows have it */
-    attr.event_mask = KeyPressMask | FocusChangeMask;
+    attr.event_mask = KeyPressMask | FocusChangeMask | AS_ROOT_EVENT_MASK;
     attr.override_redirect = True;
     Scr.ServiceWin = create_visual_window (Scr.asv, Scr.Root, 0, 0, 1, 1, 0,
                                            InputOutput, CWEventMask | CWOverrideRedirect,

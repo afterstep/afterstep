@@ -171,6 +171,8 @@ typedef struct ASWharfState
 
 	ASWharfButton *focused_button ;
 
+	FunctionData   *default_action[Button5];
+
 }ASWharfState;
 
 ASWharfState WharfState;

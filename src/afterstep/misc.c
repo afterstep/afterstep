@@ -53,7 +53,7 @@ MyXGrabButton ( unsigned button, unsigned modifiers,
                 Window grab_window, Bool owner_events, unsigned event_mask,
                 int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
 {
-	LOCAL_DEBUG_OUT( "modifiers = %X", modifiers );
+	LOCAL_DEBUG_CALLER_OUT( "button = %d, w = %lX modifiers = %X", button, grab_window, modifiers );
     if( modifiers == AnyModifier )
         XGrabButton (dpy, button, AnyModifier, grab_window,
                      owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
@@ -74,6 +74,7 @@ MyXGrabButton ( unsigned button, unsigned modifiers,
 void
 MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window)
 {
+	LOCAL_DEBUG_CALLER_OUT( "w = %lX", grab_window );
     if( modifiers == AnyModifier )
         XUngrabButton (dpy, button, AnyModifier, grab_window);
     else
@@ -119,13 +120,13 @@ void
 grab_focus_click( Window w )
 {
     int i ;
-    if( w )
+    LOCAL_DEBUG_CALLER_OUT( "w = %lX", w );
+	if( w )
     { /* need to grab all buttons for window that we are about to unfocus */
         for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
             if (Scr.Feel.buttons2grab & (0x01 << i))
             {
-                MyXGrabButton ( i + 1, 0, w,
-                                True, ButtonPressMask, GrabModeSync,
+                MyXGrabButton ( i + 1, 0, w, True, ButtonPressMask, GrabModeSync,
                                 GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Sys]);
             }
     }
@@ -134,14 +135,25 @@ grab_focus_click( Window w )
 void
 ungrab_focus_click( Window w )
 {
-    if( w )
+    LOCAL_DEBUG_CALLER_OUT( "w = %lX", w );
+	if( w )
     {   /* if we do click to focus, remove the grab on mouse events that
          * was made to detect the focus change */
-        register int i = 0;
+		register int i = 0;
+#if 0        
         register ASFlagType grab_btn_mask = Scr.Feel.buttons2grab<<1 ;
         while ( ++i <= MAX_MOUSE_BUTTONS )
             if ( grab_btn_mask&(1<<i) )
+			{
                 MyXUngrabButton (i, 0, w);
+			}
+#else
+        for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
+            if (Scr.Feel.buttons2grab & (0x01 << i))
+            {
+                MyXUngrabButton (i+1, 0, w);
+			}
+#endif				   
     }
 }
 

@@ -1076,33 +1076,43 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 	Bool 		  raise_on_click = False ; 
     Bool 		  focus_accepted = False ;
     Bool 		  eat_click = False;
+	Bool 		  activate_window = False ;
 
 	/* click to focus stuff goes here */
     if( asw != NULL )
     {
+		LOCAL_DEBUG_OUT( "deferred = %d, button = %X", deffered, (event->context&(~C_TButtonAll)) );
         /* if all we do is pressing titlebar buttons - then we should not raise/focus window !!! */
-        if( !deffered && (event->context&(~C_TButtonAll)) != 0 )
+        if( !deffered )
         {
-            if (get_flags( Scr.Feel.flags, ClickToFocus) )
-      		{
-          		if ( asw != Scr.Windows->ungrabbed && (xbtn->state & nonlock_mods) == 0)
-                {
-                    if( Scr.Windows->focused != asw )
-                        focus_accepted = activate_aswindow( asw, False, False);
-                    if( focus_accepted && get_flags( Scr.Feel.flags, EatFocusClick ) )
-                        eat_click = True ;
-                }
-	        }
+			if( (event->context&(~C_TButtonAll)) != 0 )
+			{	
+            	if (get_flags( Scr.Feel.flags, ClickToFocus) )
+      			{
+					LOCAL_DEBUG_OUT( "asw = %p, ungrabbed = %p, nonlock_mods = %x", asw, Scr.Windows->ungrabbed, (xbtn->state & nonlock_mods) );
+          			if ( asw != Scr.Windows->ungrabbed && (xbtn->state & nonlock_mods) == 0)
+                	{
+						if( get_flags( Scr.Feel.flags, EatFocusClick ) )
+						{
+							if( Scr.Windows->focused != asw )
+								if( (focus_accepted = activate_aswindow( asw, False, False)) )
+                        			eat_click = True ;
+						}else if( Scr.Windows->focused != asw )
+							activate_window = True;
+						LOCAL_DEBUG_OUT( "eat_click = %d", eat_click );
+                	}
+	        	}
 
-            if ( get_flags(Scr.Feel.flags, ClickToRaise) )
-				raise_on_click = ( Scr.Feel.RaiseButtons == 0 || (Scr.Feel.RaiseButtons & (1 << xbtn->button))) ; 
-
-            if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
-  		    {
-      		    XSync (dpy, 0);
-          		XAllowEvents (dpy, (event->context == C_WINDOW) ? ReplayPointer : AsyncPointer, CurrentTime);
-	            XSync (dpy, 0);
-  		    }
+            	if ( get_flags(Scr.Feel.flags, ClickToRaise) )
+					raise_on_click = ( Scr.Feel.RaiseButtons == 0 || (Scr.Feel.RaiseButtons & (1 << xbtn->button))) ; 
+			}
+			
+			if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
+  			{
+      			XSync (dpy, 0);
+        		XAllowEvents (dpy, (event->context == C_WINDOW) ? ReplayPointer : AsyncPointer, CurrentTime);
+	    		XSync (dpy, 0);
+  			}
 		} /* !deffered */
 
         press_aswindow( asw, event->context );
@@ -1136,6 +1146,10 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 			MouseEntry = MouseEntry->NextButton;
 		}
 	}
+
+	LOCAL_DEBUG_OUT( "ashandled = %d, context = %X", AShandled, (event->context&(C_CLIENT|C_TITLE)) );
+	if( activate_window && (!AShandled || (event->context&(C_CLIENT|C_TITLE)))) 
+		focus_accepted = activate_aswindow( asw, False, False);
 
 	if( raise_on_click && (asw->internal == NULL || (event->context&C_CLIENT) == 0 ) )
     	restack_window(asw,None,focus_accepted?Above:TopIf);
@@ -1214,7 +1228,7 @@ HandleEnterNotify (ASEvent *event)
 
     if (ASWIN_HFLAGS(asw,AS_AcceptsFocus))
 	{
-        if (!get_flags(Scr.Feel.flags, ClickToFocus))
+        if (!get_flags(Scr.Feel.flags, ClickToFocus) || asw->internal != NULL )
 		{
             if (Scr.Windows->focused != asw)
                 activate_aswindow(asw, False, False);

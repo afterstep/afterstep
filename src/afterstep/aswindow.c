@@ -1238,7 +1238,7 @@ hide_focus()
     Scr.Windows->ungrabbed = NULL;
     XRaiseWindow(dpy, Scr.ServiceWin);
 	LOCAL_DEBUG_OUT( "XSetInputFocus(window= %lX (service_win), time = %lu)", Scr.ServiceWin, Scr.last_Timestamp);
-    XSetInputFocus (dpy, Scr.ServiceWin, RevertToNone/*RevertToParent*/, Scr.last_Timestamp);
+    XSetInputFocus (dpy, Scr.ServiceWin, RevertToParent, Scr.last_Timestamp);
     XSync(dpy, False );
 }
 

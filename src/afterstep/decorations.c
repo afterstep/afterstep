@@ -573,10 +573,14 @@ grab_aswindow_buttons( ASWindow *asw, Bool focused )
 {
     if( asw )
     {
-        Bool do_focus_grab = (!focused && get_flags( Scr.Feel.flags, ClickToFocus ));
+        Bool do_focus_grab = (get_flags( Scr.Feel.flags, ClickToFocus ));
         if( do_focus_grab )
-            grab_focus_click( asw->frame );
-        else
+		{	
+            if( focused )
+				ungrab_focus_click( asw->frame );
+			else				
+				grab_focus_click( asw->frame );
+        }else
             ungrab_window_buttons( asw->frame );
 
         if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
@@ -588,18 +592,29 @@ grab_aswindow_buttons( ASWindow *asw, Bool focused )
         if( asw->icon_canvas && !ASWIN_GET_FLAGS(asw, AS_Dead) && validate_drawable(asw->icon_canvas->w, NULL, NULL) != None )
         {
             ungrab_window_buttons( asw->icon_canvas->w );
-            grab_window_buttons( asw->icon_canvas->w, C_ICON );
             if( do_focus_grab )
-                grab_focus_click( asw->icon_canvas->w );
+			{
+	            if( focused )
+					ungrab_focus_click( asw->icon_canvas->w );
+				else				
+			        grab_focus_click( asw->icon_canvas->w );
+			}
+            grab_window_buttons( asw->icon_canvas->w, C_ICON );
         }
 
         if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas )
         {
             ungrab_window_buttons( asw->icon_title_canvas->w );
-            grab_window_buttons( asw->icon_title_canvas->w, C_ICON );
             if( do_focus_grab )
-                grab_focus_click( asw->icon_title_canvas->w );
-        }
+			{
+	            if( focused )
+					ungrab_focus_click( asw->icon_title_canvas->w );
+				else				
+	                grab_focus_click( asw->icon_title_canvas->w );
+			}
+            grab_window_buttons( asw->icon_title_canvas->w, C_ICON );
+    
+		}
     }
     XSync(dpy, False );
 }
