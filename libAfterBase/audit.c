@@ -235,8 +235,10 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 void         *
 countmalloc (const char *fname, int line, size_t length)
 {
-	void         *ptr = safemalloc (length);
-
+	void         *ptr;
+    if( (int)length < 0 ) 
+		fprintf( stderr, "too large malloc of %u from %s:%d\n", length, fname, line );
+	ptr = safemalloc (length);
 	count_alloc (fname, line, ptr, length, C_MEM | C_MALLOC);
 	return ptr;
 }
@@ -245,6 +247,9 @@ void         *
 countcalloc (const char *fname, int line, size_t nrecords, size_t length)
 {
 	void         *ptr = calloc (nrecords, length);
+
+    if( (int)(length*nrecords) < 0 ) 
+		fprintf( stderr, "too large calloc of %u from %s:%d\n", length*nrecords, fname, line );
 
 	count_alloc (fname, line, ptr, nrecords * length, C_MEM | C_CALLOC);
 	return ptr;
