@@ -258,6 +258,39 @@ safely_destroy_window (Window w)
 	XSetErrorHandler (old_handler);
 }
 
+Bool
+query_pointer( Window w,
+               Window *root_return, Window *child_return,
+               int *root_x_return, int *root_y_return,
+               int *win_x_return, int *win_y_return,
+               unsigned int *mask_return )
+{
+    Window root, child;
+    int root_x, root_y;
+    int win_x, win_y;
+    unsigned int mask;
+
+    if( !XQueryPointer (dpy, ((w==None)?Scr.Root:w), &root, &child, &root_x, &root_y, &win_x, &win_y, &mask) )
+        return False;
+
+    if( root_return )
+        *root_return = root ;
+    if( child_return )
+        *child_return = child;
+    if( root_x_return )
+        *root_x_return = root_x ;
+    if( root_y_return )
+        *root_y_return = root_y ;
+    if( win_x_return )
+        *win_x_return = win_x ;
+    if( win_y_return )
+        *win_y_return = win_y ;
+    if( mask_return )
+        *mask_return = mask ;
+
+    return True;
+}
+
 /**********************************************************************/
 /* Low level interfaces : 											  */
 /**********************************************************************/

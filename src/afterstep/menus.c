@@ -166,6 +166,7 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
     menu->items_num = real_items_num ;
     menu->top_item = 0 ;
     menu->selected_item = 0 ;
+    menu->pressed_item = -1;
 }
 
 void
@@ -283,6 +284,29 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
         update_canvas_display( menu->main_canvas );
 }
 
+void
+press_menu_item( ASMenu *menu, int pressed )
+{
+LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
+    if( AS_ASSERT(menu) || menu->items_num == 0 )
+        return;
+
+    if( pressed >= (int)menu->items_num )
+        pressed = menu->items_num - 1 ;
+
+    if( menu->pressed_item >= 0 )
+        set_astbar_pressed( menu->item_bar[menu->pressed_item], menu->main_canvas, False );
+    if( pressed >= 0 )
+    {
+        if( pressed != menu->selected_item )
+        {
+            set_astbar_pressed( menu->item_bar[pressed], NULL, True );/* don't redraw yet */
+            select_menu_item( menu, pressed );
+        }else
+            set_astbar_pressed( menu->item_bar[pressed], menu->main_canvas, True );
+    }
+    menu->pressed_item = pressed ;
+}
 /*************************************************************************/
 /* Menu event handlers  - ASInternalWindow interface :                   */
 /*************************************************************************/
@@ -354,10 +378,24 @@ void
 on_menu_pressure_changed( ASInternalWindow *asiw, int pressed_context )
 {
     ASMenu   *menu = (ASMenu*)(asiw->data) ;
+LOCAL_DEBUG_CALLER_OUT( "%p,0x%X", asiw, pressed_context );
     if( menu != NULL && menu->magic == MAGIC_ASMENU )
     {
-        /* TODO : press/depress menu item, possibly change the selection,
-         *        and run the function when item is depressed */
+        /* press/depress menu item, possibly change the selection,
+         * and run the function when item is depressed */
+        if( pressed_context )
+        {
+            int px = 0, py = 0 ;
+            ASQueryPointerWinXY( menu->main_canvas->w, &px, &py );
+LOCAL_DEBUG_OUT( "pointer(%d,%d)", px, py );
+            if( px >= 0 && px < menu->main_canvas->width &&  py >= 0 && py < menu->main_canvas->height )
+            {
+                int pressed = py/menu->item_height ;
+                if( pressed != menu->pressed_item )
+                    press_menu_item( menu, pressed );
+            }
+        }else if( menu->pressed_item >= 0 )
+            press_menu_item(menu, -1 );
     }
 }
 
@@ -442,6 +480,7 @@ show_asmenu(ASMenu *menu, int x, int y)
     ASStatusHints status ;
     ASHints *hints = safecalloc( 1, sizeof(ASHints) );
     ASInternalWindow *asiw = safecalloc( 1, sizeof(ASInternalWindow));
+    int pointer_x = 0, pointer_y  = 0;
 
     asiw->data = (ASMagic*)menu;
 
@@ -529,6 +568,15 @@ show_asmenu(ASMenu *menu, int x, int y)
     check_hints_sanity (&Scr, hints );
     check_status_sanity (&Scr, &status);
 
+    if( ASQueryPointerRootXY(&pointer_x,&pointer_y) )
+    {
+        if( pointer_x< status.x || pointer_y < status.y ||
+            pointer_x > status.x + status.width ||
+            pointer_y > status.y + status.height  )
+        {/* not likely to happen:  */
+            XWarpPointer(dpy, Scr.Root, Scr.Root, pointer_x, pointer_y, 0, 0, status.x+5, status.y+5);
+        }
+    }
 //    move_canvas( menu->main_canvas, status.x, status.y );
     AddInternalWindow( menu->main_canvas->w, &asiw, &hints, &status );
 
@@ -552,6 +600,8 @@ run_menu( const char *name )
     MenuData *md = FindPopup (name, False);
     ASMenu   *menu = NULL ;
 
+    int x = 0, y = 0;
+
     if( md == NULL )
         return;
 
@@ -559,6 +609,10 @@ run_menu( const char *name )
     set_asmenu_data( menu, md );
     set_asmenu_look( menu, &Scr.Look );
     set_asmenu_scroll_position( menu, 0 );
-    show_asmenu(menu, (Scr.MyDisplayWidth - menu->item_width)/2,
-                      (Scr.MyDisplayHeight - menu->item_height)/2 );
+    if( !ASQueryPointerRootXY(&x,&y) )
+    {
+        x = (Scr.MyDisplayWidth - menu->item_width)/2;
+        y = ((Scr.MyDisplayHeight - menu->item_height) * 3 )/ 4;
+    }
+    show_asmenu(menu, x, y );
 }

@@ -661,12 +661,10 @@ void scroll_func_handler( FunctionData *data, ASEvent *event, int module )
 void movecursor_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     int curr_x, curr_y ;
-    int x, y, junk ;
-	unsigned int ujunk ;
-	Window wjunk;
+    int x, y ;
     register ScreenInfo *scr = &Scr;
 
-    XQueryPointer (dpy, scr->Root, &wjunk, &wjunk, &curr_x, &curr_y, &junk, &junk, &ujunk);
+    ASQueryPointerRootXY(&curr_x, &curr_y);
     x = make_scroll_pos( data->func_val[0], data->unit_val[0], scr->Vx+curr_x, scr->VxMax+scr->MyDisplayWidth ,scr->MyDisplayWidth );
     y = make_scroll_pos( data->func_val[1], data->unit_val[1], scr->Vy+curr_y, scr->VyMax+scr->MyDisplayHeight,scr->MyDisplayHeight);
 

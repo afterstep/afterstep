@@ -47,7 +47,9 @@ typedef struct ASMenu
     struct ASTBarData **item_bar;
 
     unsigned int item_width, item_height ;
-    unsigned int top_item, selected_item ;
+    unsigned int top_item;
+    int selected_item ;                        /* if -1 - then none is selected */
+    int pressed_item ;                         /* if -1 - then none is pressed */
 
     unsigned int visible_items_num ;
 

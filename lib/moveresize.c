@@ -107,17 +107,12 @@ Bool grab_widget_pointer( ASWidget *widget, ASEvent *trigger,
 						  int *root_x_return, int *root_y_return,
 						  unsigned int *mask_return )
 {
-	Window wjunk ;
-	int junk ;
-	int i ;
+    int i ;
+    Window wjunk;
 
 	if( widget == NULL || trigger == NULL )
 		return False;
-	XQueryPointer ( dpy, AS_WIDGET_WINDOW(widget), &wjunk, &wjunk,
-		            x_return, y_return, &junk, &junk, mask_return);
-	XTranslateCoordinates( dpy, AS_WIDGET_SCREEN(widget)->Root,
-		                   AS_WIDGET_WINDOW(widget), *x_return, *y_return,
-						   root_x_return, root_y_return, &wjunk );
+    ASQueryPointerWinXYMask(AS_WIDGET_WINDOW(widget),root_x_return, root_y_return, x_return, y_return, mask_return);
 LOCAL_DEBUG_OUT("grabbing pointer at %+d%+d, mask = 0x%X, window(%lX)", *root_x_return, *root_y_return, *mask_return, AS_WIDGET_WINDOW(widget) );
 
 /*	XUngrabPointer( dpy, trigger->event_time ); */

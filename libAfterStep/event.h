@@ -112,6 +112,20 @@ int  peek_event (register XEvent * event_return);
 void quietly_unmap_window( Window w, long event_mask );
 void quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_mask );
 void safely_destroy_window (Window w);
+/* convinience function : all the parameters are optional ! */
+Bool query_pointer( Window w,
+                    Window *root_return, Window *child_return,
+                    int *root_x_return, int *root_y_return,
+                    int *win_x_return, int *win_y_return,
+                    unsigned int *mask_return );
+#define ASQueryPointerXY(pchild,prx,pry,px,py)   query_pointer(None,NULL,(pchild),(prx),(pry),(px),(py),NULL)
+#define ASQueryPointerWinXY(w,px,py)   query_pointer(w,NULL,NULL,NULL,NULL,(px),(py),NULL)
+#define ASQueryPointerWinXYMask(w,prx,pry,px,py,pmask)   query_pointer(w,NULL,NULL,(prx),(pry),(px),(py),(pmask))
+#define ASQueryPointerRootXY(prx,pry)   query_pointer(None,NULL,NULL,(prx),(pry),NULL,NULL,NULL)
+#define ASQueryPointerRootXYMask(w,prx,pry,pmask) query_pointer(w,NULL,NULL,(prx),(pry),NULL,NULL,(pmask))
+#define ASQueryPointerMask(pmask)       query_pointer(None,NULL,NULL,NULL,NULL,NULL,NULL,(pmask))
+#define ASQueryPointerChild(w,pchild)   query_pointer((w),NULL,(pchild),NULL,NULL,NULL,NULL,NULL)
+#define ASQueryPointerRoot(proot,pchild) query_pointer(None,(proot),(pchild),NULL,NULL,NULL,NULL,NULL)
 
 void add_window_event_mask( Window w, long event_mask );
 

@@ -189,16 +189,14 @@ void
 WaitForButtonsUpLoop ()
 {
 	XEvent        JunkEvent;
-	Window root ;
-	int junk ;
-	unsigned int  mask;
+    unsigned int  mask;
 
     if( !get_flags( AfterStepState, ASS_PointerOutOfScreen) )
 	{
 		do
 		{
 			XAllowEvents (dpy, ReplayPointer, CurrentTime);
-            XQueryPointer (dpy, Scr.Root, &root, &root, &junk, &junk, &junk, &junk, &mask);
+            ASQueryPointerMask(&mask);
         	ASFlushAndSync();
 		}while( (mask & (Button1Mask | Button2Mask | Button3Mask | Button4Mask | Button5Mask)) != 0 );
 
@@ -430,8 +428,6 @@ KeyboardShortcuts (XEvent * xevent, int return_event, int move_size)
 	int           x, y, x_root, y_root;
 	int           x_move, y_move;
 	KeySym        keysym;
-	unsigned int junk_mask;
-	Window junk_root;
 
 	/* Pick the size of the cursor movement */
     if (xevent->xkey.state & ControlMask)
@@ -473,8 +469,7 @@ KeyboardShortcuts (XEvent * xevent, int return_event, int move_size)
 	 default:
          return False;
 	}
-    XQueryPointer (dpy, Scr.Root, &junk_root, &xevent->xany.window,
-				   &x_root, &y_root, &x, &y, &junk_mask);
+    ASQueryPointerXY(&xevent->xany.window,&x_root, &y_root, &x, &y);
 
 	if ((x_move != 0) || (y_move != 0))
 	{
@@ -1349,10 +1344,8 @@ afterstep_wait_pipes_input()
 		 * in which case the select would never return. */
 		if (alarmed)
 		{
-			int junk ;
-			Window root;
-			alarmed = False;
-			XQueryPointer (dpy, Scr.Root, &root, &child, &junk, &junk, &junk, &junk, &junk);
+            alarmed = False;
+            ASQueryPointerChild(Scr.Root,&child);
             if ((Scr.Windows->focused != NULL) && (child == get_window_frame(Scr.Windows->focused)))
                 RaiseObscuredWindow(Scr.Windows->focused);
 			return ;
@@ -1447,8 +1440,7 @@ afterstep_wait_pipes_input ()
 		if (alarmed)
 		{
 			alarmed = False;
-			XQueryPointer (dpy, Scr.Root, &JunkRoot, &child, &JunkX, &JunkY, &JunkX,
-						   &JunkY, &JunkMask);
+            ASQueryPointerChild(None,&child);
             if ((Scr.Windows->focused != NULL) && (child == Scr.Windows->focused->frame))
 			{
                 if (!(Scr.Windows->focused->flags & VISIBLE))

@@ -186,8 +186,7 @@ static void
 autoraise_timer_handler (void *data)
 {
 	Window        child;
-
-	XQueryPointer (dpy, Scr.Root, &JunkRoot, &child, &JunkX, &JunkY, &JunkX, &JunkY, &JunkMask);
+    ASQueryPointerChild (Scr.Root, &child);
 	if (Scr.Focus != NULL && child == Scr.Focus->frame && !(Scr.Focus->flags & VISIBLE))
 		RaiseWindow (Scr.Focus);
 }

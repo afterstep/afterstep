@@ -1360,6 +1360,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s)", asw, context2text(pressed_context));
         for( i = FRAME_SIDES; --i >= 0; )
             if( is_canvas_dirty(asw->frame_sides[i]) )
                 update_canvas_display( asw->frame_sides[i] );
+        if( asw->internal && asw->internal->on_pressure_changed )
+            asw->internal->on_pressure_changed( asw->internal, pressed_context&C_CLIENT );
     }else /* Iconic !!! */
     {
         set_astbar_pressed( asw->icon_button, asw->icon_canvas, pressed_context&C_IconButton );
@@ -1906,13 +1908,11 @@ focus_aswindow( ASWindow *asw, Bool circulated )
 
     if (Scr.NumberOfScreens > 1 && !do_hide_focus )
 	{
-        int dumm ;
-        unsigned int udumm ;
         Window pointer_root ;
         /* if pointer went onto another screen - we need to release focus
          * and let other screen's manager manage it from now on, untill
          * pointer comes back to our screen :*/
-        XQueryPointer (dpy, Scr.Root, &pointer_root, &w, &dumm, &dumm, &dumm, &dumm, &udumm);
+        ASQueryPointerRoot(&pointer_root,&w);
         if(pointer_root != Scr.Root);
         {
             do_hide_focus = True;
