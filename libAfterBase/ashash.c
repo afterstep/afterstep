@@ -177,11 +177,11 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
 	ASHashResult  res;
 
 	if (hash == NULL)
-		return False;
+        return ASH_BadParameter;
 
 	key = hash->hash_func (value, hash->size);
 	if (key >= hash->size)
-		return False;
+        return ASH_BadParameter;
 
 	item = safemalloc (sizeof (ASHashItem));
 	item->next = NULL;
