@@ -639,7 +639,7 @@ option_hash_value (ASHashableValue value, ASHashKey hash_size)
 	do
 	{
 		c = opt[i];
-#define VALID_OPTION_CHAR(c)		(isalnum (c) || (c) == '~' || (c) == '_')
+#define VALID_OPTION_CHAR(c)		(isalnum ((int)c) || (c) == '~' || (c) == '_')
 		if (c == '\0' || !VALID_OPTION_CHAR(c))
 			break;
 		if (isupper ((int)c))
