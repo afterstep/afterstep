@@ -142,7 +142,9 @@ if test "$afterbase_includes" = NO; then
 	  else
  	    AC_CHECK_HEADER(libAfterBase/astypes.h,
 					    [AC_DEFINE(HAVE_AFTERBASE) AC_MSG_RESULT("<libAfterBase/astypes.h>")],
-						 AC_MSG_RESULT("none found"))
+						[AC_CHECK_HEADER(/usr/local/include/libAfterBase/astypes.h,
+						                 [AC_DEFINE(HAVE_AFTERBASE) AFTERBASE_CFLAGS="-I/usr/local/include" AC_MSG_RESULT("<libAfterBase/astypes.h>")],
+										  AC_MSG_RESULT("none found"))])
 	  fi	
 else
       AC_DEFINE(HAVE_AFTERBASE)
