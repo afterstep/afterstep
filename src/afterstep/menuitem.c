@@ -39,7 +39,7 @@
  ***************************************************************************/
 
 #include "../../configure.h"
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 #include "../../include/asapp.h"
 #include <signal.h>
 #include <stdarg.h>
@@ -1111,9 +1111,9 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
                 fdata->popup = dirtree_make_menu2 (t, buf, reload_submenus);
             else
                 fdata->popup = FindPopup( t->name, True );
-            if( fdata->popup == NULL )
+/*            if( fdata->popup == NULL )
                 fdata->func = F_NOP;
-
+*/
 			fdata->hotkey = scan_for_hotkey (fdata->name);
 			if (t->flags & DIRTREE_KEEPNAME)
 				fdata->text = mystrdup (t->name);
