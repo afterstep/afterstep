@@ -172,10 +172,10 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
         item->bar = create_astbar();
 	/* TODO:add minipixmap */
 	/* add label */
-    add_astbar_label( item->bar, 1, 0, 0, mdi->item );
+    add_astbar_label( item->bar, 1, 0, 0, ALIGN_LEFT, mdi->item );
 	/* TODO:add hotkey */
 	/* TODO:add popup icon */
-	
+
     item->flags = 0 ;
     if( mdi->fdata->func == F_POPUP )
     {
@@ -188,17 +188,18 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
 static Bool
 set_asmenu_item_look( ASMenuItem *item, MyLook *look )
 {
+LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
     if( item->bar == NULL )
         return False;
 
     if( get_flags( item->flags, AS_MenuItemDisabled ) )
     {
-        set_astbar_style( item->bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_STIPPLE]->name );
-        set_astbar_style( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_STIPPLE]->name );
+        set_astbar_style_ptr( item->bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_STIPPLE]);
+        set_astbar_style_ptr( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_STIPPLE] );
     }else
     {
-        set_astbar_style( item->bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_ITEM]->name );
-        set_astbar_style( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_HILITE]->name );
+        set_astbar_style_ptr( item->bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_ITEM] );
+        set_astbar_style_ptr( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_HILITE] );
     }
     return True;
 }
@@ -663,7 +664,7 @@ show_asmenu(ASMenu *menu, int x, int y)
                    AS_Gravity|
                    AS_MinSize|
                    AS_MaxSize|
-                   AS_SizeInc ;
+                   AS_SizeInc|AS_VerticalTitle ;
     hints->protocols = AS_DoesWmTakeFocus ;
     hints->function_mask = ~(AS_FuncPopup|     /* everything else is allowed ! */
                              AS_FuncMinimize|

@@ -48,6 +48,7 @@
 
 extern int    LastWarpIndex;
 
+#warning "implement titlebar config language in redecorate_window"
 
 #if 0
 /************************************************************************/
@@ -146,7 +147,10 @@ typedef struct ASOrientation
     int *out_x, *out_y;
     unsigned int *out_width, *out_height;
     int flip;
+    unsigned int default_tbar_elem_col[3];
+    unsigned int default_tbar_elem_row[3];
 }ASOrientation;
+
 
 /* Mirror Note :
  *
@@ -174,7 +178,9 @@ ASOrientation HorzOrientation =
     TBTN_ORDER_L2R,TBTN_ORDER_R2L,
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
-    0
+    0,
+    {0, 1, 2},
+    {0, 0, 0}
 };
 
 ASOrientation VertOrientation =
@@ -194,7 +200,9 @@ ASOrientation VertOrientation =
     TBTN_ORDER_B2T,TBTN_ORDER_T2B,
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
     &NormalY, &NormalX, &NormalHeight, &NormalWidth,
-    FLIP_VERTICAL
+    FLIP_VERTICAL,
+    {0, 0, 0},
+    {2, 1, 0}
 };
 
 static inline ASOrientation*
@@ -274,7 +282,7 @@ check_frame_canvas( ASWindow *asw, Bool required )
             if (get_flags(Scr.Feel.flags, SaveUnders))
             {
                 valuemask |= CWSaveUnder;
-                attributes.save_under = TRUE;
+                attributes.save_under = True;
             }
             w = create_visual_window (Scr.asv, Scr.Root, -10, -10, 5, 5,
                                       asw->status?asw->status->border_width:0, InputOutput, valuemask, &attributes);
@@ -731,16 +739,24 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     if( asw->tbar )
 	{ /* need to add some titlebuttons */
         ASFlagType btn_mask = compile_titlebuttons_mask (asw);
+        asw->tbar->h_spacing = 5 ;
+        asw->tbar->v_spacing = 5 ;
 		/* left buttons : */
-        add_astbar_btnblock(asw->tbar, 0, 0, 0,
+        add_astbar_btnblock(asw->tbar,
+                            od->default_tbar_elem_col[0], od->default_tbar_elem_row[0],
+                            0, NO_ALIGN,
                             &(Scr.Look.buttons[0]), ~btn_mask,
                             TITLE_BUTTONS_PERSIDE,
                             Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                             od->left_btn_order, C_L1 );
         /* label */
-        add_astbar_label( asw->tbar, 1, 0, od->flip, ASWIN_NAME(asw));
+        add_astbar_label( asw->tbar,
+                          od->default_tbar_elem_col[1], od->default_tbar_elem_row[1],
+                          od->flip, ALIGN_RIGHT, ASWIN_NAME(asw));
         /* right buttons : */
-        add_astbar_btnblock(asw->tbar, 2, 0, 0,
+        add_astbar_btnblock(asw->tbar,
+                            od->default_tbar_elem_col[2], od->default_tbar_elem_row[2],
+                            0, NO_ALIGN,
                             &(Scr.Look.buttons[TITLE_BUTTONS_PERSIDE]), (~btn_mask)>>TITLE_BUTTONS_PERSIDE,
                             TITLE_BUTTONS_PERSIDE,
                             Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,

@@ -62,15 +62,6 @@
  * This is the better approach : */
 #define MAX_MOUSE_BUTTONS 	(Button5-Button1+1)
 
-
-#ifdef SIGNALRETURNSINT
-#define SIGNAL_T int
-#define SIGNAL_RETURN return 0
-#else
-#define SIGNAL_T void
-#define SIGNAL_RETURN return
-#endif
-
 #define BW 1			/* border width */
 #define BOUNDARY_WIDTH 7	/* border width */
 #define CORNER_WIDTH 16		/* border width */
@@ -90,13 +81,24 @@
 #define EXTRA_HILITE  0x0010
 #define FULL_HILITE   0x001F
 
+#define PAD_H_OFFSET  0
+#define PAD_LEFT      (0x01<<0)
+#define PAD_RIGHT     (0x01<<1)
+#define PAD_H_MASK    (PAD_RIGHT|PAD_LEFT)
 
-#ifndef TRUE
-#define TRUE	1
-#define FALSE	0
-#endif
+#define PAD_V_OFFSET  2
+#define PAD_BOTTOM    (0x01<<(PAD_V_OFFSET))    /* rotated with Top on purpose */
+#define PAD_TOP       (0x01<<(PAD_V_OFFSET+1))
+#define PAD_V_MASK    (PAD_TOP|PAD_BOTTOM)
 
-#define NULLSTR ((char *) NULL)
+#define NO_ALIGN      0
+#define ALIGN_LEFT    PAD_RIGHT
+#define ALIGN_RIGHT   PAD_LEFT
+#define ALIGN_TOP     PAD_BOTTOM
+#define ALIGN_BOTTOM  PAD_TOP
+#define ALIGN_HCENTER (PAD_LEFT|PAD_RIGHT)
+#define ALIGN_VCENTER (PAD_TOP|PAD_BOTTOM)
+#define ALIGN_CENTER  (ALIGN_VCENTER|ALIGN_HCENTER)
 
 /* possible style index values */
 #define BACK_FOCUSED		0
