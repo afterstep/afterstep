@@ -210,6 +210,31 @@ make_hash_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_widt
 	return count + 4;
 }
 
+int
+make_twm_segments (ASOutlineSegment *s, XRectangle *geom, unsigned int scr_width, unsigned int scr_height)
+{
+       int count = 0 ;
+       /* Outline box : */
+       count += make_rectangle_segments(s, geom->x, geom->y, geom->width, geom->height);
+       /* Inside grid : */
+       if(s) {
+               s = &(s[count]);
+               s[0].y = geom->y + geom->height/3;
+               s[1].y = geom->y + geom->height - geom->height/3;
+               s[1].x = s[0].x = geom->x + 1;
+               s[1].size = s[0].size = geom->width - 1;
+               s[1].vertical = s[0].vertical = False;
+
+               s[2].x = geom->x + geom->width/3;
+               s[3].x = geom->x + geom->width - geom->width/3;
+               s[3].y = s[2].y = geom->y + 1;
+               s[3].size = s[2].size = geom->height - 1;
+               s[3].vertical = s[2].vertical = True;
+       }
+       return count + 4;
+}
+
+
 as_outline_handler outline_handlers[MAX_RUBBER_BAND+1] =
 {
     make_fvwm_segments,         /* 0 is the old default FVWM style look                                */
@@ -218,7 +243,8 @@ as_outline_handler outline_handlers[MAX_RUBBER_BAND+1] =
     make_tek_segments,          /* 3 is a cool tech-looking outline.                                   */
     make_tek2_segments,         /* 4 is another cool tech-looking outline.                             */
     make_corner_segments,       /* 5 is the corners of the window with a crosshair in the middle.      */
-    make_hash_segments          /* 6 is lines spanning the whole screen framing the window. (CAD style)*/
+    make_hash_segments,         /* 6 is lines spanning the whole screen framing the window. (CAD style)*/
+    make_twm_segments           /* 7 is the old twm style look.                                        */
 };
 
 /***********************************************************************

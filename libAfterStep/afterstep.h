@@ -255,7 +255,7 @@ FrameSide;
 #define IsValidDesk(d)		(d!=INVALID_DESK)
 
 
-#define MAX_RUBBER_BAND         6
+#define MAX_RUBBER_BAND         7
 
 struct icon_t;
 struct button_t;
