@@ -26,6 +26,7 @@
 
 #include <time.h>
 #include <unistd.h>
+#include <stdarg.h>
 /* <setjmp.h> is used for the optional error recovery mechanism */
 
 #ifdef PNG

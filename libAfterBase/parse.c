@@ -65,7 +65,7 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 			XColor xcol, xcol_scr ;
 			register const char *ptr = &(color[0]);
 			/* does not really matter here what screen to use : */
-			if( XLookupColor( dpy, Scr.colormap, color, &xcol, &xcol_scr) )
+			if( XLookupColor( dpy, DefaultColormap(dpy,Scr.screen), color, &xcol, &xcol_scr) )
 				*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
 			while( !isspace(*ptr) && *ptr != '\0' ) ptr++;
 			return ptr;
