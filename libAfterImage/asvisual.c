@@ -1355,7 +1355,6 @@ void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
 #ifdef WORDS_BIGENDIAN
-SHOW_CHECKPOINT;
 	if( !asv->msb_first )
 #else
 	if( asv->msb_first )
@@ -1385,7 +1384,6 @@ SHOW_CHECKPOINT;
 		}while(1);
 	else
 	{
-		SHOW_CHECKPOINT;
 		do
 		{
 			src[i] = ENCODE_LSBF_555((c>>13),(c>>8),(c>>3));
