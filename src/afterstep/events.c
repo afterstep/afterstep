@@ -336,9 +336,23 @@ DigestEvent( ASEvent *event )
             release_pressure();
     }else
 	{
-	    event->context = (event->w == Scr.Root)?C_ROOT:C_NO_CONTEXT ;
-    	event->widget = (event->w == Scr.Root)?Scr.RootCanvas:NULL ;
-        event->client = window2ASWindow( event->w );
+		if( event->w == Scr.Root || 
+			event->w == Scr.ServiceWin ||
+			event->w == Scr.SizeWindow )
+		{
+	    	event->context = C_ROOT ; 
+		}else 
+			event->context = C_NO_CONTEXT ;
+
+		if( event->context == C_ROOT )
+		{	
+    		event->widget = Scr.RootCanvas ;
+			event->client = NULL ;
+		}else
+		{
+			event->widget = NULL ;	
+			event->client = window2ASWindow( event->w );
+		}	 
 	}
 
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 && event->client )
@@ -787,7 +801,7 @@ HandlePropertyNotify (ASEvent *event)
         {
             show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\", following title change ? %s", 
 				        ASWIN_NAME(asw), ASWIN_ICON_NAME(asw), get_flags( Scr.Feel.flags, FollowTitleChanges)?"yes":"no" );
-	    	LOCAL_DEBUG_OUT( "hints flags = %lX, ShortLived ? %d ", asw->hints->flags, ASWIN_HFLAGS( asw, AS_ShortLived ) );
+	    	LOCAL_DEBUG_OUT( "hints flags = %lX, ShortLived ? %lX ", asw->hints->flags, ASWIN_HFLAGS( asw, AS_ShortLived ) );
 			if( old_name && strcmp( old_name, ASWIN_NAME(asw) ) != 0 )
 				set_flags( asw->internal_flags, ASWF_NameChanged );
             /* fix the name in the title bar */
@@ -803,7 +817,7 @@ HandlePropertyNotify (ASEvent *event)
         }
 		if( old_name )
 			free( old_name );
-    	LOCAL_DEBUG_OUT( "hints flags = %lX, ShortLived ? %d ", asw->hints->flags, ASWIN_HFLAGS( asw, AS_ShortLived ) );
+    	LOCAL_DEBUG_OUT( "hints flags = %lX, ShortLived ? %lX ", asw->hints->flags, ASWIN_HFLAGS( asw, AS_ShortLived ) );
 	/* otherwise we should check if this is the status property that we change ourselves : */
     }else if( atom == XA_WM_COMMAND || atom == XA_WM_CLIENT_MACHINE )
 	{

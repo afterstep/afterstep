@@ -315,7 +315,7 @@ CreateManagementWindows()
 	Scr.SizeWindow = create_visual_window (Scr.asv, Scr.Root, -999, -999, 10, 10, 0,
 										   InputOutput, CWBitGravity | CWOverrideRedirect,
                                            &attr);
-
+	LOCAL_DEBUG_OUT( "Scr.SizeWindow = %lX;", Scr.SizeWindow );
     /* create a window which will accept the keyboard focus when no other
 	   windows have it */
     attr.event_mask = KeyPressMask | FocusChangeMask;
@@ -323,6 +323,7 @@ CreateManagementWindows()
     Scr.ServiceWin = create_visual_window (Scr.asv, Scr.Root, 0, 0, 1, 1, 0,
                                            InputOutput, CWEventMask | CWOverrideRedirect,
                                            &attr);
+	LOCAL_DEBUG_OUT( "Scr.ServiceWin = %lX;", Scr.ServiceWin );
     XMapRaised (dpy, Scr.ServiceWin);
     XSetInputFocus (dpy, Scr.ServiceWin, RevertToParent, CurrentTime);
 /*    show_progress( "Service window created with ID %lX", Scr.ServiceWin ); */
