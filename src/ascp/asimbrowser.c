@@ -358,7 +358,7 @@ void generate_dir_html( char *dir, char *html_dir )
 
 	ASImageListEntry *im_list = get_asimage_list( Scr.asv, dir,
 	              						     LOAD_PREVIEW, Scr.image_manager->gamma, 0, 0,
-											 0, &count );
+											 0, &count, ignore_dots );
 
 	if( ASIMBrowserState.html_save )
 	{

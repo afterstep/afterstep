@@ -244,7 +244,7 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
         else
             item->icon = icon_im ;
     }
-LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item, mdi->minipixmap?mdi->minipixmap:NULL, item->icon );
+LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item?mdi->item:"NULL", mdi->minipixmap?mdi->minipixmap:"NULL", item->icon );
 
     /* reserve space for minipixmap */
 #define MI_LEFT_SPACER_IDX  0

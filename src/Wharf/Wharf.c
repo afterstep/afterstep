@@ -1818,7 +1818,7 @@ check_swallow_window( ASWindowData *wd )
     nc = aswb->swallowed->normal = create_ascanvas_container( wd->client );
     XReparentWindow( dpy, wd->client, aswb->canvas->w, (aswb->canvas->width - nc->width)/2, (aswb->canvas->height - nc->height)/2 );
     register_object( wd->client, (ASMagic*)aswb );
-    XSelectInput (dpy, wd->client, StructureNotifyMask);
+    XSelectInput (dpy, wd->client, StructureNotifyMask|LeaveWindowMask|EnterWindowMask);
     grab_swallowed_canvas_btns( nc, (aswb->folder!=NULL), withdraw_btn && aswb->parent == WharfState.root_folder);
 
     if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) &&

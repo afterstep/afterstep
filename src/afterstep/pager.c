@@ -613,7 +613,7 @@ load_myback_image( int desk, MyBackground *back )
     ASImage *im = NULL ;
     if( back->data && back->data[0] )
 	{
-		LOCAL_DEBUG_OUT( "Attempting to load background image from \"%s\"", back->data );
+		LOCAL_DEBUG_OUT( "Attempting to load background image from \"%s\"", back->data?back->data:"NULL" );
         im = get_asimage( Scr.image_manager, back->data, 0xFFFFFFFF, 100 );
 	}
 
@@ -722,13 +722,13 @@ release_old_background( int desk, Bool forget )
     if( back->loaded_im_name )
     {
         im = query_asimage( Scr.image_manager, back->data );
-        LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", back->data, im );
+        LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", back->data?back->data:"NULL", im );
     }
 	
 	if( im == NULL ) 
 	{
   		im = query_asimage( Scr.image_manager, imname );
-	    LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", imname, im );
+	    LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", imname?imname:"NULL", im );
 	}
 
     if( im == NULL && back->type == MB_BackImage )
@@ -875,7 +875,7 @@ make_desktop_image( int desk, MyBackground *new_back )
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
     if( new_im )
-        LOCAL_DEBUG_OUT( "im(%p)->ref_count(%d)->name(\"%s\")", new_im, new_im->ref_count, new_im->name );
+        LOCAL_DEBUG_OUT( "im(%p)->ref_count(%d)->name(\"%s\")", new_im, new_im->ref_count, new_im->name?new_im->name:"NULL" );
 #endif
     if( new_imname )
         free( new_imname );
@@ -1123,9 +1123,9 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
     ASSync(False);
 #endif
 	if( old_back ) 
-	{LOCAL_DEBUG_OUT( "old_back>>> desk = %d, ptr = %p, loaded_im_name = \"%s\", pixmap = %lX", old_desk, old_back, old_back->loaded_im_name, old_back->loaded_pixmap );}
+	{LOCAL_DEBUG_OUT( "old_back>>> desk = %d, ptr = %p, loaded_im_name = \"%s\", pixmap = %lX", old_desk, old_back, old_back->loaded_im_name?old_back->loaded_im_name:"NULL", old_back->loaded_pixmap );}
 	if( new_back ) 
-	{LOCAL_DEBUG_OUT( "new_back>>> desk = %d, ptr = %p, loaded_im_name = \"%s\", pixmap = %lX", desk, new_back, new_back->loaded_im_name, new_back->loaded_pixmap );}
+	{LOCAL_DEBUG_OUT( "new_back>>> desk = %d, ptr = %p, loaded_im_name = \"%s\", pixmap = %lX", desk, new_back, new_back->loaded_im_name?new_back->loaded_im_name:"NULL", new_back->loaded_pixmap );}
     if( Scr.RootBackground == NULL )
         Scr.RootBackground = safecalloc( 1, sizeof(ASBackgroundHandler));
     else
