@@ -172,7 +172,7 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 {
 	int comp_size = 1 ;
 	int i = 1;
-	//return 0;
+	
 	buffer[0] = (CARD8)diff[0] ; 
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
  	fprintf(stderr, "first byte: 0x%2.2X \n", buffer[0] );
@@ -795,8 +795,9 @@ destroy_storage_slot( ASStorageBlock *block, int index )
 	ASStorageSlot **slots = block->slots ;
 	int i = index;
 	
-//	if( i < block->first_free ) 
-//		block->first_free = i ;
+/*	if( i < block->first_free ) 
+		block->first_free = i ;
+ */
 	slots[i] = NULL ; 
 	if( block->last_used == index ) 
 	{	

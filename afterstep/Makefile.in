@@ -87,7 +87,10 @@ install:
 			echo "$(CP) -r $(AFTER_SHAREDIR)_old/doc/html $(AFTER_DOC_DIR)/"; \
 			$(CP) -r $(AFTER_SHAREDIR)_old/doc/html $(AFTER_DOC_DIR)/; \
 		fi; \
-	fi
+	fi; \
+	$(INSTALL_DATA) ../libAfterImage/apps/rose512.jpg $(AFTER_SHAREDIR)/desktop/tiles/rose512.jpg; \
+	$(INSTALL_DATA) ../libAfterImage/apps/fore.xpm $(AFTER_SHAREDIR)/desktop/tiles/fore.xpm; \
+	$(INSTALL_DATA) ../libAfterImage/apps/back.xpm $(AFTER_SHAREDIR)/desktop/tiles/back.xpm
 	@for D in ${CONFIG_DIR_LIST} non-configurable; do \
 		echo "$(MKDIR) -p $(AFTER_SHAREDIR)/$$D"; \
 		$(MKDIR) -p $(AFTER_SHAREDIR)/$$D; \

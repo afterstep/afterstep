@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 		}else
 			filename = argv[i] ;
 		layers[layers_num].im = file2ASImage( filename, 0xFFFFFFFF,
-			                                  SCREEN_GAMMA, 100, NULL );
+			                                  SCREEN_GAMMA, 100, getenv("IMAGE_PATH"), NULL );
 		if( filename != argv[i] )
 			free( filename );
 		if( layers[layers_num].im != NULL )

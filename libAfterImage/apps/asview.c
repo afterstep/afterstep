@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 /****h* libAfterImage/tutorials/ASView
  * NAME
@@ -66,7 +67,7 @@ int main(int argc, char* argv[])
 		usage();
 	}
 	/* see ASView.2 : */
-	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
+	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, getenv("IMAGE_PATH"), NULL );
 
 	/* The following could be used to dump JPEG version of the image into
 	 * stdout : */
@@ -99,15 +100,15 @@ int main(int argc, char* argv[])
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
 
-		/* test example for fill_asimage : */
 #if 0		 
+		/* test example for fill_asimage : */
 		fill_asimage(asv, im, 0, 0, 50, 50, 0xFFFF0000);
 		fill_asimage(asv, im, 50, 50, 100, 50, 0xFFFF0000);
 		fill_asimage(asv, im, 0, 100, 200, 50, 0xFFFF0000);
 		fill_asimage(asv, im, 150, 0, 50, 50, 0xFFFF0000);
 #endif
-		/* test example for conversion to argb32 :*/
 #if 0
+		/* test example for conversion to argb32 :*/
 		{
 			ASImage *tmp = tile_asimage( asv, im, 0, 0, im->width, im->height, TINT_NONE, ASA_ARGB32, 
 										  0, ASIMAGE_QUALITY_DEFAULT );	 
@@ -123,29 +124,20 @@ int main(int argc, char* argv[])
 		if( w != None )
 		{
 			Pixmap p ;
-			int i ;
-			XImage       *xim ;
-			GC my_gc ; 
-			XGCValues gcv ;
-
-	  		XMapRaised   (dpy, w);
+	  		
+			XMapRaised   (dpy, w);
 			XSync(dpy,False);
 			/* see ASView.5 : */
 			show_warning( "asimage2pmap");
 	  		p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
 	
-//			xim = asimage2ximage(asv, im);
-//			my_gc = XCreateGC( asv->dpy, p, 0, &gcv );
 			{
 				START_TIME(started);
 				time_t t = time(NULL);
-				for( i = 0 ; i < 100 ; ++i ) 
-				{	
-//					put_ximage( asv, xim, p, NULL,	0, 0, 0, 0, im->width, im->height );
-					asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
-				}
+				/* for( i = 0 ; i < 100 ; ++i )  */
+				asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
 				SHOW_TIME("", started);
-				fprintf( stderr, "runtime = %d sec\n", time(NULL)-t );
+				show_progress( "runtime = %d sec\n", time(NULL)-t );
 			}
 			show_warning( "asimage2pmap Done");
 			/* print_storage(NULL); */

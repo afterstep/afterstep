@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
 #endif
 
 	/* see ASText.1 : */
-	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
+	if( (fontman = create_font_manager( dpy, getenv("FONT_PATH"), NULL )) != NULL )
 		font = get_asfont( fontman, font_name, 0, size, 
 						   ASF_GuessWho|(monospaced?ASF_Monospaced:0) );
 
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
 	if( fore_image_file )
 	{
 		ASImage *tmp = file2ASImage( fore_image_file, 0xFFFFFFFF,
-		               		         SCREEN_GAMMA, 0, NULL );
+		               		         SCREEN_GAMMA, 0, getenv("IMAGE_PATH"), NULL );
 		if( tmp )
 		{
 			if( tmp->width != width || tmp->height != height )
@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 	if( back_image_file )
 	{ /* see ASView.2 : */
 		ASImage *tmp = file2ASImage( back_image_file, 0xFFFFFFFF,
-			                        SCREEN_GAMMA, 0, NULL );
+			                        SCREEN_GAMMA, 0, getenv("IMAGE_PATH"), NULL );
 		if( tmp )
 		{
 			if( scale_back_image && 

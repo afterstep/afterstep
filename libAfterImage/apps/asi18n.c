@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
 	if( fore_image_file )
 	{
 		ASImage *tmp = file2ASImage( fore_image_file, 0xFFFFFFFF,
-		               		         SCREEN_GAMMA, 0, NULL );
+		               		         SCREEN_GAMMA, 0, getenv("IMAGE_PATH"), NULL );
 		if( tmp )
 		{
 			if( tmp->width != width || tmp->height != height )

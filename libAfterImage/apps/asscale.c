@@ -1,7 +1,7 @@
 #include "config.h"
 
 #include <string.h>
-
+#include <stdlib.h>
 
 /****h* libAfterImage/tutorials/ASScale
  * NAME 
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 		usage();
 	}
 	/* see ASView.2 : */
-	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
+	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, getenv("IMAGE_PATH"), NULL );
 
 	if( im != NULL )
 	{

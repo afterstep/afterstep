@@ -1,6 +1,8 @@
 #include "config.h"
 
 #include <string.h>
+#include <stdlib.h>
+
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -120,7 +122,7 @@ int main(int argc, char* argv[])
 	}
 
 	/* see ASView.2 : */
-	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
+	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, getenv("IMAGE_PATH"), NULL );
 
 	/* Making sure tiling geometry is sane : */
 	if( !get_flags(geom_flags, XValue ) )
