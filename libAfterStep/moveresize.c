@@ -542,8 +542,8 @@ resist_west_side( register ASGridLine *l, short pos, short new_pos, short lim1, 
 	{
 /*LOCAL_DEBUG_OUT( "lim = %+d%+d, l = (%d,%d), pos = (%d,%d), band = %d, grav = %d", lim1, lim2, l->start, l->end, pos, new_pos, l->band, l->gravity_above );*/
 		if( lim2 >= l->start && lim1 <= l->end && l->gravity_above < 0 &&
-			l->band < pos && l->band >= new_pos )
-			new_pos = l->band+1 ;
+            l->band <= pos && l->band >= new_pos )
+            new_pos = l->band ;
 		l = l->next ;
 	}
 	return MIN(pos, new_pos);
@@ -555,8 +555,8 @@ resist_east_side( register ASGridLine *l, short pos, short new_pos, short lim1, 
 	while( l != NULL )
 	{
 		if( lim2 >= l->start && lim1 <= l->end && l->gravity_below < 0 &&
-			l->band > pos && l->band <= new_pos )
-			new_pos = l->band-1 ;
+            l->band >= pos && l->band <= new_pos )
+            new_pos = l->band ;
 		l = l->next ;
 	}
 	return MAX(pos, new_pos);
