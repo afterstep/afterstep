@@ -905,6 +905,7 @@ create_visual_window( ASVisual *asv, Window parent,
 {
 #ifndef X_DISPLAY_MISSING
 	XSetWindowAttributes my_attr ;
+	int depth = 0;
 
 	if( asv == NULL || parent == None )
 		return None ;
@@ -931,6 +932,7 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 		mask &= INPUTONLY_LEGAL_MASK ;
 	}else
 	{
+		depth = asv->visual_info.depth ;
 		if( !get_flags(mask, CWColormap ) )
 		{
 			attributes->colormap = asv->colormap ;
@@ -951,13 +953,34 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 	}
 	LOCAL_DEBUG_OUT( "parent = %lX, mask = 0x%lX, VisualID = 0x%lX, Border Pixel = %ld, colormap = %lX",
 					  parent, mask, asv->visual_info.visual->visualid, attributes->border_pixel, attributes->colormap );
-	return XCreateWindow (asv->dpy, parent, x, y, width, height, border_width, asv->visual_info.depth,
+	return XCreateWindow (asv->dpy, parent, x, y, width, height, border_width, depth,
 						  wclass, asv->visual_info.visual,
 	                      mask, attributes);
 #else
 	return None ;
 #endif /*ifndef X_DISPLAY_MISSING */
 
+}
+
+
+GC
+create_visual_gc( ASVisual *asv, Window root, unsigned long mask, XGCValues *gcvalues )
+{
+   	GC gc = NULL ;
+
+#ifndef X_DISPLAY_MISSING
+	if( asv )
+	{
+		Window scratch_window = 0 ;
+		XGCValues scratch_gcv ;
+		if( (scratch_window = create_visual_window( asv, root, -20, -20, 10, 10, 0, InputOutput, 0, NULL )) != None )
+		{
+			gc = XCreateGC( asv->dpy, scratch_window, mask, gcvalues?gcvalues:&scratch_gcv );
+			XDestroyWindow( asv->dpy, scratch_window );
+		}
+	}
+#endif
+	return gc;
 }
 
 Pixmap
@@ -1007,7 +1030,7 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 	if( unit == 24 )
 		unit = 32 ;
 #endif
-	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->true_depth:depth, ZPixmap, 0, NULL, MAX(width,(unsigned)1), MAX(height,(unsigned)1),
+	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->visual_info.depth/*true_depth*/:depth, ZPixmap, 0, NULL, MAX(width,(unsigned)1), MAX(height,(unsigned)1),
 						   unit, 0);
 	if (ximage != NULL)
 	{

@@ -507,6 +507,23 @@ Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
  *********/
 /****f* libAfterImage/asvisual/create_visual_pixmap()
  * SYNOPSIS
+ * GC      create_visual_gc( ASVisual *asv, Window root,
+ *                           unsigned long mask, XGCValues *gcvalues );
+ * INPUTS
+ * asv            - pointer to the valid ASVisual structure.
+ * root           - Window ID of the root window of destination screen
+ * mask, gcvalues - values for creation of new GC - see XCreateGC() for
+ *                  details.
+ * RETURN VALUE
+ * New GC created for regular window on success. NULL on failure.
+ * DESCRIPTION
+ * create_visual_gc() will create temporary window for the ASVisual
+ * specific depth and Visual and it will then create GC for such window.
+ * Obtained GC should be good to be used for manipulation of windows and
+ * Pixmaps created for the same ASVisual.
+ *********/
+/****f* libAfterImage/asvisual/create_visual_pixmap()
+ * SYNOPSIS
  * Pixmap  create_visual_pixmap( ASVisual *asv, Window root,
  *                               unsigned int width, unsigned int height,
  *                               unsigned int depth );
@@ -548,6 +565,8 @@ Window  create_visual_window( ASVisual *asv, Window parent,
 							  unsigned int wclass,
  					  		  unsigned long mask,
 							  XSetWindowAttributes *attributes );
+GC      create_visual_gc( ASVisual *asv, Window root,
+	                          unsigned long mask, XGCValues *gcvalues );
 Pixmap  create_visual_pixmap( ASVisual *asv, Window root,
 	                          unsigned int width, unsigned int height,
 							  unsigned int depth );
