@@ -1,5 +1,7 @@
 #undef I18N
 
+#undef  USE_SAFE_MINMAX
+
 /* debugging options */
 #undef  DEBUG_ALLOCS
 #undef  DEBUG_TRACE

@@ -10,18 +10,24 @@
 #define SGN(a)              ((a)>0   ?  1  : ((a)<0 ? -1 : 0))
 #endif
 #ifndef MIN
-/*#define MIN(a,b)            ((a)<(b) ? (a) : (b)) */
+#ifndef USE_SAFE_MINMAX
+#define MIN(a,b)            ((a)<(b) ? (a) : (b))
+#else
 #define MIN(x,y)                                \
   ({ const typeof(x) _x = (x); const typeof(y) _y = (y); \
      (void) (&_x == &_y);                       \
      _x < _y ? _x : _y; })
 #endif
+#endif
 #ifndef MAX
-/*#define MAX(a,b)            ((a)<(b) ? (a) : (b)) */
+#ifndef USE_SAFE_MINMAX
+#define MAX(a,b)            ((a)<(b) ? (a) : (b))
+#else
 #define MAX(x,y)                                \
   ({ const typeof(x) _x = (x); const typeof(y) _y = (y); \
      (void) (&_x == &_y);                       \
      _x > _y ? _x : _y; })
+#endif
 #endif
 
 #ifndef max

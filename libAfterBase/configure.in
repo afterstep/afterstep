@@ -186,6 +186,14 @@ if test "x$enable_xlocale" = "xyes"; then
   DEFINE_XLOCALE="-DX_LOCALE"
 fi
 
+dnl# Check for safe min/max - there still are some retarded compilers out there :
+AC_MSG_CHECKING(if we can use safe min/max macros)
+AC_TRY_RUN([#define MIN(x,y) \
+  		({ const typeof(x) _x = (x); const typeof(y) _y = (y);  (void) (&_x == &_y); \
+     		 _x < _y ? _x : _y; })
+                 int main(){return min(0,1);}],
+	   [AC_DEFINE(USE_SAFE_MINMAX) AC_MSG_RESULT(yes)],AC_MSG_RESULT(no))
+
 dnl# Translate enable_* from "yes/no" to "1/0" (for configure.h)
 
 if test "x$enable_i18n" = "xyes"; then AC_DEFINE(I18N) fi
