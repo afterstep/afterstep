@@ -70,8 +70,7 @@ struct ASScanline;
  *          import.h transform.h ximage.h
  * AUTHOR
  * Sasha Vasko <sasha at aftercode dot net>
- ******
- */
+ ******/
 
 #define ASIMAGE_PATH_ENVVAR		"IMAGE_PATH"
 #define ASFONT_PATH_ENVVAR		"FONT_PATH"

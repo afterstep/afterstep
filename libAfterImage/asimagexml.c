@@ -60,7 +60,7 @@
 #include "afterimage.h"
 #include "pixmap.h" /* for GetRootDimensions() */
 
-/****h* libAfterImage/compose_asimage_xml
+/****h* libAfterImage/asimagexml
  * NAME
  * ascompose is a tool to compose image(s) and display/save it based on
  * supplied XML input file.
@@ -1754,9 +1754,11 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * NOTES
  * All images surrounded by this tag will be composited with the given op.
  *
- * All tags surrounded by this tag will be given the following
- * additional attributes in addition to their normal ones.  Under no
- * circumstances is there a conflict with the normal child attributes.
+ * ATTRIBUTES
+ *  All tags surrounded by this tag may have some of the common attributes
+ *  in addition to their normal ones.  Under no circumstances is there a 
+ *  conflict with the normal child attributes:
+ * 
  * crefid   Optional. An image ID defined with the "id" parameter for
  *          any previously created image. If set, percentages in "x"
  *          and "y" will be derived from the width and height of the

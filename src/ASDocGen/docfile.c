@@ -58,7 +58,7 @@ write_doc_header( ASXMLInterpreterState *state )
 									 "<A name=\"page_top\"></A>\n"
 									 "<A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A><p>\n" );
 			if( state->display_purpose[0] != '\0' )
-				fprintf( state->dest_fp, "<h1>%s - %s</h1>\n", state->display_name, state->display_purpose );
+				fprintf( state->dest_fp, "<h1>%s</h1><font size=4>%s</font><hr>\n", state->display_name, state->display_purpose );
 			else
 				fprintf( state->dest_fp, "<h1>%s</h1>\n", state->display_name );
 

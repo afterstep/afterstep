@@ -232,13 +232,18 @@ main (int argc, char **argv)
 	if( target_type < DocType_Source ) /* 1) generate HTML doc structure */
 	{
 		gen_syntax_doc( source_dir, destination_dir, NULL, target_type );
-		gen_glossary( destination_dir, target_type );
-		gen_index( destination_dir, target_type );
 		gen_code_doc( "../../libAfterImage", destination_dir, 
 			  		  "asimagexml.c", 
-			  		  "libAfterImage XML tags",
-			  		  "XML tags supported by ascompose and AfterStep in xml images",
+			  		  "AfterImage XML",
+			  		  "XML schema to be used for scripting image manipulation by AfterStep and ascompose",
 			  		  target_type );
+		gen_code_doc( "../../libAfterImage", destination_dir, 
+			  		  "asimage.h", 
+			  		  "ASImage",
+			  		  "internal structures and methods used for image manipulation in libAfterImage",
+			  		  target_type );
+		gen_glossary( destination_dir, target_type );
+		gen_index( destination_dir, target_type );
 	}else
 		check_syntax_source( source_dir, NULL, True );
 
@@ -742,6 +747,7 @@ typedef struct ASRobodocState
 {
 
 #define ASRS_InsideSection			(0x01<<0)	  
+#define ASRS_VarlistSubsection		(0x01<<1)	  
 
 	ASFlagType flags ;
  	const char *source ;
@@ -779,11 +785,13 @@ find_robodoc_section( ASRobodocState *robo_state )
 
 			while(ptr[count] == '*' || (count == 4 && isalpha(ptr[count])))
 				++count ;
-			if( count == 6 && (ptr[count] == ' ' || get_flags(robo_state->flags, ASRS_InsideSection)))
-				return ; 				       /* we foiund it ! */
+			if( count >= 6 && (ptr[count] == ' ' || get_flags(robo_state->flags, ASRS_InsideSection)))
+				return ; 				       /* we found it ! */
 		}
 		skip_robodoc_line( robo_state );
 	}	
+	/* completed searching through the file */
+	robo_state->curr = robo_state->len ;
 }
 
 /* supported remap types ( see ROBODOC docs ): 
@@ -922,50 +930,51 @@ ASDocTagHandlingInfo SupportedRoboDocTagInfo[ROBODOC_SUPPORTED_IDs+1] =
  	{"SOURCE",                           ROBODOC_SOURCE_ID},
     {NULL, 								ROBODOC_SUPPORTED_IDs}                 
 };
- 
-xml_elem_t*
-robodoc_section_header2xml( ASRobodocState *robo_state )
-{
-	xml_elem_t* section = xml_elem_new();
-	const char *ptr = &(robo_state->source[robo_state->curr]) ;
-	int i = 0 ;
-	int id_length = 0 ;
-	char *id = "";
-	char saved = ' ';
-	
-	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
-		   
-	section->tag = mystrdup( "section" );
-	section->tag_id = DOCBOOK_section_ID ;  
-	
-	while( ptr[i] != 0 && ptr[i] != '\n' ) ++i ;
-	robo_state->curr += i+1 ;
-	while( i > 0 && isspace(ptr[i])) --i ;
-	id_length = i ;
-	if( i > 6 ) 
-	{	
-		i = 6 ; 
-		while( i < id_length && isspace(ptr[i]) ) ++i; 	
-		if( i < id_length ) 
-		{
-			id = (char*)(&ptr[i]);
-			id_length += 1-i ;	 
-			saved = id[id_length];
-			id[id_length] = '\0' ;
-		}else
-			id_length = 0 ;	 
-	}
 
-	section->parm = safemalloc( 5+2+1+2+2+2+id_length+1+1 );
-	sprintf(section->parm, "remap=\"%c\" id=\"%s\"", ptr[4], id );
+void	
+append_cdata( xml_elem_t *cdata_tag, const char *line, int len )
+{
+	int i, k; 
+	int tabs_count = 0 ;
+	int old_length = 0;
+	char *ptr ;
 	
-	if( id_length > 0 ) 
-		id[id_length] = saved ;
-	xml_insert(robo_state->doc, section);
-	robo_state->curr_section = section ;
-	robo_state->curr_subsection = NULL ;	
-	return section;		   
-}
+	for( i = 0 ; i < len ; ++i ) 
+		if( line[i] == '\t' )
+			++tabs_count ;
+	if( cdata_tag->parm ) 
+		old_length = strlen(cdata_tag->parm);
+
+	cdata_tag->parm = realloc( cdata_tag->parm, old_length + 1 + len + tabs_count*3+1);
+	ptr = &(cdata_tag->parm[old_length]) ;
+	if( old_length > 0 )
+		if( cdata_tag->parm[old_length-1] != '\n') 
+		{	
+			ptr[0] = '\n' ;
+			++ptr ;
+		}
+	k = 0 ;
+	for( i = 0 ; i < len ; ++i ) 
+	{	
+		if( line[i] == '\t' )
+		{
+			int tab_stop = (((k+3)/4)*4) ; 
+			if( tab_stop == k ) 
+				tab_stop += 4 ;
+			fprintf( stderr, "k = %d, tab_stop = %d, len = %d\n", k, tab_stop, len );
+			while( k < tab_stop )
+				ptr[k++] = ' ' ;
+		}else if( line[i] == '\n' )
+		{
+			ptr[k] = '\n' ;
+			ptr += k+1 ;
+			k = 0 ;	  
+		}else
+			ptr[k++] = line[i] ;
+	}		
+	ptr[k] = '\0';
+}	 
+
 
 void 
 append_CDATA_line( xml_elem_t *tag, const char *line, int len )
@@ -986,21 +995,93 @@ append_CDATA_line( xml_elem_t *tag, const char *line, int len )
 		cdata_tag->tag_id = XML_CDATA_ID ;
 		xml_insert(tag, cdata_tag);
 	}	 
-	if( cdata_tag->parm == NULL ) 
-		cdata_tag->parm = mystrndup( line, len );
-	else
-	{
-		int old_len = strlen(cdata_tag->parm);
-		cdata_tag->parm = realloc( cdata_tag->parm, old_len+1+len+1 );
-		if( cdata_tag->parm[old_len-1] != '\n' )
-		{	
-			cdata_tag->parm[old_len] = '\n' ; 
-			++old_len ;
-		}
-		strncpy( &(cdata_tag->parm[old_len]), line, len );
-		cdata_tag->parm[old_len+len] = '\0';
-	}	 
+	append_cdata( cdata_tag, line, len );
 	LOCAL_DEBUG_OUT( "CDATA = \n{\n%s}", cdata_tag->parm );
+}
+
+xml_elem_t* 
+find_super_section( xml_elem_t* owner, const char *id )
+{
+	xml_elem_t* sub ;
+	for( sub = owner->child ; sub != NULL ; sub = sub->next )	
+	{
+		Bool match_found = False ;
+		xml_elem_t* attr, *attr_curr ;
+		if( sub->tag_id != DOCBOOK_section_ID ) 
+			continue;
+		attr = xml_parse_parm(sub->parm, DocBookVocabulary);	 
+		for( attr_curr = attr ; attr_curr ; attr_curr = attr_curr->next ) 
+			if( attr_curr->tag_id == DOCBOOK_id_ID ) 
+				break;
+		match_found = ( attr_curr!= NULL && strncmp( attr_curr->parm, id, strlen(attr_curr->parm)) == 0 ) ;
+		xml_elem_delete(NULL, attr);					
+		
+		if( match_found ) 
+			return find_super_section( sub, id );
+	}  	   
+	return owner;
+}	 
+ 
+xml_elem_t*
+robodoc_section_header2xml( ASRobodocState *robo_state )
+{
+	xml_elem_t* section = xml_elem_new();
+	xml_elem_t* owner = robo_state->doc ;
+	xml_elem_t* title = NULL ;
+	const char *ptr = &(robo_state->source[robo_state->curr]) ;
+	int i = 0 ;
+	int id_length = 0 ;
+	char *id = "";
+	char saved = ' ';
+	
+	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
+		   
+	section->tag = mystrdup( "section" );
+	section->tag_id = DOCBOOK_section_ID ;  
+	
+	while( ptr[i] != 0 && ptr[i] != '\n' ) ++i ;
+	robo_state->curr += i+1 ;
+	while( i > 0 && isspace(ptr[i])) --i ;
+	if( i > 6 ) 
+	{	
+		id_length = i ;
+		i = 6 ; 
+		while( i < id_length && isspace(ptr[i]) ) ++i; 	
+		if( i < id_length ) 
+		{
+			id = (char*)(&ptr[i]);
+			id_length += 1-i ;	 
+			saved = id[id_length];
+			id[id_length] = '\0' ;
+		}else
+			id_length = 0 ;	 
+	}else                                      /* not a valid section header */
+		return NULL ;
+
+	section->parm = safemalloc( 5+2+1+2+2+2+id_length+1+1 );
+	sprintf(section->parm, "remap=\"%c\" id=\"%s\"", ptr[4], id );
+	
+
+	owner = find_super_section( owner, id );
+	xml_insert(owner, section);
+	
+	
+	robo_state->curr_section = section ;
+	robo_state->curr_subsection = NULL ;	
+	
+	
+	if( id_length > 0 ) 
+	{
+		title = xml_elem_new();	  
+		title->tag = mystrdup( "title" );
+		title->tag_id = DOCBOOK_title_ID ;  
+		xml_insert(section, title);
+		
+		append_CDATA_line( title, id, id_length );
+		id[id_length] = saved ;
+	}
+	
+	return section;		   
 }
 
 void 
@@ -1008,15 +1089,88 @@ append_robodoc_line( ASRobodocState *robo_state, int len )
 {
 	xml_elem_t* sec_tag = NULL;
 	xml_elem_t* ll_tag = NULL;
+	const char *ptr = &(robo_state->source[robo_state->curr]);
+
 	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
 	if( robo_state->curr_subsection == NULL ) 
 		sec_tag = robo_state->curr_section ;
 	else
 		sec_tag = robo_state->curr_subsection ;
 
-	for(ll_tag = sec_tag->child; ll_tag != NULL ; ll_tag = ll_tag->next ) 
-		if( ll_tag->tag_id == DOCBOOK_literallayout_ID ) 
-			break;
+	if( robo_state->curr_subsection != NULL && 
+		get_flags( robo_state->flags, ASRS_VarlistSubsection )) 
+	{
+		xml_elem_t* varlist_tag = NULL;		
+		xml_elem_t* tmp ;
+		Bool is_term = !isspace(ptr[0]);
+
+		for(tmp = sec_tag->child; tmp != NULL ; tmp = tmp->next ) 
+			if( tmp->next == NULL && tmp->tag_id == DOCBOOK_variablelist_ID ) 
+				varlist_tag = tmp ;
+		if( varlist_tag != NULL || is_term )
+		{	
+			xml_elem_t* varentry_tag = NULL;		   
+			xml_elem_t* item_tag = NULL;		   
+			if( varlist_tag == NULL ) 
+			{
+				varlist_tag = xml_elem_new();
+				varlist_tag->tag = mystrdup("variablelist") ;
+				varlist_tag->tag_id = DOCBOOK_variablelist_ID ;
+				xml_insert(sec_tag, varlist_tag);
+			}	 
+			if( !is_term )
+			{	
+				for(tmp = varlist_tag->child; tmp != NULL ; tmp = tmp->next ) 
+					if( tmp->next == NULL && tmp->tag_id == DOCBOOK_varlistentry_ID ) 
+						varentry_tag = tmp ;
+			}
+			if( varentry_tag == NULL ) 
+			{
+				xml_elem_t* term_tag = NULL;		   
+				char *ptr_body, *ptr_term ;
+				varentry_tag = xml_elem_new();
+				varentry_tag->tag = mystrdup("varlistentry") ;
+				varentry_tag->tag_id = DOCBOOK_varlistentry_ID ;
+				xml_insert(varlist_tag, varentry_tag);
+				
+				term_tag = xml_elem_new();
+				term_tag->tag = mystrdup("term") ;
+				term_tag->tag_id = DOCBOOK_term_ID ;
+				xml_insert(varentry_tag, term_tag);
+
+				ptr_term = tokencpy (ptr);
+				append_CDATA_line( term_tag, ptr_term, strlen(ptr_term) ); 
+				free( ptr_term );
+
+				ptr_body = tokenskip( (char*)ptr, 1 );
+				if( ptr_body - ptr  > len ) 
+				{
+					ptr += len ;	  
+					len = 0 ;
+				}else 
+				{	
+					len -= ptr_body - ptr ;
+					ptr = ptr_body ;
+				}
+			}	
+			for(tmp = varentry_tag->child; tmp != NULL ; tmp = tmp->next ) 
+				if( tmp->next == NULL && tmp->tag_id == DOCBOOK_listitem_ID ) 
+					item_tag = tmp ;
+			if( item_tag == NULL ) 
+			{
+				item_tag = xml_elem_new();
+				item_tag->tag = mystrdup("listitem") ;
+				item_tag->tag_id = DOCBOOK_listitem_ID ;
+				xml_insert(varentry_tag, item_tag);
+			}	 
+			ll_tag = item_tag ;
+		}
+	}	 
+
+	if( ll_tag == NULL )
+		for(ll_tag = sec_tag->child; ll_tag != NULL ; ll_tag = ll_tag->next ) 
+			if( ll_tag->tag_id == DOCBOOK_literallayout_ID ) 
+				break;
 	if( ll_tag == NULL )
 	{
 		ll_tag = xml_elem_new();
@@ -1024,7 +1178,7 @@ append_robodoc_line( ASRobodocState *robo_state, int len )
 		ll_tag->tag_id = DOCBOOK_literallayout_ID ;
 		xml_insert(sec_tag, ll_tag);
 	}	 
-	append_CDATA_line( ll_tag, &(robo_state->source[robo_state->curr]), len );
+	append_CDATA_line( ll_tag, ptr, len );
 }
 
 Bool
@@ -1064,6 +1218,18 @@ handle_robodoc_subtitle( ASRobodocState *robo_state, int len )
 	xml_insert(robo_state->curr_section, sec_tag);
 	
 	robo_state->curr_subsection = sec_tag ;
+	if( robodoc_id == ROBODOC_ATTRIBUTES_ID || 
+		robodoc_id == ROBODOC_NEW_ATTRIBUTES_ID ||
+ 		robodoc_id == ROBODOC_INPUTS_ID ||
+		robodoc_id == ROBODOC_ARGUMENTS_ID ||
+		robodoc_id == ROBODOC_OPTIONS_ID ||
+		robodoc_id == ROBODOC_PARAMETERS_ID ||
+		robodoc_id == ROBODOC_SWITCHES_ID ||
+ 		robodoc_id == ROBODOC_OUTPUT_ID )
+	{
+		set_flags( robo_state->flags, ASRS_VarlistSubsection );
+	}else
+		clear_flags( robo_state->flags, ASRS_VarlistSubsection );
 
 	title_tag = xml_elem_new();
 	title_tag->tag = mystrdup("title") ;
@@ -1135,7 +1301,8 @@ void
 handle_robodoc_section( ASRobodocState *robo_state )
 {
 	Bool section_end = False ;
-	robodoc_section_header2xml( robo_state );
+	if( robodoc_section_header2xml( robo_state ) == NULL ) 
+		return;
 
 	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
 	while( !section_end && robo_state->curr < robo_state->len ) 
@@ -1157,7 +1324,7 @@ handle_robodoc_section( ASRobodocState *robo_state )
 			{	
 				if( strncmp( ptr, " */", 3 ) == 0 )
 				{										/* line is the beginning of abe the end of the section */
-					robo_state->curr += i ;
+					robo_state->curr += i+1 ;
 					handle_robodoc_quotation( robo_state );
 				}else if( strncmp( ptr, " * ", 3 ) == 0 )
 					handle_robodoc_line( robo_state, i );		 	  

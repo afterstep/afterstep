@@ -49,7 +49,7 @@
 		padding: -1em;
 		margin-left: 0em;
 		margin-right: 1em;
-		width: 90%;
+		width: 100%;
 		background: #ccc;
 		border: 1px solid #000;
 		font-size:13px;
@@ -59,6 +59,19 @@
 		padding: 0em;
 		line-height: 110%;
 	}			       
+	p.sect_header
+	{
+    		background-color: #dddddd;
+    		color: #000000;
+    		text-align: right;
+    		font-size: 11pt;
+	}
+	p.refsect_header
+	{
+    		text-align: left;
+    		font-size: 14px;
+		line-height: 90%;
+	}
 	dl.dense {
 		padding: 0;
 		margin: 0;
@@ -70,7 +83,8 @@
 		line-height: 110%;
 	}
 	dt.dense {
-		line-height: 100%;
+		line-height: 110%;
+		text-align: bottom;
 	}
 	dd.dense {
 		font-size:14px;

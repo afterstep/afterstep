@@ -628,8 +628,9 @@ start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 	++(state->header_depth);	
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 	{
-		if( state->doc_type == DocType_HTML ) 
+		/*if( state->doc_type == DocType_HTML ) 
 			fwrite( "<HR>\n", 1, 5, state->dest_fp );
+		 */
 		add_anchor( parm, state );
 		fwrite( "<UL>", 1, 4, state->dest_fp );
 	}
@@ -649,6 +650,7 @@ void
 start_refsect1_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	++(state->header_depth);	
+	set_flags( state->flags, ASXMLI_RefSection );
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 	{
 		add_anchor( parm, state );
@@ -661,6 +663,7 @@ void
 end_refsect1_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	--(state->header_depth);	
+	clear_flags( state->flags, ASXMLI_RefSection );
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 	{
 			fwrite( "</LI>", 1, 5, state->dest_fp );
@@ -671,8 +674,12 @@ void
 start_title_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	if( state->doc_type == DocType_HTML	 )
-		fprintf( state->dest_fp, "<h%d>", state->header_depth );	
-	else if( state->doc_type == DocType_PHP )
+	{
+		if( get_flags( state->flags, ASXMLI_RefSection ) ) 
+			fprintf( state->dest_fp, "<p class=\"refsect_header\"><B>" );	
+		else
+			fprintf( state->dest_fp, "<p class=\"sect_header\"><B>" );	   
+	}else if( state->doc_type == DocType_PHP )
 		fprintf( state->dest_fp, "<B>");	
 }
 
@@ -681,7 +688,7 @@ end_title_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	if( state->doc_type == DocType_HTML	 )
 	{	
-		fprintf( state->dest_fp, "</h%d>", state->header_depth );	
+		fprintf( state->dest_fp, "</B></p>" );	   
 	}else if( state->doc_type == DocType_PHP )
 		fprintf( state->dest_fp, "</B><br>");	
 	close_link(state);
