@@ -286,14 +286,15 @@ typedef struct queue_buff_struct
 
 typedef struct module_ibuf_t
 {
-  size_t                len;
-  size_t                done;
-  Window                window;
-  size_t                size;
+  /* we always use 32 bit values for communications */
+  CARD32                len;
+  CARD32                done;
+  CARD32                window;
+  CARD32                size;
   char                 *text;
-  int                   name_size, text_size;
+  CARD32                name_size, text_size;
   struct FunctionData  *func;
-  int cont;
+  CARD32                cont;
 }module_ibuf_t;
 
 typedef struct module_t

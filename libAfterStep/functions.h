@@ -129,11 +129,11 @@ void ChangeWarpIndex(const long, FunctionCode);
 
 typedef struct FunctionData
 {
-    int func;		/* AfterStep built in function */
-    long func_val[MAX_FUNC_ARGS];
+    CARD32 func;       /* AfterStep built in function */
+    INT32 func_val[MAX_FUNC_ARGS];
 #define DEFAULT_MAXIMIZE    100
 #define DEFAULT_OTHERS      0
-    long unit_val[MAX_FUNC_ARGS];
+    INT32 unit_val[MAX_FUNC_ARGS];
     char unit[MAX_FUNC_ARGS] ;
 #define APPLY_VALUE_UNIT(size,value,unit) ((((unit)>0)?(value)*(unit):(value)*(size))/100)
 

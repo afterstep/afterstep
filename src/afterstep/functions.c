@@ -710,7 +710,7 @@ void movecursor_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void iconify_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-LOCAL_DEBUG_CALLER_OUT( "function %d (val0 = %ld), event %d, window 0x%lX, window_name \"%s\", module %d",
+LOCAL_DEBUG_CALLER_OUT( "function %ld (val0 = %ld), event %d, window 0x%lX, window_name \"%s\", module %d",
                         data?data->func:0, data?data->func_val[0]:0, event?event->x.type:-1, event?(unsigned long)event->w:0, event->client?ASWIN_NAME(event->client):"none", module );
     if (ASWIN_GET_FLAGS(event->client, AS_Iconic) )
     {

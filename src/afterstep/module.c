@@ -162,7 +162,7 @@ ReadModuleInput (module_t *module, size_t * offset, size_t size, void *ptr)
 }
 
 static void
-CheckCmdTextSize (module_t *module, size_t * size, size_t * curr_len, char **text)
+CheckCmdTextSize (module_t *module, CARD32 * size, CARD32 * curr_len, char **text)
 {
 	/* max command length is 255 */
 	if (*size > 255)
@@ -211,14 +211,14 @@ HandleModuleInput (module_t *module)
     ibuf = &(module->ibuf);
 
     /* read a window id */
-    res = ReadModuleInput (module, &offset, sizeof (Window), &(ibuf->window));
+    res = ReadModuleInput (module, &offset, sizeof (ibuf->window), &(ibuf->window));
 	if (res > 0)
 	{
         module->active = 1;
         res = ReadModuleInput (module, &offset, sizeof (ibuf->size), &(ibuf->size));
 	}
 
-LOCAL_DEBUG_OUT("res(%d)->window(0x%lX)->size(%d)",res, ibuf->window, ibuf->size);
+LOCAL_DEBUG_OUT("res(%d)->window(0x%lX)->size(%ld)",res, ibuf->window, ibuf->size);
 	if (res > 0)
 	{
 		if (ibuf->size > 0)					   /* Protocol 1 */
@@ -236,7 +236,7 @@ LOCAL_DEBUG_OUT("Incoming message in proto 1%s","");
             }
 		} else								   /* Protocol 2 */
 		{
-			size_t        curr_len;
+            CARD32        curr_len;
 			register FunctionData *pfunc = ibuf->func;
 
 LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
@@ -257,7 +257,7 @@ LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
 					ibuf->done = 0;
                     invalid_func = True;
 				} else
-                    res = ReadModuleInput (module, &offset, sizeof (int), &(ibuf->name_size));
+                    res = ReadModuleInput (module, &offset, sizeof (ibuf->name_size), &(ibuf->name_size));
 			}
 			if (res > 0 && ibuf->name_size > 0)
 			{
@@ -267,7 +267,7 @@ LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
 				pfunc->name[ibuf->name_size] = '\0';
 			}
             if (res > 0)
-                res = ReadModuleInput (module, &offset, sizeof (int), &(ibuf->text_size));
+                res = ReadModuleInput (module, &offset, sizeof (ibuf->text_size), &(ibuf->text_size));
 
 			if (res > 0 && ibuf->text_size > 0)
 			{
@@ -277,10 +277,10 @@ LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
 				pfunc->text[ibuf->text_size] = '\0';
 			}
 			if (res > 0)
-                res = ReadModuleInput (module, &offset, sizeof (long) * 2, pfunc->func_val);
+                res = ReadModuleInput (module, &offset, sizeof (pfunc->func_val) * 2, pfunc->func_val);
 
 			if (res > 0)
-                res = ReadModuleInput (module, &offset, sizeof (long) * 2, pfunc->unit_val);
+                res = ReadModuleInput (module, &offset, sizeof (pfunc->unit_val) * 2, pfunc->unit_val);
 
 			if (res > 0 && IsValidFunc (pfunc->func))
                 invalid_func = False;
@@ -777,7 +777,7 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
     int           toret = 0;
     module_t     *module;
 
-    LOCAL_DEBUG_CALLER_OUT( "fdata(%p)->func(%d,MOD_FS=%d)->channel(%d)->w(%lX)->Modules(%p)", fdata, fdata->func, F_MODULE_FUNC_START, channel, w, Modules );
+    LOCAL_DEBUG_CALLER_OUT( "fdata(%p)->func(%ld,MOD_FS=%d)->channel(%d)->w(%lX)->Modules(%p)", fdata, fdata->func, F_MODULE_FUNC_START, channel, w, Modules );
 /*fprintf( stderr,"Function parsed: [%s] [%s] [%d] [%d] [%c]\n",fdata.name,fdata.text,fdata.func_val[0], fdata.func_val[1] );
  */
     if (Modules == NULL || fdata == NULL || channel >= MODULES_NUM )
