@@ -38,6 +38,7 @@
 
 #include "afterbase.h"
 #include "afterimage.h"
+#include "pixmap.h" /* for GetRootDimensions() */
 
 /****h* libAfterImage/compose_asimage_xml
  * NAME
@@ -103,6 +104,56 @@ static Pixmap __GetRootPixmap (ASVisual *asv, Atom id)
 
 static char* cdata_str = "CDATA";
 static char* container_str = "CONTAINER";
+static ASHashTable *asvar = NULL;
+
+void asvar_insert(const char* name, int value);
+
+void
+asvar_init(void) {
+	int w, h;
+	if (asvar) destroy_ashash(&asvar);
+	asvar = create_ashash(0, string_hash_value, string_compare, string_destroy);
+	if (!asvar) return;
+	if (GetRootDimensions(&w, &h)) {
+		asvar_insert("xroot.width", w);
+		asvar_insert("xroot.height", h);
+	}
+}
+
+void
+asvar_insert(const char* name, int value) {
+	int* val = NULL;
+
+	if (!asvar) asvar_init();
+	if (!asvar) return;
+
+	/* Destroy any old data associated with this name. */
+	remove_hash_item(asvar, (ASHashableValue)name, NULL, 1);
+
+	show_progress("Defining var [%s] == %d.", name, value);
+
+	val = NEW(int); *val = value;
+	add_hash_item(asvar, (ASHashableValue)mystrdup(name), val);
+}
+
+int
+asvar_get(const char* name) {
+	int* value = NULL;
+	if (!asvar) asvar_init();
+	if (!asvar) return 0;
+	get_hash_item(asvar, (ASHashableValue)name, (void**)&value);
+	return value ? *value : 0;
+}
+
+int
+asvar_nget(char* name, int n) {
+	int value;
+	char oldc = name[n];
+	name[n] = '\0';
+	value = asvar_get(name);
+	name[n] = oldc;
+	return value;
+}
 
 ASImage *
 compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path) 
@@ -111,6 +162,8 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 	xml_elem_t* doc;
 	ASImageManager *my_imman = imman ;
 	ASFontManager  *my_fontman = fontman ;
+
+	asvar_init();
 
 	doc = xml_parse_doc(doc_str);
 	if (verbose > 1) {
@@ -174,6 +227,8 @@ LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.
 
 	/* Delete the xml. */
 	if (doc) xml_elem_delete(NULL, doc);
+
+	asvar_init();
 
 LOCAL_DEBUG_OUT( "returning im = %p, im->imman	= %p, im->magic = %8.8X", im, im?im->imageman:NULL, im?im->magic:0 );
 	return im;
@@ -303,8 +358,17 @@ void show_asimage(ASVisual *asv, ASImage* im, Window w, long delay)
  * Whenever numerical values are involved, the basic math ops (add,
  * subtract, multiply, divide), unary minus, and parentheses are
  * supported.
+ *
  * Operator precedence is NOT supported.  Percentages are allowed, and
- * apply to the "size" parameter of this function.
+ * apply to either width or height of the appropriate image (usually 
+ * the refid image).
+ * 
+ * Also, variables of the form $image.width and $image.height are 
+ * supported.  $image.width is the width of the image with refid "image", 
+ * and $image.height is the height of the same image.  The special 
+ * $xroot.width and $xroot.height values are defined by the the X root 
+ * window, if there is one.  This allows images to be scaled to the 
+ * desktop size: <scale width="$xroot.width" height="$xroot.height">.
  *
  * Each tag is only allowed to return ONE image.
  *
@@ -326,6 +390,10 @@ double parse_math(const char* str, char** endptr, double size) {
 			char* ptr;
 			double num;
 			if (*str == '(') num = parse_math(str + 1, &ptr, size);
+			else if (*str == '$') {
+				for (ptr = (char*)str + 1 ; *ptr && !isspace(*ptr) && *ptr != '+' && *ptr != '-' && *ptr != '*' && *ptr != '/' && *ptr != ')' ; ptr++);
+				num = asvar_nget((char*)str + 1, ptr - (str + 1));
+			}
 			else num = strtod(str, &ptr);
 			if (str != ptr) {
 				if (*ptr == '%') num *= size / 100.0, ptr++;
@@ -1582,7 +1650,13 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 	}
 
 	if (id && result) {
+		char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
 		show_progress("Storing image id [%s].", id);
+		sprintf(buf, "%s.width", id);
+		asvar_insert(buf, result->width);
+		sprintf(buf, "%s.height", id);
+		asvar_insert(buf, result->height);
+		free(buf);
 		if( !store_asimage( imman, result, id ) ) 
 		{
 			safe_asimage_destroy(result );

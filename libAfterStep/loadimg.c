@@ -222,7 +222,7 @@ LoadImageWithMask (Display * dpy, Window w, unsigned long max_colors, const char
 		}
     }
 	
-	*pMask = None ;
+	if (pMask) *pMask = None ;
 	p = file2pixmap(GetASVisual(), w, realfilename, pMask);
 	
 	if( p == None ) 
