@@ -324,5 +324,131 @@ setup_modifiers ()
 	*mp = 0;
 }
 
+/****************************************************************************
+ * Pan Frames : windows for edge-scrolling
+ * the root window is surrounded by four window slices, which are InputOnly.
+ * So you can see 'through' them, but they eat the input. An EnterEvent in
+ * one of these windows causes a Paging. The windows have the according cursor
+ * pointing in the pan direction or are hidden if there is no more panning
+ * in that direction. This is mostly intended to get a panning even atop
+ * of Motif applictions, which does not work yet. It seems Motif windows
+ * eat all mouse events.
+ *
+ * Hermann Dunkel, HEDU, dunkel@cul-ipn.uni-kiel.de 1/94
+ ****************************************************************************/
+void
+init_screen_panframes(ScreenInfo *scr)
+{
+#ifndef NO_VIRTUAL
+    XRectangle  frame_rects[PAN_FRAME_SIDES] = PAN_FRAME_PLACEMENT ;
+
+    XSetWindowAttributes attributes;           /* attributes for create */
+    register int i ;
+
+	frame_rects[2].width = frame_rects[0].width = scr->MyDisplayWidth ;
+	frame_rects[2].x = frame_rects[1].x = scr->MyDisplayWidth - SCROLL_REGION ;
+	frame_rects[3].height = frame_rects[1].height = scr->MyDisplayHeight - (SCROLL_REGION*2) ;
+
+
+    attributes.event_mask = AS_PANFRAME_EVENT_MASK;
+    for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
+    {
+        scr->PanFrame[i].win =
+			create_screen_window( scr, None,
+								  frame_rects[i].x, frame_rects[i].y,
+              		              frame_rects[i].width, frame_rects[i].height, 0, /* no border */
+	                              InputOnly, (CWEventMask), &attributes);
+        scr->PanFrame[i].isMapped = False ;
+    }
+#endif /* NO_VIRTUAL */
+}
+
+/***************************************************************************
+ * checkPanFrames hides PanFrames if they are on the very border of the
+ * VIRTUELL screen and EdgeWrap for that direction is off.
+ * (A special cursor for the EdgeWrap border could be nice) HEDU
+ ****************************************************************************/
+void
+check_screen_panframes(ScreenInfo *scr)
+{
+#ifndef NO_VIRTUAL
+    int           wrapX ;
+    int           wrapY ;
+    Bool          map_frame[PAN_FRAME_SIDES] = {False, False, False, False};
+    register int  i;
+
+	if( scr == NULL )
+		scr = &Scr ;
+
+    wrapX = get_flags(scr->Feel.flags, EdgeWrapX);
+    wrapY = get_flags(scr->Feel.flags, EdgeWrapY);
+
+    if( get_flags(scr->Feel.flags, DoHandlePageing) )
+    {
+        if (scr->Feel.EdgeScrollY > 0)
+        {
+            if (scr->Vy > 0 || wrapY )
+                map_frame[FR_N] = True ;
+            if (scr->Vy < scr->VyMax || wrapY )
+                map_frame[FR_S] = True ;
+        }
+        if (scr->Feel.EdgeScrollX > 0 )
+        {
+            if (scr->Vx < scr->VxMax || wrapX )
+                map_frame[FR_E] = True ;
+            if (scr->Vx > 0 || wrapX )
+                map_frame[FR_W] = True ;
+        }
+    }
+    /* Remove Pan frames if paging by edge-scroll is permanently or
+	 * temporarily disabled */
+    for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
+    {
+        if( map_frame[i] != scr->PanFrame[i].isMapped )
+        {
+            if( map_frame[i] )
+            {
+                XMapRaised (dpy, scr->PanFrame[i].win);
+            }else
+                XUnmapWindow (dpy, scr->PanFrame[i].win);
+            scr->PanFrame[i].isMapped = map_frame[i];
+        }
+
+        if( map_frame[i] )
+        {
+            /* to maintain stacking order where first mapped pan frame is the lowest window :*/
+            XRaiseWindow( dpy, scr->PanFrame[i].win );
+            XDefineCursor (dpy, scr->PanFrame[i].win, scr->Feel.cursors[TOP+i]);
+        }
+    }
+#endif
+}
+
+/****************************************************************************
+ * Gotta make sure these things are on top of everything else, or they
+ * don't work!
+ ***************************************************************************/
+void
+raise_scren_panframes (ScreenInfo *scr)
+{
+#ifndef NO_VIRTUAL
+    register int i ;
+	if( scr == NULL )
+		scr = &Scr ;
+    for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
+        if( scr->PanFrame[i].isMapped )
+            XRaiseWindow (dpy, scr->PanFrame[i].win);
+#endif
+}
+
+Window
+get_lowest_panframe(ScreenInfo *scr)
+{
+    register int i;
+    for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
+        if( scr->PanFrame[i].isMapped )
+            return scr->PanFrame[i].win;
+    return None;
+}
 
 

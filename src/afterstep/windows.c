@@ -50,10 +50,10 @@ extern XContext MenuContext;
  * specifier to each item in the list.  This means allocating the
  * memory for each item (& freeing it) rather than just using the window
  * title directly.  */
-MenuRoot     *
+MenuData     *
 update_windowList (void)
 {
-    MenuRoot     *mr = NULL;
+    MenuData     *md = NULL;
 
 #if 0
 #ifndef NO_WINDOWLIST
@@ -130,7 +130,7 @@ update_windowList (void)
 /*  mr->is_transient = True; */
 #endif
 #endif
-	return mr;
+    return md;
 }
 
 void
@@ -138,7 +138,7 @@ do_windowList (int val1, int val2)
 {
 #if 0
 #ifndef NO_WINDOWLIST
-	MenuRoot     *mr;
+    MenuData     *md;
 
 	winlist_val1 = val1;
 	winlist_val2 = val2;

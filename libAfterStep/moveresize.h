@@ -45,6 +45,7 @@ struct ASEvent;
 struct ASOutlineSegment;
 struct ASMoveResizeData;
 struct ASGrid;
+struct ASHints;
 //struct ASWidget;
 
 typedef	void (*as_interactive_pointer_handler)  (struct ASMoveResizeData *data, int x, int y);
@@ -104,8 +105,8 @@ typedef struct ASMoveResizeData
 											   * just below this sibling */
 	struct ASGrid   *grid ;
 	/* optional size constraints : */
-	unsigned int min_width,  width_inc,  max_width;
-	unsigned int min_height, height_inc, max_height;
+    unsigned int min_width,  width_inc,  max_width, frame_width;
+    unsigned int min_height, height_inc, max_height, frame_height;
 }ASMoveResizeData;
 
 ASOutlineSegment *make_outline_segments( struct ASWidget *parent, struct MyLook *look );
@@ -125,6 +126,8 @@ resize_widget_interactively( struct ASWidget *parent,
 	  						 as_interactive_apply_handler    apply_func,
 							 as_interactive_complete_handler complete_func,
 							 int side );
+void set_moveresize_restrains( ASMoveResizeData *data, struct ASHints *hints, unsigned int *frame_size );
+
 
 Bool check_moveresize_event( struct ASEvent *event );
 

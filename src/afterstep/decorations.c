@@ -138,7 +138,7 @@ check_allowed_function2 (int func, ASWindow * t)
  *
  ****************************************************************************/
 int
-check_allowed_function (MenuItem * mi, ASWindow *asw)
+check_allowed_function (MenuDataItem * mi, ASWindow *asw)
 {
 	/* Complex functions are a little tricky... ignore them for now */
     int func = mi->fdata->func ;

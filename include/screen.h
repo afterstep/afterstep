@@ -59,11 +59,10 @@
 
 #ifndef NO_VIRTUAL
 typedef struct
-  {
+{
     Window win;
     int isMapped;
-  }
-PanFrame;
+}ASPanFrame;
 
 #endif
 
@@ -191,7 +190,9 @@ typedef struct ASFeel
     int EdgeScrollX;      /* % of the screen width to scroll on screen edge */
     int EdgeScrollY;      /* % of the screen height to scroll on screen edge */
     int EdgeResistanceScroll;      /* #pixels to scroll on screen edge */
-    int EdgeResistanceMove;      /* #pixels to scroll on screen edge */
+    int EdgeAttractionScreen;      /* #pixels to scroll on screen edge */
+    int EdgeAttractionWindow;      /* #pixels to scroll on screen edge */
+    int EdgeResistanceMove;        /* #pixels to scroll on screen edge */
     int ShadeAnimationSteps;
 
     struct ASHashTable *Popups ;
@@ -272,8 +273,6 @@ typedef struct MyLook
 
 }MyLook;
 
-
-
 typedef struct ScreenInfo
   {
     ASFlagType    state ;   /* shutting down, restarting, etc. */
@@ -304,8 +303,18 @@ typedef struct ScreenInfo
     struct ASIconBox   *default_icon_box ; /* if we have icons following desktops - then we only need one icon box */
 	struct ASHashTable *icon_boxes ; /* hashed by desk no - one icon box per desktop ! */
 
+#define PAN_FRAME_SIDES 4
+#define PAN_FRAME_PLACEMENT                                                        \
+    {{ 0, 0, Scr.MyDisplayWidth, SCROLL_REGION},                                   \
+     { Scr.MyDisplayWidth - SCROLL_REGION, SCROLL_REGION,                          \
+       SCROLL_REGION, Scr.MyDisplayHeight - 2 * SCROLL_REGION},                    \
+     { 0, Scr.MyDisplayHeight - SCROLL_REGION, Scr.MyDisplayWidth, SCROLL_REGION}, \
+     { 0, SCROLL_REGION, SCROLL_REGION, Scr.MyDisplayHeight - 2 * SCROLL_REGION}}
+
+#define AS_PANFRAME_EVENT_MASK (EnterWindowMask|LeaveWindowMask|VisibilityChangeMask)
+
 #ifndef NO_VIRTUAL
-    PanFrame PanFrameTop, PanFrameLeft, PanFrameRight, PanFrameBottom;
+    ASPanFrame PanFrame[PAN_FRAME_SIDES];
     int usePanFrames;		/* toggle to disable them */
 #endif
 
@@ -343,6 +352,13 @@ extern ScreenInfo Scr;
 
 void init_screen_gcs(ScreenInfo *scr);
 void make_screen_envvars( ScreenInfo *scr );
+
+void init_screen_panframes(ScreenInfo *scr);
+void check_screen_panframes(ScreenInfo *scr);
+void raise_scren_panframes (ScreenInfo *scr);
+Window get_lowest_panframe(ScreenInfo *scr);
+
+
 #ifdef HAVE_XINERAMA
 void get_Xinerama_rectangles (ScreenInfo * scr);
 #endif

@@ -69,17 +69,14 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 		total = 0;
         while (total < Scr.Feel.EdgeResistanceScroll)
 		{
+            register int i ;
 			sleep_a_little (10000);
 			total += 10;
-            if (ASCheckWindowEvent (Scr.PanFrameTop.win, LeaveWindowMask, &(event->x)))
-				return;
-            if (ASCheckWindowEvent (Scr.PanFrameBottom.win, LeaveWindowMask, &(event->x)))
-                return;
-            if (ASCheckWindowEvent (Scr.PanFrameLeft.win, LeaveWindowMask, &(event->x)))
-				return;
-            if (ASCheckWindowEvent (Scr.PanFrameRight.win, LeaveWindowMask, &(event->x)))
-				return;
-		}
+            for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
+                if( Scr.PanFrame[i].isMapped )
+                    if (ASCheckWindowEvent (Scr.PanFrame[i].win, LeaveWindowMask, &(event->x)))
+                        return;
+        }
 
         XQueryPointer (dpy, Scr.Root, &wdumm, &wdumm, &x, &y, &dumm, &dumm, &udumm);
 
@@ -314,7 +311,7 @@ MoveViewport (int newx, int newy, Bool grab)
 #endif
         /* TODO: autoplace sticky icons so they don't wind up over a stationary icon */
     }
-    CheckPanFrames ();
+    check_screen_panframes(&Scr);
 	if (grab)
 		XUngrabServer (dpy);
 #endif
@@ -417,145 +414,4 @@ ChangeDesks (int new_desk)
 #endif
 #endif
 }
-
-
-
-#ifndef NO_VIRTUAL
-/* the root window is surrounded by four window slices, which are InputOnly.
- * So you can see 'through' them, but they eat the input. An EnterEvent in
- * one of these windows causes a Paging. The windows have the according cursor
- * pointing in the pan direction or are hidden if there is no more panning
- * in that direction. This is mostly intended to get a panning even atop
- * of Motif applictions, which does not work yet. It seems Motif windows
- * eat all mouse events.
- *
- * Hermann Dunkel, HEDU, dunkel@cul-ipn.uni-kiel.de 1/94
- */
-
-/***************************************************************************
- * checkPanFrames hides PanFrames if they are on the very border of the
- * VIRTUELL screen and EdgeWrap for that direction is off.
- * (A special cursor for the EdgeWrap border could be nice) HEDU
- ****************************************************************************/
-void
-CheckPanFrames (void)
-{
-    int           wrapX = get_flags(Scr.Feel.flags, EdgeWrapX);
-    int           wrapY = get_flags(Scr.Feel.flags, EdgeWrapY);
-
-	/* Remove Pan frames if paging by edge-scroll is permanently or
-	 * temporarily disabled */
-    if ((Scr.Feel.EdgeScrollY == 0) || !get_flags(Scr.Feel.flags, DoHandlePageing))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameTop.win);
-		Scr.PanFrameTop.isMapped = False;
-		XUnmapWindow (dpy, Scr.PanFrameBottom.win);
-		Scr.PanFrameBottom.isMapped = False;
-	}
-    if ((Scr.Feel.EdgeScrollX == 0) || !get_flags(Scr.Feel.flags, DoHandlePageing))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
-		Scr.PanFrameLeft.isMapped = False;
-		XUnmapWindow (dpy, Scr.PanFrameRight.win);
-		Scr.PanFrameRight.isMapped = False;
-	}
-    if (((Scr.Feel.EdgeScrollX == 0) && (Scr.Feel.EdgeScrollY == 0)) ||
-        !get_flags(Scr.Feel.flags, DoHandlePageing))
-		return;
-
-	/* LEFT, hide only if EdgeWrap is off */
-	if (Scr.Vx == 0 && Scr.PanFrameLeft.isMapped && (!wrapX))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
-		Scr.PanFrameLeft.isMapped = False;
-	} else if (Scr.Vx > 0 && Scr.PanFrameLeft.isMapped == False)
-	{
-		XMapRaised (dpy, Scr.PanFrameLeft.win);
-		Scr.PanFrameLeft.isMapped = True;
-	}
-	/* RIGHT, hide only if EdgeWrap is off */
-	if (Scr.Vx == Scr.VxMax && Scr.PanFrameRight.isMapped && (!wrapX))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameRight.win);
-		Scr.PanFrameRight.isMapped = False;
-	} else if (Scr.Vx < Scr.VxMax && Scr.PanFrameRight.isMapped == False)
-	{
-		XMapRaised (dpy, Scr.PanFrameRight.win);
-		Scr.PanFrameRight.isMapped = True;
-	}
-	/* TOP, hide only if EdgeWrap is off */
-	if (Scr.Vy == 0 && Scr.PanFrameTop.isMapped && (!wrapY))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameTop.win);
-		Scr.PanFrameTop.isMapped = False;
-	} else if (Scr.Vy > 0 && Scr.PanFrameTop.isMapped == False)
-	{
-		XMapRaised (dpy, Scr.PanFrameTop.win);
-		Scr.PanFrameTop.isMapped = True;
-	}
-	/* BOTTOM, hide only if EdgeWrap is off */
-	if (Scr.Vy == Scr.VyMax && Scr.PanFrameBottom.isMapped && (!wrapY))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameBottom.win);
-		Scr.PanFrameBottom.isMapped = False;
-	} else if (Scr.Vy < Scr.VyMax && Scr.PanFrameBottom.isMapped == False)
-	{
-		XMapRaised (dpy, Scr.PanFrameBottom.win);
-		Scr.PanFrameBottom.isMapped = True;
-	}
-}
-
-/****************************************************************************
- *
- * Gotta make sure these things are on top of everything else, or they
- * don't work!
- *
- ***************************************************************************/
-void
-RaisePanFrames (void)
-{
-	if (Scr.PanFrameTop.isMapped)
-		XRaiseWindow (dpy, Scr.PanFrameTop.win);
-	if (Scr.PanFrameLeft.isMapped)
-		XRaiseWindow (dpy, Scr.PanFrameLeft.win);
-	if (Scr.PanFrameRight.isMapped)
-		XRaiseWindow (dpy, Scr.PanFrameRight.win);
-	if (Scr.PanFrameBottom.isMapped)
-		XRaiseWindow (dpy, Scr.PanFrameBottom.win);
-}
-
-/****************************************************************************
- *
- * Creates the windows for edge-scrolling
- *
- ****************************************************************************/
-void
-InitPanFrames ()
-{
-	XSetWindowAttributes attributes;		   /* attributes for create */
-	unsigned long valuemask;
-
-	attributes.event_mask = (EnterWindowMask | LeaveWindowMask | VisibilityChangeMask);
-	valuemask = (CWEventMask | CWCursor);
-
-    attributes.cursor = Scr.Feel.cursors[TOP];
-	Scr.PanFrameTop.win = create_visual_window (Scr.asv, Scr.Root, 0, 0, Scr.MyDisplayWidth, PAN_FRAME_THICKNESS, 0,	/* no border */
-												InputOnly, valuemask, &attributes);
-    attributes.cursor = Scr.Feel.cursors[LEFT];
-	Scr.PanFrameLeft.win = create_visual_window (Scr.asv, Scr.Root, 0, PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, Scr.MyDisplayHeight - 2 * PAN_FRAME_THICKNESS, 0,	/* no border */
-												 InputOnly, valuemask, &attributes);
-    attributes.cursor = Scr.Feel.cursors[RIGHT];
-	Scr.PanFrameRight.win = create_visual_window (Scr.asv, Scr.Root, Scr.MyDisplayWidth - PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, Scr.MyDisplayHeight - 2 * PAN_FRAME_THICKNESS, 0,	/* no border */
-												  InputOnly, valuemask, &attributes);
-    attributes.cursor = Scr.Feel.cursors[BOTTOM];
-	Scr.PanFrameBottom.win = create_visual_window (Scr.asv, Scr.Root, 0, Scr.MyDisplayHeight - PAN_FRAME_THICKNESS, Scr.MyDisplayWidth, PAN_FRAME_THICKNESS, 0,	/* no border */
-												   InputOnly, valuemask, &attributes);
-	Scr.PanFrameTop.isMapped = Scr.PanFrameLeft.isMapped =
-		Scr.PanFrameRight.isMapped = Scr.PanFrameBottom.isMapped = False;
-
-	Scr.usePanFrames = True;
-
-}
-
-#endif /* NO_VIRTUAL */
 

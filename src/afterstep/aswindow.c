@@ -361,9 +361,7 @@ restack_window_list( int desk )
             XRestackWindows( dpy, windows, windows_num );
         XSync(dpy, False);
     }
-#ifndef NO_VIRTUAL
-    RaisePanFrames ();
-#endif
+    raise_scren_panframes (&Scr);
 }
 
 /*

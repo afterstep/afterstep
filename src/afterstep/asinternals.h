@@ -160,7 +160,7 @@ void InitFeel (struct ASFeel *feel, Bool free_resources);
 void LoadASConfig (int thisdesktop, ASFlagType what);
 /*************************** decorations.c ********************************/
 int check_allowed_function2 (int func, ASWindow * t);
-int check_allowed_function (struct MenuItem * mi, struct ASWindow *asw);
+int check_allowed_function (struct MenuDataItem * mi, struct ASWindow *asw);
 
 /*************************** events.c ********************************/
 const char *context2text(int ctx);
@@ -226,6 +226,7 @@ void rearrange_iconbox_icons( int desktop );
 /*************************** menus.c *********************************/
 
 /*************************** menuitem.c *********************************/
+int parse_modifier( char *tline );
 FunctionData *String2Func ( const char *string, FunctionData *p_fdata, Bool quiet );
 void ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2);
 
@@ -263,8 +264,6 @@ void broadcast_res_names( ASWindow *asw );
 void broadcast_status_change( int message, ASWindow *asw );
 void broadcast_config (unsigned long event_type, ASWindow * t);
 
-
-
 void HandleModuleInOut(unsigned int channel, Bool has_input, Bool has_output);
 
 void KillModuleByName (char *name);
@@ -284,11 +283,5 @@ void MoveViewport (int newx, int newy, Bool grab);
 void HandlePaging (int HorWarpSize, int VertWarpSize, int *xl,
                    int *yt, int *delta_x, int *delta_y, Bool Grab, struct ASEvent *event);
 void ChangeDesks (int new_desk);
-void RaisePanFrames (void);
-void CheckPanFrames (void);
-void InitPanFrames ();
-
-
-
 
 #endif /* ASINTERNALS_H_HEADER_INCLUDED */

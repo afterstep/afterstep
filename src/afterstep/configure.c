@@ -97,6 +97,7 @@ void          SetButtonList         (char *text, FILE * fd, char **arg1, int *ar
 void          SetTitleText          (char *tline, FILE * fd, char **junk, int *junk2);
 void          SetTitleButton        (char *tline, FILE * fd, char **junk, int *junk2);
 void          SetFramePart          (char *text, FILE * fd, char **frame, int *id);
+void          SetModifier           (char *text, FILE * fd, char **mod, int *junk2);
 
 void          assign_string         (char *text, FILE * fd, char **arg, int *idx);
 void          assign_path           (char *text, FILE * fd, char **arg, int *idx);
@@ -173,7 +174,10 @@ struct config main_config[] = {
 	{"MWMDecorHints", SetFlag, (char **)MWMDecorHints, NULL},
 	{"MWMHintOverride", SetFlag, (char **)MWMHintOverride, NULL},
 	{"FollowTitleChanges", SetFlag, (char **)FollowTitleChanges, (int *)0},
-	/* look options */
+    {"NoSnapKey", SetModifier, (char **)&(Scr.Feel.no_snaping_mod), (int *)0},
+    {"ScreenEdgeAttraction", SetInts, (char **)&Scr.Feel.EdgeAttractionScreen, &dummy},
+    {"WindowEdgeAttraction", SetInts, (char **)&Scr.Feel.EdgeAttractionWindow, &dummy},
+    /* look options */
 	{"Font", assign_string, &Stdfont, (int *)0},
 	{"WindowFont", assign_string, &Windowfont, (int *)0},
     {"MTitleForeColor", assign_string, &MenuForeColor[MENU_BACK_TITLE], (int *)0},
@@ -637,6 +641,8 @@ InitFeel (ASFeel *feel, Bool free_resources)
     feel->Yzap = 12;
     feel->EdgeScrollX = feel->EdgeScrollY = -100000;
     feel->EdgeResistanceScroll = feel->EdgeResistanceMove = 0;
+    feel->EdgeAttractionScreen = 20;
+    feel->EdgeAttractionWindow = 10;
     feel->OpaqueMove = 5;
     feel->OpaqueResize = 0;
     feel->ClickTime = 150;
@@ -644,6 +650,8 @@ InitFeel (ASFeel *feel, Bool free_resources)
     feel->RaiseButtons = 0;
     feel->flags = DoHandlePageing;
     feel->XorValue = (((unsigned long)1) << Scr.d_depth) - 1;
+
+    feel->no_snaping_mod = ShiftMask ;
 
     feel->MouseButtonRoot = NULL;
     feel->FuncKeyRoot = NULL;
@@ -684,10 +692,21 @@ CheckFeelSanity( ASFeel *feel )
     feel->EdgeScrollX = feel->EdgeScrollX * Scr.MyDisplayWidth / 100;
     feel->EdgeScrollY = feel->EdgeScrollY * Scr.MyDisplayHeight / 100;
 
+    if( feel->no_snaping_mod == 0 )
+        feel->no_snaping_mod = ShiftMask ;
+
     if (Scr.VxMax == 0)
         clear_flags(feel->flags, EdgeWrapX);
     if (Scr.VyMax == 0)
         clear_flags(feel->flags, EdgeWrapY);
+
+
+}
+
+void
+ApplyFeel( ASFeel *feel )
+{
+    check_screen_panframes(&Scr);
 }
 
 /*
@@ -1116,6 +1135,9 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     CheckBaseSanity();
     CheckFeelSanity( &Scr.Feel );
 
+    if (get_flags(what, PARSE_FEEL_CONFIG))
+        ApplyFeel( &Scr.Feel );
+
     if (get_flags(what, PARSE_LOOK_CONFIG))
         FixLook( &Scr.Look );
 
@@ -1526,6 +1548,14 @@ SetFramePart (char *text, FILE * fd, char **frame, int *id)
         filename2myframe_part (pframe, (int)id, fname);
         free( fname );
     }
+}
+
+void
+SetModifier (char *text, FILE * fd, char **mod, int *junk2)
+{
+    int *pmod = (int*)mod ;
+    if( pmod )
+        *pmod = parse_modifier( text );
 }
 
 /****************************************************************************

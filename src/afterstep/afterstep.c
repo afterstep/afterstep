@@ -203,14 +203,10 @@ main (int argc, char **argv)
 #ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
 	XGrabServer (dpy);                		/* grabbed   !!!!!*/
 #endif										/* grabbed   !!!!!*/
-#ifndef NO_VIRTUAL							/* grabbed   !!!!!*/
-    InitPanFrames ();                       /* grabbed   !!!!!*/
-#endif /* NO_VIRTUAL */                     /* grabbed   !!!!!*/
+    init_screen_panframes(&Scr);            /* grabbed   !!!!!*/
     CaptureAllWindows (&Scr);               /* grabbed   !!!!!*/
-#ifndef NO_VIRTUAL							/* grabbed   !!!!!*/
-    CheckPanFrames ();                      /* grabbed   !!!!!*/
-#endif /* NO_VIRTUAL */						/* grabbed   !!!!!*/
-#ifndef DONT_GRAB_SERVER					/* grabbed   !!!!!*/
+    check_screen_panframes(&Scr);           /* grabbed   !!!!!*/
+#ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
 	XUngrabServer (dpy);					/* UnGrabbed !!!!!*/
 #endif										/* UnGrabbed !!!!!*/
 	/**********************************************************/

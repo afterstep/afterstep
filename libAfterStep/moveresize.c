@@ -32,14 +32,23 @@
 #include "../../include/event.h"
 #include "../../include/mystyle.h"
 #include "../../include/screen.h"
+#include "../../include/hints.h"
 #ifdef NO_ASRENDER
 #include "../../include/decor.h"
 #endif
 #include "moveresize.h"
 
-#define AllButtonMask    (Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)
-#define AllModifierMask  (ShiftMask|LockMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask)
+#ifndef AS_WIDGET_H_HEADER_INCLUDED
+Bool GrabEm   ( struct ScreenInfo *scr, Cursor cursor );
+void UngrabEm ();
+#endif
 
+#define AllButtonMask    (Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)
+#ifndef __CYGWIN__
+#define AllModifierMask  (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask)
+#else
+#define AllModifierMask  (ShiftMask|ControlMask|Mod1Mask)
+#endif
 /***********************************************************************
  * backported from dispatcher.c :
  ***********************************************************************/
@@ -217,7 +226,7 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
     data->geom_bar = create_astbar();
     set_astbar_style(data->geom_bar, BAR_STATE_UNFOCUSED, look->MSWindow[BACK_FOCUSED]->name );
 
-    set_astbar_label( data->geom_bar, " 88888 x 88888 +88888 +88888 " );
+    set_astbar_label( data->geom_bar, "88888 x 88888 +88888 +88888" );
     width = calculate_astbar_width( data->geom_bar );
     height = calculate_astbar_height( data->geom_bar );
     if( width < look->resize_move_geometry.width )
@@ -269,8 +278,14 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 static void
 update_geometry_display( ASMoveResizeData *data )
 {
-	sprintf (data->geometry_string, " %u x %u %+d %+d ",
-		     data->curr.width, data->curr.height, data->curr.x, data->curr.y );
+    int display_width = data->curr.width-data->frame_width ;
+    int display_height = data->curr.height-data->frame_height ;
+    if( data->width_inc > 0 )
+        display_width /= data->width_inc ;
+    if( data->height_inc > 0 )
+        display_height /= data->height_inc ;
+    sprintf (data->geometry_string, "%u x %u %+d %+d",
+             display_width, display_height, data->curr.x, data->curr.y );
 #ifndef NO_ASRENDER
     RendChangeLabel( AS_WIDGET_SCREEN(data->parent), data->geometry_display, 1, data->geometry_string );
 #else
@@ -483,6 +498,7 @@ attract_corner( ASGrid *grid, short *x_inout, short *y_inout, XRectangle *curr )
 	{
 		new_left = attract_side( grid->v_lines, *x_inout, curr->width,  *y_inout, *y_inout+curr->height);
 		new_top  = attract_side( grid->h_lines, *y_inout, curr->height, *x_inout, *x_inout+curr->width );
+LOCAL_DEBUG_OUT( "attracted(%+d%+d) orinal(%+d%+d)", new_left, new_top, curr->x, curr->y );
 		if( new_left > curr->x )  /* moving eastwards : */
 			new_left = resist_east_side( grid->v_lines, curr->x+curr->width, new_left+curr->width, new_top, new_top+curr->height )-curr->width;
 		else if( new_left != curr->x )
@@ -543,6 +559,24 @@ LOCAL_DEBUG_OUT( "pos = %d, new_pos = %d, lim1 = %d, lim2 = %d, dpos = %d, adjus
 	return adjusted_dpos;
 }
 
+short restrain_east_side( short dpos, unsigned short *size_inout, short min_val, short incr, short max_val )
+{
+	short adjusted_dpos = dpos;
+    short size = *size_inout;
+
+    if( size < min_val )
+        size = min_val ;
+    else if ( max_val > 0 && size > max_val )
+        size = max_val ;
+    else if( incr > 0 )
+        size = min_val+((size-min_val)/incr)*incr ;
+
+    adjusted_dpos += size - (*size_inout);
+LOCAL_DEBUG_OUT( "in_size = %d, out_size = %d, min_val = %d, incr = %d, max_val = %d, dpos = %d, adjusted_dpos = %d", *size_inout, size, min_val, incr, max_val, dpos, adjusted_dpos );
+    *size_inout = size ;
+	return adjusted_dpos;
+}
+
 /**********************************************************************/
 /* Actions : **********************************************************/
 /**********************************************************************/
@@ -557,6 +591,7 @@ move_func (struct ASMoveResizeData *data, int x, int y)
 
 	new_x = data->curr.x + dx ;
 	new_y = data->curr.y + dy ;
+LOCAL_DEBUG_OUT( "pointer_state = %X, no_snap_mod = %X", data->pointer_state&AllModifierMask, data->feel->no_snaping_mod );
 	if( data->grid && (data->pointer_state&AllModifierMask) != data->feel->no_snaping_mod )
 	{
 		attract_corner( data->grid, &new_x, &new_y, &(data->curr) );
@@ -598,13 +633,14 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 		case FR_NE :
 		case FR_NW :
 			real_dy = adjust_west_side( h_lines, dy, &(data->curr.y), &(data->curr.height), data->curr.x+dx, data->curr.x+data->curr.width+dx );
-			break ;
+            break ;
 
 		case FR_S :
 		case FR_SE:
 		case FR_SW:
 			real_dy = adjust_east_side( h_lines, dy, data->curr.y, &(data->curr.height), data->curr.x+dx, data->curr.x+data->curr.width+dx );
-			break ;
+            real_dy = restrain_east_side( real_dy, &(data->curr.height), data->min_height, data->height_inc, data->max_height );
+            break ;
 	}
 	switch( data->side )
 	{
@@ -612,6 +648,7 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 		case FR_NE :
 		case FR_SE :
 			real_dx = adjust_east_side( v_lines, dx, data->curr.x, &(data->curr.width), data->curr.y, data->curr.y+data->curr.height );
+            real_dx = restrain_east_side( real_dx, &(data->curr.width), data->min_width, data->width_inc, data->max_width );
 			break ;
 		case FR_W :
 		case FR_SW :
@@ -670,8 +707,41 @@ resize_widget_interactively( ASWidget *parent, ASWidget *mr, ASEvent *trigger,
 	{
 		data->pointer_func = resize_func ;
 		prepare_move_resize_data( data, parent, mr, trigger, apply_func, complete_func );
-		data->side = (side >= FR_N && side < FRAME_PARTS)?side:FR_SW ;
-	}
+        data->side = (side >= FR_N && side < FRAME_PARTS)?side:FR_SW ;
+LOCAL_DEBUG_OUT( "requested side = %d, using side = %d", side, data->side );
+    }
 	return data;
+}
+
+void
+set_moveresize_restrains( ASMoveResizeData *data, ASHints *hints, unsigned int *frame_size )
+{
+    if( data )
+    {
+        if( frame_size )
+        {
+            data->frame_width = frame_size[FR_W]+frame_size[FR_E];
+            data->frame_height = frame_size[FR_N]+frame_size[FR_S];
+        }
+
+        if( hints )
+        {
+            if( hints->min_width > 0 )
+                data->min_width = hints->min_width+data->frame_width ;
+            if( hints->max_width > 0 )
+                data->max_width = hints->max_width+data->frame_width ;
+            data->width_inc = hints->width_inc ;
+
+            if( hints->min_height > 0 )
+                data->min_height = hints->min_height+data->frame_height ;
+            if( hints->max_height > 0 )
+                data->max_height = hints->max_height+data->frame_height ;
+            data->height_inc = hints->height_inc ;
+        }
+
+        if( data->height_inc != 0 || data->width_inc != 0 ||
+            data->frame_width != 0 || data->frame_height != 0 )
+            update_geometry_display( data );
+    }
 }
 

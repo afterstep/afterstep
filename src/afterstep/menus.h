@@ -9,7 +9,7 @@ struct ASEvent;
    commands from modules (SET_MASK in particular) */
 typedef long val_type ;
 
-typedef struct MenuItem
+typedef struct MenuDataItem
   {
 
     unsigned long   magic;
@@ -21,89 +21,32 @@ typedef struct MenuItem
     char                 *minipixmap ;
 #endif
 
-    struct MenuItem *next;  /* next menu item */
-    struct MenuItem *prev;	/* prev menu item */
+    struct MenuDataItem *next;  /* next menu item */
+    struct MenuDataItem *prev;  /* prev menu item */
     char *item;			/* the character string displayed on left */
     char *item2;		/* the character string displayed on right */
     short strlen;       /* strlen(item) */
     short strlen2;      /* strlen(item2) */
-    MyIcon icon;        /* mini icon displayed on left */
+}MenuDataItem;
 
-    /* Just like with RootMenu - this rendering stuff should be moved out
-     * of here into ASMenuWindow :*/
-    short item_num;     /* item number of this menu */
-    short x;			/* x coordinate for text (item) */
-    short x2;			/* x coordinate for text (item2) */
-    short y_offset;		/* y coordinate for item */
-    short y_height;		/* y height for item */
-
-    Bool is_hilited;		/* is the item selected? */
-
-/* old stuff : */
-/*    FunctionCode func;	   AfterStep built in function */
-/*    val_type val1;		                               */
-/*    val_type val2;                                       */
-/*    val_type val1_unit;	   units for val1, val2        */
-/*    val_type val2_unit;	   pixels (unit=1) or percent of screen
-				 * (unit = Scr.MyDisplayWidth/Height       */
-/*    char  hotkey;		       same as fdata->hotkey -  Hot key               */
-/*    char *action;		       same as fdata->text   - action to be performed */
-/*    struct MenuRoot *menu;   same as fdata->popup  - sub-menu               */
-
-}MenuItem;
-
-/* synonim for now : */
-typedef struct MenuItem MenuDataItem;
-
-typedef struct MenuRoot
-  {
+typedef struct MenuData
+{
     unsigned long    magic;
     char *name;         /* name of root */
 
-    struct MenuItem *first;	/* first item in menu */
-    struct MenuItem *last;	/* last item in menu */
+    struct MenuDataItem *first; /* first item in menu */
+    struct MenuDataItem *last;  /* last item in menu */
 
-    /* all this rendering cruft should be moved away from here into
-     * something like ASMenuWindow. WE maintain list of lots of menus,
-     * and only few will be shown at a time - there is no need to create
-     * window and pixmap for each and every menu in the list !*/
-    Window w;           /* the window of the menu */
-    ASWindow *aw;		/* the AfterStep frame */
-    short height;		/* height of the menu */
-    short width;		/* width of the menu for 1st col */
-    short width2;		/* width of the menu for 2nd col */
-    int x, y;			/* location of menu when mapped */
-    short items;		/* number of items in the menu */
-    int context;		/* what context was this menu opened under? */
-    Bool is_mapped;		/* is menu mapped? */
-    Bool is_transient;		/* should menu be deleted when taken down? */
-    Bool is_pinned;		/* is menu stuck to desktop? */
-#ifndef NO_TEXTURE
-    Pixmap titlebg, itembg;	/* background pixmap for title and others */
-    Pixmap itemhibg;
-#endif
-  }
-MenuRoot;
-/* synonim for now : */
-typedef struct MenuRoot MenuData;
+    short items;        /* number of items in the menu */
+}MenuData;
 
 typedef struct MouseButton
-  {
+{
     int Button;
     int Context;
     int Modifier;
     struct MouseButton *NextButton;
-
     struct FunctionData *fdata;
-/*  OLD STUFF	: */
-/*    FunctionCode func;	AfterStep built in function */
-/*    val_type val1; */
-/*    val_type val2; */
-/*    val_type val1_unit;	units for val1, val2 */
-/*    val_type val2_unit;   pixels (unit=1) or percent of screen (unit = Scr.MyDisplayWidth/Height */
-/*    char* action;		    same as fdata->text   - action to perform if func != F_POPUP */
-/*    MenuRoot *menu;		same as fdata->popup  - menu if func is F_POPUP */
-
 }MouseButton;
 
 typedef struct FuncKey
@@ -115,36 +58,16 @@ typedef struct FuncKey
     int mods;			/* modifiers */
 
 	struct FunctionData *fdata ;
-/*    FunctionCode func;	AfterStep built in function */
-/*    val_type val1;		values needed for F_SCROLL */
-/*    val_type val2;                                   */
-/*    val_type val1_unit;	units for val1, val2 */
-/*    val_type val2_unit;   same as fdata->unit[1] - pixels (unit=1) or percent of screen  */
-/*    char *action;		same as fdata->text  - action string (if any) */
-/*    MenuRoot *menu;		same as fdata->popup -  menu if func is F_POPUP */
 }FuncKey;
 
-#define MENU_ERROR -1
-#define MENU_NOP 0
-#define MENU_DONE 1
-#define SUBMENU_DONE 2
-
-/* Types of events for the FUNCTION builtin */
-#define MOTION 'm'
-#define IMMEDIATE 'i'
-#define CLICK 'c'
-#define DOUBLE_CLICK 'd'
-#define TRIPLE_CLICK 't'
-#define ONE_AND_A_HALF_CLICKS 'o'
-#define TWO_AND_A_HALF_CLICKS 'h'
-
 struct charstring
-  {
+{
     char key;
     int value;
-  };
+};
 
 struct TermDef;
+struct dirtree_t;
 
 char* parse_context (char *string, int *output, struct charstring *table);
 char scan_for_hotkey (char* txt);
@@ -166,45 +89,26 @@ ComplexFunction *find_complex_func( struct ASHashTable *list, char *name );
 void ExecuteFunction (struct FunctionData *, struct ASEvent *, int);
 void FocusOn (ASWindow *, int, Bool);
 
-MenuRoot* FindPopup( char* name, int quiet );
+MenuData* FindPopup( char* name, int quiet );
 
-MenuItem* CreateMenuItem();
-MenuItem* NewMenuItem(MenuRoot* menu);
-void DeleteMenuItem( MenuItem* item );
+MenuDataItem* CreateMenuItem();
+MenuDataItem* NewMenuItem(MenuData* menu);
+void DeleteMenuItem( MenuDataItem* item );
 
-MenuRoot *CreateMenuRoot();
-MenuRoot *NewMenuRoot (char *name);
-void DeleteMenuRoot (MenuRoot * menu);
+MenuData *CreateMenuData();
+MenuData *NewMenuData (char *name);
+void DeleteMenuData (MenuData * menu);
 
-void MenuItemFromFunc( MenuRoot* menu, FunctionData* fdata );
+void MenuItemFromFunc( MenuData* menu, FunctionData* fdata );
 
-int ParseMenuBody (MenuRoot *mr, FILE * fd);
+int ParseMenuBody (MenuData *mr, FILE * fd);
 void ParseMenuEntry (char *tline, FILE * fd, char **junk, int *junk2);
 void ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2);
 
 void ParseMouseEntry (char *tline, FILE * fd, char **junk, int *junk2);
 void ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2);
 
-struct dirtree_t;
-MenuRoot *dirtree_make_menu2 (struct dirtree_t* tree, char* buf);
-
-void MakeMenu (MenuRoot * mr);
-
-void do_menu(MenuRoot * menu, MenuRoot * parent);
-Bool configure_menu(MenuRoot * menu, MenuRoot * parent);
-void setup_menu_pixmaps(MenuRoot * menu);
-Bool HandleMenuEvent (MenuRoot * menu, struct ASEvent * event);
-Bool map_menu(MenuRoot * menu, int context);
-Bool unmap_menu (MenuRoot * menu);
-Bool pin_menu(MenuRoot * menu);
-void move_menu (MenuRoot * menu, int x, int y);
-
-void PaintEntry (MenuRoot *, MenuItem *);
-void PaintMenu (MenuRoot *, XEvent *);
-
-void PopDownMenu (MenuRoot *);
-Bool PopUpMenu (MenuRoot *, int, int);
-
-MenuRoot *update_windowList (void);
+MenuData *dirtree_make_menu2 (struct dirtree_t* tree, char* buf);
+MenuData *update_windowList (void);
 
 #endif /* _MENUS_ */

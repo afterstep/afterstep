@@ -55,8 +55,7 @@ void ExecuteComplexFunction ( ASEvent *event, char *name );
 
 /* list of available handlers : */
 void beep_func_handler( FunctionData *data, ASEvent *event, int module );
-void resize_func_handler( FunctionData *data, ASEvent *event, int module );
-void move_func_handler( FunctionData *data, ASEvent *event, int module );
+void moveresize_func_handler( FunctionData *data, ASEvent *event, int module );
 void scroll_func_handler( FunctionData *data, ASEvent *event, int module );
 void movecursor_func_handler( FunctionData *data, ASEvent *event, int module );
 void raiselower_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -95,8 +94,10 @@ void SetupFunctionHandlers()
 {
     memset( &(function_handlers[0]), 0x00, sizeof( function_handlers ) );
     function_handlers[F_BEEP] = beep_func_handler ;
-    function_handlers[F_RESIZE] = resize_func_handler ;
-    function_handlers[F_MOVE] = move_func_handler ;
+
+    function_handlers[F_RESIZE] =
+        function_handlers[F_MOVE] = moveresize_func_handler ;
+
 #ifndef NO_VIRTUAL
     function_handlers[F_SCROLL] = scroll_func_handler ;
     function_handlers[F_MOVECURSOR] = movecursor_func_handler ;
@@ -430,59 +431,6 @@ void beep_func_handler( FunctionData *data, ASEvent *event, int module )
     XBell (dpy, event->scr->screen);
 }
 
-void resize_func_handler( FunctionData *data, ASEvent *event, int module )
-{
-    if ( event->client == NULL )
-		return;
-    /* can't resize icons */
-	if ( ASWIN_GET_FLAGS(event->client, AS_Iconic|AS_Shaded ) )
-		return;
-#if 0
-    anchor_window_maximized(event->client);
-
-    if (data->func_val[0] > 0 && data->func_val[1] >0 && data->func_val[0] != INVALID_POSITION)
-	{
-		ASRectangle wmrect ;
-        get_window_wm_geom( event->client, &wmrect );
-        wmrect.width = APPLY_VALUE_UNIT(event->scr->MyDisplayWidth,data->func_val[0],data->unit_val[0]);
-        wmrect.height= APPLY_VALUE_UNIT(event->scr->MyDisplayHeight,data->func_val[1],data->unit_val[1]);
-        configure_window_wm( event->client, &wmrect );
-    }else if( GrabEm (event->scr, event->scr->CurrentFeel->cursors[MOVE]) )
-    {
-        unsigned long flags = 0;
-        unsigned long wrap_flags;
-        InstallRootColormap (event->scr);
-        /* handle problems with edge-wrapping while resizing */
-        wrap_flags = event->scr->CurrentFeel->flags;
-        event->scr->CurrentFeel->flags &= ~(EdgeWrapX | EdgeWrapY);
-
-        /* Get the current position to determine which border to resize */
-        if ( event->context >= ASC_Frame_Start && event->context <= ASC_Frame_End )
-        {
-            if( event->context >= ASC_FrameCorners_Start )
-                flags = MR_V_RESIZE|MR_H_RESIZE ;
-            else if( event->context == ASC_FrameE || event->context == ASC_FrameE )
-                flags = MR_H_RESIZE ;
-            else
-                flags = MR_V_RESIZE ;
-
-            if( event->context == ASC_FrameW || event->context == ASC_FrameNW ||
-                event->context == ASC_FrameSW )
-                set_flags( flags, MR_LEFT_RESIZE );
-
-            if( event->context == ASC_FrameN || event->context == ASC_FrameNW ||
-                event->context == ASC_FrameNE )
-                set_flags( flags, MR_TOP_RESIZE );
-            /* TODO : reimplement resizing loop :   do_resize (event, flags, True); */
-        }
-
-        event->scr->CurrentFeel->flags = wrap_flags ;
-        UninstallRootColormap (event->scr);
-        UngrabEm ();
-    }
-#endif
-}
-
 void apply_aswindow_move(struct ASMoveResizeData *data)
 {
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
@@ -510,56 +458,138 @@ SHOW_CHECKPOINT;
         moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height );
 	}
     Scr.moveresize_in_progress = NULL ;
-    XSelectInput( dpy, Scr.Root, AS_ROOT_EVENT_MASK );
+}
+
+struct ASWindowGridAuxData{
+    ASGrid *grid;
+    long desk;
+};
+
+static void
+add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity )
+{
+    if( canvas )
+    {
+LOCAL_DEBUG_CALLER_OUT( "(%p,%ux%u%+d%+d)", canvas, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
+        add_gridline( &(grid->h_lines), canvas->root_y,                canvas->root_x, canvas->root_x+canvas->width,  outer_gravity, inner_gravity );
+        add_gridline( &(grid->h_lines), canvas->root_y+canvas->height, canvas->root_x, canvas->width+canvas->root_x,  inner_gravity, outer_gravity );
+        add_gridline( &(grid->v_lines), canvas->root_x,                canvas->root_y, canvas->height+canvas->root_y, outer_gravity, inner_gravity );
+        add_gridline( &(grid->v_lines), canvas->root_x+canvas->width,  canvas->root_y, canvas->height+canvas->root_y, inner_gravity, outer_gravity );
+    }
+}
+
+Bool
+get_aswindow_grid_iter_func(void *data, void *aux_data)
+{
+    ASWindow *asw = (ASWindow*)data ;
+    struct ASWindowGridAuxData *grid_data = (struct ASWindowGridAuxData*)aux_data;
+
+    if( asw && ASWIN_DESK(asw) == grid_data->desk )
+    {
+        int outer_gravity = Scr.Feel.EdgeAttractionWindow ;
+        int inner_gravity = Scr.Feel.EdgeAttractionWindow ;
+        if( ASWIN_HFLAGS(asw, AS_AvoidCover) )
+            inner_gravity = -1 ;
+        else if( inner_gravity == 0 )
+            return True;
+
+        if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+        {
+            add_canvas_grid( grid_data->grid, asw->icon_canvas, outer_gravity, inner_gravity );
+            if( asw->icon_canvas != asw->icon_title_canvas )
+                add_canvas_grid( grid_data->grid, asw->icon_title_canvas, outer_gravity, inner_gravity );
+        }else
+        {
+            add_canvas_grid( grid_data->grid, asw->frame_canvas, outer_gravity, inner_gravity );
+            add_canvas_grid( grid_data->grid, asw->client_canvas, outer_gravity/2, (inner_gravity*2)/3 );
+        }
+    }
+    return True;
+}
+
+ASGrid*
+make_desktop_grid(int desk)
+{
+    struct ASWindowGridAuxData grid_data ;
+    int resist = Scr.Feel.EdgeResistanceMove ;
+    int attract = Scr.Feel.EdgeAttractionScreen ;
+
+    grid_data.desk = desk ;
+    grid_data.grid = safecalloc( 1, sizeof(ASGrid));
+    add_canvas_grid( grid_data.grid, Scr.RootCanvas, resist, attract );
+    /* add all the window edges for this desktop : */
+    iterate_asbidirlist( Scr.Windows->clients, get_aswindow_grid_iter_func, (void*)&grid_data, NULL, False );
+
+#ifdef LOCAL_DEBUG
+    print_asgrid( grid_data.grid );
+#endif
+
+    return grid_data.grid;
 }
 
 
-void move_func_handler( FunctionData *data, ASEvent *event, int module )
-{
-    /* gotta have a window */
-	if (event->client == NULL)
+void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
+{   /* gotta have a window */
+    ASWindow *asw = event->client ;
+    if (asw == NULL)
 		return;
 
     if ( data->func_val[0] != INVALID_POSITION || data->func_val[1] != INVALID_POSITION)
     {
-//        ASRectangle wmrect ;
-//        get_window_wm_geom( event->client, &wmrect );
-//        wmrect.x = APPLY_VALUE_UNIT(event->scr->MyDisplayWidth,data->func_val[0],data->unit_val[0]);
-//        wmrect.y = APPLY_VALUE_UNIT(event->scr->MyDisplayHeight,data->func_val[0],data->unit_val[0]);
-//        configure_window_wm( event->client, &wmrect);
+        int new_val1, new_val2 ;
+        int x = asw->status->x ;
+        int y = asw->status->y ;
+        int width = asw->status->width ;
+        int height = asw->status->height ;
+
+        new_val1 = APPLY_VALUE_UNIT(Scr.MyDisplayWidth,data->func_val[0],data->unit_val[0]);
+        new_val2 = APPLY_VALUE_UNIT(Scr.MyDisplayHeight,data->func_val[1],data->unit_val[1]);
+        if( data->func == F_MOVE )
+        {
+            x = new_val1;
+            y = new_val2;
+        }else
+        {
+            width = new_val1;
+            height = new_val2;
+        }
+        moveresize_aswindow_wm( asw, x, y, width, height );
     }else
     {
-        ASMoveResizeData *data;
-//        XSelectInput( dpy, Scr.Root, AS_ROOT_EVENT_MASK|PointerMotionMask );
-LOCAL_DEBUG_OUT( "event mask set, event_time = %ld, last_timestamp = %ld", event->event_time, Scr.last_Timestamp);
+        ASMoveResizeData *mvrdata;
         release_pressure();
-        data = move_widget_interactively(   Scr.RootCanvas,
-                                            event->client->frame_canvas,
-                                            event,
-                                            apply_aswindow_move,
-                                            complete_aswindow_move );
-LOCAL_DEBUG_OUT( "data = %p", data );
-        if( data )
+        if( data->func == F_MOVE )
+            mvrdata = move_widget_interactively(Scr.RootCanvas,
+                                                asw->frame_canvas,
+                                                event,
+                                                apply_aswindow_move,
+                                                complete_aswindow_move );
+        else
         {
-//            data->below_sibling = get_lowest_panframe(desktop);
-//            data->subwindow_func = on_deskelem_move_subwindow ;
-//            data->grid = make_desktop_grid( desktop );
-            Scr.moveresize_in_progress = data ;
-        }else
-            XSelectInput( dpy, Scr.Root, AS_ROOT_EVENT_MASK );
+            int side = 0 ;
+            register unsigned long context = event->context;
+            while( (0x01&context) == 0 )
+            {
+                ++side ;
+                context = context>>1 ;
+            }
+            mvrdata = resize_widget_interactively(  Scr.RootCanvas,
+                                                    asw->frame_canvas,
+                                                    event,
+                                                    apply_aswindow_move,
+                                                    complete_aswindow_move,
+                                                    side );
+        }
+        if( mvrdata )
+        {
+            raise_scren_panframes( &Scr );
+            mvrdata->below_sibling = get_lowest_panframe(&Scr);
+            set_moveresize_restrains( mvrdata, asw->hints, &(asw->status->frame_size[0]));
+//            mvrdata->subwindow_func = on_deskelem_move_subwindow ;
+            mvrdata->grid = make_desktop_grid(Scr.CurrentDesk);
+            Scr.moveresize_in_progress = mvrdata ;
+        }
     }
-#if 0
-    anchor_window_maximized(event->client);
-
-if (GrabEm (event->scr, event->scr->CurrentFeel->cursors[MOVE]))
-    {
-        int FinalX = INVALID_POSITION, FinalY = INVALID_POSITION;
-        InstallRootColormap (event->scr);
-        /* TODO : reimplement moving loop : do_move ( event, &FinalX, &FinalY, True); */
-        UninstallRootColormap (event->scr);
-        UngrabEm ();
-    }
-#endif
 }
 
 
@@ -868,7 +898,7 @@ void toggle_page_func_handler( FunctionData *data, ASEvent *event, int module )
         set_flags( Scr.Feel.flags, DoHandlePageing );
 
     SendPacket( -1, M_TOGGLE_PAGING, 1, get_flags( Scr.Feel.flags, DoHandlePageing ));
-    CheckPanFrames ();
+    check_screen_panframes(&Scr);
 #endif
 }
 
@@ -1014,21 +1044,8 @@ QuickRestart (char *what)
 	{
         InstallRootColormap();
         GrabEm (&Scr, Scr.Feel.cursors[WAIT]);
-
-        /* LoadASConfig must be called, or AS will be left in an unusable state */
         LoadASConfig (Scr.CurrentDesk, what_flags);
-
-#ifndef NO_VIRTUAL
-		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
-		XUnmapWindow (dpy, Scr.PanFrameRight.win);
-		XUnmapWindow (dpy, Scr.PanFrameBottom.win);
-		XUnmapWindow (dpy, Scr.PanFrameTop.win);
-		Scr.PanFrameBottom.isMapped = Scr.PanFrameTop.isMapped =
-			Scr.PanFrameLeft.isMapped = Scr.PanFrameRight.isMapped = False;
-
-        CheckPanFrames ();
-#endif
-		UngrabEm ();
+        UngrabEm ();
 	}
 
 	if (update_background)

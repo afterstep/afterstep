@@ -266,7 +266,7 @@ move_outline( ASMoveResizeData * data )
 
 	if( data && data->outline )
 	{
-		unsigned int mask = CWX|CWY|CWWidth|CWHeight|CWStackMode ;
+        unsigned int mask = CWStackMode ;
 		XWindowChanges xwc;
 		register int i ;
 		int rband = data->look->RubberBand%(MAX_RUBBER_BAND+1);
@@ -279,9 +279,13 @@ move_outline( ASMoveResizeData * data )
 		if( (xwc.sibling = data->below_sibling) != None )
 		{
 			mask |= CWSibling ;
-			xwc.stack_mode = Below ;
+            xwc.stack_mode = Below ;
 		}else
 			xwc.stack_mode = Above ;
+        XConfigureWindow( dpy, data->geometry_display, mask, &xwc );
+        xwc.sibling = data->geometry_display;
+        mask |= CWSibling|CWX|CWY|CWWidth|CWHeight ;
+        xwc.stack_mode = Below ;
 		for( i = 0 ; i < count ; ++i )
 		{
 			xwc.x = s[i].x;
@@ -290,9 +294,7 @@ move_outline( ASMoveResizeData * data )
 			xwc.height = s[i].vertical? MAX(s[i].size-2,1): 1;
 			XConfigureWindow( dpy, s[i].w, mask, &xwc );
 			xwc.sibling = s[i].w ;
-			mask |= CWSibling ;
-			xwc.stack_mode = Below ;
-		}
+        }
 		/* hiding the rest of the frame : */
 		while( s[i].w != None )
 			XMoveResizeWindow( dpy, s[i++].w, -20, -20, -10, -10 );

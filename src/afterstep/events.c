@@ -1065,6 +1065,7 @@ HandleEnterNotify (ASEvent *event)
     XEnterWindowEvent *ewp = &(event->x.xcrossing);
 	XEvent        d;
     ASWindow *asw = event->client;
+    int i ;
 
 	/* look for a matching leaveNotify which would nullify this enterNotify */
     if (ASCheckTypedWindowEvent ( ewp->window, LeaveNotify, &d))
@@ -1075,18 +1076,16 @@ HandleEnterNotify (ASEvent *event)
 	}
 /* an EnterEvent in one of the PanFrameWindows activates the Paging */
 #ifndef NO_VIRTUAL
-    if (ewp->window == Scr.PanFrameTop.win   ||
-        ewp->window == Scr.PanFrameLeft.win  ||
-        ewp->window == Scr.PanFrameRight.win ||
-        ewp->window == Scr.PanFrameBottom.win  )
-	{
-		int           delta_x = 0, delta_y = 0;
+    for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
+        if( Scr.PanFrame[i].isMapped && ewp->window == Scr.PanFrame[0].win)
+        {
+            int           delta_x = 0, delta_y = 0;
 
-		/* this was in the HandleMotionNotify before, HEDU */
-        HandlePaging (Scr.Feel.EdgeScrollX, Scr.Feel.EdgeScrollY,
-                      &(ewp->x_root), &(ewp->y_root), &delta_x, &delta_y, True, event);
-		return;
-	}
+            /* this was in the HandleMotionNotify before, HEDU */
+            HandlePaging (Scr.Feel.EdgeScrollX, Scr.Feel.EdgeScrollY,
+                        &(ewp->x_root), &(ewp->y_root), &delta_x, &delta_y, True, event);
+            return;
+        }
 #endif /* NO_VIRTUAL */
 
     if (ewp->window == Scr.Root)

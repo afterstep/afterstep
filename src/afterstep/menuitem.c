@@ -138,6 +138,16 @@ parse_context (char *string, int *output, struct charstring *table)
 	return ptr;
 }
 
+int
+parse_modifier( char *tline )
+{
+    int mods = 0;
+    parse_context (tline, &mods, key_modifiers);
+    return mods;
+}
+
+
+
 long
 default_func_val( FunctionCode func )
 {
@@ -494,7 +504,7 @@ String2Func ( const char *string, FunctionData *p_fdata, Bool quiet )
 
 /* this is very often used function so we optimize it as good as we can */
 int
-parse_menu_item_name (MenuItem * item, char **name)
+parse_menu_item_name (MenuDataItem * item, char **name)
 {
 	register int  i;
 	register char *ptr = *name;
@@ -639,7 +649,6 @@ LOCAL_DEBUG_OUT( "freeing func data %p", mdi->fdata );
                 free (mdi->item);
             if (mdi->item2 != NULL)
                 free (mdi->item2);
-            free_icon_resources( mdi->icon );
         }
         free(mdi);
     }
@@ -742,10 +751,10 @@ find_menu_data( ASHashTable *list, char *name )
     return md;
 }
 
-MenuRoot     *
+MenuData     *
 FindPopup (char *name, int quiet)
 {
-	MenuRoot     *mr = NULL;
+    MenuData     *mr = NULL;
 
 	if (name == NULL)
 	{
@@ -760,18 +769,18 @@ FindPopup (char *name, int quiet)
 	return mr;
 }
 
-MenuItem     *
-CreateMenuItem ()
+MenuDataItem     *
+CreateMenuDataItem ()
 {
-	MenuItem     *item = safecalloc (1, sizeof (MenuItem));
+    MenuDataItem     *item = safecalloc (1, sizeof (MenuDataItem));
     item->magic = MAGIC_MENU_DATA_ITEM ;
 	return item;
 }
 
-MenuItem     *
-NewMenuItem (MenuRoot * menu)
+MenuDataItem     *
+NewMenuDataItem (MenuData * menu)
 {
-	MenuItem     *item = CreateMenuItem ();
+    MenuDataItem     *item = CreateMenuDataItem ();
 
 	item->prev = menu->last;
 	if (menu->first == NULL)
@@ -780,18 +789,18 @@ NewMenuItem (MenuRoot * menu)
 		menu->last->next = item;
 	menu->last = item;
 
-	item->item_num = menu->items++;
+    ++(menu->items);
 	return item;
 }
 
 /***********************************************************************
  *  Procedure:
- *	CreateMenuRoot - allocates and initializes new menu root object
+ *  CreateMenuData - allocates and initializes new menu root object
  *  Returned Value:
- *	(MenuRoot *)
+ *  (MenuData *)
  ***********************************************************************/
-MenuRoot     *
-CreateMenuRoot (char *name)
+MenuData     *
+CreateMenuData (char *name)
 {
     if( Scr.Feel.Popups == NULL )
         init_list_of_menus(&(Scr.Feel.Popups), True);
@@ -799,9 +808,9 @@ CreateMenuRoot (char *name)
 }
 
 void
-MenuItemFromFunc (MenuRoot * menu, FunctionData * fdata)
+MenuDataItemFromFunc (MenuData * menu, FunctionData * fdata)
 {
-	MenuItem     *item = NULL;
+    MenuDataItem     *item = NULL;
 
     if( fdata == NULL )
         return ;
@@ -812,14 +821,13 @@ MenuItemFromFunc (MenuRoot * menu, FunctionData * fdata)
 			item = menu->last;
 		else
 		{
-			item = NewMenuItem (menu);
+            item = NewMenuDataItem (menu);
 			item->fdata = fdata;
 		}
-		GetIconFromFile (fdata->name, &item->icon, -1);
-	} else
+    } else
 #endif /* !NO_TEXTURE */
 	{
-		item = NewMenuItem (menu);
+        item = NewMenuDataItem (menu);
 		if (parse_menu_item_name (item, &(fdata->name)) >= 0)
 			item->fdata = fdata;
 	}
@@ -831,9 +839,9 @@ MenuItemFromFunc (MenuRoot * menu, FunctionData * fdata)
 }
 
 Bool
-MenuItemParse (void *data, const char *buf)
+MenuDataItemParse (void *data, const char *buf)
 {
-    MenuRoot *menu = (MenuRoot*)data;
+    MenuData *menu = (MenuData*)data;
 	FunctionData  *fdata;
 
 	if (buf == NULL)
@@ -851,7 +859,7 @@ MenuItemParse (void *data, const char *buf)
         if (fdata->func != F_MINIPIXMAP && !get_flags( Scr.Look.flags, MenuMiniPixmaps))
 #endif /* !NO_TEXTURE */
 		{
-			MenuItemFromFunc (menu, fdata);
+            MenuDataItemFromFunc (menu, fdata);
 			fdata = NULL ;
             return True;
 		}
@@ -929,9 +937,9 @@ void
 ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2)
 {
     char         *name =  stripcpy2 (tline, 0);
-    MenuRoot     *mr = CreateMenuRoot (name);
+    MenuData     *mr = CreateMenuData (name);
     free( name );
-    ParseBody(mr, fd, MenuItemParse);
+    ParseBody(mr, fd, MenuDataItemParse);
 }
 
 /****************************************************************************
@@ -1074,34 +1082,34 @@ create_named_function( int func, char *name)
 
  /* we assume buf is at least MAXLINELENGTH bytes */
 
-MenuRoot     *
+MenuData     *
 dirtree_make_menu2 (dirtree_t * tree, char *buf)
 {
 /*  extern struct config* func_config; */
 	dirtree_t    *t;
-	MenuRoot     *menu;
+    MenuData     *menu;
 	FunctionData *fdata;
 
 	/* make self */
 	if (tree->flags & DIRTREE_KEEPNAME)
-        menu = CreateMenuRoot (tree->name);
+        menu = CreateMenuData (tree->name);
 	else
 	{
 		sprintf (buf, "%d", tree->flags & DIRTREE_ID);
-        menu = CreateMenuRoot (buf);
+        menu = CreateMenuData (buf);
 	}
 
 	/* make title */
 	fdata = create_named_function( F_TITLE, tree->name);
 	/* We exploit that scan_for_hotkey removes & (marking hotkey) from name */
 	scan_for_hotkey (fdata->name);
-	MenuItemFromFunc (menu, fdata);
+    MenuDataItemFromFunc (menu, fdata);
 #ifndef NO_TEXTURE
     if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
 	{
 		fdata = create_named_function( F_MINIPIXMAP,
 		                               tree->icon != NULL ? tree->icon : "mini-menu.xpm");
-		MenuItemFromFunc (menu, fdata);
+        MenuDataItemFromFunc (menu, fdata);
 	}
 #endif /* !NO_TEXTURE */
 
@@ -1133,12 +1141,12 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 			else
 				fdata->text = string_from_int (t->flags & DIRTREE_ID);
 
-			MenuItemFromFunc (menu, fdata);
+            MenuDataItemFromFunc (menu, fdata);
 #ifndef NO_TEXTURE
             if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
 			{
 				fdata = create_named_function( F_MINIPIXMAP, t->icon != NULL ? t->icon : "mini-folder.xpm");
-				MenuItemFromFunc (menu, fdata);
+                MenuDataItemFromFunc (menu, fdata);
 			}
 #endif /* !NO_TEXTURE */
 /************* Done creating Popup Title entry : ************************/
@@ -1156,13 +1164,13 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 							  2 * strlen (t->path) + 1);
 			} else
 				fdata->text = mystrdup (t->path);
-			MenuItemFromFunc (menu, fdata);
+            MenuDataItemFromFunc (menu, fdata);
 
 #ifndef NO_TEXTURE
             if (get_flags( Scr.Look.flags, MenuMiniPixmaps) && t->icon != NULL)
 			{
 				fdata = create_named_function(F_MINIPIXMAP, t->icon);
-				MenuItemFromFunc (menu, fdata);
+                MenuDataItemFromFunc (menu, fdata);
 			}
 #endif /* !NO_TEXTURE */
 		} else
@@ -1188,7 +1196,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 #endif /* NO_AVAILABILITYCHECK */
 LOCAL_DEBUG_OUT( "1:fdata->name = \"%s\"", t->name );
 LOCAL_DEBUG_OUT( "2:fdata->name = %p\"%s\"", fdata->name, fdata->name );
-			MenuItemFromFunc (menu, fdata);
+            MenuDataItemFromFunc (menu, fdata);
 LOCAL_DEBUG_OUT( "3:fdata->name = %p\"%s\"", fdata->name, fdata->name );
 #ifndef NO_TEXTURE
 			/* check for a MiniPixmap */
@@ -1210,7 +1218,7 @@ LOCAL_DEBUG_OUT( "3:fdata->name = %p\"%s\"", fdata->name, fdata->name );
 					parsed = 1;
 				}
 				if (parsed)
-					MenuItemFromFunc (menu, fdata);
+                    MenuDataItemFromFunc (menu, fdata);
                 else
                 {
                     free_func_data(fdata);
@@ -1232,10 +1240,10 @@ LOCAL_DEBUG_OUT( "3:fdata->name = %p\"%s\"", fdata->name, fdata->name );
  ****************************************************************************/
 
 void
-MakeMenu (MenuRoot * mr)
+MakeMenu (MenuData * mr)
 {
 #if 0
-    MenuItem     *cur;
+    MenuDataItem     *cur;
 	unsigned long valuemask = (CWEventMask | CWCursor);
 	XSetWindowAttributes attributes;
 	int           width, y, t;
@@ -1267,7 +1275,7 @@ MakeMenu (MenuRoot * mr)
 		} else
 		{
 			width =
-				(cur->item == NULL) ? 0 : XTextWidth ((*Scr.MSMenuItem).font.font, cur->item,
+                (cur->item == NULL) ? 0 : XTextWidth ((*Scr.MSMenuDataItem).font.font, cur->item,
 													  cur->strlen);
 			t = (cur->item == NULL) ? 0 : XTextWidth ((*Scr.MSMenuHilite).font.font, cur->item,
 													  cur->strlen);
@@ -1288,7 +1296,7 @@ MakeMenu (MenuRoot * mr)
 			mr->width = width;
 
 		t = XTextWidth ((*Scr.MSMenuHilite).font.font, cur->item2, cur->strlen2);
-		width = XTextWidth ((*Scr.MSMenuItem).font.font, cur->item2, cur->strlen2);
+        width = XTextWidth ((*Scr.MSMenuDataItem).font.font, cur->item2, cur->strlen2);
 
 
 		if (width < t)
@@ -1320,7 +1328,7 @@ MakeMenu (MenuRoot * mr)
 		} else
 		{
 			/* Normal text entry */
-			cur->y_height = (*Scr.MSMenuItem).font.height + HEIGHT_EXTRA + 2;
+            cur->y_height = (*Scr.MSMenuDataItem).font.height + HEIGHT_EXTRA + 2;
 			t = (*Scr.MSMenuHilite).font.height + HEIGHT_EXTRA + 2;
 			if (cur->y_height < t)
 				cur->y_height = t;

@@ -1075,6 +1075,7 @@ static void
 update_window_frame_moved( ASWindow *asw, ASOrientation *od )
 {
     int i ;
+    handle_canvas_config (asw->client_canvas);
     for( i = 0 ; i < FRAME_SIDES ; ++i )
         if( asw->frame_sides[i] )
         {   /* canvas has beer resized - resize tbars!!! */
@@ -1093,8 +1094,8 @@ on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width,
     ASOrientation *od ;
     unsigned int normal_width, normal_height ;
 
-LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,%ux%u%+d%+d)", asw, w, width, height, x, y );
-    if( AS_ASSERT(asw) || w == asw->w )
+LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width, height, x, y );
+    if( AS_ASSERT(asw) )
         return ;
 
     od = get_orientation_data(asw);
