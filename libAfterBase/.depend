@@ -1,0 +1,118 @@
+./ashash.c: \
+		config.h \
+		astypes.h \
+		ashash.h \
+		safemalloc.h \
+		audit.h \
+		output.h
+
+./asvector.c: \
+		config.h \
+		astypes.h \
+		output.h \
+		safemalloc.h \
+		asvector.h
+
+./audit.c: \
+		config.h \
+		astypes.h \
+		output.h \
+		ashash.h \
+		audit.h \
+		selfdiag.h \
+		mystring.h \
+		safemalloc.h
+
+./fs.c: \
+		config.h \
+		astypes.h \
+		mystring.h \
+		safemalloc.h \
+		fs.h
+
+./mystring.c: \
+		config.h \
+		astypes.h \
+		output.h \
+		audit.h \
+		safemalloc.h \
+		mystring.h
+
+./os.c: \
+		config.h \
+		astypes.h \
+		output.h \
+		audit.h \
+		mystring.h \
+		safemalloc.h \
+		os.h
+
+./output.c: \
+		config.h \
+		astypes.h \
+		output.h \
+		ashash.h \
+		parse.h
+
+./parse.c: \
+		config.h \
+		astypes.h \
+		audit.h \
+		mystring.h \
+		safemalloc.h \
+		xwrap.h \
+		parse.h
+
+./regexp.c: \
+		config.h \
+		audit.h \
+		astypes.h \
+		mystring.h \
+		safemalloc.h \
+		regexp.h
+
+./safemalloc.c: \
+		config.h \
+		astypes.h \
+		output.h \
+		selfdiag.h \
+		safemalloc.h
+
+./selfdiag.c: \
+		config.h \
+		astypes.h \
+		output.h \
+		selfdiag.h
+
+./sleep.c: \
+		config.h \
+		astypes.h \
+		sleep.h
+
+./timer.c: \
+		config.h \
+		astypes.h \
+		output.h \
+		safemalloc.h \
+		timer.h
+
+./trace.c: \
+		config.h \
+		trace.h \
+		trace.h
+
+./xprop.c: \
+		config.h \
+		astypes.h \
+		output.h \
+		audit.h \
+		parse.h \
+		safemalloc.h \
+		xwrap.h \
+		xprop.h
+
+./xwrap.c: \
+		config.h \
+		audit.h \
+		output.h \
+		xwrap.h

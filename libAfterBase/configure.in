@@ -10,8 +10,8 @@ AC_INIT(Makefile.in)
 
 AC_CONFIG_HEADER(config.h:config.h.in)
 
-version="1.99"
-version_major="1"
+version="0.90"
+version_major="0"
 lib_name="LIBAFTERBASE"
 lib_file_name="libAfterBase"
 
@@ -25,7 +25,6 @@ eval "libdir=$libdir"
 eval "includedir=$includedir"
 
 dnl# compile-time switches
-AC_ARG_WITH(x-includes,	[  --with-x-includes=DIR   use X11 includes in DIR],x_includes=$withval,x_includes="")
 AC_ARG_ENABLE(i18n,		[  --enable-i18n           support I18N [no] ],enable_i18n=$enableval,enable_i18n="no")
 AC_ARG_ENABLE(xlocale,		[  --enable-xlocale        using X_LOCALE [no] ],enable_xlocale=$enableval,enable_xlocale="no")
 AC_ARG_WITH(locale,		[  --with-locale=LOCALE    locale name you want to use ],with_locale=$withval,with_locale="")
@@ -120,6 +119,7 @@ AC_CHECK_HEADERS(sys/wait.h sys/time.h)
 
 dnl# this is needed for self diagnostic code :
 AC_CHECK_HEADERS(link.h elf.h execinfo.h)
+AC_CHECK_FUNCS(backtrace_symbols)
 
 AC_CACHE_CHECK(for struct sigcontext, as_cv_struct_sigcontext,
 [AC_TRY_COMPILE([#include <signal.h>
@@ -161,8 +161,6 @@ dnl# Check for X
 
 saved_cflags="$CFLAGS"
 
-CFLAGS="$CFLAGS $X_CFLAGS"
-
 if test "x$enable_staticlibs" = "xyes"; then
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
@@ -196,7 +194,7 @@ AC_SUBST(version_major)
 AC_SUBST(lib_name)
 AC_SUBST(lib_file_name)
 AC_SUBST(with_locale)
-AC_SUBST(x_includes)
+AC_SUBST(X_CFLAGS)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)
 AC_SUBST(DEFINE_XLOCALE)

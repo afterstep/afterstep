@@ -27,6 +27,11 @@
 
 #ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
+#ifdef HAVE_BACKTRACE_SYMBOLS
+#define GLIBC_BACKTRACE_FUNC 	backtrace_symbols
+#else
+#define GLIBC_BACKTRACE_FUNC 	__backtrace_symbols
+#endif
 #endif
 
 #ifdef HAVE_LINK_H
@@ -307,7 +312,7 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 				fprintf (stderr, " in [%s+0x%lX(%lu)]", func_name, offset, offset);
 			else
 			{
-                dummy = __backtrace_symbols ((void **)&eip, 1);
+                dummy = GLIBC_BACKTRACE_FUNC ((void **)&eip, 1);
                 func_name = *dummy ;
 				if (*func_name != '[')
 					fprintf (stderr, " in %s()", func_name);
@@ -339,7 +344,7 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 			if (func_name == unknown)
 			{
 #ifdef HAVE_EXECINFO_H
-                dummy = __backtrace_symbols ((void **)&esp, 1);
+                dummy = GLIBC_BACKTRACE_FUNC ((void **)&esp, 1);
                 func_name = *dummy;
 				if (*func_name != '[')
 					fprintf (stderr, "  [%s]", func_name);
@@ -482,7 +487,7 @@ get_caller_func ()
 #ifdef HAVE_EXECINFO_H
         if (func_name == unknown)
         {
-            char **dummy = __backtrace_symbols ((void **)&(ret_addr[call_no]), 1);
+            char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&(ret_addr[call_no]), 1);
             func_name = *dummy ;
         }
 #endif
@@ -515,7 +520,7 @@ print_simple_backtrace ()
         if (func_name == unknown)
         {
 #ifdef HAVE_EXECINFO_H
-		    char **dummy = __backtrace_symbols ((void **)&(ret_addr[call_no]), 1);
+		    char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&(ret_addr[call_no]), 1);
             func_name = *dummy;
             if (*func_name != '[')
                 fprintf (stderr, "  [%s]", func_name);

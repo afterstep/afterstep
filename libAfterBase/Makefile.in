@@ -57,7 +57,7 @@ INSTALL_HEADER	= @INSTALL@ -m 644
 INSTALL_LIB	= @INSTALL@ -m 755
 INSTALL_SCRIPT	= @INSTALL@ -m 755
 
-#INCS_X		= @x_includes@
+INCS_X		= @X_CFLAGS@
 INCLUDES	= $(INCS_X) $(INCS_PRIVATE)
 
 LIBDIR		= $(DESTDIR)@libdir@
@@ -67,11 +67,6 @@ AFTER_BIN_DIR	= $(DESTDIR)@bindir@
 AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man1
 AFTER_DOC_DIR	= $(DESTDIR)@datadir@/afterstep/doc
 AFTER_SHAREDIR	= $(DESTDIR)@datadir@/afterstep
-GNUSTEP		= @with_gnustep_dir@
-GNUSTEPLIB	= @with_gnustep_lib@
-AFTER_DIR	= @with_afterdir@
-AFTER_SAVE	= @with_afterdir@/.workspace_state
-AFTER_NONCF	= @with_afterdir@/non-configurable
 
 all:            @LIBPROG@ $(INSTALLONBUILD)
 
@@ -171,7 +166,15 @@ deps:
 		if test "x$$buf" != "x"; then \
 		  echo $$buf >>.depend ; \
 		fi; \
-		echo "">> .shared \
+		echo "">> .shared ; \
+		echo "">> .shared ; \
+		echo -n $(LIB_NAME)_INCS = >> .shared ; \
+		for f in $(LIB_INCS); do \
+		  echo " \\" >> .shared ; \
+		  echo -n '		$$('$(LIB_NAME)_PATH')'/$$f >> .shared ; \
+		done; \
+		echo "" >> .shared ; 
+
 
 $(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS)
 		$(RMF) $(LIB_STATIC)
