@@ -173,6 +173,7 @@ void usage(void) {
 		"                     (use for splash windows to avoid window frame)\n"
 		"     --center        center window on screen\n"
 		"     --topmost       raise window to the top\n"
+		"     --no-shape      do not shape window\n"
 		"  -n --no-display    don't display the final image\n"
 		"  -r --root-window   draw result image on root window\n"
 #endif /* X_DISPLAY_MISSING */

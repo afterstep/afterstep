@@ -1,23 +1,38 @@
-<composite id=banner>
+<tile tint=#077f7f7f>
+   <composite id=banner>
 	<solid width=400 height=270 color=#00000000/>
 	<tile y=30  tint=#7fbf9f7f><img src="tiles/AfterStepBeauty"/></tile>
 	<tile y=0 x=25 tint=#7f7F7F7F><img y=40 src=tiles/AfterStep/></tile>
 	<text y=250 x=165 fgcolor=#222222 font=DefaultBoldOblique.ttf size=15>v.2.0: the freedom has arrived</text>
-</composite>
+   </composite>
+</tile>
 
-<tile tint=#777f7f7f><recall srcid=banner/></tile>
-<tile tint=#6f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#677f7f7f><recall srcid=banner/></tile>
-<tile tint=#5f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#577f7f7f><recall srcid=banner/></tile>
-<tile tint=#4f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#477f7f7f><recall srcid=banner/></tile>
-<tile tint=#3f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#377f7f7f><recall srcid=banner/></tile>
-<tile tint=#2f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#277f7f7f><recall srcid=banner/></tile>
-<tile tint=#1f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#177f7f7f><recall srcid=banner/></tile>
 <tile tint=#0f7f7f7f><recall srcid=banner/></tile>
-<tile tint=#077f7f7f><recall srcid=banner/></tile>
-
+<tile tint=#177f7f7f><recall srcid=banner/></tile>
+<tile tint=#1f7f7f7f><recall srcid=banner/></tile>
+<tile tint=#277f7f7f><recall srcid=banner/></tile>
+<tile tint=#2f7f7f7f><recall srcid=banner/></tile>
+<tile tint=#377f7f7f><recall srcid=banner/></tile>
+<tile tint=#3f7f7f7f><recall srcid=banner/></tile>
+<tile tint=#477f7f7f><recall srcid=banner/></tile>
+<tile tint=#4f7f7f7f><recall srcid=banner/></tile>
+<tile tint=#577f7f7f><recall srcid=banner/></tile>
+<tile tint=#5f7f7f7f><recall srcid=banner/></tile>
+<tile tint=#677f7f7f><recall srcid=banner/></tile>
+<tile tint=#6f7f7f7f><recall srcid=banner/></tile>
+<tile tint=#777f7f7f><recall srcid=banner/></tile>
+<tile tint=#7f7f7f7f><recall srcid=banner/></tile>
+<tile tint=#877f7f7f><recall srcid=banner/></tile>
+<tile tint=#8f7f7f7f id=fbanner><recall srcid=banner/></tile>
+<recall srcid=fbanner/>
+<recall srcid=fbanner/>
+<recall srcid=fbanner/>
+<recall srcid=fbanner/>
+<recall srcid=fbanner/>
+<recall srcid=fbanner/>
+<recall srcid=fbanner/>
+<recall srcid=fbanner/>
+<tile tint=#7f9f9f9f><recall srcid=banner/></tile>
+<tile tint=#7fbfbfbf><recall srcid=banner/></tile>
+<tile tint=#7fefefef><recall srcid=banner/></tile>
+<tile tint=#7fffffff><recall srcid=banner/></tile>
