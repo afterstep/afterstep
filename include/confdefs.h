@@ -320,29 +320,30 @@ void DestroyASetRootConfig (ASetRootConfig * config);
  *  *WinListAutoHide
  */
 #define WINLIST_ID_START        		(BGR_ID_END+1)
-#define WINLIST_Geometry_ID				(WINLIST_ID_START+1)
-#define WINLIST_MinSize_ID				(WINLIST_ID_START+2)
-#define WINLIST_MaxSize_ID				(WINLIST_ID_START+3)
-#define WINLIST_MaxColumns_ID			(WINLIST_ID_START+4)
-#define WINLIST_MaxColWidth_ID			(WINLIST_ID_START+5)
-#define WINLIST_MinColWidth_ID			(WINLIST_ID_START+6)
-#define WINLIST_UseName_ID				(WINLIST_ID_START+7)
-#define WINLIST_Justify_ID				(WINLIST_ID_START+8)
-#define WINLIST_Action_ID				(WINLIST_ID_START+9)
-#define WINLIST_UnfocusedStyle_ID		(WINLIST_ID_START+10)
-#define WINLIST_FocusedStyle_ID			(WINLIST_ID_START+11)
-#define WINLIST_StickyStyle_ID			(WINLIST_ID_START+12)
-#define WINLIST_FillRowsFirst_ID		(WINLIST_ID_START+13)
-#define WINLIST_UseSkipList_ID			(WINLIST_ID_START+14)
+#define WINLIST_FillRowsFirst_ID		(WINLIST_ID_START)
+#define WINLIST_UseSkipList_ID			(WINLIST_ID_START+1)
+#define WINLIST_Geometry_ID				(WINLIST_ID_START+2)
+#define WINLIST_MinSize_ID				(WINLIST_ID_START+3)
+#define WINLIST_MaxSize_ID				(WINLIST_ID_START+4)
+#define WINLIST_MaxRows_ID				(WINLIST_ID_START+5)
+#define WINLIST_MaxColumns_ID			(WINLIST_ID_START+6)
+#define WINLIST_MaxColWidth_ID			(WINLIST_ID_START+7)
+#define WINLIST_MinColWidth_ID			(WINLIST_ID_START+8)
+#define WINLIST_UseName_ID				(WINLIST_ID_START+9)
+#define WINLIST_Justify_ID				(WINLIST_ID_START+10)
+#define WINLIST_Action_ID				(WINLIST_ID_START+12)
+#define WINLIST_UnfocusedStyle_ID		(WINLIST_ID_START+13)
+#define WINLIST_FocusedStyle_ID			(WINLIST_ID_START+14)
+#define WINLIST_StickyStyle_ID			(WINLIST_ID_START+15)
 
-#define WINLIST_BALLOONS_ID				(WINLIST_ID_START+15)
+#define WINLIST_BALLOONS_ID				(WINLIST_ID_START+16)
 
-#define WINLIST_HideGeometry_ID			(WINLIST_ID_START+16)
-#define WINLIST_MaxWidth_ID				(WINLIST_ID_START+17)
-#define WINLIST_Orientation_ID			(WINLIST_ID_START+18)
-#define WINLIST_NoAnchor_ID				(WINLIST_ID_START+19)
-#define WINLIST_UseIconNames_ID			(WINLIST_ID_START+20)
-#define WINLIST_AutoHide_ID				(WINLIST_ID_START+21)
+#define WINLIST_HideGeometry_ID			(WINLIST_ID_START+17)
+#define WINLIST_MaxWidth_ID				(WINLIST_ID_START+18)
+#define WINLIST_Orientation_ID			(WINLIST_ID_START+19)
+#define WINLIST_NoAnchor_ID				(WINLIST_ID_START+20)
+#define WINLIST_UseIconNames_ID			(WINLIST_ID_START+21)
+#define WINLIST_AutoHide_ID				(WINLIST_ID_START+22)
 
 #define WINLIST_ID_END	        		(WINLIST_ID_START+32)
 
@@ -355,22 +356,20 @@ typedef enum
 
 typedef struct WinListConfig
 {
-#define WINLIST_AnchorX			(0x01<<0)
-#define WINLIST_AnchorY			(0x01<<1)
-#define WINLIST_MinWidth		(0x01<<2)
-#define WINLIST_MinHeight		(0x01<<3)
-#define WINLIST_MaxWidth		(0x01<<4)			
-#define WINLIST_MaxHeight		(0x01<<5)			
+#define WINLIST_FillRowsFirst	(0x01<<0)			
+#define WINLIST_UseSkipList		(0x01<<1)			
+#define WINLIST_Geometry		(0x01<<2)
+#define WINLIST_MinSize			(0x01<<3)
+#define WINLIST_MaxSize			(0x01<<4)			
+#define WINLIST_MaxRows			(0x01<<5)				
 #define WINLIST_MaxColumns		(0x01<<6)				
 #define WINLIST_MaxColWidth		(0x01<<7)			
 #define WINLIST_MinColWidth		(0x01<<8)			
 #define WINLIST_UseName			(0x01<<9)			
 #define WINLIST_Justify			(0x01<<10)			
-#define WINLIST_FillRowsFirst	(0x01<<11)			
-#define WINLIST_UseSkipList		(0x01<<12)			
 
-#define 	ASWL_RowsFirst 		(0x01<<0)
-#define 	ASWL_UseSkipList	(0x01<<1)
+#define 	ASWL_RowsFirst 		WINLIST_FillRowsFirst
+#define 	ASWL_UseSkipList	WINLIST_UseSkipList
 	ASFlagType	flags ;
 	ASFlagType	set_flags ;
 	int anchor_x, anchor_y ;
@@ -387,7 +386,7 @@ typedef struct WinListConfig
 	ASNameTypes     show_name_type ; /* 0, 1, 2, 3 */
 	ASAligmentTypes name_aligment ;  
 	
-	char *MouseActions[MAX_MOUSE_BUTTONS];
+	char *mouse_actions[MAX_MOUSE_BUTTONS];
 
     MyStyleDefinition *style_defs;
 
@@ -397,6 +396,7 @@ typedef struct WinListConfig
 
 WinListConfig *CreateWinListConfig ();
 void DestroyWinListConfig (WinListConfig * config);
+void PrintWinListConfig (WinListConfig * config);
 int WriteWinListOptions (const char *filename, char *myname, WinListConfig * config, unsigned long flags);
 WinListConfig *ParseWinListOptions (const char *filename, char *myname);
 

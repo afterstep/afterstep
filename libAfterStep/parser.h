@@ -273,7 +273,9 @@ char **CreateStringArray (size_t elem_num);
 size_t GetStringArraySize (int argc, char **argv);
 char **DupStringArray (int argc, char **argv);
 void AddStringToArray (int *argc, char ***argv, char *new_string);
-#define REPLACE_STRING(str1,str2) {if(str1)free(str1);str1=str2;}
+#define REPLACE_STRING(str1,str2) do{if(str1)free(str1);str1=str2;}while(0)
+#define REPLACE_CONFIG_STRING(str1,str2,flags,fval) do{if(str1)free(str1);str1=str2;set_flags(flags,fval);}while(0)
+#define SET_CONFIG_FLAG(flags,mask,val) do{set_flags(flags,val);set_flags(mask,val);}while(0)
 
 
 /* they all return pointer to the storage's tail */

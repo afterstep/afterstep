@@ -79,17 +79,16 @@ ASWinListState WinListState = { 100, 100, NULL, NULL, 0, 0, NULL };
 /**********************************************************************/
 BaseConfig *Base = NULL;
 
+/*char *default_unfocused_style = "unfocused_window_style";
+ char *default_focused_style = "focused_window_style";
+ char *default_sticky_style = "sticky_window_style";
+ */
+char *default_winlist_style;
 
-WinListConfig Config = {  0, 0, 0, 0, 
-                    	  0, 0, 0, 0, 
-						  1, 0,
-						  0, 0,
-						  "winlist_unfocused_window_style",
-						  "focused_window_style",
-						  "sticky_window_style",
-						  ASN_Name,
-						  ASA_Left,  
-						  {NULL, NULL, NULL, NULL, NULL}};
+WinListConfig DefaultConfig;
+WinListConfig *Config = &DefaultConfig ;
+
+
 /**********************************************************************/
 
 void
@@ -124,6 +123,10 @@ main( int argc, char **argv )
 	
 	set_application_name(argv[0]);
 	SetMyName (argv[0]);
+	
+	default_winlist_style = safemalloc( 1+strlen(MyName)+1);
+	default_winlist_style[0] = '*' ;
+	strcpy( &(default_winlist_style[1]), MyName );
 	
 	set_signal_handler( SIGSEGV );
 	set_output_threshold( OUTPUT_LEVEL_PROGRESS );
@@ -241,9 +244,22 @@ GetBaseOptions (const char *filename)
 void
 GetOptions (const char *filename)
 {
-	mystyle_get_property (dpy, Scr.Root, _AS_STYLE, XA_INTEGER);
-	/* TODO: implement some options here : */
+	WinListConfig *config = ParseWinListOptions( filename, MyName );
 
+#ifdef LOCAL_DEBUG
+	PrintWinListConfig (config);
+#endif
+
+	if( config == NULL ) 
+		return ;
+	
+    if (config->style_defs)
+	    ProcessMyStyleDefinitions (&(config->style_defs), Base->pixmap_path);
+	mystyle_get_property (dpy, Scr.Root, _AS_STYLE, XA_INTEGER);
+		
+	if( Config && Config != &DefaultConfig) 
+		DestroyWinListConfig( Config );
+	Config = config ;
 }
 
 /****************************************************************************/
@@ -310,15 +326,40 @@ make_winlist_window()
 	Window        w;
 	XSizeHints    shints;
 	ExtendedWMHints extwm_hints ;
+	int x, y ;
+	unsigned int width = (WinListState.width <= 0)?1:WinListState.width;
+	unsigned int height = (WinListState.height <= 0)?1:WinListState.height;
 
-	w = create_visual_window( Scr.asv, Scr.Root, Config.anchor_x, Config.anchor_y, WinListState.width, WinListState.height, 0, InputOutput, 0, NULL);
+	switch( Config->gravity )
+	{
+		case NorthEastGravity :
+			x = Scr.MyDisplayWidth - width + Config->anchor_x ;
+			y = Config->anchor_y ;
+			break;
+		case SouthEastGravity :
+			x = Scr.MyDisplayWidth - width + Config->anchor_x ;
+			y = Scr.MyDisplayHeight - height + Config->anchor_y ;
+			break;
+		case SouthWestGravity :
+			x = Config->anchor_x ;
+			y = Scr.MyDisplayHeight - height + Config->anchor_y ;
+			break;
+		case NorthWestGravity :
+		default :
+			x = Config->anchor_x ;
+			y = Config->anchor_y ;
+			break;
+	}
+
+	w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, 0, NULL);
 	set_client_names( w, MyName, MyName, AS_MODULE_CLASS, MyName );
 
-	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize;
+	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize|PWinGravity;
 	shints.min_width = shints.min_height = 4;
-	shints.max_width = (Config.max_width>0)?Config.max_width:Scr.MyDisplayWidth;
-	shints.max_height = (Config.max_height>0)?Config.max_height:Scr.MyDisplayHeight;
+	shints.max_width = (Config->max_width>0)?Config->max_width:Scr.MyDisplayWidth;
+	shints.max_height = (Config->max_height>0)?Config->max_height:Scr.MyDisplayHeight;
 	shints.base_width = shints.base_height = 4;
+	shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
 	extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeMenu ;
@@ -345,7 +386,7 @@ static char *
 get_visible_window_name( ASWindowData *wd )
 {
 	char *vname = NULL ;
-	switch( Config.show_name_type )
+	switch( Config->show_name_type )
 	{
 		case ASN_Name :     vname = wd->window_name ; break ;
 		case ASN_IconName : vname = wd->icon_name ; break ;
@@ -391,9 +432,9 @@ rearrange_winlist_window()
 	ASBiDirElem *elem ;
 	int rows = 1, cols = 1 ;
 	unsigned int max_height = 1, max_width = 1 ;
-	unsigned int allowed_max_width = (Config.max_width==0)?Scr.MyDisplayWidth:Config.max_width ;
-	unsigned int allowed_max_height = (Config.max_height==0)?Scr.MyDisplayHeight:Config.max_height ;
-	unsigned int max_col_width = (Config.max_col_width==0)?Scr.MyDisplayWidth:Config.max_col_width ;
+	unsigned int allowed_max_width = (Config->max_width==0)?Scr.MyDisplayWidth:Config->max_width ;
+	unsigned int allowed_max_height = (Config->max_height==0)?Scr.MyDisplayHeight:Config->max_height ;
+	unsigned int max_col_width = (Config->max_col_width==0)?Scr.MyDisplayWidth:Config->max_col_width ;
 	unsigned int count = 0 ;
 	
 	if( allowed_max_width > Scr.MyDisplayWidth ) 
@@ -431,7 +472,7 @@ LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text,
 		}
 	}
 
-	if( get_flags(Config.flags, ASWL_RowsFirst) )
+	if( get_flags(Config->flags, ASWL_RowsFirst) )
 	{
 		cols = (allowed_max_width+1)/max_width ;
 		if( cols > count )
@@ -489,8 +530,8 @@ rearrange_winlist_buttons()
 	unsigned int next_x = 0 ;
 	unsigned int next_y = 0 ;
 	unsigned int max_height = WinListState.max_height, max_width = WinListState.max_width ;
-	unsigned int allowed_max_width = (Config.max_width==0)?Scr.MyDisplayWidth:Config.max_width ;
-	unsigned int allowed_max_height = (Config.max_height==0)?Scr.MyDisplayHeight:Config.max_height ;
+	unsigned int allowed_max_width = (Config->max_width==0)?Scr.MyDisplayWidth:Config->max_width ;
+	unsigned int allowed_max_height = (Config->max_height==0)?Scr.MyDisplayHeight:Config->max_height ;
 	
 	if( allowed_max_width > Scr.MyDisplayWidth ) 
 		allowed_max_width = Scr.MyDisplayWidth ;
@@ -504,10 +545,10 @@ rearrange_winlist_buttons()
 		if( tbar ) 
 		{
 			redraw = set_astbar_size( tbar, max_width, max_height );
-			if( get_flags(Config.flags, ASWL_RowsFirst) )
+			if( get_flags(Config->flags, ASWL_RowsFirst) )
 			{
 				if( next_x+max_width > allowed_max_width )
-					if( curr_row  < Config.max_rows ) 
+					if( curr_row  < Config->max_rows ) 
 					{
 						++curr_row ;
 						next_x = 0 ;
@@ -519,7 +560,7 @@ rearrange_winlist_buttons()
 			}else
 			{
 				if( next_y+max_height > allowed_max_height ) 
-					if( curr_col  < Config.max_columns )
+					if( curr_col  < Config->max_columns )
 					{
 						++curr_col ;
 						next_y = 0 ;
@@ -551,12 +592,12 @@ static void
 configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
 {
 	char *name = get_visible_window_name(wd);
-	set_astbar_style( tbar, BAR_STATE_FOCUSED, Config.focused_style );
+	set_astbar_style( tbar, BAR_STATE_FOCUSED, Config->focused_style?Config->focused_style:default_winlist_style );
 
 	if( get_flags(wd->flags, STICKY) )
-		set_astbar_style( tbar, BAR_STATE_UNFOCUSED, Config.sticky_style );
+		set_astbar_style( tbar, BAR_STATE_UNFOCUSED, Config->sticky_style?Config->sticky_style:default_winlist_style );
 	else
-		set_astbar_style( tbar, BAR_STATE_UNFOCUSED, Config.unfocused_style );
+		set_astbar_style( tbar, BAR_STATE_UNFOCUSED, Config->unfocused_style?Config->unfocused_style:default_winlist_style );
 	set_astbar_label( tbar, name);
 	if( wd->focused )
 	{

@@ -231,12 +231,12 @@ ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail)
 
 	  break;
 	case MYSTYLE_FORECOLOR_ID:
-	  REPLACE_STRING (((*tail)->fore_color), item.data.string)
-	    SET_SET_FLAG1 (F_FORECOLOR);
+	  REPLACE_STRING (((*tail)->fore_color), item.data.string);
+      SET_SET_FLAG1 (F_FORECOLOR);
 	  break;
 	case MYSTYLE_BACKCOLOR_ID:
-	  REPLACE_STRING (((*tail)->back_color), item.data.string)
-	    SET_SET_FLAG1 (F_BACKCOLOR);
+	  REPLACE_STRING (((*tail)->back_color), item.data.string);
+      SET_SET_FLAG1 (F_BACKCOLOR);
 	  break;
 	case MYSTYLE_TEXTSTYLE_ID:
 	  (*tail)->text_style = item.data.integer;
