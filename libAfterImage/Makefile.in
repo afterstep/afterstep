@@ -8,11 +8,12 @@
 
 LIB_INCS= afterimage.h config.h afterbase.h ascmap.h asfont.h \
 		asimage.h asimagexml.h asvisual.h blender.h char2uni.h \
-		export.h import.h transform.h ungif.h xcf.h ximage.h xpm.h
+		export.h import.h pixmap.h transform.h ungif.h \
+		xcf.h ximage.h xpm.h
 
 LIB_OBJS=  @AFTERBASE_C@ ascmap.o asfont.o asimage.o asimagexml.o \
 		asvisual.o blender.o char2uni.o export.o import.o \
-		transform.o ungif.o xcf.o ximage.o xpm.o
+		pixmap.o transform.o ungif.o xcf.o ximage.o xpm.o
 
 LIB_DOCS= afterimage.h ascmap.h asfont.h asimage.h \
 		  asvisual.h blender.h char2uni.h export.h import.h \

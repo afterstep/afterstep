@@ -1,0 +1,797 @@
+/*--------------------------------*-C-*---------------------------------*
+ * File:	pixmap.c
+ *----------------------------------------------------------------------*
+ * Copyright (c) 1999 Ethan Fischer <allanon@crystaltokyo.com>
+ * Copyright (c) 1999 Sasha Vasko   <sasha at aftercode.net>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *---------------------------------------------------------------------*/
+/*---------------------------------------------------------------------*
+ * Originally written:
+ *    1999	Sasha Vasko <sasha at aftercode.net>
+ *----------------------------------------------------------------------*/
+
+#include "config.h"
+
+/*#define LOCAL_DEBUG */
+/* #define DO_CLOCKING */
+
+#include <malloc.h>
+#ifdef DO_CLOCKING
+#include <sys/time.h>
+#endif
+#include <stdarg.h>
+
+
+#include "afterbase.h"
+#include "asvisual.h"
+#include "blender.h"
+#include "asimage.h"
+#include "ximage.h"
+#include "transform.h"
+#include "pixmap.h"
+
+
+/*#define CREATE_TRG_PIXMAP(asv,w,h) XCreatePixmap(dpy, RootWindow(dpy,DefaultScreen(dpy)), (w), (h), DefaultDepth(dpy,DefaultScreen(dpy)))*/
+#define CREATE_TRG_PIXMAP(asv,w,h) create_visual_pixmap(asv,RootWindow(dpy,DefaultScreen(dpy)),(w),(h),0)
+
+
+/****************************************************************************
+ *
+ * fill part of a pixmap with the root pixmap, offset properly to look
+ * "transparent"
+ *
+ ***************************************************************************/
+int
+FillPixmapWithTile (Pixmap pixmap, Pixmap tile, int x, int y, int width, int height, int tile_x, int tile_y)
+{
+  if (tile != None && pixmap != None)
+    {
+      GC gc;
+      XGCValues gcv;
+
+      gcv.tile = tile;
+      gcv.fill_style = FillTiled;
+      gcv.ts_x_origin = -tile_x;
+      gcv.ts_y_origin = -tile_y;
+      gc = XCreateGC (dpy, tile, GCFillStyle | GCTile | GCTileStipXOrigin | GCTileStipYOrigin, &gcv);
+      XFillRectangle (dpy, pixmap, gc, x, y, width, height);
+      XFreeGC (dpy, gc);
+      return 1;
+    }
+  return 0;
+}
+
+Pixmap
+GetRootPixmap (Atom id)
+{
+	Pixmap currentRootPixmap = None;
+	if (id == None)
+  		id = XInternAtom (dpy, "_XROOTPMAP_ID", True);
+
+    if (id != None)
+    {
+  		Atom act_type;
+    	int act_format;
+    	unsigned long nitems, bytes_after;
+    	unsigned char *prop = NULL;
+
+/*fprintf(stderr, "\n aterm GetRootPixmap(): root pixmap is set");                  */
+    	if (XGetWindowProperty (  dpy, RootWindow(dpy,DefaultScreen(dpy)), id, 0, 1, False, XA_PIXMAP,
+							      &act_type, &act_format, &nitems, &bytes_after,
+			    				  &prop) == Success)
+		{
+			if (prop)
+	  		{
+	    		currentRootPixmap = *((Pixmap *) prop);
+	    		XFree (prop);
+/*fprintf(stderr, "\n aterm GetRootPixmap(): root pixmap is [%lu]", currentRootPixmap); */
+		    }
+		}
+    }
+    return currentRootPixmap;
+}
+
+static int
+pixmap_error_handler (Display * dpy, XErrorEvent * error)
+{
+#ifdef DEBUG_IMAGING
+	fprintf (stderr, "\n aterm caused XError # %u, in resource %lu, Request: %d.%d",
+					 error->error_code, error->resourceid, error->request_code, error->minor_code);
+#endif
+  return 0;
+}
+
+
+Pixmap
+ValidatePixmap (Pixmap p, int bSetHandler, int bTransparent, unsigned int *pWidth, unsigned int *pHeight)
+{
+	int (*oldXErrorHandler) (Display *, XErrorEvent *) = NULL;
+    /* we need to check if pixmap is still valid */
+	Window root;
+    int junk;
+	if (bSetHandler)
+		oldXErrorHandler = XSetErrorHandler (pixmap_error_handler);
+  
+    if (bTransparent)
+	    p = GetRootPixmap (None);
+	if (!pWidth)
+  		pWidth = &junk;
+    if (!pHeight)
+	    pHeight = &junk;
+  
+    if (p != None)
+	{
+  		if (!XGetGeometry (dpy, p, &root, &junk, &junk, pWidth, pHeight, &junk, &junk))
+			p = None;
+    }
+	if(bSetHandler)
+  		XSetErrorHandler (oldXErrorHandler);
+
+	return p;
+}
+
+int
+GetRootDimensions (int *width, int *height)
+{
+	Window root;
+	int w_x, w_y;
+	unsigned int junk;
+	if (!XGetGeometry (dpy, RootWindow(dpy,DefaultScreen(dpy)), &root,
+					     &w_x, &w_y, width, height, &junk, &junk))
+    {
+    	*width = 0;
+    	*height = 0;
+    }
+	return (*width > 0 && *height > 0) ? 1 : 0;
+}
+
+int
+GetWinPosition (Window w, int *x, int *y)
+{
+	Window root, parent, *children;
+	unsigned int nchildren;
+	static int rootWidth = 0, rootHeight = 0;
+	XWindowAttributes attr;
+	int my_x, my_y;
+
+	XGetWindowAttributes (dpy, w, &attr);
+	if (attr.map_state != IsViewable)
+  		return 0;
+
+	if (!x)
+  		x = &my_x;
+	if (!y)
+  		y = &my_y;
+
+	*x = 0;
+	*y = 0;
+
+	if (!rootWidth || !rootHeight)
+  		if (!GetRootDimensions (&rootWidth, &rootHeight))
+    		return 0;
+
+	while (XQueryTree (dpy, w, &root, &parent, &children, &nchildren))
+    {
+    	int w_x, w_y;
+    	unsigned int w_w, w_h, border_w, w_depth;
+    	if (children)
+			XFree (children);
+    	if (!XGetGeometry (dpy, w, &root,
+			 &w_x, &w_y, &w_w, &w_h, &border_w, &w_depth))
+			break;
+    	(*x) += w_x + border_w;
+    	(*y) += w_y + border_w;
+
+    	if (parent == root)
+		{			/* taking in to consideration virtual desktopping */
+			int bRes = 1;
+			if (*x < 0 || *x >= rootWidth || *y < 0 || *y >= rootHeight)
+	  			bRes = 0;
+			/* don't want to return position outside the screen even if we fail */
+			while (*x < 0)
+	  			*x += rootWidth;
+			while (*y < 0)
+	  			*y += rootHeight;
+			if (*x > rootWidth)
+	  			*x %= rootWidth;
+			if (*y > rootHeight)
+	  			*y %= rootHeight;
+			return bRes;
+		}
+    	w = parent;
+    }
+	*x = 0;
+	*y = 0;
+	return 0;
+}
+
+ARGB32
+shading2tint32(ShadingInfo * shading)
+{
+	if( shading && !NO_NEED_TO_SHADE(*shading))
+	{
+		CARD16 r16 = ((shading->tintColor.red*shading->shading / 100)>>1)&0x7FFF ;
+		CARD16 g16 = ((shading->tintColor.green*shading->shading / 100)>>1)&0x7FFF ;
+		CARD16 b16 = ((shading->tintColor.blue*shading->shading / 100)>>1)&0x7FFF ;
+		CARD16 a16 = ((0x0000FFFF*shading->shading / 100)>>1)&0x7FFF ;
+		return MAKE_ARGB32(a16,r16,g16,b16);
+	}
+	return TINT_LEAVE_SAME ;
+}
+
+Pixmap
+scale_pixmap (ASVisual *asv, Pixmap src, int src_w, int src_h, int width, int height, GC gc, ARGB32 tint)
+{
+	Pixmap trg = None;
+
+	if (src != None)
+    {
+		ASImage *src_im ;
+		src_im = pixmap2ximage(asv, src, 0, 0, src_w, src_h, AllPlanes, 0 );
+		if( src_im ) 
+		{
+			if( src_w != width && src_h != height ) 
+			{
+				ASImage *tmp = scale_asimage( asv, src_im, width, height,
+				                              (tint != TINT_LEAVE_SAME)?ASA_ASImage:ASA_XImage, 
+											  0, ASIMAGE_QUALITY_DEFAULT );
+				destroy_asimage( &src_im );
+				src_im = tmp;
+			}
+			if( src_im && tint != TINT_LEAVE_SAME )
+			{
+				ASImage *tinted = tile_asimage ( asv, src_im, 0, 0,
+				  								 width,  height, tint,
+												 ASA_XImage,
+												 0, ASIMAGE_QUALITY_DEFAULT );
+				destroy_asimage( &src_im );
+				src_im = tinted ;
+			}
+			if( src_im ) 
+			{
+				trg	= asimage2pixmap(asv, None, src_im, gc, True);
+				destroy_asimage( &src_im );
+			}
+		}
+	}
+	return trg;
+}
+
+Pixmap
+ScalePixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, ShadingInfo * shading)
+{
+	ASVisual asv ;
+	int screen = DefaultScreen(dpy);
+	Pixmap p ;
+	
+	create_asvisual( dpy, screen, DefaultDepth(dpy, screen), &asv );
+	p = scale_pixmap( &asv, src, src_w, src_h, width, height, gc, shading2tint32(shading) );
+	destroy_asvisual( &asv, True );
+	return p;
+}
+
+
+void
+copyshade_drawable_area( ASVisual *asv, Drawable src, Pixmap trg,
+				  		 int x, int y, int w, int h,
+				  		 int trg_x, int trg_y,
+				  		 GC gc, ARGB32 tint) 		
+{
+	if( tint == TINT_LEAVE_SAME || asv == NULL )
+	{
+		XCopyArea (dpy, src, trg, gc, x, y, w, h, trg_x, trg_y);
+	}else
+	{
+		ASImage *src_im = pixmap2ximage( asv, src, x, y, w, h, AllPlanes, 0 );
+		if( src_im )
+		{
+			ASImage *tinted = tile_asimage ( asv, src_im, 0, 0,
+		  									 w,  h, tint,
+											 ASA_XImage,
+											 0, ASIMAGE_QUALITY_DEFAULT );
+			destroy_asimage( &src_im );
+			if( tinted ) 
+			{
+				asimage2drawable( asv, trg, tinted, gc,
+                				  0, 0, trg_x, trg_y,
+        						  w, h, True );
+				destroy_asimage( &tinted );
+			}
+		}		
+	}
+}
+
+void
+CopyAndShadeArea ( Drawable src, Pixmap trg,
+				   int x, int y, int w, int h,
+				   int trg_x, int trg_y,
+				   GC gc, ShadingInfo * shading)
+{
+	int screen = DefaultScreen(dpy);
+	ARGB32 tint = shading2tint32( shading );
+
+    if (x < 0 || y < 0)
+		return;
+
+	if( tint == TINT_LEAVE_SAME )
+	{
+		XCopyArea (dpy, src, trg, gc, x, y, w, h, trg_x, trg_y);
+	}else
+	{
+		ASVisual asv ;
+		create_asvisual( dpy, screen, DefaultDepth(dpy, screen), &asv );
+		copyshade_drawable_area( &asv, src, trg, x, y, w, h, trg_x, trg_y, gc, tint );
+		destroy_asvisual( &asv, True );
+	}
+}
+
+void
+tile_pixmap (ASVisual *asv, Pixmap src, Pixmap trg, int src_w, int src_h, int x, int y, int w, int h, GC gc, ARGB32 tint)
+{
+	int tile_x, tile_y, left_w, bott_h;
+  
+    tile_x = x % src_w;
+	tile_y = y % src_h;
+	left_w = min (src_w - tile_x, w);
+	bott_h = min (src_h - tile_y, h);
+
+/*fprintf( stderr, "\nShadeTiledPixmap(): tile_x = %d, tile_y = %d, left_w = %d, bott_h = %d, SRC = %dx%d TRG=%dx%d", tile_x, tile_y, left_w, bott_h, src_w, src_h, w, h); */
+
+	/* We don't really want to do simple tile_asimage here since if tint is notint ,
+	 * then we could get by with simple XCopyArea !!! 
+	 */
+	copyshade_drawable_area( asv, src, trg, tile_x, tile_y, left_w, bott_h, 0, 0, gc, tint);
+    if (bott_h < h)
+    {				/* right-top parts */
+        copyshade_drawable_area( asv, src, trg, tile_x, 0, left_w, h - bott_h, 0, bott_h, gc, tint);
+    }
+	if (left_w < w)
+    {				/* left-bott parts */
+  	    copyshade_drawable_area( asv, src, trg, 0, tile_y, w - left_w, bott_h, left_w, 0, gc, tint);
+    	if (bott_h < h)		/* left-top parts */
+			copyshade_drawable_area( asv, src, trg, 0, 0, w - left_w, h - bott_h, left_w, bott_h, gc, tint);
+    }
+}
+
+void
+ShadeTiledPixmap (Pixmap src, Pixmap trg, int src_w, int src_h, int x, int y, int w, int h, GC gc, ShadingInfo * shading)
+{
+	ASVisual *asv = NULL;
+	ARGB32 tint = shading2tint32( shading );
+  
+	if( tint != TINT_LEAVE_SAME )
+	{
+		int screen = DefaultScreen(dpy);
+	    asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
+	}
+
+	tile_pixmap (asv, src, trg, src_w, src_h, x, y, w, h, gc, tint);
+	if( asv )
+		destroy_asvisual( asv, False );
+}
+
+Pixmap
+shade_pixmap (ASVisual *asv, Pixmap src, int x, int y, int width, int height, GC gc, ARGB32 tint)
+{
+    Pixmap trg = CREATE_TRG_PIXMAP (asv, width, height);
+  
+	if (trg != None)
+    	copyshade_drawable_area (asv, src, trg, x, y, width, height, 0, 0, gc, tint);
+	return trg;
+}
+
+Pixmap
+ShadePixmap (Pixmap src, int x, int y, int width, int height, GC gc, ShadingInfo * shading)
+{
+	ASVisual *asv = NULL;
+	ARGB32 tint = shading2tint32( shading );
+    Pixmap trg ;
+  
+	if( tint != TINT_LEAVE_SAME )
+	{
+		int screen = DefaultScreen(dpy);
+	    asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
+	}
+	trg = CREATE_TRG_PIXMAP (asv, width, height);
+	if (trg != None)
+    {
+    	copyshade_drawable_area (asv, src, trg, x, y, width, height, 0, 0, gc, tint);
+    }
+	if( asv )
+		destroy_asvisual( asv, False );
+	return trg;
+}
+
+Pixmap
+center_pixmap (ASVisual *asv, Pixmap src, int src_w, int src_h, int width, int height, GC gc, ARGB32 tint)
+{
+    int x, y, w, h, src_x = 0, src_y = 0;
+	Pixmap trg;
+	/* create target pixmap of the size of the window */
+	trg = CREATE_TRG_PIXMAP (asv,width, height);
+	if (trg != None)
+    {
+    	/* fill it with background color */
+    	XFillRectangle (dpy, trg, gc, 0, 0, width, height);
+    	/* place image at the center of it */
+    	x = (width - src_w) >> 1;
+    	y = (height - src_h) >> 1;
+    	if (x < 0)
+		{
+			src_x -= x;
+			w = min (width, src_w + x);
+			x = 0;
+		}else
+			w = min (width, src_w);
+    	if (y < 0)
+		{
+			src_y -= y;
+			h = min (height, src_h + y);
+			y = 0;
+		}else
+			h = min (height, src_h);
+
+    	copyshade_drawable_area ( asv, src, trg, src_x, src_y, w, h, x, y, gc, tint);
+    }
+
+	return trg;
+}
+
+Pixmap
+CenterPixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, ShadingInfo * shading)
+{
+	ASVisual *asv = NULL;
+	ARGB32 tint = shading2tint32( shading );
+	Pixmap trg ;
+  
+	if( tint != TINT_LEAVE_SAME )
+	{
+		int screen = DefaultScreen(dpy);
+	    asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
+	}
+	trg = center_pixmap( asv, src, src_w, src_h, width, height, gc, tint );
+	if( asv )
+		destroy_asvisual( asv, False );
+	return trg ;	
+}
+
+Pixmap
+grow_pixmap (ASVisual *asv, Pixmap src, int src_w, int src_h, int width, int height, GC gc, ARGB32 tint )
+{
+	int w, h;
+	Pixmap trg;
+	/* create target pixmap of the size of the window */
+	trg = CREATE_TRG_PIXMAP (asv,width, height);
+	if (trg != None)
+    {
+    	/* fill it with background color */
+    	XFillRectangle (dpy, trg, gc, 0, 0, width, height);
+    	/* place image at the center of it */
+    	w = min (width, src_w);
+    	h = min (height, src_h);
+
+    	copyshade_drawable_area(asv, src, trg, 0, 0, w, h, 0, 0, gc, tint);
+    }
+	return trg;
+}
+
+Pixmap
+GrowPixmap (Pixmap src, int src_w, int src_h, int width, int height, GC gc, ShadingInfo * shading)
+{
+	ASVisual *asv = NULL;
+	ARGB32 tint = shading2tint32( shading );
+	Pixmap trg;
+  
+	if( tint != TINT_LEAVE_SAME )
+	{
+		int screen = DefaultScreen(dpy);
+	    asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
+	}
+	trg = grow_pixmap( asv, src, src_w, src_h, width, height, gc, tint );
+	if( asv )
+		destroy_asvisual( asv, False );
+	return trg ;	
+}
+
+/****************************************************************************
+ * grab a section of the screen and darken it
+ ***************************************************************************/
+static Pixmap
+cut_pixmap ( ASVisual *asv, Pixmap src, Pixmap trg,
+             int x, int y,
+	  		 unsigned int src_w, unsigned int src_h,
+	  		 unsigned int width, unsigned int height,
+	  		 GC gc, ARGB32 tint )
+{
+	Bool my_pixmap = (trg == None )?True:False ;
+	int screen_w, screen_h ;
+	int w = width, h = height;
+	int offset_x = 0, offset_y = 0;
+	int screen = DefaultScreen(dpy);
+
+	if (width < 2 || height < 2 )
+  		return trg;
+
+	screen_w = DisplayWidth( dpy, screen );
+	screen_h = DisplayHeight( dpy, screen );
+
+	while( x+(int)width < 0 )  x+= screen_w ;
+	while( x >= screen_w )  x-= screen_w ;
+	while( y+(int)height < 0 )  y+= screen_h ;
+	while( y >= screen_h )  y-= screen_h ;
+
+	if( x < 0 )
+	{
+  		offset_x = (-x);
+  		w -= offset_x ;
+  		x = 0 ;
+	}
+	if( y < 0 )
+	{
+  		offset_y = (-y) ;
+  		h -= offset_y;
+  		y = 0 ;
+	}
+	if( x+w >= screen_w )
+  		w = screen_w - x ;
+
+    if( y+height >= screen_h )
+	    h = screen_h - y ;
+
+	if (src == None) /* we don't have root pixmap ID */
+    { /* we want to create Overrideredirect window overlapping out window
+         with background type of Parent Relative and then grab it */
+    	XSetWindowAttributes attr ;
+    	XEvent event ;
+    	int tick_count = 0 ;
+    	Bool grabbed = False ;
+        
+		attr.background_pixmap = ParentRelative ;
+		attr.backing_store = Always ;
+		attr.event_mask = ExposureMask ;
+		attr.override_redirect = True ;
+		src = create_visual_window(asv, RootWindow(dpy,screen), x, y, w, h,
+	  		                0, CopyFromParent, 
+			  				CWBackPixmap|CWBackingStore|CWOverrideRedirect|CWEventMask,
+			  				&attr); 
+
+		if( src == None ) return trg ;
+		XGrabServer( dpy );
+		grabbed = True ;
+		XMapRaised( dpy, src );
+		XSync(dpy, False );
+		start_ticker(1);
+		/* now we have to wait for our window to become mapped - waiting for Expose */
+		for( tick_count = 0 ; !XCheckWindowEvent( dpy, src, ExposureMask, &event ) && tick_count < 100 ; tick_count++)
+	  		wait_tick();
+		if( tick_count < 100 )
+		{
+		    if( trg == None )    trg = CREATE_TRG_PIXMAP (asv,width, height);
+	  		if (trg != None)
+		    {	/* custom code to cut area, so to ungrab server ASAP */
+		        if (tint != TINT_LEAVE_SAME)
+	  		    {
+	  				ASImage *src_im = pixmap2ximage( asv, src, 0, 0, w, h, AllPlanes, 0 );
+					XDestroyWindow( dpy, src );
+				    src = None ;
+					XUngrabServer( dpy );
+					grabbed = False ;
+					if (src_im != NULL)
+					{
+						ASImage *tinted = tile_asimage ( asv, src_im, 0, 0,
+		  												 w,  h, tint,
+														 ASA_XImage,
+														 0, ASIMAGE_QUALITY_DEFAULT );
+						destroy_asimage( &src_im );
+						asimage2drawable( asv, trg, tinted, gc,
+      			        				  0, 0, offset_x, offset_y,
+        								  w, h, True );
+						destroy_asimage( &tinted );
+					}else if( my_pixmap )
+					{
+		  				XFreePixmap( dpy, trg );
+		  				trg = None ;
+					}
+				}else
+		  			XCopyArea (dpy, src, trg, gc, 0, 0, w, h, offset_x, offset_y);
+	  		}
+        }
+		if( src )
+	  		XDestroyWindow( dpy, src );
+		if( grabbed )
+	  		XUngrabServer( dpy );
+		return trg ;
+    }
+	/* we have root pixmap ID */
+	/* find out our coordinates relative to the root window */
+	if (x + w > src_w || y + h > src_h)
+    {			/* tiled pixmap processing here */
+  		Pixmap tmp ;
+    	w = MIN (w, src_w);
+    	h = MIN (h, src_h);
+
+    	tmp = CREATE_TRG_PIXMAP (asv, w, h);
+    	if (tmp != None)
+    	{
+			tile_pixmap (asv, src, tmp, src_w, src_h, x, y, w, h, gc, tint);
+      		if( trg == None )
+			{
+          		if( (trg = CREATE_TRG_PIXMAP (asv, w+offset_x, h+offset_y)) != None )
+					XCopyArea (dpy, tmp, trg, gc, 0, 0, w, h, offset_x, offset_y);
+			}else
+	  			FillPixmapWithTile( trg, tmp, offset_x, offset_y, width, height, 0, 0 );
+
+			XFreePixmap( dpy, tmp );
+      		return trg;
+    	}
+    }
+
+	/* create target pixmap of the size of the window */
+	if( trg == None )    
+		trg = CREATE_TRG_PIXMAP (asv, width, height);
+	if (trg != None)
+    {	/* cut area */
+		copyshade_drawable_area( asv, src, trg, x, y, w, h, offset_x, offset_y, gc, tint); 		
+    }
+
+	return trg;
+}
+
+static Pixmap
+CutPixmap ( Pixmap src, Pixmap trg,
+            int x, int y,
+	    unsigned int src_w, unsigned int src_h,
+	    unsigned int width, unsigned int height,
+	    GC gc, ShadingInfo * shading)
+{
+	ASVisual *asv = NULL;
+	ARGB32 tint = shading2tint32( shading );
+	Pixmap res;
+	int screen = DefaultScreen(dpy);
+    asv = create_asvisual( dpy, screen, DefaultDepth(dpy, screen), NULL );
+	res = cut_pixmap( asv, src, trg, x, y, src_w, src_h, width, height, gc, tint );
+	if( asv )
+		destroy_asvisual( asv, False );
+	return res ;	
+}
+
+Pixmap
+cut_win_pixmap (ASVisual *asv, Window win, Drawable src, int src_w, int src_h, int width,
+	  		    int height, GC gc, ARGB32 tint)
+{
+  unsigned int x = 0, y = 0;
+
+  if (!GetWinPosition (win, &x, &y))
+	return None;
+
+  return cut_pixmap( asv, src, None, x, y, src_w, src_h, width, height, gc, tint );
+}
+
+Pixmap
+CutWinPixmap (Window win, Drawable src, int src_w, int src_h, int width,
+	      int height, GC gc, ShadingInfo * shading)
+{
+  unsigned int x = 0, y = 0;
+
+  if (!GetWinPosition (win, &x, &y))
+	return None;
+
+  return CutPixmap( src, None, x, y, src_w, src_h, width, height, gc, shading );
+}
+
+/* PROTO */
+int
+fill_with_darkened_background (ASVisual *asv, Pixmap * pixmap, ARGB32 tint, int x, int y, int width, int height, int root_x, int root_y, int bDiscardOriginal, ASImage *root_im)
+{
+	unsigned int root_w, root_h;
+	Pixmap root_pixmap;
+	int screen = DefaultScreen(dpy);
+
+	/* added by Sasha on 02/24/1999 to use transparency&shading provided by
+       libasimage 1.1 */
+	root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
+
+	if (root_pixmap != None)
+    {
+		if (*pixmap == None)
+		{
+			*pixmap = create_visual_pixmap(asv, RootWindow (dpy, screen), width, height, 0);
+			bDiscardOriginal = 1;
+		}
+		
+    	if ( tint != TINT_LEAVE_SAME)
+		{
+			ASImage *src_im = (root_im == NULL)?pixmap2ximage( asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 0 ):root_im;
+			if( root_im )
+			{
+				ASImage *tinted = tile_asimage ( asv, src_im, -root_x, -root_y,
+		  										 width,  height, tint,
+												 ASA_XImage,
+											     0, ASIMAGE_QUALITY_DEFAULT );
+				if( root_im != src_im )
+					destroy_asimage( &src_im );
+				if( tinted ) 
+				{
+					asimage2drawable( asv, *pixmap, tinted, NULL,
+                					  0, 0, x, y,
+        							  width, height, True );
+					destroy_asimage( &tinted );
+				}
+			}		
+		}else
+	    	FillPixmapWithTile (*pixmap, root_pixmap, x, y, width, height, root_x, root_y);
+        return 1;
+	}
+	return 0;
+}
+
+/****************************************************************************
+ * grab a section of the screen and combine it with an XImage
+ ***************************************************************************/
+int
+fill_with_pixmapped_background (ASVisual *asv, Pixmap * pixmap, ASImage *image, int x, int y, int width, int height, int root_x, int root_y, int bDiscardOriginal, ASImage *root_im)
+{
+	unsigned int root_w, root_h;
+	Pixmap root_pixmap;
+	int screen = DefaultScreen(dpy);
+
+	root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
+	if (root_pixmap != None)
+    {
+		ASImageLayer layers[2];
+		ASImage *merged_im ;
+		
+		init_image_layers( &layers[0], 2 );
+		layers[0].merge_scanlines = allanon_scanlines ;
+		layers[0].im = root_im ?root_im:
+		                        pixmap2ximage( asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 0 );
+		layers[0].dst_x = x ;
+		layers[0].dst_y = y ;
+		layers[0].clip_x = root_x ;
+		layers[0].clip_y = root_y ;
+		layers[0].clip_width = width ;
+		layers[0].clip_height = height ;
+		
+		layers[1].im = image ; 
+		layers[1].dst_x = x ;
+		layers[1].dst_y = y ;
+		layers[1].clip_x = 0 ;
+		layers[1].clip_y = 0 ;
+		layers[1].clip_width = width ;
+		layers[1].clip_height = height ;
+
+		merged_im = merge_layers( asv, &layers[0], 2,
+		                          width, height,
+								  ASA_XImage,
+							      0, ASIMAGE_QUALITY_DEFAULT );
+		if( root_im != layers[0].im )
+			destroy_asimage( &(layers[0].im) );
+
+		if( merged_im ) 
+		{
+  			if (*pixmap == None)
+				*pixmap = create_visual_pixmap (asv, RootWindow (dpy, screen), width, height, 0);
+
+			asimage2drawable( asv, *pixmap, merged_im, NULL,
+          					  0, 0, x, y,
+  							  width, height, True );
+			destroy_asimage( &merged_im );
+		}			
+    	return 1;
+    }
+	return 0;
+}
+/************************************************/
