@@ -79,6 +79,7 @@ SyntaxDef     WinTabsSyntax = {
 	"",
 	"\t",
 	"WinTabs configuration",
+	"WinTabs",
 	NULL,
 	0
 };

@@ -203,6 +203,7 @@ struct SyntaxDef FuncSyntax = {
 	"",
 	"\t",
 	"AS Function",
+	"Functions",
 	NULL,
 	0
 };

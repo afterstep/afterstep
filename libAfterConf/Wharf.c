@@ -57,6 +57,7 @@ SyntaxDef     WhevSyntax = {
 	"",
 	"\t",
 	"Wharf sound definition",
+	"Wharf/Sounds",
 	NULL,
     0
 };
@@ -113,6 +114,7 @@ SyntaxDef     WharfSyntax = {
 	"",
 	"",
 	"Wharf configuration",
+	"Wharf",
 	NULL,
     0
 };

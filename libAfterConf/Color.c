@@ -85,6 +85,7 @@ SyntaxDef     ColorSyntax = {
 	"",
 	"\t",
     "AfterStep custom Color Scheme",
+	"ColorScheme",
 	NULL,
 	0
 };

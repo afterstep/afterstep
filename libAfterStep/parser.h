@@ -111,7 +111,8 @@ typedef struct SyntaxDef
   char *prepend_one;		/* sequence of character to prepend single term with */
   char *prepend_sub;		/* sequence of character to prepend whole config with */
   char *display_name;		/* will be in error message */
-
+  char *doc_path;
+  	  
   /* generated members */
   struct ASHashTable *term_hash;	/* hash table for fast term search */
   int recursion;		/* prevents endless recursion in nested constructs */

@@ -56,6 +56,7 @@ SyntaxDef     PagerDecorationSyntax = {
 	" ",
 	"\t",
 	"PagerDecoration",
+	"Pager/Decorations",
 	NULL,
 	0
 };
@@ -63,7 +64,7 @@ SyntaxDef     PagerDecorationSyntax = {
 TermDef       PagerTerms[] = {
     {0, "Geometry", 8, TT_GEOMETRY, PAGER_GEOMETRY_ID, NULL},
     {0, "IconGeometry", 12, TT_GEOMETRY, PAGER_ICON_GEOMETRY_ID, NULL},
-    {0, "Align", 5, TT_INTEGER, PAGER_ALIGN_ID, NULL},
+    {0, "Align", 5, TT_FLAG, PAGER_ALIGN_ID, &AlignSyntax},
     {0, "DontDrawBg", 8, TT_FLAG, PAGER_DRAW_BG_ID, NULL},
     {0, "SmallFont", 9, TT_FONT, PAGER_SMALL_FONT_ID, NULL},
     {0, "StartIconic", 11, TT_FLAG, PAGER_START_ICONIC_ID, NULL},
@@ -94,6 +95,7 @@ SyntaxDef     PagerSyntax = {
 	"",
 	"\t",
 	"Pager configuration",
+	"Pager",
 	NULL,
 	0
 
@@ -259,6 +261,10 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 		{
 			switch (pCurr->term->id)
 			{
+             case PAGER_ALIGN_ID:
+                 set_flags(config->set_flags, PAGER_SET_ALIGN);
+                 config->align = ParseAlignOptions( pCurr->sub );
+				 break;
 			 case PAGER_DRAW_BG_ID:
 				 config->flags &= ~REDRAW_BG;
 				 set_flags (config->set_flags, REDRAW_BG);
@@ -307,10 +313,6 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 			 case PAGER_ICON_GEOMETRY_ID:
 				 config->icon_geometry = item.data.geometry;
 				 set_flags (config->set_flags, PAGER_SET_ICON_GEOMETRY);
-				 break;
-			 case PAGER_ALIGN_ID:
-				 config->align = (int)item.data.integer;
-				 set_flags (config->set_flags, PAGER_SET_ALIGN);
 				 break;
 			 case PAGER_SMALL_FONT_ID:
 				 config->small_font_name = item.data.string;

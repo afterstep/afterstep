@@ -17,6 +17,7 @@ extern "C" {
 #define CLASS_ANIMATE       "Animate"
 #define CLASS_ARRANGE       "Arrange"
 #define CLASS_ASRENDER      "ASRenderer"
+#define CLASS_ASDOCGEN		"ASDocGen"
 #define CLASS_ASCP          "ASCP"
 #define CLASS_ASCOLOR       "ASColor"
 #define CLASS_ASIMBROWSER   "ASIMBrowser"

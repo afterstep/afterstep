@@ -86,6 +86,7 @@ SyntaxDef     WinListSyntax = {
 	"",
 	"\t",
 	"WinList configuration",
+	"WinList",
 	NULL,
 	0
 };

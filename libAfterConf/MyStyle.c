@@ -45,6 +45,7 @@ SyntaxDef     MyStyleSyntax = {
     "",
     "",
     "MyStyle definition",
+	"Look/MyStyle",
 	NULL,
 	0
 };

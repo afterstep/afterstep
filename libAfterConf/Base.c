@@ -60,6 +60,7 @@ SyntaxDef     BaseSyntax = {
 	"",
 	"\t",
 	"Base configuration",
+	"Base",
 	NULL,
 	0
 };

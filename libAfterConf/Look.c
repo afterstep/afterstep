@@ -59,6 +59,7 @@ SyntaxDef     AlignSyntax = {
 	" ",
 	"\t",
     "Aligninig flags",
+	"Align",
 	NULL,
 	0
 };
@@ -101,6 +102,7 @@ SyntaxDef     BevelSyntax = {
 	" ",
 	"\t",
     "Bevel flags",
+	"Bevel",
 	NULL,
 	0
 };
@@ -134,6 +136,7 @@ SyntaxDef     TbarLayoutSyntax = {
 	" ",
 	"\t",
     "Titlebar Layout Flags",
+	"Look/MyFrame/TbarLayout",
 	NULL,
 	0
 };
@@ -231,6 +234,7 @@ SyntaxDef     MyFrameSyntax = {
 	"",
 	"\t",
 	"MyFrame definition",
+	"Look/MyFrame",
 	NULL,
 	0
 };
@@ -257,6 +261,7 @@ SyntaxDef     SupportedHintsSyntax = {
 	" ",
 	"\t",
     "Supported hints list",
+	"Look/SupportedHints",
 	NULL,
 	0
 };
@@ -380,6 +385,7 @@ SyntaxDef     LookSyntax = {
     '\t',
 	"",
 	"\t",
+	"Look configuration",
 	"Look",
 	NULL,
 	0

@@ -38,8 +38,21 @@ extern struct SyntaxDef      BevelSyntax;
 extern struct SyntaxDef      AlignSyntax;
 extern struct SyntaxDef     *BevelSyntaxPtr;
 
+/* All top level syntax definitions are listed below : */
+extern struct SyntaxDef      AnimateSyntax;
+extern struct SyntaxDef      AudioSyntax;
+extern struct SyntaxDef      BaseSyntax;
+extern struct SyntaxDef      ColorSyntax;
+extern struct SyntaxDef      DatabaseSyntax;
+extern struct SyntaxDef      FeelSyntax;
+extern struct SyntaxDef      AutoExecSyntax;
+extern struct SyntaxDef      LookSyntax;
+extern struct SyntaxDef      PagerSyntax;
+extern struct SyntaxDef      WharfSyntax;
+extern struct SyntaxDef      WinListSyntax;
+extern struct SyntaxDef      WinTabsSyntax;
 
-
+/* misc function stuff : */
 #define FUNC_ID_START           F_NOP   /* 0 */
 #define FUNC_ID_END           	F_FUNCTIONS_NUM
 

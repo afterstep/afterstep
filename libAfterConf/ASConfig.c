@@ -138,6 +138,7 @@ SyntaxDef ASConfigSyntax =
   "",
   "\t",
   "AfterStep Configuration",
+  "",
   NULL,
   0
 };

@@ -59,6 +59,7 @@ SyntaxDef     WindowBoxSyntax = {
 	"",
 	"\t",
 	"WindowBox definition",
+	"Feel/WindowBox",
 	NULL,
 	0
 };
@@ -162,6 +163,7 @@ SyntaxDef FeelSyntax =
   '\t',
   "",
   "\t",
+  "Feel configuration",
   "Feel",
   NULL,
   0
@@ -217,6 +219,7 @@ SyntaxDef AutoExecSyntax =
   "",
   "\t",
   "autoexec",
+  "AutoExec",
   NULL,
   0
 };
@@ -237,6 +240,7 @@ SyntaxDef ThemeSyntax =
   "",
   "\t",
   "theme installation script",
+  "Theme",
   NULL,
   0
 };

@@ -61,6 +61,7 @@ SyntaxDef     GravitySyntax = {
 	" ",
 	"\t",
     "Gravity type specification",
+	"Database/EntryAttributes/Gravity",
 	NULL,
 	0
 };
@@ -139,6 +140,7 @@ SyntaxDef     StyleSyntax = {
 	" ",
 	"\t",
 	"Style definition",
+	"Database/EntryAttributes",
 	NULL,
 	0
 };
@@ -191,6 +193,7 @@ SyntaxDef     DatabaseSyntax = {
 	"",
 	"\t\t",
 	"database configuration",
+	"Database",
 	NULL,
 	0
 };

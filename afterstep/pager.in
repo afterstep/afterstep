@@ -49,7 +49,7 @@ BalloonBorderHilite	Right,Bottom
 # use *PagerDontDrawBg  with xearth, xfishtank, ... to avoid redrawing
 # background
 #*PagerDontDrawBg
-*PagerAlign          0
+*PagerAlign          Center
 *PagerLabel          0       Work
 *PagerLabel          1       WWW
 *PagerLabel          2       Mail

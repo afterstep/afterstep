@@ -54,6 +54,7 @@ SyntaxDef     AnimateResizeSyntax = {
 	"",
 	"\t",
 	"Animate Resize type",
+	"Animate/ResizeTypes",
 	NULL,
 	0
 };
@@ -78,6 +79,7 @@ SyntaxDef     AnimateSyntax = {
 	"",
 	"\t",
 	"Animate configuration",
+	"Animate",
 	NULL,
 	0
 };

@@ -1155,7 +1155,7 @@ redecorate_pager_desks()
         /* create & moveresize label bar : */
         if( get_flags( Config->flags, USE_LABEL ) )
         {
-            int align = (Config->align>0)?ALIGN_LEFT:((Config->align<0)?ALIGN_RIGHT:ALIGN_HCENTER) ;
+            int align = Config->align ;
             int flip = get_flags(Config->flags, VERTICAL_LABEL)?FLIP_VERTICAL:0;
 			Bool just_created = False ;
 
