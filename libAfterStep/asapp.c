@@ -800,13 +800,29 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
     {/* we get here only in child process. We now need to spawn new proggy here: */
         int len;
         char *display = mystrdup(XDisplayString (dpy));
+		char **envp ; 
         register char *ptr ;
 
         char *cmdl;
         char *arg, *screen_str = NULL, *w_str = NULL, *context_str = NULL ;
+		int env_s ;
+
         va_list ap;
 		LOCAL_DEBUG_OUT( "dpy = %p, DisplayString = \"%s\"", dpy, display );
 		LOCAL_DEBUG_OUT( "pid(%d), entered child process to spawn ...", pid );
+
+		for( env_s = 0  ; environ[env_s] != NULL ; ++env_s );
+		envp = safecalloc( env_s+2, sizeof(char*));
+		/* environment variabless to pass to child process */
+		for( env_s = 0  ; environ[env_s] != NULL ; ++env_s )
+		{
+			envp[env_s] = environ[env_s] ;	
+		}	 
+
+        envp[env_s] = safemalloc(8+strlen(display)+1);
+		sprintf( envp[env_s], "DISPLAY=%s", display );
+
+			
         len = strlen((char*)cmd);
         if( pass_args )
         {
@@ -942,12 +958,12 @@ LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) 
 			char *argv0 ;
 
 	    	if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
-				shell = "/bin/sh";
+				shell = mystrdup("/bin/sh");
 
 			parse_file_name(shell, NULL, &argv0);
 	    	/* argv0 = basename(shell); */
 
-        	execl (shell, argv0 , "-c", cmdl, (char *)0);
+        	execle (shell, argv0 , "-c", cmdl, (char *)0, envp);
 		}
 
         if( screen >= 0 )
