@@ -455,7 +455,7 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) )
 
         set_astbar_style( *tbar, BAR_STATE_FOCUSED, mystyle_name );
         set_astbar_style( *tbar, BAR_STATE_UNFOCUSED, "default" );
-        delete_astbar_tile( *tbar, -1 ); 
+        delete_astbar_tile( *tbar, -1 );
         if( img )
         {
             LOCAL_DEBUG_OUT("adding bar icon %p %ux%u", img, img->width, img->height );
@@ -771,6 +771,8 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	Bool tbar_created = False;
 	Bool status_changed = False ;
 
+	LOCAL_DEBUG_CALLER_OUT( "asw(%p)->client(%lX)", asw, asw?asw->w:0 );
+
 	if( old_hints == NULL || get_flags(old_hints->flags, AS_Icon) != ASWIN_HFLAGS( asw, AS_Icon) )
 	{	/* 3) we need to prepare icon window : */
     	check_icon_canvas( asw, (ASWIN_HFLAGS( asw, AS_Icon) && !get_flags(Scr.Feel.flags, SuppressIcons)) );
@@ -800,9 +802,9 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	asw->frame_data = frame ;
 
 	/* 5) we need to prepare windows for 4 frame decoration sides : */
-	if( has_tbar != had_tbar || frame != old_frame ) 
+	if( has_tbar != had_tbar || frame != old_frame )
 	   	check_side_canvas( asw, od->tbar_side, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
-	if( frame != old_frame ) 
+	if( frame != old_frame )
 	{
 	    check_side_canvas( asw, od->sbar_side, myframe_has_parts(frame, FRAME_BTM_MASK) );
   		check_side_canvas( asw, od->left_side, myframe_has_parts(frame, FRAME_LEFT_MASK) );
@@ -845,7 +847,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
     }
 
     /* 7) now we have to create bar for icon title (optional) */
-	if( asw->icon_title == NULL && 
+	if( asw->icon_title == NULL &&
 		(asw->icon_canvas != NULL||asw->icon_title_canvas != NULL) )
 	{
 		check_tbar( &(asw->icon_title), (asw->icon_canvas != NULL||asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
@@ -855,20 +857,20 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	}
     if( asw->icon_title )
     {
-		if( add_icon_label ) 
+		if( add_icon_label )
 		{
 	        LOCAL_DEBUG_OUT( "setting icon label to %s", ASWIN_ICON_NAME(asw) );
-	        add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align, 
-						      ASWIN_ICON_NAME(asw), 
-							  (asw->hints->icon_name_idx < 0)?AS_Text_ASCII : 
+	        add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align,
+						      ASWIN_ICON_NAME(asw),
+							  (asw->hints->icon_name_idx < 0)?AS_Text_ASCII :
 														  asw->hints->names_encoding[asw->hints->icon_name_idx]);
-		}else if( old_hints == NULL || mystrcmp(ASWIN_ICON_NAME(asw), old_hints->icon_name) != 0 ) 
+		}else if( old_hints == NULL || mystrcmp(ASWIN_ICON_NAME(asw), old_hints->icon_name) != 0 )
 		{
 	        set_astbar_style( asw->icon_title, BAR_STATE_FOCUSED, AS_ICON_TITLE_MYSTYLE );
   	    	set_astbar_style( asw->icon_title, BAR_STATE_UNFOCUSED, "default" );
 			change_astbar_first_label( asw->icon_title,
-									   ASWIN_ICON_NAME(asw), 
-		  							  (asw->hints->icon_name_idx < 0)?AS_Text_ASCII : 
+									   ASWIN_ICON_NAME(asw),
+		  							  (asw->hints->icon_name_idx < 0)?AS_Text_ASCII :
 																	  asw->hints->names_encoding[asw->hints->icon_name_idx]);
 		}
     }
@@ -922,45 +924,45 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                 	C_TITLE );
 		tbar_created = (asw->tbar != NULL);
 	}
-	
+
 	if( asw->tbar )
 	{  /* 9) now we have to setup titlebar buttons */
         ASFlagType title_align = frame->title_align ;
         ASFlagType btn_mask = compile_titlebuttons_mask (asw->hints);
 
-		if( old_hints == NULL || 
+		if( old_hints == NULL ||
  		    get_flags(old_hints->flags, AS_VerticalTitle) != ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-		{			
+		{
 			if( ASWIN_HFLAGS( asw, AS_VerticalTitle ) )
 				set_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
 			else
 				clear_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
-			if( !tbar_created ) 
+			if( !tbar_created )
 			{
 				tbar_created = True ;
 				delete_astbar_tile( asw->tbar, -1 );
-			}				
+			}
 		}
 	    /* need to add some titlebuttons */
-		if( tbar_created ) 
+		if( tbar_created )
 		{
       		asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
       		asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
 		}
 
 		if( !tbar_created && old_hints != NULL )
-		{  
+		{
 	        ASFlagType old_btn_mask = compile_titlebuttons_mask (old_hints);
 			if( old_btn_mask != btn_mask )
 				tbar_created = True ;
-			else if( frame != old_frame ) 	 
+			else if( frame != old_frame )
 				tbar_created = True ;
-			if( tbar_created ) 
+			if( tbar_created )
 				delete_astbar_tile( asw->tbar, -1 );
 		}
 
-		if( tbar_created ) 
-		{		
+		if( tbar_created )
+		{
 			 /* left buttons : */
 	        add_astbar_btnblock(asw->tbar,
   		                        od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],
@@ -1013,8 +1015,8 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                           title_align,
                           asw->hints->names[0], asw->hints->names_encoding[0]);
 		}else if( old_hints == NULL ||
-				  mystrcmp( asw->hints->names[0], old_hints->names[0] ) != 0 ) 
-		{				  						
+				  mystrcmp( asw->hints->names[0], old_hints->names[0] ) != 0 )
+		{
 			ASCanvas *canvas = ASWIN_HFLAGS(asw, AS_VerticalTitle)?asw->frame_sides[FR_W]:asw->frame_sides[FR_N];
 	        /* label ( goes on top of above pixmap ) */
 	        if( change_astbar_first_label( asw->tbar, asw->hints->names[0], asw->hints->names_encoding[0] ) )
@@ -1024,8 +1026,8 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
   		            update_canvas_display( canvas );
 				}
 		}
-		if( tbar_created ) 
-		{		
+		if( tbar_created )
+		{
 	        /* right buttons : */
   		    add_astbar_btnblock(asw->tbar,
       		                    od->default_tbar_elem_col[ASO_TBAR_ELEM_RBTN],
@@ -1054,6 +1056,14 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
      * it all is done when we change windows state, or move/resize it */
     /*since we might have destroyed/created some windows - we have to refresh grabs :*/
     grab_window_input( asw, False );
+	/* we need to map all the possibly created subwindows if window is not iconic */
+	if( !ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+		XMapSubwindows(dpy, asw->frame);
+	else
+	{
+		map_canvas_window( asw->icon_canvas, False );
+		map_canvas_window( asw->icon_title_canvas, False );
+	}
 
 	return	status_changed ;
 }

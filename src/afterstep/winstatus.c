@@ -208,10 +208,13 @@ LOCAL_DEBUG_OUT( "@@ANIM to(%d)->from(%d)->delta(%d)->step(%d)", to_size, from_s
 			   we need to revert it back to the client : */
 			if( Scr.Windows->focused == asw )
 				focus_window( asw, asw->w );
-
+            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+                XRaiseWindow( dpy, asw->w );
             return 0;
         }else
         {
+            if( asw->frame_sides[od->tbar_side] )
+                XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
             *(od->in_width) = asw->tbar->width ;
             *(od->in_height) = asw->tbar->height ;
             return *(od->out_height);
@@ -381,17 +384,6 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
 				new_height = step_size ;
 			}
         }
-		if( unshaded )
-        {
-            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-                XRaiseWindow( dpy, asw->w );
-        }else
-		{
-            if( asw->frame_sides[od->tbar_side] )
-                XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
-            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-                XLowerWindow( dpy, asw->w );
-		}
 		moved = (	asw->frame_canvas->root_x != asw->status->x ||
 					asw->frame_canvas->root_y != asw->status->y ||
 					asw->frame_canvas->width != new_width ||

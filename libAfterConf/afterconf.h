@@ -389,6 +389,7 @@ typedef struct MyFrameDefinition
 
 /* this functions work exactly like MyStyle stuff ( see above ) */
 void PrintMyFrameDefinitions (MyFrameDefinition * list, int index);
+MyFrameDefinition *AddMyFrameDefinition (MyFrameDefinition ** tail);
 void DestroyMyFrameDefinitions (MyFrameDefinition ** list);
 MyFrameDefinition **ProcessMyFrameOptions (struct FreeStorageElem * options,
 					   MyFrameDefinition ** tail);
