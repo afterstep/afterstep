@@ -213,13 +213,13 @@ EndFunction
 
 Popup "Window"
         Title           "This window :"
-	TakeScreenShot  "Take a shot of entire screen"
+        TakeWindowShot  "Capture window image"
  MiniPixmap "mini-app.xpm"
-	TakeWindowShot  "Take a shot of the window"
+        TakeFrameShot   "Capture framed window image"
  MiniPixmap "mini-app.xpm"
-	TakeFrameShot   "Take a shot of the entire window frame"
+        TakeScreenShot  "Capture screen image"
  MiniPixmap "mini-app.xpm"
-        Move            "Move"
+         Move            "Move"
  MiniPixmap "mini-as.xpm"
         WindowsDesk     " - to desk #0" 0
  MiniPixmap "mini-folder.xpm"
