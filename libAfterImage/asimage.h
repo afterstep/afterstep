@@ -609,7 +609,12 @@ size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsign
  * amount of memory used by this particular channel of specifyed
  * scanline.
  * DESCRIPTION
- * asimage_print_line()
+ * asimage_print_line() prints data stored in specified image scanline
+ * channel. That may include simple summary of how much memory is used,
+ * actuall visible data, and/or RLE control codes. That helps to see
+ * how effectively data is encoded.
+ *
+ * Usefull mostly for debugging purposes.
  *********/
 unsigned int asimage_print_line (ASImage * im, ColorPart color,
 				 unsigned int y, unsigned long verbosity);
@@ -628,16 +633,51 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
  * 									  	 int offset_x, int offset_y,
  * 									  	 unsigned int out_width,
  * 									  	 ASImageBevel *bevel );
- * DESCRIPTION
  *
  * INPUTS
+ * asv      - pointer to valid ASVisual structure ( needed mostly
+ * 			to see if we are in BGR mode or not );
+ * im       - ASImage we are going to decode;
+ * filter   - bitmask where set bits mark channels that has to be
+ * 			decoded.
+ * offset_x - left margine inside im, from which we should start
+ * 			reading pixel data, effectively clipping source image.
+ * offset_y - top margine inside im, from which we should start
+ * 			reading scanlines, effectively clipping source image.
+ * 			Note that when edge of the image is reached,
+ * 			subsequent requests for scanlines will wrap around to
+ * 			the top of the image, and not offset_y.
+ * out_width- width of the scanline needed. If it is larger then
+ * 			source image - then image data will be tiled in it.
+ * 			If it is smaller - then image data will be clipped.
+ * bevel    - NULL or pointer to valid ASImageBevel structure if
+ * 			decoded data should be overlayed with bevel at the
+ * 			time of decoding.
+ * RETURN VALUE
+ * start_image_decoding() returns pointer to newly allocated
+ * ASImageDecoder structure on success, NULL on failure.
+ * DESCRIPTION
+ * Normal process of reading image data from ASImage consists of
+ * 3 steps :
+ * 1) start decoding by calling start_image_decoding.
+ * 2) call decode_image_scanline() method of returned structure, for
+ * each scanline upto desired height of the target image. Decoded data
+ * will be returned in buffer member of the ASImageDecoder structure.
+ * 3) finish decoding and deallocated all the used memory by calling
+ * stop_image_decoding()
  *********/
 /****f* libAfterImage/asimage/stop_image_decoding()
  * SYNOPSIS
- * void stop_image_decoding( ASImageDecoder **pimdec );
- * DESCRIPTION
+ * void 			stop_image_decoding( ASImageDecoder **pimdec );
  * INPUTS
- *********/
+ * pimdec   - pointer to pointer to structure, previously created
+ * 			by start_image_decoding.
+ * RETURN VALUE
+ * pimdec	- pointer to ASImageDecoder will be reset to NULL.
+ * SEE ALSO
+ * start_image_decoding()
+ *******/
+
 ASImageDecoder *start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 									  int offset_x, int offset_y,
 									  unsigned int out_width, ASImageBevel *bevel );
@@ -645,12 +685,12 @@ void stop_image_decoding( ASImageDecoder **pimdec );
 
 /****h* libAfterImage/asimage/Output
  * DESCRIPTION
- * start_image_output				- initializes output structure
- * set_image_output_back_color		- changes background color of output
- * toggle_image_output_direction	- reverses vertical direction of
- * 									  output
- * stop_image_output				- finishes output, frees all the
- * 									  allocated memory.
+ * start_image_output               - initializes output structure
+ * set_image_output_back_color      - changes background color of output
+ * toggle_image_output_direction    - reverses vertical direction of
+ *                                    output
+ * stop_image_output                - finishes output, frees all the
+ *                                    allocated memory.
  ************/
 /****f* libAfterImage/asimage/start_image_output()
  * SYNOPSIS
@@ -658,27 +698,63 @@ void stop_image_decoding( ASImageDecoder **pimdec );
  * 										ASImage *im, XImage *xim,
  * 										Bool to_xim,
  * 										int shift, int quality );
- * DESCRIPTION
  * INPUTS
- *********/
+ * asv  	  - pointer to valid ASVisual structure
+ * im   	  - destination ASImage
+ * xim  	  - destination XImage. That is needed only if to_xim = True
+ * to_xim   - indicates that output should be written into supplied XImage
+ * shift    - precision of scanline data. Supported values are 0 - no
+ *            precision, and 8 - 24.8 precision. Value of that argument
+ *            defines by how much scabline data is shifted rightwards.
+ * quality  - what algorithms should be used while writing data out, i.e.
+ *  			full error diffusion, fast error diffusion, no error
+ *  			diffusion.
+ * DESCRIPTION
+ * start_image_output() creates and initializes new ASImageOutput
+ * structure based on supplied parameters. Created structure can be
+ * subsequently used to write scanlines into destination image.
+ * It is effectively hiding differences of XImage and ASImage.
+ * outpt_image_scanline() method of the structure can be used to write
+ * out single scanline. Each written scanlines moves internal pointer to
+ * the next image line, and possibly writes several scanlines at once if
+ * tiling_step member is not 0.
+ **********/
 /****f* libAfterImage/asimage/set_image_output_back_color()
  * SYNOPSIS
  * void set_image_output_back_color (  ASImageOutput *imout,
  * 										ARGB32 back_color );
- * DESCRIPTION
  * INPUTS
+ * imout		- ASImageOutput structure, previously created with
+ *  			  start_image_output();
+ * back_color	- new background color value in ARGB format. This color
+ *  			  will be used to fill empty parts of outgoing scanlines.
  *********/
 /****f* libAfterImage/asimage/toggle_image_output_direction()
  * SYNOPSIS
  * void toggle_image_output_direction( ASImageOutput *imout );
- * DESCRIPTION
  * INPUTS
+ * imout		- ASImageOutput structure, previously created with
+ *  			  start_image_output();
+ * DESCRIPTION
+ * reverses vertical direction output. If previously scanlines has
+ * been written from top to bottom, for example, after this function is
+ * called they will be written in opposite direction. Current line does
+ * not change, unless it points to the very first or the very last
+ * image line. In this last case it will be moved to the opposing end of
+ * the image.
  *********/
 /****f* libAfterImage/asimage/stop_image_output()
  * SYNOPSIS
  * void stop_image_output( ASImageOutput **pimout );
- * DESCRIPTION
  * INPUTS
+ * pimout		- pointer to pointer toASImageOutput structure,
+ *  			  previously created with call to	start_image_output().
+ * RETURN VALUE
+ * pimout		- pointer to ASImageOutput will be reset to NULL.
+ * DESCRIPTION
+ * Completes image output process. Flushes all the internal buffers.
+ * Deallocates all the allocated memory. Resets pointer to NULL to
+ * avoid dereferencing invalid pointers.
  *********/
 ASImageOutput *start_image_output( struct ASVisual *asv, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality );
 void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color );
@@ -701,8 +777,18 @@ void stop_image_output( ASImageOutput **pimout );
  * SYNOPSIS
  * ASImage *ximage2asimage ( struct ASVisual *asv, XImage * xim,
  * 						  	 unsigned int compression );
- * DESCRIPTION
  * INPUTS
+ * asv  		 - pointer to valid ASVisual structure
+ * xim  		 - source XImage
+ * compression - degree of compression of resulting ASImage.
+ * RETURN VALUE
+ * pointer to newly allocated ASImage, containing encoded data, on
+ * success. NULL on failure.
+ * DESCRIPTION
+ * ximage2asimage will attempt to create new ASImage with the same
+ * dimentions as supplied XImage. XImage will be decoded based on
+ * supplied ASVisual, and resulting scanlines will be encoded into
+ * ASImage.
  *********/
 /****f* libAfterImage/asimage/pixmap2asimage()
  * SYNOPSIS
@@ -713,8 +799,23 @@ void stop_image_output( ASImageOutput **pimout );
  * 		  				  	 unsigned long plane_mask,
  * 						  	 Bool keep_cache,
  * 						  	 unsigned int compression );
- * DESCRIPTION
  * INPUTS
+ * asv  		  - pointer to valid ASVisual structure
+ * p    		  - source Pixmap
+ * x, y,
+ * width, height- rectangle on Pixmap to be encoded into ASImage.
+ * plane_mask   - limits color planes to be copied from Pixmap.
+ * keep_cache   - indicates if we should keep XImage, used to copy
+ *  			  image data from the X server, and attached it to ximage
+ *  			  member of resulting ASImage.
+ * compression  - degree of compression of resulting ASImage.
+ * RETURN VALUE
+ * pointer to newly allocated ASImage, containing encoded data, on
+ * success. NULL on failure.
+ * DESCRIPTION
+ * pixmap2asimage will obtain XImage of the requested area of the
+ * X Pixmap, and will encode it into ASImage using ximage2asimage()
+ * function.
  *********/
 ASImage *ximage2asimage (struct ASVisual *asv, XImage * xim, unsigned int compression);
 ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
@@ -724,30 +825,86 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
 /****f* libAfterImage/asimage/asimage2ximage()
  * SYNOPSIS
  * XImage  *asimage2ximage  (struct ASVisual *asv, ASImage *im);
- * DESCRIPTION
  * INPUTS
+ * asv  		- pointer to valid ASVisual structure
+ * im    		- source ASImage
+ * RETURN VALUE
+ * On success returns newly created and encoded XImage of the same
+ * colordepth as the supplied ASVisual. NULL on failure.
+ * DESCRIPTION
+ * asimage2ximage() creates new XImage of the exact same size as
+ * supplied ASImage, and depth of supplied ASVisual. REd, Green and
+ * Blue channels of ASImage then gets decoded, and encoded into XImage.
+ * Missing scanlines get filled with black color.
+ * SEE ALSO
+ * create_visual_ximage()
  *********/
 /****f* libAfterImage/asimage/asimage2mask_ximage()
  * SYNOPSIS
  * XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
- * DESCRIPTION
  * INPUTS
+ * asv   		- pointer to valid ASVisual structure
+ * im    		- source ASImage
+ * RETURN VALUE
+ * On success returns newly created and encoded XImage of the depth 1.
+ * NULL on failure.
+ * DESCRIPTION
+ * asimage2mask_ximage() creates new XImage of the exact same size as
+ * supplied ASImage, and depth 1. Alpha channels of ASImage then gets
+ * decoded, and encoded into XImage. If alpha channel is greater the
+ * 127 it is encoded as 1, otherwise as 0.
+ * Missing scanlines get filled with 1s as they signify absence of mask.
  *********/
 /****f* libAfterImage/asimage/asimage2pixmap()
  * SYNOPSIS
  * Pixmap   asimage2pixmap  ( struct ASVisual *asv, Window root,
- * 							   ASImage *im, GC gc, Bool use_cached);
- * DESCRIPTION
+ *                            ASImage *im, GC gc, Bool use_cached);
  * INPUTS
+ * asv  		- pointer to valid ASVisual structure
+ * root 		- root window of destination screen
+ * im    		- source ASImage
+ * gc   		- precreated GC to use for XImage transfer. If NULL,
+ *  			  asimage2pixmap() will use DefaultGC.
+ * use_cached	- If True will make asimage2pixmap() to use XImage
+ *  			  attached to ASImage, instead of creating new one. Only
+ *  			  works if ASImage->ximage data member is not NULL.
+ * RETURN VALUE
+ * On success returns newly pixmap of the same colordepth as ASVisual.
+ * None on failure.
+ * DESCRIPTION
+ * asimage2pixmap() creates new pixmap of exactly same size as
+ * supplied ASImage. It then checks if it needs to encode XImage
+ * from ASImage data, and calls asimage2ximage() if yes, it has to.
+ * It then uses supplied gc or DefaultGC of the screen to transfer
+ * XImage to the server and put it on Pixmap.
+ * Missing scanlines get filled with black color.
+ * SEE ALSO
+ * asimage2ximage()
+ * create_visual_pixmap()
  *********/
 /****f* libAfterImage/asimage/asimage2mask()
  * SYNOPSIS
- * Pixmap   asimage2mask    ( struct ASVisual *asv, Window root,
- * 							   ASImage *im, GC gc, Bool use_cached);
+ * Pixmap   asimage2mask ( struct ASVisual *asv, Window root,
+ *                         ASImage *im, GC gc, Bool use_cached);
+ * asv  		- pointer to valid ASVisual structure
+ * root 		- root window of destination screen
+ * im    		- source ASImage
+ * gc   		- precreated GC for 1 bit deep drawables to use for
+ *                XImage transfer. If NULL, asimage2mask() will create
+ *                one.
+ * use_cached	- reserved. Should always be False.
+ * RETURN VALUE
+ * On success returns newly created pixmap of the colordepth 1.
+ * None on failure.
  * DESCRIPTION
- * INPUTS
- *********/
-
+ * asimage2mask() creates new pixmap of exactly same size as
+ * supplied ASImage. It then calls asimage2mask_ximage().
+ * It then uses supplied gc, or creates new gc, to transfer
+ * XImage to the server and put it on Pixmap.
+ * Missing scanlines get filled with 1s.
+ * SEE ALSO
+ * asimage2mask_ximage()
+ **********/
 XImage  *asimage2ximage  (struct ASVisual *asv, ASImage *im);
 XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
 Pixmap   asimage2pixmap  (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
@@ -755,26 +912,28 @@ Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc,
 
 /****h* libAfterImage/asimage/Transformations
  * DESCRIPTION
- * scale_asimage() - scale supplied image into new image of requested
- * 					  size.
- * tile_asimage() 	- tile image into new image of requested size,
- * 					  optionally tinting it.
- * merge_layers()	- overlay arbitrary number of images
- * make_gradient()	- render gradient filled image
- * flip_asimage()	- rotate image in 90 degree increments
- * 					  counterclockwise.
+ * scale_asimage()  - scale supplied image into new image of requested
+ *                    size.
+ * tile_asimage()   - tile image into new image of requested size,
+ *                    optionally tinting it.
+ * merge_layers()   - overlay arbitrary number of images
+ * make_gradient()  - render gradient filled image
+ * flip_asimage()   - rotate image in 90 degree increments
+ *                    counterclockwise.
  *****************/
 
 /****f* libAfterImage/asimage/scale_asimage()
  * SYNOPSIS
  * ASImage *scale_asimage( struct ASVisual *asv,
- * 							ASImage *src,
- * 							unsigned int to_width,
- * 							unsigned int to_height,
- * 							Bool to_xim,
- * 							unsigned int compression_out, int quality );
- * DESCRIPTION
+ * 						   ASImage *src,
+ * 						   unsigned int to_width,
+ * 						   unsigned int to_height,
+ * 						   Bool to_xim,
+ * 						   unsigned int compression_out, int quality );
  * INPUTS
+ * RETURN VALUE
+ * returns newly created and encoded ASImage on success, NULL of failure.
+ * DESCRIPTION
  *********/
 /****f* libAfterImage/asimage/tile_asimage()
  * SYNOPSIS
@@ -787,8 +946,10 @@ Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc,
  * 							ARGB32 tint,
  * 							Bool to_xim,
  * 							unsigned int compression_out, int quality );
- * DESCRIPTION
  * INPUTS
+ * RETURN VALUE
+ * returns newly created and encoded ASImage on success, NULL of failure.
+ * DESCRIPTION
  *********/
 /****f* libAfterImage/asimage/merge_layers()
  * SYNOPSIS
@@ -798,8 +959,10 @@ Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc,
  * 							 unsigned int dst_height,
  * 							 Bool to_xim,
  * 							 unsigned int compression_out, int quality);
- * DESCRIPTION
  * INPUTS
+ * RETURN VALUE
+ * returns newly created and encoded ASImage on success, NULL of failure.
+ * DESCRIPTION
  *********/
 /****f* libAfterImage/asimage/make_gradient()
  * SYNOPSIS
@@ -809,8 +972,10 @@ Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc,
  * 							 unsigned int height,
  * 							 ASFlagType filter,	Bool to_xim,
  * 							 unsigned int compression_out, int quality);
- * DESCRIPTION
  * INPUTS
+ * RETURN VALUE
+ * returns newly created and encoded ASImage on success, NULL of failure.
+ * DESCRIPTION
  *********/
 /****f* libAfterImage/asimage/flip_asimage()
  * SYNOPSIS
@@ -821,8 +986,10 @@ Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc,
  * 							unsigned int to_height,
  * 						    int flip, Bool to_xim,
  * 							unsigned int compression_out, int quality );
- * DESCRIPTION
  * INPUTS
+ * RETURN VALUE
+ * returns newly created and encoded ASImage on success, NULL of failure.
+ * DESCRIPTION
  *********/
 ASImage *scale_asimage( struct ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int to_height,
 						Bool to_xim, unsigned int compression_out, int quality );

@@ -2850,7 +2850,7 @@ asimage2ximage (ASVisual *asv, ASImage *im)
 	free_scanline(&xim_buf, True);
 
 	stop_image_output(&imout);
-	
+
 	return xim;
 }
 
@@ -2879,7 +2879,7 @@ asimage2mask_ximage (ASVisual *asv, ASImage *im)
 	free_scanline(&xim_buf, True);
 
 	stop_image_output(&imout);
-	
+
 	return xim;
 }
 
