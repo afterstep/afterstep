@@ -328,6 +328,8 @@
 /* include the compression library's header */
 #ifndef HAVE_ZLIB_H
 #include "../zlib/zlib.h"
+#else
+#include <zlib.h>
 #endif
 
 /* include all user configurable info, including optional assembler routines */
