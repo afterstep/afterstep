@@ -36,7 +36,7 @@ eval "includedir=$includedir"
 dnl# directories
 dnl# AC_ARG_WITH(gnustep_dir,	[  --with-gnustep-dir=DIR  GNUstep directory [[~/GNUstep]] ],with_gnustep_dir=$withval, with_gnustep_dir="~/GNUstep")
 dnl# AC_ARG_WITH(gnustep_lib,	[  --with-gnustep-lib=DIR  GNUstep/Library directory [[Library]] ],with_gnustep_lib=$withval, with_gnustep_lib="Library")
-AC_ARG_WITH(afterdir,		[  --with-afterdir=DIR     user AfterStep dir [[~/.afterstep]] ],with_afterdir=$withval, with_afterdir="~/.afterstep")
+AC_ARG_WITH(afterdir,		[  --with-afterdir=DIR     user AfterStep dir [[$HOME/.afterstep]]],with_afterdir=$withval, with_afterdir="\$HOME/.afterstep")
 
 dnl# helper apps
 AC_ARG_WITH(imageloader,	[  --with-imageloader=APP  used to display images in unsupported format  [[xli -onroot -quiet]] ],with_imageloader=$withval, with_imageloader="xli -onroot -quiet -colors 20")

@@ -718,10 +718,8 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 						fprintf( p, "AS_ByteOrdering=%s;\n", (ImageByteOrder(ASDefaultVisual->dpy)==MSBFirst)?"MSBFirst":"LSBFirst" );
 					}
 			    }
-
-				/*pclose (p);*/
 				fclose(p);
-				filename = make_file_name(ashome, ".postcard");
+				/*pclose (p);*/
 		    /*p = popen ("mail -s \"AfterStep installation info\" sasha@aftercode.net", "w");*/
 		    }
 		}
@@ -787,12 +785,11 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 		{
 			fprintf( f, "#!/bin/sh\n\n" );
 			fprintf( f, "xterm -e \"%s/postcard.sh\"\n", AFTER_BIN_DIR );
-			fprintf( f, "rm %s\n", postcard_fname );
+			fprintf( f, "if [ -r %s/.postcard ] \nthen echo -n \nelse rm %s \nfi\n", ashome, postcard_fname );
+			fclose( f );
 		}
-		fclose( f );
 		chmod (postcard_fname, 0700);
 		free(postcard_fname);
-
     }
 
 }

@@ -208,10 +208,13 @@ put_file_home (const char *path_with_home)
 	if (path_with_home == NULL)
 		return NULL;
 	/* home dir ? */
-	if (path_with_home[0] != '~' || path_with_home[1] != '/')
+	if ( strncmp(  path_with_home, "$HOME/", 6 ) == 0 )
+		path_with_home += 5 ;
+	else if (path_with_home[0] == '~' && path_with_home[1] == '/')
+		path_with_home += 1 ;
+	else
 	{
-		char *t = mystrdup (path_with_home);
-		return t;
+		return mystrdup (path_with_home);
 	}
 
 	if (home == NULL)
@@ -221,9 +224,9 @@ put_file_home (const char *path_with_home)
 		home_len = strlen (home);
 	}
 
-	for (i = 2; path_with_home[i]; i++);
-	str = safemalloc (home_len + i);
-	for (ptr = str + home_len-1; i > 0; i--)
+	for (i = 0; path_with_home[i]; i++);
+	str = safemalloc (home_len + i +1);
+	for (ptr = str + home_len; i > 0; i--)
 		ptr[i] = path_with_home[i];
 	for (i = 0; i < home_len; i++)
 		str[i] = home[i];
