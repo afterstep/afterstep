@@ -144,9 +144,9 @@ WaitEventLoop( ASEvent *event, int finish_event_type, long timeout )
         if( event->x.type == finish_event_type )
 		{
 			done = True ;
-			if( event->x.xbutton.window == Scr.Root ) 
+			if( event->x.xbutton.window == Scr.Root )
 				event->x.xbutton.window = event->x.xbutton.subwindow ;
-			/* otherwise event will be reported as if it occured relative to 
+			/* otherwise event will be reported as if it occured relative to
 			   root window */
 		}
         DigestEvent( event );
@@ -187,7 +187,6 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
         if( is_tick() )
 			break;
 
-        LOCAL_DEBUG_OUT( "total=%d/click_time = %d", total, click_time );
         if (ASCheckMaskEvent ( ButtonMotionMask | PointerMotionMask, xevt))
 		{
 			dx = x_orig - xevt->xmotion.x_root;
