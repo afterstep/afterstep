@@ -159,7 +159,7 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 			XDeleteContext (dpy, Tmp_win->corners[i], ASContext);
 	}
 #ifndef NO_TEXTURE
-	if (Tmp_win->flags & FRAME)
+	if (ASWIN_HFLAGS(Tmp_win, AS_Frame))
 	{
 		frame_free_data (Tmp_win, False);
 	}
@@ -178,7 +178,7 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 		XFreePixmap (dpy, Tmp_win->backPixmap3);
 #endif
 
-	if (!(Tmp_win->flags & WINDOWLISTSKIP))
+	if (!ASWIN_HFLAGS(Tmp_win, AS_SkipWinList))
 		update_windowList ();
 		
 	if( Tmp_win->hints )

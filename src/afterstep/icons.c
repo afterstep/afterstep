@@ -97,7 +97,7 @@ UpdateIconShape (ASWindow * tmp_win)
 
 	/* add titlebar, if necessary */
 	if (!(Textures.flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
-		!(tmp_win->flags & NOICON_TITLE))
+		 ASWIN_HFLAGS(tmp_win, AS_IconTitle))
 	{
 		rect.x = tmp_win->icon_t_x;
 		rect.y = tmp_win->icon_t_y;
@@ -152,7 +152,7 @@ ResizeIconWindow (ASWindow * tmp_win)
 	t_height = MAX (t_height, height);
 
 	/* take care of icon title */
-	if ((Scr.flags & IconTitle) && !(tmp_win->flags & NOICON_TITLE))
+	if ((Scr.flags & IconTitle) && ASWIN_HFLAGS(tmp_win, AS_IconTitle))
 	{
 		if (Textures.flags & SeparateButtonTitle)
 		{
@@ -181,7 +181,7 @@ ResizeIconWindow (ASWindow * tmp_win)
 		tmp_win->icon_pm_y += 2;
 
 		/* title goes inside the border */
-		if ((Scr.flags & IconTitle) && !(tmp_win->flags & NOICON_TITLE) &&
+		if ((Scr.flags & IconTitle) && ASWIN_HFLAGS(tmp_win, AS_IconTitle) &&
 			!(Textures.flags & SeparateButtonTitle))
 		{
 			tmp_win->icon_t_x = 2;
@@ -193,7 +193,7 @@ ResizeIconWindow (ASWindow * tmp_win)
 	if (Scr.ButtonWidth > 0)
 	{
 		/* title goes inside the border */
-		if ((Scr.flags & IconTitle) && !(tmp_win->flags & NOICON_TITLE) &&
+		if ((Scr.flags & IconTitle) && ASWIN_HFLAGS(tmp_win, AS_IconTitle) &&
 			!(Textures.flags & SeparateButtonTitle))
 			tmp_win->icon_t_width -= tmp_win->icon_p_width - Scr.ButtonWidth;
 		tmp_win->icon_pm_x -= (tmp_win->icon_p_width - Scr.ButtonWidth) / 2;
@@ -239,7 +239,7 @@ CreateIconWindow (ASWindow * tmp_win)
 							 ExposureMask | KeyPressMask | EnterWindowMask | FocusChangeMask);
 
 	if ((Textures.flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
-		!(tmp_win->flags & NOICON_TITLE))
+		ASWIN_HFLAGS(tmp_win, AS_IconTitle))
 	{
 		if (tmp_win->icon_title_w)
 			XDestroyWindow (dpy, tmp_win->icon_title_w);
@@ -362,7 +362,7 @@ DrawIconWindow (ASWindow * win)
 
 		/* draw the title text, if necessary */
 		if (!(Textures.flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
-			!(win->flags & NOICON_TITLE))
+			  ASWIN_HFLAGS(win, AS_IconTitle))
 		{
 			int           x, y, w, h;
 

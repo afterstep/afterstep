@@ -638,7 +638,7 @@ draw_wmaker_outline (int x, int y, int width, int height, ASWindow * win)
 		XDrawLine (dpy, Scr.Root, Scr.DrawGC, x + 1, y + height - 6, x + width - 1, y + height - 6);
 
 	/* window borders */
-	if (win->flags & FRAME)
+	if (ASWIN_HFLAGS(win, AS_Frame))
 	{
 		if (ASWIN_HFLAGS(win,AS_VerticalTitle))
 			draw_box_outline (x + Scr.fs[FR_W].w + win->title_width,

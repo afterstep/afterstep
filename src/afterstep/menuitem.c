@@ -1379,28 +1379,28 @@ RunCommand (char *cmd, int channel, Window w)
 
 			 if (XFindContext (dpy, w, ASContext, (caddr_t *) & tmp_win) == XCNOENT)
 				 break;
-			 xorflag = tmp_win->flags ^ fdata.func_val[0];
+			 xorflag = tmp_win->hints->flags ^ fdata.func_val[0];
 			 /*if (xorflag & STICKY)
 			    Stick (tmp_win); */
-			 if (xorflag & WINDOWLISTSKIP)
+			 if (xorflag & AS_SkipWinList)
 			 {
-				 tmp_win->flags ^= WINDOWLISTSKIP;
+				 tmp_win->hints->flags ^= AS_SkipWinList;
 				 update_windowList ();
 				 update = True;
 			 }
-			 if (xorflag & AVOID_COVER)
+			 if (xorflag & AS_AvoidCover)
 			 {
-				 tmp_win->flags ^= AVOID_COVER;
+				 tmp_win->hints->flags ^= AS_AvoidCover;
 				 update = True;
 			 }
-			 if (xorflag & TRANSIENT)
+			 if (xorflag & AS_Transient)
 			 {
-				 tmp_win->flags ^= TRANSIENT;
+				 tmp_win->hints->flags ^= AS_Transient;
 				 update = True;
 			 }
-			 if (xorflag & CIRCULATESKIP)
+			 if (xorflag & AS_DontCirculate)
 			 {
-				 tmp_win->flags ^= CIRCULATESKIP;
+				 tmp_win->hints->flags ^= AS_DontCirculate;
 				 update = True;
 			 }
 			 if (update)

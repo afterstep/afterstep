@@ -181,6 +181,7 @@ typedef struct ASWindow
 #define ASWIN_DESK(t)       ((t)->status->desktop)
 #define ASWIN_LAYER(t)      ((t)->status->layer)
 #define ASWIN_HFLAGS(t,f) 	get_flags((t)->hints->flags,(f))
+#define ASWIN_PROTOS(t,f) 	get_flags((t)->hints->protocols,(f))
 #define ASWIN_GET_FLAGS(t,f) 	get_flags((t)->status->flags,(f))
 #define ASWIN_SET_FLAGS(t,f)    set_flags((t)->status->flags,(f))
 #define ASWIN_CLEAR_FLAGS(t,f) 	clear_flags((t)->status->flags,(f))
@@ -319,7 +320,6 @@ extern TextureInfo Textures;
 #define STICKY			(1<< 0)		/* Does window stick to glass? */
 #define MAPPED			(1<< 3)		/* is it mapped? */
 #define ICONIFIED		(1<< 4)		/* is it an icon now? */
-#define TRANSIENT		(1<< 5)		/* is it a transient window? */
 #define RAISED			(1<< 6)		/* if its a sticky window, does it need to be raised */
 #define VISIBLE			(1<< 7)		/* is the window fully visible */
 #define ICON_OURS		(1<< 8)		/* is the icon window supplied by the app? */
@@ -327,36 +327,18 @@ extern TextureInfo Textures;
 #define PIXMAP_OURS		(1<<10)		/* is the icon pixmap ours to free? */
 #define SHAPED_ICON		(1<<11)		/* is the icon shaped? */
 #define MAXIMIZED		(1<<12)		/* is the window maximized? */
-#define DoesWmTakeFocus		(1<<13)
-#define DoesWmDeleteWindow	(1<<14)
 /* has the icon been moved by the user? */
 #define ICON_MOVED      	(1<<15)
 /* was the icon unmapped, even though the window is still iconified
  * (Transients) */
 #define ICON_UNMAPPED   	(1<<16)
-#define WINDOWLISTSKIP		(1<<17)
 #define SUPPRESSICON		(1<<18)
-#define CIRCULATESKIP		(1<<19)
 #define STARTICONIC		(1<<20)
 /* Sent an XMapWindow, but didn't receive a MapNotify yet. */
 #define MAP_PENDING		(1<<21)
 #define SHADED			(1<<22)
-#define NOICON_TITLE		(1<<23)
-#define AVOID_COVER		(1<<24)		/* if other windows avoid covering this one */
 #define PASS_1			(1<<26)		/* if window was handled in the first pass of a multi-pass operation */
-#define NOFOCUS			(1<<27)		/* set on windows that don't want any focus */
-#define FRAME			(1<<28)		/* for windows that want to have a frame around the parent window */
-/* flags to suppress/enable title bar buttons */
-#define BUTTON1     1
-#define BUTTON2     2
-#define BUTTON3     4
-#define BUTTON4     8
-#define BUTTON5    16
-#define BUTTON6    32
-#define BUTTON7    64
-#define BUTTON8   128
-#define BUTTON9   256
-#define BUTTON10  512
+
 
 /* possible flags to identify which tasks needs to be done on
    frame decorations/handles */

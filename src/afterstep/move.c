@@ -121,7 +121,7 @@ resist_move (ASWindow * win, int cx, int cy, int *fx, int *fy)
 
 	/* resist moving windows over AvoidCover windows, but don't snap offscreen */
 	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-		if (t != win && (t->flags & AVOID_COVER))
+		if (t != win && ASWIN_HFLAGS(t, AS_AvoidCover))
 		{
 			/* check for overlap */
 			int           width, height, ml, mr, mt, mb;

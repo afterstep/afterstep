@@ -251,7 +251,7 @@ frame_create_windows (ASWindow * tmp_win)
 	XSetWindowAttributes attributes;
 	int           i;
 
-	if (!(tmp_win->flags & FRAME))
+	if (!ASWIN_HFLAGS(tmp_win, AS_Frame))
 		return False;
 
 	valuemask = CWBackPixmap | CWBorderPixel | CWCursor | CWEventMask;

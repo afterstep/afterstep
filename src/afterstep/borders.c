@@ -918,7 +918,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 		}
 	}
 #ifndef NO_TEXTURE
-	if (tmp_win->flags & FRAME)
+	if (ASWIN_HFLAGS(tmp_win, AS_Frame) )
 	{
 		int           i;
 
@@ -1008,7 +1008,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 	tmp_win->bp_width = tmp_win->title_width;
 
 	/* redo the frame */
-	if ((tmp_win->flags & FRAME) && Resized)
+	if (ASWIN_HFLAGS(tmp_win, AS_Frame) && Resized)
 		frame_draw_frame (tmp_win);
 
 #endif /* ! NO_TEXTURE */
@@ -1257,7 +1257,7 @@ set_titlebar_geometry (ASWindow * t)
 			t->title_width = width;
 
 			t->corner_width = width;
-			if (t->flags & FRAME)
+			if (ASWIN_HFLAGS(t, AS_Frame))
 				t->title_height += Scr.fs[FR_N].h + Scr.fs[FR_S].h;
 		} else
 		{
@@ -1279,7 +1279,7 @@ set_titlebar_geometry (ASWindow * t)
 
 			t->title_height = height;
 			t->title_width = t->attr.width;
-			if (t->flags & FRAME)
+			if (ASWIN_HFLAGS(t, AS_Frame))
 				t->title_width += Scr.fs[FR_E].w + Scr.fs[FR_W].w;
 			t->corner_width = height;
 		}
@@ -1299,7 +1299,7 @@ get_parent_geometry (ASWindow * t, int frame_width, int frame_height, int *paren
 	parent_height = frame_height - 2 * t->boundary_width;
 
 	/* do the frame */
-	if (t->flags & FRAME)
+	if (ASWIN_HFLAGS(t, AS_Frame))
 	{
 		parent_x += Scr.fs[FR_W].w;
 		parent_y += Scr.fs[FR_N].h;
@@ -1354,7 +1354,7 @@ get_client_geometry (ASWindow * t, int frame_x, int frame_y, int frame_width, in
 	client_height = frame_height - 2 * t->boundary_width;
 
 	/* do the frame */
-	if (t->flags & FRAME)
+	if (ASWIN_HFLAGS(t, AS_Frame))
 	{
 		if (grav_x == 0)
 			client_x += Scr.fs[FR_W].w;
@@ -1431,7 +1431,7 @@ get_frame_geometry (ASWindow * t, int client_x, int client_y, int client_width, 
 	frame_height = client_height + 2 * t->boundary_width;
 
 	/* do the frame */
-	if (t->flags & FRAME)
+	if (ASWIN_HFLAGS(t, AS_Frame))
 	{
 		if (grav_x == 0)
 			frame_x -= Scr.fs[FR_W].w;
@@ -1512,7 +1512,7 @@ get_resize_geometry (ASWindow * t, int client_x, int client_y, int client_width,
 	frame_height = client_height + 2 * t->boundary_width;
 
 	/* do the frame */
-	if (t->flags & FRAME)
+	if (ASWIN_HFLAGS(t, AS_Frame))
 	{
 		frame_x -= Scr.fs[FR_W].w;
 		frame_y -= Scr.fs[FR_N].h;

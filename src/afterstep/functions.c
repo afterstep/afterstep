@@ -363,7 +363,7 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 	 case F_CLOSE:
 		 if (check_allowed_function2 (func, tmp_win) == 0)
 			 XBell (dpy, Scr.screen);
-		 else if ((tmp_win->flags & DoesWmDeleteWindow) && func != F_DESTROY)
+		 else if (ASWIN_PROTOS(tmp_win, AS_DoesWmDeleteWindow) && func != F_DESTROY)
 			 send_clientmessage (tmp_win->w, _XA_WM_DELETE_WINDOW, CurrentTime);
 		 else
 		 {
@@ -732,19 +732,10 @@ GetNextWindow (const ASWindow * current_win, const int func)
 	found = 0;
 	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 	{
-		if (AutoTabThroughDesks)
-		{
-			if (((Scr.flags & CirculateSkipIcons) && (t->flags & ICONIFIED)) ||
-				(t->flags & CIRCULATESKIP) || (t->flags & WINDOWLISTSKIP))
-				continue;
-		} else
-			/* AutoTabThroughDesks == 0 */
-		{
-			if (((Scr.flags & CirculateSkipIcons) && (t->flags & ICONIFIED)) ||
-				(ASWIN_DESK(t) != Scr.CurrentDesk) ||
-				(t->flags & CIRCULATESKIP) || (t->flags & WINDOWLISTSKIP))
-				continue;
-		}
+		if (((Scr.flags & CirculateSkipIcons) && (t->flags & ICONIFIED)) ||
+			(ASWIN_DESK(t) != Scr.CurrentDesk && !AutoTabThroughDesks) ||
+			ASWIN_HFLAGS(t, AS_DontCirculate|AS_SkipWinList))
+			continue;
 		if (((func == F_WARP_F) &&
 			 (((current_win != NULL) && (t->warp_index > look_for_warp) &&
 			   (t->warp_index <= selected_warp)) || ((current_win == NULL) &&
@@ -1261,7 +1252,7 @@ Maximize (ASWindow * tmp_win, int val1, int val2, int val1_unit, int val2_unit)
 
 		/* try not to maximize over AvoidCover windows */
 		for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-			if (t != tmp_win && (t->flags & AVOID_COVER))
+			if (t != tmp_win && ASWIN_HFLAGS(t, AS_AvoidCover))
 			{
 				int           fx = t->frame_x;
 				int           fy = t->frame_y;
@@ -1925,7 +1916,7 @@ changeWindowsDesk (ASWindow * t, int new_desk)
 	/* Better re-draw the pager now */
 	BroadcastConfig (M_CONFIGURE_WINDOW, t);
 	CorrectStackOrder ();
-	if (!(t->flags & WINDOWLISTSKIP))
+	if (!ASWIN_HFLAGS(t, AS_SkipWinList))
 		update_windowList ();
 
 	/* update the _WIN_DESK property */

@@ -379,7 +379,6 @@ SelectDecor (ASWindow * t)
 	}
 #endif
 	/* Assume no decorations, and build up */
-	t->flags &= ~(FRAME);
 	t->boundary_width = 0;
 	t->boundary_height = 0;
 	t->corner_width = 0;
@@ -387,14 +386,15 @@ SelectDecor (ASWindow * t)
 	t->title_height = 0;
 	t->button_height = 0;
 
-	if (!get_flags(hints->function_mask,AS_FuncResize))
+#ifndef NO_TEXTURE
+	if (!get_flags(hints->function_mask,AS_FuncResize) || !DecorateFrames)
+#endif /* !NO_TEXTURE */
 	{
 		/* a wide border, with corner tiles */
-#ifndef NO_TEXTURE
-		if (DecorateFrames && get_flags(tflags,AS_Frame))
-			t->flags |= FRAME;
-#endif /* !NO_TEXTURE */
+		if (get_flags(tflags,AS_Frame))
+			clear_flags( t->hints->flags, AS_Frame );
 	}
+
 	if (!get_flags(hints->function_mask,AS_FuncPopup))
 		disable_titlebuttons_with_function (t, F_POPUP);
 	if (!get_flags(hints->function_mask,AS_FuncMinimize))
@@ -660,20 +660,8 @@ AddWindow (Window w)
 	tmp_win->focus_sequence = 1;
 	SetCirculateSequence (tmp_win, -1);
 	
-	if (get_flags(tmp_win->hints->protocols,AS_DoesWmTakeFocus) )
-		tmp_win->flags |= DoesWmTakeFocus;
-	
-	if (get_flags(tmp_win->hints->protocols,AS_DoesWmTakeFocus) )
-		tmp_win->flags |= DoesWmDeleteWindow;
-
 	if (!XGetWindowAttributes (dpy, tmp_win->w, &tmp_win->attr))
 		tmp_win->attr.colormap = Scr.ASRoot.attr.colormap;
-
-	if( get_flags(tmp_win->hints->flags,AS_Transient ) )
-	{
-		set_flags(tmp_win->flags, TRANSIENT);
-	}else
-		clear_flags(tmp_win->flags, ~TRANSIENT);
 
 	tmp_win->old_bw = tmp_win->attr.border_width;
 
@@ -695,12 +683,6 @@ AddWindow (Window w)
 
 	SelectDecor (tmp_win);
 
-	if( get_flags(tmp_win->hints->flags,AS_AvoidCover))
-		tmp_win->flags |= AVOID_COVER;
-	if (get_flags(tmp_win->hints->flags,AS_SkipWinList))
-		tmp_win->flags |= WINDOWLISTSKIP;
-	if (get_flags(tmp_win->hints->flags,AS_DontCirculate))
-		tmp_win->flags |= CIRCULATESKIP;
 	if (!get_flags(tmp_win->hints->flags,AS_Icon) || get_flags(Scr.flags, SuppressIcons))
 		tmp_win->flags |= SUPPRESSICON;
 	else
@@ -718,9 +700,6 @@ AddWindow (Window w)
 	}
 	tmp_win->icon_pm_pixmap = None;
 	tmp_win->icon_pm_mask = None;
-
-	if (!get_flags(tmp_win->hints->flags, AS_IconTitle))
-		tmp_win->flags |= NOICON_TITLE;
 
 	if( !init_aswindow_status( tmp_win, &status ) )
 	{
@@ -954,7 +933,7 @@ AddWindow (Window w)
 		resize_window (tmp_win->w, tmp_win, 0, 0, 0, 0);
 	}
 	InstallWindowColormaps (colormap_win);
-	if (!(tmp_win->flags & WINDOWLISTSKIP))
+	if (!ASWIN_HFLAGS(tmp_win, AS_SkipWinList))
 		update_windowList ();
 
 	return (tmp_win);

@@ -48,7 +48,7 @@ get_window_geometry (ASWindow * t, int flags, int *x, int *y, int *w, int *h)
 		{
 			tw = t->icon_p_width;
 			th = t->icon_p_height;
-			if ((Scr.flags & IconTitle) && !(t->flags & NOICON_TITLE) &&
+			if ((Scr.flags & IconTitle) && ASWIN_HFLAGS(t, AS_IconTitle) &&
 				(Textures.flags & SeparateButtonTitle))
 				th += t->icon_t_height;
 			tx = t->icon_p_x;
@@ -148,7 +148,7 @@ SmartPlacement (ASWindow * t, int *x, int *y, int width, int height, int rx, int
 				/* ignore a window on a lower layer, unless it's an AvoidCover 
 				 * window or instructed to pay attention to it (ie, pass == 0) */
 				if (!(twin->flags & ICONIFIED) && ASWIN_LAYER(twin) < ASWIN_LAYER(t) &&
-					!(twin->flags & AVOID_COVER) && pass)
+					!ASWIN_HFLAGS(twin, AS_AvoidCover) && pass)
 					continue;
 
 				get_window_geometry (twin, twin->flags, &tx, &ty, &tw, &th);
@@ -276,14 +276,14 @@ InvestigateWindowDesk (ASWindow * tmp_win)
 	}
 
 	/* Try to find the parent's desktop */
-	if ((tmp_win->flags & TRANSIENT) && (tmp_win->transientfor != None) &&
-		(tmp_win->transientfor != Scr.Root))
+ 	if (ASWIN_HFLAGS(tmp_win, AS_Transient) && (tmp_win->hints->transient_for != None) &&
+		(tmp_win->hints->transient_for != Scr.Root))
 	{
 		ASWindow     *t;
 
 		for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 		{
-			if (t->w == tmp_win->transientfor)
+			if (t->w == tmp_win->hints->transient_for)
 				return t->Desk;
 		}
 	}
@@ -355,7 +355,7 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 	 *   If RandomPlacement was specified,
 	 *       then place the window in a psuedo-random location
 	 */
-	if (!(tmp_win->flags & TRANSIENT) &&
+	if (!ASWIN_HFLAGS(tmp_win, AS_Transient) &&
 		!(tmp_win->normal_hints.flags & USPosition) &&
 		((Scr.flags & NoPPosition) || !(tmp_win->normal_hints.flags & PPosition)) &&
 		!(PPosOverride) &&

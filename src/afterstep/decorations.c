@@ -90,7 +90,7 @@ SetGnomeState (ASWindow * t)
 		if (t->orig_y != t->frame_y || t->orig_ht != t->frame_height)
 			state |= WIN_STATE_MAXIMIZED_VERT;
 	}
-/*if (t->flags & WINDOWLISTSKIP) state |= WIN_STATE_HIDDEN; */
+/*if (ASWIN_HFLAGS(t, AS_SkipWinList) state |= WIN_STATE_HIDDEN; */
 	if (t->flags & SHADED)
 		state |= WIN_STATE_SHADED;
 
