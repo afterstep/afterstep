@@ -36,20 +36,20 @@
 #include "../include/asimage.h"
 
 
+void encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store );
+void encode_image_scanline_asim( ASImageOutput *imout, ASScanline *to_store );
+
+void output_image_line_top( ASImageOutput *, ASScanline *, int );
 void output_image_line_fine( ASImageOutput *, ASScanline *, int );
 void output_image_line_fast( ASImageOutput *, ASScanline *, int );
+void output_image_line_direct( ASImageOutput *, ASScanline *, int );
 
 
 /**********************************************************************
  * quality control: we support several levels of quality to allow for
  * smooth work on older computers.
  **********************************************************************/
-#define ASIMAGE_QUALITY_POOR	0
-#define ASIMAGE_QUALITY_FAST	1
-#define ASIMAGE_QUALITY_GOOD	2
-#define ASIMAGE_QUALITY_TOP		3
 static int asimage_quality_level = ASIMAGE_QUALITY_GOOD;
-static void (*output_image_line)( ASImageOutput *, ASScanline *, int ) = output_image_line_fine;
 #ifdef HAVE_MMX
 static Bool asimage_use_mmx = True;
 #else
@@ -258,7 +258,7 @@ stop_image_decoding( ASImageDecoder **pimdec )
 
 /********************* ASImageOutput ****************************/
 static ASImageOutput *
-start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int shift )
+start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality )
 {
 	register ASImageOutput *imout= NULL;
 
@@ -272,6 +272,9 @@ start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int 
 	imout->scr = scr?scr:&Scr;
 	imout->im = im ;
 	imout->to_xim = to_xim ;
+	imout->encode_image_scanline = (to_xim)?encode_image_scanline_xim:
+										   encode_image_scanline_asim;
+
 	imout->xim = xim ;
 	if( xim )
 	{
@@ -286,9 +289,28 @@ start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int 
 	imout->used 	 = NULL;
 	imout->buffer_shift = shift;
 	imout->next_line = 0 ;
-	if( output_image_line == NULL )
-		output_image_line = (asimage_quality_level >= ASIMAGE_QUALITY_GOOD )?
-							output_image_line_fine:output_image_line_fast;
+	if( quality > ASIMAGE_QUALITY_TOP || quality < ASIMAGE_QUALITY_POOR )
+		quality = asimage_quality_level;
+
+	imout->quality = quality ;
+	if( shift > 0 )
+	{/* choose what kind of error diffusion we'll use : */
+		switch( quality )
+		{
+			case ASIMAGE_QUALITY_POOR :
+			case ASIMAGE_QUALITY_FAST :
+				imout->output_image_scanline = output_image_line_fast ;
+				break;
+			case ASIMAGE_QUALITY_GOOD :
+				imout->output_image_scanline = output_image_line_fine ;
+				break;
+			case ASIMAGE_QUALITY_TOP  :
+				imout->output_image_scanline = output_image_line_top ;
+				break;
+		}
+	}else /* no quanitzation - no error diffusion */
+		imout->output_image_scanline = output_image_line_direct ;
+
 	return imout;
 }
 
@@ -301,7 +323,7 @@ stop_image_output( ASImageOutput **pimout )
 		if( imout )
 		{
 			if( imout->used )
-				output_image_line( imout, NULL, 1);
+				imout->output_image_scanline( imout, NULL, 1);
 			free_scanline(&(imout->buffer[0]), True);
 			free_scanline(&(imout->buffer[1]), True);
 			free( imout );
@@ -996,7 +1018,7 @@ shrink_component11( register CARD32 *src, register CARD32 *dst, int *scales, int
 
 /* for consistency sake : */
 static inline void
-copy_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+copy_component( register CARD32 *src, register CARD32 *dst, int *unused, int len )
 {
 #if 1
 #ifdef CARD64
@@ -1126,22 +1148,27 @@ rbitshift_component( register CARD32 *src, register CARD32 *dst, int shift, int 
 
 /* diffusingly combine src onto self and dst, and rightbitshift src by quantization shift */
 static inline void
-fine_output_filter( register CARD32 *line1, register CARD32 *line2, int unused, int len )
+best_output_filter( register CARD32 *line1, register CARD32 *line2, int unused, int len )
 {/* we carry half of the quantization error onto the surrounding pixels : */
  /*        X    7/16 */
  /* 3/16  5/16  1/16 */
 	register int i ;
 	register CARD32 errp = 0, err = 0, c;
-	c = ((line1[0]&0xFF000000)!=0)?0:line1[0] ;
+	c = line1[0];
+	if( (c&0xFFFF0000)!= 0 )
+		c = ( c&0x7F000000 )?0:0x0000FFFF;
 	errp = c&QUANT_ERR_MASK;
 	line1[0] = c>>QUANT_ERR_BITS ;
 	line2[0] += (errp*5)>>4 ;
 
 	for( i = 1 ; i < len ; ++i )
 	{
-		c = (((line1[i]&0xFF000000)!=0)?0:line1[i])+((errp*7)>>4) ;
+		c = line1[i];
+		if( (c&0xFFFF0000)!= 0 )
+			c = ( c&0x7F000000 )?0:0x0000FFFF;
+		c += ((errp*7)>>4) ;
 		err = c&QUANT_ERR_MASK;
-		line1[i] = c>>QUANT_ERR_BITS ;
+		line1[i] = (c&0x00FF0000)?0x000000FF:(c>>QUANT_ERR_BITS) ;
 		line2[i-1] += (err*3)>>4 ;
 		line2[i] += ((err*5)>>4)+(errp>>4);
 		errp = err ;
@@ -1149,7 +1176,7 @@ fine_output_filter( register CARD32 *line1, register CARD32 *line2, int unused, 
 }
 
 static inline void
-fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int len )
+fine_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int len )
 {/* we carry half of the quantization error onto the following pixel and store it in dst: */
 	register int i = 0;
 	if( ratio <= 1 )
@@ -1190,6 +1217,43 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int
 				break;
 			c = ((c&QUANT_ERR_MASK)>>1)+src[i];
 		}while(1);
+	}
+}
+
+static inline void
+fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int len )
+{/*  no error diffusion whatsoever: */
+	register int i = 0;
+	if( ratio <= 1 )
+	{
+		for( ; i < len ; ++i )
+		{
+			register CARD32 c = src[i];
+			if( (c&0xFFFF0000) != 0 )
+				dst[i] = ( c&0x7F000000 )?0:0x000000FF;
+			else
+				dst[i] = c>>(QUANT_ERR_BITS) ;
+		}
+	}else if( ratio == 2 )
+	{
+		for( ; i < len ; ++i )
+		{
+			register CARD32 c = src[i]>>1;
+			if( (c&0xFFFF0000) != 0 )
+				dst[i] = ( c&0x7F000000 )?0:0x000000FF;
+			else
+				dst[i] = c>>(QUANT_ERR_BITS) ;
+		}
+	}else
+	{
+		for( ; i < len ; ++i )
+		{
+			register CARD32 c = src[i]/ratio;
+			if( (c&0xFFFF0000) != 0 )
+				dst[i] = ( c&0x7F000000 )?0:0x000000FF;
+			else
+				dst[i] = c>>(QUANT_ERR_BITS) ;
+		}
 	}
 }
 
@@ -1257,15 +1321,18 @@ rbitshift_component_mod( register CARD32 *data, int bits, int len )
 }
 
 static inline void
-fast_output_filter_mod( register CARD32 *data, int unused, int len )
+fine_output_filter_mod( register CARD32 *data, int unused, int len )
 {/* we carry half of the quantization error onto the following pixel : */
 	register int i ;
 	register CARD32 err = 0, c;
 	for( i = 0 ; i < len ; ++i )
 	{
-		c = (((data[i]&0xFF000000)!=0)?0:data[i])+err;
+		c = data[i];
+		if( (c&0xFFFF0000) != 0 )
+			c = ( c&0x7E000000 )?0:0x000000FF;
+		c += err;
 		err = (c&QUANT_ERR_MASK)>>1 ;
-		data[i] = c>>QUANT_ERR_BITS ;
+		data[i] = (c&0x00FF0000)?0x000000FF:c>>QUANT_ERR_BITS ;
 	}
 }
 
@@ -1300,19 +1367,6 @@ tint_component_mod( register CARD32 *data, CARD16 ratio, int len )
 /* the following 5 macros will in fact unfold into huge but fast piece of code : */
 /* we make poor compiler work overtime unfolding all this macroses but I bet it  */
 /* is still better then C++ templates :)									     */
-
-#define DECODE_SCANLINE(im,dst,y) \
-do{												\
-	clear_flags( (dst).flags,SCL_DO_ALL);			\
-	if( set_component((dst).red  ,0,asimage_decode_line((im),IC_RED  ,(dst).red,  (y), 0, (dst).width),(dst).width)<(dst).width) \
-		set_flags( (dst).flags,SCL_DO_RED);												 \
-	if( set_component((dst).green,0,asimage_decode_line((im),IC_GREEN,(dst).green,(y), 0, (dst).width),(dst).width)<(dst).width) \
-		set_flags( (dst).flags,SCL_DO_GREEN);												 \
-	if( set_component((dst).blue ,0,asimage_decode_line((im),IC_BLUE ,(dst).blue, (y), 0, (dst).width),(dst).width)<(dst).width) \
-		set_flags( (dst).flags,SCL_DO_BLUE);												 \
-	if( set_component((dst).alpha,0,asimage_decode_line((im),IC_ALPHA,(dst).alpha,(y), 0, (dst).width),(dst).width)<(dst).width) \
-		set_flags( (dst).flags,SCL_DO_ALPHA);												 \
-  }while(0)
 
 #define ENCODE_SCANLINE(im,src,y) \
 do{	asimage_add_line((im), IC_RED,   (src).red,   (y)); \
@@ -1361,6 +1415,88 @@ do{	f((c1).red,(c2).red,(c3).red,(c4).red,(o1).red,(o2).red,(p),(len+(len&0x01))
 	if(get_flags((c1).flags,SCL_DO_ALPHA)) f((c1).alpha,(c2).alpha,(c3).alpha,(c4).alpha,(o1).alpha,(o2).alpha,(p),(len));	\
   }while(0)
 
+static inline void
+copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint )
+{
+	register int i ;
+	CARD32 chan_tint[4] ;
+	int color ;
+	int copy_width = src->width, dst_offset = 0, src_offset = 0;
+
+	if( offset+src->width < 0 || offset > dst->width )
+		return;
+	chan_tint[IC_RED] = ARGB32_RED8(tint)<<1;
+	chan_tint[IC_GREEN] = ARGB32_GREEN8(tint)<<1;
+	chan_tint[IC_BLUE] = ARGB32_BLUE8(tint)<<1;
+	chan_tint[IC_ALPHA] = ARGB32_ALPHA8(tint)<<1;
+
+	if( offset < 0 )
+		src_offset = -offset ;
+	else
+		dst_offset = offset ;
+	copy_width = MIN( src->width-src_offset, dst->width-dst_offset );
+
+	for( color = 0 ; color < IC_NUM_CHANNELS ; ++color )
+		if( get_flags(src->flags, 0x01<<color) )
+		{
+			register CARD32 *psrc = src->channels[color]+src_offset;
+			register CARD32 *pdst = dst->channels[color];
+			CARD32 filler = (color == IC_ALPHA)?0x00FF00:0x0000;
+			int ratio = chan_tint[color];
+/*	fprintf( stderr, "channel %d, tint is %d(%X), src_offset = %d, dst_offset = %d psrc = %p, pdst = %p\n", color, ratio, ratio, src_offset, dst_offset, psrc, pdst );*/
+			for( i = 0 ; i < dst_offset ; ++i )
+				pdst[i] = filler;
+			pdst += dst_offset ;
+
+			if( ratio == 255 )
+				for( i = 0 ; i < copy_width ; ++i )
+					pdst[i] = psrc[i]<<8;
+			else if( ratio == 128 )
+				for( i = 0 ; i < copy_width ; ++i )
+					pdst[i] = psrc[i]<<7;
+			else if( ratio == 0 )
+				for( i = 0 ; i < copy_width ; ++i )
+					pdst[i] = 0;
+			else
+				for( i = 0 ; i < copy_width ; ++i )
+					pdst[i] = psrc[i]*ratio;
+			for( ; i < dst->width-dst_offset ; ++i )
+				pdst[i] = filler;
+/*			print_component(pdst, 0, dst->width ); */
+		}
+	dst->flags = src->flags ;
+}
+
+void
+alphablend_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	while( ++i < max_i )
+	{
+		int a = (top->alpha[i]>>8) ;
+		if( a >= 255 )
+		{
+			bottom->red[i]   = top->red[i] ;
+			bottom->green[i] = top->green[i] ;
+			bottom->blue[i]  = top->blue[i] ;
+		}else if( a > 0 )
+		{
+			int na = 255-a ;
+			bottom->red[i]   = ((bottom->red[i]*na)+(top->red[i]*a))>>8 ;
+			bottom->green[i] = ((bottom->green[i]*na)+(top->green[i]*a))>>8 ;
+			bottom->blue[i]  = ((bottom->blue[i]*na)+(top->blue[i]*a))>>8 ;
+		/* fprintf( stderr, "%X-%2.2X-%2.2X:%X*%X*%X ", top->alpha[i], a, na, bottom->red[i], bottom->green[i], bottom->blue[i] );*/
+		}
+/*		if( bottom->red[i]& 0xFFFF0000 || bottom->green[i]& 0xFFFF0000 ||bottom->blue[i]& 0xFFFF0000 )
+			fprintf( stderr, "%2.2X.%2.2X.%2.2X.%2.2X ", a, bottom->red[i], bottom->green[i], bottom->blue[i] );
+  */	}
+/*	print_component(bottom->red, 0, bottom->width );
+	print_component(bottom->green, 0, bottom->width );
+	print_component(bottom->blue, 0, bottom->width );
+  */
+	/*fprintf( stderr, "\n" );*/
+}
+
 void
 decode_image_scanline( ASImageDecoder *imdec )
 {
@@ -1381,93 +1517,84 @@ decode_image_scanline( ASImageDecoder *imdec )
 	set_flags( scl->flags,get_flags(imdec->filter,SCL_DO_COLOR));
 
 	if( get_flags(imdec->filter, SCL_DO_ALPHA) )
-		if( asimage_decode_line(imdec->im,IC_ALPHA, scl->blue,y,imdec->offset_x,scl->width) >= scl->width)
+		if( asimage_decode_line(imdec->im,IC_ALPHA, scl->alpha,y,imdec->offset_x,scl->width) >= scl->width)
 			set_flags( scl->flags,SCL_DO_ALPHA);
 
 	++(imdec->next_line);
 }
 
+void
+encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
+{
+	if( imout->next_line < imout->xim->height )
+	{
+		PUT_SCANLINE(imout->scr,imout->xim,to_store,imout->next_line,imout->xim_line);
+		if( imout->tiling_step > 0 )
+		{
+			register int i ;
+			int max_i = imout->im->height - imout->next_line ;
+			for( i = imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
+				memcpy( imout->xim_line+(i*imout->bpl), imout->xim_line, imout->bpl );
+		}
+		imout->xim_line += imout->bpl;
+	}
+}
 
 void
-output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
+encode_image_scanline_asim( ASImageOutput *imout, ASScanline *to_store )
+{
+	if( imout->next_line < imout->im->height )
+	{
+		if( imout->tiling_step )
+		{
+			int bytes_count ;
+			register int i, color ;
+			int max_i = imout->im->height ;
+			for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
+				if( get_flags(to_store->flags,0x01<<color))
+				{
+					bytes_count = asimage_add_line(imout->im, color, to_store->channels[color],   imout->next_line);
+					for( i = imout->next_line+imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
+					{
+/*							fprintf( stderr, "copy-encoding color %d, from lline %d to %d, %d bytes\n", color, imout->next_line, i, bytes_count );*/
+						asimage_dup_line( imout->im, color, imout->next_line, i, bytes_count );
+					}
+				}
+		}else
+		{
+			register int color ;
+			for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
+				if( get_flags(to_store->flags,0x01<<color))
+					asimage_add_line(imout->im, color, to_store->channels[color], imout->next_line);
+		}
+	}
+	++(imout->next_line);
+}
+void
+output_image_line_top( ASImageOutput *imout, ASScanline *new_line, int ratio )
 {
 	ASScanline *to_store = NULL ;
 	/* caching and preprocessing line into our buffer : */
-	if( imout->buffer_shift == 0 )
-		to_store = new_line ;
-	else if( new_line )
+	if( new_line )
 	{
-		if( asimage_quality_level == ASIMAGE_QUALITY_TOP )
-		{
-			if( ratio > 1 )
-				SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,new_line->width);
-			else
-				SCANLINE_FUNC(copy_component,*(new_line),*(imout->available),NULL,new_line->width);
-
-		}else
-			SCANLINE_FUNC(fast_output_filter, *(new_line),*(imout->available),ratio,new_line->width);
+		if( ratio > 1 )
+			SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,new_line->width);
+		else
+			SCANLINE_FUNC(copy_component,*(new_line),*(imout->available),NULL,new_line->width);
 		imout->available->flags = new_line->flags ;
 	}
 	/* copying/encoding previously cahced line into destination image : */
 	if( imout->used != NULL )
 	{
-		if( asimage_quality_level == ASIMAGE_QUALITY_TOP )
-		{
-			if( new_line != NULL )
-				SCANLINE_FUNC(fine_output_filter,*(imout->used),*(imout->available),0,new_line->width);
-			else
-				SCANLINE_MOD(fast_output_filter_mod,*(imout->used),0,imout->used->width);
-		}
-#if 0
-		LOCAL_DEBUG_OUT( "output line %d :", imout->next_line );
-		SCANLINE_MOD(print_component,*(imout->used),1,imout->used->width);
-#endif
+		if( new_line != NULL )
+			SCANLINE_FUNC(best_output_filter,*(imout->used),*(imout->available),0,new_line->width);
+		else
+			SCANLINE_MOD(fine_output_filter_mod,*(imout->used),0,imout->used->width);
 		to_store = imout->used ;
 	}
 	if( to_store )
-	{
-		if( imout->to_xim )
-		{
-			if( imout->next_line < imout->xim->height )
-			{
-				PUT_SCANLINE(imout->scr,imout->xim,to_store,imout->next_line,imout->xim_line);
-				if( imout->tiling_step > 0 )
-				{
-					register int i ;
-					int max_i = imout->im->height - imout->next_line ;
-					for( i = imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
-						memcpy( imout->xim_line+(i*imout->bpl), imout->xim_line, imout->bpl );
-				}
-				imout->xim_line += imout->bpl;
+		imout->encode_image_scanline( imout, to_store );
 
-			}
-		}else if( imout->next_line < imout->im->height )
-		{
-			if( imout->tiling_step )
-			{
-				int bytes_count ;
-				register int i, color ;
-				int max_i = imout->im->height ;
-				for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
-					if( get_flags(to_store->flags,0x01<<color))
-					{
-						bytes_count = asimage_add_line(imout->im, color, to_store->channels[color],   imout->next_line);
-						for( i = imout->next_line+imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
-						{
-/*							fprintf( stderr, "copy-encoding color %d, from lline %d to %d, %d bytes\n", color, imout->next_line, i, bytes_count );*/
-							asimage_dup_line( imout->im, color, imout->next_line, i, bytes_count );
-						}
-					}
-			}else
-			{
-				register int color ;
-				for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
-					if( get_flags(to_store->flags,0x01<<color))
-						asimage_add_line(imout->im, color, to_store->channels[color], imout->next_line);
-			}
-		}
-		++(imout->next_line);
-	}
 	/* rotating the buffers : */
 	if( imout->buffer_shift > 0 )
 	{
@@ -1481,6 +1608,19 @@ output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	}
 }
 
+void
+output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
+{
+	/* caching and preprocessing line into our buffer : */
+	if( new_line )
+	{
+		SCANLINE_FUNC(fine_output_filter, *(new_line),*(imout->available),ratio,new_line->width);
+		imout->available->flags = new_line->flags ;
+/*		SCANLINE_MOD(print_component,*(imout->available),0, new_line->width ); */
+		/* copying/encoding previously cached line into destination image : */
+		imout->encode_image_scanline( imout, imout->available );
+	}
+}
 
 void
 output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
@@ -1488,33 +1628,26 @@ output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	/* caching and preprocessing line into our buffer : */
 	if( new_line )
 	{
-		if( imout->buffer_shift > 0 )
-		{
-			imout->used = &(imout->buffer[0]);
-			SCANLINE_FUNC(fast_output_filter,*(new_line),*(imout->used),ratio,new_line->width);
-		}else
-			imout->used = new_line ;
+		SCANLINE_FUNC(fast_output_filter,*(new_line),*(imout->available),ratio,new_line->width);
+		imout->available->flags = new_line->flags ;
+		imout->encode_image_scanline( imout, imout->available );
 	}
-	/* copying/encoding previously cahced line into destination image : */
-	if( imout->used != NULL )
+}
+
+void
+output_image_line_direct( ASImageOutput *imout, ASScanline *new_line, int ratio )
+{
+	/* caching and preprocessing line into our buffer : */
+	if( new_line )
 	{
-#ifdef LOCAL_DEBUG
-		LOCAL_DEBUG_OUT( "output line %d :", imout->next_line );
-		SCANLINE_MOD(print_component,*(imout->used),1,imout->used->width);
-#endif
-		if( imout->to_xim )
+		if( ratio != 1)
 		{
-			if( imout->next_line < imout->xim->height )
-			{
-				PUT_SCANLINE(imout->scr,imout->xim,imout->used,imout->next_line,imout->xim_line);
-				imout->xim_line += imout->bpl;
-			}
-		}else if( imout->next_line < imout->im->height )
-			ENCODE_SCANLINE(imout->im,*(imout->used),imout->next_line);
-		++(imout->next_line);
+			SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,new_line->width);
+			imout->available->flags = new_line->flags ;
+			imout->encode_image_scanline( imout, imout->available );
+		}else
+			imout->encode_image_scanline( imout, new_line );
 	}
-	/* rotating the buffers : */
-	imout->used = NULL ;
 }
 
 Bool
@@ -1569,73 +1702,62 @@ make_scales( unsigned short from_size, unsigned short to_size )
 
 /********************************************************************/
 void
-scale_image_down( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, int* scales_v)
+scale_image_down( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *scales_h, int* scales_v)
 {
-	ASScanline src_line, dst_line, total ;
-	int i = 0, k = 0, max_k = imout->im->height, line_len = MIN(imout->im->width,src->width);
+	ASScanline dst_line, total ;
+	int k = -1;
+	int max_k 	 = imout->im->height,
+		line_len = MIN(imout->im->width,imdec->im->width);
 
-	prepare_scanline( src->width, 0, &src_line, imout->scr->BGR_mode );
 	prepare_scanline( imout->im->width, QUANT_ERR_BITS, &dst_line, imout->scr->BGR_mode );
 	prepare_scanline( imout->im->width, QUANT_ERR_BITS, &total, imout->scr->BGR_mode );
-	while( k < max_k )
+	while( ++k < max_k )
 	{
 		int reps = scales_v[k] ;
-		DECODE_SCANLINE(src,src_line,i);
-		total.flags = src_line.flags ;
-		CHOOSE_SCANLINE_FUNC(h_ratio,src_line,total,scales_h,line_len);
-		reps += i;
+		decode_image_scanline( imdec );
+		total.flags = imdec->buffer.flags ;
+		CHOOSE_SCANLINE_FUNC(h_ratio,imdec->buffer,total,scales_h,line_len);
 
-#ifdef LOCAL_DEBUG
-		LOCAL_DEBUG_OUT( "source line %d max line in this reps %d", i, reps );
-		SCANLINE_MOD(print_component,total,1,total.width);
-#endif
-		++i ;
-		while ( reps > i )
+		while( --reps > 0 )
 		{
-			DECODE_SCANLINE(src,src_line,i);
-			total.flags |= src_line.flags ;
-			CHOOSE_SCANLINE_FUNC(h_ratio,src_line,dst_line,scales_h,line_len);
-#ifdef LOCAL_DEBUG
-			LOCAL_DEBUG_OUT( "source line %d max line in this reps %d", i, reps );
-			SCANLINE_MOD(print_component,dst_line,1,total.width);
-#endif
+			decode_image_scanline( imdec );
+			total.flags = imdec->buffer.flags ;
+			CHOOSE_SCANLINE_FUNC(h_ratio,imdec->buffer,dst_line,scales_h,line_len);
 			SCANLINE_FUNC(add_component,total,dst_line,NULL,total.width);
-			++i ;
 		}
-		output_image_line( imout, &total, scales_v[k] );
-		++k;
+
+		imout->output_image_scanline( imout, &total, scales_v[k] );
 	}
-	free_scanline(&src_line, True);
 	free_scanline(&dst_line, True);
 	free_scanline(&total, True);
 }
 
 void
-scale_image_up( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, int* scales_v)
+scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *scales_h, int* scales_v)
 {
-	ASScanline step, src_lines[4], *c1, *c2, *c3, *c4 = NULL, tmp;
-	int i = 0, max_i, line_len = MIN(imout->im->width,src->width), out_width = imout->im->width;
+	ASScanline step, src_lines[4], *c1, *c2, *c3, *c4 = NULL;
+	int i = 0, max_i,
+		line_len = MIN(imout->im->width,imdec->im->width),
+		out_width = imout->im->width;
 
 	for( i = 0 ; i < 4 ; i++ )
 		prepare_scanline( out_width, 0, &(src_lines[i]), imout->scr->BGR_mode);
-	prepare_scanline( src->width, QUANT_ERR_BITS, &tmp, imout->scr->BGR_mode );
 	prepare_scanline( out_width, QUANT_ERR_BITS, &step, imout->scr->BGR_mode );
 
 
 /*	set_component(src_lines[0].red,0x00000000,0,out_width*3); */
-
-	DECODE_SCANLINE(src,tmp,0);
-	step.flags = src_lines[0].flags = tmp.flags ;
-	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,src_lines[1],scales_h,line_len);
+	decode_image_scanline( imdec );
+	step.flags = src_lines[0].flags = src_lines[1].flags = imdec->buffer.flags ;
+	CHOOSE_SCANLINE_FUNC(h_ratio,imdec->buffer,src_lines[1],scales_h,line_len);
 
 	SCANLINE_FUNC(copy_component,src_lines[1],src_lines[0],0,out_width);
 
-	DECODE_SCANLINE(src,tmp,1);
-	src_lines[1].flags = tmp.flags ;
-	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,src_lines[2],scales_h,line_len);
+	decode_image_scanline( imdec );
+	src_lines[2].flags = imdec->buffer.flags ;
+	CHOOSE_SCANLINE_FUNC(h_ratio,imdec->buffer,src_lines[2],scales_h,line_len);
 
 	i = 0 ;
-	max_i = src->height-1 ;
+	max_i = imdec->im->height-1 ;
 	do
 	{
 		int S = scales_v[i] ;
@@ -1645,32 +1767,32 @@ scale_image_up( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, 
 		c3 = &(src_lines[(i+2)&0x03]);
 		c4 = &(src_lines[(i+3)&0x03]);
 
-		if( i+2 < src->height )
+		if( i+1 < max_i )
 		{
-			DECODE_SCANLINE(src,tmp,i+2);
-			c4->flags = tmp.flags ;
-			CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c4,scales_h,line_len);
+			decode_image_scanline( imdec );
+			c4->flags = imdec->buffer.flags ;
+			CHOOSE_SCANLINE_FUNC(h_ratio,imdec->buffer,*c4,scales_h,line_len);
 		}
 		/* now we'll prepare total and step : */
-		output_image_line( imout, c2, 1);
+		imout->output_image_scanline( imout, c2, 1);
 		if( S > 1 )
 		{
 			if( S == 2 )
 			{
 				SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,1,out_width);
-				output_image_line( imout, c1, 1);
+				imout->output_image_scanline( imout, c1, 1);
 			}else if( S == 3 )
 			{
 				SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,2,out_width);
-				output_image_line( imout, c1, 1);
+				imout->output_image_scanline( imout, c1, 1);
 				SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,3,out_width);
-				output_image_line( imout, c1, 1);
+				imout->output_image_scanline( imout, c1, 1);
 			}else
 			{
 				SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,out_width);
 				do
 				{
-					output_image_line( imout, c1, 1);
+					imout->output_image_scanline( imout, c1, 1);
 					if((--S)<=1)
 						break;
 					SCANLINE_FUNC(add_component,*c1,step,NULL,out_width );
@@ -1678,23 +1800,30 @@ scale_image_up( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, 
 			}
 		}
 	}while( ++i < max_i );
-	output_image_line( imout, c4, 1);
+	imout->output_image_scanline( imout, c4, 1);
 
 	for( i = 0 ; i < 4 ; i++ )
 		free_scanline(&(src_lines[i]), True);
-	free_scanline(&tmp, True);
 	free_scanline(&step, True);
 }
 
+/******************************************************************************/
+/* ASImage transformations : 												  */
+/******************************************************************************/
 ASImage *
-scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim, unsigned int compression_out )
+scale_asimage( ScreenInfo *scr, ASImage *src, unsigned int to_width, unsigned int to_height,
+			   Bool to_xim, unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
-	ASImageOutput *imout ;
+	ASImageOutput  *imout ;
+	ASImageDecoder *imdec;
 	int h_ratio ;
 	int *scales_h = NULL, *scales_v = NULL;
 
 	if( !check_scale_parameters(src,&to_width,&to_height) )
+		return NULL;
+
+	if( (imdec = start_image_decoding(scr, src, SCL_DO_ALL, 0, 0, src->width)) == NULL )
 		return NULL;
 
 	dst = safecalloc(1, sizeof(ASImage));
@@ -1705,6 +1834,7 @@ scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool 
 			show_error( "Unable to create XImage for the screen %d", scr->screen );
 			asimage_init(dst, True);
 			free( dst );
+			stop_image_decoding( &imdec );
 			return NULL ;
 		}
 	if( to_width == src->width )
@@ -1736,7 +1866,7 @@ scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool 
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
-	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, QUANT_ERR_BITS )) == NULL )
+	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, QUANT_ERR_BITS, quality )) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
@@ -1744,9 +1874,9 @@ scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool 
 	}else
 	{
 		if( to_height <= src->height ) 					   /* scaling down */
-			scale_image_down( src, imout, h_ratio, scales_h, scales_v );
+			scale_image_down( imdec, imout, h_ratio, scales_h, scales_v );
 		else
-			scale_image_up( src, imout, h_ratio, scales_h, scales_v );
+			scale_image_up( imdec, imout, h_ratio, scales_h, scales_v );
 		stop_image_output( &imout );
 	}
 #ifdef HAVE_MMX
@@ -1754,6 +1884,7 @@ scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool 
 #endif
 	free( scales_h );
 	free( scales_v );
+	stop_image_decoding( &imdec );
 	return dst;
 }
 
@@ -1763,7 +1894,7 @@ tile_asimage( ScreenInfo *scr, ASImage *src,
 			  unsigned int to_width,
 			  unsigned int to_height,
 			  ARGB32 tint,
-			  Bool to_xim, unsigned int compression_out )
+			  Bool to_xim, unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
 	ASImageDecoder *imdec ;
@@ -1780,12 +1911,13 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 			show_error( "Unable to create XImage for the screen %d", scr->screen );
 			asimage_init(dst, True);
 			free( dst );
+			stop_image_decoding( &imdec );
 			return NULL ;
 		}
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
-	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, (tint!=0)?8:0)) == NULL )
+	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, (tint!=0)?8:0, quality)) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
@@ -1808,13 +1940,13 @@ LOCAL_DEBUG_OUT("tiling actually...%s", "");
 				tint_component_mod( imdec->buffer.green, ARGB32_GREEN8(tint)<<1, to_width );
   				tint_component_mod( imdec->buffer.blue, ARGB32_BLUE8(tint)<<1, to_width );
 				tint_component_mod( imdec->buffer.alpha, ARGB32_ALPHA8(tint)<<1, to_width );
-				output_image_line( imout, &(imdec->buffer), 1);
+				imout->output_image_scanline( imout, &(imdec->buffer), 1);
 			}
 		}else
 			for( y = 0 ; y < max_y ; y++  )
 			{
 				decode_image_scanline( imdec );
-				output_image_line( imout, &(imdec->buffer), 1);
+				imout->output_image_scanline( imout, &(imdec->buffer), 1);
 			}
 		stop_image_output( &imout );
 	}
@@ -1822,6 +1954,104 @@ LOCAL_DEBUG_OUT("tiling actually...%s", "");
 	mmx_off();
 #endif
 	stop_image_decoding( &imdec );
+	return dst;
+}
+
+ASImage *
+merge_layers( ScreenInfo *scr,
+				ASImageLayer *layers, int count,
+			  	unsigned int dst_width,
+			  	unsigned int dst_height,
+			  	Bool to_xim, unsigned int compression_out, int quality )
+{
+	ASImage *dst = NULL ;
+	ASImageDecoder **imdecs ;
+	ASImageOutput  *imout ;
+	ASScanline dst_line, tmp_line ;
+	int i ;
+LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
+	dst = safecalloc(1, sizeof(ASImage));
+	asimage_start (dst, dst_width, dst_height, compression_out);
+	if( to_xim )
+		if( (dst->ximage = create_screen_ximage( scr, dst_width, dst_height, 0 )) == NULL )
+		{
+			show_error( "Unable to create XImage for the screen %d", scr->screen );
+			asimage_init(dst, True);
+			free( dst );
+			return NULL ;
+		}
+	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line, scr->BGR_mode );
+	prepare_scanline( dst->width, QUANT_ERR_BITS, &tmp_line, scr->BGR_mode );
+	dst_line.flags = SCL_DO_ALL ;
+	tmp_line.flags = SCL_DO_ALL ;
+
+	imdecs = safecalloc( count, sizeof(ASImageDecoder*));
+	for( i = 0 ; i < count ; i++ )
+		if( layers[i].im )
+			imdecs[i] = start_image_decoding(scr, layers[i].im, SCL_DO_ALL, layers[i].clip_x, layers[i].clip_y, layers[i].clip_width);
+
+#ifdef HAVE_MMX
+	mmx_init();
+#endif
+
+	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, QUANT_ERR_BITS, quality)) == NULL )
+	{
+		asimage_init(dst, True);
+		free( dst );
+		dst = NULL ;
+	}else
+	{
+		int y, max_y = 0;
+		int min_y = dst_height;
+LOCAL_DEBUG_OUT("blending actually...%s", "");
+		for( i = 0 ; i < count ; i++ )
+			if( imdecs[i] )
+			{
+				if( layers[i].dst_y < min_y )
+					min_y = layers[i].dst_y;
+				if( layers[i].dst_y+layers[i].clip_height > max_y )
+					max_y = layers[i].dst_y+layers[i].clip_height;
+			}
+		if( min_y < 0 )
+			min_y = 0 ;
+		if( max_y > dst_height )
+			max_y = dst_height ;
+		else
+			imout->tiling_step = max_y ;
+
+		for( i = 0 ; i < count ; i++ )
+			if( imdecs[i] )
+				imdecs[i]->next_line = min_y - layers[i].dst_y ;
+LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
+		for( y = min_y ; y < max_y ; y++  )
+		{
+			for( i = 0 ; i < count ; i++ )
+				if( imdecs[i] && layers[i].dst_y <= y && layers[i].dst_y+layers[i].clip_height > y )
+				{
+					decode_image_scanline( imdecs[i] );
+					copytintpad_scanline( &(imdecs[i]->buffer), &dst_line, layers[i].dst_x, (layers[i].tint==0)?0x7F7F7F7F:layers[i].tint );
+					break;
+				}
+			while( ++i < count )
+				if( imdecs[i] && layers[i].dst_y <= y && layers[i].dst_y+layers[i].clip_height > y )
+				{
+					decode_image_scanline( imdecs[i] );
+					copytintpad_scanline( &(imdecs[i]->buffer), &tmp_line, layers[i].dst_x, (layers[i].tint==0)?0x7F7F7F7F:layers[i].tint );
+					layers[i].merge_scanlines( &dst_line, &tmp_line, layers[i].merge_mode );
+				}
+			imout->output_image_scanline( imout, &dst_line, 1);
+		}
+		stop_image_output( &imout );
+	}
+#ifdef HAVE_MMX
+	mmx_off();
+#endif
+	for( i = 0 ; i < count ; i++ )
+		if( imdecs[i] != NULL )
+			stop_image_decoding( &(imdecs[i]) );
+	free( imdecs );
+	free_scanline( &tmp_line, True );
+	free_scanline( &dst_line, True );
 	return dst;
 }
 /****************************************************************************/
@@ -1888,7 +2118,7 @@ asimage2ximage (ScreenInfo *scr, ASImage *im)
 		return xim;
 
 	xim = create_screen_ximage( scr, im->width, im->height, 0 );
-	if( (imout = start_image_output( scr, im, xim, True, 0 )) == NULL )
+	if( (imout = start_image_output( scr, im, xim, True, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
 		return xim;
 
 	prepare_scanline( xim->width, 0, &xim_buf, scr->BGR_mode );
@@ -1900,7 +2130,7 @@ asimage2ximage (ScreenInfo *scr, ASImage *im)
 		asimage_decode_line (im, IC_RED,   xim_buf.red, i, 0, xim_buf.width);
 		asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width);
 		asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width);
-		output_image_line( imout, &xim_buf, 1 );
+		imout->output_image_scanline( imout, &xim_buf, 1 );
 	}
 #ifdef DO_CLOCKING
 	fprintf (stderr, "asimage->ximage time (clocks): %lu\n", clock () - started);
@@ -1922,14 +2152,14 @@ asimage2mask_ximage (ScreenInfo *scr, ASImage *im)
 		return xim;
 
 	xim = create_screen_ximage( scr, im->width, im->height, 1 );
-	if( (imout = start_image_output( scr, im, xim, True, 0 )) == NULL )
+	if( (imout = start_image_output( scr, im, xim, True, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
 		return xim;
 
 	prepare_scanline( xim->width, 0, &xim_buf, scr->BGR_mode );
 	for (i = 0; i < im->height; i++)
 	{
 		asimage_decode_line (im, IC_RED, xim_buf.alpha, i, 0, xim_buf.width);
-		output_image_line( imout, &xim_buf, 1 );
+		imout->output_image_scanline( imout, &xim_buf, 1 );
 	}
 	free_scanline(&xim_buf, True);
 

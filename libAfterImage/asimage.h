@@ -80,6 +80,17 @@ typedef struct ASImageDecoder
 
 /* This is static piece of data that tell us what is the status of
  * the output stream, and allows us to easily put stuff out :       */
+#define ASIMAGE_QUALITY_DEFAULT	-1
+#define ASIMAGE_QUALITY_POOR	0
+#define ASIMAGE_QUALITY_FAST	1
+#define ASIMAGE_QUALITY_GOOD	2
+#define ASIMAGE_QUALITY_TOP		3
+
+struct ASImageOutput;
+struct ASScanline;
+typedef void (*encode_image_scanline_func)( struct ASImageOutput *imout, ASScanline *to_store );
+typedef void (*output_image_scanline_func)( struct ASImageOutput *, ASScanline *, int );
+
 typedef struct ASImageOutput
 {
 	ScreenInfo *scr;
@@ -93,7 +104,31 @@ typedef struct ASImageOutput
 	int next_line ;
 	unsigned int tiling_step;       /* each line written will be repeated with this
 									 * step untill we exceed image size */
+	int quality ;/* see above */
+	output_image_scanline_func output_image_scanline ;  /* high level interface -
+														 * division/error diffusion
+														 * as well as encoding */
+	encode_image_scanline_func encode_image_scanline ;  /* low level interface -
+														 * encoding only */
 }ASImageOutput;
+
+/* it produces  bottom = bottom <merge> top */
+typedef void (*merge_scanlines_func)( ASScanline *bottom, ASScanline *top, int mode);
+void alphablend_scanlines( ASScanline *bottom, ASScanline *top, int unused );
+
+typedef struct ASImageLayer
+{
+	ASImage *im;
+	int dst_x, dst_y;
+	/* clip area could be partially outside of the image - iumage gets tiled in it */
+	int clip_x, clip_y;
+	unsigned int clip_width, clip_height;
+	ARGB32 tint ;                              /* if 0 - no tint */
+	int merge_mode ;
+	merge_scanlines_func merge_scanlines ;
+}ASImageLayer;
+
+
 
 
 void asimage_init (ASImage * im, Bool free_resources);
@@ -161,10 +196,14 @@ Pixmap  asimage2pixmap  (struct ScreenInfo *scr, ASImage *im, GC gc, Bool use_ca
 Pixmap  asimage2mask    (struct ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached);
 
 /* manipulations : */
-ASImage *scale_asimage( struct ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim, unsigned int compression_out );
+ASImage *scale_asimage( struct ScreenInfo *scr, ASImage *src, unsigned int to_width, unsigned int to_height,
+						Bool to_xim, unsigned int compression_out, int quality );
 ASImage *tile_asimage ( struct ScreenInfo *scr, ASImage *src, int offset_x, int offset_y,
 															  unsigned int to_width,  unsigned int to_height, ARGB32 tint,
-															  Bool to_xim, unsigned int compression_out );
+															  Bool to_xim, unsigned int compression_out, int quality );
+ASImage *merge_layers( ScreenInfo *scr, ASImageLayer *layers, int count,
+			  		   unsigned int dst_width, unsigned int dst_height,
+			  		   Bool to_xim, unsigned int compression_out, int quality );
 
 
 
