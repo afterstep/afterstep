@@ -10,7 +10,7 @@ AC_INIT(Makefile.in)
 
 AC_CONFIG_HEADER(config.h:config.h.in)
 
-version="0.90"
+version="0.80"
 version_major="0"
 lib_name="LIBAFTERIMAGE"
 lib_file_name="libAfterImage"
@@ -309,25 +309,26 @@ AC_SUBST(TTF_INCLUDES)
 AFTERIMAGE_LIBS_EXTERNAL=$AFTERIMAGE_LIBS
 AC_SUBST(AFTERIMAGE_LIBS_EXTERNAL)
 
+AFTERBASE_CFLAGS=
 if test "$with_afterbase" != "NO"; then
   AC_MSG_CHECKING(libAfterBase headers)
   have_afterbase=yes
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
 		AC_DEFINE(HAVE_AFTERBASE)
-		AC_DEFINE(HAVE_CUSTOM_AFTERBASE)
-        AFTERBASE_INC_PATH=".."
+		AFTERBASE_CFLAGS="-I.."
 		AC_MSG_RESULT("../libAfterBase/astypes.h")
 	  else
  	    AC_CHECK_HEADER(libAfterBase/astypes.h,
 					    [AC_DEFINE(HAVE_AFTERBASE) \
-						 AC_MSG_RESULT("<libAfterBase/astypes.h>")],
+						 AC_MSG_RESULT("<libAfterBase/astypes.h>") \
+						 AFTERBASE_INC_PREFIX="<" \
+						 AFTERBASE_INC_SUFFIX=">" ],
 						[AC_MSG_RESULT("none found") have_afterbase=no])
 	  fi
   else
 	  AC_DEFINE(HAVE_AFTERBASE)
-	  AC_DEFINE(HAVE_CUSTOM_AFTERBASE)
-	  AFTERBASE_INC_PATH=$afterbase_includes
+	  AFTERBASE_CFLAGS="-I$afterbase_includes"
   	  AC_MSG_RESULT("$AFTERBASE_INC_PATH/libAfterBase/astypes.h>")
   fi
 fi
@@ -337,7 +338,7 @@ if test "x$have_afterbase" = "xyes"; then
 	AFTERBASE_C=
     AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
 fi
-AC_SUBST(AFTERBASE_INC_PATH)
+AC_SUBST(AFTERBASE_CFLAGS)
 AC_SUBST(AFTERBASE_C)
 AC_SUBST(have_afterbase)
 

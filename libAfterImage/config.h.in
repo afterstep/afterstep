@@ -1,4 +1,4 @@
-/* config.h.in.  Generated automatically from libAfterImage/configure.in by autoheader.  */
+/* config.h.in.  Generated automatically from configure.in by autoheader.  */
 
 /* Define as __inline if that's what the C compiler calls it.  */
 #undef inline
@@ -28,7 +28,6 @@
 #undef  HAVE_FREETYPE
 
 #undef  HAVE_AFTERBASE
-#undef  HAVE_CUSTOM_AFTERBASE
 
 /* Define if you have the <ft2build.h> header file.  */
 #undef HAVE_FT2BUILD_H

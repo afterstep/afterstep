@@ -2,19 +2,6 @@
 #define AFTERBASE_H_HEADER_INCLUDED
 
 #ifdef HAVE_AFTERBASE
-#ifdef  HAVE_CUSTOM_AFTERBASE
-#include "@AFTERBASE_INC_PATH@/libAfterBase/astypes.h"
-#include "@AFTERBASE_INC_PATH@/libAfterBase/audit.h"
-#include "@AFTERBASE_INC_PATH@/libAfterBase/output.h"
-#include "@AFTERBASE_INC_PATH@/libAfterBase/safemalloc.h"
-#include "@AFTERBASE_INC_PATH@/libAfterBase/mystring.h"
-#include "@AFTERBASE_INC_PATH@/libAfterBase/fs.h"
-#include "@AFTERBASE_INC_PATH@/libAfterBase/parse.h"
-#include "@AFTERBASE_INC_PATH@/libAfterBase/selfdiag.h"
-#include "@AFTERBASE_INC_PATH@/libAfterBase/socket.h"
-#include "@AFTERBASE_INC_PATH@/libAfterBase/trace.h"
-#include "@AFTERBASE_INC_PATH@/libAfterBase/xwrap.h"
-#else
 #include <libAfterBase/astypes.h>
 #include <libAfterBase/audit.h>
 #include <libAfterBase/output.h>
@@ -26,7 +13,6 @@
 #include <libAfterBase/socket.h>
 #include <libAfterBase/trace.h>
 #include <libAfterBase/xwrap.h>
-#endif		/* HAVE_CUSTOM_AFTERBASE */
 #else
 
 /* the goal of this header is to provide sufficient code so that

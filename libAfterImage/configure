@@ -576,7 +576,7 @@ fi
 
 
 
-version="0.90"
+version="0.80"
 version_major="0"
 lib_name="LIBAFTERIMAGE"
 lib_file_name="libAfterImage"
@@ -2985,9 +2985,10 @@ fi;
 AFTERIMAGE_LIBS_EXTERNAL=$AFTERIMAGE_LIBS
 
 
+AFTERBASE_CFLAGS=
 if test "$with_afterbase" != "NO"; then
   echo $ac_n "checking libAfterBase headers""... $ac_c" 1>&6
-echo "configure:2991: checking libAfterBase headers" >&5
+echo "configure:2992: checking libAfterBase headers" >&5
   have_afterbase=yes
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
@@ -2995,26 +2996,22 @@ echo "configure:2991: checking libAfterBase headers" >&5
 #define HAVE_AFTERBASE 1
 EOF
 
-		cat >> confdefs.h <<\EOF
-#define HAVE_CUSTOM_AFTERBASE 1
-EOF
-
-        AFTERBASE_INC_PATH=".."
+		AFTERBASE_CFLAGS="-I.."
 		echo "$ac_t"""../libAfterBase/astypes.h"" 1>&6
 	  else
  	    ac_safe=`echo "libAfterBase/astypes.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for libAfterBase/astypes.h""... $ac_c" 1>&6
-echo "configure:3008: checking for libAfterBase/astypes.h" >&5
+echo "configure:3005: checking for libAfterBase/astypes.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3013 "configure"
+#line 3010 "configure"
 #include "confdefs.h"
 #include <libAfterBase/astypes.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3018: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:3015: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -3034,7 +3031,9 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
 #define HAVE_AFTERBASE 1
 EOF
  \
-						 echo "$ac_t"""<libAfterBase/astypes.h>"" 1>&6
+						 echo "$ac_t"""<libAfterBase/astypes.h>"" 1>&6 \
+						 AFTERBASE_INC_PREFIX="<" \
+						 AFTERBASE_INC_SUFFIX=">" 
 else
   echo "$ac_t""no" 1>&6
 echo "$ac_t"""none found"" 1>&6 have_afterbase=no
@@ -3046,11 +3045,7 @@ fi
 #define HAVE_AFTERBASE 1
 EOF
 
-	  cat >> confdefs.h <<\EOF
-#define HAVE_CUSTOM_AFTERBASE 1
-EOF
-
-	  AFTERBASE_INC_PATH=$afterbase_includes
+	  AFTERBASE_CFLAGS="-I$afterbase_includes"
   	  echo "$ac_t"""$AFTERBASE_INC_PATH/libAfterBase/astypes.h>"" 1>&6
   fi
 fi
@@ -3285,7 +3280,7 @@ s%@GIF_CFLAGS@%$GIF_CFLAGS%g
 s%@TIFF_CFLAGS@%$TIFF_CFLAGS%g
 s%@TTF_INCLUDES@%$TTF_INCLUDES%g
 s%@AFTERIMAGE_LIBS_EXTERNAL@%$AFTERIMAGE_LIBS_EXTERNAL%g
-s%@AFTERBASE_INC_PATH@%$AFTERBASE_INC_PATH%g
+s%@AFTERBASE_CFLAGS@%$AFTERBASE_CFLAGS%g
 s%@AFTERBASE_C@%$AFTERBASE_C%g
 s%@have_afterbase@%$have_afterbase%g
 s%@AFTERIMAGE_LIBS@%$AFTERIMAGE_LIBS%g
