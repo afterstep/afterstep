@@ -97,6 +97,16 @@ AC_ARG_ENABLE(send-postcard-to-developer, [  --enable-send-postcard-to-developer
 AC_ARG_ENABLE(script,		[  --enable-script         compile Script module [[yes]] ], enable_script=$enableval,enable_script="yes")
 AC_ARG_ENABLE(reuse-font,	[  --enable-reuse-font     enables reuse of loaded font resource by modules (don't use with TrueType fonts !)[[no]] ],[if test x$enableval == "xyes"; then AC_DEFINE(MODULE_REUSE_LOADED_FONT,1,Enables reuse of loaded font resource by modules) fi])
 
+dnl# For FreeBSD, add -I/usr/local/include
+
+FBSD="no"
+if test `uname` = "FreeBSD"; then
+        FBSD="yes"
+        CPPFLAGS="-I/usr/local/include"
+fi
+
+echo "checking whether we are compiling in FreeBSD environment... $FBSD"
+
 dnl# Comman stuff : compiler tools, proggies, etc.
 
 AC_PROG_CC
