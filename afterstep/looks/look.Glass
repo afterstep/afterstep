@@ -213,7 +213,8 @@ MyStyle "*WinListBalloon"
 MyStyle "*aterm"
 	ForeColor      InactiveText2
 	BackColor      Inactive2
-	BackPixmap     154 bars/title_tile_glass_sticky
+	BackMultiGradient  8 alpha(90,Saturation(20,Inactive2Light)) 0.0 alpha(80,Inactive2Dark) 0.3 alpha(60,saturation(90,Inactive2Light))
+#	BackPixmap     154 bars/title_tile_glass_sticky
 ~MyStyle
 
 

@@ -122,7 +122,7 @@ typedef struct ASTile {
 
     ASFlagType flags;
     short x, y;
-    unsigned short width, height;
+    short width, height;
 	union {
 		ASBtnBlock	 bblock;
         struct ASImage     *icon ;

@@ -486,19 +486,25 @@ set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImag
     layer->dst_y = tile->y + v_pad ;
     if( layer->im->width < max_width )
     {
+		int cell_size = tile->width-h_pad*2 ;
+		if( cell_size  > max_width ) 
+			cell_size = max_width ;
         if( layer->im->width < tile->width )
             layer->dst_x += make_tile_pad( get_flags(tile->flags, AS_TilePadLeft), 
                                            get_flags(tile->flags, AS_TilePadRight), 
-                                           tile->width-h_pad*2, layer->im->width );
+                                           cell_size, layer->im->width );
         layer->clip_width  = layer->im->width ;
     }else
         layer->clip_width  = ( max_width > h_pad ) ? max_width - h_pad: 1;
     if( layer->im->height < max_height )
     {
+		int cell_size = tile->height-v_pad*2 ;
+		if( cell_size  > max_height ) 
+			cell_size = max_height ;
         if( layer->im->height < tile->height )
             layer->dst_y += make_tile_pad( get_flags(tile->flags, AS_TilePadTop), 
                                            get_flags(tile->flags, AS_TilePadBottom), 
-                                           tile->height-v_pad*2, layer->im->height );
+                                           cell_size, layer->im->height );
         layer->clip_height  = layer->im->height ;
     }else
         layer->clip_height  = ( max_height > v_pad )? max_height - v_pad : 1;

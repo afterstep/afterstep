@@ -28,6 +28,8 @@ struct ASWMProps;
 void mystyle_list_set_property (struct ASWMProps *wmprops, ASHashTable *list );
 void mystyle_set_property (struct ASWMProps *wmprops);
 void mystyle_get_property (struct ASWMProps *wmprops);
+void mystyle_handle_property_event( XEvent *event );
+
 
 #ifdef __cplusplus
 }

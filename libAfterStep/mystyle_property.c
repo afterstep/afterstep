@@ -248,3 +248,12 @@ mystyle_get_property (ASWMProps *wmprops)
 	/* force update of global gcs */
     mystyle_fix_styles ();
 }
+
+void 
+mystyle_handle_property_event( XEvent *event )
+{	 
+	handle_wmprop_event (Scr.wmprops, event);
+	mystyle_list_destroy_all(&(Scr.Look.styles_list));
+	mystyle_get_property(Scr.wmprops);
+}
+
