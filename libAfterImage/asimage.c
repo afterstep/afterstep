@@ -120,11 +120,12 @@ int mmx_init(void)
 int ebx_save;
 int mmx_available = 0;
 #ifdef HAVE_MMX
-	asm volatile (
+	int ebx_save;
+ 	asm volatile (
                       "movl %%ebx, %1\n\t"
                       "movl $1, %%eax\n\t"
                       "cpuid\n\t"
-                      "andl \$0x800000, %%edx\n\t"
+                      "andl $0x800000, %%edx\n\t"	
                       "movl %1, %%ebx\n\t"
                       "movl %%edx, %0\n\t"
                       : "=m" (mmx_available), "=m" (ebx_save)

@@ -23,14 +23,14 @@ typedef unsigned char boolean;
 /* Define to 1 if you have the <errno.h> header file. */
 #define HAVE_ERRNO_H 1
 
-/* Define if libFreeType is available */
-#undef HAVE_FREETYPE
+/* Define if libFreeType is available  - should always be under win32 ! */
+#define HAVE_FREETYPE 1
 
 /* Define if libFreeType is available */
-#undef HAVE_FREETYPE_FREETYPE
+#define HAVE_FREETYPE_FREETYPE 1
 
 /* Define to 1 if you have the <ft2build.h> header file. */
-#undef HAVE_FT2BUILD_H
+#define HAVE_FT2BUILD_H 1
 
 /* Define if libgif is available */
 #define HAVE_GIF
