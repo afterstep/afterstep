@@ -43,6 +43,17 @@ extern char  *_disabled_keyword;
 static char  *_as_nothing_ = "";
 #endif
 
+struct
+{
+	char *label;
+	int value;
+}FixedEnumValues[] =
+{
+#define FEV
+
+	{NULL, 0}
+};
+
 TermDef      *
 FindTerm (SyntaxDef * syntax, int type, int id)
 {
@@ -921,7 +932,13 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 		 case TT_UINTEGER:
 			 if (!check_avail_args (stored, pos, 1))
 				 return 0;
-			 item->data.integer = atol (stored->argv[pos++]);
+			 ++pos ;
+			 if( !isdigit(stored->argv[pos][0]) && stored->argv[pos][0] != '-' )
+			 {
+
+
+			 }else
+			 	item->data.integer = atol (stored->argv[pos]);
 			 if (stored->term->type == TT_UINTEGER && item->data.integer < 0)
 			 {
 				 show_warning("negative value %ld assigned to %s, that accepts only positive numbers! Ignoring!\n",

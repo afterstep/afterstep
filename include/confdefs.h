@@ -1248,6 +1248,38 @@ FreeStorageElem **ComplexFunction2FreeStorage( SyntaxDef *syntax, FreeStorageEle
 
 #define FEEL_ID_END                   (FEEL_ID_START+64)
 
+/************************************
+ * WindowBox configuration may look something like this :
+ * WindowBox   "some_name"
+ * 		Area   WxH+X+Y
+ * 		Virtual
+ * 		MinWidth	width
+ * 		MinHeight	height
+ * 		MaxWidth	width
+ * 		MaxHeight	height
+ * 		FirstTry	SmartPlacement|RandomPlacement|Tile
+ * 		ThenTry 	RandomPlacement|Cascade|Manual
+ * 		VerticalPriority
+ * 		ReverseOrder
+ * ~WindowBox
+ */
+
+#define WINDOWBOX_ID_START	 			(FEEL_ID_END+1)
+#define WINDOWBOX_START_ID				(WINDOWBOX_ID_START)
+#define WINDOWBOX_Area_ID   	  		(WINDOWBOX_ID_START+1)
+#define WINDOWBOX_Virtual_ID      		(WINDOWBOX_ID_START+2)
+#define WINDOWBOX_MinWidth_ID	  		(WINDOWBOX_ID_START+3)
+#define WINDOWBOX_MinHeight_ID	  		(WINDOWBOX_ID_START+4)
+#define WINDOWBOX_MaxWidth_ID	  		(WINDOWBOX_ID_START+5)
+#define WINDOWBOX_MaxHeight_ID	  		(WINDOWBOX_ID_START+6)
+#define WINDOWBOX_FirstTry_ID	  		(WINDOWBOX_ID_START+7)
+#define WINDOWBOX_ThenTry_ID 	  		(WINDOWBOX_ID_START+8)
+#define WINDOWBOX_VerticalPriority_ID  	(WINDOWBOX_ID_START+9)
+#define WINDOWBOX_ReverseOrder_ID  		(WINDOWBOX_ID_START+10)
+#define WINDOWBOX_DONE_ID				(WINDOWBOX_ID_START+11)
+
+#define WINDOWBOX_ID_END            	(WINDOWBOX_ID_START+16)
+
 /* we don't really need FeelConfig since feel does not cary
    any information that requires char2bin conversion and consecutive
    memory allocation/deallocation. Hence we use ASFeel as FeelConfig.

@@ -116,7 +116,10 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
     int whole_width = 0, whole_height = 0 ;
     int x, y, box_x = 0, box_y = 0;
 
-    if( asw->icon_canvas == NULL )
+	if( AS_ASSERT(asw) || AS_ASSERT(rd) )
+		return False;
+
+    if( asw->icon_canvas == NULL || rd->ib == NULL )
         return True;
 
     if( asw->icon_button )
@@ -135,6 +138,7 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
     /* now we could determine where exactly to place icon to : */
     x = -whole_width ;
     y = -whole_height ;
+	LOCAL_DEBUG_OUT( "entering loop : areas_num = %d", rd->ib->areas_num );
     while( rd->curr_area < rd->ib->areas_num )
     {
         ASGeometry *geom = &(rd->ib->areas[rd->curr_area]) ;

@@ -32,6 +32,38 @@
 #include "../../include/confdefs.h"
 
 
+
+TermDef       WindowBoxTerms[] = {
+    {TF_NO_MYNAME_PREPENDING, "WindowBox", 9, TT_QUOTED_TEXT, WINDOWBOX_START_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Area", 4,              TT_GEOMETRY,WINDOWBOX_Area_ID   	  	 , NULL},
+    {TF_NO_MYNAME_PREPENDING, "Virtual", 7,           TT_FLAG,    WINDOWBOX_Virtual_ID       , NULL},
+    {TF_NO_MYNAME_PREPENDING, "MinWidth", 8,          TT_INTEGER, WINDOWBOX_MinWidth_ID	  	 , NULL},
+    {TF_NO_MYNAME_PREPENDING, "MinHeight", 9,         TT_INTEGER, WINDOWBOX_MinHeight_ID	 , NULL},
+    {TF_NO_MYNAME_PREPENDING, "MaxWidth", 8,          TT_INTEGER, WINDOWBOX_MaxWidth_ID	  	 , NULL},
+    {TF_NO_MYNAME_PREPENDING, "MaxHeight", 9,         TT_INTEGER, WINDOWBOX_MaxHeight_ID	 , NULL},
+    {TF_NO_MYNAME_PREPENDING, "FirstTry", 8,          TT_INTEGER, WINDOWBOX_FirstTry_ID	  	 , NULL},
+    {TF_NO_MYNAME_PREPENDING, "ThenTry", 7,           TT_INTEGER, WINDOWBOX_ThenTry_ID 	  	 , NULL},
+    {TF_NO_MYNAME_PREPENDING, "VerticalPriority", 16, TT_FLAG,    WINDOWBOX_VerticalPriority_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "ReverseOrder", 12,     TT_FLAG,    WINDOWBOX_ReverseOrder_ID    , NULL},
+	{TF_NO_MYNAME_PREPENDING |
+	 TF_SYNTAX_TERMINATOR,    "~WindowBox", 10, TT_FLAG, WINDOWBOX_DONE_ID, NULL},
+	{0, NULL, 0, 0, 0}
+};
+
+SyntaxDef     WindowBoxSyntax = {
+	'\n',
+	'\0',
+	WindowBoxTerms,
+    7,                                         /* hash size */
+	'\t',
+	"",
+	"\t",
+	"WindowBox definition",
+	NULL,
+	0
+};
+
+
 /*****************************************************************************
  *
  * This routine is responsible for reading and parsing the base.<bpp> config
