@@ -25,6 +25,25 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_PNG
+/* Include file for users of png library. */
+# ifdef HAVE_BUILTIN_PNG
+#  include "libpng/png.h"
+# else
+#  include <png.h>
+# endif
+#else
+#include <setjmp.h>
+#endif
+#ifdef HAVE_JPEG
+/* Include file for users of png library. */
+#undef HAVE_STDLIB_H
+# ifdef HAVE_BUILTIN_JPEG
+#  include "libjpeg/jpeglib.h"
+# else
+#  include <jpeglib.h>
+# endif
+#endif
 /*#define DO_CLOCKING*/
 
 #if TIME_WITH_SYS_TIME
@@ -37,30 +56,23 @@
 #  include <time.h>
 # endif
 #endif
-#ifndef _WIN32
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <stdarg.h>
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
+#include <string.h>
 #include <ctype.h>
 /* <setjmp.h> is used for the optional error recovery mechanism */
-
-#ifdef HAVE_PNG
-/* Include file for users of png library. */
-#include <png.h>
-#else
-#include <setjmp.h>
-#endif
 
 #ifdef _WIN32
 # include "win32/afterbase.h"
 #else
 # include "afterbase.h"
-#endif
-#ifdef HAVE_JPEG
-/* Include file for users of png library. */
-#undef HAVE_STDLIB_H
-#include <jpeglib.h>
 #endif
 #ifdef HAVE_GIF
 #include <gif_lib.h>
@@ -84,6 +96,7 @@
 #include "import.h"
 #include "export.h"
 #include "ascmap.h"
+#include "bmp.h"
 
 /***********************************************************************************/
 /* High level interface : 														   */
@@ -682,11 +695,93 @@ ASImage2ppm ( ASImage *im, const char *path,  ASImageExportParams *params )
 
 /***********************************************************************************/
 /* Windows BMP file format :   									   				   */
+static size_t
+bmp_write32 (FILE *fp, CARD32 *data, int count)
+{
+  	size_t total = count;
+	if( count > 0 )
+	{
+#ifdef WORDS_BIGENDIAN                         /* BMPs are encoded as Little Endian */
+		CARD8 *raw = (CARD8*)data ;
+#endif
+		count = 0 ;
+#ifdef WORDS_BIGENDIAN                         /* BMPs are encoded as Little Endian */
+		while( count < total )
+		{
+			data[count] = (raw[0]<<24)|(raw[1]<<16)|(raw[2]<<8)|raw[3];
+			++count ;
+			raw += 4 ;
+		}
+#endif
+		total = fwrite((char*) data, sizeof (CARD8), total<<2, fp)>>2;
+	}
+	return total;
+}
+
+static size_t
+bmp_write16 (FILE *fp, CARD16 *data, int count)
+{
+  	size_t total = count;
+	if( count > 0 )
+	{
+#ifdef WORDS_BIGENDIAN                         /* BMPs are encoded as Little Endian */
+		CARD8 *raw = (CARD8*)data ;
+#endif
+		count = 0 ;
+#ifdef WORDS_BIGENDIAN                         /* BMPs are encoded as Little Endian */
+		while( count < total )
+		{
+			data[count] = (raw[0]<<16)|raw[1];
+			++count ;
+			raw += 2 ;
+		}
+#endif
+		total = fwrite((char*) data, sizeof (CARD8), total<<1, fp)>>1;
+	}
+	return total;
+}
+
 Bool
 ASImage2bmp ( ASImage *im, const char *path,  ASImageExportParams *params )
 {
+	FILE *outfile = NULL ;
+	BITMAPINFO *bmi ;
+	void *bmbits ;
+	int bits_size ;
+	BITMAPFILEHEADER bmh ;
 	START_TIME(started);
-	SHOW_PENDING_IMPLEMENTATION_NOTE("BMP");
+
+	if ((outfile = open_writeable_image_file( path )) == NULL)
+		return False;
+
+	bmi = ASImage2DBI( get_default_asvisual(), im, 0, 0, im->width, im->height, &bmbits );
+	if( bmi == NULL || bmbits == NULL ) 
+		return False ;
+ 
+	bits_size = (((bmi->bmiHeader.biWidth*3+3)/4)*4)*bmi->bmiHeader.biHeight;          /* DWORD aligned */
+
+	bmh.bfType = BMP_SIGNATURE;
+    bmh.bfSize = 14+bmi->bmiHeader.biSize+bits_size; /* Specifies the size, in bytes, of the bitmap file */
+    bmh.bfReserved1 = 0;
+	bmh.bfReserved2 = 0;
+    bmh.bfOffBits = 14+bmi->bmiHeader.biSize; /* Specifies the offset, in bytes, 
+					   * from the BITMAPFILEHEADER structure to the bitmap bits */
+	/* writing off the header */
+	bmp_write16( outfile, &bmh.bfType, 1 );
+	bmp_write32( outfile, &bmh.bfSize, 3 );
+	/* writing off the bitmapinfo : */
+	bmp_write32( outfile, &bmi->bmiHeader.biSize, 1 );
+	bmp_write32( outfile, (CARD32*)&bmi->bmiHeader.biWidth, 2 );
+	bmp_write16( outfile, &bmi->bmiHeader.biPlanes, 2 );
+	bmi->bmiHeader.biCompression = 1 ;
+	bmp_write32( outfile, &bmi->bmiHeader.biCompression, 6 );
+
+	/* writing off the bitmapbits */
+	fwrite( bmbits, sizeof(CARD8), bits_size, outfile );
+	free( bmbits );
+	free( bmi );
+
+	fclose(outfile);
 	SHOW_TIME("image export",started);
 	return False;
 }

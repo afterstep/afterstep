@@ -6,9 +6,18 @@
 /* Define if libAfterBase is available */
 #undef HAVE_AFTERBASE
 
+/* Define if using builtin libjpeg */
+#undef HAVE_BUILTIN_JPEG
+
+/* Define if using builtin libpng */
+#undef HAVE_BUILTIN_PNG
+
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
+
+/* Define to 1 if you have the <errno.h> header file. */
+#undef HAVE_ERRNO_H
 
 /* Define if libFreeType is available */
 #undef HAVE_FREETYPE
@@ -49,6 +58,15 @@
 
 /* Define if libpng is available */
 #undef HAVE_PNG
+
+/* We always use function prototypes - not supporting old compilers */
+#undef HAVE_PROTOTYPES
+
+/* Define to 1 if you have the <stdarg.h> header file. */
+#undef HAVE_STDARG_H
+
+/* Define to 1 if you have the <stddef.h> header file. */
+#undef HAVE_STDDEF_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -94,6 +112,9 @@
 /* Define if support for XPM images is desired */
 #undef HAVE_XPM
 
+/* Define to 1 if you have the <zlib.h> header file. */
+#undef HAVE_ZLIB_H
+
 /* Define if locale support in X is needed */
 #undef I18N
 
@@ -130,6 +151,14 @@
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
+
+/* Define to 1 if type `char' is unsigned and you are not using gcc.  */
+#ifndef __CHAR_UNSIGNED__
+# undef __CHAR_UNSIGNED__
+#endif
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
 
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing
    if it is not supported. */

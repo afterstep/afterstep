@@ -217,7 +217,7 @@ AC_C_INLINE
 
 dnl# Check for headers
 AC_HEADER_TIME
-AC_CHECK_HEADERS(sys/wait.h sys/time.h malloc.h stdlib.h)
+AC_CHECK_HEADERS(sys/wait.h sys/time.h malloc.h stdlib.h unistd.h stddef.h stdarg.h errno.h)
 
 dnl# Check for X shaped window extension
 have_shmimage=no
@@ -283,6 +283,12 @@ else
 fi
 AC_SUBST(XPM_CFLAGS)
 
+JPEG_OBJS=
+ZLIB_OBJS=
+PNG_OBJS=
+
+have_jpeg=
+
 if test "$with_jpeg" = no; then
   have_jpeg=disabled
 else
@@ -291,10 +297,33 @@ else
 	JPEG_CFLAGS="-I$jpeg_includes"
 	CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
   fi
-  AC_CHECK_HEADER(jpeglib.h,[AC_DEFINE(HAVE_JPEG,1,[Define if libjpeg is available]) AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -ljpeg"])
+  AC_CHECK_HEADER(jpeglib.h,have_jpeg=yes)
+  if test "$have_jpeg" = yes; then
+	AC_DEFINE(HAVE_JPEG,1,[Define if libjpeg is available]) 
+	AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -ljpeg"
+  else
+	AC_MSG_CHECKING(using built-in JPEG library) 
+	if test -f libjpeg/jpeglib.h; then
+		JPEG_OBJS='$(LIBJPEG_OBJS)'
+		AC_DEFINE(HAVE_JPEG,1,[Define if libjpeg is available]) 
+		AC_DEFINE(HAVE_BUILTIN_JPEG,1,[Define if using builtin libjpeg]) 
+		AC_MSG_RESULT(yes)
+	else
+		AC_MSG_RESULT(no)
+	fi
+   fi	
   CPPFLAGS=$SAVED_CFLAGS
 fi
 AC_SUBST(JPEG_CFLAGS)
+
+dnl# these check are needed by built-in jpeg library : 
+AC_DEFINE(HAVE_PROTOTYPES,1,We always use function prototypes - not supporting old compilers)
+AC_CHECK_TYPE(unsigned char)
+AC_CHECK_TYPE(unsigned short)
+AC_C_CONST
+AC_C_CHAR_UNSIGNED
+
+AC_CHECK_HEADERS(zlib.h,[have_zlib=yes],[have_zlib=no])
 
 if test "$with_png" = no; then
   have_png=disabled
@@ -315,10 +344,32 @@ else
         AC_DEFINE(HAVE_PNG,1,[Define if libpng is available])
         AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lpng"
         image_format="png"
+  else 
+	AC_MSG_CHECKING(using built-in PNG libraries) 
+	if test -f libpng/png.h; then
+		PNG_OBJS='$(LIBPNG_OBJS)'	
+	        AC_DEFINE(HAVE_PNG,1,[Define if libpng is available])
+        	AC_DEFINE(HAVE_BUILTIN_PNG,1,[Define if using builtin libpng])
+		AC_MSG_RESULT(yes)	     
+		if test "$have_zlib" = no; then 
+			AC_MSG_CHECKING(using built-in ZLIB library) 
+			if test -f zlib/zlib.h; then
+				ZLIB_OBJS='$(ZLIB_OBJS)'
+				AC_MSG_RESULT(yes)	     
+			else
+				AC_MSG_RESULT(no)	     
+			fi
+		fi
+		image_format="png"
+		have_png=yes
+	else
+		AC_MSG_RESULT(no)
+	fi
   fi
   CPPFLAGS=$SAVED_CFLAGS
 fi
 AC_SUBST(PNG_CFLAGS)
+dnl# This is required by built in versions of zlib and libpng : 
 
 dnl# Test for libungif first :
 if test "$with_gif$with_ungif" = nono; then
@@ -358,7 +409,9 @@ fi
 AC_SUBST(TIFF_CFLAGS)
 
 if test "$have_tiff" = yes -o "$have_png" = yes ; then
-  AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lz"
+  if test "x$ZLIB_OBJS" = "x" -a "$have_zlib" = yes; then 
+	  AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lz"
+  fi
 fi
 
 dnl# we always need libm since we now call exp() in gaussian blur
@@ -437,6 +490,10 @@ else
   fi
 fi;
 AC_SUBST(TTF_INCLUDES)
+
+AC_SUBST(JPEG_OBJS)
+AC_SUBST(ZLIB_OBJS)
+AC_SUBST(PNG_OBJS)
 
 AFTERIMAGE_LIBS_EXTERNAL=$AFTERIMAGE_LIBS
 AC_SUBST(AFTERIMAGE_LIBS_EXTERNAL)

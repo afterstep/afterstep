@@ -49,7 +49,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"libAfterImage.lib"
 
 !ELSEIF  "$(CFG)" == "libAfterImage - Win32 Debug"
 
@@ -63,8 +63,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir ""
 # PROP Intermediate_Dir "win32\Debug"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ  /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -84,6 +84,318 @@ LIB32=link.exe -lib
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Group "PNG Files"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\libpng\png.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngerror.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pnggccrd.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngget.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngmem.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngpread.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngread.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngrio.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngrtran.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngrutil.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngset.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngtrans.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngvcrd.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngwio.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngwrite.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngwtran.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libpng\pngwutil.c
+# End Source File
+# End Group
+# Begin Group "JPG Files"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\libjpeg\jcapimin.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcapistd.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jccoefct.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jccolor.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcdctmgr.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jchuff.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcinit.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcmainct.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcmarker.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcmaster.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcomapi.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcparam.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcphuff.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcprepct.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jcsample.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jctrans.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdapimin.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdapistd.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdatadst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdatasrc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdcoefct.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdcolor.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jddctmgr.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdhuff.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdinput.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdmainct.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdmarker.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdmaster.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdmerge.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdphuff.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdpostct.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdsample.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jdtrans.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jerror.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jfdctflt.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jfdctfst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jfdctint.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jidctflt.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jidctfst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jidctint.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jidctred.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jmemmgr.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jmemnobs.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jquant1.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jquant2.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libjpeg\jutils.c
+# End Source File
+# End Group
+# Begin Group "ZLIB Files"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\zlib\adler32.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\compress.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\crc32.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\deflate.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\gzio.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\infback.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\inffast.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\inflate.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\inftrees.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\trees.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\uncompr.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\zlib\zutil.c
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\afterbase.c

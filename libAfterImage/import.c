@@ -28,6 +28,25 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_PNG
+/* Include file for users of png library. */
+# ifdef HAVE_BUILTIN_PNG
+#  include "libpng/png.h"
+# else
+#  include <png.h>
+# endif
+#else
+#include <setjmp.h>
+#endif
+#ifdef HAVE_JPEG
+/* Include file for users of png library. */
+#undef HAVE_STDLIB_H
+# ifdef HAVE_BUILTIN_JPEG
+#  include "libjpeg/jpeglib.h"
+# else
+#  include <jpeglib.h>
+# endif
+#endif
 
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -39,21 +58,18 @@
 #  include <time.h>
 # endif
 #endif
-#ifndef _WIN32
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <stdarg.h>
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
 #include <string.h>
 #include <ctype.h>
 /* <setjmp.h> is used for the optional error recovery mechanism */
-
-#ifdef HAVE_PNG
-/* Include file for users of png library. */
-#include <png.h>
-#else
-#include <setjmp.h>
-#endif
 
 #ifdef const
 #undef const
@@ -62,11 +78,6 @@
 # include "win32/afterbase.h"
 #else
 # include "afterbase.h"
-#endif
-#ifdef HAVE_JPEG
-/* Include file for users of png library. */
-#undef HAVE_STDLIB_H
-#include <jpeglib.h>
 #endif
 #ifdef HAVE_GIF
 #include <gif_lib.h>
@@ -1160,7 +1171,7 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 	{
 		if( bmp_info->biSize == 40 )
 		{/* long header */
-			bmp_read32( infile, &bmp_info->biWidth, 2 );
+			bmp_read32( infile, (CARD32*)&bmp_info->biWidth, 2 );
 			bmp_read16( infile, &bmp_info->biPlanes, 2 );
 			bmp_info->biCompression = 1 ;
 			success = (bmp_read32( infile, &bmp_info->biCompression, 6 )==6);

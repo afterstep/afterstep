@@ -24,7 +24,8 @@ typedef struct tagRGBQUAD { // rgbq
 typedef struct tagBITMAPFILEHEADER {
 	CARD16  bfType;
     CARD32  bfSize;
-    CARD32  bfReserved;
+    CARD16  bfReserved1;
+    CARD16  bfReserved2;
     CARD32  bfOffBits;
 } BITMAPFILEHEADER;
 

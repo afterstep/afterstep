@@ -18,10 +18,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#ifndef _WIN32
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
 #endif
 #include <sys/stat.h>
 

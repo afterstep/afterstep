@@ -33,12 +33,17 @@
 #define X11_3STEP_AA_HEIGHT_THRESHOLD 15
 
 
-#ifndef _WIN32
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
 #endif
 #include <ctype.h>
 #include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
 #ifdef DO_CLOCKING
 #if TIME_WITH_SYS_TIME

@@ -29,7 +29,12 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <ctype.h>
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -44,9 +49,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
-#ifndef _WIN32
-#include <unistd.h>
-#endif
 
 #ifdef HAVE_LIBXPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 #ifdef HAVE_LIBXPM_X11

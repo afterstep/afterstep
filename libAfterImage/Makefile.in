@@ -3,6 +3,35 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
+subdirs = libjpeg libpng zlib
+
+LIBJPEG_OBJS = 	libjpeg/jcapimin.o libjpeg/jcapistd.o libjpeg/jccoefct.o \
+		libjpeg/jccolor.o libjpeg/jcdctmgr.o libjpeg/jchuff.o \
+		libjpeg/jcinit.o libjpeg/jcmainct.o libjpeg/jcmarker.o \
+		libjpeg/jcmaster.o libjpeg/jcomapi.o libjpeg/jcparam.o \
+		libjpeg/jcphuff.o libjpeg/jcprepct.o libjpeg/jcsample.o \
+		libjpeg/jctrans.o libjpeg/jdapimin.o libjpeg/jdapistd.o \
+		libjpeg/jdatadst.o libjpeg/jdatasrc.o libjpeg/jdcoefct.o \
+		libjpeg/jdcolor.o libjpeg/jddctmgr.o libjpeg/jdhuff.o \
+		libjpeg/jdinput.o libjpeg/jdmainct.o libjpeg/jdmarker.o \
+		libjpeg/jdmaster.o libjpeg/jdmerge.o libjpeg/jdphuff.o \
+		libjpeg/jdpostct.o libjpeg/jdsample.o libjpeg/jdtrans.o \
+		libjpeg/jerror.o libjpeg/jfdctflt.o libjpeg/jfdctfst.o \
+		libjpeg/jfdctint.o libjpeg/jidctflt.o libjpeg/jidctfst.o \
+		libjpeg/jidctint.o libjpeg/jidctred.o libjpeg/jquant1.o \
+		libjpeg/jquant2.o libjpeg/jutils.o libjpeg/jmemmgr.o libjpeg/jmemnobs.o
+
+LIBPNG_OBJS = 	libpng/png.o libpng/pngset.o libpng/pngget.o libpng/pngrutil.o \
+		libpng/pngtrans.o libpng/pngwutil.o libpng/pngread.o libpng/pngrio.o \
+		libpng/pngwio.o libpng/pngwrite.o libpng/pngrtran.o \
+		libpng/pngwtran.o libpng/pngmem.o libpng/pngerror.o \
+		libpng/pngpread.o libpng/pnggccrd.o
+
+ZLIB_OBJS = 	zlib/adler32.o 	zlib/compress.o zlib/crc32.o \
+		zlib/gzio.o 	zlib/uncompr.o 	zlib/deflate.o \
+		zlib/trees.o 	zlib/zutil.o 	zlib/inflate.o \
+		zlib/infback.o 	zlib/inftrees.o zlib/inffast.o
+
 ################################################################
 # library specifics :
 
@@ -11,7 +40,8 @@ LIB_INCS= afterimage.h config.h afterbase.h ascmap.h asfont.h \
 		export.h import.h pixmap.h transform.h ungif.h \
 		xcf.h ximage.h xpm.h
 
-LIB_OBJS=  @AFTERBASE_C@ ascmap.o asfont.o asimage.o asimagexml.o \
+LIB_OBJS=  	@JPEG_OBJS@ @ZLIB_OBJS@ @PNG_OBJS@ @AFTERBASE_C@ asimage.o \
+		ascmap.o asfont.o asimagexml.o \
 		asvisual.o blender.o bmp.o char2uni.o export.o import.o \
 		pixmap.o transform.o ungif.o xcf.o ximage.o xpm.o
 
@@ -184,6 +214,7 @@ uninstall.script:
 
 clean:
 		$(RMF) $(LIB_SHARED) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core ; \
+		for I in ${subdirs}; do $(RMF) $$I/*.o $$I/*.obj $$I/*.bak; done; \
 		cd apps; make clean; cd ..
 
 distclean:
@@ -239,13 +270,13 @@ apps: 	@LIBPROG@ $(LIB_OBJS) $(LIB_INCS) $(APPS_SRCS) $(APPS_INCS)
 		cd apps; make ; cd ..
 
 
-$(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS)
+$(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS) config.h
 		$(RMF) $(LIB_STATIC)
 		$(AR) $(LIB_STATIC) $(LIB_OBJS)
 		$(RANLIB) $(LIB_STATIC)
 
 .c.o:
-		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c -o $@
 
 .c.s:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -S $*.c

@@ -28,9 +28,14 @@
 
 #include <ctype.h>
 #include <math.h>
-#include <stdlib.h>
-#ifndef _WIN32
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
 #endif
 #include <string.h>
 #if TIME_WITH_SYS_TIME

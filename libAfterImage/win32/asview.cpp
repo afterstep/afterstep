@@ -22,8 +22,8 @@ BITMAPINFO *bmi = NULL ;
 int APIENTRY 
 WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
 {
-//	char *image_file = "../apps/rose512.jpg" ;
-	char *image_file = "../apps/fore.xpm" ;
+	char *image_file = "../apps/rose512.jpg" ;
+//	char *image_file = "../apps/fore.xpm" ;
 	ASImage *im ;
 	WNDCLASSEX wnd_class ; 
 	ASVisual *asv ;
@@ -49,10 +49,14 @@ WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
 		MessageBox( NULL, "Unable to load image from file.", image_file, MB_OK | MB_ICONINFORMATION );
 		return 0 ;
 	}
-	// Convert ASImage into DIB while tiling it to be 4 times bigger : 
+	
+	/* converting result into BMP file ( as an example ) */
+	ASImage2file( im, NULL, "asview.bmp", ASIT_Bmp, NULL );
+
 	bmbits = NULL ;
-	bmi = ASImage2DBI( asv, im, 0, 0, im->width*2, im->height*2, &bmbits );
- 
+	// Convert ASImage into DIB: 
+	bmi = ASImage2DBI( asv, im, 0, 0, im->width, im->height, &bmbits );
+
 	if( bmi == NULL ) 
 	{
 		MessageBox( NULL, "Failed to convert image into Windows bitmap.", image_file, MB_OK | MB_ICONINFORMATION );

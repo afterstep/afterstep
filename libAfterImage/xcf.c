@@ -27,7 +27,9 @@
 /*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
 
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
 #include <string.h>
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
