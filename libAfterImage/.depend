@@ -1,3 +1,11 @@
+./ascmap.o : \
+		config.h \
+		afterbase.h \
+		asimage.h \
+		import.h \
+		export.h \
+		ascmap.h
+
 ./asfont.o : \
 		config.h \
 		afterbase.h \
@@ -23,6 +31,16 @@
 		asvisual.h \
 		blender.h
 
+./export.o : \
+		config.h \
+		afterbase.h \
+		asimage.h \
+		xcf.h \
+		xpm.h \
+		import.h \
+		export.h \
+		ascmap.h
+
 ./import.o : \
 		config.h \
 		afterbase.h \
@@ -41,4 +59,5 @@
 		config.h \
 		afterbase.h \
 		asimage.h \
+		ascmap.h \
 		xpm.h

@@ -1,18 +1,24 @@
 LIBAFTERIMAGE_OBJS = \
+		$(LIBAFTERIMAGE_PATH)/ascmap.c \
 		$(LIBAFTERIMAGE_PATH)/asfont.c \
 		$(LIBAFTERIMAGE_PATH)/asimage.c \
 		$(LIBAFTERIMAGE_PATH)/asvisual.c \
 		$(LIBAFTERIMAGE_PATH)/blender.c \
+		$(LIBAFTERIMAGE_PATH)/export.c \
 		$(LIBAFTERIMAGE_PATH)/import.c \
 		$(LIBAFTERIMAGE_PATH)/xcf.c \
 		$(LIBAFTERIMAGE_PATH)/xpm.c
 
 LIBAFTERIMAGE_INCS = \
+		$(LIBAFTERIMAGE_PATH)/afterimage.h \
+		$(LIBAFTERIMAGE_PATH)/config.h \
 		$(LIBAFTERIMAGE_PATH)/afterbase.h \
+		$(LIBAFTERIMAGE_PATH)/ascmap.h \
 		$(LIBAFTERIMAGE_PATH)/asfont.h \
 		$(LIBAFTERIMAGE_PATH)/asimage.h \
 		$(LIBAFTERIMAGE_PATH)/asvisual.h \
 		$(LIBAFTERIMAGE_PATH)/blender.h \
+		$(LIBAFTERIMAGE_PATH)/export.h \
 		$(LIBAFTERIMAGE_PATH)/import.h \
 		$(LIBAFTERIMAGE_PATH)/xcf.h \
 		$(LIBAFTERIMAGE_PATH)/xpm.h

@@ -688,25 +688,21 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 		gif_cmap->Colors[y].Blue = cmap.entries[y].blue ;
 	}
 
-fprintf( stderr, "gif_cmap = %p, count = %d\n", gif_cmap, cmap.count );
 	EGifPutScreenDesc(gif, im->width, im->height, 256, 0, gif_cmap );
 	EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, NULL );
 
 	row_pointer = safemalloc( im->width*sizeof(GifPixelType));
-
 	for( y = 0 ; y < im->height ; y++ )
 	{
 		register int x = im->width ;
 		register int *src = mapped_im + x*y;
 		while( --x >= 0 )
-		{
 			row_pointer[x] = src[x] ;
-			/*fprintf( stderr, "%3.3X ", row_pointer[x] );*/
-		}
-	fprintf(stderr, "\n%-4d", im->height - y - 1);
+
 		if( EGifPutLine(gif, row_pointer, im->width)  == GIF_ERROR)
 			PrintGifError();
 	}
+	
 	if (EGifCloseFile(gif) == GIF_ERROR)
 		PrintGifError();
 
