@@ -218,7 +218,8 @@ extern char 	 *as_share_dir_name;
 extern int           fd_width;
 /* set by screen.c:setup_modifiers() in screen.c:ConnectX() :*/
 extern unsigned int  nonlock_mods;	/* a mask for non-locking modifiers */
-extern unsigned int *lock_mods;  	/* all combinations of lock modifier masks */
+#define MAX_LOCK_MODS	256
+extern unsigned int  lock_mods[MAX_LOCK_MODS];  	/* all combinations of lock modifier masks */
 /* Now for each display we may have one or several screens ; */
 extern struct ScreenInfo   Scr;						   /* ScreenInfo for the default screen */
 extern int x_fd;                                       /* descriptor of the X Windows connection  */

@@ -54,7 +54,7 @@ char     *as_share_dir_name     = AFTER_SHAREDIR;
 int       fd_width;
 
 unsigned int  nonlock_mods = 0;				   /* a mask for non-locking modifiers */
-unsigned int *lock_mods = NULL;				   /* all combinations of lock modifier masks */
+unsigned int  lock_mods[MAX_LOCK_MODS] = {0};  /* all combinations of lock modifier masks */
 /* Now for each display we may have one or several screens ; */
 ScreenInfo    Scr;							   /* ScreenInfo for the default screen */
 int x_fd = 0;                                  /* descriptor of the X Windows connection  */
@@ -509,11 +509,6 @@ FreeMyAppResources()
     free( MyArgs.saved_argv );
     destroy_assession( Session );
     build_xpm_colormap( NULL );
-    if( lock_mods )
-    {
-        free( lock_mods );
-        lock_mods = NULL ;
-    }
 }
 
 /*********** end command line parsing **************************/

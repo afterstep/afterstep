@@ -592,12 +592,14 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
     if( new_im )
     {
         ASBackgroundHandler *bh = Scr.RootBackground ;
+		Pixmap old_pmap ;
         /* Scr.RootImage = new_im ; */         /* will be done in event handler !!! */
         if( new_im->name == NULL )
         {
             char *new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
             store_asimage( Scr.image_manager, new_im, new_imname );
         }
+		old_pmap = bh->pmap ;
         if( bh->pmap && (new_im->width != bh->pmap_width ||
             new_im->height != bh->pmap_height) )
         {
@@ -618,6 +620,12 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         asimage2drawable( Scr.asv, bh->pmap, new_im, NULL, 0, 0, 0, 0, new_im->width, new_im->height, True);
         XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
         XClearWindow( dpy, Scr.Root );
+		if( old_pmap == bh->pmap )
+		{                                      /* cruel hack to force refresh of transprent terms : */
+			set_xrootpmap_id (Scr.wmprops, None );
+			ASSync(False);
+			sleep_a_little( 1000 );
+		}
         set_xrootpmap_id (Scr.wmprops, bh->pmap );
     }else
         set_xrootpmap_id (Scr.wmprops, None );

@@ -143,6 +143,30 @@ typedef struct ASBackgroundHandler
     ASImage *im;
 }ASBackgroundHandler;
 
+typedef enum{
+	ASP_SmartPlacement = 0,
+	ASP_RandomPlacement,
+	ASP_Tile,
+	ASP_Cascade,
+	ASP_Manual
+}ASPlacementStrategy ;
+
+typedef struct ASWindowBox
+{
+#define ASA_Virtual				(0x01<<0)
+#define ASA_ReverseOrder		(0x01<<1)
+#define ASA_VerticalPriority	(0x01<<2)
+	ASFlagType 	flags;
+	char       *name ;
+	ASGeometry *area ;                          /* could be aither screen region or virtual region */
+
+	ASPlacementStrategy main_strategy;         /* how to place window in the empty space :Smart, Random Or Tile */
+	ASPlacementStrategy backup_strategy ;      /* how to place window if no empty space of
+												* sufficient size exists: Random, Cascade or Manual*/
+	unsigned int min_width, min_height ;
+	unsigned int max_width, max_height ;
+}ASWindowBox;
+
 typedef enum {
     AST_OneDirection = 0,
     AST_ClosedLoop = 1,

@@ -328,11 +328,8 @@ setup_modifiers ()
 	nonlock_mods = ((ShiftMask | ControlMask | Mod1Mask | Mod2Mask
 	 				 | Mod3Mask | Mod4Mask | Mod5Mask) & ~lockmask);
 
-	if (lock_mods == NULL)
-		lock_mods = (unsigned *)safemalloc (256 * sizeof (unsigned));
-
 	mp = lock_mods;
-	for (m = 0, i = 1; i < 256; i++)
+	for (m = 0, i = 1; i < MAX_LOCK_MODS; i++)
 	{
 		if ((i & lockmask) > m)
 			m = *mp++ = (i & lockmask);

@@ -530,8 +530,6 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     InitDatabase(True);
     InitBase(True);
     free_func_hash ();
-    if( lock_mods );
-        free (lock_mods);
     /* pixmap references */
     pixmap_ref_purge ();
     build_xpm_colormap (NULL);

@@ -68,8 +68,7 @@ MyXGrabButton ( unsigned button, unsigned modifiers,
                          owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
             if( lock_mods[i] == 0 )
                 break;
-            ++i ;
-        }while(1);
+        }while(++i < MAX_LOCK_MODS);
     }
 }
 
@@ -86,8 +85,7 @@ MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window)
             XUngrabButton (dpy, button, modifiers | lock_mods[i], grab_window);
             if( lock_mods[i] == 0 )
                 break;
-            ++i ;
-        }while(1);
+        }while(++i < MAX_LOCK_MODS);
     }
 }
 
@@ -167,8 +165,7 @@ grab_window_keys (Window w, ASFlagType context_mask)
                     XGrabKey( dpy, tmp->keycode, tmp->mods|lock_mods[i], w, True, GrabModeAsync, GrabModeAsync);
                     if( lock_mods[i] == 0 )
                         break;
-                    ++i;
-                }while(1);
+                }while(++i < MAX_LOCK_MODS);
             }
         }
 }

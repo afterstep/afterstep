@@ -425,7 +425,7 @@ GetBaseOptions (const char *filename)
 	char *pixmap_path = NULL ;
 	char *icon_path = NULL ;
 	char *font_path = NULL ;
-	
+
     if (!config)
         exit (0);           /* something terrible has happend */
 
@@ -435,17 +435,17 @@ GetBaseOptions (const char *filename)
         destroy_image_manager( Scr.image_manager, False );
     Scr.image_manager = create_image_manager( NULL, 2.2, pixmap_path, icon_path, NULL );
 	LOCAL_DEBUG_OUT( "pixmap_path=\"%s\"", pixmap_path );
-	LOCAL_DEBUG_OUT( "icon_path=\"%s\"", icon_path );	
+	LOCAL_DEBUG_OUT( "icon_path=\"%s\"", icon_path );
     if( Scr.font_manager )
         destroy_font_manager( Scr.font_manager, False );
 
     Scr.font_manager = create_font_manager (dpy, font_path, NULL);
-	
-	if( pixmap_path ) 
+
+	if( pixmap_path )
 		free( pixmap_path );
-	if( icon_path ) 
+	if( icon_path )
 		free( icon_path );
-	if( font_path ) 
+	if( font_path )
 		free( font_path );
 
 
@@ -1404,22 +1404,38 @@ exec_pending_swallow( ASWharfFolder *aswf )
 void
 grab_swallowed_canvas_btns( ASCanvas *canvas, Bool action, Bool withdraw )
 {
-    unsigned *mods = lock_mods;
+	register int i = 0 ;
+	register unsigned int *mods = lock_mods;
     do
     {
         /* grab button 1 if this button performs an action */
         if( action )
-            XGrabButton (dpy, Button1, *mods,
+            XGrabButton (dpy, Button1, mods[i],
                         canvas->w,
                         False, ButtonPressMask | ButtonReleaseMask,
                         GrabModeAsync, GrabModeAsync, None, None);
         /* grab button 3 if this is the root folder */
         if (withdraw )
-            XGrabButton (dpy, Button3, *mods,
+            XGrabButton (dpy, Button3, mods[i],
                         canvas->w,
                         False, ButtonPressMask | ButtonReleaseMask,
                         GrabModeAsync, GrabModeAsync, None, None);
-    }while (*mods++);
+		if( mods[i] == 0 )
+			return;
+    }while (++i < MAX_LOCK_MODS );
+
+	if( action )
+        XGrabButton (dpy, Button1, 0,
+                    canvas->w,
+                    False, ButtonPressMask | ButtonReleaseMask,
+                    GrabModeAsync, GrabModeAsync, None, None);
+    /* grab button 3 if this is the root folder */
+    if (withdraw )
+        XGrabButton (dpy, Button3, 0,
+                    canvas->w,
+                    False, ButtonPressMask | ButtonReleaseMask,
+                    GrabModeAsync, GrabModeAsync, None, None);
+
 }
 
 void
