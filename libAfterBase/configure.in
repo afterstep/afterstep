@@ -155,7 +155,7 @@ AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_CHECK_HEADERS(sys/wait.h sys/dirent.h sys/time.h link.h execinfo.h malloc.h stdlib.h)
 
-AC_CHECK_HEADERS(elf.h,[AC_CHECK_MEMBERS(Elf32_Dyn.d_tag,,,[#include <elf.h>])
+AC_CHECK_HEADERS(elf.h,[AC_CHECK_MEMBERS([Elf32_Dyn.d_tag, Elf64_Dyn.d_tag],,,[#include <elf.h>])
 			AC_CHECK_TYPES([Elf64_Addr, Elf32_Addr],,,[#include <elf.h>])])
 
 dnl# this is needed for self diagnostic code :

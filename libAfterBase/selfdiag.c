@@ -83,6 +83,7 @@ void
 get_proc_tables (proc_tables * ptabs)
 {
 #ifdef HAVE_ELF_H
+#if defined(HAVE_ELF32_DYN_D_TAG) || defined(HAVE_ELF64_DYN_D_TAG)
 	ElfW (Dyn) * dyn;
 
 	memset (ptabs, 0x00, sizeof (proc_tables));
@@ -117,7 +118,7 @@ get_proc_tables (proc_tables * ptabs)
 		}
 	if (ptabs->sym_hash != NULL)
 		ptabs->sym_ent_num = *(ptabs->sym_hash + 1);
-
+#endif
 #endif
 }
 
@@ -156,6 +157,7 @@ print_elf_data (proc_tables * ptabs)
 			fprintf (stderr, "   [0x%8.8X]:[%s]\n", plm->l_addr, plm->l_name);
 		}
 	}
+#ifdef HAVE_ELF32_ADDR	 
 	if (ptabs->symbols != NULL && ptabs->sym_ent_size == sizeof (Elf32_Sym))
 	{
 		int           i;
@@ -170,6 +172,8 @@ print_elf_data (proc_tables * ptabs)
 			ptr++;
 		}
 	}
+#endif
+#ifdef HAVE_ELF64_ADDR	 
 	if (ptabs->symbols != NULL && ptabs->sym_ent_size == sizeof (Elf64_Sym))
 	{
 		int           i;
@@ -183,6 +187,7 @@ print_elf_data (proc_tables * ptabs)
 			ptr++;
 		}
 	}
+#endif
 #endif
 }
 
@@ -201,6 +206,7 @@ find_func_symbol (void *addr, long *offset)
 	if (_ptabs.symbols == NULL || _ptabs.strings == NULL)
 		return unknown;
 
+#ifdef HAVE_ELF32_ADDR
 	if (_ptabs.sym_ent_size == sizeof (Elf32_Sym))
 	{
 		Elf32_Sym    *ptr = _ptabs.symbols + 1;
@@ -219,7 +225,10 @@ find_func_symbol (void *addr, long *offset)
 			}
 			ptr++;
 		}
-	} else if (_ptabs.sym_ent_size == sizeof (Elf64_Sym))
+	}
+#endif
+#ifdef HAVE_ELF64_ADDR	
+	if (_ptabs.sym_ent_size == sizeof (Elf64_Sym))
 	{
 		int           i;
 		Elf64_Sym    *ptr = (Elf64_Sym *) (_ptabs.symbols + 1);
@@ -239,6 +248,7 @@ find_func_symbol (void *addr, long *offset)
 			ptr++;
 		}
 	}
+#endif
 	*offset = min_offset;
 	return selected;
 #else

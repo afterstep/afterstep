@@ -25,6 +25,9 @@
 /* Define to 1 if the system has the type `Elf64_Addr'. */
 #undef HAVE_ELF64_ADDR
 
+/* Define to 1 if `d_tag' is member of `Elf64_Dyn'. */
+#undef HAVE_ELF64_DYN_D_TAG
+
 /* Define to 1 if you have the <elf.h> header file. */
 #undef HAVE_ELF_H
 
