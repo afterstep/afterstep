@@ -10,6 +10,14 @@ struct ScreenInfo;
 
 #define ButtonAnyMask	(Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)
 
+#define AllButtonMask    ButtonAnyMask
+#ifndef __CYGWIN__
+#define AllModifierMask  (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask)
+#else
+#define AllModifierMask  (ShiftMask|ControlMask|Mod1Mask)
+#endif
+
+
 typedef enum
 {
     ASE_NotSupported     = 0,

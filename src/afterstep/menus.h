@@ -40,16 +40,19 @@ typedef struct MenuData
 typedef struct ASMenu
 {
     unsigned long magic ;
-    char  *name ;
+    char  *name ;                              /* the name of the popup */
+    char  *title ;                             /* text of the first F_TITLE item */
     struct ASCanvas *main_canvas;
 
     unsigned int items_num ;
     struct ASTBarData **item_bar;
+    struct MenuData   **item_submenu;
 
     unsigned int item_width, item_height ;
     unsigned int top_item;
     int selected_item ;                        /* if -1 - then none is selected */
     int pressed_item ;                         /* if -1 - then none is pressed */
+    struct ASMenu *open_submenu;
 
     unsigned int visible_items_num ;
 

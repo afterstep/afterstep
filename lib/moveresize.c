@@ -43,12 +43,6 @@ Bool GrabEm   ( struct ScreenInfo *scr, Cursor cursor );
 void UngrabEm ();
 #endif
 
-#define AllButtonMask    (Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)
-#ifndef __CYGWIN__
-#define AllModifierMask  (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask)
-#else
-#define AllModifierMask  (ShiftMask|ControlMask|Mod1Mask)
-#endif
 /***********************************************************************
  * backported from dispatcher.c :
  ***********************************************************************/

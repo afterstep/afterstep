@@ -287,7 +287,9 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
 void
 press_menu_item( ASMenu *menu, int pressed )
 {
+    Bool update_display = False ;
 LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
+
     if( AS_ASSERT(menu) || menu->items_num == 0 )
         return;
 
@@ -295,17 +297,26 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
         pressed = menu->items_num - 1 ;
 
     if( menu->pressed_item >= 0 )
+    {
         set_astbar_pressed( menu->item_bar[menu->pressed_item], menu->main_canvas, False );
+        update_display = True ;
+    }
     if( pressed >= 0 )
     {
         if( pressed != menu->selected_item )
         {
             set_astbar_pressed( menu->item_bar[pressed], NULL, True );/* don't redraw yet */
-            select_menu_item( menu, pressed );
+            select_menu_item( menu, pressed );  /* this one updates display already */
+            update_display = False ;
         }else
+        {
             set_astbar_pressed( menu->item_bar[pressed], menu->main_canvas, True );
+            update_display = True ;
+        }
     }
     menu->pressed_item = pressed ;
+    if( update_display )
+        update_canvas_display( menu->main_canvas );
 }
 /*************************************************************************/
 /* Menu event handlers  - ASInternalWindow interface :                   */
@@ -415,7 +426,12 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
         {
             int selection = py/menu->item_height ;
             if( selection != menu->selected_item )
-                select_menu_item( menu, selection );
+            {
+                if( xmev->state & ButtonAnyMask )
+                    press_menu_item( menu, selection );
+                else
+                    select_menu_item( menu, selection );
+            }
         }
     }
 }
