@@ -42,7 +42,6 @@
 #endif /* HAVE_XINERAMA */
 
 
-#include "../include/afterbase.h"
 #include "functions.h"
 
 #ifdef __cplusplus

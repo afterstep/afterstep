@@ -16,6 +16,7 @@
 #include "import.h"
 #include "export.h"
 #include "pixmap.h"
+#include "char2uni.h"
 
 /****h* libAfterImage/libAfterImage
  * NAME

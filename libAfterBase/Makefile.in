@@ -37,6 +37,7 @@ LIB_OBJS=	ashash.o aslist.o asvector.o audit.o \
 ################################################################
 # generic makefile stuff :
 
+LIB_DIR_NAME	= libAfterBase
 LIB_NAME        = LIBAFTERBASE
 LIB_STATIC      = libAfterBase.a
 LIB_SHARED      = libAfterBase.so
@@ -76,11 +77,11 @@ INCLUDES	= $(INCS_X) $(INCS_PRIVATE)
 
 LIBDIR		= $(DESTDIR)@libdir@
 INCLUDEDIR	= $(DESTDIR)@includedir@
-AFTER_INC_DIR	= $(DESTDIR)@includedir@/libAfterBase
+AFTER_INC_DIR	= $(DESTDIR)@includedir@/$(LIB_DIR_NAME)
 AFTER_BIN_DIR	= $(DESTDIR)@bindir@
 AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man3
-AFTER_DOC_DIR	= $(DESTDIR)@datadir@/libAfterBase/doc
-AFTER_SHAREDIR	= $(DESTDIR)@datadir@/afterstep
+AFTER_SHAREDIR	= $(DESTDIR)@datadir@/$(LIB_DIR_NAME)
+AFTER_DOC_DIR	= $(AFTER_SHAREDIR)/doc
 
 all:            @LIBPROG@ $(INSTALLONBUILD)
 

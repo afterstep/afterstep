@@ -1,4 +1,5 @@
 #include "../configure.h"
+#include "../include/afterbase.h"
 #include "asapp.h"
 #include "screen.h"
 #include "../libAfterImage/afterimage.h"

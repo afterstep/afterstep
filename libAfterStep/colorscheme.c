@@ -2,7 +2,7 @@
 #undef DO_CLOCKING
 
 #include "../configure.h"
-
+#include "../include/afterbase.h"
 #include "asapp.h"
 #include "afterstep.h"
 #include "../libAfterImage/afterimage.h"

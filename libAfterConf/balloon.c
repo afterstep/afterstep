@@ -21,7 +21,7 @@
 
 #include "../configure.h"
 #define NEED_BALLOON
-
+#include "../include/afterbase.h"
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/afterstep.h"
 #include "../libAfterStep/mystyle.h"

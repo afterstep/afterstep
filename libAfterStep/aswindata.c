@@ -23,7 +23,7 @@
 #define LOCAL_DEBUG
 
 #include "../configure.h"
-
+#include "../include/afterbase.h"
 #include "asapp.h"
 #include "afterstep.h"
 #include "screen.h"

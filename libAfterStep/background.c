@@ -47,8 +47,7 @@
 
 #include <X11/Intrinsic.h>
 
-#define IN_MODULE
-
+#include "../include/afterbase.h"
 #include "asapp.h"
 #include "afterstep.h"
 #include "screen.h"

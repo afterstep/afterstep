@@ -3,7 +3,7 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
-LIB_INCS= asapp.h asdatabase.h aswindata.h \
+LIB_INCS= 	afterstep.h asapp.h asdatabase.h asfeel.h aswindata.h \
 		  balloon.h canvas.h clientprops.h colorscheme.h \
 		  decor.h event.h freestor.h \
 		  functions.h font.h hints.h \
@@ -24,6 +24,9 @@ LIB_OBJS= asapp.o asdatabase.o asfeel.o aswindata.o \
 		  moveresize.o myicon.o mylook.o mystyle.o mystyle_property.o \
 		  outline.o parser.o screen.o session.o shape.o wmprops.o
 
+CONFIG_OBJS= afterstep-config
+
+LIB_DIR_NAME    = libAfterStep
 LIB_NAME        = LIBAFTERSTEP
 LIB_STATIC      = libAfterStep.a
 LIB_SHARED      = libAfterStep.so

@@ -50,11 +50,11 @@ LIBS_ALL	= $(LIBRARIES) $(EXTRA_LIBRARIES)
 
 LIBDIR		= $(DESTDIR)@libdir@
 INCLUDEDIR	= $(DESTDIR)@includedir@
-AFTER_INC_DIR	= $(DESTDIR)@includedir@/afterstep
+AFTER_INC_DIR	= $(DESTDIR)@includedir@/$(LIB_DIR_NAME)
 AFTER_BIN_DIR	= $(DESTDIR)@bindir@
 AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man1
-AFTER_DOC_DIR	= $(DESTDIR)@datadir@/afterstep/doc
 AFTER_SHAREDIR	= $(DESTDIR)@datadir@/afterstep
+AFTER_DOC_DIR	= $(AFTER_SHAREDIR)/doc
 AFTER_DIR	= @with_afterdir@
 AFTER_SAVE	= @with_afterdir@/.workspace_state
 AFTER_NONCF	= @with_afterdir@/non-configurable

@@ -24,7 +24,7 @@
 #include "../configure.h"
 
 #define LOCAL_DEBUG
-
+#include "../include/afterbase.h"
 #include "asapp.h"
 #include <signal.h>
 #include "../libAfterImage/afterimage.h"

@@ -21,7 +21,7 @@
 #undef DO_CLOCKING
 
 #include "../configure.h"
-
+#include "../include/afterbase.h"
 #include "asapp.h"
 #include "afterstep.h"
 #include "mystyle.h"

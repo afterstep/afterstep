@@ -16,6 +16,8 @@ struct icon_t;
 struct button_t;
 struct ASImageManager;
 struct ASBalloon;
+struct ASVector;
+struct ASGrid;
 
 typedef struct ASCanvas
 {
@@ -40,11 +42,11 @@ typedef struct ASCanvas
 	unsigned int bw ;
 
 	Pixmap 		saved_canvas ;
-	ASVector 	*saved_shape ;
+	struct ASVector 	*saved_shape ;
 
 	/* these two are shortcuts to above values */
 	Pixmap canvas;
-	ASVector *shape;                     /* vector of XRectangles */
+	struct ASVector *shape;                     /* vector of XRectangles */
     /* 32 bytes */
 }ASCanvas;
 
@@ -104,7 +106,7 @@ void quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool us
 
 Bool is_canvas_needs_redraw( ASCanvas *pc );
 Bool is_canvas_dirty( ASCanvas *pc );
-void add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity, int vx, int vy );
+void add_canvas_grid( struct ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity, int vx, int vy );
 void set_root_clip_area( ASCanvas *canvas );
 
 void send_canvas_configure_notify(ASCanvas *parent, ASCanvas *canvas);

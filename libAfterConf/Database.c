@@ -23,7 +23,7 @@
 
 
 #include "../configure.h"
-
+#include "../include/afterbase.h"
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/afterstep.h"
 #include "../libAfterStep/asdatabase.h"

@@ -1,6 +1,7 @@
 #ifndef ASINTERNALS_H_HEADER_INCLUDED
 #define ASINTERNALS_H_HEADER_INCLUDED
 
+#include "../../include/afterbase.h"
 #include "../../libAfterStep/asapp.h"
 
 #include "../../libAfterImage/afterimage.h"

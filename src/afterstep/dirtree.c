@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 
 #include "../../configure.h"
-
+#include "../../include/afterbase.h"
 #include "../../libAfterStep/asapp.h"
 #include "dirtree.h"
 void          init_func_data (FunctionData * data);

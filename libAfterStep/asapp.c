@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "../include/afterbase.h"
 #include "asapp.h"
 #include "afterstep.h"
 #include "parser.h"
