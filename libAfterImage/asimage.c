@@ -1583,23 +1583,25 @@ scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* sca
 	set_component(total.red,0x00000F00,0,total.width*3); 
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &step );
 
-	c2 = c1 = &(src_lines[0]);
-	c3 = &(src_lines[1]);
-	c4 = &(src_lines[(src->height>2)?2:1]);
-	next_c4 = &(src_lines[3]);
+	set_component(src_lines[0].red,0x00000F00,0,line_len*3); 
 	DECODE_SCANLINE(src,tmp,0);
-	total.flags = step.flags = c2->flags = tmp.flags ;
+	total.flags = step.flags = src_lines[0].flags = tmp.flags ;
 LOCAL_DEBUG_OUT( "rescaling line #%d", 0 );
-	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c2,scales_h,line_len);
+	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,src_lines[1],scales_h,line_len);
 	DECODE_SCANLINE(src,tmp,1);
-	c3->flags = tmp.flags ;
+	src_lines[1].flags = tmp.flags ;
 LOCAL_DEBUG_OUT( "rescaling line #%d", 1 );
-	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c3,scales_h,line_len);
+	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,src_lines[2],scales_h,line_len);
 	i = 0 ;
 	max_i = src->height-1 ;
 	while( i < max_i )
 	{
 		int S = scales_v[i], n ;
+
+		c1 = &(src_lines[i&0x03]);
+		c2 = &(src_lines[(i+1)&0x03]);
+		c3 = &(src_lines[(i+2)&0x03]);
+		c4 = &(src_lines[(i+3)&0x03]);
 
 		if( i+2 < src->height )
 		{
@@ -1609,24 +1611,28 @@ LOCAL_DEBUG_OUT( "rescaling line #%d", i+2 );
 			CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c4,scales_h,line_len);
 		}
 		/* now we'll prepare total and step : */
-		SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,total,step,S,dst->width);
+/*	set_component(total.red,0x00000F00,0,total.width*3); 
+	output_image_line( imout, &total, 1);
+	output_image_line( imout, &total, 1);
+	output_image_line( imout, &total, 1);
+		output_image_line( imout, c2, 1);
+		output_image_line( imout, c2, 1);
+		output_image_line( imout, c2, 1);
+	output_image_line( imout, &total, 1);
+	output_image_line( imout, &total, 1);
+	output_image_line( imout, &total, 1);
+*/
+		SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,dst->width);
 		output_image_line( imout, c2, 1);
 
-		n = 1;
+		n = 0;
 		do
 		{
-			output_image_line( imout, &total, S<<1);
-			if( ++n >= S ) break;
-			SCANLINE_FUNC(add_component,total,step,NULL,dst->width ); 
+			output_image_line( imout, c1, S<<1);
+			if( ++n >= S ) 
+				break;
+			SCANLINE_FUNC(add_component,*c1,step,NULL,dst->width ); 
 		}while (1);
-		{
-		  ASScanline *tmp = c1;
-			c1 = c2;
-			c2 = c3;
-			c3 = c4;
-			c4 = next_c4;
-			next_c4 = tmp;
-		}
 		k += n ;
 		++i;
 	}
