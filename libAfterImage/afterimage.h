@@ -4,7 +4,6 @@
 /* the follwoing files has to be included in user app to get access to
  * libAfterImage functionality.
  */
-
 #include "asvisual.h"
 #include "blender.h"
 #include "asimage.h"
