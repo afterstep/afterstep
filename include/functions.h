@@ -90,12 +90,14 @@ typedef enum {
   F_Folder,
   /* this one is treated by AS same as F_EXEC but it really
      should be used only in Wharf config : */
-  F_Swallow,
+  F_SWALLOW_FUNC_START,
+  F_Swallow = F_SWALLOW_FUNC_START,
   F_MaxSwallow,
   F_SwallowModule,
   F_MaxSwallowModule,
   F_DropExec,
-  F_Size,
+  F_SWALLOW_FUNC_END,
+  F_Size = F_SWALLOW_FUNC_END,
   F_Transient,
 F_FUNCTIONS_NUM
 } FunctionCode ;
@@ -111,6 +113,8 @@ F_FUNCTIONS_NUM
 #define IsModuleFunc(f)  ((f)>F_MODULE_FUNC_START&&(f)<F_INTERNAL_FUNC_START)
 #define IsInternFunc(f)  ((f)>F_INTERNAL_FUNC_START&&(f)<F_FUNCTIONS_NUM)
 #define IsValidFunc(f)   ((f)>=0&&(f)<F_FUNCTIONS_NUM)
+#define IsSwallowFunc(f) ((f)>=F_SWALLOW_FUNC_START&&(f)<F_SWALLOW_FUNC_END)
+
 
 #define UP 1
 #define DOWN 0

@@ -599,6 +599,9 @@ int WriteDatabaseOptions (const char *filename, char *myname,
 
 #define WHARF_Player_ID 		(WHARF_ID_START+21)
 #define WHARF_Sound_ID 			(WHARF_ID_START+22)
+#define WHARF_ShowLabel_ID      (WHARF_ID_START+23)
+#define WHARF_LabelLocation_ID  (WHARF_ID_START+24)
+#define WHARF_FlipLabel_ID      (WHARF_ID_START+25)
 
 #define	WHARF_ID_END			(WHARF_ID_START+30)
 #define WFUNC_START_ID			(WHARF_ID_END)
@@ -646,7 +649,7 @@ typedef struct WharfButton
 WharfButton;
 
 #define  WHARF_GEOMETRY         (0x01<<0)
-#define  WHARF_ROWS			(0x01<<1)
+#define  WHARF_ROWS             (0x01<<1)
 #define  WHARF_COLUMNS			(0x01<<2)
 #define  WHARF_NO_PUSH			(0x01<<3)
 #define  WHARF_FULL_PUSH		(0x01<<4)
@@ -665,6 +668,9 @@ WharfButton;
 #define  WHARF_ANIMATE_MAIN		(0x01<<17)
 #define  WHARF_ANIMATE			(0x01<<18)
 #define  WHARF_SOUND			(0x01<<19)
+#define  WHARF_SHOW_LABEL       (0x01<<20)
+#define  WHARF_LABEL_LOCATION   (0x01<<21)
+#define  WHARF_FLIP_LABEL       (0x01<<22)
 
 typedef struct
 {
@@ -681,6 +687,8 @@ typedef struct
     unsigned int animate_steps, animate_steps_main, animate_delay;
     char *sounds[WHEV_MAX_EVENTS];
     WharfButton *root_folder;
+
+    unsigned int label_location;
 
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;

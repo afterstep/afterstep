@@ -18,6 +18,7 @@
  *
  */
 
+#undef LOCAL_DEBUG
 #undef DO_CLOCKING
 #undef UNKNOWN_KEYWORD_WARNING
 
@@ -54,11 +55,12 @@ BuildHash (SyntaxDef * syntax)
 TermDef      *
 FindStatementTerm (char *tline, SyntaxDef * syntax)
 {
-	void         *pterm = NULL;
-
-	if (!get_hash_item (syntax->term_hash, (ASHashableValue) tline, &pterm))
+    TermDef *pterm = NULL;
+    LOCAL_DEBUG_OUT( "looking for pterm in hash table  %p of the syntax %s ", syntax->term_hash, syntax->display_name );
+    if (get_hash_item (syntax->term_hash, AS_HASHABLE(tline), (void**)&pterm)!=ASH_Success  )
 		pterm = NULL;
-	return (TermDef *) pterm;
+    LOCAL_DEBUG_OUT( "FOUND pterm %p", syntax->term_hash );
+    return pterm;
 }
 
 void
@@ -263,7 +265,7 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 					 return NULL;
 				 }
 				 new_conf->fd =
-					 open (realfilename, create ? O_CREAT | O_RDONLY : O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP);
+                     open (realfilename, create ? O_CREAT | O_RDONLY |O_BINARY: O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP|O_BINARY);
 				 free (realfilename);
                  set_flags( new_conf->flags, CP_NeedToCloseFile);
 			 }
@@ -286,7 +288,7 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 		}
 
 	if (new_conf->fd != -1 && new_conf->fp == NULL)
-		new_conf->fp = fdopen (new_conf->fd, "rt");
+        new_conf->fp = fdopen (new_conf->fd, get_flags(new_conf->flags, CP_ReadLines)?"rt":"rb");
 
 	new_conf->myname = mystrdup(myname);
 	new_conf->current_syntax = NULL;
@@ -409,6 +411,28 @@ DestroyConfig (ConfigDef * config)
 	free (config);
 }
 
+void print_trimmed_str( char *prompt, char * str )
+{
+#ifdef LOCAL_DEBUG
+    int i = 0;
+    char tmp ;
+
+    while( str[i] && i < 20 )
+    {
+        if( str[i] == '\n' )
+            str[i] = '}';
+        ++i ;
+    }
+    tmp = str[i] ;
+    str[i] = '\0';
+    LOCAL_DEBUG_OUT( "first %d chars of %s:\"%s\"", i, prompt, str );
+    str[i] = tmp;
+    while( --i >= 0 )
+        if( str[i] == '}' )
+            str[i] = '\n';
+#endif
+}
+
 char         *
 GetToNextLine (ConfigDef * config)
 {
@@ -436,6 +460,7 @@ GetToNextLine (ConfigDef * config)
 		{
             if( get_flags( config->flags, CP_ReadLines ) )
             {
+LOCAL_DEBUG_OUT( "Reading Lines ...%s", "" );
                 if (!fgets (config->buffer, config->buffer_size, config->fp))
                     return NULL;
                 config->bytes_in = strlen(config->buffer);
@@ -443,22 +468,30 @@ GetToNextLine (ConfigDef * config)
             }else
             {
                 register int  i;
+                register char *ptr = config->buffer ;
 
-                config->bytes_in = fread (config->buffer, 1, config->buffer_size, config->fp);
+LOCAL_DEBUG_OUT( "Reading Buffer ...%s", "" );
+                config->bytes_in = read (config->fd, ptr, config->buffer_size);
                 if (config->bytes_in <= 0)
                     return NULL;
+                print_trimmed_str( "new data begins with", ptr );
                 /* now we want to get back to the last end-of-line
                 so not to break statements in half */
                 for (i = config->bytes_in - 1; i >= 0; i--)
-                    if (config->buffer[i] == '\n')
+                    if (ptr[i] == '\n')
                         break;
                 i++;
                 if (i > 0)
                 {
-                    fseek (config->fp, i - (config->bytes_in), SEEK_CUR);
+                    lseek (config->fd, i - (config->bytes_in), SEEK_CUR);
                     config->bytes_in = i;
                 }
-                config->buffer[config->bytes_in] = '\0';
+                ptr[config->bytes_in] = '\0';
+#ifdef __CYGWIN__                              /* fuck Microsoft !!!!! */
+                while( --i >= 0 )
+                    if( ptr[i] == 0x0D )
+                        ptr[i] = 0x0A;
+#endif
             }
             config->cursor = &(config->buffer[0]);
         } else
@@ -481,7 +514,6 @@ GetToNextLine (ConfigDef * config)
    or config->syntax.file_terminator or EOF is reached
    Return: NULL if end of config reached, otherwise same as tline.
  */
-
 char         *
 GetNextStatement (ConfigDef * config, int my_only)
 {
@@ -497,7 +529,11 @@ GetNextStatement (ConfigDef * config, int my_only)
 		{
 			if (*cur == file_terminator)
 				return NULL;
-			if (!isspace ((int)*cur))
+#ifdef __CYGWIN__
+            if (!isspace ((int)*cur) && *cur != 0x0D)
+#else
+            if (!isspace ((int)*cur))
+#endif
 			{
 				register int  i;
 
@@ -505,6 +541,7 @@ GetNextStatement (ConfigDef * config, int my_only)
 
 				if (*cur == COMMENTS_CHAR)
 				{							   /* let's check for DISABLE keyword */
+                    print_trimmed_str( "comments at", cur );
 					for (i = 1; i < DISABLED_KEYWORD_SIZE; i++)
 						if (*(cur + i) == '\0' || *(cur + i) != _disabled_keyword[i])
 							break;
@@ -528,6 +565,7 @@ GetNextStatement (ConfigDef * config, int my_only)
 				{							   /* check if we have MyName here */
 					register char *mname = config->myname;
 
+                    print_trimmed_str(  "private option at", cur );
 					while (*cur != '\0' && *mname != '\0')
 					{
 						if (tolower (*(mname++)) != tolower (*(++cur)))
@@ -541,8 +579,13 @@ GetNextStatement (ConfigDef * config, int my_only)
 					}
 					cur++;
 				} else
-					config->current_flags |= CF_PUBLIC_OPTION;
+                {
 
+                    if( *cur == terminator || *cur == file_terminator )   /* public option keyword may not be empty ! */
+                        break;
+                    config->current_flags |= CF_PUBLIC_OPTION;
+                    print_trimmed_str( "public option at", cur );
+                }
 				config->tline = cur;		   /*that will be the begginnig of the term */
 
 				/* now we should copy everything from after the first space to

@@ -55,6 +55,7 @@
 #include "../../include/decor.h"
 #include "../../include/event.h"
 #include "../../include/wmprops.h"
+#include "../../include/functions.h"
 
 #ifdef ENABLE_SOUND
 #define WHEV_PUSH		0
@@ -66,8 +67,50 @@
 #define MAX_EVENTS		6
 #endif
 
+#define MAGIC_WHARF_BUTTON    0xA38AB110
+#define MAGIC_WHARF_FOLDER    0xA38AF01D
+
+struct ASWharfFolder;
+
+typedef struct ASWharfButton
+{
+    unsigned long magic;
+#define ASW_SwallowTarget   (0x01<<0)
+    ASFlagType flags;
+    char *name ;
+    ASCanvas *canvas;
+    ASCanvas   *swallowed;
+    ASTBarData *bar;
+
+    unsigned int     desired_width, desired_height;
+    FunctionData    *fdata;
+
+    struct ASWharfFolder   *folder;
+    struct ASWharfFolder   *parent;
+}ASWharfButton;
+
+typedef struct ASWharfFolder
+{
+    unsigned long magic;
+#define ASW_Mapped          (0x01<<0)
+#define ASW_Vertical        (0x01<<1)
+    ASFlagType  flags;
+
+    ASCanvas    *canvas;
+    ASWharfButton *buttons ;
+    int buttons_num;
+    ASWharfButton *parent ;
+
+    unsigned int total_width, total_height;    /* size calculated based on size of participating buttons */
+
+    int animation_steps;                       /* how many steps left */
+    int animation_dir;                         /* +1 or -1 */
+}ASWharfFolder;
+
 typedef struct ASWharfState
 {
+    ASHashTable   *win2obj_xref;               /* xref of window IDs to wharf buttons and folders */
+    ASWharfFolder *root_folder ;
 
 }ASWharfState;
 
@@ -77,9 +120,10 @@ WharfConfig *Config = NULL;
 int x_fd;
 int as_fd[2];
 
-#define WHARF_EVENT_MASK   (ExposureMask | ButtonReleaseMask |\
-                            ButtonPressMask | LeaveWindowMask | EnterWindowMask |\
-                            StructureNotifyMask)
+#define WHARF_BUTTON_EVENT_MASK   (ButtonReleaseMask |\
+                                   ButtonPressMask | LeaveWindowMask | EnterWindowMask |\
+                                   StructureNotifyMask)
+#define WHARF_FOLDER_EVENT_MASK   (StructureNotifyMask)
 
 
 void HandleEvents(int x_fd, int *as_fd);
@@ -89,6 +133,10 @@ Window make_wharf_window();
 void GetOptions (const char *filename);
 void GetBaseOptions (const char *filename);
 void CheckConfigSanity();
+
+ASWharfFolder *build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical );
+void display_wharf_folder( ASWharfFolder *aswf );
+
 
 /***********************************************************************
  *   main - start of module
@@ -134,6 +182,9 @@ main (int argc, char **argv)
 
     CheckConfigSanity();
 
+    WharfState.root_folder = build_wharf_folder( Config->root_folder, NULL, (Config->rows != 1) );
+    display_wharf_folder( WharfState.root_folder );
+
     /* Create a list of all windows */
     /* Request a list of all windows,
      * wait for ConfigureWindow packets */
@@ -170,8 +221,6 @@ void
 DeadPipe (int nonsense)
 {
 #ifdef DEBUG_ALLOCS
-	int i;
-    GC foreGC, backGC, reliefGC, shadowGC;
 
 /* normally, we let the system clean up, but when auditing time comes
  * around, it's best to have the books in order... */
@@ -180,13 +229,8 @@ DeadPipe (int nonsense)
     if( Config )
         DestroyWharfConfig (Config);
 
-    mystyle_get_global_gcs (mystyle_first, &foreGC, &backGC, &reliefGC, &shadowGC);
+    mystyle_free_global_gcs ();
     mystyle_destroy_all();
-    XFreeGC (dpy, foreGC);
-    XFreeGC (dpy, backGC);
-    XFreeGC (dpy, reliefGC);
-    XFreeGC (dpy, shadowGC);
-
     print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
 
@@ -278,6 +322,8 @@ SHOW_CHECKPOINT;
         Config->animate_steps_main = config->animate_steps_main ;
     if( get_flags( config->set_flags, WHARF_ANIMATE_DELAY ) )
         Config->animate_delay = config->animate_delay;
+    if( get_flags( config->set_flags, WHARF_LABEL_LOCATION ) )
+        Config->label_location = config->label_location;
 
     if( get_flags( config->set_flags, WHARF_SOUND ) )
     {
@@ -328,6 +374,34 @@ GetBaseOptions (const char *filename)
     Scr.VyMax = Scr.MyDisplayHeight;
 
     SHOW_TIME("BaseConfigParsingTime",started);
+}
+
+/****************************************************************************/
+/* Window ID xref :                                                         */
+/****************************************************************************/
+Bool
+register_object( Window w, ASMagic *obj)
+{
+    if( WharfState.win2obj_xref == NULL )
+        WharfState.win2obj_xref = create_ashash(0, NULL, NULL, NULL);
+
+    return (add_hash_item(WharfState.win2obj_xref, AS_HASHABLE(w), obj) == ASH_Success);
+}
+
+ASMagic *
+fetch_object( Window w )
+{
+    ASMagic *obj = NULL ;
+    if( WharfState.win2obj_xref )
+        get_hash_item( WharfState.win2obj_xref, AS_HASHABLE(w), (void**)&obj );
+    return obj ;
+}
+
+void
+unregister_client( Window w )
+{
+    if( WharfState.win2obj_xref )
+        remove_hash_item( WharfState.win2obj_xref, AS_HASHABLE(w), NULL, False );
 }
 
 /****************************************************************************/
@@ -414,4 +488,174 @@ DispatchEvent (ASEvent * event)
             break;
     }
 }
+
+/*************************************************************************/
+/* Wharf buttons :                                                       */
+
+ASCanvas*
+create_wharf_folder_canvas(ASWharfFolder *aswf)
+{
+    static XSetWindowAttributes attr ;
+    Window w ;
+
+    attr.event_mask = WHARF_FOLDER_EVENT_MASK ;
+    w = create_visual_window( Scr.asv, None, 0, 0, 1, 1, 0, InputOutput, CWEventMask, &attr );
+    register_object( w, (ASMagic*)aswf );
+    return create_ascanvas(w);
+}
+
+
+ASCanvas*
+create_wharf_button_canvas(ASWharfButton *aswb, ASCanvas *parent)
+{
+    static XSetWindowAttributes attr ;
+    Window w ;
+
+    attr.event_mask = WHARF_BUTTON_EVENT_MASK ;
+    w = create_visual_window( Scr.asv, parent->w, 0, 0, 64, 64, 0, InputOutput, CWEventMask, &attr );
+    register_object( w, (ASMagic*)aswb );
+    return create_ascanvas(w);
+}
+
+ASTBarData *
+build_wharf_button_tbar(WharfButton *wb)
+{
+    ASTBarData *bar = create_astbar();
+    int icon_row = 0, icon_col = 0;
+
+    if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
+    {
+        int label_row = 0, label_col = 0;
+        int label_flip = get_flags( Config->flags, WHARF_FLIP_LABEL )?FLIP_UPSIDEDOWN:0;
+        int label_align = NO_ALIGN ;
+#define WLL_Vertical    (0x01<<0)
+#define WLL_Opposite    (0x01<<1)
+#define WLL_AlignCenter (0x01<<2)
+#define WLL_AlignRight  (0x01<<3)
+#define WLL_OverIcon    (0x01<<4)
+
+        if( get_flags(Config->label_location, WLL_Vertical ))
+            label_flip |= FLIP_VERTICAL ;
+        if( !get_flags(Config->label_location, WLL_OverIcon ))
+        {
+            if( get_flags(Config->label_location, WLL_Vertical ))
+            {
+                if( get_flags(Config->label_location, WLL_Opposite ))
+                    label_col = 1;
+                else
+                    icon_col = 1;
+            }else if( get_flags(Config->label_location, WLL_Opposite ))
+                label_row = 1;
+            else
+                icon_row = 1;
+        }
+        if( get_flags(Config->label_location, WLL_AlignCenter ))
+            label_align = ALIGN_CENTER ;
+        else if( get_flags(Config->label_location, WLL_AlignRight ))
+            label_align = ALIGN_RIGHT|ALIGN_TOP ;
+        else
+            label_align = ALIGN_LEFT|ALIGN_BOTTOM ;
+        add_astbar_label( bar, label_col, label_row, label_flip, label_align, wb->title );
+    }
+    if( wb->icon )
+    {
+        register int i = -1;
+        while( wb->icon[++i] )
+        {
+            ASImage *im = NULL ;
+            /* load image here */
+            im = get_asimage( Scr.image_manager, wb->icon[i], ASFLAGS_EVERYTHING, 100 );
+            if( im )
+                add_astbar_icon( bar, icon_col, icon_row, 0, 0, im );
+        }
+    }
+    set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+    return bar;
+}
+
+
+/*************************************************************************/
+/* Wharf folders :                                                       */
+
+ASWharfFolder *create_wharf_folder( int button_count, ASWharfButton *parent )
+{
+    ASWharfFolder *aswf = NULL ;
+    if( button_count > 0 )
+    {
+        register int i = button_count;
+        aswf = safecalloc( 1, sizeof(ASWharfFolder));
+        aswf->magic = MAGIC_WHARF_FOLDER ;
+        aswf->buttons = safecalloc( i, sizeof(ASWharfButton));
+        aswf->buttons_num = i ;
+        while( --i >= 0 )
+        {
+            aswf->buttons[i].magic = MAGIC_WHARF_BUTTON ;
+            aswf->buttons[i].parent = aswf ;
+        }
+        aswf->parent = parent ;
+    }
+    return aswf;
+}
+
+ASWharfFolder *
+build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
+{
+    ASWharfFolder *aswf = NULL ;
+    int count = 0 ;
+    WharfButton *wb = list ;
+    while( wb )
+    {
+        ++count ;
+        wb = wb->next ;
+    }
+
+    if( (aswf = create_wharf_folder(count, parent)) != NULL  )
+    {
+        ASWharfButton *aswb = aswf->buttons;
+        aswf->canvas = create_wharf_folder_canvas(aswf);
+        if( vertical )
+            set_flags( aswf->flags, ASW_Vertical );
+
+        wb = list;
+        while( wb )
+        {
+            aswb->name = mystrdup( wb->title );
+            if( wb->function )
+            {
+                aswb->fdata = safecalloc( 1, sizeof(FunctionData) );
+                dup_func_data( aswb->fdata, wb->function );
+                if( IsSwallowFunc(aswb->fdata->func) )
+                    set_flags( aswb->flags, ASW_SwallowTarget );
+            }
+
+            aswb->canvas = create_wharf_button_canvas(aswb, aswf->canvas);
+            aswb->bar = build_wharf_button_tbar(wb);
+
+            if( !get_flags( aswb->flags, ASW_SwallowTarget ) )
+            {
+                aswb->desired_width  = calculate_astbar_width( aswb->bar );
+                aswb->desired_height = calculate_astbar_height( aswb->bar );
+            }else
+            {
+                aswb->desired_width = 64 ;
+                aswb->desired_height = 64 ;
+            }
+
+            if( wb->folder )
+                aswb->folder = build_wharf_folder( wb->folder, aswb, !vertical );
+
+            ++aswb;
+            wb = wb->next ;
+        }
+    }
+    return aswf;
+}
+
+void
+display_wharf_folder( ASWharfFolder *aswf )
+{
+
+}
+
+
 

@@ -86,6 +86,10 @@ TermDef       WharfTerms[] = {
     {0, "AnimateMain", 11,      TT_FLAG, WHARF_AnimateMain_ID, NULL},
     {0, "Animate", 7,           TT_FLAG, WHARF_Animate_ID, NULL},
     {0, "Sound", 5,             TT_FILENAME, WHARF_Sound_ID, &WhevSyntax},
+    {0, "ShowLabel", 9,         TT_FLAG, WHARF_ShowLabel_ID, NULL},
+    {0, "LabelLocation", 13,    TT_UINTEGER, WHARF_LabelLocation_ID, NULL},
+    {0, "FlipLabel", 9,         TT_FLAG, WHARF_FlipLabel_ID, NULL},
+
 /* now special cases that should be processed by it's own handlers */
 	BALLOON_TERMS,
 /* including MyStyles definitions processing */
@@ -113,7 +117,9 @@ flag_options_xref WharfFlags[] = {
 	{WHARF_NO_WITHDRAW, WHARF_NoWithdraw_ID, 0},
 	{WHARF_ANIMATE_MAIN, WHARF_AnimateMain_ID, 0},
 	{WHARF_ANIMATE, WHARF_Animate_ID, 0},
-	{0, 0, 0}
+    {WHARF_SHOW_LABEL, WHARF_ShowLabel, 0},
+    {WHARF_FLIP_LABEL, WHARF_FlipLabel, 0},
+    {0, 0, 0}
 };
 
 WharfButton  *
@@ -213,16 +219,18 @@ int
 print_wharf_folder( WharfButton *folder, int level )
 {
     int count = 1 ;
+    int my_level = level ;
     while( folder )
     {
         int i = 0;
-        show_progress("WHARF.FOLDER[%d].BUTTON[%d].set_flags=0x%lX", level, count, folder->set_flags );
-        show_progress("WHARF.FOLDER[%d].BUTTON[%d].title=\"%s\"", level, count, folder->title );
-        while( folder->icon[i] != NULL )
-        {
-            show_progress("WHARF.FOLDER[%d].BUTTON[%d].icon[%d]=", level, count, i, folder->icon[i] );
-            ++i;
-        }
+        show_progress("WHARF.FOLDER[%d].BUTTON[%d].set_flags=0x%lX;", my_level, count, folder->set_flags );
+        show_progress("WHARF.FOLDER[%d].BUTTON[%d].title=\"%s\";", my_level, count, folder->title );
+        if( folder->icon )
+            while( folder->icon[i] != NULL )
+            {
+                show_progress("WHARF.FOLDER[%d].BUTTON[%d].icon[%d]=\"%s\";", my_level, count, i, folder->icon[i] );
+                ++i;
+            }
         if( folder->function )
             print_func_data(__FILE__, __FUNCTION__, __LINE__, folder->function);
 
@@ -272,6 +280,7 @@ PrintWharfConfig(WharfConfig *config )
 
 }
 
+void print_trimmed_str( char *prompt, char * str );
 
 unsigned long
 WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
@@ -284,14 +293,26 @@ WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
 		return SPECIAL_BREAK;
 
 	/* checking if we have ~Folders in here */
-    LOCAL_DEBUG_OUT("checking for ~folders at \"%s\"", config->tdata );
-	if ((pterm = FindStatementTerm (config->tdata, &WharfSyntax)) != NULL)
+    LOCAL_DEBUG_OUT("checking for ~folders at :%s", "" );
+    print_trimmed_str( "config->tdata", config->tdata );
+    print_trimmed_str( "config->tline", config->tline );
+    print_trimmed_str( "config->cursor", config->cursor );
+    if ((pterm = FindStatementTerm (config->tdata, &WharfSyntax)) == NULL)
+        if (mystrncasecmp (config->tdata, "~Folders", 7) == 0)
+        {
+            show_error( " config line %d: ~Folders keyword is no longer supported. \nPlease Update your configuration to use ~Folder instead!\n Please Accept our apologies for any inconvinience.", config->line_count);
+            pterm = FindStatementTerm ("~Folder", &WharfSyntax);
+        }
+
+    if( pterm != NULL )
 	{
-		if (pterm->id == WHARF_FolderEnd_ID)
+        LOCAL_DEBUG_OUT("term %p found keyword :[%s]", pterm, pterm->keyword );
+        if (pterm->id == WHARF_FolderEnd_ID)
 		{
 			config->current_term = pterm;
 			/* we are 2 levels deep, and FolderEnd will get us only 1 level up
                so we need to climb another level ourselves : */
+            LOCAL_DEBUG_OUT( "folder end - Poping out%s", "");
 			PopSyntax (config);
 			PopStorage (config);
 			return SPECIAL_SKIP;			   /* don't care what will happen */
@@ -303,25 +324,37 @@ WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
      * we are going to get entire line again at config->cursor
      * so lets skip 3 tokens of <name> <icon>, since those are not parts
      * of following function */
-    LOCAL_DEBUG_OUT("skiping 2 tokens at: \"%s\"", config->cursor );
-    cur = tokenskip( config->cursor, 2 );
-    LOCAL_DEBUG_OUT("skipped to: \"%s\"", cur );
+    print_trimmed_str("skiping 2 tokens at", config->tdata );
+    cur = tokenskip( config->tdata, 2 );
+    print_trimmed_str("skipped to", cur );
 	if (*cur != '\0')
 	{
 		char         *good_cursor;
 		TermDef      *pterm;
 
+        good_cursor = config->cursor ;
 		config->cursor = cur;
         /* we are at the beginning of the function definition right now - lets process it :*/
         /* read in entire function definition */
 		GetNextStatement (config, 1);
         /* lets find us the term for this definition */
-        LOCAL_DEBUG_OUT("checking keyword at: \"%s\"", config->tline );
+        print_trimmed_str("checking keyword at", config->tline );
 		if ((pterm = FindStatementTerm (config->tline, config->syntax)) == NULL)
         {   /* courtesy check for mistyped Folder keyword : */
 			if (mystrncasecmp (config->tline, "Folders", 7) == 0)
-				show_error( " config line %d: Folders/~Folders keywords are no longer supported. \nPlease Update your configuration to use Folder/~Folder instead!\n Please Accept our apologies for any inconvinience.", config->line_count);
-		} else
+            {
+                show_error( " config line %d: Folders keyword is no longer supported. \nPlease Update your configuration to use Folder instead!\n Please Accept our apologies for any inconvinience.", config->line_count);
+                pterm = FindStatementTerm ("Folder", config->syntax);
+            }
+        }
+
+        if( pterm == NULL )
+        {
+            /* we are 2 levels deep, and FolderEnd will get us only 1 level up
+               so we need to climb another level ourselves : */
+			PopSyntax (config);
+			PopStorage (config);
+        }else
         {   /* we have a valid function definition : */
 			config->current_term = pterm;
             /* we do not want to continue processing the rest of the config as
@@ -329,16 +362,22 @@ WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
 			config->current_flags |= CF_LAST_OPTION;
             /* some wierd code to handle the fact that Folder is not really a function,
              * but instead a start for new nested set of Wharf items : */
-			good_cursor = config->cursor;
+            LOCAL_DEBUG_OUT("processing function definition statement...%s","");
 			ProcessStatement (config);
 			if (config->current_term->id == F_Folder)
             {   /* in which case we let parser to carry on the parsing of the Folder item,
                  * which will get us into nested WharfSyntax subsyntax */
-				config->cursor = good_cursor;
-				config->current_flags &= ~CF_LAST_OPTION;
+                config->current_flags &= ~CF_LAST_OPTION;
 			}
 		}
+        /* restarting parsing from the same location : */
+        if( config->cursor < good_cursor )
+            config->cursor = good_cursor;
+        LOCAL_DEBUG_OUT("done processing function definition statement...%s","");
 	}
+    print_trimmed_str( "config->tdata", config->tdata );
+    print_trimmed_str( "config->tline", config->tline );
+    print_trimmed_str( "config->cursor", config->cursor );
     /* already done processing current statement - let parser know about it : */
     return SPECIAL_SKIP;
 }
@@ -565,6 +604,10 @@ SHOW_CHECKPOINT;
 			 }
 			 item.ok_to_free = 1;
 			 break;
+         case WHARF_LabelLocation_ID :
+             set_flags (config->set_flags, WHARF_LABEL_LOCATION);
+             config->label_location = item.data.integer;
+             break ;
 		 case MYSTYLE_START_ID:
 			 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
 			 item.ok_to_free = 1;
