@@ -670,6 +670,8 @@ create_asstorage_block( int useable_size )
 {
 	int allocate_size = (sizeof(ASStorageBlock)+sizeof(ASStorageSlot) + useable_size) ; 
 	void *ptr ;	
+	ASStorageBlock *block ;
+
 	if( allocate_size%AS_STORAGE_PAGE_SIZE > 0 ) 
 		allocate_size = ((allocate_size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 #ifndef DEBUG_ALLOCS
@@ -681,7 +683,7 @@ create_asstorage_block( int useable_size )
 	UsedMemory += allocate_size ;
 	if( ptr == NULL ) 
 		return NULL;
-	ASStorageBlock *block = ptr ;
+	block = ptr ;
 	memset( block, 0x00, sizeof(ASStorageBlock));
 	block->size = allocate_size - sizeof(ASStorageBlock) ;
 	block->total_free = block->size - ASStorageSlot_SIZE ;

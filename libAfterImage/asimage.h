@@ -370,12 +370,12 @@ typedef struct ASImageLayer
 
 typedef struct ASGradient
 {
-	int			type;       /* see GRADIENT_TYPE above */
-
-	int         npoints;    /* number of anchor points */
-	ARGB32     *color;      /* ARGB color values for each anchor point  */
-    double     *offset;     /* offset of each point from the beginning in
-							 * fractions of entire length */
+	int			type;     /* see GRADIENT_TYPE above */
+	
+	int         npoints;  /* number of anchor points */
+	ARGB32     *color;    /* ARGB color values for each anchor point*/
+	double     *offset;   /* offset of each point from the beginning in
+						   * fractions of entire length */
 }ASGradient;
 /********/
 
