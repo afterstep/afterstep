@@ -87,12 +87,18 @@ typedef struct ASXMLInterpreterState {
 #define ASXMLI_LiteralLayout	(0x01<<0)	
 #define ASXMLI_InsideLink		(0x01<<1)	  
 #define ASXMLI_FirstArg 		(0x01<<2)	  
+#define ASXMLI_LinkIsURL		(0x01<<3)	  
+#define ASXMLI_LinkIsLocal		(0x01<<4)	  
+#define ASXMLI_InsideExample			(0x01<<5)	  
 	ASFlagType flags;
 	
 	FILE *dest_fp ;
 	ASDocType doc_type ;
 	int header_depth ;
 	int group_depth ;
+	char *curr_url_page ;
+	char *curr_url_anchor ;
+
 }ASXMLInterpreterState ;
 
 typedef void (*tag_handler)( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
@@ -157,7 +163,10 @@ void end_varlistentry_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterSt
 void start_literallayout_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_literallayout_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
-
+void write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state );
+void write_syntax_options_header( SyntaxDef *syntax, ASXMLInterpreterState *state );
+void write_syntax_options_footer( SyntaxDef *syntax, ASXMLInterpreterState *state );
+void write_syntax_doc_footer( SyntaxDef *syntax, ASXMLInterpreterState *state );
 
 /* supported DocBook tags : 
 	<section label="overview" id="overview">
@@ -262,7 +271,7 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 	{ TAG_INFO_AND_ID(section), start_section_tag, end_section_tag },
 	{ TAG_INFO_AND_ID(refsect1), start_section_tag, end_section_tag },
 	{ TAG_INFO_AND_ID(emphasis), start_emphasis_tag, end_emphasis_tag },
-	{ TAG_INFO_AND_ID(listitem), start_listitem_tag, start_listitem_tag },
+	{ TAG_INFO_AND_ID(listitem), start_listitem_tag, end_listitem_tag },
 	{ TAG_INFO_AND_ID(cmdsynopsis), start_cmdsynopsis_tag, end_cmdsynopsis_tag },
 	{ TAG_INFO_AND_ID(replaceable), start_emphasis_tag, end_emphasis_tag },
 	{ TAG_INFO_AND_ID(variablelist), start_variablelist_tag, end_variablelist_tag },
@@ -395,7 +404,7 @@ write_standard_options_source( FILE *f )
 {
 	int i = 0;
 	fprintf( f, "<anchor id=\"standard_options_list\"/>\n"
-				"<section>\n"
+				"<refsect1>\n"
 				"<title>STANDARD OPTIONS</title>\n"
 				"<para>The following is the list of command line options supported by"
 				" all AfterStep modules and applications.</para>" 
@@ -423,7 +432,7 @@ write_standard_options_source( FILE *f )
 		++i ;
 	}	 
 	fprintf( f, "</variablelist>\n"
-				"</section>\n" );
+				"</refsect1>\n" );
 }
 
 void 
@@ -652,135 +661,6 @@ convert_source_file( const char *syntax_dir, const char *file, ASXMLInterpreterS
 }
 
 void 
-write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
-{
-	char *display_name = "AfterStep" ;
-	char *doc_name = "AfterStep" ;
-	if( syntax ) 
-	{	
-		display_name = syntax->display_name ;
-		doc_name = syntax->doc_path ;
-	}
-	++(state->header_depth);
-	switch( state->doc_type ) 
-	{
-		case DocType_Plain :
-			fprintf( state->dest_fp, "%s\n\n", display_name );
-			break;
-		case DocType_HTML :
-			fprintf( state->dest_fp, "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
-					  		"<html>\n"
-					  		"<head><meta http-equiv=\"content-type\" content=\"text/html; charset=ISO-8859-1\">\n"
-  					  		"<title>%s</title>\n"
-					  		"</head>\n"
-					  		"<body>\n"
-					  		"<h1>%s</h1>\n", display_name, display_name );
-			break;
- 		case DocType_PHP :	
-		    break ;
-		case DocType_XML :
-			fprintf( state->dest_fp, "<!DOCTYPE article PUBLIC \"-//OASIS//DTD DocBook XML V4.1.2//EN\"\n"
-                  					 "\"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd\" [\n"
-									 "<!ENTITY %s SYSTEM \"%s.xml\" NDATA SGML>\n"
-									 "]>\n", doc_name, doc_name );
-			fprintf( state->dest_fp, "<article id=\"index\">\n"
-									 "<articleinfo>\n"
-   									 "<authorgroup>\n"
-      								 "<corpauthor>\n"
-      								 "<ulink url=\"http://www.afterstep.org\">AfterStep Window Manager</ulink>\n"
-      								 "</corpauthor>\n"
-      								 "</authorgroup>\n"
-									 "<title>%s documentation</title>\n"
-									 "<releaseinfo>%s</releaseinfo>\n"
-									 "</articleinfo>\n", display_name, VERSION );
-			break ;
-		case DocType_NROFF :
-		    break ;
-		default:
-			break;
-	}
-}
-
-void 
-write_syntax_options_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
-{
-	++(state->header_depth);
-	switch( state->doc_type ) 
-	{
-		case DocType_Plain :
-			fprintf( state->dest_fp, "\nCONFIGURATION OPTIONS : \n");
-			break;
-		case DocType_HTML :
-			fprintf( state->dest_fp, "\n<A NAME=\"options\"><h%d>CONFIGURATION OPTIONS :</h%d></A>\n"
-							  "<DL>\n", state->header_depth, state->header_depth);   
-			break;
- 		case DocType_PHP :	
-		    break ;
-		case DocType_XML :
-			fprintf( state->dest_fp, "\n<section label=\"options\" id=\"options\"><title>CONFIGURATION OPTIONS :</title>\n" );
-			break;
-		case DocType_NROFF :
-		    break ;
-		default:
-			break;
-	}
-}
-
-void 
-write_syntax_options_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
-{
-	switch( state->doc_type ) 
-	{
-		case DocType_Plain :
-			fprintf( state->dest_fp, "\n");
-			break;
-		case DocType_HTML :
-			fprintf( state->dest_fp, "\n</DL>\n");   
-			break;
- 		case DocType_PHP :	
-		    break ;
-		case DocType_XML :
-			fprintf( state->dest_fp, "\n</section>\n" );
-			break ;
-		case DocType_NROFF :
-		    break ;
-		default:
-			break;
-	}
-	--(state->header_depth);
-}
-
-
-void 
-write_syntax_doc_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
-{
-	char *display_name = "AfterStep" ;
-	if( syntax ) 
-		display_name = syntax->display_name ;
-	switch( state->doc_type ) 
-	{
-		case DocType_Plain :
-			break;
-		case DocType_HTML :
-			fprintf( state->dest_fp, "<p><FONT face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"-2\">AfterStep version %s</a></FONT>\n",
-					 VERSION ); 
-			fprintf( state->dest_fp, "</body>\n</html>\n" );			
-			break;
- 		case DocType_PHP :	
-		    break ;
-		case DocType_XML :
-			fprintf( state->dest_fp, "\n</article>\n" );
-		    break ;
-		case DocType_NROFF :
-		    break ;
-		default:
-			break;
-	}
-	--(state->header_depth);
-}
-
-
-void 
 gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax, ASDocType doc_type )
 {
 	char *dest_file, *ptr ;
@@ -880,15 +760,170 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 /* DocBook XML tags handlers :											 */
 /*************************************************************************/
 void 
-add_html_anchor( xml_elem_t *attr, ASXMLInterpreterState *state )
+write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
+{
+	char *display_name = "AfterStep" ;
+	char *doc_name = "AfterStep" ;
+	if( syntax ) 
+	{	
+		display_name = syntax->display_name ;
+		doc_name = syntax->doc_path ;
+	}
+	++(state->header_depth);
+	switch( state->doc_type ) 
+	{
+		case DocType_Plain :
+			fprintf( state->dest_fp, "%s\n\n", display_name );
+			break;
+		case DocType_HTML :
+			fprintf( state->dest_fp, "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
+					  		"<html>\n"
+					  		"<head><meta http-equiv=\"content-type\" content=\"text/html; charset=ISO-8859-1\">\n"
+  					  		"<title>%s</title>\n"
+					  		"</head>\n"
+					  		"<body>\n"
+					  		"<h1>%s</h1>\n", display_name, display_name );
+			break;
+ 		case DocType_PHP :	
+			fputs( "\n<? local_doc_url(\"visualdoc.php\",\"Index\",\"visualselect\",$srcunset,$subunset) ?>\n", state->dest_fp );
+		    break ;
+		case DocType_XML :
+			fprintf( state->dest_fp, "<!DOCTYPE article PUBLIC \"-//OASIS//DTD DocBook XML V4.1.2//EN\"\n"
+                  					 "\"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd\" [\n"
+									 "<!ENTITY %s SYSTEM \"%s.xml\" NDATA SGML>\n"
+									 "]>\n", doc_name, doc_name );
+			fprintf( state->dest_fp, "<article id=\"index\">\n"
+									 "<articleinfo>\n"
+   									 "<authorgroup>\n"
+      								 "<corpauthor>\n"
+      								 "<ulink url=\"http://www.afterstep.org\">AfterStep Window Manager</ulink>\n"
+      								 "</corpauthor>\n"
+      								 "</authorgroup>\n"
+									 "<title>%s documentation</title>\n"
+									 "<releaseinfo>%s</releaseinfo>\n"
+									 "</articleinfo>\n", display_name, VERSION );
+			break ;
+		case DocType_NROFF :
+		    break ;
+		default:
+			break;
+	}
+}
+
+void 
+write_syntax_options_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
+{
+	++(state->header_depth);
+	switch( state->doc_type ) 
+	{
+		case DocType_Plain :
+			fputs( "\nCONFIGURATION OPTIONS : \n", state->dest_fp );
+			break;
+		case DocType_HTML :
+			fprintf( state->dest_fp, "\n<LI><A NAME=\"options\"><h%d>CONFIGURATION OPTIONS :</h%d></A>\n"
+							  "<DL>\n", state->header_depth, state->header_depth);   
+			break;
+ 		case DocType_PHP :	
+			fprintf( state->dest_fp, "\n<LI><A NAME=\"options\"><B>CONFIGURATION OPTIONS :</B></A>\n"
+							  "<DL>\n");   
+		    break ;
+		case DocType_XML :
+			fprintf( state->dest_fp, "\n<section label=\"options\" id=\"options\"><title>CONFIGURATION OPTIONS :</title>\n" );
+			break;
+		case DocType_NROFF :
+		    break ;
+		default:
+			break;
+	}
+}
+
+void 
+write_syntax_options_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
+{
+	switch( state->doc_type ) 
+	{
+		case DocType_Plain :
+			fprintf( state->dest_fp, "\n");
+			break;
+		case DocType_HTML :
+ 		case DocType_PHP :	 
+			fprintf( state->dest_fp, "\n</DL></LI>\n");   
+		    break ;
+		case DocType_XML :
+			fprintf( state->dest_fp, "\n</section>\n" );
+			break ;
+		case DocType_NROFF :
+		    break ;
+		default:
+			break;
+	}
+	--(state->header_depth);
+}
+
+
+void 
+write_syntax_doc_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
+{
+	char *display_name = "AfterStep" ;
+	if( syntax ) 
+		display_name = syntax->display_name ;
+	switch( state->doc_type ) 
+	{
+		case DocType_Plain :
+			break;
+		case DocType_HTML :
+			fprintf( state->dest_fp, "<p><FONT face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"-2\">AfterStep version %s</a></FONT>\n",
+					 VERSION ); 
+			fprintf( state->dest_fp, "</body>\n</html>\n" );			
+			break;
+ 		case DocType_PHP :	
+		    break ;
+		case DocType_XML :
+			fprintf( state->dest_fp, "\n</article>\n" );
+		    break ;
+		case DocType_NROFF :
+		    break ;
+		default:
+			break;
+	}
+	--(state->header_depth);
+}
+
+void 
+close_link( ASXMLInterpreterState *state )
+{
+	if( get_flags( state->flags, ASXMLI_InsideLink ) )
+	{	
+		if( state->doc_type == DocType_HTML || 
+			(state->doc_type == DocType_PHP && !get_flags(state->flags, ASXMLI_LinkIsLocal)))
+		{
+			fwrite( "</A>", 1, 4, state->dest_fp );	   
+		}else if( state->doc_type == DocType_PHP )
+		{
+			fprintf( state->dest_fp, "\",\"%s\",$srcunset,$subunset) ?>", state->curr_url_page);	   
+			 							
+		}	 
+		clear_flags( state->flags, ASXMLI_InsideLink|ASXMLI_LinkIsLocal|ASXMLI_LinkIsURL );
+		if( state->curr_url_page )
+			free( state->curr_url_page );
+		if( state->curr_url_anchor )
+			free( state->curr_url_anchor );
+		state->curr_url_anchor = state->curr_url_page = NULL ;
+	}
+}
+
+
+void 
+add_anchor( xml_elem_t *attr, ASXMLInterpreterState *state )
 {
 	while( attr ) 
 	{
 		if( attr->tag_id == DOCBOOK_id_ID ) 
 		{
-			if( get_flags( state->flags, ASXMLI_InsideLink ) )
-				fprintf( state->dest_fp, "</A>" );
-			fprintf( state->dest_fp, "\n<A NAME=\"%s\">", attr->parm );
+			close_link(state);
+			if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP)
+				fprintf( state->dest_fp, "\n<A NAME=\"%s\">", attr->parm );
+			clear_flags( state->flags, ASXMLI_LinkIsLocal|ASXMLI_LinkIsURL );
 			set_flags( state->flags, ASXMLI_InsideLink );
 			break;	
 		}	 
@@ -898,24 +933,52 @@ add_html_anchor( xml_elem_t *attr, ASXMLInterpreterState *state )
 }	 
 
 void
-add_html_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
+add_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
 {
 	while( attr ) 
 	{
 		if( attr->tag_id == DOCBOOK_linkend_ID ||  attr->tag_id == DOCBOOK_url_ID ) 
 		{
 			char *ptr ;
-			if( get_flags( state->flags, ASXMLI_InsideLink ) )
-				fprintf( state->dest_fp, "</A>" );
+			int l ;
+
+			close_link(state);
 			ptr = strchr( attr->parm, '#' );
 			if( ptr != NULL ) 
 			{
 				*ptr = '\0' ;
-				fprintf( state->dest_fp, "\n<A href=\"%s.html#%s\">", attr->parm, ptr+1 );
+				state->curr_url_page = mystrdup( attr->parm );
+				state->curr_url_anchor = mystrdup( ptr+1 );
 				*ptr = '#' ;
 			}else
-				fprintf( state->dest_fp, "\n<A href=\"%s\">", attr->parm );
-			set_flags( state->flags, ASXMLI_InsideLink );
+			{
+				state->curr_url_page = mystrdup( attr->parm );	  
+				state->curr_url_anchor = NULL ;
+			}
+			l = strlen(state->curr_url_page);
+			clear_flags( state->flags, ASXMLI_LinkIsLocal );
+			if( state->curr_url_page[l-1] != '/' && 
+				( l < 5 || mystrcasecmp( &(state->curr_url_page[l-5]), ".html" ) != 0) && 
+				( l < 4 || mystrcasecmp( &(state->curr_url_page[l-4]), ".php" ) != 0) &&
+				( l < 4 || mystrcasecmp( &(state->curr_url_page[l-4]), ".htm" ) != 0) )
+			{
+				set_flags( state->flags, ASXMLI_LinkIsLocal );
+			}
+
+			if( state->doc_type == DocType_HTML || 
+				(state->doc_type == DocType_PHP && !get_flags( state->flags, ASXMLI_LinkIsLocal ))) 
+			{
+				fprintf( state->dest_fp, "\n<A href=\"%s", state->curr_url_page );	   
+				if( get_flags( state->flags, ASXMLI_LinkIsLocal ) ) 	  
+					fwrite( ".html", 1, 5, state->dest_fp );	
+				if( state->curr_url_anchor == NULL ) 
+					fprintf( state->dest_fp, "#%s\">", attr->parm );	
+				fwrite( "\">", 1, 2, state->dest_fp );
+			}else if( state->doc_type == DocType_PHP ) 
+			{
+				fprintf( state->dest_fp, "<? local_doc_url(\"visualdoc.php\",\"" );
+			}
+			set_flags( state->flags, ASXMLI_InsideLink|ASXMLI_LinkIsURL  );
 			break;	
 		}	 
 		attr = attr->next ;	
@@ -923,21 +986,11 @@ add_html_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
 }	 
 
 void 
-close_html_link( ASXMLInterpreterState *state )
-{
-	if( get_flags( state->flags, ASXMLI_InsideLink ) )
-	{	
-		fwrite( "</A>", 1, 4, state->dest_fp );	   
-		clear_flags( state->flags, ASXMLI_InsideLink );
-	}
-}
-
-void 
 start_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP )
 	{	
-		close_html_link(state);
+		close_link(state);
 		fwrite( "<P>", 1, 3, state->dest_fp );	
 	}
 }
@@ -945,9 +998,9 @@ start_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state 
 void 
 end_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+	close_link(state);
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP )
 	{
-		close_html_link(state);
 		fwrite( "</P>", 1, 4, state->dest_fp );	
 	}
 }
@@ -956,125 +1009,134 @@ end_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 void 
 start_command_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "<B>", 1, 3, state->dest_fp );	
 }
 
 void 
 end_command_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "</B>", 1, 4, state->dest_fp );	
 }
 
 void 
 start_emphasis_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "<I>", 1, 3, state->dest_fp );	
 }
 
 void 
 end_emphasis_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "</I>", 1, 4, state->dest_fp );	
 }
 
 void 
 start_literallayout_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+ 	close_link(state);
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP)
 	{	
-		close_html_link(state);
-		fwrite( "<PRE>", 1, 5, state->dest_fp );	
+		fprintf( state->dest_fp, "<PRE>");	
 	}
 }
 
 void 
 end_literallayout_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
-		fwrite( "</PRE>", 1, 6, state->dest_fp );	
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP)
+	{	
+		fwrite( "</PRE>", 1, 6, state->dest_fp );	  
+	}
 }
 
 void 
 start_variablelist_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
-	{
-		close_html_link(state);
+	close_link(state);
+	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	)
 		fwrite( "<DL>", 1, 4, state->dest_fp );	
-	}
 }
 
 void 
 end_variablelist_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "</DL>", 1, 5, state->dest_fp );	
 }
 
 void 
 start_varlistentry_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
-		add_html_anchor( parm, state );
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+		add_anchor( parm, state );
 }
 
 void 
 end_varlistentry_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )			
-		close_html_link(state);
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )			
+		close_link(state);
 }
 
 void 
 start_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
-		fwrite( "<DT>", 1, 4, state->dest_fp );	
+	close_link(state);
+	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
+		fwrite( "<DT><B>", 1, 7, state->dest_fp );	
 }
 
 void 
 end_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
-	{	
-		fwrite( "</DT>", 1, 5, state->dest_fp );	
-		close_html_link(state);
-	}
-}
+	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
+		fwrite( "</DT></B>", 1, 9, state->dest_fp );	
+}	
 
 void 
 start_listitem_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	 || state->doc_type == DocType_PHP	   )
 		fwrite( "<DD>", 1, 4, state->dest_fp );	
 }
 
 void 
-end_listentry_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+end_listitem_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
-	{	
+	close_link(state);
+	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	  	)
 		fwrite( "</DD>", 1, 5, state->dest_fp );	
-		close_html_link(state);
-	}
 }
 
 void 
 start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	++(state->header_depth);	
-	if( state->doc_type == DocType_HTML	 )
-		add_html_anchor( parm, state );
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+	{
+		add_anchor( parm, state );
+		if( doc->tag_id == DOCBOOK_section_ID ) 
+			fwrite( "<UL>", 1, 4, state->dest_fp );
+		else if( doc->tag_id == DOCBOOK_refsect1_ID ) 
+			fwrite( "<LI>", 1, 4, state->dest_fp );
+	}
 }
 
 void 
 end_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	--(state->header_depth);	
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+	{
+		if( doc->tag_id == DOCBOOK_section_ID ) 
+			fwrite( "</UL>", 1, 5, state->dest_fp );
+		else if( doc->tag_id == DOCBOOK_refsect1_ID ) 
+			fwrite( "</LI>", 1, 5, state->dest_fp );
+	}
 }
 
 void 
@@ -1082,6 +1144,8 @@ start_title_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 {
 	if( state->doc_type == DocType_HTML	 )
 		fprintf( state->dest_fp, "<h%d>", state->header_depth );	
+	else if( state->doc_type == DocType_PHP )
+		fprintf( state->dest_fp, "<B>");	
 }
 
 void 
@@ -1090,19 +1154,23 @@ end_title_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 	if( state->doc_type == DocType_HTML	 )
 	{	
 		fprintf( state->dest_fp, "</h%d>", state->header_depth );	
-		close_html_link(state);
-	}
+	}else if( state->doc_type == DocType_PHP )
+		fprintf( state->dest_fp, "</B><br>");	
+	close_link(state);
 }
 
 void 
 start_cmdsynopsis_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	++(state->header_depth);	
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 	{
-		add_html_anchor( parm, state );
-		fprintf( state->dest_fp, "<h%d>SYNOPSIS</h%d>", state->header_depth, state->header_depth );	   			  
-		close_html_link(state);
+		add_anchor( parm, state );
+		if( state->doc_type == DocType_PHP ) 
+			fprintf( state->dest_fp, "<LI><b>SYNOPSIS</b><p>" );	   			  
+		else
+			fprintf( state->dest_fp, "<LI><h%d>SYNOPSIS</h%d>", state->header_depth, state->header_depth );	   			  
+		close_link(state);
 	}
 }
 
@@ -1110,6 +1178,8 @@ void
 end_cmdsynopsis_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	--(state->header_depth);	
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+		fwrite( "</LI>", 1, 5, state->dest_fp );
 }
 
 int 
@@ -1155,7 +1225,7 @@ start_arg_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 	clear_flags(state->flags, ASXMLI_FirstArg );
 	if( check_choice( parm ) ) 
 		fputc( '[', state->dest_fp );
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "<B>", 1, 3, state->dest_fp );
 }
 
@@ -1163,7 +1233,7 @@ void
 end_arg_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	--(state->group_depth);	
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP )
 		fwrite( "</B>", 1, 4, state->dest_fp );
 	if( check_choice( parm ) ) 
 		fputc( ']', state->dest_fp );
@@ -1186,47 +1256,54 @@ end_option_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state 
 void
 start_example_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+	set_flags( state->flags, ASXMLI_InsideExample );
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 	{
-		add_html_anchor( parm, state );
-		fprintf( state->dest_fp, " <I>Example : </I> " );	   			  
-		close_html_link(state);
+		add_anchor( parm, state );
+		close_link(state);
+		fprintf( state->dest_fp, " <B>Example : </B> " );	   			  
+		fprintf( state->dest_fp, "<div class=\"container\">");
 	}
 }
 
 void 
 end_example_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
+	clear_flags( state->flags, ASXMLI_InsideExample );
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+	{
+		fprintf( state->dest_fp, "</div><br>");
+	}
 }
 
 void 
 start_ulink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 	{
-		add_html_local_link( parm, state );
+		add_local_link( parm, state );
 	}	
 }
 	 
 void 
 end_ulink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
-		close_html_link(state);
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+		close_link(state);
 }	 
 
 void 
 start_anchor_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
-		add_html_anchor( parm, state );	
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+		add_anchor( parm, state );	
 }
 	
 void 
 end_anchor_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	if( state->doc_type == DocType_HTML	 )
-		close_html_link(state);
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+		close_link(state);
 }
 
 
