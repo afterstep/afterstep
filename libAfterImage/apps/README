@@ -71,12 +71,26 @@ possible XML tags are:
            set to "1", the transparency of the bottom layer will be 
            kept for the final image.
   All images surrounded by this tag will be composited with the given op.
+
+  NOTE: All tags surrounded by this tag will be given the following 
+  additional attributes in addition to their normal ones.  Under no 
+  circumstances is there a conflict with the normal child attributes.
+
+  crefid   Optional.  An image ID defined with the "id" parameter for 
+           any previously created image.  If set, percentages in "x" 
+           and "y" will be derived from the width and height of the crefid 
+           image.
+  x        Optional.  Default is 0.  Pixel coordinate of left edge.
+  y        Optional.  Default is 0.  Pixel coordinate of top edge.
+  tint     Optional.  No default.  Color to tint image by.  This is 
+           actually a "darken" op applied to the whole subimage during 
+           the overall compositing operation.
 <scale id="sca" width="512" height="384">
   id       Optional.  Image will be given this name for future reference.
   refid    Optional.  An image ID defined with the "id" parameter for 
            any previously created image.  If set, percentages in "width" 
-           and "height" will apply to the width and height of the refid 
-           image.
+           and "height" will be derived from the width and height of the 
+           refid image.
   width    Required.  The image will be scaled to this width.
   height   Required.  The image will be scaled to this height.
   This tag applies to the first image contained within the tag.  Any
@@ -85,8 +99,8 @@ possible XML tags are:
   id       Optional.  Image will be given this name for future reference.
   refid    Optional.  An image ID defined with the "id" parameter for 
            any previously created image.  If set, percentages in "width" 
-           and "height" will apply to the width and height of the refid 
-           image.
+           and "height" will be derived from the width and height of the 
+           refid image.
   width    Optional.  Default is "100%".  The image will be tiled to this 
            width.
   height   Optional.  Default is "100%".  The image will be tiled to this 
@@ -96,12 +110,15 @@ possible XML tags are:
 <img id="img" src=rose512.jpg/>
   id       Optional.  Image will be given this name for future reference.
   src      Required.  The filename (NOT URL) of the image file to load.
+  NOTE: The special image src "xroot:" will import the background image 
+  of the root X window, if any.  No attempt will be made to offset this 
+  image to fit the location of the resulting window, if one is displayed.
 <gradient id="gra" angle="90" width="600" height="500" colors="#ff007fff #7f00ffff #ff007fff" offsets="0.0 0.125 1.0"/>
   id       Optional.  Image will be given this name for future reference.
   refid    Optional.  An image ID defined with the "id" parameter for 
            any previously created image.  If set, percentages in "width" 
-           and "height" will apply to the width and height of the refid 
-           image.
+           and "height" will be derived from the width and height of the 
+           refid image.
   width    Required.  The gradient will have this width.
   height   Required.  The gradient will have this height.
   colors   Required.  Whitespace-separated list of colors.  At least two
@@ -157,6 +174,7 @@ possible XML tags are:
   fgimage  Optional.  No default.  The text will be textured by this image.
   bgimage  Optional.  No default.  The area behind the text will be filled 
            with this image.
+  spacing  Optional.  Default 0.  Extra pixels to place between each glyph.
   NOTE: <text> without bgcolor, fgcolor, fgimage, or bgimage will NOT 
   produce visible output by itself.  See EXAMPLES below.
 <bevel id="bev" colors="#ffdddddd #ff555555" border="10 10 10 10">
@@ -180,8 +198,8 @@ possible XML tags are:
   id       Optional.  Image will be given this name for future reference.
   refid    Optional.  An image ID defined with the "id" parameter for 
            any previously created image.  If set, percentages in "width" 
-           and "height" will apply to the width and height of the refid 
-           image.
+           and "height" will be derived from the width and height of the 
+           refid image.
   srcx     Optional.  Default is "0".  Skip this many pixels from the left.
   srcy     Optional.  Default is "0".  Skip this many pixels from the top.
   width    Optional.  Default is "100%".  Keep this many pixels wide.

@@ -18,10 +18,6 @@
  *
  */
 
-#warning TODO: No-X support (#ifndef X_DISPLAY_MISSING).
-#warning TODO: -onroot.
-#warning TODO: Document undocumented options.
-
 #include "config.h"
 
 #include <ctype.h>
@@ -49,7 +45,7 @@ typedef struct xml_elem_t {
 } xml_elem_t;
 
 char* load_file(const char* filename);
-void showimage(ASImage* im);
+void showimage(ASImage* im, int onroot);
 ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm);
 void my_destroy_asimage(ASImage* image);
 double parse_math(const char* str, char** endptr, double size);
@@ -126,7 +122,7 @@ int main(int argc, char** argv) {
 	char* doc_save = NULL;
 	char* doc_save_type = NULL;
 	int i;
-	int display = 1;
+	int display = 1, onroot = 0;
 
 	/* see ASView.1 : */
 	set_application_name(argv[0]);
@@ -146,6 +142,8 @@ int main(int argc, char** argv) {
 			display = 0;
 		} else if ((!strcmp(argv[i], "--file") || !strcmp(argv[i], "-f")) && i < argc + 1) {
 			doc_file = argv[++i];
+		} else if ((!strcmp(argv[i], "--root-window") || !strcmp(argv[i], "-r")) && i < argc + 1) {
+			onroot = 1;
 		} else if ((!strcmp(argv[i], "--string") || !strcmp(argv[i], "-s")) && i < argc + 1) {
 			doc_str = argv[++i];
 		} else if ((!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) && i < argc + 1) {
@@ -192,6 +190,9 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	// Delete the xml.
+	xml_elem_delete(NULL, doc);
+
 	// Destroy the font manager, if we created one.
 	if (fontman) destroy_font_manager(fontman, False);
 
@@ -211,8 +212,8 @@ int main(int argc, char** argv) {
 	}
 
 	// Display the image if desired.
-	if (display == 1) {
-		showimage(im);
+	if (display) {
+		showimage(im, onroot);
 	}
 
 	destroy_asimage(&im);
@@ -281,9 +282,14 @@ char* load_file(const char* filename) {
 	return str;
 }
 
-void showimage(ASImage* im) {
+void showimage(ASImage* im, int onroot) {
 #ifndef X_DISPLAY_MISSING
-	if( im != NULL )
+	if (im && onroot) {
+		Pixmap p = asimage2pixmap(asv, DefaultRootWindow(dpy), im, NULL, False);
+		p = set_window_background_and_free(DefaultRootWindow(dpy), p);
+	}
+
+	if(im && !onroot)
 	{
 		/* see ASView.4 : */
 		Window w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
@@ -381,11 +387,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		const char* fgcolor_str = NULL;
 		const char* bgcolor_str = NULL;
 		ARGB32 fgcolor = ARGB32_White, bgcolor = ARGB32_Black;
-		int point = 12;
+		int point = 12, spacing = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "font")) font_name = ptr->parm;
 			if (!strcmp(ptr->tag, "point")) point = strtol(ptr->parm, NULL, 0);
+			if (!strcmp(ptr->tag, "spacing")) spacing = strtol(ptr->parm, NULL, 0);
 			if (!strcmp(ptr->tag, "fgimage")) fgimage_str = ptr->parm;
 			if (!strcmp(ptr->tag, "bgimage")) bgimage_str = ptr->parm;
 			if (!strcmp(ptr->tag, "fgcolor")) fgcolor_str = ptr->parm;
@@ -400,7 +407,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!fontman) fontman = create_font_manager(dpy, NULL, NULL);
 			if (fontman) font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
 			if (font != NULL) {
-				set_asfont_glyph_spacing(font, 3, 0);
+				set_asfont_glyph_spacing(font, spacing, 0);
 				result = draw_text(text, font, AST_Plain, 0);
 				if (result && fgimage_str) {
 					ASImage* fgimage = NULL;
@@ -888,7 +895,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			layers = create_image_layers( num );
 			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) {
 				int x = 0, y = 0;
-				ARGB32 tint = 0;
+				ARGB32 tint = 0xffffffff;
 				xml_elem_t* sparm = NULL;
 				if (!strcmp(ptr->tag, "CDATA")) continue;
 				layers[num].im = build_image_from_xml(ptr, &sparm);
@@ -898,7 +905,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 					const char* y_str = NULL;
 					const char* refid = NULL;
 					for (tmp = sparm ; tmp ; tmp = tmp->next) {
-						if (!strcmp(tmp->tag, "refid")) refid = tmp->parm;
+						if (!strcmp(tmp->tag, "crefid")) refid = tmp->parm;
 						if (!strcmp(tmp->tag, "x")) x_str = tmp->parm;
 						if (!strcmp(tmp->tag, "y")) y_str = tmp->parm;
 						if (!strcmp(tmp->tag, "tint")) parse_argb_color(tmp->parm, &tint);
@@ -921,7 +928,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 					layers[num].clip_y = 0;
 					layers[num].clip_width = layers[num].im->width;
 					layers[num].clip_height = layers[num].im->height;
-					layers[num].tint = tint;
+					layers[num].tint = (tint >> 1) & 0x7f7f7f7f;
 					layers[num].bevel = 0;
 					layers[num].merge_scanlines = blend_scanlines_name2func(pop);
 					if (width < layers[num].im->width) width = layers[num].im->width;

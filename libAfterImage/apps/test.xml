@@ -29,6 +29,12 @@ Preload images.
 </bevel>
 
 "AfterStep owns!"
+People can't seem to find the images to this one, and it's a strange 
+thing. :)  Anyway, they're on libAfterImage's screenshots page.  Here 
+are direct links, for the lazy:
+http://afterstep.sourceforge.net/afterimage/testimg.jpg
+http://afterstep.sourceforge.net/afterimage/RedbrushAlpha-0.5.png
+http://afterstep.sourceforge.net/afterimage/IceAlpha-0.5.png
 <crop height="512" width="640" id="AfterStep owns! text">
 <text point="32" fgcolor="#ffffffff" font="test.ttf" id="AfterStep owns! text mask">AfterStep  owns jjjijijiji you
 it owns your soul
@@ -36,13 +42,13 @@ and all your relatives will pity you, when you discover just how devoted you are
 </crop>
 <composite id="AfterStep owns!">
   <tile width="640" height="512"><img src="/tmp/testimg.jpg"/></tile>
-  <scale tint="#27ffffff" width="640" height="512"><img src="/tmp/RedbrushAlpha-0.5.png"/></scale>
+  <scale tint="#7fffffff" width="640" height="512"><img src="/tmp/RedbrushAlpha-0.5.png"/></scale>
   <crop width="640" height="512"><scale width="910" height="600"><img src="/tmp/IceAlpha-0.5.png"/></scale></crop>
-  <recall tint="#3f7f7f7f" x=20 y=150 srcid="AfterStep owns! text"/>
-  <bevel border="8 8 6 6" color="#dfdfdfdf #df8f8f8f" tint="#3d7f7f7f" y="6" x="20">
+  <recall tint="#7fffffff" x=20 y=150 srcid="AfterStep owns! text"/>
+  <bevel border="8 8 6 6" color="#dfdfdfdf #df8f8f8f" tint="#7fffffff" y="6" x="20">
     <gradient offsets="0.0 0.125 0.25 0.5625 0.8 1.0" colors="#fe007fff #fe00ffff #fe007fff #ff0000ff #ff000000 #ffffff00" height="500" width="600" angle="90"></gradient>
   </bevel>
-  <mirror tint="#3f7f7f7f" x=20 y=300 dir="vertical"><recall srcid="AfterStep owns! text"/></mirror>
+  <mirror tint="#7fffffff" x=20 y=300 dir="vertical"><recall srcid="AfterStep owns! text"/></mirror>
 </composite>
 
 My current testing XML.
@@ -51,7 +57,7 @@ My current testing XML.
   <rotate angle=90><scale width="640" height="512"><recall srcid="redbrush"/></scale></rotate>
   <scale width="640" height="512"><recall srcid="ice"/></scale>
   <bevel color="#dfdfdfdf #df8f8f8f" border="8 8 6 6">
-    <gradient x=20 y=6 angle=90 width=600 height=500 tint="#7d7f7f7f" colors="#ff007fff #7f00ffff #ff007fff #ff0000ff #ff000000 #ffffff00" offsets="0.0 0.125 0.25 0.5625 0.8 1.0"/>
+    <gradient x=20 y=6 angle=90 width=600 height=500 tint="#7fffffff" colors="#ff007fff #7f00ffff #ff007fff #ff0000ff #ff000000 #ffffff00" offsets="0.0 0.125 0.25 0.5625 0.8 1.0"/>
   </bevel>
 </composite>
 
