@@ -33,6 +33,8 @@ struct FunctionData;
 struct ComplexFunction;
 struct ConfigItem;
 struct ASColorScheme;
+struct ConfigDef;
+struct FreeStorageElem;
 
 extern struct SyntaxDef      BevelSyntax;
 extern struct SyntaxDef      AlignSyntax;
@@ -1237,7 +1239,7 @@ typedef struct
 WharfConfig;
 
 
-unsigned long WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage);
+unsigned long WharfSpecialFunc (struct ConfigDef * config, struct FreeStorageElem ** storage);
 WharfButton *CreateWharfButton ();
 WharfConfig *CreateWharfConfig ();
 
@@ -1570,11 +1572,13 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 #define FEEL_RecentSubmenuItems_ID	 	(FEEL_ID_START+53)
 #define FEEL_WinListSortOrder_ID	   	(FEEL_ID_START+54)
 #define FEEL_WinListHideIcons_ID	   	(FEEL_ID_START+55)
+#define FEEL_AnimateDeskChange_ID		(FEEL_ID_START+56)	   
 
 /* obsolete stuff : */
 #define FEEL_MWMFunctionHints_ID            (FEEL_ID_START+45)
 #define FEEL_MWMDecorHints_ID               (FEEL_ID_START+46)
 #define FEEL_MWMHintOverride_ID             (FEEL_ID_START+47)
+
 
 #define FEEL_ID_END                   (FEEL_ID_START+64)
 

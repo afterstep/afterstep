@@ -92,6 +92,19 @@ NoPPosition
 #BackingStore
 #SaveUnders
 
+# this will cause blue screen to come up on desktop changes even if desktop background 
+# in the same  on both desks :
+AnimateDeskChange
+
+# these defines how desktop cover (blue screen) is animated when withdrawn :
+#   Available Types :
+#     sliding 	1 - 8
+#     shrinking 9 - 11
+#     melting	12
+CoverAnimationSteps	12
+CoverAnimationType	10
+
+
 ##########################################################################
 # Misc stuff :
 #RecentSubmenuItems   <number>   # changes number of recently used submenu items displayed in poarent menu

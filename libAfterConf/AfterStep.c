@@ -303,7 +303,8 @@ SyntaxDef includeSyntax =
   {TF_NO_MYNAME_PREPENDING, "DefaultWindowBox", 16, 	TT_QUOTED_TEXT, FEEL_DefaultWindowBox_ID		, NULL}, \
   {TF_NO_MYNAME_PREPENDING, "RecentSubmenuItems", 18, 	TT_INTEGER, 	FEEL_RecentSubmenuItems_ID		, NULL}, \
   {TF_NO_MYNAME_PREPENDING, "WinListSortOrder", 16, 	TT_INTEGER, 	FEEL_WinListSortOrder_ID		, NULL}, \
-  {TF_NO_MYNAME_PREPENDING, "WinListHideIcons", 16, 	TT_FLAG, 		FEEL_WinListHideIcons_ID		, NULL}
+  {TF_NO_MYNAME_PREPENDING, "WinListHideIcons", 16, 	TT_FLAG, 		FEEL_WinListHideIcons_ID		, NULL}, \
+  {TF_NO_MYNAME_PREPENDING, "AnimateDeskChange", 17, 	TT_FLAG, 		FEEL_AnimateDeskChange_ID		, NULL}
 
 
 #define AFTERSTEP_CURSOR_TERMS \

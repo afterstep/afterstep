@@ -60,7 +60,7 @@ flag_options_xref FeelFlagsXref[] = {
     {SMART_PLACEMENT        , FEEL_SmartPlacement_ID        , 0},
     {RandomPlacement       , FEEL_RandomPlacement_ID       , 0},
     {StubbornPlacement     , FEEL_StubbornPlacement_ID     , 0},
-    {MenusHigh             , FEEL_MenusHigh_ID             , 0},
+//    {MenusHigh             , FEEL_MenusHigh_ID             , 0},
     {CenterOnCirculate     , FEEL_CenterOnCirculate_ID     , 0},
      /* icons : */
     {SuppressIcons         , FEEL_SuppressIcons_ID         , 0},

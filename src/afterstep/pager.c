@@ -339,7 +339,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
     if( old_desk != new_desk && IsValidDesk( old_desk ) )
     {
         int client_count = 0 ;
-	    if( get_flags( AfterStepState, ASS_NormalOperation) )
+	    if( get_flags( AfterStepState, ASS_NormalOperation) && get_flags( Scr.Feel.flags, AnimateDeskChange))
 		{	
 			cover_desktop();
 			desk_covered = True ;
