@@ -34,6 +34,9 @@
 #else
 #include <setjmp.h>
 #endif
+#ifdef XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
+#include <X11/xpm.h>
+#endif
 
 #include "../include/aftersteplib.h"
 #ifdef JPEG
@@ -315,7 +318,6 @@ raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned
 
 /***********************************************************************************/
 #ifdef XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
-#include <X11/xpm.h>
 
 int
 show_xpm_error (int Err)

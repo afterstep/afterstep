@@ -19,8 +19,14 @@
 
 #include "../configure.h"
 
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
+
+#define DO_X11_ANTIALIASING
+#define DO_2STEP_X11_ANTIALIASING
+#define X11_AA_HEIGHT_THRESHOLD 14
+#define X11_2STEP_AA_HEIGHT_THRESHOLD 15
+
 
 #include <unistd.h>
 
@@ -256,12 +262,20 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 {/* very simple RLE compression - should work well on glyphs */
 	unsigned char *pixmap ;
 	register unsigned char *dst = buffer ;
-	register int i, k ;
-	dst[0] = 0 ;
-	dst[1] = hpad-1 ;
+	register int i, k = 0;
+	if( hpad == 0 )
+	{
+		dst[0] = src[0] ;
+		dst[1] = 0 ;
+		k = 1 ;
+	}else
+	{
+		dst[0] = 0 ;
+		dst[1] = hpad-1 ;
+	}
 	for( i = 0 ; i < height ; i++ )
 	{
-		for( k = 0 ; k < width  ; ++k )
+		for( ; k < width  ; ++k )
 		{
 			if( src[k] == dst[0] && dst[1] < 255 )
 				++dst[1];
@@ -284,6 +298,7 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 				dst[1] = hpad-1 ;
 			}
 		}
+		k = 0 ;
 	}
 	if( dst[1] > 0 )
 	{
@@ -293,6 +308,106 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 	memcpy( pixmap, buffer, dst-buffer );
 	return pixmap;
 }
+
+#ifdef DO_X11_ANTIALIASING
+void
+antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height )
+{
+	unsigned char *row1, *row2 ;
+	register unsigned char *row ;
+	register int x;
+	int y;
+
+	row1 = &(buffer[0]);
+	row = &(buffer[width]);
+	row2 = &(buffer[width+width]);
+	for( x = 1 ; x < width-1 ; x++ )
+		if( row1[x] == 0 )
+		{/* antialiasing here : */
+			unsigned int c = (unsigned int)row[x]+
+							(unsigned int)row1[x-1]+
+							(unsigned int)row1[x+1];
+			if( c >= 0x01FE )  /* we cut off secondary aliases */
+				row1[x] = c>>2;
+		}
+	for( y = 1 ; y < height-1 ; y++ )
+	{
+		if( row[0] == 0 )
+		{/* antialiasing here : */
+			unsigned int c = (unsigned int)row1[0]+
+							(unsigned int)row[1]+
+							(unsigned int)row2[0];
+			if( c >= 0x01FE )  /* we cut off secondary aliases */
+				row[0] = c>>2;
+		}
+
+		for( x = 1 ; x < width-1 ; x++ )
+		{
+			if( row[x] == 0 )
+			{/* antialiasing here : */
+				unsigned int c = (unsigned int)row1[x]+
+								(unsigned int)row[x-1]+
+								(unsigned int)row[x+1]+
+								(unsigned int)row2[x];
+				if( row1[x] != 0 && row[x-1] != 0 && row[x+1] != 0 && row2[x] != 0 &&
+					c >= 0x01FE )
+					row[x] = c>>3;
+				else if( c >= 0x01FE )  /* we cut off secondary aliases */
+					row[x] = c>>2;
+			}
+		}
+		if( row[x] == 0 )
+		{/* antialiasing here : */
+			unsigned int c = (unsigned int)row1[x]+
+							(unsigned int)row[x-1]+
+							(unsigned int)row2[x];
+			if( c >= 0x01FE )  /* we cut off secondary aliases */
+				row[x] = c>>2;
+		}
+		row  += width ;
+		row1 += width ;
+		row2 += width ;
+	}
+	for( x = 1 ; x < width-1 ; x++ )
+		if( row[x] == 0 )
+		{/* antialiasing here : */
+			unsigned int c = (unsigned int)row1[x]+
+							(unsigned int)row[x-1]+
+							(unsigned int)row[x+1];
+			if( c >= 0x01FE )  /* we cut off secondary aliases */
+				row[x] = c>>2;
+		}
+#ifdef DO_2STEP_X11_ANTIALIASING
+	if( height  > X11_2STEP_AA_HEIGHT_THRESHOLD )
+	{
+		row1 = &(buffer[0]);
+		row = &(buffer[width]);
+		row2 = &(buffer[width+width]);
+		for( y = 1 ; y < height-1 ; y++ )
+		{
+			for( x = 1 ; x < width-1 ; x++ )
+			{
+				if( row[x] == 0 )
+				{/* antialiasing here : */
+					unsigned int c = (unsigned int)row1[x]+
+									(unsigned int)row[x-1]+
+									(unsigned int)row[x+1]+
+									(unsigned int)row2[x];
+					if( row1[x] != 0 && row[x-1] != 0 && row[x+1] != 0 && row2[x] != 0
+						&& c >= 0x00FF+0x007F)
+						row[x] = c>>3;
+					else if( (c >= 0x00FF+0x007F)|| c == 0x00FE )  /* we cut off secondary aliases */
+						row[x] = c>>2;
+				}
+			}
+			row  += width ;
+			row1 += width ;
+			row2 += width ;
+		}
+	}
+#endif
+}
+#endif
 
 /*********************************************************************************/
 /* encoding/locale handling						   								 */
@@ -310,22 +425,21 @@ static ASGlyphRange*
 split_X11_glyph_range( unsigned long min_char, unsigned int max_char, XCharStruct *chars )
 {
 	ASGlyphRange *first = NULL, **r = &first;
+	int c = 0, delta = max_char-min_char+1;
 LOCAL_DEBUG_CALLER_OUT( "min_char = %lu, max_char = %lu, chars = %p", min_char, max_char, chars );
-	while( min_char <= max_char )
+	while( c < delta )
 	{
-		register int i = min_char;
-		while( i <= max_char && chars[i-min_char].width == 0 ) i++ ;
-		chars = &(chars[i]);
-		if( min_char <= max_char )
+		while( c < delta && chars[c].width == 0 ) ++c;
+
+		if( c < delta )
 		{
 			*r = safecalloc( 1, sizeof(ASGlyphRange));
-			(*r)->min_char = i ;
-			while( i <= max_char && chars[i-min_char].width  != 0 ) i++ ;
-			(*r)->max_char = i ;
+			(*r)->min_char = c+min_char ;
+			while( c < delta && chars[c].width  != 0 ) ++c ;
+			(*r)->max_char = (c-1)+min_char;
 LOCAL_DEBUG_OUT( "created glyph range from %lu to %lu", (*r)->min_char, (*r)->max_char );
 			r = &((*r)->above);
 		}
-		min_char = i ;
 	}
 	return first;
 }
@@ -342,84 +456,90 @@ load_X11_glyph_range( ASFont *font, XFontStruct *xfs, size_t char_offset,
 	unsigned int   height = xfs->ascent+xfs->descent ;
 	static XGCValues gcv;
 
-	buffer = safemalloc( xfs->max_bounds.width*height);
-	compressed_buf = safemalloc( xfs->max_bounds.width*height*2);
+	buffer = safemalloc( xfs->max_bounds.width*height*2);
+	compressed_buf = safemalloc( xfs->max_bounds.width*height*4);
 	all = split_X11_glyph_range( min_char, (byte1<<8)|max_byte2, &(xfs->per_char[char_offset]));
 	for( r = all ; r != NULL ; r = r->above )
 	{
-		XChar2b *test_str ;
 		XCharStruct *chars = &(xfs->per_char[char_offset+r->min_char-min_char]);
 	    int len = (r->max_char-r->min_char+1);
-		unsigned char c = r->min_char&0x00FF;
+		unsigned char char_base = r->min_char&0x00FF;
 		register int i ;
 		Pixmap p;
 		XImage *xim;
 		unsigned int total_width = 0 ;
 		int pen_x = 0;
-
-		test_str = safemalloc( len * sizeof(XChar2b));
-		for( i = 0 ; i < len ; i++ )
-		{
-			test_str[i].byte1 = byte1 ;
-			test_str[i].byte2 = i+c ;
-			total_width = chars[i].width ;
-		}
-		p = XCreatePixmap( dpy, Scr.Root, total_width, height, 1 );
-
-		if( *gc == NULL )
-		{
-			gcv.font = xfs->fid;
-			*gc = XCreateGC( dpy, p, GCFont, &gcv);
-		}
-		XDrawImageString16( dpy, p, *gc, 0, xfs->ascent, test_str, len );
-		xim = XGetImage( dpy, p, 0, 0, total_width, height, 0xFFFFFFFF, ZPixmap );
-		XFreePixmap( dpy, p );
-		free( test_str );
-
+LOCAL_DEBUG_OUT( "loading glyph range of %lu-%lu", r->min_char, r->max_char );
 		r->glyphs = safecalloc( len, sizeof(ASGlyph) );
 		for( i = 0 ; i < len ; i++ )
 		{
+			int w = chars[i].rbearing ;
+			if( chars[i].lbearing < 0 )
+				w -= chars[i].lbearing ;
+			r->glyphs[i].lead = chars[i].lbearing ;
+			r->glyphs[i].width = MAX(w,chars[i].width) ;
+			total_width += r->glyphs[i].width ;
+		}
+		p = XCreatePixmap( dpy, Scr.Root, total_width, height, 1 );
+		if( *gc == NULL )
+		{
+			gcv.font = xfs->fid;
+			gcv.foreground = 1;
+			*gc = XCreateGC( dpy, p, GCFont|GCForeground, &gcv);
+		}else
+			XSetForeground( dpy, *gc, 1 );
+		XFillRectangle( dpy, p, *gc, 0, 0, total_width, height );
+		XSetForeground( dpy, *gc, 0 );
+
+		for( i = 0 ; i < len ; i++ )
+		{
+			XChar2b test_char ;
+			int offset = MIN(0,chars[i].lbearing);
+
+			test_char.byte1 = byte1 ;
+			test_char.byte2 = char_base+i ;
+			/* we cannot draw string at once since in some fonts charcters may
+			 * overlap each other : */
+			XDrawImageString16( dpy, p, *gc, pen_x-offset, xfs->ascent, &test_char, 1 );
+			pen_x += r->glyphs[i].width ;
+		}
+		/*XDrawImageString( dpy, p, *gc, 0, xfs->ascent, test_str_char, len );*/
+		xim = XGetImage( dpy, p, 0, 0, total_width, height, 0xFFFFFFFF, ZPixmap );
+		XFreePixmap( dpy, p );
+		pen_x = 0 ;
+		for( i = 0 ; i < len ; i++ )
+		{
 			register int x, y ;
-			int width = chars[i].width;
-			unsigned char *row = &(buffer[0]), *row1, *row2;
+			int width = r->glyphs[i].width;
+			unsigned char *row = &(buffer[0]);
 
 			for( y = 0 ; y < height ; y++ )
 			{
 				for( x = 0 ; x < width ; x++ )
-					row[x] = ( XGetPixel( xim, pen_x+x, y ) != 0 )? 0xFF:0x00;
+				{
+/*					fprintf( stderr, "glyph %d (%c): (%d,%d) 0x%X\n", i, (char)(i+r->min_char), x, y, XGetPixel( xim, pen_x+x, y ));*/
+					/* remember default GC colors are black on white - 0 on 1 - and we need
+					* quite the opposite - 0xFF on 0x00 */
+					row[x] = ( XGetPixel( xim, pen_x+x, y ) != 0 )? 0x00:0xFF;
+				}
 				row += width;
 			}
-			row1 = &(buffer[0]);
-			row = &(buffer[width]);
-			row2 = &(buffer[width+width]);
 
-			for( y = 1 ; y < height-1 ; y++ )
-			{
-				for( x = 1 ; x < width-1 ; x++ )
-					if( row[x] == 0 )
-					{/* antialiasing here : */
-						int c = (int)row1[x]+
-								(int)row[x-1]+
-								(int)row[x+1]+
-								(int)row2[x];
-						row[x] = c>>3;
-					}
-				row  += width ;
-				row1 += width ;
-				row2 += width ;
-			}
+#ifdef DO_X11_ANTIALIASING
+			if( height > X11_AA_HEIGHT_THRESHOLD )
+				antialias_glyph( buffer, width, height );
+#endif
 			r->glyphs[i].pixmap = compress_glyph_pixmap( buffer, compressed_buf, width, height, 0, width );
-			r->glyphs[i].width = width ;
 			r->glyphs[i].height = height ;
-			r->glyphs[i].lead = 0 ;
 			r->glyphs[i].ascend = xfs->ascent ;
 			r->glyphs[i].descend = xfs->descent ;
-LOCAL_DEBUG_OUT( "glyph %lu is %dx%d ascend = %d, lead = %d",  i, r->glyphs[i].width, r->glyphs[i].height, r->glyphs[i].ascend, r->glyphs[i].lead );
+LOCAL_DEBUG_OUT( "glyph %lu(range %lu-%lu) (%c) is %dx%d ascend = %d, lead = %d",  i, r->min_char, r->max_char, (char)(i+r->min_char), r->glyphs[i].width, r->glyphs[i].height, r->glyphs[i].ascend, r->glyphs[i].lead );
 			pen_x += width ;
 		}
 		if( xim )
 			XDestroyImage( xim );
 	}
+LOCAL_DEBUG_OUT( "done loading glyphs. Attaching set of glyph ranges to the codemap...%s", "" );
 	if( all != NULL )
 	{
 		if( font->codemap == NULL )
@@ -446,6 +566,44 @@ LOCAL_DEBUG_OUT( "glyph %lu is %dx%d ascend = %d, lead = %d",  i, r->glyphs[i].w
 		}
 	}
 	free( buffer ) ;
+	free( compressed_buf ) ;
+LOCAL_DEBUG_OUT( "all don%s", "" );
+}
+
+void
+make_X11_default_glyph( ASFont *font, XFontStruct *xfs )
+{
+	unsigned char *buf, *compressed_buf ;
+	int width, height ;
+	int x, y;
+	unsigned char *row ;
+
+
+	height = xfs->ascent+xfs->descent ;
+	width = xfs->max_bounds.width ;
+
+	if( height <= 0 ) height = 4;
+	if( width <= 0 ) width = 4;
+	buf = safecalloc( height*width, sizeof(unsigned char) );
+	compressed_buf = safemalloc( height*width*2 );
+	row = buf;
+	for( x = 0 ; x < width ; ++x )
+		row[x] = 0xFF;
+	for( y = 1 ; y < height-1 ; ++y )
+	{
+		row += width ;
+		row[0] = 0xFF ; row[width-1] = 0xFF ;
+	}
+	for( x = 0 ; x < width ; ++x )
+		row[x] = 0xFF;
+	font->default_glyph.pixmap = compress_glyph_pixmap( buf, compressed_buf, width, height, 0, width );
+	font->default_glyph.width = width ;
+	font->default_glyph.height = height ;
+	font->default_glyph.lead = 0 ;
+	font->default_glyph.ascend = xfs->ascent ;
+	font->default_glyph.descend = xfs->descent ;
+
+	free( buf ) ;
 	free( compressed_buf ) ;
 }
 
@@ -482,8 +640,38 @@ load_X11_glyphs( ASFont *font, XFontStruct *xfs )
 		}
 	}
 #else
-	load_X11_glyph_range( font, xfs, 0, 0x00, 0x21, 0xFF, &gc );
+	{
+		/* we blame X consortium for the following mess : */
+		int min_char, max_char, our_min_char = 0x0021, our_max_char = 0x00FF ;
+		int byte1 = xfs->min_byte1;
+		if( xfs->min_byte1 > 0 )
+		{
+			min_char = xfs->min_char_or_byte2 ;
+			max_char = xfs->max_char_or_byte2 ;
+			if( min_char > 0x00FF )
+			{
+				byte1 = (min_char>>8)&0x00FF;
+				min_char &=  0x00FF;
+				if( ((max_char>>8)&0x00FF) > byte1 )
+					max_char =  0x00FF;
+				else
+					max_char &= 0x00FF;
+			}
+		}else
+		{
+			min_char = ((xfs->min_byte1<<8)&0x00FF00)|(xfs->min_char_or_byte2&0x00FF);
+			max_char = ((xfs->min_byte1<<8)&0x00FF00)|(xfs->max_char_or_byte2&0x00FF);
+			our_min_char |= ((xfs->min_byte1<<8)&0x00FF00) ;
+			our_max_char |= ((xfs->min_byte1<<8)&0x00FF00) ;
+		}
+		our_min_char = MAX(our_min_char,min_char);
+		our_max_char = MIN(our_max_char,max_char);
+
+		load_X11_glyph_range( font, xfs, our_min_char-min_char, byte1, our_min_char&0x00FF, our_max_char&0x00FF, &gc );
+	}
 #endif
+	if( font->default_glyph.pixmap == NULL )
+		make_X11_default_glyph( font, xfs );
 	font->max_height = xfs->ascent+xfs->descent;
 	font->max_ascend = xfs->ascent;
 	font->space_size = xfs->max_bounds.width*2/3 ;
@@ -500,25 +688,26 @@ load_glyph_freetype( ASFont *font, ASGlyph *asg, int glyph )
 	register FT_Face face = font->ft_face;
 	if( !FT_Load_Glyph( face, glyph, FT_LOAD_DEFAULT ) )
 		if( !FT_Render_Glyph( face->glyph, ft_render_mode_normal ) )
-		{
-			FT_Bitmap 	*bmap = &(face->glyph->bitmap) ;
-			register CARD8 *buf, *src = bmap->buffer ;
-			int hpad = (face->glyph->bitmap_left<0)? -face->glyph->bitmap_left: face->glyph->bitmap_left ;
+			if( face->glyph->bitmap.buffer )
+			{
+				FT_Bitmap 	*bmap = &(face->glyph->bitmap) ;
+				register CARD8 *buf, *src = bmap->buffer ;
+				int hpad = (face->glyph->bitmap_left<0)? -face->glyph->bitmap_left: face->glyph->bitmap_left ;
 
-			if( bmap->pitch < 0 )
-				src += -bmap->pitch*bmap->rows ;
-			buf = safemalloc( bmap->rows*(bmap->width+hpad)*2);
-			/* we better do some RLE encoding in attempt to preserv memory */
-			asg->pixmap  = compress_glyph_pixmap( src, buf, bmap->width, bmap->rows, hpad, bmap->pitch );
-			free( buf );
-			asg->width   = bmap->width+hpad ;
-			asg->height  = bmap->rows ;
-			asg->ascend  = face->glyph->bitmap_top;
-			asg->descend = bmap->rows - asg->ascend;
-			/* we only want to keep lead if it was negative */
-			asg->lead    = face->glyph->bitmap_left ;
-LOCAL_DEBUG_OUT( "glyph %p is %dx%d ascend = %d, lead = %d, bmap_top = %d",  asg, asg->width, asg->height, asg->ascend, asg->lead, face->glyph->bitmap_top );
-		}
+				if( bmap->pitch < 0 )
+					src += -bmap->pitch*bmap->rows ;
+				buf = safemalloc( bmap->rows*(bmap->width+hpad)*2);
+				/* we better do some RLE encoding in attempt to preserv memory */
+				asg->pixmap  = compress_glyph_pixmap( src, buf, bmap->width, bmap->rows, hpad, bmap->pitch );
+				free( buf );
+				asg->width   = bmap->width+hpad ;
+				asg->height  = bmap->rows ;
+				asg->ascend  = face->glyph->bitmap_top;
+				asg->descend = bmap->rows - asg->ascend;
+				/* we only want to keep lead if it was negative */
+				asg->lead    = face->glyph->bitmap_left ;
+	LOCAL_DEBUG_OUT( "glyph %p is %dx%d ascend = %d, lead = %d, bmap_top = %d",  asg, asg->width, asg->height, asg->ascend, asg->lead, face->glyph->bitmap_top );
+			}
 }
 
 static ASGlyphRange*
@@ -604,7 +793,11 @@ inline ASGlyph *get_character_glyph( const char *c, ASFont *font )
 	for( r = font->codemap ; r != NULL ; r = r->above )
 		if( r->max_char >= uc )
 			if( r->min_char <= uc )
-				return &(r->glyphs[uc - r->min_char]);
+			{
+				ASGlyph *asg = &(r->glyphs[uc - r->min_char]);
+				if( asg->width > 0 && asg->pixmap != NULL )
+					return &(r->glyphs[uc - r->min_char]);
+			}
 	return &(font->default_glyph);
 }
 
@@ -628,13 +821,13 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map )
 {
 	unsigned int w = 0;
 	unsigned int line_count = 0, line_width = 0;
-	int i = -1;
+	int i = -1, g = 0 ;
 	const char *ptr = text;
 
 	if( text == NULL || font == NULL || map == NULL)
 		return False;
 
-	map->glyphs_num = 0;
+	map->glyphs_num = 1;
 	while( *ptr != 0 )
 	{
 		++(map->glyphs_num);
@@ -653,21 +846,21 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map )
 				w = line_width ;
 			line_width = 0 ;
 			++line_count ;
-			map->glyphs[i] = (text[i] == '\0')?GLYPH_EOT:GLYPH_EOL;
+			map->glyphs[g++] = (text[i] == '\0')?GLYPH_EOT:GLYPH_EOL;
 		}else
 		{
 			if( text[i] == ' ' )
 			{
 				line_width += font->space_size ;
-				map->glyphs[i] = GLYPH_SPACE;
+				map->glyphs[g++] = GLYPH_SPACE;
 			}else if( text[i] == '\t' )
 			{
 				line_width += font->space_size*8 ;
-				map->glyphs[i] = GLYPH_TAB;
+				map->glyphs[g++] = GLYPH_TAB;
 			}else
 			{
 				ASGlyph *asg = get_character_glyph( &text[i], font );
-				map->glyphs[i] = asg;
+				map->glyphs[g++] = asg;
 				line_width += asg->width ;
 				i+=CHAR_SIZE(text[i])-1;
 			}
@@ -740,7 +933,9 @@ LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 	space_size  = (font->space_size>>1)+1;
 	base_line = font->max_ascend;
 	scanlines = safemalloc( line_height*sizeof(CARD32*));
+LOCAL_DEBUG_OUT( "scanline list memory allocated %d", line_height*sizeof(CARD32*) );
 	memory = safemalloc( map.width*line_height*sizeof(CARD32));
+LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*sizeof(CARD32) );
 	do
 	{
 		scanlines[i] = memory + offset;
@@ -767,17 +962,16 @@ LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 				else
 					while( x < map.width )
 						line[x++] = 0 ;
-
-/*				x = 0;
+#ifdef LOCAL_DEBUG
+				x = 0;
 				while( x < map.width )
 					fprintf( stderr, "%2.2X ", scanlines[y][x++] );
 				fprintf( stderr, "\n" );
-*/
+#endif
  				asimage_add_line (im, IC_ALPHA, line, pen_y+y);
 			}
 			pen_x = (font->pen_move_dir == RIGHT_TO_LEFT)? map.width : 0;
 			pen_y += line_height;
-			base_line += line_height;
 		}else
 		{
 			if( map.glyphs[i] == GLYPH_SPACE || map.glyphs[i] == GLYPH_TAB )
@@ -814,7 +1008,8 @@ LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 				while( y < start_y )
 				{
 					register CARD32 *dst = scanlines[y]+pen_x;
-					while( x < width ) dst[x++] = 0;
+					for( x = 0 ; x < width ; ++x )
+						dst[x] = 0;
 					++y;
 				}
 				while( y < max_y )
@@ -885,12 +1080,14 @@ void print_asglyph( FILE* stream, ASFont* font, unsigned long c)
 		fprintf( stream, "glyph[%lu].ascend = %d\n", c, asg->ascend);
 		fprintf( stream, "glyph[%lu].descend = %d\n", c, asg->descend );
 		k = 0 ;
+		fprintf( stream, "glyph[%lu].pixmap = {", c);
 		for( i = 0 ; i < asg->height*asg->width ; i++ )
 		{
 			fprintf( stream, "%d(%2.2X) ", asg->pixmap[k+1], asg->pixmap[k]);
 			i += asg->pixmap[k+1] ;
-			k++;
+			k++; k++;
 		}
+		fprintf( stream, "}\nglyph[%lu].used_memory = %d\n", c, k );
 	}
 }
 
