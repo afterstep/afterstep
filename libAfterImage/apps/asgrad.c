@@ -32,6 +32,7 @@
 #include "common.h"
 
 ARGB32 default_colors[] = {
+	0xFF000000,
 	0xFF700070,                                /* violet */
 	0xFF0000FF,                                /* blue   */
 	0xFF00FFFF,                                /* cyan   */
@@ -39,8 +40,10 @@ ARGB32 default_colors[] = {
 	0XFFFFFF00,
 	0XFFFF0000,
 	0XFF700000,
+	0xFF8080A0,
+	0xFFE0E0FF,
 };
-double default_offsets[] = { 0, 0.14, 0.28, 0.42, 0.56, 0.70, 0.84, 1.0} ;
+double default_offsets[] = { 0, 0.1, 0.15, 0.20, 0.35, 0.45, 0.50, 0.55, 0.65, 0.8, 1.0} ;
 
 
 void usage()
@@ -48,10 +51,10 @@ void usage()
 	printf( "  Usage: asgrad -h | <geometry> <gradient_type> <color1> <offset2> <color2> [ <offset3> <color3> ...]\n");
 	printf( "  Where: geometry - size of the resulting image and window;\n");
 	printf( "         gradient_type - One of the fiollowing values :\n");
-	printf( "            0 - linear left-to-right gradient,\n");
+	printf( "            0 - linear   left-to-right gradient,\n");
 	printf( "            1 - diagonal lefttop-to-rightbottom,\n");
-	printf( "            2 - linear top-to-bottom gradient,\n");
-	printf( "            1 - diagonal righttop-to-leftbottom;\n");
+	printf( "            2 - linear   top-to-bottom gradient,\n");
+	printf( "            3 - diagonal righttop-to-leftbottom;\n");
 	printf( "         offset   - floating point value from 0.0 to 1.0\n");
 }
 
@@ -62,7 +65,7 @@ int main(int argc, char* argv[])
 	int screen, depth ;
 	int dummy, to_width, to_height, geom_flags = 0;
 	ASGradient grad ;
-	ASGradient default_grad = { 1, 7, &(default_colors[0]), &(default_offsets[0])} ;
+	ASGradient default_grad = { 1, 10, &(default_colors[0]), &(default_offsets[0])} ;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -111,14 +114,17 @@ int main(int argc, char* argv[])
 					grad.npoints++ ;
 		}
 	}else
+	{
 		grad = default_grad ;
+		if( argc >= 3 )
+			grad.type = atoi( argv[2] );
+	}
 
 	if( grad.npoints <= 0 )
 	{
 		show_error( " not enough gradient points specified.");
 		return 1;
 	}
-
 
 	/* Making sure tiling geometry is sane : */
 	if( !get_flags(geom_flags, WidthValue ) )

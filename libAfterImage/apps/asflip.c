@@ -33,9 +33,10 @@
 
 void usage()
 {
-	printf( "Usage: asflip [-h]|[image [flip]]\n");
+	printf( "Usage: asflip [-h]|[[-f flip] [-g geom] image]\n");
 	printf( "Where: image - is image filename\n");
 	printf( "       flip  - rotation angle in degrees. 90, 180 and 270 degrees supported\n");
+	printf( "       geom  - source image is tiled using this geometry, prior to rotation\n");
 }
 
 int main(int argc, char* argv[])
@@ -53,22 +54,31 @@ int main(int argc, char* argv[])
 
 	if( argc > 1 )
 	{
+		int i = 1 ;
 		if( strcmp( argv[1], "-h" ) == 0 )
 		{
 			usage();
 			return 0;
 		}
-		image_file = argv[1] ;
-		if( argc > 2 )
+		for( i = 1 ; i < argc ; i++ )
 		{
-			/* see ASFlip.1 */
-			flip = atoi(argv[2])/90 ;
-			if( argc > 3 )
+			if( argv[i][0] == '-' && i < argc-1 )
 			{
-	    		/* see ASTile.1 : */
-	    		geom_flags = XParseGeometry( argv[3], &tile_x, &tile_y,
-		        		                     &tile_width, &tile_height );
-			}
+				switch(argv[i][1])
+				{
+					case 'f' :			/* see ASFlip.1 */
+						flip = atoi(argv[i+1])/90 ;
+					    break ;
+					case 'g' :   		/* see ASTile.2 : */
+	    				geom_flags = XParseGeometry( argv[i+1],
+							                         &tile_x, &tile_y,
+		        				        			 &tile_width,
+													 &tile_height );
+					    break ;
+				}
+				++i ;
+			}else
+				image_file = argv[i] ;
 		}
 	}else
 		usage();

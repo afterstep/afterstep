@@ -39,10 +39,11 @@
 
 void usage()
 {
-	printf( "Usage: astile [-h]|[image [geometry]]\n");
+	printf( "Usage: astile [-h]|[[-g geometry][-t tint_color] image]\n");
 	printf( "Where: image    - source image filename.\n");
 	printf( "       geometry - width and height of the resulting image,\n");
 	printf( "                  and x, y of the origin of the tiling on source image.\n");
+	printf( "       tint_color - color to tint image with.( defaults to current time :)\n");
 }
 
 int main(int argc, char* argv[])
@@ -66,26 +67,36 @@ int main(int argc, char* argv[])
 
 	if( argc > 1 )
 	{
+		int i ;
+
 		if( strncmp( argv[1], "-h", 2 ) == 0 )
 		{
 			usage();
 			return 0;
 		}
-		image_file = argv[1] ;
-		if( argc > 2 )
-		{   /* see ASTile.1 : */
-			if( parse_argb_color( argv[2], &tint_color ) == argv[2] )
-				show_warning( "unable to parse tint color - default used: #%8.8X",
-				              tint_color );
-			/* see ASTile.2 : */
-			if( argc > 3 )
-				geom_flags = XParseGeometry( argv[3], &tile_x, &tile_y,
-				                             &tile_width, &tile_height );
-		}else
+
+		for( i = 1 ; i < argc ; i++ )
 		{
-			show_warning( "no tint color specified - default used: #%8.8lX",
-			              tint_color );
-			usage();
+			if( argv[i][0] == '-' && i < argc-1 )
+			{
+				switch(argv[i][1])
+				{
+					case 't' :			/* see ASTile.1 : */
+						if( parse_argb_color( argv[i+1], &tint_color ) ==
+							argv[i+1] )
+							show_warning( "unable to parse tint color - default used: #%8.8X",
+				            			  tint_color );
+					    break ;
+					case 'g' :   		/* see ASTile.2 : */
+	    				geom_flags = XParseGeometry( argv[i+1],
+							                         &tile_x, &tile_y,
+		        				        			 &tile_width,
+													 &tile_height );
+					    break ;
+				}
+				++i ;
+			}else
+				image_file = argv[i] ;
 		}
 	}else
 	{
@@ -180,7 +191,7 @@ int main(int argc, char* argv[])
  * In case named color is specified or now apha channel is specified
  * alpha value of 0xFF will be used, marking this color as solid.
  * EXAMPLE
- *     if( parse_argb_color( argv[2], &tint_color ) == argv[2] )
+ *     if( parse_argb_color( argv[i+1], &tint_color ) == argv[i+1] )
  * 	       show_warning( "unable to parse tint color - default used: #%8.8X",
  *                        tint_color );
  * NOTES
@@ -201,7 +212,7 @@ int main(int argc, char* argv[])
  * with some sensible defaults. Default x is width/2, y is height/2, and
  * default size is same as image's width.
  * EXAMPLE
- *     geom_flags = XParseGeometry ( argv[3], &tile_x, &tile_y,
+ *     geom_flags = XParseGeometry ( argv[i+1], &tile_x, &tile_y,
  *                                            &tile_width, &tile_height );
  * SEE ALSO
  * ASScale.1
