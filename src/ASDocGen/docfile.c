@@ -263,7 +263,10 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 		return False ;
 	}
 	
-	dest_fp = fopen( dest_path, "wt" );
+	if( DocGenerationPass > 0 ) 
+		dest_fp = fopen( "/dev/null", "wt" );
+	else 
+		dest_fp = fopen( dest_path, "wt" );
 	if( dest_fp == NULL ) 
 	{
 		show_error( "Failed to open destination file \"%s\" for writing!", dest_path );

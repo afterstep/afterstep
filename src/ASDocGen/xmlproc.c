@@ -139,34 +139,53 @@ write_doc_cdata( const char *cdata, int len, ASXMLInterpreterState *state )
 		Bool special = False ;
 		for( i = 0 ; i < len ; ++i ) 
 		{
-			if( !isalnum(cdata[i]) && cdata[i] != '_' )
+			if( (!isalnum(cdata[i]) && cdata[i] != '_'  && cdata[i] != '(' && cdata[i] != ')') || special )
 			{
-				if( token_start+1 < i && !special ) 	
-				{
-					/* need to try and insert an URL here if token is a keyword */
+				if( token_start < i )
+				{	
+					if( get_flags( state->flags, ASXMLI_InsideLink) )
+					{	
+						fwrite( &(cdata[token_start]), 1, i-token_start, state->dest_fp );	 
+					}else
+					{
+						/* need to try and insert an URL here if token is a keyword */
+						char *token = mystrndup( &(cdata[token_start]), i - token_start );
+						ASHashData hdata ;
+						if( !special && get_hash_item(Links, AS_HASHABLE(token), &(hdata.vptr)) == ASH_Success ) 
+						{
+							if( state->doc_type == DocType_HTML	)
+								fprintf( state->dest_fp, "<A href=\"%s\">%s</A>", hdata.cptr, token );
+							else if( state->doc_type == DocType_PHP ) 
+								fprintf( state->dest_fp, PHPXrefFormat, "visualdoc",token, hdata.cptr, "" );
+						}else
+					 		fwrite( token, 1, i-token_start, state->dest_fp );	
+						free( token ); 
+					}
 				}	 
-				token_start = i ;
+				token_start = i+1 ;
 				
 				if( cdata[i] == '&' )
 					special = ( translate_special_sequence( &(cdata[i]), len-i,  NULL ) == '\0' );
 				if( cdata[i] == ';' && special ) 		   
 					special = False ;
+				switch( cdata[i] )
+				{
+					case '<' : fwrite( "&lt;", 1, 4, state->dest_fp );     break ;	
+					case '>' : fwrite( "&gt;", 1, 4, state->dest_fp );     break ;	 
+					case '"' : fwrite( "&quot;", 1, 6, state->dest_fp );     break ;	 
+					case '&' : 	if( !special ) 
+								{			
+									fwrite( "&amp;", 1, 5, state->dest_fp );     
+									break ;	 
+								}
+								/* otherwise falling through ! */
+					default:
+						fputc( cdata[i], state->dest_fp );
+				}	 
 			}
-			switch( cdata[i] )
-			{
-				case '<' : fwrite( "&lt;", 1, 4, state->dest_fp );     break ;	
-				case '>' : fwrite( "&gt;", 1, 4, state->dest_fp );     break ;	 
-				case '"' : fwrite( "&quot;", 1, 6, state->dest_fp );     break ;	 
-				case '&' : 	if( !special ) 
-							{			
-								fwrite( "&amp;", 1, 5, state->dest_fp );     
-								break ;	 
-							}
-							/* otherwise falling through ! */
-				default:
-					fputc( cdata[i], state->dest_fp );
-			}	 
 		}				
+		if( i > token_start ) 
+			fwrite( &(cdata[token_start]), 1, i-token_start, state->dest_fp );	 
 	}else
 	{
 		for( i = 0 ; i < len ; ++i ) 
@@ -470,8 +489,8 @@ add_glossary_item( xml_elem_t* doc, ASXMLInterpreterState *state )
 	const char *term_text = cdata?cdata->parm:NULL ;
 	if( term_text != NULL ) /* need to add glossary term */
 	{
-	 	char *target = NULL ;
-		char *term = NULL ;
+	 	char *target = NULL, *target2 ;
+		char *term = NULL, *term2 ;
 		char *ptr = &(state->dest_file[strlen(state->dest_file)-4]);
 		if( state->doc_type == DocType_PHP && *ptr == '.')
 			*ptr = '\0' ;
@@ -479,10 +498,22 @@ add_glossary_item( xml_elem_t* doc, ASXMLInterpreterState *state )
 		sprintf( target, "%s#%s", state->dest_file, state->curr_url_anchor );
 		if( state->doc_type == DocType_PHP && *ptr == '\0' )
 			*ptr = '.' ;
+		
+		target2 = mystrdup(target);
+		term2 = mystrdup(term_text);
+		if( add_hash_item( Links, AS_HASHABLE(term2), (void*)target2 ) != ASH_Success ) 
+		{
+			free( target2 );
+			free( term2 );	   
+		}	 
 				
 		term = safemalloc( strlen( term_text)+ 1 + 1 +strlen( state->doc_name ) + 1 +1 );
 		sprintf( term, "%s (%s)", term_text, state->doc_name );
-		add_hash_item( Glossary, AS_HASHABLE(term), (void*)target );   
+		if( add_hash_item( Glossary, AS_HASHABLE(term), (void*)target ) != ASH_Success ) 
+		{
+			free( target );
+			free( term );	   
+		}
 	}	 
 	return term_text;
 }
@@ -943,4 +974,16 @@ end_anchor_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state 
 		close_link(state);
 }
 
-
+/*************************************************************************/
+void 
+compile_links( xml_elem_t *doc, ASXMLInterpreterState *state )	
+{
+	while( doc ) 
+	{
+		
+		if( doc->child )
+ 			compile_links( doc->child, state );	 			 
+		doc = doc->next ;	
+	}		  
+	
+}

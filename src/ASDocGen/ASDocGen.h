@@ -91,6 +91,8 @@ extern ASHashTable *DocBookVocabulary ;
 extern ASHashTable *ProcessedSyntaxes ;
 extern ASHashTable *Glossary ;
 extern ASHashTable *Index ;
+extern ASHashTable *Links ;
+extern int DocGenerationPass ;
 
 #endif /*ASDOCGEN_H_HEADER_INCLUDED*/
 

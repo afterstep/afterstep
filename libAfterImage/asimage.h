@@ -13,8 +13,8 @@ struct ASImageOutput;
 struct ASScanline;
 
 /****h* libAfterImage/asimage.h
- * SYNOPSIS
- * Defines main structures and function for image manipulation.
+ * NAME
+ * ASImage defines main structures and function for image manipulation.
  * DESCRIPTION
  * libAfterImage provides powerful functionality to load, store
  * and transform images. It allows for smaller memory utilization by
@@ -95,8 +95,8 @@ struct ASScanline;
 #define RLE_THRESHOLD			1
 
 /****d* libAfterImage/ASAltImFormats
- * FUNCTION
- * Identifies what output format should be used for storing the
+ * NAME 
+ * ASAltImFormats identifies what output format should be used for storing the
  * transformation result. Also identifies what data is currently stored
  * in alt member of ASImage structure.
  * SOURCE
@@ -118,9 +118,7 @@ typedef enum {
 /*******/
 /****s* libAfterImage/ASImage
  * NAME
- * ASImage
- * SYNOPSIS
- * ASImage is main structure to hold image data.
+ * ASImage is the main structure to hold image data.
  * DESCRIPTION
  * Images are stored internally split into ARGB channels, each split
  * into scanline. Each scanline is stored the following format to allow
@@ -220,32 +218,26 @@ typedef struct ASImage
 
 /****d* libAfterImage/LIMITS
  * NAME
- * MAX_IMPORT_IMAGE_SIZE
- * MAX_BEVEL_OUTLINE
- * FUNCTION
- *	MAX_IMPORT_IMAGE_SIZE	effectively limits size of the allowed
+ * MAX_IMPORT_IMAGE_SIZE	effectively limits size of the allowed
  *							images to be loaded from files. That is
  * 							needed to be able to filter out corrupt files.
- *
- * 	MAX_BEVEL_OUTLINE		Limit on bevel outline to be drawn around
+ * NAME
+ * MAX_BEVEL_OUTLINE		Limit on bevel outline to be drawn around
  * 							the image.
- * SOURCE
+ * NAME
+ * MAX_SEARCH_PATHS		Number of search paths to be used while loading 
+ * 							images from files.
  */
-#define MAX_IMPORT_IMAGE_SIZE 	4000
+#define MAX_IMPORT_IMAGE_SIZE 	8000
 #define MAX_BEVEL_OUTLINE 		100
 #define MAX_SEARCH_PATHS		8      /* prudently limiting ourselfs */
 /******/
 
 /****s* libAfterImage/ASImageManager
  * NAME
- * ASImageManager
- * DESCRIPTION
- * Global data identifying connection to external libraries, as well as
- * images location paths.
- * This structure could be used to maintain repository of loaded images
- * in order to avoid loading same image more then once.
- * It holds hash of loaded image names.
- *
+ * ASImageManager structure to be used to maintain list of loaded images 
+ * for given set of search paths and gamma. Images are named and reference 
+ * counted.
  * SOURCE
  */
 typedef struct ASImageManager
@@ -261,25 +253,21 @@ typedef struct ASImageManager
 /* Auxiliary data structures : */
 /****s* libAfterImage/ASVectorPalette
  * NAME
- * ASScientificPalette
- * DESCRIPTION
- * Contains pallette allowing us to map double values in vector image
- * data into actuall ARGB values.
+ * ASVectorPalette contains pallette allowing us to map double values 
+ * in vector image data into actuall ARGB values.
  * SOURCE
  */
 typedef struct ASVectorPalette
 {
 	unsigned int npoints ;
 	double *points ;
-	CARD16 *channels[IC_NUM_CHANNELS] ;        /* ARGB data for key points. */
+	CARD16 *channels[IC_NUM_CHANNELS] ;   /* ARGB data for key points. */
 	ARGB32  default_color;
 }ASVectorPalette;
 /*************/
 
 /****s* libAfterImage/ASImageBevel
  * NAME
- * ASImageBevel
- * SYNOPSIS
  * ASImageBevel describes bevel to be drawn around the image.
  * DESCRIPTION
  * Bevel is used to create 3D effect while drawing buttons, or any other
@@ -302,22 +290,32 @@ typedef struct ASVectorPalette
 typedef struct ASImageBevel
 {
 #define BEVEL_SOLID_INLINE	(0x01<<0)
-	ASFlagType type ;			               /* reserved for future use */
+	ASFlagType type ;	             /* reserved for future use */
 
 	/* primary bevel colors */
-	ARGB32		hi_color, lo_color ;
+	ARGB32	hi_color ;		/* top and left side color */
+	ARGB32	lo_color ;		/* bottom and right side color */		 
 
 	/* these will be placed in the corners */
-	ARGB32		hihi_color, hilo_color, lolo_color ;
-	unsigned short left_outline, top_outline, right_outline, bottom_outline;
-	unsigned short left_inline, top_inline, right_inline, bottom_inline;
+	ARGB32	hihi_color ;	/* color of the top-left corner */
+	ARGB32	hilo_color ;	/* color of the top-right and bottom-left corners */
+	ARGB32	lolo_color ;	/* color of the bottom-right corner */
+
+	/* outlines define size of the line drawn around the image */
+	unsigned short left_outline ; 
+	unsigned short top_outline ;
+	unsigned short right_outline ; 
+	unsigned short bottom_outline ;
+	/* inlines define size of the semitransparent line drawn inside the image */
+	unsigned short left_inline ;
+	unsigned short top_inline ;
+	unsigned short right_inline ;
+	unsigned short bottom_inline ;
 }ASImageBevel;
 /*******/
 
 /****s* libAfterImage/ASImageDecoder
  * NAME
- * ASImageDecoder
- * SYNOPSIS
  * ASImageDecoder describes the status of reading any particular ASImage,
  * as well as providing detail on how it should be done.
  * DESCRIPTION
@@ -347,7 +345,8 @@ typedef struct ASImageBevel
  */
 
 /* low level driver (what data to use - native, XImage or ARGB): */
-typedef void (*decode_asscanline_func)( struct ASImageDecoder *imdec, unsigned int skip, int y );
+typedef void (*decode_asscanline_func)( struct ASImageDecoder *imdec, 
+										unsigned int skip, int y );
 /* high level driver (bevel or not bevel): */
 typedef void (*decode_image_scanline_func)(struct ASImageDecoder *imdec);
 
@@ -387,13 +386,31 @@ typedef struct ASImageDecoder
 /****d* libAfterImage/asimage/quality
  * FUNCTION
  * Defines level of output quality/speed ratio
+ * NAME
+ * ASIMAGE_QUALITY_POOR there will be no dithering and interpolation used 
+ * while transforming 
+ * NAME
+ * ASIMAGE_QUALITY_FAST there will be no dithering and used while 
+ * transforming but interpolation will be used.
+ * NAME
+ * ASIMAGE_QUALITY_GOOD simplified dithering is performed in addition to 
+ * interpolation.
+ * NAME
+ * ASIMAGE_QUALITY_TOP full dithering and interpolation.
+ * NAME
+ * ASIMAGE_QUALITY_DEFAULT requests current default setting  - typically
+ * same as ASIMAGE_QUALITY_GOOD.
+ * NAME
+ * MAX_GRADIENT_DITHER_LINES defines number of lines to use for dithering,
+ * while rendering gradients, in order to create smooth effect. Higher 
+ * number will slow things down, but will create better gradients.
  * SOURCE
  */
-#define ASIMAGE_QUALITY_DEFAULT	-1
 #define ASIMAGE_QUALITY_POOR	0
 #define ASIMAGE_QUALITY_FAST	1
 #define ASIMAGE_QUALITY_GOOD	2
 #define ASIMAGE_QUALITY_TOP		3
+#define ASIMAGE_QUALITY_DEFAULT	-1
 
 #define MAX_GRADIENT_DITHER_LINES 	ASIMAGE_QUALITY_TOP+1
 /*******/
@@ -401,8 +418,6 @@ typedef struct ASImageDecoder
 
 /****s* libAfterImage/asimage/ASImageOutput
  * NAME
- * ASImageOutput
- * SYNOPSIS
  * ASImageOutput describes the output state of the transformation result.
  * It is used to transparently write results into ASImage or XImage with
  * different levels of quality.
@@ -488,8 +503,6 @@ typedef struct ASImageOutput
 
 /****s* libAfterImage/asimage/ASImageLayer
  * NAME
- * ASImageLayer
- * SYNOPSIS
  * ASImageLayer specifies parameters of the image superimposition.
  * DESCRIPTION
  * libAfterImage allows for simultaneous superimposition (overlaying) of
@@ -574,31 +587,42 @@ typedef struct ASImageLayer
 /****d* libAfterImage/asimage/GRADIENT_TYPE_flags
  * FUNCTION
  * Combination of this flags defines the way gradient is rendered.
+ * NAME
+ * GRADIENT_TYPE_DIAG when set it will cause gradient's direction to be 
+ * rotated by 45 degrees
+ * NAME
+ * GRADIENT_TYPE_ORIENTATION will cause gradient direction to be rotated 
+ * by 90 degrees. When combined with GRADIENT_TYPE_DIAG - rotates gradient 
+ * direction by 135 degrees.
  * SOURCE
  */
-#define GRADIENT_TYPE_MASK          0x0003
-#define GRADIENT_TYPE_ORIENTATION   0x0002
-#define GRADIENT_TYPE_DIAG          0x0001
+#define GRADIENT_TYPE_DIAG          (0x01<<0)
+#define GRADIENT_TYPE_ORIENTATION   (0x01<<1)
+#define GRADIENT_TYPE_MASK          (GRADIENT_TYPE_ORIENTATION|GRADIENT_TYPE_DIAG)
 /********/
 
 /****d* libAfterImage/asimage/GRADIENT_TYPE
  * FUNCTION
  * This are named combinations of above flags to define type of gradient.
- * SEE ALSO
- * GRADIENT_TYPE_flags
+ * NAME 
+ * GRADIENT_Left2Right normal left-to-right gradient.
+ * NAME 
+ * GRADIENT_TopLeft2BottomRight diagonal top-left to bottom-right.
+ * NAME 
+ * GRADIENT_Top2Bottom vertical top to bottom gradient.
+ * NAME 
+ * GRADIENT_BottomLeft2TopRight diagonal bottom-left to top-right.
  * SOURCE
  */
 #define GRADIENT_Left2Right        		0
 #define GRADIENT_TopLeft2BottomRight	GRADIENT_TYPE_DIAG
 #define GRADIENT_Top2Bottom				GRADIENT_TYPE_ORIENTATION
 #define GRADIENT_BottomLeft2TopRight    (GRADIENT_TYPE_DIAG| \
-										 GRADIENT_TYPE_ORIENTATION)
+ 									 	 GRADIENT_TYPE_ORIENTATION)
 /********/
 
 /****s* libAfterImage/ASGradient
  * NAME
- * ASGradient
- * SYNOPSIS
  * ASGradient describes how gradient is to be drawn.
  * DESCRIPTION
  * libAfterImage includes functionality to draw multipoint gradients in
@@ -624,13 +648,14 @@ typedef struct ASGradient
     double     *offset;     /* offset of each point from the beginning in
 							 * fractions of entire length */
 }ASGradient;
-
 /********/
 
 /****d* libAfterImage/asimage/flip
  * FUNCTION
  * This are flags that define rotation angle.
+ * NAME
  * FLIP_VERTICAL defines rotation of 90 degrees counterclockwise.
+ * NAME
  * FLIP_UPSIDEDOWN defines rotation of 180 degrees counterclockwise.
  * combined they define rotation of 270 degrees counterclockwise.
  * SOURCE
@@ -653,6 +678,10 @@ typedef struct ASGradient
  * with 8 bit precision. Result is saturated to avoid overflow, and
  * precision is carried over to next pixel ( error diffusion ), when con
  * verting 24.8 to 8 bit format.
+ * NAME
+ * TINT_NONE special value that disables tinting
+ * NAME
+ * TINT_LEAVE_SAME also disables tinting.
  * SOURCE
  */
 #define TINT_NONE			0
@@ -666,38 +695,45 @@ typedef struct ASGradient
 /****d* libAfterImage/asimage/compression
  * FUNCTION
  * Defines the level of compression to attempt on ASImage scanlines.
- * valid values are in range of 0 to 100, with 100 being the highest
- * compression.
- * SOURCE
- */
+ * NAME 
+ * ASIM_COMPRESSION_NONE defined as 0 - disables compression.
+ * NAME 
+ * ASIM_COMPRESSION_FULL defined as 100 - highest compression level.
+ * Anything in between 0 and 100 will cause only part of the scanline to be 
+ * compressed.
+ ********/
 #define ASIM_COMPRESSION_NONE       0
 #define ASIM_COMPRESSION_FULL	   100
-/********/
 
 extern Bool asimage_use_mmx ;
 int mmx_init(void);
 int mmx_off(void);
 
 /****f* libAfterImage/asimage/asimage_init()
+ * NAME 
+ * asimage_init() frees datamembers of the supplied ASImage structure, and
+ * 	initializes it to all 0.
  * SYNOPSIS
  * void asimage_init (ASImage * im, Bool free_resources);
  * INPUTS
  * im             - pointer to valid ASImage structure
  * free_resources - if True will make function attempt to free
  *                  all non-NULL pointers.
- * DESCRIPTION
- * 	frees datamembers of the supplied ASImage structure, and
- * 	initializes it to all 0.
  *********/
 /****f* libAfterImage/asimage/flush_asimage_cache()
+ * NAME
+ * flush_asimage_cache() destroys XImage and mask XImage kept from previous 
+ * conversions to/from X Pixmap.
  * SYNOPSIS
  * void flush_asimage_cache (ASImage * im );
  * INPUTS
  * im             - pointer to valid ASImage structure
- * DESCRIPTION
- *  destroys XImage and mask XImage kept from previous conversions to/from X Pixmap.
  *********/
 /****f* libAfterImage/asimage/asimage_start()
+ * NAME
+ * asimage_start() Allocates memory needed to store scanline of the image of 
+ * supplied size. Assigns all the data members valid values. Makes sure that
+ * ASImage structure is ready to store image data.
  * SYNOPSIS
  * void asimage_start (ASImage * im, unsigned int width,
  *                                   unsigned int height,
@@ -709,16 +745,16 @@ int mmx_off(void);
  * compression - level of compression to perform on image data.
  *               compression has to be in range of 0-100 with 100
  *               signifying highest level of compression.
- * DESCRIPTION
- * Allocates memory needed to store scanline of the image of supplied
- * size. Assigns all the data members valid values. Makes sure that
- * ASImage structure is ready to store image data.
  * NOTES
  * In order to resize ASImage structure after asimage_start() has been
  * called, asimage_init() must be invoked to free all the memory, and
  * then asimage_start() has to be called with new dimensions.
  *********/
 /****f* libAfterImage/asimage/create_asimage()
+ * NAME
+ * create_asimage() Performs memory allocation for the new ASImage structure, 
+ * as well as initialization of allocated structure based on supplied 
+ * parameters.
  * SYNOPSIS
  * ASImage *create_asimage( unsigned int width,
  *                          unsigned int height,
@@ -731,11 +767,10 @@ int mmx_off(void);
  * RETURN VALUE
  * Pointer to newly allocated and initialized ASImage structure on
  * Success. NULL in case of any kind of error - that should never happen.
- * DESCRIPTION
- * Performs memory allocation for the new ASImage structure, as well as
- * initialization of allocated structure based on supplied parameters.
  *********/
 /****f* libAfterImage/asimage/clone_asimage()
+ * NAME 
+ * clone_asimage()
  * SYNOPSIS
  * ASImage *clone_asimage(ASImage *src, ASFlagType filter );
  * INPUTS
@@ -753,13 +788,14 @@ int mmx_off(void);
  * to avoid clashes with original image.
  *********/
 /****f* libAfterImage/asimage/destroy_asimage()
+ * NAME
+ * destroy_asimage() frees all the memory allocated for specified ASImage. 
  * SYNOPSIS
  * void destroy_asimage( ASImage **im );
  * INPUTS
  * im				- pointer to valid ASImage structure.
- * DESCRIPTION
- * frees all the memory allocated for specified ASImage. If there was
- * XImage attached to it - it will be deallocated as well.
+ * NOTES
+ * If there was XImage attached to it - it will be deallocated as well.
  * EXAMPLE
  * asview.c: ASView.5
  *********/
@@ -770,37 +806,25 @@ ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int c
 ASImage *create_static_asimage( unsigned int width, unsigned int height, unsigned int compression);
 ASImage *clone_asimage( ASImage *src, ASFlagType filter );
 void destroy_asimage( ASImage **im );
-/****f* libAfterImage/asimage/destroy_asimage()
+/****f* libAfterImage/asimage/set_asimage_vector()
+ * NAME
+ * set_asimage_vector() This function replaces contents of the vector member 
+ * of ASImage structure with new double precision data.
  * SYNOPSIS
  * set_asimage_vector( ASImage *im, register double *vector );
  * INPUTS
  * im				- pointer to valid ASImage structure.
  * vector           - scientific data to attach to the image.
- * DESCRIPTION
- * This function replaces contents of the vector member of ASImage
- * structure with new double precision data. Data must have size
- * of width*height ahere width and height are size of the ASImage.
+ * NOTES
+ * Data must have size of width*height ahere width and height are size of 
+ * the ASImage.
  *********/
 Bool set_asimage_vector( ASImage *im, register double *vector );
 
-/****h* libAfterImage/asimage/ImageManager
- * DESCRIPTION
- * create_image_manager()  - create ASImage management and reference
- *                           counting object.
- * destroy_image_manager() - destroy management obejct.
- * store_asimage()         - add ASImage to the refererence.
- * fetch_asimage()         - retrieve previously stored image, incrementing
- *                           reference count.
- * query_asimage()         - retrieve previously stored image, without
- *                           incrementing reference count.
- * dup_asimage()           - increment reference count of stored ASImage.
- * release_asimage()       - decrement reference count/destroy ASImage.
- * release_asimage_by_name()
- * forget_asimage()        - remove ASImage from ASImageManager's hash.
- * safe_asimage_destroy()  - either release or destroy asimage, checking
- *                           if it is attached to ASImageManager.
- *********/
 /****f* libAfterImage/asimage/create_image_manager()
+ * NAME
+ * create_image_manager()  create ASImage management and reference 
+ * counting object.
  * SYNOPSIS
  * ASImageManager *create_image_manager( ASImageManager *reusable_memory,
  *                                       double gamma, ... );
@@ -825,6 +849,8 @@ Bool set_asimage_vector( ASImage *im, register double *vector );
  * refuse to deallocate such an image.
  *********/
 /****f* libAfterImage/asimage/destroy_image_manager()
+ * NAME 
+ * destroy_image_manager() destroy management obejct.
  * SYNOPSIS
  * void destroy_image_manager( struct ASImageManager *imman, Bool reusable );
  * INPUTS
@@ -840,6 +866,8 @@ ASImageManager *create_image_manager( struct ASImageManager *reusable_memory, do
 void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
 
 /****f* libAfterImage/asimage/store_asimage()
+ * NAME
+ * store_asimage()  add ASImage to the reference.
  * SYNOPSIS
  * Bool store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
  * INPUTS
@@ -851,9 +879,15 @@ void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
  * Stored ASImage could be deallocated only by release_asimage(), or when
  * ASImageManager object itself is destroyed.
  *********/
+Bool     store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
 /****f* libAfterImage/asimage/fetch_asimage()
+ * NAME
+ * fetch_asimage()
+ * NAME
+ * query_asimage() 
  * SYNOPSIS
  * ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
+ * ASImage *query_asimage( ASImageManager* imageman, const char *name );
  * INPUTS
  * imageman        - pointer to valid ASImageManager object.
  * name            - unique name of the image.
@@ -861,62 +895,84 @@ void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
  * Looks for image with the name in ASImageManager's list and if found,
  * it will increment reference count, and returns pointer to it.
  *********/
-/****f* libAfterImage/asimage/query_asimage()
- * SYNOPSIS
- * ASImage *query_asimage( ASImageManager* imageman, const char *name );
- * INPUTS
- * imageman        - pointer to valid ASImageManager object.
- * name            - unique name of the image.
- * DESCRIPTION
- * Looks for image with the name in ASImageManager's list without
- * increment reference count, and returns pointer to it.
- *********/
+ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
+ASImage *query_asimage( ASImageManager* imageman, const char *name );
+
 /****f* libAfterImage/asimage/dup_asimage()
+ * NAME
+ * dup_asimage() increment reference count of stored ASImage.
  * SYNOPSIS
  * ASImage *dup_asimage( ASImage* im );
  * INPUTS
  * im              - pointer to already referenced image.
- * DESCRIPTION
- * Increments reference count on the specifyed ASImage.
  *********/
+ASImage *dup_asimage  ( ASImage* im );         /* increment ref countif applicable */
+
 /****f* libAfterImage/asimage/release_asimage()
+ * NAME
+ * release_asimage() decrement reference count for given ASImage. 
+ * NAME
+ * release_asimage_by_name() decrement reference count for ASImage 
+ * identifyed by its name. 
  * SYNOPSIS
  * int	release_asimage( ASImage *im );
+ * int release_asimage_by_name( ASImageManager *imman, char *name );
  * INPUTS
  * im              - pointer to already referenced image.
+ * imageman        - pointer to valid ASImageManager object.
+ * name            - unique name of the image.
  * DESCRIPTION
  * Decrements reference count on the ASImage object and destroys it if
  * reference count is below zero.
  *********/
-/****f* libAfterImage/asimage/release_asimage_by_name()
- * SYNOPSIS
- * int release_asimage_by_name( ASImageManager *imman, char *name );
- * INPUTS
- * imageman        - pointer to valid ASImageManager object.
- * name            - unique name of the image.
- * DESCRIPTION
- * Finds ASImage known by specified name in ASImageManager's list and
- * then calls release_asimage() on that image.
- *********/
-Bool     store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
-ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
-ASImage *query_asimage( ASImageManager* imageman, const char *name );
-ASImage *dup_asimage  ( ASImage* im );         /* increment ref countif applicable */
 int      release_asimage( ASImage *im );
 int		 release_asimage_by_name( ASImageManager *imman, char *name );
+
+/****f* libAfterImage/asimage/forget_asimage()
+ * NAME
+ * forget_asimage() remove ASImage from ASImageManager's hash by pointer.
+ * NAME
+ * forget_asimage_name() remove ASImage from ASImageManager's hash by its 
+ * name.
+ * SYNOPSIS
+ * void	 forget_asimage( ASImage *im );
+ * void  forget_asimage_name( ASImageManager *imman, const char *name );
+ * INPUTS
+ * im       pointer to already referenced image.
+ * imageman pointer to valid ASImageManager object.
+ * name     unique name of the image.
+ *********/
 void	 forget_asimage( ASImage *im );
 void     forget_asimage_name( ASImageManager *imman, const char *name );
+
+/****f* libAfterImage/safe_asimage_destroy()
+ * NAME
+ * safe_asimage_destroy() either release or destroy asimage, checking
+ * if it is attached to ASImageManager.
+ * SYNOPSIS
+ * int		 safe_asimage_destroy( ASImage *im );
+ * INPUTS
+ * im  pointer to and ASImage structure.
+ *********/
 int		 safe_asimage_destroy( ASImage *im );
+
+/****f* libAfterImage/print_asimage_manager()
+ * NAME
+ * print_asimage_manager() prints list of images referenced in given 
+ * ASImageManager structure.
+ *********/
 void     print_asimage_manager(ASImageManager *imageman);
 
-
-/****h* libAfterImage/asimage/Gradients
- * DESCRIPTION
- * flip_gradient()    - rotates gradient in 90 degree increments.
- * destroy_asgradient() - destroy ASWGradient structure, deallocating all
+/****f* libAfterImage/asimage/destroy_asgradient()
+ * NAME
+ * destroy_asgradient() - destroy ASGradient structure, deallocating all
  * 						  associated memory
  *********/
+void  destroy_asgradient( ASGradient **pgrad );
+
 /****f* libAfterImage/asimage/flip_gradient()
+ * NAME 
+ * flip_gradient()    - rotates gradient in 90 degree increments.
  * SYNOPSIS
  * ASGradient *flip_gradient( ASGradient *orig, int flip );
  * INPUTS
@@ -929,25 +985,23 @@ void     print_asimage_manager(ASImageManager *imageman);
  * Rotates ( flips ) gradient data in 90 degree increments. When needed
  * order of points is reversed.
  *********/
-void  destroy_asgradient( ASGradient **pgrad );
 ASGradient *flip_gradient( ASGradient *orig, int flip );
-/****h* libAfterImage/asimage/Layers
- * DESCRIPTION
- * init_image_layers()    - initialize set of ASImageLayer structures.
- * create_image_layers()  - allocate and initialize set of ASImageLayer's.
- * destroy_image_layers() - destroy set of ASImageLayer structures.
- *********/
 /****f* libAfterImage/asimage/init_image_layers()
+ * NAME 
+ * init_image_layers()    - initialize set of ASImageLayer structures.
  * SYNOPSIS
  * inline void init_image_layers( register ASImageLayer *l, int count );
  * INPUTS
- * l              - pointer to valid ASImage structure.
+ * l              - pointer to valid ASImageLayer structure.
  * count          - number of elements to initialize.
  * DESCRIPTION
  * Initializes array on ASImageLayer structures to sensible defaults.
  * Basically - all zeros and merge_scanlines == alphablend_scanlines.
  *********/
+inline void init_image_layers( register ASImageLayer *l, int count );
 /****f* libAfterImage/asimage/create_image_layers()
+ * NAME 
+ * create_image_layers()  - allocate and initialize set of ASImageLayer's.
  * SYNOPSIS
  * ASImageLayer *create_image_layers( int count );
  * INPUTS
@@ -961,7 +1015,10 @@ ASGradient *flip_gradient( ASGradient *orig, int flip );
  * structures, as well as initialization of allocated structure to
  * sensible defaults - merge_func will be set to alphablend_scanlines.
  *********/
+ASImageLayer *create_image_layers( int count );
 /****f* libAfterImage/asimage/destroy_image_layers()
+ * NAME 
+ * destroy_image_layers() - destroy set of ASImageLayer structures.
  * SYNOPSIS
  * void destroy_image_layers( register ASImageLayer *l,
  *                            int count,
@@ -976,9 +1033,6 @@ ASGradient *flip_gradient( ASGradient *orig, int flip );
  * If there was ASImage and/or ASImageBevel attached to it - it will be
  * deallocated as well.
  *********/
-
-inline void init_image_layers( register ASImageLayer *l, int count );
-ASImageLayer *create_image_layers( int count );
 void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
 
 /****h* libAfterImage/asimage/Encoding
