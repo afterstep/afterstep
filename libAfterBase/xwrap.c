@@ -108,5 +108,39 @@ backtrace_window ( Window w )
     fprintf (stderr, "\n");
 }
 
+Window
+get_parent_window( Window w )
+{
+    Window        root, parent = None, *children = NULL;
+    unsigned int  child_count;
+
+	XSync( dpy, False );
+    XQueryTree (dpy, w, &root, &parent, &children, &child_count);
+    if (children)
+        XFree (children);
+
+	return parent ;
+}
+
+Window
+get_topmost_parent( Window w, Window *desktop_w )
+{
+    Window  root = None, parent = w, desktop = w ;
+	Window *children = NULL;
+    unsigned int  child_count;
+
+	XSync( dpy, False );
+	while( w != root && w != None )
+	{
+		parent = desktop ;
+		desktop = w ;
+		XQueryTree (dpy, w, &root, &w, &children, &child_count);
+    	if (children)
+        	XFree (children);
+	}
+	if( desktop_w )
+		*desktop_w = desktop ;
+	return w ;
+}
 
 
