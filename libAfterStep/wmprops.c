@@ -74,6 +74,7 @@ Atom          _AS_MODULE_SOCKET = None;
 Atom          _AS_VIRTUAL_ROOT = None;
 Atom          _AS_DESK_NUMBERS = None;
 Atom          _AS_CURRENT_DESK = None;
+Atom          _AS_CURRENT_VIEWPORT = None;
 
 /* Crossreferences of atoms into flag value for
    different atom list type of properties :*/
@@ -120,8 +121,9 @@ AtomXref      WMPropAtoms[] = {
 	{"_AS_VIRTUAL_ROOT", &_AS_VIRTUAL_ROOT},
 	/* these are root properties : */
 	{"_AS_DESK_NUMBERS", &_AS_DESK_NUMBERS},   /* translation of the continuous range of */
-	{"_AS_CURRENT_DESK", &_AS_CURRENT_DESK},   /* desks into AS style numbering */
-	{NULL, NULL, 0, None}
+    {"_AS_CURRENT_DESK", &_AS_CURRENT_DESK},   /* current afterstep desk */
+    {"_AS_CURRENT_VIEWPORT", &_AS_CURRENT_VIEWPORT},   /* current afterstep viewport */
+    {NULL, NULL, 0, None}
 };
 
 /******************** Window Manager Selection  ***************************/
@@ -327,6 +329,58 @@ read_xrootpmap_id (ASWMProps * wmprops, Bool deleted)
 	return False;
 }
 
+/* ExtWM properties : ****************************************************/
+
+Bool
+read_extwm_current_desk (ASWMProps * wmprops, Bool deleted)
+{
+    if (wmprops && !deleted )
+	{
+		CARD32        desk_no = None;
+
+        if (read_32bit_property (wmprops->scr->Root, _XA_NET_CURRENT_DESKTOP, &desk_no))
+		{
+            wmprops->desktop_current = (long)desk_no;
+			return True;
+		}
+	}
+	return False;
+}
+
+Bool
+read_extwm_desk_viewport (ASWMProps * wmprops, Bool deleted)
+{
+    Bool success = False;
+    if (wmprops && !deleted )
+	{
+        CARD32       *raw_data = NULL ;
+        long          nitems = 0;
+
+        if (!read_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_VIEWPORT, 8, &raw_data, &nitems))
+			nitems = 0;
+
+        if (wmprops->desktop_viewport)
+        {
+            free(wmprops->desktop_viewport);
+            wmprops->desktop_viewport = NULL;
+        }
+        wmprops->desktop_viewports_num = nitems>>1 ;
+        if (nitems > 2)
+		{
+            register int i = nitems;
+            wmprops->desktop_viewport = safemalloc( nitems*sizeof(unsigned long));
+            while( --i >= 0 )
+                wmprops->desktop_viewport[i] = raw_data[i] ;
+            success = True ;
+        }
+        if( raw_data )
+			XFree (raw_data);
+    }
+    return success;
+}
+
+/* AfterSTep own properties **********************************************/
+
 Bool
 read_as_current_desk (ASWMProps * wmprops, Bool deleted)
 {
@@ -343,6 +397,30 @@ read_as_current_desk (ASWMProps * wmprops, Bool deleted)
 		}
 	}
 	return False;
+}
+
+Bool
+read_as_current_viewport (ASWMProps * wmprops, Bool deleted)
+{
+    Bool success = False;
+
+    if (wmprops && !deleted )
+	{
+        CARD32       *raw_data = NULL ;
+        long          nitems = 0;
+
+        if (!read_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, 2, &raw_data, &nitems))
+			nitems = 0;
+        if( nitems == 2 )
+        {
+            wmprops->as_current_vx = raw_data[0] ;
+            wmprops->as_current_vy = raw_data[1] ;
+        }
+
+        if( raw_data )
+			XFree (raw_data);
+	}
+    return success;
 }
 
 Bool
@@ -489,9 +567,9 @@ prop_description_struct WMPropsDescriptions_root[] = {
 	{&_XA_NET_CLIENT_LIST, NULL, WMC_ClientList, WMP_NeedsCleanup},
 	{&_XA_NET_CLIENT_LIST_STACKING, NULL, WMC_ClientList, WMP_NeedsCleanup},
 	{&_XA_NET_NUMBER_OF_DESKTOPS, NULL, WMC_Desktops, 0},
-	{&_XA_NET_DESKTOP_GEOMETRY, NULL, WMC_Desktops, WMP_NeedsCleanup},
-	{&_XA_NET_DESKTOP_VIEWPORT, NULL, WMC_Desktops, WMP_NeedsCleanup},
-	{&_XA_NET_CURRENT_DESKTOP, NULL, WMC_Desktops, 0},
+    {&_XA_NET_DESKTOP_GEOMETRY, NULL, WMC_Desktops, 0},
+    {&_XA_NET_DESKTOP_VIEWPORT, read_extwm_desk_viewport, WMC_DesktopViewport, 0},
+    {&_XA_NET_CURRENT_DESKTOP, read_extwm_current_desk, WMC_DesktopCurrent, 0},
 	{&_XA_NET_DESKTOP_NAMES, NULL, WMC_DesktopNames, 0},
 	{&_XA_NET_ACTIVE_WINDOW, NULL, WMC_ActiveWindow, WMP_NeedsCleanup},
 	{&_XA_NET_WORKAREA, NULL, WMC_WorkArea, WMP_NeedsCleanup},
@@ -499,7 +577,8 @@ prop_description_struct WMPropsDescriptions_root[] = {
 	{&_XA_NET_VIRTUAL_ROOTS, NULL, WMC_Desktops, WMP_NeedsCleanup},
 	{&_AS_DESK_NUMBERS, NULL, WMC_ASDesks, 0},
 	{&_AS_CURRENT_DESK, read_as_current_desk, WMC_ASDesks, 0},
-	{NULL, NULL, 0, 0}
+    {&_AS_CURRENT_VIEWPORT, read_as_current_viewport, WMC_ASViewport, 0},
+    {NULL, NULL, 0, 0}
 };
 
 prop_description_struct WMPropsDescriptions_volitile[] = {
@@ -911,6 +990,34 @@ set_current_desk_prop (ASWMProps * wmprops, long new_desk)
 	}
 	return False;
 }
+
+Bool
+set_current_viewport_prop (ASWMProps * wmprops, long vx, long vy)
+{
+	if (wmprops)
+	{
+        CARD32        viewport[2];
+
+        if (wmprops->as_current_vx == vx && wmprops->as_current_vy == vy )
+			return True;
+		/* adding desktops has to be handled in different function, since we need to update
+		 * bunch of other things as well - virtual roots etc. */
+        if( wmprops->desktop_current < wmprops->desktop_viewports_num )
+        {
+            int pos = wmprops->desktop_current<<1 ;
+            wmprops->desktop_viewport[pos] = vx ;
+            wmprops->desktop_viewport[pos+1] = vy ;
+            set_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_VIEWPORT, XA_CARDINAL, &(wmprops->desktop_viewport[0]),
+                                wmprops->desktop_viewports_num);
+        }
+        wmprops->as_current_vx = viewport[0] = vx ;
+        wmprops->as_current_vy = viewport[1] = vy ;
+        set_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, XA_CARDINAL, &viewport[0], 2);
+        return True;
+    }
+	return False;
+}
+
 
 void
 flush_wmprop_data (ASWMProps * wmprops, ASFlagType what)

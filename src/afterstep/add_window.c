@@ -807,7 +807,7 @@ on_window_pressure_changed( ASWindow *asw, int pressed_context )
     ASOrientation *od = get_orientation_data( asw );
 LOCAL_DEBUG_CALLER_OUT( "(%p,%s)", asw, context2text(pressed_context));
 
-    if( AS_ASSERT(asw))
+    if( AS_ASSERT(asw) || asw->status == NULL )
         return;
 
     if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
@@ -976,8 +976,35 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
         MoveViewport (t->status->viewport_x, t->status->viewport_y, False);
 
     if( !get_flags(AfterStepState, ASS_NormalOperation) )
+    {
+        int min_x, min_y, max_x, max_y ;
+        int margin = Scr.MyDisplayWidth>>5 ;
+        if (!ASWIN_GET_FLAGS( t, AS_Sticky ))
+        {
+            min_x = -Scr.Vx ;
+            max_x = Scr.VxMax+Scr.MyDisplayWidth - Scr.Vx ;
+            min_y = -Scr.Vy ;
+            max_y = Scr.VyMax+Scr.MyDisplayHeight - Scr.Vy ;
+        }else
+        {
+            min_x = 0 ;
+            max_x = Scr.MyDisplayWidth ;
+            min_y = 0 ;
+            max_y = Scr.MyDisplayHeight ;
+        }
+        /* we have to make sure that window is visible !!!! */
+        if( t->status->x < min_x + margin )
+            t->status->x = min_x ;
+        else if( t->status->x +t->status->width > max_x-margin )
+            t->status->x = max_x - t->status->width ;
+        if( t->status->y < min_y + margin )
+            t->status->y = min_y ;
+        else if( t->status->y +t->status->height > max_y-margin )
+            t->status->y = max_y - t->status->height ;
+
         set_flags( t->status->flags, AS_Position );
-    else if( get_flags(Scr.Feel.flags, NoPPosition) &&
+
+    }else if( get_flags(Scr.Feel.flags, NoPPosition) &&
             !get_flags( status->flags, AS_StartPositionUser ) )
         clear_flags( t->status->flags, AS_Position );
 
@@ -1154,6 +1181,48 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
 }
 
 Bool
+bring_aswindow_on_vscreen( ASWindow *asw )
+{
+    int min_x, min_y, max_x, max_y ;
+    int margin = Scr.MyDisplayWidth>>5 ;
+
+    if( asw == NULL )
+        return False;
+
+    if (!ASWIN_GET_FLAGS( asw, AS_Sticky ))
+    {
+        min_x = -Scr.Vx ;
+        max_x = Scr.VxMax+Scr.MyDisplayWidth - Scr.Vx ;
+        min_y = -Scr.Vy ;
+        max_y = Scr.VyMax+Scr.MyDisplayHeight - Scr.Vy ;
+    }else
+    {
+        min_x = 0 ;
+        max_x = Scr.MyDisplayWidth ;
+        min_y = 0 ;
+        max_y = Scr.MyDisplayHeight ;
+    }
+    if ( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+    {
+        int new_x = asw->status->x ;
+        int new_y = asw->status->y ;
+        if( asw->status->x + asw->status->width < min_x + margin )
+            new_x = min_x + margin - asw->status->width ;
+        else if( asw->status->x > max_x - margin )
+            new_x = max_x - margin ;
+
+        if( asw->status->y + asw->status->height < min_y + margin )
+            new_y = min_y + margin - asw->status->height ;
+        else if( asw->status->y > max_y - margin )
+            new_y = max_y - margin ;
+        if( new_x != asw->status->x || new_y != asw->status->y )
+            moveresize_aswindow_wm( asw, new_x, new_y, asw->status->width, asw->status->height, False );
+    }
+    return True;
+}
+
+
+Bool
 make_aswindow_visible( ASWindow *asw, Bool deiconify )
 {
     if (asw == NULL)
@@ -1168,12 +1237,15 @@ make_aswindow_visible( ASWindow *asw, Bool deiconify )
     if (ASWIN_DESK(asw) != Scr.CurrentDesk)
         ChangeDesks( ASWIN_DESK(asw));
 
+    bring_aswindow_on_vscreen( asw );
+
 #ifndef NO_VIRTUAL
     if (!ASWIN_GET_FLAGS( asw, AS_Sticky ))
     {
         int  dx, dy;
         int  cx = Scr.MyDisplayWidth/2 ;
         int  cy = Scr.MyDisplayHeight/2;
+
         if (ASWIN_GET_FLAGS( asw, AS_Iconic ) )
         {
             if( asw->icon_canvas )
@@ -2026,6 +2098,8 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
         Scr.Windows->active = NULL;
     if ( asw == Scr.Windows->hilited )
         Scr.Windows->hilited = NULL;
+    if ( asw == Scr.Windows->pressed )
+        Scr.Windows->pressed = NULL;
 
     if (!kill_client && asw->internal == NULL )
         RestoreWithdrawnLocation (asw, True);

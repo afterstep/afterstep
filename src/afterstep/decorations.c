@@ -121,7 +121,7 @@ ASOrientation VertOrientation =
 inline ASOrientation*
 get_orientation_data( ASWindow *asw )
 {
-    if( asw )
+    if( asw && asw->magic == MAGIC_ASWINDOW && asw->hints )
         return ASWIN_HFLAGS(asw, AS_VerticalTitle)?&VertOrientation:&HorzOrientation;
     return &HorzOrientation;
 }

@@ -46,6 +46,7 @@ extern Atom  _AS_MODULE_SOCKET           ;
 extern Atom  _AS_VIRTUAL_ROOT            ;
 extern Atom  _AS_DESK_NUMBERS            ;
 extern Atom  _AS_CURRENT_DESK            ;
+extern Atom  _AS_CURRENT_VIEWPORT        ;
 
 extern AtomXref WMPropAtoms[];    /*all top level atoms for purpose of easy interning */
 
@@ -59,16 +60,19 @@ typedef enum
     WMC_PreservedColors = (0x01<<0),
     WMC_RootPixmap      = (0x01<<1),
     WMC_Desktops        = (0x01<<2),
-    WMC_DesktopNames    = (0x01<<3),
-    WMC_ClientList      = (0x01<<4),
-    WMC_ActiveWindow    = (0x01<<5),
-    WMC_WorkArea        = (0x01<<6),
-    WMC_ASStyles        = (0x01<<7),
-    WMC_ASBackgrounds   = (0x01<<8),
-    WMC_ASVisual        = (0x01<<9),
-    WMC_ASModule        = (0x01<<10),
-    WMC_ASVirtualRoot   = (0x01<<11),
-    WMC_ASDesks         = (0x01<<12)
+    WMC_DesktopCurrent  = (0x01<<3),
+    WMC_DesktopViewport = (0x01<<4),
+    WMC_DesktopNames    = (0x01<<5),
+    WMC_ClientList      = (0x01<<6),
+    WMC_ActiveWindow    = (0x01<<7),
+    WMC_WorkArea        = (0x01<<8),
+    WMC_ASStyles        = (0x01<<9),
+    WMC_ASBackgrounds   = (0x01<<10),
+    WMC_ASVisual        = (0x01<<11),
+    WMC_ASModule        = (0x01<<12),
+    WMC_ASVirtualRoot   = (0x01<<13),
+    WMC_ASDesks         = (0x01<<14),
+    WMC_ASViewport      = (0x01<<15)
 }WMPropClass;
 
 
@@ -99,7 +103,8 @@ typedef struct ASWMProps
     /* Desktops : */
     unsigned long  desktop_num;
     unsigned long  desktop_width, desktop_height;
-    unsigned long  desktop_vx, desktop_vy;
+    unsigned long  desktop_viewports_num ;
+    unsigned long  *desktop_viewport;   /* one per desk - stupid! stupid!  */
     unsigned long  desktop_current;
     Window        *virtual_roots;
     /* DesktopNames : */
@@ -139,6 +144,8 @@ typedef struct ASWMProps
     long           as_current_desk ;
     long          *as_desk_numbers ;
 
+    unsigned long  as_current_vx, as_current_vy ;
+
     ASFlagType     my_props ;
     ASFlagType     set_props ;
 }ASWMProps;
@@ -170,6 +177,8 @@ void set_xrootpmap_id (ASWMProps *wmprops, Pixmap new_pmap );
 CARD32 as_desk2ext_desk( ASWMProps *wmprops, long as_desk );
 void set_desktop_num_prop( ASWMProps *wmprops, long new_desk, Window vroot, Bool add );
 Bool set_current_desk_prop (ASWMProps *wmprops, long new_desk );
+Bool set_current_viewport_prop (ASWMProps * wmprops, long vx, long vy);
+
 void flush_wmprop_data(ASWMProps *wmprops, ASFlagType what );
 
 /* automated event handling : */

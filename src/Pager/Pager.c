@@ -907,17 +907,17 @@ restack_desk_windows( ASPagerDesk *d )
         return ;
 
     curr = list = safecalloc( win_count, sizeof(Window));
-	k = 0 ; 
-	
+	k = 0 ;
+
     if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
         for( i = 0 ; i < 4 ; ++i )
 		{
-			if( PagerState.selection_bars[i] ) 
+			if( PagerState.selection_bars[i] )
 			{
 	            curr[k] = PagerState.selection_bars[i] ;
 				++k ;
 			}
-		}	
+		}
 
     if( get_flags(Config->flags, PAGE_SEPARATOR) )
     {
@@ -925,7 +925,7 @@ restack_desk_windows( ASPagerDesk *d )
         i = d->separator_bars_num ;
         while( --i >= 0 )
 		{
-			if( sbars[i] ) 
+			if( sbars[i] )
 			{
           		curr[k] = sbars[i] ;
 				++k ;
@@ -939,8 +939,8 @@ restack_desk_windows( ASPagerDesk *d )
         i = -1 ;
         while( ++i < d->clients_num )
         {
-            if( clients[i] && clients[i]->desk == d->desk && 
-			    clients[i]->canvas  && 
+            if( clients[i] && clients[i]->desk == d->desk &&
+			    clients[i]->canvas  &&
 				clients[i]->canvas->w )
 			{
                 curr[k] = clients[i]->canvas->w ;
@@ -1937,9 +1937,12 @@ process_message (unsigned long type, unsigned long *body)
 //        ASTBarData *tbar = wd?wd->tbar:NULL;
 		WindowPacketResult res ;
         /* saving relevant client info since handle_window_packet could destroy the actuall structure */
-        Window               saved_w = wd?wd->canvas->w:None;
+        Window               saved_w = None ;
         int                  saved_desk = wd?wd->desk:INVALID_DESK;
         struct ASWindowData *saved_wd = wd ;
+
+        if( wd && wd->canvas )
+            saved_w = wd->canvas->w;
 
         show_activity( "message %lX window %X data %p", type, body[0], wd );
 		res = handle_window_packet( type, body, &wd );

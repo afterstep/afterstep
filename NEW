@@ -340,6 +340,12 @@ version 1.99.0 AKA 2.0 beta1
         DefaultWindowBox
         RecentSubmenuItems
 
+        3.2. Functions
+                GoToBookmark ["name" window_bookmark ]
+                BookmarkWindow "name" new_bookmark
+                PinMenu ["name"]
+                SaveWorkspace "name" file_name
+                ChangeTheme "name" file_name
 
 4. Database options
         NoFrame

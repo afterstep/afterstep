@@ -421,21 +421,24 @@ read_motif_hints (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		CARD32       *raw_data;
-		long          nitems;
+        CARD32       *raw_data = NULL ;
+        long          nitems = 0 ;
 
 		if (!read_32bit_proplist (w, _XA_MwmAtom, 4, &raw_data, &nitems))
 			nitems = 0;
 
-		if (nitems < 4)
+        if (hints->motif_hints)
 		{
-			hints->motif_hints = (MwmHints *) raw_data;
-		} else if (hints->motif_hints)
-		{
-			XFree (raw_data);
 			XFree (hints->motif_hints);
 			hints->motif_hints = NULL;
-		}
+        }
+        if (nitems >= 4)
+		{
+			hints->motif_hints = (MwmHints *) raw_data;
+            raw_data = NULL ;
+        }
+        if( raw_data )
+            XFree( raw_data );
 	}
 }
 

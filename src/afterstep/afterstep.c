@@ -169,7 +169,20 @@ main (int argc, char **argv)
 
    /* make sure we're on the right desk, and the _WIN_DESK property is set */
     Scr.CurrentDesk = INVALID_DESK ;
-    ChangeDesks (Scr.wmprops->desktop_current);
+    if( get_flags( Scr.wmprops->set_props, WMC_ASDesks )  )
+        ChangeDesks (Scr.wmprops->as_current_desk);
+    else if( get_flags( Scr.wmprops->set_props, WMC_DesktopCurrent )  )
+    {
+        int curr = Scr.wmprops->desktop_current ;
+        ChangeDesks (curr);
+        if( get_flags( Scr.wmprops->set_props, WMC_DesktopViewport ) &&
+            curr < Scr.wmprops->desktop_viewports_num )
+            MoveViewport(Scr.wmprops->desktop_viewport[curr<<1], Scr.wmprops->desktop_viewport[(curr<<1)+1], False);
+    }else
+        ChangeDesks (0);
+
+    if( get_flags( Scr.wmprops->set_props, WMC_ASViewport )  )
+        MoveViewport(Scr.wmprops->as_current_vx, Scr.wmprops->as_current_vy, False);
 
     /* Load config ... */
     /* read config file, set up menus, colors, fonts */

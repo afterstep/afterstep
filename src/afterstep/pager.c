@@ -220,6 +220,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%+d%+d), old(%+d%+d), max(%+d,%+d)", newx, newy, Sc
 	Scr.Vx = newx;
 	Scr.Vy = newy;
     SendPacket( -1, M_NEW_PAGE, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
+    set_current_viewport_prop (Scr.wmprops, Scr.Vx, Scr.Vy);
 
 	if (deltax || deltay)
 	{
