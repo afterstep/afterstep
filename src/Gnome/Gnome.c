@@ -25,7 +25,7 @@
  */
 
 #undef DEBUG
-static char *cvsident = "$Id: Gnome.c,v 1.3 2002/04/24 06:47:40 sashav Exp $";
+static char *cvsident = "$Id: Gnome.c,v 1.4 2003/03/25 17:32:49 sasha Exp $";
 
 #include <X11/Intrinsic.h>
 #include <X11/Xlib.h>
@@ -303,7 +303,7 @@ gnome_compliance_init ()
 static void
 gnome_set_area_count ()
 {
-  CARD32 val[2];
+  unsigned long val[2];
 
   val[0] = 2;
   val[1] = 2;
@@ -315,7 +315,7 @@ gnome_set_area_count ()
 static void
 gnome_set_current_area (int x, int y)
 {
-  CARD32 val[2];
+  unsigned long val[2];
 
   val[0] = x;
   val[1] = y;
@@ -638,7 +638,7 @@ gnome_handle_win_state (XClientMessageEvent * event, Window id, long mask)
       LOG ("    MINI req");
       SendInfo (fd, "Iconify 1\n", aswin->id);
     }
-  /* check if workspace changed, layers, hints and state are handled 
+  /* check if workspace changed, layers, hints and state are handled
    * elsewhere
    */
   if (event)

@@ -1220,7 +1220,7 @@ update_property_hints (Window w, Atom property, ASHints * hints, ASStatusHints *
 		/* Here we are only interested in properties updtaed by the Window Manager : */
 		if (property == _XA_WM_STATE)
 		{
-			CARD32        new_state = (raw.wm_state == IconicState) ? AS_Iconic : 0;
+            unsigned long  new_state = (raw.wm_state == IconicState) ? AS_Iconic : 0;
 
 			if ((changed = ((new_state ^ (status->flags & AS_Iconic)) != 0 ||
 							raw.wm_state_icon_win != status->icon_window)))
@@ -1277,7 +1277,7 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 		{
 			if (status)
 			{
-				CARD32        new_state = (raw.wm_state == IconicState) ? AS_Iconic : 0;
+                unsigned long  new_state = (raw.wm_state == IconicState) ? AS_Iconic : 0;
 
 				if ((changed = ((new_state ^ (status->flags & AS_Iconic)) != 0 ||
 								raw.wm_state_icon_win != status->icon_window)))
@@ -1297,14 +1297,14 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 				property == _XA_NET_WM_VISIBLE_NAME || property == _XA_NET_WM_VISIBLE_ICON_NAME)
 			{
 				int           i;
-				
-				if( mystrcmp(hints->names[0], clean.names[0]) != 0 ) 
+
+				if( mystrcmp(hints->names[0], clean.names[0]) != 0 )
 				    changed = True ;
-				else if( mystrcmp(hints->res_name, clean.res_name) != 0 ) 
+				else if( mystrcmp(hints->res_name, clean.res_name) != 0 )
 				    changed = True ;
-				else if( mystrcmp(hints->res_class, clean.res_class) != 0 ) 
+				else if( mystrcmp(hints->res_class, clean.res_class) != 0 )
 				    changed = True ;
-				else if( mystrcmp(hints->icon_name, clean.icon_name) != 0 ) 
+				else if( mystrcmp(hints->icon_name, clean.icon_name) != 0 )
 				    changed = True ;
 
 				for (i = 0; i < MAX_WINDOW_NAMES; ++i)
@@ -2407,7 +2407,7 @@ serialize_string (char *string, ASVector * buf)
 {
 	if (buf)
 	{
-		register CARD32 *ptr;
+        register CARD32 *ptr;
 		register CARD8 *src = string;
 		register int  i = string ? strlen (string) >> 2 : 0;	/* assume CARD32 == 4*CARD8 :)) */
 

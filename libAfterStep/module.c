@@ -106,7 +106,8 @@ get_module_in_fd()
 static inline void
 send_module_msg_header (Window w, CARD32 bytes)
 {
-    ASSocketWriteInt32 ( &as_module_out_buffer, &w, 1 );
+    CARD32 w32 = w ;
+    ASSocketWriteInt32 ( &as_module_out_buffer, &w32, 1 );
     ASSocketWriteInt32 ( &as_module_out_buffer, &bytes, 1 );
 }
 

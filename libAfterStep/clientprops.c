@@ -399,7 +399,7 @@ read_wm_state (ASRawHints * hints, Window w)
 {
 	if (hints)
 	{
-		CARD32       *data = NULL;
+        unsigned long       *data = NULL;
 		long          nitems = 0;
 
 		if (read_32bit_proplist (w, _XA_WM_STATE, 2, &data, &nitems))
@@ -421,7 +421,7 @@ read_motif_hints (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-        CARD32       *raw_data = NULL ;
+        unsigned long *raw_data = NULL ;
         long          nitems = 0 ;
 
 		if (!read_32bit_proplist (w, _XA_MwmAtom, 4, &raw_data, &nitems))

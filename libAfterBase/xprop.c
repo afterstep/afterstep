@@ -75,7 +75,7 @@ intern_atom_list (AtomXref * list)
 }
 
 void
-translate_atom_list (ASFlagType *trg, AtomXref * xref, Atom * list, long nitems)
+translate_atom_list (ASFlagType *trg, AtomXref * xref, unsigned long* list, long nitems)
 {
 	if (trg && list && xref && nitems > 0)
 	{
@@ -102,7 +102,7 @@ print_list_hints( stream_func func, void* stream, ASFlagType flags, AtomXref *xr
     for( i = 0 ; xref[i].name ; i++ )
         if( get_flags(flags, xref[i].flag) )
             set_flags( effective_flags, xref[i].flag);
-    func( stream, "%s.flags = 0x%X;\n", prompt, effective_flags );
+    func( stream, "%s.flags = 0x%lX;\n", prompt, effective_flags );
     for( i = 0 ; xref[i].name ; i++ )
     {
         LOCAL_DEBUG_OUT("comparing flag 0x%lX, name \"%s\";", xref[i].flag, xref[i].name );
@@ -112,7 +112,7 @@ print_list_hints( stream_func func, void* stream, ASFlagType flags, AtomXref *xr
 }
 
 void
-encode_atom_list ( AtomXref * xref, Atom **list, long *nitems, ASFlagType flags)
+encode_atom_list ( AtomXref * xref, unsigned long **list, long *nitems, ASFlagType flags)
 {
 	if ( list && xref && nitems )
 	{
@@ -130,7 +130,7 @@ encode_atom_list ( AtomXref * xref, Atom **list, long *nitems, ASFlagType flags)
 		*nitems = k ;
 		if( k > 0 )
 		{
-			*list = safecalloc( k, sizeof(Atom));
+            *list = safecalloc( k, sizeof(unsigned long));
 			k = 0 ;
 		    for( i = 0 ; xref[i].name ; i++ )
 				if( get_flags(flags, xref[i].flag) )
@@ -147,7 +147,7 @@ encode_atom_list ( AtomXref * xref, Atom **list, long *nitems, ASFlagType flags)
 
 
 Bool
-read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, long *nitems)
+read_32bit_proplist (Window w, Atom property, long estimate, unsigned long ** list, long *nitems)
 {
 	Bool          res = False;
 
@@ -271,7 +271,7 @@ free_text_property (XTextProperty ** trg)
     }
 }
 
-Bool read_32bit_property (Window w, Atom property, CARD32 * trg)
+Bool read_32bit_property (Window w, Atom property, unsigned long* trg)
 {
 	Bool          res = False;
 
@@ -281,7 +281,7 @@ Bool read_32bit_property (Window w, Atom property, CARD32 * trg)
 		Atom          actual_type;
 		int           actual_format;
         ASFlagType bytes_after;
-		CARD32       *data;
+        unsigned long *data = NULL;
 		unsigned long nitems;
 
 		res =
@@ -334,9 +334,9 @@ text_property2string( XTextProperty *tprop)
 unsigned long *
 get_as_property ( Window w, Atom property, size_t * data_size, unsigned long *version)
 {
-    CARD32       *data = NULL;
+    unsigned long *data = NULL;
 #ifndef X_DISPLAY_MISSING
-    CARD32       *header;
+    unsigned long *header;
 	int           actual_format;
 	Atom          actual_type;
     unsigned long junk, size;
@@ -373,8 +373,8 @@ Bool
 read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *version, unsigned long **trg)
 {
 #ifndef X_DISPLAY_MISSING
-    CARD32       *data = get_as_property( w, property, data_size, version );
-	int     size = (*data_size)/sizeof(unsigned long);
+    unsigned long  *data = get_as_property( w, property, data_size, version );
+    int             size = (*data_size)/sizeof(unsigned long);
 
     if( data )
     {
@@ -393,7 +393,7 @@ read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *v
 /* Writing properties here :                                             */
 /*************************************************************************/
 void
-set_32bit_property (Window w, Atom property, Atom type, CARD32 data)
+set_32bit_property (Window w, Atom property, Atom type, unsigned long data)
 {
     if (w != None && property != None )
 	{
@@ -412,13 +412,13 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
 	{
         if( items > 0 )
         {
-            CARD32 *data = safemalloc( items*sizeof(CARD32));
+            unsigned long *data = safemalloc( items*sizeof(unsigned long));
             register int i = 0;
             va_list ap;
 
             va_start(ap,items);
             while( i < items )
-                data[i++] = va_arg(ap,CARD32);
+                data[i++] = va_arg(ap,unsigned long);
             va_end(ap);
 
             XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
@@ -434,7 +434,7 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
 }
 
 void
-set_32bit_proplist (Window w, Atom property, Atom type, CARD32 * list, long nitems)
+set_32bit_proplist (Window w, Atom property, Atom type, unsigned long* list, long nitems)
 {
 #ifndef X_DISPLAY_MISSING
     if (w != None && property != None )
@@ -498,9 +498,9 @@ void
 set_as_property ( Window w, Atom property, unsigned long *data, size_t data_size, unsigned long version)
 {
 #ifndef X_DISPLAY_MISSING
-    CARD32 *buffer;
+    unsigned long *buffer;
 
-    buffer = safemalloc (2 * sizeof (CARD32) + data_size);
+    buffer = safemalloc (2 * sizeof (unsigned long) + data_size);
 	/* set the property version to 1.0 */
 	buffer[0] = version;
 	/* the size of meaningful data to store */

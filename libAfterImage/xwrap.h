@@ -11,7 +11,7 @@
 
 #else
 
-#define Display  void 
+#define Display  void
 #ifndef Bool
 #define Bool int
 #endif
@@ -22,13 +22,13 @@
 #define False 0
 #endif
 
-#ifndef CARD32   
-#define CARD32 unsigned long
+#ifndef CARD32
+#define CARD32 unsigned int
 #endif
 #ifndef CARD16
 #define CARD16 unsigned short
 #endif
-#ifndef CARD8   
+#ifndef CARD8
 #define CARD8 unsigned char
 #endif
 
@@ -76,10 +76,10 @@ typedef struct {
 	unsigned long background;/* background pixel */
 	int line_width;		/* line width */
 	int line_style;	 	/* LineSolid, LineOnOffDash, LineDoubleDash */
-	int cap_style;	  	/* CapNotLast, CapButt, 
+	int cap_style;	  	/* CapNotLast, CapButt,
 				   CapRound, CapProjecting */
 	int join_style;	 	/* JoinMiter, JoinRound, JoinBevel */
-	int fill_style;	 	/* FillSolid, FillTiled, 
+	int fill_style;	 	/* FillSolid, FillTiled,
 				   FillStippled, FillOpaeueStippled */
 	int fill_rule;	  	/* EvenOddRule, WindingRule */
 	int arc_mode;		/* ArcChord, ArcPieSlice */

@@ -22,17 +22,17 @@ AtomXref;
 /*************************************************************************/
 /* X Atoms : */
 Bool intern_atom_list (AtomXref * list);
-void translate_atom_list (ASFlagType *trg, AtomXref * xref, Atom * list,
+void translate_atom_list (ASFlagType *trg, AtomXref * xref, unsigned long* list,
                           long nitems);
 void print_list_hints( stream_func func, void* stream, ASFlagType flags,
                        AtomXref *xref, const char *prompt );
-void encode_atom_list ( AtomXref * xref, Atom **list, long *nitems, ASFlagType flags);
+void encode_atom_list ( AtomXref * xref, unsigned long **list, long *nitems, ASFlagType flags);
 
 Bool read_32bit_proplist (Window w, Atom property, long estimate,
-                          CARD32 ** list, long *nitems);
+                          unsigned long** list, long *nitems);
 Bool read_string_property (Window w, Atom property, char **trg);
 Bool read_text_property (Window w, Atom property, XTextProperty ** trg);
-Bool read_32bit_property (Window w, Atom property, CARD32 * trg);
+Bool read_32bit_property (Window w, Atom property, unsigned long* trg);
 
 /* This will return contents of X property of XA_INTEGER type
  * in case of success it returns array of unsigned long elements
@@ -49,9 +49,9 @@ void print_text_property( stream_func func, void* stream, XTextProperty *tprop, 
 void free_text_property (XTextProperty ** trg);
 
 /* Writing properties : */
-void set_32bit_property (Window w, Atom property, Atom type, CARD32 data);
+void set_32bit_property (Window w, Atom property, Atom type, unsigned long data);
 void set_multi32bit_property (Window w, Atom property, Atom type, int items, ...);
-void set_32bit_proplist (Window w, Atom property, Atom type, CARD32 * list, long nitems);
+void set_32bit_proplist (Window w, Atom property, Atom type, unsigned long* list, long nitems);
 
 void set_string_property (Window w, Atom property, char *data);
 
