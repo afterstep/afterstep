@@ -654,6 +654,9 @@ show_asmenu(ASMenu *menu, int x, int y)
     hints->res_name  = hints->names[1];
     hints->res_class = hints->names[1];
     hints->icon_name = hints->names[0];
+	
+	if( Scr.Look.DrawMenuBorders == 2 ) 
+		hints->border_width = 2 ;
 
     hints->flags = AS_DontCirculate|
                    AS_SkipWinList|

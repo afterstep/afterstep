@@ -414,6 +414,10 @@ grab_root_asimage( ScreenInfo *scr )
     Bool grabbed = False ;
 	Window src;
 	ASImage *root_im = NULL ;
+
+	/* this only works if we use DefaultVisual - same visual as the Root window :*/
+	if( Scr.asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy) ) )
+		return NULL ;
 	
 	attr.background_pixmap = ParentRelative ;
 	attr.backing_store = Always ;

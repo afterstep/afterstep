@@ -312,7 +312,7 @@ LOCAL_DEBUG_CALLER_OUT( "cursor %d, event %d, window 0x%lX, window_name \"%s\", 
     if (event->context != C_ROOT && event->context != C_NO_CONTEXT)
         if ( finish_event == ButtonPress ||
             (finish_event == ButtonRelease && event->x.type != ButtonPress))
-			return FALSE;
+			return False;
 
     if (!(res = !GrabEm (&Scr, Scr.Feel.cursors[cursor])))
 	{

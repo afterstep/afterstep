@@ -974,7 +974,9 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 		/* If the parent window and the new window have different bit 
 		** depths (such as on a Solaris box with 8bpp root window and 
 		** 24bpp child windows), ParentRelative will not work. */
-		if (get_flags(mask, CWBackPixmap) && attributes->background_pixmap == ParentRelative) {
+		if ( get_flags(mask, CWBackPixmap) && attributes->background_pixmap == ParentRelative &&
+			 asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy) ))
+		{
 			clear_flags(mask, CWBackPixmap);
 		}
 	}

@@ -721,8 +721,8 @@ set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state )
     if( layer->im == NULL )
         if( (layer->im = lbl->rendered[(~state)&BAR_STATE_FOCUS_MASK] ) == NULL )
             return 0;
-    layer->dst_x = tile->x + (tile->width - layer->im->width)/2 ;
-    layer->dst_y = tile->y + (tile->height - layer->im->height)/2 ;
+    layer->dst_x = tile->x ;
+    layer->dst_y = tile->y ;
     layer->clip_width  = layer->im->width ;
     layer->clip_height = layer->im->height ;
     return 1;
