@@ -314,7 +314,7 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	return ptr - color_ptr[y];
 }
 
-static inline int
+inline int
 asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y)
 {
 	CARD8       **color_ptr = asimage_get_color_ptr (im, color);
