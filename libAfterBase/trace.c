@@ -18,15 +18,14 @@
 
 #include "config.h"
 
-#if !defined(DEBUG_ALLOCS) && defined(DEBUG_TRACE)
+#if !defined(DEBUG_ALLOCS) && defined(DEBUG_TRACE) && !defined(X_DISPLAY_MISSING)
 
 #include <string.h>							   /* for memset */
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 
+#include "astypes.h"				   
 #include "trace.h"				   
 
 #if defined(TRACE_XNextEvent) || defined(TRACE_DispatchEvent)

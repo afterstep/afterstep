@@ -25,13 +25,6 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#include <X11/Xresource.h>
-#include <X11/Xproto.h>
-#include <X11/Xmd.h>
-
 /*#define LOCAL_DEBUG*/
 
 #include "astypes.h"
@@ -46,10 +39,11 @@
 Bool
 intern_atom_list (AtomXref * list)
 {
+	Bool          res = False;
+#ifndef X_DISPLAY_MISSING
 	int           nitems = 0, i = 0;
 	char        **names;
 	Atom         *atoms;
-	Bool          res = False;
 
 	if (list)
 	{
@@ -65,7 +59,6 @@ intern_atom_list (AtomXref * list)
 				names[i] = list[i].name;
 
 			res = (XInternAtoms (dpy, names, nitems, False, atoms) != 0);
-
 			for (i = 0; i < nitems; i++)
 			{
 				list[i].atom = atoms[i];
@@ -75,6 +68,7 @@ intern_atom_list (AtomXref * list)
 			free (names);
 		}
 	}
+#endif
 	return res;
 }
 
@@ -141,6 +135,7 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 {
 	Bool          res = False;
 
+#ifndef X_DISPLAY_MISSING
 	if (w != None && property != None && list && nitems)
 	{
 		Atom          actual_type;
@@ -149,7 +144,6 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 
 		if (estimate <= 0)
 			estimate = 1;
-
 		res =
 			(XGetWindowProperty
 			 (dpy, w, property, 0, estimate, False, AnyPropertyType,
@@ -164,7 +158,6 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 				(XGetWindowProperty
 				 (dpy, w, property, 0, estimate + (bytes_after >> 2), False,
 				  actual_type, &actual_type, &actual_format, nitems, &bytes_after, (unsigned char **)list) == 0);
-
 			res = (res && (*nitems > 0));	   /* bad property */
 		}
 
@@ -177,13 +170,14 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 		}
 LOCAL_DEBUG_CALLER_OUT("*list == %p", *list );
 	}
+#endif
 	return res;
 }
 
 Bool read_text_property (Window w, Atom property, XTextProperty ** trg)
 {
 	Bool          res = False;
-
+#ifndef X_DISPLAY_MISSING
 	if (w != None && property != None && trg)
 	{
 		if (*trg)
@@ -200,13 +194,14 @@ Bool read_text_property (Window w, Atom property, XTextProperty ** trg)
 		} else
 			res = True;
 	}
+#endif
 	return res;
 }
 
 Bool read_string_property (Window w, Atom property, char **trg)
 {
 	Bool          res = False;
-
+#ifndef X_DISPLAY_MISSING
     if (w != None && property != None && trg)
 	{
         int           actual_format;
@@ -230,6 +225,7 @@ Bool read_string_property (Window w, Atom property, char **trg)
                 res = True;
         }
 	}
+#endif
 	return res;
 }
 
@@ -248,7 +244,11 @@ free_text_property (XTextProperty ** trg)
 {
     if( *trg )
     {
+#ifndef X_DISPLAY_MISSING
         if( (*trg)->value ) XFree ((*trg)->value);
+#else
+        if( (*trg)->value ) free ((*trg)->value);
+#endif		
         free( *trg );
         *trg = NULL ;
     }
@@ -258,6 +258,7 @@ Bool read_32bit_property (Window w, Atom property, CARD32 * trg)
 {
 	Bool          res = False;
 
+#ifndef X_DISPLAY_MISSING
 	if (w != None && property != None && trg)
 	{
 		Atom          actual_type;
@@ -279,6 +280,7 @@ Bool read_32bit_property (Window w, Atom property, CARD32 * trg)
 		if (data && nitems > 0)
 			XFree (data);
 	}
+#endif
 	return res;
 }
 /**** conversion routines taking in consideration different encoding of X properties ****/
@@ -290,7 +292,7 @@ text_property2string( XTextProperty *tprop)
     {
         if (tprop->value)
 		{
-#ifdef I18N
+#if defined(I18N) && !defined(X_DISPLAY_MISSING)
             if (tprop->encoding != XA_STRING)
 			{
                 char  **list;
@@ -315,12 +317,12 @@ text_property2string( XTextProperty *tprop)
 Bool
 read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *version, unsigned long **trg)
 {
+#ifndef X_DISPLAY_MISSING
     CARD32       *data = NULL;
     CARD32       *header;
 	int           actual_format;
 	Atom          actual_type;
     unsigned long junk, size;
-
 
     if( w == None || property == None || trg == NULL )
         return False;
@@ -354,6 +356,9 @@ read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *v
         XFree( data );
     }
     return True;
+#else
+	return False ;	
+#endif
 }
 
 /*************************************************************************/
@@ -364,14 +369,17 @@ set_32bit_property (Window w, Atom property, Atom type, CARD32 data)
 {
     if (w != None && property != None )
 	{
+#ifndef X_DISPLAY_MISSING
         XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
                          PropModeReplace, (unsigned char *)&data, 1);
+#endif
     }
 }
 
 void
 set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
 {
+#ifndef X_DISPLAY_MISSING
     if (w != None && property != None )
 	{
         if( items > 0 )
@@ -394,11 +402,13 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
                              type?type:XA_CARDINAL, 32, PropModeReplace, NULL, 0);
         }
     }
+#endif
 }
 
 void
 set_32bit_proplist (Window w, Atom property, Atom type, CARD32 * list, long nitems)
 {
+#ifndef X_DISPLAY_MISSING
     if (w != None && property != None )
 	{
         if( nitems > 0 )
@@ -411,22 +421,26 @@ set_32bit_proplist (Window w, Atom property, Atom type, CARD32 * list, long nite
                              type?type:XA_CARDINAL, 32, PropModeReplace, NULL, 0);
         }
     }
+#endif
 }
 
 void
 set_string_property (Window w, Atom property, char *data)
 {
+#ifndef X_DISPLAY_MISSING
     if (w != None && property != None && data)
 	{
 LOCAL_DEBUG_OUT( "setting property %X on %X to \"%s\"", property, w, data );
         XChangeProperty (dpy, w, property, XA_STRING, 8,
                          PropModeReplace, (unsigned char *)data, strlen (data));
     }
+#endif
 }
 
 void
 set_text_property (Window w, Atom property, char** data, int items_num, ASTextEncoding encoding )
 {
+#ifndef X_DISPLAY_MISSING
 	if (w != None && property != None && data && items_num > 0)
 	{
 		XTextProperty prop ;
@@ -448,12 +462,14 @@ set_text_property (Window w, Atom property, char** data, int items_num, ASTextEn
 		XSetTextProperty (dpy, w, &prop, property);
 		XFree ((char *)prop.value);
 	}
+#endif
 }
 
 /* AfterStep specific property : */
 void
 set_as_property ( Window w, Atom property, unsigned long *data, size_t data_size, unsigned long version)
 {
+#ifndef X_DISPLAY_MISSING
     CARD32 *buffer;
 
     buffer = safemalloc (2 * sizeof (CARD32) + data_size);
@@ -467,5 +483,6 @@ set_as_property ( Window w, Atom property, unsigned long *data, size_t data_size
     XChangeProperty (dpy, w, property, XA_INTEGER, 32, PropModeReplace,
 					 (unsigned char *)buffer, 2 + data_size / sizeof (unsigned long));
 	free (buffer);
+#endif
 }
 

@@ -1,6 +1,7 @@
 #ifndef FS_H_HEADER_INCLUDED
 #define FS_H_HEADER_INCLUDED
 
+#include <time.h>
 time_t  get_file_modified_time (const char *filename);
 int		check_file_mode (const char *file, int mode);
 

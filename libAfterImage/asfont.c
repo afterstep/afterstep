@@ -39,9 +39,6 @@
 #include <sys/time.h>
 #endif
 
-#include <X11/Xlib.h>
-#include <X11/Intrinsic.h>
-
 #ifdef HAVE_FREETYPE
 #ifndef HAVE_FT2BUILD_H
 #ifdef HAVE_FREETYPE_FREETYPE
@@ -120,9 +117,12 @@ destroy_font_manager( ASFontManager *fontman, Bool reusable )
 	}
 }
 
+#ifdef HAVE_FREETYPE
 static int load_freetype_glyphs( ASFont *font );
+#endif
+#ifndef X_DISPLAY_MISSING
 static int load_X11_glyphs( Display *dpy, ASFont *font, XFontStruct *xfs );
-
+#endif
 
 ASFont*
 open_freetype_font( ASFontManager *fontman, const char *font_string, int face_no, int size, Bool verbose)
@@ -199,6 +199,7 @@ ASFont*
 open_X11_font( ASFontManager *fontman, const char *font_string)
 {
 	ASFont *font = NULL ;
+#ifndef X_DISPLAY_MISSING
 	XFontStruct *xfs ;
 #ifdef I18N
 	/* TODO: we have to use FontSet and loop through fonts instead filling
@@ -217,6 +218,7 @@ open_X11_font( ASFontManager *fontman, const char *font_string)
 	load_X11_glyphs( fontman->dpy, font, xfs );
 	XFreeFont( fontman->dpy, xfs );
 #endif
+#endif /* #ifndef X_DISPLAY_MISSING */
 	return font;
 }
 
@@ -562,6 +564,7 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
  * Definately
  */
 
+#ifndef X_DISPLAY_MISSING
 static ASGlyphRange*
 split_X11_glyph_range( unsigned long min_char, unsigned int max_char, XCharStruct *chars )
 {
@@ -716,6 +719,7 @@ LOCAL_DEBUG_OUT( "done loading glyphs. Attaching set of glyph ranges to the code
 LOCAL_DEBUG_OUT( "all don%s", "" );
 }
 
+
 void
 make_X11_default_glyph( ASFont *font, XFontStruct *xfs )
 {
@@ -827,6 +831,7 @@ load_X11_glyphs( Display *dpy, ASFont *font, XFontStruct *xfs )
 		XFreeGC( dpy, gc );
 	return xfs->ascent+xfs->descent;
 }
+#endif /* #ifndef X_DISPLAY_MISSING */
 
 #ifdef HAVE_FREETYPE
 static void

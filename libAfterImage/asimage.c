@@ -139,10 +139,12 @@ asimage_init (ASImage * im, Bool free_resources)
 				free(im->red);
 			if (im->buffer)
 				free (im->buffer);
+#ifndef X_DISPLAY_MISSING
 			if( im->alt.ximage )
 				XDestroyImage( im->alt.ximage );
 			if( im->alt.mask_ximage )
 				XDestroyImage( im->alt.mask_ximage );
+#endif				
 			if( im->alt.argb32 )
 				free( im->alt.argb32 );
 		}
@@ -1709,6 +1711,7 @@ tile_ximage_line( XImage *xim, unsigned int line, int step )
 void
 encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
 {
+#ifndef X_DISPLAY_MISSING				
 	register XImage *xim = imout->im->alt.mask_ximage ;
 	if( imout->next_line < xim->height && imout->next_line >= 0 )
 	{
@@ -1724,6 +1727,7 @@ encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
 			                  imout->bottom_to_top*imout->tiling_step );
 		imout->next_line += imout->bottom_to_top;
 	}
+#endif	
 }
 
 void

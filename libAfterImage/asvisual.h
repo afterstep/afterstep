@@ -303,13 +303,21 @@ typedef struct ASVisual
 	void   (*scanline2ximage_func)( struct ASVisual *asv, XImage *xim,
 									ASScanline *sl, int y,
 									unsigned char *xim_data );
+#ifndef X_DISPLAY_MISSING				
 #define ARGB2PIXEL(asv,argb,pixel) 		   \
 	(asv)->color2pixel_func((asv),(argb),(pixel))
 #define GET_SCANLINE(asv,xim,sl,y,xim_data) \
 	(asv)->ximage2scanline_func((asv),(xim),(sl),(y),(xim_data))
 #define PUT_SCANLINE(asv,xim,sl,y,xim_data) \
 	(asv)->scanline2ximage_func((asv),(xim),(sl),(y),(xim_data))
-
+#else
+#define ARGB2PIXEL(asv,argb,pixel) 		   \
+	do{ break; }while(0)
+#define GET_SCANLINE(asv,xim,sl,y,xim_data) \
+	do{ break; }while(0)
+#define PUT_SCANLINE(asv,xim,sl,y,xim_data) \
+	do{ break; }while(0)
+#endif
 }ASVisual;
 /*******************/
 

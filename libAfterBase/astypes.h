@@ -1,18 +1,7 @@
 #ifndef ASTYPES_H_HEADER_INCLUDED
 #define ASTYPES_H_HEADER_INCLUDED
 
-#ifndef XMD_H
-#include <X11/Xmd.h>
-#endif
-#ifndef Bool
-#define Bool int
-#endif
-#ifndef True
-#define True 1
-#endif
-#ifndef False
-#define False 0
-#endif
+#include "xwrap.h"
 
 #ifndef ABS
 #define ABS(a)              ((a)>0   ? (a) : -(a))

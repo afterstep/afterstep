@@ -20,18 +20,12 @@
 
 /*#define LOCAL_DEBUG */
 
+#include <malloc.h>
+
 #include <X11/Xlib.h>
-#include <X11/Xproto.h>
-#include <X11/Xlibint.h>
-#include <X11/Intrinsic.h>
 
 #include "afterbase.h"
 #include "asvisual.h"
-
-void _XInitImageFuncPtrs(XImage*);
-
-static int  get_shifts (unsigned long mask);
-static int  get_bits (unsigned long mask);
 
 CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
 CARD32 color2pixel32rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
@@ -64,15 +58,19 @@ void scanline2ximage_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int
 void scanline2ximage_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
 void scanline2ximage_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
 
+#ifndef X_DISPLAY_MISSING
+static int  get_shifts (unsigned long mask);
+static int  get_bits (unsigned long mask);
+
+void _XInitImageFuncPtrs(XImage*);
 
 int
 asvisual_empty_XErrorHandler (Display * dpy, XErrorEvent * event)
 {
     return 0;
 }
-
 /***************************************************************************/
- #ifdef LOCAL_DEBUG
+#ifdef LOCAL_DEBUG
 Status
 debug_AllocColor( const char *file, const char *func, int line, ASVisual *asv, Colormap cmap, XColor *pxcol )
 {
@@ -86,6 +84,10 @@ debug_AllocColor( const char *file, const char *func, int line, ASVisual *asv, C
 #else
 #define ASV_ALLOC_COLOR(asv,cmap,pxcol)  XAllocColor((asv)->dpy,(cmap),(pxcol))
 #endif
+
+#else
+#define ASV_ALLOC_COLOR(asv,cmap,pxcol)   0
+#endif   /* ndef X_DISPLAY_MISSING */
 
 /**********************************************************************/
 /* returns the maximum number of true colors between a and b          */
@@ -109,12 +111,16 @@ ARGB32_manhattan_distance (long a, long b)
  ***************************************************************************/
 int get_bits_per_pixel(Display *dpy, int depth)
 {
+#if 0
+#ifndef X_DISPLAY_MISSING
  	register ScreenFormat *fmt = dpy->pixmap_format;
  	register int i;
 
  	for (i = dpy->nformats + 1; --i; ++fmt)
  		if (fmt->depth == depth)
  			return(fmt->bits_per_pixel);
+#endif
+#endif
 	if (depth <= 4)
 	    return 4;
 	if (depth <= 8)
@@ -191,7 +197,7 @@ free_scanline( ASScanline *sl, Bool reusable )
 Bool
 query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int default_depth )
 {
-	XVisualInfo *list = NULL;
+#ifndef X_DISPLAY_MISSING
 	int nitems = 0 ;
 	/* first  - attempt locating 24bpp TrueColor or DirectColor RGB or BGR visuals as the best cases : */
 	/* second - attempt locating 32bpp TrueColor or DirectColor RGB or BGR visuals as the next best cases : */
@@ -199,6 +205,8 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 	/* forth  - even more lesser 15bpp 555 RGB or BGR modes : */
 	/* nothing nice has been found - use whatever X has to offer us as a default :( */
 	int i ;
+
+	XVisualInfo *list = NULL;
 	XSetWindowAttributes attr ;
 	XColor black_xcol = { 0, 0x0000, 0x0000, 0x0000, DoRed|DoGreen|DoBlue };
 	XColor white_xcol = { 0, 0xFFFF, 0xFFFF, 0xFFFF, DoRed|DoGreen|DoBlue };
@@ -239,13 +247,14 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 		 { NULL  , 0       , 0     , 15   , DirectColor, 0x0     , 0xE003    , 0x0      , 0            , 0 },
 		 { NULL  , 0       , 0     , 0    , 0          , 0       , 0         , 0        , 0            , 0 },
 		} ;
-
+#endif /*ifndef X_DISPLAY_MISSING */
 	if( asv == NULL )
 		return False ;
 	memset( asv, 0x00, sizeof(ASVisual));
 
 	asv->dpy = dpy ;
 
+#ifndef X_DISPLAY_MISSING
 	memset( &attr, 0x00, sizeof( attr ));
 	for( i = 0 ; templates[i].depth != 0 ; i++ )
 	{
@@ -314,6 +323,10 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 	asv->own_colormap = (attr.colormap != DefaultColormap( dpy, screen ));
 	asv->white_pixel = white_xcol.pixel ;
 	asv->black_pixel = black_xcol.pixel ;
+#else
+	asv->white_pixel = ARGB32_White ;
+	asv->black_pixel = ARGB32_Black ;	
+#endif /*ifndef X_DISPLAY_MISSING */
 	return True;
 }
 
@@ -321,10 +334,14 @@ ASVisual *
 create_asvisual( Display *dpy, int screen, int default_depth, ASVisual *reusable_memory  )
 {
 	ASVisual *asv = reusable_memory ;
+#ifndef X_DISPLAY_MISSING
+	Window root = RootWindow(dpy,screen);
+#endif /*ifndef X_DISPLAY_MISSING */
 
 	if( asv == NULL )
 		asv = safemalloc( sizeof(ASVisual) );
-	if( query_screen_visual( asv, dpy, screen, RootWindow (dpy, screen), default_depth ) )
+#ifndef X_DISPLAY_MISSING
+	if( query_screen_visual( asv, dpy, screen, root, default_depth ) )
 	{	/* found visual - now off to decide about color handling on it : */
 	 	if( !setup_truecolor_visual( asv ) )
 	 	{  /* well, we don't - lets try and preallocate as many colors as we can but up to
@@ -339,6 +356,8 @@ create_asvisual( Display *dpy, int screen, int default_depth, ASVisual *reusable
 			free( asv );
 		asv = NULL ;
 	}
+#else
+#endif /*ifndef X_DISPLAY_MISSING */
 	return asv;
 }
 
@@ -347,6 +366,7 @@ destroy_asvisual( ASVisual *asv, Bool reusable )
 {
 	if( asv )
 	{
+#ifndef X_DISPLAY_MISSING
 	 	if( asv->own_colormap )
 	 	{
 	 		if( asv->colormap )
@@ -363,6 +383,7 @@ destroy_asvisual( ASVisual *asv, Bool reusable )
 					free( asv->as_colormap_reverse.xref );
 			}
 		}
+#endif /*ifndef X_DISPLAY_MISSING */
 		if( !reusable )
 			free( asv );
 	}
@@ -400,6 +421,7 @@ visual2visual_prop( ASVisual *asv, size_t *size,
 		return False ;
 
 	prop = safemalloc( *size ) ;
+#ifndef X_DISPLAY_MISSING
 	prop[0] = asv->visual_info.visualid ;
 	prop[1] = asv->colormap ;
 	prop[2] = asv->black_pixel ;
@@ -413,6 +435,7 @@ visual2visual_prop( ASVisual *asv, size_t *size,
 	}
 	if( size )
 		*size = (1+1+2+1+cmap_size)*sizeof(unsigned long);
+#endif /*ifndef X_DISPLAY_MISSING */
 	if( version )
 		*version = (1<<16)+0;                        /* version is 1.0 */
 	*data = prop ;
@@ -425,9 +448,11 @@ visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
 								   unsigned long version,
 								   unsigned long *data )
 {
+#ifndef X_DISPLAY_MISSING
 	XVisualInfo templ, *list ;
 	int nitems = 0 ;
 	int cmap_size = 0 ;
+#endif /*ifndef X_DISPLAY_MISSING */
 
 	if( asv == NULL )
 		return False;
@@ -441,6 +466,7 @@ visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
 	if( data[0] == None || data[1] == None ) /* we MUST have valid colormap and visualID !!!*/
 		return False;
 
+#ifndef X_DISPLAY_MISSING
 	templ.screen = screen ;
 	templ.visualid = data[0] ;
 
@@ -472,13 +498,16 @@ visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
 			asv->as_colormap[i] = data[i+5];
 	}else
 		asv->as_colormap_type = ACM_None ;     /* just in case */
-
+#else
+			
+#endif /*ifndef X_DISPLAY_MISSING */
 	return True;
 }
 
 Bool
 setup_truecolor_visual( ASVisual *asv )
 {
+#ifndef X_DISPLAY_MISSING
 	XVisualInfo *vi = &(asv->visual_info) ;
 
 	if( vi->class != TrueColor )
@@ -525,6 +554,7 @@ setup_truecolor_visual( ASVisual *asv )
 			asv->scanline2ximage_func = scanline2ximage15 ;
 		    break ;
 	}
+#endif /*ifndef X_DISPLAY_MISSING */
 	return (asv->ximage2scanline_func != NULL) ;
 }
 
@@ -558,6 +588,7 @@ make_reverse_colorhash( unsigned long *cmap, size_t size, int depth, unsigned sh
 void
 setup_pseudo_visual( ASVisual *asv  )
 {
+#ifndef X_DISPLAY_MISSING
 	XVisualInfo *vi = &(asv->visual_info) ;
 
 	/* we need to allocate new usable list of colors based on available bpp */
@@ -609,9 +640,10 @@ setup_pseudo_visual( ASVisual *asv  )
 															  asv->true_depth, 0x000F, 4 );
 		}
 	}
+#endif /*ifndef X_DISPLAY_MISSING */
 }
 
-
+#ifndef X_DISPLAY_MISSING
 static unsigned long*
 make_3bpp_colormap( ASVisual *asv )
 {
@@ -762,10 +794,12 @@ make_12bpp_colormap( ASVisual *asv, unsigned long *cmap_9bpp )
 	}
 	return cmap;
 }
+#endif /*ifndef X_DISPLAY_MISSING */
 
 void
 setup_as_colormap( ASVisual *asv )
 {
+#ifndef X_DISPLAY_MISSING
 	unsigned long *cmap_lower, *cmap ;
 
 	if( asv == NULL || asv->as_colormap != NULL )
@@ -797,6 +831,7 @@ setup_as_colormap( ASVisual *asv )
 		asv->as_colormap = cmap ;
 		asv->as_colormap_reverse.hash = make_reverse_colorhash( cmap, 4096, asv->true_depth, 0x000F, 4 );
 	}
+#endif /*ifndef X_DISPLAY_MISSING */
 }
 
 /*********************************************************************/
@@ -808,6 +843,7 @@ create_visual_window( ASVisual *asv, Window parent,
 					  unsigned int border_width, unsigned int class,
  					  unsigned long mask, XSetWindowAttributes *attributes )
 {
+#ifndef X_DISPLAY_MISSING
 	XSetWindowAttributes my_attr ;
 
 	if( asv == NULL || parent == None )
@@ -854,17 +890,26 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 	return XCreateWindow (asv->dpy, parent, x, y, width, height, border_width, 0,
 						  class, asv->visual_info.visual,
 	                      mask, attributes);
+#else
+	return None ;
+#endif /*ifndef X_DISPLAY_MISSING */
+						  
 }
 
 Pixmap
 create_visual_pixmap( ASVisual *asv, Window root, unsigned int width, unsigned int height, unsigned int depth )
 {
+#ifndef X_DISPLAY_MISSING
 	Pixmap p = None ;
 	if( asv != NULL )
 		p = XCreatePixmap( asv->dpy, root, MAX(width,1), MAX(height,1), (depth==0)?asv->true_depth:depth );
 	return p;
+#else
+	return None ;
+#endif /*ifndef X_DISPLAY_MISSING */
 }
 
+#ifndef X_DISPLAY_MISSING
 int
 My_XDestroyImage (ximage)
 	 XImage       *ximage;
@@ -876,18 +921,30 @@ My_XDestroyImage (ximage)
 	XFree ((char *)ximage);
 	return 1;
 }
+#endif /*ifndef X_DISPLAY_MISSING */
+
 
 XImage*
 create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, unsigned int depth )
 {
+#ifndef X_DISPLAY_MISSING
 	register XImage *ximage;
 	unsigned long dsize;
 	char         *data;
+	int unit ;
 
 	if( asv == NULL )
 		return NULL;
 
-	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->true_depth:depth, ZPixmap, 0, NULL, MAX(width,1), MAX(height,1), asv->dpy->bitmap_unit, 0);
+#if 0
+	unit = asv->dpy->bitmap_unit;
+#else	
+	unit = (asv->true_depth+7)&0x0038;
+	if( unit == 24 ) 
+		unit = 32 ;
+#endif		
+	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->true_depth:depth, ZPixmap, 0, NULL, MAX(width,1), MAX(height,1), 
+						   unit, 0);
 	if (ximage != NULL)
 	{
 		_XInitImageFuncPtrs (ximage);
@@ -902,6 +959,9 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 		ximage->data = data;
 	}
 	return ximage;
+#else
+	return NULL ;	
+#endif /*ifndef X_DISPLAY_MISSING */
 }
 
 /****************************************************************************/
@@ -910,7 +970,7 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 
 
 /* misc function to calculate number of bits/shifts */
-
+#ifndef X_DISPLAY_MISSING
 static int
 get_shifts (unsigned long mask)
 {
@@ -933,6 +993,7 @@ get_bits (unsigned long mask)
 
 	return i;								   /* can't be negative */
 }
+#endif
 /***************************************************************************/
 /* Screen color format -> AS color format conversion ; 					   */
 /***************************************************************************/
@@ -945,6 +1006,7 @@ get_bits (unsigned long mask)
  * where RRR, GG and BB are overflow bits so we can do all kinds of funky
  * combined adding, note that we don't use 32'd bit as it is a sign bit */
 
+#ifndef X_DISPLAY_MISSING
 static inline void
 query_pixel_color( ASVisual *asv, unsigned long pixel, CARD32 *r, CARD32 *g, CARD32 *b )
 {
@@ -958,6 +1020,7 @@ query_pixel_color( ASVisual *asv, unsigned long pixel, CARD32 *r, CARD32 *g, CAR
 		*b = xcol.blue>>8 ;
 	}
 }
+#endif /*ifndef X_DISPLAY_MISSING */
 
 
 CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
@@ -1013,7 +1076,7 @@ void pixel2color15rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *g
 void pixel2color15bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue)
 {}
 
-
+#ifndef X_DISPLAY_MISSING
 void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
@@ -1479,5 +1542,6 @@ scanline2ximage_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y, 
 		}while(i);
 	}
 }
+#endif /*ifndef X_DISPLAY_MISSING */
 
 

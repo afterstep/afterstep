@@ -171,12 +171,8 @@ typedef struct {
 
 #endif
 
-
-Bool     get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h);
-Drawable validate_drawable (Drawable d, unsigned int *pwidth, unsigned int *pheight);
-void	 backtrace_window ( Window w );
-
-Window get_parent_window( Window w );
-Window get_topmost_parent( Window w, Window *desktop_w );
+extern Display *dpy ;
+int asim_get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h);
+#define get_drawable_size(d,w,h) asim_get_drawable_size((d),(w),(h))
 
 #endif

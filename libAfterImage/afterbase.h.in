@@ -3,9 +3,6 @@
 
 #define HAVE_AFTERBASE_FLAG @HAVE_AFTERBASE_FLAG@
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
 #if @HAVE_AFTERBASE_FLAG@
 #include <libAfterBase/astypes.h>
 #include <libAfterBase/audit.h>
@@ -17,8 +14,10 @@
 #include <libAfterBase/selfdiag.h>
 #include <libAfterBase/socket.h>
 #include <libAfterBase/trace.h>
-#include <libAfterBase/xwrap.h>
 #else
+
+/* our own version of X Wrapper : */
+#include "xwrap.h" 
 
 /* the goal of this header is to provide sufficient code so that
    libAfterImage could live without libAfterBase at all.
@@ -29,18 +28,6 @@
 /* from libAfterBase/astypes.h : */
 
 #include <stdio.h>
-#ifndef XMD_H
-#include <X11/Xmd.h>
-#endif
-#ifndef Bool
-#define Bool int
-#endif
-#ifndef True
-#define True 1
-#endif
-#ifndef False
-#define False 0
-#endif
 
 #ifndef MIN
 #define MIN(a,b)            ((a)<(b) ? (a) : (b))
@@ -201,10 +188,6 @@ char   *asim_put_file_home (const char *path_with_home);
 #define put_file_home(p) asim_put_file_home(p)
 char   *asim_find_file (const char *file, const char *pathlist, int type);
 #define find_file(f,p,t) asim_find_file(f,p,t)
-
-extern Display *dpy ;
-int asim_get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h);
-#define get_drawable_size(d,w,h) asim_get_drawable_size((d),(w),(h))
 
 const char *asim_parse_argb_color( const char *color, CARD32 *pargb );
 #define parse_argb_color(c,p) asim_parse_argb_color((c),(p))

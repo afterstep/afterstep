@@ -170,6 +170,7 @@ asimage2mask_ximage (ASVisual *asv, ASImage *im)
 ASImage      *
 pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache, unsigned int compression)
 {
+#ifndef X_DISPLAY_MISSING
 	XImage       *xim = XGetImage (asv->dpy, p, x, y, width, height, plane_mask, ZPixmap);
 	ASImage      *im = NULL;
 
@@ -182,11 +183,15 @@ pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsign
 			XDestroyImage (xim);
 	}
 	return im;
+#else
+    return NULL ;	
+#endif	
 }
 
 Pixmap
 asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 {
+#ifndef X_DISPLAY_MISSING
 	XImage       *xim ;
 	Pixmap        p = None;
 	GC 			  my_gc = gc ;
@@ -215,11 +220,15 @@ asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 			XDestroyImage (xim);
 	}
 	return p;
+#else
+	return None ;	
+#endif
 }
 
 Pixmap
 asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 {
+#ifndef X_DISPLAY_MISSING
 	XImage       *xim ;
 	Pixmap        mask = None;
 	GC 			  my_gc = gc ;
@@ -245,6 +254,9 @@ asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 	if( xim != im->alt.mask_ximage )
 		XDestroyImage (xim);
 	return mask;
+#else
+	return None ;
+#endif	
 }
 
 

@@ -9,7 +9,7 @@
  * To use it, define DEBUG_TRACE before including this header
  */
 
-#if !defined(DEBUG_ALLOCS) && defined(DEBUG_TRACE)
+#if !defined(DEBUG_ALLOCS) && defined(DEBUG_TRACE) && !defined(X_DISPLAY_MISSING)
 /* Select section : select functions to trace here : */
 /* Xlib calls */
 #undef TRACE_XDestroyWindow

@@ -24,11 +24,6 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <signal.h>
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xmd.h>
 
 #include "config.h"
 
@@ -48,6 +43,8 @@
 #undef free
 #undef mystrdup
 #undef mystrndup
+
+#ifndef X_DISPLAY_MISSING
 
 #undef XCreatePixmap
 #undef XCreateBitmapFromData
@@ -76,6 +73,7 @@
 #undef XStringListToTextProperty
 #undef XFree
 
+#endif /* #ifndef X_DISPLAY_MISSING */
 #endif /* DEBUG_ALLOCS */
 
 #include "mystring.h"
@@ -648,6 +646,8 @@ print_unfreed_mem_stats (const char *file, const char *func, int line, const cha
                      ApplicationName, file, func, line, total_alloc, total_x_alloc, total_service - deallocated_used*sizeof(mem), max_alloc, max_x_alloc, max_service);
 }
 
+
+#ifndef X_DISPLAY_MISSING
 Pixmap
 count_xcreatepixmap (const char *fname, int line, Display * display,
 					 Drawable drawable, unsigned int width, unsigned int height, unsigned int depth)
@@ -1027,4 +1027,6 @@ count_xfree (const char *fname, int line, void *data)
 	mem_destroy( (ASHashableValue)NULL, m );
 	return Success;
 }
+
+#endif /* #ifndef X_DISPLAY_MISSING */
 

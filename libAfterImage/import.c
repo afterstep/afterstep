@@ -178,8 +178,9 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 Pixmap
 file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_out)
 {
-	Pixmap trg = None, mask = None;
-
+	Pixmap trg = None;
+#ifndef X_DISPLAY_MISSING
+	Pixmap mask = None ;
 	if( asv && realfilename )
 	{
 		double gamma = SCREEN_GAMMA;
@@ -217,6 +218,7 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 			XFreePixmap( asv->dpy, *mask_out );
 		*mask_out = mask ;
 	}
+#endif	
 	return trg ;
 }
 

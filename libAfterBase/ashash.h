@@ -2,6 +2,8 @@
 #define ASHASH_HEADER_FILE_INCLUDED
 /* REALY USEFULL and UNIVERSAL hash table implementation */
 
+#include "astypes.h"
+
 struct wild_reg_exp;
 
 typedef union ASHashableValue

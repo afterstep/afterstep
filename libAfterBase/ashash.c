@@ -26,9 +26,6 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xmd.h>
-
 /*#define LOCAL_DEBUG*/
 
 #include "astypes.h"

@@ -15,9 +15,8 @@
  */
 
 #include <stdio.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 #include "ashash.h"
+#include "xwrap.h"
 
 #ifndef DEBUG_ALLOCS
 
@@ -37,6 +36,8 @@
 #define add_hash_item(a,b,c) countadd_hash_item(__FUNCTION__, __LINE__,a,b,c)
 #define mystrdup(a) countadd_mystrdup(__FUNCTION__, __LINE__,a)
 #define mystrndup(a,b) countadd_mystrndup(__FUNCTION__, __LINE__,a,b)
+
+#ifndef X_DISPLAY_MISSING
 
 #define XCreatePixmap(a, b, c, d, e) count_xcreatepixmap(__FUNCTION__, __LINE__, a, b, c, d, e)
 #define XCreateBitmapFromData(a, b, c, d, e) count_xcreatebitmapfromdata(__FUNCTION__, __LINE__, a, b, c, d, e)
@@ -68,6 +69,9 @@
 #define XStringListToTextProperty(a, b, c) count_xstringlisttotextproperty(__FUNCTION__, __LINE__, a, b, c)
 #define XFree(a) count_xfree(__FUNCTION__, __LINE__, a)
 
+#endif /* #ifndef X_DISPLAY_MISSING */
+
+
 #define PRINT_MEM_STATS(m)     print_unfreed_mem_stats(__FILE__,__FUNCTION__, __LINE__,(m))
 
 #endif /* DEBUG_ALLOCS */
@@ -87,6 +91,8 @@ ASHashResult countadd_hash_item (const char *fname, int line, struct ASHashTable
 char* countadd_mystrdup(const char *fname, int line, const char *a);
 char* countadd_mystrndup(const char *fname, int line, const char *a, int len);
 
+
+#ifndef X_DISPLAY_MISSING
 Pixmap count_xcreatepixmap (const char *fname, int line, Display * display,
 			    Drawable drawable, unsigned int width,
 			    unsigned int height, unsigned int depth);
@@ -163,6 +169,10 @@ Status count_xstringlisttotextproperty (const char *fname, int line,
 					char **list, int count,
 					void *text_prop_return);
 int count_xfree (const char *fname, int line, void *data);
+
+#endif /*ifndef X_DISPLAY_MISSING */
+
+
 int set_audit_cleanup_mode(int mode);
 
 void print_unfreed_mem (void);
