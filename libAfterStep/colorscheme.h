@@ -123,8 +123,9 @@ typedef struct ASColorScheme
 #define ASCS_NORMAL_BRIGHTNESS_OFFSET	 	10
 #define ASCS_HIGH_BRIGHTNESS_OFFSET	 		20
 #define ASCS_DISABLED_SATURATION_LEVEL		40
-#define ASCS_GRADIENT_BRIGHTNESS_OFFSET 	10
+#define ASCS_GRADIENT_BRIGHTNESS_OFFSET 	20
 
+ARGB32 make_color_scheme_argb( CARD32 base_alpha16, CARD32 hue360, CARD32 sat100, CARD32 val100 );
 ASColorScheme *make_ascolor_scheme( ARGB32 base, int angle );
 void populate_ascs_colors_rgb( ASColorScheme *cs );
 void populate_ascs_colors_xml( ASColorScheme *cs );

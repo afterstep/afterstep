@@ -50,7 +50,9 @@ struct
 	char *doc_file;
 	Bool display ;
 	Bool onroot ;
+
 	ARGB32 base_color ;
+	int base_hue, base_sat, base_val ;
 	int angle ;
 
 	ASColorScheme *cs ;
@@ -62,9 +64,17 @@ struct
 
 	ASImage *cs_im ;
 
+	enum
+	{
+		ASC_PARAM_BaseHue =0,
+		ASC_PARAM_BaseSat	,
+		ASC_PARAM_BaseVal	,
+		ASC_PARAM_Angle
+	} curr_param ;
+
 }ASColorState;
 
-void ascolor_usage() 
+void ascolor_usage()
 {
 	fprintf( stdout,
 		"Usage:\n"
@@ -197,12 +207,12 @@ void GetBaseOptions (const char *filename);
 Window create_main_window();
 void HandleEvents();
 void do_colorscheme();
+void do_change_param( int val );
 void DispatchEvent (ASEvent * event);
 
-
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
 	int i;
-
 
 	/* Save our program name - for error messages */
     InitMyApp (CLASS_ASCOLOR, argc, argv, ascolor_usage, NULL, 0 );
@@ -240,10 +250,10 @@ int main(int argc, char** argv) {
 	}
 
 	/* Load the document from file, if one was given. */
-	if (ASColorState.doc_file) 
+	if (ASColorState.doc_file)
 	{
 		ASColorState.doc_str = load_file(ASColorState.doc_file);
-		if (!ASColorState.doc_str) 
+		if (!ASColorState.doc_str)
 		{
 			show_error("Unable to load file [%s]: %s.", ASColorState.doc_file, strerror(errno));
 			exit(1);
@@ -342,6 +352,14 @@ DispatchEvent (ASEvent * event)
         case KeyRelease :
             break ;
         case ButtonPress:
+			{
+				int val = 10 ;
+				if( (event->x.xbutton.state&ControlMask) )
+					val = 1 ;
+				if( event->x.xbutton.button == Button1 )
+					val = -val ;
+				do_change_param(val);
+			}
             break;
         case ButtonRelease:
             break;
@@ -403,7 +421,7 @@ create_main_window()
             y = ASColorState.geometry.y ;
 			break;
 	}
-    attr.event_mask = StructureNotifyMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask ;
+    attr.event_mask = StructureNotifyMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|PropertyChangeMask ;
     w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 4, InputOutput, CWEventMask, &attr);
     set_client_names( w, MyName, MyName, CLASS_ASCOLOR, MyName );
 
@@ -437,7 +455,6 @@ create_main_window()
 	sleep (1);								   /* we have to give AS a chance to spot us */
 	/* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
-	XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask);
 	return w ;
 }
 
@@ -454,8 +471,17 @@ do_colorscheme()
 		ASColorState.cs_im = NULL ;
 	}
 
+	forget_asimage_name( Scr.image_manager, "inactive_back_beveled" );
+ 	forget_asimage_name( Scr.image_manager, "inactive_back" );
+	forget_asimage_name( Scr.image_manager, "inactive_menu_item_back" );
+
 	/* now we need to calculate color scheme and populate XML env vars with colors */
 	ASColorState.cs = make_ascolor_scheme( ASColorState.base_color, ASColorState.angle );
+
+	ASColorState.base_hue = ASColorState.cs->base_hue ;
+	ASColorState.base_sat = ASColorState.cs->base_sat ;
+	ASColorState.base_val = ASColorState.cs->base_val ;
+
 	populate_ascs_colors_rgb( ASColorState.cs );
 	populate_ascs_colors_xml( ASColorState.cs );
 
@@ -487,5 +513,36 @@ do_colorscheme()
 		XFlush( dpy );
 		XFreePixmap( dpy, p );
 	}
+}
+
+#define normalize_percent_val(v)  (((v)<0)?0:(((v)>=100)?99:(v)))
+
+void
+do_change_param( int val )
+{
+	switch( ASColorState.curr_param )
+	{
+		case ASC_PARAM_BaseHue  :
+			ASColorState.base_hue = normalize_degrees_val(ASColorState.base_hue + val) ;
+			break ;
+		case ASC_PARAM_BaseSat  :
+			ASColorState.base_sat = normalize_percent_val(ASColorState.base_sat + val) ;
+			break ;
+		case ASC_PARAM_BaseVal  :
+			ASColorState.base_val = normalize_percent_val(ASColorState.base_val + val) ;
+			break ;
+		case ASC_PARAM_Angle    :
+			ASColorState.angle += val ;
+			if( ASColorState.angle < 10 )
+				ASColorState.angle = 10 ;
+			else if( ASColorState.angle > 60 )
+				ASColorState.angle = 60 ;
+			break ;
+	}
+	ASColorState.base_color = make_color_scheme_argb( 0xFFFF, ASColorState.base_hue,
+		                                                      ASColorState.base_sat,
+															  ASColorState.base_val );
+
+	do_colorscheme();
 }
 

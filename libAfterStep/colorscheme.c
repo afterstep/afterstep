@@ -57,8 +57,19 @@ compare_color_lightness( ARGB32 c1, ARGB32 c2 )
 inline void
 make_grad_argb( ARGB32 *grad, ARGB32 base_alpha16, int hue360, int sat100, int val100 )
 {
-	grad[0] = make_color_scheme_argb( base_alpha16, hue360, sat100, val100-ASCS_GRADIENT_BRIGHTNESS_OFFSET );
-	grad[1] = make_color_scheme_argb( base_alpha16, hue360, sat100, val100+ASCS_GRADIENT_BRIGHTNESS_OFFSET );
+	int dark_val = val100-ASCS_GRADIENT_BRIGHTNESS_OFFSET ;
+	int light_val = val100+ASCS_GRADIENT_BRIGHTNESS_OFFSET ;
+	if( light_val >= 100 )
+		light_val = 99 ;
+	else if( light_val < 0 )
+		light_val = 0 ;
+	if( dark_val >= 100 )
+		dark_val = 99 ;
+	else if( dark_val < 0 )
+		dark_val = 0 ;
+
+	grad[0] = make_color_scheme_argb( base_alpha16, hue360, sat100, dark_val );
+	grad[1] = make_color_scheme_argb( base_alpha16, hue360, sat100, light_val );
 }
 
 ASColorScheme *

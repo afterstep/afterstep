@@ -305,8 +305,10 @@ doc.man:  doc.xref
 install.man:
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
 		for f in $$SRCS; do \
-	  	  echo $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
-		  $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
+			if test -f doc/$$f.man; then \
+		  	  echo $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
+			  $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
+			fi; \
 		done; \
 	echo $(INSTALL_DATA) doc/asimagexml.man $(AFTER_MAN_DIR)/asimagexml.3x; \
 	$(INSTALL_DATA) doc/asimagexml.man $(AFTER_MAN_DIR)/asimagexml.3x; \
