@@ -1119,7 +1119,7 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 		}
 	}
 
-	if( raise_on_click && asw->internal == NULL )
+	if( raise_on_click && (asw->internal == NULL || (event->context&C_CLIENT) == 0 ) )
     	restack_window(asw,None,focus_accepted?Above:TopIf);
 
 	/* GNOME this click hasn't been taken by AfterStep */
