@@ -740,6 +740,7 @@ make_desktop_image( int desk, MyBackground *new_back )
 {
     ASImage *new_im = NULL;
     char *new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
+    
     if( new_back->type == MB_BackImage )
     {
         if( (new_im = fetch_asimage( Scr.image_manager, new_imname )) == NULL )
@@ -793,6 +794,7 @@ make_desktop_image( int desk, MyBackground *new_back )
 #endif
     if( new_imname )
         free( new_imname );
+    
     return new_im;
 }
 
@@ -809,6 +811,9 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
     if( new_back == old_back &&
         desk != old_desk ) /* if desks are the same then we are reloading current background !!! */
         return;
+    
+    cover_desktop();
+    display_progress( True, "Changing background for desktop #%d ...", desk);
 
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
@@ -886,6 +891,8 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
     ASSync(False);
     print_asimage_registry();
     LOCAL_DEBUG_OUT("done%s","" );
+    remove_desktop_cover();;
+
 }
 
 /*************************************************************************

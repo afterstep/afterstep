@@ -131,6 +131,7 @@ main (int argc, char **argv)
 		return 1;/* failed to accure window management selection - other wm is running */
 	}
     cover_desktop();
+    show_progress( "AfterStep is starting up ..." );
 
 SHOW_CHECKPOINT;
 	InitSession();
@@ -155,6 +156,8 @@ SHOW_CHECKPOINT;
     for (i = 0; i < Scr.NumberOfScreens; i++)
 	{
         show_progress( "Initializing screen %d ...", i );
+        display_progress( True, "Initializing screen %d ...", i );
+
         if (i != Scr.screen)
         {
             if( !get_flags(MyArgs.flags, ASS_SingleScreen) )
@@ -173,16 +176,21 @@ SHOW_CHECKPOINT;
             if( is_output_level_under_threshold( OUTPUT_LEVEL_PROGRESS ) )
             {
                 show_progress( "\t screen[%d].size = %ux%u", Scr.screen, Scr.MyDisplayWidth, Scr.MyDisplayHeight );
+                display_progress( True, "    screen[%d].size = %ux%u", Scr.screen, Scr.MyDisplayWidth, Scr.MyDisplayHeight );
                 show_progress( "\t screen[%d].root = %lX", Scr.screen, Scr.Root );
                 show_progress( "\t screen[%d].color_depth = %d", Scr.screen, Scr.asv->true_depth );
+                display_progress( True, "    screen[%d].color_depth = %d", Scr.screen, Scr.asv->true_depth );
                 show_progress( "\t screen[%d].colormap    = 0x%lX", Scr.screen, Scr.asv->colormap );
                 show_progress( "\t screen[%d].visual.id         = %X",  Scr.screen, Scr.asv->visual_info.visualid );
+                display_progress( True, "    screen[%d].visual.id         = %X",  Scr.screen, Scr.asv->visual_info.visualid );
                 show_progress( "\t screen[%d].visual.class      = %d",  Scr.screen, Scr.asv->visual_info.class );
+                display_progress( True, "    screen[%d].visual.class      = %d",  Scr.screen, Scr.asv->visual_info.class );
                 show_progress( "\t screen[%d].visual.red_mask   = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.red_mask   );
                 show_progress( "\t screen[%d].visual.green_mask = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.green_mask );
                 show_progress( "\t screen[%d].visual.blue_mask  = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.blue_mask  );
                 show_progress( "\t screen[%d].rdisplay_string = \"%s\"", Scr.screen, Scr.rdisplay_string );
                 show_progress( "\t screen[%d].display_string = \"%s\"", Scr.screen, Scr.display_string );
+                display_progress( True, "    screen[%d].display_string = \"%s\"", Scr.screen, Scr.display_string );
             }
         }
     }
@@ -218,7 +226,9 @@ SHOW_CHECKPOINT;
 	XGrabServer (dpy);                		/* grabbed   !!!!!*/
 #endif										/* grabbed   !!!!!*/
     init_screen_panframes(&Scr);            /* grabbed   !!!!!*/
+    display_progress( True, "Capturing all windows ..." );
     CaptureAllWindows (&Scr);               /* grabbed   !!!!!*/
+    display_progress( False, "Done." );
     check_screen_panframes(&Scr);           /* grabbed   !!!!!*/
     ASSync( False );
 #ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
@@ -227,13 +237,15 @@ SHOW_CHECKPOINT;
 	/**********************************************************/
     XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[DEFAULT]);
 
+    display_progress( True, "Seting initial viewport to %+d%+d ...", Scr.wmprops->as_current_vx, Scr.wmprops->as_current_vy );
     /* now we can restore whatever viewport was prior to AS restart */
     if( get_flags( Scr.wmprops->set_props, WMC_ASViewport )  )
         MoveViewport(Scr.wmprops->as_current_vx, Scr.wmprops->as_current_vy, False);
 
     SetupFunctionHandlers();
-
+    display_progress( True, "Processing all pending events ..." );
     ConfigureNotifyLoop();
+    display_progress( True, "All done." );
     remove_desktop_cover();
 
     DoAutoexec(get_flags( AfterStepState, ASS_Restarting));
@@ -242,10 +254,10 @@ SHOW_CHECKPOINT;
     set_flags( AfterStepState, ASS_NormalOperation);
 
 #if (defined(LOCAL_DEBUG)||defined(DEBUG)) && defined(DEBUG_ALLOCS)
-    LOCAL_DEBUG_OUT( "printing memory%s","");
+    LOCAL_DEBUG_OUT( "printing memory");
     spool_unfreed_mem( "afterstep.allocs.startup", NULL );
 #endif
-    LOCAL_DEBUG_OUT( "entering main loop%s","");
+    LOCAL_DEBUG_OUT( "entering main loop");
 
     HandleEvents ();
 	return (0);

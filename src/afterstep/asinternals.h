@@ -504,6 +504,8 @@ Window get_desktop_cover_window();
 void restack_desktop_cover();
 void cover_desktop();
 void desktop_cover_cleanup();
+void display_progress( Bool new_line, const char *msg_format, ... );
+
 
 
 /*************************** decorations.c ********************************/

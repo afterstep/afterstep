@@ -410,15 +410,29 @@ static char buffer[8192] ;
 void 
 display_progress( Bool new_line, const char *msg_format, ... )
 {
-    if( _as_desktop_cover )
+    if( _as_desktop_cover && _as_desktop_cover_xfs && _as_desktop_cover_gc )
     {
+        int x, y ; 
+        int height ; 
+        int len ; 
+        
         va_list ap;
         va_start (ap, msg_format);
         vsnprintf (&buffer[0], 256, msg_format, ap);
-
-        /* and now we need to display the text on the screen */
-
         va_end (ap);
+        
+        len = strlen( &buffer[0] );
+        if( _as_progress_cursor > 0 && new_line ) 
+        {    
+            ++_as_progress_line ;
+            _as_progress_cursor = 0 ; 
+        }
+        /* and now we need to display the text on the screen */
+        x = Scr.MyDisplayWidth/20 + _as_progress_cursor ; 
+        height = _as_desktop_cover_xfs->ascent + _as_desktop_cover_xfs->descent + 5;
+        y = Scr.MyDisplayHeight/5 + height * _as_progress_line ;
+        _as_progress_cursor += XTextWidth( _as_desktop_cover_xfs, &buffer[0], len) + 10;
+        XDrawString (dpy, _as_desktop_cover, _as_desktop_cover_gc, x, y, &buffer[0], len);
     }        
 }    
 

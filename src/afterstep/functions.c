@@ -1015,6 +1015,9 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
         sprintf (tmpfile, BACK_FILE ".scr%ld", Scr.CurrentDesk, Scr.screen);
 
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
+    cover_desktop();
+    display_progress( True, "Copying selected background \"%s\" into \"%s\" ...", data->text, realfilename);
+    
     if (CopyFile (data->text, realfilename) == 0)
     {
 		++_as_background_change_count ;
@@ -1025,6 +1028,7 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
 	free (realfilename);
 
 	commit_config_change( F_CHANGE_BACKGROUND );
+    remove_desktop_cover();
 
     XUngrabPointer (dpy, CurrentTime);
     XSync (dpy, 0);
@@ -1080,6 +1084,9 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
     }
 
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
+    
+    cover_desktop();
+    display_progress( True, "Copying selected config file \"%s\" into \"%s\" ...", data->text, realfilename);
 
 	if( CopyFile (data->text, realfilename) == 0 )
 	{
@@ -1093,6 +1100,7 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
 	 * don't want those to cause any restarts or config reloads.
 	 */
 	commit_config_change( data->func );
+    remove_desktop_cover();
 
 	--_as_config_change_recursion ;
 }
@@ -1119,7 +1127,10 @@ void install_file_func_handler( FunctionData *data, ASEvent *event, int module )
 	{
 		parse_file_name( data->text, NULL, &file ) ;
 
-		if( desktop_resource )
+        cover_desktop();
+        display_progress( True, "Installing file \"%s\" into \"%s\" ...", data->text, dir_name);
+        
+        if( desktop_resource )
 		{
 			realfilename = make_session_data_file  (Session, False, 0, DESKTOP_DIR, NULL );
     	    CheckOrCreate(realfilename);
@@ -1134,6 +1145,7 @@ void install_file_func_handler( FunctionData *data, ASEvent *event, int module )
 		CopyFile (data->text, realfilename);
 		free( realfilename );
 		free( file );
+        remove_desktop_cover();
 	}
 }
 

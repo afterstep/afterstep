@@ -88,7 +88,6 @@ static MyFrameDefinition *MyFrameList = NULL ;
 static char              *DefaultFrameName = NULL ;
 static MyFrameDefinition *LegacyFrameDef = NULL ;
 
-
 static balloonConfig BalloonConfig = {0, 0, 0, 0, 0, 0, NULL };
 
 static char         *MSWindowName[BACK_STYLES] = {NULL};
@@ -202,7 +201,7 @@ struct config main_config[] = {
     {"HiBackColor", assign_string, &WindowBackColor[BACK_FOCUSED], (int *)0},
 	{"IconBox", SetBox, (char **)0, (int *)0},
 	{"IconFont", assign_string, &Iconfont, (int *)0},
-	{"MyStyle", mystyle_parse, (char**)"afterstep", (int*)&MyStyleList},
+    {"MyStyle", mystyle_parse, (char**)"afterstep", (int*)&MyStyleList},
     /* new stuff : */
     {"MyBackground", myback_parse, (char**)"asetroot", NULL},  /* pretending to be asteroot here */
     {"DeskBack", deskback_parse, NULL, NULL },
@@ -1238,6 +1237,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 #endif /* !DIFFERENTLOOKNFEELFOREACHDESKTOP */
 
     show_progress("Loading configuration files ...");
+    display_progress( True, "Loading configuration files ...");
     if (Session->overriding_file == NULL )
 	{
         char *configfile;
@@ -1271,6 +1271,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 InitLook (&Scr.Look, True);
                 ParseConfigFile (const_configfile, &tline);
                 show_progress("LOOK configuration loaded from \"%s\" ...", const_configfile);
+                display_progress( True, "LOOK configuration loaded from \"%s\".", const_configfile);
 #ifdef ASETROOT_FILE
 				if( Scr.Look.desk_configs == NULL )
 				{/* looks like there is no background information in the look file and we should be
@@ -1281,13 +1282,15 @@ LoadASConfig (int thisdesktop, ASFlagType what)
       			        ParseConfigFile (configfile, &tline);
               			/* Save base filename to pass to modules */
 				        show_progress("ROOT BACKGROUND configuration loaded from \"%s\" ...", configfile);
+                        display_progress( True, "ROOT BACKGROUND configuration loaded from \"%s\" .", configfile);
               			free( configfile );
 		            }
 				}
 #endif
             }else
             {
-                show_warning("LOOK configuration file cannot be found");
+                show_warning("LOOK configuration file cannot be found!");
+                display_progress( True, "LOOK configuration file cannot be found!");
                 clear_flags(what, PARSE_LOOK_CONFIG);
             }
         }
@@ -1299,25 +1302,37 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 InitFeel (&Scr.Feel, True);
                 if (tline == NULL)
                     tline = safemalloc (MAXLINELENGTH + 1);
+                display_progress( True, "Parsing menu entries and checking availability ...");
                 MeltStartMenu (tline);
+                display_progress( False, "Done..");
                 ParseConfigFile (const_configfile, &tline);
                 show_progress("FEEL configuration loaded from \"%s\" ...", const_configfile);
+                display_progress( True, "FEEL configuration loaded from \"%s\" .", const_configfile);
                 if( (configfile = make_session_file(Session, AUTOEXEC_FILE, False )) != NULL )
                 {
                     ParseConfigFile (configfile, &tline);
                     show_progress("AUTOEXEC configuration loaded from \"%s\" ...", configfile);
+                    display_progress( True, "AUTOEXEC configuration loaded from \"%s\" .", configfile);
                     free( configfile );
                 }else
-                    show_warning("AUTOEXEC configuration file cannot be found");
+                {    
+                    show_warning("AUTOEXEC configuration file cannot be found!");
+                    display_progress( True, "AUTOEXEC configuration file cannot be found!");
+                }        
 				if( ws_file != NULL )
 				{
                     ParseConfigFile (ws_file, &tline);
                     show_progress("WORKSPACE STATE configuration loaded from \"%s\" ...", ws_file);
+                    display_progress( True, "WORKSPACE STATE configuration loaded from \"%s\".", ws_file);
 				}else
-					show_progress("WORKSPACE STATE file cannot be not found");
+                {    
+                    show_progress("WORKSPACE STATE file cannot be not found!");
+                    display_progress( True, "WORKSPACE STATE file cannot be not found!");
+                }
             }else
             {
-                show_warning("FEEL configuration file cannot be found");
+                show_warning("FEEL configuration file cannot be found!");
+                display_progress( True, "FEEL configuration file cannot be found!");
                 clear_flags(what, PARSE_FEEL_CONFIG);
             }
         }
@@ -1327,10 +1342,12 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             {
                 ParseConfigFile (const_configfile, &tline);
                 show_progress("THEME configuration loaded from \"%s\" ...", const_configfile);
+                display_progress( True, "THEME configuration loaded from \"%s\" .", const_configfile);
                 if( (configfile = make_session_data_file  (Session, False, R_OK, THEME_OVERRIDE_FILE, NULL )) != NULL )
                 {
                     ParseConfigFile (configfile, &tline);
                     show_progress("THEME OVERRIDES configuration loaded from \"%s\" ...", configfile);
+                    display_progress( True, "THEME OVERRIDES configuration loaded from \"%s\" .", configfile);
                     free( configfile );
                 }
             }
@@ -1343,10 +1360,12 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 InitDatabase (True);
                 ParseDatabase (configfile);
                 show_progress("DATABASE configuration loaded from \"%s\" ...", configfile);
+                display_progress( True, "DATABASE configuration loaded from \"%s\" .", configfile);
                 free( configfile );
             }else
             {
-                show_warning("DATABASE configuration file cannot be found");
+                show_warning("DATABASE configuration file cannot be found!");
+                display_progress( True, "DATABASE configuration file cannot be found!");
                 clear_flags(what, PARSE_DATABASE_CONFIG);
             }
         }
@@ -1359,6 +1378,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         InitDatabase (True);
         ParseConfigFile (Session->overriding_file, &tline);
         show_progress("AfterStep configuration loaded from \"%s\" ...", Session->overriding_file);
+        display_progress( True, "AfterStep configuration loaded from \"%s\".", Session->overriding_file);
         what = PARSE_EVERYTHING ;
     }
 
@@ -1366,6 +1386,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 	if (tline)
 		free (tline);
     show_progress("Done loading configuration.");
+    display_progress( True, "Done loading configuration.");
 
     check_desksize_sanity( &Scr );
 
@@ -1405,19 +1426,29 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 
     /* force update of window frames */
     if (get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG|PARSE_DATABASE_CONFIG))
+    {
+        display_progress( True, "Redecorating client windows...");    
         iterate_asbidirlist( Scr.Windows->clients, redecorate_aswindow_iter_func, NULL, NULL, False );
+        display_progress( False, "Done.");    
+    }
 
     if( old_image_manager && old_image_manager != Scr.image_manager )
     {
+        display_progress( True, "Unloading old images...");    
         if(Scr.RootImage && Scr.RootImage->imageman == old_image_manager )
         {
             safe_asimage_destroy(Scr.RootImage);
             Scr.RootImage = NULL ;
         }
         destroy_image_manager( old_image_manager, False );
+        display_progress( False, "Done.");    
     }
     if( old_font_manager && old_font_manager != Scr.font_manager )
+    {
+        display_progress( True, "Unloading old fonts...");        
         destroy_font_manager( old_font_manager, False );
+        display_progress( False, "Done.");    
+    }
 
     ConfigureNotifyLoop();
     remove_desktop_cover();
