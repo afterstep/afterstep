@@ -27,13 +27,13 @@
  */
 
 typedef struct Timer
-  {
-    struct Timer *next;
-    void *data;
-    time_t sec;
-    time_t usec;
-    void (*handler) (void *timer);
-  }
+{
+  struct Timer *next;
+  void *data;
+  time_t sec;
+  time_t usec;
+  void (*handler) (void *timer);
+}
 Timer;
 
 void timer_new (time_t msec, void (*handler) (void *), void *data);

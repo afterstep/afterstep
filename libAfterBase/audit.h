@@ -65,7 +65,7 @@ int count_xfreepixmap (const char *fname, int line, Display * display,
 #define XFreeGC(a, b) count_xfreegc(__FUNCTION__, __LINE__, a, b)
 
 GC count_xcreategc (const char *fname, int line, Display * display,
-		  Drawable drawable, unsigned int mask, XGCValues * values);
+		    Drawable drawable, unsigned int mask, XGCValues * values);
 int count_xfreegc (const char *fname, int line, Display * display, GC gc);
 
 #undef XDestroyImage		/* this is normally a macro */

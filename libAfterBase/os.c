@@ -11,11 +11,11 @@
 int
 mygethostname (char *client, size_t length)
 {
-  struct utsname sysname;
+	struct utsname sysname;
 
-  uname (&sysname);
-  strncpy (client, sysname.nodename, length);
-  return 0;
+	uname (&sysname);
+	strncpy (client, sysname.nodename, length);
+	return 0;
 }
 
 #else
@@ -25,14 +25,14 @@ mygethostname (char *client, size_t length)
 int
 mygethostname (char *client, size_t length)
 {
-  gethostname (client, length);
+	gethostname (client, length);
 }
 
 #else
 int
 mygethostname (char *client, size_t length)
 {
-  *client = 0;
+	*client = 0;
 }
 
 #endif

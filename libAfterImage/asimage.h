@@ -39,44 +39,48 @@ ctrl_byte3    := 1NNNNNNN (first bit is 1, remaining are length)
 
 typedef struct ASImage
 {
-    unsigned int width, height;
-    CARD8 **red, **green, **blue ;
-    CARD8 **alpha ;
+  unsigned int width, height;
+  CARD8 **red, **green, **blue;
+  CARD8 **alpha;
 
-    CARD8 *buffer ;
-    unsigned int buf_used, buf_len ;
+  CARD8 *buffer;
+  unsigned int buf_used, buf_len;
 
-}ASImage ;
+}
+ASImage;
 
-typedef enum 
+typedef enum
 {
-    IC_RED = 0,
-    IC_GREEN,
-    IC_BLUE,
-    IC_ALPHA
-}ColorPart;
+  IC_RED = 0,
+  IC_GREEN,
+  IC_BLUE,
+  IC_ALPHA
+}
+ColorPart;
 
-void asimage_free_color( ASImage *im, CARD8 **color );
-void asimage_init( ASImage *im, Bool free_resources );
-void asimage_start( ASImage *im, unsigned int width, unsigned int height );
-void asimage_apply_buffer( ASImage *im, ColorPart color, unsigned int y );
-void asimage_add_line( ASImage *im, ColorPart color, CARD8 *data, unsigned int y );
+void asimage_free_color (ASImage * im, CARD8 ** color);
+void asimage_init (ASImage * im, Bool free_resources);
+void asimage_start (ASImage * im, unsigned int width, unsigned int height);
+void asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y);
+void asimage_add_line (ASImage * im, ColorPart color, CARD8 * data,
+		       unsigned int y);
 
 /* usefull for debugging : (returns memory usage)*/
-unsigned int asimage_print_line( ASImage *im, ColorPart color, unsigned int y, unsigned long verbosity );
+unsigned int asimage_print_line (ASImage * im, ColorPart color,
+				 unsigned int y, unsigned long verbosity);
 /* this are verbosity flags : */
 #define VRB_LINE_SUMMARY 	(0x01<<0)
 #define VRB_LINE_CONTENT 	(0x01<<1)
 #define VRB_CTRL_EXPLAIN 	(0x01<<2)
 #define VRB_EVERYTHING		(VRB_LINE_SUMMARY|VRB_CTRL_EXPLAIN|VRB_LINE_CONTENT)
 
-unsigned int asimage_decode_line( ASImage *im, ColorPart color, unsigned int y, CARD8 *to_buf );
+unsigned int asimage_decode_line (ASImage * im, ColorPart color,
+				  unsigned int y, CARD8 * to_buf);
 
-ASImage* asimage_from_ximage( XImage *xim );
-ASImage* asimage_from_pixmap( Pixmap p, int x, int y, 
-                                        unsigned int width, 
-					unsigned int height, 
-					unsigned long plane_mask );
+ASImage *asimage_from_ximage (XImage * xim);
+ASImage *asimage_from_pixmap (Pixmap p, int x, int y,
+			      unsigned int width,
+			      unsigned int height, unsigned long plane_mask);
 
 
 #endif

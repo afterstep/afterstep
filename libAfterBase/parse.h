@@ -3,18 +3,18 @@
 
 /* used for parsing configuration */
 struct config
-  {
-    char *keyword;
+{
+  char *keyword;
 #ifdef __STDC__
-    void (*action) (char *, FILE *, char **, int *);
+  void (*action) (char *, FILE *, char **, int *);
 #else
-    void (*action) ();
+  void (*action) ();
 #endif
-    char **arg;
-    int *arg2;
-  };
+  char **arg;
+  int *arg2;
+};
 
-char *find_doublequotes( char* ptr );
+char *find_doublequotes (char *ptr);
 char *stripcpy (const char *source);
 char *stripcpy2 (const char *source, int tab_sensitive);
 char *stripcpy3 (const char *, Bool);
@@ -47,8 +47,8 @@ char scan_for_hotkey (char *txt);
 /* string list is terminated with NULL element and does not constitute
    single block of memory - each element has to be allocated and deallocated 
    individually */
-char* get_comma_item( char* ptr, char** item_start, char** item_end );
-char** comma_string2list( char* string );
-char* list2comma_string(char** list);
+char *get_comma_item (char *ptr, char **item_start, char **item_end);
+char **comma_string2list (char *string);
+char *list2comma_string (char **list);
 
 #endif /* _PARSE_ */
