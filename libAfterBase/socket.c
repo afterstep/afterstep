@@ -371,7 +371,7 @@ socket_read_proto_item( ASProtocolState *ps )
 	while ( item->size_bytes > item->bytes_read )
 	{
 		time_t curr_time;
-		int res = read( ps->fd, item->d.memory+item->bytes_read, item->size_bytes - item->bytes_read );
+		int res = read( ps->fd, (CARD8*)(item->d.memory)+item->bytes_read, item->size_bytes - item->bytes_read );
 		curr_time = time(NULL);
 		ps->last_read_time = curr_time;
 		if( res > 0 )
