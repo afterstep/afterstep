@@ -51,6 +51,7 @@ void usage()
 	printf( "                  [-c text_color] [-b background_color]\n");
 	printf( "                  [-T foreground_texture] [-B background_image]\n");
 	printf( "      			   [-r foreground_resize_type] [-R background_resize_type]\n");
+	printf( "      			   [-m ]\n");
 	printf( "  Where: font - TrueType font's filename or X font spec or alias;\n");
 	printf( "         size - size in points for TrueType fonts;\n");
 	printf( "         text - text to be drawn;\n");
@@ -59,6 +60,8 @@ void usage()
 	printf( "             4 - shade below, 5 - embossed thick 6 - sunken thick.\n");
 	printf( "         resize_type - tells how texture/image should be transformed to fit\n");
 	printf( "                       the text size. Could be: scale or tile. Default is tile\n");
+	printf( "         -m make font monospaced. \n");
+
 
 }
 
@@ -81,6 +84,7 @@ int main(int argc, char* argv[])
 	unsigned int width, height ;
 	int i ;
 	int text_margin = size/2 ;
+	Bool monospaced = False ;
 
 
 	/* see ASView.1 : */
@@ -98,7 +102,10 @@ int main(int argc, char* argv[])
 			usage();
 			return 0;
 		}
-		if( i+1 < argc )
+		if( strncmp( argv[i], "-m", 2 ) == 0 )
+		{
+	   		monospaced = True ;
+		}else if( i+1 < argc )
 		{
 			if( strncmp( argv[i], "-f", 2 ) == 0 )
 				font_name = argv[i+1] ;
@@ -141,7 +148,7 @@ int main(int argc, char* argv[])
 
 	/* see ASText.1 : */
 	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
-		font = get_asfont( fontman, font_name, 0, size, ASF_GuessWho );
+		font = get_asfont( fontman, font_name, 0, size, ASF_GuessWho|(monospaced?ASF_Monospaced:0) );
 
 	if( font == NULL )
 	{
@@ -180,7 +187,8 @@ int main(int argc, char* argv[])
 				destroy_asimage( &tmp );
 			}else
 				fore_im = tmp ;
-		}
+		}else
+			fore_im = NULL ;
 	}
 	width  += text_margin*2 + BEVEL_ADDON;
 	height += text_margin*2 + BEVEL_ADDON;
@@ -197,7 +205,8 @@ int main(int argc, char* argv[])
 				destroy_asimage( &tmp );
 			}else
 				back_im = tmp ;
-		}
+		}else
+			back_im = NULL ;
 	}
 
 	/* see ASText.3 : */
@@ -229,8 +238,10 @@ show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore
 
 		/* see ASText.4 : */
 		init_image_layers( &(layers[0]), 2 );
-		back_im->back_color = back_color ;
-		fore_im->back_color = text_color ;
+		if( back_im )
+			back_im->back_color = back_color ;
+		if( fore_im ) 
+			fore_im->back_color = text_color ;
 		layers[0].im = back_im ;
 		layers[0].dst_x = 0 ;
 		layers[0].dst_y = 0 ;
@@ -240,8 +251,11 @@ show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore
 		layers[1].im = fore_im ;
 		layers[1].dst_x = text_margin+BEVEL_HI_WIDTH*2 ;
 		layers[1].dst_y = text_margin+MIN((int)text_margin,((int)font->max_height-(int)font->max_ascend))/2+BEVEL_HI_WIDTH*2;
-		layers[1].clip_width = fore_im->width ;
-		layers[1].clip_height = fore_im->height ;
+		if( fore_im ) 
+		{	
+			layers[1].clip_width = fore_im->width ;
+			layers[1].clip_height = fore_im->height ;
+		}
 		rendered_im = merge_layers( asv, &(layers[0]), 2,
 									width+BEVEL_ADDON, height+BEVEL_ADDON,
 #ifndef X_DISPLAY_MISSING

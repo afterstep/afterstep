@@ -73,9 +73,14 @@ extern "C" {
  */
 typedef enum
 {
-	ASF_X11 = 0,
-	ASF_Freetype,
-	ASF_GuessWho
+	ASF_X11 	 	= 0,
+	ASF_Freetype 	= (0x01<<0),
+	ASF_GuessWho 	= (0x01<<1),
+#define	ASF_TypeMask  (ASF_GuessWho|ASF_Freetype)
+
+	/* flags below should be combined with one of the above values */
+	ASF_Monospaced 	= (0x01<<2),
+	ASF_RightToLeft = (0x01<<3)  /* direction of the text flow */
 }ASFontType;
 /*************/
 
@@ -142,6 +147,7 @@ typedef struct ASFont
 	char 				 *name;
 
 	ASFontType  	type ;
+	ASFlagType  	flags ;
 
 	ASGlyphRange   *codemap;        /* linked list of glyphsets, each
 									 * representing continuos range of
@@ -167,14 +173,12 @@ typedef struct ASFont
 	 */								   
 	unsigned int    cell_width, cell_height ;
 
-#define LEFT_TO_RIGHT    1
-#define RIGHT_TO_LEFT   -1
-	int 			pen_move_dir ;  /* direction of the text flow */
 #ifdef HAVE_FREETYPE
 	FT_Face  		ft_face;        /* free type font handle */
 #else
 	CARD32         *pad;
 #endif
+
 
 }ASFont;
 /*************/
@@ -366,7 +370,7 @@ void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
  *********/
 struct ASFont *open_freetype_font( struct ASFontManager *fontman, const char *font_string, int face_no, int size, Bool verbose);
 struct ASFont *open_X11_font( struct ASFontManager *fontman, const char *font_string);
-struct ASFont *get_asfont( struct ASFontManager *fontman, const char *font_string, int face_no, int size, ASFontType type );
+struct ASFont *get_asfont( struct ASFontManager *fontman, const char *font_string, int face_no, int size, ASFontType type_and_flags );
 struct ASFont *dup_asfont( ASFont *font );
 int            release_font( struct ASFont *font );
 
