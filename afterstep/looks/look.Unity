@@ -68,19 +68,19 @@ MyStyle "sticky_window_style"
 MyStyle "focused_frame_style"
   ForeColor     ActiveText
   BackColor   	Saturation(100,Active)
-  BackPixmap  149 	VALUE(100,Saturation(100,Active))
+#  BackPixmap  149 	VALUE(100,Saturation(100,Active))
   ~MyStyle
 
 MyStyle "unfocused_frame_style"
   ForeColor     InactiveText1Dark
   BackColor	Saturation(100,Inactive1)
-  BackPixmap  149 	VALUE(100,Saturation(100,Inactive1))
+#  BackPixmap  149 	VALUE(100,Saturation(100,Inactive1))
   ~MyStyle
 
 MyStyle "sticky_frame_style"
   ForeColor     InactiveText2
   BackColor	Saturation(100,Inactive2)
-  BackPixmap  149 	VALUE(100,Saturation(100,Inactive2))
+#  BackPixmap  149 	VALUE(100,Saturation(100,Inactive2))
   ~MyStyle
 
 #----------Menu MyStyles---------#
@@ -302,12 +302,20 @@ MyFrame "unity"
 	TitleBackground		    bars/title_tile_unity
 #default layout is : Buttons,Spacer,TitleSpacer   Title   TitleSpacer,Spacer,Buttons
 
-	Side East    bars/frame_east_unity
+	Side East    bars/frame_east_glass_transp
 	Side South   bars/frame_south_unity
-	Side West    bars/frame_west_xml_unity
-	Corner SW    bars/frame_sw_unity
-	Corner SE    bars/frame_se_xml_unity
+	Side West    bars/frame_west_unity
+	Corner SW    bars/frame_sw_unity_grey
+	Corner SE    bars/frame_se_unity
 	NoBorder
+
+
+	FrameFStyle	"focused_frame_style"
+	FrameUStyle	"unfocused_frame_style"
+	FrameSStyle	"sticky_frame_style"
+
+	TitleUCompositionMethod	138
+	TitleSCompositionMethod	130
 ~MyFrame
 
 DefaultFrame "unity"
