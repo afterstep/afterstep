@@ -317,8 +317,11 @@ fi
 AC_SUBST(TIFF_CFLAGS)
 
 if test "$have_tiff" = yes -o "$have_png" = yes ; then
-  AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lz -lm"
+  AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lz"
 fi
+
+dn;# we always need libm since we now call exp() in gaussian blur
+AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lm"
 
 dnl# check for libfreetype
 
