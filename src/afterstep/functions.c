@@ -1261,7 +1261,7 @@ void gethelp_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void wait_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	char *complex_pattern = data->text ;
+	char *complex_pattern = data->text ; 
 	if( data->name && data->name[1] == ':' ) 
 		complex_pattern = &(data->name[2]);
 	

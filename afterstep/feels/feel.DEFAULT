@@ -24,6 +24,10 @@ Yzap 12
 # Avoid problems with xpaint like applications which define their own icon
 # as a window and tell the window manager it's its icon
 KeepIconWindows
+
+# when application changes its name - hints will be updated and applied
+#FollowTitleChanges
+
 #
 # Don't push titlebar when clicked
 # Titlebarnopush

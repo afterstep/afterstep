@@ -306,6 +306,7 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 
 	pdb_rec = fill_asdb_record (db, clean->names, &db_rec, False);
 
+	LOCAL_DEBUG_OUT( "printing db record %p for names %p and db %p", pdb_rec, clean->names, db );
     if (is_output_level_under_threshold (OUTPUT_LEVEL_DATABASE))
 		print_asdb_matched_rec (NULL, NULL, db, pdb_rec);
 
@@ -961,6 +962,9 @@ static ASFlagType extwm_types_start_properties[][3] = {
 	{EXTWM_TypeToolbar, AS_LayerNormal, 0},
 	{EXTWM_TypeMenu, AS_LayerUrgent, AS_StartsSticky},
 	{EXTWM_TypeDialog, AS_LayerTop, 0},
+	{EXTWM_TypeNormal, AS_LayerNormal, 0},  
+	{EXTWM_TypeUtility, AS_LayerTop, 0}, 	
+	{EXTWM_TypeSplash, AS_LayerTop, AS_ShortLived },
 	{0, 0, 0}
 };
 static ASFlagsXref extwm_type_xref[] = {	   /*Flag              Set if Set,      Clear if Set,     Set if Clear,    Clear if Clear  */
@@ -978,6 +982,14 @@ static ASFlagsXref extwm_type_func_mask[] = {  /*Flag             Set if Set,  C
 	{EXTWM_TypeMenu, 0, AS_FuncResize | AS_FuncMinimize | AS_FuncMaximize, 0, 0},
 	{0, 0, 0, 0, 0}
 };
+
+ASFlagType 
+extwm_state2as_state_flags( ASFlagType extwm_flags )
+{
+	ASFlagType as_flags	= 0 ;
+	decode_simple_flags (&as_flags, extwm_state_xref, extwm_flags);
+	return as_flags;
+}	   
 
 static void
 merge_extwm_hints (ASHints * clean, ASRawHints * raw,
@@ -1329,7 +1341,7 @@ update_cmd_line_hints (Window w, Atom property,
 /* same as above only for window manager : */
 Bool
 update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
-							   ASHints * hints, ASStatusHints * status)
+							   ASDatabase * db, ASHints * hints, ASStatusHints * status)
 {
 	ASRawHints    raw;
 	Bool          changed = False;
@@ -1359,7 +1371,7 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 			}
 			return changed;
 		}
-		if (hints && merge_hints (&raw, NULL, NULL, list, HINT_ANY, &clean) != NULL)
+		if (hints && merge_hints (&raw, db, NULL, list, HINT_ANY, &clean) != NULL)
 		{
 
 			show_debug (__FILE__, __FUNCTION__, __LINE__, "hints merged");
@@ -1397,6 +1409,9 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 				hints->icon_name = clean.icon_name;
 				hints->icon_name_idx = clean.icon_name_idx;
 				show_debug (__FILE__, __FUNCTION__, __LINE__, "names set");
+
+				hints->flags = clean.flags ;
+				hints->function_mask = clean.function_mask ;
 			} else if (property == XA_WM_HINTS)
 			{
 
@@ -2310,7 +2325,7 @@ client_hints2extwm_hints (ExtendedWMHints * extwm_hints, ASHints * hints, ASStat
 		}
 		if (get_flags (status->flags, AS_SkipWinList))
 			set_flags (extwm_hints->flags, EXTWM_StateSkipTaskbar);
-
+		
 		/* window type hints : */
 		if (get_flags (status->flags, AS_StartLayer) && status->layer != AS_LayerNormal)
 		{

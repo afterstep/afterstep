@@ -22,10 +22,11 @@ Style   "ASMenu"        NoButton 1, NoButton 3
 # note that only Wharf and WinList has AvoidCover set as AvoidCover causes effect of
 # moving other windows out of the way when window is resized/placed
 Style   "*Wharf"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles, AvoidCover
+Style   "*WharfWithdrawn"        NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, AvoidCover, ShortLiving
 Style   "Banner"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles
-Style   "WinList"       NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles, AvoidCover
+Style   "WinList"       NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, AvoidCover
 # to make sure Pager always stays open we place it into the highest used level :
-Style   "*Pager"        NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, AvoidCover
+Style   "*Pager"        NoTitle, Sticky, Layer 4, WindowListSkip, NoHandles, AvoidCover
 
 Style 	"Bitch*"		NoHandles, Sticky
 

@@ -971,6 +971,18 @@ destroy_wharf_folder( ASWharfFolder **paswf )
     free( aswf );
     *paswf = NULL ;
 }
+				
+void set_folder_name( ASWharfFolder *aswf, Bool withdrawn )
+{	
+	if( withdrawn ) 
+	{	
+		char *withdrawn_name = safemalloc( strlen(MyName)+ 16 );
+		sprintf( withdrawn_name, "%s%s", MyName, "Withdrawn" );
+		set_client_names( aswf->canvas->w, withdrawn_name, withdrawn_name, CLASS_WHARF, withdrawn_name );
+		free( withdrawn_name );
+	}else
+		set_client_names( aswf->canvas->w, MyName, MyName, CLASS_WHARF, MyName );
+}
 
 inline void
 update_wharf_folder_shape( ASWharfFolder *aswf )
@@ -1077,7 +1089,7 @@ map_wharf_folder( ASWharfFolder *aswf,
     }
     moveresize_canvas( aswf->canvas, x, y, width, height );
 
-    set_client_names( aswf->canvas->w, MyName, MyName, CLASS_WHARF, MyName );
+	set_folder_name( aswf, False );
 
     shints.flags = USSize|PWinGravity;
     if( get_flags( Config->set_flags, WHARF_GEOMETRY ) )
@@ -2017,13 +2029,20 @@ on_wharf_pressed( ASEvent *event )
                  WITHDRAW_ON_ANY(Config))
         {
             if( get_flags( WharfState.root_folder->flags, ASW_Withdrawn) )
+			{
+				/* update our name to normal */	  
+				set_folder_name( WharfState.root_folder, False );
                 display_main_folder();
-            else
+            }else
             {
                 int wx = 0, wy = 0, wwidth, wheight;
                 int i = aswf->buttons_num ;
-                if( Config->withdraw_style < WITHDRAW_ON_ANY_BUTTON_AND_SHOW )
+                
+				if( Config->withdraw_style < WITHDRAW_ON_ANY_BUTTON_AND_SHOW )
                     aswb = &(aswf->buttons[0]);
+
+				/* update our name to withdrawn */	  					
+				set_folder_name( WharfState.root_folder, True );
 
                 wwidth = aswb->desired_width ;
                 wheight = aswb->desired_height ;

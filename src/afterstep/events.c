@@ -766,20 +766,24 @@ HandlePropertyNotify (ASEvent *event)
         return ;
     else
     {
-	char *prop_name = NULL;
+		char *prop_name = NULL;
         LOCAL_DEBUG_OUT( "property %s", (prop_name = XGetAtomName( dpy, atom )) );
-	if( prop_name )
-	    XFree( prop_name );
+		if( prop_name )
+	    	XFree( prop_name );
     }
     if( IsNameProp(atom))
     {
 		char *old_name = get_flags( asw->internal_flags, ASWF_NameChanged )?NULL:mystrdup( ASWIN_NAME(asw) );
+		ASFlagType old_hflags = asw->hints->flags ;
 		show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
         if( update_property_hints_manager( asw->w, xprop->atom,
                                         Scr.Look.supported_hints,
+										Database,
                                         asw->hints, asw->status ) )
         {
-            show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\"", ASWIN_NAME(asw), ASWIN_ICON_NAME(asw) );
+            show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\", following title change ? %s", 
+				        ASWIN_NAME(asw), ASWIN_ICON_NAME(asw), get_flags( Scr.Feel.flags, FollowTitleChanges)?"yes":"no" );
+	    	LOCAL_DEBUG_OUT( "hints flags = %lX, ShortLived ? %d ", asw->hints->flags, ASWIN_HFLAGS( asw, AS_ShortLived ) );
 			if( old_name && strcmp( old_name, ASWIN_NAME(asw) ) != 0 )
 				set_flags( asw->internal_flags, ASWF_NameChanged );
             /* fix the name in the title bar */
@@ -795,7 +799,8 @@ HandlePropertyNotify (ASEvent *event)
         }
 		if( old_name )
 			free( old_name );
-    /* otherwise we should check if this is the status property that we change ourselves : */
+    	LOCAL_DEBUG_OUT( "hints flags = %lX, ShortLived ? %d ", asw->hints->flags, ASWIN_HFLAGS( asw, AS_ShortLived ) );
+	/* otherwise we should check if this is the status property that we change ourselves : */
     }else if( atom == XA_WM_COMMAND || atom == XA_WM_CLIENT_MACHINE )
 	{
 		update_cmd_line_hints (asw->w, atom, asw->hints, asw->status );
@@ -836,7 +841,24 @@ HandleClientMessage (ASEvent *event)
     }else if( event->x.xclient.message_type == _AS_BACKGROUND )
     {
         HandleBackgroundRequest( event );
-    }
+    }else if( event->x.xclient.message_type == _XA_NET_WM_STATE && event->client != NULL )
+	{
+		ASFlagType extwm_flags = 0, as_flags = 0;
+		CARD32 props[2] ;
+		XClientMessageEvent *xcli = &(event->x.xclient) ;
+		props[0] = xcli->data.l[1] ;
+		props[1] = xcli->data.l[2] ;
+
+		translate_atom_list (&extwm_flags, EXTWM_State, &props[0], 2);
+		/* now we need to translate EXTWM flags into AS flags : */
+		as_flags = extwm_state2as_state_flags( extwm_flags );
+		if( xcli->data.l[0] == EXTWM_StateRemove ) 
+			as_flags = ASWIN_GET_FLAGS(event->client,as_flags);
+		else if( xcli->data.l[0] == EXTWM_StateAdd ) 
+			as_flags = as_flags&(~ASWIN_GET_FLAGS(event->client,as_flags));
+		if( as_flags != 0 ) 
+			toggle_aswindow_status(event->client, as_flags );
+	}	 
 }
 
 /***********************************************************************

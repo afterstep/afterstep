@@ -153,6 +153,9 @@ extern Atom _XA_NET_WM_WINDOW_TYPE_TOOLBAR;
 extern Atom _XA_NET_WM_WINDOW_TYPE_MENU;
 extern Atom _XA_NET_WM_WINDOW_TYPE_DIALOG;
 extern Atom _XA_NET_WM_WINDOW_TYPE_NORMAL;
+extern Atom _XA_NET_WM_WINDOW_TYPE_UTILITY;
+extern Atom _XA_NET_WM_WINDOW_TYPE_SPLASH;
+
 extern Atom _XA_NET_WM_STATE;
 extern Atom _XA_NET_WM_STATE_MODAL;
 extern Atom _XA_NET_WM_STATE_STICKY;
@@ -161,12 +164,18 @@ extern Atom _XA_NET_WM_STATE_MAXIMIZED_HORZ;
 extern Atom _XA_NET_WM_STATE_SHADED;
 extern Atom _XA_NET_WM_STATE_SKIP_TASKBAR;
 extern Atom _XA_NET_WM_STATE_SKIP_PAGER;
+extern Atom _XA_NET_WM_STATE_HIDDEN;
+extern Atom _XA_NET_WM_STATE_FULLSCREEN;
+extern Atom _XA_NET_WM_STATE_ABOVE;
+extern Atom _XA_NET_WM_STATE_BELOW;
 
 #define MAX_NET_WM_STATES   7
 
 extern Atom _XA_NET_WM_PID;
 extern Atom _XA_NET_WM_PROTOCOLS;
 extern Atom _XA_NET_WM_PING;
+
+extern AtomXref      *EXTWM_State;
 
 #define IsNameProp(a) \
         ((a) == XA_WM_NAME ||  \
@@ -459,22 +468,37 @@ typedef struct ExtendedWMHints
 #define EXTWM_TypeMenu          (0x01<<8)
 #define EXTWM_TypeDialog        (0x01<<9)
 #define EXTWM_TypeNormal        (0x01<<10)
+#define EXTWM_TypeUtility       (0x01<<11)
+#define EXTWM_TypeSplash        (0x01<<12)
 #define EXTWM_TypeEverything    (EXTWM_TypeDesktop|EXTWM_TypeDock|EXTWM_TypeToolbar| \
-                                 EXTWM_TypeMenu|EXTWM_TypeDialog|EXTWM_TypeNormal)
+                                 EXTWM_TypeMenu|EXTWM_TypeDialog|EXTWM_TypeNormal| \
+								 EXTWM_TypeUtility|EXTWM_TypeSplash)
 
-#define EXTWM_StateModal        (0x01<<11)
-#define EXTWM_StateSticky       (0x01<<12)
-#define EXTWM_StateMaximizedV   (0x01<<13)
-#define EXTWM_StateMaximizedH   (0x01<<14)
-#define EXTWM_StateShaded       (0x01<<15)
-#define EXTWM_StateSkipTaskbar  (0x01<<16)
-#define EXTWM_StateSkipPager    (0x01<<17)
+#define EXTWM_StateModal        (0x01<<16)
+#define EXTWM_StateSticky       (0x01<<17)
+#define EXTWM_StateMaximizedV   (0x01<<18)
+#define EXTWM_StateMaximizedH   (0x01<<19)
+#define EXTWM_StateShaded       (0x01<<21)
+#define EXTWM_StateSkipTaskbar  (0x01<<22)
+#define EXTWM_StateSkipPager    (0x01<<23)
+#define EXTWM_StateHidden    	(0x01<<24)
+#define EXTWM_StateFullscreen	(0x01<<25)
+#define EXTWM_StateAbove	 	(0x01<<26)
+#define EXTWM_StateBelow	 	(0x01<<27)
 #define EXTWM_StateEverything   (EXTWM_StateModal|EXTWM_StateSticky|EXTWM_StateMaximizedV| \
                                  EXTWM_StateMaximizedH|EXTWM_StateShaded| \
-                                 EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager)
+                                 EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager | \
+								 EXTWM_StateHidden|EXTWM_StateFullscreen| \
+								 EXTWM_StateAbove|EXTWM_StateBelow)
 
-#define EXTWM_PID               (0x01<<18)
-#define EXTWM_DoesWMPing        (0x01<<19)
+#define EXTWM_PID               (0x01<<29)
+#define EXTWM_DoesWMPing        (0x01<<30)
+
+/* actions to be performed on window state upon client request :*/
+#define EXTWM_StateRemove   0    /* remove/unset property */
+#define EXTWM_StateAdd      1    /* add/set property */
+#define EXTWM_StateToggle   2    /* toggle property  */
+
   ASFlagType flags;
 
   XTextProperty *name;

@@ -365,56 +365,70 @@ complex_pattern2ASWindow( char *pattern )
 		char *ptr = pattern ;
 		char *tmp = safemalloc( strlen(pattern)+1 );
 		int tmp_len = 0;
+		Bool at_least_one = False ;
 
-		ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
-		LOCAL_DEBUG_OUT( "res_class pattern = \"%s\"", tmp );
-		if( tmp[0] )
-		{
-			res_class_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+		if( ptr[0] == ':' ) 
+		{	
 			ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
-			LOCAL_DEBUG_OUT( "res_name pattern = \"%s\"", tmp );
+			LOCAL_DEBUG_OUT( "res_class pattern = \"%s\"", tmp );
 			if( tmp[0] )
 			{
-				res_name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+				res_class_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
 				ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
-				LOCAL_DEBUG_OUT( "final pattern = \"%s\"", tmp );
-				if( tmp[0] == '#' && isdigit(tmp[1]) )
+				LOCAL_DEBUG_OUT( "res_name pattern = \"%s\"", tmp );
+				if( tmp[0] )
 				{
-					res_name_no = atoi( tmp+1 ) ;
-					LOCAL_DEBUG_OUT( "res_name_no = %d", res_name_no );					
-				}else
-					name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+					res_name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+					ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
+					LOCAL_DEBUG_OUT( "final pattern = \"%s\"", tmp );
+					if( tmp[0] == '#' && isdigit(tmp[1]) )
+					{
+						res_name_no = atoi( tmp+1 ) ;
+						LOCAL_DEBUG_OUT( "res_name_no = %d", res_name_no );					
+					}else
+						name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+				}
 			}
+			free( tmp );
+		}else
+		{	
+			res_class_wrexp = compile_wild_reg_exp( ptr );
+			res_name_wrexp = res_class_wrexp ;
+			name_wrexp = res_class_wrexp;	
+			at_least_one = True ;
 		}
-		free( tmp );
+
 
         for( ; e != NULL && (asw == NULL || res_name_no > 0 ) ; LIST_GOTO_NEXT(e) )
         {
             ASWindow *curr = (ASWindow*)LISTELEM_DATA(e);
+			int matches = 0 ;
 			LOCAL_DEBUG_OUT( "matching res_class \"%s\"", curr->hints->res_class );
 			if( res_class_wrexp != NULL )
-				if( match_wild_reg_exp( curr->hints->res_class, res_class_wrexp) != 0 )
-					continue;
+				if( match_wild_reg_exp( curr->hints->res_class, res_class_wrexp) == 0 )
+					++matches;
 			LOCAL_DEBUG_OUT( "matching res_name \"%s\"", curr->hints->res_name );
 			if( res_name_wrexp != NULL )
-				if( match_wild_reg_exp( curr->hints->res_name, res_name_wrexp) != 0 )
-					continue;
+				if( match_wild_reg_exp( curr->hints->res_name, res_name_wrexp) == 0 )
+					++matches;
 			LOCAL_DEBUG_OUT( "matching name \"%s\"", curr->hints->names[0] );
 			if( name_wrexp != NULL )
-				if( match_wild_reg_exp( curr->hints->names[0], name_wrexp) != 0 &&
-					match_wild_reg_exp( curr->hints->icon_name, name_wrexp) != 0  )
-					continue;
+				if( match_wild_reg_exp( curr->hints->names[0], name_wrexp) == 0 ||
+					match_wild_reg_exp( curr->hints->icon_name, name_wrexp) == 0  )
+					++matches;
 
+			if( (matches < 3 && !at_least_one) || (matches == 0 && at_least_one) ) 
+				continue;
 			asw = curr ;
 			--res_name_no ;
-			LOCAL_DEBUG_OUT( "res_name_no = %d, asw = %p", res_name_no, asw  );
+			LOCAL_DEBUG_OUT( "matches = %d, res_name_no = %d, asw = %p", matches, res_name_no, asw  );
         }
 
 		if( res_class_wrexp )
 	    	destroy_wild_reg_exp( res_class_wrexp );
-		if( res_name_wrexp )
+		if( res_name_wrexp != res_class_wrexp && res_name_wrexp )
 	    	destroy_wild_reg_exp( res_name_wrexp );
-		if( name_wrexp )
+		if( name_wrexp && name_wrexp != res_class_wrexp )
 	    	destroy_wild_reg_exp( name_wrexp );
 		if( res_name_no > 0 )
 			asw = NULL ;                       /* not found with requested seq no */

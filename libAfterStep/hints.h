@@ -236,6 +236,8 @@ ASHints *merge_hints( struct ASRawHints *raw, struct ASDatabase *db, ASStatusHin
                       ASSupportedHints *list, ASFlagType what, ASHints* reusable_memory );
 void merge_asdb_hints (ASHints * clean, struct ASRawHints * raw, struct ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what);
 
+ASFlagType extwm_state2as_state_flags( ASFlagType extwm_flags );
+
 /*
  * few function - shortcuts to implement update of selected hints :
  */
@@ -244,7 +246,7 @@ Bool update_protocols( struct ScreenInfo *scr, Window w, ASSupportedHints *list,
 Bool update_colormaps( struct ScreenInfo *scr, Window w, ASSupportedHints *list, CARD32 **pcmap_windows );
 Bool update_property_hints( Window w, Atom property, ASHints *hints, ASStatusHints *status );
 Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *list,
-                                    ASHints *hints, ASStatusHints *status );
+                                    struct ASDatabase * db, ASHints *hints, ASStatusHints *status );
 void update_cmd_line_hints (Window w, Atom property, 
 					   ASHints * hints, ASStatusHints * status);
 
