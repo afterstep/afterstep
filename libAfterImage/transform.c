@@ -822,10 +822,13 @@ create_destination_image( unsigned int width, unsigned int height, ASAltImFormat
 	ASImage *dst = NULL ; 
 	
 	dst = create_asimage(width, height, compression);
-	if( format != ASA_ASImage )
-		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
+	if( dst )
+	{
+		if( format != ASA_ASImage )
+			set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 	
-	dst->back_color = back_color ;
+		dst->back_color = back_color ;
+	}
 	return dst ;
 }
 						  
