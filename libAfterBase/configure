@@ -4402,6 +4402,47 @@ if test "x$enable_xlocale" = "xyes"; then
   DEFINE_XLOCALE="-DX_LOCALE"
 fi
 
+echo "$as_me:4405: checking if we can use safe min/max macros" >&5
+echo $ECHO_N "checking if we can use safe min/max macros... $ECHO_C" >&6
+if test "$cross_compiling" = yes; then
+  { { echo "$as_me:4408: error: cannot run test program while cross compiling" >&5
+echo "$as_me: error: cannot run test program while cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+else
+  cat >conftest.$ac_ext <<_ACEOF
+#line 4413 "configure"
+#include "confdefs.h"
+#define MIN(x,y) \
+  		({ const typeof(x) _x = (x); const typeof(y) _y = (y);  (void) (&_x == &_y); \
+     		 _x < _y ? _x : _y; })
+                 int main(){return min(0,1);}
+_ACEOF
+rm -f conftest$ac_exeext
+if { (eval echo "$as_me:4421: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:4424: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (eval echo "$as_me:4426: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:4429: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  cat >>confdefs.h <<\EOF
+#define USE_SAFE_MINMAX 1
+EOF
+ echo "$as_me:4434: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+echo "$as_me:4440: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+rm -f core core.* *.core conftest$ac_exeext conftest.$ac_ext
+fi
+
 if test "x$enable_i18n" = "xyes"; then cat >>confdefs.h <<\EOF
 #define I18N 1
 EOF
@@ -4499,7 +4540,7 @@ DEFS=-DHAVE_CONFIG_H
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
-{ echo "$as_me:4502: creating $CONFIG_STATUS" >&5
+{ echo "$as_me:4543: creating $CONFIG_STATUS" >&5
 echo "$as_me: creating $CONFIG_STATUS" >&6;}
 cat >$CONFIG_STATUS <<_ACEOF
 #! $SHELL
@@ -4672,7 +4713,7 @@ cat >>$CONFIG_STATUS <<\EOF
     echo "$ac_cs_version"; exit 0 ;;
   --he | --h)
     # Conflict between --help and --header
-    { { echo "$as_me:4675: error: ambiguous option: $1
+    { { echo "$as_me:4716: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -4695,12 +4736,12 @@ Try \`$0 --help' for more information." >&2;}
   'config.h' ) CONFIG_HEADERS="$CONFIG_HEADERS config.h:config.h.in" ;;
 
   # This is an error.
-  -*) { { echo "$as_me:4698: error: unrecognized option: $1
+  -*) { { echo "$as_me:4739: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
    { (exit 1); exit 1; }; } ;;
-  *) { { echo "$as_me:4703: error: invalid argument: $1" >&5
+  *) { { echo "$as_me:4744: error: invalid argument: $1" >&5
 echo "$as_me: error: invalid argument: $1" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -4956,7 +4997,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:4959: creating $ac_file" >&5
+    { echo "$as_me:5000: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -4974,7 +5015,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4977: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:5018: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4987,7 +5028,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4990: error: cannot find input file: $f" >&5
+           { { echo "$as_me:5031: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -5048,7 +5089,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:5051: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:5092: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -5059,7 +5100,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:5062: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:5103: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -5072,7 +5113,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:5075: error: cannot find input file: $f" >&5
+           { { echo "$as_me:5116: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -5189,7 +5230,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:5192: $ac_file is unchanged" >&5
+      { echo "$as_me:5233: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
