@@ -765,6 +765,9 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
     ASSync(False);
 }
 
+int update_window_tbar_size( ASWindow *asw );
+
+
 void
 on_window_title_changed( ASWindow *asw, Bool update_display )
 {
@@ -776,9 +779,22 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
         if( change_astbar_first_label( asw->tbar, asw->hints->names[0], asw->hints->names_encoding[0] ) )
             if( canvas && update_display )
             {
-                render_astbar( asw->tbar, canvas );
 				invalidate_canvas_save( canvas );
+				
+				if( canvas->shape ) 
+				{
+					XRectangle rect ;
+					rect.x = asw->tbar->win_x ;
+					rect.y = asw->tbar->win_y ;
+					rect.width = asw->tbar->width ;
+					rect.height = asw->tbar->height ;
+					subtract_shape_rectangle( canvas->shape, &rect, 1, 0, 0, canvas->width, canvas->height );
+				}
+				update_window_tbar_size( asw );
+                render_astbar( asw->tbar, canvas );
                 update_canvas_display( canvas );
+				//if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor ) )
+					SetShape( asw, 0 );
             }
     }
     if( asw->icon_title )
@@ -845,6 +861,69 @@ on_window_hints_changed( ASWindow *asw )
 
 	destroy_hints (old_hints, True);
 }
+
+int
+update_window_tbar_size(	ASWindow *asw )
+{
+    int tbar_size = 0 ;
+	if( asw->tbar )
+    {    
+        unsigned int tbar_width = 0 ;
+        unsigned int tbar_height = 0 ;
+        int x_offset = 0, y_offset = 0 ;
+        if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+        {
+            tbar_size = calculate_astbar_width( asw->tbar );
+            tbar_width = tbar_size ; 
+            tbar_height = asw->frame_canvas->height ;
+#ifdef SHAPE
+            if( get_flags( asw->frame_data->condense_titlebar, ALIGN_LEFT|ALIGN_RIGHT )  )
+            {
+                int condensed = calculate_astbar_height( asw->tbar );
+                if( condensed < tbar_height ) 
+                {    
+                    if( get_flags( asw->frame_data->condense_titlebar, ALIGN_LEFT ) )
+                    {    
+                        y_offset = tbar_height - condensed ;
+                        if( get_flags( asw->frame_data->condense_titlebar, ALIGN_RIGHT ) )
+                            y_offset /= 2 ;
+                    }
+                    tbar_height = condensed ;
+                }
+            }    
+#endif
+        }else
+        {
+            tbar_size = calculate_astbar_height( asw->tbar );
+            tbar_width = asw->frame_canvas->width ; 
+            tbar_height = tbar_size ;
+#ifdef SHAPE
+            if( get_flags( asw->frame_data->condense_titlebar, ALIGN_LEFT|ALIGN_RIGHT )  )
+            {
+                int condensed = calculate_astbar_width( asw->tbar );
+                if( condensed < tbar_width ) 
+                {    
+                    if( get_flags( asw->frame_data->condense_titlebar, ALIGN_RIGHT ) )
+                    {    
+                        x_offset = tbar_width - condensed ;
+                        if( get_flags( asw->frame_data->condense_titlebar, ALIGN_LEFT ) )
+                            x_offset /= 2 ;
+                    }
+                    tbar_width = condensed ;
+                }
+            }    
+#endif
+        }
+        /* we need that to set up tbar size : */
+        set_astbar_size( asw->tbar, tbar_width, tbar_height );
+        /* does not matter if we use frame canvas, since part's 
+            * canvas resizes at frame canvas origin anyway */
+        move_astbar( asw->tbar, asw->frame_canvas, x_offset, y_offset );
+
+    }
+	return tbar_size;
+}
+
 
 void
 on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured )
@@ -938,61 +1017,7 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
 			int bw = 0 ;
 			if( asw->hints && get_flags(asw->hints->flags, AS_Border)) 
 				bw = asw->hints->border_width ;
-            if( asw->tbar )
-            {    
-                unsigned int tbar_width = 0 ;
-                unsigned int tbar_height = 0 ;
-                int x_offset = 0, y_offset = 0 ;
-                if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-                {
-                    tbar_size = calculate_astbar_width( asw->tbar );
-                    tbar_width = tbar_size ; 
-                    tbar_height = asw->frame_canvas->height ;
-#ifdef SHAPE
-                    if( get_flags( asw->frame_data->condense_titlebar, ALIGN_LEFT|ALIGN_RIGHT )  )
-                    {
-                        int condensed = calculate_astbar_height( asw->tbar );
-                        if( condensed < tbar_height ) 
-                        {    
-                            if( get_flags( asw->frame_data->condense_titlebar, ALIGN_LEFT ) )
-                            {    
-                                y_offset = tbar_height - condensed ;
-                                if( get_flags( asw->frame_data->condense_titlebar, ALIGN_RIGHT ) )
-                                    y_offset /= 2 ;
-                            }
-                            tbar_height = condensed ;
-                        }
-                    }    
-#endif
-                }else
-                {
-                    tbar_size = calculate_astbar_height( asw->tbar );
-                    tbar_width = asw->frame_canvas->width ; 
-                    tbar_height = tbar_size ;
-#ifdef SHAPE
-                    if( get_flags( asw->frame_data->condense_titlebar, ALIGN_LEFT|ALIGN_RIGHT )  )
-                    {
-                        int condensed = calculate_astbar_width( asw->tbar );
-                        if( condensed < tbar_width ) 
-                        {    
-                            if( get_flags( asw->frame_data->condense_titlebar, ALIGN_RIGHT ) )
-                            {    
-                                x_offset = tbar_width - condensed ;
-                                if( get_flags( asw->frame_data->condense_titlebar, ALIGN_LEFT ) )
-                                    x_offset /= 2 ;
-                            }
-                            tbar_width = condensed ;
-                        }
-                    }    
-#endif
-                }
-                /* we need that to set up tbar size : */
-                set_astbar_size( asw->tbar, tbar_width, tbar_height );
-                /* does not matter if we use frame canvas, since part's 
-                 * canvas resizes at frame canvas origin anyway */
-                move_astbar( asw->tbar, asw->frame_canvas, x_offset, y_offset );
-
-            }
+			tbar_size = update_window_tbar_size( asw );
             for( i = 0 ; i < FRAME_SIDES ; ++i )
             {
                 if( asw->frame_bars[i] )
