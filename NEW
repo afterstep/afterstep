@@ -1,3 +1,15 @@
+version 2.0.3 release
+	* added several MyFrame features : 
+		TitleFHue, TitleUHue, TitleSHue, TitleFocusedHue, TitleUnfocusedHue,
+		TitleStickyHue - to allow altering Hue of the titlebar on focus/unfocus.
+		TitleFSaturation, TitleUSaturation, TitleSSaturation, 
+		TitleFocusedSaturation, TitleUnfocusedSaturation, TitleStickySaturation - 
+		to allow altering stauration of the titlebar on focus/unfocus events.
+		LeftBtnAlign, RightBtnAlign to allow for different align of the right 
+		and left blocks of title buttons.
+	See look.Unity for sample usage of that.
+
+
 version 2.0.2 release
 	* added include_ordered <order_id> <path> 
 	  keyword to menu .include syntax - allow including menu trees so that they 
