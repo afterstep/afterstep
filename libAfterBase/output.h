@@ -1,6 +1,10 @@
 #ifndef OUTPUT_H_HEADER_INCLUDED
 #define OUTPUT_H_HEADER_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef Bool
 #define Bool int
 #endif
@@ -129,6 +133,10 @@ inline void nonGNUC_debugout_stub( const char *format, ...);
 #else
 #define START_TIME(started)  unsigned long started = 0
 #define SHOW_TIME(s,started) started = 0
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

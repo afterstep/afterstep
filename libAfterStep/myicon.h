@@ -1,6 +1,10 @@
 #ifndef AS_MYICON_H_HEADER_INCLUDED
 #define AS_MYICON_H_HEADER_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ASImage;
 struct ASImageManager;
 
@@ -49,6 +53,10 @@ void destroy_icon(icon_t **picon);
 void destroy_asbutton( ASButton *btn, Bool reusable );
 Bool load_button( button_t *button, char **filenames, struct ASImageManager *imman );
 void free_button_resources( button_t *button );
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* #define AS_MYICON_H_HEADER_INCLUDED */

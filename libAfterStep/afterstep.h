@@ -9,6 +9,10 @@
 
 #include "myicon.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef WithdrawnState
 #define WithdrawnState 0
 #endif
@@ -390,5 +394,11 @@ struct ASTBarData;
 #define ASIMMAN_PATH_PATH   		2
 #define ASIMMAN_PATH_PRIVICONS		3
 #define ASIMMAN_PATH_PRIVBACKS		4
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 #endif /* #ifndef AFTERSTEP_H_HEADER_INCLUDED */

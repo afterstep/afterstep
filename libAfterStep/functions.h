@@ -7,6 +7,11 @@
 #ifndef _FUNCTIONS_
 #define _FUNCTIONS_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 struct ASHashTable;
 struct TermDef;
 struct ASImage;
@@ -257,6 +262,10 @@ do{fprintf(stderr,"MenuDataItemFromFunc called:");print_func_data(__FILE__, __FU
 #endif
 
 
+
+#ifdef __cplusplus
+}
+#endif
 
 
 

@@ -1,6 +1,10 @@
 #ifndef SESSION_H_HEADER_INCLUDED
 #define SESSION_H_HEADER_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ASFeel ;
 struct MyLook ;
 
@@ -62,6 +66,10 @@ void check_AfterStep_dirtree ( char * ashome, Bool create_non_conf);
 
 /* legacy session using non-configurable dir to store config files : */
 ASSession *GetNCASSession (ScreenInfo *scr, const char *home, const char *share );
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

@@ -1,6 +1,9 @@
 #ifndef DECOR_H_HEADER
 #define DECOR_H_HEADER
-#ifndef NO_TEXTURE		/* NO_TEXTURE == No Frames! */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #if !defined(DEBUG_ALLOCS) && defined(DEBUG_TRACE)
 #define TRACE_update_canvas_display
@@ -293,5 +296,9 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 void on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave );
 void set_astbar_balloon( ASTBarData *tbar, int context, const char *text );
 
-#endif /* !NO_TEXTURE */
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif /* DECOR_H_HEADER */

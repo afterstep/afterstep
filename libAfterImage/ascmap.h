@@ -1,6 +1,10 @@
 #ifndef ASCMAP_H_HEADER_ICLUDED
 #define ASCMAP_H_HEADER_ICLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /****h* libAfterImage/ascmap.h
  * SYNOPSIS
  * Defines main structures and function for image quantization.
@@ -215,5 +219,8 @@ int *colormap_asimage( ASImage *im, ASColormap *cmap,
 					   int opaque_threshold );
 void destroy_colormap( ASColormap *cmap, Bool reusable );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef AS_MYSTYLE_PROPERTY_H
 #define AS_MYSTYLE_PROPERTY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * For the MyStyle server (AfterStep):
  * 1. call mystyle_set_property() with the root window, atom name
@@ -24,5 +28,10 @@ struct ASWMProps;
 void mystyle_list_set_property (struct ASWMProps *wmprops, ASHashTable *list );
 void mystyle_set_property (struct ASWMProps *wmprops);
 void mystyle_get_property (struct ASWMProps *wmprops);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* AS_MYSTYLE_PROPERTY_H */

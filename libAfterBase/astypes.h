@@ -3,6 +3,10 @@
 
 #include "xwrap.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef ABS
 #define ABS(a)              ((a)>0   ? (a) : -(a))
 #endif
@@ -65,6 +69,11 @@ typedef struct ASMagic
 { /* just so we can safely cast void* to query magic number :*/
     unsigned long magic ;
 }ASMagic;
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif
 

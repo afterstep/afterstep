@@ -10,6 +10,11 @@
 #include <sys/stat.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 struct direntry
   {
     mode_t d_mode;		/* S_IFDIR if a directory */
@@ -44,4 +49,9 @@ int 	is_executable_in_path (const char *name);
 int		my_scandir (char *dirname, struct direntry *(*namelist[]),
 					int (*select) (struct dirent *),
 					int (*dcomp) (struct direntry **, struct direntry **));
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

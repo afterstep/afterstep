@@ -1,6 +1,10 @@
 #ifndef FREESTOR_H_HEADER_INCLUDED
 #define FREESTOR_H_HEADER_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct SyntaxDef;
 struct TermDef;
 struct ASHashTable;
@@ -200,5 +204,9 @@ FreeStorageElem **ASCursor2FreeStorage (struct SyntaxDef * syntax,
 FreeStorageElem **Bitlist2FreeStorage (struct SyntaxDef * syntax,
                     FreeStorageElem ** tail,
                     long bits, int id);
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef WMPROPS_H_HEADER_INCLUDED
 #define WMPROPS_H_HEADER_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ScreenInfo;
 
 #define INVALID_DESKTOP_PROP    0xFFFFFFFF
@@ -187,5 +191,9 @@ WMPropClass handle_wmprop_event( ASWMProps *wmprops, XEvent *event );
 /*************************************************************************/
 /********************************THE END**********************************/
 /*************************************************************************/
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif  /* CLIENTPROPS_H_HEADER_INCLUDED */

@@ -1,6 +1,10 @@
 #ifndef FONT_H
 #define FONT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef I18N
 #ifdef __STDC__
 #define XTextWidth(x,y,z)      XmbTextEscapement(x ## set,y,z)
@@ -27,6 +31,10 @@ void l_unload_font (const char *, int, MyFont *);
 #else
 Bool load_font (const char *, MyFont *);
 void unload_font (MyFont *);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 

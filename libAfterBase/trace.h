@@ -1,6 +1,10 @@
 #ifndef TRACE_H_HEADER_INCLUDED
 #define TRACE_H_HEADER_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * This code is a (hopefully) nearly transparent way to keep track of
  * memory allocations and deallocations, to make finding memory leaks
@@ -125,5 +129,9 @@ int trace_disable_function (const char *name);
 extern const char *(*trace_window_id2name_hook) (Display * dpy, Window w,
 						 int *how_to_free);
 #endif /* DEBUG_TRACE_X */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* AFTERSTEP_TRACE_H */

@@ -2,14 +2,6 @@
 #define AFTERCONF_H_FILE_INCLUDED
 
 #include "../libAfterImage/asvisual.h"
-struct ASFontManager;
-struct SyntaxDef;
-struct MyLook;
-struct ASWindowBox ;
-extern struct SyntaxDef      BevelSyntax;
-extern struct SyntaxDef      AlignSyntax;
-extern struct SyntaxDef     *BevelSyntaxPtr;
-
 
 /***************************************************************************/
 /*                        ASFunction parsing definitions                   */
@@ -20,6 +12,21 @@ extern struct SyntaxDef     *BevelSyntaxPtr;
 #ifndef NorthWestGravity
 #include <X11/Xlib.h>
 #endif
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct ASFontManager;
+struct SyntaxDef;
+struct MyLook;
+struct ASWindowBox ;
+extern struct SyntaxDef      BevelSyntax;
+extern struct SyntaxDef      AlignSyntax;
+extern struct SyntaxDef     *BevelSyntaxPtr;
+
+
 
 #define FUNC_ID_START           F_NOP   /* 0 */
 #define FUNC_ID_END           	F_FUNCTIONS_NUM
@@ -1408,6 +1415,10 @@ int WriteAutoExecOptions (const char *filename, char *myname,  AutoExecConfig * 
 void DestroyThemeConfig (ThemeConfig * config);
 ThemeConfig *ParseThemeFile (const char *filename, char *myname);
 /***************************************************************************/
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* AFTERCONF_H_FILE_INCLUDED */

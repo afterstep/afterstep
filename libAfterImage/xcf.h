@@ -3,6 +3,10 @@
 
 /* GIMP's XCF file properties/structures : */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define XCF_MAX_CHANNELS     4
 
 #define XCF_GRAY_PIX         0
@@ -216,5 +220,8 @@ XcfImage   *read_xcf_image( FILE *fp );
 void 		print_xcf_image( XcfImage *xcf_im );
 void		free_xcf_image( XcfImage *xcf_im );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* #ifndef XCF_H_INCLUDED */

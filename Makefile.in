@@ -3,11 +3,12 @@
 
 confsdirs= autoconf libAfterBase libAfterImage
 
-####		  @ASCP@  \
+####
 
 subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  doc tools \
 		  src/afterstep \
+		  @ASCP@  \
 		  src/Pager \
 		  src/Wharf \
 		  src/WinList2

@@ -5,6 +5,11 @@
 #include "blender.h"
 #include "asimage.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /****h* libAfterImage/transform.h
  * SYNOPSIS
  * Defines transformations that could be performed on ASImage.
@@ -458,5 +463,9 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 							ASVectorPalette *palette,
 							ASAltImFormats out_format,
 							unsigned int compression, int quality );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

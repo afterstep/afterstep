@@ -1,6 +1,11 @@
 #ifndef BLENDER_H_HEADER_INCLUDED
 #define BLENDER_H_HEADER_INCLUDED
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /****h* libAfterImage/blender.h
  * DESCRIPTION
  * Defines implemented methods for ASScanline combining, that could
@@ -246,6 +251,10 @@ void dissipate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int
  ****************/
 merge_scanlines_func blend_scanlines_name2func( const char *name );
 void list_scanline_merging(FILE* stream, const char *format);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif             /* BLENDER_H_HEADER_INCLUDED */
 

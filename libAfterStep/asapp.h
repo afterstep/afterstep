@@ -46,6 +46,10 @@
 #include "../include/afterbase.h"
 #include "functions.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct SyntaxDef;
 struct TermDef;
 struct ASSession;
@@ -249,7 +253,7 @@ extern char *IconPath;
 extern char *ModulePath;
 extern char *FontPath;
 
-struct ASSession *Session;          /* filenames of look, feel and background */
+extern struct ASSession *Session;          /* filenames of look, feel and background */
 
 /* this two are unused in as-stable yet : */
 struct ASFeel;
@@ -260,5 +264,10 @@ extern struct MyLook *DefaultLook;
 extern struct ASEnvironment *DefaultEnv;
 
 extern void (*CloseOnExec)();
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* #ifndef AFTERSTEP_LIB_HEADER_FILE_INCLUDED */

@@ -1,6 +1,10 @@
 #ifndef REGEXP_HEADER_FILE_INCLUDED
 #define REGEXP_HEADER_FILE_INCLUDED
 /************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /************************************************************************/
 /*		regexp compiler and datastructures interface		*/
 /************************************************************************/
@@ -39,5 +43,10 @@ int compare_wild_reg_exp (wild_reg_exp * wrexp1, wild_reg_exp * wrexp2);
 /************************************************************************/
 /* from wild.c - verry depreciated : */
 int matchWildcards (const char *, const char *);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* REGEXP_HEADER_FILE_INCLUDED */

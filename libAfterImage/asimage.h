@@ -4,6 +4,10 @@
 #include "asvisual.h"
 #include "blender.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ASImageDecoder;
 struct ASImageOutput;
 struct ASScanline;
@@ -1376,6 +1380,9 @@ void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color );
 void toggle_image_output_direction( ASImageOutput *imout );
 void stop_image_output( ASImageOutput **pimout );
 
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

@@ -18,6 +18,11 @@
 #include "ashash.h"
 #include "xwrap.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #define AUDIT_SERVICE_MEM_LIMIT (4<<20)
 
 #ifndef DEBUG_ALLOCS
@@ -142,7 +147,7 @@ int count_xdestroyimage (const char *fname, int line, XImage * image);
 
 int count_xgetwindowproperty (const char *fname, int line, Display * display,
 			      Window w, Atom property, long long_offset,
-			      long long_length, Bool delete, Atom req_type,
+			      long long_length, Bool prop_delete, Atom req_type,
 			      Atom * actual_type_return,
 			      int *actual_format_return,
 			      unsigned long *nitems_return,
@@ -184,5 +189,10 @@ void print_unfreed_mem (void);
 void output_unfreed_mem (FILE *stream);
 void spool_unfreed_mem (char *filename, const char *comments);
 void print_unfreed_mem_stats (const char *file, const char *func, int line, const char *msg);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* AUDIT_H_HEADER_INCLUDED */

@@ -1,6 +1,10 @@
 #ifndef ASLIST_HEADER_FILE_INCLUDED
 #define ASLIST_HEADER_FILE_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct ASBiDirElem
 {
 	struct ASBiDirElem *next, *prev ;
@@ -49,5 +53,8 @@ void *extract_first_bidirelem( ASBiDirList *l );
 
 void  flush_asbidirlist_memory_pool();
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* #ifndef ASVECTOR_HEADER_FILE_INCLUDED */

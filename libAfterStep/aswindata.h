@@ -1,6 +1,10 @@
 #ifndef WINLIST_WINDATA_H_HEADER_INCLUDED
 #define WINLIST_WINDATA_H_HEADER_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ASCanvas;
 struct ASTBarData;
 
@@ -67,6 +71,10 @@ WindowPacketResult handle_window_packet(unsigned long type, unsigned long *data,
 void iterate_window_data( iter_list_data_handler iter_func, void *aux_data);
 
 void window_data_cleanup();
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* #ifndef WINLIST_WINDATA_H_HEADER_INCLUDED */

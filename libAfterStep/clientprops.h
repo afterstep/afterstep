@@ -3,6 +3,11 @@
 
 #include <X11/Xresource.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 struct ASDatabase;
 struct ASDatabaseRecord;
 struct ASStatusHints;
@@ -596,5 +601,9 @@ void send_wm_protocol_request (Window w, Atom request, Time timestamp);
 /*************************************************************************/
 /********************************THE END**********************************/
 /*************************************************************************/
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif  /* CLIENTPROPS_H_HEADER_INCLUDED */

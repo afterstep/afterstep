@@ -1,6 +1,11 @@
 #ifndef BALLOON_H
 #define BALLOON_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 struct MyStyle;
 
 struct MyStyle;
@@ -46,5 +51,10 @@ ASBalloon *create_asballoon (struct ASTBarData *owner);
 ASBalloon *create_asballoon_with_text ( struct ASTBarData *owner, const char *text);
 void destroy_asballoon(ASBalloon **pballoon );
 void balloon_set_text (ASBalloon * balloon, const char *text);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* BALLOON_H */

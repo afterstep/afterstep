@@ -11,6 +11,10 @@
 
 #else
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define Display  void
 #ifndef Bool
 #define Bool int
@@ -218,6 +222,14 @@ int XParseGeometry (  char *string,int *x,int *y,
 #define XNegative 	0x0010
 #define YNegative 	0x0020
 
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 extern Display *dpy;
@@ -228,5 +240,9 @@ void 	 backtrace_window ( const char *file, int line, Window w );
 
 Window get_parent_window( Window w );
 Window get_topmost_parent( Window w, Window *desktop_w );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -4,6 +4,10 @@
 #include "../libAfterImage/afterimage.h"
 #include "font.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /***********************************************************************
  *
  * afterstep style include file
@@ -250,5 +254,10 @@ void set_func_arg (char *text, FILE * fd, char **value, int *junk);
 ASImageBevel *mystyle_make_bevel (MyStyle *style, ASImageBevel *bevel, int hilite, Bool reverse);
 
 extern MyStyle *mystyle_first;
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* _MYSTYLE_ */

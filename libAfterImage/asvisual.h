@@ -1,6 +1,10 @@
 #ifndef _ASVISUAL_H_HEADER_INCLUDED
 #define _ASVISUAL_H_HEADER_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /****h* libAfterImage/asvisual.h
  * DESCRIPTION
  * Defines abstraction layer on top of X Visuals, as well as several
@@ -342,7 +346,7 @@ typedef struct ASVisual
 /****f* libAfterImage/asvisual/query_screen_visual()
  * SYNOPSIS
  * Bool query_screen_visual_id( ASVisual *asv, Display *dpy, int screen,
- *                           Window root, int default_depth, 
+ *                           Window root, int default_depth,
  *							 VisualID visual_id, Colormap cmap );
  * Bool query_screen_visual( ASVisual *asv, Display *dpy, int screen,
  *                           Window root, int default_depth );
@@ -364,7 +368,7 @@ typedef struct ASVisual
  * Visuals and attempt to match those to what is available on the
  * specified screen. If all items from list fail, then it goes about
  * querying default visual.
- * query_screen_visual is identical to query_screen_visual_id with 
+ * query_screen_visual is identical to query_screen_visual_id with
  * visual_id and cmap set to 0.
  * Once X Visual has been identified, we create X colormap and allocate
  * white and black pixels from it.
@@ -406,7 +410,7 @@ typedef struct ASVisual
  *********/
 
 Bool query_screen_visual_id( ASVisual *asv, Display *dpy, int screen,
-	                      	 Window root, int default_depth, 
+	                      	 Window root, int default_depth,
 							 VisualID visual_id, Colormap cmap );
 #define query_screen_visual(a,d,s,r,dd) query_screen_visual_id((a),(d),(s),(r),(dd),0,0)
 
@@ -629,5 +633,9 @@ Pixmap  create_visual_pixmap( ASVisual *asv, Window root,
 XImage* create_visual_ximage( ASVisual *asv,
 	                          unsigned int width, unsigned int height,
 							  unsigned int depth );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _SCREEN_ */

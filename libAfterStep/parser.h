@@ -11,6 +11,10 @@
 #include "afterstep.h"
 #include "freestor.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct SyntaxDef;
 struct ASHashTable;
 
@@ -244,5 +248,10 @@ void PrintFreeStorage (FreeStorageElem * storage);
 
 #define COMMENTS_CHAR '#'
 #define MYNAME_CHAR   '*'
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

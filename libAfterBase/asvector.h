@@ -1,6 +1,10 @@
 #ifndef ASVECTOR_HEADER_FILE_INCLUDED
 #define ASVECTOR_HEADER_FILE_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct ASVector
 {
     void *memory ;
@@ -46,5 +50,10 @@ print_vector( stream_func func, void* stream, ASVector *v, char *name, void (*pr
 /* returns nothing : */
 void flush_vector( ASVector *v ); /* reset used to 0 */
 void free_vector( ASVector *v );  /* free all memory used, except for object itself */
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* #ifndef ASVECTOR_HEADER_FILE_INCLUDED */

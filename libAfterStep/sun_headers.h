@@ -9,6 +9,9 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern int select (int, fd_set *, fd_set *, fd_set *, struct timeval *);
 
@@ -53,4 +56,10 @@ int bzero (char *, int);
 long time (long *);
 int gethostname (char *name, int namelen);
 /**************************************************************************/
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif

@@ -3,6 +3,10 @@
 
 #include "afterstep.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct wild_reg_exp;
 
 /*  we clean up flags usage in style and use :
@@ -172,5 +176,11 @@ void delete_name_list ( name_list **head);
 /* This one will have to go : */
 struct ASWindow;
 void style_fill_by_name (name_list * nl, struct ASWindow *t);
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 #endif /* AS_STYLE_H */

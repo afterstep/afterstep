@@ -3,6 +3,11 @@
 
 #include "screen.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /*************************************************************************
  * Standard Module types :
  *************************************************************************/
@@ -97,5 +102,9 @@ void SendCommand( FunctionData * pfunc, unsigned long window);
 /* constructs config filename and calls supplied user function */
 void LoadBaseConfig (void (*read_base_options_func) (const char *));
 void LoadConfig (char *config_file_name, void (*read_options_func) (const char *));
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* MODULE_H */

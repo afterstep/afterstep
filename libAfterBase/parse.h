@@ -6,6 +6,10 @@
 #include <stdio.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* used for parsing configuration */
 struct config
 {
@@ -77,5 +81,8 @@ void destroy_string_list( char **list );
 
 char *make_tricky_text( char *src );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* AS_PARSE_H_HEADER_INCLUDED */

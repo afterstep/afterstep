@@ -10,6 +10,10 @@
 #include "../libAfterImage/asvisual.h"
 #include "../libAfterImage/asimage.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct MyStyle;
 struct ASSupportedHints;
 struct MyFrame;
@@ -321,6 +325,10 @@ inline MyBackground  *mylook_get_back(MyLook *look, char *name);
 
 /* MyLook : */
 void myobj_destroy (ASHashableValue value, void *data);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* MY_LOOK_HEADER_INCLUDED */

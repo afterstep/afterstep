@@ -4,6 +4,10 @@
 #include <X11/Xmd.h>
 #include "clientprops.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ASRawHints;
 struct ASDatabaseRecord;
 struct ASVector;
@@ -294,5 +298,9 @@ HintsTypes *supported_hints_types( ASSupportedHints *list, int *num_return );
 /*************************************************************************/
 /********************************THE END**********************************/
 /*************************************************************************/
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* HINTS_H_HEADER_INCLUDED */

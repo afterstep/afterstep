@@ -897,7 +897,7 @@ count_xdestroyimage (const char *fname, int line, XImage * image)
 int
 count_xgetwindowproperty (const char *fname, int line, Display * display,
 						  Window w, Atom property, long long_offset,
-						  long long_length, Bool delete, Atom req_type,
+						  long long_length, Bool prop_delete, Atom req_type,
 						  Atom * actual_type_return,
 						  int *actual_format_return,
 						  unsigned long *nitems_return, unsigned long *bytes_after_return, unsigned char **prop_return)
@@ -907,7 +907,7 @@ count_xgetwindowproperty (const char *fname, int line, Display * display,
 
 	val =
 		XGetWindowProperty (display, w, property, long_offset, long_length,
-							delete, req_type, actual_type_return,
+							prop_delete, req_type, actual_type_return,
 							actual_format_return, &my_nitems_return, bytes_after_return, prop_return);
 	if (val == Success && my_nitems_return)
 		count_alloc (fname, line, (void *)*prop_return,

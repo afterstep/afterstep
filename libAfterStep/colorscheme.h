@@ -1,6 +1,10 @@
 #ifndef COLORSCHEME_H_HEADER_DEFINED
 #define COLORSCHEME_H_HEADER_DEFINED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Color scheme principles :
  *	Primary colors :
  *		We use 4 primary colors : Base(background), Inactive1, Inactive2 and Active
@@ -110,6 +114,12 @@ typedef struct ASColorScheme
 #define ASCS_GRADIENT_BRIGHTNESS_OFFSET 	10
 
 ASColorScheme *make_ascolor_scheme( ARGB32 base, int angle );
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 #endif COLORSCHEME_H_HEADER_DEFINED
 

@@ -2,6 +2,11 @@
 #define AS_SOCKET_H_HEADER_INCLUDED
 
 #include "aslist.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ASBiDirList;
 
 /* socket setup code :		 														   */
@@ -125,6 +130,11 @@ ASProtocolResult socket_read_proto_item( ASProtocolState *ps );
 ASProtocolResult socket_read_proto( ASProtocolState *ps );
 void socket_read_proto_reset( ASProtocolState *ps );
 void *socket_read_steal_buffer( ASProtocolState *ps );
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif                                         /* AS_SOCKET_H_HEADER_INCLUDED */
 

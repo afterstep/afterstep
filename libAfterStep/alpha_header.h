@@ -4,6 +4,9 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern int select (int, fd_set *, fd_set *, fd_set *, struct timeval *);
 
@@ -11,4 +14,10 @@ extern int select (int, fd_set *, fd_set *, fd_set *, struct timeval *);
 #ifdef __GNUC__
 extern size_t strlen (char *);
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
+
 /**************************************************************************/

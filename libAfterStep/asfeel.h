@@ -4,6 +4,10 @@
 #ifndef ASFEEL_HEADER_FILE_INCLUDED
 #define ASFEEL_HEADER_FILE_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Cursor types */
 #ifndef POSITION
 #define POSITION 0		/* upper Left corner cursor */
@@ -252,5 +256,11 @@ ASWindowBox* find_window_box( ASFeel *feel, const char *name );
 
 
 void init_list_of_menus(ASHashTable **list, Bool force);
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 #endif /* SFEEL_HEADER_FILE_INCLUDED */

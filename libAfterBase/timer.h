@@ -1,6 +1,10 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * To use:
  * 1. call timer_handle() in event loop; use timer_delay_till_next_alarm()
@@ -41,5 +45,10 @@ Bool timer_delay_till_next_alarm (time_t * sec, time_t * usec);
 Bool timer_handle (void);
 Bool timer_remove_by_data (void *data);
 Bool timer_find_by_data (void *data);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* TIMER_H */

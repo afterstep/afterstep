@@ -3,6 +3,10 @@
 
 #include "asimage.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define xml_tagchar(a) (isalnum(a) || (a) == '-' || (a) == '_')
 
 /* We don't trust the math library to actually provide this number.*/
@@ -54,6 +58,10 @@ Bool save_asimage_to_file(const char* file2bsaved, ASImage *im,
 						  const char *compress,
 						  const char *opacity,
 			  			  int delay, int replace);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*#ifndef ASIMAGEXML_HEADER_FILE_INCLUDED*/
 

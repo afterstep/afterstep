@@ -1,6 +1,10 @@
 #ifndef EVENT_H_HEADER_INCLUDED
 #define EVENT_H_HEADER_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ScreenInfo;
 
 /* couple additional event masks to compensate for X defaults :*/
@@ -157,6 +161,10 @@ void add_window_event_mask( Window w, long event_mask );
     }while(0)
 #endif
 
+
+#ifdef __cplusplus
+}
+#endif
 
 
 

@@ -1,6 +1,11 @@
 #ifndef AS_MOVERESIZE_H_HEADER_FILE_INCLUDED
 #define AS_MOVERESIZE_H_HEADER_FILE_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /****h* libAfterWidget/moveresize.h
  * SYNOPSIS
  * Protocols for interactive widget movement/sizing.
@@ -140,6 +145,10 @@ void set_moveresize_aspect( ASMoveResizeData *data, unsigned int x_mult, unsigne
 
 
 Bool check_moveresize_event( struct ASEvent *event );
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

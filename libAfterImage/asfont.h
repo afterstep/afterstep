@@ -1,6 +1,10 @@
 #ifndef ASFONT_HEADER_ICLUDED
 #define ASFONT_HEADER_ICLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /****h* libAfterImage/asfont.h
  * DESCRIPTION
  * Text drawing functionality.
@@ -143,7 +147,7 @@ typedef struct ASFont
 									 * representing continuos range of
 									 * available codes - used for ASCII codes */
 	ASHashTable    *locale_glyphs;  /* hash of locale specific glyphs */
-	
+
 	ASGlyph         default_glyph;  /* valid glyph to be drawn when
 									 * code is not valid */
 
@@ -451,5 +455,10 @@ Bool get_unicode_text_size( const CARD32 *text,
 
 Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y );
 Bool set_asfont_glyph_spacing( ASFont* font, int x, int y );
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

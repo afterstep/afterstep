@@ -4,6 +4,10 @@
 #include "astypes.h"
 #include "output.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /************************************************************************/
 /*                Utility data structures :				*/
 /************************************************************************/
@@ -68,6 +72,9 @@ void set_text_property (Window w, Atom property, char** data, int items_num, AST
  */
 void set_as_property ( Window w, Atom name, unsigned long *data, size_t data_size, unsigned long version);
 
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* XPROP_H_HEADER_INCLUDED */

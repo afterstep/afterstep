@@ -5,6 +5,11 @@
 #include "xcf.h"
 #include "xpm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /****h* libAfterImage/import.h
  * DESCRIPTION
  * Image file format autodetection, reading and decoding routines.
@@ -154,6 +159,9 @@ ASImage *get_asimage( ASImageManager* imageman, const char *file, ASFlagType wha
  *********/
 Pixmap file2pixmap(struct ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_out);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

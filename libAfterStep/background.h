@@ -1,6 +1,10 @@
 #ifndef BACKGROUND_H_INCLUDED
 #define BACKGROUND_H_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define 	BGFLAG_FILE	(1<<1)	/* if not FILE then MyStyle or CMD */
 #define 	BGFLAG_MYSTYLE	(1<<2)
 #define   	BGFLAG_CUT	(1<<3)
@@ -57,6 +61,10 @@ void GetBackgroundsProperty (ASDeskBackArray * backs, Atom property);
 void PrintDeskBackArray (ASDeskBackArray * backs);
 #else
 #define PrintDeskBackArray(x)
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 

@@ -1,5 +1,10 @@
 #ifndef EXPORT_H_HEADER_INCLUDED
 #define EXPORT_H_HEADER_INCLUDED
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /****h* libAfterImage/export.h
  * DESCRIPTION
  * Image output into different file formats.
@@ -198,5 +203,10 @@ Bool ASImage2bmp ( ASImage *im, const char *path, ASImageExportParams *params );
 Bool ASImage2ico ( ASImage *im, const char *path, ASImageExportParams *params );
 Bool ASImage2gif ( ASImage *im, const char *path, ASImageExportParams *params );
 Bool ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params );
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

@@ -4,6 +4,11 @@
 
 #include "astypes.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 struct wild_reg_exp;
 
 #if 0
@@ -139,5 +144,9 @@ void string_print (ASHashableValue value);
 
 /* basically any long value, but was written originally for colors hash */
 ASHashKey color_hash_value (ASHashableValue value, ASHashKey hash_size);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -110,6 +110,8 @@ AC_ARG_ENABLE(reuse-font,	[  --enable-reuse-font     enables reuse of loaded fon
 dnl# Comman stuff : compiler tools, proggies, etc.
 
 AC_PROG_CC
+AC_PROG_CXX
+
 export CC
 export GCC
 export prefix
@@ -396,7 +398,7 @@ fi
 AC_SUBST(LIBAFTERBASE_CFLAGS)
 AC_SUBST(LIBAFTERIMAGE_CFLAGS)
 
-dnl# if ascp requested - check for gtk libraries
+dnl# if ascp requested - check for fltk libraries
 
 LIBS=$saved_LIBS
 
@@ -406,10 +408,10 @@ ASCP=
 
 if test "x$enable_ascp" = "xyes"; then
     AC_MSG_CHECKING(libraries required by ascp)
-    if gtk-config --libs >/dev/null  ;then
-	ASCP=libAfterConf/ascp ;
+    if fltk-config --libs >/dev/null  ;then
+	ASCP=src/ascp ;
 	present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-	for l in `gtk-config --libs` ;	do
+	for l in `fltk-config --libs` ;	do
 
 	    lib_found=no
 	    for p in `echo "$present_libs"` ; do
@@ -425,16 +427,16 @@ if test "x$enable_ascp" = "xyes"; then
     else
 	enable_ascp=no ;
 	AC_MSG_RESULT(none found, ascp disabled)
-	echo "You have to install GTK libaries in order to be able to compile ascp."
+	echo "You have to install FLTK libaries in order to be able to compile ascp."
     fi;
 fi;
 
 if test "x$enable_ascp" = "xyes"; then
     AC_MSG_CHECKING(headers required by ascp)
-    if gtk-config --cflags >/dev/null  ;then
-	ASCP=libAfterConf/ascp ;
+    if fltk-config --cflags >/dev/null  ;then
+	ASCP=src/ascp ;
 	present_incs="$CCFLAGS $x_includes";
-	for l in `gtk-config --cflags` ;	do
+	for l in `fltk-config --cflags` ;	do
 	    inc_found=no
 	    for p in `echo "$present_incs"` ; do
 		if test "x$l" = "x$p" ; then
@@ -452,7 +454,7 @@ if test "x$enable_ascp" = "xyes"; then
     else
 	enable_ascp=no ;
 	AC_MSG_RESULT(none found, ascp disabled)
-	echo "You have to install GTK in order to be able to compile ascp."
+	echo "You have to install FLTK library in order to be able to compile ascp."
     fi;
 fi;
 

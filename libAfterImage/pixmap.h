@@ -1,6 +1,10 @@
 #ifndef LIBAFTERIMAGE_PIXMAP_H_HEADER_FILE_INCLUDED
 #define LIBAFTERIMAGE_PIXMAP_H_HEADER_FILE_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 typedef struct ShadingInfo
 {
@@ -41,6 +45,11 @@ Pixmap CutWinPixmap ( Window win, Drawable src, int src_w, int src_h, int width,
 int fill_with_darkened_background (ASVisual *asv, Pixmap * pixmap, ARGB32 tint, int x, int y, int width, int height, int root_x, int root_y, int bDiscardOriginal, ASImage *root_im);
 int fill_with_pixmapped_background (ASVisual *asv, Pixmap * pixmap, ASImage *image, int x, int y, int width, int height, int root_x, int root_y, int bDiscardOriginal, ASImage *root_im);
 /************************************************/
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* #ifndef LIBAFTERIMAGE_PIXMAP_H_HEADER_FILE_INCLUDED */
 

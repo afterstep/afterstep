@@ -1,6 +1,10 @@
 #ifndef AS_LAYOUT_H_HEADER_FILE
 #define AS_LAYOUT_H_HEADER_FILE
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /****h* afterstep/libAfterBase/layout.h
  * SYNOPSIS
  * Defines main structures and function for handling of complex layout
@@ -177,6 +181,9 @@ void make_layout_grid( ASLayout *layout, ASGrid *grid,
 void print_asgrid( ASGrid *grid );
 void destroy_asgrid( ASGrid *grid, Bool reusable );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* AS_LAYOUT_H_HEADER_FILE */
 

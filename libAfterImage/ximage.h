@@ -5,6 +5,10 @@
 #include "blender.h"
 #include "asimage.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /****h* libAfterImage/ximage.h
  * SYNOPSIS
  * Defines conversion to and from XImages and Pixmaps.
@@ -28,7 +32,7 @@
 
 /****f* libAfterImage/ximage/picture_ximage2asimage()
  * SYNOPSIS
- * ASImage *picture_ximage2asimage ( struct ASVisual *asv, 
+ * ASImage *picture_ximage2asimage ( struct ASVisual *asv,
  *                                   XImage * xim, XImage *alpha_xim,
  *                                   unsigned int compression );
  * INPUTS
@@ -41,7 +45,7 @@
  * success. NULL on failure.
  * DESCRIPTION
  * picture_ximage2asimage will attempt to create new ASImage with the same
- * dimensions as supplied XImage. If both XImages are supplied - they must 
+ * dimensions as supplied XImage. If both XImages are supplied - they must
  * have same dimentions. XImage will be decoded based on
  * supplied ASVisual, and resulting scanlines will be encoded into
  * ASImage.
@@ -63,9 +67,9 @@
  *********/
 /****f* libAfterImage/ximage/pixmap2asimage()
  * SYNOPSIS
- * ASImage *pixmap2ximage( ASVisual *asv, Pixmap p, int x, int y, 
- *                         unsigned int width, unsigned int height, 
- *						   unsigned long plane_mask, 
+ * ASImage *pixmap2ximage( ASVisual *asv, Pixmap p, int x, int y,
+ *                         unsigned int width, unsigned int height,
+ *						   unsigned long plane_mask,
  *                         unsigned int compression);
  * INPUTS
  * asv  		  - pointer to valid ASVisual structure
@@ -83,12 +87,12 @@
  * DESCRIPTION
  * pixmap2ximage will obtain XImage of the requested area of the
  * X Pixmap, and it will attach it to newly created ASImage using alt.ximage
- * member. After that newly created ASImage could be used in any 
+ * member. After that newly created ASImage could be used in any
  * transformations.
  *********/
 /****f* libAfterImage/ximage/picture2asimage()
  * SYNOPSIS
- * ASImage *picture2asimage (struct ASVisual *asv, 
+ * ASImage *picture2asimage (struct ASVisual *asv,
  *                           Pixmap rgb, Pixmap a,
  *                           int x, int y,
  *                           unsigned int width,
@@ -112,8 +116,8 @@
  * success. NULL on failure.
  * DESCRIPTION
  * picture2asimage will obtain XImage of the requested area of the
- * X Pixmap, If alpha channel pixmap is supplied - it will be used to encode 
- * ASImage's alpha channel. Alpha channel pixmap must be either 
+ * X Pixmap, If alpha channel pixmap is supplied - it will be used to encode
+ * ASImage's alpha channel. Alpha channel pixmap must be either
  * 8 or 1 bit deep, and it must have the same dimentions as main Pixmap.
  *********/
 /****f* libAfterImage/ximage/pixmap2asimage()
@@ -139,16 +143,16 @@
  * pointer to newly allocated ASImage, containing encoded data, on
  * success. NULL on failure.
  * DESCRIPTION
- * same as picture2asimage() with alpha pixmap set to None. Supplied for 
+ * same as picture2asimage() with alpha pixmap set to None. Supplied for
  * compatibility and convinience.
  *********/
 ASImage *picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned int compression);
 ASImage *ximage2asimage (struct ASVisual *asv, XImage * xim, unsigned int compression);
-ASImage *pixmap2ximage( ASVisual *asv, Pixmap p, int x, int y, 
-                        unsigned int width, unsigned int height, 
+ASImage *pixmap2ximage( ASVisual *asv, Pixmap p, int x, int y,
+                        unsigned int width, unsigned int height,
 						unsigned long plane_mask, unsigned int compression);
-ASImage *picture2asimage(ASVisual *asv, Pixmap rgb, Pixmap a , int x, int y, 
-                         unsigned int width, unsigned int height, 
+ASImage *picture2asimage(ASVisual *asv, Pixmap rgb, Pixmap a , int x, int y,
+                         unsigned int width, unsigned int height,
 						 unsigned long plane_mask, Bool keep_cache, unsigned int compression);
 ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
 	                     unsigned int width, unsigned int height,
@@ -183,8 +187,8 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * INPUTS
  * asv   		- pointer to valid ASVisual structure
  * im    		- source ASImage
- * bitmap       - if True resulting XImage will have depth of 1 bit - 
- *                traditional X mask; otherwise it will have depth of 8 
+ * bitmap       - if True resulting XImage will have depth of 1 bit -
+ *                traditional X mask; otherwise it will have depth of 8
  *                (usefull for XFree86 RENDER extension)
  * RETURN VALUE
  * On success returns newly created and encoded XImage of the depth 1 or 8.
@@ -192,8 +196,8 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * DESCRIPTION
  * asimage2alpha_ximage() creates new XImage of the exact same size as
  * supplied ASImage, and depth 1 or 8. Alpha channels of ASImage then gets
- * decoded, and encoded into XImage. In case requested depth is 1 then 
- * alpha channel is interpreted like so: 127 or greater is encoded as 1, 
+ * decoded, and encoded into XImage. In case requested depth is 1 then
+ * alpha channel is interpreted like so: 127 or greater is encoded as 1,
  * otherwise as 0.
  * Missing scanlines get filled with 1s as they signify absence of mask.
  * NOTES
@@ -213,7 +217,7 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * On success returns newly created and encoded XImage of the depth 1.
  * NULL on failure.
  * DESCRIPTION
- * Same as asimage2alpha_ximage(). Supplied for convinience and 
+ * Same as asimage2alpha_ximage(). Supplied for convinience and
  * compatibility with older versions.
  *********/
 /****f* libAfterImage/ximage/asimage2pixmap()
@@ -322,5 +326,8 @@ Pixmap   asimage2pixmap  (struct ASVisual *asv, Window root, ASImage *im, GC gc,
 Pixmap	 asimage2alpha   (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached, Bool bitmap);
 Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

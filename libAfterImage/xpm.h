@@ -3,6 +3,10 @@
 
 /* our own Xpm handling code : */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ASColormap;
 
 typedef enum
@@ -78,5 +82,9 @@ Bool 		convert_xpm_scanline( ASXpmFile *xpm_file, unsigned int line );
 ASXpmCharmap *build_xpm_charmap( struct ASColormap *cmap, Bool has_alpha,
 	                             ASXpmCharmap *reusable_memory );
 void destroy_xpm_charmap( ASXpmCharmap *xpm_cmap, Bool reusable );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* AFTERSTEP_XPM_H_HEADER_INCLUDED */

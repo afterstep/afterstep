@@ -15,6 +15,9 @@
 #include "mylook.h"
 #include "asfeel.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SIZE_HINDENT 5
 #define SIZE_VINDENT 3
@@ -175,5 +178,11 @@ void setup_modifiers ();
     create_visual_window((scr)->asv,((p)==None)?((scr)->Root):(p),x,y,w,h,bw,c,mask,attr)
 
 void merge_geometry( ASGeometry *from, ASGeometry *to );
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 #endif /* _SCREEN_ */
