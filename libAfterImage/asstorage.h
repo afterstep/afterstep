@@ -103,7 +103,11 @@ typedef struct ASStorageSlot
 	 * 
 	 */
 	CARD16 reserved ;          /* to make us have size rounded by 16 bytes margin */
-	CARD8   data[1] ;
+	/* Data immidiately follows here : 
+	 * CARD8   data[0] ; */
+
+#define ASStorage_Data(s)  ((CARD8*)((s)+1))
+
 }ASStorageSlot;
 
 

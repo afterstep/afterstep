@@ -20,6 +20,7 @@
  */
 
 #undef LOCAL_DEBUG
+/* #undef NO_DEBUG_OUTPUT */
 #ifndef NO_DEBUG_OUTPUT
 #undef DEBUG_COMPRESS
 #undef DEBUG_THRESHOLD
@@ -1066,8 +1067,8 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 		return 0;           /* not a error condition */
 	else if( slot > block->end || slot < block->start) 
 		show_error( "storage slot selected falls outside of allocated memory. Slot = %p, start = %p, end = %p", slot, block->start, block->end );
-	else if( &(slot->data[slot->size]) > ((CARD8*)(block->start)) + block->size) 
-		show_error( "storage slot's size falls outside of allocated memory. Slot->data[slot->size] = %p, end = %p, size = %d", &(slot->data[slot->size]), ((CARD8*)(block->start)) + block->size, slot->size );
+	else if( &(ASStorage_Data(slot)[slot->size]) > ((CARD8*)(block->start)) + block->size) 
+		show_error( "storage slot's size falls outside of allocated memory. Slot->data[slot->size] = %p, end = %p, size = %d", &(ASStorage_Data(slot)[slot->size]), ((CARD8*)(block->start)) + block->size, slot->size );
 	else if( slot->index >= block->slots_count ) 
 		show_error( "storage slot index falls out of range. Index = %d, slots_count = %d", slot->index, block->slots_count );
 	else
@@ -1092,7 +1093,7 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	LOCAL_DEBUG_OUT( "block = %p", block );
 	block->total_free -= ASStorageSlot_FULL_SIZE(slot);
 	
-	dst = &(slot->data[0]);
+	dst = ASStorage_Data(slot);
 	LOCAL_DEBUG_OUT( "dst = %p", dst );
 	memcpy( dst, data, compressed_size );
 	slot->flags = ((unsigned short)flags | ASStorage_Used) ;
@@ -1262,12 +1263,12 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 #ifndef NO_DEBUG_OUTPUT
 			fprintf( stderr, "\t\t %s DANGEROUS RELOCATION! size = %ld",  __FUNCTION__, ref_slot->size );
 #endif						   
-			memcpy( storage->comp_buf, &(ref_slot->data[0]), ref_slot->size );
+			memcpy( storage->comp_buf, ASStorage_Data(ref_slot), ref_slot->size );
 			target_id = store_compressed_data(  storage, storage->comp_buf, 
 										   		ref_slot->uncompressed_size, 
 										   		ref_slot->size, ref_slot->ref_count, ref_slot->flags );
 		}else	 
-			target_id = store_compressed_data( storage, &(ref_slot->data[0]), 
+			target_id = store_compressed_data( storage, ASStorage_Data(ref_slot), 
 										   	ref_slot->uncompressed_size, 
 										   	ref_slot->size, ref_slot->ref_count, ref_slot->flags );
 		/* lets do this again, in case block was defragmented */
@@ -1288,7 +1289,7 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 		set_flags( ref_slot->flags, ASStorage_Reference );
 		clear_flags( ref_slot->flags, ASStorage_CompressionType );
 	}	 
-	memcpy( &(ref_slot->data[0]), (CARD8*)&target_id, sizeof(ASStorageID));				 
+	memcpy( ASStorage_Data(ref_slot), (CARD8*)&target_id, sizeof(ASStorageID));				 
 
 	return ref_slot;
 }
@@ -1392,7 +1393,7 @@ fetch_data_int( ASStorage *storage, ASStorageID id, ASStorageDstBuffer *buffer, 
 		if( get_flags( slot->flags, ASStorage_Reference) )
 		{
 			ASStorageID target_id = 0;
-			memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
+			memcpy( &target_id, ASStorage_Data(slot), sizeof( ASStorageID ));				   
 			LOCAL_DEBUG_OUT( "target_id = %lX", target_id );
 			if( target_id != 0 ) 
 				return fetch_data_int(storage, target_id, buffer, offset, buf_size, bitmap_value, cpy_func, original_size);
@@ -1407,7 +1408,7 @@ fetch_data_int( ASStorage *storage, ASStorageID id, ASStorageDstBuffer *buffer, 
 
 		if( buffer && buf_size > 0 ) 
 		{
-			CARD8 *tmp = decompress_stored_data( storage, &(slot->data[0]), slot->size,
+			CARD8 *tmp = decompress_stored_data( storage, ASStorage_Data(slot), slot->size,
 													uncomp_size, slot->flags, bitmap_value );
 			while( offset > uncomp_size ) offset -= uncomp_size ; 
 			while( offset < 0 ) offset += uncomp_size ; 
@@ -1654,7 +1655,7 @@ query_storage_slot(ASStorage *storage, ASStorageID id, ASStorageSlot *dst )
 			if( get_flags( slot->flags, ASStorage_Reference) )
 			{
 				ASStorageID target_id = 0;
-			 	memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
+			 	memcpy( &target_id, ASStorage_Data(slot), sizeof( ASStorageID ));				   
 				LOCAL_DEBUG_OUT( "target_id = %lX", target_id );
 				if( target_id == id ) 
 				{
@@ -1686,7 +1687,7 @@ print_storage_slot(ASStorage *storage, ASStorageID id)
 			if( get_flags( slot->flags, ASStorage_Reference) )
 			{
 				ASStorageID target_id = 0;
-			 	memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
+			 	memcpy( &target_id, ASStorage_Data(slot), sizeof( ASStorageID ));				   
 				fprintf (stderr, " : References storage ID 0x%lX\n\t>", (unsigned long)target_id);
 				if( target_id == id ) 
 				{	
@@ -1699,7 +1700,7 @@ print_storage_slot(ASStorage *storage, ASStorageID id)
 					 slot->flags, slot->ref_count, (unsigned long)slot->size, (unsigned long)slot->uncompressed_size, slot->index );
 
 			for( i = 0 ; i < (int)slot->size ; ++i)
-				fprintf( stderr, "%2.2X ", slot->data[i] ) ;
+				fprintf( stderr, "%2.2X ", ASStorage_Data(slot)[i] ) ;
 			fprintf (stderr, "}}");
 			return slot->size + ASStorageSlot_SIZE ;
 		}
@@ -1743,7 +1744,7 @@ forget_data(ASStorage *storage, ASStorageID id)
 			if( get_flags( slot->flags, ASStorage_Reference) )
 			{
 				ASStorageID target_id = 0;
-			 	memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
+			 	memcpy( &target_id, ASStorage_Data(slot), sizeof( ASStorageID ));				   
 				if( target_id != id ) 
 					forget_data( storage, target_id );					
 				else
@@ -1787,7 +1788,7 @@ dup_data(ASStorage *storage, ASStorageID id)
 				
 			if( get_flags( slot->flags, ASStorage_Reference )) 
 			{   
-				memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));
+				memcpy( &target_id, ASStorage_Data(slot), sizeof( ASStorageID ));
 				/* from now on - slot is a reference slot, so we just need to 
 			 	 * duplicate it and increase ref_count of target */
 				if( target_id != id ) 
