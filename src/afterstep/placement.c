@@ -437,6 +437,49 @@ apply_placement_result( ASStatusHints *status, XRectangle *anchor, ASHints *hint
     status2anchor( anchor, hints, status, Scr.VxMax, Scr.VyMax);
 }
 
+static int
+move_placement_left( ASVector *free_space_list, int x, int y, int w, int h ) 
+{
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
+    int i = PVECTOR_USED(free_space_list);
+    while( --i >= 0 )
+        if( y >= rects[i].y && y+h <= rects[i].y+(int)rects[i].height && rects[i].x < x && rects[i].x+(int)rects[i].width >= x )
+			x = rects[i].x ;
+	return x ;
+}
+
+static int
+move_placement_right( ASVector *free_space_list, int x, int y, int w, int h ) 
+{
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
+    int i = PVECTOR_USED(free_space_list);
+    while( --i >= 0 )
+        if( y >= rects[i].y && y+h <= rects[i].y+(int)rects[i].height && rects[i].x <= x+w && rects[i].x+(int)rects[i].width > x+w )
+			x = rects[i].x + (int)rects[i].width  - w ;
+	return x ;
+}
+
+static int
+move_placement_up( ASVector *free_space_list, int x, int y, int w, int h ) 
+{
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
+    int i = PVECTOR_USED(free_space_list);
+    while( --i >= 0 )
+        if( x >= rects[i].x && x+w <= rects[i].x+(int)rects[i].width  && rects[i].y < y && rects[i].y+(int)rects[i].height >= y )
+			y = rects[i].y ;
+	return y ;
+}
+
+static int
+move_placement_down( ASVector *free_space_list, int x, int y, int w, int h ) 
+{
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
+    int i = PVECTOR_USED(free_space_list);
+    while( --i >= 0 )
+        if( x >= rects[i].x && x+w <= rects[i].x+(int)rects[i].width  && rects[i].y <= y+h && rects[i].y+(int)rects[i].height > y+h )
+			y = rects[i].y + (int)rects[i].height  - h ;
+	return y ;
+}
 
 static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
@@ -446,6 +489,8 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
     unsigned short w = asw->status->width;
     unsigned short h = asw->status->height;
     unsigned short dw = w>100?w*5/100:5, dh = h>=100?h*5/100:5 ;
+    int spacer_x = -1 ;
+    int spacer_y = -1 ;
 
     LOCAL_DEBUG_OUT( "size=%dx%d, delta=%dx%d", w, h, dw, dh );
     /* now we have to find the optimal rectangle from the list */
@@ -461,7 +506,49 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
             selected = i;
         }
     LOCAL_DEBUG_OUT( "pass1: %d", selected );
-    /* if width < height then swap passes 2 and 3 */
+    
+	if( selected < 0 )
+	{	
+    	i = PVECTOR_USED(free_space_list);	 
+		if( w > 200 && h > 200 )
+		{ /* simply find the biggest rectangle that fits  */
+        	while( --i >= 0 )	
+	        	if( rects[i].width >= w && rects[i].height >= h  )
+            	{
+    	        	if( selected >= 0 )
+			 			if( rects[i].width*rects[i].height <= rects[selected].width*rects[selected].height )			
+							continue;
+					selected = i ;
+				}	 
+			LOCAL_DEBUG_OUT( "pass2a: %d", selected );
+		}else if( w > h ) 
+		{	/* try and fit it by the horizontal edge of the screen */
+        	while( --i >= 0 )	  
+	        	if( rects[i].width >= w && rects[i].height >= h && 
+				    (rects[i].y < 100 || rects[i].y + rects[i].height > area->y+area->height - 100)  )
+				{
+					 selected = i ;	
+					 if( rects[i].y >= 100 ) 
+					 	spacer_y = rects[i].height - h ;
+					 break;
+				}
+			LOCAL_DEBUG_OUT( "pass2b: %d", selected );
+		}else		 
+		{	
+			/* try and fit it by the vertical edge of the screen */
+        	while( --i >= 0 )	  
+	        	if( rects[i].width >= w && rects[i].height >= h && 
+				    (rects[i].x < 100 || rects[i].x + rects[i].width> area->x+area->width - 100)  )
+				{
+					 selected = i ;	
+					 if( rects[i].x >= 100 ) 
+					 	spacer_x = rects[i].width - w ;
+					 break;
+				}
+			LOCAL_DEBUG_OUT( "pass2c: %d", selected );
+		}	
+	}
+	/* if width < height then swap passes 2 and 3 */
     /* pass 2: find rectangle that fits width within margin +- 5% of the window size  and has maximum height
      * left after placement */
     if( selected < 0 )
@@ -563,21 +650,82 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
 
     if( selected >= 0 )
     {
-        int spacer_x = 0 ;
-        int spacer_y = 0 ;
-		if( rects[selected].width > w )
-		{
-			int to_right = (area->x+(int)area->width) - (rects[selected].x + (int)rects[selected].width) ; 
-			if( to_right < rects[selected].x - area->x ) 
-				spacer_x = (int)rects[selected].width - (int)w ; 
-		}	 
-		if( rects[selected].height > h)
+		int target_x, target_y ;
+		int dx, dy ;
+		int move_left, move_up; 
+		Bool changed ; 
+		if( spacer_x < 0 )
 		{	
-			int to_bottom = (area->y+(int)area->height) - (rects[selected].y + (int)rects[selected].height) ; 
-			if( to_bottom < rects[selected].y - area->y ) 
-				spacer_y = (int)rects[selected].height - (int)h ; 
+			spacer_x = 0 ;
+			if( rects[selected].width > w )
+			{
+				int to_right = (area->x+(int)area->width) - (rects[selected].x + (int)rects[selected].width) ; 
+				if( to_right < rects[selected].x - area->x ) 
+					spacer_x = (int)rects[selected].width - (int)w ; 
+			}	 
 		}
-        apply_placement_result_asw( asw, XValue|YValue, rects[selected].x+spacer_x, rects[selected].y+spacer_y, 0, 0 );
+		if( spacer_y < 0 ) 
+		{	
+			spacer_y = 0 ;
+			if( rects[selected].height > h)
+			{	
+				int to_bottom = (area->y+(int)area->height) - (rects[selected].y + (int)rects[selected].height) ; 
+				if( to_bottom < rects[selected].y - area->y ) 
+					spacer_y = (int)rects[selected].height - (int)h ; 
+			}
+		}
+		target_x = rects[selected].x+spacer_x ;
+		target_y = rects[selected].y+spacer_y ;
+		
+		do 
+		{	
+			int new_x = target_x, new_y = target_y ;
+			changed = False ; 
+			dx = target_x - area->x ; 
+			dy = target_y - area->y ; 
+		
+			move_left = ( dx < area->width - (dx+w) ) ;
+			if( !move_left )
+				dx = area->width - (dx+w);
+
+			move_up = ( dy < area->height - (dy+h) ) ;
+			if( !move_up )
+				dy = area->height - (dy+h);
+			/* we want to place window as close as possible to the edge of the area */
+			if( dx > dy ) 
+			{
+				if( move_left ) 
+					new_x = move_placement_left( free_space_list, target_x, target_y, w, h );
+				else
+					new_x = move_placement_right( free_space_list, target_x, target_y, w, h );
+				if( dy > 0 ) 
+				{	
+					if( move_up ) 
+						new_y = move_placement_up( free_space_list, target_x, target_y, w, h );
+					else
+						new_y = move_placement_down( free_space_list, target_x, target_y, w, h );		
+				}
+			
+			}else if( dy > 0 ) 
+			{
+				if( move_up ) 
+					new_y = move_placement_up( free_space_list, target_x, target_y, w, h );
+				else
+					new_y = move_placement_down( free_space_list, target_x, target_y, w, h );		
+				if( dx > 0 ) 
+				{	
+					if( move_left ) 
+						new_x = move_placement_left( free_space_list, target_x, target_y, w, h );
+					else
+						new_x = move_placement_right( free_space_list, target_x, target_y, w, h );
+				}
+			}
+			LOCAL_DEBUG_OUT( "move_left = %d, move_up = %d, new = %+d%+d, org = %+d%+d", move_left, move_up, new_x, new_y, target_x, target_y );
+			changed = (target_x != new_x || target_y != new_y );
+			target_x = new_x ;
+			target_y = new_y ;
+		}while( changed );
+        apply_placement_result_asw( asw, XValue|YValue, target_x, target_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else
     {
