@@ -12,12 +12,12 @@
 LIB_INCS=	ashash.h asvector.h astypes.h audit.h \
 		fs.h mystring.h os.h output.h parse.h \
 		regexp.h safemalloc.h selfdiag.h \
-		sleep.h timer.h trace.h xprop.h xwrap.h
+		sleep.h socket.h timer.h trace.h xprop.h xwrap.h
 
 LIB_OBJS=	ashash.o asvector.o audit.o \
 		fs.o mystring.o os.o output.o parse.o \
 		regexp.o safemalloc.o selfdiag.o \
-		sleep.o timer.o trace.o xprop.o xwrap.o
+		sleep.o socket.o timer.o trace.o xprop.o xwrap.o
 
 # end specifics
 ################################################################
@@ -173,7 +173,7 @@ deps:
 		  echo " \\" >> .shared ; \
 		  echo -n '		$$('$(LIB_NAME)_PATH')'/$$f >> .shared ; \
 		done; \
-		echo "" >> .shared ; 
+		echo "" >> .shared ;
 
 
 $(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS)

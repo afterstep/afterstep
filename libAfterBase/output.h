@@ -117,14 +117,4 @@ inline void nonGNUC_debugout_stub( const char *format, ...);
 
 #endif
 
-/* Network to local 32bit binary conversion : (Network is Big Endian) */
-
-#ifdef WORDS_BIGENDIAN
-#define as_ntohl(ui32)		(ui32)
-#define as_hlton(ui32)		(ui32)
-#else
-#define as_ntohl(ui32)		((((ui32)&0x000000FF)<<24)|(((ui32)&0x0000FF00)<<8)|(((ui32)&0x00FF0000)>>8)|(((ui32)&0xFF000000)>>24))
-#define as_hlton(ui32)		as_ntohl(ui32)     /* conversion is symmetrical */
-#endif
-
 #endif
