@@ -30,46 +30,27 @@ MyStyle "TitleButtonBalloon"
 MyStyle "window_font"
   #Font		DefaultSans.ttf-14
   Font		DefaultBold.ttf-14
-  TextStyle	0
+  TextStyle	4
   ~MyStyle
 
 MyStyle "focused_window_style"
   Inherit	"window_font"
-  TextStyle	4
   ForeColor     ActiveText
-  BackPixmap    125 tiles/empty
+  BackPixmap    126 tiles/empty
   ~MyStyle
 
 MyStyle "unfocused_window_style"
   Inherit       "window_font"
-  TextStyle	4
-  ForeColor     InactiveText1Dark
+  ForeColor     InactiveText1
   BackPixmap    125 tiles/empty
   ~MyStyle
 
 MyStyle "sticky_window_style"
   Inherit       "window_font"
+  TextStyle	0
   ForeColor     InactiveText2
   BackColor	Inactive2
   BackPixmap    125 tiles/empty
-  ~MyStyle
-
-MyStyle "focused_frame_style"
-  ForeColor     ActiveText
-  BackColor   	Saturation(100,Active)
-#  BackPixmap  149 	VALUE(100,Saturation(100,Active))
-  ~MyStyle
-
-MyStyle "unfocused_frame_style"
-  ForeColor     InactiveText1Dark
-  BackColor	Saturation(100,Inactive1)
-#  BackPixmap  149 	VALUE(100,Saturation(100,Inactive1))
-  ~MyStyle
-
-MyStyle "sticky_frame_style"
-  ForeColor     InactiveText2
-  BackColor	Saturation(100,Inactive2)
-#  BackPixmap  149 	VALUE(100,Saturation(100,Inactive2))
   ~MyStyle
 
 #----------Menu MyStyles---------#
@@ -316,9 +297,6 @@ MyFrame "breeze"
 	NoBorder
 
 
-	#FrameFStyle	"focused_frame_style"
-	#FrameUStyle	"unfocused_frame_style"
-	#FrameSStyle	"sticky_frame_style"
 	
 	TitleFHue	hsv(180,100,100)
 	TitleUHue	hsv(30,100,100)
