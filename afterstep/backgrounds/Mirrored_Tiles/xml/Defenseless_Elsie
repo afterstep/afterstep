@@ -1,0 +1,24 @@
+<tile tint="#7Fffffff" id="tile_scaled_DefenselessElsie"> 
+	<scale width="$xroot.width/2" height="$xroot.height/2">
+		<img src="tiles/DefenselessElsie"/>
+	</scale>
+</tile>
+
+<composite id="left_tile_DefenselessElsie" width="$xroot.width/2" height="$xroot.height">
+	<recall srcid="tile_scaled_DefenselessElsie"/>
+	<mirror x=0 y="$xroot.height/2" dir="vertical">
+		<recall srcid="tile_scaled_DefenselessElsie"/>
+	</mirror>
+</composite>
+
+<composite op="tint">
+	<gradient width="$xroot.width" height="$xroot.height"
+  	colors="BaseDark BaseLight" angle="45"/>
+	<composite width="$xroot.width" height="$xroot.height">
+		<recall srcid="left_tile_DefenselessElsie"/>
+		<mirror x="$xroot.width/2" y=0 dir="horizontal">
+			<recall srcid="left_tile_DefenselessElsie"/>
+		</mirror>
+	</composite>
+</composite>
+

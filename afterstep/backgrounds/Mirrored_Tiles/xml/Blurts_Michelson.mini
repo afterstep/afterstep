@@ -1,0 +1,7 @@
+<composite op="tint">
+  <gradient width="$minipixmap.width" height="$minipixmap.height"
+  colors="BaseDark BaseLight" angle="45"/>
+
+  <img tile="1" src="tiles/BlurtsMichelson.mini"/>
+</composite>
+

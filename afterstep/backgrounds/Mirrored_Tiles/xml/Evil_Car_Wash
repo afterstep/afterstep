@@ -1,0 +1,22 @@
+<scale id="tile_EvilCarWash_scaled" width="$xroot.width/2" height="$xroot.height/2">
+	<img src="tiles/EvilCarWash"/>
+</scale>
+
+<composite id="left_tile_EvilCarWash" width="$xroot.width/2" height="$xroot.height">
+	<recall srcid="tile_EvilCarWash_scaled"/>
+	<mirror x=0 y="$xroot.height/2" dir="vertical">
+		<recall srcid="tile_EvilCarWash_scaled"/>
+	</mirror>
+</composite>
+
+<composite op="tint">
+  	<gradient width="$xroot.width" height="$xroot.height"
+  	colors="BaseDark BaseLight" angle="45"/>
+	<composite width="$xroot.width" height="$xroot.height">
+		<recall srcid="left_tile_EvilCarWash"/>
+		<mirror x="$xroot.width/2" y=0 dir="horizontal">
+			<recall srcid="left_tile_EvilCarWash"/>
+		</mirror>
+	</composite>
+</composite>
+

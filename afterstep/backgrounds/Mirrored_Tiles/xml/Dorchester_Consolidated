@@ -1,0 +1,22 @@
+<scale id="tile_scaled_DorchesterConsolidated" width="$xroot.width/2" height="$xroot.height/2">
+	<img src="tiles/DorchesterConsolidated"/>
+</scale>
+
+<composite id="left_tile_DorchesterConsolidated" width="$xroot.width/2" height="$xroot.height">
+	<recall srcid="tile_scaled_DorchesterConsolidated"/>
+	<mirror x=0 y="$xroot.height/2" dir="vertical">
+		<recall srcid="tile_scaled_DorchesterConsolidated"/>
+	</mirror>
+</composite>
+
+<composite op="tint">
+  	<gradient width="$xroot.width" height="$xroot.height"
+  	colors="BaseDark BaseLight" angle="45"/>
+	<composite width="$xroot.width" height="$xroot.height">
+		<recall srcid="left_tile_DorchesterConsolidated"/>
+		<mirror x="$xroot.width/2" y=0 dir="horizontal">
+			<recall srcid="left_tile_DorchesterConsolidated"/>
+		</mirror>
+	</composite>
+</composite>
+
