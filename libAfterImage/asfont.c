@@ -1777,6 +1777,9 @@ draw_text_internal( const char *text, ASFont *font, ASTextAttributes *attr, int 
 LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font, compression );
 	if( !get_text_glyph_map( text, font, &map, attr, length) )
 		return NULL;
+	
+	if( map.width == 0 ) 
+		return NULL;
 
 	apply_text_3D_type( attr->type, &(offset_3d_x), &(offset_3d_y) );
 

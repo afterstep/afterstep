@@ -967,7 +967,7 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
 int
 add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, short h_padding, short v_padding, const char *text, unsigned long encoding)
 {
-LOCAL_DEBUG_CALLER_OUT( "label \"%s\"", text );
+LOCAL_DEBUG_CALLER_OUT( "label \"%s\"", text?text:"null" );
     if( tbar )
     {
         ASTile *tile = add_astbar_tile( tbar, AS_TileLabel, col, row, flip, align );
@@ -989,7 +989,7 @@ change_astbar_label (ASTBarData * tbar, int index, const char *label, unsigned l
 {
 	Bool          changed = False;
 
-LOCAL_DEBUG_CALLER_OUT( "tbar(%p)->index(%d)->label(\"%s\")", tbar, index, label );
+LOCAL_DEBUG_CALLER_OUT( "tbar(%p)->index(%d)->label(\"%s\")", tbar, index, label?label:"null" );
     if (tbar && tbar->tiles)
 	{
         ASLabel *lbl = &(tbar->tiles[index].data.label);

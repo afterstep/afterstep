@@ -40,6 +40,7 @@ install: install.data
 	@$(MKDIR) -p $(LIBDIR); \
 	$(MKDIR) -p $(AFTER_BIN_DIR); \
 	$(MKDIR) -p $(AFTER_MAN_DIR); \
+	$(MKDIR) -p $(AFTER_MAN_API_DIR); \
 	for I in ${subdirs}; do (cd $$I; ${MAKE} install || exit 1); done
 
 install.bin:
@@ -52,6 +53,7 @@ install.lib:
 
 install.man:
 	@$(MKDIR) -p $(AFTER_MAN_DIR); \
+	$(MKDIR) -p $(AFTER_MAN_API_DIR); \
 	for I in ${subdirs}; do (cd $$I; ${MAKE} install.man || exit 1); done
 
 install.script:

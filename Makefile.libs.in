@@ -12,10 +12,12 @@ install: install.data
 	@$(MKDIR) -p $(LIBDIR); \
 	$(MKDIR) -p $(AFTER_BIN_DIR); \
 	$(MKDIR) -p $(AFTER_MAN_DIR); \
+	$(MKDIR) -p $(AFTER_MAN_API_DIR); \
 	for I in ${subdirs}; do (cd $$I; ${MAKE} install || exit 1); done
 
 install.bin:
 	@$(MKDIR) -p $(AFTER_BIN_DIR); \
+	$(MKDIR) -p $(AFTER_MAN_API_DIR); \
 	for I in ${subdirs}; do (cd $$I; ${MAKE} install.bin || exit 1); done
 
 install.lib:
