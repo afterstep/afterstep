@@ -20,7 +20,7 @@
 #include "../configure.h"
 
 /*#define LOCAL_DEBUG*/
-#define DO_CLOCKING
+/*#define DO_CLOCKING*/
 
 #define HAVE_MMX
 
@@ -58,10 +58,10 @@ typedef struct ASImageDecoder
 {
 	ScreenInfo 	   *scr;
 	ASImage 	   *im ;
-	ARGB32			tint;
-	CARD8 		   *tint_red, *ting_green, *tint_blue, *tint_alpha ;
-	int             origin,    /* x origin on source image before which we skip everything */
-					out_len;   /* actuall length of the output scanline */
+	unsigned int    origin_x,  /* x origin on source image before which we skip everything */
+					out_width;   /* actuall length of the output scanline */
+	unsigned int 	origin_y,
+					max_y;					
 	ASScanline 		buffer;
 	int 			next_line ;
 }ASImageDecoder;
@@ -271,8 +271,56 @@ free_scanline( ASScanline *sl, Bool reusable )
 	}
 }
 
-/********************* ASImageOutput ****************************/
+/********************* ASImageDecoder ****************************/
+ASImageDecoder *
+start_image_decoding( ScreenInfo *scr,ASImage *im, 
+					  int offset_x, unsigned int out_width,
+					  int offset_y, unsigned int out_height )
+{
+	ASImageDecoder *imdec = NULL;
+	if( im == NULL ) 
+		return NULL;
+	if( scr == NULL ) 
+		scr = &Scr ;
+				
+	if( offset_x < 0 ) 
+		offset_x = im->width - (offset_x%im->width);
+	else
+		offset_x %= im->width ;
+	if( offset_y < 0 ) 
+		offset_y = im->height - (offset_y%im->height);
+	else
+		offset_y %= im->height ;
+	if( out_width = 0 ) 
+		out_width = im->width ;
+	if( out_height == 0 )
+		out_height = im->height;	
+	
+	imdec = safecalloc( 1, sizeof(ASImageDecoder));
+	imdec->im = im ;
+	imdec->offset_x = offset_x ;
+	imdec->out_width = out_width;
+	imdec->offset_y = offset_y ;
+	imdec->out_height = out_height;
+	
+	prepare_scanline(out_width, 0, &(imdec->buffer), scr->BGR_mode );
+	
+	return imdec
+}								   
 
+void
+stop_image_decoding( ASImageDecoder **pimdec )
+{
+	if( pimdec )
+		if( *pimdec )
+		{
+			free_scanline( &((*pimdec)->buffer), True );
+			free( *pimdec );
+			*pimdec = NULL;
+		}
+}
+
+/********************* ASImageOutput ****************************/
 static ASImageOutput *
 start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int shift )
 {
@@ -646,7 +694,7 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 		}
 		return 0;
 	}
-/*	if( skip > 0 || out_width+skip < im->width)
+	if( skip > 0 || out_width+skip < im->width)
 	{
 		CARD8 *dst = asimage_decode_block8( src, im->buffer, im->width );
 		int max_i ;
@@ -670,7 +718,7 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 	{
 		register int i = im->width ; */
 		asimage_decode_block32( src, to_buf, im->width );
-#if 0
+
 		while( i < out_width )
 		{   /* tiling code : */
 			register CARD32 *src = to_buf-i ;
@@ -682,8 +730,7 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 				++i ;
 			}
 		}
-}
-#endif
+	}
 	return out_width;
 }
 
@@ -1655,6 +1702,29 @@ scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool 
 	return dst;
 }
 
+ASImage *
+tile_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim )
+{
+	ASImage *dst = NULL ;
+	ASImageOutput *imout ;
+	int h_ratio ;
+	int *scales_h = NULL, *scales_v = NULL;
+
+	if( !check_scale_parameters(src,&to_width,&to_height) )
+		return NULL;
+
+	dst = safecalloc(1, sizeof(ASImage));
+	asimage_start (dst, to_width, to_height);
+	if( to_xim )
+		if( (dst->ximage = create_screen_ximage( scr, to_width, to_height, 0 )) == NULL )
+		{
+			show_error( "Unable to create XImage for the screen %d", scr->screen );
+			asimage_init(dst, True);
+			free( dst );
+			return NULL ;
+		}
+
+}
 /****************************************************************************/
 /* ASImage->XImage->pixmap->XImage->ASImage conversion						*/
 /****************************************************************************/
