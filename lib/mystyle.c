@@ -30,7 +30,7 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 
-//#define LOCAL_DEBUG
+/* #define LOCAL_DEBUG */
 
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
