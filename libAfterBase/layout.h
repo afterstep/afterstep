@@ -77,6 +77,47 @@ typedef struct ASLayout
 										  * the circulation */
 }ASLayout;
 
+/****h* afterstep/libAfterBase/ASGrid
+ * SYNOPSIS
+ * Suplimental data structure to facilitate things like AvoidCover, etc.
+ * SOURCE
+ */
+typedef struct ASGridLine
+{
+	struct ASGridLine *next ;
+	short band ;                               /* second coordinate ( same on both ends ) */
+	short start, end ;                         /* inclusive ends of the line */
+
+	/* If gravity is positive - then it signifies distance from which we
+	 * can attract window if its speed is below threshold:
+	 *
+	 *  Distance = ( speed > 0 )? (gravity / speed) : 0 ;
+	 *
+	 * If gravity is negative - then it signifies minimum distance onto
+	 * which we can approach this line. For instance if line is bottom
+	 * of the AvoidCover window then above_gravity should be the (-height)
+	 * of the window.
+	 */
+	short gravity_above ;
+	short gravity_below ;
+	short reserved;
+}ASGridLine;
+
+typedef struct ASGrid
+{
+	/* lists ordered by end !!! : */
+	ASGridLine *h_lines ;
+	ASGridLine *v_lines ;
+
+	/* hard boundary that we cannot cross !!! */
+	short min_x, max_x ;
+	short min_y, max_y ;
+}ASGrid;
+/*
+ ******
+ */
+
+
 
 ASLayout *create_aslayout( unsigned int dim_x, unsigned int dim_y );
 void destroy_aslayout( ASLayout **playout );
@@ -125,7 +166,10 @@ ASFlagType set_layout_context_fixed_size( ASLayout *layout, int context,
 Bool moveresize_layout( ASLayout *layout,
 	                    unsigned int width, unsigned int height,
 						Bool force );
-
+void make_layout_grid( ASLayout *layout, ASGrid *grid,
+					   int origin_x, int origin_y,
+	                   short outer_gravity, short inner_gravity );
+void print_asgrid( ASGrid *grid );
 
 #endif  /* AS_LAYOUT_H_HEADER_FILE */
 
