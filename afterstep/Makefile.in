@@ -5,9 +5,9 @@
 IMAGE_DIR_LIST= backgrounds backgrounds/Plain_Textures \
 				desktop/bars desktop/buttons desktop/icons \
 				desktop/icons/dots desktop/icons/large desktop/icons/logos \
-				desktop/icons/mini desktop/icons/normal desktop/tiles				
+				desktop/icons/mini desktop/icons/normal desktop/tiles
 
-MISC_FILES_DIR_LIST= desktop/cursors desktop/fonts desktop/sounds 
+MISC_FILES_DIR_LIST= desktop/cursors desktop/fonts desktop/sounds
 
 CONFIG_DIR_LIST= feels colorschemes looks scripts themes start
 
@@ -31,10 +31,12 @@ install:
 		if [ -d $$D/$(IMAGE_FORMAT) ] ; then \
 			echo "$(CP) $$D/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/$$D/"; \
 			$(CP) $$D/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/$$D/; \
+			$(CP) $$D/$(IMAGE_FORMAT)/.* $(AFTER_SHAREDIR)/$$D/; \
 		fi; \
 		if [ -r $$D/jpg ] ; then \
 			echo "$(CP) $$D/jpg/* $(AFTER_SHAREDIR)/$$D/"; \
 			$(CP) $$D/jpg/* $(AFTER_SHAREDIR)/$$D/; \
+			$(CP) $$D/jpg/.* $(AFTER_SHAREDIR)/$$D/; \
 		fi; \
 	done ; \
 	$(CP) desktop/icons/CREDITS $(AFTER_SHAREDIR)/desktop/icons/

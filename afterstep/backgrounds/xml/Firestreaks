@@ -1,0 +1,9 @@
+<composite>
+	<tile width=$xroot.width height=$xroot.height>
+		<img src="tiles/Gray"/>
+	</tile>
+	<img x=$xroot.width-400 clip_height=$xroot.height clip_width=215 src="tiles/Firestreaks"/>
+	<gradient x=$xroot.width-400 height=$xroot.height width=15 colors="#FF000000 #aF000000 #00000000" offsets="0.0 0.3 1"/>
+	<gradient x=$xroot.width-185 height=$xroot.height width=12 colors="#8Fbfbfbf #007f7f7f" offsets="0.0 1"/>
+</composite
+

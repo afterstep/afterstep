@@ -1,0 +1,10 @@
+<bevel border="30 30 30 30" colors="BaseDark Base">
+	<pad left=30 right=30 top=30 bottom=30 color=Base>
+		<scale width=$xroot.width-60 height=$xroot.height-60>
+			<hsv hue_offset=$ascs.base_hue value_offset=1>
+				<img src=".Cell"/>
+			</hsv>
+		</scale>
+	<pad>
+</bevel>
+

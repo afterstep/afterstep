@@ -1,0 +1,8 @@
+<bevel border="20 20 20 20" colors="#473B21 #675B41">
+	<pad left=20 right=20 top=20 bottom=20 color=#574b31>
+		<scale width=$xroot.width-40 height=$xroot.height-40>
+			<img src=".Japanese"/>
+		</scale>
+	<pad>
+</bevel>
+

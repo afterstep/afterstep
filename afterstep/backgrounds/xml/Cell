@@ -1,0 +1,8 @@
+<bevel border="30 30 30 30" colors="#473B21 #675B41">
+	<pad left=30 right=30 top=30 bottom=30 color=#574b31>
+		<scale width=$xroot.width-60 height=$xroot.height-60>
+			<img src=".Cell"/>
+		</scale>
+	<pad>
+</bevel>
+
