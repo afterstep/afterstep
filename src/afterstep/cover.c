@@ -434,6 +434,7 @@ void cover_desktop()
             mask |= GCFont ;
         }
 		
+		LOCAL_DEBUG_OUT( "desk_anime_tint = %lX", Scr.Look.desktop_animation_tint );
 		r16 = ARGB32_RED16(Scr.Look.desktop_animation_tint);
 		g16 = ARGB32_GREEN16(Scr.Look.desktop_animation_tint);
 		b16 = ARGB32_BLUE16(Scr.Look.desktop_animation_tint);

@@ -733,6 +733,7 @@ merge_look( MyLook *to, MyLook *from )
     to->menu_scm = from->menu_scm ;
     to->KillBackgroundThreshold = from->KillBackgroundThreshold ; 
 	to->desktop_animation_tint = from->desktop_animation_tint ;
+	LOCAL_DEBUG_OUT( "desk_anime_tint = %lX", from->desktop_animation_tint );
 }
 
 

@@ -290,6 +290,7 @@ asim_find_file (const char *file, const char *pathlist, int type)
 	int            max_path = 0;
 	register char *ptr;
 	register int   i;
+	Bool local = False ;
 
 	if (file == NULL)
 		return NULL;
@@ -300,8 +301,14 @@ asim_find_file (const char *file, const char *pathlist, int type)
 #define PATH_SEPARATOR_CHAR ':'
 #define PATH_CHAR '/'
 #endif
-
+	
 	if (*file == PATH_CHAR || *file == '~' || ((pathlist == NULL) || (*pathlist == '\0')))
+		local = True ;
+	else if( file[0] == '.' && (file[1] == PATH_CHAR || (file[1] == '.' && file[2] == PATH_CHAR))) 
+		local = True ;
+	else if( strncmp( file, "$HOME", 5) == 0 ) 
+		local = True ;
+	if( local ) 
 	{
 		path = put_file_home (file);
 		if ( access (path, type) == 0 )

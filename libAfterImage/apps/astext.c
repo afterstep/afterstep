@@ -97,6 +97,7 @@ int main(int argc, char* argv[])
 	int i ;
 	int text_margin = size/2 ;
 	Bool monospaced = False ;
+	char * font_path = NULL;
 	ASTextAttributes attr = {ASTA_VERSION_1, ASTA_UseTabStops, 
 							 AST_ShadeBelow, ASCT_Char, 8, 0, 
 							 NULL, 0, ARGB32_White };
@@ -163,7 +164,13 @@ int main(int argc, char* argv[])
 #endif
 
 	/* see ASText.1 : */
-	if( (fontman = create_font_manager( dpy, getenv("FONT_PATH"), NULL )) != NULL )
+	if( getenv("FONT_PATH") != NULL ) 
+	{
+		font_path = safemalloc( strlen(getenv("FONT_PATH"))+1+2+1);
+		sprintf( font_path, "%s:./", getenv("FONT_PATH") );
+		
+	}	 
+	if( (fontman = create_font_manager( dpy, font_path, NULL )) != NULL )
 		font = get_asfont( fontman, font_name, 0, size, 
 						   ASF_GuessWho|(monospaced?ASF_Monospaced:0) );
 

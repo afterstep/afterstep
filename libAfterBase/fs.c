@@ -255,11 +255,18 @@ find_file (const char *file, const char *pathlist, int type)
 	int            max_path = 0;
 	register char *ptr;
 	register int   i;
+	Bool local = False ;
 LOCAL_DEBUG_CALLER_OUT( "file \"%s\", pathlist = \"%s\"", file, pathlist );
 	if (file == NULL)
 		return NULL;
 
 	if (*file == '/' || *file == '~' || ((pathlist == NULL) || (*pathlist == '\0')))
+		local = True ;
+	else if( file[0] == '.' && (file[1] == '/' || (file[1] == '.' && file[2] == '/'))) 
+		local = True ;
+	else if( strncmp( file, "$HOME", 5) == 0 ) 
+		local = True ;
+	if( local ) 
 	{
 		path = put_file_home (file);
 		if ( access (path, type) == 0 )
