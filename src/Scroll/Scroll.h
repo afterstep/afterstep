@@ -1,7 +1,39 @@
+/* include files shared by many AS modules */
+#include <stdio.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <string.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <sys/time.h>
+#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
+#include <sys/select.h>
+#endif
+
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xproto.h>
+#include <X11/Xatom.h>
+#include <X11/Intrinsic.h>
+
+#include "../../include/module.h"
+
+/* other include files */
+
+/* global variables used in both Scoll.c & GrabWindow.c */
+char *MyName;
+int fd_width;
+Display *dpy;                   /* which display are we talking to */
+Window Root;
+int screen;
+int x_fd;
+int d_depth;
+
 /* from Scroll.c */
 void DeadPipe(int nonsense);
 void GetTargetWindow(Window *app_win);
-void nocolor(char *a, char *b);
 Window ClientWindow(Window input);
 
 /* from GrabWindow.c */
