@@ -98,19 +98,21 @@ ASImage2file( ASImage *im, const char *dir, const char *file,
 	char *realfilename = NULL ;
 	Bool  res = False ;
 
-	if( im == NULL || file == NULL ) return False;
+	if( im == NULL ) return False;
 
-	filename_len = strlen(file);
-	if( dir != NULL )
-		dirname_len = strlen(dir)+1;
-	realfilename = safemalloc( dirname_len+filename_len+1 );
-	if( dir != NULL )
+	if( file ) 
 	{
-		strcpy( realfilename, dir );
-		realfilename[dirname_len-1] = '/' ;
-	}
-	strcpy( realfilename+dirname_len, file );
-
+  		filename_len = strlen(file);
+		if( dir != NULL )
+			dirname_len = strlen(dir)+1;
+		realfilename = safemalloc( dirname_len+filename_len+1 );
+		if( dir != NULL )
+		{
+			strcpy( realfilename, dir );
+			realfilename[dirname_len-1] = '/' ;
+		}
+		strcpy( realfilename+dirname_len, file );
+	}	
 	if( type >= ASIT_Unknown || type < 0 )
 		show_error( "Hmm, I don't seem to know anything about format you trying to write file \"%s\" in\n.\tPlease check the manual", realfilename );
    	else if( as_image_file_writers[type] )
@@ -132,8 +134,11 @@ open_writeable_image_file( const char *path )
 {
 	FILE *fp = NULL;
 	if ( path )
+	{
 		if ((fp = fopen (path, "wb")) == NULL)
 			show_error("cannot open image file \"%s\" for writing. Please check permissions.", path);
+	}else
+		fp = stdout ;
 	return fp ;
 }
 
@@ -688,7 +693,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	}
 	memcpy( &(gif_cmap->Colors[0]), &(cmap.entries[0]), MIN(cmap.count,(unsigned int)cmap_size)*3 );
 
-	if( get_flags(params->gif.flags, EXPORT_APPEND) )
+	if( get_flags(params->gif.flags, EXPORT_APPEND) && path != NULL)
 		infile = fopen( path, "rb" );
 	if( infile != NULL )
 	{
@@ -816,6 +821,11 @@ ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params)
 	if( params == NULL )
 		params = (ASImageExportParams *)&defaults ;
 
+	if( path == NULL ) 
+	{
+		SHOW_UNSUPPORTED_NOTE("TIFF streamed into stdout",path);
+		return False ;
+	}
 	out = TIFFOpen(path, "w");
 	if (out == NULL)
 		return False;

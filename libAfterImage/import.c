@@ -110,60 +110,65 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 
 	ASImage *im = NULL;
 	CARD8 *gamma_table = NULL;
+	char *g_var ;
 
-	if( file == NULL ) return NULL;
+	if( (g_var = getenv( "SCREEN_GAMMA" )) != NULL )
+		gamma = atof(g_var);
 
-	filename_len = strlen(file);
-
-	va_start (ap, compression);
-	for( i = 0 ; i < MAX_SEARCH_PATHS ; i++ )
-		if( (paths[i] = va_arg(ap,char*)) == NULL )
-			break;
-	paths[MAX_SEARCH_PATHS] = NULL ;
-	va_end (ap);
-
-	/* first lets try to find file as it is */
-	if( (realfilename = locate_image_file(file,&(paths[0]))) == NULL )
+	if( file ) 
 	{
-		tmp = safemalloc( filename_len+3+1);
-		strcpy(tmp, file);
-	}
-	if( realfilename == NULL )
-	{ /* let's try and see if appending .gz will make any difference */
-		strcpy(&(tmp[filename_len]), ".gz");
-		realfilename = locate_image_file(tmp,&(paths[0]));
-	}
-	if( realfilename == NULL )
-	{ /* let's try and see if appending .Z will make any difference */
-		strcpy(&(tmp[filename_len]), ".Z");
-		realfilename = locate_image_file(tmp,&(paths[0]));
-	}
-	if( realfilename == NULL )
-	{ /* let's try and see if we have subimage number appended */
-		for( i = filename_len-1 ; i > 0; i-- )
-			if( !isdigit( (int)tmp[i] ) )
+		filename_len = strlen(file);
+
+		va_start (ap, compression);
+		for( i = 0 ; i < MAX_SEARCH_PATHS ; i++ )
+			if( (paths[i] = va_arg(ap,char*)) == NULL )
 				break;
-		if( i < filename_len-1 && i > 0 )
-			if( tmp[i] == '.' )                 /* we have possible subimage number */
-			{
-				subimage = atoi( &tmp[i+1] );
-				tmp[i] = '\0';
-				filename_len = i ;
-				realfilename = locate_image_file(tmp,&(paths[0]));
-				if( realfilename == NULL )
-				{ /* let's try and see if appending .gz will make any difference */
-					strcpy(&(tmp[filename_len]), ".gz");
+		paths[MAX_SEARCH_PATHS] = NULL ;
+		va_end (ap);
+
+		/* first lets try to find file as it is */
+		if( (realfilename = locate_image_file(file,&(paths[0]))) == NULL )
+		{
+			tmp = safemalloc( filename_len+3+1);
+			strcpy(tmp, file);
+		}
+		if( realfilename == NULL )
+		{ /* let's try and see if appending .gz will make any difference */
+			strcpy(&(tmp[filename_len]), ".gz");
+			realfilename = locate_image_file(tmp,&(paths[0]));
+		}
+		if( realfilename == NULL )
+		{ /* let's try and see if appending .Z will make any difference */
+			strcpy(&(tmp[filename_len]), ".Z");
+			realfilename = locate_image_file(tmp,&(paths[0]));
+		}
+		if( realfilename == NULL )
+		{ /* let's try and see if we have subimage number appended */
+			for( i = filename_len-1 ; i > 0; i-- )
+				if( !isdigit( (int)tmp[i] ) )
+					break;
+			if( i < filename_len-1 && i > 0 )
+				if( tmp[i] == '.' )                 /* we have possible subimage number */
+				{
+					subimage = atoi( &tmp[i+1] );
+					tmp[i] = '\0';
+					filename_len = i ;
 					realfilename = locate_image_file(tmp,&(paths[0]));
+					if( realfilename == NULL )
+					{ /* let's try and see if appending .gz will make any difference */
+						strcpy(&(tmp[filename_len]), ".gz");
+						realfilename = locate_image_file(tmp,&(paths[0]));
+					}
+					if( realfilename == NULL )
+					{ /* let's try and see if appending .Z will make any difference */
+						strcpy(&(tmp[filename_len]), ".Z");
+						realfilename = locate_image_file(tmp,&(paths[0]));
+					}
 				}
-				if( realfilename == NULL )
-				{ /* let's try and see if appending .Z will make any difference */
-					strcpy(&(tmp[filename_len]), ".Z");
-					realfilename = locate_image_file(tmp,&(paths[0]));
-				}
-			}
+		}
+		if( tmp != realfilename && tmp != NULL )
+			free( tmp );
 	}
-	if( tmp != realfilename && tmp != NULL )
-		free( tmp );
 	if( realfilename )
 	{
 		ASImageFileTypes file_type = check_image_type( realfilename );
@@ -205,10 +210,10 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 
 		if( im != NULL )
 		{
-			trg = asimage2pixmap( asv, root, im, NULL, True );
+			trg = asimage2pixmap( asv, root, im, NULL, False );
 			if( mask_out )
 				if( get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA ) )
-					mask = asimage2mask( asv, root, im, NULL, True );
+					mask = asimage2mask( asv, root, im, NULL, False );
 			destroy_asimage( &im );
 		}
 	}
@@ -252,16 +257,19 @@ static char *
 locate_image_file( const char *file, char **paths )
 {
 	char *realfilename = NULL;
-	if( CheckFile( file ) == 0 )
+	if( file != NULL ) 
 	{
-		realfilename = (char*)file;
-	}else
-	{	/* now lets try and find the file in any of the optional paths :*/
-		register int i = 0;
-		do
+		if( CheckFile( file ) == 0 )
 		{
-			realfilename = find_file( file, paths[i], R_OK );
-		}while( realfilename == NULL && paths[i++] != NULL );
+			realfilename = (char*)file;
+		}else
+		{	/* now lets try and find the file in any of the optional paths :*/
+			register int i = 0;
+			do
+			{
+				realfilename = find_file( file, paths[i], R_OK );
+			}while( realfilename == NULL && paths[i++] != NULL );
+		}
 	}
 	return realfilename;
 }
@@ -271,8 +279,11 @@ open_image_file( const char *path )
 {
 	FILE *fp = NULL;
 	if ( path )
+	{
 		if ((fp = fopen (path, "rb")) == NULL)
 			show_error("cannot open image file \"%s\" for reading. Please check permissions.", path);
+	}else
+		fp = stdin ;
 	return fp ;
 }
 
@@ -580,7 +591,7 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 					png_set_sRGB (png_ptr, info_ptr, image_gamma);
 				else if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
 					png_set_gamma (png_ptr, gamma, image_gamma);
-				else
+				else 
 					png_set_gamma (png_ptr, gamma, 1.0);
 
 				/* Optional call to gamma correct and add the background to the palette

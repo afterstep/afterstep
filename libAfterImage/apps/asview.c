@@ -48,7 +48,12 @@ int main(int argc, char* argv[])
 	}
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
-
+	
+	/* The following could be used to dump JPEG version of the image into 
+	 * stdout : */
+	/* ASImage2file( im, NULL, NULL, ASIT_Jpeg, NULL ); */
+	
+	
 	if( im != NULL )
 	{
 #ifndef X_DISPLAY_MISSING
@@ -80,6 +85,7 @@ int main(int argc, char* argv[])
 		}
 		/* see common.c: wait_closedown() : */
 		wait_closedown(w);
+		
 #else
 		/* writing result into the file */
 		ASImage2file( im, NULL, "asview.jpg", ASIT_Jpeg, NULL );

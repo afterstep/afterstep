@@ -110,49 +110,49 @@ void asvar_insert(const char* name, int value);
 
 void
 asvar_init(void) {
-	int w, h;
-	if (asvar) destroy_ashash(&asvar);
-	asvar = create_ashash(0, string_hash_value, string_compare, string_destroy);
-	if (!asvar) return;
-	if (GetRootDimensions(&w, &h)) {
-		asvar_insert("xroot.width", w);
-		asvar_insert("xroot.height", h);
-	}
+      int w, h;
+      if (asvar) destroy_ashash(&asvar);
+      asvar = create_ashash(0, string_hash_value, string_compare, string_destroy);
+      if (!asvar) return;
+      if (GetRootDimensions(&w, &h)) {
+              asvar_insert("xroot.width", w);
+              asvar_insert("xroot.height", h);
+      }
 }
 
 void
 asvar_insert(const char* name, int value) {
-	int* val = NULL;
+      int* val = NULL;
 
-	if (!asvar) asvar_init();
-	if (!asvar) return;
+      if (!asvar) asvar_init();
+      if (!asvar) return;
 
-	/* Destroy any old data associated with this name. */
-	remove_hash_item(asvar, (ASHashableValue)name, NULL, 1);
+      /* Destroy any old data associated with this name. */
+      remove_hash_item(asvar, (ASHashableValue)name, NULL, 1);
 
-	show_progress("Defining var [%s] == %d.", name, value);
+      show_progress("Defining var [%s] == %d.", name, value);
 
-	val = NEW(int); *val = value;
-	add_hash_item(asvar, (ASHashableValue)mystrdup(name), val);
+      val = NEW(int); *val = value;
+      add_hash_item(asvar, (ASHashableValue)mystrdup(name), val);
 }
 
 int
 asvar_get(const char* name) {
-	int* value = NULL;
-	if (!asvar) asvar_init();
-	if (!asvar) return 0;
-	get_hash_item(asvar, (ASHashableValue)name, (void**)&value);
-	return value ? *value : 0;
+      int* value = NULL;
+      if (!asvar) asvar_init();
+      if (!asvar) return 0;
+      get_hash_item(asvar, (ASHashableValue)name, (void**)&value);
+      return value ? *value : 0;
 }
 
 int
 asvar_nget(char* name, int n) {
-	int value;
-	char oldc = name[n];
-	name[n] = '\0';
-	value = asvar_get(name);
-	name[n] = oldc;
-	return value;
+      int value;
+      char oldc = name[n];
+      name[n] = '\0';
+      value = asvar_get(name);
+      name[n] = oldc;
+      return value;
 }
 
 ASImage *
@@ -163,7 +163,7 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 	ASImageManager *my_imman = imman ;
 	ASFontManager  *my_fontman = fontman ;
 
-	asvar_init();
+      asvar_init();
 
 	doc = xml_parse_doc(doc_str);
 	if (verbose > 1) {
@@ -228,7 +228,7 @@ LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.
 	/* Delete the xml. */
 	if (doc) xml_elem_delete(NULL, doc);
 
-	asvar_init();
+      asvar_init();
 
 LOCAL_DEBUG_OUT( "returning im = %p, im->imman	= %p, im->magic = %8.8X", im, im?im->imageman:NULL, im?im->magic:0 );
 	return im;
@@ -390,10 +390,10 @@ double parse_math(const char* str, char** endptr, double size) {
 			char* ptr;
 			double num;
 			if (*str == '(') num = parse_math(str + 1, &ptr, size);
-			else if (*str == '$') {
-				for (ptr = (char*)str + 1 ; *ptr && !isspace(*ptr) && *ptr != '+' && *ptr != '-' && *ptr != '*' && *ptr != '/' && *ptr != ')' ; ptr++);
-				num = asvar_nget((char*)str + 1, ptr - (str + 1));
-			}
+                      else if (*str == '$') {
+                              for (ptr = (char*)str + 1 ; *ptr && !isspace(*ptr) && *ptr != '+' && *ptr != '-' && *ptr != '*' && *ptr != '/' && *ptr != ')' ; ptr++);
+                              num = asvar_nget((char*)str + 1, ptr - (str + 1));
+                      }
 			else num = strtod(str, &ptr);
 			if (str != ptr) {
 				if (*ptr == '%') num *= size / 100.0, ptr++;
@@ -1650,13 +1650,13 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 	}
 
 	if (id && result) {
-		char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
+              char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
 		show_progress("Storing image id [%s].", id);
-		sprintf(buf, "%s.width", id);
-		asvar_insert(buf, result->width);
-		sprintf(buf, "%s.height", id);
-		asvar_insert(buf, result->height);
-		free(buf);
+              sprintf(buf, "%s.width", id);
+              asvar_insert(buf, result->width);
+              sprintf(buf, "%s.height", id);
+              asvar_insert(buf, result->height);
+              free(buf);
 		if( !store_asimage( imman, result, id ) ) 
 		{
 			safe_asimage_destroy(result );
