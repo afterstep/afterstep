@@ -19,7 +19,7 @@
 #include "config.h"
 
 /*#define LOCAL_DEBUG*/
-#define DO_CLOCKING
+/*#define DO_CLOCKING*/
 
 #define USE_64BIT_FPU
 
