@@ -1159,11 +1159,11 @@ redecorate_pager_desks()
             if( get_flags( Config->flags, VERTICAL_LABEL ) )
             {
                 d->title_width = calculate_astbar_width( d->title );
-                d->title_height = PagerState.desk_height;
+                d->title_height = PagerState.desk_height - Config->border_width*2;
 				wasted_x += d->title_width ;
             }else
             {
-                d->title_width = PagerState.desk_width;
+                d->title_width = PagerState.desk_width-Config->border_width*2;
                 d->title_height = calculate_astbar_height( d->title );
 				wasted_y += d->title_height ;
             }

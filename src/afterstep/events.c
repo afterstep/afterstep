@@ -382,6 +382,9 @@ DigestEvent( ASEvent *event )
 					pointer_root_y = asw->frame_canvas->root_y+(int)asw->frame_canvas->bw ;
 				else if( pointer_root_y >= asw->frame_canvas->root_y+(int)asw->frame_canvas->bw+(int)asw->frame_canvas->height )
 					pointer_root_y = asw->frame_canvas->root_y+(int)asw->frame_canvas->bw+(int)asw->frame_canvas->height-1;
+				else
+					event->context = C_CLIENT ;
+									
 			}
 
             if( w != asw->frame )

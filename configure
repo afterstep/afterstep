@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC sgmltools CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD LIBAFTERBASE_CFLAGS LIBAFTERIMAGE_CFLAGS version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP ASCP_LIBS ASCP_INCLUDES user_ldflags x_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB LIBPROG LIBINSTALL DEFINE_XLOCALE with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC sgmltools CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD LIBAFTERBASE_CFLAGS LIBAFTERIMAGE_CFLAGS target target_cpu target_vendor target_os version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP ASCP_LIBS ASCP_INCLUDES user_ldflags x_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB LIBPROG LIBINSTALL DEFINE_XLOCALE with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERBASEFILES LIBAFTERIMAGEFILES LIBAFTERSTEPFILES LIBAFTERCONFFILES MAKEFILEDEFINES MAKEFILECOMMON MAKEFILECOMMONLIB'
 
 # Initialize some variables set by options.
@@ -845,6 +845,7 @@ X features:
 System types:
   --build=BUILD     configure for building on BUILD [guessed]
   --host=HOST       cross-compile to build programs to run on HOST [BUILD]
+  --target=TARGET   configure for building compilers for TARGET [HOST]
 _ACEOF
 fi
 
@@ -882,6 +883,7 @@ Optional Features:
   --enable-trace          some function calls tracing (see include/trace.h) (for debugging) [no]
   --enable-trace-x        trace X calls (runtime option) (for debugging) [no]
   --enable-mmx-optimization  enable utilization of MMX instruction set to speed up imaging operations [yes]
+  --enable-send-postcard-to-developer will enable AfterSTep to send single e-mail to developers with your installation specifics.[yes]
   --enable-script         compile Script module [yes]
   --enable-reuse-font     enables reuse of loaded font resource by modules (don't use with TrueType fonts !)[no]
 
@@ -1777,7 +1779,13 @@ if test "${enable_mmx_optimization+set}" = set; then
 else
   enable_mmx_optimization="yes"
 fi;
-
+# Check whether --enable-send-postcard-to-developer or --disable-send-postcard-to-developer was given.
+if test "${enable_send_postcard_to_developer+set}" = set; then
+  enableval="$enable_send_postcard_to_developer"
+  send_postcard_to_developer=$enableval
+else
+  send_postcard_to_developer="yes"
+fi;
 
 # Check whether --enable-script or --disable-script was given.
 if test "${enable_script+set}" = set; then
@@ -7551,6 +7559,131 @@ if test "x$enable_script" = "x1"; then
     SCRIPT_DIR="src/Script/Widgets src/Script"
 fi
 
+if test "x$send_postcard_to_developer" = "xyes"; then
+
+for ac_func in popen
+do
+as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $ac_func" >&5
+echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6
+if eval "test \"\${$as_ac_var+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
+choke me
+#else
+char (*f) () = $ac_func;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != $ac_func;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  eval "$as_ac_var=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+eval "$as_ac_var=no"
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_var'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_var'}'`" >&6
+if test `eval echo '${'$as_ac_var'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+	cat >>confdefs.h <<\_ACEOF
+#define DO_SEND_POSTCARD 1
+_ACEOF
+
+fi
+
+echo "$as_me:$LINENO: checking target system type" >&5
+echo $ECHO_N "checking target system type... $ECHO_C" >&6
+if test "${ac_cv_target+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_cv_target_alias=$target_alias
+test "x$ac_cv_target_alias" = "x" &&
+  ac_cv_target_alias=$ac_cv_host_alias
+ac_cv_target=`$ac_config_sub $ac_cv_target_alias` ||
+  { { echo "$as_me:$LINENO: error: $ac_config_sub $ac_cv_target_alias failed" >&5
+echo "$as_me: error: $ac_config_sub $ac_cv_target_alias failed" >&2;}
+   { (exit 1); exit 1; }; }
+
+fi
+echo "$as_me:$LINENO: result: $ac_cv_target" >&5
+echo "${ECHO_T}$ac_cv_target" >&6
+target=$ac_cv_target
+target_cpu=`echo $ac_cv_target | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\1/'`
+target_vendor=`echo $ac_cv_target | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
+target_os=`echo $ac_cv_target | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
+
+
+# The aliases save the names the user supplied, while $host etc.
+# will get canonicalized.
+test -n "$target_alias" &&
+  test "$program_prefix$program_suffix$program_transform_name" = \
+    NONENONEs,x,x, &&
+  program_prefix=${target_alias}-
+
+
+
+
+
+
 
 
 
@@ -8329,6 +8462,10 @@ s,@AUDIO_LIBS@,$AUDIO_LIBS,;t t
 s,@AUDIO_PLAY_CMD@,$AUDIO_PLAY_CMD,;t t
 s,@LIBAFTERBASE_CFLAGS@,$LIBAFTERBASE_CFLAGS,;t t
 s,@LIBAFTERIMAGE_CFLAGS@,$LIBAFTERIMAGE_CFLAGS,;t t
+s,@target@,$target,;t t
+s,@target_cpu@,$target_cpu,;t t
+s,@target_vendor@,$target_vendor,;t t
+s,@target_os@,$target_os,;t t
 s,@version@,$version,;t t
 s,@app_version@,$app_version,;t t
 s,@libafterstep_version@,$libafterstep_version,;t t
@@ -8857,8 +8994,42 @@ fi
 
 
 echo "
+PRIVACY NOTICE
+
+AS required by goverment regulations we now disclose all the illigal snooping activities,
+that AfterSTep Window Manager will be performing on your computer(s).
+
+Being Big Brother AfterStep will keep an eye on any suspicious window movements
+on your screen, different clicking sounds made by your keyboard, detect slightest
+vibrations of your mouse/trackball, and most importantly  - it will keep track of what
+images your are displaying in the root window of your desktop.
+
+Being Good hearted Big Brother, though AfterStep will keep all this information in secret,
+and most likely will forget about it immidiately. Nothing will be logged, mailed,
+broadcast or otherwise disclosed to unauthorized parties. So your secrets are safe with it.
+
+The only exception is when you compile it with --enable-gdb option or --enable-audit.
+In this case sagnificant amounts of activity will be logged - printed into console output.
+Make sure you keep it safe from all the malicious persons out there (and from
+overflowing your disk)! It is your responsibility now.
+
+And finally we are coming to the fun part. AS it is the only compensation that
+developers of this lousy software get - AfterStep will automagically e-mail a single
+message anytime ~/.afterstep directory needs to be rebuilt. This message will contain
+such a vital information as date, time, your X server color depth, number of X screens,
+number of xinerama screens, compiler version, kernel version, and list of linked to libraries.
+
+If you object to this e-mailing activity - please make sure and use the following
+./configure option : --disable-send-postcard-to-developer
+
+That is all! We will go back to your regular programming now.
+
+Oh, almost forgot -
 
 
-AfterStep $version is now hopefully configured:
+AfterStep $version IS NOW HOPEFULLY CONFIGURED:
+
 Just run : make ; make install
+
+and enjoy your eyecandy :)
 "

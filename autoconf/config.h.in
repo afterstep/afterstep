@@ -1,4 +1,4 @@
-/* autoconf/config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* autoconf/config.h.in.  Generated from autoconf/configure.in by autoheader.  */
 /* self diagnostic SIGSEGV handling (as opposed to dumping core) */
 #undef HAVE_SIGSEGV_HANDLING
 
@@ -35,49 +35,86 @@
 #undef  HAVE_AFTERIMAGE
 #undef  HAVE_AFTERSTEP
 
+#undef  DO_SEND_POSTCARD
 
-/* Define if you have the <dirent.h> header file, and it defines `DIR'. */
-#undef HAVE_DIRENT_H
 
-/* Define if you have the <malloc.h> header file, and it defines `DIR'. */
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
-/* Define if you have the <stdlib.h> header file, and it defines `DIR'. */
-#undef HAVE_STDLIB_H
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
 
-/* Define if you have the <ndir.h> header file, and it defines `DIR'. */
-#undef HAVE_NDIR_H
+/* Define to 1 if you have the `popen' function. */
+#undef HAVE_POPEN
 
-/* Define if you have the <rplay.h> header file. */
+/* Define to 1 if you have the <rplay.h> header file. */
 #undef HAVE_RPLAY_H
 
-/* Define if you have the <sys/dir.h> header file, and it defines `DIR'. */
-#undef HAVE_SYS_DIR_H
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
 
-/* Define if you have the <sys/ndir.h> header file, and it defines `DIR'. */
-#undef HAVE_SYS_NDIR_H
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
 
-/* Define if you have the <sys/time.h> header file. */
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
 
-/* Define if you have the <sys/wait.h> header file. */
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/wait.h> header file. */
 #undef HAVE_SYS_WAIT_H
 
-/* Define if you have the `wait3' system call. */
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `wait3' system call. Deprecated, you should no
+   longer depend upon `wait3'. */
 #undef HAVE_WAIT3
 
-/* Define if you can safely include both <sys/time.h> and <time.h>. */
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
-/* Define if your processor stores words with the most significant byte first
-   (like Motorola and SPARC, unlike Intel and VAX). */
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
 
-/* Define if the X Window System is missing or not being used. */
+/* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
 
-/* Define if `lex' declares `yytext' as a `char *' by default, not a `char[]'.
-   */
+/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
+   `char[]'. */
 #undef YYTEXT_POINTER
 
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing

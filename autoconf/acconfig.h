@@ -34,6 +34,9 @@
 #undef  HAVE_AFTERIMAGE
 #undef  HAVE_AFTERSTEP
 
+#undef  DO_SEND_POSTCARD
+
+
 @BOTTOM@
 
 /*#include "configure.h"*/
