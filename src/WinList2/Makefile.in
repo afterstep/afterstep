@@ -1,4 +1,4 @@
-OBJS		= WinList.o
+OBJS		= WinData.o WinList.o
 
 PROG		= WinList
 

@@ -44,6 +44,9 @@
 #include "../../include/clientprops.h"
 #include "../../include/wmprops.h"
 
+struct ASWindowData;
+#define WINDOW_PACKET_MASK 0xFFFFFFFF
+
 /**********************************************************************/
 /*  AfterStep specific global variables :                             */
 /**********************************************************************/
@@ -56,7 +59,6 @@ ScreenInfo Scr;			/* AS compatible screen information structure */
 /**********************************************************************/
 BaseConfig *Base = NULL;
 /**********************************************************************/
-
 
 void
 usage (void)
@@ -83,6 +85,7 @@ main( int argc, char **argv )
 	SetMyName (argv[0]);
 	
 	set_signal_handler( SIGSEGV );
+	set_output_threshold( OUTPUT_LEVEL_PROGRESS );
 
 	i = ProcessModuleArgs (argc, argv, &global_config_file, NULL, NULL, usage);
 	
@@ -195,33 +198,12 @@ GetOptions (const char *filename)
 void
 process_message (unsigned long type, unsigned long *body)
 {
-    switch (type)
-    {
-	    case M_ADD_WINDOW:
-//  		    list_configure (body);
-	        break;
-	    case M_CONFIGURE_WINDOW:
-//  		    list_configure (body);
-	        break;
-	    case M_DESTROY_WINDOW:
-//    		list_destroy (body);
-	        break;
-	    case M_FOCUS_CHANGE:
-//	        list_focus (body);
-	        break;
-	    case M_ICONIFY:
-	    case M_DEICONIFY:
-//	        list_deiconify (body);
-	        break;
-	    case M_ICON_NAME:
-//  		    list_icon_name (body);
-	        break;
-	    case M_END_WINDOWLIST:
-//  		    list_end ();
-	    	break;
-	  default:
-  		  return;
-    }
+	if( (type&WINDOW_PACKET_MASK) != 0 )  
+	{
+		struct ASWindowData *wd = fetch_window_by_id( body[0] );
+		show_progress( "message %X window %X data %p", type, body[0], wd );
+		handle_window_packet( type, body, &wd );
+	}
 }
 
 void
