@@ -20,7 +20,7 @@
 #include "config.h"
 
 /*#define LOCAL_DEBUG*/
-#define DO_CLOCKING
+/*#define DO_CLOCKING*/
 
 #define DO_X11_ANTIALIASING
 #define DO_2STEP_X11_ANTIALIASING
@@ -35,6 +35,9 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef DO_CLOCKING
+#include <sys/time.h>
+#endif
 
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
@@ -1135,6 +1138,9 @@ draw_text( const char *text, ASFont *font, ASText3DType type, int compression )
 	ASImage *im;
 	int pen_x = 0, pen_y = 0;
 	int offset_3d_x = 0, offset_3d_y = 0  ;
+#ifdef DO_CLOCKING
+	time_t started = clock ();
+#endif
 
 LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font, compression );
 	if( !get_text_glyph_map( text, font, type, &map) )
@@ -1261,6 +1267,9 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 
 	free( memory );
 	free( scanlines );
+#ifdef DO_CLOCKING
+	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
+#endif
 	return im;
 }
 

@@ -39,15 +39,30 @@
 #include "afterimage.h"
 #include "common.h"
 
-/* Usage:  astext <font[:size]> [<text> [<text_color>
- *                [<foreground_image> [<background_image>]]]]
+/* Usage:  astext [-f font] [-s size] [-t text] 
+                  [-c text_color] [-b background_color]
+                  [-T foreground_texture] [-B background_image]
  */
 
 #define TEXT_MARGIN 10
 #define BEVEL_HI_WIDTH 3
 #define BEVEL_LO_WIDTH 2
 #define BEVEL_ADDON    (BEVEL_HI_WIDTH+BEVEL_LO_WIDTH)
-#define TEXT_3D_TYPE   AST_SunkenThick
+
+void usage()
+{
+	fprintf( stderr, "\tUsage:   astext [-f font] [-s size] [-t text]\n"); 
+	fprintf( stderr, "\t                [-S 3D_style] \n"); 
+	fprintf( stderr, "\t                [-c text_color] [-b background_color]\n");
+	fprintf( stderr, "\t                [-T foreground_texture] [-B background_image]\n");
+	fprintf( stderr, "\t                [-h]\n");
+	fprintf( stderr, "\tWhere: font - TrueType font's filename or X font spec or alias\n");
+	fprintf( stderr, "\t       size - size in points for TrueType fonts\n");
+	fprintf( stderr, "\t       text - text to be drawn\n");
+	fprintf( stderr, "\t       3D_style - #D style of text. One of the following:\n");	
+	fprintf( stderr, "\t       0 - plain 2D tetx, 1 - embossed, 2 - sunken, \n");
+	fprintf( stderr, "\t       3 - shade above, 4 - shade below, 5 - embossed thick 6 - sunken thick.\n");
+}
 
 int main(int argc, char* argv[])
 {
@@ -57,46 +72,59 @@ int main(int argc, char* argv[])
 	char *font_name = "fixed";
 	int size = 32 ;
 	char *text = "Smart Brown Dog jumps Over The Lazy Fox, and falls into the ditch.";
-	ARGB32 text_color = ARGB32_White;
-	char *fore_image_file = NULL ;
-	char *back_image_file = "test.xpm" ;
+	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
+	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
+	char *fore_image_file = NULL, *back_image_file = "test.xpm" ;
 	ASImage *fore_im = NULL, *back_im = NULL;
+	ASText3DType type_3d = AST_Sunken ;
 	struct ASFontManager *fontman = NULL;
 	struct ASFont  *font = NULL;
 	unsigned int width, height ;
+	int i ;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
 
-	if( argc > 1 )
+	for( i = 1 ; i < argc ; i++ )
 	{
-		char *ptr ;
-		if( (ptr = strchr(argv[1], ':' )) != NULL )
+		if( strncmp( argv[i], "-h", 2 ) == 0 ) 
 		{
-			size = atoi( ptr+1 );
-			font_name = mystrndup( argv[1], ptr - argv[1] );
-		}else
-			font_name = argv[1] ;
-	}else
-	{
-		show_warning( "Using defaults!\nUsage:  astext <font[:size]> [<text> [<text_color>\n"
- 					                   "\t\t[<foreground_image> [<background_image>]]]]" );
+			usage();
+			return 0;
+		}
+		if( i+1 < argc )
+		{
+			if( strncmp( argv[i], "-f", 2 ) == 0 ) 
+				font_name = argv[i+1] ;	
+			else if( strncmp( argv[i], "-s", 2 ) == 0 ) 
+				size = atoi(argv[i+1]);	
+			else if( strncmp( argv[i], "-t", 2 ) == 0 ) 
+				text = argv[i+1] ;	
+			else if( strncmp( argv[i], "-S", 2 ) == 0 ) 
+			{
+				type_3d = atoi(argv[i+1]);
+				if( type_3d >= AST_3DTypes )
+				{
+					fprintf( stderr, "3D type is wrong. Using 2D Plain instead.\n");
+					type_3d = AST_Plain ;
+				}
+			
+			}else if( strncmp( argv[i], "-c", 2 ) == 0 ) 
+				text_color_name = argv[i+1] ;	
+			else if( strncmp( argv[i], "-b", 2 ) == 0 ) 
+				back_color_name = argv[i+1] ;	
+			else if( strncmp( argv[i], "-T", 2 ) == 0 ) 
+				fore_image_file = argv[i+1] ;	
+			else if( strncmp( argv[i], "-B", 2 ) == 0 ) 
+				back_image_file = argv[i+1] ;	
+		}
 	}
-	if( argc > 2 )
-		text = argv[2] ;
 
     dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 	screen = DefaultScreen(dpy);
 	depth = DefaultDepth( dpy, screen );
-
-	if( argc > 3 )
-		parse_argb_color( argv[3], &text_color );
-	if( argc > 4 )
-		fore_image_file = argv[4] ;
-	if( argc > 5 )
-		back_image_file = argv[5] ;
 
 	/* see ASText.1 : */
 	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
@@ -108,6 +136,9 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	parse_argb_color( text_color_name, &text_color );
+	parse_argb_color( back_color_name, &back_color );
+
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );
 
@@ -115,7 +146,7 @@ int main(int argc, char* argv[])
 		back_im = file2ASImage( back_image_file, 0xFFFFFFFF,
 		                        SCREEN_GAMMA, 0, NULL );
 	/* see ASText.2 : */
-	get_text_size( text, font, TEXT_3D_TYPE, &width, &height );
+	get_text_size( text, font, type_3d, &width, &height );
 	if( fore_image_file )
 	{
 		ASImage *tmp = file2ASImage( fore_image_file, 0xFFFFFFFF,
@@ -153,9 +184,7 @@ int main(int argc, char* argv[])
 	  	XMapRaised   (dpy, w);
 
 		/* see ASText.3 : */
-		text_im = draw_text( text, font, TEXT_3D_TYPE, 0 );
-fprintf( stderr, "get_text_size returns %dx%d, draw as %dx%d \n", 
-                 width-TEXT_MARGIN*2, height-TEXT_MARGIN*2, text_im->width, text_im->height );		
+		text_im = draw_text( text, font, type_3d, 0 );
 		if( fore_im )
 		{
 			move_asimage_channel( fore_im, text_im, IC_ALPHA );
@@ -170,7 +199,7 @@ fprintf( stderr, "get_text_size returns %dx%d, draw as %dx%d \n",
 		layers[0].clip_width = width ;
 		layers[0].clip_height = height ;
 		layers[0].merge_scanlines = alphablend_scanlines ;
-		layers[0].back_color = ARGB32_Black ;
+		layers[0].back_color = back_color ;
 		layers[0].bevel = &bevel ;
 		layers[1].im = fore_im ;
 		layers[1].dst_x = TEXT_MARGIN+BEVEL_HI_WIDTH ;
