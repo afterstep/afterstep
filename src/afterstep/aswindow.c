@@ -323,14 +323,16 @@ restack_window_list( int desk, Bool send_msg_only )
     static ASVector *ids = NULL ;
     static ASVector *layers = NULL ;
     unsigned long layers_in, i ;
-    register long windows_num = 0 ;
+    register long windows_num ;
     ASLayer **l ;
     Window  *windows ;
 
     if( !IsValidDesk(desk) )
     {
-        destroy_asvector( &ids );
-        destroy_asvector( &layers );
+        if( ids )
+            destroy_asvector( &ids );
+        if( layers )
+            destroy_asvector( &layers );
         return;
     }
 
@@ -348,8 +350,10 @@ restack_window_list( int desk, Bool send_msg_only )
 
     if( (layers_in = sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(*layers), 0)) == 0 )
         return ;
+
     l = VECTOR_HEAD(ASLayer*,*layers);
     windows = VECTOR_HEAD(Window,*ids);
+    windows_num = 0 ;
     for( i = 0 ; i < layers_in ; i++ )
     {
         register int k, end_k = VECTOR_USED(*(l[i]->members)) ;
@@ -368,6 +372,7 @@ restack_window_list( int desk, Bool send_msg_only )
     {
         l = VECTOR_HEAD(ASLayer*,*layers);
         windows = VECTOR_HEAD(Window,*ids);
+        windows_num = 0 ;
         for( i = 0 ; i < layers_in ; i++ )
         {
             register int k, end_k = VECTOR_USED(*(l[i]->members)) ;

@@ -97,10 +97,12 @@ typedef struct ASPagerState
     int         pressed_context;
     ASPagerDesk *pressed_desk;
 
+    ASPagerDesk  *focused_desk;
+
     Window      selection_bars[4];
 }ASPagerState;
 
-ASPagerState PagerState ={ 0, NULL, NULL, NULL, 0, 0 };
+ASPagerState PagerState;
 #define DEFAULT_BORDER_COLOR 0xFF808080
 
 /* Storing window list as hash table hashed by client window ID :     */
@@ -149,6 +151,8 @@ main (int argc, char **argv)
 
     /* Save our program name - for error messages */
     InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, 0 );
+
+    memset( &PagerState, 0x00, sizeof(PagerState));
 
     for( i = 1 ; i< argc && argv[i] == NULL ; ++i);
     if( i < argc )
@@ -910,7 +914,10 @@ redecorate_pager_desks()
             int align = (Config->align>0)?ALIGN_LEFT:((Config->align<0)?ALIGN_RIGHT:ALIGN_HCENTER) ;
             int flip = get_flags(Config->flags, VERTICAL_LABEL)?FLIP_VERTICAL:0;
             if( d->title == NULL )
+            {
                 d->title = create_astbar();
+                d->title->context = C_TITLE ;
+            }
             set_astbar_hilite( d->title, NORMAL_HILITE|NO_HILITE_OUTLINE);
             set_astbar_style_ptr( d->title, BAR_STATE_FOCUSED, Config->MSDeskTitle[DESK_ACTIVE] );
             set_astbar_style_ptr( d->title, BAR_STATE_UNFOCUSED, Config->MSDeskTitle[DESK_INACTIVE] );
@@ -1189,9 +1196,16 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw )
 
     if( wd )
     {
+        int client_x = wd->frame_rect.x ;
+        int client_y = wd->frame_rect.y ;
+        if( get_flags( wd->state_flags, AS_Sticky )  )
+        {
+            client_x += Scr.Vx ;
+            client_y += Scr.Vy ;
+        }
         LOCAL_DEBUG_OUT( "+PLACE->client(%lX)->frame_geom(%dx%d%+d%+d)", wd->client, wd->frame_rect.width, wd->frame_rect.height, wd->frame_rect.x, wd->frame_rect.y );
-        x = ( wd->frame_rect.x * desk_width )/PagerState.vscreen_width ;
-        y = ( wd->frame_rect.y * desk_height)/PagerState.vscreen_height;
+        x = ( client_x * desk_width )/PagerState.vscreen_width ;
+        y = ( client_y * desk_height)/PagerState.vscreen_height;
         width  = ( wd->frame_rect.width  * desk_width )/PagerState.vscreen_width ;
         height = ( wd->frame_rect.height * desk_height)/PagerState.vscreen_height;
         if( x < 0 )
@@ -1282,23 +1296,27 @@ unregister_client( Window w )
 void forget_desk_client( int desk, ASWindowData *wd )
 {
     ASPagerDesk *d = get_pager_desk( desk );
+    LOCAL_DEBUG_CALLER_OUT( "%d(%p),%p", desk, d, wd );
     if( d && wd && d->clients )
     {
         register int i = d->clients_num ;
         while( --i >= 0 )
             if( d->clients[i] == wd )
             {
-                register int k = d->clients_num ;
-                while( --k > i )
+                register int k = i, last_k = d->clients_num ;
+                while( ++k < last_k )
                     d->clients[k-1] = d->clients[k] ;
+                d->clients[k-1] = NULL;
                 --(d->clients_num);
                 break;
             }
+        LOCAL_DEBUG_OUT( "client found at %d", i );
     }
 }
 
 void add_desk_client( ASPagerDesk *d, ASWindowData *wd )
 {
+    LOCAL_DEBUG_OUT( "%p, %p", d, wd );
     if( d && wd )
     {
         d->clients = realloc( d->clients, (d->clients_num+1)*sizeof(ASWindowData*));
@@ -1331,6 +1349,8 @@ void add_client( ASWindowData *wd )
     set_astbar_hilite( wd->bar, NORMAL_HILITE|NO_HILITE_OUTLINE );
     add_astbar_label( wd->bar, 0, 0, 0, NO_ALIGN, NULL );
     move_astbar( wd->bar, wd->canvas, 0, 0 );
+    if( wd->focused )
+        set_astbar_focused( wd->bar, NULL, True );
 
     set_client_name( wd, False);
     set_client_look( wd, False );
@@ -1342,15 +1362,18 @@ void add_client( ASWindowData *wd )
 void refresh_client( int old_desk, ASWindowData *wd )
 {
     ASPagerDesk *d = get_pager_desk( wd->desk );
-    LOCAL_DEBUG_OUT( "client(%lX)->name(%s)->icon_name(%s)", wd->client, wd->window_name, wd->icon_name );
+    LOCAL_DEBUG_OUT( "client(%lX)->name(%s)->icon_name(%s)->desk(%d)->old_desk(%d)", wd->client, wd->window_name, wd->icon_name, wd->desk, old_desk );
     if( old_desk != wd->desk )
     {
         forget_desk_client( old_desk, wd );
         add_desk_client( d, wd );
+        LOCAL_DEBUG_OUT( "reparenting client to desk %d", d->desk );
         quietly_reparent_canvas( wd->canvas, d->desk_canvas->w, StructureNotifyMask, False );
     }
     set_client_name( wd, True );
+    set_astbar_focused( wd->bar, wd->canvas, wd->focused );
     place_client( d, wd, False );
+    LOCAL_DEBUG_OUT( "all done%s", "" );
 }
 
 
@@ -1404,8 +1427,56 @@ set_desktop_pixmap( int desk, Pixmap pmap )
     }
 }
 
+void
+switch_desks( int new_desk )
+{
+    Scr.CurrentDesk = new_desk;
 
+    if( IsValidDesk( new_desk ) )
+    {
+        ASPagerDesk *new_d = get_pager_desk( new_desk ) ;
 
+        if( PagerState.focused_desk != new_d )
+        {
+            if( PagerState.focused_desk )
+            {
+                set_astbar_focused( PagerState.focused_desk->title,      PagerState.focused_desk->desk_canvas, False );
+                set_astbar_focused( PagerState.focused_desk->background, PagerState.focused_desk->desk_canvas, False );
+                if( is_canvas_dirty(PagerState.focused_desk->desk_canvas) )
+                    update_canvas_display(PagerState.focused_desk->desk_canvas);
+                PagerState.focused_desk = NULL ;
+            }
+            if ( new_d )
+            {
+                set_astbar_focused( new_d->title, new_d->desk_canvas, True );
+                set_astbar_focused( new_d->background, new_d->desk_canvas, True );
+                if( is_canvas_dirty(new_d->desk_canvas) )
+                    update_canvas_display(new_d->desk_canvas);
+                PagerState.focused_desk = new_d ;
+            }
+        }
+    }
+    place_selection();
+}
+
+void
+move_sticky_clients()
+{
+    int desk = PagerState.desks_num ;
+
+    while( --desk >= 0 )
+    {
+        ASPagerDesk *d = &(PagerState.desks[desk]) ;
+        if( d->clients && d->clients_num > 0 )
+        {
+            register int i = d->clients_num ;
+            register ASWindowData **clients = d->clients ;
+            while( --i >= 0 )
+                if( clients[i] && get_flags( clients[i]->state_flags, AS_Sticky))
+                    place_client( d, clients[i], True );
+        }
+    }
+}
 
 /*************************************************************************
  * individuaL Desk manipulation
@@ -1422,19 +1493,22 @@ process_message (unsigned long type, unsigned long *body)
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
 //        ASTBarData *tbar = wd?wd->tbar:NULL;
 		WindowPacketResult res ;
-        Window w = wd?wd->canvas->w:None;
-        int old_desk = wd?wd->desk:INVALID_DESK;
+        /* saving relevant client info since handle_window_packet could destroy the actuall structure */
+        Window               saved_w = wd?wd->canvas->w:None;
+        int                  saved_desk = wd?wd->desk:INVALID_DESK;
+        struct ASWindowData *saved_wd = wd ;
 
         show_progress( "message %lX window %X data %p", type, body[0], wd );
 		res = handle_window_packet( type, body, &wd );
         if( res == WP_DataCreated )
             add_client( wd );
 		else if( res == WP_DataChanged )
-            refresh_client( old_desk, wd );
+            refresh_client( saved_desk, wd );
 		else if( res == WP_DataDeleted )
         {
-            forget_desk_client( old_desk, wd );
-            unregister_client( w );
+            LOCAL_DEBUG_OUT( "client deleted (%p)->window(%lX)->desk(%d)", saved_wd, saved_w, saved_desk );
+            forget_desk_client( saved_desk, saved_wd );
+            unregister_client( saved_w );
         }
     }else
     {
@@ -1447,23 +1521,14 @@ process_message (unsigned long type, unsigned long *body)
                     Scr.Vx = (long) body[0];
                     Scr.Vy = (long) body[1];
                     LOCAL_DEBUG_OUT("M_NEW_PAGE(desk = %d,Vx=%d,Vy=%d)", Scr.CurrentDesk, Scr.Vx, Scr.Vy);
-
-                    if (body[2] != 10000)
-                    {
-                       /* MoveStickyWindows (); */
-                    }
+                    move_sticky_clients();
                     place_selection();
                 }
                 break;
             case M_NEW_DESK :
                 {
-                    int old_desk = Scr.CurrentDesk;
-                    Scr.CurrentDesk = (long) body[0];
-                    LOCAL_DEBUG_OUT("M_NEW_DESK(New=%d, Old=%d)", Scr.CurrentDesk, old_desk);
-                    if (Scr.CurrentDesk != 10000)
-                    {
-                    }
-                    place_selection();
+                    LOCAL_DEBUG_OUT("M_NEW_DESK(New=%ld, Old=%d)", body[0], Scr.CurrentDesk);
+                    switch_desks( body[0] );
                 }
                 break ;
             case M_STACKING_ORDER :
@@ -1486,7 +1551,7 @@ DispatchEvent (ASEvent * event)
 #endif
     {
         show_progress("****************************************************************");
-        show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name(event->x.type), event->x.xany.window, event->w, event->client, context2text(event->context));
+        show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name(event->x.type), event->x.xany.window, event->w, event->client, context2text(event->context), event->x.xany.send_event);
     }
 
     balloon_handle_event (&(event->x));
@@ -1665,7 +1730,7 @@ void
 on_desk_pressure_changed( ASPagerDesk *d, int root_x, int root_y, int state )
 {
     int context = check_astbar_point( d->title, root_x, root_y );
-LOCAL_DEBUG_OUT( "root_pos(%+d%+d)->title_root_pos(%+d%+d)", root_x, root_y, d->title->root_x, d->title->root_y );
+LOCAL_DEBUG_OUT( "root_pos(%+d%+d)->title_root_pos(%+d%+d)->context(%s)", root_x, root_y, d->title->root_x, d->title->root_y, context2text(context) );
     if( context != C_NO_CONTEXT )
     {
         set_astbar_btn_pressed (d->title, context);  /* must go before next call to properly redraw :  */

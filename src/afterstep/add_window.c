@@ -1384,6 +1384,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
     if( AS_ASSERT(asw) )
         return;
 
+    broadcast_focus_change( asw, focused );
+
     if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
     {
         register int i = FRAME_PARTS;

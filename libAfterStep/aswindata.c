@@ -146,11 +146,10 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 		}else if( (type&WINDOW_STATE_MASK) )
 		{
 			if( type == M_FOCUS_CHANGE )
-				if( !wd->focused )
-				{
-					res = WP_DataChanged ;
-					wd->focused = True ;
-				}
+            {
+                res = WP_DataChanged ;
+                wd->focused = data[3] ;
+            }
 			return res ;
 		}
 	}

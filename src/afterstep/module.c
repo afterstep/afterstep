@@ -853,12 +853,10 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 /* usefull functions to simplify life in other places :                        */
 /*******************************************************************************/
 void
-broadcast_focus_change( ASWindow *focused )
+broadcast_focus_change( ASWindow *asw, Bool focused )
 {
-    if( focused == NULL )
-        SendPacket(-1, M_FOCUS_CHANGE, 3, 0L, 0L, 0L);
-    else
-        SendPacket(-1, M_FOCUS_CHANGE, 3, focused->w, focused->frame, (unsigned long)focused);
+    if( asw )
+        SendPacket(-1, M_FOCUS_CHANGE, 4, asw->w, asw->frame, (unsigned long)asw, (unsigned long)focused);
 }
 
 void

@@ -184,7 +184,6 @@ Bool KeyboardShortcuts (XEvent * xevent, int return_event, int move_size);
 
 void HandleExpose (struct ASEvent*);
 extern void HandleFocusIn (struct ASEvent *event);
-extern void HandleFocusOut (struct ASEvent *event);
 extern void HandleDestroyNotify (struct ASEvent *event);
 extern void HandleMapRequest (struct ASEvent *event);
 extern void HandleMapNotify (struct ASEvent *event);
@@ -265,7 +264,7 @@ void SendString (int module, unsigned long event_type,
                unsigned long data1, unsigned long data2, unsigned long data3, char *name);
 void SendStackingOrder (int channel, unsigned long msg_type, unsigned long desk, ASVector *ids);
 /* simplified specialized interface to above functions : */
-void broadcast_focus_change( ASWindow *focused );
+void broadcast_focus_change( ASWindow *asw, Bool focused );
 void broadcast_window_name( ASWindow *asw );
 void broadcast_icon_name( ASWindow *asw );
 void broadcast_res_names( ASWindow *asw );

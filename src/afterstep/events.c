@@ -378,7 +378,7 @@ DigestEvent( ASEvent *event )
 #endif
     {
         show_progress("****************************************************************");
-        show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name(event->x.type), event->x.xany.window, event->w, event->client, context2text(event->context));
+        show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name(event->x.type), event->x.xany.window, event->w, event->client, context2text(event->context), event->x.xany.send_event);
     }
 }
 
@@ -573,10 +573,8 @@ DispatchEvent ( ASEvent *event )
  ***********************************************************************/
 
 /***********************************************************************
- *
  *  Procedure:
- *	HandleFocusIn - handles focus in events
- *
+ *  HandleFocusIn - client received focus
  ************************************************************************/
 void
 HandleFocusIn ( ASEvent *event )
@@ -589,8 +587,6 @@ HandleFocusIn ( ASEvent *event )
 
     if( event->client == NULL && get_flags(AfterStepState, ASS_HousekeepingMode))
         return;
-    if (event->client != Scr.Windows->hilited)
-        broadcast_focus_change( event->client );
     /* note that hilite_aswindow changes value of Scr.Hilite!!! */
     hilite_aswindow( event->client );
 }

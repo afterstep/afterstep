@@ -701,10 +701,10 @@ destroy_wmprops (ASWMProps * wmprops, Bool reusable)
 		if (wmprops->as_desk_numbers)
 			free (wmprops->as_desk_numbers);
 
-		if (reusable)						   /* we are being paranoid */
-			memset (wmprops, 0x00, sizeof (ASWMProps));
-		else
-			free (wmprops);
+        /* we are being paranoid : */
+        memset (wmprops, 0x00, sizeof (ASWMProps));
+        if (!reusable)
+            free (wmprops);
 	}
 }
 
@@ -844,7 +844,8 @@ set_desktop_num_prop (ASWMProps * wmprops, long new_desk, Window vroot, Bool add
 			wmprops->desktop_num = wmprops->as_desk_num;
 			wmprops->as_desk_numbers = realloc (wmprops->as_desk_numbers, wmprops->as_desk_num);
 			wmprops->virtual_roots = realloc (wmprops->virtual_roots, wmprops->as_desk_num);
-			for (k = wmprops->as_desk_num - 1; k > i + 1; k--)
+            k = wmprops->as_desk_num ;
+            while ( --k > i )
 			{
 				wmprops->as_desk_numbers[k] = wmprops->as_desk_numbers[k - 1];
 				wmprops->virtual_roots[k] = wmprops->virtual_roots[k - 1];
@@ -856,10 +857,11 @@ set_desktop_num_prop (ASWMProps * wmprops, long new_desk, Window vroot, Bool add
 		{									   /* removing old desk */
 			wmprops->as_desk_num--;
 			wmprops->desktop_num = wmprops->as_desk_num;
-			for (k = index; k < wmprops->as_desk_num; k++)
+            k = index ;
+            while (++k < wmprops->as_desk_num)
 			{
-				wmprops->as_desk_numbers[k] = wmprops->as_desk_numbers[k + 1];
-				wmprops->virtual_roots[k] = wmprops->virtual_roots[k + 1];
+                wmprops->as_desk_numbers[k-1] = wmprops->as_desk_numbers[k];
+                wmprops->virtual_roots[k-1] = wmprops->virtual_roots[k];
 			}
 		} else
 			return;							   /* nothing to do */

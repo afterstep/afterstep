@@ -1147,8 +1147,11 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         ApplyFeel( &Scr.Feel );
 
     if (get_flags(what, PARSE_LOOK_CONFIG))
+    {
         FixLook( &Scr.Look );
-
+        if( thisdesktop == Scr.CurrentDesk )
+            change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
+    }
     /* TODO: update the menus */
     if (get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 	{

@@ -194,7 +194,8 @@ viewport_aswindow_iter_func( void *data, void *aux_data )
     {
         asw->status->viewport_x = Scr.Vx ;
         asw->status->viewport_y = Scr.Vy ;
-        on_window_status_changed( asw, True, True );
+        if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
+            on_window_status_changed( asw, True, True );
     }
     return True;
 }
@@ -336,8 +337,12 @@ change_aswindow_desk_iter_func(void *data, void *aux_data)
     if( ASWIN_GET_FLAGS(asw, AS_Sticky) ||
         (ASWIN_GET_FLAGS(asw, AS_Iconic) && get_flags( Scr.Feel.flags, StickyIcons)) )
     {  /* Window is sticky */
-        ASWIN_DESK(asw) = new_desk ;
-        set_client_desktop( asw->w, new_desk );
+        if( ASWIN_DESK(asw) != new_desk && IsValidDesk(new_desk))
+        {
+            ASWIN_DESK(asw) = new_desk ;
+            set_client_desktop( asw->w, new_desk );
+            broadcast_config (M_CONFIGURE_WINDOW, asw);
+        }
     }else
     {
         Window dst = Scr.ServiceWin;
@@ -423,7 +428,8 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
             hide_focus();
     }
 
-    restack_window_list( new_desk, False );
+    if( IsValidDesk(new_desk) )
+        restack_window_list( new_desk, False );
 
     /* Change the look to this desktop's one if it really changed */
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
@@ -437,9 +443,6 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
 #if 0
     /* autoplace sticky icons so they don't wind up over a stationary icon */
 	AutoPlaceStickyIcons ();
-
-
-	CorrectStackOrder ();
 	update_windowList ();
 #endif
 

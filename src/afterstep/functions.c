@@ -1039,7 +1039,8 @@ void send_window_list_func_handler( FunctionData *data, ASEvent *event, int modu
         SendPacket (module, M_NEW_PAGE, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
         iterate_asbidirlist( Scr.Windows->clients, send_aswindow_data_iter_func, (void*)module, NULL, False );
         SendPacket (module, M_END_WINDOWLIST, 0);
-        restack_window_list( Scr.CurrentDesk, True );
+        if( IsValidDesk(Scr.CurrentDesk) )
+            restack_window_list( Scr.CurrentDesk, True );
     }
 }
 

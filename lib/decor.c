@@ -54,7 +54,7 @@ refresh_canvas_config (ASCanvas * pc)
 		XTranslateCoordinates (dpy, pc->w, Scr.Root, 0, 0, &root_x, &root_y, &wdumm);
         if(root_x != pc->root_x)
             set_flags(changed, CANVAS_X_CHANGED);
-        if( root_y != pc->root_y);
+        if( root_y != pc->root_y)
             set_flags(changed, CANVAS_Y_CHANGED);
 		pc->root_x = root_x;
 		pc->root_y = root_y;
