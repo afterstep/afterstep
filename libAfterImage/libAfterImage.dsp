@@ -113,6 +113,10 @@ SOURCE=.\blender.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\bmp.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\char2uni.c
 # End Source File
 # Begin Source File
@@ -186,6 +190,10 @@ SOURCE=.\asvisual.h
 # Begin Source File
 
 SOURCE=.\blender.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\bmp.h
 # End Source File
 # Begin Source File
 

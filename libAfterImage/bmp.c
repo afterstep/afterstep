@@ -24,6 +24,7 @@
 
 #ifdef _WIN32
 #include "win32/config.h"
+#include <windows.h>
 #else
 #include "config.h"
 #endif
@@ -89,5 +90,49 @@ dib_data_to_scanline( ASScanline *buf,
 	}
 }
 
+BITMAPINFO *
+ASImage2DBI( ASVisual *asv, ASImage *im, 
+		     int offset_x, int offset_y,
+			 unsigned int to_width,
+			 unsigned int to_height,
+  			 void **pBits )
+{
+	BITMAPINFO *bmp_info = NULL;
+	ASImageDecoder *imdec ;
+	int y, max_y = to_height;	
+	int tiling_step = 0 ;
+	START_TIME(started);
 
+LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, tint = #%8.8lX", src, offset_x, offset_y, to_width, to_height, tint );
+	if( im== NULL || (imdec = start_image_decoding(asv, im, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
+	{
+		LOCAL_DEBUG_OUT( "failed to start image decoding%s", "");
+		return NULL;
+	}
+	
+	if( to_height > im->height )
+	{
+		tiling_step = im->height ;
+		max_y = im->height ;
+	}
+	/* create bmp_info struct */
+	/* allocate DIB bits : */
+	for( y = 0 ; y < max_y ; y++  )
+	{
+		imdec->decode_image_scanline( imdec );
+		/* convert to DIB bits : */
+	}
+	
+	stop_image_decoding( &imdec );
+
+	SHOW_TIME("", started);
+	return bmp_info;
+}
+
+#ifdef _WIN32
+
+
+
+
+#endif
 
