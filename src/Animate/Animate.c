@@ -36,7 +36,8 @@
 #define ANIM_DELAY2     20
 
 /* masks for AS pipe */
-#define mask_reg (WINDOW_PACKET_MASK|M_NEW_DESKVIEWPORT|M_LOCKONSEND)
+#define mask_lock_on_send	M_STATUS_CHANGE
+#define mask_reg 			(WINDOW_PACKET_MASK|M_NEW_DESKVIEWPORT)
 #define mask_off 0
 
 AnimateConfig *Config = NULL ;
@@ -387,7 +388,7 @@ main (int argc, char **argv)
     InitMyApp (CLASS_ANIMATE, argc, argv, NULL, NULL, 0 );
 
     ConnectX( ASDefaultScr, PropertyChangeMask );
-    ConnectAfterStep ( mask_reg);
+    ConnectAfterStep ( mask_reg, mask_lock_on_send );
 	
 	Config = CreateAnimateConfig();
 	
@@ -586,8 +587,10 @@ process_message (send_data_type type, send_data_type *body)
 		Scr.Vy = body[1] ;
 		Scr.CurrentDesk = body[2] ;
 	}
-	
-	SendInfo ("UNLOCK 1\n", 0);
+
+	if( type&M_STATUS_CHANGE  )
+		SendInfo ("UNLOCK 1\n", 0);
+	sleep_a_millisec(10);
 }
 /*************************************************************************/
 

@@ -176,7 +176,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	/* these are commands  to be used only by modules */
 	FUNC_TERM ("&nonsense&", 10, F_MODULE_FUNC_START),	/* not really a command */
 	FUNC_TERM ("Send_WindowList", 15, F_SEND_WINDOW_LIST),	/* */
-	FUNC_TERM ("SET_MASK", 8, F_SET_MASK),	   /* SET_MASK  mask */
+	FUNC_TERM ("SET_MASK", 8, F_SET_MASK),	   /* SET_MASK  mask lock_mask */
     FUNC_TERM2 (NEED_NAME, "SET_NAME", 8, F_SET_NAME),   /* SET_NAME  name */
 	FUNC_TERM ("UNLOCK", 6, F_UNLOCK),		   /* UNLOCK    1  */
 	FUNC_TERM ("SET_FLAGS", 9, F_SET_FLAGS),   /* SET_FLAGS flags */

@@ -51,22 +51,23 @@ extern "C" {
 #define M_NEW_DESKVIEWPORT   (1<<1)
 #define M_ADD_WINDOW         (1<<2)
 #define M_CONFIGURE_WINDOW   (1<<3)
-#define M_MAP                (1<<4)
-#define M_FOCUS_CHANGE       (1<<5)
-#define M_DESTROY_WINDOW     (1<<6)
-#define M_WINDOW_NAME        (1<<7)
-#define M_WINDOW_NAME_MATCHED (1<<8)
-#define M_ICON_NAME          (1<<9)
-#define M_RES_CLASS          (1<<10)
-#define M_RES_NAME           (1<<11)
-#define M_END_WINDOWLIST     (1<<12)
-#define M_STACKING_ORDER     (1<<13)
-#define M_NEW_BACKGROUND     (1<<14)
-#define M_NEW_CONFIG         (1<<15)
-#define M_NEW_MODULE_CONFIG	 (1<<16)
-#define M_PLAY_SOUND		 (1<<17)
+#define M_STATUS_CHANGE		 (1<<4)
+#define M_MAP                (1<<5)
+#define M_FOCUS_CHANGE       (1<<6)
+#define M_DESTROY_WINDOW     (1<<7)
+#define M_WINDOW_NAME        (1<<8)
+#define M_WINDOW_NAME_MATCHED (1<<9)
+#define M_ICON_NAME          (1<<10)
+#define M_RES_CLASS          (1<<11)
+#define M_RES_NAME           (1<<12)
+#define M_END_WINDOWLIST     (1<<13)
+#define M_STACKING_ORDER     (1<<14)
+#define M_NEW_BACKGROUND     (1<<15)
+#define M_NEW_CONFIG         (1<<16)
+#define M_NEW_MODULE_CONFIG	 (1<<17)
+#define M_PLAY_SOUND		 (1<<18)
 
-#define M_LOCKONSEND         (1<<18)
+//#define M_LOCKONSEND         (1<<19)
 
 
 #define MAX_MESSAGES          18
@@ -111,7 +112,7 @@ void DestroyASMessage (ASMessage * msg);
 void module_wait_pipes_input ( void (*as_msg_handler) (send_data_type type, send_data_type *body) );
 
 /* returns fd of the AfterStep connection */
-int ConnectAfterStep (send_data_type message_mask);
+int ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask);
 void SendInfo (char *message, send_ID_type window);
 void SendNumCommand ( int func, const char *name, const send_signed_data_type *func_val, const send_signed_data_type *unit_val, send_ID_type window);
 void SendTextCommand ( int func, const char *name, const char *text, send_ID_type window);

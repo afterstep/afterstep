@@ -134,7 +134,7 @@ main( int argc, char **argv )
     ConnectAfterStep (  M_END_WINDOWLIST |
                         M_DESTROY_WINDOW |
                     	WINDOW_CONFIG_MASK |
-                    	WINDOW_NAME_MASK );
+                    	WINDOW_NAME_MASK, 0 );
     signal (SIGTERM, DeadPipe);
     signal (SIGKILL, DeadPipe);
     

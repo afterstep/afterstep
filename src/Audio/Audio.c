@@ -85,7 +85,7 @@ main (int argc, char **argv)
     InitMyApp (CLASS_AUDIO, argc, argv, NULL, NULL, 0 );
 
     ConnectX( ASDefaultScr, PropertyChangeMask );
-    ConnectAfterStep ( mask_reg);
+    ConnectAfterStep ( mask_reg, 0 );
 	
 	Config = CreateAudioConfig();
 	

@@ -230,7 +230,7 @@ main (int argc, char **argv)
                     M_NEW_DESKVIEWPORT |
                     M_END_WINDOWLIST |
                     WINDOW_CONFIG_MASK |
-                    WINDOW_NAME_MASK);
+                    WINDOW_NAME_MASK, 0);
     balloon_init (False);
 
     Config = CreateWharfConfig ();

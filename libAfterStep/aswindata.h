@@ -60,7 +60,7 @@ typedef struct ASWindowData
 }ASWindowData;
 /**********************************************************************/
 /* w, frame, t and the rest of the full window config */
-#define WINDOW_CONFIG_MASK (M_ADD_WINDOW|M_CONFIGURE_WINDOW|M_MAP)
+#define WINDOW_CONFIG_MASK (M_ADD_WINDOW|M_CONFIGURE_WINDOW|M_STATUS_CHANGE|M_MAP)
 /* w, frame, t, and then text :*/
 #define WINDOW_NAME_MASK   (M_WINDOW_NAME|M_WINDOW_NAME_MATCHED|M_ICON_NAME|M_RES_CLASS|M_RES_NAME)
 /* w, frame and t */

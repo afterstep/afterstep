@@ -281,7 +281,7 @@ int main(int argc, char** argv)
 	if( ASColorState.display )
 	{	
 		ConnectX( ASDefaultScr, PropertyChangeMask );
-    	ConnectAfterStep ( 0 );
+    	ConnectAfterStep ( 0, 0 );
 		LoadBaseConfig (GetBaseOptions);
 	}else
 	{

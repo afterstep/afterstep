@@ -223,7 +223,7 @@ main( int argc, char **argv )
 
     ConnectAfterStep (WINDOW_CONFIG_MASK |
                       WINDOW_NAME_MASK |
-                      M_END_WINDOWLIST);
+                      M_END_WINDOWLIST, 0);
 
     /* Request a list of all windows, while we load our config */
     SendInfo ("Send_WindowList", 0);

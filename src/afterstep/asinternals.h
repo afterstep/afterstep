@@ -313,6 +313,7 @@ typedef struct module_t
   int                   active;
   char                 *name;
   CARD32                mask;
+  CARD32                lock_on_send_mask;
   queue_buff_struct    *output_queue;
   module_ibuf_t         ibuf;
 }module_t;

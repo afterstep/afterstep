@@ -251,7 +251,7 @@ main (int argc, char **argv)
 
 #if 0
 
-    ConnectAfterStep ( mask_reg);
+    ConnectAfterStep ( mask_reg, 0);
 	
   	SendInfo ( "Nop \"\"", 0);
 #endif

@@ -154,8 +154,11 @@ handle_window_packet(CARD32 type, CARD32 *data, ASWindowData **pdata)
 		{
 			if( type == M_FOCUS_CHANGE )
             {
-                res = WP_DataChanged ;
-                wd->focused = data[3] ;
+				if( wd->focused != data[3] )
+				{	
+                	res = WP_DataChanged ;
+                	wd->focused = data[3] ;
+				}
             }
 			return res ;
 		}

@@ -475,24 +475,28 @@ PositiveWrite (unsigned int channel, send_data_type *ptr, int size)
 		return -1;
 
 	AddToQueue (module, ptr, size, 0);
-    if (get_flags(module->mask, M_LOCKONSEND) && !is_server_grabbed() )
+    if (get_flags(module->lock_on_send_mask, mask) && !is_server_grabbed() )
 	{
         int           res ;
 		int wait_count = 0 ; 
         do
         {
             if( (res = FlushQueue (module)) >= 0 )
+			{
+				sleep_a_millisec(10);/* give it some time to react */	  
                 res = HandleModuleInput (module);
-            if ( res > 0  ) /* need to run command */
+            }
+			if ( res > 0  ) /* need to run command */
             {
+				LOCAL_DEBUG_OUT( "replay received while waiting for UNLOCK, func = %ld, F_UNLOCK = %d", module->ibuf.func->func, F_UNLOCK );
                 if( module->ibuf.func->func == F_UNLOCK )
                     return size;
                 RunCommand (module->ibuf.func, channel, module->ibuf.window);
             }
-			sleep_a_millisec(100);/* give it some time to react */
+			sleep_a_millisec(10);/* give it some time to react */
 			++wait_count ;
 			/* module has no more then 20 seconds to unlock us */
-        }while( res >= 0 && wait_count < 200 );
+        }while( res >= 0 && wait_count < 2000 );
 	}
 	return size;
 }
@@ -878,6 +882,7 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 	{
 	 case F_SET_MASK:
          module->mask = fdata->func_val[0];
+		 module->lock_on_send_mask = fdata->func_val[1];
 		 break;
 	 case F_SET_NAME:
         if (module->name != NULL)

@@ -133,7 +133,7 @@ main( int argc, char **argv )
                       M_DESTROY_WINDOW |
                       WINDOW_CONFIG_MASK |
                       WINDOW_NAME_MASK |
-                      M_END_WINDOWLIST);
+                      M_END_WINDOWLIST, 0);
     balloon_init (False);
     Config = CreateWinListConfig ();
 

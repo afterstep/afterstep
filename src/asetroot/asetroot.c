@@ -345,7 +345,7 @@ main (int argc, char **argv)
   SetRootPixmapPropertyID (Atoms[ROOTPIXMAP_ATOM].atom);
 
   if (MyEnv.action == ACTION_DEFAULT)
-    Pipes.fd[0] = Pipes.fd[1] = ConnectAfterStep (M_NEW_DESK | M_NEW_BACKGROUND);
+    Pipes.fd[0] = Pipes.fd[1] = ConnectAfterStep (M_NEW_DESK | M_NEW_BACKGROUND, 0);
 
   LOG2 ("\n%s is parsing Options ...", MyName)
     if (MyEnv.action != ACTION_CLEANUP)

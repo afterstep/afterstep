@@ -1071,7 +1071,9 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
 
     /* now we need to move/resize our frame window */
     if( !apply_window_status_size(asw, od) )
-		broadcast_config (M_CONFIGURE_WINDOW, asw);  /* must enforce status change propagation */
+		changed = True ;
+	if( changed )
+		broadcast_config (M_STATUS_CHANGE, asw);  /* must enforce status change propagation */
     if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
         set_client_state( asw->w, asw->status );
 }

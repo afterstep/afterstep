@@ -108,7 +108,7 @@ main( int argc, char **argv )
     ConnectX( ASDefaultScr, 0 );
     ConnectAfterStep (WINDOW_CONFIG_MASK |
                       WINDOW_NAME_MASK |
-                      M_END_WINDOWLIST);
+                      M_END_WINDOWLIST, 0);
     Config = CreateIdentConfig ();
 
     /* Request a list of all windows, while we load our config */

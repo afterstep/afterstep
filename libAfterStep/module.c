@@ -384,7 +384,7 @@ module_wait_pipes_input ( void (*as_msg_handler) (send_data_type type, send_data
 
 
 int
-ConnectAfterStep (send_data_type message_mask)
+ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
 {
     char *temp;
     char  mask_mesg[32];
@@ -410,9 +410,9 @@ ConnectAfterStep (send_data_type message_mask)
     SendInfo ( temp, None);
 	free (temp);
 
-	sprintf (mask_mesg, "SET_MASK %lu\n", (unsigned long)message_mask);
+	sprintf (mask_mesg, "SET_MASK %lu %lu\n", (unsigned long)message_mask, (unsigned long) lock_on_send_mask);
     SendInfo ( mask_mesg, None);
-
+	
     /* don't really have to do this here, but anyway : */
     InitSession();
     return fd;
