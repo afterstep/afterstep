@@ -1302,19 +1302,21 @@ mystyle_draw_text_image (MyStyle * style, const char *text, unsigned long encodi
 	{
 		if (style->font.as_font)
         {
+			ASTextAttributes attr = {ASTA_VERSION_1, ASTA_UseTabStops, AST_Plain, ASCT_Char, 8, 0, NULL, 0, ARGB32_White };
+
+			attr.type = style->text_style ;
+			attr.fore_color = style->colors.fore ;
+		
 			switch( encoding )
 			{
-				case AS_Text_ASCII :
-					im = draw_text (text, style->font.as_font, style->text_style, 100);
-				    break ;
-				case AS_Text_UTF8 :
-					im = draw_utf8_text (text, style->font.as_font, style->text_style, 100);
-				    break ;
-				case AS_Text_UNICODE :
-					im = draw_unicode_text ((CARD32*)text, style->font.as_font, style->text_style, 100);
-				    break ;
+				case AS_Text_ASCII : attr.char_type = ASCT_Char;	break ;
+				case AS_Text_UTF8  : attr.char_type = ASCT_UTF8; 	break ;
+				case AS_Text_UNICODE: attr.char_type = ASCT_Unicode; 	break ;
 			}
-LOCAL_DEBUG_OUT( "encoding is %ld, im is %p, back_color is %lX", encoding, im, style->colors.fore );
+			
+			im = draw_fancy_text( text, style->font.as_font, &attr, 100, 0 );
+
+			LOCAL_DEBUG_OUT( "encoding is %ld, im is %p, back_color is %lX", encoding, im, style->colors.fore );
             if (im)
             {
 				im->back_color = style->colors.fore;
