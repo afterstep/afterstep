@@ -50,11 +50,10 @@
 #define MODULE_X_INTERFACE
 #include "../../include/afterbase.h"
 #include "../../libAfterImage/afterimage.h"
-#include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
-#include "../../include/style.h"
-#include "../../include/screen.h"
-#include "../../include/module.h"
+#include "../../libAfterStep/asapp.h"
+#include "../../libAfterStep/screen.h"
+#include "../../libAfterStep/module.h"
 #include "Ident.h"
 
 char *MyName;
@@ -147,7 +146,7 @@ main (int argc, char **argv)
   signal (SIGPIPE, DeadPipe);
   set_signal_handler(SIGSEGV);
 
-  x_fd = ConnectX( &Scr, display_name, 0 );
+  x_fd = ConnectX( &Scr, 0 );
   /* connect to AfterStep */
   fd[0] = fd[1] = ConnectAfterStep( M_CONFIGURE_WINDOW|
 								    M_WINDOW_NAME|
@@ -185,7 +184,7 @@ main (int argc, char **argv)
   /* Create a list of all windows */
   /* Request a list of all windows,
    * wait for ConfigureWindow packets */
-  SendInfo (fd, "Send_WindowList", 0);
+  SendInfo ("Send_WindowList", 0);
 
   Loop (fd);
 
@@ -708,17 +707,17 @@ MakeList (void)
   AddToList ("Width:", swidth);
   AddToList ("Height:", sheight);
   AddToList ("BoundaryWidth:", borderw);
-  AddToList ("Sticky:", (target.flags & STICKY ? YES : NO));
+  AddToList ("Sticky:", (target.flags & AS_Sticky ? YES : NO));
 /*  AddToList ("Ontop:", (target.flags & ONTOP ? YES : NO)); */
-  AddToList ("NoTitle:", (target.flags & TITLE ? NO : YES));
-  AddToList ("Iconified:", (target.flags & ICONIFIED ? YES : NO));
-  AddToList ("AvoidCover:", (target.flags & AVOID_COVER ? YES : NO));
-  AddToList ("SkipFocus:", (target.flags & NOFOCUS ? YES : NO));
-  AddToList ("Shaded:", (target.flags & SHADED ? YES : NO));
-  AddToList ("Maximized:", (target.flags & MAXIMIZED ? YES : NO));
-  AddToList ("WindowListSkip:", (target.flags & WINDOWLISTSKIP ? YES : NO));
-  AddToList ("CirculateSkip:", (target.flags & CIRCULATESKIP ? YES : NO));
-  AddToList ("Transient:", (target.flags & TRANSIENT ? YES : NO));
+  AddToList ("NoTitle:", (target.flags & AS_Titlebar ? NO : NO));
+  AddToList ("Iconified:", (target.flags & AS_Icon ? YES : NO));
+  AddToList ("AvoidCover:", (target.flags & AS_AvoidCover ? YES : NO));
+/*  AddToList ("SkipFocus:", (target.flags & NOFOCUS ? YES : NO)); */
+  AddToList ("Shaded:", (target.flags & AS_Shaded ? YES : NO));
+  AddToList ("Maximized:", (target.flags & AS_MaxSize ? YES : NO));
+  AddToList ("WindowListSkip:", (target.flags & AS_SkipWinList ? YES : NO));
+  AddToList ("CirculateSkip:", (target.flags & AS_DontCirculate ? YES : NO));
+  AddToList ("Transient:", (target.flags & AS_Transient ? YES : NO));
   AddToList ("GNOME Enabled:", ((target.gnome_enabled == False) ? NO : YES));
 
   switch (target.gravity)
