@@ -1,18 +1,35 @@
-#include "../../configure.h"
+/*
+ * Copyright (c) 2000 Sasha Vasko <sashav@sprintmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.   See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
 
+#include "../../configure.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
-#include "../../include/ashash.h"
+#include "../../include/regexp.h"
 
 /************************************************************************/
 /************************************************************************/
 /*			regexp compiler and datastructures		*/
 /************************************************************************/
-
 
 typedef struct reg_exp_multichar_part
 {
@@ -71,17 +88,6 @@ typedef struct reg_exp
     unsigned char skip[256] ; /* skip table */
 
 }reg_exp;
-
-struct reg_exp;
-
-typedef struct wild_reg_exp
-{
-    unsigned char *raw ;
-    
-    struct reg_exp *head, *tail, *longest ;
-    unsigned char max_size, hard_total, soft_total, wildcards_num ;
-    
-}wild_reg_exp;    
 
 unsigned char parse_singlechar( unsigned char **data, unsigned char *reserved )
 {
@@ -632,10 +638,6 @@ print_wild_reg_exp( wild_reg_exp *wrexp )
 /************************************************************************/
 /*			Search and sorting methods 			*/
 /************************************************************************/
-
-#define DIR_LEFT	(0x01<<0)
-#define DIR_RIGHT	(0x01<<1)
-#define DIR_BOTH	(DIR_LEFT|DIR_RIGHT)
 
 int
 match_substring( reg_exp *rexp, char *string, size_t len, int dir )
