@@ -31,11 +31,11 @@
 #include <time.h>
 #endif
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/parser.h"
-#include "../include/freestor.h"
-#include "../include/functions.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "parser.h"
+#include "freestor.h"
+#include "functions.h"
 
 char         *_disabled_keyword = DISABLED_KEYWORD;
 

@@ -22,19 +22,15 @@
 
 #include "../configure.h"
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/mystyle.h"
-#include "../include/screen.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "mystyle.h"
+#include "screen.h"
 #include "../libAfterImage/afterimage.h"
-#include "../include/myicon.h"
-#include "../include/decor.h"
-#include "../include/event.h"
-#include "../include/balloon.h"
-
-#ifdef SHAPE
-#include <X11/extensions/shape.h>
-#endif
+#include "myicon.h"
+#include "decor.h"
+#include "event.h"
+#include "balloon.h"
 
 static GC           MaskGC = None;
 static ASTBarData  *FocusedBar = NULL;          /* currently focused bar with balloon shown for it */

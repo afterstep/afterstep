@@ -21,13 +21,13 @@
 
 #define LOCAL_DEBUG
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/asdatabase.h"
-#include "../include/screen.h"
-#include "../include/functions.h"
-#include "../include/clientprops.h"
-#include "../include/hints.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "asdatabase.h"
+#include "screen.h"
+#include "functions.h"
+#include "clientprops.h"
+#include "hints.h"
 
 
 /*********************************************************************************

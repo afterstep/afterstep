@@ -38,12 +38,12 @@
 
 #define IN_MODULE
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/mystyle.h"
-#include "../include/loadimg.h"
-#include "../include/background.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "screen.h"
+#include "mystyle.h"
+#include "loadimg.h"
+#include "background.h"
 
 
 #ifdef DEBUG_BACKGROUNDS

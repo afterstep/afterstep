@@ -22,15 +22,13 @@
 
 #define LOCAL_DEBUG
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/parse.h"
-#include "../include/loadimg.h"
-#include "../include/parser.h"
-#include "../include/confdefs.h"
-#include "../include/mystyle.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "loadimg.h"
+#include "parser.h"
+#include "mystyle.h"
+#include "screen.h"
 #include "../libAfterImage/afterimage.h"
-#include "../include/screen.h"
 
 /*
  * if you add a member to this list, or to the MyStyle structure,

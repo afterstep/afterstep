@@ -25,8 +25,8 @@
 
 #include "../configure.h"
 
-#include "../include/asapp.h"
-#include "../include/asdatabase.h"
+#include "asapp.h"
+#include "asdatabase.h"
 
 ASDatabaseRecord *
 make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord * reusable_memory)

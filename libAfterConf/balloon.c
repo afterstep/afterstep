@@ -19,16 +19,18 @@
  */
 
 
-#include "../../configure.h"
+#include "../configure.h"
 #define NEED_BALLOON
 
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/mystyle.h"
-#include "../../include/parser.h"
-#include "../../include/confdefs.h"
-#include "../../include/balloon.h"
-#include "../../include/mylook.h"
+#include "../libAfterStep/asapp.h"
+#include "../libAfterStep/afterstep.h"
+#include "../libAfterStep/mystyle.h"
+#include "../libAfterStep/parser.h"
+#include "../libAfterStep/balloon.h"
+#include "../libAfterStep/mylook.h"
+
+#include "afterconf.h"
+
 
 /*****************************************************************************
  *

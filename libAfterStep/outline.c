@@ -27,12 +27,12 @@
 
 #define LOCAL_DEBUG
 
-#include "../include/asapp.h"
+#include "asapp.h"
 #include "../libAfterImage/afterimage.h"
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/decor.h"
-#include "../include/moveresize.h"
+#include "afterstep.h"
+#include "screen.h"
+#include "decor.h"
+#include "moveresize.h"
 
 #define THICKNESS 3
 

@@ -21,16 +21,14 @@
 
 #include "../configure.h"
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/parse.h"
-#include "../include/loadimg.h"
-#include "../include/parser.h"
-#include "../include/confdefs.h"
-#include "../include/mystyle.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "loadimg.h"
+#include "parser.h"
+#include "mystyle.h"
+#include "screen.h"
+#include "balloon.h"
 #include "../libAfterImage/afterimage.h"
-#include "../include/screen.h"
-#include "../include/balloon.h"
 
 int    _as_frame_corner_xref[FRAME_SIDES+1] = {FR_NW, FR_NE, FR_SE, FR_SW, FR_NW};
 

@@ -22,11 +22,11 @@
 
 #include "../configure.h"
 
-#include "../include/asapp.h"
-#include "../include/screen.h"
-#include "../include/mystyle.h"
-#include "../include/mystyle_property.h"
-#include "../include/wmprops.h"
+#include "asapp.h"
+#include "screen.h"
+#include "mystyle.h"
+#include "mystyle_property.h"
+#include "wmprops.h"
 
 #ifdef I18N
 #define MAX_FONTSET_NAME_LENGTH  256

@@ -20,17 +20,15 @@
 
 #define LOCAL_DEBUG
 
-#include "../../configure.h"
+#include "../configure.h"
 
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/mystyle.h"
-#include "../../include/parser.h"
-#include "../../include/parse.h"
-#include "../../include/screen.h"
-#include "../../include/mylook.h"
-#include "../../include/confdefs.h"
+#include "../libAfterStep/asapp.h"
+#include "../libAfterStep/afterstep.h"
+#include "../libAfterStep/parser.h"
+#include "../libAfterStep/hints.h"
+#include "../libAfterStep/asfeel.h"
 
+#include "afterconf.h"
 
 
 TermDef       WindowBoxTerms[] = {

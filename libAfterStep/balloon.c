@@ -24,12 +24,12 @@
 
 #include <X11/Intrinsic.h>
 
-#include "../include/asapp.h"
-#include "../include/mystyle.h"
-#include "../include/event.h"
-#include "../include/screen.h"
-#include "../include/decor.h"
-#include "../include/balloon.h"
+#include "asapp.h"
+#include "mystyle.h"
+#include "event.h"
+#include "screen.h"
+#include "decor.h"
+#include "balloon.h"
 
 static ASBalloonState BalloonState = {{0},NULL, NULL, NULL, None};
 

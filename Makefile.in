@@ -5,8 +5,7 @@ confsdirs= autoconf libAfterBase libAfterImage
 
 ####		  @ASCP@  \
 
-subdirs		= libAfterBase libAfterImage lib \
-	      src/Config \
+subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  doc tools \
 		  src/afterstep \
 		  src/Pager \

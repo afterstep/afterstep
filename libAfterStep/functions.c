@@ -22,11 +22,11 @@
 
 #include "../configure.h"
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/parser.h"
-#include "../include/functions.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "screen.h"
+#include "parser.h"
+#include "functions.h"
 
 /*************************************************************************/
 /* parsing code :

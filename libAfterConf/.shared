@@ -3,6 +3,8 @@ LIBAFTERCONF_OBJS = \
 		$(LIBAFTERCONF_PATH)/Base.c \
 		$(LIBAFTERCONF_PATH)/balloon.c \
 		$(LIBAFTERCONF_PATH)/Database.c \
+		$(LIBAFTERCONF_PATH)/Feel.c \
+		$(LIBAFTERCONF_PATH)/function.c \
 		$(LIBAFTERCONF_PATH)/Look.c \
 		$(LIBAFTERCONF_PATH)/MyStyle.c \
 		$(LIBAFTERCONF_PATH)/Pager.c \
@@ -10,4 +12,4 @@ LIBAFTERCONF_OBJS = \
 		$(LIBAFTERCONF_PATH)/WinList.c
 
 LIBAFTERCONF_INCS = \
-		$(LIBAFTERCONF_PATH)/../../include/confdefs.h
+		$(LIBAFTERCONF_PATH)/afterconf.h

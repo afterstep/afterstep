@@ -24,15 +24,15 @@
 
 #include "../configure.h"
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/module.h"
-#include "../include/mystyle.h"
-#include "../include/clientprops.h"
-#include "../include/wmprops.h"
-#include "../include/aswindata.h"
-#include "../include/decor.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "screen.h"
+#include "module.h"
+#include "mystyle.h"
+#include "clientprops.h"
+#include "wmprops.h"
+#include "aswindata.h"
+#include "decor.h"
 
 /**********************************************************************/
 /* Our data :                                        				  */

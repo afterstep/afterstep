@@ -43,7 +43,7 @@
 #endif /* HAVE_XINERAMA */
 
 
-#include "afterbase.h"
+#include "../include/afterbase.h"
 #include "functions.h"
 
 struct SyntaxDef;

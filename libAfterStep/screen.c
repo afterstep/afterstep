@@ -20,7 +20,7 @@
 #define LOCAL_DEBUG
 #include "../configure.h"
 
-#include "../include/asapp.h"
+#include "asapp.h"
 
 #include <signal.h>
 #include <sys/socket.h>
@@ -28,11 +28,11 @@
 #include <sys/fcntl.h>
 #include <sys/un.h>
 
-#include "../include/afterstep.h"
-#include "../include/mystyle.h"
-#include "../include/screen.h"
-#include "../include/module.h"
-#include "../include/wmprops.h"
+#include "afterstep.h"
+#include "mystyle.h"
+#include "screen.h"
+#include "module.h"
+#include "wmprops.h"
 #include "../libAfterImage/afterimage.h"
 
 #ifdef HAVE_XINERAMA

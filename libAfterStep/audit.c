@@ -21,7 +21,7 @@
 
 #ifdef DEBUG_ALLOCS
 
-#include "../include/asapp.h"
+#include "asapp.h"
 
 #undef malloc
 #undef safemalloc

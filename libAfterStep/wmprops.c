@@ -20,10 +20,10 @@
 #undef LOCAL_DEBUG
 #include "../configure.h"
 
-#include "../include/asapp.h"
-#include "../include/screen.h"
-#include "../include/clientprops.h"
-#include "../include/wmprops.h"
+#include "asapp.h"
+#include "screen.h"
+#include "clientprops.h"
+#include "wmprops.h"
 
 /************************************************************************/
 /*      Window Manager properties implementation :                      */

@@ -22,9 +22,9 @@
 
 #include "../configure.h"
 
-#include "../include/asapp.h"
+#include "asapp.h"
 #include "../libAfterImage/afterimage.h"
-#include "../include/loadimg.h"
+#include "loadimg.h"
 
 /* it can be adjusted via $SCREEN_GAMMA env. variable */
 typedef struct pixmap_ref

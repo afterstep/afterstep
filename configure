@@ -994,13 +994,13 @@ ac_configure="$SHELL $ac_aux_dir/configure" # This should be Cygnus configure.
 
 ac_config_headers="$ac_config_headers config.h:autoconf/config.h.in"
 
-version="1.8.12"
-app_version="1.8.11"
-libafterstep_version="0.90"
+version="1.99.0"
+app_version="1.99.0"
+libafterstep_version="0.93"
 libafterstep_version_major="0"
 libafterstep_name="LIBAFTERSTEP"
 libafterstep_file_name="libAfterStep"
-libafterconf_version="0.90"
+libafterconf_version="0.93"
 libafterconf_version_major="0"
 libafterconf_name="LIBAFTERCONF"
 libafterconf_file_name="libAfterConf"
@@ -5276,16 +5276,16 @@ fi
 if test "x$enable_staticlibs" = "xyes"; then
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.a"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.a"
-   AFTERSTEP_LIB="../../lib/libafterstep.a"
-   AFTERCONF_LIB="../Config/libasConfig.a"
+   AFTERSTEP_LIB="../../libAfterStep/libAfterStep.a"
+   AFTERCONF_LIB="../../libAfterConf/libAfterConf.a"
    WIDGETS_LIB="../Script/Widgets/libWidgets.a"
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
 else
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.so"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
-   AFTERSTEP_LIB="../../lib/libafterstep.so"
-   AFTERCONF_LIB="../Config/libasConfig.so"
+   AFTERSTEP_LIB="../../libAfterStep/libAfterStep.so"
+   AFTERCONF_LIB="../../libAfterConf/libAfterConf.so"
    WIDGETS_LIB="../Script/Widgets/libWidgets.so"
    LIBPROG='$(LIB_SHARED)'
    LIBINSTALL="install.dyn"
@@ -5521,10 +5521,10 @@ MAKEFILECOMMON=./autoconf/Makefile.common
 MAKEFILECOMMONLIB=./autoconf/Makefile.common.lib
 LIBAFTERBASEFILES=./libAfterBase/.shared
 LIBAFTERIMAGEFILES=./libAfterImage/.shared
-LIBAFTERSTEPFILES=./lib/.shared
-LIBAFTERCONFFILES=./src/Config/.shared
+LIBAFTERSTEPFILES=./libAfterStep/.shared
+LIBAFTERCONFFILES=./libAfterConf/.shared
 
-ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib configure.h Makefile doc/Makefile doc/afterstepdoc lib/Makefile src/Config/Makefile src/afterstep/Makefile src/asetroot/Makefile src/Animate/Makefile src/Audio/Makefile src/Banner/Makefile src/Cascade/Makefile src/Clean/Makefile src/Form/Makefile src/Gnome/Makefile src/Ident/Makefile src/Pager/Makefile src/Save/Makefile src/Script/Widgets/Makefile src/Script/Makefile src/Scroll/Makefile src/Sound/Makefile src/Tile/Makefile src/Wharf/Makefile src/WinList/Makefile src/WinList2/Makefile src/Zharf/Makefile src/test/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl afterstep/base.8bpp afterstep/base.15bpp afterstep/base.16bpp afterstep/base.24bpp afterstep/base.32bpp afterstep/asetroot afterstep/audio afterstep/autoexec afterstep/compatibility afterstep/pager afterstep/wharf afterstep/zharf afterstep/start/.include afterstep/start/Desktop/Feel/.include afterstep/start/Desktop/Look/.include afterstep/start/Desktop/Theme/.include afterstep/start/Desktop/Pictures/.include"
+ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib configure.h Makefile doc/Makefile doc/afterstepdoc libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile src/asetroot/Makefile src/Animate/Makefile src/Audio/Makefile src/Banner/Makefile src/Cascade/Makefile src/Clean/Makefile src/Form/Makefile src/Gnome/Makefile src/Ident/Makefile src/Pager/Makefile src/Save/Makefile src/Script/Widgets/Makefile src/Script/Makefile src/Scroll/Makefile src/Sound/Makefile src/Tile/Makefile src/Wharf/Makefile src/WinList/Makefile src/WinList2/Makefile src/Zharf/Makefile src/test/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl afterstep/base.8bpp afterstep/base.15bpp afterstep/base.16bpp afterstep/base.24bpp afterstep/base.32bpp afterstep/asetroot afterstep/audio afterstep/autoexec afterstep/compatibility afterstep/pager afterstep/wharf afterstep/zharf afterstep/start/.include afterstep/start/Desktop/Feel/.include afterstep/start/Desktop/Look/.include afterstep/start/Desktop/Theme/.include afterstep/start/Desktop/Pictures/.include"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -5803,8 +5803,8 @@ Try \`$0 --help' for more information." >&2;}
   'Makefile' ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   'doc/Makefile' ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   'doc/afterstepdoc' ) CONFIG_FILES="$CONFIG_FILES doc/afterstepdoc" ;;
-  'lib/Makefile' ) CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
-  'src/Config/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/Config/Makefile" ;;
+  'libAfterStep/Makefile' ) CONFIG_FILES="$CONFIG_FILES libAfterStep/Makefile" ;;
+  'libAfterConf/Makefile' ) CONFIG_FILES="$CONFIG_FILES libAfterConf/Makefile" ;;
   'src/afterstep/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/afterstep/Makefile" ;;
   'src/asetroot/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/asetroot/Makefile" ;;
   'src/Animate/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/Animate/Makefile" ;;

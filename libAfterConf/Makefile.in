@@ -2,14 +2,16 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
+LIB_INCS= afterconf.h
+
 LIB_OBJS        = ASetRoot.o Base.o balloon.o Database.o Feel.o function.o \
 		Look.o MyStyle.o Pager.o Wharf.o WinList.o
 
 LIB_NAME        = LIBAFTERCONF
-LIB_STATIC      = libasConfig.a
-LIB_SHARED      = libasConfig.so
-LIBVER          = 1.0
-LIBVERMAJOR     = 1
+LIB_STATIC      = libAfterConf.a
+LIB_SHARED      = libAfterConf.so
+LIBVER          = @libafterconf_version@
+LIBVERMAJOR     = @libafterconf_version_major@
 
 @MAKEFILECOMMONLIB@
 

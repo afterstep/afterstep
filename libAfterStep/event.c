@@ -19,10 +19,10 @@
 
 #include "../configure.h"
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/event.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "screen.h"
+#include "event.h"
 
 static Bool   as_xserver_is_local = False;     /* True if we are running on the same host as X Server */
 

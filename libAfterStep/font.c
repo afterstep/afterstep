@@ -1,6 +1,6 @@
 #include "../configure.h"
-#include "../include/asapp.h"
-#include "../include/screen.h"
+#include "asapp.h"
+#include "screen.h"
 #include "../libAfterImage/afterimage.h"
 
 const char   *default_font = "fixed";

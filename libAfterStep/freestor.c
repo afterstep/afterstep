@@ -31,12 +31,12 @@
 #include <time.h>
 #endif
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/parser.h"
-#include "../include/screen.h"
-#include "../include/freestor.h"
-#include "../include/functions.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "parser.h"
+#include "screen.h"
+#include "freestor.h"
+#include "functions.h"
 
 extern char  *_disabled_keyword;
 #if 0

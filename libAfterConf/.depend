@@ -1,84 +1,102 @@
 ./ASetRoot.o : \
-		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
-		../../include/background.h \
-		../../include/screen.h \
-		../../libAfterImage/afterimage.h
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/background.h \
+		../libAfterStep/screen.h \
+		../libAfterImage/afterimage.h \
+		afterconf.h
 
 ./Base.o : \
-		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parser.h \
-		../../include/confdefs.h
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/parser.h \
+		afterconf.h
 
 ./balloon.o : \
-		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/mystyle.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
-		../../include/balloon.h \
-		../../include/mylook.h
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/mystyle.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/balloon.h \
+		../libAfterStep/mylook.h \
+		afterconf.h
 
 ./Database.o : \
-		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/asdatabase.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
-		../../include/hints.h
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/asdatabase.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/hints.h \
+		afterconf.h
+
+./Feel.o : \
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/hints.h \
+		../libAfterStep/asfeel.h \
+		afterconf.h
+
+./function.o : \
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/parse.h \
+		../libAfterStep/screen.h \
+		afterconf.h
 
 ./Look.o : \
-		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/mystyle.h \
-		../../include/parser.h \
-		../../include/parse.h \
-		../../include/screen.h \
-		../../include/mylook.h \
-		../../include/confdefs.h
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/hints.h \
+		../libAfterStep/mystyle.h \
+		../libAfterStep/parse.h \
+		../libAfterStep/screen.h \
+		../libAfterStep/mylook.h \
+		afterconf.h
 
 ./MyStyle.o : \
-		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/mystyle.h \
-		../../include/loadimg.h \
-		../../include/parser.h \
-		../../include/parse.h \
-		../../include/screen.h \
-		../../include/confdefs.h
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/mystyle.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/parse.h \
+		../libAfterStep/screen.h \
+		afterconf.h
 
 ./Pager.o : \
-		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/mystyle.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
-		../../include/balloon.h
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/mystyle.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/balloon.h \
+		afterconf.h
 
 ./Wharf.o : \
-		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/mystyle.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
-		../../include/balloon.h
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/mystyle.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/balloon.h \
+		afterconf.h
 
 ./WinList.o : \
-		../../configure.h \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/mystyle.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
-		../../include/balloon.h
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/mystyle.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/balloon.h \
+		afterconf.h

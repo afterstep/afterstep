@@ -17,15 +17,16 @@
  *
  */
 #define LOCAL_DEBUG
-#include "../../configure.h"
+#include "../configure.h"
 
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/parser.h"
-#include "../../include/confdefs.h"
-#include "../../include/background.h"
-#include "../../include/screen.h"
-#include "../../libAfterImage/afterimage.h"
+#include "../libAfterStep/asapp.h"
+#include "../libAfterStep/afterstep.h"
+#include "../libAfterStep/parser.h"
+#include "../libAfterStep/background.h"
+#include "../libAfterStep/screen.h"
+#include "../libAfterImage/afterimage.h"
+
+#include "afterconf.h"
 
 /*****************************************************************************
  *

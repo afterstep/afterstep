@@ -21,20 +21,13 @@
 
 #include "../configure.h"
 
-#include "../include/asapp.h"
+#include "asapp.h"
 #include <X11/cursorfont.h>
 
 
-#include "../include/afterstep.h"
-#include "../include/parse.h"
-#include "../include/loadimg.h"
-#include "../include/parser.h"
-#include "../include/confdefs.h"
-#include "../include/mystyle.h"
-#include "../libAfterImage/afterimage.h"
-#include "../include/screen.h"
-#include "../include/balloon.h"
-#include "../include/asfeel.h"
+#include "afterstep.h"
+#include "screen.h"
+#include "asfeel.h"
 
 /**************************************************************************************
  * ASFeel initialization and destruction code.

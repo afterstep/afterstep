@@ -20,7 +20,7 @@
 #define LOCAL_DEBUG
 
 #include "../configure.h"
-#include "../include/asapp.h"
+#include "asapp.h"
 #include <signal.h>
 
 #include <unistd.h>
@@ -30,10 +30,10 @@
 #include <sys/time.h>
 
 #include "../libAfterImage/afterimage.h"
-#include "../include/screen.h"
-#include "../include/module.h"
-#include "../include/wmprops.h"
-#include "../include/session.h"
+#include "screen.h"
+#include "module.h"
+#include "wmprops.h"
+#include "session.h"
 
 #define  ASSocketWriteInt32(sb,d,i)  socket_buffered_write( (sb), (d), (i)*sizeof(CARD32))
 #define  ASSocketWriteInt16(sb,d,i)  socket_buffered_write( (sb), (d), (i)*sizeof(CARD16))

@@ -242,12 +242,11 @@
 
 ./placement.o: \
 		../../configure.h \
-		../../include/aftersteplib.h \
+		../../include/asapp.h \
 		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h
+		../../include/screen.h \
+		../../include/decor.h \
+		asinternals.h
 
 ./resize.o: \
 		../../configure.h \

@@ -23,11 +23,11 @@
 
 /* #define LOCAL_DEBUG */
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/loadimg.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "loadimg.h"
 #include "../libAfterImage/afterimage.h"
-#include "../include/screen.h"
+#include "screen.h"
 
 void
 asimage2icon (ASImage * im, icon_t * icon, Bool ignore_alpha)

@@ -26,15 +26,15 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/parser.h"
-#include "../include/screen.h"
-#include "../include/functions.h"
-#include "../include/session.h"
-#include "../include/balloon.h"
-#include "../include/mystyle.h"
-#include "../include/wmprops.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "parser.h"
+#include "screen.h"
+#include "functions.h"
+#include "session.h"
+#include "balloon.h"
+#include "mystyle.h"
+#include "wmprops.h"
 #include "../libAfterImage/xpm.h"
 
 

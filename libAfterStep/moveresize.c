@@ -25,18 +25,18 @@
 
 #define LOCAL_DEBUG
 
-#include "../include/asapp.h"
+#include "asapp.h"
 #include <signal.h>
 #include "../libAfterImage/afterimage.h"
-#include "../include/afterstep.h"
-#include "../include/event.h"
-#include "../include/mystyle.h"
-#include "../include/screen.h"
-#include "../include/hints.h"
+#include "afterstep.h"
+#include "event.h"
+#include "mystyle.h"
+#include "screen.h"
+#include "hints.h"
 #ifdef NO_ASRENDER
-#include "../include/decor.h"
+#include "decor.h"
 #endif
-#include "../include/moveresize.h"
+#include "moveresize.h"
 
 #ifndef AS_WIDGET_H_HEADER_INCLUDED
 Bool GrabEm   ( struct ScreenInfo *scr, Cursor cursor );

@@ -10,13 +10,13 @@ AC_INIT(afterstep/autoexec.in)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
-version="1.8.12"
-app_version="1.8.11"
-libafterstep_version="0.90"
+version="1.99.0"
+app_version="1.99.0"
+libafterstep_version="0.93"
 libafterstep_version_major="0"
 libafterstep_name="LIBAFTERSTEP"
 libafterstep_file_name="libAfterStep"
-libafterconf_version="0.90"
+libafterconf_version="0.93"
 libafterconf_version_major="0"
 libafterconf_name="LIBAFTERCONF"
 libafterconf_file_name="libAfterConf"
@@ -341,16 +341,16 @@ fi
 if test "x$enable_staticlibs" = "xyes"; then
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.a"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.a"
-   AFTERSTEP_LIB="../../lib/libafterstep.a"
-   AFTERCONF_LIB="../Config/libasConfig.a"
+   AFTERSTEP_LIB="../../libAfterStep/libAfterStep.a"
+   AFTERCONF_LIB="../../libAfterConf/libAfterConf.a"
    WIDGETS_LIB="../Script/Widgets/libWidgets.a"
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
 else
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.so"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
-   AFTERSTEP_LIB="../../lib/libafterstep.so"
-   AFTERCONF_LIB="../Config/libasConfig.so"
+   AFTERSTEP_LIB="../../libAfterStep/libAfterStep.so"
+   AFTERCONF_LIB="../../libAfterConf/libAfterConf.so"
    WIDGETS_LIB="../Script/Widgets/libWidgets.so"
    LIBPROG='$(LIB_SHARED)'
    LIBINSTALL="install.dyn"
@@ -556,8 +556,8 @@ MAKEFILECOMMON=./autoconf/Makefile.common
 MAKEFILECOMMONLIB=./autoconf/Makefile.common.lib
 LIBAFTERBASEFILES=./libAfterBase/.shared
 LIBAFTERIMAGEFILES=./libAfterImage/.shared
-LIBAFTERSTEPFILES=./lib/.shared
-LIBAFTERCONFFILES=./src/Config/.shared
+LIBAFTERSTEPFILES=./libAfterStep/.shared
+LIBAFTERCONFFILES=./libAfterConf/.shared
 
 AC_SUBST_FILE(LIBAFTERBASEFILES)
 AC_SUBST_FILE(LIBAFTERIMAGEFILES)
@@ -578,8 +578,8 @@ Makefile \
 doc/Makefile \
 doc/afterstepdoc \
 \
-lib/Makefile \
-src/Config/Makefile \
+libAfterStep/Makefile \
+libAfterConf/Makefile \
 \
 src/afterstep/Makefile \
 src/asetroot/Makefile \

@@ -24,11 +24,11 @@
 #include <unistd.h>
 #include <stdarg.h>
 
-#include "../include/asapp.h"
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/functions.h"
-#include "../include/session.h"
+#include "asapp.h"
+#include "afterstep.h"
+#include "screen.h"
+#include "functions.h"
+#include "session.h"
 
 static inline ASDeskSession *
 create_desk_session ()

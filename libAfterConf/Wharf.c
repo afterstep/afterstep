@@ -18,14 +18,16 @@
  */
 
 #undef LOCAL_DEBUG
-#include "../../configure.h"
+#include "../configure.h"
 
-#include "../../include/asapp.h"
-#include "../../include/afterstep.h"
-#include "../../include/mystyle.h"
-#include "../../include/parser.h"
-#include "../../include/confdefs.h"
-#include "../../include/balloon.h"
+#include "../libAfterStep/asapp.h"
+#include "../libAfterStep/afterstep.h"
+#include "../libAfterStep/mystyle.h"
+#include "../libAfterStep/parser.h"
+#include "../libAfterStep/balloon.h"
+
+#include "afterconf.h"
+
 
 void          ProcessStatement (ConfigDef * config);
 /*****************************************************************************
