@@ -324,7 +324,7 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
       /* don't move sticky windows/icons */
       if (!((tmp_win->flags & ICONIFIED) && (Scr.flags & StickyIcons)) &&
 	  !(tmp_win->flags & STICKY) && !(tmp_win->flags & ICON_UNMAPPED))
-	changeWindowsDesk (tmp_win, val1);
+	changeWindowsDesk (tmp_win, (val2==10000)?Scr.CurrentDesk+val1:val1);
       break;
 
     case F_RAISELOWER:
