@@ -117,8 +117,8 @@ update_windowList (void)
 			{
 				fdata.func = F_RAISE_IT;
 				fdata.name = mystrdup ((val1 & 0x0001) ? ASWIN_ICON_NAME(t) : ASWIN_NAME(t));
-				fdata.func_val[0] = (val_type) t;
-				fdata.func_val[1] = (val_type) t->w;
+                fdata.func_val[0] = (long) t;
+                fdata.func_val[1] = (long) t->w;
 				if (++scut == ('9' + 1))
 					scut = 'A';				   /* Next shortcut key */
 				fdata.hotkey = scut;

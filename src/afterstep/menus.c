@@ -38,4 +38,9 @@
 #include "asinternals.h"
 #include "menus.h"
 
+void
+run_menu( const char *menu_name )
+{
 
+
+}

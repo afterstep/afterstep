@@ -513,19 +513,16 @@ parse_menu_item_name (MenuDataItem * item, char **name)
 		return -1;
 
 	for (i = 0; *ptr && *ptr != '\t'; ptr++, i++);
-	item->strlen = i;
 	if (*ptr == '\0')
 	{
 		item->item = *name;					   /* avoid memory allocation as much as possible */
 		*name = NULL;						   /* that will prevent us from memory deallocation */
 		item->item2 = NULL;
-		item->strlen2 = 0;
 	} else
 	{
 		item->item = mystrndup (*name, i);
 		ptr++;
-		item->strlen2 = strlen (ptr);
-        item->item2 = mystrndup (ptr, item->strlen2);
+        item->item2 = mystrdup (ptr);
 	}
 	return 0;
 }
@@ -1155,13 +1152,13 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 			fdata = create_named_function(t->command.func, t->name);
 			if (t->command.text)
 			{
-				fdata->text =
-					NEW_ARRAY (char, strlen (t->command.text) + 1 + 2 * strlen (t->path) + 1);
+                int cmd_len = strlen (t->command.text);
+                int path_len = strlen (t->path);
+                fdata->text = NEW_ARRAY (char, cmd_len + 1 + 2 * path_len + 1);
 				sprintf (fdata->text, "%s %s", t->command.text, t->path);
 				/* quote the string so the shell doesn't mangle it */
 				if (t->command.func == F_EXEC)
-					quotestr (fdata->text + strlen (t->command.text) + 1, t->path,
-							  2 * strlen (t->path) + 1);
+                    quotestr (fdata->text + cmd_len + 1, t->path, 2 * path_len + 1);
 			} else
 				fdata->text = mystrdup (t->path);
             MenuDataItemFromFunc (menu, fdata);
@@ -1233,16 +1230,13 @@ LOCAL_DEBUG_OUT( "3:fdata->name = %p\"%s\"", fdata->name, fdata->name );
 	return menu;
 }
 
+#if 0
 /****************************************************************************
- *
  * Generates the window for a menu
- *
  ****************************************************************************/
-
 void
 MakeMenu (MenuData * mr)
 {
-#if 0
     MenuDataItem     *cur;
 	unsigned long valuemask = (CWEventMask | CWCursor);
 	XSetWindowAttributes attributes;
@@ -1412,7 +1406,7 @@ MakeMenu (MenuData * mr)
 		map_menu (mr, (*mr).context);
 		pin_menu (mr);
 	}
-#endif
 }
+#endif
 
 
