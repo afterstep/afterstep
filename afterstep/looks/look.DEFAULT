@@ -199,6 +199,15 @@ MyStyle "*WinListBalloon"
 	Inherit "TitleButtonBalloon"
 ~MyStyle
 
+#----------aterm MyStyles---------#
+
+MyStyle "*aterm"
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackGradient   6 Inactive2Light  alpha(50,Inactive2Dark)
+~MyStyle
+
+
 #----------Minimized window Button MyStyles---------#
 
 MyStyle "ButtonPixmap"

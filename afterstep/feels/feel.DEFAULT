@@ -408,12 +408,12 @@ Key Menu        A       A       Popup "0"
 #Key Meta_L      A       A       WarpFore
 #Key Meta_R      A       A       WarpBack
 # PC keys aren't always defined is keymaps
-#Key Print       A       A       TakeScreenShot
-Key Print       A       A       Exec "screenshot" exec xwd -root -out ~/screen.xwd && mogrify -format png ~/screen.xwd && rm ~/screen.xwd
-#Key Print       A       S       TakeWindowShot
-Key Print       A       S       Exec "windowshot" exec xwd -nobdrs -out ~/window.xwd && mogrify -format png ~/window.xwd && rm ~/window.xwd
-#Key Print       A       M       TakeFrameShot
-Key Print       A       M       Exec "frameshot" exec xwd -frame -out ~/frame.xwd && mogrify -format png ~/frame.xwd && rm ~/frame.xwd 
+Key Print       A       A       TakeScreenShot
+#Key Print       A       A       Exec "screenshot" exec xwd -root -out ~/screen.xwd && mogrify -format png ~/screen.xwd && rm ~/screen.xwd
+Key Print       A       S       TakeWindowShot
+#Key Print       A       S       Exec "windowshot" exec xwd -nobdrs -out ~/window.xwd && mogrify -format png ~/window.xwd && rm ~/window.xwd
+Key Print       A       M       TakeFrameShot
+#Key Print       A       M       Exec "frameshot" exec xwd -frame -out ~/frame.xwd && mogrify -format png ~/frame.xwd && rm ~/frame.xwd 
 Key Pause       A       A       Exec "xlock" exec xlock -mode random
 #Key Pause       A       A       Exec "xscreensaver" exec xscreensaver-command -lock
 Key Sys_Req     A       A       GetHelp

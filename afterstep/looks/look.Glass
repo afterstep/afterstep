@@ -206,6 +206,17 @@ MyStyle "*WinListBalloon"
 	Inherit "TitleButtonBalloon"
 ~MyStyle
 
+
+
+#----------aterm MyStyles---------#
+
+MyStyle "*aterm"
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackPixmap     154 bars/title_tile_glass_sticky
+~MyStyle
+
+
 #----------iconized window  Button MyStyles---------#
 
 MyStyle "ButtonPixmap"

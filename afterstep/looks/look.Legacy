@@ -194,6 +194,14 @@ MyStyle "*WinList"
 # BackGradient 5 #606060 #d0d0d0
 ~MyStyle
 
+
+MyStyle "*aterm"
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackGradient   6 Inactive2Light  Inactive2Dark
+~MyStyle
+
+
 #----------Button MyStyles---------#
 
 MyStyle "ButtonPixmap"
