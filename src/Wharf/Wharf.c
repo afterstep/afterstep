@@ -176,6 +176,8 @@ int AnimateDelay = 0;
 #define DIR_TOUP	3
 #define DIR_TODOWN	4
 
+int WharfXNextEvent (Display * dpy, XEvent * event);
+
 #ifdef ENABLE_SOUND
 void
 waitchild (int bullshit)
@@ -282,7 +284,7 @@ main (int argc, char **argv)
   /* need to set current_folder for ParseOptions */
   current_folder = root_folder;
 
-  XSetErrorHandler (x_error_handler);
+  XSetErrorHandler (ASErrorHandler);
 
   _XA_WM_DELETE_WINDOW = XInternAtom (dpy, "WM_DELETE_WINDOW", False);
   _XA_WM_PROTOCOLS = XInternAtom (dpy, "WM_PROTOCOLS", False);
@@ -566,7 +568,7 @@ Loop (void)
 
   while (1)
     {
-      if (My_XNextEvent (dpy, &Event) && !balloon_handle_event (&Event))
+      if (WharfXNextEvent (dpy, &Event) && !balloon_handle_event (&Event))
 	{
 	  switch (Event.type)
 	    {
@@ -2523,7 +2525,7 @@ change_window_name (char *str)
  *
  ****************************************************************************/
 int
-My_XNextEvent (Display * dpy, XEvent * event)
+WharfXNextEvent (Display * dpy, XEvent * event)
 {
   fd_set in_fdset;
   unsigned long header[3];

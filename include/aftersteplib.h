@@ -22,7 +22,7 @@
 #define SWAP(a, b, type)    { type SWAP_NaMe = a; a = b; b = SWAP_NaMe; }
 
 #ifndef get_flags
-#define set_flags(v,f)  	((v)|=(f)) 
+#define set_flags(v,f)  	((v)|=(f))
 #define clear_flags(v,f)	((v)&=~(f))
 #define get_flags(v,f)  	((v)&(f))
 #endif
@@ -114,6 +114,7 @@ void CopyString (char **, char *);
 #endif
 
 void QuietlyDestroyWindow( Window w );
+int ASErrorHandler (Display * dpy, XErrorEvent * event);
 
 
 
