@@ -86,7 +86,7 @@ Bool asimage_use_mmx = False;
 /*inline extern*/
 int mmx_init(void)
 {
-int mmx_available;
+int mmx_available = 0;
 #ifdef HAVE_MMX
 	asm volatile (
                       /* Get CPU version information */

@@ -62,7 +62,6 @@ Bool save_file(const char* file2bsaved, ASImage *im, const char* type);
 
 Pixmap GetRootPixmap (Atom id);
 
-Display* dpy = NULL;
 int screen = 0, depth = 0;
 
 ASVisual *asv;
@@ -191,7 +190,7 @@ int main(int argc, char** argv) {
 	}
 
 	// Delete the xml.
-	xml_elem_delete(NULL, doc);
+	if (doc) xml_elem_delete(NULL, doc);
 
 	// Destroy the font manager, if we created one.
 	if (fontman) destroy_font_manager(fontman, False);
@@ -680,6 +679,26 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+	if (!strcmp(doc->tag, "blur")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		ASImage* imtmp = NULL;
+		int horz = 0, vert = 0;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			if (!strcmp(ptr->tag, "horz")) horz = strtod(ptr->parm, NULL);
+			if (!strcmp(ptr->tag, "vert")) vert = strtod(ptr->parm, NULL);
+		}
+		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+			imtmp = build_image_from_xml(ptr, NULL);
+		}
+		if (imtmp) {
+			result = blur_asimage_gauss(asv, imtmp, horz, vert, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			my_destroy_asimage(imtmp);
+		}
+		if (verbose) printf("Blurring image.\n");
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+
 	if (!strcmp(doc->tag, "rotate")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		ASImage* imtmp = NULL;
@@ -1159,8 +1178,8 @@ void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem) {
 		xml_elem_t* ptr = elem;
 		elem = elem->next;
 		if (ptr->child) xml_elem_delete(NULL, ptr->child);
-		free(ptr->tag);
-		free(ptr->parm);
+		if (ptr->tag) free(ptr->tag);
+		if (ptr->parm) free(ptr->parm);
 		free(ptr);
 	}
 }
@@ -1346,3 +1365,5 @@ Pixmap GetRootPixmap (Atom id)
 #endif /* X_DISPLAY_MISSING */
 	return currentRootPixmap;
 }
+
+

@@ -29,6 +29,7 @@
 #include <sys/time.h>
 #endif
 #include <stdarg.h>
+#include <math.h>
 
 
 #include "afterbase.h"
@@ -1641,6 +1642,118 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
 	return True;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Gaussian blur code.
+
+#undef PI
+#define PI 3.141592526
+
+static void calc_gauss(double radius, double* gauss);
+
+static int radius;
+
+static inline void
+gauss_component(CARD32 *src, CARD32 *dst, double* gauss, int len)
+{
+	int x, j, r = radius - 1;
+	for (x = 0 ; x < len ; x++) {
+		register double v = 0.0;
+		for (j = x - r ; j <= 0 ; j++) v += src[0] * gauss[x - j];
+		for ( ; j < x ; j++) v += src[j] * gauss[x - j];
+		v += src[x] * gauss[0];
+		for (j = x + r ; j >= len ; j--) v += src[len - 1] * gauss[j - x];
+		for ( ; j > x ; j--) v += src[j] * gauss[j - x];
+		dst[x] = v;
+	}
+}
+
+ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double vert, ASAltImFormats out_format, unsigned int compression_out, int quality) {
+	ASImage *dst = NULL;
+	ASImageOutput *imout;
+	ASImageDecoder *imdec;
+	ASScanline result;
+	int y;
+	double* gauss = NULL;
+
+	if (!src) return NULL;
+
+	dst = create_asimage(src->width, src->height, compression_out);
+	dst->back_color = src->back_color;
+
+#ifdef HAVE_MMX
+	mmx_init();
+#endif
+
+	imout = start_image_output(asv, dst, out_format, 0, quality);
+	if (!imout) {
+		asimage_init(dst, True);
+		free(dst);
+#ifdef HAVE_MMX
+		mmx_off();
+#endif
+		return NULL;
+	}
+
+	imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, dst->width, dst->height, NULL);
+	if (!imdec) {
+		asimage_init(dst, True);
+		free(dst);
+#ifdef HAVE_MMX
+		mmx_off();
+#endif
+		return NULL;
+	}
+
+	gauss = NEW_ARRAY(double, MAX(horz, vert));
+
+	/* First the horizontal pass. */
+	if (horz >= 1.0) {
+		// My version. -Ethan
+		radius = horz;
+		calc_gauss(horz, gauss);
+	}
+
+	prepare_scanline(dst->width, 0, &result, asv->BGR_mode);
+
+	for (y = 0 ; y < dst->height ; y++) {
+		imdec->decode_image_scanline(imdec);
+		result.flags = imdec->buffer.flags;
+		result.back_color = imdec->buffer.back_color;
+		SCANLINE_FUNC(gauss_component, imdec->buffer, result, gauss, dst->width);
+		imout->output_image_scanline(imout, &result, 1);
+	}
+
+	stop_image_decoding(&imdec);
+	free_scanline(&result, True);
+	stop_image_output(&imout);
+
+	free(gauss);
+
+#ifdef HAVE_MMX
+	mmx_off();
+#endif
+
+	return dst;
+}
+
+static void calc_gauss(double radius, double* gauss) {
+	int i;
+	double n, std_dev, sum = 0.0;
+	if (radius <= 1.0) {
+		gauss[0] = 1.0;
+		return;
+	}
+	if (radius > 10.0) radius = 10.0;
+	std_dev = (radius - 1) * 0.3003866304;
+	n = 2 * std_dev * std_dev;
+	for (i = 0 ; i < radius ; i++) {
+		gauss[i] = exp(-i * i / n);
+		sum += gauss[i] + gauss[i];
+	}
+	sum -= gauss[0];
+	for (i = 0 ; i < radius ; i++) gauss[i] /= sum;
+}
 
 /* ********************************************************************************/
 /* The end !!!! 																 */

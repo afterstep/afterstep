@@ -251,6 +251,11 @@ ASImage *pad_asimage(   ASVisual *asv, ASImage *src,
 			  			ARGB32 color,
 			  			ASAltImFormats out_format,
 			  			unsigned int compression_out, int quality );
+ASImage* blur_asimage_gauss(
+  ASVisual* asv, ASImage* src, double horz, double vert, 
+  ASAltImFormats out_format, unsigned int compression_out, 
+  int quality
+);
 
 Bool fill_asimage( ASVisual *asv, ASImage *im,
                	   int x, int y, int width, int height,
