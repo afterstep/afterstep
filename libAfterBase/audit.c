@@ -491,7 +491,11 @@ output_unfreed_mem (FILE *stream)
 	{
 		register mem *m;
 		m = curr_hash_data( &i );
-		if (m->freed == 0)
+		if( m == NULL )
+		{
+            fprintf (stream, "hmm, wierd, encoutered NULL pointer while trying to check allocation record for %p!", (*(i.curr_item))->value.ptr);
+			continue;
+		}else if (m->freed == 0)
 		{
             fprintf (stream, "%23s|%-5d|%-7d|0x%08x ", m->fname, m->line, m->length, (unsigned int)m->ptr);
 			switch (m->type & 0xff)
