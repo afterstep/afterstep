@@ -1,0 +1,87 @@
+TODO list for AfterStep v. 2.0.0
+
+created on 01/09/2003 by Sasha Vasko <sasha at aftercode dot net>
+last updated on 01/09/2003
+
+TODO:
+        Common :
+                1. Update man pages to reflect changes in config options.
+                2. Design better default looks and module config.
+                3. Convert icons to PNG format, and include png library.
+                   If we use XCF format here - we would not need any additional libraries,
+                   but it is not as widespread as PNG, and certainly is not standardized.
+                4. Create separate package with XPM icons for those who live in the past.
+                5. Add 8 bit alpha channel to all icons to take advantage of new renedring
+                   capabilities.
+                6. Possibly supply some TTF fonts ???
+                7. Take some sweet screenshots reflecting new features, and post them on the
+                   web.
+                8. Update websites afterstep.sf.net and maybe www.afterstep.org (see David Mihm).
+        AfterStep-proper :
+                1. Complete support for iconified windows
+                2. Implement proper window switching using the keyboard ( aka Alt+Tabbing )
+                3. Debug stacking order between layers
+                4. Implement window placement  in arbitrary position when NoPPosition is used.
+                5. Implement support for background image description in asetroot file
+                   (when look does not have it).
+                6. Implement theme handling tool.
+        asetroot :
+                1. Move background handling code into the lib from afterstep-proper/pager.c.
+                2. Change to use above-mentioned code
+                3. Add notice that it could only be used with -l options and for single desktop -
+                   background changing should be handled by afterstep-proper from now on.
+        Animate
+                1. Update to include support for new module code in the lib.
+        Audio
+                1. Update to include support for new module code in the lib.
+                2. Possible backport main code from afterstep-devel
+        Banner
+                1. Update to include support for new module code in the lib.
+                2. Take advantage of libAfterImage to support more image formats
+        Cascade
+                1. Update to include support for new module code in the lib.
+                2. Merge with Tile into Arrange module - they share 90% code at the moment.
+        Clean
+                1. Update to include support for new module code in the lib.
+        Form
+                1. Update to include support for new module code in the lib.
+                2. We should seriously consider scrapping the whole thing off, as
+                   maintaining yet another library of widgets is the pain in the ass.
+                   Otherwise we should probably convert it to use QT/GTK instead.
+        Gnome
+                1. I do not see any reason for this one to exists, since afterstep-proper
+                   is supposed to provide 100% GNOME compatibility - investigate.
+        Ident
+                1. Update to include support for new module code in the lib.
+        Pager
+                1. Once iconic windows are implemented in afterstep-proper - debug iconinc
+                   Pager, as well as switching between Iconic and Normal state.
+                2. Implement proper shaping when shaped texture type is used for background.
+                   See Wharf for example.
+        Save
+                1. Update to include support for new module code in the lib.
+        Script
+                1. Update to include support for new module code in the lib.
+                2. See TODO for Form. At the time I do not see any reason for Script
+                   to exists at all.
+        Scroll
+                1. Update to include support for new module code in the lib.
+        Sound
+                1. Merge with Audio - they do exact same thing - see Audio in afterstep-devel.
+        test
+                1. feel free to use it for any testing :)
+        Tile
+                1. See Cascade.
+        WinList2
+                1. Implement all the config options support - probably just needs some debugging.
+        WinList
+                1. Get rid of - WinList2 should be used instead.
+        Wharf
+                1. Implement Drag-N-Drop interface - need to check latest developments in GNOME
+                   and use same approach as they do. See afterstep-devel for some code.
+        Zharf
+                1. Get rid of. Wharf can now do labels and more. Probably just create link to Wharf
+                   for old times sake.
+
+DONE:
+
