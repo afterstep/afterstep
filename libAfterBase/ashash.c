@@ -358,7 +358,7 @@ start_hash_iteration (ASHashTable * hash, ASHashIterator * iterator)
 		{
 			iterator->hash = hash;
 			iterator->curr_bucket = i;
-			iterator->curr_item = hash->buckets[i];
+            iterator->curr_item = &(hash->buckets[i]);
 			return True;
 		}
 	}
@@ -371,8 +371,14 @@ next_hash_item (ASHashIterator * iterator)
 	if (iterator)
 		if (iterator->hash && iterator->curr_item)
 		{
-			iterator->curr_item = iterator->curr_item->next;
-			if (iterator->curr_item == NULL)
+            ASHashItem **curr = iterator->curr_item;
+
+            if( *curr )
+                curr = &((*curr)->next) ;
+
+            iterator->curr_item = curr ;
+
+            if (*curr == NULL)
 			{
 				register int  i;
 
@@ -381,13 +387,40 @@ next_hash_item (ASHashIterator * iterator)
 						break;
 				if (i < iterator->hash->size)
 				{
-					iterator->curr_item = iterator->hash->buckets[i];
+                    iterator->curr_item = &(iterator->hash->buckets[i]);
 					iterator->curr_bucket = i ;
-				}
-			}
-			return (iterator->curr_item != NULL);
+                }
+            }
+
+            return (*(iterator->curr_item) != NULL);
 		}
 	return False;
+}
+
+void
+remove_curr_hash_item (ASHashIterator * iterator, Bool destroy)
+{
+	if (iterator)
+		if (iterator->hash && iterator->curr_item)
+		{
+            ASHashItem *removed = *(iterator->curr_item);
+
+            if(removed)
+            {
+                ASHashTable *hash = iterator->hash ;
+                ASHashKey    key = iterator->curr_bucket ;
+
+                *(iterator->curr_item) = removed->next ;
+                removed->next = NULL ;
+
+                if (hash->item_destroy_func && destroy)
+                    hash->item_destroy_func (removed->value, removed->data);
+                free (removed);
+                if (hash->buckets[key] == NULL)
+                    hash->buckets_used--;
+                hash->items_num--;
+            }
+		}
 }
 
 ASHashableValue
@@ -395,8 +428,8 @@ curr_hash_value (ASHashIterator * iterator)
 {
 	if (iterator)
 	{
-		if (iterator->curr_item)
-			return iterator->curr_item->value;
+        if (iterator->curr_item && *(iterator->curr_item))
+            return (*(iterator->curr_item))->value;
 	}
 	return (ASHashableValue) ((char *)NULL);
 }
@@ -406,8 +439,8 @@ curr_hash_data (ASHashIterator * iterator)
 {
 	if (iterator)
 	{
-		if (iterator->curr_item)
-			return iterator->curr_item->data;
+        if (iterator->curr_item && *(iterator->curr_item))
+            return (*(iterator->curr_item))->data;
 	}
 	return NULL;
 }

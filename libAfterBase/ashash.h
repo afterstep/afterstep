@@ -40,7 +40,7 @@ ASHashTable;
 typedef struct ASHashIterator
 {
   ASHashKey curr_bucket;
-  ASHashItem *curr_item;
+  ASHashItem **curr_item;
   ASHashTable *hash;
 }
 ASHashIterator;
@@ -96,6 +96,7 @@ Bool start_hash_iteration (ASHashTable * hash, ASHashIterator * iterator);
 Bool next_hash_item (ASHashIterator * iterator);
 ASHashableValue curr_hash_value (ASHashIterator * iterator);
 void *curr_hash_data (ASHashIterator * iterator);
+void remove_curr_hash_item (ASHashIterator * iterator, Bool destroy);
 
 
 /**************************************************************************/
