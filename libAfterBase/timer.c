@@ -156,19 +156,24 @@ Bool timer_delay_till_next_alarm (time_t * sec, time_t * usec)
 Bool timer_handle (void)
 {
 	Bool          success = False;
-	Timer        *timer;
+	Timer        *timer, *good_timer = NULL;
 	time_t        sec, usec;
 
 	timer_get_time (&sec, &usec);
 	for (timer = timer_first; timer != NULL; timer = timer->next)
 		if (timer->sec < sec || (timer->sec == sec && timer->usec <= usec))
-			break;
-	if (timer != NULL)
+		{  /* oldest event gets executed first ! */
+			if( good_timer != NULL ) 
+				if( good_timer->sec < timer->sec || (timer->sec == good_timer->sec && timer->usec > good_timer->usec ))
+					continue;	   
+			good_timer = timer ;
+		}
+	if (good_timer != NULL)
 	{
-		LOCAL_DEBUG_OUT( "handling task for sec = %ld, usec = %ld( curr %ld, %ld)", timer->sec, timer->usec, sec, usec );
-		timer_extract (timer);
-		timer->handler (timer->data);
-		mytimer_delete (timer);
+		LOCAL_DEBUG_OUT( "handling task for sec = %ld, usec = %ld( curr %ld, %ld)", good_timer->sec, good_timer->usec, sec, usec );
+		timer_extract (good_timer);
+		good_timer->handler (good_timer->data);
+		mytimer_delete (good_timer);
 		success = True;
 	}
 	return success;

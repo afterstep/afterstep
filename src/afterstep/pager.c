@@ -862,8 +862,8 @@ LOCAL_DEBUG_CALLER_OUT( "%p:\"%s\", pmap %lX ", vdata, data->im_name, data->targ
 					if( lines > data->total_lines - data->lines_done )
 						lines = data->total_lines - data->lines_done ;
 					if( data->step & 0x000001 )
-						y = (data->total_lines - y) - lines ;
-						
+						y = (data->total_lines - (data->lines_done-data->lines_per_iteration)/2) - lines ;
+												   
 					if( xim == NULL ) 
 						xim = create_visual_scratch_ximage( Scr.asv, im->width, lines, 0 );
 					LOCAL_DEBUG_OUT( "making ximage %p, starting at %d, and including %d lines", xim, data->lines_done, lines );
@@ -891,6 +891,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p:\"%s\", pmap %lX ", vdata, data->im_name, data->targ
         XSetWindowBackgroundPixmap( dpy, Scr.Root, Scr.RootBackground->pmap );
         XClearWindow( dpy, Scr.Root );
         set_xrootpmap_id (Scr.wmprops, Scr.RootBackground->pmap );
+		ASSync(False);
 	}	 
 
 	if( !success || data->lines_done >= data->total_lines )
@@ -903,7 +904,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p:\"%s\", pmap %lX ", vdata, data->im_name, data->targ
 		free( data );
 	}else
 	{
-		timer_new (30, do_background_xfer_iter, vdata);	
+		timer_new (10, do_background_xfer_iter, vdata);	
 	}		 
 	
 }	 
@@ -916,7 +917,7 @@ start_background_xfer( ASImage *new_im )
 	data->im_name = mystrdup(new_im->name); 
 	data->im_ptr = new_im ; 
 	data->target_pmap = Scr.RootBackground->pmap ; 
-	data->lines_per_iteration = 5/*ASSHM_SAVED_MAX / (new_im->width * 4)*/;
+	data->lines_per_iteration = 8/*ASSHM_SAVED_MAX / (new_im->width * 4)*/;
 	if( data->lines_per_iteration == 0 ) 
 		data->lines_per_iteration = 1 ;
 	data->lines_done = 0 ;
@@ -1015,8 +1016,16 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 		/*print_asimage( new_im, 0xFFFFFFFF, __FUNCTION__, __LINE__ );*/
         ASSync(False);
         LOCAL_DEBUG_OUT( "width(%d)->height(%d)->pixmap(%lX/%lu)", new_im->width, new_im->height, bh->pmap, bh->pmap );
-
-		if( new_im->width * new_im->height * 4 < ASSHM_SAVED_MAX ) 
+		
+		if( new_im->width * new_im->height * 4 >= ASSHM_SAVED_MAX/2 &&
+			/* can't animate if pixmap is tiled - X specifics */
+			new_im->width >= Scr.MyDisplayWidth &&
+			new_im->height >= Scr.MyDisplayHeight ) 
+		{	
+			if( old_pmap != bh->pmap ) 
+				XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
+		 	start_background_xfer( new_im );  /* we need to do it in small steps! */
+		}else
 		{	
         	if( !asimage2drawable( Scr.asv, bh->pmap, new_im, Scr.DrawGC, 0, 0, 0, 0, new_im->width, new_im->height, True) )
 				show_warning( "failed to draw root background onto pixmap");
@@ -1024,10 +1033,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         	XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
         	XClearWindow( dpy, Scr.Root );
         	set_xrootpmap_id (Scr.wmprops, bh->pmap );
-		}else
-		{                                      /* we need to do it in small steps! */
-			start_background_xfer( new_im );
-		}	 
+		}  
     }else
         set_xrootpmap_id (Scr.wmprops, None );
     ASSync(False);
