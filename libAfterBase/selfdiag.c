@@ -83,7 +83,7 @@ void
 get_proc_tables (proc_tables * ptabs)
 {
 #ifdef HAVE_ELF_H
-#if defined(HAVE_ELF32_DYN_D_TAG) || defined(HAVE_ELF64_DYN_D_TAG)
+#if (defined(HAVE_ELF32_DYN_D_TAG) || defined(HAVE_ELF64_DYN_D_TAG)) && defined(HAVE_DECL_ELFW)
 	ElfW (Dyn) * dyn;
 
 	memset (ptabs, 0x00, sizeof (proc_tables));
