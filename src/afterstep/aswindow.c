@@ -28,6 +28,7 @@
 #include "../../include/module.h"
 #include "asinternals.h"
 
+Bool on_dead_aswindow( Window w, struct ASWindowList *list );
 /********************************************************************************/
 /* window list management */
 
@@ -58,6 +59,8 @@ init_aswindow_list()
 //    list->root = safecalloc (0, sizeof (ASWindow ));
 //    list->root->w = Scr.Root ;
 //    add_hash_item( list->clients, (ASHashableValue)Scr.Root, list->root );
+
+    list->on_dead_window = on_dead_aswindow ;
 
     return list;
 }
@@ -202,6 +205,21 @@ pattern2ASWindow( const char *pattern )
     return NULL;
 }
 
+
+Bool on_dead_aswindow( Window w, struct ASWindowList *list )
+{
+    ASWindow *asw = window2ASWindow( w );
+    if( asw )
+    {
+        if( w == asw->w )
+        {
+            ASWIN_SET_FLAGS( asw, AS_Dead );
+            show_progress( "marking client's window as destroyed for client \"%s\", window 0x%X", ASWIN_NAME(asw), w );
+            return True;
+        }
+    }
+    return False;
+}
 
 /*******************************************************************************/
 /* layer management */
@@ -361,7 +379,7 @@ restack_window_list( int desk, Bool send_msg_only )
         if( end_k > ids->allocated )
             end_k = ids->allocated ;
         for( k = 0 ; k < end_k ; k++ )
-            if( ASWIN_DESK(members[k]) == desk )
+            if( ASWIN_DESK(members[k]) == desk && !ASWIN_GET_FLAGS(members[k], AS_Dead))
                 windows[windows_num++] = members[k]->w;
     }
 
@@ -380,7 +398,7 @@ restack_window_list( int desk, Bool send_msg_only )
             if( end_k > ids->allocated )
                 end_k = ids->allocated ;
             for( k = 0 ; k < end_k ; k++ )
-                if( ASWIN_DESK(members[k]) == desk )
+                if( ASWIN_DESK(members[k]) == desk && !ASWIN_GET_FLAGS(members[k], AS_Dead))
                     windows[windows_num++] = get_window_frame(members[k]);
         }
 

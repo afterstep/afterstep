@@ -71,6 +71,8 @@ struct ASEnvironment *DefaultEnv = NULL;
 struct ASFeel *DefaultFeel = NULL;/* unused - future development : */
 struct MyLook *DefaultLook = NULL;/* unused - future development : */
 
+void (*CloseOnExec)() = NULL ;
+
 /* Base config : */
 char         *PixmapPath = NULL;
 char         *CursorPath = NULL;
@@ -720,6 +722,10 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             do_fork = ( i < 0 || cmdl[i] != '&' );
         }
         strcpy (ptr, do_fork?" &\n":"\n");
+
+        /* CYGWIN does not handle close-on-exec gracefully - whave to do it ourselves : */
+        if( CloseOnExec )
+            CloseOnExec();
 
         LOCAL_DEBUG_OUT("execl(\"%s\")", cmdl );
         execl ("/bin/sh", "sh", "-c", cmdl, (char *)0);

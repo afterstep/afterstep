@@ -351,7 +351,9 @@ InstallWindowColormaps (ASWindow *asw)
             for (; asw->hints->cmap_windows[i] != None; ++i)
             {
                 Window w = asw->hints->cmap_windows[i];
-                if( w == asw->w )
+                if( w == asw->w && !ASWIN_GET_FLAGS(asw, AS_Dead) )
+                    continue ;
+                if( w == asw->w  )
                     main_cmap_installed = True ;
                 XGetWindowAttributes (dpy, w, &attr);
                 if( attr.colormap )
@@ -360,7 +362,7 @@ InstallWindowColormaps (ASWindow *asw)
         }
         main_w = asw->w ;
     }
-    if (!main_cmap_installed)
+    if (!main_cmap_installed && !ASWIN_GET_FLAGS(asw, AS_Dead) )
 	{
         XGetWindowAttributes (dpy, main_w, &attr);
         if( attr.colormap )
@@ -384,6 +386,8 @@ UninstallWindowColormaps (ASWindow *asw)
             for (; asw->hints->cmap_windows[i] != None; ++i)
             {
                 Window w = asw->hints->cmap_windows[i];
+                if( w == asw->w && ASWIN_GET_FLAGS(asw, AS_Dead) )
+                    continue;
                 if( w == asw->w )
                     main_cmap_done = True ;
                 XGetWindowAttributes (dpy, w, &attr);
@@ -392,7 +396,7 @@ UninstallWindowColormaps (ASWindow *asw)
         }
         main_w = asw->w ;
     }
-    if (!main_cmap_done)
+    if (!main_cmap_done && !ASWIN_GET_FLAGS(asw, AS_Dead))
 	{
         XGetWindowAttributes (dpy, main_w, &attr);
         uninstall_colormap(attr.colormap, main_w);

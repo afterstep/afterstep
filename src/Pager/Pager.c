@@ -235,7 +235,7 @@ main (int argc, char **argv)
     /* Create a list of all windows */
     /* Request a list of all windows,
      * wait for ConfigureWindow packets */
-    SendInfo (as_fd, "Send_WindowList", 0);
+    SendInfo ("Send_WindowList", 0);
 
     PagerState.main_canvas = create_ascanvas( make_pager_window() );
     redecorate_pager_desks();
@@ -1463,21 +1463,21 @@ void
 move_client_wm( ASWindowData* wd, int x, int y )
 {
     sprintf( as_comm_buf, "Move %dp %dp", x-Scr.Vx, y-Scr.Vy );
-    SendInfo( as_fd, as_comm_buf, wd->client );
+    SendInfo( as_comm_buf, wd->client );
 }
 
 void
 move_client_to_desk( ASWindowData* wd, int desk )
 {
     sprintf( as_comm_buf, "WindowsDesk %d", desk );
-    SendInfo( as_fd, as_comm_buf, wd->client );
+    SendInfo( as_comm_buf, wd->client );
 }
 
 void
 resize_client_wm( ASWindowData* wd, unsigned int width, unsigned int height )
 {
     sprintf( as_comm_buf, "Resize %dp %dp", width, height );
-    SendInfo( as_fd, as_comm_buf, wd->client );
+    SendInfo( as_comm_buf, wd->client );
 }
 
 ASPagerDesk *
@@ -2130,7 +2130,7 @@ on_scroll_viewport( ASEvent *event )
                     sx > -(PAGE_MOVE_THRESHOLD) && sy > -(PAGE_MOVE_THRESHOLD))
                     return;
                 sprintf (command, "Scroll %d %d\n", sx, sy);
-                SendInfo (as_fd, command, 0);
+                SendInfo ( command, 0);
                 PagerState.wait_as_response++;
             }
         }
@@ -2167,7 +2167,7 @@ LOCAL_DEBUG_OUT( "canvas(%p)->bar(%p)->context(%s)", PagerState.pressed_canvas, 
                     if( px >= 0 && py >= 0 &&
                         px < d->background->width && py < d->background->height )
                     {
-                        SendInfo (as_fd, "Desk 0 10000", 0);
+                        SendInfo ("Desk 0 10000", 0);
                         PagerState.wait_as_response++;
                         if( PagerState.pressed_button == Button3 )
                         {
@@ -2195,11 +2195,11 @@ LOCAL_DEBUG_OUT( "canvas(%p)->bar(%p)->context(%s)", PagerState.pressed_canvas, 
                             page_row    = (py*PagerState.page_rows)/d->background->height ;
                             sprintf (command, "GotoPage %d %d\n", page_column, page_row);
                         }
-                        SendInfo (as_fd, command, 0);
+                        SendInfo ( command, 0);
                         PagerState.wait_as_response++;
                     }
                     sprintf (command, "Desk 0 %d\n", d->desk + PagerState.start_desk);
-                    SendInfo (as_fd, command, 0);
+                    SendInfo (command, 0);
                     PagerState.wait_as_response++;
                 }
             }

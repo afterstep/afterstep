@@ -566,6 +566,9 @@ typedef struct ASWindowList
      *          some other window. To do that we substitute focused pointer to new window
      *          right before UngrabEm. In this case focused != ( ungrabbed == hilited )
      */
+
+     Bool (*on_dead_window)( Window w, struct ASWindowList *list );
+
 }ASWindowList;
 
 

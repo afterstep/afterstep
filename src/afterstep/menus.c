@@ -130,6 +130,8 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
 
             if( menu->main_canvas )
                 destroy_ascanvas( &(menu->main_canvas) );
+            if( menu->owner )
+                ASWIN_SET_FLAGS(menu->owner, AS_Dead );
             destroy_registered_window( w );
 
             if( menu->items )

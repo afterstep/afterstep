@@ -375,14 +375,16 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw
          * Prevent the receipt of an UnmapNotify in case we are simply restarting,
          * since that would cause a transition to the Withdrawn state.
 		 */
-        if( get_flags( Scr.state, AS_StateShutdown ) )
-            quietly_reparent_window( w, Scr.Root, xwc.x, xwc.y, AS_CLIENT_EVENT_MASK );
-        else
-            XReparentWindow (dpy, w, Scr.Root, xwc.x, xwc.y);
-
-        /* WE have to restore window's withdrawn location now. */
-        XConfigureWindow (dpy, w, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &xwc);
-		XSync (dpy, 0);
+        if( !ASWIN_GET_FLAGS(asw, AS_Dead) && get_parent_window( w ) == asw->frame )
+        {
+            if( get_flags( Scr.state, AS_StateShutdown ) )
+                quietly_reparent_window( w, Scr.Root, xwc.x, xwc.y, AS_CLIENT_EVENT_MASK );
+            else
+                XReparentWindow (dpy, w, Scr.Root, xwc.x, xwc.y);
+            /* WE have to restore window's withdrawn location now. */
+            XConfigureWindow (dpy, w, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &xwc);
+        }
+        XSync (dpy, 0);
     }
 
     return (asw->client_canvas = canvas);
@@ -556,10 +558,13 @@ grab_aswindow_buttons( ASWindow *asw, Bool focused )
         else
             ungrab_window_buttons( asw->frame );
 
-        ungrab_window_buttons( asw->w );
-        grab_window_buttons ( asw->w, C_WINDOW);
+        if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+        {
+            ungrab_window_buttons( asw->w );
+            grab_window_buttons ( asw->w, C_WINDOW);
+        }
 
-        if( asw->icon_canvas )
+        if( asw->icon_canvas && !ASWIN_GET_FLAGS(asw, AS_Dead) && validate_drawable(asw->icon_canvas->w, NULL, NULL) != None )
         {
             ungrab_window_buttons( asw->icon_canvas->w );
             grab_window_buttons( asw->icon_canvas->w, C_ICON );
@@ -700,7 +705,8 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     right_canvas = check_side_canvas( asw, od->right_side, myframe_has_parts(frame, FRAME_RIGHT_MASK) );
 
     /* make sure all our decoration windows are mapped and in proper order: */
-    XRaiseWindow( dpy, asw->w );
+    if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+        XRaiseWindow( dpy, asw->w );
     XMapSubwindows (dpy, asw->frame);
     XMapWindow (dpy, asw->frame);
 
@@ -1076,7 +1082,8 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))", a
         {
             if( asw->frame_sides[od->tbar_side] )
                 XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
-            XLowerWindow( dpy, asw->w );
+            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+                XLowerWindow( dpy, asw->w );
             if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
                 XMoveResizeWindow(  dpy, asw->frame,
                                     asw->status->x, asw->status->y,
@@ -1087,7 +1094,8 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))", a
                                     asw->status->width, step_size );
         }else
         {
-            XRaiseWindow( dpy, asw->w );
+            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+                XRaiseWindow( dpy, asw->w );
             XMoveResizeWindow( dpy, asw->frame,
                             asw->status->x, asw->status->y,
                             asw->status->width, asw->status->height );
@@ -1134,6 +1142,9 @@ void
 SendConfigureNotify(ASWindow *asw)
 {
     XEvent client_event ;
+
+    if( ASWIN_GET_FLAGS(asw, AS_Dead) )
+        return;
 
     client_event.type = ConfigureNotify;
     client_event.xconfigure.display = dpy;
@@ -1182,6 +1193,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
 
     if( w == asw->w )
     {  /* simply update client's size and position */
+        if( ASWIN_GET_FLAGS(asw, AS_Dead) )
+            return;
         handle_canvas_config (asw->client_canvas);
         if( asw->internal && asw->internal->on_moveresize )
             asw->internal->on_moveresize( asw->internal, w );
@@ -1372,7 +1385,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_di
 
     /* now we need to move/resize our frame window */
     apply_window_status_size(asw, od);
-    set_client_state( asw->w, asw->status );
+    if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+        set_client_state( asw->w, asw->status );
 }
 
 void
@@ -1754,7 +1768,8 @@ LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d", asw, iconify );
 		asw->DeIconifyDesk = ASWIN_DESK(asw);
 
 LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
-        quietly_unmap_window( asw->w, AS_CLIENT_EVENT_MASK );
+        if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+            quietly_unmap_window( asw->w, AS_CLIENT_EVENT_MASK );
         XUnmapWindow (dpy, asw->frame);
 
 
@@ -1772,7 +1787,8 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
                 asw->status->icon_window = asw->icon_canvas->w ;
             else if( asw->icon_title_canvas )
                 asw->status->icon_window = asw->icon_title_canvas->w ;
-            set_client_state( asw->w, asw->status);
+            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+                set_client_state( asw->w, asw->status);
 
             add_iconbox_icon( asw );
             restack_window( asw, None, Below );
@@ -1792,15 +1808,15 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
             ASWIN_DESK(asw) = asw->DeIconifyDesk;
         else
             ASWIN_DESK(asw) = Scr.CurrentDesk;
-        set_client_desktop( asw->w, ASWIN_DESK(asw));
-
-        /* TODO: make sure that the window is on this screen */
-
-        XMapWindow (dpy, asw->w);
+        if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+        {
+            set_client_desktop( asw->w, ASWIN_DESK(asw));
+            /* TODO: make sure that the window is on this screen */
+            XMapRaised (dpy, asw->w);
+        }
         if (ASWIN_DESK(asw) == Scr.CurrentDesk)
             XMapWindow (dpy, asw->frame);
 
-        XRaiseWindow (dpy, asw->w);
         if( !ASWIN_HFLAGS(asw, AS_Transient ))
         {
             if (get_flags(Scr.Feel.flags, StubbornIcons|ClickToFocus))
@@ -1920,10 +1936,11 @@ SetShape (ASWindow *asw, int w)
 	{
 		int bw = asw->status->border_width ;
 
-		XShapeCombineShape (dpy, asw->frame, ShapeBounding,
-	  	      	            asw->status->x + bw,
-							asw->status->y + bw,
-							asw->w, ShapeBounding, ShapeSet);
+        if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+            XShapeCombineShape (dpy, asw->frame, ShapeBounding,
+                                asw->status->x + bw,
+                                asw->status->y + bw,
+                                asw->w, ShapeBounding, ShapeSet);
 
 		/* windows with titles */
 		if (ASWIN_HFLAGS(asw,AS_Titlebar) && asw->tbar)
@@ -2026,22 +2043,26 @@ focus_aswindow( ASWindow *asw, Bool circulated )
 
     if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
     { /* focus icon window or icon title of the iconic window */
-        if( asw->icon_canvas )
+        if( asw->icon_canvas && !ASWIN_GET_FLAGS(asw, AS_Dead) && validate_drawable(asw->icon_canvas->w, NULL, NULL) != None )
             w = asw->icon_canvas->w;
         else if( asw->icon_title_canvas )
             w = asw->icon_title_canvas->w;
     }else if( ASWIN_GET_FLAGS(asw, AS_Shaded ) )
     { /* focus frame window of shaded clients */
         w = asw->frame ;
-    }else
+    }else if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
     { /* clients with visible top window can get focus directly:  */
         w = asw->w ;
     }
 
-    XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
-    if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus))
-        send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
-    Scr.Windows->focused = asw ;
+    if( w != None )
+    {
+        XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
+        if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus) && !ASWIN_GET_FLAGS(asw, AS_Dead))
+            send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
+
+        Scr.Windows->focused = asw ;
+    }
 
     XSync(dpy, False );
     return True;
@@ -2438,6 +2459,7 @@ void
 Destroy (ASWindow *asw, Bool kill_client)
 {
     static int nested_level = 0 ;
+    Bool bad_window ;
     /*
 	 * Warning, this is also called by HandleUnmapNotify; if it ever needs to
 	 * look at the event, HandleUnmapNotify will have to mash the UnmapNotify
@@ -2452,12 +2474,19 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
         return;
     ++nested_level ;
 
-    XUnmapWindow (dpy, asw->frame);
-    XRemoveFromSaveSet (dpy, asw->w);
-    XSelectInput (dpy, asw->w, NoEventMask);
-    XSync (dpy, 0);
-
     SendPacket (-1, M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
+
+    XGrabServer( dpy );
+    bad_window = (validate_drawable( asw->w, NULL, NULL ) == None );
+
+    XUnmapWindow (dpy, asw->frame);
+    if( !bad_window )
+    {
+        XRemoveFromSaveSet (dpy, asw->w);
+        XSelectInput (dpy, asw->w, NoEventMask);
+    }else
+        ASWIN_SET_FLAGS( asw, AS_Dead );
+    XSync (dpy, 0);
 
     UninstallWindowColormaps( asw );
 
@@ -2486,10 +2515,11 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
 
     init_aswindow( asw, True );
 
+    XSync (dpy, 0);
+    XUngrabServer( dpy );
+
     memset( asw, 0x00, sizeof(ASWindow));
     free (asw);
-
-	XSync (dpy, 0);
     --nested_level ;
 
 	return;
@@ -2545,26 +2575,27 @@ LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
      * Prevent the receipt of an UnmapNotify, since that would
      * cause a transition to the Withdrawn state.
      */
-    XSelectInput (dpy, asw->w, NoEventMask);
-    XGrabServer( dpy );
-    if( get_parent_window( asw->w ) == asw->frame )
+    if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
     {
-        ASStatusHints withdrawn_state ;
-        /* !!! Most of it has been done in datach_basic_widget : */
-        XReparentWindow (dpy, asw->w, Scr.Root, x, y);
-        withdrawn_state.flags = AS_Withdrawn ;
-        withdrawn_state.icon_window = None ;
-        set_client_state( asw->w, &withdrawn_state );
+        XSelectInput (dpy, asw->w, NoEventMask);
+        if( get_parent_window( asw->w ) == asw->frame )
+        {
+            ASStatusHints withdrawn_state ;
+            /* !!! Most of it has been done in datach_basic_widget : */
+            XReparentWindow (dpy, asw->w, Scr.Root, x, y);
+            withdrawn_state.flags = AS_Withdrawn ;
+            withdrawn_state.icon_window = None ;
+            set_client_state( asw->w, &withdrawn_state );
 
-        if( width > 0 && height > 0 )
-            XResizeWindow( dpy, asw->w, width, height );
-        XSetWindowBorderWidth (dpy, asw->w, bw);
+            if( width > 0 && height > 0 )
+                XResizeWindow( dpy, asw->w, width, height );
+            XSetWindowBorderWidth (dpy, asw->w, bw);
 
-        if( map_too )
-            XMapWindow (dpy, asw->w);
-        XSync( dpy, False );
+            if( map_too )
+                XMapWindow (dpy, asw->w);
+            XSync( dpy, False );
+        }
     }
-    XUngrabServer( dpy ) ;
 }
 
 /**********************************************************************/

@@ -250,5 +250,6 @@ extern struct MyLook *DefaultLook;
 
 extern struct ASEnvironment *DefaultEnv;
 
+extern void (*CloseOnExec)();
 
 #endif /* #ifndef AFTERSTEP_LIB_HEADER_FILE_INCLUDED */

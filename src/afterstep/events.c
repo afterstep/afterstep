@@ -879,8 +879,6 @@ HandleMapNotify ( ASEvent *event )
         XMapWindow (dpy, asw->frame);
 	}
 
-    broadcast_config( M_MAP, asw );
-
     if (get_flags( Scr.Feel.flags, ClickToFocus) )
         focus_aswindow (asw, False);
 
@@ -891,6 +889,7 @@ HandleMapNotify ( ASEvent *event )
     ASWIN_SET_FLAGS(asw, AS_Mapped);
     ASWIN_CLEAR_FLAGS(asw, AS_IconMapped);
     ASWIN_CLEAR_FLAGS(asw, AS_Iconic);
+    broadcast_config( M_MAP, asw );
 }
 
 

@@ -198,7 +198,7 @@ LOCAL_DEBUG_OUT( "sending command %p to the astep", pfunc );
 	if (pfunc != NULL)
 	{
 		send_module_msg_header(window, 0);
-		send_module_msg_function(pfunc->func, pfunc->name, pfunc->text, pfunc->func_val, pfunc->unit_val);
+        send_module_msg_function(pfunc->func, pfunc->name, pfunc->text, pfunc->func_val, pfunc->unit_val);
 		send_module_msg_tail ();
 	}
 }
@@ -238,6 +238,7 @@ module_connect (const char *socket_name)
 
     if( socket_name == NULL )
         return -1;
+
 	/* create an unnamed socket */
 	if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
 	{
@@ -370,6 +371,7 @@ ConnectAfterStep (unsigned long message_mask)
 	/* Dead pipe == AS died */
 	signal (SIGPIPE, DeadPipe);
     fd = Scr.wmprops?socket_connect_client(Scr.wmprops->as_socket_filename):-1;
+    signal (SIGPIPE, DeadPipe);
 
     if (fd < 0)
 	{

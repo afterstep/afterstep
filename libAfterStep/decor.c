@@ -17,8 +17,8 @@
  *
  */
 
-//#define LOCAL_DEBUG
-//#define DO_CLOCKING
+#undef LOCAL_DEBUG
+#undef DO_CLOCKING
 
 #include "../configure.h"
 
@@ -411,6 +411,7 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w,
 
     if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
+    LOCAL_DEBUG_OUT( "XMoveResizeWindow( %lX, %dx%d%+d%+d );", pc->w, width, height, x, y );
     XMoveResizeWindow (dpy, pc->w, x, y, width, height);
 }
 

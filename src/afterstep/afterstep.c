@@ -75,6 +75,17 @@ void          DoAutoexec( Bool restarting );
 
 Bool afterstep_parent_hints_func(Window parent, ASParentHints *dst );
 
+#ifdef __CYGWIN__
+void
+ASCloseOnExec()
+{
+    ShutdownModules();
+    if( x_fd )
+        close(x_fd);
+}
+#endif
+
+
 /**************************************************************************/
 /**************************************************************************/
 /***********************************************************************
@@ -92,6 +103,10 @@ main (int argc, char **argv)
     InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0);
     AfterStepState = MyArgs.flags ;
     clear_flags( AfterStepState, ASS_NormalOperation);
+
+#ifdef __CYGWIN__
+    CloseOnExec = ASCloseOnExec ;
+#endif
 
 #if defined(LOG_FONT_CALLS)
 	fprintf (stderr, "logging font calls now\n");

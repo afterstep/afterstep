@@ -44,9 +44,11 @@ static void dealloc_bidirelem( ASBiDirElem *e )
 
 static ASBiDirElem *alloc_bidirelem()
 {
-	if( deallocated_used > 0  )
+    if( deallocated_used > 0  )
 	{
-		return deallocated_mem[--deallocated_used];
+        ASBiDirElem* e = deallocated_mem[--deallocated_used];
+        e->next = e->prev = e->data = NULL;
+        return e;
 	}else
 		return safecalloc( 1, sizeof(ASBiDirElem));
 }

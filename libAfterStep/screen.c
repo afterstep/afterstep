@@ -144,7 +144,12 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 	fprintf (stderr, "%s has encountered the following problem interacting with X Windows :\n", MyName);
 	if (event && dpy)
 	{
-		err_text = safemalloc (128);
+        if( event->error_code == BadWindow && Scr.Windows != NULL )
+            if( Scr.Windows->on_dead_window )
+                if( Scr.Windows->on_dead_window( event->resourceid, Scr.Windows ) )
+                    return 0;
+
+        err_text = safemalloc (128);
 		strcpy (err_text, "unknown error");
 		XGetErrorText (dpy, event->error_code, err_text, 120);
 		fprintf (stderr, "      Request: %d,    Error: %d(%s)\n", event->request_code, event->error_code, err_text);

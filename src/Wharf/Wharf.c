@@ -73,15 +73,23 @@
 
 struct ASWharfFolder;
 
+typedef struct ASSwallowed
+{
+    ASCanvas *normal, *iconic;
+    ASCanvas *current;                         /* one of the above */
+
+}ASSwallowed;
+
 typedef struct ASWharfButton
 {
     unsigned long magic;
 #define ASW_SwallowTarget   (0x01<<0)
+#define ASW_MaxSwallow      (0x01<<1)
     ASFlagType flags;
-    char *name ;
-    ASCanvas *canvas;
-    ASCanvas   *swallowed;
-    ASTBarData *bar;
+    char        *name ;
+    ASCanvas    *canvas;
+    ASSwallowed *swallowed;
+    ASTBarData  *bar;
 
     unsigned int     desired_width, desired_height;
     FunctionData    *fdata;
@@ -112,6 +120,8 @@ typedef struct ASWharfState
 {
     ASHashTable   *win2obj_xref;               /* xref of window IDs to wharf buttons and folders */
     ASWharfFolder *root_folder ;
+
+    ASHashTable   *swallow_targets;            /* hash of buttons that needs to swallow  */
 
     ASWharfButton *pressed_button;
     int pressed_state;
@@ -144,6 +154,9 @@ void on_wharf_moveresize( ASEvent *event );
 void destroy_wharf_folder( ASWharfFolder **paswf );
 void on_wharf_pressed( ASEvent *event );
 void release_pressure();
+Bool check_pending_swallow( ASWharfFolder *aswf );
+void exec_pending_swallow( ASWharfFolder *aswf );
+void check_swallow_window( ASWindowData *wd );
 
 
 /***********************************************************************
@@ -177,10 +190,8 @@ main (int argc, char **argv)
     as_fd[0] = as_fd[1] = ConnectAfterStep (M_TOGGLE_PAGING |
                                             M_NEW_DESK |
                                             M_END_WINDOWLIST |
-                                            M_MAP |
-                                            M_RES_NAME |
-                                            M_RES_CLASS |
-                                            M_WINDOW_NAME);
+                                            WINDOW_CONFIG_MASK |
+                                            WINDOW_NAME_MASK);
 
     Config = CreateWharfConfig ();
 
@@ -200,7 +211,8 @@ main (int argc, char **argv)
     /* Create a list of all windows */
     /* Request a list of all windows,
      * wait for ConfigureWindow packets */
-    SendInfo ("Send_WindowList", 0);
+    if( check_pending_swallow(WharfState.root_folder) )
+        SendInfo ("Send_WindowList", 0);
 
     /* create main folder here : */
 
@@ -232,7 +244,6 @@ void HandleEvents(int x_fd, int *as_fd)
 void
 DeadPipe (int nonsense)
 {
-
     destroy_wharf_folder( &(WharfState.root_folder) );
     DestroyWharfConfig( Config );
     destroy_ashash( &(WharfState.win2obj_xref) );
@@ -430,6 +441,36 @@ unregister_object( Window w )
         remove_hash_item( WharfState.win2obj_xref, AS_HASHABLE(w), NULL, False );
 }
 
+Bool
+register_swallow_target( char *name, ASWharfButton *aswb)
+{
+    if( name && aswb )
+    {
+        if( WharfState.swallow_targets == NULL )
+            WharfState.swallow_targets = create_ashash(0, casestring_hash_value, casestring_compare, NULL);
+
+        return (add_hash_item(WharfState.swallow_targets, AS_HASHABLE(name), aswb) == ASH_Success);
+    }
+    return False;
+}
+
+ASWharfButton *
+fetch_swallow_target( char *name )
+{
+    ASWharfButton *aswb = NULL ;
+    if( WharfState.swallow_targets && name )
+        get_hash_item( WharfState.swallow_targets, AS_HASHABLE(name), (void**)&aswb );
+    return aswb ;
+}
+
+void
+unregister_swallow_target( char *name )
+{
+    if( WharfState.swallow_targets && name )
+        remove_hash_item( WharfState.swallow_targets, AS_HASHABLE(name), NULL, False );
+}
+
+
 /****************************************************************************/
 /* PROCESSING OF AFTERSTEP MESSAGES :                                       */
 /****************************************************************************/
@@ -448,28 +489,16 @@ process_message (unsigned long type, unsigned long *body)
 
         show_progress( "message %lX window %X data %p", type, body[0], wd );
 		res = handle_window_packet( type, body, &wd );
-        if( res == WP_DataCreated )
+        show_progress( "\t res = %d, data %p", res, wd );
+        if( res == WP_DataCreated || res == WP_DataChanged )
         {
-        }else if( res == WP_DataChanged )
-        {
+            check_swallow_window( wd );
         }else if( res == WP_DataDeleted )
         {
             LOCAL_DEBUG_OUT( "client deleted (%p)->window(%lX)->desk(%d)", saved_wd, saved_w, saved_desk );
         }
-    }else
-    {
-        switch( type )
-        {
-            case M_TOGGLE_PAGING :
-                break;
-            case M_NEW_PAGE :
-                break;
-            case M_NEW_DESK :
-                break ;
-            case M_STACKING_ORDER :
-                break ;
-        }
-    }
+    }else if( type == M_END_WINDOWLIST )
+        exec_pending_swallow( WharfState.root_folder );
 }
 /*************************************************************************
  * Event handling :
@@ -671,7 +700,13 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
                 aswb->fdata = safecalloc( 1, sizeof(FunctionData) );
                 dup_func_data( aswb->fdata, wb->function );
                 if( IsSwallowFunc(aswb->fdata->func) )
+                {
                     set_flags( aswb->flags, ASW_SwallowTarget );
+                    register_swallow_target( aswb->fdata->name, aswb );
+                    if( aswb->fdata->func == F_MaxSwallow ||
+                        aswb->fdata->func == F_MaxSwallowModule )
+                        set_flags( aswb->flags, ASW_MaxSwallow );
+                }
             }
 
             aswb->canvas = create_wharf_button_canvas(aswb, aswf->canvas);
@@ -797,6 +832,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
             max_height = aswb->desired_height ;
     }
 
+    LOCAL_DEBUG_OUT( "max_size(%dx%d)", max_width, max_height );
     if( get_flags( aswf->flags, ASW_Vertical ) )
         y_inc = max_height ;
     else
@@ -1039,6 +1075,150 @@ Bool display_main_folder()
     if( get_flags( Config->geometry.flags, YNegative ))
         top += Scr.MyDisplayHeight ;
     return display_wharf_folder( WharfState.root_folder, left, top, left, top );
+}
+
+Bool
+check_pending_swallow( ASWharfFolder *aswf )
+{
+    if( aswf )
+    {
+        int i = aswf->buttons_num ;
+        /* checking buttons : */
+        while( --i >= 0 )
+            if( get_flags(aswf->buttons[i].flags, ASW_SwallowTarget ) )
+                return True;
+        /* checking subfolders : */
+        i = aswf->buttons_num ;
+        while( --i >= 0 )
+            if( aswf->buttons[i].folder )
+                if( check_pending_swallow( aswf->buttons[i].folder ) )
+                    return True;
+    }
+    return False;
+}
+
+void
+exec_pending_swallow( ASWharfFolder *aswf )
+{
+    if( aswf )
+    {
+        int i = aswf->buttons_num ;
+        while( --i >= 0 )
+        {
+            if( get_flags(aswf->buttons[i].flags, ASW_SwallowTarget ) &&
+                aswf->buttons[i].fdata &&
+                aswf->buttons[i].swallowed == NULL )
+            {
+                SendCommand( aswf->buttons[i].fdata, 0);
+            }
+            if( aswf->buttons[i].folder )
+                exec_pending_swallow( aswf->buttons[i].folder );
+        }
+    }
+}
+
+void
+grab_swallowed_canvas_btns( ASCanvas *canvas, Bool action, Bool withdraw )
+{
+    unsigned *mods = lock_mods;
+    do
+    {
+        /* grab button 1 if this button performs an action */
+        if( action )
+            XGrabButton (dpy, Button1, *mods,
+                        canvas->w,
+                        False, ButtonPressMask | ButtonReleaseMask,
+                        GrabModeAsync, GrabModeAsync, None, None);
+        /* grab button 3 if this is the root folder */
+        if (withdraw )
+            XGrabButton (dpy, Button3, *mods,
+                        canvas->w,
+                        False, ButtonPressMask | ButtonReleaseMask,
+                        GrabModeAsync, GrabModeAsync, None, None);
+    }while (*mods++);
+}
+
+void
+check_swallow_window( ASWindowData *wd )
+{
+    ASWharfButton *aswb = NULL ;
+    Window w;
+    unsigned int total_width = 1, total_height = 1;
+
+    if( wd == NULL && !get_flags( wd->state_flags, AS_Mapped))
+        return;
+    LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
+                     wd->window_name, wd->icon_name, wd->res_class, wd->res_name );
+    if( (aswb = fetch_swallow_target( wd->window_name )) == NULL )
+        if( (aswb = fetch_swallow_target( wd->icon_name )) == NULL )
+            if( (aswb = fetch_swallow_target( wd->res_class )) == NULL )
+                if( (aswb = fetch_swallow_target( wd->res_name )) == NULL )
+                    return ;
+    LOCAL_DEBUG_OUT( "swallow target is %p, swallowed = %p", aswb, aswb->swallowed );
+    if( aswb->swallowed != NULL )
+        return;
+    /* do the actuall swallowing here : */
+    XGrabServer( dpy );
+    /* first lets check if window is still not swallowed : it should have no more then 2 parents before root */
+    w = get_parent_window( wd->client );
+    LOCAL_DEBUG_OUT( "first parent %lX, root %lX", w, Scr.Root );
+    if( w != Scr.Root && w != None )
+        w = get_parent_window( w );
+    LOCAL_DEBUG_OUT( "second parent %lX, root %lX", w, Scr.Root );
+    if( w == Scr.Root )
+    {
+        ASWharfFolder *aswf = aswb->parent ;
+        /* its ok - we can swallow it now : */
+        /* create swallow object : */
+        aswb->swallowed = safecalloc( 1, sizeof(ASSwallowed ));
+        /* first thing - we reparent window and its icon if there is any */
+        XReparentWindow( dpy, wd->client, aswb->canvas->w, -10000, -10000 );
+        aswb->swallowed->normal = create_ascanvas_container( wd->client );
+        register_object( wd->client, (ASMagic*)aswb );
+        XSelectInput (dpy, wd->client, StructureNotifyMask);
+        grab_swallowed_canvas_btns( aswb->swallowed->normal,
+                                    (aswb->folder!=NULL),
+                                    (Config->withdraw_style > 0 && aswb->parent == WharfState.root_folder) );
+        if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap))
+        {
+            XReparentWindow( dpy, wd->icon, aswb->canvas->w, -10000, -10000 );
+            aswb->swallowed->iconic = create_ascanvas_container( wd->icon );
+            register_object( wd->icon, (ASMagic*)aswb );
+            XSelectInput (dpy, wd->icon, StructureNotifyMask);
+            grab_swallowed_canvas_btns(  aswb->swallowed->iconic,
+                                        (aswb->folder!=NULL),
+                                        (Config->withdraw_style > 0 && aswb->parent == WharfState.root_folder));
+        }
+        aswb->swallowed->current = ( get_flags( wd->state_flags, AS_Iconic ) &&
+                                     aswb->swallowed->iconic != NULL )?
+                                   aswb->swallowed->iconic:aswb->swallowed->normal;
+        handle_canvas_config( aswb->swallowed->current );
+        LOCAL_DEBUG_OUT( "client(%lX)->icon(%lX)->current(%lX)", wd->client, wd->icon, aswb->swallowed->current->w );
+
+        if( get_flags( aswb->flags, ASW_MaxSwallow ) || Config->force_size.width == 0 )
+            aswb->desired_width = aswb->swallowed->current->width;
+        if( get_flags( aswb->flags, ASW_MaxSwallow ) || Config->force_size.height == 0 )
+            aswb->desired_height = aswb->swallowed->current->height;
+
+        moveresize_canvas( aswb->swallowed->current, 0, 0, aswb->desired_width, aswb->desired_height );
+        map_canvas_window( aswb->swallowed->current, True );
+
+        place_wharf_buttons( aswf, &total_width, &total_height );
+
+        if( total_width != 0 && total_height != 0 )
+        {
+            if( total_width > Scr.MyDisplayWidth )
+                total_width = Scr.MyDisplayWidth;
+            if( total_height > Scr.MyDisplayHeight )
+                total_height = Scr.MyDisplayHeight;
+
+            aswf->total_width = total_width ;
+            aswf->total_height = total_height ;
+        }
+        resize_canvas( aswf->canvas, total_width, total_height );
+    }
+    ASSync(False);
+    XUngrabServer( dpy );
 }
 
 /*************************************************************************/

@@ -340,7 +340,8 @@ change_aswindow_desk_iter_func(void *data, void *aux_data)
         if( ASWIN_DESK(asw) != new_desk && IsValidDesk(new_desk))
         {
             ASWIN_DESK(asw) = new_desk ;
-            set_client_desktop( asw->w, new_desk );
+            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+                set_client_desktop( asw->w, new_desk );
             broadcast_config (M_CONFIGURE_WINDOW, asw);
         }
     }else

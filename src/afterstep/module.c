@@ -213,7 +213,7 @@ HandleModuleInput (module_t *module)
         res = ReadModuleInput (module, &offset, sizeof (ibuf->size), &(ibuf->size));
 	}
 
-LOCAL_DEBUG_OUT("res(%d)->window(0x%X)->size(%d)",res, ibuf->window, ibuf->size);
+LOCAL_DEBUG_OUT("res(%d)->window(0x%lX)->size(%d)",res, ibuf->window, ibuf->size);
 	if (res > 0)
 	{
 		if (ibuf->size > 0)					   /* Protocol 1 */
@@ -522,6 +522,7 @@ AcceptModuleConnection (int socket_fd)
 	return fd;
 }
 
+
 void
 ShutdownModules()
 {
@@ -620,6 +621,7 @@ KillModuleByName (char *name)
         while( --i >= 0 )
             if (list[i].fd > 0)
             {
+                LOCAL_DEBUG_OUT( "checking to kill module %d \"%s\", regexp \"%s\"", i, list[i].name, name);
                 if (match_wild_reg_exp( list[i].name, wrexp ) == 0 )
                     KillModule (&(list[i]));
             }
@@ -764,7 +766,7 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
     int           toret = 0;
     module_t     *module;
 
-    LOCAL_DEBUG_CALLER_OUT( "fdata(%p)->func(%d)->channel(%d)->w(%lX)->Modules(%p)", fdata, fdata->func, channel, w, Modules );
+    LOCAL_DEBUG_CALLER_OUT( "fdata(%p)->func(%d,MOD_FS=%d)->channel(%d)->w(%lX)->Modules(%p)", fdata, fdata->func, F_MODULE_FUNC_START, channel, w, Modules );
 /*fprintf( stderr,"Function parsed: [%s] [%s] [%d] [%d] [%c]\n",fdata.name,fdata.text,fdata.func_val[0], fdata.func_val[1] );
  */
     if (Modules == NULL || fdata == NULL || channel >= MODULES_NUM )
@@ -780,8 +782,8 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 	 case F_SET_NAME:
         if (module->name != NULL)
             free (module->name);
-        module->name = fdata->text;
-        fdata->text = NULL;
+        module->name = fdata->name;
+        fdata->name = NULL;
         break;
      case F_UNLOCK:
 		 toret = 66;
