@@ -63,6 +63,7 @@ install:
 		$(CP) -r $$D/* $(AFTER_SHAREDIR)/$$D/; \
 	done
 	@$(RMF) $(AFTER_SHAREDIR)/start/.include.in; \
+	$(CP) start/.include $(AFTER_SHAREDIR)/start/.include; \
 	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Feel/.include.in; \
 	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Color_Scheme/.include.in; \
 	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Look/.include.in; \

@@ -548,7 +548,7 @@ fi
 
 
 
-version="0.93"
+version="0.99"
 version_major="0"
 lib_name="LIBAFTERBASE"
 lib_file_name="libAfterBase"

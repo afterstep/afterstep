@@ -1,4 +1,4 @@
-version 1.99.0 AKA 2.0 beta1
+version 2.0 beta1
 1. General
         AfterStep had been almost entirely rewritten in this new incarnation.
         Here is the short list of new architectural changes:

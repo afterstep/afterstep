@@ -10,13 +10,13 @@ AC_INIT(afterstep/autoexec.in)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
-version="1.99.0"
-app_version="1.99.0"
-libafterstep_version="0.93"
+version="2.00.beta1"
+app_version="2.00.beta1"
+libafterstep_version="0.99"
 libafterstep_version_major="0"
 libafterstep_name="LIBAFTERSTEP"
 libafterstep_file_name="libAfterStep"
-libafterconf_version="0.93"
+libafterconf_version="0.99"
 libafterconf_version_major="0"
 libafterconf_name="LIBAFTERCONF"
 libafterconf_file_name="libAfterConf"
