@@ -205,6 +205,8 @@ ASFlagType handle_canvas_config( ASCanvas *canvas ); /* Returns True if moved/re
 Bool get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py );
 void clear_canvas_shape (ASCanvas * pc);
 void invalidate_canvas_config( ASCanvas *canvas );
+Bool get_current_canvas_size( ASCanvas * pc, unsigned int *pwidth, unsigned int *pheight );
+Bool get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwidth, unsigned int *pheight, unsigned int *pbw );
 
 
 Pixmap get_canvas_canvas( ASCanvas *pc );
@@ -220,9 +222,9 @@ void update_canvas_display( ASCanvas *pc );
 #endif
 
 Bool combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first );
+Bool combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_w, int child_h, int child_bw, Bool first );
 Bool combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool first );
 Bool replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y );
-Bool clear_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y );
 
 
 

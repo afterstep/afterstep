@@ -739,8 +739,6 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     if( AS_ASSERT(asw) )
         return ;
 
-    ClearShape (asw);
-
     if( !free_resources && asw->hints )
         has_tbar = (ASWIN_HFLAGS(asw, AS_Titlebar)!= 0);
 
@@ -2214,19 +2212,27 @@ SetShape (ASWindow *asw, int w)
 #ifdef SHAPE
 	if( asw )
 	{
+        if( ASWIN_GET_FLAGS(asw, AS_Dead) )
+        {
+            clear_canvas_shape( asw->frame_canvas );
+            return;
+        }
+
         if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
         {                                      /* todo: update icon's shape */
 
         }else
         {
             int i ;
-			Window        wdumm;
+
+            combine_canvas_shape (asw->frame_canvas, asw->client_canvas, True );
+#if 0
+            Window        wdumm;
 			int client_x = 0, client_y = 0 ;
 			unsigned int width, height, bw, unused_depth  ;
-			
-			XGetGeometry( dpy, asw->w, &wdumm, &client_x, &client_y, &width, &height, &bw, &unused_depth );
+            XGetGeometry( dpy, asw->w, &wdumm, &client_x, &client_y, &width, &height, &bw, &unused_depth );
 
-            if( ASWIN_GET_FLAGS( asw, AS_Shaped ) && !ASWIN_GET_FLAGS(asw, AS_Dead) )
+            if( ASWIN_GET_FLAGS( asw, AS_Shaped ) )
             {
 				/* we must use Translate coordinates since some of the canvases may not have updated
 				 * their config at the time */
@@ -2249,7 +2255,7 @@ SetShape (ASWindow *asw, int w)
                 XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
                                          0, 0, &rect, 1, ShapeSet, Unsorted);
             }
-
+#endif
             for( i = 0 ; i < FRAME_SIDES ; ++i )
                 if( asw->frame_sides[i] )
                     combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], False );
