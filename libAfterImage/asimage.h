@@ -26,6 +26,7 @@ ctrl_byte3    := [1NNNNNNN|11111111] (first bit is 1, remaining are length.
 #define RLE_EOL			0x00
 /* this are masks */
 #define RLE_DIRECT_B 		0x80
+#define RLE_DIRECT_TAIL		0xFF
 #define RLE_LONG_B 		0x40
 /* this one is inverted mask */
 #define RLE_SIMPLE_B_INV  	0xC0
