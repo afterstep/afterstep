@@ -1,0 +1,206 @@
+#
+# Copyright (c) 2001, Sasha Vasko <sashav@sprintmail.com>
+# Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
+#
+
+################################################################
+# library specifics :
+
+# asapp.c, parse.c screen.c trace.c needs to be split up into
+# generic and AS-specific code :
+
+LIB_INCS=	
+
+LIB_OBJS=	
+
+# end specifics
+################################################################
+# generic makefile stuff :
+
+LIB_NAME        = @lib_name@
+LIB_STATIC      = @lib_file_name@.a
+LIB_SHARED      = @lib_file_name@.so
+LIBVER          = @version@
+LIBVERMAJOR     = @version_major@
+
+CC		= @CC@
+CCFLAGS         = @CFLAGS@
+# -march=pentiumpro -mcpu=pentiumpro
+EXTRA_DEFINES	= @DEFINE_XLOCALE@
+
+RANLIB		= @RANLIB@
+AR		= ar clq
+CP		= @CP@
+MV		= @MV@
+RM		= @RM@
+RMF		= @RM@ -f
+MKDIR		= @MKDIR@
+FIND		= @FIND@
+XARGS		= @XARGS@
+LDCONFIG	= @LDCONFIG@
+
+YACC		= @YACC@
+LEX		= @LEX@
+YACCFLAGS	= -d
+LEXFLAGS	=
+
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= @INSTALL@ -s -m 755
+INSTALL_DATA	= @INSTALL@ -m 644
+INSTALL_HEADER	= @INSTALL@ -m 644
+INSTALL_LIB	= @INSTALL@ -m 755
+INSTALL_SCRIPT	= @INSTALL@ -m 755
+
+INCS_EXTRA	= @XPM_CFLAGS@ @JPEG_CFLAGS@ @PNG_CFLAGS@ @GIF_CFLAGS@ @TIFF_CFLAGS@ @TTF_INCLUDES@
+INCS_X		= @X_CFLAGS@ 
+INCLUDES	= $(INCS_X) $(INCS_EXTRA) $(INCS_PRIVATE)
+
+LIBDIR		= $(DESTDIR)@libdir@
+INCLUDEDIR	= $(DESTDIR)@includedir@
+AFTER_INC_DIR	= $(DESTDIR)@includedir@/afterstep
+AFTER_BIN_DIR	= $(DESTDIR)@bindir@
+AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man1
+AFTER_DOC_DIR	= $(DESTDIR)@datadir@/afterstep/doc
+AFTER_SHAREDIR	= $(DESTDIR)@datadir@/afterstep
+
+all:            @LIBPROG@ $(INSTALLONBUILD)
+
+install.bin:
+
+install.lib:	@LIBPROG@ @LIBINSTALL@
+
+install.static:
+		@( \
+		if test -d $(LIBDIR) && test -w $(LIBDIR); then \
+		    echo "$(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR)"; \
+		    $(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR); \
+		    if test `uname` = "Linux"; then \
+			if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
+		    	    echo "" > /dev/null; \
+			elif grep -q $(LIBDIR) /etc/ld.so.conf > /dev/null 2>&1; then \
+		    	    echo "" > /dev/null; \
+			else \
+		    	    echo "Unable to find $(LIBDIR) in ld.so.conf. In order to use "; \
+		    	    echo "$(LIB_STATIC), you may need to add it or set LD_LIBRARY_PATH."; \
+			fi; \
+			echo "$(LDCONFIG)"; \
+			$(LDCONFIG); \
+		    fi ;\
+		fi \
+		)
+
+install.man:
+
+install.script:
+
+install.dyn:
+		$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR)
+		-@/bin/rm -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED)
+		ln -sf $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR)
+		ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED)
+		@( \
+		 if test `uname` = "Linux"; then \
+		   if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
+		     echo "" > /dev/null; \
+		   elif grep -q $(LIBDIR) /etc/ld.so.conf > /dev/null 2>&1; then \
+		     echo "" > /dev/null; \
+		   else \
+		     echo "Unable to find $(LIBDIR) in ld.so.conf. In order to use "; \
+		     echo "$(LIB_SHARED), you may need to add it or set LD_LIBRARY_PATH."; \
+		   fi; \
+		   echo "$(LDCONFIG)"; \
+		   $(LDCONFIG); \
+		 fi \
+		)
+
+uninstall.bin:
+
+uninstall.lib:
+
+uninstall.man:
+
+uninstall.script:
+
+clean:
+		$(RMF) $(LIB_SHARED) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core
+
+distclean:
+		$(RMF) $(LIB_SHARED) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
+
+indent:
+		@SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
+		if test "x$$SRCS" == "x"; then exit; fi; \
+		for i in $$SRCS; do \
+		  if (indent -di14 -ts4 -i4 -l120 -lc80 -bad -nbbb -bli0 -c48 -cd48 -ce -cli1 -ncs -nbs -nbbo -hnl < $$i > /tmp/$$i); then \
+		    echo "indent $$i"; \
+		    mv /tmp/$$i $$i; \
+		  fi; \
+		done
+
+deps:
+		echo -n > .depend ; \
+		buf="" ; \
+		SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
+		echo -n $(LIB_NAME)_OBJS = > .shared ; \
+		for file in $$SRCS; do \
+		  echo " \\" >> .shared ; \
+		  echo -n '		$$('$(LIB_NAME)_PATH')'/$$file >> .shared ; \
+		  if test "x$$buf" != "x"; then \
+		      echo $$buf >>.depend ; \
+		      echo >>.depend ; \
+		  fi; \
+		  buf="./"`echo $$file | sed "s/.c /.o /g"`: ; \
+		  for d in `grep "#include \"" < $$file | awk -F \" '{print $$2}'`; do \
+		      if test "x$$buf" != "x"; then \
+		         echo $$buf \\ >>.depend ; \
+		      fi; \
+		      echo -n "		" >>.depend ; \
+		      buf="$$d "; \
+		  done; \
+		done; \
+		if test "x$$buf" != "x"; then \
+		  echo $$buf >>.depend ; \
+		fi; \
+		echo "">> .shared ; \
+		echo "">> .shared ; \
+		echo -n $(LIB_NAME)_INCS = >> .shared ; \
+		for f in $(LIB_INCS); do \
+		  echo " \\" >> .shared ; \
+		  echo -n '		$$('$(LIB_NAME)_PATH')'/$$f >> .shared ; \
+		done; \
+		echo "" >> .shared ;
+
+
+$(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS)
+		$(RMF) $(LIB_STATIC)
+		$(AR) $(LIB_STATIC) $(LIB_OBJS)
+		$(RANLIB) $(LIB_STATIC)
+
+.c.o:
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
+
+.c.s:
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -S $*.c
+
+#
+# include dependency files if they exist
+#
+# this is merely a precaution, but as it does not work with ansi make
+# we took it out
+#ifneq ($(wildcard .depend),)
+include .depend
+#endif
+
+$(LIB_SHARED): $(LIB_SHARED).$(LIBVERMAJOR)
+	ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIB_SHARED)
+
+$(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
+	ln -sf $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
+
+$(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS)
+	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
+	 $(LIB_OBJS)
+
+install:	install.lib
+
+uninstall:	uninstall.lib
