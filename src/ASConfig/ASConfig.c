@@ -139,13 +139,27 @@ DeadPipe (int foo)
 void load_hierarchy();
 void print_hierarchy( ASProperty *root, int level );
 void register_special_keywords();
+void interactive_loop();	
 /*************************************************************************/
 /*************************************************************************/
 int
 main (int argc, char **argv)
 {
+	Bool interactive = False ;
+	Bool print_hierarchy = True ;
+	int i ;
 	/* Save our program name - for error messages */
     InitMyApp (CLASS_ASCONFIG, argc, argv, NULL, NULL, 0 );
+	for( i = 1 ; i < argc ; ++i ) 
+		if( argv[i] ) 
+		{
+			if( mystrcmp(argv[i],"-i") == 0 || mystrcmp(argv[i],"--interactive") == 0 )
+				interactive = True;	
+			else if( mystrcmp(argv[i],"-p") == 0 || mystrcmp(argv[i],"--print-hierarchy") == 0 )
+				interactive = True;	
+			   
+		}
+
 	InitSession();
 
 	register_special_keywords();
@@ -154,7 +168,11 @@ main (int argc, char **argv)
 	LOCAL_DEBUG_OUT("loading hierarchy%s","");
 	load_hierarchy();
 	
-	print_hierarchy(Root, 0);
+	if( interactive ) 
+	{
+	 	interactive_loop();	
+	}else if( print_hierarchy )
+		print_hierarchy(Root, 0);
 	
 	if( dpy )   
     	XCloseDisplay (dpy);
@@ -1234,4 +1252,34 @@ print_hierarchy( ASProperty *root, int level )
 	 	iterate_asbidirlist( root->sub_props, print_hierarchy_iter_func, (void*)(level+1), NULL, False );		  
 	}
 	
+}	 
+
+/*
+ *
+ * as_config_request == <command> <prop1> [<prop2>]
+ * command == <list>|<new>|<get>|<set>|<copy>|<delete>|<save>|<load>|<order_down>|<order_up>
+ * prop == <prop id=%d|keyword=%d [name="name"] [index="idx"] [sub_items=0|1]>value</asprop>
+ * value == <value type=Phony|Integer|Data|File|Char [size=size] [read_only=0|1]>hex_data</value>
+ * 
+ * as_config_replay == <success>|<failure>|<prop_list>|<value>
+ * 
+ * success == <success/>
+ * failure == <failure/>
+ * prop_list == <list><prop1><prop2>...</list>
+ * 
+ * as_config_notice == <changed> <prop/> </changed>
+ * 
+ * 
+ */
+void interactive_loop()
+{
+#define BUFFER_SIZE 1024	
+	char buffer[BUFFER_SIZE] ;
+	
+	while( fgets( &buffer[0], BUFFER_SIZE, stdin ) != NULL )
+	{
+		/* now we need to process the command */
+		handle_asconfig_command(buffer, strlen(buffer)-1, STDOUT);		   
+		
+	}	 
 }	 

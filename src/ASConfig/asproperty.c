@@ -31,7 +31,7 @@
 
 
 /*************************************************************************/
-
+static int ASProperty_CurrSeqNo = 0 ;
 /*************************************************************************/
 ASStorageID 
 encode_string( const char *str ) 
@@ -102,6 +102,7 @@ ASProperty *
 create_property( int id, ASPropContentsType type, const char *name, Bool tree )
 {
 	ASProperty *prop = safecalloc( 1, sizeof(ASProperty));
+	prop->seq_no = ++ASProperty_CurrSeqNo ;
 	prop->id = id ;
 	prop->type = type ;
 	prop->name = mystrdup(name) ;

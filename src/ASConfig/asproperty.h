@@ -16,10 +16,12 @@ typedef enum
 
 typedef struct ASProperty {
 
+	unsigned short seq_no ;
+
 #define ASProp_Indexed				(0x01<<0)	
 #define ASProp_Merged				(0x01<<1)	  
 #define ASProp_Disabled				(0x01<<2)	  
-	ASFlagType flags ;
+	unsigned short flags ;
 	
 	ASStorageID id ;                 /* same a options IDs from autoconf.h */
 
