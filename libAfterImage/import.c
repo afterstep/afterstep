@@ -22,7 +22,7 @@
 #include "config.h"
 
 /*#define LOCAL_DEBUG */
-#define DO_CLOCKING
+/*#define DO_CLOCKING */
 
 #include <time.h>
 #include <unistd.h>
@@ -265,7 +265,7 @@ check_image_type( const char *realfilename )
 	{
 		bytes_in = fread( &(head[0]), sizeof(char), 16, fp );
 		head[15] = '\0' ;
-		fprintf( stderr, "%s|   head[0] = %d, head[2] = %d\n", realfilename+filename_len-4, head[0], head[2] );
+		DEBUG_OUT("%s: head[0]=0x%2.2X(%d),head[2]=0x%2.2X(%d)\n", realfilename+filename_len-4, head[0], head[0], head[2], head[2] );
 /*		fprintf( stderr, " IMAGE FILE HEADER READS : [%s][%c%c%c%c%c%c%c%c][%s], bytes_in = %d\n", (char*)&(head[0]),
 						head[0], head[1], head[2], head[3], head[4], head[5], head[6], head[7], strstr ((char *)&(head[0]), "XPM"),bytes_in );
  */		fclose( fp );

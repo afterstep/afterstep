@@ -8,5 +8,7 @@ Window create_top_level_window( ASVisual *asv, Window root, int x, int y,
 								unsigned long attr_mask,
 								XSetWindowAttributes *attr,
 								char *app_class );
+Pixmap set_window_background_and_free( Window w, Pixmap p );
+
 #endif
 

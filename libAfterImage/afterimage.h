@@ -122,7 +122,8 @@
  * EXAMPLE
  * ASView  - image loading from the file and displaying in window.
  * ASScale - image loading from file and scaling to arbitrary size.
- * ASTint  - image loading from file and tinting to arbitrary color.
+ * ASTile  - image loading from file, tiling and tinting to arbitrary
+ *           size and color.
  * ASMerge - imgae loading and merging with another image.
  * ASGrad  - mutlipoint gradient drawing.
  * ASFlip  - image loading from file and rotation.

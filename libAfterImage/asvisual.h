@@ -53,6 +53,8 @@
  * bits 8 to 15     - Green channel
  * bits 16 to 23    - Red channel
  * bits 24 to 31    - Alpha channel
+ * EXAMPLE
+ * ASTile.1
  * SOURCE
  */
 typedef CARD32 ARGB32;

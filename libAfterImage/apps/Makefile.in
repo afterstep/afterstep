@@ -1,4 +1,4 @@
-PROGS= asview
+PROGS= asview asscale astile
 
 
 CC		= @CC@
@@ -114,6 +114,12 @@ deps:
 
 asview: asview.o common.o
 		$(CC) asview.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asview
+
+asscale: asscale.o common.o
+		$(CC) asscale.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asscale
+
+astile: astile.o common.o
+		$(CC) astile.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o astile
 
 .c.o:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c

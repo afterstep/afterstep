@@ -1283,10 +1283,10 @@ best_output_filter( register CARD32 *line1, register CARD32 *line2, int unused, 
 	{
 		c = line1[i];
 		if( (c&0xFFFF0000)!= 0 )
-			c = ( c&0x7F000000 )?0:0x0000FFFF;
+			c = (c&0x7F000000)?0:0x0000FFFF;
 		c += ((errp*7)>>4) ;
 		err = c&QUANT_ERR_MASK;
-		line1[i] = (c&0x00FF0000)?0x000000FF:(c>>QUANT_ERR_BITS) ;
+		line1[i] = (c&0x7FFF0000)?0x000000FF:(c>>QUANT_ERR_BITS);
 		line2[i-1] += (err*3)>>4 ;
 		line2[i] += ((err*5)>>4)+(errp>>4);
 		errp = err ;
@@ -1447,7 +1447,7 @@ fine_output_filter_mod( register CARD32 *data, int unused, int len )
 	{
 		c = data[i];
 		if( (c&0xFFFF0000) != 0 )
-			c = ( c&0x7E000000 )?0:0x000000FF;
+			c = ( c&0x7E000000 )?0:0x0000FFFF;
 		c += err;
 		err = (c&QUANT_ERR_MASK)>>1 ;
 		data[i] = (c&0x00FF0000)?0x000000FF:c>>QUANT_ERR_BITS ;

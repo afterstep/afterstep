@@ -989,6 +989,8 @@ Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc,
  * has to be reduced - then several neighboring pixels will be averaged
  * into single pixel. If size has to be increased then new pixels will
  * be interpolated based on values of four neighboring pixels.
+ * EXAMPLE
+ * ASScale
  *********/
 /****f* libAfterImage/asimage/tile_asimage()
  * SYNOPSIS
@@ -1022,6 +1024,8 @@ Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc,
  * boundaries, then it will be reduced by whole number of image sizes to
  * fit inside the image. At the time of tiling image will be tinted
  * unless tint == 0.
+ * EXAMPLE
+ * ASTile
  *********/
 /****f* libAfterImage/asimage/merge_layers()
  * SYNOPSIS

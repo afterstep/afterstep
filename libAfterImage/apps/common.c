@@ -14,7 +14,7 @@
  * Generic Xlib related functionality, common for all the tutorials.
  * SEE ALSO
  * libAfterImage,
- * ASView, ASScale, ASTint, ASMerge, ASGrad, ASFlip, ASText
+ * ASView, ASScale, ASTile, ASMerge, ASGrad, ASFlip, ASText
  **************/
 
 /****v* libAfterImage/tutorials/_XA_WM_DELETE_WINDOW
@@ -98,6 +98,40 @@ create_top_level_window( ASVisual *asv, Window root, int x, int y,
     XFree ((char *) name.value);
 
 	return w;
+}
+/**************/
+/****f* libAfterImage/tutorials/set_window_background_and_free()
+ * SYNOPSIS
+ * Pixmap set_window_background_and_free( Window w, Pixmap p );
+ * INPUTS
+ * w - ID of the window background of which we need to set.
+ * p - Pixmap to set background to.
+ * RETURN VALUE
+ * None on success. Pixmap ID of original Pixmap on failure.
+ * DESCRIPTION
+ * set_window_background_and_free() will set window's background to
+ * specified Pixmap, Then refresh window contents so that background
+ * is drawn by the server, flush all the requests to force it to be sent
+ * to server to be processed as fast as possible.
+ * NOTES
+ * After Window's background has been set to Pixmap - X server makes
+ * hidden copy of this Pixmap for later window refreshing. As the result
+ * original Pixmap is no longer needed and can be freed to conserve
+ * resources.
+ * SOURCE
+ */
+Pixmap
+set_window_background_and_free( Window w, Pixmap p )
+{
+	if( p != None && w != None )
+	{
+		XSetWindowBackgroundPixmap( dpy, w, p );
+		XClearWindow( dpy, w );
+		XFlush( dpy );
+		XFreePixmap( dpy, p );
+		p = None ;
+	}
+	return p ;
 }
 /**************/
 

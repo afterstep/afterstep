@@ -45,7 +45,9 @@ int main(int argc, char* argv[])
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
 		/* see ASView.4 : */
-		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32, im->width, im->height, 1, 0, NULL, "ASView" );
+		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+			                         im->width, im->height, 1, 0, NULL,
+									 "ASView" );
 		if( w != None )
 		{
 			Pixmap p ;
@@ -53,16 +55,11 @@ int main(int argc, char* argv[])
 			XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
 	  		XMapRaised   (dpy, w);
 			/* see ASView.5 : */
-			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, False );
+			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL,
+				                False );
 			destroy_asimage( &im );
-			if( p != None )
-			{
-				XSetWindowBackgroundPixmap( dpy, w, p );
-				XClearWindow( dpy, w );
-				XFlush( dpy );
-				XFreePixmap( dpy, p );
-				p = None ;
-			}
+			/* see common.c:set_window_background_and_free(): */
+			p = set_window_background_and_free( w, p );
 		}
 		/* see ASView.6 : */
 	    while(w != None)
@@ -192,22 +189,11 @@ int main(int argc, char* argv[])
  * EXAMPLE
  *     p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, False );
  *     destroy_asimage( &im );
- *     if( p != None )
- * 	   {
- *	       XSetWindowBackgroundPixmap( dpy, w, p );
- *		   XClearWindow( dpy, w );
- *		   XFlush( dpy );
- *		   XFreePixmap( dpy, p );
- *		   p = None ;
- *     }
  * NOTES
- * After Window's background has been set to Pixmap - X server makes
- * hidden copy of this Pixmap for later window refreshing. As the result
- * original Pixmap is no longer needed and can be freed to conserve
- * resources. Likewise we no longer need ASImage after we transfered it
- * onto the Pixmap.
+ * We no longer need ASImage after we transfered it onto the Pixmap, so
+ * we better destroy it to conserve resources.
  * SEE ALSO
- * asimage2pixmap(), destroy_asimage()
+ * asimage2pixmap(), destroy_asimage(), set_window_background_and_free()
  ********/
 /****f* libAfterImage/tutorials/ASView.6 [1.6]
  * SYNOPSIS
