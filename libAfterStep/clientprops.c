@@ -683,7 +683,7 @@ HintsDescriptions[] =
 	&_XA_WM_NORMAL_HINTS, read_wm_normal_hints, HINT_STARTUP | HINT_GENERAL, HINTS_ICCCM}
 	,
 	{
-	&_XA_WM_TRANSIENT_FOR, read_wm_transient_for, HINT_STARTUP | HINT_GENERAL, HINTS_ICCCM}
+	&_XA_WM_TRANSIENT_FOR, read_wm_transient_for, HINT_STARTUP | HINT_GENERAL, HINTS_Transient}
 	,
 	{
 	&_XA_WM_PROTOCOLS, read_wm_protocols, HINT_PROTOCOL, HINTS_ICCCM}
@@ -837,6 +837,8 @@ collect_hints (ScreenInfo * scr, Window w, ASFlagType what, ASRawHints * reusabl
 			}
 			XFree (all_props);
 		}
+		if( hints->group_leader != NULL ) 
+			set_flags (hints->hints_types, (0x01 << HINTS_GroupLead));
 	}
 	return hints;
 }

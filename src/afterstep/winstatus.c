@@ -1212,10 +1212,12 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 
         set_flags( t->status->flags, AS_Position );
 
-    }else if( get_flags(Scr.Feel.flags, NoPPosition) &&
-            !get_flags( status->flags, AS_StartPositionUser ) )
-        clear_flags( t->status->flags, AS_Position );
-
+    }else if( get_flags(Scr.Feel.flags, NoPPosition))
+	{ 
+      	if( !get_flags( t->hints->flags, AS_Transient ) && 
+		    !get_flags( status->flags, AS_StartPositionUser ) )
+	        clear_flags( t->status->flags, AS_Position );
+	}
     /* TODO: AS_Iconic */
 	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
         ASWIN_LAYER(t) = AS_LayerNormal ;
@@ -1231,21 +1233,28 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
         if( ! get_flags( t->status->flags, AS_StartsIconic ) )
         {
             int x = -1, y = -1;
-            if( get_flags( t->hints->flags, AS_Transient|AS_ShortLived ) )
-            {
-                x = Scr.MyDisplayWidth/2 ;
-                y = Scr.MyDisplayHeight/2 ;
-            }else
+			pending_placement = True ;
+            ASQueryPointerRootXY( &x, &y );
+	        if( get_flags( t->hints->flags, AS_Transient|AS_ShortLived ) )
 			{
-                ASQueryPointerRootXY( &x, &y );
-				if( x < 0 || x > Scr.MyDisplayWidth )
-					x = Scr.MyDisplayWidth/2 ;
-				if( y < 0 || y > Scr.MyDisplayHeight )
-					y = Scr.MyDisplayHeight/2 ;
+				x -= (int)t->status->width / 2 ;
+				y -= (int)t->status->height / 2 ;
+				set_flags( t->status->flags, AS_Position );
+				pending_placement = False ;
 			}
-            t->status->x = x - (int)t->status->width/2 ;
-            t->status->y = y - (int)t->status->height/2 ;
-            pending_placement = !get_flags( t->hints->flags, AS_ShortLived ) ;
+
+			if( x + (int)t->status->width > (int)Scr.MyDisplayWidth )
+				x = (int)Scr.MyDisplayWidth - (int)t->status->width ;
+			if( x < 0 )
+				x = 0 ;
+
+			if( y + (int)t->status->height > (int) Scr.MyDisplayHeight )
+				y = Scr.MyDisplayHeight - (int)t->status->height ;
+			if( y < 0 ) 
+				y = 0 ;
+
+            t->status->x = x ;
+            t->status->y = y ;
         }
     }
 

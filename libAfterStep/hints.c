@@ -309,7 +309,7 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 		print_asdb_matched_rec (NULL, NULL, db, pdb_rec);
 
 	hints_types = get_asdb_hint_mask (pdb_rec);
-	hints_types &= raw->hints_types | (0x01 << HINTS_ASDatabase);
+	hints_types &= raw->hints_types | (0x01 << HINTS_ASDatabase)| (0x01 << HINTS_XResources) ;
 
 	/* now do the rest : */
 	if (what != 0)
@@ -318,7 +318,7 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 			if (get_flags (hints_types, (0x01 << list->hints_types[i])))
 			{
 				(list->merge_funcs[i]) (clean, raw, pdb_rec, status, what);
-				LOCAL_DEBUG_OUT ("merging hints %d - flags == 0x%lX", i, clean->flags);
+				LOCAL_DEBUG_OUT ("merging hints %d (of %d ) - flags == 0x%lX", i, list->hints_num, clean->flags);
 			}
 		}
 	if (get_flags (what, HINT_STARTUP) )
@@ -684,7 +684,7 @@ merge_transient_hints (ASHints * clean, ASRawHints * raw,
 		{
 			clean->transient_for = raw->transient_for->parent;
 			set_flags (clean->flags, AS_Transient);
-			set_flags( clean->flags, AS_ShortLived );
+			set_flags (clean->flags, AS_ShortLived);
 		}
 	}
 }
