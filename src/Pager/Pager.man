@@ -249,15 +249,15 @@ Turns OFF desk's labeling
 That will place label below the desk instead of above the desk. Note:
 using gradients with this option will produce funky effect.
 .IP "HideInactiveLabel"
-When this option is specifyed - Pager will use shaped extensions to
+When this option is specified - Pager will use shaped extensions to
 make label of all inactive desks transparent.
 .RE
 
 .IP "*PagerSmallFont \fIfont-name\fP"
 Specifies a font to use to label the window names in the pager. 
-It overrides font specifyed in Focused/Unfocused/Sticky window style
+It overrides font specified in Focused/Unfocused/Sticky window style
 in look file. It also displays text on background color - which
-can be usefull if BackPixmap is specifyed in window style.
+can be usefull if BackPixmap is specified in window style.
 Window labels seem to be fairly useless for desktop scales of 32
 or greater.
 
@@ -292,7 +292,7 @@ Assigns the text \fIlabel\fP to desk \fIdesk\fP in the pager window.
 Useful for assigning symbolic names to desktops, ie
 
 .IP "*PagerDontDrawBg"
-If specifyed, will not display background image, use this with xearth or 
+If specified, will not display background image, use this with xearth or 
 xfishtank, or with asetroot. 
 
 .IP "*PagerRows \fIrows\fP"

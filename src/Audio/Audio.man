@@ -38,7 +38,7 @@ and if it finds it  - "builtin-rplay" will be placed as the default
 AudioPlay type.
 
 In addition Audio can copy Audion samples from .au files into /dev/audio
-on itself, or it can dump contents of the specifyed files into STDOUT, 
+on itself, or it can dump contents of the specified files into STDOUT, 
 so you can redirect it anywhere you want.
 
 .SH OPTIONS
@@ -91,7 +91,7 @@ STDOUT so you can redirect it anywhere you want.
 .IP ""
 Anything other then these built in options will be considered a command 
 line parameters for the external player. External player itself has to 
-be specifyed at compile time using --with-soundplayer option for configure.
+be specified at compile time using --with-soundplayer option for configure.
 Default is "play" utility from the SoX package.
 If this option is ommited then external player is used with no parameters.
 .IP ""

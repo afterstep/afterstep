@@ -1,4 +1,5 @@
 /****************************************************************************
+ * Copyright (c) 2001 James <james@piku.org.uk> 
  * Copyright (c) 1999 Sasha Vasko <sasha at aftercode.net>
  * This module is based on Twm, but has been SIGNIFICANTLY modified
  * by Rob Nation
@@ -1251,6 +1252,8 @@ void
 Maximize (ASWindow * tmp_win, int val1, int val2,
 	  int val1_unit, int val2_unit)
 {
+    int tmp_ctr;		/* Temp counter */
+    
   if (tmp_win->flags & MAXIMIZED)
     {
       tmp_win->flags &= ~MAXIMIZED;
@@ -1348,6 +1351,28 @@ Maximize (ASWindow * tmp_win, int val1, int val2,
 	    y += h - val2 * val2_unit / 100;
 	  h = val2 * val2_unit / 100;
 	}
+
+#ifdef HAVE_XINERAMA
+      /* Make the window maximise to the current screen, not all of them */
+
+      /* Work out which screen this window is on */
+      for (tmp_ctr = 0; tmp_ctr < Scr.xinerama_screens_num; tmp_ctr++) {
+	  if ((tmp_win->frame_x >= Scr.xinerama_screens[tmp_ctr].x) &&
+	      (tmp_win->frame_x < Scr.xinerama_screens[tmp_ctr].width +
+		  Scr.xinerama_screens[tmp_ctr].x) &&
+	      (tmp_win->frame_y >= Scr.xinerama_screens[tmp_ctr].y) &&
+	      (tmp_win->frame_y < Scr.xinerama_screens[tmp_ctr].height + 
+		  Scr.xinerama_screens[tmp_ctr].y))
+	  {
+	      w = Scr.xinerama_screens[tmp_ctr].width;
+	      h = Scr.xinerama_screens[tmp_ctr].height;
+	      x = Scr.xinerama_screens[tmp_ctr].x;
+	      y = Scr.xinerama_screens[tmp_ctr].y;
+	  }
+	  
+      }
+      
+#endif /* HAVE_XINERAMA */
 
       tmp_win->flags |= MAXIMIZED;
       ConstrainSize (tmp_win, &w, &h);

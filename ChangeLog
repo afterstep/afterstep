@@ -1,3 +1,13 @@
+ o Fixed Tile's -h handling.
+ o added support for maximization to not exceed screen size, while 
+   working with xinerama.
+ o man pages fixes.
+ o Fixed socket/pipes reading loops to not cause 100% CPU utilization
+   under CYGWIN and in some cases even on Unix.
+ o Fixed Menus pointer location handling to use coordinates from events 
+   and not abuse XQueryPointer. Otherwise menus were behaving strange 
+   whenever events were late due to one reason or others.
+
 1.8.9 patch 1 (sasha)
  o Fix X libraries order, to have Xext preceed X11 - causes problems on
    some Solaris systems.

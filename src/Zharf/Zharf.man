@@ -12,7 +12,7 @@ Although \fBZharf\fP can be run from the command line, it is normally
 spawned by afterstep in the \fIautoexec\fP file, in the following manner:
 .nf
 .sp
-	Module	"I"	Zharf
+	Module		"I"	Zharf
 	Wait		"I"	Zharf
 .sp
 .fi
@@ -40,7 +40,7 @@ To stop the \fBZharf\fP module, a menu item can be used:
 The \fBZharf\fP module is a free floating application loader/button panel
 similar to the \fBWharf\fP that can execute programs or "Swallow" running
 programs,  but also displays a label under the icon (if specified).
-\fBZwharf\fP could also be used as simply a text version of \fBWharf\fP.
+\fBZharf\fP could also be used as simply a text version of \fBWharf\fP.
 Folders are not supported.
 
 All mouse buttons are captured to initiate the command specified, however
@@ -203,5 +203,5 @@ David Mihm <dmihm@swbell.net> [Man page]
 
 .SH SEE ALSO
 .BR afterstep (1),
-.BR Wharf (1),
-.BR Pager (1)
+.BR Pager (1),
+.BR Wharf (1)

@@ -12,7 +12,7 @@ Although \fBWharf\fP can be run from the command line, it is normally
 spawned by afterstep in the \fIautoexec\fP file, in the following manner:
 .nf
 .sp
-	Module	"I"	Wharf
+	Module		"I"	Wharf
 	Wait		"I"	Wharf
 .sp
 .fi
@@ -381,4 +381,5 @@ Ethan Fischer <allanon@crystaltokyo.com>
 .SH SEE ALSO
 .BR afterstep (1),
 .BR Pager (1),
-.BR X (1)
+.BR X (1),
+.BR Zharf (1)

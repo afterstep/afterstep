@@ -186,7 +186,7 @@ Sets either maxwidth for a vertical winlist or the actual width for a
 horizontal "taskbar".
 
 .IP "*WinListJustify \fI<Left|Center|Right>\fP"
-If used, will justify the text as specifyed. If unspecified, the default is
+If used, will justify the text as specified. If unspecified, the default is
 to center text.
 
 .IP "*WinListAutoHide \fInumber\fP"

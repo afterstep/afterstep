@@ -488,7 +488,7 @@ void
 usage (void)
 {
   printf ("Usage:\n"
-	"%s [--version] [--help] [-u] [-t] [-a] [-r] [-m] [-s] [-noraise]\n"
+	"%s [--version] [--help] [-u] [-t] [-a] [-h] [-r] [-m] [-s] [-noraise]\n"
       "%*s [-desk] [-flatx] [-flaty] [-resize] [-nostretch] [-incx value]\n"
 	  "%*s [-incy value] [xoffset yoffset maxwidth maxheight]\n"
 	  ,MyName, (int) strlen (MyName), "", (int) strlen (MyName), "");
@@ -511,7 +511,7 @@ main (int argc, char *argv[])
 
   for (i = 1; i < argc && *argv[i] == '-'; i++)
     {
-      if (!strcmp (argv[i], "-h") || !strcmp (argv[i], "--help"))
+      if ( strcmp (argv[i], "--help") == 0 )
 	usage ();
       else if (!strcmp (argv[i], "-v") || !strcmp (argv[i], "--version"))
 	version ();
