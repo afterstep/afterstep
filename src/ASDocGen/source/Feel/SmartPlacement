@@ -1,6 +1,8 @@
 <varlistentry id="options.SmartPlacement">
 	<term>SmartPlacement</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies that windows be placed in areas that no other  windows
+		occupy,  otherwise user intervention becomes required for placement.
+		Have fun, try specifying both. :-)</para>
 	</listitem>
 </varlistentry>

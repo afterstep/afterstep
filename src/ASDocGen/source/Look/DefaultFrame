@@ -1,6 +1,9 @@
 <varlistentry id="options.DefaultFrame">
 	<term>DefaultFrame</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>MyFrame to use as default for all windows.
+		Note: if you want a different framing for any window,
+		you need to specify it in the  database  file using the Frame
+		keyword.</para>
 	</listitem>
 </varlistentry>

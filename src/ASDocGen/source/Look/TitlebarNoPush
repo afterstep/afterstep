@@ -1,6 +1,9 @@
 <varlistentry id="options.TitlebarNoPush">
 	<term>TitlebarNoPush</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies  that  the titlebar should not to appear to be "pushed
+		in" when clicked with a mouse button. This is useful  to  reduce
+		video  strain  or  if  textured  pixmaps  that  do not look good
+		"pushed in" are used.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,23 @@
 <varlistentry id="options.MenuSubItemStyle">
 	<term>MenuSubItemStyle</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep now includes this new feature: when you select
+		an item from the menu - this item will be marked as recently used,
+		and next time the menu is opened it will show all the recently used
+		items from its SUBMENU. For exmaple you do :
+</para><para>
+		Menu->Applications->rxvt
+</para><para>
+		Next time you open the Main menu, it will display rxvt just under
+		the "Applications" item with some offset.
+</para><para>
+		It looks much better when this subitems are shown with
+		different (smaller ) font. To achive that - specify a MyStyle
+		with asmaller font using the MenuSubItemStyle option in your look
+		file.
+</para><para>
+		This feature could be turned off or altered by using the
+		RecentSubmenuItems option in your feel file: set it to 0 to
+		disable this feature.</para>
 	</listitem>
 </varlistentry>

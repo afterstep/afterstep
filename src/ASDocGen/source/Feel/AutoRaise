@@ -1,6 +1,7 @@
 <varlistentry id="options.AutoRaise">
 	<term>AutoRaise</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies  the  delay  in  milliseconds  of  focus a window must
+		attain before being raised.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,9 @@
 <varlistentry id="options.KillBackgroundThreshold">
 	<term>KillBackgroundThreshold</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Here <size> is the maximum number of pixels in root
+		background image. If image is bigger that this - it will be
+		unloaded from memory when desktop is switched and image is no
+		longer in use. Use it on systems with low memory.</para>
 	</listitem>
 </varlistentry>

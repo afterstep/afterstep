@@ -1,6 +1,12 @@
 <varlistentry id="options.IconTitle">
 	<term>IconTitle</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies  that  a  title should be displayed under an iconified
+		app.  The colors used are the ForeColor  and  BackColor  of  the
+		ButtonTitleFocus in the look.name file. Note: less space is left
+		for the app's icon, so it will be resized  acordingly.   Only  a
+		portion of the icon title will be displayed until the icon gains
+		focus, and then the title "box" will expand to reveal  the  win-
+		dow's entire name.</para>
 	</listitem>
 </varlistentry>

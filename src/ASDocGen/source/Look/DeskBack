@@ -1,6 +1,8 @@
 <varlistentry id="options.DeskBack">
 	<term>DeskBack</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies  what background to use for desk#. "background"
+		can be either  image  filename  in  double-quotes,  or  the name
+		of background definition (see below).</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,9 @@
 <varlistentry id="options.DefaultStyle">
 	<term>DefaultStyle</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the MyStyle to use when no style has been specifically
+		defined for a given  situation. Note that if a style named
+		"default" has been defined and DefaultStyle has not, the
+		"default" style will be used as the default.</para>
 	</listitem>
 </varlistentry>

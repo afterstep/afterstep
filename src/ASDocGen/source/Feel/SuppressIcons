@@ -1,6 +1,7 @@
 <varlistentry id="options.SuppressIcons">
 	<term>SuppressIcons</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies  that  no  icon  should be shown for any window
+		being iconified, similar to NoIcon.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.AudioPath">
 	<term>AudioPath</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the paths to locate the audio files in.</para>
+		<para>FIXME: add proper description off suported formats.</para>
 	</listitem>
 </varlistentry>

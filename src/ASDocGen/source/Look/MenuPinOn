@@ -1,6 +1,9 @@
 <varlistentry id="options.MenuPinOn">
 	<term>MenuPinOn</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>This is depreciated.
+		Specifies a pixmap to use as the pinned menu indicator in  popup
+		menus.   See  BackPixmap  below for details on what pixmap_names
+		are allowed.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.CursorFore">
 	<term>CursorFore</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>use with CursorBack setting to adjust color of the mouse
+		cursor.</para>
 	</listitem>
 </varlistentry>

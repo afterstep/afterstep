@@ -1,6 +1,10 @@
 <varlistentry id="options.AutoReverse">
 	<term>AutoReverse</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the window Warping (also called alt-tabbing) style.  0
+		(the  default)  causes switching among windows in one direction.
+		1  causes  a  closed  loop  switching  -   #1->#2->#3->#4   then
+		#4->#3->#2->#1. 2 causes an open loop switching - #1->#2->#3->#4
+		then #4->#1->#2->#3 etc.</para>
 	</listitem>
 </varlistentry>

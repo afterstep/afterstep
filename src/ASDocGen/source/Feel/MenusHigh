@@ -1,6 +1,8 @@
 <varlistentry id="options.MenusHigh">
 	<term>MenusHigh</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies  that  any  pop-up menu's submenu should appear at the
+		top of the parent menu instead of starting at the point  in  the
+		parent window where the submenu item lies.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,11 @@
 <varlistentry id="options.DontMoveOff">
 	<term>DontMoveOff</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies that windows should not  be  moved  off  or  initially
+		placed  off  of  the desktop.  A few programs will not work cor-
+		rectly if you use this option.  This  only  keeps  windows  from
+		being completely lost off the edge of the desktop. It insists on
+		keeping 16 pixels on the desktop, but does not attempt  to  keep
+		the entire window on the desk.</para>
 	</listitem>
 </varlistentry>

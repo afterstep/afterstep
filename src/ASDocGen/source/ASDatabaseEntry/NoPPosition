@@ -1,6 +1,9 @@
 <varlistentry id="options.NoPPosition">
 	<term>NoPPosition</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Species that afterstep should ignore the  PPosition  field  when
+		placing  new windows, in other words, windows can't choose where
+		to place  themselves.   Adherence  to  the  PPosition  field  is
+		required for some applications.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,8 @@
 <varlistentry id="options.MenuHiTitleStyle">
 	<term>MenuHiTitleStyle</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep now allows you to specify a MyStyle to be used
+		for the titlebar of the currently hilighted menu. AS soon as the menu goes out
+		of focus its titlebar will be rendered using MenuTitleStyle.</para>
 	</listitem>
 </varlistentry>

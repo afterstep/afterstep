@@ -1,6 +1,7 @@
 <varlistentry id="options.PagingDefault">
 	<term>PagingDefault</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies if Paging should be enabled (1) or disabled (0).
+		Paging is set to enabled by default.</para>
 	</listitem>
 </varlistentry>

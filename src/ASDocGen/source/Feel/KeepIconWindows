@@ -1,6 +1,7 @@
 <varlistentry id="options.KeepIconWindows">
 	<term>KeepIconWindows</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies  that  applications should be allowed to specify their
+		own icon windows.</para>
 	</listitem>
 </varlistentry>
