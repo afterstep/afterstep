@@ -1,6 +1,12 @@
 <varlistentry id="options.Align">
 	<term>Align</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>it  will  align resulting image according to type.  Possible
+		values are :
+		1: - align to the right of the screen
+		2: - align to the bottom of the screen
+		3: - align to the bottom-right of the screen
+		0 or 4: - align to the center of the screen This option
+		works only in  conjunction  with  the following Pad option.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.StickyIcons">
 	<term>StickyIcons</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies that icons should stick to the screen's glass
+		and follow it from desk/view to desk/view.</para>
 	</listitem>
 </varlistentry>
