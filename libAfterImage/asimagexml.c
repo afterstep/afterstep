@@ -1175,6 +1175,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (imtmp) {
 			int dir = 0;
+			int width = imtmp->width ;
+			int height = imtmp->height ;
 			angle = fmod(angle, 2 * PI);
 			if (angle > 2 * PI * 7 / 8 || angle < 2 * PI * 1 / 8) {
 				dir = 0;
@@ -1186,7 +1188,12 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				dir = FLIP_VERTICAL | FLIP_UPSIDEDOWN;
 			}
 			if (dir) {
-				result = flip_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				if( get_flags(dir, FLIP_VERTICAL))
+				{
+					width = imtmp->height ;
+					height = imtmp->width ;	
+				}	 
+				result = flip_asimage(asv, imtmp, 0, 0, width, height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 				safe_asimage_destroy(imtmp);
 				show_progress("Rotating image [%f degrees].", angle);
 			} else {
