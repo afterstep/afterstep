@@ -35,6 +35,10 @@ CARD32 color2pixel16bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixe
 CARD32 color2pixel16rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
 CARD32 color2pixel15bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
 CARD32 color2pixel15rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel_pseudo3bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel );
+CARD32 color2pixel_pseudo6bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel );
+CARD32 color2pixel_pseudo12bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel );
+
 void pixel2color32rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
 void pixel2color32bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
 void pixel2color24rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
@@ -371,14 +375,17 @@ query_screen_visual_id( ASVisual *asv, Display *dpy, int screen, Window root, in
 		asv->white_pixel = white_xcol.pixel ;
 		asv->black_pixel = black_xcol.pixel ;
 	}
-	fprintf( stderr, "Selected visual 0x%lx: depth %d, class %d\n RGB masks: 0x%lX, 0x%lX, 0x%lX, Byte Ordering: %s\n",
-			 asv->visual_info.visualid,
-			 asv->visual_info.depth,
-			 asv->visual_info.class,
-			 asv->visual_info.red_mask,
-			 asv->visual_info.green_mask,
-			 asv->visual_info.blue_mask,
-			 (ImageByteOrder(asv->dpy)==MSBFirst)?"MSBFirst":"LSBFirst" );
+	if( get_output_threshold() >= OUTPUT_DEFAULT_THRESHOLD )
+	{
+		fprintf( stderr, "Selected visual 0x%lx: depth %d, class %d\n RGB masks: 0x%lX, 0x%lX, 0x%lX, Byte Ordering: %s\n",
+				 asv->visual_info.visualid,
+				 asv->visual_info.depth,
+				 asv->visual_info.class,
+				 asv->visual_info.red_mask,
+				 asv->visual_info.green_mask,
+				 asv->visual_info.blue_mask,
+				 (ImageByteOrder(asv->dpy)==MSBFirst)?"MSBFirst":"LSBFirst" );
+	}
 #else
 	asv->white_pixel = ARGB32_White ;
 	asv->black_pixel = ARGB32_Black ;
@@ -651,7 +658,7 @@ make_reverse_colorhash( unsigned long *cmap, size_t size, int depth, unsigned sh
 	if( hash )
 	{
 		for( i = 0 ; i < size ; i++ )
-			add_hash_item( hash, (ASHashableValue)cmap[i], (void*)MAKE_ARGB32( 0xFF, (i>>(shift<<1))& mask, (i>>(shift))&mask, i&mask) );
+			add_hash_item( hash, (ASHashableValue)cmap[i], (void*)((long)MAKE_ARGB32( 0xFF, (i>>(shift<<1))& mask, (i>>(shift))&mask, i&mask)) );
 	}
 	return hash;
 }
@@ -679,16 +686,19 @@ setup_pseudo_visual( ASVisual *asv  )
 		case ACM_3BPP:
 			asv->ximage2scanline_func = ximage2scanline_pseudo3bpp ;
 			asv->scanline2ximage_func = scanline2ximage_pseudo3bpp ;
+			asv->color2pixel_func = color2pixel_pseudo3bpp ;
 		    break ;
 		case ACM_6BPP:
 			asv->ximage2scanline_func = ximage2scanline_pseudo6bpp ;
 			asv->scanline2ximage_func = scanline2ximage_pseudo6bpp ;
+			asv->color2pixel_func = color2pixel_pseudo6bpp ;
 		    break ;
 		default:
 			asv->as_colormap_type = ACM_12BPP ;
 		case ACM_12BPP:
 			asv->ximage2scanline_func = ximage2scanline_pseudo12bpp ;
 			asv->scanline2ximage_func = scanline2ximage_pseudo12bpp ;
+			asv->color2pixel_func = color2pixel_pseudo12bpp ;
 		    break ;
 	}
 	if( asv->as_colormap != NULL )
@@ -1164,6 +1174,27 @@ CARD32 color2pixel15rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixe
 	register CARD32 c = encoded_color ;
     *pixel = ((c&0x00F80000)>>9)|((c&0x0000F800)>>6)|((c&0x000000F8)>>3);
 	return (c>>1)&0x00030303;
+}
+
+CARD32 color2pixel_pseudo3bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel )
+{
+	register CARD32 c = encoded_color ;
+	*pixel = asv->as_colormap[((c>>25)&0x0008)|((c>>16)&0x0002)|((c>>7)&0x0001)];
+	return (c>>1)&0x003F3F3F;
+}
+
+CARD32 color2pixel_pseudo6bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel )
+{
+	register CARD32 c = encoded_color ;
+	*pixel = asv->as_colormap[((c>>22)&0x0030)|((c>>14)&0x000C)|((c>>6)&0x0003)];
+	return (c>>1)&0x001F1F1F;
+}
+
+CARD32 color2pixel_pseudo12bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel )
+{
+	register CARD32 c = encoded_color ;
+	*pixel = asv->as_colormap[((c>>16)&0x0F00)|((c>>10)&0x00F0)|((c>>4)&0x000F)];
+	return (c>>1)&0x00070707;
 }
 
 void pixel2color32rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue)

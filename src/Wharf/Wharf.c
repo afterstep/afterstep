@@ -113,7 +113,6 @@ Bool NoBorder = 0;
 Bool Pushed = 0;
 Bool Pushable = 1;
 int ForceWidth = 0, ForceHeight = 0;
-GC NormalGC;
 
 int AnimationStyle = 0, AnimateMain = 0;
 int PushStyle = 0;
@@ -411,9 +410,6 @@ main (int argc, char **argv)
 	}
     }
 #endif
-
-  CreateShadowGC ();
-
   back_pixmap = NULL;
   CreateIconPixmap ();
 
@@ -1160,214 +1156,6 @@ GenerateFolderImages(folder_info * folder)
 		GenerateButtonImage(button, False);
 }
 
-
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
-#if 0 /* disabled pending rewrite of Wharf top use libAfterImage : */
-
-void
-RedrawUnpushed (button_info * button)
-{
-  if (PushStyle != 0)
-    {
-      XMoveResizeWindow (dpy, (*button).IconWin,
-			 (*button).x,
-			 (*button).y,
-			 (*button).width, (*button).height);
-    }
-  else if ((*button).swallowed_win != None)
-    {
-      return;
-    }
-  else
-    {
-      XCopyArea (dpy, (*button).completeIcon.icon,
-		 (*button).IconWin, NormalGC, 0, 0,
-		 (*button).width,
-		 (*button).height,
-		 0, 0);
-    }
-  RedrawWindow ((*button).parent, button);
-
-  RedrawUnpushedOutline (button);
-}
-
-void
-RedrawUnpushedOutline (button_info * button)
-{
-  Window win = (*(*button).parent).win;
-  int x = (*button).x;
-  int y = (*button).y;
-  GC reliefGC, shadowGC;
-
-  if (NoBorder)
-    return;
-
-  mystyle_get_global_gcs (Style, NULL, NULL, &reliefGC, &shadowGC);
-
-/* top */
-  XDrawLine (dpy, win, reliefGC,
-	     x, y,
-	     x + (*button).width, y);
-
-  /* left */
-  XDrawLine (dpy, win, reliefGC,
-	     x, y + 1,
-	     x, y + (*button).height);
-
-  /* right */
-  XDrawLine (dpy, win, shadowGC,
-	     x + (*button).width - 1, y + 1,
-	     x + (*button).width - 1, y + (*button).height - 1);
-  XDrawLine (dpy, win, shadowGC,
-	     x + (*button).width - 2, y + 1,
-	     x + (*button).width - 2, y + (*button).height - 2);
-
-  /* bottom */
-  XDrawLine (dpy, win, shadowGC,
-	     x + 1, y + (*button).height - 1,
-	     x + (*button).width - 1, y + (*button).height - 1);
-  XDrawLine (dpy, win, shadowGC,
-	     x + 1, y + (*button).height - 2,
-	     x + (*button).width - 2, y + (*button).height - 2);
-}
-
-void
-RedrawPushed (button_info * button)
-{
-  if (PushStyle != 0)
-    {
-      XMoveResizeWindow (dpy, (*button).IconWin,
-			 2 + (*button).x,
-			 2 + (*button).y,
-			 (*button).width - 2, (*button).height - 2);
-    }
-  else if ((*button).swallowed_win != None)
-    {
-      return;
-    }
-  else
-    {
-      XCopyArea (dpy, (*button).completeIcon.icon,
-		 (*button).IconWin, NormalGC, 2, 2,
-		 (*button).width - 2,
-		 (*button).height - 2, 4, 4);
-      if (back_pixmap.icon != None)
-	{
-	  XCopyArea (dpy, back_pixmap.icon,
-		     (*button).IconWin, NormalGC, 2, 2,
-		     2, (*button).height, 2, 2);
-	  XCopyArea (dpy, back_pixmap.icon,
-		     (*button).IconWin, NormalGC, 2, 2,
-		     (*button).width, 2, 2, 2);
-	}
-    }
-  RedrawWindow ((*button).parent, button);
-  RedrawPushedOutline (button);
-}
-
-void
-RedrawPushedOutline (button_info * button)
-{
-  Window win = (*(*button).parent).win;
-  int x = (*button).x;
-  int y = (*button).y;
-  GC reliefGC, shadowGC;
-
-  /*if (NoBorder)
-     return; */
-
-  mystyle_get_global_gcs (Style, NULL, NULL, &reliefGC, &shadowGC);
-
-  /* top */
-  XDrawLine (dpy, win, shadowGC, x, y, x + (*button).width, y);
-  XDrawLine (dpy, win, shadowGC, x, y + 1, x + (*button).width, y + 1);
-  /* left */
-  XDrawLine (dpy, win, shadowGC, x, y + 1, x, y + (*button).height - 1);
-  XDrawLine (dpy, win, shadowGC, x + 1, y + 1, x + 1, y + (*button).height - 1);
-
-  /* right */
-  /*XDrawLine (dpy, win, reliefGC,
-     x + (*button).width - 1, y + 1,
-     x + (*button).width - 1, y + (*button).height - 1);
-     XDrawLine (dpy, win, reliefGC,
-     x + (*button).width - 2, y + 1,
-     x + (*button).width - 2, y + (*button).height - 2); */
-  /* bottom */
-  /*XDrawLine (dpy, win, reliefGC,
-     x + 1, y + (*button).height - 1,
-     x + (*button).width - 1, y + (*button).height - 1);
-     XDrawLine (dpy, win, reliefGC,
-     x + 1, y + (*button).height - 2,
-     x + (*button).width - 2, y + (*button).height - 2); */
-}
-/************************************************************************
- *
- * Draw the window
- * draws the entire window if newbutton == NULL
- *
- ***********************************************************************/
-void
-RedrawWindow (folder_info * folder, button_info * newbutton)
-{
-  button_info *button;
-  XEvent dummy;
-
-  if (ready < 1)
-    return;
-
-  /*
-   * eat expose events for this window, if we're redrawing
-   * the whole thing anyway
-   */
-  if (newbutton == NULL)
-    while (XCheckTypedWindowEvent (dpy, (*folder).win, Expose, &dummy));
-
-  for (button = (*folder).first; button != NULL; button = (*button).next)
-    {
-      if ((newbutton == NULL) || (newbutton == button))
-	{
-	  if ((*button).IconWin != None)
-	    XSetWindowBorderWidth (dpy, (*button).IconWin, 0);
-	}
-      RedrawUnpushedOutline (button);
-    }
-}
-
-#endif /* disabled pending rewrite of Wharf top use libAfterImage : */
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
-
-/*******************************************************************
- *
- * Create GC's
- *
- ******************************************************************/
-void
-CreateShadowGC (void)
-{
-  XGCValues gcv;
-  unsigned long gcm;
-  GC reliefGC, shadowGC;
-
-  gcm = GCForeground | GCBackground | GCSubwindowMode | GCGraphicsExposures;
-  gcv.subwindow_mode = IncludeInferiors;
-  gcv.graphics_exposures = False;
-
-  gcv.foreground = Style->colors.fore;
-  gcv.background = Style->colors.back;
-  NormalGC = XCreateGC (dpy, Scr.Root, gcm, &gcv);
-
-  /* modify the relief and shadow GCs to draw over inferior windows */
-  mystyle_get_global_gcs (Style, NULL, NULL, &reliefGC, &shadowGC);
-  XChangeGC (dpy, reliefGC, GCSubwindowMode, &gcv);
-  XChangeGC (dpy, shadowGC, GCSubwindowMode, &gcv);
-}
-
 /*******************************************************************
  *
  * Create the background icon pixmap
@@ -1380,7 +1168,7 @@ CreateIconPixmap (void)
 	  	destroy_asimage( &back_pixmap );
     /* create the icon pixmap */
 	if ( Style->texture_type != TEXTURE_BUILTIN || 
-  	     (back_pixmap = GetXPMData (button_xpm)) == NULL )
+  	     (back_pixmap = GetXPMData (( const char**)button_xpm)) == NULL )
     {
     	int width = 64, height = 64;
 #ifndef NO_TEXTURE
@@ -1911,8 +1699,6 @@ DeadPipe (int nonsense)
     if (pixmapPath != NULL)
       free (pixmapPath);
 
-    XFreeGC (dpy, NormalGC);
-
     /* kill the styles */
     while (mystyle_first != NULL)
       mystyle_delete (mystyle_first);
@@ -1925,7 +1711,6 @@ DeadPipe (int nonsense)
     XFreeGC (dpy, gc4);
 
     balloon_init (1);
-    pixmap_ref_purge ();
 
     print_unfreed_mem ();
   }

@@ -32,7 +32,7 @@ Display *dpy = NULL ;
 char    *asim_ApplicationName = NULL ;
 
 void
-set_application_name (char *argv0)
+asim_set_application_name (char *argv0)
 {
 	char *temp = &(argv0[0]);
 	do
@@ -47,16 +47,27 @@ set_application_name (char *argv0)
 }
 
 const char *
-get_application_name()
+asim_get_application_name()
 {
 	return asim_ApplicationName;
 }
 
+static unsigned int asim_as_output_threshold = OUTPUT_DEFAULT_THRESHOLD ;
+
 unsigned int
-get_output_threshold()
+asim_get_output_threshold()
 {
-  return 5 ;
+	return asim_as_output_threshold ;
 }
+
+unsigned int
+asim_set_output_threshold( unsigned int threshold )
+{
+    unsigned int old = as_output_threshold;
+    as_output_threshold = threshold ;
+    return old;
+}
+
 
 /* from libAfterBase/output.c : */
 Bool asim_show_error( const char *error_format, ...)

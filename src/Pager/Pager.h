@@ -108,11 +108,11 @@ typedef struct pager_look {
   int DeskBorderWidth ;
   int TitleAlign ;
 
-  unsigned long GridColor ;
+  ARGB32 GridColor ;
   GC	GridGC ;
 
-  unsigned long BorderColor ;  
-  unsigned long SelectionColor ; 
+  ARGB32 BorderColor ;  
+  ARGB32 SelectionColor ; 
 
   MyFont windowFont ; 
   int bNeedToFixStyles ;

@@ -1,11 +1,13 @@
 
 #define IN_MODULE
+#define MODULE_X_INTERFACE
+#include "../../include/afterbase.h"
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
-#include "../../include/module.h"
 #include "../../include/parse.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
+#include "../../include/module.h"
 
 #ifdef MAX_BUTTONS
 #undef MAX_BUTTONS
@@ -112,7 +114,6 @@ extern void   Loop(void);
 extern void   ParseOptions(char *);
 extern void   ParseBaseOptions(char *);
 extern void   change_window_name(char *str);
-extern int    My_XNextEvent(Display *dpy, XEvent *event);
 extern void   DeadPipe(int nonsense);
 
 /* from icons.c */

@@ -52,11 +52,6 @@
 #include <sys/select.h>
 #endif
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
 #ifdef I18N
 #include <X11/Xlocale.h>
 #endif
@@ -65,10 +60,12 @@
 #define MODULE_X_INTERFACE
 
 #include "../../include/aftersteplib.h"
+#include "../../include/afterbase.h"
 #include "../../include/afterstep.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"
+#include "../../include/parse.h"
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
 #include "../../include/mystyle.h"
@@ -90,7 +87,7 @@ Pixmap GetRootPixmap (Atom);
 #define LOG4(a,b,c,d)
 #endif
 
-#define DEFAULT_BORDER_COLOR "grey50"
+#define DEFAULT_BORDER_COLOR 0xFF808080
 
 /*************************************************************************
  *
@@ -172,7 +169,10 @@ main (int argc, char **argv)
   Pager.Flags = PAGER_FLAGS_DEFAULT;
 
   /* Save our program name - for error messages */
+  set_application_name(argv[0]);
+  set_output_threshold(OUTPUT_DEFAULT_THRESHOLD-1);
   SetMyName (argv[0]);
+
   i = ProcessModuleArgs (argc, argv, &(global_config_file), NULL, NULL, usage);
   if (i == argc)
     usage ();
@@ -887,13 +887,13 @@ char *PagerDefaultStyleNames[] =
   "unfocused_window_style",
   NULL,
   NULL};
-char *PagerDefaultColors[][2] =
+ARGB32 PagerDefaultColors[][2] =
 {
-  {"white", "blue"},
-  {"white", "green"},
-  {"white", "Gray40"},
-  {"Gray30", "Gray70"},
-  {"Gray70", "Gray30"}};
+  {ARGB32_White, 0xFF0000FF},
+  {ARGB32_White, 0xFF00FF00},
+  {ARGB32_White, 0xFF707070},
+  {0xFF505050,   0xFFB0B0B0},
+  {0xFFB0B0B0,   0xFF505050}};
 
 #define STYLE_MAX_NAME_LEN  12
 
@@ -944,12 +944,12 @@ GetLook (FILE * fd)
 	}
       if (!(Style->set_flags & F_FORECOLOR))
 	{
-	  Style->colors.fore = GetColor (PagerDefaultColors[i][0]);
+	  Style->colors.fore = PagerDefaultColors[i][0];
 	  Style->set_flags |= F_FORECOLOR;
 	}
       if (!(Style->set_flags & F_BACKCOLOR))
 	{
-	  Style->colors.back = GetColor (PagerDefaultColors[i][1]);
+	  Style->colors.back = PagerDefaultColors[i][1];
 	  Style->set_flags |= F_BACKCOLOR;
 	}
 #ifdef I18N
@@ -1050,8 +1050,8 @@ FixLook ()
       if (!(Pager.Flags & DIFFERENT_GRID_COLOR))
 	Look.GridColor = (Look.Styles[STYLE_INADESK]->colors).fore;
 
-      gcvalues.foreground = Look.GridColor;
-      Look.GridGC = XCreateGC (dpy, Scr.Root, GCForeground, &gcvalues);
+      ARGB2PIXEL(Scr.asv, Look.GridColor,&gcvalues.foreground); 
+      Look.GridGC = create_visual_gc(Scr.asv, Scr.Root, GCForeground, &gcvalues);
     }
 
   if (Look.windowFont.font)
@@ -1065,7 +1065,7 @@ FixLook ()
 
 	  if (Look.windowFont.font)
 	    {
-	      Look.WinForeGC[i] = XCreateGC (dpy, Scr.Root, GCFont, &gcvalues);
+	      Look.WinForeGC[i] = create_visual_gc (Scr.asv, Scr.Root, GCFont, &gcvalues);
 	      XCopyGC (dpy, gc, ~GCFont, Look.WinForeGC[i]);
 	    }
 	  else
@@ -1237,23 +1237,23 @@ fprintf( stderr, "windows size will be %dx%d (%dx%d) %d\n", window_w, window_h, 
 
   if (config->selection_color)
     {
-      Look.SelectionColor = GetColor (config->selection_color);
+      parse_argb_color(config->selection_color, &(Look.SelectionColor));
       free (config->selection_color);
     }else if( get_flags( config->set_flags, PAGER_SET_SELECTION_COLOR ) )
-      Look.SelectionColor = GetColor (DEFAULT_BORDER_COLOR);
+	  Look.SelectionColor = DEFAULT_BORDER_COLOR;
 
   if (config->grid_color)
     {
-      Look.GridColor = GetColor (config->grid_color);
+      parse_argb_color(config->grid_color, &Look.GridColor);
       free (config->grid_color);
     }else if( get_flags( config->set_flags, PAGER_SET_GRID_COLOR ) )
-      Look.GridColor = GetColor (DEFAULT_BORDER_COLOR);
+      Look.GridColor = DEFAULT_BORDER_COLOR;
   if (config->border_color)
     {
-      Look.BorderColor = GetColor (config->border_color);
+      parse_argb_color(config->border_color, &Look.BorderColor );
       free (config->border_color);
     }else if( get_flags( config->set_flags, PAGER_SET_BORDER_COLOR ) )
-      Look.BorderColor  = GetColor (DEFAULT_BORDER_COLOR);
+      Look.BorderColor  = DEFAULT_BORDER_COLOR;
 
   if( get_flags( config->set_flags, PAGER_SET_BORDER_WIDTH ) )
 	  Look.DeskBorderWidth = config->border_width;

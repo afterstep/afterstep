@@ -77,9 +77,11 @@ typedef struct ASMagic
 
 /* from libAfterBase/output.h : */
 /* user app must export these if libAfterBase is not used : */
-void set_application_name (char *argv0);
-const char *get_application_name();
-unsigned int get_output_threshold();
+void asim_set_application_name (char *argv0);
+const char *asim_get_application_name();
+
+#define set_application_name asim_set_application_name
+#define get_application_name asim_get_application_name
 
 /*
  * FEW PRESET LEVELS OF OUTPUT :
@@ -96,6 +98,11 @@ unsigned int get_output_threshold();
 
 /* AfterStep specific error and Warning handlers : */
 /* Returns True if something was actually printed  */
+unsigned int asim_get_output_threshold();
+unsigned int asim_set_output_threshold( unsigned int threshold );
+#define get_output_threshold asim_get_output_threshold
+#define set_output_threshold asim_set_output_threshold
+
 Bool asim_show_error( const char *error_format, ...);
 Bool asim_show_warning( const char *warning_format, ...);
 Bool asim_show_progress( const char *msg_format, ...);

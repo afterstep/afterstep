@@ -39,9 +39,9 @@
 #endif
 
 #define IN_MODULE
+#include "../../include/aftersteplib.h"
 #include "../../include/afterbase.h"
 #include "../../libAfterImage/afterimage.h"
-#include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
@@ -280,11 +280,12 @@ initialize_pager (void)
   sizehints.min_width = sizehints.base_width;
   sizehints.min_height = sizehints.base_height;
 
-  Pager.Pager_w = XCreateWindow (dpy, Scr.Root, window_x, window_y, window_w,
-				 window_h, (unsigned int) 1,
-				 CopyFromParent, InputOutput,
-				 (Visual *) CopyFromParent,
-				 valuemask, &attributes);
+  Pager.Pager_w = create_visual_window( Scr.asv, Scr.Root, 
+                                        window_x, window_y, 
+										window_w, window_h, 
+										(unsigned int) 1,
+										InputOutput,
+										valuemask, &attributes);
   XSetWMProtocols (dpy, Pager.Pager_w, &Atoms[ATOM_WM_DEL_WIN].atom, 1);
   XSetWMNormalHints (dpy, Pager.Pager_w, &sizehints);
   XSetWindowBackgroundPixmap (dpy, Pager.Pager_w, ParentRelative);
@@ -302,12 +303,10 @@ initialize_pager (void)
 
   icon_w = ((icon_w / Pager.PageColumns) + 1) * Pager.PageColumns - 1;
   icon_h = ((icon_h / Pager.PageRows) + 1) * (Pager.PageRows) - 1;
-  icon_win = XCreateWindow (dpy, Scr.Root, window_x, window_y,
-			    icon_w, icon_h,
-			    (unsigned int) 1,
-			    CopyFromParent, InputOutput,
-			    (Visual *) CopyFromParent,
-			    valuemask, &attributes);
+  icon_win = create_visual_window(  Scr.asv, Scr.Root, window_x, window_y,
+								    icon_w, icon_h,
+								    (unsigned int) 1, InputOutput,
+									valuemask, &attributes);
   XGrabButton (dpy, 1, AnyModifier, icon_win,
 	       True, ButtonPressMask | ButtonReleaseMask | ButtonMotionMask,
 	       GrabModeAsync, GrabModeAsync, None,
@@ -369,20 +368,15 @@ initialize_pager (void)
 
   for (i = 0; i < Pager.ndesks; i++)
     {
-      Pager.Desks[i].title_w = XCreateWindow (dpy, Pager.Pager_w,
-				      0, 0, desk_w, desk_h + label_h + 2, 1,
-					      CopyFromParent,
-					      InputOutput, CopyFromParent,
-					      valuemask,
-					      &attributes);
+      Pager.Desks[i].title_w = create_visual_window(Scr.asv, Pager.Pager_w,
+					      0, 0, desk_w, desk_h + label_h + 2, 1,
+					      InputOutput, valuemask, &attributes);
       XSetWindowBorderWidth (dpy, Pager.Desks[i].title_w, Look.DeskBorderWidth);
 
-      Pager.Desks[i].w = XCreateWindow (dpy, Pager.Desks[i].title_w, -1, label_h - 1, desk_w, desk_h, 1,
-					CopyFromParent,
-					InputOutput, CopyFromParent,
-					valuemask, &attributes);
+      Pager.Desks[i].w = create_visual_window (Scr.asv, Pager.Desks[i].title_w, 
+	                -1, label_h - 1, desk_w, desk_h, Look.DeskBorderWidth,
+					InputOutput, valuemask, &attributes);
       XSelectInput (dpy, Pager.Desks[i].w, attributes.event_mask);
-      XSetWindowBorderWidth (dpy, Pager.Desks[i].w, Look.DeskBorderWidth);
 
       XMapRaised (dpy, Pager.Desks[i].w);
       XMapRaised (dpy, Pager.Desks[i].title_w);
@@ -392,9 +386,9 @@ initialize_pager (void)
   for (l = 0; l < 4 && (Pager.Flags & SHOW_SELECTION); l++)
     {
 
-      Pager.SelectionWin[l] = XCreateWindow (dpy, Pager.Desks[0].w, -1000, -1000, 1, 1, 0,
-				CopyFromParent, InputOutput, CopyFromParent,
-					     valuemask, &attributes);
+      Pager.SelectionWin[l] = create_visual_window(Scr.asv, Pager.Desks[0].w, 
+	            -1000, -1000, 1, 1, 0,
+				InputOutput, valuemask, &attributes);
       XMapRaised (dpy, Pager.SelectionWin[l]);
     }
 
@@ -1305,9 +1299,9 @@ HilightDesk (int i /*Desk */ , int if_texture)
       attr.background_pixmap = GetMyStylePixmap (Pager.Desks[i].title_w, style, desk_w, label_h);
       attr.background_pixel = style->colors.back;
       if (Pager.Flags & DIFFERENT_BORDER_COLOR)
-	attr.border_pixel = Look.BorderColor;
+		  ARGB2PIXEL(Scr.asv, Look.BorderColor,&attr.border_pixel);
       else
-	attr.border_pixel = style->colors.fore;
+		  ARGB2PIXEL(Scr.asv, style->colors.fore,&attr.border_pixel);
 
       if (attr.background_pixmap)
 	valuemask = (CWBackPixmap | CWBorderPixel);
@@ -1417,7 +1411,8 @@ DecoratePager ()
   XClearWindow (dpy, Pager.Pager_w);
 
   /* let's set up Selection's color at this point */
-  attr.border_pixel = attr.background_pixel = Look.SelectionColor;
+  ARGB2PIXEL(Scr.asv, Look.SelectionColor, &attr.border_pixel);
+  attr.background_pixel = attr.border_pixel;
   for (i = 0; i < 4; i++)
     {
       XChangeWindowAttributes (dpy, Pager.SelectionWin[i], CWBorderPixel | CWBackPixel, &attr);
@@ -1569,11 +1564,10 @@ AddNewWindow (PagerWindow * t)
   valuemask |= CWEventMask;
 
   /* Enter and Leave events to pop up balloon window */
-  if ((t->PagerView = XCreateWindow (dpy, Pager.Desks[i].w,
-	 pos.normal_x, pos.normal_y, pos.normal_width, pos.normal_height, 1,
-				     CopyFromParent,
-				     InputOutput, CopyFromParent,
-				     valuemask, &attributes)) != None)
+  if ((t->PagerView = create_visual_window (Scr.asv, Pager.Desks[i].w,
+					 pos.normal_x, pos.normal_y, 
+					 pos.normal_width, pos.normal_height, 1,
+				     InputOutput, valuemask, &attributes)) != None)
     {
 
       balloon_new_with_text (dpy, t->PagerView, t->icon_name);
@@ -1587,11 +1581,10 @@ AddNewWindow (PagerWindow * t)
 	}
       /* don't want pixmaps in iconized Pager */
       valuemask = (valuemask & (~CWBackPixmap)) | CWBackPixel;
-      if ((t->IconView = XCreateWindow (dpy, icon_win, pos.icon_x, pos.icon_y,
+      if ((t->IconView = create_visual_window(Scr.asv, icon_win, 
+	                pos.icon_x, pos.icon_y,
 					pos.icon_width, pos.icon_height, 1,
-					CopyFromParent,
-					InputOutput, CopyFromParent,
-					valuemask, &attributes)) != None)
+					InputOutput, valuemask, &attributes)) != None)
 	{
 	  if (Scr.CurrentDesk == t->desk)
 	    XGrabButton (dpy, 2, AnyModifier, t->IconView,
