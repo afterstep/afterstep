@@ -1486,7 +1486,8 @@ check_swallow_window( ASWindowData *wd )
         grab_swallowed_canvas_btns( aswb->swallowed->normal,
                                     (aswb->folder!=NULL),
                                     withdraw_btn && aswb->parent == WharfState.root_folder);
-        if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap))
+        if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) &&
+			wd->icon != None )
         {
             XReparentWindow( dpy, wd->icon, aswb->canvas->w, 0, 0 );
             aswb->swallowed->iconic = create_ascanvas_container( wd->icon );
