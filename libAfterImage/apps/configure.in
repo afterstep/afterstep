@@ -159,7 +159,11 @@ if test "x$have_afterimage" = "xyes"; then
   if test "$afterimage_lib" = NO; then
 	if test "x$local_afterimage" = "xyes"; then 
 		AC_MSG_CHECKING(libAfterImage external libraries)
-  		AFTERIMAGE_LIBS="-L../ `../../libAfterImage/afterimage-libs`"
+  		AFTERIMAGE_LIBS="-L../ -L../../libAfterBase `../../libAfterImage/afterimage-libs`"
+		if test `../../libAfterImage/afterimage-libs --have-afterbase` = "yes"; then 
+			AC_DEFINE(HAVE_AFTERBASE)
+		    AC_DEFINE(HAVE_CUSTOM_AFTERBASE)
+		fi			
 		AC_MSG_RESULT($AFTERIMAGE_LIBS)
 	else
 		AC_MSG_CHECKING(libAfterImage external libraries)
@@ -167,6 +171,9 @@ if test "x$have_afterimage" = "xyes"; then
 		if "x$AFTERIMAGE_LIBS" = "x"; then
 			AC_MSG_RESULT("not found - please specify --with-afterimage-lib")			
 		else
+			if test `afterimage-libs --have-afterbase` = "yes"; then 
+				AC_DEFINE(HAVE_AFTERBASE)
+			fi			
 			AC_MSG_RESULT($AFTERIMAGE_LIBS)
 		fi			
 	fi
@@ -181,10 +188,16 @@ if test "x$have_afterimage" = "xyes"; then
 				AC_MSG_RESULT("not found - please specify correct --with-afterimage-lib")			
 			else
 				AFTERIMAGE_LIBS="-L$afterimage_lib/libAfterImage/" $AFTERIMAGE_LIBS
+				if test `$afterimage_lib/libAfterImage/afterimage-libs --have-afterbase` = "yes"; then 
+					AC_DEFINE(HAVE_AFTERBASE)
+				fi			
 				AC_MSG_RESULT($AFTERIMAGE_LIBS)
 			fi
 		else
 			AFTERIMAGE_LIBS="-L$afterimage_lib/" $AFTERIMAGE_LIBS
+			if test `$afterimage_lib/afterimage-libs --have-afterbase` = "yes"; then 
+				AC_DEFINE(HAVE_AFTERBASE)
+			fi			
 			AC_MSG_RESULT($AFTERIMAGE_LIBS)
 		fi			
   fi

@@ -339,6 +339,7 @@ if test "x$have_afterbase" = "xyes"; then
 fi
 AC_SUBST(AFTERBASE_INC_PATH)
 AC_SUBST(AFTERBASE_C)
+AC_SUBST(have_afterbase)
 
 
 dnl# finalizing libs listing :

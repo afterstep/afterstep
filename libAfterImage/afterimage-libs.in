@@ -3,9 +3,14 @@
 
 export AFTERIMAGE_LIBS="@AFTERIMAGE_LIBS@"
 export AFTERIMAGE_LIBS_EXTERNAL="@AFTERIMAGE_LIBS_EXTERNAL@"
+export HAVE_AFTERBASE="@have_afterbase@"
 if test "x$1" = "x--external-only" ; then
 	echo $AFTERIMAGE_LIBS_EXTERNAL
-else
+else 
+  if test "x$1" = "x--have-afterbase" ; then
+	echo $HAVE_AFTERBASE
+  else
 	echo $AFTERIMAGE_LIBS
+  fi	
 fi
 exit 0

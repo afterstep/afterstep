@@ -13,6 +13,7 @@
 #include "@AFTERBASE_INC_PATH@/libAfterBase/selfdiag.h"
 #include "@AFTERBASE_INC_PATH@/libAfterBase/socket.h"
 #include "@AFTERBASE_INC_PATH@/libAfterBase/trace.h"
+#include "@AFTERBASE_INC_PATH@/libAfterBase/xwrap.h"
 #else
 #include <libAfterBase/astypes.h>
 #include <libAfterBase/audit.h>
@@ -24,6 +25,7 @@
 #include <libAfterBase/selfdiag.h>
 #include <libAfterBase/socket.h>
 #include <libAfterBase/trace.h>
+#include <libAfterBase/xwrap.h>
 #endif		/* HAVE_CUSTOM_AFTERBASE */
 #else
 
@@ -192,6 +194,12 @@ char   *asim_put_file_home (const char *path_with_home);
 #define put_file_home(p) asim_put_file_home(p)
 char   *asim_find_file (const char *file, const char *pathlist, int type);
 #define find_file(f,p,t) asim_find_file(f,p,t)
+
+extern Display *dpy ;
+
+const char *asim_parse_argb_color( const char *color, CARD32 *pargb );
+#define parse_argb_color(c,p) asim_parse_argb_color((c),(p))
+
 
 /* from libAfterBase/socket.h : */
 #ifdef WORDS_BIGENDIAN

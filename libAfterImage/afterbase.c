@@ -24,8 +24,13 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#include <X11/Xlib.h>
+
 #include "config.h"
 #include "afterbase.h"
+
+Display *dpy ;
+
 
 /* from libAfterBase/output.c : */
 Bool asim_show_error( const char *error_format, ...)
@@ -187,6 +192,72 @@ asim_find_file (const char *file, const char *pathlist, int type)
 	}
 	free (path);
 	return NULL;
+}
+
+/*******************************************************************/
+/* from parse,c : */
+const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
+{
+#define hextoi(h)   (isdigit(h)?((h)-'0'):(isupper(h)?((h)-'A'+10):((h)-'a'+10)))
+	if( color )
+	{
+		if( *color == '#' )
+		{
+			CARD32 argb = 0 ;
+			int len = 0 ;
+			register const char *ptr = color+1 ;
+			while( isxdigit(ptr[len]) ) len++;
+			if( len >= 3)
+			{
+				if( (len&0x3) == 0 && len != 12 )
+				{  /* we do have alpha channel !!! */
+					len = len>>2 ;
+					argb = (hextoi(ptr[0])<<28)&0xF0000000 ;
+					if( len > 1 )
+						argb |= (hextoi(ptr[1])<<24)&0x0F000000 ;
+					else
+						argb |= 0x0F000000;
+					ptr += len ;
+				}else
+				{
+					len = len/3 ;
+					argb = 0xFF000000;
+				}
+				/* processing rest of the channels : */
+				if( len == 1 )
+				{
+					argb |= 0x000F0F0F;
+					argb |= (hextoi(ptr[0])<<20)&0x00F00000 ;
+					argb |= (hextoi(ptr[1])<<12)&0x0000F000 ;
+					argb |= (hextoi(ptr[2])<<4 )&0x000000F0 ;
+					ptr += 3 ;
+				}else
+				{
+					argb |= (hextoi(ptr[0])<<20)&0x00F00000 ;
+					argb |= (hextoi(ptr[1])<<16)&0x000F0000 ;
+					ptr += len ;
+					argb |= (hextoi(ptr[0])<<12)&0x0000F000 ;
+					argb |= (hextoi(ptr[1])<<8) &0x00000F00 ;
+					ptr += len ;
+					argb |= (hextoi(ptr[0])<<4 )&0x000000F0 ;
+					argb |= (hextoi(ptr[1]))    &0x0000000F ;
+					ptr += len ;
+				}
+				*pargb = argb ;
+				return ptr;
+			}
+		}else if( *color )
+		{
+			XColor xcol, xcol_scr ;
+			register const char *ptr = &(color[0]);
+			/* does not really matter here what screen to use : */
+			if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), color, &xcol, &xcol_scr) )
+				*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
+			while( !isspace(*ptr) && *ptr != '\0' ) ptr++;
+			return ptr;
+		}
+	}
+	return color;
 }
 
 /*******************************************************************/

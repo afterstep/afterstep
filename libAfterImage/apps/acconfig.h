@@ -4,5 +4,8 @@
 
 
 /* needed only by libafterconf and libafterstep : */
+#undef  HAVE_AFTERBASE
 #undef  HAVE_AFTERIMAGE
 #undef  HAVE_CUSTOM_AFTERIMAGE
+#undef  HAVE_CUSTOM_AFTERBASE
+

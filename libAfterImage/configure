@@ -3065,6 +3065,7 @@ fi
 
 
 
+
 CLEAN_AFTERIMAGE_LIBS=
 for L in $AFTERIMAGE_LIBS; do
   if test "$L" != "-L$libdir"; then
@@ -3286,6 +3287,7 @@ s%@TTF_INCLUDES@%$TTF_INCLUDES%g
 s%@AFTERIMAGE_LIBS_EXTERNAL@%$AFTERIMAGE_LIBS_EXTERNAL%g
 s%@AFTERBASE_INC_PATH@%$AFTERBASE_INC_PATH%g
 s%@AFTERBASE_C@%$AFTERBASE_C%g
+s%@have_afterbase@%$have_afterbase%g
 s%@AFTERIMAGE_LIBS@%$AFTERIMAGE_LIBS%g
 s%@version@%$version%g
 s%@version_major@%$version_major%g

@@ -18,8 +18,10 @@
 #undef NO_SAVEUNDERS
 
 /* needed only by libafterconf and libafterstep : */
+#undef  HAVE_AFTERBASE
 #undef  HAVE_AFTERIMAGE
 #undef  HAVE_CUSTOM_AFTERIMAGE
+#undef  HAVE_CUSTOM_AFTERBASE
 
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H
