@@ -48,6 +48,7 @@
 
 struct SyntaxDef;
 struct TermDef;
+struct ASSession;
 //#include "trace.h"
 
 /* compatibility macros : */
@@ -211,6 +212,7 @@ extern char 	 *as_share_dir_name;
 #define FEEL_DIR        "feels"
 #define BASE_FILE       "base"                           /* scrdepth */
 
+extern int           fd_width;
 /* set by screen.c:setup_modifiers() in screen.c:ConnectX() :*/
 extern unsigned int  nonlock_mods;	/* a mask for non-locking modifiers */
 extern unsigned int *lock_mods;  	/* all combinations of lock modifier masks */
@@ -228,12 +230,22 @@ extern int PointerScreen ;							   /* screen that currently has pointer */
 extern struct TermDef       FuncTerms[F_FUNCTIONS_NUM + 1];
 extern struct SyntaxDef FuncSyntax, *pFuncSyntax ;
 
-extern struct ASEnvironment *DefaultEnv;
+/* Base config : */
+extern char *PixmapPath;
+extern char *CursorPath;
+extern char *IconPath;
+extern char *ModulePath;
+extern char *FontPath;
+
+struct ASSession *Session;          /* filenames of look, feel and background */
 
 /* this two are unused in as-stable yet : */
 struct ASFeel;
 struct MyLook;
 extern struct ASFeel *DefaultFeel;
 extern struct MyLook *DefaultLook;
+
+extern struct ASEnvironment *DefaultEnv;
+
 
 #endif /* #ifndef AFTERSTEP_LIB_HEADER_FILE_INCLUDED */

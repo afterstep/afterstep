@@ -44,6 +44,7 @@ char     *as_save_dir_name      = GNUSTEP "/" GNUSTEPLIB "/" AFTER_DIR "/" AFTER
 char     *as_start_dir_name     = GNUSTEP "/" GNUSTEPLIB "/" AFTER_DIR "/" START_DIR;
 char     *as_share_dir_name     = AFTER_SHAREDIR;
 
+int       fd_width;
 
 unsigned int  nonlock_mods = 0;				   /* a mask for non-locking modifiers */
 unsigned int *lock_mods = NULL;				   /* all combinations of lock modifier masks */
@@ -62,6 +63,15 @@ struct ASEnvironment *DefaultEnv = NULL;
 
 struct ASFeel *DefaultFeel = NULL;/* unused - future development : */
 struct MyLook *DefaultLook = NULL;/* unused - future development : */
+
+/* Base config : */
+char         *PixmapPath = NULL;
+char         *CursorPath = NULL;
+char         *IconPath   = NULL;
+char         *ModulePath = AFTER_BIN_DIR;
+char         *FontPath   = NULL;
+
+struct ASSession *Session = NULL;          /* filenames of look, feel and background */
 
 /* names of AS functions - used all over the place  :*/
 
@@ -429,6 +439,17 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
             argv[i] = NULL ;
         }
     }
+
+    /* initializing our dirs names */
+    Session = GetNCASSession(&Scr, MyArgs.override_home, MyArgs.override_share);
+    if( MyArgs.override_config )
+        set_session_override( Session, MyArgs.override_config, 0 );
+    if( MyArgs.override_look )
+        set_session_override( Session, MyArgs.override_look, F_CHANGE_LOOK );
+    if( MyArgs.override_feel )
+        set_session_override( Session, MyArgs.override_feel, F_CHANGE_FEEL );
+
+    fd_width = get_fd_width ();
 
     if (FuncSyntax.term_hash == NULL)
     {

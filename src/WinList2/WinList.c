@@ -23,41 +23,31 @@
 
 #include "../../configure.h"
 
+
+#define LOCAL_DEBUG
+#include "../../include/asapp.h"
 #include <signal.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
-
-#define LOCAL_DEBUG
-
 #define IN_MODULE
 #define MODULE_X_INTERFACE
 
-#include "../../include/afterbase.h"
-#include "../../libAfterImage/afterimage.h"
-#include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"
 #include "../../include/mystyle.h"
+#include "../../include/mystyle_property.h"
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
 #include "../../include/clientprops.h"
 #include "../../include/wmprops.h"
 #include "../../include/decor.h"
-
-#include "WinData.h"
-
-#define AS_MODULE_CLASS	"WinList"
+#include "../../libAfterImage/afterimage.h"
+#include "../../include/aswindata.h"
+#include "../../include/balloon.h"
 
 /**********************************************************************/
 /*  AfterStep specific global variables :                             */
-/**********************************************************************/
-char *MyName;           /* our executable name                        */
-ScreenInfo Scr;			/* AS compatible screen information structure */
 /**********************************************************************/
 /**********************************************************************/
 /*  WinList local variables :                                         */
@@ -92,7 +82,7 @@ WinListConfig *Config = &DefaultConfig ;
 /**********************************************************************/
 
 void
-usage (void)
+winlist_usage (void)
 {
   printf ("Usage:\n"
   	      "%s [-d|--display display_name] [-v|--version] [-h|--help]\n", MyName);
@@ -115,30 +105,30 @@ static Bool rearrange_winlist_window();
 int
 main( int argc, char **argv )
 {
-	int i ;
 	char *global_config_file = NULL;
-	int x_fd ;
+    int x_fd ;
 	int as_fd[2] ;
-	Window w ;
+    Window w ;
 
 	set_application_name(argv[0]);
-	SetMyName (argv[0]);
 
-	default_winlist_style = safemalloc( 1+strlen(MyName)+1);
+    default_winlist_style = safemalloc( 1+strlen(MyName)+1);
 	default_winlist_style[0] = '*' ;
 	strcpy( &(default_winlist_style[1]), MyName );
 
 	set_signal_handler( SIGSEGV );
 	set_output_threshold( OUTPUT_LEVEL_PROGRESS );
 
-	i = ProcessModuleArgs (argc, argv, &global_config_file, NULL, NULL, usage);
+//    i = ProcessModuleArgs (argc, argv, &global_config_file, NULL, NULL, usage);
 
 #ifdef I18N
 	if (setlocale (LC_ALL, AFTER_LOCALE) == NULL)
   		show_error("cannot set locale.");
 #endif
 
-	x_fd = ConnectX (&Scr, display_name, PropertyChangeMask);
+    InitMyApp (CLASS_WINLIST, argc, argv, winlist_usage, NULL, 0 );
+
+    x_fd = ConnectX (&Scr, MyArgs.display_name, PropertyChangeMask );
 	if( !x_fd )
 		return 1 ;
 
@@ -254,7 +244,7 @@ GetOptions (const char *filename)
 
     if (config->style_defs)
 	    ProcessMyStyleDefinitions (&(config->style_defs), Base->pixmap_path);
-	mystyle_get_property (dpy, Scr.Root, _AS_STYLE, XA_INTEGER);
+    mystyle_get_property (Scr.wmprops);
 
 	if( Config && Config != &DefaultConfig)
 		DestroyWinListConfig( Config );
@@ -351,7 +341,7 @@ make_winlist_window()
 	}
 
 	w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, 0, NULL);
-	set_client_names( w, MyName, MyName, AS_MODULE_CLASS, MyName );
+    set_client_names( w, MyName, MyName, CLASS_WINLIST, MyName );
 
 	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize|PWinGravity;
 	shints.min_width = shints.min_height = 4;
@@ -451,7 +441,6 @@ rearrange_winlist_window()
 
 			width = calculate_astbar_width( tbar );
 			height = calculate_astbar_height( tbar );
-LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text, width, height );
 			if( width > max_col_width )
 				width = max_col_width ;
 			if( width > allowed_max_width )
@@ -593,11 +582,11 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
 	char *name = get_visible_window_name(wd);
 	set_astbar_style( tbar, BAR_STATE_FOCUSED, Config->focused_style?Config->focused_style:default_winlist_style );
 
-	if( get_flags(wd->flags, STICKY) )
+    if( get_flags(wd->state_flags, AS_Sticky) )
 		set_astbar_style( tbar, BAR_STATE_UNFOCUSED, Config->sticky_style?Config->sticky_style:default_winlist_style );
 	else
 		set_astbar_style( tbar, BAR_STATE_UNFOCUSED, Config->unfocused_style?Config->unfocused_style:default_winlist_style );
-	set_astbar_label( tbar, name);
+    add_astbar_label( tbar, 0, 0, 0, ALIGN_LEFT, name);
 	if( wd->focused )
 	{
 		if( WinListState.focused && WinListState.focused != wd )

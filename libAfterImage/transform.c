@@ -537,7 +537,7 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 		double last_offset = 0., *offsets = grad->offset ;
 		int *used = safecalloc(max_i+1, sizeof(int));
 		/* lets find the color of the very first point : */
-		for( i = 0 ; i <= max_i ; ++i ) 
+		for( i = 0 ; i <= max_i ; ++i )
 			if( offsets[i] <= 0. )
 			{
 				last_color = grad->color[i] ;
@@ -545,7 +545,7 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 				used[i] = 1 ;
 				break;
 			}
-		 
+
 		for( i = 0  ; i <= max_i ; i++ )
 		{
 			register int k ;
@@ -553,22 +553,22 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 			/* now lets find the next point  : */
 			for( k = 0 ; k <= max_i ; ++k )
 			{
-				if( used[k]==0 && offsets[k] >= last_offset ) 
+				if( used[k]==0 && offsets[k] >= last_offset )
 				{
-					if( new_idx < 0 ) 
+					if( new_idx < 0 )
 						new_idx = k ;
-					else if( offsets[new_idx] > offsets[k] ) 
+					else if( offsets[new_idx] > offsets[k] )
 						new_idx = k ;
 					else
 					{
 						register int d1 = new_idx-last_idx ;
 						register int d2 = k - last_idx ;
-						if( d1*d1 > d2*d2 ) 
+						if( d1*d1 > d2*d2 )
 							new_idx = k ;
 					}
 				}
 			}
-			if( new_idx < 0 ) 
+			if( new_idx < 0 )
 				break;
 			used[new_idx] = 1 ;
 			step = grad->offset[new_idx] * scl->width - offset ;
@@ -803,7 +803,7 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, 0, 0, NULL)) == NULL )
 		return NULL;
 	dst = create_asimage(to_width, to_height, compression_out);
-	if( out_format != ASA_ASImage ) 
+	if( out_format != ASA_ASImage )
 		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 	dst->back_color = src->back_color ;
 	if( to_width == src->width )
@@ -882,7 +882,7 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		return NULL;
 
 	dst = create_asimage (to_width, to_height, compression_out);
-	if( out_format != ASA_ASImage ) 
+	if( out_format != ASA_ASImage )
 		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 
 	dst->back_color = src->back_color ;
@@ -950,8 +950,8 @@ merge_layers( ASVisual *asv,
 LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height );
 	if( (dst = create_asimage ( dst_width, dst_height, compression_out)) == NULL )
 		return NULL;
-	
-	if( out_format != ASA_ASImage ) 
+
+	if( out_format != ASA_ASImage )
 		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
@@ -995,7 +995,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	if(imdecs[0] == NULL || (imout = start_image_output( asv, dst, out_format, QUANT_ERR_BITS, quality)) == NULL )
 	{
 		for( i = 0 ; i < count ; i++ )
-			if( imdecs[i] ) 
+			if( imdecs[i] )
 				stop_image_decoding( &(imdecs[i]) );
 
 		asimage_init(dst, True);
@@ -1327,7 +1327,7 @@ LOCAL_DEBUG_CALLER_OUT( "type = 0x%X, width=%d, height = %d, filter = 0x%X", gra
 		height = 2;
 
 	im = create_asimage ( width, height, compression_out);
-	if( out_format != ASA_ASImage ) 
+	if( out_format != ASA_ASImage )
 		set_flags( im->flags, ASIM_DATA_NOT_USEFUL );
 
 	im->back_color = get_best_grad_back_color( grad );
@@ -1407,7 +1407,7 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		filter = get_asimage_chanmask(src);
 
 	dst = create_asimage(to_width, to_height, compression_out);
-	if( out_format != ASA_ASImage ) 
+	if( out_format != ASA_ASImage )
 		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 
 	dst->back_color = src->back_color ;
@@ -1442,7 +1442,7 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 				CARD32 *b = imdec->buffer.blue;
 
 				chan_data = safemalloc( to_width*to_height*sizeof(CARD32));
-				result.back_color = ARGB32_DEFAULT_BACK_COLOR ;
+                result.back_color = src->back_color;
 				result.flags = filter ;
 /*				memset( a, 0x00, to_height*sizeof(CARD32));
 				memset( r, 0x00, to_height*sizeof(CARD32));
@@ -1527,7 +1527,7 @@ mirror_asimage( ASVisual *asv, ASImage *src,
 
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
 	dst = create_asimage(to_width, to_height, compression_out);
-	if( out_format != ASA_ASImage ) 
+	if( out_format != ASA_ASImage )
 		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 
 	dst->back_color = src->back_color ;
@@ -1605,7 +1605,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d",
 		return clone_asimage( src, SCL_DO_ALL );
 
 	dst = create_asimage(to_width, to_height, compression_out);
-	if( out_format != ASA_ASImage ) 
+	if( out_format != ASA_ASImage )
 		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 
 	clip_width = src->width ;

@@ -727,7 +727,9 @@ show_asmenu(ASMenu *menu, int x, int y)
     ASInternalWindow *asiw = safecalloc( 1, sizeof(ASInternalWindow));
     int gravity = NorthWestGravity ;
     int tbar_width = 0 ;
-
+    ASRawHints raw ;
+    static char *ASMenuStyleNames[2] = {"ASMenu",NULL} ;
+    ASDatabaseRecord db_rec;
 
     asiw->data = (ASMagic*)menu;
 
@@ -801,8 +803,7 @@ show_asmenu(ASMenu *menu, int x, int y)
                    AS_StartViewportX|
                    AS_StartViewportY|
                    AS_StartDesktop|
-                   AS_StartLayer|
-                   AS_StartsSticky;
+                   AS_StartLayer;
 
     if( x <= MIN_MENU_X )
         x = MIN_MENU_X ;
@@ -827,6 +828,19 @@ show_asmenu(ASMenu *menu, int x, int y)
     status.desktop = Scr.CurrentDesk;
     status.layer = AS_LayerMenu;
 
+    /* now lets merge it with database record for ASMenu style - if it exists : */
+    if( fill_asdb_record (Database, &(ASMenuStyleNames[0]), &db_rec, False) )
+    {
+        memset( &raw, 0x00, sizeof(raw) );
+        raw.placement.x = status.x ;
+        raw.placement.y = status.y ;
+        raw.placement.width = menu->optimal_width ;
+        raw.placement.height = menu->optimal_height ;
+        raw.scr = &Scr ;
+        raw.border_width = 0 ;
+
+        merge_asdb_hints (hints, &raw, &db_rec, &status, ASFLAGS_EVERYTHING);
+    }
     /* lets make sure we got everything right : */
     check_hints_sanity (&Scr, hints );
     check_status_sanity (&Scr, &status);

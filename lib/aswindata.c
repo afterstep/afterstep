@@ -1,5 +1,5 @@
 /*
- * This is the complete from scratch rewrite of the original WinList 
+ * This is the complete from scratch rewrite of the original WinList
  * module.
  *
  * Copyright (C) 2002 Sasha Vasko <sasha at aftercode.net>
@@ -18,33 +18,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
- 
+
 /*#define DO_CLOCKING      */
 
-#include "../../configure.h"
+#include "../configure.h"
 
-#include <signal.h>
-
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
-
-#define IN_MODULE
-#define MODULE_X_INTERFACE
-
-#include "../../include/afterbase.h"
-#include "../../libAfterImage/afterimage.h"
-#include "../../include/aftersteplib.h"
-#include "../../include/afterstep.h"
-#include "../../include/screen.h"
-#include "../../include/module.h"
-#include "../../include/mystyle.h"
-#include "../../include/parser.h"
-#include "../../include/confdefs.h"
-#include "../../include/clientprops.h"
-#include "../../include/wmprops.h"
-
-#include "WinData.h"
+#include "../include/asapp.h"
+#include "../include/afterstep.h"
+#include "../include/screen.h"
+#include "../include/module.h"
+#include "../include/mystyle.h"
+#include "../include/clientprops.h"
+#include "../include/wmprops.h"
+#include "../include/aswindata.h"
 
 /**********************************************************************/
 /* Our data :                                        				  */
@@ -52,21 +38,21 @@
 /* Storing window list as hash table hashed by client window ID :     */
 ASHashTable *_as_Winlist = NULL;
 
-static void 
+static void
 window_data_destroy( ASHashableValue val, void *data )
 {
 	ASWindowData *wd = data ;
-	if( wd ) 
+	if( wd )
 	{
 		if( wd->magic == MAGIC_ASWindowData )
 		{
-			if( wd->window_name ) 
+			if( wd->window_name )
 				free( wd->window_name );
-			if( wd->icon_name ) 
+			if( wd->icon_name )
 				free( wd->icon_name );
-			if( wd->res_class ) 
+			if( wd->res_class )
 				free( wd->res_class );
-			if( wd->res_name ) 
+			if( wd->res_name )
 				free( wd->res_name );
 			wd->magic = 0 ;
 		}
@@ -74,26 +60,26 @@ window_data_destroy( ASHashableValue val, void *data )
 	}
 }
 
-void 
+void
 destroy_window_data(ASWindowData *wd)
 {
 	if( wd == NULL ) return ;
-	if( wd->magic == MAGIC_ASWindowData ) 
+	if( wd->magic == MAGIC_ASWindowData )
 	{
-		if( _as_Winlist ) 
+		if( _as_Winlist )
 			remove_hash_item( _as_Winlist, AS_HASHABLE(wd->client), NULL, True );
 		else
 			window_data_destroy( 0, wd );
-	}else 
-		free( wd ); 
+	}else
+		free( wd );
 }
 
 ASWindowData *
 fetch_window_by_id( Window w )
 {
 	ASWindowData *wd = NULL ;
-	if( _as_Winlist != NULL ) 
-		if( get_hash_item( _as_Winlist, AS_HASHABLE(w), (void**)&wd ) != ASH_Success ) 
+	if( _as_Winlist != NULL )
+		if( get_hash_item( _as_Winlist, AS_HASHABLE(w), (void**)&wd ) != ASH_Success )
 			wd = NULL ;
 	return wd ;
 }
@@ -101,9 +87,9 @@ fetch_window_by_id( Window w )
 ASWindowData *
 add_window_data( ASWindowData *wd )
 {
-	if( wd == NULL ) 
+	if( wd == NULL )
 		return NULL ;
-	if( _as_Winlist == NULL )  
+	if( _as_Winlist == NULL )
 		_as_Winlist = create_ashash( 7, NULL, NULL, window_data_destroy );
 	show_progress( "adding window %X", wd->client );
 	if( add_hash_item( _as_Winlist, AS_HASHABLE(wd->client), wd ) != ASH_Success )
@@ -121,11 +107,11 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 	WindowPacketResult res = WP_Handled ;
 	if( (type&WINDOW_PACKET_MASK)==0 || pdata == NULL )
 		return WP_Error ;
-	
-	wd = *pdata ; 
+
+	wd = *pdata ;
 	if( wd == NULL )
 	{
-		if( (type&WINDOW_CONFIG_MASK) ) 
+		if( (type&WINDOW_CONFIG_MASK) )
 		{
 			wd = safecalloc(1, sizeof(ASWindowData));
 			wd->magic   = MAGIC_ASWindowData ;
@@ -138,19 +124,19 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 			return WP_Error ;
 	}else
 	{
-	    if( wd->magic   != MAGIC_ASWindowData || 
-	        wd->client  != data[0] || 
-		    wd->frame   != data[1] || 
+	    if( wd->magic   != MAGIC_ASWindowData ||
+	        wd->client  != data[0] ||
+		    wd->frame   != data[1] ||
 		    wd->ref_ptr != data[2] )
 			return WP_Error ;
 		if( type == M_DESTROY_WINDOW )
 		{
 			destroy_window_data( wd );
-			*pdata = NULL ; 
-			return WP_DataDeleted ; 
+			*pdata = NULL ;
+			return WP_DataDeleted ;
 		}else if( (type&WINDOW_STATE_MASK) )
 		{
-			if( type == M_FOCUS_CHANGE ) 
+			if( type == M_FOCUS_CHANGE )
 				if( !wd->focused )
 				{
 					res = WP_DataChanged ;
@@ -169,18 +155,18 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 			case M_ICON_NAME   : dst = &(wd->icon_name); break;
 			case M_RES_CLASS   : dst = &(wd->res_class); break;
 			case M_RES_NAME    : dst = &(wd->res_name ); break;
-			default : 
+			default :
 				return WP_Error ;
-		} 
-		if( *dst ) 
+		}
+		if( *dst )
 		{
-			if( strcmp(*dst, new_name ) == 0 ) 
+			if( strcmp(*dst, new_name ) == 0 )
 				return WP_Handled ;
 			free( *dst );
 		}
 		*dst = mystrdup( new_name );
 		return WP_DataChanged ;
-	}	    
+	}
 
 	if( (type&WINDOW_ICON_MASK) )
 	{ /* read in the icon data */
@@ -189,13 +175,13 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 
 		if( (wd->iconic?1:0) != ((type == M_ICONIFY)?1:0) )
 			res = WP_DataChanged ;
-			
+
 		wd->iconic = (type == M_ICONIFY);
 		if( wd->iconic )
-		{		
-			if( data[3] == wd->icon_rect.x && 
-				data[4] == wd->icon_rect.y && 
-				data[5] == wd->icon_rect.width && 
+		{
+			if( data[3] == wd->icon_rect.x &&
+				data[4] == wd->icon_rect.y &&
+				data[5] == wd->icon_rect.width &&
 				data[6] == wd->icon_rect.height )
 				return res ;
 			wd->icon_rect.x = data[3] ;
@@ -204,32 +190,31 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 			wd->icon_rect.height = data[6] ;
 		}
 		return res ;
-	}	    
-	
+	}
+
 	/* otherwise we need to read full config */
-#define CHECK_CHANGE_VAL(v,n,r) do{if((v)!=(n)){(r)=WP_DataChanged;(v)=(n);};}while(0)	
+#define CHECK_CHANGE_VAL(v,n,r) do{if((v)!=(n)){(r)=WP_DataChanged;(v)=(n);};}while(0)
 	CHECK_CHANGE_VAL(wd->frame_rect.x		,data[3],res);
-	CHECK_CHANGE_VAL(wd->frame_rect.y		,data[4],res); 
-	CHECK_CHANGE_VAL(wd->frame_rect.width	,data[5],res); 
+	CHECK_CHANGE_VAL(wd->frame_rect.y		,data[4],res);
+	CHECK_CHANGE_VAL(wd->frame_rect.width	,data[5],res);
 	CHECK_CHANGE_VAL(wd->frame_rect.height	,data[6],res);
-	CHECK_CHANGE_VAL(wd->desk				,data[7],res); 
-	CHECK_CHANGE_VAL(wd->flags				,data[8],res); 
-	CHECK_CHANGE_VAL(wd->tbar_height		,data[9],res); 
-	CHECK_CHANGE_VAL(wd->sbar_height		,data[10],res);
-    CHECK_CHANGE_VAL(wd->hints.base_width	,data[11],res); 
-	CHECK_CHANGE_VAL(wd->hints.base_height	,data[12],res); 
-	CHECK_CHANGE_VAL(wd->hints.width_inc	,data[13],res);
-	CHECK_CHANGE_VAL(wd->hints.height_inc	,data[14],res); 
-	CHECK_CHANGE_VAL(wd->hints.min_width	,data[15],res); 
-	CHECK_CHANGE_VAL(wd->hints.min_height	,data[16],res);
-    CHECK_CHANGE_VAL(wd->hints.max_width	,data[17],res); 
-	CHECK_CHANGE_VAL(wd->hints.max_height	,data[18],res); 
-	CHECK_CHANGE_VAL(wd->icon_title			,data[19],res);
-	CHECK_CHANGE_VAL(wd->icon				,data[20],res); 
-	CHECK_CHANGE_VAL(wd->hints.win_gravity	,data[21],res); 
-	CHECK_CHANGE_VAL(wd->fore				,data[22],res);
-	CHECK_CHANGE_VAL(wd->back				,data[23],res);
-	
+	CHECK_CHANGE_VAL(wd->desk				,data[7],res);
+    CHECK_CHANGE_VAL(wd->state_flags        ,data[8],res);
+    CHECK_CHANGE_VAL(wd->flags              ,data[9],res);
+    CHECK_CHANGE_VAL(wd->tbar_height        ,data[10],res);
+    CHECK_CHANGE_VAL(wd->sbar_height        ,data[11],res);
+    CHECK_CHANGE_VAL(wd->hints.base_width   ,data[12],res);
+    CHECK_CHANGE_VAL(wd->hints.base_height  ,data[13],res);
+    CHECK_CHANGE_VAL(wd->hints.width_inc    ,data[14],res);
+    CHECK_CHANGE_VAL(wd->hints.height_inc   ,data[15],res);
+    CHECK_CHANGE_VAL(wd->hints.min_width    ,data[16],res);
+    CHECK_CHANGE_VAL(wd->hints.min_height   ,data[17],res);
+    CHECK_CHANGE_VAL(wd->hints.max_width    ,data[18],res);
+    CHECK_CHANGE_VAL(wd->hints.max_height   ,data[19],res);
+    CHECK_CHANGE_VAL(wd->icon_title         ,data[20],res);
+    CHECK_CHANGE_VAL(wd->icon               ,data[21],res);
+    CHECK_CHANGE_VAL(wd->hints.win_gravity  ,data[22],res);
+
 	/* returning result : */
 	res = (*pdata != wd)?WP_DataCreated:res ;
 	*pdata = wd ;

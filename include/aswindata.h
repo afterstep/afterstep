@@ -1,41 +1,47 @@
 #ifndef WINLIST_WINDATA_H_HEADER_INCLUDED
 #define WINLIST_WINDATA_H_HEADER_INCLUDED
 
+struct ASCanvas;
+struct ASTBarData;
+
+
 typedef struct ASWindowData
 {
 #define MAGIC_ASWindowData	0xA3817D08
 	unsigned long magic ;
 	Window 	client;
 	Window 	frame ;
-	
-	unsigned long 	ref_ptr ; /* address of the related ASWindow structure in 
-	                             afterstep's own memory space - we use it as a 
+
+	unsigned long 	ref_ptr ; /* address of the related ASWindow structure in
+	                             afterstep's own memory space - we use it as a
 							     reference, to know what object change is related to */
 	ASRectangle 	frame_rect ;
 	int 			desk ;
-	unsigned long 	flags ;
+    unsigned long   state_flags, flags ;
 	int 			tbar_height ;
-	int 			sbar_height ; /* misteriously called boundary_width in 
+	int 			sbar_height ; /* misteriously called boundary_width in
 	                                 afterstep proper for no apparent reason */
 	XSizeHints 		hints ; 	  /* not sure why we need it here */
-	
+
 	Window 			icon_title ;
-	Window          icon ;									 
-	
-	ARGB32 			fore, back ;  /* really is kinda useless here */
-	
-	char 			*window_name ;
+	Window          icon ;
+
+    char            *window_name ;
 	char 			*icon_name ;
 	char 			*res_class ;
 	char 			*res_name ;
-	
+
 	ASRectangle      icon_rect ;
-	
+
 	Bool 			 focused ;
 	Bool			 iconic ;
-	
+
+    /**************************/
+    /* some additional data that may or maynot be used by modules : */
+    struct ASCanvas        *canvas;
+    struct ASTBarData      *bar ;
 	void *data ;
-	
+
 }ASWindowData;
 /**********************************************************************/
 /* w, frame, t and the rest of the full window config */
@@ -50,7 +56,7 @@ typedef struct ASWindowData
 #define WINDOW_PACKET_MASK (WINDOW_CONFIG_MASK|WINDOW_ICON_MASK| \
                             WINDOW_NAME_MASK|WINDOW_STATE_MASK)
 
-typedef enum { 
+typedef enum {
 	WP_Error = -1,
 	WP_Handled,
 	WP_DataCreated,

@@ -21,6 +21,7 @@
 #define CLASS_CLEAN			"Clean"
 #define CLASS_WINLIST		"WinList"
 #define CLASS_ASRENDER		"ASRenderer"
+#define CLASS_PAGER         "Pager"
 
 #define CLASS_CUSTOM		"ASCustom"
 

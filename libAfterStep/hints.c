@@ -1037,7 +1037,7 @@ merge_xresources_hints (ASHints * clean, ASRawHints * raw,
 	}
 }
 
-static void
+void
 merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what)
 {
 	static ASFlagsXref asdb_startup_xref[] = { /*Flag                    Set if Set    ,Clear if Set    , Set if Clear, Clear if Clear  */

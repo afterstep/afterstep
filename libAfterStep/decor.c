@@ -17,7 +17,7 @@
  *
  */
 
-//#define LOCAL_DEBUG
+#define LOCAL_DEBUG
 //#define DO_CLOCKING
 
 #include "../configure.h"

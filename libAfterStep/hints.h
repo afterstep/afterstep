@@ -216,6 +216,8 @@ typedef struct ASSupportedHints
 
 ASHints *merge_hints( struct ASRawHints *raw, struct ASDatabase *db, ASStatusHints *status,
                       ASSupportedHints *list, ASFlagType what, ASHints* reusable_memory );
+void merge_asdb_hints (ASHints * clean, struct ASRawHints * raw, struct ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what);
+
 /*
  * few function - shortcuts to implement update of selected hints :
  */

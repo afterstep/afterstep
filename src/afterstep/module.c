@@ -662,7 +662,7 @@ SendConfig (int module, unsigned long event_type, ASWindow * t)
 				t->hints->base_width, t->hints->base_height, t->hints->width_inc,
 				t->hints->height_inc, t->hints->min_width, t->hints->min_height,
                 t->hints->max_width,  t->hints->max_height,
-                icon_title_w,         icon_pixmap_w, t->hints->gravity, 0xFFFFFFFF, 0x00000000);
+                icon_title_w,         icon_pixmap_w, t->hints->gravity);
 }
 
 void

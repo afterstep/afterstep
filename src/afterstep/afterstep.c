@@ -50,22 +50,13 @@
 ASFlagType AfterStepState = 0; /* default status */
 
 /* Config : */
-struct ASSession *Session = NULL;          /* filenames of look, feel and background */
 struct ASDatabase    *Database = NULL;
-
-/* Base config : */
-char         *PixmapPath = NULL;
-char         *CursorPath = NULL;
-char         *IconPath   = NULL;
-char         *ModulePath = AFTER_BIN_DIR;
-char         *FontPath   = NULL;
 
 #ifdef SHAPE
 int           ShapeEventBase, ShapeErrorBase;
 #endif
 
-
-int           fd_width, x_fd;
+int           x_fd;
 
 ASVector     *Modules       = NULL;
 int           Module_fd     = 0;
@@ -132,20 +123,10 @@ main (int argc, char **argv)
         set_synchronous_mode(True);
     XSync (dpy, 0);
 
-    /* initializing our dirs names */
-    Session = GetNCASSession(&Scr, MyArgs.override_home, MyArgs.override_share);
-    if( MyArgs.override_config )
-        set_session_override( Session, MyArgs.override_config, 0 );
-    if( MyArgs.override_look )
-        set_session_override( Session, MyArgs.override_look, F_CHANGE_LOOK );
-    if( MyArgs.override_feel )
-        set_session_override( Session, MyArgs.override_feel, F_CHANGE_FEEL );
-
 #ifdef SHAPE
 	XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
 #endif /* SHAPE */
 
-	fd_width = get_fd_width ();
     SetupModules();
     SetupScreen();
     event_setup( True /*Bool local*/ );

@@ -88,16 +88,8 @@ extern int    ShapeErrorBase;
 
 extern ASFlagType    AfterStepState;              /* see ASS_ flags above */
 /* this are linked lists of structures : */
-extern struct ASSession  *Session ;              /* filenames of look, feel and background */
 extern struct ASDatabase *Database;
 extern ASHashTable       *ComplexFunctions;
-
-/* these hold base config - differennt PATH vars: */
-extern char         *PixmapPath;
-extern char         *CursorPath;
-extern char         *IconPath;
-extern char         *ModulePath;
-extern char         *FontPath;
 
 /* global variables for Look values : */
 extern unsigned long XORvalue;
