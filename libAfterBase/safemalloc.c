@@ -41,7 +41,7 @@ safemalloc (size_t length)
 		print_simple_backtrace();
 		exit(0);
 	}
-#endif		
+#endif
 
 	if( length > MAX_BLOCK )
 		longer_then_max_block++ ;
@@ -52,7 +52,9 @@ safemalloc (size_t length)
 
 	if (ptr == (char *)0)
 	{
+		char *suicide = NULL;
 		fprintf (stderr, "malloc of %d bytes failed. Exiting\n", length);
+		*suicide = 1 ;
 		exit (1);
 	}
 	return ptr;
@@ -72,7 +74,7 @@ safecalloc (size_t num, size_t blength)
 		print_simple_backtrace();
 		exit(0);
 	}
-#endif		
+#endif
     if (num <= 0)
         num = 1;
 

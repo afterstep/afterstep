@@ -84,7 +84,6 @@ typedef enum
 struct XcfProperty;
 struct XcfLayer;
 struct XcfChannel;
-struct XcfLayerMask;
 struct XcfHierarchy;
 struct XcfLevel;
 struct XcfTile;
@@ -104,6 +103,12 @@ typedef struct XcfImage
 	struct XcfProperty   *properties ;
 	struct XcfLayer		 *layers;
 	struct XcfChannel	 *channels;
+
+	struct XcfLayer		 *floating_selection;
+	struct XcfChannel	 *selection;
+
+	ASScanline 			  scanline_buf[XCF_TILE_HEIGHT];
+	CARD8 				  tile_buf[XCF_TILE_WIDTH*XCF_TILE_HEIGHT*6];
 }XcfImage;
 
 typedef struct XcfProperty
@@ -136,7 +141,7 @@ typedef struct XcfLayer
 	CARD32				  hierarchy_offset;
 	CARD32      		  mask_offset ;
 	struct XcfHierarchy	 *hierarchy ;
-	struct XcfLayerMask	 *mask ;
+	struct XcfChannel	 *mask ;
 
 }XcfLayer;
 
@@ -144,10 +149,9 @@ typedef struct XcfChannel
 {
 	struct XcfChannel *next;
 	CARD32 		offset ;
-	/* layer data goes here */
+	/* Channel data goes here */
 	CARD32	    width ;
 	CARD32	    height ;
-	CARD32	    type ;
 	/* we don't give a damn about layer's name - skip it */
 	struct XcfProperty   *properties ;
 	CARD32 				  opacity ;
@@ -159,22 +163,6 @@ typedef struct XcfChannel
 
 }XcfChannel;
 
-typedef struct XcfLayerMask
-{
-	/* layer data goes here */
-	CARD32	    width ;
-	CARD32	    height ;
-	/* we don't give a damn about layer's name - skip it */
-	struct XcfProperty   *properties ;
-	CARD32 				  opacity ;
-	Bool 				  visible ;
-	ARGB32				  color ;
-
-	CARD32 		hierarchy_offset;
-	struct XcfHierarchy	 *hierarchy ;
-
-}XcfLayerMask;
-
 typedef struct XcfHierarchy
 {
 	/* layer data goes here */
@@ -184,6 +172,8 @@ typedef struct XcfHierarchy
 
 	/* we don't give a damn about layer's name - skip it */
 	struct XcfLevel	 	 *levels ;
+
+	ASImage 			 *image ;
 }XcfHierarchy;
 
 typedef struct XcfLevel
@@ -221,6 +211,10 @@ typedef union {
 	XcfTile			tile;
 }XcfListElem ;
 
+
+XcfImage   *read_xcf_image( FILE *fp );
+void 		print_xcf_image( XcfImage *xcf_im );
+void		free_xcf_image( XcfImage *xcf_im );
 
 
 #endif /* #ifndef XCF_H_INCLUDED */

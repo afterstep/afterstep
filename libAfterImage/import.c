@@ -1,4 +1,4 @@
-/* This file contains code for unified image loading from XPM file  */
+/* This file contains code for unified image loading from many file formats */
 /********************************************************************/
 /* Copyright (c) 2001 Sasha Vasko <sashav@sprintmail.com>           */
 /********************************************************************/
@@ -835,18 +835,13 @@ jpeg2ASImage( const char * path, ASFlagType *what )
 /***********************************************************************************/
 /* XCF - GIMP's native file format : 											   */
 
-XcfImage   *read_xcf_image( FILE *fp );
-void 		print_xcf_image( XcfImage *xcf_im );
-void		free_xcf_image( XcfImage *xcf_im );
-
-
 ASImage *
 xcf2ASImage( const char * path, ASFlagType *what )
 {
 	/* TODO : implement gamma correction !!! */
 	double gamma = 1.0 ;
 	CARD8  *gamma_table = NULL ;
-	ASImage *im ;
+	ASImage *im = NULL ;
 	/* More stuff */
 	FILE         *infile;					   /* source file */
 #ifdef DO_CLOCKING
@@ -878,16 +873,30 @@ xcf2ASImage( const char * path, ASFlagType *what )
 
 	LOCAL_DEBUG_OUT("stored image size %ldx%ld", xcf_im->width,  xcf_im->height);
 	print_xcf_image( xcf_im );
-
-	im = safecalloc( 1, sizeof( ASImage ) );
-	asimage_start( im, xcf_im->width,  xcf_im->height );
-	prepare_scanline( im->width, 0, &buf, False );
-
+	{/* TODO : temporary workaround untill we implement layers merging */
+		XcfLayer *layer = xcf_im->layers ;
+		while ( layer )
+		{
+			if( layer->hierarchy )
+				if( layer->hierarchy->image )
+					if( layer->hierarchy->width == xcf_im->width &&
+						layer->hierarchy->height == xcf_im->height )
+					{
+						im = layer->hierarchy->image ;
+						layer->hierarchy->image = NULL ;
+					}
+			layer = layer->next ;
+		}
+	}
 	/* Make a one-row-high sample array that will go away when done with image */
 #ifdef DO_CLOCKING
 		printf (" loading initialization time (clocks): %lu\n", clock () - started);
 #endif
 #if 0
+	im = safecalloc( 1, sizeof( ASImage ) );
+	asimage_start( im, xcf_im->width,  xcf_im->height );
+	prepare_scanline( im->width, 0, &buf, False );
+
 	y = -1 ;
 	/*cinfo.output_scanline*/
 	while ( ++y < height )
@@ -935,9 +944,9 @@ xcf2ASImage( const char * path, ASFlagType *what )
 		asimage_add_line (im, IC_GREEN, buf.green, y);
 		asimage_add_line (im, IC_BLUE,  buf.blue , y);
 	}
+	free_scanline(&buf, True);
 #endif
 
-	free_scanline(&buf, True);
 	free_xcf_image(xcf_im);
 
 #ifdef DO_CLOCKING
