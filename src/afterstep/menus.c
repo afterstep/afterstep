@@ -170,7 +170,12 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
 {
     if( item->bar == NULL )
         item->bar = create_astbar();
-    set_astbar_label( item->bar, mdi->item );
+	/* TODO:add minipixmap */
+	/* add label */
+    add_astbar_label( item->bar, 1, 0, 0, mdi->item );
+	/* TODO:add hotkey */
+	/* TODO:add popup icon */
+	
     item->flags = 0 ;
     if( mdi->fdata->func == F_POPUP )
     {

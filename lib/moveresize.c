@@ -215,7 +215,7 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
     data->geom_bar = create_astbar();
     set_astbar_style(data->geom_bar, BAR_STATE_UNFOCUSED, look->MSWindow[BACK_FOCUSED]->name );
 
-    set_astbar_label( data->geom_bar, "88888 x 88888 +88888 +88888" );
+    add_astbar_label( data->geom_bar, 0, 0, 0,"88888 x 88888 +88888 +88888" );
     width = calculate_astbar_width( data->geom_bar );
     height = calculate_astbar_height( data->geom_bar );
     if( width < look->resize_move_geometry.width )
@@ -278,7 +278,7 @@ update_geometry_display( ASMoveResizeData *data )
 #ifndef NO_ASRENDER
     RendChangeLabel( AS_WIDGET_SCREEN(data->parent), data->geometry_display, 1, data->geometry_string );
 #else
-    set_astbar_label( data->geom_bar, data->geometry_string );
+    change_astbar_first_label( data->geom_bar, data->geometry_string );
     render_astbar( data->geom_bar, data->geom_canvas);
     update_canvas_display( data->geom_canvas );
     XRaiseWindow( dpy, data->geometry_display );
