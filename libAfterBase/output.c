@@ -92,9 +92,9 @@ Bool
 is_output_level_under_threshold( unsigned int level )
 {
     if( level == OUTPUT_LEVEL_INVALID )
-        return (as_output_curr_level <= as_output_threshold);
+        return (as_output_curr_level >= as_output_threshold);
     else
-        return (level <= as_output_threshold);
+        return (level >= as_output_threshold);
 }
 
 Bool
@@ -150,6 +150,22 @@ Bool
 show_progress( const char *msg_format, ...)
 {
     if( OUTPUT_LEVEL_PROGRESS <= as_output_threshold)
+    {
+        va_list ap;
+        fprintf (stderr, "%s : ", ApplicationName );
+        va_start (ap, msg_format);
+        vfprintf (stderr, msg_format, ap);
+        va_end (ap);
+        fprintf (stderr, "\n" );
+        return True;
+    }
+    return False;
+}
+
+Bool
+show_activity( const char *msg_format, ...)
+{
+    if( OUTPUT_LEVEL_ACTIVITY <= as_output_threshold)
     {
         va_list ap;
         fprintf (stderr, "%s : ", ApplicationName );

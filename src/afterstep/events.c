@@ -337,13 +337,7 @@ DigestEvent( ASEvent *event )
         if( event->x.type == ButtonRelease && Scr.Windows->pressed )
             release_pressure();
     }
-#if !defined(EVENT_TRACE) || defined(NO_DEBUG_OUTPUT)
-    if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
-#endif
-    {
-        show_progress("****************************************************************");
-        show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name(event->x.type), event->x.xany.window, event->w, event->client, context2text(event->context), event->x.xany.send_event);
-    }
+    SHOW_EVENT_TRACE(event);
 }
 
 /****************************************************************************

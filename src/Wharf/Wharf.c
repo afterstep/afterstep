@@ -316,10 +316,9 @@ CheckConfigSanity()
         }
     }
 
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     show_progress( "printing wharf config : ");
     PrintWharfConfig(Config);
-
-    #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     Print_balloonConfig ( Config->balloon_conf );
 #endif
     balloon_config2look( &(Scr.Look), Config->balloon_conf );
@@ -344,7 +343,7 @@ GetOptions (const char *filename)
     WharfConfig *config;
     START_TIME(option_time);
 SHOW_CHECKPOINT;
-    show_progress( "loading wharf config from \"%s\": ", filename);
+    LOCAL_DEBUG_OUT( "loading wharf config from \"%s\": ", filename);
     config = ParseWharfOptions (filename, MyName);
     SHOW_TIME("Config parsing",option_time);
 
@@ -556,13 +555,7 @@ process_message (unsigned long type, unsigned long *body)
 void
 DispatchEvent (ASEvent * event)
 {
-#ifndef EVENT_TRACE
-    if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
-#endif
-    {
-        show_progress("****************************************************************");
-        show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name(event->x.type), event->x.xany.window, event->w, event->client, context2text(event->context), event->x.xany.send_event);
-    }
+    SHOW_EVENT_TRACE(event);
 
     event->client = NULL ;
     switch (event->x.type)

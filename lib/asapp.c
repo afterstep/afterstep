@@ -170,9 +170,9 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
     {TF_NO_MYNAME_PREPENDING, "Folder", 6, TT_FUNCTION, F_Folder, NULL},
     {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "Swallow", 7, TT_FUNCTION, F_Swallow, NULL},
     {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallow", 10, TT_FUNCTION, F_MaxSwallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "SwallowModule", 13, TT_FUNCTION, F_Swallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallowModule", 16, TT_FUNCTION, F_MaxSwallow, NULL},
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "DropExec", 8, F_DropExec),	/* DropExec   "name" command */
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "SwallowModule", 13, TT_FUNCTION, F_SwallowModule, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallowModule", 16, TT_FUNCTION, F_MaxSwallowModule, NULL},
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "DropExec", 8, F_DropExec),   /* DropExec   "name" command */
     {TF_NO_MYNAME_PREPENDING, "Size", 4, TT_FUNCTION, F_Size, NULL},
     {TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_FUNCTION, F_Transient, NULL},
 
@@ -421,7 +421,11 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 
     memset( &MyArgs, 0x00, sizeof(ASProgArgs) );
     MyArgs.mask = opt_mask ;
+#ifndef NO_DEBUG_OUTPUT
     MyArgs.verbosity_level = OUTPUT_VERBOSE_THRESHOLD ;
+#else
+    MyArgs.verbosity_level = OUTPUT_DEFAULT_THRESHOLD ;
+#endif
 
 
     memset( &Scr, 0x00, sizeof(ScreenInfo) );
@@ -653,6 +657,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             len += 1+2+1+strlen( display );
             if( screen_str )
                 len += strlen(screen_str);
+            len += 3 ;                         /* for "-s " */
             if ( get_flags( MyArgs.flags, ASS_Debugging) )
                 len += 8 ;
             if ( get_flags( MyArgs.flags, ASS_Restarting) )
@@ -737,6 +742,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             CloseOnExec();
 
         LOCAL_DEBUG_OUT("execl(\"%s\")", cmdl );
+        fprintf( stderr, "len=%d: execl(\"%s\")", len, cmdl );
         execl ("/bin/sh", "sh", "-c", cmdl, (char *)0);
         if( screen >= 0 )
             show_error( "failed to start %s on the screen %d", cmd, screen );

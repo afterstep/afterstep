@@ -46,6 +46,7 @@ Bool show_error( const char *error_format, ...);
 Bool show_system_error( const char *error_format, ...);  /* will also execute perror() */
 Bool show_warning( const char *warning_format, ...);
 Bool show_progress( const char *msg_format, ...);
+Bool show_activity( const char *msg_format, ...);
 Bool show_debug( const char *file, const char *func, int line, const char *msg_format, ...);
 #define SHOW_CHECKPOINT show_debug(__FILE__,__FUNCTION__,__LINE__, "*checkpoint*")
 

@@ -1751,7 +1751,7 @@ process_message (unsigned long type, unsigned long *body)
         int                  saved_desk = wd?wd->desk:INVALID_DESK;
         struct ASWindowData *saved_wd = wd ;
 
-        show_progress( "message %lX window %X data %p", type, body[0], wd );
+        show_activity( "message %lX window %X data %p", type, body[0], wd );
 		res = handle_window_packet( type, body, &wd );
         if( res == WP_DataCreated )
             add_client( wd );
@@ -1799,7 +1799,7 @@ process_message (unsigned long type, unsigned long *body)
 void
 DispatchEvent (ASEvent * event)
 {
-	SHOW_EVENT_TRACE(event);
+    SHOW_EVENT_TRACE(event);
 
     LOCAL_DEBUG_OUT( "mvrdata(%p)->main_canvas(%p)->widget(%p)", Scr.moveresize_in_progress, PagerState.main_canvas, event->widget );
     if( Scr.moveresize_in_progress )
