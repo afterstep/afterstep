@@ -533,6 +533,7 @@ static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
     ASVector *free_space_list = NULL;
     XRectangle *rects = NULL;
     int i ;
+	long selected_deficiency = 1000000000 ;
 
 #ifndef MY_RND32
 #define MAX_MY_RND32		0x00ffffffff
@@ -554,16 +555,42 @@ static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
 
     i = PVECTOR_USED(free_space_list);
     while( --i >= 0 )
+	{	
         if( rects[i].width >= w && rects[i].height >=  h )
         {
-            if( selected > 0 )
+			selected_deficiency = 0;
+            if( selected >= 0 )
             {
                 CARD32 r = MY_RND32();
                 if( (r & 0x00000100) == 0 )
                     continue;;
+
             }
             selected = i ;
         }
+		else if( selected_deficiency > 0 )
+		{
+			int deficiency = 0 ;
+			if( rects[i].width < w ) 
+				deficiency += h * (w - rects[i].width );
+			if( rects[i].height < h ) 
+			{	
+				deficiency += w * (h - rects[i].height );
+				if( rects[i].width < w ) 
+					deficiency -= (w - rects[i].width )*(h - rects[i].height );
+			}		
+#if 0		                                   
+			/* we may use it if we are required to place window, so we can 
+			 * select the largest area available. But ordinarily we should 
+			 * default to manuall placement instead! : */
+			if( deficiency < selected_deficiency || selected < 0 )
+			{
+				selected = i ; 
+				selected_deficiency = deficiency ; 	
+			}	 
+#endif
+		}	 
+	}
     if( selected >= 0 )
     {
         unsigned int new_x = 0, new_y = 0;
@@ -914,7 +941,7 @@ place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementS
         else if( aswbox->backup_strategy == ASP_Cascade )
             res = do_cascade_placement( asw, aswbox, &area );
 
-		if( aswbox->backup_strategy == ASP_Manual && (force && !res) )
+		if( aswbox->backup_strategy == ASP_Manual || (force && !res) )
             res = do_manual_placement( asw, aswbox, &area );
     }
     return res;

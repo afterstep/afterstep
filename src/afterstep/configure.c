@@ -775,6 +775,10 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
         frame->title_align = fd->title_align;
     if( get_flags( fd->set_title_attr, MYFRAME_CondenseTitlebarSet ) )
         frame->condense_titlebar = fd->condense_titlebar;
+    if( get_flags( fd->set_title_attr, MYFRAME_LeftTitlebarLayoutSet ) )
+        frame->left_layout = fd->left_layout;
+    if( get_flags( fd->set_title_attr, MYFRAME_RightTitlebarLayoutSet ) )
+        frame->right_layout = fd->right_layout;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleFCMSet ) )
         frame->title_fcm = fd->title_fcm;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleUCMSet ) )

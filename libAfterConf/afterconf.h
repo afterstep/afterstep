@@ -259,7 +259,9 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define MYFRAME_TitleBackground_ID_START	(MYFRAME_ID_START+42)
 #define MYFRAME_LeftBtnBackground_ID		(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_LBTN	)
 #define MYFRAME_LeftSpacerBackground_ID 	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_LSPACER)
+#define MYFRAME_LTitleSpacerBackground_ID 	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_LTITLE_SPACER)
 #define MYFRAME_TitleBackground_ID      	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_LBL	)
+#define MYFRAME_RTitleSpacerBackground_ID 	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_RTITLE_SPACER)
 #define MYFRAME_RightSpacerBackground_ID 	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_RSPACER)
 #define MYFRAME_RightBtnBackground_ID   	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_RBTN	)
 #define MYFRAME_TitleBackground_ID_END      (MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACKS)
@@ -267,14 +269,18 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define MYFRAME_TitleBackgroundAlign_ID_START	(MYFRAME_TitleBackground_ID_END)
 #define MYFRAME_LeftBtnBackAlign_ID				(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_LBTN	)
 #define MYFRAME_LeftSpacerBackAlign_ID  		(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_LSPACER)
+#define MYFRAME_LTitleSpacerBackAlign_ID  		(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_LTITLE_SPACER)
 #define MYFRAME_TitleBackgroundAlign_ID 		(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_LBL	 )
+#define MYFRAME_RTitleSpacerBackAlign_ID 		(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_RTITLE_SPACER)
 #define MYFRAME_RightSpacerBackAlign_ID 		(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_RSPACER)
 #define MYFRAME_RightBtnBackAlign_ID			(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_RBTN	 )
 #define MYFRAME_TitleBackgroundAlign_ID_END     (MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACKS)
 
 #define MYFRAME_CondenseTitlebar_ID             (MYFRAME_TitleBackgroundAlign_ID_END+1) 
+#define MYFRAME_LeftTitlebarLayout_ID			(MYFRAME_TitleBackgroundAlign_ID_END+2)
+#define MYFRAME_RightTitlebarLayout_ID			(MYFRAME_TitleBackgroundAlign_ID_END+3)
 
-#define MYFRAME_ID_END      (MYFRAME_ID_START+64)
+#define MYFRAME_ID_END      (MYFRAME_ID_START+128)
 
 #define ALIGN_ID_START      (MYFRAME_ID_END+1)
 #define ALIGN_Left_ID       (ALIGN_ID_START+1)
@@ -302,6 +308,14 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define BEVEL_Extra_ID      (BEVEL_ID_START+6)
 #define BEVEL_NoOutline_ID  (BEVEL_ID_START+7)
 #define BEVEL_ID_END        (BEVEL_ID_START+10)
+
+#define TBAR_LAYOUT_ID_START  		(BEVEL_ID_END+1)
+#define TBAR_LAYOUT_Buttons_ID     	(TBAR_LAYOUT_ID_START+MYFRAME_TITLE_BACK_BTN)
+#define TBAR_LAYOUT_Spacer_ID      	(TBAR_LAYOUT_ID_START+MYFRAME_TITLE_BACK_SPACER)
+#define TBAR_LAYOUT_TitleSpacer_ID 	(TBAR_LAYOUT_ID_START+MYFRAME_TITLE_BACK_TITLE_SPACER)
+
+#define TBAR_LAYOUT_ID_END        	(TBAR_LAYOUT_ID_START+10)
+
 
 /*********************************************************************
  * Window decorations Frame can be defined as such :
@@ -355,6 +369,9 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
  *     [TitleFocusedCompositionMethod     testure_type]
  *     [TitleUnfocusedCompositionMethod   testure_type]
  *     [TitleStickyCompositionMethod      testure_type]
+ * 	   [CondenseTitlebar]
+ * 	   [LeftTitlebarLayout		Buttons,Spacer,TitleSpacer]			  
+ * 	   [RightTitlebarLayout		Buttons,Spacer,TitleSpacer]			  
  * ~MyFrame
  */
 
@@ -388,6 +405,7 @@ typedef struct MyFrameDefinition
 	ASFlagType   title_backs_align[MYFRAME_TITLE_BACKS];
     int          title_fcm, title_ucm, title_scm;
     ASFlagType   condense_titlebar ;
+	unsigned long left_layout, right_layout ;
 
     char       **inheritance_list ;
     int          inheritance_num ;
@@ -1724,6 +1742,105 @@ AnimateConfig *ParseAnimateOptions (const char *filename, char *myname);
 int WriteAnimateOptions (const char *filename, char *myname,
 			 AnimateConfig * config, unsigned long flags);
 void DestroyAnimateConfig (AnimateConfig * config);
+
+/**************************************************************************/
+/***************************************************************************/
+/*                        Audio pasring definitions                 */
+/***************************************************************************/
+/***************************************************************************/
+/*                        Possible AfterStep communication events :        */
+/***************************************************************************/
+#define	EVENT_WindowAdded			0
+#define	EVENT_WindowNames    		1
+#define	EVENT_WindowDestroyed		2
+#define	EVENT_WindowActivated		3
+#define	EVENT_WindowRaised			4
+#define	EVENT_WindowIconified		5
+#define	EVENT_WindowDeiconified		6
+#define	EVENT_WindowShaded			7
+#define	EVENT_WindowUnshaded		8
+#define	EVENT_WindowStuck			9 
+#define	EVENT_WindowUnstuck			10
+#define	EVENT_WindowMaximized		11
+#define	EVENT_WindowRestored		12
+#define	EVENT_BackgroundChanged		13
+#define	EVENT_DeskViewportChanged	14
+#define	EVENT_Startup				15
+#define	EVENT_Shutdown				16
+#define	EVENT_Theme					17
+#define	EVENT_Look					18
+#define	EVENT_Feel					19
+#define	EVENT_BaseConfig			20
+#define	EVENT_ModuleConfig			21
+#define	AFTERSTEP_EVENTS_NUM 		22
+
+
+#define EVENT_ID_START          		(ANIMATE_ID_END+1)
+
+#define EVENT_WindowAdded_ID            (EVENT_ID_START+EVENT_WindowAdded)
+#define EVENT_WindowNames_ID            (EVENT_ID_START+EVENT_WindowNames)    		
+#define EVENT_WindowDestroyed_ID        (EVENT_ID_START+EVENT_WindowDestroyed)
+#define EVENT_WindowActivated_ID        (EVENT_ID_START+EVENT_WindowActivated)		
+#define EVENT_WindowRaised_ID           (EVENT_ID_START+EVENT_WindowRaised)
+#define EVENT_WindowIconified_ID        (EVENT_ID_START+EVENT_WindowIconified)
+#define EVENT_WindowDeiconified_ID      (EVENT_ID_START+EVENT_WindowDeiconified)
+#define EVENT_WindowShaded_ID           (EVENT_ID_START+EVENT_WindowShaded)
+#define EVENT_WindowUnshaded_ID         (EVENT_ID_START+EVENT_WindowUnshaded)
+#define EVENT_WindowStuck_ID            (EVENT_ID_START+EVENT_WindowStuck)
+#define EVENT_WindowUnstuck_ID          (EVENT_ID_START+EVENT_WindowUnstuck)
+#define EVENT_WindowMaximized_ID        (EVENT_ID_START+EVENT_WindowMaximized)
+#define EVENT_WindowRestored_ID         (EVENT_ID_START+EVENT_WindowRestored)
+#define EVENT_BackgroundChanged_ID      (EVENT_ID_START+EVENT_BackgroundChanged)
+#define EVENT_DeskViewportChanged_ID    (EVENT_ID_START+EVENT_DeskViewportChanged)
+#define EVENT_Startup_ID                (EVENT_ID_START+EVENT_Startup)
+#define EVENT_Shutdown_ID               (EVENT_ID_START+EVENT_Shutdown)				
+#define EVENT_Theme_ID               	(EVENT_ID_START+EVENT_Theme)				   
+#define EVENT_Look_ID               	(EVENT_ID_START+EVENT_Look)				   
+#define EVENT_Feel_ID               	(EVENT_ID_START+EVENT_Feel)				   
+#define EVENT_BaseConfig_ID            	(EVENT_ID_START+EVENT_BaseConfig)				   
+#define EVENT_ModuleConfig_ID          	(EVENT_ID_START+EVENT_ModuleConfig)				   
+
+#define EVENT_ID_END          			(EVENT_ID_START+AFTERSTEP_EVENTS_NUM)
+
+#define AUDIO_ID_START        	(EVENT_ID_END+1)	
+#define AUDIO_PLAYCMD_ID        (AUDIO_ID_START+1)
+#define AUDIO_DELAY_ID          (AUDIO_ID_START+2)
+#define AUDIO_RPLAY_HOST_ID     (AUDIO_ID_START+3)
+#define AUDIO_RPLAY_PRI_ID      (AUDIO_ID_START+4)
+#define AUDIO_RPLAY_VOL_ID      (AUDIO_ID_START+5)
+#define AUDIO_AUDIO_ID          (AUDIO_ID_START+6)
+
+#define AUDIO_ID_END            (AUDIO_ID_START+10)
+
+/* config data structure */
+
+typedef struct
+{
+  char *playcmd;
+  char *sounds[AFTERSTEP_EVENTS_NUM] ;
+
+#define AUDIO_SET_DELAY  			(0x01<<0)
+#define AUDIO_SET_RPLAY_HOST		(0x01<<1)
+#define AUDIO_SET_RPLAY_PRIORITY  	(0x01<<2)
+#define AUDIO_SET_RPLAY_VOLUME  	(0x01<<3)
+  
+  ASFlagType set_flags ;
+
+  int delay;
+  char *rplay_host;
+  int rplay_priority;
+  int rplay_volume;
+
+  struct FreeStorageElem *more_stuff;
+
+}
+AudioConfig;
+
+AudioConfig *CreateAudioConfig ();
+AudioConfig *ParseAudioOptions (const char *filename, char *myname);
+int WriteAudioOptions (const char *filename, char *myname,
+		       AudioConfig * config, unsigned long flags);
+void DestroyAudioConfig (AudioConfig * config);
 
 /**************************************************************************/
 

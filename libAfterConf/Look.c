@@ -116,6 +116,30 @@ flag_options_xref BevelFlagsXref[] = {
     {0, 0, 0}
 };
 
+
+
+TermDef       TbarLayoutTerms[] = {
+    {TF_NO_MYNAME_PREPENDING, "Buttons", 7,			TT_FLAG, TBAR_LAYOUT_Buttons_ID     , NULL},
+    {TF_NO_MYNAME_PREPENDING, "Spacer", 6,			TT_FLAG, TBAR_LAYOUT_Spacer_ID      , NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleSpacer", 11,	TT_FLAG, TBAR_LAYOUT_TitleSpacer_ID , NULL},
+    {0, NULL, 0, 0, 0}
+};
+
+SyntaxDef     TbarLayoutSyntax = {
+	',',
+	'\n',
+    TbarLayoutTerms,
+	0,										   /* use default hash size */
+    ' ',
+	" ",
+	"\t",
+    "Titlebar Layout Flags",
+	NULL,
+	0
+};
+struct SyntaxDef     *TbarLayoutSyntaxPtr = &TbarLayoutSyntax;
+
+
 TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "MyFrame", 7,     TT_QUOTED_TEXT, MYFRAME_START_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "North", 5,       TT_OPTIONAL_PATHNAME,    MYFRAME_North_ID, NULL},
@@ -179,15 +203,21 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~MyFrame", 8, TT_FLAG, MYFRAME_DONE_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "LeftBtnBackground", 17,  TT_FILENAME,     MYFRAME_LeftBtnBackground_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackground", 20,  TT_FILENAME,  MYFRAME_LeftSpacerBackground_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "LeftTitleSpacerBackground", 25,  TT_FILENAME,  MYFRAME_LTitleSpacerBackground_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleBackground", 15,    TT_FILENAME,     MYFRAME_TitleBackground_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "RightTitleSpacerBackground", 26,  TT_FILENAME, MYFRAME_RTitleSpacerBackground_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "RightSpacerBackground", 21,  TT_FILENAME, MYFRAME_RightSpacerBackground_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "RightBtnBackground", 18,  TT_FILENAME,    MYFRAME_RightBtnBackground_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "LeftBtnBackAlign", 16,       TT_FLAG,     MYFRAME_LeftBtnBackAlign_ID, &AlignSyntax},
     {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackAlign", 19,    TT_FLAG,     MYFRAME_LeftSpacerBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "LeftTitleSpacerBackAlign", 24,    TT_FLAG,     MYFRAME_LTitleSpacerBackAlign_ID, &AlignSyntax},
 	{TF_NO_MYNAME_PREPENDING, "TitleBackgroundAlign", 20,   TT_FLAG,         MYFRAME_TitleBackgroundAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING, "RightSpacerBackAlign", 20,   TT_FLAG,     MYFRAME_RightSpacerBackAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING, "RightBtnBackAlign", 17,      TT_FLAG,     MYFRAME_RightBtnBackAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING, "CondenseTitlebar", 16,       TT_FLAG,     MYFRAME_CondenseTitlebar_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "RightTitleSpacerBackAlign", 25,   TT_FLAG,     MYFRAME_RTitleSpacerBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "RightSpacerBackAlign", 20,   TT_FLAG,   MYFRAME_RightSpacerBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "RightBtnBackAlign", 17,      TT_FLAG,   MYFRAME_RightBtnBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "CondenseTitlebar", 16,       TT_FLAG,   MYFRAME_CondenseTitlebar_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "LeftTitlebarLayout", 18,     TT_FLAG,   MYFRAME_LeftTitlebarLayout_ID, &TbarLayoutSyntax},
+    {TF_NO_MYNAME_PREPENDING, "RightTitlebarLayout", 19,    TT_FLAG,   MYFRAME_RightTitlebarLayout_ID, &TbarLayoutSyntax},
 
 	{0, NULL, 0, 0, 0}
 };
@@ -551,6 +581,76 @@ ParseAlignOptions( FreeStorageElem * options )
     return align;
 }
 
+unsigned long
+ParseTbarLayoutOptions( FreeStorageElem * options )
+{
+    unsigned long layout = 0 ;
+	int count = 0 ; 
+    while( options )
+	{
+        LOCAL_DEBUG_OUT( "options(%p)->keyword(\"%s\")", options, options->term->keyword );
+        if (options->term != NULL)
+		{	
+			int elem = options->term->id - TBAR_LAYOUT_ID_START ;
+			int i ;
+			if( elem >= 0 && elem <= MYFRAME_TITLE_SIDE_ELEMS ) 
+			{
+				for( i = 0 ; i < count ; ++i ) 
+					if( MYFRAME_GetTbarLayoutElem(layout,i) == elem ) 
+						break;
+				if( i >= count ) 
+				{
+					MYFRAME_SetTbarLayoutElem(layout,count,elem);
+					++count ;
+				}	 
+			}	 
+        }
+		options = options->next;
+    }
+	while( count < MYFRAME_TITLE_SIDE_ELEMS ) 
+	{
+		MYFRAME_SetTbarLayoutElem(layout,count,MYFRAME_TITLE_BACK_INVALID);
+		++count ;			
+	}	 
+    return layout;
+}
+
+void
+tbar_layout_parse(char *tline, FILE * fd, char **myname, int *playout)
+{
+    FilePtrAndData fpd ;
+    ConfigDef    *ConfigReader ;
+    FreeStorageElem *Storage = NULL, *more_stuff = NULL;
+	ConfigData cd ;
+    if( playout == NULL )
+        return;
+
+    fpd.fp = fd ;
+    fpd.data = safemalloc( strlen(tline)+1+1 ) ;
+    sprintf( fpd.data, "%s\n", tline );
+LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
+	cd.fileptranddata = &fpd ;
+    ConfigReader = InitConfigReader ((char*)myname, &BevelSyntax, CDT_FilePtrAndData, cd, NULL);
+    free( fpd.data );
+
+    if (!ConfigReader)
+        return ;
+
+	PrintConfigReader (ConfigReader);
+	ParseConfig (ConfigReader, &Storage);
+	PrintFreeStorage (Storage);
+
+	/* getting rid of all the crap first */
+    StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
+    DestroyFreeStorage (&more_stuff);
+
+    *playout = ParseTbarLayoutOptions(Storage);
+
+	DestroyConfig (ConfigReader);
+	DestroyFreeStorage (&Storage);
+}
+
+
 MyFrameDefinition **
 ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
 {
@@ -611,6 +711,14 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                     case MYFRAME_CondenseTitlebar_ID :
                         fd->condense_titlebar = ParseAlignOptions( options->sub );
                         set_flags( fd->set_title_attr, MYFRAME_CondenseTitlebarSet );
+                        break;
+                    case MYFRAME_LeftTitlebarLayout_ID :
+                        fd->left_layout = ParseTbarLayoutOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_LeftTitlebarLayoutSet );
+                        break;
+                    case MYFRAME_RightTitlebarLayout_ID :
+                        fd->right_layout = ParseTbarLayoutOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_RightTitlebarLayoutSet );
                         break;
                     default:
                         if (!ReadConfigItem (&item, options))

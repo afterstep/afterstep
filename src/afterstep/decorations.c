@@ -92,7 +92,7 @@ ASOrientation HorzOrientation =
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
     0,
     {0, 1, 2, 3, 4, 5, 6},
-    {0, 0, 0, 0, 0}
+    {0, 0, 0, 0, 0, 0, 0}
 };
 
 ASOrientation VertOrientation =
@@ -114,7 +114,7 @@ ASOrientation VertOrientation =
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
     &NormalY, &NormalX, &NormalHeight, &NormalWidth,
     FLIP_VERTICAL,
-    {0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0},
     {7, 6, 5, 4, 3, 2, 1}
 };
 
@@ -124,6 +124,60 @@ get_orientation_data( ASWindow *asw )
     if( asw && asw->magic == MAGIC_ASWINDOW && asw->hints )
         return ASWIN_HFLAGS(asw, AS_VerticalTitle)?&VertOrientation:&HorzOrientation;
     return &HorzOrientation;
+}
+
+void 
+compile_tbar_layout( unsigned int *tbar_layout, unsigned int *default_tbar_layout, unsigned long left_layout, unsigned long right_layout )
+{
+	int l; 	
+
+	Bool used[MYFRAME_TITLE_BACKS] = {False, False, False, False, False, False, False };
+
+	LOCAL_DEBUG_OUT( "left_layout = %lX, right_layout = %lX", left_layout, right_layout );
+	for( l = 0 ; l < MYFRAME_TITLE_BACKS ; ++l )
+		tbar_layout[l] = -1 ;
+	for( l = 0 ; l < MYFRAME_TITLE_SIDE_ELEMS ; ++l ) 
+	{
+		int r = MYFRAME_TITLE_BACK_LEFT2RIGHT(l);
+		int left_elem = MYFRAME_GetTbarLayoutElem(left_layout,l);	
+		int right_elem = MYFRAME_GetTbarLayoutElem(left_layout,r);	  
+		if( left_elem != MYFRAME_TITLE_BACK_INVALID && !used[l]) 
+		{	
+			tbar_layout[left_elem] = default_tbar_layout[l] ;
+			used[l] = True ;
+		}
+		if( right_elem != MYFRAME_TITLE_BACK_INVALID && !used[r] ) 
+		{	
+			tbar_layout[right_elem] = default_tbar_layout[r] ;
+			used[r] = True ;
+		}
+	}	 
+	tbar_layout[MYFRAME_TITLE_BACK_LBL] = default_tbar_layout[MYFRAME_TITLE_BACK_LBL];
+	used[MYFRAME_TITLE_BACK_LBL] = True ;
+	for( l = 0 ; l < MYFRAME_TITLE_BACKS ; ++l )
+	{	
+		if( tbar_layout[l] == -1 )
+		{
+	 		int i, k ;
+			int from = 0, to = MYFRAME_TITLE_SIDE_ELEMS;
+			if( l >= MYFRAME_TITLE_SIDE_ELEMS ) 
+			{
+				from = 	MYFRAME_TITLE_BACK_LEFT2RIGHT(MYFRAME_TITLE_SIDE_ELEMS);
+				to   = 	MYFRAME_TITLE_BACKS ;
+			}	 
+			LOCAL_DEBUG_OUT( "missing layout for elem %d, from = %d, to = %d", l, from, to );
+			for( i = from ; i < to ; ++i ) 
+			{
+				if( !used[i] ) 
+				{	
+					LOCAL_DEBUG_OUT( "found vacant slot %d", default_tbar_layout[i] );
+					tbar_layout[l] = default_tbar_layout[i];
+					used[i] = True;
+					break;
+				}		 
+			}		  
+		}	 
+	}
 }
 
 /* this gets called when Look changes or hints changes : */
@@ -1032,92 +1086,85 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 				delete_astbar_tile( asw->tbar, -1 );
 		}
 
-		if( tbar_created )
+		if( !tbar_created )
 		{
+			if( old_hints == NULL ||
+				  mystrcmp( asw->hints->names[0], old_hints->names[0] ) != 0 )
+			{
+				ASCanvas *canvas = ASWIN_HFLAGS(asw, AS_VerticalTitle)?asw->frame_sides[FR_W]:asw->frame_sides[FR_N];
+	        	/* label ( goes on top of above pixmap ) */
+	        	if( change_astbar_first_label( asw->tbar, asw->hints->names[0], asw->hints->names_encoding[0] ) )
+  		        	if( canvas )
+      		    	{
+	                	render_astbar( asw->tbar, canvas );
+						invalidate_canvas_save( canvas );
+  		            	update_canvas_display( canvas );
+					}
+			}
+		}else
+		{	  
+			Bool rtitle_spacer_added = False ;
+			Bool ltitle_spacer_added = False ;
+			unsigned int tbar_layout_row[MYFRAME_TITLE_BACKS] ;
+			unsigned int tbar_layout_col[MYFRAME_TITLE_BACKS] ;
+
+			compile_tbar_layout( tbar_layout_row, od->default_tbar_elem_row, frame->left_layout, frame->right_layout );
+			compile_tbar_layout( tbar_layout_col, od->default_tbar_elem_col, frame->left_layout, frame->right_layout );
+			
+			for( i = MYFRAME_TITLE_BACK_LBTN ; i < MYFRAME_TITLE_BACKS ; ++i )
+				if( frame->title_backs[i] && frame->title_backs[i]->image )
+				{
+                    LOCAL_DEBUG_OUT( "Adding Title Back #%d", i );
+                    add_astbar_icon( asw->tbar,
+                             	tbar_layout_col[ASO_TBAR_ELEM_LBTN+i],
+                             	tbar_layout_row[ASO_TBAR_ELEM_LBTN+i],
+                             	od->flip, fix_background_align(frame->title_backs_align[i]),
+                             	frame->title_backs[i]->image);
+					if( i == MYFRAME_TITLE_BACK_RTITLE_SPACER ) 
+						rtitle_spacer_added = True ;
+					else if( i == MYFRAME_TITLE_BACK_LTITLE_SPACER ) 
+						ltitle_spacer_added = True ;
+					   
+      			}
 #if 1
-      		if( frame->title_backs[MYFRAME_TITLE_BACK_LBL] &&
+      		/* special handling to accomodate FIT_LABEL_SIZE alignment of the title */
+			if( frame->title_backs[MYFRAME_TITLE_BACK_LBL] &&
 				frame->title_backs[MYFRAME_TITLE_BACK_LBL]->image )
       		{
-          	    int title_back_align = frame->title_backs_align[MYFRAME_TITLE_BACK_LBL] ;
-          		LOCAL_DEBUG_OUT( "title_back_align = 0x%X", title_back_align );
-          		if( get_flags( title_back_align, FIT_LABEL_SIZE ) )
+          		LOCAL_DEBUG_OUT( "title_back_align = 0x%lX", frame->title_backs_align[MYFRAME_TITLE_BACK_LBL] );
+          		if( get_flags( frame->title_backs_align[MYFRAME_TITLE_BACK_LBL], FIT_LABEL_SIZE ) )
           		{
               		/* left spacer  - if we have an icon to go under the label if align is right or center */
-              		if( get_flags( frame->title_align, ALIGN_RIGHT ) )
+              		if( get_flags( frame->title_align, ALIGN_RIGHT ) && !ltitle_spacer_added )
                 	    add_astbar_spacer( asw->tbar,
-                                     od->default_tbar_elem_col[ASO_TBAR_ELEM_LTITLE_SPACER],
-                                     od->default_tbar_elem_row[ASO_TBAR_ELEM_LTITLE_SPACER],
+                                     tbar_layout_col[ASO_TBAR_ELEM_LTITLE_SPACER],
+                                     tbar_layout_row[ASO_TBAR_ELEM_LTITLE_SPACER],
                                      od->flip, PAD_LEFT, 1, 1);
 
               		/* right spacer - if we have an icon to go under the label and align is left or center */
-              		if( get_flags( frame->title_align, ALIGN_LEFT ) )
+              		if( get_flags( frame->title_align, ALIGN_LEFT ) && !rtitle_spacer_added )
                 	    add_astbar_spacer( asw->tbar,
-                                     od->default_tbar_elem_col[ASO_TBAR_ELEM_RTITLE_SPACER],
-                                     od->default_tbar_elem_row[ASO_TBAR_ELEM_RTITLE_SPACER],
+                                     tbar_layout_col[ASO_TBAR_ELEM_RTITLE_SPACER],
+                                     tbar_layout_row[ASO_TBAR_ELEM_RTITLE_SPACER],
                                      od->flip, PAD_RIGHT, 1, 1);
-            		title_align = 0 ;
+					title_align = 0 ;
           		}
-				title_back_align = fix_background_align( title_back_align );
-
-        		add_astbar_icon( asw->tbar,
-                             od->default_tbar_elem_col[ASO_TBAR_ELEM_LBL],
-                             od->default_tbar_elem_row[ASO_TBAR_ELEM_LBL],
-                             od->flip, title_back_align,
-                             frame->title_backs[MYFRAME_TITLE_BACK_LBL]->image);
       		}
 #endif
 
 	        /* label ( goes on top of above pixmap ) */
   		    add_astbar_label( asw->tbar,
-                          od->default_tbar_elem_col[ASO_TBAR_ELEM_LBL],
-                          od->default_tbar_elem_row[ASO_TBAR_ELEM_LBL],
+                          tbar_layout_col[ASO_TBAR_ELEM_LBL],
+                          tbar_layout_row[ASO_TBAR_ELEM_LBL],
                           od->flip,
                           title_align, DEFAULT_TBAR_SPACING, max( asw->tbar->top_bevel, asw->tbar->bottom_bevel),
                           asw->hints->names[0], asw->hints->names_encoding[0]);
-		}else if( old_hints == NULL ||
-				  mystrcmp( asw->hints->names[0], old_hints->names[0] ) != 0 )
-		{
-			ASCanvas *canvas = ASWIN_HFLAGS(asw, AS_VerticalTitle)?asw->frame_sides[FR_W]:asw->frame_sides[FR_N];
-	        /* label ( goes on top of above pixmap ) */
-	        if( change_astbar_first_label( asw->tbar, asw->hints->names[0], asw->hints->names_encoding[0] ) )
-  		        if( canvas )
-      		    {
-	                render_astbar( asw->tbar, canvas );
-					invalidate_canvas_save( canvas );
-  		            update_canvas_display( canvas );
-				}
-		}
-		/* all the buttons go after the label to be rendered over it */
-		if( tbar_created )
-		{
-			/* really is only 2 iterations - but still  - toghter code this way */
-			for( i = MYFRAME_TITLE_BACK_LBTN ; i <= MYFRAME_TITLE_BACK_LSPACER ; ++i )
-				if( frame->title_backs[i] && frame->title_backs[i]->image )
-				{
-                    LOCAL_DEBUG_OUT( "Adding Left Title Back #%d", i );
-                    add_astbar_icon( asw->tbar,
-                             	od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN+i],
-                             	od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN+i],
-                             	od->flip, fix_background_align(frame->title_backs_align[i]),
-                             	frame->title_backs[i]->image);
-      			}
-			/* really is only 2 iterations - but still  - toghter code this way */
-			for( i = MYFRAME_TITLE_BACK_RSPACER ; i <= MYFRAME_TITLE_BACK_RBTN ; ++i )
-				if( frame->title_backs[i] && frame->title_backs[i]->image )
-				{
-					int idx = ASO_TBAR_ELEM_RSPACER-MYFRAME_TITLE_BACK_RSPACER+i ;
-                    LOCAL_DEBUG_OUT( "Adding Right Title Back #%d", i );
-					add_astbar_icon( asw->tbar,
-                             	od->default_tbar_elem_col[idx],
-                             	od->default_tbar_elem_row[idx],
-                             	od->flip, fix_background_align(frame->title_backs_align[i]),
-                             	frame->title_backs[i]->image);
-      			}
-
-			 /* left buttons : */
+		
+			/* all the buttons go after the label to be rendered over it */
+			/* left buttons : */
 	        add_astbar_btnblock(asw->tbar,
-  		                        od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],
-      		                    od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN],
+  		                        tbar_layout_col[ASO_TBAR_ELEM_LBTN],
+      		                    tbar_layout_row[ASO_TBAR_ELEM_LBTN],
                                 od->flip, ALIGN_VCENTER,
               		            &(Scr.Look.ordered_buttons[0]), btn_mask,
                   		        Scr.Look.button_first_right,
@@ -1126,8 +1173,8 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 
 			/* right buttons : */
   		    add_astbar_btnblock(asw->tbar,
-      		                    od->default_tbar_elem_col[ASO_TBAR_ELEM_RBTN],
-          		                od->default_tbar_elem_row[ASO_TBAR_ELEM_RBTN],
+      		                    tbar_layout_col[ASO_TBAR_ELEM_RBTN],
+          		                tbar_layout_row[ASO_TBAR_ELEM_RBTN],
                                 od->flip, ALIGN_VCENTER,
                   		        &(Scr.Look.ordered_buttons[Scr.Look.button_first_right]), btn_mask,
                       		    TITLE_BUTTONS - Scr.Look.button_first_right,

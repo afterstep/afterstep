@@ -15,19 +15,18 @@ rm -f Makefile.defines Makefile.common Makefile.common.lib configure
 cd ..
 
 # removing all empty files from sources
-rm -f `find include asimagelib lib src -empty`
+rm -f `find include libAfterImage libAfterBase libAfterConf libAfterStep src -empty`
 
 # removing some debug leftovers from sources
-rm -f `find asimagelib lib src -name "errors"`
+rm -f `find include libAfterImage libAfterBase libAfterConf libAfterStep src -name "log"`
 # removing possibly diff or tmp files from src dir
 rm -f `find src -maxdepth 1 -type f`
 
 # remove configure droppings
 rm -f `find . -name "config.cache"`
-rm -f `find . -name "config.h"`
 rm -f `find . -name "config.log"`
 rm -f `find . -name "config.status"`
-rm -f `find . -name "*.in" -o -name ".*.in" | sed 's/.in$//'`
+#rm -f `find . -name "*.in" -o -name ".*.in" | sed 's/.in$//'`
 
 # remove backups
 rm -f `find . -name "*~" -o -name ".*~"`

@@ -136,13 +136,32 @@ typedef struct MyDesktopConfig
 #define FRAME_PARTS_MASK    (FR_N_Mask|FR_E_Mask|FR_S_Mask|FR_W_Mask| \
                              FR_NE_Mask|FR_NW_Mask|FR_SE_Mask|FR_SW_Mask)
 
-#define MYFRAME_TITLE_BACK_LBTN		0
-#define MYFRAME_TITLE_BACK_LSPACER	1
-#define MYFRAME_TITLE_BACK_LBL		2
-#define MYFRAME_TITLE_BACK_RSPACER	3
-#define MYFRAME_TITLE_BACK_RBTN		4
-#define MYFRAME_TITLE_BACKS			5
+#define MYFRAME_TITLE_BACK_BTN				0
+#define MYFRAME_TITLE_BACK_SPACER			1
+#define MYFRAME_TITLE_BACK_TITLE_SPACER		2
+#define MYFRAME_TITLE_BACK_INVALID			3
+#define MYFRAME_TITLE_SIDE_MASK				0x03  /* ORed values of everything above */  
+#define MYFRAME_TITLE_SIDE_BITS				2     /* number of set bits in above mask */		
+#define MYFRAME_GetTbarLayoutElem(layout,i)    (((layout)>>((i)*MYFRAME_TITLE_SIDE_BITS))&MYFRAME_TITLE_SIDE_MASK)
+#define MYFRAME_SetTbarLayoutElem(layout,i,elem)    (layout = (((layout)&(~(MYFRAME_TITLE_SIDE_MASK<<((i)*MYFRAME_TITLE_SIDE_BITS))))|(((elem)&MYFRAME_TITLE_SIDE_MASK)<<((i)*MYFRAME_TITLE_SIDE_BITS))))
 
+#define MYFRAME_TITLE_SIDE_ELEMS			3     /* number of set bits in above mask */		   
+			   
+#define MYFRAME_TITLE_BACK_TITLE_LABEL		MYFRAME_TITLE_SIDE_ELEMS
+
+
+#define MYFRAME_TITLE_BACKS					(MYFRAME_TITLE_SIDE_ELEMS+1+MYFRAME_TITLE_SIDE_ELEMS)
+
+#define MYFRAME_TITLE_BACK_LBTN				MYFRAME_TITLE_BACK_BTN
+#define MYFRAME_TITLE_BACK_LSPACER			MYFRAME_TITLE_BACK_SPACER
+#define MYFRAME_TITLE_BACK_LTITLE_SPACER	MYFRAME_TITLE_BACK_TITLE_SPACER
+#define MYFRAME_TITLE_BACK_LBL				MYFRAME_TITLE_BACK_TITLE_LABEL
+#define MYFRAME_TITLE_BACK_LEFT2RIGHT(l) 	(MYFRAME_TITLE_BACKS-1-(l))
+#define MYFRAME_TITLE_BACK_RTITLE_SPACER	MYFRAME_TITLE_BACK_LEFT2RIGHT(MYFRAME_TITLE_BACK_TITLE_SPACER)
+#define MYFRAME_TITLE_BACK_RSPACER			MYFRAME_TITLE_BACK_LEFT2RIGHT(MYFRAME_TITLE_BACK_SPACER)
+#define MYFRAME_TITLE_BACK_RBTN				MYFRAME_TITLE_BACK_LEFT2RIGHT(MYFRAME_TITLE_BACK_BTN)
+
+#define MYFRAME_DEFAULT_TITLE_LAYOUT		0xFFFFFFFF
 
 typedef struct MyFrame
 {
@@ -188,15 +207,19 @@ typedef struct MyFrame
 #define MYFRAME_TitleSCMSet         (0x01<<7)
 #define MYFRAME_TitleCMSet          (MYFRAME_TitleFCMSet|MYFRAME_TitleUCMSet|MYFRAME_TitleSCMSet)
 
-#define MYFRAME_TitleBackAlignSet_Start     (0x01<<8)
-#define MYFRAME_TitleBackAlignSet_LBtn  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LBTN)
-#define MYFRAME_TitleBackAlignSet_LSpacer  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LSPACER)
-#define MYFRAME_TitleBackAlignSet_Lbl  		(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LBL)
-#define MYFRAME_TitleBackAlignSet_RSpacer  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_RSPACER)
-#define MYFRAME_TitleBackAlignSet_RBtn  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_RBTN)
-#define MYFRAME_TitleBackAlignSet_End       (MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACKS)
+#define MYFRAME_TitleBackAlignSet_Start     		(0x01<<8)
+#define MYFRAME_TitleBackAlignSet_LBtn  			(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LBTN)
+#define MYFRAME_TitleBackAlignSet_LSpacer 		 	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LSPACER)
+#define MYFRAME_TitleBackAlignSet_LTitleSpacer  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LTITLE_SPACER)
+#define MYFRAME_TitleBackAlignSet_Lbl  				(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LBL)
+#define MYFRAME_TitleBackAlignSet_RTitleSpacer     	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_RTITLE_SPACER)
+#define MYFRAME_TitleBackAlignSet_RSpacer  			(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_RSPACER)
+#define MYFRAME_TitleBackAlignSet_RBtn  			(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_RBTN)
+#define MYFRAME_TitleBackAlignSet_End       		(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACKS)
 
-#define MYFRAME_CondenseTitlebarSet   (0x01<<16)
+#define MYFRAME_CondenseTitlebarSet   	(0x01<<16)
+#define MYFRAME_LeftTitlebarLayoutSet   (0x01<<17)
+#define MYFRAME_RightTitlebarLayoutSet  (0x01<<18)
 
     ASFlagType   title_fbevel, title_ubevel, title_sbevel;
     unsigned int title_fcm, title_ucm, title_scm ;
@@ -211,6 +234,8 @@ typedef struct MyFrame
 #define IsFramePart(f,p)   (get_flags((f)->parts_mask,0x01<<(p))&&((f)->parts[(p)] || (((f)->part_width[(p)] || p >= FRAME_SIDES) && (f)->part_length[(p)])))
 
     unsigned int spacing ;
+
+	unsigned long left_layout, right_layout ;
 }MyFrame;
 
 extern int    _as_frame_corner_xref[FRAME_SIDES+1];

@@ -11,6 +11,7 @@
 #include "../../libAfterStep/screen.h"
 #include "../../libAfterStep/module.h"
 #include "../../libAfterStep/mystyle.h"
+#include "../../libAfterStep/mylook.h"
 #include "../../libAfterStep/clientprops.h"
 #include "../../libAfterStep/hints.h"
 #include "../../libAfterStep/balloon.h"
@@ -269,14 +270,14 @@ typedef struct ASOrientation
     int *out_x, *out_y;
     unsigned int *out_width, *out_height;
     int flip;
-#define ASO_TBAR_ELEM_LBTN      	   	0
-#define ASO_TBAR_ELEM_LSPACER		   	1
-#define ASO_TBAR_ELEM_LTITLE_SPACER    	2
-#define ASO_TBAR_ELEM_LBL       	   	3
-#define ASO_TBAR_ELEM_RTITLE_SPACER	 	4
-#define ASO_TBAR_ELEM_RSPACER			5
-#define ASO_TBAR_ELEM_RBTN      		6
-#define ASO_TBAR_ELEM_NUM       		7
+#define ASO_TBAR_ELEM_LBTN      	   	MYFRAME_TITLE_BACK_LBTN
+#define ASO_TBAR_ELEM_LSPACER		   	MYFRAME_TITLE_BACK_LSPACER
+#define ASO_TBAR_ELEM_LTITLE_SPACER    	MYFRAME_TITLE_BACK_LTITLE_SPACER
+#define ASO_TBAR_ELEM_LBL       	   	MYFRAME_TITLE_BACK_LBL
+#define ASO_TBAR_ELEM_RTITLE_SPACER	 	MYFRAME_TITLE_BACK_RTITLE_SPACER
+#define ASO_TBAR_ELEM_RSPACER			MYFRAME_TITLE_BACK_RSPACER
+#define ASO_TBAR_ELEM_RBTN      		MYFRAME_TITLE_BACK_RBTN
+#define ASO_TBAR_ELEM_NUM       		MYFRAME_TITLE_BACKS
     unsigned int default_tbar_elem_col[ASO_TBAR_ELEM_NUM];
     unsigned int default_tbar_elem_row[ASO_TBAR_ELEM_NUM];
     ASFlagType left_spacer_needed_align ;

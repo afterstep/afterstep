@@ -312,6 +312,9 @@ create_myframe()
 {
     MyFrame *frame = safecalloc( 1, sizeof(MyFrame));
     frame->magic = MAGIC_MYFRAME ;
+	
+	frame->left_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
+	frame->right_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
 
     return frame;
 
@@ -362,7 +365,8 @@ create_default_myframe(ASFlagType default_title_align)
     frame->title_ucm = TEXTURE_TRANSPIXMAP_ALPHA;
     frame->title_scm = TEXTURE_TRANSPIXMAP_ALPHA;
     frame->condense_titlebar = 0 ;
-
+	frame->left_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
+	frame->right_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
     frame->spacing = 1;
     return frame ;
 }

@@ -59,7 +59,7 @@ register_custom_color(const char* name, CARD32 value)
 	if( name == NULL )
 		return ;
 	if (custom_argb_colornames == NULL )
-    	custom_argb_colornames = create_ashash(0, casestring_hash_value, casestring_compare, string_destroy);
+    	custom_argb_colornames = create_ashash(0, casestring_hash_value, casestring_compare, string_destroy_without_data);
 
     /* Destroy any old data associated with this name. */
 	remove_hash_item(custom_argb_colornames, AS_HASHABLE(name), NULL, False);
