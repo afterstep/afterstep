@@ -33,6 +33,7 @@
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
 #include "../include/screen.h"
+#include "../include/parse.h"
 #include "../include/xprop.h"
 
 /* X property access : */
