@@ -166,6 +166,7 @@ void release_pressure();
 Bool check_pending_swallow( ASWharfFolder *aswf );
 void exec_pending_swallow( ASWharfFolder *aswf );
 void check_swallow_window( ASWindowData *wd );
+void update_wharf_folder_transprency( ASWharfFolder *aswf );
 
 
 /***********************************************************************
@@ -619,6 +620,7 @@ DispatchEvent (ASEvent * event)
                 LOCAL_DEBUG_OUT( "root background updated!%s","");
                 safe_asimage_destroy( Scr.RootImage );
                 Scr.RootImage = NULL ;
+                update_wharf_folder_transprency( WharfState.root_folder );
             }
             break;
     }
@@ -724,13 +726,12 @@ build_wharf_button_tbar(WharfButton *wb)
     set_astbar_balloon( bar, 0, wb->title );
 
     set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
-    if( !get_flags( Config->flags, WHARF_NO_BORDER ) )
-	{
-		if( get_flags( Config->flags, WHARF_BEVEL ) )
-            set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, Config->bevel );
-		else
-            set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, RIGHT_HILITE|BOTTOM_HILITE );
-	}
+    if( get_flags( Config->flags, WHARF_NO_BORDER ) )
+       set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, 0 );
+    else if( get_flags( Config->flags, WHARF_BEVEL ) )
+       set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, Config->bevel );
+    else
+       set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, RIGHT_HILITE|BOTTOM_HILITE );
     return bar;
 }
 
@@ -915,6 +916,12 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 #endif
 }
 
+void
+update_wharf_folder_transprency( ASWharfFolder *aswf )
+{
+
+
+}
 
 void
 map_wharf_folder( ASWharfFolder *aswf,
@@ -1211,11 +1218,11 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 	{
   		if( get_flags( aswf->flags, ASW_Vertical ) )
 	    {
-		  	if( south ) 
+		  	if( south )
 				set_flags( aswf->flags, ASW_ReverseOrder );
 	    }else
   		{
-			if( east ) 
+			if( east )
 				set_flags( aswf->flags, ASW_ReverseOrder );
 		}
 	}
@@ -1291,28 +1298,28 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
             x += east?5:-5 ;
     }
 	LOCAL_DEBUG_OUT("calculated pos(%+d%+d), east(%d), south(%d), total_size(%dx%d)", x, y, east, south, total_width, total_height );
-	if( east ) 
+	if( east )
 	{
-		if( x + width > Scr.MyDisplayWidth ) 
+		if( x + width > Scr.MyDisplayWidth )
 			x = Scr.MyDisplayWidth - width ;
 	}else
 	{
-		if( x + total_width > Scr.MyDisplayWidth ) 
+		if( x + total_width > Scr.MyDisplayWidth )
 			x = Scr.MyDisplayWidth - total_width ;
 	}
-	if( south ) 
+	if( south )
 	{
-		if( y + height > Scr.MyDisplayHeight ) 
+		if( y + height > Scr.MyDisplayHeight )
 			y = Scr.MyDisplayHeight - height ;
 	}else
 	{
-		if( y + total_height > Scr.MyDisplayHeight ) 
+		if( y + total_height > Scr.MyDisplayHeight )
 			y = Scr.MyDisplayHeight - total_height ;
 	}
-    /* if user has configured us so that we'll have to overlap ourselves - 
-	   then its theirs fault - we cannot account for all situations */	
-	
-	LOCAL_DEBUG_OUT("corrected  pos(%+d%+d)", x, y );	
+    /* if user has configured us so that we'll have to overlap ourselves -
+	   then its theirs fault - we cannot account for all situations */
+
+	LOCAL_DEBUG_OUT("corrected  pos(%+d%+d)", x, y );
     LOCAL_DEBUG_OUT( "flags 0x%lX, reverse_order = %d", aswf->flags, get_flags( aswf->flags, ASW_ReverseOrder)?aswf->buttons_num-1:-1 );
 
     update_wharf_folder_shape( aswf );
@@ -1806,17 +1813,17 @@ LOCAL_DEBUG_OUT( "pressed button has folder %p (%s)", pressed->folder, get_flags
         {
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
             print_func_data(__FILE__, __FUNCTION__, __LINE__, pressed->fdata);
-#endif			
+#endif
             if( !get_flags( pressed->flags, ASW_SwallowTarget ) || pressed->swallowed == NULL )
             {  /* send command to the AS-proper : */
-				ASWharfFolder *parentf = pressed->parent ; 
-				ASWharfButton *parentb = NULL ; 
+				ASWharfFolder *parentf = pressed->parent ;
+				ASWharfButton *parentb = NULL ;
                 SendCommand( pressed->fdata, 0);
 				while( parentf != WharfState.root_folder )
 				{
 					parentb = parentf->parent ;
 	                withdraw_wharf_folder( parentf );
-					if( parentb == NULL ) 
+					if( parentb == NULL )
 						break;
 					parentf = parentb->parent ;
 				}

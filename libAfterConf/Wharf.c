@@ -281,6 +281,15 @@ PrintWharfConfig(WharfConfig *config )
             show_progress( "WHARF.sounds[%d]=\"%s\";", i, config->sounds[i] );
     }
 
+    if( get_flags( config->set_flags, WHARF_LABEL_LOCATION ) )
+        show_progress( "WHARF.label_location = 0x%lX", config->label_location );
+    if( get_flags( config->set_flags, WHARF_ALIGN_CONTENTS ) )
+        show_progress( "WHARF.align_context = 0x%lX;", config->align_contents );
+    if( get_flags( config->set_flags, WHARF_BEVEL ) )
+        show_progress( "WHARF.bevel = 0x%lX;", config->bevel);
+    if( get_flags( config->set_flags, WHARF_COMPOSITION_METHOD ) )
+        show_progress( "WHARF.composition_method = %d;", config->composition_method );
+
     print_wharf_folder( config->root_folder, 1 );
 
 }
