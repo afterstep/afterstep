@@ -1,2 +1,6 @@
 <section label="overview" id="overview">
+<para>The <command>WinList</command> module provides a window list made up of buttons, each
+corresponding to a window that AfterStep is managing.  Clicking on the
+buttons with any of the three mouse buttons will either do a default
+action or can be user configured by editing the <emphasis remap='I'>winlist</emphasis> file.</para>
 </section>

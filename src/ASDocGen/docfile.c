@@ -84,7 +84,8 @@ write_doc_header( ASXMLInterpreterState *state )
 
 			break;
  		case DocType_PHP :	
-			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Index","visualselect", "" );
+			fprintf( state->dest_fp, PHPXrefFormat, "documentation","Preface","", "" );
+			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Introduction","visualselect", "" );
 
 /*			if( TopicIndexName == APITopicIndexName )
 				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Main Index","index", "" );

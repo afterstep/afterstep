@@ -12,7 +12,7 @@
     </scale>
   </composite>
   <tile tint="#4f9F9F9F" align="center" valign="middle">
-    <text fgcolor="Inactive1" font="DefaultFancy.ttf" point="60" type="3">AfterStep 2.0</text>
+    <text fgcolor="Inactive1" font="DefaultFancy.ttf" point="60" type="3">AfterStep 2.00.03</text>
   </tile>
 </composite>
 
