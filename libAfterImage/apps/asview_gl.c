@@ -14,9 +14,25 @@
  * SOURCE
  */
 
+#define DO_CLOCKING
+
 #include "../afterbase.h"
 #include "../afterimage.h"
 #include "common.h"
+
+#ifdef DO_CLOCKING
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+#endif
+
 
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -119,7 +135,8 @@ int main(int argc, char* argv[])
 			GLXPixmap glxp;
 			GLXContext glctx;
 			ASImageDecoder *imdec  ;
-		  GLboolean bparam;
+		    GLboolean bparam;
+			START_TIME(started);
 
 	  		XMapRaised   (dpy, w);
 			XSync(dpy,False);
@@ -174,6 +191,7 @@ int main(int argc, char* argv[])
 
 			glFinish(); 				
 			glXMakeCurrent (dpy, None, NULL);	
+			SHOW_TIME("", started);
 			show_warning( "asimage2pmap Done");
 			/* print_storage(NULL); */
 			destroy_asimage( &im );

@@ -14,9 +14,25 @@
  * SOURCE
  */
 
+#define DO_CLOCKING
+
 #include "../afterbase.h"
 #include "../afterimage.h"
 #include "common.h"
+
+#ifdef DO_CLOCKING
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+#endif
+
 
 void usage()
 {
@@ -107,6 +123,7 @@ int main(int argc, char* argv[])
 		if( w != None )
 		{
 			Pixmap p ;
+			START_TIME(started);
 
 	  		XMapRaised   (dpy, w);
 			XSync(dpy,False);
@@ -114,6 +131,7 @@ int main(int argc, char* argv[])
 			show_warning( "asimage2pmap");
 			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL,
 				                False );
+			SHOW_TIME("", started);
 			show_warning( "asimage2pmap Done");
 			/* print_storage(NULL); */
 			destroy_asimage( &im );

@@ -123,6 +123,9 @@ deps:
 asview: asview.o common.o @LIBPROG@
 		$(CC) asview.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asview
 
+asview_gl: asview_gl.o common.o $(LIB_STATIC)
+		$(CC) asview_gl.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -lGL -lGLU -o asview_gl
+
 asscale: asscale.o common.o @LIBPROG@
 		$(CC) asscale.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asscale
 
