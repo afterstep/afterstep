@@ -176,4 +176,22 @@ extern void trace_ExecuteFunction (int func, char *action, Window in_w,
 
 #endif /* DEBUG_TRACE */
 
+#ifdef DEBUG_TRACE_X
+#define XRaiseWindow(a,b) trace_XRaiseWindow(__FILE__, __FUNCTION__, __LINE__, a, b)
+#define XLowerWindow(a,b) trace_XLowerWindow(__FILE__, __FUNCTION__, __LINE__, a, b)
+#define XRestackWindows(a,b,c) trace_XRestackWindows(__FILE__, __FUNCTION__, __LINE__, a, b, c)
+#define XResizeWindow(a,b,c,d) trace_XResizeWindow(__FILE__, __FUNCTION__, __LINE__, a, b, c, d)
+#define XMoveWindow(a,b,c,d) trace_XMoveWindow(__FILE__, __FUNCTION__, __LINE__, a, b, c, d)
+#define XMoveResizeWindow(a,b,c,d,e,f) trace_XMoveResizeWindow(__FILE__, __FUNCTION__, __LINE__, a, b, c, d, e, f)
+void trace_XRaiseWindow(const char* file, const char* func, int line, Display* dpy, Window w);
+void trace_XLowerWindow(const char* file, const char* func, int line, Display* dpy, Window w);
+void trace_XRestackWindows(const char* file, const char* func, int line, Display* dpy, Window windows[], int nwindows);
+void trace_XResizeWindow(const char* file, const char* func, int line, Display* dpy, Window w, int width, int height);
+void trace_XMoveWindow(const char* file, const char* func, int line, Display* dpy, Window w, int x, int y);
+void trace_XMoveResizeWindow(const char* file, const char* func, int line, Display* dpy, Window w, int x, int y, int width, int height);
+int trace_enable_function(const char* name);
+int trace_disable_function(const char* name);
+extern const char* (*trace_window_id2name_hook)(Display *dpy, Window w, int* how_to_free);
+#endif /* DEBUG_TRACE_X */
+
 #endif /* AFTERSTEP_TRACE_H */

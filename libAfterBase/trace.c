@@ -618,3 +618,192 @@ void trace_ExecuteFunction (int func, char *action, Window in_w,
 #endif
 
 #endif /* DEBUG_ALLOCS */
+
+#ifdef DEBUG_TRACE_X
+
+#include <string.h>		/* for memset */
+#include <stdlib.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#ifdef XPM
+#include <X11/xpm.h>
+#endif /* XPM */
+
+#include "../include/aftersteplib.h"
+#include "../include/afterstep.h"
+#include "../include/aswindow.h"
+#include "../include/trace.h" /* for deps */
+#include "../include/functions.h"
+#include "../include/menus.h"
+
+#undef XRaiseWindow
+#undef XLowerWindow
+#undef XRestackWindows
+#undef XResizeWindow
+#undef XMoveResizeWindow
+#undef XMoveWindow
+
+#define trace_enabled_func(a) (trace_enabled_funcs & (1 << a))
+
+/* The order of the following enum and trace_func array must be exactly the 
+** same, and the enum must not have defined values in it!  The functions 
+** below require this to be true.
+*/
+enum {
+  TRACE_XRAISEWINDOW,
+  TRACE_XLOWERWINDOW,
+  TRACE_XRESTACKWINDOWS,
+  TRACE_XRESIZEWINDOW,
+  TRACE_XMOVERESIZEWINDOW,
+  TRACE_XMOVEWINDOW,
+};
+static const char* trace_func[] = {
+  "XRaiseWindow",
+  "XLowerWindow",
+  "XRestackWindows",
+  "XResizeWindow",
+  "XMoveResizeWindow",
+  "XMoveWindow",
+};
+
+static unsigned int trace_enabled_funcs = 0;
+const char* (*trace_window_id2name_hook)(Display *dpy, Window w, int* how_to_free) = NULL;
+static const char* trace_window_id2name(Display *dpy, Window w, int* how_to_free);
+static const char* trace_window_id2name_internal(Display *dpy, Window w, int* how_to_free);
+void trace_XRaiseWindow(const char* file, const char* func, int line, Display* dpy, Window w) {
+  int fn = TRACE_XRAISEWINDOW;
+  if (trace_enabled_func(fn)) {
+    const char* str;
+    int how_to_free = 0;
+    str = trace_window_id2name(dpy, w, &how_to_free);
+    fprintf(stderr, "%s:%s:%d: %s(", file, func, line, trace_func[fn]);
+    fprintf(stderr, "%08x%s%s)\n", (unsigned int)w, str?" => ":"", str?str:"");
+    if (how_to_free == 1) free((char*)str);
+    else if (how_to_free == 2) XFree((char*)str);
+  }
+  XRaiseWindow(dpy, w);
+}
+void trace_XLowerWindow(const char* file, const char* func, int line, Display* dpy, Window w) {
+  int fn = TRACE_XLOWERWINDOW;
+  if (trace_enabled_func(fn)) {
+    const char* str;
+    int how_to_free = 0;
+    str = trace_window_id2name(dpy, w, &how_to_free);
+    fprintf(stderr, "%s:%s:%d: %s(", file, func, line, trace_func[fn]);
+    fprintf(stderr, "%08x%s%s)\n", (unsigned int)w, str?" => ":"", str?str:"");
+    if (how_to_free == 1) free((char*)str);
+    else if (how_to_free == 2) XFree((char*)str);
+  }
+  XLowerWindow(dpy, w);
+}
+void trace_XRestackWindows(const char* file, const char* func, int line, Display* dpy, Window windows[], int nwindows) {
+  int fn = TRACE_XRESTACKWINDOWS;
+  if (trace_enabled_func(fn)) {
+    int i;
+    fprintf(stderr, "%s:%s:%d: %s(\n", file, func, line, trace_func[fn]);
+    for (i = 0 ; i < nwindows ; i++) {
+      const char* str;
+      int how_to_free = 0;
+      str = trace_window_id2name(dpy, windows[i], &how_to_free);
+      if (i) fprintf(stderr, ",\n");
+      fprintf(stderr, "%08x%s%s", (unsigned int)windows[i], str?" => ":"", str?str:"");
+      if (how_to_free == 1) free((char*)str);
+      else if (how_to_free == 2) XFree((char*)str);
+    }
+    fprintf(stderr, ")\n");
+  }
+  XRestackWindows(dpy, windows, nwindows);
+}
+void trace_XResizeWindow(const char* file, const char* func, int line, Display* dpy, Window w, int width, int height) {
+  int fn = TRACE_XRESIZEWINDOW;
+  if (trace_enabled_func(fn)) {
+    const char* str;
+    int how_to_free = 0;
+    str = trace_window_id2name(dpy, w, &how_to_free);
+    fprintf(stderr, "%s:%s:%d: %s(", file, func, line, trace_func[fn]);
+    fprintf(stderr, "%08x%s%s, %d, %d)\n", (unsigned int)w, str?" => ":"", str?str:"", width, height);
+    if (how_to_free == 1) free((char*)str);
+    else if (how_to_free == 2) XFree((char*)str);
+  }
+  XResizeWindow(dpy, w, width, height);
+}
+void trace_XMoveWindow(const char* file, const char* func, int line, Display* dpy, Window w, int x, int y) {
+  int fn = TRACE_XMOVEWINDOW;
+  if (trace_enabled_func(fn)) {
+    const char* str;
+    int how_to_free = 0;
+    str = trace_window_id2name(dpy, w, &how_to_free);
+    fprintf(stderr, "%s:%s:%d: %s(", file, func, line, trace_func[fn]);
+    fprintf(stderr, "%08x%s%s, %d, %d)\n", (unsigned int)w, str?" => ":"", str?str:"", x, y);
+    if (how_to_free == 1) free((char*)str);
+    else if (how_to_free == 2) XFree((char*)str);
+  }
+  XMoveWindow(dpy, w, x, y);
+}
+void trace_XMoveResizeWindow(const char* file, const char* func, int line, Display* dpy, Window w, int x, int y, int width, int height) {
+  int fn = TRACE_XMOVERESIZEWINDOW;
+  if (trace_enabled_func(fn)) {
+    const char* str;
+    int how_to_free = 0;
+    str = trace_window_id2name(dpy, w, &how_to_free);
+    fprintf(stderr, "%s:%s:%d: %s(", file, func, line, trace_func[fn]);
+    fprintf(stderr, "%08x%s%s, %d, %d, %d, %d)\n", (unsigned int)w, str?" => ":"", str?str:"", x, y, width, height);
+    if (how_to_free == 1) free((char*)str);
+    else if (how_to_free == 2) XFree((char*)str);
+  }
+  XMoveResizeWindow(dpy, w, x, y, width, height);
+}
+static const char* trace_window_id2name(Display *dpy, Window w, int* how_to_free) {
+  const char* str = NULL;
+  if (trace_window_id2name_hook)
+    str = trace_window_id2name_hook(dpy, w, how_to_free);
+  else
+    str = trace_window_id2name_internal(dpy, w, how_to_free);
+  return str;
+}
+static const char* trace_window_id2name_internal(Display *dpy, Window w, int* how_to_free) {
+  const char* str = NULL;
+  XTextProperty text_prop;
+  if (XGetWMName (dpy, w, &text_prop)) {
+    str = (const char *) text_prop.value;
+    *how_to_free = 2;
+  }
+  return str;
+}
+int trace_enable_function(const char* name) {
+  int i;
+  int val = -1;
+  if (!strcmp(name, "all")) {
+    val = trace_enabled_funcs;
+    trace_enabled_funcs = ~0;
+  } else {
+    for (i = 0 ; i < sizeof(trace_func) / sizeof(char*) ; i++) {
+      if (!strcmp(trace_func[i], name)) {
+        val = (trace_enabled_funcs & (1 << i)) ? 1 : 0;
+        trace_enabled_funcs |= (1 << i);
+        break;
+      }
+    }
+  }
+  return val;
+}
+int trace_disable_function(const char* name) {
+  int i;
+  int val = -1;
+  if (!strcmp(name, "all")) {
+    val = trace_enabled_funcs;
+    trace_enabled_funcs = 0;
+  } else {
+    for (i = 0 ; i < sizeof(trace_func) / sizeof(char*) ; i++) {
+      if (!strcmp(trace_func[i], name)) {
+        val = (trace_enabled_funcs & (1 << i)) ? 1 : 0;
+        trace_enabled_funcs &= ~(1 << i);
+        break;
+      }
+    }
+  }
+  return val;
+}
+#endif /* DEBUG_TRACE_X */
