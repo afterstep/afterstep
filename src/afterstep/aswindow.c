@@ -1175,7 +1175,7 @@ focus_window( ASWindow *asw, Window w )
 	 * most noticeably GTK-perl */
 	if( w != None )
 	    XSetInputFocus ( dpy, w, RevertToParent, 
-						/*(Scr.Windows->focused == NULL)?CurrentTime:*/Scr.last_Timestamp);
+						(Scr.Windows->focused == NULL)?CurrentTime:Scr.last_Timestamp);
 
     ASSync(False );
     return (w!=None);

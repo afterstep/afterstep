@@ -34,6 +34,7 @@
 #include "xmlproc.h"
 #include "robodoc.h"
 #include "docfile.h"
+#include "datadoc.h"
 
 SyntaxDef* TopLevelSyntaxes[] =
 {
@@ -185,8 +186,9 @@ int
 main (int argc, char **argv)
 {
 	int i ; 
-	char *source_dir = "source" ;
+	char *source_dir = NULL ;
 	const char *destination_dir = NULL ;
+	Bool do_data = False;
 	ASDocType target_type = DocType_Source ;
 	/* Save our program name - for error messages */
     InitMyApp (CLASS_ASDOCGEN, argc, argv, NULL, NULL, 0 );
@@ -196,7 +198,7 @@ main (int argc, char **argv)
 		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
 		if( argv[i] != NULL  )
 		{
-			if( (strcmp( argv[i], "-t" ) == 0 || strcmp( argv[i], "-target" ) == 0) && i+1 < argc && argv[i+1] != NULL ) 
+			if( (strcmp( argv[i], "-t" ) == 0 || strcmp( argv[i], "--target" ) == 0) && i+1 < argc && argv[i+1] != NULL ) 
 			{
 				++i ;
 				if( mystrcasecmp( argv[i], "plain" ) == 0 || mystrcasecmp( argv[i], "text" ) == 0) 
@@ -213,15 +215,29 @@ main (int argc, char **argv)
 					target_type = DocType_Source ; 														   
 				else
 					show_error( "unknown target type \"%s\"" );
-			}else if( (strcmp( argv[i], "-s" ) == 0 || strcmp( argv[i], "-css" ) == 0) && i+1 < argc && argv[i+1] != NULL ) 
+			}else if( (strcmp( argv[i], "-s" ) == 0 || strcmp( argv[i], "--css" ) == 0) && i+1 < argc && argv[i+1] != NULL ) 
 			{
 				++i ;				
 				HTML_CSS_File = argv[i] ;
+			}else if( (strcmp( argv[i], "-d" ) == 0 || strcmp( argv[i], "--data" ) == 0) ) 
+			{
+				do_data = True ;
+			}else if( (strcmp( argv[i], "-S" ) == 0 || strcmp( argv[i], "--source" ) == 0) && i+1 < argc && argv[i+1] != NULL ) 
+			{
+				++i ;				
+				source_dir = argv[i] ;
+			}else if( (strcmp( argv[i], "-D" ) == 0 || strcmp( argv[i], "--dst" ) == 0) && i+1 < argc && argv[i+1] != NULL ) 
+			{
+				++i ;				
+				destination_dir = argv[i] ;
 			}
 		}
 	}		  
 	if( destination_dir == NULL ) 
-		destination_dir = ASDocTypeExtentions[target_type] ;
+		destination_dir = do_data?"data":ASDocTypeExtentions[target_type] ;
+	if( source_dir == NULL ) 
+		source_dir = do_data?"../../afterstep":"source" ;
+
 #if 0
 
     ConnectX( &Scr, PropertyChangeMask );
@@ -267,6 +283,16 @@ main (int argc, char **argv)
 			++i ;	
 		}
 		check_syntax_source( source_dir, NULL, True );
+	}else if( do_data )
+	{	
+		Scr.asv = create_asvisual(NULL, 0, 32, NULL);
+		TopicIndexName = NULL ;
+		gen_data_doc( 	source_dir, destination_dir?destination_dir:"data", "",
+			  		  	"Installed data files - fonts, images and configuration",
+			  			target_type );
+
+		flush_ashash( Glossary );
+		flush_ashash( Index );
 	}else
 	{
 		char *api_dest_dir ;
@@ -300,7 +326,7 @@ main (int argc, char **argv)
 		}
 		flush_ashash( Glossary );
 		flush_ashash( Index );
-		
+
 		GlossaryName = APIGlossaryName ; 
 		TopicIndexName = APITopicIndexName ; 
 		Links = APILinks;
@@ -783,15 +809,20 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type, Bool user
 		if( user_docs )
 		{	
 			if( doc_type == DocType_PHP )
+			{	
 				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Developer documentation index","API/index", "" );
-			else if( doc_type == DocType_HTML )
- 				fprintf( state.dest_fp,  "<A href=\"API/index.html\">Developer documentation index</A>\n" );			
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Installed data files catalogue","data/index", "" );
+			}else if( doc_type == DocType_HTML )
+			{	
+ 				fprintf( state.dest_fp,  "<A href=\"API/index.html\">Developer documentation index</A><br>\n" );			
+				fprintf( state.dest_fp,  "<A href=\"data/index.html\">Installed data files catalogue</A>\n" );			   
+			}
 		}else
 		{	  
 			if( doc_type == DocType_PHP )
 				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","User documentation index","index", "" );
 			else if( doc_type == DocType_HTML )
- 				fprintf( state.dest_fp,  "<A href=\"index.html\">User documentation index</A>\n" );			
+ 				fprintf( state.dest_fp,  "<A href=\"../index.html\">User documentation index</A>\n" );			
 		}
 		fprintf( state.dest_fp, "<hr>\n<p><UL class=\"dense\">\n" );
 		for( i = 0 ; i < items_num ; ++i ) 

@@ -39,6 +39,10 @@ const char *HTMLHeaderFormatAPI = "</head>\n"
 							   "<A href=\"API/index.html\">Main index</A>"
 							   "<A href=\"API/index.html\">%s</A>&nbsp;&nbsp;<A href=\"API/Glossary.html\">%s</A><p>\n" ;
 
+const char *HTMLHeaderFormatNoIndex = "</head>\n"
+					  		   "<body>\n"
+							   "<A name=\"page_top\"></A>\n"
+							   "<A href=\"../index.html\">Go back</A><p>\n" ;
 
 /*************************************************************************/
 void 
@@ -66,7 +70,9 @@ write_doc_header( ASXMLInterpreterState *state )
 				if( len > 0 ) 
 					fwrite( css, 1, len, state->dest_fp );	   
 			}	 
-			if( TopicIndexName == APITopicIndexName )
+			if( TopicIndexName == NULL )
+				fprintf( state->dest_fp, HTMLHeaderFormatNoIndex );
+			else if( TopicIndexName == APITopicIndexName )
 				fprintf( state->dest_fp, HTMLHeaderFormatAPI, TopicIndexName, GlossaryName );
 			else
 				fprintf( state->dest_fp, HTMLHeaderFormat, TopicIndexName, GlossaryName );				
@@ -217,10 +223,11 @@ write_doc_footer( ASXMLInterpreterState *state )
 		case DocType_Plain :
 			break;
 		case DocType_HTML :
-			fprintf( state->dest_fp,"<p><A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A>&nbsp;&nbsp;<A href=\"#page_top\">Back to Top</A>\n"  
-									"<hr>\n<p><FONT face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"-2\">AfterStep version %s</a></FONT>\n",
-					 VERSION ); 
-			fprintf( state->dest_fp, "</body>\n</html>\n" );			
+			if( TopicIndexName != NULL )
+				fprintf( state->dest_fp,"<p><A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A>&nbsp;&nbsp;<A href=\"#page_top\">Back to Top</A>\n"); 
+			fprintf( state->dest_fp, 
+					"<hr>\n<p><FONT face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"-2\">AfterStep version %s</a></FONT>\n"
+					"</body>\n</html>\n", VERSION );			   
 			break;
  		case DocType_PHP :	
 		    break ;

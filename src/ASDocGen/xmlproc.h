@@ -178,5 +178,8 @@ void convert_xml_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState
 Bool convert_xml_file( const char *syntax_dir, const char *file, ASXMLInterpreterState *state );
 int check_xml_contents( const char *syntax_dir, const char *file );
 
+void append_cdata( xml_elem_t *cdata_tag, const char *line, int len );
+void append_CDATA_line( xml_elem_t *tag, const char *line, int len );
+xml_elem_t* find_super_section( xml_elem_t* owner, const char *id );
 
 #endif /*XMLPROC_H_HEADER_INCLUDED */
