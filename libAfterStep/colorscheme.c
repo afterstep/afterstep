@@ -78,11 +78,20 @@ make_color_scheme_hsv( ARGB32 argb, int *phue, int *psat, int *pval )
 	CARD32 hue16, sat16, val16 ;
 
 	hue16 = rgb2hsv( ARGB32_RED16(argb), ARGB32_GREEN16(argb), ARGB32_BLUE16(argb), &sat16, &val16 );
-
-	if( phue )
-		*phue = hue162degrees( hue16 );
-	if( psat )
-		*psat = val162percent( sat16 );
+	if( ARGB32_RED16(argb) == ARGB32_GREEN16(argb) &&  
+		ARGB32_GREEN16(argb) == ARGB32_BLUE16(argb) )
+	{
+		if( phue )
+		  	*phue = -1;
+		if( psat )
+			*psat = -1;
+	}else
+	{
+		if( phue )
+			*phue = hue162degrees( hue16 );
+		if( psat )
+		  	*psat = val162percent( sat16 );
+	}
 	if( pval )
 		*pval = val162percent( val16 );
 }

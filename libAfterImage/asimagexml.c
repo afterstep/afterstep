@@ -1498,15 +1498,23 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				{
 					ARGB32 color = 0;
 					if( parse_argb_color( ptr->parm, &color ) != ptr->parm )
-						affected_hue = hue162degrees(rgb2hue( ARGB32_RED16(color),
+					{
+						affected_hue = rgb2hue( ARGB32_RED16(color),
 												ARGB32_GREEN16(color),
-												ARGB32_BLUE16(color)));
+												ARGB32_BLUE16(color));
+  					    affected_hue = hue162degrees( affected_hue );
+					}
 				}
 			}
 			else if (!strcmp(ptr->tag, "affected_radius")) 	affected_radius = parse_math(ptr->parm, NULL, 360);
 			else if (!strcmp(ptr->tag, "hue_offset")) 		hue_offset = parse_math(ptr->parm, NULL, 360);
 			else if (!strcmp(ptr->tag, "saturation_offset"))saturation_offset = parse_math(ptr->parm, NULL, 100);
 			else if (!strcmp(ptr->tag, "value_offset")) 	value_offset = parse_math(ptr->parm, NULL, 100);
+		}
+		if( hue_offset == -1 && saturation_offset == -1 ) 
+		{
+			hue_offset = 0 ; 
+			saturation_offset = -99 ;
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
