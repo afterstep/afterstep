@@ -47,7 +47,7 @@
 #define BEVEL_HI_WIDTH 3
 #define BEVEL_LO_WIDTH 2
 #define BEVEL_ADDON    (BEVEL_HI_WIDTH+BEVEL_LO_WIDTH)
-#define TEXT_3D_TYPE   AST_Embossed
+#define TEXT_3D_TYPE   AST_SunkenThick
 
 int main(int argc, char* argv[])
 {
@@ -154,6 +154,8 @@ int main(int argc, char* argv[])
 
 		/* see ASText.3 : */
 		text_im = draw_text( text, font, TEXT_3D_TYPE, 0 );
+fprintf( stderr, "get_text_size returns %dx%d, draw as %dx%d \n", 
+                 width-TEXT_MARGIN*2, height-TEXT_MARGIN*2, text_im->width, text_im->height );		
 		if( fore_im )
 		{
 			move_asimage_channel( fore_im, text_im, IC_ALPHA );

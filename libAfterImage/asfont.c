@@ -954,6 +954,10 @@ apply_text_3D_type( ASText3DType type,
 		case AST_ShadeBelow :
 				(*width)+=3; (*height)+=3 ;
 				break ;
+		case AST_SunkenThick :
+		case AST_EmbossedThick :
+				(*width)+=3; (*height)+=3 ;
+				break ;
 		default  :
 				break ;
 	}
@@ -969,6 +973,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 	const char *ptr = text;
 	ASGlyph *last_asg = NULL ;
 	int offset_3d_x = 0, offset_3d_y = 0 ;
+	int space_size  = (font->space_size>>1)+1;
 
 	apply_text_3D_type( type, &offset_3d_x, &offset_3d_y );
 
@@ -1003,11 +1008,11 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 			last_asg = NULL ;
 			if( text[i] == ' ' )
 			{
-				line_width += font->space_size ;
+				line_width += space_size ;
 				map->glyphs[g++] = GLYPH_SPACE;
 			}else if( text[i] == '\t' )
 			{
-				line_width += font->space_size*8 ;
+				line_width += space_size*8 ;
 				map->glyphs[g++] = GLYPH_TAB;
 			}else
 			{
@@ -1037,7 +1042,6 @@ get_text_size( const char *text, ASFont *font, ASText3DType type, unsigned int *
 	int offset_3d_x = 0, offset_3d_y = 0 ;
 
 	apply_text_3D_type( type, &offset_3d_x, &offset_3d_y );
-
 	if( text == NULL || font == NULL )
 		return False;
 
@@ -1085,7 +1089,7 @@ get_text_size( const char *text, ASFont *font, ASText3DType type, unsigned int *
 inline static void
 render_asglyph( CARD32 **scanlines, CARD8 *row,
                 int start_x, int y, int width, int height,
-				CARD32 ratio, Bool overwrite )
+				CARD32 ratio )
 {
 	int count = -1 ;
 	int max_y = y + height ;
@@ -1110,8 +1114,8 @@ render_asglyph( CARD32 **scanlines, CARD8 *row,
 					count = data&0x3F ;
 					data = ((data&0x40) != 0 )? 0xFF: 0x00;
 				}
-				if( ratio != 0xFF )
-					data = (data*ratio)>>8 ;
+				if( ratio != 0xFF && data != 0 )
+					data = ((data*ratio)>>8)+1 ;
 			}
 			if( data >= ratio || data > dst[x] )
 				dst[x] = data ;
@@ -1213,18 +1217,40 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 				switch( type )
 				{
 					case AST_Plain :
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF, False );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF );
 					    break ;
 					case AST_Embossed :
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF, False );
-						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x009F, False );
-						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00DF, True );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF );
+						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x009F );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00CF );
  					    break ;
 					case AST_Sunken :
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00AF, False );
-						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x00FF, False );
-						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00CF, 0 );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x009F );
+						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x00FF );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00CF );
 					    break ;
+					case AST_ShadeAbove :
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x008F );
+						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x00FF );
+					    break ;
+					case AST_ShadeBelow :
+						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x008F );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF );
+					    break ;
+					case AST_EmbossedThick :
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00EF );
+						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x007F );
+						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x00CF );
+ 					    break ;
+					case AST_SunkenThick :
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x007F );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00AF );
+						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x00FF );
+						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x00CF );
+ 					    break ;
+				  default: 
+				        break ;						
 				}
 
 				if( font->pen_move_dir == LEFT_TO_RIGHT )

@@ -217,6 +217,8 @@ typedef enum ASText3DType{
 	AST_Sunken,
 	AST_ShadeAbove,
 	AST_ShadeBelow,
+	AST_EmbossedThick,
+	AST_SunkenThick,
 	AST_3DTypes
 }ASText3DType;
 /*************/
