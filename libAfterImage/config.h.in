@@ -58,5 +58,7 @@
 /* Define if you have the <sys/time.h> header file.  */
 #undef HAVE_SYS_TIME_H
 
+#undef HAVE_SYS_DIRENT_H
+
 /* Define if you have the <sys/wait.h> header file.  */
 #undef HAVE_SYS_WAIT_H
