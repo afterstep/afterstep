@@ -111,6 +111,7 @@ typedef struct ASWharfFolder
 #define ASW_Withdrawn       (0x01<<2)
 #define ASW_NeedsShaping    (0x01<<3)
 #define ASW_Shaped          (0x01<<4)
+#define ASW_ReverseOrder    (0x01<<5)
     ASFlagType  flags;
 
     ASCanvas    *canvas;
@@ -974,10 +975,12 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
     int i;
     Bool fit_contents = get_flags(Config->flags, WHARF_FIT_CONTENTS);
     Bool needs_shaping = False ;
+	Bool reverse_order = get_flags( aswf->flags, ASW_ReverseOrder )?aswf->buttons_num-1:-1;
 
     *total_width_return  = 0 ;
 	*total_height_return = 0 ;
 
+    LOCAL_DEBUG_OUT( "flags 0x%lX, reverse_order = %d", aswf->flags, reverse_order );
     if( get_flags( aswf->flags, ASW_Vertical ) )
     {
         int columns = (aswf == WharfState.root_folder)?Config->columns:1;
@@ -985,7 +988,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
 
         for( i = 0 ; i < aswf->buttons_num ; ++i )
         {
-            ASWharfButton *aswb = &(aswf->buttons[i]);
+            ASWharfButton *aswb = &(aswf->buttons[reverse_order>=0?reverse_order-i:i]);
             int height ;
 
             if( bc == 0 )
@@ -997,7 +1000,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
                 max_height = 0;
                 while( --k >= i )
                 {
-                    register ASWharfButton *aswb = &(aswf->buttons[k]);
+                    register ASWharfButton *aswb = &(aswf->buttons[reverse_order>=0?reverse_order-k:k]);
                     if( max_width < aswb->desired_width )
                         max_width = aswb->desired_width ;
                     if( max_height < aswb->desired_height && !get_flags( aswb->flags, ASW_MaxSwallow ) )
@@ -1057,7 +1060,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
 
         for( i = 0 ; i < aswf->buttons_num ; ++i )
         {
-            ASWharfButton *aswb = &(aswf->buttons[i]);
+            ASWharfButton *aswb = &(aswf->buttons[reverse_order>=0?reverse_order-i:i]);
             int width ;
 
             if( br == 0 )
@@ -1069,7 +1072,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
                 max_height = 0;
                 while( --k >= i )
                 {
-                    register ASWharfButton *aswb = &(aswf->buttons[k]);
+                    register ASWharfButton *aswb = &(aswf->buttons[reverse_order>=0?reverse_order-k:k]);
                     if( max_width < aswb->desired_width && !get_flags( aswb->flags, ASW_MaxSwallow ) )
                         max_width = aswb->desired_width ;
                     if( max_height < aswb->desired_height )
@@ -1204,6 +1207,18 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
         (get_flags( aswf->flags, ASW_Mapped ) && !get_flags( aswf->flags, ASW_Withdrawn )) )
         return False;
 
+	if( aswf != WharfState.root_folder )
+	{
+  		if( get_flags( aswf->flags, ASW_Vertical ) )
+	    {
+		  	if( south ) 
+				set_flags( aswf->flags, ASW_ReverseOrder );
+	    }else
+  		{
+			if( east ) 
+				set_flags( aswf->flags, ASW_ReverseOrder );
+		}
+	}
     place_wharf_buttons( aswf, &total_width, &total_height );
 
     if( total_width == 0 || total_height == 0 )
@@ -1275,6 +1290,31 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
         if( left != right)
             x += east?5:-5 ;
     }
+	LOCAL_DEBUG_OUT("calculated pos(%+d%+d), east(%d), south(%d), total_size(%dx%d)", x, y, east, south, total_width, total_height );
+	if( east ) 
+	{
+		if( x + width > Scr.MyDisplayWidth ) 
+			x = Scr.MyDisplayWidth - width ;
+	}else
+	{
+		if( x + total_width > Scr.MyDisplayWidth ) 
+			x = Scr.MyDisplayWidth - total_width ;
+	}
+	if( south ) 
+	{
+		if( y + height > Scr.MyDisplayHeight ) 
+			y = Scr.MyDisplayHeight - height ;
+	}else
+	{
+		if( y + total_height > Scr.MyDisplayHeight ) 
+			y = Scr.MyDisplayHeight - total_height ;
+	}
+    /* if user has configured us so that we'll have to overlap ourselves - 
+	   then its theirs fault - we cannot account for all situations */	
+	
+	LOCAL_DEBUG_OUT("corrected  pos(%+d%+d)", x, y );	
+    LOCAL_DEBUG_OUT( "flags 0x%lX, reverse_order = %d", aswf->flags, get_flags( aswf->flags, ASW_ReverseOrder)?aswf->buttons_num-1:-1 );
+
     update_wharf_folder_shape( aswf );
     map_wharf_folder( aswf, x, y, width, height, east?(south?SouthEastGravity:NorthEastGravity):
                                                       (south?SouthWestGravity:NorthWestGravity) );
@@ -1764,10 +1804,22 @@ LOCAL_DEBUG_OUT( "pressed button has folder %p (%s)", pressed->folder, get_flags
                                                        pressed->canvas->root_y+pressed->canvas->height  );
         }else if( pressed->fdata )
         {
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
             print_func_data(__FILE__, __FUNCTION__, __LINE__, pressed->fdata);
+#endif			
             if( !get_flags( pressed->flags, ASW_SwallowTarget ) || pressed->swallowed == NULL )
             {  /* send command to the AS-proper : */
+				ASWharfFolder *parentf = pressed->parent ; 
+				ASWharfButton *parentb = NULL ; 
                 SendCommand( pressed->fdata, 0);
+				while( parentf != WharfState.root_folder )
+				{
+					parentb = parentf->parent ;
+	                withdraw_wharf_folder( parentf );
+					if( parentb == NULL ) 
+						break;
+					parentf = parentb->parent ;
+				}
             }
         }
         set_astbar_pressed( pressed->bar, pressed->canvas, False );
