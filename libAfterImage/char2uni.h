@@ -66,6 +66,4 @@ ASSupportedCharsets parse_charset_name( const char *name );
 #endif
 #define CHAR_SIZE(c) 			1
 /*************/
-
-
 #endif

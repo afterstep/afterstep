@@ -32,7 +32,7 @@
  * SOURCE
  */
 
-#define LOCAL_DEBUG
+/* #define LOCAL_DEBUG  */
 
 #include <libAfterImage/afterbase.h>
 #include <libAfterImage/afterimage.h>
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
 
 	for( i = 0 ; text[i] ; ) 
 	{
-		LOCAL_DEBUG_OUT( "pos = %u, char = %c, code = %u, unicode = %u/%u, raw = %4.4X(%u)", i, text[i], (unsigned char)text[i], CHAR2UNICODE(text[i]), ((as_current_charset[((unsigned short)text[i])&0x007F])),as_current_charset[((unsigned int)text[i])&0x007F], (CARD32)as_current_charset[((unsigned int)text[i])&0x007F] );
+		LOCAL_DEBUG_OUT( "pos = %u, char = %c, code = %u, unicode = %lu/%u, raw = %4.4X(%lu)", i, text[i], (unsigned char)text[i], CHAR2UNICODE(text[i]), ((as_current_charset[((unsigned short)text[i])&0x007F])),as_current_charset[((unsigned int)text[i])&0x007F], (CARD32)as_current_charset[((unsigned int)text[i])&0x007F] );
 		++i ;
 	}
 #ifndef X_DISPLAY_MISSING

@@ -50,7 +50,6 @@ int main(int argc, char* argv[])
 {
 	ASVisual *asv ;
 	int screen = 0, depth = 0;
-	int dummy, geom_flags = 0;
 	unsigned int to_width= 200, to_height = 200;
 	ASVectorPalette  palette = { 9, &(points[0]), {&chan_blue[0], &chan_green[0], &chan_red[0], &chan_alpha[0]}, ARGB32_Black} ;
 	double vector[5 * 5] ;

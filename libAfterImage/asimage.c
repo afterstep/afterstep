@@ -1133,7 +1133,7 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	ptr++;
 
 	if (get_flags (verbosity, VRB_LINE_SUMMARY))
-		fprintf (stderr, "Row %d, Component %d, Memory Used %d\n", y, color, ptr - color_ptr[y]);
+		fprintf (stderr, "Row %d, Component %d, Memory Used %ld\n", y, color, (long)(ptr - color_ptr[y]));
 	return ptr - color_ptr[y];
 }
 
@@ -1726,7 +1726,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 		if( (xim = imdec->im->alt.mask_ximage ) != NULL ) 
 		{
 			CARD32 *dst = xim_scl->alpha ;
-			register int x = MIN(xim_scl->width,xim->width);
+			register int x = MIN((int)xim_scl->width,xim->width);
 			if( xim->depth == 8 ) 
 			{
 				CARD8  *src = xim->data+xim->bytes_per_line*y ;
