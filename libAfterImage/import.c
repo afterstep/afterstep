@@ -46,6 +46,7 @@
 #include "afterbase.h"
 #ifdef HAVE_JPEG
 /* Include file for users of png library. */
+#undef HAVE_STDLIB_H
 #include <jpeglib.h>
 #endif
 #ifdef HAVE_GIF

@@ -39,6 +39,12 @@
 /* Define if you have the <dirent.h> header file, and it defines `DIR'. */
 #undef HAVE_DIRENT_H
 
+/* Define if you have the <malloc.h> header file, and it defines `DIR'. */
+#undef HAVE_MALLOC_H
+
+/* Define if you have the <stdlib.h> header file, and it defines `DIR'. */
+#undef HAVE_STDLIB_H
+
 /* Define if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
 
