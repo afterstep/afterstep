@@ -78,10 +78,10 @@ module_setup_socket ()
 
         if( tmpdir == NULL )
             tmpdir = default_tmp_dir ;
-	if( access( tmpdir, W_OK ) != 0 ) 
-	    if( (tmpdir = getenv( "HOME" )) == NULL ) 
-		return False ;		    
-	    
+	if( access( tmpdir, W_OK ) != 0 )
+	    if( (tmpdir = getenv( "HOME" )) == NULL )
+		return False ;
+
         tmp = safemalloc (strlen(tmpdir)+11+32 + strlen (display) + 1);
         sprintf (tmp, "%s/afterstep-%d.%s", tmpdir, getuid(), display);
 		LOCAL_DEBUG_OUT("using socket \"%s\" for intermodule communications", tmp);
@@ -402,6 +402,51 @@ FlushQueue (module_t *module)
         DeleteQueueBuff (module);
 	}
     return 1;
+}
+
+void
+FlushAllQueues()
+{
+	fd_set        out_fdset;
+	int           retval = -1;
+	struct timeval tv;
+	struct timeval *t = NULL;
+
+	do
+	{
+		int           max_fd = -1;
+        register int i = MIN(MODULES_NUM,Module_npipes) ;
+        register module_t *list = MODULES_LIST ;
+
+		FD_ZERO (&out_fdset);
+
+		while( --i >= 0 )
+		{
+			if (list[i].fd >= 0 )
+			{
+
+				int res = 0;
+				if( list[i].output_queue && (retval < 0 || FD_ISSET (list[i].fd, &out_fdset)))
+					FlushQueue (&(list[i]));
+				if( res >= 0 && list[i].output_queue != NULL)
+				{
+					FD_SET (list[i].fd, &out_fdset);
+					if (max_fd < list[i].fd)
+						max_fd = list[i].fd;
+				}
+			}
+		}
+
+		if( max_fd < 0 )
+			return ;/* no more output left */
+
+		tv.tv_sec = 0 ;
+		tv.tv_usec = 20000 ;
+		t = &tv ;
+	    retval = PORTABLE_SELECT(min (max_fd + 1, fd_width),NULL,&out_fdset,NULL,t);
+		if (retval <= 0)
+			return ;
+	}while(1);
 }
 
 

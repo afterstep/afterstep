@@ -383,7 +383,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 			XUngrabServer (dpy);
     }
 	/* yield to let modules handle desktop/viewport change */
-	sleep_a_millisec(10);
+	FlushAllQueues();
 
 	if( old_desk != new_desk )
 	{
@@ -411,7 +411,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
     	if( IsValidDesk(new_desk) )
 		{
         	restack_window_list( new_desk, False );
-			sleep_a_millisec(10);              /* yield to modules */
+			FlushAllQueues();              /* yield to modules */
 		}
     	/* Change the look to this desktop's one if it really changed */
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
