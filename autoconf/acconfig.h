@@ -2,6 +2,7 @@
 #undef HAVE_SIGSEGV_HANDLING
 
 #undef SHAPE
+#undef XSHMIMAGE
 #undef HAVE_XINERAMA
 
 /* look and feel options : */

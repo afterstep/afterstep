@@ -1,8 +1,9 @@
-/* autoconf/config.h.in.  Generated automatically from autoconf/configure.in by autoheader.  */
+/* autoconf/config.h.in.  Generated automatically from configure.in by autoheader.  */
 /* self diagnostic SIGSEGV handling (as opposed to dumping core) */
 #undef HAVE_SIGSEGV_HANDLING
 
 #undef SHAPE
+#undef XSHMIMAGE
 #undef HAVE_XINERAMA
 
 /* look and feel options : */

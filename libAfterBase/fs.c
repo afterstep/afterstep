@@ -156,7 +156,8 @@ make_file_name (const char *path, const char *file)
 	/* getting length */
 	for (ptr = (char *)path; ptr[i]; i++);
 	len = i+1;
-	for (ptr = (char *)file; ptr[i]; i++);
+	ptr = (char *)file ;
+	for ( i = 0; ptr[i]; i++);
 	len += i+1;
 	ptr = filename = safemalloc (len);
 	/* copying path */

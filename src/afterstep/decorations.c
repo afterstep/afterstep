@@ -455,7 +455,7 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) )
 
         set_astbar_style( *tbar, BAR_STATE_FOCUSED, mystyle_name );
         set_astbar_style( *tbar, BAR_STATE_UNFOCUSED, "default" );
-        delete_astbar_tile( *tbar, -1 );
+        delete_astbar_tile( *tbar, -1 ); 
         if( img )
         {
             LOCAL_DEBUG_OUT("adding bar icon %p %ux%u", img, img->width, img->height );
@@ -476,7 +476,7 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) )
     {
         destroy_astbar( tbar );
     }
-    return *tbar;;
+    return *tbar;
 }
 
 /******************************************************************************/
@@ -756,19 +756,20 @@ estimate_titlebar_size( ASHints *hints )
     return width;
 }
 
-void
+Bool
 hints2decorations( ASWindow *asw, ASHints *old_hints )
 {
 	int i ;
 	MyFrame *frame = NULL, *old_frame = NULL ;
     Bool has_tbar = False, had_tbar = False ;
-    ASCanvas *tbar_canvas = NULL, *sidebar_canvas = NULL ;
-    ASCanvas *left_canvas = NULL, *right_canvas = NULL ;
 	Bool icon_image_changed = True ;
     ASOrientation *od = get_orientation_data(asw);
     char *mystyle_name = Scr.Look.MSWindow[BACK_FOCUSED]->name;
     char *frame_mystyle_name = NULL ;
     int *frame_contexts  = &(od->frame_contexts[0]);
+	Bool add_icon_label = (asw->icon_title==NULL) ;
+	Bool tbar_created = False;
+	Bool status_changed = False ;
 
 	if( old_hints == NULL || get_flags(old_hints->flags, AS_Icon) != ASWIN_HFLAGS( asw, AS_Icon) )
 	{	/* 3) we need to prepare icon window : */
@@ -788,8 +789,8 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	frame = myframe_find( ASWIN_HFLAGS(asw, AS_Frame)?asw->hints->frame_name:NULL );
 	if( old_hints == NULL )
 	{
-		had_tbar = has_tbar ;
-		old_frame = frame ;
+		had_tbar = !has_tbar ;
+		old_frame = NULL ;
 	}else
 	{
 		had_tbar = (get_flags(old_hints->flags, AS_Titlebar)!= 0);
@@ -799,10 +800,14 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	asw->frame_data = frame ;
 
 	/* 5) we need to prepare windows for 4 frame decoration sides : */
-   	tbar_canvas = check_side_canvas( asw, od->tbar_side, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
-    sidebar_canvas = check_side_canvas( asw, od->sbar_side, myframe_has_parts(frame, FRAME_BTM_MASK) );
-    left_canvas = check_side_canvas( asw, od->left_side, myframe_has_parts(frame, FRAME_LEFT_MASK) );
-    right_canvas = check_side_canvas( asw, od->right_side, myframe_has_parts(frame, FRAME_RIGHT_MASK) );
+	if( has_tbar != had_tbar || frame != old_frame ) 
+	   	check_side_canvas( asw, od->tbar_side, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
+	if( frame != old_frame ) 
+	{
+	    check_side_canvas( asw, od->sbar_side, myframe_has_parts(frame, FRAME_BTM_MASK) );
+  		check_side_canvas( asw, od->left_side, myframe_has_parts(frame, FRAME_LEFT_MASK) );
+	    check_side_canvas( asw, od->right_side, myframe_has_parts(frame, FRAME_RIGHT_MASK) );
+	}
 
     /* make sure all our decoration windows are mapped and in proper order: */
     if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
@@ -840,14 +845,32 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
     }
 
     /* 7) now we have to create bar for icon title (optional) */
-    check_tbar( &(asw->icon_title), (asw->icon_canvas != NULL||asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
-                NULL, 0, 0, ALIGN_CENTER, DEFAULT_TBAR_HILITE, DEFAULT_TBAR_HILITE,
-                TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
-                C_IconTitle );
+	if( asw->icon_title == NULL && 
+		(asw->icon_canvas != NULL||asw->icon_title_canvas != NULL) )
+	{
+		check_tbar( &(asw->icon_title), (asw->icon_canvas != NULL||asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
+  	            	NULL, 0, 0, ALIGN_CENTER, DEFAULT_TBAR_HILITE, DEFAULT_TBAR_HILITE,
+              		TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
+              		C_IconTitle );
+	}
     if( asw->icon_title )
     {
-        LOCAL_DEBUG_OUT( "setting icon label to %s", ASWIN_ICON_NAME(asw) );
-        add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align, ASWIN_ICON_NAME(asw), (asw->hints->icon_name_idx < 0)?AS_Text_ASCII : asw->hints->names_encoding[asw->hints->icon_name_idx]);
+		if( add_icon_label ) 
+		{
+	        LOCAL_DEBUG_OUT( "setting icon label to %s", ASWIN_ICON_NAME(asw) );
+	        add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align, 
+						      ASWIN_ICON_NAME(asw), 
+							  (asw->hints->icon_name_idx < 0)?AS_Text_ASCII : 
+														  asw->hints->names_encoding[asw->hints->icon_name_idx]);
+		}else if( old_hints == NULL || mystrcmp(ASWIN_ICON_NAME(asw), old_hints->icon_name) != 0 ) 
+		{
+	        set_astbar_style( asw->icon_title, BAR_STATE_FOCUSED, AS_ICON_TITLE_MYSTYLE );
+  	    	set_astbar_style( asw->icon_title, BAR_STATE_UNFOCUSED, "default" );
+			change_astbar_first_label( asw->icon_title,
+									   ASWIN_ICON_NAME(asw), 
+		  							  (asw->hints->icon_name_idx < 0)?AS_Text_ASCII : 
+																	  asw->hints->names_encoding[asw->hints->icon_name_idx]);
+		}
     }
 
     if( asw->hints->mystyle_names[BACK_FOCUSED] )
@@ -861,6 +884,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 		(get_flags( old_hints->flags, AS_Handles ) != ASWIN_HFLAGS(asw, AS_Handles)) ||
 		old_frame != frame )
 	{
+		status_changed = True ;
     	if( ASWIN_HFLAGS(asw, AS_Handles) )
     	{
         	for( i = 0 ; i < FRAME_PARTS ; ++i )
@@ -879,14 +903,14 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                 	*(od->in_width) = frame->part_width[i] ;
                 	*(od->in_height) = frame->part_length[i] ;
             	}
-    	/*LOCAL_DEBUG_OUT( "part(%d)->real_part(%d)->from_size(%ux%u)->in_size(%ux%u)->out_size(%ux%u)", i, real_part, frame->part_width[i], frame->part_length[i], *(od->in_width), *(od->in_height), *(od->out_width), *(od->out_height) );*/
+    			LOCAL_DEBUG_OUT( "part(%d)->real_part(%d)->from_size(%ux%u)->in_size(%ux%u)->out_size(%ux%u)", i, real_part, frame->part_width[i], frame->part_length[i], *(od->in_width), *(od->in_height), *(od->out_width), *(od->out_height) );
             	check_tbar( &(asw->frame_bars[real_part]), IsFramePart(frame,i), frame_mystyle_name?frame_mystyle_name:mystyle_name,
                         	img, *(od->out_width), *(od->out_height),
                         	frame->part_align[i],
                         	frame->part_fbevel[i], frame->part_ubevel[i],
                         	TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
                         	frame_contexts[i] );
-        	}
+	      	}
     	}else
         	for( i = 0 ; i < FRAME_PARTS ; ++i )
             	check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
@@ -896,98 +920,142 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                 	frame->title_fbevel, frame->title_ubevel,
                 	frame->title_fcm, frame->title_ucm,
                 	C_TITLE );
+		tbar_created = (asw->tbar != NULL);
 	}
-    /* 9) now we have to setup titlebar buttons */
-    if( asw->tbar )
-	{ /* need to add some titlebuttons */
+	
+	if( asw->tbar )
+	{  /* 9) now we have to setup titlebar buttons */
         ASFlagType title_align = frame->title_align ;
         ASFlagType btn_mask = compile_titlebuttons_mask (asw->hints);
-        asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
-        asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
-		if( ASWIN_HFLAGS( asw, AS_VerticalTitle ) )
-			set_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
-		else
-			clear_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
 
-        /* left buttons : */
-        add_astbar_btnblock(asw->tbar,
-                            od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],
-                            od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN],
-                            0, NO_ALIGN,
-                            &(Scr.Look.ordered_buttons[0]), btn_mask,
-                            Scr.Look.button_first_right,
-                            Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
-                            od->left_btn_order );
+		if( old_hints == NULL || 
+ 		    get_flags(old_hints->flags, AS_VerticalTitle) != ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+		{			
+			if( ASWIN_HFLAGS( asw, AS_VerticalTitle ) )
+				set_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
+			else
+				clear_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
+			if( !tbar_created ) 
+			{
+				tbar_created = True ;
+				delete_astbar_tile( asw->tbar, -1 );
+			}				
+		}
+	    /* need to add some titlebuttons */
+		if( tbar_created ) 
+		{
+      		asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
+      		asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
+		}
+
+		if( !tbar_created && old_hints != NULL )
+		{  
+	        ASFlagType old_btn_mask = compile_titlebuttons_mask (old_hints);
+			if( old_btn_mask != btn_mask )
+				tbar_created = True ;
+			else if( frame != old_frame ) 	 
+				tbar_created = True ;
+			if( tbar_created ) 
+				delete_astbar_tile( asw->tbar, -1 );
+		}
+
+		if( tbar_created ) 
+		{		
+			 /* left buttons : */
+	        add_astbar_btnblock(asw->tbar,
+  		                        od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],
+      		                    od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN],
+          		                0, NO_ALIGN,
+              		            &(Scr.Look.ordered_buttons[0]), btn_mask,
+                  		        Scr.Look.button_first_right,
+                      		    Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+                          		od->left_btn_order );
 #if 1
-        if( frame->title_back && frame->title_back->image )
-        {
-            int title_back_align = frame->title_back_align ;
-            LOCAL_DEBUG_OUT( "title_back_align = 0x%X", title_back_align );
-            if( get_flags( title_back_align, FIT_LABEL_SIZE ) )
-            {
-                /* left spacer  - if we have an icon to go under the label if align is right or center */
-                if( get_flags( frame->title_align, ALIGN_RIGHT ) )
-                    add_astbar_spacer( asw->tbar,
+      		if( frame->title_back && frame->title_back->image )
+      		{
+          	    int title_back_align = frame->title_back_align ;
+          		LOCAL_DEBUG_OUT( "title_back_align = 0x%X", title_back_align );
+          		if( get_flags( title_back_align, FIT_LABEL_SIZE ) )
+          		{
+              		/* left spacer  - if we have an icon to go under the label if align is right or center */
+              		if( get_flags( frame->title_align, ALIGN_RIGHT ) )
+                	    add_astbar_spacer( asw->tbar,
                                      od->default_tbar_elem_col[ASO_TBAR_ELEM_LSPACER],
                                      od->default_tbar_elem_row[ASO_TBAR_ELEM_LSPACER],
                                      od->flip, PAD_LEFT, 1, 1);
 
-                /* right spacer - if we have an icon to go under the label and align is left or center */
-                if( get_flags( frame->title_align, ALIGN_LEFT ) )
-                    add_astbar_spacer( asw->tbar,
+              		/* right spacer - if we have an icon to go under the label and align is left or center */
+              		if( get_flags( frame->title_align, ALIGN_LEFT ) )
+                	    add_astbar_spacer( asw->tbar,
                                      od->default_tbar_elem_col[ASO_TBAR_ELEM_RSPACER],
                                      od->default_tbar_elem_row[ASO_TBAR_ELEM_RSPACER],
                                      od->flip, PAD_RIGHT, 1, 1);
-                title_align = 0 ;
-            }
-            /* don't ask why - simply magic :) */
-            clear_flags(title_back_align , (RESIZE_H|RESIZE_V));
-            if( get_flags( title_back_align, (RESIZE_H_SCALE|RESIZE_V_SCALE)))
-                set_flags( title_back_align, FIT_LABEL_SIZE );
-            /* end of the magic */
+            		title_align = 0 ;
+          		}
+          		/* don't ask why - simply magic :) */
+          		clear_flags(title_back_align , (RESIZE_H|RESIZE_V));
+          		if( get_flags( title_back_align, (RESIZE_H_SCALE|RESIZE_V_SCALE)))
+              		set_flags( title_back_align, FIT_LABEL_SIZE );
+          		/* end of the magic */
 
-            add_astbar_icon( asw->tbar,
+        		add_astbar_icon( asw->tbar,
                              od->default_tbar_elem_col[ASO_TBAR_ELEM_LBL],
                              od->default_tbar_elem_row[ASO_TBAR_ELEM_LBL],
                              od->flip, title_back_align,
                              frame->title_back->image);
-        }
+      		}
 #endif
-        /* label ( goes on top of above pixmap ) */
-        add_astbar_label( asw->tbar,
+	        /* label ( goes on top of above pixmap ) */
+  		    add_astbar_label( asw->tbar,
                           od->default_tbar_elem_col[ASO_TBAR_ELEM_LBL],
                           od->default_tbar_elem_row[ASO_TBAR_ELEM_LBL],
                           od->flip,
                           title_align,
                           asw->hints->names[0], asw->hints->names_encoding[0]);
-
-        /* right buttons : */
-        add_astbar_btnblock(asw->tbar,
-                            od->default_tbar_elem_col[ASO_TBAR_ELEM_RBTN],
-                            od->default_tbar_elem_row[ASO_TBAR_ELEM_RBTN],
-                            0, NO_ALIGN,
-                            &(Scr.Look.ordered_buttons[Scr.Look.button_first_right]), btn_mask,
-                            TITLE_BUTTONS - Scr.Look.button_first_right,
-                            Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
-                            od->right_btn_order );
-        /* titlebar balloons */
-        for( i = 0 ; i < TITLE_BUTTONS ; ++i )
-        {
-            if( get_flags( btn_mask, C_TButton0<<i) )
-            {
-                char *str = list_functions_by_context (C_TButton0<<i);
-                LOCAL_DEBUG_OUT( "balloon text will be \"%s\"", str?str:"none" );
-                set_astbar_balloon( asw->tbar, C_TButton0<<i, str, AS_Text_ASCII );
-                if( str )
-                    free( str );
-            }
-        }
+		}else if( old_hints == NULL ||
+				  mystrcmp( asw->hints->names[0], old_hints->names[0] ) != 0 ) 
+		{				  						
+			ASCanvas *canvas = ASWIN_HFLAGS(asw, AS_VerticalTitle)?asw->frame_sides[FR_W]:asw->frame_sides[FR_N];
+	        /* label ( goes on top of above pixmap ) */
+	        if( change_astbar_first_label( asw->tbar, asw->hints->names[0], asw->hints->names_encoding[0] ) )
+  		        if( canvas )
+      		    {
+	                render_astbar( asw->tbar, canvas );
+  		            update_canvas_display( canvas );
+				}
+		}
+		if( tbar_created ) 
+		{		
+	        /* right buttons : */
+  		    add_astbar_btnblock(asw->tbar,
+      		                    od->default_tbar_elem_col[ASO_TBAR_ELEM_RBTN],
+          		                od->default_tbar_elem_row[ASO_TBAR_ELEM_RBTN],
+              		            0, NO_ALIGN,
+                  		        &(Scr.Look.ordered_buttons[Scr.Look.button_first_right]), btn_mask,
+                      		    TITLE_BUTTONS - Scr.Look.button_first_right,
+                          		Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+	                            od->right_btn_order );
+  		    /* titlebar balloons */
+      		for( i = 0 ; i < TITLE_BUTTONS ; ++i )
+	        {
+  		        if( get_flags( btn_mask, C_TButton0<<i) )
+      		    {
+          		    char *str = list_functions_by_context (C_TButton0<<i);
+              		LOCAL_DEBUG_OUT( "balloon text will be \"%s\"", str?str:"none" );
+	                set_astbar_balloon( asw->tbar, C_TButton0<<i, str, AS_Text_ASCII );
+  		            if( str )
+      		            free( str );
+          		}
+      		}
+		}
 	}
 
     /* we also need to setup label, unfocused/sticky style and tbar sizes -
      * it all is done when we change windows state, or move/resize it */
     /*since we might have destroyed/created some windows - we have to refresh grabs :*/
     grab_window_input( asw, False );
+
+	return	status_changed ;
 }
 
 

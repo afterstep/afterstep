@@ -663,18 +663,15 @@ on_window_hints_changed( ASWindow *asw )
     /* we do not want to do a complete refresh of decorations -
 	 * we want to do only what is neccessary: */
 
-	hints2decorations( asw, old_hints )
-    /*redecorate_window       ( asw, False ); */
+	if( hints2decorations( asw, old_hints ) )
+	    on_window_status_changed( asw, False, True );
 
-    on_window_title_changed ( asw, False );
-    on_window_status_changed( asw, False, True );
-
-    broadcast_config (M_CONFIGURE_WINDOW, asw);
-
-    broadcast_window_name( asw );
-    broadcast_res_names( asw );
-    broadcast_icon_name( asw );
-
+	if( mystrcmp( old_hints->names[0], hints->names[0] ) != 0 ) 
+	    broadcast_window_name( asw );
+	if( mystrcmp( old_hints->res_name, hints->res_name ) != 0 ) 
+  		broadcast_res_names( asw );
+	if( mystrcmp( old_hints->icon_name, hints->icon_name ) != 0 ) 
+	    broadcast_icon_name( asw );
 
 	destroy_hints (old_hints, True);
 }

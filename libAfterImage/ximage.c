@@ -72,18 +72,44 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 
 		for (i = 0; i < height; i++)
 		{
-			GET_SCANLINE(asv,xim,&xim_buf,i,xim_line);
-			asimage_add_line (im, IC_RED,   xim_buf.red, i);
-			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
-			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
+			if( xim->depth == asv->true_depth ) 
+			{			    
+			    GET_SCANLINE(asv,xim,&xim_buf,i,xim_line);
+	    		    asimage_add_line (im, IC_RED,   xim_buf.red, i);
+			    asimage_add_line (im, IC_GREEN, xim_buf.green, i);
+			    asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
 #ifdef LOCAL_DEBUG
-			if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) )
+			    if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) )
 				exit(0);
-			if( !asimage_compare_line( im, IC_GREEN,  xim_buf.green, tmp, i, True ) )
+			    if( !asimage_compare_line( im, IC_GREEN,  xim_buf.green, tmp, i, True ) )
 				exit(0);
-			if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) )
+			    if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) )
 				exit(0);
+#endif			
+			}else if( xim->depth == 8 )
+			{
+			    register int x = width;								
+			    while(--x >= 0 ) 
+	    		        xim_buf.blue[x] = (CARD32)(xim_line[x]);
+	    		    asimage_add_line (im, IC_RED,   xim_buf.red, i);
+			    asimage_add_line (im, IC_GREEN, xim_buf.red, i);
+			    asimage_add_line (im, IC_BLUE,  xim_buf.red, i);
+			}else if( xim->depth == 1 )
+			{
+			    register int x = width;								
+			    while(--x >= 0 )
+			    {
+#ifndef X_DISPLAY_MISSING
+				xim_buf.red[x] = (XGetPixel(xim, x, i) == 0)?0x00:0xFF;
+#else
+				xim_buf.red[x] = 0xFF ;
 #endif
+			    }
+	    		    asimage_add_line (im, IC_RED,   xim_buf.red, i);
+			    asimage_add_line (im, IC_GREEN, xim_buf.red, i);
+			    asimage_add_line (im, IC_BLUE,  xim_buf.red, i);
+			}
+			
 			xim_line += bpl;
 		}
 	}
