@@ -74,7 +74,7 @@ CFLAGS=$RPM_OPT_FLAGS \
 make
 
 if [ -x /usr/bin/sgml2html ]; then sgml2html doc/afterstep.sgml; fi
-cd src/ASDocGen && ASDocGen -l log.html -t html && cd ../..
+cd src/ASDocGen && ./ASDocGen -l log.html -t html && cd ../..
 
 %install
 if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
@@ -94,12 +94,11 @@ rm -rf %{buildroot}
 %doc ChangeLog NEW README* TEAM UPGRADE doc/languages doc/licences doc/code TODO doc/*.html
 /usr/X11R6/bin/*
 /usr/X11R6/lib/*
-/usr/X11R6/man/*/*
 %config /usr/share/afterstep
 
 %files libs
 %defattr(-,root,root)
-%doc libAfterImage/doc/* libAfterImage/README src/ASDocGen/html
+%doc libAfterImage/README src/ASDocGen/html/*
 /usr/X11R6/lib/*
 
 %files devel
