@@ -89,6 +89,7 @@ ASLayoutElem *gather_layout_elems( ASLayout *layout );
 ASLayoutElem *extract_layout_context( ASLayout *layout, int context );
 ASLayoutElem *find_layout_context( ASLayout *layout, int context );
 
+void flush_layout_elems( ASLayout *layout );
 
 void disable_layout_elem( ASLayout *layout, ASLayoutElem **pelem );
 void enable_layout_elem( ASLayout *layout, ASLayoutElem **pelem );
@@ -109,6 +110,8 @@ void get_layout_fixed_size( ASLayout *layout,
 Bool get_layout_context_size( ASLayout *layout, int context,
 	                          int *x, int *y,
 							  unsigned int *width, unsigned int *height );
+ASLayoutElem *find_layout_point( ASLayout *layout, int x, int y, ASLayoutElem *start );
+
 
 ASFlagType set_layout_context_fixed_size( ASLayout *layout, int context,
 			                              unsigned int width,

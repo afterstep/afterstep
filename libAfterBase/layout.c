@@ -191,6 +191,18 @@ gather_layout_elems( ASLayout *layout )
 	return head ;
 }
 
+void
+flush_layout_elems( ASLayout *layout )
+{
+    if( layout )
+    {
+        register int i ;
+        for( i = 0 ; i < layout->dim_y ; i++ )
+			destroy_layout_row( &(layout->rows[i]));
+		destroy_layout_row( &(layout->disabled) );
+	}
+}
+
 static ASLayoutElem **
 get_layout_context_ptr( ASLayout *layout, int context )
 {
@@ -427,6 +439,7 @@ set_layout_context_fixed_size( ASLayout *layout, int context, unsigned int width
     if( layout )
     {
         ASLayoutElem **pelem = get_layout_context_ptr( layout, context );
+		LOCAL_DEBUG_OUT( "setting fixedsize of context %d(%p) to %dx%d", context, *pelem, width, height );
 		if( pelem != NULL )
 		{
             register ASLayoutElem *elem = *pelem ;
@@ -459,6 +472,38 @@ get_layout_context_size( ASLayout *layout, int context, int *x, int *y, unsigned
 		}
     }
 	return False;
+}
+
+ASLayoutElem *
+find_layout_point( ASLayout *layout, int x, int y, ASLayoutElem *start )
+{
+	if( layout )
+	{
+		register int col = start? start->column : 0 ;
+
+		x -= layout->x ;
+		y -= layout->y ;
+
+		for( ; col < layout->dim_x ; ++col )
+		{
+			register ASLayoutElem *pelem = layout->cols[col] ;
+			if( start && start->column == col )
+				pelem = start->below ;
+			if( pelem )
+			{
+				if( pelem->x > x )
+					return NULL;
+				for( ; pelem != NULL ; pelem = pelem->below )
+				{
+					if( pelem->y > y )
+						break;
+					if( pelem->x+pelem->width > x && pelem->y+pelem->height > y )
+						return pelem;
+				}
+			}
+		}
+	}
+	return NULL ;
 }
 /****************************************************************************************
  * The following are dynamic methods and return value that indicates if any of the cached
@@ -711,68 +756,66 @@ apply_sizes( int spacing, int start_margin, int dim, int *layout_size, int *layo
 Bool
 moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bool force )
 {
-    Bool need_redraw = False ;
+    register int i ;
+    int spacing_needed = 0 ;
 
-    if( layout )
-    {
-        register int i ;
-        int spacing_needed = 0 ;
+    if( layout  == NULL )
+		return False;
 
-        width -= layout->offset_east+layout->offset_west+(layout->v_border<<1) ;
-        height -= layout->offset_north+layout->offset_south+(layout->h_border<<1) ;
+	width -= layout->offset_east+layout->offset_west+(layout->v_border<<1) ;
+    height -= layout->offset_north+layout->offset_south+(layout->h_border<<1) ;
 
-        if( width == layout->width && height == layout->height && !force )
-            return False;
-        /* first working on width/x position */
-        spacing_needed = collect_sizes( layout, &(as_layout_width[0]), &(as_layout_fixed_width[0]), True );
-        adjust_sizes( layout->width-spacing_needed, width-spacing_needed, layout->dim_x, &(as_layout_width[0]), &(as_layout_fixed_width[0]) );
-        apply_sizes(layout->h_spacing, layout->offset_west+layout->v_border, layout->dim_x, &(as_layout_width[0]), &(as_layout_fixed_width[0]), &(as_layout_x[0]) );
+    if( width == layout->width && height == layout->height && !force )
+        return False;
+    /* first working on width/x position */
+    spacing_needed = collect_sizes( layout, &(as_layout_width[0]), &(as_layout_fixed_width[0]), True );
+    adjust_sizes( layout->width-spacing_needed, width-spacing_needed, layout->dim_x, &(as_layout_width[0]), &(as_layout_fixed_width[0]) );
+    apply_sizes(layout->h_spacing, layout->offset_west+layout->v_border, layout->dim_x, &(as_layout_width[0]), &(as_layout_fixed_width[0]), &(as_layout_x[0]) );
 
-        /* then working on height/y position */
-        spacing_needed = collect_sizes( layout, &(as_layout_height[0]), &(as_layout_fixed_height[0]), False );
-        adjust_sizes( layout->height-spacing_needed, height-spacing_needed, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]) );
-        apply_sizes(layout->v_spacing, layout->offset_north+layout->h_border, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]), &(as_layout_y[0]) );
+    /* then working on height/y position */
+    spacing_needed = collect_sizes( layout, &(as_layout_height[0]), &(as_layout_fixed_height[0]), False );
+    adjust_sizes( layout->height-spacing_needed, height-spacing_needed, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]) );
+    apply_sizes(layout->v_spacing, layout->offset_north+layout->h_border, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]), &(as_layout_y[0]) );
 
-        /* now we can actually apply our calculations : */
-        /* becouse of the static arrays we cann not recurse while we need
-         * info in those arrays. So on the first pass we set all the x/y/w/h
-         * of our elements, and on the second pass - we resize subwidgets
-         */
-        /* Pass 1: */
-        for( i = 0 ; i < layout->dim_y  ; i++ )
-            if( layout->rows[i] )
-            {
-                register ASLayoutElem *pelem = layout->rows[i];
-                int elem_y = as_layout_y[i] ;
+    /* now we can actually apply our calculations : */
+    /* becouse of the static arrays we cann not recurse while we need
+        * info in those arrays. So on the first pass we set all the x/y/w/h
+        * of our elements, and on the second pass - we resize subwidgets
+        */
+    /* Pass 1: */
+    for( i = 0 ; i < layout->dim_y  ; i++ )
+        if( layout->rows[i] )
+        {
+            register ASLayoutElem *pelem = layout->rows[i];
+            int elem_y = as_layout_y[i] ;
 
-				do
+			do
+			{
+                register int k ;
+	            unsigned int w = as_layout_width[pelem->column] ;
+	            unsigned int h = as_layout_height[i] ;
+				int elem_x = as_layout_x[pelem->column] ;
+
+                for( k = pelem->column+pelem->h_span-1; k > pelem->column ; k-- )
 				{
-                    register int k ;
-	                unsigned int w = as_layout_width[pelem->column] ;
-	                unsigned int h = as_layout_height[i] ;
-					int elem_x = as_layout_x[pelem->column] ;
+					if( as_layout_fixed_width[k] >= 0 && as_layout_width[k] > 0 )
+                        w += as_layout_width[k]+layout->h_spacing ;
+                }
+				for( k = pelem->row+pelem->v_span-1; k > pelem->row ; k-- )
+				{
+			        if( as_layout_fixed_height[k] >= 0 && as_layout_height[k] > 0 )
+						h += as_layout_height[k]+layout->v_spacing ;
+				}
+                LOCAL_DEBUG_OUT( "resizing context %d at [%d:%d] to %dx%d%+d%+d (fixed = %dx%d)", pelem->context, pelem->column, pelem->row, w, h, elem_x, elem_y, pelem->fixed_width, pelem->fixed_height );
+                pelem->x = elem_x;
+                pelem->y = elem_y;
+                pelem->width = w - (pelem->bw<<1);
+                pelem->height = h - (pelem->bw<<1);
+			}while( (pelem = pelem->right) != NULL );
+        }
 
-                    for( k = pelem->column+pelem->h_span-1; k > pelem->column ; k-- )
-					{
-					    if( as_layout_fixed_width[k] >= 0 && as_layout_width[k] > 0 )
-                            w += as_layout_width[k]+layout->h_spacing ;
-                    }
-					for( k = pelem->row+pelem->v_span-1; k > pelem->row ; k-- )
-					{
-			            if( as_layout_fixed_height[k] >= 0 && as_layout_height[k] > 0 )
-							h += as_layout_height[k]+layout->v_spacing ;
-					}
-                    LOCAL_DEBUG_OUT( "resizing context %d at [%d:%d] to %dx%d%+d%+d", pelem->context, pelem->column, pelem->row, w, h, elem_x, elem_y );
-                    pelem->x = elem_x;
-                    pelem->y = elem_y;
-                    pelem->width = w - (pelem->bw<<1);
-                    pelem->height = h - (pelem->bw<<1);
-				}while( (pelem = pelem->right) != NULL );
-            }
-
-		layout->width = width;
-		layout->height = height;
-    }
-    return need_redraw;
+	layout->width = width;
+	layout->height = height;
+	return True;
 }
 
