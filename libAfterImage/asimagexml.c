@@ -120,15 +120,19 @@ void set_xml_font_manager( ASFontManager *fontman )
 void asxml_var_insert(const char* name, int value);
 
 void
-asxml_var_init(void) {
-      int w, h;
-      if (asxml_var) destroy_ashash(&asxml_var);
-      asxml_var = create_ashash(0, string_hash_value, string_compare, string_destroy);
-      if (!asxml_var) return;
-      if (GetRootDimensions(&w, &h)) {
-              asxml_var_insert("xroot.width", w);
-              asxml_var_insert("xroot.height", h);
-      }
+asxml_var_init(void)
+{
+	int w, h;
+	if ( asxml_var == NULL )
+	{
+    	asxml_var = create_ashash(0, string_hash_value, string_compare, string_destroy);
+    	if (!asxml_var) return;
+    	if (GetRootDimensions(&w, &h))
+		{
+        	asxml_var_insert("xroot.width", w);
+        	asxml_var_insert("xroot.height", h);
+      	}
+	}
 }
 
 void
@@ -1105,17 +1109,17 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (refimg) {
 				width = parse_math(width_str, NULL, refimg->width);
 				height = parse_math(height_str, NULL, refimg->height);
+				release_asimage( refimg );
 			}
-			safe_asimage_destroy( refimg );
 		}
 		if (!refid && width_str && height_str) {
 			width = parse_math(width_str, NULL, width);
 			height = parse_math(height_str, NULL, height);
 		}
 		if (imtmp) {
+			show_progress("Scaling image to [%dx%d].", width, height);
 			result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 			safe_asimage_destroy(imtmp);
-			show_progress("Scaling image to [%dx%d].", width, height);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
