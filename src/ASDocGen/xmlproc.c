@@ -134,8 +134,8 @@ write_doc_cdata( const char *cdata, int len, ASXMLInterpreterState *state )
 				token_start = i+1 ;
 				
 				if( cdata[i] == '&' )
-					special = ( translate_special_sequence( &(cdata[i]), len-i,  NULL ) == '\0' );
-				if( cdata[i] == ';' && special ) 		   
+					special = ( translate_special_sequence( &(cdata[i]), len-i,  NULL ) != '\0' );
+				else if( cdata[i] == ';' && special ) 		   
 					special = False ;
 				switch( cdata[i] )
 				{
@@ -160,8 +160,10 @@ write_doc_cdata( const char *cdata, int len, ASXMLInterpreterState *state )
 		for( i = 0 ; i < len ; ++i ) 
 		{
 			int c_len = 0 ;
-			int c = translate_special_sequence( &(cdata[i]), len-i, &c_len ) ;
+			int c = '\0' ; 
 			
+			if( cdata[i] == '&' ) 
+				c = translate_special_sequence( &(cdata[i]), len-i, &c_len ) ;
 			if( c != '\0' )
 				i += c_len-1 ;	
 			else
@@ -635,8 +637,8 @@ start_varlistentry_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState
 {
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		add_anchor( parm, state );
-	else if( state->doc_type == DocType_NROFF )
-		fprintf( state->dest_fp, "\n.IP ");
+ /*	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\n.IP "); */
 
 }
 
@@ -666,6 +668,7 @@ start_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state 
 		fprintf( state->dest_fp, "<DT class=\"dense\"><B>" );	
 	else if( state->doc_type == DocType_NROFF )
 	{	
+		fprintf( state->dest_fp, "\n.IP ");
 		fprintf( state->dest_fp, "\"");
 		set_flags( state->flags, ASXMLI_EscapeDQuotes);
 	}

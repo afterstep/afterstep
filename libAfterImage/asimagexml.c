@@ -2753,19 +2753,19 @@ translate_special_sequence( const char *ptr, int len,  int *seq_len )
 	int c_len = 0 ;
 	if( ptr[0] == '&') 
 	{ 
-		if( 4 < len ) 
+		if( 4 <= len ) 
 		{	
 			c_len = 4 ;
 			if( strncmp(ptr,"&lt;", c_len ) == 0 ) c = '<' ;
 			else if( strncmp(ptr,"&gt;", c_len ) == 0 ) c = '>' ;
 		}
-		if( c != '\0' && 5 < len ) 
+		if( c == '\0' && 5 <= len ) 
 		{	
 			c_len = 5 ;
 			if( strncmp(ptr,"&amp;", c_len ) == 0 ) c = '&' ;
 		}
 				
-		if( c != '\0' && 6 < len ) 
+		if( c == '\0' && 6 <= len ) 
 		{	
 			c_len = 6 ;
 			if(      strncmp(ptr,"&quot;", c_len ) == 0 ) c = '"' ;
@@ -2777,7 +2777,7 @@ translate_special_sequence( const char *ptr, int len,  int *seq_len )
 			else if( strncmp(ptr,"&euro;", c_len ) == 0 ) c = '€' ;					 
 		}
 
-		if( c != '\0' && 7 < len ) 
+		if( c == '\0' && 7 <= len ) 
 		{	
 			c_len = 7 ;
 			if( strncmp(ptr,"&OElig;", c_len ) == 0 ) c = 'Œ' ;
@@ -2792,7 +2792,7 @@ translate_special_sequence( const char *ptr, int len,  int *seq_len )
 			else if( strncmp(ptr,"&rdquo;", c_len ) == 0 ) c = '”' ;
 			else if( strncmp(ptr,"&bdquo;", c_len ) == 0 ) c = '„' ;
 		}				
-		if( c != '\0' && 8 < len ) 
+		if( c == '\0' && 8 <= len ) 
 		{	
 			c_len = 8 ;
 			if( strncmp(ptr,"&Scaron;", c_len ) == 0 ) c = 'Š' ;
