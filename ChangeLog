@@ -1,6 +1,10 @@
 
 2005-03-22  sasha
 
+	* AfterStep 2.00.04 release
+	* made desktop cover tint to be similar to Base color from selected
+	  colorscheme
+	* changed bars/empty to proper tiles/empty in look.Breeze
 	* fixed doc/Makefile to check for /html/ to exist
 	* added look.Breeze buttons
 	* added look.Breeze bars

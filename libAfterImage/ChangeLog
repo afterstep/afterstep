@@ -1,6 +1,8 @@
 
 2005-03-22  sasha
 
+	* made desktop cover tint to be similar to Base color from selected
+	  colorscheme
 	* cleaned up stale help files; got rid of sgmltools deps; updated
 	  .spec file; changed version number to 2.0.4
 
