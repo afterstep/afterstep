@@ -294,7 +294,6 @@ TermDef       LookTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "MenuMiniPixmaps", 15, TT_FLAG, LOOK_MenuMiniPixmaps_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TextGradientColor", 17, TT_CUSTOM, LOOK_TextGradientColor_ID, NULL},                                          /* title text */
     {TF_NO_MYNAME_PREPENDING, "GradientText", 12, TT_FLAG, LOOK_GradientText_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "TexturedHandle", 14, TT_FLAG, LOOK_TexturedHandle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitlebarNoPush", 14, TT_FLAG, LOOK_TitlebarNoPush_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "ButtonNoBorder", 14, TT_FLAG, LOOK_ButtonNoBorder_ID, NULL},
 #endif /* NO_TEXTURE */
@@ -364,8 +363,6 @@ flag_options_xref LookFlagsXref[] = {
     {TxtrMenuItmInd, LOOK_TxtrMenuItmInd_ID, 0},
     {MenuMiniPixmaps, LOOK_MenuMiniPixmaps_ID, 0},
     {GradientText, LOOK_GradientText_ID, 0},
-    {TexturedHandle, LOOK_TexturedHandle_ID, 0},
-    {TitlebarNoPush, LOOK_TitlebarNoPush_ID, 0},
     {IconNoBorder, LOOK_ButtonNoBorder_ID, 0},
     {SeparateButtonTitle, LOOK_SeparateButtonTitle_ID, 0},
 #endif /* NO_TEXTURE */

@@ -159,13 +159,24 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
                 destroy_ashash( &(look->FramesList));
         }
         if( look->configured_icon_areas && get_flags (what_flags, LL_Icons) )
+		{
             free( look->configured_icon_areas );
+			if( look->DefaultIcon )
+				free( look->DefaultIcon );
+		}
 
         if( look->balloon_look && get_flags (what_flags, LL_Balloons))
         {
             free( look->balloon_look );
         }
 
+		if (get_flags (what_flags, LL_Misc))
+		{
+			if( look->PointerFore )
+				free( look->PointerFore );
+			if(	look->PointerBack )
+				free( look->PointerBack );
+    	}
 	}/* free_resources */
 
 	if (get_flags (what_flags, LL_MyStyles))
@@ -244,6 +255,8 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 	if (get_flags (what_flags, LL_Misc))
 	{
 		look->RubberBand = 0;
+		look->PointerFore = NULL ;
+		look->PointerBack = NULL ;
     }
 
 	if (get_flags (what_flags, LL_Flags))

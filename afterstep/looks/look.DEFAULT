@@ -231,6 +231,10 @@ ButtonSize 64 64
 
 
 # 2-5) : misc options
+
+PointerBack "Pointer"
+PointerFore "ActiveText"
+
 #  Border around iconifyied windows ?
 ButtonNoBorder
 #  [0/1/2] Draw lines between menu options ?

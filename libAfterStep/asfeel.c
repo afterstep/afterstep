@@ -151,7 +151,7 @@ apply_feel_cursor( Window w, ASFeel *feel, int cursor )
 }
 
 void
-recolor_feel_cursors( ASFeel *feel, ARGB32 fore, ARGB32 back )
+recolor_feel_cursors( ASFeel *feel, CARD32 fore, CARD32 back )
 {
     if( feel )
 	{

@@ -110,7 +110,6 @@ void          SetModifier           (char *text, FILE * fd, char **mod, int *jun
 void          SetTButtonOrder       (char *text, FILE * fd, char **mod, int *junk2);
 
 void          assign_string         (char *text, FILE * fd, char **arg, int *idx);
-void          assign_quoted_string  (char *text, FILE * fd, char **arg, int *junk);
 void          assign_path           (char *text, FILE * fd, char **arg, int *idx);
 void          assign_themable_path  (char *text, FILE * fd, char **arg, int *idx);
 void          assign_pixmap         (char *text, FILE * fd, char **arg, int *idx);
@@ -145,14 +144,14 @@ struct config main_config[] = {
     {"EdgeScroll", SetInts, (char **)&Scr.Feel.EdgeScrollX, &Scr.Feel.EdgeScrollY},
 	{"RandomPlacement", SetFlag, (char **)RandomPlacement, (int *)0},
 	{"SmartPlacement", SetFlag, (char **)SMART_PLACEMENT, (int *)0},
-	{"DontMoveOff", SetFlag, (char **)DontMoveOff, (int *)0},
+	{"DontMoveOff", obsolete, (char **)NULL, (int *)0},
 	{"DecorateTransients", SetFlag, (char **)DecorateTransients, (int *)0},
 	{"CenterOnCirculate", SetFlag, (char **)CenterOnCirculate, (int *)0},
     {"AutoRaise", SetInts, (char **)&Scr.Feel.AutoRaiseDelay, &dummy},
     {"ClickTime", SetInts, (char **)&Scr.Feel.ClickTime, &dummy},
     {"OpaqueMove", SetInts, (char **)&Scr.Feel.OpaqueMove, &dummy},
     {"OpaqueResize", SetInts, (char **)&Scr.Feel.OpaqueResize, &dummy},
-    {"XorValue", SetInts, (char **)&Scr.Feel.XorValue, &dummy},
+    {"XorValue", obsolete, (char **)NULL, &dummy},
 	{"Mouse", ParseMouseEntry, (char **)1, (int *)0},
     {"Popup", ParsePopupEntry, (char **)1, (int *)0},
     {"Function", ParseFunctionEntry, (char **)1, (int *)0},
@@ -160,11 +159,11 @@ struct config main_config[] = {
 	{"ClickToFocus", SetFlag, (char **)ClickToFocus, (int *)EatFocusClick},
     {"EatFocusClick", SetFlag, (char **)EatFocusClick, (int *)0},
     {"ClickToRaise", SetButtonList, (char **)&Scr.Feel.RaiseButtons, (int *)0},
-	{"MenusHigh", SetFlag, (char **)MenusHigh, (int *)0},
+	{"MenusHigh", obsolete, (char **)NULL, (int *)0},
 	{"SloppyFocus", SetFlag, (char **)SloppyFocus, (int *)0},
 	{"Cursor", SetCursor, (char **)0, (int *)0},
 	{"CustomCursor", SetCustomCursor, (char **)0, (int *)0},
-    {"PagingDefault", SetFlag, (char **)DoHandlePageing, NULL},
+    {"PagingDefault", obsolete, (char **)NULL, NULL},
     {"EdgeResistance", SetInts, (char **)&Scr.Feel.EdgeResistanceScroll, &Scr.Feel.EdgeResistanceMove},
 	{"BackingStore", SetFlag, (char **)BackingStore, (int *)0},
 	{"AppsBackingStore", SetFlag, (char **)AppsBackingStore, (int *)0},
@@ -183,7 +182,7 @@ struct config main_config[] = {
     {"WindowEdgeAttraction", SetInts, (char **)&Scr.Feel.EdgeAttractionWindow, &dummy},
     {"DontRestoreFocus", SetFlag, (char **)DontRestoreFocus, &dummy},
     {"WindowBox", windowbox_parse, (char**)&(Scr.Feel.window_boxes), (int*)&(Scr.Feel.window_boxes_num)},
-    {"DefaultWindowBox", assign_quoted_string, (char**)&(Scr.Feel.default_window_box_name), (int*)0},
+    {"DefaultWindowBox", assign_string, (char**)&(Scr.Feel.default_window_box_name), (int*)0},
     {"RecentSubmenuItems", SetInts, (char**)&Scr.Feel.recent_submenu_items, (int*)&dummy},
 
     /* look options */
@@ -210,7 +209,7 @@ struct config main_config[] = {
     {"DeskBack", deskback_parse, NULL, NULL },
     {"*asetrootDeskBack", deskback_parse, NULL, NULL },        /* pretending to be asteroot here */
     {"MyFrame", myframe_parse, (char**)"afterstep", (int*)&MyFrameList},
-    {"DefaultFrame", assign_quoted_string, (char**)&DefaultFrameName, (int*)0},
+    {"DefaultFrame", assign_string, (char**)&DefaultFrameName, (int*)0},
     {"DontDrawBackground", SetFlag2, (char **)DontDrawBackground, (int *)&Scr.Look.flags},
 
 #ifndef NO_TEXTURE
@@ -229,14 +228,17 @@ struct config main_config[] = {
     {"UTitlePixmap", assign_string, &WindowPixmap[BACK_UNFOCUSED], (int *)0},    /* unfoc tit */
     {"STitlePixmap", assign_string, &WindowPixmap[BACK_STICKY], (int *)0},    /* stick tit */
 
+    {"PointerFore", assign_string, &Scr.Look.PointerFore, (int *)0},    /* foreground color to be used for coloring pointer's cursor */
+    {"PointerBack", assign_string, &Scr.Look.PointerBack, (int *)0},    /* background color to be used for coloring pointer's cursor */
+
     {"MenuPinOn", assign_string, &MenuPinOn, (int *)0},    /* menu pin */
     {"MenuPinOff", obsolete, (char **)NULL, (int *)0},
     {"MArrowPixmap", assign_pixmap, (char **)&Scr.Look.MenuArrow, (int *)0},   /* menu arrow */
 
-    {"TexturedHandle", SetFlag2, (char **)TexturedHandle, (int *)&Scr.Look.flags},
     {"TitlebarNoPush", SetFlag2, (char **)TitlebarNoPush, (int *)&Scr.Look.flags},
 
 	/* these are obsolete : */
+    {"TexturedHandle", obsolete, (char **)NULL, (int *)0},
     {"TextGradientColor", obsolete, (char **)NULL, (int *)0}, /* title text */
     {"GradientText", obsolete, (char **)NULL, (int *)0},
 
@@ -271,16 +273,16 @@ struct config main_config[] = {
     {"ButtonSize", SetInts, (char **)&Scr.Look.ButtonWidth, (int *)&Scr.Look.ButtonHeight},
     {"SeparateButtonTitle", SetFlag2, (char **)SeparateButtonTitle, (int *)&Scr.Look.flags},
     {"RubberBand", SetInts, (char **)&Scr.Look.RubberBand, &dummy},
-    {"DefaultStyle", assign_quoted_string, (char **)&MSWindowName[BACK_DEFAULT], (int *)0},
-    {"FWindowStyle", assign_quoted_string, (char **)&MSWindowName[BACK_FOCUSED], (int *)0},
-    {"UWindowStyle", assign_quoted_string, (char **)&MSWindowName[BACK_UNFOCUSED], (int *)0},
-    {"SWindowStyle", assign_quoted_string, (char **)&MSWindowName[BACK_STICKY], (int *)0},
-    {"MenuItemStyle",    assign_quoted_string, (char **)&MSMenuName[MENU_BACK_ITEM], (int *)0},
-    {"MenuTitleStyle",   assign_quoted_string, (char **)&MSMenuName[MENU_BACK_TITLE], (int *)0},
-    {"MenuHiliteStyle",  assign_quoted_string, (char **)&MSMenuName[MENU_BACK_HILITE], (int *)0},
-    {"MenuStippleStyle", assign_quoted_string, (char **)&MSMenuName[MENU_BACK_STIPPLE], (int *)0},
-    {"MenuSubItemStyle", assign_quoted_string, (char **)&MSMenuName[MENU_BACK_SUBITEM], (int *)0},
-    {"MenuHiTitleStyle", assign_quoted_string, (char **)&MSMenuName[MENU_BACK_HITITLE], (int *)0},
+    {"DefaultStyle", assign_string, (char **)&MSWindowName[BACK_DEFAULT], (int *)0},
+    {"FWindowStyle", assign_string, (char **)&MSWindowName[BACK_FOCUSED], (int *)0},
+    {"UWindowStyle", assign_string, (char **)&MSWindowName[BACK_UNFOCUSED], (int *)0},
+    {"SWindowStyle", assign_string, (char **)&MSWindowName[BACK_STICKY], (int *)0},
+    {"MenuItemStyle",    assign_string, (char **)&MSMenuName[MENU_BACK_ITEM], (int *)0},
+    {"MenuTitleStyle",   assign_string, (char **)&MSMenuName[MENU_BACK_TITLE], (int *)0},
+    {"MenuHiliteStyle",  assign_string, (char **)&MSMenuName[MENU_BACK_HILITE], (int *)0},
+    {"MenuStippleStyle", assign_string, (char **)&MSMenuName[MENU_BACK_STIPPLE], (int *)0},
+    {"MenuSubItemStyle", assign_string, (char **)&MSMenuName[MENU_BACK_SUBITEM], (int *)0},
+    {"MenuHiTitleStyle", assign_string, (char **)&MSMenuName[MENU_BACK_HITITLE], (int *)0},
     {"MenuItemCompositionMethod", SetInts, (char **)&Scr.Look.menu_icm, &dummy},
     {"MenuHiliteCompositionMethod", SetInts, (char **)&Scr.Look.menu_hcm, &dummy},
     {"MenuStippleCompositionMethod", SetInts, (char **)&Scr.Look.menu_scm, &dummy},
@@ -292,7 +294,7 @@ struct config main_config[] = {
     {"TitleButtonBalloonCloseDelay", SetInts, (char**)&(BalloonConfig.close_delay), NULL},
 	{"TitleButtonBalloonBorderWidth", obsolete, NULL, NULL },
 	{"TitleButtonBalloonBorderColor", obsolete, NULL, NULL },
-    {"TitleButtonBalloonStyle", assign_quoted_string, &(BalloonConfig.style), NULL},
+    {"TitleButtonBalloonStyle", assign_string, &(BalloonConfig.style), NULL},
     {"TitleButtonBalloons", SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
     {"TitleButton", SetTitleButton, (char **)1, (int *)0},
     {"KillBackgroundThreshold", SetInts, (char**)&(Scr.Look.KillBackgroundThreshold), NULL },
@@ -1371,11 +1373,15 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 
     if( get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 	{
-		ARGB32 cursor_fore, cursor_back ;
-        fix_menu_pin_on( &Scr.Look );
+		ARGB32 cursor_fore = ARGB32_White ;
+		ARGB32 cursor_back = ARGB32_Black ;
+
+		fix_menu_pin_on( &Scr.Look );
 		/* also need to recolor cursors ! */
-		parse_argb_color( "ActiveText", &cursor_back );
-		parse_argb_color( "HighActive", &cursor_fore );
+		if( Scr.Look.PointerFore )
+			parse_argb_color( Scr.Look.PointerFore, &cursor_fore );
+		if( Scr.Look.PointerBack )
+	   		parse_argb_color( Scr.Look.PointerBack, &cursor_back );
 		recolor_feel_cursors( &Scr.Feel, cursor_fore, cursor_back );
 	}
 
@@ -1413,13 +1419,9 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 void
 assign_string (char *text, FILE * fd, char **arg, int *junk)
 {
-	*arg = stripcpy (text);
-}
-
-void
-assign_quoted_string (char *text, FILE * fd, char **arg, int *junk)
-{
-    *arg = stripcpy2 (text, 0);
+	if( *arg )
+		free( *arg );
+	*arg = stripcpy2 (text, 0);
 }
 
 /*****************************************************************************

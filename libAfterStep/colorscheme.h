@@ -92,7 +92,8 @@ extern "C" {
 #define ASMC_HighInactiveBackLight	27
 #define ASMC_HighActiveBackDark		28
 #define ASMC_HighActiveBackLight   	29
-#define ASMC_MainColors			   	30
+#define ASMC_Pointer			   	30
+#define ASMC_MainColors			    31
 
 
 extern char *ASMainColorNames[ASMC_MainColors];

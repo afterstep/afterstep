@@ -249,7 +249,7 @@ void destroy_asfeel( ASFeel *feel, Bool reusable );
 void check_feel_sanity(ASFeel *feel);
 
 void apply_context_cursor( Window w, ASFeel *feel, unsigned long context );
-void recolor_feel_cursors( ASFeel *feel, ARGB32 fore, ARGB32 back );
+void recolor_feel_cursors( ASFeel *feel, CARD32 fore, CARD32 back );
 
 
 ASWindowBox *create_aswindow_box( const char *name );

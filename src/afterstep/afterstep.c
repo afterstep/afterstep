@@ -244,21 +244,6 @@ main (int argc, char **argv)
 /* Our Screen initial state setup and initialization of management data :*/
 /*************************************************************************/
 void
-CreateGCs (void)
-{
-    if( Scr.DrawGC == None )
-    {
-        XGCValues     gcv;
-        unsigned long gcm;
-        gcm = GCFunction | GCLineWidth | GCForeground | GCSubwindowMode;
-        gcv.function = GXxor;
-        gcv.line_width = 0;
-        gcv.foreground = Scr.Feel.XorValue;
-        gcv.subwindow_mode = IncludeInferiors;
-        Scr.DrawGC = XCreateGC (dpy, Scr.Root, gcm, &gcv);
-    }
-}
-void
 CreateCursors (void)
 {
 	/* define cursors */

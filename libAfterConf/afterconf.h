@@ -1157,7 +1157,6 @@ int WriteWharfOptions (const char *filename, char *myname,
 #define LOOK_MenuMiniPixmaps_ID		(LOOK_SUPPORTED_ID_START+5)
 #define LOOK_TextGradientColor_ID	(LOOK_SUPPORTED_ID_START+6)	/* title text */
 #define LOOK_GradientText_ID		(LOOK_SUPPORTED_ID_START+7)
-#define LOOK_TexturedHandle_ID		(LOOK_SUPPORTED_ID_START+8)
 #define LOOK_TitlebarNoPush_ID		(LOOK_SUPPORTED_ID_START+9)
 #define LOOK_ButtonNoBorder_ID		(LOOK_SUPPORTED_ID_START+10)
 #endif /* NO_TEXTURE */
@@ -1497,7 +1496,8 @@ ThemeConfig *ParseThemeFile (const char *filename, char *myname);
 #define COLOR_HighInactiveBackLight_ID 	(COLOR_ID_START+ASMC_HighInactiveBackLight)
 #define COLOR_HighActiveBackDark_ID		(COLOR_ID_START+ASMC_HighActiveBackDark		 )
 #define COLOR_HighActiveBackLight_ID	(COLOR_ID_START+ASMC_HighActiveBackLight  )
-#define COLOR_Angle_ID					31/*(COLOR_ID_START+ASMC_MainColors)*/
+#define COLOR_Pointer_ID				(COLOR_ID_START+ASMC_Pointer  )
+#define COLOR_Angle_ID					(COLOR_ID_START+ASMC_MainColors)
 #define COLOR_ID_END            		(COLOR_ID_START+ASMC_MainColors+1)
 
 typedef enum
@@ -1534,6 +1534,7 @@ typedef enum
 	COLOR_SET_FLAG(HighInactiveBackLight),
 	COLOR_SET_FLAG(HighActiveBackDark),
 	COLOR_SET_FLAG(HighActiveBackLight),
+	COLOR_SET_FLAG(Pointer),
 	COLOR_Angle = (0x01<<ASMC_MainColors)
 
 }ColorConfigSetFlags;

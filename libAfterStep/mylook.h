@@ -37,12 +37,11 @@ typedef enum
     TxtrMenuItmInd      = (0x01 << 0),
     MenuMiniPixmaps     = (0x01 << 1),
     GradientText        = (0x01 << 2),
-    TexturedHandle      = (0x01 << 3),
-    TitlebarNoPush      = (0x01 << 4),
-    IconNoBorder        = (0x01 << 5),
-    SeparateButtonTitle = (0x01 << 6),    /* icon title is a separate window */
-    DecorateFrames      = (0x01 << 7),
-    DontDrawBackground=(0x01<< 8),
+    TitlebarNoPush      = (0x01 << 3),
+    IconNoBorder        = (0x01 << 4),
+    SeparateButtonTitle = (0x01 << 5),    /* icon title is a separate window */
+    DecorateFrames      = (0x01 << 6),
+    DontDrawBackground	= (0x01 << 7),
   /* this flags add up to the above set for no-flag options, so we can track
      what option was specifyed in config */
     LOOK_TitleButtonSpacing = (0x01 << 16),
@@ -250,6 +249,8 @@ typedef struct MyLook
     char *DefaultIcon;      /* Icon to use when no other icons are found */
 
     struct icon_t *MenuArrow;
+
+	char *PointerFore, *PointerBack ;
 
     /* here buttons are mentioned in the same order they are in look and feel file */
     MyButton     buttons[TITLE_BUTTONS];

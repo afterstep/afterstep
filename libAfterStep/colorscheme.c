@@ -40,7 +40,8 @@ char *ASMainColorNames[ASMC_MainColors] = {
 	"HighInactiveBackDark"	,
 	"HighInactiveBackLight"	,
 	"HighActiveBackDark"	,
-	"HighActiveBackLight"
+	"HighActiveBackLight"	,
+	"Pointer"
 };
 
 ARGB32
@@ -248,6 +249,8 @@ make_mono_ascolor_scheme( ARGB32 base )
 	shade = offset_shade( base_shade, ASCS_MONO_CONTRAST_OFFSET, True ) ;
 	cs->main_colors[ASMC_Active] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
 	cs->main_values[ASMC_Active] 	= shade;
+	cs->main_colors[ASMC_Pointer] 	= cs->main_colors[ASMC_Active];
+	cs->main_values[ASMC_Pointer] 	= shade;
 	make_mono_grad_argb( &(cs->main_colors[ASMC_ActiveDark]), base_alpha16, shade,
 						 &(cs->main_values[ASMC_ActiveDark]) );
 	active_val = shade;
@@ -317,6 +320,7 @@ make_NeXTish_ascolor_scheme()
 
 	cs->main_colors[ASMC_Active] 	= 0xFF000033 ;
 	cs->main_colors[ASMC_ActiveDark] = 0xFF000000 ;
+	cs->main_colors[ASMC_Pointer] 	= cs->main_colors[ASMC_Active];
 	cs->main_colors[ASMC_ActiveLight] = 0xFF000066 ;
 	cs->main_colors[ASMC_ActiveText] 	= 0xFFF0F0E0 ;
 
@@ -383,6 +387,7 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	base_sat = max(sat,ASCS_MIN_PRIMARY_SATURATION);
 	base_val = FIT_IN_RANGE(ASCS_MIN_PRIMARY_BRIGHTNESS, val, ASCS_MAX_PRIMARY_BRIGHTNESS);
 	make_color_scheme_argb( cs, ASMC_Base, base_alpha16, base_hue, base_sat, base_val ) ;
+    make_color_scheme_argb( cs, ASMC_Pointer, base_alpha16, base_hue+90, base_sat, base_val);
 
 	inactive1_hue = normalize_degrees_val(base_hue + angle) ;
 	if( inactive1_hue > ASCS_MIN_COLD_HUE && inactive1_hue < ASCS_MAX_COLD_HUE &&
@@ -534,6 +539,7 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	make_grad_argb( cs, ASMC_HighActiveDark, base_alpha16, active_hue, active_sat, active_val + ASCS_HIGH_BRIGHTNESS_OFFSET, False );
 	make_grad_argb( cs, ASMC_HighInactiveBackDark, base_alpha16, base_hue, base_sat, base_val + ASCS_HIGH_BRIGHTNESS_OFFSET, False );
 	make_grad_argb( cs, ASMC_HighActiveBackDark, base_alpha16, active_hue, active_sat, active_val - ASCS_HIGH_BRIGHTNESS_OFFSET, False );
+
 
 	/* all of the colors are computed by now */
 	cs->set_main_colors = 0 ;

@@ -579,7 +579,7 @@ stripcpy2 (const char *source, int tab_sensitive)
 			return mystrndup (ptr + 1, tail - ptr - 1);
 		return mystrdup (ptr + 1);
 	}
-	return mystrndup (source, 0);
+	return stripcpy (source);
 }
 
 

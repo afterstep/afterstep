@@ -73,27 +73,57 @@ EdgeScroll 100 100
 # To avoid unwanted moving, edges resist during N ms
 EdgeResistance 800 80
 #
+
+###########################################################################
+# Initial Placement of the windows
+##############
+# Old style (simplified) settings :
+
 # Place window in empty zones
 SmartPlacement
-#
 # Random window placement
 #RandomPlacement
-#
 # Windows can't chose where to place
 NoPPosition
+
+#############
+# New style (simplified) settings :
+# WindowBox configuration may look something like this :
+# WindowBox   "some_name"
+# 	Area   WxH+X+Y
+# 	Virtual
+#	MinWidth	width
+#	MinHeight	height
+#	MaxWidth	width
+#	MaxHeight	height
+#	FirstTry	SmartPlacement|RandomPlacement|Tile
+#	ThenTry 	RandomPlacement|Cascade|Manual
+#	VerticalPriority
+#	ReverseOrder
+#     	Desk        desk
+#     	MinLayer    min_layer
+#     	MaxLayer    max_layer
+#~WindowBox
+#
+#DefaultWindowBox  "some_name"
+#
+
+##########################################################################
+# X server performance tweaks :
+#AppsBackingStore
+#BackingStore
+#SaveUnders
+
+##########################################################################
+# Misc stuff :
+
+#
+#RecentSubmenuItems   <number>   # changes number of recently used submenu items displayed in poarent menu
 #
 # Put a titlebar + various stuff on dialog boxes
 DecorateTransients
 #
-# Tell me what it means :-)
-#AppsBackingStore
-#BackingStore
-#SaveUnders
-#DontMoveOff
-#XorValue
-#MenusHigh
-#PagingDefault
-#
+
 ##########################################################################
 
 ##########################################################################

@@ -852,7 +852,7 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
                 else
                     frame_size[i] = 0;
             }
-			if( tbar_size > 0 ) 
+			if( tbar_size > 0 )
 			{
 				for( i = FRAME_SIDES ; i < FRAME_PARTS ; ++i )
 				{
@@ -862,14 +862,14 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
 						if( asw->frame_bars[real_part] )
 						{
 							if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-								set_astbar_size( asw->frame_bars[real_part], asw->frame_bars[real_part]->width, tbar_size );							
-							else							
-								set_astbar_size( asw->frame_bars[real_part], tbar_size, asw->frame_bars[real_part]->height );							
-						}								
-					}	
+								set_astbar_size( asw->frame_bars[real_part], asw->frame_bars[real_part]->width, tbar_size );
+							else
+								set_astbar_size( asw->frame_bars[real_part], tbar_size, asw->frame_bars[real_part]->height );
+						}
+					}
 				}
-			}	
-			
+			}
+
             frame_size[od->tbar_side] += tbar_size ;
 LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d frame_size = %d,%d,%d,%d", asw->status->width, asw->status->height, asw->status->x, asw->status->y, frame_size[0], frame_size[1], frame_size[2], frame_size[3] );
             anchor2status ( asw->status, asw->hints, &(asw->anchor));
@@ -1443,7 +1443,7 @@ void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
     on_flags = (~(asw->status->flags))&flags ;
     off_flags = (asw->status->flags)&(~flags) ;
     asw->status->flags = on_flags|off_flags ;
-
+LOCAL_DEBUG_OUT( "flags = %lx, on_flags = %lx, off_flags = %lx", flags, on_flags, off_flags );
     if( get_flags( flags, AS_Shaded ) )
 	{
 		if( get_flags( asw->status->flags, AS_Shaded ) )
@@ -1507,6 +1507,9 @@ void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
         place_aswindow( asw );
 
     on_window_status_changed( asw, True, reconfigured );
+    if( get_flags( flags, AS_Sticky) )
+		update_window_transparency( asw, False );
+	LOCAL_DEBUG_OUT( "Window is %sticky", ASWIN_GET_FLAGS(asw,AS_Sticky)?"S":"NotS");
 }
 
 Bool
