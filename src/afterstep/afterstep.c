@@ -151,6 +151,9 @@ main (int argc, char **argv)
             }
         }else
         {
+            make_screen_envvars(&Scr);
+            putenv (Scr.rdisplay_string);
+            putenv (Scr.display_string);
             if( !is_output_level_under_threshold( OUTPUT_LEVEL_PROGRESS ) )
             {
                 show_progress( "\t screen[%d].size = %ux%u", Scr.screen, Scr.MyDisplayWidth, Scr.MyDisplayHeight );
@@ -162,9 +165,6 @@ main (int argc, char **argv)
                 show_progress( "\t screen[%d].visual.red_mask   = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.red_mask   );
                 show_progress( "\t screen[%d].visual.green_mask = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.green_mask );
                 show_progress( "\t screen[%d].visual.blue_mask  = 0x%8.8lX", Scr.screen, Scr.asv->visual_info.blue_mask  );
-                make_screen_envvars(&Scr);
-                putenv (Scr.rdisplay_string);
-                putenv (Scr.display_string);
                 show_progress( "\t screen[%d].rdisplay_string = \"%s\"", Scr.screen, Scr.rdisplay_string );
                 show_progress( "\t screen[%d].display_string = \"%s\"", Scr.screen, Scr.display_string );
             }
