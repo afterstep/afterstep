@@ -1424,6 +1424,31 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
         clear_flags( aswf->flags, ASW_NeedsShaping );
 }
 
+
+void
+clamp_animation_rect( ASWharfFolder *aswf, int from_width, int from_height, int to_width, int to_height, XRectangle *rect )
+{
+	if( get_flags( aswf->flags, ASW_Vertical ) )
+	{	
+		if( aswf->gravity == SouthWestGravity || aswf->gravity == SouthEastGravity )
+			rect->y = max(to_height,from_height) - (short)rect->height ;
+		if( rect->y < 0 ) 
+		{	
+			rect->y = 0 ; 
+			rect->height = to_height ;
+		}
+	}else 
+	{	
+		if( aswf->gravity == NorthEastGravity || aswf->gravity == SouthEastGravity )
+			rect->x = max(to_width,from_width) - (short)rect->width ;
+		if( rect->x < 0 ) 
+		{	
+			rect->x = 0 ; 
+			rect->width = to_width ;
+		}
+	}
+}	 
+
 void
 animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_width, int to_height )	
 {
@@ -1437,26 +1462,8 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 		rect.x = rect.y = 0 ;		
 		rect.width = get_flags( aswf->flags, ASW_Vertical )?to_width:from_width+((to_width-from_width)/steps)*(i+1) ;
 		rect.height = get_flags( aswf->flags, ASW_Vertical )?from_height+((to_height-from_height)/steps)*(i+1):to_height ;
-		
-		if( get_flags( aswf->flags, ASW_Vertical ) )
-		{	
-			if( aswf->gravity == SouthWestGravity || aswf->gravity == SouthEastGravity )
-				rect.y = max(to_height,from_height) - (short)rect.height ;
-			if( rect.y < 0 ) 
-			{	
-				rect.y = 0 ; 
-				rect.height = to_height ;
-			}
-		}else 
-		{	
-			if( aswf->gravity == NorthEastGravity || aswf->gravity == SouthEastGravity )
-				rect.x = max(to_width,from_width) - (short)rect.width ;
-			if( rect.x < 0 ) 
-			{	
-				rect.x = 0 ; 
-				rect.width = to_width ;
-			}
-		}
+
+		clamp_animation_rect( aswf, from_width, from_height, to_width, to_height, &rect );
 		
 		LOCAL_DEBUG_OUT("boundary = %dx%d%+d%+d, canvas = %dx%d\n", 
 						 rect.width, rect.height, rect.x, rect.y, 
@@ -1481,18 +1488,10 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 	rect.x = rect.y = 0 ;
 	rect.width = to_width ;
 	rect.height = to_height ;
-	if( get_flags( aswf->flags, ASW_Vertical ) )
-	{	
-		if( aswf->gravity == SouthWestGravity || aswf->gravity == SouthEastGravity )
-			rect.y = max(to_height,from_height) - rect.height ;
-	}else 
-	{	
-		if( aswf->gravity == NorthEastGravity || aswf->gravity == SouthEastGravity )
-			rect.x = max(to_width,from_width) - rect.width ;
-	}
+	clamp_animation_rect( aswf, from_width, from_height, to_width, to_height, &rect );
 	
-	/* fprintf( stderr, "%s: boundary = %dx%d%+d%+d, canvas = %dx%d\n", 
-						__FUNCTION__, rect.width, rect.height, rect.x, rect.y, aswf->canvas->width, aswf->canvas->height ); */
+	LOCAL_DEBUG_OUT("boundary = %dx%d%+d%+d, canvas = %dx%d\n", 
+					rect.width, rect.height, rect.x, rect.y, aswf->canvas->width, aswf->canvas->height );
 
 	aswf->boundary = rect ;
 	update_wharf_folder_shape( aswf );
