@@ -909,6 +909,11 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	    check_side_canvas( asw, od->right_side, myframe_has_parts(frame, FRAME_RIGHT_MASK) );
 	}
 
+	if( ASWIN_HFLAGS(asw, AS_Handles) && get_flags(frame->flags, MYFRAME_NOBORDER) )
+		XSetWindowBorderWidth( dpy, asw->frame, 0 );
+	else if( asw->status )
+		XSetWindowBorderWidth( dpy, asw->frame, asw->status->border_width );
+
     /* make sure all our decoration windows are mapped and in proper order: */
     if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
         XRaiseWindow( dpy, asw->w );

@@ -436,6 +436,10 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
             frame->title_scm = ancestor->title_scm;
 
         frame->set_title_attr |= ancestor->set_title_attr ;
+
+		clear_flags( frame->flags, ~ancestor->set_flags );
+		set_flags( frame->flags, ancestor->flags );
+		frame->set_flags |= ancestor->set_flags ;
     }
 }
 

@@ -302,16 +302,14 @@ main (int argc, char **argv)
 			Scr.MyDisplayWidth = DisplayWidth (dpy, Scr.screen);
 			Scr.MyDisplayHeight = DisplayHeight (dpy, Scr.screen);
 
-			asxml_var_insert("xroot.width", Scr.MyDisplayWidth);
-    		asxml_var_insert("xroot.height", Scr.MyDisplayHeight);
-
 		    Scr.asv = create_asvisual (dpy, Scr.screen, DefaultDepth(dpy,Scr.screen), NULL);
 		}else
 		{		    
-			asxml_var_insert("xroot.width", 1024);
-    		asxml_var_insert("xroot.height", 768);
 			Scr.asv = create_asvisual(NULL, 0, 32, NULL);
 		}
+		
+		asxml_var_insert("xroot.width", 640);
+    	asxml_var_insert("xroot.height", 480);
 		
 		env_path1 = getenv( "IMAGE_PATH" ) ;
 		env_path2 = getenv( "PATH" );

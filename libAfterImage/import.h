@@ -189,7 +189,8 @@ ASImageListEntry *get_asimage_list( struct ASVisual *asv, const char *dir,
 	                                ASFlagType preview_type, double gamma,
 									unsigned int preview_width, unsigned int preview_height,
 									unsigned int preview_compression,
-									unsigned int *count_ret );
+									unsigned int *count_ret,
+									int (*select) (const char *) );
 
 
 /****f* libAfterImage/import/file2pixmap()

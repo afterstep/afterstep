@@ -161,7 +161,7 @@ make_data_file_info( ASImageListEntry *df, ASXMLInterpreterState *parent_state, 
 	LOCAL_DEBUG_OUT( "doc = %p, doc->child = %p", xml_state.doc, xml_state.doc->child );
 
 	/* generate file contents : */
-	add_data_section_header2xml( &xml_state, "Subdirectories" );
+	add_data_section_header2xml( &xml_state, "Details" );
 	varlist = ADD_TAG(xml_state.curr_section,variablelist);
 
 	if( df->preview )
@@ -171,7 +171,8 @@ make_data_file_info( ASImageListEntry *df, ASXMLInterpreterState *parent_state, 
 		add_file_info_item( varlist, "Size : ", &tmp[0] );
 	}
 	add_file_info_item( varlist, "Full path : ", df->fullfilename );
-	add_file_info_item( varlist, "Type : ", img_type_names[df->type]);
+	if( df->type < ASIT_Unknown)
+		add_file_info_item( varlist, "Type : ", img_type_names[df->type]);
 	
 	
 	if( preview_saved )
@@ -216,6 +217,20 @@ make_data_file_info( ASImageListEntry *df, ASXMLInterpreterState *parent_state, 
 #endif
 }
 
+int
+data_fname_filter (const char *d_name)
+{
+	int name_len = strlen( d_name );
+	if( d_name[0] == '.' ||
+		(name_len >= 7 && strcmp(d_name+name_len-7, ".tar.gz") == 0) ||
+		(name_len >= 5 && strcmp(d_name+name_len-5, ".mini") == 0) ||
+		(name_len >= 5 && strcmp(d_name+name_len-5, ".html") == 0))
+		return False;
+	return True;
+}
+
+
+
 void 
 convert_data_file( const char *source_dir, const char *dst_dir, ASXMLInterpreterState *state, ASData2xmlState *xml_state)
 {
@@ -224,7 +239,7 @@ convert_data_file( const char *source_dir, const char *dst_dir, ASXMLInterpreter
 	ASImageListEntry *curr ;
 	ASImageListEntry *im_list = get_asimage_list( Scr.asv, source_dir, LOAD_PREVIEW, 
 												  SCREEN_GAMMA, 0, 0,
-												  0, &count );
+												  0, &count, data_fname_filter );
 
 	LOCAL_DEBUG_OUT( "im_list = %p, count = %d", im_list, count );
 
@@ -233,7 +248,6 @@ convert_data_file( const char *source_dir, const char *dst_dir, ASXMLInterpreter
 	{
 		LOCAL_DEBUG_OUT( "curr = %p", curr );
 		LOCAL_DEBUG_OUT( "curr->name = \"%s\"", curr->name );
-
 
 		if( mystrcasecmp(curr->name, "CREDITS") != 0 )
 		{
@@ -245,6 +259,9 @@ convert_data_file( const char *source_dir, const char *dst_dir, ASXMLInterpreter
 			
 			xml_elem_t*	link = NULL ;
 
+/*			printf( "[%s]", curr->name );
+			fflush(stdout);
+*/
 			if( !files_sect_added )
 			{	
 				add_data_section_header2xml( xml_state, "Files" );
@@ -309,6 +326,10 @@ convert_data_file( const char *source_dir, const char *dst_dir, ASXMLInterpreter
 			make_data_file_info( curr, state, preview_saved );
 
 			LOCAL_DEBUG_OUT( "%s", link->parm );
+			
+			printf( "." );
+			fflush(stdout);
+
 	    }
 		curr = curr->next ;
 	}
@@ -364,9 +385,6 @@ gen_data_doc( const char *source_dir, const char *dest_dir,
 	xml_elem_t* ptr ;
 
 	
-	printf( "Cataloguing %s ...\n", source_dir );
-
-
 	if( (slash = strrchr( source_dir, '/' )) != NULL )
 		short_fname = mystrdup( slash+1 );
 	else
@@ -415,6 +433,9 @@ gen_data_doc( const char *source_dir, const char *dest_dir,
 		}
 	}
 	   
+	printf( "\nCataloguing %s ", source_dir );
+	fflush( stdout );
+
 	convert_data_file( source_dir, dest_dir, &state, &xml_state );
 	
 	/*xml_print(xml_state.doc); */

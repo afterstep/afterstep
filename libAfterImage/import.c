@@ -330,7 +330,8 @@ get_asimage_list( ASVisual *asv, const char *dir,
 	              ASFlagType preview_type, double gamma,
 				  unsigned int preview_width, unsigned int preview_height,
 				  unsigned int preview_compression,
-				  unsigned int *count_ret )
+				  unsigned int *count_ret,
+				  int (*select) (const char *) )
 {
 	ASImageListEntry *im_list = NULL ;
 #ifndef _WIN32
@@ -344,7 +345,7 @@ get_asimage_list( ASVisual *asv, const char *dir,
 		return NULL ;
 
 	dir_name_len = strlen(dir);
-	n = my_scandir ((char*)dir, &list, ignore_dots, NULL);
+	n = my_scandir ((char*)dir, &list, select, NULL);
 	if( n > 0 )
 	{
 		for (i = 0; i < n; i++)

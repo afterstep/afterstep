@@ -236,6 +236,11 @@ typedef struct MyFrame
     unsigned int spacing ;
 
 	unsigned long left_layout, right_layout ;
+
+#define MYFRAME_NOBORDER	(0x01<<0)
+	ASFlagType flags ;
+	ASFlagType set_flags ;
+
 }MyFrame;
 
 extern int    _as_frame_corner_xref[FRAME_SIDES+1];

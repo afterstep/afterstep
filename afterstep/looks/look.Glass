@@ -275,6 +275,7 @@ MyFrame "glass"
 	FrameUnfocusedStyle	"unfocused_frame_style"
 	FrameFocusedStyle	"focused_frame_style"
 	FrameStickyStyle	"sticky_frame_style"
+	NoBorder
 ~MyFrame
 
 DefaultFrame "glass"

@@ -817,6 +817,10 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
         frame->title_align = default_title_align;
     set_flags( frame->set_title_attr, MYFRAME_TitleBevelSet|MYFRAME_TitleAlignSet );
 
+	frame->set_flags = fd->set_flags ;
+	frame->flags = fd->flags ;
+
+
     if( add_hash_item( list, AS_HASHABLE(frame->name), frame ) != ASH_Success )
 	{
 		LOCAL_DEBUG_OUT( "failed to add frame with the name \"%s\", currently list holds %ld frames", frame->name, list->items_num );

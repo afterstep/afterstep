@@ -24,11 +24,11 @@ install:
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop
 	@for D in ${IMAGE_DIR_LIST}; do \
 		$(MKDIR) -p $(AFTER_SHAREDIR)/$$D; \
+		echo "Installing images from $$D to $(AFTER_SHAREDIR)/$$D ..."; \
 		if [ -d $$D/xml ] ; then \
 			list=`$(FIND) $$D/xml/ -type f -maxdepth 1`; \
 			for I in $$list; do \
 				fname=`basename $$I`; \
-				echo "$(INSTALL_DATA) $$D/xml/$$fname $(AFTER_SHAREDIR)/$$D/$$fname"; \
 			    	$(INSTALL_DATA) $$D/xml/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
 			done ; \
 		fi; \
@@ -36,7 +36,6 @@ install:
 			list=`$(FIND) $$D/$(IMAGE_FORMAT)/ -type f -maxdepth 1`; \
 			for I in $$list; do \
 				fname=`basename $$I`; \
-				echo "$(INSTALL_DATA) $$D/$(IMAGE_FORMAT)/$$fname $(AFTER_SHAREDIR)/$$D/$$fname"; \
 				$(INSTALL_DATA) $$D/$(IMAGE_FORMAT)/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
 			done ; \
 		fi; \
@@ -44,7 +43,6 @@ install:
 			list=`$(FIND) $$D/jpg/ -type f  -maxdepth 1`; \
 			for I in $$list; do \
 				fname=`basename $$I`; \
-				echo "$(INSTALL_DATA) $$D/jpg/$$fname $(AFTER_SHAREDIR)/$$D/$$fname"; \
 			    	$(INSTALL_DATA) $$D/jpg/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
 			done ; \
 		fi; \

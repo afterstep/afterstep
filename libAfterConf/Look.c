@@ -224,6 +224,8 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "CondenseTitlebar", 16,       TT_FLAG,   MYFRAME_CondenseTitlebar_ID, &AlignSyntax},
     {TF_NO_MYNAME_PREPENDING, "LeftTitlebarLayout", 18,     TT_FLAG,   MYFRAME_LeftTitlebarLayout_ID, &TbarLayoutSyntax},
     {TF_NO_MYNAME_PREPENDING, "RightTitlebarLayout", 19,    TT_FLAG,   MYFRAME_RightTitlebarLayout_ID, &TbarLayoutSyntax},
+    {TF_NO_MYNAME_PREPENDING, "NoBorder", 8,       			TT_FLAG,   MYFRAME_NoBorder_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "AllowBorder", 11,       		TT_FLAG,   MYFRAME_AllowBorder_ID, NULL},
 
 	{0, NULL, 0, 0, 0}
 };
@@ -749,6 +751,14 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                     case MYFRAME_RightTitlebarLayout_ID :
                         fd->right_layout = ParseTbarLayoutOptions( options->sub );
                         set_flags( fd->set_title_attr, MYFRAME_RightTitlebarLayoutSet );
+                        break;
+                    case MYFRAME_NoBorder_ID :
+                        set_flags( fd->flags, MYFRAME_NOBORDER);
+						set_flags( fd->set_flags, MYFRAME_NOBORDER);
+                        break;
+                    case MYFRAME_AllowBorder_ID :
+                        clear_flags( fd->flags, MYFRAME_NOBORDER);
+						set_flags( fd->set_flags, MYFRAME_NOBORDER);
                         break;
                     default:
                         if (!ReadConfigItem (&item, options))

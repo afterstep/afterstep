@@ -246,6 +246,7 @@ MyFrame "glass"
 #	Corner NE		bars/frame_e_qnx
 	Corner SW		bars/frame_sw_qnx
 	Corner SE		bars/frame_se_qnx
+	NoBorder
 #	FrameUnfocusedStyle	"unfocused_frame_style"
 #	FrameFocusedStyle	"focused_frame_style"
 #	FrameStickyStyle	"sticky_frame_style"
