@@ -10,18 +10,26 @@
 #define SGN(a)              ((a)>0   ?  1  : ((a)<0 ? -1 : 0))
 #endif
 #ifndef MIN
-#define MIN(a,b)            ((a)<(b) ? (a) : (b))
+/*#define MIN(a,b)            ((a)<(b) ? (a) : (b)) */
+#define MIN(x,y)                                \
+  ({ const typeof(x) _x = (x); const typeof(y) _y = (y); \
+     (void) (&_x == &_y);                       \
+     _x < _y ? _x : _y; })
 #endif
 #ifndef MAX
-#define MAX(a,b)            ((a)>(b) ? (a) : (b))
+/*#define MAX(a,b)            ((a)<(b) ? (a) : (b)) */
+#define MAX(x,y)                                \
+  ({ const typeof(x) _x = (x); const typeof(y) _y = (y); \
+     (void) (&_x == &_y);                       \
+     _x > _y ? _x : _y; })
 #endif
 
 #ifndef max
-#define max(x,y)            (((x)>=(y))?(x):(y))
+#define max(x,y)            MAX(x,y)
 #endif
 
 #ifndef min
-#define min(x,y)            (((x)<=(y))?(x):(y))
+#define min(x,y)            MIN(x,y)
 #endif
 
 #define FIT_IN_RANGE(from,val,to)  (((val)<(from))?(from):(((val) >(to))?(to):(val)))
