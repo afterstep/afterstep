@@ -830,7 +830,7 @@ update_pager_shape()
         	while( --k >= 0 )
         	{
             	LOCAL_DEBUG_OUT( "client %d data %p", i, clients[k] );
-            	if( clients[k] )
+            	if( clients[k] && clients[k]->canvas )
             	{
 			        int client_x, client_y ;
 					unsigned int client_width, client_height, client_bw ;
@@ -2088,6 +2088,8 @@ process_message (unsigned long type, unsigned long *body)
             forget_desk_client( saved_desk, saved_wd );
             unregister_client( saved_w );
         }
+		if( !get_flags( PagerState.flags, ASP_ReceivingWindowList ) )
+			update_pager_shape();
     }else
     {
         switch( type )
@@ -2098,6 +2100,7 @@ process_message (unsigned long type, unsigned long *body)
                 {
                     LOCAL_DEBUG_OUT("M_NEW_DESKVIEWPORT(desk = %ld,Vx=%ld,Vy=%ld)", body[2], body[0], body[1]);
                     switch_deskviewport( body[2], body[0], body[1] );
+					update_pager_shape();
                 }
                 break ;
             case M_STACKING_ORDER :
@@ -2108,12 +2111,13 @@ process_message (unsigned long type, unsigned long *body)
                 break ;
             case M_END_WINDOWLIST :
                 clear_flags( PagerState.flags, ASP_ReceivingWindowList );
+				update_pager_shape();
                 break ;
            default:
                 return;
         }
     }
-    update_pager_shape();
+    
 }
 /*************************************************************************
  * Event handling :

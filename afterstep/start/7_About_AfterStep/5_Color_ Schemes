@@ -1,1 +1,0 @@
-Exec "Color Schemes" exec xterm -n VI -T VI -e vi &

@@ -400,56 +400,89 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 			}
         } else
 		{
-			FILE         *fp2 = fopen (t->path, "r");
+			FILE *fp2 = fopen (t->path, "r");
+			int lines_read = 0 ;
 
-			/* try to load a command */
-            fdata = create_named_function(F_EXEC, NULL);
-            if (fp2 != NULL && fgets (buf, MAXLINELENGTH, fp2) != NULL)
+			fdata = NULL ; 
+			if( fp2 != NULL  )
 			{
-				if (parse_func (buf, fdata, True) < 0) /* data is actuall shell command line */
-					fdata->text = stripcpy (buf);
-			} else
-				fdata->text = mystrdup (t->name);
-            if( fdata->name == NULL )
-                fdata->name = mystrdup( t->stripped_name );
+				char *name = NULL ;
+				FunctionData *valid_func = NULL ; 
+				FunctionData *minipixmap = NULL ;
+				/* try to load a command */
+				while( fgets (buf, MAXLINELENGTH, fp2) != NULL)
+				{
+					++lines_read;
+					if( fdata == NULL ) 
+						fdata = create_named_function(F_EXEC, NULL);
+					if (parse_func (buf, fdata, True) < 0) /* data is actuall shell command line */
+						fdata->text = stripcpy (buf);
+					if( fdata->name == NULL )
+		                fdata->name = mystrdup( t->stripped_name );
 #ifndef NO_AVAILABILITYCHECK
-LOCAL_DEBUG_OUT( "checking availability for \"%s\"", fdata->name?fdata->name:"nameless" );
-			if (IsSwallowFunc(fdata->func) || IsExecFunc(fdata->func))
+					if (IsSwallowFunc(fdata->func) || IsExecFunc(fdata->func))
+						if (!is_executable_in_path (fdata->text))
+							fdata->func = F_NOP;
+#endif					
+					if( fdata->func == F_MINIPIXMAP )
+					{
+						if( minipixmap == NULL ) 
+						{
+							minipixmap = fdata ;
+							fdata = NULL ; 
+						}
+					}else if( fdata->func != F_NOP ) 
+					{
+						if( valid_func == NULL ) 
+						{
+							valid_func = fdata ; 
+							fdata = NULL ; 
+						}					
+					}
+					
+					if( fdata ) 
+					{
+						if( name == NULL && fdata->name != NULL ) 
+						{
+							name = fdata->name ;
+							fdata->name = NULL ;
+						}
+						destroy_func_data( &fdata );
+					}
+				}
+				if( valid_func  ) 
+					MenuDataItemFromFunc (menu, valid_func);
+				else
+				{
+					fdata = create_named_function(F_NOP, name?name:t->stripped_name);
+	  				fdata->text = mystrdup (t->name);
+	          		MenuDataItemFromFunc (menu, fdata);
+				}
+				if( minipixmap ) 
+					MenuDataItemFromFunc (menu, minipixmap);
+				else if( t->icon != NULL )
+				{
+					fdata = create_named_function(F_MINIPIXMAP, t->icon);
+	          		MenuDataItemFromFunc (menu, fdata);
+				}
+				if( name ) 
+					free( name );
+			}
+			
+			if( fp2 == NULL || lines_read == 0 )
 			{
+				fdata = create_named_function(F_EXEC, t->stripped_name);
+				fdata->text = mystrdup (t->name);
 				if (!is_executable_in_path (fdata->text))
-				{
 					fdata->func = F_NOP;
-LOCAL_DEBUG_OUT( "unavailable :  \"%s\"", fdata->name?fdata->name:"nameless" );
+	            MenuDataItemFromFunc (menu, fdata);
+				if( t->icon != NULL )
+				{
+					fdata = create_named_function(F_MINIPIXMAP, t->icon);
+	          		MenuDataItemFromFunc (menu, fdata);
 				}
 			}
-#endif /* NO_AVAILABILITYCHECK */
-            MenuDataItemFromFunc (menu, fdata);
-            /* check for a MiniPixmap */
-            if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
-			{
-				int           parsed = 0;
-
-                fdata = create_named_function(F_MINIPIXMAP, NULL);
-				if (fp2 != NULL && fgets (buf, MAXLINELENGTH, fp2) != NULL)
-				{
-					if (parse_func (buf, fdata, True) >= 0)
-						parsed = (fdata->func == F_MINIPIXMAP);
-				}
-                if (t->icon != NULL && !parsed)
-				{
-					free_func_data (fdata);
-					fdata->func = F_MINIPIXMAP;
-					fdata->name = mystrdup (t->icon);
-					parsed = 1;
-				}
-				if (parsed)
-                    MenuDataItemFromFunc (menu, fdata);
-                else
-                {
-                    free_func_data(fdata);
-                    free(fdata);
-                }
-			}
+            
             if (fp2)
 				fclose (fp2);
 		}

@@ -1,1 +1,1 @@
-Exec "International text support" exec xterm -n VI -T VI -e vi &
+Exec "International text support" exec  mozilla http://afterstep.sf.net/afterimage/ &
