@@ -949,7 +949,7 @@ robodoc_section_header2xml( ASRobodocState *robo_state )
 		if( i < id_length ) 
 		{
 			id = (char*)(&ptr[i]);
-			id_length -= i ;	 
+			id_length += 1-i ;	 
 			saved = id[id_length];
 			id[id_length] = '\0' ;
 		}else
@@ -992,10 +992,15 @@ append_CDATA_line( xml_elem_t *tag, const char *line, int len )
 	{
 		int old_len = strlen(cdata_tag->parm);
 		cdata_tag->parm = realloc( cdata_tag->parm, old_len+1+len+1 );
-		cdata_tag->parm[old_len] = '\n' ; 
-		strncpy( &(cdata_tag->parm[old_len+1]), line, len );
-		cdata_tag->parm[old_len+1+len] = '\0';
+		if( cdata_tag->parm[old_len-1] != '\n' )
+		{	
+			cdata_tag->parm[old_len] = '\n' ; 
+			++old_len ;
+		}
+		strncpy( &(cdata_tag->parm[old_len]), line, len );
+		cdata_tag->parm[old_len+len] = '\0';
 	}	 
+	LOCAL_DEBUG_OUT( "CDATA = \n{\n%s}", cdata_tag->parm );
 }
 
 void 
@@ -1035,7 +1040,8 @@ handle_robodoc_subtitle( ASRobodocState *robo_state, int len )
 	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state->curr, robo_state->len );
 	while( isspace(ptr[i]) && i < len ) ++i ;
 	while( isspace(ptr[len]) && i < len ) --len ;
-
+	++len ;
+	LOCAL_DEBUG_OUT("i = %d, len = %d", i, len );
 	ptr = &(ptr[i]);
 	len -= i ;
 	if( len < 0 )
@@ -1046,6 +1052,7 @@ handle_robodoc_subtitle( ASRobodocState *robo_state, int len )
 			if( strncmp( ptr, SupportedRoboDocTagInfo[i].tag, len ) == 0 ) 
 			{
 				robodoc_id = SupportedRoboDocTagInfo[i].tag_id ; 
+				LOCAL_DEBUG_OUT("subtitle found ; \"%s\"", SupportedRoboDocTagInfo[i].tag );
 				break;
 			}	 
 	if( robodoc_id < 0 ) 
@@ -1066,6 +1073,7 @@ handle_robodoc_subtitle( ASRobodocState *robo_state, int len )
 	title_text_tag->tag = mystrdup(XML_CDATA_STR) ;
 	title_text_tag->tag_id = XML_CDATA_ID ;
 	title_text_tag->parm = mystrdup(SupportedRoboDocTagInfo[i].tag);
+	LOCAL_DEBUG_OUT("subtitle title = >%s<", title_text_tag->parm );
 	xml_insert(title_tag, title_text_tag);
 	return True;
 }
@@ -1073,15 +1081,19 @@ handle_robodoc_subtitle( ASRobodocState *robo_state, int len )
 void 
 handle_robodoc_line( ASRobodocState *robo_state, int len )
 {
-	 /* skipping first 3 characters of the line */
+	 /* skipping first 2 characters of the line */
+	int offset = 2;
 	LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d, line_len = %d", robo_state->curr, robo_state->len, len );
-	if( len < 4 ) 
+	if( len < offset ) 
 	{	
 		robo_state->curr += len ;
 		return ;
 	}
-	robo_state->curr += 3 ;
-	len -= 3 ;
+	/* it could be an empty line in which  case we need not skip one more space */
+	if( robo_state->source[robo_state->curr+offset] == ' ' )
+		++offset ;
+	robo_state->curr += offset ;
+	len -= offset ;
 	if( !handle_robodoc_subtitle( robo_state, len ) ) 
 		append_robodoc_line( robo_state, len ); 
 	robo_state->curr += len ;
@@ -1138,23 +1150,27 @@ handle_robodoc_section( ASRobodocState *robo_state )
 			section_end = ( ptr[i] == '*' && ptr[i+1] == '/' );
 			++i ;
 		}
-		
-		if( i == 0 )
-			++i ;
+		LOCAL_DEBUG_OUT("section_end = %d, i = %d", section_end, i );		
 		if( section_end )
 		{	
-			if( strncmp( ptr, " */", 3 ) == 0 )
-			{										/* line is the beginning of abe the end of the section */
+			if( i > 0 ) 
+			{	
+				if( strncmp( ptr, " */", 3 ) == 0 )
+				{										/* line is the beginning of abe the end of the section */
+					robo_state->curr += i ;
+					handle_robodoc_quotation( robo_state );
+				}else if( strncmp( ptr, " * ", 3 ) == 0 )
+					handle_robodoc_line( robo_state, i );		 	  
+			}
+		    if( ptr[i] != '\n' )
+			{	
+				ptr = &(robo_state->source[robo_state->curr]) ;
+				i = 0 ;
+				while( ptr[i] && ptr[i] != '\n' ) ++i ;
 				robo_state->curr += i ;
-				handle_robodoc_quotation( robo_state );
-			}else if( strncmp( ptr, " * ", 3 ) == 0 )
-				handle_robodoc_line( robo_state, i );		 	  
+			}
 		}else
-			handle_robodoc_line( robo_state, i );
-		ptr = &(robo_state->source[robo_state->curr]) ;
-		i = 0 ;
-		while( ptr[i] && ptr[i] != '\n' ) ++i ;
-		robo_state->curr += i ;
+			handle_robodoc_line( robo_state, i+1 );
 	}	 
 	robo_state->curr_subsection = NULL ;
 }
@@ -1182,9 +1198,11 @@ robodoc2xml(const char *doc_str)
 		LOCAL_DEBUG_OUT("robo_state> curr = %d, len = %d", robo_state.curr, robo_state.len );
 		if( robo_state.curr < robo_state.len )
 			handle_robodoc_section( &robo_state );
-		break;
 	}	 
 #endif	
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+	xml_print(doc);
+#endif
 	return doc;
 }
 

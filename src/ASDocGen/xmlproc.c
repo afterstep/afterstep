@@ -50,7 +50,7 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 	{ TAG_INFO_AND_ID(example), start_example_tag, end_example_tag },
 	{ TAG_INFO_AND_ID(linkend), NULL, NULL },
 	{ TAG_INFO_AND_ID(section), start_section_tag, end_section_tag },
-	{ TAG_INFO_AND_ID(refsect1), start_section_tag, end_section_tag },
+	{ TAG_INFO_AND_ID(refsect1), start_refsect1_tag, end_refsect1_tag },
 	{ TAG_INFO_AND_ID(emphasis), start_emphasis_tag, end_emphasis_tag },
 	{ TAG_INFO_AND_ID(listitem), start_listitem_tag, end_listitem_tag },
 	{ TAG_INFO_AND_ID(cmdsynopsis), start_cmdsynopsis_tag, end_cmdsynopsis_tag },
@@ -61,6 +61,97 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 };	 
 
 /*************************************************************************/
+void
+write_doc_cdata( const char *cdata, int len, ASXMLInterpreterState *state )
+{
+	int i ;
+	if( state->doc_type == DocType_XML || 
+		state->doc_type == DocType_HTML || 
+		state->doc_type == DocType_PHP )	  
+	{
+		for( i = 0 ; i < len ; ++i ) 
+		{
+			switch( cdata[i] )
+			{
+				case '<' : fwrite( "&lt;", 1, 4, state->dest_fp );     break ;	
+				case '>' : fwrite( "&gt;", 1, 4, state->dest_fp );     break ;	 
+				case '&' : fwrite( "&amp;", 1, 5, state->dest_fp );     break ;	 
+				case '"' : fwrite( "&quot;", 1, 6, state->dest_fp );     break ;	 
+				default:
+					fputc( cdata[i], state->dest_fp );
+			}	 
+		}				
+	}else
+	{
+		for( i = 0 ; i < len ; ++i ) 
+		{
+			int c = '\0' ;
+			int c_len = 0 ;
+			if( cdata[i] == '&') 
+			{ 
+				if( i + 4 < len ) 
+				{	
+					c_len = 4 ;
+					if( strncmp(&(cdata[i]),"&lt;", c_len ) == 0 ) c = '<' ;
+					else if( strncmp(&(cdata[i]),"&gt;", c_len ) == 0 ) c = '>' ;
+				}
+				if( c != '\0' && i + 5 < len ) 
+				{	
+					c_len = 5 ;
+					if( strncmp(&(cdata[i]),"&amp;", c_len ) == 0 ) c = '&' ;
+				}
+				
+				if( c != '\0' && i + 6 < len ) 
+				{	
+					c_len = 6 ;
+					if(      strncmp(&(cdata[i]),"&quot;", c_len ) == 0 ) c = '"' ;
+					else if( strncmp(&(cdata[i]),"&circ;", c_len ) == 0 ) c = 'ˆ' ;
+					else if( strncmp(&(cdata[i]),"&nbsp;", c_len ) == 0 ) c = ' ' ;
+					else if( strncmp(&(cdata[i]),"&ensp;", c_len ) == 0 ) c = ' ' ;
+					else if( strncmp(&(cdata[i]),"&emsp;", c_len ) == 0 ) c = ' ' ;
+					else if( strncmp(&(cdata[i]),"&Yuml;", c_len ) == 0 ) c = 'Ÿ' ;
+					else if( strncmp(&(cdata[i]),"&euro;", c_len ) == 0 ) c = '€' ;					 
+				}
+
+				if( c != '\0' && i + 7 < len ) 
+				{	
+					c_len = 7 ;
+					if( strncmp(&(cdata[i]),"&OElig;", c_len ) == 0 ) c = 'Œ' ;
+					else if( strncmp(&(cdata[i]),"&oelig;", c_len ) == 0 ) c = 'œ' ;
+					else if( strncmp(&(cdata[i]),"&tilde;", c_len ) == 0 ) c = '˜' ;
+					else if( strncmp(&(cdata[i]),"&ndash;", c_len ) == 0 ) c = '–' ;
+					else if( strncmp(&(cdata[i]),"&mdash;", c_len ) == 0 ) c = '—' ;
+					else if( strncmp(&(cdata[i]),"&lsquo;", c_len ) == 0 ) c = '‘' ;
+					else if( strncmp(&(cdata[i]),"&rsquo;", c_len ) == 0 ) c = '’' ;
+					else if( strncmp(&(cdata[i]),"&sbquo;", c_len ) == 0 ) c = '‚' ;
+					else if( strncmp(&(cdata[i]),"&ldquo;", c_len ) == 0 ) c = '“' ;
+					else if( strncmp(&(cdata[i]),"&rdquo;", c_len ) == 0 ) c = '”' ;
+					else if( strncmp(&(cdata[i]),"&bdquo;", c_len ) == 0 ) c = '„' ;
+				}				
+				if( c != '\0' && i + 8 < len ) 
+				{	
+					c_len = 8 ;
+					if( strncmp(&(cdata[i]),"&Scaron;", c_len ) == 0 ) c = 'Š' ;
+					else if( strncmp(&(cdata[i]),"&scaron;", c_len ) == 0 ) c = 'š' ;
+					else if( strncmp(&(cdata[i]),"&thinsp;", c_len ) == 0 ) c = ' ' ;
+					else if( strncmp(&(cdata[i]),"&dagger;", c_len ) == 0 ) c = '†' ;
+					else if( strncmp(&(cdata[i]),"&Dagger;", c_len ) == 0 ) c = '‡' ;
+					else if( strncmp(&(cdata[i]),"&permil;", c_len ) == 0 ) c = '‰' ;
+					else if( strncmp(&(cdata[i]),"&lsaquo;", c_len ) == 0 ) c = '‹' ;
+					else if( strncmp(&(cdata[i]),"&rsaquo;", c_len ) == 0 ) c = '›' ;
+				}
+			}											 
+			if( c != '\0' )
+				i += c_len-1 ;	
+			else
+				c = cdata[i];
+			
+			fputc( c, state->dest_fp );
+		}		   
+	}	 
+}
+	
+
 void 
 convert_xml_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *state )
 {
@@ -134,7 +225,7 @@ convert_xml_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *sta
 						{	
 							if( written > 0 ) 
 								fputc( ' ', state->dest_fp );
-							fwrite( &data_ptr[from], 1, to-from, state->dest_fp );
+							write_doc_cdata( &data_ptr[from], to-from, state );
 							written += to - from ;
 						}
 					}	 
@@ -142,7 +233,7 @@ convert_xml_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *sta
 				}	 
 			}
 			if( len > 0 ) 
-				fwrite( data_ptr, 1, len, state->dest_fp );
+				write_doc_cdata( data_ptr, len, state );
 		}else 
 			convert_xml_tag( ptr, NULL, state );
 	}
@@ -537,13 +628,11 @@ start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 	++(state->header_depth);	
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 	{
+		if( state->doc_type == DocType_HTML ) 
+			fwrite( "<HR>\n", 1, 5, state->dest_fp );
 		add_anchor( parm, state );
-		if( doc->tag_id == DOCBOOK_section_ID ) 
-			fwrite( "<UL>", 1, 4, state->dest_fp );
-		else if( doc->tag_id == DOCBOOK_refsect1_ID ) 
-			fwrite( "<LI>", 1, 4, state->dest_fp );
-	}else if( state->doc_type == DocType_NROFF && doc->tag_id != DOCBOOK_section_ID )
-		fprintf( state->dest_fp, "\n.SH ");
+		fwrite( "<UL>", 1, 4, state->dest_fp );
+	}
 }
 
 void 
@@ -552,9 +641,28 @@ end_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 	--(state->header_depth);	
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 	{
-		if( doc->tag_id == DOCBOOK_section_ID ) 
-			fwrite( "</UL>", 1, 5, state->dest_fp );
-		else if( doc->tag_id == DOCBOOK_refsect1_ID ) 
+		fwrite( "</UL>", 1, 5, state->dest_fp );
+	}
+}
+
+void 
+start_refsect1_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+{
+	++(state->header_depth);	
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+	{
+		add_anchor( parm, state );
+		fwrite( "<LI>", 1, 4, state->dest_fp );
+	}else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\n.SH ");
+}
+
+void 
+end_refsect1_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+{
+	--(state->header_depth);	
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+	{
 			fwrite( "</LI>", 1, 5, state->dest_fp );
 	}
 }

@@ -27,6 +27,9 @@ void end_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 void start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
+void start_refsect1_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+void end_refsect1_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+
 void start_anchor_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_anchor_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
