@@ -1804,15 +1804,18 @@ change_desk_stacking( int desk, unsigned int clients_num, Window *clients )
     for( i = 0 ; i < clients_num ; ++i )
     {
 		ASWindowData *wd = fetch_window_by_id( clients[i] );
-		int k = real_clients_count;
-		while( --k >= 0 )
-			if( d->clients[k] == wd )
-				break ; /* already belongs to that desk */
-		if( k < 0  )
-		{
-      		d->clients[i] = wd ;
-			++real_clients_count ;
-  		    LOCAL_DEBUG_OUT( "id(%lX)->wd(%p)", clients[i], d->clients[i] );
+		if( wd != NULL ) 
+		{/* window is in stacking order, but wew were not notifyed about it yet */
+			int k = real_clients_count;
+			while( --k >= 0 )
+				if( d->clients[k] == wd )
+					break ; /* already belongs to that desk */
+			if( k < 0  )
+			{
+      			d->clients[i] = wd ;
+				++real_clients_count ;
+  		    	LOCAL_DEBUG_OUT( "id(%lX)->wd(%p)", clients[i], d->clients[i] );
+			}
 		}
     }
 	d->clients_num = real_clients_count ;
