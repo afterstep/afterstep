@@ -23,29 +23,28 @@
 #undef DEBUG_TRANSP_GIF
 
 #ifdef _WIN32
-#include "win32/config.h"
-#include <windows.h>
-#else
-#include "config.h"
-#endif
-#ifdef _WIN32
+# include "win32/config.h"
+# include <windows.h>
 # include "win32/afterbase.h"
 #else
+# include "config.h"
+# include <string.h>
 # include "afterbase.h"
 #endif
 
 #include "bmp.h"
+
 
 void 
 dib_data_to_scanline( ASScanline *buf, 
                       BITMAPINFOHEADER *bmp_info, CARD8 *gamma_table, 
 					  CARD8 *data, CARD8 *cmap, int cmap_entry_size) 
 {	
-	unsigned int x ; 
+	int x ; 
 	switch( bmp_info->biBitCount )
 	{
 		case 1 :
-			for( x = 0 ; x < (int)bmp_info->biWidth ; x++ )
+			for( x = 0 ; x < bmp_info->biWidth ; x++ )
 			{
 				int entry = (data[x>>3]&(1<<(x&0x07)))?cmap_entry_size:0 ;
 				buf->red[x] = cmap[entry+2];
@@ -98,12 +97,15 @@ ASImage2DBI( ASVisual *asv, ASImage *im,
   			 void **pBits )
 {
 	BITMAPINFO *bmp_info = NULL;
+	CARD8 *bits = NULL, *curr ;
+	int line_size, pad ; 
 	ASImageDecoder *imdec ;
 	int y, max_y = to_height;	
 	int tiling_step = 0 ;
+	CARD32 *r, *g, *b ;	
 	START_TIME(started);
 
-LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, tint = #%8.8lX", src, offset_x, offset_y, to_width, to_height, tint );
+LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", im, offset_x, offset_y, to_width, to_height );
 	if( im== NULL || (imdec = start_image_decoding(asv, im, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 	{
 		LOCAL_DEBUG_OUT( "failed to start image decoding%s", "");
@@ -116,23 +118,55 @@ LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, 
 		max_y = im->height ;
 	}
 	/* create bmp_info struct */
+	bmp_info = safecalloc( 1, sizeof(BITMAPINFO) );
+	bmp_info->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmp_info->bmiHeader.biWidth = to_width ;
+	bmp_info->bmiHeader.biHeight = to_height ;
+	bmp_info->bmiHeader.biPlanes = 1 ;
+	bmp_info->bmiHeader.biBitCount = 24 ;
+	bmp_info->bmiHeader.biCompression = BI_RGB ;
+	bmp_info->bmiHeader.biSizeImage = 0 ;
+	bmp_info->bmiHeader.biClrUsed = 0 ;
+	bmp_info->bmiHeader.biClrImportant = 0 ;
 	/* allocate DIB bits : */
+	line_size = ((to_width*3+3)/4)*4;          /* DWORD aligned */
+	pad = line_size-(to_width*3) ;
+	bits = safemalloc(line_size * to_height);
+	curr = bits + line_size * to_height ;
+
+	r = imdec->buffer.red ;
+	g = imdec->buffer.green ;
+	b = imdec->buffer.blue ;
 	for( y = 0 ; y < max_y ; y++  )
 	{
+		register int x = to_width;
 		imdec->decode_image_scanline( imdec );
 		/* convert to DIB bits : */
+		curr -= pad ;
+		while( --x >= 0 ) 
+		{
+			curr -= 3 ; 
+			curr[0] = b[x] ; 	
+			curr[1] = g[x] ; 
+			curr[2] = r[x] ; 
+		}	 
+		if( tiling_step > 0 ) 
+		{
+			CARD8 *tile ;
+			int offset = tiling_step ; 
+			while( y + offset < (int)to_height ) 
+			{	 	 
+				tile = curr - offset*line_size ; 
+				memcpy( tile, curr, line_size );
+				offset += tiling_step ;
+			}
+		}	 
 	}
 	
 	stop_image_decoding( &imdec );
 
 	SHOW_TIME("", started);
+	*pBits = bits ;
 	return bmp_info;
 }
-
-#ifdef _WIN32
-
-
-
-
-#endif
 

@@ -6,6 +6,8 @@
 extern "C" {
 #endif
 
+#define BMP_SIGNATURE		0x4D42             /* "BM" */
+
 #if defined(_WIN32) && !defined(_WINGDI_)
 #include <windows.h>
 #endif
@@ -20,7 +22,6 @@ typedef struct tagRGBQUAD { // rgbq
 } RGBQUAD; 
 
 typedef struct tagBITMAPFILEHEADER {
-#define BMP_SIGNATURE		0x4D42             /* "BM" */
 	CARD16  bfType;
     CARD32  bfSize;
     CARD32  bfReserved;
@@ -30,7 +31,7 @@ typedef struct tagBITMAPFILEHEADER {
 typedef struct tagBITMAPINFOHEADER
 {
 	CARD32 biSize;
-	CARD32 biWidth,  biHeight;
+	int32_t biWidth,  biHeight;
 	CARD16 biPlanes, biBitCount;
 	CARD32 biCompression;
 	CARD32 biSizeImage;
@@ -45,10 +46,22 @@ typedef struct tagBITMAPINFO { // bmi
 
 #endif
 
+#ifndef BI_RGB     
+#define BI_RGB        0L
+#endif
+
+
 void 
-dib_line_to_scanline( ASScanline *buf, 
+dib_data_to_scanline( ASScanline *buf, 
                       BITMAPINFOHEADER *bmp_info, CARD8 *gamma_table, 
 					  CARD8 *data, CARD8 *cmap, int cmap_entry_size); 
+
+BITMAPINFO *
+ASImage2DBI( ASVisual *asv, ASImage *im, 
+		     int offset_x, int offset_y,
+			 unsigned int to_width,
+			 unsigned int to_height,
+  			 void **pBits );
 
 
 #ifdef __cplusplus

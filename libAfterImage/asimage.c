@@ -25,9 +25,6 @@
 
 #ifdef _WIN32
 #include "win32/config.h"
-#include <io.h>
-#include <windows.h>
-#define access		_access
 #else
 #include "config.h"
 #endif
@@ -84,7 +81,7 @@ static size_t __as_compression_buffer_len = 0;   /* allocated size */
 static inline CARD8* get_compression_buffer( size_t size )
 {
 	if( size > __as_compression_buffer_len )
-		__as_compression_buffer_len = (size+1023)&(~0x03FF) ;
+ 		__as_compression_buffer_len = (size+1023)&(~0x03FF) ;
 
 	return (__as_compression_buffer = realloc( __as_compression_buffer, __as_compression_buffer_len ));
 }
@@ -1241,7 +1238,7 @@ asimage_add_line_mono (ASImage * im, ColorPart color, register CARD8 value, unsi
 size_t
 asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigned int y)
 {
-	unsigned int    i = 0, bstart = 0, ccolor = 0;
+	int    i = 0, bstart = 0, ccolor = 0;
 	unsigned int    width;
 	register CARD8 *dst;
 	register int 	tail = 0;
