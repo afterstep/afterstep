@@ -216,6 +216,21 @@ asim_find_file (const char *file, const char *pathlist, int type)
 }
 
 /*******************************************************************/
+/* from mystring.c : */
+char         *
+asim_mystrndup (const char *str, size_t n)
+{
+	char         *c = NULL;
+	if (str)
+	{
+		c = malloc (n + 1);
+		strncpy (c, str, n);
+		c[n] = '\0';
+	}
+	return c;
+}
+
+/*******************************************************************/
 /* from parse,c : */
 const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 {
@@ -324,7 +339,7 @@ asim_create_ashash (ASHashKey size,
 	ASHashTable  *hash;
 
 	if (size <= 0)
-		size = DEFAULT_HASH_SIZE;
+		size = 63;
 
 	hash = safemalloc (sizeof (ASHashTable));
 	init_ashash (hash, False);
@@ -486,10 +501,8 @@ asim_get_hash_item (ASHashTable * hash, ASHashableValue value, void **trg)
 void asim_flush_ashash_memory_pool()
 {
 	/* we better disable errors as some of this data will belong to memory audit : */
-    int old_cleanup_mode = set_audit_cleanup_mode(1);
 	while( deallocated_used > 0 )
 		free( deallocated_mem[--deallocated_used] );
-	set_audit_cleanup_mode(old_cleanup_mode);
 }
 
 /************************************************************************/

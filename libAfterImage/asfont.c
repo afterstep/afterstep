@@ -35,6 +35,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #ifdef DO_CLOCKING
 #include <sys/time.h>
 #endif

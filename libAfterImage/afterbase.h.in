@@ -3,6 +3,9 @@
 
 #define HAVE_AFTERBASE_FLAG @HAVE_AFTERBASE_FLAG@
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
 #if @HAVE_AFTERBASE_FLAG@
 #include <libAfterBase/astypes.h>
 #include <libAfterBase/audit.h>
@@ -25,6 +28,7 @@
 
 /* from libAfterBase/astypes.h : */
 
+#include <stdio.h>
 #ifndef XMD_H
 #include <X11/Xmd.h>
 #endif
@@ -64,6 +68,7 @@ typedef struct ASMagic
 
 /* from libAfterBase/output.h : */
 /* user app must export these if libAfterBase is not used : */
+void set_application_name (char *argv0);
 const char *get_application_name();
 unsigned int get_output_threshold();
 
@@ -164,11 +169,16 @@ inline void asim_nonGNUC_debugout_stub( const char *format, ...);
 #define safemalloc(s) 	malloc(s)
 #define safecalloc(c,s) calloc(c,s)
 #define safefree(m)   	free(m)
+#define	NEW(a)              	((a *)malloc(sizeof(a)))
+#define	NEW_ARRAY_ZEROED(a, b)  ((a *)calloc(b, sizeof(a)))
+#define	NEW_ARRAY(a, b)     	((a *)malloc(b*sizeof(a)))
 
 /* from libAfterBase/mystring.h : */
 #include <string.h>
 #define mystrdup(s)     strdup(s)
-#define mystrndup(s,n)    strndup(s,n)
+
+char   *asim_mystrndup(const char *str, size_t n);
+#define mystrndup(s,n)    	 asim_mystrndup(s,n)
 #define mystrncasecmp(s,s2,n)    strncasecmp(s,s2,n)
 
 /* from libAfterBase/fs.h : */
@@ -237,6 +247,17 @@ typedef struct ASHashTable
 }
 ASHashTable;
 
+typedef enum
+{
+
+  ASH_BadParameter = -3,
+  ASH_ItemNotExists = -2,
+  ASH_ItemExistsDiffer = -1,
+  ASH_ItemExistsSame = 0,
+  ASH_Success = 1
+}
+ASHashResult;
+
 void 		 asim_init_ashash (ASHashTable * hash, Bool freeresources);
 ASHashTable *asim_create_ashash (ASHashKey size,
 			  	 ASHashKey (*hash_func) (ASHashableValue, ASHashKey),
@@ -258,10 +279,11 @@ long 		 asim_casestring_compare (ASHashableValue value1, ASHashableValue value2)
 #define	add_hash_item(h,v,d) 		 asim_add_hash_item(h,v,d)
 #define	get_hash_item(h,v,t) 		 asim_get_hash_item(h,v,t)
 #define	flush_ashash_memory_pool	 asim_flush_ashash_memory_pool
-#define	string_hash_value(v,s) 	 	 asim_string_hash_value(v,s)
-#define	string_compare(v1,v2) 		 asim_string_compare(v1,v2)
-#define	casestring_hash_value(v,s)	 asim_casestring_hash_value(v,s)
-#define	casestring_compare(v1,v2)	 asim_casestring_compare(v1,v2)
+
+#define	string_hash_value 	 	 asim_string_hash_value
+#define	string_compare 		 	 asim_string_compare
+#define	casestring_hash_value		 asim_casestring_hash_value
+#define	casestring_compare     		 asim_casestring_compare
 
 
 #endif /* HAVE_AFTERBASE */

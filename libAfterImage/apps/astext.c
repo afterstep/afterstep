@@ -89,7 +89,9 @@ int main(int argc, char* argv[])
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
+#if (HAVE_AFTERBASE_FLAG==1)
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
+#endif
 
 	if( argc == 1 )
 		usage();

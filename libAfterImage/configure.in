@@ -36,7 +36,7 @@ AC_ARG_ENABLE(warn,			[  --enable-warn            turn on more compiler warnings
 AC_ARG_ENABLE(gprof,		[  --enable-gprof           add gprof symbols (-pg) (for debugging) [no] ],enable_gprof=$enableval,enable_gprof="no")
 AC_ARG_ENABLE(audit,		[  --enable-audit           memory usage audit (for debugging) [no] ],enable_audit=$enableval,enable_audit="no")
 
-AC_ARG_ENABLE(mmx_optimization,	
+AC_ARG_ENABLE(mmx_optimization,
 							[  --enable-mmx-optimization  enable utilization of MMX instruction set to speed up imaging operations [yes] ],enable_mmx_optimization=$enableval,enable_mmx_optimization="yes")
 
 AC_ARG_WITH(xpm,	    	[  --with-xpm               support XPM image format [yes]])
@@ -133,7 +133,7 @@ dnl# we are alone - have to do all the checks ourselves :
 	INSTALL_PROGRAM=`echo $INSTALL_PROGRAM|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
 	INSTALL_DATA=`echo $INSTALL_DATA|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
 	INSTALL_LIB=`echo $INSTALL_LIB|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
-	
+
 	AC_PROG_RANLIB
 	AC_PATH_PROG(RM, rm, rm)
 	AC_PATH_PROG(MV, mv, mv)
@@ -154,7 +154,7 @@ AC_C_INLINE
 dnl# check for X, if top level configure script did not do that yet :
 if test "x$PATH_XTRA_CHECKED" != "xyes"; then
 	AC_PATH_XTRA
-fi	
+fi
 
 dnl# Check for graphics libraries :
 
@@ -171,13 +171,13 @@ else
   	fi
 	have_libxpm=no
   	AC_CHECK_HEADER(xpm.h,have_libxpm=yes)
-	if test "x$have_libxpm" = "xno"; then 
+	if test "x$have_libxpm" = "xno"; then
 		AC_CHECK_HEADER(X11/xpm.h,have_libxpm_x11="yes")
-		if test "x$have_libxpm_x11" = "xyes"; then 
+		if test "x$have_libxpm_x11" = "xyes"; then
 			 AC_DEFINE(HAVE_LIBXPM_X11)
 			 have_libxpm=yes
-		fi			 
-	fi		
+		fi
+	fi
   	if test "x$have_libxpm" = "xyes"; then
 		AC_DEFINE(HAVE_XPM)
 		AC_DEFINE(HAVE_LIBXPM)
@@ -333,7 +333,7 @@ if test "$with_afterbase" != "NO"; then
   fi
 fi
 
-AFTERBASE_C=afterbase.c
+AFTERBASE_C=afterbase.o
 HAVE_AFTERBASE_FLAG=0
 if test "x$have_afterbase" = "xyes"; then
     HAVE_AFTERBASE_FLAG=1
@@ -342,7 +342,7 @@ if test "x$have_afterbase" = "xyes"; then
     AC_DEFINE(HAVE_AFTERBASE)
 	AC_MSG_RESULT($AFTERBASE_CFLAGS)
 else
-    AC_MSG_RESULT("none found")	
+    AC_MSG_RESULT("none found")
 fi
 AC_SUBST(HAVE_AFTERBASE_FLAG)
 AC_SUBST(AFTERBASE_CFLAGS)
@@ -363,7 +363,7 @@ AC_SUBST(AFTERIMAGE_LIBS)
 if test "x$enable_staticlibs" = "xyes"; then
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
-fi   
+fi
 if test "x$enable_sharedlibs" = "xyes"; then
    tmp='$(LIB_SHARED)'
    LIBPROG="$LIBPROG $tmp"
