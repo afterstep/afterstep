@@ -19,22 +19,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * $Id: ButtonArray.c,v 1.1 2000/10/20 03:27:57 sashav Exp $
+ * $Id: ButtonArray.c,v 1.2 2002/04/27 06:23:44 sashav Exp $
  */
 
 #include "../../configure.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
-#include "../../include/ascolor.h"
-#include "../../include/stepgfx.h"
 
 #include "ButtonArray.h"
 #ifndef min

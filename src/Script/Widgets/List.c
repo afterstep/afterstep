@@ -18,12 +18,12 @@ InitList (struct XObj *xobj)
   int NbVisCell, NbCell;
 
   /* Enregistrement des couleurs et de la police */
-  MyAllocNamedColor (xobj->display, *xobj->colormap, xobj->forecolor, &xobj->TabColor[fore]);
-  MyAllocNamedColor (xobj->display, *xobj->colormap, xobj->backcolor, &xobj->TabColor[back]);
-  MyAllocNamedColor (xobj->display, *xobj->colormap, xobj->licolor, &xobj->TabColor[li]);
-  MyAllocNamedColor (xobj->display, *xobj->colormap, xobj->shadcolor, &xobj->TabColor[shad]);
-  MyAllocNamedColor (xobj->display, *xobj->colormap, "#000000", &xobj->TabColor[black]);
-  MyAllocNamedColor (xobj->display, *xobj->colormap, "#FFFFFF", &xobj->TabColor[white]);
+  MyAllocNamedColor ( xobj->forecolor, &xobj->TabColor[fore]);
+  MyAllocNamedColor ( xobj->backcolor, &xobj->TabColor[back]);
+  MyAllocNamedColor ( xobj->licolor, &xobj->TabColor[li]);
+  MyAllocNamedColor ( xobj->shadcolor, &xobj->TabColor[shad]);
+  MyAllocNamedColor ( "#000000", &xobj->TabColor[black]);
+  MyAllocNamedColor ( "#FFFFFF", &xobj->TabColor[white]);
 
 
   mask = 0;

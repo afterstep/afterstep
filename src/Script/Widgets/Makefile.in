@@ -1,16 +1,14 @@
-OBJS = CheckBox.o HDipstick.o HScrollBar.o ItemDraw.o List.o Menu.o \
+LIB_INCS=
+
+LIB_OBJS = CheckBox.o HDipstick.o HScrollBar.o ItemDraw.o List.o Menu.o \
        MiniScroll.o PopupMenu.o PushButton.o RadioButton.o Rectangle.o \
        Swallow.o TextField.o Tools.o VDipstick.o VScrollBar.o Widget.o
-OBJSDLL         = $(OBJS)
 
-PROG            = libWidgets.a
-DYNPROG         = libWidgets.so
+LIB_NAME        = LIBWIDGETS
+LIB_STATIC      = libWidgets.a
+LIB_SHARED      = libWidgets.so
 LIBVER          = 1.5
 LIBVERMAJOR     = 1
-#INSTALLONBUILD  = install
 
 @MAKEFILECOMMONLIB@
 
-install:	install.lib
-
-uninstall:	uninstall.lib

@@ -19,7 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * $Id: WinList.h,v 1.1 2000/10/20 03:27:57 sashav Exp $
+ * $Id: WinList.h,v 1.2 2002/04/27 06:23:44 sashav Exp $
  */
 
 #include "../../configure.h"
@@ -39,10 +39,6 @@
 #ifdef ISC			/* Saul */
 #include <sys/bsdtypes.h>	/* Saul */
 #endif /* Saul */
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
 #include <X11/Intrinsic.h>
 #include <X11/cursorfont.h>
 #ifdef I18N
@@ -58,10 +54,6 @@
 #include "../../include/screen.h"
 #include "../../include/module.h"
 #include "../../include/parse.h"
-#include "../../include/ascolor.h"
-#include "../../include/stepgfx.h"
-#include "../../include/XImage_utils.h"
-#include "../../include/pixmap.h"
 #include "../../include/loadimg.h"
 #include "ButtonArray.h"
 #include "List.h"

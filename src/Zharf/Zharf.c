@@ -109,6 +109,20 @@ static Atom wm_del_win;
 Atom _XA_WM_PROTOCOLS;
 Atom _XA_WM_NAME;
 
+unsigned long GetColor( char *color ) 
+{
+	ARGB32 argb ;
+	unsigned long pixel ;
+	
+	if( color == parse_argb_color( color, &argb ) )
+		return Scr.asv->black_pixel ;
+	
+	ARGB2PIXEL( Scr.asv, argb, &pixel );
+	return pixel ;
+}
+
+
+
 /***********************************************************************
  *
  *  Procedure:

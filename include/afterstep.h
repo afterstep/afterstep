@@ -252,7 +252,9 @@ extern TextureInfo Textures;
  ***************************************************************************/
 #define STICKY			(1<< 0)		/* Does window stick to glass? */
 #define BORDER			(1<< 1)		/* Is this decorated with border */
+#ifndef TITLE
 #define TITLE			(1<< 2)		/* Is this decorated with title */
+#endif
 #define MAPPED			(1<< 3)		/* is it mapped? */
 #define ICONIFIED		(1<< 4)		/* is it an icon now? */
 #define TRANSIENT		(1<< 5)		/* is it a transient window? */

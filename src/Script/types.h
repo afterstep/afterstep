@@ -22,19 +22,15 @@
 
 #include <X11/keysymdef.h>
 #include <X11/keysym.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
 #include <X11/cursorfont.h>
-#include <X11/Xatom.h>
-#ifdef XPM
-#include <X11/xpm.h>
-#endif /* XPM */
 #include <X11/X.h>
 
+#define IN_MODULE
+#define MODULE_X_INTERFACE
+
 #include "../../configure.h"
-#include "../../include/module.h"
 #include "../../include/aftersteplib.h"
+#include "../../include/module.h"
 
 /* Constante de couleurs */
 #define black 0
@@ -206,7 +202,8 @@ void ExecBloc(Bloc * bloc);
 
 void UnselectAllTextField(struct XObj **xobj);
 
-int MyAllocNamedColor(Display * display, Colormap colormap, char *colorname, XColor * color);
+unsigned long MyAllocNamedColor2 (char *colorname );
+int  MyAllocNamedColor (char *colorname, XColor *col );
 
 void Quit(int NbArg, long *TabArg);
 

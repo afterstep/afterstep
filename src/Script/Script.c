@@ -76,6 +76,8 @@ static Atom wm_del_win;
 extern void InitCom ();
 extern void (*TabCom[30]) (int NbArg, long *TabArg);
 
+ScreenInfo Scr;
+
 void
 Debug ()
 {
@@ -171,12 +173,8 @@ Xinit (int IsFather)
   __bounds_debug_no_checking = True;
 #endif
 
-  dpy = x11base->display = XOpenDisplay (NULL);
-  if (x11base->display == NULL)
-    {
-      fprintf (stderr, "Enable to open display.\n");
-      exit (1);
-    }
+  x_fd = ConnectX( &Scr, display_name, PropertyChangeMask );
+  x11base->display = dpy;
 #ifdef DEBUG
   __bounds_debug_no_checking = False;
 #endif
@@ -195,13 +193,12 @@ Xinit (int IsFather)
       x11base->TabScriptId[0] = NULL;
     }
   x11base->NbChild = 0;
-  screen = x11base->screen = DefaultScreen (x11base->display);
-  x11base->WhitePix = WhitePixel (x11base->display, x11base->screen);
-  x11base->BlackPix = BlackPixel (x11base->display, x11base->screen);
-  x11base->depth = XDefaultDepth (x11base->display, x11base->screen);
-  x11base->colormap = DefaultColormap (x11base->display, x11base->screen);
-  x11base->root = RootWindow (x11base->display, x11base->screen);
-  x_fd = XConnectionNumber (x11base->display);
+  screen = x11base->screen = Scr.screen;
+  x11base->WhitePix = Scr.asv->white_pixel ;
+  x11base->BlackPix = Scr.asv->black_pixel ;
+  x11base->depth = Scr.d_depth;
+  x11base->colormap = Scr.asv->colormap;
+  x11base->root = Scr.Root;
 }
 
 /***********************/
@@ -210,62 +207,51 @@ Xinit (int IsFather)
 void
 LoadIcon (struct XObj *xobj)
 {
-#ifdef XPM
-  char *path = NULL;
-  XWindowAttributes root_attr;
-  XpmAttributes xpm_attributes;
-
-  if ((xobj->icon) != NULL)
+	if ((xobj->icon) != NULL)
     {
-      path = (char *) findIconFile (xobj->icon, pixmapPath, 4);
-      if (path == NULL)
-	return;
-      XGetWindowAttributes (xobj->display, RootWindow (xobj->display, DefaultScreen (xobj->display)), &root_attr);
-      xpm_attributes.colormap = root_attr.colormap;
-      xpm_attributes.valuemask = XpmSize | XpmReturnPixels | XpmColormap;
-      if (XpmReadFileToPixmap (xobj->display, RootWindow (xobj->display, DefaultScreen (xobj->display)),
-			       path,
-			       &xobj->iconPixmap,
-			       &xobj->icon_maskPixmap,
-			       &xpm_attributes) == XpmSuccess)
-	{
-	  xobj->icon_w = xpm_attributes.width;
-	  xobj->icon_h = xpm_attributes.height;
-	}
-      else
-	{
-	  fprintf (stderr, "Enable to load pixmap %s\n", xobj->icon);
-	  xobj->iconPixmap = None;
-	  xobj->icon_maskPixmap = None;
-	}
-      free (path);
+		ASImage *im ;
+		if( Scr.image_manager == NULL ) 
+			Scr.image_manager = create_image_manager( NULL, 2.2, pixmapPath, NULL );
+	
+		im = get_asimage( Scr.image_manager, xobj->icon, 0xFFFFFFFF, 100 );
+		if( im == NULL ) 
+		{
+			xobj->icon_w = 0;
+			xobj->icon_h = 0;
+			xobj->iconPixmap = None;
+			xobj->icon_maskPixmap = None;
+		}else
+		{
+			xobj->iconPixmap = asimage2pixmap( Scr.asv, Scr.Root, im, NULL, True );
+			xobj->icon_maskPixmap = asimage2mask( Scr.asv, Scr.Root, im, NULL, True );
+			xobj->icon_w = im->width;
+			xobj->icon_h = im->height;
+			safe_asimage_destroy( im );
+		}
     }
-#else /* !XPM */
-  xobj->iconPixmap = None;
-  xobj->icon_maskPixmap = None;
-#endif /* !XPM */
 }
 
-int
-MyAllocNamedColor (Display * display, Colormap colormap, char *colorname, XColor * color)
+unsigned long
+MyAllocNamedColor2 (char *colorname )
 {
-  static XColor TempColor;
+	ARGB32 argb ;
+	unsigned long pixel = Scr.asv->white_pixel ;
+	if( parse_argb_color( colorname, &argb ) != colorname )
+		ARGB2PIXEL(Scr.asv,argb, &pixel);
+	return pixel ;
+}
 
-  if (colorname[0] == '#')
-    {
-      if (XParseColor (display, colormap, colorname, color))
-	return XAllocColor (display, colormap, color);
-      else
-	return 0;
-    }
-  else
-    {
-      if (XLookupColor (display, colormap, colorname, &TempColor, color))
-	return XAllocColor (display, colormap, color);
-      else
-	return 0;
-    }
-  return 0;
+int 
+MyAllocNamedColor (char *colorname, XColor *col )
+{
+	ARGB32 argb ;
+	col->pixel = Scr.asv->white_pixel ;
+	if( parse_argb_color( colorname, &argb ) != colorname )
+	{
+		ARGB2PIXEL(Scr.asv,argb, &(col->pixel));
+		return 1 ;
+	}
+	return 0 ;
 }
 
 /* Ouvre une fenetre pour l'affichage du GUI */
@@ -279,12 +265,13 @@ OpenWindow ()
   XSetWindowAttributes Attr;
 
   /* Allocation des couleurs */
-  MyAllocNamedColor (x11base->display, x11base->colormap, x11base->forecolor, &x11base->TabColor[fore]);
-  MyAllocNamedColor (x11base->display, x11base->colormap, x11base->backcolor, &x11base->TabColor[back]);
-  MyAllocNamedColor (x11base->display, x11base->colormap, x11base->shadcolor, &x11base->TabColor[shad]);
-  MyAllocNamedColor (x11base->display, x11base->colormap, x11base->licolor, &x11base->TabColor[li]);
-  MyAllocNamedColor (x11base->display, x11base->colormap, "#000000", &x11base->TabColor[black]);
-  MyAllocNamedColor (x11base->display, x11base->colormap, "#FFFFFF", &x11base->TabColor[white]);
+  x11base->TabColor[fore].pixel = MyAllocNamedColor2 ( x11base->forecolor );
+
+  x11base->TabColor[back].pixel = MyAllocNamedColor2 (x11base->backcolor);
+  x11base->TabColor[shad].pixel = MyAllocNamedColor2 (x11base->shadcolor);
+  x11base->TabColor[li].pixel =  MyAllocNamedColor2 (x11base->licolor  );
+  x11base->TabColor[black].pixel = Scr.asv->black_pixel ;
+  x11base->TabColor[white].pixel = Scr.asv->white_pixel ;
 
   /* Definition des caracteristiques de la fentre */
   mask = 0;
@@ -309,7 +296,6 @@ OpenWindow ()
   XSelectInput (x11base->display, x11base->win, KeyPressMask | ButtonPressMask
 		| ExposureMask | ButtonReleaseMask | EnterWindowMask
 		| LeaveWindowMask | ButtonMotionMask);
-  XSelectInput (x11base->display, x11base->root, PropertyChangeMask);
 
   /* Specification des parametres utilises par le gestionnaire de fenetre */
   if (XStringListToTextProperty (&x11base->title, 1, &Name) == 0)
@@ -401,7 +387,6 @@ BuildGUI (int IsFather)
 
   /* Initialisation du serveur X et de la fenetre */
 
-  Xinit (IsFather);
   OpenWindow ();
 
 
@@ -765,13 +750,13 @@ int
 main (int argc, char **argv)
 {
   int IsFather;
-  char mask_mesg[50];
   char *realconfigfile;
   char *temp;
   int i, k;
   char *global_config_file = NULL;
 
   /* Save our program name - for error messages */
+  set_application_name( argv[0] );
   temp = strrchr (argv[0], '/');
   MyName = temp ? temp + 1 : argv[0];
 
@@ -789,30 +774,32 @@ main (int argc, char **argv)
 	global_config_file = argv[++i];
     }
 
+  if (i == argc)
+    usage ();
+  /* On determine si le script a un pere */
+  IsFather = (i >= argc || *argv[i] != (char) 161);
+  i += !IsFather;
+  ScriptName = argv[i++];
+
   /* Dead pipe == dead AfterStep */
   signal (SIGPIPE, DeadPipe);
+  set_signal_handler (SIGSEGV);
+  signal (SIGINT, DeadPipe);	/* cleanup on other ways of closing too */
+  signal (SIGHUP, DeadPipe);
+  signal (SIGQUIT, DeadPipe);
+  signal (SIGTERM, DeadPipe);
 
-  if ((dpy = XOpenDisplay ("")) == NULL)
-    {
-      fprintf (stderr, "%s: couldn't open display %s\n",
-	       MyName, XDisplayName (""));
-      exit (1);
-    }
-  screen = DefaultScreen (dpy);
+  /* Enregistrement des arguments du script */
+  x11base = (X11base *) calloc (1, sizeof (X11base));
+  x11base->TabArg[0] = MyName;
+  for (k = 1; i < argc; i++, k++)
+    x11base->TabArg[k] = argv[i];
+
+  Xinit (IsFather);
 
   /* connect to AfterStep */
-  temp = module_get_socket_property (RootWindow (dpy, screen));
-  fd[0] = fd[1] = module_connect (temp);
-  XFree (temp);
-  if (fd[0] < 0)
-    {
-      fprintf (stderr, "%s: unable to establish connection to AfterStep\n", MyName);
-      exit (1);
-    }
-  temp = safemalloc (9 + strlen (MyName) + 1);
-  sprintf (temp, "SET_NAME %s", MyName);
-  SendInfo (fd, temp, None);
-  free (temp);
+  fd[0] = fd[1] = ConnectAfterStep(M_NEW_DESK | M_END_WINDOWLIST | M_MAP | M_RES_NAME |
+								    M_RES_CLASS | M_WINDOW_NAME);
 
 #ifdef I18N
   if (!setlocale (LC_CTYPE, AFTER_LOCALE))
@@ -821,33 +808,6 @@ main (int argc, char **argv)
       exit (1);
     }
 #endif
-
-  signal (SIGPIPE, DeadPipe);
-  signal (SIGINT, DeadPipe);	/* cleanup on other ways of closing too */
-  signal (SIGHUP, DeadPipe);
-  signal (SIGQUIT, DeadPipe);
-  signal (SIGTERM, DeadPipe);
-
-  if (i == argc)
-    usage ();
-
-  ScriptName = argv[i++];
-
-  /* On determine si le script a un pere */
-  IsFather = (i >= argc || *argv[i] != (char) 161);
-  i += !IsFather;
-
-  sprintf (mask_mesg, "SET_MASK %lu\n", (unsigned long)
-	   (M_NEW_DESK | M_END_WINDOWLIST | M_MAP | M_RES_NAME |
-	    M_RES_CLASS | M_WINDOW_NAME));
-
-  SendInfo (fd, mask_mesg, 0);
-
-  /* Enregistrement des arguments du script */
-  x11base = (X11base *) calloc (1, sizeof (X11base));
-  x11base->TabArg[0] = MyName;
-  for (k = 1; i < argc; i++, k++)
-    x11base->TabArg[k] = argv[i];
 
   if (global_config_file != NULL)
     ParseOptions (global_config_file);

@@ -940,8 +940,7 @@ ChangeForeColor (int NbArg, long *TabArg)
   tabxobj[IdItem]->forecolor = (char *) calloc (100, sizeof (char));
   sprintf (tabxobj[IdItem]->forecolor, "%s", arg[1]);
 
-  MyAllocNamedColor (tabxobj[IdItem]->display, *(tabxobj[IdItem])->colormap,
-	    tabxobj[IdItem]->forecolor, &(tabxobj[IdItem])->TabColor[fore]);
+  MyAllocNamedColor (tabxobj[IdItem]->forecolor, &(tabxobj[IdItem])->TabColor[fore]);
 
   tabxobj[IdItem]->DrawObj (tabxobj[IdItem]);
 
@@ -968,8 +967,7 @@ ChangeBackColor (int NbArg, long *TabArg)
   tabxobj[IdItem]->backcolor = (char *) calloc (100, sizeof (char));
   sprintf (tabxobj[IdItem]->backcolor, "%s", arg[1]);
 
-  MyAllocNamedColor (tabxobj[IdItem]->display, *(tabxobj[IdItem])->colormap,
-	    tabxobj[IdItem]->backcolor, &(tabxobj[IdItem])->TabColor[back]);
+  MyAllocNamedColor (tabxobj[IdItem]->backcolor, &(tabxobj[IdItem])->TabColor[back]);
 
   tabxobj[IdItem]->DrawObj (tabxobj[IdItem]);
 

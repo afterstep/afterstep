@@ -16,7 +16,9 @@
 #define MAX_WINDOW_HEIGHT 32767
 
 /* Cursor types */
+#ifndef POSITION
 #define POSITION 0		/* upper Left corner cursor */
+#endif
 #define TITLE_CURSOR 1		/* title-bar cursor */
 #define DEFAULT 2		/* cursor for apps to inherit */
 #define SYS 3			/* sys-menu and iconify boxes cursor */
