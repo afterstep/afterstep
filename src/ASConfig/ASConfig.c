@@ -86,12 +86,12 @@
  * 		$(AFTER_DIR)/$(START_DIR)      - user menu	 
  * 		$(AFTER_SHAREDIR)/$(START_DIR) - global menu ( editable by root only )
  * 
- * 	Theme override :
- * 		$(AFTER_DIR)/$(THEME_OVERRIDE_FILE)
- * 
  *  Database :
  * 		$(AFTER_DIR)/$(DATABASE_FILE)      	- user file	 
  * 		$(AFTER_SHAREDIR)/$(DATABASE_FILE) 	- global file ( editable by root only )
+ * 
+ * 	Afterstep :
+ * 		$(AFTER_DIR)/afterstep
  * 
  * 	Pager :
  * 		$(AFTER_DIR)/pager      	- user file	 
@@ -109,14 +109,16 @@
  * 
  * Base == Base
  * ColorScheme == Colorscheme
- * Look == Look + ThemeOverride + ModuleMyStyles
- * Feel == Feel + ThemeOverride
- * Functions == Feel + ThemeOverride + Autoexec + WorspaceState
- * Popups == Feel + ThemeOverride + startmenu
+ * Functions == Feel + afterstep + Autoexec + WorspaceState
+ * Popups == Feel + afterstep + startmenu
  * Database == Database
- * Pager == pager + Look.ModuleLook + ThemeOverride
- * Wharf == wharf + Look.ModuleLook + ThemeOverride
- * WinList == winlist + Look.ModuleLook + ThemeOverride
+ * Module specific : 
+ * 	Look == Look + module_config
+ * 	Feel == Feel + module_config
+ * 	afterstep == afterstep
+ * 	Pager == pager
+ * 	Wharf == wharf
+ * 	WinList == winlist
  * 
  * 
  */
@@ -203,13 +205,13 @@ typedef struct ASProperty {
  * 			complex_functions...
  * 			Files
  * 				feel
- * 				theme-override
+ * 				afterstep
  *  			autoexec
  * 		Popups
  * 			menus...
  * 			Files
  * 				feel
- * 				theme-override
+ * 				afterstep
  * 				start
  * 		Database
  *			styles...
@@ -229,12 +231,12 @@ typedef struct ASProperty {
  *	 			Options
  * 				Files
  * 					look
- * 					theme-override
+ * 					afterstep
  * 			Feel
  * 				Options
  * 				Files			
  * 					feel
- *	 				theme-override
+ *	 				afterstep
  * 		Module "Pager"
  * 			PagerLook
  * 				MyStyles
@@ -242,14 +244,12 @@ typedef struct ASProperty {
  * 				Options
  * 				Files
  * 					look
- * 					theme-override
  * 					pager
  * 
  * 			PagerFeel
  * 				Options
  * 				Files
  * 					feel
- * 					theme-override
  * 					pager
  * 		Module "Wharf"
  * 			Folders	
@@ -267,14 +267,12 @@ typedef struct ASProperty {
  * 				Options
  * 				Files
  * 					look
- * 					theme-override
  * 					wharf
  * 
  * 			WharfFeel
  * 				Options
  * 				Files
  * 					feel
- * 					theme-override
  * 					wharf
  * 		Module "WinList" 
  * 			WinListLook
@@ -283,21 +281,19 @@ typedef struct ASProperty {
  * 				Options
  * 				Files
  * 					look
- * 					theme-override
  * 					winlist
  * 
  * 			WinListFeel
  * 				Options
  * 				Files
  * 					feel
- * 					theme-override
  * 					wharf
  **************************************************************************
  * 		PrivateFiles
  * 			base
  * 			database
  * 			autoexec
- * 			theme_override
+ * 			afterstep
  * 			pager
  * 			wharf
  * 			winlist
@@ -313,7 +309,7 @@ typedef struct ASProperty {
  * 			base
  * 			database
  * 			autoexec
- * 			theme_override
+ * 			afterstep
  * 			pager
  * 			wharf
  * 			winlist
@@ -351,8 +347,8 @@ ASConfigFileInfo ConfigFilesInfo[] =
 {CONFIG_AutoExecFile_ID,	NULL, 0, NULL },
 {CONFIG_StartDir_ID,		NULL, 0, NULL },			
 {CONFIG_LookFile_ID,		NULL, 0, NULL },				
-{CONFIG_ThemeOverrideFile_ID,NULL, 0, NULL },		
-{CONFIG_DatabaseFile_ID,	NULL, 0, NULL },			
+{CONFIG_DatabaseFile_ID,	NULL, 0, NULL },			   
+{CONFIG_AfterStepFile_ID,   NULL, 0, NULL },		
 {CONFIG_PagerFile_ID, 		NULL, 0, NULL },				
 {CONFIG_WharfFile_ID, 		NULL, 0, NULL },				
 {CONFIG_WinListFile_ID,		NULL, 0, NULL },
@@ -376,19 +372,20 @@ ASConfigTypeInfo ConfigTypeInfo[] =
    	{ CONFIG_Base_ID, 		 &BaseSyntax,  0, 					1, {CONFIG_BaseFile_ID}, 			CONFIG_BaseOptions_ID},
 	{ CONFIG_ColorScheme_ID, &ColorSyntax, 0, 					1, {CONFIG_ColorSchemeFile_ID}, 	CONFIG_ColorSchemeOptions_ID},	  
 	{ CONFIG_Functions_ID, 	 &FunctionSyntax, CONFIG_FunctionsFiles_ID,  3, {CONFIG_FeelFile_ID,
-																			 CONFIG_ThemeOverrideFile_ID,
+																			 CONFIG_AfterStepFile_ID,
 																			 CONFIG_AutoExecFile_ID}, 0},	 
 	{ CONFIG_Popups_ID, 	 &PopupSyntax, CONFIG_PopupsFiles_ID,  3, {CONFIG_FeelFile_ID,
-																	   CONFIG_ThemeOverrideFile_ID,
+																	   CONFIG_AfterStepFile_ID,
 																	   CONFIG_StartDir_ID}, 0},	 
 	{ CONFIG_Database_ID, 	 &DatabaseSyntax, 0, 				   1, {CONFIG_DatabaseFile_ID}, 0},	  
   	{0}	 
 };
 
-
-int PagerFeelFiles[] = {CONFIG_FeelFile_ID, CONFIG_ThemeOverrideFile_ID, CONFIG_PagerFile_ID, -1} ;
-int PagerLookFiles[] = {CONFIG_LookFile_ID, CONFIG_ThemeOverrideFile_ID, CONFIG_PagerFile_ID, -1} ;
-int PagerPrivateFiles[] = {CONFIG_PagerFile_ID, -1} ;
+int AfterStepFeelFiles[]	= {CONFIG_FeelFile_ID, CONFIG_AfterStepFile_ID, -1} ;
+int AfterStepLookFiles[]	= {CONFIG_LookFile_ID, CONFIG_AfterStepFile_ID, -1} ;
+int PagerFeelFiles[] 		= {CONFIG_FeelFile_ID, CONFIG_PagerFile_ID, -1} ;
+int PagerLookFiles[] 		= {CONFIG_LookFile_ID, CONFIG_PagerFile_ID, -1} ;
+int PagerPrivateFiles[] 	= {CONFIG_PagerFile_ID, -1} ;
 
 typedef struct ASModuleSyntax
 {
@@ -397,12 +394,33 @@ typedef struct ASModuleSyntax
 	int config_files_id ;
 	int *files ; 	   
 	int config_options_id ;
+	struct ASModuleSyntax *subsyntaxes ;
 }ASModuleSyntax;
 
-ASModuleSyntax PagerSyntaxes[] = {	{CONFIG_PagerFeel_ID, &PagerFeelSyntax, CONFIG_FeelFiles_ID, PagerFeelFiles, CONFIG_FeelOptions_ID },
-									{CONFIG_PagerLook_ID, &PagerLookSyntax, CONFIG_LookFiles_ID, PagerLookFiles, CONFIG_LookOptions_ID },
-									{0, 	  &PagerPrivateSyntax,                0, PagerPrivateFiles, CONFIG_PagerOptions_ID },									
-									{-1, NULL, 0, NULL}};
+ASModuleSyntax MyStylesSyntaxes[] ={{CONFIG_MyStyles_ID,  &ModuleMyStyleSyntax,  CONFIG_LookFiles_ID, PagerLookFiles, 0, NULL },
+									{-1, NULL, 0, NULL, 0, NULL}};
+
+ASModuleSyntax AfterStepLookSyntaxes[] ={{CONFIG_MyStyles_ID,  		&ModuleMyStyleSyntax,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
+										 {CONFIG_MyFrames_ID,  		&AfterStepMyFrameSyntax,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
+										 {CONFIG_MyBackgrounds_ID,	&AfterStepMyBackSyntax,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
+										 {CONFIG_TitleButtons_ID,	&AfterStepTitleButtonSyntax,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
+										 {-1, NULL, 0, NULL, 0, NULL}};
+
+ASModuleSyntax AfterStepFeelSyntaxes[] ={{CONFIG_Cursors_ID,  		&AfterStepCursorSyntax,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
+										 {CONFIG_MouseBindings_ID,	&AfterStepMouseSyntax,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
+										 {CONFIG_KeyBindings_ID,	&AfterStepKeySyntax,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
+										 {CONFIG_WindowBoxes_ID,	&AfterStepWindowBoxSyntax,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
+										 {-1, NULL, 0, NULL, 0, NULL}};
+
+ASModuleSyntax AfterStepSyntaxes[]={{CONFIG_AfterStepFeel_ID, &AfterStepFeelSyntax, CONFIG_FeelFiles_ID, AfterStepFeelFiles, CONFIG_FeelOptions_ID, &AfterStepFeelSyntaxes[0] },
+									{CONFIG_AfterStepLook_ID, &AfterStepLookSyntax, CONFIG_LookFiles_ID, AfterStepLookFiles, CONFIG_LookOptions_ID, &AfterStepLookSyntaxes[0] },
+									{-1, NULL, 0, NULL, 0, NULL}};
+
+
+ASModuleSyntax PagerSyntaxes[] = {	{CONFIG_PagerFeel_ID, &PagerFeelSyntax, CONFIG_FeelFiles_ID, PagerFeelFiles, CONFIG_FeelOptions_ID, NULL },
+									{CONFIG_PagerLook_ID, &PagerLookSyntax, CONFIG_LookFiles_ID, PagerLookFiles, CONFIG_LookOptions_ID, &MyStylesSyntaxes[0] },
+									{0, 	  			  &PagerPrivateSyntax,                0, PagerPrivateFiles, CONFIG_PagerOptions_ID, NULL },									
+									{-1, NULL, 0, NULL, 0, NULL}};
 typedef struct ASModuleSpecs
 {
 	const char *module_class ;
@@ -411,6 +429,7 @@ typedef struct ASModuleSpecs
 
 ASModuleSpecs ModulesSpecs[] = 
 	{{CLASS_PAGER, PagerSyntaxes},
+	 {CLASS_AFTERSTEP, AfterStepSyntaxes},
 	 {NULL, NULL}
 	};
 
@@ -445,12 +464,12 @@ init_ConfigFileInfo()
 			case CONFIG_StartDir_ID :	   
 				ConfigFilesInfo[i].session_file = make_session_dir (Session, START_DIR, False); 
 				break ;	
-			case CONFIG_ThemeOverrideFile_ID :	   
-				ConfigFilesInfo[i].session_file = make_session_data_file  (Session, False, R_OK, THEME_OVERRIDE_FILE, NULL );	
-				break ;
 			case CONFIG_DatabaseFile_ID :	   
 				ConfigFilesInfo[i].session_file = make_session_file(Session, DATABASE_FILE, False ); 
 				break ;	   
+			case CONFIG_AfterStepFile_ID :	   
+				ConfigFilesInfo[i].session_file = make_session_file(Session, "afterstep", False );;	
+				break ;
 			case CONFIG_PagerFile_ID :	   
 				ConfigFilesInfo[i].session_file = make_session_file(Session, "pager", False ); 
 				break ;	 
@@ -549,8 +568,8 @@ void register_special_keywords()
 	REG_SPEC_KEYWORD(Wharf);
 	REG_SPEC_KEYWORD(WinList);
                      	
-	REG_SPEC_KEYWORD(Look);
-	REG_SPEC_KEYWORD(Feel);
+	REG_SPEC_KEYWORD(AfterStepLook);
+	REG_SPEC_KEYWORD(AfterStepFeel);
 	REG_SPEC_KEYWORD(PagerLook);
 	REG_SPEC_KEYWORD(PagerFeel);
 	REG_SPEC_KEYWORD(WharfLook);
@@ -565,7 +584,7 @@ void register_special_keywords()
 	REG_SPEC_KEYWORD(PagerFile);
 	REG_SPEC_KEYWORD(WharfFile);
 	REG_SPEC_KEYWORD(WinListFile);
-	REG_SPEC_KEYWORD(ThemeOverrideFile);
+	REG_SPEC_KEYWORD(AfterStepFile);
 	REG_SPEC_KEYWORD(BaseFile);			
 	REG_SPEC_KEYWORD(ColorSchemeFile);
 	REG_SPEC_KEYWORD(DatabaseFile);		
@@ -585,8 +604,14 @@ void register_special_keywords()
 	REG_SPEC_KEYWORD(MyFrames);
 	REG_SPEC_KEYWORD(MyBackgrounds);
 	REG_SPEC_KEYWORD(TitleButtons);
+	REG_SPEC_KEYWORD(Cursors);
+	REG_SPEC_KEYWORD(MouseBindings);
+	REG_SPEC_KEYWORD(KeyBindings);
+	REG_SPEC_KEYWORD(WindowBoxes);
+
 	REG_SPEC_KEYWORD(LookOptions);
 	REG_SPEC_KEYWORD(FeelOptions);
+	REG_SPEC_KEYWORD(AfterStepOptions);
 	REG_SPEC_KEYWORD(PagerOptions);
 	REG_SPEC_KEYWORD(WharfOptions);
 	REG_SPEC_KEYWORD(WinListOptions);
@@ -1106,24 +1131,25 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 			{	
 				int type = ASProp_Phony;
 				char *name = NULL ;
+				if( curr->sub == NULL ) 
+					switch( curr->term->type )
+					{
+						case TT_FLAG : 
+						case TT_INTEGER : 
+						case TT_UINTEGER :
+						case TT_BITLIST : 	type = ASProp_Integer ; break ;
 
-				switch( curr->term->type )
-				{
-					case TT_FLAG : 
-					case TT_INTEGER : 
-					case TT_UINTEGER :
-					case TT_BITLIST : 	type = ASProp_Integer ; break ;
+						case TT_COLOR : 	
+						case TT_FONT : 		
+						case TT_FILENAME : 	
+						case TT_PATHNAME : 	
+						case TT_TEXT : 
+						case TT_QUOTED_TEXT :
+						case TT_OPTIONAL_PATHNAME : type = ASProp_Data ; break ;
+						default:
+						/* handled by special_ as complex datatype */ break ;
+					}	 
 
-					case TT_COLOR : 	
-					case TT_FONT : 		
-					case TT_FILENAME : 	
-					case TT_PATHNAME : 	
-					case TT_TEXT : 
-					case TT_QUOTED_TEXT :
-					case TT_OPTIONAL_PATHNAME : type = ASProp_Data ; break ;
-					default:
-					/* handled by special_ as complex datatype */ break ;
-				}	 
 				prop = create_property( curr->term->id, type, name, (curr->sub != NULL) );	 
 				if( type == ASProp_Data ) 
 				{
@@ -1286,12 +1312,17 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 	struct direntry  **list;
 	int list_len, i ;
 	ASProperty *popup, *include_file = NULL ;
-	const char *ptr = strrchr(dirname,'/');
+	const char *ptr;
 	ASConfigFile *include_cf = NULL ;
 	char *new_path ;		
 	ASProperty *item = NULL ;
 	int mini_ext_len = mini_ext?strlen(mini_ext):0 ;
 	int ext_len = extension?strlen(extension):0 ; 
+
+	if( dirname == NULL ) 
+		return NULL;
+	
+	ptr = strrchr(dirname,'/');
 
 	list_len = my_scandir ((char*)dirname, &list, no_dots_except_include, NULL);
 	LOCAL_DEBUG_OUT("dir \"%s\" has %d entries", dirname, list_len );
@@ -1576,8 +1607,8 @@ melt_menu_props_into_list(void *data, void *aux_data)
 			ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
 			if( prop->id == INCLUDE_include_ID )
 			{
-				char *fullfilename = PutHome( prop->name );
 				ASProperty *text_prop = find_property_by_id( prop, CONFIG_text_ID );	 
+				char *fullfilename = PutHome( prop->name );
 				int incl_func = func ;
 				ASProperty *sub_popup ;
 
@@ -1700,7 +1731,7 @@ melt_func_props( ASProperty *src, ASProperty *dst )
 	
 /*************************************************************************/
 void load_global_configs();
-ASProperty* add_module_config( const char *module_class, const char *module_name );
+void add_module_config( const char *module_class, const char *module_name );
 
 
 void 
@@ -1709,6 +1740,7 @@ load_hierarchy()
 	Root = create_property( CONFIG_root_ID, ASProp_Phony, "", True );
 		
 	load_global_configs();
+	add_module_config( CLASS_AFTERSTEP, "afterstep" );
 	add_module_config( CLASS_PAGER, "Pager" );
 }
 
@@ -1737,51 +1769,58 @@ load_global_configs()
 	}
 }	 
 
-ASProperty* 
+void handle_module_syntaxes( ASProperty *owner, const char *module_name, ASModuleSyntax *syntaxes )
+{	
+	int k ;
+	ASProperty *tmp ;
+	for( k = 0 ; syntaxes[k].config_id >= 0 ; ++k )
+	{	
+		ASModuleSyntax *ms = &(syntaxes[k]);
+		int l ;
+
+		if( ms->config_id == 0 ) 
+		{
+			load_current_config( 	owner,
+									ms->config_id, module_name, 
+									ms->syntax, 
+									0, 
+									ms->files[0], 
+									ms->config_options_id);				 		
+		}else
+		{		 
+			tmp = NULL ;
+			for( l = 0 ; ms->files[l] >= 0 ; ++l )
+			{
+				tmp = load_current_config( 	tmp,
+											ms->config_id, module_name, 
+											ms->syntax, 
+											ms->config_files_id, 
+											ms->files[l], 
+											ms->config_options_id);
+			}
+			if( tmp ) 
+				append_property( owner, tmp );
+					
+			if( ms->subsyntaxes ) 
+				handle_module_syntaxes( tmp, module_name, ms->subsyntaxes );
+		}
+	}
+}
+
+void
 add_module_config( const char *module_class, const char *module_name )
 {
 	int i ;
-	ASProperty *tmp = NULL, *config;
+	ASProperty *config;
 
 	for( i = 0 ; ModulesSpecs[i].module_class != NULL ; ++i )
 		if( mystrcmp( ModulesSpecs[i].module_class, module_class ) == 0 )
 		{	
-			int k ;
 			config = create_property( CONFIG_Module_ID, ASProp_Phony, module_name, True );
-			for( k = 0 ; ModulesSpecs[i].syntaxes[k].config_id >= 0 ; ++k )
-			{	
-				ASModuleSyntax *ms = &(ModulesSpecs[i].syntaxes[k]);
-				int l ;
-
-				if( ms->config_id == 0 ) 
-				{
-					load_current_config( 	config,
-											ms->config_id, module_name, 
-											ms->syntax, 
-											0, 
-											ms->files[0], 
-											ms->config_options_id);				 		
-				}else
-				{		 
-					tmp = NULL ;
-					for( l = 0 ; ms->files[l] >= 0 ; ++l )
-					{
-						tmp = load_current_config( 	tmp,
-													ms->config_id, module_name, 
-													ms->syntax, 
-													ms->config_files_id, 
-													ms->files[l], 
-													ms->config_options_id);
-					}
-					if( tmp ) 
-						append_property( config, tmp );
-				}
-			}
 			append_property( Root, config );
-		    
-			return tmp ;
+			
+			handle_module_syntaxes( config, module_name, ModulesSpecs[i].syntaxes );
 		}
-	return NULL ;
 }
 
 

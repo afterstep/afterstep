@@ -49,8 +49,26 @@ extern struct SyntaxDef 	 FunctionSyntax;
 extern struct SyntaxDef 	 PopupSyntax;
 extern struct SyntaxDef 	 includeSyntax;
 
+extern struct SyntaxDef      WindowBoxSyntax;
+extern struct SyntaxDef		 ThemeSyntax;
+extern struct SyntaxDef     SupportedHintsSyntax;
+
 extern struct SyntaxDef      AutoExecSyntax;
 extern struct SyntaxDef      LookSyntax;
+extern struct SyntaxDef 	 AfterStepLookSyntax;
+extern struct SyntaxDef 	 ModuleMyStyleSyntax;
+extern struct SyntaxDef 	 AfterStepMyFrameSyntax;
+extern struct SyntaxDef 	 AfterStepMyBackSyntax;
+extern struct SyntaxDef 	 AfterStepTitleButtonSyntax;
+
+extern struct SyntaxDef 	 AfterStepFeelSyntax;
+extern struct SyntaxDef 	 AfterStepCursorSyntax;
+extern struct SyntaxDef 	 AfterStepMouseSyntax;
+extern struct SyntaxDef 	 AfterStepKeySyntax;
+extern struct SyntaxDef 	 AfterStepWindowBoxSyntax;
+
+
+
 extern struct SyntaxDef      PagerSyntax;
 extern struct SyntaxDef      PagerPrivateSyntax;
 extern struct SyntaxDef      PagerLookSyntax;
@@ -96,8 +114,8 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 
 
 #define CONFIG_MODULE_SPECIFIC			(CONFIG_MODULE_TYPES+4)
-#define CONFIG_Look_ID 					(CONFIG_MODULE_SPECIFIC)
-#define CONFIG_Feel_ID					(CONFIG_MODULE_SPECIFIC+1)
+#define CONFIG_AfterStepLook_ID			(CONFIG_MODULE_SPECIFIC)
+#define CONFIG_AfterStepFeel_ID			(CONFIG_MODULE_SPECIFIC+1)
 #define CONFIG_PagerLook_ID 			(CONFIG_MODULE_SPECIFIC+2)
 #define CONFIG_PagerFeel_ID				(CONFIG_MODULE_SPECIFIC+3)
 #define CONFIG_WharfLook_ID 			(CONFIG_MODULE_SPECIFIC+4)
@@ -114,7 +132,7 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_PagerFile_ID 			(CONFIG_FILE_IDS+4)
 #define CONFIG_WharfFile_ID 			(CONFIG_FILE_IDS+5)
 #define CONFIG_WinListFile_ID 			(CONFIG_FILE_IDS+6)
-#define CONFIG_ThemeOverrideFile_ID		(CONFIG_FILE_IDS+7)
+#define CONFIG_AfterStepFile_ID	 		(CONFIG_FILE_IDS+7)
 #define CONFIG_BaseFile_ID				(CONFIG_FILE_IDS+8)
 #define CONFIG_ColorSchemeFile_ID		(CONFIG_FILE_IDS+9)
 #define CONFIG_DatabaseFile_ID			(CONFIG_FILE_IDS+10)
@@ -137,13 +155,18 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_MyFrames_ID				(CONFIG_OPTIONS_IDS+3)
 #define CONFIG_MyBackgrounds_ID		 	(CONFIG_OPTIONS_IDS+4)
 #define CONFIG_TitleButtons_ID		 	(CONFIG_OPTIONS_IDS+5)
-#define CONFIG_LookOptions_ID		 	(CONFIG_OPTIONS_IDS+6)
-#define CONFIG_FeelOptions_ID			(CONFIG_OPTIONS_IDS+7)
-#define CONFIG_PagerOptions_ID			(CONFIG_OPTIONS_IDS+8)
-#define CONFIG_WharfOptions_ID			(CONFIG_OPTIONS_IDS+9)
-#define CONFIG_WinListOptions_ID		(CONFIG_OPTIONS_IDS+10)
+#define CONFIG_Cursors_ID	  			(CONFIG_OPTIONS_IDS+6)
+#define CONFIG_MouseBindings_ID			(CONFIG_OPTIONS_IDS+7)
+#define CONFIG_KeyBindings_ID			(CONFIG_OPTIONS_IDS+8)
+#define CONFIG_WindowBoxes_ID			(CONFIG_OPTIONS_IDS+9)
+#define CONFIG_LookOptions_ID		 	(CONFIG_OPTIONS_IDS+10)
+#define CONFIG_FeelOptions_ID			(CONFIG_OPTIONS_IDS+11)
+#define CONFIG_AfterStepOptions_ID		(CONFIG_OPTIONS_IDS+12)
+#define CONFIG_PagerOptions_ID			(CONFIG_OPTIONS_IDS+13)
+#define CONFIG_WharfOptions_ID			(CONFIG_OPTIONS_IDS+14)
+#define CONFIG_WinListOptions_ID		(CONFIG_OPTIONS_IDS+15)
 
-#define CONFIG_SUBOPTIONS_IDS	   	    (CONFIG_OPTIONS_IDS+11)
+#define CONFIG_SUBOPTIONS_IDS	   	    (CONFIG_OPTIONS_IDS+16)
 #define CONFIG_flags_ID					(CONFIG_SUBOPTIONS_IDS)
 #define CONFIG_x_ID						(CONFIG_SUBOPTIONS_IDS+1)
 #define CONFIG_y_ID						(CONFIG_SUBOPTIONS_IDS+2)
@@ -540,7 +563,7 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 /*                        balloon pasring definitions                       */
 /**************************************************************************/
 
-#define BALLOON_ID_START            (BEVEL_ID_END+1)
+#define BALLOON_ID_START            (TBAR_LAYOUT_ID_END+1)
 
 #define BALLOON_USED_ID	 			 BALLOON_ID_START
 #define BALLOON_BorderHilite_ID     (BALLOON_ID_START+1)

@@ -108,12 +108,12 @@ SyntaxDef     PagerFeelSyntax = {
 };
 
 
+/* use ModuleMyStyleSyntax for MyStyles */
+/*	INCLUDE_MYSTYLE, */
+
 TermDef       PagerLookTerms[] = {
     /* Look */
 	PAGER_LOOK_TERMS,
-
-/* including MyStyles definitions processing */
-	INCLUDE_MYSTYLE,
 /* now special cases that should be processed by it's own handlers */
     BALLOON_LOOK_TERMS,
 	{0, NULL, 0, 0, 0}

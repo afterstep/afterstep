@@ -51,6 +51,7 @@ typedef struct TermDef
 #define TF_NONUNIQUE 		 (1<<21) /* Ther could be several options of this type in config */
 #define TF_QUOTES_OPTIONAL 	 (1<<20) /* Ther could be several options of this type in config */
 #define TF_SYNTAX_START		 (1<<19)
+#define TF_PHONY	  		 (1<<28)	/* to enable error notification */
 
   unsigned long flags;		/* combination of any of above values */
   char *keyword;
@@ -182,6 +183,7 @@ typedef struct ConfigDef
 #define CF_FOREIGN_OPTION	(1<<2)	/* option had * prepending it, but unknown MyName after that */
 #define CF_LAST_OPTION	(1<<3)	/* option is last in the config file */
 #define CF_COMMENTED_OPTION	(1<<4)	/* option is last in the config file */
+#define CF_PHONY_OPTION	(1<<5)	/* option is last in the config file */
 
 #define IsOptionEnabled(config)	(!(config->current_flags&CF_DISABLED_OPTION))
 #define IsOptionDisabled(config)	(config->current_flags&CF_DISABLED_OPTION)

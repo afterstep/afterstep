@@ -792,9 +792,11 @@ ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 #ifdef DEBUG_PARSER
 				fprintf (stderr, "\nTerm Found:[%s]", config->current_term->keyword);
 #endif
-				if (config->current_term->flags & TF_OBSOLETE)
+				if (get_flags( config->current_term->flags, TF_OBSOLETE))
 					config_error (config, "Heh, It seems that I've encountered obsolete config option. I'll ignore it for now, Ok ?!");
-  				if (config->current_term->flags & TF_SPECIAL_PROCESSING)
+				if (get_flags( config->current_term->flags, TF_PHONY))
+					set_flags( config->flags, CF_PHONY_OPTION );
+  				if (get_flags( config->current_term->flags, TF_SPECIAL_PROCESSING))
 				{
 					if (config->special)
 					{
@@ -862,7 +864,7 @@ file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, FreeSto
 
 	/* getting rid of all the crap first */
 	if( foreign_options )
-		StorageCleanUp (&storage, foreign_options, CF_DISABLED_OPTION);
+		StorageCleanUp (&storage, foreign_options, CF_DISABLED_OPTION|CF_PHONY_OPTION);
 
 	DestroyConfig (config_reader);   
 	return storage;
