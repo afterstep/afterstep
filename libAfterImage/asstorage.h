@@ -67,14 +67,17 @@ typedef struct ASStorageSlot
 /* Pointer to ASStorageSlot is the pointer to used memory beginning - ASStorageSlot_SIZE 
  * thus we need not to store it separately 
  */
-#define ASStoprage_ZlibCompress		(0x01<<0)  /* do we really want that ? */ 
-#define ASStoprage_RLEDiffCompress 	(0x01<<1)  /* RLE of difference */ 
+#define ASStorage_ZlibCompress		(0x01<<0)  /* do we really want that ? */ 
+#define ASStorage_RLEDiffCompress 	(0x01<<1)  /* RLE of difference */ 
 
 #define ASStorage_CompressionType	(0x0F<<0)  /* allow for 16 compression schemes */
 #define ASStorage_Used				(0x01<<4)
 #define ASStorage_NotTileable		(0x01<<5)
 #define ASStorage_Reference			(0x01<<6)  /* data is the id of some other slot */ 
 #define ASStorage_Bitmap			(0x01<<7)  /* data is 1 bpp */ 
+#define ASStorage_32Bit				(0x01<<8)  /* data is 32 bpp with only first 8 bits being significant */ 
+#define ASStorage_8BitShift			(0x01<<9)  /* data is 32 bpp shifted left by 8 bit 
+												* (must combine with _32Bit flag )*/ 
 
 	CARD16  flags ;
 	CARD16  ref_count ;
@@ -123,6 +126,7 @@ typedef struct ASStorage
 	ASStorageBlock **blocks ;
 	int 			blocks_count;
 
+	short  *diff_buf ;
 	CARD8  *comp_buf ;
 	size_t 	comp_buf_size ; 
 
@@ -137,8 +141,15 @@ ASStorageID store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType fla
  * Data will be fetched from offset  and will count buf_size bytes if buf_size is greater then
  * available data - data will be tiled to accomodate this size, unless NotTileable is set */
 int  fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int buf_size, CARD8 bitmap_value);
+int  fetch_data32(ASStorage *storage, ASStorageID id, CARD32 *buffer, int offset, int buf_size, CARD8 bitmap_value);
+int  threshold_stored_data(ASStorage *storage, ASStorageID id, unsigned int *runs, int width, unsigned int threshold);
+
 /* slot identified by id will be marked as unused */
 void forget_data(ASStorage *storage, ASStorageID id);
+
+
+int print_storage_slot(ASStorage *storage, ASStorageID id);
+Bool query_storage_slot(ASStorage *storage, ASStorageID id, ASStorageSlot *dst );
 
 /* returns new ID without copying data. Data will be stored as copy-on-right. 
  * Reference count of the data will be increased. If optional dst_id is specified - 

@@ -86,53 +86,105 @@ make_asstorage_id( int block_id, int slot_id )
 }
 
 static int 
-rlediff_compress_bitmap( CARD8 *buffer,  CARD8* data, int size, CARD8 bitmap_threshold )
-{
-	int i = 0 ; 
-	CARD8 last_val = 0 ;
-	int comp_size = 0 ;
-	
+rlediff_compress_bitmap8( CARD8 *buffer,  CARD8* data, int size, CARD32 bitmap_threshold )
+{	
+	int i = 0, comp_size = 0, last_val = 0 ;
 	while( i < size ) 
 	{
 		int count = 0 ;
-		while( count < 255 	&& i < size ) 
-		{
+		do{	
 			if( (( data[i] > bitmap_threshold )?1:0) != last_val ) 	  
-				break;
-			++count ;
+				break; 
 			++i ;
-		}	 
+		}while( ++count < 255 && i < size ); 	 
 		last_val = (last_val == 1)?0:1 ;
 		buffer[comp_size++] = count ;
 	}
-			   
 	return comp_size;	
 }	 
 
 static int 
-rlediff_compress( CARD8 *buffer,  CARD8* data, int size )
+rlediff_compress_bitmap32( CARD8 *buffer,  CARD8* data, int size, CARD32 bitmap_threshold )
+{	
+	int i = 0, comp_size = 0, last_val = 0 ;
+	CARD32 *data32 = (CARD32*)data ;
+	while( i < size ) 
+	{
+		int count = 0 ;
+		do{	
+			if( (( data32[i] > bitmap_threshold )?1:0) != last_val ) 	  
+				break; 
+			++i ;
+		}while( ++count < 255 && i < size ); 	 
+		last_val = (last_val == 1)?0:1 ;
+		buffer[comp_size++] = count ;
+	}
+	return comp_size;	
+}	 
+
+
+static void
+compute_diff8( register short *diff, register CARD8 *data, int size ) 
 {
-	Bool sign[64] ;
-	CARD8 diff[64], last_val = 0 ;
+	register int i = 0;	
+	diff[0] = data[0] ;
+/*	fprintf( stderr, "%d(%4.4X) ", diff[0], diff[0] ); */
+	while( ++i < size ) 
+	{	
+		diff[i] = (short)data[i] - (short)data[i-1] ;
+/*		fprintf( stderr, "%d(%4.4X) ", diff[i], diff[i] ); */
+	}
+/*	fprintf( stderr, "\n" ); */
+}	   
+
+static void
+compute_diff32( register short *diff, CARD8 *data, int size ) 
+{
+	register int i = 0;	
+	register CARD32 *data32 = (CARD32*)data ;
+	diff[0] = data32[0] ;
+	fprintf( stderr, "\n0:%d(%4.4X) ", diff[0], diff[0] ); 
+	while( ++i < size ) 
+	{	
+		diff[i] = (short)data32[i] - (short)data32[i-1] ;
+		fprintf( stderr, "%d:%d(%4.4X) ", i, diff[i], diff[i] ); 
+	}
+	fprintf( stderr, "\n" ); 
+}	   
+
+static void
+compute_diff32_8bitshift( register short *diff, CARD8 *data, int size ) 
+{
+	register int i = 0;	
+	register CARD32 *data32 = (CARD32*)data ;
+	diff[0] = data32[0]>>8 ;
+	while( ++i < size ) 
+		diff[i] = (short)(data32[i]>>8) - (short)(data32[i-1]>>8) ;
+}	   
+
+
+static int 
+rlediff_compress( CARD8 *buffer,  short *diff, int size )
+{
 	int comp_size = 1 ;
 	int i = 1;
 
-	buffer[0] = last_val = data[0] ; 
+	buffer[0] = diff[0] ; 
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
- 	fprintf(stderr, "first byte: 0x%2.2X \n", last_val );
+ 	fprintf(stderr, "first byte: 0x%2.2X \n", buffer[0] );
 #endif				
 	while( i < size ) 
 	{
 		int run_step = 0;
 		int run_size2 = 0;
-		int d = (data[i] < last_val)?last_val-data[i]:data[i]-last_val ;
+		int d = diff[i] ; 
 		
 		if( d == 0 ) 
 		{
 			int zero_size = 0 ;  /* intentionally ! */ 
 			while( ++i < size && zero_size < 127 ) 	 
 			{	
-				if( data[i] != last_val ) 
+				if( diff[i] != 0 ) 
 					break;
 				++zero_size ;
 			}
@@ -146,178 +198,183 @@ rlediff_compress( CARD8 *buffer,  CARD8* data, int size )
 			fprintf(stderr, "in %d out %d: 0x%2.2X  - %d zeros\n", i, comp_size, buffer[comp_size], zero_size+1 );
 #endif
 			++comp_size ;
-		}else if( d <= 8 )  
-		{ /* see if we can pack everything into 2 or 4 bit string */
-			do
-			{
-				if( data[i] == last_val	) 
-					break;
-				sign[run_step] = (data[i] > last_val )?0:1;
-				diff[run_step] = sign[run_step]?last_val-data[i]:data[i]-last_val ;
-				if( diff[run_step] > 8 ) 
-					break;
-				if( run_size2 == run_step ) 
-				{	
-					if( diff[run_step] > 2 )
-					{
-						if( run_size2 >= 4 )
-							break;
-					}else if( ++run_size2  >= 16 ) 
-					{
-						last_val = data[i] ;
-						++i ;	  
-						break; 
-					}
-				}
-				
-				++run_step ;
-				last_val = data[i] ;
-				++i ;
-			}while( i < size && run_step < 64 ); 	
-			if( run_step > run_size2 ) 
-			{                  /* encoding as 4 bit values */
-				int k = 0;
-#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-				fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_step, __LINE__ );
-#endif
-				if( comp_size + 1 + run_step/2 > size )
-					return 0; 
-
-				buffer[comp_size] = RLE_NOZERO_SHORT_SIG | ((run_step-1)&RLE_NOZERO_SHORT_LENGTH) ;											   
-#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-				fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 4bits things\n", i, comp_size, buffer[comp_size], run_step );
-#endif				
-				++comp_size;
+		}else 
+		{	
+			if( d < 0) d = -d ;
+			
+			if( d <= 8 )  
+			{ /* see if we can pack everything into 2 or 4 bit string */
 				do
 				{
-					buffer[comp_size] = (sign[k]<<7)|((diff[k]-1)<<4) ;
-					if( ++k < run_step )
+					if( (d = diff[i]) == 0 ) 
+						break;
+					if( d < 0) d = -d ;
+					if( d > 8 ) 
+						break;
+					if( run_size2 == run_step ) 
 					{	
-						buffer[comp_size] |= (sign[k]<<3)|(diff[k]-1) ;
-						++k ;
-					}
-#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-					fprintf(stderr, "0x%2.2X ", buffer[comp_size] );
-#endif
-					++comp_size ;
-				}while( k  < run_step );
-			}else	 
-			{					/* encoding as 2 bit values */
-				int k = 0;
-#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-				fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_size2, __LINE__ );
-#endif
-				if( comp_size + 1 + run_size2/4 > size )
-					return 0; 
-
-				buffer[comp_size] = RLE_NOZERO_LONG1_SIG | ((run_size2-1)&RLE_NOZERO_LONG_LENGTH) ;											   
-#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-				fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 2bits things\n", i, comp_size, buffer[comp_size], run_size2 );
-#endif				
-				++comp_size;
-				do
-				{
-					buffer[comp_size] = (sign[k]<<7)|((diff[k]-1)<<6) ;
-					if( ++k < run_size2 )
-					{	
-						buffer[comp_size] |= (sign[k]<<5)|((diff[k]-1)<<4) ;
-						if( ++k < run_size2 )
+						if( d > 2 )
 						{
-							buffer[comp_size] |= (sign[k]<<3)|((diff[k]-1)<<2) ;
-							if( ++k < run_size2 )
-							{	
-								buffer[comp_size] |= (sign[k]<<1)|(diff[k]-1) ;
-								++k ;
-							}
+							if( run_size2 >= 4 )
+								break;
+						}else if( ++run_size2  >= 16 ) 
+						{
+							++i ;	  
+							break; 
 						}
 					}
+					++run_step ;
+					++i ;
+				}while( i < size && run_step < 64 ); 	
+				
+				if( run_step > run_size2 ) 
+				{                  /* encoding as 4 bit values */
+					int k = i - run_step;
+#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
+					fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_step, __LINE__ );
+#endif
+					if( comp_size + 1 + run_step/2 > size )
+						return 0; 
+
+					buffer[comp_size] = RLE_NOZERO_SHORT_SIG | ((run_step-1)&RLE_NOZERO_SHORT_LENGTH) ;											   
+#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
+					fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 4bits things\n", i, comp_size, buffer[comp_size], run_step );
+#endif				
+					++comp_size;
+					do
+					{
+						if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x80|((-d-1)<<4) ;
+						else					buffer[comp_size] =      ((d-1)<<4) ;
+						
+						if( ++k < i )
+						{	
+							if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x08|(-d-1) ;
+							else					buffer[comp_size] =      (d-1) ;
+							++k ;
+						}
+#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
+						fprintf(stderr, "0x%2.2X ", buffer[comp_size] );
+#endif
+						++comp_size ;
+					}while( k < i );
+				}else	 
+				{					/* encoding as 2 bit values */
+					int k = i - run_size2;
+#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
+					fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_size2, __LINE__ );
+#endif
+					if( comp_size + 1 + run_size2/4 > size )
+						return 0; 
+
+					buffer[comp_size] = RLE_NOZERO_LONG1_SIG | ((run_size2-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
+					fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 2bits things\n", i, comp_size, buffer[comp_size], run_size2 );
+#endif				
+					++comp_size;
+					do
+					{
+						if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x80|((-d-1)<<6) ;
+						else					buffer[comp_size] =      ((d-1)<<6) ;
+
+						if( ++k < i )
+						{	
+							if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x20|((-d-1)<<4) ;
+							else					buffer[comp_size] =      ((d-1)<<4) ;
+							if( ++k < i )
+							{
+								if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x08|((-d-1)<<2) ;
+								else					buffer[comp_size] =      ((d-1)<<2) ;
+								if( ++k < i )
+								{	
+ 									if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x02|(-d-1) ;
+									else					buffer[comp_size] =      (d-1) ;
+									++k ;
+								}
+							}
+						}
+#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
+						fprintf(stderr, "0x%2.2X ", buffer[comp_size] );
+#endif
+						++comp_size ;
+					}while( k  < i );
+				}	 
+			}else if( d <= 136 )  
+			{                      /* 8 bit strings */
+				int k = 0;
+				do
+				{
+					if( (d = diff[i]) == 0 ) 
+						break;
+					if( d < 0) d = -d ;
+					if( d > 136 || d <= 8 ) 
+						break;
+					++run_step ;
+				}while( ++i < size && run_step < 16 ); 	
+			
+#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
+				fprintf( stderr, "comp_size = %d, run_step = %d, size = %d at line %d\n", comp_size, run_step, size, __LINE__ );
+#endif
+				if( comp_size + 1 + run_step > size )
+					return 0; 
+
+				buffer[comp_size] = RLE_NOZERO_LONG2_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
+				fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 8bits things\n", i, comp_size, buffer[comp_size], run_step );
+#endif				
+				++comp_size;
+				k = i - run_step ;
+				do
+				{
+					if( (d = diff[k]) < 0 ) buffer[comp_size] = 0x80|(-d-8) ;
+					else					buffer[comp_size] =      (d-8) ;
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 					fprintf(stderr, "0x%2.2X ", buffer[comp_size] );
 #endif
 					++comp_size ;
-				}while( k  < run_size2 );
-			}	 
-		}else if( d <= 128 )  
-		{                      /* 8 bit strings */
-			int k = 0;
-			do
-			{
-				if( data[i] == last_val	) 
-					break;
-				sign[run_step] = (data[i] > last_val )?0:1;
-				diff[run_step] = sign[run_step]?last_val-data[i]:data[i]-last_val ;
-				if( diff[run_step] > 128 || diff[run_step] <= 8 ) 
-					break;
-				
-				++run_step ;
-				last_val = data[i] ;
-				++i ;
-			}while( i < size && run_step < 16 ); 	
-			
-#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-			fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_step, __LINE__ );
-#endif
-			if( comp_size + 1 + run_step > size )
-				return 0; 
-
-			buffer[comp_size] = RLE_NOZERO_LONG2_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
-#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-			fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 8bits things\n", i, comp_size, buffer[comp_size], run_step );
-#endif				
-			++comp_size;
-			do
-			{
-				buffer[comp_size] = (sign[k]<<7)|(diff[k]-1) ;
-				++k ;
-#if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-				fprintf(stderr, "0x%2.2X ", buffer[comp_size] );
-#endif
-				++comp_size ;
-			}while( k  < run_step );
-		}else		 
-		{	
-			int k = 0;		/* 9 bit strings */
-			do
-			{
-				if( data[i] == last_val	) 
-					break;
-				sign[run_step] = (data[i] > last_val )?0:1;
-				diff[run_step] = sign[run_step]?last_val-data[i]:data[i]-last_val ;
-				if( diff[run_step] <= 128 ) 
-					break;
-				
-				++run_step ;
-				last_val = data[i] ;
-				++i ;
-			}while( i < size && run_step < 16 ); 	
+				}while( ++k < i );
+			}else		 
+			{	
+				int k = 0;		/* 9 bit strings */
+				do
+				{
+					if( (d = diff[i]) == 0 ) 
+						break;
+					if( d < 0) d = -d ;
+					if( d <= 136 ) 
+						break;
+					++run_step ;
+				}while( ++i < size && run_step < 16 ); 	
 
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-				fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_step, __LINE__ );
+					fprintf( stderr, "comp_size = %d, run_step = %d at line %d\n", comp_size, run_step, __LINE__ );
 #endif
-			if( comp_size + 1 + run_step > size )
-				return 0; 
-			if( sign[0] == 0 ) 
-				buffer[comp_size] = RLE_9BIT_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
-			else
-				buffer[comp_size] = RLE_9BIT_NEG_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+				if( comp_size + 1 + run_step > size )
+					return 0; 
+				
+				k = i - run_step ;
+				if( diff[k] > 0 ) 
+					buffer[comp_size] = RLE_9BIT_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+				else
+					buffer[comp_size] = RLE_9BIT_NEG_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-			fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 9bit things\n", i, comp_size, buffer[comp_size], run_step );
+				fprintf(stderr, "in %d out %d: 0x%2.2X  - %d 9bit things\n", i, comp_size, buffer[comp_size], run_step );
 #endif				
-			++comp_size;
-			do
-			{
-				buffer[comp_size] = diff[k]-1 ;
-				++k ;
+				++comp_size;
+				do
+				{
+					if( (d = diff[k]) < 0 ) buffer[comp_size] = -d ;
+					else					buffer[comp_size] =  d ;
+					
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
-				fprintf(stderr, "0x%2.2X ", buffer[comp_size] );
+					fprintf(stderr, "0x%2.2X ", buffer[comp_size] );
 #endif
-				++comp_size ;
-			}while( k  < run_step );
-		} 
+					++comp_size ;
+				}while( ++k  < i );
+			} 
+		}
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
 	   	fprintf(stderr, "\n");
 #endif
-	
 	}	 
 	
 	return comp_size ;
@@ -418,7 +475,7 @@ rlediff_decompress( CARD8 *buffer,  CARD8* data, int size )
 			{
 				while( --count >= 0 ) 
 				{
-					CARD8 mod = (data[in_bytes]&0x7F)+1;
+					CARD8 mod = (data[in_bytes]&0x7F)+8;
 					last_val = (data[in_bytes]&0x80)?last_val - mod : last_val + mod ;
 					buffer[out_bytes++] = last_val ;
 					++in_bytes ;
@@ -428,7 +485,7 @@ rlediff_decompress( CARD8 *buffer,  CARD8* data, int size )
 				Bool sign = ((c & RLE_NOZERO_LONG_MASK ) == RLE_9BIT_NEG_SIG);
 				while( --count >= 0 ) 
 				{
-					CARD8 mod = data[in_bytes]+1;
+					CARD8 mod = data[in_bytes];
 					last_val = sign? last_val - mod : last_val + mod ;
 					sign = !sign ;
 					buffer[out_bytes++] = last_val ;
@@ -444,29 +501,52 @@ rlediff_decompress( CARD8 *buffer,  CARD8* data, int size )
 
 static CARD8* 
 compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *flags, int *compressed_size, 
-					  CARD8 bitmap_threshold )
+					  CARD32 bitmap_threshold )
 {
 	/* TODO: just a stub for now - need to implement compression */
 	int comp_size = size ;
 	CARD8  *buffer = data ;
 	size_t 	buf_size = size ; 
 	
-	if( get_flags( *flags, ASStoprage_RLEDiffCompress ) && size > 8 )
+	if( get_flags( *flags, ASStorage_RLEDiffCompress ) )
 	{
-		clear_flags( *flags, ASStoprage_RLEDiffCompress );
+		int uncompressed_size = size ;
+
+		clear_flags( *flags, ASStorage_RLEDiffCompress );
 		if( storage->comp_buf_size < size ) 
 		{	
 			storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 			storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
+			storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(short) );
 		}
 		buffer = storage->comp_buf ;
 		buf_size = storage->comp_buf_size ;
 		if( buffer ) 
 		{
 			if( get_flags( *flags, ASStorage_Bitmap ) )
-				comp_size = rlediff_compress_bitmap( buffer, data, size, bitmap_threshold );
-			else 
-				comp_size = rlediff_compress( buffer, data, size );
+			{	
+				if( get_flags( *flags, ASStorage_32Bit ) ) 
+				{	
+					uncompressed_size = size / 4 ;
+					if( get_flags( *flags, ASStorage_8BitShift ) ) 						   
+						bitmap_threshold = bitmap_threshold<<8 ;
+					comp_size = rlediff_compress_bitmap32( buffer, data, uncompressed_size, bitmap_threshold );
+				}else
+					comp_size = rlediff_compress_bitmap8( buffer, data, uncompressed_size, bitmap_threshold );
+			}else 
+			{
+				if( get_flags( *flags, ASStorage_32Bit ) ) 
+				{	
+					uncompressed_size = size / 4 ;
+					if( get_flags( *flags, ASStorage_8BitShift ) ) 						
+						compute_diff32_8bitshift( storage->diff_buf, data, uncompressed_size ); 	  
+					else
+						compute_diff32( storage->diff_buf, data, uncompressed_size ); 	  
+				}else
+					compute_diff8( storage->diff_buf, data, uncompressed_size ); 	  
+				
+				comp_size = rlediff_compress( buffer, storage->diff_buf, uncompressed_size );
+			}
 
 			if( comp_size == 0 )	 
 			{	
@@ -474,7 +554,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 				comp_size = size ;
 			}else
 			{	
-				set_flags( *flags, ASStoprage_RLEDiffCompress );
+				set_flags( *flags, ASStorage_RLEDiffCompress );
 				UncompressedSize += size ;
 				CompressedSize += comp_size ;
 			}
@@ -482,6 +562,25 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 			buffer = data ;	 
 		
 		LOCAL_DEBUG_OUT( "size = %d, compressed_size = %d, flags = 0x%lX", size, comp_size, *flags );
+	}	 
+
+	if( buffer == data && get_flags( *flags, ASStorage_32Bit ) )
+	{
+		CARD32 *data32 = (CARD32*)data ;
+		size /= 4;
+		if( storage->comp_buf_size < size ) 
+		{	
+			storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
+			storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
+		}
+		buffer = storage->comp_buf ;
+		if( get_flags( *flags, ASStorage_8BitShift ) )
+			for( comp_size = 0 ; comp_size < size ; ++comp_size )
+				buffer[comp_size] = (data32[comp_size]>>8) ;
+		else
+			for( comp_size = 0 ; comp_size < size ; ++comp_size )
+				buffer[comp_size] = data32[comp_size] ;
+		
 	}	 
 		
 	if( compressed_size ) 
@@ -496,7 +595,7 @@ decompress_stored_data( ASStorage *storage, CARD8 *data, int size, int uncompres
 	CARD8  *buffer = data ;
 
 	LOCAL_DEBUG_OUT( "size = %d, uncompressed_size = %d, flags = 0x%lX", size, uncompressed_size, flags );
-	if( get_flags( flags, ASStoprage_RLEDiffCompress ) && uncompressed_size > 8)
+	if( get_flags( flags, ASStorage_RLEDiffCompress ))
 	{
 		buffer = storage->comp_buf ;
 		if( get_flags( flags, ASStorage_Bitmap ) )
@@ -513,9 +612,15 @@ static void
 add_storage_slots( ASStorageBlock *block )
 {
 	int i = block->slots_count ;
+	int size ; 
+	LOCAL_DEBUG_OUT( "block = %p, block->slots = %p", block, block->slots );
 	block->slots_count += AS_STORAGE_SLOTS_BATCH ; 
+	size = block->slots_count*sizeof(ASStorageSlot*)  ;
+	LOCAL_DEBUG_OUT( "block->slots_count = %d", block->slots_count );
 #ifndef DEBUG_ALLOCS
-	block->slots = realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
+	LOCAL_DEBUG_OUT( "reallocing %d slots pointers (%d)", block->slots_count, size );
+	block->slots = realloc( block->slots, size);
+	LOCAL_DEBUG_OUT( "reallocated %d slots pointers", block->slots_count );
 #else
 	block->slots = guarded_realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
 	LOCAL_DEBUG_OUT( "reallocated %d slots pointers", block->slots_count );
@@ -529,11 +634,14 @@ add_storage_slots( ASStorageBlock *block )
 static ASStorageBlock *
 create_asstorage_block( int useable_size )
 {
-	int allocate_size = (((sizeof(ASStorageBlock)+sizeof(ASStorageSlot) + useable_size)/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
+	int allocate_size = (sizeof(ASStorageBlock)+sizeof(ASStorageSlot) + useable_size) ; 
+	void *ptr ;	
+	if( allocate_size%AS_STORAGE_PAGE_SIZE > 0 ) 
+		allocate_size = ((allocate_size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 #ifndef DEBUG_ALLOCS
-	void *ptr = malloc(allocate_size);
+	ptr = malloc(allocate_size);
 #else
-	void *ptr = guarded_malloc(allocate_size);
+	ptr = guarded_malloc(allocate_size);
 	LOCAL_DEBUG_OUT( "allocated %d files", allocate_size );
 #endif
 	UsedMemory += allocate_size ;
@@ -553,13 +661,14 @@ create_asstorage_block( int useable_size )
 		UsedMemory -= allocate_size ;
 		return NULL;
 	}
-	block->start = (ASStorageSlot*)(ptr+sizeof(ASStorageBlock));
+	block->start = (ASStorageSlot*)(ptr+((sizeof(ASStorageBlock)/ASStorageSlot_SIZE)+1)*ASStorageSlot_SIZE);
 	block->end = (ASStorageSlot*)(ptr+(allocate_size-ASStorageSlot_SIZE));
 	block->slots[0] = block->start ;
 	block->slots[0]->flags = 0 ;  /* slot of the free memory */ 
 	block->slots[0]->ref_count = 0 ;
-	block->slots[0]->size = block->size ;
-	block->slots[0]->uncompressed_size = block->size ;
+	block->slots[0]->size = (CARD8*)(block->end) - (CARD8*)(block->start) ;
+	block->slots[0]->uncompressed_size = block->slots[0]->size ;
+	block->slots[0]->index = 0 ;
 	block->last_used = 0;
 	block->first_free = 0 ;
 	
@@ -631,6 +740,8 @@ destroy_storage_slot( ASStorageBlock *block, int index )
 	ASStorageSlot **slots = block->slots ;
 	int i = index;
 	
+//	if( i < block->first_free ) 
+//		block->first_free = i ;
 	slots[i] = NULL ; 
 	if( block->last_used == index ) 
 	{	
@@ -761,15 +872,17 @@ select_storage_slot( ASStorageBlock *block, int size )
 	int i = block->first_free, last_used = block->last_used ;
 	ASStorageSlot **slots = block->slots ;
 	
+	LOCAL_DEBUG_OUT( "first_free = %d, last_used = %d", block->first_free, block->last_used );
 	while( i <= last_used )
 	{
 		ASStorageSlot *slot = slots[i] ;
-		LOCAL_DEBUG_OUT( "last_used = %d, slots[%d] = %p", last_used, i, slot );
-		if( slot != 0 )
+		LOCAL_DEBUG_OUT( "block = %p, last_used = %d, slots[%d] = %p", block, last_used, i, slot );
+		if( slot != NULL )
 		{
 			int size_to_match = size ;
 			while( slot->flags == 0 )
 			{
+				LOCAL_DEBUG_OUT( "start = %p, slot = %p, slot->size = %ld, end = %p, size = %d, size_to_match = %d", block->start, slot, slot->size, block->end, size, size_to_match );
 				if( ASStorageSlot_USABLE_SIZE(slot) >= size )
 					return slot;
 				if( ASStorageSlot_USABLE_SIZE(slot) >= size_to_match )
@@ -801,14 +914,20 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 	int old_size = ASStorageSlot_USABLE_SIZE(slot) ;
 	ASStorageSlot *new_slot ;
 
+	LOCAL_DEBUG_OUT( "slot->size = %ld", slot->size );
+	
 	slot->size = to_size ; 
 	new_slot = AS_STORAGE_GetNextSlot(slot);
+
+	LOCAL_DEBUG_OUT( "new_slot = %p, slot = %p, slot->size = %ld", new_slot, slot, slot->size );
+
 	if( new_slot >=  block->end )
 		return True;
 
 	new_slot->flags = 0 ;
 	new_slot->ref_count = 0 ;
-	new_slot->size = old_size - ASStorageSlot_USABLE_SIZE(slot) - ASStorageSlot_SIZE ;											   
+	LOCAL_DEBUG_OUT( "old_size = %d, full_size = %ld", old_size, ASStorageSlot_FULL_SIZE(slot) );
+	new_slot->size = old_size - ASStorageSlot_FULL_SIZE(slot) ;											   
 	new_slot->uncompressed_size = 0 ;
 	
 	new_slot->index = 0 ;
@@ -820,9 +939,12 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 	{
 		register int i, max_i = block->slots_count ;
 		register ASStorageSlot **slots = block->slots ;
+		LOCAL_DEBUG_OUT( "max_i = %d", max_i );
+		
 		for( i = 0 ; i < max_i ; ++i ) 
 			if( slots[i] == NULL ) 
 				break;
+		LOCAL_DEBUG_OUT( "i = %d", i );
 		if( i >= max_i ) 
 		{
 			if( block->slots_count + AS_STORAGE_SLOTS_BATCH > AS_STORAGE_MAX_SLOTS_CNT )
@@ -835,10 +957,12 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 				slots = block->slots ;
 			}	 
 		}
+		LOCAL_DEBUG_OUT( "i = %d", i );
  		new_slot->index = i ;		
 		if( i < block->last_used )
 			--(block->unused_count);
 	}	
+	LOCAL_DEBUG_OUT( "new_slot = %p, new_slot->index = %d, new_slot->size = %ld", new_slot, new_slot->index, new_slot->size );
 	block->slots[new_slot->index] = new_slot ;
 	return True;
 }
@@ -850,15 +974,36 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	CARD8 *dst ;
 	slot = select_storage_slot( block, compressed_size );
 	LOCAL_DEBUG_OUT( "selected slot %p for size %d (compressed %d) and flags %lX", slot, size, compressed_size, flags );
+	if( slot > block->end || slot < block->start) 
+	{
+		show_error( "storage slot selected falls outside of allocated memory. Slot = %p, start, end = %p", slot, block->start, block->end );
+		return 0;
+	}			  
+	if( &(slot->data[slot->size]) > ((CARD8*)(block->start)) + block->size) 
+	{
+		show_error( "storage slot's size falls outside of allocated memory. Slot->data[slot->size] = %p, end = %p, size = %d", &(slot->data[slot->size]), ((CARD8*)(block->start)) + block->size, slot->size );
+		return 0;
+	}			  
+	if( slot->index >= block->slots_count ) 
+	{
+		show_error( "storage slot index falls out of range. Index = %d, slots_count = %d", slot->index, block->slots_count );
+		return 0;
+	}			  
+		
 	if( slot == NULL ) 
 		return 0;
+	LOCAL_DEBUG_OUT( "block = %p", block );
 	if( ASStorageSlot_USABLE_SIZE(slot) >= compressed_size+ASStorageSlot_SIZE ) 
 		if( !split_storage_slot( block, slot, compressed_size ) ) 
+		{
+			show_error( "storage slot split failed. Usable size = %d, desired size = %d", ASStorageSlot_USABLE_SIZE(slot), compressed_size+ASStorageSlot_SIZE );
 			return 0;
-
+		}
+	LOCAL_DEBUG_OUT( "block = %p", block );
 	block->total_free -= ASStorageSlot_FULL_SIZE(slot);
 	
 	dst = &(slot->data[0]);
+	LOCAL_DEBUG_OUT( "dst = %p", dst );
 	memcpy( dst, data, compressed_size );
 	slot->flags = (flags | ASStorage_Used) ;
 	slot->ref_count = 0;
@@ -873,7 +1018,9 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 				break;
 		block->first_free = i ;
 	}
-		  
+
+	LOCAL_DEBUG_OUT( "stot index = %d", slot->index );
+ 
 	return slot->index+1 ;
 }
 
@@ -971,6 +1118,129 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 	return ref_slot;
 }
 
+typedef struct 
+{
+	int offset ; 
+	void *buffer ;
+	
+	unsigned int threshold ;
+	int start, end ;
+}ASStorageDstBuffer;
+
+typedef void (*data_cpy_func_type)(ASStorageDstBuffer *, void *, size_t);
+
+static void card8_card8_cpy( ASStorageDstBuffer *dst, void *src, size_t size)
+{
+	register CARD8 *dst8 = (CARD8*)dst->buffer ;
+	dst8 += dst->offset ;
+	memcpy( dst8, src, size );
+}	 
+
+
+static void card8_card32_cpy( ASStorageDstBuffer *dst, void *src, size_t size)
+{
+	register CARD32 *dst32 = (CARD32*)dst->buffer ;
+	register CARD8  *src8  = (CARD8*)src ;
+	register int i ;
+	dst32 += dst->offset ;
+	for( i = 0 ;  i < size ; ++i ) 
+		dst32[i] = src8[i] ;
+}	 
+
+static void 
+card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
+{
+	CARD8 *src8 = src ;
+	unsigned int *runs = (unsigned int*)(dst->buffer) ;
+	int runs_count = dst->offset ;
+	unsigned int threshold = dst->threshold ;
+	int start = dst->start, end = dst->end;
+	int i = 0;
+
+	while( i < size ) 
+	{
+		if( end < start ) 
+		{
+			while( i < size && src8[i] < threshold ) 
+				++i ;
+			start = i ;
+		}	 
+		
+		if( i < size ) 
+		{	
+			while( i < size && src8[i] >= threshold ) 
+				++i ;
+			if( i < size ) 
+				end = i ;
+		}
+		
+		if( start >= 0 && end >= start )
+		{
+			runs[runs_count] = start ;
+			++runs_count;
+			runs[runs_count] = end ;
+			++runs_count ;
+			end = -1 ;
+		}
+	}
+	dst->offset = runs_count ;
+	dst->start = start ; 
+	dst->end = end ;
+}	 
+
+static inline int  
+fetch_data_int( ASStorage *storage, ASStorageID id, ASStorageDstBuffer *buffer, int offset, int buf_size, CARD8 bitmap_value, 
+		  		data_cpy_func_type cpy_func)
+{
+	ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
+	LOCAL_DEBUG_OUT( "slot = %p", slot );
+	if( slot )
+	{
+		int uncomp_size = slot->uncompressed_size ;
+		if( get_flags( slot->flags, ASStorage_Reference) )
+		{
+			ASStorageID target_id = 0;
+			memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
+			LOCAL_DEBUG_OUT( "target_id = %ld", target_id );
+			if( target_id != 0 ) 
+				return fetch_data_int(storage, target_id, buffer, offset, buf_size, bitmap_value, cpy_func);
+			else
+				return 0;
+		}	 
+
+		LOCAL_DEBUG_OUT( "flags = %X, index = %d, size = %ld, uncompressed_size = %d", 
+							slot->flags, slot->index, slot->size, uncomp_size );
+		if( bitmap_value == 0 ) 
+			bitmap_value = AS_STORAGE_DEFAULT_BMAP_VALUE ;
+
+		if( buffer && buf_size > 0 ) 
+		{
+			CARD8 *tmp = decompress_stored_data( storage, &(slot->data[0]), slot->size,
+													uncomp_size, slot->flags, bitmap_value );
+			while( offset > uncomp_size ) offset -= uncomp_size ; 
+			while( offset < 0 ) offset += uncomp_size ; 
+			if( offset > 0 ) 
+			{
+				buffer->offset = uncomp_size-offset ; 
+				if( buffer->offset  < buf_size ) 
+					buffer->offset = buf_size ;
+				cpy_func( buffer, tmp+offset, buffer->offset ); 															
+			}
+			while( buffer->offset < buf_size ) 
+			{
+				int to_copy = buf_size - buffer->offset ; 
+				if( to_copy > uncomp_size ) 
+					to_copy = uncomp_size ;
+				cpy_func( buffer, tmp, to_copy ); 															
+				buffer->offset += to_copy;
+			}
+		}
+		LOCAL_DEBUG_OUT( "uncompressed_size = %d", buffer->offset );
+		return buffer->offset ;
+	}
+	return 0;
+}
+
 /************************************************************************/
 /* Public Functions : 													*/
 /************************************************************************/
@@ -1042,6 +1312,7 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bi
 	int slot_id ;
 	int compressed_size = size ;
 	CARD8 *buffer = data;
+	CARD32 bitmap_threshold32 = bitmap_threshold ;
 
 	if( storage == NULL ) 
 		storage = get_default_asstorage();
@@ -1049,17 +1320,20 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bi
 	LOCAL_DEBUG_CALLER_OUT( "data = %p, size = %d, flags = %lX", data, size, flags );
 	if( size <= 0 || data == NULL || storage == NULL ) 
 		return 0;
-	if( bitmap_threshold == 0 ) 
-		bitmap_threshold = AS_STORAGE_DEFAULT_BMAP_THRESHOLD ;
-	if( get_flags( flags, ASStorage_CompressionType ) && !get_flags(flags, ASStorage_Reference))
-		buffer = compress_stored_data( storage, data, size, &flags, &compressed_size, bitmap_threshold );
+	if( bitmap_threshold32 == 0 ) 
+		bitmap_threshold32 = AS_STORAGE_DEFAULT_BMAP_THRESHOLD ;
+	if( !get_flags(flags, ASStorage_Reference))
+		if( get_flags( flags, ASStorage_CompressionType ) || get_flags( flags, ASStorage_32Bit ) )
+			buffer = compress_stored_data( storage, data, size, &flags, &compressed_size, bitmap_threshold32 );
 	block_id = select_storage_block( storage, compressed_size, flags );
 	LOCAL_DEBUG_OUT( "selected block %d", block_id );
 	if( block_id > 0 ) 
 	{
 		slot_id = store_data_in_block(  storage->blocks[block_id-1], 
-										buffer, size, compressed_size, flags );
+										buffer, get_flags( flags, ASStorage_32Bit )?size/4:size, 
+										compressed_size, flags );
 
+		LOCAL_DEBUG_OUT( "slot id %d", slot_id );
 		if( slot_id > 0 )	
 			id = make_asstorage_id( block_id, slot_id );
 	}
@@ -1076,52 +1350,121 @@ fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int bu
 	
 	if( storage != NULL && id != 0 )
 	{	
+		ASStorageDstBuffer buf ; 
+		buf.offset = 0 ; 
+		buf.buffer = buffer ;
+		return fetch_data_int( storage, id, &buf, offset, buf_size, bitmap_value, card8_card8_cpy );
+	}
+	return 0 ;	 
+}
+
+int  
+fetch_data32(ASStorage *storage, ASStorageID id, CARD32 *buffer, int offset, int buf_size, CARD8 bitmap_value)
+{
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+	
+	if( storage != NULL && id != 0 )
+	{
+		ASStorageDstBuffer buf ; 
+		buf.offset = 0 ; 
+		buf.buffer = buffer ;
+	  
+		return fetch_data_int( storage, id, &buf, offset, buf_size, bitmap_value, card8_card32_cpy );
+	}
+	return 0 ;	
+}
+
+int  
+threshold_stored_data(ASStorage *storage, ASStorageID id, unsigned int *runs, int width, unsigned int threshold)
+{
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+	
+	if( storage != NULL && id != 0 )
+	{
+		ASStorageDstBuffer buf ; 
+		buf.offset = 0 ; 
+		buf.buffer = runs ;
+
+		buf.threshold = threshold ; 
+		buf.start = -1 ;
+		buf.end = -1 ;
+	  
+		if( fetch_data_int( storage, id, &buf, 0, width, threshold, card8_threshold ) > 0 ) 
+		{
+			if( buf.start >= 0 && buf.end >= buf.start )
+			{
+				runs[buf.offset] = buf.start ;
+				++buf.offset;
+				runs[buf.offset] = buf.end ;
+				++buf.offset ;
+			}	 
+			return buf.offset;
+		}
+	}
+	return 0 ;	
+}
+
+
+Bool 
+query_storage_slot(ASStorage *storage, ASStorageID id, ASStorageSlot *dst )
+{
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+	
+	if( storage != NULL && id != 0 && dst != NULL )
+	{	
 		ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
 		LOCAL_DEBUG_OUT( "slot = %p", slot );
 		if( slot )
 		{
-			int uncomp_size = slot->uncompressed_size ;
 			if( get_flags( slot->flags, ASStorage_Reference) )
 			{
 				ASStorageID target_id = 0;
 			 	memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
 				LOCAL_DEBUG_OUT( "target_id = %ld", target_id );
-				return fetch_data(storage, target_id, buffer, offset, buf_size, bitmap_value);
+				return query_storage_slot(storage, target_id, dst);
 			}	 
-
-			LOCAL_DEBUG_OUT( "flags = %X, index = %d, size = %ld, uncompressed_size = %d", 
-							 slot->flags, slot->index, slot->size, uncomp_size );
-			if( bitmap_value == 0 ) 
-				bitmap_value = AS_STORAGE_DEFAULT_BMAP_VALUE ;
-
-			if( buffer && buf_size > 0 ) 
-			{
-				int bytes_in = 0;
-				CARD8 *tmp = decompress_stored_data( storage, &(slot->data[0]), slot->size,
-														uncomp_size, slot->flags, bitmap_value );
-				while( offset > uncomp_size ) offset -= uncomp_size ; 
-				while( offset < 0 ) offset += uncomp_size ; 
-				if( offset > 0 ) 
-				{
-					bytes_in = uncomp_size-offset ; 
-					if( bytes_in  < buf_size ) 
-						bytes_in = buf_size ;
-					memcpy( buffer, tmp+offset, bytes_in ); 															
-				}
-				while( bytes_in  < buf_size ) 
-				{
-					int to_copy = buf_size - bytes_in ; 
-					if( to_copy > uncomp_size ) 
-						to_copy = uncomp_size ;
-					memcpy( buffer+bytes_in, tmp, to_copy ); 															
-					bytes_in += to_copy;
-				}
-			}
-			return uncomp_size ;
+			*dst = *slot ;
+			return True ;
 		}
 	}
-	return 0 ;	
+	return False;	  
 }
+
+int 
+print_storage_slot(ASStorage *storage, ASStorageID id)
+{
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+	
+	if( storage != NULL && id != 0 )
+	{	
+		ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
+		fprintf (stderr, "Storage ID 0x%lX-> slot %p", id, slot);
+		if( slot )
+		{
+			int i ;
+			if( get_flags( slot->flags, ASStorage_Reference) )
+			{
+				ASStorageID target_id = 0;
+			 	memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
+				fprintf (stderr, " : References storage ID 0x%lX\n\t>", target_id);
+				return print_storage_slot(storage, target_id);
+			}	 
+			fprintf( stderr, " : {0x%X, %u, %lu, %lu, %u, {", 
+					 slot->flags, slot->ref_count, slot->size, slot->uncompressed_size, slot->index );
+
+			for( i = 0 ; i < slot->size ; ++i)
+				fprintf( stderr, "%2.2X ", slot->data[i] ) ;
+			fprintf (stderr, "}}");
+			return slot->size + ASStorageSlot_SIZE ;
+		}
+		fprintf (stderr, "\n");
+	}
+	return 0;	  
+}	 
 
 void 
 forget_data(ASStorage *storage, ASStorageID id)
@@ -1196,9 +1539,10 @@ dup_data(ASStorage *storage, ASStorageID id)
 #ifdef TEST_ASSTORAGE
 #include "afterimage.h"
 
-#define STORAGE_TEST_KINDS	5
+#define STORAGE_TEST_KINDS	6
 static int StorageTestKinds[STORAGE_TEST_KINDS][2] = 
 {
+	{100, 1 },
 	{1024, 4096 },
 	{128*1024, 64 },
 	{256*1024, 32 },
@@ -1207,8 +1551,8 @@ static int StorageTestKinds[STORAGE_TEST_KINDS][2] =
 };	 
 
 CARD8 Buffer[1024*1024] ;
-/*#define STORAGE_TEST_COUNT  800*/
-#define STORAGE_TEST_COUNT  8+16+32+64+4096
+/* #define STORAGE_TEST_COUNT  1 */
+#define STORAGE_TEST_COUNT  8+16+32+64+4096+1 
 typedef struct ASStorageTest {
 	int size ;
 	CARD8 *data;
@@ -1221,13 +1565,15 @@ static ASStorageTest Tests[STORAGE_TEST_COUNT];
 static ASImageDecoder *imdec = NULL ;
 
 void
-make_storage_test_data( ASStorageTest *test, int min_size, int max_size )
+make_storage_test_data( ASStorageTest *test, int min_size, int max_size, ASFlagType flags )
 {
 	int size = random()%max_size ;
 	int i ;
 	static CARD32 rnd32_seed = 345824357;
 	static int chan = 0 ;
 	CARD32 *data ;
+	CARD8 *test_data8 ;
+	CARD32 *test_data32 ;
 
 #define MAX_MY_RND32		0x00ffffffff
 #ifdef WORD64
@@ -1240,13 +1586,20 @@ make_storage_test_data( ASStorageTest *test, int min_size, int max_size )
 	
 	if( size <= min_size )
 		size += min_size ;
- 	
+	if( get_flags( flags, ASStorage_32Bit ) ) 	
+		size = ((size/4)+1)*4 ;
 	test->size = size ; 	   
 #ifndef DEBUG_ALLOCS
 	test->data = malloc(size);
 #else
 	test->data = guarded_malloc(size);
 #endif
+
+	test_data32	= (CARD32*)(test->data);
+	test_data8	= test->data ;
+
+	if( get_flags( flags, ASStorage_32Bit ) )
+		size = size / 4 ;
 
 	test->linked = False ;
 	
@@ -1260,17 +1613,42 @@ make_storage_test_data( ASStorageTest *test, int min_size, int max_size )
 		++chan ; 
 		if( chan >= 3 ) 
 			chan = 0 ;
-		for( i = 0 ; i < size ; ++i ) 
+		if( get_flags( flags, ASStorage_32Bit ) )
 		{	
-			test->data[i] = data[k] ;
-			++k ;
-			if( k >= imdec->im->width )
-				k = 0 ;
-		}
+			if( get_flags( flags, ASStorage_8BitShift ) )
+			{
+				for( i = 0 ; i < size ; ++i ) 
+				{	
+					test_data32[i] = ((CARD32)data[k])<<8 ;
+					if( ++k >= imdec->im->width )		k = 0 ;
+				}
+			}else	 
+				for( i = 0 ; i < size ; ++i ) 
+				{	
+					test_data32[i] = data[k] ;
+					if( ++k >= imdec->im->width )		k = 0 ;
+				}
+		}else
+			for( i = 0 ; i < size ; ++i ) 
+			{	
+				test_data8[i] = data[k] ;
+				if( ++k >= imdec->im->width )		k = 0 ;
+			}
+			
 	}else
 	{	
-		for( i = 0 ; i < size ; ++i ) 
-			test->data[i] = MY_RND32() ;
+		if( get_flags( flags, ASStorage_32Bit ) )
+		{	
+			if( get_flags( flags, ASStorage_8BitShift ) )
+			{
+				for( i = 0 ; i < size ; ++i ) 
+					test_data32[i] = (MY_RND32())&0x0000FF00 ;
+			}else	 
+				for( i = 0 ; i < size ; ++i ) 
+					test_data32[i] = (MY_RND32())&0x000000FF ;
+		}else
+			for( i = 0 ; i < size ; ++i ) 
+				test_data8[i] = MY_RND32() ;
 	}
 	test->id = 0 ;
 }
@@ -1279,43 +1657,83 @@ int
 test_data_integrity( CARD8 *a, CARD8* b, int size, ASFlagType flags ) 
 {
 	register int i ;
+	CARD32 *b32 = (CARD32*)b;
+	CARD32 threshold32 = AS_STORAGE_DEFAULT_BMAP_THRESHOLD ;
+	CARD32 threshold8 = AS_STORAGE_DEFAULT_BMAP_THRESHOLD ;
+
+	if( get_flags( flags, ASStorage_32Bit ) )
+	{	
+		size = size / 4 ;
+		if( get_flags( flags, ASStorage_8BitShift ) )
+			threshold32 = threshold32 << 8 ;				
+	}
+
 	for( i = 0 ; i < size ; ++i ) 
 	{
 		Bool fail = False ;
+		
 		if( get_flags( flags, ASStorage_Bitmap ) )
-			fail = ( (a[i] >  AS_STORAGE_DEFAULT_BMAP_THRESHOLD && b[i] <= AS_STORAGE_DEFAULT_BMAP_THRESHOLD )||
-				     (a[i] <= AS_STORAGE_DEFAULT_BMAP_THRESHOLD && b[i] >  AS_STORAGE_DEFAULT_BMAP_THRESHOLD));
-		else
-			fail = ( a[i] != b[i] );
-				
+		{	
+			if( get_flags( flags, ASStorage_32Bit ) )
+				fail = ( (a[i] >  threshold8 && b32[i] <= threshold32 )||(a[i] <= threshold8 && b32[i] > threshold32));
+			else
+				fail = ( (a[i] >  threshold8 && b[i] <= threshold8 )||(a[i] <= threshold8 && b[i] >  threshold8));
+
+		}else
+		{
+			if( get_flags( flags, ASStorage_32Bit ) )
+			{	
+				if( get_flags( flags, ASStorage_8BitShift ) )
+				{
+					fail = ( (CARD8)(b32[i]>>8) != a[i] );
+				}else
+					fail = ( (CARD8)b32[i] != a[i] );
+			}else		
+				fail = ( a[i] != b[i] );
+		}		
 		if( fail ) 
 		{
 			int k ;
-			fprintf( stderr, "\tBytes %d differ : a[%d] == 0x%2.2X, b[%d] == 0x%2.2X\na: ", i, i, a[i], i, b[i] );
-			for( k = 0 ; k < size ; ++k ) 
-				fprintf( stderr, (k==i)?"##%2.2X## ":"%2.2X ", a[k] );
-			fprintf( stderr, "\nb: " );
-			for( k = 0 ; k < size ; ++k ) 
-				fprintf( stderr, (k==i)?"##%2.2X## ":"%2.2X ", b[k] );
+			if( get_flags( flags, ASStorage_32Bit ) )
+			{	
+				fprintf( stderr, "\tBytes %d differ : a[%d] == 0x%2.2X, b32[%d] == 0x%8.8lX\na: ", i, i, a[i], i, b32[i] );
+				for( k = 0 ; k < size ; ++k ) 
+					fprintf( stderr, (k==i)?"##%8.8X## ":"%8.8X ", a[k] );
+				fprintf( stderr, "\nb: " );
+				for( k = 0 ; k < size ; ++k ) 
+					fprintf( stderr, (k==i)?"##%8.8lX## ":"%8.8lX ", b32[k] );
+			
+			}else
+			{	
+				fprintf( stderr, "\tBytes %d differ : a[%d] == 0x%2.2X, b[%d] == 0x%2.2X\na: ", i, i, a[i], i, b[i] );
+				for( k = 0 ; k < size ; ++k ) 
+					fprintf( stderr, (k==i)?"##%2.2X## ":"%2.2X ", a[k] );
+				fprintf( stderr, "\nb: " );
+				for( k = 0 ; k < size ; ++k ) 
+					fprintf( stderr, (k==i)?"##%2.2X## ":"%2.2X ", b[k] );
+			}
+
 			fprintf( stderr, "\n" );
-			return a[i]-b[i];			
+			return 1;			
 		}			   
 	}
 	return 0 ;
 }
 	  
 Bool 
-test_asstorage(Bool interactive, ASFlagType test_flags )
+test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 {
 	ASStorage *storage ;
 	ASStorageID id ;
-	int i, kind, test_count;
+	int i, kind;
 	int min_size, max_size ;
+	int test_count ;
 
 	UsedMemory = 0 ;
 	UncompressedSize = 0 ;
 	CompressedSize = 0 ;
-	   
+
+	fprintf( stderr, "\n%d :Testing flags 0x%lX @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n\n", __LINE__, test_flags );
 	fprintf(stderr, "Testing storage creation ...");
 	storage = create_asstorage();
 #define TEST_EVAL(val)   do{ \
@@ -1332,9 +1750,9 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 	min_size = 1 ;
 	max_size = StorageTestKinds[kind][0] ; 
 	test_count = StorageTestKinds[kind][1] ;
-	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	for( i = 0 ; i < all_test_count ; ++i ) 
 	{
-		make_storage_test_data( &(Tests[i]), min_size, max_size );
+		make_storage_test_data( &(Tests[i]), min_size, max_size, test_flags );
 		fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...", Tests[i].data, Tests[i].size,
 				test_flags);
 		Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags, 0 );
@@ -1343,7 +1761,7 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 
 		if( --test_count <= 0 )
 		{
-			if( ++kind >= STORAGE_TEST_KINDS ) 
+			if( ++kind >= all_test_count ) 
 				break;
 			min_size = max_size ;
 			max_size = StorageTestKinds[kind][0] ; 
@@ -1352,10 +1770,10 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 	}	 
 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
-	fprintf( stderr, "%d :compressed_size = %d, uncompressed_size = %d, ratio = %d %% ###########\n", __LINE__, CompressedSize, UncompressedSize, (UncompressedSize==0)?0:(CompressedSize/(UncompressedSize/100)) );
+	fprintf( stderr, "%d :compressed_size = %d, uncompressed_size = %d, ratio = %d %% ###########\n", __LINE__, CompressedSize, UncompressedSize, (UncompressedSize<100)?0:(CompressedSize/(UncompressedSize/100)) );
 	if( interactive )
 	   fgetc(stdin);
-	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	for( i = 0 ; i < all_test_count ; ++i ) 
 	{
 		int size ;
 		int res ;
@@ -1371,7 +1789,7 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
 	if( interactive )
 	   fgetc(stdin);
-	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	for( i = 0 ; i < all_test_count ; ++i ) 
 	{
 		int size ;
 		int r = random();
@@ -1397,11 +1815,11 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 	min_size = 1 ;
 	max_size = StorageTestKinds[kind][0] ; 
 	test_count = StorageTestKinds[kind][1] ;
-	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	for( i = 0 ; i < all_test_count ; ++i ) 
 	{
 		if( Tests[i].id == 0 ) 
 		{	
-			make_storage_test_data( &(Tests[i]), min_size, max_size );
+			make_storage_test_data( &(Tests[i]), min_size, max_size, test_flags );
 			fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...\n", Tests[i].data, Tests[i].size,
 					test_flags);
 			Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags, 0 );
@@ -1409,7 +1827,7 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 		}
 		if( --test_count <= 0 )
 		{
-			if( ++kind >= STORAGE_TEST_KINDS ) 
+			if( ++kind >= all_test_count ) 
 				break;
 			min_size = max_size ;
 			max_size = StorageTestKinds[kind][0] ; 
@@ -1419,7 +1837,7 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
 	if( interactive )
 	   fgetc(stdin);
-	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	for( i = 0 ; i < all_test_count ; ++i ) 
 	{
 		int size ;
 		int res ;
@@ -1435,7 +1853,7 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
 	if( interactive )
 	   fgetc(stdin);
-	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	for( i = 0 ; i < all_test_count ; ++i ) 
 	{
 		int size ;
 		int r = random();
@@ -1458,21 +1876,24 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
 	if( interactive )
 		fgetc(stdin);
-	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	for( i = 0 ; i < all_test_count ; ++i ) 
 	{
 		int k, size, res ;
 		
 		if( Tests[i].id != 0 ) 
 			continue;
 			
-		for( k = i+1 ; k < STORAGE_TEST_COUNT ; ++k ) 
+		for( k = i+1 ; k < all_test_count ; ++k ) 
 			if( Tests[k].id != 0 ) 
 				break;
-		if( k >= STORAGE_TEST_COUNT ) 
+		if( k >= all_test_count ) 
 			for( k = i ; k >= 0 ; --k ) 
 				if( Tests[k].id != 0 ) 
 					break;
-			
+
+		if( Tests[k].id == 0 ) 
+			continue;
+	
 		fprintf(stderr, "Testing dup_data for id %lX size = %d ...\n", Tests[k].id, Tests[k].size);
 		Tests[i].id = dup_data(storage, Tests[k].id );
 		TEST_EVAL( Tests[i].id != 0 ); 
@@ -1492,7 +1913,7 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
 	if( interactive )
 	   fgetc(stdin);
-	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	for( i = 0 ; i < all_test_count ; ++i ) 
 	{
 		int size ;
 		int r = random();
@@ -1523,11 +1944,11 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 	min_size = 1 ;
 	max_size = StorageTestKinds[kind][0] ; 
 	test_count = StorageTestKinds[kind][1] ;
-	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	for( i = 0 ; i < all_test_count ; ++i ) 
 	{
 		if( Tests[i].id == 0 ) 
 		{	
-			make_storage_test_data( &(Tests[i]), min_size, max_size );
+			make_storage_test_data( &(Tests[i]), min_size, max_size, test_flags );
 			fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...\n", Tests[i].data, Tests[i].size,
 					test_flags);
 			Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags, 0 );
@@ -1535,7 +1956,7 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 		}
 		if( --test_count <= 0 )
 		{
-			if( ++kind >= STORAGE_TEST_KINDS ) 
+			if( ++kind >= all_test_count ) 
 				break;
 			min_size = max_size ;
 			max_size = StorageTestKinds[kind][0] ; 
@@ -1543,13 +1964,13 @@ test_asstorage(Bool interactive, ASFlagType test_flags )
 		}		   
 	}	 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
-	fprintf( stderr, "%d :compressed_size = %d, uncompressed_size = %d, ratio = %d %% ###########\n", __LINE__, CompressedSize, UncompressedSize, (UncompressedSize==0)?0:(CompressedSize/(UncompressedSize/100)) );
+	fprintf( stderr, "%d :compressed_size = %d, uncompressed_size = %d, ratio = %d %% ###########\n", __LINE__, CompressedSize, UncompressedSize, (UncompressedSize<100)?0:(CompressedSize/(UncompressedSize/100)) );
 
 	fprintf(stderr, "Testing storage destruction ...");
 	destroy_asstorage(&storage);
 	TEST_EVAL( storage == NULL ); 
 
-	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	for( i = 0 ; i < all_test_count ; ++i ) 
 		if( Tests[i].data ) 
 		{
 			if( !Tests[i].linked ) 
@@ -1572,7 +1993,8 @@ int main(int argc, char **argv )
 	Bool interactive = False ; 
 	ASImage *im = NULL ;
 	int i ;
-	int res ;
+	int res = 0;
+	int test_count = STORAGE_TEST_COUNT ;
 	
 	set_output_threshold( 10 );
 	
@@ -1586,7 +2008,21 @@ int main(int argc, char **argv )
 			fprintf( stderr, "Loading test source image \"%s\"\n", argv[i+1] );
 			im = file2ASImage( argv[i+1], 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );	  
 			++i ;
+		}else if( i+1 <= argc && strcmp(argv[i], "-c") == 0 ) 
+		{
+			test_count = atoi( argv[i+1] );
+			if( test_count > STORAGE_TEST_COUNT ) 
+				test_count = STORAGE_TEST_COUNT ;
+
+			fprintf( stderr, "Test count = %d(\"%s\")\n", test_count, argv[i+1] );
+			++i ;
+		}else if( i+1 <= argc && strcmp(argv[i], "-l") == 0 ) 
+		{
+			if( freopen( argv[i+1], "w", stderr ) == NULL )
+				fprintf( stderr, "Failed to open log file \"%s\"\n", argv[i+1] );
+			++i ;
 		}
+
 	}
 
 	if( im ) 
@@ -1594,12 +2030,27 @@ int main(int argc, char **argv )
 		imdec = start_image_decoding(NULL, im, SCL_DO_ALL, 0, 0, im->width, im->height, NULL);
 		fprintf( stderr, "imdec = %p\n", imdec );
 	}
-
-	res = test_asstorage(interactive, 0);
+	
 	if( res == 0 )
-		res = test_asstorage(interactive, ASStoprage_RLEDiffCompress);
+		res = test_asstorage(interactive, test_count, 0);
 	if( res == 0 )
-		res = test_asstorage(interactive, ASStoprage_RLEDiffCompress|ASStorage_Bitmap);
+		res = test_asstorage(interactive, test_count, ASStorage_RLEDiffCompress);
+	if( res == 0 )
+		res = test_asstorage(interactive, test_count, ASStorage_RLEDiffCompress|ASStorage_Bitmap);
+	
+	if( res == 0 )
+		res = test_asstorage(interactive, test_count, ASStorage_32Bit);
+	if( res == 0 )
+		res = test_asstorage(interactive, test_count, ASStorage_32Bit|ASStorage_RLEDiffCompress);
+	if( res == 0 )
+		res = test_asstorage(interactive, test_count, ASStorage_32Bit|ASStorage_RLEDiffCompress|ASStorage_Bitmap);
+	
+	if( res == 0 )
+		res = test_asstorage(interactive, test_count, ASStorage_32Bit|ASStorage_8BitShift);
+	if( res == 0 )
+		res = test_asstorage(interactive, test_count, ASStorage_32Bit|ASStorage_8BitShift|ASStorage_RLEDiffCompress);
+	if( res == 0 )
+		res = test_asstorage(interactive, test_count, ASStorage_32Bit|ASStorage_8BitShift|ASStorage_RLEDiffCompress|ASStorage_Bitmap);
 	
 	stop_image_decoding( &imdec );
 	return res;
