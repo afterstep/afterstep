@@ -425,7 +425,7 @@ parse_xpm_cmap_entry( ASXpmFile *xpm_file, char **colornames )
 	for( key =0 ; key < 6 ; ++key )
 		colornames[key] = NULL ;
 
-	ptr = xpm_file->str_buf ;
+	ptr = xpm_file->str_buf+xpm_file->bpp ;
 	key = -1;
 	do
 	{

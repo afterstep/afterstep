@@ -6,14 +6,15 @@
 ################################################################
 # library specifics :
 
-LIB_INCS= afterimage.h config.h afterbase.h asfont.h asimage.h \
-		asvisual.h blender.h export.h import.h xcf.h xpm.h
+LIB_INCS= afterimage.h config.h afterbase.h ascmap.h asfont.h \
+		asimage.h asvisual.h blender.h export.h import.h \
+		xcf.h xpm.h
 
-LIB_OBJS= @AFTERBASE_C@ asfont.o asimage.o asvisual.o blender.o \
-		export.o import.o xcf.o xpm.o
+LIB_OBJS= @AFTERBASE_C@ ascmap.o asfont.o asimage.o asvisual.o \
+		blender.o export.o import.o xcf.o xpm.o
 
-LIB_DOCS= afterimage.h asfont.h asimage.h asvisual.h blender.h \
-          export.h import.h
+LIB_DOCS= afterimage.h ascmap.h asfont.h asimage.h asvisual.h \
+		  blender.h export.h import.h
 
 LIB_TUTORIALS= common.c asview.c asscale.c astile.c asmerge.c \
 		  asgrad.c asflip.c astext.c
