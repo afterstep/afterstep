@@ -382,6 +382,12 @@ int main(int argc, char** argv) {
 							  xb.state < 0 ) 
 							break;
 					}		   
+					if( c == EOF && fp != stdin ) 
+					{	
+						fseek( fp, 0L, SEEK_SET );
+						if( xb.state == ASXML_Start && xb.tags_count == 0 ) 
+							continue;
+					}
 				}else
 				{
 					while( char_count < doc_str_len ) 
@@ -414,6 +420,10 @@ int main(int argc, char** argv) {
 						safe_asimage_destroy(im);
 						im = NULL ;
 					}					
+				}else if( fp == stdin && xb.state == ASXML_Start && xb.tags_count == 0 && xb.level == 0 ) 
+				{
+					printf("<success tag_count=%d/>\n", xb.tags_count );						  
+					break;
 				}else
 				{
 					printf("<error code=%d text=\"", xb.state );	  
@@ -442,7 +452,9 @@ int main(int argc, char** argv) {
 	}	 
 
 	if (doc_file && doc_str && doc_str != default_doc_str) free(doc_str);
-
+    
+	if( dpy )
+        XCloseDisplay (dpy);
 
 #ifdef DEBUG_ALLOCS
 	print_unfreed_mem();
@@ -453,16 +465,15 @@ int main(int argc, char** argv) {
 
 void showimage(ASImage* im, int onroot) {
 #ifndef X_DISPLAY_MISSING
+	Window w = None ;
 	if (im && onroot) {
 		Pixmap p = asimage2pixmap(asv, DefaultRootWindow(dpy), im, NULL, False);
 		p = set_window_background_and_free(DefaultRootWindow(dpy), p);
-		wait_closedown(DefaultRootWindow(dpy));
-	}
-
-	if(im && !onroot)
+		w = DefaultRootWindow(dpy) ;
+	}else if(im && !onroot)
 	{
 		/* see ASView.4 : */
-		Window w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 			                         im->width, im->height, 1, 0, NULL,
 									 "ASView" );
 		if( w != None )
@@ -477,12 +488,30 @@ void showimage(ASImage* im, int onroot) {
 			/* see common.c:set_window_background_and_free(): */
 			p = set_window_background_and_free( w, p );
 		}
-		/* see common.c: wait_closedown() : */
-		wait_closedown(w);
 	}
+	
+	if( w != None ) 
+	{	
+		XSelectInput (dpy, w, (StructureNotifyMask|ButtonPressMask|ButtonReleaseMask));
 
-    if( dpy )
-        XCloseDisplay (dpy);
+		while(w != None)
+  		{
+    		XEvent event ;
+	    	XNextEvent (dpy, &event);
+  			switch(event.type)
+			{
+	  			case ClientMessage:
+			    	if ((event.xclient.format != 32) ||
+	  			    	(event.xclient.data.l[0] != _XA_WM_DELETE_WINDOW))
+						break ;
+		  		case ButtonPress:
+					XDestroyWindow( dpy, w );
+					XFlush( dpy );
+					w = None ;
+					break ;
+			}
+  		}
+	}
 #endif /* X_DISPLAY_MISSING */
 }
 
