@@ -161,6 +161,7 @@ typedef struct ASTBarData {
 #define BAR_FLAGS_REND_PENDING  (0x01<<16)     /* has been moved, resized or otherwise changed and needs rerendering */
 #define DoesBarNeedsRendering(pb) get_flags((pb)->state, BAR_FLAGS_REND_PENDING )
 #define SetBarNeedsRendering(pb)  set_flags((pb)->state, BAR_FLAGS_REND_PENDING )
+
 #define BAR_FLAGS_VERTICAL      (0x01<<17)     /* vertical label */
 #define BAR_FLAGS_IMAGE_BACK    (0x01<<18)     /* back represents an icon instead of  */
 
