@@ -258,6 +258,11 @@ print_lib_list ()
 #endif
 }
 
+#ifndef HAVE_SIGCONTEXT
+void
+print_signal_context (struct sigcontext *psc)
+{}
+#else
 void
 print_signal_context (struct sigcontext *psc)
 {
@@ -287,6 +292,7 @@ print_signal_context (struct sigcontext *psc)
 #endif
 	}
 }
+#endif
 
 void
 print_my_backtrace (long *ebp, long *esp, long *eip)
@@ -533,7 +539,6 @@ print_simple_backtrace ()
     }
 #endif
 }
-
 
 void
 print_diag_info (struct sigcontext *psc)
