@@ -65,7 +65,7 @@ INCLUDEDIR	= @includedir@
 AFTER_INC_DIR	= @includedir@/libAfterBase
 AFTER_BIN_DIR	= @bindir@
 AFTER_MAN_DIR	= @mandir@/man3
-AFTER_DOC_DIR	= @datadir@/afterstep/doc
+AFTER_DOC_DIR	= @datadir@/libAfterBase/doc
 AFTER_SHAREDIR	= @datadir@/afterstep
 
 all:            @LIBPROG@ $(INSTALLONBUILD)
