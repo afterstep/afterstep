@@ -368,7 +368,7 @@ apply_placement_result( ASStatusHints *status, XRectangle *anchor, ASHints *hint
         if( !get_flags (status->flags, AS_Sticky) )
             status->x -= status->viewport_x ;
         else
-            status->y -= Scr.Vx ;
+            status->x -= Scr.Vx ;
     }
     if( get_flags( flags, YValue ) )
     {
