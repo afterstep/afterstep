@@ -19,6 +19,7 @@ wild_reg_exp;
 
 wild_reg_exp *compile_wild_reg_exp (const char *pattern);
 void print_wild_reg_exp (wild_reg_exp * wrexp);
+void destroy_wild_reg_exp (wild_reg_exp * wrexp);
 
 /************************************************************************/
 /************************************************************************/
