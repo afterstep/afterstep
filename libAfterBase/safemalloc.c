@@ -268,3 +268,79 @@ safefree (void *ptr)
 	else if (ptr)
 		free (ptr);
 }
+
+/*
+ * Dynamically growing buffer implementation :
+ */
+#ifdef DEBUG_ALLOCS
+#include "../include/audit.h"
+#endif /* DEBUG_ALLOCS */
+
+void *alloc_dyn_buffer( dynamic_buffer *buf, size_t new_size )
+{
+    if( buf == NULL || new_size == 0 ) return NULL ;
+    if( buf->allocated < new_size )
+    {
+        buf->allocated = new_size ;
+        if( buf->memory ) free( buf->memory );
+        buf->memory = safemalloc( new_size );
+    }
+    buf->used = 0 ;
+    return buf->memory;
+}
+
+void *realloc_dyn_buffer( dynamic_buffer *buf, size_t new_size )
+{
+    if( buf == NULL || new_size == 0  ) return NULL ;
+    if( buf->allocated < new_size )
+    {
+        buf->allocated = new_size ;
+        if( buf->memory )
+        {
+            buf->memory = realloc( buf->memory, new_size );
+            if ( buf->memory == NULL )
+            {
+                buf->allocated = 0 ;
+                buf->used = 0 ;
+            }
+        }else
+            buf->memory = safemalloc( new_size );
+    }
+    return buf->memory;
+}
+
+dynamic_buffer *append_dyn_buffer( dynamic_buffer *buf, void * data, size_t size )
+{
+    if( buf == NULL || size == 0 ) return buf ;
+
+    if( buf->allocated < buf->used+size )
+        realloc_dyn_buffer( buf, buf->used+size + ((buf->used+size)>>3) );
+
+    memcpy( buf->memory+buf->used, data, size );
+    buf->used += size ;
+
+    return buf;
+}
+
+void
+flush_dyn_buffer( dynamic_buffer *buf )
+{
+    if( buf )
+        buf->used = 0 ;
+}
+
+void
+free_dyn_buffer( dynamic_buffer *buf )
+{
+    if( buf )
+    {
+        if( buf->memory )
+        {
+            free( buf->memory );
+            buf->memory = NULL ;
+        }
+        buf->used = buf->allocated = 0 ;
+    }
+}
+
+
