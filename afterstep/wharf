@@ -119,10 +119,10 @@
 #
 # First available IRC client :
 #
-*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" aterm -title "BitchX IRC" -tr -sh 50 -fg white -bg black -e BitchX irc.freenode.net &
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" aterm +sb -title "BitchX IRC" -tr -sh 50 -fg white -bg black -e BitchX irc.freenode.net &
 *Wharf IRC  normal/IRCTransparent Exec "XCHAT" xchat &
-*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" rxvt  -title "BitchX IRC" -tr -fg yellow -bg black -e BitchX irc.freenode.net  &
-*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" eterm -title "BitchX IRC" -tr -sh 50 -fg yellow -bg black -e BitchX irc.freenode.net &
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" rxvt  +sb -title "BitchX IRC" -tr -fg yellow -bg black -e BitchX irc.freenode.net  &
+*Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" eterm +sb -title "BitchX IRC" -tr -sh 50 -fg yellow -bg black -e BitchX irc.freenode.net &
 *Wharf IRC	normal/EyeInMonitor2Shadow Exec "BitchX" xterm -fg yellow -bg blue -e BitchX irc.freenode.net &
 
 #

@@ -4,9 +4,9 @@ OBJS_ASCOLOR    = ascolor.o
 
 OBJS_ASIMBROWSER = asimbrowser.o
 
-OBJS		= $(OBJS_ASCP) $(OBJS_ASCOLOR) $(OBJS_ASIMBROWSER)
+OBJS		= $(OBJS_ASCOLOR) $(OBJS_ASIMBROWSER) $(OBJS_ASCP)
 
-PROG		= ascp ascolor asimbrowser
+PROG		= ascolor asimbrowser @ASCP@ 
 
 INCS_PRIVATE	= @ASCP_INCLUDES@
 

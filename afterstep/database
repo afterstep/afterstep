@@ -25,6 +25,8 @@ Style   "WinList"       NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles, Avo
 # to make sure Pager always stays open we place it into the highest used level :
 Style   "*Pager"        NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles
 
+Style 	"Bitch*"		NoHandles, Sticky
+
 #wharf apps :
 Style   "wmppp"         NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmcdplay"      NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
