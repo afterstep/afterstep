@@ -60,6 +60,7 @@ typedef struct ASXMLInterpreterState {
 #define ASXMLI_ProcessingOptions	(0x01<<6)	  
 #define ASXMLI_RefSection			(0x01<<7)	  
 #define ASXMLI_FormalPara			(0x01<<8)	  
+#define ASXMLI_EscapeDQuotes		(0x01<<9)	  
 
 	
 	ASFlagType flags;

@@ -166,7 +166,8 @@ write_doc_cdata( const char *cdata, int len, ASXMLInterpreterState *state )
 				i += c_len-1 ;	
 			else
 				c = cdata[i];
-			
+			if( c == '\"' && get_flags( state->flags, ASXMLI_EscapeDQuotes) ) 
+				fputc( '\"', state->dest_fp );	
 			fputc( c, state->dest_fp );
 		}		   
 	}	 
@@ -664,7 +665,10 @@ start_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state 
 	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
 		fprintf( state->dest_fp, "<DT class=\"dense\"><B>" );	
 	else if( state->doc_type == DocType_NROFF )
+	{	
 		fprintf( state->dest_fp, "\"");
+		set_flags( state->flags, ASXMLI_EscapeDQuotes);
+	}
 }
 
 void 
@@ -673,7 +677,10 @@ end_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
 		fwrite( "</B></DT>", 1, 9, state->dest_fp );	
 	else if( state->doc_type == DocType_NROFF )
+	{	
 		fprintf( state->dest_fp, "\"\n");
+		clear_flags( state->flags, ASXMLI_EscapeDQuotes);
+	}
 }	
 
 void 
