@@ -571,7 +571,7 @@ void trace_DispatchEvent (XEvent *event, const char *filename, int line)
       ASWindow *tmp_win ;
 	fprintf( stderr, "A>%s(%d):DispatchEvent(0x%lX{",filename, line, (unsigned long)event );
 	printf_xevent( event );
-	if(XFindContext (dpy, event->xany.window, ASContext, (caddr_t *) &tmp_win) != XCNOENT)
+	if((tmp_win = (ASWindow*)window_id2data(event->xany.window)) != NULL)
 	{
     	    fprintf( stderr, "} for {");
     	    printf_aswindow(tmp_win);
