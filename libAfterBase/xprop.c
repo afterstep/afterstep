@@ -107,6 +107,34 @@ print_list_hints( stream_func func, void* stream, ASFlagType flags, AtomXref *xr
             func( stream, "%s.atom[%d] = %s;\n", prompt, i, xref[i].name );
 }
 
+void
+encode_atom_list ( AtomXref * xref, Atom **list, long *nitems, ASFlagType flags)
+{
+	if ( list && xref && nitems )
+	{
+		register int  i, k = 0;
+
+	    for( i = 0 ; xref[i].name ; i++ )
+			if( get_flags(flags, xref[i].flag) )
+				k++;
+		*list = NULL;
+		*nitems = k ;
+		if( k > 0 )
+		{
+			*list = safecalloc( k, sizeof(Atom));
+			k = 0 ;
+		    for( i = 0 ; xref[i].name ; i++ )
+				if( get_flags(flags, xref[i].flag) )
+				{
+					(*list)[k] = xref[i].atom;
+					k++;
+				}
+		}
+	}
+}
+
+
+
 Bool
 read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, long *nitems)
 {
@@ -319,7 +347,7 @@ read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *v
 	}
     if( data )
     {
-        trg = safemalloc( size*sizeof(unsigned long));
+        *trg = safemalloc( size*sizeof(unsigned long));
         for( size-- ; size > 0 ; size-- )
             (*trg)[size] = (unsigned long) (data[size]) ;
         XFree( data );
@@ -358,7 +386,7 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
 
             XChangeProperty (dpy, Scr.Root, property, type?type:XA_CARDINAL, 32,
                              PropModeReplace, (unsigned char *)&data, items);
-			free(data);							
+			free(data);
         }else
         {
             XChangeProperty (dpy, Scr.Root, property,
@@ -394,6 +422,31 @@ set_string_property (Window w, Atom property, char *data)
     }
 }
 
+void
+set_text_property (Window w, Atom property, char** data, int items_num, ASTextEncoding encoding )
+{
+	if (w != None && property != None && data && items_num > 0)
+	{
+		XTextProperty prop ;
+#ifdef I18N
+        if (encoding != TPE_UTF8)
+		{
+            char  **list;
+            int     num, res ;
+/*			static Atom _XA_UTF8_STRING = XInternAtom(dpy, "UTF8_STRING", False) ; */
+			if( XmbTextListToTextProperty(dpy, data, items_num, XUTF8String, &prop) == Success )
+			{
+				XSetTextProperty (dpy, w, &prop, property);
+				XFree ((char *)prop.value);
+				return;
+			}
+        }
+#endif
+		XStringListToTextProperty (data, items_num, &prop);
+		XSetTextProperty (dpy, w, &prop, property);
+		XFree ((char *)prop.value);
+	}
+}
 
 /* AfterStep specific property : */
 void
