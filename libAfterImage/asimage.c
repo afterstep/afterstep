@@ -1439,7 +1439,7 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim )
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height);
 	if( to_xim )
-		dst->ximage = CreateXImageAndData( dpy, ascolor_visual, ascolor_true_depth, ZPixmap, 0, to_width, to_height );
+		dst->ximage = CreateXImageAndData( dpy, Scr.visual_info.visual, Scr.true_depth, ZPixmap, 0, to_width, to_height );
 
 	if( to_width == src->width )
 		h_ratio = 0;
@@ -1507,32 +1507,22 @@ asimage_from_ximage (XImage * xim)
 #endif
 	prepare_scanline( xim->width, 0, &xim_buf );
 
-	if( ascolor_true_depth == 0 )
-		for (i = 0; i < height; i++)
-		{
-
-			fill_ximage_buffer_pseudo( xim, &xim_buf, i );
-			asimage_add_line (im, IC_RED,   xim_buf.red, i);
-			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
-			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
-		}
-	else                                       /* TRue color visual */
-		for (i = 0; i < height; i++)
-		{
-			GET_SCANLINE(&Scr,xim,&xim_buf,i,xim_line);
-			asimage_add_line (im, IC_RED,   xim_buf.red, i);
-			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
-			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
+	for (i = 0; i < height; i++)
+	{
+		GET_SCANLINE(&Scr,xim,&xim_buf,i,xim_line);
+		asimage_add_line (im, IC_RED,   xim_buf.red, i);
+		asimage_add_line (im, IC_GREEN, xim_buf.green, i);
+		asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
 #ifdef LOCAL_DEBUG
-			if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) )
-				exit(0);
-			if( !asimage_compare_line( im, IC_GREEN,  xim_buf.green, tmp, i, True ) )
-				exit(0);
-			if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) )
-				exit(0);
+		if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) )
+			exit(0);
+		if( !asimage_compare_line( im, IC_GREEN,  xim_buf.green, tmp, i, True ) )
+			exit(0);
+		if( !asimage_compare_line( im, IC_BLUE,  xim_buf.blue, tmp, i, True ) )
+			exit(0);
 #endif
-			xim_line += bpl;
-		}
+		xim_line += bpl;
+	}
 	free_scanline(&xim_buf, True);
 
 	return im;
@@ -1549,7 +1539,7 @@ ximage_from_asimage (ASImage *im)
 	if (im == NULL)
 		return xim;
 
-	xim = CreateXImageAndData( dpy, ascolor_visual, ascolor_true_depth, ZPixmap, 0, im->width, im->height );
+	xim = CreateXImageAndData( dpy, Scr.visual_info.visual, Scr.true_depth, ZPixmap, 0, im->width, im->height );
 	if( (imout = start_image_output( im, xim, True, 0 )) == NULL )
 		return xim;
 
