@@ -91,8 +91,8 @@ typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanli
 int normalize_degrees_val( int degrees );
 CARD32 degrees2hue16( int degrees );
 int    hue162degrees( CARD32 hue );
-#define percent2val16(p) 	((((CARD32)(p))<<16)/100)
-#define val162percent(p) 	((((CARD32)(p))*100)>>16)
+#define percent2val16(p) 	((((CARD32)(p))*0x00FFFE)/100)
+#define val162percent(p) 	((((CARD32)(p))*100)/0x00FFFE)
 
 
 inline CARD32 rgb2value( CARD32 red, CARD32 green, CARD32 blue );

@@ -2,6 +2,8 @@
 #define AFTERCONF_H_FILE_INCLUDED
 
 #include "../libAfterImage/asvisual.h"
+#include "../libAfterStep/clientprops.h"
+#include "../libAfterStep/colorscheme.h"
 
 /***************************************************************************/
 /*                        ASFunction parsing definitions                   */
@@ -1426,46 +1428,86 @@ int WriteAutoExecOptions (const char *filename, char *myname,  AutoExecConfig * 
 void DestroyThemeConfig (ThemeConfig * config);
 ThemeConfig *ParseThemeFile (const char *filename, char *myname);
 /***************************************************************************/
-#define COLOR_ID_START	 			(WINDOWBOX_ID_END+1)
-#define COLOR_Base_ID					(COLOR_ID_START+1)
-#define COLOR_Angle_ID				(COLOR_ID_START+2)
-#define COLOR_Inactive1_ID			(COLOR_ID_START+3)
-#define COLOR_Inactive2_ID			(COLOR_ID_START+4)
-#define COLOR_Active_ID  				(COLOR_ID_START+5)
-#define COLOR_InactiveText1_ID		(COLOR_ID_START+6)
-#define COLOR_InactiveText2_ID		(COLOR_ID_START+7)
+#define COLOR_ID_START	 				(WINDOWBOX_ID_END+1)
+#define COLOR_Base_ID					(COLOR_ID_START+ASMC_Base 					 )
+#define COLOR_Inactive1_ID				(COLOR_ID_START+ASMC_Inactive1 				 )
+#define COLOR_Inactive2_ID				(COLOR_ID_START+ASMC_Inactive2 				 )
+#define COLOR_Active_ID  				(COLOR_ID_START+ASMC_Active 				 )
+#define COLOR_InactiveText1_ID			(COLOR_ID_START+ASMC_InactiveText1 		 	 )
+#define COLOR_InactiveText2_ID			(COLOR_ID_START+ASMC_InactiveText2 			 )
 
-#define COLOR_ActiveText_ID			(COLOR_ID_START+8)
-#define COLOR_HighInactive_ID			(COLOR_ID_START+9)
-#define COLOR_HighActive_ID			(COLOR_ID_START+10)
-#define COLOR_HighInactiveBack_ID		(COLOR_ID_START+11)
-#define COLOR_HighActiveBack_ID		(COLOR_ID_START+12)
-#define COLOR_HighInactiveText_ID		(COLOR_ID_START+13)
-#define COLOR_HighActiveText_ID		(COLOR_ID_START+14)
-#define COLOR_DisabledText_ID			(COLOR_ID_START+15)
+#define COLOR_ActiveText_ID				(COLOR_ID_START+ASMC_ActiveText 			 )
+#define COLOR_HighInactive_ID			(COLOR_ID_START+ASMC_HighInactive 			 )
+#define COLOR_HighActive_ID				(COLOR_ID_START+ASMC_HighActive 			 )
+#define COLOR_HighInactiveBack_ID		(COLOR_ID_START+ASMC_HighInactiveBack 		 )
+#define COLOR_HighActiveBack_ID			(COLOR_ID_START+ASMC_HighActiveBack 	  )
+#define COLOR_HighInactiveText_ID		(COLOR_ID_START+ASMC_HighInactiveText 		 )
+#define COLOR_HighActiveText_ID			(COLOR_ID_START+ASMC_HighActiveText			 )
+#define COLOR_DisabledText_ID			(COLOR_ID_START+ASMC_DisabledText			 )
 
-#define COLOR_BaseDark_ID				(COLOR_ID_START+16)
-#define COLOR_BaseLight_ID			(COLOR_ID_START+17)
-#define COLOR_Inactive1Dark_ID		(COLOR_ID_START+18)
-#define COLOR_Inactive1Light_ID		(COLOR_ID_START+19)
-#define COLOR_Inactive2Dark_ID		(COLOR_ID_START+20)
-#define COLOR_Inactive2Light_ID		(COLOR_ID_START+21)
-#define COLOR_ActiveDark_ID			(COLOR_ID_START+22)
-#define COLOR_ActiveLight_ID			(COLOR_ID_START+23)
-#define COLOR_HighInactiveDark_ID		(COLOR_ID_START+24)
-#define COLOR_HighInactiveLight_ID	(COLOR_ID_START+25)
-#define COLOR_HighActiveDark_ID		(COLOR_ID_START+26)
-#define COLOR_HighActiveLight_ID		(COLOR_ID_START+27)
-#define COLOR_HighInactiveBackDark_ID	(COLOR_ID_START+28)
-#define COLOR_HighInactiveBackLight_ID (COLOR_ID_START+29)
-#define COLOR_HighActiveBackDark_ID	(COLOR_ID_START+30)
-#define COLOR_HighActiveBackLight_ID	(COLOR_ID_START+31)
-#define COLOR_ID_END            		(COLOR_ID_START+32)
+#define COLOR_BaseDark_ID				(COLOR_ID_START+ASMC_BaseDark				 )
+#define COLOR_BaseLight_ID				(COLOR_ID_START+ASMC_BaseLight				 )
+#define COLOR_Inactive1Dark_ID			(COLOR_ID_START+ASMC_Inactive1Dark			 )
+#define COLOR_Inactive1Light_ID			(COLOR_ID_START+ASMC_Inactive1Light			 )
+#define COLOR_Inactive2Dark_ID			(COLOR_ID_START+ASMC_Inactive2Dark			 )
+#define COLOR_Inactive2Light_ID			(COLOR_ID_START+ASMC_Inactive2Light			 )
+#define COLOR_ActiveDark_ID				(COLOR_ID_START+ASMC_ActiveDark				 )
+#define COLOR_ActiveLight_ID			(COLOR_ID_START+ASMC_ActiveLight			 )
+#define COLOR_HighInactiveDark_ID		(COLOR_ID_START+ASMC_HighInactiveDark		 )
+#define COLOR_HighInactiveLight_ID		(COLOR_ID_START+ASMC_HighInactiveLight		 )
+#define COLOR_HighActiveDark_ID			(COLOR_ID_START+ASMC_HighActiveDark			 )
+#define COLOR_HighActiveLight_ID		(COLOR_ID_START+ASMC_HighActiveLight		 )
+#define COLOR_HighInactiveBackDark_ID	(COLOR_ID_START+ASMC_HighInactiveBackDark	)
+#define COLOR_HighInactiveBackLight_ID 	(COLOR_ID_START+ASMC_HighInactiveBackLight)
+#define COLOR_HighActiveBackDark_ID		(COLOR_ID_START+ASMC_HighActiveBackDark		 )
+#define COLOR_HighActiveBackLight_ID	(COLOR_ID_START+ASMC_HighActiveBackLight  )
+#define COLOR_Angle_ID					31/*(COLOR_ID_START+ASMC_MainColors)*/
+#define COLOR_ID_END            		(COLOR_ID_START+ASMC_MainColors+1)
+
+typedef enum
+{
+#define COLOR_SET_FLAG(name)  COLOR_##name = (0x01<<(ASMC_##name))
+
+	COLOR_SET_FLAG(Base),
+	COLOR_SET_FLAG(Inactive1),
+	COLOR_SET_FLAG(Inactive2),
+	COLOR_SET_FLAG(Active),
+	COLOR_SET_FLAG(InactiveText1),
+	COLOR_SET_FLAG(InactiveText2),
+	COLOR_SET_FLAG(ActiveText),
+	COLOR_SET_FLAG(HighInactive),
+	COLOR_SET_FLAG(HighActive),
+	COLOR_SET_FLAG(HighInactiveBack),
+	COLOR_SET_FLAG(HighActiveBack),
+	COLOR_SET_FLAG(HighInactiveText),
+	COLOR_SET_FLAG(HighActiveText),
+	COLOR_SET_FLAG(DisabledText),
+	COLOR_SET_FLAG(BaseDark),
+	COLOR_SET_FLAG(BaseLight),
+	COLOR_SET_FLAG(Inactive1Dark),
+	COLOR_SET_FLAG(Inactive1Light),
+	COLOR_SET_FLAG(Inactive2Dark),
+	COLOR_SET_FLAG(Inactive2Light),
+	COLOR_SET_FLAG(ActiveDark),
+	COLOR_SET_FLAG(ActiveLight),
+	COLOR_SET_FLAG(HighInactiveDark),
+	COLOR_SET_FLAG(HighInactiveLight),
+	COLOR_SET_FLAG(HighActiveDark),
+	COLOR_SET_FLAG(HighActiveLight),
+	COLOR_SET_FLAG(HighInactiveBackDark),
+	COLOR_SET_FLAG(HighInactiveBackLight),
+	COLOR_SET_FLAG(HighActiveBackDark),
+	COLOR_SET_FLAG(HighActiveBackLight),
+	COLOR_Angle = (0x01<<ASMC_MainColors)
+
+}ColorConfigSetFlags;
 
 
 typedef struct ColorConfig
 {
-    struct ASColorScheme *cs ;
+	ASFlagType set_main_colors ;
+	ARGB32 main_colors[ASMC_MainColors] ;
+	int angle ;
 
     struct FreeStorageElem *more_stuff ;
 

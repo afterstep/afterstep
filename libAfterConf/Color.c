@@ -22,6 +22,7 @@
 
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/afterstep.h"
+#include "../libAfterStep/parser.h"
 #include "../libAfterStep/colorscheme.h"
 
 #include "afterconf.h"
@@ -33,49 +34,49 @@
  * file
  *
  ****************************************************************************/
-#define ASCOLOR_TERM(name,len)  \
-    {TF_NO_MYNAME_PREPENDING, #name, len, TT_COLOR, ASCOLOR_##name##_ID , NULL},
+#define COLOR_TERM(n,len)  {TF_NO_MYNAME_PREPENDING, #n, len, TT_COLOR, COLOR_##n##_ID , NULL}
 
-TermDef       ASColorTerms[] = {
-	ASCOLOR_TERM(Base,4),
-	ASCOLOR_TERM(Inactive1,9),
-	ASCOLOR_TERM(Inactive2,9),
-	ASCOLOR_TERM(Active,6),
-	ASCOLOR_TERM(InactiveText1,13),
-	ASCOLOR_TERM(InactiveText2,13),
-	ASCOLOR_TERM(ActiveText,10),
-	ASCOLOR_TERM(HighInactive,12),
-	ASCOLOR_TERM(HighActive,10),
-	ASCOLOR_TERM(HighInactiveBack,16),
-	ASCOLOR_TERM(HighActiveBack,14),
-	ASCOLOR_TERM(HighInactiveText,16),
-	ASCOLOR_TERM(HighActiveText,14),
-	ASCOLOR_TERM(DisabledText,12),
-	ASCOLOR_TERM(BaseDark,8),
-	ASCOLOR_TERM(BaseLight,9),
-	ASCOLOR_TERM(Inactive1Dark,13),
-	ASCOLOR_TERM(Inactive1Light,14),
-	ASCOLOR_TERM(Inactive2Dark,13),
-	ASCOLOR_TERM(Inactive2Light,14),
-	ASCOLOR_TERM(ActiveDark,10),
-	ASCOLOR_TERM(ActiveLight,11),
-	ASCOLOR_TERM(HighInactiveDark,16),
-	ASCOLOR_TERM(HighInactiveLight,17),
-	ASCOLOR_TERM(HighActiveDark,14),
-	ASCOLOR_TERM(HighActiveLight,15),
-	ASCOLOR_TERM(HighInactiveBackDark,20),
-	ASCOLOR_TERM(HighInactiveBackLight,21),
-	ASCOLOR_TERM(HighActiveBackDark,24),
-	ASCOLOR_TERM(HighActiveBackLight,25),
+TermDef       ColorTerms[] = {
+	COLOR_TERM(Base,4),
+	COLOR_TERM(Inactive1,9),
+	COLOR_TERM(Inactive2,9),
+	COLOR_TERM(Active,6),
+	COLOR_TERM(InactiveText1,13),
+	COLOR_TERM(InactiveText2,13),
+	COLOR_TERM(ActiveText,10),
+	COLOR_TERM(HighInactive,12),
+	COLOR_TERM(HighActive,10),
+	COLOR_TERM(HighInactiveBack,16),
+	COLOR_TERM(HighActiveBack,14),
+	COLOR_TERM(HighInactiveText,16),
+	COLOR_TERM(HighActiveText,14),
+	COLOR_TERM(DisabledText,12),
+	COLOR_TERM(BaseDark,8),
+	COLOR_TERM(BaseLight,9),
+	COLOR_TERM(Inactive1Dark,13),
+	COLOR_TERM(Inactive1Light,14),
+	COLOR_TERM(Inactive2Dark,13),
+	COLOR_TERM(Inactive2Light,14),
+	COLOR_TERM(ActiveDark,10),
+	COLOR_TERM(ActiveLight,11),
+	COLOR_TERM(HighInactiveDark,16),
+	COLOR_TERM(HighInactiveLight,17),
+	COLOR_TERM(HighActiveDark,14),
+	COLOR_TERM(HighActiveLight,15),
+	COLOR_TERM(HighInactiveBackDark,20),
+	COLOR_TERM(HighInactiveBackLight,21),
+	COLOR_TERM(HighActiveBackDark,24),
+	COLOR_TERM(HighActiveBackLight,25),
+	{TF_NO_MYNAME_PREPENDING, "Angle", 5, TT_UINTEGER, COLOR_Angle_ID, NULL},
 
-	{TF_NO_MYNAME_PREPENDING, "Angle", 5, TT_UINTEGER, ASCOLOR_Angle_ID, NULL},
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     ASColorSyntax = {
+
+SyntaxDef     ColorSyntax = {
 	'\n',
 	'\0',
-    ASColorTerms,
+    ColorTerms,
 	0,										   /* use default hash size */
     ' ',
 	"",
@@ -85,18 +86,34 @@ SyntaxDef     ASColorSyntax = {
 	0
 };
 
+ColorConfig*
+CreateColorConfig()
+{
+	return safecalloc( 1, sizeof(ColorConfig));
+}
 
 void
-PrintColorScheme (ASColorScheme *config )
+DestroyColorConfig(ColorConfig* config)
+{
+	if( config )
+	{
+		DestroyFreeStorage (&(config->more_stuff));
+		free (config);
+	}
+}
+
+
+void
+PrintColorConfig (ColorConfig *config )
 {
 }
 
-ASColorScheme   *
-ParseBaseOptions (const char *filename, char *myname)
+ColorConfig *
+ParseColorOptions (const char *filename, char *myname)
 {
-	ConfigDef    *ConfigReader = InitConfigReader (myname, &BaseSyntax, CDT_Filename, (void *)filename,
+	ConfigDef    *ConfigReader = InitConfigReader (myname, &ColorSyntax, CDT_Filename, (void *)filename,
 												   NULL);
-	BaseConfig   *config = CreateBaseConfig ();
+	ColorConfig   *config = CreateColorConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 
@@ -113,51 +130,22 @@ ParseBaseOptions (const char *filename, char *myname)
 
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
+		int index ;
 		if (pCurr->term == NULL)
 			continue;
 		if (!ReadConfigItem (&item, pCurr))
 			continue;
-		switch (pCurr->term->id)
+		index = pCurr->term->id - COLOR_ID_START ;
+		if( index >= 0 && index < ASMC_MainColors )
 		{
-		 case BASE_MODULE_PATH_ID:
-			 set_string_value( &(config->module_path), item.data.string, NULL, 0 );
-			 break;
-		 case BASE_AUDIO_PATH_ID:
-			 set_string_value( &(config->audio_path), item.data.string, NULL, 0 );
-			 break;
-		 case BASE_ICON_PATH_ID:
-			 set_string_value( &(config->icon_path), item.data.string, NULL, 0 );
-			 break;
-		 case BASE_PIXMAP_PATH_ID:
-			 set_string_value( &(config->pixmap_path), item.data.string, NULL, 0 );
-			 break;
-		 case BASE_FONT_PATH_ID:
-			 set_string_value( &(config->font_path), item.data.string, NULL, 0 );
-			 break;
-		 case BASE_CURSOR_PATH_ID:
-			 set_string_value( &(config->cursor_path), item.data.string, NULL, 0 );
-			 break;
-		 case BASE_MYNAME_PATH_ID:
-			 set_string_value( &(config->myname_path), item.data.string, NULL, 0 );
-			 break;
-		 case BASE_DESKTOP_SIZE_ID:
-			 config->desktop_size = item.data.geometry;
-			 /* errorneous value check */
-			 if (!(config->desktop_size.flags & WidthValue))
-				 config->desktop_size.width = 1;
-			 if (!(config->desktop_size.flags & HeightValue))
-				 config->desktop_size.height = 1;
-			 config->desktop_size.flags = WidthValue | HeightValue;
-			 break;
-		 case BASE_DESKTOP_SCALE_ID:
-			 config->desktop_scale = item.data.integer;
-			 /* errorneous value check */
-			 if (config->desktop_scale < 1)
-				 config->desktop_scale = 1;
-			 break;
-		 default:
-			 item.ok_to_free = 1;
+			if( parse_argb_color( item.data.string, &(config->main_colors[index]) )!= item.data.string )
+				set_flags( config->set_main_colors, (0x01<<index) );
+		}else if( pCurr->term->id == COLOR_Angle_ID )
+		{
+			config->angle = item.data.integer ;
+			set_flags( config->set_main_colors, COLOR_Angle );
 		}
+		item.ok_to_free = 1;
 	}
 	ReadConfigItem (&item, NULL);
 
@@ -173,47 +161,52 @@ ParseBaseOptions (const char *filename, char *myname)
  *
  */
 int
-WriteBaseOptions (const char *filename, char *myname, BaseConfig * config, unsigned long flags)
+WriteColorOptions (const char *filename, char *myname, ColorConfig * config, unsigned long flags)
 {
-	ConfigDef    *BaseConfigWriter = NULL;
+	ConfigDef    *ColorConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
+
+	char color_buffer[128] ;
+	int i ;
 
 	if (config == NULL)
 		return 1;
-	if ((BaseConfigWriter = InitConfigWriter (myname, &BaseSyntax, CDT_Filename, (void *)filename)) == NULL)
+	if ((ColorConfigWriter = InitConfigWriter (myname, &ColorSyntax, CDT_Filename, (void *)filename)) == NULL)
 		return 2;
 
 	CopyFreeStorage (&Storage, config->more_stuff);
 
 	/* building free storage here */
+	for( i = 0 ; i < ASMC_MainColors ; ++i )
+		if( get_flags(config->set_main_colors, 0x01<<i ) )
+		{
+			ARGB32 c = config->main_colors[i] ;
+			CARD32 a, r, g, b, h, s, v ;
+			char *tmp[1] ;
+			a = ARGB32_ALPHA8(c);
+			r = ARGB32_RED16(c);
+			g = ARGB32_GREEN16(c);
+			b = ARGB32_BLUE16(c);
+			h = rgb2hsv( r, g, b, &s, &v );
+			h = hue162degrees(h);
+			s = val162percent(s);
+			v = val162percent(v);
+			r = r>>8 ;
+			g = g>>8 ;
+			b = b>>8 ;
+			tmp[0] = &(color_buffer[0]) ;
+			sprintf( color_buffer, "#%2.2lX%2.2lX%2.2lX%2.2lX  # or ahsv(%ld,%ld,%ld,%ld) or argb(%ld,%ld,%ld,%ld)",
+					 a, r, g, b, a, h, s, v, a, r, g, b );
+			tail = Strings2FreeStorage ( &ColorSyntax, tail, &(tmp[0]), 1, COLOR_ID_START+i );
+		}
 
-	/* module_path */
-	tail = String2FreeStorage (&BaseSyntax, tail, config->module_path, BASE_MODULE_PATH_ID);
-
-	/* icon_path */
-	tail = String2FreeStorage (&BaseSyntax, tail, config->icon_path, BASE_ICON_PATH_ID);
-
-	/* pixmap_path */
-	tail = String2FreeStorage (&BaseSyntax, tail, config->pixmap_path, BASE_PIXMAP_PATH_ID);
-
-	/* cursor_path */
-	tail = String2FreeStorage (&BaseSyntax, tail, config->cursor_path, BASE_CURSOR_PATH_ID);
-
-	/* audio_path */
-	tail = String2FreeStorage (&BaseSyntax, tail, config->audio_path, BASE_AUDIO_PATH_ID);
-
-	/* myname_path */
-	tail = String2FreeStorage (&BaseSyntax, tail, config->myname_path, BASE_MYNAME_PATH_ID);
-
-	/* desktop_size */
-	tail = Geometry2FreeStorage (&BaseSyntax, tail, &(config->desktop_size), BASE_DESKTOP_SIZE_ID);
-
-	/* desktop_scale */
-    tail = Integer2FreeStorage (&BaseSyntax, tail, NULL, config->desktop_scale, BASE_DESKTOP_SCALE_ID);
+	/* colorscheme angle */
+	if( get_flags( config->set_main_colors, COLOR_Angle ) )
+    	tail = Integer2FreeStorage (&ColorSyntax, tail, NULL, config->angle, COLOR_Angle_ID);
 
 	/* writing config into the file */
-	WriteConfig (BaseConfigWriter, &Storage, CDT_Filename, (void **)&filename, flags);
-	DestroyConfig (BaseConfigWriter);
+	WriteConfig (ColorConfigWriter, &Storage, CDT_Filename, (void **)&filename, flags);
+	DestroyConfig (ColorConfigWriter);
 
 	if (Storage)
 	{

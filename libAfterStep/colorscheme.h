@@ -1,6 +1,8 @@
 #ifndef COLORSCHEME_H_HEADER_DEFINED
 #define COLORSCHEME_H_HEADER_DEFINED
 
+#include "../libAfterImage/afterimage.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -58,42 +60,59 @@ extern "C" {
  *  10 colors total: 6 primary colors and 4 derived colors
  */
 
+#define ASMC_Base 					0
+#define ASMC_Inactive1 				1
+#define ASMC_Inactive2 				2
+#define ASMC_Active 				3
+#define ASMC_InactiveText1 		    4
+#define ASMC_InactiveText2 			5
+
+#define ASMC_ActiveText 			6
+#define ASMC_HighInactive 			7
+#define ASMC_HighActive 			8
+#define ASMC_HighInactiveBack 		9
+#define ASMC_HighActiveBack 	    10
+#define ASMC_HighInactiveText 		11
+#define ASMC_HighActiveText			12
+#define ASMC_DisabledText			13
+
+#define ASMC_BaseDark				14
+#define ASMC_BaseLight				15
+#define ASMC_Inactive1Dark			16
+#define ASMC_Inactive1Light			17
+#define ASMC_Inactive2Dark			18
+#define ASMC_Inactive2Light			19
+#define ASMC_ActiveDark				10
+#define ASMC_ActiveLight			21
+#define ASMC_HighInactiveDark		22
+#define ASMC_HighInactiveLight		23
+#define ASMC_HighActiveDark			24
+#define ASMC_HighActiveLight		25
+#define ASMC_HighInactiveBackDark	26
+#define ASMC_HighInactiveBackLight	27
+#define ASMC_HighActiveBackDark		28
+#define ASMC_HighActiveBackLight   	29
+#define ASMC_MainColors			   	30
+
+
+extern char *ASMainColorNames[ASMC_MainColors];
+
 typedef struct ASColorScheme
 {
 	int angle ;
 	int base_hue, base_sat, base_val ;
-	ARGB32       base_argb ;
 	int inactive1_hue, inactive1_sat, inactive1_val ;
-	ARGB32       inactive1_argb ;
 	int inactive2_hue, inactive2_sat, inactive2_val ;
-	ARGB32       inactive2_argb ;
 	int active_hue, active_sat, active_val ;
-	ARGB32       active_argb ;
 	int inactive_text1_hue, inactive_text1_sat, inactive_text1_val ;
-	ARGB32       inactive_text1_argb ;
 	int inactive_text2_hue, inactive_text2_sat, inactive_text2_val ;
-	ARGB32       inactive_text2_argb ;
 
 	int 		 active_text_sat, active_text_val ;
-	ARGB32       active_text_argb ;
-	ARGB32       high_inactive_argb ;
-	ARGB32       high_active_argb ;
-	ARGB32       high_inactive_back_argb ;
-	ARGB32       high_active_back_argb ;
 	int 		 high_inactive_text_sat, high_inactive_text_val ;
-	ARGB32       high_inactive_text_argb ;
 	int 		 high_active_text_sat, high_active_text_val ;
-	ARGB32       high_active_text_argb ;
-	ARGB32       disabled_text_argb ;
 
-	ARGB32       base_grad[2] ;
-	ARGB32       inactive1_grad[2] ;
-	ARGB32       inactive2_gradb[2] ;
-	ARGB32       active_grad[2] ;
-	ARGB32       high_inactive_grad[2] ;
-	ARGB32       high_active_grad[2] ;
-	ARGB32       high_inactive_back_grad[2] ;
-	ARGB32       high_active_back_grad[2] ;
+	ARGB32       main_colors[ASMC_MainColors] ;
+
 }ASColorScheme;
 
 #define ASCS_MIN_ANGLE	0
