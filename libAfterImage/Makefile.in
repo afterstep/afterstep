@@ -282,8 +282,8 @@ install.man: doc.man
 install.doc: doc.html
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
 		for f in doc/html/*.html; do \
-	  	  echo $(INSTALL_DATA) doc/html/$$f $(AFTER_DOC_DIR)/$$f; \
-		  $(INSTALL_DATA) doc/html/$$f $(AFTER_DOC_DIR)/$$f; \
+	  	  echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/$$f; \
+		  $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/$$f; \
 		done
 
 install:	install.lib install.man install.doc
