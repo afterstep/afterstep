@@ -87,7 +87,9 @@
 #define MENU_FILE	AFTER_NONCF "/startmenu"
 #define AUTOEXEC_FILE   "autoexec"
 #define DATABASE_FILE   "database"
-#define DEFAULT_SCREENSHOT_FILE 		"~/screenshot"
+#define DEFAULT_CAPTURE_WINDOW_FILE		"~/capture_window"
+#define DEFAULT_CAPTURE_FRAMEDWINDOW_FILE	"~/capture_framedwindow"
+#define DEFAULT_CAPTURE_SCREEN_FILE		"~/capture_screen"
 #define DONT_REPLACE_SCREENSHOT_FILES 1        /* undefine this to enabline replacing existing files with screenshots(dangerous) */
 
 #define DEFAULT_COLORSCHEME_BASE	0xFF34404C   /* base color of the default colorscheme ( The Stormy Skies ) */
