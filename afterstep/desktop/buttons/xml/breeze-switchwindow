@@ -1,0 +1,17 @@
+
+ <rotate  id="bsw" angle="90">
+      <img src="dots/triangle_medium" />
+</rotate>
+<pad  top="3" color="#0fff">
+<composite >
+   <tile tint="#666" y="2" x="2" >
+      <recall srcid="bsw" />
+   </tile>
+   <tile tint="#444" y="1" x="1" >
+      <recall srcid="bsw" />
+   </tile>
+   <tile tint="Black" y="0" >
+      <recall srcid="bsw" />
+   </tile>
+</composite >
+</pad>
