@@ -374,7 +374,7 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 	int           actual_format;
 	Atom          actual_type;
     CARD32		  size;
-	long		  junk;
+	unsigned long ujunk;
 
     if( w == None || property == None )
         return False;
@@ -382,7 +382,7 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 	data.long_ptr = NULL ; 
 	/* try to get the property version and data size */
     if (XGetWindowProperty (dpy, w, property, 0, 2, False, AnyPropertyType, &actual_type,
-		 &actual_format, &junk, &junk, &header.uc_ptr) != Success)
+		 &actual_format, &ujunk, &ujunk, &header.uc_ptr) != Success)
         return False;
 	if (header.long_ptr == NULL)
         return False;
@@ -400,7 +400,7 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 		unsigned long actual_size = 0;
 		/* try to get the actual information */
         if (XGetWindowProperty(dpy, w, property, 2, size, False,
-                               AnyPropertyType, &actual_type, &actual_format, &actual_size, &junk, &data.uc_ptr) != Success)
+                               AnyPropertyType, &actual_type, &actual_format, &actual_size, &ujunk, &data.uc_ptr) != Success)
 			data.uc_ptr = NULL;
 		else if( actual_size < size )          /* make sure we do not go out of bounds of returned memory */
 			*data_size = actual_size*sizeof(CARD32) ; 

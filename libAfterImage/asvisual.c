@@ -1391,7 +1391,7 @@ unsigned long
 ximage2shmseg( XImage *xim )
 {
 	ASXShmImage *data = NULL ;
-	if( get_hash_item( xshmimage_images, AS_HASHABLE(xim), &data ) == ASH_Success )		
+	if( get_hash_item( xshmimage_images, AS_HASHABLE(xim), (void**)&data ) == ASH_Success )		
 	{
 		if( data->segment ) 
 			return data->segment->shmseg;	

@@ -1005,7 +1005,7 @@ count_xgettextproperty(const char *fname, int line, Display * display, Window w,
 
     val = XGetTextProperty(display,w,trg,property);
     if (val && trg->value )
-        count_alloc (fname, line, (void *)(trg->value), strlen(trg->value)+1, C_XMEM | C_XGETTEXTPROPERTY );
+        count_alloc (fname, line, (void *)(trg->value), strlen((char*)trg->value)+1, C_XMEM | C_XGETTEXTPROPERTY );
     return val;
 }
 

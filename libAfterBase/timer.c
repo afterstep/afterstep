@@ -124,7 +124,7 @@ timer_subtract_times (time_t * sec1, time_t * usec1, time_t sec2, time_t usec2)
 Bool timer_delay_till_next_alarm (time_t * sec, time_t * usec)
 {
 	Timer        *timer;
-	long         tsec, tusec;
+	long         tsec, tusec = 0;
 
 	if (timer_first == NULL)
 		return False;
