@@ -88,6 +88,8 @@ main (int argc, char **argv)
 	int start_viewport_y = 0 ;
 	int start_desk = 0 ;
 
+	Bool bypass_autoexec = False ;
+
 #ifdef LOCAL_DEBUG
 #if 0
 	LOCAL_DEBUG_OUT( "calibrating sleep_a_little : %s","" );
@@ -110,6 +112,15 @@ main (int argc, char **argv)
 	trace_window_id2name_hook = &window_id2name;
 #endif
     InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0);
+	for( i = 1 ; i< argc ; ++i)
+	{
+		if( argv[i] != NULL &&  strcmp(argv[i],"--bypass-autoexec") == 0 )
+		{
+			bypass_autoexec = True ;
+			break;
+	    }
+	}
+
     AfterStepState = MyArgs.flags ;
     clear_flags( AfterStepState, ASS_NormalOperation );
 	set_flags( AfterStepState, ASS_SuppressDeskBack );
@@ -258,7 +269,8 @@ SHOW_CHECKPOINT;
     display_progress( True, "All done." );
     remove_desktop_cover();
 
-    DoAutoexec(get_flags( AfterStepState, ASS_Restarting));
+	if( !bypass_autoexec )
+    	DoAutoexec(get_flags( AfterStepState, ASS_Restarting));
 	
 	/* once all the windows are swallowed and placed in its proper desks - we cas restore proper
 	   desktop/viewport : */

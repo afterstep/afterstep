@@ -14,7 +14,11 @@
 
 #define AS_STORAGE_BLOCK_ID_BITS	(32-AS_STORAGE_SLOT_ID_BITS)
 #define AS_STORAGE_MAX_BLOCK_CNT   	(0x01<<AS_STORAGE_BLOCK_ID_BITS)
-#define AS_STORAGE_DEF_BLOCK_SIZE	(1024*256)  /* 256 Kb */  
+/* #define AS_STORAGE_DEF_BLOCK_SIZE	(1024*256)  */
+#define AS_STORAGE_DEF_BLOCK_SIZE	(1024*128)  /* 128 Kb */  
+#define AS_STORAGE_NOUSE_THRESHOLD	(1024*8)  /* 8 Kb if total_free < 8K we should not try and use that 
+											   *  block as we may fall into trap constantly defragmenting it
+											   *  so we prefer to leave memory unused since 2 pages is not too much to loose */  
 
 
 #define ASStorageSlot_SIZE 16 /* 16 bytes */
@@ -116,6 +120,7 @@ typedef struct ASStorageBlock
 	ASStorageSlot **slots;
 	int slots_count, unused_count ;
 	int first_free, last_used ;
+	int long_searches ;
 
 }ASStorageBlock;
 

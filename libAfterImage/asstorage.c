@@ -757,6 +757,7 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags,
 		if( block )
 		{	
 			if( block->total_free > compressed_size && 
+				block->total_free > AS_STORAGE_NOUSE_THRESHOLD && 
 				block->last_used < AS_STORAGE_MAX_SLOTS_CNT )
 				return i+1;
 		}else if( new_block < 0 ) 
@@ -817,7 +818,7 @@ join_storage_slots( ASStorageBlock *block, ASStorageSlot *from_slot, ASStorageSl
 		s = next ;
 		next = AS_STORAGE_GetNextSlot(s);
 		from_slot->size += ASStorageSlot_FULL_SIZE(s) ;	
-		LOCAL_DEBUG_OUT( "from  = %p, s = %p, next = %p, to = %p, from->size = %d", from_slot, s, next, to_slot, from_slot->size );
+		LOCAL_DEBUG_OUT( "from  = %p, s = %p, next = %p, to = %p, from->size = %ld", from_slot, s, next, to_slot, from_slot->size );
 		destroy_storage_slot( block, s->index );
 	}while( s < to_slot );	
 }
@@ -934,37 +935,45 @@ select_storage_slot( ASStorageBlock *block, int size )
 	ASStorageSlot **slots = block->slots ;
 	
 	LOCAL_DEBUG_OUT( "first_free = %d, last_used = %d", block->first_free, block->last_used );
-	while( i <= last_used )
-	{
-		ASStorageSlot *slot = slots[i] ;
-		LOCAL_DEBUG_OUT( "block = %p, last_used = %d, slots[%d] = %p", block, last_used, i, slot );
-		if( slot != NULL )
+	if( block->long_searches < 5 ) 
+	{	
+		while( i <= last_used )
 		{
-			int size_to_match = size+ASStorageSlot_SIZE ;
-			while( slot->flags == 0 )
+			ASStorageSlot *slot = slots[i] ;
+			LOCAL_DEBUG_OUT( "block = %p, last_used = %d, slots[%d] = %p", block, last_used, i, slot );
+			if( slot != NULL )
 			{
-				ASStorageSlot *next_slot = AS_STORAGE_GetNextSlot(slot);		   
-				if( next_slot >= block->end )
-					break;
-
-				LOCAL_DEBUG_OUT( "start = %p, slot = %p, slot->size = %ld, end = %p, size = %d, size_to_match = %d", block->start, slot, slot->size, block->end, size, size_to_match );
-				if( ASStorageSlot_USABLE_SIZE(slot) >= size )
-					return slot;
-				if( ASStorageSlot_FULL_SIZE(slot)  >= size_to_match )
+				int size_to_match = size+ASStorageSlot_SIZE ;
+				while( slot->flags == 0 )
 				{
-					join_storage_slots( block, slots[i], slot );
-					return slots[i];
-				}	
-				size_to_match -= ASStorageSlot_FULL_SIZE(slot);
-				slot = next_slot;		
-				/* make sure we has not exceeded boundaries of the block */									   
-			}			
+					ASStorageSlot *next_slot = AS_STORAGE_GetNextSlot(slot);		   
+					if( next_slot > block->end )
+						break;
+
+					LOCAL_DEBUG_OUT( "start = %p, slot = %p, slot->size = %ld, end = %p, size = %d, size_to_match = %d", block->start, slot, slot->size, block->end, size, size_to_match );
+					if( ASStorageSlot_USABLE_SIZE(slot) >= size )
+					{	
+						if( i - block->first_free > 50 ) ++(block->long_searches);
+						return slot;
+					}
+					if( ASStorageSlot_FULL_SIZE(slot)  >= size_to_match )
+					{
+						join_storage_slots( block, slots[i], slot );
+						if( i - block->first_free > 50 ) ++(block->long_searches);
+						return slots[i];
+					}	
+					size_to_match -= ASStorageSlot_FULL_SIZE(slot);
+					slot = next_slot;		
+					/* make sure we has not exceeded boundaries of the block */									   
+				}			
+			}
+			++i ;
 		}
-		++i ;
 	}
 		
 	/* no free slots of sufficient size - need to do defragmentation */
 	defragment_storage_block( block );
+	block->long_searches = 0 ;
 	i = block->first_free;
 	if( i >= block->slots_count ) 
 		return NULL;
@@ -1092,7 +1101,8 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	{
 		int i = block->first_free ;
 		while( ++i < block->last_used ) 
-			if( block->slots[i] && block->slots[i]->flags == 0 ) 
+			if( block->slots[i] && 
+				block->slots[i]->flags == 0 && block->slots[i]->size > 0 ) 
 				break;
 		block->first_free = i ;
 	}
