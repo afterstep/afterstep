@@ -18,6 +18,7 @@
 #define AS_ASSERT(p) ((p)==NULL)
 
 #else
+#include <X11/Xutil.h>
 
 int as_assert (void *p, const char *fname, int line, const char *call);
 #define AS_ASSERT(p) as_assert(p,__FILE__, __LINE__ ,__FUNCTION__)
