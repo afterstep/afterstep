@@ -145,6 +145,11 @@ astext: astext.o common.o @LIBPROG@
 ascompose: ascompose.o common.o @LIBPROG@
 		$(CC) ascompose.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o ascompose
 
+asvector: asvector.o common.o $(LIB_STATIC)
+		$(CC) asvector.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asvector
+
+
+
 .c.o:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
 
