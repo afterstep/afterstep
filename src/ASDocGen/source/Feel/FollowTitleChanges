@@ -1,0 +1,8 @@
+<varlistentry id="options.FollowTitleChanges">
+	<term>FollowTitleChanges</term>
+	<listitem>
+	<para>That will force AfterStep to reread and merge all the hints and
+        settings from the database files, whenever window changes either its
+        name or icon name.</para>
+	</listitem>
+</varlistentry>

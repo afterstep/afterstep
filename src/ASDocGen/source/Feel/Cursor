@@ -1,6 +1,9 @@
 <varlistentry id="options.Cursor">
-	<term>Cursor</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+<term>Cursor <emphasis remap='I'>cursor_number cursor_type</emphasis></term>
+    <listitem>
+    <para>Specifies the <emphasis remap='I'>cursor_type</emphasis> for the given <emphasis remap='I'>cursor_number</emphasis>.  Valid
+    <emphasis remap='I'>cursor_numbers</emphasis> are 0 though 10 and listed in all the shipped
+    <emphasis remap='I'>feel.name</emphasis> files. The <emphasis remap='I'>cursor_types</emphasis> are listed in the
+     /usr/include/X11/cursorfont.h file.</para>
+    </listitem>
 </varlistentry>

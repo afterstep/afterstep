@@ -1,0 +1,7 @@
+<varlistentry id="options.DontRestoreFocus">
+	<term>DontRestoreFocus</term>
+	<listitem>
+	<para>Will not restore focus to the recently focused application wile
+        switching desktops.</para>
+	</listitem>
+</varlistentry>
