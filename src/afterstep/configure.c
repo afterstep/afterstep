@@ -1629,18 +1629,6 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 			MakeMenu (menu);
 	}
 
-	/* reset the window frame geometries */
-	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-	{
-		bind_aswindow_styles(t);
-		set_titlebar_geometry (t);
-#ifndef NO_TEXTURE
-		frame_set_positions (t);
-		get_frame_geometry (t, t->frame_x, t->frame_y, t->frame_width, t->frame_height, &t->frame_x,
-							&t->frame_y, &t->frame_width, &t->frame_height);
-#endif /* !NO_TEXTURE */
-	}
-
 	/* setup the titlebar buttons */
 	if (parse_look || shall_override_config_file)
 	{
@@ -1650,7 +1638,7 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 	}
 
 	/* grab the new button/keybindings */
-	if (parse_feel || shall_override_config_file)
+	if ( parse_feel || shall_override_config_file)
 	{
 		ASWindow     *win;
 
@@ -1664,15 +1652,12 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 	}
 
 	/* force update of window frames */
-	if (!parse_feel || shall_override_config_file)
+	if (parse_look || parse_base || parse_database || shall_override_config_file)
 	{
 		ASWindow     *win;
 
 		for (win = Scr.ASRoot.next; win != NULL; win = win->next)
 		{
-#ifndef NO_TEXTURE
-			win->bp_width = -1;				   /* force recreate gradients */
-#endif
             redecorate_window( win, False );
             on_window_status_changed( win, True );
         }

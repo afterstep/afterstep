@@ -119,6 +119,30 @@ Bool register_aswindow( Window w, ASWindow *asw )
     return False;
 }
 
+Bool unregister_aswindow( Window w )
+{
+    if( w )
+    {
+        if( Scr.aswindow_xref != NULL )
+		{
+	        if( remove_hash_item( Scr.aswindow_xref, AS_HASHABLE(w), NULL ) == ASH_Success )
+  		        return True;
+		}				
+    }
+    return False;
+}
+
+Bool destroy_registered_window( Window w )
+{
+	Bool res = False ;
+    if( w )
+    {
+        if( Scr.aswindow_xref != NULL )
+	        res = ( remove_hash_item( Scr.aswindow_xref, AS_HASHABLE(w), NULL ) == ASH_Success )
+		XDestroyWindow( dpy, w );			
+    }
+    return res;
+}
 /**********************************************************************/
 /* window management specifics - mapping/unmapping with no events :   */
 /**********************************************************************/
@@ -140,6 +164,98 @@ quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_m
     XReparentWindow( dpy, w, (new_parent!=None)?new_parent:Scr.Root, x, y );
     XSelectInput (dpy, w, event_mask );
 }
+
+/********************************************************************/
+/* ASWindow icon handling :                                         */
+/********************************************************************/
+void
+Create_icon_windows (ASWindow *asw)
+{
+	unsigned long valuemask;				   /* mask for create windows */
+	XSetWindowAttributes attributes;		   /* attributes for create windows */
+
+	asw->flags &= ~(ICON_OURS | XPM_FLAG | PIXMAP_OURS | SHAPED_ICON);
+	asw->icon_pixmap_w = None;
+	asw->icon_pm_pixmap = None;
+	asw->icon_pm_mask = None;			   /* messo io */
+	asw->icon_pm_depth = 0;
+
+	if ( !ASWIN_HFLAGS( asw, AS_Icon ) )
+		return;
+
+	/* First, see if it was specified in config. files  */
+	if ( !ASWIN_HFLAGS( asw, AS_ClientIcon ) )
+	{
+		  
+		asw->icon_pm_file = SearchIcon (tmp_win);
+	GetIcon (tmp_win);
+	ResizeIconWindow (tmp_win);
+
+	valuemask = CWBorderPixel | CWCursor | CWEventMask | CWBackPixmap;
+	attributes.background_pixmap = ParentRelative;
+	attributes.border_pixel = Scr.asv->black_pixel;
+	attributes.cursor = Scr.ASCursors[DEFAULT];
+	attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
+
+	destroy_icon_windows( tmp_win );
+	if ((Textures.flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
+		ASWIN_HFLAGS(tmp_win, AS_IconTitle))
+	{
+		tmp_win->icon_title_w =
+			create_visual_window (Scr.asv, Scr.Root, -999, -999, 16, 16, 0,
+								  InputOutput, valuemask, &attributes);
+	}
+
+	if ( ASWIN_HFLAGS(asw, AS_ClientIcon|AS_ClientIconPixmap) != AS_ClientIcon )
+	{
+		tmp_win->icon_pixmap_w =
+			create_visual_window (Scr.asv, Scr.Root, -999, -999, 16, 16, 0,
+								  InputOutput, valuemask, &attributes);
+	} else
+	{
+		attributes.event_mask = AS_ICON_EVENT_MASK;
+
+		valuemask = CWEventMask;
+		XChangeWindowAttributes (dpy, tmp_win->icon_pixmap_w, valuemask, &attributes);
+	}
+
+	if (tmp_win->icon_title_w != None)
+	{
+        register_aswindow( tmp_win->icon_title_w, tmp_win );
+		XDefineCursor (dpy, tmp_win->icon_title_w, Scr.ASCursors[DEFAULT]);
+		GrabIconButtons (tmp_win, tmp_win->icon_title_w);
+		GrabIconKeys (tmp_win, tmp_win->icon_title_w);
+	}
+
+	if (tmp_win->icon_pixmap_w != None)
+	{
+        register_aswindow( tmp_win->icon_pixmap_w, tmp_win );
+		XDefineCursor (dpy, tmp_win->icon_pixmap_w, Scr.ASCursors[DEFAULT]);
+		GrabIconButtons (tmp_win, tmp_win->icon_pixmap_w);
+		GrabIconKeys (tmp_win, tmp_win->icon_pixmap_w);
+	}
+
+#ifdef SHAPE
+	UpdateIconShape (tmp_win);
+#endif /* SHAPE */
+
+}
+
+
+void
+destroy_icon_windows( ASWindow *asw )
+{
+	/* free up the icon resources */
+	if ( ASWIN_HFLAGS(asw, AS_ClientIcon|AS_ClientIconPixmap) != AS_ClientIcon )
+		destroy_registered_window( asw->icon_pixmap_w );
+	else
+		unregister_aswindow(  asw->icon_pixmap_w );
+	
+	destroy_registered_window( asw->icon_title_w );
+	asw->icon_pixmap_w = None;
+	asw->icon_title_w = None;
+}
+
 
 
 /********************************************************************/

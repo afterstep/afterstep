@@ -48,6 +48,7 @@
 
 #include "menus.h"
 
+
 void
 UpdateIconShape (ASWindow * tmp_win)
 {
@@ -235,39 +236,29 @@ CreateIconWindow (ASWindow * tmp_win)
 	attributes.background_pixmap = ParentRelative;
 	attributes.border_pixel = Scr.asv->black_pixel;
 	attributes.cursor = Scr.ASCursors[DEFAULT];
-	attributes.event_mask = (ButtonPressMask | ButtonReleaseMask |
-							 ExposureMask | KeyPressMask | EnterWindowMask | FocusChangeMask);
+	attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
 
+	destroy_icon_windows( tmp_win );
 	if ((Textures.flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
 		ASWIN_HFLAGS(tmp_win, AS_IconTitle))
 	{
-		if (tmp_win->icon_title_w)
-			XDestroyWindow (dpy, tmp_win->icon_title_w);
 		tmp_win->icon_title_w =
 			create_visual_window (Scr.asv, Scr.Root, -999, -999, 16, 16, 0,
 								  InputOutput, valuemask, &attributes);
 	}
 
-	if ((tmp_win->flags & ICON_OURS) && tmp_win->icon_p_width > 0 && tmp_win->icon_p_height > 0)
+	if ( ASWIN_HFLAGS(asw, AS_ClientIcon|AS_ClientIconPixmap) != AS_ClientIcon )
 	{
-		if (tmp_win->icon_pixmap_w)
-			XDestroyWindow (dpy, tmp_win->icon_pixmap_w);
 		tmp_win->icon_pixmap_w =
 			create_visual_window (Scr.asv, Scr.Root, -999, -999, 16, 16, 0,
 								  InputOutput, valuemask, &attributes);
 	} else
 	{
-		attributes.event_mask = (ButtonPressMask | ButtonReleaseMask |
-								 KeyPressMask | EnterWindowMask |
-								 FocusChangeMask | LeaveWindowMask);
+		attributes.event_mask = AS_ICON_EVENT_MASK;
 
 		valuemask = CWEventMask;
 		XChangeWindowAttributes (dpy, tmp_win->icon_pixmap_w, valuemask, &attributes);
 	}
-
-#ifdef SHAPE
-	UpdateIconShape (tmp_win);
-#endif /* SHAPE */
 
 	if (tmp_win->icon_title_w != None)
 	{
@@ -284,6 +275,11 @@ CreateIconWindow (ASWindow * tmp_win)
 		GrabIconButtons (tmp_win, tmp_win->icon_pixmap_w);
 		GrabIconKeys (tmp_win, tmp_win->icon_pixmap_w);
 	}
+
+#ifdef SHAPE
+	UpdateIconShape (tmp_win);
+#endif /* SHAPE */
+
 }
 
 
@@ -672,18 +668,7 @@ Iconify (ASWindow * tmp_win)
 void
 ChangeIcon (ASWindow * win)
 {
-	/* free up the icon resources */
-	if (win->flags & ICON_OURS)
-	{
-		XDeleteContext (dpy, win->icon_pixmap_w, ASContext);
-		XDeleteContext (dpy, win->icon_title_w, ASContext);
-		if (win->icon_pixmap_w != None)
-			XDestroyWindow (dpy, win->icon_pixmap_w);
-		if (win->icon_title_w != None)
-			XDestroyWindow (dpy, win->icon_title_w);
-		win->icon_pixmap_w = None;
-		win->icon_title_w = None;
-	}
+
 	if (win->flags & PIXMAP_OURS)
 	{
 		if (win->icon_pm_pixmap != None)

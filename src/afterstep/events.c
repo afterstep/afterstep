@@ -135,9 +135,7 @@ DispatchEvent ()
 
 	StashEventTime (&Event);
 
-    Tmp_win = window2aswindow( w );
-	if (XFindContext (dpy, w, ASContext, (caddr_t *) & Tmp_win) == XCNOENT)
-		Tmp_win = NULL;
+    Tmp_win = window2ASWindow( w );
 	last_event_type = Event.type;
 	last_event_window = w;
 
@@ -390,10 +388,8 @@ HandleFocusIn ()
 	{
 		w = d.xany.window;
 	}
-	if (XFindContext (dpy, w, ASContext, (caddr_t *) & Tmp_win) == XCNOENT)
-	{
-		Tmp_win = NULL;
-	}
+	Tmp_win = window2ASWindow( w );
+
 	if (!Tmp_win)
 	{
 		SetBorder (Scr.Hilite, False, True, True, None);
@@ -713,9 +709,7 @@ HandleMapRequest ()
 {
 	Event.xany.window = Event.xmaprequest.window;
 
-	if (XFindContext (dpy, Event.xany.window, ASContext, (caddr_t *) & Tmp_win) == XCNOENT)
-		Tmp_win = NULL;
-
+    Tmp_win = window2ASWindow( Event.xany.window );
 	XFlush (dpy);
 
 	/* If the window has never been mapped before ... */
@@ -857,8 +851,7 @@ HandleUnmapNotify ()
 	if (!Tmp_win)
 	{
 		Event.xany.window = Event.xunmap.window;
-		if (XFindContext (dpy, Event.xany.window, ASContext, (caddr_t *) & Tmp_win) == XCNOENT)
-			Tmp_win = NULL;
+		Tmp_win = window2ASWindow( Event.xany.window );
 	}
 	if (Event.xunmap.event == Scr.ASRoot.w)
 		return;
@@ -1212,8 +1205,7 @@ HandleConfigureRequest ()
 	 * be wrong
 	 */
 	Event.xany.window = cre->window;		   /* mash parent field */
-	if (XFindContext (dpy, cre->window, ASContext, (caddr_t *) & Tmp_win) == XCNOENT)
-		Tmp_win = NULL;
+	Tmp_win = window2ASWindow( cre->window );
 
 	/*
 	 * According to the July 27, 1988 ICCCM draft, we should ignore size and
@@ -1239,8 +1231,7 @@ HandleConfigureRequest ()
 		ASWindow     *otherwin;
 
 		xwc.sibling = (((cre->value_mask & CWSibling) &&
-						(XFindContext (dpy, cre->above, ASContext,
-									   (caddr_t *) & otherwin) == XCSUCCESS))
+						(window2ASWindow( cre->above) != NULL))
 					   ? otherwin->frame : cre->above);
 		xwc.stack_mode = cre->detail;
 		XConfigureWindow (dpy, Tmp_win->frame, cre->value_mask & (CWSibling | CWStackMode), &xwc);

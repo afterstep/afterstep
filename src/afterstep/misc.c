@@ -120,63 +120,40 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 	if (!kill_client)
 		RestoreWithdrawnLocation (Tmp_win, True);
 
-	XDestroyWindow (dpy, Tmp_win->Parent);
-	XDeleteContext (dpy, Tmp_win->Parent, ASContext);
-
-	XDestroyWindow (dpy, Tmp_win->frame);
-	XDeleteContext (dpy, Tmp_win->frame, ASContext);
-
-	XDeleteContext (dpy, Tmp_win->w, ASContext);
+	destroy_registered_window(Tmp_win->frame);
+	unregister_aswindow( Tmp_win->w );
 
 	if (Tmp_win->icon_pm_pixmap != None &&
 		!get_flags(Tmp_win->hints->flags, AS_ClientIconPixmap))
 		UnloadImage (Tmp_win->icon_pm_pixmap);
 
 	if (Tmp_win->icon_title_w)
-	{
-//      XDestroyWindow (dpy, Tmp_win->icon_title_w);
-		XDeleteContext (dpy, Tmp_win->icon_title_w, ASContext);
-	}
+		destroy_registered_window( Tmp_win->icon_title_w );
 
-	if ((Tmp_win->flags & ICON_OURS) && (Tmp_win->icon_pixmap_w != None))
-//    XDestroyWindow (dpy, Tmp_win->icon_pixmap_w);
-		if (Tmp_win->icon_pixmap_w != None)
-			XDeleteContext (dpy, Tmp_win->icon_pixmap_w, ASContext);
-
-	if (ASWIN_HFLAGS(Tmp_win,AS_Titlebar))
+	if ((Tmp_win->icon_pixmap_w != None))
 	{
-		XDeleteContext (dpy, Tmp_win->title_w, ASContext);
-		for (i = 0; i < Scr.nr_left_buttons; i++)
-			XDeleteContext (dpy, Tmp_win->left_w[i], ASContext);
-		for (i = 0; i < Scr.nr_right_buttons; i++)
-			if (Tmp_win->right_w[i] != None)
-				XDeleteContext (dpy, Tmp_win->right_w[i], ASContext);
+		if ( ASWIN_HFLAGS(Tmp_win, AS_ClientIcon|AS_ClientIconPixmap) != AS_ClientIcon )
+			destroy_registered_window( Tmp_win->icon_pixmap_w );
+		else
+			unregister_aswindow(  Tmp_win->icon_pixmap_w );
 	}
-	if (ASWIN_HFLAGS(Tmp_win,AS_Handles))
-	{
-		XDeleteContext (dpy, Tmp_win->side, ASContext);
-		for (i = 0; i < 2; i++)
-			XDeleteContext (dpy, Tmp_win->corners[i], ASContext);
-	}
-#ifndef NO_TEXTURE
-	if (ASWIN_HFLAGS(Tmp_win, AS_Frame))
-	{
-		frame_free_data (Tmp_win, False);
-	}
-#endif /* !NO_TEXTURE */
-
+	for (i = 0; i < FRAME_SIDES; i++)
+		if( Tmp_win->frame_canvas[i] ) 
+		{
+			Window w = Tmp_win->frame_canvas[i]->w ;
+			destroy_ascanvas( &(Tmp_win->frame_canvas[i]) );
+			destroy_registered_window( w );
+		}
+	for (i = 0; i < FRAME_PARTS; i++)
+		if( Tmp_win->frame_bars[i] ) 
+			destroy_astbar( &(Tmp_win->frame_bars[i]) );
+			
+	if( Tmp_win->tbar ) 
+		destroy_astbar( &(Tmp_win->tbar) );
+		
 	Tmp_win->prev->next = Tmp_win->next;
 	if (Tmp_win->next != NULL)
 		Tmp_win->next->prev = Tmp_win->prev;
-
-#ifndef NO_TEXTURE
-	if (Tmp_win->backPixmap != None)
-		XFreePixmap (dpy, Tmp_win->backPixmap);
-	if (Tmp_win->backPixmap2 != None)
-		XFreePixmap (dpy, Tmp_win->backPixmap2);
-	if (Tmp_win->backPixmap3 != None)
-		XFreePixmap (dpy, Tmp_win->backPixmap3);
-#endif
 
 	if (!ASWIN_HFLAGS(Tmp_win, AS_SkipWinList))
 		update_windowList ();

@@ -1410,9 +1410,8 @@ RunCommand (char *cmd, int channel, Window w)
 	 default:
 		 {
 			 Event.xany.window = w;
-			 if (XFindContext (dpy, w, ASContext, (caddr_t *) & tmp_win) == XCNOENT)
+			 if ((tmp_win = window2ASWindow(w)) = NULL )
 			 {
-				 tmp_win = NULL;
 				 w = None;
 				 Event.xbutton.x_root = 0;
 				 Event.xbutton.y_root = 0;

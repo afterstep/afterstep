@@ -182,18 +182,41 @@ struct ASStatusHints;
 struct ASCanvas;
 struct ASTBarData;
 
-#define AS_CLIENT_EVENT_MASK (StructureNotifyMask|PropertyChangeMask| \
-							  EnterWindowMask|LeaveWindowMask| \
- 							  ColormapChangeMask|FocusChangeMask)
+#define AS_CLIENT_EVENT_MASK 		(ColormapChangeMask | \
+									 EnterWindowMask 	| \
+									 FocusChangeMask 	| \
+									 LeaveWindowMask 	| \
+                                     PropertyChangeMask | \
+									 StructureNotifyMask)
 
 
-#define AS_FRAME_EVENT_MASK  (SubstructureRedirectMask | ButtonPressMask | \
-							  ButtonReleaseMask | EnterWindowMask | \
-							  LeaveWindowMask | ExposureMask | FocusChangeMask)
+#define AS_FRAME_EVENT_MASK  		(ButtonPressMask 	| \
+									 ButtonReleaseMask 	| \
+									 EnterWindowMask 	| \
+                                     FocusChangeMask 	| \
+									 ExposureMask 		| \
+									 LeaveWindowMask 	| \
+									 SubstructureRedirectMask)
 
-#define AS_CANVAS_EVENT_MASK (ButtonPressMask | ButtonReleaseMask | \
-                              EnterWindowMask | LeaveWindowMask | \
-						   	  StructureNotifyMask)
+#define AS_CANVAS_EVENT_MASK 		(ButtonPressMask 	| \
+									 ButtonReleaseMask 	| \
+									 EnterWindowMask 	| \
+									 LeaveWindowMask 	| \
+									 StructureNotifyMask)
+		
+#define AS_ICON_TITLE_EVENT_MASK 	(ButtonPressMask 	| \
+                                     ButtonReleaseMask 	| \
+									 EnterWindowMask 	| \
+									 ExposureMask 		| \
+									 FocusChangeMask 	| \
+									 KeyPressMask )
+								  				  
+#define AS_ICON_EVENT_MASK 	 		(ButtonPressMask 	| \
+									 ButtonReleaseMask 	| \
+									 EnterWindowMask 	| \
+									 FocusChangeMask 	| \
+								     KeyPressMask 		| \
+									 LeaveWindowMask)							  
 
 /* for each window that is on the display, one of these structures
  * is allocated and linked into a list
@@ -250,6 +273,13 @@ typedef struct ASWindow
 	struct ASTBarData *tbar ;
 	struct ASTBarData *frame_bars[FRAME_PARTS] ; /* regular sidebar is the same as frame with S, SE and SW parts */
 	struct MyFrame 	  *frame_data;  /* currently selected frame decorations for this window */
+
+	struct ASCanvas   *icon_canvas ;
+	struct ASCanvas   *icon_title_canvas ; /* same as icon_canvas if !SeparateButtonTitle */
+
+	struct ASTBarData *icon_button ;
+	struct ASTBarData *icon_title ;
+
 	/********************************************************************/
 	/* END of NEW ASWindow frame decorations                            */
 	/********************************************************************/
@@ -267,25 +297,6 @@ typedef struct ASWindow
     int boundary_height;
     int corner_width;
     int bw;
-
-    Window icon_pixmap_w;	/* the icon window */
-    int icon_p_x;		/* icon pixmap window x */
-    int icon_p_y;		/* icon pixmap window y */
-    int icon_p_width;		/* icon pixmap window width */
-    int icon_p_height;		/* icon pixmap window height */
-    Window icon_title_w;	/* the icon title window */
-    int icon_t_x;		/* icon title x */
-    int icon_t_y;		/* icon title y */
-    int icon_t_width;		/* icon title width */
-    int icon_t_height;		/* icon title height */
-    char *icon_pm_file;		/* icon pixmap filename */
-    Pixmap icon_pm_pixmap;	/* icon pixmap */
-    Pixmap icon_pm_mask;	/* icon pixmap mask */
-    int icon_pm_x;		/* icon pixmap x */
-    int icon_pm_y;		/* icon pixmap y */
-    int icon_pm_width;		/* icon pixmap width */
-    int icon_pm_height;		/* icon pixmap height */
-    int icon_pm_depth;		/* icon pixmap drawable depth */
 
     XWindowAttributes attr;	/* the child window attributes */
     int FocusDesk;		/* Where (if at all) was it focussed */
@@ -305,6 +316,11 @@ ASWindow;
 
 ASWindow *window2ASWindow( Window w );
 Bool register_aswindow( Window w, ASWindow *asw );
+Bool unregister_aswindow( Window w );
+Bool destroy_registered_window( Window w );
+
+void destroy_icon_windows( ASWindow *asw );
+
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
 void update_window_transparency( ASWindow *asw );
@@ -410,8 +426,6 @@ extern void SaveWindowsOpened (void);
 extern void Done (int, char *);
 
 extern XClassHint NoClass;
-
-extern XContext ASContext;
 
 extern Window JunkRoot, JunkChild;
 extern int JunkX, JunkY;

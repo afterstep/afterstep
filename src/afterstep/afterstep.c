@@ -107,7 +107,6 @@ void          NoisyExit (int);
 void          ChildDied (int nonsense);
 void          SaveDesktopState (void);
 
-XContext      ASContext;					   /* context for afterstep windows */
 XContext      MenuContext;					   /* context for afterstep menus */
 
 int           JunkX = 0, JunkY = 0;
@@ -838,7 +837,6 @@ CreateCursors (void)
 void
 InitVariables (int shallresetdesktop)
 {
-	ASContext = XUniqueContext ();
 	MenuContext = XUniqueContext ();
 
 	Scr.d_depth = Scr.asv->visual_info.depth;
