@@ -64,6 +64,16 @@
 		import.h \
 		asimagexml.h
 
+./pixmap.o : \
+		config.h \
+		afterbase.h \
+		asvisual.h \
+		blender.h \
+		asimage.h \
+		ximage.h \
+		transform.h \
+		pixmap.h
+
 ./transform.o : \
 		config.h \
 		afterbase.h \

@@ -8,6 +8,7 @@ LIBAFTERIMAGE_OBJS = \
 		$(LIBAFTERIMAGE_PATH)/char2uni.c \
 		$(LIBAFTERIMAGE_PATH)/export.c \
 		$(LIBAFTERIMAGE_PATH)/import.c \
+		$(LIBAFTERIMAGE_PATH)/pixmap.c \
 		$(LIBAFTERIMAGE_PATH)/transform.c \
 		$(LIBAFTERIMAGE_PATH)/ungif.c \
 		$(LIBAFTERIMAGE_PATH)/xcf.c \
