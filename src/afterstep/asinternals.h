@@ -386,6 +386,8 @@ void Done (Bool restart, char *command);
 /*************************** from aswindow.c : ****************************/
 ASWindowList *init_aswindow_list();
 void destroy_aswindow_list( ASWindowList **list, Bool restore_root );
+void publish_aswindow_list( ASWindowList *list, Bool stacking_only );
+
 ASWindow *window2ASWindow( Window w );
 Bool register_aswindow( Window w, ASWindow *asw );
 Bool unregister_aswindow( Window w );

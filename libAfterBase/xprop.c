@@ -460,7 +460,7 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
             va_end(ap);
 
             XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
-                             PropModeReplace, (unsigned char *)&data, items);
+                             PropModeReplace, (unsigned char *)data, items);
 			free(data);
         }else
         {
@@ -477,9 +477,10 @@ set_32bit_proplist (Window w, Atom property, Atom type, CARD32* list, long nitem
 #ifndef X_DISPLAY_MISSING
     if (w != None && property != None )
 	{
+		LOCAL_DEBUG_OUT( "nitems = %d", nitems );
         if( nitems > 0 )
         {
-			long *buffer = list ;
+			long *buffer = (long*)list ;
 			if( sizeof(long)>sizeof(CARD32) )
 			{
 				register  int i = nitems ;

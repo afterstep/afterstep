@@ -290,8 +290,8 @@ setup_volitile_wmprops (ASWMProps * wmprops)
 	/* old Gnome event proxy : */
 	set_32bit_property (wmprops->scr->Root, _XA_WIN_DESKTOP_BUTTON_PROXY, XA_CARDINAL, w);
 	/* Ext WM specs compatibility indicator : */
-	set_32bit_property (wmprops->scr->Root, _XA_NET_SUPPORTING_WM_CHECK, XA_CARDINAL, w);
-	set_32bit_property (w, _XA_NET_SUPPORTING_WM_CHECK, XA_CARDINAL, w);
+	set_32bit_property (wmprops->scr->Root, _XA_NET_SUPPORTING_WM_CHECK, XA_WINDOW, w);
+	set_32bit_property (w, _XA_NET_SUPPORTING_WM_CHECK, XA_WINDOW, w);
     set_text_property (w, _XA_NET_WM_NAME, &_as_afterstep_name, 1, TPE_UTF8);
 	return True;
 }

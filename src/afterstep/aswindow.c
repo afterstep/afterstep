@@ -34,6 +34,7 @@
 
 #include "asinternals.h"
 #include "../../libAfterStep/session.h"
+#include "../../libAfterStep/wmprops.h"
 
 Bool on_dead_aswindow( Window w );
 /********************************************************************************/
@@ -265,6 +266,59 @@ destroy_aswindow_list( ASWindowList **list, Bool restore_root )
             free(*list);
             *list = NULL ;
         }
+}
+
+void
+publish_aswindow_list( ASWindowList *list, Bool stacking_only )
+{
+	int clients_num = list->clients->count, used = 0 ;
+	Window *client_list	;
+	int i ;
+    ASLayer **layers = NULL ;
+    unsigned long layers_in ;
+	
+	if( clients_num == 0 ) 
+		return;
+
+	client_list = safecalloc( clients_num, sizeof(Window));
+	if( !stacking_only ) 
+	{
+		ASBiDirElem *curr = LIST_START(list->clients);
+		used = 0 ;
+		while( curr && used < clients_num )
+		{
+			ASWindow *asw = (ASWindow*)LISTELEM_DATA(curr);
+			client_list[used++] = asw->w ;
+			LIST_GOTO_NEXT(curr);	
+		}	 
+		LOCAL_DEBUG_OUT( "Setting Client List property to include %d windows (clients_num = %d) ", used, clients_num );
+		set_32bit_proplist (Scr.Root, _XA_NET_CLIENT_LIST, XA_WINDOW, client_list, used);
+		set_32bit_proplist (Scr.Root, _XA_WIN_CLIENT_LIST, XA_WINDOW, client_list, used);
+	}		  
+    
+    layers = safecalloc( list->layers->items_num, sizeof(ASLayer*) );
+	if( (layers_in = sort_hash_items (list->layers, NULL, (void**)layers, 0)) == 0 )
+        return ;
+
+    used = clients_num ;       /* we have to reverse the order - bottommost window comes first */
+	for( i = 0 ; i < layers_in ; i++ )
+    {
+        register int k, end_k = PVECTOR_USED(layers[i]->members) ;
+        ASWindow **members = PVECTOR_HEAD(ASWindow*,layers[i]->members);
+        if( end_k > used )
+            end_k = used ;
+        for( k = 0 ; k < end_k ; k++ )
+        {
+            register ASWindow *asw = members[k] ;
+            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+            	client_list[--used] = asw->w;
+        }
+    }
+	set_32bit_proplist (Scr.Root, _XA_NET_CLIENT_LIST_STACKING, XA_WINDOW, &client_list[used], clients_num - used);
+
+	free( layers );
+	free( client_list );
+		   
 }
 
 /*************************************************************************
@@ -633,7 +687,10 @@ enlist_aswindow( ASWindow *t )
 
     add_aswindow_to_layer( t, ASWIN_LAYER(t) );
     tie_aswindow( t );
-    return True;
+	
+	publish_aswindow_list( Scr.Windows, False );	
+    
+	return True;
 }
 
 void
@@ -658,6 +715,7 @@ delist_aswindow( ASWindow *t )
     skip_winlist = get_flags(t->hints->flags, AS_SkipWinList);
     discard_bidirelem( Scr.Windows->clients, t );
 
+	publish_aswindow_list( Scr.Windows, False );	   
 }
 
 void
@@ -825,6 +883,8 @@ restack_window_list( int desk, Bool send_msg_only )
     LOCAL_DEBUG_OUT( "Sending stacking order: windows_num = %ld, ", windows_num );
     PVECTOR_USED(ids) = windows_num ;
     SendStackingOrder (-1, M_STACKING_ORDER, desk, ids);
+	
+	publish_aswindow_list( Scr.Windows, True );
 
     if( !send_msg_only )
     {
