@@ -16,6 +16,8 @@ typedef struct ASVector
 #define VECTOR_TAIL_RAW(v)  (((v).memory) + ((v).used))
 #define VECTOR_USED(v)      ((v).used)
 
+ASVector *create_asvector( size_t unit );
+void destroy_asvector( ASVector **v );
 /* return memory starting address : */
 void *alloc_vector( ASVector *v, size_t new_size );
 void *realloc_vector( ASVector *v, size_t new_size );

@@ -28,6 +28,28 @@
 #include "../include/aftersteplib.h"
 #include "../include/asvector.h"
 
+ASVector *create_asvector( size_t unit )
+{
+    ASVector *v = NULL ;
+    if( unit > 0 )
+    {
+        v = safecalloc( 1, sizeof(ASVector) );
+        v->unit = unit ;
+    }
+    return v;
+}
+
+void destroy_asvector( ASVector **v )
+{
+    if( v )
+        if( *v )
+        {
+            free_vector( *v );
+            free( *v );
+            *v = NULL ;
+        }
+}
+
 void *
 alloc_vector( ASVector *v, size_t new_size )
 {
