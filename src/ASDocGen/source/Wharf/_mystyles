@@ -1,2 +1,34 @@
 <section label="mystyles" id="mystyles">
+<refsect1 id='MyStyles'>
+<title>MyStyle DEFINITIONS</title>
+<variablelist>
+<varlistentry>
+  <term>MyStyle "*WharfTile"</term>
+  <listitem>
+<para>Specifies the style of the wharf button tiles, including background color, 
+background pixmap (which may be transparent), and background gradient. 
+This method of specifying the background is preferred over the BgColor, 
+MaxColors, Pixmap, TextureColor, and TextureType options, although those 
+(older) options do still work. See <emphasis remap='I'>MyStyle</emphasis> format
+for details.</para>
+
+  </listitem>
+  </varlistentry>
+
+
+<varlistentry>
+  <term>MyStyle "*WharfFocusedTile"</term>
+  <listitem>
+<para>Specifies the style of the wharf button tile under the mouse pointer,
+including background color, background pixmap (which may be transparent), and background gradient.
+See <emphasis remap='I'>MyStyle</emphasis> format
+for details.</para>
+
+  </listitem>
+  </varlistentry>
+
+
+
+</variablelist>
+</refsect1>
 </section>
