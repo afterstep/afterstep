@@ -680,8 +680,8 @@ DeIconify (ASWindow * tmp_win)
 	    XUnmapWindow (dpy, t->icon_pixmap_w);
 	  if (t->icon_title_w != None)
 	    XUnmapWindow (dpy, t->icon_title_w);
-	  Broadcast (M_DEICONIFY, 5, t->w, t->frame, (unsigned long) t,
-		     t->icon_p_x, t->icon_p_y);
+	  Broadcast (M_DEICONIFY, 7, t->w, t->frame, (unsigned long) t,
+		     t->icon_p_x, t->icon_p_y, t->icon_p_width, t->icon_p_height);
 	  XFlush (dpy);
 
 	  XMapWindow (dpy, t->w);

@@ -227,6 +227,7 @@ main (int argc, char **argv)
   /* Save our program name - for error messages */
   temp = strrchr (argv[0], '/');
   MyName = temp ? temp + 1 : argv[0];
+  set_application_name( argv[0] );
 
   for (i = 1; i < argc && *argv[i] == '-'; i++)
     {
@@ -2178,8 +2179,9 @@ match_stringWharf (char *tline)
 	  filename = filename?realloc(filename, j - k + 1):safemalloc(j - k + 1);
       strncpy (filename, &(ptr[k]), j - k);
       filename[j-k] = 0;
-	  if( (actual->icons[actual->num_icons] = get_asimage( imman, filename, 0xFFFFFFFF, 100)) != NULL ) ;
-	      actual->num_icons++;
+	  if( j-k > 1 || filename[0] != '-' )
+		  if( (actual->icons[actual->num_icons] = get_asimage( imman, filename, 0xFFFFFFFF, 100)) != NULL ) ;
+		      actual->num_icons++;
       j++;
       k = j;
       if (j >= i2)

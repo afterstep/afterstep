@@ -162,12 +162,11 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
   if (!kill_client)
     RestoreWithdrawnLocation (Tmp_win, True);
 
+  XDestroyWindow (dpy, Tmp_win->Parent);
+  XDeleteContext (dpy, Tmp_win->Parent, ASContext);
+
   XDestroyWindow (dpy, Tmp_win->frame);
   XDeleteContext (dpy, Tmp_win->frame, ASContext);
-
-  XDestroyWindow (dpy, Tmp_win->Parent);
-
-  XDeleteContext (dpy, Tmp_win->Parent, ASContext);
 
   XDeleteContext (dpy, Tmp_win->w, ASContext);
 
@@ -177,12 +176,12 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 
   if (Tmp_win->icon_title_w)
     {
-      XDestroyWindow (dpy, Tmp_win->icon_title_w);
+//      XDestroyWindow (dpy, Tmp_win->icon_title_w);
       XDeleteContext (dpy, Tmp_win->icon_title_w, ASContext);
     }
 
   if ((Tmp_win->flags & ICON_OURS) && (Tmp_win->icon_pixmap_w != None))
-    XDestroyWindow (dpy, Tmp_win->icon_pixmap_w);
+//    XDestroyWindow (dpy, Tmp_win->icon_pixmap_w);
   if (Tmp_win->icon_pixmap_w != None)
     XDeleteContext (dpy, Tmp_win->icon_pixmap_w, ASContext);
 

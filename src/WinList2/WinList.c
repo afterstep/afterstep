@@ -31,6 +31,8 @@
 #include <X11/Xlocale.h>
 #endif
 
+#define LOCAL_DEBUG
+
 #define IN_MODULE
 #define MODULE_X_INTERFACE
 
@@ -45,6 +47,7 @@
 #include "../../include/confdefs.h"
 #include "../../include/clientprops.h"
 #include "../../include/wmprops.h"
+#include "../../include/decor.h"
 
 #include "WinData.h"
 
@@ -56,7 +59,15 @@
 char *MyName;           /* our executable name                        */
 ScreenInfo Scr;			/* AS compatible screen information structure */
 /**********************************************************************/
+/**********************************************************************/
+/*  WinList local variables :                                         */
+/**********************************************************************/
+ASBiDirList *WinList = NULL ;
+Window WinListWindow = None ;
+unsigned int WinListWidth = 1 ;
+unsigned int WinListHeight = 1 ;
 
+/**********************************************************************/
 /**********************************************************************/
 /* Our configuration options :                                        */
 /**********************************************************************/
@@ -74,16 +85,22 @@ typedef struct WinListConfig
 	unsigned int max_width, max_height ;
 	unsigned int min_rows, min_columns ;
 	unsigned int max_rows, max_columns ;
+	unsigned int max_col_width ;
+	
+	char *unfocused_style ;
+	char *focused_style ;
 	
 	ASNameTypes     show_name_type ; /* 0, 1, 2, 3 */
 	ASAligmentTypes name_aligment ;  
-	
 
 }WinListConfig;
 
-WinListConfig WinList = { 0, 0, 0, 0, 
-                          0, 0, 0, 0, 
+WinListConfig Config = { 0, 0, 0, 0, 
+                    	  0, 0, 0, 0, 
 						  1, 0, 1, 0,
+						  64,
+						  "unfocused_window_style",
+						  "focused_window_style",
 						  ASN_Name,
 						  ASA_Left };
 /**********************************************************************/
@@ -101,7 +118,10 @@ void GetOptions (const char *filename);
 void process_message (unsigned long type, unsigned long *body);
 void DispatchEvent (XEvent * Event);
 Window make_winlist_window();
-
+void destroy_winlist_button( void *data );
+void add_winlist_button( ASTBarData *tbar, ASWindowData *wd );
+void refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd );
+void delete_winlist_button( ASTBarData *tbar, ASWindowData *wd );
 
 int 
 main( int argc, char **argv )
@@ -152,7 +172,8 @@ main( int argc, char **argv )
 	LoadBaseConfig (global_config_file, GetBaseOptions);
     LoadConfig (global_config_file, "pager", GetOptions);
 
-	w = make_winlist_window();
+	WinListWindow = w = make_winlist_window();
+	WinList = create_asbidirlist(destroy_winlist_button);
 
 	/* And at long last our main loop : */
 	while (1)
@@ -178,6 +199,10 @@ DeadPipe (int nonsense)
 /* normally, we let the system clean up, but when auditing time comes
  * around, it's best to have the books in order... */
     balloon_init (1);
+	if( WinList ) 
+	{
+		destroy_asbidirlist( &WinList );
+	}
 	if( Base ) 
 		DestroyBaseConfig(&Base);
 
@@ -192,6 +217,7 @@ DeadPipe (int nonsense)
     	XFreeGC (dpy, reliefGC);
     	XFreeGC (dpy, shadowGC);
     }
+	
 
     print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
@@ -234,8 +260,18 @@ process_message (unsigned long type, unsigned long *body)
 	if( (type&WINDOW_PACKET_MASK) != 0 )  
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
+		ASTBarData *tbar = wd?wd->data:NULL;
+		WindowPacketResult res ;
+		
+		
 		show_progress( "message %X window %X data %p", type, body[0], wd );
-		handle_window_packet( type, body, &wd );
+		res = handle_window_packet( type, body, &wd );
+		if( res == WP_DataCreated ) 
+			add_winlist_button( tbar, wd );
+		else if( res == WP_DataChanged )
+			refresh_winlist_button( tbar, wd );
+		else if( res == WP_DataDeleted )
+			delete_winlist_button( tbar, wd );
 	}
 }
 
@@ -273,7 +309,7 @@ make_winlist_window()
 	XSizeHints    shints;
 	ExtendedWMHints extwm_hints ;
 
-	w = create_visual_window( Scr.asv, Scr.Root, WinList.anchor_x, WinList.anchor_y, Scr.MyDisplayWidth, 20, 0, InputOutput, 0, NULL);
+	w = create_visual_window( Scr.asv, Scr.Root, Config.anchor_x, Config.anchor_y, WinListWidth, WinListHeight, 0, InputOutput, 0, NULL);
 	set_client_names( w, MyName, MyName, AS_MODULE_CLASS, MyName );
 
 	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize;
@@ -297,3 +333,164 @@ make_winlist_window()
 	
 	return w ;
 }
+/********************************************************************/
+/* WinList buttons handling :                                       */
+/********************************************************************/
+/* Private stuff : **************************************************/
+static char *
+get_visible_window_name( ASWindowData *wd )
+{
+	char *vname = NULL ;
+	switch( Config.show_name_type )
+	{
+		case ASN_Name :     vname = wd->window_name ; break ;
+		case ASN_IconName : vname = wd->icon_name ; break ;
+		case ASN_ResClass : vname = wd->res_class ; break ;
+		case ASN_ResName :  vname = wd->res_name ; break ;
+	 default :
+	}
+	if( vname == NULL ) 	
+	{
+		if( wd->window_name ) 
+			return wd->window_name ;
+		if( wd->icon_name )
+			return wd->icon_name ;
+		if( wd->res_class ) 
+			return wd->res_class ;
+		if( wd->res_name ) 
+			return wd->res_name ;
+	}
+	return vname ;
+}
+
+static void 
+render_winlist_button( ASTBarData *tbar )
+{
+	render_astbar( tbar, WinListWindow, BAR_STATE_UNFOCUSED, False, 0, 0,
+	               WinListWidth, WinListHeight );
+}
+
+static void 
+rearrange_winlist_buttons()
+{
+	ASBiDirElem *elem ;
+	int curr_row = 1, curr_col = 1 ;
+	unsigned int next_x = 0 ;
+	unsigned int next_y = 0 ;
+	unsigned int max_height = 1, max_width = 1 ;
+	for( elem = WinList->head ; elem ; elem = elem->next )
+	{
+		ASTBarData *tbar = elem->data ;
+		if( tbar ) 
+		{
+			unsigned int width, height ;
+			int x = 0, y = 0 ;
+			Bool redraw = False ;
+			
+			width = get_astbar_label_width( tbar );		
+			height = get_astbar_label_height( tbar );		
+LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_texthowdy, width, height );			
+			if( height  > max_height ) 
+				max_height = height ;
+			if( width  > max_width ) 
+				max_width = width ;
+			if( width > Config.max_col_width ) 
+				width = Config.max_col_width ;
+			if( width > Scr.MyDisplayWidth ) 
+				width = Scr.MyDisplayWidth ;
+			if( get_flags(Config.flags, ASWL_RowsFirst) )
+			{
+				if( next_x > Config.max_width )
+					if( curr_row  < Config.max_rows ) 
+					{
+						++curr_row ;
+						next_x = 0 ;
+						next_y += max_height ;
+						max_height = 1 ;
+					}
+				if( next_x + width > Config.max_width )
+					width = Config.max_width - next_x ;
+				x = next_x ; 
+				y = next_y ;
+				next_x += width ;
+			}else
+			{
+				if( next_y+height > Config.max_height ) 
+					if( curr_col  < Config.max_columns )
+					{
+						++curr_col ;
+						next_y = 0 ;
+						next_x += max_width ;
+						max_width = 1 ;
+					}
+				if( next_x + width > Config.max_width )
+					width = Config.max_width - next_x ;
+				x = next_x ; 
+				y = next_y ;
+				next_y += height ;
+			}
+			redraw = set_astbar_size( tbar, width, height );
+			if( move_astbar( tbar, WinListWindow, x, y ) )
+				redraw = True ;
+			if( redraw ) 
+				render_winlist_button( tbar );
+		}
+	}
+	if( get_flags(Config.flags, ASWL_RowsFirst) )
+	{
+		WinListWidth = (curr_row > 1)? Config.max_width : next_x ;
+		WinListHeight = next_y + max_height ;
+	}else
+	{
+		WinListHeight = (curr_col > 1)? Config.max_height : next_y ;
+		WinListWidth = next_x + max_width ;
+	}
+	XResizeWindow( dpy, WinListWindow, WinListWidth, WinListHeight );
+}
+
+/* Public stuff : ***************************************************/
+void 
+destroy_winlist_button( void *data )
+{
+	if( data ) 
+	{
+		destroy_astbar( (ASTBarData**)&data );
+	}
+}
+
+
+void 
+add_winlist_button( ASTBarData *tbar, ASWindowData *wd )
+{
+	tbar = create_astbar();
+	tbar = append_bidirelem( WinList, tbar );
+	if( tbar ) 
+	{
+		set_astbar_style( tbar, BAR_STATE_UNFOCUSED, Config.unfocused_style );
+		set_astbar_style( tbar, BAR_STATE_FOCUSED, Config.focused_style );
+		set_astbar_label( tbar, get_visible_window_name(wd) );
+		wd->data = tbar ;
+		rearrange_winlist_buttons();
+	}
+}
+
+void 
+refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd )
+{
+	if( tbar )
+	{
+		set_astbar_label( tbar, get_visible_window_name(wd) );	
+		render_winlist_button( tbar );
+	}
+}
+
+void 
+delete_winlist_button( ASTBarData *tbar, ASWindowData *wd )
+{
+	if( tbar )
+	{
+		discard_bidirelem( WinList, tbar );
+		rearrange_winlist_buttons();
+	}  
+}
+

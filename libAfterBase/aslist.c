@@ -181,7 +181,7 @@ insert_bidirelem_before( ASBiDirList *l, void *data, ASBiDirElem *before )
 }
 
 void
-discard_bidirelem( ASBiDirList *l, ASBiDirElem *elem )
+destroy_bidirelem( ASBiDirList *l, ASBiDirElem *elem )
 {
 	if( l == NULL || elem == NULL )
 		return ;
@@ -199,3 +199,16 @@ discard_bidirelem( ASBiDirList *l, ASBiDirElem *elem )
 	dealloc_bidirelem( elem );
 }
 
+void
+discard_bidirelem( ASBiDirList *l, void *data )
+{
+	ASBiDirElem *elem ;
+	if( l )
+	{
+		for( elem = l->head ; elem ; elem = elem->next ) 	
+			if( elem->data == data ) 
+				break ;
+		if( elem ) 
+			destroy_bidirelem( l, elem );	
+	}
+}

@@ -1042,6 +1042,11 @@ Done (int restart, char *command)
 #ifndef NO_VIRTUAL
   MoveViewport (0, 0, False);
 #endif
+#ifndef NO_SAVEWINDOWS
+  if(!restart)
+      SaveWindowsOpened ();
+#endif
+
 
   /* remove window frames */
   Reborder ();
@@ -1103,10 +1108,6 @@ Done (int restart, char *command)
     {
       extern Atom _XA_WIN_DESK;
       XDeleteProperty (dpy, Scr.Root, _XA_WIN_DESK);
-
-#ifndef NO_SAVEWINDOWS
-      SaveWindowsOpened ();
-#endif
 
 #ifdef DEBUG_ALLOCS
       {				/* free up memory */

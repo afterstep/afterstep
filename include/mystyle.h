@@ -223,6 +223,7 @@ void mystyle_draw_texturized_text (Window w, MyStyle * style, MyStyle *fore_text
 void mystyle_draw_texturized_vertical_text (Window w, MyStyle * style, MyStyle *fore_texture, const char *text, int x, int y);
 int mystyle_translate_grad_type( int type );
 ASImage *mystyle_draw_text_image( MyStyle *style, const char *text );
+unsigned int mystyle_get_font_height( MyStyle *style );
 
 void mystyle_fix_styles (void);
 ASImage *mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int height );

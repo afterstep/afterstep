@@ -67,6 +67,33 @@ void destroy_astbar( ASTBarData **ptbar )
 		}
 }
 
+unsigned int 
+get_astbar_label_width( ASTBarData *tbar )
+{
+	int size[2] = {1,1} ;
+	int i ;
+	for( i = 0 ; i < 2 ; ++i )
+	{
+		if( tbar->label[i] == NULL )
+			tbar->label[i] = mystyle_draw_text_image( tbar->style[i], tbar->label_text );
+		
+		if( tbar->label[i] )
+			size[0] = tbar->label[i]->width ;
+	}
+	return MAX( size[0], size[1] );
+}
+
+unsigned int 
+get_astbar_label_height( ASTBarData *tbar )
+{
+	int size[2] = {1,1} ;
+	int i ;
+	for( i = 0 ; i < 2 ; ++i )
+		size[i] = mystyle_get_font_height( tbar->style[i] );
+	return MAX( size[0], size[1] );
+}
+
+
 Bool 
 set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height )
 {
@@ -139,14 +166,20 @@ set_astbar_label( ASTBarData *tbar, const char *label )
 }
 
 Bool 
-move_astbar( ASTBarData *tbar, int root_x, int root_y )
+move_astbar( ASTBarData *tbar, Window w, int win_x, int win_y )
 {
 	Bool changed = False ;
+	int root_x = tbar->root_x, root_y = tbar->root_y ;
+	Window wdumm ;
+	XTranslateCoordinates( dpy, w, Scr.Root, win_x, win_y, &root_x, &root_y, &wdumm );
 	if( tbar ) 
 	{
 		changed = (root_x != tbar->root_x || root_y != tbar->root_y );
 		tbar->root_x = root_x ;
 		tbar->root_y = root_y ;
+		changed = changed || ( win_x != tbar->win_x || win_y != tbar->win_y );
+		tbar->win_x = win_x ;
+		tbar->win_y = win_y ;
 	}
 	return changed ;
 }

@@ -900,7 +900,8 @@ HandleMapNotify ()
       XMapWindow (dpy, Tmp_win->frame);
     }
   if (Tmp_win->flags & ICONIFIED)
-    Broadcast (M_DEICONIFY, 3, Tmp_win->w, Tmp_win->frame, (unsigned long) Tmp_win);
+    Broadcast (M_DEICONIFY, 7, Tmp_win->w, Tmp_win->frame, (unsigned long) Tmp_win, 
+	           Tmp_win->icon_p_x, Tmp_win->icon_p_y, Tmp_win->icon_p_width, Tmp_win->icon_p_height);
   else
     Broadcast (M_MAP, 3, Tmp_win->w, Tmp_win->frame, (unsigned long) Tmp_win);
 

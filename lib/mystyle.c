@@ -451,11 +451,14 @@ LOCAL_DEBUG_OUT( "style \"%s\", texture_type = %d, im = %p, tint = 0x%X", style-
 			if( Scr.RootImage == NULL )  
 			{
 				root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
-#if 1	
-				Scr.RootImage = pixmap2ximage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 100 );
+				if( root_pixmap )
+				{
+#if 0	
+					Scr.RootImage = pixmap2ximage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 100 );
 #else
-				Scr.RootImage = pixmap2asimage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, False, 100 );
+					Scr.RootImage = pixmap2asimage( Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, False, 100 );
 #endif		
+				}
 			}else
 			{
 				root_w = Scr.RootImage->width ;
@@ -1158,28 +1161,38 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 	    char *ptr, *ptr1;
 	    int type = strtol (style_arg, &ptr, 10);
 		ARGB32 color1 = 0, color2 = 0 ;
-		ptr1 = (char*)parse_argb_color( ptr, &color1 );
-		if( ptr1 != ptr )
+		register int i = 0;
+		while( !isspace(ptr[i]) && ptr[i] != '\0' ) ++i;
+		while( isspace(ptr[i]) && ptr[i] != '\0' ) ++i;
+		if( ptr[i] == '\0' )
 		{
-			ptr = ptr1 ;
-			if( parse_argb_color( ptr, &color1 ) != ptr )
-			{
-			    ASGradient gradient;
-	  			if ((type = mystyle_parse_old_gradient (type, color1, color2, &gradient)) >= 0)
-			    {
-					if (style->user_flags & F_BACKGRADIENT)
-					{
-		  				free (style->gradient.color);
-		  				free (style->gradient.offset);
-					}
-					style->gradient.type = mystyle_translate_grad_type( type );
-					style->gradient = gradient;
-					style->texture_type = type;
-					style->user_flags |= style_func;
-	    		}
-			}
+		    show_error("missing gradient colors: %s", style_arg);
 		}else
-	      fprintf (stderr, "%s: bad gradient: %s\n", MyName, style_arg);
+		{
+			ptr = &ptr[i] ;
+			ptr1 = (char*)parse_argb_color( ptr, &color1 );
+			if( ptr1 != ptr )
+			{
+				ptr = ptr1 ;
+				if( parse_argb_color( ptr, &color1 ) != ptr )
+				{
+				    ASGradient gradient;
+	  				if ((type = mystyle_parse_old_gradient (type, color1, color2, &gradient)) >= 0)
+				    {
+						if (style->user_flags & F_BACKGRADIENT)
+						{
+		  					free (style->gradient.color);
+			  				free (style->gradient.offset);
+						}
+						style->gradient.type = mystyle_translate_grad_type( type );
+						style->gradient = gradient;
+						style->texture_type = type;
+						style->user_flags |= style_func;
+		    		}
+				}
+			}else
+			    show_error("bad gradient: %s", style_arg);
+		}
 	  }
 	  break;
 	case F_BACKMULTIGRADIENT:
@@ -1439,4 +1452,13 @@ mystyle_draw_text_image( MyStyle *style, const char *text )
 		/* todo: implement text rendering using libAfterImage : */	
 	}
 	return im ;
+}
+
+unsigned int
+mystyle_get_font_height( MyStyle *style )
+{
+	if( style ) 
+		if( style->font.as_font )
+			return style->font.as_font->max_height ;
+	return 1 ;
 }

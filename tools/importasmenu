@@ -14,7 +14,7 @@ if [ ! -e $2 ]; then
     if ! mkdir $2; then exit; fi
 fi
 
-cd $PWD/$1
+cd $1
 
 for d in `find . -maxdepth 1 -type d` ; do
     if [[ "X$d" != "X.." && "X$d" != "X." ]] ; then 
@@ -26,12 +26,18 @@ done;
 
 for f in `find . -maxdepth 1 -type f -name "*.kdelnk"` ; do
 
-    name=`grep "Name=" < $f | cut -c '6-'`
+    name=`grep -w "Name" < $f| head -n 1 | cut -c '6-'`
+#	name="aaaa"
     if [ "X$name" == "X" ]; then name=$f ; fi
     echo "$name"  
     if grep "Exec=" < $f > /dev/null ; then
-	echo "Exec \"$name\" exec " `grep "Exec=" < $f | grep -v Swallow | cut -c '6-'` "&" >"$2/$f"
-	echo "Exec \"$name\" exec " `grep "Exec=" < $f | grep -v Swallow | cut -c '6-'` "&"
+		cmd=`grep "Exec=" < $f | head -n 1 | grep -v Swallow | cut -c '6-'`
+		if echo $cmd | grep "%" > /dev/null ; then
+			echo "skipping $cmd"
+		else
+			echo "Exec \"$name\" exec " $cmd "&" >"$2/$f"
+			echo "Exec \"$name\" exec " $cmd "&"
+		fi
     fi
 done;
 
@@ -39,12 +45,18 @@ done;
 
 for f in `find . -maxdepth 1 -type f -name "*.desktop"` ; do
 
-    name=`grep "Name=" < $f | cut -c '6-'`
+    name=`grep -w "Name" < $f | head -n 1 | cut -c '6-'`
+#	name="aaa"
     if [ "X$name" == "X" ]; then name=$f ; fi
     echo "$name"  
     if grep "Exec=" < $f > /dev/null ; then
-	echo "Exec \"$name\" exec " `grep "Exec=" < $f | grep -v Swallow | grep -v Try |cut -c '6-'` "&" >"$2/$f"
-	echo "Exec \"$name\" exec " `grep "Exec=" < $f | grep -v Swallow | grep -v Try |cut -c '6-'` "&"
+		cmd=`grep "Exec=" < $f | head -n 1 | grep -v Swallow | grep -v Try |cut -c '6-'`
+		if echo $cmd | grep "%" > /dev/null ; then
+			echo "skipping $cmd"
+		else
+			echo "Exec \"$name\" exec " $cmd "&" >"$2/$f"
+			echo "Exec \"$name\" exec " $cmd "&"
+		fi
     fi
 done;
 
