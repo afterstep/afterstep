@@ -1502,7 +1502,8 @@ LOCAL_DEBUG_OUT( "filling %d lines with %8.8lX", start_y, color );
 		for( y = 0 ; y < start_y ; y++  )
 			imout->output_image_scanline( imout, &result, 1);
 
-		result.back_color = imdec->buffer.back_color ;
+		if( imdec ) 
+			result.back_color = imdec->buffer.back_color ;
 		if( to_width == clip_width )
 		{
 			if( clip_width == src->width )

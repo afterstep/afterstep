@@ -163,7 +163,7 @@ typedef struct ASFont
 									 * to the top of the character glyph */
 					space_size;     /* fixed width value to be used when
 									 * rendering spaces and tabs */
-	int 			spacing_x, spacing_y ;									 
+	int 			spacing_x, spacing_y;									 
 #define LEFT_TO_RIGHT    1
 #define RIGHT_TO_LEFT   -1
 	int 			pen_move_dir ;  /* direction of the text flow */
