@@ -58,6 +58,10 @@
 #undef XpmCreateImageFromXpmImage
 
 #undef XGetWindowProperty
+#undef XListProperties
+#undef XGetTextProperty
+#undef XAllocClassHint
+#undef XAllocSizeHints
 #undef XQueryTree
 #undef XGetWMHints
 #undef XGetWMProtocols
@@ -111,13 +115,17 @@ enum
 
 	C_XMEM = 4,
 	C_XGETWINDOWPROPERTY = 0x100,
-	C_XQUERYTREE = 0x200,
-	C_XGETWMHINTS = 0x300,
-	C_XGETWMPROTOCOLS = 0x400,
-	C_XGETWMNAME = 0x500,
-	C_XGETCLASSHINT = 0x600,
-	C_XGETATOMNAME = 0x700,
-	C_XSTRINGLISTTOTEXTPROPERTY = 0x800,
+    C_XLISTPROPERTIES = 0x200,
+    C_XGETTEXTPROPERTY = 0x300,
+    C_XALLOCCLASSHINT = 0x400,
+    C_XALLOCSIZEHINTS = 0x500,
+    C_XQUERYTREE = 0x600,
+    C_XGETWMHINTS = 0x700,
+    C_XGETWMPROTOCOLS = 0x800,
+    C_XGETWMNAME = 0x900,
+    C_XGETCLASSHINT = 0xa00,
+    C_XGETATOMNAME = 0xb00,
+    C_XSTRINGLISTTOTEXTPROPERTY = 0xc00,
 
 	C_LAST_TYPE
 };
@@ -240,7 +248,7 @@ void         *
 countmalloc (const char *fname, int line, size_t length)
 {
 	void         *ptr;
-    if( (int)length < 0 ) 
+    if( (int)length < 0 )
 		fprintf( stderr, "too large malloc of %u from %s:%d\n", length, fname, line );
 	ptr = safemalloc (length);
 	count_alloc (fname, line, ptr, length, C_MEM | C_MALLOC);
@@ -252,7 +260,7 @@ countcalloc (const char *fname, int line, size_t nrecords, size_t length)
 {
 	void         *ptr = calloc (nrecords, length);
 
-    if( (int)(length*nrecords) < 0 ) 
+    if( (int)(length*nrecords) < 0 )
 		fprintf( stderr, "too large calloc of %u from %s:%d\n", length*nrecords, fname, line );
 
 	count_alloc (fname, line, ptr, nrecords * length, C_MEM | C_CALLOC);
@@ -450,7 +458,19 @@ print_unfreed_mem (void)
 				  case C_XGETWINDOWPROPERTY:
 					  fprintf (stderr, " (XGetWindowProperty)");
 					  break;
-				  case C_XQUERYTREE:
+                  case C_XLISTPROPERTIES:
+                      fprintf (stderr, " (XListProperties)");
+					  break;
+                  case C_XGETTEXTPROPERTY:
+                      fprintf (stderr, " (XGetTextProperty)");
+                      break;
+                  case C_XALLOCCLASSHINT :
+                      fprintf (stderr, " (XAllocClassHint)");
+                      break;
+                  case C_XALLOCSIZEHINTS :
+                      fprintf (stderr, " (XAllocSizeHints)");
+                      break;
+                  case C_XQUERYTREE:
 					  fprintf (stderr, " (XQueryTree)");
 					  break;
 				  case C_XGETWMHINTS:
@@ -537,7 +557,7 @@ count_xfreepixmap (const char *fname, int line, Display * display, Pixmap pmap)
 				 "%s:attempt in %s:%d to free Pixmap(0x%X) that was never created, or already freed!\n",
 				 __FUNCTION__, fname, line, (unsigned int)pmap);
 		raise( SIGUSR2 );
-		XFreePixmap (display, pmap );		
+		XFreePixmap (display, pmap );
 		return !Success;
 	}
 /*	fprintf (stderr,"%s:%s:%d freeing Pixmap(0x%X)\n", __FUNCTION__, fname, line, (unsigned int)pmap);
@@ -618,7 +638,7 @@ count_xgetimage (const char *fname, int line, Display * display,
 XImage       *
 count_xsubimage (const char *fname, int line, XImage *img,
 				 int x, int y, unsigned int width, unsigned int height )
-				 
+
 {
 	XImage       *image = (*(img->f.sub_image))(img, x, y, width, height);
 
@@ -753,6 +773,53 @@ count_xgetwindowproperty (const char *fname, int line, Display * display,
 	*nitems_return = my_nitems_return;		   /* need to do this in case bytes_after_return and nitems_return point to the same var */
 	return val;
 }
+
+Atom *
+count_xlistproperties( const char *fname, int line, Display * display,
+                       Window w, int *props_num )
+{
+    Atom *props ;
+
+    props = XListProperties (display, w, props_num);
+    if( props != NULL && *props_num > 0 )
+        count_alloc (fname, line, (void *)props,
+                     (*props_num)*sizeof(Atom), C_XMEM | C_XLISTPROPERTIES);
+    return props;
+}
+
+
+Status
+count_xgettextproperty(const char *fname, int line, Display * display, Window w,
+                       XTextProperty *trg, Atom property)
+{
+    Status        val;
+
+    val = XGetTextProperty(display,w,trg,property);
+    if (val && trg->value )
+        count_alloc (fname, line, (void *)(trg->value), strlen(trg->value)+1, C_XMEM | C_XGETTEXTPROPERTY );
+    return val;
+}
+
+XClassHint *
+count_xallocclasshint(const char *fname, int line)
+{
+    XClassHint *wmclass ;
+    wmclass = XAllocClassHint();
+    if( wmclass != NULL )
+        count_alloc (fname, line, (void *)wmclass, sizeof(XClassHint), C_XMEM | C_XALLOCCLASSHINT );
+    return wmclass;
+}
+
+XSizeHints *
+count_xallocsizehints(const char *fname, int line)
+{
+    XSizeHints *size_hints ;
+    size_hints = XAllocSizeHints();
+    if( size_hints != NULL )
+        count_alloc (fname, line, (void *)size_hints, sizeof(XSizeHints), C_XMEM | C_XALLOCSIZEHINTS );
+    return size_hints;
+}
+
 
 Status
 count_xquerytree (const char *fname, int line, Display * display, Window w,

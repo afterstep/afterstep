@@ -96,6 +96,10 @@ int count_xpmcreateimagefromxpmimage (const char *fname, int line,
 int count_xdestroyimage (const char *fname, int line, XImage * image);
 
 #define XGetWindowProperty(a, b, c, d, e, f, g, h, i, j, k, l) count_xgetwindowproperty(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j, k, l)
+#define XListProperties(a,b,c) count_xlistproperties(__FUNCTION__, __LINE__, a, b, c)
+#define XGetTextProperty(a,b,c,d) count_xgettextproperty(__FUNCTION__,__LINE__,a,b,c,d)
+#define XAllocClassHint()   count_xallocclasshint(__FUNCTION__,__LINE__)
+#define XAllocSizeHints()   count_xallocsizehints(__FUNCTION__,__LINE__)
 #define XQueryTree(a, b, c, d, e, f) count_xquerytree(__FUNCTION__, __LINE__, a, b, c, d, e, f)
 #define XGetWMHints(a, b) count_xgetwmhints(__FUNCTION__, __LINE__, a, b)
 #define XGetWMProtocols(a, b, c, d) count_xgetwmprotocols(__FUNCTION__, __LINE__, a, b, c, d)
@@ -113,6 +117,13 @@ int count_xgetwindowproperty (const char *fname, int line, Display * display,
 			      unsigned long *nitems_return,
 			      unsigned long *bytes_after_return,
 			      unsigned char **prop_return);
+Atom * count_xlistproperties( const char *fname, int line, Display * display,
+                              Window w, int *props_num );
+Status count_xgettextproperty(const char *fname, int line, Display * display, Window w,
+                              XTextProperty *trg, Atom property);
+XClassHint *count_xallocclasshint(const char *fname, int line);
+XSizeHints *count_xallocsizehints(const char *fname, int line);
+
 Status count_xquerytree (const char *fname, int line, Display * display,
 			 Window w, Window * root_return,
 			 Window * parent_return, Window ** children_return,

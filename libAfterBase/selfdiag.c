@@ -362,7 +362,7 @@ get_call_list()
 
     if( __builtin_frame_address(2) == NULL ) goto done ;
     if( (call_list[i++]= __builtin_return_address(2)) == NULL ) goto done ;
-	
+
     if( __builtin_frame_address(3) == NULL ) goto done ;
     if( (call_list[i++] = __builtin_return_address(3)) == NULL ) goto done ;
 
@@ -458,6 +458,34 @@ done:
 #endif
     return call_list;
 }
+
+char *
+get_caller_func ()
+{
+    char         *func_name = unknown;
+#if defined(__GNUC__)
+    int           call_no = 0;
+    long         **ret_addr ;
+
+    ret_addr = get_call_list();
+    if(ret_addr[0] != NULL )
+    {
+		long          offset = 0;
+
+        get_proc_tables (&_ptabs);
+        func_name = find_func_symbol ((void *)ret_addr[call_no], &offset);
+#ifdef HAVE_EXECINFO_H
+        if (func_name == unknown)
+        {
+            char **dummy = __backtrace_symbols ((void **)&(ret_addr[call_no]), 1);
+            func_name = *dummy ;
+        }
+#endif
+    }
+#endif
+    return func_name;
+}
+
 void
 print_simple_backtrace ()
 {
