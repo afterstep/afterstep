@@ -42,6 +42,7 @@ ASHashTable *create_ashash( ASHashKey size,
                             ASHashKey (*hash_func)(ASHashableValue, ASHashKey), 
 			    long      (*compare_func)(ASHashableValue, ASHashableValue),
 			    void (*item_destroy_func)(ASHashableValue, void *));
+void print_ashash( ASHashTable *hash, void (*item_print_func)(ASHashableValue value));
 void destroy_ashash( ASHashTable **hash );
 
 typedef enum {
@@ -61,7 +62,9 @@ ASHashResult get_hash_item( ASHashTable *hash, ASHashableValue value, void **trg
    Note: if you never specifyed destroy_func  - nothing will be destroyed,
          except for HashItem itself.
  */
-ASHashResult remove_hash_item( ASHashTable *hash, ASHashableValue value, void**trg);
+ASHashResult remove_hash_item( ASHashTable *hash, ASHashableValue value, void**trg, Bool destroy);
+
+unsigned long sort_hash_items( ASHashTable *hash, ASHashableValue *values, void **data, unsigned long max_items );
 
 /**************************************************************************/
 /**************************************************************************/
@@ -70,10 +73,16 @@ ASHashResult remove_hash_item( ASHashTable *hash, ASHashableValue value, void**t
 
 /* configuration options - case unsensitive and spaces are not alowed */
 ASHashKey option_hash_value (ASHashableValue value, ASHashKey hash_size);
+
 /* case unsensitive strings  - spaces and control chars are alowed */
 ASHashKey casestring_hash_value (ASHashableValue value, ASHashKey hash_size);
+
 /* case sensitive strings  - spaces and control chars are alowed */
 ASHashKey string_hash_value (ASHashableValue value, ASHashKey hash_size);
+long string_compare(  ASHashableValue value1, ASHashableValue value2 );
+void string_destroy(ASHashableValue value, void * data );
+void string_print(ASHashableValue value);
+
 /* basically any long value, but was written originally for colors hash */
 ASHashKey color_hash_value(ASHashableValue value, ASHashKey hash_size);
 

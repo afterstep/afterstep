@@ -44,7 +44,7 @@ default_hash_func(ASHashableValue value, ASHashKey hash_size)
 long 
 default_compare_func(ASHashableValue value1, ASHashableValue value2)
 {
-    return (value1.long_val-value2.long_val);
+    return ((long)value1.long_val-(long)value2.long_val);
 }
 
 void 
@@ -88,7 +88,8 @@ create_ashash( ASHashKey size,
 }
 
 static void
-destroy_ashash_bucket( ASHashBucket *bucket, void (*item_destroy_func)(ASHashableValue, void *))
+destroy_ashash_bucket( ASHashBucket *bucket, 
+                       void (*item_destroy_func)(ASHashableValue, void *))
 {
   register ASHashItem 	*item, *next ;
     for( item = *bucket ; item != NULL ; item = next )
@@ -99,6 +100,25 @@ destroy_ashash_bucket( ASHashBucket *bucket, void (*item_destroy_func)(ASHashabl
 	free( item );
     } 
     *bucket = NULL ;
+}
+
+void 
+print_ashash( ASHashTable *hash, void (*item_print_func)(ASHashableValue value))
+{
+  register int i ;
+  ASHashItem *item ;
+
+    for( i = 0 ; i < hash->size ; i++ )
+    {	
+	if( hash->buckets[i] == NULL ) continue ;
+        fprintf( stderr, "Bucket # %d:", i );
+	for( item = hash->buckets[i] ; item != NULL ; item = item->next )
+	    if( item_print_func )
+		item_print_func( item->value );
+	    else
+		fprintf( stderr, "[0x%lX(%ld)]", item->value.long_val, item->value.long_val );
+        fprintf( stderr, "\n");
+    }
 }
 
 void 
@@ -161,7 +181,8 @@ add_hash_item( ASHashTable *hash, ASHashableValue value, void *data )
 	hash->items_num++ ;
 	if( hash->buckets[key]->next == NULL )
 	    hash->buckets_used++;
-    }	
+    }else
+	free( item );	
     return res ;
 }
 
@@ -204,7 +225,7 @@ get_hash_item( ASHashTable *hash, ASHashableValue value, void**trg )
 }
 
 ASHashResult 
-remove_hash_item( ASHashTable *hash, ASHashableValue value, void**trg )
+remove_hash_item( ASHashTable *hash, ASHashableValue value, void**trg, Bool destroy)
 {
   ASHashKey key = 0;
   ASHashItem **pitem = NULL;
@@ -222,7 +243,7 @@ remove_hash_item( ASHashTable *hash, ASHashableValue value, void**trg )
 	    if( trg )    *trg = (*pitem)->data ;
 	    
 	    next = (*pitem)->next ;
-	    if( hash->item_destroy_func ) 
+	    if( hash->item_destroy_func && destroy ) 
 		hash->item_destroy_func( (*pitem)->value, (trg)?NULL:(*pitem)->data );
 	    free( *pitem ) ;
 	    *pitem = next ;
@@ -235,28 +256,101 @@ remove_hash_item( ASHashTable *hash, ASHashableValue value, void**trg )
     return ASH_ItemNotExists ;
 }
 
+unsigned long
+sort_hash_items( ASHashTable *hash, ASHashableValue *values, void **data, unsigned long max_items )
+{
+    if( hash )
+    {
+      ASHashBucket *buckets ;
+      register ASHashKey i ;
+      ASHashKey k = 0, top = hash->buckets_used-1, bottom = 0 ;
+      unsigned long count_in = 0;
+	
+        if( hash->buckets_used == 0 || hash->items_num == 0 ) return 0;
+        buckets = safemalloc( hash->buckets_used*sizeof(ASHashBucket) );	    
+	for( i = 0 ; i < hash->size ; i++ )    
+	    if( hash->buckets[i] ) buckets[k++] = hash->buckets[i];
+	while( max_items-- > 0 )
+	{
+	    k = bottom ;
+	    for( i = bottom+1 ; i <= top  ; i++ )
+	    {
+		if( buckets[i] )	    
+		    if( hash->compare_func( buckets[k]->value, buckets[i]->value ) > 0 )		
+			k = i;
+	    }
+	    if( values ) *(values++) = buckets[k]->value ;
+	    if( data )   *(data++) = buckets[k]->data ;
+	    count_in++;
+	    buckets[k] = buckets[k]->next ;
+	    /* a little optimization :*/
+	    while(buckets[bottom]==NULL && bottom < top) bottom++;
+	    while(buckets[top]==NULL && top > bottom ) top--;
+	}
+	free( buckets );
+	return count_in;
+    }
+    return 0;
+}
+
+/***** Iterator functionality *****/
+
+
 /************************************************************************/
 /************************************************************************/
 /* 	Some usefull implementations 					*/
 /************************************************************************/
-ASHashKey option_hash_value (ASHashableValue value, ASHashKey hash_size)
+/* case sensitive strings hash */
+ASHashKey string_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
   ASHashKey hash_key = 0;
   register int i;
-  char* opt = value.string_val ;
+  char* string = value.string_val ;
   register char c ;
   
   for (i = 0; i < ((sizeof (ASHashKey) - sizeof (char)) << 3); i++)
     {
-      c = *(opt++) ;
-      if (c == '\0' || !isalnum (c))
+      c = *(string++) ;
+      if (c == '\0')
 	break;
-      if( isupper(c) ) c = tolower (c);
       hash_key += (((ASHashKey) c) << i);
     }
   return hash_key % hash_size;
 }
 
+long 
+string_compare(  ASHashableValue value1, ASHashableValue value2 )
+{
+  register char* str1 = value1.string_val ;
+  register char* str2 = value2.string_val ;    
+    if( str1 == str2 ) return  0;
+    if( str1 == NULL ) return -1;
+    if( str2 == NULL ) return  1;
+    while(*str1 || *str2)
+    {
+	if( *str1 != *str2 )
+	    return (long)(*str1) - (long)(*str2) ;
+    	
+	str1++;
+	str2++;	    
+    }
+    return 0;
+}
+
+void
+string_destroy(ASHashableValue value, void *data )
+{
+    if( value.string_val != NULL ) free( value.string_val );
+    if( data != value.string_val && data != NULL ) free(data);
+}
+
+void 
+string_print(ASHashableValue value)
+{
+    fprintf( stderr, "[%s]", value.string_val );
+}
+
+/* variation for case-unsensitive strings */
 ASHashKey casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
   ASHashKey hash_key = 0;
@@ -275,22 +369,71 @@ ASHashKey casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
   return hash_key % hash_size;
 }
 
-ASHashKey string_hash_value (ASHashableValue value, ASHashKey hash_size)
+long 
+casestring_compare(  ASHashableValue value1, ASHashableValue value2 )
+{
+  register char* str1 = value1.string_val ;
+  register char* str2 = value2.string_val ;    
+    if( str1 == str2 ) return  0;
+    if( str1 == NULL ) return -1;
+    if( str2 == NULL ) return  1;
+    while(*str1 || *str2)
+    {
+      char u1, u2 ;
+        u1 = *(str1++);
+	u2 = *(str2++);
+	if( islower(u1)) u1 = toupper(u1);
+	if( islower(u2)) u2 = toupper(u2);
+	if( u1 != u2 )
+	    return (long)u1-(long)u2 ;
+    }
+    return 0;
+}
+
+/* variation for config option type of strings */
+ASHashKey option_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
   ASHashKey hash_key = 0;
   register int i;
-  char* string = value.string_val ;
+  char* opt = value.string_val ;
   register char c ;
   
   for (i = 0; i < ((sizeof (ASHashKey) - sizeof (char)) << 3); i++)
     {
-      c = *(string++) ;
-      if (c == '\0')
+      c = *(opt++) ;
+      if (c == '\0' || !isalnum (c))
 	break;
+      if( isupper(c) ) c = tolower (c);
       hash_key += (((ASHashKey) c) << i);
     }
   return hash_key % hash_size;
 }
+
+long 
+option_compare(  ASHashableValue value1, ASHashableValue value2 )
+{
+  register char* str1 = value1.string_val ;
+  register char* str2 = value2.string_val ;    
+    if( str1 == str2 ) return  0;
+    if( str1 == NULL ) return -1;
+    if( str2 == NULL ) return  1;
+    while( (*str1 && isalnum (*str1)) || 
+           (*str2 && isalnum (*str2))
+	 )
+    {
+      char u1, u2 ;
+        u1 = *(str1++);
+	u2 = *(str2++);
+	if( islower(u1)) u1 = toupper(u1);
+	if( islower(u2)) u2 = toupper(u2);
+	if( u1 != u2 )
+	    return (long)u1-(long)u2 ;
+    }
+    return 0;
+}
+
+
+/* colors hash */
 
 ASHashKey color_hash_value(ASHashableValue value, ASHashKey hash_size)
 {
