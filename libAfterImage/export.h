@@ -97,6 +97,7 @@ typedef struct
 	ASFlagType flags ;
 	int dither ;
 	int opaque_threshold ;
+	unsigned short animate_delay ;
 }ASGifExportParams ;
 /*******/
 /****s* libAfterImage/ASTiffExportParams

@@ -1236,7 +1236,7 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	GifFileType        *gif;
 	ASImage 	 	   *im = NULL ;
 	ASScanline    		buf;
-	int 		  		transparent = -1 ;
+	unsigned int  		transparent = -1 ;
 	unsigned int  		y;
 	unsigned int		width = 0, height = 0;
 	ColorMapObject     *cmap = NULL ;
@@ -1252,14 +1252,15 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		if( (status = get_gif_saved_images(gif, subimage, &sp, &count )) == GIF_OK )
 		{
 			GifPixelType *row_pointer ;
-
+/*			fprintf( stderr, "Ext block = %p\n", sp->ExtensionBlocks );*/
 			if( sp->ExtensionBlocks )
 				for ( y = 0; y < sp->ExtensionBlockCount; y++)
 				{
 					if( sp->ExtensionBlocks[y].Function == 0xf9 &&
-			 			(sp->ExtensionBlocks[y].Bytes[1]&0x01))
+			 			(sp->ExtensionBlocks[y].Bytes[0]&0x01))
 					{
-			   		 	transparent = (int) sp->ExtensionBlocks[y].Bytes[4];
+			   		 	transparent = ((unsigned int) sp->ExtensionBlocks[y].Bytes[GIF_GCE_TRANSPARENCY_BYTE])&0x00FF;
+/*						fprintf( stderr, "transp = %u\n", transparent ); */
 					}
 				}
 			cmap = gif->SColorMap ;
@@ -1289,10 +1290,12 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 							buf.alpha[x] = 0 ;
 						}else
 							buf.alpha[x] = 0x00FF ;
-		        		buf.red[x]   = cmap->Colors[c].Red;
+/*	                    fprintf( stderr, "%d(%X) ", row_pointer[x], buf.alpha[x] );*/
+						buf.red[x]   = cmap->Colors[c].Red;
 		        		buf.green[x] = cmap->Colors[c].Green;
 						buf.blue[x]  = cmap->Colors[c].Blue;
 	        		}
+                    fprintf( stderr, "\n" );
 					row_pointer += x ;
 					asimage_add_line (im, IC_RED,   buf.red, y);
 					asimage_add_line (im, IC_GREEN, buf.green, y);

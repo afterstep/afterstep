@@ -9,6 +9,8 @@
 #define ASIM_PrintGifError() do{ PrintGifError(); }while(0)
 #endif
 
+#define GIF_GCE_TRANSPARENCY_BYTE	3		
+
 void free_gif_saved_image( SavedImage *sp, Bool reusable );
 void free_gif_saved_images( SavedImage *images, int count );
 

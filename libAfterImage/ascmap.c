@@ -623,6 +623,8 @@ check_colorindex_counts( cmap->hash );
 				for( x = 0 ; x < im->width ; ++x )
 					if( dst[x] >= 0 )
 						dst[x] = get_color_index( cmap->hash, dst[x], ((dst[x]>>12)&0x0FFF));
+					else
+						dst[x] = cmap->count ;
 				break;
 			case 3 :
 			case 4 :
@@ -631,6 +633,8 @@ check_colorindex_counts( cmap->hash );
 					LOCAL_DEBUG_OUT( "(%d,%d)", x, y );
 					if( dst[x] >= 0 )
 						dst[x] = get_color_index( cmap->hash, dst[x], ((dst[x]>>14)&0x03FF));
+					else
+						dst[x] = cmap->count ;
 				}
 				break;
 			case 5 :
@@ -638,11 +642,15 @@ check_colorindex_counts( cmap->hash );
 				for( x = 0 ; x < im->width ; ++x )
 					if( dst[x] >= 0 )
 						dst[x] = get_color_index( cmap->hash, dst[x], ((dst[x]>>18)&0x03F));
+					else
+						dst[x] = cmap->count ;
 			    break ;
 			case 7 :
 				for( x = 0 ; x < im->width ; ++x )
 					if( dst[x] >= 0 )
 						dst[x] = get_color_index( cmap->hash, dst[x], ((dst[x]>>21)&0x007));
+					else
+						dst[x] = cmap->count ;
 			    break ;
 		}
 		dst += im->width ;

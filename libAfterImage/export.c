@@ -647,7 +647,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	GifFileType *gif = NULL ;
 	ColorMapObject *gif_cmap ;
 	Bool dont_save_cmap = False ;
-	ASGifExportParams defaults = { ASIT_Gif,EXPORT_ALPHA|EXPORT_APPEND, 4, 127 };
+	ASGifExportParams defaults = { ASIT_Gif,EXPORT_ALPHA|EXPORT_APPEND, 3, 127, 10 };
 	ASColormap         cmap;
 	int *mapped_im ;
 	int y ;
@@ -655,13 +655,25 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	Bool new_image = True ;
 	START_TIME(started);
 	int cmap_size = 1;
-
+	unsigned char gce_bytes[5] = {0x01, 0x0, 0x0, 0x0, 0x0 }; /* Graphic Control Extension bytes : 
+	                                                           * first byte - flags (0x01 for transparency )
+															   * second and third bytes - animation delay
+															   * forth byte - transoparent pixel value.
+															   */
 	LOCAL_DEBUG_CALLER_OUT ("(\"%s\")", path);
 
 	if( params == NULL )
 		params = (ASImageExportParams *)&defaults ;
 
-	mapped_im = colormap_asimage( im, &cmap, 255, params->gif.dither, params->gif.opaque_threshold );
+	mapped_im = colormap_asimage( im, &cmap, 256, params->gif.dither, params->gif.opaque_threshold );
+
+	if( get_flags( params->gif.flags, EXPORT_ALPHA) &&
+		get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) )
+		gce_bytes[GIF_GCE_TRANSPARENCY_BYTE] = cmap.count ;
+	else
+		gce_bytes[0] = 0 ;		
+	gce_bytes[1] = (params->gif.animate_delay>>8)&0x00FF;
+	gce_bytes[2] =  params->gif.animate_delay&0x00FF;
 
 	while( cmap_size < 256 && cmap_size < cmap.count )
 		cmap_size = cmap_size<<1 ;
@@ -719,14 +731,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 			}
 			if( gif )
 			{
-				if( get_flags( params->gif.flags, EXPORT_ALPHA) &&
-					get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) )
-				{
-					unsigned char bytes[5] = {0xff, 0xff, 0xff, 0xff, 0x00 };
-					bytes[4] = cmap.count ;
-					EGifPutExtension(gif, 0xf9, 5, &(bytes[0]));
-				}
-
+				EGifPutExtension(gif, 0xf9, 5, &(gce_bytes[0]));
 				if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, (dont_save_cmap)?NULL:gif_cmap ) == GIF_ERROR )
 					ASIM_PrintGifError();
 			}
@@ -745,13 +750,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	{
 		if( EGifPutScreenDesc(gif, im->width, im->height, cmap_size, 0, gif_cmap ) == GIF_ERROR )
 			ASIM_PrintGifError();
-		if( get_flags( params->gif.flags, EXPORT_ALPHA) &&
-			get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) )
-		{
-			unsigned char bytes[5] = {0xff, 0xff, 0xff, 0xff, 0x00 };
-			bytes[4] = cmap.count ;
-			EGifPutExtension(gif, 0xf9, 5, &(bytes[0]));
-		}
+		EGifPutExtension(gif, 0xf9, 5, &(gce_bytes[0]));
 		if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, NULL ) == GIF_ERROR )
 			ASIM_PrintGifError();
 	}
