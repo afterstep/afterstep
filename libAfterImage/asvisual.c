@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -1458,7 +1458,7 @@ XImage *ASGetXImage( ASVisual *asv, Drawable d,
 
 	if( asv == NULL || d == None )
 		return NULL ;
-	if( _as_use_shm_images )
+	if( _as_use_shm_images && width*height > 4000)
 	{
 		unsigned int depth ;
 		Window        root;
@@ -1543,7 +1543,7 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 		unit = 32 ;
 #endif
 #ifdef XSHMIMAGE
-	if( _as_use_shm_images )
+	if( _as_use_shm_images && width*height > 4000 )
 	{
 		XShmSegmentInfo *shminfo = safecalloc( 1, sizeof(XShmSegmentInfo));
 
