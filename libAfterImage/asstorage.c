@@ -245,7 +245,7 @@ rlediff_compress( CARD8 *buffer,  CARD8* data, int size )
 	return comp_size ;
 }	 
 
-static int 
+static int
 rlediff_decompress( CARD8 *buffer,  CARD8* data, int size )
 {
 	int out_bytes = 0 ;
@@ -260,22 +260,85 @@ rlediff_decompress( CARD8 *buffer,  CARD8* data, int size )
 		{
 			count = (int)c  + 1 ;
 			while( --count >= 0 )  	  
-				buffer[out_bytes++] = 0 ;
+				buffer[out_bytes++] = last_val ;
 		}else if( (c & RLE_NOZERO_SHORT_MASK ) == RLE_NOZERO_SHORT_SIG ) 
 		{
+			++in_bytes ;
+
 			count = c & RLE_NOZERO_SHORT_LENGTH ;
 			++count ;
-		  
-		}else if( (c & RLE_NOZERO_LONG_MASK ) == RLE_NOZERO_LONG1_SIG ) 
-		{
-			 
-		}else if( (c & RLE_NOZERO_LONG_MASK ) == RLE_NOZERO_LONG2_SIG ) 
-		{
+			while( --count >= 0 ) 
+			{
+				CARD8 mod = ((data[in_bytes]>>4)&0x07)+1;
+				last_val = (data[in_bytes]&0x80)?last_val - mod : last_val + mod ;
+				buffer[out_bytes++] = last_val ;
+				if( --count >= 0 )
+				{
+					mod = (data[in_bytes]&0x07)+1;
+					last_val = (data[in_bytes]&0x08)?last_val - mod : last_val + mod ;
+					buffer[out_bytes++] = last_val ;
+				}
+				++in_bytes ;
+			}
 		}else
 		{
-			
+			count = c & RLE_NOZERO_LONG_LENGTH ;
+			++count ;
+			++in_bytes ;
+
+			if( (c & RLE_NOZERO_LONG_MASK ) == RLE_NOZERO_LONG1_SIG ) 
+			{
+				while( --count >= 0 ) 
+				{
+					CARD8 mod = ((data[in_bytes]>>6)&0x01)+1;
+					last_val = (data[in_bytes]&0x80)?last_val - mod : last_val + mod ;
+					buffer[out_bytes++] = last_val ;
+					if( --count >= 0 )
+					{
+						mod = ((data[in_bytes]>>4)&0x01)+1;
+						last_val = (data[in_bytes]&0x20)?last_val - mod : last_val + mod ;
+						buffer[out_bytes++] = last_val ;
+						if( --count >= 0 )
+						{
+							mod = ((data[in_bytes]>>2)&0x01)+1;
+							last_val = (data[in_bytes]&0x08)?last_val - mod : last_val + mod ;
+							buffer[out_bytes++] = last_val ;
+							if( --count >= 0 )
+							{
+								mod = (data[in_bytes]&0x01)+1;
+								last_val = (data[in_bytes]&0x02)?last_val - mod : last_val + mod ;
+								buffer[out_bytes++] = last_val ;
+							}
+						}
+
+					}
+					++in_bytes ;
+				}
+			}else if( (c & RLE_NOZERO_LONG_MASK ) == RLE_NOZERO_LONG2_SIG ) 
+			{
+				while( --count >= 0 ) 
+				{
+					CARD8 mod = (data[in_bytes]&0x7F)+1;
+					last_val = (data[in_bytes]&0x80)?last_val - mod : last_val + mod ;
+					buffer[out_bytes++] = last_val ;
+					++in_bytes ;
+				}
+			}else
+			{
+				Bool sign = ((c & RLE_NOZERO_LONG_MASK ) == RLE_9BIT_NEG_SIG);
+				while( --count >= 0 ) 
+				{
+					CARD8 mod = data[in_bytes]+1;
+					last_val = sign? last_val - mod : last_val + mod ;
+					sign = !sign ;
+					buffer[out_bytes++] = last_val ;
+					++in_bytes ;
+				}
+			}
 		}	 
 	}	 
+	LOCAL_DEBUG_OUT( "in_bytes = %d, out_bytes = %d, size = %d", in_bytes, out_bytes, size );
+	return out_bytes;
 }	 
 
 
@@ -318,8 +381,16 @@ static CARD8 *
 decompress_stored_data( ASStorage *storage, CARD8 *data, int size, int uncompressed_size, 
 						ASFlagType flags )
 {
-	/* TODO - just a stub for now */
-	return data;
+	CARD8  *buffer = data ;
+
+	if( get_flags( flags, ASStoprage_RLEDiffCompress ) && uncompressed_size > 8)
+	{
+		buffer = storage->comp_buf ;
+		rlediff_decompress( buffer,  data, size );	
+		/* need to check decompressed size */
+	}
+	
+	return buffer;
 }
 
 static void
