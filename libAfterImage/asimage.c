@@ -602,6 +602,28 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 	return im->buf_used;
 }
 
+ASFlagType 
+get_asimage_chanmask( ASImage *im)
+{
+    ASFlagType mask = 0 ;
+	int color ;
+	
+	if( im )
+		for( color = 0; color < IC_NUM_CHANNELS ; color++ )
+		{
+			register CARD8 **chan = im->channels[color];
+			register int y, height = im->height ;
+			for( y = 0 ; y < height ; y++ )
+				if( chan[y] ) 
+				{
+					set_flags( mask, 0x01<<color );
+					break;
+				}
+		}
+    return mask ;
+}
+
+
 unsigned int
 asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long verbosity)
 {
@@ -2526,9 +2548,13 @@ flip_asimage( ScreenInfo *scr, ASImage *src,
 	ASImage *dst = NULL ;
 	ASImageDecoder *imdec ;
 	ASImageOutput  *imout ;
+	ASFlagType filter = SCL_DO_ALL;
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
-	if( (imdec = start_image_decoding(scr, src, SCL_DO_ALL, offset_x, offset_y, to_width)) == NULL )
+	if( src ) 
+		filter = get_asimage_chanmask(src); 
+	if( (imdec = start_image_decoding(scr, src, filter, offset_x, offset_y, to_width)) == NULL )
 		return NULL;
+
 
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height, compression_out);
@@ -2558,7 +2584,6 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 		}else
 		{
 			ASScanline result ;
-			CARD32 **src_chan = &(imdec->buffer.channels[0]);
 			toggle_image_output_direction( imout );
 			prepare_scanline( to_width, 0, &result, scr->BGR_mode );
 			for( y = 0 ; y < max_y ; y++  )
