@@ -6,6 +6,15 @@
 		safemalloc.h \
 		output.h
 
+./aslist.o : \
+		config.h \
+		astypes.h \
+		audit.h \
+		output.h \
+		safemalloc.h \
+		selfdiag.h \
+		aslist.h
+
 ./asvector.o : \
 		config.h \
 		astypes.h \
@@ -105,6 +114,8 @@
 		config.h \
 		astypes.h \
 		audit.h \
+		safemalloc.h \
+		aslist.h \
 		output.h \
 		socket.h
 

@@ -923,7 +923,7 @@ rm -f conftest.sh
 
 ac_config_headers="$ac_config_headers config.h:config.h.in"
 
-version="0.91"
+version="0.92"
 version_major="0"
 lib_name="LIBAFTERBASE"
 lib_file_name="libAfterBase"
@@ -4402,8 +4402,8 @@ if test "x$enable_xlocale" = "xyes"; then
   DEFINE_XLOCALE="-DX_LOCALE"
 fi
 
-echo "$as_me:4405: checking if we can use safe min/max macros" >&5
-echo $ECHO_N "checking if we can use safe min/max macros... $ECHO_C" >&6
+echo "$as_me:4405: checking if we can use sign safe min/max macros" >&5
+echo $ECHO_N "checking if we can use sign safe min/max macros... $ECHO_C" >&6
 if test "$cross_compiling" = yes; then
   { { echo "$as_me:4408: error: cannot run test program while cross compiling" >&5
 echo "$as_me: error: cannot run test program while cross compiling" >&2;}
@@ -4415,7 +4415,7 @@ else
 #define MIN(x,y) \
   		({ const typeof(x) _x = (x); const typeof(y) _y = (y);  (void) (&_x == &_y); \
      		 _x < _y ? _x : _y; })
-                 int main(){return min(0,1);}
+                 int main(){return 0;}
 _ACEOF
 rm -f conftest$ac_exeext
 if { (eval echo "$as_me:4421: \"$ac_link\"") >&5

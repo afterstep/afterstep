@@ -1,5 +1,6 @@
 LIBAFTERBASE_OBJS = \
 		$(LIBAFTERBASE_PATH)/ashash.c \
+		$(LIBAFTERBASE_PATH)/aslist.c \
 		$(LIBAFTERBASE_PATH)/asvector.c \
 		$(LIBAFTERBASE_PATH)/audit.c \
 		$(LIBAFTERBASE_PATH)/fs.c \
@@ -20,6 +21,7 @@ LIBAFTERBASE_OBJS = \
 
 LIBAFTERBASE_INCS = \
 		$(LIBAFTERBASE_PATH)/ashash.h \
+		$(LIBAFTERBASE_PATH)/aslist.h \
 		$(LIBAFTERBASE_PATH)/asvector.h \
 		$(LIBAFTERBASE_PATH)/astypes.h \
 		$(LIBAFTERBASE_PATH)/audit.h \
