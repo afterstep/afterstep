@@ -1505,6 +1505,18 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 #define FEEL_CoverAnimationSteps_ID   (FEEL_ID_START+43)
 #define FEEL_CoverAnimationType_ID	  (FEEL_ID_START+44)
 
+#define FEEL_FollowTitleChanges_ID	 	(FEEL_ID_START+45)
+#define FEEL_PersistentMenus_ID		   	(FEEL_ID_START+46)
+#define FEEL_NoSnapKey_ID			   	(FEEL_ID_START+47)
+#define FEEL_EdgeAttractionScreen_ID	(FEEL_ID_START+48)
+#define FEEL_EdgeAttractionWindow_ID	(FEEL_ID_START+49)
+#define FEEL_DontRestoreFocus_ID	   	(FEEL_ID_START+50)
+#define FEEL_WindowBox_ID			   	(FEEL_ID_START+51)
+#define FEEL_DefaultWindowBox_ID	   	(FEEL_ID_START+52)
+#define FEEL_RecentSubmenuItems_ID	 	(FEEL_ID_START+53)
+#define FEEL_WinListSortOrder_ID	   	(FEEL_ID_START+54)
+#define FEEL_WinListHideIcons_ID	   	(FEEL_ID_START+55)
+
 /* obsolete stuff : */
 #define FEEL_MWMFunctionHints_ID            (FEEL_ID_START+45)
 #define FEEL_MWMDecorHints_ID               (FEEL_ID_START+46)

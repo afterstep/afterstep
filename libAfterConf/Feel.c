@@ -189,6 +189,19 @@ TermDef FeelTerms[] =
   {TF_OBSOLETE|TF_NO_MYNAME_PREPENDING, "MWMFunctionHints",16       , TT_FLAG       , FEEL_MWMFunctionHints_ID  , NULL},
   {TF_OBSOLETE|TF_NO_MYNAME_PREPENDING, "MWMDecorHints",13          , TT_FLAG       , FEEL_MWMDecorHints_ID     , NULL},
   {TF_OBSOLETE|TF_NO_MYNAME_PREPENDING, "MWMHintOverride",15        , TT_FLAG       , FEEL_MWMHintOverride_ID   , NULL},
+  
+
+  {TF_NO_MYNAME_PREPENDING, "FollowTitleChanges", 18, 	TT_FLAG, 		FEEL_FollowTitleChanges_ID	, NULL},
+  {TF_NO_MYNAME_PREPENDING, "PersistentMenus", 15, 		TT_FLAG, 		FEEL_PersistentMenus_ID		, NULL},
+  {TF_NO_MYNAME_PREPENDING, "NoSnapKey", 9, 			TT_BITLIST, 	FEEL_NoSnapKey_ID			, NULL},
+  {TF_NO_MYNAME_PREPENDING, "ScreenEdgeAttraction", 20, TT_INTEGER, 	FEEL_EdgeAttractionScreen_ID, NULL},
+  {TF_NO_MYNAME_PREPENDING, "WindowEdgeAttraction", 20, TT_INTEGER, 	FEEL_EdgeAttractionWindow_ID, NULL},
+  {TF_NO_MYNAME_PREPENDING, "DontRestoreFocus", 16, 	TT_FLAG, 		FEEL_DontRestoreFocus_ID	, NULL},
+  {TF_NO_MYNAME_PREPENDING, "WindowBox", 9,				TT_QUOTED_TEXT, FEEL_WindowBox_ID			, &WindowBoxSyntax},
+  {TF_NO_MYNAME_PREPENDING, "DefaultWindowBox", 16, 	TT_QUOTED_TEXT, FEEL_DefaultWindowBox_ID	, NULL},
+  {TF_NO_MYNAME_PREPENDING, "RecentSubmenuItems", 18, 	TT_INTEGER, 	FEEL_RecentSubmenuItems_ID	, NULL},
+  {TF_NO_MYNAME_PREPENDING, "WinListSortOrder", 16, 	TT_INTEGER, 	FEEL_WinListSortOrder_ID	, NULL},
+  {TF_NO_MYNAME_PREPENDING, "WinListHideIcons", 16, 	TT_FLAG, 		FEEL_WinListHideIcons_ID	, NULL},
 
   {0, NULL, 0, 0, 0}
 };

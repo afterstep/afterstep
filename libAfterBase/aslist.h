@@ -17,6 +17,8 @@ typedef Bool (*iter_list_data_handler)(void *data, void *aux_data); /* returns:
                                                                      *   False - abort iteration
                                                                      */
 
+typedef int (*compare_data_handler)(void *data1, void *data2);
+
 typedef struct ASBiDirList
 {
 	size_t count ;
@@ -39,6 +41,9 @@ void destroy_asbidirlist( ASBiDirList **pl );
 
 void iterate_asbidirlist( ASBiDirList *l, iter_list_data_handler iter_func, void *aux_data,
                           void *start_from, Bool reverse);
+
+void bubblesort_asbidirlist( ASBiDirList *l, compare_data_handler compare_func );
+
 void *append_bidirelem( ASBiDirList *l, void *data );
 void *prepend_bidirelem( ASBiDirList *l, void *data );
 void *insert_bidirelem_after( ASBiDirList *l, void *data, ASBiDirElem *after );

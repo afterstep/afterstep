@@ -282,3 +282,40 @@ void *extract_first_bidirelem( ASBiDirList *l )
     return data;
 }
 
+
+void 
+bubblesort_asbidirlist( ASBiDirList *l, compare_data_handler compare_func )
+{
+    if( l && compare_func )
+    {
+		int swaps;
+
+		do
+		{	
+	        ASBiDirElem *curr = l->head;
+			swaps = 0;
+        	while( curr != NULL && curr->next != NULL )
+        	{
+				ASBiDirElem *next = curr->next ;
+				if( compare_func( curr->data, next->data ) > 0 ) 
+				{	               /* swapping elements  */
+					ASBiDirElem *prev = curr->prev ; 
+					next->prev = prev ; 
+					curr->next = next->next ; 
+					curr->prev = next ; 
+					next->next = curr ; 
+					if( prev == NULL ) 
+						l->head = next ; 
+					else
+						prev->next = next ; 
+					if( l->tail == next )
+						l->tail = curr ;
+					++swaps ;
+				}else
+					curr = next ;	 
+        	}
+		}while( swaps > 0 );
+    }
+}
+	
+

@@ -411,8 +411,7 @@ init_ConfigFileInfo()
 				ConfigFilesInfo[i].non_freeable = True ;
 				break ;	
 			case CONFIG_AutoExecFile_ID :	   
-				ConfigFilesInfo[i].session_file = (char*)get_session_file (Session, 0, F_CHANGE_FEEL, False);
-				ConfigFilesInfo[i].non_freeable = True ;
+				ConfigFilesInfo[i].session_file = make_session_file(Session, AUTOEXEC_FILE, False );
 				break ;	
 			case CONFIG_StartDir_ID :	   
 				ConfigFilesInfo[i].session_file = make_session_dir (Session, START_DIR, False); 
@@ -759,13 +758,23 @@ add_string_property( int id, char *str, ASProperty *owner )
 	append_property( owner, prop );
 
 	return prop;	 
+}	
+
+void
+set_property_index( ASProperty *prop, int index ) 
+{
+	if( prop ) 
+	{	
+		prop->index = index ; 	
+		set_flags( prop->flags, ASProp_Indexed );
+	}
 }	 
 
 
 void merge_property_list( ASProperty *src, ASProperty *dst );
 
 void
-dup_property_contents( ASProperty *src, ASProperty *dst ) 
+dup_property_contents( ASProperty *src, ASProperty *dst, Bool dup_sub_props ) 
 {
 	if( src && dst )
 	{	
@@ -776,13 +785,14 @@ dup_property_contents( ASProperty *src, ASProperty *dst )
 		else if( src->type == ASProp_File )
 			dst->contents.config_file = dup_config_file( src->contents.config_file );	
 
-		if( src->sub_props != NULL ) 
-			merge_property_list( src, dst );
+		if( dup_sub_props )
+			if( src->sub_props != NULL ) 
+				merge_property_list( src, dst );
 	}
 }
 
 ASProperty *
-dup_property( ASProperty *src ) 
+dup_property( ASProperty *src, Bool dup_sub_props ) 
 {
 	ASProperty *dst	= NULL ;
 
@@ -792,7 +802,7 @@ dup_property( ASProperty *src )
 		dst->flags = src->flags ;
 		dst->index = src->index ;
 		dst->order = src->order ;
-		dup_property_contents( src, dst ); 
+		dup_property_contents( src, dst, dup_sub_props ); 
 	}
 	
 	return dst;	 
@@ -983,26 +993,26 @@ special_free_storage2property( FreeStorageElem **pcurr )
 					{	
 						add_string_property( CONFIG_text_ID, pfunc->text, prop );				   
 					
-						if((pfunc->func < F_POPUP && pfunc->func > F_REFRESH) ||
+						if(
+							(pfunc->func > F_REFRESH && pfunc->func <= F_MOVECURSOR ) ||
+							(pfunc->func >= F_DESK && pfunc->func < F_POPUP ) ||
 						  	pfunc->func == F_RESIZE || pfunc->func == F_MOVE ||
 						  	pfunc->func == F_SETLAYER || pfunc->func == F_REFRESH ||
 						  	pfunc->func == F_MAXIMIZE || pfunc->func == F_CHANGE_WINDOWS_DESK )
 						{
 							tmp = add_integer_property( CONFIG_value_ID, pfunc->func_val[0], prop );
-							set_flags( tmp->flags, ASProp_Indexed );
+							set_property_index( tmp, 0 );
 							if( pfunc->unit[0] != '\0' )
 							{	
 								tmp = add_char_property( CONFIG_unit_ID, pfunc->unit[0], prop );				
-								set_flags( tmp->flags, ASProp_Indexed );
+								set_property_index( tmp, 0 );
 							}
 							tmp = add_integer_property( CONFIG_value_ID, pfunc->func_val[1], prop );
-							set_flags( tmp->flags, ASProp_Indexed );
-							tmp->index = 1 ;
+							set_property_index( tmp, 1 );
 							if( pfunc->unit[1] != '\0' )
 							{	
 								tmp = add_char_property( CONFIG_unit_ID, pfunc->unit[1], prop );				
-								set_flags( tmp->flags, ASProp_Indexed );
-								tmp->index = 1 ;
+								set_property_index( tmp, 1 );
 							}
 						}
 					}
@@ -1099,10 +1109,7 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 		}	 
 
 		if( get_flags(curr->term->flags, TF_INDEXED|TF_DIRECTION_INDEXED))
-		{	
-			prop->index = item.index ;
-			set_flags( prop->flags, ASProp_Indexed );
-		}
+			set_property_index( prop, item.index );
 
 		if( curr->sub != NULL )
 			free_storage2property_list( curr->sub, prop ) ;
@@ -1130,7 +1137,7 @@ merge_prop_into_prop(void *data, void *aux_data)
 			return True;
 
 	/* otherwise we have to merge it  : */
-	dup_property_contents( src, dst ); 
+	dup_property_contents( src, dst, True ); 
 		   
 	set_flags( src->flags, ASProp_Merged );		
 	return True;	   
@@ -1146,7 +1153,7 @@ merge_prop_into_list(void *data, void *aux_data)
 	iterate_asbidirlist( dst_prop->sub_props, merge_prop_into_prop, prop, NULL, False );		  	 	
 	if( !get_flags( prop->flags, ASProp_Merged )  )
 	{
-		prop = dup_property( prop );	
+		prop = dup_property( prop, True );	
 		append_property( dst_prop, prop );			   	
 	}	 
 
@@ -1164,6 +1171,7 @@ merge_property_list( ASProperty *src, ASProperty *dst )
 /*************************************************************************/
 ASProperty* asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *owner_prop, int func, const char *extension, const char *mini_ext );
 void melt_menu_props( ASProperty *file, ASProperty *opts );
+void melt_func_props( ASProperty *file, ASProperty *opts );
 
 ASProperty* 
 load_current_config_fname( ASProperty* config, int id, const char *filename, const char *myname, 
@@ -1223,7 +1231,10 @@ load_current_config_fname( ASProperty* config, int id, const char *filename, con
 
 	if( file_id == CONFIG_StartDir_ID )
 		melt_menu_props( file, opts );
-	else
+	else if( syntax == &FunctionSyntax ) 
+	{
+		melt_func_props( file, opts );	  
+	}else
 		merge_property_list( file, opts );
 	
 	return config;
@@ -1487,7 +1498,7 @@ melt_menu_props_into_list(void *data, void *aux_data)
 	dst_popup = find_property_by_id_name( dst, popup->id, popup->name );
 	if( dst_popup == NULL ) 
 	{	
-		dst_popup = dup_property( popup ); 
+		dst_popup = dup_property( popup, True ); 
 		append_property( dst, dst_popup );
 	}else
  		merge_property_list( popup, dst_popup );		
@@ -1614,6 +1625,49 @@ melt_menu_props( ASProperty *src, ASProperty *dst )
 	iterate_asbidirlist( src->sub_props, melt_menu_props_into_list, dst, NULL, False );		  	
 }
 
+/*************************************************************************/
+Bool
+melt_func_props_into_list(void *data, void *aux_data)
+{
+	ASProperty *func = (ASProperty*)data;
+	ASProperty *dst = (ASProperty*)aux_data ;
+	ASProperty *dst_func ;
+	int index = 0 ;
+	ASBiDirElem *curr = LIST_START(func->sub_props); 		   
+
+
+	dst_func = find_property_by_id_name( dst, func->id, func->name );
+
+	if( dst_func == NULL ) 
+	{	
+		dst_func = dup_property( func, False ); 
+		append_property( dst, dst_func );
+	}
+
+	while( curr ) 
+	{
+		ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+		ASProperty *copy ;
+		copy = dup_property( prop, True ); 
+		set_property_index( copy, index );
+		append_property( dst_func, copy );
+		
+		++index ;
+		
+		LIST_GOTO_NEXT(curr);
+	}
+	return True;
+}
+
+void 
+melt_func_props( ASProperty *src, ASProperty *dst )
+{
+	if( src->sub_props == NULL || dst == NULL ) 
+		return;
+	LOCAL_DEBUG_CALLER_OUT("(%p,%p)", src, dst );	
+	iterate_asbidirlist( src->sub_props, melt_func_props_into_list, dst, NULL, False );		  	
+}
+	
 /*************************************************************************/
 void load_global_configs();
 
