@@ -678,6 +678,7 @@ match_substring( reg_exp *rexp, char *string, size_t len, int dir )
     {
 	sym = rexp->symbols ;
 	neg = rexp->negation ;
+	c = '\0' ;
 	for( offset = pos ; offset >= start ; offset-- )
 	{
 	    c = string[offset] ;
