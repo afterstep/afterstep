@@ -265,6 +265,55 @@ make_mono_ascolor_scheme( ARGB32 base )
 	return cs;
 }
 
+ASColorScheme *
+make_default_ascolor_scheme()
+{
+	ASColorScheme *cs = safecalloc( 1, sizeof(ASColorScheme));
+
+
+	cs->main_colors[ASMC_Base] = 0xFF555577 ;
+	cs->main_colors[ASMC_BaseDark] = 0xFF444466;
+	cs->main_colors[ASMC_BaseLight] = 0xFF666688;
+
+	cs->main_colors[ASMC_Inactive1] = 0xFFBDBDBD ;
+	cs->main_colors[ASMC_Inactive1Dark] = 0xFFADADAD ;
+	cs->main_colors[ASMC_Inactive1Light] = 0xFFCDCDCD ;
+	cs->main_colors[ASMC_InactiveText1] = 0xFF101010 ;
+
+	cs->main_colors[ASMC_Inactive2] = 0xFF8A8A99 ;
+	cs->main_colors[ASMC_Inactive2Dark] = 0xFF7A7A89 ;
+	cs->main_colors[ASMC_Inactive2Light] = 0xFF9A9AA9 ;
+	cs->main_colors[ASMC_InactiveText2] = 0xFF101000 ;
+
+	cs->main_colors[ASMC_Active] 	= 0xFF000033 ;
+	cs->main_colors[ASMC_ActiveDark] = 0xFF000000 ;
+	cs->main_colors[ASMC_ActiveLight] = 0xFF000066 ;
+	cs->main_colors[ASMC_ActiveText] 	= 0xFFF0F0E0 ;
+
+	cs->main_colors[ASMC_HighInactive] = 0xFFCDCDCD ;
+	cs->main_colors[ASMC_HighInactiveDark] = 0xFFbDbDbD ;
+	cs->main_colors[ASMC_HighInactiveLight] = 0xFFdDdDdD ;
+	cs->main_colors[ASMC_HighInactiveBack] = 0xFFC0C0C0 ;
+	cs->main_colors[ASMC_HighInactiveBackDark] = 0xFFb0b0b0 ;
+	cs->main_colors[ASMC_HighInactiveBackLight] = 0xFFd0d0d0 ;
+
+	cs->main_colors[ASMC_DisabledText]  = 0xFFA0A0A0 ;
+	cs->main_colors[ASMC_HighInactiveText] = 0xFF000000 ;
+
+	cs->main_colors[ASMC_HighActive] = 0xFF101010 ;
+	cs->main_colors[ASMC_HighActiveDark] = 0xFF000000 ;
+	cs->main_colors[ASMC_HighActiveLight] = 0xFF202020 ;
+	cs->main_colors[ASMC_HighActiveBack] = 0xFFEEEEEE ;
+	cs->main_colors[ASMC_HighActiveBackDark] = 0xFFdEdEdE ;
+	cs->main_colors[ASMC_HighActiveBackLight] = 0xFFfEfEfE ;
+	cs->main_colors[ASMC_HighActiveText] = 0xFF000000 ;
+
+
+	/* all of the colors are computed by now */
+	cs->set_main_colors = 0 ;
+	return cs;
+}
+
 
 ASColorScheme *
 make_ascolor_scheme( ARGB32 base, int angle )

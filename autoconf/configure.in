@@ -629,6 +629,7 @@ afterstep/wharf \
 afterstep/zharf \
 afterstep/start/.include \
 afterstep/start/Desktop/Feel/.include \
+afterstep/start/Desktop/Color_Scheme/.include \
 afterstep/start/Desktop/Look/.include \
 afterstep/start/Desktop/Theme/.include \
 afterstep/start/Desktop/Pictures/.include \

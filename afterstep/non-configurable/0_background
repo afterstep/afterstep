@@ -4,5 +4,5 @@
 		<gradient width=$xroot.width height=$xroot.height colors="BaseDark BaseLight" angle=45/>
 		<scale width=32 height=32 tile=1><img src="SimpleTexture"/></scale>
 	</composite>
-	<text align="center" valign="middle" font="DefaultFancy.ttf" point=60 fgimage="text_fgimage" type=3>AfterStep 2.0</text>
+	<text valign="middle" align="center" font="DefaultFancy.ttf" point=60 fgimage="text_fgimage" type=3>AfterStep 2.0</text>
 </composite>

@@ -1,97 +1,104 @@
 ##########################################################################
-# Look by David Mihm (look.DEFAULT updated Aug 25, 1999)
+# Look by Sasha Vasko (look.DEFAULT updated May 30, 2003)
 #
 #------------------------------------------------------------------------
 # Styles :
 #
-# If there is a style named "default" and no default style is specified, 
+# If there is a style named "default" and no default style is specified,
 # the "default" style will be used as the default
 # Inherited styles will override options.
 
 # default should never be used, so let's make it obvious when it *is* used
 MyStyle "default"
-  Font		-*-helvetica-*-r-*-*-12-*-*-*-*-*-*-*
-  ForeColor	red
-  BackColor	green
+  Font		DefaultSans.ttf-14
+  ForeColor	InactiveText1
+  BackColor	Inactive1
   ~MyStyle
 
-#----------Window MyStyles---------#
-
-TitleButtonBalloons
-TitleButtonBalloonBorderColor	gray30
-TitleButtonBalloonBorderWidth	2
-TitleButtonBalloonDelay		200
-
 MyStyle "TitleButtonBalloon"
-  ForeColor	grey70
-  BackColor	Black
-  Font		-*-helvetica-*-r-*-*-10-*-*-*-*-*-*-*
+  ForeColor	HighActiveText
+  BackColor	HighActiveBack
+  Font		DefaultBold.ttf-14
   ~MyStyle
 
 MyStyle "window_font"
-  Font		-*-lucida-bold-r-*-*-13-*-*-*-*-*-*-*
+  Font		DefaultSans.ttf-16
   TextStyle	0
   ~MyStyle
 
 MyStyle "focused_window_style"
   Inherit	window_font
-  TextStyle	1
-  ForeColor     #E5E2E8				#basically white
-  BackColor	#475293
-  BackGradient	2	#6068DB	#475293
-  MaxColors	10
+  TextStyle	3
+  ForeColor     ActiveText
+  BackColor	Active
+  BackGradient	2	ActiveDark	ActiveLight
   ~MyStyle
 
 MyStyle "unfocused_window_style"
   Inherit       window_font
-  ForeColor     #050505
-  BackColor     #6e5b52
-  MaxColors	10
+  ForeColor     InactiveText1
+  BackColor	Inactive1
+  BackGradient	6	Inactive1Dark	Inactive1Light
   ~MyStyle
 
 MyStyle "sticky_window_style"
   Inherit       window_font
-  ForeColor     #9E9EA7
-  BackColor	#4e2f2f
-  MaxColors	10
+  ForeColor     InactiveText2
+  BackColor	Inactive2
+  BackGradient	6	Inactive2Dark	Inactive2Light
   ~MyStyle
 
 
 #----------Menu MyStyles---------#
 MyStyle "menu_title_font"
-  Font          -*-lucida-bold-r-*-*-13-*-*-*-*-*-*-*
+  Font          DefaultFancy.ttf-17
   TextStyle     0
   ~MyStyle
-  
+
 MyStyle "menu_font"
-  Font          -b&h-lucida-medium-r-*-*-12-*-*-*-*-*-*-*
+  Font          Default.ttf-16
   TextStyle     0
   ~MyStyle
-  
-MyStyle "menu_title_style"
+
+MyStyle "unfocused_menu_title_style"
   Inherit       menu_title_font
-  ForeColor     grey70
-  BackColor     #050505                         #basically black
+  ForeColor     InactiveText1
+  BackColor     HighInactive
+  BackGradient 2   HighInactiveDark HighInactiveLight
   ~MyStyle
-  
+
+MyStyle "focused_menu_title_style"
+  Inherit       menu_title_font
+  ForeColor	ActiveText1
+  BackColor     HighActive
+  BackGradient 2   HighActiveLight HighActiveDark
+  ~MyStyle
+
 MyStyle "menu_item_style"
   Inherit       menu_font
-  ForeColor     #E5E2E8                         #basically white
-  BackColor     grey30
+  ForeColor     HighInactiveText
+  BackColor     HighInactiveBack
+  BackGradient 2   HighInactiveBackDark HighInactiveBackLight
   ~MyStyle
-  
+
 MyStyle "menu_hilite_style"
-  Font          -*-helvetica-bold-r-*-*-13-*-*-*-*-*-*-*
-  ForeColor     white
-  BackColor     #475293
+  Font          DefaultBoldOblique.ttf-16
+  ForeColor     HighActiveText
+  BackColor     HighActiveBack
+  BackGradient 2   HighActiveBackLight HighActiveBackDark
   ~MyStyle
 
 
-# make the stipple background the same as the menu item, or 
+# make the stipple background the same as the menu item, or
 # strange border drawing artifacts could occur
 MyStyle "menu_stipple_style"
   Inherit       menu_item_style
-  ForeColor	grey70
+  ForeColor	DisabledText
+  ~MyStyle
+
+MyStyle "menu_subitem_style"
+  Inherit       menu_item_style
+  Font		DefaultBold.ttf-12
   ~MyStyle
 
 DefaultStyle "default"
@@ -99,9 +106,12 @@ FWindowStyle "focused_window_style"
 UWindowStyle "unfocused_window_style"
 SWindowStyle "sticky_window_style"
 MenuItemStyle "menu_item_style"
-MenuTitleStyle "menu_title_style"
+MenuTitleStyle "unfocused_menu_title_style"
 MenuHiliteStyle "menu_hilite_style"
 MenuStippleStyle "menu_stipple_style"
+MenuSubItemStyle  "menu_subitem_style"
+MenuHiTitleStyle  "focused_menu_title_style"
+
 
 #----------Pager MyStyles---------#
 
@@ -116,7 +126,7 @@ MyStyle "DeskStyle"
   ForeColor	grey70
   BackColor	grey30
 ##  Gradiated Pager -
-# BackGradient	2 cyan gray30  
+# BackGradient	2 cyan gray30
 ##  Pixmapped Pager -
 # BackPixmap	128 Back.xpm
 ##  Transparent Pager -
@@ -155,7 +165,7 @@ MyStyle "*PagerUWindowStyle"
 MyStyle "*PagerSWindowStyle"
     Inherit	sticky_window_style
     Font	5x8
-# gradients, pixmap allowed, but no transparency    
+# gradients, pixmap allowed, but no transparency
 ~MyStyle
 
 #----------Wharf MyStyles---------#
@@ -223,6 +233,13 @@ MyStyle "ButtonTitleUnfocus"
   BackColor     Black
   ~MyStyle
 
+
+#----------Window MyStyles---------#
+
+TitleButtonBalloons
+TitleButtonBalloonBorderColor	gray30
+TitleButtonBalloonBorderWidth	2
+TitleButtonBalloonDelay		200
 
 # [0|1] Show Title on Buttons how?
 SeparateButtonTitle 0

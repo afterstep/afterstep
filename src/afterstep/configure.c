@@ -1195,7 +1195,10 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 show_warning("COLORSCHEME is not set");
 
 			if( cs == NULL )
+				cs = make_default_ascolor_scheme();
+#if 0
 				cs = make_ascolor_scheme( DEFAULT_COLORSCHEME_BASE, ASCS_DEFAULT_ANGLE );
+#endif
 			populate_ascs_colors_rgb( cs );
 			populate_ascs_colors_xml( cs );
 			free( cs );
