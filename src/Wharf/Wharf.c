@@ -1110,9 +1110,10 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 		if( get_flags( aswf->flags, ASW_UseBoundary) )
 		{
 			XRectangle sr ;
+			int do_subtract = 0 ;
 			sr = aswf->boundary ;
-/*			fprintf( stderr, "%s: boundary = %dx%d%+d%+d, canvas = %dx%d\n", 
-						__FUNCTION__, sr.width, sr.height, sr.x, sr.y, aswf->canvas->width, aswf->canvas->height ); */
+			LOCAL_DEBUG_OUT( "boundary = %dx%d%+d%+d, canvas = %dx%d\n", 
+						     sr.width, sr.height, sr.x, sr.y, aswf->canvas->width, aswf->canvas->height ); 
 			
 			if( sr.width < aswf->canvas->width ) 
 			{	
@@ -1125,8 +1126,8 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 					sr.x = sr.width ;
 					sr.width = aswf->canvas->width - sr.width ;
 				}
-			}else
-				sr.width = 0 ;
+				++do_subtract ;
+			}
 			
 			if( sr.height < aswf->canvas->height ) 
 			{	
@@ -1139,15 +1140,15 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 					sr.y = sr.height ;
 					sr.height = aswf->canvas->height - sr.height ;
 				}
-			}else
-				sr.height = 0 ;
+				++do_subtract ;
+			}
 #if 0
 			fprintf( stderr, "%s: substr_boundary = %dx%d%+d%+d canvas = %dx%d%+d%+d\n", 
 					 __FUNCTION__, sr.width, sr.height, sr.x, sr.y,  
 					 aswf->canvas->width, aswf->canvas->height, aswf->canvas->root_x, aswf->canvas->root_y );
 			fprintf( stderr, "shape = %p, used = %d\n", aswf->canvas->shape, PVECTOR_USED(aswf->canvas->shape) );
 #endif			
-			if( sr.width > 0 && sr.height > 0 ) 
+			if( sr.width > 0 && sr.height > 0 && do_subtract > 0 ) 
 				subtract_shape_rectangle( aswf->canvas->shape, &sr, 1, 0, 0, aswf->canvas->width, aswf->canvas->height );
 		}	 
 
