@@ -1661,7 +1661,7 @@ static void xml_print_r(xml_elem_t* root, int depth) {
 	xml_elem_t* child;
 	if (!strcmp(root->tag, cdata_str)) {
 		char* ptr = root->parm;
-		while (isspace(*ptr)) ptr++;
+		while (isspace((int)*ptr)) ptr++;
 		fprintf(stderr, "%s", ptr);
 	} else {
 		fprintf(stderr, "%*s<%s", depth * 2, "", root->tag);
