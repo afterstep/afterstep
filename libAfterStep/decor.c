@@ -1942,8 +1942,8 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 	}
 
     mystyle_make_bevel (style, &bevel, tbar->hilite[state], get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
-    //mystyle_make_bevel (style, &bevel, 0, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
-	/* in unfocused and unpressed state we render pixmap and set
+    /*mystyle_make_bevel (style, &bevel, 0, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
+	 * in unfocused and unpressed state we render pixmap and set
 	 * window's background to it
 	 * in focused state or in pressed state we render to
 	 * the window directly, and we'll need to be handling the expose

@@ -158,13 +158,13 @@ main (int argc, char **argv)
 {
     int i;
     char *cptr = NULL ;
-//    char *global_config_file = NULL;
     long desk1 = 0, desk2 = 0;
 
     /* Save our program name - for error messages */
     InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, 0 );
 
     memset( &PagerState, 0x00, sizeof(PagerState));
+	PagerState.page_rows = PagerState.page_columns = 1 ;
 
     for( i = 1 ; i< argc && argv[i] == NULL ; ++i);
     if( i < argc )
@@ -755,18 +755,18 @@ update_desk_shape( ASPagerDesk *d )
     }
     if( get_flags(Config->flags, PAGE_SEPARATOR) )
     {
-//        int i = d->separator_bars_num ;
         XShapeCombineRectangles ( dpy, d->desk_canvas->w, ShapeBounding,
                                   0, 0, &(d->separator_bar_rects[0]), d->separator_bars_num, ShapeUnion, Unsorted);
         LOCAL_DEBUG_OUT( "added %d separator_bar_rects to shape", d->separator_bars_num);
 #if 0
-        while( --i >= 0 )
-        {
-            LOCAL_DEBUG_OUT( "\t %dx%d%+d%+d", d->separator_bar_rects[i].width,
-                                               d->separator_bar_rects[i].height,
-                                               d->separator_bar_rects[i].x,
-                                               d->separator_bar_rects[i].y );
-        }
+		i = d->separator_bars_num ;
+	    while( --i >= 0 )
+    	{
+        	LOCAL_DEBUG_OUT( "\t %dx%d%+d%+d", d->separator_bar_rects[i].width,
+            	                                d->separator_bar_rects[i].height,
+                	                            d->separator_bar_rects[i].x,
+                    	                        d->separator_bar_rects[i].y );
+	    }
 #endif
     }
 
@@ -803,7 +803,6 @@ update_pager_shape()
 
     if( get_flags( PagerState.flags, ASP_ShapeDirty ) )
     {
-        //clear_canvas_shape (PagerState.main_canvas);
         shape_cleared = True ;
         clear_flags( PagerState.flags, ASP_ShapeDirty );
     }
@@ -821,8 +820,6 @@ update_pager_shape()
             if( update )
                 update_desk_shape( d );
             if( shape_cleared || update )
-//                combine_canvas_shape( PagerState.main_canvas, d->desk_canvas, False, True );
-//            else
                 replace_canvas_shape_at( PagerState.main_canvas, d->desk_canvas, x, y, True );
         }else if( shape_cleared || get_flags( d->flags, ASP_ShapeDirty) )
         {
@@ -1036,7 +1033,6 @@ redecorate_pager_desks()
                                      Config->border_width, InputOutput, CWEventMask|CWBorderPixel, &attr );
             d->desk_canvas = create_ascanvas( w );
             LOCAL_DEBUG_OUT("+CREAT canvas(%p)->desk(%ld)->geom(%dx%d%+d%+d)->parent(%lx)", d->desk_canvas, PagerState.start_desk+i, PagerState.desk_width, PagerState.desk_height, 0, 0, PagerState.main_canvas->w );
-            //enable_rendering = False ;
             handle_canvas_config( d->desk_canvas );
         }
         /* create & moveresize label bar : */
@@ -1335,6 +1331,8 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_upd
     int desk_width = d->background->width ;
     int desk_height = d->background->height ;
 
+	if( desk_width == 0 || desk_height == 0 )
+		return ;
     if( wd )
     {
         int client_x = wd->frame_rect.x ;
@@ -1926,8 +1924,6 @@ start_moveresize_client( ASWindowData *wd, Bool move, ASEvent *event )
                                             PagerState.vscreen_height, d->background->height,
                                             d->background->root_x, d->background->root_y );
 
-//        set_moveresize_restrains( mvrdata, asw->hints, asw->status);
-//            mvrdata->subwindow_func = on_deskelem_move_subwindow ;
         mvrdata->grid = make_pager_grid();
         Scr.moveresize_in_progress = mvrdata ;
     }
@@ -1946,7 +1942,6 @@ process_message (unsigned long type, unsigned long *body)
 	if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
-//        ASTBarData *tbar = wd?wd->tbar:NULL;
 		WindowPacketResult res ;
         /* saving relevant client info since handle_window_packet could destroy the actuall structure */
         Window               saved_w = None ;
@@ -2329,7 +2324,7 @@ on_scroll_viewport( ASEvent *event )
             px -= d->background->win_x;
             py -= d->background->win_y;
             if( px >= 0 && py >= 0 &&
-                px < d->background->width && py < d->background->height )
+                px < d->background->width > 0 && py < d->background->height > 0 )
             {
                 int sx = (px*PagerState.vscreen_width)/d->background->width ;
                 int sy = (py*PagerState.vscreen_height)/d->background->height ;
@@ -2381,7 +2376,8 @@ LOCAL_DEBUG_OUT( "pointer root pos(%+d%+d)", px, py );
                     px -= d->background->win_x;
                     py -= d->background->win_y;
                     if( px >= 0 && py >= 0 &&
-                        px < d->background->width && py < d->background->height )
+                        px < d->background->width > 0 &&
+						py < d->background->height > 0 )
                     {
                         SendInfo ("Desk 0 10000", 0);
                         PagerState.wait_as_response++;

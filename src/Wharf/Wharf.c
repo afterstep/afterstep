@@ -272,33 +272,35 @@ CheckConfigSanity()
     if( Config->rows <= 0 && Config->columns <= 0 )
         Config->rows = 1;
 
-    if( get_flags( Config->set_flags, WHARF_FORCE_SIZE ) )
-    {
-        if( Config->force_size.width == 0 )
-            Config->force_size.width = 64 ;
-        if( Config->force_size.height == 0 )
-            Config->force_size.height = 64 ;
-    }
-
     mystyle_get_property (Scr.wmprops);
 
     sprintf( buf, "*%sTile", get_application_name() );
     LOCAL_DEBUG_OUT("Attempting to use style \"%s\"", buf);
     Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find_or_default( buf );
     LOCAL_DEBUG_OUT("Will use style \"%s\"", Scr.Look.MSWindow[BACK_UNFOCUSED]->name);
-    if( !get_flags( Config->set_flags, WHARF_FORCE_SIZE ) )
+
+	if( get_flags( Config->set_flags, WHARF_FORCE_SIZE ) )
     {
-        if( Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.image != NULL &&
-            !get_flags(Config->flags, WHARF_FIT_CONTENTS))
+        if( Config->force_size.width == 0 )
+            Config->force_size.width = 64 ;
+        if( Config->force_size.height == 0 )
+            Config->force_size.height = 64 ;
+    }else if( !get_flags(Config->flags, WHARF_FIT_CONTENTS) )
+    {
+        if( Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.image != NULL )
         {
-            Config->force_size.width = Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.width ;
+            Config->force_size.width  = Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.width ;
             Config->force_size.height = Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.height ;
         }else
         {
-            Config->force_size.width = 0;
-            Config->force_size.height = 0;
+            Config->force_size.width  = 64;
+            Config->force_size.height = 64;
         }
-    }
+    }else
+	{
+        Config->force_size.width  = 0 ;
+        Config->force_size.height = 0 ;
+	}
 
     if( Config->composition_method == 0 )
         Config->composition_method = TEXTURE_TRANSPIXMAP_ALPHA;

@@ -216,6 +216,7 @@ struct config main_config[] = {
     {"*asetrootDeskBack", deskback_parse, NULL, NULL },        /* pretending to be asteroot here */
     {"MyFrame", myframe_parse, (char**)"afterstep", (int*)&MyFrameList},
     {"DefaultFrame", assign_quoted_string, (char**)&DefaultFrameName, (int*)0},
+    {"DontDrawBackground", SetFlag2, (char **)DontDrawBackground, (int *)&Scr.Look.flags},
 
 #ifndef NO_TEXTURE
 	{"TextureTypes", assign_string, &TexTypes, (int *)0},
@@ -324,13 +325,6 @@ tline_error (const char *err_text)
 {
 	error_point ();
 	fprintf (stderr, "%s in [%s]\n", err_text, orig_tline);
-}
-
-void
-str_error (const char *err_format, const char *string)
-{
-	error_point ();
-	fprintf (stderr, err_format, string);
 }
 
 /***************************************************************
@@ -1078,7 +1072,21 @@ FixLook( MyLook *look )
                     add_myback( look, myback );
                 }
             }while( next_hash_item( &it ) );
-    }
+    }else if( !get_flags( Scr.Look.flags, DontDrawBackground ) )
+	{
+		MyDesktopConfig *dc ;
+		MyBackground *myback ;
+
+	    dc = create_mydeskconfig( 0, "default_background" );
+		add_deskconfig( &(Scr.Look), dc );
+       	myback = mylook_get_back(look, dc->back_name);
+        if( myback == NULL  )
+        {
+            myback = create_myback( dc->back_name );
+            myback->type = MB_BackImage ;
+            add_myback( look, myback );
+		}
+	}
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);

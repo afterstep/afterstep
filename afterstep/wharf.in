@@ -1,7 +1,7 @@
 ##########################################################################
 # Wharf
 #
-#------------------------------------------------------------------------       
+#------------------------------------------------------------------------
 # Background
 #
 #   0 - No texture
@@ -25,7 +25,8 @@
 #*WharfBalloonBorderWidth 0
 #*WharfBalloonBorderColor Grey30
 #*WharfBalloonDelay	120
-*WharfBalloonYOffset	-1
+*WharfBalloonYOffset	-5
+*WharfBalloonXOffset	-5
 
 #------------------------------------------------------------------------
 # Buttons
@@ -33,6 +34,10 @@
 *WharfFullPush
 #*WharfNoPush
 *WharfNoBorder
+
+# This will resize Wharf's buttons to fit the size of swallowed apps/icons
+#*WharfFitContents
+
 
 #------------------------------------------------------------------------
 # Geometry
@@ -60,10 +65,10 @@
 
 #
 # Pagers
-# If you want to swallow Pager in Wharf, please don't start another one 
-# for same desks from the autoexec, or it can cause excesive use of 
+# If you want to swallow Pager in Wharf, please don't start another one
+# for same desks from the autoexec, or it can cause excesive use of
 # system resources, and slow startup process.
-# 
+#
 #*Wharf Pagers Monitor.xpm,3_dots.xpm Folders
 # *Wharf Pager - MaxSwallowModule "Pager" Pager 0 @with_desktops_1@
 #*Wharf ~Folders

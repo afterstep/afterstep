@@ -42,19 +42,20 @@ typedef enum
     IconNoBorder        = (0x01 << 5),
     SeparateButtonTitle = (0x01 << 6),    /* icon title is a separate window */
     DecorateFrames      = (0x01 << 7),
+    DontDrawBackground=(0x01<< 8),
   /* this flags add up to the above set for no-flag options, so we can track
      what option was specifyed in config */
-    LOOK_TitleButtonSpacing = (0x01 << 8),
-    LOOK_TitleButtonStyle   = (0x01 << 9),
-    LOOK_TitleButtonXOffset = (0x01 << 10),
-    LOOK_TitleButtonYOffset = (0x01 << 11),
-    LOOK_ResizeMoveGeometry = (0x01 << 12),
-    LOOK_StartMenuSortMode  = (0x01 << 13),
-    LOOK_DrawMenuBorders    = (0x01 << 14),
-    LOOK_ButtonSize         = (0x01 << 15),
-    LOOK_RubberBand         = (0x01 << 16),
-    LOOK_ShadeAnimationSteps= (0x01 << 17),
-    LOOK_TitleTextAlign     = (0x01 << 18)
+    LOOK_TitleButtonSpacing = (0x01 << 16),
+    LOOK_TitleButtonStyle   = (0x01 << 17),
+    LOOK_TitleButtonXOffset = (0x01 << 18),
+    LOOK_TitleButtonYOffset = (0x01 << 19),
+    LOOK_ResizeMoveGeometry = (0x01 << 20),
+    LOOK_StartMenuSortMode  = (0x01 << 21),
+    LOOK_DrawMenuBorders    = (0x01 << 22),
+    LOOK_ButtonSize         = (0x01 << 23),
+    LOOK_RubberBand         = (0x01 << 24),
+    LOOK_ShadeAnimationSteps= (0x01 << 25),
+    LOOK_TitleTextAlign     = (0x01 << 26)
 
 }LookFlags;
 
