@@ -1552,7 +1552,9 @@ make_aswindow_visible( ASWindow *asw, Bool deiconify )
     if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
     {
         if( deiconify )
-        {/* TODO: deiconify here */}
+        {
+			set_window_wm_state( asw, False );
+		}
     }
 
     if (ASWIN_DESK(asw) != Scr.CurrentDesk)
@@ -1772,7 +1774,7 @@ LOCAL_DEBUG_OUT("current focused is %p, active is %p", Scr.Windows->focused, Scr
         {
 LOCAL_DEBUG_OUT( "Window is iconic - pending implementation%s","");
             if( deiconify )
-            {/* TODO: deiconify here */}
+				set_window_wm_state( asw, False );
             else
                 return False;
         }
