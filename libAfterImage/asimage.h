@@ -1,6 +1,8 @@
 #ifndef ASIMAGE_HEADER_FILE_INCLUDED
 #define ASIMAGE_HEADER_FILE_INCLUDED
 
+struct ScreenInfo;
+
 /* RLE format :
 component := <line><line>...<line>
 line      := <block><block>...<block><EOL>
@@ -66,6 +68,10 @@ ColorPart;
 void asimage_free_color (ASImage * im, CARD8 ** color);
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height);
+
+ASScanline*prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode);
+void       free_scanline( ASScanline *sl, Bool reusable );
+
 void asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y);
 void asimage_add_line (ASImage * im, ColorPart color, CARD32 * data,
 		       unsigned int y);
@@ -80,16 +86,15 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
 #define VRB_EVERYTHING		(VRB_LINE_SUMMARY|VRB_CTRL_EXPLAIN|VRB_LINE_CONTENT)
 
 
-ASImage *asimage_from_ximage (XImage * xim);
-ASImage *asimage_from_pixmap (Pixmap p, int x, int y,
-	                                    unsigned int width, unsigned int height,
-		  							    unsigned long plane_mask, Bool keep_cache);
+ASImage *asimage_from_ximage (struct ScreenInfo *scr, XImage * xim);
+ASImage *asimage_from_pixmap (struct ScreenInfo *scr, Pixmap p, int x, int y,
+	                          unsigned int width, unsigned int height,
+		  					  unsigned long plane_mask, Bool keep_cache);
 
-XImage* ximage_from_asimage (ASImage *im);
-Pixmap  pixmap_from_asimage(ASImage *im, Window w, GC gc, Bool use_cached);
+XImage* ximage_from_asimage (struct ScreenInfo *scr, ASImage *im);
+Pixmap  pixmap_from_asimage (struct ScreenInfo *scr, ASImage *im, Window w, GC gc, Bool use_cached);
 
 /* manipulations : */
-ASImage *scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim );
-
+ASImage *scale_asimage( struct ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim );
 
 #endif

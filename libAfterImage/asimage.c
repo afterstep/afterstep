@@ -38,6 +38,7 @@
  * the output stream, and allows us to easily put stuff out :       */
 typedef struct ASImageOutput
 {
+	ScreenInfo *scr;
 	ASImage *im ;
 	XImage *xim ;
 	Bool to_xim ;
@@ -205,8 +206,8 @@ asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y)
 	}
 }
 /********************** ASScanline ************************************/
-static ASScanline*
-prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory  )
+ASScanline*
+prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode  )
 {
 	register ASScanline *sl = reusable_memory ;
 	size_t aligned_width;
@@ -226,6 +227,11 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 	sl->xc2 = sl->green = sl->red   + aligned_width;
 	sl->xc3 = sl->blue 	= sl->green + aligned_width;
 	sl->alpha 	= sl->blue  + aligned_width;
+	if( BGR_mode )
+	{
+		sl->xc1 = sl->blue ;
+		sl->xc3 = sl->red ;
+	}
 	/* this way we can be sure that our buffers have size of multiplies of 8s
 	 * and thus we can skip unneeded checks in code */
 	/* initializing padding into 0 to avoid any garbadge carry-over
@@ -252,8 +258,8 @@ free_scanline( ASScanline *sl, Bool reusable )
 
 /********************* ASImageOutput ****************************/
 
-ASImageOutput *
-start_image_output( ASImage *im, XImage *xim, Bool to_xim, int shift )
+static ASImageOutput *
+start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int shift )
 {
 	register ASImageOutput *imout= NULL;
 
@@ -264,6 +270,7 @@ start_image_output( ASImage *im, XImage *xim, Bool to_xim, int shift )
 	if( to_xim && xim == NULL )
 		return imout;
 	imout = safecalloc( 1, sizeof(ASImageOutput));
+	imout->scr = scr?scr:&Scr;
 	imout->im = im ;
 	imout->to_xim = to_xim ;
 	imout->xim = xim ;
@@ -272,8 +279,8 @@ start_image_output( ASImage *im, XImage *xim, Bool to_xim, int shift )
 	imout->bpl 	  = xim->bytes_per_line;
 	imout->xim_line = xim->data;
 
-	prepare_scanline( im->width, 0, &(imout->buffer[0]));
-	prepare_scanline( im->width, 0, &(imout->buffer[1]));
+	prepare_scanline( im->width, 0, &(imout->buffer[0]), scr->BGR_mode);
+	prepare_scanline( im->width, 0, &(imout->buffer[1]), scr->BGR_mode);
 	imout->available = &(imout->buffer[0]);
 	imout->used 	 = NULL;
 	imout->buffer_shift = shift;
@@ -284,7 +291,7 @@ start_image_output( ASImage *im, XImage *xim, Bool to_xim, int shift )
 	return imout;
 }
 
-void
+static void
 stop_image_output( ASImageOutput **pimout )
 {
 	if( pimout )
@@ -652,25 +659,22 @@ static inline void
 enlarge_component12( register CARD32 *src, register CARD32 *dst, int *scales, int len )
 {/* expected len >= 2  */
 	register int i = 0, k = 0;
-	register int c1 = src[0], c4 = src[1];
+	register int c1 = src[0], c4;
 LOCAL_DEBUG_OUT( "scaling from %d", len );
 	--len; --len ;
 	while( i < len )
 	{
 		c4 = src[i+2];
-		if( scales[i] == 1 )
-		{
-			c1 = src[i];     /* that's right we can do that PRIOR as we calculate nothing */
-			dst[k] = INTERPOLATE_COLOR1(c1) ;
-			++k;
-		}else
+		/* that's right we can do that PRIOR as we calculate nothing */
+		dst[k] = INTERPOLATE_COLOR1(src[i]) ;
+		if( scales[i] == 2 )
 		{
 			register int c2 = src[i], c3 = src[i+1] ;
-			c3 = INTERPOLATE_COLOR2(c1,c2,c3,c3);
-			dst[k] = (c3&0xFF000000 )?0:c3;
-			++k;
-			c1 = c2;
+			c3 = INTERPOLATE_COLOR2(c1,c2,c3,c4);
+			dst[++k] = (c3&0xFF000000 )?0:c3;
 		}
+		c1 = src[i];
+		++k;
 		++i;
 	}
 
@@ -857,7 +861,7 @@ add_component( CARD32 *src, CARD32 *incr, int *scales, int len )
 	int i = 0;
 
 	len += len&0x01;
-#if 1	
+#if 1
 #ifdef HAVE_MMX
 	if( asimage_use_mmx )
 	{
@@ -1035,8 +1039,11 @@ component_interpolation2( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, regist
 	register int i;
 	for( i = 0 ; i < len ; i++ )
 	{
-		register int rc1 = c1[i], rc3 = c3[i] ;
-		T[i] = INTERPOLATE_COLOR2(rc1,c2[i],rc3,c4[i]);
+  /*		register int rc1 = c1[i], rc3 = c3[i] ;*/
+    	register int rc1 = c1[i], rc2 = c2[i], rc3 = c3[i] ;
+		T[i] = INTERPOLATION_TOTAL_START(rc1,rc2,rc3,c4[i],2)>>2;
+/*fprintf( stderr, " %d \t%d \t%d \t%d  -> %d\n", rc1, rc2, rc3, c4[i], T[i] );*/
+/*		T[i] = 0 ;/*INTERPOLATE_COLOR2(rc1,c2[i],rc3,rc3 );/*c4[i]);*/
 	}
 }
 
@@ -1143,44 +1150,14 @@ do{	f((c1).red,(c2).red,(c3).red,(c4).red,(o1).red,(o2).red,(p),(len+(len&0x01))
 	if(get_flags((c1).flags,SCL_DO_ALPHA)) f((c1).alpha,(c2).alpha,(c3).alpha,(c4).alpha,(o1).alpha,(o2).alpha,(p),(len));	\
   }while(0)
 
-/**********************************************************************/
-/* ASImage->XImage low level conversion routines : 					  */
-/**********************************************************************/
-static inline void
-fill_ximage_buffer_pseudo (XImage *xim, ASScanline * xim_buf, unsigned int line)
-{
- 	XColor        color;
-	register int i ;
-	for( i = 0 ; i < xim_buf->width ; i++ )
-	{
-		color.pixel = XGetPixel( xim, i, line );
-		XQueryColor (dpy, ascolor_colormap, &color);
-		xim_buf->red[i] = color.red ;
-		xim_buf->green[i] = color.green ;
-		xim_buf->blue[i] = color.blue ;
-	}
-}
-
-static inline void
-put_ximage_buffer_pseudo (XImage *xim, ASScanline * xim_buf, unsigned int line)
-{
- 	XColor        color;
-	register int i ;
-	for( i = 0 ; i < xim_buf->width ; i++ )
-	{
-		color.red   = xim_buf->red[i] ;
-		color.green = xim_buf->green[i] ;
-		color.blue  = xim_buf->blue[i] ;
-		XAllocColor (dpy, ascolor_colormap, &color);
-		XPutPixel( xim, i, line, color.pixel );
-	}
-}
-
 void
 output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 {
+	ASScanline *to_store = NULL ;
 	/* caching and preprocessing line into our buffer : */
-	if( new_line )
+	if( imout->buffer_shift == 0 )
+		to_store = new_line ;
+	else if( new_line )
 	{
 		if( asimage_quality_level == ASIMAGE_QUALITY_TOP )
 		{
@@ -1188,6 +1165,7 @@ output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 				SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,new_line->width);
 			else
 				SCANLINE_FUNC(copy_component,*(new_line),*(imout->available),NULL,new_line->width);
+
 		}else
 			SCANLINE_FUNC(fast_output_filter, *(new_line),*(imout->available),ratio,new_line->width);
 	}
@@ -1205,27 +1183,34 @@ output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 		LOCAL_DEBUG_OUT( "output line %d :", imout->next_line );
 		SCANLINE_MOD(print_component,*(imout->used),1,imout->used->width);
 #endif
-
+		to_store = imout->used ;
+	}
+	if( to_store )
+	{
 		if( imout->to_xim )
 		{
 			if( imout->next_line < imout->xim->height )
 			{
-				PUT_SCANLINE(&Scr,imout->xim,imout->used,imout->next_line,imout->xim_line);
+				PUT_SCANLINE(imout->scr,imout->xim,to_store,imout->next_line,imout->xim_line);
 				imout->xim_line += imout->bpl;
 			}
 		}else if( imout->next_line < imout->im->height )
-			ENCODE_SCANLINE(imout->im,*(imout->used),imout->next_line);
+			ENCODE_SCANLINE(imout->im,*to_store,imout->next_line);
 		++(imout->next_line);
 	}
 	/* rotating the buffers : */
-	if( new_line == NULL )
-		imout->used = NULL ;
-	else
-		imout->used = imout->available ;
-	imout->available = &(imout->buffer[0]);
-	if( imout->available == imout->used )
-		imout->available = &(imout->buffer[1]);
+	if( imout->buffer_shift > 0 )
+	{
+		if( new_line == NULL )
+			imout->used = NULL ;
+		else
+			imout->used = imout->available ;
+		imout->available = &(imout->buffer[0]);
+		if( imout->available == imout->used )
+			imout->available = &(imout->buffer[1]);
+	}
 }
+
 
 void
 output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
@@ -1233,8 +1218,12 @@ output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	/* caching and preprocessing line into our buffer : */
 	if( new_line )
 	{
-		imout->used = &(imout->buffer[0]);
-		SCANLINE_FUNC(fast_output_filter,*(new_line),*(imout->used),ratio,new_line->width);
+		if( imout->buffer_shift > 0 )
+		{
+			imout->used = &(imout->buffer[0]);
+			SCANLINE_FUNC(fast_output_filter,*(new_line),*(imout->used),ratio,new_line->width);
+		}else
+			imout->used = new_line ;
 	}
 	/* copying/encoding previously cahced line into destination image : */
 	if( imout->used != NULL )
@@ -1243,12 +1232,11 @@ output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
 		LOCAL_DEBUG_OUT( "output line %d :", imout->next_line );
 		SCANLINE_MOD(print_component,*(imout->used),1,imout->used->width);
 #endif
-
 		if( imout->to_xim )
 		{
 			if( imout->next_line < imout->xim->height )
 			{
-				PUT_SCANLINE(&Scr,imout->xim,imout->used,imout->next_line,imout->xim_line);
+				PUT_SCANLINE(imout->scr,imout->xim,imout->used,imout->next_line,imout->xim_line);
 				imout->xim_line += imout->bpl;
 			}
 		}else if( imout->next_line < imout->im->height )
@@ -1311,19 +1299,15 @@ make_scales( unsigned short from_size, unsigned short to_size )
 
 /********************************************************************/
 void
-scale_image_down( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* scales_v, Bool to_xim)
+scale_image_down( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, int* scales_v)
 {
 	ASScanline src_line, dst_line, total ;
-	int i = 0, k = 0, line_len = MIN(dst->width,src->width);
-	ASImageOutput *imout ;
+	int i = 0, k = 0, max_k = imout->im->height, line_len = MIN(imout->im->width,src->width);
 
-	if((imout = start_image_output( dst, dst->ximage, to_xim, QUANT_ERR_BITS )) == NULL )
-		return;
-
-	prepare_scanline( src->width, 0, &src_line );
-	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line );
-	prepare_scanline( dst->width, QUANT_ERR_BITS, &total );
-	while( k < dst->height )
+	prepare_scanline( src->width, 0, &src_line, imout->scr->BGR_mode );
+	prepare_scanline( imout->im->width, QUANT_ERR_BITS, &dst_line, imout->scr->BGR_mode );
+	prepare_scanline( imout->im->width, QUANT_ERR_BITS, &total, imout->scr->BGR_mode );
+	while( k < max_k )
 	{
 		int reps = scales_v[k] ;
 		DECODE_SCANLINE(src,src_line,i);
@@ -1354,23 +1338,18 @@ scale_image_down( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* s
 	free_scanline(&src_line, True);
 	free_scanline(&dst_line, True);
 	free_scanline(&total, True);
-	stop_image_output( &imout );
 }
 
 void
-scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* scales_v, Bool to_xim)
+scale_image_up( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, int* scales_v)
 {
 	ASScanline step, src_lines[4], *c1, *c2, *c3, *c4 = NULL, tmp;
-	int i = 0, max_i, line_len = MIN(dst->width,src->width);
-	ASImageOutput *imout ;
-
-	if((imout = start_image_output( dst, dst->ximage, to_xim, QUANT_ERR_BITS )) == NULL )
-		return;
+	int i = 0, max_i, line_len = MIN(imout->im->width,src->width), out_width = imout->im->width;
 
 	for( i = 0 ; i < 4 ; i++ )
-		prepare_scanline( dst->width, 0, &(src_lines[i]));
-	prepare_scanline( src->width, QUANT_ERR_BITS, &tmp );
-	prepare_scanline( dst->width, QUANT_ERR_BITS, &step );
+		prepare_scanline( out_width, 0, &(src_lines[i]), imout->scr->BGR_mode);
+	prepare_scanline( src->width, QUANT_ERR_BITS, &tmp, imout->scr->BGR_mode );
+	prepare_scanline( out_width, QUANT_ERR_BITS, &step, imout->scr->BGR_mode );
 
 	set_component(src_lines[0].red,0x00000F00,0,line_len*3);
 
@@ -1401,19 +1380,19 @@ scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* sca
 		}
 		/* now we'll prepare total and step : */
  		output_image_line( imout, c2, 1);
-		if( S == 2 )
+/*		if( S == 2 )
 		{
-			SCANLINE_COMBINE(component_interpolation2,*c1,*c2,*c3,*c4,*c1,*c1,2,dst->width);
+			SCANLINE_COMBINE(component_interpolation2,*c1,*c2,*c3,*c4,*c1,*c1,2,out_width);
 			output_image_line( imout, c1, 1);
-		}else
-		{
-			SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,dst->width);
+		}else */
+  		{
+			SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,out_width);
 			do
 			{
 				output_image_line( imout, c1, 1);
 				if( --S <= 0 )
 					break;
-				SCANLINE_FUNC(add_component,*c1,step,NULL,dst->width );
+				SCANLINE_FUNC(add_component,*c1,step,NULL,out_width );
  			}while (1);
 		}
 	}while( ++i < max_i );
@@ -1423,13 +1402,13 @@ scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* sca
 		free_scanline(&(src_lines[i]), True);
 	free_scanline(&tmp, True);
 	free_scanline(&step, True);
-	stop_image_output( &imout );
 }
 
 ASImage *
-scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim )
+scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim )
 {
 	ASImage *dst = NULL ;
+	ASImageOutput *imout ;
 	int h_ratio ;
 	int *scales_h = NULL, *scales_v = NULL;
 
@@ -1439,8 +1418,13 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim )
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height);
 	if( to_xim )
-		dst->ximage = CreateXImageAndData( dpy, Scr.visual_info.visual, Scr.true_depth, ZPixmap, 0, to_width, to_height );
-
+		if( (dst->ximage = create_screen_ximage( scr, to_width, to_height, 0 )) == NULL )
+		{
+			show_error( "Unable to create XImage for the screen %d", scr->screen );
+			asimage_init(dst, True);
+			free( dst );
+			return NULL ;
+		}
 	if( to_width == src->width )
 		h_ratio = 0;
 	else
@@ -1452,6 +1436,7 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim )
 
 	scales_h = make_scales( src->width, to_width );
 	scales_v = make_scales( src->height, to_height );
+
 #ifdef LOCAL_DEBUG
 	{
 	  register int i ;
@@ -1466,10 +1451,19 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim )
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
-	if( to_height < src->height ) 					   /* scaling down */
-		scale_image_down( src, dst, h_ratio, scales_h, scales_v, to_xim );
-	else
-		scale_image_up( src, dst, h_ratio, scales_h, scales_v, to_xim );
+	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, QUANT_ERR_BITS )) == NULL )
+	{
+		asimage_init(dst, True);
+		free( dst );
+		dst = NULL ;
+	}else
+	{
+		if( to_height < src->height ) 					   /* scaling down */
+			scale_image_down( src, imout, h_ratio, scales_h, scales_v );
+		else
+			scale_image_up( src, imout, h_ratio, scales_h, scales_v );
+		stop_image_output( &imout );
+	}
 #ifdef HAVE_MMX
 	mmx_off();
 #endif
@@ -1483,7 +1477,7 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim )
 /****************************************************************************/
 
 ASImage      *
-asimage_from_ximage (XImage * xim)
+asimage_from_ximage (ScreenInfo *scr, XImage * xim)
 {
 	ASImage      *im = NULL;
 	unsigned char *xim_line;
@@ -1505,11 +1499,11 @@ asimage_from_ximage (XImage * xim)
 #ifdef LOCAL_DEBUG
 	tmp = safemalloc( xim->width * sizeof(CARD32));
 #endif
-	prepare_scanline( xim->width, 0, &xim_buf );
+	prepare_scanline( xim->width, 0, &xim_buf, scr->BGR_mode );
 
 	for (i = 0; i < height; i++)
 	{
-		GET_SCANLINE(&Scr,xim,&xim_buf,i,xim_line);
+		GET_SCANLINE(scr,xim,&xim_buf,i,xim_line);
 		asimage_add_line (im, IC_RED,   xim_buf.red, i);
 		asimage_add_line (im, IC_GREEN, xim_buf.green, i);
 		asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
@@ -1529,7 +1523,7 @@ asimage_from_ximage (XImage * xim)
 }
 
 XImage*
-ximage_from_asimage (ASImage *im)
+ximage_from_asimage (ScreenInfo *scr, ASImage *im)
 {
 	XImage        *xim = NULL;
 	int           i;
@@ -1539,11 +1533,11 @@ ximage_from_asimage (ASImage *im)
 	if (im == NULL)
 		return xim;
 
-	xim = CreateXImageAndData( dpy, Scr.visual_info.visual, Scr.true_depth, ZPixmap, 0, im->width, im->height );
-	if( (imout = start_image_output( im, xim, True, 0 )) == NULL )
+	xim = create_screen_ximage( scr, im->width, im->height, 0 );
+	if( (imout = start_image_output( scr, im, xim, True, 0 )) == NULL )
 		return xim;
 
-	prepare_scanline( xim->width, 0, &xim_buf );
+	prepare_scanline( xim->width, 0, &xim_buf, scr->BGR_mode );
 	for (i = 0; i < im->height; i++)
 	{
 		asimage_decode_line (im, IC_RED,   xim_buf.red, i);
@@ -1557,14 +1551,14 @@ ximage_from_asimage (ASImage *im)
 }
 
 ASImage      *
-asimage_from_pixmap (Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache)
+asimage_from_pixmap (ScreenInfo *scr, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache)
 {
 	XImage       *xim = XGetImage (dpy, p, x, y, width, height, plane_mask, ZPixmap);
 	ASImage      *im = NULL;
 
 	if (xim)
 	{
-		im = asimage_from_ximage (xim);
+		im = asimage_from_ximage (scr, xim);
 		if( keep_cache )
 			im->ximage = xim ;
 		else
@@ -1574,7 +1568,7 @@ asimage_from_pixmap (Pixmap p, int x, int y, unsigned int width, unsigned int he
 }
 
 Pixmap
-pixmap_from_asimage(ASImage *im, Window w, GC gc, Bool use_cached)
+pixmap_from_asimage(ScreenInfo *scr, ASImage *im, Window w, GC gc, Bool use_cached)
 {
 	XImage       *xim ;
 	Pixmap        p = None;
@@ -1582,21 +1576,28 @@ pixmap_from_asimage(ASImage *im, Window w, GC gc, Bool use_cached)
 
 	if( XGetWindowAttributes (dpy, w, &attr) )
 	{
-		set_ascolor_depth( w, attr.depth );
 		if ( !use_cached || im->ximage == NULL )
-			xim = ximage_from_asimage( im );
-		else
+		{
+			if( (xim = ximage_from_asimage( scr, im )) == NULL )
+			{
+				show_error("cannot export image into XImage.");
+				return None ;
+			}
+		}else
 			xim = im->ximage ;
 		if (xim != NULL )
 		{
-			p = XCreatePixmap( dpy, w, xim->width, xim->height, attr.depth );
+			p = create_screen_pixmap( scr, xim->width, xim->height, 0 );
 			XPutImage( dpy, p, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
 			if( xim != im->ximage )
 				XDestroyImage (xim);
 		}
-	}
+	}else
+		show_error("cannot create pixmap for drawable 0x%X - drawable is invalid.", w);
+
 	return p;
 }
+
 
 
 
