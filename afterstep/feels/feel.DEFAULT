@@ -383,31 +383,41 @@ Key F5          A       SC      Move
 Key F6          A       SC      Destroy
 Key F7          A       SC      ChangeWindowUp
 Key F8          A       SC      Module "Run"  Form RUNForm
-Key F9          A       SC      WindowList
+Key F9          A       SC      Maximize
 Key F10         A       SC      PutOnBack
-Key F11         A       SC      Module "Find" Form FINDForm
+#Key F11         A       SC      Module "Find" Form FINDForm
+Key F11         A       SC      WindowList
 Key F12         A       SC      PopUp "0"
 
-# Windows-alike keys
-#
+################################################################################
+# Menu popups keybindings
+################################################################################
+# The "Menu" key is a key introduced by Microsoft on PC keyboards
+# Popups the window manager menu (default window, ie the "0" window)
+Key Menu        A       A       Popup "0"
+# Lists all the applications of the current desk
+Key Menu        A       C       WindowList 2
+# Lists all the applications on all the desks
+Key Menu        A       S       WindowList
+
+################################################################################
+# Window wrapping
+################################################################################
 # alt + tab = change window
 Key Tab         A       M       WarpFore
 # alt + q = return to window
 Key q		A	M	WarpBack
 # shift + alt + tab = focus on current window
 Key Tab         A       S       Focus
+#Key Meta_L      A       A       WarpFore
+#Key Meta_R      A       A       WarpBack
 
 # ctrl-v = paste
 # If you have problems with pasting data into applications - 
 # try uncommenting this :
 #Key v		W	C	PasteSelection
 
-
-# Window keys
-Key Menu        A       A       Popup "0"
-#Key Meta_L      A       A       WarpFore
-#Key Meta_R      A       A       WarpBack
-# PC keys aren't always defined is keymaps
+# PC keys aren't always defined in keymaps
 Key Print       A       A       TakeScreenShot
 #Key Print       A       A       Exec "screenshot" exec xwd -root -out ~/screen.xwd && mogrify -format png ~/screen.xwd && rm ~/screen.xwd
 Key Print       A       S       TakeWindowShot
