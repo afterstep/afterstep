@@ -201,7 +201,7 @@
 *MonitorWharf xeyes - Swallow "xeyes" xeyes -geometry -100-100 &
 
 *MonitorWharf QuitFolder normal/RedLight,dots/3_dots Folder
-*MonitorWharf 	Recycler normal/Recycle Restart "" afterstep
+*MonitorWharf 	Recycler normal/Recycle Restart "" afterstep -r
 *MonitorWharf 	Quit normal/Stopsign Quit "" afterstep
 *MonitorWharf ~Folder
 
