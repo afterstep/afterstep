@@ -1123,12 +1123,13 @@ HandleEnterNotify (ASEvent *event)
     int i ;
 
 	/* look for a matching leaveNotify which would nullify this enterNotify */
-    if (ASCheckTypedWindowEvent ( ewp->window, LeaveNotify, &d))
-	{
-        on_astbar_pointer_action( NULL, 0, True );
-        if ((d.xcrossing.mode == NotifyNormal) && (d.xcrossing.detail != NotifyInferior))
-			return;
-	}
+    if (ewp->window != Scr.Root)
+    	if (ASCheckTypedWindowEvent ( ewp->window, LeaveNotify, &d))
+		{
+        	on_astbar_pointer_action( NULL, 0, True );
+        	if ((d.xcrossing.mode == NotifyNormal) && (d.xcrossing.detail != NotifyInferior))
+				return;
+		}
 /* an EnterEvent in one of the PanFrameWindows activates the Paging */
 #ifndef NO_VIRTUAL
     for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )

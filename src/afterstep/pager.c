@@ -1091,6 +1091,8 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
             bh->pmap = None ;
         }
         LOCAL_DEBUG_OUT( "ROOT_PIXMAP = %lX at %d", Scr.RootBackground->pmap, __LINE__ );
+		if( !validate_drawable( bh->pmap, NULL, NULL ) )
+			bh->pmap = None ;
 		if( bh->pmap == None )
 		{
             bh->pmap = create_visual_pixmap( Scr.asv, Scr.Root, new_im->width, new_im->height, 0 );

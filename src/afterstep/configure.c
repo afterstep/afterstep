@@ -1408,7 +1408,16 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     {
         FixLook( &Scr.Look );
         if( thisdesktop == Scr.CurrentDesk )
+		{
+		    MyBackground *new_back = get_desk_back_or_default( Scr.CurrentDesk, False );
+        	SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
+			if( new_back->loaded_im_name ) 
+			{
+				free( new_back->loaded_im_name );  
+				new_back->loaded_im_name = NULL ;
+			}
             change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
+		}
     }
 
     if( get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
