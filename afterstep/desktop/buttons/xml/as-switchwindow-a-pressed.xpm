@@ -2,7 +2,7 @@
 <composite>
 	<solid color="gray75" width=15 height=15/>
 	<tile tint="#010101">
-		<img src="dots/arrow_short_medium"/>
+		<rotate angle=180><img src="dots/arrow_short_small"/></angle>
 	</tile>
 </composite>
 </bevel>

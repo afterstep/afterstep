@@ -105,6 +105,18 @@ static char* cdata_str = "CDATA";
 static char* container_str = "CONTAINER";
 static ASHashTable *asvar = NULL;
 
+static ASImageManager *_as_xml_image_manager = NULL ;
+static ASFontManager *_as_xml_font_manager = NULL ;
+
+void set_xml_image_manager( ASImageManager *imman )
+{
+	_as_xml_image_manager = imman ;
+}
+void set_xml_font_manager( ASFontManager *fontman )
+{
+	_as_xml_font_manager = fontman ;
+}
+
 void asvar_insert(const char* name, int value);
 
 void
@@ -178,6 +190,9 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 		xml_elem_t* ptr;
 		char *path2 ;
 		if( my_imman == NULL )
+			my_imman = _as_xml_image_manager ;
+
+		if( my_imman == NULL )
 		{
 			path2 = copy_replace_envvar( getenv( ASIMAGE_PATH_ENVVAR ) );
 			show_progress("image path is \"%s\".", path2 );
@@ -189,6 +204,10 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 			if( path2 )
 				free( path2 );
 		}
+
+		if( my_fontman == NULL )
+			my_fontman = _as_xml_font_manager ;
+
 		if( my_fontman == NULL )
 		{
 			path2 = copy_replace_envvar( getenv( ASFONT_PATH_ENVVAR ) );
@@ -217,13 +236,13 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 		}
 LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.8X", im, im?im->imageman:NULL, my_imman, im?im->magic:0 );
 
-		if( my_imman != imman )
+		if( my_imman != imman && my_imman != _as_xml_image_manager )
 		{
 			if( im && im->imageman == my_imman )
 				forget_asimage( im );
 			destroy_image_manager(my_imman, False);
 		}
-		if( my_fontman != fontman )
+		if( my_fontman != fontman && my_fontman != _as_xml_font_manager  )
 			destroy_font_manager(my_fontman, False);
 	}
 

@@ -1220,6 +1220,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 					(PixmapPath != NULL && Scr.image_manager == NULL) )
                 {
                     Scr.image_manager = create_image_manager( NULL, 2.2, PixmapPath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
+					set_xml_image_manager( Scr.image_manager );
+
 					if( !get_flags(what, PARSE_LOOK_CONFIG) )
 					{
                     	InitLook (&Scr.Look, True);
@@ -1231,6 +1233,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 					(FontPath!= NULL && Scr.font_manager == NULL) )
                 {
                     Scr.font_manager = create_font_manager( dpy, FontPath, NULL );
+					set_xml_font_manager( Scr.font_manager );
+
 					if( !get_flags(what, PARSE_LOOK_CONFIG) )
 					{
                     	InitLook (&Scr.Look, True);
@@ -1332,10 +1336,18 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         InitBase (True);
         if( mystrcmp(old_pixmap_path, PixmapPath) == 0 ||
 			(PixmapPath!= NULL && Scr.image_manager == NULL) )
+		{
 	        Scr.image_manager = create_image_manager( NULL, 2.2, PixmapPath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
+			set_xml_image_manager( Scr.image_manager );
+		}
+
 		if( mystrcmp(old_font_path, FontPath) == 0 ||
 			(FontPath!= NULL && Scr.font_manager == NULL) )
+		{
 	        Scr.font_manager = create_font_manager( dpy, FontPath, NULL );
+			set_xml_font_manager( Scr.font_manager );
+		}
+
 		InitLook (&Scr.Look, True);
         InitFeel (&Scr.Feel, True);
         InitDatabase (True);

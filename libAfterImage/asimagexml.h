@@ -22,19 +22,22 @@ typedef struct xml_elem_t {
 struct ASImageManager ;
 struct ASFontManager ;
 
+void set_xml_image_manager( struct ASImageManager *imman );
+void set_xml_font_manager( struct ASFontManager *fontman );
+
 ASImage *
-compose_asimage_xml(ASVisual *asv, 
-                    struct ASImageManager *imman, 
-					struct ASFontManager *fontman, 
-					char *doc_str, ASFlagType flags, 
+compose_asimage_xml(ASVisual *asv,
+                    struct ASImageManager *imman,
+					struct ASFontManager *fontman,
+					char *doc_str, ASFlagType flags,
 					int verbose, Window display_win,
 					const char *path);
 
 void show_asimage(ASVisual *asv, ASImage* im, Window w, long delay);
-ASImage* build_image_from_xml( ASVisual *asv, 
-                               struct ASImageManager *imman, 
-							   struct ASFontManager *fontman, 
-							   xml_elem_t* doc, xml_elem_t** rparm, 
+ASImage* build_image_from_xml( ASVisual *asv,
+                               struct ASImageManager *imman,
+							   struct ASFontManager *fontman,
+							   xml_elem_t* doc, xml_elem_t** rparm,
 							   ASFlagType flags, int verbose, Window display_win);
 double parse_math(const char* str, char** endptr, double size);
 xml_elem_t* xml_parse_parm(const char* parm);
