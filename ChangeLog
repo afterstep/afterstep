@@ -1,4 +1,23 @@
 
+2004-03-05 13:55  sasha
+
+	* AfterStep.spec, configure, autoconf/configure.in: Updated version
+	  to 2.00.beta4b
+
+2004-03-05 13:46  sasha
+
+	* AfterStep.spec, libAfterConf/Feel.c, libAfterImage/char2uni.c,
+	  libAfterStep/asapp.c, libAfterStep/clientprops.h: Fixed
+	  compilation in Feel.c with --enable-gdb; Fixed local selection if
+	  only the country is specified such as en_US - RedHat seems to
+	  have this; Fixed segfault in spawn_child with locale specified it
+	  was attempting to check if pointer is isspace() triggering bug in
+	  glibc
+
+2004-03-04 14:13  sasha
+
+	* ChangeLog: AfterStep 2.00.beta4 Release
+
 2004-03-04 14:04  sasha
 
 	* AfterStep.spec, NEW, configure, afterstep/database,
