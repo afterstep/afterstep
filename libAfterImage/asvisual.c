@@ -1391,8 +1391,13 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 			shminfo->shmaddr = ximage->data = get_shm_area( ximage->bytes_per_line * ximage->height, &(shminfo->shmid) );
 			if( shminfo->shmid == -1 )
 			{
+				static int shmem_failure_count = 0 ;
 			    show_warning( "unable to allocate %d bytes of shared image memory", ximage->bytes_per_line * ximage->height ) ;
-				/* _as_use_shm_images = False ; */
+				if( ximage->bytes_per_line * ximage->height < 100000 || ++shmem_failure_count > 10 )
+				{
+					show_error( "too many shared memory failures - disabling" ) ;
+					_as_use_shm_images = False ;
+				}
 				free( shminfo );
 				shminfo = NULL ;
 				XFree( ximage );
