@@ -1,9 +1,2103 @@
 
+2004-08-16 17:14  sasha
+
+	* AfterStep.spec, AfterStep.spec.in, NEW, configure,
+	  afterstep/wharf, afterstep/looks/look.DEFAULT,
+	  afterstep/looks/look.Glass, afterstep/looks/look.QNX,
+	  afterstep/looks/look.Transparent, autoconf/configure.in,
+	  doc/afterstepdoc.in, libAfterBase/configure,
+	  libAfterImage/configure, src/Wharf/Wharf.c: Changed version
+	  number to beta5, Changed AfterStep.spec to be updated
+	  automagically with proper version number; Updated afterstepdoc
+	  script to select web browser from mozilla, firefox, konq, opera,
+	  netscape
+
+2004-08-16 17:10  sasha
+
+	* afterstep/backgrounds/xml/: Default, Default.mini,
+	  DefaultTexture, DefaultTexture.mini, StormySkies: changed default
+	  background to use StormySkies image as the base
+
+2004-08-16 16:07  sasha
+
+	* afterstep/backgrounds/: jpg/.StormySkies, xml/StormySkies,
+	  xml/StormySkies.mini: added new background - StormySkies
+	  contributed by Ales Ledvinka
+
+2004-08-16 11:38  sasha
+
+	* src/Wharf/Wharf.c: implemented adaptive delays in Wharf animation
+	  to account for rendering overhead for tiles; Added new feature to
+	  Wharf - *WharfFocusedTile MyStyle, making wharf behave similar to
+	  a menu - changing color of active tile when pointer is over it
+
+2004-08-13 17:52  sasha
+
+	* libAfterImage/asstorage.c, src/Wharf/Wharf.c: fixed bug in
+	  asstorage causing segfaults if block is used completely; Improved
+	  Wharf's handling of animation - should now be much smoother
+
+2004-08-12 17:27  sasha
+
+	* libAfterBase/output.h, libAfterImage/afterimage.h,
+	  libAfterImage/ascmap.h, libAfterImage/asfont.c,
+	  libAfterImage/asfont.h, libAfterImage/asimage.h,
+	  libAfterImage/asvisual.h, libAfterImage/blender.h,
+	  libAfterImage/char2uni.h, libAfterImage/export.h,
+	  libAfterImage/imencdec.h, libAfterImage/import.h,
+	  libAfterImage/transform.h, libAfterImage/ximage.h,
+	  libAfterImage/apps/ascompose.c, libAfterImage/apps/asflip.c,
+	  libAfterImage/apps/asgrad.c, libAfterImage/apps/asmerge.c,
+	  libAfterImage/apps/asscale.c, libAfterImage/apps/astext.c,
+	  libAfterImage/apps/astile.c, libAfterImage/apps/asvector.c,
+	  libAfterImage/apps/asview.c, libAfterImage/apps/common.c,
+	  src/ASDocGen/ASDocGen.c, src/ASDocGen/ASDocGen.h,
+	  src/ASDocGen/Makefile.in, src/ASDocGen/docfile.c,
+	  src/ASDocGen/xmlproc.c: fixes to docs to format properly into
+	  PHP. Fixes to AsDocGen to have nice indexes and proper references
+	  from devel docs to user and back
+
+2004-08-12 13:02  madarche
+
+	* afterstep/database: Updating file's doc + NoTitle, NoHandles for
+	  XMMS playlist since XMMS has its own look
+
+2004-08-11 17:49  sasha
+
+	* src/ASDocGen/.depend: add deps to ASDocGen
+
+2004-08-11 17:47  sasha
+
+	* Makefile.in, autoconf/Makefile.common.in,
+	  autoconf/Makefile.defines.in, libAfterConf/.depend,
+	  libAfterConf/.shared, libAfterImage/.depend,
+	  libAfterImage/.shared, libAfterImage/Makefile.in,
+	  libAfterImage/asfont.h, libAfterImage/asimage.c,
+	  libAfterImage/asimage.h, libAfterImage/apps/asflip.c,
+	  libAfterImage/apps/asgrad.c, libAfterImage/apps/asmerge.c,
+	  libAfterImage/apps/asscale.c, libAfterImage/apps/astext.c,
+	  libAfterImage/apps/astile.c, libAfterImage/apps/asvector.c,
+	  libAfterImage/apps/asview.c, libAfterImage/apps/common.c,
+	  libAfterImage/doc/afterimage.man, libAfterImage/doc/ascmap.man,
+	  libAfterImage/doc/asfont.man, libAfterImage/doc/asimage.man,
+	  libAfterImage/doc/asimagexml.man, libAfterImage/doc/asvisual.man,
+	  libAfterImage/doc/blender.man, libAfterImage/doc/export.man,
+	  libAfterImage/doc/freetype_symbols.xref,
+	  libAfterImage/doc/import.man, libAfterImage/doc/transform.man,
+	  libAfterImage/doc/x11_symbols.xref, libAfterImage/doc/ximage.man,
+	  libAfterImage/doc/html/afterimage.html,
+	  libAfterImage/doc/html/ascmap.html,
+	  libAfterImage/doc/html/ascompose.html,
+	  libAfterImage/doc/html/asflip.html,
+	  libAfterImage/doc/html/asfont.html,
+	  libAfterImage/doc/html/asgrad.html,
+	  libAfterImage/doc/html/asimage.html,
+	  libAfterImage/doc/html/asimagexml.html,
+	  libAfterImage/doc/html/asmerge.html,
+	  libAfterImage/doc/html/asscale.html,
+	  libAfterImage/doc/html/astext.html,
+	  libAfterImage/doc/html/astile.html,
+	  libAfterImage/doc/html/asview.html,
+	  libAfterImage/doc/html/asvisual.html,
+	  libAfterImage/doc/html/blender.html,
+	  libAfterImage/doc/html/common.html,
+	  libAfterImage/doc/html/export.html,
+	  libAfterImage/doc/html/import.html,
+	  libAfterImage/doc/html/transform.html,
+	  libAfterImage/doc/html/ximage.html, src/ASDocGen/ASDocGen.c,
+	  src/ASDocGen/ASDocGen.h, src/ASDocGen/Makefile.in,
+	  src/ASDocGen/docfile.c, src/Animate/.depend,
+	  src/Animate/Makefile.in, src/Audio/Makefile.in,
+	  src/Banner/Makefile.in, src/Cascade/Makefile.in,
+	  src/Clean/Makefile.in, src/Pager/Makefile.in,
+	  src/Wharf/Makefile.in, src/WinList2/Makefile.in,
+	  src/WinTabs/Makefile.in, src/afterstep/.depend,
+	  src/afterstep/Makefile.in, src/ascp/Makefile.in,
+	  src/asetroot/Makefile.in: Implemented new generated doc
+	  installation in Makefiles, added more libAfterImage docs, fixed
+	  formatting in asimage.h and asfont.h
+
+2004-08-10 17:38  sasha
+
+	* libAfterImage/apps/ascompose.c: Fixed bug in ASStorage causing
+	  negative sizes in slots and as the result garbadge in images
+
+2004-08-10 16:47  sasha
+
+	* libAfterImage/: asimagexml.c, asstorage.c, apps/ascompose.c:
+	  Fixed bug in ASStorage causing negative sizes in slots and as the
+	  result garbadge in images
+
+2004-08-09 22:44  sasha
+
+	* libAfterImage/transform.c:  fixed segfault bug in transform.c if
+	  image creatrion fails
+
+2004-08-09 17:50  sasha
+
+	* libAfterImage/asimagexml.c, src/ASDocGen/ASDocGen.c: fixed some
+	  docs generation
+
+2004-08-09 17:02  sasha
+
+	* libAfterConf/ASetRoot.c, libAfterConf/Animate.c,
+	  libAfterConf/Audio.c, libAfterConf/Base.c, libAfterConf/Color.c,
+	  libAfterConf/Database.c, libAfterConf/Feel.c,
+	  libAfterConf/Look.c, libAfterConf/MyStyle.c,
+	  libAfterConf/Pager.c, libAfterConf/Wharf.c,
+	  libAfterConf/WinList.c, libAfterConf/WinTabs.c,
+	  libAfterStep/asapp.c, src/ASDocGen/ASDocGen.c,
+	  src/ASDocGen/docfile.c, src/ASDocGen/xmlproc.c,
+	  src/ASDocGen/source/ASDatabaseEntry/BorderWidth,
+	  src/ASDocGen/source/ASDatabaseEntry/Button,
+	  src/ASDocGen/source/ASDatabaseEntry/CirculateHit,
+	  src/ASDocGen/source/ASDatabaseEntry/CirculateSkip,
+	  src/ASDocGen/source/ASDatabaseEntry/DefaultGeometry,
+	  src/ASDocGen/source/ASDatabaseEntry/HandleWidth,
+	  src/ASDocGen/source/ASDatabaseEntry/HorizontalTitle,
+	  src/ASDocGen/source/ASDatabaseEntry/Icon,
+	  src/ASDocGen/source/ASDatabaseEntry/Layer,
+	  src/ASDocGen/source/ASDatabaseEntry/NoButton,
+	  src/ASDocGen/source/ASDatabaseEntry/Slippery,
+	  src/ASDocGen/source/ASDatabaseEntry/StartIconic,
+	  src/ASDocGen/source/ASDatabaseEntry/StartNormal,
+	  src/ASDocGen/source/ASDatabaseEntry/StartsAnywhere,
+	  src/ASDocGen/source/ASDatabaseEntry/StartsOnDesk,
+	  src/ASDocGen/source/ASDatabaseEntry/StaysOnBack,
+	  src/ASDocGen/source/ASDatabaseEntry/StaysOnTop,
+	  src/ASDocGen/source/ASDatabaseEntry/StaysPut,
+	  src/ASDocGen/source/ASDatabaseEntry/Sticky,
+	  src/ASDocGen/source/ASDatabaseEntry/VerticalTitle,
+	  src/ASDocGen/source/ASDatabaseEntry/ViewportX,
+	  src/ASDocGen/source/ASDatabaseEntry/ViewportY,
+	  src/ASDocGen/source/ASDatabaseEntry/WindowListHit,
+	  src/ASDocGen/source/ASDatabaseEntry/WindowListSkip: updated to
+	  produxce better organized indexes; Fixed bug in literal handling;
+	  Moved over description of the database config from xml into
+	  ASDocGen
+
+2004-08-06 17:47  sasha
+
+	* src/ASDocGen/source/: ASDatabase/Style, ASDatabase/_overview,
+	  ASDatabaseEntry/AllowCover, ASDatabaseEntry/AvoidCover,
+	  ASDatabaseEntry/BorderWidth, ASDatabaseEntry/Focus,
+	  ASDatabaseEntry/FocusStyle, ASDatabaseEntry/HandleWidth,
+	  ASDatabaseEntry/Handles, ASDatabaseEntry/Icon,
+	  ASDatabaseEntry/NoFocus, ASDatabaseEntry/NoHandles,
+	  ASDatabaseEntry/NoIcon, ASDatabaseEntry/NoTitle,
+	  ASDatabaseEntry/StickyStyle, ASDatabaseEntry/Title,
+	  ASDatabaseEntry/UnfocusStyle, Align/Bottom, Align/Center,
+	  Align/HCenter, Align/HScaled, Align/HTiled, Align/LabelHeight,
+	  Align/LabelSize, Align/LabelWidth, Align/Left, Align/Right,
+	  Align/Top, Align/VCenter, Align/VScaled, Align/VTiled,
+	  Align/_overview: added some docs
+
+2004-08-06 12:51  sasha
+
+	* libAfterConf/Feel.c, libAfterConf/Look.c,
+	  libAfterConf/afterconf.h, libAfterImage/libpng/png.h,
+	  libAfterImage/libpng/pngconf.h, libAfterImage/libpng/pngerror.c,
+	  libAfterImage/libpng/pngpread.c, libAfterImage/libpng/pngread.c,
+	  libAfterImage/libpng/pngrtran.c, libAfterImage/libpng/pngrutil.c,
+	  libAfterImage/libpng/pngset.c, src/ASDocGen/source.tar.gz,
+	  src/ASDocGen/source/_examples, src/ASDocGen/source/_footnotes,
+	  src/ASDocGen/source/_overview, src/ASDocGen/source/_related,
+	  src/ASDocGen/source/_standard_options,
+	  src/ASDocGen/source/_synopsis,
+	  src/ASDocGen/source/ASDatabase/Style,
+	  src/ASDocGen/source/ASDatabase/_examples,
+	  src/ASDocGen/source/ASDatabase/_footnotes,
+	  src/ASDocGen/source/ASDatabase/_overview,
+	  src/ASDocGen/source/ASDatabase/_related,
+	  src/ASDocGen/source/ASDatabaseEntry/AllowCover,
+	  src/ASDocGen/source/ASDatabaseEntry/AvoidCover,
+	  src/ASDocGen/source/ASDatabaseEntry/BorderWidth,
+	  src/ASDocGen/source/ASDatabaseEntry/Button,
+	  src/ASDocGen/source/ASDatabaseEntry/CirculateHit,
+	  src/ASDocGen/source/ASDatabaseEntry/CirculateSkip,
+	  src/ASDocGen/source/ASDatabaseEntry/DefaultGeometry,
+	  src/ASDocGen/source/ASDatabaseEntry/Focus,
+	  src/ASDocGen/source/ASDatabaseEntry/FocusOnMap,
+	  src/ASDocGen/source/ASDatabaseEntry/FocusStyle,
+	  src/ASDocGen/source/ASDatabaseEntry/Frame,
+	  src/ASDocGen/source/ASDatabaseEntry/HandleWidth,
+	  src/ASDocGen/source/ASDatabaseEntry/Handles,
+	  src/ASDocGen/source/ASDatabaseEntry/HonorExtWMHints,
+	  src/ASDocGen/source/ASDatabaseEntry/HonorGnomeHints,
+	  src/ASDocGen/source/ASDatabaseEntry/HonorGroupHints,
+	  src/ASDocGen/source/ASDatabaseEntry/HonorMotifHints,
+	  src/ASDocGen/source/ASDatabaseEntry/HonorPPosition,
+	  src/ASDocGen/source/ASDatabaseEntry/HonorTransientHints,
+	  src/ASDocGen/source/ASDatabaseEntry/HonorXResources,
+	  src/ASDocGen/source/ASDatabaseEntry/HorizontalTitle,
+	  src/ASDocGen/source/ASDatabaseEntry/Icon,
+	  src/ASDocGen/source/ASDatabaseEntry/IconTitle,
+	  src/ASDocGen/source/ASDatabaseEntry/Layer,
+	  src/ASDocGen/source/ASDatabaseEntry/LongLiving,
+	  src/ASDocGen/source/ASDatabaseEntry/NoButton,
+	  src/ASDocGen/source/ASDatabaseEntry/NoExtWMHints,
+	  src/ASDocGen/source/ASDatabaseEntry/NoFocus,
+	  src/ASDocGen/source/ASDatabaseEntry/NoFocusOnMap,
+	  src/ASDocGen/source/ASDatabaseEntry/NoFrame,
+	  src/ASDocGen/source/ASDatabaseEntry/NoGnomeHints,
+	  src/ASDocGen/source/ASDatabaseEntry/NoGroupHints,
+	  src/ASDocGen/source/ASDatabaseEntry/NoHandles,
+	  src/ASDocGen/source/ASDatabaseEntry/NoIcon,
+	  src/ASDocGen/source/ASDatabaseEntry/NoIconTitle,
+	  src/ASDocGen/source/ASDatabaseEntry/NoMotifHints,
+	  src/ASDocGen/source/ASDatabaseEntry/NoPPosition,
+	  src/ASDocGen/source/ASDatabaseEntry/NoTitle,
+	  src/ASDocGen/source/ASDatabaseEntry/NoTransientHints,
+	  src/ASDocGen/source/ASDatabaseEntry/NoXResources,
+	  src/ASDocGen/source/ASDatabaseEntry/OverrideGravity,
+	  src/ASDocGen/source/ASDatabaseEntry/ShortLiving,
+	  src/ASDocGen/source/ASDatabaseEntry/Slippery,
+	  src/ASDocGen/source/ASDatabaseEntry/StartIconic,
+	  src/ASDocGen/source/ASDatabaseEntry/StartNormal,
+	  src/ASDocGen/source/ASDatabaseEntry/StartsAnywhere,
+	  src/ASDocGen/source/ASDatabaseEntry/StartsOnDesk,
+	  src/ASDocGen/source/ASDatabaseEntry/StaysOnBack,
+	  src/ASDocGen/source/ASDatabaseEntry/StaysOnTop,
+	  src/ASDocGen/source/ASDatabaseEntry/StaysPut,
+	  src/ASDocGen/source/ASDatabaseEntry/Sticky,
+	  src/ASDocGen/source/ASDatabaseEntry/StickyStyle,
+	  src/ASDocGen/source/ASDatabaseEntry/Title,
+	  src/ASDocGen/source/ASDatabaseEntry/UnfocusStyle,
+	  src/ASDocGen/source/ASDatabaseEntry/VerticalTitle,
+	  src/ASDocGen/source/ASDatabaseEntry/ViewportX,
+	  src/ASDocGen/source/ASDatabaseEntry/ViewportY,
+	  src/ASDocGen/source/ASDatabaseEntry/WindowBox,
+	  src/ASDocGen/source/ASDatabaseEntry/WindowListHit,
+	  src/ASDocGen/source/ASDatabaseEntry/WindowListSkip,
+	  src/ASDocGen/source/ASDatabaseEntry/_examples,
+	  src/ASDocGen/source/ASDatabaseEntry/_footnotes,
+	  src/ASDocGen/source/ASDatabaseEntry/_overview,
+	  src/ASDocGen/source/ASDatabaseEntry/_related,
+	  src/ASDocGen/source/Align/Bottom,
+	  src/ASDocGen/source/Align/Center,
+	  src/ASDocGen/source/Align/HCenter,
+	  src/ASDocGen/source/Align/HScaled,
+	  src/ASDocGen/source/Align/HTiled,
+	  src/ASDocGen/source/Align/LabelHeight,
+	  src/ASDocGen/source/Align/LabelSize,
+	  src/ASDocGen/source/Align/LabelWidth,
+	  src/ASDocGen/source/Align/Left, src/ASDocGen/source/Align/Right,
+	  src/ASDocGen/source/Align/Top, src/ASDocGen/source/Align/VCenter,
+	  src/ASDocGen/source/Align/VScaled,
+	  src/ASDocGen/source/Align/VTiled,
+	  src/ASDocGen/source/Align/_examples,
+	  src/ASDocGen/source/Align/_footnotes,
+	  src/ASDocGen/source/Align/_overview,
+	  src/ASDocGen/source/Align/_related,
+	  src/ASDocGen/source/Animate/Color,
+	  src/ASDocGen/source/Animate/Delay,
+	  src/ASDocGen/source/Animate/Iterations,
+	  src/ASDocGen/source/Animate/Resize,
+	  src/ASDocGen/source/Animate/Twist,
+	  src/ASDocGen/source/Animate/Width,
+	  src/ASDocGen/source/Animate/_base_config,
+	  src/ASDocGen/source/Animate/_examples,
+	  src/ASDocGen/source/Animate/_footnotes,
+	  src/ASDocGen/source/Animate/_mystyles,
+	  src/ASDocGen/source/Animate/_overview,
+	  src/ASDocGen/source/Animate/_related,
+	  src/ASDocGen/source/Animate/_synopsis,
+	  src/ASDocGen/source/AnimateTypes/Flip,
+	  src/ASDocGen/source/AnimateTypes/Random,
+	  src/ASDocGen/source/AnimateTypes/Turn,
+	  src/ASDocGen/source/AnimateTypes/Twist,
+	  src/ASDocGen/source/AnimateTypes/Zoom,
+	  src/ASDocGen/source/AnimateTypes/Zoom3D,
+	  src/ASDocGen/source/AnimateTypes/_examples,
+	  src/ASDocGen/source/AnimateTypes/_footnotes,
+	  src/ASDocGen/source/AnimateTypes/_overview,
+	  src/ASDocGen/source/AnimateTypes/_related,
+	  src/ASDocGen/source/Audio/Delay,
+	  src/ASDocGen/source/Audio/PlayCmd,
+	  src/ASDocGen/source/Audio/RplayHost,
+	  src/ASDocGen/source/Audio/RplayPriority,
+	  src/ASDocGen/source/Audio/RplayVolume,
+	  src/ASDocGen/source/Audio/_base_config,
+	  src/ASDocGen/source/Audio/_examples,
+	  src/ASDocGen/source/Audio/_footnotes,
+	  src/ASDocGen/source/Audio/_mystyles,
+	  src/ASDocGen/source/Audio/_overview,
+	  src/ASDocGen/source/Audio/_related,
+	  src/ASDocGen/source/Audio/_synopsis,
+	  src/ASDocGen/source/AudioEvents/_examples,
+	  src/ASDocGen/source/AudioEvents/_footnotes,
+	  src/ASDocGen/source/AudioEvents/_overview,
+	  src/ASDocGen/source/AudioEvents/_related,
+	  src/ASDocGen/source/AudioEvents/add_window,
+	  src/ASDocGen/source/AudioEvents/config,
+	  src/ASDocGen/source/AudioEvents/deiconify,
+	  src/ASDocGen/source/AudioEvents/destroy_window,
+	  src/ASDocGen/source/AudioEvents/focus_change,
+	  src/ASDocGen/source/AudioEvents/iconify,
+	  src/ASDocGen/source/AudioEvents/maximize,
+	  src/ASDocGen/source/AudioEvents/module_config,
+	  src/ASDocGen/source/AudioEvents/new_background,
+	  src/ASDocGen/source/AudioEvents/new_viewport,
+	  src/ASDocGen/source/AudioEvents/raise_window,
+	  src/ASDocGen/source/AudioEvents/restore,
+	  src/ASDocGen/source/AudioEvents/shade,
+	  src/ASDocGen/source/AudioEvents/shutdown,
+	  src/ASDocGen/source/AudioEvents/startup,
+	  src/ASDocGen/source/AudioEvents/stick,
+	  src/ASDocGen/source/AudioEvents/unshade,
+	  src/ASDocGen/source/AudioEvents/unstick,
+	  src/ASDocGen/source/AudioEvents/window_names,
+	  src/ASDocGen/source/AutoExec/Function,
+	  src/ASDocGen/source/AutoExec/_examples,
+	  src/ASDocGen/source/AutoExec/_footnotes,
+	  src/ASDocGen/source/AutoExec/_overview,
+	  src/ASDocGen/source/AutoExec/_related,
+	  src/ASDocGen/source/Base/AudioPath,
+	  src/ASDocGen/source/Base/CursorPath,
+	  src/ASDocGen/source/Base/DeskTopScale,
+	  src/ASDocGen/source/Base/DeskTopSize,
+	  src/ASDocGen/source/Base/FontPath,
+	  src/ASDocGen/source/Base/IconPath,
+	  src/ASDocGen/source/Base/ModulePath,
+	  src/ASDocGen/source/Base/Path,
+	  src/ASDocGen/source/Base/PixmapPath,
+	  src/ASDocGen/source/Base/_examples,
+	  src/ASDocGen/source/Base/_footnotes,
+	  src/ASDocGen/source/Base/_overview,
+	  src/ASDocGen/source/Base/_related,
+	  src/ASDocGen/source/Bevel/Bottom,
+	  src/ASDocGen/source/Bevel/Extra, src/ASDocGen/source/Bevel/Left,
+	  src/ASDocGen/source/Bevel/NoOutline,
+	  src/ASDocGen/source/Bevel/None, src/ASDocGen/source/Bevel/Right,
+	  src/ASDocGen/source/Bevel/Top,
+	  src/ASDocGen/source/Bevel/_examples,
+	  src/ASDocGen/source/Bevel/_footnotes,
+	  src/ASDocGen/source/Bevel/_overview,
+	  src/ASDocGen/source/Bevel/_related,
+	  src/ASDocGen/source/ColorScheme/Active,
+	  src/ASDocGen/source/ColorScheme/ActiveDark,
+	  src/ASDocGen/source/ColorScheme/ActiveLight,
+	  src/ASDocGen/source/ColorScheme/ActiveText,
+	  src/ASDocGen/source/ColorScheme/Angle,
+	  src/ASDocGen/source/ColorScheme/Base,
+	  src/ASDocGen/source/ColorScheme/BaseDark,
+	  src/ASDocGen/source/ColorScheme/BaseLight,
+	  src/ASDocGen/source/ColorScheme/Cursor,
+	  src/ASDocGen/source/ColorScheme/DisabledText,
+	  src/ASDocGen/source/ColorScheme/HighActive,
+	  src/ASDocGen/source/ColorScheme/HighActiveBack,
+	  src/ASDocGen/source/ColorScheme/HighActiveBackDark,
+	  src/ASDocGen/source/ColorScheme/HighActiveBackLight,
+	  src/ASDocGen/source/ColorScheme/HighActiveDark,
+	  src/ASDocGen/source/ColorScheme/HighActiveLight,
+	  src/ASDocGen/source/ColorScheme/HighActiveText,
+	  src/ASDocGen/source/ColorScheme/HighInactive,
+	  src/ASDocGen/source/ColorScheme/HighInactiveBack,
+	  src/ASDocGen/source/ColorScheme/HighInactiveBackDark,
+	  src/ASDocGen/source/ColorScheme/HighInactiveBackLight,
+	  src/ASDocGen/source/ColorScheme/HighInactiveDark,
+	  src/ASDocGen/source/ColorScheme/HighInactiveLight,
+	  src/ASDocGen/source/ColorScheme/HighInactiveText,
+	  src/ASDocGen/source/ColorScheme/Inactive1,
+	  src/ASDocGen/source/ColorScheme/Inactive1Dark,
+	  src/ASDocGen/source/ColorScheme/Inactive1Light,
+	  src/ASDocGen/source/ColorScheme/Inactive2,
+	  src/ASDocGen/source/ColorScheme/Inactive2Dark,
+	  src/ASDocGen/source/ColorScheme/Inactive2Light,
+	  src/ASDocGen/source/ColorScheme/InactiveText1,
+	  src/ASDocGen/source/ColorScheme/InactiveText2,
+	  src/ASDocGen/source/ColorScheme/_examples,
+	  src/ASDocGen/source/ColorScheme/_footnotes,
+	  src/ASDocGen/source/ColorScheme/_overview,
+	  src/ASDocGen/source/ColorScheme/_related,
+	  src/ASDocGen/source/Feel/AppsBackingStore,
+	  src/ASDocGen/source/Feel/AutoFocus,
+	  src/ASDocGen/source/Feel/AutoRaise,
+	  src/ASDocGen/source/Feel/AutoReverse,
+	  src/ASDocGen/source/Feel/AutoTabThroughDesks,
+	  src/ASDocGen/source/Feel/BackingStore,
+	  src/ASDocGen/source/Feel/CenterOnCirculate,
+	  src/ASDocGen/source/Feel/CirculateSkipIcons,
+	  src/ASDocGen/source/Feel/ClickTime,
+	  src/ASDocGen/source/Feel/ClickToFocus,
+	  src/ASDocGen/source/Feel/ClickToRaise,
+	  src/ASDocGen/source/Feel/CoverAnimationSteps,
+	  src/ASDocGen/source/Feel/CoverAnimationType,
+	  src/ASDocGen/source/Feel/Cursor,
+	  src/ASDocGen/source/Feel/CustomCursor,
+	  src/ASDocGen/source/Feel/DecorateTransients,
+	  src/ASDocGen/source/Feel/DeskAnimationSteps,
+	  src/ASDocGen/source/Feel/DeskAnimationType,
+	  src/ASDocGen/source/Feel/DontMoveOff,
+	  src/ASDocGen/source/Feel/EdgeResistance,
+	  src/ASDocGen/source/Feel/EdgeScroll,
+	  src/ASDocGen/source/Feel/Function,
+	  src/ASDocGen/source/Feel/IconTitle,
+	  src/ASDocGen/source/Feel/KeepIconWindows,
+	  src/ASDocGen/source/Feel/Key, src/ASDocGen/source/Feel/MenusHigh,
+	  src/ASDocGen/source/Feel/Mouse,
+	  src/ASDocGen/source/Feel/NoPPosition,
+	  src/ASDocGen/source/Feel/OpaqueMove,
+	  src/ASDocGen/source/Feel/OpaqueResize,
+	  src/ASDocGen/source/Feel/PagingDefault,
+	  src/ASDocGen/source/Feel/Popup,
+	  src/ASDocGen/source/Feel/RandomPlacement,
+	  src/ASDocGen/source/Feel/SaveUnders,
+	  src/ASDocGen/source/Feel/ShadeAnimationSteps,
+	  src/ASDocGen/source/Feel/SloppyFocus,
+	  src/ASDocGen/source/Feel/SmartPlacement,
+	  src/ASDocGen/source/Feel/StickyIcons,
+	  src/ASDocGen/source/Feel/StubbornIconPlacement,
+	  src/ASDocGen/source/Feel/StubbornIcons,
+	  src/ASDocGen/source/Feel/StubbornPlacement,
+	  src/ASDocGen/source/Feel/SuppressIcons,
+	  src/ASDocGen/source/Feel/XorValue, src/ASDocGen/source/Feel/Xzap,
+	  src/ASDocGen/source/Feel/Yzap,
+	  src/ASDocGen/source/Feel/_examples,
+	  src/ASDocGen/source/Feel/_footnotes,
+	  src/ASDocGen/source/Feel/_overview,
+	  src/ASDocGen/source/Feel/_related,
+	  src/ASDocGen/source/Functions/Background,
+	  src/ASDocGen/source/Functions/Beep,
+	  src/ASDocGen/source/Functions/BookmarkWindow,
+	  src/ASDocGen/source/Functions/ChangeColorscheme,
+	  src/ASDocGen/source/Functions/ChangeFeel,
+	  src/ASDocGen/source/Functions/ChangeLook,
+	  src/ASDocGen/source/Functions/ChangeTheme,
+	  src/ASDocGen/source/Functions/ChangeThemeFile,
+	  src/ASDocGen/source/Functions/ChangeWindowDown,
+	  src/ASDocGen/source/Functions/ChangeWindowUp,
+	  src/ASDocGen/source/Functions/Close,
+	  src/ASDocGen/source/Functions/CursorMove,
+	  src/ASDocGen/source/Functions/Delete,
+	  src/ASDocGen/source/Functions/Desk,
+	  src/ASDocGen/source/Functions/Destroy,
+	  src/ASDocGen/source/Functions/DropExec,
+	  src/ASDocGen/source/Functions/EndFunction,
+	  src/ASDocGen/source/Functions/EndPopup,
+	  src/ASDocGen/source/Functions/Exec,
+	  src/ASDocGen/source/Functions/Focus,
+	  src/ASDocGen/source/Functions/Folder,
+	  src/ASDocGen/source/Functions/Function,
+	  src/ASDocGen/source/Functions/GetHelp,
+	  src/ASDocGen/source/Functions/GoToBookmark,
+	  src/ASDocGen/source/Functions/GotoDeskViewport,
+	  src/ASDocGen/source/Functions/GotoPage,
+	  src/ASDocGen/source/Functions/Iconify,
+	  src/ASDocGen/source/Functions/InstallBackground,
+	  src/ASDocGen/source/Functions/InstallColorscheme,
+	  src/ASDocGen/source/Functions/InstallFeel,
+	  src/ASDocGen/source/Functions/InstallFont,
+	  src/ASDocGen/source/Functions/InstallIcon,
+	  src/ASDocGen/source/Functions/InstallLook,
+	  src/ASDocGen/source/Functions/InstallThemeFile,
+	  src/ASDocGen/source/Functions/InstallTile,
+	  src/ASDocGen/source/Functions/KillModuleByName,
+	  src/ASDocGen/source/Functions/Lower,
+	  src/ASDocGen/source/Functions/MaxSwallow,
+	  src/ASDocGen/source/Functions/MaxSwallowModule,
+	  src/ASDocGen/source/Functions/Maximize,
+	  src/ASDocGen/source/Functions/MiniPixmap,
+	  src/ASDocGen/source/Functions/Module,
+	  src/ASDocGen/source/Functions/Move,
+	  src/ASDocGen/source/Functions/Nop,
+	  src/ASDocGen/source/Functions/PasteSelection,
+	  src/ASDocGen/source/Functions/PinMenu,
+	  src/ASDocGen/source/Functions/PopUp,
+	  src/ASDocGen/source/Functions/PutOnBack,
+	  src/ASDocGen/source/Functions/PutOnTop,
+	  src/ASDocGen/source/Functions/QuickRestart,
+	  src/ASDocGen/source/Functions/Quit,
+	  src/ASDocGen/source/Functions/Raise,
+	  src/ASDocGen/source/Functions/RaiseLower,
+	  src/ASDocGen/source/Functions/Refresh,
+	  src/ASDocGen/source/Functions/Resize,
+	  src/ASDocGen/source/Functions/Restart,
+	  src/ASDocGen/source/Functions/SET_FLAGS,
+	  src/ASDocGen/source/Functions/SET_MASK,
+	  src/ASDocGen/source/Functions/SET_NAME,
+	  src/ASDocGen/source/Functions/SaveWorkspace,
+	  src/ASDocGen/source/Functions/Scroll,
+	  src/ASDocGen/source/Functions/Send_WindowList,
+	  src/ASDocGen/source/Functions/SetLayer,
+	  src/ASDocGen/source/Functions/Shade,
+	  src/ASDocGen/source/Functions/Size,
+	  src/ASDocGen/source/Functions/Stick,
+	  src/ASDocGen/source/Functions/Swallow,
+	  src/ASDocGen/source/Functions/SwallowModule,
+	  src/ASDocGen/source/Functions/TakeFrameShot,
+	  src/ASDocGen/source/Functions/TakeScreenShot,
+	  src/ASDocGen/source/Functions/TakeWindowShot,
+	  src/ASDocGen/source/Functions/Test,
+	  src/ASDocGen/source/Functions/Title,
+	  src/ASDocGen/source/Functions/ToggleLayer,
+	  src/ASDocGen/source/Functions/TogglePage,
+	  src/ASDocGen/source/Functions/Transient,
+	  src/ASDocGen/source/Functions/UNLOCK,
+	  src/ASDocGen/source/Functions/Wait,
+	  src/ASDocGen/source/Functions/WarpBack,
+	  src/ASDocGen/source/Functions/WarpFore,
+	  src/ASDocGen/source/Functions/WindowList,
+	  src/ASDocGen/source/Functions/WindowsDesk,
+	  src/ASDocGen/source/Functions/_examples,
+	  src/ASDocGen/source/Functions/_footnotes,
+	  src/ASDocGen/source/Functions/_overview,
+	  src/ASDocGen/source/Functions/_related,
+	  src/ASDocGen/source/Gravity/Center,
+	  src/ASDocGen/source/Gravity/East,
+	  src/ASDocGen/source/Gravity/North,
+	  src/ASDocGen/source/Gravity/NorthEast,
+	  src/ASDocGen/source/Gravity/NorthWest,
+	  src/ASDocGen/source/Gravity/South,
+	  src/ASDocGen/source/Gravity/SouthEast,
+	  src/ASDocGen/source/Gravity/SouthWest,
+	  src/ASDocGen/source/Gravity/Static,
+	  src/ASDocGen/source/Gravity/West,
+	  src/ASDocGen/source/Gravity/_examples,
+	  src/ASDocGen/source/Gravity/_footnotes,
+	  src/ASDocGen/source/Gravity/_overview,
+	  src/ASDocGen/source/Gravity/_related,
+	  src/ASDocGen/source/Look/ButtonSize,
+	  src/ASDocGen/source/Look/CursorBack,
+	  src/ASDocGen/source/Look/CursorFore,
+	  src/ASDocGen/source/Look/DefaultFrame,
+	  src/ASDocGen/source/Look/DefaultStyle,
+	  src/ASDocGen/source/Look/DeskBack,
+	  src/ASDocGen/source/Look/DontAnimateBackground,
+	  src/ASDocGen/source/Look/DontDrawBackground,
+	  src/ASDocGen/source/Look/DrawMenuBorders,
+	  src/ASDocGen/source/Look/FWindowStyle,
+	  src/ASDocGen/source/Look/IconBox,
+	  src/ASDocGen/source/Look/KillBackgroundThreshold,
+	  src/ASDocGen/source/Look/MArrowPixmap,
+	  src/ASDocGen/source/Look/MenuHiTitleStyle,
+	  src/ASDocGen/source/Look/MenuHiliteCompositionMethod,
+	  src/ASDocGen/source/Look/MenuHiliteStyle,
+	  src/ASDocGen/source/Look/MenuItemCompositionMethod,
+	  src/ASDocGen/source/Look/MenuItemStyle,
+	  src/ASDocGen/source/Look/MenuMiniPixmaps,
+	  src/ASDocGen/source/Look/MenuPinOn,
+	  src/ASDocGen/source/Look/MenuStippleCompositionMethod,
+	  src/ASDocGen/source/Look/MenuStippleStyle,
+	  src/ASDocGen/source/Look/MenuSubItemStyle,
+	  src/ASDocGen/source/Look/MenuTitleStyle,
+	  src/ASDocGen/source/Look/MyBackground,
+	  src/ASDocGen/source/Look/MyFrame,
+	  src/ASDocGen/source/Look/MyStyle,
+	  src/ASDocGen/source/Look/ResizeMoveGeometry,
+	  src/ASDocGen/source/Look/RubberBand,
+	  src/ASDocGen/source/Look/SWindowStyle,
+	  src/ASDocGen/source/Look/SeparateButtonTitle,
+	  src/ASDocGen/source/Look/StartMenuSortMode,
+	  src/ASDocGen/source/Look/SupportedHints,
+	  src/ASDocGen/source/Look/TitleButton,
+	  src/ASDocGen/source/Look/TitleButtonBalloonBorderHilite,
+	  src/ASDocGen/source/Look/TitleButtonBalloonCloseDelay,
+	  src/ASDocGen/source/Look/TitleButtonBalloonDelay,
+	  src/ASDocGen/source/Look/TitleButtonBalloonStyle,
+	  src/ASDocGen/source/Look/TitleButtonBalloonXOffset,
+	  src/ASDocGen/source/Look/TitleButtonBalloonYOffset,
+	  src/ASDocGen/source/Look/TitleButtonBalloons,
+	  src/ASDocGen/source/Look/TitleButtonOrder,
+	  src/ASDocGen/source/Look/TitleButtonSpacing,
+	  src/ASDocGen/source/Look/TitleButtonSpacingLeft,
+	  src/ASDocGen/source/Look/TitleButtonSpacingRight,
+	  src/ASDocGen/source/Look/TitleButtonStyle,
+	  src/ASDocGen/source/Look/TitleButtonXOffset,
+	  src/ASDocGen/source/Look/TitleButtonXOffsetLeft,
+	  src/ASDocGen/source/Look/TitleButtonXOffsetRight,
+	  src/ASDocGen/source/Look/TitleButtonYOffset,
+	  src/ASDocGen/source/Look/TitleButtonYOffsetLeft,
+	  src/ASDocGen/source/Look/TitleButtonYOffsetRight,
+	  src/ASDocGen/source/Look/TitleTextAlign,
+	  src/ASDocGen/source/Look/TitlebarNoPush,
+	  src/ASDocGen/source/Look/UWindowStyle,
+	  src/ASDocGen/source/Look/_examples,
+	  src/ASDocGen/source/Look/_footnotes,
+	  src/ASDocGen/source/Look/_overview,
+	  src/ASDocGen/source/Look/_related,
+	  src/ASDocGen/source/MyBackground/Align,
+	  src/ASDocGen/source/MyBackground/Cut,
+	  src/ASDocGen/source/MyBackground/MyBackground,
+	  src/ASDocGen/source/MyBackground/Pad,
+	  src/ASDocGen/source/MyBackground/Scale,
+	  src/ASDocGen/source/MyBackground/Tint,
+	  src/ASDocGen/source/MyBackground/Use,
+	  src/ASDocGen/source/MyBackground/_examples,
+	  src/ASDocGen/source/MyBackground/_footnotes,
+	  src/ASDocGen/source/MyBackground/_overview,
+	  src/ASDocGen/source/MyBackground/_related,
+	  src/ASDocGen/source/MyFrame/CondenseTitlebar,
+	  src/ASDocGen/source/MyFrame/Corner,
+	  src/ASDocGen/source/MyFrame/CornerAlign,
+	  src/ASDocGen/source/MyFrame/CornerBevel,
+	  src/ASDocGen/source/MyFrame/CornerFBevel,
+	  src/ASDocGen/source/MyFrame/CornerFocusedBevel,
+	  src/ASDocGen/source/MyFrame/CornerSBevel,
+	  src/ASDocGen/source/MyFrame/CornerSize,
+	  src/ASDocGen/source/MyFrame/CornerStickyBevel,
+	  src/ASDocGen/source/MyFrame/CornerUBevel,
+	  src/ASDocGen/source/MyFrame/CornerUnfocusedBevel,
+	  src/ASDocGen/source/MyFrame/East,
+	  src/ASDocGen/source/MyFrame/FrameFStyle,
+	  src/ASDocGen/source/MyFrame/FrameFocusedStyle,
+	  src/ASDocGen/source/MyFrame/FrameSStyle,
+	  src/ASDocGen/source/MyFrame/FrameStickyStyle,
+	  src/ASDocGen/source/MyFrame/FrameUStyle,
+	  src/ASDocGen/source/MyFrame/FrameUnfocusedStyle,
+	  src/ASDocGen/source/MyFrame/Inherit,
+	  src/ASDocGen/source/MyFrame/LeftBtnBackAlign,
+	  src/ASDocGen/source/MyFrame/LeftBtnBackground,
+	  src/ASDocGen/source/MyFrame/LeftSpacerBackAlign,
+	  src/ASDocGen/source/MyFrame/LeftSpacerBackground,
+	  src/ASDocGen/source/MyFrame/LeftTitleSpacerBackAlign,
+	  src/ASDocGen/source/MyFrame/LeftTitleSpacerBackground,
+	  src/ASDocGen/source/MyFrame/LeftTitlebarLayout,
+	  src/ASDocGen/source/MyFrame/MyFrame,
+	  src/ASDocGen/source/MyFrame/NoCorner,
+	  src/ASDocGen/source/MyFrame/NoSide,
+	  src/ASDocGen/source/MyFrame/North,
+	  src/ASDocGen/source/MyFrame/NorthEast,
+	  src/ASDocGen/source/MyFrame/NorthWest,
+	  src/ASDocGen/source/MyFrame/RightBtnBackAlign,
+	  src/ASDocGen/source/MyFrame/RightBtnBackground,
+	  src/ASDocGen/source/MyFrame/RightSpacerBackAlign,
+	  src/ASDocGen/source/MyFrame/RightSpacerBackground,
+	  src/ASDocGen/source/MyFrame/RightTitleSpacerBackAlign,
+	  src/ASDocGen/source/MyFrame/RightTitleSpacerBackground,
+	  src/ASDocGen/source/MyFrame/RightTitlebarLayout,
+	  src/ASDocGen/source/MyFrame/Side,
+	  src/ASDocGen/source/MyFrame/SideAlign,
+	  src/ASDocGen/source/MyFrame/SideBevel,
+	  src/ASDocGen/source/MyFrame/SideFBevel,
+	  src/ASDocGen/source/MyFrame/SideFocusedBevel,
+	  src/ASDocGen/source/MyFrame/SideSBevel,
+	  src/ASDocGen/source/MyFrame/SideSize,
+	  src/ASDocGen/source/MyFrame/SideStickyBevel,
+	  src/ASDocGen/source/MyFrame/SideUBevel,
+	  src/ASDocGen/source/MyFrame/SideUnfocusedBevel,
+	  src/ASDocGen/source/MyFrame/South,
+	  src/ASDocGen/source/MyFrame/SouthEast,
+	  src/ASDocGen/source/MyFrame/SouthWest,
+	  src/ASDocGen/source/MyFrame/TitleAlign,
+	  src/ASDocGen/source/MyFrame/TitleBackground,
+	  src/ASDocGen/source/MyFrame/TitleBackgroundAlign,
+	  src/ASDocGen/source/MyFrame/TitleBevel,
+	  src/ASDocGen/source/MyFrame/TitleCompositionMethod,
+	  src/ASDocGen/source/MyFrame/TitleFBevel,
+	  src/ASDocGen/source/MyFrame/TitleFCompositionMethod,
+	  src/ASDocGen/source/MyFrame/TitleFStyle,
+	  src/ASDocGen/source/MyFrame/TitleFocusedBevel,
+	  src/ASDocGen/source/MyFrame/TitleFocusedCompositionMethod,
+	  src/ASDocGen/source/MyFrame/TitleFocusedStyle,
+	  src/ASDocGen/source/MyFrame/TitleSBevel,
+	  src/ASDocGen/source/MyFrame/TitleSCompositionMethod,
+	  src/ASDocGen/source/MyFrame/TitleSStyle,
+	  src/ASDocGen/source/MyFrame/TitleStickyBevel,
+	  src/ASDocGen/source/MyFrame/TitleStickyCompositionMethod,
+	  src/ASDocGen/source/MyFrame/TitleStickyStyle,
+	  src/ASDocGen/source/MyFrame/TitleUBevel,
+	  src/ASDocGen/source/MyFrame/TitleUCompositionMethod,
+	  src/ASDocGen/source/MyFrame/TitleUStyle,
+	  src/ASDocGen/source/MyFrame/TitleUnfocusedBevel,
+	  src/ASDocGen/source/MyFrame/TitleUnfocusedCompositionMethod,
+	  src/ASDocGen/source/MyFrame/TitleUnfocusedStyle,
+	  src/ASDocGen/source/MyFrame/West,
+	  src/ASDocGen/source/MyFrame/_examples,
+	  src/ASDocGen/source/MyFrame/_footnotes,
+	  src/ASDocGen/source/MyFrame/_overview,
+	  src/ASDocGen/source/MyFrame/_related,
+	  src/ASDocGen/source/MyStyle/BackColor,
+	  src/ASDocGen/source/MyStyle/BackGradient,
+	  src/ASDocGen/source/MyStyle/BackMultiGradient,
+	  src/ASDocGen/source/MyStyle/BackPixmap,
+	  src/ASDocGen/source/MyStyle/DrawTextBackground,
+	  src/ASDocGen/source/MyStyle/Font,
+	  src/ASDocGen/source/MyStyle/ForeColor,
+	  src/ASDocGen/source/MyStyle/Inherit,
+	  src/ASDocGen/source/MyStyle/MyStyle,
+	  src/ASDocGen/source/MyStyle/TextStyle,
+	  src/ASDocGen/source/MyStyle/_examples,
+	  src/ASDocGen/source/MyStyle/_footnotes,
+	  src/ASDocGen/source/MyStyle/_overview,
+	  src/ASDocGen/source/MyStyle/_related,
+	  src/ASDocGen/source/Pager/ActiveDeskBevel,
+	  src/ASDocGen/source/Pager/Align,
+	  src/ASDocGen/source/Pager/BalloonBorderHilite,
+	  src/ASDocGen/source/Pager/BalloonCloseDelay,
+	  src/ASDocGen/source/Pager/BalloonDelay,
+	  src/ASDocGen/source/Pager/BalloonStyle,
+	  src/ASDocGen/source/Pager/BalloonXOffset,
+	  src/ASDocGen/source/Pager/BalloonYOffset,
+	  src/ASDocGen/source/Pager/Balloons,
+	  src/ASDocGen/source/Pager/Columns,
+	  src/ASDocGen/source/Pager/Decoration,
+	  src/ASDocGen/source/Pager/DontDrawBg,
+	  src/ASDocGen/source/Pager/Geometry,
+	  src/ASDocGen/source/Pager/IconGeometry,
+	  src/ASDocGen/source/Pager/InActiveDeskBevel,
+	  src/ASDocGen/source/Pager/Label,
+	  src/ASDocGen/source/Pager/MyStyle,
+	  src/ASDocGen/source/Pager/Rows,
+	  src/ASDocGen/source/Pager/ShadeButton,
+	  src/ASDocGen/source/Pager/SmallFont,
+	  src/ASDocGen/source/Pager/StartIconic,
+	  src/ASDocGen/source/Pager/StickyIcons,
+	  src/ASDocGen/source/Pager/Style,
+	  src/ASDocGen/source/Pager/_base_config,
+	  src/ASDocGen/source/Pager/_examples,
+	  src/ASDocGen/source/Pager/_footnotes,
+	  src/ASDocGen/source/Pager/_mystyles,
+	  src/ASDocGen/source/Pager/_overview,
+	  src/ASDocGen/source/Pager/_related,
+	  src/ASDocGen/source/Pager/_synopsis,
+	  src/ASDocGen/source/PagerDecorations/DeskBorderColor,
+	  src/ASDocGen/source/PagerDecorations/DeskBorderWidth,
+	  src/ASDocGen/source/PagerDecorations/GridColor,
+	  src/ASDocGen/source/PagerDecorations/HideInactiveLabels,
+	  src/ASDocGen/source/PagerDecorations/LabelBelowDesk,
+	  src/ASDocGen/source/PagerDecorations/NoDeskLabel,
+	  src/ASDocGen/source/PagerDecorations/NoPageSeparator,
+	  src/ASDocGen/source/PagerDecorations/NoSelection,
+	  src/ASDocGen/source/PagerDecorations/SelectionColor,
+	  src/ASDocGen/source/PagerDecorations/VerticalLabel,
+	  src/ASDocGen/source/PagerDecorations/_examples,
+	  src/ASDocGen/source/PagerDecorations/_footnotes,
+	  src/ASDocGen/source/PagerDecorations/_overview,
+	  src/ASDocGen/source/PagerDecorations/_related,
+	  src/ASDocGen/source/SupportedHints/AfterStepDB,
+	  src/ASDocGen/source/SupportedHints/ExtendedWM,
+	  src/ASDocGen/source/SupportedHints/Gnome,
+	  src/ASDocGen/source/SupportedHints/GroupLead,
+	  src/ASDocGen/source/SupportedHints/ICCCM,
+	  src/ASDocGen/source/SupportedHints/Motif,
+	  src/ASDocGen/source/SupportedHints/Transient,
+	  src/ASDocGen/source/SupportedHints/Xresources,
+	  src/ASDocGen/source/SupportedHints/_examples,
+	  src/ASDocGen/source/SupportedHints/_footnotes,
+	  src/ASDocGen/source/SupportedHints/_overview,
+	  src/ASDocGen/source/SupportedHints/_related,
+	  src/ASDocGen/source/TbarLayout/Buttons,
+	  src/ASDocGen/source/TbarLayout/Spacer,
+	  src/ASDocGen/source/TbarLayout/TitleSpacer,
+	  src/ASDocGen/source/TbarLayout/_examples,
+	  src/ASDocGen/source/TbarLayout/_footnotes,
+	  src/ASDocGen/source/TbarLayout/_overview,
+	  src/ASDocGen/source/TbarLayout/_related,
+	  src/ASDocGen/source/Wharf/AlignContents,
+	  src/ASDocGen/source/Wharf/Animate,
+	  src/ASDocGen/source/Wharf/AnimateDelay,
+	  src/ASDocGen/source/Wharf/AnimateMain,
+	  src/ASDocGen/source/Wharf/AnimateSteps,
+	  src/ASDocGen/source/Wharf/AnimateStepsMain,
+	  src/ASDocGen/source/Wharf/BalloonBorderHilite,
+	  src/ASDocGen/source/Wharf/BalloonCloseDelay,
+	  src/ASDocGen/source/Wharf/BalloonDelay,
+	  src/ASDocGen/source/Wharf/BalloonStyle,
+	  src/ASDocGen/source/Wharf/BalloonXOffset,
+	  src/ASDocGen/source/Wharf/BalloonYOffset,
+	  src/ASDocGen/source/Wharf/Balloons,
+	  src/ASDocGen/source/Wharf/Bevel,
+	  src/ASDocGen/source/Wharf/Columns,
+	  src/ASDocGen/source/Wharf/CompositionMethod,
+	  src/ASDocGen/source/Wharf/FitContents,
+	  src/ASDocGen/source/Wharf/FlipLabel,
+	  src/ASDocGen/source/Wharf/ForceSize,
+	  src/ASDocGen/source/Wharf/FullPush,
+	  src/ASDocGen/source/Wharf/Geometry,
+	  src/ASDocGen/source/Wharf/LabelLocation,
+	  src/ASDocGen/source/Wharf/MyStyle,
+	  src/ASDocGen/source/Wharf/NoBorder,
+	  src/ASDocGen/source/Wharf/NoPush,
+	  src/ASDocGen/source/Wharf/NoWithdraw,
+	  src/ASDocGen/source/Wharf/Rows,
+	  src/ASDocGen/source/Wharf/ShapeToContents,
+	  src/ASDocGen/source/Wharf/ShowLabel,
+	  src/ASDocGen/source/Wharf/Sound,
+	  src/ASDocGen/source/Wharf/WithdrawStyle,
+	  src/ASDocGen/source/Wharf/_base_config,
+	  src/ASDocGen/source/Wharf/_examples,
+	  src/ASDocGen/source/Wharf/_footnotes,
+	  src/ASDocGen/source/Wharf/_mystyles,
+	  src/ASDocGen/source/Wharf/_overview,
+	  src/ASDocGen/source/Wharf/_related,
+	  src/ASDocGen/source/Wharf/_synopsis,
+	  src/ASDocGen/source/WharfSounds/_examples,
+	  src/ASDocGen/source/WharfSounds/_footnotes,
+	  src/ASDocGen/source/WharfSounds/_overview,
+	  src/ASDocGen/source/WharfSounds/_related,
+	  src/ASDocGen/source/WharfSounds/close_folder,
+	  src/ASDocGen/source/WharfSounds/close_main,
+	  src/ASDocGen/source/WharfSounds/drop,
+	  src/ASDocGen/source/WharfSounds/open_folder,
+	  src/ASDocGen/source/WharfSounds/open_main,
+	  src/ASDocGen/source/WharfSounds/push,
+	  src/ASDocGen/source/WinList/Action,
+	  src/ASDocGen/source/WinList/Align,
+	  src/ASDocGen/source/WinList/BalloonBorderHilite,
+	  src/ASDocGen/source/WinList/BalloonCloseDelay,
+	  src/ASDocGen/source/WinList/BalloonDelay,
+	  src/ASDocGen/source/WinList/BalloonStyle,
+	  src/ASDocGen/source/WinList/BalloonXOffset,
+	  src/ASDocGen/source/WinList/BalloonYOffset,
+	  src/ASDocGen/source/WinList/Balloons,
+	  src/ASDocGen/source/WinList/Bevel,
+	  src/ASDocGen/source/WinList/CompositionMethod,
+	  src/ASDocGen/source/WinList/FBevel,
+	  src/ASDocGen/source/WinList/FCompositionMethod,
+	  src/ASDocGen/source/WinList/FillRowsFirst,
+	  src/ASDocGen/source/WinList/FocusedBevel,
+	  src/ASDocGen/source/WinList/FocusedStyle,
+	  src/ASDocGen/source/WinList/Geometry,
+	  src/ASDocGen/source/WinList/HSpacing,
+	  src/ASDocGen/source/WinList/MaxColWidth,
+	  src/ASDocGen/source/WinList/MaxColumns,
+	  src/ASDocGen/source/WinList/MaxRows,
+	  src/ASDocGen/source/WinList/MaxSize,
+	  src/ASDocGen/source/WinList/MaxWidth,
+	  src/ASDocGen/source/WinList/MinColWidth,
+	  src/ASDocGen/source/WinList/MinSize,
+	  src/ASDocGen/source/WinList/MyStyle,
+	  src/ASDocGen/source/WinList/Orientation,
+	  src/ASDocGen/source/WinList/SBevel,
+	  src/ASDocGen/source/WinList/SCompositionMethod,
+	  src/ASDocGen/source/WinList/ShapeToContents,
+	  src/ASDocGen/source/WinList/Spacing,
+	  src/ASDocGen/source/WinList/StickyBevel,
+	  src/ASDocGen/source/WinList/StickyStyle,
+	  src/ASDocGen/source/WinList/UBevel,
+	  src/ASDocGen/source/WinList/UCompositionMethod,
+	  src/ASDocGen/source/WinList/UnfocusedBevel,
+	  src/ASDocGen/source/WinList/UnfocusedStyle,
+	  src/ASDocGen/source/WinList/UseName,
+	  src/ASDocGen/source/WinList/UseSkipList,
+	  src/ASDocGen/source/WinList/VSpacing,
+	  src/ASDocGen/source/WinList/_base_config,
+	  src/ASDocGen/source/WinList/_examples,
+	  src/ASDocGen/source/WinList/_footnotes,
+	  src/ASDocGen/source/WinList/_mystyles,
+	  src/ASDocGen/source/WinList/_overview,
+	  src/ASDocGen/source/WinList/_related,
+	  src/ASDocGen/source/WinList/_synopsis,
+	  src/ASDocGen/source/WinTabs/Align,
+	  src/ASDocGen/source/WinTabs/BalloonBorderHilite,
+	  src/ASDocGen/source/WinTabs/BalloonCloseDelay,
+	  src/ASDocGen/source/WinTabs/BalloonDelay,
+	  src/ASDocGen/source/WinTabs/BalloonStyle,
+	  src/ASDocGen/source/WinTabs/BalloonXOffset,
+	  src/ASDocGen/source/WinTabs/BalloonYOffset,
+	  src/ASDocGen/source/WinTabs/Balloons,
+	  src/ASDocGen/source/WinTabs/Bevel,
+	  src/ASDocGen/source/WinTabs/CompositionMethod,
+	  src/ASDocGen/source/WinTabs/FBevel,
+	  src/ASDocGen/source/WinTabs/FCompositionMethod,
+	  src/ASDocGen/source/WinTabs/FocusedBevel,
+	  src/ASDocGen/source/WinTabs/FocusedStyle,
+	  src/ASDocGen/source/WinTabs/Geometry,
+	  src/ASDocGen/source/WinTabs/HSpacing,
+	  src/ASDocGen/source/WinTabs/MaxColumns,
+	  src/ASDocGen/source/WinTabs/MaxRows,
+	  src/ASDocGen/source/WinTabs/MaxTabWidth,
+	  src/ASDocGen/source/WinTabs/MinTabWidth,
+	  src/ASDocGen/source/WinTabs/MyStyle,
+	  src/ASDocGen/source/WinTabs/Pattern,
+	  src/ASDocGen/source/WinTabs/SBevel,
+	  src/ASDocGen/source/WinTabs/SCompositionMethod,
+	  src/ASDocGen/source/WinTabs/Spacing,
+	  src/ASDocGen/source/WinTabs/StickyBevel,
+	  src/ASDocGen/source/WinTabs/StickyStyle,
+	  src/ASDocGen/source/WinTabs/UBevel,
+	  src/ASDocGen/source/WinTabs/UCompositionMethod,
+	  src/ASDocGen/source/WinTabs/UnfocusedBevel,
+	  src/ASDocGen/source/WinTabs/UnfocusedStyle,
+	  src/ASDocGen/source/WinTabs/UseSkipList,
+	  src/ASDocGen/source/WinTabs/VSpacing,
+	  src/ASDocGen/source/WinTabs/_base_config,
+	  src/ASDocGen/source/WinTabs/_examples,
+	  src/ASDocGen/source/WinTabs/_footnotes,
+	  src/ASDocGen/source/WinTabs/_mystyles,
+	  src/ASDocGen/source/WinTabs/_overview,
+	  src/ASDocGen/source/WinTabs/_related,
+	  src/ASDocGen/source/WinTabs/_synopsis, src/afterstep/configure.c:
+	  added xml source for documentation into CVS and updated Look in
+	  libAfterConf to be same as in src/afterstep/configure.c
+
+2004-08-04 22:41  sasha
+
+	* afterstep/looks/look.DEFAULT: Added ouline to some fonts in
+	  Default look
+
+2004-08-03 17:52  sasha
+
+	* libAfterStep/mystyle.c: added Outline functionality to the
+	  MyStyle code
+
+2004-08-03 17:28  sasha
+
+	* libAfterImage/: Makefile.in, asfont.c, asfont.h, asstorage.c,
+	  asstorage.h, apps/astext.c: Implemented 3 new types of text:
+	  OutlineAbove, OutlineBelow, OutlineFull that does outlining of
+	  text, also enabled alpha tinting of the text at the time of
+	  rendering
+
+2004-08-02 17:50  sasha
+
+	* libAfterImage/: asstorage.c, apps/ascompose.c: added memory
+	  cleanup code to ascompose, and added missing free calls to
+	  storage destruction code
+
+2004-08-02 17:27  sasha
+
+	* libAfterImage/: asimage.c, asstorage.c, apps/ascompose.c: fixed
+	  thresholding code in asstorage needed for rectangular shape stuff
+
+2004-08-02 13:27  sasha
+
+	* libAfterImage/: asstorage.c, transform.c, apps/ascompose.c:
+	  Improved reference counting in ASStorage to accomodate to wierd
+	  storage states where some blocks have no space left for reference
+
+2004-07-30 17:54  sasha
+
+	* libAfterImage/: asimage.c, asstorage.h, import.c, xpm.c, xpm.h:
+	  reimplemented image reading using new functionality of ASStorage
+	  using bitmap stuff and grayscale images using reference counters
+
+2004-07-30 12:17  sasha
+
+	* libAfterStep/decor.c, src/afterstep/decorations.c,
+	  src/afterstep/menus.c:  fixed handling of the menu size
+	  calculation - wrong style was used
+
+2004-07-29 17:57  sasha
+
+	* libAfterBase/safemalloc.c, libAfterImage/asstorage.c,
+	  libAfterImage/asstorage.h, libAfterImage/asvisual.c,
+	  libAfterImage/apps/asscale.c, libAfterImage/apps/asview.c,
+	  libAfterStep/hints.c, src/afterstep/decorations.c: debugging the
+	  size of AS menus; added storage printing function
+
+2004-07-28 17:53  sasha
+
+	* libAfterImage/asimage.c: disabled debug output
+
+2004-07-28 17:44  sasha
+
+	* libAfterImage/: asfont.c, asimage.c, asimage.h, asimagexml.c,
+	  asstorage.c, imencdec.c, transform.c: rewrote ASImage contents
+	  storing code to utilize generic ASStorage
+
+2004-07-28 13:18  sasha
+
+	* libAfterImage/: asstorage.c, asstorage.h: added 32bit store
+	  function
+
+2004-07-23 16:50  sasha
+
+	* libAfterBase/safemalloc.c, libAfterImage/asstorage.c,
+	  libAfterImage/asstorage.h: completed implementation of ASStorage,
+	  including compression scheme for bitmapped data
+
+2004-07-21 17:42  sasha
+
+	* libAfterImage/: asstorage.c, asstorage.h: Completed implementing
+	  RLEDIFF compression and ; Completed debugging of asstorage with
+	  RLE DIFF compression
+
+2004-07-20 21:15  sasha
+
+	* libAfterImage/asstorage.c: implemented decompression
+
+2004-07-20 17:38  sasha
+
+	* libAfterImage/: asstorage.c, asstorage.h: Implemented RLE diff
+	  compression code in ASStorage
+
+2004-07-16 17:46  sasha
+
+	* libAfterImage/asstorage.c, libAfterImage/asstorage.h,
+	  src/afterstep/afterstep.c: started implementing compression using
+	  zlib
+
+2004-07-14 22:31  sasha
+
+	* libAfterStep/asfeel.h, src/afterstep/aswindow.c,
+	  src/afterstep/configure.c, src/afterstep/functions.c: applyed
+	  patch from CaT(tm) :) implementing sorting order by alpha in
+	  winlist menu and winlist menu without icons
+
+2004-07-14 17:46  sasha
+
+	* libAfterBase/safemalloc.c, libAfterImage/asstorage.c,
+	  libAfterImage/asstorage.h: completed debugging and implementing
+	  asstorage
+
+2004-07-14 15:37  born2late
+
+	* src/ASDocGen/docfile.c: some changes to better fit wao
+
+2004-07-14 15:27  born2late
+
+	* src/ASDocGen/source.tar.gz: animate and base updates
+
+2004-07-13 22:38  sasha
+
+	* libAfterImage/: asimagexml.c, asimagexml.h, asstorage.c:
+	  Implemented and debugged storage defragmentation; Moved xml
+	  parser enums back to .h and added missing typedefs
+
+2004-07-13 17:40  sasha
+
+	* libAfterBase/safemalloc.c, libAfterImage/asstorage.c,
+	  libAfterImage/asstorage.h: Fixed guarded memory handlinbg for
+	  blocks of whole number of pages; Debugged some of the aspects of
+	  ASStorage memory handling - must implement defragmentation now
+
+2004-07-13 16:00  born2late
+
+	* src/ASDocGen/source.tar.gz: updated wharf, feel and look docs
+
+2004-07-13 09:38  sasha
+
+	* libAfterImage/: libAfterImage.dsp, libAfterImage.mak,
+	  win32/asview.dsp: changed /ML flags to /MD ( based on Bertrand
+	  Bellenot suggestion)
+
+2004-07-13 09:34  sasha
+
+	* libAfterImage/: asimage.c, asimagexml.c, asimagexml.h, bmp.c,
+	  bmp.h, libAfterImage.dsp, libAfterImage.mak: accepted patch from
+	  Bertrand Bellenot (Root) for libAfterImage under Win32; Updated
+	  MSVC project files with new files
+
+2004-07-12 22:34  sasha
+
+	* libAfterImage/asstorage.c: debugged storage storing, started
+	  implementing fetching
+
+2004-07-12 17:43  sasha
+
+	* libAfterImage/asstorage.c: added better testing code
+
+2004-07-09 17:23  sasha
+
+	* libAfterImage/: asstorage.c, asstorage.h: partially debugged
+	  ASStorage implementation
+
+2004-07-09 11:02  sasha
+
+	* src/ASDocGen/source.tar.gz: Added xmlized doc sources
+
+2004-07-09 10:57  sasha
+
+	* doc/: Pager.xml, Wharf.xml, WinList.xml, afterstep.xml: added
+	  temporary XMlized versions of man pages to be transfeormed into
+	  ASDocGen stuff
+
+2004-07-07 17:36  sasha
+
+	* libAfterImage/: asstorage.c, asstorage.h: storage splitting
+
+2004-07-06 22:21  sasha
+
+	* libAfterImage/: asstorage.c, asstorage.h: ASAStorage slot
+	  selection code added
+
+2004-07-06 17:37  sasha
+
+	* libAfterImage/: asstorage.c, asstorage.h: Continued
+	  implementation of ASStorage
+
+2004-07-06 00:34  sasha
+
+	* libAfterImage/: Makefile.in, asstorage.c: implemented test
+	  container for asstorage ala XP
+
+2004-07-05 16:06  sasha
+
+	* libAfterImage/: asstorage.c, asstorage.h: started implemnting
+	  proper storage for ASImage data
+
+2004-07-03 22:29  sasha
+
+	* configure, libAfterImage/Makefile.in, libAfterImage/afterimage.h,
+	  libAfterImage/ascmap.c, libAfterImage/asimage.c,
+	  libAfterImage/asimage.h, libAfterImage/asimagexml.c,
+	  libAfterImage/bmp.c, libAfterImage/export.c,
+	  libAfterImage/imencdec.c, libAfterImage/imencdec.h,
+	  libAfterImage/import.c, libAfterImage/pixmap.c,
+	  libAfterImage/transform.c, libAfterImage/ximage.c: Updated
+	  configure scripts; spilt image decoder/encoder from asimage -
+	  need to rearrange to get it to order
+
+2004-07-03 13:06  sasha
+
+	* libAfterImage/asimage.c: done most of the coding required for
+	  proper handling od static ASImages
+
+2004-07-03 12:56  madarche
+
+	* doc/asxmlimages.html: - Added a new example of tiling: tiled
+	  gradient - Reorganized the file so that the first code snippet is
+	  the simpler and then	 following examples become harder.
+
+2004-07-03 12:01  madarche
+
+	* doc/asxmlimages.html: - made the given examples to be valid XML -
+	  corrected the typography so that it's correct English typography,
+	  there   shouldn't be any space before a ":".
+
+	  Hum, yes, I'm a bit psycho-rigid when it comes to following
+	  standards ;-)
+
+2004-07-02 17:31  sasha
+
+	* libAfterImage/asimage.h, src/ASDocGen/ASDocGen.c,
+	  src/ASDocGen/ASDocGen.h, src/ASDocGen/docfile.c,
+	  src/ASDocGen/xmlproc.c: implemented crosslinking docs
+
+2004-07-01 20:07  sasha
+
+	* libAfterBase/ashash.c: fixed flush_ashash, to properly clear
+	  members
+
+2004-07-01 20:00  sasha
+
+	* src/ASDocGen/ASDocGen.c, libAfterBase/ashash.c: fixed segfault in
+	  ASDocGen index generation and possibly fixed bug in flush_ashash
+
+2004-07-01 17:33  sasha
+
+	* libAfterImage/asimagexml.c, libAfterImage/asimagexml.h,
+	  src/ASDocGen/ASDocGen.c, src/ASDocGen/ASDocGen.h,
+	  src/ASDocGen/docfile.c, src/ASDocGen/xmlproc.c,
+	  src/ASDocGen/xmlproc.h: implementing urls for keywords,
+	  intellifgent handling of the NAME section, etc.
+
+2004-06-30 17:43  sasha
+
+	* libAfterImage/asimage.h, libAfterImage/asimagexml.c,
+	  src/ASDocGen/ASDocGen.c, src/ASDocGen/ASDocGen.h,
+	  src/ASDocGen/docfile.c, src/ASDocGen/html_styles.css,
+	  src/ASDocGen/xmlproc.c: Added nested subsections, partly debugged
+	  quotations, other doc gen tweaks
+
+2004-06-29 22:18  sasha
+
+	* libAfterImage/asimage.c: progress in implementing static ASImages
+
+2004-06-29 17:37  sasha
+
+	* src/ASDocGen/: ASDocGen.c, docfile.c, xmlproc.c, xmlproc.h:
+	  processing of robodoc comments mostly works - need to add some
+	  fine- tuning to generate URLs, section titles, and possibly
+	  varlists
+
+2004-06-28 17:35  sasha
+
+	* src/ASDocGen/ASDocGen.c: debugging handling of robodoc comments
+	  in source files
+
+2004-06-25 17:30  sasha
+
+	* libAfterImage/apps/asi18n.c, src/ASDocGen/ASDocGen.c,
+	  src/ASDocGen/xmlproc.c, src/ASDocGen/xmlproc.h: prototyped doc
+	  generation for robodoc comments
+
+2004-06-24 17:13  sasha
+
+	* src/ASDocGen/: ASDocGen.c, ASDocGen.h, Makefile.in, docfile.c,
+	  xmlproc.c, xmlproc.h: Rearranged ASDocGen code so its more
+	  manageable, and started implementing doc generation using robodoc
+	  comments inside the sources
+
+2004-06-24 09:10  sasha
+
+	* configure, autoconf/Makefile.defines.in, autoconf/configure.in,
+	  libAfterImage/apps/Makefile.in: Disabled stripping of binaries
+	  when enable-gdb is requested
+
+2004-06-24 08:52  sasha
+
+	* libAfterStep/mylook.c: fixed bug in debug prints in mylook.c
+	  visible on solaris
+
+2004-06-23 17:45  sasha
+
+	* libAfterConf/ASetRoot.c, libAfterConf/Animate.c,
+	  libAfterConf/Audio.c, libAfterConf/Base.c, libAfterConf/Color.c,
+	  libAfterConf/Database.c, libAfterConf/Feel.c,
+	  libAfterConf/Look.c, libAfterConf/MyStyle.c,
+	  libAfterConf/Pager.c, libAfterConf/Wharf.c,
+	  libAfterConf/WinList.c, libAfterConf/WinTabs.c,
+	  libAfterConf/afterconf.h, libAfterConf/function.c,
+	  libAfterStep/asapp.c, libAfterStep/parser.h,
+	  src/ASDocGen/ASDocGen.c, src/afterstep/configure.c: Implemented
+	  NROFF formating of generated docs, and updated Look config in
+	  libAfterConf
+
+2004-06-22 21:57  sasha
+
+	* libAfterImage/: asimage.c, asimage.h, asimagexml.c, import.c,
+	  transform.c: Implemented support for static ASImages where memory
+	  is allocated more efficiently
+
+2004-06-21 17:32  sasha
+
+	* libAfterImage/: asfont.c, char2uni.c, char2uni.h: added support
+	  for UTF-8 when its requested in LC_LANG setting
+
+2004-06-18 17:22  sasha
+
+	* src/ASDocGen/html_styles.css: Added html stylesheets to embedded
+	  in docs
+
+2004-06-18 17:21  sasha
+
+	* src/ASDocGen/ASDocGen.c: beautification of the PHP and HTML code
+
+2004-06-17 17:21  sasha
+
+	* src/ASDocGen/ASDocGen.c: Implemented Glossary for PHP and
+	  implemented Index
+
+2004-06-16 17:23  sasha
+
+	* libAfterConf/afterconf.h, src/ASDocGen/ASDocGen.c: Completed
+	  implementing Glossary generation in ASDocGen, also fixed some
+	  ugly HTML code generation
+
+2004-06-15 17:22  sasha
+
+	* src/ASDocGen/: ASDocGen.c: Implemented splitting PHP docs into
+	  separate files for each module
+
+2004-06-15 15:15  madarche
+
+	* README: Corrected minor typos, essentially to check my newly
+	  available write access :-)
+
+2004-06-14 22:38  sasha
+
+	* src/ASDocGen/ASDocGen.c: debugging ASDocGen segfault
+
+2004-06-14 17:22  sasha
+
+	* src/ASDocGen/ASDocGen.c: implementing multifile php generation
+
+2004-06-13 20:54  sasha
+
+	* libAfterImage/: asimage.c, asimage.h: Introduced new type of
+	  image  - static to add flexibility in regards to memory
+	  allocation
+
+2004-06-11 16:59  sasha
+
+	* src/ASDocGen/ASDocGen.c: Added PHP fuunctionality to doc
+	  generation
+
+2004-06-10 23:21  sasha
+
+	* afterstep/backgrounds/Mirrored_Tiles/xml/: Blurts_Michelson,
+	  Defenseless_Elsie, Dorchester_Consolidated, Evil_Car_Wash:
+	  improvements for memory consumption using mirrored tiles
+
+2004-06-10 23:15  sasha
+
+	* libAfterBase/audit.c, src/afterstep/pager.c: added new totals to
+	  audit memory printing
+
+2004-06-10 22:44  sasha
+
+	* afterstep/backgrounds/Mirrored_Tiles/xml/Blurts_Michelson,
+	  afterstep/backgrounds/Mirrored_Tiles/xml/Defenseless_Elsie,
+	  afterstep/backgrounds/Mirrored_Tiles/xml/Dorchester_Consolidated,
+	  afterstep/backgrounds/Mirrored_Tiles/xml/Evil_Car_Wash,
+	  afterstep/backgrounds/xml/Default, libAfterBase/ashash.c,
+	  libAfterImage/asimage.c, libAfterImage/asimage.h,
+	  libAfterImage/asimagexml.c, src/afterstep/pager.c: added xml tag
+	  <release> so that temporary images could be unload to free up
+	  some memory
+
+2004-06-10 19:42  sasha
+
+	* src/afterstep/decorations.c:	completed debugging Titlebar Layout
+	  setting in MyFrame
+
+2004-06-10 17:23  sasha
+
+	* libAfterConf/Look.c, libAfterStep/asapp.c, libAfterStep/asapp.h,
+	  src/ASDocGen/ASDocGen.c: Implemented XML output in ASDocGen and
+	  perfected generation and HTML
+
+2004-06-09 22:58  sasha
+
+	* src/afterstep/: configure.c, decorations.c: debugging
+	  TitlebarLayout - compile_tbar_layout does not work right
+
+2004-06-09 17:27  sasha
+
+	* libAfterConf/ASetRoot.c, libAfterConf/Animate.c,
+	  libAfterConf/Audio.c, libAfterConf/Database.c,
+	  libAfterConf/Feel.c, libAfterConf/Look.c, libAfterConf/MyStyle.c,
+	  libAfterConf/Pager.c, libAfterConf/Wharf.c,
+	  libAfterConf/function.c, libAfterStep/asapp.c,
+	  libAfterStep/asapp.h, src/ASDocGen/ASDocGen.c: Implementing
+	  document generator into HTML format
+
+2004-06-09 08:42  sasha
+
+	* libAfterConf/Base.c: fixed bug in ImageManager creation when
+	  getenv may return NULL for IMAGE_PATH
+
+2004-06-08 23:05  sasha
+
+	* configure, libAfterBase/xwrap.c, libAfterBase/xwrap.h,
+	  libAfterImage/configure, libAfterStep/afterstep.h,
+	  libAfterStep/mystyle.c, src/Animate/Animate.c, src/Wharf/Wharf.c,
+	  src/WinTabs/WinTabs.c, src/afterstep/add_window.c,
+	  src/afterstep/afterstep.c, src/afterstep/events.c,
+	  src/afterstep/menus.c, src/afterstep/module.c,
+	  src/afterstep/pager.c, src/afterstep/placement.c: Fixed race
+	  condition with modules using LOCKONSEND and display being grabbed
+
+2004-06-08 17:07  sasha
+
+	* libAfterImage/asimagexml.c, libAfterImage/asimagexml.h,
+	  src/ASDocGen/ASDocGen.c: added ability to XML parser to recognize
+	  known tags; Added framework code for converting source xml into
+	  html docs to ASDocGen
+
+2004-06-08 11:41  sasha
+
+	* configure, afterstep/pager.in, autoconf/configure.in,
+	  libAfterConf/ASConfig.c, libAfterConf/ASetRoot.c,
+	  libAfterConf/Animate.c, libAfterConf/Audio.c,
+	  libAfterConf/Base.c, libAfterConf/Color.c,
+	  libAfterConf/Database.c, libAfterConf/Feel.c,
+	  libAfterConf/Look.c, libAfterConf/MyStyle.c,
+	  libAfterConf/Pager.c, libAfterConf/Wharf.c,
+	  libAfterConf/WinList.c, libAfterConf/WinTabs.c,
+	  libAfterConf/afterconf.h, libAfterConf/function.c,
+	  libAfterStep/asapp.c, libAfterStep/module.h,
+	  libAfterStep/parser.h, src/ASDocGen/ASDocGen.c,
+	  src/ASDocGen/Makefile.in, src/Pager/Pager.c: Began implementing
+	  documentation generation system
+
+2004-06-07 22:21  sasha
+
+	* src/afterstep/afterstep.c: Fixed initial desk/viewport setting
+	  upon startup
+
+2004-06-07 22:09  sasha
+
+	* src/afterstep/: configure.c, events.c, pager.c: fixed background
+	  reloading on colorscheme change
+
+2004-06-06 19:43  sasha
+
+	* libAfterStep/clientprops.c, libAfterStep/hints.c,
+	  src/afterstep/winstatus.c: fixed handling of transient windows
+	  and group window hints
+
+2004-05-24 16:11  sasha
+
+	* libAfterImage/asimage.c, libAfterImage/transform.c,
+	  libAfterStep/canvas.c, libAfterStep/mystyle.c, src/Wharf/Wharf.c:
+	  fixed scaling algorithm to properly scale images with height <= 3
+
+2004-05-21 17:46  sasha
+
+	* libAfterConf/Audio.c, libAfterConf/afterconf.h,
+	  libAfterStep/module.h, src/Audio/Audio.c, src/Audio/Makefile.in,
+	  src/afterstep/asinternals.h, src/afterstep/functions.c,
+	  src/afterstep/menus.c: Completed updating for Audio module
+
+2004-05-20 17:25  sasha
+
+	* README, doc/afterstep-4.html, doc/afterstep.sgml,
+	  doc/asxmlimages.html, doc/languages/README.nl,
+	  libAfterBase/parse.c, libAfterConf/Audio.c, libAfterConf/Look.c,
+	  libAfterConf/Makefile.in, libAfterConf/afterconf.h,
+	  libAfterStep/mylook.c, libAfterStep/mylook.h, src/Audio/Audio.c,
+	  src/afterstep/asinternals.h, src/afterstep/configure.c,
+	  src/afterstep/decorations.c, src/afterstep/placement.c,
+	  tools/makeasclean: Implemented new feature allowing changing
+	  order of items in titlebar - LeftTitlebarLayout and
+	  RightTitlebarLayout in MyFrame; Fixed bug in place_aswindow where
+	  it would never default onto manuall placement causing big windows
+	  to be silently killed without displaying them; Fixed bug in
+	  custom colors cleanup code to not treat color values as pointers;
+	  Updated docs and xml image docs in particular from patch
+	  submitted by ma.darche@cynode.org; Added Audio config to
+	  libAfterConf, and copied Audio.c from experimental branch, in
+	  order to convert it to 2.0
+
+2004-05-19 11:44  sasha
+
+	* afterstep/Makefile.in, src/Animate/Animate.c: Completed Animate
+	  porting - configuration file is installed now, and
+	  deiconification animation is good
+
+2004-05-19 10:05  sasha
+
+	* libAfterConf/Animate.c, libAfterConf/afterconf.h,
+	  src/Animate/Animate.c: completed debugging Animate module
+
+2004-05-18 17:26  sasha
+
+	* Makefile.in, libAfterConf/.depend, libAfterConf/.shared,
+	  libAfterConf/Makefile.in, libAfterConf/afterconf.h,
+	  libAfterImage/.depend, libAfterImage/.shared,
+	  libAfterImage/Makefile.in, libAfterImage/apps/.depend,
+	  libAfterStep/.depend, libAfterStep/.shared,
+	  libAfterStep/module.c, src/Animate/.depend,
+	  src/Animate/Animate.c, src/Animate/Animate.h,
+	  src/Animate/Makefile.in, src/Banner/.depend, src/Pager/.depend,
+	  src/Pager/Pager.c, src/Wharf/.depend, src/afterstep/.depend,
+	  src/ascp/.depend, libAfterConf/Animate.c: updated dependancies,
+	  and completed reimplementing Animate module - still needs some
+	  debugging though
+
+2004-05-18 10:46  sasha
+
+	* libAfterImage/asvisual.c: fixed erroneous uncommented line in
+	  shared memory XImages
+
+2004-05-17 16:39  sasha
+
+	* src/Animate/Animate.c: began updating to 2.0 stuff
+
+2004-05-17 16:00  sasha
+
+	* src/afterstep/add_window.c, src/afterstep/asinternals.h,
+	  src/afterstep/events.c, src/afterstep/functions.c,
+	  src/afterstep/icons.c, src/afterstep/menus.c,
+	  src/afterstep/pager.c, src/afterstep/placement.c,
+	  libAfterBase/aslist.c, libAfterConf/Feel.c,
+	  libAfterConf/afterconf.h, libAfterImage/asvisual.c,
+	  libAfterImage/ximage.c, libAfterImage/apps/asi18n.c,
+	  libAfterImage/apps/astext.c, libAfterStep/asapp.h,
+	  libAfterStep/balloon.c, libAfterStep/clientprops.h,
+	  libAfterStep/decor.c, libAfterStep/event.h,
+	  libAfterStep/moveresize.c, libAfterStep/moveresize.h,
+	  libAfterStep/outline.c, src/Form/Form.c, src/Pager/Pager.c,
+	  src/Wharf/Wharf.c, src/WinList2/WinList.c, src/WinTabs/WinTabs.c,
+	  src/ascp/asimbrowser.c: cleaned up C++ comments
+
+2004-05-14 16:16  sasha
+
+	* src/afterstep/pager.c: completed debugging of fast desktop
+	  switching using pixmap caching on server
+
+2004-05-14 16:10  sasha
+
+	* src/afterstep/pager.c: completed debugging of fast desktop
+	  switching using pixmap caching on server
+
+2004-05-13 13:02  sasha
+
+	* libAfterImage/asimage.c, src/afterstep/pager.c: debugging
+	  background changing
+
+2004-05-13 09:13  sasha
+
+	* libAfterImage/: asfont.c, configure, configure.in: hopefully
+	  fixed detection of freetype library on debian sarge
+
+2004-05-12 22:49  sasha
+
+	* configure, autoconf/configure.in, libAfterBase/configure,
+	  libAfterImage/Makefile.in, libAfterImage/configure,
+	  libAfterImage/configure.in: updated configure scripts and partly
+	  fixed freetype autodetection for debian - still need ft2build
+	  adding to freetype.h detection code
+
+2004-05-12 17:02  sasha
+
+	* libAfterBase/safemalloc.c, libAfterBase/safemalloc.h,
+	  libAfterImage/asfont.c, libAfterStep/asfeel.h,
+	  libAfterStep/mylook.c, libAfterStep/mylook.h,
+	  src/afterstep/pager.c: implemented fast(er) desktop switching by
+	  caching background pixmaps - there are some quirks that needs to
+	  be ironed out still
+
+2004-05-11 22:43  sasha
+
+	* libAfterImage/asfont.c: fishing out segfault in get_text_size
+
+2004-05-11 17:37  sasha
+
+	* libAfterBase/audit.c, libAfterBase/safemalloc.c,
+	  libAfterBase/safemalloc.h, libAfterConf/MyStyle.c,
+	  libAfterImage/apps/astext.c: Implemented memory debugging under
+	  cygwin and fixed discovered bug in MyStyle parsing
+
+2004-05-10 17:30  sasha
+
+	* libAfterBase/audit.c: debugging memory audit
+
+2004-05-10 10:19  sasha
+
+	* libAfterConf/Wharf.c, libAfterImage/ximage.c, src/Wharf/Wharf.c:
+	  Implemented Transient button functionality in Wharf, missing from
+	  1.8
+
+2004-05-07 17:20  sasha
+
+	* libAfterImage/asfont.c, libAfterImage/asfont.h,
+	  libAfterImage/asimage.c, libAfterImage/ximage.c,
+	  src/Wharf/Wharf.c, src/ascp/asimbrowser.c: minor TODO changes
+
+2004-04-29 16:04  sasha
+
+	* libAfterImage/asfont.c, libAfterImage/asfont.h,
+	  libAfterImage/apps/astext.c, libAfterStep/freestor.c,
+	  libAfterStep/mystyle.c: Implemented ability to use tab stops
+	  while drawing text, and cleaned up new api calls; Fixed Wharf
+	  Bevel setting
+
+2004-04-19 13:10  sasha
+
+	* libAfterImage/: asfont.c, asfont.h, apps/astext.c: Implemented
+	  ability to load any font as monospaced using scaling of glyphs
+	  and other techniques, making it possible to use libAfterImage for
+	  text output in applications such as text editors and terminal
+	  emulators
+
+2004-04-16 11:31  sasha
+
+	* afterstep/feels/feel.DEFAULT, afterstep/non-configurable/0_feel,
+	  libAfterBase/ashash.c, libAfterBase/ashash.h,
+	  src/afterstep/asinternals.h, src/afterstep/aswindow.c,
+	  src/afterstep/functions.c, src/afterstep/winstatus.c: Debugged
+	  Bookmarking mechanism- was forgetting to create a copy of
+	  bookmark string while storing it in hash table
+
+2004-04-15 13:36  sasha
+
+	* libAfterConf/Wharf.c: Fixed Wharf bevel and Align options to be
+	  flag and not print silly warnings
+
+2004-04-15 13:30  sasha
+
+	* afterstep/non-configurable/: 0_background, 0_feel, 0_look:
+	  updated default look/feel/background in non-configurable of the
+	  distro to be the same as in other places
+
+2004-04-15 13:20  sasha
+
+	* libAfterConf/Database.c, libAfterImage/asfont.c,
+	  libAfterImage/asfont.h, libAfterStep/asdatabase.c,
+	  libAfterStep/hints.c, src/afterstep/winstatus.c: Fixed bug in
+	  handling of Viewport setting in database when only one of the x
+	  or y is set.It was using X set flag for y value and wise versa
+
+2004-04-12 16:12  sasha
+
+	* NEW: Updated NEW file to eliminate typhos and syntax errors
+	  (contributed)
+
+2004-04-06 09:45  vae
+
+	* Makefile.in, autoconf/Makefile.defines.in: patch to fix sandbox
+	  issues (gentoo)
+
+2004-03-31 17:06  sasha
+
+	* configure.h.in, libAfterImage/asfont.c, libAfterStep/asapp.h:
+	  Fixed potential segfault in asfont.c when font is NULL; Fixed
+	  including of afterbase.h in asapp.h to be done only when compiled
+	  as part of AfterStep
+
+2004-03-30 15:03  sasha
+
+	* afterstep/: Makefile.in, backgrounds/Mirrored_Tiles/xml/.include,
+	  backgrounds/Mirrored_Tiles/xml/Blurts_Michelson,
+	  backgrounds/Mirrored_Tiles/xml/Blurts_Michelson.mini,
+	  backgrounds/Mirrored_Tiles/xml/Defenseless_Elsie,
+	  backgrounds/Mirrored_Tiles/xml/Defenseless_Elsie.mini,
+	  backgrounds/Mirrored_Tiles/xml/Dorchester_Consolidated,
+	  backgrounds/Mirrored_Tiles/xml/Dorchester_Consolidated.mini,
+	  backgrounds/Mirrored_Tiles/xml/Evil_Car_Wash,
+	  backgrounds/Mirrored_Tiles/xml/Evil_Car_Wash.mini: Added another
+	  subfolder for background images - 4 mirrored tiles as suggested
+	  on AS ML
+
+2004-03-30 09:02  sasha
+
+	* src/afterstep/afterstep.c: fixed potential compile problem in
+	  DEBUG statememnt that comes up on some wird compilers, notably on
+	  Solaris 2.5
+
+2004-03-29 09:04  sasha
+
+	* libAfterStep/asapp.c, libAfterStep/screen.c,
+	  src/afterstep/afterstep.c: Debugged Restart functionality to
+	  prevent AS from crashing
+
+2004-03-22 12:09  sasha
+
+	* src/afterstep/: asinternals.h, pager.c: Fixed segfault when
+	  compiled with --enable-different-looknfeels due to attempted
+	  config loading before initialization of AS is complete
+
+2004-03-19 11:45  sasha
+
+	* libAfterImage/: export.c, import.c: added includes for xmd.h
+	  prior to jpeglib, to prevent multiple definitions of INT32
+
+2004-03-19 11:34  sasha
+
+	* libAfterImage/: libpng/png.h, libungif/egif_lib.c: added missing
+	  include for system's zlib.h in png.h
+
+2004-03-19 11:26  sasha
+
+	* libAfterImage/libungif/: dgif_lib.c, egif_lib.c: removed unneeded
+	  io.h from libungif
+
+2004-03-18 16:50  sasha
+
+	* README,
+	  afterstep/backgrounds/Plain_Textures/xml/Blurts_Michelson,
+	  afterstep/backgrounds/Plain_Textures/xml/Blurts_Michelson.mini,
+	  afterstep/backgrounds/Plain_Textures/xml/Checkers,
+	  afterstep/backgrounds/Plain_Textures/xml/Checkers.mini,
+	  afterstep/backgrounds/Plain_Textures/xml/Defenseless_Elsie,
+	  afterstep/backgrounds/Plain_Textures/xml/Defenseless_Elsie.mini,
+	  afterstep/backgrounds/Plain_Textures/xml/Dorchester_Consolidated,
+	  afterstep/backgrounds/Plain_Textures/xml/Dorchester_Consolidated.mini,
+	  afterstep/backgrounds/Plain_Textures/xml/Drop_Injures,
+	  afterstep/backgrounds/Plain_Textures/xml/Drop_Injures.mini,
+	  afterstep/backgrounds/Plain_Textures/xml/Evil_Car_Wash,
+	  afterstep/backgrounds/Plain_Textures/xml/Evil_Car_Wash.mini,
+	  afterstep/backgrounds/Plain_Textures/xml/Gray,
+	  afterstep/backgrounds/Plain_Textures/xml/Gray.mini,
+	  afterstep/backgrounds/Plain_Textures/xml/Libelous_Paintings,
+	  afterstep/backgrounds/Plain_Textures/xml/Libelous_Paintings.mini,
+	  afterstep/backgrounds/Plain_Textures/xml/Nordic_Powder_Pirate,
+	  afterstep/backgrounds/Plain_Textures/xml/Nordic_Powder_Pirate.mini,
+	  afterstep/backgrounds/Plain_Textures/xml/Psychiatrists_Imminently,
+	  afterstep/backgrounds/Plain_Textures/xml/Psychiatrists_Imminently.mini,
+	  afterstep/backgrounds/Plain_Textures/xml/Simple,
+	  afterstep/backgrounds/Plain_Textures/xml/Simple.mini,
+	  afterstep/backgrounds/xml/Blurts_Michelson,
+	  afterstep/backgrounds/xml/Blurts_Michelson.mini,
+	  afterstep/backgrounds/xml/Cell.mini,
+	  afterstep/backgrounds/xml/Cell_Colored.mini,
+	  afterstep/backgrounds/xml/Default,
+	  afterstep/backgrounds/xml/Default.mini,
+	  afterstep/backgrounds/xml/Defenseless_Elsie,
+	  afterstep/backgrounds/xml/Defenseless_Elsie.mini,
+	  afterstep/backgrounds/xml/Dorchester_Consolidated,
+	  afterstep/backgrounds/xml/Dorchester_Consolidated.mini,
+	  afterstep/backgrounds/xml/Drop_Injures,
+	  afterstep/backgrounds/xml/Drop_Injures.mini,
+	  afterstep/backgrounds/xml/Evil_Car_Wash,
+	  afterstep/backgrounds/xml/Evil_Car_Wash.mini,
+	  afterstep/backgrounds/xml/Firestreaks,
+	  afterstep/backgrounds/xml/Firestreaks.mini,
+	  afterstep/backgrounds/xml/Japanese.mini,
+	  afterstep/backgrounds/xml/Japanese_Colored.mini,
+	  afterstep/backgrounds/xml/Libelous_Paintings,
+	  afterstep/backgrounds/xml/Libelous_Paintings.mini,
+	  afterstep/backgrounds/xml/Nordic_Powder_Pirate,
+	  afterstep/backgrounds/xml/Nordic_Powder_Pirate.mini,
+	  afterstep/backgrounds/xml/Psychiatrists_Imminently,
+	  afterstep/backgrounds/xml/Psychiatrists_Imminently.mini,
+	  afterstep/backgrounds/xml/Simple_Texture,
+	  afterstep/backgrounds/xml/Simple_Texture.mini,
+	  afterstep/backgrounds/xml/Smooth,
+	  afterstep/backgrounds/xml/Smooth.mini,
+	  afterstep/desktop/bars/xml/blue,
+	  afterstep/desktop/bars/xml/darkblue,
+	  afterstep/desktop/bars/xml/east,
+	  afterstep/desktop/bars/xml/green,
+	  afterstep/desktop/bars/xml/ostxs,
+	  afterstep/desktop/bars/xml/ostxu, afterstep/desktop/bars/xml/red,
+	  afterstep/desktop/bars/xml/south,
+	  afterstep/desktop/bars/xml/title_lbtn_qnx,
+	  afterstep/desktop/bars/xml/title_lspacer_glass,
+	  afterstep/desktop/bars/xml/title_rspacer_glass,
+	  afterstep/desktop/bars/xml/title_tile_glass_focused,
+	  afterstep/desktop/bars/xml/title_tile_glass_menu,
+	  afterstep/desktop/bars/xml/title_tile_glass_menu_focused,
+	  afterstep/desktop/bars/xml/title_tile_glass_mi,
+	  afterstep/desktop/bars/xml/title_tile_glass_mi_high,
+	  afterstep/desktop/bars/xml/title_tile_glass_sticky,
+	  afterstep/desktop/bars/xml/title_tile_glass_unfocused,
+	  afterstep/desktop/bars/xml/title_tile_qnx_focused,
+	  afterstep/desktop/bars/xml/title_tile_qnx_sticky,
+	  afterstep/desktop/bars/xml/title_tile_qnx_unfocused,
+	  afterstep/desktop/bars/xml/west,
+	  afterstep/desktop/buttons/xml/1.xpm,
+	  afterstep/desktop/buttons/xml/1p.xpm,
+	  afterstep/desktop/buttons/xml/2.xpm,
+	  afterstep/desktop/buttons/xml/2p.xpm,
+	  afterstep/desktop/buttons/xml/3.xpm,
+	  afterstep/desktop/buttons/xml/3p.xpm,
+	  afterstep/desktop/buttons/xml/4.xpm,
+	  afterstep/desktop/buttons/xml/4p.xpm,
+	  afterstep/desktop/buttons/xml/5.xpm,
+	  afterstep/desktop/buttons/xml/5p.xpm,
+	  afterstep/desktop/buttons/xml/as-iconize-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-iconize.xpm,
+	  afterstep/desktop/buttons/xml/as-kill-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-kill.xpm,
+	  afterstep/desktop/buttons/xml/as-maximize-a-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-maximize-a.xpm,
+	  afterstep/desktop/buttons/xml/as-menu-a-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-menu-a.xpm,
+	  afterstep/desktop/buttons/xml/as-menu-b-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-menu-b.xpm,
+	  afterstep/desktop/buttons/xml/as-minimize-a-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-minimize-a.xpm,
+	  afterstep/desktop/buttons/xml/as-shade-a-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-shade-a.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-b-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-b.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-c-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-c.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-iconize-p.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-iconize.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-iconizeR-p.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-iconizeR.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-kill-p.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-kill.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-menu-p.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-menu.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-shade-p.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-shade.xpm,
+	  afterstep/desktop/buttons/xml/default-iconize-dark,
+	  afterstep/desktop/buttons/xml/default-iconize-dark-pressed,
+	  afterstep/desktop/buttons/xml/default-iconize-light,
+	  afterstep/desktop/buttons/xml/default-iconize-light-pressed,
+	  afterstep/desktop/buttons/xml/default-kill-dark,
+	  afterstep/desktop/buttons/xml/default-kill-dark-pressed,
+	  afterstep/desktop/buttons/xml/default-kill-light,
+	  afterstep/desktop/buttons/xml/default-kill-light-pressed,
+	  afterstep/desktop/buttons/xml/default-menu-dark,
+	  afterstep/desktop/buttons/xml/default-menu-dark-pressed,
+	  afterstep/desktop/buttons/xml/default-menu-light,
+	  afterstep/desktop/buttons/xml/default-menu-light-pressed,
+	  afterstep/desktop/buttons/xml/default-pin-dark,
+	  afterstep/desktop/buttons/xml/default-pin-light,
+	  afterstep/desktop/buttons/xml/default-shade-dark,
+	  afterstep/desktop/buttons/xml/default-shade-dark-pressed,
+	  afterstep/desktop/buttons/xml/default-shade-light,
+	  afterstep/desktop/buttons/xml/default-shade-light-pressed,
+	  afterstep/desktop/buttons/xml/default-switchwindow-dark,
+	  afterstep/desktop/buttons/xml/default-switchwindow-dark-pressed,
+	  afterstep/desktop/buttons/xml/default-switchwindow-light,
+	  afterstep/desktop/buttons/xml/default-switchwindow-light-pressed,
+	  afterstep/desktop/buttons/xml/fuf-iconify-pressed.xpm,
+	  afterstep/desktop/buttons/xml/fuf-iconify.xpm,
+	  afterstep/desktop/buttons/xml/fuf-kill-pressed.xpm,
+	  afterstep/desktop/buttons/xml/fuf-kill.xpm,
+	  afterstep/desktop/buttons/xml/fuf-shade-pressed.xpm,
+	  afterstep/desktop/buttons/xml/fuf-shade.xpm,
+	  afterstep/desktop/buttons/xml/fuf-switchwindow-pressed.xpm,
+	  afterstep/desktop/buttons/xml/fuf-switchwindow.xpm,
+	  afterstep/desktop/buttons/xml/fuf-windowmenu-pressed.xpm,
+	  afterstep/desktop/buttons/xml/fuf-windowmenu.xpm,
+	  afterstep/desktop/buttons/xml/g_iconize.xpm,
+	  afterstep/desktop/buttons/xml/g_shut.xpm,
+	  afterstep/desktop/buttons/xml/glass-iconize,
+	  afterstep/desktop/buttons/xml/glass-iconize-pressed,
+	  afterstep/desktop/buttons/xml/glass-kill,
+	  afterstep/desktop/buttons/xml/glass-kill-pressed,
+	  afterstep/desktop/buttons/xml/glass-menu,
+	  afterstep/desktop/buttons/xml/glass-menu-pressed,
+	  afterstep/desktop/buttons/xml/glass-pin,
+	  afterstep/desktop/buttons/xml/glass-pin-pressed,
+	  afterstep/desktop/buttons/xml/glass-shade,
+	  afterstep/desktop/buttons/xml/glass-shade-pressed,
+	  afterstep/desktop/buttons/xml/glass-switchwindow,
+	  afterstep/desktop/buttons/xml/glass-switchwindow-pressed,
+	  afterstep/desktop/buttons/xml/qnx-close,
+	  afterstep/desktop/buttons/xml/qnx-close-pressed,
+	  afterstep/desktop/buttons/xml/qnx-iconify,
+	  afterstep/desktop/buttons/xml/qnx-iconify-pressed,
+	  afterstep/desktop/buttons/xml/qnx-menu,
+	  afterstep/desktop/buttons/xml/qnx-menu-pressed,
+	  afterstep/desktop/buttons/xml/qnx-pin,
+	  afterstep/desktop/buttons/xml/qnx-pin-pressed,
+	  afterstep/desktop/buttons/xml/qnx-shade,
+	  afterstep/desktop/buttons/xml/qnx-shade-pressed,
+	  afterstep/desktop/buttons/xml/qnx-switchwindow,
+	  afterstep/desktop/buttons/xml/qnx-switchwindow-pressed,
+	  afterstep/desktop/icons/xml/3_dots.xpm,
+	  afterstep/desktop/icons/xml/3dpaint.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockBlue.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockClear.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockConvexBlue.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockDefault.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockGreen.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockMarble.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockRed.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockSlate.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockTransparent.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockWater.xpm,
+	  afterstep/desktop/icons/xml/ASBBlockWhite.xpm,
+	  afterstep/desktop/icons/xml/AfterStep.xpm,
+	  afterstep/desktop/icons/xml/AfterStep2.xpm,
+	  afterstep/desktop/icons/xml/AfterStep3.xpm,
+	  afterstep/desktop/icons/xml/AfterStep4.xpm,
+	  afterstep/desktop/icons/xml/AfterStep5.xpm,
+	  afterstep/desktop/icons/xml/AfterStep6.xpm,
+	  afterstep/desktop/icons/xml/BookArrows.xpm,
+	  afterstep/desktop/icons/xml/Bookshelf.xpm,
+	  afterstep/desktop/icons/xml/Brush.xpm,
+	  afterstep/desktop/icons/xml/CDrom.xpm,
+	  afterstep/desktop/icons/xml/CDrom2.xpm,
+	  afterstep/desktop/icons/xml/Computer.xpm,
+	  afterstep/desktop/icons/xml/ComputerPC.xpm,
+	  afterstep/desktop/icons/xml/Database.xpm,
+	  afterstep/desktop/icons/xml/DeskGlobe.xpm,
+	  afterstep/desktop/icons/xml/Eyecon.xpm,
+	  afterstep/desktop/icons/xml/FileFolders.xpm,
+	  afterstep/desktop/icons/xml/Folder.xpm,
+	  afterstep/desktop/icons/xml/GNUSpace.xpm,
+	  afterstep/desktop/icons/xml/Info.xpm,
+	  afterstep/desktop/icons/xml/Install.xpm,
+	  afterstep/desktop/icons/xml/KeyPower.xpm,
+	  afterstep/desktop/icons/xml/KeysOnChain.xpm,
+	  afterstep/desktop/icons/xml/Monitor.xpm,
+	  afterstep/desktop/icons/xml/Network.xpm,
+	  afterstep/desktop/icons/xml/NetworkInfoManager.xpm,
+	  afterstep/desktop/icons/xml/OldFashionedRadio.xpm,
+	  afterstep/desktop/icons/xml/Paint.xpm,
+	  afterstep/desktop/icons/xml/Plasma.xpm,
+	  afterstep/desktop/icons/xml/Publish.xpm,
+	  afterstep/desktop/icons/xml/RayTracedGear.xpm,
+	  afterstep/desktop/icons/xml/Recycler.xpm,
+	  afterstep/desktop/icons/xml/RedFire.xpm,
+	  afterstep/desktop/icons/xml/Start.xpm,
+	  afterstep/desktop/icons/xml/Text.xpm,
+	  afterstep/desktop/icons/xml/WWW.xpm,
+	  afterstep/desktop/icons/xml/YellowBlueRedGeometry.xpm,
+	  afterstep/desktop/icons/xml/arrow-dots.xpm,
+	  afterstep/desktop/icons/xml/arrow.xpm,
+	  afterstep/desktop/icons/xml/aterm,
+	  afterstep/desktop/icons/xml/author.xpm,
+	  afterstep/desktop/icons/xml/bluebar.xpm,
+	  afterstep/desktop/icons/xml/cpuchip.xpm,
+	  afterstep/desktop/icons/xml/darkbluebar.xpm,
+	  afterstep/desktop/icons/xml/draw.xpm,
+	  afterstep/desktop/icons/xml/east.xpm,
+	  afterstep/desktop/icons/xml/eterm,
+	  afterstep/desktop/icons/xml/greenbar.xpm,
+	  afterstep/desktop/icons/xml/hostmanager.xpm,
+	  afterstep/desktop/icons/xml/interface.xpm,
+	  afterstep/desktop/icons/xml/linux-penguin.xpm,
+	  afterstep/desktop/icons/xml/mini-app.xpm,
+	  afterstep/desktop/icons/xml/mini-as.xpm,
+	  afterstep/desktop/icons/xml/mini-exit.xpm,
+	  afterstep/desktop/icons/xml/mini-folder.xpm,
+	  afterstep/desktop/icons/xml/mini-menu.xpm,
+	  afterstep/desktop/icons/xml/mini-recycler.xpm,
+	  afterstep/desktop/icons/xml/monalisa.xpm,
+	  afterstep/desktop/icons/xml/netscape.xpm,
+	  afterstep/desktop/icons/xml/os8-title.xpm,
+	  afterstep/desktop/icons/xml/ostx.xpm,
+	  afterstep/desktop/icons/xml/ostxs.xpm,
+	  afterstep/desktop/icons/xml/ostxu.xpm,
+	  afterstep/desktop/icons/xml/redbar.xpm,
+	  afterstep/desktop/icons/xml/rxvt,
+	  afterstep/desktop/icons/xml/shutdown.xpm,
+	  afterstep/desktop/icons/xml/shutdown2.xpm,
+	  afterstep/desktop/icons/xml/south.xpm,
+	  afterstep/desktop/icons/xml/southeast.xpm,
+	  afterstep/desktop/icons/xml/southwest.xpm,
+	  afterstep/desktop/icons/xml/spreadsheet.xpm,
+	  afterstep/desktop/icons/xml/spreadsheet2.xpm,
+	  afterstep/desktop/icons/xml/west.xpm,
+	  afterstep/desktop/icons/xml/wharf.xpm,
+	  afterstep/desktop/icons/xml/widget.xpm,
+	  afterstep/desktop/icons/xml/workshop.xpm,
+	  afterstep/desktop/icons/xml/writeletter.xpm,
+	  afterstep/desktop/icons/xml/xterm,
+	  afterstep/desktop/tiles/xml/Blue,
+	  afterstep/desktop/tiles/xml/Clear,
+	  afterstep/desktop/tiles/xml/ConvexBlue,
+	  afterstep/desktop/tiles/xml/Default,
+	  afterstep/desktop/tiles/xml/Green,
+	  afterstep/desktop/tiles/xml/Red,
+	  afterstep/desktop/tiles/xml/White, libAfterBase/parse.c,
+	  libAfterBase/parse.h, libAfterConf/ASConfig.c,
+	  libAfterConf/ASetRoot.c, libAfterConf/Base.c,
+	  libAfterConf/Color.c, libAfterConf/Database.c,
+	  libAfterConf/Feel.c, libAfterConf/Look.c, libAfterConf/MyStyle.c,
+	  libAfterConf/Pager.c, libAfterConf/Wharf.c,
+	  libAfterConf/WinList.c, libAfterConf/WinTabs.c,
+	  libAfterConf/balloon.c, libAfterConf/function.c,
+	  libAfterImage/asimage.c, libAfterImage/asimagexml.c,
+	  libAfterImage/asimagexml.h, libAfterImage/transform.c,
+	  libAfterStep/asapp.c, libAfterStep/asapp.h,
+	  libAfterStep/asdatabase.c, libAfterStep/asfeel.c,
+	  libAfterStep/aswindata.c, libAfterStep/background.c,
+	  libAfterStep/balloon.c, libAfterStep/canvas.c,
+	  libAfterStep/clientprops.c, libAfterStep/colorscheme.c,
+	  libAfterStep/decor.c, libAfterStep/event.c, libAfterStep/font.c,
+	  libAfterStep/freestor.c, libAfterStep/functions.c,
+	  libAfterStep/hints.c, libAfterStep/module.c,
+	  libAfterStep/moveresize.c, libAfterStep/myicon.c,
+	  libAfterStep/mylook.c, libAfterStep/mystyle.c,
+	  libAfterStep/mystyle_property.c, libAfterStep/outline.c,
+	  libAfterStep/parser.c, libAfterStep/screen.c,
+	  libAfterStep/session.c, libAfterStep/shape.c,
+	  libAfterStep/wmprops.c, src/Gadget/Gadget.c, src/Ident/Ident.c,
+	  src/Pager/Pager.c, src/Scroll/GrabWindow.c, src/Scroll/Scroll.c,
+	  src/Wharf/Wharf.c, src/WinList2/WinList.c, src/WinTabs/WinTabs.c,
+	  src/afterstep/dirtree.c, src/ascp/ascolor.c,
+	  src/ascp/asimbrowser.c, src/asetroot/asetroot.c, src/test/test.c:
+	  Found and fixed very wierd heap corruption bug, causing segfault
+	  whenever bevelled rectang is drawn
+
+2004-03-18 09:45  sasha
+
+	* libAfterImage/: Makefile.in, config.h.in, configure,
+	  configure.in, export.c, import.c, libAfterImage.dsp,
+	  libAfterImage.mak, ungif.c, libungif/README, libungif/dgif_lib.c,
+	  libungif/egif_lib.c, libungif/gif_err.c, libungif/gif_lib.h,
+	  libungif/gif_lib_private.h, libungif/gifalloc.c,
+	  win32/asview.mak, win32/config.h: Added builtin libungif to
+	  libAfterImage, and enabled support for it by default in configure
+
+2004-03-17 15:11  sasha
+
+	* libAfterImage/: libAfterImage.mak, win32/asview.mak: added MSVC
+	  nmake  makefiles
+
+2004-03-17 14:58  sasha
+
+	* libAfterBase/xprop.c, libAfterBase/xprop.h,
+	  libAfterStep/mystyle_property.c: Added aditional sanity checks to
+	  MyStyles property reading code, to make sure we do not go over
+	  the size of the buffer
+
+2004-03-17 08:53  sasha
+
+	* libAfterImage/: afterbase.c, asim_afterbase.h, export.c,
+	  import.c, win32/asview.cpp: fixed libAfterImage to properly
+	  handle path in win32
+
+2004-03-16 17:18  sasha
+
+	* src/afterstep/afterstep.c: fixed crashing on restart while
+	  destroying desktop cover objects
+
+2004-03-16 17:15  sasha
+
+	* libAfterImage/: Makefile.in, afterbase.c, ascmap.c, asfont.c,
+	  asimage.c, asimagexml.c, asvisual.c, bmp.h, config.h.in,
+	  configure, configure.in, export.c, import.c, libAfterImage.dsp,
+	  libAfterImage.dsw, pixmap.c, transform.c, ungif.c, xcf.c,
+	  ximage.c, xpm.c, libjpeg/README, libjpeg/jcapimin.c,
+	  libjpeg/jcapistd.c, libjpeg/jccoefct.c, libjpeg/jccolor.c,
+	  libjpeg/jcdctmgr.c, libjpeg/jchuff.c, libjpeg/jchuff.h,
+	  libjpeg/jcinit.c, libjpeg/jcmainct.c, libjpeg/jcmarker.c,
+	  libjpeg/jcmaster.c, libjpeg/jcomapi.c, libjpeg/jconfig.h,
+	  libjpeg/jcparam.c, libjpeg/jcphuff.c, libjpeg/jcprepct.c,
+	  libjpeg/jcsample.c, libjpeg/jctrans.c, libjpeg/jdapimin.c,
+	  libjpeg/jdapistd.c, libjpeg/jdatadst.c, libjpeg/jdatasrc.c,
+	  libjpeg/jdcoefct.c, libjpeg/jdcolor.c, libjpeg/jdct.h,
+	  libjpeg/jddctmgr.c, libjpeg/jdhuff.c, libjpeg/jdhuff.h,
+	  libjpeg/jdinput.c, libjpeg/jdmainct.c, libjpeg/jdmarker.c,
+	  libjpeg/jdmaster.c, libjpeg/jdmerge.c, libjpeg/jdphuff.c,
+	  libjpeg/jdpostct.c, libjpeg/jdsample.c, libjpeg/jdtrans.c,
+	  libjpeg/jerror.c, libjpeg/jerror.h, libjpeg/jfdctflt.c,
+	  libjpeg/jfdctfst.c, libjpeg/jfdctint.c, libjpeg/jidctflt.c,
+	  libjpeg/jidctfst.c, libjpeg/jidctint.c, libjpeg/jidctred.c,
+	  libjpeg/jinclude.h, libjpeg/jmemmgr.c, libjpeg/jmemnobs.c,
+	  libjpeg/jmemsys.h, libjpeg/jmorecfg.h, libjpeg/jpegint.h,
+	  libjpeg/jpeglib.h, libjpeg/jquant1.c, libjpeg/jquant2.c,
+	  libjpeg/jutils.c, libjpeg/jversion.h, libpng/LICENSE,
+	  libpng/png.c, libpng/png.h, libpng/pngasmrd.h, libpng/pngconf.h,
+	  libpng/pngerror.c, libpng/pnggccrd.c, libpng/pngget.c,
+	  libpng/pngmem.c, libpng/pngpread.c, libpng/pngread.c,
+	  libpng/pngrio.c, libpng/pngrtran.c, libpng/pngrutil.c,
+	  libpng/pngset.c, libpng/pngtrans.c, libpng/pngvcrd.c,
+	  libpng/pngwio.c, libpng/pngwrite.c, libpng/pngwtran.c,
+	  libpng/pngwutil.c, win32/asview.cpp, win32/asview.dsp,
+	  win32/config.h, zlib/README, zlib/adler32.c, zlib/compress.c,
+	  zlib/crc32.c, zlib/crc32.h, zlib/deflate.c, zlib/deflate.h,
+	  zlib/gzio.c, zlib/infback.c, zlib/inffast.c, zlib/inffast.h,
+	  zlib/inffixed.h, zlib/inflate.c, zlib/inflate.h, zlib/inftrees.c,
+	  zlib/inftrees.h, zlib/trees.c, zlib/trees.h, zlib/uncompr.c,
+	  zlib/zconf.h, zlib/zlib.h, zlib/zutil.c, zlib/zutil.h:
+	  Incorporated libpng, libjpeg and zlib into libAfterImage, in case
+	  it is not available on the target system, or we are compiling
+	  under win32
+
+2004-03-11 14:39  sasha
+
+	* libAfterImage/: asimage.c, bmp.c, bmp.h, libAfterImage.dsp,
+	  libAfterImage.dsw, win32/StdAfx.cpp, win32/StdAfx.h,
+	  win32/asview.cpp, win32/asview.dsp: Completed implementing
+	  conversion from ASImage into DIB and implemented sample win32
+	  image viewer application as an example and testbed.
+
+2004-03-10 16:56  sasha
+
+	* libAfterImage/: bmp.c, bmp.h, libAfterImage.dsp: started
+	  implementing ASImage2DIB converter
+
+2004-03-10 15:05  sasha
+
+	* libAfterImage/: Makefile.in, asfont.c, asimage.c, asimage.h,
+	  bmp.c, bmp.h, import.c: moved some of the bmp functionality into
+	  bmp.c/h
+
+2004-03-10 13:00  sasha
+
+	* libAfterImage/: afterbase.c, ascmap.c, asfont.c, asimage.c,
+	  asimagexml.c, asvisual.c, blender.c, char2uni.c, export.c,
+	  import.c, pixmap.c, transform.c, ungif.c, xcf.c, ximage.c, xpm.c:
+	  removed 0x0D that came from MSVC porting
+
+2004-03-10 12:07  sasha
+
+	* libAfterImage/: ascmap.c, asfont.c, asim_afterbase.h, asimage.c,
+	  asimagexml.c, asvisual.c, blender.c, char2uni.c, char2uni.h,
+	  export.c, import.c, libAfterImage.dsp, pixmap.c, transform.c,
+	  ungif.c, xcf.c, ximage.c, xpm.c, win32/afterbase.h: changes to
+	  make libAfterImage compile under MSVC in win32
+
+2004-03-10 08:32  sasha
+
+	* libAfterImage/: afterbase.c, afterbase.h.in, asim_afterbase.h,
+	  asimage.c, libAfterImage.dsp, libAfterImage.dsw,
+	  win32/afterbase.h, win32/config.h: began porting libAfterImage
+	  into win32
+
+2004-03-08 23:18  sasha
+
+	* ChangeLog: testing commit mailing
+
+2004-03-08 16:40  sasha
+
+	* libAfterStep/wmprops.c: Fixed detection of running window
+	  managers at startup
+
+2004-03-08 16:35  sasha
+
+	* libAfterStep/wmprops.c: Fixed detection of running window
+	  managers at startup
+
+2004-03-05 14:03  sasha
+
+	* ChangeLog: AfterStep 2.00.beta4b Release
+
+2004-03-05 14:01  sasha
+
+	* ChangeLog: AfterStep 2.00.beta4 Release
 
 2004-03-05 13:55  sasha
- 
+
 	* AfterStep.spec, configure, autoconf/configure.in: Updated version
-	  to  2.00.beta4b
+	  to 2.00.beta4b
 
 2004-03-05 13:46  sasha
 
@@ -2306,7 +4400,6 @@
 	  afterstep/desktop/tiles/jpg/PsychiatristsImminently,
 	  afterstep/desktop/tiles/jpg/PsychiatristsImminently.mini,
 	  afterstep/desktop/tiles/png/SimpleTexture,
-	  afterstep/desktop/tiles/xpm/SimpleTexture,
 	  libAfterStep/colorscheme.h: added 8 new backgrounds from
 	  propaganda set, added Smooth and SimpleTexture backgrounds; fixed
 	  gradient color generation in colorscheme code to use mopre
@@ -3219,8 +5312,7 @@
 	* afterstep/: base.24bpp.in, desktop/icons/dots/png/3_dots,
 	  desktop/icons/dots/png/arrow, desktop/icons/dots/png/arrow_dots,
 	  desktop/icons/large/png/FolderAqua,
-	  desktop/icons/large/png/FolderOpenAqua,
-	  desktop/icons/normal/xpm/scale48.sh: added missing png files
+	  desktop/icons/large/png/FolderOpenAqua: added missing png files
 
 2003-04-18 16:55  sasha
 
@@ -3228,9 +5320,8 @@
 	  bars/png/southeast, bars/png/southwest, bars/xml/blue,
 	  bars/xml/darkblue, bars/xml/east, bars/xml/green, bars/xml/ostxs,
 	  bars/xml/ostxu, bars/xml/red, bars/xml/south, bars/xml/west,
-	  bars/xpm/east, bars/xpm/ostxs, bars/xpm/ostxu, bars/xpm/south,
-	  bars/xpm/west, icons/mini/xml/AS, icons/mini/xml/App,
-	  icons/mini/xml/Exit, icons/mini/xml/Folder, icons/mini/xml/Menu,
+	  icons/mini/xml/AS, icons/mini/xml/App, icons/mini/xml/Exit,
+	  icons/mini/xml/Folder, icons/mini/xml/Menu,
 	  icons/mini/xml/Recycler, icons/xml/3_dots.xpm,
 	  icons/xml/ASBBlockBlue.xpm, icons/xml/ASBBlockClear.xpm,
 	  icons/xml/ASBBlockConvexBlue.xpm, icons/xml/ASBBlockDefault.xpm,
@@ -3470,14 +5561,6 @@
 	  afterstep/desktop/icons/large/png/NeXTishTerm,
 	  afterstep/desktop/icons/large/png/Package,
 	  afterstep/desktop/icons/large/png/Terminal,
-	  afterstep/desktop/icons/large/xpm/Bookshelf,
-	  afterstep/desktop/icons/large/xpm/Computer,
-	  afterstep/desktop/icons/large/xpm/Document2,
-	  afterstep/desktop/icons/large/xpm/Interface,
-	  afterstep/desktop/icons/large/xpm/Monitor3,
-	  afterstep/desktop/icons/large/xpm/NeXTishTerm,
-	  afterstep/desktop/icons/large/xpm/Package,
-	  afterstep/desktop/icons/large/xpm/Terminal,
 	  libAfterImage/ascmap.c, libAfterImage/import.c,
 	  libAfterStep/functions.c: missing braces in ico import code;
 	  Fixed large icons broken by broken libAfterImage; Added Bookshelf
@@ -3506,18 +5589,7 @@
 	  large/png/NeXTishTerm, large/png/NetworkedGlobe,
 	  large/png/RedLight, large/png/Speaker, large/png/Stopsign,
 	  large/png/Terminal, large/png/Typewriter, large/png/Window,
-	  large/png/scale56.sh, large/xpm/AfterStep3, large/xpm/AfterStep4,
-	  large/xpm/CD, large/xpm/CDR, large/xpm/Chat, large/xpm/Computer,
-	  large/xpm/DVD, large/xpm/Document, large/xpm/DocumentScroll,
-	  large/xpm/FolderAquaBlue, large/xpm/FolderAquaYellow,
-	  large/xpm/FolderOpenBlueAqua, large/xpm/FolderOpenRedAqua,
-	  large/xpm/Globe, large/xpm/Harddrive, large/xpm/Harddrive2,
-	  large/xpm/Home, large/xpm/HomeAqua, large/xpm/Interface,
-	  large/xpm/Monitor1, large/xpm/Monitor2, large/xpm/Monitor3,
-	  large/xpm/NeXTishTerm, large/xpm/NetworkedGlobe,
-	  large/xpm/RedLight, large/xpm/Speaker, large/xpm/Stopsign,
-	  large/xpm/Terminal, large/xpm/Typewriter, large/xpm/Window,
-	  large/xpm/scale56.sh: finilized set of 56x large icons
+	  large/png/scale56.sh: finilized set of 56x large icons
 
 2003-04-04 12:37  sasha
 
@@ -3527,57 +5599,13 @@
 
 2003-04-03 17:32  sasha
 
-	* afterstep/desktop/icons/logos/: png/AfterStep, png/AfterStep2,
-	  png/AfterStep5, png/GNUStep, png/XWindow, png/Xmms, png/gimp,
-	  png/linux-penguin, png/mozilla, png/scale48.sh, xpm/Xmms,
-	  xpm/gimp, xpm/linux-penguin, xpm/mozilla, xpm/scale48.sh:
-	  compiled set of logos
+	* afterstep/desktop/icons/logos/png/: AfterStep, AfterStep2,
+	  AfterStep5, GNUStep, XWindow, Xmms, gimp, linux-penguin, mozilla,
+	  scale48.sh: compiled set of logos
 
 2003-04-03 15:52  sasha
 
 	* libAfterImage/apps/xpm2png.sh: added xpm2png conversion script
-
-2003-04-01 14:24  sasha
-
-	* afterstep/desktop/icons/logos/xpm/linux-penguin: fixed
-	  linux-penguin's commanet
-
-2003-03-31 17:42  sasha
-
-	* afterstep/desktop/: icons/large/xpm/AfterStep3,
-	  icons/large/xpm/AfterStep4, icons/logos/xpm/AfterStep,
-	  icons/logos/xpm/AfterStep2, icons/logos/xpm/AfterStep5,
-	  icons/logos/xpm/GNUStep, icons/normal/xpm/3dpaint,
-	  icons/normal/xpm/BookArrows, icons/normal/xpm/Bookshelf,
-	  icons/normal/xpm/Brush, icons/normal/xpm/CDrom,
-	  icons/normal/xpm/CDrom2, icons/normal/xpm/Computer,
-	  icons/normal/xpm/ComputerPC, icons/normal/xpm/Database,
-	  icons/normal/xpm/Debug, icons/normal/xpm/DeskGlobe,
-	  icons/normal/xpm/Eyecon, icons/normal/xpm/FileFolders,
-	  icons/normal/xpm/Folder, icons/normal/xpm/Info,
-	  icons/normal/xpm/Install, icons/normal/xpm/KeyPower,
-	  icons/normal/xpm/KeysOnChain, icons/normal/xpm/Monitor,
-	  icons/normal/xpm/Network, icons/normal/xpm/NetworkInfoManager,
-	  icons/normal/xpm/OldFashionedRadio, icons/normal/xpm/Paint,
-	  icons/normal/xpm/Publish, icons/normal/xpm/RayTracedGear,
-	  icons/normal/xpm/Recycler, tiles/xpm/Marble, tiles/xpm/Plasma,
-	  tiles/xpm/Slate, tiles/xpm/Transparent, tiles/xpm/Water,
-	  icons/logos/xpm/Netscape, icons/logos/xpm/XWindow,
-	  icons/logos/xpm/linux-penguin, icons/normal/xpm/RedFire,
-	  icons/normal/xpm/Start, icons/normal/xpm/Text,
-	  icons/normal/xpm/WWW, icons/normal/xpm/YellowBlueRedGeometry,
-	  icons/normal/xpm/author, icons/normal/xpm/cpuchip,
-	  icons/normal/xpm/disk, icons/normal/xpm/draw,
-	  icons/normal/xpm/hostmanager, icons/normal/xpm/interface,
-	  icons/normal/xpm/monalisa, icons/normal/xpm/shutdown,
-	  icons/normal/xpm/spreadsheet, icons/normal/xpm/spreadsheet2,
-	  icons/normal/xpm/widget, icons/normal/xpm/workshop,
-	  icons/normal/xpm/writeletter, tiles/xpm/wharf, bars/xpm/east,
-	  bars/xpm/os8-title, bars/xpm/ostx, bars/xpm/ostxs,
-	  bars/xpm/ostxu, bars/xpm/south, bars/xpm/southeast,
-	  bars/xpm/southwest, bars/xpm/west, icons/dots/xpm/3_dots,
-	  icons/dots/xpm/arrow, icons/dots/xpm/arrow-dots, tiles/xpm/empty:
-	  tossing xpms around to free up space for png's
 
 2003-03-31 17:30  sasha
 
