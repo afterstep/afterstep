@@ -19,7 +19,7 @@
 #include "config.h"
 
 /*#define LOCAL_DEBUG*/
-/*#define DO_CLOCKING*/
+#define DO_CLOCKING
 
 #define USE_64BIT_FPU
 
@@ -1664,6 +1664,7 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
     register double *vector ;
 	double *points ;
 	double *multipliers[IC_NUM_CHANNELS] ;
+	START_TIME(started);
 
 	if( im == NULL || palette == NULL || out_format == ASA_Vector )
 		return False;
@@ -1686,15 +1687,21 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 		{
 			multipliers[y] = safemalloc( last_point*sizeof(double));
 			for( x = 0 ; x < last_point ; ++x )
+			{
 				multipliers[y][x] = (double)(palette->channels[y][x+1] - palette->channels[y][x])/
 				                 	        (points[x+1]-points[x]);
+/*				fprintf( stderr, "%e-%e/%e-%e=%e ", (double)palette->channels[y][x+1], (double)palette->channels[y][x],
+				                 	        points[x+1], points[x], multipliers[y][x] );
+ */
+			}
+/*			fputc( '\n', stderr ); */
 			set_flags(buf.flags, (0x01<<y));
 		}else
 			multipliers[y] = NULL ;
 	}
 	for( y = 0 ; y < im->height ; ++y )
 	{
-		for( x = 0 ; x < im->width ; ++x )
+		for( x = 0 ; x < im->width ;)
 		{
 			register int i = IC_NUM_CHANNELS ;
 			double d ;
@@ -1716,18 +1723,39 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 					}
 			}
 			d = vector[x]-points[curr_point];
+/*			fprintf( stderr, "%f|%d|%f*%f=%d(%f)+%d=", vector[x], curr_point, d, multipliers[0][curr_point], (int)(d*multipliers[0][curr_point]),(d*multipliers[0][curr_point]) , palette->channels[0][curr_point] ); */
 			while( --i >= 0 )
 				if( multipliers[i] )
+				{/* the following calculation is the most expensive part of the algorithm : */
 					buf.channels[i][x] = (int)(d*multipliers[i][curr_point])+palette->channels[i][curr_point] ;
+/*					fprintf( stderr, "%2.2X.", buf.channels[i][x] ); */
+				}
+/*			fputc( ' ', stderr ); */
+#if 1
+			while( ++x < im->width )
+				if( vector[x] == vector[x-1] )
+				{
+					buf.red[x] = buf.red[x-1] ;
+					buf.green[x] = buf.green[x-1] ;
+					buf.blue[x] = buf.blue[x-1] ;
+					buf.alpha[x] = buf.alpha[x-1] ;
+				}else
+					break;
+#else
+			++x ;
+#endif
 		}
+/*		fputc( '\n', stderr ); */
 		imout->output_image_scanline( imout, &buf, 1);
 		vector += im->width ;
 	}
 	for( y = 0 ; y < IC_NUM_CHANNELS ; ++y )
-		free(multipliers[y]);
+		if( multipliers[y] )
+			free(multipliers[y]);
 
 	stop_image_output( &imout );
 	free_scanline( &buf, True );
+	SHOW_TIME("", started);
 	return True;
 }
 
