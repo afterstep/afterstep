@@ -892,6 +892,11 @@ fix_menu_pin_on( MyLook *look )
         }
         show_warning( "MenuPinOn setting is depreciated - instead add a Title button and bind PinMenu function to it." );
     }
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
+
 }
 
 void
@@ -899,15 +904,36 @@ FixLook( MyLook *look )
 {
     ASFlagType default_title_align = ALIGN_LEFT ;
     int i ;
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
     /* make sure all needed styles are created */
     make_styles (look);
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
+
     /* merge pre-1.5 compatibility keywords */
     merge_old_look_variables (look);
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
 
     /* fill in remaining members with the default style */
     mystyle_list_fix_styles (look->styles_list);
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
 
     mystyle_list_set_property (Scr.wmprops, look->styles_list);
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
 
     if(look->TitleTextAlign == JUSTIFY_RIGHT )
         default_title_align = ALIGN_RIGHT ;
@@ -946,6 +972,11 @@ FixLook( MyLook *look )
     if( look->DefaultFrame == NULL )
         look->DefaultFrame = create_default_myframe(default_title_align|ALIGN_VCENTER);
 
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
+
     /* checking that all the buttons have assigned slots in the button xref : */
     for( i = 0 ; i < TITLE_BUTTONS ; ++i )
     {
@@ -975,6 +1006,10 @@ FixLook( MyLook *look )
         }
     }
 
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
     /* updating balloons look */
     if( BalloonConfig.style == NULL )
         BalloonConfig.style = mystrdup( "TitleButtonBalloon" );
@@ -1036,7 +1071,10 @@ FixLook( MyLook *look )
                 }
             }while( next_hash_item( &it ) );
     }
-
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
 }
 
 /*

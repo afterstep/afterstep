@@ -36,15 +36,28 @@ asimage2icon (ASImage * im, icon_t * icon, Bool ignore_alpha)
 	if (im)
 	{
 		icon->pix = asimage2pixmap (Scr.asv, Scr.Root, icon->image, NULL, False);
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
 		if (!ignore_alpha)
 		{
 			int           depth = check_asimage_alpha (Scr.asv, im);
 
 			if (depth > 0)
 				icon->mask = asimage2alpha (Scr.asv, Scr.Root, im, NULL, False, True);
-			if (depth == 8)
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
+            if (depth == 8)
 				icon->alpha = asimage2alpha (Scr.asv, Scr.Root, im, NULL, False, False);
-		}
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
+
+        }
         LOCAL_DEBUG_OUT(" icon pixmaps: %lX,%lX,%lX", icon->pix, icon->mask, icon->alpha );
 		icon->width = im->width;
 		icon->height = im->height;

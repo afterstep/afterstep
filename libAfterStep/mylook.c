@@ -27,6 +27,7 @@
 #include "mystyle.h"
 #include "screen.h"
 #include "balloon.h"
+#include "event.h"
 #include "../libAfterImage/afterimage.h"
 
 int _as_frame_corner_xref[FRAME_SIDES+1] = {FR_NW, FR_NE, FR_SE, FR_SW, FR_NW};
@@ -432,6 +433,11 @@ myframe_load ( MyFrame * frame, ASImageManager *imman )
                 free( frame->parts[i] );
                 frame->parts[i] = NULL;
             }
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
+
         }
     if( frame->title_back_filename )
     {
@@ -441,6 +447,10 @@ myframe_load ( MyFrame * frame, ASImageManager *imman )
             free( frame->title_back );
             frame->title_back = NULL;
         }
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
     }
 }
 

@@ -457,9 +457,12 @@ load_myback_image( int desk, MyBackground *back )
                 safe_asimage_destroy( im );
                 im = tiled_im ;
             }
-
         }
     }
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
     return im;
 }
 
@@ -496,7 +499,10 @@ LOCAL_DEBUG_CALLER_OUT("%d,%d", desk, forget);
             }
         }
     }
-
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
     if( im != NULL )
     {
         if( forget || im->width*im->height >= Scr.Look.KillBackgroundThreshold )
@@ -510,6 +516,10 @@ LOCAL_DEBUG_CALLER_OUT("%d,%d", desk, forget);
             }
         }
     }
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
 }
 
 ASImage*
@@ -563,6 +573,8 @@ make_desktop_image( int desk, MyBackground *new_back )
         }
     }
 #ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
     if( new_im )
         LOCAL_DEBUG_OUT( "im(%p)->ref_count(%d)->name(\"%s\")", new_im, new_im->ref_count, new_im->name );
 #endif
@@ -585,8 +597,11 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         desk != old_desk ) /* if desks are the same then we are reloading current background !!! */
         return;
 
+#ifdef LOCAL_DEBUG
+    LOCAL_DEBUG_OUT( "syncing %s","");
+    ASSync(False);
+#endif
     release_old_background( old_desk, (desk==old_desk) );
-
     if( Scr.RootBackground == NULL )
         Scr.RootBackground = safecalloc( 1, sizeof(ASBackgroundHandler));
     else
