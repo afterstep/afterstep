@@ -426,7 +426,8 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 		}
     	/* Change the look to this desktop's one if it really changed */
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
-		QuickRestart ("look&feel");
+		if( get_flags( AfterStepState, ASS_NormalOperation) )
+			QuickRestart ("look&feel");
 #endif
 
     	/* we need to set the desktop background : */
