@@ -88,7 +88,7 @@ validate_drawable (Drawable d, unsigned int *pwidth, unsigned int *pheight)
 }
 
 void
-backtrace_window ( Window w )
+backtrace_window ( const char *file, int line, Window w )
 {
 #ifndef X_DISPLAY_MISSING
     Window        root, parent, *children = NULL;
@@ -96,7 +96,7 @@ backtrace_window ( Window w )
     int           (*oldXErrorHandler) (Display *, XErrorEvent *) = NULL;
 
     oldXErrorHandler = XSetErrorHandler (quiet_xerror_handler);
-    fprintf (stderr, "Backtracing [%lX]", w);
+    fprintf (stderr, "%s(line%d): Backtracing [%lX]", file, line, w);
 	while (XQueryTree (dpy, w, &root, &parent, &children, &nchildren))
 	{
 		int x, y ;

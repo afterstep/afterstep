@@ -11,7 +11,7 @@
 
 #else
 
-#define Display  void 
+#define Display  void
 #ifndef Bool
 #define Bool int
 #endif
@@ -22,13 +22,13 @@
 #define False 0
 #endif
 
-#ifndef CARD32   
+#ifndef CARD32
 #define CARD32 unsigned long
 #endif
 #ifndef CARD16
 #define CARD16 unsigned short
 #endif
-#ifndef CARD8   
+#ifndef CARD8
 #define CARD8 unsigned char
 #endif
 
@@ -187,7 +187,7 @@ extern Display *dpy;
 
 Bool     get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h);
 Drawable validate_drawable (Drawable d, unsigned int *pwidth, unsigned int *pheight);
-void	 backtrace_window ( Window w );
+void 	 backtrace_window ( const char *file, int line, Window w );
 
 Window get_parent_window( Window w );
 Window get_topmost_parent( Window w, Window *desktop_w );

@@ -832,7 +832,7 @@ moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bo
 			        if( as_layout_fixed_height[k] >= 0 && as_layout_height[k] > 0 )
 						h += as_layout_height[k]+layout->v_spacing ;
 				}
-                LOCAL_DEBUG_OUT( "resizing context %d at [%d:%d] to %dx%d%+d%+d (fixed = %dx%d)", pelem->context, pelem->column, pelem->row, w, h, elem_x, elem_y, pelem->fixed_width, pelem->fixed_height );
+                LOCAL_DEBUG_OUT( "resizing context %d at [%d+%d:%d+%d] to %dx%d%+d%+d (fixed = %dx%d)", pelem->context, pelem->column, pelem->h_span, pelem->row, pelem->v_span, w, h, elem_x, elem_y, pelem->fixed_width, pelem->fixed_height );
                 pelem->x = elem_x;
                 pelem->y = elem_y;
                 pelem->width = w - (pelem->bw<<1);
