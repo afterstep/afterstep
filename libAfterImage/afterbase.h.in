@@ -17,7 +17,7 @@
 #else
 
 /* our own version of X Wrapper : */
-#include "xwrap.h" 
+#include "xwrap.h"
 
 /* the goal of this header is to provide sufficient code so that
    libAfterImage could live without libAfterBase at all.
@@ -40,7 +40,7 @@ typedef unsigned long ASFlagType ;
 #define ASFLAGS_EVERYTHING  0xFFFFFFFF
 typedef ASFlagType ASFlagsXref[5];
 
-#define get_flags(var, val) 	((var) & (val))
+#define get_flags(var, val) 	((var) & (val))  /* making it sign safe */
 #define set_flags(var, val) 	((var) |= (val))
 #define clear_flags(var, val) 	((var) &= ~(val))
 #define CheckSetFlag(b,f,v) 	{if((b)) (f) |= (v) ; else (f) &= ~(v);}

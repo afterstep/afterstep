@@ -36,7 +36,7 @@ typedef unsigned long ASFlagType ;
 #define ASFLAGS_EVERYTHING  0xFFFFFFFF
 typedef ASFlagType ASFlagsXref[5];
 
-#define get_flags(var, val) 	((var) & (val))
+#define get_flags(var, val) 	(((var) & (val)))  /* making it sign safe */
 #define set_flags(var, val) 	((var) |= (val))
 #define clear_flags(var, val) 	((var) &= ~(val))
 #define CheckSetFlag(b,f,v) 	{if((b)) (f) |= (v) ; else (f) &= ~(v);}

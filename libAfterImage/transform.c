@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-/*#define LOCAL_DEBUG */
+/*#define LOCAL_DEBUG*/
 #define DO_CLOCKING
 
 #define USE_64BIT_FPU
@@ -510,6 +510,10 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 				for( color = 0 ; color < IC_NUM_CHANNELS ; ++color )
 					if( get_flags( filter, 0x01<<color ) )
 					{
+
+/*fprintf( stderr, __FUNCTION__" :make_component_gradient16( from #%8.8lX to #%8.8lX, ofset = %d, step = %d\n",
+	 	 ARGB32_CHAN8(grad->color[i],color)<<8, ARGB32_CHAN8(grad->color[i+1],color)<<8, offset, step );*/
+
 						make_component_gradient16( scl->channels[color]+offset,
 												   ARGB32_CHAN8(grad->color[i],color)<<8,
 												   ARGB32_CHAN8(grad->color[i+1],color)<<8,
@@ -1045,6 +1049,7 @@ make_gradient_diag_width( ASImageOutput *imout, ASScanline *dither_lines, int di
 	unsigned short bigger  = imout->im->width;
 	register int i = 0;
 	int eps;
+LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count = %d, dither width = %d\n", bigger, smaller, filter, dither_lines_num, dither_lines[0].width );
 
 	if( from_bottom )
 		toggle_image_output_direction( imout );
@@ -1183,7 +1188,7 @@ make_gradient( ASVisual *asv, ASGradient *grad,
 	ASImageOutput *imout;
 	int line_len = width;
 	START_TIME(started);
-
+LOCAL_DEBUG_CALLER_OUT( "type = 0x%X, width=%d, height = %d, filter = 0x%X", grad->type, width, height, filter );
 	if( asv == NULL || grad == NULL )
 		return NULL;
 	if( width == 0 )

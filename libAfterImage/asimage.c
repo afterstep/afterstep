@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-/*#define LOCAL_DEBUG */
+/*#define LOCAL_DEBUG*/
 /* #define DO_CLOCKING */
 
 #define USE_64BIT_FPU
@@ -763,7 +763,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 
 	best_size = 0 ;
 	dst = im->buffer;
-/*	fprintf( stderr, "%d:%d:%d<%2.2X ", y, color, 0, data[0] ); */
+/*	fprintf( stderr, "max = %d, width = %d, %d:%d:%d<%2.2X ", im->max_compressed_width, im->width, y, color, 0, data[0] );*/
 
 	if( im->width == 1 )
 	{
@@ -795,7 +795,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 					dst[tail] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
 					dst[++tail] = (CARD8) ((rep_count) & 0x00FF);
 					dst[++tail] = (CARD8) data[ccolor];
-/*					fprintf( stderr, "\n%d:%d: >%d: %2.2X %d: %2.2X %d: %2.2X ", y, color, tail-2, dst[tail-2], tail-1, dst[tail-1], tail, dst[tail] ); */
+/*					fprintf( stderr, "\n%d:%d: >%d: %2.2X %d: %2.2X %d: %2.2X ", y, color, tail-2, dst[tail-2], tail-1, dst[tail-1], tail, dst[tail] );*/
 				}
 				++tail ;
 				bstart = ccolor = i;
@@ -931,7 +931,16 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 			{
 				if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
 					fprintf (stderr, " is RLE_DIRECT_TAIL ( %d bytes ) !", im->width-uncopressed_size);
-				ptr += im->width-uncopressed_size;
+				if (get_flags (verbosity, VRB_LINE_CONTENT))
+				{
+					to_skip = im->width-uncopressed_size ;
+					while (to_skip-- > 0)
+					{
+						fprintf (stderr, " %2.2X", *ptr);
+						ptr++;
+					}
+				}else
+					ptr += im->width-uncopressed_size ;
 				break;
 			}
 			to_skip = 1 + ((*ptr) & (RLE_DIRECT_D));
@@ -1885,10 +1894,13 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 			for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
 			{
 				if( get_flags(to_store->flags,0x01<<color))
+				{
+					LOCAL_DEBUG_OUT( "encoding line %d for component %d offset = %d ", imout->next_line, color, to_store->offset_x );
 					asimage_add_line(imout->im, color, to_store->channels[color]+to_store->offset_x, imout->next_line);
-				else if( chan_fill[color] != imout->chan_fill[color] )
+				}else if( chan_fill[color] != imout->chan_fill[color] )
+				{
 					asimage_add_line_mono( imout->im, color, chan_fill[color], imout->next_line);
-				else
+				}else
 				{
 					LOCAL_DEBUG_OUT( "erasing line %d for component %d", imout->next_line, color );
 					asimage_erase_line( imout->im, color, imout->next_line );
