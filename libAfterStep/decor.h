@@ -61,8 +61,8 @@ typedef struct ASBtnBlock {
 }ASBtnBlock;
 
 typedef struct ASLabel {
-    char *label_text ;
-    struct ASImage      *label[2] ;
+    char            *text ;
+    struct ASImage  *rendered[2] ;
 	/* 12 bytes */
 }ASLabel;
 
@@ -71,25 +71,44 @@ typedef struct ASTile {
 #define AS_TileBtnBlock 	1
 #define AS_TileIcon		 	2
 #define AS_TileLabel	 	3
-#define AS_TileFreed	 	0x0F
-#define AS_TileTypeMask 	(0x0F<<0)
+#define AS_TileFreed        7
+
+#define AS_TileTypeMask     (0x07<<0)
+#define AS_TileTypes        8
+#define ASTileType(t)      ((t).flags&AS_TileTypeMask)
 #define ASSetTileType(tl,ty)  ((tl)->flags=((tl)->flags&(~AS_TileTypeMask))|(ty))
-#define ASGetTileType(tl)	((tl)&AS_TileTypeMask)
-#define AS_TileLayerMask 	(0x0F<<4)
-#define AS_TileAlignRight 	(0x01<<8)
-#define AS_TileAlignBottom 	(0x01<<9)
-#define AS_TileHFlip	 	(0x01<<10)
-#define AS_TileVFlip	 	(0x01<<11)
-#define AS_TileFlipMask 	(AS_TileVFlip|AS_TileHFlip)
+#define ASGetTileType(tl)   (((tl)->flags)&AS_TileTypeMask)
+
+#define AS_TileColOffset    4
+#define AS_TileRowOffset    8
+#define AS_TileColMask      (0x07<<AS_TileColOffset)
+#define AS_TileColumns      8
+#define ASTileCol(t)        (((t).flags&AS_TileColMask)>>AS_TileColOffset)
+#define AS_TileRowMask      (0x07<<AS_TileRowOffset)
+#define AS_TileRows         8
+#define ASTileRow(t)        (((t).flags&AS_TileRowMask)>>AS_TileRowOffset)
+
+#define AS_TileFlipOffset   12
+#define AS_TileVFlip        (0x01<<AS_TileFlipOffset)
+#define AS_TileUFlip        (0x01<<(AS_TileFlipOffset+1))
+#define AS_TileFlipMask     (AS_TileVFlip|AS_TileUFlip)
+#define ASTileFlip(t)       (((t).flags&AS_TileFlipMask)>>AS_TileFlipOffset)
+
+#define AS_TileSublayersOffset  16
+#define AS_TileSublayersMask    (0x00FF<<AS_TileSublayersOffset)  /* max 256 sublayers */
+#define ASTileSublayers(t)      (((t).flags&AS_TileSublayersMask)>>AS_TileSublayersOffset)
+#define ASSetTileSublayers(t,c)  ((t).flags = ((t).flags&(~AS_TileSublayersMask))|((c<<AS_TileSublayersOffset)&AS_TileSublayersMask))
+
 
 	ASFlagType flags;
-	unsigned short width, height;
+    short x, y;
+    unsigned short width, height;
 	union {
 		ASBtnBlock	 bblock;
-		ASImage     *icon ;
+        struct ASImage     *icon ;
 		ASLabel      label ;
 	}data;
-	/* 20 bytes */
+    /* 24 bytes */
 }ASTile;
 
 typedef struct ASTBarData {
@@ -121,21 +140,21 @@ typedef struct ASTBarData {
     /* this is the actuall generated background : */
     struct ASImage      *back [2] ;
     /* 52 bytes */
-#if 1
+#if 0
     char *label_text ;
     struct ASImage      *label[2] ;
     /* 64 bytes */
     struct ASTBtnBlock  *left_buttons, *right_buttons;
     /* 72 bytes */
-#else	
+#else
 	unsigned char h_border, v_border;
 	unsigned char h_spacing, v_spacing;
 	/* 56 bytes */
 	ASTile *tiles;
 	unsigned int tiles_num ;
 	/* 64 bytes */
-#endif	
-	
+#endif
+
 }ASTBarData ;
 
 /*********************************************************************
@@ -218,13 +237,6 @@ ASTBtnData *make_tbtn( struct button_t *from );
 int         check_tbtn_point( ASTBtnBlock *bb, int x, int y );
 void        destroy_astbtn(ASTBtnData **ptbtn );
 
-ASTBtnBlock* create_astbtn_block( unsigned int btn_count );
-ASTBtnBlock* build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int count,
-                               int left_margin, int top_margin, int spacing, int order,
-                               unsigned long context_base );
-void         destroy_astbtn_block(ASTBtnBlock **pb );
-
-
 ASTBarData* create_astbar();
 void destroy_astbar( ASTBarData **ptbar );
 unsigned int get_astbar_label_width( ASTBarData *tbar );
@@ -237,8 +249,19 @@ Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height 
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
 Bool set_astbar_image( ASTBarData *tbar, struct ASImage *image );
 Bool set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short height );
-Bool set_astbar_label( ASTBarData *tbar, const char *label );
-Bool set_astbar_btns( ASTBarData *tbar, ASTBtnBlock **btns, Bool left );
+
+
+int add_astbar_spacer( ASTBarData *tbar, unsigned char col, unsigned char row, int flip, unsigned short width, unsigned short height);
+int add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row, int flip,
+                     struct button_t *from_list, ASFlagType mask, unsigned int count,
+                     int left_margin, int top_margin, int spacing, int order,
+                     unsigned long context_base);
+int add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, struct ASImage *icon);
+int add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, const char *text);
+Bool change_astbar_label (ASTBarData * tbar, int index, const char *label);
+Bool change_astbar_first_label (ASTBarData * tbar, const char *label);
+
+
 Bool move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y );
 Bool update_astbar_root_pos( ASTBarData *tbar, ASCanvas *pc );
 Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );

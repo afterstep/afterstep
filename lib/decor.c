@@ -621,29 +621,26 @@ destroy_astbtn_block(ASTBtnBlock **pb )
 /********************************************************************/
 /* ASBtnBlock :                                                    */
 /********************************************************************/
-static void
+void
 free_asbtn_block( ASTile* tile )
 {
-    if( tile )
-    {
-		register ASBtnBlock *blk = &(tile->data.bblock);
-        register int i = blk->buttons_num ;
-        while( --i >= 0 )
-            free_tbtn_images( &(blk->buttons[i]) );
+    register ASBtnBlock *blk = &(tile->data.bblock);
+    register int i = blk->buttons_num ;
+    while( --i >= 0 )
+        free_tbtn_images( &(blk->buttons[i]) );
 
-        free( blk->buttons );
-        memset( blk, 0x00, sizeof(ASTBtnBlock ) );
-		ASSetTileType(tile,AS_TileFreed);
-    }
+    free( blk->buttons );
+    memset( blk, 0x00, sizeof(ASTBtnBlock ) );
+    ASSetTileType(tile,AS_TileFreed);
 }
 
 static void
-build_btn_block( ASTile *tile, 
+build_btn_block( ASTile *tile,
                  struct button_t *from_list, ASFlagType mask, unsigned int count,
                  int left_margin, int top_margin, int spacing, int order,
                  unsigned long context_base )
 {
-	
+
     unsigned int real_count = 0 ;
     unsigned short max_width = 0, max_height = 0 ;
     register int i = count ;
@@ -730,6 +727,7 @@ build_btn_block( ASTile *tile,
             }
         }
     }
+    ASSetTileSublayers(*tile,real_count);
 }
 
 static int
@@ -741,19 +739,153 @@ check_btn_point( ASTile *tile, int x, int y )
     {
         register ASTBtnData *btn = &(bb->buttons[i]) ;
         int tmp = x - btn->x ;
-        if( tmp >= 0 && tmp < tile->width )
+        if( tmp >= 0 && tmp < btn->width )
         {
             tmp = y - btn->y ;
-            if( tmp >= 0 && tmp < tile->height )
+            if( tmp >= 0 && tmp < btn->height )
                 return btn->context;
         }
     }
     return C_NO_CONTEXT;
 }
 
+static int
+set_asbtn_block_layer( ASTile* tile, ASImageLayer *layer, unsigned int state )
+{
+    register ASBtnBlock *bb = &(tile->data.bblock);
+    register int i = bb->buttons_num ;
+    while( --i >= 0 )
+    {
+        register ASTBtnData *btn = &(bb->buttons[i]) ;
+        layer[i].im = btn->current ;
+        layer[i].dst_x = tile->x + btn->x ;
+        layer[i].dst_y = tile->y + btn->y ;
+        layer[i].clip_width  = layer[i].im->width ;
+        layer[i].clip_height = layer[i].im->height ;
+    }
+    return bb->buttons_num;
+}
+
+
+/********************************************************************/
+/* ASIcon :                                                         */
+/********************************************************************/
+static void
+free_asicon( ASTile* tile )
+{
+    if (tile->data.icon)
+    {
+        safe_asimage_destroy (tile->data.icon);
+        tile->data.icon = NULL ;
+    }
+    ASSetTileType(tile,AS_TileFreed);
+}
+
+static int
+set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state )
+{
+    layer->im = tile->data.icon;
+    if( layer->im == NULL )
+        return 0;
+    layer->dst_x = tile->x;
+    layer->dst_y = tile->y ;
+    layer->clip_width  = layer->im->width ;
+    layer->clip_height = layer->im->height ;
+    return 1;
+}
+/********************************************************************/
+/* ASLabel :                                                        */
+/********************************************************************/
+static void
+free_aslabel( ASTile* tile )
+{
+    register ASLabel *lbl = &(tile->data.label);
+    register int i ;
+
+    for (i = 0; i < BAR_STATE_NUM; ++i)
+    {
+        if (lbl->rendered[i])
+            destroy_asimage (&(lbl->rendered[i]));
+        lbl->rendered[i] = NULL ;
+    }
+    if( lbl->text )
+    {
+        free( lbl->text );
+        lbl->text = NULL ;
+    }
+    ASSetTileType(tile,AS_TileFreed);
+}
+
+static void
+aslabel_style_changed(  ASTile* tile, MyStyle *style, unsigned int state )
+{
+    register ASLabel *lbl = &(tile->data.label);
+    register int i ;
+    ASImage *im;
+    int flip = ASTileFlip(*tile);
+    if (lbl->rendered[state] != NULL)
+        destroy_asimage( &(lbl->rendered[state]) );
+
+    im = mystyle_draw_text_image (style, lbl->text);
+    if( flip != 0 )
+        lbl->rendered[state] = flip_asimage ( Scr.asv,
+                                              im,
+                                              0, 0, im->width, im->height,
+                                              flip, ASA_ASImage,
+                                              100, ASIMAGE_QUALITY_DEFAULT );
+    else
+        lbl->rendered[state] = im;
+
+    tile->width = 0 ;
+    tile->height = 0 ;
+    for( i = 0 ; i < BAR_STATE_NUM; ++i)
+        if( lbl->rendered[i] )
+        {
+            if( tile->width < lbl->rendered[i]->width )
+                tile->width = lbl->rendered[i]->width;
+            if( tile->height < lbl->rendered[i]->height )
+                tile->height = lbl->rendered[i]->height;
+        }
+}
+
+static int
+set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state )
+{
+    register ASLabel *lbl = &(tile->data.label);
+    layer->im = lbl->rendered[state] ;
+    if( layer->im == NULL )
+        if( (layer->im = lbl->rendered[(~state)&BAR_STATE_FOCUS_MASK] ) == NULL )
+            return 0;
+    layer->dst_x = tile->x + (tile->width - layer->im->width)/2 ;
+    layer->dst_y = tile->y + (tile->height - layer->im->height)/2 ;
+    layer->clip_width  = layer->im->width ;
+    layer->clip_height = layer->im->height ;
+    return 1;
+}
+
+
 /********************************************************************/
 /* ASTBarData :                                                     */
 /********************************************************************/
+struct
+{
+    void (*free_astile_handler)( ASTile* tile );
+    int  (*check_point_handler)( ASTile* tile, int x, int y );
+    void (*on_style_changed_handler)( ASTile* tile, MyStyle *style, unsigned int state );
+    int  (*set_layer_handler)( ASTile* tile, ASImageLayer *layer, unsigned int state );
+
+}ASTileTypeHandlers[AS_TileTypes] =
+{
+{NULL, NULL, NULL},
+{free_asbtn_block, check_btn_point, NULL,                  set_asbtn_block_layer},
+{free_asicon,      NULL,            NULL,                  set_asicon_layer},
+{free_aslabel,     NULL,            aslabel_style_changed, set_aslabel_layer},
+{NULL, NULL, NULL},
+{NULL, NULL, NULL},
+{NULL, NULL, NULL},
+{NULL, NULL, NULL}
+};
+
 ASTBarData   *
 create_astbar ()
 {
@@ -778,23 +910,24 @@ destroy_astbar (ASTBarData ** ptbar)
 		if (*ptbar)
 		{
 			ASTBarData   *tbar = *ptbar;
-			register int  i;
+            register int  i;
 
-            if( tbar->label_text )
-                free( tbar->label_text );
-
-            if (tbar->left_buttons)
-                destroy_astbtn_block (&(tbar->left_buttons));
-            if (tbar->right_buttons)
-                destroy_astbtn_block (&(tbar->right_buttons));
+            if( tbar->tiles )
+            {
+                for( i = 0 ; i < tbar->tiles_num ; ++i )
+                {
+                    int type = ASTileType(tbar->tiles[i]);
+                    if( ASTileTypeHandlers[type].free_astile_handler )
+                        ASTileTypeHandlers[type].free_astile_handler( &(tbar->tiles[i]) );
+                }
+                free( tbar->tiles );
+            }
 
             for (i = 0; i < BAR_STATE_NUM; ++i)
 			{
 				if (tbar->back[i])
 					destroy_asimage (&(tbar->back[i]));
-				if (tbar->label[i])
-					destroy_asimage (&(tbar->label[i]));
-			}
+            }
 
 			memset (tbar, 0x00, sizeof (ASTBarData));
             free( tbar );
@@ -803,63 +936,67 @@ destroy_astbar (ASTBarData ** ptbar)
 }
 
 unsigned int
-get_astbar_label_width (ASTBarData * tbar)
-{
-	int           size[2] = { 1, 1 };
-	int           i;
-
-	if (tbar == NULL)
-		return 0;
-	for (i = 0; i < 2; ++i)
-	{
-		if (tbar->label[i] == NULL)
-			tbar->label[i] = mystyle_draw_text_image (tbar->style[i], tbar->label_text);
-
-		if (tbar->label[i])
-			size[0] = tbar->label[i]->width;
-	}
-	return MAX (size[0], size[1]);
-}
-
-unsigned int
-get_astbar_label_height (ASTBarData * tbar)
-{
-	int           size[2] = { 1, 1 };
-	int           i;
-
-	if (tbar == NULL)
-		return 0;
-	for (i = 0; i < 2; ++i)
-		size[i] = mystyle_get_font_height (tbar->style[i]);
-	return MAX (size[0], size[1]);
-}
-
-unsigned int
 calculate_astbar_height (ASTBarData * tbar)
 {
-	int           size = 0;
+    int height = 0 ;
+    int row_height[AS_TileRows] = {0};
 
-	if (tbar == NULL)
-		return 0;
-	size = get_astbar_label_height (tbar);
-	size += tbar->top_bevel + 2 + tbar->bottom_bevel + 2;
-    if( tbar->left_buttons && size < tbar->left_buttons->height )
-        size = tbar->left_buttons->height;
-    if( tbar->right_buttons && size < tbar->right_buttons->height )
-        size = tbar->right_buttons->height;
-	return size;
+    if (tbar)
+    {
+        register int i = tbar->tiles_num ;
+        while( --i >= 0 )
+            if( ASTileType(tbar->tiles[i]) != AS_TileFreed )
+            {
+                register int row = ASTileRow(tbar->tiles[i]);
+                if( row_height[row] < tbar->tiles[i].height )
+                    row_height[row] = tbar->tiles[i].height;
+            }
+
+        for( i = 0 ; i < AS_TileRows ; ++i )
+            if( row_height[i] > 0 )
+            {
+                if( height > 0 )
+                    height += tbar->v_spacing ;
+                height += row_height[i] ;
+            }
+        if( height > 0 )
+            height += tbar->v_border<<1 ;
+
+        height += tbar->top_bevel + tbar->bottom_bevel;
+    }
+    return height;
 }
 
 unsigned int
 calculate_astbar_width (ASTBarData * tbar)
 {
-	int           size = 0;
+    int width = 0 ;
+    int col_width[AS_TileColumns] = {0};
 
-	if (tbar == NULL)
-		return 0;
-	size = get_astbar_label_width (tbar);
-	size += tbar->left_bevel + 2 + tbar->right_bevel + 2;
-	return size;
+    if (tbar)
+    {
+        register int i = tbar->tiles_num ;
+        while( --i >= 0 )
+            if( ASTileType(tbar->tiles[i]) != AS_TileFreed )
+            {
+                register int col = ASTileCol(tbar->tiles[i]);
+                if( col_width[col] < tbar->tiles[i].width )
+                    col_width[col] = tbar->tiles[i].width;
+            }
+
+        for( i = 0 ; i < AS_TileColumns ; ++i )
+            if( col_width[i] > 0 )
+            {
+                if( width > 0 )
+                    width += tbar->h_spacing ;
+                width += col_width[i] ;
+            }
+        if( width > 0 )
+            width += tbar->h_border<<1 ;
+
+        width += tbar->left_bevel + tbar->right_bevel;
+    }
+    return width;
 }
 
 Bool
@@ -932,6 +1069,13 @@ set_astbar_style (ASTBarData * tbar, unsigned int state, const char *style_name)
 		tbar->style[state] = style;
 		if (changed && tbar->back[state])
 		{
+            register int i = tbar->tiles_num;
+            while ( --i >= 0 )
+            {
+                int type = ASTileType( tbar->tiles[i] );
+                if( ASTileTypeHandlers[type].on_style_changed_handler )
+                    ASTileTypeHandlers[type].on_style_changed_handler( &(tbar->tiles[i]), style, state );
+            }
 			destroy_asimage (&(tbar->back[state]));
 			tbar->back[state] = NULL;
 		}
@@ -956,7 +1100,6 @@ set_astbar_image( ASTBarData *tbar, ASImage *image )
                     tbar->back_image = clone_asimage( image, 0xFFFFFFFF );
 
             flush_tbar_backs(tbar);
-
             return True;
         }
     return False;
@@ -977,64 +1120,137 @@ set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short hei
     return False;
 }
 
+static ASTile *
+add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char row, int flip )
+{
+    int new_idx = tbar->tiles_num;
+    /* allocating memory if 4 tiles increments for more efficient memory management: */
+    if( (tbar->tiles_num &0x0003) == 0)
+        tbar->tiles = realloc( tbar->tiles, (tbar->tiles_num|0x0003)*sizeof(ASTile));
+    ++(tbar->tiles_num);
+
+    memset( &(tbar->tiles[new_idx]), 0x00, sizeof(ASTile));
+    tbar->tiles[new_idx].flags = (type&AS_TileTypeMask)|
+                                 ((col<<AS_TileColOffset)&AS_TileColMask)|
+                                 ((row<<AS_TileRowOffset)&AS_TileRowMask)|
+                                 ((flip<<AS_TileFlipOffset)&AS_TileFlipMask);
+    return &(tbar->tiles[new_idx]);
+}
+
+int
+add_astbar_spacer( ASTBarData *tbar, unsigned char col, unsigned char row, int flip, unsigned short width, unsigned short height)
+{
+    if( tbar )
+    {
+        ASTile *tile = add_astbar_tile( tbar, AS_TileSpacer, col, row, flip );
+        tile->width = width ;
+        tile->height = height ;
+        return tbar->tiles_num-1;
+    }
+    return -1;
+}
+
+int
+add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row, int flip,
+                     struct button_t *from_list, ASFlagType mask, unsigned int count,
+                     int left_margin, int top_margin, int spacing, int order,
+                     unsigned long context_base)
+{
+    if( tbar )
+    {
+        ASTile *tile = add_astbar_tile( tbar, AS_TileBtnBlock, col, row, flip );
+        build_btn_block( tile, from_list, mask, count, left_margin, top_margin,
+                         spacing, order, context_base );
+        return tbar->tiles_num-1;
+    }
+    return -1;
+}
+
+int
+add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, ASImage *icon)
+{
+    if( tbar && icon )
+    {
+        ASTile *tile = add_astbar_tile( tbar, AS_TileIcon, col, row, flip );
+        if( flip == 0 )
+        {
+            if( (tile->data.icon = dup_asimage( icon )) == NULL )
+                    tile->data.icon = clone_asimage( icon, 0xFFFFFFFF );
+        }else
+            tile->data.icon = flip_asimage( Scr.asv, icon, 0, 0, icon->width, icon->height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+
+        tile->width = tile->data.icon->width;
+        tile->height = tile->data.icon->height;
+        ASSetTileSublayers(*tile,1);
+        return tbar->tiles_num-1;
+    }
+    return -1;
+}
+
+int
+add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, const char *text)
+{
+    if( tbar )
+    {
+        ASTile *tile = add_astbar_tile( tbar, AS_TileLabel, col, row, flip );
+        ASLabel *lbl = &(tile->data.label);
+        lbl->text = mystrdup(text);
+        ASSetTileSublayers(*tile,1);
+        return tbar->tiles_num-1;
+    }
+    return -1;
+}
+
 Bool
-set_astbar_label (ASTBarData * tbar, const char *label)
+change_astbar_label (ASTBarData * tbar, int index, const char *label)
 {
 	Bool          changed = False;
 
-	if (tbar)
+    if (tbar && tbar->tiles)
 	{
-		if (label == NULL)
+        ASLabel *lbl = &(tbar->tiles[index].data.label);
+        if( ASTileType(tbar->tiles[index]) != AS_TileLabel )
+            return False;
+
+        if (label == NULL)
 		{
-			if ((changed = (tbar->label_text != NULL)))
+            if ((changed = (lbl->text != NULL)))
 			{
-				free (tbar->label_text);
-				tbar->label_text = NULL;
+                free (lbl->text);
+                lbl->text = NULL;
 			}
-		} else if (tbar->label_text == NULL)
+        } else if (lbl->text == NULL)
 		{
 			changed = True;
-			tbar->label_text = mystrdup (label);
-		} else if ((changed = (strcmp (tbar->label_text, label) != 0)))
+            lbl->text = mystrdup (label);
+        } else if ((changed = (strcmp (lbl->text, label) != 0)))
 		{
-			free (tbar->label_text);
-			tbar->label_text = mystrdup (label);
+            free (lbl->text);
+            lbl->text = mystrdup (label);
 		}
 		if (changed)
 		{
 			register int  i;
-
 			for (i = 0; i < BAR_STATE_NUM; ++i)
-			{
-				if (tbar->label[i])
-				{
-					destroy_asimage (&(tbar->label[i]));
-					tbar->label[i] = NULL;
-				}
-			}
-		}
+                if( ASTileTypeHandlers[AS_TileLabel].on_style_changed_handler )
+                    ASTileTypeHandlers[AS_TileLabel].on_style_changed_handler( &(tbar->tiles[index]), tbar->style[i], i );
+        }
 	}
 	return changed;
 }
 
+
 Bool
-set_astbar_btns( ASTBarData *tbar, ASTBtnBlock **btns, Bool left )
+change_astbar_first_label (ASTBarData * tbar, const char *label)
 {
-    Bool          changed = False;
-    ASTBtnBlock  **trg ;
-    if( tbar && btns )
-    {
-        trg = left?&(tbar->left_buttons):&(tbar->right_buttons);
-        if( (changed = (*trg != *btns )) )
-        {
-            if( *trg )
-                destroy_astbtn_block( trg );
-            *trg = *btns ;
-        }
-        *btns = NULL ;
-    }else if ( btns && *btns )
-        destroy_astbtn_block( btns );
-    return changed;
+    if (tbar)
+	{
+        register int i ;
+        for( i = 0 ; i < tbar->tiles_num ; ++i )
+            if( ASTileType(tbar->tiles[i]) == AS_TileLabel )
+                return change_astbar_label (tbar, i, label);
+    }
+    return False;
 }
 
 Bool
@@ -1084,16 +1300,20 @@ LOCAL_DEBUG_OUT( "tbar(%p)->root_pos(%+d%+d)", tbar, root_x, root_y );
 Bool
 render_astbar (ASTBarData * tbar, ASCanvas * pc)
 {
-	ASImage      *back, *label_im;
+    ASImage      *back;
 	MyStyle      *style;
 	ASImageBevel  bevel;
     ASImageLayer *layers;
 	ASImage      *merged_im;
 	int           state;
 	ASAltImFormats fmt = ASA_XImage;
-    int layers_count = 2 ;
     int l ;
-    int btn_offset = 0, label_height = 0 ;
+    int col_width[AS_TileColumns] = {0};
+    int row_height[AS_TileRows] = {0};
+    int col_x[AS_TileColumns] = {0};
+    int row_y[AS_TileRows] = {0};
+    int x = 0, y = 0 ;
+    int good_layers = 0;
 
 	/* input control : */
 	if (tbar == NULL || pc == NULL || pc->w == None)
@@ -1120,92 +1340,64 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 			return False;
 	}
 
-	if ((label_im = tbar->label[state]) == NULL && tbar->label_text != NULL)
-	{
-		label_im = mystyle_draw_text_image (style, tbar->label_text);
-		tbar->label[state] = label_im;
-	}
-
-	mystyle_make_bevel (style, &bevel, ASTBAR_HILITE, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
+    mystyle_make_bevel (style, &bevel, ASTBAR_HILITE, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
 	/* in unfocused and unpressed state we render pixmap and set
 	 * window's background to it
 	 * in focused state or in pressed state we render to
 	 * the window directly, and we'll need to be handling the expose
 	 * events
 	 */
-    if( tbar->left_buttons )
-        layers_count += tbar->left_buttons->count ;
-    if( tbar->right_buttons )
-        layers_count += tbar->right_buttons->count ;
 
-    layers = create_image_layers (layers_count);
+    /* first we determine width/height of each row/column, as well as count of layers : */
+    for( l = 0 ; l < tbar->tiles_num ; ++l )
+        if( ASTileType(tbar->tiles[l]) != AS_TileFreed )
+        {
+            register int pos = ASTileCol(tbar->tiles[l]);
+            good_layers += ASTileSublayers(tbar->tiles[l]);
+            if( col_width[pos] < tbar->tiles[l].width )
+                col_width[pos] = tbar->tiles[l].width;
+            pos = ASTileRow(tbar->tiles[l]);
+            if( row_height[pos] < tbar->tiles[l].height )
+                row_height[pos] = tbar->tiles[l].height;
+        }
+
+    /* now we determine offset of each row/column : */
+    x = tbar->left_bevel+tbar->h_border ;
+    y = tbar->top_bevel+tbar->v_border ;
+    for( l = 0 ; l < AS_TileColumns ; ++l )
+    {
+        col_x[l] = x ;
+        row_y[l] = y ;
+        if( col_width[l] > 0 )
+            x += col_width[l]+tbar->h_spacing ;
+        if( row_height[l] > 0 )
+            y += row_height[l]+tbar->v_spacing ;
+    }
+
+    layers = create_image_layers (good_layers+1);
 	layers[0].im = back;
 	layers[0].bevel = &bevel;
 	layers[0].clip_width = tbar->width - (tbar->left_bevel + tbar->right_bevel);
 	layers[0].clip_height = tbar->height - (tbar->top_bevel + tbar->bottom_bevel);
-	layers[1].im = label_im;
-    layers[1].dst_x = tbar->left_bevel + 2 + (tbar->left_buttons?tbar->left_buttons->width+5:0);
-	layers[1].dst_y = tbar->right_bevel + 2;
-	layers[1].clip_width = label_im ? label_im->width : tbar->width;
-	layers[1].clip_height = label_im ? label_im->height : tbar->height;
-    l = 2 ;
-    if( label_im )
-        label_height = label_im->height+(tbar->right_bevel + 2)*2 ;
-    if( tbar->left_buttons )
+
+    /* now we need to loop through tiles and add them to the layers list at correct locations */
+    good_layers = 1;
+    for( l = 0 ; l < tbar->tiles_num ; ++l )
     {
-        ASTBtnBlock *btns = tbar->left_buttons ;
-        register int i = btns->count ;
-
-        if( label_height > btns->height )
-            btn_offset = (label_height - btns->height)/2;
-        else
-            btn_offset = 0;
-        btns->x = 0 ;
-        btns->y = btn_offset ;
-
-        while( --i >= 0 )
-            if( btns->buttons[i].current )
-            {
-                layers[l].im = btns->buttons[i].current;
-                layers[l].dst_x = btns->buttons[i].x;
-                layers[l].dst_y = btns->buttons[i].y;
-                layers[l].clip_width = btns->buttons[i].width;
-                layers[l].clip_height = btns->buttons[i].height;
-                ++l ;
-            }
+        int type = ASTileType(tbar->tiles[l]);
+        if( ASTileTypeHandlers[type].set_layer_handler )
+        {
+            int row =  ASTileRow(tbar->tiles[l]);
+            int col =  ASTileCol(tbar->tiles[l]);
+            tbar->tiles[l].x = col_x[col] + (( col_width[col]  - tbar->tiles[l].width  )>>1) ;
+            tbar->tiles[l].y = row_y[row] + (( row_height[row] - tbar->tiles[l].height )>>1) ;
+            good_layers += ASTileTypeHandlers[type].set_layer_handler(&(tbar->tiles[l]), &(layers[good_layers]), state );
+        }
     }
 
-    if( tbar->right_buttons )
-    {
-        ASTBtnBlock *btns = tbar->right_buttons ;
-        register int i = btns->count ;
-        int btn_left  = tbar->width;
-
-        if( label_height > btns->height )
-            btn_offset = (label_height - btns->height)/2;
-        else
-            btn_offset = 0 ;
-
-        btns->x = btn_left ;
-        btns->y = btn_offset ;
-
-        while( --i >= 0 )
-            if( btns->buttons[i].current )
-            {
-                layers[l].im = btns->buttons[i].current;
-                layers[l].dst_x = btns->buttons[i].x + btn_left ;
-                layers[l].dst_y = btns->buttons[i].y + btn_offset;
-                layers[l].clip_width = btns->buttons[i].width;
-                layers[l].clip_height = btns->buttons[i].height;
-                ++l ;
-            }
-    }
-
-
-	LOCAL_DEBUG_CALLER_OUT ("MERGING TBAR %p image %dx%d from %p %dx%d and %p %dx%d",
+    LOCAL_DEBUG_CALLER_OUT ("MERGING TBAR %p image %dx%d from %p %dx%d",
 							tbar, tbar->width, tbar->height,
-							back, back ? back->width : -1, back ? back->height : -1,
-							label_im, label_im ? label_im->width : -1, label_im ? label_im->height : -1);
+                            back, back ? back->width : -1, back ? back->height : -1);
 
 #ifdef SHAPE
 	if (style->texture_type == TEXTURE_SHAPED_PIXMAP || style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP)
@@ -1213,7 +1405,7 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 	else if (pc->mask)
 		fill_canvas_mask (pc, tbar->win_x, tbar->win_y, tbar->width, tbar->height, 1);
 #endif
-    merged_im = merge_layers (Scr.asv, &layers[0], l, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
+    merged_im = merge_layers (Scr.asv, &layers[0], good_layers, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
     free( layers );
 
 	if (merged_im)
@@ -1310,12 +1502,25 @@ check_astbar_point( ASTBarData *tbar, int root_x, int root_y )
         if(  0 <= root_x && tbar->width  > root_x &&
              0 <= root_y && tbar->height > root_y )
         {
-            int btn_context ;
+            int tmp_context ;
+            int i ;
             context = tbar->context ;
-            if( (btn_context = check_tbtn_point( tbar->left_buttons, root_x, root_y )) != C_NO_CONTEXT )
-                context = btn_context ;
-            else if( (btn_context = check_tbtn_point( tbar->right_buttons, root_x, root_y )) != C_NO_CONTEXT )
-                context = btn_context ;
+            for( i = 0 ; i < tbar->tiles_num ; ++i )
+            {
+                int type = ASTileType(tbar->tiles[i]);
+
+                if( ASTileTypeHandlers[type].check_point_handler )
+                {
+                    int tile_x = root_x - tbar->tiles[i].x ;
+                    int tile_y = root_y - tbar->tiles[i].y ;
+                    if( tile_x >= 0 && tile_y >= 0 && tile_x < tbar->tiles[i]. width && tile_y < tbar->tiles[i].height )
+                        if( (tmp_context = ASTileTypeHandlers[type].check_point_handler( &(tbar->tiles[i]), tile_x, tile_y )) != C_NO_CONTEXT )
+                        {
+                            context = tmp_context ;
+                            break;
+                        }
+                }
+            }
         }
     }
     return context;

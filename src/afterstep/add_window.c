@@ -145,6 +145,7 @@ typedef struct ASOrientation
     unsigned int *in_width, *in_height;
     int *out_x, *out_y;
     unsigned int *out_width, *out_height;
+    int flip;
 }ASOrientation;
 
 /* Mirror Note :
@@ -172,7 +173,8 @@ ASOrientation HorzOrientation =
     MYFRAME_HOR_MASK,
     TBTN_ORDER_L2R,TBTN_ORDER_R2L,
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
-    &NormalX, &NormalY, &NormalWidth, &NormalHeight
+    &NormalX, &NormalY, &NormalWidth, &NormalHeight,
+    0
 };
 
 ASOrientation VertOrientation =
@@ -191,7 +193,8 @@ ASOrientation VertOrientation =
     MYFRAME_VERT_MASK,
     TBTN_ORDER_B2T,TBTN_ORDER_T2B,
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
-    &NormalY, &NormalX, &NormalHeight, &NormalWidth
+    &NormalY, &NormalX, &NormalHeight, &NormalWidth,
+    FLIP_VERTICAL
 };
 
 static inline ASOrientation*
@@ -727,22 +730,21 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     /* 9) now we have to setup titlebar buttons */
     if( asw->tbar )
 	{ /* need to add some titlebuttons */
-		ASTBtnBlock* btns ;
         ASFlagType btn_mask = compile_titlebuttons_mask (asw);
 		/* left buttons : */
-        btns = build_tbtn_block( &(Scr.Look.buttons[0]),
-                                 ~btn_mask,
-                                 TITLE_BUTTONS_PERSIDE,
-                                 Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
-                                 od->left_btn_order, C_L1 );
-        set_astbar_btns( asw->tbar, &btns, True );
+        add_astbar_btnblock(asw->tbar, 0, 0, 0,
+                            &(Scr.Look.buttons[0]), ~btn_mask,
+                            TITLE_BUTTONS_PERSIDE,
+                            Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+                            od->left_btn_order, C_L1 );
+        /* label */
+        add_astbar_label( asw->tbar, 1, 0, od->flip, ASWIN_NAME(asw));
         /* right buttons : */
-        btns = build_tbtn_block( &(Scr.Look.buttons[TITLE_BUTTONS_PERSIDE]),
-                                 (~btn_mask)>>TITLE_BUTTONS_PERSIDE,
-                                 TITLE_BUTTONS_PERSIDE,
-                                 Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
-                                 od->right_btn_order, C_R1 );
-        set_astbar_btns( asw->tbar, &btns, False );
+        add_astbar_btnblock(asw->tbar, 2, 0, 0,
+                            &(Scr.Look.buttons[TITLE_BUTTONS_PERSIDE]), (~btn_mask)>>TITLE_BUTTONS_PERSIDE,
+                            TITLE_BUTTONS_PERSIDE,
+                            Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+                            od->right_btn_order, C_R1 );
 	}
 
     /* we also need to setup label, unfocused/sticky style and tbar sizes -
@@ -1218,7 +1220,7 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
     if( asw->tbar )
     {
         ASCanvas *canvas = ASWIN_HFLAGS(asw, AS_VerticalTitle)?asw->frame_sides[FR_W]:asw->frame_sides[FR_N];
-        if( set_astbar_label( asw->tbar, ASWIN_NAME(asw) ) )
+        if( change_astbar_first_label( asw->tbar, ASWIN_NAME(asw) ) )
             if( canvas && update_display )
             {
                 render_astbar( asw->tbar, canvas );
@@ -1227,7 +1229,7 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
     }
     if( asw->icon_title )
     {
-        if( set_astbar_label( asw->icon_title, ASWIN_ICON_NAME(asw) ) )
+        if( change_astbar_first_label( asw->icon_title, ASWIN_ICON_NAME(asw) ) )
             on_icon_changed( asw );
     }
 }
