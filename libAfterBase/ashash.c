@@ -35,14 +35,16 @@
 #include "../include/afterstep.h"
 #include "../include/ashash.h"
 
-ASHashKey default_hash_func(ASHashableValue value, ASHashKey hash_size)
+ASHashKey 
+default_hash_func(ASHashableValue value, ASHashKey hash_size)
 {
     return value.long_val%hash_size;
 }
 
-Bool default_compare_func(ASHashableValue value1, ASHashableValue value2)
+long 
+default_compare_func(ASHashableValue value1, ASHashableValue value2)
 {
-    return (value1.long_val==value2.long_val);
+    return (value1.long_val-value2.long_val);
 }
 
 void 
@@ -59,12 +61,12 @@ init_ashash( ASHashTable *hash, Bool freeresources )
 ASHashTable*
 create_ashash( ASHashKey size, 
                ASHashKey (*hash_func)(ASHashableValue, ASHashKey), 
-	       Bool      (*compare_func)(ASHashableValue, ASHashableValue),
-	       void (*item_destroy_func)(ASHashItem *))
+	       long      (*compare_func)(ASHashableValue, ASHashableValue),
+	       void (*item_destroy_func)(ASHashableValue, void *))
 {
   ASHashTable *hash;
     
-    if( size <= 0 ) return NULL ;
+    if( size <= 0 ) size = DEFAULT_HASH_SIZE ;
     
     hash = safemalloc( sizeof(ASHashTable) );  
     init_ashash( hash, False );
@@ -86,16 +88,15 @@ create_ashash( ASHashKey size,
 }
 
 static void
-destroy_ashash_bucket( ASHashBucket *bucket, void (*item_destroy_func)(ASHashItem *))
+destroy_ashash_bucket( ASHashBucket *bucket, void (*item_destroy_func)(ASHashableValue, void *))
 {
   register ASHashItem 	*item, *next ;
     for( item = *bucket ; item != NULL ; item = next )
     {
 	next = item->next ;
 	if( item_destroy_func )
-	    item_destroy_func( item );
-	else
-	    free( item );
+	    item_destroy_func( item->value, item->data );
+	free( item );
     } 
     *bucket = NULL ;
 }
@@ -119,23 +120,30 @@ destroy_ashash( ASHashTable **hash )
 static ASHashResult 
 add_item_to_bucket( ASHashBucket *bucket, 
                     ASHashItem *item, 
-		    Bool (*compare_func)(ASHashableValue, ASHashableValue) )
+		    long (*compare_func)(ASHashableValue, ASHashableValue) )
 {
-  ASHashItem *tmp ;
+  ASHashItem **tmp ;
     /* first check if we already have this item */
-    for( tmp = *bucket ; tmp != NULL ; tmp = tmp->next )
-	if( compare_func( tmp->value, item->value ) )
-	    return (tmp->data == item->data )?ASH_ItemExistsSame:ASH_ItemExistsDiffer ;
+    for( tmp = bucket ; *tmp != NULL ; tmp = &((*tmp)->next) )
+    {
+      register long res = compare_func( (*tmp)->value, item->value );
+	if( res == 0 )
+	    return ((*tmp)->data == item->data )?ASH_ItemExistsSame:ASH_ItemExistsDiffer ;
+	else if( res > 0 )
+	    break; 
+    }
     /* now actually add this item */
-    item->next = (*bucket) ;
-    *bucket = item ;
+    item->next = (*tmp) ;
+    *tmp = item ;
     return ASH_Success ;
 }
 
-ASHashResult add_hash_item( ASHashTable *hash, ASHashableValue value, void *data )
+ASHashResult 
+add_hash_item( ASHashTable *hash, ASHashableValue value, void *data )
 {
   ASHashKey key ;
   ASHashItem *item ;
+  ASHashResult res ;
   
     if( hash == NULL ) return False ;
 
@@ -147,30 +155,85 @@ ASHashResult add_hash_item( ASHashTable *hash, ASHashableValue value, void *data
     item->value = value ;
     item->data = data ;
     
-    return add_item_to_bucket( &(hash->buckets[key]), item, hash->compare_func );
+    res = add_item_to_bucket( &(hash->buckets[key]), item, hash->compare_func );
+    if( res == ASH_Success )
+    {
+	hash->items_num++ ;
+	if( hash->buckets[key]->next == NULL )
+	    hash->buckets_used++;
+    }	
+    return res ;
 }
 
-void*
-get_hash_item( ASHashTable *hash, ASHashableValue value )
+static ASHashItem** 
+find_item_in_bucket( ASHashBucket *bucket, 
+                     ASHashableValue value, 
+		     long (*compare_func)(ASHashableValue, ASHashableValue) )
+{
+  register ASHashItem **tmp ;
+  register long res ;
+    /* first check if we already have this item */
+    for( tmp = bucket ; *tmp != NULL ; tmp = &((*tmp)->next) )
+    {
+        res = compare_func( (*tmp)->value, value );
+	if( res == 0 )    	return tmp;
+	else if( res > 0 )	break;
+    }
+    return NULL; 
+}
+
+ASHashResult 
+get_hash_item( ASHashTable *hash, ASHashableValue value, void**trg )
 {
   ASHashKey key ;
-  ASHashItem *item = NULL;
+  ASHashItem **pitem = NULL;
   
     if( hash ) 
     {
 	key = hash->hash_func( value, hash->size );	
 	if( key < hash->size )
-	{
-	    
-	/* TODO */
-	
-	}
+	    pitem = find_item_in_bucket( &(hash->buckets[key]), value, hash->compare_func );
     }
-    return item ;
+    if( pitem )
+	if( *pitem )
+	{
+	    if( trg )    *trg = (*pitem)->data ;
+	    return ASH_Success ;
+	}
+    return ASH_ItemNotExists ;
 }
 
+ASHashResult 
+remove_hash_item( ASHashTable *hash, ASHashableValue value, void**trg )
+{
+  ASHashKey key = 0;
+  ASHashItem **pitem = NULL;
+  
+    if( hash ) 
+    {
+	key = hash->hash_func( value, hash->size );	
+	if( key < hash->size )
+	    pitem = find_item_in_bucket( &(hash->buckets[key]), value, hash->compare_func );
+    }
+    if( pitem )
+	if( *pitem )
+	{
+	  ASHashItem *next ;
+	    if( trg )    *trg = (*pitem)->data ;
+	    
+	    next = (*pitem)->next ;
+	    if( hash->item_destroy_func ) 
+		hash->item_destroy_func( (*pitem)->value, (trg)?NULL:(*pitem)->data );
+	    free( *pitem ) ;
+	    *pitem = next ;
+	    if( hash->buckets[key] == NULL ) 
+		hash->buckets_used--;
+	    hash->items_num-- ;
 
-
+	    return ASH_Success ;
+	}
+    return ASH_ItemNotExists ;
+}
 
 /************************************************************************/
 /************************************************************************/

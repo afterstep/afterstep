@@ -22,16 +22,26 @@ typedef struct ASHashTable
 {
     ASHashKey 	size ;
     ASHashBucket *buckets ;
+    ASHashKey	buckets_used ;
+    unsigned long items_num ;
+    
     ASHashKey 	(*hash_func)(ASHashableValue value, ASHashKey hash_size);
-    Bool      	(*compare_func)(ASHashableValue value1, ASHashableValue value2);
-    void 	(*item_destroy_func)(ASHashItem *item);
+    long      	(*compare_func)(ASHashableValue value1, ASHashableValue value2);
+    void 	(*item_destroy_func)(ASHashableValue value, void *data);
 }ASHashTable;
 
 void init_ashash( ASHashTable *hash, Bool freeresources );
+/* Note that all parameters are optional here. 
+   If it is set to NULL - defaults will be used */
+
+#define DEFAULT_HASH_SIZE 51 /* random value - not too big - not too small */
+/* default hash_func is long_val%hash_size */
+/* default compare_func is long_val1-long_val2 */
+
 ASHashTable *create_ashash( ASHashKey size, 
                             ASHashKey (*hash_func)(ASHashableValue, ASHashKey), 
-			    Bool      (*compare_func)(ASHashableValue, ASHashableValue),
-			    void (*item_destroy_func)(ASHashItem *));
+			    long      (*compare_func)(ASHashableValue, ASHashableValue),
+			    void (*item_destroy_func)(ASHashableValue, void *));
 void destroy_ashash( ASHashTable **hash );
 
 typedef enum {
@@ -44,11 +54,20 @@ typedef enum {
 }ASHashResult ;
 
 ASHashResult add_hash_item( ASHashTable *hash, ASHashableValue value, void *data );
-void *get_hash_item( ASHashTable *hash, ASHashableValue value );
-ASHashResult remove_hash_item( ASHashTable *hash, ASHashableValue value );
-ASHashResult destroy_hash_item( ASHashTable *hash, ASHashableValue value );
+/* Note that trg parameter is optional here */
+ASHashResult get_hash_item( ASHashTable *hash, ASHashableValue value, void **trg );
+/* here if trg is NULL then both data and value will be destroyed;
+   otherwise only value will be destroyed.
+   Note: if you never specifyed destroy_func  - nothing will be destroyed,
+         except for HashItem itself.
+ */
+ASHashResult remove_hash_item( ASHashTable *hash, ASHashableValue value, void**trg);
 
+/**************************************************************************/
+/**************************************************************************/
 /* here is the set of implemented hash functions : */
+/**************************************************************************/
+
 /* configuration options - case unsensitive and spaces are not alowed */
 ASHashKey option_hash_value (ASHashableValue value, ASHashKey hash_size);
 /* case unsensitive strings  - spaces and control chars are alowed */
