@@ -176,8 +176,8 @@ inline void vector_move_data_up( ASVector *v, int index, int offset, int length 
     if( length == -1 )
         length = v->used ;
 
-	if( offset > 0 && length > v->used - offset )
-		length = v->used - offset ;
+   if( offset > 0 && length > v->allocated - offset )
+	length = v->allocated - offset ;
     if( v->unit == sizeof(long*) )
     {   /* 4 or 8 byte pointer copying  */
         register long** src = (long**)(v->memory);
@@ -208,8 +208,8 @@ inline void vector_move_data_down( ASVector *v, int index, int offset, int lengt
 	/* assuming that offset  >  0 */
     if( length == -1 )
         length = v->used ;
-	if( offset > 0 && length > v->used - offset )
-		length = v->used - offset ;
+    if( offset > 0 && length > v->allocated - offset )
+	length = v->allocated - offset ;
 
     if( v->unit == sizeof(long*) )
     {   /* 4 or 8 byte pointer copying  */

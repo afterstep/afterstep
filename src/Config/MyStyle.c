@@ -451,7 +451,6 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 		}
 		LOCAL_DEBUG_OUT ("MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%X", style->name,
 						 style->texture_type, style->back_icon.image, style->tint);
-		free (tmp);
 
 #if 0
 		char         *path;

@@ -625,6 +625,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         int len;
         char *display = XDisplayString (dpy);
         register char *ptr ;
+	
         char *cmdl;
         char *arg, *screen_str = NULL, *w_str = NULL, *context_str = NULL ;
         va_list ap;
@@ -632,6 +633,12 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         len = strlen(cmd);
         if( pass_args )
         {
+	    register int i = 0 ;
+	    while( display[i] ) ++i;
+	    while( i > 0 && isdigit(display[--i]) );
+	    if( display[i] == '.' ) 
+		display[i+1] = '\0' ;
+	    
             if( screen >= 0 )
                 screen_str = string_from_int( screen );
             if( w != None )
