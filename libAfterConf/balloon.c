@@ -28,6 +28,7 @@
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
 #include "../../include/balloon.h"
+#include "../../include/mylook.h"
 
 /*****************************************************************************
  *
@@ -71,6 +72,29 @@ Print_balloonConfig (balloonConfig *config )
         fprintf( stderr,"BalloonDelay %d\n",config->delay);
         fprintf( stderr,"BalloonCloseDelay %d\n",config->close_delay);
         fprintf( stderr,"BalloonStyle \"%s\"\n",config->style);
+    }
+}
+
+void
+balloon_config2look( MyLook *look, balloonConfig *config )
+{
+    if( look )
+    {
+        if( look->balloon_look == NULL )
+            look->balloon_look = safecalloc( 1, sizeof(ASBalloonLook) );
+
+        if( config == NULL )
+            memset( look->balloon_look, 0x00, sizeof(ASBalloonLook) );
+        else
+        {
+            look->balloon_look->show = get_flags( config->set_flags, BALLOON_USED );
+            look->balloon_look->border_hilite = config->border_hilite ;
+            look->balloon_look->xoffset = config->x_offset ;
+            look->balloon_look->yoffset = config->y_offset ;
+            look->balloon_look->delay = config->delay ;
+            look->balloon_look->close_delay = config->close_delay ;
+            look->balloon_look->style = mystyle_list_find_or_default (look->styles_list, config->style);
+        }
     }
 }
 

@@ -117,15 +117,17 @@ typedef struct ASTile {
 #define AS_TileVResize      (RESIZE_V       <<AS_TilePadOffset) /* either tile or scale in V direction*/
 #define AS_TileVScale       (RESIZE_V_SCALE <<AS_TilePadOffset) /* otherwise tiled in V direction */
 #define AS_TileVResizeMask  (RESIZE_V_MASK  <<AS_TilePadOffset)
+#define AS_TileIgnoreSize   (FIT_LABEL_SIZE <<AS_TilePadOffset) /* otherwise tiled in V direction */
 #define AS_TileResizeMask   (AS_TileHResizeMask|AS_TileVResizeMask)
 #define ASTileHResizeable(t)    ((t).flags&AS_TileHResize)
 #define ASTileVResizeable(t)    ((t).flags&AS_TileVResize)
 #define ASTileResizeable(t)     ((t).flags&(AS_TileHResize|AS_TileVResize))
-#define ASTileScalable(t)       (ASTileResizeable(t)&&((t).flags&(AS_TileHScale|AS_TileVScale)))
+#define ASTileScalable(t)       ((t).flags&(AS_TileHScale|AS_TileVScale))
+#define ASTileIgnoreSize(t)     ((t).flags&(AS_TileIgnoreSize))
 
 #define AS_TileFloatingOffset   AS_TilePadOffset
-#define AS_TileHFloatingMask    (AS_TileHResizeMask|AS_TileHPadMask)
-#define AS_TileVFloatingMask    (AS_TileVResizeMask|AS_TileVPadMask)
+#define AS_TileHFloatingMask    (AS_TileHResize|AS_TileHPadMask)
+#define AS_TileVFloatingMask    (AS_TileVResize|AS_TileVPadMask)
 #define AS_TileFloatingMask     (AS_TileHFloatingMask|AS_TileVFloatingMask)
 #define ASTileHFloating(t)      ((t).flags&(AS_TileHResize|AS_TileHPadMask))
 #define ASTileVFloating(t)      ((t).flags&(AS_TileVResize|AS_TileVPadMask))
@@ -272,6 +274,7 @@ Bool set_astbar_pressed( ASTBarData *tbar, ASCanvas *pc, Bool pressed );
 Bool set_astbar_btn_pressed( ASTBarData * tbar, int context );
 
 Bool update_astbar_transparency( ASTBarData *tbar, ASCanvas *pc );
+Bool is_astbar_shaped( ASTBarData *tbar, int state );
 int  check_astbar_point( ASTBarData *tbar, int root_x, int root_y );
 
 #ifdef TRACE_render_astbar

@@ -4,6 +4,7 @@
 #include "../libAfterImage/asvisual.h"
 struct ASFontManager;
 struct SyntaxDef;
+struct MyLook;
 extern struct SyntaxDef      BevelSyntax;
 extern struct SyntaxDef     *BevelSyntaxPtr;
 
@@ -356,7 +357,9 @@ FreeStorageElem **balloon2FreeStorage (SyntaxDef * syntax,
 				       FreeStorageElem ** tail,
 				       balloonConfig * config);
 
-void BalloonConfig2BalloonLook(struct BalloonLook *blook, struct balloonConfig *config);
+//void BalloonConfig2BalloonLook(struct BalloonLook *blook, struct balloonConfig *config);
+void balloon_config2look( struct MyLook *look, balloonConfig *config );
+
 /***************************************************************************/
 
 /***************************************************************************/

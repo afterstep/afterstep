@@ -137,10 +137,6 @@
 		../include/functions.h \
 		../include/session.h
 
-./timer.o : \
-		../configure.h \
-		../include/asapp.h
-
 ./wmprops.o : \
 		../configure.h \
 		../include/asapp.h \

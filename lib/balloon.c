@@ -114,6 +114,7 @@ set_active_balloon_look()
         set_astbar_size( BalloonState.active_bar, width, height );
         move_astbar( BalloonState.active_bar, BalloonState.active_canvas, 0, 0 );
         render_astbar( BalloonState.active_bar, BalloonState.active_canvas );
+        update_canvas_display (BalloonState.active_canvas);
     }
 }
 

@@ -932,7 +932,7 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
     dst_width  = im->width ;
     dst_height = im->height ;
 
-    if( ASTileResizeable( *tile ) )
+    /* if( ASTileResizeable( *tile ) ) */
     {
         if( get_flags( tile->flags, AS_TileHScale ) )
             dst_width = max_width ;
@@ -1121,11 +1121,13 @@ destroy_astbar (ASTBarData ** ptbar)
 				if (tbar->back[i])
 					destroy_asimage (&(tbar->back[i]));
             }
+            if( tbar == FocusedBar )
+            {
+                withdraw_balloon( NULL );
+                FocusedBar = NULL;
+            }
             if( tbar->balloon )
                 destroy_asballoon( &(tbar->balloon) );
-
-            if( tbar == FocusedBar )
-                FocusedBar = NULL;
 
 			memset (tbar, 0x00, sizeof (ASTBarData));
             free( tbar );
@@ -1143,7 +1145,8 @@ calculate_astbar_height (ASTBarData * tbar)
     {
         register int i = tbar->tiles_num ;
         while( --i >= 0 )
-            if( ASTileType(tbar->tiles[i]) != AS_TileFreed )
+            if( ASTileType(tbar->tiles[i]) != AS_TileFreed &&
+                !ASTileIgnoreSize(tbar->tiles[i]))
             {
                 register int row = ASTileRow(tbar->tiles[i]);
                 if( row_height[row] < tbar->tiles[i].height )
@@ -1178,7 +1181,8 @@ calculate_astbar_width (ASTBarData * tbar)
 /*         print_astbar_tiles(tbar); */
 #endif
         while( --i >= 0 )
-            if( ASTileType(tbar->tiles[i]) != AS_TileFreed )
+            if( ASTileType(tbar->tiles[i]) != AS_TileFreed &&
+                !ASTileIgnoreSize(tbar->tiles[i]))
             {
                 register int col = ASTileCol(tbar->tiles[i]);
                 if( col_width[col] < tbar->tiles[i].width )
@@ -1350,12 +1354,17 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
     if( get_flags( flip, FLIP_UPSIDEDOWN ) )
         align_flags = ((align_flags&0x0005)<<1)|((align_flags&(0x0005<<1))>>1)|(align_flags&RESIZE_MASK);
 
+    if( get_flags( align, FIT_LABEL_SIZE ) )
+        set_flags( align_flags, FIT_LABEL_SIZE );
+
+    align_flags &= (PAD_MASK|RESIZE_MASK|FIT_LABEL_SIZE);
+
     memset( &(tbar->tiles[new_idx]), 0x00, sizeof(ASTile));
     tbar->tiles[new_idx].flags = (type&AS_TileTypeMask)|
                                  ((col<<AS_TileColOffset)&AS_TileColMask)|
                                  ((row<<AS_TileRowOffset)&AS_TileRowMask)|
                                  ((flip<<AS_TileFlipOffset)&AS_TileFlipMask)|
-                                 ((align_flags<<AS_TileFloatingOffset)&AS_TileFloatingMask);
+                                 ((align_flags<<AS_TileFloatingOffset));
     set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
     return &(tbar->tiles[new_idx]);
 }
@@ -1639,6 +1648,28 @@ update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc)
     return redraw;
 }
 
+Bool
+is_astbar_shaped( ASTBarData *tbar, int state )
+{
+    Bool shaped = False ;
+    MyStyle *style ;
+    if( state < 0 || state == BAR_STATE_UNFOCUSED )
+    {
+        if( (style = tbar->style[BAR_STATE_UNFOCUSED]) != NULL )
+            if( style->texture_type == TEXTURE_SHAPED_PIXMAP ||
+                style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP )
+                shaped = True ;
+    }
+    if( state < 0 || state == BAR_STATE_FOCUSED )
+    {
+        if( (style = tbar->style[BAR_STATE_FOCUSED]) != NULL )
+            if( style->texture_type == TEXTURE_SHAPED_PIXMAP ||
+                style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP )
+                shaped = True ;
+    }
+    return shaped;
+}
+
 #ifdef TRACE_render_astbar
 #undef render_astbar
 Bool render_astbar (ASTBarData * tbar, ASCanvas * pc);
@@ -1656,7 +1687,6 @@ trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, int lin
     return res;
 }
 #endif
-
 Bool
 render_astbar (ASTBarData * tbar, ASCanvas * pc)
 {
@@ -1726,12 +1756,12 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
         {
             register int pos = ASTileCol(tbar->tiles[l]);
             good_layers += ASTileSublayers(tbar->tiles[l]);
-            if( col_width[pos] < tbar->tiles[l].width )
+            if( col_width[pos] < tbar->tiles[l].width && !ASTileIgnoreSize(tbar->tiles[l]))
                 col_width[pos] = tbar->tiles[l].width;
             if( ASTileHFloating(tbar->tiles[l]) )
                 ++floating_cols[pos] ;
             pos = ASTileRow(tbar->tiles[l]);
-            if( row_height[pos] < tbar->tiles[l].height )
+            if( row_height[pos] < tbar->tiles[l].height && !ASTileIgnoreSize(tbar->tiles[l]))
                 row_height[pos] = tbar->tiles[l].height;
             if( ASTileVFloating(tbar->tiles[l]) )
                 ++floating_rows[pos] ;
@@ -1862,6 +1892,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
                    style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
                    get_flags( pc->state, CANVAS_FORCE_MASK ));
 #ifdef SHAPE
+    LOCAL_DEBUG_OUT( "render_mask = %d", render_mask );
     if ( render_mask )
 		fmt = ASA_ASImage;
 	else if (pc->mask)

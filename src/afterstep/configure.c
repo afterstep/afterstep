@@ -987,16 +987,7 @@ FixLook( MyLook *look )
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     Print_balloonConfig ( &BalloonConfig );
 #endif
-    look->balloon_look = safecalloc( 1, sizeof(ASBalloonLook) );
-
-    look->balloon_look->show = get_flags( BalloonConfig.set_flags, BALLOON_USED );
-    look->balloon_look->border_hilite = BalloonConfig.border_hilite ;
-    look->balloon_look->xoffset = BalloonConfig.x_offset ;
-    look->balloon_look->yoffset = BalloonConfig.y_offset ;
-    look->balloon_look->delay = BalloonConfig.delay ;
-    look->balloon_look->close_delay = BalloonConfig.close_delay ;
-
-    look->balloon_look->style = mystyle_list_find_or_default (look->styles_list, BalloonConfig.style);
+    balloon_config2look( look, &BalloonConfig );
     set_balloon_look( look->balloon_look );
 
     /* checking sanity of the move-resize window geometry :*/

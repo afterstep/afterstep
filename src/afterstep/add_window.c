@@ -144,8 +144,16 @@ typedef struct ASOrientation
     int *out_x, *out_y;
     unsigned int *out_width, *out_height;
     int flip;
-    unsigned int default_tbar_elem_col[3];
-    unsigned int default_tbar_elem_row[3];
+#define ASO_TBAR_ELEM_LBTN      0
+#define ASO_TBAR_ELEM_LSPACER   1
+#define ASO_TBAR_ELEM_LBL       2
+#define ASO_TBAR_ELEM_RSPACER   3
+#define ASO_TBAR_ELEM_RBTN      4
+#define ASO_TBAR_ELEM_NUM       5
+    unsigned int default_tbar_elem_col[ASO_TBAR_ELEM_NUM];
+    unsigned int default_tbar_elem_row[ASO_TBAR_ELEM_NUM];
+    ASFlagType left_spacer_needed_align ;
+    ASFlagType right_spacer_needed_align ;
 }ASOrientation;
 
 
@@ -177,8 +185,8 @@ ASOrientation HorzOrientation =
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
     0,
-    {0, 1, 2},
-    {0, 0, 0}
+    {0, 1, 2, 3, 4},
+    {0, 0, 0, 0, 0}
 };
 
 ASOrientation VertOrientation =
@@ -200,8 +208,8 @@ ASOrientation VertOrientation =
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
     &NormalY, &NormalX, &NormalHeight, &NormalWidth,
     FLIP_VERTICAL,
-    {0, 0, 0},
-    {2, 1, 0}
+    {0, 0, 0, 0, 0},
+    {4, 3, 2, 1, 0}
 };
 
 static inline ASOrientation*
@@ -847,33 +855,65 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     /* 9) now we have to setup titlebar buttons */
     if( asw->tbar )
 	{ /* need to add some titlebuttons */
+        ASFlagType title_align = frame->title_align ;
         ASFlagType btn_mask = compile_titlebuttons_mask (asw->hints);
         asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
         asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
         /* left buttons : */
         add_astbar_btnblock(asw->tbar,
-                            od->default_tbar_elem_col[0], od->default_tbar_elem_row[0],
+                            od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],
+                            od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN],
                             0, NO_ALIGN,
                             &(Scr.Look.buttons[0]), ~btn_mask,
                             TITLE_BUTTONS_PERSIDE,
                             Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                             od->left_btn_order, C_L1 );
-        /* label */
-        add_astbar_label( asw->tbar,
-                          od->default_tbar_elem_col[1], od->default_tbar_elem_row[1],
-                          od->flip,
-                          frame->title_align,
-                          ASWIN_NAME(asw));
-        if( frame->title_back )
+        if( frame->title_back && frame->title_back->image )
         {
+            int title_back_align = frame->title_back_align ;
+            LOCAL_DEBUG_OUT( "title_back_align = 0x%X", title_back_align );
+            if( get_flags( title_back_align, FIT_LABEL_SIZE ) )
+            {
+                /* left spacer  - if we have an icon to go under the label if align is right or center */
+                if( get_flags( frame->title_align, ALIGN_RIGHT ) )
+                    add_astbar_spacer( asw->tbar,
+                                     od->default_tbar_elem_col[ASO_TBAR_ELEM_LSPACER],
+                                     od->default_tbar_elem_row[ASO_TBAR_ELEM_LSPACER],
+                                     od->flip, PAD_LEFT, 1, 1);
+
+                /* right spacer - if we have an icon to go under the label and align is left or center */
+                if( get_flags( frame->title_align, ALIGN_LEFT ) )
+                    add_astbar_spacer( asw->tbar,
+                                     od->default_tbar_elem_col[ASO_TBAR_ELEM_RSPACER],
+                                     od->default_tbar_elem_row[ASO_TBAR_ELEM_RSPACER],
+                                     od->flip, PAD_RIGHT, 1, 1);
+                title_align = 0 ;
+            }
+            /* don't ask why - simply magic :) */
+            clear_flags(title_back_align , (RESIZE_H|RESIZE_V));
+            if( get_flags( title_back_align, (RESIZE_H_SCALE|RESIZE_V_SCALE)))
+                set_flags( title_back_align, FIT_LABEL_SIZE );
+            /* end of the magic */
+
             add_astbar_icon( asw->tbar,
-                              od->default_tbar_elem_col[1], od->default_tbar_elem_row[1],
-                              od->flip, frame->title_back_align&(PAD_MASK|RESIZE_MASK),
-                                        frame->title_back->image);
+                             od->default_tbar_elem_col[ASO_TBAR_ELEM_LBL],
+                             od->default_tbar_elem_row[ASO_TBAR_ELEM_LBL],
+                             od->flip, title_back_align,
+                             frame->title_back->image);
         }
+        /* label ( goes on top of above pixmap ) */
+        add_astbar_label( asw->tbar,
+                          od->default_tbar_elem_col[ASO_TBAR_ELEM_LBL],
+                          od->default_tbar_elem_row[ASO_TBAR_ELEM_LBL],
+                          od->flip,
+                          title_align,
+                          ASWIN_NAME(asw));
+
+
         /* right buttons : */
         add_astbar_btnblock(asw->tbar,
-                            od->default_tbar_elem_col[2], od->default_tbar_elem_row[2],
+                            od->default_tbar_elem_col[ASO_TBAR_ELEM_RBTN],
+                            od->default_tbar_elem_row[ASO_TBAR_ELEM_RBTN],
                             0, NO_ALIGN,
                             &(Scr.Look.buttons[TITLE_BUTTONS_PERSIDE]), (~btn_mask)>>TITLE_BUTTONS_PERSIDE,
                             TITLE_BUTTONS_PERSIDE,
@@ -1350,7 +1390,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx)", asw, w, asw->w );
 
         if( changes != 0 )
         {
-            if( ASWIN_GET_FLAGS( asw, AS_Shaped ) )
+            if( ASWIN_GET_FLAGS( asw, AS_Shaped|AS_ShapedDecor ) )
                 SetShape( asw, 0 );
             broadcast_config (M_CONFIGURE_WINDOW, asw);
         }
@@ -1400,7 +1440,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         if( changes != 0 )
         {
             update_window_transparency( asw );
-            if( get_flags( changes, CANVAS_RESIZED ) && ASWIN_GET_FLAGS( asw, AS_Shaped )  )
+            if( get_flags( changes, CANVAS_RESIZED ) && ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
                 SetShape( asw, 0 );
         }
     }else if( asw->icon_canvas && w == asw->icon_canvas->w )
@@ -1561,6 +1601,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_di
     }else
     {
         int back_type = ASWIN_GET_FLAGS(asw, AS_Sticky )?BACK_STICKY:BACK_UNFOCUSED;
+        Bool decor_shaped = False ;
 
         unfocus_mystyle = asw->hints->mystyle_names[back_type];
         if( asw->frame_data->title_style_names[back_type] )
@@ -1575,12 +1616,25 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_di
 
         for( i = 0 ; i < FRAME_PARTS ; ++i )
             if( asw->frame_bars[i] )
+            {
                 if( set_astbar_style( asw->frame_bars[i], BAR_STATE_UNFOCUSED, frame_unfocus_mystyle ) )
                     changed = True ;
+                if( is_astbar_shaped( asw->frame_bars[i], -1 ) )
+                    decor_shaped = True;
+            }
 
         if( asw->tbar )
+        {
             if( set_astbar_style( asw->tbar, BAR_STATE_UNFOCUSED, unfocus_mystyle ) )
                 changed = True ;
+            if( is_astbar_shaped( asw->tbar, -1 ) )
+                decor_shaped = True;
+        }
+        if( decor_shaped )
+            ASWIN_SET_FLAGS( asw, AS_ShapedDecor );
+        else
+            ASWIN_CLEAR_FLAGS( asw, AS_ShapedDecor );
+
         if( changed || reconfigured )
         {/* now we need to update frame sizes in status */
             unsigned int *frame_size = &(asw->status->frame_size[0]) ;
@@ -1640,6 +1694,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
                 update_canvas_display( asw->frame_sides[i] );
         if( asw->internal && asw->internal->on_hilite_changed )
             asw->internal->on_hilite_changed( asw->internal, NULL, focused );
+        if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor ) )
+            SetShape( asw, 0 );
     }else /* Iconic !!! */
     {
         set_astbar_focused( asw->icon_button, asw->icon_canvas, focused );
@@ -2152,23 +2208,36 @@ SetShape (ASWindow *asw, int w)
         if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
         {                                      /* todo: update icon's shape */
 
-        }else if( ASWIN_GET_FLAGS( asw, AS_Shaped ) )
+        }else
         {
             int i ;
-
-            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+            if( ASWIN_GET_FLAGS( asw, AS_Shaped ) )
             {
-LOCAL_DEBUG_OUT( "combining client shape at %+d%+d", asw->client_canvas->root_x - asw->frame_canvas->root_x,
-                                    asw->client_canvas->root_y - asw->frame_canvas->root_y );
-                XShapeCombineShape (dpy, asw->frame, ShapeBounding,
-                                    asw->client_canvas->root_x - asw->frame_canvas->root_x,
-                                    asw->client_canvas->root_y - asw->frame_canvas->root_y,
-                                    asw->w, ShapeBounding, ShapeSet);
+                if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+                {
+    LOCAL_DEBUG_OUT( "combining client shape at %+d%+d", asw->client_canvas->root_x - asw->frame_canvas->root_x,
+                                        asw->client_canvas->root_y - asw->frame_canvas->root_y );
+                    XShapeCombineShape (dpy, asw->frame, ShapeBounding,
+                                        asw->client_canvas->root_x - asw->frame_canvas->root_x,
+                                        asw->client_canvas->root_y - asw->frame_canvas->root_y,
+                                        asw->w, ShapeBounding, ShapeSet);
+                }else
+                {
+    LOCAL_DEBUG_OUT( "setting empty shape - client's dead%s", "" );
+                    XShapeCombineMask (dpy, asw->frame, ShapeBounding, 0, 0, None, ShapeSet);
+                }
             }else
             {
-LOCAL_DEBUG_OUT( "setting empty shape - client's dead%s", "" );
-                XShapeCombineMask (dpy, asw->frame, ShapeBounding, 0, 0, None, ShapeSet);
+                XRectangle    rect;
+                rect.x = asw->client_canvas->root_x - asw->frame_canvas->root_x;
+                rect.y = asw->client_canvas->root_y - asw->frame_canvas->root_y;
+                rect.width  = asw->client_canvas->width;
+                rect.height = asw->client_canvas->height;
+
+                XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
+                                         0, 0, &rect, 1, ShapeSet, Unsorted);
             }
+
             for( i = 0 ; i < FRAME_SIDES ; ++i )
                 if( asw->frame_sides[i] )
                     combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], False );

@@ -67,6 +67,8 @@ static char  *style_arg;
 static MyStyle *old_GC_style = NULL;
 static int       make_GCs = 1;
 
+static char  *DefaultMyStyleName = "default";
+
 
 static void
 mystyle_free_back_icon( MyStyle *style )
@@ -170,8 +172,8 @@ mystyle_list_fix_styles (ASHashTable *list)
  *  by mystyle_new() already
  * we need FONT, FORECOLOR, and BACKCOLOR, at a minimum
  */
-    if ((dflt = mystyle_list_find (list, "default")) == NULL)
-        dflt = mystyle_list_new (list, "default");
+    if ((dflt = mystyle_list_find (list, DefaultMyStyleName)) == NULL)
+        dflt = mystyle_list_new (list, DefaultMyStyleName);
 	if ((dflt->set_flags & F_FORECOLOR) == 0)
 		dflt->user_flags |= F_FORECOLOR;
 	if ((dflt->set_flags & F_BACKCOLOR) == 0)
@@ -987,9 +989,11 @@ mystyle_list_find_or_default (struct ASHashTable *list, const char *name)
     if( list == NULL )
         list = Scr.Look.styles_list ;
 
+    if( name == NULL )
+        name = DefaultMyStyleName ;
     if( list && name )
         if( get_hash_item( list, AS_HASHABLE((char*)name), (void**)&style ) != ASH_Success )
-            if( get_hash_item( list, AS_HASHABLE("default"), (void**)&style ) != ASH_Success )
+            if( get_hash_item( list, AS_HASHABLE(DefaultMyStyleName), (void**)&style ) != ASH_Success )
                 style = NULL ;
     return style;
 }

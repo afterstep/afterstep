@@ -110,7 +110,7 @@ ASPagerState PagerState;
 
 #define PAGE_MOVE_THRESHOLD     15   /* precent */
 
-#define CLIENT_EVENT_MASK   StructureNotifyMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|KeyPressMask|KeyReleaseMask
+#define CLIENT_EVENT_MASK   StructureNotifyMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|KeyPressMask|KeyReleaseMask|EnterWindowMask|LeaveWindowMask
 
 /* Storing window list as hash table hashed by client window ID :     */
 ASHashTable *PagerClients = NULL;
@@ -205,6 +205,8 @@ main (int argc, char **argv)
                         M_ICON_NAME |
                         M_END_WINDOWLIST|
                         M_STACKING_ORDER);
+
+    balloon_init (False);
 
     Config = CreatePagerConfig (PagerState.desks_num);
 
@@ -440,6 +442,14 @@ LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, 
     Scr.Feel.EdgeAttractionScreen = 5;
     Scr.Feel.EdgeAttractionWindow  = 10;
     Scr.Feel.no_snaping_mod = ShiftMask ;
+
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    Print_balloonConfig ( Config->balloon_conf );
+#endif
+    balloon_config2look( &(Scr.Look), Config->balloon_conf );
+    LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
+                    Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
+    set_balloon_look( Scr.Look.balloon_look );
 }
 
 void
@@ -510,6 +520,12 @@ GetOptions (const char *filename)
 
     if( config->shade_button[1] )
         set_string_value( &(Config->shade_button[1]), config->shade_button[1], NULL, 0 );
+
+    if( Config->balloon_conf )
+        Destroy_balloonConfig( Config->balloon_conf );
+    Config->balloon_conf = config->balloon_conf ;
+    config->balloon_conf = NULL ;
+
     if (config->style_defs)
         ProcessMyStyleDefinitions (&(config->style_defs));
 
@@ -1143,7 +1159,10 @@ void
 set_client_name( ASWindowData *wd, Bool redraw )
 {
     if( wd->bar )
+    {
         change_astbar_first_label( wd->bar, wd->window_name );
+        set_astbar_balloon( wd->bar, 0, wd->window_name );
+    }
     if( redraw && wd->canvas )
         render_astbar( wd->bar, wd->canvas );
 }
@@ -1820,11 +1839,11 @@ DispatchEvent (ASEvent * event)
             {
                 event->client = (ASWindow*)wd;
                 event->widget = ((ASWindowData*)(event->client))->canvas ;
+                if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
+                    on_astbar_pointer_action( ((ASWindowData*)(event->client))->bar, 0, (event->x.type == LeaveNotify) );
             }
         }
     }
-
-    balloon_handle_event (&(event->x));
 
     switch (event->x.type)
     {
