@@ -75,8 +75,19 @@ module_setup_socket (Window w, const char *display_string)
 {
   char *tmp;
 
+#ifdef __CYGWIN__
+	{										   /* there are problems under Windows as home dir could be anywhere  -
+											    * so we just use /tmp since there will only be 1 user anyways :) */
+		tmp = safemalloc (4 + 9 + strlen (display_string) + 1);
+		/*sprintf (tmp, "/tmp/connect.%s", display_string); */
+		sprintf (tmp, "/tmp/as-connect.%ld", Scr.screen);
+		fprintf (stderr, "using %s for intermodule communications.\n", tmp);
+	}
+#else
+
   tmp = safemalloc (9 + 32 + strlen (display_string) + 1);
   sprintf (tmp, "/tmp/afterstep-%d.%s", getuid(), display_string);
+#endif
 
   XChangeProperty (dpy, w, _AS_MODULE_SOCKET, XA_STRING, 8,
 		   PropModeReplace, (unsigned char *) tmp, strlen (tmp));
