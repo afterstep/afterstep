@@ -102,7 +102,9 @@
 #
 *Wharf Applications FileFolders.xpm,3_dots.xpm Folders
  #*Wharf Files Computer.xpm Exec "-" Files &
- *Wharf xterm linux-penguin.xpm Exec "-" (exec aterm) || (exec xterm) &
+ *Wharf xterm linux-penguin.xpm Exec "-" aterm -tr -tint blue -bg black -fg yellow &
+ *Wharf xterm linux-penguin.xpm Exec "-" xterm &
+ *Wharf rxvt  linux-penguin.xpm Exec "-" rxvt &
 
  *Wharf Helpme Info.xpm,3_dots.xpm Folders
         *Wharf xman Bookshelf.xpm Exec "-" xman &

@@ -217,10 +217,9 @@ if test "x$enable_shmimage" = "xyes"; then
 		AC_CHECK_HEADER(sys/shm.h,,[have_shmimage=no])
 	fi
 	if test "x$have_shmimage" = "xyes"; then
-		add_lib_xext=yes
+		have_xext_lib=yes
 		AC_DEFINE(XSHMIMAGE)
 	fi
-
 fi
 
 if test "x$have_xext_lib" = "xyes"; then
