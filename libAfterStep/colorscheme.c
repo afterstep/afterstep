@@ -234,38 +234,38 @@ make_ascolor_scheme( ARGB32 base, int angle )
 void
 populate_ascs_colors_rgb( ASColorScheme *cs )
 {
-	register_custom_color( "Base", cs->base_argb );
-	register_custom_color( "Inactive1", cs->inactive1_argb );
-	register_custom_color( "Inactive2", cs->inactive2_argb );
-	register_custom_color( "Active", cs->active_argb );
-	register_custom_color( "InactiveText1", cs->inactive_text1_argb );
-	register_custom_color( "InactiveText2", cs->inactive_text2_argb ) ;
+	register_custom_color( "Base"					, cs->base_argb );
+	register_custom_color( "Inactive1"				, cs->inactive1_argb );
+	register_custom_color( "Inactive2"				, cs->inactive2_argb );
+	register_custom_color( "Active"					, cs->active_argb );
+	register_custom_color( "InactiveText1"			, cs->inactive_text1_argb );
+	register_custom_color( "InactiveText2"			, cs->inactive_text2_argb ) ;
 
-	register_custom_color( "ActiveText", cs->active_text_argb ) ;
-	register_custom_color( "HighInactive", cs->high_inactive_argb ) ;
-	register_custom_color( "HighActive", cs->high_active_argb ) ;
-	register_custom_color( "HighInactiveBack", cs->high_inactive_back_argb );
-	register_custom_color( "HighActiveBack", cs->high_active_back_argb );
-	register_custom_color( "HighInactiveText", cs->high_inactive_text_argb );
-	register_custom_color( "HighActiveText", cs->high_active_text_argb );
-	register_custom_color( "DisabledText", cs->disabled_text_argb ) ;
+	register_custom_color( "ActiveText"				, cs->active_text_argb ) ;
+	register_custom_color( "HighInactive"			, cs->high_inactive_argb ) ;
+	register_custom_color( "HighActive"				, cs->high_active_argb ) ;
+	register_custom_color( "HighInactiveBack"		, cs->high_inactive_back_argb );
+	register_custom_color( "HighActiveBack"			, cs->high_active_back_argb );
+	register_custom_color( "HighInactiveText"		, cs->high_inactive_text_argb );
+	register_custom_color( "HighActiveText"			, cs->high_active_text_argb );
+	register_custom_color( "DisabledText"			, cs->disabled_text_argb ) ;
 
-	register_custom_color( "BaseDark", cs->base_grad[0] ) ;
-	register_custom_color( "BaseLight", cs->base_grad[1] ) ;
-	register_custom_color( "Inactive1Dark", cs->inactive1_grad[0] ) ;
-	register_custom_color( "Inactive1Light", cs->inactive1_grad[1] ) ;
-	register_custom_color( "Inactive2Dark", cs->inactive2_gradb[0] ) ;
-	register_custom_color( "Inactive2Light", cs->inactive2_gradb[1] ) ;
-	register_custom_color( "ActiveDark", cs->active_grad[0] ) ;
-	register_custom_color( "ActiveLight", cs->active_grad[1] ) ;
-	register_custom_color( "HighInactiveDark", cs->high_inactive_grad[0] ) ;
-	register_custom_color( "HighInactiveLight", cs->high_inactive_grad[1] ) ;
-	register_custom_color( "HighActiveDark", cs->high_active_grad[0] ) ;
-	register_custom_color( "HighActiveLight", cs->high_active_grad[1] ) ;
-	register_custom_color( "HighInactiveBackDark", cs->high_inactive_back_grad[0] ) ;
-	register_custom_color( "HighInactiveBackLight", cs->high_inactive_back_grad[1] ) ;
-	register_custom_color( "HighActiveBackDark", cs->high_active_back_grad[0] ) ;
-	register_custom_color( "HighActiveBackLight", cs->high_active_back_grad[1] ) ;
+	register_custom_color( "BaseDark"				, cs->base_grad[0] ) ;
+	register_custom_color( "BaseLight"				, cs->base_grad[1] ) ;
+	register_custom_color( "Inactive1Dark"			, cs->inactive1_grad[0] ) ;
+	register_custom_color( "Inactive1Light"			, cs->inactive1_grad[1] ) ;
+	register_custom_color( "Inactive2Dark"			, cs->inactive2_gradb[0] ) ;
+	register_custom_color( "Inactive2Light"			, cs->inactive2_gradb[1] ) ;
+	register_custom_color( "ActiveDark"				, cs->active_grad[0] ) ;
+	register_custom_color( "ActiveLight"			, cs->active_grad[1] ) ;
+	register_custom_color( "HighInactiveDark"		, cs->high_inactive_grad[0] ) ;
+	register_custom_color( "HighInactiveLight"		, cs->high_inactive_grad[1] ) ;
+	register_custom_color( "HighActiveDark"			, cs->high_active_grad[0] ) ;
+	register_custom_color( "HighActiveLight"		, cs->high_active_grad[1] ) ;
+	register_custom_color( "HighInactiveBackDark"	, cs->high_inactive_back_grad[0] ) ;
+	register_custom_color( "HighInactiveBackLight"	, cs->high_inactive_back_grad[1] ) ;
+	register_custom_color( "HighActiveBackDark"		, cs->high_active_back_grad[0] ) ;
+	register_custom_color( "HighActiveBackLight"	, cs->high_active_back_grad[1] ) ;
 }
 
 void

@@ -177,6 +177,7 @@ typedef struct ConfigDef
 #define CF_PUBLIC_OPTION	(1<<1)	/* public options - with no * MyName prepending it */
 #define CF_FOREIGN_OPTION	(1<<2)	/* option had * prepending it, but unknown MyName after that */
 #define CF_LAST_OPTION	(1<<3)	/* option is last in the config file */
+#define CF_COMMENTED_OPTION	(1<<4)	/* option is last in the config file */
 
 #define IsOptionEnabled(config)	(!(config->current_flags&CF_DISABLED_OPTION))
 #define IsOptionDisabled(config)	(config->current_flags&CF_DISABLED_OPTION)

@@ -28,7 +28,7 @@ struct ConfigDef;
 struct FunctionData;
 struct ComplexFunction;
 struct ConfigItem;
-
+struct ASColorScheme;
 
 extern struct SyntaxDef      BevelSyntax;
 extern struct SyntaxDef      AlignSyntax;
@@ -1425,6 +1425,55 @@ int WriteAutoExecOptions (const char *filename, char *myname,  AutoExecConfig * 
 
 void DestroyThemeConfig (ThemeConfig * config);
 ThemeConfig *ParseThemeFile (const char *filename, char *myname);
+/***************************************************************************/
+#define COLOR_ID_START	 			(WINDOWBOX_ID_END+1)
+#define COLOR_Base_ID					(COLOR_ID_START+1)
+#define COLOR_Angle_ID				(COLOR_ID_START+2)
+#define COLOR_Inactive1_ID			(COLOR_ID_START+3)
+#define COLOR_Inactive2_ID			(COLOR_ID_START+4)
+#define COLOR_Active_ID  				(COLOR_ID_START+5)
+#define COLOR_InactiveText1_ID		(COLOR_ID_START+6)
+#define COLOR_InactiveText2_ID		(COLOR_ID_START+7)
+
+#define COLOR_ActiveText_ID			(COLOR_ID_START+8)
+#define COLOR_HighInactive_ID			(COLOR_ID_START+9)
+#define COLOR_HighActive_ID			(COLOR_ID_START+10)
+#define COLOR_HighInactiveBack_ID		(COLOR_ID_START+11)
+#define COLOR_HighActiveBack_ID		(COLOR_ID_START+12)
+#define COLOR_HighInactiveText_ID		(COLOR_ID_START+13)
+#define COLOR_HighActiveText_ID		(COLOR_ID_START+14)
+#define COLOR_DisabledText_ID			(COLOR_ID_START+15)
+
+#define COLOR_BaseDark_ID				(COLOR_ID_START+16)
+#define COLOR_BaseLight_ID			(COLOR_ID_START+17)
+#define COLOR_Inactive1Dark_ID		(COLOR_ID_START+18)
+#define COLOR_Inactive1Light_ID		(COLOR_ID_START+19)
+#define COLOR_Inactive2Dark_ID		(COLOR_ID_START+20)
+#define COLOR_Inactive2Light_ID		(COLOR_ID_START+21)
+#define COLOR_ActiveDark_ID			(COLOR_ID_START+22)
+#define COLOR_ActiveLight_ID			(COLOR_ID_START+23)
+#define COLOR_HighInactiveDark_ID		(COLOR_ID_START+24)
+#define COLOR_HighInactiveLight_ID	(COLOR_ID_START+25)
+#define COLOR_HighActiveDark_ID		(COLOR_ID_START+26)
+#define COLOR_HighActiveLight_ID		(COLOR_ID_START+27)
+#define COLOR_HighInactiveBackDark_ID	(COLOR_ID_START+28)
+#define COLOR_HighInactiveBackLight_ID (COLOR_ID_START+29)
+#define COLOR_HighActiveBackDark_ID	(COLOR_ID_START+30)
+#define COLOR_HighActiveBackLight_ID	(COLOR_ID_START+31)
+#define COLOR_ID_END            		(COLOR_ID_START+32)
+
+
+typedef struct ColorConfig
+{
+    struct ASColorScheme *cs ;
+
+    struct FreeStorageElem *more_stuff ;
+
+}ColorConfig;
+
+ColorConfig *ParseColorFile (const char *filename, char *myname);
+void DestroyColorConfig (ColorConfig * config);
+
 /***************************************************************************/
 
 #ifdef __cplusplus

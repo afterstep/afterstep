@@ -265,9 +265,9 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 					 return NULL;
 				 }
 				 new_conf->fd =
-#ifdef __CYGWIN__				 
+#ifdef __CYGWIN__
                      open (realfilename, create ? O_CREAT | O_RDONLY |O_BINARY: O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP|O_BINARY);
-#else					 
+#else
                      open (realfilename, create ? O_CREAT | O_RDONLY: O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP);
 #endif
 				 free (realfilename);
@@ -1041,6 +1041,10 @@ WriteFreeStorageElem (ConfigDef * config, struct WriteBuffer *t_buffer, FreeStor
 			src = _disabled_keyword;
 			while (*src)
 				*(ptr++) = *(src++);
+			*(ptr++) = csyntax->token_separator;	/*C2: csyntax->token_separator */
+		}else if (pElem->flags & CF_COMMENTED_OPTION) /*C1: DISABLED_KEYWORD_SIZE */
+		{
+			*(ptr++) = COMMENTS_CHAR;
 			*(ptr++) = csyntax->token_separator;	/*C2: csyntax->token_separator */
 		}
 
