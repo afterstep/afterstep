@@ -424,50 +424,86 @@ render_supersampled_pixel( ASDrawContext *ctx, int x8, int y8 )
 	}
 }	
 
+typedef struct ASCubicBezier
+{
+	int x0, y0;
+	int x1, y1;
+	int x2, y2;
+	int x3, y3;
+}ASCubicBezier;
+
 static void
 ctx_draw_bezier( ASDrawContext *ctx, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3 )
 {
-	LOCAL_DEBUG_OUT( "(%d,%d),(%d,%d),(%d,%d),(%d,%d)", 
-					 x0, y0, x1, y1, x2, y2, x3, y3 );
 	int ch = ctx->canvas_height<<8 ;
 	int cw = ctx->canvas_width<<8 ;
+	
+	ASCubicBezier *bstack = NULL ;
+	int bstack_size = 0, bstack_used = 0 ;
+	
+#define ADD_CubicBezier(X0,Y0,X1,Y1,X2,Y2,X3,Y3)	\
+	do{ \
+		if( ((X0)>=0 || (X1)>=0 || (X2)>=0 || (X3)>=0) && ((X0)<cw||(X1)<cw||(X2)<cw||(X3)<cw) && \
+			((Y0)>=0 || (Y1)>=0 || (Y2)>=0 || (Y3)>=0) && ((Y0)<ch||(Y1)<ch||(Y2)<ch||(Y3)<ch) ){ \
+			while( bstack_used >= bstack_size ) { \
+				bstack_size += 2048/sizeof(ASCubicBezier); \
+				bstack = realloc( bstack, bstack_size*sizeof(ASCubicBezier)); \
+			} \
+			LOCAL_DEBUG_OUT( "(%d,%d),(%d,%d),(%d,%d),(%d,%d)", X0, Y0, X1, Y1, X2, Y2, X3, Y3 ); \
+			bstack[bstack_used].x0=X0; \
+			bstack[bstack_used].y0=Y0; \
+			bstack[bstack_used].x1=X1; \
+			bstack[bstack_used].y1=Y1; \
+			bstack[bstack_used].x2=X2; \
+			bstack[bstack_used].y2=Y2; \
+			bstack[bstack_used].x3=X3; \
+			bstack[bstack_used].y3=Y3; \
+			++bstack_used ; \
+		} \
+	}while(0)
 
-	if( y0 > ch && y1 >ch && y2 > ch && y3 > ch ) 
-		return;
-	else if( y0 < 0 && y1 < 0 && y2 < 0 && y3 < 0 ) 
-		return ;
-	else if( x0 > cw && x1 >cw && x2 > cw && x3 > cw ) 
-		return;
-	else if( x0 < 0 && x1 < 0 && x2 < 0 && x3 < 0 ) 
-		return ;
-	else
+
+	ADD_CubicBezier(x0,y0,x1,y1,x2,y2,x3,y3);
+
+	while( bstack_used > 0 )
 	{
-		int x01 = x0 + ((x1-x0)>>1) ;  	
-		int y01 = y0 + ((y1-y0)>>1) ; 
-		int x11 = x1 + ((x2-x1)>>1) ; 	   
-		int y11 = y1 + ((y2-y1)>>1) ; 
-		int x31 = x3 + ((x2-x3)>>1) ; 	   
-		int y31 = y3 + ((y2-y3)>>1) ; 
-
-		int x011 = x01 + ((x11-x01)>>1) ;  	  
-		int y011 = y01 + ((y11-y01)>>1) ; 
-		int x111 = x11 + ((x31-x11)>>1) ;  	  
-		int y111 = y11 + ((y31-y11)>>1) ; 
-	   
-		int x0111 = x011 + ((x111-x011)>>1) ;  	  
-		int y0111 = y011 + ((y111-y011)>>1) ; 
-
-		if( (x0>>8) == (x0111>>8) && (y0>>8) == (y0111>>8) ) 
+		--bstack_used ;
+		x0 = bstack[bstack_used].x0 ;
+		y0 = bstack[bstack_used].y0 ;
+		x1 = bstack[bstack_used].x1 ;
+		y1 = bstack[bstack_used].y1 ;
+		x2 = bstack[bstack_used].x2 ;
+		y2 = bstack[bstack_used].y2 ;
+		x3 = bstack[bstack_used].x3 ;
+		y3 = bstack[bstack_used].y3 ;
 		{
-			render_supersampled_pixel( ctx, x0, y0 );
-		}else if( x01 != x1 || y01 != y1 || x011 != x2 || y011 != y2 || x0111 != x3 || y0111 != y3 )
-			ctx_draw_bezier( ctx, x0, y0, x01, y01, x011, y011, x0111, y0111 );
+			int x01 = x0 + ((x1-x0)>>1) ;  	
+			int y01 = y0 + ((y1-y0)>>1) ; 
+			int x11 = x1 + ((x2-x1)>>1) ; 	   
+			int y11 = y1 + ((y2-y1)>>1) ; 
+			int x31 = x3 + ((x2-x3)>>1) ; 	   
+			int y31 = y3 + ((y2-y3)>>1) ; 
 
-		if( (x3>>8) == (x0111>>8) && (y3>>8) == (y0111>>8) ) 
-		{	
-			render_supersampled_pixel( ctx, x3, y3 );
-		}else if( x0111 != x0 || y0111 != y0 || x111 != x1 || y111 != y1 || x31 != x2 || y31 != y2 ) 	
-			ctx_draw_bezier( ctx, x0111, y0111, x111, y111, x31, y31, x3, y3 );	
+			int x011 = x01 + ((x11-x01)>>1) ;  	  
+			int y011 = y01 + ((y11-y01)>>1) ; 
+			int x111 = x11 + ((x31-x11)>>1) ;  	  
+			int y111 = y11 + ((y31-y11)>>1) ; 
+
+			int x0111 = x011 + ((x111-x011)>>1) ;  	  
+			int y0111 = y011 + ((y111-y011)>>1) ; 
+
+			if( (x0>>8) == (x0111>>8) && (y0>>8) == (y0111>>8) ) 
+			{
+			  	render_supersampled_pixel( ctx, x0, y0 );
+			}else if( x01 != x1 || y01 != y1 || x011 != x2 || y011 != y2 || x0111 != x3 || y0111 != y3 )
+			  	ADD_CubicBezier( x0, y0, x01, y01, x011, y011, x0111, y0111 );
+
+			if( (x3>>8) == (x0111>>8) && (y3>>8) == (y0111>>8) ) 
+			{	
+			  	render_supersampled_pixel( ctx, x3, y3 );
+			}else if( x0111 != x0 || y0111 != y0 || x111 != x1 || y111 != y1 || x31 != x2 || y31 != y2 ) 	
+				ADD_CubicBezier( x0111, y0111, x111, y111, x31, y31, x3, y3 );	
+		}
 	}
 }
 
@@ -648,6 +684,18 @@ asim_cube_bezier( ASDrawContext *ctx, int x1, int y1, int x2, int y2, int x3, in
 	}		
 }
 
+void
+asim_circle( ASDrawContext *ctx, int x, int y, int r ) 
+{
+	if( ctx ) 
+	{	
+		asim_move_to( ctx, x-r, y );
+		ctx_draw_bezier( ctx, (x-r)<<8, y<<8, (x-r)<<8, (y-r*4/3)<<8, (x+r)<<8, (y-r*4/3)<<8, (x+r)<<8, y<<8 );
+		ctx_draw_bezier( ctx, (x-r)<<8, y<<8, (x-r)<<8, (y+r*4/3)<<8, (x+r)<<8, (y+r*4/3)<<8, (x+r)<<8, y<<8 );
+	}		
+}	 
+
+
 Bool
 apply_draw_context( ASImage *im, ASDrawContext *ctx, ASFlagType filter ) 
 {
@@ -791,7 +839,7 @@ int main(int argc, char **argv )
 	
 	asim_move_to(ctx, 300, 300); 	  
 	asim_set_brush( ctx, 0 ); 
-	asim_cube_bezier( ctx, 310, 40000, 390, 40000, 400, 300 ); 
+	asim_cube_bezier( ctx, 270, 600, 390, 200, 400, 300 ); 
 
 #if 1
 	/* commit drawing : */
