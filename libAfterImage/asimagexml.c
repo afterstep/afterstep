@@ -502,7 +502,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 #endif
 
 		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+		if (rparm) *rparm = parm; 
+		else xml_elem_delete(NULL, parm);
 	}
 
 /****** libAfterImage/asimagexml/recall
@@ -1825,7 +1826,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			/* Build the layers first. */
 			layers = create_image_layers( num );
 			align = safecalloc( num, sizeof(int));
-			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) {
+			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) 
+			{
 				int x = 0, y = 0;
 				int clip_x = 0, clip_y = 0;
 				int clip_width = 0, clip_height = 0;
@@ -1838,7 +1840,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					clip_width = layers[num].im->width;
 					clip_height = layers[num].im->height;
 				}
-				if (sparm) {
+				if (sparm) 
+				{
 					xml_elem_t* tmp;
 					const char* x_str = NULL;
 					const char* y_str = NULL;
@@ -1969,6 +1972,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				while (--num >= 0 )
 					safe_asimage_destroy( layers[num].im );
 			}
+			free(align);
 			free(layers);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -2009,6 +2013,9 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				fputs( interpreted_format, stdout );				   
 			free( interpreted_format );
 		}
+		
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+
 		if( result == NULL ) 
 			return NULL;
 	}
@@ -2016,25 +2023,29 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 	/* No match so far... see if one of our children can do any better.*/
 	if (!result) {
 		xml_elem_t* tparm = NULL;
-		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
+		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) 
+		{
 			xml_elem_t* sparm = NULL;
 			ASImage* imtmp = build_image_from_xml(asv, imman, fontman, ptr, &sparm, flags, verbose, display_win);
-			if (imtmp) {
+			if (imtmp) 
+			{
 				if (tparm) xml_elem_delete(NULL, tparm);
-				tparm = NULL;
-				if (sparm) tparm = sparm; else xml_elem_delete(NULL, sparm);
+				tparm = sparm; 
 			}
 		}
+		if (rparm) *rparm = tparm; 
+		else xml_elem_delete(NULL, tparm);
 	}
 
-	if (id && result) {
-              char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
+	if (id && result) 
+	{
+    	char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
 		show_progress("Storing image id [%s] with image manager %p .", id, imman);
-              sprintf(buf, "%s.width", id);
-              asxml_var_insert(buf, result->width);
-              sprintf(buf, "%s.height", id);
-              asxml_var_insert(buf, result->height);
-              free(buf);
+        sprintf(buf, "%s.width", id);
+        asxml_var_insert(buf, result->width);
+        sprintf(buf, "%s.height", id);
+        asxml_var_insert(buf, result->height);
+        free(buf);
 		if( result->imageman != NULL )
 		{
 			ASImage *tmp = clone_asimage(result, SCL_DO_ALL );

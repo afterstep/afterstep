@@ -206,7 +206,7 @@ void usage(void) {
  * parameters are given :
  * SOURCE
  */
-#if 1
+#if 0
 static char* default_doc_str = "\
 <composite op=hue>\
   <composite op=add>\
@@ -220,9 +220,7 @@ static char* default_doc_str = "\
 <printf format=\"original image size in pixels=%d\n\" val=$rose.width*$rose.height/>\
 ";
 #else	
-static char* default_doc_str = "\
-    <scale width=512 height=proportional><img id=rose src=rose512.jpg/></scale>\
-";
+static char* default_doc_str = "<img src=AfterStepBeauty/>";
 #endif
 /*******/
 /* <printf format="original image height=%d\n" var="rose.height"/>
@@ -669,6 +667,7 @@ int main(int argc, char** argv) {
 	custom_color_cleanup();
     build_xpm_colormap( NULL );
 	flush_default_asstorage();
+	destroy_asvisual( asv, False );
 	print_unfreed_mem();
 #endif
 

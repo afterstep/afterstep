@@ -783,10 +783,14 @@ destroy_storage_slot( ASStorageBlock *block, int index )
 	if( block->last_used == index ) 
 	{	
 		while( --i > 0 ) 
+		{	
 			if( slots[i] != NULL ) 
 				break;
+			--(block->unused_count);
+		}
 		block->last_used = i<0?0:i;	 
-	}
+	}else if( index < block->last_used ) 
+		++(block->unused_count);
 }
 
 static inline void 
@@ -900,7 +904,12 @@ defragment_storage_block( ASStorageBlock *block )
 				LOCAL_DEBUG_OUT( "Storage Integrity check failed - block = %p, index = %d", block, i ) ;	
 				exit(0);
 			}
-	
+	block->unused_count = 0 ;
+	for( i = 0 ; i < block->last_used ; ++i ) 
+	{
+		if( slots[i] == NULL ) 
+			++(block->unused_count);
+	}
 }
 
 static ASStorageSlot *
@@ -954,6 +963,10 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 	LOCAL_DEBUG_OUT( "slot->size = %ld", slot->size );
 	
 	slot->size = to_size ; 
+	
+	if( old_size <= ASStorageSlot_USABLE_SIZE(slot) )
+		return True;
+
 	new_slot = AS_STORAGE_GetNextSlot(slot);
 
 	LOCAL_DEBUG_OUT( "new_slot = %p, slot = %p, slot->size = %ld", new_slot, slot, slot->size );
@@ -997,7 +1010,12 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 		LOCAL_DEBUG_OUT( "i = %d", i );
  		new_slot->index = i ;		
 		if( i < block->last_used )
-			--(block->unused_count);
+		{
+			if( block->unused_count <= 0 ) 
+				show_warning( "Storage error : unused_count out of range (%d )", block->unused_count );
+			else					  
+				--(block->unused_count);
+		}
 	}	
 	LOCAL_DEBUG_OUT( "new_slot = %p, new_slot->index = %d, new_slot->size = %ld", new_slot, new_slot->index, new_slot->size );
 	block->slots[new_slot->index] = new_slot ;
@@ -1009,35 +1027,37 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 {
 	ASStorageSlot *slot ;
 	CARD8 *dst ;
+	Bool bad_slot = True ;
 	slot = select_storage_slot( block, compressed_size );
 	LOCAL_DEBUG_OUT( "selected slot %p for size %d (compressed %d) and flags %lX", slot, size, compressed_size, flags );
 	
 	if( slot == NULL ) 
-		return 0;
-	
-	if( slot > block->end || slot < block->start) 
-	{
+		show_error( "cannot find suitable storage slot to store %d bytes compressed down to %d", size, compressed_size );
+	else if( slot > block->end || slot < block->start) 
 		show_error( "storage slot selected falls outside of allocated memory. Slot = %p, start = %p, end = %p", slot, block->start, block->end );
-		return 0;
-	}			  
-	if( &(slot->data[slot->size]) > ((CARD8*)(block->start)) + block->size) 
-	{
+	else if( &(slot->data[slot->size]) > ((CARD8*)(block->start)) + block->size) 
 		show_error( "storage slot's size falls outside of allocated memory. Slot->data[slot->size] = %p, end = %p, size = %d", &(slot->data[slot->size]), ((CARD8*)(block->start)) + block->size, slot->size );
-		return 0;
-	}			  
-	if( slot->index >= block->slots_count ) 
-	{
+	else if( slot->index >= block->slots_count ) 
 		show_error( "storage slot index falls out of range. Index = %d, slots_count = %d", slot->index, block->slots_count );
+	else
+		bad_slot = False ;
+	
+	if( bad_slot )
+	{
+		show_error( "\t data = %p, size = %d, compressed_size = %d, ref_count = %d, flags = 0x%lX", block, data, size, compressed_size, ref_count, flags	);
+		show_error( "\t block = %p, : {size:%d, total_free:%d, slots_count:%d, unused_count:%d, first_free:%d, last_used:%d}", block, block->size, block->total_free, block->slots_count, block->unused_count, block->first_free, block->last_used );
+		if( slot ) 
+			show_error( "\t slot = %p : {flags:0x%X, ref_count:%u, size:%lu, uncompr_size:%lu, index:%u}", slot,
+					 	slot->flags, slot->ref_count, slot->size, slot->uncompressed_size, slot->index );
 		return 0;
 	}			  
 		
 	LOCAL_DEBUG_OUT( "block = %p", block );
-	if( ASStorageSlot_USABLE_SIZE(slot) >= compressed_size+ASStorageSlot_SIZE ) 
-		if( !split_storage_slot( block, slot, compressed_size ) ) 
-		{
-			show_error( "storage slot split failed. Usable size = %d, desired size = %d", ASStorageSlot_USABLE_SIZE(slot), compressed_size+ASStorageSlot_SIZE );
-			return 0;
-		}
+	if( !split_storage_slot( block, slot, compressed_size ) ) 
+	{
+		show_error( "storage slot split failed. Usable size = %d, desired size = %d", ASStorageSlot_USABLE_SIZE(slot), compressed_size+ASStorageSlot_SIZE );
+		return 0;
+	}
 	LOCAL_DEBUG_OUT( "block = %p", block );
 	block->total_free -= ASStorageSlot_FULL_SIZE(slot);
 	
