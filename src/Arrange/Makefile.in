@@ -1,0 +1,20 @@
+OBJS            = Arrange.o
+
+PROG		= Arrange
+
+LIBS_PRIVATE      = $(LIB_AFTERCONF) $(LIB_AFTERSTEP) \
+					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) $(LIBS_AFTERIMAGE)
+LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
+				  $(LIB_AFTERCONF)
+
+@MAKEFILECOMMON@
+
+$(PROG):        $(OBJS) $(LIBS_DEPEND)
+		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
+
+module.clean:
+		
+install:	install.bin
+
+uninstall:	uninstall.bin
+
