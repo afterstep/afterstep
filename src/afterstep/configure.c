@@ -690,6 +690,7 @@ InitLook (MyLook *look, Bool free_resources)
             free( BalloonConfig.style );
     }
     MenuPinOn = NULL;
+    MenuPinOnButton = -1;
 
     Scr.default_icon_box = NULL ;
     Scr.icon_boxes = NULL ;
@@ -836,6 +837,63 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
 }
 
 void
+fix_menu_pin_on( MyLook *look )
+{
+    if (MenuPinOn != NULL)
+    {
+        if( MenuPinOnButton < 0 || MenuPinOnButton >= TITLE_BUTTONS )
+        {
+            register int i = TITLE_BUTTONS ;
+            while ( --i >= 0 )
+            {
+                if( look->buttons[i].unpressed.image == NULL && look->buttons[i].pressed.image == NULL )
+                    break;
+            }
+            if( i >= 0 )
+            {
+                if( GetIconFromFile (MenuPinOn, &(Scr.Look.buttons[i].unpressed), 0) )
+                {
+                    int context = C_TButton0<<i ;
+                    register int k ;
+                    Scr.Look.buttons[i].width = Scr.Look.buttons[i].unpressed.image->width ;
+                    Scr.Look.buttons[i].height = Scr.Look.buttons[i].unpressed.image->height ;
+                    MenuPinOnButton = i ;
+
+                    if( Scr.Look.buttons[i].context == C_NO_CONTEXT )
+                        Scr.Look.buttons[i].context = context ;
+                    context = Scr.Look.buttons[i].context ;
+                    for( k = 0 ; k < TITLE_BUTTONS ; ++k )
+                        if( Scr.Look.button_xref[k] == context )
+                            break;
+                    if( k == TITLE_BUTTONS )
+                    {
+                        while( --k >= 0 )
+                            if( Scr.Look.button_xref[k] == C_NO_CONTEXT )
+                            {
+                                Scr.Look.button_xref[k] =context ;
+                                break;
+                            }
+                    }
+                    if( k >= 0 && k < TITLE_BUTTONS )
+                        Scr.Look.ordered_buttons[k] = &(Scr.Look.buttons[i]) ;
+                    else
+                        show_warning( "there is no slot on the titlebar to place button %d into. Check yout TitleButtonOrder setting.", i );
+                }else
+                    MenuPinOnButton = -1 ;
+            }
+        }
+        if( MenuPinOnButton >= 0 )
+        {
+            static char binding[128];
+            sprintf( binding, "1 %d A PinMenu\n", MenuPinOnButton );
+            /* also need to add mouse binding for this one */
+            ParseMouseEntry (binding, NULL, NULL, NULL);
+        }
+        show_warning( "MenuPinOn setting is depreciated - instead add a Title button and bind PinMenu function to it." );
+    }
+}
+
+void
 FixLook( MyLook *look )
 {
     ASFlagType default_title_align = ALIGN_LEFT ;
@@ -886,29 +944,6 @@ FixLook( MyLook *look )
 #endif /* ! NO_TEXTURE */
     if( look->DefaultFrame == NULL )
         look->DefaultFrame = create_default_myframe(default_title_align|ALIGN_VCENTER);
-
-    if (MenuPinOn != NULL)
-    {
-        register int i = TITLE_BUTTONS ;
-        while ( --i >= 0 )
-		{
-            if( look->buttons[i].unpressed.image == NULL && look->buttons[i].pressed.image == NULL )
-                break;
-        }
-        if( i >= 0 )
-        {
-            if( GetIconFromFile (MenuPinOn, &(Scr.Look.buttons[i].unpressed), 0) )
-            {
-                static char binding[128];
-                Scr.Look.buttons[i].width = Scr.Look.buttons[i].unpressed.image->width ;
-                Scr.Look.buttons[i].height = Scr.Look.buttons[i].unpressed.image->height ;
-                sprintf( binding, "1 %d A PinMenu\n", i );
-                /* also need to add mouse binding for this one */
-                ParseMouseEntry (binding, NULL, NULL, NULL);
-            }
-        }
-        show_warning( "MenuPinOn setting is depreciated - instead add a Title button and bind PinMenu function to it." );
-    }
 
     /* checking that all the buttons have assigned slots in the button xref : */
     for( i = 0 ; i < TITLE_BUTTONS ; ++i )
@@ -1262,6 +1297,11 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         if( thisdesktop == Scr.CurrentDesk )
             change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
     }
+
+    if( get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
+        fix_menu_pin_on( &Scr.Look );
+
+
     /* TODO: update the menus */
     if (get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 	{
