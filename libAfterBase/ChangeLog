@@ -1,6 +1,41 @@
 
+2005-03-22  sasha
+
+	* cleaned up stale help files; got rid of sgmltools deps; updated
+	  .spec file; changed version number to 2.0.4
+
+2005-03-17  sasha
+
+	* implemented dynamic linking to several global vars exported from
+	  libAfterStep to prevent compilation and linkage errors
+
+2005-03-11  sasha
+
+	* copied DefaultFancy.ttf to libAfterImage/apps/test.ttf to avoid
+	  possible licensing issues. Those are the same anyways, only
+	  DefaultFancy includes Public Domain notice
+
+2005-03-09  sasha
+
+	* some memory hole plugging and leaks debugging - nothing major so
+	  far
+
+2005-03-08  sasha
+
+	* debugging memory utilization
+	* added afterbase_config.h to define several macros that change
+	  features in compiled afterbase
+	* fixed few compile warnings
+
+2005-03-03  sasha
+
+	* compile fix in selfdiag
+	* fixed calculation of the windowbox width and improved logic in
+	  smart placement
+
 2005-03-02  sasha
 
+	* updated ChangeLog file to 2.00.03 release
 	* AfterStep 2.00.03 release
 	* fixed longstanding bug with windows not being properly delisted
 	  from iconbox. Thanks Debian users

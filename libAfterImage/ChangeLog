@@ -1,6 +1,56 @@
 
+2005-03-22  sasha
+
+	* cleaned up stale help files; got rid of sgmltools deps; updated
+	  .spec file; changed version number to 2.0.4
+
+2005-03-21  sasha
+
+	* fixed segfault with glx enabled
+
+2005-03-17  sasha
+
+	* fixed libraries listed by libAfterImage config script to include
+	  X libs to avoid linkage problems
+	* implemented dynamic linking to several global vars exported from
+	  libAfterStep to prevent compilation and linkage errors
+	* hopefully cleaned up shared memory usage
+
+2005-03-16  sasha
+
+	* optimization of shared memory
+	* some debugging of asstorage code, possibly fixing segfault
+
+2005-03-14  sasha
+
+	* fixed handling of special sequences in xml source of ASDocGen+
+	  fixed handling of several term tags within single varlist entry
+
+2005-03-11  sasha
+
+	* copied DefaultFancy.ttf to libAfterImage/apps/test.ttf to avoid
+	  possible licensing issues. Those are the same anyways, only
+	  DefaultFancy includes Public Domain notice
+
+2005-03-09  sasha
+
+	* some memory hole plugging and leaks debugging - nothing major so
+	  far
+
+2005-03-08  sasha
+
+	* debugging memory utilization
+	* fixed compile warnings for Alpha's cc
+	* fixed few compile warnings
+
+2005-03-07  sasha
+
+	* fixed problem with wharf swallowing apps that were mapped on
+	  different desktop
+
 2005-03-02  sasha
 
+	* updated ChangeLog file to 2.00.03 release
 	* AfterStep 2.00.03 release
 
 2005-03-01  sasha

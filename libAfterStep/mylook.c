@@ -272,10 +272,23 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 
 	if (get_flags (what_flags, LL_Misc))
 	{
+		CARD32 Base ;
 		look->RubberBand = 0;
 		look->CursorFore = NULL ;
 		look->CursorBack = NULL ;
-		look->desktop_animation_tint = get_random_tint_color() ;
+		if( !get_custom_color("Base", &Base) ) 
+			look->desktop_animation_tint = get_random_tint_color() ;
+		else
+		{
+			int Base_hue ;
+			Base_hue = asxml_var_get("ascs.Base.hue");
+			if( Base_hue < 30 || Base_hue >= 330 ) 	look->desktop_animation_tint = 0xFFFF0000;
+			else if( Base_hue < 90  ) 	look->desktop_animation_tint = 0xFFFFFF00;
+			else if( Base_hue < 150  ) 	look->desktop_animation_tint = 0xFF00FF00;
+			else if( Base_hue < 210  ) 	look->desktop_animation_tint = 0xFF00FFFF;
+ 			else if( Base_hue < 270  ) 	look->desktop_animation_tint = 0xFF0000FF;
+			else look->desktop_animation_tint = 0xFFFF00FF;
+		}
     }
 	LOCAL_DEBUG_OUT( "desk_anime_tint = %lX", look->desktop_animation_tint );
 	if (get_flags (what_flags, LL_Flags))

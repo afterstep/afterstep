@@ -1,6 +1,109 @@
 
+2005-03-22  sasha
+
+	* fixed doc/Makefile to check for /html/ to exist
+	* added look.Breeze buttons
+	* added look.Breeze bars
+	* cleaned up stale help files; got rid of sgmltools deps; updated
+	  .spec file; changed version number to 2.0.4
+
+2005-03-21  sasha
+
+	* added generation of FAQs to ASDocGen
+	* fixed segfault with glx enabled
+
+2005-03-17  sasha
+
+	* fixed libraries listed by libAfterImage config script to include
+	  X libs to avoid linkage problems
+	* implemented dynamic linking to several global vars exported from
+	  libAfterStep to prevent compilation and linkage errors
+	* hopefully cleaned up shared memory usage
+
+2005-03-16  sasha
+
+	* optimization of shared memory
+	* some debugging of asstorage code, possibly fixing segfault
+	* added look.Breeze from zipht
+	* hopefully fixed balloons blinking with xawtv
+
+2005-03-15  sasha
+
+	* hopefully fixed compile problem with gcc 4 related to declaration
+	  of array of undefined element size
+
+2005-03-14  sasha
+
+	* fixed memory corruption in pager.c
+	* fixed handling of special sequences in xml source of ASDocGen+
+	  fixed handling of several term tags within single varlist entry
+
+2005-03-11  sasha
+
+	* made use of _AS_BACKGROUND property to hold copy of _X_ROOTPMAP
+	  so that we don't have to listen to all those PropertyNotifies on
+	  root window - modules don't need to wake up as often now
+	* copied DefaultFancy.ttf to libAfterImage/apps/test.ttf to avoid
+	  possible licensing issues. Those are the same anyways, only
+	  DefaultFancy includes Public Domain notice
+	* Fixed not switching focus due to usage of CurrentTime
+	  occasionally
+
+2005-03-10  born2late
+
+	* added transparent mc
+
+2005-03-10  sasha
+
+	* added ability to choose random tint color for desktop cover, and
+	  added more tracing for XSetInputFocus as it seems to not switch
+	  focus properly
+	* compile bug
+
+2005-03-09  sasha
+
+	* some memory hole plugging and leaks debugging - nothing major so
+	  far
+
+2005-03-08  sasha
+
+	* debugging memory utilization
+	* added afterbase_config.h to define several macros that change
+	  features in compiled afterbase
+	* added explicit sign convertions to most of geometry and
+	  moveresize function to try and nail down potential
+	  signed/unsigned bugs
+	* fixed compile warnings for Alpha's cc
+	* fixed few compile warnings
+
+2005-03-07  sasha
+
+	* remedied situation with Animate module rendering AS unresponsive,
+	  by decreasing sleep time and making lock_on_send mechanism more
+	  fine-grained allowing to lock only on some messages
+	* Fixed bug causing empty workspace_state when first window in the
+	  list is module
+	* fixed problem with wharf swallowing apps that were mapped on
+	  different desktop
+
+2005-03-04  sasha
+
+	* fixed signed/unsigned conversion bug in rectangle calculation
+	  code causing windows to be placed on top of each other in
+	  SmartPlacement
+	* implemented hopefully more intelligent logic for SmartPlacement
+
+2005-03-03  sasha
+
+	* compile fix in selfdiag
+	* fixed calculation of the windowbox width and improved logic in
+	  smart placement
+	* updated the UPGRADE file to 2.0 based on recomendations of Andrew
+	  Sullivan
+
 2005-03-02  sasha
 
+	* updated ChangeLog file to 2.00.03 release
 	* AfterStep 2.00.03 release
 	* updated NEW file to 2.00.03 release
 	* fixed longstanding bug with windows not being properly delisted
