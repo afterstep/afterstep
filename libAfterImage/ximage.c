@@ -163,7 +163,7 @@ asimage2mask_ximage (ASVisual *asv, ASImage *im)
 		int count = asimage_decode_line (im, IC_ALPHA, xim_buf.alpha, i, 0, xim_buf.width);
 		if( count < xim_buf.width )
 			xim_set_component( xim_buf.blue, ARGB32_ALPHA8(im->back_color), count, xim_buf.width );
-		imout->output_image_scanline( imout, &xim_buf, 127 );
+		imout->output_image_scanline( imout, &xim_buf, 0 );
 	}
 	free_scanline(&xim_buf, True);
 

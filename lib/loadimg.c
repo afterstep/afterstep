@@ -221,9 +221,15 @@ LoadImageWithMask (Display * dpy, Window w, unsigned long max_colors, const char
 			return ref->pixmap;
 		}
     }
-
+	
+	*pMask = None ;
 	p = file2pixmap(GetASVisual(), w, realfilename, pMask);
-
+	
+	if( p == None ) 
+	{
+		fprintf( stderr, "%s:Failed to load image [%s].\n", MyName, realfilename );
+	}
+	
     if (use_pixmap_ref && p)
     {
   		pixmap_ref_new (realfilename, p, *pMask);

@@ -113,5 +113,8 @@ void CopyString (char **, char *);
 /*#define free(a)       safefree(a) */
 #endif
 
+void QuietlyDestroyWindow( Window w );
+
+
 
 #endif /* #ifndef AFTERSTEP_LIB_HEADER_FILE_INCLUDED */

@@ -76,6 +76,7 @@
 #include "../../include/screen.h"
 #include "../../include/module.h"
 #include "../../include/loadimg.h"
+#include "../../libAfterBase/selfdiag.h"
 
 #include "globals.h"
 #include "menus.h"
@@ -144,6 +145,10 @@ FILE *savewindow_fd;
 int SmartCircCounter = 0;	/* F_WARP_F/B 0=CirculateUp ; 1=CirculateDown */
 int LastFunction;
 Bool single = False;
+
+Bool set_synchronous_mode(Bool enable);
+
+
 
 static char *display_string;
 static char *rdisplay_string;
@@ -250,8 +255,10 @@ main (int argc, char **argv)
   newhandler (SIGINT);
   newhandler (SIGHUP);
   newhandler (SIGQUIT);
+  set_signal_handler(SIGSEGV);  
   newhandler (SIGTERM);
   signal (SIGUSR1, Restart);
+  set_signal_handler(SIGUSR2);    
 
   signal (SIGPIPE, DeadPipe);
 
@@ -309,6 +316,8 @@ main (int argc, char **argv)
 	}
     }
 
+  if (debugging)
+    set_synchronous_mode(True);
   /* initializing our dirs names */
   InitASDirNames (False);
 
@@ -426,8 +435,6 @@ main (int argc, char **argv)
   XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, CurrentTime);
 
   XSync (dpy, 0);
-  if (debugging)
-    XSynchronize (dpy, 1);
 
 #ifndef NO_VIRTUAL
   initPanFrames ();
@@ -1166,6 +1173,7 @@ CatchRedirectError (Display * dpy, XErrorEvent * event)
  *	ASErrorHandler - displays info on internal errors
  *
  ************************************************************************/
+#if 0
 XErrorHandler
 ASErrorHandler (Display * dpy, XErrorEvent * event)
 {
@@ -1188,6 +1196,8 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
   fprintf (stderr, "\n");
   return 0;
 }
+
+#endif
 
 void
 afterstep_err (const char *message, const char *arg1, const char *arg2, const char *arg3)

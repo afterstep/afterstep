@@ -50,10 +50,14 @@
 #include "../include/mystyle.h"
 #include "../include/screen.h"
 #include "../include/module.h"
+#include "../libAfterBase/selfdiag.h"
 
 #ifdef HAVE_XINERAMA
 static int XineEventBase, XineErrorBase;
 #endif
+static Bool as_X_synchronous_mode = False ;
+
+
 void get_Xinerama_rectangles(ScreenInfo *scr)
 {
 #ifdef HAVE_XINERAMA
@@ -77,6 +81,104 @@ void get_Xinerama_rectangles(ScreenInfo *scr)
 #endif
 }
 
+Bool
+set_synchronous_mode(Bool enable)
+{
+    Bool old = as_X_synchronous_mode ;
+    XSynchronize( dpy, enable );
+    as_X_synchronous_mode = enable ;
+
+    return old ;
+}
+
+Bool
+is_synchronous_request( int request_code )
+{
+    if( as_X_synchronous_mode )
+        return True;
+    switch( request_code )
+    {
+        case X_CreateWindow              :
+        case X_GetWindowAttributes       :
+        case X_GetGeometry               :
+        case X_QueryTree                 :
+        case X_InternAtom                :
+        case X_GetAtomName               :
+        case X_GetProperty               :
+        case X_ListProperties            :
+        case X_GetSelectionOwner         :
+        case X_ConvertSelection          :
+        case X_QueryPointer              :
+        case X_GetMotionEvents           :
+        case X_TranslateCoords           :
+        case X_GetInputFocus             :
+        case X_QueryKeymap               :
+        case X_OpenFont                  :
+        case X_QueryFont                 :
+        case X_QueryTextExtents          :
+        case X_ListFonts                 :
+        case X_ListFontsWithInfo         :
+        case X_GetFontPath               :
+        case X_CreatePixmap              :
+        case X_CreateGC                  :
+        case X_GetImage                  :
+        case X_CreateColormap            :
+        case X_CopyColormapAndFree       :
+        case X_ListInstalledColormaps    :
+        case X_AllocColor                :
+        case X_AllocNamedColor           :
+        case X_AllocColorCells           :
+        case X_AllocColorPlanes          :
+        case X_QueryColors               :
+        case X_LookupColor               :
+        case X_CreateCursor              :
+        case X_CreateGlyphCursor         :
+        case X_QueryBestSize             :
+        case X_QueryExtension            :
+        case X_ListExtensions            :
+        case X_GetKeyboardMapping        :
+        case X_GetKeyboardControl        :
+        case X_GetPointerControl         :
+        case X_GetScreenSaver            :
+        case X_ListHosts                 :
+        case X_GetPointerMapping         :
+        case X_GetModifierMapping        :
+            return True;
+            break;
+        default:
+            break;
+    }
+    return False;
+}
+
+int
+Empty_XErrorHandler (Display * dpy, XErrorEvent * event)
+{
+    return 0;
+}
+
+int
+ASErrorHandler (Display * dpy, XErrorEvent * event)
+{
+	char         *err_text;
+	fprintf(stderr, "%s has encountered the following problem interacting with X Windows :\n", MyName);
+    if( event && dpy )
+    {
+        err_text = safemalloc (128);
+        strcpy (err_text, "unknown error");
+        XGetErrorText (dpy, event->error_code, err_text, 120);
+        fprintf (stderr, "      Request: %d,    Error: %d(%s)\n", event->request_code, event->error_code, err_text);
+        free (err_text);
+        fprintf (stderr, "      in resource: 0x%lX\n", event->resourceid);
+#ifndef __CYGWIN__
+        if( is_synchronous_request( event->request_code ) )
+            print_simple_backtrace ();
+#endif
+    }
+    return 0;
+}
+
+
 int
 ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask)
 {
@@ -89,6 +191,7 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask)
       exit (1);
     }
   x_fd = XConnectionNumber (dpy);
+  XSetErrorHandler (ASErrorHandler);
 
   scr->screen = DefaultScreen (dpy);
   scr->Root = RootWindow (dpy, scr->screen);
@@ -109,6 +212,16 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask)
 
   XSelectInput (dpy, scr->Root, message_mask);
   return x_fd;
+}
+
+void QuietlyDestroyWindow( Window w )
+{
+	int	 (*old_handler) (Display * dpy, XErrorEvent * event);
+
+	old_handler = XSetErrorHandler (Empty_XErrorHandler);
+	XDestroyWindow( dpy, w );
+	XSync(dpy, False);
+	XSetErrorHandler( old_handler );
 }
 
 void

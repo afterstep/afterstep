@@ -136,7 +136,7 @@ balloon_init (int free_resources)
       while (balloon_first != NULL)
 	balloon_delete (balloon_first);
       if (balloon_window != None);
-      XDestroyWindow (dpy, balloon_window);
+	  QuietlyDestroyWindow( balloon_window);
     }
 
   balloon_first = NULL;

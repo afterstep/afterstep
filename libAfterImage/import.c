@@ -205,10 +205,10 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 
 		if( im != NULL )
 		{
-			trg = asimage2pixmap( asv, root, im, NULL, False );
+			trg = asimage2pixmap( asv, root, im, NULL, True );
 			if( mask_out )
 				if( get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA ) )
-					mask = asimage2mask( asv, root, im, NULL, False );
+					mask = asimage2mask( asv, root, im, NULL, True );
 			destroy_asimage( &im );
 		}
 	}
