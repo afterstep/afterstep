@@ -37,7 +37,7 @@ AC_ARG_ENABLE(audit,		[  --enable-audit           memory usage audit (for debugg
 
 AC_ARG_WITH(xpm,		    [  --with-xpm               support XPM image format [yes]])
 AC_ARG_WITH(xpm_includes,   [  --with-xpm-includes=DIR  use XPM includes in DIR], xpm_includes="$withval", xpm_includes=NO)
-AC_ARG_WITH(jpeg		    [  --with-jpeg              support JPEG image format [yes]])
+AC_ARG_WITH(jpeg,		    [  --with-jpeg              support JPEG image format [yes]])
 AC_ARG_WITH(jpeg_includes,  [  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=NO)
 AC_ARG_WITH(png,		    [  --with-png               support PNG image format [yes]])
 AC_ARG_WITH(png_includes,   [  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=NO)
@@ -172,8 +172,8 @@ else
 	vt_xpm_include_X11=$vt_xpm_include_X11"
   fi])dnl
   eval "$ac_cv_have_xpm"
-  if test "x$have_xpm" = "xyes"; then 
-    if test "x$vt_xpm_includes" != "x"; then 
+  if test "x$have_xpm" = "xyes"; then
+    if test "x$vt_xpm_includes" != "x"; then
 		XPM_CFLAGS="-I$vt_xpm_includes"
     fi
 	AC_DEFINE(HAVE_XPM)
