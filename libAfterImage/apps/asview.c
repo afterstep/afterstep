@@ -57,6 +57,8 @@ int main(int argc, char* argv[])
 	depth = DefaultDepth( dpy, screen );
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
+	/* writing result into the file */
+	ASImage2file( im, NULL, "asview.xpm", ASIT_Xpm, 0, 0, 0, 256, 0 );
 
 	if( im != NULL )
 	{

@@ -279,7 +279,7 @@ int main(int argc, char* argv[])
 		}
   	}
 	/* see ASText.1 : */
-	destroy_font( font );
+	release_font( font );
 	destroy_font_manager( fontman, False );
     if( dpy )
         XCloseDisplay (dpy);
