@@ -67,8 +67,8 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
     /* must trace in reverse order ! */
     while( --i >= 0 )
     {
-        int r_left = rects[i].x, r_right = rects[i].x+rects[i].width ;
-        int r_top = rects[i].y, r_bottom = rects[i].y+rects[i].height ;
+        int r_left = rects[i].x, r_right = rects[i].x+(int)rects[i].width ;
+        int r_top = rects[i].y, r_bottom = rects[i].y+(int)rects[i].height ;
         Bool disected = False ;
         /* we can build at most 4 rectangles from each substraction : */
         if( top < r_bottom && bottom > r_top )
@@ -169,8 +169,10 @@ get_free_rectangles_iter_func(void *data, void *aux_data)
             get_current_canvas_geometry( asw->frame_canvas, &x, &y, &width, &height,&bw );
         x += Scr.Vx ;
         y += Scr.Vy ;
-        if( x+width+bw >= min_vx && x-bw < max_vx &&  y+height+bw >= min_vy && y-bw < max_vy )
-            subtract_rectangle_from_list( fr_data->list, x-bw, y-bw, x+width+bw, y+height+bw );
+		LOCAL_DEBUG_OUT( "frame_geom = %dx%d%+d%+d, h_limits = %d,%d; v_limits = %d,%d", 
+						  width, height, x-bw, y-bw, min_vx, max_vx, min_vy, max_vy );
+        if( x+(int)width+(int)bw >= min_vx && x-(int)bw < max_vx &&  y+(int)height+(int)bw >= min_vy && y-(int)bw < max_vy )
+            subtract_rectangle_from_list( fr_data->list, x-(int)bw, y-(int)bw, x+(int)width+(int)bw, y+(int)height+(int)bw );
     }
 
     return True;
