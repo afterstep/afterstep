@@ -664,74 +664,67 @@ int main(int argc, char **argv )
 	ctx = create_draw_context(DRAW_TEST_SIZE, DRAW_TEST_SIZE);
 	/* actuall drawing starts here */
 //	for( i = 0 ; i < 50000 ; ++i ) 
-	{
-		ctx->curr_x = 0 ; 	  
-		ctx->curr_y = 0 ; 
-		asim_line_to_aa( ctx, 200, 200 ); 
-	}
+	asim_move_to( ctx, 0, 0 ); 
+	asim_line_to_aa( ctx, 200, 200 ); 
 	asim_line_to_aa( ctx, 100, 10 );
 	asim_line_to_aa( ctx, 10, 300 );
 	asim_line_to_aa( ctx, 15, 400 );
-	asim_line_to_aa( ctx, 200, 390 );
-	asim_line_to_aa( ctx, 400, 420 );
+	asim_move_to(ctx, 15, 420);  
+	asim_line_to_aa( ctx, 200, 410 );
+	asim_line_to_aa( ctx, 400, 440 );
 		
-	ctx->curr_x = 10 ; 	  
-	ctx->curr_y = 0 ; 
+	asim_move_to(ctx, 10, 0); 	  
 	asim_set_brush( ctx, 1 ); 
 	asim_line_to_aa( ctx, 210, 200 ); 
 	asim_line_to_aa( ctx, 110, 10 );
 	asim_line_to_aa( ctx, 20, 300 );
 	asim_line_to_aa( ctx, 25, 400 );
-	ctx->curr_y = 410 ;
-	ctx->curr_x = 15 ;  
-	asim_line_to_aa( ctx, 200, 400 );
-	asim_line_to_aa( ctx, 400, 430 );
+	asim_move_to(ctx, 15, 430);  
+	asim_line_to_aa( ctx, 200, 420 );
+	asim_line_to_aa( ctx, 400, 450 );
 
-	ctx->curr_x = 20 ; 	  
-	ctx->curr_y = 0 ; 
+	asim_move_to(ctx, 20, 0); 	  
 	asim_set_brush( ctx, 2 ); 
 	asim_line_to_aa( ctx, 220, 200 ); 
 	asim_line_to_aa( ctx, 120, 10 );
 	asim_line_to_aa( ctx, 30, 300 );
 	asim_line_to_aa( ctx, 35, 400 );
-	ctx->curr_y = 420 ; 
-	ctx->curr_x = 15 ; 
-	asim_line_to_aa( ctx, 200, 410 );
-	asim_line_to_aa( ctx, 400, 440 );
+	asim_move_to(ctx, 15, 440);    
+	asim_line_to_aa( ctx, 200, 430 );
+	asim_line_to_aa( ctx, 400, 460 );
 
     /****************************************/
 	/* non-antialiased : */
-	asim_move_to(ctx, 200, 0 ) 
+
+	asim_move_to(ctx,  200, 0 ); 
 	asim_set_brush( ctx, 0 ); 
 	asim_line_to( ctx, 400, 200 ); 
 	asim_line_to( ctx, 300, 10 );
 	asim_line_to( ctx, 210, 300 );
 	asim_line_to( ctx, 215, 400 );
-	asim_line_to( ctx, 200, 390 );
-	asim_line_to( ctx, 400, 420 );
+	asim_move_to(ctx, 15, 450);  
+	asim_line_to( ctx, 200, 440 );
+	asim_line_to( ctx, 400, 470 );
 		
-	ctx->curr_x = 50 ; 	  
-	ctx->curr_y = 0 ; 
+	asim_move_to(ctx, 210, 0); 	  
 	asim_set_brush( ctx, 1 ); 
-	asim_line_to( ctx, 250, 200 ); 
-	asim_line_to( ctx, 150, 10 );
-	asim_line_to( ctx, 60, 300 );
-	asim_line_to( ctx, 65, 400 );
-	ctx->curr_y = 410 ; 
-	asim_line_to( ctx, 250, 400 );
-	asim_line_to( ctx, 450, 430 );
+	asim_line_to( ctx, 410, 200 ); 
+	asim_line_to( ctx, 310, 10 );
+	asim_line_to( ctx, 220, 300 );
+	asim_line_to( ctx, 225, 400 );
+	asim_move_to(ctx, 15, 460);  
+	asim_line_to( ctx, 200, 450 );
+	asim_line_to( ctx, 400, 480 );
 
-	ctx->curr_x = 60 ; 	  
-	ctx->curr_y = 0 ; 
+	asim_move_to(ctx, 220, 0); 	  
 	asim_set_brush( ctx, 2 ); 
-	asim_line_to( ctx, 260, 200 ); 
-	asim_line_to( ctx, 160, 10 );
-	asim_line_to( ctx, 70, 300 );
-	asim_line_to( ctx, 75, 400 );
-	ctx->curr_y = 420 ; 
-	asim_line_to( ctx, 260, 410 );
-	asim_line_to( ctx, 460, 440 );
-
+	asim_line_to( ctx, 420, 200 ); 
+	asim_line_to( ctx, 320, 10 );
+	asim_line_to( ctx, 230, 300 );
+	asim_line_to( ctx, 235, 400 );
+	asim_move_to(ctx, 15, 470);    
+	asim_line_to( ctx, 200, 460 );
+	asim_line_to( ctx, 400, 490 );
 
 #if 1
 	/* commit drawing : */
