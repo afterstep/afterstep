@@ -43,10 +43,11 @@ dnl# Check for compiler tools
 if test "x$FROM_AFTERSTEP_CONFIGURE" = "xyes"; then
 dnl# AfterSTep already checked everything for us
 	aaa=bbb
-	dnl#  AC_PROG_CC
-	AC_SUBST(CC)
-	AC_SUBST(GCC)
-	AC_SUBST(CFLAGS)
+	AC_PROG_CC
+	dnl#  AC_SUBST(CC)
+	dnl#  AC_SUBST(GCC)
+	dnl#  AC_SUBST(CFLAGS)
+
 	dnl#  AC_PROG_INSTALL
     AC_SUBST(INSTALL)
     AC_SUBST(INSTALL_PROGRAM)
@@ -65,6 +66,12 @@ dnl# AfterSTep already checked everything for us
     AC_SUBST(LEXLIB)
     AC_SUBST(YACC)
     AC_SUBST(sgmltools)
+	AC_CYGWIN
+	if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
+		if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
+  		CFLAGS="$CFLAGS -fPIC"
+		fi
+	fi
 
 else
 
