@@ -125,9 +125,9 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 		int count ;
 		if( (count = asimage_decode_line (im, IC_RED,   xim_buf.red, i, 0, xim_buf.width)) < xim_buf.width )
 			xim_set_component( xim_buf.red, ARGB32_RED8(im->back_color), count, xim_buf.width );
-		if( (count = asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width))> 0 )
+		if( (count = asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width))< xim_buf.width )
 			xim_set_component( xim_buf.green, ARGB32_GREEN8(im->back_color), count, xim_buf.width );
-		if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width)) > 0 )
+		if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width)) < xim_buf.width )
 			xim_set_component( xim_buf.blue, ARGB32_BLUE8(im->back_color), count, xim_buf.width );
 
 		imout->output_image_scanline( imout, &xim_buf, 1 );
