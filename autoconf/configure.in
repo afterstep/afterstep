@@ -205,14 +205,14 @@ dnl# Check for X shaped window extension
 
 HAVESHAPE="NOSHAPE"
 if test "x$enable_shaping" = "xyes"; then
-  AC_CHECK_LIB(Xext, XShapeCombineMask, [x_libs="$x_libs -lXext" HAVESHAPE="SHAPE"],,$x_libs)
+  AC_CHECK_LIB(Xext, XShapeCombineMask, [x_libs="-lXext $x_libs" HAVESHAPE="SHAPE"],,$x_libs)
 fi
 
 dnl# Check for Xinerama extension
 
 HAVEXINE="NOXINE"
 if test "x$enable_xinerama" = "xyes"; then
-  AC_CHECK_LIB(Xinerama, XineramaQueryScreens, [x_libs="$x_libs -lXinerama" HAVEXINE="HAVE_XINERAMA"],,$x_libs)
+  AC_CHECK_LIB(Xinerama, XineramaQueryScreens, [x_libs="-lXinerama $x_libs" HAVEXINE="HAVE_XINERAMA"],,$x_libs)
 fi
 
 CFLAGS="$saved_cflags"

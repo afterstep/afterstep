@@ -12,7 +12,7 @@
 
 #define XK_MISCELLANY
 #include <sys/types.h>
-#include <sys/time.h>
+#include <time.h>
 #ifdef ISC
 #include <sys/bsdtypes.h>	/* Saul */
 #endif

@@ -93,7 +93,7 @@ $(PROG):	$(OBJS)
 # this is merely a precaution, but as it does not work with ansi make
 # we took it out
 #ifneq ($(wildcard .depend),)
-include .depend
+#include .depend
 #endif
 
 $(DYNPROG): $(DYNPROG).$(LIBVERMAJOR)

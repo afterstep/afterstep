@@ -1,4 +1,9 @@
 1.8.9 patch 1 (sasha)
+ o Fix X libraries order, to have Xext preceed X11 - causes problems on
+   some Solaris systems.
+ o fixed two warnings related to time.h   
+ o commented out dependency checking to avoid problems for users with old 
+   compilers. It is not needed in stable series anyways.
  o Added functionality to WindowsDesk function. If second argument is 
    10000 then first is relative desk number, instead of exact.
  o Implemented Xinerama support. When window is initially placed - it

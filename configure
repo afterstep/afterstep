@@ -4988,7 +4988,7 @@ fi
 echo "$as_me:4988: result: $ac_cv_lib_Xext_XShapeCombineMask" >&5
 echo "${ECHO_T}$ac_cv_lib_Xext_XShapeCombineMask" >&6
 if test $ac_cv_lib_Xext_XShapeCombineMask = yes; then
-  x_libs="$x_libs -lXext" HAVESHAPE="SHAPE"
+  x_libs="-lXext $x_libs" HAVESHAPE="SHAPE"
 fi
 
 fi
@@ -5045,7 +5045,7 @@ fi
 echo "$as_me:5045: result: $ac_cv_lib_Xinerama_XineramaQueryScreens" >&5
 echo "${ECHO_T}$ac_cv_lib_Xinerama_XineramaQueryScreens" >&6
 if test $ac_cv_lib_Xinerama_XineramaQueryScreens = yes; then
-  x_libs="$x_libs -lXinerama" HAVEXINE="HAVE_XINERAMA"
+  x_libs="-lXinerama $x_libs" HAVEXINE="HAVE_XINERAMA"
 fi
 
 fi
