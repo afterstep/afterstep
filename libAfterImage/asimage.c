@@ -531,15 +531,17 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	}else
 		imdec->decode_image_scanline = decode_image_scanline_normal ;
 
+	prepare_scanline(out_width+imdec->bevel_h_addon, 0, &(imdec->buffer), asv->BGR_mode );
+	imdec->buffer.back_color = ARGB32_DEFAULT_BACK_COLOR;
 	if( im == NULL )
 		imdec->decode_asscanline = decode_asscanline_native;
 	else if( get_flags( im->flags, ASIM_DATA_NOT_USEFUL ) && im->alt.ximage != NULL ) 
+	{
 		imdec->decode_asscanline = decode_asscanline_ximage;
-	else
+		imdec->xim_buffer = safecalloc(1, sizeof(ASScanline));
+		prepare_scanline(im->alt.ximage->width, 0, imdec->xim_buffer, asv->BGR_mode );
+	}else
 		imdec->decode_asscanline = decode_asscanline_native;
-
-	prepare_scanline(out_width+imdec->bevel_h_addon, 0, &(imdec->buffer), asv->BGR_mode );
-	imdec->buffer.back_color = ARGB32_DEFAULT_BACK_COLOR;
 
 	return imdec;
 }
@@ -616,6 +618,12 @@ stop_image_decoding( ASImageDecoder **pimdec )
 		if( *pimdec )
 		{
 			free_scanline( &((*pimdec)->buffer), True );
+			if( (*pimdec)->xim_buffer )
+			{
+				free_scanline( (*pimdec)->xim_buffer, True );
+				free( (*pimdec)->xim_buffer );
+			}
+
 			free( *pimdec );
 			*pimdec = NULL;
 		}
@@ -906,7 +914,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 	best_size = 0 ;
 	dst = im->buffer;
 /*	fprintf( stderr, "max = %d, width = %d, %d:%d:%d<%2.2X ", im->max_compressed_width, im->width, y, color, 0, data[0] );*/
-
+	clear_flags( im->flags, ASIM_DATA_NOT_USEFUL );
 	if( im->width == 1 )
 	{
 		dst[0] = RLE_DIRECT_TAIL ;
@@ -1699,34 +1707,65 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 	ASScanline *scl = &(imdec->buffer);
 	int count, width = scl->width-skip ;
 	XImage *xim = imdec->im->alt.ximage ;
-#if 0
+	ASFlagType filter = imdec->filter ;
+#if 1
 	if( width > xim->width || imdec->offset_x > 0 )
 	{/* need to tile :( */
-fprintf( stderr, __FILE__ ":" __FUNCTION__ ": width=%d, xim_width=%d offset_x = %d - tiling\n", width, xim->width, imdec->offset_x );	
-	
-	
+		ASScanline *xim_scl = imdec->xim_buffer;
+		int offset_x = imdec->offset_x%xim->width ;
+/*fprintf( stderr, __FILE__ ":" __FUNCTION__ ": width=%d, xim_width=%d, skip = %d, offset_x = %d - tiling\n", width, xim->width, skip, imdec->offset_x );	*/
+  
+		GET_SCANLINE(imdec->asv,xim,xim_scl,y,xim->data+xim->bytes_per_line*y);
+		for( i = 0 ; i < IC_NUM_CHANNELS ; i++ )
+			if( get_flags(filter, 0x01<<i) )
+			{
+				register CARD32 *src = xim_scl->channels[i]+offset_x ;
+				register CARD32 *dst = scl->channels[i]+skip;
+				register int k  = 0;
+				count = xim->width-offset_x ;
+
+#define COPY_TILE_CHAN(op) \
+		for(; k < count ; k++ )	dst[k] = op; \
+		while( k < width ) \
+		{	src = xim_scl->channels[i]-k ; \
+			count = MIN(xim->width+k,width); \
+			for(; k < count ; k++ ) dst[k] = op; \
+		}	
+
+				if( scl->shift )
+				{
+					COPY_TILE_CHAN(src[k]<<8)
+				}else
+				{
+					COPY_TILE_CHAN(src[k])
+				}
+				count += k ;
+				if( count < width )
+					set_component( src, ARGB32_CHAN8(imdec->back_color, i)<<scl->shift, count, width );
+			}
 	}else
 #endif	
 	{/* cool we can put data directly into buffer : */
 /*fprintf( stderr, __FILE__ ":" __FUNCTION__ ":direct\n" );	*/
+		int old_offset = scl->offset_x ;
 		scl->offset_x = skip ;
 		GET_SCANLINE(imdec->asv,xim,scl,y,xim->data+xim->bytes_per_line*y);
 		count = MIN(width,xim->width);  	
-	}
-	for( i = 0 ; i < IC_NUM_CHANNELS ; i++ )
-		if( get_flags(imdec->filter, 0x01<<i) )
-		{
-			register CARD32 *chan = scl->channels[i]+skip;
-			if( scl->shift )
+		scl->offset_x = old_offset ;
+		for( i = 0 ; i < IC_NUM_CHANNELS ; i++ )
+			if( get_flags(filter, 0x01<<i) )
 			{
-				register int k  = 0;
-				for(; k < count ; k++ )
-					chan[k] = chan[k]<<8;
+				register CARD32 *chan = scl->channels[i]+skip;
+				if( scl->shift )
+				{
+					register int k  = 0;
+					for(; k < count ; k++ )
+						chan[k] = chan[k]<<8;
+				}
+				if( count < width )
+					set_component( chan, ARGB32_CHAN8(imdec->back_color, i)<<scl->shift, count, width );
 			}
-			if( count < width )
-				set_component( chan, ARGB32_CHAN8(imdec->back_color, i)<<scl->shift, count, width );
-		}
-
+	}
 	clear_flags( scl->flags,SCL_DO_ALL);
 	set_flags( scl->flags,imdec->filter);
 }

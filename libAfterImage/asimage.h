@@ -359,7 +359,7 @@ typedef struct ASImageDecoder
 	unsigned short   bevel_h_addon, bevel_v_addon ;
 	int 			next_line ;
 
-    ASScanline   xim_buffer; /* matches the size of the original XImage */
+    ASScanline   *xim_buffer; /* matches the size of the original XImage */
 	
 	decode_asscanline_func     decode_asscanline ;
 	decode_image_scanline_func decode_image_scanline ;

@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
 	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
 	char *fore_image_file = "fore.xpm", *back_image_file = "back.xpm" ;
-	Bool scale_fore_image = False, scale_back_image = True ;
+	Bool scale_fore_image = False, scale_back_image = False ;
 	ASImage *fore_im = NULL, *back_im = NULL;
 	ASImage *text_im = NULL ;
 	ASText3DType type_3d = AST_ShadeBelow ;
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
 			if( scale_back_image && (tmp->width != width || tmp->height != height) )
 			{   /* see ASScale.2 : */
 				back_im = scale_asimage( asv, tmp, width, height,
-				                         ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+				                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
 				destroy_asimage( &tmp );
 			}else
 				back_im = tmp ;
