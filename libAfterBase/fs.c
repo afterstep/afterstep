@@ -36,7 +36,7 @@
 # define NAMLEN(dirent) strlen((dirent)->d_name)
 #else
 # if HAVE_SYS_DIRENT_H
-#  include <dirent.h>
+#  include <sys/dirent.h>
 #  define NAMLEN(dirent) strlen((dirent)->d_name)
 # else
 #  define dirent direct
