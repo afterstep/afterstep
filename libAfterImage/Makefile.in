@@ -148,7 +148,7 @@ deps:
 		      echo $$buf >>.depend ; \
 		      echo >>.depend ; \
 		  fi; \
-		  buf="./"`echo $$file | sed "s/.c /.o /g"`: ; \
+		  buf="./"`echo "$$file " | sed "s/.c /.o /g"`: ; \
 		  for d in `grep "#include \"" < $$file | awk -F \" '{print $$2}'`; do \
 		      if test "x$$buf" != "x"; then \
 		         echo $$buf \\ >>.depend ; \

@@ -1,29 +1,29 @@
-./asfont.c: \
+./asfont.o : \
 		config.h \
 		afterbase.h \
 		asfont.h \
 		asimage.h \
 		asvisual.h
 
-./asimage.c: \
+./asimage.o : \
 		config.h \
 		afterbase.h \
 		asvisual.h \
 		blender.h \
 		asimage.h
 
-./asvisual.c: \
+./asvisual.o : \
 		config.h \
 		afterbase.h \
 		asvisual.h
 
-./blender.c: \
+./blender.o : \
 		config.h \
 		afterbase.h \
 		asvisual.h \
 		blender.h
 
-./import.c: \
+./import.o : \
 		config.h \
 		afterbase.h \
 		asimage.h \
@@ -31,13 +31,13 @@
 		xpm.h \
 		import.h
 
-./xcf.c: \
+./xcf.o : \
 		config.h \
 		afterbase.h \
 		asimage.h \
 		xcf.h
 
-./xpm.c: \
+./xpm.o : \
 		config.h \
 		afterbase.h \
 		asimage.h \

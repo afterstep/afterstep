@@ -1,4 +1,4 @@
-./ashash.c: \
+./ashash.o : \
 		config.h \
 		astypes.h \
 		ashash.h \
@@ -6,14 +6,14 @@
 		audit.h \
 		output.h
 
-./asvector.c: \
+./asvector.o : \
 		config.h \
 		astypes.h \
 		output.h \
 		safemalloc.h \
 		asvector.h
 
-./audit.c: \
+./audit.o : \
 		config.h \
 		astypes.h \
 		output.h \
@@ -23,14 +23,14 @@
 		mystring.h \
 		safemalloc.h
 
-./fs.c: \
+./fs.o : \
 		config.h \
 		astypes.h \
 		mystring.h \
 		safemalloc.h \
 		fs.h
 
-./mystring.c: \
+./mystring.o : \
 		config.h \
 		astypes.h \
 		output.h \
@@ -38,7 +38,7 @@
 		safemalloc.h \
 		mystring.h
 
-./os.c: \
+./os.o : \
 		config.h \
 		astypes.h \
 		output.h \
@@ -47,14 +47,14 @@
 		safemalloc.h \
 		os.h
 
-./output.c: \
+./output.o : \
 		config.h \
 		astypes.h \
 		output.h \
 		ashash.h \
 		parse.h
 
-./parse.c: \
+./parse.o : \
 		config.h \
 		astypes.h \
 		audit.h \
@@ -63,7 +63,7 @@
 		xwrap.h \
 		parse.h
 
-./regexp.c: \
+./regexp.o : \
 		config.h \
 		audit.h \
 		astypes.h \
@@ -71,44 +71,44 @@
 		safemalloc.h \
 		regexp.h
 
-./safemalloc.c: \
+./safemalloc.o : \
 		config.h \
 		astypes.h \
 		output.h \
 		selfdiag.h \
 		safemalloc.h
 
-./selfdiag.c: \
+./selfdiag.o : \
 		config.h \
 		astypes.h \
 		output.h \
 		selfdiag.h
 
-./sleep.c: \
+./sleep.o : \
 		config.h \
 		astypes.h \
 		sleep.h
 
-./socket.c: \
+./socket.o : \
 		config.h \
 		astypes.h \
 		audit.h \
 		output.h \
 		socket.h
 
-./timer.c: \
+./timer.o : \
 		config.h \
 		astypes.h \
 		output.h \
 		safemalloc.h \
 		timer.h
 
-./trace.c: \
+./trace.o : \
 		config.h \
 		trace.h \
 		trace.h
 
-./xprop.c: \
+./xprop.o : \
 		config.h \
 		astypes.h \
 		output.h \
@@ -118,7 +118,7 @@
 		xwrap.h \
 		xprop.h
 
-./xwrap.c: \
+./xwrap.o : \
 		config.h \
 		audit.h \
 		output.h \
