@@ -750,7 +750,7 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
                                         complete_aswindow_move );
     if( mvrdata )
     {
-        raise_scren_panframes( &Scr );
+		raise_scren_panframes( &Scr );
         mvrdata->below_sibling = get_lowest_panframe(&Scr);
         set_moveresize_restrains( mvrdata, asw->hints, asw->status);
 //            mvrdata->subwindow_func = on_deskelem_move_subwindow ;

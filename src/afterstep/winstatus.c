@@ -204,7 +204,7 @@ LOCAL_DEBUG_OUT( "@@ANIM to(%d)->from(%d)->delta(%d)->step(%d)", to_size, from_s
             }
         }else if( !ASWIN_GET_FLAGS( asw, AS_Shaded ) )
 		{
-			/* when we shade the window - focus gets set to frame window - 
+			/* when we shade the window - focus gets set to frame window -
 			   we need to revert it back to the client : */
 			if( Scr.Windows->focused == asw )
 				focus_window( asw, asw->w );
@@ -412,7 +412,7 @@ update_window_frame_moved( ASWindow *asw, ASOrientation *od )
 
     for( i = 0 ; i < FRAME_SIDES ; ++i )
         if( asw->frame_sides[i] )
-        {   /* canvas has beer resized - resize tbars!!! */
+        {   /* canvas has been resized - resize tbars!!! */
             handle_canvas_config (asw->frame_sides[i]);
             on_frame_bars_moved( asw, i, od);
         }
@@ -1311,14 +1311,14 @@ void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
         asw->shading_steps = Scr.Feel.ShadeAnimationSteps ;
 
     if( get_flags( flags, AS_Sticky) )
-	{   /* anchor of sticky window is always in real coordinates, while 
-	     * for non-sticky its in virtual coordinates 
+	{   /* anchor of sticky window is always in real coordinates, while
+	     * for non-sticky its in virtual coordinates
 		 */
 		if( ASWIN_GET_FLAGS( asw, AS_Sticky ) )
 		{
 			asw->anchor.x -= asw->status->viewport_x ;
 			asw->anchor.y -= asw->status->viewport_y ;
-		}else 
+		}else
 		{
 			asw->anchor.x += asw->status->viewport_x ;
 			asw->anchor.y += asw->status->viewport_y ;

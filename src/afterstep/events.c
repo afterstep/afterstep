@@ -85,6 +85,13 @@ HandleEvents ()
  *
  * Discard superflous button events during this wait period.
  ***************************************************************************/
+#define MOVERESIZE_LOOP_MASK 	(KeyPressMask|KeyReleaseMask|ButtonPressMask|ButtonReleaseMask| \
+                             	EnterWindowMask|LeaveWindowMask|PointerMotionMask|PointerMotionHintMask| \
+							 	Button1MotionMask|Button2MotionMask|Button3MotionMask|Button4MotionMask| \
+							 	Button5MotionMask|ButtonMotionMask|KeymapStateMask )
+//								|StructureNotifyMask|SubstructureNotifyMask)
+
+
 void
 InteractiveMoveLoop ()
 {
@@ -92,13 +99,14 @@ InteractiveMoveLoop ()
     Bool has_x_events = False ;
     while (Scr.moveresize_in_progress != NULL )
     {
-        while((has_x_events = XPending (dpy)))
+LOCAL_DEBUG_OUT( "checking masked events ...%s", "" );
+        while((has_x_events = ASCheckMaskEvent (MOVERESIZE_LOOP_MASK, &(event.x))))
         {
-            if( ASNextEvent (&(event.x), True) )
-            {
-                DigestEvent( &event );
+//            if( ASNextEvent (&(event.x), True) )
+//            {
+				DigestEvent( &event );
                 DispatchEvent( &event, False );
-            }
+//            }
             if( Scr.moveresize_in_progress == NULL )
                 return;
         }
