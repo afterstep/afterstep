@@ -195,6 +195,24 @@ void usage(void) {
 	);
 }
 
+
+#if !(HAVE_AFTERBASE_FLAG==1)
+Bool show_progress( const char *msg_format, ...)
+{
+    if( OUTPUT_LEVEL_PROGRESS <= get_output_threshold())
+    {
+        va_list ap;
+        fprintf (stderr, "%s : ", get_application_name() );
+        va_start (ap, msg_format);
+        vfprintf (stderr, msg_format, ap);
+        va_end (ap);
+        fprintf (stderr, "\n" );
+        return True;
+    }
+    return False;
+}
+#endif
+
 /****** libAfterImage/ascompose/sample
  * EXAMPLE
  * Here is the default script that gets executed by ascompose, if no
