@@ -361,13 +361,14 @@ query_screen_visual_id( ASVisual *asv, Display *dpy, int screen, Window root, in
 		asv->white_pixel = white_xcol.pixel ;
 		asv->black_pixel = black_xcol.pixel ;
 	}
-	fprintf( stderr, "Selected visual 0x%lx: depth %d, class %d, RGB masks: 0x%lX, 0x%lX, 0x%lX.\n",
+	fprintf( stderr, "Selected visual 0x%lx: depth %d, class %d, RGB masks: 0x%lX, 0x%lX, 0x%lX.%s\n",
 			 asv->visual_info.visualid,
 			 asv->visual_info.depth,
 			 asv->visual_info.class,
 			 asv->visual_info.red_mask,
 			 asv->visual_info.green_mask,
-			 asv->visual_info.blue_mask );
+			 asv->visual_info.blue_mask,
+			 (ImageByteOrder(asv->dpy)==MSBFirst)?"MSBFirst":"LSBFirst" );
 #else
 	asv->white_pixel = ARGB32_White ;
 	asv->black_pixel = ARGB32_Black ;
@@ -1382,6 +1383,15 @@ void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 				src -= 4 ;
 			}
 		}while(i);
+#ifdef DEBUG_SL2XIMAGE
+	i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
+	src = (CARD8*)(xim_data+(i-1)*4);
+	while(--i>=0 )
+	{
+		printf( "%2.2X.%2.2X.%2.2X.%2.2X ", src[0], src[1], src[2], src[3] );
+	}
+	printf( "\n" );
+#endif
 }
 
 void scanline2ximage16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
