@@ -4,7 +4,7 @@
 #-------------------
 # 1) Styles :
 #
-# If there is a style named "default" and no default style is specified, 
+# If there is a style named "default" and no default style is specified,
 # the "default" style will be used as the default
 # Inherited styles will override options.
 # default should never be used, so let's make it obvious when it *is* used
@@ -16,15 +16,15 @@ MyStyle "default"
   ~MyStyle
 
 #----------Window MyStyles---------#
-  
+
 TitleButtonBalloons
 TitleButtonBalloonBorderColor   #111111
 TitleButtonBalloonBorderWidth   2
 TitleButtonBalloonDelay         200
-  
+
 MyStyle "TitleButtonBalloon"
   Inherit default
-  ~MyStyle      
+  ~MyStyle
 
 MyStyle "unfocus_colors"
   Font          -adobe-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*
@@ -91,15 +91,15 @@ MyStyle "menu_hilite_style"
    Inherit sticky_colors
 ~MyStyle
 
-MenuPinOn 	0-exit.xpm    
-MenuPinOff 	as-kill-pressed.xpm 
+MenuPinOn 	0-exit.xpm
+MenuPinOff 	as-kill-pressed.xpm
 
 # make the stipple background the same as the menu item, or
 # strange border drawing artifacts could occur.
 MyStyle "menu_stipple_style"
  Inherit       menu_item_style
- ~MyStyle      
-    
+ ~MyStyle
+
 DefaultStyle            "default"
 FWindowStyle            "focused_window_style"
 UWindowStyle            "unfocused_window_style"
@@ -108,7 +108,7 @@ MenuItemStyle           "menu_item_style"
 MenuTitleStyle          "menu_title_style"
 MenuHiliteStyle         "menu_hilite_style"
 MenuStippleStyle        "menu_stipple_style"
-       
+
 #----------Pager MyStyles---------#
 
 MyStyle "*PagerBalloon"
@@ -154,7 +154,7 @@ MyStyle "*PagerSWindowStyle"
 
 MyStyle "*WharfBalloon"
   Font          -adobe-helvetica-bold-o-*-*-12-*-*-*-*-*-*-*
-  ForeColor     Black   
+  ForeColor     Black
   BackColor     Grey70
 ~MyStyle
 
@@ -183,24 +183,24 @@ MyStyle "ButtonPixmap"
   BackColor	black
   BackPixmap	128 ASBBlockClear.xpm
   ~MyStyle
-  
+
 MyStyle "ButtonTitleFocus"
   Inherit       focused_window_style
   Font          -adobe-helvetica-medium-r-*-*-8-*-*-*-*-*-*-*
-  ~MyStyle      
-  
+  ~MyStyle
+
 MyStyle "ButtonTitleSticky"
   Inherit       sticky_window_style
   Font          -adobe-helvetica-medium-r-*-*-8-*-*-*-*-*-*-*
-  ~MyStyle      
-  
+  ~MyStyle
+
 MyStyle "ButtonTitleUnfocus"
   Inherit       unfocused_window_style
   Font          -adobe-helvetica-medium-r-*-*-8-*-*-*-*-*-*-*
-  ~MyStyle      
+  ~MyStyle
 
 # [0|1] Show Title on Buttons how?
-SeparateButtonTitle 1 
+SeparateButtonTitle 1
 # [x y] Size of buttons?
 ButtonSize 64 64
 #--------------------------
@@ -218,7 +218,7 @@ ButtonSize 64 64
 #
 # 2-5) : misc options
 #  Textures/Pixmaps on windows lowbar ?
-TexturedHandle
+#TexturedHandle
 #  Gradient on windows title ?
 #GradientText
 #  Border around iconifyied windows ?
@@ -240,7 +240,7 @@ TextureMenuItemsIndividually 1
 #  Corner where the resize box goes to: ++, +-, -+, -- (clockwise)
 #ResizeMoveGeometry --
 # [0/1] make a space, or don't make a space (WM) beside buttons
-TitleButtonStyle 0
+#TitleButtonStyle 0
 #  define the number of pixels between titlebar buttons
 #TitleButtonSpacing       10
 
@@ -249,26 +249,26 @@ TitleButtonStyle 0
 
 IconBox 		1 -64 -1 -1
 TitleTextAlign          1
-TitlebarNoPush
+#TitlebarNoPush
 
-DecorateFrames 1
+DecorateFrames 0
 # Frames
 # the topmost part
-FrameNorth      n.xpm
+#FrameNorth      north.xpm
 # bottom
-FrameSouth      s.xpm
+FrameSouth      south.xpm
 # right
-FrameEast       e.xpm
+FrameEast       east.xpm
 # left
-FrameWest       w.xpm
+FrameWest       west.xpm
 # top left
-FrameNW  	nw.xpm
+#FrameNW  	northwest.xpm
 # top right
-FrameNE  	ne.xpm
+#FrameNE  	northeast.xpm
 # bottom left
-FrameSW  	sw.xpm
+FrameSW  	southwest.xpm
 # bottom right
-FrameSE  	se.xpm
+FrameSE  	southeast.xpm
 
 RubberBand		1
 #------------------------------------------------------------------------

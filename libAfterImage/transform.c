@@ -877,9 +877,12 @@ tile_asimage( ASVisual *asv, ASImage *src,
 	ASImageOutput  *imout ;
 	START_TIME(started);
 
-LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, tint = #%8.8lX", offset_x, offset_y, to_width, to_height, tint );
+LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, tint = #%8.8lX", src, offset_x, offset_y, to_width, to_height, tint );
 	if( src== NULL || (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
+	{
+		LOCAL_DEBUG_OUT( "failed to start image decoding%s", "");
 		return NULL;
+	}
 
 	dst = create_asimage (to_width, to_height, compression_out);
 	if( out_format != ASA_ASImage )
@@ -891,6 +894,7 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 #endif
 	if((imout = start_image_output( asv, dst, out_format, (tint!=0)?8:0, quality)) == NULL )
 	{
+		LOCAL_DEBUG_OUT( "failed to start image output%s", "");
         destroy_asimage( &dst );
     }else
 	{

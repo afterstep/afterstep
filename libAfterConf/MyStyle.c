@@ -479,9 +479,13 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 	{
 		int type = def->texture_type;
 
+		if ( get_flags(style->user_flags, F_BACKPIXMAP) )
+		{
+			mystyle_free_back_icon(style);
+			clear_flags (style->user_flags, F_BACKTRANSPIXMAP | F_BACKPIXMAP);
+		}
 		clear_flags (style->inherit_flags, F_BACKTRANSPIXMAP | F_BACKPIXMAP);
         LOCAL_DEBUG_OUT( "calling mystyle_free_back_icon for style %p", style );
-        mystyle_free_back_icon(style);
 
 		if (type == TEXTURE_TRANSPARENT || type == TEXTURE_TRANSPARENT_TWOWAY)
 		{							   /* treat second parameter as ARGB tint value : */

@@ -59,7 +59,7 @@ MyStyle "menu_title_font"
   ~MyStyle
 
 MyStyle "menu_font"
-  Font          DefaultBold.ttf-16
+  Font          Default.ttf-16
   TextStyle     0
   ~MyStyle
 
@@ -103,7 +103,7 @@ MyStyle "menu_stipple_style"
 
 MyStyle "menu_subitem_style"
   Inherit       menu_item_style
-  Font		DefaultBold.ttf-12
+  Font		Default.ttf-12
   ~MyStyle
 
 DefaultStyle "default"
@@ -232,7 +232,7 @@ ButtonSize 64 64
 #  Border around iconifyied windows ?
 ButtonNoBorder
 #  [0/1/2] Draw lines between menu options ?
-DrawMenuBorders 1
+DrawMenuBorders 0
 #  [0/1] Texture menu options individually, or the whole menu ?
 TextureMenuItemsIndividually 0
 #  Corner where the resize box goes to: ++, +-, -+, -- (clockwise)

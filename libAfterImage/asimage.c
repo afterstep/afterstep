@@ -707,7 +707,13 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 		return NULL;
 	if( im != NULL )
 		if( im->magic != MAGIC_ASIMAGE )
+		{
+#ifdef LOCAL_DEBUG
+			ASImage **tmp = NULL;
+			*tmp = im ;                        /* segfault !!!!! */
+#endif
 			im = NULL ;
+		}
 
 	if( im == NULL )
 	{

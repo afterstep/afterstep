@@ -472,20 +472,14 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	 case TEXTURE_PIXMAP:
 		 im = tile_asimage (Scr.asv, style->back_icon.image,
 							0, 0, preflip_width, preflip_height, TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 LOCAL_DEBUG_OUT( "back_icon.image = %p,im = %p, preflip_size=%dx%d", style->back_icon.image, im, preflip_width, preflip_height );
 		 im = mystyle_flip_image( im, width, height, flip );
 		 break;
 	}
 
 	if( transparency )
 	{
-		if (Scr.RootImage == NULL)
-		{  /* simply creating solid color image */
-			if( im == NULL )
-			{
-				im = create_asimage( width, height, 100 );
-				im->back_color = style->colors.back ;
-			}
-		}else
+		if (Scr.RootImage != NULL)
 		{
 			if (style->texture_type == TEXTURE_TRANSPARENT || style->texture_type == TEXTURE_TRANSPARENT_TWOWAY)
 			{
@@ -563,7 +557,15 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				if (scaled_im)
 					destroy_asimage (&scaled_im);
 			 }
-		}
+		}else
+			show_warning( "MyStyle \"%s\" : failed to accure Root background image", style->name );
+	}
+    /* simply creating solid color image under no circumstances we want to return NULL here */
+	if( im == NULL )
+	{
+		im = create_asimage( width, height, 100 );
+		im->back_color = style->colors.back ;
+		show_warning( "MyStyle \"%s\" : failed to generate background image - using solid fill instead with color #0x%8.8X", style->name, style->colors.back );
 	}
 #endif /* NO_TEXTURE */
 	return im;
@@ -973,9 +975,7 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 			if (!copy)
 			{
 				child->back_icon = parent->back_icon;
-/*				if (parent->back_icon.image)
-					child->back_icon.image = dup_asimage (parent->back_icon.image);
-*/				clear_flags (child->user_flags, F_BACKPIXMAP | F_BACKTRANSPIXMAP);
+				clear_flags (child->user_flags, F_BACKPIXMAP | F_BACKTRANSPIXMAP);
 				set_flags (child->inherit_flags, F_BACKPIXMAP);
 				if (get_flags (parent->set_flags, F_BACKTRANSPIXMAP))
 					set_flags (child->inherit_flags, F_BACKTRANSPIXMAP);
