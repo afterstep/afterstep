@@ -42,8 +42,8 @@ Print version information and exit successfully.
 During initialization, \fIScroll\fP will search for a configuration 
 file which describes the colors to use.  This file will be the one 
 specified by the \fI\-f\fP option (if given).  Else, the 
-~/GNUstep/Library/AfterStep/pager file will be used if it exists.  
-Else, /usr/local/share/afterstep/pager will be used.
+~/GNUstep/Library/AfterStep/scroll file will be used if it exists.  
+Else, /usr/local/share/afterstep/scroll will be used.
 
 If the \fBScroll\fP executable is linked to another name, ie 'ln -s
 Scroll OtherScroll, then another module called OtherScroll can be
