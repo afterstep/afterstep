@@ -668,7 +668,8 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 		return False ;
 	}
 
-	mapped_im = colormap_asimage( im, &cmap, 256, 2, 127 );/*params->gif.dither, params->gif.opaque_threshold );*/
+	/*EGifSetGifVersion("87a");*/
+	mapped_im = colormap_asimage( im, &cmap, 256, 4, 127 );/*params->gif.dither, params->gif.opaque_threshold );*/
 	if( !get_flags( params->gif.flags, EXPORT_ALPHA) )
 		cmap.has_opaque = False ;
 	else
@@ -680,7 +681,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 		return False;
 	}
 
-	for( y = 0 ; y < cmap.count ; y++ )
+	for( y = 0 ; y < MIN(cmap.count,256) ; y++ )
 	{
 		gif_cmap->Colors[y].Red = cmap.entries[y].red ;
 		gif_cmap->Colors[y].Green = cmap.entries[y].green ;
