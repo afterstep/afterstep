@@ -111,6 +111,7 @@ Style	"GQview"		Icon gqview.png		#, StartsOnDesk 0
 # web browsers :
 Style	"Galeon"		Icon galeon.png		#, StartsOnDesk 1
 Style	"Mozilla-bin"		Icon mozilla-star.png	#, StartsOnDesk 1
+Style	"Firefox-bin"		Icon mozilla-star.png
 Style	"Netscape"		Icon netscape.png	#, StartsOnDesk 1
 
 Style	"RealPlayer"    	Icon real.xpm

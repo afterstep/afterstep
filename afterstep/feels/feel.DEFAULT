@@ -336,10 +336,17 @@ Key Up          A       MS       CursorMove +0 -1
 Key Down        A       MS       CursorMove +0 +1
 
 # shift + control + arrow = change desktop
-Key Left        A       SC      Desk 0 0
-Key Right       A       SC      Desk 0 1
-Key Up          A       SC      Desk 0 2
-Key Down        A       SC      Desk 0 3
+#Key Left        A       SC      Desk 0 0
+#Key Right       A       SC      Desk 0 1
+#Key Up          A       SC      Desk 0 2
+#Key Down        A       SC      Desk 0 3
+
+# here is the better approach to desktop switching : Ctrl-Fx =
+Key F1          A       C        Desk 0 0
+Key F2          A       C        Desk 0 1
+Key F3          A       C        Desk 0 2
+Key F4          A       C        Desk 0 3
+
 
 # For asforms & menus : Ctrl-Shift-Fx =
 Key F1          A       SC      Module "Help" Form HELPForm
@@ -364,8 +371,13 @@ Key Tab         A       M       WarpFore
 Key q		A	M	WarpBack
 # shift + alt + tab = focus on current window
 Key Tab         A       S       Focus
+
 # ctrl-v = paste
-Key v		W	C	PasteSelection
+# If you have problems with pasting data into applications - 
+# try uncomminting this :
+#Key v		W	C	PasteSelection
+
+
 # Window keys
 Key Menu        A       A       Popup "0"
 Key Meta_L      A       A       WarpFore
