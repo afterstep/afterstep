@@ -863,6 +863,17 @@ FixLook( MyLook *look )
         enable_hints_support( look->supported_hints, HINTS_GroupLead );
         enable_hints_support( look->supported_hints, HINTS_Transient );
     }
+    switch( look->TitleButtonStyle )
+    {
+        case 0 :
+            look->TitleButtonXOffset = 3;
+            look->TitleButtonYOffset = 3;
+            break ;
+        case 1 :
+            look->TitleButtonXOffset = 1;
+            look->TitleButtonYOffset = 1;
+            break ;
+    }
 }
 
 /*

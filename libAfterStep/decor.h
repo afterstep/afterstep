@@ -161,7 +161,8 @@ int         check_tbtn_point( ASTBtnBlock *bb, int x, int y );
 void        destroy_astbtn(ASTBtnData **ptbtn );
 
 ASTBtnBlock* create_astbtn_block( unsigned int btn_count );
-ASTBtnBlock* build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int count, int spacing, int order );
+ASTBtnBlock* build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int count,
+                               int left_margin, int top_margin, int spacing, int order );
 void         destroy_astbtn_block(ASTBtnBlock **pb );
 
 

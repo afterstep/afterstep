@@ -291,7 +291,8 @@ DigestEvent( ASEvent *event )
             {
                 i = FRAME_SIDES ;
                 while( --i >= 0 )
-                    if( asw->frame_sides[i]->w == w )
+                    if( asw->frame_sides[i] != NULL &&
+                        asw->frame_sides[i]->w == w )
                     {
                         canvas = asw->frame_sides[i];
                         /* determine what part of the frame : */
@@ -315,7 +316,8 @@ DigestEvent( ASEvent *event )
             if( event->context == C_FRAME )
             {
                 int tbar_context ;
-                if( (tbar_context = check_astbar_point( asw->tbar, xk->x_root, xk->y_root )) != C_NO_CONTEXT )
+                if( asw->tbar != NULL &&
+                    (tbar_context = check_astbar_point( asw->tbar, xk->x_root, xk->y_root )) != C_NO_CONTEXT )
                     event->context = tbar_context ;
                 else
                 {

@@ -128,6 +128,80 @@ Create_icon_windows (ASWindow *asw)
 static int tbar2canvas_xref_normal  [FRAME_PARTS+1] = {FR_N, FR_E, FR_S, FR_W, FR_N, FR_N, FR_S, FR_S, FR_N };
 static int tbar2canvas_xref_vertical[FRAME_PARTS+1] = {FR_W, FR_N, FR_E, FR_S, FR_W, FR_W, FR_E, FR_E, FR_W };
 
+static int NormalX, NormalY;
+static unsigned int NormalWidth, NormalHeight ;
+typedef struct ASOrientation
+{
+    unsigned int frame_contexts[FRAME_PARTS];
+    unsigned int tbar2canvas_xref[FRAME_PARTS+1];
+    unsigned int tbar_side;
+    unsigned int tbar_corners[2];
+    unsigned int tbar_mirror_corners[2];               /* see note below */
+    unsigned int sbar_side;
+    unsigned int sbar_corners[2];
+    unsigned int sbar_mirror_corners[2];               /* see note below */
+    unsigned int left_side, right_side;
+    unsigned int left_mirror_side, right_mirror_side;  /* see note below */
+    unsigned long horz_side_mask;
+    int left_btn_order, right_btn_order;
+    int *in_x, *in_y;
+    unsigned int *in_width, *in_height;
+    int *out_x, *out_y;
+    unsigned int *out_width, *out_height;
+}ASOrientation;
+
+/* Mirror Note :
+ *
+ * For the purpose of sizing/placing left and right sides and corners - we employ somewhat
+ * twisted logic - we mirror sides over lt2rb diagonal in case of
+ * vertical title orientation. That allows us to apply simple x/y switching instead of complex
+ * calculations. Note that we only do that for placement purposes. Contexts and images are
+ * still taken from MyFrame parts as if it was rotated counterclockwise instead of mirrored.
+ */
+
+ASOrientation HorzOrientation =
+{
+    { C_FrameN, C_FrameE, C_FrameS, C_FrameW, C_FrameNW,C_FrameNE,C_FrameSW,C_FrameSE },
+/*      N     E     S     W     NW    NE    SE    SW    TITLE */
+    {FR_N, FR_E, FR_S, FR_W, FR_N, FR_N, FR_S, FR_S, FR_N },
+    FR_N,
+    {FR_NW, FR_NE},
+    {FR_NW, FR_NE},
+    FR_S,
+    {FR_SW, FR_SE},
+    {FR_SW, FR_SE},
+    FR_W, FR_E,
+    FR_W, FR_E,
+    MYFRAME_HOR_MASK,
+    TBTN_ORDER_L2R,TBTN_ORDER_R2L,
+    &NormalX, &NormalY, &NormalWidth, &NormalHeight,
+    &NormalX, &NormalY, &NormalWidth, &NormalHeight
+};
+
+ASOrientation VertOrientation =
+{
+    { C_FrameW, C_FrameN, C_FrameE, C_FrameS, C_FrameSW,C_FrameNW,C_FrameSE,C_FrameNE },
+/*      N     E     S     W     NW    NE    SE    SW    TITLE */
+    {FR_W, FR_N, FR_E, FR_S, FR_W, FR_W, FR_E, FR_E, FR_W },
+    FR_W,
+    {FR_SW, FR_NW},
+    {FR_NW, FR_SW},
+    FR_E,
+    {FR_SE, FR_NE},
+    {FR_NE, FR_SE},
+    FR_S, FR_N,
+    FR_N, FR_S,
+    MYFRAME_VERT_MASK,
+    TBTN_ORDER_B2T,TBTN_ORDER_T2B,
+    &NormalX, &NormalY, &NormalWidth, &NormalHeight,
+    &NormalY, &NormalX, &NormalHeight, &NormalWidth
+};
+
+static inline ASOrientation*
+get_orientation_data( ASWindow *asw )
+{
+    return ASWIN_HFLAGS(asw, AS_VerticalTitle)?&VertOrientation:&HorzOrientation;
+}
 
 /* this gets called when Look changes or hints changes : */
 static ASCanvas *
@@ -543,11 +617,10 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 	int i ;
     char *mystyle_name = Scr.Look.MSWindow[BACK_FOCUSED]->name;
 	ASImage *icon_image = NULL ;
-    static int normal_frame_contexts[FRAME_PARTS] =
-        { C_FrameN, C_FrameE, C_FrameS, C_FrameW, C_FrameNW,C_FrameNE,C_FrameSW,C_FrameSE };
-    static int vert_frame_contexts[FRAME_PARTS] =
-        { C_FrameW, C_FrameN, C_FrameE, C_FrameS, C_FrameSW,C_FrameNW,C_FrameSE,C_FrameNE };
-    int *frame_contexts  = &(normal_frame_contexts[0]);
+
+    ASOrientation *od = get_orientation_data(asw);
+
+    int *frame_contexts  = &(od->frame_contexts[0]);
 
     if( AS_ASSERT(asw) )
         return ;
@@ -599,20 +672,10 @@ redecorate_window( ASWindow *asw, Bool free_resources )
                                         (asw->icon_canvas!=NULL) );
 
     /* 5) we need to prepare windows for 4 frame decoration sides : */
-    if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-    {
-        frame_contexts  = &(vert_frame_contexts[0]);
-        tbar_canvas = check_side_canvas( asw, FR_W, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
-        sidebar_canvas = check_side_canvas( asw, FR_E, myframe_has_parts(frame, FRAME_BTM_MASK) );
-        left_canvas = check_side_canvas( asw, FR_S, myframe_has_parts(frame, FRAME_LEFT_MASK) );
-        right_canvas = check_side_canvas( asw, FR_N, myframe_has_parts(frame, FRAME_RIGHT_MASK) );
-    }else
-    {
-        tbar_canvas = check_side_canvas( asw, FR_N, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
-        sidebar_canvas = check_side_canvas( asw, FR_S, myframe_has_parts(frame, FRAME_BTM_MASK) );
-        left_canvas = check_side_canvas( asw, FR_W, myframe_has_parts(frame, FRAME_LEFT_MASK) );
-        right_canvas = check_side_canvas( asw, FR_E, myframe_has_parts(frame, FRAME_RIGHT_MASK) );
-    }
+    tbar_canvas = check_side_canvas( asw, od->tbar_side, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
+    sidebar_canvas = check_side_canvas( asw, od->sbar_side, myframe_has_parts(frame, FRAME_BTM_MASK) );
+    left_canvas = check_side_canvas( asw, od->left_side, myframe_has_parts(frame, FRAME_LEFT_MASK) );
+    right_canvas = check_side_canvas( asw, od->right_side, myframe_has_parts(frame, FRAME_RIGHT_MASK) );
 
     /* make sure all our decoration windows are mapped and in proper order: */
     XRaiseWindow( dpy, asw->w );
@@ -640,19 +703,14 @@ redecorate_window( ASWindow *asw, Bool free_resources )
         {
             img = frame->parts[i]?frame->parts[i]->image:NULL ;
 
-            back_w = frame->part_width[i] ;
-            back_h = frame->part_length[i] ;
-            if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-            {
-                if( !((0x01<<i)&MYFRAME_VERT_MASK) )
-                {
-                    back_h = frame->part_width[i] ;
-                    back_w = frame->part_length[i] ;
-                }
-            }else if( (0x01<<i)&MYFRAME_HOR_MASK )
+            if( (0x01<<i)&od->horz_side_mask )
             {
                 back_h = frame->part_width[i] ;
                 back_w = frame->part_length[i] ;
+            }else
+            {
+                back_w = frame->part_width[i] ;
+                back_h = frame->part_length[i] ;
             }
         }
         check_tbar( &(asw->frame_bars[i]), IsFramePart(frame,i), mystyle_name,
@@ -667,16 +725,16 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 		/* left buttons : */
         btns = build_tbtn_block( &(Scr.Look.buttons[0]),
 		                         ~(asw->hints->disabled_buttons),
-		                         TITLE_BUTTONS_PERSIDE, 1,
-                                 ASWIN_HFLAGS(asw, AS_VerticalTitle)?
-									TBTN_ORDER_B2T:TBTN_ORDER_L2R );
+                                 TITLE_BUTTONS_PERSIDE,
+                                 Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+                                 od->left_btn_order );
         set_astbar_btns( asw->tbar, &btns, True );
         /* right buttons : */
         btns = build_tbtn_block( &(Scr.Look.buttons[TITLE_BUTTONS_PERSIDE]),
 		                         (~(asw->hints->disabled_buttons))>>TITLE_BUTTONS_PERSIDE,
-		                         TITLE_BUTTONS_PERSIDE, 1,
-                                 ASWIN_HFLAGS(asw, AS_VerticalTitle)?
-									TBTN_ORDER_T2B:TBTN_ORDER_R2L );
+                                 TITLE_BUTTONS_PERSIDE,
+                                 Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+                                 od->right_btn_order );
         set_astbar_btns( asw->tbar, &btns, False );
 	}
     /* we also need to setup label, unfocused/sticky style and tbar sizes -
@@ -722,43 +780,38 @@ update_window_transparency( ASWindow *asw )
 
 
 static void
-resize_canvases( ASWindow *asw, ASCanvas *tbar, ASCanvas *sbar, ASCanvas *left, ASCanvas *right, unsigned int width, unsigned int height )
+resize_canvases( ASWindow *asw, ASOrientation *od, unsigned int normal_width, unsigned int normal_height, unsigned int *frame_sizes )
 {
-    unsigned short tbar_size = 0 ;
-    unsigned short sbar_size = 0 ;
-    if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-    { /* west and east canvases are the big ones - resize them first */
-        if( tbar )
-        {
-            tbar_size = tbar->width ;
-            moveresize_canvas( tbar, 0, 0, tbar_size, height );
-        }
-        if( sbar )
-        {
-            sbar_size = sbar->width ;
-            moveresize_canvas( sbar, width-(tbar_size+sbar_size), 0, sbar_size, height );
-        }
-        if( left )
-            moveresize_canvas( left, tbar_size, height-left->height, width-(tbar_size+sbar_size), left->height );
-        if( right )
-            moveresize_canvas( right, tbar_size, 0, width-(tbar_size+sbar_size), right->height );
-    }else
-    {
-        if( tbar )
-        {
-            tbar_size = tbar->height ;
-            moveresize_canvas( tbar, 0, 0, width, tbar_size );
-        }
-        if( sbar )
-        {
-            sbar_size = sbar->height ;
-            moveresize_canvas( sbar, 0, height-(tbar_size+sbar_size), width, sbar_size );
-        }
-        if( left )
-            moveresize_canvas( left, 0,                   tbar_size, left->width,  height-(tbar_size+sbar_size));
-        if( right )
-            moveresize_canvas( right, width-right->width, tbar_size, right->width, height-(tbar_size+sbar_size));
-    }
+    unsigned short tbar_size = frame_sizes[od->tbar_side] ;
+    unsigned short sbar_size = frame_sizes[od->sbar_side] ;
+
+    *(od->in_width)  = normal_width ;
+    *(od->in_height) = tbar_size ;
+    if( asw->frame_sides[od->tbar_side] )
+        moveresize_canvas( asw->frame_sides[od->tbar_side], 0, 0, *(od->out_width), *(od->out_height) );
+
+    *(od->in_x) = 0 ;
+    *(od->in_y) = normal_height - sbar_size ;
+    *(od->in_height) = sbar_size ;
+    if( asw->frame_sides[od->sbar_side] )
+        moveresize_canvas( asw->frame_sides[od->sbar_side], *(od->out_x), *(od->out_y), *(od->out_width), *(od->out_height) );
+
+    /* for left and right sides - somewhat twisted logic - we mirror sides over lt2rb diagonal in case of
+     * vertical title orientation. That allows us to apply simple x/y switching instead of complex
+     * calculations. Note that we only do that for placement purposes. Contexts and images are still taken
+     * from MyFrame parts as if it was rotated counterclockwise instead of mirrored.
+     */
+    *(od->in_x) = 0 ;
+    *(od->in_y) = tbar_size ;
+    *(od->in_width)  = frame_sizes[od->left_mirror_side] ;
+    *(od->in_height) = normal_height-(tbar_size+sbar_size) ;
+    if( asw->frame_sides[od->left_mirror_side] )
+        moveresize_canvas( asw->frame_sides[od->left_mirror_side], *(od->out_x), *(od->out_y), *(od->out_width), *(od->out_height));
+
+    *(od->in_x) = normal_width-frame_sizes[od->right_mirror_side] ;
+    *(od->in_width)  = frame_sizes[od->right_mirror_side] ;
+    if( asw->frame_sides[od->right_mirror_side] )
+        moveresize_canvas( asw->frame_sides[od->right_mirror_side], *(od->out_x), *(od->out_y), *(od->out_width), *(od->out_height));
 }
 
 static unsigned short
@@ -805,16 +858,143 @@ frame_corner_width(ASTBarData *c1, ASTBarData *c2 )
     return w;
 }
 
+inline static Bool
+move_resize_frame_bar( ASTBarData *tbar, ASCanvas *canvas, int normal_x, int normal_y, unsigned int normal_width, unsigned int normal_height, Bool force_render )
+{
+    if( set_astbar_size( tbar, normal_width, normal_height) )
+        force_render = True;
+    if( move_astbar( tbar, canvas, normal_x, normal_y ) )
+        force_render = True;
+    if( force_render )
+        render_astbar( tbar, canvas );
+    return force_render;
+}
+
+inline static Bool
+move_resize_corner( ASTBarData *bar, ASCanvas *canvas, ASOrientation *od, int normal_y, unsigned int normal_width,  Bool left, Bool force_render )
+{
+    unsigned int w = bar->width;
+    unsigned int h = bar->height;
+
+    *(od->in_y) = normal_y;
+    /* Do we really need to rotate it ? */
+    *(od->in_width)  = w ;
+    *(od->in_height) = h ;
+
+    *(od->in_x) = left?0:(normal_width-(*(od->out_width)));
+    return move_resize_frame_bar( bar, canvas, *(od->out_x), *(od->out_y), w, h, force_render );
+}
+
+inline static Bool
+move_resize_longbar( ASTBarData *bar, ASCanvas *canvas, ASOrientation *od,
+                     int normal_y, unsigned int normal_width,
+                     unsigned int corner_size1, unsigned int corner_size2,
+                     Bool vertical, Bool force_render )
+{
+    unsigned int w = bar->width;
+    unsigned int h = bar->height;
+    int bar_size ;
+
+    /* swapping bar height in case of vertical orientation : */
+    *(od->in_width) = w ;
+    *(od->in_height) = h ;
+    if( vertical )
+    {
+        bar_size = *(od->out_width);
+        *(od->in_width)  = bar_size ;
+        *(od->in_height) = normal_width ;
+        *(od->in_x) = normal_y;
+        *(od->in_y) = corner_size1;
+    }else
+    {
+        bar_size = *(od->out_height);
+        *(od->in_height) = bar_size ;
+        if( corner_size1+corner_size2 > normal_width )
+            *(od->in_width) = 1;
+        else
+            *(od->in_width) = normal_width-(corner_size1+corner_size2) ;
+        *(od->in_x) = corner_size1;
+        *(od->in_y) = normal_y;
+    }
+
+    return move_resize_frame_bar( bar, canvas, *(od->out_x), *(od->out_y), *(od->out_width), *(od->out_height), force_render );
+}
+
+static Bool
+move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int normal_width, unsigned int normal_height, Bool force_render )
+{
+    int corner_size1 = 0, corner_size2 = 0;
+    Bool rendered = False ;
+    int tbar_size = 0;
+    ASCanvas *canvas = asw->frame_sides[side];
+    ASTBarData *title = NULL, *corner1 = NULL, *longbar = NULL, *corner2 = NULL;
+    Bool vertical = False ;
+
+    longbar = asw->frame_bars[side];
+    if( side == od->tbar_side )
+    {
+        title = asw->tbar ;
+        corner1 = asw->frame_bars[od->tbar_mirror_corners[0]];
+        corner2 = asw->frame_bars[od->tbar_mirror_corners[1]];
+    }else if( side == od->sbar_side )
+    {
+        corner1 = asw->frame_bars[od->sbar_mirror_corners[0]];
+        corner2 = asw->frame_bars[od->sbar_mirror_corners[1]];
+    }else
+        vertical = True ;
+
+    if( title )
+    {
+        if( move_resize_longbar( title, canvas, od, 0, normal_width, 0, 0, False, force_render ) )
+            rendered = True;
+        tbar_size = *(od->out_height);
+    }
+    /* mirror_corner 0 */
+    if( corner1 )
+    {
+        if( move_resize_corner( corner1, canvas, od, tbar_size, normal_width, True, force_render ) )
+            rendered = True ;
+
+        corner_size1 = *(od->out_width);
+    }
+    /* mirror_corner 1 */
+    if( corner2 )
+    {
+        if( move_resize_corner( corner2, canvas, od, tbar_size, normal_width, False, force_render ) )
+            rendered = True ;
+
+        corner_size2 = *(od->out_width);
+    }
+    /* side */
+    if( longbar )
+    {
+        if( move_resize_longbar( longbar, canvas, od,
+                                 tbar_size, vertical?normal_height:normal_width,
+                                 corner_size1, corner_size2,
+                                 vertical, force_render ) )
+            rendered = True;
+    }
+    return rendered;
+}
+
 /* this gets called when StructureNotify/SubstractureNotify arrives : */
 void
 on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width, unsigned int height )
 {
     int i ;
     Bool canvas_moved = False;
+    ASOrientation *od ;
+    unsigned int normal_width, normal_height ;
 
 LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,%ux%u%+d%+d)", asw, w, width, height, x, y );
     if( AS_ASSERT(asw) || w == asw->w )
         return ;
+
+    od = get_orientation_data(asw);
+    *(od->in_width)  = width ;
+    *(od->in_height) = height ;
+    normal_width  = *(od->out_width)  ;
+    normal_height = *(od->out_height) ;
 
     if( w == asw->w )
     {  /* simply update client's size and position */
@@ -823,27 +1003,13 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,%ux%u%+d%+d)", asw, w, width, height, x, y );
     {/* resize canvases here :*/
         if( width != asw->frame_canvas->width || height != asw->frame_canvas->height )
         {
-            if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-            { /* west and east canvases are the big ones - resize them first */
-                resize_canvases( asw, asw->frame_sides[FR_W],
-                                    asw->frame_sides[FR_E],
-                                    asw->frame_sides[FR_N],
-                                    asw->frame_sides[FR_S], width, height );
-            }else
-            {
-                resize_canvases( asw, asw->frame_sides[FR_N],
-                                    asw->frame_sides[FR_S],
-                                    asw->frame_sides[FR_W],
-                                    asw->frame_sides[FR_E], width, height );
-            }
-            {
-                register unsigned int *frame_size = &(asw->status->frame_size[0]) ;
-                moveresize_canvas( asw->client_canvas,
-                                frame_size[FR_W],
-                                frame_size[FR_N],
-                                width-(frame_size[FR_W]+frame_size[FR_E]),
-                                height-(frame_size[FR_N]+frame_size[FR_S]));
-            }
+            register unsigned int *frame_size = &(asw->status->frame_size[0]) ;
+            resize_canvases( asw, od, normal_width, normal_height, frame_size );
+            moveresize_canvas( asw->client_canvas,
+                            frame_size[FR_W],
+                            frame_size[FR_N],
+                            width-(frame_size[FR_W]+frame_size[FR_E]),
+                            height-(frame_size[FR_N]+frame_size[FR_S]));
         }
         if( handle_canvas_config (asw->frame_canvas) )
             update_window_transparency( asw );
@@ -876,47 +1042,12 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,%ux%u%+d%+d)", asw, w, width, height, x, y );
         for( i = 0 ; i < FRAME_SIDES ; ++i )
             if( asw->frame_sides[i] && asw->frame_sides[i]->w == w )
             {   /* canvas has beer resized - resize tbars!!! */
-                unsigned short corner_size = 0;
                 Bool canvas_moved = handle_canvas_config (asw->frame_sides[i]);
 
-                if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-                {
-                    if( i == FR_W )
-                    {
-                        if( set_astbar_size( asw->tbar, asw->tbar->width, height ) ||
-                            canvas_moved)
-                            render_astbar( asw->tbar, asw->frame_sides[i] );
-                        corner_size = frame_corner_height(asw->frame_bars[FR_NW], asw->frame_bars[FR_SW]);
-                    }else if( i == FR_E )
-                        corner_size = frame_corner_height(asw->frame_bars[FR_NE], asw->frame_bars[FR_SE]);
-                    if( asw->frame_bars[i] )
-                        if( set_astbar_size( asw->frame_bars[i], asw->frame_bars[i]->width, height - corner_size) ||
-                            canvas_moved )
-                            render_astbar( asw->frame_bars[i], asw->frame_sides[i] );
-                }else
-                {
-                    if( i == FR_N )
-                    {
-                        if( set_astbar_size( asw->tbar, width, asw->tbar->height )||
-                            canvas_moved )
-                            render_astbar( asw->tbar, asw->frame_sides[i] );
-                        corner_size = frame_corner_width(asw->frame_bars[FR_NE], asw->frame_bars[FR_NW]);
-                    }else if( i == FR_S )
-                        corner_size = frame_corner_width(asw->frame_bars[FR_SE], asw->frame_bars[FR_SW]);
-                    if( asw->frame_bars[i] )
-                        if( set_astbar_size( asw->frame_bars[i], width - corner_size, asw->frame_bars[i]->height )||
-                            canvas_moved )
-                            render_astbar( asw->frame_bars[i], asw->frame_sides[i] );
-                }
-                /* now corner's turn ( if any ) : */
-                if( corner_size > 0 && canvas_moved )
-                {
-                    render_astbar( asw->frame_bars[LeftCorner(i)], asw->frame_sides[i] );
-                    render_astbar( asw->frame_bars[RightCorner(i)], asw->frame_sides[i] );
-                }
+                if( move_resize_frame_bars( asw, i, od, normal_width, normal_height, canvas_moved) ||
+                    canvas_moved )  /* now we need to show them on screen !!!! */
+                    update_canvas_display( asw->frame_sides[i] );
 
-                /* now we need to show them on screen !!!! */
-                update_canvas_display( asw->frame_sides[i] );
                 break;
             }
     }
@@ -993,19 +1124,22 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
             {
                 tbar_size = calculate_astbar_width( asw->tbar );
                 tbar_side = FR_W ;
+                /* we need that to set up tbar size : */
                 set_astbar_size( asw->tbar, tbar_size, asw->tbar?asw->tbar->height:0 );
             }else
             {
                 tbar_size = calculate_astbar_height( asw->tbar );
+                /* we need that to set up tbar size : */
                 set_astbar_size( asw->tbar, asw->tbar?asw->tbar->width:0, tbar_size );
             }
             for( i = 0 ; i < FRAME_SIDES ; ++i )
+            {
                 if( asw->frame_bars[i] )
                     frame_size[i] = IsSideVertical(i)?asw->frame_bars[i]->width:
                                                     asw->frame_bars[i]->height ;
                 else
                     frame_size[i] = 0;
-
+            }
             frame_size[tbar_side] += tbar_size ;
             anchor2status ( asw->status, asw->hints, &(asw->anchor));
         }else if( asw->tbar )

@@ -172,7 +172,9 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 Bool
 handle_canvas_config (ASCanvas * canvas)
 {
-	return refresh_canvas_config (canvas);
+    Bool res = refresh_canvas_config (canvas);
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", canvas, canvas->w, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
+    return res;
 }
 
 Bool
@@ -306,7 +308,8 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)", pc, pc->w
 void
 resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 {
-	/* Setting background to None to avoid background pixmap tiling
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u)", pc, pc->w, width, height );
+    /* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
     if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
@@ -360,11 +363,12 @@ free_tbtn_images( ASTBtnData* btn )
 void
 set_tbtn_images( ASTBtnData* btn, struct button_t *from )
 {
-    Bool pressed ;
+    Bool pressed = False;
     if( AS_ASSERT(btn) || from == NULL )
         return ;
 
-    pressed = (btn->current == btn->pressed );
+    if( btn->current != NULL )
+        pressed = (btn->current == btn->pressed );
     free_tbtn_images( btn );
 
     btn->pressed   = from->pressed.image ;
@@ -419,7 +423,8 @@ create_astbtn_block( unsigned int btn_count )
 
 
 ASTBtnBlock*
-build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int count, int spacing, int order )
+build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int count,
+                  int left_margin, int top_margin, int spacing, int order )
 {
     ASTBtnBlock *blk = NULL ;
     unsigned int real_count = 0 ;
@@ -439,7 +444,7 @@ build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int coun
     if( real_count > 0 )
     {
         int k = real_count-1 ;
-        int pos = 0 ;
+        int pos = get_flags(order, TBTN_ORDER_REVERSE)?-left_margin:left_margin ;
 
         blk = create_astbtn_block( real_count );
 
@@ -456,11 +461,24 @@ build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int coun
         }
 
         k = get_flags(order, TBTN_ORDER_REVERSE)?real_count - 1:0;
+
+        /* top_margin surrounds button block from both sides ! */
+        if( get_flags(order, TBTN_ORDER_VERTICAL) )
+        {
+            blk->width = max_width + top_margin*2 ;
+            blk->height = pos ;
+        }else
+        {
+            blk->width = pos ;
+            blk->height = max_height+ top_margin*2 ;
+        }
+
         while( k >= 0 && k < real_count )
         {
             if( get_flags(order, TBTN_ORDER_VERTICAL) )
             {
-                blk->buttons[k].x = (max_width - blk->buttons[k].width)>>1 ;
+                blk->buttons[k].x = top_margin+((max_width - blk->buttons[k].width)>>1) ;
+                blk->height += blk->buttons[k].height+spacing ;
                 if( get_flags(order, TBTN_ORDER_REVERSE) )
                 {
                     pos -= blk->buttons[k].height ;
@@ -476,7 +494,8 @@ build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int coun
                 }
             }else
             {
-                blk->buttons[k].y = (max_height - blk->buttons[k].height)>>1 ;
+                blk->buttons[k].y = top_margin+((max_height - blk->buttons[k].height)>>1) ;
+                blk->width += blk->buttons[k].width+spacing ;
                 if( get_flags(order, TBTN_ORDER_REVERSE) )
                 {
                     pos -= blk->buttons[k].width ;
@@ -623,6 +642,10 @@ calculate_astbar_height (ASTBarData * tbar)
 		return 0;
 	size = get_astbar_label_height (tbar);
 	size += tbar->top_bevel + 2 + tbar->bottom_bevel + 2;
+    if( tbar->left_buttons && size < tbar->left_buttons->height )
+        size = tbar->left_buttons->height;
+    if( tbar->right_buttons && size < tbar->right_buttons->height )
+        size = tbar->right_buttons->height;
 	return size;
 }
 
@@ -829,10 +852,13 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 	ASImage      *back, *label_im;
 	MyStyle      *style;
 	ASImageBevel  bevel;
-	ASImageLayer  layers[2];
+    ASImageLayer *layers;
 	ASImage      *merged_im;
 	int           state;
 	ASAltImFormats fmt = ASA_XImage;
+    int layers_count = 2 ;
+    int l ;
+    int btn_offset = 0, label_height = 0 ;
 
 	/* input control : */
 	if (tbar == NULL || pc == NULL || pc->w == None)
@@ -872,16 +898,69 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 	 * the window directly, and we'll need to be handling the expose
 	 * events
 	 */
-	init_image_layers (&layers[0], 2);
+    if( tbar->left_buttons )
+        layers_count += tbar->left_buttons->count ;
+    if( tbar->right_buttons )
+        layers_count += tbar->right_buttons->count ;
+
+    layers = create_image_layers (layers_count);
 	layers[0].im = back;
 	layers[0].bevel = &bevel;
 	layers[0].clip_width = tbar->width - (tbar->left_bevel + tbar->right_bevel);
 	layers[0].clip_height = tbar->height - (tbar->top_bevel + tbar->bottom_bevel);
 	layers[1].im = label_im;
-	layers[1].dst_x = tbar->left_bevel + 2;
+    layers[1].dst_x = tbar->left_bevel + 2 + (tbar->left_buttons?tbar->left_buttons->width+5:0);
 	layers[1].dst_y = tbar->right_bevel + 2;
 	layers[1].clip_width = label_im ? label_im->width : tbar->width;
 	layers[1].clip_height = label_im ? label_im->height : tbar->height;
+    l = 2 ;
+    if( label_im )
+        label_height = label_im->height+(tbar->right_bevel + 2)*2 ;
+    if( tbar->left_buttons )
+    {
+        ASTBtnBlock *btns = tbar->left_buttons ;
+        register int i = btns->count ;
+
+        if( label_height > btns->height )
+            btn_offset = (label_height - btns->height)/2;
+        else
+            btn_offset = 0;
+
+        while( --i >= 0 )
+            if( btns->buttons[i].current )
+            {
+                layers[l].im = btns->buttons[i].current;
+                layers[l].dst_x = btns->buttons[i].x;
+                layers[l].dst_y = btns->buttons[i].y + btn_offset;
+                layers[l].clip_width = btns->buttons[i].width;
+                layers[l].clip_height = btns->buttons[i].height;
+                ++l ;
+            }
+    }
+
+    if( tbar->right_buttons )
+    {
+        ASTBtnBlock *btns = tbar->right_buttons ;
+        register int i = btns->count ;
+        int btn_left  = tbar->width;
+
+        if( label_height > btns->height )
+            btn_offset = (label_height - btns->height)/2;
+        else
+            btn_offset = 0 ;
+
+        while( --i >= 0 )
+            if( btns->buttons[i].current )
+            {
+                layers[l].im = btns->buttons[i].current;
+                layers[l].dst_x = btns->buttons[i].x + btn_left ;
+                layers[l].dst_y = btns->buttons[i].y + btn_offset;
+                layers[l].clip_width = btns->buttons[i].width;
+                layers[l].clip_height = btns->buttons[i].height;
+                ++l ;
+            }
+    }
+
 
 	LOCAL_DEBUG_CALLER_OUT ("MERGING TBAR %p image %dx%d from %p %dx%d and %p %dx%d",
 							tbar, tbar->width, tbar->height,
@@ -894,7 +973,8 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 	else if (pc->mask)
 		fill_canvas_mask (pc, tbar->win_x, tbar->win_y, tbar->width, tbar->height, 1);
 #endif
-	merged_im = merge_layers (Scr.asv, &layers[0], 2, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
+    merged_im = merge_layers (Scr.asv, &layers[0], l, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
+    free( layers );
 
 	if (merged_im)
 	{
