@@ -128,6 +128,7 @@ struct MyStyle;
 struct ASSupportedHints;
 struct MyFrame;
 struct ASHashTable;
+struct ComplexFunction;
 
 typedef struct ASDesktop
 {
@@ -278,9 +279,11 @@ typedef struct ScreenInfo
     int OpaqueSize;		/* Keep showing window while being moved if size<N% */
     int OpaqueResize;		/* Keep showing window while being resized if size<N% */
     int CurrentDesk;		/* The current desktop number */
-    struct MenuRoot *InitFunction;
-    struct MenuRoot *RestartFunction;
-    struct MenuRoot *first_menu;	/* head of the menu root list */
+
+    struct ASHashTable *Popups ;
+    struct ASHashTable *ComplexFunctions ;
+    struct ComplexFunction *InitFunction;
+    struct ComplexFunction *RestartFunction;
 
     MyButton    buttons[TITLE_BUTTONS];
 

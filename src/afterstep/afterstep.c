@@ -88,6 +88,8 @@
 #define MAXHOSTNAME 255
 
 struct ASDatabase    *Database = NULL;
+/* our status */
+ASFlagType AfterStepState = 0; /* default status */
 
 
 char         *MyName;						   /* name are we known by */
@@ -1131,9 +1133,12 @@ Done (int restart, char *command)
 			InitLook (True);
 			InitFeel (True);
 			InitDatabase (True);
-			while (Scr.first_menu != NULL)
-				DeleteMenuRoot (Scr.first_menu);
-			/* global drawing GCs */
+
+            if( Scr.Popups )
+                destroy_ashash( &Scr.Popups );
+            if( Scr.ComplexFunctions )
+                destroy_ashash( &Scr.ComplexFunctions );
+            /* global drawing GCs */
 			if (Scr.NormalGC != NULL)
 				XFreeGC (dpy, Scr.NormalGC);
 			if (Scr.StippleGC != NULL)

@@ -39,10 +39,6 @@
 #include <sys/select.h>
 #endif
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/module.h"
@@ -52,14 +48,9 @@
 #include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/loadimg.h"
+#include "asinternals.h"
 
-#ifdef SHAPE
-#include <X11/extensions/shape.h>
-#endif /* SHAPE */
-
-#include "menus.h"
-
-extern int    menuFromFrameOrWindowOrTitlebar;
+#include <X11/keysym.h>
 
 #if 0
     /* All this is so much evel that I just have to get rid of it : */
@@ -74,12 +65,6 @@ extern int    menuFromFrameOrWindowOrTitlebar;
 /* those are used for AutoReverse mode 1 */
 static int warp_in_process = 0;
 static int warping_direction = 0;
-
-#ifdef SHAPE
-extern int    ShapeEventBase;
-void          HandleShapeNotify (ASEvent *event);
-#endif /* SHAPE */
-
 
 void
 warp_grab (ASWindow * t)
@@ -148,6 +133,61 @@ HandleEvents ()
 		}
 	}
 }
+
+/***************************************************************************
+ * Wait for all mouse buttons to be released
+ * This can ease some confusion on the part of the user sometimes
+ *
+ * Discard superflous button events during this wait period.
+ ***************************************************************************/
+void
+WaitForButtonsUpLoop ()
+{
+	XEvent        JunkEvent;
+	Window root ;
+	int junk ;
+	unsigned int  mask;
+
+    if( !get_flags( AfterStepState, ASS_PointerOutOfScreen) )
+	{
+		do
+		{
+			XAllowEvents (dpy, ReplayPointer, CurrentTime);
+            XQueryPointer (dpy, Scr.Root, &root, &root, &junk, &junk, &junk, &junk, &mask);
+        	ASFlushAndSync();
+		}while( (mask & (Button1Mask | Button2Mask | Button3Mask | Button4Mask | Button5Mask)) != 0 );
+
+    	while (ASCheckMaskEvent ( ButtonPressMask | ButtonReleaseMask | ButtonMotionMask, &JunkEvent))
+			XAllowEvents (dpy, ReplayPointer, CurrentTime);
+	}
+}
+
+Bool
+WaitEventLoop( ASEvent *event, int finish_event_type, long timeout )
+{
+	unsigned long mask = ButtonPressMask | ButtonReleaseMask |
+						 ExposureMask | KeyPressMask | ButtonMotionMask |
+						 PointerMotionMask	/* | EnterWindowMask | LeaveWindowMask */;
+
+    while (event->x.type != finish_event_type)
+	{
+		/* block until there is an event */
+        ASFlushIfEmpty();
+        ASMaskEvent ( mask, &(event->x));
+
+        if( event->x.type == KeyPress )
+            KeyboardShortcuts (&(event->x), finish_event_type, 20);
+            /* above line might have changed event code !!!*/
+        else if (event->x.type == ButtonPress )
+			XAllowEvents (dpy, ReplayPointer, CurrentTime);
+
+        DigestEvent( event );
+        DispatchEvent( event );
+    }
+
+    return True ;
+}
+
 
 void
 DigestEvent( ASEvent *event )
@@ -238,6 +278,79 @@ DigestEvent( ASEvent *event )
         event->widget  = canvas ;
     }
 }
+
+/****************************************************************************
+ * For menus, move, and resize operations, we can effect keyboard
+ * shortcuts by warping the pointer.
+ ****************************************************************************/
+Bool
+KeyboardShortcuts (XEvent * xevent, int return_event, int move_size)
+{
+	int           x, y, x_root, y_root;
+	int           x_move, y_move;
+	KeySym        keysym;
+	unsigned int junk_mask;
+	Window junk_root;
+
+	/* Pick the size of the cursor movement */
+    if (xevent->xkey.state & ControlMask)
+		move_size = 1;
+    if (xevent->xkey.state & ShiftMask)
+		move_size = 100;
+
+    keysym = XLookupKeysym (&(xevent->xkey), 0);
+
+	x_move = 0;
+	y_move = 0;
+	switch (keysym)
+	{
+	 case XK_Up:
+	 case XK_k:
+	 case XK_p:
+		 y_move = -move_size;
+		 break;
+	 case XK_Down:
+	 case XK_n:
+	 case XK_j:
+		 y_move = move_size;
+		 break;
+	 case XK_Left:
+	 case XK_b:
+	 case XK_h:
+		 x_move = -move_size;
+		 break;
+	 case XK_Right:
+	 case XK_f:
+	 case XK_l:
+		 x_move = move_size;
+		 break;
+	 case XK_Return:
+	 case XK_space:
+		 /* beat up the event */
+         xevent->type = return_event;
+		 break;
+	 default:
+         return False;
+	}
+    XQueryPointer (dpy, Scr.Root, &junk_root, &xevent->xany.window,
+				   &x_root, &y_root, &x, &y, &junk_mask);
+
+	if ((x_move != 0) || (y_move != 0))
+	{
+		/* beat up the event */
+        XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, x_root + x_move, y_root + y_move);
+
+		/* beat up the event */
+        xevent->type = MotionNotify;
+        xevent->xkey.x += x_move;
+        xevent->xkey.y += y_move;
+        xevent->xkey.x_root += x_move;
+        xevent->xkey.y_root += y_move;
+	}
+    return True;
+}
+
+
 
 void
 DispatchEvent ( ASEvent *event )
@@ -391,13 +504,12 @@ HandleKeyPress ( ASEvent *event )
 			extern int    AutoReverse;
 
 			/* check if the warp key was pressed */
-			warp_in_process = ((key->func == F_WARP_B || key->func == F_WARP_F) &&
+            warp_in_process = ((key->fdata->func == F_WARP_B || key->fdata->func == F_WARP_F) &&
 							   AutoReverse == 2);
 			if (warp_in_process)
-				warping_direction = key->func;
+                warping_direction = key->fdata->func;
 
-            ExecuteFunction (key->func, key->action, event, key->val1, key->val2,
-							 key->val1_unit, key->val2_unit, key->menu, -1);
+            ExecuteFunction (key->fdata, event, -1);
 			return;
 		}
 	}
@@ -543,7 +655,10 @@ HandleClientMessage (ASEvent *event)
         (event->x.xclient.data.l[0] == IconicState) &&
         !ASWIN_GET_FLAGS(event->client, AS_Iconic))
 	{
-        ExecuteFunction (F_ICONIFY, NULLSTR, event, 0, 0, 0, 0, NULL, -1);
+        FunctionData fdata ;
+        init_func_data( &fdata );
+        fdata.func = F_ICONIFY ;
+        ExecuteFunction (&fdata, event, -1);
 #ifdef ENABLE_DND
 		/* Pass the event to the client window */
         if (event->x.xclient.window != event->client->w)
@@ -761,12 +876,9 @@ HandleButtonPress ( ASEvent *event )
             (MouseEntry->Modifier == AnyModifier || MouseEntry->Modifier == modifier))
 		{
 			/* got a match, now process it */
-            if (MouseEntry->func != 0)
+            if (MouseEntry->fdata != NULL)
 			{
-                ExecuteFunction (MouseEntry->func, MouseEntry->action, event,
-                                 MouseEntry->val1, MouseEntry->val2,
-								 MouseEntry->val1_unit, MouseEntry->val2_unit,
-								 MouseEntry->menu, -1);
+                ExecuteFunction (MouseEntry->fdata, event, -1);
 				AShandled = True;
 				break;
 			}

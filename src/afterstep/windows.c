@@ -90,7 +90,7 @@ update_windowList (void)
 	sprintf (fdata.name, "CurrentDesk: %s", desk);
 	free (desk);
 
-	mr = NewMenuRoot (fdata.name);
+    mr = CreateMenuRoot (fdata.name);
 	MenuItemFromFunc (mr, &fdata);
 
 	next_desk = 0;

@@ -74,8 +74,7 @@
 #include "../../include/mystyle_property.h"
 
 #include "dirtree.h"
-#include "menus.h"
-#include "globals.h"
+#include "asinternals.h"
 
 char         *PixmapPath;
 char         *CursorPath;
@@ -126,7 +125,6 @@ char         *MTPixmap = NULL, *MPixmap = NULL, *MHPixmap = NULL;
 
 int           MeltStartMenu (char *buf);
 void          GetColors (void);
-MenuRoot     *NewMenuRoot (char *name);
 
 #ifndef NO_TEXTURE
 char         *TitleStyle = NULL;
@@ -210,7 +208,7 @@ struct config main_config[] = {
 	{"XorValue", SetInts, (char **)&XORvalue, &dummy},
 	{"Mouse", ParseMouseEntry, (char **)1, (int *)0},
 	{"Popup", ParsePopupEntry, (char **)1, (int *)0},
-	{"Function", ParsePopupEntry, (char **)1, (int *)0},
+    {"Function", ParseFunctionEntry, (char **)1, (int *)0},
 	{"Key", ParseKeyEntry, (char **)1, (int *)0},
 	{"ClickToFocus", SetFlag, (char **)ClickToFocus, (int *)EatFocusClick},
 	{"ClickToRaise", SetButtonList, (char **)&Scr.RaiseButtons, (int *)0},

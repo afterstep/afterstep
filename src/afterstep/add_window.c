@@ -148,6 +148,30 @@ Bool destroy_registered_window( Window w )
     }
     return res;
 }
+
+ASWindow *
+pattern2ASWindow( const char *pattern )
+{
+    wild_reg_exp *wrexp = compile_wild_reg_exp( pattern );
+
+    if( wrexp )
+    {
+        ASWindow *curr = Scr.ASRoot.next ;
+        while( curr != NULL )
+        {
+            if( match_string_list (curr->hints->names, MAX_WINDOW_NAMES, wrexp) == 0 )
+            {
+                destroy_wild_reg_exp( wrexp );
+                return curr;
+            }
+            curr = curr->next ;
+        }
+    }
+    destroy_wild_reg_exp( wrexp );
+    return NULL;
+}
+
+
 #if 0
 /************************************************************************/
 /* artifacts of ASWindow icon handling - assimilate in other functions: */
@@ -1214,7 +1238,7 @@ list_functions_by_context (int context)
 			extern SyntaxDef FuncSyntax;
 			TermDef      *fterm;
 
-			fterm = FindTerm (&FuncSyntax, TT_ANY, btn->func);
+            fterm = FindTerm (&FuncSyntax, TT_ANY, btn->fdata->func);
 			if (fterm != NULL)
 			{
 				char         *ptr;

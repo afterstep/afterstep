@@ -43,7 +43,6 @@ void get_parent_geometry (ASWindow * t, int frame_width, int frame_height, int *
 void get_frame_geometry (ASWindow * t, int client_x, int client_y, int client_width, int client_height, int *frame_x_out, int *frame_y_out, int *frame_width_out, int *frame_height_out);
 void get_resize_geometry (ASWindow * t, int client_x, int client_y, int client_width, int client_height, int *frame_x_out, int *frame_y_out, int *frame_width_out, int *frame_height_out);
 
-extern void MoveOutline ( /* Window, */ ASWindow *, int, int, int, int);
 extern void DoResize (int, int, ASWindow *, Bool);
 extern void DisplaySize (ASWindow *, int, int, Bool);
 extern void DisplayPosition (ASWindow *, int, int, Bool);
@@ -124,13 +123,9 @@ extern void Maximize (ASWindow *, int, int, int, int);
 extern void Shade (ASWindow *);
 extern void RaiseWindow (ASWindow *);
 extern void LowerWindow (ASWindow *);
-extern Bool GrabEm (int);
-extern void UngrabEm (void);
 extern void CaptureAllWindows (void);
 extern void SetTimer (int);
 extern void do_windowList (int, int);
-extern void HandlePaging (ASWindow *, int, int, int *, int *, int *, int *, Bool);
-extern void MoveViewport (int, int, Bool);
 extern void afterstep_err (const char *, const char *, const char *, const char *);
 
 /* this is afterstep specific stuff - we don't want this in modules */
@@ -167,8 +162,8 @@ void broadcast_status_change( int message, ASWindow *asw );
 void DeadPipe (int);
 unsigned long GetGnomeState (ASWindow * t);
 unsigned long SetGnomeState (ASWindow * t);
-void ComplexFunction (Window, ASWindow *, XEvent *, unsigned long, struct MenuRoot *);
-extern int DeferExecution (XEvent *, Window *, ASWindow **, unsigned long *, int, int);
+/*void ComplexFunction (FunctionData *fdata, ASEvent *, unsigned long, struct MenuRoot *);*/
+extern int DeferExecution (ASEvent *event, int cursor, int fin_event);
 void move_window (XEvent *, Window, ASWindow *, int, int, int, int, int);
 void resize_window (Window, ASWindow *, int, int, int, int);
 void SetMapStateProp (ASWindow *, int);
@@ -197,7 +192,6 @@ Bool GetIconFromFile (char *, MyIcon *, int);
 
 ASWindow *GetNextWindow (const ASWindow *, const int);
 extern ASWindow *Circulate (ASWindow *, char *, Bool);
-void PasteSelection (void);
 void changeDesks (int, int);
 void changeWindowsDesk (ASWindow *, int);
 void aswindow_set_desk_property (ASWindow * t, int new_desk);

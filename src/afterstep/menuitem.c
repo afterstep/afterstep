@@ -72,6 +72,7 @@
 #include "../../include/parser.h"
 #include "../../include/loadimg.h"
 #include "../../include/module.h"
+#include "../../include/decor.h"
 
 #include "dirtree.h"
 #include "menus.h"
@@ -83,8 +84,8 @@
 #define	NEED_WINIFNAME 	(1<<3)
 #define	NEED_CMD 	(1<<4)
 
-#define FUNC_TERM(txt,len,func)     	{0,txt,len,TT_TEXT,func,NULL, NULL}
-#define FUNC_TERM2(flags,txt,len,func)  {flags,txt,len,TT_TEXT,func,NULL, NULL}
+#define FUNC_TERM(txt,len,func)         {TF_NO_MYNAME_PREPENDING,txt,len,TT_TEXT,func,NULL, NULL}
+#define FUNC_TERM2(flags,txt,len,func)  {TF_NO_MYNAME_PREPENDING|(flags),txt,len,TT_TEXT,func,NULL, NULL}
 
 TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME, "Nop", 3, F_NOP),   /* Nop      "name"|"" */
@@ -120,6 +121,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeFeel", 10, F_CHANGE_FEEL),	/* ChangeFeel "name" file_name */
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndFunction", 11, F_ENDFUNC),
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndPopup", 8, F_ENDPOPUP),
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", 4, F_Test),
 
 	/* this functions require window as aparameter */
 	FUNC_TERM ("&nonsense&", 10, F_WINDOW_FUNC_START),	/* not really a command */
@@ -142,10 +144,12 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("Focus", 5, F_FOCUS),		   /* Focus */
 	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowUp", 14, F_CHANGEWINDOW_UP),	/* ChangeWindowUp   ["name" window_name ] */
 	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowDown", 16, F_CHANGEWINDOW_DOWN),	/* ChangeWindowDown ["name" window_name ] */
+    FUNC_TERM2 (NEED_WINIFNAME, "GoToBookmark", 12, F_GOTO_BOOKMARK),   /* GoToBookmark ["name" window_bookmark ] */
 	FUNC_TERM ("GetHelp", 7, F_GETHELP),	   /* */
 	FUNC_TERM ("PasteSelection", 14, F_PASTE_SELECTION),	/* */
 	FUNC_TERM ("WindowsDesk", 11, F_CHANGE_WINDOWS_DESK),	/* WindowDesk "name" new_desk */
-	/* end of window functions */
+    FUNC_TERM ("BookmarkWindow", 14, F_BOOKMARK_WINDOW),    /* BookmarkWindow "name" new_bookmark */
+        /* end of window functions */
 	/* these are commands  to be used only by modules */
 	FUNC_TERM ("&nonsense&", 10, F_MODULE_FUNC_START),	/* not really a command */
 	FUNC_TERM ("Send_WindowList", 15, F_SEND_WINDOW_LIST),	/* */
@@ -156,6 +160,15 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	/* these are internal commands */
 	FUNC_TERM ("&nonsense&", 10, F_INTERNAL_FUNC_START),	/* not really a command */
 	FUNC_TERM ("&raise_it&", 10, F_RAISE_IT),  /* should not be used by user */
+    /* wharf functions : */
+    {TF_NO_MYNAME_PREPENDING, "Folder", 6, TT_TEXT, F_Folder, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "Swallow", 7, TT_TEXT, F_Swallow, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallow", 10, TT_TEXT, F_MaxSwallow, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "SwallowModule", 13, TT_TEXT, F_Swallow, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallowModule", 16, TT_TEXT, F_MaxSwallow, NULL},
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "DropExec", 8, F_DropExec),	/* DropExec   "name" command */
+    {TF_NO_MYNAME_PREPENDING, "Size", 4, TT_TEXT, F_Size, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_TEXT, F_Transient, NULL},
 
 	{0, NULL, 0, 0, 0}
 };
@@ -576,6 +589,223 @@ parse_menu_item_name (MenuItem * item, char **name)
 	return 0;
 }
 
+/**********************************************************************
+ * complex function management code :
+ **********************************************************************/
+void
+really_destroy_complex_func(ComplexFunction *cf)
+{
+    if( cf )
+    {
+        if( cf->magic == MAGIC_COMPLEX_FUNC )
+        {
+            register int i ;
+
+            cf->magic = 0 ;
+            if( cf->name )
+                free( cf->name );
+            if( cf->items )
+            {
+                for( i = 0 ; i < cf->items_num ; i++ )
+                    free_func_data( &(cf->items[i]) );
+                free( cf->items );
+            }
+            free( cf );
+        }
+    }
+}
+
+void
+complex_function_destroy(ASHashableValue value, void *data)
+{
+    ComplexFunction *cf = data ;
+
+    if( (char*)value )
+        free( (char*)value );
+    if( cf && cf->magic == MAGIC_COMPLEX_FUNC )
+    {
+        if( cf->name == (char*)value )
+            cf->name = NULL ;
+        really_destroy_complex_func(cf);
+    }else if(data)
+        free(data);
+}
+
+void
+init_list_of_funcs(struct ASHashTable **list, Bool force)
+{
+    if( list == NULL ) return ;
+
+    if( force && *list != NULL )
+        destroy_ashash( list );
+
+    if( *list == NULL )
+        *list = create_ashash( 0, casestring_hash_value,
+                                  casestring_compare,
+                                  complex_function_destroy);
+}
+
+/* list could be NULL here : */
+ComplexFunction *
+new_complex_func( struct ASHashTable *list, char *name )
+{
+    ComplexFunction *cf = NULL ;
+
+    if( name == NULL )
+        return NULL ;
+    /* enlisting complex function is optional */
+    cf = (ComplexFunction*) safecalloc (1, sizeof(ComplexFunction));
+    cf->name = mystrdup(name);
+    cf->magic = MAGIC_COMPLEX_FUNC ;
+    if( list )
+    {
+        remove_hash_item( list, AS_HASHABLE(name), NULL, True);  /* we want only one copy */
+        if( add_hash_item( list, AS_HASHABLE(cf->name), cf) != ASH_Success )
+        {
+            really_destroy_complex_func( cf );
+            cf = NULL ;
+        }
+    }
+    return cf;
+}
+
+ComplexFunction *
+find_complex_func( struct ASHashTable *list, char *name )
+{
+    ComplexFunction *cf = NULL ;
+    if( name && list )
+        if( get_hash_item( list, AS_HASHABLE(name), (void**)&cf) != ASH_Success )
+            cf = NULL ; /* we are being paranoid */
+    return cf;
+}
+
+/***************************************************************
+ * MenuData code :
+ ***************************************************************/
+/****************************************************************************
+ * Implementing create-destroy functions for menus:
+ ****************************************************************************/
+void
+menu_data_item_destroy(MenuDataItem *mdi)
+{
+LOCAL_DEBUG_CALLER_OUT( "menu_data_item_destroy(\"%s\")", ((mdi!=NULL)?(mdi->data.name):"NULL"));
+    if( mdi )
+    {
+        if( mdi->magic == MAGIC_MENU_DATA_ITEM )
+        {
+            mdi->magic = 0 ;
+            free_func_data( mdi->fdata );
+            free( mdi->fdata );
+#ifndef NO_TEXTURE
+            if( mdi->minipixmap )
+                free(mdi->minipixmap);
+#endif
+            if (mdi->item != NULL)
+                free (mdi->item);
+            if (mdi->item2 != NULL)
+                free (mdi->item2);
+            free_icon_resources( mdi->icon );
+        }
+        free(mdi);
+    }
+}
+
+
+void
+menu_data_destroy(ASHashableValue value, void *data)
+{
+    MenuData *md = data ;
+LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", 0x%lX)", value.string_val, (unsigned long)data );
+    if( (char*)value )
+        free( (char*)value );
+    if( md )
+    {
+        MenuDataItem *mdi ;
+        if( md->magic == MAGIC_MENU_DATA )
+        {
+            md->magic = 0 ;
+
+            /* unmap if necessary */
+            if (md->is_mapped == True)
+                unmap_menu (md);
+
+            if( md->name != (char*)value )
+                free( md->name );
+
+            while( (mdi=md->first) != NULL )
+            {
+                md->first = mdi->next ;
+                mdi->next = NULL ;
+                menu_data_item_destroy( mdi );
+            }
+
+#ifndef NO_TEXTURE
+            /*  free background pixmaps */
+            if (md->titlebg != None)
+                XFreePixmap (dpy, md->titlebg);
+            if (md->itembg != None)
+                XFreePixmap (dpy, md->itembg);
+            if (md->itemhibg != None)
+                XFreePixmap (dpy, md->itemhibg);
+#endif
+            if (md->w != None)
+            {
+                XDestroyWindow (dpy, md->w);
+                XDeleteContext (dpy, md->w, MenuContext);
+            }
+        }
+        free(data);
+    }
+}
+
+void
+init_list_of_menus(ASHashTable **list, Bool force)
+{
+    if( list == NULL ) return ;
+
+    if( force && *list != NULL )
+        destroy_ashash( list );
+
+    if( *list == NULL )
+        *list = create_ashash( 0, casestring_hash_value,
+                                  casestring_compare,
+                                  menu_data_destroy);
+}
+
+MenuData    *
+new_menu_data( ASHashTable *list, char *name )
+{
+    MenuData *md = NULL ;
+
+    if( name == NULL )
+        return NULL ;
+    if( list == NULL ) return NULL;
+
+    if( get_hash_item( list, (ASHashableValue)name, (void**)&md) == ASH_Success )
+        return md;
+
+    md = (MenuData*) safecalloc (1, sizeof(MenuData));
+    md->name = mystrdup(name);
+    md->magic = MAGIC_MENU_DATA ;
+    if( add_hash_item( list, (ASHashableValue)(md->name), md) != ASH_Success )
+    {
+        menu_data_destroy( (ASHashableValue)md->name, md );
+        md = NULL ;
+    }
+    return md;
+}
+
+MenuData*
+find_menu_data( ASHashTable *list, char *name )
+{
+    MenuData *md = NULL ;
+
+    if( name && list )
+        if( get_hash_item( list, AS_HASHABLE(name), (void**)&md) != ASH_Success )
+            md = NULL ; /* we are being paranoid */
+    return md;
+}
+
 MenuRoot     *
 FindPopup (char *name, int quiet)
 {
@@ -587,11 +817,9 @@ FindPopup (char *name, int quiet)
 			str_error ("%s\n", "Empty Popup name specifyed!");
 		return mr;
 	}
-	for (mr = Scr.first_menu; mr != NULL; mr = (*mr).next)
-		if (mystrcasecmp (mr->name, name) == 0)
-			return mr;
 
-	if (!quiet)
+    mr = find_menu_data( Scr.Popups, name );
+    if (!quiet && mr == NULL )
 		str_error ("Popup [%s] not defined!\n", name);
 	return mr;
 }
@@ -600,6 +828,7 @@ MenuItem     *
 CreateMenuItem ()
 {
 	MenuItem     *item = safecalloc (1, sizeof (MenuItem));
+    item->magic = MAGIC_MENU_DATA_ITEM ;
 	return item;
 }
 
@@ -619,21 +848,6 @@ NewMenuItem (MenuRoot * menu)
 	return item;
 }
 
-void
-DeleteMenuItem (MenuItem * item)
-{
-	if (item->item != NULL)
-		free (item->item);
-	if (item->item2 != NULL)
-		free (item->item2);
-	if (item->action != NULL)
-		free (item->action);
-	free_icon_resources( item->icon );
-
-	free (item);
-}
-
-
 /***********************************************************************
  *  Procedure:
  *	CreateMenuRoot - allocates and initializes new menu root object
@@ -641,103 +855,12 @@ DeleteMenuItem (MenuItem * item)
  *	(MenuRoot *)
  ***********************************************************************/
 MenuRoot     *
-CreateMenuRoot ()
+CreateMenuRoot (char *name)
 {
-	MenuRoot     *tmp;
-
-	tmp = (MenuRoot *) safemalloc (sizeof (MenuRoot));
-	tmp->name = NULL;
-	tmp->first = NULL;
-	tmp->last = NULL;
-	tmp->items = 0;
-	tmp->width = 0;
-	tmp->width2 = 0;
-	tmp->is_mapped = False;
-	tmp->is_transient = False;
-	tmp->is_pinned = False;
-#ifndef NO_TEXTURE
-	tmp->titlebg = None;
-	tmp->itembg = None;
-	tmp->itemhibg = None;
-#endif
-	tmp->w = None;
-	tmp->aw = NULL;
-	return (tmp);
+    if( Scr.Popups == NULL )
+        init_list_of_menus(&(Scr.Popups), True);
+    return new_menu_data( Scr.Popups, name );
 }
-
-/***********************************************************************
- *  Procedure:
- *	NewMenuRoot - create a new menu root and attach it to menu tree
- *  Returned Value:
- *	(MenuRoot *)
- *  Inputs:
- *	name	- the name of the menu root
- ***********************************************************************/
-MenuRoot     *
-NewMenuRoot (char *name)
-{
-	MenuRoot     *tmp = CreateMenuRoot ();
-
-	tmp->next = Scr.first_menu;
-	Scr.first_menu = tmp;
-	tmp->name = (name == NULL) ? NULL : mystrdup (name);
-	return (tmp);
-}
-
-void
-DeleteMenuRoot (MenuRoot * menu)
-{
-	/* unmap if necessary */
-	if (menu->is_mapped == True)
-		unmap_menu (menu);
-
-	/* remove ourself from the root menu list */
-	if (Scr.first_menu == menu)
-		Scr.first_menu = menu->next;
-	else if (Scr.first_menu != NULL)
-	{
-		MenuRoot     *ptr;
-
-		for (ptr = Scr.first_menu; ptr->next != NULL; ptr = ptr->next)
-			if (ptr->next == menu)
-			{
-				ptr->next = menu->next;
-				break;
-			}
-	}
-
-	/* kill our children */
-	while (menu->first != NULL)
-	{
-		MenuItem     *item = menu->first;
-
-		menu->first = item->next;
-		DeleteMenuItem (item);
-	}
-
-#ifndef NO_TEXTURE
-	/*  free background pixmaps */
-	if (menu->titlebg != None)
-		XFreePixmap (dpy, menu->titlebg);
-	if (menu->itembg != None)
-		XFreePixmap (dpy, menu->itembg);
-	if (menu->itemhibg != None)
-		XFreePixmap (dpy, menu->itemhibg);
-#endif
-	if (menu->w != None)
-	{
-		XDestroyWindow (dpy, menu->w);
-		XDeleteContext (dpy, menu->w, MenuContext);
-	}
-
-	/* become nameless */
-	if (menu->name != NULL)
-		free (menu->name);
-
-	/* free our own mem */
-	free (menu);
-}
-
 
 void
 MenuItemFromFunc (MenuRoot * menu, FunctionData * fdata)
@@ -762,8 +885,8 @@ MenuItemFromFunc (MenuRoot * menu, FunctionData * fdata)
 		if (parse_menu_item_name (item, &(fdata->name)) >= 0)
 			item->fdata = fdata;
 	}
-	if( item == NULL || item->fdata != fdata ) 
-	{	
+	if( item == NULL || item->fdata != fdata )
+	{
 		free_func_data (fdata);					   /* insurance measure */
 		free( fdata );
 	}
@@ -794,12 +917,12 @@ MenuItemParse (MenuRoot * menu, const char *buf)
 			return menu->last;
 		}
 	}
-	if( fdata ) 
+	if( fdata )
 	{
 		free_func_data (fdata);
 		free( fdata );
 	}
-	return NULL ;		
+	return NULL ;
 }
 
 /****************************************************************************
@@ -831,49 +954,55 @@ ParseMenuBody (MenuRoot * mr, FILE * fd)
 	return success;
 }
 
+int
+ParseFunctionBody (ComplexFunction *func, FILE * fd)
+{
+    /* TODO: implement this thing */
+    return True;
+}
 /****************************************************************************
- *
  *  Parses a popup definition
- *
  ****************************************************************************/
 void
 ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2)
 {
-	MenuRoot     *mr = CreateMenuRoot ();
-	static char   screen_init_func[128];
+    char         *name =  stripcpy2 (tline, 0);
+    MenuRoot     *mr = CreateMenuRoot (name);
+    free( name );
+    ParseMenuBody (mr, fd);
+}
+
+/****************************************************************************
+ *  Parses a popup definition
+ ****************************************************************************/
+void
+ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2)
+{
+    char         *name =  stripcpy2 (tline, 0);
+    static char   screen_init_func[128];
 	static char   screen_restart_func[128];
 	static int    screen_initialized = 0;
+    ComplexFunction  *func = NULL ;
 
-	if (ParseMenuBody (mr, fd))
-	{
-		MenuRoot     *old;
+    if( Scr.ComplexFunctions == NULL )
+        init_list_of_funcs(&(Scr.ComplexFunctions), True);
 
-		mr->name = stripcpy2 (tline, 0);
-		/* first let's remove old menu with the same name from main tree */
-		for (old = Scr.first_menu; old != NULL; old = old->next)
-			if (strcmp (mr->name, old->name) == 0)
-			{
-				DeleteMenuRoot (old);
-				break;
-			}
-		/* now let's attach us to the main tree */
-		mr->next = Scr.first_menu;
-		Scr.first_menu = mr;
+    func = new_complex_func( Scr.ComplexFunctions, name);
+    free( name );
 
-		if (screen_initialized == 0)
-		{
-			sprintf (screen_init_func, "InitScreen%ldFunction", Scr.screen);
-			sprintf (screen_restart_func, "RestartScreen%ldFunction", Scr.screen);
-			screen_initialized = 1;
-		}
+    ParseFunctionBody (func, fd);
+    if (screen_initialized == 0)
+    {
+        sprintf (screen_init_func, "InitScreen%ldFunction", Scr.screen);
+        sprintf (screen_restart_func, "RestartScreen%ldFunction", Scr.screen);
+        screen_initialized = 1;
+    }
 
-		if (strcmp (mr->name, "InitFunction") == 0 || strcmp (mr->name, screen_init_func) == 0)
-			Scr.InitFunction = mr;
-		else if (strcmp (mr->name, "RestartFunction") == 0 ||
-				 strcmp (mr->name, screen_restart_func) == 0)
-			Scr.RestartFunction = mr;
-	} else
-		free (mr);
+    if (strcmp (func->name, "InitFunction") == 0 || strcmp (func->name, screen_init_func) == 0)
+        Scr.InitFunction = func;
+    else if (strcmp (func->name, "RestartFunction") == 0 ||
+             strcmp (func->name, screen_restart_func) == 0)
+        Scr.RestartFunction = func;
 }
 
 /****************************************************************************
@@ -941,7 +1070,7 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 	tline = parse_context (tline, &mods, key_modifiers);
 
 	fdata = safecalloc( 1, sizeof(FunctionData));
-	if (parse_func (tline, &fdata, False) >= 0)
+    if (parse_func (tline, fdata, False) >= 0)
 	{
 		/*
 		 * Don't let a 0 keycode go through, since that means AnyKey to the
@@ -972,7 +1101,7 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 			}
 		}
 	}
-	if( fdata ) 
+	if( fdata )
 	{
 		free_func_data (fdata);				   /* just in case */
 		free( fdata );
@@ -1022,7 +1151,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 #ifndef NO_TEXTURE
 	if (MenuMiniPixmaps)
 	{
-		fdata = create_named_function( F_MINIPIXMAP, 
+		fdata = create_named_function( F_MINIPIXMAP,
 		                               tree->icon != NULL ? tree->icon : "mini-menu.xpm");
 		MenuItemFromFunc (menu, fdata);
 	}
@@ -1113,7 +1242,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 			{
 				int           parsed = 0;
 
-				fdata = create_named_function(MINIPIXMAP, NULL);
+                fdata = create_named_function(F_MINIPIXMAP, NULL);
 				if (fp2 != NULL && fgets (buf, MAXLINELENGTH, fp2) != NULL)
 				{
 					if (parse_func (buf, fdata, True) >= 0)
@@ -1157,7 +1286,7 @@ MakeMenu (MenuRoot * mr)
 	for (cur = mr->first; cur != NULL; cur = cur->next)
 	{
 		/* calculate item width */
-		if (cur->func == F_TITLE)
+        if (cur->fdata->func == F_TITLE)
 		{
 			int           d = 0;
 
@@ -1188,9 +1317,9 @@ MakeMenu (MenuRoot * mr)
 
 		if ((*cur).icon.pix != None)
 			width += (*cur).icon.width + 5;
-		if (cur->func == F_POPUP)
+        if (cur->fdata->func == F_POPUP)
 			width += 15;
-		if (cur->hotkey)
+        if (cur->fdata->hotkey)
 			width += 15;
 		if (width <= 0)
 			width = 1;
@@ -1211,7 +1340,7 @@ MakeMenu (MenuRoot * mr)
 			mr->width2 = 1;
 
 		/* calculate item height */
-		if (cur->func == F_TITLE)
+        if (cur->fdata->func == F_TITLE)
 		{
 			/* Title */
 			cur->y_height = (*Scr.MSMenuTitle).font.height + HEIGHT_EXTRA + 2;
@@ -1223,7 +1352,7 @@ MakeMenu (MenuRoot * mr)
 				if ((*cur).y_height < Scr.MenuPinOff.height + 3)
 					(*cur).y_height = Scr.MenuPinOff.height + 3;
 #endif /* !NO_TEXTURE */
-		} else if (cur->func == F_NOP && cur->item != NULL && *cur->item == 0)
+        } else if (cur->fdata->func == F_NOP && cur->item != NULL && *cur->item == 0)
 		{
 			/* Separator */
 			cur->y_height = HEIGHT_SEPARATOR;
@@ -1322,7 +1451,6 @@ MakeMenu (MenuRoot * mr)
 int
 RunCommand (char *cmd, int channel, Window w)
 {
-	int           Context;
 	ASWindow     *tmp_win;
 	FunctionData  fdata;
 	int           toret = 0;
@@ -1353,7 +1481,7 @@ RunCommand (char *cmd, int channel, Window w)
 			 int           xorflag;
 			 Bool          update = False;
 
-             if ((tmp_win = window2aswindow(w)) == XCNOENT)
+             if ((tmp_win = window2ASWindow(w)) == NULL)
 				 break;
 			 xorflag = tmp_win->hints->flags ^ fdata.func_val[0];
 			 /*if (xorflag & STICKY)
@@ -1384,29 +1512,28 @@ RunCommand (char *cmd, int channel, Window w)
 			 break;
 		 }
 	 default:
-		 {
-			 Event.xany.window = w;
-			 if ((tmp_win = window2ASWindow(w)) = NULL )
-			 {
-				 w = None;
-				 Event.xbutton.x_root = 0;
-				 Event.xbutton.y_root = 0;
-			 } else
-			 {
-				 Event.xbutton.x_root = tmp_win->frame_x;
-				 Event.xbutton.y_root = tmp_win->frame_y;
-			 }
-			 Event.xany.type = ButtonRelease;
-			 Event.xbutton.button = 1;
-			 Event.xbutton.x = 0;
-			 Event.xbutton.y = 0;
-			 Event.xbutton.subwindow = None;
-			 Context = GetContext (tmp_win, &Event, &w);
-			 ExecuteFunction (fdata.func, fdata.text, w, tmp_win, &Event, Context,
-							  fdata.func_val[0], fdata.func_val[1],
-							  fdata.unit_val[0], fdata.unit_val[1], fdata.popup, channel);
-		 }
-	}
-	free_func_data (&fdata);
-	return toret;
+        {
+            ASEvent event;
+            event.w = w;
+            if ((event.client = window2ASWindow(w)) == NULL )
+            {
+                event.w = None;
+                event.x.xbutton.x_root = 0;
+                event.x.xbutton.y_root = 0;
+            } else
+            {
+                event.x.xbutton.x_root = event.client->frame_canvas->root_x;
+                event.x.xbutton.y_root = event.client->frame_canvas->root_y;
+            }
+            event.x.xany.type = ButtonRelease;
+            event.x.xbutton.button = 1;
+            event.x.xbutton.x = 0;
+            event.x.xbutton.y = 0;
+            event.x.xbutton.subwindow = None;
+            event.context = C_FRAME;
+            ExecuteFunction (&fdata, &event, channel);
+        }
+    }
+    free_func_data (&fdata);
+    return toret;
 }
