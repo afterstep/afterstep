@@ -8,17 +8,37 @@ all:            @LIBPROG@ $(INSTALLONBUILD)
 
 install.bin:
 
-install.lib:	@LIBPROG@ @LIBINSTALL@
+install.lib:	@LIBPROG@ @LIBINSTALL@ install.inc
+
+install.static:
+		@( \
+		if test -d $(LIBDIR) && test -w $(LIBDIR); then \
+		    echo "$(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR)"; \
+		    $(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR); \
+		    if test `uname` = "Linux"; then \
+			if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
+		    	    echo "" > /dev/null; \
+			elif grep -q $(LIBDIR) /etc/ld.so.conf > /dev/null 2>&1; then \
+		    	    echo "" > /dev/null; \
+			else \
+		    	    echo "Unable to find $(LIBDIR) in ld.so.conf. In order to use "; \
+		    	    echo "$(LIB_STATIC), you may need to add it or set LD_LIBRARY_PATH."; \
+			fi; \
+			echo "$(LDCONFIG)"; \
+			$(LDCONFIG); \
+		    fi ;\
+		fi \
+		)
 
 install.man:
 
 install.script:
 
 install.dyn:
-		$(INSTALL_LIB) $(DYNPROG).$(LIBVER) $(LIBDIR)
-		-@/bin/rm -f $(LIBDIR)/$(DYNPROG).$(LIBVERMAJOR) $(LIBDIR)/$(DYNPROG)
-		ln -sf $(DYNPROG).$(LIBVER) $(LIBDIR)/$(DYNPROG).$(LIBVERMAJOR)
-		ln -sf $(DYNPROG).$(LIBVERMAJOR) $(LIBDIR)/$(DYNPROG)
+		$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR)
+		-@/bin/rm -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED)
+		ln -sf $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR)
+		ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED)
 		@( \
 		 if test `uname` = "Linux"; then \
 		   if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
@@ -27,10 +47,10 @@ install.dyn:
 		     echo "" > /dev/null; \
 		   else \
 		     echo "Unable to find $(LIBDIR) in ld.so.conf. In order to use "; \
-		     echo "$(DYNPROG), you may need to add it or set LD_LIBRARY_PATH."; \
+		     echo "$(LIB_SHARED), you may need to add it or set LD_LIBRARY_PATH."; \
 		   fi; \
-		   echo "ldconfig"; \
-		   ldconfig; \
+		   echo "$(LDCONFIG)"; \
+		   $(LDCONFIG); \
 		 fi \
 		)
 
@@ -43,49 +63,64 @@ uninstall.man:
 uninstall.script:
 
 clean:
-		$(RMF) $(PROG) *.so.* *.so *.o *~ *% *.bak \#* core
+		$(RMF) $(LIB_SHARED) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core
 
 distclean:
-		$(RMF) $(PROG) *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
+		$(RMF) $(LIB_SHARED) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
 
 indent:
-		@SRCS=`echo "$(OBJS) " | sed "s/.o /.c /g"`; \
+		@SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
 		if test "x$$SRCS" == "x"; then exit; fi; \
 		for i in $$SRCS; do \
-		  if (indent < $$i > /tmp/$$i); then \
+		  if (indent -di14 -ts4 -i4 -l120 -lc80 -bad -nbbb -bli0 -c48 -cd48 -ce -cli1 -ncs -nbs -nbbo -hnl < $$i > /tmp/$$i); then \
 		    echo "indent $$i"; \
 		    mv /tmp/$$i $$i; \
 		  fi; \
 		done
 
-deps:		
+deps:
 		echo -n > .depend ; \
 		buf="" ; \
-		for file in `find . -name "*.c"` ; do \
+		SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
+		echo -n $(LIB_NAME)_OBJS = > .shared ; \
+		for file in $$SRCS; do \
+		  echo " \\" >> .shared ; \
+		  echo -n '		$$('$(LIB_NAME)_PATH')'/$$file >> .shared ; \
 		  if test "x$$buf" != "x"; then \
 		      echo $$buf >>.depend ; \
 		      echo >>.depend ; \
 		  fi; \
-		  buf="."`echo $$file | awk -F . '{print $$2}'`".o:" ; \
+		  buf="./"`echo "$$file " | sed "s/.c /.o /g"`: ; \
 		  for d in `grep "#include \"" < $$file | awk -F \" '{print $$2}'`; do \
 		      if test "x$$buf" != "x"; then \
 		         echo $$buf \\ >>.depend ; \
 		      fi; \
-		      echo -n "        " >>.depend ; \
+		      echo -n "		" >>.depend ; \
 		      buf="$$d "; \
 		  done; \
 		done; \
 		if test "x$$buf" != "x"; then \
 		  echo $$buf >>.depend ; \
-		fi
+		fi; \
+		echo "">> .shared ; \
+		echo "">> .shared ; \
+		echo -n $(LIB_NAME)_INCS = >> .shared ; \
+		for f in $(LIB_INCS); do \
+		  echo " \\" >> .shared ; \
+		  echo -n '		$$('$(LIB_NAME)_PATH')'/$$f >> .shared ; \
+		done; \
+		echo "" >> .shared ;
 
-$(PROG):	$(OBJS)
-		$(RMF) $(PROG)
-		$(AR) $(PROG) $(OBJS)
-		$(RANLIB) $(PROG)
+$(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS)
+		$(RMF) $(LIB_STATIC)
+		$(AR) $(LIB_STATIC) $(LIB_OBJS)
+		$(RANLIB) $(LIB_STATIC)
 
 .c.o:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
+
+.c.s:
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -S $*.c
 
 #
 # include dependency files if they exist
@@ -93,16 +128,72 @@ $(PROG):	$(OBJS)
 # this is merely a precaution, but as it does not work with ansi make
 # we took it out
 #ifneq ($(wildcard .depend),)
-#include .depend
+include .depend
 #endif
 
-$(DYNPROG): $(DYNPROG).$(LIBVERMAJOR)
-	ln -sf $(DYNPROG).$(LIBVERMAJOR) $(DYNPROG)
+$(LIB_SHARED): $(LIB_SHARED).$(LIBVERMAJOR)
+	ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIB_SHARED)
 
-$(DYNPROG).$(LIBVERMAJOR): $(DYNPROG).$(LIBVER)
-	ln -sf $(DYNPROG).$(LIBVER) $(DYNPROG).$(LIBVERMAJOR)
+$(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
+	ln -sf $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
 
-$(DYNPROG).$(LIBVER): $(OBJSDLL)
-	$(CC) -shared -Wl,-soname,$(DYNPROG).$(LIBVERMAJOR) -o $(DYNPROG).$(LIBVER) \
-	 $(OBJSDLL)
+$(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) config.h
+	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
+	 $(LIB_OBJS)
+
+doc.xref: $(LIB_DOCS)
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
+	echo -n "" > "$(LIB_NAME)_xref.lst" ; \
+	for f in $$SRCS; do \
+		$(ROBODOC) $$f.h $$f.html HTML C TABSIZE 4 GENXREF doc/$$f.xref; \
+		echo "doc/$$f.xref" >> "$(LIB_NAME)_xref.lst"; \
+	done; \
+	SRCS=`echo "$(LIB_TUTORIALS) " | sed "s/.c / /g"`; \
+	for f in $$SRCS; do \
+		$(ROBODOC) apps/$$f.c $$f.html HTML C TABSIZE 4 GENXREF doc/$$f.xref; \
+		echo "doc/$$f.xref" >> "$(LIB_NAME)_xref.lst"; \
+	done; \
+	echo "doc/x11_symbols.xref" >> "$(LIB_NAME)_xref.lst"; \
+	echo "doc/freetype_symbols.xref" >> "$(LIB_NAME)_xref.lst";
+
+doc.html:  doc.xref
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
+	for f in $$SRCS; do \
+		$(ROBODOC) $$f.h doc/html/$$f.html HTML C TABSIZE 4 XREF "$(LIB_NAME)_xref.lst"; \
+	done; \
+	SRCS=`echo "$(LIB_TUTORIALS) " | sed "s/.c / /g"`; \
+	for f in $$SRCS; do \
+		$(ROBODOC) apps/$$f.c doc/html/$$f.html HTML C TABSIZE 4 XREF "$(LIB_NAME)_xref.lst"; \
+	done;
+
+doc.man:  doc.xref
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
+	for f in $$SRCS; do \
+		$(ROBODOC) $$f.h doc/$$f.man TROFF C TABSIZE 4 XREF "$(LIB_NAME)_xref.lst"; \
+	done;
+
+install.man:
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
+		for f in $$SRCS; do \
+	  	  echo $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
+		  $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
+		done
+
+install.doc:
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; cd doc/html; \
+	    echo "$(MKDIR) $(AFTER_SHAREDIR)"; \
+		$(MKDIR) $(AFTER_SHAREDIR); \
+	    echo "$(MKDIR) $(AFTER_DOC_DIR)"; \
+		$(MKDIR) $(AFTER_DOC_DIR); \
+	    echo "$(MKDIR) $(AFTER_DOC_DIR)/html"; \
+		$(MKDIR) $(AFTER_DOC_DIR)/html; \
+		for f in *.html; do \
+	  	  echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
+		  $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
+		done; cd ../..;
+
+install:	install.lib install.man install.doc
+
+
+uninstall:	uninstall.lib
 

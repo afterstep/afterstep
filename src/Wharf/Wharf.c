@@ -1541,11 +1541,6 @@ update_folder_shape (folder_info * folder)
 #endif /* SHAPE */
 }
 
-void
-get_drawable_size (Display * dpy, Drawable d, int *width, int *height)
-{
-}
-
 /************************************************************************
  *
  * calculates folder x and y

@@ -1,0 +1,252 @@
+dnl# -*- sh -*-
+dnl# Process this file with autoconf to produce a configure script.
+dnl#
+dnl#Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
+dnl#Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
+dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
+dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
+
+AC_INIT(libAfterBase/astypes.h)
+AC_CONFIG_AUX_DIR(autoconf)
+
+version="0.91"
+app_version="1.9.31"
+libafterstep_version="0.91"
+libafterstep_version_major="0"
+libafterstep_name="LIBAFTERSTEP"
+libafterstep_file_name="libAfterStep"
+libafterconf_version="0.90"
+libafterconf_version_major="0"
+libafterconf_name="LIBAFTERCONF"
+libafterconf_file_name="libAfterConf"
+
+dnl# Setup command-line options
+
+dnl# we need the standard prefixes defined early
+test "x$prefix" = xNONE && prefix=$ac_default_prefix
+test "x$exec_prefix" = xNONE && exec_prefix="$prefix"
+eval "bindir=$bindir"
+eval "datadir=$datadir"
+eval "mandir=$mandir"
+eval "libdir=$libdir"
+eval "includedir=$includedir"
+
+dnl# The following is passed directly to libAfterImage configure :
+AC_ARG_WITH(xpm,	    [  --with-xpm               support XPM image format [yes]])
+AC_ARG_WITH(builtin_xpm,    [  --with-builtin-xpm       use builtin XPM parsing/handling instead of libXpm [yes]])
+AC_ARG_WITH(xpm_includes,   [  --with-xpm-includes=DIR  use libXpm includes in DIR( when builtin XPM handling is disabled )], xpm_includes="$withval", xpm_includes=NO)
+AC_ARG_WITH(jpeg,		    [  --with-jpeg              support JPEG image format [yes]])
+AC_ARG_WITH(jpeg_includes,  [  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=NO)
+AC_ARG_WITH(png,		    [  --with-png               support PNG image format [yes]])
+AC_ARG_WITH(png_includes,   [  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=NO)
+AC_ARG_WITH(ungif,		    [  --with-ungif             support GIF image format using libungif [yes]])
+AC_ARG_WITH(gif,		    [  --with-gif               support GIF image format using libgif   [no]])
+AC_ARG_WITH(gif_includes,   [  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=NO)
+AC_ARG_WITH(tiff,		    [  --with-tiff              support TIFF image format [yes]])
+AC_ARG_WITH(tiff_includes,  [  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=NO)
+
+AC_ARG_WITH(tff,		    [  --with-ttf               support True Type Fonts via FreeType library [yes]])
+AC_ARG_WITH(tff_includes,   [  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=NO)
+
+AC_ARG_WITH(afterbase_includes,  [  --with-afterbase-includes=DIR  use libAfterBase includes in DIR], afterbase_includes="$withval", afterbase_includes=NO)
+AC_ARG_WITH(afterimage_includes, [  --with-afterimage-includes=DIR  use libAfterImage includes in DIR], afterimage_includes="$withval", afterimage_includes=NO)
+AC_ARG_WITH(afterbase_lib,       [  --with-afterbase-lib=DIR  use libAfterBase library located in DIR], afterbase_lib="$withval", afterbase_lib=NO)
+AC_ARG_WITH(afterimage_lib,      [  --with-afterimage-lib=DIR  use libAfterImage library located in DIR], afterimage_lib="$withval", afterimage_lib=NO)
+
+dnl# compile-time switches
+AC_ARG_ENABLE(i18n,		[  --enable-i18n           support I18N [no] ],enable_i18n=$enableval,enable_i18n="no")
+AC_ARG_ENABLE(xlocale,		[  --enable-xlocale        using X_LOCALE [no] ],enable_xlocale=$enableval,enable_xlocale="no")
+AC_ARG_WITH(locale,		[  --with-locale=LOCALE    locale name you want to use ],with_locale=$withval,with_locale="")
+
+AC_ARG_ENABLE(staticlibs,       [  --enable-staticlibs     enable linking to libraries statically [yes] ],enable_staticlibs=$enableval,enable_staticlibs="yes")
+AC_ARG_ENABLE(sharedlibs,       [  --enable-sharedlibs     enable linking to libraries dynamically [no] ],enable_sharedlibs=$enableval,enable_sharedlibs="no")
+
+AC_ARG_WITH(libefence,		[  --with-libefence        compile with libefence to debug buffer overruns [no] ],with_libefence=$withval,with_libefence="")
+AC_ARG_ENABLE(gdb,		[  --enable-gdb            add gdb symbols (-g) (for debugging) [no] ],enable_gdb=$enableval,enable_gdb="no")
+AC_ARG_ENABLE(sigsegv,		[  --enable-sigsegv        enable internal handler of Segmentation Fault (for self-diagnostics) [yes] ],enable_sigsegv=$enableval,enable_sigsegv="yes")
+AC_ARG_ENABLE(warn,		[  --enable-warn           turn on more compiler warnings (for debugging) [no] ],enable_warn=$enableval,enable_warn="no")
+AC_ARG_ENABLE(gprof,		[  --enable-gprof          add gprof symbols (-pg) (for debugging) [no] ],enable_gprof=$enableval,enable_gprof="no")
+AC_ARG_ENABLE(audit,		[  --enable-audit          memory usage audit (for debugging) [no] ],enable_audit=$enableval,enable_audit="no")
+AC_ARG_ENABLE(trace,		[  --enable-trace          some function calls tracing (see include/trace.h) (for debugging) [no] ],enable_trace=$enableval,enable_trace="no")
+AC_ARG_ENABLE(trace-x,		[  --enable-trace-x        trace X calls (runtime option) (for debugging) [no] ],enable_trace_x=$enableval,enable_trace_x="no")
+AC_ARG_ENABLE(mmx_optimization,
+							[  --enable-mmx-optimization  enable utilization of MMX instruction set to speed up imaging operations [yes] ],enable_mmx_optimization=$enableval,enable_mmx_optimization="yes")
+
+dnl# Comman stuff : compiler tools, proggies, etc.
+
+AC_PROG_CC
+export CC
+export GCC
+dnl# now we need to play abot with CFLAGS :
+
+dnl# Remove -g
+if test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
+  CFLAGS=`echo "$CFLAGS " | sed "s/-g / /"`
+fi
+
+dnl# Add -Wall
+if test "x$GCC" = "xyes"; then
+  if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
+    CFLAGS="$CFLAGS -Wall"
+  fi
+fi
+
+dnl# Add -fPIC for IA64 compilation
+AC_CYGWIN
+if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
+  if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
+    CFLAGS="$CFLAGS -fPIC"
+  fi
+fi
+
+dnl# Add -g
+if test "x$enable_gdb" = "xyes"; then
+  CFLAGS="$CFLAGS -g"
+  LDFLAGS="$LDFLAGS -g"
+fi
+
+dnl# Add -pg
+if test "x$enable_gprof" = "xyes"; then
+  CFLAGS="$CFLAGS -pg"
+  LDFLAGS="$LDFLAGS -pg"
+fi
+
+dnl# Add lots more warnings
+if test "x$enable_warn" = "xyes"; then
+  CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
+fi
+
+if test "x$GCC" = "xyes"; then
+   LDFLAGS="$LDFLAGS -rdynamic"
+fi
+
+dnl# done with flags - lets export those for our children to use :
+export CFLAGS
+export LDFLAGS
+
+dnl# install checks :
+AC_PROG_INSTALL
+dnl# if the path to the install program is relative, make it absolute
+currdir=`pwd`
+INSTALL=`echo $INSTALL|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
+INSTALL_PROGRAM=`echo $INSTALL_PROGRAM|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
+INSTALL_DATA=`echo $INSTALL_DATA|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
+INSTALL_LIB=`echo $INSTALL_LIB|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
+
+export INSTALL
+export INSTALL_PROGRAM
+export INSTALL_DATA
+export INSTALL_LIB
+
+AC_PROG_RANLIB
+export RANLIB
+
+AC_PATH_PROG(RM, rm, rm)
+export RM
+AC_PATH_PROG(MV, mv, mv)
+export MV
+AC_PATH_PROG(CP, cp, cp)
+export CP
+AC_PATH_PROG(MKDIR, mkdir, mkdir)
+export MKDIR
+AC_PATH_PROG(PERL, perl, perl)
+export PERL
+AC_PATH_PROG(FIND, find, find)
+export FIND
+AC_PATH_PROG(XARGS, xargs, xargs)
+export XARGS
+AC_PATH_PROG(LDCONFIG, ldconfig, ldconfig, $PATH:/sbin:/usr/local/sbin)
+export LDCONFIG
+
+dnl# Checks for optional programs
+AC_PROG_LEX
+export LEX
+export LEXLIB
+AC_PROG_YACC
+export YACC
+AC_CHECK_PROG(sgmltools, sgmltools, HAVE_SGMLTOOLS, NO_SGMLTOOLS)
+export sgmltools
+
+dnl# check for wait is particularly nasty :
+AC_FUNC_WAIT3
+if test "x$ac_cv_func_wait3_rusage" = "xyes"; then
+	DO_HAVE_WAIT3=yes
+	export DO_HAVE_WAIT3
+fi
+
+dnl# Check for X :
+AC_PATH_XTRA
+x_libs="$LDFLAGS $X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
+AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
+
+PATH_XTRA_CHECKED=yes
+export PATH_XTRA_CHECKED
+export x_includes
+export X_CFLAGS
+export X_LIBS
+export X_EXTRA_LIBS
+export X_PRE_LIBS
+export CPP
+export have_x
+
+dnl# DONE WITH COMMON STUFF
+dnl# #############################################################
+dnl# first configuringlibraries :
+
+FROM_AFTERSTEP_CONFIGURE=yes
+export FROM_AFTERSTEP_CONFIGURE
+
+if test -d libAfterBase; then
+  AC_CHECKING(libAfterBase)
+  cd libAfterBase ; \
+  ./configure --with-x-includes=$x_includes \
+   --with-x=$with_x \
+   --enable-audit=$enable_audit \
+   --enable-trace=$enable_trace \
+   --enable-staticlibs=$enable_staticlibs \
+   --enable-sharedlibs=$enable_sharedlibs \
+   --enable-trace-x=$enable_trace_x ; \
+  cd ../ ;
+  afterbase_includes=".. -I../.." ;
+  afterbase_lib=
+fi
+
+if test -d libAfterBase; then
+  AC_CHECKING(libAfterImage)
+  cd libAfterImage ; \
+  ./configure --with-x-includes=$x_includes \
+   --with-x=$with_x \
+   --with-xpm=$with_xpm   --with-builtin-xpm=$with_builtin_xpm  --with-xpm-includes=$xpm_includes \
+   --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes \
+   --with-png=$with_png   --with-png-includes=$png_includes \
+   --with-gif-includes=$gif_includes \
+   --with-tiff=$with_tiff --with-tiff-includes=$tiff_includes \
+   --with-ttf=$with_ttf   --with-ttf-includes=$ttf_includes \
+   --enable-audit=$enable_audit \
+   --enable-trace=$enable_trace \
+   --enable-staticlibs=$enable_staticlibs \
+   --enable-sharedlibs=$enable_sharedlibs \
+   --enable-mmx-optimization=$enable_mmx_optimization \
+   --with-ungif=$with_ungif --with-gif=$with_gif; \
+   cd ../
+  afterimage_includes=".. -I../.."
+  afterimage_lib=
+fi
+
+MAKEFILEDEFINES=./autoconf/Makefile.defines
+
+AC_SUBST_FILE(MAKEFILEDEFINES)
+
+AC_OUTPUT(\
+autoconf/Makefile.defines \
+Makefile.libs \
+)
+
+$MV Makefile.libs Makefile
+
+echo "
+
+
+AfterStep LIbraries are now hopefully configured:
+Just run : make ; make install
+"

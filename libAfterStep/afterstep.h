@@ -6,9 +6,11 @@
 #define WithdrawnState 0
 #endif
 
+#ifndef set_flags
 #define set_flags(v,f)  	((v)|=(f)) 
 #define clear_flags(v,f)	((v)&=~(f))
 #define get_flags(v,f)  	((v)&(f))
+#endif
 
 /* use PanFrames! this replaces the 3 pixel margin with PanFrame windows
  * it should not be an option, once it works right. HEDU 2/2/94

@@ -16,17 +16,17 @@
 			 /* Available libraries */
 			 /* ################### */
 
-#define @HAVEXPM@
-#define @HAVEJPEG@
-#define @HAVEPNG@
-#define @HAVESHAPE@
-#define @HAVEXINE@
+/* #define @HAVEXPM@*/
+/* #define @HAVEJPEG@*/
+/* #define @HAVEPNG@*/
+/* #define @HAVESHAPE@*/
+/* #define @HAVEXINE@ */
 
-#if @have_xpm_write@ == 1
-#define HAVE_XPM_WRITE
-#else
-#undef HAVE_XPM_WRITE
-#endif
+/* #if @have_xpm_write@ == 1*/
+/* #define HAVE_XPM_WRITE*/
+/* #else*/
+/* #undef HAVE_XPM_WRITE */
+/* #endif*/
 
 
 			/* ######################### */
@@ -85,83 +85,11 @@
 			      /* Look options  */
 			      /* ############# */
 
-#if @enable_different_looknfeels@ == 1
-#define DIFFERENTLOOKNFEELFOREACHDESKTOP
-#else
-#undef DIFFERENTLOOKNFEELFOREACHDESKTOP
-#endif
-
-#if @enable_pagerbackground@ == 1
-#define PAGER_BACKGROUND
-#else
-#undef PAGER_BACKGROUND
-#endif
-
-#if @enable_i18n@ == 1
-#define I18N
-#else
-#undef I18N
-#endif
-
-#if @enable_menuwarp@ == 0
-#define NO_WARPPOINTERTOMENU
-#else
-#undef NO_WARPPOINTERTOMENU
-#endif
-
-#if @enable_savewindows@ == 1
-#undef NO_SAVEWINDOWS
-#else
-#define NO_SAVEWINDOWS
-#endif
-
-#if @enable_texture@ == 1
-#undef NO_TEXTURE
-#else
-#define NO_TEXTURE
-#endif
-
-#if @enable_shade@ == 1
-#undef NO_SHADE
-#else
-#define NO_SHADE
-#endif
-
-#if @enable_virtual@ == 1
-#undef NO_VIRTUAL
-#else
-#define NO_VIRTUAL
-#endif
-
-#if @enable_saveunders@ == 1
-#undef NO_SAVEUNDERS
-#else
-#define NO_SAVEUNDERS
-#endif
-
-#if @enable_windowlist@ == 1
-#undef NO_WINDOWLIST
-#else
-#define NO_WINDOWLIST
-#endif
-
-#if @enable_availability@ == 1
-#undef NO_AVAILABILITYCHECK
-#else
-#define NO_AVAILABILITYCHECK
-#endif
-
-#if @enable_audit@ == 1
-#define DEBUG_ALLOCS
-#else
-#undef  DEBUG_ALLOCS
-#endif
-
-#if @enable_fixeditems@ == 1
-#define	FIXED_DIR	"fixed"
-#else
-#undef	FIXED_DIR
-#endif
+/* #if @enable_audit@ == 1*/
+/* #define DEBUG_ALLOCS*/
+/* #else*/
+/* #undef  DEBUG_ALLOCS*/
+/* #endif					*/
 
 			      /* ############## */
 			      /* Action strings */

@@ -1,6 +1,14 @@
 #ifndef _PARSE_
 #define _PARSE_
 
+#include "../libAfterBase/parse.h"
+/* some useful string parsing functions 
+ * (returns next position in string after parsed value) */
+char *ReadIntValue (char *restofline, int *value);
+char *ReadColorValue (char *restofline, char **color, int *len);
+char *ReadFileName (char *restofline, char **fname, int *len);
+
+#if 0
 /* used for parsing configuration */
 struct config
   {
@@ -44,5 +52,5 @@ char         *parse_geometry (register char *tline,
   				unsigned int *height_return,
 				int* flags_return );
 
-
+#endif
 #endif /* _PARSE_ */

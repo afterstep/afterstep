@@ -574,9 +574,7 @@ LoadImageEx (LImageParams * pParams)
 
   if (use_pixmap_ref && pParams->m_Target)
     {
-      int using_tmp_head = set_use_tmp_heap (0);
       pixmap_ref_new (pParams->m_realfilename, pParams->m_Target, pParams->m_Mask);
-      set_use_tmp_heap (using_tmp_head);
     }
   return pParams->m_Target;
 }

@@ -1,0 +1,75 @@
+
+@MAKEFILEDEFINES@
+
+confsdirs= autoconf libAfterBase libAfterImage
+
+subdirs		= libAfterBase libAfterImage
+
+all:
+	@for I in ${subdirs}; do (cd $$I; ${MAKE} $@ || exit 1); done
+
+install: install.data
+	@$(MKDIR) -p $(LIBDIR); \
+	$(MKDIR) -p $(AFTER_BIN_DIR); \
+	$(MKDIR) -p $(AFTER_MAN_DIR); \
+	for I in ${subdirs}; do (cd $$I; ${MAKE} install || exit 1); done
+
+install.bin:
+	@$(MKDIR) -p $(AFTER_BIN_DIR); \
+	for I in ${subdirs}; do (cd $$I; ${MAKE} install.bin || exit 1); done
+
+install.lib:
+	@$(MKDIR) -p $(LIBDIR); \
+	for I in ${subdirs}; do (cd $$I; ${MAKE} install.lib || exit 1); done
+
+install.man:
+	@$(MKDIR) -p $(AFTER_MAN_DIR); \
+	for I in ${subdirs}; do (cd $$I; ${MAKE} install.man || exit 1); done
+
+install.script:
+	@$(MKDIR) -p $(AFTER_BIN_DIR); \
+	for I in ${subdirs}; do (cd $$I; ${MAKE} install.script || exit 1); done
+
+install.data:
+	$(MKDIR) -p $(AFTER_DOC_DIR)
+
+uninstall:
+	@for I in ${subdirs}; do (cd $$I; ${MAKE} uninstall || exit 1); done
+
+clean:
+	@for I in ${subdirs}; do (cd $$I; ${MAKE} clean || exit 1); done
+
+distclean:
+	@for I in ${subdirs}; do (cd $$I; ${MAKE} distclean || exit 1); done
+	$(RMF) config.cache config.log config.status Makefile.bak Makefile config.h configure.h *.o *~ *% *.bak \#* core
+
+indent:
+	for i in ${subdirs}; do ${MAKE} -C $$i indent; done
+	@cd include; \
+	for i in *.h; do \
+	  if (indent < $$i > /tmp/$$i); then \
+	    echo indent $$i; \
+	    mv /tmp/$$i $$i; \
+	  fi; \
+	done
+
+deps:
+	for I in ${subdirs}; do (cd $$I; touch .depend || exit 1); done; \
+	for I in ${subdirs}; do (cd $$I; ${MAKE} deps || exit 1); done
+
+config:
+	for I in ${confsdirs}; do \
+	  autoconf --localdir=$$I $$I/configure.in > \
+	  $$I/configure ; chmod 755 $$I/configure ; \
+	done; \
+	autoconf --localdir=autoconf autoconf/configure.libs.in > \
+	autoconf/configure.libs ; chmod 755 autoconf/configure.libs ; \
+	$(MV) autoconf/configure.libs ./ \
+	$(MV) autoconf/configure ./
+
+configclean:
+	$(RMF) ./config.status ./config.log ./include/config.h ./config.cache ./include/configure.h ; \
+	for I in ${confsdirs}; do \
+	  $(RMF) $$I/config.status $$I/config.log $$I/config.h $$I/config.cache $$I/configure.h ; \
+	done; \
+

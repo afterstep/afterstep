@@ -1,6 +1,11 @@
 #ifndef AFTERSTEP_LIB_HEADER_FILE_INCLUDED
 #define AFTERSTEP_LIB_HEADER_FILE_INCLUDED
 
+#include "../libAfterBase/astypes.h"
+
+/***********************************************************************/
+/* This stuff should be coming from libAfterBase now :                 */
+#if 0
 #ifndef ABS
 #define ABS(a)              ((a)>0   ? (a) : -(a))
 #endif
@@ -14,10 +19,6 @@
 #define MAX(a,b)            ((a)>(b) ? (a) : (b))
 #endif
 
-#define CLAMP(a,b,c)        ((a)<(b) ? (b) : ((a)>(c) ? (c) : (a)))
-#define CLAMP_SIZE(a,b,c)   ((a)<(b) ? (b) : ((c)!=-1&&(a)>(c) ? (c) : (a)))
-#define	NEW(a)              ((a *)malloc(sizeof(a)))
-#define	NEW_ARRAY(a, b)     ((a *)malloc(sizeof(a) * (b)))
 #define SWAP(a, b, type)    { type SWAP_NaMe = a; a = b; b = SWAP_NaMe; }
 
 #ifndef get_flags
@@ -30,7 +31,45 @@
 #ifdef I18N
 #include <X11/Xlocale.h>
 #endif
+
+/* from safemalloc.c */
+void *safemalloc (size_t);
+void safefree (void *);
+/* returns old value */
+int set_use_tmp_heap (int on);
+
+int mystrcasecmp (const char *, const char *);
+int mystrncasecmp (const char *, const char *, size_t);
+
+/* from mystrdup.c */
+#if defined(LOG_STRDUP_CALLS) && defined(DEBUG_ALLOCS)
+char *l_mystrdup (const char *, int, const char *);
+char *l_mystrndup (const char *, int, const char *, size_t);
+#define mystrdup(a)	l_mystrdup(__FUNCTION__,__LINE__,a)
+#define mystrndup(a,b)	l_mystrndup(__FUNCTION__,__LINE__,a,b)
+#else
+char *mystrdup (const char *str);
+char *mystrndup (const char *str, size_t n);
+#endif
+
+#endif /* #if 0 */
+/*  End of libAfterBase stuff                                              */
+/***************************************************************************/
+
+
 #include <stdio.h>
+#include "../libAfterBase/audit.h"
+#include "../libAfterBase/safemalloc.h"
+#include "../libAfterBase/mystring.h"
+#include "../libAfterBase/os.h"
+#include "../libAfterBase/sleep.h"
+
+
+#define GetFdWidth			get_fd_width
+
+
+#define CLAMP(a,b,c)        ((a)<(b) ? (b) : ((a)>(c) ? (c) : (a)))
+#define CLAMP_SIZE(a,b,c)   ((a)<(b) ? (b) : ((c)!=-1&&(a)>(c) ? (c) : (a)))
 
 typedef struct gradient_t
   {
@@ -52,33 +91,11 @@ unsigned long GetColor (char *);
 unsigned long GetShadow (unsigned long);
 unsigned long GetHilite (unsigned long);
 
-int mystrcasecmp (const char *, const char *);
-int mystrncasecmp (const char *, const char *, size_t);
-
-/* from mystrdup.c */
-#if defined(LOG_STRDUP_CALLS) && defined(DEBUG_ALLOCS)
-char *l_mystrdup (const char *, int, const char *);
-char *l_mystrndup (const char *, int, const char *, size_t);
-#define mystrdup(a)	l_mystrdup(__FUNCTION__,__LINE__,a)
-#define mystrndup(a,b)	l_mystrndup(__FUNCTION__,__LINE__,a,b)
-#else
-char *mystrdup (const char *str);
-char *mystrndup (const char *str, size_t n);
-#endif
 
 char *CatString3 (const char *, const char *, const char *);
 
-/* from gethostname.c */
-int mygethostname (char *, size_t);
-
 /* from sendinfo.c */
 void SendInfo (int *, char *, unsigned long);
-
-/* from safemalloc.c */
-void *safemalloc (size_t);
-void safefree (void *);
-/* returns old value */
-int set_use_tmp_heap (int on);
 
 /* from findiconfile.c */
 char *findIconFile (const char *, const char *, int);
@@ -88,14 +105,6 @@ int matchWildcards (const char *, const char *);
 
 void replaceEnvVar (char **);
 void CopyString (char **, char *);
-
-/* sleeping functions */
-void sleep_a_little (int);
-void start_ticker( unsigned int size /* in ms */ );
-void wait_tick();
-Bool is_tick();
-
-int GetFdWidth (void);
 
 /* constructs filename from two parts */
 char *make_file_name (const char *path, const char *file);
@@ -110,7 +119,6 @@ int CheckMode (const char *file, int mode);
 
 char *PutHome (const char *);
 
-#include "audit.h"
 #ifndef DEBUG_ALLOCS
 /*#define free(a)       safefree(a) */
 #endif

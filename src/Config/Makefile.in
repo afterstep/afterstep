@@ -2,17 +2,12 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
-OBJS            = Pager.o Base.o MyStyle.o ASetRoot.o
-OBJSDLL         = $(OBJS)
+LIB_OBJS        = Pager.o Base.o MyStyle.o ASetRoot.o
 
-PROG            = libasConfig.a
-DYNPROG         = libasConfig.so
+LIB_NAME        = LIBAFTERCONF
+LIB_STATIC      = libasConfig.a
+LIB_SHARED      = libasConfig.so
 LIBVER          = 1.0
 LIBVERMAJOR     = 1
-#INSTALLONBUILD  = install
 
 @MAKEFILECOMMONLIB@
-
-install:	install.lib
-
-uninstall:	uninstall.lib

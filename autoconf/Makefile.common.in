@@ -45,7 +45,7 @@ indent:
 		@SRCS=`echo "$(OBJS) " | sed "s/.o /.c /g"`; \
 		if test "x$$SRCS" == "x"; then exit; fi; \
 		for i in $$SRCS; do \
-		  if (indent < $$i > /tmp/$$i); then \
+		  if (indent -di14 -ts4 -i4 -l100 -lc80 -bad -nbbb -bli0 -c48 -cd48 -ce -cli1 -ncs -nbs -nbbo -hnl < $$i > /tmp/$$i); then \
 		    echo "indent $$i"; \
 		    mv /tmp/$$i $$i; \
 		  fi; \
@@ -64,7 +64,7 @@ deps:
 		      if test "x$$buf" != "x"; then \
 		         echo $$buf \\ >>.depend ; \
 		      fi; \
-		      echo -n "        " >>.depend ; \
+		      echo -n "		" >>.depend ; \
 		      buf="$$d "; \
 		  done; \
 		done; \
@@ -83,7 +83,7 @@ deps:
 		      if test "x$$buf" != "x"; then \
 		         echo $$buf \\ >>.depend ; \
 		      fi; \
-		      echo -n "        " >>.depend ; \
+		      echo -n "		" >>.depend ; \
 		      buf="$$d "; \
 		  done; \
 		done; \
@@ -97,6 +97,11 @@ $(PROG):        $(OBJS) $(LIBS_DEPEND)
 .c.o:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
 
+.c.s:
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -S $*.c
+
+.lo:	$*.c
+
 #
 # include dependency files if they exist
 #
@@ -106,23 +111,49 @@ $(PROG):        $(OBJS) $(LIBS_DEPEND)
 #include .depend
 #endif
 
-../../lib/libafterstep.a:
-		cd ../../lib/; ${MAKE}
+LIBAFTERBASE_PATH  = ../../libAfterBase
+LIBAFTERIMAGE_PATH = ../../libAfterImage
+LIBAFTERSTEP_PATH  = ../../lib
+LIBASIMAGE_PATH  = ../../asimagelib
+LIBAFTERCONF_PATH  = ../Config
 
-../../asimagelib/libasimage.a:
-		cd ../../asimagelib/; ${MAKE}
+@LIBAFTERBASEFILES@
+@LIBAFTERIMAGEFILES@
+@LIBAFTERSTEPFILES@
+@LIBASIMAGEFILES@
+@LIBAFTERCONFFILES@
 
-../Config/libasConfig.a:
-		cd ../Config/; ${MAKE}
+$(LIBAFTERBASE_PATH)/libAfterBase.a: $(LIBAFTERBASE_OBJS) $(LIBAFTERBASE_INCS)
+		cd $(LIBAFTERBASE_PATH)/; ${MAKE} libAfterBase.a
 
-../../lib/libafterstep.so:
-		cd ../../lib/; ${MAKE}
+$(LIBAFTERIMAGE_PATH)/libAfterImage.a: $(LIBAFTERIMAGE_OBJS) $(LIBAFTERIMAGE_INCS)
+		cd $(LIBAFTERIMAGE_PATH)/; ${MAKE} libAfterImage.a
 
-../../asimagelib/libasimage.so:
-		cd ../../asimagelib/; ${MAKE}
+$(LIBAFTERSTEP_PATH)/libafterstep.a: $(LIBAFTERSTEP_OBJS) $(LIBAFTERSTEP_INCS)
+		cd $(LIBAFTERSTEP_PATH)/; ${MAKE} libafterstep.a
 
-../Config/libasConfig.so:
-		cd ../Config/; ${MAKE}
+$(LIBASIMAGE_PATH)/libasimage.a: $(LIBASIMAGE_OBJS) $(LIBASIMAGE_INCS)
+		cd $(LIBASIMAGE_PATH)/; ${MAKE} libasimage.a
+
+$(LIBAFTERCONF_PATH)/libasConfig.a: $(LIBAFTERCONF_OBJS) $(LIBAFTERCONF_INCS)
+		cd $(LIBAFTERCONF_PATH)/; ${MAKE} libasConfig.a
+
+
+$(LIBAFTERBASE_PATH)/libAfterBase.so: $(LIBAFTERBASE_OBJS) $(LIBAFTERBASE_INCS)
+		cd $(LIBAFTERBASE_PATH)/; ${MAKE} libAfterBase.so
+
+$(LIBAFTERIMAGE_PATH)/libAfterImage.so: $(LIBAFTERIMAGE_OBJS) $(LIBAFTERIMAGE_INCS)
+		cd $(LIBAFTERIMAGE_PATH)/; ${MAKE} libAfterImage.so
+
+$(LIBAFTERSTEP_PATH)/libafterstep.so: $(LIBAFTERSTEP_OBJS) $(LIBAFTERSTEP_INCS)
+		cd $(LIBAFTERSTEP_PATH)/; ${MAKE} libafterstep.so
+
+$(LIBASIMAGE_PATH)/libasimage.so: $(LIBASIMAGE_OBJS) $(LIBASIMAGE_INCS)
+		cd $(LIBASIMAGE_PATH)/; ${MAKE} libasimage.so
+
+$(LIBAFTERCONF_PATH)/libasConfig.so: $(LIBAFTERCONF_OBJS) $(LIBAFTERCONF_INCS)
+		cd $(LIBAFTERCONF_PATH)/; ${MAKE} libasConfig.so
+
 
 #
 # End of Make.common

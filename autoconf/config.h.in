@@ -1,10 +1,39 @@
 /* autoconf/config.h.in.  Generated automatically from autoconf/configure.in by autoheader.  */
-#undef HAVE_X11_XPM
+/* self diagnostic SIGSEGV handling (as opposed to dumping core) */
+#undef HAVE_SIGSEGV_HANDLING
+
+#undef SHAPE
+#undef HAVE_XINERAMA
+
+/* look and feel options : */
+#undef DIFFERENTLOOKNFEELFOREACHDESKTOP
+#undef PAGER_BACKGROUND
+#undef I18N
+#undef NO_WARPPOINTERTOMENU
+#undef NO_SAVEWINDOWS
+#undef NO_TEXTURE
+#undef NO_SHADE
+#undef NO_VIRTUAL
+#undef NO_SAVEUNDERS
+#undef NO_WINDOWLIST
+#undef NO_AVAILABILITYCHECK
+
+/* debugging options */
+#undef  DEBUG_ALLOCS
+#undef  DEBUG_TRACE
+#undef  DEBUG_TRACE_X
+
+/* menu options : */
+#undef	FIXED_DIR
+
+/* needed only by libafterconf and libafterstep : */
+#undef  HAVE_AFTERBASE
+#undef  HAVE_AFTERIMAGE
+#undef  HAVE_AFTERSTEP
+
+
 /* Define if you have the <dirent.h> header file, and it defines `DIR'. */
 #undef HAVE_DIRENT_H
-
-/* Define if you have the `gethostname' function. */
-#undef HAVE_GETHOSTNAME
 
 /* Define if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
@@ -24,9 +53,6 @@
 /* Define if you have the <sys/wait.h> header file. */
 #undef HAVE_SYS_WAIT_H
 
-/* Define if you have the `uname' function. */
-#undef HAVE_UNAME
-
 /* Define if you have the `wait3' system call. */
 #undef HAVE_WAIT3
 
@@ -43,3 +69,9 @@
 /* Define if `lex' declares `yytext' as a `char *' by default, not a `char[]'.
    */
 #undef YYTEXT_POINTER
+
+/* Define as `__inline' if that's what the C compiler calls it, or to nothing
+   if it is not supported. */
+#undef inline
+
+/*#include "configure.h"*/

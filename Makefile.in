@@ -1,7 +1,14 @@
 
 @MAKEFILEDEFINES@
 
-subdirs		= lib asimagelib doc tools src/Config src/afterstep src/asetroot \
+confsdirs= autoconf libAfterBase libAfterImage
+
+####		  @ASCP@  \
+
+subdirs		= libAfterBase libAfterImage lib \
+	      asimagelib src/Config \
+		  doc tools \
+		  src/afterstep src/asetroot \
 		  src/Animate src/Audio \
 		  src/Banner src/Cascade src/Clean src/Form src/Gnome \
 		  src/Ident \
@@ -17,7 +24,7 @@ install: install.data
 	$(MKDIR) -p $(AFTER_BIN_DIR); \
 	$(MKDIR) -p $(AFTER_MAN_DIR); \
 	for I in ${subdirs}; do (cd $$I; ${MAKE} install || exit 1); done
- 
+
 install.bin:
 	@$(MKDIR) -p $(AFTER_BIN_DIR); \
 	for I in ${subdirs}; do (cd $$I; ${MAKE} install.bin || exit 1); done
@@ -69,10 +76,10 @@ install.data:
 	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Look/.include.in
 	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Theme/.include.in
 	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Pictures/.include.in
-	$(RMF) $(AFTER_SHAREDIR)/*.orig
-	$(RMF) $(AFTER_SHAREDIR)/*/*.orig
-	$(RMF) $(AFTER_SHAREDIR)/*/*/*.orig
-	$(RMF) $(AFTER_SHAREDIR)/*/*/*/*.orig
+	$(FIND) $(AFTER_SHAREDIR) -name '*.in' -print | $(XARGS) $(RMF) -r
+	$(FIND) $(AFTER_SHAREDIR) -name '*.orig' -print | $(XARGS) $(RMF) -r
+	$(FIND) $(AFTER_SHAREDIR) -name CVS -print | $(XARGS) $(RMF) -r
+	$(FIND) $(AFTER_SHAREDIR) -name .cvsignore -print | $(XARGS) $(RMF)
 
 uninstall:
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} uninstall || exit 1); done
@@ -104,8 +111,18 @@ deps:
 	for I in ${subdirs}; do (cd $$I; ${MAKE} deps || exit 1); done
 
 config:
-	autoconf --localdir=autoconf autoconf/configure.in > \
-	configure ; chmod 755 configure
-	autoheader --localdir=autoconf autoconf/configure.in > \
-	autoconf/config.h.in ; chmod 644 autoconf/config.h.in
+	for I in ${confsdirs}; do \
+	  autoconf --localdir=$$I $$I/configure.in > \
+	  $$I/configure ; chmod 755 $$I/configure ; \
+	done; \
+	autoconf --localdir=autoconf autoconf/configure.libs.in > \
+	autoconf/configure.libs ; chmod 755 autoconf/configure.libs ; \
+	$(MV) autoconf/configure.libs ./ ; \
+	$(MV) autoconf/configure ./
+
+configclean:
+	$(RMF) ./config.status ./config.log ./include/config.h ./config.cache ./configure.h ; \
+	for I in ${confsdirs}; do \
+	  $(RMF) $$I/config.status $$I/config.log $$I/config.h $$I/config.cache $$I/configure.h ; \
+	done; \
 

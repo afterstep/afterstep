@@ -297,30 +297,6 @@ parse_func_units (FunctionData * data)
       }
 }
 
-/***********************************************************************
- * Procedure:
- *	scanForHotkeys - Look for hotkey markers in a function "name"
- * Inputs:
- *	txt	- string to scan
- * Output:      - hotkey found
- ***********************************************************************/
-char
-scan_for_hotkey (char *txt)
-{
-  char hotkey = '\0';
-  if (txt != NULL)
-    for (; *txt != '\0'; txt++)	/* Scan whole string                 */
-      if (*txt == '&')
-	{			/* A hotkey marker?                  */
-	  char *tmp;		/* Copy the string down over it      */
-	  for (tmp = txt; *tmp != '\0'; tmp++)
-	    *tmp = *(tmp + 1);
-	  if (*txt != '&')	/* Not Just an escaped &            */
-	    hotkey = *txt;
-	}
-  return toupper(hotkey);
-}
-
 void
 free_func_hash ()
 {
@@ -1031,34 +1007,7 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
     free (name);
 }
 
-/****************************************************************************
- * copy src to dest, backslash-escaping all non-alphanumeric characters in
- * src; write a maximum of maxlen chars to dest, including terminating zero
- ****************************************************************************/
-
-int
-quotestr (char *dest, const char *src, int maxlen)
-{
-  int n = maxlen;
-  /* require at least enough space for the terminating zero */
-  if (maxlen < 1)
-    return maxlen - n;
-  n--;
-  while (n && *src)
-    {
-      if (!isalnum (*src) && n > 1)
-	{
-	  *dest++ = '\\';
-	  n--;
-	}
-      *dest++ = *src++;
-      n--;
-    }
-  *dest = '\0';
-  return maxlen - n;
-}
-
-/****************************************************************************
+  /****************************************************************************
  * generates menu from directory tree
  ****************************************************************************/
 
