@@ -1007,12 +1007,11 @@ static inline void
 start_component_interpolation( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, register CARD32 *T, register CARD32 *step, int S, int len)
 {
 	register int i;
-	int S2 = S<<1 ;
 	for( i = 0 ; i < len ; i++ )
 	{
 		register int rc2 = c2[i], rc3 = c3[i] ;
-		T[i] = INTERPOLATION_TOTAL_START(c1[i],rc2,rc3,c4[i],S);
-		step[i] = INTERPOLATION_TOTAL_STEP(rc2,rc3);
+		T[i] = INTERPOLATION_TOTAL_START(c1[i],rc2,rc3,c4[i],S)/(S<<1);
+		step[i] = INTERPOLATION_TOTAL_STEP(rc2,rc3)/(S<<1);
 	}
 }
 
@@ -1568,8 +1567,7 @@ scale_image_up23( ASImage *src, ASImage *dst, int h_ratio )
 void
 scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* scales_v, Bool to_xim)
 {
-	ASScanline src_lines[4], *c1, *c2, *c3, *c4, *next_c4, tmp;
-	ASScanline total, step ;
+	ASScanline step, src_lines[4], *c1, *c2, *c3, *c4 = NULL, tmp;
 	int i = 0, k = 0, max_i, line_len = MIN(dst->width,src->width);
 	ASImageOutput *imout ;
 
@@ -1579,13 +1577,11 @@ scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* sca
 	for( i = 0 ; i < 4 ; i++ )
 		prepare_scanline( dst->width, 0, &(src_lines[i]));
 	prepare_scanline( src->width, QUANT_ERR_BITS, &tmp );
-	prepare_scanline( dst->width, QUANT_ERR_BITS, &total );
-	set_component(total.red,0x00000F00,0,total.width*3); 
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &step );
 
 	set_component(src_lines[0].red,0x00000F00,0,line_len*3); 
 	DECODE_SCANLINE(src,tmp,0);
-	total.flags = step.flags = src_lines[0].flags = tmp.flags ;
+	step.flags = src_lines[0].flags = tmp.flags ;
 LOCAL_DEBUG_OUT( "rescaling line #%d", 0 );
 	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,src_lines[1],scales_h,line_len);
 	DECODE_SCANLINE(src,tmp,1);
@@ -1611,24 +1607,14 @@ LOCAL_DEBUG_OUT( "rescaling line #%d", i+2 );
 			CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c4,scales_h,line_len);
 		}
 		/* now we'll prepare total and step : */
-/*	set_component(total.red,0x00000F00,0,total.width*3); 
-	output_image_line( imout, &total, 1);
-	output_image_line( imout, &total, 1);
-	output_image_line( imout, &total, 1);
-		output_image_line( imout, c2, 1);
-		output_image_line( imout, c2, 1);
-		output_image_line( imout, c2, 1);
-	output_image_line( imout, &total, 1);
-	output_image_line( imout, &total, 1);
-	output_image_line( imout, &total, 1);
-*/
+
 		SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,dst->width);
 		output_image_line( imout, c2, 1);
 
 		n = 0;
 		do
 		{
-			output_image_line( imout, c1, S<<1);
+			output_image_line( imout, c1, 1);
 			if( ++n >= S ) 
 				break;
 			SCANLINE_FUNC(add_component,*c1,step,NULL,dst->width ); 
@@ -1641,9 +1627,7 @@ LOCAL_DEBUG_OUT( "rescaling line #%d", i+2 );
 		free_scanline(&(src_lines[i]), True);
 	free_scanline(&tmp, True);
 	free_scanline(&step, True);
-	free_scanline(&total, True);
 	stop_image_output( &imout );
-
 }
 #endif
 
