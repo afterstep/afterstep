@@ -138,9 +138,12 @@ typedef struct ASFont
 	char 				 *name;
 
 	ASFontType  	type ;
+
 	ASGlyphRange   *codemap;        /* linked list of glyphsets, each
 									 * representing continuos range of
-									 * available codes */
+									 * available codes - used for ASCII codes */
+	ASHashTable    *locale_glyphs;  /* hash of locale specific glyphs */
+	
 	ASGlyph         default_glyph;  /* valid glyph to be drawn when
 									 * code is not valid */
 
