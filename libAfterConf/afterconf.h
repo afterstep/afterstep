@@ -51,6 +51,7 @@ extern struct SyntaxDef      PagerSyntax;
 extern struct SyntaxDef      WharfSyntax;
 extern struct SyntaxDef      WinListSyntax;
 extern struct SyntaxDef      WinTabsSyntax;
+extern struct SyntaxDef      PopupFuncSyntax;
 
 /* misc function stuff : */
 #define FUNC_ID_START           F_NOP   /* 0 */

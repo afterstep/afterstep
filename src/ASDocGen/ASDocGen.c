@@ -72,6 +72,8 @@ const char *PHPXrefFormatSetSrc = "&nbsp;<? local_doc_url(\"%s.php\",\"%s\",\"%s
 const char *PHPXrefFormatUseSrc = "&nbsp;<? if ($src==\"\") $src=\"%s\"; local_doc_url(\"%s.php\",\"%s\",$src,$srcunset,$subunset) ?>\n ";
 const char *PHPCurrPageFormat = "&nbsp;<b>%s</b>\n";
 
+const char *AfterStepName = "AfterStep" ;
+
 #define OVERVIEW_SIZE_THRESHOLD 1024
 
 typedef enum { 
@@ -102,8 +104,10 @@ typedef struct ASXMLInterpreterState {
 #define ASXMLI_LinkIsLocal		(0x01<<4)	  
 #define ASXMLI_InsideExample			(0x01<<5)	  
 	ASFlagType flags;
-	
+
+	const char *doc_name ;   
 	FILE *dest_fp ;
+	char *dest_file ;
 	ASDocType doc_type ;
 	int header_depth ;
 	int group_depth ;
@@ -293,9 +297,11 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 ASHashTable *DocBookVocabulary = NULL ;
 
 ASHashTable *ProcessedSyntaxes = NULL ;
+ASHashTable *Glossary = NULL ;
 
 void check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module );
 void gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax, ASDocType doc_type );
+void gen_glossary( const char *dest_dir, ASDocType doc_type );
 
 
 
@@ -363,6 +369,7 @@ main (int argc, char **argv)
   	SendInfo ( "Nop \"\"", 0);
 #endif
 	ProcessedSyntaxes = create_ashash( 7, pointer_hash_value, NULL, NULL );
+	Glossary = create_ashash( 0, string_hash_value, string_compare, string_destroy );
 	if( target_type < DocType_Source )
 	{	
 		DocBookVocabulary = create_ashash( 7, casestring_hash_value, casestring_compare, string_destroy_without_data );
@@ -383,8 +390,8 @@ main (int argc, char **argv)
 	/* we need to generate some top level files for afterstep itself : */
 	if( target_type < DocType_Source ) /* 1) generate HTML doc structure */
 	{
-		/* TODO: */	  
 		gen_syntax_doc( source_dir, destination_dir, NULL, target_type );
+		gen_glossary( destination_dir, target_type );
 	}else
 		check_syntax_source( source_dir, NULL, True );
 
@@ -477,8 +484,8 @@ check_option_source( const char *syntax_dir, const char *option, SyntaxDef *sub_
 					if( mystrcasecmp( &(option[1]), "synopsis" ) == 0 ) 
 					{
 						fprintf( f, "<cmdsynopsis>\n"
-  									"<command>%s</command> [<ulink url=\"AfterStep#standard_options_list\">standard options</ulink>] \n"
-									"</cmdsynopsis>\n", module_name );
+  									"<command>%s</command> [<ulink url=\"%s#standard_options_list\">standard options</ulink>] \n"
+									"</cmdsynopsis>\n", module_name, AfterStepName );
 					}else if( mystrcasecmp( option, StandardOptionsEntry ) == 0 ) 
 					{
 						write_standard_options_source( f );
@@ -574,10 +581,13 @@ check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module )
 		/* pass two: lets see which options are missing : */
 		for (i = 0; syntax->terms[i].keyword; i++)
 		{	
-			if (syntax->terms[i].sub_syntax)
-				check_syntax_source( source_dir, syntax->terms[i].sub_syntax, False );
+			SyntaxDef *sub_syntax = syntax->terms[i].sub_syntax ; 
+			if( sub_syntax == &PopupFuncSyntax ) 
+				sub_syntax = &FuncSyntax ;
+			if (sub_syntax)
+				check_syntax_source( source_dir, sub_syntax, False );
 			if( isalnum( syntax->terms[i].keyword[0] ) )					
-				check_option_source( syntax_dir, syntax->terms[i].keyword, syntax->terms[i].sub_syntax, module?syntax->doc_path:NULL ) ;
+				check_option_source( syntax_dir, syntax->terms[i].keyword, sub_syntax, module?syntax->doc_path:NULL ) ;
 		}
 		for (i = module?0:1; StandardSourceEntries[i] != NULL ; ++i)
 			check_option_source( syntax_dir, StandardSourceEntries[i], NULL, module?syntax->doc_path:NULL ) ;
@@ -700,21 +710,23 @@ convert_source_file( const char *syntax_dir, const char *file, ASXMLInterpreterS
 static Bool
 start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_postfix, SyntaxDef *syntax, ASDocType 	doc_type, ASXMLInterpreterState *state )
 {
-	char *dest_file = safemalloc( strlen( dest_dir ) + 1 + strlen(doc_path)+(doc_postfix?strlen(doc_postfix):0)+5+1 );
+	char *dest_file = safemalloc( strlen(doc_path)+(doc_postfix?strlen(doc_postfix):0)+5+1 );
+	char *dest_path = safemalloc( strlen( dest_dir ) + 1 + strlen(doc_path)+(doc_postfix?strlen(doc_postfix):0)+5+1 );
 	char *ptr ;
 	FILE *dest_fp ;
 	Bool dst_dir_exists = True;
 
-	sprintf( dest_file, "%s/%s%s.%s", dest_dir, doc_path, doc_postfix?doc_postfix:"", ASDocTypeExtentions[doc_type] ); 
-	LOCAL_DEBUG_OUT( "starting doc \"%s\"", dest_file );	
-	ptr = dest_file; 
+	sprintf( dest_file, "%s%s.%s", doc_path, doc_postfix?doc_postfix:"", ASDocTypeExtentions[doc_type] ); 
+	sprintf( dest_path, "%s/%s", dest_dir, dest_file ); 
+	LOCAL_DEBUG_OUT( "starting doc \"%s\"", dest_path );	
+	ptr = dest_path; 
 	while( *ptr == '/' ) ++ptr ;
 	ptr = strchr( ptr, '/' );
 	while( ptr != NULL )
 	{
 		*ptr = '\0' ;
-		if( CheckDir(dest_file) != 0 )
-			if( !make_doc_dir( dest_file ) ) 
+		if( CheckDir(dest_path) != 0 )
+			if( !make_doc_dir( dest_path ) ) 
 			{
 		 		dst_dir_exists = False ;
 				break;
@@ -724,27 +736,30 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 	}
 	if( !dst_dir_exists ) 
 	{
+		free( dest_path );	  
 		free( dest_file );	  
 		return False ;
 	}
 	
-	dest_fp = fopen( dest_file, "wt" );
+	dest_fp = fopen( dest_path, "wt" );
 	if( dest_fp == NULL ) 
 	{
-		show_error( "Failed to open destination file \"%s\" for writing!", dest_file );
+		show_error( "Failed to open destination file \"%s\" for writing!", dest_path );
+		free( dest_path );
 		free( dest_file );
 		return False;
 	}				   
 
 	memset( state, 0x00, sizeof(ASXMLInterpreterState));
 	state->flags = ASXMLI_FirstArg ;
+	state->doc_name = syntax?syntax->doc_path:AfterStepName ;
 	state->dest_fp = dest_fp ;
+	state->dest_file = dest_file ;
 	state->doc_type = doc_type ; 
 
 	/* HEADER ***********************************************************************/
 	write_syntax_doc_header( syntax, state );
-
-	free( dest_file );
+	free( dest_path );	
 	LOCAL_DEBUG_OUT( "File opened with fptr %p", state->dest_fp );
 	return True;
 }
@@ -757,6 +772,12 @@ end_doc_file( SyntaxDef *syntax, ASXMLInterpreterState *state )
 		write_syntax_doc_footer( syntax, state );	
 		fclose( state->dest_fp );
 	}
+	if( state->dest_file ) 
+	{
+		free( state->dest_file );
+		state->dest_file = NULL ;
+	}	 
+
 	memset( &state, 0x00, sizeof(state));
 }
 
@@ -796,7 +817,7 @@ void
 gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax, ASDocType doc_type )
 {
 	ASXMLInterpreterState state;
-	char *doc_path = "AfterStep" ;
+	const char *doc_path = AfterStepName ;
 	char *syntax_dir = NULL ;
 	int i ;
 	Bool do_mystyles = False, do_base = False ;
@@ -891,8 +912,12 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 		write_syntax_options_header( syntax, &state );
 		for (i = 0; syntax->terms[i].keyword; i++)
 		{	
-			if (syntax->terms[i].sub_syntax)
-				gen_syntax_doc( source_dir, dest_dir, syntax->terms[i].sub_syntax, doc_type );
+			SyntaxDef *sub_syntax = syntax->terms[i].sub_syntax ; 
+			if( sub_syntax == &PopupFuncSyntax ) 
+				sub_syntax = &FuncSyntax ;
+			
+			if (sub_syntax)
+				gen_syntax_doc( source_dir, dest_dir, sub_syntax, doc_type );
 			if( isalnum( syntax->terms[i].keyword[0] ) )					
 				convert_source_file( syntax_dir, syntax->terms[i].keyword, &state );
 		}
@@ -902,7 +927,7 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 	
 	if( doc_type != DocType_PHP ) 
 	{
-		for( i = 0 ; i < OPENING_PARTS_END ; ++i ) 
+		for( i = OPENING_PARTS_END ; StandardSourceEntries[i] ; ++i ) 
 			convert_source_file( syntax_dir, StandardSourceEntries[i], &state );
 	}else if( state.dest_fp )
 	{
@@ -945,6 +970,51 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 	free( syntax_dir );
 }
 
+void 
+gen_glossary( const char *dest_dir, ASDocType doc_type )
+{
+	ASXMLInterpreterState state;
+	if( (doc_type == DocType_HTML	|| doc_type == DocType_PHP ) && Glossary->items_num > 0 )
+	{	
+		ASHashableValue *values = safecalloc( Glossary->items_num, sizeof(ASHashableValue));
+		ASHashData *data = safecalloc( Glossary->items_num, sizeof(ASHashData));
+		int i, items_num, third ;
+		if( !start_doc_file( dest_dir, "Glossary", NULL, NULL, doc_type, &state ) )	
+			return ;
+		fprintf( state.dest_fp, "<h3>Glossary :</h3>\n" 
+								 "<table width=100%%>\n" );
+		
+		items_num = sort_hash_items (Glossary, values, (void**)data, 0);
+		third = items_num/3 ;
+		for( i = 0 ; i < third ; ++i )
+		{
+			fprintf( state.dest_fp, "<TR><TD width=33%%>" );
+			
+			if( state.doc_type == DocType_HTML	)
+				fprintf( state.dest_fp, "<A href=\"%s\">%s</A>", data[i].cptr, (char*)values[i] );
+			else if( doc_type == DocType_PHP ) 
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc",(char*)values[i], data[i].cptr, "" );
+			fprintf( state.dest_fp, "</TD><TD width=33%%>" );
+			if( state.doc_type == DocType_HTML	)
+				fprintf( state.dest_fp, "<A href=\"%s\">%s</A>", data[third+i].cptr, (char*)values[third+i] );
+    		else if( doc_type == DocType_PHP ) 	
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc",(char*)values[third+i], data[third+i].cptr, "" );
+			fprintf( state.dest_fp, "</TD><TD>" );
+			if( state.doc_type == DocType_HTML	)
+				fprintf( state.dest_fp, "<A href=\"%s\">%s</A>", data[third*2+i].cptr, (char*)values[third*2+i] );
+    		else if( doc_type == DocType_PHP ) 	
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc",(char*)values[third*2+i], data[third*2+i].cptr, "" );
+			fprintf( state.dest_fp, "</TD></TR>\n" );
+		}	 
+		fprintf( state.dest_fp, "</table>\n" );
+
+		free( data );
+		free( values );
+		end_doc_file( NULL, &state );	 	  
+	}
+}
+
+
 /*************************************************************************/
 /*************************************************************************/
 /* DocBook XML tags handlers :											 */
@@ -952,8 +1022,8 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 void 
 write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
 {
-	char *display_name = "AfterStep" ;
-	char *doc_name = "AfterStep" ;
+	const char *display_name = AfterStepName ;
+	const char *doc_name = AfterStepName ;
 	if( syntax ) 
 	{	
 		display_name = syntax->display_name ;
@@ -1010,11 +1080,11 @@ write_syntax_options_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
 			fputs( "\nCONFIGURATION OPTIONS : \n", state->dest_fp );
 			break;
 		case DocType_HTML :
-			fprintf( state->dest_fp, "\n<LI><A NAME=\"options\"><h%d>CONFIGURATION OPTIONS :</h%d></A>\n"
-							  "<DL>\n", state->header_depth, state->header_depth);   
+			fprintf( state->dest_fp, "\n<UL><LI><A NAME=\"options\"></A><h3>CONFIGURATION OPTIONS :</h3>\n"
+							  "<DL>\n");   
 			break;
  		case DocType_PHP :	
-			fprintf( state->dest_fp, "\n<LI><A NAME=\"options\"><B>CONFIGURATION OPTIONS :</B></A>\n"
+			fprintf( state->dest_fp, "\n<LI><A NAME=\"options\"></A><B>CONFIGURATION OPTIONS :</B><P>\n"
 							  "<DL>\n");   
 		    break ;
 		case DocType_XML :
@@ -1036,8 +1106,9 @@ write_syntax_options_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
 			fprintf( state->dest_fp, "\n");
 			break;
 		case DocType_HTML :
- 		case DocType_PHP :	 
-			fprintf( state->dest_fp, "\n</DL></LI>\n");   
+			fprintf( state->dest_fp, "<UL>\n");
+ 		case DocType_PHP :	                   /* fallback intentional */
+			fprintf( state->dest_fp, "\n</DL></P></LI>\n");   
 		    break ;
 		case DocType_XML :
 			fprintf( state->dest_fp, "\n</section>\n" );
@@ -1054,7 +1125,7 @@ write_syntax_options_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
 void 
 write_syntax_doc_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
 {
-	char *display_name = "AfterStep" ;
+	const char *display_name = AfterStepName ;
 	if( syntax ) 
 		display_name = syntax->display_name ;
 	switch( state->doc_type ) 
@@ -1113,6 +1184,7 @@ add_anchor( xml_elem_t *attr, ASXMLInterpreterState *state )
 			close_link(state);
 			if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP)
 				fprintf( state->dest_fp, "\n<A NAME=\"%s\">", attr->parm );
+			state->curr_url_anchor = mystrdup(attr->parm);
 			clear_flags( state->flags, ASXMLI_LinkIsLocal|ASXMLI_LinkIsURL );
 			set_flags( state->flags, ASXMLI_InsideLink );
 			break;	
@@ -1162,7 +1234,7 @@ add_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
 				if( get_flags( state->flags, ASXMLI_LinkIsLocal ) ) 	  
 					fwrite( ".html", 1, 5, state->dest_fp );	
 				if( state->curr_url_anchor != NULL ) 
-					fprintf( state->dest_fp, "#%s\">", state->curr_url_anchor );	
+					fprintf( state->dest_fp, "#%s", state->curr_url_anchor );	
 				fwrite( "\">", 1, 2, state->dest_fp );
 			}else if( state->doc_type == DocType_PHP ) 
 			{
@@ -1276,26 +1348,39 @@ void
 start_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	char *term_text = NULL ; 
-	if( get_flags( state->flags, ASXMLI_InsideLink ) ) 
-	{                                         
-		xml_elem_t *ptr = doc->child ;
-		while( ptr ) 
-		{	
-			if( ptr->tag_id == XML_CDATA_ID ) 
-			{
-				term_text = ptr->parm ;
-				break;
+#if 1
+	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
+	{	
+		if( get_flags( state->flags, ASXMLI_InsideLink ) && state->curr_url_anchor != NULL ) 
+		{                                         
+			xml_elem_t *ptr = doc->child ;
+			while( ptr ) 
+			{	
+				if( ptr->tag_id == XML_CDATA_ID ) 
+				{
+					term_text = ptr->parm ;
+					break;
+				}
+				ptr = ptr->next ;
 			}
-			ptr = ptr->next ;
-		}
-		if( term_text != NULL ) /* need to add glossary term */
-		{
-				
-			
+			if( term_text != NULL ) /* need to add glossary term */
+			{
+	 			char *target = NULL ;
+				char *term = NULL ;
+				if( state->doc_type == DocType_HTML )
+				{	
+					target = safemalloc( strlen( state->dest_file)+5+1+strlen(state->curr_url_anchor)+1);
+					sprintf( target, "%s#%s", state->dest_file, state->curr_url_anchor );
+				}else if( state->doc_type == DocType_PHP )
+					target = mystrdup( state->dest_file );
+				term = safemalloc( strlen( term_text)+ 1 + 1 +strlen( state->doc_name ) + 1 +1 );
+				sprintf( term, "%s (%s)", term_text, state->doc_name );
+			   	add_hash_item( Glossary, AS_HASHABLE(term), (void*)target );   
+			}	 
+			close_link(state);
 		}	 
-		
-		close_link(state);
-	}	 
+	}
+#endif
 	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
 		fprintf( state->dest_fp, "<DT class=\"dense\"><B>" );	
 }
