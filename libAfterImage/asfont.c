@@ -1325,8 +1325,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 	else if( char_type == ASCT_Unicode )
 		line_count = fill_text_glyph_map_Unicode( (UNICODE_CHAR*)text, font, map, space_size, offset_3d_x );
 
-	map->height = line_count * (font->max_height+offset_3d_y);
-	map->height -= font->spacing_y ;
+    map->height = line_count * (font->max_height+offset_3d_y) - font->spacing_y;
 
 	if( map->height <= 0 )
 		map->height = 1 ;
@@ -1344,8 +1343,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 			if( line_width > w ) \
 				w = line_width ; \
 			line_width = 0 ; \
-			h += font->max_height+offset_3d_y ; \
-			++lines_count ; \
+            ++line_count ; \
 		}else { \
 			last_asg = NULL ; \
 			if( text[i] == ' ' ){ \
@@ -1363,9 +1361,9 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 static Bool
 get_text_size_localized( const char *src_text, ASFont *font, ASText3DType type, ASCharType char_type, unsigned int *width, unsigned int *height )
 {
-	unsigned int w = 0, h = 0, lines_count = 0;
+    unsigned int w = 0, h = 0, line_count = 0;
 	unsigned int line_width = 0;
-	int i = 0;
+    int i = -1;
 	ASGlyph *last_asg = NULL ;
 	int space_size  = (font->space_size>>1)+1+font->spacing_x;
 	unsigned int offset_3d_x = 0, offset_3d_y = 0 ;
@@ -1390,8 +1388,10 @@ get_text_size_localized( const char *src_text, ASFont *font, ASText3DType type, 
 		UNICODE_CHAR *text = (UNICODE_CHAR*)&src_text[0] ;
 		GET_TEXT_SIZE_LOOP(get_unicode_glyph(text[i],font),/* */);
 	}
-	h -= font->spacing_y ;
-	if( w < 1 )
+
+    h = line_count * (font->max_height+offset_3d_y) - font->spacing_y;
+
+    if( w < 1 )
 		w = 1 ;
 	if( h < 1 )
 		h = 1 ;

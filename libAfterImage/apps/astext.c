@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
 
 	/* see ASText.2 : */
 	/*set_asfont_glyph_spacing( font, 10, 40 );*/
-	get_text_size( text, font, type_3d, &width, &height );
+    get_text_size( text, font, type_3d, &width, &height );
 	if( fore_image_file )
 	{
 		ASImage *tmp = file2ASImage( fore_image_file, 0xFFFFFFFF,
@@ -201,10 +201,10 @@ int main(int argc, char* argv[])
 	}
 
 	/* see ASText.3 : */
-	text_im = draw_text( text, font, type_3d, 0 );
+    text_im = draw_text( text, font, type_3d, 0 );
 /*
-show_progress( "text_im->width = %d, text_im->height = %d", text_im->width, text_im->height );	
-show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore_im->height );	
+show_progress( "text_im->width = %d, text_im->height = %d", text_im->width, text_im->height );
+show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore_im->height );
 */
 	if( fore_im )
 	{
