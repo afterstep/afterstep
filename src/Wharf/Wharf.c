@@ -2176,12 +2176,11 @@ do_wharf_animate_iter( void *vdata )
             LOCAL_DEBUG_OUT( "resizing folder from %dx%d to %dx%d", aswf->canvas->width, aswf->canvas->height, new_width, new_height );
             resize_canvas( aswf->canvas, new_width, new_height) ;
             ASSync( False ) ;
-			if( WharfState.buttons_render_pending <= 3 && 
-				get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
+			if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
 			{	
-				timer_new (Config->animate_delay*100, do_wharf_animate_iter, vdata);	  
+				timer_new (Config->animate_delay*60, do_wharf_animate_iter, vdata);	  
             }else
-				timer_new (10, do_wharf_animate_iter, vdata);	  
+				timer_new (60, do_wharf_animate_iter, vdata);	  
         }
 	}		  
 }
