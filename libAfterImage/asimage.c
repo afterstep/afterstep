@@ -19,17 +19,11 @@
 
 #include "../configure.h"
 
-#include <stdio.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-
 /*#define LOCAL_DEBUG*/
 
 #include "../include/aftersteplib.h"
+#include <X11/Intrinsic.h>
+
 #include "../include/afterstep.h"
 #include "../include/screen.h"
 #include "../include/ascolor.h"
@@ -94,7 +88,7 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height)
 	}
 }
 
-static CARD8 **
+static inline CARD8 **
 asimage_get_color_ptr (ASImage * im, ColorPart color)
 {
 	switch (color)
@@ -839,32 +833,6 @@ pixmap_from_asimage(ASImage *im, Window w, GC gc)
 /*******************************************************************************/
 /* below goes all kinds of funky stuff we can do with scanlines : 			   */
 /*******************************************************************************/
-/* this will shrink array based on count of items in src per one dst item with averaging */
-static inline void
-shrink_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
-{/* we skip all checks as it is static function and we want to optimize it
-  * as much as possible */
-	register int i = -1, k = -1;
-	while( ++k < len )
-	{
-		register int reps = scales[k] ;
-		if( reps == 1 )
-			dst[k] = src[++i] ;
-		else
-		{
-			register CARD32 point = src[++i] ;
-			if( reps == 2 )
-				dst[k] = (point + src[++i])>>1 ;
-			else
-			{
-				while( --reps )
-					point += src[++i];
-				dst[k] = point/scales[k] ;
-			}
-		}
-	}
-}
-
 /* this will enlarge array based on count of items in dst per PAIR of src item with smoothing/scatter/dither */
 /* the following formulas use linear approximation to calculate   */
 /* color values for new pixels : 				  				  */
@@ -895,7 +863,9 @@ shrink_component( register CARD32 *src, register CARD32 *dst, int *scales, int l
 #define INTERPOLATION_TOTAL_STEP(C2s,C3s)  	((C3s)-(C2s))
 #define INTERPOLATE_N_COLOR(T,S)		  	(((T)<<14)/(S))
 
-
+#define AVERAGE_COLOR1(c) 					((c)<<16)
+#define AVERAGE_COLOR2(c1,c2)				(((c1)+(c2))<<15)
+#define AVERAGE_COLORN(T,N)					(((T)<<16)/N)
 
 static inline void
 enlarge_component12( register CARD32 *src, register CARD32 *dst, int *scales, int len )
@@ -1006,17 +976,172 @@ enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int 
 	dst[k] = INTERPOLATE_COLOR1(c4) ;
 }
 
+/* this will shrink array based on count of items in src per one dst item with averaging */
 static inline void
-shrink_scanline( ASScanline *src_line, ASScanline *dst_line, register int *scales )
-{/* again we skip all checks as it is static function and we want to optimize it
+shrink_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+{/* we skip all checks as it is static function and we want to optimize it
   * as much as possible */
-	if( src_line->red && dst_line->red )
-		shrink_component( src_line->red, dst_line->red, scales, dst_line->width );
-	if( src_line->green && dst_line->green )
-		shrink_component( src_line->green, dst_line->green, scales, dst_line->width );
-	if( src_line->blue && dst_line->blue )
-		shrink_component( src_line->blue, dst_line->blue, scales, dst_line->width );
-	if( src_line->alpha && dst_line->alpha )
-		shrink_component( src_line->alpha, dst_line->alpha, scales, dst_line->width );
+	register int i = -1, k = -1;
+	while( ++k < len )
+	{
+		register int reps = scales[k] ;
+		register int c1 = src[++i];
+		if( reps == 1 )
+			dst[k] = AVERAGE_COLOR1(c1);
+		else if( reps == 2 )
+		{
+			++i;
+			dst[k] = AVERAGE_COLOR2(c1,src[i]);
+		}else
+		{
+			reps += i-1;
+			while( reps > i )
+			{
+				++i ;
+				c1 += src[i];
+			}
+			dst[k] = AVERAGE_COLORN(c1,scales[k]);
+		}
+	}
 }
 
+#define SCANLINE_FUNC(f,src,dst,scales,len) \
+do{	if((src).red   && (dst).red  ) f((src).red,  (dst).red,  (scales),(len));		\
+	if((src).green && (dst).green) f((src).green,(dst).green,(scales),(len)); \
+	if((src).blue  && (dst).blue ) f((src).blue, (dst).blue, (scales),(len));   \
+	if((src).alpha && (dst).alpha) f((src).alpha,(dst).alpha,(scales),(len)); \
+  }while(0)
+
+static inline void
+shrink_scanline( ASScanline *src_line, ASScanline *dst_line, register int *scales )
+{
+	SCANLINE_FUNC(shrink_component,*src_line,*dst_line,scales,dst_line->width);
+}
+
+static inline void
+enlarge_scanline12( ASScanline *src_line, ASScanline *dst_line, register int *scales )
+{
+	SCANLINE_FUNC(enlarge_component12,*src_line,*dst_line,scales,src_line->width);
+}
+
+static inline void
+enlarge_scanline23( ASScanline *src_line, ASScanline *dst_line, register int *scales )
+{
+	SCANLINE_FUNC(enlarge_component23,*src_line,*dst_line,scales,src_line->width);
+}
+
+static inline void
+enlarge_scanline( ASScanline *src_line, ASScanline *dst_line, register int *scales )
+{
+	SCANLINE_FUNC(enlarge_component,*src_line,*dst_line,scales,src_line->width);
+}
+
+Bool
+check_scale_parameters( ASImage *src, int *to_width, int *to_height )
+{
+	if( src == NULL ) 
+		return False;
+  
+	if( *to_width < 0 ) 
+		*to_width = src->width ;
+	else if( *to_width < 2 ) 
+		*to_width = 2 ;		
+	if( *to_height < 0 ) 
+		*to_height = src->height ;
+	else if( *to_height < 2 ) 
+		*to_height = 2 ;
+	return True;				
+}		
+
+
+void 
+scale_image_down( ASImage *src, ASImage *dst, int h_ratio )
+{
+	ASScanline *src_line, *dst_line, *total ;
+	
+	if( h_ratio < 1 ) 
+	{
+	}else if( h_ratio >= 1 && h_ratio <= 2) /* scaling up */
+	{
+	}else if( h_ratio > 2 && h_ratio <= 3) 
+	{
+	}else
+	{
+	}
+}
+
+void 
+scale_image_up12( ASImage *src, ASImage *dst, int h_ratio )
+{
+	ASScanline *src_line ;
+	
+	if( h_ratio < 1 ) 
+	{
+	}else if( h_ratio >= 1 && h_ratio <= 2) /* scaling up */
+	{
+	}else if( h_ratio > 2 && h_ratio <= 3) 
+	{
+	}else
+	{
+	}
+}
+
+void 
+scale_image_up23( ASImage *src, ASImage *dst, int h_ratio )
+{
+	ASScanline *src_line ;
+	
+	if( h_ratio < 1 ) 
+	{
+	}else if( h_ratio >= 1 && h_ratio <= 2) /* scaling up */
+	{
+	}else if( h_ratio > 2 && h_ratio <= 3) 
+	{
+	}else
+	{
+	}
+}
+
+void 
+scale_image_up( ASImage *src, ASImage *dst, int h_ratio )
+{
+	ASScanline *src_line ;
+	
+	if( h_ratio < 1 ) 
+	{
+	}else if( h_ratio >= 1 && h_ratio <= 2) /* scaling up */
+	{
+	}else if( h_ratio > 2 && h_ratio <= 3) 
+	{
+	}else
+	{
+	}
+}
+
+
+ASImage *
+scale_image( ASImage *src, int to_width, int to_height )
+{
+	ASImage *dst = NULL ;
+	int h_ratio, v_ratio ;
+	
+	if( !check_scale_parameters(src,&to_width,&to_height) ) 
+		return NULL;
+
+	dst = safecalloc(1, sizeof(ASImage));
+	asimage_start (dst, to_width, to_height);
+
+	h_ratio = to_width/src->width;
+	v_ratio = to_height/src->height;
+	
+	if( v_ratio < 1 ) 					   /* scaling down */
+		scale_image_down( src, dst, h_ratio );
+	else if( v_ratio >= 1 && v_ratio <= 2) /* scaling up */
+		scale_image_up12( src, dst, h_ratio );
+	else if( v_ratio > 2 && v_ratio <= 3) 
+		scale_image_up23( src, dst, h_ratio );
+	else
+		scale_image_up( src, dst, h_ratio );
+
+	return dst;	
+} 
