@@ -7,9 +7,12 @@
 #include "asvisual.h"
 #include "blender.h"
 #include "asimage.h"
+#include "ascmap.h"
+#include "asfont.h"
+#include "ximage.h"
+#include "transform.h"
 #include "import.h"
 #include "export.h"
-#include "asfont.h"
 
 /****h* libAfterImage/libAfterImage
  * NAME
@@ -151,7 +154,8 @@
 /****h* libAfterImage/API Reference
  * CHILDREN
  * Headers :
- *          asvisual.h, blender.h, asimage.h, import.h, asfont.h
+ *          asvisual.h, ascmap.h, asimage.h, asfont.h, ximage.h,
+ *          transform.h, blender.h, import.h, export.h
  * Structures :
  *          ColorPair
  *          ASScanline

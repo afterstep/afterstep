@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 		show_error( "not enough arguments, please see usage: ");
 		usage() ;
 		printf( "Using the default, \"The Burning Rose\", composition :\n");
-		printf( "\n\trose.jpg add back.xpm:512x386 hue fore.xpm:512x386\n");
+		printf( "\n\trose512.jpg add back.xpm:512x386 hue fore.xpm:512x386\n");
 		argv = &(burning_rose[0]) ;
 		argc = 6;
 	}
