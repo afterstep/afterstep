@@ -1914,6 +1914,30 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+	if (!strcmp(doc->tag, "printf")) 
+	{
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* format = NULL;
+		const char* var = NULL;
+		int val = 0 ;
+		Bool use_val = False ;
+		for (ptr = parm ; ptr ; ptr = ptr->next) 
+		{
+			if (!strcmp(ptr->tag, "format")) format = ptr->parm;
+			else if (!strcmp(ptr->tag, "var")) { var = ptr->parm; use_val = False; }
+			else if (!strcmp(ptr->tag, "val")) { val = parse_math(ptr->parm, NULL, 0); use_val = True; }
+		}
+		if( format != NULL ) 
+		{	
+			if( use_val ) 
+				printf( format, val );
+			else if( var != NULL ) 
+				printf( format, asxml_var_get(var) );				
+		}
+		if( result == NULL ) 
+			return NULL;
+	}
+
 	/* No match so far... see if one of our children can do any better.*/
 	if (!result) {
 		xml_elem_t* tparm = NULL;

@@ -174,11 +174,14 @@ void usage(void) {
 static char* default_doc_str = "\
 <composite op=hue>\
   <composite op=add>\
-    <scale width=512 height=384><img src=rose512.jpg/></scale>\
+    <scale width=512 height=384><img id=rose src=rose512.jpg/></scale>\
     <tile width=512 height=384><img src=back.xpm/></tile>\
   </composite>\
   <tile width=512 height=384><img src=fore.xpm/></tile>\
 </composite>\
+<printf format=\"original image width=%d\n\" var=\"rose.width\"/>\
+<printf format=\"original image height=%d\n\" var=\"rose.height\"/>\
+<printf format=\"original image size in pixels=%d\n\" val=$rose.width*$rose.height/>\
 ";
 /*******/
 int main(int argc, char** argv) {
