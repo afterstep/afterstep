@@ -24,7 +24,7 @@
 
 #include <X11/Xmd.h>
 
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG*/
 
 #include "../include/aftersteplib.h"
 #include "../include/asvector.h"
@@ -36,6 +36,7 @@ ASVector *create_asvector( size_t unit )
     {
         v = safecalloc( 1, sizeof(ASVector) );
         v->unit = unit ;
+LOCAL_DEBUG_CALLER_OUT("%p, %d", v, unit );
     }
     return v;
 }
@@ -72,7 +73,6 @@ alloc_vector( ASVector *v, size_t new_size )
 void *
 realloc_vector( ASVector *v, size_t new_size )
 {
-LOCAL_DEBUG_CALLER_OUT("0x%lX, %lu(*%d)", (unsigned long)v, (unsigned long)new_size, v?v->unit:0 );
     if( v == NULL || new_size == 0  ) return NULL ;
     if( v->allocated < new_size )
     {
@@ -92,6 +92,7 @@ LOCAL_DEBUG_CALLER_OUT("0x%lX, %lu(*%d)", (unsigned long)v, (unsigned long)new_s
         }else
             v->memory = safemalloc( v->allocated * v->unit );
     }
+LOCAL_DEBUG_CALLER_OUT("%p, %lu(*%d)| new memory = %p", v, (unsigned long)new_size, v?v->unit:0, v->memory );
     return v->memory;
 }
 

@@ -26,35 +26,6 @@
 #include "../configure.h"
 #include "../include/aftersteplib.h"
 
-#undef mystrdup
-char         *
-mystrdup (const char *str)
-{
-	char         *c = NULL;
-
-	if (str)
-	{
-		c = safemalloc (strlen (str) + 1);
-		strcpy (c, str);
-	}
-	return c;
-}
-
-#undef mystrndup
-char         *
-mystrndup (const char *str, size_t n)
-{
-	char         *c = NULL;
-
-	if (str)
-	{
-		c = safemalloc (n + 1);
-		strncpy (c, str, n);
-		c[n] = '\0';
-	}
-	return c;
-}
-
 int
 mystrcasecmp (const char *s1, const char *s2)
 {
@@ -101,3 +72,32 @@ mystrncasecmp (const char *s1, const char *s2, size_t n)
 	}
 }
 
+#undef mystrdup
+#undef mystrndup
+#undef safemalloc
+char         *
+mystrdup (const char *str)
+{
+	char         *c = NULL;
+
+	if (str)
+	{
+		c = safemalloc (strlen (str) + 1);
+		strcpy (c, str);
+	}
+	return c;
+}
+
+char         *
+mystrndup (const char *str, size_t n)
+{
+	char         *c = NULL;
+
+	if (str)
+	{
+		c = safemalloc (n + 1);
+		strncpy (c, str, n);
+		c[n] = '\0';
+	}
+	return c;
+}

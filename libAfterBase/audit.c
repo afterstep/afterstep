@@ -46,6 +46,18 @@
 #undef realloc
 #undef add_hash_item
 #undef free
+#undef mystrdup
+#undef mystrndup
+
+void *countmalloc (const char *fname, int line, size_t length);
+void *countcalloc (const char *fname, int line, size_t nrecords,
+		   size_t length);
+void *countrealloc (const char *fname, int line, void *ptr, size_t length);
+void countfree (const char *fname, int line, void *ptr);
+ASHashResult countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHashableValue value, void *data );
+char* mystrdup( const char *a);
+char* mystrndup( const char *a, int len);
+
 
 #undef XCreatePixmap
 #undef XCreateBitmapFromData
@@ -105,6 +117,8 @@ enum
 	C_CALLOC = 0x200,
 	C_REALLOC = 0x300,
 	C_ADD_HASH_ITEM = 0x400,
+	C_MYSTRDUP = 0x500,
+	C_MYSTRNDUP = 0x600,
 
 	C_PIXMAP = 1,
 	C_CREATEPIXMAP = 0x100,
@@ -342,16 +356,18 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 void
 countfree (const char *fname, int line, void *ptr)
 {
-	mem          *m = count_find_and_extract (fname, line, ptr, C_MEM);
+	mem          *m ;
 
 	if( service_mode ) 
 		return ;
+		
 	if (ptr == NULL)
 	{
 		fprintf (stderr, "%s:attempt to free NULL memory in %s:%d\n", __FUNCTION__, fname, line);
 		return;
 	}
 
+	m = count_find_and_extract (fname, line, ptr, C_MEM);		
 	if (m == NULL)
 	{
 		fprintf (stderr,
@@ -385,6 +401,24 @@ countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHas
     if( res == ASH_Success )
 		count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_ITEM);
 	return res;
+}
+
+char* countadd_mystrdup(const char *fname, int line, const char *a)
+{
+	char *ptr = mystrdup(a);
+
+    if( a != NULL )
+		count_alloc (fname, line, ptr, strlen(ptr)+1, C_MEM | C_MYSTRDUP);
+	return ptr;
+}
+
+char* countadd_mystrndup(const char *fname, int line, const char *a, int len)
+{
+	char *ptr = mystrndup(a, len );
+
+    if( a != NULL )
+		count_alloc (fname, line, ptr, strlen(ptr)+1, C_MEM | C_MYSTRNDUP);
+	return ptr;
 }
 
 
@@ -435,6 +469,12 @@ print_unfreed_mem (void)
 					  break;
 				  case C_ADD_HASH_ITEM:
 					  fprintf (stderr, " (add_hash_item)");
+					  break;
+				  case C_MYSTRDUP:
+					  fprintf (stderr, " (mystrdup)");
+					  break;
+				  case C_MYSTRNDUP:
+					  fprintf (stderr, " (mystrndup)");
 					  break;
 				 }
 				 /* if it seems to be a string, print it */

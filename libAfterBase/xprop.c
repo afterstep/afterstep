@@ -33,6 +33,8 @@
 #include <X11/Xproto.h>
 #include <X11/Xmd.h>
 
+/*#define LOCAL_DEBUG*/
+
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
 #include "../include/screen.h"
@@ -139,11 +141,12 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 
 		if (!res)
 		{
-			if (*list && *nitems > 0)
+			if (*list )
 				XFree (*list);
 			*nitems = 0;
 			*list = NULL;
 		}
+LOCAL_DEBUG_CALLER_OUT("*list == %p", *list );
 	}
 	return res;
 }

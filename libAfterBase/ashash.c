@@ -29,7 +29,7 @@
 
 #include <X11/Xmd.h>
 
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG*/
 
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
