@@ -42,7 +42,7 @@
  *
  * SYNOPSIS
  * ascompose -f file|-s string [-o file] [-t type] [-V]"
- * ascompose -f file|-s string [-o file] [-t type] [-V]"
+ * ascompose -i include_file [-i more_include_file ... ]-f file|-s string [-o file] [-t type] [-V]"
  * ascompose -f file|-s string [-o file] [-t type] [-V] [-n]"
  * ascompose -f file|-s string [-o file] [-t type [-c compression_level]] [-V] [-r]"
  * ascompose [-h]
@@ -109,6 +109,7 @@
  *                       use several of these, like: ascompose -V -V -V.
  *    -D --debug         maximum verbosity - show everything and
  *                       debug messages.
+ *    -i --include file  include file as input prior to processing main file.
  * PORTABILITY
  * ascompose could be used both with and without X window system. It has
  * been tested on most UNIX flavors on both 32 and 64 bit architecture.
@@ -192,6 +193,10 @@ int main(int argc, char** argv) {
 
 	/* see ASView.1 : */
 	set_application_name(argv[0]);
+
+	/* scrap asvisual so we can work on include files ( not displaying anything ) */
+	asv = create_asvisual(NULL, 0, 32, NULL);
+
 	/* Parse command line. */
 	for (i = 1 ; i < argc ; i++) {
 		if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
@@ -213,6 +218,19 @@ int main(int argc, char** argv) {
 			verbose+=2;
 		} else if ((!strcmp(argv[i], "--file") || !strcmp(argv[i], "-f")) && i < argc + 1) {
 			doc_file = argv[++i];
+		} else if ((!strcmp(argv[i], "--include") || !strcmp(argv[i], "-i")) && i < argc + 1) 
+		{
+			char *incl_str = load_file(argv[++i]);
+	  		if (!incl_str) 
+			{
+				fprintf(stderr, "Unable to load file [%s]: %s.\n", argv[i], strerror(errno));
+			}else
+			{
+				ASImage *im = compose_asimage_xml(asv, NULL, NULL, incl_str, ASFLAGS_EVERYTHING, verbose, None, NULL);
+				free( incl_str );
+				if( im )
+					destroy_asimage(&im);
+			}
 		} else if ((!strcmp(argv[i], "--string") || !strcmp(argv[i], "-s")) && i < argc + 1) {
 			doc_str = argv[++i];
 		} else if ((!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) && i < argc + 1) {
@@ -230,6 +248,8 @@ int main(int argc, char** argv) {
 		}
 #endif /* X_DISPLAY_MISSING */
 	}
+	
+	destroy_asvisual( asv, False );
 
 	/* Load the document from file, if one was given. */
 	if (doc_file) {

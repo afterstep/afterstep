@@ -47,7 +47,7 @@ AC_ARG_WITH(jpeg,		    [  --with-jpeg              support JPEG image format [ye
 AC_ARG_WITH(jpeg_includes,  [  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=NO)
 AC_ARG_WITH(png,		    [  --with-png               support PNG image format [yes]])
 AC_ARG_WITH(png_includes,   [  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=NO)
-AC_ARG_WITH(ungif,		    [  --with-ungif             support GIF image format using libungif [yes]],with_ungif="$withval",with_ungif=yes)
+AC_ARG_WITH(ungif,		    [  --with-ungif             support Uncompressed GIF image format using libungif [no]],with_ungif="$withval",with_ungif=no)
 AC_ARG_WITH(gif,		    [  --with-gif               support GIF image format using libgif   [no]],with_gif="$withval",with_gif=no)
 AC_ARG_WITH(gif_includes,   [  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=NO)
 AC_ARG_WITH(tiff,		    [  --with-tiff              support TIFF image format [yes]])

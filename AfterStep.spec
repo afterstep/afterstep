@@ -1,6 +1,6 @@
 %define	name	AfterStep
-%define	fver	2.00.beta1
-%define	version	2.00.beta1
+%define	fver	2.00.beta2
+%define	version	2.00.beta2
 %define	release	1
 %define	serial	1
 
@@ -45,13 +45,7 @@ rm -rf afterstep/start
 tar xzf $RPM_SOURCE_DIR/AfterStep-redhat.tar.gz
 
 CFLAGS=$RPM_OPT_FLAGS \
-./configure --prefix=/usr/X11R6 --datadir=/usr/share \
-	--with-imageloader="xv -root -quit" \
-	--with-helpcommand="xterm -e man" \
-	--with-desktops=1 \
-	--with-deskgeometry=2x3 \
-	--disable-availability \
-	--disable-staticlibs
+./configure --prefix=/usr/X11R6 --datadir=/usr/share --disable-staticlibs
 
 %build
 make

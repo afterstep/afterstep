@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 	struct ASFontManager *fontman = NULL;
 	struct ASFont  *font = NULL;
 	unsigned int width, height ;
-	int i, k = 0 ;
+	int i;
 	int text_margin = size/2 ;
 
 

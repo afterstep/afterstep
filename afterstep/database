@@ -86,14 +86,14 @@ Style	"kate"			Icon kwrite.png
 Style	"kcalc"			Icon kcalc.png
 Style	"kedit"			Icon kedit.png
 Style	"kfm"			Icon FileFolders.xpm
-Style	"kmail"			Icon kmail.png, StartsOnDesk 0
+Style	"kmail"			Icon kmail.png, StartsOnDesk 2
 Style	"knode"			Icon knode.png, StartsOnDesk 1
-Style	"konsole"		Icon konsole.png, StartsOnDesk 2
-Style	"korganizer"		Icon karm.png, StartsOnDesk 0
-Style	"konqueror"		Icon konqueror.xpm, StartsOnDesk 1
+Style	"konsole"		Icon konsole.png
+Style	"korganizer"		Icon karm.png
+Style	"konqueror"		Icon konqueror.xpm
 Style	"kppp"	        	Icon kppp.png, StartsOnDesk 2
-Style	"ksysguard"		Icon ksysguard.png, StartsOnDesk 2
-Style	"kvt"			Icon Computer.xpm, StartsOnDesk 2
+Style	"ksysguard"		Icon ksysguard.pn
+Style	"kvt"			Icon Computer.xpm
 Style	"kwrite"		Icon kwrite.png
 
 # gnome apps :
@@ -111,13 +111,13 @@ Style	"alarmd"		Icon korganizer.xpm, AvoidCover, NoTitle, NoHandles, WindowListS
 Style	"calc"			Icon ooo_calc.xpm, StartsOnDesk 0
 Style	"evolution"		Icon ximian.png, StartsOnDesk 0
 Style   "gdiskfree"     	Icon hdd_unmount.png, AvoidCover, Layer 0
-Style	"gnorpm"		Icon /usr/share/pixmaps/redhat/rpmlogo-64.xpm, StartsOnDesk 2
+Style	"gnorpm"		Icon /usr/share/pixmaps/redhat/rpmlogo-64.xpm, StartsOnDesk 0
 Style	"impress"		Icon ooo_impress.xpm, StartsOnDesk 0
 Style	"math"			Icon ooo_math.xpm, StartsOnDesk 0
 Style	"nt"			Icon nt.xpm, StartsOnDesk 1
-Style	"vmware-ui"		Icon Network.xpm, StartsOnDesk 3, NoButton 2
+Style	"vmware-ui"		Icon Network.xpm, StartsOnDesk 0, NoButton 2
 Style	"writer"		Icon ooo_writer.xpm, StartsOnDesk 0
-Style	"xdos"		        Icon file-dot-bat.xpm, StartsOnDesk 2, NoButton 2
+Style	"xdos"		        Icon file-dot-bat.xpm, StartsOnDesk 0, NoButton 2
 
 # contributed by M.-A. DARCHE <ma dot darche at cynode dot org>
 Style   "Blender"       	NoTitle, NoHandles

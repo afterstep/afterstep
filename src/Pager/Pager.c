@@ -1103,7 +1103,9 @@ redecorate_pager_desks()
     int i ;
     char buf[256];
     XSetWindowAttributes attr;
-	int wasted_x = Config->border_width, wasted_y = Config->border_width ;
+	int wasted_x = Config->border_width * (Config->columns+1) ;
+	int wasted_y = Config->border_width * (Config->rows+1);
+
     for( i = 0 ; i < PagerState.desks_num ; ++i )
     {
         ASPagerDesk *d = &(PagerState.desks[i]);
@@ -1125,8 +1127,6 @@ redecorate_pager_desks()
 		{
 			XSetWindowBorder( dpy, d->desk_canvas->w, attr.border_pixel );
 		}
-		wasted_x += Config->border_width * Config->rows;
-		wasted_y += Config->border_width * Config->columns;
         /* create & moveresize label bar : */
         if( get_flags( Config->flags, USE_LABEL ) )
         {
@@ -1223,20 +1223,20 @@ redecorate_pager_desks()
 	 */
 	if( !get_flags( Config->geometry.flags, WidthValue ) )
 	{
-		int delta = (wasted_x - PagerState.wasted_width)/Config->columns ;
+		int delta = ((wasted_x - PagerState.wasted_width)+(Config->columns/2))/Config->columns ;
 		if( delta != 0 )
 		{
 			PagerState.desk_width += delta ;
-			PagerState.wasted_width = wasted_x ;
+			PagerState.wasted_width = delta * Config->columns  ;
 		}
 	}
 	if( !get_flags( Config->geometry.flags, HeightValue ) )
 	{
-		int delta = (wasted_y - PagerState.wasted_height)/Config->rows ;
+		int delta = ((wasted_y - PagerState.wasted_height)+(Config->rows/2))/Config->rows ;
 		if( delta != 0 )
 		{
 			PagerState.desk_height += delta ;
-			PagerState.wasted_height = wasted_y ;
+			PagerState.wasted_height = delta * Config->rows ;
 		}
 	}
 

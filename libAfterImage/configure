@@ -869,7 +869,7 @@ Optional Packages:
   --with-jpeg-includes=DIR use JPEG includes in DIR
   --with-png               support PNG image format yes
   --with-png-includes=DIR  use PNG includes in DIR
-  --with-ungif             support GIF image format using libungif yes
+  --with-ungif             support Uncompressed GIF image format using libungif no
   --with-gif               support GIF image format using libgif   no
   --with-gif-includes=DIR  use GIF includes in DIR
   --with-tiff              support TIFF image format yes
@@ -1446,7 +1446,7 @@ if test "${with_ungif+set}" = set; then
   withval="$with_ungif"
   with_ungif="$withval"
 else
-  with_ungif=yes
+  with_ungif=no
 fi;
 
 # Check whether --with-gif or --without-gif was given.

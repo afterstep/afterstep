@@ -2,21 +2,50 @@
 ///     This is AfterStep TEAM
 ///
 
-coordinators :
+coordinator, coder, web designer, carpenter, and everything else ( at the moment ):
 --------------
-Ethan Fischer	<allanon@crystaltokyo.com>
 Sasha Vasko	<sasha at aftercode.net>
+
+Web hosting and design : 
+------------------------
+Remco Rijnders <webmaster@webconquest.com>
+
+good angel of AfterStep ( althou admittedly a lazy one ) :
+----------------------------------------------------------
+Ethan Fischer	<allanon@crystaltokyo.com>
+( also oversees development Mailing List )
+
+IRC #afterstep maintainer :
+---------------------------
 David Mihm	<dmihm@swbell.net>
+
+User and Bugs ML maintenance and hosting : 
+---------------------------------
+Doug Alcorn (AKA Lathi) <doug@lathi.net>
+
+User ML archives and excellent apps catalog : 
+---------------------------------------------
+Albert Dorofeev (AKA Tigr)  albert@tigr.net
+
+DNS :
+-----
+hostmaster@rchitecture.com (David Mihm)
+
+Hordes of suffering beta-testers, devoted users and all those who 
+helped enourmously to keep me on right track and brought this work to fruition.
+
+
+
+
+
+Also some historical references : 
+---------------------------------
 
 portability :
 -------------
 NO NEWS OF	C.Ridd@isode.com
 NO NEWS OF	mehul@kirsun.ne.mediaone.net
 
-executables :
--------------
-allanon@crystaltokyo.com
-sasha at aftercode.net
 
 NO NEWS OF M.Vitecek@sh.cvut.cz
 NO NEWS OF rafal@mcss.mcmaster.ca
@@ -29,10 +58,9 @@ NO NEWS OF ssopre1@umbc.edu
 
 contributors :
 --------------
-alcornd@earthlink.net
-asullivan@sprint.ca
-ishamael@themes.org
-ryanw@infohwy.com
+NO NEWS OF asullivan@sprint.ca
+NO NEWS OF ishamael@themes.org
+NO NEWS OF ryanw@infohwy.com
 
 C++ recoding :
 --------------
@@ -41,20 +69,16 @@ NO NEWS OF Juergen.Sawinski@urz.uni-heidelberg.de
 
 documentation :
 ---------------
-dmihm@swbell.net
+NO NEWS OF dmihm@swbell.net
 NO NEWS OF malach@nothing-but.net.nz
 
 FAQ :
 -----
-ishamael@themes.org
-
-IRC :
------
-EFnet/#afterstep: DrStepper (aka dmihm@swbell.net)
+NO NEWS OF ishamael@themes.org
 
 look&feels :
 ------------
-dmihm@swbell.net
+NO NEWS OF dmihm@swbell.net
 NO NEWS OF bjtracy@wsicorp.com
 NO NEWS OF Faical Tanarhte <faycal@anrt.net.ma>
 
@@ -62,22 +86,3 @@ logos :
 -------
 NO NEWS OF Faical Tanarhte <faycal@anrt.net.ma>
 
-DNS :
------
-hostmaster@rchitecture.com (David Mihm)
-
-www.afterstep.org :
--------------------
-webmaster@afterstep.org (David Mihm)
-
-ftp.afterstep.org :
--------------------
-ftpmaster@afterstep.org (David Mihm)
-
-mailing lists :
----------------
-General-
-	Doug Alcorn <doug@lathi.net>
-
-Development-
-	Ethan Fischer <allanon@crystaltokyo.com>
