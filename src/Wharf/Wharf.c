@@ -1017,8 +1017,10 @@ map_wharf_folder( ASWharfFolder *aswf,
     extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_TypeDock ;
 
     if( aswf != WharfState.root_folder )
+	{
         XSetTransientForHint(dpy, aswf->canvas->w, WharfState.root_folder->canvas->w);
-    else
+		extwm_hints.flags |=  EXTWM_TypeDialog ;
+    }else
         protocols = AS_DoesWmDeleteWindow ;
 
     set_client_hints( aswf->canvas->w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
