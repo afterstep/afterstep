@@ -591,7 +591,7 @@ DispatchEvent (ASEvent * event)
         case ReparentNotify :
             if( event->x.xreparent.parent == Scr.Root )
             {
-                sleep_a_little( 50000 );
+                sleep_a_millisec( 500 );
                 XMoveResizeWindow( dpy, event->x.xreparent.window, -1000, -1000, 1, 1 );
             }
             break ;
@@ -1071,7 +1071,7 @@ map_wharf_folder( ASWharfFolder *aswf,
     LOCAL_DEBUG_OUT( "mapping main window at %ux%u%+d%+d", width, height,  x, y );
     /* final cleanup */
     ASSync( False );
-    sleep_a_little (10000);                                 /* we have to give AS a chance to spot us */
+    sleep_a_millisec (200);                                 /* we have to give AS a chance to spot us */
 }
 
 void
@@ -1676,7 +1676,7 @@ check_swallow_window( ASWindowData *wd )
 	{/* we should wait for AfterSTep to complete AddWindow protocol */
 	    /* do the actuall swallowing here : */
     	XUngrabServer( dpy );
-		sleep_a_little(1000*try_num);
+		sleep_a_millisec(200*try_num);
 		XGrabServer( dpy );
 		w = get_parent_window( wd->client );
 		LOCAL_DEBUG_OUT( "attempt %d:first parent %lX, root %lX", try_num, w, Scr.Root );
@@ -1861,9 +1861,9 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
                     resize_canvas( aswf->canvas, new_width, new_height) ;
                     ASSync( False ) ;
                     if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
-                        sleep_a_little( Config->animate_delay*10000 );
+                        sleep_a_millisec( Config->animate_delay*100 );
                     else
-                        sleep_a_little( 10000 );
+                        sleep_a_millisec( 100 );
                 }
                 while( --i >= 0 )
                     if( aswf->buttons[i].swallowed )

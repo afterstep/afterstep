@@ -68,8 +68,8 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
         while (total < Scr.Feel.EdgeResistanceScroll)
 		{
             register int i ;
-			sleep_a_little (10000);
-			total += 10;
+			sleep_a_millisec(1);
+			total += 5;
             for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
                 if( Scr.PanFrame[i].isMapped )
                     if (ASCheckWindowEvent (Scr.PanFrame[i].win, LeaveWindowMask, &(event->x)))
@@ -366,7 +366,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 			XUngrabServer (dpy);
     }
 	/* yield to let modules handle desktop/viewport change */
-	sleep_a_little(1000);
+	sleep_a_millisec(500);
 
 
 
@@ -444,7 +444,7 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
 
     //SendPacket( -1, M_NEW_DESK, 1, new_desk);
 	/* yeld to let modules handle desktop change */
-	sleep_a_little(1000);
+	sleep_a_millisec(500);
     /* Scan the window list, mapping windows on the new Desk, unmapping
 	 * windows on the old Desk; do this in reverse order to reduce client
 	 * expose events */
@@ -810,7 +810,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 		{                                      /* cruel hack to force refresh of transprent terms : */
 			set_xrootpmap_id (Scr.wmprops, None );
 			ASSync(False);
-			sleep_a_little( 1000 );
+			sleep_a_millisec( 500 );
 		}
 #endif
         set_xrootpmap_id (Scr.wmprops, bh->pmap );

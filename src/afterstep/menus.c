@@ -422,7 +422,8 @@ render_asmenu_bars( ASMenu *menu, Bool force )
             update_canvas_display( menu->main_canvas );
             ASSync(False);
 			/* yield to let some time for menu redrawing to happen : */
-			sleep_a_little(10000);
+			//sleep_a_millisec(10);
+			menu->rendered = True ;
         }
     }
 }
@@ -1310,11 +1311,13 @@ run_submenu( ASMenu *supermenu, MenuData *md, int x, int y )
     if( md )
     {
         menu = create_asmenu(md->name);
+		menu->rendered = False ;
         set_asmenu_data( menu, md, True );
         set_asmenu_look( menu, &Scr.Look );
         /* will set scroll position when ConfigureNotify arrives */
         menu->supermenu = supermenu;
         show_asmenu(menu, x, y );
+		MapConfigureNotifyLoop();
     }
     return menu;
 }

@@ -137,9 +137,9 @@ Bool untar_file( const char *src, const char *dst, ASThemeFileType type )
 		spawn_child( command_line, TAR_SINGLETON_ID, 0, 0, 0, True, False, NULL );
 		free( command_line );
 		command_line = NULL ;
-		for( i = 600 ; i >= 0 ; --i )
+		for( i = 3000 ; i >= 0 ; --i )
 		{
-			sleep_a_little(10000);
+			sleep_a_millisec(100);
 			if( check_singleton_child (TAR_SINGLETON_ID, False) == 0 )
 			{
 				type = AST_ThemeTar ;
@@ -155,12 +155,12 @@ Bool untar_file( const char *src, const char *dst, ASThemeFileType type )
 		LOCAL_DEBUG_OUT( "command line is \"%s\"", command_line );
 		spawn_child( command_line, TAR_SINGLETON_ID, 0, 0, 0, True, False, NULL );
 		free( command_line );
-		for( i = 600 ; i >= 0 ; --i )
+		for( i = 3000 ; i >= 0 ; --i )
 		{
-			sleep_a_little(10000);
+			sleep_a_millisec(100);
 			if( check_singleton_child (TAR_SINGLETON_ID, False) == 0 )
 			{
-				sleep_a_little(120000);        /* 2 sec delay for some reason */
+				sleep_a_millisec(2000);        /* 2 sec delay for some reason */
 				break;
 			}
 		}

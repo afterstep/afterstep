@@ -698,7 +698,7 @@ check_singleton_child (int singleton_id, Bool kill_it_to_death)
 			kill (pid, SIGTERM);
 			for (i = 0; i < 100; i++)		   /* give it 10 sec to terminate */
 			{
-				sleep_a_little (100);
+				sleep_a_millisec (100);
 				if ( WAIT_CHILDREN (&status) == pid || as_singletons[singleton_id] <= 0 )
 					break;
 			}

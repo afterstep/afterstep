@@ -84,6 +84,21 @@ main (int argc, char **argv)
 {
     register int i ;
 
+#ifdef LOCAL_DEBUG
+#if 0
+	LOCAL_DEBUG_OUT( "calibrating sleep_a_little : %s","" );
+	for( i = 0 ; i < 500 ; ++i )
+		sleep_a_millisec( 10 );
+	LOCAL_DEBUG_OUT( "500 sliip_a_little(10) completed%s","" );
+	for( i = 0 ; i < 50 ; ++i )
+		sleep_a_millisec( 100 );
+	LOCAL_DEBUG_OUT( "50 sliip_a_little(100) completed%s","" );
+	for( i = 0 ; i < 10 ; ++i )
+		sleep_a_millisec( 300 );
+	LOCAL_DEBUG_OUT( "10 sliip_a_little(300) completed%s","" );
+#endif
+#endif
+
 	_as_grab_screen_func = GrabEm;
 	_as_ungrab_screen_func = UngrabEm;
 
@@ -102,8 +117,6 @@ main (int argc, char **argv)
 	fprintf (stderr, "logging font calls now\n");
 #endif
 
-    set_parent_hints_func( afterstep_parent_hints_func ); /* callback for collect_hints() */
-
     /* These signals are mandatory : */
     signal (SIGUSR1, Restart);
     /* These signals we would like to handle only if those are not handled already (by debugger): */
@@ -112,14 +125,19 @@ main (int argc, char **argv)
     IgnoreSignal(SIGQUIT);
     IgnoreSignal(SIGTERM);
 
-    ConnectX( &Scr, AS_ROOT_EVENT_MASK );
-    InitSession();
+    if( ConnectX( &Scr, AS_ROOT_EVENT_MASK ) < 0  )
+	{
+		show_error( "Hostile X server encountered - unable to proceed :-(");
+		return 1;/* failed to accure window management selection - other wm is running */
+	}
 
+	InitSession();
     XSync (dpy, 0);
 
 #ifdef XSHMIMAGE
 	enable_shmem_images ();
 #endif
+    set_parent_hints_func( afterstep_parent_hints_func ); /* callback for collect_hints() */
 
     SetupModules();
     SetupScreen();
@@ -320,6 +338,7 @@ SetupScreen()
     CreateManagementWindows();
     Scr.Windows = init_aswindow_list();
 
+	XSelectInput (dpy, Scr.Root, AS_ROOT_EVENT_MASK);
 }
 
 void
@@ -389,10 +408,24 @@ CleanupScreen()
         }
         free( Scr.RootBackground );
     }
-    destroy_wmprops( Scr.wmprops, False);
+LOCAL_DEBUG_OUT("destroying image manager : %p", Scr.image_manager);
     destroy_image_manager( Scr.image_manager, False );
-LOCAL_DEBUG_OUT("destroying font manager : %s","");
+LOCAL_DEBUG_OUT("destroying font manager : %p", Scr.font_manager);
     destroy_font_manager( Scr.font_manager, False );
+
+LOCAL_DEBUG_OUT("destroying visual : %p", Scr.asv);
+    destroy_asvisual( Scr.asv, False );
+
+LOCAL_DEBUG_OUT("selecting input mask for Root window to 0 : %s","");
+	/* Must release SubstructureRedirectMask prior to releasing wm selection in
+	 * destroy_wmprops() : */
+	XSelectInput( dpy, Scr.Root, 0 );
+	XUngrabPointer( dpy, CurrentTime );
+	XUngrabButton (dpy, AnyButton, AnyModifier, Scr.Root);
+
+LOCAL_DEBUG_OUT("destroying wmprops : %p",Scr.wmprops);
+	/* this must be done at the very end !!!! */
+	destroy_wmprops( Scr.wmprops, False);
 LOCAL_DEBUG_OUT("screen cleanup complete.%s","");
 }
 
@@ -560,11 +593,15 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
         free( fname );
     }
 #endif
-    /* remove window frames */
-    CleanupScreen();
 
 	/* Close all my pipes */
     ShutdownModules(False);
+
+    /* remove window frames */
+    CleanupScreen();
+    /* Really make sure that the connection is closed and cleared! */
+    XSync (dpy, 0);
+    XCloseDisplay (dpy);
 
 	/* freeing up memory */
     destroy_assession( Session );
@@ -574,10 +611,6 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     /* pixmap references */
     build_xpm_colormap (NULL);
 
-    /* Really make sure that the connection is closed and cleared! */
-    XSelectInput (dpy, Scr.Root, 0);
-    XSync (dpy, 0);
-    XCloseDisplay (dpy);
 
 	if (restart)
 	{
@@ -592,7 +625,6 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
         free_func_hash();
         purge_asimage_registry();
         flush_ashash_memory_pool();
-        destroy_asvisual( Scr.asv, False );
         flush_asbidirlist_memory_pool();
         free( MyArgs.saved_argv );
         print_unfreed_mem ();

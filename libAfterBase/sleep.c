@@ -45,6 +45,19 @@ sleep_a_little (int n)
 	PORTABLE_SELECT (1, 0, 0, 0, &value);
 }
 
+void
+sleep_a_millisec (int n)
+{
+	struct timeval value;
+
+	if (n <= 0)
+		return;
+
+	value.tv_usec = (n % 1000)*1000;
+	value.tv_sec = n / 1000;
+
+	PORTABLE_SELECT (1, 0, 0, 0, &value);
+}
 
 static clock_t _as_ticker_last_tick = 0;
 static clock_t _as_ticker_tick_size = 1;
@@ -60,7 +73,7 @@ start_ticker (unsigned int size)
 	{
 		register clock_t delta = _as_ticker_last_tick;
 		/* calibrating clock - how many ms per cpu tick ? */
-		sleep_a_little (100);
+		sleep_a_millisec (100);
 		_as_ticker_last_tick = times (&t);
 		delta = _as_ticker_last_tick - delta ;
 		if( delta <= 0 )
@@ -78,7 +91,7 @@ wait_tick ()
 	register clock_t curr = (times (&t) - _as_ticker_last_tick) * _as_ticker_tick_time;
 
 	if (curr < _as_ticker_tick_size)
-		sleep_a_little (_as_ticker_tick_size - curr);
+		sleep_a_millisec (_as_ticker_tick_size - curr);
 
 	_as_ticker_last_tick = times (&t);
 }

@@ -50,6 +50,7 @@ typedef struct ASMenu
     unsigned int icon_space, arrow_space ;
 	unsigned int scroll_bar_size ;
 
+    Bool rendered ;
     Bool focused ;
     Bool pinned ;
 

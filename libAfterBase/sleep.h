@@ -13,6 +13,8 @@ extern "C" {
 
 
 void	sleep_a_little (int n);
+void    sleep_a_millisec (int n);
+
 void	start_ticker (unsigned int size);
 void	wait_tick ();
 int		is_tick ();

@@ -149,6 +149,8 @@ accure_wm_selection (ASWMProps * wmprops)
 	Window        w;
 	int           tick_count;
 	XEvent        event;
+	Window        old_selection_owner = None;
+	Bool 		  accured = False ;
 
 	if (wmprops == NULL)
 		return False;
@@ -173,23 +175,58 @@ accure_wm_selection (ASWMProps * wmprops)
 		else
 			wmprops->selection_time = CurrentTime;
 	}
+	old_selection_owner = XGetSelectionOwner (dpy, wmprops->_XA_WM_S);
 	/* now we are ready to try and accure selection : */
+	show_progress( "Attempting to accure Window Management selection on screen %d ...", wmprops->scr->screen );
 	XSetSelectionOwner (dpy, wmprops->_XA_WM_S, w, wmprops->selection_time);
 	XSync (dpy, False);
-	for (tick_count = 0; tick_count < 100; tick_count++)
+	/* give old owner 30 seconds to release selection : */
+	for (tick_count = 0; tick_count < 300; tick_count++)
 	{
         Window present_owner = XGetSelectionOwner (dpy, wmprops->_XA_WM_S);
         if ( present_owner == w)
+		{
+			accured = True ;
 			break;
-		sleep_a_little (100);
+		}
+		sleep_a_millisec (100);
 	}
-	if (tick_count < 100)					   /* great success !!! */
+	if( accured && old_selection_owner != None )
+	{
+		/* we need to wait for old window manager to complete its shutdown, which
+		 * will be indicated by its selection window becoming invalid.
+		 * Otherwise some resources may still be unavailable, such as pointer grabbed,
+		 * etc.
+		 */
+		unsigned int udumm ;
+		tick_count = 0 ;
+		while( get_drawable_size( old_selection_owner, &udumm, &udumm ) )
+		{
+			sleep_a_millisec( 100 );
+			if( ++tick_count  == 600 )
+			{ /* if old window manager failed to shutdown in 60 seconds -
+			   * then just kill it ! */
+				XKillClient( dpy, old_selection_owner );
+				show_warning( "Previous Window Manager failed to shutdown in allowed 60 seconds - killing it." );
+			}
+			if( tick_count > 1800 )
+			{
+				show_error("Previous Window Manager failed to shutdown in allowed 3 minutes - Something is terribly wrong ! Aborting! $%^$&%#&# .... " );
+				accured = False ;
+				break;
+			}
+		}
+	}
+
+	if ( accured )					   /* great success !!! */
 	{
 		XWindowAttributes attr;
 		XErrorHandler old_handler = NULL;
 
+		show_progress( "Window Management selection Accured." );
 		/* now lets Add SubstructureRedirectMask to over event mask */
 		XGetWindowAttributes (dpy, wmprops->scr->Root, &attr);
+
 		old_handler = XSetErrorHandler ((XErrorHandler) catch_redirect_error);
 		XSelectInput (dpy, wmprops->scr->Root, attr.your_event_mask | SubstructureRedirectMask);
 		XSetErrorHandler (old_handler);
@@ -270,7 +307,8 @@ release_wm_selection (ASWMProps * wmprops)
 {
 	if (wmprops)
 	{
-#warning TODO:implement proper Window Manager selection release algorithm
+		show_progress( "giving up Window Management selection on screen %d. Bye-bye!", wmprops->scr->screen );
+		XSetSelectionOwner( dpy, wmprops->_XA_WM_S, None, wmprops->selection_time);
 		XDestroyWindow (dpy, wmprops->selection_window);
 	}
 }

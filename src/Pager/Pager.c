@@ -2539,7 +2539,7 @@ GrabEm (ScreenInfo *scr, Cursor cursor)
         }
 		/* If you go too fast, other windows may not get a change to release
 		 * any grab that they have. */
-        sleep_a_little (1000);
+        sleep_a_millisec (100);
         XSync (dpy, 0);
     }
 	return True;

@@ -191,10 +191,10 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
     register XEvent *xevt = &(tmp_event.x) ;
 
     ASSync(False);
-	start_ticker (click_time*10);
+	start_ticker (click_time);
     do
 	{
-        sleep_a_little (100);
+        sleep_a_millisec (100);
         if (ASCheckMaskEvent (end_mask, xevt))
         {
             DigestEvent( &tmp_event );
@@ -283,6 +283,22 @@ ConfigureNotifyLoop()
         DispatchEvent( &event, False );
         ASSync(False);
     }
+}
+
+void
+MapConfigureNotifyLoop()
+{
+    ASEvent event;
+
+	do
+	{
+		if( !ASCheckTypedEvent(MapNotify,&(event.x)) )
+			if( !ASCheckTypedEvent(ConfigureNotify,&(event.x)) )
+				return ;
+        DigestEvent( &event );
+        DispatchEvent( &event, False );
+        ASSync(False);
+    }while(1);
 }
 
 void
@@ -561,6 +577,9 @@ DispatchEvent ( ASEvent *event, Bool deffered )
         case ClientMessage:
             HandleClientMessage (event);
             break;
+		case SelectionClear :
+			HandleSelectionClear(event);
+		    break ;
         default:
 #ifdef SHAPE
             if (event->x.type == (Scr.ShapeEventBase + ShapeNotify))
@@ -919,7 +938,7 @@ HandleUnmapNotify (ASEvent *event )
 
     XGrabServer (dpy);
     destroyed = ASCheckTypedWindowEvent ( event->w, DestroyNotify, &dummy) ;
-	LOCAL_DEBUG_OUT("wm_state_transition = 0x%lX", event->client->wm_state_transition );
+	LOCAL_DEBUG_OUT("wm_state_transition = 0x%X", event->client->wm_state_transition );
 	if( !get_flags( event->client->wm_state_transition, ASWT_FROM_WITHDRAWN ) )
     	event->client->wm_state_transition = ASWIN_GET_FLAGS(event->client, AS_Iconic)?ASWT_Iconic2Withdrawn:ASWT_Normal2Withdrawn ;
 	else
@@ -1183,6 +1202,26 @@ LOCAL_DEBUG_OUT( "old anchor(%dx%d%+d%+d), new_anchor(%dx%d%+d%+d)", asw->anchor
     }
 }
 
+void
+HandleSelectionClear( ASEvent *event )
+{
+	LOCAL_DEBUG_OUT( "SelectionClearEvent : window = %lx, selection = %lx, time = %ld. our( %lx,%lx,%ld )",
+					 event->x.xselectionclear.window,
+					 event->x.xselectionclear.selection,
+					 event->x.xselectionclear.time,
+					 Scr.wmprops->selection_window,
+					 Scr.wmprops->_XA_WM_S,
+					 Scr.wmprops->selection_time );
+	if( event->x.xselectionclear.window == Scr.wmprops->selection_window &&
+		event->x.xselectionclear.selection == Scr.wmprops->_XA_WM_S  )
+	{
+		/* must give up window manager's selection if time of the event
+		 * after time of us accuring the selection */
+		if( event->x.xselectionclear.time  > Scr.wmprops->selection_time )
+			Done( False, NULL );
+	}
+}
+
 /***********************************************************************
  *
  *  Procedure:
@@ -1208,8 +1247,8 @@ HandleShapeNotify (ASEvent *event)
             needs_update = True ;
             shaped = sev->shaped ;
         }
-	ASSync(False);
-	sleep_a_little(100);
+		ASSync(False);
+		sleep_a_millisec(100);
     }
 
     if( needs_update )
@@ -1232,6 +1271,9 @@ void HandleShmCompletion(ASEvent *event)
 	destroy_xshm_segment( sev->shmseg );
 #endif /* SHAPE */
 }
+
+
+
 /***************************************************************************
  *
  * Waits for next X event, or for an auto-raise timeout.

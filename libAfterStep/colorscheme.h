@@ -115,6 +115,9 @@ typedef struct ASColorScheme
 												* set manually, instead of
 												* being computed from the
 												* base color */
+	int 		 main_saturations[ASMC_MainColors] ;
+	int 		 main_values[ASMC_MainColors] ;
+	int 		 main_hues[ASMC_MainColors] ;
 	ARGB32       main_colors[ASMC_MainColors] ;
 
 }ASColorScheme;

@@ -509,6 +509,8 @@ Bool WaitEventLoop( struct ASEvent *event, int finish_event_type, long timeout )
 Bool IsClickLoop( struct ASEvent *event, unsigned int end_mask, unsigned int click_time );
 Bool WaitWindowLoop( char *pattern, long timeout );
 void ConfigureNotifyLoop();
+void MapConfigureNotifyLoop();
+
 
 void AlarmHandler (int nonsense);
 
@@ -530,6 +532,7 @@ void HandlePropertyNotify (struct ASEvent *event);
 void HandleKeyPress (struct ASEvent *event);
 void HandleVisibilityNotify (struct ASEvent *event);
 void HandleColormapNotify (struct ASEvent *event);
+void HandleSelectionClear( struct ASEvent *event );
 
 void HandleShapeNotify (struct ASEvent *event);
 void HandleShmCompletion(struct ASEvent *event);
