@@ -32,6 +32,8 @@ void destroy_wild_reg_exp (wild_reg_exp * wrexp);
 
 /* returns 0 if we have a match - -1 if we have to keep searching, 1 - error */
 int match_wild_reg_exp (char *string, wild_reg_exp * wrexp);
+int match_string_list (char **list, int max_elem, wild_reg_exp * wrexp);
+
 int compare_wild_reg_exp (wild_reg_exp * wrexp1, wild_reg_exp * wrexp2);
 
 /************************************************************************/

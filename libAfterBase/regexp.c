@@ -279,7 +279,7 @@ optimize_reg_exp_sym (unsigned char *trg, reg_exp_sym * p_sym)
 			*(trg++) = r_end;
 	}
 	/* Note also that this procedure will arrange all the codes in ascending order */
-	/* so later on when we trying to match it and code in question is less then 
+	/* so later on when we trying to match it and code in question is less then
 	   any code - we can stop and make decision that we have no match :) */
 	*(trg++) = 0x00;
 	return trg;
@@ -308,7 +308,7 @@ parse_reg_exp (short int lead_len, unsigned char **data)
 		register unsigned char *src, *dst;
 		int           i;
 
-		/* in worst case scenario symbols will occupy 2*n where n - 
+		/* in worst case scenario symbols will occupy 2*n where n -
 		   length of the remaining data.
 		   at the same time negation will occupy only n bytes max anytime :
 		 */
@@ -328,7 +328,7 @@ parse_reg_exp (short int lead_len, unsigned char **data)
 		dst = trg->symbols = safemalloc (sym_next - sym_buf);
 		trg->negation = safemalloc (trg->size);
 		sym_next--;
-		/* we have to store symbols in reverse order, since 
+		/* we have to store symbols in reverse order, since
 		   Booyer-Moor algorithm scans in opposite direction */
 		for (i = 0; i < trg->size; i++)
 		{
@@ -713,7 +713,7 @@ match_substring (reg_exp * rexp, char *string, size_t len, int dir)
 
 	start = (dir & DIR_LEFT) ? rexp->left_offset : lead_len;
 	end = (dir & DIR_RIGHT) ? len - rexp->right_offset : len;
-/*fprintf( stderr, "dir = %d, lead_len = %d, size = %d, start = %d, end = %d, len = %d\n string = {%s}\n", dir, lead_len, size, start, end, len, string );     
+/*fprintf( stderr, "dir = %d, lead_len = %d, size = %d, start = %d, end = %d, len = %d\n string = {%s}\n", dir, lead_len, size, start, end, len, string );
 */
 	if (rexp->left_fixed || (!(dir & DIR_LEFT) && rexp->lead_len >= 0))
 	{
@@ -727,7 +727,7 @@ match_substring (reg_exp * rexp, char *string, size_t len, int dir)
 		start = end - size;
 
 	pos = start + size - 1;
-/*fprintf( stderr, "adjusted: pos = %d, start = %d, end = %d\n", pos, start, end );     
+/*fprintf( stderr, "adjusted: pos = %d, start = %d, end = %d\n", pos, start, end );
 */
 	while (pos < end)
 	{
@@ -796,6 +796,31 @@ match_wild_reg_exp (char *string, wild_reg_exp * wrexp)
 	return match_substring (wrexp->longest, string, len, DIR_BOTH);
 }
 
+int                                            /* returns 0 if we have a match - -1 if we have to keep searching, 1 - error */
+match_string_list (char **list, int max_elem, wild_reg_exp * wrexp)
+{
+    int res = -1;
+    register int i ;
+
+    if (wrexp == NULL || list == NULL)
+        return 1;
+    if (wrexp->longest == NULL)  /* empty regexp matches nothing */
+        return -1;
+
+    for( i = 0 ; i < max_elem ; i++ )
+    {
+        if( list[i] == NULL ) break ;
+        else
+        {
+            int len = strlen (list[i]);
+            if (len >= wrexp->hard_total + wrexp->soft_total)/* string has sufficient length */
+                if( (res = match_substring (wrexp->longest, list[i], len, DIR_BOTH)) >= 0 )
+                    break ;
+        }
+    }
+    return res;
+}
+
 
 int
 compare_wild_reg_exp (wild_reg_exp * wrexp1, wild_reg_exp * wrexp2)
@@ -859,7 +884,7 @@ destroy_wild_reg_exp (wild_reg_exp * wrexp)
  *	(including the null string) '?' matches any single char. For use
  *	by filenameforall. Note that '*' matches across directory boundaries
  *
- *      This code donated by  Paul Hudson <paulh@harlequin.co.uk>    
+ *      This code donated by  Paul Hudson <paulh@harlequin.co.uk>
  *      It is public domain, no strings attached. No guarantees either.
  *		Modified by Emanuele Caratti <wiz@iol.it>
  *
