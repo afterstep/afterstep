@@ -696,6 +696,11 @@ encode_flags (ASFlagType * dst_flags, ASFlagsXref * xref, ASFlagType set_flags, 
 void
 check_motif_hints_sanity (MwmHints * motif_hints)
 {
+	if (get_flags (motif_hints->functions, MWM_FUNC_ALL))
+		motif_hints->functions = MWM_FUNC_EVERYTHING & ~(motif_hints->functions);
+	if (get_flags (motif_hints->decorations, MWM_DECOR_ALL))
+		motif_hints->decorations = MWM_DECOR_EVERYTHING & ~(motif_hints->decorations);
+
 	/* Now I have the un-altered decor and functions, but with the
 	   * ALL attribute cleared and interpreted. I need to modify the
 	   * decorations that are affected by the functions */
@@ -1292,6 +1297,15 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 				property == _XA_NET_WM_VISIBLE_NAME || property == _XA_NET_WM_VISIBLE_ICON_NAME)
 			{
 				int           i;
+				
+				if( mystrcmp(hints->names[0], clean.names[0]) != 0 ) 
+				    changed = True ;
+				else if( mystrcmp(hints->res_name, clean.res_name) != 0 ) 
+				    changed = True ;
+				else if( mystrcmp(hints->res_class, clean.res_class) != 0 ) 
+				    changed = True ;
+				else if( mystrcmp(hints->icon_name, clean.icon_name) != 0 ) 
+				    changed = True ;
 
 				for (i = 0; i < MAX_WINDOW_NAMES; ++i)
 					if (hints->names[i] == NULL)
@@ -1308,7 +1322,6 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 				hints->res_class = clean.res_class;
 				hints->icon_name = clean.icon_name;
 				show_debug (__FILE__, __FUNCTION__, __LINE__, "names set");
-				changed = True;
 			} else if (property == XA_WM_HINTS)
 			{
 

@@ -256,6 +256,8 @@ static CommandLineOpts as_cmdl_options[] =
 /*16*/{NULL, "trace-func","Debugging: Trace calls to a function with requested name", NULL,
                                                            handler_set_string, &(MyArgs.trace_calls), 0, CMO_HasArgs },
 #endif
+/*17*/{"l", "log","Save all output into the file instead of printing it to console", NULL,
+                                                           handler_set_string, &(MyArgs.log_file), 0, CMO_HasArgs },
       {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
 };
 
@@ -467,6 +469,10 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
     if (FuncSyntax.term_hash == NULL)
 		PrepareSyntax (&FuncSyntax);
     set_output_threshold( MyArgs.verbosity_level );
+    if(MyArgs.log_file)
+	if( freopen( MyArgs.log_file, "w", stderr ) == NULL ) 
+	    show_system_error( "failed to redirect output into file \"%s\"", MyArgs.log_file );
+    
 #ifdef DEBUG_TRACE_X
     trace_enable_function(MyArgs.trace_calls);
 #endif

@@ -1417,6 +1417,8 @@ void
 SetShape (ASWindow *asw, int w)
 {
 #ifdef SHAPE
+	LOCAL_DEBUG_CALLER_OUT( "asw(%p)->client(%lX)", asw, asw?asw->w:0 );
+
 	if( asw )
 	{
         if( ASWIN_GET_FLAGS(asw, AS_Dead) )

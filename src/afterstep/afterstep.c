@@ -163,10 +163,6 @@ main (int argc, char **argv)
         }
     }
 
-#ifdef SHAPE
-	XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
-#endif /* SHAPE */
-
    /* make sure we're on the right desk, and the _WIN_DESK property is set */
     Scr.CurrentDesk = INVALID_DESK ;
     if( get_flags( Scr.wmprops->set_props, WMC_ASDesks )  )

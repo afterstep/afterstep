@@ -149,6 +149,7 @@ typedef struct ASProgArgs
 #ifdef DEBUG_TRACE_X
     char      *trace_calls ;
 #endif
+    char      *log_file ;
 }ASProgArgs;
 
 

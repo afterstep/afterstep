@@ -38,6 +38,20 @@ static ASTBarData  *FocusedBar = NULL;          /* currently focused bar with ba
 /********************************************************************/
 /* ASCanvas :                                                       */
 /********************************************************************/
+static Bool 
+check_canvas_shaped( ASCanvas *pc)
+{
+    Bool           boundingShaped= False;
+#ifdef SHAPE
+    int           dumm;
+    unsigned      udumm;
+    XShapeQueryExtents (dpy, pc->w,
+                        &boundingShaped, &dumm, &dumm, &udumm, &udumm, &dumm, &dumm, &dumm, &udumm, &udumm);
+#endif
+    return boundingShaped ;
+}
+
+
 static ASFlagType
 refresh_canvas_config (ASCanvas * pc)
 {
@@ -77,6 +91,7 @@ refresh_canvas_config (ASCanvas * pc)
 				XFreePixmap (dpy, pc->mask);
 				pc->mask = None;
 #ifdef SHAPE
+		LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX) (none)",  pc->w );
                 XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, None, ShapeSet);
 #if 0
                 {
@@ -217,13 +232,14 @@ invalidate_canvas_config( ASCanvas *pc )
         LOCAL_DEBUG_OUT( "resizing to %dx%d", pc->width+1, pc->height+1 );
         XResizeWindow( dpy, pc->w, pc->width+1, pc->height+1 );
 #ifdef SHAPE
-        if ( !get_flags( pc->state, CANVAS_CONTAINER )  )
+        if ( !get_flags( pc->state, CANVAS_CONTAINER )  && check_canvas_shaped( pc) )
         {
             XRectangle    rect;
             rect.x = 0;
             rect.y = 0;
             rect.width  = pc->width+1;
             rect.height = pc->height+1;
+	    LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) (full body)",  pc->w );
             XShapeCombineRectangles ( dpy, pc->w, ShapeBounding,
                                         0, 0, &rect, 1, ShapeSet, Unsorted);
         }
@@ -435,6 +451,7 @@ set_canvas_shape_to_rectangle( ASCanvas * pc )
     get_current_canvas_geometry( pc, &x, &y, &width, &height, &bw );
     rect.width  = width+bw*2;
     rect.height = height+bw*2;
+    LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) (%dx%d%+d%+d)", pc->w, rect.width, rect.height, -bw, -bw );
     XShapeCombineRectangles ( dpy, pc->w, ShapeBounding,
                                 -bw, -bw, &rect, 1, ShapeSet, Unsorted);
 }
@@ -452,7 +469,7 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 #ifdef SHAPE
                 if (pc->mask)
                 {
-                    LOCAL_DEBUG_OUT( "set canvas mask to %lX", pc->mask );
+                    LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX)set canvas mask to %lX", pc->w, pc->mask );
                     XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, pc->mask, ShapeSet);
                 }else
                     set_canvas_shape_to_rectangle( pc );
@@ -478,7 +495,7 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
         {
             if (pc->mask)
             {
-                LOCAL_DEBUG_OUT( "set canvas mask to %lX", pc->mask );
+                LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX)set canvas mask to %lX", pc->w,	pc->mask );	
                 XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, pc->mask, ShapeSet);
             }else
                 set_canvas_shape_to_rectangle( pc );
@@ -554,14 +571,9 @@ LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
 	{
         if( get_flags( child->state, CANVAS_CONTAINER ) )
         {
-            Bool           boundingShaped= False;
-            int           dumm;
-            unsigned      udumm;
-            XShapeQueryExtents (dpy, child->w,
-                                &boundingShaped, &dumm, &dumm, &udumm, &udumm, &dumm, &dumm, &dumm, &udumm, &udumm);
-            if( boundingShaped )
+            if( check_canvas_shaped( child) )
             {
-LOCAL_DEBUG_OUT( "setting bounding container's shape from client at %+d%+d",  child_x, child_y );
+LOCAL_DEBUG_OUT( "XShapeCombineShape(%lX) setting bounding container's shape from client at %+d%+d",  parent->w, child_x+child_bw, child_y+child_bw );
                 XShapeCombineShape (dpy, parent->w, ShapeBounding,
                                     child_x+child_bw, child_y+child_bw,
                                     child->w, ShapeBounding, first?ShapeSet:ShapeUnion);
@@ -577,19 +589,19 @@ LOCAL_DEBUG_OUT( "setting bounding container's shape from client at %+d%+d",  ch
             rect.width  = child_width+child_bw*2;
             rect.height = child_height+child_bw*2;
 
-LOCAL_DEBUG_OUT( "setting bounding container's shape from rectangle %dx%d%+d%+d",  rect.width, rect.height, rect.x, rect.y );
+LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) setting bounding container's shape from rectangle %dx%d%+d%+d",  parent->w, rect.width, rect.height, rect.x, rect.y );
             XShapeCombineRectangles (dpy, parent->w, ShapeBounding,
                                 0, 0, &rect, 1, first?ShapeSet:ShapeUnion, Unsorted);
         }else
         {
             if( !use_window_shape )
             {
-                LOCAL_DEBUG_OUT( "setting bounding container's shape from mask %lX at %+d%+d",  child->mask, child_x, child_y );
+                LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX) setting bounding container's shape from mask %lX at %+d%+d",  parent->w, child->mask, child_x, child_y );
                 XShapeCombineMask  ( dpy, parent->w, ShapeBounding, child_x+child_bw, child_y+child_bw,
                                      child->mask, first?ShapeSet:ShapeUnion);
             }else
             {
-                LOCAL_DEBUG_OUT( "setting bounding container's shape from shape %lX at %+d%+d",  child->mask, child_x, child_y );
+                LOCAL_DEBUG_OUT( "XShapeCombineShape(%lX) setting bounding container's shape from shape %lX at %+d%+d",  parent->w, child->mask, child_x, child_y );
                 XShapeCombineShape (dpy, parent->w, ShapeBounding, child_x+child_bw, child_y+child_bw,
                                     child->w, ShapeBounding, first?ShapeSet:ShapeUnion);
             }
@@ -627,7 +639,7 @@ replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int chi
         rect.width  = width+bw*2;
         rect.height = height+bw*2;
 
-LOCAL_DEBUG_OUT( "subtracting rectangle %dx%d%+d%+d from bounding container's shape",  rect.width, rect.height, rect.x, rect.y );
+LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) subtracting rectangle %dx%d%+d%+d from bounding container's shape",  parent->w, rect.width, rect.height, rect.x, rect.y );
         XShapeCombineRectangles (dpy, parent->w, ShapeBounding, 0, 0, &rect, 1, ShapeSubtract, Unsorted);
         return combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw, False, use_window_shape );
     }

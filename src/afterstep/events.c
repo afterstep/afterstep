@@ -243,7 +243,10 @@ WaitWindowLoop( char *pattern, long timeout )
                 }
 			}
 			if( is_tick() )
+			{
+			    done = True ;
 				break;
+			}
 
 		}while( has_x_events );
 
@@ -692,7 +695,13 @@ HandlePropertyNotify (ASEvent *event)
 
     if( (asw = event->client) == NULL )
         return ;
-
+    else
+    {
+	char *prop_name = NULL;
+        LOCAL_DEBUG_OUT( "property %s", (prop_name = XGetAtomName( dpy, atom )) );
+	if( prop_name )
+	    XFree( prop_name );
+    }
     if( IsNameProp(atom))
     {
         show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
@@ -700,16 +709,18 @@ HandlePropertyNotify (ASEvent *event)
                                         Scr.Look.supported_hints,
                                         asw->hints, asw->status ) )
         {
-            broadcast_window_name( asw );
-            broadcast_icon_name( asw );
-
             show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\"", ASWIN_NAME(asw), ASWIN_ICON_NAME(asw) );
             /* fix the name in the title bar */
-            if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
-                on_window_title_changed( asw, True );
+            if( get_flags( Scr.Feel.flags, FollowTitleChanges) )
+	        on_window_hints_changed( asw );
+	    else
+	    {
+		if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
+            	    on_window_title_changed( asw, True );
+	        broadcast_window_name( asw );
+        	broadcast_icon_name( asw );
+	    }
         }
-        if( get_flags( Scr.Feel.flags, FollowTitleChanges) )
-            on_window_hints_changed( asw );
     /* otherwise we should check if this is the status property that we change ourselves : */
     }else if( NeedToTrackPropChanges(atom) )
         on_window_hints_changed( asw );
@@ -1183,6 +1194,8 @@ HandleShapeNotify (ASEvent *event)
             needs_update = True ;
             shaped = sev->shaped ;
         }
+	ASSync(False);
+	sleep_a_little(100);
     }
 
     if( needs_update )
