@@ -2879,6 +2879,71 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 	return dst;
 }
 
+ASImage *
+mirror_asimage( ASVisual *asv, ASImage *src,
+		      int offset_x, int offset_y,
+			  unsigned int to_width,
+			  unsigned int to_height,
+			  Bool vertical, ASAltImFormats out_format, 
+			  unsigned int compression_out, int quality )
+{
+	ASImage *dst = NULL ;
+	ASImageOutput  *imout ;
+	START_TIME(started);
+	
+LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
+	dst = create_asimage(to_width, to_height, compression_out);
+#ifdef HAVE_MMX
+	mmx_init();
+#endif
+	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
+	{
+		asimage_init(dst, True);
+		free( dst );
+		dst = NULL ;
+	}else
+	{
+		ASImageDecoder *imdec ;
+		ASScanline result ;
+		int y;
+		if( !vertical ) 
+			prepare_scanline( to_width, 0, &result, asv->BGR_mode );
+LOCAL_DEBUG_OUT("miroring actually...%s", "");
+		if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y,
+		                                  to_width, to_height, NULL)) != NULL )
+		{
+			if( vertical )
+			{
+				toggle_image_output_direction( imout );
+				for( y = 0 ; y < to_height ; y++  )
+				{
+					imdec->decode_image_scanline( imdec );
+					imout->output_image_scanline( imout, &(imdec->buffer), 1);
+				}
+			}else
+			{
+				for( y = 0 ; y < to_height ; y++  )
+				{
+					imdec->decode_image_scanline( imdec );
+					result.flags = imdec->buffer.flags ;
+					result.back_color = imdec->buffer.back_color ;
+					SCANLINE_FUNC(reverse_component,imdec->buffer,result,0,to_width);
+					imout->output_image_scanline( imout, &result, 1);
+				}
+			}	
+			stop_image_decoding( &imdec );
+		}
+		if( !vertical ) 
+			free_scanline( &result, True );
+		stop_image_output( &imout );
+	}
+#ifdef HAVE_MMX
+	mmx_off();
+#endif
+	SHOW_TIME("", started);
+	return dst;
+}
+
 /* ***************************************************************************/
 /* ASImage->XImage->pixmap->XImage->ASImage conversion						*/
 /* ***************************************************************************/

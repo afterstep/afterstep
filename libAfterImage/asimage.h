@@ -1176,6 +1176,34 @@ Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc,
  * and it will rotate it then based on flip value. Three rotation angles
  * supported 90, 180 and 270 degrees.
  *********/
+/****f* libAfterImage/asimage/mirror_asimage()
+ * SYNOPSIS
+ * ASImage *mirror_asimage ( struct ASVisual *asv,
+ *                           ASImage *src,
+ *                           int offset_x, int offset_y,
+ *                           unsigned int to_width,
+ *                           unsigned int to_height,
+ *                           Bool vertical, ASAltImFormats out_format,
+ *                           unsigned int compression_out, int quality );
+ * INPUTS
+ * asv          - pointer to valid ASVisual structure
+ * src          - source ASImage
+ * offset_x     - left clip margin
+ * offset_y     - right clip margin
+ * to_width     - desired width of the resulting image
+ * to_height    - desired height of the resulting image
+ * vertical     - mirror in vertical direction.
+ * out_format 	- optionally describes alternative ASImage format that
+ *                should be produced as the result - XImage, ARGB32, etc.
+ * compression_out - compression level of resulting image in range 0-100.
+ * quality      - output quality
+ * RETURN VALUE
+ * returns newly created and encoded ASImage on success, NULL of failure.
+ * DESCRIPTION
+ * mirror_asimage() will create new image of requested size, it will then
+ * tile source image based on offset_x, offset_y, and destination size,
+ * and it will mirror it in vertical or horizontal direction. 
+ *********/
 ASImage *scale_asimage( struct ASVisual *asv, ASImage *src,
 						unsigned int to_width, unsigned int to_height,
 						ASAltImFormats out_format,
@@ -1198,6 +1226,12 @@ ASImage *flip_asimage( struct ASVisual *asv, ASImage *src,
 			  		   unsigned int to_width, unsigned int to_height,
 					   int flip, ASAltImFormats out_format,
 					   unsigned int compression_out, int quality );
+ASImage *mirror_asimage( ASVisual *asv, ASImage *src,
+				         int offset_x, int offset_y,
+						 unsigned int to_width,
+			             unsigned int to_height,
+			             Bool vertical, ASAltImFormats out_format, 
+						 unsigned int compression_out, int quality );
 
 
 
