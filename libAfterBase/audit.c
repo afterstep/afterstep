@@ -7,12 +7,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -175,8 +175,12 @@ void mem_destroy (ASHashableValue value,void *data)
 		else
         {
             if( total_service < sizeof(mem) )
+			{
                 show_error( "it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ((mem*)data)->ptr, ((mem*)data)->fname, ((mem*)data)->line );
-            else
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
+            }else
                 total_service -= sizeof(mem);
             free( data );
         }
@@ -203,6 +207,9 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 	{
 		show_error( "Same pointer value 0x%lX is being counted twice!\n  Called from %s:%d - previously allocated in %s:%d", (unsigned long)ptr, fname, line, m->fname, m->line );
 		print_simple_backtrace();
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
 	}else if( deallocated_used > 0 )
     {
         m = deallocated_mem[--deallocated_used];
@@ -216,6 +223,9 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
             show_error( "<mem> too much auditing service memory used (%lu - was %lu)- aborting, please investigate.\n   Called from %s:%d",
                         total_service+sizeof(mem), total_service, fname, line );
             print_simple_backtrace();
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
             exit(0);
         }
         total_service += sizeof(mem);
@@ -253,6 +263,9 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
             show_error( "<add_hash_item> too much auditing service memory used (%lu - was %lu)- aborting, please investigate.\n   Called from %s:%d",
                         total_service+sizeof(ASHashItem), total_service, fname, line );
             print_simple_backtrace();
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
             exit(0);
         }
         total_service += sizeof(ASHashItem);
@@ -286,11 +299,20 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 			if( allocs_hash->items_num <= 0 )
 				destroy_ashash(&allocs_hash);
 			if( (m->type & 0xff) != (type & 0xff) && (m->type & 0xff) != C_IMAGE )
-                		show_error( "while deallocating pointer %p discovered that it was allocated with different type\n   Called from %s:%d", ptr, fname, line );
-            		if( total_service < sizeof(ASHashItem) )
-                		show_error( "it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ptr, fname, line );
-         		else
-		                total_service -= sizeof(ASHashItem);
+			{
+            	show_error( "while deallocating pointer %p discovered that it was allocated with different type\n   Called from %s:%d", ptr, fname, line );
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
+			}
+			if( total_service < sizeof(ASHashItem) )
+			{
+            	show_error( "it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ptr, fname, line );
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
+      		}else
+		        total_service -= sizeof(ASHashItem);
         }
         service_mode-- ;
 	}
@@ -310,7 +332,12 @@ countmalloc (const char *fname, int line, size_t length)
 {
 	void         *ptr;
     if( (int)length < 0 )
+	{
 		fprintf( stderr, "too large malloc of %u from %s:%d\n", length, fname, line );
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
+	}
 	ptr = safemalloc (length);
 	count_alloc (fname, line, ptr, length, C_MEM | C_MALLOC);
 	return ptr;
@@ -322,8 +349,12 @@ countcalloc (const char *fname, int line, size_t nrecords, size_t length)
 	void         *ptr = calloc (nrecords, length);
 
     if( (int)(length*nrecords) < 0 )
+	{
 		fprintf( stderr, "too large calloc of %u from %s:%d\n", length*nrecords, fname, line );
-
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
+	}
 	count_alloc (fname, line, ptr, nrecords * length, C_MEM | C_CALLOC);
 	return ptr;
 }
@@ -347,6 +378,9 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 				if( (m->type & 0xff) != C_MEM )
 				{
 					show_error( "while deallocating pointer 0x%lX discovered that it was allocated with different type", ptr );
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
 					m = NULL ;
 				}
 			service_mode-- ;
@@ -356,6 +390,9 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 			show_error ("%s:attempt in %s:%d to realloc memory(%p) that was never allocated!\n",
 					     __FUNCTION__, fname, line, ptr);
 			print_simple_backtrace();
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
 			return NULL;
 		}
 		if ((m->type & 0xff) == C_MEM)
@@ -379,7 +416,12 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 		m->freed = 0;
 		ptr = m->ptr;
 		if( (res = add_hash_item( allocs_hash, (ASHashableValue)ptr, m )) != ASH_Success )
+		{
 			show_error( "failed to log allocation for pointer 0x%lX - result = %d", ptr, res);
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
+		}
   		reallocations++;
 	} else
 		ptr = countmalloc (fname, line, length);
@@ -398,6 +440,9 @@ countfree (const char *fname, int line, void *ptr)
 	if (ptr == NULL)
 	{
 		fprintf (stderr, "%s:attempt to free NULL memory in %s:%d\n", __FUNCTION__, fname, line);
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
 		return;
 	}
 
@@ -405,8 +450,13 @@ countfree (const char *fname, int line, void *ptr)
 	if (m == NULL)
 	{
 		if( cleanup_mode == 0 )
+		{
 			fprintf (stderr,
 					 "%s:attempt in %s:%d to free memory(%p) that was never allocated!\n", __FUNCTION__, fname, line, ptr);
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
+		}
 		return;
 	}
 #if 0
@@ -416,6 +466,9 @@ countfree (const char *fname, int line, void *ptr)
 		fprintf (stderr, "%s:mem already freed %d time(s)!\n", __FUNCTION__, m1->freed);
 		fprintf (stderr, "%s:freed from %s:%d\n", __FUNCTION__, (*m1).fname, (*m1).line);
 		fprintf (stderr, "%s:called from %s:%d\n", __FUNCTION__, fname, line);
+#ifdef DEBUG_ALLOC_STRICT
+{	char *segv = NULL ;	*segv = 0 ;  }
+#endif
 		/* exit (1); */
 	} else
 		safefree (m1->ptr);

@@ -971,6 +971,27 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	return ptr - color_ptr[y];
 }
 
+void print_asimage( ASImage *im, int flags, char * func, int line )
+{
+	if( im )
+	{
+		register int k ;
+		int total_mem = 0 ;
+		fprintf( stderr, "%s:%d> printing ASImage %p.\n", func, line, im);
+		for( k = 0 ; k < im->height ; k++ )
+    	{
+ 			fprintf( stderr, "%s:%d> ******* %d *******\n", func, line, k );
+			total_mem+=asimage_print_line( im, IC_RED  , k, flags );
+			total_mem+=asimage_print_line( im, IC_GREEN, k, flags );
+			total_mem+=asimage_print_line( im, IC_BLUE , k, flags );
+    	}
+    	fprintf( stderr, "%s:%d> Total memory : %u - image size %dx%d ratio %d%%\n", func, line, total_mem, im->width, im->height, (total_mem*100)/(im->width*im->height*3) );
+	}else
+		fprintf( stderr, "%s:%d> Attempted to print NULL ASImage.\n", func, line);
+}
+
+
+
 inline static CARD32*
 asimage_decode_block32 (register CARD8 *src, CARD32 *to_buf, unsigned int width )
 {

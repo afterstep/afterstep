@@ -153,7 +153,6 @@ int main(int argc, char* argv[])
 					layers[layers_num].im = scaled_bottom ;
 				}
 			}
-
 			++layers_num ;
 		}
 	}

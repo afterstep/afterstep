@@ -509,11 +509,13 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 				int color ;
 				for( color = 0 ; color < IC_NUM_CHANNELS ; ++color )
 					if( get_flags( filter, 0x01<<color ) )
+					{
 						make_component_gradient16( scl->channels[color]+offset,
 												   ARGB32_CHAN8(grad->color[i],color)<<8,
 												   ARGB32_CHAN8(grad->color[i+1],color)<<8,
 												   ARGB32_CHAN8(seed,color),
 												   step);
+					}
 				offset += step ;
 			}
 		}
@@ -763,7 +765,7 @@ tile_asimage( ASVisual *asv, ASImage *src,
 	ASImageOutput  *imout ;
 	START_TIME(started);
 
-LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
+LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, tint = #%8.8lX", offset_x, offset_y, to_width, to_height, tint );
 	if( src && (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 		return NULL;
 
@@ -834,11 +836,12 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	dst = create_asimage ( dst_width, dst_height, compression_out);
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
 	dst_line.flags = SCL_DO_ALL ;
-
 	imdecs = safecalloc( count, sizeof(ASImageDecoder*));
-	if( pcurr->im == NULL )
-		pcurr->im = fake_bg = create_asimage( 1, 1, 0 );
 
+/*  don't really know why the hell we need that ???
+ *  if( pcurr->im == NULL )
+		pcurr->im = fake_bg = create_asimage( 1, 1, 0 );
+ */
 	for( i = 0 ; i < count ; i++ )
 	{
 		/* all laayers but first must have valid image or solid_color ! */
@@ -953,7 +956,11 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 			stop_image_decoding( &(imdecs[i]) );
 	free( imdecs );
 	if( fake_bg )
+	{
+		if( layers[0].im == fake_bg )
+			layers[0].im = NULL ;
 		destroy_asimage( &fake_bg );
+	}
 	free_scanline( &dst_line, True );
 	SHOW_TIME("", started);
 	return dst;
@@ -979,7 +986,7 @@ make_gradient_top2bottom( ASImageOutput *imout, ASScanline *dither_lines, int di
 	int line ;
 	ASScanline result;
 	CARD32 chan_data[MAX_GRADIENT_DITHER_LINES] = {0,0,0,0};
-LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count = %d", width, height, filter, dither_lines_num );
+LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count = %d\n", width, height, filter, dither_lines_num );
 	prepare_scanline( width, QUANT_ERR_BITS, &result, imout->asv->BGR_mode );
 	for( y = 0 ; y < height ; y++ )
 	{
@@ -1481,7 +1488,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d",
 		dst = NULL ;
 	}else
 	{
-		ASImageDecoder *imdec ;
+		ASImageDecoder *imdec = NULL;
 		ASScanline result ;
 		int y;
 		int start_x = (dst_x < 0)? 0: dst_x;
@@ -1502,7 +1509,7 @@ LOCAL_DEBUG_OUT( "filling %d lines with %8.8lX", start_y, color );
 		for( y = 0 ; y < start_y ; y++  )
 			imout->output_image_scanline( imout, &result, 1);
 
-		if( imdec ) 
+		if( imdec )
 			result.back_color = imdec->buffer.back_color ;
 		if( to_width == clip_width )
 		{

@@ -828,7 +828,7 @@ void copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
  *********/
 unsigned int asimage_print_line (ASImage * im, ColorPart color,
 				 unsigned int y, unsigned long verbosity);
-
+void print_asimage( ASImage *im, int flags, char * func, int line );
 /* the following 5 macros will in fact unfold into huge but fast piece of code : */
 /* we make poor compiler work overtime unfolding all this macroses but I bet it  */
 /* is still better then C++ templates :)									     */

@@ -371,7 +371,7 @@ list_scanline_merging(FILE* stream, const char *format)
 		max_i -= offset ; \
 		if( (int)(top->width) < max_i )	max_i = top->width ; \
 	}else if( max_i > top->width ) max_i = top->width;
-		
+
 
 
 void

@@ -5,12 +5,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -24,7 +24,7 @@
 #define DO_X11_ANTIALIASING
 #define DO_2STEP_X11_ANTIALIASING
 #define DO_3STEP_X11_ANTIALIASING
-#define X11_AA_HEIGHT_THRESHOLD 14
+#define X11_AA_HEIGHT_THRESHOLD 10
 #define X11_2STEP_AA_HEIGHT_THRESHOLD 15
 #define X11_3STEP_AA_HEIGHT_THRESHOLD 15
 
@@ -230,9 +230,9 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 {
 	ASFont *font = NULL ;
 	Bool freetype = False ;
-	if( face_no >= 100 ) 
+	if( face_no >= 100 )
 		face_no = 0 ;
-	if( size >= 1000 ) 
+	if( size >= 1000 )
 		size = 999 ;
 
 	if( fontman && font_string )
@@ -245,7 +245,6 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 			len += ((face_no>=10)?2:1)+1 ;
 			ff_name = safemalloc( len );
 			sprintf( ff_name, "%s$%d$%d", font_string, size, face_no );
-
 			if( get_hash_item( fontman->fonts_hash, (ASHashableValue)((char*)ff_name), (void**)&font) != ASH_Success )
 
 			{	/* not loaded just yet - lets do it :*/
@@ -254,10 +253,10 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 				if( font == NULL )
 					font = open_X11_font( fontman, font_string );
 				else
-					freetype = True ;				
+					freetype = True ;
 				if( font != NULL )
 				{
-					if( freetype ) 
+					if( freetype )
 					{
 						font->name = ff_name ;
 						ff_name = NULL ;
@@ -266,9 +265,9 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 					add_hash_item( fontman->fonts_hash, (ASHashableValue)(char*)font->name, font);
 				}
 			}
-			if( ff_name != NULL ) 
+			if( ff_name != NULL )
 				free( ff_name );
-		}			
+		}
 		if( font )
 			font->ref_count++ ;
 	}
@@ -443,8 +442,8 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 	{
 		++dst ; ++dst ;
 	}
-	pixmap  = safemalloc( dst - buffer );
-	memcpy( pixmap, buffer, dst-buffer );
+	pixmap  = safemalloc( dst - buffer);
+/*	memcpy( pixmap, buffer, dst-buffer ); */
 #endif
 	return pixmap;
 }
@@ -480,7 +479,6 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
 			if( c >= 0x01FE )  /* we cut off secondary aliases */
 				row[0] = c>>2;
 		}
-
 		for( x = 1 ; x < width-1 ; x++ )
 		{
 			if( row[x] == 0 )
@@ -1045,12 +1043,12 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 	int space_size  = (font->space_size>>1)+1+font->spacing_x;
 
 	apply_text_3D_type( type, &offset_3d_x, &offset_3d_y );
-	
+
 	if( text == NULL || font == NULL || map == NULL)
 		return False;
 
 	offset_3d_x += font->spacing_x ;
-	offset_3d_y += font->spacing_y ;	
+	offset_3d_y += font->spacing_y ;
 
 	map->glyphs_num = 1;
 	while( *ptr != 0 )
@@ -1097,9 +1095,9 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 	}while( text[i] != '\0' );
 
 	map->width = MAX( w, 1 );
-	map->height = line_count * (font->max_height+offset_3d_y); 
+	map->height = line_count * (font->max_height+offset_3d_y);
 	map->height -= font->spacing_y ;
-		
+
 	if( map->height <= 0 )
 		map->height = 1 ;
 
@@ -1121,7 +1119,7 @@ get_text_size( const char *text, ASFont *font, ASText3DType type, unsigned int *
 		return False;
 
 	offset_3d_x += font->spacing_x ;
-	offset_3d_y += font->spacing_y ;	
+	offset_3d_y += font->spacing_y ;
 
 	do
 	{
@@ -1224,9 +1222,9 @@ LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font
 		return NULL;
 
 	apply_text_3D_type( type, &(offset_3d_x), &(offset_3d_y) );
-	
+
 	offset_3d_x += font->spacing_x ;
-	offset_3d_y += font->spacing_y ;	
+	offset_3d_y += font->spacing_y ;
 	line_height = font->max_height+offset_3d_y ;
 
 LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
@@ -1274,7 +1272,7 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 			}
 			pen_x = (font->pen_move_dir == RIGHT_TO_LEFT)? map.width : 0;
 			pen_y += line_height;
-			if( pen_y <0 ) 
+			if( pen_y <0 )
 				pen_y = 0 ;
 		}else
 		{
@@ -1358,12 +1356,12 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 
 Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y )
 {
-	if( font ) 
+	if( font )
 	{
-		if( x ) 
-			*x = font->spacing_x ;	
-		if( y ) 
-			*y = font->spacing_y ;	
+		if( x )
+			*x = font->spacing_x ;
+		if( y )
+			*y = font->spacing_y ;
 		return True ;
 	}
 	return False ;
@@ -1371,10 +1369,10 @@ Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y )
 
 Bool set_asfont_glyph_spacing( ASFont* font, int x, int y )
 {
-	if( font ) 
+	if( font )
 	{
-		font->spacing_x = (x < 0 )? 0: x;	
-		font->spacing_y = (y < 0 )? 0: y;	
+		font->spacing_x = (x < 0 )? 0: x;
+		font->spacing_y = (y < 0 )? 0: y;
 		return True ;
 	}
 	return False ;
