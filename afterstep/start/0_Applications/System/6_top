@@ -1,1 +1,1 @@
-Exec "Process List" exec xterm -n top -T top -e top &
+ExecInTerm "Process List" -n top -T top -e top &

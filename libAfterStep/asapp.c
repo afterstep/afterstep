@@ -121,6 +121,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("MiniPixmap", 10, F_MINIPIXMAP),	/* MiniPixmap "name" */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Exec", 4, F_EXEC),	/* Exec   "name" command */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Module", 6, F_MODULE),	/* Module "name" command */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInTerm", 10, F_ExecInTerm),   /* ExecInTerm   "name" command */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillModuleByName", 16, F_KILLMODULEBYNAME),	/* KillModuleByName "name" module */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "QuickRestart", 12, F_QUICKRESTART),	/* QuickRestart "name" what */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Background", 10, F_CHANGE_BACKGROUND),	/* Background "name" file_name */
@@ -172,6 +173,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
     FUNC_TERM ("PinMenu", 7, F_PIN_MENU),    /* PinMenu ["name"] */
 	FUNC_TERM ("TakeWindowShot", 14, F_TAKE_WINDOWSHOT),
 	FUNC_TERM ("TakeFrameShot", 13, F_TAKE_FRAMESHOT),
+	FUNC_TERM ("SwallowWindow", 13, F_SWALLOW_WINDOW),  /* SwallowWindow "name" module_name */ 
 	/* end of window functions */
 	/* these are commands  to be used only by modules */
 	FUNC_TERM ("&nonsense&", 10, F_MODULE_FUNC_START),	/* not really a command */
@@ -189,7 +191,6 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
     {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallow", 10, TT_FUNCTION, F_MaxSwallow, NULL},
     {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "SwallowModule", 13, TT_FUNCTION, F_SwallowModule, NULL},
     {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallowModule", 16, TT_FUNCTION, F_MaxSwallowModule, NULL},
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "DropExec", 8, F_DropExec),   /* DropExec   "name" command */
     {TF_NO_MYNAME_PREPENDING, "Size", 4, TT_FUNCTION, F_Size, NULL},
     {TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_FUNCTION, F_Transient, NULL},
 

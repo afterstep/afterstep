@@ -1,1 +1,1 @@
-Exec "VI" exec xterm -n VI -T VI -e vi &
+ExecInTerm "VI" -n VI -T VI -e vi &

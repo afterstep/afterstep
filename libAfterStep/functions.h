@@ -42,6 +42,7 @@ typedef enum FunctionCode{
   F_MINIPIXMAP,
   F_EXEC,
   F_MODULE,
+  F_ExecInTerm,
   F_KILLMODULEBYNAME,
   F_QUICKRESTART,
   F_CHANGE_BACKGROUND,
@@ -93,6 +94,7 @@ typedef enum FunctionCode{
   F_PIN_MENU,
   F_TAKE_WINDOWSHOT,
   F_TAKE_FRAMESHOT,
+  F_SWALLOW_WINDOW,
   /* end of window functions */
   /* these are commands  to be used only by modules */
 /* end of window functions */
@@ -114,7 +116,6 @@ typedef enum FunctionCode{
   F_MaxSwallow,
   F_SwallowModule,
   F_MaxSwallowModule,
-  F_DropExec,
   F_SWALLOW_FUNC_END,
   F_Size = F_SWALLOW_FUNC_END,
   F_Transient,

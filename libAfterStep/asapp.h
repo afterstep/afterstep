@@ -179,6 +179,8 @@ typedef struct ASEnvironment
   char *cursor_path;
   unsigned short desk_pages_h, desk_pages_v ;
   unsigned short desk_scale ;
+
+  char *term_command ;
 }ASEnvironment;
 
 /*

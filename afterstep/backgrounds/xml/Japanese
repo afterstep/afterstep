@@ -3,6 +3,6 @@
 		<scale width=$xroot.width-40 height=$xroot.height-40>
 			<img src=".Japanese"/>
 		</scale>
-	<pad>
+	</pad>
 </bevel>
 

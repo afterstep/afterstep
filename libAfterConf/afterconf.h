@@ -227,6 +227,7 @@ void LinkAfterStepConfig();
 #define BASE_MYNAME_PATH_ID     BASE_ID_START+6
 #define BASE_DESKTOP_SIZE_ID	BASE_ID_START+7
 #define BASE_DESKTOP_SCALE_ID	BASE_ID_START+8
+#define BASE_TermCommand_ID		BASE_ID_START+9
 #define BASE_ID_END             BASE_ID_START+10
 
 typedef struct
@@ -240,6 +241,9 @@ typedef struct
     char *myname_path;
     ASGeometry desktop_size;
     int desktop_scale;
+
+#define MAX_TERM_COMMANDS	16
+	char *term_command[MAX_TERM_COMMANDS] ; 
 
     struct FreeStorageElem *more_stuff;
 }BaseConfig;
@@ -1166,6 +1170,7 @@ typedef struct WharfButtonContent
 {
 	char **icon;
   	struct FunctionData *function;
+	Bool unavailable ;
 }WharfButtonContent ;
 
 typedef struct WharfButton

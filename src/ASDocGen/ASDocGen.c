@@ -187,6 +187,25 @@ DeadPipe (int foo)
     exit (0);
 }
 
+void
+asdocgen_usage (void)
+{
+	printf ("Usage:\n"
+			"%s\t\t[-t |--target plain|text|html|php|xml|nroff|source] [-s | -css stylesheets_file]\n"
+			"\t\t\t[--faq-css stylesheets_file] [--html-data-back background] [-d | --data]\n"
+			"\t\t\t[-S | --source source_dir] [-D | --dst destination_dir]\n"
+			"-t | --target 		- selects oputput file format\n"
+			"-s | --css 		- selects which file to get HTML style sheets from\n"
+			"     --faq-css    	- selects which file to get HTML style sheets from for FAQs\n"
+			"	  --html-data-back - which image file to use as HTML background ( default background.jpg )\n"
+			"-d | --data        - generate HTML catalogue of image/data files\n"
+			"-S | --source      - specifies dir to read XML source or data source from\n"
+			"-D | --dst         - specifies destination directory - where to wriote stuff to\n",
+			MyName);
+	exit (0);
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -197,7 +216,7 @@ main (int argc, char **argv)
 	ASDocType target_type = DocType_Source ;
 	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
-    InitMyApp (CLASS_ASDOCGEN, argc, argv, NULL, NULL, 0 );
+    InitMyApp (CLASS_ASDOCGEN, argc, argv, asdocgen_usage, NULL, 0 );
 	LinkAfterStepConfig();
 	InitSession();
     for( i = 1 ; i< argc ; ++i)

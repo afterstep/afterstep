@@ -48,6 +48,7 @@ TermDef       BaseTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "Path", 4,            TT_PATHNAME, BASE_MYNAME_PATH_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "DeskTopSize", 11,    TT_GEOMETRY, BASE_DESKTOP_SIZE_ID   , NULL},
     {TF_NO_MYNAME_PREPENDING, "DeskTopScale", 12,   TT_INTEGER,  BASE_DESKTOP_SCALE_ID  , NULL},
+    {TF_NO_MYNAME_PREPENDING|TF_INDEXED, "TermCommand", 11,    TT_TEXT,     BASE_TermCommand_ID  , NULL},
 	{0, NULL, 0, 0, 0}
 };
 
@@ -69,22 +70,13 @@ SyntaxDef     BaseSyntax = {
 BaseConfig   *
 CreateBaseConfig ()
 {
-	BaseConfig   *config = (BaseConfig *) safemalloc (sizeof (BaseConfig));
+	BaseConfig   *config = safecalloc (1, sizeof (BaseConfig));
 
 	/* let's initialize Base config with some nice values: */
-	config->module_path = NULL;
-	config->audio_path = NULL;
-	config->icon_path = NULL;
-	config->pixmap_path = NULL;
-	config->font_path = NULL;
-	config->cursor_path = NULL;
-	config->myname_path = NULL;
 	config->desktop_size.flags = WidthValue | HeightValue;
 	config->desktop_size.width = config->desktop_size.height = 1;
 	config->desktop_size.x = config->desktop_size.y = 0;
 	config->desktop_scale = 32;
-
-	config->more_stuff = NULL;
 
 	return config;
 }
@@ -106,6 +98,14 @@ DestroyBaseConfig (BaseConfig * config)
 		free (config->cursor_path);
 	if (config->myname_path)
 		free (config->myname_path);
+	if( config->term_command )
+	{
+		int i = MAX_TERM_COMMANDS;
+		while( --i >= 0 ) 
+			if( config->term_command[i] )
+				free( config->term_command[i] );
+	}	 
+
 	DestroyFreeStorage (&(config->more_stuff));
 	free (config);
 }
@@ -167,6 +167,9 @@ ParseBaseOptions (const char *filename, char *myname)
 			 if (config->desktop_scale < 1)
 				 config->desktop_scale = 1;
 			 break;
+		 case BASE_TermCommand_ID :
+		 	if( item.index  < MAX_TERM_COMMANDS || item.index >= 0 ) 
+				set_string_value(&(config->term_command[item.index]), item.data.string, NULL, 0 );		 	
 		 default:
 			 item.ok_to_free = 1;
 		}
@@ -296,6 +299,7 @@ void
 BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 {
 	register ASEnvironment *env = *penv;
+	int i;
 	if( env == NULL )
 		env = safecalloc( 1, sizeof( ASEnvironment ) );
 	ExtractPath (config, &(env->module_path),
@@ -315,6 +319,28 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 	else
 		env->desk_pages_v = 0 ;
 	env->desk_scale = config->desktop_scale ;
+	env->term_command = NULL ; 
+	for( i = 0 ; i < MAX_TERM_COMMANDS ; ++i ) 
+		if( config->term_command[i] )
+		{
+			if( is_executable_in_path( config->term_command[i] ) ) 
+			{	
+				env->term_command = mystrdup( config->term_command[i] );
+				break;
+			}
+		}	 
+	if( env->term_command == NULL ) 
+	{
+		if( is_executable_in_path( "aterm" ) ) 
+			env->term_command = mystrdup( "aterm" );
+		else if( is_executable_in_path( "rxvt" ) ) 
+			env->term_command = mystrdup( "rxvt  -tr -fg yellow -bg black" );
+		else if( is_executable_in_path( "eterm" ) ) 
+			env->term_command = mystrdup( "eterm -tr -tint blue -fg yellow -bg black" );
+		else 
+			env->term_command = mystrdup( "xterm -fg yellow -bg blue" );
+	}
+	show_progress( "ExecInTerm will use: \"%s\"", env->term_command );
 	*penv = env ;
 }
 

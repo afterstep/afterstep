@@ -1,1 +1,1 @@
-Exec "Lynx" exec xterm -n Lynx -T Lynx -e lynx &
+ExecInTerm "Lynx" -n Lynx -T Lynx -e lynx &

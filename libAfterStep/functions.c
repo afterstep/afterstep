@@ -647,7 +647,7 @@ check_availability( MenuDataItem *mdi )
     clear_flags( mdi->flags, MD_Disabled );
 #ifndef NO_AVAILABILITYCHECK
 LOCAL_DEBUG_OUT( "checking availability for \"%s\"", mdi->fdata->name?mdi->fdata->name:"nameless" );
-    if ( IsSwallowFunc(mdi->fdata->func) || IsExecFunc(mdi->fdata->func) )
+    if ( mdi->fdata->func!= F_ExecInTerm && (IsSwallowFunc(mdi->fdata->func) || IsExecFunc(mdi->fdata->func)) )
     {
 LOCAL_DEBUG_OUT( "now really checking availability for \"%s\"", mdi->fdata->name?mdi->fdata->name:"nameless" );
         if (!is_executable_in_path (mdi->fdata->text))

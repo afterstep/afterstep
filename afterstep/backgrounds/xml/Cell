@@ -3,6 +3,6 @@
 		<scale width=$xroot.width-60 height=$xroot.height-60>
 			<img src=".Cell"/>
 		</scale>
-	<pad>
+	</pad>
 </bevel>
 

@@ -108,7 +108,7 @@ typedef struct ASWharfButton
     int             folder_x, folder_y;
     unsigned int    folder_width, folder_height;
 
-    FunctionData   *fdata;
+    FunctionData   *fdata[Button5];
 
     struct ASWharfFolder   *folder;
     struct ASWharfFolder   *parent;
@@ -199,7 +199,7 @@ void withdraw_wharf_folder( ASWharfFolder *aswf );
 void on_wharf_moveresize( ASEvent *event );
 void destroy_wharf_folder( ASWharfFolder **paswf );
 void on_wharf_pressed( ASEvent *event );
-void release_pressure();
+void release_pressure( int button );
 Bool check_pending_swallow( ASWharfFolder *aswf );
 void exec_pending_swallow( ASWharfFolder *aswf );
 void check_swallow_window( ASWindowData *wd );
@@ -663,7 +663,7 @@ DispatchEvent (ASEvent * event)
             on_wharf_pressed( event );
             break;
         case ButtonRelease:
-            release_pressure();
+            release_pressure(event->x.xbutton.button);
 			{
 			    ASMagic *obj = fetch_object( event->w ) ;
 				if( obj && obj->magic == MAGIC_WHARF_BUTTON )
@@ -964,11 +964,14 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 	        	if( function )
 				{
 					int func = function->func ;
-					if( IsSwallowFunc(func) || IsExecFunc(func) )
+					if( func != F_ExecInTerm && (IsSwallowFunc(func) || IsExecFunc(func)) )
 					{
 			   			disabled = (!is_executable_in_path (function->text));
 						if( disabled )
+						{
+							wb->contents[i].unavailable = True ;
 							show_warning( "Application \"%s\" cannot be found in the PATH.", function->text );
+						}
 					}else
 						disabled = False ;
 				}
@@ -1008,8 +1011,6 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
         wb = list;
         while( wb )
         {
-			FunctionData *function = NULL ;
-
 			if( get_flags( wb->set_flags, WHARF_BUTTON_DISABLED ) )
 			{
 				wb = wb->next ;
@@ -1018,21 +1019,43 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 
             aswb->name = mystrdup( wb->title );
 			if( wb->contents )
-				function = wb->contents[wb->selected_content].function ;
-
-            if( function )
-            {
-                aswb->fdata = safecalloc( 1, sizeof(FunctionData) );
-                dup_func_data( aswb->fdata, function );
-                if( IsSwallowFunc(aswb->fdata->func) )
-                {
-                    set_flags( aswb->flags, ASW_SwallowTarget );
-                    register_swallow_target( aswb->fdata->name, aswb );
-                    if( aswb->fdata->func == F_MaxSwallow ||
-                        aswb->fdata->func == F_MaxSwallowModule )
-                        set_flags( aswb->flags, ASW_MaxSwallow );
-                }
-            }
+			{
+				int i ;
+				for( i = 0 ; i < wb->contents_num ; ++i )
+					if( !wb->contents[i].unavailable )
+					{
+						FunctionData *function = wb->contents[i].function ;
+			            if( function )
+            			{
+							int btn = Button1 ;
+							if( function->name != NULL && strlen(function->name) == 1 )
+							{
+								switch( function->name[0] )
+								{
+									case 'l' : btn = Button1 ;    break ;	
+									case 'r' : btn = Button2 ;    break ;	
+									case 'm' : btn = Button3 ;    break ;	
+									case '4' : btn = Button4 ;	  break ;
+									case '5' : btn = Button5 ;	  break ;
+								}		   
+							}	  
+							btn -= Button1 ;
+							if( aswb->fdata[btn] == NULL ) 
+							{	
+                				aswb->fdata[btn] = safecalloc( 1, sizeof(FunctionData) );
+                				dup_func_data( aswb->fdata[btn], function );
+                				if( IsSwallowFunc(aswb->fdata[btn]->func) )
+                				{
+                    				set_flags( aswb->flags, ASW_SwallowTarget );
+                    				register_swallow_target( aswb->fdata[btn]->name, aswb );
+                    				if( aswb->fdata[btn]->func == F_MaxSwallow ||
+                        				aswb->fdata[btn]->func == F_MaxSwallowModule )
+                        				set_flags( aswb->flags, ASW_MaxSwallow );
+                				}
+							}
+            			}
+					}
+			}
 			/* TODO:	Transient buttons are just spacers - they should not 
 			 * 			have any balloons displayed on them , nor they should 
 			 * 			interpret any clicks
@@ -1108,13 +1131,16 @@ destroy_wharf_folder( ASWharfFolder **paswf )
         while( --i >= 0 )
         {
             ASWharfButton *aswb = &(aswf->buttons[i]);
+			int i ;
             if( aswb->name )
                 free( aswb->name );
             destroy_astbar(&(aswb->bar));
             if( aswb->canvas )
                 unregister_object( aswb->canvas->w );
             destroy_ascanvas(&(aswb->canvas));
-            destroy_func_data(&(aswb->fdata));
+			for( i = 0 ; i < 5 ; ++i ) 
+				if( aswb->fdata[i] )
+            		destroy_func_data(&(aswb->fdata[i]));
             destroy_wharf_folder(&(aswb->folder));
         }
         free( aswf->buttons );
@@ -1927,10 +1953,15 @@ exec_pending_swallow( ASWharfFolder *aswf )
         while( --i >= 0 )
         {
             if( get_flags(aswf->buttons[i].flags, ASW_SwallowTarget ) &&
-                aswf->buttons[i].fdata &&
                 aswf->buttons[i].swallowed == NULL )
             {
-                SendCommand( aswf->buttons[i].fdata, 0);
+				int k ; 
+				for( k = 0 ; k < 5 ; ++k ) 
+                	if( aswf->buttons[i].fdata[k] && IsSwallowFunc(aswf->buttons[i].fdata[k]->func)) 
+					{
+                		SendCommand( aswf->buttons[i].fdata[k], 0);
+						break;
+					}
             }
             if( aswf->buttons[i].folder )
                 exec_pending_swallow( aswf->buttons[i].folder );
@@ -2569,10 +2600,11 @@ press_wharf_button( ASWharfButton *aswb, int state )
 }
 
 void
-release_pressure()
+release_pressure( int button )
 {
     ASWharfButton *pressed = WharfState.pressed_button ;
 LOCAL_DEBUG_OUT( "pressed button is %p", pressed );
+	button -= Button1 ;
     if( pressed )
     {
         if( pressed->folder )
@@ -2584,16 +2616,16 @@ LOCAL_DEBUG_OUT( "pressed button has folder %p (%s)", pressed->folder, get_flags
                 display_wharf_folder( pressed->folder, pressed->canvas->root_x, pressed->canvas->root_y,
                                                        pressed->canvas->root_x+pressed->canvas->width,
                                                        pressed->canvas->root_y+pressed->canvas->height  );
-        }else if( pressed->fdata )
+        }else if( pressed->fdata[button] )
         {
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-            print_func_data(__FILE__, __FUNCTION__, __LINE__, pressed->fdata);
+            print_func_data(__FILE__, __FUNCTION__, __LINE__, pressed->fdata[button]);
 #endif
             if( !get_flags( pressed->flags, ASW_SwallowTarget ) || pressed->swallowed == NULL )
             {  /* send command to the AS-proper : */
 				ASWharfFolder *parentf = pressed->parent ;
 				ASWharfButton *parentb = NULL ;
-                SendCommand( pressed->fdata, 0);
+                SendCommand( pressed->fdata[button], 0);
 				while( parentf != WharfState.root_folder )
 				{
 					parentb = parentf->parent ;

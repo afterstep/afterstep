@@ -46,7 +46,7 @@
 
 *Wharf term aterm Exec "-" aterm &
 
-# aterm 1.0 should pick MyStuyle from look, if it does not the following is a nice alternative :
+# aterm 1.0 should pick MyStyle from look, if it does not the following is a nice alternative :
 #*Wharf term aterm Exec "-" aterm -tr -tint blue -fg yellow -bg black &
 
 *Wharf term rxvt  Exec "-" rxvt  -tr -fg yellow -bg black &
@@ -56,10 +56,7 @@
 #
 # Midnight commander file manager in the term of choice :
 #
-*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" aterm -g 130x35 -tr -fg yellow -tint blue -e mc --colors directory=,default:executable=,default:link=,default:device=,default:special=,default:normal=,default:selected=,transparent:marked=yellow,default:markselect=yellow,brown:core=cyan,default &
-*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" rxvt  -g 130x35 -tr -fg yellow -bg black -e mc  &
-*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" eterm -g 130x35 -tr -tint blue -fg yellow -bg black -e mc &
-*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" xterm -g 130x35 -fg yellow -bg blue -e mc &
+*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm "-" -g 130x35 -e mc --colors directory=,default:executable=,default:link=,default:device=,default:special=,default:normal=,default:selected=,transparent:marked=yellow,default:markselect=yellow,brown:core=cyan,default &
 
 #
 # First available GUI file manager :
@@ -89,10 +86,7 @@
 *Wharf Mail	normal/MailBox2 Exec "kmail" kmail &
 *Wharf Mail	normal/MailBox2 Exec "mozilla-mail" mozilla --mail &
 *Wharf Mail	normal/MailBox2 Exec "balsa" balsa &
-*Wharf Mail	normal/MailBox2 Exec "Pine" aterm -title "Pine e-mail and news reader" -tr -tint blue -fg yellow -bg black -e pine &
-*Wharf Mail	normal/MailBox2 Exec "Pine" rxvt  -title "Pine e-mail and news reader" -tr -fg yellow -bg black -e pine  &
-*Wharf Mail	normal/MailBox2 Exec "Pine" eterm -title "Pine e-mail and news reader" -tr -tint blue -fg yellow -bg black -e pine &
-*Wharf Mail	normal/MailBox2 Exec "Pine" xterm -fg yellow -bg blue -e pine &
+*Wharf Mail	normal/MailBox2 ExecInTerm "Pine" -title "Pine e-mail and news reader" -e pine &
 
 
 #
@@ -126,11 +120,8 @@
 #
 # First available IRC client :
 #
-*Wharf IRC	normal/IRCTransparent Exec "BitchX" aterm +sb -title "BitchX IRC" -tr -sh 50 -fg white -bg black -e BitchX irc.freenode.net &
+*Wharf IRC	normal/IRCTransparent ExecInTerm "BitchX" -title "BitchX IRC" +sb -tr -sh 50 -fg white -bg black -e BitchX irc.freenode.net &
 *Wharf IRC  	normal/IRCTransparent Exec "XCHAT" xchat &
-*Wharf IRC	normal/IRCTransparent Exec "BitchX" rxvt  +sb -title "BitchX IRC" -tr -fg yellow -bg black -e BitchX irc.freenode.net  &
-*Wharf IRC	normal/IRCTransparent Exec "BitchX" eterm +sb -title "BitchX IRC" -tr -sh 50 -fg yellow -bg black -e BitchX irc.freenode.net &
-*Wharf IRC	normal/IRCTransparent Exec "BitchX" xterm -fg yellow -bg blue -e BitchX irc.freenode.net &
 
 #
 # First available Audio player :

@@ -64,6 +64,7 @@ void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module );
 void close_func_handler( FunctionData *data, ASEvent *event, int module );
 void restart_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_func_handler( FunctionData *data, ASEvent *event, int module );
+void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module );
 void change_background_func_handler( FunctionData *data, ASEvent *event, int module );
 void change_config_func_handler( FunctionData *data, ASEvent *event, int module );
 void change_theme_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -86,6 +87,8 @@ void send_window_list_func_handler( FunctionData *data, ASEvent *event, int modu
 void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module );
 void test_func_handler( FunctionData *data, ASEvent *event, int module );
 void screenshot_func_handler( FunctionData *data, ASEvent *event, int module );
+void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module );
+
 
 /* handlers initialization function : */
 void SetupFunctionHandlers()
@@ -134,9 +137,10 @@ void SetupFunctionHandlers()
     function_handlers[F_RESTART]            = restart_func_handler ;
 
     function_handlers[F_EXEC] =
-	function_handlers[F_Swallow] =
-	function_handlers[F_MaxSwallow] =
-	function_handlers[F_DropExec]       = exec_func_handler ;
+		function_handlers[F_Swallow] =
+		function_handlers[F_MaxSwallow] 	= exec_func_handler ;
+
+	function_handlers[F_ExecInTerm]       	= exec_in_term_func_handler ;
 
     function_handlers[F_CHANGE_BACKGROUND]  = change_background_func_handler;
 
@@ -188,6 +192,7 @@ void SetupFunctionHandlers()
 	function_handlers[F_TAKE_WINDOWSHOT]    =
 	function_handlers[F_TAKE_FRAMESHOT]    =
 		function_handlers[F_TAKE_SCREENSHOT]    = screenshot_func_handler ;
+	function_handlers[F_SWALLOW_WINDOW]	= swallow_window_func_handler ;
 }
 
 /* complex functions are stored in hash table ComplexFunctions */
@@ -1012,6 +1017,28 @@ void exec_func_handler( FunctionData *data, ASEvent *event, int module )
     XSync (dpy, 0);
 }
 
+void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	if( Environment->term_command != NULL && data->text != NULL ) 
+	{
+		char *full_cmdl = safemalloc( strlen(Environment->term_command)+4+strlen(data->text)+1 );
+    	XGrabPointer( dpy, Scr.Root, True,
+			      	ButtonPressMask | ButtonReleaseMask,
+		  	GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
+    	XSync (dpy, 0);
+		if( data->text[0] == '-' ) 
+			sprintf(full_cmdl, "%s %s", Environment->term_command, data->text );
+		else
+			sprintf(full_cmdl, "%s -e %s", Environment->term_command, data->text );
+		LOCAL_DEBUG_OUT( "full_cmdl = [%s]", full_cmdl );
+    	spawn_child( full_cmdl, -1, -1, None, C_NO_CONTEXT, True, False, NULL );
+		free( full_cmdl );
+    	XUngrabPointer (dpy, CurrentTime);
+    	XSync (dpy, 0);
+	}
+}
+
+
 static int _as_config_change_recursion = 0 ;
 static int _as_config_change_count = 0 ;
 static int _as_background_change_count = 0 ;
@@ -1460,6 +1487,11 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 	}
 }
 
+void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	/* TODO: */	
+	
+}	 
 
 void test_func_handler( FunctionData *data, ASEvent *event, int module )
 {

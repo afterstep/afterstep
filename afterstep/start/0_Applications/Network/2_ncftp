@@ -1,1 +1,1 @@
-Exec "NcFTP" exec xterm -n NcFTP -T NcFTP -e ncftp
+ExecInTerm "NcFTP" -n NcFTP -T NcFTP -e ncftp
