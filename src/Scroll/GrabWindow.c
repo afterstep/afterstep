@@ -17,8 +17,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#define TRUE 1
-#define FALSE 0
 #define MAX_ICON_NAME_LEN 255
 
 #include "../../configure.h"
