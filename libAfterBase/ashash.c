@@ -293,8 +293,12 @@ remove_hash_item (ASHashTable * hash, ASHashableValue value, void **trg, Bool de
 				hash->item_destroy_func ((*pitem)->value, (trg) ? NULL : (*pitem)->data);
 
             if( deallocated_used < DEALLOC_CACHE_SIZE )
+            {
+#ifdef DEBUG_ALLOCS
+                countfree (__FILE__, __LINE__, *pitem);
+#endif
                 deallocated_mem[deallocated_used++] = *pitem ;
-            else
+            }else
                 free( *pitem );
 
             *pitem = next;
