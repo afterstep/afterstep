@@ -294,19 +294,21 @@ if (eof(PROC)) {
   exit 1;
 }
 
+$BIT_DEPTH = 0;
 while (<PROC>) {
-  # looking for a line that has the key word "depths" on it, as in:
-  # screen #0:
-  #  dimensions:    1024x768 pixels (347x260 millimeters)
-  #  resolution:    75x75 dots per inch
-  #  depths (1):    16
-  next unless /depths/;
-  # strip out all the stuff except the actual bit depth
-  chomp;			# and the pesky newlines
-  s/\s*depths \((\d+)\):\s*//;
-  my @depths = split /,\s/, $_, $1;
-  $BIT_DEPTH = $depths[scalar(@depths) -1];
-  last;
+  # We're only interested in screen #0.
+  if (m{screen [^\d:](\d+)} && $1 != 0) {
+    last;
+  }
+  # Root window depth is authoritative.
+  if (m{depth of root.*:\D+(\d+)}) {
+    $BIT_DEPTH = $1;
+    last;
+  }
+  # But we'll settle for the first depth available, if need be.
+  if (m{depths.*:\D+(\d+)}) {
+    $BIT_DEPTH = $1;
+  }
 }
 close PROC;
 
