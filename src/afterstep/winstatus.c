@@ -467,6 +467,31 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
     return rendered;
 }
 
+static void
+resize_frame_subwindows( ASWindow *asw, ASOrientation *od, unsigned int frame_win_width, unsigned int frame_win_height ) 
+{
+    register unsigned int *frame_size = &(asw->status->frame_size[0]) ;
+    unsigned int normal_width, normal_height ;
+
+	if( od == NULL ) 
+		od = get_orientation_data(asw);
+
+    *(od->in_width)  = asw->frame_canvas->width ;
+    *(od->in_height) = asw->frame_canvas->height ;
+    normal_width  = *(od->out_width)  ;
+    normal_height = *(od->out_height) ;
+				
+	resize_canvases( asw, od, normal_width, normal_height, frame_size );
+    if( !ASWIN_GET_FLAGS(asw, AS_Shaded ) )  /* leave shaded client alone ! */
+    	moveresize_canvas( asw->client_canvas,
+                           frame_size[FR_W],
+                           frame_size[FR_N],
+                           (int)frame_win_width-(int)(frame_size[FR_W]+frame_size[FR_E]),
+                           (int)frame_win_height-(int)(frame_size[FR_N]+frame_size[FR_S]));
+}
+
+
+
 Bool
 apply_window_status_size(register ASWindow *asw, ASOrientation *od)
 {
@@ -502,6 +527,10 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
 					asw->frame_canvas->root_y != asw->status->y ||
 					asw->frame_canvas->width != new_width ||
 					asw->frame_canvas->height != new_height );
+
+		if( step_size <= 0 )
+			resize_frame_subwindows( asw, od, new_width, new_height ); 
+
         moveresize_canvas(  asw->frame_canvas, asw->status->x, asw->status->y,
                             new_width, new_height );
     }
@@ -629,6 +658,7 @@ check_frame_side_config( ASWindow *asw, Window w, ASOrientation *od )
 	return found;
 }
 
+
 /* this gets called when StructureNotify/SubstractureNotify arrives : */
 void
 on_window_moveresize( ASWindow *asw, Window w )
@@ -676,6 +706,9 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
 			LOCAL_DEBUG_OUT( "step_size = %d", step_size );
             if( step_size <= 0 )  /* don't moveresize client window while shading !!!! */
             {
+				resize_frame_subwindows( asw, od, 	asw->frame_canvas->width,
+								  					asw->frame_canvas->height ); 					
+#if 0
                 resize_canvases( asw, od, normal_width, normal_height, frame_size );
                 if( !ASWIN_GET_FLAGS(asw, AS_Shaded ) )  /* leave shaded client alone ! */
                     moveresize_canvas( asw->client_canvas,
@@ -683,7 +716,8 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
                                     frame_size[FR_N],
                                     asw->frame_canvas->width-(frame_size[FR_W]+frame_size[FR_E]),
                                     asw->frame_canvas->height-(frame_size[FR_N]+frame_size[FR_S]));
-            }else
+#endif     
+	        }else
 			{ 
 				if( normal_height != step_size )
             	{
