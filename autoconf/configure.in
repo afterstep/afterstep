@@ -305,7 +305,7 @@ if test -d libAfterBase; then
   afterbase_lib=
 fi
 
-if test -d libAfterBase; then
+if test -d libAfterImage; then
   AC_CHECKING(libAfterImage)
   cd libAfterImage; \
   ./configure $_def_lib_conf_opts \

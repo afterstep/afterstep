@@ -90,7 +90,7 @@ install.bin:
 install.lib:	@LIBPROG@ @LIBINSTALL@ install.inc
 
 install.static:
-		$(INSTALL_SCRIPT) afterimage-libs $(AFTER_BIN_DIR)
+		$(INSTALL_SCRIPT) afterimage-libs afterimage-config $(AFTER_BIN_DIR)
 		@( \
 		if test -d $(LIBDIR) && test -w $(LIBDIR); then \
 		    echo "$(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR)"; \
@@ -116,7 +116,7 @@ install.script:
 
 install.dyn:
 		$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR)
-		$(INSTALL_SCRIPT) afterimage-libs $(AFTER_BIN_DIR)
+		$(INSTALL_SCRIPT) afterimage-libs afterimage-config $(AFTER_BIN_DIR)
 		-@/bin/rm -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED)
 		ln -sf $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR)
 		ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED)

@@ -534,6 +534,7 @@ AC_SUBST_FILE(LIBAFTERIMAGEFILES)
 AC_OUTPUT(Makefile \
 afterbase.h \
 afterimage-libs \
+afterimage-config \
 apps/Makefile)
 
 chmod 755 afterimage-libs

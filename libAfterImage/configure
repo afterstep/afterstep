@@ -7639,7 +7639,7 @@ _ACEOF
 LIBAFTERIMAGEFILES=.shared
 
 
-                                        ac_config_files="$ac_config_files Makefile afterbase.h afterimage-libs apps/Makefile"
+                                                  ac_config_files="$ac_config_files Makefile afterbase.h afterimage-libs afterimage-config apps/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -8167,6 +8167,7 @@ do
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "afterbase.h" ) CONFIG_FILES="$CONFIG_FILES afterbase.h" ;;
   "afterimage-libs" ) CONFIG_FILES="$CONFIG_FILES afterimage-libs" ;;
+  "afterimage-config" ) CONFIG_FILES="$CONFIG_FILES afterimage-config" ;;
   "apps/Makefile" ) CONFIG_FILES="$CONFIG_FILES apps/Makefile" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h:config.h.in" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
