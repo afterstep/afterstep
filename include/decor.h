@@ -113,6 +113,8 @@ typedef struct MyFrame
     struct icon_t    *parts[FRAME_PARTS];
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
+#define IsFramePart(f,p)   ((f)->parts[(p)] || ((f)->part_width[(p)] && (f)->part_height[(p)]))
+	
     unsigned int spacing ;
 }MyFrame;
 

@@ -113,17 +113,34 @@ static ASCanvas *
 check_canvas( ASWindow *asw, FrameSide side, Bool required )
 {
     ASCanvas *canvas = asw->frame_canvas[side];
+	Window w;
 
     if( required )
     {
         if( canvas == NULL )
         {                                      /* create canvas here */
+			unsigned long valuemask;
+			XSetWindowAttributes attributes;
 
+			valuemask = CWBorderPixel | CWEventMask;
+			attributes.border_pixel = Scr.asv->black_pixel;
+			if (Scr.flags & BackingStore)
+			{
+				valuemask |= CWBackingStore;
+				attributes.backing_store = WhenMapped;
+			}
+			attributes.event_mask = (ButtonPressMask | ButtonReleaseMask |
+									 EnterWindowMask | LeaveWindowMask);
+			w = create_visual_window (Scr.asv, asw->frame,
+									  0, 0, 1, 1, 0, InputOutput,
+									  valuemask, &attributes);
+			canvas = create_ascanvas( w );
         }
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
-
-        canvas = NULL ;
+		w = canvas->w ;
+		destroy_ascanvas( &canvas );
+		XDestroyWindow( dpy, w );
     }
 
     return (asw->frame_canvas[side] = canvas);
@@ -136,6 +153,8 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     ASCanvas *tbar_canvas = NULL, *sidebar_canvas = NULL ;
     ASCanvas *left_canvas = NULL, *right_canvas = NULL ;
     Bool has_tbar = False ;
+	int i ;
+	
     if( AS_ASSERT(asw) )
         return ;
 
@@ -148,7 +167,15 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     if(  free_resources || asw->hints == NULL ||
          (!has_tbar && frame == NULL) )
     {/* destroy window decorations here : */
-
+        check_canvas( asw, FR_W, False );
+        check_canvas( asw, FR_E, False );
+        check_canvas( asw, FR_S, False );
+        check_canvas( asw, FR_N, False );
+		for( i = 0 ; i < FRAME_PARTS ; ++i )
+			if( asw->frame_bars[i] ) 
+				destroy_astbar( &(asw->frame_bars[i]) ); 
+		if( asw->tbar ) 
+			destroy_astbar( &(asw->tbar) ); 
 
         return ;
     }
@@ -166,7 +193,42 @@ redecorate_window( ASWindow *asw, Bool free_resources )
         left_canvas = check_canvas( asw, FR_W, myframe_has_part(frame, FRAME_LEFT_MASK) );
         right_canvas = check_canvas( asw, FR_E, myframe_has_part(frame, FRAME_RIGHT_MASK) );
     }
-
+	/* now wer have to create actuall bars - for each frame element plus one for the titlebar */
+	for( i = 0 ; i < FRAME_PARTS ; ++i )
+		if( IsFramePart(frame,i) )
+		{
+			if( asw->frame_bars[i] == NULL ) 
+			{
+				asw->frame_bars[i] = create_astbar(); 
+			}
+		}else if( asw->frame_bars[i] ) 
+		{
+			destroy_astbar( &(asw->frame_bars[i]) ); 
+		}
+	if( has_tbar )
+	{
+		if( asw->tbar == NULL ) 
+			asw->tbar = create_astbar();
+	}else if( asw->tbar ) 
+		destroy_astbar( &(asw->tbar) );
+		
+	if( asw->tbar ) 
+	{ /* need to add some titlebuttons */
+		ASTBtnBlock* btns ;
+		/* left buttons : */
+		btns = build_tbtn_block( &(Scr.buttons[0]), 
+		                         ~(asw->hints->disabled_buttons), 
+		                         TITLE_BUTTONS_PERSIDE, 1, 
+								 ASWIN_HFLAGS(AS_VerticalTitle)? 
+									TBTN_ORDER_B2T:TBTN_ORDER_L2R );
+		/* right buttons : */		
+		btns = build_tbtn_block( &(Scr.buttons[TITLE_BUTTONS_PERSIDE]), 
+		                         (~(asw->hints->disabled_buttons))>>TITLE_BUTTONS_PERSIDE, 
+		                         TITLE_BUTTONS_PERSIDE, 1, 
+								 ASWIN_HFLAGS(AS_VerticalTitle)? 
+									TBTN_ORDER_T2B:TBTN_ORDER_R2L );
+	
+	}
 }
 
 /* this gets called when Root background changes : */

@@ -907,8 +907,7 @@ myframe_has_parts(const MyFrame *frame, ASFlagType mask)
         register int i ;
         for( i = 0 ; i < FRAME_PARTS ; ++i )
             if( (mask&(0x01<<i)) )
-                if( frame->parts[i] == NULL &&
-                    (frame->part_width[i] == 0 || frame->part_height[i] == 0 ) )
+                if( !IsFramePart(frame,i) )
                     return False;
         return True;
     }
