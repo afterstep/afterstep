@@ -36,29 +36,33 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 all:
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} $@ || exit 1); done
 
-install: install.data
-	@$(MKDIR) -p $(LIBDIR); \
-	$(MKDIR) -p $(AFTER_BIN_DIR); \
-	$(MKDIR) -p $(AFTER_MAN_DIR); \
-	$(MKDIR) -p $(AFTER_MAN_API_DIR); \
-	for I in ${subdirs}; do (cd $$I; ${MAKE} install || exit 1); done
 
-install.bin:
-	@$(MKDIR) -p $(AFTER_BIN_DIR); \
-	for I in ${subdirs}; do (cd $$I; ${MAKE} install.bin || exit 1); done
 
-install.lib:
-	@$(MKDIR) -p $(LIBDIR); \
-	for I in ${subdirs}; do (cd $$I; ${MAKE} install.lib || exit 1); done
+mkdir:	mkdir.bin mkdir.lib mkdir.man
+  
+mkdir.bin:
+	@$(MKDIR) -p $(AFTER_BIN_DIR);
 
-install.man:
-	@$(MKDIR) -p $(AFTER_MAN_DIR); \
-	$(MKDIR) -p $(AFTER_MAN_API_DIR); \
-	for I in ${subdirs}; do (cd $$I; ${MAKE} install.man || exit 1); done
+mkdir.lib:
+	@$(MKDIR) -p $(LIBDIR);
 
-install.script:
-	@$(MKDIR) -p $(AFTER_BIN_DIR); \
-	for I in ${subdirs}; do (cd $$I; ${MAKE} install.script || exit 1); done
+mkdir.man:
+	@$(MKDIR) -p $(AFTER_MAN_DIR); $(MKDIR) -p $(AFTER_MAN_API_DIR);
+ 
+install: install.data mkdir
+	@for I in ${subdirs}; do (cd $$I; ${MAKE} install || exit 1); done
+
+install.bin: mkdir.bin
+	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.bin || exit 1); done
+
+install.lib: mkdir.lib
+	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.lib || exit 1); done
+
+install.man: mkdir.man
+	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.man || exit 1); done
+  
+install.script: mkdir.bin
+	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.script || exit 1); done
 
 install.data:
 	@if [ -d /usr/local/share/gnome/wm-properties ] ; then \
