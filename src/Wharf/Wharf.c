@@ -1428,13 +1428,20 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 			if( aswf->gravity == NorthEastGravity || aswf->gravity == SouthEastGravity )
 				rect.x = max(to_width,from_width) - rect.width ;
 		}
+		
+		if( rect.x+rect.width > aswf->canvas->width ||
+			rect.x+rect.height > aswf->canvas->height ) 
+		{
+			return;			
+		} 
+		
 		fprintf( stderr, "boundary = %dx%d%+d%+d\n", rect.width, rect.height, rect.x, rect.y );
 		aswf->boundary = rect ;
 		update_wharf_folder_shape( aswf );
 		ASSync(False);
 		
 		if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
- 			sleep_a_millisec(Config->animate_delay*10);	  
+ 			sleep_a_millisec(Config->animate_delay*60);	  
 		else
 			sleep_a_millisec(50);
 	}	 
@@ -1617,23 +1624,29 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 	fprintf( stderr, "displaying folder\n" );
     if( get_flags(Config->flags, WHARF_ANIMATE ) )
     {
-#if 0		
+#if 1
 		set_flags(aswf->flags,ASW_UseBoundary );
 		aswf->boundary.x = aswf->boundary.y = 0 ; 
 		aswf->boundary.width = aswf->boundary.height = 1 ;
+	    XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding,
+                                  0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+
 #endif
     }
-	update_wharf_folder_shape( aswf );
 	if( !get_flags( aswf->flags, ASW_Mapped ) )
 	{	
 		moveresize_canvas( aswf->canvas, x, y, width, height );
 		was_mapped = False ;
-		ASSync(False);
-		MapConfigureNotifyLoop();
 	}
-
     map_wharf_folder( aswf, x, y, width, height, east?(south?SouthEastGravity:NorthEastGravity):
                                                       (south?SouthWestGravity:NorthWestGravity) );
+
+	if( !get_flags( aswf->flags, ASW_Mapped ) )
+	{
+		ASSync(False);
+		sleep_a_millisec(10);
+		MapConfigureNotifyLoop();
+	}
     
 	set_flags( aswf->flags, ASW_Mapped );
     clear_flags( aswf->flags, ASW_Withdrawn );
