@@ -320,7 +320,8 @@ struct ASTBarData;
                                      FocusChangeMask 	| \
 									 LeaveWindowMask 	| \
                                      SubstructureRedirectMask| \
-                                     StructureNotifyMask)
+                                     StructureNotifyMask| \
+                                     PointerMotionMask)  /* needed for proper Balloons operation */
 
 #define AS_CANVAS_EVENT_MASK 		(ButtonPressMask 	| \
 									 ButtonReleaseMask 	| \

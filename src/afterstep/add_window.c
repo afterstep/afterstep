@@ -883,16 +883,20 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
         for( i = 0 ; i < TITLE_BUTTONS_PERSIDE ; ++i )
         {
             char *str ;
+            LOCAL_DEBUG_OUT("checking mask 0x%lX agains 0x%X", btn_mask, 0x01<<i );
             if( !get_flags( btn_mask, 0x01<<i) )
             {
                 str = list_functions_by_context (C_L1<<i);
+                LOCAL_DEBUG_OUT( "balloon text will be \"%s\"", str?str:"none" );
                 set_astbar_balloon( asw->tbar, C_L1<<i, str );
                 if( str )
                     free( str );
             }
+            LOCAL_DEBUG_OUT("checking mask 0x%lX agains 0x%X", btn_mask, 0x01<<(i+TITLE_BUTTONS_PERSIDE));
             if( !get_flags( btn_mask, 0x01<<(i+TITLE_BUTTONS_PERSIDE)) )
             {
                 str = list_functions_by_context (C_R1<<i);
+                LOCAL_DEBUG_OUT( "balloon text will be \"%s\"", str?str:"none" );
                 set_astbar_balloon( asw->tbar, C_R1<<i, str );
                 if( str )
                     free( str );

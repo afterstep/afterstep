@@ -18,6 +18,8 @@
  *
  */
 
+#define LOCAL_DEBUG
+
 #include "../configure.h"
 
 #include <X11/Intrinsic.h>
@@ -40,16 +42,20 @@ set_active_balloon_look()
     unsigned int width, height ;
     if( BalloonState.active_bar )
     {
+        int pointer_x, pointer_y ;
+        int dl, dr, du, dd ;
         set_astbar_style_ptr( BalloonState.active_bar, BAR_STATE_UNFOCUSED, BalloonState.look.style );
         set_astbar_hilite( BalloonState.active_bar, BalloonState.look.border_hilite );
         width = calculate_astbar_width( BalloonState.active_bar );
         if( width > Scr.MyDisplayWidth )
             width = Scr.MyDisplayWidth ;
-        height = calculate_astbar_width( BalloonState.active_bar );
+        height = calculate_astbar_height( BalloonState.active_bar );
         if( height > Scr.MyDisplayHeight )
             height = Scr.MyDisplayHeight ;
 
-        ASQueryPointerRootXY(&x,&y);
+        ASQueryPointerRootXY(&pointer_x, &pointer_y);
+        x = pointer_x;
+        y = pointer_y;
         x += BalloonState.look.xoffset ;
         if( x < 0 )
             x = 0 ;
@@ -61,8 +67,52 @@ set_active_balloon_look()
             y = 0 ;
         else if( y + height > Scr.MyDisplayHeight )
             y = Scr.MyDisplayHeight - height ;
+        /* we have to make sure that new window will not be under the pointer,
+         * which will cause LeaveNotify and create a race condition : */
+        dl = pointer_x - x ;
+        if( dl >= 0 )
+        {
+            dr = x+ (int)width - pointer_x;
+            if( dr >= 0 )
+            {
+                if( x+dl >= Scr.MyDisplayWidth )
+                    dl = dr+1 ;                /* dl is not a good alternative since it
+                                                * will move us off the screen */
+                du = pointer_y - y ;
+                if( du >= 0 )
+                {
+                    dd = y + (int)height - pointer_y ;
+                    if( dd >= 0 )
+                    {
+                        int dh = min(dl,dr);
+                        int dv = min(du,dd);
+                        if( y+du >= Scr.MyDisplayHeight )
+                        {
+                            du = dd+1 ;
+                            dv = dd ;
+                        }
+                        if( dh < dv )
+                        {
+                            if( dl > dr )
+                                x -= dh+1 ;
+                            else
+                                x += dh+1 ;
+                        }else if( du > dd )
+                            y -= dv+1 ;
+                        else
+                            y += dv+1 ;
+                    }
+                }
+            }
+        }
+        LOCAL_DEBUG_OUT( "Pointer at (%dx%d)", pointer_x, pointer_y );
+//        x = 0 ;
+//        y = 500 ;
 
         moveresize_canvas( BalloonState.active_canvas, x, y, width, height );
+        handle_canvas_config( BalloonState.active_canvas );
+        set_astbar_size( BalloonState.active_bar, width, height );
+        move_astbar( BalloonState.active_bar, BalloonState.active_canvas, 0, 0 );
         render_astbar( BalloonState.active_bar, BalloonState.active_canvas );
     }
 }
@@ -70,6 +120,7 @@ set_active_balloon_look()
 static void
 display_active_balloon()
 {
+    LOCAL_DEBUG_CALLER_OUT( "active(%p)->window(%lX)->canvas(%p)", BalloonState.active, BalloonState.active_window, BalloonState.active_canvas );
     if( BalloonState.active != NULL && BalloonState.active_window != None &&
         BalloonState.active_canvas == NULL )
     {
@@ -81,7 +132,8 @@ display_active_balloon()
         map_canvas_window( BalloonState.active_canvas, True );
 
         BalloonState.active->timer_action = BALLOON_TIMER_CLOSE;
-        timer_new (BalloonState.look.close_delay, &balloon_timer_handler, (void *)BalloonState.active);
+        if( BalloonState.look.close_delay > 0 )
+            timer_new (BalloonState.look.close_delay, &balloon_timer_handler, (void *)BalloonState.active);
     }
 }
 
@@ -107,6 +159,7 @@ balloon_timer_handler (void *data)
 {
     ASBalloon      *balloon = (ASBalloon *) data;
 
+    LOCAL_DEBUG_CALLER_OUT( "%p", data );
 	switch (balloon->timer_action)
 	{
         case BALLOON_TIMER_OPEN:
@@ -123,6 +176,7 @@ balloon_timer_handler (void *data)
 void
 balloon_init (int free_resources)
 {
+    LOCAL_DEBUG_CALLER_OUT( "%d", free_resources );
     if( free_resources )
     {
         if( BalloonState.active != NULL )
@@ -132,11 +186,6 @@ balloon_init (int free_resources)
             safely_destroy_window (BalloonState.active_window );
             BalloonState.active_window = None ;
         }
-    }else
-    {
-        XSetWindowAttributes attr ;
-        attr.override_redirect = True;
-        BalloonState.active_window = create_visual_window( Scr.asv, Scr.Root, -10, -10, 1, 1, 1, InputOutput, CWOverrideRedirect, &attr );
     }
     memset(&(BalloonState.look), 0x00, sizeof(ASBalloonLook));
     BalloonState.look.close_delay = 10000;
@@ -145,14 +194,17 @@ balloon_init (int free_resources)
     BalloonState.active = NULL ;
     BalloonState.active_bar = NULL ;
     BalloonState.active_canvas = NULL ;
+    LOCAL_DEBUG_OUT( "Balloon window is %lX", BalloonState.active_window );
 }
 
 void
 display_balloon( ASBalloon *balloon )
 {
+    LOCAL_DEBUG_CALLER_OUT( "%p", balloon );
     if( balloon == NULL )
         return;
 
+    LOCAL_DEBUG_OUT( "show = %d, active = %p", BalloonState.look.show, BalloonState.active );
     if( !BalloonState.look.show || BalloonState.active == balloon )
         return;
 
@@ -173,6 +225,9 @@ display_balloon( ASBalloon *balloon )
 void
 withdraw_balloon( ASBalloon *balloon )
 {
+    LOCAL_DEBUG_OUT( "%p", balloon );
+    if( balloon == NULL )
+        balloon = BalloonState.active ;
     if( balloon == BalloonState.active )
         withdraw_active_balloon();
 }
@@ -181,6 +236,14 @@ void
 set_balloon_look( ASBalloonLook *blook )
 {
     BalloonState.look = *blook ;
+    LOCAL_DEBUG_CALLER_OUT( "%lX", BalloonState.active_window );
+    if( BalloonState.look.show && BalloonState.active_window == None )
+    {
+        XSetWindowAttributes attr ;
+        attr.override_redirect = True;
+        BalloonState.active_window = create_visual_window( Scr.asv, Scr.Root, -10, -10, 1, 1, 0, InputOutput, CWOverrideRedirect, &attr );
+        LOCAL_DEBUG_OUT( "Balloon window is %lX", BalloonState.active_window );
+    }
     set_active_balloon_look();
 }
 

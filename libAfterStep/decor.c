@@ -1928,27 +1928,32 @@ check_astbar_point( ASTBarData *tbar, int root_x, int root_y )
 void
 on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave )
 {
+    LOCAL_DEBUG_CALLER_OUT( "%p, %s, %d", tbar, context2text(context), leave );
     if( tbar == NULL )
     {
         tbar = FocusedBar ;
         leave = True ;
     }
-    if( tbar && tbar->balloon )
+    LOCAL_DEBUG_OUT( "%p, %s, %d", tbar, context2text(context), leave );
+    if( tbar )
     {
         ASBalloon *balloon = tbar->balloon;
         if( context != 0 && context != C_TITLE && context != tbar->context)
         {
             int i = tbar->tiles_num ;
+            LOCAL_DEBUG_OUT( "looking for a tile with context %X in the set of %d tiles", context, i );
             while( --i >= 0 )
             {
                 if( ASTileType(tbar->tiles[i]) == AS_TileBtnBlock )
                 {
-                    ASBtnBlock *bb = (ASBtnBlock*)&(tbar->tiles[i]) ;
+                    ASBtnBlock *bb = (ASBtnBlock*)&(tbar->tiles[i].data.bblock) ;
                     int k = bb->buttons_num ;
+                    LOCAL_DEBUG_OUT( "tile %d is a button block - lets see if any of %d buttons have context", i, k );
                     while( --k >= 0 )
                         if( bb->buttons[k].context == context )
                         {
                             balloon = bb->buttons[k].balloon ;
+                            LOCAL_DEBUG_OUT( "button %d has required contex. balloon = %p", k, balloon );
                             break;
                         }
                     if( k >= 0 )
@@ -1956,12 +1961,12 @@ on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave )
                 }
             }
         }
-        if( leave )
+        if( leave || balloon == NULL )
         {
             withdraw_balloon( balloon );
             if( tbar == FocusedBar )
                 FocusedBar = NULL ;
-        }else if( tbar != FocusedBar )
+        }else
         {
             display_balloon( balloon );
             FocusedBar = tbar ;
@@ -1977,19 +1982,28 @@ set_astbar_balloon( ASTBarData *tbar, int context, const char *text )
         if( context != 0 && context != C_TITLE && context != tbar->context)
         {
             int i = tbar->tiles_num ;
+            LOCAL_DEBUG_OUT( "looking for a tile with context %X in the set of %d tiles", context, i );
             while( --i >= 0 )
             {
                 if( ASTileType(tbar->tiles[i]) == AS_TileBtnBlock )
                 {
-                    ASBtnBlock *bb = (ASBtnBlock*)&(tbar->tiles[i]) ;
+                    ASBtnBlock *bb = (ASBtnBlock*)&(tbar->tiles[i].data.bblock);
                     int k = bb->buttons_num ;
+                    LOCAL_DEBUG_OUT( "tile %d is a button block - lets see if any of %d buttons have context", i, k );
                     while( --k >= 0 )
                         if( bb->buttons[k].context == context )
                         {
                             if( bb->buttons[k].balloon != NULL )
+                            {
                                 balloon_set_text (bb->buttons[k].balloon, text);
-                            else
+                                LOCAL_DEBUG_OUT( "changed balloon for tbar(%p)->context(0x%X)->button(%d)->text(%s)->balloon(%p)",
+                                                 tbar, context, k, text, bb->buttons[k].balloon );
+                            }else
+                            {
                                 bb->buttons[k].balloon = create_asballoon_with_text( tbar, text );
+                                LOCAL_DEBUG_OUT( "created balloon for tbar(%p)->context(0x%X)->button(%d)->text(%s)->balloon(%p)",
+                                                 tbar, context, k, text, bb->buttons[k].balloon );
+                            }
                             return ;
                         }
                 }
@@ -1997,9 +2011,17 @@ set_astbar_balloon( ASTBarData *tbar, int context, const char *text )
         }else
         {
             if( tbar->balloon != NULL )
+            {
                 balloon_set_text (tbar->balloon, text);
-            else
+                LOCAL_DEBUG_OUT( "changed tbar balloon for tbar(%p)->context(0x%X)->text(%s)->balloon(%p)",
+                                                 tbar, context, text, tbar->balloon );
+            }else
+            {
                 tbar->balloon = create_asballoon_with_text( tbar, text );
+                LOCAL_DEBUG_OUT( "created tbar balloon for tbar(%p)->context(0x%X)->text(%s)->balloon(%p)",
+                                 tbar, context, text, tbar->balloon );
+            }
+
         }
     }
 }

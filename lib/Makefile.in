@@ -15,7 +15,7 @@ LIB_OBJS= ASmodule.o asapp.o asdatabase.o aswindata.o background.o balloon.o \
                   font.o hints.o loadimg.o moveresize.o \
                   myicon.o mylook.o mystyle.o mystyle_property.o \
                   outline.o parse.o parser.o \
-                  screen.o session.o timer.o wmprops.o
+                  screen.o session.o wmprops.o
 
 LIB_NAME        = LIBAFTERSTEP
 LIB_STATIC      = libafterstep.a

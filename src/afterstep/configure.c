@@ -984,6 +984,9 @@ FixLook( MyLook *look )
     if( BalloonConfig.style == NULL )
         BalloonConfig.style = mystrdup( "TitleButtonBalloon" );
 
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    Print_balloonConfig ( &BalloonConfig );
+#endif
     look->balloon_look = safecalloc( 1, sizeof(ASBalloonLook) );
 
     look->balloon_look->show = get_flags( BalloonConfig.set_flags, BALLOON_USED );

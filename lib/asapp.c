@@ -495,7 +495,7 @@ InitSession()
 void
 FreeMyAppResources()
 {
-    balloon_init (1);
+    balloon_init (True);
     mystyle_free_global_gcs ();
     mystyle_destroy_all();
     destroy_image_manager( Scr.image_manager, False );
