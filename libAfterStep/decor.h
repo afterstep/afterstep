@@ -150,7 +150,9 @@ typedef struct ASTile {
 #define AS_TileVFloatingMask    (AS_TileVResize|AS_TileVPadMask)
 #define AS_TileFloatingMask     (AS_TileHFloatingMask|AS_TileVFloatingMask)
 #define ASTileHFloating(t)      ((t).flags&(AS_TileHResize|AS_TileHPadMask))
+#define ASTileHPad(t)           ((t).flags&(AS_TileHPadMask))
 #define ASTileVFloating(t)      ((t).flags&(AS_TileVResize|AS_TileVPadMask))
+#define ASTileVPad(t)           ((t).flags&(AS_TileVPadMask))
 
     ASFlagType flags;
     short x, y;

@@ -2117,20 +2117,22 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             	if( col_width[pos] < tbar->tiles[l].width )
                 	col_width[pos] = tbar->tiles[l].width;
             	if( ASTileHFloating(tbar->tiles[l]) )
-                	++floating_cols[pos] ;
-			}
+                    ++floating_cols[pos] ;
+            }
+            
             pos = ASTileRow(tbar->tiles[l]);
 			if( !ASTileIgnoreHeight(tbar->tiles[l]) )
 			{
             	if( row_height[pos] < tbar->tiles[l].height )
                 	row_height[pos] = tbar->tiles[l].height;
             	if( ASTileVFloating(tbar->tiles[l]) )
-                	++floating_rows[pos] ;
-			}
+                    ++floating_rows[pos] ;
+            }
         }
     /* pass 2: see how much space we have left that needs to be floating to some rows/columns : */
     space_left_x = tbar->width - (tbar->left_bevel+tbar->right_bevel+tbar->h_border*2);
     space_left_y = tbar->height- (tbar->top_bevel+tbar->bottom_bevel+tbar->v_border*2);
+    LOCAL_DEBUG_OUT( "from: space_left_x = %d, space_left_y = %d", space_left_x, space_left_y );
     for( l = 0 ; l < AS_TileColumns ; ++l )
     {
         if( col_width[l] > 0 )
@@ -2144,6 +2146,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
     }
     space_left_x += tbar->h_spacing ;
     space_left_y += tbar->v_spacing ;
+    LOCAL_DEBUG_OUT( "to  : space_left_x = %d, space_left_y = %d, floating_cols = %d, floating_rows = %d", space_left_x, space_left_y, floating_cols_count, floating_rows_count );
     /* pass 3: now we determine spread padding among affected cols : */
     if( floating_cols_count > 0 && space_left_x != 0)
         for( l = 0 ; l < AS_TileColumns ; ++l )
@@ -2159,6 +2162,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
                     change -= col_width[l];
                     col_width[l] = 0 ;
                 }
+                --floating_cols_count ;
                 space_left_x -= change ;
                 if( space_left_x == 0 )
                     break;
@@ -2179,6 +2183,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
                     change -= row_height[l];
                     row_height[l] = 0;
                 }
+                --floating_rows_count ;
                 space_left_y -= change ;
                 if( space_left_y == 0 )
                     break;
