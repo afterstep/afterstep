@@ -18,9 +18,11 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
 
-#include "../configure.h"
-#include "../include/aftersteplib.h"
+#include "config.h"
 
 #if defined (__sun__) && defined (SVR4)
 /* Solaris has sysinfo instead of gethostname.  */
@@ -42,6 +44,19 @@ mygethostname (char *client, size_t length)
     uname (&sysname);
 	strncpy (client, sysname.nodename, length);
     return (*client != '\0');
+}
+
+/* return a string indicating the OS type (i.e. "Linux", "SINIX-D", ... ) */
+char*
+mygetostype (void)
+{
+  char* str = NULL;
+  struct utsname sysname;
+
+  if (uname (&sysname) != -1)
+    str = mystrdup(sysname.sysname);
+
+  return NULL;
 }
 
 #else
@@ -66,4 +81,28 @@ mygethostname (char *client, size_t length)
 }
 
 #endif
+
+char*
+mygetostype (void)
+{
+  return NULL;
+}
+
 #endif
+
+int
+GetFdWidth (void)
+{
+	int           r;
+
+#ifdef _SC_OPEN_MAX
+	r = sysconf (_SC_OPEN_MAX);
+#else
+	r = getdtablesize ();
+#endif
+#ifdef FD_SETSIZE
+	return (r > FD_SETSIZE ? FD_SETSIZE : r);
+#else
+	return r;
+#endif
+}

@@ -3,15 +3,143 @@
  * merged with envvar.c originally created by :
  * Copyright (C) 1999 Ethan Fischer <allanon@crystaltokyo.com>
  * Copyright (C) 1998 Pierre Clerissi <clerissi@pratique.fr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.   See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
  */
 #include <stdio.h>
-#include <unistd.h>
-#include <signal.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include "config.h"
+#include "mystring.h"
+
+/*
+ * get the date stamp on a file
+ */
+time_t FileModifiedTime (const char *filename)
+{
+	struct stat   st;
+	time_t        stamp = 0;
+
+	if (stat (filename, &st) != -1)
+		stamp = st.st_mtime;
+	return stamp;
+}
+
+int
+CheckMode (const char *file, int mode)
+{
+	struct stat   st;
+
+	if ((stat (file, &st) == -1) || (st.st_mode & S_IFMT) != mode)
+		return (-1);
+	else
+		return (0);
+}
+
+/* copy file1 into file2 */
+int
+CopyFile (const char *realfilename1, const char *realfilename2)
+{
+	FILE         *targetfile, *sourcefile;
+	int           c;
+
+	targetfile = fopen (realfilename2, "w");
+	if (targetfile == NULL)
+	{
+		fprintf (stderr, "can't open %s !\n", realfilename2);
+		return (-1);
+	}
+	sourcefile = fopen (realfilename1, "r");
+	if (sourcefile == NULL)
+	{
+		fprintf (stderr, "can't open %s !\n", realfilename1);
+		return (-2);
+	}
+	while ((c = getc (sourcefile)) != EOF)
+		putc (c, targetfile);
+
+	fclose (targetfile);
+	fclose (sourcefile);
+	return 0;
+}
+
+char         *
+make_file_name (const char *path, const char *file)
+{
+	register int  i = 0;
+	register char *ptr;
+	char         *filename;
+	int 		  len;
+
+	/* getting length */
+	for (ptr = (char *)path; ptr[i]; i++);
+	len = i+1;
+	for (ptr = (char *)file; ptr[i]; i++);
+	len += i+1;
+	ptr = filename = safemalloc (len);
+	/* copying path */
+	for (i = 0; path[i]; i++)
+		ptr[i] = path[i];
+	/* copying filename */
+	ptr[1] = '/';
+	ptr += i+1 ;
+	for (i = 0; file[i]; i++)
+		ptr[i] = file[i];
+	ptr[i] = '\0';						   /* zero byte */
+
+	return filename;
+}
+
+char         *
+PutHome (const char *path_with_home)
+{
+	static char  *home = NULL;				   /* the HOME environment variable */
+	static char   default_home[3] = "./";
+	static int    home_len = 0;
+	char         *str, *ptr;
+	register int  i;
+
+	if (path_with_home == NULL)
+		return NULL;
+	/* home dir ? */
+	if (path_with_home[0] != '~' || path_with_home[1] != '/')
+		return mystrdup (path_with_home);
+
+	if (home == NULL)
+	{
+		if ((home = getenv ("HOME")) == NULL)
+			home = &(default_home[0]);
+		home_len = strlen (home);
+	}
+
+	for (i = 2; path_with_home[i]; i++);
+	str = safemalloc (home_len + i);
+	
+	for (ptr = str + home_len-1; i > 0; i--)
+		ptr[i] = path_with_home[i];
+	for (i = 0; i < home_len; i++)
+		str[i] = home[i];
+
+	return str;
+}
+
 
 /****************************************************************************
  *
@@ -27,49 +155,57 @@
  */
 
 char         *
-findIconFile (const char *icon, const char *pathlist, int type)
+find_file (const char *file, const char *pathlist, int type)
 {
-	char         *path;
-	int           icon_len;
-	int           max_path = 0;
-	char         *ptr;
-	register int  i;
+	char 		  *path;
+	register int   len;
+	int            max_path = 0;
+	register char *ptr;
+	register int   i;
 
-	if (icon == NULL)
+	if (file == NULL)
 		return NULL;
-	if (*icon == '/' || *icon == '~' || ((pathlist == NULL) || (*pathlist == '\0')))
+	if (*file == '/' || *file == '~' || ((pathlist == NULL) || (*pathlist == '\0')))
 	{
-		path = PutHome (icon);
+		path = PutHome (file);
 		if (access (path, type) == 0)
 			return path;
 		free (path);
 		return NULL;
 	}
 
-	for (icon_len = 0; *(icon + icon_len); icon_len++);
+	for (i = 0; file[i]; i++);
+	len = i ;
 	for (ptr = (char *)pathlist; *ptr; ptr += i)
 	{
 		if (*ptr == ':')
 			ptr++;
-		for (i = 0; *(ptr + i) && *(ptr + i) != ':'; i++);
+		for (i = 0; ptr[i] && ptr[i] != ':'; i++);
 		if (i > max_path)
 			max_path = i;
 	}
 
-	path = safemalloc (max_path + 1 + icon_len + 1);
+	path = safemalloc (max_path + 1 + len + 1);
 
 	/* Search each element of the pathlist for the icon file */
-	for (ptr = (char *)pathlist; *ptr; ptr += i)
+	while( pathlist[0] != 0 )
 	{
-		if (*ptr == ':')
-			ptr++;
-		for (i = 0; *(ptr + i) && *(ptr + i) != ':'; i++)
-			*(path + i) = *(ptr + i);
+		if (pathlist[0] == ':')
+			++pathlist;
+		ptr = pathlist ;
+		for (i = 0; ptr[i] && ptr[i] != ':'; i++)
+			path[i] = ptr[i];
+		pathlist += i;
 		if (i == 0)
 			continue;
-		*(path + i) = '/';
-		*(path + i + 1) = '\0';
-		strcat (path, icon);
+		path[i] = '/';
+		ptr = &(path[i+1]);
+		i = -1 ;
+		do
+		{
+			++i;
+			ptr[i] = file[i];
+		}while( file[i] != '\0' );					
 		if (access (path, type) == 0)
 			return path;
 	}
@@ -85,17 +221,17 @@ find_envvar (char *var_start, int *end_pos)
 	register int  i;
 	char         *var = NULL;
 
-	if (*var_start == '{')
+	if (var_start[0] == '{')
 	{
 		name_start++;
-		for (i = 1; *(var_start + i) && *(var_start + i) != '}'; i++);
+		for (i = 1; var_start[i] && var_start[i] != '}'; i++);
 	} else
-		for (i = 0; isalnum (*(var_start + i)) || *(var_start + i) == '_'; i++);
+		for (i = 0; isalnum (var_start[i]) || var_start[i] == '_'; i++);
 
-	backup = *(var_start + i);
-	*(var_start + i) = '\0';
+	backup = var_start[i];
+	var_start[i] = '\0';
 	var = getenv (name_start);
-	*(var_start + i) = backup;
+	var_start[i] = backup;
 
 	*end_pos = i;
 	if (backup == '}')
@@ -203,13 +339,13 @@ is_executable_in_path (const char *name)
 
 	/* cut leading "exec" enclosed in spaces */
 	for (; isspace (*name); name++);
-	if (!strncmp (name, "exec", 4) && isspace (name[4]))
+	if (!mystrncasecmp(name, "exec", 4) && isspace (name[4]))
 		name += 4;
 	for (; isspace (*name); name++);
 	if (*name == '\0')
 		return 0;
 
-	for (i = 0; *(name + i) && !isspace (*(name + i)); i++);
+	for (i = 0; name[i] && !isspace (name[i]); i++);
 	if (i == 0)
 		return 0;
 
@@ -245,7 +381,7 @@ is_executable_in_path (const char *name)
 			{
 				if (*ptr == ':')
 					ptr++;
-				for (i = 0; *(ptr + i) && *(ptr + i) != ':'; i++);
+				for (i = 0; ptr[i] && ptr[i] != ':'; i++);
 				if (i > max_path)
 					max_path = i;
 			}
@@ -256,8 +392,8 @@ is_executable_in_path (const char *name)
 		{
 			if (*ptr == ':')
 				ptr++;
-			for (i = 0; *(ptr + i) && *(ptr + i) != ':'; i++)
-				path[i] = *(ptr + i);
+			for (i = 0; ptr[i] && ptr[i] != ':'; i++)
+				path[i] = ptr[i];
 			path[i] = '/';
 			path[i + 1] = '\0';
 			strcat (path, cache);

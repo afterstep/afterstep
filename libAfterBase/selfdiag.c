@@ -16,12 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
-#include "../config.h"
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 #include  <X11/X.h>
-#include  "../include/aftersteplib.h"
 
 
 #ifdef HAVE_EXECINFO_H
