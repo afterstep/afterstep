@@ -367,7 +367,13 @@ void complete_aswindow_moveresize(struct ASMoveResizeData *data, Bool cancelled)
             moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height, False );
         }
         ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
-        SendConfigureNotify(asw);
+		asw->frame_canvas->root_x = -10000 ; 
+		asw->frame_canvas->root_y = -10000;
+		asw->frame_canvas->width = 1 ; 
+		asw->frame_canvas->height = 1;
+		
+		on_window_moveresize( asw, asw->frame );
+/*        SendConfigureNotify(asw); */
         broadcast_config (M_CONFIGURE_WINDOW, asw);
     }
     Scr.moveresize_in_progress = NULL ;
@@ -390,8 +396,10 @@ void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
             moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->start.width, data->start.height, False );
         }
         ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
-        SendConfigureNotify(asw);
-        broadcast_config (M_CONFIGURE_WINDOW, asw);
+		asw->frame_canvas->root_x = -10000 ; 
+		asw->frame_canvas->root_y = -10000;
+		on_window_moveresize( asw, asw->frame );
+		broadcast_config (M_CONFIGURE_WINDOW, asw);
     }
     Scr.moveresize_in_progress = NULL ;
 }

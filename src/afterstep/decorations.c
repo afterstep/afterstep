@@ -1326,8 +1326,14 @@ SetShape (ASWindow *asw, int w)
           	for( i = 0 ; i < FRAME_SIDES ; ++i )
               	if( asw->frame_sides[i] )
 				{
+					int x, y ;
+					unsigned int s_width, s_height, bw ;
 					LOCAL_DEBUG_OUT( " Frame side %d", i );
-                  	combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i] );
+					get_current_canvas_geometry( asw->frame_sides[i], &x, &y, &s_width, &s_height, &bw );
+			
+					combine_canvas_shape_at_geom( asw->frame_canvas, asw->frame_sides[i], x, y,
+							  					  s_width, s_height, bw );
+/*                  	combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i] ); */
 				}
 
 			subtract_shape_rectangle( asw->frame_canvas->shape, &rect, 1, child_x, child_y, asw->frame_canvas->width, asw->frame_canvas->height );

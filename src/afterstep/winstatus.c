@@ -523,10 +523,14 @@ on_frame_bars_moved( ASWindow *asw, unsigned int side, ASOrientation *od)
     }
 }
 
-static void
+void
 update_window_frame_moved( ASWindow *asw, ASOrientation *od )
 {
     int i ;
+
+    if( ASWIN_GET_FLAGS(asw, AS_Dead|AS_MoveresizeInProgress ) )
+        return;
+
     handle_canvas_config (asw->client_canvas);
     if( asw->internal && asw->internal->on_moveresize )
         asw->internal->on_moveresize( asw->internal, None );
@@ -633,6 +637,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
             }
         }else if( get_flags( changes, CANVAS_MOVED ) )
         {
+			LOCAL_DEBUG_OUT( "window is moved but not resized %s", "");
             update_window_frame_moved( asw, od );
             /* also sent synthetic ConfigureNotify : */
             SendConfigureNotify(asw);
