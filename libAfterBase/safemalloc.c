@@ -91,6 +91,7 @@ safecalloc (size_t num, size_t blength)
 
     if (blength <= 0)
         blength = 1;
+#if 0		
 #ifdef DEBUG_ALLOCS
 	else if( blength > 1000000 )
 	{
@@ -98,6 +99,7 @@ safecalloc (size_t num, size_t blength)
 		print_simple_backtrace();
 		exit(0);
 	}
+#endif
 #endif
     if (num <= 0)
         num = 1;
