@@ -323,11 +323,13 @@ Key Right       A       C       Scroll +100 +0
 Key Up          A       C       Scroll +0   -100
 Key Down        A       C       Scroll +0   +100
 
+# Those keybindings trap Mozilla history navigation keybindings, but you can
+# uncomment them if you do not use those Mozilla keybindings.
 # alt + arrow = 1/10 page
-Key Left        A       M       Scroll -10 +0
-Key Right       A       M       Scroll +10 +0
-Key Up          A       M       Scroll +0  -10
-Key Down        A       M       Scroll +0  +10
+#Key Left        A       M       Scroll -10 +0
+#Key Right       A       M       Scroll +10 +0
+#Key Up          A       M       Scroll +0  -10
+#Key Down        A       M       Scroll +0  +10
 
 # alt + shift + arrow = move cursor
 Key Left        A       MS       CursorMove -1 0
@@ -374,7 +376,7 @@ Key Tab         A       S       Focus
 
 # ctrl-v = paste
 # If you have problems with pasting data into applications - 
-# try uncomminting this :
+# try uncommenting this :
 #Key v		W	C	PasteSelection
 
 
