@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 			/* see ASView.4 : */
 			w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 				                         to_width, to_height, 1, 0, NULL,
-										 "ASScale" );
+										 "ASScale", image_file );
 			if( w != None )
 			{
 				Pixmap p ;

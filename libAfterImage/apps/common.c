@@ -74,7 +74,7 @@ Window
 create_top_level_window( ASVisual *asv, Window root, int x, int y,
                          unsigned int width, unsigned int height,
 						 unsigned int border_width, unsigned long attr_mask,
-						 XSetWindowAttributes *attr, char *app_class )
+						 XSetWindowAttributes *attr, const char *app_class, const char *app_name )
 {
  	Window w = None;
 #ifndef X_DISPLAY_MISSING
@@ -84,11 +84,11 @@ create_top_level_window( ASVisual *asv, Window root, int x, int y,
 
 	w = create_visual_window(asv, root, x, y, width, height, border_width, InputOutput, attr_mask, attr );
 
-	tmp = (char*)get_application_name();
+	tmp = (app_name==NULL)?(char*)get_application_name():(char*)app_name;
     XStringListToTextProperty (&tmp, 1, &name);
 
     class1.res_name = tmp;	/* for future use */
-    class1.res_class = app_class;
+    class1.res_class = (char*)app_class;
     XSetWMProtocols (dpy, w, &_XA_WM_DELETE_WINDOW, 1);
     XSetWMProperties (dpy, w, &name, &name, NULL, 0, NULL, NULL, &class1);
     /* final cleanup */

@@ -2972,12 +2972,12 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 	{
 		int i = src->height;
 		CARD8 **src_rows = src->channels[channel] ;
-		unsigned int *height = safemalloc( (src->width+1) * sizeof(unsigned int) );
+		unsigned int *height = safemalloc( (src->width+1)*2 * sizeof(unsigned int) );
 		unsigned int *prev_runs = NULL ;
 		int prev_runs_count = 0 ;
-		unsigned int *runs = safemalloc( (src->width+1) * sizeof(unsigned int) );
-		unsigned int *tmp_runs = safemalloc( (src->width+1) * sizeof(unsigned int) );
-		unsigned int *tmp_height = safemalloc( (src->width+1) * sizeof(unsigned int) );
+		unsigned int *runs = safemalloc( (src->width+1)*2 * sizeof(unsigned int) );
+		unsigned int *tmp_runs = safemalloc( (src->width+1)*2 * sizeof(unsigned int) );
+		unsigned int *tmp_height = safemalloc( (src->width+1)*2 * sizeof(unsigned int) );
 		Bool count_empty = (ARGB32_CHAN8(src->back_color,channel)>= threshold);
 
 #ifdef DEBUG_RECTS
@@ -3134,7 +3134,9 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 					}
 					if( matching_runs == 0 ) 
 					{  /* no new runs for this prev run - add rectangle */
+#ifdef DEBUG_RECTS
 						fprintf( stderr, "%d: NO MATCHING NEW RUNS : start = %d, end = %d, height = %d\n", __LINE__, start, end, height[l] );
+#endif
 						if( rects_count >= rects_allocated )
 						{
 							rects_allocated = rects_count + 8 + (rects_count>>3);
@@ -3183,7 +3185,7 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 				int k = runs_count;
 				prev_runs_count = runs_count ;
 				prev_runs = runs ;
-				runs = safemalloc( (src->width+1) * sizeof(unsigned int) );
+				runs = safemalloc( (src->width+1)*2 * sizeof(unsigned int) );
 				while( --k >= 0 )
 					height[k] = 1 ;
 			}

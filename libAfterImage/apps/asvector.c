@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 		Window w = create_top_level_window( asv,
 		                                    DefaultRootWindow(dpy), 32, 32,
 		                        			to_width, to_height, 1, 0, NULL,
-											"ASGradient" );
+											"ASVector", NULL );
 		if( w != None )
 		{
 			Pixmap p ;

@@ -281,7 +281,7 @@ int main(int argc, char* argv[])
 			w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 			      		                 width+BEVEL_ADDON, height+BEVEL_ADDON,
 										 1, 0, NULL,
-										 "ASText" );
+										 "ASText", text );
 			if( w != None )
 			{
 				Pixmap p ;

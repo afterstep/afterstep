@@ -32,6 +32,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 
 #include "../afterbase.h"
 #include "../afterimage.h"
@@ -136,11 +146,6 @@
  *****/
 
 
-Window showimage(ASImage* im, Bool looping, Window main_window, Bool center );
-Window make_main_window(Bool on_root);	
-
-int screen = 0, depth = 0;
-
 ASVisual *asv;
 int verbose = 0;
 
@@ -214,6 +219,27 @@ static char* default_doc_str = "\
 	
 char *load_stdin();	
 
+typedef struct ASComposeWinProps
+{
+	Bool center ;
+
+	int geom_x, geom_y ;
+	unsigned int geom_width, geom_height ;
+	unsigned long geom_flags ;
+
+	Bool override_redirect ;
+	int timeout ;
+	Bool on_top ;
+	const char *title ;
+}ASComposeWinProps;
+
+Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProps *props);
+Window make_main_window(Bool on_root, ASComposeWinProps *props);	
+
+int screen = 0, depth = 0;
+
+
+
 int main(int argc, char** argv) {
 	ASImage* im = NULL;
 	char* doc_str = default_doc_str;
@@ -229,7 +255,11 @@ int main(int argc, char** argv) {
 		COMPOSE_Interactive,
 		COMPOSE_XClipboard
 	}compose_type = COMPOSE_Once ;
+	Bool endless_loop = False ; 
 	Window main_window = None ;
+	ASComposeWinProps main_window_props ;
+
+	memset(&main_window_props, 0x00, sizeof( main_window_props));
 
 	/* see ASView.1 : */
 	set_application_name(argv[0]);
@@ -278,7 +308,7 @@ int main(int argc, char** argv) {
 			}
 		} else if ((!strcmp(argv[i], "--string") || !strcmp(argv[i], "-s")) && i < argc + 1) {
 			doc_str = argv[++i];
-		} else if ((!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) && i < argc + 1) {
+	   	} else if ((!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) && i < argc + 1) {
 			doc_save = argv[++i];
 		} else if ((!strcmp(argv[i], "--type") || !strcmp(argv[i], "-t")) && i < argc + 1) {
 			doc_save_type = argv[++i];
@@ -286,10 +316,27 @@ int main(int argc, char** argv) {
             doc_compress = argv[++i];
 		} else if (!strcmp(argv[i], "--interactive") || !strcmp(argv[i], "-I")) {
             compose_type = COMPOSE_Interactive ;
+		} else if (!strcmp(argv[i], "--endless")) {
+            endless_loop = True ;
 		}
 #ifndef X_DISPLAY_MISSING
-	
-		  else if (!strcmp(argv[i], "--clipboard") || !strcmp(argv[i], "-C")) {
+		  else if ((!strcmp(argv[i], "--geometry") || !strcmp(argv[i], "-g")) && i < argc + 1) {
+			main_window_props.geom_flags = XParseGeometry ( argv[++i], 
+															&main_window_props.geom_x,
+															&main_window_props.geom_y,
+                      					 					&main_window_props.geom_width, 
+															&main_window_props.geom_height);
+		} else if (strcmp(argv[i], "--override") == 0 ) {
+			main_window_props.override_redirect = True;
+		} else if (strcmp(argv[i], "--timeout") == 0 && i < argc + 1) {
+			main_window_props.timeout = strtod( argv[++i ], NULL );
+		} else if ((!strcmp(argv[i], "--title") || !strcmp(argv[i], "-T")) && i < argc + 1) {
+			main_window_props.title = argv[++i];
+		} else if (strcmp(argv[i], "--center") == 0 ) {
+			main_window_props.center = True;
+		} else if (strcmp(argv[i], "--topmost") == 0 ) {
+			main_window_props.on_top = True;
+		} else if (!strcmp(argv[i], "--clipboard") || !strcmp(argv[i], "-C")) {
 			compose_type = COMPOSE_XClipboard;
 		}   else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
 			display = 0;
@@ -356,7 +403,7 @@ int main(int argc, char** argv) {
 		/* Display the image if desired. */
 		if (display && dpy)
 		{
-			showimage(im, False, make_main_window(onroot), True);
+			showimage(im, False, make_main_window(onroot, &main_window_props), &main_window_props);
 		}
 		/* Done with the image, finally. */
 		if( im ) 
@@ -380,7 +427,7 @@ int main(int argc, char** argv) {
 			memset( &xb, 0x00, sizeof(xb));
 	 		
 			if (display && dpy) 
-				main_window = make_main_window( onroot );
+				main_window = make_main_window( onroot, &main_window_props );
 
 			do
 			{
@@ -407,15 +454,23 @@ int main(int argc, char** argv) {
 					}		   
 					if( c == EOF && fp != stdin ) 
 					{	
-						fseek( fp, 0L, SEEK_SET );
-						char_count = 0 ;
+						if( endless_loop ) 
+						{	
+							fseek( fp, 0L, SEEK_SET );
+							char_count = 0 ;
+						}else if( xb.tags_count == 0 ) 
+							break;
 						if( xb.state == ASXML_Start && xb.tags_count == 0 ) 
 							continue;
 					}
 				}else
 				{
 					if( char_count >= doc_str_len ) 
+					{
+						if( !endless_loop ) 	  
+							break;
 						char_count = 0 ;
+					}
 					while( char_count < doc_str_len ) 
 					{
 						char_count += spool_xml_tag( &xb, &doc_str[char_count], doc_str_len - char_count );							   
@@ -442,7 +497,7 @@ int main(int argc, char** argv) {
 						}
 						/* Display the image if desired. */
 						if (display && dpy) 
-							main_window = showimage(im, True, main_window, (fp!=stdin));
+							main_window = showimage(im, True, main_window, &main_window_props);
 						safe_asimage_destroy(im);
 						im = NULL ;
 					}					
@@ -467,7 +522,7 @@ int main(int argc, char** argv) {
 					printf("\" level=%d tag_count=%d/>\n", xb.level ,xb.tags_count );	  
 					break;
 				}
-			}while( !display || dpy == NULL || main_window != None );
+			}while( !display || dpy == NULL || main_window != None);
 			if( xb.buffer )
 				free( xb.buffer );
 			destroy_image_manager(my_imman, False);
@@ -489,7 +544,7 @@ int main(int argc, char** argv) {
 			
 		memset( &xb, 0x00, sizeof(xb));
 		if (display) 
-			main_window = make_main_window( onroot );
+			main_window = make_main_window( onroot, &main_window_props );
 		
 		XSelectInput( dpy, DefaultRootWindow(dpy), PropertyChangeMask );
 		clipboard_prop = XInternAtom( dpy, "CUT_BUFFER0", False );
@@ -556,7 +611,7 @@ int main(int argc, char** argv) {
 						}
 						/* Display the image if desired. */
 						if (display && dpy) 
-							main_window = showimage(im, True, main_window, False);
+							main_window = showimage(im, True, main_window, &main_window_props);
 						safe_asimage_destroy(im);
 						im = NULL ;
 					}					
@@ -586,16 +641,21 @@ int main(int argc, char** argv) {
 }
 
 Window 
-make_main_window(Bool onroot)	
+make_main_window(Bool onroot, ASComposeWinProps *props)	
 {
 	Window w = None ;
 #ifndef X_DISPLAY_MISSING		  
+	XSetWindowAttributes attributes;
+
 	if( onroot ) 
 		w = DefaultRootWindow(dpy);
 	else
 	{
+		attributes.override_redirect = props->override_redirect ; 
 		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-				                        100, 30, 1, 0, NULL, "ASCompose" );
+				                        100, 30, 1, CWOverrideRedirect, &attributes, 
+										"ASCompose",
+										props->title );
 		
 		XSelectInput (dpy, w, (StructureNotifyMask|ButtonPressMask|ButtonReleaseMask));
 	}	 
@@ -603,67 +663,97 @@ make_main_window(Bool onroot)
 	return w;
 }
 
-Window showimage(ASImage* im, Bool looping, Window main_window, Bool center ) 
+Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProps *props ) 
 {
 #ifndef X_DISPLAY_MISSING
 	Pixmap p ;
 	int x = 32, y = 32;
 	ASImage *orig_im = im ;
+	unsigned int width, height;
+	fd_set        in_fdset;
+	int x_fd = XConnectionNumber (dpy);
+
 
 	if (im == NULL || main_window == None ) 
 		return None;
-	
+
+	width = im->width;
+	height = im->height;
+	   
 	if( main_window != DefaultRootWindow(dpy) )
 	{	
-		if( center ) 
-		{	
-			x = (DisplayWidth (dpy, DefaultScreen(dpy)) - im->width)/2;
-			y = (DisplayHeight (dpy, DefaultScreen(dpy)) - im->height)/2;
-			XMoveWindow( dpy, main_window, x, y );
-		}
-		XResizeWindow( dpy, main_window, im->width, im->height );
-		XMapRaised   ( dpy, main_window);
-	}
-
-	if( get_flags(get_asimage_chanmask(im), SCL_DO_ALPHA))
-	{	
-		unsigned int width, height;
-		Pixmap rp = GetRootPixmap(None);
-		ASImage *transp_im = NULL , *tmp ;
-#ifdef SHAPE
-		{		
-			unsigned int rects_count = 0;
-			XRectangle *rects = get_asimage_channel_rects( im, IC_ALPHA, 10, &rects_count );
-			if( rects == NULL || rects_count == 0 ) 
-				XShapeCombineMask( dpy, main_window, ShapeBounding, 0, 0, None, ShapeSet );
-			else
-				XShapeCombineRectangles (dpy, main_window, ShapeBounding, 0, 0, rects, rects_count, ShapeSet, Unsorted);
-		}
-#endif		   
-		if (rp) 
-		{
-			get_drawable_size(rp, &width, &height);
-			transp_im = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
-		}
+		Bool move = True ;
 		
-		if( transp_im ) 
-		{   /* Build the layers first. */	
-			ASImageLayer *layers = create_image_layers( 2 );
-			layers[0].im = transp_im ;
-			layers[0].clip_x = x;
-			layers[0].clip_y = y;
-			layers[0].clip_width = im->width ;
-			layers[0].clip_height = im->height ;
-			layers[1].im = im ;
-			layers[1].clip_width = im->width ;
-			layers[1].clip_height = im->height ;
-			tmp = merge_layers(asv, layers, 2, im->width, im->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			if( tmp ) 
-				im = tmp ;
-			free( layers );
-			safe_asimage_destroy(transp_im);
-		}		
-	}		   
+		if( get_flags( props->geom_flags, WidthValue) && props->geom_width > 0  )
+			width = props->geom_width ;
+		if( get_flags( props->geom_flags, HeightValue)&& props->geom_height > 0  )
+			height = props->geom_height ;
+		
+		if( props->center ) 
+		{	
+			x = (DisplayWidth (dpy, DefaultScreen(dpy)) - width)/2;
+			y = (DisplayHeight (dpy, DefaultScreen(dpy)) - height)/2;
+		}else if( get_flags( props->geom_flags, XValue|YValue) )
+		{
+	 		x = props->geom_x ;
+			y = props->geom_y ;
+			if( get_flags( props->geom_flags, XNegative ) )
+				x = DisplayWidth (dpy, DefaultScreen(dpy)) - width + x ;
+			if( get_flags( props->geom_flags, YNegative ) )
+				y = DisplayHeight (dpy, DefaultScreen(dpy)) - height + y ;
+		}else 
+			move = False ;
+
+		if( move )
+			XMoveWindow( dpy, main_window, x, y );
+		XResizeWindow( dpy, main_window, width, height );
+		XMapWindow( dpy, main_window);
+		if( props->on_top ) 
+			XRaiseWindow( dpy, main_window );
+		if( get_flags(get_asimage_chanmask(im), SCL_DO_ALPHA))
+		{	
+#ifdef SHAPE
+			{		
+				unsigned int rects_count = 0;
+				XRectangle *rects = get_asimage_channel_rects( im, IC_ALPHA, 10, &rects_count );
+				if( rects == NULL || rects_count == 0 ) 
+					XShapeCombineMask( dpy, main_window, ShapeBounding, 0, 0, None, ShapeSet );
+				else
+					XShapeCombineRectangles (dpy, main_window, ShapeBounding, 0, 0, rects, rects_count, ShapeSet, Unsorted);
+			}
+#endif		   
+#if 1		
+			{		
+				unsigned int width, height;
+				Pixmap rp = GetRootPixmap(None);
+				ASImage *transp_im = NULL , *tmp ;
+				if (rp) 
+				{
+					get_drawable_size(rp, &width, &height);
+					transp_im = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
+				}
+		
+				if( transp_im ) 
+				{   /* Build the layers first. */	
+					ASImageLayer *layers = create_image_layers( 2 );
+					layers[0].im = transp_im ;
+					layers[0].clip_x = x;
+					layers[0].clip_y = y;
+					layers[0].clip_width = im->width ;
+					layers[0].clip_height = im->height ;
+					layers[1].im = im ;
+					layers[1].clip_width = im->width ;
+					layers[1].clip_height = im->height ;
+					tmp = merge_layers(asv, layers, 2, im->width, im->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					if( tmp ) 
+						im = tmp ;
+					free( layers );
+					safe_asimage_destroy(transp_im);
+				}		
+			}
+#endif
+		}		   
+	}
 
 	p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, False );
 	p = set_window_background_and_free( main_window, p );
@@ -677,22 +767,44 @@ Window showimage(ASImage* im, Bool looping, Window main_window, Bool center )
   	{
     	XEvent event ;
 		Bool do_close = False ;
-	    XNextEvent (dpy, &event);
-  		switch(event.type)
+		if( props->timeout > 0 ) 
 		{
-	  		case ClientMessage:
-			    if (event.xclient.format == 32 &&
-	  			    event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW)
-				{
-					do_close = True ;
-				}
-				break;
-		  	case ButtonPress:
-				LOCAL_DEBUG_OUT( "ButtonPress: looping = %d", looping);
+			struct timeval tv;
+			struct timeval *t = NULL;
+			int retval = 0 ;
+			
+			FD_ZERO (&in_fdset);
+			FD_SET (x_fd, &in_fdset);
+			tv.tv_sec = props->timeout/1000 ;
+			tv.tv_usec = (props->timeout%1000)*1000;
+			t = &tv;
+    		retval = PORTABLE_SELECT(x_fd,&in_fdset,NULL,NULL,t);
+			if (retval <= 0)
+			{
 				if( looping ) 
 					return main_window;
 				do_close = True ;
-				break;
+			}
+		}	 
+		if( !do_close ) 
+		{	
+	    	XNextEvent (dpy, &event);
+  			switch(event.type)
+			{
+	  			case ClientMessage:
+			    	if (event.xclient.format == 32 &&
+	  			    	event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW)
+					{
+						do_close = True ;
+					}
+					break;
+		  		case ButtonPress:
+					LOCAL_DEBUG_OUT( "ButtonPress: looping = %d", looping);
+					if( looping ) 
+						return main_window;
+					do_close = True ;
+					break;
+			}
 		}
 		if( do_close ) 
 		{

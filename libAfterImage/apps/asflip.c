@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
 		/* see ASView.4 : */
 		Window w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 			  		      	                tile_width, tile_height, 1, 0, NULL,
-											"ASFlip" );
+											"ASFlip", image_file );
 		if( w != None )
 		{
 			Pixmap p ;

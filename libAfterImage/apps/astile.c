@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
 		/* see ASView.4 : */
 		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 			                         tile_width, tile_height, 1, 0, NULL,
-									 "ASTile" );
+									 "ASTile", image_file );
 		if( w != None )
 		{
 			Pixmap p ;

@@ -7,7 +7,7 @@ Window create_top_level_window( ASVisual *asv, Window root, int x, int y,
 								unsigned int border_width,
 								unsigned long attr_mask,
 								XSetWindowAttributes *attr,
-								char *app_class );
+								const char *app_class, const char *app_name );
 Pixmap set_window_background_and_free( Window w, Pixmap p );
 
 void wait_closedown( Window w );
