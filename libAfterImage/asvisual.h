@@ -636,13 +636,21 @@ void destroy_visual_pixmap( ASVisual *asv, Pixmap *ppmap );
 XImage* create_visual_ximage( ASVisual *asv,
 	                          unsigned int width, unsigned int height,
 							  unsigned int depth );
+XImage* create_visual_scratch_ximage( ASVisual *asv,
+	                          unsigned int width, unsigned int height,
+							  unsigned int depth );
+
+#define ASSHM_SAVED_MAX	(256*1024)
 
 #ifdef XSHMIMAGE
 Bool destroy_xshm_segment( unsigned long );
+unsigned long ximage2shmseg( XImage *xim );
 void flush_shm_cache();
 #endif
 Bool enable_shmem_images ();
 void disable_shmem_images();
+Bool check_shmem_images_enabled();
+
 void* check_XImage_shared( XImage *xim );
 Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim,
                   int src_x, int src_y, int dest_x, int dest_y,

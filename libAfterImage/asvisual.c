@@ -1047,6 +1047,56 @@ destroy_visual_pixmap( ASVisual *asv, Pixmap *ppmap )
 		}
 }
 
+static unsigned char *scratch_ximage_data = NULL ;
+static int scratch_use_count = 0 ;
+static size_t scratch_ximage_allocated_size = 0;  
+static size_t scratch_ximage_max_size = ASSHM_SAVED_MAX*2;  /* maximum of 512 KBytes is default  */  
+static size_t scratch_ximage_normal_size = ASSHM_SAVED_MAX;  /* normal usage of scratch pool is 256 KBytes is default  */  
+
+int
+set_scratch_ximage_max_size( int new_max_size )
+{
+	int tmp = scratch_ximage_max_size ;
+	scratch_ximage_max_size = new_max_size ;
+	return tmp;
+}
+
+int
+set_scratch_ximage_normal_size( int new_normal_size )
+{
+	int tmp = scratch_ximage_normal_size ;
+	scratch_ximage_normal_size = new_normal_size ;
+	return tmp;
+}
+
+static void*
+get_scratch_data(size_t size)
+{
+	if( scratch_ximage_max_size < size || scratch_use_count > 0) 
+		return NULL;
+	if( scratch_ximage_allocated_size < size ) 
+	{
+		scratch_ximage_allocated_size = size ;
+		scratch_ximage_data = realloc( scratch_ximage_data, size );
+	}
+	
+	++scratch_use_count;
+	return scratch_ximage_data ; 
+}
+
+static Bool
+release_scratch_data( void *data )
+{
+	if( scratch_use_count == 0 || data != scratch_ximage_data )
+		return False;
+	--scratch_use_count ;
+	if( scratch_use_count == 0 )
+	{
+		/* want to deallocate if too much is allocated ? */
+		
+	}	 
+	return True;
+}	 
 
 #ifdef XSHMIMAGE
 
@@ -1073,7 +1123,6 @@ static ASHashTable	*xshmimage_segments = NULL ;
 static ASHashTable	*xshmimage_images = NULL ;
 /* attempt to reuse 256 Kb of shmem - no reason to reuse more than that,
  * since most XImages will be in range of 20K-100K */
-#define SHM_SAVED_MAX	0x40000
 static ASShmArea  *shm_available_mem_head = NULL ;
 static int shm_available_mem_used = 0 ;
 
@@ -1118,7 +1167,7 @@ void save_shm_area( char *shmaddr, int shmid, int size )
 {
 	ASShmArea *area;
 
-	if( shm_available_mem_used+size >= SHM_SAVED_MAX )
+	if( shm_available_mem_used+size >= ASSHM_SAVED_MAX )
 	{
 	  	really_destroy_shm_area( shmaddr, shmid );
 		return ;
@@ -1247,6 +1296,13 @@ void disable_shmem_images()
 	_as_use_shm_images = False ;
 }
 
+Bool 
+check_shmem_images_enabled()
+{
+	return _as_use_shm_images ;
+}
+
+
 int destroy_xshm_image( XImage *ximage )
 {
 	if( xshmimage_images )
@@ -1264,6 +1320,17 @@ int destroy_xshm_image( XImage *ximage )
 	return 1;
 }
 
+unsigned long 
+ximage2shmseg( XImage *xim )
+{
+	ASXShmImage *data = NULL ;
+	if( get_hash_item( xshmimage_images, AS_HASHABLE(ximage), &data ) == ASH_Success )		
+	{
+		if( data->segment ) 
+			return data->segment->shmid;	
+	}	
+	return 0; 
+}	 
 
 void registerXShmImage( XImage *ximage, XShmSegmentInfo* shminfo )
 {
@@ -1377,14 +1444,14 @@ XImage * ASGetXImage( ASVisual *asv, Drawable d,
 
 #ifndef X_DISPLAY_MISSING
 int
-My_XDestroyImage (ximage)
-	 XImage       *ximage;
+My_XDestroyImage (XImage *ximage)
 {
-	if (ximage->data != NULL)
-		free ((char *)ximage->data);
+	if( !release_scratch_data(ximage->data) )
+		if (ximage->data != NULL)
+			free (ximage->data);
 	if (ximage->obdata != NULL)
-		free ((char *)ximage->obdata);
-	XFree ((char *)ximage);
+		free (ximage->obdata);
+	XFree (ximage);
 	return 1;
 }
 #endif /*ifndef X_DISPLAY_MISSING */
@@ -1468,6 +1535,60 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 	return NULL ;
 #endif /*ifndef X_DISPLAY_MISSING */
 }
+/* this is the vehicle to use static allocated buffer for temporary XImages 
+ * in order to reduce XImage meory allocation overhead */
+XImage*
+create_visual_scratch_ximage( ASVisual *asv, unsigned int width, unsigned int height, unsigned int depth )
+{
+#ifndef X_DISPLAY_MISSING
+	register XImage *ximage = NULL;
+	char         *data;
+	int unit ;
+
+	if( asv == NULL )
+		return NULL;
+
+#if 0
+	unit = asv->dpy->bitmap_unit;
+#else
+	unit = (asv->true_depth+7)&0x0038;
+	if( unit == 24 )
+		unit = 32 ;
+#endif
+
+	/* for shared memory XImage we already do caching - no need for scratch ximage */	   
+#ifdef XSHMIMAGE
+	if( _as_use_shm_images )
+		return create_visual_ximage( asv, width, height, depth );
+#endif
+		   
+	if( ximage == NULL )
+	{
+		ximage = XCreateImage (asv->dpy, asv->visual_info.visual, 
+			                   (depth==0)?asv->visual_info.depth/*true_depth*/:depth, ZPixmap, 
+							   0, NULL, MAX(width,(unsigned int)1), MAX(height,(unsigned int)1),
+						   	   unit, 0);
+		if (ximage != NULL)
+		{
+			data = get_scratch_data(ximage->bytes_per_line * ximage->height);
+			if( data == NULL ) 
+			{
+				XFree ((char *)ximage);	
+				return create_visual_ximage( asv, width, height, depth );/* fall back */
+			}	 
+			_XInitImageFuncPtrs (ximage);
+			ximage->obdata = NULL;
+			ximage->f.destroy_image = My_XDestroyImage;
+			ximage->data = data;
+		}
+	}
+	return ximage;
+#else
+	return NULL ;
+#endif /*ifndef X_DISPLAY_MISSING */
+}
+
+
 
 /****************************************************************************/
 /* Color manipulation functions :                                           */

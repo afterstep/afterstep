@@ -312,6 +312,12 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * asimage2mask_ximage()
  **********/
 XImage  *asimage2ximage  (struct ASVisual *asv, ASImage *im);
+Bool     subimage2ximage (struct ASVisual *asv, ASImage *im, int x, int y, XImage* xim);
+Bool     put_ximage( ASVisual *asv, XImage *xim, Drawable d, GC gc,
+                     int src_x, int src_y, int dest_x, int dest_y,
+  		             unsigned int width, unsigned int height );
+
+
 XImage  *asimage2alpha_ximage (ASVisual *asv, ASImage *im, Bool bitmap );
 XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
 Bool	 asimage2drawable( struct ASVisual *asv, Drawable d, ASImage *im, GC gc,

@@ -111,6 +111,8 @@ static struct ASImageFormatHandlers
 	{ NULL, encode_image_scanline_asim },
 	{ create_image_xim, encode_image_scanline_xim },
 	{ create_image_xim, encode_image_scanline_mask_xim },
+	{ create_image_xim, encode_image_scanline_xim },
+	{ create_image_xim, encode_image_scanline_mask_xim },
 	{ create_image_argb32, encode_image_scanline_argb32 },
 	{ NULL, NULL }                             /* vector of doubles */
 };
@@ -398,13 +400,24 @@ purge_asimage_registry()
 
 Bool create_image_xim( ASVisual *asv, ASImage *im, ASAltImFormats format )
 {
-	XImage **dst = (format == ASA_MaskXImage )? &(im->alt.mask_ximage):&(im->alt.ximage);
+	Bool scratch = False ; 
+	XImage **dst ;
+	if( format == ASA_ScratchXImage || format == ASA_ScratchMaskXImage ) 
+	{	
+		scratch = True ;
+		format = (format - ASA_ScratchXImage ) + ASA_XImage ;
+	}		
+	dst = (format == ASA_MaskXImage )? &(im->alt.mask_ximage):&(im->alt.ximage);
 	if( *dst == NULL )
 	{
 		int depth = 0 ;
 		if( format == ASA_MaskXImage )
 			depth = get_flags(im->flags, ASIM_XIMAGE_8BIT_MASK )? 8: 1;
-		if( (*dst = create_visual_ximage( asv, im->width, im->height, depth )) == NULL )
+		if( scratch )
+			*dst = create_visual_scratch_ximage( asv, im->width, im->height, depth );
+		else
+			*dst = create_visual_ximage( asv, im->width, im->height, depth );
+		if( *dst == NULL )
 			show_error( "Unable to create %sXImage for the visual %d",
 				        (format == ASA_MaskXImage )?"mask ":"",
 						asv->visual_info.visualid );

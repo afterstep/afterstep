@@ -664,6 +664,9 @@ void ChangeDeskAndViewport ( int new_desk, int new_vx, int new_vy, Bool force_gr
 MyBackground *get_desk_back_or_default( int desk, Bool old_desk );
 void change_desktop_background( int desk, int old_desk );
 void HandleBackgroundRequest( struct ASEvent *event );
+Bool is_background_xfer_ximage( unsigned long id );
+
+
 
 /******************************* placement.c *******************************/
 ASGrid* make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWindow *target );

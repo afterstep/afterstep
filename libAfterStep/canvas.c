@@ -318,7 +318,7 @@ draw_canvas_image (ASCanvas * pc, ASImage * im, int x, int y)
         return False;
 
     LOCAL_DEBUG_OUT ("drawing image %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y);
-	if (asimage2drawable (Scr.asv, p, im, NULL, real_x - x, real_y - y, real_x, real_y, width, height, True))
+	if (asimage2drawable (Scr.asv, p, im, Scr.DrawGC, real_x - x, real_y - y, real_x, real_y, width, height, True))
 	{
 		set_flags (pc->state, CANVAS_OUT_OF_SYNC);
         XClearArea( dpy, pc->w, real_x, real_y, width, height, True );

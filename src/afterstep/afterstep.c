@@ -422,7 +422,8 @@ LOCAL_DEBUG_OUT("destroying font manager : %p", Scr.font_manager);
     destroy_font_manager( Scr.font_manager, False );
 
 LOCAL_DEBUG_OUT("destroying visual : %p", Scr.asv);
-    destroy_asvisual( Scr.asv, False );
+    destroy_screen_gcs(&Scr);
+	destroy_asvisual( Scr.asv, False );
 
 LOCAL_DEBUG_OUT("selecting input mask for Root window to 0 : %s","");
 	/* Must release SubstructureRedirectMask prior to releasing wm selection in
@@ -610,6 +611,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     /* Really make sure that the connection is closed and cleared! */
     XSync (dpy, 0);
     XCloseDisplay (dpy);
+	dpy = NULL ;
 
 	/* freeing up memory */
     destroy_assession( Session );

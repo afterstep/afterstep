@@ -160,6 +160,8 @@ typedef struct ScreenInfo
 }ScreenInfo;
 
 void init_screen_gcs(ScreenInfo *scr);
+void destroy_screen_gcs(ScreenInfo *scr);
+
 void make_screen_envvars( ScreenInfo *scr );
 
 void init_screen_panframes(ScreenInfo *scr);

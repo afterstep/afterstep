@@ -16,8 +16,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#define LOCAL_DEBUG
 #include "config.h"
 
+#include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -58,14 +61,17 @@ timer_new (time_t msec, void (*handler) (void *), void *data)
 
 	timer = (Timer *) safemalloc (sizeof (Timer));
 
-	(*timer).next = timer_first;
+	timer->next = timer_first;
 	timer_first = timer;
 
 	timer_get_time (&sec, &usec);
-	(*timer).sec = sec + (msec * 1000 + usec) / 1000000;
-	(*timer).usec = (msec * 1000 + usec) % 1000000;
-	(*timer).data = data;
-	(*timer).handler = handler;
+	timer->sec = sec + (msec * 1000 + usec) / 1000000;
+	timer->usec = (msec * 1000 + usec) % 1000000;
+	timer->data = data;
+	timer->handler = handler;
+
+	LOCAL_DEBUG_OUT( "added task for data = %p, sec = %ld, usec = %ld", data, timer->sec, timer->usec );
+
 }
 
 static Timer *
@@ -75,16 +81,16 @@ timer_extract (Timer * timer)
 		return NULL;
 
 	if (timer_first == timer)
-		timer_first = (*timer).next;
+		timer_first = timer->next;
 	else if (timer_first != NULL)
 	{
 		Timer        *ptr;
 
-		for (ptr = timer_first; (*ptr).next != NULL; ptr = (*ptr).next)
-			if ((*ptr).next == timer)
+		for (ptr = timer_first; ptr->next != NULL; ptr = ptr->next)
+			if (ptr->next == timer)
 				break;
-		if ((*ptr).next == timer)
-			(*ptr).next = (*timer).next;
+		if (ptr->next == timer)
+			ptr->next = timer->next;
 		else
 			timer = NULL;
 	}
@@ -118,7 +124,7 @@ timer_subtract_times (time_t * sec1, time_t * usec1, time_t sec2, time_t usec2)
 Bool timer_delay_till_next_alarm (time_t * sec, time_t * usec)
 {
 	Timer        *timer;
-	time_t        tsec, tusec;
+	long         tsec, tusec;
 
 	if (timer_first == NULL)
 		return False;
@@ -133,12 +139,17 @@ Bool timer_delay_till_next_alarm (time_t * sec, time_t * usec)
 		}
 
 	timer_get_time (sec, usec);
+	LOCAL_DEBUG_OUT( "next :  sec = %ld, usec = %ld( curr %ld, %ld)", tsec, tusec, *sec, *usec );
 	timer_subtract_times (&tsec, &tusec, *sec, *usec);
+	LOCAL_DEBUG_OUT( "waiting for sec = %ld, usec = %ld( curr %ld, %ld)", tsec, tusec, *sec, *usec );
+	
 	*sec = tsec;
 	*usec = tusec;
 	if (tsec < 0 || tusec < 0)
-		*sec = *usec = 0;
-
+	{	
+		*sec = 0 ; 
+		*usec = 1;
+	}
 	return True;
 }
 
@@ -149,13 +160,14 @@ Bool timer_handle (void)
 	time_t        sec, usec;
 
 	timer_get_time (&sec, &usec);
-	for (timer = timer_first; timer != NULL; timer = (*timer).next)
-		if ((*timer).sec < sec || ((*timer).sec == sec && (*timer).usec <= usec))
+	for (timer = timer_first; timer != NULL; timer = timer->next)
+		if (timer->sec < sec || (timer->sec == sec && timer->usec <= usec))
 			break;
 	if (timer != NULL)
 	{
+		LOCAL_DEBUG_OUT( "handling task for sec = %ld, usec = %ld( curr %ld, %ld)", timer->sec, timer->usec, sec, usec );
 		timer_extract (timer);
-		(*timer).handler ((*timer).data);
+		timer->handler (timer->data);
 		mytimer_delete (timer);
 		success = True;
 	}

@@ -631,6 +631,7 @@ InitSession()
 void
 FreeMyAppResources()
 {
+	
     balloon_init (True);
     mystyle_destroy_all();
     destroy_image_manager( Scr.image_manager, False );
@@ -641,7 +642,8 @@ FreeMyAppResources()
     free_func_hash();
     purge_asimage_registry();
     flush_ashash_memory_pool();
-    destroy_asvisual( Scr.asv, False );
+    destroy_screen_gcs(&Scr);
+	destroy_asvisual( Scr.asv, False );
     flush_asbidirlist_memory_pool();
     free( MyArgs.saved_argv );
     destroy_assession( Session );

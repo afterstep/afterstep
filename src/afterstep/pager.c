@@ -820,6 +820,116 @@ make_desktop_image( int desk, MyBackground *new_back )
     return new_im;
 }
 
+typedef struct ASBackgroundXferData
+{
+	char 		*im_name ;
+	ASImage 	*im_ptr ;
+	Pixmap       target_pmap ;
+	int 		 lines_per_iteration, lines_done, total_lines ;
+	XImage		*shm_ximage ;
+}ASBackgroundXferData;
+
+static unsigned long background_xfer_shmseg = 0 ;
+
+Bool
+is_background_xfer_ximage( unsigned long id ) 
+{return (id==background_xfer_shmseg);}	  
+
+void
+do_background_xfer_iter( void *vdata )
+{
+	ASBackgroundXferData *data = (ASBackgroundXferData *)vdata ;
+	ASImage *im ;
+	Bool success = False ; 
+LOCAL_DEBUG_CALLER_OUT( "%p:\"%s\", pmap %lX ", vdata, data->im_name, data->target_pmap );	
+	if( data == NULL )
+		return ; 
+	if( Scr.RootBackground != NULL ) 
+	{	
+		LOCAL_DEBUG_OUT( "target_pmap = %lX, curr pmap = %lX", data->target_pmap, Scr.RootBackground->pmap );
+		if( data->target_pmap == Scr.RootBackground->pmap )
+		{	
+			if( (im = query_asimage( Scr.image_manager, data->im_name )) != NULL )
+			{
+				LOCAL_DEBUG_OUT( "found image %p, named as it should. Original was %p", im, data->im_ptr );
+				if( im == data->im_ptr ) 
+				{
+					XImage *xim = data->shm_ximage ;
+					int lines = data->lines_per_iteration ;
+
+					if( lines > data->total_lines - data->lines_done )
+						lines = data->total_lines - data->lines_done ;
+						
+					if( xim == NULL ) 
+						xim = create_visual_scratch_ximage( Scr.asv, im->width, lines, 0 );
+					LOCAL_DEBUG_OUT( "making ximage %p, starting at %d, and including %d lines", xim, data->lines_done, lines );
+					if( subimage2ximage (Scr.asv, im, 0, data->lines_done, xim)	)
+					{	
+						Bool res ;
+						LOCAL_DEBUG_OUT( "done, copying to pixmap at %d,", data->lines_done );
+						res = put_ximage( Scr.asv, xim, Scr.RootBackground->pmap, 
+					            	Scr.DrawGC,  0, 0, 0, data->lines_done, im->width, lines );	
+						LOCAL_DEBUG_OUT( "%s", res?"Success":"Failure" );
+						data->lines_done += lines ;
+						XClearWindow( dpy, Scr.Root );
+						ASSync(False);
+					}
+					if( xim != data->shm_ximage )
+						XDestroyImage( xim );				   
+					success = True ;
+				}	 
+			}
+		}	
+	}
+	if( success && data->lines_done >= data->total_lines )
+	{
+        XSetWindowBackgroundPixmap( dpy, Scr.Root, Scr.RootBackground->pmap );
+        XClearWindow( dpy, Scr.Root );
+        set_xrootpmap_id (Scr.wmprops, Scr.RootBackground->pmap );
+	}	 
+
+	if( !success || data->lines_done >= data->total_lines )
+	{
+		if( data->shm_ximage ) 
+			XDestroyImage( data->shm_ximage );
+
+		background_xfer_shmseg = 0 ;
+		free( data->im_name );
+		free( data );
+	}else
+	{
+		timer_new (600, do_background_xfer_iter, vdata);	
+	}		 
+	
+}	 
+
+static void 
+start_background_xfer( ASImage *new_im )
+{
+ 	ASBackgroundXferData *data = safecalloc( 1, sizeof(ASBackgroundXferData));
+
+	data->im_name = mystrdup(new_im->name); 
+	data->im_ptr = new_im ; 
+	data->target_pmap = Scr.RootBackground->pmap ; 
+	data->lines_per_iteration = ASSHM_SAVED_MAX / (new_im->width * 4);
+	if( data->lines_per_iteration == 0 ) 
+		data->lines_per_iteration = 1 ;
+	data->lines_done = 0 ;
+	data->total_lines = new_im->height ;
+	data->shm_ximage = NULL ; 
+#ifdef XSHMIMAGE		
+	if(check_shmem_images_enabled())
+	{	
+		data->shm_ximage = create_visual_ximage( Scr.asv, new_im->width, data->lines_per_iteration, 0 );
+		background_xfer_shmseg = ximage2shmseg(data->shm_ximage) ;
+	}
+#endif	   
+
+	do_background_xfer_iter( data );
+}
+
+
+
 void
 change_desktop_background( int desk, int old_desk )
 {
@@ -841,7 +951,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         desk != old_desk ) /* if desks are the same then we are reloading current background !!! */
         return;
     
-    cover_desktop();
+    /*cover_desktop();*/
     display_progress( True, "Changing background for desktop #%d ...", desk);
 
 #ifdef LOCAL_DEBUG
@@ -901,26 +1011,24 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         ASSync(False);
         LOCAL_DEBUG_OUT( "width(%d)->height(%d)->pixmap(%lX/%lu)", new_im->width, new_im->height, bh->pmap, bh->pmap );
 
-        if( !asimage2drawable( Scr.asv, bh->pmap, new_im, NULL, 0, 0, 0, 0, new_im->width, new_im->height, True) )
-			show_warning( "failed to draw root background onto pixmap");
-        flush_asimage_cache(new_im);
-        XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
-        XClearWindow( dpy, Scr.Root );
-#if 0 /* don't do that as it causes unwanted flickering */
-		if( old_pmap == bh->pmap )
-		{                                      /* cruel hack to force refresh of transprent terms : */
-			set_xrootpmap_id (Scr.wmprops, None );
-			ASSync(False);
-			sleep_a_millisec( 500 );
-		}
-#endif
-        set_xrootpmap_id (Scr.wmprops, bh->pmap );
+		if( new_im->width * new_im->height * 4 < ASSHM_SAVED_MAX ) 
+		{	
+        	if( !asimage2drawable( Scr.asv, bh->pmap, new_im, Scr.DrawGC, 0, 0, 0, 0, new_im->width, new_im->height, True) )
+				show_warning( "failed to draw root background onto pixmap");
+        	flush_asimage_cache(new_im);
+        	XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
+        	XClearWindow( dpy, Scr.Root );
+        	set_xrootpmap_id (Scr.wmprops, bh->pmap );
+		}else
+		{                                      /* we need to do it in small steps! */
+			start_background_xfer( new_im );
+		}	 
     }else
         set_xrootpmap_id (Scr.wmprops, None );
     ASSync(False);
     print_asimage_registry();
     LOCAL_DEBUG_OUT("done%s","" );
-    remove_desktop_cover();;
+    /*remove_desktop_cover();;*/
 
 }
 
@@ -1037,7 +1145,7 @@ HandleBackgroundRequest( ASEvent *event )
                         im = tmp_im ;
                     }
                 }
-                if( asimage2drawable( Scr.asv, p, im, NULL, 0, 0, 0, 0, clip_width, clip_height, True) )
+                if( asimage2drawable( Scr.asv, p, im, Scr.DrawGC, 0, 0, 0, 0, clip_width, clip_height, True) )
                     res = True ;
                 else
                 {

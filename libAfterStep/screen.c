@@ -244,6 +244,9 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
 #endif /* SHAPE */
 
     XSelectInput (dpy, scr->Root, event_mask);
+
+	init_screen_gcs(scr);
+
 	return x_fd;
 }
 
@@ -308,6 +311,16 @@ init_screen_gcs(ScreenInfo *scr)
         scr->DrawGC = create_visual_gc( scr->asv, scr->Root, gcm, &gcv );
     }
 }
+
+void
+destroy_screen_gcs(ScreenInfo *scr)
+{
+	if( scr->DrawGC )
+	{	
+		XFreeGC(dpy, scr->DrawGC);
+		scr->DrawGC = NULL ;
+	}
+}		
 
 /* Setting up global variables  nonlock_mods, and lock_mods, defined in asapp.c : */
 void

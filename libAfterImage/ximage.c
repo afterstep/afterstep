@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-/*#define LOCAL_DEBUG */
+/*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING */
 
 #ifdef DO_CLOCKING
@@ -170,9 +170,75 @@ xim_set_component( register CARD32 *src, register CARD32 value, int offset, int 
 	return len-offset;
 }
 
+Bool
+subimage2ximage (ASVisual *asv, ASImage *im, int x, int y, XImage* xim)
+{
+	int            i, max_i;
+	ASScanline     xim_buf;
+	ASImageOutput *imout ;
+#ifdef DO_CLOCKING
+	clock_t       started = clock ();
+#endif
+	int width, height ;
+	ASImage *scratch_im ;
 
-XImage*
-asimage2ximage (ASVisual *asv, ASImage *im)
+	if (im == NULL)
+	{
+LOCAL_DEBUG_OUT( "Attempt to convert NULL ASImage into XImage.", "" );
+		return False;
+	}
+	if( x >= im->width || y >= im->height ) 
+		return False;
+	width = xim->width ;
+	if( width > im->width - x) 
+		width = im->width - x;		   
+	width = ( x > im->width - width )?im->width - width:im->width - x ;
+	height = xim->height ;
+	if( height > im->height - y ) 
+		height = im->height - y ;		
+	scratch_im = create_asimage( width, height, 0);
+	scratch_im->alt.ximage = xim ;
+LOCAL_DEBUG_OUT( "target width = %d, height = %d", width, height );
+	if( (imout = start_image_output( asv, scratch_im, ASA_ScratchXImage, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
+	{
+LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p", im, asv );
+		return False;
+	}
+
+	prepare_scanline( width, 0, &xim_buf, asv->BGR_mode );
+#ifdef DO_CLOCKING
+	started = clock ();
+#endif
+	set_flags( xim_buf.flags, SCL_DO_ALL );
+	max_i = y + height ;
+	for (i = y; i < max_i; i++)
+	{
+		int count ;
+		if( (count = asimage_decode_line (im, IC_RED,   xim_buf.red, i, x, xim_buf.width)) < xim_buf.width )
+			xim_set_component( xim_buf.red, ARGB32_RED8(im->back_color), count, xim_buf.width );
+		if( (count = asimage_decode_line (im, IC_GREEN, xim_buf.green, i, x, xim_buf.width))< xim_buf.width )
+			xim_set_component( xim_buf.green, ARGB32_GREEN8(im->back_color), count, xim_buf.width );
+		if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, x, xim_buf.width)) < xim_buf.width )
+			xim_set_component( xim_buf.blue, ARGB32_BLUE8(im->back_color), count, xim_buf.width );
+
+		imout->output_image_scanline( imout, &xim_buf, 1 );
+//		LOCAL_DEBUG_OUT( "line %d, count = %d", i, count );
+	}
+#ifdef DO_CLOCKING
+	fprintf (stderr, "asimage->ximage time (clocks): %lu\n", clock () - started);
+#endif
+	free_scanline(&xim_buf, True);
+	stop_image_output(&imout);
+
+	scratch_im->alt.ximage = NULL ;
+	destroy_asimage( &scratch_im );
+	return True;
+}
+
+
+
+static XImage*
+asimage2ximage_ext (ASVisual *asv, ASImage *im, Bool scratch)
 {
 	XImage        *xim = NULL;
 	int            i;
@@ -187,7 +253,7 @@ asimage2ximage (ASVisual *asv, ASImage *im)
 LOCAL_DEBUG_OUT( "Attempt to convert NULL ASImage into XImage.", "" );
 		return xim;
 	}
-	if( (imout = start_image_output( asv, im, ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
+	if( (imout = start_image_output( asv, im, scratch?ASA_ScratchXImage:ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
 	{
 LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p", im, asv );
 		return xim;
@@ -218,6 +284,12 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 	stop_image_output(&imout);
 
 	return xim;
+}
+
+XImage*
+asimage2ximage (ASVisual *asv, ASImage *im)
+{
+	return asimage2ximage_ext (asv, im, False);	
 }
 
 XImage*
@@ -326,7 +398,7 @@ pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsign
 	return picture2asimage(asv, p, None, x, y, width, height, plane_mask, keep_cache, compression);
 }
 
-static Bool
+Bool
 put_ximage( ASVisual *asv, XImage *xim, Drawable d, GC gc,
             int src_x, int src_y, int dest_x, int dest_y,
   		    unsigned int width, unsigned int height )
@@ -374,20 +446,24 @@ asimage2drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
 #ifndef X_DISPLAY_MISSING
 	if( im )
 	{
+		Bool 		  my_xim = False ;
 		XImage       *xim ;
 		Bool res = False;
 		if ( !use_cached || im->alt.ximage == NULL )
 		{
-            if( (xim = asimage2ximage( asv, im )) == NULL )
+            if( (xim = asimage2ximage_ext( asv, im, True )) == NULL )
 			{
 				show_error("cannot export image into XImage.");
 				return None ;
 			}
+			 my_xim = True ;
 		}else
 			xim = im->alt.ximage ;
 		if (xim != NULL )
 		{
             res = put_ximage( asv, xim, d, gc,  src_x, src_y, dest_x, dest_y, width, height );
+			if( my_xim && xim == im->alt.ximage ) 
+				im->alt.ximage = NULL ;
 			if( xim != im->alt.ximage )
 				XDestroyImage (xim);
 		}

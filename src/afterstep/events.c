@@ -1315,7 +1315,8 @@ void HandleShmCompletion(ASEvent *event)
 #ifdef XSHMIMAGE
     XShmCompletionEvent  *sev = (XShmCompletionEvent*) &(event->x);
 	LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : offset   %ld(%lx)", (long)sev->offset, (unsigned long)(sev->offset) );
-	destroy_xshm_segment( sev->shmseg );
+	if( !is_background_xfer_ximage( sev->shmseg ) )
+		destroy_xshm_segment( sev->shmseg );
 #endif /* SHAPE */
 }
 
@@ -1334,7 +1335,7 @@ afterstep_wait_pipes_input()
 	struct timeval tv;
 	struct timeval *t = NULL;
     int           max_fd = 0;
-
+	LOCAL_DEBUG_OUT( "waiting pipes%s", "");
 	FD_ZERO (&in_fdset);
 	FD_ZERO (&out_fdset);
 

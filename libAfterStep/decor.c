@@ -1241,7 +1241,7 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
     ASImage     **scrap_images = NULL;
 	ASImage      *merged_im;
 	int           state;
-	ASAltImFormats fmt = ASA_XImage;
+	ASAltImFormats fmt = ASA_ScratchXImage;
     int l ;
     short col_width[AS_TileColumns] = {0};
     short row_height[AS_TileRows] = {0};
