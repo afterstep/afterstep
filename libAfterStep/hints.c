@@ -933,7 +933,7 @@ static ASFlagType extwm_types_start_properties[][3] = {
 static ASFlagsXref extwm_type_xref[] = {	   /*Flag              Set if Set,      Clear if Set,     Set if Clear,    Clear if Clear  */
 	{EXTWM_TypeDesktop, AS_SkipWinList | AS_DontCirculate, AS_Titlebar | AS_Handles | AS_Frame, 0, 0},
 	{EXTWM_TypeDock, 0, AS_Handles | AS_Frame | AS_Titlebar, 0, 0},
-	{EXTWM_TypeToolbar, 0, AS_Handles | AS_Frame, 0, 0},
+	{EXTWM_TypeToolbar, 0, AS_Handles | AS_Frame , 0, 0},
 	{EXTWM_TypeMenu, AS_SkipWinList | AS_DontCirculate, AS_Handles | AS_Frame, 0, 0},
 	{EXTWM_TypeDialog, 0, 0 /*may need to remove handles */ , 0, 0},
 	{0, 0, 0, 0, 0}
