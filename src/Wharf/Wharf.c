@@ -1431,7 +1431,7 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 	XRectangle rect ;
 
 	steps = get_flags( Config->set_flags, WHARF_ANIMATE_STEPS )?Config->animate_steps:12;
-
+	LOCAL_DEBUG_OUT( "steps = %d", steps );
 	for( i = 0 ; i < steps ; ++i )
 	{
 		rect.x = rect.y = 0 ;		
@@ -1458,10 +1458,11 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 			}
 		}
 		
-		/*fprintf( stderr, "%s: boundary = %dx%d%+d%+d, canvas = %dx%d\n", 
-						__FUNCTION__, rect.width, rect.height, rect.x, rect.y, aswf->canvas->width, aswf->canvas->height ); */
+		LOCAL_DEBUG_OUT("boundary = %dx%d%+d%+d, canvas = %dx%d\n", 
+						 rect.width, rect.height, rect.x, rect.y, 
+						 aswf->canvas->width, aswf->canvas->height );
 		if( rect.x+rect.width > aswf->canvas->width ||
-			rect.x+rect.height > aswf->canvas->height ) 
+			rect.y+rect.height > aswf->canvas->height ) 
 		{
 			return;			
 		} 
@@ -2361,7 +2362,7 @@ void on_wharf_moveresize( ASEvent *event )
     {
         ASWharfFolder *aswf = (ASWharfFolder*)obj;
         ASFlagType changes = handle_canvas_config (aswf->canvas );
-		LOCAL_DEBUG_OUT("Handling folder resize for button %p", aswf );
+		LOCAL_DEBUG_OUT("Handling folder resize for folder %p", aswf );
         if( aswf->animation_steps == 0 && get_flags( aswf->flags, ASW_Mapped ) && aswf->animation_dir < 0 )
         {
             unmap_wharf_folder( aswf );
@@ -2381,8 +2382,10 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 #if 1			   
             if( get_flags( changes, CANVAS_RESIZED ) )
 			{
+				LOCAL_DEBUG_OUT("AnimationPending ? = %lX", get_flags(aswf->flags,ASW_AnimationPending));
 				if( get_flags(aswf->flags,ASW_AnimationPending ) )
 				{	
+					LOCAL_DEBUG_OUT("animate from = %dx%d, to = %dx%d", aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h);
 					animate_wharf_loop( aswf, aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h );
 					clear_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending );
 				}
