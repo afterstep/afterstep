@@ -1235,7 +1235,7 @@ hide_focus()
     Scr.Windows->ungrabbed = NULL;
     XRaiseWindow(dpy, Scr.ServiceWin);
 	LOCAL_DEBUG_OUT( "XSetInputFocus(window= %lX (service_win), time = %lu)", Scr.ServiceWin, Scr.last_Timestamp);
-    XSetInputFocus (dpy, Scr.ServiceWin, RevertToParent, Scr.last_Timestamp);
+    XSetInputFocus (dpy, Scr.ServiceWin, RevertToNone/*RevertToParent*/, Scr.last_Timestamp);
     XSync(dpy, False );
 }
 
@@ -1285,10 +1285,17 @@ focus_window( ASWindow *asw, Window w )
     LOCAL_DEBUG_OUT( "focusing window %lX, client %lX, frame %lX, asw %p", w, asw->w, asw->frame, asw );
 	/* using last_Timestamp here causes problems when moving between screens */
 	/* at the same time using CurrentTime all the time seems to cause some apps to fail,
-	 * most noticeably GTK-perl */
+	 * most noticeably GTK-perl 
+	 * 
+	 * Take 2: disabled CurrentTime altogether as it screwes up focus handling
+	 * Basically if you use CurrentTime when there are still bunch of Events 
+	 * in the queue, those evens will not have any effect if you try setting 
+	 * focus using their time, as X aready used its own friggin current time.
+	 * Don't ask, its a mess.
+	 * */
 	if( w != None )
 	{
-		Time t = (Scr.Windows->focused == NULL)?CurrentTime:Scr.last_Timestamp ;
+		Time t = /*(Scr.Windows->focused == NULL)?CurrentTime:*/Scr.last_Timestamp ;
 		LOCAL_DEBUG_OUT( "XSetInputFocus(window= %lX, time = %lu)", w, t);	  
 	    XSetInputFocus ( dpy, w, RevertToParent, t );
 	}
