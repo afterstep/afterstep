@@ -71,7 +71,8 @@ refresh_canvas_config (ASCanvas * pc)
 		pc->root_x = root_x;
 		pc->root_y = root_y;
 
-        get_drawable_size(pc->w, &width, &height);
+        if( !get_drawable_size(pc->w, &width, &height) )
+			return 0;/* drawable is bad */
         if( width != pc->width )
             set_flags(changed, CANVAS_WIDTH_CHANGED);
         if( height != pc->height )
@@ -761,10 +762,10 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
             get_canvas_position( pc, NULL, NULL, NULL, &bw );
         }else
             get_canvas_position( pc, &parent, &x, &y, &bw );
-		
+
 		x -= (int)bw ;
 		y -= (int)bw ;
-		
+
         if( parent != dst )
         {
             LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, %+d%+d ), bw = %d", pc->w, dst, x, y, bw );

@@ -28,6 +28,7 @@
 #include "../../configure.h"
 
 #include "asinternals.h"
+#include "../../libAfterStep/moveresize.h"
 
 /*************************************************************************/
 
@@ -258,7 +259,7 @@ AddWindow (Window w)
 	 * WithdrawnState in HandleUnmapNotify.  Map state gets set correctly
 	 * again in HandleMapNotify.
      */
-	if( !pending_placement )	 
+	if( !pending_placement )
 		XUngrabServer (dpy);
     broadcast_config (M_ADD_WINDOW, tmp_win);
     broadcast_window_name( tmp_win );
@@ -369,7 +370,6 @@ void
 Destroy (ASWindow *asw, Bool kill_client)
 {
     static int nested_level = 0 ;
-    Bool bad_window ;
     /*
 	 * Warning, this is also called by HandleUnmapNotify; if it ever needs to
 	 * look at the event, HandleUnmapNotify will have to mash the UnmapNotify
@@ -384,20 +384,37 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
         return;
     ++nested_level ;
 
-    SendPacket (-1, M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
-
     XGrabServer( dpy );
-    bad_window = (validate_drawable( asw->w, NULL, NULL ) == None );
+	if( !ASWIN_GET_FLAGS( asw, AS_Dead ) )
+	{
+		if( validate_drawable( asw->w, NULL, NULL ) == None )
+        	ASWIN_SET_FLAGS( asw, AS_Dead );
+	}
 
-    XUnmapWindow (dpy, asw->frame);
-    if( !bad_window )
-    {
+	if( !ASWIN_GET_FLAGS( asw, AS_Dead ) )
+	{
         if( asw->internal == NULL )
             XRemoveFromSaveSet (dpy, asw->w);
         XSelectInput (dpy, asw->w, NoEventMask);
-    }else
-        ASWIN_SET_FLAGS( asw, AS_Dead );
+	}
+    XUnmapWindow (dpy, asw->frame);
+
+	if( Scr.moveresize_in_progress != NULL &&
+		Scr.moveresize_in_progress->mr == asw->frame_canvas )
+	{
+		complete_interactive_action( Scr.moveresize_in_progress, True );
+	    Scr.moveresize_in_progress = NULL ;
+		if( get_flags(asw->wm_state_transition, ASWT_FROM_WITHDRAWN ) )
+		{
+			/* will be deleted from AddWindow  - can't destroy here, since we are in recursive event loop */
+			XUngrabServer( dpy );
+			return;
+		}
+		/* otherwise we can delete window normally - there are no recursion */
+	}
+
     XSync (dpy, 0);
+	SendPacket (-1, M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
 
     UninstallWindowColormaps( asw );
     CheckWarpingFocusDestroyed(asw);

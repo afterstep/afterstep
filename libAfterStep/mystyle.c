@@ -384,8 +384,23 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	if(  style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
 		 style->texture_type == TEXTURE_SHAPED_PIXMAP ||
 		 style->texture_type > TEXTURE_PIXMAP )
-	{	/* in this case we need valid root image : */
+	{
 		 transparency = True ;
+	}else if (  style->texture_type >= TEXTURE_GRADIENT_START &&
+				style->texture_type <= TEXTURE_GRADIENT_END	)
+	{
+		/* need to check if any of the gradient colors has alpha channel < 0xff */
+		int i = style->gradient.npoints ;
+		while( --i >= 0 )
+			if( ARGB32_ALPHA8(style->gradient.color[i]) < 0x00F0 )
+			{
+				transparency = True ;
+				break;
+			}
+	}
+
+	if(  transparency )
+	{	/* in this case we need valid root image : */
 		 if (Scr.RootImage == NULL)
 		 {
 			 root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
@@ -484,8 +499,11 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	{
 		if (Scr.RootImage == NULL)
 		{  /* simply creating solid color image */
-			im = create_asimage( width, height, 100 );
-			im->back_color = style->colors.back ;
+			if( im == NULL )
+			{
+				im = create_asimage( width, height, 100 );
+				im->back_color = style->colors.back ;
+			}
 		}else
 		{
 			if (style->texture_type == TEXTURE_TRANSPARENT || style->texture_type == TEXTURE_TRANSPARENT_TWOWAY)
@@ -526,11 +544,14 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 {
 					 scaled_im = scale_asimage (Scr.asv, layers[1].im, preflip_width, preflip_height,
 												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					 /* here layers[1].im is always style->back_icon.image, so we should not destroy it ! */
 					 if (scaled_im)
 						 layers[1].im = mystyle_flip_image( scaled_im, width, height, flip );
+						 /* scaled_im got destroyed in mystyle_flip_image if it had to be */
 				 }
 				 if( flip != 0 && layers[1].im == style->back_icon.image )
 				 {
+					/* safely assuming that im is NULL at this point,( see logic above ) */
 					 layers[1].im = im = flip_asimage( Scr.asv, layers[1].im, 0, 0, width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
 				 }
 				 layers[1].merge_scanlines = layers[0].merge_scanlines;
@@ -1205,6 +1226,7 @@ mystyle_parse_member (MyStyle * style, char *str)
 				 gradient.offset = NULL;
 				 if (type < TEXTURE_GRADIENT_TL2BR || type >= TEXTURE_PIXMAP)
 					 error = 4;
+				 for (; ptr && isspace (*ptr); ptr++);
 				 while (!error && ptr != NULL && *ptr != '\0')
 				 {
 					 ARGB32        color;
@@ -1241,18 +1263,19 @@ mystyle_parse_member (MyStyle * style, char *str)
 						 free (style->gradient.color);
 						 free (style->gradient.offset);
 					 }
-					 style->gradient.type = mystyle_translate_grad_type (type);
 					 style->gradient = gradient;
+					 style->gradient.type = mystyle_translate_grad_type (type);
 					 style->texture_type = type;
 					 style->user_flags |= F_BACKGRADIENT;
 					 style_func = F_BACKGRADIENT;
+					 LOCAL_DEBUG_OUT( "style %p, type = %d, npoints = %d", style, style->gradient.type, style->gradient.npoints );
 				 } else
 				 {
 					 if (gradient.color != NULL)
 						 free (gradient.color);
 					 if (gradient.offset != NULL)
 						 free (gradient.offset);
-                     show_error("Error in MyStyle \"%s\": bad gradient (error %d): %s", style->name, error, style_arg);
+                     show_error("Error in MyStyle \"%s\": bad gradient (error %d): \"%s\"; at [%s]", style->name, error, style_arg, ptr?ptr:"");
 				 }
 			 }
 			 break;

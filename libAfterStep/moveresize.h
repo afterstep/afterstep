@@ -149,6 +149,7 @@ void set_moveresize_aspect( ASMoveResizeData *data, unsigned int x_mult, unsigne
 
 
 Bool check_moveresize_event( struct ASEvent *event );
+void complete_interactive_action( ASMoveResizeData *data, Bool cancel );
 
 #ifdef __cplusplus
 }

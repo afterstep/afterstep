@@ -760,7 +760,8 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
         InteractiveMoveLoop ();
     }else
         ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
-     return True;
+  	/* window may have been destroyed while we were placing it */
+     return (ASWIN_GET_FLAGS(asw,AS_Dead) == 0);
 }
 
 
@@ -822,9 +823,8 @@ place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementS
             res = do_random_placement( asw, aswbox, &area, False );
         else if( aswbox->backup_strategy == ASP_Cascade )
             res = do_cascade_placement( asw, aswbox, &area );
-        else if( aswbox->backup_strategy == ASP_Manual )
-            res = do_manual_placement( asw, aswbox, &area );
-        if( force && !res )
+
+		if( aswbox->backup_strategy == ASP_Manual && (force && !res) )
             res = do_manual_placement( asw, aswbox, &area );
     }
     return res;

@@ -102,11 +102,8 @@ InteractiveMoveLoop ()
 LOCAL_DEBUG_OUT( "checking masked events ...%s", "" );
         while((has_x_events = ASCheckMaskEvent (MOVERESIZE_LOOP_MASK, &(event.x))))
         {
-//            if( ASNextEvent (&(event.x), True) )
-//            {
-				DigestEvent( &event );
-                DispatchEvent( &event, False );
-//            }
+			DigestEvent( &event );
+            DispatchEvent( &event, False );
             if( Scr.moveresize_in_progress == NULL )
                 return;
         }
