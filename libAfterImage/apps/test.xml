@@ -33,3 +33,8 @@ and all your relatives will pity you, when you discover just how devoted you are
 </composite>
 
 <recall srcid="Burning Rose"/>
+<img id="back" src=back.xpm/>
+<img id="fore" src=fore.xpm/>
+<text fgimage="fore" bgimage="back" font="test.ttf" x="16" y="16" width="100% + 32" height="100% + 32">Smart Brown Dog jumps
+ Over The Lazy Fox,
+ and falls into the ditch.</text>

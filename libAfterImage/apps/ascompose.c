@@ -48,6 +48,7 @@ typedef struct xml_elem_t {
 char* load_file(const char* filename);
 void showimage(ASImage* im);
 ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm);
+double parse_math(const char* str, char** endptr, double size);
 xml_elem_t* xml_parse_parm(const char* parm);
 void xml_print(xml_elem_t* root);
 xml_elem_t* xml_elem_new(void);
@@ -340,21 +341,30 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-#if 0 // This tag isn't finished yet.
+#if 1 // This tag isn't finished yet.  Need fgcolor, bgcolor.
 	if (!strcmp(doc->tag, "text")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* text = NULL;
 		const char* font_name = "fixed";
 		int point = 32;
-		ASImage* bgimage = NULL;
-		ASImage* fgimage = NULL;
+		const char* bgimage_str = NULL;
+		const char* fgimage_str = NULL;
+		const char* width_str = NULL;
+		const char* height_str = NULL;
+		int x = 0, y = 0, width = 0, height = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "text")) text = ptr->parm;
+			if (!strcmp(ptr->tag, "x")) x = strtol(ptr->parm, NULL, 0);
+			if (!strcmp(ptr->tag, "y")) y = strtol(ptr->parm, NULL, 0);
 			if (!strcmp(ptr->tag, "font")) font_name = ptr->parm;
 			if (!strcmp(ptr->tag, "point")) point = strtol(ptr->parm, NULL, 0);
-			if (!strcmp(ptr->tag, "bgimage")) get_hash_item(image_hash, (ASHashableValue)(char*)ptr->parm, (void**)&bgimage);
-			if (!strcmp(ptr->tag, "fgimage")) get_hash_item(image_hash, (ASHashableValue)(char*)ptr->parm, (void**)&fgimage);
+			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
+			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+			if (!strcmp(ptr->tag, "bgimage")) bgimage_str = ptr->parm;
+			if (!strcmp(ptr->tag, "fgimage")) fgimage_str = ptr->parm;
+		}
+		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "CDATA")) text = ptr->parm;
 		}
 		if (text) {
 			struct ASFontManager *fontman = NULL;
@@ -364,8 +374,49 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
 			if (font != NULL) {
 				result = draw_text(text, font, AST_ShadeBelow, 0);
-        destroy_font_manager(fontman, False);
-      }
+				destroy_font_manager(fontman, False);
+				if (result) {
+					width = result->width;
+					height = result->height;
+					if (width_str) width = parse_math(width_str, NULL, result->width);
+					if (height_str) height = parse_math(height_str, NULL, result->height);
+				}
+				if (result && fgimage_str) {
+					ASImage* fgimage = NULL;
+					get_hash_item(image_hash, (ASHashableValue)(char*)fgimage_str, (void**)&fgimage);
+					if (verbose > 1) printf("Using image [%s] as foreground.\n", fgimage_str);
+					if (fgimage) {
+						fgimage = tile_asimage(asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+						move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
+						result = fgimage;
+					}
+				}
+				if (result && bgimage_str) {
+					ASImage* bgimage = NULL;
+					get_hash_item(image_hash, (ASHashableValue)(char*)bgimage_str, (void**)&bgimage);
+					if (verbose > 1) printf("Using image [%s] as background.\n", bgimage_str);
+					if (bgimage) {
+						ASImageLayer layers[2];
+						memset(layers, 0, sizeof(layers));
+						layers[0].im = bgimage;
+						layers[0].dst_x = 0;
+						layers[0].dst_y = 0;
+						layers[0].clip_width = width;
+						layers[0].clip_height = height;
+						layers[0].merge_scanlines = alphablend_scanlines;
+						layers[0].back_color = ARGB32_Black;
+						layers[0].bevel = NULL;
+						layers[1].im = result;
+						layers[1].dst_x = x;
+						layers[1].dst_y = y;
+						layers[1].clip_width = result->width;
+						layers[1].clip_height = result->height;
+						layers[1].back_color = ARGB32_White;
+						layers[1].merge_scanlines = alphablend_scanlines;
+						result = merge_layers(asv, layers, 2, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					}
+				}
+			}
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -398,6 +449,77 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			}
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+
+#if 0
+<bevel
+  edge-color="#dfdfdfdf #df8f8f8f"
+  outer-edge="2 2 -1 -1"
+  inner-edge="8 8 -6 -6">
+#endif
+	if (!strcmp(doc->tag, "bevel")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		ASImage* imtmp = NULL;
+		char* edge_color_str = NULL;
+		char* outer_edge_str = NULL;
+		char* inner_edge_str = NULL;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "edge_color")) edge_color_str = ptr->parm;
+			if (!strcmp(ptr->tag, "outer_edge")) outer_edge_str = ptr->parm;
+			if (!strcmp(ptr->tag, "inner_edge")) inner_edge_str = ptr->parm;
+		}
+		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+			imtmp = build_image_from_xml(ptr, NULL);
+		}
+		if (imtmp) {
+			ASImageBevel bevel;
+			ASImageLayer layer;
+			bevel.type = 0;
+			bevel.hi_color = 0xffdddddd;
+			bevel.lo_color = 0xff555555;
+			bevel.top_outline = 0;
+			bevel.left_outline = 0;
+			bevel.right_outline = imtmp->width;
+			bevel.bottom_outline = imtmp->height;
+			bevel.top_inline = 10;
+			bevel.left_inline = 10;
+			bevel.right_outline = imtmp->width - 10;
+			bevel.bottom_outline = imtmp->height - 10;
+			if (edge_color_str) {
+				char* p = edge_color_str;
+				while (isspace(*p)) p++;
+				parse_argb_color(p, &bevel.hi_color);
+				while (*p && !isspace(*p)) p++;
+				while (isspace(*p)) p++;
+				parse_argb_color(p, &bevel.lo_color);
+			}
+			if (inner_edge_str) {
+				char* p = (char*)inner_edge_str;
+				bevel.left_inline = parse_math(p, &p, imtmp->width);
+				bevel.top_inline = parse_math(p, &p, imtmp->height);
+				bevel.right_inline = parse_math(p, &p, imtmp->width);
+				bevel.bottom_inline = parse_math(p, &p, imtmp->height);
+			}
+			if (outer_edge_str) {
+				char* p = (char*)outer_edge_str;
+				bevel.left_outline = parse_math(p, &p, imtmp->width);
+				bevel.top_outline = parse_math(p, &p, imtmp->height);
+				bevel.right_outline = parse_math(p, &p, imtmp->width);
+				bevel.bottom_outline = parse_math(p, &p, imtmp->height);
+			}
+			bevel.hihi_color = bevel.hi_color;
+			bevel.hilo_color = bevel.hi_color;
+			bevel.lolo_color = bevel.lo_color;
+			memset(&layer, 0, sizeof(layer));
+			layer.im = imtmp;
+			layer.clip_width = imtmp->width;
+			layer.clip_height = imtmp->height;
+			layer.merge_scanlines = alphablend_scanlines;
+			layer.bevel = &bevel;
+printf("size [%dx%d]\n", imtmp->width, imtmp->height);
+result = malloc(16384);
+			result = merge_layers(asv, &layer, 1, imtmp->width, imtmp->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		}
 	}
 
 	if (!strcmp(doc->tag, "gradient")) {
@@ -677,6 +799,43 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 	}
 
 	return result;
+}
+
+// Math expression parsing algorithm.  The basic math ops (add, subtract, 
+// multiply, divide), unary minus, and parentheses are supported.  
+// Operator precedence is NOT supported.  Percentages are allowed, and 
+// apply to the "size" parameter of this function.
+double parse_math(const char* str, char** endptr, double size) {
+	double total = 0;
+	char op = '+';
+	char minus = 0;
+	while (*str) {
+		while (isspace(*str)) str++;
+		if (!op) {
+			if (*str == '+' || *str == '-' || *str == '*' || *str == '/') op = *str++;
+			else if (*str == '-') { minus = 1; str++; }
+			else if (*str == ')') { str++; break; }
+			else break;
+		} else {
+			char* ptr;
+			double num;
+			if (*str == '(') num = parse_math(str + 1, &ptr, size);
+			else num = strtod(str, &ptr);
+			if (str != ptr) {
+				if (*ptr == '%') num *= size / 100.0, ptr++;
+				if (minus) num = -num;
+				if (op == '+') total += num;
+				else if (op == '-') total -= num;
+				else if (op == '*') total *= num;
+				else if (op == '/' && num) total /= num;
+			} else break;
+			str = ptr;
+			op = '\0';
+			minus = 0;
+		}
+	}
+	if (endptr) *endptr = (char*)str;
+	return total;
 }
 
 xml_elem_t* xml_parse_parm(const char* parm) {
