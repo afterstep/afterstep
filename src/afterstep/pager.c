@@ -360,13 +360,13 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
     	set_current_desk_prop ( Scr.wmprops, new_desk);
 	}
 
-	if( dvx != 0 || dvy != 0 )
-	{
-		Scr.Vx = new_vx;
-		Scr.Vy = new_vy;
-    	set_current_viewport_prop (Scr.wmprops, Scr.Vx, Scr.Vy, get_flags( AfterStepState, ASS_NormalOperation));
-	}
-   	display_progress( True, "Notifying modules of desk/viewport change ...");
+	Scr.Vx = new_vx;
+	Scr.Vy = new_vy;
+
+    if( Scr.CurrentDesk != new_desk || dvx != 0 || dvy != 0 )	   
+		set_current_viewport_prop (Scr.wmprops, Scr.Vx, Scr.Vy, get_flags( AfterStepState, ASS_NormalOperation));
+   	
+	display_progress( True, "Notifying modules of desk/viewport change ...");
 
 	SendPacket( -1, M_NEW_DESKVIEWPORT, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
 

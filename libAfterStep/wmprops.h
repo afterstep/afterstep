@@ -182,6 +182,10 @@ CARD32 as_desk2ext_desk( ASWMProps *wmprops, INT32 as_desk );
 void set_desktop_num_prop( ASWMProps *wmprops, INT32 new_desk, Window vroot, Bool add );
 Bool set_current_desk_prop (ASWMProps *wmprops, INT32 new_desk );
 Bool set_current_viewport_prop (ASWMProps * wmprops, CARD32 vx, CARD32 vy, Bool normal);
+Bool set_desktop_geometry_prop (ASWMProps * wmprops, CARD32 width, CARD32 height);
+void set_clients_list (ASWMProps * wmprops, Window *list, int nclients);
+void set_stacking_order (ASWMProps * wmprops, Window *list, int nclients);
+void set_active_window_prop (ASWMProps * wmprops, Window active);
 
 void flush_wmprop_data(ASWMProps *wmprops, ASFlagType what );
 

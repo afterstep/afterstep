@@ -48,6 +48,7 @@
 
 #include "../../libAfterStep/session.h"
 #include "../../libAfterStep/mystyle_property.h"
+#include "../../libAfterStep/wmprops.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -1411,6 +1412,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     display_progress( True, "Done loading configuration.");
 
     check_desksize_sanity( &Scr );
+	set_desktop_geometry_prop ( Scr.wmprops, Scr.VxMax+Scr.MyDisplayWidth, Scr.VyMax+Scr.MyDisplayHeight);
 
     if (get_flags(what, PARSE_FEEL_CONFIG))
 	{

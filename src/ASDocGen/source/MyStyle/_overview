@@ -7,7 +7,9 @@ shape - making widget non-rectangular, text font, text 3D style, widget's border
 All the GUI  elements are rendered using consistent approach in every module and every part of the AfterStep. 
 Interface is build from so called TBars. 
 TBar is rectangular area that may be focused(hilited) or unfocused and pressed or unpressed.
+</para>
 <section id='harmonious_colors'><title>TBAR STRUCTURE</title>
+<para>
 Each TBar has the following structure :
 </para><para>
 - the background of the TBar, which is defined by MyStyle and state of the bar - there are two MyStyles assigned to each TBar - one
@@ -33,5 +35,5 @@ libAfterImage, with default being simple alphablending.
 See MyFrame configuration for more details. This is refrred to as "Composition Method".
 </para>
 </section>
-<refsect1>
+</refsect1>
 </section>

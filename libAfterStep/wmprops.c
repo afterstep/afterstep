@@ -469,6 +469,30 @@ read_as_current_viewport (ASWMProps * wmprops, Bool deleted)
 }
 
 Bool
+read_net_desktop_geometry (ASWMProps * wmprops, Bool deleted)
+{
+    Bool success = False;
+
+    if (wmprops && !deleted )
+	{
+        CARD32       *raw_data = NULL ;
+        long          nitems = 0;
+
+        if (!read_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, 2, &raw_data, &nitems))
+			nitems = 0;
+        if( nitems == 2 )
+        {
+            wmprops->desktop_width = raw_data[0] ;
+            wmprops->desktop_height = raw_data[1] ;
+        }
+
+        if( raw_data )
+			free (raw_data);
+	}
+    return success;
+}
+
+Bool
 read_as_style (ASWMProps * wmprops, Bool deleted)
 {
 	Bool          res = False;
@@ -612,7 +636,7 @@ prop_description_struct WMPropsDescriptions_root[] = {
 	{&_XA_NET_CLIENT_LIST, NULL, WMC_ClientList, WMP_NeedsCleanup},
 	{&_XA_NET_CLIENT_LIST_STACKING, NULL, WMC_ClientList, WMP_NeedsCleanup},
 	{&_XA_NET_NUMBER_OF_DESKTOPS, NULL, WMC_Desktops, 0},
-    {&_XA_NET_DESKTOP_GEOMETRY, NULL, WMC_Desktops, 0},
+    {&_XA_NET_DESKTOP_GEOMETRY, read_net_desktop_geometry, WMC_Desktops, 0},
     {&_XA_NET_DESKTOP_VIEWPORT, read_extwm_desk_viewport, WMC_DesktopViewport, 0},
     {&_XA_NET_CURRENT_DESKTOP, read_extwm_current_desk, WMC_DesktopCurrent, 0},
 	{&_XA_NET_DESKTOP_NAMES, NULL, WMC_DesktopNames, 0},
@@ -1050,13 +1074,26 @@ set_current_viewport_prop (ASWMProps * wmprops, CARD32 vx, CARD32 vy, Bool norma
 			return True;
 		/* adding desktops has to be handled in different function, since we need to update
 		 * bunch of other things as well - virtual roots etc. */
+		if( wmprops->desktop_current >= wmprops->desktop_viewports_num )
+		{
+			int max_i = (wmprops->desktop_current+1)*2 ;
+			int i = wmprops->desktop_viewports_num*2 ;
+
+			wmprops->desktop_viewport = saferealloc( wmprops->desktop_viewport, max_i * sizeof(CARD32));
+			while( i < max_i )
+			{	
+				wmprops->desktop_viewport[i] = 0 ;
+				++i ;
+			}
+			wmprops->desktop_viewports_num = wmprops->desktop_current+1 ;
+		}	 
         if( wmprops->desktop_current < wmprops->desktop_viewports_num )
         {
             int pos = wmprops->desktop_current<<1 ;
             wmprops->desktop_viewport[pos] = vx ;
             wmprops->desktop_viewport[pos+1] = vy ;
             set_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_VIEWPORT, XA_CARDINAL, &(wmprops->desktop_viewport[0]),
-                                wmprops->desktop_viewports_num);
+                                wmprops->desktop_viewports_num*2);
         }
         if( normal )
         {
@@ -1065,6 +1102,24 @@ set_current_viewport_prop (ASWMProps * wmprops, CARD32 vx, CARD32 vy, Bool norma
             set_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, XA_CARDINAL, &viewport[0], 2);
         }
         return True;
+    }
+	return False;
+}
+
+Bool
+set_desktop_geometry_prop (ASWMProps * wmprops, CARD32 width, CARD32 height)
+{
+	if (wmprops)
+	{
+        CARD32        size[2];
+
+        if (wmprops->desktop_width == width && wmprops->desktop_width == height )
+			return True;
+        wmprops->desktop_width = size[0] = width ;
+        wmprops->desktop_height = size[1] = height ;
+        set_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_GEOMETRY, XA_CARDINAL, &size[0], 2);
+        
+		return True;
     }
 	return False;
 }
@@ -1116,6 +1171,57 @@ set_xrootpmap_id (ASWMProps * wmprops, Pixmap new_pmap)
         set_32bit_property (wmprops->scr->Root, _XROOTPMAP_ID, XA_PIXMAP, new_pmap);
 		XFlush (dpy);
         wmprops->root_pixmap = new_pmap;
+	}
+}
+
+void
+set_clients_list (ASWMProps * wmprops, Window *list, int nclients)
+{
+	if (wmprops)
+	{
+		set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST, XA_WINDOW, list, nclients);
+		set_32bit_proplist (wmprops->scr->Root, _XA_WIN_CLIENT_LIST, XA_WINDOW, list, nclients);
+		XFlush (dpy);
+    	if( wmprops->clients_num < nclients ) 
+		{
+			wmprops->client_list = saferealloc( wmprops->client_list, nclients*sizeof(Window) );
+			wmprops->stacking_order = saferealloc( wmprops->stacking_order, nclients*sizeof(Window) );
+
+		}
+		wmprops->clients_num = nclients ;
+		memcpy( wmprops->client_list, list, nclients );
+	}
+}
+
+void
+set_stacking_order (ASWMProps * wmprops, Window *list, int nclients)
+{
+	if (wmprops)
+	{
+ 		set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST_STACKING, XA_WINDOW, list, nclients);	
+		XFlush (dpy);
+    	if( wmprops->clients_num < nclients ) 
+		{
+			wmprops->client_list = saferealloc( wmprops->client_list, nclients*sizeof(Window) );
+			wmprops->stacking_order = saferealloc( wmprops->stacking_order, nclients*sizeof(Window) );
+
+		}
+		wmprops->clients_num = nclients ;
+		memcpy( wmprops->stacking_order, list, nclients );
+	}
+}
+
+void
+set_active_window_prop (ASWMProps * wmprops, Window active)
+{
+	if (wmprops)
+	{
+    	if( wmprops->active_window != active ) 
+		{
+			wmprops->active_window = active;
+	 		set_32bit_property (wmprops->scr->Root, _XA_NET_ACTIVE_WINDOW, XA_WINDOW, active );	
+			XFlush (dpy);
+		}
 	}
 }
 

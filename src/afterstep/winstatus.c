@@ -28,6 +28,7 @@
 #include "../../configure.h"
 
 #include "asinternals.h"
+#include "../../libAfterStep/wmprops.h"
 
 /* icon geometry relative to the root window :                      */
 Bool get_icon_root_geometry( ASWindow *asw, ASRectangle *geom )
@@ -1765,6 +1766,7 @@ hilite_aswindow( ASWindow *asw )
 			broadcast_focus_change( asw, True );
 
 		Scr.Windows->hilited = asw ;
+		set_active_window_prop (Scr.wmprops, asw?asw->w:None);
     }
 }
 

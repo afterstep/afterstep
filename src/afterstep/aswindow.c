@@ -292,8 +292,7 @@ publish_aswindow_list( ASWindowList *list, Bool stacking_only )
 			LIST_GOTO_NEXT(curr);	
 		}	 
 		LOCAL_DEBUG_OUT( "Setting Client List property to include %d windows (clients_num = %d) ", used, clients_num );
-		set_32bit_proplist (Scr.Root, _XA_NET_CLIENT_LIST, XA_WINDOW, client_list, used);
-		set_32bit_proplist (Scr.Root, _XA_WIN_CLIENT_LIST, XA_WINDOW, client_list, used);
+		set_clients_list (Scr.wmprops, client_list, used);
 	}		  
     
     layers = safecalloc( list->layers->items_num, sizeof(ASLayer*) );
@@ -314,7 +313,7 @@ publish_aswindow_list( ASWindowList *list, Bool stacking_only )
             	client_list[--used] = asw->w;
         }
     }
-	set_32bit_proplist (Scr.Root, _XA_NET_CLIENT_LIST_STACKING, XA_WINDOW, &client_list[used], clients_num - used);
+	set_stacking_order (Scr.wmprops, &client_list[used], clients_num - used);
 
 	free( layers );
 	free( client_list );
