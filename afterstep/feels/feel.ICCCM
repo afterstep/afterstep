@@ -6,7 +6,7 @@
 #  AutoReverse 0: default switching among the windows in one direction
 #  AutoReverse 1: #1->#2->#3->#4 and then #4->#3->#2->#1
 #  AutoReverse 2: #1->#2->#3->#4 and then #4->#1->#3->#2 etc.
-AutoReverse 2
+AutoReverse 0
 #
 # window switching through desks?
 #AutoTabThroughDesks
@@ -63,17 +63,16 @@ StickyIcons
 # ClickTime 150
 #
 # Keep showing window while being moved if size<N%
-OpaqueMove 100
+OpaqueMove 50
 #
 # Keep showing window while being resized if size<N%
-OpaqueResize 100
+OpaqueResize 50
 #
 # Mouse pushing on screen edge : N% move
 EdgeScroll 100 100
 #
 # To avoid unwanted moving, edges resist during N ms
-EdgeResistance 800 80
-#
+EdgeResistance 200 80
 
 ###########################################################################
 # Initial Placement of the windows
@@ -81,33 +80,11 @@ EdgeResistance 800 80
 # Old style (simplified) settings :
 
 # Place window in empty zones
-SmartPlacement
+#SmartPlacement
 # Random window placement
-#RandomPlacement
+RandomPlacement
 # Windows can't chose where to place
 NoPPosition
-
-#############
-# New style (simplified) settings :
-# WindowBox configuration may look something like this :
-# WindowBox   "some_name"
-# 	Area   WxH+X+Y
-# 	Virtual
-#	MinWidth	width
-#	MinHeight	height
-#	MaxWidth	width
-#	MaxHeight	height
-#	FirstTry	SmartPlacement|RandomPlacement|Tile
-#	ThenTry 	RandomPlacement|Cascade|Manual
-#	VerticalPriority
-#	ReverseOrder
-#     	Desk        desk
-#     	MinLayer    min_layer
-#     	MaxLayer    max_layer
-#~WindowBox
-#
-#DefaultWindowBox  "some_name"
-#
 
 ##########################################################################
 # X server performance tweaks :
@@ -117,16 +94,18 @@ NoPPosition
 
 ##########################################################################
 # Misc stuff :
-#
 #RecentSubmenuItems   <number>   # changes number of recently used submenu items displayed in poarent menu
-#
 # Put a titlebar + various stuff on dialog boxes
 DecorateTransients
 #
-
+#KeepIconWindow
+#DontMoveOff
+#XorValue
+#MenusHigh
+#PagingDefault
+#
 ##########################################################################
 
-#
 ##########################################################################
 
 ##########################################################################
@@ -141,12 +120,6 @@ Function "Move-or-Top"
         ToggleLayer     "DoubleClick" 0 1
 EndFunction
 
-Function "Move-or-Normal"
-        Move            "Motion"
-        RaiseLower      "Click"
-        ToggleLayer     "DoubleClick" 1 0
-EndFunction
-
 # Used to move windows on desktop
 
 Function "Move-or-Iconify"
@@ -158,6 +131,7 @@ EndFunction
 
 Popup "Window"
         Title           "This window :"
+ MiniPixmap "mini-menu.xpm"
 	TakeScreenShot  "Take a shot of entire screen"
  MiniPixmap "mini-app.xpm"
 	TakeWindowShot  "Take a shot of the window"
@@ -228,10 +202,9 @@ EndPopup
 #   I = Icon Window
 #   T = TitleBar
 #   W = Application Window
-#   A = Any context except for inside the TitleBar Boxes
 # Third Column is the Context (ie, modifier keys)
 #   N = No modifiers
-#   A = Any modifier
+#   A = Any context except for inside the TitleBar Boxes
 #   C = Control
 #   S = Shift
 #   M = Meta
@@ -242,14 +215,13 @@ EndPopup
 # Mouse actions
 #
 Mouse 1         R       A       PopUp "0"
-Mouse 2         R       A       GetHelp
+Mouse 2         R       A       WindowList 2
 Mouse 3         R       A       WindowList
 Mouse 1         1       A       ChangeWindowUp
-Mouse 2         1       C       BookmarkWindow "bkmrk1"
-Mouse 2         1       S       GoToBookmark "bkmrk1"
+Mouse 2         1       A       GetHelp
 Mouse 3         1       A       ChangeWindowDown
 Mouse 1         2       A       Delete
-Mouse 2         2       A       Close
+Mouse 2         2       A       Destroy
 Mouse 3         2       A       Destroy
 Mouse 1         3       A       PopUp "Window"
 Mouse 2         3       A       WindowList 2
@@ -267,74 +239,9 @@ Mouse 1         FS      A       Resize
 Mouse 2         FS      A       Move
 Mouse 3         FS      A       Move
 Mouse 1         T       A       Function "Move-or-Top"
-Mouse 2         T       A       Function "Move-or-Normal"
-#Mouse 2         T       A       RaiseLower
+Mouse 2         T       A       RaiseLower
 Mouse 3         T       A       RaiseLower
 Mouse 0         I       A       Function "Move-or-Iconify"
-
-#
-# Keys actions
-#
-# control + arrow = 1 page
-Key Left        A       C       Scroll -100 0
-Key Right       A       C       Scroll +100 +0
-Key Up          A       C       Scroll +0   -100
-Key Down        A       C       Scroll +0   +100
-
-# alt + arrow = 1/10 page
-Key Left        A       M       Scroll -10 +0
-Key Right       A       M       Scroll +10 +0
-Key Up          A       M       Scroll +0  -10
-Key Down        A       M       Scroll +0  +10
-
-# alt + shift + arrow = move cursor
-Key Left        A       MS       CursorMove -1 0
-Key Right       A       MS       CursorMove +1 +0
-Key Up          A       MS       CursorMove +0 -1
-Key Down        A       MS       CursorMove +0 +1
-
-# shift + control + arrow = change desktop
-Key Left        A       SC      Desk 0 0
-Key Right       A       SC      Desk 0 1
-Key Up          A       SC      Desk 0 2
-Key Down        A       SC      Desk 0 3
-
-# For asforms & menus : Ctrl-Shift-Fx =
-Key F1          A       SC      Module "Help" Form HELPForm
-Key F1          A       SC      GetHelp
-Key F2          A       SC      Iconify
-Key F3          A       SC      Resize
-Key F4          A       SC      Delete
-Key F5          A       SC      Move
-Key F6          A       SC      Destroy
-Key F7          A       SC      ChangeWindowUp
-Key F8          A       SC      Module "Run"  Form RUNForm
-Key F9          A       SC      WindowList
-Key F10         A       SC      PutOnBack
-Key F11         A       SC      Module "Find" Form FINDForm
-Key F12         A       SC      PopUp "0"
-
-# Windows-alike keys
-#
-# alt + tab = change window
-Key Tab         A       M       WarpFore
-# alt + q = return to window
-Key q		A	M	WarpBack
-# shift + alt + tab = focus on current window
-Key Tab         A       S       Focus
-# ctrl-v = paste
-Key v		W	C	PasteSelection
-# Window keys
-Key Menu        A       A       Popup "0"
-Key Meta_L      A       A       WarpFore
-Key Meta_R      A       A       WarpBack
-# PC keys aren't always defined is keymaps
-Key Print       A       N       TakeScreenShot
-Key Print       A       M       TakeWindowShot
-Key Print       A       C       TakeFrameShot
-Key Pause       A       A       Exec "xlock" exec xlock -nolock -mode random
-Key Sys_Req     A       A       GetHelp
-Key Scroll_Lock A       A       Desk 0
 #
 ############################################################################
 

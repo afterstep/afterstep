@@ -132,7 +132,7 @@
  *****/
 
 
-Window showimage(ASImage* im, Bool looping, Window main_window );
+Window showimage(ASImage* im, Bool looping, Window main_window, Bool center );
 Window make_main_window(Bool on_root);	
 
 int screen = 0, depth = 0;
@@ -352,7 +352,7 @@ int main(int argc, char** argv) {
 		/* Display the image if desired. */
 		if (display && dpy)
 		{
-			showimage(im, False, make_main_window(onroot));
+			showimage(im, False, make_main_window(onroot), True);
 		}
 		/* Done with the image, finally. */
 		if( im ) 
@@ -438,7 +438,7 @@ int main(int argc, char** argv) {
 						}
 						/* Display the image if desired. */
 						if (display && dpy) 
-							main_window = showimage(im, True, main_window);
+							main_window = showimage(im, True, main_window, (fp!=stdin));
 						safe_asimage_destroy(im);
 						im = NULL ;
 					}					
@@ -552,7 +552,7 @@ int main(int argc, char** argv) {
 						}
 						/* Display the image if desired. */
 						if (display && dpy) 
-							main_window = showimage(im, True, main_window);
+							main_window = showimage(im, True, main_window, False);
 						safe_asimage_destroy(im);
 						im = NULL ;
 					}					
@@ -599,7 +599,7 @@ make_main_window(Bool onroot)
 	return w;
 }
 
-Window showimage(ASImage* im, Bool looping, Window main_window ) 
+Window showimage(ASImage* im, Bool looping, Window main_window, Bool center ) 
 {
 #ifndef X_DISPLAY_MISSING
 	Pixmap p ;
@@ -608,6 +608,12 @@ Window showimage(ASImage* im, Bool looping, Window main_window )
 	
 	if( main_window != DefaultRootWindow(dpy) )
 	{	
+		if( center ) 
+		{	
+			int x = (DisplayWidth (dpy, DefaultScreen(dpy)) - im->width)/2;
+			int y = (DisplayHeight (dpy, DefaultScreen(dpy)) - im->height)/2;
+			XMoveWindow( dpy, main_window, x, y );
+		}
 		XResizeWindow( dpy, main_window, im->width, im->height );
 		XMapRaised   ( dpy, main_window);
 	}

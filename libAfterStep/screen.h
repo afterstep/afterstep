@@ -86,8 +86,8 @@ typedef struct ScreenInfo
 
     Bool localhost ;
     char *rdisplay_string, *display_string;
-
-    struct ASWMProps    *wmprops;              /* window management properties */
+    
+	struct ASWMProps    *wmprops;              /* window management properties */
 
 	struct ASVisual *asv ;  /* ASVisual for libAfterImage */
     Window Root;        /* the root window */
