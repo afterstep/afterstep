@@ -245,7 +245,9 @@ HandleEvents ()
       last_event_type = 0;
       if (AS_XNextEvent (dpy, &Event))
 	  {
+/*fprintf( stderr, "%s:%d Received event %d\n", __FUNCTION__, __LINE__, Event.type );*/
 		DispatchEvent ();
+
 	  }
     }
 }
@@ -1433,6 +1435,7 @@ AS_XNextEvent (Display * dpy, XEvent * event)
   struct timeval tv;
   struct timeval *t = NULL;
   extern module_t *Module;
+  int max_fd = 0 ;
 
   XFlush (dpy);
   if (XPending (dpy))
@@ -1444,19 +1447,22 @@ AS_XNextEvent (Display * dpy, XEvent * event)
 
   FD_ZERO (&in_fdset);
   FD_SET (x_fd, &in_fdset);
+  max_fd = x_fd ;
   FD_ZERO (&out_fdset);
 
   if( module_fd >= 0 )
   {
   	FD_SET (module_fd, &in_fdset);
+	if( max_fd < module_fd ) max_fd = module_fd ;
   }
   for (i = 0; i < npipes; i++)
-    {
 	  if (Module[i].fd >= 0)
-	FD_SET (Module[i].fd, &in_fdset);
-	  if (Module[i].output_queue != NULL)
-	FD_SET (Module[i].fd, &out_fdset);
-    }
+	  {
+	  	FD_SET (Module[i].fd, &in_fdset);
+		if( max_fd < Module[i].fd ) max_fd = Module[i].fd ;
+	  	if (Module[i].output_queue != NULL)
+	  		FD_SET (Module[i].fd, &out_fdset);
+	  }
   /* watch for timeouts */
   if (timer_delay_till_next_alarm ((time_t *) & tv.tv_sec, (time_t *) & tv.tv_usec))
     t = &tv;
@@ -1510,9 +1516,9 @@ AS_XNextEvent (Display * dpy, XEvent * event)
   XFlush (dpy);
 
 #ifdef __hpux
-  retval = select (fd_width, (int *) &in_fdset, (int *) &out_fdset, NULL, t);
+  retval = select (min(max_fd+1,fd_width), (int *) &in_fdset, (int *) &out_fdset, NULL, t);
 #else
-  retval = select (fd_width, &in_fdset, &out_fdset, NULL, t);
+  retval = select (min(max_fd+1,fd_width), &in_fdset, &out_fdset, NULL, t);
 #endif
 
   /* check for incoming module connections */

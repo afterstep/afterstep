@@ -104,20 +104,17 @@ CheckASMessageFine (int fd, int t_sec, int t_usec)
   fd_set in_fdset;
   ASMessage *msg = NULL;
   struct timeval tv;
-  static int fd_width = 0;
 
-  if (fd_width == 0)
-    fd_width = GetFdWidth ();
   FD_ZERO (&in_fdset);
   FD_SET (fd, &in_fdset);
   tv.tv_sec = t_sec;
   tv.tv_usec = t_usec;
 #ifdef __hpux
-  while (select (fd_width, (int *) &in_fdset, 0, 0, (t_sec < 0) ? NULL : &tv) == -1)
+  while (select (fd+1, (int *) &in_fdset, 0, 0, (t_sec < 0) ? NULL : &tv) == -1)
     if (errno != EINTR)
       break;
 #else
-  while (select (fd_width, &in_fdset, 0, 0, (t_sec < 0) ? NULL : &tv) == -1)
+  while (select (fd+1, &in_fdset, 0, 0, (t_sec < 0) ? NULL : &tv) == -1)
     if (errno != EINTR)
       break;
 #endif

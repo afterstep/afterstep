@@ -690,13 +690,13 @@ PaintMenu (MenuRoot * mr, XEvent * e)
  *
  ***********************************************************************/
 MenuItem *
-find_entry (MenuRoot * menu)
+find_entry (MenuRoot * menu, int x, int y )
 {
   MenuItem *mi;
-  int x, y;
-
-  XQueryPointer (dpy, (*menu).w, &JunkRoot, &JunkChild,
+  /*int x, y;
+	  XQueryPointer (dpy, (*menu).w, &JunkRoot, &JunkChild,
 		 &JunkX, &JunkY, &x, &y, &JunkMask);
+   */
 
   /* look for the entry that the mouse is in */
   for (mi = (*menu).first; mi != NULL; mi = mi->next)
@@ -716,28 +716,28 @@ find_entry (MenuRoot * menu)
  ***********************************************************************/
 
 int
-FindEntry (MenuRoot * menu)
+FindEntry (MenuRoot * menu, XEvent *event)
 {
   MenuItem *old_item;
   MenuItem *new_item;
   int retval = MENU_NOP;
-  int x, y;
+/*  int x, y; */
 
   /* find the hilited menu item (if any) */
   for (old_item = (*menu).first; old_item != NULL; old_item = old_item->next)
     if ((*old_item).is_hilited == True)
       break;
 
-  new_item = find_entry (menu);
+  new_item = find_entry (menu, event->xmotion.x, event->xmotion.y);
 
   /* shouldn't need to do another XQueryPointer after find_entry */
-  XQueryPointer (dpy, (*menu).w, &JunkRoot, &JunkChild,
-		 &JunkX, &JunkY, &x, &y, &JunkMask);
+/*  XQueryPointer (dpy, (*menu).w, &JunkRoot, &JunkChild,
+		 &JunkX, &JunkY, &x, &y, &JunkMask); */
 
   /* if we're not on the same item, change hilites */
+/*fprintf( stderr, __FUNCTION__ "%d: new = %p, old = %p\n", __LINE__, new_item, old_item );*/
   if (new_item != old_item)
     {
-
       if (old_item != NULL)
 	unselect_item (menu, old_item);
       if (new_item != NULL)
@@ -746,7 +746,7 @@ FindEntry (MenuRoot * menu)
   if ((new_item != NULL) &&
       (new_item->func == F_POPUP) &&
       (menu->is_pinned == False) &&
-      (x > (menu->width * 3 / 4)) &&
+      (event->xmotion.x > (menu->width * 3 / 4)) &&
       new_item->menu != NULL)
     {
       /* create a new sub-menu */
@@ -807,12 +807,17 @@ menuShortcuts (MenuRoot * menu, XEvent * ev)
 
       /* Nothing special --- Allow other shortcuts (cursor movement)    */
     default:
-      mi = find_entry (menu);
-      if (mi == NULL)
-	mi = menu->first;
-      if (mi)
-	Keyboard_shortcuts (ev, ButtonRelease, mi->y_height);
-      break;
+	{
+		int x, y ;
+		XQueryPointer (dpy, menu->w, &JunkRoot, &JunkChild,
+		 &x, &y, &JunkX, &JunkY, &JunkMask);
+      	mi = find_entry (menu, x, y);
+      	if (mi == NULL)
+			mi = menu->first;
+      	if (mi)
+			Keyboard_shortcuts (ev, ButtonRelease, mi->y_height);
+	}
+    break;
     }
 }
 
@@ -870,7 +875,7 @@ do_menu_move (MenuRoot * menu, int buttonx, int buttony)
  *	Handles an X event in a menu
  *
  *  if menu == NULL, attempts to infer the menu from the event
- * 
+ *
  *  Returns:
  *      False if the event was not handled
  *      True if the event was handled
@@ -890,17 +895,19 @@ HandleMenuEvent (MenuRoot * menu, XEvent * event)
       if ((*event).xany.window == (*menu).w)
 	break;
 
-  /* if there is a pointer grab and we got an event not in our window, 
-   * report to the window that did the grab; this allows us to catch 
+  /* if there is a pointer grab and we got an event not in our window,
+   * report to the window that did the grab; this allows us to catch
    * button events outside the menu window
    */
   if ((menu == NULL) && (menu_has_pointer == True) &&
       (((*event).type == ButtonPress) || ((*event).type == ButtonRelease)))
     menu = pointer_menu;
 
-  /* if there is a pointer grab, and we get an EnterNotify or LeaveNotify 
+  /* if there is a pointer grab, and we get an EnterNotify or LeaveNotify
    * for some other window, then steal it so we won't lose our grab
    */
+/*fprintf( stderr, "%s:%d Received event %d  for menu %p\n", __FUNCTION__, __LINE__, event->type, menu );*/
+
   if ((menu == NULL) && (menu_has_pointer == True) &&
       (((*event).type == EnterNotify) || ((*event).type == LeaveNotify)))
     return True;
@@ -908,6 +915,7 @@ HandleMenuEvent (MenuRoot * menu, XEvent * event)
   if (menu == NULL)
     return False;
 
+/*fprintf( stderr, "%s:%d event menu for menu %p is %s\n", __FUNCTION__, __LINE__, menu, (*menu).is_mapped?"mapped":"unmapped" );*/
   /*
    * ignore events in an unmapped menu
    * these can come from menus which will soon be unmapped, but hasn't
@@ -918,38 +926,39 @@ HandleMenuEvent (MenuRoot * menu, XEvent * event)
 
   /* discard extra motion events, keeping only the last one */
   if ((*event).type == MotionNotify)
+  {
     while (XCheckTypedWindowEvent (dpy, (*menu).w, MotionNotify, event) == True);
 
-  XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild,
-		 &JunkX, &JunkY, &x, &y, &JunkMask);
-
-  if ((x >= (*menu).x) && (x < (*menu).x + (*menu).width))
-    {
-      if (y < 2)
-	{
-	  if ((*menu).y < 0)
-	    {
-	      y = (*menu).y + ((*menu).first->y_height - 2);
-	      if (y > 0)
-		y = 0;
-	      move_menu (menu, (*menu).x, y);
-	      FindEntry (menu);
-	      XSync (dpy, 0);
-	    }
+	x = event->xmotion.x_root ;
+	y = event->xmotion.y_root ;
+  	if ((x >= (*menu).x) && (x < (*menu).x + (*menu).width))
+    	{
+      	if (y < 2)
+		{
+	  	if ((*menu).y < 0)
+	    	{
+	      	y = (*menu).y + ((*menu).first->y_height - 2);
+	      	if (y > 0)
+			y = 0;
+	      	move_menu (menu, (*menu).x, y);
+	      	FindEntry (menu, event);
+	      	XSync (dpy, 0);
+	    	}
+		}
+      	else if (y > Scr.MyDisplayHeight - 3)
+		{
+	  	if ((*menu).y + (*menu).height > Scr.MyDisplayHeight - 2)
+	    	{
+	      	y = (*menu).y - ((*menu).first->y_height - 2);
+	      	if (y + (*menu).height < Scr.MyDisplayHeight - 2)
+			y = (Scr.MyDisplayHeight - 2) - (*menu).height;
+	      	move_menu (menu, (*menu).x, y);
+	      	FindEntry (menu, event);
+	      	XSync (dpy, 0);
+	    	}
+		}
+    	}
 	}
-      else if (y > Scr.MyDisplayHeight - 3)
-	{
-	  if ((*menu).y + (*menu).height > Scr.MyDisplayHeight - 2)
-	    {
-	      y = (*menu).y - ((*menu).first->y_height - 2);
-	      if (y + (*menu).height < Scr.MyDisplayHeight - 2)
-		y = (Scr.MyDisplayHeight - 2) - (*menu).height;
-	      move_menu (menu, (*menu).x, y);
-	      FindEntry (menu);
-	      XSync (dpy, 0);
-	    }
-	}
-    }
   if ((*event).type == KeyPress)
     {
       done = True;
@@ -1014,7 +1023,7 @@ Bool
 HandleMenuButtonPress (MenuRoot * menu, XEvent * event)
 {
   MenuItem *item;
-  item = find_entry (menu);
+  item = find_entry (menu, event->xbutton.x, event->xbutton.y );
   if ((*menu).is_pinned == True)
     {
       if ((item != NULL) && ((*item).func == F_TITLE))
@@ -1076,7 +1085,7 @@ Bool
 HandleMenuButtonRelease (MenuRoot * menu, XEvent * event)
 {
   MenuItem *item;
-  item = find_entry (menu);
+  item = find_entry (menu, event->xbutton.x, event->xbutton.y);
   if ((*menu).is_pinned == False)
     {
       if (menu_mode == MWAIT)
@@ -1136,6 +1145,7 @@ Bool
 HandleMenuLeaveNotify (MenuRoot * menu, XEvent * event)
 {
   MenuItem *item;
+/*fprintf( stderr, __FUNCTION__ ":%d crossing_mode = %d ( Normal = %d )\n", __LINE__, (*event).xcrossing.mode, NotifyNormal );*/
   if ((*event).xcrossing.mode != NotifyNormal)
     return True;
   if ((*menu).is_pinned == True)
@@ -1151,7 +1161,10 @@ HandleMenuLeaveNotify (MenuRoot * menu, XEvent * event)
 	    !(((*item).menu != NULL) &&
 	      ((*(*item).menu).is_mapped == True) &&
 	      ((*(*item).menu).is_pinned == False)))
+	{
+/*fprintf( stderr, __FUNCTION__ ":%d unselecting\n", __LINE__ );*/
 	  unselect_item (menu, item);
+	}
     }
   return True;
 }
@@ -1159,7 +1172,7 @@ HandleMenuLeaveNotify (MenuRoot * menu, XEvent * event)
 Bool
 HandleMenuMotionNotify (MenuRoot * menu, XEvent * event)
 {
-  FindEntry (menu);
+  FindEntry (menu, event);
   return True;
 }
 
@@ -1389,6 +1402,7 @@ unmap_menu (MenuRoot * menu)
 {
   MenuItem *item;
 
+/*fprintf( stderr, __FUNCTION__":%d menu %p\n", __LINE__, menu );*/
   /* ßß caused window menus to fail; should be here, though! the problem
    * is the timing and side-effects of mapping/unmapping menus */
   /* (*menu).aw = NULL; */
@@ -1421,10 +1435,10 @@ unmap_menu (MenuRoot * menu)
 
 
 /***************************************************************************
- * 
- * Wait for all mouse buttons to be released 
- * This can ease some confusion on the part of the user sometimes 
- * 
+ *
+ * Wait for all mouse buttons to be released
+ * This can ease some confusion on the part of the user sometimes
+ *
  * Discard superflous button events during this wait period.
  *
  ***************************************************************************/

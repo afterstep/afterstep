@@ -59,10 +59,10 @@ void get_Xinerama_rectangles(ScreenInfo *scr)
 #ifdef HAVE_XINERAMA
   register int i ;
   XineramaScreenInfo *s ;
-  if( (s = XineramaQueryScreens( dpy, &(scr->xinerama_screens_num) )) != NULL ) 
+  if( (s = XineramaQueryScreens( dpy, &(scr->xinerama_screens_num) )) != NULL )
   {
 	  scr->xinerama_screens = safemalloc( sizeof(XRectangle)*scr->xinerama_screens_num );
-	  for( i = 0 ; i < scr->xinerama_screens_num ; ++i ) 
+	  for( i = 0 ; i < scr->xinerama_screens_num ; ++i )
 	  {
 		  scr->xinerama_screens[i].x = s[i].x_org ;
 		  scr->xinerama_screens[i].y = s[i].y_org ;
@@ -129,10 +129,6 @@ My_XNextEvent (Display * dpy, int x_fd, int as_fd, void (*as_msg_handler) (unsig
   static int miss_counter = 0;
   struct timeval tv;
   struct timeval *t = NULL;
-  static int fd_width = 0;
-
-  if (fd_width == 0)
-    fd_width = GetFdWidth ();
 
   if (as_msg_handler == NULL || as_fd < 0 || x_fd < 0)
     return 0;
@@ -151,11 +147,11 @@ My_XNextEvent (Display * dpy, int x_fd, int as_fd, void (*as_msg_handler) (unsig
       if (timer_delay_till_next_alarm ((time_t *) & tv.tv_sec, (time_t *) & tv.tv_usec))
 	t = &tv;
 #ifdef __hpux
-      while (select (fd_width, (int *) &in_fdset, 0, 0, t) == -1)
+      while (select (MAX(x_fd,as_fd)+1, (int *) &in_fdset, 0, 0, t) == -1)
 	if (errno != EINTR)
 	  break;
 #else
-      while (select (fd_width, &in_fdset, 0, 0, t) == -1)
+      while (select (MAX(x_fd,as_fd)+1, &in_fdset, 0, 0, t) == -1)
 	if (errno != EINTR)
 	  break;
 #endif
