@@ -31,6 +31,18 @@
 #include "afterimage.h"
 #include "common.h"
 
+void usage()
+{
+	printf( "  Usage: asgrad -h | <geometry> <gradient_type> <color1> <offset2> <color2> [ <offset3> <color3> ...]\n"); 
+	printf( "  Where: geometry - size of the resulting image and window;\n");
+	printf( "         gradient_type - One of the fiollowing values :\n"); 
+	printf( "            0 - linear left-to-right gradient,\n");
+	printf( "            1 - diagonal lefttop-to-rightbottom,\n");
+	printf( "            2 - linear top-to-bottom gradient,\n");
+	printf( "            1 - diagonal righttop-to-leftbottom;\n");
+	printf( "         offset   - floating point value from 0.0 to 1.0\n");
+}
+
 int main(int argc, char* argv[])
 {
 	Window w ;
@@ -44,11 +56,23 @@ int main(int argc, char* argv[])
 
 	if( argc > 1 )
 	{
+	    if( strcmp( argv[1], "-h") == 0 )
+	    {
+			usage();
+			return 0;		
+		}
 	    /* see ASScale.1 : */
 	    geom_flags = XParseGeometry( argv[1], &dummy, &dummy,
 		                             &to_width, &to_height );
-	}
+	}else
+		usage();
 	memset( &grad, 0x00, sizeof(ASGradient));
+
+    dpy = XOpenDisplay(NULL);
+	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
+	screen = DefaultScreen(dpy);
+	depth = DefaultDepth( dpy, screen );
+
 	if( argc >= 5 )
 	{
 		int i = 2;
@@ -77,17 +101,11 @@ int main(int argc, char* argv[])
 
 	if( grad.npoints <= 0 )
 	{
-		show_error( " not enough command line arguments specified.\n"
-			        " Usage: asgrad <geometry> <gradient_type> <color1> <offset2> <color2> [ <offset3> <color3> ...]\n");
-
+		show_error( " not enough command line arguments specified.");
+		usage();
 		return 1;
 	}
 
-
-    dpy = XOpenDisplay(NULL);
-	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
-	screen = DefaultScreen(dpy);
-	depth = DefaultDepth( dpy, screen );
 
 	/* Making sure tiling geometry is sane : */
 	if( !get_flags(geom_flags, WidthValue ) )

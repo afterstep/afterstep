@@ -232,7 +232,6 @@ locate_image_file( const char *file, char **paths )
 		register int i = 0;
 		do
 		{
-fprintf( stderr, "%p , paths[%d] = %s\n", paths, i, paths[i] );
 			realfilename = find_file( file, paths[i], R_OK );
 		}while( paths[i++] != NULL );
 	}

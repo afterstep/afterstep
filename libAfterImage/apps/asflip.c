@@ -31,6 +31,13 @@
 #include "afterimage.h"
 #include "common.h"
 
+void usage()
+{
+	printf( "  Usage:   asflip [-h]|[image [flip]]\n");
+	printf( "  Where: image - is image filename\n");
+	printf( "         flip  - rotation angle in degrees. 90, 180 and 270 degrees supported\n");
+}
+
 int main(int argc, char* argv[])
 {
 	Window w ;
@@ -39,13 +46,18 @@ int main(int argc, char* argv[])
 	char *image_file = "test.xpm" ;
 	int flip = FLIP_VERTICAL;
 	int tile_x, tile_y, tile_width, tile_height, geom_flags = 0;
-	ASImage *im ;
+	ASImage *im = NULL;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 
 	if( argc > 1 )
 	{
+		if( strcmp( argv[1], "-h" ) )
+		{
+			usage();
+			return 0;
+		}	
 		image_file = argv[1] ;
 		if( argc > 2 )
 		{
@@ -58,7 +70,8 @@ int main(int argc, char* argv[])
 		        		                     &tile_width, &tile_height );
 			}
 		}
-	}
+	}else
+		usage();
 
     dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
@@ -67,6 +80,8 @@ int main(int argc, char* argv[])
 
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
+	if( im == NULL ) 
+		return 1;
 
 	/* Making sure tiling geometry is sane : */
 	if( !get_flags(geom_flags, XValue ) )

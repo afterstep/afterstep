@@ -49,6 +49,12 @@ int main(int argc, char* argv[])
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
+  
+	/* parse_argb_color can only be useda after display is open : */
+    dpy = XOpenDisplay(NULL);
+	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
+	screen = DefaultScreen(dpy);
+	depth = DefaultDepth( dpy, screen );
 
 	if( argc > 1 )
 	{
@@ -69,10 +75,6 @@ int main(int argc, char* argv[])
 		show_warning( "no image file or tint color specified - defaults used: \"%s\" #%8.8lX",
 		              image_file, tint_color );
 
-    dpy = XOpenDisplay(NULL);
-	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
-	screen = DefaultScreen(dpy);
-	depth = DefaultDepth( dpy, screen );
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
 

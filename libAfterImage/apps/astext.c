@@ -39,7 +39,7 @@
 #include "afterimage.h"
 #include "common.h"
 
-/* Usage:  astext [-f font] [-s size] [-t text] 
+/* Usage:  astext [-f font] [-s size] [-t text] [-S 3D_style]
                   [-c text_color] [-b background_color]
                   [-T foreground_texture] [-B background_image]
  */
@@ -51,17 +51,15 @@
 
 void usage()
 {
-	fprintf( stderr, "\tUsage:   astext [-f font] [-s size] [-t text]\n"); 
-	fprintf( stderr, "\t                [-S 3D_style] \n"); 
-	fprintf( stderr, "\t                [-c text_color] [-b background_color]\n");
-	fprintf( stderr, "\t                [-T foreground_texture] [-B background_image]\n");
-	fprintf( stderr, "\t                [-h]\n");
-	fprintf( stderr, "\tWhere: font - TrueType font's filename or X font spec or alias\n");
-	fprintf( stderr, "\t       size - size in points for TrueType fonts\n");
-	fprintf( stderr, "\t       text - text to be drawn\n");
-	fprintf( stderr, "\t       3D_style - #D style of text. One of the following:\n");	
-	fprintf( stderr, "\t       0 - plain 2D tetx, 1 - embossed, 2 - sunken, \n");
-	fprintf( stderr, "\t       3 - shade above, 4 - shade below, 5 - embossed thick 6 - sunken thick.\n");
+	printf( "  Usage:   astext [-h] [-f font] [-s size] [-t text] [-S 3D_style] \n"); 
+	printf( "                  [-c text_color] [-b background_color]\n");
+	printf( "                  [-T foreground_texture] [-B background_image]\n");
+	printf( "  Where: font - TrueType font's filename or X font spec or alias;\n");
+	printf( "         size - size in points for TrueType fonts;\n");
+	printf( "         text - text to be drawn;\n");
+	printf( "         3D_style - 3D style of text. One of the following:\n");	
+	printf( "             0 - plain 2D tetx, 1 - embossed, 2 - sunken, 3 - shade above,\n");
+	printf( "             4 - shade below, 5 - embossed thick 6 - sunken thick.\n");
 }
 
 int main(int argc, char* argv[])
@@ -85,8 +83,10 @@ int main(int argc, char* argv[])
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
-
-	for( i = 1 ; i < argc ; i++ )
+	
+	if( argc == 1 ) 
+		usage();
+	else for( i = 1 ; i < argc ; i++ )
 	{
 		if( strncmp( argv[i], "-h", 2 ) == 0 ) 
 		{
