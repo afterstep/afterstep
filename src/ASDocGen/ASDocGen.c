@@ -244,10 +244,6 @@ main (int argc, char **argv)
 		char *api_dest_dir ;
 		
 		gen_syntax_doc( source_dir, destination_dir, NULL, target_type );
-		gen_glossary( destination_dir, "Glossary", target_type );
-		gen_index( destination_dir, "index", target_type );
-		flush_ashash( Glossary );
-		flush_ashash( Index );
 		
 		gen_code_doc( "../../libAfterImage", destination_dir, 
 			  		  "asimagexml.c", 
@@ -255,6 +251,10 @@ main (int argc, char **argv)
 			  		  "XML schema to be used for scripting image manipulation by AfterStep and ascompose",
 			  		  target_type );
 		
+		gen_glossary( destination_dir, "Glossary", target_type );
+		gen_index( destination_dir, "index", target_type );
+		flush_ashash( Glossary );
+		flush_ashash( Index );
 		
 		api_dest_dir = make_file_name( destination_dir, "API" );
 		GlossaryName = APIGlossaryName ; 
@@ -264,8 +264,8 @@ main (int argc, char **argv)
 			  		  "ASImage",
 			  		  "internal structures and methods used for image manipulation in libAfterImage",
 			  		  target_type );
-		//gen_glossary( api_dest_dir, "Glossary", target_type );
-		//gen_index( api_dest_dir, "index", target_type );
+		gen_glossary( api_dest_dir, "Glossary", target_type );
+		gen_index( api_dest_dir, "index", target_type );
 	}else
 		check_syntax_source( source_dir, NULL, True );
 
@@ -628,14 +628,17 @@ gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type )
 	ASXMLInterpreterState state;
 	if( (doc_type == DocType_HTML	|| doc_type == DocType_PHP ) && Glossary->items_num > 0 )
 	{	
-		ASHashableValue *values = safecalloc( Glossary->items_num, sizeof(ASHashableValue));
-		ASHashData *data = safecalloc( Glossary->items_num, sizeof(ASHashData));
+		ASHashableValue *values;
+		ASHashData *data;
 		int items_num, col_length, i ;
 		int col_end[3], col_curr[3], col_count = 3 ;
 		Bool has_items = True, col_skipped[3] = {True, True, True};
 		char c = '\0' ; 
 		if( !start_doc_file( dest_dir, file, NULL, doc_type, NULL, NULL, NULL, &state, DOC_CLASS_None, DocClass_Glossary ) )	 
 			return ;
+
+		values = safecalloc( Glossary->items_num, sizeof(ASHashableValue));
+		data = safecalloc( Glossary->items_num, sizeof(ASHashData));
 		items_num = sort_hash_items (Glossary, values, (void**)data, 0);
 		
 		fprintf( state.dest_fp, "<p>\n" );
@@ -700,8 +703,8 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type )
 	ASXMLInterpreterState state;
 	if( (doc_type == DocType_HTML	|| doc_type == DocType_PHP ) && Index->items_num > 0 )
 	{	
-		ASHashableValue *values = safecalloc( Index->items_num, sizeof(ASHashableValue));
-		ASHashData *data = safecalloc( Index->items_num, sizeof(ASHashData));
+		ASHashableValue *values;
+		ASHashData *data;
 		int items_num, i ;
 		Bool sublist = False ; 
 		char *sublist_name= NULL ; 
@@ -709,6 +712,8 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type )
 		if( !start_doc_file( dest_dir, file, NULL, doc_type, NULL, NULL, NULL, &state, DOC_CLASS_None, DocClass_TopicIndex ) )	
 			return ;
 		LOCAL_DEBUG_OUT( "sorting hash items : ... %s", "" );
+		values = safecalloc( Index->items_num, sizeof(ASHashableValue));
+		data = safecalloc( Index->items_num, sizeof(ASHashData));
 		items_num = sort_hash_items (Index, values, (void**)data, 0);
 		LOCAL_DEBUG_OUT( "checkpoint at %d", __LINE__ );
 		fprintf( state.dest_fp, "<hr>\n<p><UL class=\"dense\">\n" );
@@ -1523,8 +1528,12 @@ gen_code_doc( const char *source_dir, const char *dest_dir,
 			  ASDocType doc_type )
 {
 	ASXMLInterpreterState state;
+	char *dot = strchr( file, '.' );
+	char *short_fname;
+	
+	short_fname = dot?mystrndup( file, dot-file ): mystrdup( file ); 
 		
- 	if( !start_doc_file( dest_dir, file, NULL, doc_type, file, display_name, display_purpose, &state, DOC_CLASS_None, DocClass_Overview ) )	  	
+ 	if( !start_doc_file( dest_dir, short_fname, NULL, doc_type, short_fname, display_name, display_purpose, &state, DOC_CLASS_None, DocClass_Overview ) )	  	
 			return ;
 	
 	convert_code_file( source_dir, file, &state );

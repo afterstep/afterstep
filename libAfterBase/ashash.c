@@ -125,6 +125,7 @@ LOCAL_DEBUG_CALLER_OUT( " hash = %p, *hash = %p", hash, *hash  );
 		for (i = hash->size - 1; i >= 0; i--)
 			if (hash->buckets[i])
 				destroy_ashash_bucket (&(hash->buckets[i]), hash->item_destroy_func);
+		hash->items_num = 0 ;
 	}
 }
 
