@@ -83,9 +83,9 @@ EdgeResistance 800 80
 # Place window in empty zones
 SmartPlacement
 # Random window placement
-#RandomPlacement
+RandomPlacement
 # Windows can't chose where to place
-NoPPosition
+#NoPPosition
 
 #############
 # New style (simplified) settings :
@@ -123,6 +123,19 @@ NoPPosition
 # Put a titlebar + various stuff on dialog boxes
 DecorateTransients
 #
+
+# this will cause blue screen to come up on desktop changes even if desktop background 
+# in the same  on both desks :
+AnimateDeskChange
+
+# these defines how desktop cover (blue screen) is animated when withdrawn :
+#   Available Types :
+#     sliding 	1 - 8
+#     shrinking 9 - 11
+#     melting	12
+CoverAnimationSteps	12
+CoverAnimationType	10
+
 
 ##########################################################################
 ##########################################################################
@@ -323,11 +336,13 @@ Key Right       A       C       Scroll +100 +0
 Key Up          A       C       Scroll +0   -100
 Key Down        A       C       Scroll +0   +100
 
+# Those keybindings trap Mozilla history navigation keybindings, but you can
+# uncomment them if you do not use those Mozilla keybindings.
 # alt + arrow = 1/10 page
-Key Left        A       M       Scroll -10 +0
-Key Right       A       M       Scroll +10 +0
-Key Up          A       M       Scroll +0  -10
-Key Down        A       M       Scroll +0  +10
+#Key Left        A       M       Scroll -10 +0
+#Key Right       A       M       Scroll +10 +0
+#Key Up          A       M       Scroll +0  -10
+#Key Down        A       M       Scroll +0  +10
 
 # alt + shift + arrow = move cursor
 Key Left        A       MS       CursorMove -1 0
@@ -336,10 +351,17 @@ Key Up          A       MS       CursorMove +0 -1
 Key Down        A       MS       CursorMove +0 +1
 
 # shift + control + arrow = change desktop
-Key Left        A       SC      Desk 0 0
-Key Right       A       SC      Desk 0 1
-Key Up          A       SC      Desk 0 2
-Key Down        A       SC      Desk 0 3
+#Key Left        A       SC      Desk 0 0
+#Key Right       A       SC      Desk 0 1
+#Key Up          A       SC      Desk 0 2
+#Key Down        A       SC      Desk 0 3
+
+# here is the better approach to desktop switching : Ctrl-Fx =
+Key F1          A       C        Desk 0 0
+Key F2          A       C        Desk 0 1
+Key F3          A       C        Desk 0 2
+Key F4          A       C        Desk 0 3
+
 
 # For asforms & menus : Ctrl-Shift-Fx =
 Key F1          A       SC      Module "Help" Form HELPForm
@@ -364,19 +386,28 @@ Key Tab         A       M       WarpFore
 Key q		A	M	WarpBack
 # shift + alt + tab = focus on current window
 Key Tab         A       S       Focus
+
 # ctrl-v = paste
-Key v		W	C	PasteSelection
+# If you have problems with pasting data into applications - 
+# try uncommenting this :
+#Key v		W	C	PasteSelection
+
+
 # Window keys
 Key Menu        A       A       Popup "0"
-Key Meta_L      A       A       WarpFore
-Key Meta_R      A       A       WarpBack
+#Key Meta_L      A       A       WarpFore
+#Key Meta_R      A       A       WarpBack
 # PC keys aren't always defined is keymaps
-Key Print       A       N       TakeScreenShot
-Key Print       A       M       TakeWindowShot
-Key Print       A       C       TakeFrameShot
-Key Pause       A       A       Exec "xlock" exec xlock -nolock -mode random
+#Key Print       A       A       TakeScreenShot
+Key Print       A       A       Exec "screenshot" exec xwd -root -out ~/screen.xwd && mogrify -format png ~/screen.xwd && rm ~/screen.xwd
+#Key Print       A       S       TakeWindowShot
+Key Print       A       S       Exec "windowshot" exec xwd -nobdrs -out ~/window.xwd && mogrify -format png ~/window.xwd && rm ~/window.xwd
+#Key Print       A       M       TakeFrameShot
+Key Print       A       M       Exec "frameshot" exec xwd -frame -out ~/frame.xwd && mogrify -format png ~/frame.xwd && rm ~/frame.xwd 
+Key Pause       A       A       Exec "xlock" exec xlock -mode random
+#Key Pause       A       A       Exec "xscreensaver" exec xscreensaver-command -lock
 Key Sys_Req     A       A       GetHelp
-Key Scroll_Lock A       A       Desk 0
+#Key Scroll_Lock A       A       Desk 0
 #
 ############################################################################
 

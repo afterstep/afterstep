@@ -392,9 +392,12 @@ DoExecuteFunction ( ASScheduledFunction *sf )
                	}
 
 		if( event->x.type == KeyPress || event->x.type == KeyRelease ) 
-			if( event->client != NULL ) 
-				do_defer = False;
-				 
+		{/* keyboard events should never be deferred,
+		  * and if no client is selected for window specific function - then it should be ignored */
+			if( event->client == NULL ) 
+				func = F_NOP ;
+			do_defer = False;
+		}		 
 
         if( do_defer && (fin_event != ButtonRelease || !is_interactive_action(data)) )
         {

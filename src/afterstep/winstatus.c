@@ -1072,7 +1072,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
     if( AS_ASSERT(asw) )
         return;
 
-    if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
+//    if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
     {
         register int i = FRAME_PARTS;
 
@@ -1114,8 +1114,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
             asw->internal->on_hilite_changed( asw->internal, NULL, focused );
         if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor ) )
             SetShape( asw, 0 );
-    }else /* Iconic !!! */
-    {
+//    }else /* Iconic !!! */
+//    {
         set_astbar_focused( asw->icon_button, asw->icon_canvas, focused );
         set_astbar_focused( asw->icon_title, asw->icon_title_canvas, focused );
         if( is_canvas_dirty(asw->icon_canvas) )
@@ -1427,6 +1427,10 @@ LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d", asw, iconify );
             asw->status->icon_window = asw->icon_canvas->w ;
         else if( asw->icon_title_canvas )
             asw->status->icon_window = asw->icon_title_canvas->w ;
+
+		LOCAL_DEBUG_OUT( "hilited == %p" );
+    	if( Scr.Windows->hilited == asw )
+			hide_hilite();
 
         if (get_flags(Scr.Feel.flags, ClickToFocus) || get_flags(Scr.Feel.flags, SloppyFocus))
         {

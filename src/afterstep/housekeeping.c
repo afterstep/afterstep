@@ -104,6 +104,7 @@ GrabEm (ScreenInfo *scr, Cursor cursor)
 void
 UngrabEm ()
 {
+    LOCAL_DEBUG_OUT( "grabbed_screen is %p, depth = %d, housekeeping? = %ld", grabbed_screen, grabbed_depth, get_flags(AfterStepState, ASS_HousekeepingMode) );
     if( get_flags(AfterStepState, ASS_HousekeepingMode) && grabbed_screen )  /* check if we grabbed everything */
     {
         if( --grabbed_depth > 0 )
