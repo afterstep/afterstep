@@ -66,12 +66,13 @@ install.data:
 	echo "If you want AfterStep to appear in your Gnome menu, please install as root."; \
 	fi \
 	fi
-	@if [ -d /usr/share/gnome/wm-properties ] ; then \
-	if [ -w /usr/share/gnome/wm-properties ] ; then \
-	 echo $(CP) AfterStep.desktop /usr/share/gnome/wm-properties/; \
-	 $(CP) AfterStep.desktop /usr/share/gnome/wm-properties/; \
+	@if [ -d $(GNOME_SHAREDIR)/wm-properties ] ; then \
+	if [ -w $(GNOME_SHAREDIR)/wm-properties ] ; then \
+	 echo $(CP) AfterStep.desktop $(GNOME_SHAREDESTDIR)/wm-properties/; \
+	 $(MKDIR) -p $(GNOME_SHAREDESTDIR)/wm-properties; \
+	 $(CP) AfterStep.desktop $(GNOME_SHAREDESTDIR)/wm-properties/; \
 	else \
-	echo "/usr/share/gnome/wm-properties exists but is not writable."; \
+	echo "$(GNOME_SHAREDIR)/wm-properties exists but is not writable."; \
 	echo "If you want AfterStep to appear in your Gnome menu, please install as root."; \
 	fi \
 	fi
