@@ -60,12 +60,15 @@
 
 #ifdef _WIN32
 #include "win32/afterbase.h"
-#include "win32/colornames.h"
 #include <io.h>
 #include <windows.h>
 #define access _access
 #else
 #include "afterbase.h"
+#endif
+
+#ifdef X_DISPLAY_MISSING
+#include "colornames.h"
 #endif
 
 /*#include <X11/Xlib.h>*/
@@ -462,7 +465,7 @@ asim_mystrndup (const char *str, size_t n)
 	return c;
 }
 
-#ifdef _WIN32
+#ifdef X_DISPLAY_MISSING
 static int compare_xcolor_entries(const void *a, const void *b)
 {
    return strcmp((const char *) a, ((const XColorEntry *) b)->name);
@@ -537,7 +540,7 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 		}else if( *color )
 		{
 			/* does not really matter here what screen to use : */
-#ifdef _WIN32
+#ifdef X_DISPLAY_MISSING
 			register const char *ptr = &(color[0]);
             if(!FindColor(color, pargb))
                 return color;

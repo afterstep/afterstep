@@ -47,7 +47,7 @@
 #include "../afterimage.h"
 #include "common.h"
 
-#ifdef SHAPE
+#if defined(SHAPE) && !defined(X_DISPLAY_MISSING)
 #include <X11/extensions/shape.h>
 #endif /* SHAPE */
 
@@ -657,9 +657,11 @@ int main(int argc, char** argv) {
 #endif
 
 	if (doc_file && doc_str && doc_str != default_doc_str) free(doc_str);
-    
+
+#if !defined(X_DISPLAY_MISSING)    
 	if( dpy )
         XCloseDisplay (dpy);
+#endif
 
 #ifdef DEBUG_ALLOCS
     flush_ashash_memory_pool();

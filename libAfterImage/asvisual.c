@@ -1064,9 +1064,11 @@ destroy_visual_pixmap( ASVisual *asv, Pixmap *ppmap )
 		}
 }
 
+#ifndef X_DISPLAY_MISSING
 static unsigned char *scratch_ximage_data = NULL ;
 static int scratch_use_count = 0 ;
 static size_t scratch_ximage_allocated_size = 0;  
+#endif 
 static size_t scratch_ximage_max_size = ASSHM_SAVED_MAX*2;  /* maximum of 512 KBytes is default  */  
 static size_t scratch_ximage_normal_size = ASSHM_SAVED_MAX;  /* normal usage of scratch pool is 256 KBytes is default  */  
 
@@ -1086,6 +1088,7 @@ set_scratch_ximage_normal_size( int new_normal_size )
 	return tmp;
 }
 
+#ifndef X_DISPLAY_MISSING
 static void*
 get_scratch_data(size_t size)
 {
@@ -1114,6 +1117,7 @@ release_scratch_data( void *data )
 	}	 
 	return True;
 }	 
+#endif 
 
 #ifdef XSHMIMAGE
 

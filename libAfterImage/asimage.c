@@ -117,7 +117,6 @@ Bool asimage_use_mmx = False;
 /*inline extern*/
 int mmx_init(void)
 {
-int ebx_save;
 int mmx_available = 0;
 #ifdef HAVE_MMX
 	int ebx_save;

@@ -1679,7 +1679,7 @@ print_storage_slot(ASStorage *storage, ASStorageID id)
 	if( storage != NULL && id != 0 )
 	{	
 		ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
-		fprintf (stderr, "Storage ID 0x%lX-> slot %p", id, slot);
+		fprintf (stderr, "Storage ID 0x%lX-> slot %p", (unsigned long)id, slot);
 		if( slot )
 		{
 			int i ;
@@ -1687,7 +1687,7 @@ print_storage_slot(ASStorage *storage, ASStorageID id)
 			{
 				ASStorageID target_id = 0;
 			 	memcpy( &target_id, &(slot->data[0]), sizeof( ASStorageID ));				   
-				fprintf (stderr, " : References storage ID 0x%lX\n\t>", target_id);
+				fprintf (stderr, " : References storage ID 0x%lX\n\t>", (unsigned long)target_id);
 				if( target_id == id ) 
 				{	
 					show_error( "reference refering to self id = %lX", id );
@@ -1696,7 +1696,7 @@ print_storage_slot(ASStorage *storage, ASStorageID id)
 				return print_storage_slot(storage, target_id);
 			}	 
 			fprintf( stderr, " : {0x%X, %u, %lu, %lu, %u, {", 
-					 slot->flags, slot->ref_count, slot->size, slot->uncompressed_size, slot->index );
+					 slot->flags, slot->ref_count, (unsigned long)slot->size, (unsigned long)slot->uncompressed_size, slot->index );
 
 			for( i = 0 ; i < (int)slot->size ; ++i)
 				fprintf( stderr, "%2.2X ", slot->data[i] ) ;
