@@ -41,8 +41,8 @@ AfterStep.desktop.final:
 	echo "Exec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.final ; \
 	echo "Icon=$(AFTER_SHAREDIR)/desktop/icons/large/AfterStep3" >> AfterStep.desktop.final
 
-mkdir:	mkdir.bin mkdir.lib mkdir.man
-  
+mkdir:	mkdir.bin mkdir.lib mkdir.man mkdir.share
+
 mkdir.bin:
 	@$(MKDIR) -p $(AFTER_BIN_DIR);
 
@@ -51,6 +51,11 @@ mkdir.lib:
 
 mkdir.man:
 	@$(MKDIR) -p $(AFTER_MAN_DIR); $(MKDIR) -p $(AFTER_MAN_API_DIR);
+
+mkdir.share:
+	@$(MKDIR) -p $(SHAREDIR); \
+	 $(MKDIR) -p $(AFTER_SHAREDIR)
+  
 
 module.clean:
  
@@ -69,22 +74,27 @@ install.man: mkdir.man
 install.script: mkdir.bin
 	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install.script || exit 1); fi; done
 
-install.desktop: AfterStep.desktop.final
-	@if [ -d /usr/share/xsessions ] && [ -w /usr/share/xsessions ] ; then \
-		echo "installing AfterStep.desktop into /usr/share/xsessions/" ; \
-		$(INSTALL_DATA)  AfterStep.desktop.final /usr/share/xsessions/AfterStep.desktop ; \
-	else if [ -d /etc/X11/sessions ] && [ -w /etc/X11/sessions ] ; then \
-		echo "installing AfterStep.desktop /etc/X11/xsessions/" ; \
-		$(INSTALL_DATA)  AfterStep.desktop.final /etc/X11/xsessions/AfterStep.desktop ; \
-	fi; fi
+install.desktop: AfterStep.desktop.final mkdir.share
+	@if [ -d $(SHAREDIR)/xsessions ] && [ -w $(SHAREDIR)/xsessions ] ; then \
+		echo "installing AfterStep.desktop into $(SHAREDIR)/xsessions/" ; \
+		$(INSTALL_DATA)  AfterStep.desktop.final $(SHAREDIR)/xsessions/AfterStep.desktop ; \
+	else if [ -d $(SYSCONFDIR)/X11/sessions ] && [ -w $(SYSCONFDIR)/X11/sessions ] ; then \
+		echo "installing AfterStep.desktop $(SYSCONFDIR)/X11/xsessions/" ; \
+		$(INSTALL_DATA)  AfterStep.desktop.final $(SYSCONFDIR)/X11/xsessions/AfterStep.desktop ; \
+	else if [ -d $(SHAREDIR) ] && [ -w $(SHAREDIR) ] ; then \
+		echo "mkdir $(SHAREDIR)/xsessions"; \
+		$(MKDIR) -p $(SHAREDIR)/xsessions; \
+		echo "installing AfterStep.desktop into $(SHAREDIR)/xsessions/" ; \
+		$(INSTALL_DATA)  AfterStep.desktop.final $(SHAREDIR)/xsessions/AfterStep.desktop ; \
+	fi; fi; fi
 
 install.data:
-	@if [ -d /usr/local/share/gnome/wm-properties ] ; then \
-	if [ -w /usr/local/share/gnome/wm-properties ] ; then \
-	echo $(CP) AfterStep.desktop /usr/local/share/gnome/wm-properties/; \
-	$(CP) AfterStep.desktop /usr/local/share/gnome/wm-properties/; \
+	@if [ -d $(SHAREDIR)/gnome/wm-properties ] ; then \
+	if [ -w $(SHAREDIR)/gnome/wm-properties ] ; then \
+	echo $(CP) AfterStep.desktop $(SHAREDIR)/gnome/wm-properties/; \
+	$(CP) AfterStep.desktop $(SHAREDIR)/gnome/wm-properties/; \
 	else \
-	echo "/usr/local/share/gnome/wm-properties exists but is not writable."; \
+	echo "$(SHAREDIR)/gnome/wm-properties exists but is not writable."; \
 	echo "If you want AfterStep to appear in your Gnome menu, please install as root."; \
 	fi \
 	fi
