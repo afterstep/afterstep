@@ -286,8 +286,11 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 			for (i = min; i <= max; i++)
 				if (XKeycodeToKeysym (dpy, i, 0) == keysym)
 					break;
-
+			
 			if (i <= max)
+				keycode = i ; 
+
+			if (keycode != 0 )
 			{
 				FuncKey      *tmp = (FuncKey *) safemalloc (sizeof (FuncKey));
 
@@ -296,7 +299,7 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 
 				tmp->name = name;
 				name = NULL;
-				tmp->keycode = i;
+				tmp->keycode = keycode;
 				tmp->cont = contexts;
 				tmp->mods = mods;
 				tmp->fdata = fdata;
