@@ -1344,40 +1344,44 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 			
 			if( fill ) 
 			{	
-				CTX_FILL_HLINE(ctx,x+new_midx1+1,y-y1,x+new_midx2-1,255);
-				CTX_FILL_HLINE(ctx,x-new_midx2-1,y+y1,x-new_midx1+1,255);
+//				CTX_FILL_HLINE(ctx,x+new_midx1+1,y-y1,x+new_midx2-1,255);
+//				CTX_FILL_HLINE(ctx,x-new_midx2-1,y+y1,x-new_midx1+1,255);
 			}
 			
 			if( dx1 != 0 ) 
 			{	
-//				CTX_PUT_PIXEL( ctx, x+new_midx1, y-y1, 255 ) ; 			   
-//				CTX_PUT_PIXEL( ctx, x-new_midx1, y+y1, 255 ) ; 		
+				CTX_PUT_PIXEL( ctx, x+new_midx1, y-y1, 255 ) ; 			   
+				CTX_PUT_PIXEL( ctx, x-new_midx1, y+y1, 255 ) ; 		
 				if( dx1 == 1 ) 
 				{
 					if( dy1 == 1 )
 					{	
-//						CTX_PUT_PIXEL( ctx, x+new_midx1, y-y1-direction, 60 ) ; 			   
-//						CTX_PUT_PIXEL( ctx, x-new_midx1, y+y1+direction, 60 ) ; 		
-//						CTX_PUT_PIXEL( ctx, x+new_midx1+1, y-y1, 60 ) ; 			   
-//						CTX_PUT_PIXEL( ctx, x-new_midx1-1, y+y1, 60 ) ; 		
+						CTX_PUT_PIXEL( ctx, x+new_midx1, y-y1-direction, 60 ) ; 			   
+						CTX_PUT_PIXEL( ctx, x-new_midx1, y+y1+direction, 60 ) ; 		
+						CTX_PUT_PIXEL( ctx, x+new_midx1+1, y-y1, 60 ) ; 			   
+						CTX_PUT_PIXEL( ctx, x-new_midx1-1, y+y1, 60 ) ; 		
 					}else
 					{          /* vertical block from (midx1,y1-dy) to ( new_midx1, y1)*/
 						
 					}	 
 				}else
 				{   /* horizontal block from (midx1,y1-1) to ( new_midx1, y1)*/
-				   	int dx = ((midx1 - new_midx1)*5)>>2 ; 
-				   	int i = dx;
-					int delta = 0x0000FFFF/dx ; 
-					int val = delta ; 
+				   	int dx = (midx1 - new_midx1 ) ; 
+				   	int i = 0;
 					int y11 = y1+direction ; 
-				   	while( i > 0 )
+					//int delta2 = (0x0000FFFF/(dx*dx));
+					int delta = 0x0000FFFF/dx; 
+					int val = 0x00007FFF/(dx+1) ; 
+					int val2 = 0 ;
+				   	while( i <= dx )
 				   	{
-						CARD32 v = val >> 8 ;
-				   		CTX_PUT_PIXEL( ctx, x+new_midx1+i, y-y11, ~v ); 			    		
-						CTX_PUT_PIXEL( ctx, x+new_midx1+i, y-y1, v );
-						--i ;
-						val += delta ;
+						//CARD32 v = 255-((dx)*255)/(dx+i);
+						CARD32 v = (val >> 8) ;
+				   		CTX_PUT_PIXEL( ctx, x+new_midx1+i, y-y11, v ); 			    		
+						CTX_PUT_PIXEL( ctx, x+new_midx1+dx-i, y-y1, v );
+						++i ;
+						val2 += delta ; 
+						val += val2-val ;
 					}		   
 					
 				}		  
@@ -1628,6 +1632,7 @@ int main(int argc, char **argv )
 //		for( i = 3 ; i < 180 ; i+=5 ) 
 		{	
 			asim_ellips2( ctx, 595, 550, 198, 40, i, False );
+			asim_ellips( ctx, 595, 540, 198, 40, i, False );
 			asim_ellips2( ctx, 595, 550, 198, 40, i+30, False );
 			asim_ellips( ctx, 595, 540, 198, 40, i+30, False );
 //			asim_ellips( ctx, 595, 550, 198, 40, i, False ); 
