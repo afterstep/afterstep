@@ -280,18 +280,14 @@ void HandleEvents(int x_fd, int *as_fd)
 void
 DeadPipe (int nonsense)
 {
-#ifdef DEBUG_ALLOCS
-/* normally, we let the system clean up, but when auditing time comes
- * around, it's best to have the books in order... */
-    balloon_init (1);
     if( PagerState.main_canvas )
         destroy_ascanvas( &PagerState.main_canvas );
 
     if( Config )
         DestroyPagerConfig (Config);
 
-    mystyle_free_global_gcs();
-    mystyle_destroy_all();
+    FreeMyAppResources();
+#ifdef DEBUG_ALLOCS
     print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
 
@@ -1895,7 +1891,7 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
             if ( event->x.xclient.format == 32 &&
                  event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW )
 			{
-			    exit (0);
+                DeadPipe(0);
             }else if( event->x.xclient.format == 32 &&
                       event->x.xclient.message_type == _AS_BACKGROUND && event->x.xclient.data.l[1] != None )
             {

@@ -64,4 +64,7 @@ ASWindowData *fetch_window_by_id( Window w );
 ASWindowData *add_window_data( ASWindowData *wd );
 WindowPacketResult handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pdata);
 
+void window_data_cleanup();
+
+
 #endif /* #ifndef WINLIST_WINDATA_H_HEADER_INCLUDED */

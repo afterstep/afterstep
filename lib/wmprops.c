@@ -17,7 +17,7 @@
  *
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #include "../configure.h"
 
 #include "../include/asapp.h"

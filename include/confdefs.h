@@ -695,10 +695,6 @@ typedef struct
 
     FreeStorageElem *more_stuff;
 
-    /* these are generated after reading the config : */
-    int gravity ;
-
-
 }
 WharfConfig;
 

@@ -109,6 +109,13 @@ add_window_data( ASWindowData *wd )
 	return wd ;
 }
 
+void
+window_data_cleanup()
+{
+    if( _as_Winlist )
+        destroy_ashash( &_as_Winlist );
+}
+
 WindowPacketResult
 handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pdata)
 {

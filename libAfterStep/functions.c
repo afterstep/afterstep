@@ -459,6 +459,17 @@ free_func_data (FunctionData * data)
 	return F_NOP;
 }
 
+void
+destroy_func_data( FunctionData **pdata )
+{
+    if( pdata && *pdata )
+    {
+        free_func_data( *pdata );
+        free( *pdata );
+        *pdata = NULL ;
+    }
+}
+
 long
 default_func_val( FunctionCode func )
 {

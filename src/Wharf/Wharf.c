@@ -44,6 +44,7 @@
 
 #include "../../include/afterstep.h"
 #include "../../include/screen.h"
+#include "../../include/session.h"
 #include "../../include/module.h"
 #include "../../include/parse.h"
 #include "../../include/parser.h"
@@ -135,7 +136,10 @@ void GetBaseOptions (const char *filename);
 void CheckConfigSanity();
 
 ASWharfFolder *build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical );
-void display_wharf_folder( ASWharfFolder *aswf );
+Bool display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bottom );
+Bool display_main_folder();
+void on_wharf_moveresize( ASEvent *event );
+void destroy_wharf_folder( ASWharfFolder **paswf );
 
 
 /***********************************************************************
@@ -183,7 +187,11 @@ main (int argc, char **argv)
     CheckConfigSanity();
 
     WharfState.root_folder = build_wharf_folder( Config->root_folder, NULL, (Config->rows != 1) );
-    display_wharf_folder( WharfState.root_folder );
+    if( !display_main_folder() )
+    {
+        show_error( "main folder does not have any entries or has zero size. Aborting!");
+        return 1;
+    }
 
     /* Create a list of all windows */
     /* Request a list of all windows,
@@ -193,7 +201,7 @@ main (int argc, char **argv)
     /* create main folder here : */
 
     LOCAL_DEBUG_OUT("starting The Loop ...%s","");
-//    HandleEvents(x_fd, as_fd);
+    HandleEvents(x_fd, as_fd);
 
     return 0;
 }
@@ -220,20 +228,18 @@ void HandleEvents(int x_fd, int *as_fd)
 void
 DeadPipe (int nonsense)
 {
-#ifdef DEBUG_ALLOCS
 
+    destroy_wharf_folder( &(WharfState.root_folder) );
+    DestroyWharfConfig( Config );
+    destroy_ashash( &(WharfState.win2obj_xref) );
+    window_data_cleanup();
+
+    FreeMyAppResources();
+#ifdef DEBUG_ALLOCS
 /* normally, we let the system clean up, but when auditing time comes
  * around, it's best to have the books in order... */
-    balloon_init (1);
-
-    if( Config )
-        DestroyWharfConfig (Config);
-
-    mystyle_free_global_gcs ();
-    mystyle_destroy_all();
     print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
-
     XFlush (dpy);			/* need this for SetErootPixmap to take effect */
 	XCloseDisplay (dpy);		/* need this for SetErootPixmap to take effect */
     exit (0);
@@ -259,17 +265,12 @@ CheckConfigSanity()
     if( Config->columns == 0 )
         Config->columns = 1;
 
-    Config->gravity = NorthWestGravity ;
-    if( get_flags(Config->geometry.flags, XNegative) )
-        Config->gravity = get_flags(Config->geometry.flags, YNegative)? SouthEastGravity:NorthEastGravity;
-    else if( get_flags(Config->geometry.flags, YNegative) )
-        Config->gravity = SouthWestGravity;
-
-
     mystyle_get_property (Scr.wmprops);
 
-    sprintf( buf, "*%sStyle", get_application_name() );
+    sprintf( buf, "*%sTile", get_application_name() );
+    LOCAL_DEBUG_OUT("Attempting to use style \"%s\"", buf);
     Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find_or_default( buf );
+    LOCAL_DEBUG_OUT("Will use style \"%s\"", Scr.Look.MSWindow[BACK_UNFOCUSED]->name);
 
     show_progress( "printing wharf config : ");
     PrintWharfConfig(Config);
@@ -306,7 +307,6 @@ SHOW_CHECKPOINT;
     if( get_flags(config->set_flags, WHARF_COLUMNS) )
         Config->columns = config->columns;
 
-    config->gravity = NorthWestGravity ;
     if( get_flags( config->set_flags, WHARF_GEOMETRY ) )
         merge_geometry(&(config->geometry), &(Config->geometry) );
 
@@ -362,6 +362,11 @@ GetBaseOptions (const char *filename)
     if( Scr.image_manager )
         destroy_image_manager( Scr.image_manager, False );
     Scr.image_manager = create_image_manager( NULL, 2.2, config->pixmap_path, config->icon_path, NULL );
+    if( Scr.font_manager )
+        destroy_font_manager( Scr.font_manager, False );
+
+    Scr.font_manager = create_font_manager (dpy, config->font_path, NULL);
+
 
     Scr.VScale = config->desktop_scale;
 
@@ -398,7 +403,7 @@ fetch_object( Window w )
 }
 
 void
-unregister_client( Window w )
+unregister_object( Window w )
 {
     if( WharfState.win2obj_xref )
         remove_hash_item( WharfState.win2obj_xref, AS_HASHABLE(w), NULL, False );
@@ -416,7 +421,7 @@ process_message (unsigned long type, unsigned long *body)
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
         WindowPacketResult res ;
         /* saving relevant client info since handle_window_packet could destroy the actuall structure */
-        Window               saved_w = wd?wd->canvas->w:None;
+        Window               saved_w = (wd && wd->canvas)?wd->canvas->w:None;
         int                  saved_desk = wd?wd->desk:INVALID_DESK;
         struct ASWindowData *saved_wd = wd ;
 
@@ -465,6 +470,7 @@ DispatchEvent (ASEvent * event)
     switch (event->x.type)
     {
 	    case ConfigureNotify:
+            on_wharf_moveresize( event );
             break;
         case KeyPress :
             break ;
@@ -477,6 +483,18 @@ DispatchEvent (ASEvent * event)
         case MotionNotify :
             break ;
 	    case ClientMessage:
+            {
+#ifdef LOCAL_DEBUG
+                char *name = XGetAtomName( dpy, event->x.xclient.message_type );
+                LOCAL_DEBUG_OUT("ClientMessage(\"%s\",data=(%lX,%lX,%lX,%lX,%lX)", name, event->x.xclient.data.l[0], event->x.xclient.data.l[1], event->x.xclient.data.l[2], event->x.xclient.data.l[3], event->x.xclient.data.l[4]);
+                XFree( name );
+#endif
+                if ( event->x.xclient.format == 32 &&
+                    event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW )
+                {
+                    DeadPipe(0);
+                }
+            }
             break;
 	    case PropertyNotify:
             if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
@@ -497,11 +515,14 @@ create_wharf_folder_canvas(ASWharfFolder *aswf)
 {
     static XSetWindowAttributes attr ;
     Window w ;
+    ASCanvas *pc = NULL;
 
     attr.event_mask = WHARF_FOLDER_EVENT_MASK ;
-    w = create_visual_window( Scr.asv, None, 0, 0, 1, 1, 0, InputOutput, CWEventMask, &attr );
+    w = create_visual_window( Scr.asv, Scr.Root, 0, 0, 1, 1, 0, InputOutput, CWEventMask, &attr );
     register_object( w, (ASMagic*)aswf );
-    return create_ascanvas(w);
+    pc = create_ascanvas(w);
+    LOCAL_DEBUG_OUT("folder canvas %p created for window %lX", pc, w );
+    return pc;
 }
 
 
@@ -512,7 +533,7 @@ create_wharf_button_canvas(ASWharfButton *aswb, ASCanvas *parent)
     Window w ;
 
     attr.event_mask = WHARF_BUTTON_EVENT_MASK ;
-    w = create_visual_window( Scr.asv, parent->w, 0, 0, 64, 64, 0, InputOutput, CWEventMask, &attr );
+    w = create_visual_window( Scr.asv, parent->w, -1, -1, 1, 1, 0, InputOutput, CWEventMask, &attr );
     register_object( w, (ASMagic*)aswb );
     return create_ascanvas(w);
 }
@@ -566,7 +587,7 @@ build_wharf_button_tbar(WharfButton *wb)
             /* load image here */
             im = get_asimage( Scr.image_manager, wb->icon[i], ASFLAGS_EVERYTHING, 100 );
             if( im )
-                add_astbar_icon( bar, icon_col, icon_row, 0, 0, im );
+                add_astbar_icon( bar, icon_col, icon_row, 0, ALIGN_CENTER, im );
         }
     }
     set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
@@ -635,11 +656,13 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
             {
                 aswb->desired_width  = calculate_astbar_width( aswb->bar );
                 aswb->desired_height = calculate_astbar_height( aswb->bar );
-            }else
-            {
-                aswb->desired_width = 64 ;
-                aswb->desired_height = 64 ;
             }
+
+            if( aswb->desired_width == 0 )
+                aswb->desired_width = 64 ;
+
+            if( aswb->desired_height == 0 )
+                aswb->desired_height = 64 ;
 
             if( wb->folder )
                 aswb->folder = build_wharf_folder( wb->folder, aswb, !vertical );
@@ -647,15 +670,253 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
             ++aswb;
             wb = wb->next ;
         }
+        XMapSubwindows( dpy, aswf->canvas->w );
     }
     return aswf;
 }
 
 void
-display_wharf_folder( ASWharfFolder *aswf )
+destroy_wharf_folder( ASWharfFolder **paswf )
 {
+    ASWharfFolder *aswf ;
+    if( paswf == NULL )
+        return;
 
+    if( (aswf = *paswf) == NULL )
+        return;
+    if( aswf->magic != MAGIC_WHARF_FOLDER )
+        return;
+
+    if( aswf->canvas )
+        unmap_canvas_window( aswf->canvas );
+
+    if( aswf->buttons )
+    {
+        int i = aswf->buttons_num;
+        while( --i >= 0 )
+        {
+            ASWharfButton *aswb = &(aswf->buttons[i]);
+            if( aswb->name )
+                free( aswb->name );
+            destroy_astbar(&(aswb->bar));
+            if( aswb->canvas )
+                unregister_object( aswb->canvas->w );
+            destroy_ascanvas(&(aswb->canvas));
+            destroy_func_data(&(aswb->fdata));
+            destroy_wharf_folder(&(aswb->folder));
+        }
+        free( aswf->buttons );
+    }
+    if( aswf->canvas )
+        unregister_object( aswf->canvas->w );
+    destroy_ascanvas(&(aswf->canvas));
+
+    memset(aswf, 0x00, sizeof(ASWharfFolder));
+    free( aswf );
+    *paswf = NULL ;
 }
 
+void
+map_wharf_folder( ASWharfFolder *aswf,
+                  int x, int y, unsigned int width, unsigned int height,
+                  int gravity )
+{
+    XSizeHints    shints;
+	ExtendedWMHints extwm_hints ;
 
+    moveresize_canvas( aswf->canvas, x, y, width, height );
+
+    shints.flags = USSize|PWinGravity;
+    if( get_flags( Config->set_flags, WHARF_GEOMETRY ) )
+        shints.flags |= USPosition ;
+    else
+        shints.flags |= PPosition ;
+
+    shints.win_gravity = gravity ;
+
+	extwm_hints.pid = getpid();
+    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_TypeMenu ;
+
+    set_client_hints( aswf->canvas->w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+
+	/* showing window to let user see that we are doing something */
+    map_canvas_window(aswf->canvas, True);
+    LOCAL_DEBUG_OUT( "mapping main window at %ux%u%+d%+d", width, height,  x, y );
+    /* final cleanup */
+	XFlush (dpy);
+	sleep (1);								   /* we have to give AS a chance to spot us */
+}
+
+void
+place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_height_return )
+{
+    int max_width = 0, max_height = 0 ;
+    int x = 0, y = 0, x_inc = 0, y_inc = 0 ;
+    int i;
+    for( i = 0 ; i < aswf->buttons_num ; ++i )
+    {
+        ASWharfButton *aswb = &(aswf->buttons[i]);
+        if( max_width < aswb->desired_width )
+            max_width = aswb->desired_width ;
+        if( max_height < aswb->desired_height )
+            max_height = aswb->desired_height ;
+    }
+
+    if( set_flags( aswf->flags, ASW_Vertical ) )
+        y_inc = max_height ;
+    else
+        x_inc = max_width ;
+
+    for( i = 0 ; i < aswf->buttons_num ; ++i )
+    {
+        moveresize_canvas( aswf->buttons[i].canvas, x, y, max_width, max_height );
+        y += y_inc ;
+        x += x_inc ;
+    }
+
+    *total_width_return = (x > 0)?x:max_width ;
+    *total_height_return = (y>0)?y:max_height ;
+    ASSync( False );
+}
+
+Bool
+display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bottom )
+{
+    Bool east  = get_flags( Config->geometry.flags, XNegative);
+    Bool south = get_flags( Config->geometry.flags, YNegative);
+    int x, y, width = 0, height = 0;
+    int total_width = 0, total_height = 0;
+    if( AS_ASSERT( aswf ) )
+        return False;
+
+    place_wharf_buttons( aswf, &total_width, &total_height );
+
+    if( total_width == 0 || total_height == 0 )
+        return False;;
+    if( total_width > Scr.MyDisplayWidth )
+        total_width = Scr.MyDisplayWidth;
+    if( total_height > Scr.MyDisplayHeight )
+        total_height = Scr.MyDisplayHeight;
+
+    aswf->total_width = total_width ;
+    aswf->total_height = total_height ;
+
+    if( left < 0 )
+        east = False;
+    else if( left < total_width )
+        east = !( Scr.MyDisplayWidth > right && (Scr.MyDisplayWidth-right > total_width || left < Scr.MyDisplayWidth-right));
+
+    if( east )
+    {
+        if( left < total_width )
+            left = total_width ;
+    }else if( Scr.MyDisplayWidth-right  < total_width )
+        right = Scr.MyDisplayWidth - total_width ;
+
+    if( south )
+    {
+        if( top < total_height )
+            top = total_height ;
+    }else if( Scr.MyDisplayHeight - bottom < total_height )
+        bottom = Scr.MyDisplayHeight - total_width ;
+
+    if( south && top < total_height )
+        south = !( Scr.MyDisplayHeight > bottom && (Scr.MyDisplayHeight-bottom > total_height || top < Scr.MyDisplayHeight-bottom));
+
+    if( !get_flags(Config->flags, WHARF_ANIMATE ) )
+    {
+        aswf->animation_steps = 0 ;
+        aswf->animation_dir = 0 ;
+    }else
+    {
+        if( get_flags( Config->set_flags, WHARF_ANIMATE_STEPS ) )
+            aswf->animation_steps = Config->animate_steps;
+        else
+            aswf->animation_steps = 12 ;
+    }
+
+    if( aswf->animation_steps > 0 )
+    {
+        if( set_flags( aswf->flags, ASW_Vertical ) )
+            height = (total_height < aswf->animation_steps)?1:total_height/aswf->animation_steps ;
+        else
+            width = (total_width < aswf->animation_steps)?1:total_width/aswf->animation_steps ;
+        aswf->animation_dir = 1;
+    }
+    if( width == 0 )
+        width = total_width ;
+    if( height == 0 )
+        height = total_height ;
+    LOCAL_DEBUG_OUT( "animation_steps(%d)->size(%dx%d)->total_size(%dx%d)", aswf->animation_steps, width, height, total_width, total_height );
+    x = east? left - width : right ;
+    y = south? top - height : bottom ;
+
+    map_wharf_folder( aswf, x, y, width, height, east?(south?SouthEastGravity:NorthEastGravity):
+                                                      (south?SouthWestGravity:NorthWestGravity) );
+    return True;
+}
+
+Bool display_main_folder()
+{
+    int left = Config->geometry.x;
+    int top = Config->geometry.y;
+
+    if( get_flags( Config->geometry.flags, XNegative ))
+        left += Scr.MyDisplayWidth ;
+
+    if( get_flags( Config->geometry.flags, YNegative ))
+        top += Scr.MyDisplayHeight ;
+    return display_wharf_folder( WharfState.root_folder, left, top, left, top );
+}
+
+void
+on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
+{
+    ASFlagType changes = handle_canvas_config (aswb->canvas );
+    if( get_flags(changes, CANVAS_RESIZED ) )
+        set_astbar_size( aswb->bar, aswb->canvas->width, aswb->canvas->height );
+    else if( get_flags(changes, CANVAS_MOVED ) )
+        update_astbar_transparency( aswb->bar, aswb->canvas );
+
+    if( changes != 0 && (DoesBarNeedsRendering(aswb->bar) || is_canvas_needs_redraw( aswb->canvas )))
+        render_astbar( aswb->bar, aswb->canvas );
+    if( is_canvas_dirty( aswb->canvas ) )
+        update_canvas_display( aswb->canvas );
+}
+void on_wharf_moveresize( ASEvent *event )
+{
+    ASMagic *obj = NULL;
+
+    obj = fetch_object( event->w ) ;
+    if( obj == NULL )
+        return;
+    if( obj->magic == MAGIC_WHARF_BUTTON )
+    {
+        on_wharf_button_moveresize( (ASWharfButton*)obj, event );
+    }else if( obj->magic == MAGIC_WHARF_FOLDER )
+    {
+        ASWharfFolder *aswf = (ASWharfFolder*)obj;
+        ASFlagType changes = handle_canvas_config (aswf->canvas );
+        if( get_flags(changes, CANVAS_RESIZED ) && aswf->animation_steps > 0 )
+        {
+            int dw = (aswf->animation_dir > 0)?aswf->total_width - aswf->canvas->width:aswf->canvas->width  ;
+            int dh = (aswf->animation_dir > 0)?aswf->total_height - aswf->canvas->height:aswf->canvas->height  ;
+            dw /= aswf->animation_steps ;
+            dh /= aswf->animation_steps ;
+            resize_canvas( aswf->canvas, aswf->canvas->width+(aswf->animation_dir*dw),
+                                         aswf->canvas->height+(aswf->animation_dir*dh)) ;
+            --(aswf->animation_steps);
+            ASSync( False ) ;
+            if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
+                sleep_a_little( Config->animate_delay*10000 );
+            else
+                sleep_a_little( 10000 );
+        }else if( changes != 0 )
+        {
+            int i = aswf->buttons_num ;
+            while( --i >= 0 )
+                on_wharf_button_moveresize( &(aswf->buttons[i]), event );
+        }
+    }
+}
 

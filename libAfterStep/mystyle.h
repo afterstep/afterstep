@@ -116,19 +116,21 @@ MyStyle;
  */
 enum				/* MyStyle options */
   {
-    F_ERROR = 0,		/* error condition */
-    F_DONE = 1,			/* done parsing body */
-    F_INHERIT = 2,		/* inherit from another style */
-    F_FONT = (1 << 4),
-    F_FORECOLOR = (1 << 5),
-    F_BACKCOLOR = (1 << 6),
-    F_MAXCOLORS = (1 << 7),
-    F_BACKGRADIENT = (1 << 8),
-    F_BACKPIXMAP = (1 << 9),
-    F_TEXTSTYLE = (1 << 10),
+    F_ERROR         = 0,        /* error condition */
+    F_DONE          = 1,         /* done parsing body */
+    F_INHERIT       = 2,      /* inherit from another style */
+    F_FONT          = (1 << 4),
+    F_FORECOLOR     = (1 << 5),
+    F_BACKCOLOR     = (1 << 6),
+    F_MAXCOLORS     = (1 << 7),
+    F_BACKGRADIENT  = (1 << 8),
+    F_BACKPIXMAP    = (1 << 9),
+    F_TEXTSTYLE     = (1 << 10),
     F_DRAWTEXTBACKGROUND = (1 << 11),
-    F_BACKMULTIGRADIENT = (1 << 12),
-    F_BACKTRANSPIXMAP = (1 << 13)	/* should never be set unless F_BACKPIXMAP is set!! */
+    F_BACKMULTIGRADIENT  = (1 << 12),
+    F_BACKTRANSPIXMAP    = (1 << 13),   /* should never be set unless F_BACKPIXMAP is set!! */
+    F_EXTERNAL_BACKPIX   = (1 << 14),   /* indicates that pixmap has been created by some other application and should not be freed */
+    F_EXTERNAL_BACKMASK  = (1 << 15)
   };
 
   enum				/* texture types */

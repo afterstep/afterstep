@@ -215,6 +215,7 @@ void copy_func_data (FunctionData * dst, FunctionData * src);
 void dup_func_data (FunctionData * dst, FunctionData * src);
 void set_func_val (FunctionData * data, int arg, int value);
 int free_func_data (FunctionData * data);
+void destroy_func_data( FunctionData **pdata );
 long default_func_val( FunctionCode func );
 void decode_func_units (FunctionData * data);
 void complex_function_destroy(ASHashableValue value, void *data);

@@ -17,7 +17,7 @@
  *
  */
 
-/*#define LOCAL_DEBUG */
+#define LOCAL_DEBUG
 
 #include "../configure.h"
 
@@ -137,22 +137,18 @@ mystyle_get_property (ASWMProps *wmprops)
 
 		/* free up any resources that are already in use */
 		if (style->user_flags & F_FONT)
-			unload_font (&style->font);
+            unload_font (&style->font);
 #ifndef NO_TEXTURE
 		if (style->user_flags & F_BACKGRADIENT)
 		{
 			free (style->gradient.color);
 			free (style->gradient.offset);
 		}
-		if (style->user_flags & F_BACKPIXMAP)
-		{
-			if (style->back_icon.pix != None)
-				XFreePixmap (dpy, style->back_icon.pix);
-			if (style->back_icon.mask != None)
-				XFreePixmap (dpy, style->back_icon.mask);
-		}
-		if (style->user_flags & F_BACKTRANSPIXMAP)
-			destroy_asimage (&(style->back_icon.image));
+        if (style->back_icon.image)
+        {
+            safe_asimage_destroy (style->back_icon.image);
+            style->back_icon.image = NULL ;
+        }
 #endif /* NO_TEXTURE */
 
 		style->user_flags = 0;
@@ -176,6 +172,8 @@ mystyle_get_property (ASWMProps *wmprops)
 			name = XGetAtomName (dpy, prop[i + 3]);
 			load_font (name, &style->font);
 			XFree (name);
+            style->user_flags |= F_FONT;
+            style->inherit_flags &= ~F_FONT;
 #endif
 		}
 		style->colors.fore = prop[i + 4];
@@ -190,6 +188,7 @@ mystyle_get_property (ASWMProps *wmprops)
 		style->back_icon.mask = prop[i + 11];
 		style->tint = prop[i + 12];
 		style->back_icon.alpha = prop[i + 13];
+        set_flags(style->user_flags, F_EXTERNAL_BACKPIX|F_EXTERNAL_BACKMASK);
 		/* unused/reserved : */
 /*    style->tint = prop[i + 14];
  */

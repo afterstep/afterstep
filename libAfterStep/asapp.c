@@ -31,6 +31,11 @@
 #include "../include/screen.h"
 #include "../include/functions.h"
 #include "../include/session.h"
+#include "../include/balloon.h"
+#include "../include/mystyle.h"
+#include "../include/wmprops.h"
+#include "../libAfterImage/xpm.h"
+
 
 ASProgArgs    MyArgs = {0, NULL, 0, NULL, NULL, NULL, 0, 0};/* some typical progy cmd line options - set by SetMyArgs( argc, argv )*/
 char         *MyName = NULL;                    /* name are we known by */
@@ -478,6 +483,31 @@ InitSession()
         set_session_override( Session, MyArgs.override_look, F_CHANGE_LOOK );
     if( MyArgs.override_feel )
         set_session_override( Session, MyArgs.override_feel, F_CHANGE_FEEL );
+}
+
+
+void
+FreeMyAppResources()
+{
+    balloon_init (1);
+    mystyle_free_global_gcs ();
+    mystyle_destroy_all();
+    destroy_image_manager( Scr.image_manager, False );
+    destroy_font_manager( Scr.font_manager, False );
+    clientprops_cleanup ();
+    destroy_wmprops (Scr.wmprops, False);
+    wmprops_cleanup ();
+    flush_ashash_memory_pool();
+    destroy_asvisual( Scr.asv, False );
+    flush_asbidirlist_memory_pool();
+    free( MyArgs.saved_argv );
+    destroy_assession( Session );
+    build_xpm_colormap( NULL );
+    if( lock_mods )
+    {
+        free( lock_mods );
+        lock_mods = NULL ;
+    }
 }
 
 /*********** end command line parsing **************************/

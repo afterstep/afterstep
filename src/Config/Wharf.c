@@ -17,7 +17,7 @@
  *
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #include "../../configure.h"
 
 #include "../../include/asapp.h"
@@ -117,8 +117,8 @@ flag_options_xref WharfFlags[] = {
 	{WHARF_NO_WITHDRAW, WHARF_NoWithdraw_ID, 0},
 	{WHARF_ANIMATE_MAIN, WHARF_AnimateMain_ID, 0},
 	{WHARF_ANIMATE, WHARF_Animate_ID, 0},
-    {WHARF_SHOW_LABEL, WHARF_ShowLabel, 0},
-    {WHARF_FLIP_LABEL, WHARF_FlipLabel, 0},
+    {WHARF_SHOW_LABEL, WHARF_ShowLabel_ID, 0},
+    {WHARF_FLIP_LABEL, WHARF_FlipLabel_ID, 0},
     {0, 0, 0}
 };
 
@@ -620,7 +620,7 @@ SHOW_CHECKPOINT;
 	}
 	ReadConfigItem (&item, NULL);
 SHOW_CHECKPOINT;
-//    DestroyConfig (ConfigReader);
+    DestroyConfig (ConfigReader);
 SHOW_CHECKPOINT;
     DestroyFreeStorage (&Storage);
 SHOW_CHECKPOINT;
