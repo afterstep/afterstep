@@ -64,8 +64,8 @@ ScreenInfo Scr;			/* AS compatible screen information structure */
 /**********************************************************************/
 ASBiDirList *WinList = NULL ;
 Window WinListWindow = None ;
-unsigned int WinListWidth = 1 ;
-unsigned int WinListHeight = 1 ;
+unsigned int WinListWidth = 100 ;
+unsigned int WinListHeight = 100 ;
 
 /**********************************************************************/
 /**********************************************************************/
@@ -170,8 +170,8 @@ main( int argc, char **argv )
     SendInfo (as_fd, "Send_WindowList", 0);
 	
 	LoadBaseConfig (global_config_file, GetBaseOptions);
-    LoadConfig (global_config_file, "pager", GetOptions);
-
+    LoadConfig (global_config_file, "winlist", GetOptions);
+	
 	WinListWindow = w = make_winlist_window();
 	WinList = create_asbidirlist(destroy_winlist_button);
 
@@ -247,8 +247,9 @@ GetBaseOptions (const char *filename)
 void
 GetOptions (const char *filename)
 {
-
+	mystyle_get_property (dpy, Scr.Root, _AS_STYLE, XA_INTEGER);
 	/* TODO: implement some options here : */
+
 }
 
 /****************************************************************************/
@@ -314,7 +315,8 @@ make_winlist_window()
 
 	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize;
 	shints.min_width = shints.min_height = 4;
-	shints.max_width = shints.max_height = 5;
+	shints.max_width = (Config.max_width>0)?Config.max_width:Scr.MyDisplayWidth;
+	shints.max_height = (Config.max_height>0)?Config.max_height:Scr.MyDisplayHeight;
 	shints.base_width = shints.base_height = 4;
 
 	extwm_hints.pid = getpid();
@@ -389,7 +391,7 @@ rearrange_winlist_buttons()
 			
 			width = get_astbar_label_width( tbar );		
 			height = get_astbar_label_height( tbar );		
-LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_texthowdy, width, height );			
+LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text, width, height );			
 			if( height  > max_height ) 
 				max_height = height ;
 			if( width  > max_width ) 
@@ -445,6 +447,7 @@ LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_texth
 		WinListHeight = (curr_col > 1)? Config.max_height : next_y ;
 		WinListWidth = next_x + max_width ;
 	}
+	LOCAL_DEBUG_OUT("Resizing Winlist window to %dx%d", WinListWidth, WinListHeight );
 	XResizeWindow( dpy, WinListWindow, WinListWidth, WinListHeight );
 }
 

@@ -1462,7 +1462,11 @@ mystyle_draw_text_image( MyStyle *style, const char *text )
 	ASImage *im = NULL ;
 	if( style && text )
 	{
-		/* todo: implement text rendering using libAfterImage : */	
+		if( style->font.as_font )
+		{
+			/* todo: implement text rendering using libAfterImage : */	
+			im = draw_text( text, style->font.as_font, style->text_style, 100 );
+		}
 	}
 	return im ;
 }

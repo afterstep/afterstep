@@ -242,7 +242,11 @@ Bool render_astbar( ASTBarData *tbar, Window w,
 		ASImage *merged_im ;
 		layers[0].im = back ;
 		layers[0].bevel = &bevel ;
+		layers[0].clip_width = clip_width ;
+		layers[0].clip_height = clip_height ;		
 		layers[1].im = label_im ;
+		layers[1].clip_width = clip_width ;
+		layers[1].clip_height = clip_height ;		
 		
 		merged_im = merge_layers( Scr.asv, &layers[0], 2, 
 		                          clip_width, clip_height,

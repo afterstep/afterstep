@@ -48,107 +48,107 @@
 #define MY_INT_MAX 2147483647
 
 #ifndef NO_WINDOWLIST
-static int winlist_val1;
-static int winlist_val2;
+static int    winlist_val1;
+static int    winlist_val2;
 #endif /* ! NO_WINDOWLIST */
 
 extern XContext MenuContext;
+
 /*
  * Change by PRB (pete@tecc.co.uk), 31/10/93.  Prepend a hot key
  * specifier to each item in the list.  This means allocating the
  * memory for each item (& freeing it) rather than just using the window
  * title directly.  */
-MenuRoot *
+MenuRoot     *
 update_windowList (void)
 {
-  MenuRoot *mr = NULL;
+	MenuRoot     *mr = NULL;
+
 #ifndef NO_WINDOWLIST
-  int val1 = winlist_val1;
-  int val2 = winlist_val2;
-  ASWindow *t;
-  char *desk;
-  int last_desk_done = MY_INT_MIN;
-  int next_desk;
-  char scut = '0';		/* Current short cut key */
-  FunctionData fdata;
+	int           val1 = winlist_val1;
+	int           val2 = winlist_val2;
+	ASWindow     *t;
+	char         *desk;
+	int           last_desk_done = MY_INT_MIN;
+	int           next_desk;
+	char          scut = '0';				   /* Current short cut key */
+	FunctionData  fdata;
 
-  /* find the menu if it is has already been created */
-  for (mr = Scr.first_menu; mr != NULL; mr = mr->next)
-    if (strncmp ("CurrentDesk: ", mr->name, 13) == 0)
-      {
-	DeleteMenuRoot (mr);
-	break;
-      }
+	/* find the menu if it is has already been created */
+	for (mr = Scr.first_menu; mr != NULL; mr = mr->next)
+		if (strncmp ("CurrentDesk: ", mr->name, 13) == 0)
+		{
+			DeleteMenuRoot (mr);
+			break;
+		}
 
-  init_func_data (&fdata);
-  fdata.func = F_TITLE;
+	init_func_data (&fdata);
+	fdata.func = F_TITLE;
 
-  desk = string_from_int (Scr.CurrentDesk);
-  fdata.name = safemalloc (strlen (desk) + 13 + 1);
-  sprintf (fdata.name, "CurrentDesk: %s", desk);
-  free (desk);
+	desk = string_from_int (Scr.CurrentDesk);
+	fdata.name = safemalloc (strlen (desk) + 13 + 1);
+	sprintf (fdata.name, "CurrentDesk: %s", desk);
+	free (desk);
 
-  mr = NewMenuRoot (fdata.name);
-  MenuItemFromFunc (mr, &fdata);
+	mr = NewMenuRoot (fdata.name);
+	MenuItemFromFunc (mr, &fdata);
 
-  next_desk = 0;
-  while (next_desk != MY_INT_MAX)
-    {
-      /* Sort window list by desktop number */
-      if ((val1 < 2) && (val1 > -2))
+	next_desk = 0;
+	while (next_desk != MY_INT_MAX)
 	{
-	  next_desk = MY_INT_MAX;
-	  for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-	    {
-	      if ((t->Desk > last_desk_done) && (t->Desk < next_desk))
-		next_desk = t->Desk;
-	    }
+		/* Sort window list by desktop number */
+		if ((val1 < 2) && (val1 > -2))
+		{
+			next_desk = MY_INT_MAX;
+			for (t = Scr.ASRoot.next; t != NULL; t = t->next)
+			{
+				if ((t->Desk > last_desk_done) && (t->Desk < next_desk))
+					next_desk = t->Desk;
+			}
+		} else if ((val1 < 4) && (val1 > -4))
+		{
+			if (last_desk_done == MY_INT_MIN)
+				next_desk = Scr.CurrentDesk;
+			else
+				next_desk = MY_INT_MAX;
+		} else
+		{
+			if (last_desk_done == MY_INT_MIN)
+				next_desk = val2;
+			else
+				next_desk = MY_INT_MAX;
+		}
+		last_desk_done = next_desk;
+		for (t = Scr.ASRoot.next; t != NULL; t = t->next)
+		{
+			if ((t->Desk == next_desk) && (!(t->flags & WINDOWLISTSKIP)))
+			{
+				fdata.func = F_RAISE_IT;
+				fdata.name = mystrdup ((val1 & 0x0001) ? t->icon_name : t->name);
+				fdata.func_val[0] = (val_type) t;
+				fdata.func_val[1] = (val_type) t->w;
+				if (++scut == ('9' + 1))
+					scut = 'A';				   /* Next shortcut key */
+				fdata.hotkey = scut;
+				MenuItemFromFunc (mr, &fdata);
+			}
+		}
 	}
-      else if ((val1 < 4) && (val1 > -4))
-	{
-	  if (last_desk_done == MY_INT_MIN)
-	    next_desk = Scr.CurrentDesk;
-	  else
-	    next_desk = MY_INT_MAX;
-	}
-      else
-	{
-	  if (last_desk_done == MY_INT_MIN)
-	    next_desk = val2;
-	  else
-	    next_desk = MY_INT_MAX;
-	}
-      last_desk_done = next_desk;
-      for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-	{
-	  if ((t->Desk == next_desk) &&
-	      (!(t->flags & WINDOWLISTSKIP)))
-	    {
-	      fdata.func = F_RAISE_IT;
-	      fdata.name = mystrdup ((val1 & 0x0001) ? t->icon_name : t->name);
-	      fdata.func_val[0] = (val_type) t;
-	      fdata.func_val[1] = (val_type) t->w;
-	      if (++scut == ('9' + 1))
-		scut = 'A';	/* Next shortcut key */
-	      fdata.hotkey = scut;
-	      MenuItemFromFunc (mr, &fdata);
-	    }
-	}
-    }
-  MakeMenu (mr);
+	MakeMenu (mr);
 /*  mr->is_transient = True; */
 #endif
-  return mr;
+	return mr;
 }
 
 void
 do_windowList (int val1, int val2)
 {
 #ifndef NO_WINDOWLIST
-  MenuRoot *mr;
-  winlist_val1 = val1;
-  winlist_val2 = val2;
-  mr = update_windowList ();
-  do_menu (mr, NULL);
+	MenuRoot     *mr;
+
+	winlist_val1 = val1;
+	winlist_val2 = val2;
+	mr = update_windowList ();
+	do_menu (mr, NULL);
 #endif
 }

@@ -34,8 +34,8 @@
 #include "../../include/screen.h"
 #include "../../include/module.h"
 
-ASWindow *colormap_win;
-Colormap last_cmap = None;
+ASWindow     *colormap_win;
+Colormap      last_cmap = None;
 extern ASWindow *Tmp_win;
 
 /***********************************************************************
@@ -51,60 +51,53 @@ extern ASWindow *Tmp_win;
 void
 HandleColormapNotify (void)
 {
-  XColormapEvent *cevent = (XColormapEvent *) & Event;
-  Bool ReInstall = False;
+	XColormapEvent *cevent = (XColormapEvent *) & Event;
+	Bool          ReInstall = False;
 
 
-  if (!Tmp_win)
-    {
-      return;
-    }
-  if (cevent->new)
-    {
-      XGetWindowAttributes (dpy, Tmp_win->w, &(Tmp_win->attr));
-      if ((Tmp_win == colormap_win) && (Tmp_win->number_cmap_windows == 0))
-	last_cmap = Tmp_win->attr.colormap;
-      ReInstall = True;
-    }
-  else if ((cevent->state == ColormapUninstalled) &&
-	   (last_cmap == cevent->colormap))
-    {
-      /* Some window installed its colormap, change it back */
-      ReInstall = True;
-    }
-  while (XCheckTypedEvent (dpy, ColormapNotify, &Event))
-    {
-      if (XFindContext (dpy, cevent->window,
-			ASContext, (caddr_t *) & Tmp_win) == XCNOENT)
-	Tmp_win = NULL;
-      if ((Tmp_win) && (cevent->new))
+	if (!Tmp_win)
 	{
-	  XGetWindowAttributes (dpy, Tmp_win->w, &(Tmp_win->attr));
-	  if ((Tmp_win == colormap_win) && (Tmp_win->number_cmap_windows == 0))
-	    last_cmap = Tmp_win->attr.colormap;
-	  ReInstall = True;
+		return;
 	}
-      else if ((Tmp_win) &&
-	       (cevent->state == ColormapUninstalled) &&
-	       (last_cmap == cevent->colormap))
+	if (cevent->new)
 	{
-	  /* Some window installed its colormap, change it back */
-	  ReInstall = True;
-	}
-      else if ((Tmp_win) &&
-	       (cevent->state == ColormapInstalled) &&
-	       (last_cmap == cevent->colormap))
+		XGetWindowAttributes (dpy, Tmp_win->w, &(Tmp_win->attr));
+		if ((Tmp_win == colormap_win) && (Tmp_win->number_cmap_windows == 0))
+			last_cmap = Tmp_win->attr.colormap;
+		ReInstall = True;
+	} else if ((cevent->state == ColormapUninstalled) && (last_cmap == cevent->colormap))
 	{
-	  /* The last color map installed was the correct one. Don't 
-	   * change anything */
-	  ReInstall = False;
+		/* Some window installed its colormap, change it back */
+		ReInstall = True;
 	}
-    }
+	while (XCheckTypedEvent (dpy, ColormapNotify, &Event))
+	{
+		if (XFindContext (dpy, cevent->window, ASContext, (caddr_t *) & Tmp_win) == XCNOENT)
+			Tmp_win = NULL;
+		if ((Tmp_win) && (cevent->new))
+		{
+			XGetWindowAttributes (dpy, Tmp_win->w, &(Tmp_win->attr));
+			if ((Tmp_win == colormap_win) && (Tmp_win->number_cmap_windows == 0))
+				last_cmap = Tmp_win->attr.colormap;
+			ReInstall = True;
+		} else if ((Tmp_win) &&
+				   (cevent->state == ColormapUninstalled) && (last_cmap == cevent->colormap))
+		{
+			/* Some window installed its colormap, change it back */
+			ReInstall = True;
+		} else if ((Tmp_win) &&
+				   (cevent->state == ColormapInstalled) && (last_cmap == cevent->colormap))
+		{
+			/* The last color map installed was the correct one. Don't 
+			 * change anything */
+			ReInstall = False;
+		}
+	}
 
-  if (ReInstall)
-    {
-      XInstallColormap (dpy, last_cmap);
-    }
+	if (ReInstall)
+	{
+		XInstallColormap (dpy, last_cmap);
+	}
 }
 
 /************************************************************************
@@ -115,7 +108,7 @@ HandleColormapNotify (void)
 void
 ReInstallActiveColormap (void)
 {
-  InstallWindowColormaps (colormap_win);
+	InstallWindowColormaps (colormap_win);
 }
 
 /***********************************************************************
@@ -133,52 +126,52 @@ ReInstallActiveColormap (void)
 void
 InstallWindowColormaps (ASWindow * tmp)
 {
-  int i;
-  XWindowAttributes attributes;
-  Window w;
-  Bool ThisWinInstalled = False;
+	int           i;
+	XWindowAttributes attributes;
+	Window        w;
+	Bool          ThisWinInstalled = False;
 
 
-  /* If no window, then install root colormap */
-  if (!tmp)
-    tmp = &Scr.ASRoot;
+	/* If no window, then install root colormap */
+	if (!tmp)
+		tmp = &Scr.ASRoot;
 
-  colormap_win = tmp;
-  /* Save the colormap to be loaded for when force loading of
-   * root colormap(s) ends.
-   */
-  Scr.pushed_window = tmp;
-  /* Don't load any new colormap if root colormap(s) has been
-   * force loaded.
-   */
-  if (Scr.root_pushes)
-    {
-      return;
-    }
-  if (tmp->number_cmap_windows > 0)
-    {
-      for (i = tmp->number_cmap_windows - 1; i >= 0; i--)
+	colormap_win = tmp;
+	/* Save the colormap to be loaded for when force loading of
+	 * root colormap(s) ends.
+	 */
+	Scr.pushed_window = tmp;
+	/* Don't load any new colormap if root colormap(s) has been
+	 * force loaded.
+	 */
+	if (Scr.root_pushes)
 	{
-	  w = tmp->cmap_windows[i];
-	  if (w == tmp->w)
-	    ThisWinInstalled = True;
-	  XGetWindowAttributes (dpy, w, &attributes);
-
-	  if (last_cmap != attributes.colormap)
-	    {
-	      last_cmap = attributes.colormap;
-	      XInstallColormap (dpy, attributes.colormap);
-	    }
+		return;
 	}
-    }
-  if (!ThisWinInstalled)
-    {
-      if (last_cmap != tmp->attr.colormap)
+	if (tmp->number_cmap_windows > 0)
 	{
-	  last_cmap = tmp->attr.colormap;
-	  XInstallColormap (dpy, tmp->attr.colormap);
+		for (i = tmp->number_cmap_windows - 1; i >= 0; i--)
+		{
+			w = tmp->cmap_windows[i];
+			if (w == tmp->w)
+				ThisWinInstalled = True;
+			XGetWindowAttributes (dpy, w, &attributes);
+
+			if (last_cmap != attributes.colormap)
+			{
+				last_cmap = attributes.colormap;
+				XInstallColormap (dpy, attributes.colormap);
+			}
+		}
 	}
-    }
+	if (!ThisWinInstalled)
+	{
+		if (last_cmap != tmp->attr.colormap)
+		{
+			last_cmap = tmp->attr.colormap;
+			XInstallColormap (dpy, tmp->attr.colormap);
+		}
+	}
 }
 
 
@@ -202,15 +195,16 @@ InstallWindowColormaps (ASWindow * tmp)
 void
 InstallRootColormap ()
 {
-  ASWindow *tmp;
-  if (Scr.root_pushes == 0)
-    {
-      tmp = Scr.pushed_window;
-      InstallWindowColormaps (&Scr.ASRoot);
-      Scr.pushed_window = tmp;
-    }
-  Scr.root_pushes++;
-  return;
+	ASWindow     *tmp;
+
+	if (Scr.root_pushes == 0)
+	{
+		tmp = Scr.pushed_window;
+		InstallWindowColormaps (&Scr.ASRoot);
+		Scr.pushed_window = tmp;
+	}
+	Scr.root_pushes++;
+	return;
 }
 
 /***************************************************************************
@@ -222,12 +216,12 @@ InstallRootColormap ()
 void
 UninstallRootColormap ()
 {
-  Scr.root_pushes--;
-  if (!Scr.root_pushes)
-    {
-      InstallWindowColormaps (Scr.pushed_window);
-    }
-  return;
+	Scr.root_pushes--;
+	if (!Scr.root_pushes)
+	{
+		InstallWindowColormaps (Scr.pushed_window);
+	}
+	return;
 }
 
 
@@ -242,13 +236,12 @@ UninstallRootColormap ()
 void
 FetchWmColormapWindows (ASWindow * tmp)
 {
-  if (tmp->cmap_windows != (Window *) NULL)
-    XFree ((void *) tmp->cmap_windows);
+	if (tmp->cmap_windows != (Window *) NULL)
+		XFree ((void *)tmp->cmap_windows);
 
-  if (!XGetWMColormapWindows (dpy, tmp->w, &(tmp->cmap_windows),
-			      &(tmp->number_cmap_windows)))
-    {
-      tmp->number_cmap_windows = 0;
-      tmp->cmap_windows = NULL;
-    }
+	if (!XGetWMColormapWindows (dpy, tmp->w, &(tmp->cmap_windows), &(tmp->number_cmap_windows)))
+	{
+		tmp->number_cmap_windows = 0;
+		tmp->cmap_windows = NULL;
+	}
 }

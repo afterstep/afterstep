@@ -45,281 +45,286 @@
 
 extern XEvent Event;
 
-XGCValues Globalgcv;
+XGCValues     Globalgcv;
 unsigned long Globalgcm;
 
-void DrawPartitionLines (void);
-ASWindow *FindCounterpart (Window target);
-Bool pagerOn = True;
-Bool EnablePagerRedraw = True;
-Bool DoHandlePageing = True;
+void          DrawPartitionLines (void);
+ASWindow     *FindCounterpart (Window target);
+Bool          pagerOn = True;
+Bool          EnablePagerRedraw = True;
+Bool          DoHandlePageing = True;
 
 int
 highest_layer (ASWindow * list)
 {
-  int highest = -10000;
-  for (; list != NULL; list = list->next)
-    if (highest < list->layer)
-      highest = list->layer;
-  return highest;
+	int           highest = -10000;
+
+	for (; list != NULL; list = list->next)
+		if (highest < list->layer)
+			highest = list->layer;
+	return highest;
 }
 
 int
 highest_layer_below_window (ASWindow * list, ASWindow * w)
 {
-  int highest = -10000;
-  for (; list != NULL; list = list->next)
-    if (highest < list->layer && list->layer < w->layer)
-      highest = list->layer;
-  return highest == -10000 ? w->layer : highest;
+	int           highest = -10000;
+
+	for (; list != NULL; list = list->next)
+		if (highest < list->layer && list->layer < w->layer)
+			highest = list->layer;
+	return highest == -10000 ? w->layer : highest;
 }
 
-ASWindow *
+ASWindow     *
 list_prepend (ASWindow * list1, ASWindow * list2)
 {
-  ASWindow *tmp = list2->prev;
-  if (list1 == NULL)
-    return list2;
-  if (list2 == NULL)
-    return list1;
-  list2->prev->next = list1;
-  list1->prev->next = list2;
-  list2->prev = list1->prev;
-  list1->prev = tmp;
-  return list2;
+	ASWindow     *tmp = list2->prev;
+
+	if (list1 == NULL)
+		return list2;
+	if (list2 == NULL)
+		return list1;
+	list2->prev->next = list1;
+	list1->prev->next = list2;
+	list2->prev = list1->prev;
+	list1->prev = tmp;
+	return list2;
 }
 
-ASWindow *
+ASWindow     *
 list_append (ASWindow * list1, ASWindow * list2)
 {
-  if (list1 == NULL)
-    return list2;
-  /* check for circular list */
-  if (list1->prev != NULL)
-    list_prepend (list1, list2);
-  else
-    {
-      ASWindow *ptr;
-      for (ptr = list1; ptr->next != NULL; ptr = ptr->next);
-      ptr->next = list2;
-      list2->prev->next = NULL;
-      list2->prev = ptr;
-    }
-  return list1;
+	if (list1 == NULL)
+		return list2;
+	/* check for circular list */
+	if (list1->prev != NULL)
+		list_prepend (list1, list2);
+	else
+	{
+		ASWindow     *ptr;
+
+		for (ptr = list1; ptr->next != NULL; ptr = ptr->next);
+		ptr->next = list2;
+		list2->prev->next = NULL;
+		list2->prev = ptr;
+	}
+	return list1;
 }
 
-ASWindow *
+ASWindow     *
 list_extract (ASWindow * w)
 {
-  if (w->prev != NULL)
-    w->prev->next = w->next;
-  if (w->next != NULL)
-    w->next->prev = w->prev;
-  w->next = w->prev = w;
-  return w;
+	if (w->prev != NULL)
+		w->prev->next = w->next;
+	if (w->next != NULL)
+		w->next->prev = w->prev;
+	w->next = w->prev = w;
+	return w;
 }
 
 /* count the windows in the list */
 int
 list_count_windows (ASWindow * list)
 {
-  int count = 0;
-  ASWindow *w;
-  for (w = list; w != NULL; w = w->next)
-    {
-      if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
+	int           count = 0;
+	ASWindow     *w;
+
+	for (w = list; w != NULL; w = w->next)
 	{
-	  if (w->icon_pixmap_w != None)
-	    count++;
-	  if (w->icon_title_w != None)
-	    count++;
+		if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
+		{
+			if (w->icon_pixmap_w != None)
+				count++;
+			if (w->icon_title_w != None)
+				count++;
+		}
+		count++;
+		if (w->next == list)
+			break;
 	}
-      count++;
-      if (w->next == list)
-	break;
-    }
-  return count;
+	return count;
 }
 
 #if 0
 void
 list_print (ASWindow * list)
 {
-  ASWindow *ptr;
-  for (ptr = list; ptr != NULL; ptr = ptr->next)
-    {
-      fprintf (stderr, "%d : '%s'", ptr->layer, ptr->name);
-      fprintf (stderr, " (%sfully visible)", (ptr->flags & VISIBLE) ? "" : "not ");
-      fprintf (stderr, "\n");
-      if (ptr->prev->next != ptr)
-	fprintf (stderr, "INCONSISTENCY 1\n");
-      if (ptr->next != NULL && ptr->next->prev != ptr)
-	fprintf (stderr, "INCONSISTENCY 2\n");
-      if (ptr->next == list)
-	break;
-    }
+	ASWindow     *ptr;
+
+	for (ptr = list; ptr != NULL; ptr = ptr->next)
+	{
+		fprintf (stderr, "%d : '%s'", ptr->layer, ptr->name);
+		fprintf (stderr, " (%sfully visible)", (ptr->flags & VISIBLE) ? "" : "not ");
+		fprintf (stderr, "\n");
+		if (ptr->prev->next != ptr)
+			fprintf (stderr, "INCONSISTENCY 1\n");
+		if (ptr->next != NULL && ptr->next->prev != ptr)
+			fprintf (stderr, "INCONSISTENCY 2\n");
+		if (ptr->next == list)
+			break;
+	}
 }
 #endif
 
 void
 RaiseWindow (ASWindow * t)
 {
-  ASWindow *list, *w, *wn;
-  int highest, count;
-  Window *wins;
-  MenuRoot *menu;
+	ASWindow     *list, *w, *wn;
+	int           highest, count;
+	Window       *wins;
+	MenuRoot     *menu;
 
-  SetTimer (0);
+	SetTimer (0);
 
-  /* collect all windows which go above us */
-  list = NULL;
-  while ((highest = highest_layer (Scr.ASRoot.next)) > t->layer)
-    for (w = Scr.ASRoot.next; w != NULL; w = wn)
-      {
-	wn = w->next;
-	if (w->layer == highest)
-	  list = list_append (list, list_extract (w));
-      }
+	/* collect all windows which go above us */
+	list = NULL;
+	while ((highest = highest_layer (Scr.ASRoot.next)) > t->layer)
+		for (w = Scr.ASRoot.next; w != NULL; w = wn)
+		{
+			wn = w->next;
+			if (w->layer == highest)
+				list = list_append (list, list_extract (w));
+		}
 
-  /* next, any transients for our window */
+	/* next, any transients for our window */
 #ifndef DONT_RAISE_TRANSIENTS
-  for (w = Scr.ASRoot.next; w != NULL; w = wn)
-    {
-      wn = w->next;
-      if ((w->flags & TRANSIENT) && w->transientfor == t->w)
-	list = list_append (list, list_extract (w));
-    }
+	for (w = Scr.ASRoot.next; w != NULL; w = wn)
+	{
+		wn = w->next;
+		if ((w->flags & TRANSIENT) && w->transientfor == t->w)
+			list = list_append (list, list_extract (w));
+	}
 #endif /* !DONT_RAISE_TRANSIENTS */
 
-  /* next, our window */
-  list = list_append (list, list_extract (t));
+	/* next, our window */
+	list = list_append (list, list_extract (t));
 
-  /* count windows to raise */
-  count = 0;
+	/* count windows to raise */
+	count = 0;
 
-  /* menus always go on top */
-  for (menu = Scr.first_menu; menu != NULL; menu = (*menu).next)
-    if ((*menu).is_mapped == True)
-      count++;
+	/* menus always go on top */
+	for (menu = Scr.first_menu; menu != NULL; menu = (*menu).next)
+		if ((*menu).is_mapped == True)
+			count++;
 
-  /* count the windows in the list */
-  count += list_count_windows (list);
+	/* count the windows in the list */
+	count += list_count_windows (list);
 
-  wins = (Window *) safemalloc (count * sizeof (Window));
-  count = 0;
+	wins = (Window *) safemalloc (count * sizeof (Window));
+	count = 0;
 
-  /* menus always go on top */
-  for (menu = Scr.first_menu; menu != NULL; menu = (*menu).next)
-    if ((*menu).is_mapped == True)
-      wins[count++] = (*menu).w;
+	/* menus always go on top */
+	for (menu = Scr.first_menu; menu != NULL; menu = (*menu).next)
+		if ((*menu).is_mapped == True)
+			wins[count++] = (*menu).w;
 
-  /* next, the windows in the list */
-  for (w = list; w != NULL; w = w->next)
-    {
-      wins[count++] = w->frame;
-      if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
+	/* next, the windows in the list */
+	for (w = list; w != NULL; w = w->next)
 	{
-	  if (w->icon_pixmap_w != None)
-	    wins[count++] = w->icon_pixmap_w;
-	  if (w->icon_title_w != None)
-	    wins[count++] = w->icon_title_w;
+		wins[count++] = w->frame;
+		if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
+		{
+			if (w->icon_pixmap_w != None)
+				wins[count++] = w->icon_pixmap_w;
+			if (w->icon_title_w != None)
+				wins[count++] = w->icon_title_w;
+		}
+		if (w->next == list)
+			break;
 	}
-      if (w->next == list)
-	break;
-    }
 
-  /* put the windows back in the window list */
-  if (Scr.ASRoot.next == NULL && list != NULL)
-    {
-      list->prev->next = NULL;
-      Scr.ASRoot.next = list;
-      list->prev = &Scr.ASRoot;
-    }
-  else
-    list_prepend (Scr.ASRoot.next, list);
+	/* put the windows back in the window list */
+	if (Scr.ASRoot.next == NULL && list != NULL)
+	{
+		list->prev->next = NULL;
+		Scr.ASRoot.next = list;
+		list->prev = &Scr.ASRoot;
+	} else
+		list_prepend (Scr.ASRoot.next, list);
 
-  Broadcast (M_RAISE_WINDOW, 3, t->w, t->frame, (unsigned long) t);
+	Broadcast (M_RAISE_WINDOW, 3, t->w, t->frame, (unsigned long)t);
 
-  /* raise the windows! */
-  XRaiseWindow (dpy, wins[0]);
-  XRestackWindows (dpy, wins, count);
-  free (wins);
+	/* raise the windows! */
+	XRaiseWindow (dpy, wins[0]);
+	XRestackWindows (dpy, wins, count);
+	free (wins);
 
 #ifndef NO_VIRTUAL
-  raisePanFrames ();
+	raisePanFrames ();
 #endif
-  UpdateVisibility ();
+	UpdateVisibility ();
 }
 
 void
 LowerWindow (ASWindow * t)
 {
-  ASWindow *list = NULL, *w, *wn;
-  int highest, count;
-  Window *wins;
+	ASWindow     *list = NULL, *w, *wn;
+	int           highest, count;
+	Window       *wins;
 
-  SetTimer (0);
+	SetTimer (0);
 
-  /* first, any transients for our window */
+	/* first, any transients for our window */
 #ifndef DONT_RAISE_TRANSIENTS
-  for (w = Scr.ASRoot.next; w != NULL; w = wn)
-    {
-      wn = w->next;
-      if ((w->flags & TRANSIENT) && w->transientfor == t->w)
-	list = list_append (list, list_extract (w));
-    }
+	for (w = Scr.ASRoot.next; w != NULL; w = wn)
+	{
+		wn = w->next;
+		if ((w->flags & TRANSIENT) && w->transientfor == t->w)
+			list = list_append (list, list_extract (w));
+	}
 #endif /* !DONT_RAISE_TRANSIENTS */
 
-  /* next, our window */
-  list = list_append (list, list_extract (t));
+	/* next, our window */
+	list = list_append (list, list_extract (t));
 
-  /* next, any windows which go below us */
-  while ((highest = highest_layer_below_window (Scr.ASRoot.next, t)) < t->layer)
-    for (w = Scr.ASRoot.next; w != NULL; w = wn)
-      {
-	wn = w->next;
-	if (w->layer == highest)
-	  list = list_append (list, list_extract (w));
-      }
+	/* next, any windows which go below us */
+	while ((highest = highest_layer_below_window (Scr.ASRoot.next, t)) < t->layer)
+		for (w = Scr.ASRoot.next; w != NULL; w = wn)
+		{
+			wn = w->next;
+			if (w->layer == highest)
+				list = list_append (list, list_extract (w));
+		}
 
-  /* prepend the last window in Scr.ASRoot (if any) */
-  if (Scr.ASRoot.next != NULL)
-    {
-      for (w = Scr.ASRoot.next; w->next != NULL; w = w->next);
-      list = list_prepend (list, list_extract (w));
-    }
-
-  /* count windows to raise */
-  count = list_count_windows (list);
-
-  wins = (Window *) safemalloc (count * sizeof (Window));
-  count = 0;
-
-  /* add the windows in the list */
-  for (w = list; w != NULL; w = w->next)
-    {
-      wins[count++] = w->frame;
-      if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
+	/* prepend the last window in Scr.ASRoot (if any) */
+	if (Scr.ASRoot.next != NULL)
 	{
-	  if (w->icon_pixmap_w != None)
-	    wins[count++] = w->icon_pixmap_w;
-	  if (w->icon_title_w != None)
-	    wins[count++] = w->icon_title_w;
+		for (w = Scr.ASRoot.next; w->next != NULL; w = w->next);
+		list = list_prepend (list, list_extract (w));
 	}
-      if (w->next == list)
-	break;
-    }
 
-  /* put the windows back in the window list */
-  list_append (&Scr.ASRoot, list);
+	/* count windows to raise */
+	count = list_count_windows (list);
 
-  Broadcast (M_LOWER_WINDOW, 3, t->w, t->frame, (unsigned long) t);
+	wins = (Window *) safemalloc (count * sizeof (Window));
+	count = 0;
 
-  /* restack the windows! */
-  XRestackWindows (dpy, wins, count);
-  free (wins);
+	/* add the windows in the list */
+	for (w = list; w != NULL; w = w->next)
+	{
+		wins[count++] = w->frame;
+		if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
+		{
+			if (w->icon_pixmap_w != None)
+				wins[count++] = w->icon_pixmap_w;
+			if (w->icon_title_w != None)
+				wins[count++] = w->icon_title_w;
+		}
+		if (w->next == list)
+			break;
+	}
 
-  UpdateVisibility ();
+	/* put the windows back in the window list */
+	list_append (&Scr.ASRoot, list);
+
+	Broadcast (M_LOWER_WINDOW, 3, t->w, t->frame, (unsigned long)t);
+
+	/* restack the windows! */
+	XRestackWindows (dpy, wins, count);
+	free (wins);
+
+	UpdateVisibility ();
 }
 
 
@@ -333,74 +338,75 @@ LowerWindow (ASWindow * t)
 void
 CorrectStackOrder (void)
 {
-  Window root, parent, *children, *wins;
-  ASWindow *list, *w;
-  unsigned int nchildren;
-  int highest, count;
+	Window        root, parent, *children, *wins;
+	ASWindow     *list, *w;
+	unsigned int  nchildren;
+	int           highest, count;
 
-  if (XQueryTree (dpy, Scr.ASRoot.w, &root, &parent, &children, &nchildren))
-    {
-      Window *cp;
-      ASWindow *t;
-      for (cp = children; nchildren-- > 0; cp++)
-	if (XFindContext (dpy, *cp, ASContext, (caddr_t *) & t) == XCSUCCESS && t->frame == *cp)
-	  list_prepend (Scr.ASRoot.next, list_extract (t));
-      XFree (children);
-    }
-  else
-    {
-      fprintf (stderr, "CorrectStackOrder(): XQueryTree failed!\n");
-    }
-
-  /* reorder the windows in layer order */
-  list = NULL;
-  while ((highest = highest_layer (Scr.ASRoot.next)) > -10000)
-    {
-      ASWindow *wn;
-      for (w = Scr.ASRoot.next; w != NULL; w = wn)
+	if (XQueryTree (dpy, Scr.ASRoot.w, &root, &parent, &children, &nchildren))
 	{
-	  wn = w->next;
-	  if (w->layer == highest)
-	    list = list_append (list, list_extract (w));
-	}
-    }
+		Window       *cp;
+		ASWindow     *t;
 
-  /* done if there are no windows to restack */
-  if (list == NULL)
-    return;
-
-  /* count windows */
-  count = list_count_windows (list);
-
-  wins = (Window *) safemalloc (count * sizeof (Window));
-  count = 0;
-
-  /* add the windows in the list */
-  for (w = list; w != NULL; w = w->next)
-    {
-      wins[count++] = w->frame;
-      if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
+		for (cp = children; nchildren-- > 0; cp++)
+			if (XFindContext (dpy, *cp, ASContext, (caddr_t *) & t) == XCSUCCESS && t->frame == *cp)
+				list_prepend (Scr.ASRoot.next, list_extract (t));
+		XFree (children);
+	} else
 	{
-	  if (w->icon_pixmap_w != None)
-	    wins[count++] = w->icon_pixmap_w;
-	  if (w->icon_title_w != None)
-	    wins[count++] = w->icon_title_w;
+		fprintf (stderr, "CorrectStackOrder(): XQueryTree failed!\n");
 	}
-      if (w->next == list)
-	break;
-    }
 
-  /* put the windows back in the window list */
-  list_append (&Scr.ASRoot, list);
+	/* reorder the windows in layer order */
+	list = NULL;
+	while ((highest = highest_layer (Scr.ASRoot.next)) > -10000)
+	{
+		ASWindow     *wn;
 
-  /* raise the windows! */
-  XRestackWindows (dpy, wins, count);
-  free (wins);
+		for (w = Scr.ASRoot.next; w != NULL; w = wn)
+		{
+			wn = w->next;
+			if (w->layer == highest)
+				list = list_append (list, list_extract (w));
+		}
+	}
+
+	/* done if there are no windows to restack */
+	if (list == NULL)
+		return;
+
+	/* count windows */
+	count = list_count_windows (list);
+
+	wins = (Window *) safemalloc (count * sizeof (Window));
+	count = 0;
+
+	/* add the windows in the list */
+	for (w = list; w != NULL; w = w->next)
+	{
+		wins[count++] = w->frame;
+		if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
+		{
+			if (w->icon_pixmap_w != None)
+				wins[count++] = w->icon_pixmap_w;
+			if (w->icon_title_w != None)
+				wins[count++] = w->icon_title_w;
+		}
+		if (w->next == list)
+			break;
+	}
+
+	/* put the windows back in the window list */
+	list_append (&Scr.ASRoot, list);
+
+	/* raise the windows! */
+	XRestackWindows (dpy, wins, count);
+	free (wins);
 
 #ifndef NO_VIRTUAL
-  raisePanFrames ();
+	raisePanFrames ();
 #endif
-  UpdateVisibility ();
+	UpdateVisibility ();
 }
 
 /***************************************************************************
@@ -410,161 +416,146 @@ CorrectStackOrder (void)
  ***************************************************************************/
 void
 HandlePaging (ASWindow * tmp_win, int HorWarpSize, int VertWarpSize, int *xl, int *yt,
-	      int *delta_x, int *delta_y, Bool Grab)
+			  int *delta_x, int *delta_y, Bool Grab)
 {
 #ifndef NO_VIRTUAL
-  int x, y, total;
+	int           x, y, total;
 #endif
 
-  *delta_x = 0;
-  *delta_y = 0;
-
-#ifndef NO_VIRTUAL
-  if (DoHandlePageing)
-    {
-      if ((Scr.ScrollResistance >= 10000) ||
-	  ((HorWarpSize == 0) && (VertWarpSize == 0)))
-	return;
-
-      /* need to move the viewport */
-      if ((*xl >= SCROLL_REGION) && (*xl < Scr.MyDisplayWidth - SCROLL_REGION) &&
-      (*yt >= SCROLL_REGION) && (*yt < Scr.MyDisplayHeight - SCROLL_REGION))
-	return;
-
-      total = 0;
-      while (total < Scr.ScrollResistance)
-	{
-	  sleep_a_little (10000);
-	  total += 10;
-	  if (XCheckWindowEvent (dpy, Scr.PanFrameTop.win,
-				 LeaveWindowMask, &Event))
-	    {
-	      StashEventTime (&Event);
-	      return;
-	    }
-	  if (XCheckWindowEvent (dpy, Scr.PanFrameBottom.win,
-				 LeaveWindowMask, &Event))
-	    {
-	      StashEventTime (&Event);
-	      return;
-	    }
-	  if (XCheckWindowEvent (dpy, Scr.PanFrameLeft.win,
-				 LeaveWindowMask, &Event))
-	    {
-	      StashEventTime (&Event);
-	      return;
-	    }
-	  if (XCheckWindowEvent (dpy, Scr.PanFrameRight.win,
-				 LeaveWindowMask, &Event))
-	    {
-	      StashEventTime (&Event);
-	      return;
-	    }
-	}
-
-      XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild,
-		     &x, &y, &JunkX, &JunkY, &JunkMask);
-
-      /* fprintf (stderr, "-------- MoveOutline () called from pager.c\ntmp_win == 0xlX\n", (long int) tmp_win); */
-      /* Turn off the rubberband if its on */
-      MoveOutline ( /*Scr.Root, */ tmp_win, 0, 0, 0, 0);
-
-      /* Move the viewport */
-      /* and/or move the cursor back to the approximate correct location */
-      /* that is, the same place on the virtual desktop that it */
-      /* started at */
-      if (x < SCROLL_REGION)
-	*delta_x = -HorWarpSize;
-      else if (x >= Scr.MyDisplayWidth - SCROLL_REGION)
-	*delta_x = HorWarpSize;
-      else
 	*delta_x = 0;
-      if (y < SCROLL_REGION)
-	*delta_y = -VertWarpSize;
-      else if (y >= Scr.MyDisplayHeight - SCROLL_REGION)
-	*delta_y = VertWarpSize;
-      else
 	*delta_y = 0;
 
-      /* Ouch! lots of bounds checking */
-      if (Scr.Vx + *delta_x < 0)
+#ifndef NO_VIRTUAL
+	if (DoHandlePageing)
 	{
-	  if (!(Scr.flags & EdgeWrapX))
-	    {
-	      *delta_x = -Scr.Vx;
-	      *xl = x - *delta_x;
-	    }
-	  else
-	    {
-	      *delta_x += Scr.VxMax + Scr.MyDisplayWidth;
-	      *xl = x + *delta_x % Scr.MyDisplayWidth + HorWarpSize;
-	    }
-	}
-      else if (Scr.Vx + *delta_x > Scr.VxMax)
-	{
-	  if (!(Scr.flags & EdgeWrapX))
-	    {
-	      *delta_x = Scr.VxMax - Scr.Vx;
-	      *xl = x - *delta_x;
-	    }
-	  else
-	    {
-	      *delta_x -= Scr.VxMax + Scr.MyDisplayWidth;
-	      *xl = x + *delta_x % Scr.MyDisplayWidth - HorWarpSize;
-	    }
-	}
-      else
-	*xl = x - *delta_x;
+		if ((Scr.ScrollResistance >= 10000) || ((HorWarpSize == 0) && (VertWarpSize == 0)))
+			return;
 
-      if (Scr.Vy + *delta_y < 0)
-	{
-	  if (!(Scr.flags & EdgeWrapY))
-	    {
-	      *delta_y = -Scr.Vy;
-	      *yt = y - *delta_y;
-	    }
-	  else
-	    {
-	      *delta_y += Scr.VyMax + Scr.MyDisplayHeight;
-	      *yt = y + *delta_y % Scr.MyDisplayHeight + VertWarpSize;
-	    }
-	}
-      else if (Scr.Vy + *delta_y > Scr.VyMax)
-	{
-	  if (!(Scr.flags & EdgeWrapY))
-	    {
-	      *delta_y = Scr.VyMax - Scr.Vy;
-	      *yt = y - *delta_y;
-	    }
-	  else
-	    {
-	      *delta_y -= Scr.VyMax + Scr.MyDisplayHeight;
-	      *yt = y + *delta_y % Scr.MyDisplayHeight - VertWarpSize;
-	    }
-	}
-      else
-	*yt = y - *delta_y;
+		/* need to move the viewport */
+		if ((*xl >= SCROLL_REGION) && (*xl < Scr.MyDisplayWidth - SCROLL_REGION) &&
+			(*yt >= SCROLL_REGION) && (*yt < Scr.MyDisplayHeight - SCROLL_REGION))
+			return;
 
-      if (*xl <= SCROLL_REGION)
-	*xl = SCROLL_REGION + 1;
-      if (*yt <= SCROLL_REGION)
-	*yt = SCROLL_REGION + 1;
-      if (*xl >= Scr.MyDisplayWidth - SCROLL_REGION)
-	*xl = Scr.MyDisplayWidth - SCROLL_REGION - 1;
-      if (*yt >= Scr.MyDisplayHeight - SCROLL_REGION)
-	*yt = Scr.MyDisplayHeight - SCROLL_REGION - 1;
+		total = 0;
+		while (total < Scr.ScrollResistance)
+		{
+			sleep_a_little (10000);
+			total += 10;
+			if (XCheckWindowEvent (dpy, Scr.PanFrameTop.win, LeaveWindowMask, &Event))
+			{
+				StashEventTime (&Event);
+				return;
+			}
+			if (XCheckWindowEvent (dpy, Scr.PanFrameBottom.win, LeaveWindowMask, &Event))
+			{
+				StashEventTime (&Event);
+				return;
+			}
+			if (XCheckWindowEvent (dpy, Scr.PanFrameLeft.win, LeaveWindowMask, &Event))
+			{
+				StashEventTime (&Event);
+				return;
+			}
+			if (XCheckWindowEvent (dpy, Scr.PanFrameRight.win, LeaveWindowMask, &Event))
+			{
+				StashEventTime (&Event);
+				return;
+			}
+		}
 
-      if ((*delta_x != 0) || (*delta_y != 0))
-	{
-	  if (Grab)
-	    XGrabServer (dpy);
-	  XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, *xl, *yt);
-	  MoveViewport (Scr.Vx + *delta_x, Scr.Vy + *delta_y, False);
-	  XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild,
-			 xl, yt, &JunkX, &JunkY, &JunkMask);
-	  if (Grab)
-	    XUngrabServer (dpy);
+		XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild, &x, &y, &JunkX, &JunkY, &JunkMask);
+
+		/* fprintf (stderr, "-------- MoveOutline () called from pager.c\ntmp_win == 0xlX\n", (long int) tmp_win); */
+		/* Turn off the rubberband if its on */
+		MoveOutline ( /*Scr.Root, */ tmp_win, 0, 0, 0, 0);
+
+		/* Move the viewport */
+		/* and/or move the cursor back to the approximate correct location */
+		/* that is, the same place on the virtual desktop that it */
+		/* started at */
+		if (x < SCROLL_REGION)
+			*delta_x = -HorWarpSize;
+		else if (x >= Scr.MyDisplayWidth - SCROLL_REGION)
+			*delta_x = HorWarpSize;
+		else
+			*delta_x = 0;
+		if (y < SCROLL_REGION)
+			*delta_y = -VertWarpSize;
+		else if (y >= Scr.MyDisplayHeight - SCROLL_REGION)
+			*delta_y = VertWarpSize;
+		else
+			*delta_y = 0;
+
+		/* Ouch! lots of bounds checking */
+		if (Scr.Vx + *delta_x < 0)
+		{
+			if (!(Scr.flags & EdgeWrapX))
+			{
+				*delta_x = -Scr.Vx;
+				*xl = x - *delta_x;
+			} else
+			{
+				*delta_x += Scr.VxMax + Scr.MyDisplayWidth;
+				*xl = x + *delta_x % Scr.MyDisplayWidth + HorWarpSize;
+			}
+		} else if (Scr.Vx + *delta_x > Scr.VxMax)
+		{
+			if (!(Scr.flags & EdgeWrapX))
+			{
+				*delta_x = Scr.VxMax - Scr.Vx;
+				*xl = x - *delta_x;
+			} else
+			{
+				*delta_x -= Scr.VxMax + Scr.MyDisplayWidth;
+				*xl = x + *delta_x % Scr.MyDisplayWidth - HorWarpSize;
+			}
+		} else
+			*xl = x - *delta_x;
+
+		if (Scr.Vy + *delta_y < 0)
+		{
+			if (!(Scr.flags & EdgeWrapY))
+			{
+				*delta_y = -Scr.Vy;
+				*yt = y - *delta_y;
+			} else
+			{
+				*delta_y += Scr.VyMax + Scr.MyDisplayHeight;
+				*yt = y + *delta_y % Scr.MyDisplayHeight + VertWarpSize;
+			}
+		} else if (Scr.Vy + *delta_y > Scr.VyMax)
+		{
+			if (!(Scr.flags & EdgeWrapY))
+			{
+				*delta_y = Scr.VyMax - Scr.Vy;
+				*yt = y - *delta_y;
+			} else
+			{
+				*delta_y -= Scr.VyMax + Scr.MyDisplayHeight;
+				*yt = y + *delta_y % Scr.MyDisplayHeight - VertWarpSize;
+			}
+		} else
+			*yt = y - *delta_y;
+
+		if (*xl <= SCROLL_REGION)
+			*xl = SCROLL_REGION + 1;
+		if (*yt <= SCROLL_REGION)
+			*yt = SCROLL_REGION + 1;
+		if (*xl >= Scr.MyDisplayWidth - SCROLL_REGION)
+			*xl = Scr.MyDisplayWidth - SCROLL_REGION - 1;
+		if (*yt >= Scr.MyDisplayHeight - SCROLL_REGION)
+			*yt = Scr.MyDisplayHeight - SCROLL_REGION - 1;
+
+		if ((*delta_x != 0) || (*delta_y != 0))
+		{
+			if (Grab)
+				XGrabServer (dpy);
+			XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, *xl, *yt);
+			MoveViewport (Scr.Vx + *delta_x, Scr.Vy + *delta_y, False);
+			XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild, xl, yt, &JunkX, &JunkY, &JunkMask);
+			if (Grab)
+				XUngrabServer (dpy);
+		}
 	}
-    }
 #endif
 }

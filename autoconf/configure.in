@@ -112,6 +112,9 @@ dnl# Comman stuff : compiler tools, proggies, etc.
 AC_PROG_CC
 export CC
 export GCC
+export prefix
+export exec_prefix
+
 dnl# now we need to play abot with CFLAGS :
 
 dnl# Remove -g
