@@ -206,6 +206,21 @@ typedef struct ASFontManager
 
 #endif
 
+/****d* libAfterImage/ASText3DType
+ * FUNCTION
+ * Available types of 3D text to be drawn.
+ * SOURCE
+ */
+typedef enum ASText3DType{
+	AST_Plain =0,	                           /* regular 2D text */
+	AST_Embossed,
+	AST_Sunken,
+	AST_ShadeAbove,
+	AST_ShadeBelow,
+	AST_3DTypes
+}ASText3DType;
+/*************/
+
 /****f* libAfterImage/asfont/create_font_manager()
  * SYNOPSIS
  * ASFontManager *create_font_manager( Display *dpy,
@@ -366,14 +381,15 @@ void 	print_asglyph( FILE* stream, struct ASFont* font, unsigned long c);
 /****f* libAfterImage/asfont/draw_text()
  * SYNOPSIS
  * ASImage *draw_text( const char *text,
- *                     ASFont *font,
+ *                     ASFont *font, ASText3DType type,
  *                     int compression );
  * Bool get_text_size( const char *text,
- *                     ASFont *font,
+ *                     ASFont *font, ASText3DType type,
  *                     unsigned int *width, unsigned int *height );
  * INPUTS
  * text 		- actuall text to render
  * font 		- pointer to ASFont to render text with
+ * type         - one of the few available types of 3D text.
  * compression  - compression level to attempt on resulting ASImage.
  * width        - pointer to value to be set to text width.
  * height       - pointer to value to be set to text height.
@@ -387,7 +403,11 @@ void 	print_asglyph( FILE* stream, struct ASFont* font, unsigned long c);
  * get_text_size() can be used to determine the size of the text about
  * to be drawn, so that appropriate drawable can be prepared.
  *********/
-struct ASImage *draw_text( const char *text, struct ASFont *font, int compression );
-Bool get_text_size( const char *text, struct ASFont *font, unsigned int *width, unsigned int *height );
+struct ASImage *draw_text( const char *text,
+	                       struct ASFont *font, ASText3DType type,
+						   int compression );
+Bool get_text_size( const char *text,
+	                struct ASFont *font, ASText3DType type,
+                    unsigned int *width, unsigned int *height );
 
 #endif

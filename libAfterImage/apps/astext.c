@@ -47,6 +47,7 @@
 #define BEVEL_HI_WIDTH 3
 #define BEVEL_LO_WIDTH 2
 #define BEVEL_ADDON    (BEVEL_HI_WIDTH+BEVEL_LO_WIDTH)
+#define TEXT_3D_TYPE   AST_Embossed
 
 int main(int argc, char* argv[])
 {
@@ -100,7 +101,7 @@ int main(int argc, char* argv[])
 	/* see ASText.1 : */
 	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
 		font = get_asfont( fontman, font_name, 0, size, ASF_GuessWho );
-print_asglyph( stderr, font, 'y' );
+
 	if( font == NULL )
 	{
 		show_error( "unable to load requested font \"%s\". Aborting.", font_name );
@@ -114,7 +115,7 @@ print_asglyph( stderr, font, 'y' );
 		back_im = file2ASImage( back_image_file, 0xFFFFFFFF,
 		                        SCREEN_GAMMA, 0, NULL );
 	/* see ASText.2 : */
-	get_text_size( text, font, &width, &height );
+	get_text_size( text, font, TEXT_3D_TYPE, &width, &height );
 	if( fore_image_file )
 	{
 		ASImage *tmp = file2ASImage( fore_image_file, 0xFFFFFFFF,
@@ -148,11 +149,11 @@ print_asglyph( stderr, font, 'y' );
 							  BEVEL_HI_WIDTH, BEVEL_HI_WIDTH,
 							  BEVEL_LO_WIDTH, BEVEL_LO_WIDTH } ;
 
-		XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
+		XSelectInput (dpy, w, (StructureNotifyMask | ButtonPressMask|ButtonReleaseMask));
 	  	XMapRaised   (dpy, w);
 
 		/* see ASText.3 : */
-		text_im = draw_text( text, font, 0 );
+		text_im = draw_text( text, font, TEXT_3D_TYPE, 0 );
 		if( fore_im )
 		{
 			move_asimage_channel( fore_im, text_im, IC_ALPHA );
@@ -195,6 +196,9 @@ print_asglyph( stderr, font, 'y' );
   		switch(event.type)
 		{
 		  	case ButtonPress:
+				XDestroyWindow( dpy, w );
+				XFlush( dpy );
+				w = None ;
 				break ;
 	  		case ClientMessage:
 			    if ((event.xclient.format == 32) &&
