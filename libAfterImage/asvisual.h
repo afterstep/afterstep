@@ -80,6 +80,12 @@ typedef CARD32 ARGB32;
 #define ARGB32_BLUE8(c)			( (c)     &0x00FF)
 #define ARGB32_CHAN8(c,i)		(((c)>>((i)<<3))&0x00FF)
 #define MAKE_ARGB32_CHAN8(v,i)	(((v)&0x0000FF)<<((i)<<3))
+
+#define ARGB32_ALPHA16(c)		((((c)>>16)&0x00FF00)|0x00FF)
+#define ARGB32_RED16(c)			((((c)>>8)&0x00FF00)|0x00FF)
+#define ARGB32_GREEN16(c)	 	(( (c)    &0x00FF00)|0x00FF)
+#define ARGB32_BLUE16(c)		((((c)<<8)&0x00FF00)|0x00FF)
+#define ARGB32_CHAN16(c,i)		((ARGB32_CHAN8(c,i)<<8)|0x00FF)
 #define MAKE_ARGB32_CHAN16(v,i)	((((v)&0x00FF00)>>8)<<((i)<<3))
 /*******************/
 /****d* libAfterImage/ColorPart

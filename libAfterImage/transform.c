@@ -20,6 +20,8 @@
 
 /* #define LOCAL_DEBUG */
 /*#define DO_CLOCKING*/
+/*#define DEBUG_HSV_ADJUSTMENT */
+
 
 #define USE_64BIT_FPU
 
@@ -1960,13 +1962,13 @@ static void calc_gauss(double radius, double* gauss) {
 /***********************************************************************
  * Hue,saturation and lightness adjustments.
  **********************************************************************/
-ASImage* 
+ASImage*
 adjust_asimage_hsv( ASVisual *asv, ASImage *src,
 				    int offset_x, int offset_y,
 	  			    unsigned int to_width, unsigned int to_height,
-					int affected_hue, int affected_radius,
+					unsigned int affected_hue, unsigned int affected_radius,
 					int hue_offset, int saturation_offset, int value_offset,
-					ASAltImFormats out_format, 
+					ASAltImFormats out_format,
 					unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
@@ -1974,7 +1976,7 @@ adjust_asimage_hsv( ASVisual *asv, ASImage *src,
 	ASImageOutput  *imout ;
 	START_TIME(started);
 
-LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, hue = %lu", offset_x, offset_y, to_width, to_height, tint );
+LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, hue = %lu", offset_x, offset_y, to_width, to_height, affected_hue );
 	if( src && (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 		return NULL;
 
@@ -1991,12 +1993,31 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		dst = NULL ;
 	}else
 	{
-	    CARD32 from_hue = MAX(0,affected_hue-affected_radius)*255 ;
-	    CARD32 to_hue = MAX(0,affected_hue+affected_radius)*255 ;		
+	    CARD32 from_hue1 = 0, from_hue2 = 0, to_hue1 = 0, to_hue2 = 0 ;
 		int y, max_y = to_height;
-		hue_offset *= 255 ;
-		saturation_offset *= 255 ;
-		value_offset *= 255 ;
+
+		affected_hue = normalize_degrees_val( affected_hue );
+		affected_radius = normalize_degrees_val( affected_radius );
+		if( affected_hue > affected_radius )
+		{
+			from_hue1 = degrees2hue16(affected_hue-affected_radius);
+			if( affected_hue+affected_radius >= 360 )
+			{
+				to_hue1 = MAX_HUE16 ;
+				from_hue2 = MIN_HUE16 ;
+				to_hue2 = degrees2hue16(affected_hue+affected_radius-360);
+			}else
+				to_hue1 = degrees2hue16(affected_hue+affected_radius);
+		}else
+		{
+			from_hue1 = degrees2hue16(affected_hue+360-affected_radius);
+			to_hue1 = MAX_HUE16 ;
+			from_hue2 = MIN_HUE16 ;
+			to_hue2 = degrees2hue16(affected_hue+affected_radius);
+		}
+		hue_offset = degrees2hue16(hue_offset);
+		saturation_offset = (saturation_offset<<16) / 100;
+		value_offset = (value_offset<<16)/100 ;
 LOCAL_DEBUG_OUT("adjusting actually...%s", "");
 		if( to_height > src->height )
 		{
@@ -2008,25 +2029,44 @@ LOCAL_DEBUG_OUT("adjusting actually...%s", "");
 			register int x = imdec->buffer.width;
 			CARD32 *r = imdec->buffer.red;
 			CARD32 *g = imdec->buffer.green;
-			CARD32 *b = imdec->buffer.blue ;  
-			CARD32 h, s, v ;
+			CARD32 *b = imdec->buffer.blue ;
+			long h, s, v ;
 			imdec->decode_image_scanline( imdec );
-			while( --x >= 0 ) 
+			while( --x >= 0 )
 			{
-				h = rgb2hue( r[x], g[x], b[x] );
-				fprintf( stderr, "%d: rgb = #%4.4lX%4.4lX%4.4lX hue = %ld range is (%ld,%ld) ", __LINE__, r[x], g[x], b[x], h, from_hue, to_hue );
-				if( h >= from_hue && h <= to_hue ) 
+				if( (h = rgb2hue( r[x], g[x], b[x] )) != 0 )
 				{
-					s = rgb2saturation( r[x], g[x], b[x] ) + saturation_offset;
-					v = rgb2value( r[x], g[x], b[x] )+value_offset;
-					h += hue_offset ;
-/*					if( h > HUE16_RANGE ) 
-						h = HUE16_RANGE ;
-*/						
-					hsv2rgb ( h, s, v, &r[x], &g[x], &b[x]);
-					fprintf( stderr, "%d: argb = #%4.4lX%4.4lX%4.4lX hue = %ld sat = %ld val = %ld ", __LINE__, r[x], g[x], b[x], h, s, v );
+#ifdef DEBUG_HSV_ADJUSTMENT
+					fprintf( stderr, "IN  %d: rgb = #%4.4lX.%4.4lX.%4.4lX hue = %ld(%d)        range is (%ld - %ld, %ld - %ld), dh = %d\n", __LINE__, r[x], g[x], b[x], h, ((h>>8)*360)>>8, from_hue1, to_hue1, from_hue2, to_hue2, hue_offset );
+#endif
+
+					if( affected_radius >= 180 ||
+						(h >= from_hue1 && h <= to_hue1 ) ||
+						(h >= from_hue2 && h <= to_hue2 ) )
+
+					{
+						s = rgb2saturation( r[x], g[x], b[x] ) + saturation_offset;
+						v = rgb2value( r[x], g[x], b[x] )+value_offset;
+						h += hue_offset ;
+						if( h > MAX_HUE16 )
+							h -= MAX_HUE16 ;
+						else if( h == 0 )
+							h =  MIN_HUE16 ;
+						else if( h < 0 )
+							h += MAX_HUE16 ;
+						if( v < 0 ) v = 0 ;
+						else if( v > 0x00FFFF ) v = 0x00FFFF ;
+
+						if( s < 0 ) s = 0 ;
+						else if( s > 0x00FFFF ) s = 0x00FFFF ;
+
+						hsv2rgb ( (CARD32)h, (CARD32)s, (CARD32)v, &r[x], &g[x], &b[x]);
+
+#ifdef DEBUG_HSV_ADJUSTMENT
+						fprintf( stderr, "OUT %d: rgb = #%4.4lX.%4.4lX.%4.4lX hue = %ld(%ld)     sat = %ld val = %ld\n", __LINE__, r[x], g[x], b[x], h, ((h>>8)*360)>>8, s, v );
+#endif
+					}
 				}
-				fprintf( stderr, "\n");
 			}
 			imdec->buffer.flags = 0xFFFFFFFF ;
 			imout->output_image_scanline( imout, &(imdec->buffer), 1);

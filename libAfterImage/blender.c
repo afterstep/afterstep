@@ -55,32 +55,32 @@ rgb2saturation( CARD32 red, CARD32 green, CARD32 blue )
 }
 
 
-/* Traditionally Hue is represented by 360 degree circle. 
+/* Traditionally Hue is represented by 360 degree circle.
   For our needs we use 255 degree circle instead.
-   
-  Now the circle is separated into 6 segments : 
+
+  Now the circle is separated into 6 segments :
   Trad:		Us:				Color range:    Red:	Green:	Blue:
-  0-60		0    -42.5 		red-yellow      FF-7F   0 -7F   0 -0 
+  0-60		0    -42.5 		red-yellow      FF-7F   0 -7F   0 -0
   60-120    42.5 -85 		yellow-green    7F-0    7F-FF   0 -0
-  120-180   85   -127.5 	green-cyan      0 -0    FF-7F   0 -7F 
+  120-180   85   -127.5 	green-cyan      0 -0    FF-7F   0 -7F
   180-240   127.5-170   	cyan-blue       0 -0    7F-0    7F-FF
   240-300   170  -212.5     blue-magenta    0-7F    0 -0	FF-7F
   300-360   212.5-255       magenta-red     7F-FF   0 -0    7F-0
-  
+
   As seen from above in each segment at least one of the RGB values is 0.
-  To achieve that we find minimum of R, G and b and substract it from all, 
-  and then multiply values by ratio to bring it into range : 
-  
-  new_val = ((val - min_val)*0xFFFF)/(max_val-min_val)
+  To achieve that we find minimum of R, G and b and substract it from all,
+  and then multiply values by ratio to bring it into range :
+
+  new_val = ((val - min_val)*0xFEFF)/(max_val-min_val)
   (note that we use 16bit values, instead of 8 bit as above)
-  
-  WE store hue in 16 bits, so instead of above value of 42.5 per segment 
+
+  WE store hue in 16 bits, so instead of above value of 42.5 per segment
   we should use 85<<7 == 0x00002A80 per segment.
-  
+
   When all the RGB values are the same - then hue is invalid and  = 0;
-  To distinguish between hue == 0 when color is Red and invalid hue, we 
-  make all valid hues to fit in range 0x0001-0xFFFF, with 0x0001 being RED.
-*/  
+  To distinguish between hue == 0 when color is Red and invalid hue, we
+  make all valid hues to fit in range 0x0001-0xFF00, with 0x0001 being RED.
+*/
 
 #define HUE_RED_TO_YELLOW		0
 #define HUE_YELLOW_TO_GREEN		1
@@ -95,6 +95,65 @@ rgb2saturation( CARD32 red, CARD32 green, CARD32 blue )
 #define HUE16_CYAN		    	(HUE16_RANGE*HUE_CYAN_TO_BLUE)
 #define HUE16_BLUE			   	(HUE16_RANGE*HUE_BLUE_TO_MAGENTA)
 #define HUE16_MAGENTA		 	(HUE16_RANGE*HUE_MAGENTA_TO_RED)
+
+#define MAKE_HUE16(hue,red,green,blue,min_val,max_val,delta) \
+	do{	if( (red) == (max_val) ){ /* 300 to 60 degrees segment */ \
+			if( (blue) <= (green) ){  /* 0-60 degrees segment*/    \
+				(hue) = HUE16_RED    + (((green) - (blue)) * (HUE16_RANGE)) / (delta) ;\
+				if( (hue) == 0 ) (hue) = MIN_HUE16 ; \
+			}else {	               /* 300-0 degrees segment*/ \
+				(hue) = HUE16_MAGENTA+ (((red)   - (blue)) * (HUE16_RANGE)) / (delta) ; \
+				if( (hue) == 0 ) (hue) = MAX_HUE16 ;                                 \
+			}                                                                   \
+		}else if( (green) == (max_val) ){ /* 60 to 180 degrees segment */           \
+			if( (blue) >= (red) )    /* 120-180 degrees segment*/                   \
+				(hue) = HUE16_GREEN  + (((blue)-(red) ) * (HUE16_RANGE)) / (delta) ;    \
+			else                 /* 60-120 degrees segment */                   \
+				(hue) = HUE16_YELLOW + (((green)-(red)) * (HUE16_RANGE)) / (delta) ;    \
+		}else if( (red) >= (green) )     /* 240 to 300 degrees segment */           \
+			(hue)     = HUE16_BLUE   + (((red) -(green))* (HUE16_RANGE)) / (delta) ;    \
+		else                        /* 180 to 240 degrees segment */            \
+			(hue)     = HUE16_CYAN   + (((blue)-(green))* (HUE16_RANGE)) / (delta) ;    \
+	}while(0)
+#define INTERPRET_HUE16(hue,delta,max_val,red,green,blue)      \
+	do{	int range = (hue)/HUE16_RANGE ;                                  \
+		int min_val = (max_val) - (delta);                                \
+		int mid_val = ((hue) - HUE16_RANGE*range)*(delta) / HUE16_RANGE ;  \
+		switch( range )	{                                              \
+			case HUE_RED_TO_YELLOW :    /* red was max, then green  */ \
+				(red)   = (max_val); (green)=mid_val+(min_val); (blue) = (min_val); break; \
+			case HUE_YELLOW_TO_GREEN :  /* green was max, then red */                      \
+				(green) = (max_val); (red) =(max_val)-mid_val;  (blue) = (min_val); break; \
+			case HUE_GREEN_TO_CYAN :    /* green was max, then blue*/                      \
+				(green) = (max_val); (blue)= mid_val+(min_val);	(red)  = (min_val); break; \
+			case HUE_CYAN_TO_BLUE :     /* blue was max, then green  */                    \
+				(blue)  = (max_val); (green)=(max_val)-mid_val; (red)  = (min_val); break; \
+			case HUE_BLUE_TO_MAGENTA :  /* blue was max, then red   */                     \
+				(blue)  = (max_val); (red)  = mid_val+(min_val);(green)= (min_val); break; \
+			case HUE_MAGENTA_TO_RED :   /* red was max, then blue */                       \
+				(red)   = (max_val); (blue) = (max_val)-mid_val;(green)= (min_val); break; \
+		}                                                                                  \
+	}while(0)
+
+
+int normalize_degrees_val( int degrees )
+{
+	while ( degrees < 0 ) degrees += 360 ;
+	while ( degrees >= 360 ) degrees -= 360 ;
+	return degrees;
+}
+
+CARD32
+degrees2hue16( int degrees )
+{
+	CARD32 hue = 0 ;
+
+	while ( degrees < 0 ) degrees += 360 ;
+	while ( degrees >= 360 ) degrees -= 360 ;
+
+	hue = degrees * HUE16_RANGE*6 / 360 ;
+	return (hue==0)?MIN_HUE16:hue ;
+}
 
 inline CARD32
 rgb2hue( CARD32 red, CARD32 green, CARD32 blue )
@@ -112,27 +171,7 @@ rgb2hue( CARD32 red, CARD32 green, CARD32 blue )
 	if( max_val != min_val)
 	{
 		int delta = max_val-min_val ;
-		if( red == max_val ) /* 300 to 60 degrees segment */
-		{
-			if( blue < green )  /* 0-60 degrees segment*/
-			{
-				hue = HUE16_RED    + ((green - blue) * (HUE16_RANGE)) / delta ;
-				if( hue == 0 ) hue = 0x000001 ;
-			}else                /* 300-0 degrees segment*/
-			{
-				hue = HUE16_MAGENTA+ ((blue - green) * (HUE16_RANGE)) / delta ;
-				if( hue == 0 ) hue = 0x00FFFF ;
-			}
-		}else if( green == max_val ) /* 60 to 180 degrees segment */
-		{
-			if( blue > red )    /* 120-180 degrees segment*/
-				hue = HUE16_GREEN  + ((blue-red ) * (HUE16_RANGE)) / delta ;
-			else                /* 60-120 degrees segment */
-				hue = HUE16_YELLOW + ((red -blue) * (HUE16_RANGE)) / delta ;
-		}else if( red > green )     /* 240 to 300 degrees segment */
-			hue     = HUE16_BLUE   + ((red -green)* (HUE16_RANGE)) / delta ;
-		else                        /* 180 to 240 degrees segment */
-			hue     = HUE16_CYAN   + ((green- red)* (HUE16_RANGE)) / delta ;
+		MAKE_HUE16(hue,red,green,blue,min_val,max_val,delta);
 	}
 	return hue;
 }
@@ -155,25 +194,7 @@ rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *valu
 	{
 		int delta = max_val-min_val ;
 		*saturation = (max_val>1)?(delta<<15)/(max_val>>1): 0;
-		if( red == max_val )
-		{
-			if( green > blue )
-			{
-				hue =              ((green - blue) * (HUE16_RANGE-1)) / delta ;
-				if( hue == 0 )
-					hue = 1 ;                  /* valid hue must be != 0 */
-			}else
-				hue = HUE16_RANGE+ ((blue - green) * (HUE16_RANGE-1)) / delta ;
-		}else if( green == max_val )
-		{
-			if( blue > red )
-				hue = HUE16_RANGE*2 + ((blue-red ) * (HUE16_RANGE-1)) / delta ;
-			else
-				hue = HUE16_RANGE*3 + ((red -blue) * (HUE16_RANGE-1)) / delta ;
-		}else if( red > green )
-			hue     = HUE16_RANGE*4 + ((red -green)* (HUE16_RANGE-1)) / delta ;
-		else
-			hue     = HUE16_RANGE*5 + ((green- red)* (HUE16_RANGE-1)) / delta ;
+		MAKE_HUE16(hue,red,green,blue,min_val,max_val,delta);
 	}else
 		*saturation = 0 ;
 	return hue;
@@ -182,48 +203,13 @@ rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *valu
 inline void
 hsv2rgb (CARD32 hue, CARD32 saturation, CARD32 value, CARD32 *red, CARD32 *green, CARD32 *blue)
 {
-	if (saturation == 0)
+	if (saturation == 0 || hue == 0 )
 	{
     	*blue = *green = *red = value;
 	}else
 	{
-		int range = hue/HUE16_RANGE ;
 		int delta = ((saturation*(value>>1))>>15) ;
-		int min_val = value - delta;
-		int mid_val = (hue - HUE16_RANGE*range) * delta / (HUE16_RANGE-1)  + min_val ;
-		switch( range )
-		{
-			case 0 :                           /* red was max, then green  */
-				*red = value ;
-				*green = mid_val ;
-				*blue = min_val ;
-			    break ;
-			case 1 :                           /* red was max, then blue   */
-				*red = value ;
-				*blue = mid_val ;
-				*green = min_val ;
-			    break ;
-			case 2 :                           /* green was max, then blue */
-				*green = value ;
-				*blue = mid_val ;
-				*red = min_val ;
-			    break ;
-			case 3 :                           /* green was max, then red  */
-				*green = value ;
-				*red = mid_val ;
-				*blue = min_val ;
-			    break ;
-			case 4 :                           /* blue was max, then red   */
-				*blue  = value ;
-				*red   = mid_val ;
-				*green = min_val ;
-			    break ;
-			case 5 :                           /* blue was max, then green */
-				*blue  = value ;
-				*green = mid_val ;
-				*red   = min_val ;
-			    break ;
-		}
+		INTERPRET_HUE16(hue,delta,value,*red,*green,*blue);
 	}
 }
 
@@ -266,26 +252,7 @@ rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance, CARD32 *satur
 		*saturation = (*luminance < 0x00008000 )?
 							(delta<<15)/ *luminance :
 							(delta<<15)/ (0x0000FFFF - *luminance);
-		if( red == max_val )
-		{
-			if( green > blue )
-			{
-				hue =              ((green - blue) * (HUE16_RANGE-1)) / delta ;
-				if( hue == 0 )
-					hue = 1 ;                  /* valid hue must be != 0 */
-			}else
-				hue = HUE16_RANGE+ ((blue - green) * (HUE16_RANGE-1)) / delta ;
-		}else if( green == max_val )
-		{
-			if( blue > red )
-				hue = HUE16_RANGE*2 + ((blue-red ) * (HUE16_RANGE-1)) / delta ;
-			else
-				hue = HUE16_RANGE*3 + ((red -blue) * (HUE16_RANGE-1)) / delta ;
-		}else if( red > green )
-			hue     = HUE16_RANGE*4 + ((red -green)* (HUE16_RANGE-1)) / delta ;
-		else
-			hue     = HUE16_RANGE*5 + ((green- red)* (HUE16_RANGE-1)) / delta ;
-
+		MAKE_HUE16(hue,red,green,blue,min_val,max_val,delta);
 	}else
 		*saturation = 0 ;
 	return hue;
@@ -299,45 +266,12 @@ hls2rgb (CARD32 hue, CARD32 luminance, CARD32 saturation, CARD32 *red, CARD32 *g
     	*blue = *green = *red = luminance;
 	}else
 	{
-		int range = hue/HUE16_RANGE ;
 		int delta = ( luminance < 0x00008000 )?
 						(saturation*luminance)>>15 :
 	                    (saturation*(0x0000FFFF-luminance))>>15 ;
-		int min_val = ((luminance<<1)-delta)>>1 ;
-		int mid_val = (hue - HUE16_RANGE*range) * delta / (HUE16_RANGE-1)  + min_val ;
-		switch( range )
-		{
-			case 0 :                           /* red was max, then green  */
-				*red = delta+min_val ;
-				*green = mid_val ;
-				*blue = min_val ;
-			    break ;
-			case 1 :                           /* red was max, then blue   */
-				*red = delta+min_val ;
-				*blue = mid_val ;
-				*green = min_val ;
-			    break ;
-			case 2 :                           /* green was max, then blue */
-				*green = delta+min_val ;
-				*blue = mid_val ;
-				*red = min_val ;
-			    break ;
-			case 3 :                           /* green was max, then red  */
-				*green = delta+min_val ;
-				*red = mid_val ;
-				*blue = min_val ;
-			    break ;
-			case 4 :                           /* blue was max, then red   */
-				*blue  = delta+min_val ;
-				*red   = mid_val ;
-				*green = min_val ;
-			    break ;
-			case 5 :                           /* blue was max, then green */
-				*blue  = delta+min_val ;
-				*green = mid_val ;
-				*red   = min_val ;
-			    break ;
-		}
+		int max_val = delta+(((luminance<<1)-delta)>>1) ;
+
+		INTERPRET_HUE16(hue,delta,max_val,*red,*green,*blue);
 	}
 }
 

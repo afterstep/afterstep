@@ -27,24 +27,53 @@ int main(int argc, char* argv[])
 {
 	char *image_file = "rose512.jpg" ;
 	ASImage *im ;
+	ARGB32 test_colors[] = {
+		0xff0000,
+
+		0xfe0100,	0xbe3f00,	0x807e00,
+
+		0x7f7f00,
+
+		0x7e8000, 	0x3fbe00,	0x01fe00,
+
+		0x00ff00,
+
+		0x00fe01,   0x00be3f,   0x00807e,
+
+		0x007f7f,
+
+		0x007e80,  	0x003fbe,	0x0001fe,
+
+		0x0000ff,
+
+		0x0100fe,   0x3F00be,	0x7e0080,
+
+		0x7f007f,
+
+		0x80007e,   0xbe003f,	0xfe0001,
+
+		0xff0000,
+
+		0x0
+	};
+	int i ;
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 #if (HAVE_AFTERBASE_FLAG==1)
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
 #endif
 
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0xFF, 0,    0,    rgb2hue( 0xFFFF, 0,      0 ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0xFF, 0x01, 0,    rgb2hue( 0xFFFF, 0x01FF, 0 ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0xFF, 0xFF, 0,    rgb2hue( 0xFFFF, 0xFFFF, 0 ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0x01, 0xFF, 0,    rgb2hue( 0x01FF, 0xFFFF, 0 ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0,    0xFF, 0,    rgb2hue( 0,      0xFFFF, 0 ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0,    0xFF, 0x01, rgb2hue( 0,      0xFFFF, 0x01FF ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0,    0xFF, 0xFF, rgb2hue( 0,      0xFFFF, 0xFFFF ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0,    0x01, 0xFF, rgb2hue( 0,      0x01FF, 0xFFFF ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0,    0,    0xFF, rgb2hue( 0,      0,      0xFFFF ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0x01, 0,    0xFF, rgb2hue( 0x01FF, 0,      0xFFFF ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0xFF, 0,    0xFF, rgb2hue( 0xFFFF, 0,      0xFFFF ));
-	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0xFF, 0,    0xFF, rgb2hue( 0xFFFF, 0,      0x01FF ));
+	for ( i = 0 ; test_colors[i] != 0 ; ++i )
+	{
+		CARD32 hue16 = rgb2hue( ARGB32_RED16(test_colors[i]),
+					            ARGB32_GREEN16(test_colors[i]),
+					   		    ARGB32_BLUE16(test_colors[i]));
+		fprintf( stderr, "%d:rgb = #%2.2lX%2.2lX%2.2lX, hue8 = %ld, hue16 = %ld\n", i,
+			             ARGB32_RED8(test_colors[i]),
+						 ARGB32_GREEN8(test_colors[i]),
+						 ARGB32_BLUE8(test_colors[i]),
+						 hue16>>8,hue16);
+	}
 
 	if( argc > 1 )
 	{
@@ -68,7 +97,7 @@ int main(int argc, char* argv[])
 		Window w ;
 		ASVisual *asv ;
 		int screen, depth ;
-	
+
 	    dpy = XOpenDisplay(NULL);
 		_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 		screen = DefaultScreen(dpy);

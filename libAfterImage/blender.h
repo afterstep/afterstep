@@ -77,6 +77,10 @@ typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanli
  * HSV and HLS colorspaces.
  ****************/
 #define HUE16_RANGE 		(85<<7)
+#define MAX_HUE16			0x0000FEFF
+#define MIN_HUE16			0x00000001
+int normalize_degrees_val( int degrees );
+CARD32 degrees2hue16( int degrees );
 
 inline CARD32 rgb2value( CARD32 red, CARD32 green, CARD32 blue );
 inline CARD32 rgb2saturation( CARD32 red, CARD32 green, CARD32 blue );

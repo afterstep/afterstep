@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2001 Sasha Vasko <sasha@aftercode.net>
  * Copyright (c) 2001 Eric Kowalski <eric@beancrock.net>
  * Copyright (c) 2001 Ethan Fisher <allanon@crystaltokyo.com>
  *
@@ -272,7 +273,6 @@ Bool save_file(const char *file2bsaved, ASImage *im,
 		params.jpeg.quality = (compress==NULL)?-1:100-atoi(compress);
 		if( params.jpeg.quality > 100 )
 			params.jpeg.quality = 100;
-		fprintf( stderr, "jpeg quality is %d\n", params.jpeg.quality );
 	} else if (!mystrcasecmp(strtype, "bitmap") || !mystrcasecmp(strtype, "bmp")) {
 		params.type = ASIT_Bmp;
 	} else if (!mystrcasecmp(strtype, "png")) {
@@ -939,7 +939,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		const char* yorig_str = NULL;
 		const char* width_str = "100%";
 		const char* height_str = "100%";
-		int affected_hue = 0, affected_radius = 255 ;
+		int affected_hue = 0, affected_radius = 360 ;
 		int hue_offset = 0, saturation_offset = 0, value_offset = 0 ;
 		int width = 0, height = 0, xorig = 0, yorig = 0;
 		ASImage* imtmp = NULL;
@@ -974,14 +974,15 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (height_str) height = parse_math(height_str, NULL, height);
 			if (xorig_str) xorig = parse_math(xorig_str, NULL, width);
 			if (yorig_str) yorig = parse_math(yorig_str, NULL, height);
-			if (width > 0 && height > 0) {
-				result = adjust_asimage_hsv(asv, imtmp, xorig, yorig, width, height,  
+			if (width > 0 && height > 0 &&
+				(hue_offset!=0 || saturation_offset != 0 || value_offset != 0 )) {
+				result = adjust_asimage_hsv(asv, imtmp, xorig, yorig, width, height,
 				                            affected_hue, affected_radius,
-											hue_offset, saturation_offset, value_offset, 
+											hue_offset, saturation_offset, value_offset,
 				                            ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 				my_destroy_asimage(imtmp);
 			}
-			show_progress("adjusting HSV of the image by [%d,%d,%d].", hue_offset, saturation_offset, value_offset);
+			show_progress("adjusting HSV of the image by [%d,%d,%d] affected hues are %d-%d.", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
