@@ -1486,7 +1486,7 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 			}else
 			{
 				toggle_image_output_direction( imout );
-                fprintf( stderr, __FUNCTION__":chanmask = 0x%lX", filter );
+/*                fprintf( stderr, __FUNCTION__":chanmask = 0x%lX", filter ); */
 				for( y = 0 ; y < to_height ; y++  )
 				{
 					imdec->decode_image_scanline( imdec );

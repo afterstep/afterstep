@@ -1,0 +1,6 @@
+<composite>
+	<bevel border="2 2 1 1" colors="white black" solid=0><solid color="gray75" width=15 height=15/></bevel>
+	<crop tint=#010101 srcx=1 srcy=1 width=13 height=13 x=1 y=1>
+ 		<img src="dots/x_medium"/>
+	</crop>
+</composite>

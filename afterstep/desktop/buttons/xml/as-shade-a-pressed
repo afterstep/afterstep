@@ -1,0 +1,27 @@
+/* XPM */
+static char * as_shade_a_pressed_xpm[] = {
+/* width height num_colors chars_per_pixel */
+"15 15 6 1",
+/* colors */
+" 	c #5f5f5f",
+".	c white",
+"X	c gray75",
+"o	c gray70",
+"O	c gray40",
+"+	c black",
+/* pixels */
+"              .",
+" XXXXXXXXXXXX..",
+" XooooooooooX..",
+" XooooooooooX..",
+" XooooooooooX..",
+" XoOOOOOOOOoX..",
+" XO++++++++OX..",
+" XoOOOOOOOOoX..",
+" XooooooooooX..",
+" XooooooooooX..",
+" XooooooooooX..",
+" XooooooooooX..",
+" XXXXXXXXXXXX..",
+" ..............",
+"..............."};

@@ -1,0 +1,9 @@
+<bevel border="2 2 1 1" colors="white black" solid=0>
+<composite>
+	<solid color="gray75" width=15 height=15/>
+	<tile tint="#010101" x=1 y=1>
+		<img src="dots/triangle_squared_small"/>
+	</tile>
+</composite>
+</bevel>
+
