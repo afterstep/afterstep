@@ -425,6 +425,13 @@ version 1.99.0 AKA 2.0 beta1
                 your feel.
 
                 ****************************************************************
+                MenuHiTitleStyle "mystyle"
+                ****************************************************************
+                        AfterStep now allows you to specify MyStyle to be used
+		for titlebar of currently hilighted menu. AS soo as menu goes out
+		of focus its titlebar will be rendered using MenuTitleStyle.
+
+                ****************************************************************
                 MenuSubItemStyle "mystyle"
                 ****************************************************************
                         AfterStep now includes new feature: when you select an

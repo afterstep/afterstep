@@ -19,7 +19,7 @@ Bool
 load_font (const char *name, MyFont * font)
 #endif
 {
-	int           font_size = 15;
+	int           font_size = 14;
 	char 		 *clean_name = (char*)name ;
 
 #if defined(LOG_FONT_CALLS) && defined(DEBUG_ALLOCS)

@@ -973,7 +973,7 @@ show_asmenu( ASMenu *menu, int x, int y )
     hints->handle_width = BOUNDARY_WIDTH;
 
     hints->frame_name = mystrdup("ASMenuFrame");
-    hints->mystyle_names[BACK_FOCUSED] = mystrdup(Scr.Look.MSMenu[MENU_BACK_HILITE]->name);
+    hints->mystyle_names[BACK_FOCUSED] = mystrdup(Scr.Look.MSMenu[MENU_BACK_HITITLE]->name);
     hints->mystyle_names[BACK_UNFOCUSED] = mystrdup(Scr.Look.MSMenu[MENU_BACK_TITLE]->name);
     hints->mystyle_names[BACK_STICKY] = mystrdup(Scr.Look.MSMenu[MENU_BACK_TITLE]->name);
 

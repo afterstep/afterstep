@@ -900,6 +900,7 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
     char *file_template ;
     char tmpfile[256], *realfilename = NULL ;
     int desk = 0 ;
+	Bool installed = False ;
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
     desk = Scr.CurrentDesk ;
 #endif
@@ -916,13 +917,19 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
     }
 
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
-    if (CopyFile (data->text, realfilename) == 0)
+
+	if( data->func == F_CHANGE_THEME )
+		installed = install_theme_file( data->text, realfilename );
+	else
+		installed = (CopyFile (data->text, realfilename) == 0) ;
+
+    if (installed)
     {
         if( Scr.CurrentDesk == 0 )
             update_default_session ( Session, data->func );
         change_desk_session (Session, Scr.CurrentDesk, realfilename, data->func);
         if( data->func == F_CHANGE_THEME )
-            QuickRestart ("look&feel");
+			Done ( True, NULL );
         else
             QuickRestart ((data->func == F_CHANGE_LOOK)?"look":"feel");
     }

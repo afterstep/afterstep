@@ -647,6 +647,9 @@ Bool place_aswindow( ASWindow *asw );
 void apply_aswindow_move(struct ASMoveResizeData *data);
 void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled);
 
+/******************************* theme.c ***********************************/
+Bool install_theme_file( const char *src, const char *dst );
+
 /******************************* winstatus.c *******************************/
 void complete_wm_state_transition( ASWindow *asw, int state );
 Bool set_window_wm_state( ASWindow *asw, Bool iconify );

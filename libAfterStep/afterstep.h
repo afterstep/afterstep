@@ -147,7 +147,8 @@
 #define MENU_BACK_HILITE    2
 #define MENU_BACK_STIPPLE 	3
 #define MENU_BACK_SUBITEM   4
-#define MENU_BACK_STYLES    5
+#define MENU_BACK_HITITLE   5
+#define MENU_BACK_STYLES    6
 
 /* different frame decoration part ids : */
 typedef enum

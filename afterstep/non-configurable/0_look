@@ -76,8 +76,21 @@ MyStyle "menu_title_style"
   BackColor     #050505                         #basically black
   ~MyStyle
 
+MyStyle "menu_hititle_style"
+  Inherit       menu_title_font
+#  ForeColor     #E5E2E8				#basically white
+  ForeColor     #E5e2d0				#basically white
+  BackColor	#475293
+  ~MyStyle
+
 MyStyle "menu_item_style"
   Inherit       menu_font
+  ForeColor     #E5E2E8                         #basically white
+  BackColor     grey30
+  ~MyStyle
+
+MyStyle "menu_subitem_style"
+  Font		DefaultBold.ttf
   ForeColor     #E5E2E8                         #basically white
   BackColor     grey30
   ~MyStyle
@@ -101,6 +114,8 @@ MenuItemStyle "menu_item_style"
 MenuTitleStyle "menu_title_style"
 MenuHiliteStyle "menu_hilite_style"
 MenuStippleStyle "menu_stipple_style"
+MenuSubItemStyle "menu_subitem_style"
+MenuHiTitleStyle "menu_hititle_style"
 
 #----------Pager MyStyles---------#
 
@@ -216,7 +231,7 @@ ButtonSize 64 64
 # 128 - User defined pixmap
 # 129 - Transparent/Transluceny menu + valid xpm OR tint color
 
-MenuPinOn		as1.5-kill.xpm
+MenuPinOn		dots/x_medium
 #MenuPinOff		as1.5-kill.xpm
 MArrowPixmap		arrow-dots.xpm
 
