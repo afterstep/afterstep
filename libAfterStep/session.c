@@ -127,6 +127,29 @@ find_default_background_file (ASSession *session)
 }
 
 static char  *
+find_desk_background_file (ASSession *session, int desk)
+{
+    char         *legacy ;
+	char         *file = NULL;
+	/* it's more difficult with backgrounds since there could be different extensions */
+	/* first checking only private dir : */
+    legacy = safemalloc( strlen(BACK_FILE)+15+1+15 );
+    if( session->scr->screen != 0 )
+    {
+        sprintf( legacy, BACK_FILE ".scr%ld", desk, session->scr->screen);
+        file = find_default_file ( session, legacy, False);  /* legacy stuff */
+    }
+    if( file == NULL )
+    {
+        sprintf( legacy, BACK_FILE, desk );
+        file = find_default_file ( session, legacy, True);  /* legacy stuff */
+    }
+    free( legacy );
+	return file;
+}
+
+
+static char  *
 find_default_special_file (ASSession *session, const char* file_fmt, const char* file_scr_fmt, const char *default_fname)
 {
     char         *legacy ;
@@ -156,11 +179,43 @@ find_default_special_file (ASSession *session, const char* file_fmt, const char*
     return file;
 }
 
+static char  *
+find_desk_special_file (ASSession *session, const char* file_fmt, const char* file_scr_fmt, int desk)
+{
+    char         *legacy ;
+	char         *file = NULL;
+	int len1 = 0;
+	int len2 = 0;
+
+	if( file_scr_fmt )
+		len1 = strlen(file_scr_fmt);
+	len2 = strlen(file_fmt);
+	/* it's more difficult with backgrounds since there could be different extensions */
+	/* first checking only private dir : */
+    legacy = safemalloc( max(len1,len2)+15+11+1+15 );
+    if( session->scr->screen != 0 && file_scr_fmt != NULL )
+    {
+        sprintf( legacy, file_scr_fmt, desk, session->scr->screen);
+        file = find_default_file ( session, legacy, False);  /* legacy stuff */
+    }
+    if( file == NULL )
+    {
+        sprintf( legacy, file_fmt, desk );
+        file = find_default_file ( session, legacy, False);  /* legacy stuff */
+    }
+    free( legacy );
+    return file;
+}
+
 
 #define find_default_look_file(s)  find_default_special_file (s,LOOK_FILE,LOOK_FILE ".scr%ld", LOOK_DIR "/look.DEFAULT")
 #define find_default_feel_file(s)  find_default_special_file (s,FEEL_FILE,FEEL_FILE ".scr%ld", FEEL_DIR "/feel.DEFAULT")
 #define find_default_theme_file(s) find_default_special_file (s,THEME_FILE,THEME_FILE ".scr%ld",NULL)
 #define find_default_colorscheme_file(s) find_default_special_file (s,COLORSCHEME_FILE,COLORSCHEME_FILE ".scr%ld", COLORSCHEME_DIR "/colorscheme.DEFAULT")
+#define find_desk_look_file(s,desk)  find_desk_special_file (s,LOOK_FILE,LOOK_FILE ".scr%ld", desk)
+#define find_desk_feel_file(s,desk)  find_desk_special_file (s,FEEL_FILE,FEEL_FILE ".scr%ld", desk)
+#define find_desk_theme_file(s,desk) find_desk_special_file (s,THEME_FILE,THEME_FILE ".scr%ld",desk)
+#define find_desk_colorscheme_file(s,desk) find_desk_special_file (s,COLORSCHEME_FILE,COLORSCHEME_FILE ".scr%ld",desk)
 
 static char  *
 check_file (const char *file)
@@ -199,6 +254,13 @@ get_desk_session (ASSession * session, int desk)
         }
 		d = create_desk_session ();
 		d->desk = desk;
+
+		d->look_file = find_desk_look_file (session, desk);
+    	d->feel_file = find_desk_feel_file (session, desk);
+    	d->background_file = find_desk_background_file (session, desk);
+    	d->theme_file = find_desk_theme_file (session, desk);
+    	d->colorscheme_file = find_desk_colorscheme_file (session, desk);
+
 		if( session->desks_used >= session->desks_allocated )
 		{
 			session->desks_allocated = (((session->desks_used*sizeof(ASDeskSession)+33)/32)*32)/sizeof(ASDeskSession);
@@ -658,7 +720,7 @@ get_desk_file (ASDeskSession * d, int function)
 }
 
 const char   *
-get_session_file (ASSession * session, int desk, int function)
+get_session_file (ASSession * session, int desk, int function, Bool no_default)
 {
 	ASDeskSession *d = NULL;
 	char         *file = NULL;
@@ -708,7 +770,7 @@ get_session_file (ASSession * session, int desk, int function)
 				if (CheckFile (file) != 0)
 					file = NULL;
             /* fallback to defaults */
-            if (file == NULL && d != session->defaults)
+            if (file == NULL && d != session->defaults && !no_default )
             {
                 file = (char *)get_desk_file (session->defaults, function);
                 LOCAL_DEBUG_OUT( "default file is \"%s\"", file );
@@ -899,7 +961,7 @@ get_session_file_list (ASSession *session, int desk1, int desk2, int function)
 		}
 		list = safecalloc( (desk2 - desk1)+1, sizeof(char*));
 		for( i = desk1 ; i <= desk2 ; i++ )
-			list[i-desk1] = (char*)get_session_file( session, i, function );
+			list[i-desk1] = (char*)get_session_file( session, i, function, False );
 	}
 	return list ;
 }

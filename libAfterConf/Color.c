@@ -283,7 +283,7 @@ LoadColorScheme()
 	ASColorScheme *cs = NULL ;
 	const char *const_configfile ;
 	/* first we need to load the colorscheme */
-    if( (const_configfile = get_session_file (Session, Scr.CurrentDesk, F_CHANGE_COLORSCHEME) ) != NULL )
+    if( (const_configfile = get_session_file (Session, Scr.CurrentDesk, F_CHANGE_COLORSCHEME, False) ) != NULL )
     {
 		ColorConfig *config = ParseColorOptions (const_configfile, MyName);
 		if( config )

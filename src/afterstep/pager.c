@@ -535,6 +535,35 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
  *   event arrives
  **************************************************************************/
 
+MyBackground *get_desk_back_or_default( int desk, Bool old_desk )
+{
+	MyBackground *myback = mylook_get_desk_back( &(Scr.Look), desk );
+	if( !old_desk && !get_flags( Scr.Look.flags, DontDrawBackground ))
+	{
+		const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND, True);
+		if( const_configfile != NULL )
+		{  /* there is a preconfigured background file - so creating MyBack,
+			* even thou look does not have one. */
+			MyDesktopConfig *dc ;
+			char * buf = safemalloc( strlen(DEFAULT_BACK_NAME)+15+1 );
+
+			sprintf( buf, DEFAULT_BACK_NAME, desk );
+	    	dc = create_mydeskconfig( desk, buf );
+			free( buf );
+			add_deskconfig( &(Scr.Look), dc );
+       		myback = mylook_get_back( &(Scr.Look), dc->back_name);
+        	if( myback == NULL  )
+        	{
+            	myback = create_myback( dc->back_name );
+            	myback->type = MB_BackImage ;
+            	add_myback( &(Scr.Look), myback );
+			}
+		}
+	}
+	return myback;
+}
+
+
 ASImage *
 load_myback_image( int desk, MyBackground *back )
 {
@@ -544,7 +573,7 @@ load_myback_image( int desk, MyBackground *back )
 
     if( im == NULL )
     {
-        const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND);
+        const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND, False);
         if( const_configfile != NULL )
         {
             im = get_asimage( Scr.image_manager, const_configfile, 0xFFFFFFFF, 100 );
@@ -632,7 +661,7 @@ load_myback_image( int desk, MyBackground *back )
 void
 release_old_background( int desk, Bool forget )
 {
-    MyBackground *back = mylook_get_desk_back( &(Scr.Look), desk );
+    MyBackground *back = get_desk_back_or_default( desk, True );
     ASImage *im = NULL ;
     char *imname ;
 
@@ -654,7 +683,7 @@ LOCAL_DEBUG_CALLER_OUT("%d,%d", desk, forget);
         }
         if( im == NULL )
         {
-            const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND);
+            const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND, False);
             if( const_configfile != NULL )
             {
                 im = query_asimage( Scr.image_manager, const_configfile );
@@ -749,8 +778,8 @@ make_desktop_image( int desk, MyBackground *new_back )
 void
 change_desktop_background( int desk, int old_desk )
 {
-    MyBackground *new_back = mylook_get_desk_back( &(Scr.Look), desk );
-    MyBackground *old_back = mylook_get_desk_back( &(Scr.Look), old_desk );
+    MyBackground *new_back = get_desk_back_or_default( desk, False );
+    MyBackground *old_back = get_desk_back_or_default( old_desk, True );
     ASImage *new_im = NULL ;
 LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", desk, old_desk, new_back, old_back );
     if( new_back == NULL )
@@ -899,7 +928,7 @@ HandleBackgroundRequest( ASEvent *event )
     Bool    flags       = xcli->data.s[5] ;
     ARGB32  tint        = MAKE_ARGB32(0,xcli->data.s[6],xcli->data.s[7],xcli->data.s[8]) ;
     ASImage *im ;
-    MyBackground *back = mylook_get_desk_back( &(Scr.Look), desk );
+    MyBackground *back = get_desk_back_or_default( desk, False );
     Bool res = False;
     Bool do_tint = True ;
 

@@ -72,6 +72,7 @@
 #define BASE_FILE       "base"                           /* scrdepth */
 #define ASETROOT_FILE   "asetroot"                   /* legacy background configuration */
 #define THEME_OVERRIDE_FILE       "theme-override"
+#define DEFAULT_BACK_NAME   "default_background_%d"
 #define BACK_FILE       "non-configurable/%d_background" /* desk */
 #define LOOK_FILE       "non-configurable/%d_look" /* desk */
 #define FEEL_FILE       "non-configurable/%d_feel" /* desk */

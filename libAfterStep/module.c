@@ -490,7 +490,7 @@ LoadConfig (char *config_file_name, void (*read_options_func) (const char *))
             show_warning("configuration file \"%s\" cannot be found", config_file_name);
         }
 
-        if( (const_configfile = get_session_file (Session, 0, F_CHANGE_THEME) ) != NULL )
+        if( (const_configfile = get_session_file (Session, 0, F_CHANGE_THEME, False) ) != NULL )
         {
             read_options_func(const_configfile);
             show_progress("THEME configuration loaded from \"%s\" ...", const_configfile);

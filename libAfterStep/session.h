@@ -55,7 +55,7 @@ void	   change_desk_session_feel (ASSession * session, int desk, struct ASFeel *
 void 	   change_desk_session_look (ASSession * session, int desk, struct MyLook *look);
 
 
-const char   *get_session_file (ASSession * session, int desk, int function);
+const char   *get_session_file (ASSession * session, int desk, int function, Bool no_default);
 char **get_session_file_list (ASSession *session, int desk1, int desk2, int function);
 
 char *make_session_file   (ASSession * session, const char *source, Bool use_depth );

@@ -742,10 +742,10 @@ render_desk( ASPagerDesk *d, Bool force )
     return False;
 }
 
+#if 0
 static void
 update_desk_shape( ASPagerDesk *d )
 {
-#if 0
     int i ;
 
     if( d == NULL )
@@ -792,9 +792,9 @@ update_desk_shape( ASPagerDesk *d )
             }
         }
     }
-#endif
     clear_flags( d->flags, ASP_ShapeDirty );
 }
+#endif
 
 void
 update_pager_shape()
@@ -1593,9 +1593,9 @@ void add_desk_client( ASPagerDesk *d, ASWindowData *wd )
     LOCAL_DEBUG_OUT( "%p, %p, index %d", d, wd, d?d->clients_num:-1 );
     if( d && wd )
     {
-		int i = d->clients_num; 
-		while( --i >= 0 ) 
-			if( d->clients[i] == wd ) 
+		int i = d->clients_num;
+		while( --i >= 0 )
+			if( d->clients[i] == wd )
 				return ; /* already belongs to that desk */
         d->clients = realloc( d->clients, (d->clients_num+1)*sizeof(ASWindowData*));
         d->clients[d->clients_num] = wd ;
@@ -1646,7 +1646,7 @@ void refresh_client( long old_desk, ASWindowData *wd )
     if( old_desk != wd->desk )
     {
         forget_desk_client( old_desk, wd );
-		if( d != NULL ) 
+		if( d != NULL )
 		{
 	        add_desk_client( d, wd );
   		    LOCAL_DEBUG_OUT( "reparenting client to desk %ld", d->desk );
@@ -1655,7 +1655,7 @@ void refresh_client( long old_desk, ASWindowData *wd )
     }
     set_client_name( wd, True );
     set_astbar_focused( wd->bar, wd->canvas, wd->focused );
-	if( d != NULL ) 
+	if( d != NULL )
 	    place_client( d, wd, False, False );
     LOCAL_DEBUG_OUT( "all done%s", "" );
 }
@@ -1677,9 +1677,9 @@ change_desk_stacking( int desk, unsigned int clients_num, Window *clients )
     for( i = 0 ; i < clients_num ; ++i )
     {
 		ASWindowData *wd = fetch_window_by_id( clients[i] );
-		int k = d->clients_num; 
-		while( --k >= 0 ) 
-			if( d->clients[k] == wd ) 
+		int k = d->clients_num;
+		while( --k >= 0 )
+			if( d->clients[k] == wd )
 				break ; /* already belongs to that desk */
 		if( k < 0  )
 		{
@@ -2036,7 +2036,7 @@ ASGrid *make_pager_grid()
 void
 start_moveresize_client( ASWindowData *wd, Bool move, ASEvent *event )
 {
-    ASMoveResizeData *mvrdata;
+    ASMoveResizeData *mvrdata = NULL ;
     ASPagerDesk *d = get_pager_desk( wd->desk );
     MyStyle *pager_focused_style = Scr.Look.MSWindow[BACK_FOCUSED];
 

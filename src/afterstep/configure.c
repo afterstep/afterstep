@@ -1080,8 +1080,12 @@ FixLook( MyLook *look )
 	{
 		MyDesktopConfig *dc ;
 		MyBackground *myback ;
+		char * buf =safemalloc( strlen(DEFAULT_BACK_NAME)+1 );
 
-	    dc = create_mydeskconfig( 0, "default_background" );
+		sprintf( buf, DEFAULT_BACK_NAME, 0 );
+	    dc = create_mydeskconfig( 0, buf );
+		free( buf );
+
 		add_deskconfig( &(Scr.Look), dc );
        	myback = mylook_get_back(look, dc->back_name);
         if( myback == NULL  )
@@ -1246,7 +1250,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 			LoadColorScheme();
 
 			/* now we can proceed to loading them look and theme */
-            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_LOOK) ) != NULL )
+            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_LOOK, False) ) != NULL )
             {
                 InitLook (&Scr.Look, True);
                 ParseConfigFile (const_configfile, &tline);
@@ -1273,7 +1277,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         }
         if (get_flags(what, PARSE_FEEL_CONFIG))
 		{
-            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_FEEL) ) != NULL )
+            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_FEEL, False) ) != NULL )
             {
                 InitFeel (&Scr.Feel, True);
                 if (tline == NULL)
@@ -1296,7 +1300,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         }
         if (get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 		{
-            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_THEME) ) != NULL )
+            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_THEME, False) ) != NULL )
             {
                 ParseConfigFile (const_configfile, &tline);
                 show_progress("THEME configuration loaded from \"%s\" ...", const_configfile);
