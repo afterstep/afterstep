@@ -26,7 +26,7 @@ LIB_OBJS=	ashash.o asvector.o audit.o \
 LIB_NAME        = LIBAFTERBASE
 LIB_STATIC      = libAfterBase.a
 LIB_SHARED      = libAfterBase.so
-LIBVER          = 0.80
+LIBVER          = 0.81
 LIBVERMAJOR     = 0
 
 CC		= @CC@
