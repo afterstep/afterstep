@@ -226,7 +226,7 @@ put_file_home (const char *path_with_home)
 
 	for (i = 0; path_with_home[i]; i++);
 	str = safemalloc (home_len + i +1);
-	for (ptr = str + home_len; i > 0; i--)
+	for (ptr = str + home_len; i >= 0; i--)
 		ptr[i] = path_with_home[i];
 	for (i = 0; i < home_len; i++)
 		str[i] = home[i];
