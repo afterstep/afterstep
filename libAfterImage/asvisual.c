@@ -1086,9 +1086,9 @@ Bool enable_shmem_images ( )
 	{
 		_as_use_shm_images = True ;
 		if( xshmimage_segments == NULL )
-			xshmimage_segments = create_ashash_table( 0, NULL, NULL, destroy_xshmimage_segment );
+			xshmimage_segments = create_ashash( 0, NULL, NULL, destroy_xshmimage_segment );
 		if( xshmimage_images == NULL )
-			xshmimage_images = create_ashash_table( 0, pointer_hash_value, NULL, destroy_xshmimage_image );
+			xshmimage_images = create_ashash( 0, pointer_hash_value, NULL, destroy_xshmimage_image );
 	}else
 #endif
 		_as_use_shm_images = False ;
@@ -1195,13 +1195,13 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 		ximage = XShmCreateImage (asv->dpy, asv->visual_info.visual,
 			                      (depth==0)?asv->visual_info.depth/*true_depth*/:depth,
 								  ZPixmap, NULL, shminfo,
-								  MAX(width,(unsigned int)1), MAX(height,(unsigned int)1);
+								  MAX(width,(unsigned int)1), MAX(height,(unsigned int)1));
 		if( ximage == NULL )
 			free( shminfo );
 		else
 		{
 			shminfo->shmid = shmget (IPC_PRIVATE, ximage->bytes_per_line * ximage->height, IPC_CREAT|0777);
-			shminfo->shmaddr = ximage->data = shmat (shminfo.shmid, 0, 0);
+			shminfo->shmaddr = ximage->data = shmat (shminfo->shmid, 0, 0);
 			shminfo->readOnly = False;
 			XShmAttach (asv->dpy, shminfo);
 			registerXShmImage( ximage, shminfo );
@@ -1225,8 +1225,8 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 			}
 			ximage->data = data;
 		}
-		return ximage;
 	}
+	return ximage;
 #else
 	return NULL ;
 #endif /*ifndef X_DISPLAY_MISSING */
