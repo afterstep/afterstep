@@ -101,9 +101,12 @@ append_vector( ASVector *v, void * data, size_t size )
     if( v->allocated < v->used+size )
         realloc_vector( v, v->used+size + ((v->used+size)>>3) );
 
-    memcpy( v->memory+v->used, data, size*v->unit );
-    v->used += size ;
-
+	if( data ) 
+	{
+  		memcpy( v->memory+v->used, data, size*v->unit );
+	    v->used += size ;
+	}
+	
     return v;
 }
 

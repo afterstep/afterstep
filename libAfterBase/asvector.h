@@ -15,13 +15,16 @@ typedef struct ASVector
 #define VECTOR_TAIL(t,v)    ((t*)(((v).memory) + ((v).used)))
 #define VECTOR_TAIL_RAW(v)  (((v).memory) + ((v).used))
 #define VECTOR_USED(v)      ((v).used)
+#define VECTOR_UNIT(v)      ((v).unit)
 
 ASVector *create_asvector( size_t unit );
 void destroy_asvector( ASVector **v );
 /* return memory starting address : */
 void *alloc_vector( ASVector *v, size_t new_size );
 void *realloc_vector( ASVector *v, size_t new_size );
-/* returns self : */
+/* If append_vector is used with data == NULL it will only allocate 
+   additional space, but will not copy any data. 
+   Returns self : */
 ASVector *append_vector( ASVector *v, void * data, size_t size );
 
 /* returns index on success, -1 on failure */
