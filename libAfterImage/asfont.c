@@ -155,7 +155,7 @@ LOCAL_DEBUG_OUT( "looking for \"%s\"", font_string );
 		{
 			face = NULL ;
 LOCAL_DEBUG_OUT( "font file found : \"%s\", trying to load face #%d, using library %p", realfilename, face_no, fontman->ft_library );
-			if( FT_New_Face( fontman->ft_library, "test.ttf"/*realfilename*/, face_no, &face ) )
+			if( FT_New_Face( fontman->ft_library, realfilename, face_no, &face ) )
 			{
 LOCAL_DEBUG_OUT( "face load failed.%s", "" );
 

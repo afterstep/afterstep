@@ -9,11 +9,11 @@
  * RGB<->HLS.
  * SEE ALSO
  * Functions :
- *      Colorspace conversion :
+ *    Colorspace conversion :
  *          rgb2value(), rgb2saturation(), rgb2hue(), rgb2luminance(),
  *          rgb2hsv(), rgb2hls(), hsv2rgb(), hls2rgb().
  *
- *  	merge_scanline methods :
+ *    merge_scanline methods :
  *          alphablend_scanlines(), allanon_scanlines(),
  *          tint_scanlines(), add_scanlines(), sub_scanlines(),
  *          diff_scanlines(), darken_scanlines(), lighten_scanlines(),

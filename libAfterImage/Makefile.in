@@ -12,7 +12,8 @@ LIB_INCS= config.h afterbase.h asfont.h asimage.h asvisual.h \
 LIB_OBJS= @AFTERBASE_C@ asfont.o asimage.o asvisual.o blender.o \
 		import.o xcf.o xpm.o
 
-LIB_DOCS= asfont.h asimage.h asvisual.h blender.h import.h
+LIB_DOCS= afterimage.h asfont.h asimage.h asvisual.h blender.h \
+          import.h
 
 # end specifics
 ################################################################
@@ -56,7 +57,7 @@ INSTALL_SCRIPT	= @INSTALL@ -m 755
 INCS_EXTRA	= @XPM_CFLAGS@ @JPEG_CFLAGS@ @PNG_CFLAGS@ @GIF_CFLAGS@ @TIFF_CFLAGS@ @TTF_INCLUDES@
 INCS_X		= @X_CFLAGS@
 INCS_PRIVATE= @AFTERBASE_CFLAGS@
-INCLUDES	= $(INCS_EXTRA) $(INCS_PRIVATE) $(INCS_X) 
+INCLUDES	= $(INCS_EXTRA) $(INCS_PRIVATE) $(INCS_X)
 
 LIBDIR		= $(DESTDIR)@libdir@
 INCLUDEDIR	= $(DESTDIR)@includedir@
@@ -212,7 +213,11 @@ doc.xref: $(LIB_DOCS)
 	for f in $$SRCS; do \
 		$(ROBODOC) $$f.h $$f.html HTML C TABSIZE 4 GENXREF doc/$$f.xref; \
 		echo "doc/$$f.xref" >> afterimage_xref.lst; \
-	done; 
+	done; \
+	echo "doc/x11_symbols.xref" >> afterimage_xref.lst; \
+	echo "doc/freetype_symbols.xref" >> afterimage_xref.lst;
+
+
 
 
 doc.html:  doc.xref

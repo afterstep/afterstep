@@ -36,37 +36,38 @@ struct ASScanline;
  *
  * SEE ALSO
  * Structures :
- * 		ASImage
- * 		ASImageBevel
- * 		ASImageDecoder
- * 		ASImageOutput
- * 		ASImageLayer
- * 		ASGradient
+ *          ASImage
+ *          ASImageBevel
+ *          ASImageDecoder
+ *          ASImageOutput
+ *          ASImageLayer
+ *          ASGradient
  *
  * Functions :
- * 		asimage_init(), asimage_start(), create_asimage(),
- * 		destroy_asimage()
+ *          asimage_init(), asimage_start(), create_asimage(),
+ *          destroy_asimage()
  *
  *   Encoding :
- * 		asimage_add_line(),	asimage_add_line_mono(), asimage_print_line()
+ *          asimage_add_line(),	asimage_add_line_mono(),
+ *          asimage_print_line()
  *
  *   Decoding
- * 		start_image_decoding(), stop_image_decoding()
+ *          start_image_decoding(), stop_image_decoding()
  *
  *   Output :
- * 		start_image_output(), set_image_output_back_color(),
- * 		toggle_image_output_direction(), stop_image_output()
+ *          start_image_output(), set_image_output_back_color(),
+ *          toggle_image_output_direction(), stop_image_output()
  *
  *   X11 conversions :
- * 		ximage2asimage(), pixmap2asimage(), asimage2ximage(),
- * 		asimage2mask_ximage(), asimage2pixmap(), asimage2mask()
+ *          ximage2asimage(), pixmap2asimage(), asimage2ximage(),
+ *          asimage2mask_ximage(), asimage2pixmap(), asimage2mask()
  *
  *   Transformations :
- * 		scale_asimage(), tile_asimage(), merge_layers(), make_gradient(),
- * 		flip_asimage()
+ *          scale_asimage(), tile_asimage(), merge_layers(), make_gradient(),
+ *          flip_asimage()
  *
  * Other libAfterImage modules :
- *      asvisual.h, import.h, blender.h, asfont.h
+ *          asvisual.h, import.h, blender.h, asfont.h
  * AUTHOR
  * Sasha Vasko <sashav at sprintmail dot com>
  ******
