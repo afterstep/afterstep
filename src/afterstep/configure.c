@@ -924,6 +924,8 @@ InitLook (Bool free_resources)
 		while (mystyle_first != NULL)
 			mystyle_delete (mystyle_first);
 
+        if( Scr.DefaultFrame )
+            destroy_myframe( &(Scr.DefaultFrame) );
 		/* GCs */
 		if (Scr.LineGC != None)
 			XFreeGC (dpy, Scr.LineGC);
@@ -987,6 +989,8 @@ InitLook (Bool free_resources)
 	Scr.MSMenuItem = NULL;
 	Scr.MSMenuHilite = NULL;
 	Scr.MSMenuStipple = NULL;
+
+    Scr.DefaultFrame = create_default_myframe();
 
 	/* GCs */
 	Scr.LineGC = None;

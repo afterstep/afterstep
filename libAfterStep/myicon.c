@@ -71,3 +71,23 @@ free_icon_resources (icon_t icon)
 	if (icon.image)
 		safe_asimage_destroy (icon.image);
 }
+
+void
+destroy_icon(icon_t **picon)
+{
+    icon_t *pi = *picon ;
+    if( pi )
+    {
+        if (pi->pix)
+            UnloadImage(pi->pix);
+        if (pi->mask)
+            UnloadMask (pi->mask);
+        if (pi->alpha)
+            UnloadMask (pi->alpha);
+        if (pi->image)
+            safe_asimage_destroy (pi->image);
+        free( pi );
+        *picon = NULL ;
+    }
+}
+

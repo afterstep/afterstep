@@ -34,6 +34,7 @@
 #include "../include/misc.h"
 #include "../include/screen.h"
 #include "../libAfterImage/afterimage.h"
+#include "../include/myicon.h"
 #include "../include/decor.h"
 
 #ifdef SHAPE
@@ -293,7 +294,7 @@ update_canvas_display (ASCanvas * pc)
 void
 resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 {
-	/* Setting background to None to avoid background pixmap tiling 
+	/* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
 	if (pc->width < width || pc->height < height)
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
@@ -568,9 +569,9 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 	}
 
 	mystyle_make_bevel (style, &bevel, ASTBAR_HILITE, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
-	/* in unfocused and unpressed state we render pixmap and set 
-	 * window's background to it 
-	 * in focused state or in pressed state we render to 
+	/* in unfocused and unpressed state we render pixmap and set
+	 * window's background to it
+	 * in focused state or in pressed state we render to
 	 * the window directly, and we'll need to be handling the expose
 	 * events
 	 */
@@ -676,3 +677,50 @@ update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc)
 		render_astbar (tbar, pc);
 	}
 }
+
+/*************************************************************************/
+/*************************************************************************/
+/* MyFrame management :                                                  */
+/*************************************************************************/
+MyFrame *
+create_myframe()
+{
+    MyFrame *frame = safecalloc( 1, sizeof(MyFrame));
+    frame->magic = MAGIC_MYFRAME ;
+
+    return frame;
+
+}
+
+MyFrame *
+create_default_myframe()
+{
+    MyFrame *frame = create_myframe();
+    frame->flags = C_SIDEBAR ;
+    frame->part_width[FR_S] = BOUNDARY_WIDTH ;
+    frame->part_width[FR_SW] = CORNER_WIDTH ;
+    frame->part_width[FR_SE] = CORNER_WIDTH ;
+    frame->part_length[FR_SW] = BOUNDARY_WIDTH ;
+    frame->part_length[FR_SE] = BOUNDARY_WIDTH ;
+    frame->spacing = 1;
+    return frame ;
+}
+
+void
+destroy_myframe( MyFrame **pframe )
+{
+    MyFrame *pf = *pframe ;
+    if( pf )
+    {
+        register int i = FRAME_PARTS;
+        while( --i >= 0 )
+            if( pf->parts[i] )
+                destroy_icon( &(pf->parts[i]) );
+        pf->magic = 0 ;
+        free( pf );
+        *pframe = NULL ;
+    }
+
+}
+
+/*************************************************************************/

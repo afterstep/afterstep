@@ -14,7 +14,7 @@ typedef struct ASCanvas
 	Window w;
 	int root_x, root_y;
 	unsigned int width, height ;
-	
+
 	Pixmap canvas;
 	Pixmap mask;
 }ASCanvas;
@@ -33,16 +33,57 @@ typedef struct ASTBarData {
 	int rendered_root_x, rendered_root_y;
 	unsigned int width, height ;
 	char *label_text ;
-	
+
 	unsigned int left_bevel, top_bevel, right_bevel, bottom_bevel ;
-	
+
 	struct MyStyle 		*style[2] ;
 	struct ASImage 		*back [2] ;
 	struct ASImage 		*label[2] ;
-	
+
 	struct ASImage *left_shape, *center_shape, *right_shape ;
 
 }ASTBarData ;
+
+/*********************************************************************
+ * Window decorations Frame can be defined as such :
+ *
+ * MyFrame "name"
+ *     [Inherit     "name"]
+ * #traditional form :
+ *     [FrameN   <pixmap>]
+ *     [FrameE   <pixmap>]
+ *     [FrameS   <pixmap>]
+ *     [FrameW   <pixmap>]
+ *     [FrameNE  <pixmap>]
+ *     [FrameNW  <pixmap>]
+ *     [FrameSE  <pixmap>]
+ *     [FrameSW  <pixmap>]
+ * #alternative form :
+ *     [Side        North|South|East|West|Any [<pixmap>]] - if pixmap is ommited -
+ *                                                          empty bevel will be drawn
+ *     [NoSide      North|South|East|West|Any]
+ *     [Corner      NorthEast|SouthEast|NorthWest|SouthWest|Any <pixmap>] - if pixmap is ommited -
+ *                                                                          empty bevel will be drawn
+ *     [NoCorner    NorthEast|SouthEast|NorthWest|SouthWest|Any]
+ *     [SideSize    North|South|East|West|Any <WIDTHxLENGTH>] - pixmap will be scaled to this size
+ *     [CornerSize  NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT>]
+ * ~MyFrame
+ */
+struct icon_t;
+
+typedef struct MyFrame
+{
+#define MAGIC_MYFRAME           0xA351F385
+
+    unsigned long magic ;
+    char      *name;
+    ASFlagType flags; /* first 8 bits represent one enabled side/corner each */
+    struct icon_t    *parts[FRAME_PARTS];
+    unsigned int part_width[FRAME_PARTS];
+    unsigned int part_length[FRAME_PARTS];
+    unsigned int spacing ;
+}MyFrame;
+
 
 ASCanvas* create_ascanvas(Window w);
 void destroy_ascanvas( ASCanvas **pcanvas );
@@ -72,6 +113,12 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 Bool set_astbar_focused( ASTBarData *tbar, ASCanvas *pc, Bool focused );
 Bool set_astbar_pressed( ASTBarData *tbar, ASCanvas *pc, Bool pressed );
 void update_astbar_transparency( ASTBarData *tbar, ASCanvas *pc );
+
+
+MyFrame *create_myframe();
+MyFrame *create_default_myframe();
+void destroy_myframe( MyFrame **pframe );
+
 
 #endif /* !NO_TEXTURE */
 #endif /* DECOR_H_HEADER */

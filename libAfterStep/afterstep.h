@@ -10,7 +10,7 @@
 #endif
 
 #ifndef set_flags
-#define set_flags(v,f)  	((v)|=(f)) 
+#define set_flags(v,f)  	((v)|=(f))
 #define clear_flags(v,f)	((v)&=~(f))
 #define get_flags(v,f)  	((v)&(f))
 #endif
@@ -76,25 +76,59 @@
 #define MENU_BACK_STIPPLE 	3
 #define MENU_BACK_STYLES 	4
 
+/* different frame decoration part ids : */
+typedef enum
+{				/* don't change order !!!!
+				 * If you do, the following must be met :
+				 *     - sides must go first and start with 0
+				 *     - order must be the same as order of cursors in screen.h
+				 */
+  FR_N = 0,
+  FR_E,
+  FR_S,
+  FR_W,
+  FRAME_SIDES,
+  FR_NW = FRAME_SIDES,
+  FR_NE,
+  FR_SW,
+  FR_SE,
+  FRAME_CORNERS,
+  FRAME_PARTS = FRAME_CORNERS
+}
+FrameSide;
+
 
 /* contexts for button presses */
 #define C_NO_CONTEXT		0
-#define C_WINDOW		(1 <<  0)
-#define C_TITLE			(1 <<  1)
-#define C_ICON			(1 <<  2)
-#define C_ROOT			(1 <<  3)
-#define C_FRAME			(1 <<  4)
-#define C_SIDEBAR		(1 <<  5)
-#define C_L1    		(1 <<  6)
-#define C_L2     		(1 <<  7)
-#define C_L3     		(1 <<  8)
-#define C_L4     		(1 <<  9)
-#define C_L5     		(1 << 10)
-#define C_R1     		(1 << 11)
-#define C_R2     		(1 << 12)
-#define C_R3     		(1 << 13)
-#define C_R4     		(1 << 14)
-#define C_R5     		(1 << 15)
+#define C_FrameN        (0x01<<0)
+#define C_FrameE        (0x01<<1)
+#define C_FrameS        (0x01<<2)
+#define C_FrameW        (0x01<<3)
+#define C_FrameNW       (0x01<<4)
+#define C_FrameNE       (0x01<<5)
+#define C_FrameSW       (0x01<<6)
+#define C_FrameSE       (0x01<<7)
+#define C_SIDEBAR           (C_FrameS|C_FrameSW|C_FrameSE)
+#define C_VERTICAL_SIDEBAR  (C_FrameW|C_FrameNW|C_FrameSW)
+#define C_FRAME             (C_FrameN|C_FrameE|C_FrameS|C_FrameW|
+                             C_FrameNW|C_FrameNE|C_FrameSW|C_FrameSE)
+#define C_FrameStart    (C_FrameN)
+#define C_FrameEnd      (C_FrameSE)
+
+#define C_WINDOW        (0x01<<8)
+#define C_TITLE         (0x01<<9)
+#define C_ICON          (0x01<<10)
+#define C_ROOT          (0x01<<11)
+#define C_L1            (0x01<<12)
+#define C_L2            (0x01<<13)
+#define C_L3            (0x01<<14)
+#define C_L4            (0x01<<15)
+#define C_L5            (0x01<<16)
+#define C_R1            (0x01<<17)
+#define C_R2            (0x01<<18)
+#define C_R3            (0x01<<19)
+#define C_R4            (0x01<<20)
+#define C_R5            (0x01<<21)
 #define C_RALL			(C_R1|C_R2|C_R3|C_R4|C_R5)
 #define C_LALL			(C_L1|C_L2|C_L3|C_L4|C_L5)
 #define C_ALL			(C_WINDOW|C_TITLE|C_ICON|C_ROOT|C_FRAME|\
@@ -118,27 +152,6 @@ typedef struct button_t
 button_t;
 
 typedef button_t MyButton ;
-
-/* different frame decoration part ids : */
-typedef enum
-{				/* don't change order !!!!
-				 * If you do, the following must be met :
-				 *     - sides must go first and start with 0
-				 *     - order must be the same as order of cursors in screen.h
-				 */
-  FR_N = 0,
-  FR_E,
-  FR_S,
-  FR_W,
-  FRAME_SIDES,
-  FR_NW = FRAME_SIDES,
-  FR_NE,
-  FR_SW,
-  FR_SE,
-  FRAME_CORNERS,
-  FRAME_PARTS = FRAME_CORNERS
-}
-FrameSide;
 
 typedef struct
 {
@@ -164,19 +177,19 @@ struct ASTBarData;
 
 
 /* for each window that is on the display, one of these structures
- * is allocated and linked into a list 
+ * is allocated and linked into a list
  */
 typedef struct ASWindow
   {
     struct ASWindow *next;	/* next afterstep window */
     struct ASWindow *prev;	/* prev afterstep window */
     Window w;			/* the child window */
-	
+
 	struct ASHints       *hints;
 	struct ASStatusHints *status;
 	struct ASStatusHints *saved_status; /* status prior to maximization */
 	XPoint 				  anchor ;
-	
+
 #define ASWIN_NAME(t)       ((t)->hints->names[0])
 #define ASWIN_CLASS(t)      ((t)->hints->res_class)
 #define ASWIN_RES_NAME(t)   ((t)->hints->res_name)

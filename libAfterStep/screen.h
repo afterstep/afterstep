@@ -112,6 +112,8 @@ struct MouseButton;
 struct FuncKey;
 struct MyStyle;
 struct ASSupportedHints;
+struct MyFrame;
+struct ASHashTable;
 
 typedef struct ScreenInfo
   {
@@ -121,7 +123,7 @@ typedef struct ScreenInfo
     int NumberOfScreens;	/* number of screens on display */
     int MyDisplayWidth;		/* my copy of DisplayWidth(dpy, screen) */
     int MyDisplayHeight;	/* my copy of DisplayHeight(dpy, screen) */
-	
+
 	struct ASVisual *asv ;  /* ASVisual for libAfterImage */
 	struct ASImage  *RootImage;
 
@@ -178,6 +180,9 @@ typedef struct ScreenInfo
     struct MyStyle *MSMenuHilite;	/* menu item hilite style */
     struct MyStyle *MSMenuStipple;	/* menu stippled item style */
 
+    struct MyFrame *DefaultFrame;
+    struct ASHashTable *FramesList ;/* hash table of named MyFrames */
+
     GC NormalGC;		/* normal GC for menus, pager, resize window */
     GC StippleGC;		/* normal GC for menus, pager, resize window */
     GC DrawGC;			/* GC to draw lines for move and resize */
@@ -202,10 +207,10 @@ typedef struct ScreenInfo
     MyIcon MenuPinOff;
 #endif
     long next_focus_sequence;	/* keep track of previously focused windows */
-    ASWindow *Hilite;		/* the afterstep window that is highlighted 
+    ASWindow *Hilite;		/* the afterstep window that is highlighted
 				 * except for networking delays, this is the
 				 * window which REALLY has the focus */
-    ASWindow *Focus;		/* Last window which AS gave the focus to 
+    ASWindow *Focus;		/* Last window which AS gave the focus to
 				   * NOT the window that really has the focus */
     ASWindow *Ungrabbed;
     ASWindow *PreviousFocus;	/* Window which had focus before afterstep stole it
@@ -252,7 +257,7 @@ typedef struct ScreenInfo
     Pixmap dbutton_pixmap_mask[10];
     int button_width[10];
     int button_height[10];
- */    
+ */
 	int TitleButtonSpacing;
     int TitleButtonStyle;
 
@@ -261,13 +266,13 @@ typedef struct ScreenInfo
 
     int RaiseButtons;		/* The buttons to do click-to-raise */
     fr_sz fs[8];
-	
+
 	int xinerama_screens_num ;
 	XRectangle *xinerama_screens;
-	
+
 	ASFontManager  *font_manager ;
 	ASImageManager *image_manager ;
-	
+
 	struct ASSupportedHints *supported_hints;
 
   }
