@@ -62,13 +62,11 @@ int main(int argc, char* argv[])
 	int layers_num = 0, i;
 	ASImage *merged_im ;
 
-
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 #if (HAVE_AFTERBASE_FLAG==1)
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
 #endif
-
 	if( argc == 2 && strncmp(argv[1],"-h", 2) == 0 )
 	{
 		usage();
@@ -76,7 +74,7 @@ int main(int argc, char* argv[])
 	}
 	if( argc <= 3 )
 	{
-		show_error( "not enough arguments, please see usage: ");
+		show_error( "not enough arguments, please see usage:%s", " ");
 		usage() ;
 		printf( "Using the default, \"The Burning Rose\", composition :\n");
 		printf( "\n\trose512.jpg add back.xpm:512x386 hue fore.xpm:512x386\n");
@@ -168,7 +166,7 @@ int main(int argc, char* argv[])
 	merged_im = merge_layers( asv, layers, layers_num,
 		                      to_width, to_height,
 #ifndef X_DISPLAY_MISSING
-							  ASA_XImage, 
+							  ASA_XImage,
 #else
 							  ASA_ASImage,
 #endif
@@ -192,6 +190,7 @@ int main(int argc, char* argv[])
 			/* see ASView.5 : */
 			p = asimage2pixmap( asv, DefaultRootWindow(dpy), merged_im,
 			                NULL, True );
+
 			destroy_asimage( &merged_im );
 			/* see common.c: set_window_background_and_free() : */
 			p = set_window_background_and_free( w, p );

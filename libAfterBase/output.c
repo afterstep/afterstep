@@ -31,7 +31,7 @@
 #include "ashash.h"
 #include "parse.h"
 
-char         *ApplicationName = NULL;                    /* name are we known by */
+char         *ApplicationName = "unknown";                    /* name are we known by */
 
 
 static stream_func  as_default_stream_func = (stream_func)fprintf;
@@ -43,10 +43,8 @@ static unsigned int as_output_curr_level = OUTPUT_DEFAULT_THRESHOLD ;
 void
 set_application_name (char *argv0)
 {
-	char         *temp = strrchr (argv0, '/');
-
-	/* Save our program name - for error messages */
-	ApplicationName = temp ? temp + 1 : argv0;
+	char *temp = strrchr(argv0, '\' );
+	ApplicationName = temp ? temp+1:argv0;
 }
 
 const char *

@@ -304,7 +304,7 @@ typedef struct ASVisual
 	void   (*scanline2ximage_func)( struct ASVisual *asv, XImage *xim,
 									ASScanline *sl, int y,
 									unsigned char *xim_data );
-#ifndef X_DISPLAY_MISSING				
+#ifndef X_DISPLAY_MISSING
 #define ARGB2PIXEL(asv,argb,pixel) 		   \
 	(asv)->color2pixel_func((asv),(argb),(pixel))
 #define GET_SCANLINE(asv,xim,sl,y,xim_data) \
@@ -475,7 +475,7 @@ Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
  *                               int x, int y,
  *                               unsigned int width, unsigned int height,
  *                               unsigned int border_width,
- *                               unsigned int class,
+ *                               unsigned int wclass,
  *                               unsigned long mask,
  *                               XSetWindowAttributes *attributes );
  * INPUTS
@@ -484,7 +484,7 @@ Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
  * x, y          - initial position of the new window.
  * width, height - initial size of the new window.
  * border_width  - initial border width of the new window.
- * class         - Window class  - InputOnly or InputOutput.
+ * wclass         - Window class  - InputOnly or InputOutput.
  * mask          - defines what attributes are set.
  * attributes    - different window attributes.
  * RETURN VALUE
@@ -534,7 +534,7 @@ Window  create_visual_window( ASVisual *asv, Window parent,
 							  int x, int y,
 							  unsigned int width, unsigned int height,
 							  unsigned int border_width,
-							  unsigned int class,
+							  unsigned int wclass,
  					  		  unsigned long mask,
 							  XSetWindowAttributes *attributes );
 Pixmap  create_visual_pixmap( ASVisual *asv, Window root,

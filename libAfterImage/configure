@@ -4879,8 +4879,12 @@ HAVE_AFTERBASE_FLAG=0
 if test "x$have_afterbase" = "xyes"; then
     HAVE_AFTERBASE_FLAG=1
 	AFTERBASE_C=
-    AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lAfterBase"
-	AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL -lAfterBase"
+    if test "x$have_x" != "xyes" -a "x$have_gif" = "xyes"; then
+    	AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lAfterBase"
+    else
+    	AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
+    fi
+	AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
     cat >>confdefs.h <<\EOF
 #define HAVE_AFTERBASE 1
 EOF

@@ -352,13 +352,8 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	/* lets see if we have alpha channel indeed : */
 	if( has_alpha )
 	{
-		has_alpha = False ;
-		for( y = 0 ; y < im->height ; y++ )
-			if( im->alpha[y] != NULL )
-			{
-				has_alpha = True ;
-				break;
-			}
+		if( !get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) );
+			has_alpha = False ;
 	}
 	png_set_IHDR(png_ptr, info_ptr, im->width, im->height, 8,
 		         grayscale ? (has_alpha?PNG_COLOR_TYPE_GRAY_ALPHA:PNG_COLOR_TYPE_GRAY):
@@ -787,10 +782,120 @@ ASImage2gif( ASImage *im, const char *path, ASImageExportParams *params )
 Bool
 ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params)
 {
+	TIFF *out;
+	ASTiffExportParams defaults = { ASIT_Tiff, 0, -1, TIFF_COMPRESSION_NONE, 100 };
+	uint16 photometric = PHOTOMETRIC_RGB;
+	tsize_t linebytes, scanline;
+	ASScanline     imbuf;
+	unsigned char* buf;
+	CARD32  row ;
+	Bool has_alpha ;
+	int nsamples = 3 ;
 	START_TIME(started);
-	SHOW_PENDING_IMPLEMENTATION_NOTE("ICO");
+
+
+	if( params == NULL )
+		params = (ASImageExportParams *)&defaults ;
+
+	out = TIFFOpen(path, "w");
+	if (out == NULL)
+		return False;
+	/* I don't really know why by grayscale images in Tiff does not work :(
+	 * still here is the code :*/
+	if( get_flags( params->tiff.flags, EXPORT_GRAYSCALE ) )
+		nsamples = 1 ;
+	has_alpha = get_flags( params->tiff.flags, EXPORT_ALPHA );
+	if( has_alpha )
+	{
+		if( !get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) )
+			has_alpha = False ;
+		else
+			++nsamples ;
+	}
+
+	TIFFSetField(out, TIFFTAG_IMAGEWIDTH, (uint32) im->width);
+	TIFFSetField(out, TIFFTAG_IMAGELENGTH, (uint32) im->height);
+	TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
+	TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, nsamples);
+	if (has_alpha)
+	{
+	    uint16 v[1];
+	    v[0] = EXTRASAMPLE_UNASSALPHA;
+	    TIFFSetField(out, TIFFTAG_EXTRASAMPLES, 1, v);
+	}
+
+	TIFFSetField(out, TIFFTAG_BITSPERSAMPLE,   8);
+	TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+	if( params->tiff.compression_type == -1  )
+		params->tiff.compression_type = defaults.compression_type ;
+	TIFFSetField(out, TIFFTAG_COMPRESSION,  params->tiff.compression_type);
+	switch (params->tiff.compression_type )
+	{
+		case COMPRESSION_JPEG:
+			photometric = PHOTOMETRIC_YCBCR;
+			if( params->tiff.jpeg_quality > 0 )
+				TIFFSetField(out, TIFFTAG_JPEGQUALITY, params->tiff.jpeg_quality );
+			TIFFSetField( out, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+			break;
+	}
+	TIFFSetField(out, TIFFTAG_PHOTOMETRIC, photometric);
+
+	linebytes = im->width*nsamples;
+	scanline = TIFFScanlineSize(out);
+	if (scanline > linebytes)
+	{
+		buf = (unsigned char *)_TIFFmalloc(scanline);
+		_TIFFmemset(buf+linebytes, 0, scanline-linebytes);
+	} else
+		buf = (unsigned char *)_TIFFmalloc(linebytes);
+	TIFFSetField(out, TIFFTAG_ROWSPERSTRIP,
+				 TIFFDefaultStripSize(out, params->tiff.rows_per_strip));
+
+	prepare_scanline( im->width, 0, &imbuf, False );
+
+	for (row = 0; row < im->height; ++row)
+	{
+		register int i = im->width, k = (im->width-1)*nsamples ;
+		asimage_decode_line (im, IC_RED,   imbuf.red, row, 0, imbuf.width);
+		asimage_decode_line (im, IC_GREEN, imbuf.green, row, 0, imbuf.width);
+		asimage_decode_line (im, IC_BLUE,  imbuf.blue, row, 0, imbuf.width);
+		if( has_alpha )
+		{
+			asimage_decode_line (im, IC_ALPHA,  imbuf.alpha, row, 0, imbuf.width);
+			if( nsamples == 2 )
+				while ( --i >= 0 )
+				{
+					buf[k+1] = imbuf.alpha[i] ;
+					buf[k] = (54*imbuf.red[i]+183*imbuf.green[i]+19*imbuf.blue[i])/256 ;
+					k-= 2;
+				}
+			else
+				while ( --i >= 0 )
+				{
+					buf[k+3] = imbuf.alpha[i] ;
+					buf[k+2] = imbuf.blue[i] ;
+					buf[k+1] = imbuf.green[i] ;
+					buf[k] = imbuf.red[i] ;
+					k-= 4;
+				}
+		}else if( nsamples == 1 )
+			while ( --i >= 0 )
+				buf[k--] = (54*imbuf.red[i]+183*imbuf.green[i]+19*imbuf.blue[i])/256 ;
+		else
+			while ( --i >= 0 )
+			{
+				buf[k+2] = imbuf.blue[i] ;
+				buf[k+1] = imbuf.green[i] ;
+				buf[k] = imbuf.red[i] ;
+				k-= 3;
+			}
+
+		if (TIFFWriteScanline(out, buf, row, 0) < 0)
+			break;
+	}
+	(void) TIFFClose(out);
 	SHOW_TIME("image export",started);
-	return False;
+	return True;
 }
 #else 			/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
 

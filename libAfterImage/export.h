@@ -99,6 +99,34 @@ typedef struct
 	int opaque_threshold ;
 }ASGifExportParams ;
 /*******/
+/****s* libAfterImage/ASTiffExportParams
+ * NAME
+ * ASTiffExportParams
+ * SYNOPSIS
+ * ASTiffExportParams - parameters for export into TIFF file.
+ * DESCRIPTION
+ * SEE ALSO
+ * SOURCE
+ */
+typedef struct
+{
+	ASImageFileTypes type;
+	ASFlagType flags ;
+	CARD32 rows_per_strip ;
+
+/* these are suitable compressions : */
+#define TIFF_COMPRESSION_NONE 		1
+#define	TIFF_COMPRESSION_OJPEG		6	/* !6.0 JPEG */
+#define	TIFF_COMPRESSION_JPEG		7
+#define	TIFF_COMPRESSION_PACKBITS	32773	/* Macintosh RLE */
+#define	TIFF_COMPRESSION_DEFLATE  	32946	/* Deflate compression */
+	/* you should be able to use other values from tiff.h as well */
+	CARD32 compression_type ;
+	int jpeg_quality ;
+
+	int opaque_threshold ;
+}ASTiffExportParams ;
+/*******/
 /****s* libAfterImage/ASImageExportParams
  * NAME
  * ASImageExportParams
@@ -118,6 +146,7 @@ typedef union ASImageExportParams
 	ASPngExportParams  png;
 	ASJpegExportParams jpeg;
 	ASGifExportParams  gif;
+	ASTiffExportParams tiff;
 }ASImageExportParams;
 /******/
 

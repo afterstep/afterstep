@@ -203,7 +203,7 @@ typedef struct XcfAnyListElem
 	CARD32 offset ;
 }XcfAnyListElem;
 
-typedef union {
+typedef union XcfListElem{
 	XcfAnyListElem  any;
 	XcfLayer		layer;
 	XcfChannel		channel;

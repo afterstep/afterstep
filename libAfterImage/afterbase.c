@@ -28,16 +28,22 @@
 #include "config.h"
 #include "afterbase.h"
 
-Display *dpy ;
-char    *asim_ApplicationName ;
+Display *dpy = NULL ;
+char    *asim_ApplicationName = NULL ;
 
 void
 set_application_name (char *argv0)
 {
-	char         *temp = strrchr (argv0, '/');
-
-	/* Save our program name - for error messages */
-	asim_ApplicationName = temp ? temp + 1 : argv0;
+	char *temp = &(argv0[0]);
+	do
+	{	/* Save our program name - for error messages */
+		register int i = 1 ;                   /* we don't use standard strrchr since there
+												* seems to be some wierdness in
+												* CYGWIN implementation of it. */
+		asim_ApplicationName =  temp ;
+		while( temp[i] && temp[i] != '/' ) ++i ;
+		temp = temp[i] ? &(temp[i]): NULL ;
+	}while( temp != NULL );
 }
 
 const char *

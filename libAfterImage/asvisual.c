@@ -840,7 +840,7 @@ setup_as_colormap( ASVisual *asv )
 Window
 create_visual_window( ASVisual *asv, Window parent,
 					  int x, int y, unsigned int width, unsigned int height,
-					  unsigned int border_width, unsigned int class,
+					  unsigned int border_width, unsigned int wclass,
  					  unsigned long mask, XSetWindowAttributes *attributes )
 {
 #ifndef X_DISPLAY_MISSING
@@ -850,7 +850,7 @@ create_visual_window( ASVisual *asv, Window parent,
 		return None ;
 LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 				  asv->colormap, parent, width, height, x, y, border_width,
-				  class );
+				  wclass );
 	if( attributes == NULL )
 	{
 		attributes = &my_attr ;
@@ -863,7 +863,7 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 	if( height < 1 )
 		height = 1 ;
 
-	if( class == InputOnly )
+	if( wclass == InputOnly )
 	{
 		border_width = 0 ;
 		if( (mask&INPUTONLY_LEGAL_MASK) != mask )
@@ -888,7 +888,7 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 		}
 	}
 	return XCreateWindow (asv->dpy, parent, x, y, width, height, border_width, 0,
-						  class, asv->visual_info.visual,
+						  wclass, asv->visual_info.visual,
 	                      mask, attributes);
 #else
 	return None ;
