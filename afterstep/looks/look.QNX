@@ -238,7 +238,7 @@ IconBox                 1 -80 -1 -1
 MyFrame "glass"
 	TitleBevel 		None
 	LeftBtnBackground	bars/title_lbtn_qnx
-	LeftBtnBackAlign	VScaled
+	LeftBtnBackAlign	VScaled,Left
 #	LeftSpacerBackground	bars/title_lspacer_glass_transp
 #	LeftSpacerBackAlign	VScaled
 	RightSpacerBackground	bars/title_rspacer_qnx
@@ -313,7 +313,7 @@ TitleButtonXOffsetRight	5
 TitleButtonYOffset	4
 #  define the number of pixels between titlebar buttons ; 0
 TitleButtonSpacingRight	1
-TitleButtonSpacingLeft	4
+TitleButtonSpacingLeft	6
 
 TitleTextAlign          1
 
