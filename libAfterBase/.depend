@@ -89,6 +89,13 @@
 		astypes.h \
 		sleep.h
 
+./socket.c: \
+		config.h \
+		astypes.h \
+		audit.h \
+		output.h \
+		socket.h
+
 ./timer.c: \
 		config.h \
 		astypes.h \

@@ -11,6 +11,7 @@ LIBAFTERBASE_OBJS = \
 		$(LIBAFTERBASE_PATH)/safemalloc.c \
 		$(LIBAFTERBASE_PATH)/selfdiag.c \
 		$(LIBAFTERBASE_PATH)/sleep.c \
+		$(LIBAFTERBASE_PATH)/socket.c \
 		$(LIBAFTERBASE_PATH)/timer.c \
 		$(LIBAFTERBASE_PATH)/trace.c \
 		$(LIBAFTERBASE_PATH)/xprop.c \
@@ -30,6 +31,7 @@ LIBAFTERBASE_INCS = \
 		$(LIBAFTERBASE_PATH)/safemalloc.h \
 		$(LIBAFTERBASE_PATH)/selfdiag.h \
 		$(LIBAFTERBASE_PATH)/sleep.h \
+		$(LIBAFTERBASE_PATH)/socket.h \
 		$(LIBAFTERBASE_PATH)/timer.h \
 		$(LIBAFTERBASE_PATH)/trace.h \
 		$(LIBAFTERBASE_PATH)/xprop.h \

@@ -81,7 +81,7 @@ typedef struct ASFontManager
 
 #endif
 
-struct ASFontManager *create_font_manager( Display *dpy, const char * font_path, ASFontManager *reusable_memory );
+struct ASFontManager *create_font_manager( Display *dpy, const char * font_path, struct ASFontManager *reusable_memory );
 void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
 struct ASFont *open_freetype_font( struct ASFontManager *fontman, const char *font_string, int face_no, int size, Bool verbose);
 struct ASFont *open_X11_font( struct ASFontManager *fontman, const char *font_string);
