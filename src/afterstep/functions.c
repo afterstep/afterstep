@@ -336,9 +336,16 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 
     if( sf->client != None )
     {
-        ASWindow *asw ;
-        asw = event->client = window2ASWindow( sf->client );
-        if( sf->canvas && asw != NULL )
+        ASWindow *asw = window2ASWindow( sf->client );
+		if( asw == NULL ) 
+		{	                   /* window had died by now - let go on with our lives */
+			destroy_scheduled_function(sf);
+			return ;
+		}
+		
+		event->client = asw ;
+
+        if( sf->canvas )
         {
             ASCanvas  *canvas = NULL ;
             if( sf->canvas == asw->client_canvas->w )

@@ -608,8 +608,12 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     LOCAL_DEBUG_CALLER_OUT( "%sresize canvas. windows_num = %d",
                             dont_resize_main_canvas?"Don't ":"Do ", WinListState.windows_num );
     
-	if( WinListState.last_message_time == time(NULL) ) 
+	timer_remove_all();
+	if( WinListState.last_message_time >= time(NULL) ) 
+	{	
 		timer_new (100, postponed_rearrange_winlist, (void*)dont_resize_main_canvas);	  
+		return False;
+	}
 	
 	if( dont_resize_main_canvas )
     {

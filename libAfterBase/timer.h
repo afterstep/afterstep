@@ -44,6 +44,7 @@ void timer_new (time_t msec, void (*handler) (void *), void *data);
 Bool timer_delay_till_next_alarm (time_t * sec, time_t * usec);
 Bool timer_handle (void);
 Bool timer_remove_by_data (void *data);
+void timer_remove_all ();
 Bool timer_find_by_data (void *data);
 
 #ifdef __cplusplus

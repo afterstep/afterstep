@@ -325,17 +325,21 @@ DigestEvent( ASEvent *event )
 {
     register int i ;
     setup_asevent_from_xevent( event );
-    event->context = C_ROOT ;
-    event->widget = Scr.RootCanvas ;
     /* in housekeeping mode we handle pointer events only as applied to root window ! */
     if( Scr.moveresize_in_progress && (event->eclass & ASE_POINTER_EVENTS) != 0)
     {
+	    event->context = C_ROOT ;
+    	event->widget = Scr.RootCanvas ;
         event->client = NULL;
         /* we have to do this at all times !!!! */
         if( event->x.type == ButtonRelease && Scr.Windows->pressed )
             release_pressure();
     }else
+	{
+	    event->context = (event->w == Scr.Root)?C_ROOT:C_NO_CONTEXT ;
+    	event->widget = (event->w == Scr.Root)?Scr.RootCanvas:NULL ;
         event->client = window2ASWindow( event->w );
+	}
 
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 && event->client )
     {

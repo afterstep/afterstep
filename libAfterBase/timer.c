@@ -195,6 +195,15 @@ Bool timer_remove_by_data (void *data)
 	return success;
 }
 
+void 
+timer_remove_all ()
+{
+	while(timer_first != NULL)
+	{
+		mytimer_delete (timer_first);
+	}
+}
+
 Bool timer_find_by_data (void *data)
 {
 	Timer        *timer;
