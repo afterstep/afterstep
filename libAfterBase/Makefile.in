@@ -74,13 +74,13 @@ INSTALL_SCRIPT	= @INSTALL@ -m 755
 INCS_X		= @X_CFLAGS@
 INCLUDES	= $(INCS_X) $(INCS_PRIVATE)
 
-LIBDIR		= @libdir@
-INCLUDEDIR	= @includedir@
-AFTER_INC_DIR	= @includedir@/libAfterBase
-AFTER_BIN_DIR	= @bindir@
-AFTER_MAN_DIR	= @mandir@/man3
-AFTER_DOC_DIR	= @datadir@/libAfterBase/doc
-AFTER_SHAREDIR	= @datadir@/afterstep
+LIBDIR		= $(DESTDIR)@libdir@
+INCLUDEDIR	= $(DESTDIR)@includedir@
+AFTER_INC_DIR	= $(DESTDIR)@includedir@/libAfterBase
+AFTER_BIN_DIR	= $(DESTDIR)@bindir@
+AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man3
+AFTER_DOC_DIR	= $(DESTDIR)@datadir@/libAfterBase/doc
+AFTER_SHAREDIR	= $(DESTDIR)@datadir@/afterstep
 
 all:            @LIBPROG@ $(INSTALLONBUILD)
 
