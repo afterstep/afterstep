@@ -1251,11 +1251,11 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 					}
 				}else
                 	clear_flags(what, PARSE_BASE_CONFIG);
-				tmp = strlen( ASIMAGE_PATH_ENVVAR ) + 1 + strlen(Environment->pixmap_path)+1 ;
+				tmp = safemalloc(strlen( ASIMAGE_PATH_ENVVAR ) + 1 + strlen(Environment->pixmap_path)+1) ;
 				sprintf( tmp, "%s=%s", ASIMAGE_PATH_ENVVAR, Environment->pixmap_path );
 				putenv( tmp );
 				set_string_value( &PixmapPathEnvVar, tmp, NULL, 0 );
-				tmp = strlen( ASFONT_PATH_ENVVAR ) + 1 + strlen(Environment->font_path)+1 ;
+				tmp = safemalloc(strlen( ASFONT_PATH_ENVVAR ) + 1 + strlen(Environment->font_path)+1) ;
 				sprintf( tmp, "%s=%s", ASFONT_PATH_ENVVAR, Environment->font_path );
 				putenv( tmp );
 				set_string_value( &FontPathEnvVar, tmp, NULL, 0 );

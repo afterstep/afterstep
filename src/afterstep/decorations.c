@@ -199,7 +199,9 @@ check_frame_canvas( ASWindow *asw, Bool required )
                 valuemask |= CWSaveUnder;
                 attributes.save_under = True;
             }
-            w = create_visual_window (Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, -10, -10, 5, 5,
+            w = create_visual_window (Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, 
+									  0, 0, 
+									  asw->status->width, asw->status->height,
                                       asw->status?asw->status->border_width:0, InputOutput, valuemask, &attributes);
             asw->frame = w ;
             register_aswindow( w, asw );
