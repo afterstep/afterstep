@@ -4,7 +4,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 2.1 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-/* #define LOCAL_DEBUG */
+#define LOCAL_DEBUG
 /* #define DO_CLOCKING */
 
 #define USE_64BIT_FPU
@@ -144,7 +144,7 @@ asimage_init (ASImage * im, Bool free_resources)
 				XDestroyImage( im->alt.ximage );
 			if( im->alt.mask_ximage )
 				XDestroyImage( im->alt.mask_ximage );
-#endif				
+#endif
 			if( im->alt.argb32 )
 				free( im->alt.argb32 );
 		}
@@ -812,7 +812,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 		if( best_size+im->width < tail )
 		{
 			width = im->width;
-			LOCAL_DEBUG_OUT( " %d:%d >resetting bytes starting with offset %d(%d) (0x%2.2X) to DIRECT_TAIL( %d bytes total )", y, color, best_tail, best_bstart, dst[best_tail], width-best_bstart );
+/*			LOCAL_DEBUG_OUT( " %d:%d >resetting bytes starting with offset %d(%d) (0x%2.2X) to DIRECT_TAIL( %d bytes total )", y, color, best_tail, best_bstart, dst[best_tail], width-best_bstart ); */
 			dst[best_tail] = RLE_DIRECT_TAIL;
 			dst += best_tail+1;
 			data += best_bstart;
@@ -911,6 +911,12 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 				fprintf (stderr, " is RLE_DIRECT !");
 		} else if (((*ptr) & RLE_SIMPLE_B_INV) == 0)
 		{
+			if( *ptr == RLE_EOL )
+			{
+				if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
+					fprintf (stderr, " is RLE_EOL !");
+				break;
+			}
 			if (get_flags (verbosity, VRB_CTRL_EXPLAIN))
 				fprintf (stderr, " is RLE_SIMPLE !");
 			uncopressed_size += ((int)ptr[0])+ RLE_THRESHOLD;
@@ -1101,51 +1107,48 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
 }
 
 
-unsigned int
-asimage_copy_line (CARD8 * from, CARD8 * to, int width)
+CARD8*
+asimage_copy_line (CARD8 *src, int width)
 {
-	register CARD8 *src = from, *dst = to;
-	int uncompressed_size = 0;
+	int size = 0;
+	register CARD8 *ptr = src ;
+	int to_skip = 0;
 
 	/* merely copying the data */
-	if (src == NULL || dst == NULL)
-		return 0;
-	while (*src != RLE_EOL)
+	if ( src == NULL )
+		return NULL;
+	while (*ptr != RLE_EOL && width )
 	{
-		if ( *src == RLE_DIRECT_TAIL)
+		if (((*ptr) & RLE_DIRECT_B) != 0)
 		{
-			register int  to_write = width - uncompressed_size;
-			while (to_write-- >= 0)			   /* we start counting from 0 - 0 is actually count of 1 */
-				dst[to_write] = src[to_write];
-			dst += to_write ;
-			src += to_write ;
-			break;
-		} else if (((*src) & RLE_DIRECT_B) != 0)
+			if( *ptr == RLE_DIRECT_TAIL )
+			{
+				size += width ;
+				break;
+			}
+			to_skip = ((*ptr) & (RLE_DIRECT_D))+1;
+			width -= to_skip ;
+			ptr += to_skip+1 ;
+			size += to_skip+1 ;
+		} else if (((*ptr) & RLE_SIMPLE_B_INV) == 0)
 		{
-			register int  to_write = 1+ ((*src) & (RLE_DIRECT_D)) + 1;
-			uncompressed_size += to_write-1 ;
-			while (to_write-- >= 0)			   /* we start counting from 0 - 0 is actually count of 1 */
-				dst[to_write] = src[to_write];
-			dst += to_write ;
-			src += to_write ;
-		} else if (((*src) & RLE_SIMPLE_B_INV) == 0)
+			size += 2 ;
+			ptr += 2 ;
+			width -= ((int)ptr[0])+ RLE_THRESHOLD;
+		} else if (((*ptr) & RLE_LONG_B) != 0)
 		{
-			uncompressed_size += src[0]+RLE_THRESHOLD ;
-			dst[0] = src[0];
-			dst[1] = src[1];
-			dst += 2 ;
-			src += 2 ;
-		} else if (((*src) & RLE_LONG_B) != 0)
-		{
-			uncompressed_size += src[1] + ((src[0]&RLE_LONG_D)<<8) + RLE_THRESHOLD ;
-			dst[0] = src[0];
-			dst[1] = src[1];
-			dst[2] = src[2];
-			dst += 3 ;
-			src += 3 ;
+			width -= ((int)ptr[1])+((((int)ptr[0])&RLE_LONG_D ) << 8)+RLE_THRESHOLD;
+			ptr += 3 ;
+			size += 3 ;
 		}
 	}
-	return (dst - to);
+	if( size > 0 )
+	{
+		ptr = safemalloc( size+1 );
+		memcpy( ptr, src, size+1 );
+		return ptr;
+	}else
+		return NULL ;
 }
 
 void
@@ -1183,12 +1186,48 @@ copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_s
 			{
 				if( dst_rows[i] )
 					free( dst_rows[i] );
-				asimage_copy_line( dst_rows[i], src_rows[i], dst->width );
+				dst_rows[i] = asimage_copy_line( src_rows[i], dst->width );
 			}
 		}
 }
 
+void
+copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
+                    ASImage *src, unsigned int offset_src,
+					unsigned int nlines, ASFlagType filter )
+{
+	if( dst && src &&
+		offset_src < src->height && offset_dst < dst->height &&
+		dst->width == src->width )
+	{
+		int chan, i ;
 
+		if( offset_src+nlines > src->height )
+			nlines = src->height - offset_src ;
+		if( offset_dst+nlines > dst->height )
+			nlines = dst->height - offset_dst ;
+		for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
+			if( get_flags( filter, 0x01<<chan ) )
+			{
+				register int i = -1;
+				register CARD8 **dst_rows = &(dst->channels[chan][offset_dst]) ;
+				register CARD8 **src_rows = &(src->channels[chan][offset_src]) ;
+LOCAL_DEBUG_OUT( "copying %d lines of channel %d...", nlines, chan );
+				while( ++i < nlines )
+				{
+					if( dst_rows[i] )
+						free( dst_rows[i] );
+					dst_rows[i] = asimage_copy_line( src_rows[i], dst->width );
+				}
+			}
+		for( i = 0 ; i < nlines ; ++i )
+		{
+			asimage_print_line( src, IC_ALPHA, i, VRB_EVERYTHING );
+			asimage_print_line( dst, IC_ALPHA, i, VRB_EVERYTHING );
+		}
+
+	}
+}
 
 Bool
 asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp, unsigned int y, Bool verbose)
@@ -1711,7 +1750,7 @@ tile_ximage_line( XImage *xim, unsigned int line, int step )
 void
 encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
 {
-#ifndef X_DISPLAY_MISSING				
+#ifndef X_DISPLAY_MISSING
 	register XImage *xim = imout->im->alt.mask_ximage ;
 	if( imout->next_line < xim->height && imout->next_line >= 0 )
 	{
@@ -1727,7 +1766,7 @@ encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
 			                  imout->bottom_to_top*imout->tiling_step );
 		imout->next_line += imout->bottom_to_top;
 	}
-#endif	
+#endif
 }
 
 void
@@ -1940,6 +1979,34 @@ output_image_line_direct( ASImageOutput *imout, ASScanline *new_line, int ratio 
 		}else
 			imout->encode_image_scanline( imout, new_line );
 	}
+}
+
+/* ********************************************************************************/
+/* Convinience function - very fast image cloning :                               */
+/* ********************************************************************************/
+ASImage*
+clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter )
+{
+	ASImage *dst = NULL ;
+	START_TIME(started);
+
+	if( src )
+	{
+		int chan ;
+		dst = create_asimage(src->width, src->height, (src->max_compressed_width*100)/src->width);
+		dst->back_color = src->back_color ;
+		for( chan = 0 ; chan < IC_NUM_CHANNELS;  chan++ )
+			if( get_flags( filter, 0x01<<chan) )
+			{
+				register int i = dst->height;
+				register CARD8 **dst_rows = dst->channels[chan] ;
+				register CARD8 **src_rows = src->channels[chan] ;
+				while( --i >= 0 )
+					dst_rows[i] = asimage_copy_line( src_rows[i], dst->width );
+			}
+	}
+	SHOW_TIME("", started);
+	return dst;
 }
 
 /* ********************************************************************************/

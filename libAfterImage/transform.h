@@ -244,6 +244,13 @@ ASImage *mirror_asimage( ASVisual *asv, ASImage *src,
 			             unsigned int to_height,
 			             Bool vertical, ASAltImFormats out_format,
 						 unsigned int compression_out, int quality );
+ASImage *pad_asimage(   ASVisual *asv, ASImage *src,
+		      			int dst_x, int dst_y,
+			  			unsigned int to_width,
+			  			unsigned int to_height,
+			  			ARGB32 color,
+			  			ASAltImFormats out_format,
+			  			unsigned int compression_out, int quality );
 
 Bool fill_asimage( ASVisual *asv, ASImage *im,
                	   int x, int y, int width, int height,

@@ -4,7 +4,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 2.1 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-/* #define LOCAL_DEBUG */
+#define LOCAL_DEBUG
 #define DO_CLOCKING
 
 #define USE_64BIT_FPU
@@ -699,6 +699,7 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, 0, 0, NULL)) == NULL )
 		return NULL;
 	dst = create_asimage(to_width, to_height, compression_out);
+	dst->back_color = src->back_color ;
 	if( to_width == src->width )
 		h_ratio = 0;
 	else if( to_width < src->width )
@@ -766,8 +767,8 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 	if( src && (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 		return NULL;
 
-	dst = safecalloc(1, sizeof(ASImage));
-	asimage_start (dst, to_width, to_height, compression_out);
+	dst = create_asimage (to_width, to_height, compression_out);
+	dst->back_color = src->back_color ;
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
@@ -830,8 +831,7 @@ merge_layers( ASVisual *asv,
 	START_TIME(started);
 
 LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height );
-	dst = safecalloc(1, sizeof(ASImage));
-	asimage_start (dst, dst_width, dst_height, compression_out);
+	dst = create_asimage ( dst_width, dst_height, compression_out);
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
 	dst_line.flags = SCL_DO_ALL ;
 
@@ -1136,6 +1136,37 @@ make_gradient_diag_height( ASImageOutput *imout, ASScanline *dither_lines, int d
 	free_scanline( &result, True );
 }
 
+static ARGB32
+get_best_grad_back_color( ASGradient *grad )
+{
+	ARGB32 back_color = 0 ;
+	int chan ;
+	for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
+	{
+		CARD8 best = 0;
+		unsigned int best_size = 0;
+		register int i = grad->npoints;
+		while( --i > 0 )
+		{ /* very crude algorithm, detecting biggest spans of the same color :*/
+			CARD8 c = ARGB32_CHAN8(grad->color[i], chan );
+			unsigned int span = grad->color[i]*20000;
+			if( c == ARGB32_CHAN8(grad->color[i-1], chan ) )
+			{
+				span -= grad->color[i-1]*2000;
+				if( c == best )
+					best_size += span ;
+				else if( span > best_size )
+				{
+					best_size = span ;
+					best = c ;
+				}
+			}
+		}
+		back_color |= MAKE_ARGB32_CHAN8(best,chan);
+	}
+	return back_color;
+}
+
 ASImage*
 make_gradient( ASVisual *asv, ASGradient *grad,
                unsigned int width, unsigned int height, ASFlagType filter,
@@ -1152,8 +1183,10 @@ make_gradient( ASVisual *asv, ASGradient *grad,
 		width = 2;
  	if( height == 0 )
 		height = 2;
-	im = safecalloc( 1, sizeof(ASImage) );
-	asimage_start (im, width, height, compression_out);
+
+	im = create_asimage ( width, height, compression_out);
+	im->back_color = get_best_grad_back_color( grad );
+
 	if( get_flags(grad->type,GRADIENT_TYPE_ORIENTATION) )
 		line_len = height ;
 	if( get_flags(grad->type,GRADIENT_TYPE_DIAG) )
@@ -1227,8 +1260,9 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 	if( src )
 		filter = get_asimage_chanmask(src);
 
-	dst = safecalloc(1, sizeof(ASImage));
-	asimage_start (dst, to_width, to_height, compression_out);
+	dst = create_asimage(to_width, to_height, compression_out);
+	dst->back_color = src->back_color ;
+
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
@@ -1344,6 +1378,8 @@ mirror_asimage( ASVisual *asv, ASImage *src,
 
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
 	dst = create_asimage(to_width, to_height, compression_out);
+	dst->back_color = src->back_color ;
+
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
@@ -1394,6 +1430,139 @@ LOCAL_DEBUG_OUT("miroring actually...%s", "");
 	SHOW_TIME("", started);
 	return dst;
 }
+
+ASImage *
+pad_asimage(  ASVisual *asv, ASImage *src,
+		      int dst_x, int dst_y,
+			  unsigned int to_width,
+			  unsigned int to_height,
+			  ARGB32 color,
+			  ASAltImFormats out_format,
+			  unsigned int compression_out, int quality )
+{
+	ASImage *dst = NULL ;
+	ASImageOutput  *imout ;
+	int clip_width, clip_height ;
+	START_TIME(started);
+
+LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d", dst_x, dst_y, to_width, to_height );
+	if( src == NULL )
+		return NULL ;
+
+	if( to_width == src->width && to_height == src->height && dst_x == 0 && dst_y == 0 )
+		return clone_asimage( asv, src, SCL_DO_ALL );
+
+	dst = create_asimage(to_width, to_height, compression_out);
+	clip_width = src->width ;
+	clip_height = src->height ;
+	if( dst_x < 0 )
+		clip_width = MIN( (int)to_width, dst_x+clip_width );
+	else
+		clip_width = MIN( (int)to_width-dst_x, clip_width );
+    if( dst_y < 0 )
+		clip_height = MIN( (int)to_height, dst_y+clip_height);
+	else
+		clip_height = MIN( (int)to_height-dst_y, clip_height);
+	if( clip_width <= 0 || clip_height <= 0  )
+	{                              /* we are completely outside !!! */
+		dst->back_color = color ;
+		return dst ;
+	}
+
+	dst->back_color = src->back_color ;
+
+#ifdef HAVE_MMX
+	mmx_init();
+#endif
+	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
+	{
+		asimage_init(dst, True);
+		free( dst );
+		dst = NULL ;
+	}else
+	{
+		ASImageDecoder *imdec ;
+		ASScanline result ;
+		int y;
+		int start_x = (dst_x < 0)? 0: dst_x;
+		int start_y = (dst_y < 0)? 0: dst_y;
+
+		if( to_width != clip_width || clip_width != src->width )
+		{
+			prepare_scanline( to_width, 0, &result, asv->BGR_mode );
+			imdec = start_image_decoding(  asv, src, SCL_DO_ALL,
+			                               (dst_x<0)? -dst_x:0,
+										   (dst_y<0)? -dst_y:0,
+		                                    clip_width, clip_height, NULL);
+		}
+
+		result.back_color = color ;
+		result.flags = 0 ;
+LOCAL_DEBUG_OUT( "filling %d lines with %8.8X", start_y, color );
+		for( y = 0 ; y < start_y ; y++  )
+			imout->output_image_scanline( imout, &result, 1);
+
+		result.back_color = imdec->buffer.back_color ;
+		if( to_width == clip_width )
+		{
+			if( clip_width == src->width )
+			{
+LOCAL_DEBUG_OUT( "copiing %d lines", clip_height );
+				copy_asimage_lines( dst, start_y, src, (dst_y < 0 )? -dst_y: 0, clip_height, SCL_DO_ALL );
+				imout->next_line += clip_height ;
+			}else
+				for( y = 0 ; y < clip_height ; y++  )
+				{
+					imdec->decode_image_scanline( imdec );
+					imout->output_image_scanline( imout, &(imdec->buffer), 1);
+				}
+		}else
+		{
+			for( y = 0 ; y < clip_height ; y++  )
+			{
+				int chan ;
+
+				imdec->decode_image_scanline( imdec );
+				result.flags = imdec->buffer.flags ;
+				for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
+				{
+	   				register CARD32 *chan_data = result.channels[chan] ;
+	   				register CARD32 *src_chan_data = imdec->buffer.channels[chan]+((dst_x<0)? -dst_x : 0) ;
+					CARD32 chan_val = ARGB32_CHAN8(color, chan);
+					register int k = -1;
+					for( k = 0 ; k < start_x ; ++k )
+						chan_data[k] = chan_val ;
+					chan_data += k ;
+					for( k = 0 ; k < clip_width ; ++k )
+						chan_data[k] = src_chan_data[k];
+					chan_data += k ;
+					k = to_width-(start_x+clip_width) ;
+					while( --k >= 0 )
+						chan_data[k] = chan_val ;
+				}
+				imout->output_image_scanline( imout, &result, 1);
+			}
+		}
+		result.back_color = color ;
+		result.flags = 0 ;
+LOCAL_DEBUG_OUT( "filling %d lines with %8.8X at the end", to_height-(start_y+clip_height), color );
+		for( y = start_y+clip_height ; y < to_height ; y++  )
+			imout->output_image_scanline( imout, &result, 1);
+
+		if( to_width != clip_width || clip_width != src->width )
+		{
+			stop_image_decoding( &imdec );
+			free_scanline( &result, True );
+		}
+		stop_image_output( &imout );
+	}
+#ifdef HAVE_MMX
+	mmx_off();
+#endif
+	SHOW_TIME("", started);
+	return dst;
+}
+
 
 /**********************************************************************/
 

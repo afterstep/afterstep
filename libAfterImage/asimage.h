@@ -785,7 +785,9 @@ ASFlagType get_asimage_chanmask( ASImage *im);
 inline int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width);
 void move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
 void copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
-
+void copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
+                    	 ASImage *src, unsigned int offset_src,
+						 unsigned int nlines, ASFlagType filter );
 /****d* libAfterImage/asimage/verbosity
  * FUNCTION
  * This are flags that define what should be printed by
@@ -1032,5 +1034,26 @@ ASImageOutput *start_image_output( struct ASVisual *asv, ASImage *im, ASAltImFor
 void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color );
 void toggle_image_output_direction( ASImageOutput *imout );
 void stop_image_output( ASImageOutput **pimout );
+
+
+/****f* libAfterImage/asimage/clone_asimage()
+ * SYNOPSIS
+ * ASImage *clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter );
+ * INPUTS
+ * asv      - pointer to valid ASVisual structure
+ * src      - original ASImage.
+ * filter   - bitmask of channels to be copied from one image to another.
+ * RETURN VALUE
+ * New ASImage, as a copy of original image.
+ * DESCRIPTION
+ * Creates exact clone of the original ASImage, with same compression,
+ * back_color and rest of the attributes. Only ASImage data will be
+ * carried over. Any attached alternative forms of images (XImages, etc.)
+ * will not be copied. Any channel with unset bit in filter will not be
+ * copied. Image name, ASImageManager and ref_count will not be copied -
+ * use store_asimage() afterwards and make sure you use different name,
+ * to avoid clashes with original image.
+ *********/
+ASImage *clone_asimage(ASVisual *asv, ASImage *src, ASFlagType filter );
 
 #endif
