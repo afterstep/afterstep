@@ -481,7 +481,7 @@ ASHashKey option_hash_value (ASHashableValue value, ASHashKey hash_size)
   for (i = 0; i < ((sizeof (ASHashKey) - sizeof (char)) << 3); i++)
     {
       c = *(opt++) ;
-      if (c == '\0' || !isalnum (c))
+      if (c == '\0' || !(isalnum (c) || c == '~' ) )
 	break;
       if( isupper(c) ) c = tolower (c);
       hash_key += (((ASHashKey) c) << i);
