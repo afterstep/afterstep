@@ -12,14 +12,14 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  src/Wharf \
 		  src/WinList2 \
 		  src/WinTabs \
-		  src/ascp 
+		  src/Banner \
+		  src/ascp  
 #		  src/ascp/fltk \
 #		  src/ascp/gtk
 
 #		  src/asetroot \
 #		  src/Animate \
 #		  src/Audio \
-#		  src/Banner \
 #		  src/Cascade \
 #		  src/Clean \
 #		  src/Form \

@@ -156,11 +156,8 @@ void version(void) {
 void usage(void) {
 	fprintf( stdout,
 		"Usage:\n"
-		"ascompose [-h] [-f file|-] [-o file] [-s string] [-t type] [-v] [-V]"
-#ifndef X_DISPLAY_MISSING
-			" [-n] [-r]"
-#endif /* X_DISPLAY_MISSING */
-			"\n"
+		"ascompose [options] [-f file|-|-s string] [-o file]"
+		"Available options :\n"
 		"  -h --help          display this help and exit\n"
         "  -v --version       display version and exit\n"
 		" Input options : \n"
@@ -170,6 +167,12 @@ void usage(void) {
 		"  -i --include file  process file prior to processing other input\n"
 		" Output options : \n"
 #ifndef X_DISPLAY_MISSING
+		"  -g --geometry WxX+X+Y  set window geometry \n"
+		"  -T --title  title  set window's title\n"
+		"     --override      override window Manager's controls \n"
+		"                     (use for splash windows to avoid window frame)\n"
+		"     --center        center window on screen\n"
+		"     --topmost       raise window to the top\n"
 		"  -n --no-display    don't display the final image\n"
 		"  -r --root-window   draw result image on root window\n"
 #endif /* X_DISPLAY_MISSING */
@@ -183,6 +186,8 @@ void usage(void) {
 		" Interactive options : \n"
 		"  -I --interactivee  run ascompose in interactive mode - tags are processed,\n" 
 		"                     as soon as they are closed.\n"
+		"     --timeout value time to wait inbetween displaying images\n"
+		"     --endless       endlessly loop through file or string\n"
 		" Note that when -I option is used in conjunction with input from\n" 
 		" string or a file - ascompose will endlesly loop through the contents\n"
 		" untill it is killed - usefull for slideshow type of activity.\n"
@@ -316,6 +321,8 @@ int main(int argc, char** argv) {
             doc_compress = argv[++i];
 		} else if (!strcmp(argv[i], "--interactive") || !strcmp(argv[i], "-I")) {
             compose_type = COMPOSE_Interactive ;
+		} else if (strcmp(argv[i], "--timeout") == 0 && i < argc + 1) {
+			main_window_props.timeout = strtod( argv[++i ], NULL );
 		} else if (!strcmp(argv[i], "--endless")) {
             endless_loop = True ;
 		}
@@ -328,8 +335,6 @@ int main(int argc, char** argv) {
 															&main_window_props.geom_height);
 		} else if (strcmp(argv[i], "--override") == 0 ) {
 			main_window_props.override_redirect = True;
-		} else if (strcmp(argv[i], "--timeout") == 0 && i < argc + 1) {
-			main_window_props.timeout = strtod( argv[++i ], NULL );
 		} else if ((!strcmp(argv[i], "--title") || !strcmp(argv[i], "-T")) && i < argc + 1) {
 			main_window_props.title = argv[++i];
 		} else if (strcmp(argv[i], "--center") == 0 ) {
