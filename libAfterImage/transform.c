@@ -1743,7 +1743,10 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 
 	if((imout = start_image_output( asv, im, out_format, QUANT_ERR_BITS, quality)) == NULL )
 		return False;
-
+	/* as per ROOT ppl request double data goes from bottom to top,
+	 * instead of from top to bottom : */
+	toggle_image_output_direction(imout);
+	
 	prepare_scanline( im->width, QUANT_ERR_BITS, &buf, asv->BGR_mode );
 	curr_point = palette->npoints/2 ;
 	points = palette->points ;
