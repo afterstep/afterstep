@@ -173,6 +173,25 @@ asimage2mask_ximage (ASVisual *asv, ASImage *im)
 }
 
 ASImage      *
+pixmap2ximage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, unsigned int compression)
+{
+#ifndef X_DISPLAY_MISSING
+	XImage       *xim = XGetImage (asv->dpy, p, x, y, width, height, plane_mask, ZPixmap);
+	ASImage      *im = NULL;
+
+	if (xim)
+	{
+		im = create_asimage( xim->width, xim->height, compression);
+		im->alt.ximage = xim ;
+	}
+	return im;
+#else
+    return NULL ;
+#endif
+}
+
+
+ASImage      *
 pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache, unsigned int compression)
 {
 #ifndef X_DISPLAY_MISSING

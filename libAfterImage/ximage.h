@@ -45,6 +45,31 @@
  *********/
 /****f* libAfterImage/ximage/pixmap2asimage()
  * SYNOPSIS
+ * ASImage *pixmap2ximage( ASVisual *asv, Pixmap p, int x, int y, 
+ *                         unsigned int width, unsigned int height, 
+ *						   unsigned long plane_mask, 
+ *                         unsigned int compression);
+ * INPUTS
+ * asv  		  - pointer to valid ASVisual structure
+ * p    		  - source Pixmap
+ * x, y,
+ * width, height- rectangle on Pixmap to be encoded into ASImage.
+ * plane_mask   - limits color planes to be copied from Pixmap.
+ * keep_cache   - indicates if we should keep XImage, used to copy
+ *                image data from the X server, and attached it to ximage
+ *                member of resulting ASImage.
+ * compression  - degree of compression of resulting ASImage.
+ * RETURN VALUE
+ * pointer to newly allocated ASImage, containing data in XImage format, on
+ * success. NULL on failure.
+ * DESCRIPTION
+ * pixmap2ximage will obtain XImage of the requested area of the
+ * X Pixmap, and it will attach it to newly created ASImage using alt.ximage
+ * member. After that newly created ASImage could be used in any 
+ * transformations.
+ *********/
+/****f* libAfterImage/ximage/pixmap2asimage()
+ * SYNOPSIS
  * ASImage *pixmap2asimage ( struct ASVisual *asv, Pixmap p,
  *                           int x, int y,
  *                           unsigned int width,
@@ -71,6 +96,9 @@
  * function.
  *********/
 ASImage *ximage2asimage (struct ASVisual *asv, XImage * xim, unsigned int compression);
+ASImage *pixmap2ximage( ASVisual *asv, Pixmap p, int x, int y, 
+                        unsigned int width, unsigned int height, 
+						unsigned long plane_mask, unsigned int compression);
 ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
 	                     unsigned int width, unsigned int height,
 		  				 unsigned long plane_mask, Bool keep_cache, unsigned int compression);
