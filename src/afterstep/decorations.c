@@ -796,14 +796,7 @@ estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *h
     {
         ASTBarData *tbar = create_astbar();
         ASFlagType btn_mask ; 
-		ASDatabaseRecord * db_rec ;
-		static char *ASMenuStyleNames[2] = {"ASMenu",NULL} ;
 
-
-		db_rec = fill_asdb_record (Database, &(ASMenuStyleNames[0]), NULL, False);
-		merge_asdb_hints ( hints, NULL, db_rec, NULL, HINT_GENERAL);
-		destroy_asdb_record( db_rec, False );
-		
 		btn_mask = compile_titlebuttons_mask (hints);
         tbar->h_spacing = DEFAULT_TBAR_SPACING ;
         tbar->v_spacing = DEFAULT_TBAR_SPACING ;
@@ -813,7 +806,7 @@ estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *h
                             Scr.Look.button_first_right,
                             Scr.Look.TitleButtonXOffset[0], Scr.Look.TitleButtonYOffset[0], Scr.Look.TitleButtonSpacing[0],
                             TBTN_ORDER_L2R );
-        
+      
 		/* label */
         add_astbar_label(   tbar, 1, 0, 0, ALIGN_LEFT, DEFAULT_TBAR_SPACING, DEFAULT_TBAR_SPACING, hints->names[0], hints->names_encoding[0]);
         /* right buttons : */
@@ -824,7 +817,7 @@ estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *h
                             TBTN_ORDER_R2L );
 
         set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSMenu[MENU_BACK_TITLE] );
-        set_astbar_style_ptr( tbar, BAR_STATE_FOCUSED, Scr.Look.MSMenu[MENU_BACK_HILITE] );
+        set_astbar_style_ptr( tbar, BAR_STATE_FOCUSED, Scr.Look.MSMenu[MENU_BACK_HITITLE] );
         width = calculate_astbar_width( tbar );
         height = calculate_astbar_height( tbar );
         destroy_astbar( &tbar );

@@ -1192,7 +1192,7 @@ show_asmenu( ASMenu *menu, int x, int y )
     unsigned int tbar_width = 0, tbar_height = 0 ;
     ASRawHints raw ;
     static char *ASMenuStyleNames[2] = {"ASMenu",NULL} ;
-    ASDatabaseRecord db_rec;
+    ASDatabaseRecord *db_rec;
 
     asiw->data = (ASMagic*)menu;
 
@@ -1205,7 +1205,11 @@ show_asmenu( ASMenu *menu, int x, int y )
     asiw->on_look_feel_changed = on_menu_look_feel_changed;
     asiw->destroy = menu_destroy;
 
+	db_rec = fill_asdb_record (Database, &(ASMenuStyleNames[0]), NULL, False);
+	merge_asdb_hints ( hints, NULL, db_rec, NULL, HINT_GENERAL);
+
     estimate_titlebar_size( hints, &tbar_width, &tbar_height );
+
     if( tbar_width > MAX_MENU_WIDTH )
         tbar_width = MAX_MENU_WIDTH ;
 
@@ -1258,7 +1262,7 @@ show_asmenu( ASMenu *menu, int x, int y )
     status.layer = AS_LayerMenu;
 
     /* now lets merge it with database record for ASMenu style - if it exists : */
-    if( fill_asdb_record (Database, &(ASMenuStyleNames[0]), &db_rec, False) )
+    if( db_rec )
     {
         memset( &raw, 0x00, sizeof(raw) );
         raw.placement.x = status.x ;
@@ -1268,7 +1272,11 @@ show_asmenu( ASMenu *menu, int x, int y )
         raw.scr = &Scr ;
         raw.border_width = 0 ;
 
-        merge_asdb_hints (hints, &raw, &db_rec, &status, ASFLAGS_EVERYTHING);
+/*		LOCAL_DEBUG_OUT( "printing db record %p for names %p and db %p", pdb_rec, clean->names, db );
+		print_asdb_matched_rec (NULL, NULL, Database, db_rec);
+  */	
+        merge_asdb_hints (hints, &raw, db_rec, &status, ASFLAGS_EVERYTHING);
+		destroy_asdb_record( db_rec, False );
     }
     /* lets make sure we got everything right : */
     check_hints_sanity (&Scr, hints );

@@ -16,7 +16,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-
 #define LOCAL_DEBUG
 #undef DO_CLOCKING
 
@@ -653,8 +652,8 @@ calculate_astbar_width (ASTBarData * tbar)
     if (tbar)
     {
         register int i = tbar->tiles_num ;
-#ifdef LOCAL_DEBUG
-/*         print_astbar_tiles(tbar); */
+#if	defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+         print_astbar_tiles(tbar); 
 #endif
         while( --i >= 0 )
             if( ASTileType(tbar->tiles[i]) != AS_TileFreed &&
