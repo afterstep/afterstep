@@ -3,6 +3,28 @@
 
 #include "screen.h"
 
+/*************************************************************************
+ * Standard Module types :
+ *************************************************************************/
+#define AS_MODULE_CLASS		"ASModule"         /* for WM_CLASS_HINT only */
+
+#define CLASS_AFTERSTEP     "AfterStep"
+#define CLASS_ANIMATE       "Animate"
+#define CLASS_ASCP			"ASCP"
+#define CLASS_ASETROOT		"asetroot"
+#define CLASS_AUDIO			"Audio"
+#define CLASS_BANNER		"Banner"
+#define CLASS_ARRANGE		"Arrange"
+#define CLASS_GNOME 		"Gnome"
+#define CLASS_IDENT			"Ident"
+#define CLASS_SCROLL		"Scroll"
+#define CLASS_CLEAN			"Clean"
+#define CLASS_WINLIST		"WinList"
+#define CLASS_ASRENDER		"ASRenderer"
+
+#define CLASS_CUSTOM		"ASCustom"
+
+
 #define START_FLAG 0xffffffff
 
 #define M_TOGGLE_PAGING      (1<<0)

@@ -445,6 +445,7 @@ ASWindow *pattern2ASWindow( const char *pattern );
 ASLayer *get_aslayer( int layer, ASWindowList *list );
 Bool enlist_aswindow( ASWindow *t );
 void delist_aswindow( ASWindow *t );
+void save_aswindow_list( ASWindowList *list, char *file );
 void restack_window_list( int desk );
 Bool is_window_obscured (ASWindow * above, ASWindow * below);
 void restack_window( ASWindow *t, Window sibling_window, int stack_mode );
@@ -503,95 +504,5 @@ void disable_titlebuttons_with_function (ASWindow * t, int function);
 
 #define TITLE_OLD		0	/* old (NEXTSTEP 3) style titlebar */
 #define TITLE_NEXT4		1	/* NEXTSTEP 4 style titlebar */
-
-/***************************************************************************
- * window flags definitions
- ***************************************************************************/
-#define STICKY			(1<< 0)		/* Does window stick to glass? */
-#define MAPPED			(1<< 3)		/* is it mapped? */
-#define ICONIFIED		(1<< 4)		/* is it an icon now? */
-#define RAISED			(1<< 6)		/* if its a sticky window, does it need to be raised */
-#define VISIBLE			(1<< 7)		/* is the window fully visible */
-#define ICON_OURS		(1<< 8)		/* is the icon window supplied by the app? */
-#define XPM_FLAG		(1<< 9)		/* is the icon window an xpm? */
-#define PIXMAP_OURS		(1<<10)		/* is the icon pixmap ours to free? */
-#define SHAPED_ICON		(1<<11)		/* is the icon shaped? */
-#define MAXIMIZED		(1<<12)		/* is the window maximized? */
-/* has the icon been moved by the user? */
-#define ICON_MOVED      	(1<<15)
-/* was the icon unmapped, even though the window is still iconified
- * (Transients) */
-#define ICON_UNMAPPED   	(1<<16)
-#define SUPPRESSICON		(1<<18)
-#define STARTICONIC		(1<<20)
-/* Sent an XMapWindow, but didn't receive a MapNotify yet. */
-#define MAP_PENDING		(1<<21)
-#define SHADED			(1<<22)
-#define PASS_1			(1<<26)		/* if window was handled in the first pass of a multi-pass operation */
-
-
-/* possible flags to identify which tasks needs to be done on
-   frame decorations/handles */
-#define TODO_EVENT		(0x01)
-#define TODO_RESIZE_X		(0x01<<1)
-#define TODO_RESIZE_Y		(0x01<<2)
-#define TODO_RESIZE		(TODO_RESIZE_X|TODO_RESIZE_Y)
-#define TODO_MOVE_X		(0x01<<3)
-#define TODO_MOVE_Y		(0x01<<4)
-#define TODO_MOVE		(TODO_MOVE_Y|TODO_MOVE_X)
-#define TODO_TITLE		(0x01<<5)
-#define TODO_SIDE		(0x01<<6)
-#define TODO_DECOR		(TODO_TITLE|TODO_SIDE)
-#define TODO_REDRAW_TITLE 	(0x01<<7)
-#define TODO_REDRAW_SIDE  	(0x01<<8)
-#define TODO_REDRAW		(TODO_REDRAW_TITLE|TODO_REDRAW_SIDE)
-#define TODO_PAGE_X		(0x01<<9)
-#define TODO_PAGE_Y		(0x01<<10)
-#define TODO_PAGE		(TODO_PAGE_X|TODO_PAGE_Y)
-/* this 2 are used in MyWidgets : */
-#define TODO_REBUILD_CACHE	(0x01<<11)
-#define TODO_REDRAW_WIDGET	(0x01<<12)
-/* */
-
-/*
- * FEW PRESET LEVELS OF OUTPUT :
- */
-#define OUTPUT_LEVEL_PARSE_ERR      1
-#define OUTPUT_LEVEL_HINTS          OUTPUT_VERBOSE_THRESHOLD
-#define OUTPUT_LEVEL_DATABASE       OUTPUT_VERBOSE_THRESHOLD
-#define OUTPUT_LEVEL_VROOT          7
-#define OUTPUT_LEVEL_WINDOW_LIST   (OUTPUT_LEVEL_DEBUG+9) /* too much output - too slow */
-
-
-extern void Reborder (void);
-extern void SigDone (int);
-extern void SaveWindowsOpened (void);
-extern void Done (int, char *);
-
-extern XClassHint NoClass;
-
-extern Window JunkRoot, JunkChild;
-extern int JunkX, JunkY;
-extern unsigned int JunkWidth, JunkHeight, JunkBW, JunkDepth, JunkMask;
-
-#ifdef PAN_FRAMES
-extern void checkPanFrames ();
-extern void raisePanFrames ();
-#endif
-
-extern Atom _XA_MIT_PRIORITY_COLORS;
-extern Atom _XA_WM_CHANGE_STATE;
-extern Atom _XA_WM_STATE;
-extern Atom _XA_WM_COLORMAP_WINDOWS;
-extern Atom _XA_WM_PROTOCOLS;
-extern Atom _XA_WM_TAKE_FOCUS;
-extern Atom _XA_WM_SAVE_YOURSELF;
-extern Atom _XA_WM_DELETE_WINDOW;
-extern Atom _XA_WM_DESKTOP;
-extern Atom _XA_FVWM_STICKS_TO_GLASS;
-extern Atom _XA_FVWM_CLIENT;
-extern Atom _XROOTPMAP_ID;
-extern Atom _AS_STYLE;
-extern Atom _AS_MODULE_SOCKET;
 
 #endif /* #ifndef AFTERSTEP_H_HEADER_INCLUDED */

@@ -4,8 +4,8 @@
  *
  ***********************************************************************/
 
-#ifndef _SCREEN_
-#define _SCREEN_
+#ifndef SCREEN_H_HEADER_INCLUDED
+#define SCREEN_H_HEADER_INCLUDED
 
 #include "afterstep.h"
 #include "clientprops.h"
@@ -67,23 +67,13 @@ PanFrame;
 
 #endif
 
-enum                /* look file flags, used in Scr.look_flags */
-  {
-    TexturedHandle      = (0x01<<0),
-    TitlebarNoPush      = (0x01<<1),
-    IconNoBorder        = (0x01<<3),
-    SeparateButtonTitle = (0x01<<4),  /* icon title is a separate window */
-    MenuMiniPixmaps     = (0x01<<5),
-    DecorateFrames      = (0x01<<6)
-  };
-
 /* MENU SORT MODS : */
 #define SORTBYALPHA 1
 #define SORTBYDATE  2
 
 /* for the flags value - these used to be separate Bool's */
-enum				/* feel file flags */
-  {
+typedef enum                /* feel file flags */
+{
     ClickToFocus            = (1 << 0), /* Focus follows or click to focus */
     DecorateTransients      = (1 << 1), /* decorate transient windows? */
     DontMoveOff             = (1 << 2), /* make sure windows stay on desk */
@@ -114,7 +104,20 @@ enum				/* feel file flags */
     FollowTitleChanges      = (1 << 27),
     AutoTabThroughDesks     = (1 << 28),
     DoHandlePageing         = (1 << 29)
-  };
+}FeelFlags;
+
+/* look file flags */
+typedef enum
+{
+    TxtrMenuItmInd      = (0x01 << 0),
+    MenuMiniPixmaps     = (0x01 << 1),
+    GradientText        = (0x01 << 2),
+    TexturedHandle      = (0x01 << 3),
+    TitlebarNoPush      = (0x01 << 4),
+    IconNoBorder        = (0x01 << 5),
+    SeparateButtonTitle = (0x01 << 6),    /* icon title is a separate window */
+    DecorateFrames      = (0x01 << 7)
+}LookFlags;
 
 
 typedef enum
@@ -162,6 +165,116 @@ typedef enum {
     AST_OpenLoop = 2
 }ASTabbingReverse;
 
+typedef struct ASFeel
+{
+    unsigned long magic;
+
+    unsigned long set_flags;  /* what options were set by user */
+    unsigned long flags;      /* feel file flags */
+
+    unsigned int ClickTime;        /* Max buttonclickdelay for Function built-in */
+    unsigned int OpaqueMove;       /* Keep showing window while being moved if size<N% */
+    unsigned int OpaqueResize;     /* Keep showing window while being resized if size<N% */
+    unsigned int AutoRaiseDelay;       /* Delay between setting focus and raisingwin */
+
+#define FEEL_WARP_ONEWAY       0
+#define FEEL_WARP_YOYO         1
+#define FEEL_WARP_ENDLESS      2
+    unsigned int AutoReverse;
+
+    int XorValue ;
+    int Xzap, Yzap;
+
+    long RaiseButtons;     /* The buttons to do click-to-raise */
+
+    int EdgeScrollX;      /* % of the screen width to scroll on screen edge */
+    int EdgeScrollY;      /* % of the screen height to scroll on screen edge */
+    int EdgeResistanceScroll;      /* #pixels to scroll on screen edge */
+    int EdgeResistanceMove;      /* #pixels to scroll on screen edge */
+
+    struct ASHashTable *Popups ;
+    struct ASHashTable *ComplexFunctions ;
+    struct ComplexFunction *InitFunction;
+    struct ComplexFunction *RestartFunction;
+
+    struct MouseButton *MouseButtonRoot;
+    struct FuncKey *FuncKeyRoot;
+
+    Cursor    cursors[MAX_CURSORS];
+
+    ASFlagType          buttons2grab ;           /* calculated after all the mouse bindings are set */
+      /* TODO: add no_snaping_mod to Feel parsing code : */
+    unsigned int        no_snaping_mod ;         /* modifyer mask that disables snapping to edges whle move/resizing the window */
+}
+ASFeel;
+
+typedef struct MyLook
+{
+    unsigned long magic;
+    /* The following two things are mostly used by ASRenderer : */
+    char         *name;         /* filename of the look */
+    int           ref_count ;   /* number of times referenced */
+    /* Actuall Look data : */
+    unsigned long flags;
+    /* the rest of the stuff is related to windows.
+        Window gets values when its first initialized, and then we have
+        to go and update it whenever we move it from one desk to another.
+    */
+    unsigned short look_id;
+    unsigned short deskback_id_base ;
+
+    /* update mystyle_fix_styles() and InitLook() if you add a style */
+    struct ASHashTable *styles_list;  /* hash of MyStyles by name */
+    struct ASHashTable *backs_list;   /* hash of MyBackgrounds   by name */
+
+    struct MyStyle *MSMenu[MENU_BACK_STYLES]; /* menu MyStyles */
+
+    /* focussed, unfocussed, sticky window styles */
+    struct MyStyle *MSWindow[BACK_STYLES];
+
+    ASGeometry resize_move_geometry;  /* position of the size window */
+
+    char *DefaultIcon;      /* Icon to use when no other icons are found */
+
+    struct ASIcon *MenuArrow;
+    struct ASIcon *MenuPinOn;
+    struct ASIcon *MenuPinOff;
+
+    MyButton    buttons[TITLE_BUTTONS];
+
+    /* Menu parameters */
+    int DrawMenuBorders;
+    int StartMenuSortMode;
+
+    /* Icons parameters */
+    ASGeometry *configured_icon_areas ;
+	unsigned int configured_icon_areas_num ;
+    unsigned int ButtonWidth, ButtonHeight;
+
+    /* misc stuff */
+    int RubberBand;
+    int ShadeAnimationSteps;
+
+    /* these affect window placement : */
+    /* None of it should be used by placement related functions from this
+        structure - they should consult copies of it stored in ASWindow
+        structure.
+    */
+    int TitleButtonStyle;     /* 0 - afterstep, 1 - WM old, 2 - free hand */
+    int TitleButtonSpacing;
+    int TitleButtonXOffset;
+    int TitleButtonYOffset;
+    int TitleTextAlign;       /* alignment of title bar text */
+
+    struct ASSupportedHints *supported_hints;
+
+    struct MyFrame *DefaultFrame;
+    struct ASHashTable *FramesList ;/* hash table of named MyFrames */
+
+}MyLook;
+
+
+
 typedef struct ScreenInfo
   {
     ASFlagType    state ;   /* shutting down, restarting, etc. */
@@ -172,8 +285,7 @@ typedef struct ScreenInfo
     int MyDisplayHeight;	/* my copy of DisplayHeight(dpy, screen) */
 
     Bool localhost ;
-    char *rdisplay_string;
-    char *display_string;
+    char *rdisplay_string, *display_string;
 
     struct ASWMProps    *wmprops;              /* window management properties */
 
@@ -184,13 +296,8 @@ typedef struct ScreenInfo
 /*    ASWindow ASRoot;        the head of the afterstep window list */
 /*    struct ASHashTable *aswindow_xref;        xreference of window/resource IDs to ASWindow structures */
 
-	struct ASHashTable *desktops ;   /* hashed by desk no - we create new one when client is added */
-
-    ASGeometry *configured_icon_areas ;
-	unsigned int configured_icon_areas_num ;
-	struct ASIconBox   *default_icon_box ; /* if we have icons following desktops - then we only need one icon box */
+    struct ASIconBox   *default_icon_box ; /* if we have icons following desktops - then we only need one icon box */
 	struct ASHashTable *icon_boxes ; /* hashed by desk no - one icon box per desktop ! */
-
 
     Window Root;		/* the root window */
     Window SizeWindow;		/* the resize dimensions window */
@@ -201,112 +308,30 @@ typedef struct ScreenInfo
     int usePanFrames;		/* toggle to disable them */
 #endif
 
-    struct MouseButton *MouseButtonRoot;
-    struct FuncKey *FuncKeyRoot;
-
-    Cursor ASCursors[MAX_CURSORS];
-
-    char *DefaultIcon;		/* Icon to use when no other icons are found */
-
-    MyFont StdFont;		/* font structure */
-    MyFont WindowFont;		/* font structure for window titles */
-    MyFont IconFont;		/* for icon labels */
-
-/* update mystyle_fix_styles() and InitLook() if you add a style */
-    struct MyStyle *first_style;	/* head of style list */
-    struct MyStyle *MSDefault;		/* default style */
-    struct MyStyle *MSFWindow;		/* focussed window style */
-    struct MyStyle *MSUWindow;		/* unfocussed window style */
-    struct MyStyle *MSSWindow;		/* sticky window style */
-    struct MyStyle *MSMenuTitle;	/* menu title style */
-    struct MyStyle *MSMenuItem;	/* menu item style */
-    struct MyStyle *MSMenuHilite;	/* menu item hilite style */
-    struct MyStyle *MSMenuStipple;	/* menu stippled item style */
-
-    struct MyFrame *DefaultFrame;
-    struct ASHashTable *FramesList ;/* hash table of named MyFrames */
-
-    GC DrawGC;          /* GC to draw lines for move and resize */
-
-    int TitleTextType;
-    int TitleTextY;
-
-    int SizeStringWidth;	/* minimum width of size window */
-    int TitleTextAlign;		/* alignment of title bar text */
-#ifndef NO_TEXTURE
-    int TitleStyle;         /* old or new titlebar style */
-    Pixmap TitleGradient;	/* gradient for the focused title text */
-
-    MyIcon MenuArrow;
-    MyIcon MenuPinOn;
-    MyIcon MenuPinOff;
-#endif
-
-    int EntryHeight;        /* menu entry height */
-    int EdgeScrollX;		/* #pixels to scroll on screen edge */
-    int EdgeScrollY;		/* #pixels to scroll on screen edge */
-    unsigned int nonlock_mods;	/* a mask for non-locking modifiers */
-    unsigned int *lock_mods;	/* all combinations of lock modifier masks */
-    unsigned char buttons2grab;	/* buttons to grab in click to focus mode */
-
-    ASFlagType flags;    /* feel file flags and state */
-    ASFlagType look_flags;
     int randomx;        /* values used for randomPlacement */
     int randomy;
     unsigned VScale;		/* Panner scale factor */
-
     int VxMax;			/* Max location for top left of virt desk */
     int VyMax;
     int Vx;			/* Current loc for top left of virt desk */
     int Vy;
 
-    int ClickTime;		/* Max buttonclickdelay for Function built-in */
-    int AutoRaiseDelay;		/* Delay between setting focus and raisingwin */
-    int ScrollResistance;	/* resistance to scrolling in desktop */
-    int MoveResistance;		/* res to moving windows over viewport edge */
-    int OpaqueSize;		/* Keep showing window while being moved if size<N% */
-    int OpaqueResize;		/* Keep showing window while being resized if size<N% */
-    int CurrentDesk;		/* The current desktop number */
-    int AutoReverse;        /* Defines how window circukation should handle end of list, see: ASTabbingReverse */
-
-    struct ASHashTable *Popups ;
-    struct ASHashTable *ComplexFunctions ;
-    struct ComplexFunction *InitFunction;
-    struct ComplexFunction *RestartFunction;
-
-    MyButton    buttons[TITLE_BUTTONS];
+    int CurrentDesk;        /* The current desktop number */
 
     Time   last_Timestamp;                      /* last event timestamp */
     Time   menu_grab_Timestamp;                 /* pointer grab time used in menus */
 
-/* obsolete :
-    int button_style[10];
-    Pixmap button_pixmap[10];
-    Pixmap button_pixmap_mask[10];
-    Pixmap dbutton_pixmap[10];
-    Pixmap dbutton_pixmap_mask[10];
-    int button_width[10];
-    int button_height[10];
- */
-	int TitleButtonSpacing;
-    int TitleButtonStyle;
+    ASFeel  Feel;
+    MyLook  Look;
 
-    int ButtonWidth;		/* user-set width of icons */
-    int ButtonHeight;		/* user-set height of icons */
+    GC DrawGC;          /* GC to draw lines for move and resize */
 
-    int RaiseButtons;		/* The buttons to do click-to-raise */
-    fr_sz fs[8];
-
-	int xinerama_screens_num ;
+    int xinerama_screens_num ;
 	XRectangle *xinerama_screens;
 
     struct ASFontManager  *font_manager ;
     struct ASImageManager *image_manager ;
-
-	struct ASSupportedHints *supported_hints;
-
-  }
-ScreenInfo;
+}ScreenInfo;
 
 extern ScreenInfo Scr;
 
@@ -317,6 +342,7 @@ void get_Xinerama_rectangles (ScreenInfo * scr);
 #endif
 Bool set_synchronous_mode (Bool enable);
 int ConnectX (ScreenInfo * scr, char *display_name, unsigned long event_mask);
+void setup_modifiers ();
 
 
 

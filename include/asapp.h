@@ -203,7 +203,7 @@ extern char 	 *as_share_dir_name;
 #define FEEL_DIR        "feels"
 #define BASE_FILE       "base"                           /* scrdepth */
 
-/* set by ConnectX :*/
+/* set by screen.c:setup_modifiers() in screen.c:ConnectX() :*/
 extern unsigned int  nonlock_mods;	/* a mask for non-locking modifiers */
 extern unsigned int *lock_mods;  	/* all combinations of lock modifier masks */
 /* Now for each display we may have one or several screens ; */

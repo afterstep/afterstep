@@ -30,22 +30,16 @@
 
 #include "../../configure.h"
 
+#include "../../include/asapp.h"
+#include "../../libAfterImage/afterimage.h"
+
 #include <limits.h>
-#include <stdio.h>
 #include <signal.h>
-#include <string.h>
-#include <ctype.h>
-#include <unistd.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-
-#include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
 #include "../../include/decor.h"
-//#include "../../include/style.h"
+#include "../../include/event.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"
 #include "asinternals.h"
@@ -679,7 +673,7 @@ void close_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void restart_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	Done (1, data->text);
+    Done (True, data->text);
 }
 
 void exec_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -896,11 +890,9 @@ void test_func_handler( FunctionData *data, ASEvent *event, int module )
 void
 QuickRestart (char *what)
 {
-	extern char  *display_name;
-	extern int    have_the_colors;
-	extern Bool   shall_override_config_file;
-	Bool          parse_menu = False;
-	Bool          parse_look = shall_override_config_file;
+    Bool          parse_menu = False;
+    Bool          shall_override_config_file = (MyArgs.override_config != NULL);
+    Bool          parse_look = shall_override_config_file;
 	Bool          parse_feel = shall_override_config_file;
 	Bool          update_background = False;
 
@@ -943,7 +935,7 @@ QuickRestart (char *what)
 		/* InitVariables(0); */
 
 		/* LoadASConfig must be called, or AS will be left in an unusable state */
-		LoadASConfig (display_name, Scr.CurrentDesk, parse_menu, parse_look, parse_feel);
+        LoadASConfig (Scr.CurrentDesk, parse_menu, parse_look, parse_feel);
 
 #ifndef NO_VIRTUAL
 		XUnmapWindow (dpy, Scr.PanFrameLeft.win);

@@ -19,18 +19,11 @@
 
 #include "../../configure.h"
 
-#include <stdio.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Xutil.h>
-
 #ifdef SHAPE
 #include <X11/extensions/shape.h>
 #endif /* SHAPE */
 
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/clientprops.h"
 #include "../../include/hints.h"

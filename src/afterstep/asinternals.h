@@ -16,6 +16,8 @@ struct ASWMProps;
 struct MoveResizeData;
 struct MenuItem;
 struct ASEvent;
+struct ASFeel;
+struct MyLook;
 
 typedef struct queue_buff_struct
 {
@@ -94,6 +96,7 @@ extern char         *PixmapPath;
 extern char         *CursorPath;
 extern char         *IconPath;
 extern char         *ModulePath;
+extern char         *FontPath;
 
 /* global variables for Look values : */
 extern unsigned long XORvalue;
@@ -125,9 +128,12 @@ extern int    menuFromFrameOrWindowOrTitlebar;
 /* Function prototypes :                                                  */
 /**************************************************************************/
 
+/*************************** afterstep.c : ********************************/
+void Done (Bool restart, char *command);
+
 /*************************** colormaps.c : ********************************/
-void ColormapSetup();
-void ColormapCleanup();
+void SetupColormaps();
+void CleanupColormaps();
 void InstallWindowColormaps (ASWindow *asw);
 void UninstallWindowColormaps (ASWindow *asw);
 void InstallRootColormap (void);
@@ -137,9 +143,13 @@ void UninstallAfterStepColormap (void);
 
 
 /*************************** configure.c **********************************/
-void
-LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
-              Bool parse_look, Bool parse_feel);
+void InitBase (Bool free_resources);
+void InitDatabase (Bool free_resources);
+
+void InitLook (struct MyLook *look, Bool free_resources);
+void InitFeel (struct ASFeel *feel, Bool free_resources);
+
+void LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel);
 
 /*************************** decorations.c ********************************/
 int check_allowed_function2 (int func, ASWindow * t);
@@ -154,6 +164,7 @@ Bool WaitEventLoop( struct ASEvent *event, int finish_event_type, long timeout )
 Bool IsClickLoop( struct ASEvent *event, unsigned int end_mask, unsigned int click_time );
 Bool WaitWindowLoop( char *pattern, long timeout );
 
+void AlarmHandler (int nonsense);
 
 Bool KeyboardShortcuts (XEvent * xevent, int return_event, int move_size);
 

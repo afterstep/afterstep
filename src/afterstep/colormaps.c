@@ -19,16 +19,10 @@
 
 #include "../../configure.h"
 
-#include <stdio.h>
-#include <unistd.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/screen.h"
+#include "../../include/event.h"
 #include "asinternals.h"
 
 typedef enum {
@@ -219,7 +213,7 @@ install_colormap( Colormap cmap, Window w )
 /* Setup and cleanup procedures :                                        */
 /*************************************************************************/
 void
-ColormapSetup()
+SetupColormaps()
 {
     if( MaxRequiredCmaps == 0 )
     {
@@ -238,7 +232,7 @@ ColormapSetup()
 }
 
 void
-ColormapCleanup()
+CleanupColormaps()
 {
     if( RequiredCmaps )
         free( RequiredCmaps );

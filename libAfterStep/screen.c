@@ -32,6 +32,7 @@
 #include "../include/mystyle.h"
 #include "../include/screen.h"
 #include "../include/module.h"
+#include "../include/wmprops.h"
 #include "../libAfterImage/afterimage.h"
 
 #ifdef HAVE_XINERAMA
@@ -201,6 +202,7 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long event_mask)
     scr->last_Timestamp = CurrentTime ;
     scr->menu_grab_Timestamp = CurrentTime ;
 
+    setup_modifiers ();
 
 #ifdef HAVE_XINERAMA
 	if (XineramaQueryExtension (dpy, &XineEventBase, &XineErrorBase))
@@ -264,7 +266,7 @@ make_screen_envvars( ScreenInfo *scr )
 void
 init_screen_gcs(ScreenInfo *scr)
 {
-	if( scr )
+    if( scr )
 	{
 		XGCValues     gcv;
     	unsigned long gcm = GCGraphicsExposures;
@@ -272,4 +274,54 @@ init_screen_gcs(ScreenInfo *scr)
         scr->DrawGC = create_visual_gc( scr->asv, scr->Root, gcm, &gcv );
     }
 }
+
+/* Setting up global variables  nonlock_mods, and lock_mods, defined in asapp.c : */
+void
+setup_modifiers ()
+{
+	int           m, i, knl;
+	char         *kn;
+	KeySym        ks;
+	KeyCode       kc, *kp;
+	unsigned      lockmask, *mp;
+	XModifierKeymap *mm = XGetModifierMapping (dpy);
+
+	lockmask = LockMask;
+	if (mm)
+	{
+		kp = mm->modifiermap;
+		for (m = 0; m < 8; m++)
+		{
+			for (i = 0; i < mm->max_keypermod; i++)
+			{
+				if ((kc = *kp++) && ((ks = XKeycodeToKeysym (dpy, kc, 0)) != NoSymbol))
+				{
+					kn = XKeysymToString (ks);
+					knl = strlen (kn);
+					if ((knl > 6) && (mystrcasecmp (kn + knl - 4, "lock") == 0))
+						lockmask |= (1 << m);
+				}
+			}
+		}
+		XFreeModifiermap (mm);
+	}
+/* forget shift & control locks */
+	lockmask &= ~(ShiftMask | ControlMask);
+
+	nonlock_mods = ((ShiftMask | ControlMask | Mod1Mask | Mod2Mask
+	 				 | Mod3Mask | Mod4Mask | Mod5Mask) & ~lockmask);
+
+	if (lock_mods == NULL)
+		lock_mods = (unsigned *)safemalloc (256 * sizeof (unsigned));
+
+	mp = lock_mods;
+	for (m = 0, i = 1; i < 256; i++)
+	{
+		if ((i & lockmask) > m)
+			m = *mp++ = (i & lockmask);
+	}
+	*mp = 0;
+}
+
+
 

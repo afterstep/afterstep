@@ -38,6 +38,7 @@
 #include "../../include/loadimg.h"
 #include "../../libAfterImage/afterimage.h"
 #include "../../include/mystyle.h"
+#include "../../include/wmprops.h"
 #include "asinternals.h"
 
 #include <X11/keysym.h>
@@ -553,7 +554,7 @@ HandleKeyPress ( ASEvent *event )
 {
 	FuncKey      *key;
     XKeyEvent *xk = &(event->x.xkey);
-    unsigned int modifier = (xk->state & Scr.nonlock_mods);
+    unsigned int modifier = (xk->state & nonlock_mods);
 
 	for (key = Scr.FuncKeyRoot; key != NULL; key = key->next)
 	{
@@ -898,7 +899,7 @@ HandleButtonPress ( ASEvent *event )
 
         if (get_flags( Scr.flags, ClickToFocus) )
         {
-            if ( asw != Scr.Windows->ungrabbed && (xbtn->state & Scr.nonlock_mods) == 0)
+            if ( asw != Scr.Windows->ungrabbed && (xbtn->state & nonlock_mods) == 0)
                 focus_accepted = focus_aswindow(asw, False);
         }
 
@@ -937,7 +938,7 @@ HandleButtonPress ( ASEvent *event )
     }
 
     /* we have to execute a function or pop up a menu : */
-    modifier = (xbtn->state & Scr.nonlock_mods);
+    modifier = (xbtn->state & nonlock_mods);
 	/* need to search for an appropriate mouse binding */
 	MouseEntry = Scr.MouseButtonRoot;
     while (MouseEntry != NULL)
@@ -1164,10 +1165,10 @@ HandleShapeNotify (ASEvent *event)
  *************************************************************************/
 volatile int  alarmed;
 void
-enterAlarm (int nonsense)
+AlarmHandler (int nonsense)
 {
 	alarmed = True;
-	signal (SIGALRM, enterAlarm);
+    signal (SIGALRM, AlarmHandler);
 }
 #endif /* 1 */
 
