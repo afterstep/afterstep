@@ -136,7 +136,7 @@ destroy_ashash (ASHashTable ** hash)
 #undef free
 #endif
 
-#define DEALLOC_CACHE_SIZE      2048
+#define DEALLOC_CACHE_SIZE      1024
 static ASHashItem*  deallocated_mem[DEALLOC_CACHE_SIZE+10] ;
 static unsigned int deallocated_used = 0 ;
 
