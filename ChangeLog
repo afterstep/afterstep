@@ -1,4 +1,433 @@
 
+2004-03-04 14:04  sasha
+
+	* AfterStep.spec, NEW, configure, afterstep/database,
+	  autoconf/configure.in, libAfterBase/audit.c,
+	  libAfterBase/configure, libAfterBase/configure.in,
+	  libAfterBase/xprop.c, libAfterConf/ASetRoot.c,
+	  libAfterConf/Base.c, libAfterConf/Color.c,
+	  libAfterConf/Database.c, libAfterConf/Feel.c,
+	  libAfterConf/Look.c, libAfterConf/MyStyle.c,
+	  libAfterConf/Pager.c, libAfterConf/Wharf.c,
+	  libAfterConf/WinList.c, libAfterConf/WinTabs.c,
+	  libAfterConf/function.c, libAfterImage/acconfig.h,
+	  libAfterImage/config.h.in, libAfterImage/configure,
+	  libAfterImage/configure.in, libAfterImage/apps/ascompose.c,
+	  libAfterStep/mylook.c, libAfterStep/mystyle.c,
+	  libAfterStep/parser.c, libAfterStep/parser.h,
+	  src/Banner/Banner.sh.in, src/Wharf/Wharf.c,
+	  src/WinTabs/WinTabs.c, src/afterstep/events.c,
+	  src/afterstep/functions.c, src/afterstep/pager.c: Fixed annoying
+	  type-punning warnings; Fixed annoying -rdynamic warnings on
+	  CYGWIN; Changed default compression ratio for screenshots to give
+	  very high quality; Fixed configure.in to properly work with
+	  latest autotools supporting PACKAGE_ stuff; Fixed configure to
+	  remove -g if enable-gdb is not requested; Fixed root image
+	  grabbing using overlay window to not use Backing Store; Fixed
+	  ascompose to set USPosition when geometry is requested; Fixed
+	  Banner to set its title ; Upgraded version to beta4
+
+2004-03-03 22:50  sasha
+
+	* src/Wharf/Wharf.c: Don't have to unmap Wharf folder at the end of
+	  animation
+
+2004-03-03 15:28  sasha
+
+	* src/afterstep/theme.c: fixed theme dir perms.
+
+2004-03-03 14:31  sasha
+
+	* afterstep/wharf, libAfterStep/moveresize.c, src/Wharf/Wharf.c:
+	  Fixed Wharf animations
+
+2004-03-03 12:37  sasha
+
+	* libAfterBase/astypes.h, libAfterStep/mystyle.c,
+	  src/Wharf/Wharf.c, src/WinList2/WinList.c, src/afterstep/pager.c:
+	  debugged Wharf's handling of RootClipArea, and enforced
+	  ConfigureNotify handling for folder to preceede buttons; Debugged
+	  WinList's handling of root background refreshes - must rerender
+	  buttons and canvas if transparent; Fixed handling of Root pixmap
+	  grabbing code to actually clip it to RootClipArea in mystyle.c
+
+2004-03-02 17:37  sasha
+
+	* afterstep/desktop/buttons/xml/as-shade-a-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-shade-a.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-a.xpm,
+	  afterstep/feels/feel.DEFAULT, afterstep/feels/feel.ICCCM,
+	  afterstep/looks/look.DEFAULT, afterstep/looks/look.Glass,
+	  afterstep/looks/look.Legacy, afterstep/looks/look.QNX,
+	  afterstep/looks/look.Transparent, libAfterStep/mystyle.c,
+	  src/Banner/Banner.sh.in, src/afterstep/asinternals.h,
+	  src/afterstep/configure.c, src/afterstep/functions.c,
+	  src/afterstep/menus.c, src/afterstep/menus.h: Fixed handling of
+	  window functions selected from window's menu; Fixed look/Legacy
+	  to run properly; Fixed handling of cursor pointers - should be
+	  configured in feel, not in look
+
+2004-03-02 08:10  sasha
+
+	* afterstep/desktop/tiles/png/: AfterStep: replacing image using
+	  binary format
+
+2004-03-01 17:33  sasha
+
+	* afterstep/banner, libAfterImage/apps/ascompose.c: better Banner
+
+2004-03-01 17:12  sasha
+
+	* libAfterImage/char2uni.c, libAfterImage/char2uni.h,
+	  libAfterImage/apps/asi18n.c, libAfterStep/asapp.c,
+	  libAfterStep/font.h, libAfterStep/hints.c,
+	  libAfterStep/mystyle.c, libAfterStep/mystyle_property.c: removed
+	  redundand ifdefs for I18N
+
+2004-03-01 16:27  sasha
+
+	* afterstep/Makefile.in, afterstep/autoexec.in, afterstep/banner,
+	  libAfterImage/asimage.c, libAfterImage/apps/ascompose.c,
+	  src/Banner/Banner.sh.in, src/Banner/Makefile.in: debugged and
+	  optimized Banner and ascompose
+
+2004-02-27 17:34  sasha
+
+	* src/Banner/: Banner.in, Banner.sh.in: renamed Banner.in into
+	  Banner.sh.in
+
+2004-02-27 17:32  sasha
+
+	* configure, autoconf/configure.in, src/Banner/Makefile.in:
+	  debugging Banner's makefile
+
+2004-02-27 17:03  sasha
+
+	* Makefile.in, libAfterImage/apps/ascompose.c: added missing usage
+	  text to ascompose and fixed Makefile to install Banner
+
+2004-02-27 16:52  sasha
+
+	* configure, afterstep/desktop/tiles/png/AfterStep,
+	  afterstep/desktop/tiles/png/AfterStepBeauty,
+	  autoconf/configure.in, libAfterBase/fs.c, src/Banner/Banner.c,
+	  src/Banner/Banner.in, src/Banner/Makefile.in: Implemented new
+	  Banner using ascompose
+
+2004-02-27 16:41  sasha
+
+	* libAfterImage/: asimage.c, apps/ascompose.c, apps/asflip.c,
+	  apps/asgrad.c, apps/asi18n.c, apps/asmerge.c, apps/asscale.c,
+	  apps/astext.c, apps/astile.c, apps/asvector.c, apps/asview.c,
+	  apps/common.c, apps/common.h: improved ascompose
+
+2004-02-27 10:29  sasha
+
+	* libAfterImage/asimage.c: debugged mask to rectangles list
+	  functionality in asimage.c
+
+2004-02-26 17:33  sasha
+
+	* configure, autoconf/configure.in, libAfterImage/asimage.c,
+	  libAfterImage/asimagexml.c, libAfterImage/config.h.in,
+	  libAfterImage/configure, libAfterImage/configure.in,
+	  libAfterImage/apps/ascompose.c: added support for shaped windows
+	  to ascompose; Debugged channel->rectangle set conversion in
+	  libAfterImage - still have some vertical stripes
+
+2004-02-26 13:54  sasha
+
+	* libAfterImage/asimagexml.c: Fixed <rotate> tag in asxml to
+	  properly swap width and height in case of 90 or 270 degree
+	  rotation
+
+2004-02-26 13:43  sasha
+
+	* libAfterImage/asimagexml.c: Fixed <rotate> tag in asxml to
+	  properly swap width and height in case of 90 or 270 degree
+	  rotation
+
+2004-02-23 10:29  sasha
+
+	* src/afterstep/: configure.c, decorations.c: fixed java window
+	  size bug
+
+2004-02-21 05:11  sasha
+
+	* afterstep/looks/look.Legacy: Added old look.Legacy
+
+2004-02-21 05:08  sasha
+
+	* afterstep/desktop/tiles/png/AfterStepBeauty,
+	  afterstep/feels/feel.DEFAULT, afterstep/feels/feel.ICCCM,
+	  afterstep/looks/look.QNX, libAfterImage/apps/ascompose.c,
+	  libAfterStep/screen.h, src/afterstep/configure.c: added code to
+	  AfterStep to publish Image and Font path in env vars; Added
+	  feel.ICCCM that has no keyboard bindings; Added window centering
+	  code to ascompose; Added missing cursor definitions to look.QNX;
+
+2004-02-20 05:42  sasha
+
+	* libAfterImage/apps/ascompose.c: Added ability to wait for data
+	  placed in X clipboard and then displaying it if its in XML format
+
+2004-02-19 23:10  sasha
+
+	* libAfterImage/apps/ascompose.c: added ability to use same window
+	  for different images
+
+2004-02-19 22:50  sasha
+
+	* libAfterImage/apps/ascompose.c: fixed display closing when
+	  running in loop
+
+2004-02-19 21:28  sasha
+
+	* libAfterImage/: asimagexml.c, asimagexml.h, apps/ascompose.c:
+	  added interactive error reporting functionality
+
+2004-02-19 05:18  sasha
+
+	* libAfterImage/: asimagexml.c, asimagexml.h, apps/ascompose.c:
+	  added interactivity functionality to ascompose
+
+2004-01-30 21:21  sasha
+
+	* autoconf/: Makefile.common.lib.in: fixing install problems
+
+2004-01-28 04:54  sasha
+
+	* autoconf/configure.in: Added check for free bsd and added
+	  /usr/local/include to cppflags
+
+2004-01-28 03:21  sasha
+
+	* autoconf/Makefile.common.lib.in: Fixed missing $ in check for not
+	  empty obj list
+
+2004-01-28 03:07  sasha
+
+	* libAfterBase/selfdiag.c: minor bug in detection of HAVE_DECL_ELFW
+	  - should check if its 0 or 1
+
+2004-01-27 02:11  sasha
+
+	* configure, afterstep/autoexec.in, autoconf/configure.in,
+	  libAfterBase/configure, libAfterBase/configure.in,
+	  libAfterBase/fs.c, libAfterImage/configure,
+	  libAfterImage/configure.in, libAfterStep/functions.h,
+	  src/afterstep/aswindow.c: now hopefully workplace state
+	  restoration should work fine - fixed complex function name
+	  parsing, for cases when its nested within anopther complex
+	  function.  Also added checks to not remove -g even if
+	  --enable-gdb is not specified ( due to requests from debian
+	  folks)
+
+2004-01-23 11:14  sasha
+
+	* libAfterBase/fs.c: debugging is_executable_in_path under OSX
+
+2004-01-22 13:17  sasha
+
+	* afterstep/database, afterstep/feels/feel.DEFAULT,
+	  libAfterStep/asdatabase.c, libAfterStep/clientprops.c,
+	  libAfterStep/clientprops.h, libAfterStep/hints.c,
+	  libAfterStep/hints.h, src/Wharf/Wharf.c,
+	  src/afterstep/aswindow.c, src/afterstep/events.c,
+	  src/afterstep/functions.c: fixed handling of the window name
+	  change by application to update its hints flags and function
+	  mask; Fixed Wait function where window name  would differ from
+	  wait parameter
+
+2004-01-22 09:47  sasha
+
+	* afterstep/start/1_Desktop/.include, libAfterStep/functions.c,
+	  libAfterStep/functions.h, src/Pager/Pager.c,
+	  src/afterstep/dirtree.c, src/afterstep/dirtree.h,
+	  src/afterstep/menuitem.c, src/afterstep/menus.c,
+	  src/afterstep/placement.c, src/afterstep/winstatus.c: added
+	  ability to override RecentSubmenuItems in .include files;
+	  Implemented aditional logic in avoiding cover code to shift
+	  windows in most optimal direction only. Seems to fix problems
+	  with WinList and Pager fighting for the space
+
+2004-01-21 12:57  sasha
+
+	* libAfterImage/configure, libAfterStep/asapp.c, src/Pager/Pager.c,
+	  src/afterstep/afterstep.c, src/afterstep/configure.c,
+	  src/afterstep/decorations.c, src/afterstep/functions.c,
+	  src/afterstep/menus.c, src/afterstep/misc.c,
+	  src/afterstep/winstatus.c: fixed bug where empty locale would be
+	  specified while starting a module causing Pager to have 255
+	  desktops and other wierdness
+
+2004-01-21 12:07  sasha
+
+	* libAfterBase/: config.h.in, configure, configure.in, selfdiag.c:
+	  yet another check of link.h header to fix compilation failures
+
+2004-01-21 10:25  sasha
+
+	* libAfterStep/: afterstep.h, asfeel.c, asfeel.h, moveresize.c,
+	  screen.c, wmprops.c, wmprops.h: fixed minor compile bug in
+	  wmprops.h WMPropsAtoms declaration
+
+2004-01-20 17:25  sasha
+
+	* libAfterBase/configure: added checks for required structures and
+	  types in elf.h for selfdiag code
+
+2004-01-20 15:04  sasha
+
+	* libAfterBase/: config.h.in, configure.in, selfdiag.c: added
+	  checks for required structures and types in elf.h for selfdiag
+	  code
+
+2004-01-20 14:55  sasha
+
+	* libAfterBase/config.h.in: added checks for required structures
+	  and types in elf.h for selfdiag code
+
+2004-01-20 14:07  sasha
+
+	* libAfterBase/: configure, configure.in: added checks for required
+	  structures and types in elf.h for selfdiag code
+
+2004-01-20 12:36  sasha
+
+	* libAfterBase/: acconfig.h, config.h.in, configure, configure.in,
+	  selfdiag.c: added checks for required structures and types in
+	  elf.h for selfdiag code
+
+2004-01-14 13:55  sasha
+
+	* libAfterStep/afterstep.h, libAfterStep/freestor.c,
+	  libAfterStep/screen.c, src/afterstep/events.c,
+	  src/afterstep/misc.c: fixed handling of client window context
+	  when mouse is pressed inside client's subwindow
+
+2004-01-14 10:31  sasha
+
+	* NEW: updated NEW with recent changes
+
+2004-01-14 10:06  sasha
+
+	* libAfterStep/asfeel.c, src/afterstep/functions.c,
+	  src/afterstep/pager.c: hopefully fixed situation when one could
+	  not change the background, when it was not unloaded due to small
+	  enough size
+
+2004-01-13 23:21  sasha
+
+	* libAfterImage/asvisual.c: fixed bug in shared image variant of
+	  background xfer
+
+2004-01-13 17:46  sasha
+
+	* libAfterStep/asfeel.c, libAfterStep/asfeel.h,
+	  src/afterstep/configure.c, src/afterstep/cover.c,
+	  src/afterstep/pager.c: further performance tweaks for root
+	  background transfer. Added config option to disable it
+	  (DontAnimateBackground)
+
+2004-01-13 14:38  sasha
+
+	* libAfterBase/timer.c, libAfterImage/asvisual.c,
+	  src/afterstep/pager.c: disabled animating for tiled pixmaps as it
+	  seems to cause slowness
+
+2004-01-13 11:35  sasha
+
+	* src/afterstep/: cover.c, pager.c: converted cover sliding to use
+	  timers, tweaked background transfer to do a nicer animation
+
+2004-01-12 17:43  sasha
+
+	* libAfterBase/timer.c, libAfterImage/asimage.c,
+	  libAfterImage/asimage.h, libAfterImage/asvisual.c,
+	  libAfterImage/asvisual.h, libAfterImage/ximage.c,
+	  libAfterImage/ximage.h, libAfterStep/asapp.c,
+	  libAfterStep/canvas.c, libAfterStep/decor.c,
+	  libAfterStep/screen.c, libAfterStep/screen.h,
+	  src/afterstep/afterstep.c, src/afterstep/asinternals.h,
+	  src/afterstep/events.c, src/afterstep/pager.c: hopefully
+	  optimized ximage transfer by using reusable memory and added
+	  ability to postpone background switching task to be done later
+
+2004-01-12 09:04  sasha
+
+	* src/: Pager/Pager.c, WinList2/WinList.c: fixed MyStyles in Pager
+	  and button sizing in WinList
+
+2004-01-08 16:11  sasha
+
+	* libAfterStep/: canvas.c, shape.c, shape.h: cleaned up canvas.c so
+	  it depends on absolute minimum of other parts of libAfgterStep,
+	  and we can extract it and reuse in aterm and other apps
+
+2004-01-08 13:04  sasha
+
+	* autoconf/Makefile.common.lib.in, autoconf/Makefile.defines.in,
+	  libAfterBase/Makefile.in, libAfterConf/ASConfig.c,
+	  libAfterConf/ASetRoot.c, libAfterConf/Base.c,
+	  libAfterConf/Color.c, libAfterConf/Database.c,
+	  libAfterConf/Feel.c, libAfterConf/Look.c,
+	  libAfterConf/Makefile.in, libAfterConf/MyStyle.c,
+	  libAfterConf/Pager.c, libAfterConf/Wharf.c,
+	  libAfterConf/WinList.c, libAfterConf/WinTabs.c,
+	  libAfterConf/balloon.c, libAfterConf/function.c,
+	  libAfterImage/Makefile.in, libAfterImage/afterimage.h,
+	  libAfterStep/Makefile.in, libAfterStep/asapp.c,
+	  libAfterStep/asapp.h, libAfterStep/asdatabase.c,
+	  libAfterStep/asfeel.c, libAfterStep/aswindata.c,
+	  libAfterStep/background.c, libAfterStep/balloon.c,
+	  libAfterStep/canvas.c, libAfterStep/canvas.h,
+	  libAfterStep/clientprops.c, libAfterStep/clientprops.h,
+	  libAfterStep/colorscheme.c, libAfterStep/decor.c,
+	  libAfterStep/event.c, libAfterStep/font.c,
+	  libAfterStep/freestor.c, libAfterStep/functions.c,
+	  libAfterStep/hints.c, libAfterStep/module.c,
+	  libAfterStep/moveresize.c, libAfterStep/myicon.c,
+	  libAfterStep/mylook.c, libAfterStep/mystyle.c,
+	  libAfterStep/mystyle_property.c, libAfterStep/outline.c,
+	  libAfterStep/parser.c, libAfterStep/screen.c,
+	  libAfterStep/session.c, libAfterStep/shape.c,
+	  libAfterStep/wmprops.c, src/Gadget/Gadget.c, src/Pager/Pager.c,
+	  src/Wharf/Wharf.c, src/WinList2/WinList.c, src/WinTabs/WinTabs.c,
+	  src/afterstep/asinternals.h, src/afterstep/dirtree.c,
+	  src/ascp/ascolor.c, src/ascp/asimbrowser.c, src/test/test.c:
+	  fixed libAfterStep installation procedure and some of the headers
+	  to make it useable in external apps
+
+2004-01-07 11:43  sasha
+
+	* libAfterStep/Makefile.in, libAfterStep/canvas.c,
+	  libAfterStep/canvas.h, libAfterStep/decor.c,
+	  libAfterStep/decor.h, src/afterstep/functions.c: Split ASCanvas
+	  code from Tbar for convinience
+
+2004-01-06 10:27  sasha
+
+	* AfterStep.spec, libAfterImage/asfont.c, src/ascp/ascolor.c: fixed
+	  get_font to not crash when X is missing; Fixed ascolor to not
+	  open any connections to AS when -n option is used
+
+2004-01-05 17:38  vae
+
+	* afterstep/database: fixed database conflict with gaim
+
+2004-01-02 12:14  sasha
+
+	* AfterStep.spec, libAfterImage/configure.in,
+	  src/afterstep/functions.c: Fixed keyboard presses handling to not
+	  require window selection when there is a focused window; Updated
+	  .spec file to better handle libraries and stuff ( thanks to Andre
+	  Costa )
+
+2003-12-23 15:46  sasha
+
+	* ChangeLog: AfterStep 2.00.beta3 Release
+
 2003-12-23 15:42  sasha
 
 	* AfterStep.spec, ChangeLog, NEW, configure, autoconf/configure.in:
@@ -1160,11 +1589,7 @@
 
 	* configure, autoconf/configure.in, libAfterStep/moveresize.h,
 	  src/Pager/Pager_old.c, src/Pager/x_pager.c, src/Wharf/Wharf.h,
-	  src/Wharf/icons.c, src/WinList/ButtonArray.c,
-	  src/WinList/ButtonArray.h, src/WinList/List.c,
-	  src/WinList/List.h, src/WinList/Makefile.in,
-	  src/WinList/WinList.c, src/WinList/WinList.h,
-	  src/WinList/WinList.man, src/afterstep/functions.c,
+	  src/Wharf/icons.c, src/afterstep/functions.c,
 	  src/afterstep/functions_old.c, src/afterstep/menus_old.c,
 	  src/afterstep/pager.c, src/afterstep/placement.c,
 	  src/afterstep/winstatus.c: Fixed bug in window movement resizing
@@ -4222,7 +4647,7 @@
 2002-12-27 09:18  sasha
 
 	* src/: Pager/.depend, Script/.depend, Wharf/.depend,
-	  WinList/.depend, Zharf/.depend, afterstep/.depend: updated deps
+	  Zharf/.depend, afterstep/.depend: updated deps
 
 2002-12-27 09:11  sasha
 
@@ -4747,16 +5172,16 @@
 	  libAfterConf/.depend, libAfterConf/Database.c,
 	  libAfterStep/screen.c, libAfterStep/session.c,
 	  libAfterStep/wmprops.c, src/Script/.depend,
-	  src/Script/Widgets/.depend, src/Wharf/.depend,
-	  src/WinList/.depend, src/Zharf/.depend, src/afterstep/.depend,
-	  src/afterstep/afterstep.c, src/afterstep/asinternals.h,
-	  src/afterstep/configure.c, src/afterstep/functions.c,
-	  src/afterstep/menuitem.c, src/afterstep/menus.h: fixed remaining
-	  compilation problems; updated depenfd files; Fixed Session to
-	  correctly build config tree and use correct paths; Fixed atoms
-	  interning; Fixed config reading order; added QuickRestart base
-	  and database;Implemented function body parsing; debugged to the
-	  point that config loads successfuly
+	  src/Script/Widgets/.depend, src/Wharf/.depend, src/Zharf/.depend,
+	  src/afterstep/.depend, src/afterstep/afterstep.c,
+	  src/afterstep/asinternals.h, src/afterstep/configure.c,
+	  src/afterstep/functions.c, src/afterstep/menuitem.c,
+	  src/afterstep/menus.h: fixed remaining compilation problems;
+	  updated depenfd files; Fixed Session to correctly build config
+	  tree and use correct paths; Fixed atoms interning; Fixed config
+	  reading order; added QuickRestart base and database;Implemented
+	  function body parsing; debugged to the point that config loads
+	  successfuly
 
 2002-11-06 17:04  sasha
 
@@ -4772,22 +5197,21 @@
 	  libAfterImage/asvisual.c, libAfterImage/pixmap.c,
 	  libAfterImage/apps/ascompose.c, libAfterStep/mystyle.c,
 	  libAfterStep/mystyle_property.c, libAfterStep/wmprops.c,
-	  src/Pager/Pager.c, src/Wharf/Wharf.c, src/WinList/WinList.c,
-	  src/WinList2/WinList.c, src/afterstep/Makefile.in,
-	  src/afterstep/add_window.c, src/afterstep/afterstep.c,
-	  src/afterstep/asinternals.h, src/afterstep/aswindow.c,
-	  src/afterstep/configure.c, src/afterstep/decorations.c,
-	  src/afterstep/dirtree.c, src/afterstep/events.c,
-	  src/afterstep/functions.c, src/afterstep/housekeeping.c,
-	  src/afterstep/icons.c, src/afterstep/menuitem.c,
-	  src/afterstep/menus.h, src/afterstep/misc.c,
-	  src/afterstep/module.c, src/afterstep/myscandir.c,
-	  src/afterstep/pager.c, src/afterstep/windows.c,
-	  src/asetroot/asetroot.c: Moved MyStyles to use Hash table, Fixed
-	  mystyle_property code to use wmprops; updated libConfig to use
-	  asapp and fixed MyStyle parsing; cleaned up bits and pieces and
-	  at long last got AfterStep proper to compile cleanly cd
-	  as-stable! Now its time for some debugging
+	  src/Pager/Pager.c, src/Wharf/Wharf.c, src/WinList2/WinList.c,
+	  src/afterstep/Makefile.in, src/afterstep/add_window.c,
+	  src/afterstep/afterstep.c, src/afterstep/asinternals.h,
+	  src/afterstep/aswindow.c, src/afterstep/configure.c,
+	  src/afterstep/decorations.c, src/afterstep/dirtree.c,
+	  src/afterstep/events.c, src/afterstep/functions.c,
+	  src/afterstep/housekeeping.c, src/afterstep/icons.c,
+	  src/afterstep/menuitem.c, src/afterstep/menus.h,
+	  src/afterstep/misc.c, src/afterstep/module.c,
+	  src/afterstep/myscandir.c, src/afterstep/pager.c,
+	  src/afterstep/windows.c, src/asetroot/asetroot.c: Moved MyStyles
+	  to use Hash table, Fixed mystyle_property code to use wmprops;
+	  updated libConfig to use asapp and fixed MyStyle parsing; cleaned
+	  up bits and pieces and at long last got AfterStep proper to
+	  compile cleanly cd as-stable! Now its time for some debugging
 
 2002-11-05 16:30  sasha
 
@@ -4861,14 +5285,13 @@
 	  libAfterStep/parser.c, libAfterStep/wmprops.c,
 	  src/Banner/Banner.c, src/Ident/Ident.c, src/Pager/Pager.c,
 	  src/Pager/x_pager.c, src/Script/Script.c, src/Scroll/Scroll.c,
-	  src/Wharf/Wharf.c, src/WinList/WinList.c, src/Zharf/Zharf.c,
-	  src/afterstep/Makefile.in, src/afterstep/add_window.c,
-	  src/afterstep/afterstep.c, src/afterstep/asinternals.h,
-	  src/afterstep/configure.c, src/afterstep/functions.c,
-	  src/afterstep/globals.h, src/afterstep/icons.c,
-	  src/afterstep/menuitem.c, src/afterstep/menus.h: Fixed Frames,
-	  backported asapp.c.h, got rid of aftersteplib.h, cleaned up
-	  headers in lib
+	  src/Wharf/Wharf.c, src/Zharf/Zharf.c, src/afterstep/Makefile.in,
+	  src/afterstep/add_window.c, src/afterstep/afterstep.c,
+	  src/afterstep/asinternals.h, src/afterstep/configure.c,
+	  src/afterstep/functions.c, src/afterstep/globals.h,
+	  src/afterstep/icons.c, src/afterstep/menuitem.c,
+	  src/afterstep/menus.h: Fixed Frames, backported asapp.c.h, got
+	  rid of aftersteplib.h, cleaned up headers in lib
 
 2002-10-30 17:13  sasha
 
@@ -5201,8 +5624,8 @@
 
 2002-08-16 01:43  sasha
 
-	* libAfterBase/.depend, src/Script/.depend, src/WinList/.depend,
-	  src/afterstep/.depend: updated dependancies
+	* libAfterBase/.depend, src/Script/.depend, src/afterstep/.depend:
+	  updated dependancies
 
 2002-08-16 01:42  sasha
 
@@ -5376,13 +5799,13 @@
 	  libAfterImage/ximage.c, libAfterImage/ximage.h,
 	  libAfterStep/mystyle.c, libAfterStep/mystyle.h,
 	  libAfterStep/mystyle_property.c, src/Audio/Audio.c,
-	  src/Wharf/Wharf.c, src/WinList/List.c,
-	  src/afterstep/afterstep.man, src/afterstep/resize.c: completed
-	  implementation of 8-bit alpha channel pixmaps in libAfterImage;
-	  added function to hopefully determine the most efficient depth of
-	  alpha channel (8 or 1); added 8-bit alpha support to icon_t and
-	  mystyles; fixed bugs in MyStyles cloning of mask; added twm
-	  rubberband; fixed Audio (see AS ML)
+	  src/Wharf/Wharf.c, src/afterstep/afterstep.man,
+	  src/afterstep/resize.c: completed implementation of 8-bit alpha
+	  channel pixmaps in libAfterImage; added function to hopefully
+	  determine the most efficient depth of alpha channel (8 or 1);
+	  added 8-bit alpha support to icon_t and mystyles; fixed bugs in
+	  MyStyles cloning of mask; added twm rubberband; fixed Audio (see
+	  AS ML)
 
 2002-07-20 01:14  sasha
 
@@ -5530,8 +5953,7 @@
 
 2002-05-01 01:15  sasha
 
-	* libAfterStep/font.c, src/Ident/Makefile.in,
-	  src/WinList/WinList.c, src/WinList/WinList.h: preoared WinList to
+	* libAfterStep/font.c, src/Ident/Makefile.in: preoared WinList to
 	  be converted to use TRueType fonts
 
 2002-05-01 00:41  sasha
@@ -5574,7 +5996,6 @@
 	  src/Script/Widgets/RadioButton.c, src/Script/Widgets/Rectangle.c,
 	  src/Script/Widgets/Swallow.c, src/Script/Widgets/TextField.c,
 	  src/Script/Widgets/VDipstick.c, src/Script/Widgets/VScrollBar.c,
-	  src/WinList/ButtonArray.c, src/WinList/WinList.h,
 	  src/Zharf/Zharf.c: fixed compilation of everything
 
 2002-04-26 01:20  sasha
@@ -5617,8 +6038,7 @@
 	  src/Pager/Makefile.in, src/Save/.depend, src/Script/.depend,
 	  src/Scroll/.depend, src/Scroll/Makefile.in, src/Sound/.depend,
 	  src/Tile/.depend, src/Wharf/.depend, src/Wharf/Makefile.in,
-	  src/WinList/.depend, src/WinList/Makefile.in, src/Zharf/.depend,
-	  src/Zharf/Makefile.in, src/afterstep/.depend,
+	  src/Zharf/.depend, src/Zharf/Makefile.in, src/afterstep/.depend,
 	  src/afterstep/Makefile.in, src/asetroot/.depend,
 	  src/asetroot/Makefile.in:  cleaned up headers and fixed Makefiles
 
@@ -5823,8 +6243,7 @@
 	  src/Pager/Makefile.in, src/Save/Makefile.in,
 	  src/Script/Makefile.in, src/Scroll/Makefile.in,
 	  src/Sound/Makefile.in, src/Tile/Makefile.in,
-	  src/Wharf/Makefile.in, src/Wharf/Wharf.c,
-	  src/WinList/Makefile.in, src/Zharf/Makefile.in,
+	  src/Wharf/Makefile.in, src/Wharf/Wharf.c, src/Zharf/Makefile.in,
 	  src/afterstep/Makefile.in, src/afterstep/menuitem.c,
 	  src/asetroot/Makefile.in: IN the middle of updating AS with
 	  libAfterImage and libAfterBase. Things may not work here
@@ -6590,9 +7009,9 @@
 2001-12-13 00:30  sasha
 
 	* ChangeLog, src/Audio/Audio.man, src/Pager/Pager.man,
-	  src/Tile/Tile.c, src/Wharf/Wharf.man, src/WinList/WinList.man,
-	  src/Zharf/Zharf.man, src/afterstep/functions.c: updated man
-	  pages; fixed maximization under xinerama; updated ChangeLog;
+	  src/Tile/Tile.c, src/Wharf/Wharf.man, src/Zharf/Zharf.man,
+	  src/afterstep/functions.c: updated man pages; fixed maximization
+	  under xinerama; updated ChangeLog;
 
 2001-12-12 13:12  sasha
 
@@ -7059,11 +7478,11 @@
 	  libAfterConf/Pager.c, src/Form/Form.c, src/Pager/Pager.c,
 	  src/Pager/x_pager.c, src/Script/Script.c, src/Sound/ASSound.c,
 	  src/Tile/Tile.c, src/Wharf/Wharf.c, src/Wharf/icons.c,
-	  src/WinList/WinList.c, src/Zharf/Zharf.c, src/Zharf/icons.c,
-	  src/afterstep/afterstep.c, src/afterstep/afterstep.man,
-	  src/afterstep/configure.c, src/afterstep/functions.c,
-	  src/afterstep/icons.c, src/afterstep/menuitem.c,
-	  src/asetroot/asetroot.c: Updated Sasha Vasko e-mail address
+	  src/Zharf/Zharf.c, src/Zharf/icons.c, src/afterstep/afterstep.c,
+	  src/afterstep/afterstep.man, src/afterstep/configure.c,
+	  src/afterstep/functions.c, src/afterstep/icons.c,
+	  src/afterstep/menuitem.c, src/asetroot/asetroot.c: Updated Sasha
+	  Vasko e-mail address
 
 2001-09-28 08:45  sasha
 
@@ -9585,11 +10004,7 @@
 	  libAfterConf/MyStyle.c, libAfterConf/Pager.c, src/Gnome/.depend,
 	  src/Gnome/Gnome.c, src/Gnome/Gnome.h, src/Gnome/Gnome.man,
 	  src/Gnome/Makefile.in, src/Wharf/OffiX/DragAndDrop.h,
-	  src/Wharf/OffiX/DragAndDropTypes.h, src/WinList/.depend,
-	  src/WinList/ButtonArray.c, src/WinList/ButtonArray.h,
-	  src/WinList/List.c, src/WinList/List.h, src/WinList/Makefile.in,
-	  src/WinList/WinList.c, src/WinList/WinList.h,
-	  src/WinList/WinList.man, src/Zharf/.depend,
+	  src/Wharf/OffiX/DragAndDropTypes.h, src/Zharf/.depend,
 	  src/Zharf/Makefile.in, src/Zharf/Zharf.c, src/Zharf/Zharf.h,
 	  src/Zharf/Zharf.man, src/Zharf/icons.c, src/afterstep/.depend,
 	  src/afterstep/Makefile.in, src/afterstep/add_window.c,
@@ -10096,11 +10511,7 @@
 	  libAfterConf/MyStyle.c, libAfterConf/Pager.c, src/Gnome/.depend,
 	  src/Gnome/Gnome.c, src/Gnome/Gnome.h, src/Gnome/Gnome.man,
 	  src/Gnome/Makefile.in, src/Wharf/OffiX/DragAndDrop.h,
-	  src/Wharf/OffiX/DragAndDropTypes.h, src/WinList/.depend,
-	  src/WinList/ButtonArray.c, src/WinList/ButtonArray.h,
-	  src/WinList/List.c, src/WinList/List.h, src/WinList/Makefile.in,
-	  src/WinList/WinList.c, src/WinList/WinList.h,
-	  src/WinList/WinList.man, src/Zharf/.depend,
+	  src/Wharf/OffiX/DragAndDropTypes.h, src/Zharf/.depend,
 	  src/Zharf/Makefile.in, src/Zharf/Zharf.c, src/Zharf/Zharf.h,
 	  src/Zharf/Zharf.man, src/Zharf/icons.c, src/afterstep/.depend,
 	  src/afterstep/Makefile.in, src/afterstep/add_window.c,
