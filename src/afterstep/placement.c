@@ -722,8 +722,13 @@ static Bool do_cascade_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
 static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
     ASMoveResizeData *mvrdata;
+	int start_x = 0, start_y = 0;
 
     ConfigureNotifyLoop();
+
+	ASQueryPointerRootXY( &start_x, &start_y);
+	move_canvas( asw->frame_canvas, start_x-2, start_y-2 );
+    handle_canvas_config( asw->frame_canvas );
 
 /*    moveresize_canvas( asw->frame_canvas, ((int)Scr.MyDisplayWidth - (int)asw->status->width)/2,
                                           ((int)Scr.MyDisplayHeight - (int)asw->status->height)/2,

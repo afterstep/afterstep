@@ -753,7 +753,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (color_str) {
 				char* p = color_str;
 				while (isspace((int)*p)) p++;
-				p = parse_argb_color(p, &bevel.hi_color);
+				p = (char*)parse_argb_color(p, &bevel.hi_color);
 				while (isspace((int)*p)) p++;
 				parse_argb_color(p, &bevel.lo_color);
 			}
