@@ -221,7 +221,7 @@ unsigned int mystyle_get_font_height( MyStyle *style );
 void mystyle_list_fix_styles (ASHashTable *list);
 void mystyle_fix_styles (void);
 
-ASImage *mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int height );
+ASImage *mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int height, int flip );
 Pixmap mystyle_make_pixmap (MyStyle * style, int width, int height, Pixmap cache);
 Pixmap mystyle_make_pixmap_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache);
 icon_t mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache);

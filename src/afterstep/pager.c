@@ -579,7 +579,7 @@ make_desktop_image( int desk, MyBackground *new_back )
             Scr.RootImage->back_color = style->colors.back ;
         }
         LOCAL_DEBUG_OUT( "drawing root background using mystyle \"%s\" size %dx%d", style->name, root_width, root_height );
-        new_im = mystyle_make_image( style, 0, 0, root_width, root_height );
+        new_im = mystyle_make_image( style, 0, 0, root_width, root_height, 0 );
 
         if( style->texture_type >= TEXTURE_TRANSPARENT )
         {

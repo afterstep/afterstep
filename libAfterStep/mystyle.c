@@ -350,7 +350,7 @@ mystyle_translate_texture_type( int texture_type )
 }
 
 ASImage      *
-mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int height)
+mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int height, int flip )
 {
 	ASImage      *im = NULL;
 	Pixmap        root_pixmap;
@@ -536,7 +536,7 @@ mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
 	icon_t        icon = { None, None, None, 0, 0 };
 
 #ifndef NO_TEXTURE
-	asimage2icon (mystyle_make_image (style, 0, 0, width, height),
+	asimage2icon (mystyle_make_image (style, 0, 0, width, height, 0),
 				  &icon, (style->texture_type < TEXTURE_TEXTURED_START));
 #endif /* NO_TEXTURE */
 	return icon;
@@ -548,7 +548,7 @@ mystyle_make_icon_overlay (MyStyle * style, int root_x, int root_y, int width, i
 	icon_t        icon = { None, None, 0, 0 };
 
 #ifndef NO_TEXTURE
-	asimage2icon (mystyle_make_image (style, root_x, root_y, width, height),
+	asimage2icon (mystyle_make_image (style, root_x, root_y, width, height, 0),
 				  &icon, (style->texture_type < TEXTURE_TEXTURED_START));
 #endif /* NO_TEXTURE */
 	return icon;

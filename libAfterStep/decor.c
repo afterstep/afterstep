@@ -32,7 +32,6 @@
 #include "event.h"
 #include "balloon.h"
 
-
 static GC           MaskGC = None;
 static ASTBarData  *FocusedBar = NULL;          /* currently focused bar with balloon shown for it */
 
@@ -1943,7 +1942,8 @@ LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width
 LOCAL_DEBUG_OUT("back(%p)", back );
 	if (back == NULL)
 	{
-		tbar->back[state] = back = mystyle_make_image (style, tbar->root_x, tbar->root_y, tbar->width, tbar->height);
+		back = mystyle_make_image (style, tbar->root_x, tbar->root_y, tbar->width, tbar->height, get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);
+		tbar->back[state] = back ;
 LOCAL_DEBUG_OUT("back-try2(%p)", back );
 		if (back == NULL)
             return -1;
