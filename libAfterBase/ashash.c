@@ -136,6 +136,11 @@ destroy_ashash (ASHashTable ** hash)
 #undef free
 #endif
 
+#define DEALLOC_CACHE_SIZE      2048
+static ASHashItem*  deallocated_mem[DEALLOC_CACHE_SIZE+10] ;
+static unsigned int deallocated_used = 0 ;
+
+
 static        ASHashResult
 add_item_to_bucket (ASHashBucket * bucket, ASHashItem * item, long (*compare_func) (ASHashableValue, ASHashableValue))
 {
@@ -171,7 +176,11 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
 	if (key >= hash->size)
         return ASH_BadParameter;
 
-	item = safemalloc (sizeof (ASHashItem));
+    if( deallocated_used > 0 )
+        item = deallocated_mem[--deallocated_used];
+    else
+        item = safemalloc (sizeof (ASHashItem));
+
 	item->next = NULL;
 	item->value = value;
 	item->data = data;
@@ -272,7 +281,7 @@ remove_hash_item (ASHashTable * hash, ASHashableValue value, void **trg, Bool de
 		if (*pitem)
 		{
 			ASHashItem   *next;
-			
+
 			if( hash->most_recent == *pitem )
 				hash->most_recent = NULL ;
 
@@ -282,8 +291,13 @@ remove_hash_item (ASHashTable * hash, ASHashableValue value, void **trg, Bool de
 			next = (*pitem)->next;
 			if (hash->item_destroy_func && destroy)
 				hash->item_destroy_func ((*pitem)->value, (trg) ? NULL : (*pitem)->data);
-			free (*pitem);
-			*pitem = next;
+
+            if( deallocated_used < DEALLOC_CACHE_SIZE )
+                deallocated_mem[deallocated_used++] = *pitem ;
+            else
+                free( *pitem );
+
+            *pitem = next;
 			if (hash->buckets[key] == NULL)
 				hash->buckets_used--;
 			hash->items_num--;
@@ -333,7 +347,7 @@ sort_hash_items (ASHashTable * hash, ASHashableValue * values, void **data, unsi
 				bottom++;
 			while (buckets[top] == NULL && top > bottom)
 				top--;
-			if( buckets[top] == NULL ) 
+			if( buckets[top] == NULL )
 				break;
 		}
 		free (buckets);
@@ -480,7 +494,7 @@ curr_hash_data (ASHashIterator * iterator)
 ASHashKey pointer_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
 	register ASHashKey key = (ASHashKey)value.ptr ;
-	if( hash_size == 256 ) 
+	if( hash_size == 256 )
 		return (key>>4)&0x0FF;
 	return (key>>4) % hash_size;
 }
