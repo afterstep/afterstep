@@ -174,7 +174,7 @@ void version(void) {
 }
 
 void usage(void) {
-	printf(
+	fprintf( stdout,
 		"Usage:\n"
 		"ascompose [-h] [-f file] [-o file] [-s string] [-t type] [-v] [-V]"
 #ifndef X_DISPLAY_MISSING

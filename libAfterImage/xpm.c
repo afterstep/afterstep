@@ -705,7 +705,7 @@ build_xpm_colormap( ASXpmFile *xpm_file )
 	}else
 		xpm_file->cmap_name_xref = create_ashash( 0, string_hash_value,
 													 string_compare,
-													 string_destroy );
+													 string_value_destroy );
 #endif
 	if( xpm_color_names == NULL )
 	{
