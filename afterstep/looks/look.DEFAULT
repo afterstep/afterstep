@@ -121,7 +121,7 @@ MyStyle "*PagerBalloon"
 
 MyStyle "DeskStyle"
 # semitransparent gradient  :
-	BackGradient	6	#05444444 #05bbbbbb
+	BackGradient	6	#77222222 #77EEEEEE
 ##  Gradiated Pager -
 # 	BackGradient	2 cyan gray30
 ##  Pixmapped Pager -
