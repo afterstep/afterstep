@@ -200,7 +200,7 @@ void
 destroy_asimage( ASImage **im )
 {
 	if( im )
-		if( *im && !AS_ASSERT((*im)->imageman))
+		if( *im && !AS_ASSERT_NOTVAL((*im)->imageman,NULL))
 		{
 			asimage_init( *im, True );
 /*fprintf( stderr, "destroying image : %p\n", *im );*/
@@ -237,7 +237,7 @@ asimage_destroy (ASHashableValue value, void *data)
 		ASImage *im = (ASImage*)data ;
 		if( im != NULL )
 		{
-			if( !AS_ASSERT_VAL(im->magic, MAGIC_ASIMAGE) )
+			if( AS_ASSERT_NOTVAL(im->magic, MAGIC_ASIMAGE) )
 				im = NULL ;
 			else
 				im->imageman = NULL ;
@@ -299,7 +299,7 @@ store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
 {
 	Bool res = False ;
 	if( !AS_ASSERT(im) )
-		if( !AS_ASSERT_VAL(im->magic, MAGIC_ASIMAGE) )
+		if( AS_ASSERT_NOTVAL(im->magic, MAGIC_ASIMAGE) )
 			im = NULL ;
 
 	if( !AS_ASSERT(imageman) && !AS_ASSERT(im) && !AS_ASSERT((char*)name) )
@@ -339,7 +339,7 @@ ASImage *
 dup_asimage( ASImage* im )
 {
 	if( !AS_ASSERT(im) )
-		if( AS_ASSERT_VAL(im->magic,MAGIC_ASIMAGE) )
+		if( AS_ASSERT_NOTVAL(im->magic,MAGIC_ASIMAGE) )
 			im = NULL ;
 
 	if( !AS_ASSERT(im) && !AS_ASSERT(im->imageman) )
@@ -1135,7 +1135,7 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 	register CARD8  *src = im->channels[color][y];
 	/* that thing below is supposedly highly optimized : */
 LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_width = %d, src = %p", im->width, color, y, skip, out_width, src );
-	if( !AS_ASSERT(src) )
+	if( src )
 	{
 		register int i = 0;
 #if 1
