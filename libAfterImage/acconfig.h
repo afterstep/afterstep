@@ -14,6 +14,7 @@
 #undef  HAVE_GIF
 #undef  HAVE_TIFF
 #undef  HAVE_FREETYPE
+#undef  HAVE_FREETYPE_FREETYPE
 
 #undef  HAVE_AFTERBASE
 

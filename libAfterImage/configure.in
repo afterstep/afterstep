@@ -287,7 +287,17 @@ else
 	    fi;
 	  done;
 	  AC_MSG_RESULT($TTF_INCLUDES)
-	  AC_DEFINE(HAVE_FREETYPE)
+	  saved_CPPFLAGS=$CPPFLAGS
+	  saved_CLAGS=$CFLAGS
+	  CPPFLAGS="$CPPFLAGS $TTF_INCLUDES"
+	  CFLAGS="$CFLAGS $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $X_CFLAGS"
+	  AC_MSG_CHECKING( freetype/freetype.h )
+	  AC_TRY_COMPILE([#include <freetype/freetype.h>],[FT_Face aaa;],
+	                 [AC_DEFINE(HAVE_FREETYPE_FREETYPE) AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],
+            		 [AC_MSG_RESULT(no); AC_MSG_CHECKING(freetype.h); \
+					  AC_EGREP_HEADER(FT_Face,freetype.h,[AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],AC_MSG_RESULT(no))] )
+	  CPPFLAGS=$saved_CPPFLAGS
+	  CFLAGS=$saved_CFLAGS
 	  have_ttf=yes
     else
 		enable_ttf=no ;
@@ -315,21 +325,12 @@ if test "$with_afterbase" != "NO"; then
   have_afterbase=yes
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
-		AC_DEFINE(HAVE_AFTERBASE)
 		AFTERBASE_CFLAGS="-I.."
-		AC_MSG_RESULT("../libAfterBase/astypes.h")
 	  else
- 	    AC_CHECK_HEADER(libAfterBase/astypes.h,
-					    [AC_DEFINE(HAVE_AFTERBASE) \
-						 AC_MSG_RESULT("<libAfterBase/astypes.h>") \
-						 AFTERBASE_INC_PREFIX="<" \
-						 AFTERBASE_INC_SUFFIX=">" ],
-						[AC_MSG_RESULT("none found") have_afterbase=no])
+ 	    AC_CHECK_HEADER(libAfterBase/astypes.h,,[have_afterbase=no])
 	  fi
   else
-	  AC_DEFINE(HAVE_AFTERBASE)
 	  AFTERBASE_CFLAGS="-I$afterbase_includes"
-  	  AC_MSG_RESULT("$AFTERBASE_INC_PATH/libAfterBase/astypes.h>")
   fi
 fi
 
@@ -337,11 +338,14 @@ AFTERBASE_C=afterbase.c
 if test "x$have_afterbase" = "xyes"; then
 	AFTERBASE_C=
     AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
+    AC_DEFINE(HAVE_AFTERBASE)
+	AC_MSG_RESULT($AFTERBASE_CFLAGS)
+else
+    AC_MSG_RESULT("none found")	
 fi
 AC_SUBST(AFTERBASE_CFLAGS)
 AC_SUBST(AFTERBASE_C)
 AC_SUBST(have_afterbase)
-
 
 dnl# finalizing libs listing :
 

@@ -2957,10 +2957,57 @@ echo "configure:2943: checking headers required by TTF support" >&5
 	    fi;
 	  done;
 	  echo "$ac_t""$TTF_INCLUDES" 1>&6
-	  cat >> confdefs.h <<\EOF
+	  saved_CPPFLAGS=$CPPFLAGS
+	  saved_CLAGS=$CFLAGS
+	  CPPFLAGS="$CPPFLAGS $TTF_INCLUDES"
+	  CFLAGS="$CFLAGS $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $X_CFLAGS"
+	  echo $ac_n "checking freetype/freetype.h ""... $ac_c" 1>&6
+echo "configure:2966: checking freetype/freetype.h " >&5
+	  cat > conftest.$ac_ext <<EOF
+#line 2968 "configure"
+#include "confdefs.h"
+#include <freetype/freetype.h>
+int main() {
+FT_Face aaa;
+; return 0; }
+EOF
+if { (eval echo configure:2975: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  cat >> confdefs.h <<\EOF
+#define HAVE_FREETYPE_FREETYPE 1
+EOF
+ cat >> confdefs.h <<\EOF
 #define HAVE_FREETYPE 1
 EOF
-
+ echo "$ac_t""yes" 1>&6
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6; echo $ac_n "checking freetype.h""... $ac_c" 1>&6
+echo "configure:2989: checking freetype.h" >&5; \
+					  cat > conftest.$ac_ext <<EOF
+#line 2991 "configure"
+#include "confdefs.h"
+#include <freetype.h>
+EOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  egrep "FT_Face" >/dev/null 2>&1; then
+  rm -rf conftest*
+  cat >> confdefs.h <<\EOF
+#define HAVE_FREETYPE 1
+EOF
+ echo "$ac_t""yes" 1>&6
+else
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+fi
+rm -f conftest*
+ 
+fi
+rm -f conftest*
+	  CPPFLAGS=$saved_CPPFLAGS
+	  CFLAGS=$saved_CFLAGS
 	  have_ttf=yes
     else
 		enable_ttf=no ;
@@ -2988,30 +3035,25 @@ AFTERIMAGE_LIBS_EXTERNAL=$AFTERIMAGE_LIBS
 AFTERBASE_CFLAGS=
 if test "$with_afterbase" != "NO"; then
   echo $ac_n "checking libAfterBase headers""... $ac_c" 1>&6
-echo "configure:2992: checking libAfterBase headers" >&5
+echo "configure:3039: checking libAfterBase headers" >&5
   have_afterbase=yes
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
-		cat >> confdefs.h <<\EOF
-#define HAVE_AFTERBASE 1
-EOF
-
 		AFTERBASE_CFLAGS="-I.."
-		echo "$ac_t"""../libAfterBase/astypes.h"" 1>&6
 	  else
  	    ac_safe=`echo "libAfterBase/astypes.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for libAfterBase/astypes.h""... $ac_c" 1>&6
-echo "configure:3005: checking for libAfterBase/astypes.h" >&5
+echo "configure:3047: checking for libAfterBase/astypes.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3010 "configure"
+#line 3052 "configure"
 #include "confdefs.h"
 #include <libAfterBase/astypes.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3015: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:3057: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -3027,26 +3069,15 @@ rm -f conftest*
 fi
 if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  cat >> confdefs.h <<\EOF
-#define HAVE_AFTERBASE 1
-EOF
- \
-						 echo "$ac_t"""<libAfterBase/astypes.h>"" 1>&6 \
-						 AFTERBASE_INC_PREFIX="<" \
-						 AFTERBASE_INC_SUFFIX=">" 
+  :
 else
   echo "$ac_t""no" 1>&6
-echo "$ac_t"""none found"" 1>&6 have_afterbase=no
+have_afterbase=no
 fi
 
 	  fi
   else
-	  cat >> confdefs.h <<\EOF
-#define HAVE_AFTERBASE 1
-EOF
-
 	  AFTERBASE_CFLAGS="-I$afterbase_includes"
-  	  echo "$ac_t"""$AFTERBASE_INC_PATH/libAfterBase/astypes.h>"" 1>&6
   fi
 fi
 
@@ -3054,8 +3085,14 @@ AFTERBASE_C=afterbase.c
 if test "x$have_afterbase" = "xyes"; then
 	AFTERBASE_C=
     AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
-fi
+    cat >> confdefs.h <<\EOF
+#define HAVE_AFTERBASE 1
+EOF
 
+	echo "$ac_t""$AFTERBASE_CFLAGS" 1>&6
+else
+    echo "$ac_t"""none found"" 1>&6	
+fi
 
 
 
