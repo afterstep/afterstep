@@ -1,6 +1,6 @@
 <varlistentry id="options.GoToBookmark">
-	<term>GoToBookmark</term>
+	<term>GoToBookmark <emphasis remap='I'>["name" window_bookmark ]</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Focuses window specified by previously placed window_bookmark.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,10 @@
 <varlistentry id="options.SaveWorkspace">
-	<term>SaveWorkspace</term>
+	<term>SaveWorkspace <emphasis remap='I'>"name" file_name</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Write list of presently running applications with its position
+                and desktop number into specified file. You can run this file
+                at a later time as a shell script to restore state of the
+                desktop. Note this does not work for many applications that
+                does not provide needed ICCCM properties on its windows.</para>
 	</listitem>
 </varlistentry>

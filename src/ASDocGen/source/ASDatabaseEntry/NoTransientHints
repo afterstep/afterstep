@@ -1,6 +1,7 @@
 <varlistentry id="options.NoTransientHints">
 	<term>NoTransientHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Ignore transient hint - window will be treated as an independent
+        window.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.ChangeTheme">
-	<term>ChangeTheme</term>
+	<term>ChangeTheme <emphasis remap='I'>"name" file_name</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Sets current theme config file. Such config file may include
+                settings for look, feel, menu, autoexec and any module.</para>
 	</listitem>
 </varlistentry>

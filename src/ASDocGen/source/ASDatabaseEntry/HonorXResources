@@ -1,6 +1,7 @@
 <varlistentry id="options.HonorXResources">
 	<term>HonorXResources</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Forces AfterStep to respect XResources database when it comes to
+        window placement.</para>
 	</listitem>
 </varlistentry>

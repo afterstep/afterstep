@@ -1,6 +1,7 @@
 <varlistentry id="options.BookmarkWindow">
-	<term>BookmarkWindow</term>
+	<term>BookmarkWindow <emphasis remap='I'>"name" new_bookmark</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Places a bookmark on the selected window, to be used later
+		on to get back to that window.</para>
 	</listitem>
 </varlistentry>
