@@ -166,7 +166,7 @@ void release_pressure();
 Bool check_pending_swallow( ASWharfFolder *aswf );
 void exec_pending_swallow( ASWharfFolder *aswf );
 void check_swallow_window( ASWindowData *wd );
-void update_wharf_folder_transprency( ASWharfFolder *aswf );
+void update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force );
 
 
 /***********************************************************************
@@ -615,12 +615,13 @@ DispatchEvent (ASEvent * event)
             }
             break ;
 	    case PropertyNotify:
+			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
             if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
             {
                 LOCAL_DEBUG_OUT( "root background updated!%s","");
                 safe_asimage_destroy( Scr.RootImage );
                 Scr.RootImage = NULL ;
-                update_wharf_folder_transprency( WharfState.root_folder );
+                update_wharf_folder_transprency( WharfState.root_folder, True );
             }
             break;
     }
@@ -917,10 +918,24 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 }
 
 void
-update_wharf_folder_transprency( ASWharfFolder *aswf )
+update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force )
 {
-
-
+	if( aswf ) 
+	{
+		int i = aswf->buttons_num; 
+		while( --i >= 0 ) 
+		{
+			ASWharfButton *aswb= &(aswf->buttons[i]);
+			if( update_astbar_transparency( aswb->bar, aswb->canvas, force ) ) 
+			{
+				render_astbar( aswb->bar, aswb->canvas );
+				update_canvas_display( aswb->canvas );
+			}
+			if( aswb->folder && get_flags( aswb->folder->flags, ASW_Mapped )  );
+				update_wharf_folder_transprency( aswb->folder, force );
+		}
+		update_wharf_folder_shape( aswf );
+	}
 }
 
 void
@@ -1690,7 +1705,7 @@ on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
     {
         set_astbar_size( aswb->bar, aswb->canvas->width, aswb->canvas->height );
     }else if( get_flags(changes, CANVAS_MOVED ) )
-        update_astbar_transparency( aswb->bar, aswb->canvas );
+        update_astbar_transparency( aswb->bar, aswb->canvas, False );
 
     if( changes != 0 && (DoesBarNeedsRendering(aswb->bar) || is_canvas_needs_redraw( aswb->canvas )))
         render_astbar( aswb->bar, aswb->canvas );

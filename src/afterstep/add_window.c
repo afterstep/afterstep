@@ -379,18 +379,17 @@ on_frame_bars_moved( ASWindow *asw, unsigned int side, ASOrientation *od)
 {
     ASCanvas *canvas = asw->frame_sides[side];
 
-    update_astbar_transparency(asw->frame_bars[side], canvas);
+    update_astbar_transparency(asw->frame_bars[side], canvas, False);
     if( side == od->tbar_side )
     {
-        update_astbar_transparency(asw->tbar, canvas);
-        update_astbar_transparency(asw->frame_bars[od->tbar_mirror_corners[0]], canvas);
-        update_astbar_transparency(asw->frame_bars[od->tbar_mirror_corners[1]], canvas);
+        update_astbar_transparency(asw->tbar, canvas, False);
+        update_astbar_transparency(asw->frame_bars[od->tbar_mirror_corners[0]], canvas, False);
+        update_astbar_transparency(asw->frame_bars[od->tbar_mirror_corners[1]], canvas, False);
     }else if( side == od->sbar_side )
     {
-        update_astbar_transparency(asw->frame_bars[od->sbar_mirror_corners[0]], canvas);
-        update_astbar_transparency(asw->frame_bars[od->sbar_mirror_corners[1]], canvas);
+        update_astbar_transparency(asw->frame_bars[od->sbar_mirror_corners[0]], canvas, False);
+        update_astbar_transparency(asw->frame_bars[od->sbar_mirror_corners[1]], canvas, False);
     }
-
 }
 
 static void

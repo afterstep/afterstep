@@ -782,7 +782,7 @@ LOCAL_DEBUG_OUT( "update_canvas_display via set_asmenu_scroll_position from move
         {
             Bool update_display = False ;
             while ( --i >= 0 )
-                update_astbar_transparency(menu->items[i].bar, menu->main_canvas);
+                update_astbar_transparency(menu->items[i].bar, menu->main_canvas, False);
             if( update_display )
                 update_canvas_display( menu->main_canvas );
         }

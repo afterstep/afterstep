@@ -2094,8 +2094,8 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
                 Scr.RootImage = NULL ;
                 while( --i >= 0 )
                 {
-                    update_astbar_transparency(PagerState.desks[i].title, PagerState.desks[i].desk_canvas);
-                    update_astbar_transparency(PagerState.desks[i].background, PagerState.desks[i].desk_canvas);
+                    update_astbar_transparency(PagerState.desks[i].title, PagerState.desks[i].desk_canvas, True);
+                    update_astbar_transparency(PagerState.desks[i].background, PagerState.desks[i].desk_canvas, True);
                     render_desk( &(PagerState.desks[i]), False );
                 }
             }
@@ -2189,8 +2189,8 @@ on_desk_moveresize( ASPagerDesk *d )
             }
         }
     }
-    update_astbar_transparency(d->title, d->desk_canvas);
-    update_astbar_transparency(d->background, d->desk_canvas);
+    update_astbar_transparency(d->title, d->desk_canvas, False);
+    update_astbar_transparency(d->background, d->desk_canvas, False);
 
     render_desk( d, (changes!=0) );
 }

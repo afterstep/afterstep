@@ -416,7 +416,7 @@ DispatchEvent (ASEvent * event)
                 {
                     int i ;
                     for( i = 0 ; i < WinListState.windows_num ; ++i )
-                        update_astbar_transparency( WinListState.window_order[i]->bar, WinListState.main_canvas );
+                        update_astbar_transparency( WinListState.window_order[i]->bar, WinListState.main_canvas, False );
                 }
             }
 	        break;
@@ -442,6 +442,17 @@ DispatchEvent (ASEvent * event)
 			}
 	        break;
 	    case PropertyNotify:
+			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
+            if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
+            {
+                int i ;
+                LOCAL_DEBUG_OUT( "root background updated!%s","");
+                safe_asimage_destroy( Scr.RootImage );
+                Scr.RootImage = NULL ;
+                for( i = 0 ; i < WinListState.windows_num ; ++i )
+                    update_astbar_transparency( WinListState.window_order[i]->bar, WinListState.main_canvas, True );
+            }
+            break;
 			break;
     }
 }

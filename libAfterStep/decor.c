@@ -1806,7 +1806,7 @@ set_astbar_btn_pressed (ASTBarData * tbar, int context)
 
 
 Bool
-update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc)
+update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc, Bool force)
 {
 	int           root_x, root_y;
     Bool          changed = False;
@@ -1817,7 +1817,7 @@ update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc)
 
 	root_x = pc->root_x + tbar->win_x;
 	root_y = pc->root_y + tbar->win_y;
-    if ((changed = (root_x != tbar->root_x || root_y != tbar->root_y || Scr.RootImage == NULL )))
+    if ((changed = (root_x != tbar->root_x || root_y != tbar->root_y || Scr.RootImage == NULL || force )))
 	{
         register int  i = BAR_STATE_NUM;
 
