@@ -3028,6 +3028,16 @@ fi
 
 fi
 
+if test "x$enable_gdb" = "xno"; then
+		DIRTY_CFLAGS="$CFLAGS"
+  		CFLAGS="-O3"
+  		for f in $DIRTY_CFLAGS; do
+       		if test "x$f" != "x-O2" -a "x$f" != "x-O3"; then
+		   		CFLAGS="$CFLAGS $f"
+			fi
+  		done
+fi
+
 
 
 echo "$as_me:$LINENO: checking whether byte ordering is bigendian" >&5

@@ -3177,6 +3177,17 @@ fi
 
 fi
 
+if test "x$enable_gdb" = "xno"; then
+		DIRTY_CFLAGS="$CFLAGS"
+  		CFLAGS="-O3"
+  		for f in $DIRTY_CFLAGS; do
+       		if test "x$f" != "-O2" -a "x$f" != "-O3"; then
+		   		CFLAGS="$CFLAGS $f"
+			fi
+  		done
+fi
+
+
 if test "x$enable_mmx_optimization" = "xyes"; then
   echo "$as_me:$LINENO: checking for MMX support" >&5
 echo $ECHO_N "checking for MMX support... $ECHO_C" >&6

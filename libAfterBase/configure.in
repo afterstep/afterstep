@@ -141,6 +141,16 @@ dnl# we are alone - have to do all the checks ourselves :
 	AC_CHECK_PROG(sgmltools, sgmltools, HAVE_SGMLTOOLS, NO_SGMLTOOLS)
 fi
 
+if test "x$enable_gdb" = "xno"; then
+		DIRTY_CFLAGS="$CFLAGS"
+  		CFLAGS="-O3"
+  		for f in $DIRTY_CFLAGS; do 
+       		if test "x$f" != "x-O2" -a "x$f" != "x-O3"; then
+		   		CFLAGS="$CFLAGS $f"
+			fi	 
+  		done
+fi
+
 
 dnl# some standard checks :
 dnl# let's check for endiannes of our box

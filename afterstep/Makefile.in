@@ -24,18 +24,20 @@ install:
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop
 	@for D in ${IMAGE_DIR_LIST}; do \
 		$(MKDIR) -p $(AFTER_SHAREDIR)/$$D; \
-		echo "Installing images from $$D to $(AFTER_SHAREDIR)/$$D ..."; \
+		echo "Installing images from $$D to $(AFTER_SHAREDIR)/$$D "; \
 		if [ -d $$D/xml ] ; then \
 			list=`$(FIND) $$D/xml/ -type f -maxdepth 1`; \
 			for I in $$list; do \
 				fname=`basename $$I`; \
-			    	$(INSTALL_DATA) $$D/xml/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
+				echo -n "."; \
+			    $(INSTALL_DATA) $$D/xml/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
 			done ; \
 		fi; \
 		if [ -d $$D/$(IMAGE_FORMAT) ] ; then \
 			list=`$(FIND) $$D/$(IMAGE_FORMAT)/ -type f -maxdepth 1`; \
 			for I in $$list; do \
 				fname=`basename $$I`; \
+				echo -n "."; \
 				$(INSTALL_DATA) $$D/$(IMAGE_FORMAT)/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
 			done ; \
 		fi; \
@@ -43,20 +45,24 @@ install:
 			list=`$(FIND) $$D/jpg/ -type f  -maxdepth 1`; \
 			for I in $$list; do \
 				fname=`basename $$I`; \
-			    	$(INSTALL_DATA) $$D/jpg/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
+				echo -n "."; \
+		    	$(INSTALL_DATA) $$D/jpg/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
 			done ; \
 		fi; \
+		echo ""; \
 	done ; \
 	$(INSTALL_DATA) desktop/icons/CREDITS $(AFTER_SHAREDIR)/desktop/icons/
 	@for D in ${MISC_FILES_DIR_LIST} ${CONFIG_DIR_LIST} non-configurable; do \
 		echo "$(MKDIR) -p $(AFTER_SHAREDIR)/$$D"; \
 		$(MKDIR) -p $(AFTER_SHAREDIR)/$$D; \
+		echo "Installing config files from $$D to $(AFTER_SHAREDIR)/$$D "; \
 		for I in $$D/*; do \
 			if [ -f $$I ] ; then \
-				echo "$(INSTALL_DATA) $$I $(AFTER_SHAREDIR)/$$I"; \
+					echo -n "."; \
 			    	$(INSTALL_DATA) $$I $(AFTER_SHAREDIR)/$$I; \
 			fi; \
 		done; \
+		echo ""; \
 	done
 	@echo "$(MKDIR) -p $(AFTER_SHAREDIR)/start"; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/start; \
