@@ -886,19 +886,15 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 
 	LOCAL_DEBUG_CALLER_OUT( "asw(%p)->client(%lX)", asw, asw?asw->w:0 );
 
-	if( old_hints == NULL || get_flags(old_hints->flags, AS_Icon) != ASWIN_HFLAGS( asw, AS_Icon) )
-	{	/* 3) we need to prepare icon window : */
-    	check_icon_canvas( asw, (ASWIN_HFLAGS( asw, AS_Icon) && !get_flags(Scr.Feel.flags, SuppressIcons)) );
-	}
+	/* 3) we need to prepare icon window : */
+    check_icon_canvas( asw, (ASWIN_HFLAGS( asw, AS_Icon) && !get_flags(Scr.Feel.flags, SuppressIcons)) );
 
-	if( old_hints == NULL || get_flags(old_hints->flags, AS_IconTitle|AS_Icon) != ASWIN_HFLAGS( asw, AS_IconTitle|AS_Icon) )
-	{/* 4) we need to prepare icon title window : */
-	    check_icon_title_canvas( asw, (ASWIN_HFLAGS( asw, AS_IconTitle) &&
-    	                               get_flags(Scr.Feel.flags, IconTitle) &&
-        	                          !get_flags(Scr.Feel.flags, SuppressIcons)),
-            	                      !get_flags(Scr.Look.flags, SeparateButtonTitle)&&
-                	                  (asw->icon_canvas!=NULL) );
-	}
+	/* 4) we need to prepare icon title window : */
+	check_icon_title_canvas( asw, (ASWIN_HFLAGS( asw, AS_IconTitle) &&
+                                   get_flags(Scr.Feel.flags, IconTitle) &&
+       	                          !get_flags(Scr.Feel.flags, SuppressIcons)),
+           	                      !get_flags(Scr.Look.flags, SeparateButtonTitle)&&
+               	                  (asw->icon_canvas!=NULL) );
 
     has_tbar = (ASWIN_HFLAGS(asw, AS_Titlebar)!= 0);
 	frame = myframe_find( ASWIN_HFLAGS(asw, AS_Frame)?asw->hints->frame_name:NULL );
@@ -978,15 +974,14 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
     }
 
     /* 7) now we have to create bar for icon title (optional) */
-	if( asw->icon_title == NULL &&
-		(asw->icon_canvas != NULL||asw->icon_title_canvas != NULL) )
-	{
-		check_tbar( &(asw->icon_title), (asw->icon_canvas != NULL||asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
-  	            	NULL, 0, 0, 0, ALIGN_CENTER, DEFAULT_TBAR_HILITE, DEFAULT_TBAR_HILITE,
-              		TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
-              		C_IconTitle );
-	}
-    if( asw->icon_title )
+	check_tbar( &(asw->icon_title), 
+			    get_flags(Scr.Feel.flags, IconTitle) && ((asw->icon_canvas != NULL && !get_flags(Scr.Look.flags, SeparateButtonTitle)) || asw->icon_title_canvas != NULL), 
+				AS_ICON_TITLE_MYSTYLE,
+  	            NULL, 0, 0, 0, ALIGN_CENTER, DEFAULT_TBAR_HILITE, DEFAULT_TBAR_HILITE,
+              	TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
+              	C_IconTitle );
+    
+	if( asw->icon_title )
     {
 		if( add_icon_label )
 		{
