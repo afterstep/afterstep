@@ -84,6 +84,16 @@ ximage2asimage (ASVisual *asv, XImage * xim, unsigned int compression)
 	return im;
 }
 
+static inline int
+xim_set_component( register CARD32 *src, register CARD32 value, int offset, int len )
+{
+	register int i ;
+	for( i = offset ; i < len ; ++i )
+		src[i] = value;
+	return len-offset;
+}
+
+
 XImage*
 asimage2ximage (ASVisual *asv, ASImage *im)
 {
@@ -104,14 +114,17 @@ asimage2ximage (ASVisual *asv, ASImage *im)
 #ifdef DO_CLOCKING
 	started = clock ();
 #endif
+	set_flags( xim_buf.flags, SCL_DO_ALL );
 	for (i = 0; i < im->height; i++)
 	{
-		if( asimage_decode_line (im, IC_RED,   xim_buf.red, i, 0, xim_buf.width)> 0 )
-			set_flags( xim_buf.flags, SCL_DO_RED );
-		if( asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width)> 0 )
-			set_flags( xim_buf.flags, SCL_DO_GREEN );
-		if( asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width) > 0 )
-			set_flags( xim_buf.flags, SCL_DO_BLUE );
+		int count ;
+		if( (count = asimage_decode_line (im, IC_RED,   xim_buf.red, i, 0, xim_buf.width)) < xim_buf.width )
+			xim_set_component( xim_buf.red, ARGB32_RED8(im->back_color), count, xim_buf.width );
+		if( (count = asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width))> 0 )
+			xim_set_component( xim_buf.green, ARGB32_GREEN8(im->back_color), count, xim_buf.width );
+		if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width)) > 0 )
+			xim_set_component( xim_buf.blue, ARGB32_BLUE8(im->back_color), count, xim_buf.width );
+
 		imout->output_image_scanline( imout, &xim_buf, 1 );
 	}
 #ifdef DO_CLOCKING
@@ -142,7 +155,9 @@ asimage2mask_ximage (ASVisual *asv, ASImage *im)
 	xim_buf.flags = SCL_DO_ALPHA ;
 	for (i = 0; i < im->height; i++)
 	{
-		asimage_decode_line (im, IC_ALPHA, xim_buf.alpha, i, 0, xim_buf.width);
+		int count = asimage_decode_line (im, IC_ALPHA, xim_buf.alpha, i, 0, xim_buf.width);
+		if( count < xim_buf.width )
+			xim_set_component( xim_buf.blue, ARGB32_ALPHA8(im->back_color), count, xim_buf.width );
 		imout->output_image_scanline( imout, &xim_buf, 127 );
 	}
 	free_scanline(&xim_buf, True);

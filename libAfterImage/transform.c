@@ -841,7 +841,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 
 	for( i = 0 ; i < count ; i++ )
 	{
-		if( pcurr->im != NULL || pcurr->back_color != 0 )
+		if( pcurr->im != NULL || pcurr->solid_color != 0 )
 		{
 			imdecs[i] = start_image_decoding(asv, pcurr->im, SCL_DO_ALL,
 				                             pcurr->clip_x, pcurr->clip_y,
@@ -849,7 +849,8 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 											 pcurr->bevel);
 			if( pcurr->tint == 0 && i != 0 )
 				set_decoder_shift( imdecs[i], 8 );
-			imdecs[i]->back_color = pcurr->back_color ;
+			if( pcurr->im == NULL )
+				set_decoder_back_color( imdecs[i], pcurr->solid_color );
 		}
 		if( pcurr->next == pcurr )
 			break;
@@ -900,7 +901,7 @@ LOCAL_DEBUG_OUT("blending actually...%s", "");
 				imdecs[i]->next_line = min_y - layers[i].dst_y ;
  */
 LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
-		dst_line.back_color = layers[0].back_color ;
+		dst_line.back_color = imdecs[0]->back_color ;
 		dst_line.flags = 0 ;
 		for( y = 0 ; y < min_y ; y++  )
 			imout->output_image_scanline( imout, &dst_line, 1);
@@ -911,7 +912,7 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 				imdecs[0]->decode_image_scanline( imdecs[0] );
 			else
 			{
-				imdecs[0]->buffer.back_color = layers[0].back_color ;
+				imdecs[0]->buffer.back_color = imdecs[0]->back_color ;
 				imdecs[0]->buffer.flags = 0 ;
 			}
 			copytintpad_scanline( &(imdecs[0]->buffer), &dst_line, layers[0].dst_x, bg_tint );
@@ -937,7 +938,7 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 			}
 			imout->output_image_scanline( imout, &dst_line, 1);
 		}
-		dst_line.back_color = layers[0].back_color ;
+		dst_line.back_color = imdecs[0]->back_color ;
 		dst_line.flags = 0 ;
 		for( ; y < dst_height ; y++  )
 			imout->output_image_scanline( imout, &dst_line, 1);
@@ -1017,7 +1018,7 @@ LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count =
 						for( x = line ; x < width ; x+=dither_lines_num )
 						{
 							dst[x] = d ;
-						}							
+						}
 					}
 					set_flags(result.flags, 0x01<<color);
 				}

@@ -228,22 +228,20 @@ int main(int argc, char* argv[])
 		}else
 			fore_im = text_im ;
 		/* see ASText.4 : */
-		memset( &(layers[0]), 0x00, sizeof(layers) );
+		init_image_layers( &(layers[0]), 2 );
+		back_im->back_color = back_color ;
+		fore_im->back_color = text_color ;
 		layers[0].im = back_im ;
 		layers[0].dst_x = 0 ;
 		layers[0].dst_y = 0 ;
 		layers[0].clip_width = width ;
 		layers[0].clip_height = height ;
-		layers[0].merge_scanlines = alphablend_scanlines ;
-		layers[0].back_color = back_color ;
 		layers[0].bevel = &bevel ;
 		layers[1].im = fore_im ;
 		layers[1].dst_x = text_margin+BEVEL_HI_WIDTH*2 ;
 		layers[1].dst_y = text_margin+MIN(text_margin,(font->max_height-font->max_ascend))/2+BEVEL_HI_WIDTH*2;
 		layers[1].clip_width = fore_im->width ;
 		layers[1].clip_height = fore_im->height ;
-		layers[1].back_color = text_color ;
-		layers[1].merge_scanlines = alphablend_scanlines ;
 		rendered_im = merge_layers( asv, &(layers[0]), 2,
 									width+BEVEL_ADDON, height+BEVEL_ADDON,
 									ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT);

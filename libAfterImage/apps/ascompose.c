@@ -402,22 +402,20 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 					ASImage* bgimage = NULL;
 					if (bgimage_str) get_hash_item(image_hash, (ASHashableValue)(char*)bgimage_str, (void**)&bgimage);
 					if (bgcolor_str) parse_argb_color(bgcolor_str, &bgcolor);
-					memset(layers, 0, sizeof(layers));
+					init_image_layers(&(layers[0]), 2);
+					bgimage->back_color = bgcolor ;
+					result->back_color = fgcolor ;
 					layers[0].im = bgimage;
 					layers[0].dst_x = 0;
 					layers[0].dst_y = 0;
 					layers[0].clip_width = result->width;
 					layers[0].clip_height = result->height;
-					layers[0].merge_scanlines = alphablend_scanlines;
-					layers[0].back_color = bgcolor;
 					layers[0].bevel = NULL;
 					layers[1].im = result;
 					layers[1].dst_x = 0;
 					layers[1].dst_y = 0;
 					layers[1].clip_width = result->width;
 					layers[1].clip_height = result->height;
-					layers[1].back_color = fgcolor;
-					layers[1].merge_scanlines = alphablend_scanlines;
 					result = merge_layers(asv, layers, 2, result->width, result->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 				}
 			}

@@ -147,6 +147,7 @@ asimage_init (ASImage * im, Bool free_resources)
 				free( im->alt.argb32 );
 		}
 		memset (im, 0x00, sizeof (ASImage));
+		im->back_color = ARGB32_DEFAULT_BACK_COLOR ;
 	}
 }
 
@@ -400,7 +401,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	imdec->offset_y = offset_y ;
 	imdec->out_height = out_height;
 	imdec->next_line = offset_y ;
-	imdec->back_color = ARGB32_DEFAULT_BACK_COLOR ;
+	imdec->back_color = (im != NULL)?im->back_color:ARGB32_DEFAULT_BACK_COLOR ;
 	imdec->bevel = bevel ;
 	if( bevel )
 	{
@@ -433,6 +434,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 
 
 	prepare_scanline(out_width+imdec->bevel_h_addon, 0, &(imdec->buffer), asv->BGR_mode );
+	imdec->buffer.back_color = ARGB32_DEFAULT_BACK_COLOR;
 
 	return imdec;
 }
@@ -445,6 +447,15 @@ set_decoder_shift( ASImageDecoder *imdec, int shift )
 
 	if( imdec )
 		imdec->buffer.shift = shift ;
+}
+
+void set_decoder_back_color( ASImageDecoder *imdec, ARGB32 back_color )
+{
+	if( imdec )
+	{
+		imdec->back_color = back_color ;
+		imdec->buffer.back_color = back_color ;
+	}
 }
 
 
@@ -485,10 +496,10 @@ start_image_output( ASVisual *asv, ASImage *im, ASAltImFormats format,
 	prepare_scanline( im->width, 0, &(imout->buffer[0]), asv->BGR_mode);
 	prepare_scanline( im->width, 0, &(imout->buffer[1]), asv->BGR_mode);
 
-	imout->chan_fill[IC_RED]   = ARGB32_RED8(ARGB32_DEFAULT_BACK_COLOR);
-	imout->chan_fill[IC_GREEN] = ARGB32_GREEN8(ARGB32_DEFAULT_BACK_COLOR);
-	imout->chan_fill[IC_BLUE]  = ARGB32_BLUE8(ARGB32_DEFAULT_BACK_COLOR);
-	imout->chan_fill[IC_ALPHA] = ARGB32_ALPHA8(ARGB32_DEFAULT_BACK_COLOR);
+	imout->chan_fill[IC_RED]   = ARGB32_RED8(im->back_color);
+	imout->chan_fill[IC_GREEN] = ARGB32_GREEN8(im->back_color);
+	imout->chan_fill[IC_BLUE]  = ARGB32_BLUE8(im->back_color);
+	imout->chan_fill[IC_ALPHA] = ARGB32_ALPHA8(im->back_color);
 
 	imout->available = &(imout->buffer[0]);
 	imout->used 	 = NULL;
@@ -576,8 +587,8 @@ init_image_layers( register ASImageLayer *l, int count )
 	while( --count >= 0 )
 	{
 		l[count].merge_scanlines = alphablend_scanlines ;
-		l[count].back_color = ARGB32_DEFAULT_BACK_COLOR ;
-	}		
+/*		l[count].solid_color = ARGB32_DEFAULT_BACK_COLOR ; */
+	}
 }
 
 ASImageLayer *

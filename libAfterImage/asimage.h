@@ -125,6 +125,10 @@ typedef struct ASImage
   CARD8 **channels[IC_NUM_CHANNELS];/* merely a shortcut so we can
 									 * somewhat simplify code in loops */
 
+  ARGB32 back_color ;               /* background color of the image, so
+									 * we could discard everything that
+									 * matches it, and then restore it
+									 * back. */
   /* internal buffer used for compression/decompression */
   CARD8 *buffer;
   unsigned int buf_used, buf_len;   /* allocated and used size */
@@ -416,8 +420,9 @@ typedef struct ASImageOutput
  * same size. For each image its position on destination is specified
  * via dst_x and dst_y data members. Each image maybe tiled and clipped
  * to fit into rectangle specified by clip_x, clip_y, clip_width,
- * clip_height ( in image coordinates - not destination ). Missing
- * scanlines/channels of the image will be filled with back_color.
+ * clip_height ( in image coordinates - not destination ). If image is
+ * missing, then area specified by dst_x, dst_y, clip_width, clip_height
+ * will be filled with solid_color.
  * Entire image will be tinted using tint parameter prior to overlaying.
  * Bevel specified by bevel member will be drawn over image prior to
  * overlaying. Specific overlay method has to be specified.
@@ -454,6 +459,8 @@ typedef struct ASImageOutput
 typedef struct ASImageLayer
 {
 	ASImage *im;
+	ARGB32   solid_color ;                  /* If im == NULL, then fill
+											 * the area with this color. */
 
 	int dst_x, dst_y;						/* placement in overall
 											 * composition */
@@ -463,8 +470,6 @@ typedef struct ASImageLayer
 	int clip_x, clip_y;
 	unsigned int clip_width, clip_height;
 
-	ARGB32 back_color ;                  	/* what we want to fill
-											 * missing scanlines with */
 	ARGB32 tint ;                      		/* if 0 - no tint */
 	ASImageBevel *bevel ;					/* border to wrap layer with
 											 * (for buttons, etc.)*/
@@ -931,6 +936,7 @@ ASImageDecoder *start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filt
 									  unsigned int out_height,
 									  ASImageBevel *bevel );
 void set_decoder_shift( ASImageDecoder *imdec, int shift );
+void set_decoder_back_color( ASImageDecoder *imdec, ARGB32 back_color );
 void stop_image_decoding( ASImageDecoder **pimdec );
 
 /****h* libAfterImage/asimage/Output
