@@ -94,6 +94,8 @@ AC_ARG_ENABLE(xinerama,		[  --enable-xinerama       support Xinerama Multihead e
 AC_ARG_ENABLE(staticlibs,       [  --enable-staticlibs     enable linking to libafterstep statically [[yes]] ],enable_staticlibs=$enableval,enable_staticlibs="yes")
 
 AC_ARG_WITH(libefence,		[  --with-libefence        compile with libefence to debug buffer overruns [[no]] ],with_libefence=$withval,with_libefence="")
+AC_ARG_WITH(gif,		[  --with-gif              compile support for gif image format using libgif [[no]] ],with_gif=$withval,with_gif="no")
+AC_ARG_WITH(ungif,		[  --with-ungif            compile support for gif image format using libungif [[no]] ],with_ungif=$withval,with_ungif="no")
 AC_ARG_ENABLE(gdb,		[  --enable-gdb            add gdb symbols (-g) (for debugging) [[no]] ],enable_gdb=$enableval,enable_gdb="no")
 AC_ARG_ENABLE(sigsegv,		[  --enable-sigsegv        enable internal handler of Segmentation Fault (for self-diagnostics) [[yes]] ],enable_sigsegv=$enableval,enable_sigsegv="yes")
 AC_ARG_ENABLE(warn,		[  --enable-warn           turn on more compiler warnings (for debugging) [[no]] ],enable_warn=$enableval,enable_warn="no")
@@ -297,7 +299,7 @@ if test -d libAfterBase; then
    --with-xpm=$with_xpm   --with-builtin-xpm=$with_builtin_xpm  --with-xpm-includes=$xpm_includes \
    --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes \
    --with-png=$with_png   --with-png-includes=$png_includes \
-   --with-gif-includes=$gif_includes \
+   --with-gif=$with_gif   --with-ungif=$with_ungif  --with-gif-includes=$gif_includes \
    --with-tiff=$with_tiff --with-tiff-includes=$tiff_includes \
    --with-ttf=$with_ttf   --with-ttf-includes=$ttf_includes \
    --enable-mmx-optimization=$enable_mmx_optimization \
