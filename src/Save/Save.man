@@ -30,7 +30,7 @@ Also, Save assumes that certain command line options are
 globally accepted by applications, which may not be the case.
 
 AND DON'T FORGET AFTERSTEP ALREADY SAVES DESKTOP INTO
-~/GNUstep/Library/AfterStep/.windows file, called from autoexec !
+~/GNUstep/Library/AfterStep/.workspace_state file, called from autoexec !
 
 Using both Save and AfterStep default saving will save twice the same window,
 therefore open it twice on next startup !
