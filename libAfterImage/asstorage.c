@@ -864,10 +864,10 @@ defragment_storage_block( ASStorageBlock *block )
 			register CARD32 *to = (CARD32*)brk ;
 			for( i = 0 ; i < size ; ++i ) 
 				to[i] = from[i];
-			/* updating pointer : */	
-			slots[brk->index] = brk ;
-			LOCAL_DEBUG_OUT("brk = %p, brk->size = %ld, index = %d", brk, brk->size, brk->index );
 		}	
+		/* updating pointer : */	
+		slots[brk->index] = brk ;
+		LOCAL_DEBUG_OUT("brk = %p, brk->size = %ld, index = %d", brk, brk->size, brk->index );
 		brk = AS_STORAGE_GetNextSlot(brk);
 	}
 	
