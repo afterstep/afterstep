@@ -47,7 +47,6 @@
 #define DEFAULT_TTF_DIR "@x_libraries@/X11/fonts/TTF"
 #define AFTER_SHAREDIR	"@datadir@/afterstep"
 #define AFTER_DIR       "@with_afterdir@"
-#define AFTER_SAVE      ".workspace_state"
 #define AFTER_NONCF     "non-configurable"
 #define AFTER_LOCALE	"@with_locale@"
 
@@ -71,12 +70,13 @@
 #define ASETROOT_FILE   "asetroot"                   /* legacy background configuration */
 #define THEME_OVERRIDE_FILE       "theme-override"
 #define DEFAULT_BACK_NAME   "default_background_%d"
-#define BACK_FILE       "non-configurable/%d_background" /* desk */
-#define LOOK_FILE       "non-configurable/%d_look" /* desk */
-#define FEEL_FILE       "non-configurable/%d_feel" /* desk */
-#define THEME_FILE      "non-configurable/%d_theme" /* desk */
-#define COLORSCHEME_FILE "non-configurable/%d_colorscheme" /* desk */
-#define MENU_FILE	"non-configurable/startmenu"
+#define BACK_FILE       AFTER_NONCF "/%d_background" /* desk */
+#define LOOK_FILE       AFTER_NONCF "/%d_look" /* desk */
+#define FEEL_FILE       AFTER_NONCF "/%d_feel" /* desk */
+#define THEME_FILE      AFTER_NONCF "/%d_theme" /* desk */
+#define COLORSCHEME_FILE AFTER_NONCF "/%d_colorscheme" /* desk */
+#define AFTER_SAVE      AFTER_NONCF "/workspace_state"
+#define MENU_FILE	AFTER_NONCF "/startmenu"
 #define AUTOEXEC_FILE   "autoexec"
 #define DATABASE_FILE   "database"
 #define DEFAULT_SCREENSHOT_FILE 		"~/screenshot"

@@ -1,6 +1,7 @@
 /*
+ * Copyright (c) 2002,2003 Sasha Vasko <sasha at aftercode.net>
  * Copyright (c) 1998 Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
- * Copyright (c) 1998,2002 Sasha Vasko <sasha at aftercode.net>
+ * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (c) 1998 Michal Vitecek <fuf@fuf.sh.cvut.cz>
  * Copyright (c) 1998 Nat Makarevitch <nat@linux-france.com>
  * Copyright (c) 1998 Mike Venaccio <venaccio@aero.und.edu>
@@ -1280,11 +1281,13 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		{
             if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_FEEL, False) ) != NULL )
             {
+				const char *ws_file = get_session_ws_file( Session, True );
                 InitFeel (&Scr.Feel, True);
                 if (tline == NULL)
                     tline = safemalloc (MAXLINELENGTH + 1);
                 MeltStartMenu (tline);
                 ParseConfigFile (const_configfile, &tline);
+                show_progress("FEEL configuration loaded from \"%s\" ...", const_configfile);
                 if( (configfile = make_session_file(Session, AUTOEXEC_FILE, False )) != NULL )
                 {
                     ParseConfigFile (configfile, &tline);
@@ -1292,7 +1295,12 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                     free( configfile );
                 }else
                     show_warning("AUTOEXEC configuration file cannot be found");
-                show_progress("FEEL configuration loaded from \"%s\" ...", const_configfile);
+				if( ws_file != NULL )
+				{
+                    ParseConfigFile (ws_file, &tline);
+                    show_progress("WORKSPACE STATE configuration loaded from \"%s\" ...", ws_file);
+				}else
+					show_progress("WORKSPACE STATE file cannot be not found");
             }else
             {
                 show_warning("FEEL configuration file cannot be found");

@@ -748,23 +748,28 @@ HandlePropertyNotify (ASEvent *event)
     }
     if( IsNameProp(atom))
     {
-        show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
+		char *old_name = get_flags( asw->internal_flags, ASWF_NameChanged )?NULL:mystrdup( ASWIN_NAME(asw) );
+		show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
         if( update_property_hints_manager( asw->w, xprop->atom,
                                         Scr.Look.supported_hints,
                                         asw->hints, asw->status ) )
         {
             show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\"", ASWIN_NAME(asw), ASWIN_ICON_NAME(asw) );
+			if( old_name && strcmp( old_name, ASWIN_NAME(asw) ) != 0 )
+				set_flags( asw->internal_flags, ASWF_NameChanged );
             /* fix the name in the title bar */
             if( get_flags( Scr.Feel.flags, FollowTitleChanges) )
-	        on_window_hints_changed( asw );
-	    else
-	    {
-		if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
-            	    on_window_title_changed( asw, True );
-	        broadcast_window_name( asw );
-        	broadcast_icon_name( asw );
-	    }
+	    	    on_window_hints_changed( asw );
+	    	else
+	    	{
+				if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
+           	    	on_window_title_changed( asw, True );
+	        	broadcast_window_name( asw );
+        		broadcast_icon_name( asw );
+		    }
         }
+		if( old_name )
+			free( old_name );
     /* otherwise we should check if this is the status property that we change ourselves : */
     }else if( NeedToTrackPropChanges(atom) )
         on_window_hints_changed( asw );
@@ -1172,7 +1177,7 @@ HandleConfigureRequest ( ASEvent *event )
 		xwc.width = cre->width;
 		xwc.height = cre->height;
 		xwc.border_width = cre->border_width;
-		LOCAL_DEBUG_OUT( "Configuring untracked window %X to %dx%d%+d%+d and bw = %d, (flags=%X)", event->w, cre->width, cre->height, cre->x, cre->y, cre->border_width, xwcm );
+		LOCAL_DEBUG_OUT( "Configuring untracked window %lX to %dx%d%+d%+d and bw = %d, (flags=%lX)", (unsigned long)event->w, cre->width, cre->height, cre->x, cre->y, cre->border_width, xwcm );
         XConfigureWindow (dpy, event->w, xwcm, &xwc);
 		return;
 	}

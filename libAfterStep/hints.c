@@ -1972,17 +1972,15 @@ gravitate_position (int pos, unsigned int size, unsigned int scr_size, int grav,
  * parameters:
  ***********************************************************************************/
 char         *
-make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, XRectangle * anchor, int vx, int vy)
+make_client_geometry_string (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, XRectangle * anchor, int vx, int vy, char **pure_geometry)
 {
-	char         *client_cmd = NULL;
+	char         *geom = NULL;
 	int           detach_x, detach_y;
 	int           grav_x, grav_y;
 	int           bw = 0;
-	int width, height ;
+	int width, height, unit_width, unit_height ;
 
 	if (hints == NULL || status == NULL || anchor == NULL)
-		return NULL;
-	if (hints->client_cmd == NULL)
 		return NULL;
 
 	if (get_flags (status->flags, AS_StartBorderWidth))
@@ -2001,20 +1999,32 @@ make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, 
     width = anchor->width ;
     height = anchor->height ;
 
-    if( hints->width_inc > 0 )
-	width /= hints->width_inc ;
-    if( hints->height_inc > 0 )
-	height /= hints->height_inc ;
+    unit_width  = ( hints->width_inc  > 0 )?(width - hints->base_width  ) / hints->width_inc  : width  ;
+	unit_height = ( hints->height_inc > 0 )?(height - hints->base_height) / hints->height_inc : height ;
 
+	if( pure_geometry )
+	{
+		*pure_geometry = safemalloc (15+1+15+1+15+1+15+1 /* large enough */ );
+		sprintf ( *pure_geometry, "%ux%u%+d%+d ", width, height, detach_x, detach_y);
+	}
+	geom = safemalloc (15+1+15+1+15+1+15+1 /* large enough */ );
+	sprintf (geom, "%ux%u%+d%+d ", unit_width, unit_height, detach_x, detach_y);
+	return geom;
+}
+
+char         *
+make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, XRectangle * anchor, int vx, int vy)
+{
+	char         *client_cmd = NULL;
+	char 		 *geom = make_client_geometry_string ( scr, hints, status, anchor, vx, vy, NULL );
+
+	if (hints->client_cmd == NULL || geom == NULL )
+		return NULL;
 
 	/* supplying everything as : -xrm "afterstep*desk:N" */
-	client_cmd = safemalloc (strlen (hints->client_cmd) + 512 /* large enough */ );
-	sprintf (client_cmd, "%s -geometry %ux%u%+d%+d "/*-xrm \"afterstep*desk:%d\""
-			 " -xrm \"afterstep*layer:%d\""
-			 " -xrm \"afterstep*viewportx:%d\" -xrm \"afterstep*viewporty:%d\""*/,
-			 hints->client_cmd,
-             width, height, detach_x, detach_y, status->desktop,
-			 status->layer, status->viewport_x, status->viewport_y);
+	client_cmd = safemalloc (strlen (hints->client_cmd) + 11 + strlen(geom) + 1 + 1 );
+	sprintf (client_cmd, "%s -geometry %s ", hints->client_cmd, geom );
+    /*, status->desktop, status->layer, status->viewport_x, status->viewport_y*/
 	return client_cmd;
 }
 

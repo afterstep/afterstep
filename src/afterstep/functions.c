@@ -499,7 +499,33 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
         c = func->items[i].name ? *(func->items[i].name): 'i' ;
         if( c == IMMEDIATE || c == IMMEDIATE_UPPER )
         {
-			ExecuteFunctionExt (&(func->items[i]), event, -1, True);
+			Bool skip = False ;
+			if( func->items[i].name &&
+				IsExecFunc(func->items[i].func) &&
+				func->items[i].name[1] == ':' )
+			{
+				int k = i ;
+				while( ++k < func->items_num )
+					if( func->items[k].func == F_WAIT && func->items[k].name )
+						if( strcmp( func->items[k].name, func->items[i].name ) == 0 )
+						{
+							skip = True ;
+							break;
+						}
+				if( skip )
+				{
+					/* since function names in complex functions have i or I as the first
+					 * character to signify that they are immidiate items - we allow semicolon
+					 * to separate that special character from the actuall window's name for
+					 * readability sake
+					 */
+					char *pattern_start = &(func->items[i].name[2]) ;
+					if( complex_pattern2ASWindow( pattern_start ) == NULL )
+						skip = False ; /* window is not up yet - can't skip */
+				}
+			}
+			if( !skip )
+				ExecuteFunctionExt (&(func->items[i]), event, -1, True);
         }else
         {
             persist = True ;
@@ -1137,12 +1163,7 @@ void install_theme_file_func_handler( FunctionData *data, ASEvent *event, int mo
 
 void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	char *fname = NULL ;
-	if( data->text == NULL )
-		fname = make_session_file( Session, AFTER_SAVE, False );
-    save_aswindow_list( Scr.Windows, fname?fname:data->text );
-	if( fname )
-    	free( fname );
+    save_aswindow_list( Scr.Windows, data->text?data->text:NULL );
 }
 
 void refresh_func_handler( FunctionData *data, ASEvent *event, int module )

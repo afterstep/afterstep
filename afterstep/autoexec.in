@@ -15,7 +15,7 @@ Function "InitFunction"
 	Module  "I"     WinList
 #	Module  "I"	Banner
 #	Wait    "I"     Banner
-	Exec    "I"     sh @with_afterdir@/.workspace_state &
+	Function "WorkspaceState"
 EndFunction
 
 #------------------------------------------------------------------------

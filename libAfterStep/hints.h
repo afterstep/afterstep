@@ -268,7 +268,8 @@ void status2anchor( XRectangle *anchor, struct ASHints *hints, struct ASStatusHi
 void anchor2status( struct ASStatusHints *status, struct ASHints *hints, XRectangle *anchor );
 
 int calculate_viewport( int *pos, unsigned int size, unsigned int scr_vpos, unsigned int scr_size, int max_viewport );
-char *make_client_command( struct ScreenInfo *scr, ASHints *hints, ASStatusHints *status, XRectangle *anchor, int vx, int vy );
+char *make_client_geometry_string (struct ScreenInfo * scr, ASHints *hints, ASStatusHints *status, XRectangle *anchor, int vx, int vy, char **pure_geometry);
+char *make_client_command( struct ScreenInfo *scr, ASHints *hints, ASStatusHints *status, XRectangle *anchor, int vx, int vy);
 
 Bool set_all_client_hints( Window w, ASHints *hints, ASStatusHints *status, Bool set_command );
 

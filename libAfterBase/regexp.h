@@ -22,6 +22,8 @@ typedef struct wild_reg_exp
 wild_reg_exp;
 
 wild_reg_exp *compile_wild_reg_exp (const char *pattern);
+wild_reg_exp *compile_wild_reg_exp_sized (const char *pattern, int size );
+
 void print_wild_reg_exp (wild_reg_exp * wrexp);
 void destroy_wild_reg_exp (wild_reg_exp * wrexp);
 

@@ -276,12 +276,27 @@ get_desk_session (ASSession * session, int desk)
 	return d;
 }
 
+char *
+find_workspace_file( ASSession *session )
+{
+	char *fname, *full_fname ;
+
+	if( session->scr == NULL || session->scr->screen == 0 )
+		return make_file_name( session->ashome, AFTER_SAVE );
+
+	fname = safemalloc( strlen( AFTER_SAVE ) + 4 + 15 + 1 );
+	sprintf( fname, AFTER_SAVE ".scr%ld", session->scr->screen );
+	full_fname = make_file_name (session->ashome, fname);
+	free( fname );
+	return full_fname;
+}
 
 /*********************************************************************/
 ASSession *
 create_assession ( ScreenInfo *scr, char *ashome, char *asshare)
 {
     ASSession *session = (ASSession *) safecalloc (1, sizeof (ASSession));
+
 
 
 	session->scr = ( scr == NULL )?&Scr:scr ;     /* sensible default */
@@ -297,6 +312,8 @@ create_assession ( ScreenInfo *scr, char *ashome, char *asshare)
     session->defaults->background_file = find_default_background_file (session);
     session->defaults->theme_file = find_default_theme_file (session);
     session->defaults->colorscheme_file = find_default_colorscheme_file (session);
+
+	session->workspace_state = find_workspace_file(session);
 
 	session->desks_used = 0 ;
 	session->desks_allocated = 4 ;
@@ -780,6 +797,18 @@ get_session_file (ASSession * session, int desk, int function, Bool no_default)
     }
 	return file;
 }
+
+const char   *
+get_session_ws_file ( ASSession * session, Bool only_if_available )/* workspace_state filename */
+{
+	if( session == NULL )
+		return NULL;
+	if( session  && only_if_available )
+	 	if (CheckFile(session->workspace_state) != 0)
+			return NULL;
+	return session->workspace_state ;
+}
+
 
 static inline char *
 make_session_filedir   (ASSession * session, const char *source, Bool use_depth, int mode )

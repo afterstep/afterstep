@@ -589,7 +589,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 	if (!restart)
     {
         char *fname = make_session_file( Session, AFTER_SAVE, False );
-        save_aswindow_list( Scr.Windows, fname );
+        save_aswindow_list( Scr.Windows, NULL );
         free( fname );
     }
 #endif

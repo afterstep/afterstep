@@ -23,11 +23,13 @@ typedef struct ASDeskSession
 
 typedef struct ASSession
 {
-  struct ScreenInfo *scr ;                     /* back pointer to owning screen data */
+  struct ScreenInfo *scr ; /* back pointer to owning screen data */
   int   colordepth ;
   char *ashome, *asshare ; /* locations of the AfterStep config directories */
   char *overriding_file  ; /* if user specifies -f option to AS then we use this file for everything */
   char *overriding_look, *overriding_feel, *overriding_theme, *overriding_colorscheme ;
+
+  char *workspace_state ;  /* n-c/workspace_state_scr# */
 
   ASDeskSession *defaults;
   ASDeskSession **desks;
@@ -57,6 +59,8 @@ void 	   change_desk_session_look (ASSession * session, int desk, struct MyLook 
 
 const char   *get_session_file (ASSession * session, int desk, int function, Bool no_default);
 char **get_session_file_list (ASSession *session, int desk1, int desk2, int function);
+
+const char   *get_session_ws_file ( ASSession * session, Bool only_if_available );/* workspace_state filename */
 
 char *make_session_file   (ASSession * session, const char *source, Bool use_depth );
 char *make_session_dir    (ASSession * session, const char *source, Bool use_depth );

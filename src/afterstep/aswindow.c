@@ -21,7 +21,6 @@
 
 #include "../../configure.h"
 
-#include "asinternals.h"
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -32,6 +31,9 @@
 #  include <time.h>
 # endif
 #endif
+
+#include "asinternals.h"
+#include "libAfterStep/session.h"
 
 Bool on_dead_aswindow( Window w );
 /********************************************************************************/
@@ -74,7 +76,48 @@ struct SaveWindowAuxData
 {
     char  this_host[MAXHOSTNAME];
     FILE *f;
+	ASHashTable *res_name_counts;
 };
+
+int
+get_res_name_count( ASHashTable *res_name_counts, char *res_name )
+{
+	ASHashData hdata;
+
+	if( res_name == NULL || res_name_counts == NULL )
+		return 0;
+#if 1
+	if( get_hash_item( res_name_counts, AS_HASHABLE(res_name), hdata.vptr ) == ASH_Success )
+	{
+		int val = *(hdata.iptr) ;
+		++val ;
+		//*(hdata.iptr) = val ;
+		return val;
+	}else
+	{
+		hdata.iptr = safemalloc( sizeof(int) );
+		*(hdata.iptr) = 1 ;
+		add_hash_item( res_name_counts, AS_HASHABLE(mystrdup(res_name)), hdata.vptr );
+	}
+#endif
+	return 1;
+}
+
+Bool
+check_aswindow_name_unique( char *name, ASWindow *asw )
+{
+#if 1
+    ASBiDirElem *e = LIST_START(Scr.Windows->clients) ;
+    while( e != NULL )
+    {
+        ASWindow *curr = (ASWindow*)LISTELEM_DATA(e);
+        if( curr != asw && strcmp(ASWIN_NAME(curr), name) == 0 )
+			return False;
+        LIST_GOTO_NEXT(e);
+    }
+#endif
+	return True;
+}
 
 Bool
 make_aswindow_cmd_iter_func(void *data, void *aux_data)
@@ -86,12 +129,74 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
         if( asw->hints->client_host && asw->hints->client_cmd )
             if( mystrcasecmp( asw->hints->client_host, swad->this_host ) == 0 )
             {
-                register char *cmd ;
-                if( (cmd = make_client_command( &Scr, asw->hints, asw->status, &(asw->anchor), Scr.Vx, Scr.Vy )) != NULL )
-                {
-                    fprintf( swad->f, "%s &\n", cmd );
-                    free( cmd );
-                }
+				char *pure_geometry = NULL ;
+				char *geom = make_client_geometry_string( &Scr, asw->hints, asw->status, &(asw->anchor), Scr.Vx, Scr.Vy, &pure_geometry );
+				/* format :   [<res_class>]:[<res_name>]:[[#<seq_no>]|<name>]  */
+				int app_no = get_res_name_count( swad->res_name_counts, asw->hints->res_name );
+				char *rname = asw->hints->res_name?asw->hints->res_name:"*" ;
+				char *rclass = asw->hints->res_class?asw->hints->res_class:"*" ;
+				char *name = get_flags( asw->internal_flags, ASWF_NameChanged )?NULL:ASWIN_NAME(asw);
+				int i = 0;
+				char *app_name = "*" ;
+				/* need to check if we can use window name in the pattern. It has to be :
+				 * 1) Not changed since window initial mapping
+				 * 2) all ASCII
+				 * 3) shorter then 80 chars
+				 * 4) must not match class or res_name
+				 * 5) Unique
+				 */
+
+				if(	name )
+				{
+					while( name[i] != '\0' )
+					{
+						if( !isascii(name[i]) )
+							break;
+						if( ++i >= 80 )
+							break;
+					}
+					if( name[i] != '\0' )
+						name = NULL ;
+					else
+					{
+						if( strcmp( rclass, name ) == 0 ||
+							strcmp( rname, name ) == 0 	)
+							name = NULL ;
+						else                   /* check that its unique */
+							if( !check_aswindow_name_unique( name, asw ) )
+								name = NULL ;
+					}
+				}
+
+				if( name == NULL )
+				{
+					app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+1+15+1 );
+					sprintf( app_name, "%s:%s:#%d", rclass, rname, app_no );
+				}else
+				{
+					app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+strlen(name)+1 );
+					sprintf( app_name, "%s:%s:%s", rclass, rname, name );
+				}
+
+                fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s &\n", app_name, asw->hints->client_cmd, geom );
+				fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
+						            ", Layer %d"
+									", %s"
+									", StartsOnDesk %d"
+									", ViewportX %d"
+									", ViewportY %d"
+									", %s"
+									"\n",
+						     		app_name, pure_geometry,
+							 		ASWIN_LAYER(asw),
+							 		ASWIN_GET_FLAGS(asw,AS_Sticky)?"Sticky":"Slippery",
+									ASWIN_DESK(asw),
+									asw->status->viewport_x,
+									asw->status->viewport_y,
+									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+				free( pure_geometry );
+				free( geom );
+				free( app_name );
             }
         return True;
     }
@@ -101,7 +206,6 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 void
 save_aswindow_list( ASWindowList *list, char *file )
 {
-    char *realfilename ;
     struct SaveWindowAuxData swad ;
 
     if( list == NULL )
@@ -113,17 +217,30 @@ save_aswindow_list( ASWindowList *list, char *file )
 		return;
 	}
 
-    if( (realfilename = PutHome( file )) == NULL )
-        return;
+	if( file != NULL )
+	{
+	    char *realfilename = PutHome( file );
+		if( realfilename == NULL )
+        	return;
 
-    swad.f = fopen (realfilename, "w+");
-    free (realfilename);
+    	swad.f = fopen (realfilename, "w+");
+	    if ( swad.f == NULL)
+    	    show_error( "Unable to save your workspace state into the %s - cannot open file for writing!", realfilename);
+    	free (realfilename);
+	}else
+	{
+		swad.f = fopen (get_session_ws_file(Session,False), "w+");
+	    if ( swad.f == NULL)
+    	    show_error( "Unable to save your workspace state into the default file %s - cannot open file for writing!", get_session_ws_file(Session,False));
+	}
 
-    if ( swad.f == NULL)
-        show_error( "Unable to save your session into the %s - cannot open file for writing!", file);
-    else
+	if( swad.f )
     {
+		fprintf( swad.f, "Function \"WorkspaceState\"\n" );
+		swad.res_name_counts = create_ashash(0, string_hash_value, string_compare, string_destroy);
         iterate_asbidirlist( list->clients, make_aswindow_cmd_iter_func, &swad, NULL, False );
+		destroy_ashash( &(swad.res_name_counts) );
+		fprintf( swad.f, "EndFunction\n" );
         fclose( swad.f );
     }
 }
@@ -208,6 +325,91 @@ pattern2ASWindow( const char *pattern )
     }
     destroy_wild_reg_exp( wrexp );
     return NULL;
+}
+
+char *parse_semicolon_token( char *src,  char *dst, int *len )
+{
+	int i = 0 ;
+	while( *src != '\0' )
+	{
+		if( *src == ':' )
+		{
+			if( *(src+1) == ':' )
+				++src ;
+			else
+				break;
+		}
+		dst[i] = *src ;
+		++i ;
+		++src ;
+	}
+	dst[i] = '\0' ;
+	*len = i ;
+	return (*src == ':')?src+1:src;
+}
+
+ASWindow *
+complex_pattern2ASWindow( char *pattern )
+{
+	ASWindow *asw = NULL ;
+	/* format :   [<res_class>]:[<res_name>]:[[#<seq_no>]|<name>]  */
+	if( pattern && pattern[0] )
+    {
+		wild_reg_exp *res_class_wrexp = NULL ;
+    	wild_reg_exp *res_name_wrexp = NULL ;
+		int res_name_no = 1 ;
+    	wild_reg_exp *name_wrexp = NULL ;
+        ASBiDirElem *e = LIST_START(Scr.Windows->clients) ;
+		char *ptr = pattern ;
+		char *tmp = safemalloc( strlen(pattern)+1 );
+		int tmp_len = 0;
+
+		ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
+		if( tmp[0] )
+		{
+			res_class_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+			ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
+			if( tmp[0] )
+			{
+				res_name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+				ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
+				if( tmp[0] == '#' && isdigit(tmp[1]) )
+					res_name_no = atoi( tmp+1 ) ;
+				else
+					name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+			}
+		}
+		free( tmp );
+
+        while( e != NULL && (asw == NULL || res_name_no <= 0 ) )
+        {
+            ASWindow *curr = (ASWindow*)LISTELEM_DATA(e);
+			if( res_class_wrexp != NULL )
+				if( match_wild_reg_exp( curr->hints->res_class, res_class_wrexp) != 0 )
+					continue;
+			if( res_name_wrexp != NULL )
+				if( match_wild_reg_exp( curr->hints->res_name, res_name_wrexp) != 0 )
+					continue;
+			if( name_wrexp != NULL )
+				if( match_wild_reg_exp( curr->hints->names[0], name_wrexp) != 0 &&
+					match_wild_reg_exp( curr->hints->icon_name, name_wrexp) != 0  )
+					continue;
+
+			--res_name_no ;
+
+			LIST_GOTO_NEXT(e);
+        }
+
+		if( res_class_wrexp )
+	    	destroy_wild_reg_exp( res_class_wrexp );
+		if( res_name_wrexp )
+	    	destroy_wild_reg_exp( res_name_wrexp );
+		if( name_wrexp )
+	    	destroy_wild_reg_exp( name_wrexp );
+		if( res_name_no > 0 )
+			asw = NULL ;                       /* not found with requested seq no */
+    }
+    return asw;
 }
 
 

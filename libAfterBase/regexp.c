@@ -591,17 +591,16 @@ make_offsets (wild_reg_exp * wrexp)
 }
 
 wild_reg_exp *
-compile_wild_reg_exp (const char *pattern)
+compile_wild_reg_exp_sized (const char *pattern, int size)
 {
 	unsigned char *buffer;
 	unsigned char *ptr = (unsigned char *)pattern;
-	register int  i;
+	register int  i = size ;
 	wild_reg_exp *trg = NULL;
 
 	if (ptr == NULL)
 		return NULL;
 
-	for (i = 0; *(ptr + i) != '\0'; i++);
 	if (i > 254)
 		i = 254;
 	buffer = safemalloc (i + 1);
@@ -634,6 +633,20 @@ compile_wild_reg_exp (const char *pattern)
 	trg->raw = (unsigned char*)flatten_wild_reg_exp (trg);
 	make_offsets (trg);
 	return trg;
+}
+
+wild_reg_exp *
+compile_wild_reg_exp (const char *pattern)
+{
+	unsigned char *ptr = (unsigned char *)pattern;
+	register int  i;
+
+	if (ptr == NULL)
+		return NULL;
+
+	for (i = 0; *(ptr + i) != '\0'; i++);
+
+	return compile_wild_reg_exp_sized (pattern, i);
 }
 
 void

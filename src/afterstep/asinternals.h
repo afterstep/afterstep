@@ -170,6 +170,7 @@ typedef struct ASWindow
 
 #define ASWF_WindowComplete			(0x01<<0)  /* if set - then AddWindow has been completed */
 #define ASWF_PendingShapeRemoval	(0x01<<1)
+#define ASWF_NameChanged			(0x01<<2)
 
 	ASFlagType internal_flags ;
 }ASWindow;
@@ -388,6 +389,7 @@ Bool register_aswindow( Window w, ASWindow *asw );
 Bool unregister_aswindow( Window w );
 Bool destroy_registered_window( Window w );
 ASWindow *pattern2ASWindow( const char *pattern );
+ASWindow *complex_pattern2ASWindow( char *pattern );
 ASLayer *get_aslayer( int layer, ASWindowList *list );
 void tie_aswindow( ASWindow *t );
 void untie_aswindow( ASWindow *t );
