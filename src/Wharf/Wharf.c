@@ -1193,6 +1193,7 @@ change_button_focus(ASWharfButton *aswb, Bool focused )
 	set_astbar_focused( aswb->bar, NULL, focused );			   
 	render_wharf_button( aswb );
 	update_canvas_display( aswb->canvas );
+	update_wharf_folder_shape( aswb->parent );
 
 	if( focused ) 
 		WharfState.focused_button = aswb ;
