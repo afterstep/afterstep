@@ -1194,47 +1194,57 @@ SetShape (ASWindow *asw, int w)
         }else
         {
             int i ;
+		    int child_x = 0 ;
+		    int child_y = 0 ;
+        	unsigned int width, height, bw;
+			XRectangle    rect;
+			Bool first = True ;
+		    ASOrientation *od = get_orientation_data( asw );
+
+			get_current_canvas_geometry( asw->client_canvas, &child_x, &child_y, &width, &height, &bw );
+	        rect.x = child_x ;
+    	    rect.y = child_y ;
+        	rect.width  = width+bw*2;
+            rect.height = height+bw*2;
+
+			if( !ASWIN_GET_FLAGS(asw, AS_Shaped) )
+			{
+LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) setting bounding container's shape from rectangle %dx%d%+d%+d",  asw->frame, rect.width, rect.height, rect.x, rect.y );
+				XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
+                				            0, 0, &rect, 1, ShapeSet, Unsorted);
+				first = False ;
+			}
 
 			if( !ASWIN_GET_FLAGS( asw, AS_Shaded ) )
 			{
-	            combine_canvas_shape (asw->frame_canvas, asw->client_canvas, True, True );
-#if 0
-            Window        wdumm;
-			int client_x = 0, client_y = 0 ;
-			unsigned int width, height, bw, unused_depth  ;
-            XGetGeometry( dpy, asw->w, &wdumm, &client_x, &client_y, &width, &height, &bw, &unused_depth );
-
-            if( ASWIN_GET_FLAGS( asw, AS_Shaped ) )
-            {
-				/* we must use Translate coordinates since some of the canvases may not have updated
-				 * their config at the time */
-    			LOCAL_DEBUG_OUT( "combining client shape at %+d%+d", client_x, client_y );
-                XShapeCombineShape (dpy, asw->frame, ShapeBounding,
-                                    client_x+bw,
-                                    client_y+bw,
-                                    asw->w, ShapeBounding, ShapeSet);
-            }else
-            {
-                XRectangle    rect;
-				/* we must use Translate coordinates since some of the canvases may not have updated
-				 * their config at the time */
-				rect.x = client_x ;
-				rect.y = client_y ;
-				LOCAL_DEBUG_OUT( "setting client shape to rectangle at %+d%+d", rect.x, rect.y );
-                rect.width  = width+bw*2;
-                rect.height = height+bw*2;
-
-                XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
-                                         0, 0, &rect, 1, ShapeSet, Unsorted);
-            }
-#endif
           		for( i = 0 ; i < FRAME_SIDES ; ++i )
               		if( asw->frame_sides[i] )
-                  		combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], False, False );
-			}else
+					{
+                  		combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], first, False );
+						first = False ;
+					}
+				if( asw->shading_steps > 0 && asw->frame_sides[od->tbar_side] )
+				{
+					XShapeCombineRectangles (dpy, asw->frame_sides[od->tbar_side]->w, ShapeBounding,
+    				   				        0, 0, &rect, 1, ShapeSubtract, Unsorted);
+				}
+			}else if( asw->frame_sides[od->tbar_side] )
 			{
-			    ASOrientation *od = get_orientation_data( asw );
-				combine_canvas_shape (asw->frame_canvas, asw->frame_sides[od->tbar_side], True, True );
+				first = False ;
+				combine_canvas_shape (asw->frame_canvas, asw->frame_sides[od->tbar_side], first, False );
+				XShapeCombineRectangles (dpy, asw->frame_sides[od->tbar_side]->w, ShapeBounding,
+                				        0, 0, &rect, 1, ShapeSubtract, Unsorted);
+			}
+
+			if( ASWIN_GET_FLAGS(asw, AS_Shaped) )
+			{
+				if( !first )
+				{
+LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) subtracting from bounding container's shape rectangle %dx%d%+d%+d",  asw->frame, rect.width, rect.height, rect.x, rect.y );
+					XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
+                					            0, 0, &rect, 1, ShapeSubtract, Unsorted);
+				}
+				combine_canvas_shape_at_geom (asw->frame_canvas, asw->client_canvas, child_x, child_y, width, height, bw, False, True );
 			}
         }
     }

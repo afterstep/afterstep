@@ -561,6 +561,8 @@ get_visible_window_name( ASWindowData *wd, unsigned long *encoding )
 							if( encoding )
 								*encoding = wd->res_name_encoding ;
 							break ;
+		case ASN_NameTypes :
+		    break ;
 	}
 	if( vname == NULL )
 	{
@@ -790,8 +792,20 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     /* Pass 5: redistribute everything that remains to fit the min_size : */
     if( total_width > allowed_max_width )
     {
+		int total_delta = (total_width - allowed_max_width) ;
+		int delta = total_delta/WinListState.columns_num ;
+		if( delta == 0 )
+			delta = 1 ;
         /* in fact that will always be column 0 in the single column layout : */
-        WinListState.col_width[WinListState.columns_num-1] -= allowed_max_width-total_width;
+	    for( i = 0 ; i < WinListState.columns_num-1 ; ++i )
+		{
+			if( total_delta - delta <= 0 )
+				break;
+   	    	WinListState.col_width[i] -= delta ;
+			total_delta -= delta ;
+		}
+        WinListState.col_width[WinListState.columns_num-1] -= total_delta ;
+		total_width = allowed_max_width ;
     }else if( total_width < allowed_min_width )
     {
         int dw = (allowed_min_width - total_width) / WinListState.columns_num ;
@@ -804,7 +818,10 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
             }
         }
         if( total_width < allowed_min_width )
+		{
             WinListState.col_width[WinListState.columns_num-1] += allowed_min_width-total_width;
+			total_width = allowed_min_width ;
+		}
     }
 
     if( total_height > allowed_max_height )

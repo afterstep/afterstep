@@ -564,7 +564,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
                                     asw->frame_canvas->height-(frame_size[FR_N]+frame_size[FR_S]));
             }else if( normal_height != step_size )
             {
-                sleep_a_millisec(100);
+                sleep_a_millisec(50);
                 /* we get smoother animation if we move decoration ahead of actually
                  * resizing frame window : */
                 resize_canvases( asw, od, normal_width, step_size, frame_size );

@@ -781,15 +781,15 @@ static Bool do_closest_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
     ASVector *free_space_list =  build_free_space_list( asw, area, AS_LayerHighest );
     XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
     int i, selected = -1 ;
-    short x = asw->status->x;
-    short y = asw->status->y;
+    short x = asw->status->x+Scr.Vx;
+    short y = asw->status->y+Scr.Vy;
 	short selected_x = x ;
 	short selected_y = y ;
 	int selected_factor = 0;
     unsigned short w = asw->status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
     unsigned short h = asw->status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
 
-    LOCAL_DEBUG_OUT( "size=%dx%d", w, h );
+    LOCAL_DEBUG_OUT( "current=%dx%d%+d%+d", w, h, x, y );
     /* now we have to find the optimal rectangle from the list */
     /* pass 1: find rectangle that is the closest to current position :  */
     i = PVECTOR_USED(free_space_list);
@@ -814,7 +814,7 @@ static Bool do_closest_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
 			selected_factor = new_factor ;
 			selected = i;
         }
-    LOCAL_DEBUG_OUT( "selected: %d", selected );
+    LOCAL_DEBUG_OUT( "selected: %d, %+d%+d", selected, selected_x, selected_y );
 
     if( selected >= 0 )
     {
@@ -1005,7 +1005,8 @@ void enforce_avoid_cover(ASWindow *asw )
 		aux_data.new_aswin = asw ;
 		aux_data.aswbox = &aswbox;
         aswbox.name = mystrdup("default");
-		aswbox.area.x = aswbox.area.y = 0 ;
+		aswbox.area.x = Scr.Vx;
+		aswbox.area.y = Scr.Vy ;
         aswbox.area.width = Scr.MyDisplayWidth ;
         aswbox.area.height = Scr.MyDisplayHeight ;
         aswbox.main_strategy = ASP_Manual ;
@@ -1022,11 +1023,11 @@ void enforce_avoid_cover(ASWindow *asw )
 	}
 }
 
-
+/**************************************************************************
+ * ************************************************************************
+ * ************************************************************************
+ **************************************************************************/
 #if 0
-
-
-
 /*
  * pass 0: do not ignore windows behind the target window's layer
  * pass 1: ignore windows behind the target window's layer
