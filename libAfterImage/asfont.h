@@ -29,6 +29,16 @@ typedef struct ASGlyph
 	short  ascend, descend ;          /* distance of the top of the glyph from the baseline */
 }ASGlyph;
 
+typedef struct ASGlyphRange
+{
+	unsigned long   min_char, max_char;        /* for some locales that would be sufficient to
+												* simply set range of characteres supported
+												* by font */
+	ASGlyph *glyphs;
+	struct ASGlyphRange *below, *above;
+}ASGlyphRange;
+
+
 typedef struct ASFont
 {
 	unsigned long 	magic ;
@@ -40,19 +50,13 @@ typedef struct ASFont
 #ifdef HAVE_FREETYPE
 	FT_Face  		ft_face;                    /* free type font handle */
 #endif
-	ASGlyph		   *glyphs;
-	size_t          glyphs_num;
+	ASGlyphRange   *codemap;
+	ASGlyph         default_glyph;
+
 	unsigned int 	max_height, max_ascend, space_size;
 #define LEFT_TO_RIGHT    1
 #define RIGHT_TO_LEFT   -1
 	int 			pen_move_dir ;
-
-	unsigned long   min_char, max_char;        /* for some locales that would be sufficient to
-												* simply set range of characteres supported
-												* by font */
-	/* for others we need a more cumbersome ways : */
-	ASHashTable    *locale_xref;  			   /* crossreference from unicode characters
-												* to glyph indexes */
 }ASFont;
 
 typedef struct ASFontManager
@@ -79,7 +83,7 @@ struct ASFont *open_freetype_font( struct ASFontManager *fontman, const char *fo
 struct ASFont *open_X11_font( struct ASFontManager *fontman, const char *font_string);
 struct ASFont *get_asfont( struct ASFontManager *fontman, const char *font_string, int face_no, int size, ASFontType type );
 void    print_asfont( FILE* stream, struct ASFont* font);
-void 	print_asglyph( FILE* stream, struct ASFont* font, unsigned int glyph_index);
+void 	print_asglyph( FILE* stream, struct ASFont* font, unsigned long c);
 void    destroy_font( struct ASFont *font );
 
 struct ASImage *draw_text( const char *text, struct ASFont *font, int compression );

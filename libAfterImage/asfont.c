@@ -19,7 +19,7 @@
 
 #include "../configure.h"
 
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 /*#define DO_CLOCKING*/
 
 #include <unistd.h>
@@ -102,6 +102,8 @@ destroy_font_manager( ASFontManager *fontman, Bool reusable )
 }
 
 static int load_freetype_glyphs( ASFont *font );
+static int load_X11_glyphs( ASFont *font, XFontStruct *xfs );
+
 
 ASFont*
 open_freetype_font( ASFontManager *fontman, const char *font_string, int face_no, int size, Bool verbose)
@@ -178,7 +180,24 @@ ASFont*
 open_X11_font( ASFontManager *fontman, const char *font_string)
 {
 	ASFont *font = NULL ;
-	/* TODO: implement X11 font opening */
+	XFontStruct *xfs ;
+#ifdef I18N
+	/* TODO: we have to use FontSet and loop through fonts instead filling
+	 * up 2 bytes per character table with glyphs */
+
+
+
+#else                                          /* assume ISO Latin 1 encoding */
+
+	if( (xfs = XLoadQueryFont( dpy, font_string )) == NULL )
+		return NULL;
+	font = safecalloc( 1, sizeof(ASFont));
+	font->magic = MAGIC_ASFONT ;
+	font->fontman = fontman;
+	font->type = ASF_X11 ;
+	load_X11_glyphs( font, xfs );
+	XFreeFont( dpy, xfs );
+#endif
 	return font;
 }
 
@@ -229,60 +248,250 @@ asfont_destroy (ASHashableValue value, void *data)
 	}
 }
 
-/* Misc functions : */
-void print_asfont( FILE* stream, ASFont* font)
-{
-	if( font )
+static unsigned char *
+compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
+                       unsigned int width, unsigned int height,
+					   unsigned int hpad,
+					   int src_step )
+{/* very simple RLE compression - should work well on glyphs */
+	unsigned char *pixmap ;
+	register unsigned char *dst = buffer ;
+	register int i, k ;
+	dst[0] = 0 ;
+	dst[1] = hpad-1 ;
+	for( i = 0 ; i < height ; i++ )
 	{
-		fprintf( stream, "font.type = %d\n", font->type       );
-#ifdef HAVE_FREETYPE
-		fprintf( stream, "font.ft_face = %p\n", font->ft_face    );              /* free type font handle */
-#endif
-		fprintf( stream, "font.glyphs_num = %d\n", font->glyphs_num );
-		fprintf( stream, "font.max_height = %d\n", font->max_height );
-		fprintf( stream, "font.space_size = %d\n" , font->space_size );
-		fprintf( stream, "font.max_ascend = %d\n", font->max_ascend );
-		fprintf( stream, "font.pen_move_dir = %d\n", font->pen_move_dir );
-	}
-}
-
-void print_asglyph( FILE* stream, ASFont* font, unsigned int glyph_index)
-{
-	if( font && glyph_index < font->glyphs_num)
-	{
-		int i, k ;
-		ASGlyph *asg = &(font->glyphs[glyph_index]);
-		fprintf( stream, "glyph[%d].ASCII = %c\n", glyph_index, (char)(glyph_index+font->min_char) );
-		fprintf( stream, "glyph[%d].width = %d\n", glyph_index, asg->width  );
-		fprintf( stream, "glyph[%d].height = %d\n", glyph_index, asg->height  );
-		fprintf( stream, "glyph[%d].lead = %d\n", glyph_index, asg->lead  );
-		fprintf( stream, "glyph[%d].ascend = %d\n", glyph_index, asg->ascend);
-		fprintf( stream, "glyph[%d].descend = %d\n", glyph_index, asg->descend );
-		k = 0 ;
-		for( i = 0 ; i < asg->height*asg->width ; i++ )
+		for( k = 0 ; k < width  ; ++k )
 		{
-			fprintf( stream, "%d(%2.2X) ", asg->pixmap[k+1], asg->pixmap[k]);
-			i += asg->pixmap[k+1] ;
-			k++;
+			if( src[k] == dst[0] && dst[1] < 255 )
+				++dst[1];
+			else
+			{
+				++dst ; ++dst ;
+				dst[0] = src[k];
+				dst[1] = 0 ;
+			}
+		}
+		src += src_step ;
+		if( hpad > 0 )
+		{
+			if( dst[0] == 0 && dst[1]+hpad < 255)
+				dst[1] += hpad ;
+			else
+			{
+				++dst ; ++dst ;
+				dst[0] = 0 ;
+				dst[1] = hpad-1 ;
+			}
 		}
 	}
+	if( dst[1] > 0 )
+	{
+		++dst ; ++dst ;
+	}
+	pixmap  = safemalloc( dst - buffer );
+	memcpy( pixmap, buffer, dst-buffer );
+	return pixmap;
 }
+
 /*********************************************************************************/
 /* encoding/locale handling						   								 */
 /*********************************************************************************/
 
 /* Now, this is the mess, I know :
- * Internally we store everything in UTF-8;
- * WE then need to convert UTF-8 encoded string into Unicode 4 byte codes
+ * Internally we store everything in current locale;
+ * WE then need to convert it into Unicode 4 byte codes
  *
- * NOw each font may have different character maps in it - we ought to choose
- * the one most applicable to us and load glyphs only from that map.
- * To do that - we query LANG environment variable when we initialize our font
- * manager.
- *
- * TODO: think about incoming data - does it has to be converted into UTF-8 ???
+ * TODO: think about incoming data - does it has to be made local friendly ???
  * Definately
  */
+
+static ASGlyphRange*
+split_X11_glyph_range( unsigned long min_char, unsigned int max_char, XCharStruct *chars )
+{
+	ASGlyphRange *first = NULL, **r = &first;
+LOCAL_DEBUG_CALLER_OUT( "min_char = %lu, max_char = %lu, chars = %p", min_char, max_char, chars );
+	while( min_char <= max_char )
+	{
+		register int i = min_char;
+		while( i <= max_char && chars[i-min_char].width == 0 ) i++ ;
+		chars = &(chars[i]);
+		if( min_char <= max_char )
+		{
+			*r = safecalloc( 1, sizeof(ASGlyphRange));
+			(*r)->min_char = i ;
+			while( i <= max_char && chars[i-min_char].width  != 0 ) i++ ;
+			(*r)->max_char = i ;
+LOCAL_DEBUG_OUT( "created glyph range from %lu to %lu", (*r)->min_char, (*r)->max_char );
+			r = &((*r)->above);
+		}
+		min_char = i ;
+	}
+	return first;
+}
+
+void
+load_X11_glyph_range( ASFont *font, XFontStruct *xfs, size_t char_offset,
+													  unsigned char byte1,
+                                                      unsigned char min_byte2,
+													  unsigned char max_byte2, GC *gc )
+{
+	ASGlyphRange  *all, *r ;
+	unsigned long  min_char = (byte1<<8)|min_byte2;
+	unsigned char *buffer, *compressed_buf ;
+	unsigned int   height = xfs->ascent+xfs->descent ;
+	static XGCValues gcv;
+
+	buffer = safemalloc( xfs->max_bounds.width*height);
+	compressed_buf = safemalloc( xfs->max_bounds.width*height*2);
+	all = split_X11_glyph_range( min_char, (byte1<<8)|max_byte2, &(xfs->per_char[char_offset]));
+	for( r = all ; r != NULL ; r = r->above )
+	{
+		XChar2b *test_str ;
+		XCharStruct *chars = &(xfs->per_char[char_offset+r->min_char-min_char]);
+	    int len = (r->max_char-r->min_char+1);
+		unsigned char c = r->min_char&0x00FF;
+		register int i ;
+		Pixmap p;
+		XImage *xim;
+		unsigned int total_width = 0 ;
+		int pen_x = 0;
+
+		test_str = safemalloc( len * sizeof(XChar2b));
+		for( i = 0 ; i < len ; i++ )
+		{
+			test_str[i].byte1 = byte1 ;
+			test_str[i].byte2 = i+c ;
+			total_width = chars[i].width ;
+		}
+		p = XCreatePixmap( dpy, Scr.Root, total_width, height, 1 );
+
+		if( *gc == NULL )
+		{
+			gcv.font = xfs->fid;
+			*gc = XCreateGC( dpy, p, GCFont, &gcv);
+		}
+		XDrawImageString16( dpy, p, *gc, 0, xfs->ascent, test_str, len );
+		xim = XGetImage( dpy, p, 0, 0, total_width, height, 0xFFFFFFFF, ZPixmap );
+		XFreePixmap( dpy, p );
+		free( test_str );
+
+		r->glyphs = safecalloc( len, sizeof(ASGlyph) );
+		for( i = 0 ; i < len ; i++ )
+		{
+			register int x, y ;
+			int width = chars[i].width;
+			unsigned char *row = &(buffer[0]), *row1, *row2;
+
+			for( y = 0 ; y < height ; y++ )
+			{
+				for( x = 0 ; x < width ; x++ )
+					row[x] = ( XGetPixel( xim, pen_x+x, y ) != 0 )? 0xFF:0x00;
+				row += width;
+			}
+			row1 = &(buffer[0]);
+			row = &(buffer[width]);
+			row2 = &(buffer[width+width]);
+
+			for( y = 1 ; y < height-1 ; y++ )
+			{
+				for( x = 1 ; x < width-1 ; x++ )
+					if( row[x] == 0 )
+					{/* antialiasing here : */
+						int c = (int)row1[x]+
+								(int)row[x-1]+
+								(int)row[x+1]+
+								(int)row2[x];
+						row[x] = c>>3;
+					}
+				row  += width ;
+				row1 += width ;
+				row2 += width ;
+			}
+			r->glyphs[i].pixmap = compress_glyph_pixmap( buffer, compressed_buf, width, height, 0, width );
+			r->glyphs[i].width = width ;
+			r->glyphs[i].height = height ;
+			r->glyphs[i].lead = 0 ;
+			r->glyphs[i].ascend = xfs->ascent ;
+			r->glyphs[i].descend = xfs->descent ;
+LOCAL_DEBUG_OUT( "glyph %lu is %dx%d ascend = %d, lead = %d",  i, r->glyphs[i].width, r->glyphs[i].height, r->glyphs[i].ascend, r->glyphs[i].lead );
+			pen_x += width ;
+		}
+		if( xim )
+			XDestroyImage( xim );
+	}
+	if( all != NULL )
+	{
+		if( font->codemap == NULL )
+			font->codemap = all ;
+		else
+		{
+			for( r = font->codemap ; r != NULL ; r = r->above )
+			{
+				if( r->min_char > all->min_char )
+				{
+					if( r->below )
+						r->below->above = all ;
+					r->below = all ;
+					while ( all->above != NULL )
+						all = all->above ;
+					all->above = r ;
+					r->below = all ;
+					break;
+				}
+				all->below = r ;
+			}
+			if( r == NULL && all->below->above == NULL )
+				all->below->above = all ;
+		}
+	}
+	free( buffer ) ;
+	free( compressed_buf ) ;
+}
+
+static int
+load_X11_glyphs( ASFont *font, XFontStruct *xfs )
+{
+	GC gc = NULL;
+#ifdef I18N
+	if( xfs->max_byte1 > 0 && xfs->min_byte1 > 0 )
+	{
+
+		char_num *= rows ;
+	}else
+	{
+		int i;
+		int min_byte1 = (xfs->min_char_or_byte2>>8)&0x00FF;
+		int max_byte1 = (xfs->max_char_or_byte2>>8)&0x00FF;
+		size_t offset = MAX(0x00FF,xfs->max_char_or_byte2-(min_byte1<<8)) ;
+
+		load_X11_glyph_range( font, xfs, 0, min_byte1,
+											xfs->min_char_or_byte2-(min_byte1<<8),
+			                                offset, &gc );
+		offset -= xfs->min_char_or_byte2-(min_byte1<<8);
+		if( max_byte1 > min_byte1 )
+		{
+			for( i = min_byte1+1; i < max_byte1 ; i++ )
+			{
+				load_X11_glyph_range( font, xfs, offset, i, 0x00, 0xFF, &gc );
+				offset += 256 ;
+			}
+			load_X11_glyph_range( font, xfs, offset, max_byte1,
+				                                     0,
+													 xfs->max_char_or_byte2-(max_byte1<<8), &gc );
+		}
+	}
+#else
+	load_X11_glyph_range( font, xfs, 0, 0x00, 0x21, 0xFF, &gc );
+#endif
+	font->max_height = xfs->ascent+xfs->descent;
+	font->max_ascend = xfs->ascent;
+	font->space_size = xfs->max_bounds.width*2/3 ;
+	font->pen_move_dir = LEFT_TO_RIGHT;
+	if( gc )
+		XFreeGC( dpy, gc );
+	return xfs->ascent+xfs->descent;
+}
 
 #ifdef HAVE_FREETYPE
 static void
@@ -293,49 +502,14 @@ load_glyph_freetype( ASFont *font, ASGlyph *asg, int glyph )
 		if( !FT_Render_Glyph( face->glyph, ft_render_mode_normal ) )
 		{
 			FT_Bitmap 	*bmap = &(face->glyph->bitmap) ;
-			int i, k;
-			register CARD8 *buf, *dst, *src ;
+			register CARD8 *buf, *src = bmap->buffer ;
 			int hpad = (face->glyph->bitmap_left<0)? -face->glyph->bitmap_left: face->glyph->bitmap_left ;
 
-			buf = dst = safemalloc( bmap->rows*(bmap->width+hpad)*2);
-			src = bmap->buffer ;
 			if( bmap->pitch < 0 )
 				src += -bmap->pitch*bmap->rows ;
+			buf = safemalloc( bmap->rows*(bmap->width+hpad)*2);
 			/* we better do some RLE encoding in attempt to preserv memory */
-			dst[0] = 0 ;
-			dst[1] = hpad-1 ;
-			for( i = 0 ; i < bmap->rows ; i++ )
-			{
-				for( k = 0 ; k < bmap->width  ; ++k )
-				{
-					if( src[k] == dst[0] && dst[1] < 255 )
-						++dst[1];
-					else
-					{
-						++dst ; ++dst ;
-						dst[0] = src[k];
-						dst[1] = 0 ;
-					}
-				}
-				src += bmap->pitch ;
-				if( hpad > 0 )
-				{
-					if( dst[0] == 0 && dst[1]+hpad < 255)
-						dst[1] += hpad ;
-					else
-					{
-						++dst ; ++dst ;
-						dst[0] = 0 ;
-						dst[1] = hpad-1 ;
-					}
-				}
-			}
-			if( dst[1] > 0 )
-			{
-				++dst ; ++dst ;
-			}
-			asg->pixmap  = safemalloc( dst - buf );
-			memcpy( asg->pixmap, buf, dst-buf );
+			asg->pixmap  = compress_glyph_pixmap( src, buf, bmap->width, bmap->rows, hpad, bmap->pitch );
 			free( buf );
 			asg->width   = bmap->width+hpad ;
 			asg->height  = bmap->rows ;
@@ -347,46 +521,71 @@ LOCAL_DEBUG_OUT( "glyph %p is %dx%d ascend = %d, lead = %d, bmap_top = %d",  asg
 		}
 }
 
+static ASGlyphRange*
+split_freetype_glyph_range( unsigned long min_char, unsigned long max_char, FT_Face face )
+{
+	ASGlyphRange *first = NULL, **r = &first;
+#ifdef  I18N
+#else
+#define TO_UNICODE(i)   i
+#endif
+LOCAL_DEBUG_CALLER_OUT( "min_char = %lu, max_char = %lu, face = %p", min_char, max_char, face );
+	while( min_char <= max_char )
+	{
+		register long i = min_char;
+		while( i <= max_char && FT_Get_Char_Index( face, TO_UNICODE(i)) == 0 ) i++ ;
+		if( i <= max_char )
+		{
+			*r = safecalloc( 1, sizeof(ASGlyphRange));
+			(*r)->min_char = i ;
+			while( i <= max_char && FT_Get_Char_Index( face, TO_UNICODE(i)) != 0 ) i++ ;
+			(*r)->max_char = i ;
+LOCAL_DEBUG_OUT( "created glyph range from %lu to %lu", (*r)->min_char, (*r)->max_char );
+			r = &((*r)->above);
+		}
+		min_char = i ;
+	}
+	return first;
+}
+
 static int
 load_freetype_glyphs( ASFont *font )
 {
 	int max_ascend = 0, max_descend = 0;
 	unsigned long i ;
+	ASGlyphRange *r ;
 #ifdef I18N
 	/* TODO: add font drawing internationalization : */
-
+	font->codemap = split_glyph_freetype_range( 0x21, 0xFFFFFF, font->ft_face );
 	font->pen_move_dir = RIGHT_TO_LEFT ;
-#else
-	font->min_char = 0x20 ;
-	font->max_char = 0xFF ;
-	font->glyphs_num = font->max_char-font->min_char ;
+#else                                          /* assume ISO Latin 1 encoding */
+	font->codemap = split_freetype_glyph_range( 0x21, 0xFF, font->ft_face );
 	font->pen_move_dir = LEFT_TO_RIGHT ;
 #endif
-	font->glyphs = safecalloc( font->glyphs_num+1, sizeof(ASGlyph));
-
-	if( font->max_char != 0 )
+	for( r = font->codemap ; r != NULL ; r = r->above )
 	{
-		for( i = font->min_char ; i < font->max_char ; ++i )
+		int min_char = r->min_char ;
+		int max_char = r->max_char ;
+
+		r->glyphs = safecalloc( max_char - min_char + 1, sizeof(ASGlyph));
+		for( i = min_char ; i < max_char ; ++i )
 		{
 			if( i != ' ' && i != '\t' && i!= '\n' )
 			{
-				ASGlyph *asg = &(font->glyphs[i-font->min_char]);
-				load_glyph_freetype( font, asg, FT_Get_Char_Index( font->ft_face, i ));
+				ASGlyph *asg = &(r->glyphs[i-min_char]);
+				load_glyph_freetype( font, asg, FT_Get_Char_Index( font->ft_face, TO_UNICODE(i)));
 				if( asg->lead >= 0 || asg->lead+asg->width > 3 )
 					font->pen_move_dir = LEFT_TO_RIGHT ;
+				if( asg->ascend > max_ascend )
+					max_ascend = asg->ascend ;
+				if( asg->descend > max_descend )
+					max_descend = asg->descend ;
 			}
 		}
 	}
 
-	load_glyph_freetype( font, &(font->glyphs[font->glyphs_num]), 0);/* special no-symbol glyph */
-	font->glyphs_num++ ;
-	for( i = 0 ; i < font->glyphs_num ; ++i )
-	{
-		if( font->glyphs[i].ascend > max_ascend )
-			max_ascend = font->glyphs[i].ascend ;
-		if( font->glyphs[i].descend > max_descend )
-			max_descend = font->glyphs[i].descend ;
-	}
+	load_glyph_freetype( font, &(font->default_glyph), 0);/* special no-symbol glyph */
+
 	font->max_height = max_ascend+max_descend;
 	font->max_ascend = max_ascend;
 	return max_ascend+max_descend;
@@ -396,24 +595,17 @@ load_freetype_glyphs( ASFont *font )
 inline ASGlyph *get_character_glyph( const char *c, ASFont *font )
 {
 	unsigned long uc;
+	register ASGlyphRange *r;
 #ifdef I18N
-	/* TODO: we need to convert UTF-8 character into Unicode */
 #else
 	uc = (unsigned long)*c;
 #endif
-	/* TODO: add font drawing internationalization : */
-	if( font->max_char != 0 )
-	{
-		if( uc >= font->min_char && uc <= font->max_char )
-			return &(font->glyphs[uc - font->min_char]);
-	}else if( font->locale_xref )
-	{
-		unsigned long idx;
-		if( get_hash_item( font->locale_xref, (ASHashableValue)uc, (void**)&idx ) == ASH_Success )
-			return &(font->glyphs[idx]);
-	}else if( font->glyphs_num > uc )
-		return &(font->glyphs[uc]);
-	return &(font->glyphs[font->glyphs_num-1]);
+
+	for( r = font->codemap ; r != NULL ; r = r->above )
+		if( r->max_char >= uc )
+			if( r->min_char <= uc )
+				return &(r->glyphs[uc - r->min_char]);
+	return &(font->default_glyph);
 }
 
 /*********************************************************************************/
@@ -585,6 +777,7 @@ LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 			}
 			pen_x = (font->pen_move_dir == RIGHT_TO_LEFT)? map.width : 0;
 			pen_y += line_height;
+			base_line += line_height;
 		}else
 		{
 			if( map.glyphs[i] == GLYPH_SPACE || map.glyphs[i] == GLYPH_TAB )
@@ -659,6 +852,49 @@ LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 	free( scanlines );
 	return im;
 }
+
+/* Misc functions : */
+void print_asfont( FILE* stream, ASFont* font)
+{
+	if( font )
+	{
+		fprintf( stream, "font.type = %d\n", font->type       );
+#ifdef HAVE_FREETYPE
+		fprintf( stream, "font.ft_face = %p\n", font->ft_face    );              /* free type font handle */
+#endif
+		fprintf( stream, "font.max_height = %d\n", font->max_height );
+		fprintf( stream, "font.space_size = %d\n" , font->space_size );
+		fprintf( stream, "font.max_ascend = %d\n", font->max_ascend );
+		fprintf( stream, "font.pen_move_dir = %d\n", font->pen_move_dir );
+	}
+}
+
+void print_asglyph( FILE* stream, ASFont* font, unsigned long c)
+{
+	if( font )
+	{
+		int i, k ;
+		ASGlyph *asg = get_character_glyph( (char*)&c, font );
+		if( asg == NULL )
+			return;
+
+		fprintf( stream, "glyph[%lu].ASCII = %c\n", c, (char)c );
+		fprintf( stream, "glyph[%lu].width = %d\n", c, asg->width  );
+		fprintf( stream, "glyph[%lu].height = %d\n", c, asg->height  );
+		fprintf( stream, "glyph[%lu].lead = %d\n", c, asg->lead  );
+		fprintf( stream, "glyph[%lu].ascend = %d\n", c, asg->ascend);
+		fprintf( stream, "glyph[%lu].descend = %d\n", c, asg->descend );
+		k = 0 ;
+		for( i = 0 ; i < asg->height*asg->width ; i++ )
+		{
+			fprintf( stream, "%d(%2.2X) ", asg->pixmap[k+1], asg->pixmap[k]);
+			i += asg->pixmap[k+1] ;
+			k++;
+		}
+	}
+}
+
+
 
 /*********************************************************************************/
 /* The end !!!! 																 */
