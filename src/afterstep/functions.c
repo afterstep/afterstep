@@ -1030,7 +1030,7 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
     cover_desktop();
     display_progress( True, "Copying selected background \"%s\" into \"%s\" ...", data->text, realfilename);
-    
+    LOCAL_DEBUG_OUT( "Copying selected background \"%s\" into \"%s\" ...", data->text, realfilename);
     if (CopyFile (data->text, realfilename) == 0)
     {
 		++_as_background_change_count ;

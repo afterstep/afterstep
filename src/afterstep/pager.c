@@ -684,11 +684,13 @@ release_old_background( int desk, Bool forget )
 {
     MyBackground *back = get_desk_back_or_default( desk, True );
     ASImage *im = NULL ;
+    char *imname ;
 
 	LOCAL_DEBUG_CALLER_OUT("%d,%d", desk, forget);
     if( back == NULL || back->type == MB_BackCmd )
         return ;
-
+	
+	imname = make_myback_image_name( &(Scr.Look), back->name );
 
     if( back->loaded_im_name )
     {
@@ -698,10 +700,8 @@ release_old_background( int desk, Bool forget )
 	
 	if( im == NULL ) 
 	{
-	    char *imname = make_myback_image_name( &(Scr.Look), back->name );
   		im = query_asimage( Scr.image_manager, imname );
 	    LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", imname, im );
-  		free( imname );
 	}
 
     if( im == NULL && back->type == MB_BackImage )
@@ -722,17 +722,34 @@ release_old_background( int desk, Bool forget )
 #endif
     if( im != NULL )
     {
-        if( forget || im->width*im->height >= Scr.Look.KillBackgroundThreshold )
+        if( Scr.RootImage == im )
+        {                                      /* always do that ! */
+            safe_asimage_destroy( im );
+            Scr.RootImage = NULL ;
+        }
+        
+		if( forget || im->width*im->height >= Scr.Look.KillBackgroundThreshold )
         {
             LOCAL_DEBUG_OUT( "im = %p, ref_count = %d", im, im->ref_count );
             safe_asimage_destroy( im );
-            if( Scr.RootImage == im )
-            {
-                safe_asimage_destroy( im );
-                Scr.RootImage = NULL ;
-            }
-        }
+        }else if( strcmp( im->name, imname) != 0 )	 /* we need to store it for future use ! */
+		{	                                     	 /* for future references we store image under imname */
+			if( im->ref_count > 1 )
+			{ 		   /* then something else is using this image, and we need to duplicate it  */		   
+				release_asimage( im );
+				im = clone_asimage( im, 0xFFFFFFFF );
+			}else
+				forget_asimage( im );
+			store_asimage( Scr.image_manager, im, imname );
+		}	 
+		if( back->loaded_im_name )
+		{	
+			free( back->loaded_im_name );
+			back->loaded_im_name = mystrdup(im->name); 
+		}
     }
+	free( imname );
+
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
