@@ -1466,13 +1466,16 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * NAME
  * solid - generate image of specified size and fill it with solid color.
  * SYNOPSIS
- * <solid id="new_id" color="color" width="pixels" height="pixels"/>
+ * <solid id="new_id" color="color" opacity="opacity" width="pixels" height="pixels"/>
  * ATTRIBUTES
  * id       Optional. Image will be given this name for future reference.
  * color    Optional.  Default is "#ffffffff".  An image will be created
  *          and filled with this color.
  * width    Required.  The image will have this width.
  * height   Required.  The image will have this height.
+ * opacity  Optional. Default is 100. Values from 0 to 100 represent the
+ *          opacity of resulting image with 100 being completely opaque.
+ * 		    Effectively overrides alpha component of the color setting.
  ******/
 	if (!strcmp(doc->tag, "solid")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -1480,6 +1483,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		const char* width_str = NULL;
 		const char* height_str = NULL;
 		int width = 0, height = 0;
+		Bool opacity_set = False ;
+		int opacity = 100 ;
 		ARGB32 color = ARGB32_White;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
@@ -1487,6 +1492,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (!strcmp(ptr->tag, "color")) parse_argb_color(ptr->parm, &color);
 			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
 			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+			if (!strcmp(ptr->tag, "opacity")) { opacity = atol(ptr->parm); opacity_set = True ; }
 		}
 		if (refid && width_str && height_str) {
 			ASImage* refimg = fetch_asimage(imman, refid);
@@ -1501,7 +1507,15 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			height = parse_math(height_str, NULL, 0);
 		}
 		if (width && height) {
+			CARD32 a, r, g, b ;
 			result = create_asimage(width, height, ASIMAGE_QUALITY_TOP);
+			if( opacity < 0 ) opacity = 0 ;
+			else if( opacity > 100 )  opacity = 100 ;
+			a = opacity_set? (0x000000FF * opacity)/100: ARGB32_ALPHA8(color);
+			r = ARGB32_RED8(color);
+			g = ARGB32_GREEN8(color);
+			b = ARGB32_BLUE8(color);
+			color = MAKE_ARGB32(a,r,g,b);
 			if (result) fill_asimage(asv, result, 0, 0, width, height, color);
 			show_progress("Creating solid color [#%08x] image [%dx%d].", (unsigned int)color, width, height);
 		}

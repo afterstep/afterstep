@@ -42,6 +42,8 @@ struct wild_reg_exp;
 #define STYLE_GNOME_HINTS       (1 << 25)    /* if set - then we should honor Gnome Hints */
 #define STYLE_EXTWM_HINTS       (1 << 26)    /* if set - then we should honor Extended WM Hints */
 #define STYLE_XRESOURCES_HINTS  (1 << 27)    /* if set - then we should honor data from .XDefaults */
+#define STYLE_FOCUS_ON_MAP      (1 << 28)    /* if set - window will be focused as soon as its mapped */
+
 
 /* the following is needed for MATCH_ enum - see styledb.c for more */
 #define STYLE_MYSTYLES          (1 << 29)   /*  */
@@ -49,9 +51,10 @@ struct wild_reg_exp;
 #define STYLE_FLAGS             (1 << 31)   /*  */
 
 #define STYLE_DEFAULTS		(STYLE_TITLE|STYLE_CIRCULATE|STYLE_WINLIST| \
-                             STYLE_FOCUS|STYLE_HANDLES|STYLE_ICON_TITLE| \
-                             STYLE_PPOSITION|STYLE_GROUP_HINTS|STYLE_TRANSIENT_HINTS| \
-                             STYLE_MOTIF_HINTS|STYLE_GNOME_HINTS|STYLE_EXTWM_HINTS)
+                             STYLE_FOCUS|STYLE_FOCUS_ON_MAP|STYLE_HANDLES| \
+							 STYLE_ICON_TITLE|STYLE_PPOSITION|STYLE_GROUP_HINTS| \
+							 STYLE_TRANSIENT_HINTS|STYLE_MOTIF_HINTS| \
+							 STYLE_GNOME_HINTS|STYLE_EXTWM_HINTS)
 
 /************************************************************************************
  * Data structure definitions :

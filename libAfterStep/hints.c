@@ -1062,6 +1062,7 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		{STYLE_AVOID_COVER, AS_AvoidCover, 0, 0, AS_AvoidCover},
 		{STYLE_VERTICAL_TITLE, AS_VerticalTitle, 0, 0, AS_VerticalTitle},
 		{STYLE_HANDLES, AS_Handles, 0, 0, AS_Handles},
+		{STYLE_FOCUS_ON_MAP, AS_FocusOnMap, 0, 0, AS_FocusOnMap},
 		{0, 0, 0, 0, 0}
 	};
 

@@ -820,6 +820,8 @@ HandleMapNotify ( ASEvent *event )
 {
     ASWindow *asw = event->client;
     Bool force_activation = False ;
+	Bool no_focus = False ;
+
     if ( asw == NULL || event->w == Scr.Root )
         return;
 
@@ -831,6 +833,9 @@ HandleMapNotify ( ASEvent *event )
         }
         return ;
     }
+
+	if( asw->wm_state_transition == ASWT_Withdrawn2Normal )
+		no_focus = (ASWIN_HFLAGS(asw, AS_FocusOnMap) == 0) ;
     if( asw->wm_state_transition == ASWT_StableState )
     {
         if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
@@ -845,7 +850,8 @@ HandleMapNotify ( ASEvent *event )
     ASWIN_CLEAR_FLAGS(asw, AS_IconMapped);
     ASWIN_CLEAR_FLAGS(asw, AS_Iconic);
     complete_wm_state_transition( asw, NormalState );
-    activate_aswindow (asw, force_activation, False);
+	if( !no_focus )
+    	activate_aswindow (asw, force_activation, False);
     broadcast_config( M_MAP, asw );
     /* finally reaches Normal state */
 }

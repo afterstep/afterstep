@@ -83,6 +83,7 @@ struct ScreenInfo;
 #define AS_ClientIconPixmap     (1<<21)
 #define AS_ClientIconPosition   (1<<22)
 #define AS_Windowbox            (1<<23)
+#define AS_FocusOnMap           (1<<24)
 
 /***********************************************************/
 /* AS supported protocols :                                */
