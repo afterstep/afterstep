@@ -266,6 +266,8 @@ setup_compatibility_props (ScreenInfo * scr)
 }
 
 /*********** Setting up mechanismus used to avoid stale properties : **************/
+static char *_as_afterstep_name = "AfterStep" ;
+
 Bool
 setup_volitile_wmprops (ASWMProps * wmprops)
 {
@@ -286,6 +288,7 @@ setup_volitile_wmprops (ASWMProps * wmprops)
 	/* Ext WM specs compatibility indicator : */
 	set_32bit_property (wmprops->scr->Root, _XA_NET_SUPPORTING_WM_CHECK, XA_CARDINAL, w);
 	set_32bit_property (w, _XA_NET_SUPPORTING_WM_CHECK, XA_CARDINAL, w);
+    set_text_property (w, _XA_NET_WM_NAME, &_as_afterstep_name, 1, TPE_UTF8);
 	return True;
 }
 

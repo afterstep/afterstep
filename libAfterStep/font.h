@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#if 0
 #ifdef I18N
 #ifdef __STDC__
 #define XTextWidth(x,y,z)      XmbTextEscapement(x ## set,y,z)
@@ -14,6 +15,8 @@ extern "C" {
 #define XDrawString(t,u,v,w,x,y,z) XmbDrawString(t,u,FONTSET,v,w,x,y,z)
 #define XDrawImageString(t,u,v,w,x,y,z) XmbDrawImageString(t,u,FONTSET,v,w,x,y,z)
 #endif
+#endif
+
 
 struct ASFont;
 typedef struct MyFont
