@@ -53,6 +53,7 @@ void SetTimer (int delay);
 void
 HandleEvents ()
 {
+    /* this is the only loop that allowed to run ExecutePendingFunctions(); */
     ASEvent event;
     Bool has_x_events = False ;
     while (True)
@@ -64,8 +65,11 @@ HandleEvents ()
                 DigestEvent( &event );
                 DispatchEvent( &event );
             }
+
+            ExecutePendingFunctions();
         }
         afterstep_wait_pipes_input ();
+        ExecutePendingFunctions();
     }
 }
 
@@ -138,6 +142,8 @@ WaitEventLoop( ASEvent *event, int finish_event_type, long timeout )
 			XAllowEvents (dpy, ReplayPointer, CurrentTime);
 
         DigestEvent( event );
+//        if( event->x.type == finish_event_type )
+//            return True;
         DispatchEvent( event );
     }
 
@@ -252,8 +258,12 @@ DigestEvent( ASEvent *event )
     event->widget = Scr.RootCanvas ;
     /* in housekeeping mode we handle pointer events only as applied to root window ! */
     if( Scr.moveresize_in_progress && (event->eclass & ASE_POINTER_EVENTS) != 0)
+    {
         event->client = NULL;
-    else
+        /* we have to do this at all times !!!! */
+        if( event->x.type == ButtonRelease && Scr.Windows->pressed )
+            release_pressure();
+    }else
         event->client = window2ASWindow( event->w );
 
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 && event->client )
@@ -350,8 +360,8 @@ DigestEvent( ASEvent *event )
 
         event->widget  = canvas ;
         /* we have to do this at all times !!!! */
-        if( event->x.type == ButtonRelease && Scr.Windows->pressed )
-            release_pressure();
+        /* if( event->x.type == ButtonRelease && Scr.Windows->pressed )
+            release_pressure(); */
     }
     SHOW_EVENT_TRACE(event);
 }
@@ -955,7 +965,7 @@ void
 HandleButtonRelease ( ASEvent *event )
 {   /* click to focus stuff goes here */
 LOCAL_DEBUG_CALLER_OUT("pressed(%p)->state(0x%X)", Scr.Windows->pressed, (event->x.xbutton.state&(Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)) );
-    if( (event->x.xbutton.state&(Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)) == 0 )
+    if( (event->x.xbutton.state&AllButtonMask) == (Button1Mask<<(event->x.xbutton.button-Button1)) )
         release_pressure();
 }
 

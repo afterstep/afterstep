@@ -103,34 +103,39 @@ void apply_aswindow_move(struct ASMoveResizeData *data)
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
 SHOW_CHECKPOINT;
 LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
-    if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
-        moveresize_aswindow_wm( asw,
-                                data->curr.x, data->curr.y,
-                                asw->status->width, asw->status->height, False);
-    else
-        moveresize_aswindow_wm( asw,
-                                data->curr.x, data->curr.y,
-                                data->curr.width, data->curr.height, False);
+    if( asw )
+    {
+        if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+            moveresize_aswindow_wm( asw,
+                                    data->curr.x, data->curr.y,
+                                    asw->status->width, asw->status->height, False);
+        else
+            moveresize_aswindow_wm( asw,
+                                    data->curr.x, data->curr.y,
+                                    data->curr.width, data->curr.height, False);
+    }
 }
 
 
 void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
 {
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
-
-    if( cancelled )
-	{
-SHOW_CHECKPOINT;
-        LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->start.x, data->start.y);
-        moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height, False );
-	}else
-	{
-SHOW_CHECKPOINT;
-        LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
-        moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height, False );
-	}
-    ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
-    SendConfigureNotify(asw);
+    if( asw )
+    {
+        if( cancelled )
+        {
+    SHOW_CHECKPOINT;
+            LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->start.x, data->start.y);
+            moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height, False );
+        }else
+        {
+    SHOW_CHECKPOINT;
+            LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
+            moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height, False );
+        }
+        ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
+        SendConfigureNotify(asw);
+    }
     Scr.moveresize_in_progress = NULL ;
 }
 /*************************************************************************/
@@ -305,6 +310,35 @@ build_free_space_list( ASWindow *to_skip, ASWindowBox *aswbox, ASGeometry *area,
 /*************************************************************************/
 /* placement routines : */
 /*************************************************************************/
+static void
+apply_placement_result( ASWindow *asw, ASFlagType flags, int vx, int vy, unsigned int width, unsigned int height )
+{
+    if( get_flags( flags, XValue ) )
+    {
+        asw->status->x = vx ;
+        if( !get_flags (asw->status->flags, AS_Sticky) )
+            asw->status->x -= asw->status->viewport_x ;
+        else
+            asw->status->y -= Scr.Vx ;
+    }
+    if( get_flags( flags, YValue ) )
+    {
+        asw->status->y = vy ;
+        if( !get_flags (asw->status->flags, AS_Sticky) )
+            asw->status->y -= asw->status->viewport_y ;
+        else
+            asw->status->y -= Scr.Vy ;
+    }
+    if( get_flags( flags, WidthValue ) && width > 0 )
+        asw->status->width = width ;
+
+    if( get_flags( flags, HeightValue ) && height > 0 )
+        asw->status->height = height ;
+
+    status2anchor( &(asw->anchor), asw->hints, asw->status, Scr.VxMax, Scr.VyMax);
+}
+
+
 static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
     ASVector *free_space_list =  build_free_space_list( asw, aswbox, area, ASWIN_LAYER(asw) );
@@ -430,9 +464,7 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
     {
         int spacer_x = (rects[selected].width > w)? 1: 0;
         int spacer_y = (rects[selected].height > h)? 1: 0;
-        asw->status->x = rects[selected].x+spacer_x ;
-        asw->status->y = rects[selected].y+spacer_y ;
-        status2anchor( &(asw->anchor), asw->hints, asw->status, Scr.VxMax, Scr.VyMax);
+        apply_placement_result( asw, XValue|YValue, rects[selected].x+spacer_x, rects[selected].y+spacer_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else
     {
@@ -498,9 +530,7 @@ static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
             new_y = (new_y % ( rects[selected].height - h ));
         }
 
-        asw->status->x = rects[selected].x + new_x ;
-        asw->status->y = rects[selected].y + new_y ;
-        status2anchor( &(asw->anchor), asw->hints, asw->status, Scr.VxMax, Scr.VyMax);
+        apply_placement_result( asw, XValue|YValue, rects[selected].x+new_x, rects[selected].y+new_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else
     {
@@ -510,6 +540,56 @@ static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
     destroy_asvector( &free_space_list );
     return (selected >= 0);
 }
+
+static Bool
+do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
+{
+    int selected = -1 ;
+    unsigned int w = asw->status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
+    unsigned int h = asw->status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
+    ASVector *free_space_list = NULL;
+    XRectangle *rects = NULL;
+    int i ;
+
+    /* even though we are not limited to free space - it is best to avoid windows with AvoidCover
+     * bit set */
+    free_space_list =  build_free_space_list( asw, aswbox, area, AS_LayerHighest );
+    rects = PVECTOR_HEAD(XRectangle,free_space_list);
+
+    i = PVECTOR_USED(free_space_list);
+    /* now we need to find the biggest rectangle : */
+    while( --i >= 0 )
+        if( rects[i].width >= w && rects[i].height >=  h )
+        {
+            if( selected > 0 )
+            {
+                if( rects[i].width * rects[i].height < rects[selected].width * rects[selected].height )
+                    continue;
+            }
+            selected = i ;
+        }
+    if( selected >= 0 )
+    {
+        ASFlagType flags = 0 ;
+        save_aswindow_anchor( asw, ASWIN_GET_FLAGS( asw, AS_MaximizedX), ASWIN_GET_FLAGS( asw, AS_MaximizedY) );
+
+        if( ASWIN_GET_FLAGS( asw, AS_MaximizedX)  )
+            set_flags( flags, XValue|WidthValue );
+        if( ASWIN_GET_FLAGS( asw, AS_MaximizedY)  )
+            set_flags( flags, YValue|HeightValue );
+
+        apply_placement_result( asw, flags, rects[selected].x, rects[selected].y, rects[selected].width, rects[selected].height );
+        LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
+    }else
+    {
+        LOCAL_DEBUG_OUT( "failed%s","");
+    }
+
+    destroy_asvector( &free_space_list );
+    return (selected >= 0);
+}
+
+
 
 static Bool do_tile_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
@@ -566,9 +646,7 @@ static Bool do_tile_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *a
     {
         int spacer_x = (rects[selected].width > w)? 1: 0;
         int spacer_y = (rects[selected].height > h)? 1: 0;
-        asw->status->x = rects[selected].x+spacer_x ;
-        asw->status->y = rects[selected].y+spacer_y ;
-        status2anchor( &(asw->anchor), asw->hints, asw->status, Scr.VxMax, Scr.VyMax);
+        apply_placement_result( asw, XValue|YValue, rects[selected].x+spacer_x, rects[selected].y+spacer_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else
     {
@@ -604,7 +682,7 @@ static Bool do_cascade_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
 
     aswbox->cascade_pos = newpos ;
 
-    status2anchor( &(asw->anchor), asw->hints, asw->status, Scr.VxMax, Scr.VyMax);
+    apply_placement_result( asw, XValue|YValue, x, y, 0, 0 );
 
     return True;
 }
@@ -612,7 +690,6 @@ static Bool do_cascade_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
 static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
     ASMoveResizeData *mvrdata;
-    release_pressure();
 
     ConfigureNotifyLoop();
 
@@ -658,12 +735,12 @@ place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementS
     area = aswbox->area ;
     if( !get_flags( aswbox->flags, ASA_Virtual ) )
     {
-        area.x += asw->status->viewport_x ;
+        area.x += Scr.Vx; /*asw->status->viewport_x ;*/
+        area.y += Scr.Vy; /*asw->status->viewport_y ;*/
         if( !force )
         {
             if( area.x >= Scr.VxMax + Scr.MyDisplayWidth )
                 return False;
-            area.y += asw->status->viewport_y ;
             if( area.y >= Scr.VyMax + Scr.MyDisplayHeight )
                 return False;
         }
@@ -687,6 +764,9 @@ place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementS
             if( asw->status->viewport_y < area.y || asw->status->viewport_y >= area.y +area.height )
                 return False;
     }
+
+    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
+        return do_maximized_placement( asw, aswbox, &area );
 
     if( which == ASP_UseMainStrategy )
     {
@@ -733,6 +813,10 @@ Bool place_aswindow( ASWindow *asw )
     LOCAL_DEBUG_OUT( "status->geom(%dx%d%+d%+d), anchor->geom(%dx%d%+d%+d)",
                      asw->status->width, asw->status->height, asw->status->x, asw->status->y,
                      asw->anchor.width, asw->anchor.height, asw->anchor.x, asw->anchor.y );
+
+    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
+        return place_aswindow_in_windowbox( asw, Scr.Feel.default_window_box, ASP_UseBackupStrategy, True );
+
     if( asw->hints->windowbox_name )
     {
         aswbox = find_window_box( &(Scr.Feel), asw->hints->windowbox_name );

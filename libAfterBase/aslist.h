@@ -39,9 +39,13 @@ void *append_bidirelem( ASBiDirList *l, void *data );
 void *prepend_bidirelem( ASBiDirList *l, void *data );
 void *insert_bidirelem_after( ASBiDirList *l, void *data, ASBiDirElem *after );
 void *insert_bidirelem_before( ASBiDirList *l, void *data, ASBiDirElem *before );
+/* moves element to the beginning of the list :*/
 void  pop_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
+/* destroy element and its data : */
 void  destroy_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
 void  discard_bidirelem( ASBiDirList *l, void *data );
+/* returns data of the first element in list, and removes this element from the list */
+void *extract_first_bidirelem( ASBiDirList *l );
 
 void  flush_asbidirlist_memory_pool();
 

@@ -267,3 +267,16 @@ discard_bidirelem( ASBiDirList *l, void *data )
         if( (elem = find_bidirelem( l, data ))!=NULL )
 			destroy_bidirelem( l, elem );
 }
+
+void *extract_first_bidirelem( ASBiDirList *l )
+{
+    void *data = NULL ;
+    if( l != NULL && l->head != NULL )
+    {
+        data = l->head->data ;
+        l->head->data = NULL ;
+        destroy_bidirelem( l, l->head );
+    }
+    return data;
+}
+

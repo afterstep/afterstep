@@ -439,6 +439,7 @@ Bool activate_aswindow( ASWindow *asw, Bool force, Bool deiconify );
 void press_aswindow( ASWindow *asw, int context );
 void release_pressure();
 
+void save_aswindow_anchor( ASWindow *asw, Bool hor, Bool vert );
 void moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height, Bool save_anchor );
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
@@ -557,7 +558,11 @@ void          HandleShapeNotify (struct ASEvent *event);
 void SetupFunctionHandlers();
 ComplexFunction *get_complex_function( char *name );
 
+/* schedule function for execution( add to queue ) */
 void ExecuteFunction (struct FunctionData *data, struct ASEvent *event, int Module);
+/* execute all the scheduled functions from the queue */
+void ExecutePendingFunctions();
+
 int  DeferExecution (struct ASEvent *event, int cursor, int FinishEvent);
 void QuickRestart (char *what);
 

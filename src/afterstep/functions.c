@@ -173,9 +173,40 @@ get_complex_function( char *name )
     return find_complex_func( Scr.Feel.ComplexFunctions, name );
 }
 
+/* TODO : WE need to implement functions queue, so that ExecuteFunction
+ * only places function to run into that queue, and queue gets processed
+ * at a later time from the main event loop.
+ * This is to prevent nasty recursions when functions are called from
+ * functions, etc.
+ */
+typedef struct ASScheduledFunction
+{
+    FunctionData fdata ;
+    int module ;
+    ASEvent event ;
+    /* we do not want to keep pointers to data structures here,
+     * since they may change by the time function is run : */
+    Window client ;
+    Window canvas ;
+}ASScheduledFunction;
+
+ASBiDirList *FunctionQueue = NULL ;
+
+void destroy_scheduled_function_handler( void *data )
+{
+    ASScheduledFunction *sf = data ;
+    if( sf )
+    {
+        free_func_data (&(sf->fdata));
+        free( sf );
+    }
+}
+#define destroy_scheduled_function(sf)  destroy_scheduled_function_handler((void*)sf)
+
+
 /***********************************************************************
  *  Procedure:
- *	ExecuteFunction - execute a afterstep built in function
+ *  ExecuteFunction - schedule execution a afterstep built in function
  *  Inputs:
  *      data    - the function to execute
  *      event   - the event that caused the function
@@ -188,8 +219,7 @@ ExecuteFunction (FunctionData *data, ASEvent *event, int module)
 #define ExecuteFunction(d,e,m) trace_ExecuteFunction(d,e,m,__FILE__,__LINE__)
 #endif
 {
-    register FunctionCode  func = data->func;
-    ASEvent scratch_event ;
+    ASScheduledFunction *sf ;
 #if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
     if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
 #endif
@@ -201,27 +231,86 @@ LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)"
                          event?event->client:NULL,
                          event?(event->client?ASWIN_NAME(event->client):"none"):"none",
                          module );
-    if( event == NULL )
+    if( data == NULL )
+        return ;
+    if( FunctionQueue == NULL )
+        FunctionQueue = create_asbidirlist(destroy_scheduled_function_handler);
+
+    sf = safecalloc( 1, sizeof(ASScheduledFunction ) );
+    dup_func_data (&(sf->fdata), data);
+    sf->module = module ;
+
+    sf->event.event_time = Scr.last_Timestamp ;
+    sf->event.scr = &Scr ;
+    if( event )
     {
-        memset( &scratch_event, 0x00, sizeof(ASEvent) );
-        event = &scratch_event ;
-        event->event_time = Scr.last_Timestamp ;
-        event->scr = &Scr ;
+        sf->event.mask              = event->mask           ;
+        sf->event.eclass            = event->eclass         ;
+        sf->event.last_time         = event->last_time      ;
+        sf->event.typed_last_time   = event->typed_last_time;
+        sf->event.event_time        = event->event_time;
+
+        sf->event.w                 = event->w;
+        sf->event.context           = event->context;
+        sf->event.x                 = event->x ;
+        if( event->client && event->client->magic == MAGIC_ASWINDOW )
+            sf->client              = event->client->w ;
+        if( event->widget )
+            sf->canvas              = event->widget->w ;
     }
+    append_bidirelem( FunctionQueue, sf );
+}
+/***********************************************************************
+ *  Procedure:
+ *  DoExecuteFunction - execute an afterstep built in function
+ ***********************************************************************/
+static void
+DoExecuteFunction ( ASScheduledFunction *sf )
+{
+    FunctionData *data = &(sf->fdata) ;
+    ASEvent *event = &(sf->event);
+    register FunctionCode  func = data->func;
+
+    if( sf->client != None )
+    {
+        ASWindow *asw ;
+        asw = event->client = window2ASWindow( sf->client );
+        if( sf->canvas )
+        {
+            ASCanvas  *canvas = NULL ;
+            if( sf->canvas == asw->client_canvas->w )
+                canvas = asw->client_canvas ;
+            else if( sf->canvas == asw->frame_canvas->w )
+                canvas = asw->frame_canvas ;
+            else if( asw->icon_canvas && sf->canvas == asw->icon_canvas->w )
+                canvas = asw->icon_canvas ;
+            else if( asw->icon_title_canvas && sf->canvas == asw->icon_title_canvas->w )
+                canvas = asw->icon_title_canvas ;
+            else
+            {
+                int i = FRAME_SIDES ;
+                while( --i >= 0 )
+                    if( asw->frame_sides[i] != NULL &&
+                        asw->frame_sides[i]->w == sf->canvas )
+                    {
+                        canvas = asw->frame_sides[i];
+                        break;
+                    }
+            }
+            event->widget = canvas ;
+        }
+    }
+
     /* Defer Execution may wish to alter this value */
     if (IsWindowFunc (func))
 	{
 		int           cursor, fin_event;
 
+        fin_event = ( event->x.type == ButtonPress )? ButtonRelease: ButtonPress ;
         if (func != F_RESIZE && func != F_MOVE)
-		{
-			fin_event = ButtonRelease;
             cursor = (func!=F_DESTROY && func!=F_DELETE && func!=F_CLOSE)?SELECT:DESTROY;
-        } else
-		{
-			cursor = MOVE;
-			fin_event = ButtonPress;
-		}
+        else
+            cursor = MOVE;
 
         if (data->text != NULL && event->client == NULL)
             if (*(data->text) != '\0')
@@ -241,8 +330,7 @@ LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)"
             if( !check_allowed_function2( data->func, event->client->hints) )
             {
 LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the specifyed window (mask 0x%lX)", COMPLEX_FUNCTION_NAME(data), ASWIN_FUNC_MASK(event->client));
-                XBell (dpy, Scr.screen);
-                return ;
+                func = data->func = F_BEEP ;
             }
 
         if( get_flags( AfterStepState, ASS_WarpingMode ) &&
@@ -252,20 +340,17 @@ LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the specifyed window (mask 
 		if( func == F_FUNCTION )
             ExecuteComplexFunction (event, COMPLEX_FUNCTION_NAME(data));
 		else
-            function_handlers[func]( data, event, module );
+            function_handlers[func]( data, event, sf->module );
     }
-    /* Only wait for an all-buttons-up condition after calls from
-	 * regular built-ins, not from complex-functions or modules.
-	 *
-	 *   Don't really know why but what the hell - let's honor
-	 *   heritage
-	 *                  Sasha Vasko.
-	 */
-#if 0
-    if (func != F_FUNCTION && func != F_POPUP &&
-	    function_handlers[func] != module_func_handler )
-		WaitForButtonsUpLoop ();
-#endif
+    destroy_scheduled_function(sf);
+}
+
+void ExecutePendingFunctions()
+{
+    ASScheduledFunction *sf ;
+    if( FunctionQueue )
+        while( (sf = extract_first_bidirelem( FunctionQueue ) ) != NULL )
+            DoExecuteFunction( sf );
 }
 
 /***********************************************************************
@@ -297,8 +382,23 @@ LOCAL_DEBUG_CALLER_OUT( "cursor %d, event %d, window 0x%lX, window_name \"%s\", 
     if (!(res = !GrabEm (&Scr, Scr.Feel.cursors[cursor])))
 	{
         WaitEventLoop( event, finish_event, -1 );
+        LOCAL_DEBUG_OUT( "window(%lX)->root(%lX)->subwindow(%lX)", event->x.xbutton.window, event->x.xbutton.root, event->x.xbutton.subwindow );
         if (event->client == NULL)
+        {
             res = True ;
+            /* since we grabbed cursor we may get clicks over client windows as reported
+             * relative to the root window, in which case we have to check subwindow to
+             * see what client was clicked */
+            if( event->x.xbutton.subwindow != event->w )
+            {
+                event->client = window2ASWindow( event->x.xbutton.subwindow );
+                if( event->client != NULL )
+                {
+                    res = False ;
+                    event->w = event->x.xbutton.subwindow ;
+                }
+            }
+        }
         UngrabEm ();
     }
     if( res )
@@ -437,7 +537,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
     }else
     {
         ASMoveResizeData *mvrdata;
-        release_pressure();
+        /*release_pressure(); */
         if( data->func == F_MOVE )
             mvrdata = move_widget_interactively(Scr.RootCanvas,
                                                 asw->frame_canvas,

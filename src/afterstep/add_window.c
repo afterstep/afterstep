@@ -902,6 +902,21 @@ afterstep_parent_hints_func(Window parent, ASParentHints *dst )
 }
 
 void
+save_aswindow_anchor( ASWindow *asw, Bool hor, Bool vert )
+{
+    if( hor && asw->saved_anchor.width == 0 )
+    {
+        asw->saved_anchor.x = asw->anchor.x ;
+        asw->saved_anchor.width = asw->anchor.width ;
+    }
+    if( vert && asw->saved_anchor.height == 0 )
+    {
+        asw->saved_anchor.y = asw->anchor.y ;
+        asw->saved_anchor.height = asw->anchor.height ;
+    }
+}
+
+void
 moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height, Bool save_anchor )
 {
     if( !AS_ASSERT(asw) )
@@ -922,18 +937,7 @@ moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigne
                 scratch_status.height = asw->status->height ;
         }
         if( save_anchor )
-        {
-            if( asw->saved_anchor.width == 0 )
-            {
-                asw->saved_anchor.x = asw->anchor.x ;
-                asw->saved_anchor.width = asw->anchor.width ;
-            }
-            if( asw->saved_anchor.height == 0 )
-            {
-                asw->saved_anchor.y = asw->anchor.y ;
-                asw->saved_anchor.height = asw->anchor.height ;
-            }
-        }
+            save_aswindow_anchor( asw, True, True );
         /* need to apply two-way conversion in order to make sure that size restrains are applied : */
         status2anchor( &(asw->anchor), asw->hints, &scratch_status, Scr.VxMax, Scr.VyMax);
         anchor2status ( asw->status, asw->hints, &(asw->anchor));
@@ -1269,6 +1273,8 @@ void change_aswindow_desktop( ASWindow *asw, int new_desk )
 void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
 {
     ASFlagType on_flags, off_flags ;
+    Bool need_placement = False ;
+    Bool reconfigured = False ;
 
     if( AS_ASSERT(asw) )
         return ;
@@ -1282,8 +1288,39 @@ void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
     if( get_flags( flags, AS_Shaded ) )
         asw->shading_steps = Scr.Feel.ShadeAnimationSteps ;
 
-    on_window_status_changed( asw, True, False );
-    /* TODO: implement maximization !!!! */
+    if( get_flags( flags, AS_MaximizedX) )
+    {
+        if( !ASWIN_GET_FLAGS( asw, AS_MaximizedX ) )
+        {
+            if( asw->saved_anchor.width > 0)
+            {
+                asw->anchor.x = asw->saved_anchor.x ;
+                asw->anchor.width = asw->saved_anchor.width ;
+                asw->saved_anchor.width = 0 ;  /* invalidating saved anchor */
+                reconfigured = True ;
+            }
+        }else
+            need_placement = True ;
+    }
+    if( get_flags( flags, AS_MaximizedY) )
+    {
+        if( !ASWIN_GET_FLAGS( asw, AS_MaximizedY ) )
+        {
+            if( asw->saved_anchor.height > 0)
+            {
+                asw->anchor.y = asw->saved_anchor.y ;
+                asw->anchor.height = asw->saved_anchor.height ;
+                asw->saved_anchor.height = 0 ; /* invalidating saved anchor */
+                reconfigured = True ;
+            }
+        }else
+            need_placement = True ;
+    }
+
+    if( need_placement )
+        place_aswindow( asw );
+
+    on_window_status_changed( asw, True, reconfigured );
 }
 
 /****************************************************************************
@@ -1639,6 +1676,7 @@ press_aswindow( ASWindow *asw, int context )
             Scr.Windows->pressed = NULL;
     }else if( Scr.Windows->pressed != asw )
     {
+        /* TODO :may need to do something to avoid recursion here */
         if( Scr.Windows->pressed != NULL )
             on_window_pressure_changed( Scr.Windows->pressed, C_NO_CONTEXT );
         Scr.Windows->pressed = asw ;
