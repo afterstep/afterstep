@@ -43,6 +43,7 @@
 #include "../../include/mystyle.h"
 #include "../../include/wmprops.h"
 #include "asinternals.h"
+#include "moveresize.h"
 
 #include <X11/keysym.h>
 
@@ -54,7 +55,7 @@ void
 warp_grab (ASWindow * t)
 {
 	XWindowAttributes attributes;
-
+LOCAL_DEBUG_CALLER_OUT( "%p", t );
 	/* we're watching all key presses and accept mouse cursor motion events
 	   so we will be able to tell when warp mode is finished */
 	XGetWindowAttributes (dpy, t->frame, &attributes);
@@ -74,7 +75,7 @@ warp_ungrab (ASWindow * t, Bool finished)
         if (t != NULL)
         {
             XWindowAttributes attributes;
-
+LOCAL_DEBUG_CALLER_OUT( "%p, %d", t, finished );
             /* we no longer need to watch keypresses or pointer motions */
             XGetWindowAttributes (dpy, t->frame, &attributes);
             XSelectInput (dpy, t->frame,
@@ -313,9 +314,14 @@ DigestEvent( ASEvent *event )
 {
     register int i ;
     setup_asevent_from_xevent( event );
-    event->client = window2ASWindow( event->w );
     event->context = C_ROOT ;
-    event->widget = NULL ;
+    event->widget = Scr.RootCanvas ;
+    /* in housekeeping mode we handle pointer events only as applied to root window ! */
+    if( get_flags(AfterStepState, ASS_HousekeepingMode) && (event->eclass & ASE_POINTER_EVENTS) != 0)
+        event->client = NULL;
+    else
+        event->client = window2ASWindow( event->w );
+
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 && event->client )
     {
         /* now lets determine the context of the event : (former GetContext)*/
@@ -479,6 +485,10 @@ DispatchEvent ( ASEvent *event )
     /* handle balloon events specially */
     balloon_handle_event (&(event->x));
 
+    if( Scr.moveresize_in_progress )
+        if( check_moveresize_event( event ) )
+            return;
+
 	/* handle menu events specially */
     /* if (HandleMenuEvent (NULL, event) == True)
      *  return;
@@ -598,6 +608,11 @@ HandleFocusIn ( ASEvent *event )
     while (ASCheckTypedEvent (FocusIn, &event->x));
     DigestEvent( event );
 
+    if( Scr.Windows->focused != event->client )
+        Scr.Windows->focused = NULL ;
+
+    if( event->client == NULL && get_flags(AfterStepState, ASS_HousekeepingMode))
+        return;
     if (event->client != Scr.Windows->hilited)
         broadcast_focus_change( event->client );
     /* note that hilite_aswindow changes value of Scr.Hilite!!! */

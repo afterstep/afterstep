@@ -143,7 +143,8 @@ struct ASHashTable;
 struct ComplexFunction;
 struct ASFontManager;
 struct ASImageManager;
-
+struct ASCanvas;
+struct ASMoveResizeData;
 
 typedef struct ASDesktop
 {
@@ -288,7 +289,13 @@ typedef struct ScreenInfo
     struct ASWMProps    *wmprops;              /* window management properties */
 
 	struct ASVisual *asv ;  /* ASVisual for libAfterImage */
-	struct ASImage  *RootImage;
+    Window Root;        /* the root window */
+    struct ASImage  *RootImage;
+    struct ASCanvas *RootCanvas;
+
+    Window SizeWindow;      /* the resize dimensions window */
+    Window NoFocusWin;		/* Window which will own focus when no other
+				 * windows have it */
 
     struct ASWindowList *Windows ;
 /*    ASWindow ASRoot;        the head of the afterstep window list */
@@ -297,14 +304,13 @@ typedef struct ScreenInfo
     struct ASIconBox   *default_icon_box ; /* if we have icons following desktops - then we only need one icon box */
 	struct ASHashTable *icon_boxes ; /* hashed by desk no - one icon box per desktop ! */
 
-    Window Root;		/* the root window */
-    Window SizeWindow;		/* the resize dimensions window */
-    Window NoFocusWin;		/* Window which will own focus when no other
-				 * windows have it */
 #ifndef NO_VIRTUAL
     PanFrame PanFrameTop, PanFrameLeft, PanFrameRight, PanFrameBottom;
     int usePanFrames;		/* toggle to disable them */
 #endif
+
+    /* interactive move resize data : */
+    struct ASMoveResizeData *moveresize_in_progress;
 
     int randomx;        /* values used for randomPlacement */
     int randomy;

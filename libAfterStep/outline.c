@@ -245,13 +245,15 @@ LOCAL_DEBUG_OUT( "outline should have %d segments", count );
 	attr.background_pixel 	= scr->asv->black_pixel ;
 	attr.border_pixel 		= scr->asv->white_pixel ;
 	attr.save_under 		= True ;
+    attr.event_mask         = 0;//ButtonPressMask | ButtonReleaseMask | ButtonMotionMask |
+           //PointerMotionMask | EnterWindowMask | LeaveWindowMask;
 	for( i = count-1 ; i >= 0 ; --i )
 	{
 		s[i].w = create_screen_window( AS_WIDGET_SCREEN(parent),
                                        AS_WIDGET_WINDOW(parent),
 									   -20, -20, 10, 1, 1,  /* 1 pixel wide border */
 		                               InputOutput,
-									   (CWBackPixel|CWBorderPixel|CWSaveUnder), &attr);
+                                       (CWBackPixel|CWBorderPixel|CWSaveUnder|CWEventMask), &attr);
 		XMapRaised( dpy, s[i].w );
 SHOW_CHECKPOINT;
 	}

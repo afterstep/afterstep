@@ -82,7 +82,12 @@ typedef struct ASMoveResizeData
 	char 	   	    *geometry_string;
 	Window           geometry_display;
 	XRectangle 		 curr, last, start;
-
+    unsigned int     geometry_window_width ;
+    unsigned int     geometry_window_height ;
+#ifdef NO_ASRENDER
+    ASCanvas        *geom_canvas ;
+    ASTBarData      *geom_bar ;
+#endif
 	int 			 origin_x, origin_y ;       /* parent's window root
 												* coordinates */
 	int 			 last_x, last_y ;
@@ -120,5 +125,7 @@ resize_widget_interactively( struct ASWidget *parent,
 	  						 as_interactive_apply_handler    apply_func,
 							 as_interactive_complete_handler complete_func,
 							 int side );
+
+Bool check_moveresize_event( struct ASEvent *event );
 
 #endif

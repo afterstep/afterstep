@@ -184,6 +184,7 @@ Bool set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned shor
 Bool set_astbar_label( ASTBarData *tbar, const char *label );
 Bool set_astbar_btns( ASTBarData *tbar, ASTBtnBlock **btns, Bool left );
 Bool move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y );
+Bool update_astbar_root_pos( ASTBarData *tbar, ASCanvas *pc );
 Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 
 Bool set_astbar_focused( ASTBarData *tbar, ASCanvas *pc, Bool focused );

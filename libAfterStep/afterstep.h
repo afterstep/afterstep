@@ -519,8 +519,7 @@ Bool activate_aswindow( ASWindow *asw, Bool force, Bool deiconify );
 void press_aswindow( ASWindow *asw, int context );
 void release_pressure();
 
-
-
+void moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height );
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
 void update_window_transparency( ASWindow *asw );

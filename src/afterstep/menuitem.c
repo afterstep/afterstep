@@ -138,6 +138,25 @@ parse_context (char *string, int *output, struct charstring *table)
 	return ptr;
 }
 
+long
+default_func_val( FunctionCode func )
+{
+    long val = 0 ;
+    switch (func)
+	{
+	 case F_MAXIMIZE:
+         val = DEFAULT_MAXIMIZE;
+		 break;
+	 case F_MOVE:
+	 case F_RESIZE:
+         val = INVALID_POSITION;
+		 break;
+     default:
+         break;
+	}
+    return val;
+}
+
 void
 init_func_data (FunctionData * data)
 {
@@ -284,8 +303,7 @@ parse_func (const char *text, FunctionData * data, int quiet)
 	if (fterm->flags & TF_SYNTAX_TERMINATOR)
 		return 0;
 
-	if (data->func == F_MAXIMIZE)
-		set_func_val (data, -1, 100);
+    set_func_val (data, -1, default_func_val(data->func));
 
 	/* now let's do actual parsing */
 	if (!(fterm->flags & NEED_CMD))
@@ -402,7 +420,7 @@ parse_func (const char *text, FunctionData * data, int quiet)
 			return -6;
 		}
 	}
-	if ((data->func == F_POPUP) || (data->func == F_FUNCTION))
+    if( data->func == F_POPUP )
 	{
 		if ((data->popup = FindPopup (data->name, (data->text != NULL))) == NULL)
 			if (data->text)
@@ -410,7 +428,19 @@ parse_func (const char *text, FunctionData * data, int quiet)
 
 		if (data->popup == NULL)
 			data->func = F_NOP;
+    }else if ( data->func == F_FUNCTION )
+	{
+        if ((data->popup = find_complex_func( Scr.Feel.ComplexFunctions, data->name )) == NULL )
+            if (data->text)
+                data->popup = find_complex_func( Scr.Feel.ComplexFunctions, data->text );
+
+		if (data->popup == NULL)
+			data->func = F_NOP;
 	}
+
+
+
+
 /*
    if( data->func == F_SCROLL )
    {

@@ -1020,6 +1020,70 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
     return rendered;
 }
 
+static void
+apply_window_status_size(register ASWindow *asw, ASOrientation *od)
+{
+    /* note that icons are handled by iconbox */
+    if( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+	{
+        int step_size = make_shade_animation_step( asw, od );
+LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_HFLAGS(asw, AS_VerticalTitle)?"Vert":"Horz", step_size>0?"Shaded":"Unshaded", asw->shading_steps, step_size );
+        if( step_size > 0 )
+        {
+            if( asw->frame_sides[od->tbar_side] )
+                XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
+            XLowerWindow( dpy, asw->w );
+            if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+                XMoveResizeWindow(  dpy, asw->frame,
+                                    asw->status->x, asw->status->y,
+                                    step_size, asw->status->height );
+            else
+                XMoveResizeWindow(  dpy, asw->frame,
+                                    asw->status->x, asw->status->y,
+                                    asw->status->width, step_size );
+        }else
+        {
+            XRaiseWindow( dpy, asw->w );
+            XMoveResizeWindow( dpy, asw->frame,
+                            asw->status->x, asw->status->y,
+                            asw->status->width, asw->status->height );
+        }
+        broadcast_config (M_CONFIGURE_WINDOW, asw);
+    }
+}
+
+static void
+on_frame_bars_moved( ASWindow *asw, unsigned int side, ASOrientation *od)
+{
+    ASCanvas *canvas = asw->frame_sides[side];
+
+    update_astbar_root_pos(asw->frame_bars[side], canvas);
+    if( side == od->tbar_side )
+    {
+        update_astbar_root_pos(asw->tbar, canvas);
+        update_astbar_root_pos(asw->frame_bars[od->tbar_mirror_corners[0]], canvas);
+        update_astbar_root_pos(asw->frame_bars[od->tbar_mirror_corners[1]], canvas);
+    }else if( side == od->sbar_side )
+    {
+        update_astbar_root_pos(asw->frame_bars[od->sbar_mirror_corners[0]], canvas);
+        update_astbar_root_pos(asw->frame_bars[od->sbar_mirror_corners[1]], canvas);
+    }
+
+}
+
+static void
+update_window_frame_moved( ASWindow *asw, ASOrientation *od )
+{
+    int i ;
+    for( i = 0 ; i < FRAME_SIDES ; ++i )
+        if( asw->frame_sides[i] )
+        {   /* canvas has beer resized - resize tbars!!! */
+            handle_canvas_config (asw->frame_sides[i]);
+            on_frame_bars_moved( asw, i, od);
+        }
+}
+
+
 /* this gets called when StructureNotify/SubstractureNotify arrives : */
 void
 on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width, unsigned int height )
@@ -1071,7 +1135,9 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,%ux%u%+d%+d)", asw, w, width, height, x, y );
                                     x, y, *(od->out_width), *(od->out_height));
                 ASSync(False);
             }
-        }
+        }else if( moved )
+            update_window_frame_moved( asw, od );
+
         if( moved || resized )
             update_window_transparency( asw );
     }else if( asw->icon_canvas && w == asw->icon_canvas->w )
@@ -1210,33 +1276,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_di
     }
 
     /* now we need to move/resize our frame window */
-    /* note that icons are handled by iconbox */
-    if( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
-	{
-        int step_size = make_shade_animation_step( asw, od );
-LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_HFLAGS(asw, AS_VerticalTitle)?"Vert":"Horz", step_size>0?"Shaded":"Unshaded", asw->shading_steps, step_size );
-        if( step_size > 0 )
-        {
-            if( asw->frame_sides[od->tbar_side] )
-                XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
-            XLowerWindow( dpy, asw->w );
-            if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-                XMoveResizeWindow(  dpy, asw->frame,
-                                    asw->status->x, asw->status->y,
-                                    step_size, asw->status->height );
-            else
-                XMoveResizeWindow(  dpy, asw->frame,
-                                    asw->status->x, asw->status->y,
-                                    asw->status->width, step_size );
-        }else
-        {
-            XRaiseWindow( dpy, asw->w );
-            XMoveResizeWindow( dpy, asw->frame,
-                            asw->status->x, asw->status->y,
-                            asw->status->width, asw->status->height );
-        }
-        broadcast_config (M_CONFIGURE_WINDOW, asw);
-    }
+    apply_window_status_size(asw, od);
     set_client_state( asw->w, asw->status );
 }
 
@@ -1513,6 +1553,26 @@ place_aswindow( ASWindow *asw, ASStatusHints *status )
 {
 
     return True;
+}
+
+void
+moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height )
+{
+    if( !AS_ASSERT(asw) )
+    {
+        ASStatusHints scratch_status  = *(asw->status);
+        scratch_status.x = x ;
+        scratch_status.y = y ;
+        scratch_status.width = width ;
+        scratch_status.height = height ;
+
+        /* need to apply two-way conversion in order to make sure that size restrains are applied : */
+        status2anchor( &(asw->anchor), asw->hints, &scratch_status, Scr.VxMax, Scr.VyMax);
+        anchor2status ( asw->status, asw->hints, &(asw->anchor));
+
+        /* now lets actually resize the window : */
+        apply_window_status_size(asw, get_orientation_data(asw));
+    }
 }
 
 Bool

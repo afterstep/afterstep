@@ -31,6 +31,7 @@
 #include "../../include/parse.h"
 #include "../../include/screen.h"
 #include "../../include/event.h"
+#include "../../include/decor.h"
 #include "../../include/module.h"
 #include "../../include/clientprops.h"
 #include "../../include/hints.h"
@@ -323,6 +324,7 @@ SetupScreen()
     Scr.CurrentDesk = 0;
 
     Scr.randomx = Scr.randomy = 0;
+    Scr.RootCanvas = create_ascanvas_container( Scr.Root );
 
     SetupColormaps();
     CreateCursors ();
@@ -344,6 +346,9 @@ CleanupScreen()
     }
     DestroyManagementWindows();
     CleanupColormaps();
+
+    if( Scr.RootCanvas )
+        destroy_ascanvas( &(Scr.RootCanvas) );
 
     XSetInputFocus (dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
 	XSync (dpy, 0);

@@ -47,6 +47,7 @@
 #include "../../include/module.h"
 #include "../../include/session.h"
 #include "asinternals.h"
+#include "moveresize.h"
 
 static as_function_handler function_handlers[F_FUNCTIONS_NUM] ;
 
@@ -376,7 +377,7 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
     {
         if (DeferExecution (event, SELECT, ButtonPress))
 		{
-			WaitForButtonsUpLoop ();
+//            WaitForButtonsUpLoop ();
 			return;
 		}
     }
@@ -405,12 +406,12 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
         for( i = 0 ; i < func->items_num ; i++ )
             if( func->items[i].name )
             {
-                c = *(func->items[i].name);
+                c = func->items[i].name[0];
                 if( c == clicks_upper[clicks] || c == clicks_lower[clicks] )
                     ExecuteFunction (&(func->items[i]), event, -1);
             }
     }
-    WaitForButtonsUpLoop ();
+//    WaitForButtonsUpLoop ();
 	UngrabEm ();
 }
 
@@ -482,23 +483,75 @@ void resize_func_handler( FunctionData *data, ASEvent *event, int module )
 #endif
 }
 
+void apply_aswindow_move(struct ASMoveResizeData *data)
+{
+    ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
+SHOW_CHECKPOINT;
+LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.x, data->curr.y, data->curr.width, data->curr.height);
+    moveresize_aswindow_wm( asw,
+                            data->curr.x, data->curr.y,
+                            data->curr.width, data->curr.height);
+}
+
+
+void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
+{
+    ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
+
+	if( cancelled )
+	{
+SHOW_CHECKPOINT;
+        LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.x, data->start.y, data->start.width, data->start.height);
+        moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height );
+	}else
+	{
+SHOW_CHECKPOINT;
+        LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.x, data->curr.y, data->curr.width, data->curr.height);
+        moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height );
+	}
+    Scr.moveresize_in_progress = NULL ;
+    XSelectInput( dpy, Scr.Root, AS_ROOT_EVENT_MASK );
+}
+
+
 void move_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     /* gotta have a window */
 	if (event->client == NULL)
 		return;
 
+    if ( data->func_val[0] != INVALID_POSITION || data->func_val[1] != INVALID_POSITION)
+    {
+//        ASRectangle wmrect ;
+//        get_window_wm_geom( event->client, &wmrect );
+//        wmrect.x = APPLY_VALUE_UNIT(event->scr->MyDisplayWidth,data->func_val[0],data->unit_val[0]);
+//        wmrect.y = APPLY_VALUE_UNIT(event->scr->MyDisplayHeight,data->func_val[0],data->unit_val[0]);
+//        configure_window_wm( event->client, &wmrect);
+    }else
+    {
+        ASMoveResizeData *data;
+//        XSelectInput( dpy, Scr.Root, AS_ROOT_EVENT_MASK|PointerMotionMask );
+LOCAL_DEBUG_OUT( "event mask set, event_time = %ld, last_timestamp = %ld", event->event_time, Scr.last_Timestamp);
+        release_pressure();
+        data = move_widget_interactively(   Scr.RootCanvas,
+                                            event->client->frame_canvas,
+                                            event,
+                                            apply_aswindow_move,
+                                            complete_aswindow_move );
+LOCAL_DEBUG_OUT( "data = %p", data );
+        if( data )
+        {
+//            data->below_sibling = get_lowest_panframe(desktop);
+//            data->subwindow_func = on_deskelem_move_subwindow ;
+//            data->grid = make_desktop_grid( desktop );
+            Scr.moveresize_in_progress = data ;
+        }else
+            XSelectInput( dpy, Scr.Root, AS_ROOT_EVENT_MASK );
+    }
 #if 0
     anchor_window_maximized(event->client);
 
-    if ( data->func_val[0] != INVALID_POSITION || data->func_val[1] != INVALID_POSITION)
-    {
-        ASRectangle wmrect ;
-        get_window_wm_geom( event->client, &wmrect );
-        wmrect.x = APPLY_VALUE_UNIT(event->scr->MyDisplayWidth,data->func_val[0],data->unit_val[0]);
-        wmrect.y = APPLY_VALUE_UNIT(event->scr->MyDisplayHeight,data->func_val[0],data->unit_val[0]);
-        configure_window_wm( event->client, &wmrect);
-    }else if (GrabEm (event->scr, event->scr->CurrentFeel->cursors[MOVE]))
+if (GrabEm (event->scr, event->scr->CurrentFeel->cursors[MOVE]))
     {
         int FinalX = INVALID_POSITION, FinalY = INVALID_POSITION;
         InstallRootColormap (event->scr);

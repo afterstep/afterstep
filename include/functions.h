@@ -121,6 +121,9 @@ typedef struct FunctionData
     long unit_val[MAX_FUNC_ARGS];
     char unit[MAX_FUNC_ARGS] ;
 #define APPLY_VALUE_UNIT(size,value,unit) ((((unit)>0)?(value)*(unit):(value)*(size))/100)
+
+#define DEFAULT_MAXIMIZE    100
+
     char* name ;
     char* text ;
 #define COMPLEX_FUNCTION_NAME(pd)  (((pd)->name)?(pd)->name:(pd)->text)

@@ -30,8 +30,11 @@
 #include "../../libAfterImage/afterimage.h"
 #include "../../include/afterstep.h"
 #include "../../include/event.h"
+#include "../../include/mystyle.h"
 #include "../../include/screen.h"
+#ifdef NO_ASRENDER
 #include "../../include/decor.h"
+#endif
 #include "moveresize.h"
 
 #define AllButtonMask    (Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)
@@ -68,6 +71,15 @@ Bool start_widget_moveresize( ASMoveResizeData * data, moveresize_event_func han
 	return True;
 }
 
+Bool
+check_moveresize_event( ASEvent *event )
+{
+    if( _as_curr_moveresize_data )
+		if( _as_curr_moveresize_handler( _as_curr_moveresize_data, event ) == ASE_Consumed )
+            return True;
+    return False;
+}
+
 Bool stop_widget_moveresize()
 {
 	if( _as_curr_moveresize_data == NULL )
@@ -97,17 +109,21 @@ Bool grab_widget_pointer( ASWidget *widget, ASEvent *trigger,
 	XTranslateCoordinates( dpy, AS_WIDGET_SCREEN(widget)->Root,
 		                   AS_WIDGET_WINDOW(widget), *x_return, *y_return,
 						   root_x_return, root_y_return, &wjunk );
-LOCAL_DEBUG_OUT("grabbing pointer at %dx%d, mask = 0x%X", *root_x_return, *root_y_return, *mask_return );
+LOCAL_DEBUG_OUT("grabbing pointer at %+d%+d, mask = 0x%X, window(%lX)", *root_x_return, *root_y_return, *mask_return, AS_WIDGET_WINDOW(widget) );
 
 /*	XUngrabPointer( dpy, trigger->event_time ); */
-	if( XGrabPointer( dpy, AS_WIDGET_WINDOW(widget),
+#ifdef AS_WIDGET_H_HEADER_INCLUDED
+    if( XGrabPointer( dpy, AS_WIDGET_WINDOW(widget),
 		              False,
 					  event_mask,
 					  GrabModeAsync, GrabModeAsync,
 					  None,
 					  None,
-					  trigger->event_time ) == 0 )
-	{
+                      trigger->event_time ) == 0 )
+#else
+    if( GrabEm(trigger->scr, trigger->scr->Feel.cursors[MOVE]))
+#endif
+    {
 SHOW_CHECKPOINT;
 		for( i = 0 ; i < 5 ; ++i )
 		{
@@ -138,8 +154,9 @@ SHOW_CHECKPOINT;
 				}
 			}
 		}
-	}
-	return True;
+    }else
+        return False;
+    return True;
 }
 
 
@@ -160,6 +177,7 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 	ScreenInfo *scr = AS_WIDGET_SCREEN(parent);
 	MyLook *look ;
 	int root_x, root_y;
+    int width, height ;
 
 	data->parent= parent;
 	data->mr 	= mr ;
@@ -192,34 +210,56 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 
 	/* " %u x %u %+d %+d " */
 	data->geometry_string = safemalloc( 1+6+3+6+2+6+2+6+1+1 +30/*for the heck of it*/);
+#ifndef NO_ASRENDER
+    width = look->resize_move_geometry.width ;
+    height = look->resize_move_geometry.height ;
+#else
+    data->geom_bar = create_astbar();
+    set_astbar_style(data->geom_bar, BAR_STATE_UNFOCUSED, look->MSWindow[BACK_FOCUSED]->name );
+
+    set_astbar_label( data->geom_bar, " 88888 x 88888 +88888 +88888 " );
+    width = calculate_astbar_width( data->geom_bar );
+    height = calculate_astbar_height( data->geom_bar );
+    if( width < look->resize_move_geometry.width )
+        width = look->resize_move_geometry.width;
+    if( height < look->resize_move_geometry.height )
+        height = look->resize_move_geometry.height ;
+#endif
+    data->geometry_window_width = width ;
+    data->geometry_window_height = height ;
 
 	if( get_flags( look->resize_move_geometry.flags, XValue ) )
 	{
 		x = look->resize_move_geometry.x ;
 		if( get_flags( look->resize_move_geometry.flags, XNegative) )
-			x += scr->MyDisplayWidth - look->resize_move_geometry.width ;
+            x += scr->MyDisplayWidth - width ;
 	}
 	if( get_flags( look->resize_move_geometry.flags, YValue ) )
 	{
 		y = look->resize_move_geometry.y ;
 		if( get_flags( look->resize_move_geometry.flags, YNegative) )
-			y += scr->MyDisplayHeight - look->resize_move_geometry.height ;
+            y += scr->MyDisplayHeight - height ;
 	}
 
 	attr.override_redirect = True ;
 	attr.save_under = True ;
-	data->geometry_display = create_screen_window( AS_WIDGET_SCREEN(parent), None,
-			  		  			x, y,
-					  			look->resize_move_geometry.width,
-					  			look->resize_move_geometry.height,
+    data->geometry_display = create_screen_window( AS_WIDGET_SCREEN(parent), None,
+                                x, y, width, height,
 					  			1, InputOutput,
 					  			CWOverrideRedirect|CWSaveUnder, &attr );
-	XMapRaised( dpy, data->geometry_display );
 #ifndef NO_ASRENDER
-	RendAddWindow( scr, data->geometry_display, REND_Visible, REND_Visible );
+    XMapRaised( dpy, data->geometry_display );
+    RendAddWindow( scr, data->geometry_display, REND_Visible, REND_Visible );
 	RendSetWindowStyles( scr, data->geometry_display, look->MSWindow[BACK_FOCUSED], look->MSWindow[BACK_FOCUSED]);
 	RendAddLabel( scr, data->geometry_display, 1, REND_Visible, 0, NULL );
 	RendMaskWindowState( scr, data->geometry_display, 0, REND_Visible );
+#else
+    set_astbar_size( data->geom_bar, width, height );
+    data->geom_canvas = create_ascanvas(data->geometry_display);
+    render_astbar( data->geom_bar, data->geom_canvas);
+    update_canvas_display( data->geom_canvas );
+    XMapRaised( dpy, data->geometry_display );
+    data->below_sibling = data->geometry_display ;
 #endif
 
 	if( data->pointer_func != NULL )
@@ -233,12 +273,18 @@ update_geometry_display( ASMoveResizeData *data )
 		     data->curr.width, data->curr.height, data->curr.x, data->curr.y );
 #ifndef NO_ASRENDER
     RendChangeLabel( AS_WIDGET_SCREEN(data->parent), data->geometry_display, 1, data->geometry_string );
+#else
+    set_astbar_label( data->geom_bar, data->geometry_string );
+    render_astbar( data->geom_bar, data->geom_canvas);
+    update_canvas_display( data->geom_canvas );
+    XRaiseWindow( dpy, data->geometry_display );
+    ASSync(False);
 #endif
 	if( !get_flags( data->look->resize_move_geometry.flags, XValue|YValue ) )
 	{
 		int x, y ;
-		unsigned int width = data->look->resize_move_geometry.width ;
-		unsigned int height = data->look->resize_move_geometry.height ;
+        unsigned int width = data->geometry_window_width ;
+        unsigned int height = data->geometry_window_height ;
 		x = data->last_x + 10;
 		y = data->last_y + 10;
 		if( x + width > AS_WIDGET_SCREEN(data->parent)->MyDisplayWidth )
@@ -254,8 +300,18 @@ static void
 flush_move_resize_data( ASMoveResizeData *data )
 {
 
-	XUngrabPointer( dpy, CurrentTime );
-	if( data->geometry_string )
+#ifdef AS_WIDGET_H_HEADER_INCLUDED
+    XUngrabPointer( dpy, CurrentTime );
+#else
+    UngrabEm();
+#endif
+#ifdef NO_ASRENDER
+    if( data->geom_bar )
+        destroy_astbar( &(data->geom_bar ) );
+    if( data->geom_canvas )
+        destroy_ascanvas( &(data->geom_canvas ) );
+#endif
+    if( data->geometry_string )
 		free( data->geometry_string );
 	if( data->geometry_display )
 		XDestroyWindow( dpy, data->geometry_display );

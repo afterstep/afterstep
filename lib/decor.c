@@ -856,6 +856,24 @@ move_astbar (ASTBarData * tbar, ASCanvas * pc, int win_x, int win_y)
 		changed = changed || (win_x != tbar->win_x || win_y != tbar->win_y);
 		tbar->win_x = win_x;
 		tbar->win_y = win_y;
+LOCAL_DEBUG_OUT( "tbar(%p)->root_pos(%+d%+d)->win_pos(%+d%+d)", tbar, root_x, root_y, win_x, win_y );
+	}
+	return changed;
+}
+
+Bool
+update_astbar_root_pos( ASTBarData *tbar, ASCanvas *pc )
+{
+    Bool          changed = False;
+
+	if (tbar && pc)
+	{
+        int           root_x = pc->root_x + tbar->win_x, root_y = pc->root_y + tbar->win_y;
+
+		changed = (root_x != tbar->root_x || root_y != tbar->root_y);
+		tbar->root_x = root_x;
+		tbar->root_y = root_y;
+LOCAL_DEBUG_OUT( "tbar(%p)->root_pos(%+d%+d)", tbar, root_x, root_y );
 	}
 	return changed;
 }
