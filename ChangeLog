@@ -1,3 +1,7 @@
+1.8.4 patch 4 (sasha)
+ o Added -fPIC to the compilation flags when compiling with GCC so to allow 
+   for compilation on IA64 architecture( as sugested on AS MailingList).
+ 
 1.8.4 patch 3 (sasha)
  o Removed lots of memory allocation code from lib/safemalloc.c. It was not 
    used anyways, but was causing problems on some older compilers.
