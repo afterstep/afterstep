@@ -504,8 +504,8 @@ typedef struct ASGradient
  * compression.
  * SOURCE
  */
-#define COMPRESSION_NONE       0
-#define COMPRESSION_FULL	   100
+#define ASIM_COMPRESSION_NONE       0
+#define ASIM_COMPRESSION_FULL	   100
 /********/
 
 /****f* libAfterImage/asimage/asimage_init()
