@@ -298,10 +298,12 @@ ASHashTable *DocBookVocabulary = NULL ;
 
 ASHashTable *ProcessedSyntaxes = NULL ;
 ASHashTable *Glossary = NULL ;
+ASHashTable *Index = NULL ;
 
 void check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module );
 void gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax, ASDocType doc_type );
 void gen_glossary( const char *dest_dir, ASDocType doc_type );
+void gen_index( const char *dest_dir, ASDocType doc_type );
 
 
 
@@ -370,6 +372,7 @@ main (int argc, char **argv)
 #endif
 	ProcessedSyntaxes = create_ashash( 7, pointer_hash_value, NULL, NULL );
 	Glossary = create_ashash( 0, string_hash_value, string_compare, string_destroy );
+	Index = create_ashash( 0, string_hash_value, string_compare, string_destroy );
 	if( target_type < DocType_Source )
 	{	
 		DocBookVocabulary = create_ashash( 7, casestring_hash_value, casestring_compare, string_destroy_without_data );
@@ -392,6 +395,7 @@ main (int argc, char **argv)
 	{
 		gen_syntax_doc( source_dir, destination_dir, NULL, target_type );
 		gen_glossary( destination_dir, target_type );
+		gen_index( destination_dir, target_type );
 	}else
 		check_syntax_source( source_dir, NULL, True );
 
@@ -757,6 +761,25 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 	state->dest_file = dest_file ;
 	state->doc_type = doc_type ; 
 
+	{
+		const char *name = syntax?syntax->display_name:AfterStepName ; 
+		int index_name_len = strlen(name)+1;
+		char *index_name ;
+		if( doc_postfix && doc_postfix[0] != '\0' )
+			index_name_len += 1+strlen(doc_postfix);
+		index_name = safemalloc( index_name_len );
+		if( doc_postfix && doc_postfix[0] != '\0' )
+		{
+			int i ;
+			sprintf( index_name, "%s%s", name, doc_postfix );
+			for( i = 0 ; index_name[i] ; ++i ) 
+				if( index_name[i] == '_' )
+					index_name[i] = ' ';
+		}else
+			strcpy( index_name, name );
+
+   		add_hash_item( Index, AS_HASHABLE(index_name), (void*)mystrdup(dest_file) );   
+	}
 	/* HEADER ***********************************************************************/
 	write_syntax_doc_header( syntax, state );
 	free( dest_path );	
@@ -978,33 +1001,63 @@ gen_glossary( const char *dest_dir, ASDocType doc_type )
 	{	
 		ASHashableValue *values = safecalloc( Glossary->items_num, sizeof(ASHashableValue));
 		ASHashData *data = safecalloc( Glossary->items_num, sizeof(ASHashData));
-		int i, items_num, third ;
+		int items_num, col_length, i ;
+		int col_end[3], col_curr[3], col_count = 3 ;
+		Bool has_items = True, col_skipped[3] = {True, True, True};
+		char c = '\0' ; 
 		if( !start_doc_file( dest_dir, "Glossary", NULL, NULL, doc_type, &state ) )	
 			return ;
-		fprintf( state.dest_fp, "<h3>Glossary :</h3>\n" 
-								 "<table width=100%%>\n" );
-		
 		items_num = sort_hash_items (Glossary, values, (void**)data, 0);
-		third = items_num/3 ;
-		for( i = 0 ; i < third ; ++i )
+		
+		fprintf( state.dest_fp, "<h2>Glossary :</h2>\n<p>\n" );
+
+		for( i = 0 ; i < items_num ; ++i ) 
 		{
-			fprintf( state.dest_fp, "<TR><TD width=33%%>" );
+			if( ((char*)values[i])[0] != c ) 
+			{
+				c = ((char*)values[i])[0] ;
+				fprintf( state.dest_fp, "<A href=\"#glossary_%c\">%c</A> ", c, c );
+			}	 
+		}	 
 			
-			if( state.doc_type == DocType_HTML	)
-				fprintf( state.dest_fp, "<A href=\"%s\">%s</A>", data[i].cptr, (char*)values[i] );
-			else if( doc_type == DocType_PHP ) 
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc",(char*)values[i], data[i].cptr, "" );
-			fprintf( state.dest_fp, "</TD><TD width=33%%>" );
-			if( state.doc_type == DocType_HTML	)
-				fprintf( state.dest_fp, "<A href=\"%s\">%s</A>", data[third+i].cptr, (char*)values[third+i] );
-    		else if( doc_type == DocType_PHP ) 	
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc",(char*)values[third+i], data[third+i].cptr, "" );
-			fprintf( state.dest_fp, "</TD><TD>" );
-			if( state.doc_type == DocType_HTML	)
-				fprintf( state.dest_fp, "<A href=\"%s\">%s</A>", data[third*2+i].cptr, (char*)values[third*2+i] );
-    		else if( doc_type == DocType_PHP ) 	
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc",(char*)values[third*2+i], data[third*2+i].cptr, "" );
-			fprintf( state.dest_fp, "</TD></TR>\n" );
+		fprintf( state.dest_fp, "<hr>\n<p><table width=100%% cellpadding=0 cellspacing=0>\n" );
+		
+		if( state.doc_type == DocType_PHP	)
+			col_count = 2 ;
+		col_length = (items_num+col_count-1)/col_count ;
+
+		col_curr[0] = 0 ; 
+		col_end[0] = col_curr[1] = col_length ;
+		col_end[1] = col_curr[2] = col_length*2 ;
+		col_end[2] = items_num ;
+
+		while( has_items )
+		{
+			int col ;
+			fprintf( state.dest_fp, "<TR>" );
+			has_items = False ; 
+			for( col = 0 ; col < col_count ; ++col )
+			{		
+				int item = col_curr[col] ; 
+				fprintf( state.dest_fp, "<TD width=33%% valign=top>" );
+				if( item < col_end[col] && item < items_num ) 		   
+				{	
+					has_items = True ;
+					col_skipped[col] = !col_skipped[col] && item > 0 && ((char*)values[item])[0] != ((char*)values[item-1])[0] ;
+					if( !col_skipped[col] )
+					{	  
+						if( state.doc_type == DocType_HTML	)
+							fprintf( state.dest_fp, "<A href=\"%s\">%s</A>", data[item].cptr, (char*)values[item] );
+						else if( doc_type == DocType_PHP ) 
+							fprintf( state.dest_fp, PHPXrefFormat, "visualdoc",(char*)values[item], data[item].cptr, "" );
+						++(col_curr[col]) ; 
+						col_skipped[col] = False ;
+					}else
+						fprintf( state.dest_fp, "<A name=\"glossary_%c\"> </A>", ((char*)values[item])[0] );
+				}
+				fprintf( state.dest_fp, " </TD>" );
+			}
+			fprintf( state.dest_fp, "</TR>\n" );
 		}	 
 		fprintf( state.dest_fp, "</table>\n" );
 
@@ -1014,6 +1067,65 @@ gen_glossary( const char *dest_dir, ASDocType doc_type )
 	}
 }
 
+void 
+gen_index( const char *dest_dir, ASDocType doc_type )
+{
+	ASXMLInterpreterState state;
+	if( (doc_type == DocType_HTML	|| doc_type == DocType_PHP ) && Index->items_num > 0 )
+	{	
+		ASHashableValue *values = safecalloc( Index->items_num, sizeof(ASHashableValue));
+		ASHashData *data = safecalloc( Index->items_num, sizeof(ASHashData));
+		int items_num, i ;
+		Bool sublist = False ; 
+		if( !start_doc_file( dest_dir, "index", NULL, NULL, doc_type, &state ) )	
+			return ;
+		items_num = sort_hash_items (Index, values, (void**)data, 0);
+		
+		fprintf( state.dest_fp, "<h2>File index :</h2>\n<p>\n" );
+		fprintf( state.dest_fp, "<hr>\n<p><UL>\n" );
+
+		for( i = 0 ; i < items_num ; ++i ) 
+		{
+			char *item_text = (char*)values[i];
+			if( item_text[0] == '\t' ) 
+			{
+				if( !sublist ) 
+				{
+					fprintf( state.dest_fp, "\n<UL>\n<LI>" );
+	  				sublist = True ;
+				}
+				++item_text ;
+			}else if( item_text[0] != '\t' && sublist ) 
+			{	
+				sublist = False ;
+				fprintf( state.dest_fp, "\n</UL>\n<LI>" );
+			}else
+				fprintf( state.dest_fp, "<LI>" );
+
+			if( state.doc_type == DocType_HTML	)
+				fprintf( state.dest_fp, "<A href=\"%s\">%s</A>", data[i].cptr, item_text );
+			else if( doc_type == DocType_PHP ) 
+			{
+				char *url = data[i].cptr ;
+				char *ptr = &(url[strlen(url)-4]) ;	  
+				if( *ptr == '.' ) 
+					*ptr = '\0';
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc",item_text, url, "" );
+				if( *ptr == '\0' ) 
+					*ptr = '.';
+			}
+			fprintf( state.dest_fp, "</LI>\n" );
+		}	 
+			
+		if( sublist ) 
+			fprintf( state.dest_fp, "</UL>\n" );
+		fprintf( state.dest_fp, "</UL>\n" );
+
+		free( data );
+		free( values );
+		end_doc_file( NULL, &state );	 	  
+	}
+}
 
 /*************************************************************************/
 /*************************************************************************/
@@ -1042,7 +1154,7 @@ write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
   					  		"<title>%s</title>\n"
 					  		"</head>\n"
 					  		"<body>\n"
-					  		"<h1>%s</h1>\n", display_name, display_name );
+					  		"<h1>%s</h1>\n<hr>\n", display_name, display_name );
 			break;
  		case DocType_PHP :	
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Index","visualselect", "" );
@@ -1106,8 +1218,9 @@ write_syntax_options_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
 			fprintf( state->dest_fp, "\n");
 			break;
 		case DocType_HTML :
-			fprintf( state->dest_fp, "<UL>\n");
- 		case DocType_PHP :	                   /* fallback intentional */
+			fprintf( state->dest_fp, "\n</DL></P></LI>\n</UL>\n");
+			break;
+ 		case DocType_PHP :	                   
 			fprintf( state->dest_fp, "\n</DL></P></LI>\n");   
 		    break ;
 		case DocType_XML :
@@ -1133,7 +1246,7 @@ write_syntax_doc_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
 		case DocType_Plain :
 			break;
 		case DocType_HTML :
-			fprintf( state->dest_fp, "<p><FONT face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"-2\">AfterStep version %s</a></FONT>\n",
+			fprintf( state->dest_fp, "<hr>\n<p><FONT face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"-2\">AfterStep version %s</a></FONT>\n",
 					 VERSION ); 
 			fprintf( state->dest_fp, "</body>\n</html>\n" );			
 			break;
@@ -1367,12 +1480,14 @@ start_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state 
 			{
 	 			char *target = NULL ;
 				char *term = NULL ;
-				if( state->doc_type == DocType_HTML )
-				{	
-					target = safemalloc( strlen( state->dest_file)+5+1+strlen(state->curr_url_anchor)+1);
-					sprintf( target, "%s#%s", state->dest_file, state->curr_url_anchor );
-				}else if( state->doc_type == DocType_PHP )
-					target = mystrdup( state->dest_file );
+				char *ptr = &(state->dest_file[strlen(state->dest_file)-4]);
+				if( state->doc_type == DocType_PHP && *ptr == '.')
+					*ptr = '\0' ;
+				target = safemalloc( strlen( state->dest_file)+5+1+strlen(state->curr_url_anchor)+1);
+				sprintf( target, "%s#%s", state->dest_file, state->curr_url_anchor );
+				if( state->doc_type == DocType_PHP && *ptr == '\0' )
+					*ptr = '.' ;
+				
 				term = safemalloc( strlen( term_text)+ 1 + 1 +strlen( state->doc_name ) + 1 +1 );
 				sprintf( term, "%s (%s)", term_text, state->doc_name );
 			   	add_hash_item( Glossary, AS_HASHABLE(term), (void*)target );   
