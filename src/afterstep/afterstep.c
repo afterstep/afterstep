@@ -148,7 +148,15 @@ main (int argc, char **argv)
 	}
 	XSetWindowBackground( dpy, Scr.Root, Scr.asv->black_pixel );
     cover_desktop();
-    show_progress( "AfterStep is starting up ..." );
+	if( get_flags( AfterStepState, ASS_Restarting ))
+	{	
+		show_progress( "AfterStep v.%s is restarting ...", VERSION );
+		display_progress( True, "AfterStep v.%s is restarting ...", VERSION );
+	}else
+	{	
+    	show_progress( "AfterStep v.%s is starting up ...", VERSION );
+		display_progress( True, "AfterStep v.%s is starting up ...", VERSION );
+	}
 
 SHOW_CHECKPOINT;
 	InitSession();
@@ -170,6 +178,7 @@ SHOW_CHECKPOINT;
 	/*
      *  Lets init each and every screen separately :
      */
+	
     for (i = 0; i < Scr.NumberOfScreens; i++)
 	{
         show_progress( "Initializing screen %d ...", i );
@@ -610,6 +619,7 @@ void
 Done (Bool restart, char *command )
 {
     int restart_screen = get_flags( AfterStepState, ASS_SingleScreen)?Scr.screen:-1;
+	Bool restart_self = False ; 
     char *local_command = NULL ;
 	{
 		static int already_dead = False ; 
@@ -622,8 +632,21 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 
     /* lets duplicate the string so we don't accidental;y delete it while closing self down */
     if( restart )
-        local_command = mystrdup(command?command:MyName);
+	{
+		if( command ) 
+		{
+			int my_name_len = strlen(MyName);
 
+			if( strncmp(command, MyName, my_name_len )==0 )
+				restart_self = (command[my_name_len] == ' '|| command[my_name_len] == '\0');
+			local_command = mystrdup(command);
+		}else 
+		{		  
+        	local_command = mystrdup(MyName);
+			restart_self = True ;
+	    }
+	}
+	LOCAL_DEBUG_OUT( "local_command = \"%s\", restart_self = %s", local_command, restart_self?"Yes":"No"); 
     set_flags( AfterStepState, ASS_Shutdown );
     if( restart )
         set_flags( AfterStepState, ASS_Restarting );
@@ -657,8 +680,9 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 
 	if (restart)
 	{
+		set_flags( MyArgs.flags, ASS_Restarting );
         spawn_child( local_command, -1, restart_screen,
-                     None, C_NO_CONTEXT, False, (command == NULL), NULL );
+                     None, C_NO_CONTEXT, False, restart_self, NULL );
     } else
 	{
 	    XCloseDisplay (dpy);

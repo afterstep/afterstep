@@ -127,8 +127,7 @@ install.lib:	@LIBPROG@ @LIBINSTALL@ install.inc
 
 install.static:
 		$(INSTALL_SCRIPT) afterimage-libs afterimage-config $(AFTER_BIN_DIR)
-		@( \
-		if [ -d $(LIBDIR) ] && [ -w $(LIBDIR) ]; then \
+		@(if [ -d $(LIBDIR) ] && [ -w $(LIBDIR) ]; then \
 		    echo "$(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR)"; \
 		    $(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR); \
 		    if [ `uname` = "Linux" ]; then \
@@ -156,8 +155,7 @@ install.dyn:
 		-@/bin/rm -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED)
 		ln -sf $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR)
 		ln -sf $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED)
-		@( \
-		 if test `uname` = "Linux"; then \
+		@(if test `uname` = "Linux"; then \
 		   if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
 		     echo "" > /dev/null; \
 		   elif grep -q $(LIBDIR) /etc/ld.so.conf > /dev/null 2>&1; then \
@@ -172,8 +170,7 @@ install.dyn:
 		)
 
 install.inc:
-		@( \
-		 if [ -d $(AFTER_INC_DIR) ]; then \
+		@(if [ -d $(AFTER_INC_DIR) ]; then \
 		    echo "$(RM) $(AFTER_INC_DIR)/*"; \
 		    $(RM) $(AFTER_INC_DIR)/*; \
 		 else \

@@ -130,6 +130,10 @@ F_FUNCTIONS_NUM
    function definition */
 #define	USES_NUMVALS 	(1<<5)
 
+#define FUNC_ERR_START		-100
+#define FUNC_ERR_NO_NAME	-100 
+#define FUNC_ERR_NO_TEXT	-101
+
 
 #define IsWindowFunc(f)  ((f)>F_WINDOW_FUNC_START&&(f)<F_MODULE_FUNC_START)
 #define IsModuleFunc(f)  ((f)>F_MODULE_FUNC_START&&(f)<F_INTERNAL_FUNC_START)

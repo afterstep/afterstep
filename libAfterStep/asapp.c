@@ -489,8 +489,8 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 		PrepareSyntax (&FuncSyntax);
     set_output_threshold( MyArgs.verbosity_level );
     if(MyArgs.log_file)
-		if( freopen( MyArgs.log_file, "w", stderr ) == NULL )
-		    show_system_error( "failed to redirect output into file \"%s\"", MyArgs.log_file );
+		if( freopen( MyArgs.log_file, get_flags( MyArgs.flags, ASS_Restarting)?"a":"w", stderr ) == NULL )
+	    	show_system_error( "failed to redirect output into file \"%s\"", MyArgs.log_file );
 
 	if( MyArgs.locale && strlen(MyArgs.locale) > 0)
 	{
@@ -896,10 +896,20 @@ LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) 
             while( --i >= 0 ) if( !isspace(cmdl[i]) ) break;
             do_fork = ( i < 0 || cmdl[i] != '&' );
         }
-LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) );
-     
 		strcpy (ptr, do_fork?" &\n":"\n");
 
+LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) );
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+		{
+			FILE *fff = fopen ("/tmp/afterstep.exec.log", "a");
+			if( fff ) 
+			{
+				fprintf( fff, "%s:%ld: [%s]", MyName, time(NULL), cmdl );
+				fclose(fff);
+			}
+		}	
+#endif			   
+     
         LOCAL_DEBUG_OUT("execl(\"%s\")", cmdl );
         /* fprintf( stderr, "len=%d: execl(\"%s\")", len, cmdl ); */
 

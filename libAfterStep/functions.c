@@ -219,19 +219,19 @@ parse_func (const char *text, FunctionData * data, int quiet)
 	if ((fterm->flags & NEED_NAME) && data->name == NULL)
 	{
         show_error ("function specification requires \"name\" in [%s].", text);
-		return -4;
+		return FUNC_ERR_NO_NAME;
 	}
 	if (data->text == NULL)
 	{
 		if ((fterm->flags & NEED_WINDOW) || ((fterm->flags & NEED_WINIFNAME) && data->name != NULL))
 		{
             show_error ("function specification requires window name in [%s].", text);
-			return -5;
+			return FUNC_ERR_NO_TEXT;
 		}
 		if (fterm->flags & NEED_CMD)
 		{
             show_error ("function specification requires shell command or full file name in [%s].", text);
-			return -6;
+			return FUNC_ERR_NO_TEXT;
 		}
 	}
 /*

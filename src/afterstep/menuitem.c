@@ -413,10 +413,12 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 				/* try to load a command */
 				while( fgets (buf, MAXLINELENGTH, fp2) != NULL)
 				{
+					int parse_err ; 
 					++lines_read;
 					if( fdata == NULL ) 
 						fdata = create_named_function(F_EXEC, NULL);
-					if (parse_func (buf, fdata, True) < 0) /* data is actuall shell command line */
+					parse_err = parse_func (buf, fdata, True);
+					if ( parse_err < 0 && parse_err > FUNC_ERR_START ) /* data is actuall shell command line */
 						fdata->text = stripcpy (buf);
 					if( fdata->name == NULL )
 		                fdata->name = mystrdup( t->stripped_name );
