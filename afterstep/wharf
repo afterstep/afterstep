@@ -62,6 +62,7 @@
 #
 *Wharf GUIFileManager normal/Filecabinet2 Exec "Krusader" krusader &
 *Wharf GUIFileManager normal/Filecabinet2 Exec "Gentoo File Manager" gentoo &
+*Wharf GUIFileManager normal/Filecabinet2 Exec "Rox" rox &
 *Wharf GUIFileManager normal/Filecabinet2 Exec "Nautilus" nautilus --no-desktop &
 
 #
@@ -129,7 +130,7 @@
 #
 # First available Audio player :
 #
-*Wharf AudioPlayer - Swallow "wmxmms" wmxmms -single &
+*Wharf AudioPlayer - Swallow "wmxmms" wmxmms --single &
 *Wharf AudioPlayer logos/Xmms Exec "X Multi Media System" xmms &
 *Wharf AudioPlayer - Swallow "ascd" ascd &
 #
