@@ -24,6 +24,7 @@
 #define USE_64BIT_FPU
 
 #include <malloc.h>
+#include <string.h>
 #ifdef DO_CLOCKING
 #include <sys/time.h>
 #endif
@@ -1132,7 +1133,7 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	ptr++;
 
 	if (get_flags (verbosity, VRB_LINE_SUMMARY))
-		fprintf (stderr, "Row %d, Component %d, Memory Used %d\n", y, color, ptr - color_ptr[y]);
+		fprintf (stderr, "Row %d, Component %d, Memory Used %ld\n", y, color, (long)(ptr - color_ptr[y]));
 	return ptr - color_ptr[y];
 }
 

@@ -24,6 +24,7 @@
 /*#define DO_CLOCKING*/
 
 #include <stdlib.h>
+#include <string.h>
 #include <malloc.h>
 #include <time.h>
 
@@ -165,8 +166,8 @@ print_xcf_properties( char* prompt, XcfProperty *prop )
 	register int i = 0 ;
 	while( prop )
 	{
-		fprintf( stderr, "%s.properties[%d].id = %ld\n", prompt, i, prop->id );
-		fprintf( stderr, "%s.properties[%d].size = %ld\n", prompt, i, prop->len );
+		fprintf( stderr, "%s.properties[%d].id = %ld\n", prompt, i, (long)prop->id );
+		fprintf( stderr, "%s.properties[%d].size = %ld\n", prompt, i, (long)prop->len );
 		if( prop->len > 0 )
 		{
 			register int k ;
@@ -188,20 +189,20 @@ print_xcf_hierarchy( char* prompt, XcfHierarchy *h )
 		XcfLevel *level = h->levels ;
 		int i = 0 ;
 
-		fprintf( stderr, "%s.hierarchy.width = %ld\n", prompt, h->width );
-		fprintf( stderr, "%s.hierarchy.height = %ld\n", prompt, h->height );
-		fprintf( stderr, "%s.hierarchy.bpp = %ld\n", prompt, h->bpp );
+		fprintf( stderr, "%s.hierarchy.width = %ld\n", prompt, (long)h->width );
+		fprintf( stderr, "%s.hierarchy.height = %ld\n", prompt,(long) h->height );
+		fprintf( stderr, "%s.hierarchy.bpp = %ld\n", prompt, (long)h->bpp );
 		while( level )
 		{
 			XcfTile *tile = level->tiles ;
 			int k = 0 ;
-			fprintf( stderr, "%s.hierarchy.level[%d].offset = %ld\n", prompt, i, level->offset );
-			fprintf( stderr, "%s.hierarchy.level[%d].width = %ld\n", prompt, i, level->width );
-			fprintf( stderr, "%s.hierarchy.level[%d].height = %ld\n", prompt, i, level->height );
+			fprintf( stderr, "%s.hierarchy.level[%d].offset = %ld\n", prompt, i, (long)level->offset );
+			fprintf( stderr, "%s.hierarchy.level[%d].width = %ld\n", prompt, i, (long)level->width );
+			fprintf( stderr, "%s.hierarchy.level[%d].height = %ld\n", prompt, i, (long)level->height );
 			while ( tile )
 			{
-				fprintf( stderr, "%s.hierarchy.level[%d].tile[%d].offset = %ld\n", prompt, i, k, tile->offset );
-				fprintf( stderr, "%s.hierarchy.level[%d].tile[%d].estimated_size = %ld\n", prompt, i, k, tile->estimated_size );
+				fprintf( stderr, "%s.hierarchy.level[%d].tile[%d].offset = %ld\n", prompt, i, k, (long)tile->offset );
+				fprintf( stderr, "%s.hierarchy.level[%d].tile[%d].estimated_size = %ld\n", prompt, i, k, (long)tile->estimated_size );
 				tile = tile->next ;
 				++k ;
 			}
@@ -224,14 +225,14 @@ print_xcf_channels( char* prompt, XcfChannel *head, Bool mask )
 			sprintf( p, "%s.channel[%d]", prompt, i );
 
 		if( head->offset > 0 )
-			fprintf( stderr, "%s.offset = %ld\n", p, head->offset );
-		fprintf( stderr, "%s.width = %ld\n" , p, head->width );
-		fprintf( stderr, "%s.height = %ld\n", p, head->height );
+			fprintf( stderr, "%s.offset = %ld\n", p, (long)head->offset );
+		fprintf( stderr, "%s.width = %ld\n" , p,(long) head->width );
+		fprintf( stderr, "%s.height = %ld\n", p, (long)head->height );
 		print_xcf_properties( p, head->properties );
-		fprintf( stderr, "%s.opacity = %ld\n", p, head->opacity );
+		fprintf( stderr, "%s.opacity = %ld\n", p, (long)head->opacity );
 		fprintf( stderr, "%s.visible = %d\n" , p, head->visible );
-		fprintf( stderr, "%s.color = #%lX\n" , p, head->color );
-		fprintf( stderr, "%s.hierarchy_offset = %ld\n", p, head->hierarchy_offset );
+		fprintf( stderr, "%s.color = #%lX\n" , p, (long)head->color );
+		fprintf( stderr, "%s.hierarchy_offset = %ld\n", p, (long)head->hierarchy_offset );
 		print_xcf_hierarchy( p, head->hierarchy );
 
 		head = head->next ;
@@ -246,22 +247,22 @@ print_xcf_layers( char* prompt, XcfLayer *head )
 	char p[256] ;
 	while( head )
 	{
-		fprintf( stderr, "%s.layer[%d].offset = %ld\n", prompt, i, head->offset );
-		fprintf( stderr, "%s.layer[%d].width = %ld\n", prompt, i, head->width );
-		fprintf( stderr, "%s.layer[%d].height = %ld\n", prompt, i, head->height );
-		fprintf( stderr, "%s.layer[%d].type = %ld\n", prompt, i, head->type );
+		fprintf( stderr, "%s.layer[%d].offset = %ld\n", prompt, i, (long)head->offset );
+		fprintf( stderr, "%s.layer[%d].width = %ld\n", prompt, i, (long)head->width );
+		fprintf( stderr, "%s.layer[%d].height = %ld\n", prompt, i, (long)head->height );
+		fprintf( stderr, "%s.layer[%d].type = %ld\n", prompt, i, (long)head->type );
 		sprintf( p, "%s.layer[%d]", prompt, i );
 		print_xcf_properties( p, head->properties );
-		fprintf( stderr, "%s.layer[%d].opacity = %ld\n", prompt, i, head->opacity );
+		fprintf( stderr, "%s.layer[%d].opacity = %ld\n", prompt, i, (long)head->opacity );
 		fprintf( stderr, "%s.layer[%d].visible = %d\n", prompt, i, head->visible );
 		fprintf( stderr, "%s.layer[%d].preserve_transparency = %d\n", prompt, i,  head->preserve_transparency );
-		fprintf( stderr, "%s.layer[%d].mode = %ld\n"    , prompt, i, head->mode 				   );
-		fprintf( stderr, "%s.layer[%d].offset_x = %ld\n", prompt, i, head->offset_x 			   );
-		fprintf( stderr, "%s.layer[%d].offset_y = %ld\n", prompt, i, head->offset_y 			   );
+		fprintf( stderr, "%s.layer[%d].mode = %ld\n"    , prompt, i, (long)head->mode 				   );
+		fprintf( stderr, "%s.layer[%d].offset_x = %ld\n", prompt, i, (long)head->offset_x 			   );
+		fprintf( stderr, "%s.layer[%d].offset_y = %ld\n", prompt, i, (long)head->offset_y 			   );
 
-		fprintf( stderr, "%s.layer[%d].hierarchy_offset = %ld\n", prompt, i, head->hierarchy_offset );
+		fprintf( stderr, "%s.layer[%d].hierarchy_offset = %ld\n", prompt, i, (long)head->hierarchy_offset );
 		print_xcf_hierarchy( p, head->hierarchy );
-		fprintf( stderr, "%s.layer[%d].mask_offset = %ld\n", prompt, i, head->mask_offset );
+		fprintf( stderr, "%s.layer[%d].mask_offset = %ld\n", prompt, i, (long)head->mask_offset );
 		print_xcf_channels( p, head->mask, True );
 
 		head = head->next ;
@@ -276,8 +277,8 @@ print_xcf_image( XcfImage *xcf_im )
 	{
 		fprintf( stderr, "XcfImage.version = %d\n", xcf_im->version );
 		fprintf( stderr, "XcfImage.width = %ld\nXcfImage.height = %ld\nXcfImage.type = %ld\n",
-		   				  xcf_im->width, xcf_im->height, xcf_im->type );
-		fprintf( stderr, "XcfImage.num_cols = %ld\n", xcf_im->num_cols );
+		   				  (long)xcf_im->width, (long)xcf_im->height, (long)xcf_im->type );
+		fprintf( stderr, "XcfImage.num_cols = %ld\n", (long)xcf_im->num_cols );
 		fprintf( stderr, "XcfImage.compression = %d\n", xcf_im->compression );
 		print_xcf_properties( "XcfImage", xcf_im->properties );
 		print_xcf_layers( "XcfImage", xcf_im->layers );

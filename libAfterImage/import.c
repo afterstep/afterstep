@@ -1052,7 +1052,7 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 	fprintf( stderr, "bmp.info.biCompression = %ld\n", bmp_info->biCompression );
 	fprintf( stderr, "bmp.info.biSizeImage = %ld\n", bmp_info->biSizeImage );
 #endif
-	if( (long)(bmp_info->biHeight) < 0 )
+	if( ((int)(bmp_info->biHeight)) < 0 )
 		direction = 1 ;
 	if( height == 0 )
 		height  = direction == 1 ? -((long)(bmp_info->biHeight)):bmp_info->biHeight ;

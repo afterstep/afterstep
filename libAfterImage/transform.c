@@ -409,7 +409,7 @@ print_component( register CARD32 *data, int nonsense, int len )
 {
 	register int i ;
 	for( i = 0 ; i < len ; ++i )
-		fprintf( stderr, " %8.8lX", data[i] );
+		fprintf( stderr, " %8.8lX", (long)data[i] );
 	fprintf( stderr, "\n");
 }
 
