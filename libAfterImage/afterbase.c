@@ -17,6 +17,8 @@
  *
  */
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
@@ -87,14 +89,16 @@ asim_put_file_home (const char *path_with_home)
 	static char  *home = NULL;				   /* the HOME environment variable */
 	static char   default_home[3] = "./";
 	static int    home_len = 0;
-	char         *str, *ptr;
+	char         *str = NULL, *ptr;
 	register int  i;
-
 	if (path_with_home == NULL)
 		return NULL;
 	/* home dir ? */
 	if (path_with_home[0] != '~' || path_with_home[1] != '/')
-		return mystrdup (path_with_home);
+	{
+		char *t = mystrdup (path_with_home);
+		return t;
+	}
 
 	if (home == NULL)
 	{
@@ -105,16 +109,28 @@ asim_put_file_home (const char *path_with_home)
 
 	for (i = 2; path_with_home[i]; i++);
 	str = safemalloc (home_len + i);
-
 	for (ptr = str + home_len-1; i > 0; i--)
 		ptr[i] = path_with_home[i];
 	for (i = 0; i < home_len; i++)
 		str[i] = home[i];
-
 	return str;
 }
 
-char   *asim_find_file (const char *file, const char *pathlist, int type)
+
+/****************************************************************************
+ *
+ * Find the specified icon file somewhere along the given path.
+ *
+ * There is a possible race condition here:  We check the file and later
+ * do something with it.  By then, the file might not be accessible.
+ * Oh well.
+ *
+ ****************************************************************************/
+/* supposedly pathlist should not include any environment variables
+   including things like ~/
+ */
+char         *
+asim_find_file (const char *file, const char *pathlist, int type)
 {
 	char 		  *path;
 	register int   len;
@@ -124,15 +140,18 @@ char   *asim_find_file (const char *file, const char *pathlist, int type)
 
 	if (file == NULL)
 		return NULL;
+
 	if (*file == '/' || *file == '~' || ((pathlist == NULL) || (*pathlist == '\0')))
 	{
 		path = put_file_home (file);
-		if (access (path, type) == 0)
+		if ( access (path, type) == 0 )
+		{
 			return path;
+		}
 		free (path);
 		return NULL;
 	}
-
+/*	return put_file_home(file); */
 	for (i = 0; file[i]; i++);
 	len = i ;
 	for (ptr = (char *)pathlist; *ptr; ptr += i)
@@ -144,31 +163,337 @@ char   *asim_find_file (const char *file, const char *pathlist, int type)
 			max_path = i;
 	}
 
-	path = safemalloc (max_path + 1 + len + 1);
+	path = safemalloc (max_path + 1 + len + 1 + 100);
+	strcpy( path+max_path+1, file );
+	path[max_path] = '/' ;
 
-	/* Search each element of the pathlist for the icon file */
-	while( pathlist[0] != 0 )
+	ptr = (char*)&(pathlist[0]) ;
+	while( ptr[0] != '\0' )
 	{
-		if (pathlist[0] == ':')
-			++pathlist;
-		ptr = (char*)pathlist ;
-		for (i = 0; ptr[i] && ptr[i] != ':'; i++)
-			path[i] = ptr[i];
-		pathlist += i;
-		if (i == 0)
-			continue;
-		path[i] = '/';
-		ptr = &(path[i+1]);
-		i = -1 ;
-		do
+		for( i = 0 ; ptr[i] == ':' ; ++i );
+		ptr += i ;
+		for( i = 0 ; ptr[i] != ':' && ptr[i] != '\0' ; ++i );
+		if( i > 0 )
 		{
-			++i;
-			ptr[i] = file[i];
-		}while( file[i] != '\0' );
-		if (access (path, type) == 0)
-			return path;
+			strncpy( path+max_path-i, ptr, i );
+			if (access(path, type) == 0)
+			{
+				char* res = mystrdup(path+max_path-i);
+				free( path );
+				return res;
+			}
+		}
+		ptr += i ;
 	}
-	/* Hmm, couldn't find the file.  Return NULL */
 	free (path);
 	return NULL;
 }
+
+/*******************************************************************/
+/* from ashash,c : */
+ASHashKey asim_default_hash_func (ASHashableValue value, ASHashKey hash_size)
+{
+	return value.long_val % hash_size;
+}
+
+long
+asim_default_compare_func (ASHashableValue value1, ASHashableValue value2)
+{
+	return ((long)value1.long_val - (long)value2.long_val);
+}
+
+long
+asim_desc_long_compare_func (ASHashableValue value1, ASHashableValue value2)
+{
+    return ((long)value2.long_val - (long)value1.long_val);
+}
+
+void
+asim_init_ashash (ASHashTable * hash, Bool freeresources)
+{
+LOCAL_DEBUG_CALLER_OUT( " has = %p, free ? %d", hash, freeresources );
+	if (hash)
+	{
+		if (freeresources)
+			if (hash->buckets)
+				free (hash->buckets);
+		memset (hash, 0x00, sizeof (ASHashTable));
+	}
+}
+
+ASHashTable  *
+asim_create_ashash (ASHashKey size,
+			   ASHashKey (*hash_func) (ASHashableValue, ASHashKey),
+			   long (*compare_func) (ASHashableValue, ASHashableValue),
+			   void (*item_destroy_func) (ASHashableValue, void *))
+{
+	ASHashTable  *hash;
+
+	if (size <= 0)
+		size = DEFAULT_HASH_SIZE;
+
+	hash = safemalloc (sizeof (ASHashTable));
+	init_ashash (hash, False);
+
+	hash->buckets = safemalloc (sizeof (ASHashBucket) * size);
+	memset (hash->buckets, 0x00, sizeof (ASHashBucket) * size);
+
+	hash->size = size;
+
+	if (hash_func)
+		hash->hash_func = hash_func;
+	else
+		hash->hash_func = asim_default_hash_func;
+
+	if (compare_func)
+		hash->compare_func = compare_func;
+	else
+		hash->compare_func = asim_default_compare_func;
+
+	hash->item_destroy_func = item_destroy_func;
+
+	return hash;
+}
+
+static void
+destroy_ashash_bucket (ASHashBucket * bucket, void (*item_destroy_func) (ASHashableValue, void *))
+{
+	register ASHashItem *item, *next;
+
+	for (item = *bucket; item != NULL; item = next)
+	{
+		next = item->next;
+		if (item_destroy_func)
+			item_destroy_func (item->value, item->data);
+		free (item);
+	}
+	*bucket = NULL;
+}
+
+void
+asim_destroy_ashash (ASHashTable ** hash)
+{
+LOCAL_DEBUG_CALLER_OUT( " hash = %p, *hash = %p", hash, *hash  );
+	if (*hash)
+	{
+		register int  i;
+
+		for (i = (*hash)->size - 1; i >= 0; i--)
+			if ((*hash)->buckets[i])
+				destroy_ashash_bucket (&((*hash)->buckets[i]), (*hash)->item_destroy_func);
+
+		asim_init_ashash (*hash, True);
+		free (*hash);
+		*hash = NULL;
+	}
+}
+
+static        ASHashResult
+add_item_to_bucket (ASHashBucket * bucket, ASHashItem * item, long (*compare_func) (ASHashableValue, ASHashableValue))
+{
+	ASHashItem  **tmp;
+
+	/* first check if we already have this item */
+	for (tmp = bucket; *tmp != NULL; tmp = &((*tmp)->next))
+	{
+		register long res = compare_func ((*tmp)->value, item->value);
+
+		if (res == 0)
+			return ((*tmp)->data == item->data) ? ASH_ItemExistsSame : ASH_ItemExistsDiffer;
+		else if (res > 0)
+			break;
+	}
+	/* now actually add this item */
+	item->next = (*tmp);
+	*tmp = item;
+	return ASH_Success;
+}
+
+#define DEALLOC_CACHE_SIZE      1024
+static ASHashItem*  deallocated_mem[DEALLOC_CACHE_SIZE+10] ;
+static unsigned int deallocated_used = 0 ;
+
+ASHashResult
+asim_add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
+{
+	ASHashKey     key;
+	ASHashItem   *item;
+	ASHashResult  res;
+
+	if (hash == NULL)
+        return ASH_BadParameter;
+
+	key = hash->hash_func (value, hash->size);
+	if (key >= hash->size)
+        return ASH_BadParameter;
+
+    if( deallocated_used > 0 )
+        item = deallocated_mem[--deallocated_used];
+    else
+        item = safemalloc (sizeof (ASHashItem));
+
+	item->next = NULL;
+	item->value = value;
+	item->data = data;
+
+	res = add_item_to_bucket (&(hash->buckets[key]), item, hash->compare_func);
+	if (res == ASH_Success)
+	{
+		hash->most_recent = item ;
+		hash->items_num++;
+		if (hash->buckets[key]->next == NULL)
+			hash->buckets_used++;
+	} else
+		free (item);
+	return res;
+}
+
+static ASHashItem **
+find_item_in_bucket (ASHashBucket * bucket,
+					 ASHashableValue value, long (*compare_func) (ASHashableValue, ASHashableValue))
+{
+	register ASHashItem **tmp;
+	register long res;
+
+	/* first check if we already have this item */
+	for (tmp = bucket; *tmp != NULL; tmp = &((*tmp)->next))
+	{
+		res = compare_func ((*tmp)->value, value);
+		if (res == 0)
+			return tmp;
+		else if (res > 0)
+			break;
+	}
+	return NULL;
+}
+
+ASHashResult
+asim_get_hash_item (ASHashTable * hash, ASHashableValue value, void **trg)
+{
+	ASHashKey     key;
+	ASHashItem  **pitem = NULL;
+
+	if (hash)
+	{
+		key = hash->hash_func (value, hash->size);
+		if (key < hash->size)
+			pitem = find_item_in_bucket (&(hash->buckets[key]), value, hash->compare_func);
+	}
+	if (pitem)
+		if (*pitem)
+		{
+			if (trg)
+				*trg = (*pitem)->data;
+			return ASH_Success;
+		}
+	return ASH_ItemNotExists;
+}
+
+void asim_flush_ashash_memory_pool()
+{
+	/* we better disable errors as some of this data will belong to memory audit : */
+    int old_cleanup_mode = set_audit_cleanup_mode(1);
+	while( deallocated_used > 0 )
+		free( deallocated_mem[--deallocated_used] );
+	set_audit_cleanup_mode(old_cleanup_mode);
+}
+
+/************************************************************************/
+/************************************************************************/
+/* 	Some usefull implementations 					*/
+/************************************************************************/
+
+/* case sensitive strings hash */
+ASHashKey
+asim_string_hash_value (ASHashableValue value, ASHashKey hash_size)
+{
+	ASHashKey     hash_key = 0;
+	register int  i = 0;
+	char         *string = value.string_val;
+	register char c;
+
+	do
+	{
+		c = string[i];
+		if (c == '\0')
+			break;
+		hash_key += (((ASHashKey) c) << i);
+		++i ;
+	}while( i < ((sizeof (ASHashKey) - sizeof (char)) << 3) );
+	return hash_key % hash_size;
+}
+
+long
+asim_string_compare (ASHashableValue value1, ASHashableValue value2)
+{
+	register char *str1 = value1.string_val;
+	register char *str2 = value2.string_val;
+	register int   i = 0 ;
+
+	if (str1 == str2)
+		return 0;
+	if (str1 == NULL)
+		return -1;
+	if (str2 == NULL)
+		return 1;
+	do
+	{
+		if (str1[i] != str2[i])
+			return (long)(str1[i]) - (long)(str2[i]);
+
+	}while( str1[i++] );
+	return 0;
+}
+
+/* variation for case-unsensitive strings */
+ASHashKey
+asim_casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
+{
+	ASHashKey     hash_key = 0;
+	register int  i = 0;
+	char         *string = value.string_val;
+	register char c;
+
+	do
+	{
+		c = string[i];
+		if (c == '\0')
+			break;
+		if (isupper (c))
+			c = tolower (c);
+		hash_key += (((ASHashKey) c) << i);
+		++i;
+	}while(i < ((sizeof (ASHashKey) - sizeof (char)) << 3));
+
+	return hash_key % hash_size;
+}
+
+long
+asim_casestring_compare (ASHashableValue value1, ASHashableValue value2)
+{
+	register char *str1 = value1.string_val;
+	register char *str2 = value2.string_val;
+	register int   i = 0;
+
+	if (str1 == str2)
+		return 0;
+	if (str1 == NULL)
+		return -1;
+	if (str2 == NULL)
+		return 1;
+	do
+	{
+		char          u1, u2;
+
+		u1 = str1[i];
+		u2 = str2[i];
+		if (islower (u1))
+			u1 = toupper (u1);
+		if (islower (u2))
+			u2 = toupper (u2);
+		if (u1 != u2)
+			return (long)u1 - (long)u2;
+	}while( str1[i++] );
+	return 0;
+}
+

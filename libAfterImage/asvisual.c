@@ -19,7 +19,7 @@
 
 #include "config.h"
 
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG */
 
 #include <X11/Xlib.h>
 #include <X11/Xproto.h>
@@ -54,9 +54,17 @@ void pixel2color15bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *g
 void ximage2scanline32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
 void ximage2scanline16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
 void ximage2scanline15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void ximage2scanline_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void ximage2scanline_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+
 void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
 void scanline2ximage16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
 void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void scanline2ximage_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void scanline2ximage_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void scanline2ximage_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+
 
 int
 asvisual_empty_XErrorHandler (Display * dpy, XErrorEvent * event)
@@ -64,11 +72,45 @@ asvisual_empty_XErrorHandler (Display * dpy, XErrorEvent * event)
     return 0;
 }
 
+/***************************************************************************/
+ #ifdef LOCAL_DEBUG
+Status
+debug_AllocColor( const char *file, const char *func, int line, ASVisual *asv, Colormap cmap, XColor *pxcol )
+{
+	Status sret ;
+	sret = XAllocColor( asv->dpy, cmap, pxcol );
+	show_progress( " XAllocColor in %s:%s():%d has %s -> pixel = %d, color = 0x%4.4lX, 0x%4.4lX, 0x%4.4lX",
+				   file, func, line, (sret==0)?"failed":"succeeded", pxcol->pixel, pxcol->red, pxcol->green, pxcol->blue );
+	return sret;
+}
+#define ASV_ALLOC_COLOR(asv,cmap,pxcol)  debug_AllocColor(__FILE__, __FUNCTION__, __LINE__, (asv),(cmap),(pxcol))
+#else
+#define ASV_ALLOC_COLOR(asv,cmap,pxcol)  XAllocColor((asv)->dpy,(cmap),(pxcol))
+#endif
+
+
+
 /***************************************************************************
- ***************************************************************************
  * ASVisual :
  * encoding/decoding/querying/setup
  ***************************************************************************/
+int get_bits_per_pixel(Display *dpy, int depth)
+{
+ 	register ScreenFormat *fmt = dpy->pixmap_format;
+ 	register int i;
+
+ 	for (i = dpy->nformats + 1; --i; ++fmt)
+ 		if (fmt->depth == depth)
+ 			return(fmt->bits_per_pixel);
+	if (depth <= 4)
+	    return 4;
+	if (depth <= 8)
+	    return 8;
+	if (depth <= 16)
+	    return 16;
+	return 32;
+ }
+
 
 /* Main procedure finding and querying the best visual */
 Bool
@@ -83,8 +125,8 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 	/* nothing nice has been found - use whatever X has to offer us as a default :( */
 	int i ;
 	XSetWindowAttributes attr ;
-	XColor black_xcol = { 0, 0x00, 0x00, 0x00, DoRed|DoGreen|DoBlue };
-	XColor white_xcol = { 0, 0xFF, 0xFF, 0xFF, DoRed|DoGreen|DoBlue };
+	XColor black_xcol = { 0, 0x0000, 0x0000, 0x0000, DoRed|DoGreen|DoBlue };
+	XColor white_xcol = { 0, 0xFFFF, 0xFFFF, 0xFFFF, DoRed|DoGreen|DoBlue };
 	static XVisualInfo templates[] =
 		/* Visual, visualid, screen, depth, class      , red_mask, green_mask, blue_mask, colormap_size, bits_per_rgb */
 		{{ NULL  , 0       , 0     , 24   , TrueColor  , 0xFF0000, 0x00FF00  , 0x0000FF , 0            , 0 },
@@ -127,6 +169,8 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 		return False ;
 	memset( asv, 0x00, sizeof(ASVisual));
 
+	asv->dpy = dpy ;
+
 	memset( &attr, 0x00, sizeof( attr ));
 	for( i = 0 ; templates[i].depth != 0 ; i++ )
 	{
@@ -153,8 +197,8 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 				attr.colormap = DefaultColormap( dpy, screen );
 			else
 				attr.colormap = XCreateColormap( dpy, root, list[k].visual, AllocNone);
-			XAllocColor( dpy, attr.colormap, &black_xcol );
-			XAllocColor( dpy, attr.colormap, &white_xcol );
+			ASV_ALLOC_COLOR( asv, attr.colormap, &black_xcol );
+			ASV_ALLOC_COLOR( asv, attr.colormap, &white_xcol );
 			attr.border_pixel = black_xcol.pixel ;
 /*fprintf( stderr, "checking out visual ID %d, class %d, depth = %d mask = %X,%X,%X\n", list[k].visualid, list[k].class, list[k].depth, list[k].red_mask, list[k].green_mask, list[k].blue_mask 	);*/
 			w = XCreateWindow (dpy, root, -10, -10, 10, 10, 0, 0, CopyFromParent, list[k].visual, CWColormap|CWBorderPixmap|CWBorderPixel, &attr );
@@ -188,10 +232,9 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 			attr.colormap = DefaultColormap( dpy, screen );
 		else
 			attr.colormap = XCreateColormap( dpy, root, asv->visual_info.visual, AllocNone);
-		XAllocColor( dpy, attr.colormap, &black_xcol );
-		XAllocColor( dpy, attr.colormap, &white_xcol );
+		ASV_ALLOC_COLOR( asv, attr.colormap, &black_xcol );
+		ASV_ALLOC_COLOR( asv, attr.colormap, &white_xcol );
 	}
-	asv->dpy = dpy ;
 	asv->colormap = attr.colormap ;
 	asv->own_colormap = (attr.colormap != DefaultColormap( dpy, screen ));
 	asv->white_pixel = white_xcol.pixel ;
@@ -210,7 +253,16 @@ destroy_asvisual( ASVisual *asv )
 	 			XFreeColormap( asv->dpy, asv->colormap );
 	 	}
 	 	if( asv->as_colormap )
+		{
 	 		free( asv->as_colormap );
+			if( asv->as_colormap_reverse.xref != NULL )
+			{
+				if( asv->as_colormap_type == ACM_12BPP )
+					destroy_ashash( &(asv->as_colormap_reverse.hash) );
+				else
+					free( asv->as_colormap_reverse.xref );
+			}
+		}
 	}
 }
 
@@ -374,6 +426,33 @@ setup_truecolor_visual( ASVisual *asv )
 	return (asv->ximage2scanline_func != NULL) ;
 }
 
+ARGB32 *
+make_reverse_colormap( unsigned long *cmap, size_t size, int depth, unsigned short mask, unsigned short shift )
+{
+	int max_pixel = 0x01<<depth ;
+	ARGB32 *rcmap = safecalloc( max_pixel, sizeof( ARGB32 ) );
+	register int i ;
+
+	for( i = 0 ; i < size ; i++ )
+		if( cmap[i] < max_pixel )
+			rcmap[cmap[i]] = MAKE_ARGB32( 0xFF, (i>>(shift<<1))& mask, (i>>(shift))&mask, i&mask);
+	return rcmap;
+}
+
+ASHashTable *
+make_reverse_colorhash( unsigned long *cmap, size_t size, int depth, unsigned short mask, unsigned short shift )
+{
+	ASHashTable *hash = create_ashash( 0, NULL, NULL, NULL );
+	register int i ;
+
+	if( hash )
+	{
+		for( i = 0 ; i < size ; i++ )
+			add_hash_item( hash, (ASHashableValue)cmap[i], (void*)MAKE_ARGB32( 0xFF, (i>>(shift<<1))& mask, (i>>(shift))&mask, i&mask) );
+	}
+	return hash;
+}
+
 Bool
 setup_pseudo_visual( ASVisual *asv  )
 {
@@ -383,82 +462,243 @@ setup_pseudo_visual( ASVisual *asv  )
 		return False;
 	/* we need to allocate new usable list of colors based on available bpp */
 	asv->true_depth = vi->depth ;
-
+	if( asv->as_colormap == NULL )
+	{
+		if( asv->true_depth < 8 )
+			asv->as_colormap_type = ACM_3BPP ;
+		else if( asv->true_depth < 12 )
+			asv->as_colormap_type = ACM_6BPP ;
+		else
+			asv->as_colormap_type = ACM_12BPP ;
+	}
 	/* then we need to set up hooks : */
-			asv->ximage2scanline_func = ximage2scanline32 ;
-			asv->scanline2ximage_func = scanline2ximage32 ;
+	switch( asv->as_colormap_type )
+	{
+		case ACM_3BPP:
+			asv->ximage2scanline_func = ximage2scanline_pseudo3bpp ;
+			asv->scanline2ximage_func = scanline2ximage_pseudo3bpp ;
+		    break ;
+		case ACM_6BPP:
+			asv->ximage2scanline_func = ximage2scanline_pseudo6bpp ;
+			asv->scanline2ximage_func = scanline2ximage_pseudo6bpp ;
+		    break ;
+		case ACM_12BPP:
+			asv->ximage2scanline_func = ximage2scanline_pseudo12bpp ;
+			asv->scanline2ximage_func = scanline2ximage_pseudo12bpp ;
+		    break ;
+		default:
+			return False;
+	}
+	if( asv->as_colormap != NULL )
+	{
+		if( asv->as_colormap_type == ACM_3BPP || asv->as_colormap_type == ACM_6BPP )
+		{
+			unsigned short mask = 0x0003, shift = 2 ;
+			if( asv->as_colormap_type==ACM_3BPP )
+			{
+				mask = 0x0001 ;
+				shift = 1 ;
+			}
+			asv->as_colormap_reverse.xref = make_reverse_colormap( asv->as_colormap,
+															  as_colormap_type2size( asv->as_colormap_type ),
+															  asv->true_depth, mask, shift );
+		}else if( asv->as_colormap_type == ACM_12BPP )
+		{
+			asv->as_colormap_reverse.hash = make_reverse_colorhash( asv->as_colormap,
+															  as_colormap_type2size( asv->as_colormap_type ),
+															  asv->true_depth, 0x000F, 4 );
+		}
+	}
+
 	return True;
+}
+
+
+static unsigned long*
+make_3bpp_colormap( ASVisual *asv )
+{
+	XColor colors_3bpp[8] =
+	/* list of non-white, non-black colors in order of decreasing importance: */
+	{   { 0, 0, 0xFFFF, 0, DoRed|DoGreen|DoBlue, 0},
+		{ 0, 0xFFFF, 0, 0, DoRed|DoGreen|DoBlue, 0},
+		{ 0, 0, 0, 0xFFFF, DoRed|DoGreen|DoBlue, 0},
+	 	{ 0, 0xFFFF, 0xFFFF, 0, DoRed|DoGreen|DoBlue, 0},
+	    { 0, 0, 0xFFFF, 0xFFFF, DoRed|DoGreen|DoBlue, 0},
+	    { 0, 0xFFFF, 0, 0xFFFF, DoRed|DoGreen|DoBlue, 0}} ;
+	unsigned long *cmap ;
+
+	cmap = safemalloc( 8 * sizeof(unsigned long) );
+	/* fail safe code - if any of the alloc fails - colormap entry will still have
+	 * most suitable valid value ( black or white in 1bpp mode for example ) : */
+	cmap[0] = cmap[1] = cmap[2] = cmap[3] = asv->black_pixel ;
+	cmap[7] = cmap[6] = cmap[5] = cmap[4] = asv->white_pixel ;
+	if( ASV_ALLOC_COLOR( asv, asv->colormap, &colors_3bpp[0] ))  /* pure green */
+		cmap[0x02] = cmap[0x03] = cmap[0x06] = colors_3bpp[0].pixel ;
+	if( ASV_ALLOC_COLOR( asv, asv->colormap, &colors_3bpp[1] ))  /* pure red */
+		cmap[0x04] = cmap[0x05] = colors_3bpp[1].pixel ;
+	if( ASV_ALLOC_COLOR( asv, asv->colormap, &colors_3bpp[2] ))  /* pure blue */
+		cmap[0x01] = colors_3bpp[2].pixel ;
+	if( ASV_ALLOC_COLOR( asv, asv->colormap, &colors_3bpp[3] ))  /* yellow */
+		cmap[0x06] = colors_3bpp[3].pixel ;
+	if( ASV_ALLOC_COLOR( asv, asv->colormap, &colors_3bpp[4] ))  /* cyan */
+		cmap[0x03] = colors_3bpp[4].pixel ;
+	if( ASV_ALLOC_COLOR( asv, asv->colormap, &colors_3bpp[5] ))  /* magenta */
+		cmap[0x05] = colors_3bpp[5].pixel ;
+	return cmap;
+}
+
+static unsigned long*
+make_6bpp_colormap( ASVisual *asv, unsigned long *cmap_3bpp )
+{
+	unsigned short red, green, blue ;
+	unsigned long *cmap = safemalloc( 0x0040*sizeof( unsigned long) );
+	XColor xcol ;
+
+	cmap[0] = asv->black_pixel ;
+
+	xcol.flags = DoRed|DoGreen|DoBlue ;
+	for( blue = 0 ; blue <= 0x0003 ; blue++ )
+	{
+		xcol.blue = (0xFFFF*blue)/3 ;
+		for( red = 0 ; red <= 0x0003 ; red++ )
+		{	                                /* red has highier priority then blue */
+			xcol.red = (0xFFFF*red)/3 ;
+/*			green = ( blue == 0 && red == 0 )?1:0 ; */
+			for( green = 0 ; green <= 0x0003 ; green++ )
+			{                                  /* green has highier priority then red */
+				unsigned short index_3bpp = ((red&0x0002)<<1)|(green&0x0002)|((blue&0x0002)>>1);
+				unsigned short index_6bpp = (red<<4)|(green<<2)|blue;
+				xcol.green = (0xFFFF*green)/3 ;
+
+				if( (red&0x0001) == ((red&0x0002)>>1) &&
+					(green&0x0001) == ((green&0x0002)>>1) &&
+					(blue&0x0001) == ((blue&0x0002)>>1) )
+					cmap[index_6bpp] = cmap_3bpp[index_3bpp];
+				else
+				{
+					if( ASV_ALLOC_COLOR( asv, asv->colormap, &xcol) != 0 )
+						cmap[index_6bpp] = xcol.pixel ;
+					else
+						cmap[index_6bpp] = cmap_3bpp[index_3bpp] ;
+				}
+			}
+		}
+	}
+	return cmap;
+}
+
+static unsigned long*
+make_9bpp_colormap( ASVisual *asv, unsigned long *cmap_6bpp )
+{
+	unsigned long *cmap = safemalloc( 512*sizeof( unsigned long) );
+	unsigned short red, green, blue ;
+	XColor xcol ;
+
+	cmap[0] = asv->black_pixel ;               /* just in case  */
+
+	xcol.flags = DoRed|DoGreen|DoBlue ;
+	for( blue = 0 ; blue <= 0x0007 ; blue++ )
+	{
+		xcol.blue = (0xFFFF*blue)/7 ;
+		for( red = 0 ; red <= 0x0007 ; red++ )
+		{	                                /* red has highier priority then blue */
+			xcol.red = (0xFFFF*red)/7 ;
+			for( green = 0 ; green <= 0x0007 ; green++ )
+			{                                  /* green has highier priority then red */
+				unsigned short index_6bpp = ((red&0x0006)<<3)|((green&0x0006)<<1)|((blue&0x0006)>>1);
+				unsigned short index_9bpp = (red<<6)|(green<<3)|blue;
+				xcol.green = (0xFFFF*green)/7 ;
+
+				if( (red&0x0001) == ((red&0x0002)>>1) &&
+					(green&0x0001) == ((green&0x0002)>>1) &&
+					(blue&0x0001) == ((blue&0x0002)>>1) )
+					cmap[index_9bpp] = cmap_6bpp[index_6bpp];
+				else
+				{
+					if( ASV_ALLOC_COLOR( asv, asv->colormap, &xcol) != 0 )
+						cmap[index_9bpp] = xcol.pixel ;
+					else
+						cmap[index_9bpp] = cmap_6bpp[index_6bpp] ;
+				}
+			}
+		}
+	}
+	return cmap;
+}
+
+static unsigned long*
+make_12bpp_colormap( ASVisual *asv, unsigned long *cmap_9bpp )
+{
+	unsigned long *cmap = safemalloc( 4096*sizeof( unsigned long) );
+	unsigned short red, green, blue ;
+	XColor xcol ;
+
+	cmap[0] = asv->black_pixel ;               /* just in case  */
+
+	xcol.flags = DoRed|DoGreen|DoBlue ;
+	for( blue = 0 ; blue <= 0x000F ; blue++ )
+	{
+		xcol.blue = (0xFFFF*blue)/15 ;
+		for( red = 0 ; red <= 0x000F ; red++ )
+		{	                                /* red has highier priority then blue */
+			xcol.red = (0xFFFF*red)/15 ;
+			for( green = 0 ; green <= 0x000F ; green++ )
+			{                                  /* green has highier priority then red */
+				unsigned short index_9bpp = ((red&0x000E)<<5)|((green&0x000E)<<2)|((blue&0x000E)>>1);
+				unsigned short index_12bpp = (red<<8)|(green<<4)|blue;
+				xcol.green = (0xFFFF*green)/15 ;
+
+				if( (red&0x0001) == ((red&0x0002)>>1) &&
+					(green&0x0001) == ((green&0x0002)>>1) &&
+					(blue&0x0001) == ((blue&0x0002)>>1) )
+					cmap[index_12bpp] = cmap_9bpp[index_9bpp];
+				else
+				{
+					if( ASV_ALLOC_COLOR( asv, asv->colormap, &xcol) != 0 )
+						cmap[index_12bpp] = xcol.pixel ;
+					else
+						cmap[index_12bpp] = cmap_9bpp[index_9bpp] ;
+				}
+			}
+		}
+	}
+	return cmap;
 }
 
 void
 setup_as_colormap( ASVisual *asv )
 {
-	int cmap_size ;
-	int i = 0;
-	int max_chan_val, curr_chan_val, offset, offset_xcol ;
+	unsigned long *cmap_lower, *cmap ;
 
 	if( asv == NULL || asv->as_colormap != NULL )
 		return ;
 
-	if( asv->true_depth >= 12 )
+	cmap = make_3bpp_colormap( asv );
+	if( asv->as_colormap_type == ACM_3BPP )
 	{
-		asv->as_colormap_type = ACM_12BPP ;
-		max_chan_val = 0x0F ;
-		offset = 4 ;
-	}else if( asv->true_depth >= 8 )
+		asv->as_colormap = cmap ;
+		asv->as_colormap_reverse.xref = make_reverse_colormap( cmap, 8, asv->true_depth, 0x0001, 1 );
+		return ;
+	}
+	cmap_lower = cmap ;
+	cmap = make_6bpp_colormap( asv, cmap_lower );
+	free( cmap_lower );
+	if( asv->as_colormap_type == ACM_6BPP )
 	{
-		asv->as_colormap_type = ACM_6BPP ;
-		max_chan_val = 0x03 ;
-		offset = 2 ;
+		asv->as_colormap = cmap ;
+		asv->as_colormap_reverse.xref = make_reverse_colormap( cmap, 64, asv->true_depth, 0x0003, 2 );
 	}else
 	{
-		asv->as_colormap_type = ACM_3BPP ;
-		max_chan_val = 0x01 ;
-		offset = 1 ;
+		cmap_lower = cmap ;
+		cmap = make_9bpp_colormap( asv, cmap_lower );
+		free( cmap_lower );
+		cmap_lower = cmap ;
+		cmap = make_12bpp_colormap( asv, cmap_lower );
+		free( cmap_lower );
+
+		asv->as_colormap = cmap ;
+		asv->as_colormap_reverse.hash = make_reverse_colorhash( cmap, 4096, asv->true_depth, 0x000F, 4 );
 	}
-	offset_xcol = 16-offset ;
-
-	cmap_size = as_colormap_type2size( asv->as_colormap_type );
-	asv->as_colormap = safemalloc( cmap_size * sizeof(unsigned long));
-
-	/* initializing to some sensible defaults : */
-	while( i < (cmap_size>>1) )
-		asv->as_colormap[i++] = asv->black_pixel ;
-	while( i <  cmap_size )
-		asv->as_colormap[i++] = asv->white_pixel ;
-
-	curr_chan_val = max_chan_val ;
-	while( curr_chan_val > 0 )
-	{
-		XColor xcol ;
-		unsigned int cell ;
-		unsigned int green, red, blue ;
-		/* 1) green */
-		xcol.green = curr_chan_val<<offset_xcol ;
-		xcol.red = 0 ;
-		xcol.blue = 0 ;
-		if( XAllocColor( asv->dpy, asv->colormap, &xcol ) == 0 )
-		{
-			show_debug( __FILE__, __FUNCTION__, __LINE__, "failed to allocate color #%2.2X%2.2X%2.2X", (xcol.red&0xFF00)>>8, (xcol.green&0xFF00)>>8, (xcol.blue&0xFF00)>>8 );
-			break ;
-		}
-		cell = (xcol.green<<offset);
-/*
-		while( xcol.red < curr_chan_val )
-		{
-			while( xcol.blue < curr_chan_val )
-			{
-			}
-		}
-  */		/* 2) red */
-		/* 3) blue */
-		/* 4) green-red */
-		/* 5) green-blue */
-		/* 6) blue-red */
-		--curr_chan_val;
-	}
-
-
 }
 
 /*********************************************************************/
@@ -607,6 +847,21 @@ get_bits (unsigned long mask)
  * where RRR, GG and BB are overflow bits so we can do all kinds of funky
  * combined adding, note that we don't use 32'd bit as it is a sign bit */
 
+static inline void
+query_pixel_color( ASVisual *asv, unsigned long pixel, CARD32 *r, CARD32 *g, CARD32 *b )
+{
+	XColor xcol ;
+	xcol.flags = DoRed|DoGreen|DoBlue ;
+	xcol.pixel = pixel ;
+	if( XQueryColor( asv->dpy, asv->colormap, &xcol ) != 0 )
+	{
+		*r = xcol.red>>8 ;
+		*g = xcol.green>>8 ;
+		*b = xcol.blue>>8 ;
+	}
+}
+
+
 CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, void *pixel)
 {
 
@@ -741,6 +996,105 @@ void ximage2scanline15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 			b[i] =  (src[i]&0x001F)<<3;
 		}while( --i >= 0);
 }
+
+void
+ximage2scanline_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
+{
+	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+    register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
+
+	do
+	{
+		unsigned long pixel = XGetPixel( xim, i, y );
+		ARGB32 c = asv->as_colormap_reverse.xref[pixel] ;
+		if( c == 0 )
+			query_pixel_color( asv, pixel, r+i, g+i, b+i );
+		else
+		{
+			r[i] =  ARGB32_RED8(c);
+			g[i] =  ARGB32_GREEN8(c);
+			b[i] =  ARGB32_BLUE8(c);
+		}
+	}while( --i >= 0);
+
+}
+
+void
+ximage2scanline_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
+{
+	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+    register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
+
+	if( xim->bits_per_pixel == 8 )
+	{
+		register CARD8 *src = (CARD8*)xim_data ;
+		do
+		{
+			ARGB32 c = asv->as_colormap_reverse.xref[src[i]] ;
+			if( c == 0 )
+				query_pixel_color( asv, src[i], r+i, g+i, b+i );
+			else
+			{
+				r[i] =  ARGB32_RED8(c);
+				g[i] =  ARGB32_GREEN8(c);
+				b[i] =  ARGB32_BLUE8(c);
+			}
+		}while( --i >= 0);
+
+	}else
+		do
+		{
+			unsigned long pixel = XGetPixel( xim, i, y );
+			ARGB32 c = asv->as_colormap_reverse.xref[pixel] ;
+			if( c == 0 )
+				query_pixel_color( asv, pixel, r+i, g+i, b+i );
+			else
+			{
+				r[i] =  ARGB32_RED8(c);
+				g[i] =  ARGB32_GREEN8(c);
+				b[i] =  ARGB32_BLUE8(c);
+			}
+		}while( --i >= 0);
+}
+
+void
+ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
+{
+	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+    register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
+
+	if( xim->bits_per_pixel == 16 )
+	{
+		register CARD16 *src = (CARD16*)xim_data ;
+		do
+		{
+			ARGB32 c ;
+			if( get_hash_item( asv->as_colormap_reverse.hash, (ASHashableValue)((unsigned long)src[i]), (void**)&c ) != ASH_Success )
+				query_pixel_color( asv, src[i], r+i, g+i, b+i );
+			else
+			{
+				r[i] =  ARGB32_RED8(c);
+				g[i] =  ARGB32_GREEN8(c);
+				b[i] =  ARGB32_BLUE8(c);
+			}
+		}while( --i >= 0);
+
+	}else
+		do
+		{
+			unsigned long pixel = XGetPixel( xim, i, y );
+			ARGB32 c ;
+			if( get_hash_item( asv->as_colormap_reverse.hash, (ASHashableValue)pixel, (void**)&c ) != ASH_Success )
+				query_pixel_color( asv, pixel, r+i, g+i, b+i );
+			else
+			{
+				r[i] =  ARGB32_RED8(c);
+				g[i] =  ARGB32_GREEN8(c);
+				b[i] =  ARGB32_BLUE8(c);
+			}
+		}while( --i >= 0);
+}
+
 
 void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
@@ -885,6 +1239,145 @@ void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 /*fprintf( stderr, "c = 0x%X, d = 0x%X, c^d = 0x%X\n", c, d, c^d );*/
 			}
 		}while(1);
+}
+
+void
+scanline2ximage_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
+{
+	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
+	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
+
+	do
+	{
+		XPutPixel( xim, i, y, asv->as_colormap[((c>>25)&0x0008)|((c>>16)&0x0002)|((c>>7)&0x0001)] );
+		if( --i < 0 )
+			break;
+		c = ((c>>1)&0x03F0FC3F)+((r[i]<<20) | (g[i]<<10) | (b[i]));
+		{/* handling possible overflow : */
+			register CARD32 d = c&0x300C0300 ;
+			if( d )
+			{
+				if( c&0x30000000 )
+					d |= 0x0FF00000;
+				if( c&0x000C0000 )
+					d |= 0x0003FC00 ;
+				if( c&0x00000300 )
+					d |= 0x000000FF ;
+				c ^= d;
+			}
+		}
+	}while(i);
+}
+
+void
+scanline2ximage_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
+{
+	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
+	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
+
+	if( xim->bits_per_pixel == 8 )
+	{
+		register CARD8 *dst = (CARD8*)xim_data ;
+		do
+		{
+			dst[i] = asv->as_colormap[((c>>22)&0x0030)|((c>>14)&0x000C)|((c>>6)&0x0003)];
+			if( --i < 0 )
+				break;
+			c = ((c>>1)&0x01F07C1F)+((r[i]<<20) | (g[i]<<10) | (b[i]));
+			{/* handling possible overflow : */
+				register CARD32 d = c&0x300C0300 ;
+				if( d )
+				{
+					if( c&0x30000000 )
+						d |= 0x0FF00000;
+					if( c&0x000C0000 )
+						d |= 0x0003FC00 ;
+					if( c&0x00000300 )
+						d |= 0x000000FF ;
+					c ^= d;
+				}
+			}
+		}while(i);
+	}else
+	{
+		do
+		{
+			XPutPixel( xim, i, y, asv->as_colormap[((c>>22)&0x0030)|((c>>14)&0x000C)|((c>>6)&0x0003)] );
+			if( --i < 0 )
+				break;
+			c = ((c>>1)&0x01F07C1F)+((r[i]<<20) | (g[i]<<10) | (b[i]));
+			{/* handling possible overflow : */
+				register CARD32 d = c&0x300C0300 ;
+				if( d )
+				{
+					if( c&0x30000000 )
+						d |= 0x0FF00000;
+					if( c&0x000C0000 )
+						d |= 0x0003FC00 ;
+					if( c&0x00000300 )
+						d |= 0x000000FF ;
+					c ^= d;
+				}
+			}
+		}while(i);
+	}
+}
+
+void
+scanline2ximage_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
+{
+	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
+	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
+
+	if( xim->bits_per_pixel == 16 )
+	{
+		register CARD16 *dst = (CARD16*)xim_data ;
+		do
+		{
+			dst[i] = asv->as_colormap[((c>>16)&0x0F00)|((c>>10)&0x00F0)|((c>>4)&0x000F)];
+			if( --i < 0 )
+				break;
+			c = ((c>>1)&0x00701C07)+((r[i]<<20) | (g[i]<<10) | (b[i]));
+			{/* handling possible overflow : */
+				register CARD32 d = c&0x300C0300 ;
+				if( d )
+				{
+					if( c&0x30000000 )
+						d |= 0x0FF00000;
+					if( c&0x000C0000 )
+						d |= 0x0003FC00 ;
+					if( c&0x00000300 )
+						d |= 0x000000FF ;
+					c ^= d;
+				}
+			}
+		}while(i);
+	}else
+	{
+		do
+		{
+			XPutPixel( xim, i, y, asv->as_colormap[((c>>16)&0x0F00)|((c>>10)&0x00F0)|((c>>4)&0x000F)] );
+			if( --i < 0 )
+				break;
+			c = ((c>>1)&0x00701C07)+((r[i]<<20) | (g[i]<<10) | (b[i]));
+			{/* handling possible overflow : */
+				register CARD32 d = c&0x300C0300 ;
+				if( d )
+				{
+					if( c&0x30000000 )
+						d |= 0x0FF00000;
+					if( c&0x000C0000 )
+						d |= 0x0003FC00 ;
+					if( c&0x00000300 )
+						d |= 0x000000FF ;
+					c ^= d;
+				}
+			}
+		}while(i);
+	}
 }
 
 

@@ -181,6 +181,8 @@ typedef struct ASGradient
 
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
+ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
+void destroy_asimage( ASImage **im );
 
 ASScanline*prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode);
 void       free_scanline( ASScanline *sl, Bool reusable );

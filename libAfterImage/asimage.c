@@ -157,6 +157,27 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 	}
 }
 
+ASImage *
+create_asimage( unsigned int width, unsigned int height, unsigned int compression)
+{
+	ASImage *im = safecalloc( 1, sizeof( ASImage *) );
+	asimage_start( im, width, height, compression );
+	return im;
+}
+
+void
+destroy_asimage( ASImage **im )
+{
+	if( im )
+		if( *im )
+		{
+			asimage_init( *im, True );
+			free( *im );
+			*im = NULL ;
+		}
+}
+
+
 /********************** ASScanline ************************************/
 ASScanline*
 prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode  )

@@ -84,6 +84,12 @@ typedef struct ASVisual
 		ACM_12BPP,
 	} as_colormap_type ;/* there can only be 64 or 4096 entries so far ( 6 or 12 bpp) */
 	unsigned long *as_colormap;     /* array of preallocated colors for PseudoColor mode */
+	union
+	{
+		ARGB32 		  		*xref;
+		struct ASHashTable  *hash;
+	}as_colormap_reverse ;
+
 	/* different usefull callbacks : */
 	CARD32 (*color2pixel_func) 	  ( struct ASVisual *asv, CARD32 encoded_color, void *err);
 	void   (*pixel2color_func)    ( struct ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
