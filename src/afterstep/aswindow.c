@@ -142,9 +142,14 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
     ASWindow *asw = (ASWindow*)data ;
 	LOCAL_DEBUG_OUT( "window \"%s\", is a %smodule", ASWIN_NAME(asw), ASWIN_HFLAGS(asw,AS_Module)?
 	" ":"non ");
-    if( asw && swad && !ASWIN_HFLAGS(asw,AS_Module) )
+    if( asw && swad )
     {
 		Bool same_host = (asw->hints->client_host == NULL || mystrcasecmp( asw->hints->client_host, swad->this_host )== 0);
+
+		/* don't want to save modules - those are started from autoexec anyways */
+		if( ASWIN_HFLAGS(asw,AS_Module) ) 
+			return True;
+
 		if( asw->hints->client_cmd == NULL && same_host )
 		{
 		 	if( ASWIN_HFLAGS(asw, AS_PID) && asw->hints->pid > 0 )
