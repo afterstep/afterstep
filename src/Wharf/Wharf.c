@@ -208,7 +208,7 @@ void
 usage (void)
 {
   printf ("Usage:\n"
-	  "%s [--version] [--help]\n", MyName);
+	  "%s [-f [config file]] [-v|--version] [-h|--help]\n", MyName);
   exit (0);
 }
 
@@ -676,7 +676,8 @@ Loop (void)
 		break;
 
 	      if ((*CurrentButton).swallow == 1 ||
-		  (*CurrentButton).swallow == 2)
+		  (*CurrentButton).swallow == 2 ||
+		  (*CurrentButton).action == NULL)
 		break;
 
 	      if (CurrentButton->swallow == 4)
@@ -685,9 +686,6 @@ Loop (void)
 		  CurrentButton->swallow = 1;
 		  break;
 		}
-
-	      if ((*CurrentButton).action == NULL)
-		break;
 
 	      if (Pushable)
 		{
