@@ -6,15 +6,14 @@
 	<listitem>
 		<para>Specifies what to use as the  root  background.  Possible
                      type values are :</para>
-                     0: load image from the file. In that case ""data"" should specify
+                     <para>0: load image from the file. In that case "data" should specify
                      filename.</para>
 
-               <para>1: Use MyStyle definition to fill root. In that case ""data""
+               <para>1: Use MyStyle definition to fill root. In that case "data"
                      should specify one of the MyStyle names defined in your look file.</para>
 
-               <para>2: Use external application to set root background. ""data""
-                     should specify command line options to this external app. (asetroot
-                     is coded by default to use xli. If you wish to use another application
+               <para>2: Use external application to set root background. "data"
+                     should specify command line options to this external app. If you wish to use another application
                      to display the root background, you need to set the "--with-imageloader"
                      flag to use that application then recompile AfterStep.)</para>
 

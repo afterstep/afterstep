@@ -1,5 +1,5 @@
 <varlistentry id="options.CornerSize">
-	<term>CornerSize <emphasis remap='I'>NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT></emphasis></term>
+	<term>CornerSize <emphasis remap='I'>NorthEast|SouthEast|NorthWest|SouthWest|Any WIDTHxHEIGHT</emphasis></term>
 	<listitem>
 		<para>FIXME: add proper description here.</para>
 	</listitem>

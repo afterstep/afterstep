@@ -1,5 +1,5 @@
 <varlistentry id="options.CornerStickyBevel">
-	<term>CornerStickyBevel <emphasis remap='I'>CornerStickyBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]</emphasis</term>
+	<term>CornerStickyBevel <emphasis remap='I'>NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]</emphasis></term>
 	<listitem>
 		<para>FIXME: add proper description here.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>

@@ -1,6 +1,13 @@
 <varlistentry id="options.TitleButton">
-	<term>TitleButton</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+  <term>TitleButton <emphasis remap='I'>button unclicked_image clicked_image</emphasis></term>
+  <listitem>
+<para><emphasis remap='I'>button</emphasis> defines the button location number from 1 to 10 in the following
+layout: [1] [3] [5] [7] [9] (title) [10] [8] [6] [4] [2].</para>
+
+<para><emphasis remap='I'>unclicked_image</emphasis> is the bitmap or pixmap to be used during the static
+state of the associated buton location.</para>
+
+<para><emphasis remap='I'>clicked_image</emphasis> is the bitmap or pixmap to be used during a clicked
+state of the associated button location.</para>
 	</listitem>
 </varlistentry>

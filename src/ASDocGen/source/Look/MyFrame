@@ -1,5 +1,5 @@
 <varlistentry id="options.MyFrame">
-	<term>MyFrame</term>
+	<term>MyFrame <emphasis remap='I'>"frame_name"</emphasis></term>
 	<listitem>
 		<para>FIXME: add proper description here.</para>
 		<para>See Also: <ulink url="MyFrame#synopsis">MyFrame definition</ulink> for further details.</para>

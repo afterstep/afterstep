@@ -1,5 +1,5 @@
 <varlistentry id="options.TitleButtonOrder">
-	<term>TitleButtonOrder</term><emphasis remap='I'>&gt;context_sequence&lt;</emphasis>
+	<term>TitleButtonOrder <emphasis remap='I'>context_sequence</emphasis></term>
 	<listitem>
 		<para>Determines layout of the titlebar. Default is 13579t08642.</para>
 	</listitem>

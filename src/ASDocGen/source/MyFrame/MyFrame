@@ -1,6 +1,11 @@
 <varlistentry id="options.MyFrame">
 	<term>MyFrame</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>MyFrame "<emphasis remap='I'>frame_name</emphasis>"</term>
+  <term>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<emphasis remap='I'>frame_option</emphasis></term>
+  <term>~MyFrame</term>
+  <listitem>
+<para>Specifies the beginning of a frame definition. The frame can be
+referred to later by <emphasis remap='I'>frame_name</emphasis>.
+ <emphasis remap='I'>~MyFrame</emphasis> ends a frame definition.</para>
 	</listitem>
 </varlistentry>
