@@ -890,8 +890,24 @@ shrink_component( register CARD32 *src, register CARD32 *dst, int *scales, int l
 
 /* this will enlarge array based on count of items in dst per PAIR of src item with smoothing/scatter/dither */
 #if 0
+/* for scale factors up to and including 3 we do not do dithering */
+/* the following formulas use linear approximation to calculate   */
+/* color values for new pixels : 				  				  */
+/* for scale factor of 2 we use this formula :    */
+/* C = (-C1+3*C2+3*C3-C4)/4 					  */
+/* for scale factor of 3 we use these formulas :  */
+/* Ca = (-2C1+8*C2+5*C3-2C4)/9 		  			  */
+/* Cb = (-2C1+5*C2+8*C3-2C4)/9 		  			  */
+
+
 static inline void
-enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+enlarge_component12( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+
+static inline void
+enlarge_component23( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+
+static inline void
+enlarge_component_big( register CARD32 *src, register CARD32 *dst, int *scales, int len )
 {/* we skip all checks as it is static function and we want to optimize it
   * as much as possible */
 	register int i = -1, start = 0;
