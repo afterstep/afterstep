@@ -91,7 +91,7 @@ typedef struct ASWMProps
 
     /* list of supported properties atoms: */
     /* (just for consistency - not really used for now since we are always under AfterStep ) */
-    unsigned long  supported_num ;
+    CARD32         supported_num ;
     Atom          *supported ;
     /* Supporting WM Check window : */
     Window         wm_check_window ;
@@ -100,55 +100,55 @@ typedef struct ASWMProps
 
     /* Properties : */
     /* PreservedColors: */
-    unsigned long  preserved_colors_num;
-    unsigned long *preserved_colors;
+    CARD32  preserved_colors_num;
+    CARD32 *preserved_colors;
     /* RootPixmap: */
     Pixmap         root_pixmap;
     /* Desktops : */
-    unsigned long  desktop_num;
-    unsigned long  desktop_width, desktop_height;
-    unsigned long  desktop_viewports_num ;
-    unsigned long  *desktop_viewport;   /* one per desk - stupid! stupid!  */
-    unsigned long  desktop_current;
+    CARD32  desktop_num;
+    CARD32  desktop_width, desktop_height;
+    CARD32  desktop_viewports_num ;
+    CARD32  *desktop_viewport;   /* one per desk - stupid! stupid!  */
+    CARD32  desktop_current;
     Window        *virtual_roots;
     /* DesktopNames : */
     char         **desktop_names;
-    unsigned long  desktop_names_num;
+    CARD32  desktop_names_num;
     /* ClientList : */
-    unsigned long  clients_num ;
+    CARD32  clients_num ;
     Window        *client_list ;
     Window        *stacking_order ;
     /* ActiveWindow : */
     Window         active_window ;
     /* WorkArea : */
-    unsigned long  work_x, work_y, work_width, work_height ;
+    CARD32  work_x, work_y, work_width, work_height ;
 
     /* AfterStep specific : */
     /* ASStyles : */
     size_t         as_styles_size ;            /* in bytes */
-    unsigned long  as_styles_version ;
-    unsigned long *as_styles_data ;
+    CARD32  as_styles_version ;
+    CARD32 *as_styles_data ;
 
     /* ASBackgrounds : */
     size_t        as_backgrounds_size ;        /* in bytes */
-    unsigned long as_backgrounds_version ;
-    unsigned long *as_backgrounds_data ;
+    CARD32 as_backgrounds_version ;
+    CARD32 *as_backgrounds_data ;
 
 	/* ASVisual : */
     size_t        as_visual_size ;        /* in bytes */
-    unsigned long as_visual_version ;
-    unsigned long *as_visual_data ;
+    CARD32 as_visual_version ;
+    CARD32 *as_visual_data ;
 
     /* ASModule : */
     char          *as_socket_filename;
     /* ASVirtualRoot : */
     Window         as_virtual_root ;
     /* ASDesks : */
-    unsigned long  as_desk_num ;
-    long           as_current_desk ;
-    long          *as_desk_numbers ;
+    CARD32  as_desk_num ;
+    INT32           as_current_desk ;
+    INT32          *as_desk_numbers ;
 
-    unsigned long  as_current_vx, as_current_vy ;
+    CARD32  as_current_vx, as_current_vy ;
 
     ASFlagType     my_props ;
     ASFlagType     set_props ;
@@ -173,15 +173,15 @@ void print_wm_props         ( stream_func func, void* stream, XWMHints *hints );
 
 /* Setting properties here : */
 void set_as_module_socket (ASWMProps *wmprops, char *new_socket );
-void set_as_style (ASWMProps *wmprops, unsigned long size, unsigned long version, unsigned long *data );
-void set_as_backgrounds (ASWMProps *wmprops, unsigned long size, unsigned long version, unsigned long *data );
+void set_as_style (ASWMProps *wmprops, CARD32 size, CARD32 version, CARD32 *data );
+void set_as_backgrounds (ASWMProps *wmprops, CARD32 size, CARD32 version, CARD32 *data );
 void set_xrootpmap_id (ASWMProps *wmprops, Pixmap new_pmap );
 
 
-unsigned long as_desk2ext_desk( ASWMProps *wmprops, long as_desk );
-void set_desktop_num_prop( ASWMProps *wmprops, long new_desk, Window vroot, Bool add );
-Bool set_current_desk_prop (ASWMProps *wmprops, long new_desk );
-Bool set_current_viewport_prop (ASWMProps * wmprops, long vx, long vy, Bool normal);
+unsigned long as_desk2ext_desk( ASWMProps *wmprops, INT32 as_desk );
+void set_desktop_num_prop( ASWMProps *wmprops, INT32 new_desk, Window vroot, Bool add );
+Bool set_current_desk_prop (ASWMProps *wmprops, INT32 new_desk );
+Bool set_current_viewport_prop (ASWMProps * wmprops, CARD32 vx, CARD32 vy, Bool normal);
 
 void flush_wmprop_data(ASWMProps *wmprops, ASFlagType what );
 

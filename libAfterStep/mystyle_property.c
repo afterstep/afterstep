@@ -35,7 +35,7 @@
 void
 mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 {
-    unsigned long *prop;
+    CARD32 *prop;
 	int           i, nelements;
     ASHashIterator iterator ;
 
@@ -49,7 +49,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 #endif /* NO_TEXTURE */
     }while( next_hash_item(&iterator));
 
-	prop = safemalloc (sizeof (unsigned long) * nelements);
+	prop = safemalloc (sizeof (CARD32) * nelements);
 
 	i = 0;
     start_hash_iteration( list, &iterator );
@@ -91,7 +91,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 #endif /* NO_TEXTURE */
     }while( next_hash_item(&iterator));
 	/* set the property version to 1.2 */
-    set_as_style (wmprops, nelements * sizeof (unsigned long), (1 << 8) + 2, prop );
+    set_as_style (wmprops, nelements * sizeof (CARD32), (1 << 8) + 2, prop );
     free (prop);
 }
 
@@ -105,9 +105,9 @@ mystyle_set_property (ASWMProps *wmprops)
 void
 mystyle_get_property (ASWMProps *wmprops)
 {
-	unsigned long *prop;
+	CARD32 *prop;
 	size_t        i, n;
-	unsigned long version;
+	CARD32 version;
 
     if ( (prop = wmprops->as_styles_data) == NULL )
 		return;
@@ -120,12 +120,12 @@ mystyle_get_property (ASWMProps *wmprops)
 		return;
 	}
 
-    n = wmprops->as_styles_size/sizeof (unsigned long);
+    n = wmprops->as_styles_size/sizeof (CARD32);
 	for (i = 0; i < n;)
 	{
 		MyStyle      *style;
 		char         *name;
-		unsigned long flags = prop[i + 0];
+		CARD32 flags = prop[i + 0];
 		name = XGetAtomName (dpy, prop[i + 1]);
 		if ((style = mystyle_find (name)) == NULL)
 			style = mystyle_new_with_name (name);
@@ -200,7 +200,7 @@ mystyle_get_property (ASWMProps *wmprops)
 			style->gradient.offset = NEW_ARRAY (double, style->gradient.npoints);
 
 			for (k = 0; k < style->gradient.npoints; k++)
-			{
+ 			{
 				style->gradient.color[k] = prop[i + 16 + k * 4 + 0];
 				/*
 				   style->gradient.color[k].green = prop[i + 16 + k * 4 + 1];
@@ -253,7 +253,7 @@ mystyle_get_property (ASWMProps *wmprops)
 		i += 7 + style->gradient.npoints * 4;
 #endif /* NO_TEXTURE */
 		i += 9;
-		LOCAL_DEBUG_OUT( "user_flags = 0x%lX, inherit_flags = 0x%lX", style->user_flags, style->inherit_flags );
+		LOCAL_DEBUG_OUT( "user_flags = 0x%X, inherit_flags = 0x%X", style->user_flags, style->inherit_flags );
 		style->set_flags = style->user_flags | style->inherit_flags;
 	}
 

@@ -165,7 +165,7 @@ accure_wm_selection (ASWMProps * wmprops)
 	intern_selection_atom (wmprops);
 
 	{										   /* now we need to obtain a valid timestamp : */
-        long          data = 0xAAAAAAAA;
+        CARD32          data = 0xAAAAAAAA;
 
         XChangeProperty (dpy, w, wmprops->_XA_WM_S, wmprops->_XA_WM_S, 32, PropModeAppend, (unsigned char *)&data, 1);
         XSync( dpy, False );
@@ -319,7 +319,7 @@ read_mit_priority_colors (ASWMProps * wmprops, Bool deleted)
 {
 	if (wmprops)
 	{
-        unsigned long  *list = NULL;
+        CARD32  *list = NULL;
 		long          items = 0;
 
 		if (wmprops->preserved_colors)
@@ -337,9 +337,9 @@ read_mit_priority_colors (ASWMProps * wmprops, Bool deleted)
 		{
 			if ((wmprops->preserved_colors_num = items) > 0 && list)
 			{
-				wmprops->preserved_colors = safemalloc (items * sizeof (unsigned long));
+				wmprops->preserved_colors = safemalloc (items * sizeof (CARD32));
 				for (items--; items >= 0; items--)
-					wmprops->preserved_colors[items] = (unsigned long)(list[items]);
+					wmprops->preserved_colors[items] = (CARD32)(list[items]);
 			}
 			XFree (list);
 		}
@@ -354,7 +354,7 @@ read_xrootpmap_id (ASWMProps * wmprops, Bool deleted)
 {
 	if (wmprops)
 	{
-        unsigned long pmap_id = None;
+        CARD32 pmap_id = None;
 
 		if (deleted)
 			return False;
@@ -374,11 +374,11 @@ read_extwm_current_desk (ASWMProps * wmprops, Bool deleted)
 {
     if (wmprops && !deleted )
 	{
-        unsigned long        desk_no = None;
+        CARD32        desk_no = None;
 
         if (read_32bit_property (wmprops->scr->Root, _XA_NET_CURRENT_DESKTOP, &desk_no))
 		{
-            wmprops->desktop_current = (long)desk_no;
+            wmprops->desktop_current = (CARD32)desk_no;
 			return True;
 		}
 	}
@@ -391,7 +391,7 @@ read_extwm_desk_viewport (ASWMProps * wmprops, Bool deleted)
     Bool success = False;
     if (wmprops && !deleted )
 	{
-        unsigned long       *raw_data = NULL ;
+        CARD32       *raw_data = NULL ;
         long          nitems = 0;
 
         if (!read_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_VIEWPORT, 8, &raw_data, &nitems))
@@ -406,7 +406,7 @@ read_extwm_desk_viewport (ASWMProps * wmprops, Bool deleted)
         if (nitems > 2)
 		{
             register int i = nitems;
-            wmprops->desktop_viewport = safemalloc( nitems*sizeof(unsigned long));
+            wmprops->desktop_viewport = safemalloc( nitems*sizeof(CARD32));
             while( --i >= 0 )
                 wmprops->desktop_viewport[i] = raw_data[i] ;
             success = True ;
@@ -424,13 +424,13 @@ read_as_current_desk (ASWMProps * wmprops, Bool deleted)
 {
 	if (wmprops)
 	{
-        unsigned long        desk_no = None;
+        INT32        desk_no = None;
 
 		if (deleted)
 			return False;
 		if (read_32bit_property (wmprops->scr->Root, _AS_CURRENT_DESK, &desk_no))
 		{
-			wmprops->as_current_desk = (long)desk_no;
+			wmprops->as_current_desk = desk_no;
 			return True;
 		}
 	}
@@ -444,7 +444,7 @@ read_as_current_viewport (ASWMProps * wmprops, Bool deleted)
 
     if (wmprops && !deleted )
 	{
-        unsigned long       *raw_data = NULL ;
+        CARD32       *raw_data = NULL ;
         long          nitems = 0;
 
         if (!read_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, 2, &raw_data, &nitems))
@@ -554,7 +554,7 @@ read_as_virtual_root (ASWMProps * wmprops, Bool deleted)
 {
 	if (wmprops)
 	{
-        unsigned long        vroot_id = None;
+        CARD32        vroot_id = None;
 
 		if (deleted)
 			return False;
@@ -868,7 +868,7 @@ set_as_module_socket (ASWMProps * wmprops, char *new_socket)
 }
 
 void
-set_as_style (ASWMProps * wmprops, unsigned long size, unsigned long version, unsigned long *data)
+set_as_style (ASWMProps * wmprops, CARD32 size, CARD32 version, CARD32 *data)
 {
 	if (wmprops)
 	{
@@ -897,7 +897,7 @@ set_as_style (ASWMProps * wmprops, unsigned long size, unsigned long version, un
 }
 
 void
-set_as_backgrounds (ASWMProps * wmprops, unsigned long size, unsigned long version, unsigned long *data)
+set_as_backgrounds (ASWMProps * wmprops, CARD32 size, CARD32 version, CARD32 *data)
 {
 	if (wmprops)
 	{
@@ -926,10 +926,10 @@ set_as_backgrounds (ASWMProps * wmprops, unsigned long size, unsigned long versi
 }
 
 
-unsigned long
-as_desk2ext_desk (ASWMProps * wmprops, long as_desk)
+CARD32
+as_desk2ext_desk (ASWMProps * wmprops, INT32 as_desk)
 {
-    register unsigned long i;
+    register CARD32 i;
 
 	if (wmprops->as_desk_numbers)
 	{
@@ -945,7 +945,7 @@ as_desk2ext_desk (ASWMProps * wmprops, long as_desk)
 }
 
 void
-set_desktop_num_prop (ASWMProps * wmprops, long new_desk, Window vroot, Bool add)
+set_desktop_num_prop (ASWMProps * wmprops, INT32 new_desk, Window vroot, Bool add)
 {
 	if (wmprops)
 	{
@@ -1007,11 +1007,11 @@ set_desktop_num_prop (ASWMProps * wmprops, long new_desk, Window vroot, Bool add
 }
 
 Bool
-set_current_desk_prop (ASWMProps * wmprops, long new_desk)
+set_current_desk_prop (ASWMProps * wmprops, INT32 new_desk)
 {
 	if (wmprops)
 	{
-        unsigned long        ext_desk_no;
+        CARD32        ext_desk_no;
 
 		if (wmprops->as_current_desk == new_desk)
 			return True;
@@ -1033,11 +1033,11 @@ set_current_desk_prop (ASWMProps * wmprops, long new_desk)
 }
 
 Bool
-set_current_viewport_prop (ASWMProps * wmprops, long vx, long vy, Bool normal)
+set_current_viewport_prop (ASWMProps * wmprops, CARD32 vx, CARD32 vy, Bool normal)
 {
 	if (wmprops)
 	{
-        unsigned long        viewport[2];
+        CARD32        viewport[2];
 
         if (wmprops->as_current_vx == vx && wmprops->as_current_vy == vy )
 			return True;

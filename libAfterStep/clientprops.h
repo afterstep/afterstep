@@ -303,11 +303,11 @@ This are placed By Window Manager :
 
 typedef struct
 {
-  unsigned long flags;         /* window hints */
-  unsigned long functions;     /* requested functions */
-  unsigned long decorations;       /* requested decorations */
-  long          inputMode;     /* input mode */
-  unsigned long status;        /* status (ignored) */
+  CARD32 flags;         /* window hints */
+  CARD32 functions;     /* requested functions */
+  CARD32 decorations;   /* requested decorations */
+  INT32  inputMode;     /* input mode */
+  CARD32 status;        /* status (ignored) */
 }
 MwmHints;
 
@@ -398,12 +398,12 @@ typedef struct GnomeHints
 #define GNOME_EXP_SIZE		(1<<4)
   ASFlagType flags;
 
-  unsigned long layer;
-  unsigned long state;
-  unsigned long workspace;
-  unsigned long hints;
+  CARD32 layer;
+  CARD32 state;
+  CARD32 workspace;
+  CARD32 hints;
   /* Unsupported : */
-  unsigned long expanded_size[4];
+  CARD32 expanded_size[4];
 
 }
 GnomeHints;
@@ -481,8 +481,8 @@ typedef struct ExtendedWMHints
   XTextProperty *icon_name;
   XTextProperty *visible_name;
   XTextProperty *visible_icon_name;
-  unsigned long desktop;
-  unsigned long pid;
+  CARD32 desktop;
+  CARD32 pid;
 }
 ExtendedWMHints;
 
@@ -535,7 +535,7 @@ typedef struct ASRawHints
   int            wm_cmd_argc ;
   char         **wm_cmd_argv ;
 
-  long           wm_state ;
+  INT32          wm_state ;
   Window         wm_state_icon_win ;
 
   /* Motif Hints : */

@@ -62,6 +62,26 @@ ASVisual *get_default_asvisual()
 	return __as_default_asvisual?__as_default_asvisual:&__as_dummy_asvisual;
 }
 
+/* internal buffer used for compression/decompression */
+
+static CARD8 *__as_compression_buffer = NULL ;
+static size_t __as_compression_buffer_len = 0;   /* allocated size */
+
+static inline CARD8* get_compression_buffer( size_t size )
+{
+	if( size > __as_compression_buffer_len )
+		__as_compression_buffer_len = (size+1023)&(~0x03FF) ;
+
+	return (__as_compression_buffer = realloc( __as_compression_buffer, __as_compression_buffer_len ));
+}
+
+static inline void release_compression_buffer( CARD8 *ptr )
+{
+	/* do nothing so far */
+}
+
+
+
 #ifdef TRACK_ASIMAGES
 static ASHashTable *__as_image_registry = NULL ;
 #endif
@@ -171,8 +191,6 @@ asimage_init (ASImage * im, Bool free_resources)
 					free( im->red[i] );
 			if( im->red )
 				free(im->red);
-			if (im->buffer)
-				free (im->buffer);
 #ifndef X_DISPLAY_MISSING
 			if( im->alt.ximage )
 				XDestroyImage( im->alt.ximage );
@@ -213,21 +231,13 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 	if (im)
 	{
 		register int i;
-		CARD32 *tmp ;
 
 		asimage_init (im, True);
-		im->buf_len = width + width;
 		/* we want result to be 32bit aligned and padded */
-		if( (tmp = safemalloc (sizeof(CARD32)*(im->buf_len+1))) != NULL )
-		{
-			im->buffer = (CARD8*)tmp;
-			im->red = safemalloc (sizeof (CARD8*) * height * 4);
-		}
-		if( im->red == NULL || im->buffer == NULL )
+		im->red = safemalloc (sizeof (CARD8*) * height * 4);
+		if( im->red == NULL )
 		{
 			show_error( "Insufficient memory to create image %dx%d!", width, height );
-			if( im->buffer )
-				free( im->buffer );
 			if( im->red )
 				free( im->red );
 			return ;
@@ -302,9 +312,6 @@ void print_asimage_func (ASHashableValue value)
         unsigned int red_count = 0, green_count = 0, blue_count = 0, alpha_count = 0;
         fprintf( stderr,"\n\tASImage[%p].size = %dx%d;\n",  im, im->width, im->height );
         fprintf( stderr,"\tASImage[%p].back_color = 0x%lX;\n", im, im->back_color );
-        fprintf( stderr,"\tASImage[%p].buffer = %p;\n", im, im->buffer);
-        fprintf( stderr,"\tASImage[%p].buf_used = %d;\n", im, im->buf_used );
-        fprintf( stderr,"\tASImage[%p].buf_len = %d;\n", im, im->buf_len );
         fprintf( stderr,"\tASImage[%p].max_compressed_width = %d;\n", im, im->max_compressed_width);
         fprintf( stderr,"\t\tASImage[%p].alt.ximage = %p;\n", im, im->alt.ximage );
         if( im->alt.ximage )
@@ -1095,15 +1102,14 @@ destroy_image_layers( register ASImageLayer *l, int count, Bool reusable )
 /*  Compression/decompression 										   */
 /* **********************************************************************/
 static void
-asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y)
+asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y, CARD8 *buffer, size_t buf_used)
 {
-	size_t   len = (im->buf_used>>2)+1 ;
+	register int len = (buf_used>>2)+1 ;
 	CARD8  **part = im->channels[color];
 	register CARD32  *dwdst = safemalloc( sizeof(CARD32)*len);
-	register CARD32  *dwsrc = (CARD32*)(im->buffer);
-	register int i ;
-	for( i = 0 ; i < len ; ++i )
-		dwdst[i] = dwsrc[i];
+	register CARD32  *dwsrc = (CARD32*)buffer;
+	while( --len >= 0 )
+		dwdst[len] = dwsrc[len];
 
 	if (part[y] != NULL)
 		free (part[y]);
@@ -1166,21 +1172,22 @@ asimage_add_line_mono (ASImage * im, ColorPart color, register CARD8 value, unsi
 {
 	register CARD8 *dst;
 	int rep_count;
+	int buf_used = 0;
 
 	if (AS_ASSERT(im) || color <0 || color >= IC_NUM_CHANNELS )
 		return 0;
-	if (im->buffer == NULL || y >= im->height)
+
+	if( (dst = get_compression_buffer(max(RLE_THRESHOLD+2,4))) == NULL || y >= im->height)
 		return 0;
 
-	dst = im->buffer;
 	if( im->width <= RLE_THRESHOLD )
 	{
-		int i = im->width ;
+		int i = im->width+1 ;
 		dst[0] = (CARD8) RLE_DIRECT_TAIL;
-		dst[i+1] = 0 ;
-		while( --i >= 0 )
-			dst[i+1] = (CARD8) value;
-		im->buf_used = 1+im->width+1;
+		dst[i] = 0 ;
+		while( --i > 0 )
+			dst[i] = (CARD8) value;
+		buf_used = 1+im->width+1;
 	}else
 	{
 		rep_count = im->width - RLE_THRESHOLD;
@@ -1189,18 +1196,19 @@ asimage_add_line_mono (ASImage * im, ColorPart color, register CARD8 value, unsi
 			dst[0] = (CARD8) rep_count;
 			dst[1] = (CARD8) value;
 			dst[2] = 0 ;
-			im->buf_used = 3;
+			buf_used = 3;
 		} else
 		{
 			dst[0] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
 			dst[1] = (CARD8) ((rep_count) & 0x00FF);
 			dst[2] = (CARD8) value;
 			dst[3] = 0 ;
-			im->buf_used = 4;
+			buf_used = 4;
 		}
 	}
-	asimage_apply_buffer (im, color, y);
-	return im->buf_used;
+	asimage_apply_buffer (im, color, y, dst, buf_used);
+	release_compression_buffer( dst );
+	return buf_used;
 }
 
 size_t
@@ -1211,23 +1219,29 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 	register CARD8 *dst;
 	register int 	tail = 0;
 	int best_size, best_bstart = 0, best_tail = 0;
+	int buf_used = 0 ;
 
 	if (AS_ASSERT(im) || AS_ASSERT(data) || color <0 || color >= IC_NUM_CHANNELS )
 		return 0;
-	if (im->buffer == NULL || y >= im->height)
+	if (y >= im->height)
 		return 0;
 
 	best_size = 0 ;
-	dst = im->buffer;
 /*	fprintf( stderr, "max = %d, width = %d, %d:%d:%d<%2.2X ", im->max_compressed_width, im->width, y, color, 0, data[0] );*/
 	clear_flags( im->flags, ASIM_DATA_NOT_USEFUL );
 	if( im->width == 1 )
 	{
+		if( (dst = get_compression_buffer( 2 )) == NULL )
+			return 0;
 		dst[0] = RLE_DIRECT_TAIL ;
 		dst[1] = data[0] ;
-		im->buf_used = 2;
+		buf_used = 2;
 	}else
 	{
+		CARD8 *dst_start ;
+		if( (dst_start = get_compression_buffer( im->width*2 )) == NULL )
+			return 0;
+		dst = dst_start ;
 /*		width = im->width; */
 		width = im->max_compressed_width ;
 		while( i < width )
@@ -1303,7 +1317,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 			data += best_bstart;
 			for( i = width-best_bstart-1 ; i >=0 ; --i )
 				dst[i] = data[i] ;
-			im->buf_used = best_tail+1+width-best_bstart ;
+			buf_used = best_tail+1+width-best_bstart ;
 		}else
 		{
 			if( i < im->width )
@@ -1311,18 +1325,20 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 				dst[tail] = RLE_DIRECT_TAIL;
 				dst += tail+1 ;
 				data += i;
-				im->buf_used = tail+1+im->width-i ;
+				buf_used = tail+1+im->width-i ;
 				for( i = im->width-(i+1) ; i >=0 ; --i )
 					dst[i] = data[i] ;
 			}else
 			{
 				dst[tail] = RLE_EOL;
-				im->buf_used = tail+1;
+				buf_used = tail+1;
 			}
 		}
+		dst = dst_start ;
 	}
-	asimage_apply_buffer (im, color, y);
-	return im->buf_used;
+	asimage_apply_buffer (im, color, y, dst, buf_used);
+	release_compression_buffer( dst );
+	return buf_used;
 }
 
 ASFlagType
@@ -1635,11 +1651,12 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
   		if( skip > 0 || out_width+skip < im->width)
 		{
 			int max_i ;
+			CARD8 *buffer = get_compression_buffer( im->width );
 
-			asimage_decode_block8( src, im->buffer, im->width );
+			asimage_decode_block8( src, buffer, im->width );
 			skip = skip%im->width ;
 			max_i = MIN(out_width,im->width-skip);
-			src = im->buffer+skip ;
+			src = buffer+skip ;
 			while( i < out_width )
 			{
 				while( i < max_i )
@@ -1647,7 +1664,7 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
 					to_buf[i] = src[i] ;
 					++i ;
 				}
-				src = im->buffer-i ;
+				src = buffer-i ;
 				max_i = MIN(out_width,im->width+i) ;
 			}
 		}else

@@ -83,7 +83,7 @@ intern_atom_list (AtomXref * list)
 }
 
 void
-translate_atom_list (ASFlagType *trg, AtomXref * xref, unsigned long* list, long nitems)
+translate_atom_list (ASFlagType *trg, AtomXref * xref, CARD32* list, long nitems)
 {
 	if (trg && list && xref && nitems > 0)
 	{
@@ -120,7 +120,7 @@ print_list_hints( stream_func func, void* stream, ASFlagType flags, AtomXref *xr
 }
 
 void
-encode_atom_list ( AtomXref * xref, unsigned long **list, long *nitems, ASFlagType flags)
+encode_atom_list ( AtomXref * xref, CARD32 **list, long *nitems, ASFlagType flags)
 {
 	if ( list && xref && nitems )
 	{
@@ -138,7 +138,7 @@ encode_atom_list ( AtomXref * xref, unsigned long **list, long *nitems, ASFlagTy
 		*nitems = k ;
 		if( k > 0 )
 		{
-            *list = safecalloc( k, sizeof(unsigned long));
+            *list = safecalloc( k, sizeof(CARD32));
 			k = 0 ;
 		    for( i = 0 ; xref[i].name ; i++ )
 				if( get_flags(flags, xref[i].flag) )
@@ -155,7 +155,7 @@ encode_atom_list ( AtomXref * xref, unsigned long **list, long *nitems, ASFlagTy
 
 
 Bool
-read_32bit_proplist (Window w, Atom property, long estimate, unsigned long ** list, long *nitems)
+read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, long *nitems)
 {
 	Bool          res = False;
 
@@ -279,7 +279,7 @@ free_text_property (XTextProperty ** trg)
     }
 }
 
-Bool read_32bit_property (Window w, Atom property, unsigned long* trg)
+Bool read_32bit_property (Window w, Atom property, CARD32* trg)
 {
 	Bool          res = False;
 
@@ -289,7 +289,7 @@ Bool read_32bit_property (Window w, Atom property, unsigned long* trg)
 		Atom          actual_type;
 		int           actual_format;
         ASFlagType bytes_after;
-        unsigned long *data = NULL;
+        CARD32 *data = NULL;
 		unsigned long nitems;
 
 		res =
@@ -339,12 +339,12 @@ text_property2string( XTextProperty *tprop)
 }
 
 /* AfterStep specific property : */
-unsigned long *
-get_as_property ( Window w, Atom property, size_t * data_size, unsigned long *version)
+CARD32 *
+get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 {
-    unsigned long *data = NULL;
+    CARD32 *data = NULL;
 #ifndef X_DISPLAY_MISSING
-    unsigned long *header;
+    CARD32 *header;
 	int           actual_format;
 	Atom          actual_type;
     unsigned long junk, size;
@@ -359,11 +359,11 @@ get_as_property ( Window w, Atom property, size_t * data_size, unsigned long *ve
         return False;
 
     if( version )
-        *version   = (unsigned long)header[0];
-    size = (unsigned long)header[1];
+        *version   = (CARD32)header[0];
+    size = (CARD32)header[1];
     if( data_size )
         *data_size = size;
-    size /= sizeof(unsigned long);
+    size /= sizeof(CARD32);
 
 	XFree (header);
 	if (actual_type == XA_INTEGER)
@@ -378,17 +378,17 @@ get_as_property ( Window w, Atom property, size_t * data_size, unsigned long *ve
 }
 
 Bool
-read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *version, unsigned long **trg)
+read_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version, CARD32 **trg)
 {
 #ifndef X_DISPLAY_MISSING
-    unsigned long  *data = get_as_property( w, property, data_size, version );
-    int             size = (*data_size)/sizeof(unsigned long);
+    CARD32  *data = get_as_property( w, property, data_size, version );
+    int             size = (*data_size)/sizeof(CARD32);
 
     if( data )
     {
-        *trg = safemalloc( size*sizeof(unsigned long));
+        *trg = safemalloc( size*sizeof(CARD32));
         while( --size >= 0 )
-            (*trg)[size] = (unsigned long) (data[size]) ;
+            (*trg)[size] = (CARD32) (data[size]) ;
         XFree( data );
     }
     return True;
@@ -401,7 +401,7 @@ read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *v
 /* Writing properties here :                                             */
 /*************************************************************************/
 void
-set_32bit_property (Window w, Atom property, Atom type, unsigned long data)
+set_32bit_property (Window w, Atom property, Atom type, CARD32 data)
 {
     if (w != None && property != None )
 	{
@@ -420,13 +420,13 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
 	{
         if( items > 0 )
         {
-            unsigned long *data = safemalloc( items*sizeof(unsigned long));
+            CARD32 *data = safemalloc( items*sizeof(CARD32));
             register int i = 0;
             va_list ap;
 
             va_start(ap,items);
             while( i < items )
-                data[i++] = va_arg(ap,unsigned long);
+                data[i++] = va_arg(ap,CARD32);
             va_end(ap);
 
             XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
@@ -442,7 +442,7 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
 }
 
 void
-set_32bit_proplist (Window w, Atom property, Atom type, unsigned long* list, long nitems)
+set_32bit_proplist (Window w, Atom property, Atom type, CARD32* list, long nitems)
 {
 #ifndef X_DISPLAY_MISSING
     if (w != None && property != None )
@@ -503,12 +503,12 @@ set_text_property (Window w, Atom property, char** data, int items_num, ASTextEn
 
 /* AfterStep specific property : */
 void
-set_as_property ( Window w, Atom property, unsigned long *data, size_t data_size, unsigned long version)
+set_as_property ( Window w, Atom property, CARD32 *data, size_t data_size, CARD32 version)
 {
 #ifndef X_DISPLAY_MISSING
-    unsigned long *buffer;
+    CARD32 *buffer;
 
-    buffer = safemalloc (2 * sizeof (unsigned long) + data_size);
+    buffer = safemalloc (2 * sizeof (CARD32) + data_size);
 	/* set the property version to 1.0 */
 	buffer[0] = version;
 	/* the size of meaningful data to store */
@@ -517,7 +517,7 @@ set_as_property ( Window w, Atom property, unsigned long *data, size_t data_size
 	memcpy (&(buffer[2]), data, data_size);
 
     XChangeProperty (dpy, w, property, XA_INTEGER, 32, PropModeReplace,
-					 (unsigned char *)buffer, 2 + data_size / sizeof (unsigned long));
+					 (unsigned char *)buffer, 2 + data_size / sizeof (CARD32));
 	free (buffer);
 #endif
 }

@@ -83,20 +83,40 @@ typedef struct ASImageListEntry
 }ASImageListEntry;
 /*************/
 
-typedef ASImage* (*as_image_loader_func)( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+#define AS_IMPORT_ORIGINAL		0
+#define AS_IMPORT_RESIZE_H		(0x01<<1)
+#define AS_IMPORT_RESIZE_V		(0x01<<2)
+#define AS_IMPORT_RESIZED		(AS_IMPORT_RESIZE_V|AS_IMPORT_RESIZE_H)
+#define AS_IMPORT_SCALED_H		(0x01<<3)      /* if unset - then tile */
+#define AS_IMPORT_SCALED_V		(0x01<<4)      /* if unset - then tile */
+
+typedef struct ASImageImportParams
+{
+	ASFlagType 		flags ;                         /* see above */
+	int 			width, height ;
+	ASFlagType 		filter ; 					   /* what channels to load */
+	double 			gamma ;
+	CARD8 		   *gamma_table ;
+	int 			subimage ;
+	ASAltImFormats 	format ;
+	unsigned int 	compression ;
+	char 		  **search_path ;                 /* NULL terminated list  */
+}ASImageImportParams;
+
+typedef ASImage* (*as_image_loader_func)( const char * path, ASImageImportParams *params );
 extern as_image_loader_func as_image_file_loaders[ASIT_Unknown];
 
-ASImage *xpm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *xpm_data2ASImage( const char **data, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *png2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *xcf2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *ppm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *bmp2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *ico2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *gif2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *xml2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *xpm2ASImage ( const char * path, ASImageImportParams *params );
+ASImage *xpm_data2ASImage( const char **data, ASImageImportParams *params );
+ASImage *png2ASImage ( const char * path, ASImageImportParams *params );
+ASImage *jpeg2ASImage( const char * path, ASImageImportParams *params );
+ASImage *xcf2ASImage ( const char * path, ASImageImportParams *params );
+ASImage *ppm2ASImage ( const char * path, ASImageImportParams *params );
+ASImage *bmp2ASImage ( const char * path, ASImageImportParams *params );
+ASImage *ico2ASImage ( const char * path, ASImageImportParams *params );
+ASImage *gif2ASImage ( const char * path, ASImageImportParams *params );
+ASImage *tiff2ASImage( const char * path, ASImageImportParams *params );
+ASImage *xml2ASImage ( const char * path, ASImageImportParams *params );
 
 
 /****f* libAfterImage/import/file2ASImage()
@@ -154,12 +174,14 @@ ASImage *xml2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *
  * file2ASImage()
  *********/
 ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... );
+ASImage *file2ASImage_extra( const char *file, ASImageImportParams *params );
 ASImage *get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression );
+ASImage *get_asimage_extra( ASImageManager* imageman, const char *file, ASImageImportParams *params );
 
-#define NO_PREVIEW		 0
-#define LOAD_PREVIEW   	(0x01<<0)
-#define SCALE_PREVIEW_H	(0x01<<1)
-#define SCALE_PREVIEW_V	(0x01<<2)
+#define NO_PREVIEW		 	0
+#define LOAD_PREVIEW   		AS_IMPORT_RESIZED
+#define SCALE_PREVIEW_H		AS_IMPORT_SCALED_H
+#define SCALE_PREVIEW_V		AS_IMPORT_SCALED_V
 
 ASImageListEntry *get_asimage_list( struct ASVisual *asv, const char *dir,
 	                                ASFlagType preview_type, double gamma,

@@ -363,7 +363,7 @@ read_wm_cmap_windows (ASRawHints * hints, Window w)
 		if (hints->wm_cmap_windows)
 			XFree (hints->wm_cmap_windows);
 		if (!read_32bit_proplist
-			(w, _XA_WM_COLORMAP_WINDOWS, 10, &(hints->wm_cmap_windows), (long *)&(hints->wm_cmap_win_count)))
+			(w, _XA_WM_COLORMAP_WINDOWS, 10, &(hints->wm_cmap_windows), (CARD32 *)&(hints->wm_cmap_win_count)))
 			hints->wm_cmap_win_count = 0;
 	}
 }
@@ -399,7 +399,7 @@ read_wm_state (ASRawHints * hints, Window w)
 {
 	if (hints)
 	{
-        unsigned long       *data = NULL;
+        CARD32       *data = NULL;
 		long          nitems = 0;
 
 		if (read_32bit_proplist (w, _XA_WM_STATE, 2, &data, &nitems))
@@ -421,7 +421,7 @@ read_motif_hints (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-        unsigned long *raw_data = NULL ;
+        CARD32 *raw_data = NULL ;
         long          nitems = 0 ;
 
 		if (!read_32bit_proplist (w, _XA_MwmAtom, 4, &raw_data, &nitems))

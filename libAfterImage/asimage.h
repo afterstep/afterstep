@@ -172,10 +172,6 @@ typedef struct ASImage
 									 * we could discard everything that
 									 * matches it, and then restore it
 									 * back. */
-  /* internal buffer used for compression/decompression */
-  CARD8 *buffer;
-  unsigned int buf_used, buf_len;   /* allocated and used size */
-
   unsigned int max_compressed_width;/* effectively limits compression to
 									 * speed things up */
 
