@@ -317,8 +317,8 @@ TitleTextAlign          2
 #TitleButton 4 as1.5-shade.xpm as1.5-shade-p.xpm
 
 # Normal buttons
-TitleButton 1 default-switchwindow as-switchwindow-a-pressed.xpm
-TitleButton 2 default-kill.xpm as-kill-pressed.xpm
-TitleButton 3 default-menu.xpm as-menu-a-pressed.xpm
-TitleButton 4 as-shade-a.xpm as-shade-a-pressed.xpm
-TitleButton 6 as-iconize.xpm as-iconize-pressed.xpm
+TitleButton 1 default-switchwindow-light as-switchwindow-a-pressed.xpm
+TitleButton 2 default-kill-dark 		 as-kill-pressed.xpm
+TitleButton 3 default-menu-light 		 as-menu-a-pressed.xpm
+TitleButton 4 default-shade-dark 		 as-shade-a-pressed.xpm
+TitleButton 6 default-iconize-dark 		 as-iconize-pressed.xpm

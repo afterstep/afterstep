@@ -1,15 +1,13 @@
 <composite>
-	<tile tint="#6f7f7f7f">
+	<tile tint="#787f7f7f">
 		<tile tint="InactiveText1">
 			<scale width=16 height=16>
 				<img src="dots/x_medium"/>
 			</scale>
 		</tile>
 	</tile>
-	<tile tint="#7F909090">
-		<tile tint="Base">
+		<tile tint="BaseDark">
 			<img src="dots/x_medium"/>
 		</tile>
-	</tile>
 </composite>
 

@@ -1,0 +1,16 @@
+<tile tint="#7F909090"></tile>
+<composite>
+	<tile tint="#787f7f7f">
+		<tile tint="InactiveText1">
+			<scale width=16 height=16>
+				<img src="dots/menu_medium"/>
+			</scale>
+		</tile>
+	</tile>
+		<tile tint="BaseLight">
+			<img src="dots/menu_medium"/>
+		</tile>
+</composite>
+
+
+

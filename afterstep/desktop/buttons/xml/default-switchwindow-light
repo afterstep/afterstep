@@ -1,16 +1,19 @@
 <rotate id="arrow_short_small_icon" angle=180><img src="dots/arrow_short_small"/></rotate>
 
-<tile id="arrow_short_small_icon_black" tint="InactiveText1">
+<tile tint="#787f7f7f">
+  <tile id="arrow_short_small_icon_black" tint="InactiveText1">
 	<scale width=16 height=16>
 		<recall srcid="arrow_short_small_icon"/>
 	</scale>
+  </tile>
 </tile>
+  
 
 <composite>
 	<recall srcid="arrow_short_small_icon_black"/>
-	<tile tint="Base">
-		<recall srcid="arrow_short_small_icon"/>
-	</tile>
+		<tile tint="BaseLight">
+			<recall srcid="arrow_short_small_icon"/>
+		</tile>
 </composite>
 
 
