@@ -4023,7 +4023,7 @@ EOF
 
 fi
 
-for ac_header in sys/wait.h sys/dirent.h
+for ac_header in sys/wait.h sys/dirent.h sys/time.h
 do
 ac_ac_Header=`echo "ac_cv_header_$ac_header" | $ac_tr_sh`
 echo "$as_me:4029: checking for $ac_header" >&5
