@@ -10,8 +10,12 @@ install: install.script install.data
 uninstall: uninstall.script uninstall.data
 
 install.data:
-	$(INSTALL_DATA) as20new.html      $(AFTER_DOC_DIR)/html/
-	$(INSTALL_DATA) asxmlimages.html  $(AFTER_DOC_DIR)/html/
+	@if [ -d $(AFTER_DOC_DIR)/html ] ; then \
+		echo "$(INSTALL_DATA) as20new.html      $(AFTER_DOC_DIR)/html/"; \
+		$(INSTALL_DATA) as20new.html      $(AFTER_DOC_DIR)/html/; \
+		echo "$(INSTALL_DATA) asxmlimages.html  $(AFTER_DOC_DIR)/html/"; \
+		$(INSTALL_DATA) asxmlimages.html  $(AFTER_DOC_DIR)/html/; \
+	fi
 
 uninstall.data:
 	$(RMF) -r $(AFTER_DOC_DIR)

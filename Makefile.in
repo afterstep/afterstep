@@ -6,7 +6,6 @@ confsdirs= autoconf libAfterBase libAfterImage
 ####
 
 subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
-		  doc tools \
 		  src/afterstep \
 		  src/Animate \
 		  src/Banner \
@@ -16,7 +15,9 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  src/WinList2 \
 		  src/WinTabs \
 		  src/ascp  \
-		  src/ASDocGen 
+		  src/ASDocGen \
+		  doc tools 
+
 
 #		  src/ascp/fltk \
 #		  src/ascp/gtk
