@@ -1698,31 +1698,55 @@ grab_swallowed_canvas_btns( ASCanvas *canvas, Bool action, Bool withdraw )
     {
         /* grab button 1 if this button performs an action */
         if( action )
+		{	
             XGrabButton (dpy, Button1, mods[i],
                         canvas->w,
                         False, ButtonPressMask | ButtonReleaseMask,
                         GrabModeAsync, GrabModeAsync, None, None);
+#if !defined(NO_DEBUG_OUTPUT)			
+			ASSync(False);
+			fprintf( stderr, "line = %d, mods = 0x%lX\n", __LINE__, mods[i] );
+#endif
+		}
         /* grab button 3 if this is the root folder */
         if (withdraw )
+		{	
             XGrabButton (dpy, Button3, mods[i],
                         canvas->w,
                         False, ButtonPressMask | ButtonReleaseMask,
                         GrabModeAsync, GrabModeAsync, None, None);
+#if !defined(NO_DEBUG_OUTPUT)			   
+			ASSync(False);
+			fprintf( stderr, "line = %d, canvas = %p, window = %X, i = %d, mods = 0x%lX\n", __LINE__, canvas, canvas->w, i, mods[i] );
+#endif
+		}
 		if( mods[i] == 0 )
 			return;
     }while (++i < MAX_LOCK_MODS );
 
 	if( action )
+	{	
         XGrabButton (dpy, Button1, 0,
                     canvas->w,
                     False, ButtonPressMask | ButtonReleaseMask,
                     GrabModeAsync, GrabModeAsync, None, None);
+#if !defined(NO_DEBUG_OUTPUT)			   		
+		ASSync(False);
+		fprintf( stderr, "line = %d, mods = 0x%lX\n", __LINE__, 0 );
+#endif
+	}
     /* grab button 3 if this is the root folder */
     if (withdraw )
+	{	
         XGrabButton (dpy, Button3, 0,
                     canvas->w,
                     False, ButtonPressMask | ButtonReleaseMask,
                     GrabModeAsync, GrabModeAsync, None, None);
+#if !defined(NO_DEBUG_OUTPUT)			   			
+			ASSync(False);
+			fprintf( stderr, "line = %d, mods = 0x%lX\n", __LINE__, 0 );
+#endif
+	}
 
 }
 
@@ -1819,7 +1843,11 @@ check_swallow_window( ASWindowData *wd )
     XReparentWindow( dpy, wd->client, aswb->canvas->w, (aswb->canvas->width - nc->width)/2, (aswb->canvas->height - nc->height)/2 );
     register_object( wd->client, (ASMagic*)aswb );
     XSelectInput (dpy, wd->client, StructureNotifyMask|LeaveWindowMask|EnterWindowMask);
-    grab_swallowed_canvas_btns( nc, (aswb->folder!=NULL), withdraw_btn && aswb->parent == WharfState.root_folder);
+	ASSync(False);
+    ungrab_server();
+	ASSync(False);
+    sleep_a_millisec(100);
+	grab_swallowed_canvas_btns( nc, (aswb->folder!=NULL), withdraw_btn && aswb->parent == WharfState.root_folder);
 
     if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) &&
 		wd->icon != None )
@@ -1829,6 +1857,7 @@ check_swallow_window( ASWindowData *wd )
         XReparentWindow( dpy, wd->icon, aswb->canvas->w, (aswb->canvas->width-ic->width)/2, (aswb->canvas->height-ic->height)/2 );
         register_object( wd->icon, (ASMagic*)aswb );
         XSelectInput (dpy, wd->icon, StructureNotifyMask);
+		ASSync(False);
         grab_swallowed_canvas_btns(  ic, (aswb->folder!=NULL), withdraw_btn && aswb->parent == WharfState.root_folder);
     }
     aswb->swallowed->current = ( get_flags( wd->state_flags, AS_Iconic ) &&
@@ -1857,9 +1886,6 @@ check_swallow_window( ASWindowData *wd )
     send_swallowed_configure_notify(aswb);
 
     update_wharf_folder_size( aswf );
-
-    ASSync(False);
-    ungrab_server();
 }
 
 

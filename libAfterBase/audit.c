@@ -60,6 +60,7 @@
 #undef XSubImage
 #undef XDestroyImage
 
+#undef XGetVisualInfo
 #undef XGetWindowProperty
 #undef XListProperties
 #undef XGetTextProperty
@@ -108,8 +109,9 @@ enum
 	C_CALLOC = 0x200,
 	C_REALLOC = 0x300,
 	C_ADD_HASH_ITEM = 0x400,
-	C_MYSTRDUP = 0x500,
-	C_MYSTRNDUP = 0x600,
+	C_ADD_HASH_OPTIONAL_ITEM = 0x500,
+	C_MYSTRDUP = 0x600,
+	C_MYSTRNDUP = 0x700,
 
 	C_PIXMAP = 1,
 	C_CREATEPIXMAP = 0x100,
@@ -124,18 +126,19 @@ enum
 	C_SUBIMAGE = 0x300,
 
 	C_XMEM = 4,
-	C_XGETWINDOWPROPERTY = 0x100,
-    C_XLISTPROPERTIES = 0x200,
-    C_XGETTEXTPROPERTY = 0x300,
-    C_XALLOCCLASSHINT = 0x400,
-    C_XALLOCSIZEHINTS = 0x500,
-    C_XQUERYTREE = 0x600,
-    C_XGETWMHINTS = 0x700,
-    C_XGETWMPROTOCOLS = 0x800,
-    C_XGETWMNAME = 0x900,
-    C_XGETCLASSHINT = 0xa00,
-    C_XGETATOMNAME = 0xb00,
-    C_XSTRINGLISTTOTEXTPROPERTY = 0xc00,
+	C_XGETVISUALINFO = 	   	(0x100<<0),
+	C_XGETWINDOWPROPERTY = 	(0x100<<1),
+    C_XLISTPROPERTIES = 	(0x100<<2),
+    C_XGETTEXTPROPERTY = 	(0x100<<3),
+    C_XALLOCCLASSHINT = 	(0x100<<4),
+    C_XALLOCSIZEHINTS = 	(0x100<<5),
+    C_XQUERYTREE = 			(0x100<<6),
+    C_XGETWMHINTS = 		(0x100<<7),
+    C_XGETWMPROTOCOLS = 	(0x100<<8),
+    C_XGETWMNAME = 			(0x100<<9),
+    C_XGETCLASSHINT = 		(0x100<<10),
+    C_XGETATOMNAME = 		(0x100<<11),
+    C_XSTRINGLISTTOTEXTPROPERTY = (0x100<<12),
 
 	C_LAST_TYPE
 };
@@ -208,11 +211,15 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 	if( get_hash_item( allocs_hash, (ASHashableValue)ptr, &hdata.vptr ) == ASH_Success )
 	{
 		m = (mem*)hdata.vptr ;
-		show_error( "Same pointer value 0x%lX is being counted twice!\n  Called from %s:%d - previously allocated in %s:%d", (unsigned long)ptr, fname, line, m->fname, m->line );
-		print_simple_backtrace();
+		if( type != (C_MEM|C_ADD_HASH_OPTIONAL_ITEM) )
+		{	
+			show_error( "Same pointer value 0x%lX is being counted twice!\n  Called from %s:%d - previously allocated in %s:%d", (unsigned long)ptr, fname, line, m->fname, m->line );
+			print_simple_backtrace();
 #ifdef DEBUG_ALLOC_STRICT
-{	char *segv = NULL ;	*segv = 0 ;  }
+			{	char *segv = NULL ;	*segv = 0 ;  }
 #endif
+		}else
+			return ;
 	}else if( deallocated_used > 0 )
     {
         m = deallocated_mem[--deallocated_used];
@@ -495,13 +502,22 @@ countfree (const char *fname, int line, void *ptr)
 #endif
 }
 
+Bool check_hash_item_reused (ASHashItem *item);
+
 ASHashResult
 countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHashableValue value, void *data )
 {
 	ASHashResult   res = add_hash_item(hash, value, data );
 
-    if( res == ASH_Success )
-		count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_ITEM);
+	if( res == ASH_Success )
+	{	
+		if( check_hash_item_reused (hash->most_recent) )
+		{	
+			show_debug( __FILE__, fname, line, "reused hash item %p", hash->most_recent );
+			count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_OPTIONAL_ITEM );
+    	}else 
+			count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_ITEM);
+	}
 	return res;
 }
 
@@ -589,6 +605,9 @@ output_unfreed_mem (FILE *stream)
 				  case C_ADD_HASH_ITEM:
                       fprintf (stream, " (add_hash_item)");
 					  break;
+				  case C_ADD_HASH_OPTIONAL_ITEM :
+                      fprintf (stream, " (add_hash_item)");
+					  break;
 				  case C_MYSTRDUP:
                       fprintf (stream, " (mystrdup)");
 					  break;
@@ -650,6 +669,9 @@ output_unfreed_mem (FILE *stream)
                  fprintf (stream, "| X mem");
 				 switch (m->type & ~0xff)
 				 {
+				  case C_XGETVISUALINFO:
+                      fprintf (stream, " (XGetVisualInfo)");
+					  break;
 				  case C_XGETWINDOWPROPERTY:
                       fprintf (stream, " (XGetWindowProperty)");
 					  break;
@@ -924,6 +946,21 @@ count_xdestroyimage (const char *fname, int line, XImage * image)
 	return Success;
 }
 
+XVisualInfo *
+count_xgetvisualinfo(const char *fname, int line, 
+					 Display *dpy, long vinfo_mask, 
+					 XVisualInfo *vinfo_template, int *nitems_return)
+{
+	int my_nitems_return = 0;
+	XVisualInfo *val = XGetVisualInfo( dpy, vinfo_mask, vinfo_template, &my_nitems_return );	
+	
+	if (val != NULL && my_nitems_return)
+		count_alloc (fname, line, (void *)val,
+					 my_nitems_return * sizeof(XVisualInfo), C_XMEM | C_XGETVISUALINFO);
+	*nitems_return = my_nitems_return;		   /* need to do this in case bytes_after_return and nitems_return point to the same var */
+	return val;
+}
+
 int
 count_xgetwindowproperty (const char *fname, int line, Display * display,
 						  Window w, Atom property, long long_offset,
@@ -1089,7 +1126,7 @@ count_xfree (const char *fname, int line, void *data)
 {
 	mem          *m = count_find_and_extract (fname, line, (void *)data, C_XMEM);
 
-	if (m == NULL)
+	if (data == NULL)
 	{
 		show_error("count_xfree:attempt to free NULL X memory in %s:%d", fname, line);
 		return !Success;

@@ -415,6 +415,7 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
         XSelectInput (dpy, asw->w, NoEventMask);
 	}
     XUnmapWindow (dpy, asw->frame);
+	grab_window_input( asw, True );
 
 	if( Scr.moveresize_in_progress != NULL &&
 		Scr.moveresize_in_progress->mr == asw->frame_canvas )

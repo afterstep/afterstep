@@ -27,6 +27,7 @@
 #include "screen.h"
 #include "balloon.h"
 #include "event.h"
+#include "wmprops.h"
 #include "../libAfterImage/afterimage.h"
 
 int _as_frame_corner_xref[FRAME_SIDES+1] = {FR_NW, FR_NE, FR_SE, FR_SW, FR_NW};
@@ -634,7 +635,15 @@ void myback_delete( MyBackground **myback, ASImageManager *imman )
 		if( (*myback)->loaded_im_name )
 			free( (*myback)->loaded_im_name );
 		if( (*myback)->loaded_pixmap )
+		{	
+			if( Scr.RootBackground && Scr.RootBackground->pmap == (*myback)->loaded_pixmap )
+			{	
+	            if( Scr.wmprops && Scr.wmprops->root_pixmap == Scr.RootBackground->pmap )
+    	            set_xrootpmap_id (Scr.wmprops, None );
+				Scr.RootBackground->pmap = None;
+			}
 			destroy_visual_pixmap( Scr.asv, &((*myback)->loaded_pixmap) );
+		}
 		(*myback)->magic = 0 ;
 		free( *myback );
 		*myback = NULL ;

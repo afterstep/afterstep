@@ -629,10 +629,17 @@ grab_window_input( ASWindow *asw, Bool release_grab )
         if( release_grab )
         {
             ungrab_window_keys ( asw->frame );
+			ungrab_window_buttons( asw->frame );
             if( asw->icon_canvas )
+			{	
                 ungrab_window_keys ( asw->icon_canvas->w );
-            if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas )
+				ungrab_window_buttons( asw->icon_canvas->w );
+            }
+			if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas )
+			{	
                 ungrab_window_keys ( asw->icon_title_canvas->w );
+				ungrab_window_buttons( asw->icon_title_canvas->w );
+			}
             XSync(dpy, False );
         }else
         {

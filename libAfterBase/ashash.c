@@ -35,6 +35,21 @@
 #include "output.h"
 #include "audit.h"
 
+#define DEALLOC_CACHE_SIZE      1024
+static ASHashItem*  deallocated_mem[DEALLOC_CACHE_SIZE+10] ;
+static unsigned int deallocated_used = 0 ;
+
+static inline void 
+free_ashash_item( ASHashItem *item ) 
+{
+	if( deallocated_used < DEALLOC_CACHE_SIZE )
+    {
+    	deallocated_mem[deallocated_used++] = item ;
+    }else
+        free( item );
+}
+
+
 
 ASHashKey default_hash_func (ASHashableValue value, ASHashKey hash_size)
 {
@@ -110,7 +125,7 @@ destroy_ashash_bucket (ASHashBucket * bucket, void (*item_destroy_func) (ASHasha
 		next = item->next;
 		if (item_destroy_func)
 			item_destroy_func (item->value, item->data);
-		free (item);
+		free_ashash_item(item);
 	}
 	*bucket = NULL;
 }
@@ -172,9 +187,15 @@ void* safemalloc(size_t);
 #undef free
 #endif
 
-#define DEALLOC_CACHE_SIZE      1024
-static ASHashItem*  deallocated_mem[DEALLOC_CACHE_SIZE+10] ;
-static unsigned int deallocated_used = 0 ;
+Bool
+check_hash_item_reused (ASHashItem *item)
+{
+/*	fprintf( stderr, "item = %p, used = %d, mem = %p\n", item, deallocated_used, deallocated_mem[deallocated_used] ); */
+	if( deallocated_used >= DEALLOC_CACHE_SIZE )
+		return False;
+	return (deallocated_mem[deallocated_used] == item );
+}
+
 
 ASHashResult
 add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
@@ -207,7 +228,7 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
 		if (hash->buckets[key]->next == NULL)
 			hash->buckets_used++;
 	} else
-		free (item);
+		free_ashash_item(item);
 	return res;
 }
 
@@ -314,11 +335,7 @@ remove_hash_item (ASHashTable * hash, ASHashableValue value, void **trg, Bool de
 			if (hash->item_destroy_func && destroy)
 				hash->item_destroy_func ((*pitem)->value, (trg) ? NULL : (*pitem)->data);
 
-            if( deallocated_used < DEALLOC_CACHE_SIZE )
-            {
-                deallocated_mem[deallocated_used++] = *pitem ;
-            }else
-                free( *pitem );
+			free_ashash_item(*pitem);
 
             *pitem = next;
 			if (hash->buckets[key] == NULL)
@@ -480,7 +497,7 @@ remove_curr_hash_item (ASHashIterator * iterator, Bool destroy)
 
                 if (hash->item_destroy_func && destroy)
                     hash->item_destroy_func (removed->value, removed->data);
-                free (removed);
+				free_ashash_item(removed);
                 if (hash->buckets[key] == NULL)
                     hash->buckets_used--;
                 hash->items_num--;

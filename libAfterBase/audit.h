@@ -66,6 +66,8 @@ int as_assert (void *p, const char *fname, int line, const char *call);
 #define XSubImage(a, b, c, d, e) count_xsubimage(__FUNCTION__, __LINE__, a, b, c, d, e)
 #define XDestroyImage(a) count_xdestroyimage(__FUNCTION__, __LINE__, a)
 
+#define XGetVisualInfo(a,b,c,d)	count_xgetvisualinfo(__FUNCTION__,__LINE__,a,b,c,d)
+
 #define XGetWindowProperty(a, b, c, d, e, f, g, h, i, j, k, l) count_xgetwindowproperty(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j, k, l)
 #define XListProperties(a,b,c) count_xlistproperties(__FUNCTION__, __LINE__, a, b, c)
 #define XGetTextProperty(a,b,c,d) count_xgettextproperty(__FUNCTION__,__LINE__,a,b,c,d)
@@ -144,6 +146,11 @@ int count_xpmcreateimagefromxpmimage (const char *fname, int line,
 				      XImage ** image, XImage ** mask,
 				      void *attributes);
 int count_xdestroyimage (const char *fname, int line, XImage * image);
+
+XVisualInfo *count_xgetvisualinfo(const char *fname, int line, 
+								  Display *dpy, long vinfo_mask, 
+								  XVisualInfo *vinfo_template, 
+								  int *nitems_return);
 
 int count_xgetwindowproperty (const char *fname, int line, Display * display,
 			      Window w, Atom property, long long_offset,

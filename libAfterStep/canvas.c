@@ -605,7 +605,10 @@ refresh_container_shape( ASCanvas *pc )
 	if( pc && get_flags( pc->state, CANVAS_CONTAINER ) )
 	{
 		int count, order ;
-		XRectangle *rects = XShapeGetRectangles( dpy, pc->w, ShapeBounding, &count, &order );
+		XRectangle *rects;
+#ifdef SHAPE
+		rects = XShapeGetRectangles( dpy, pc->w, ShapeBounding, &count, &order );
+#endif
 		if( rects )
 		{
 			unsigned int curr_width = 1, curr_height = 1 ;

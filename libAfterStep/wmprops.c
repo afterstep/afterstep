@@ -1186,8 +1186,8 @@ set_clients_list (ASWMProps * wmprops, Window *list, int nclients)
 		XFlush (dpy);
     	if( wmprops->clients_num < nclients ) 
 		{
-			wmprops->client_list = saferealloc( wmprops->client_list, nclients*sizeof(Window) );
-			wmprops->stacking_order = saferealloc( wmprops->stacking_order, nclients*sizeof(Window) );
+			wmprops->client_list = realloc( wmprops->client_list, nclients*sizeof(Window) );
+			wmprops->stacking_order = realloc( wmprops->stacking_order, nclients*sizeof(Window) );
 
 		}
 		wmprops->clients_num = nclients ;
@@ -1204,8 +1204,8 @@ set_stacking_order (ASWMProps * wmprops, Window *list, int nclients)
 		XFlush (dpy);
     	if( wmprops->clients_num < nclients ) 
 		{
-			wmprops->client_list = saferealloc( wmprops->client_list, nclients*sizeof(Window) );
-			wmprops->stacking_order = saferealloc( wmprops->stacking_order, nclients*sizeof(Window) );
+			wmprops->client_list = realloc( wmprops->client_list, nclients*sizeof(Window) );
+			wmprops->stacking_order = realloc( wmprops->stacking_order, nclients*sizeof(Window) );
 
 		}
 		wmprops->clients_num = nclients ;
