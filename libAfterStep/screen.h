@@ -316,8 +316,10 @@ typedef struct ScreenInfo
     XRectangle RootClipArea;                /* used only by modules */
 
     Window SizeWindow;      /* the resize dimensions window */
-    Window NoFocusWin;		/* Window which will own focus when no other
-				 * windows have it */
+    Window ServiceWin;      /* Auxilary window that we use for :
+                             *    1) hiding focus - it will own focus when no other windows have it
+                             *    2) desktop switching - off-desktop windows will be reparented there
+                             */
 
     struct ASWindowList *Windows ;
 /*    ASWindow ASRoot;        the head of the afterstep window list */

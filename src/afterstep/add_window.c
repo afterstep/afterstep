@@ -1896,7 +1896,7 @@ hide_focus()
 
     Scr.Windows->focused = NULL;
     Scr.Windows->ungrabbed = NULL;
-    XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, Scr.last_Timestamp);
+    XSetInputFocus (dpy, Scr.ServiceWin, RevertToParent, Scr.last_Timestamp);
     XSync(dpy, False );
 }
 

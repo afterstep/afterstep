@@ -29,6 +29,7 @@
 #include "../libAfterImage/afterimage.h"
 #include "../include/myicon.h"
 #include "../include/decor.h"
+#include "../include/event.h"
 
 #ifdef SHAPE
 #include <X11/extensions/shape.h>
@@ -439,6 +440,23 @@ map_canvas_window( ASCanvas *pc, Bool raised )
             XMapRaised( dpy, pc->w );
         else
             XMapWindow( dpy, pc->w );
+    }
+}
+
+void
+quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_root_pos )
+{
+    if( pc && dst != None )
+    {
+        int x = 0, y = 0 ;
+        if( use_root_pos )
+        {
+            x = pc->root_x ;
+            y = pc->root_y ;
+        }else
+            get_canvas_position( pc, NULL, &x, &y );
+
+        quietly_reparent_window( pc->w, dst, x, y, event_mask );
     }
 }
 

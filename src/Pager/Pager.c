@@ -241,6 +241,7 @@ void HandleEvents(int x_fd, int *as_fd)
             {
                 process_message (msg->header[1], msg->body);
                 DestroyASMessage (msg);
+                --PagerState.wait_as_response;
             }
         }else
         {
@@ -1114,6 +1115,17 @@ process_message (unsigned long type, unsigned long *body)
             case M_TOGGLE_PAGING :
                 break;
             case M_NEW_PAGE :
+                {
+                    Scr.Vx = (long) body[0];
+                    Scr.Vy = (long) body[1];
+                    LOCAL_DEBUG_OUT("M_NEW_PAGE(desk = %d,Vx=%d,Vy=%d)", Scr.CurrentDesk, Scr.Vx, Scr.Vy);
+
+                    if (body[2] != 10000)
+                    {
+                       /* MoveStickyWindows (); */
+                    }
+                    place_selection();
+                }
                 break;
             case M_NEW_DESK :
                 {

@@ -782,6 +782,7 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 	 default:
         {
             ASEvent event;
+            memset( &event, 0x00, sizeof(ASEvent) );
             event.w = w;
             if ((event.client = window2ASWindow(w)) == NULL )
             {
@@ -799,6 +800,8 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
             event.x.xbutton.y = 0;
             event.x.xbutton.subwindow = None;
             event.context = C_FRAME;
+            event.scr = &Scr ;
+            event.event_time = Scr.last_Timestamp ;
             ExecuteFunction (fdata, &event, channel);
         }
     }

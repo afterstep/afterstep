@@ -271,19 +271,19 @@ CreateManagementWindows()
 	   windows have it */
     attr.event_mask = KeyPressMask | FocusChangeMask;
     attr.override_redirect = True;
-	Scr.NoFocusWin = create_visual_window (Scr.asv, Scr.Root, -10, -10, 10, 10, 0,
-										   InputOnly, CWEventMask | CWOverrideRedirect,
+    Scr.ServiceWin = create_visual_window (Scr.asv, Scr.Root, 0, -1, 1, 1, 0,
+                                           InputOutput, CWEventMask | CWOverrideRedirect,
                                            &attr);
-	XMapWindow (dpy, Scr.NoFocusWin);
-	XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, CurrentTime);
+    XMapWindow (dpy, Scr.ServiceWin);
+    XSetInputFocus (dpy, Scr.ServiceWin, RevertToParent, CurrentTime);
 }
 
 void
 DestroyManagementWindows()
 {
-    if( Scr.NoFocusWin )
-        XDestroyWindow( dpy, Scr.NoFocusWin );
-    Scr.NoFocusWin = None;
+    if( Scr.ServiceWin )
+        XDestroyWindow( dpy, Scr.ServiceWin );
+    Scr.ServiceWin = None;
     if( Scr.SizeWindow )
         XDestroyWindow( dpy, Scr.SizeWindow );
     Scr.SizeWindow = None;

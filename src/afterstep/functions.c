@@ -28,9 +28,9 @@
  * afterstep function execution code
  ***********************************************************************/
 
-#include "../../configure.h"
-
 #define LOCAL_DEBUG
+
+#include "../../configure.h"
 
 #include "../../include/asapp.h"
 #include "../../libAfterImage/afterimage.h"
@@ -919,7 +919,10 @@ void refresh_func_handler( FunctionData *data, ASEvent *event, int module )
 void goto_page_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_VIRTUAL
-    MoveViewport ( data->func_val[0]*event->scr->MyDisplayWidth, data->func_val[1] * event->scr->MyDisplayHeight, True);
+    int newvx = data->func_val[0]*event->scr->MyDisplayWidth;
+    int newvy = data->func_val[1]*event->scr->MyDisplayHeight;
+LOCAL_DEBUG_OUT( "val(%ld,%ld)->scr(%d,%d)->newv(%d,%d)", data->func_val[0], data->func_val[1], event->scr->MyDisplayWidth, event->scr->MyDisplayHeight, newvx, newvy );
+    MoveViewport ( newvx, newvy, True);
 #endif
 }
 

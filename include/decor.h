@@ -242,6 +242,8 @@ void move_canvas (ASCanvas * pc, int x, int y);
 void moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height);
 void map_canvas_window( ASCanvas *pc, Bool raised );
 void unmap_canvas_window( ASCanvas *pc );
+void quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_root_pos );
+
 Bool is_canvas_needs_redraw( ASCanvas *pc );
 Bool is_canvas_dirty( ASCanvas *pc );
 

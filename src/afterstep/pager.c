@@ -24,6 +24,7 @@
  *
  ***********************************************************************/
 
+#define LOCAL_DEBUG
 #include "../../configure.h"
 
 #include "../../include/asapp.h"
@@ -33,6 +34,8 @@
 #include "../../include/screen.h"
 #include "../../include/module.h"
 #include "../../include/event.h"
+#include "../../include/decor.h"
+#include "../../include/wmprops.h"
 
 #include "asinternals.h"
 
@@ -201,10 +204,12 @@ MoveViewport (int newx, int newy, Bool grab)
 #ifndef NO_VIRTUAL
 	int           deltax, deltay;
 
+LOCAL_DEBUG_CALLER_OUT( "new(%+d%+d), old(%+d%+d), max(%+d,%+d)", newx, newy, Scr.Vx, Scr.Vy, Scr.VxMax, Scr.VyMax );
+
 	if (grab)
 		XGrabServer (dpy);
 
-	if (newx > Scr.VxMax)
+    if (newx > Scr.VxMax)
 		newx = Scr.VxMax;
 	if (newy > Scr.VyMax)
 		newy = Scr.VyMax;
@@ -320,98 +325,88 @@ MoveViewport (int newx, int newy, Bool grab)
 /**************************************************************************
  * Move to a new desktop
  *************************************************************************/
+Bool
+change_aswindow_desk_iter_func(void *data, void *aux_data)
+{
+    int new_desk = (int)aux_data ;
+    ASWindow *asw = (ASWindow *)data ;
+
+    if( ASWIN_GET_FLAGS(asw, AS_Sticky) ||
+        (ASWIN_GET_FLAGS(asw, AS_Iconic) && get_flags( Scr.Feel.flags, StickyIcons)) )
+    {  /* Window is sticky */
+        ASWIN_DESK(asw) = new_desk ;
+        set_client_desktop( asw->w, new_desk );
+    }else
+    {
+        Window dst = Scr.ServiceWin;
+        if(ASWIN_DESK(asw)==new_desk)
+            dst = Scr.Root;
+
+        quietly_reparent_canvas( asw->frame_canvas, dst, AS_FRAME_EVENT_MASK, True );
+        quietly_reparent_canvas( asw->icon_canvas, dst, AS_ICON_EVENT_MASK, True );
+        if( asw->icon_title_canvas != asw->icon_canvas )
+            quietly_reparent_canvas( asw->icon_title_canvas, dst, AS_ICON_TITLE_EVENT_MASK, True );
+    }
+    return True;
+}
+
+
 void
 ChangeDesks (int new_desk)
 {
-    /*TODO: implement virtual desktops switching : */
-#if 0
-    int           oldDesk;
-	ASWindow     *t;
-	ASWindow     *FocusWin = 0;
-	static ASWindow *StickyWin = 0;
-	unsigned long data;
-	extern Atom   _XA_WIN_DESK;
+    if( Scr.CurrentDesk == new_desk )
+        return;
 
-	oldDesk = Scr.CurrentDesk;
+    Scr.CurrentDesk = new_desk;
+    if( as_desk2ext_desk (Scr.wmprops, new_desk) == INVALID_DESKTOP_PROP )
+        set_desktop_num_prop( Scr.wmprops, new_desk, Scr.Root, True );
 
-	if ((val1 != 0) && (val1 != 10000))
-		Scr.CurrentDesk = Scr.CurrentDesk + val1;
-	else
-		Scr.CurrentDesk = val2;
+    set_current_desk_prop ( Scr.wmprops, new_desk);
 
-	/* update property to tell us what desk we were on when we restart;
-	 * always do this so that when we get called from main(), the property
-	 * will be set; this property is what we use to determine if we're
-	 * starting up for the first time, or restarting */
-	data = (unsigned long)Scr.CurrentDesk;
-	XChangeProperty (dpy, Scr.Root, _XA_WIN_DESK, XA_CARDINAL, 32,
-					 PropModeReplace, (unsigned char *)&data, 1);
-
-	if (Scr.CurrentDesk == oldDesk)
-		return;
-
-    SendPacket( -1, M_NEW_DESK, 1, Scr.CurrentDesk);
-
-	/* Scan the window list, mapping windows on the new Desk, unmapping
+    SendPacket( -1, M_NEW_DESK, 1, new_desk);
+    /* Scan the window list, mapping windows on the new Desk, unmapping
 	 * windows on the old Desk; do this in reverse order to reduce client
 	 * expose events */
 	XGrabServer (dpy);
-	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-	{
-		/* Only change mapping for non-sticky windows */
-		if (!((t->flags & ICONIFIED) && (Scr.flags & StickyIcons)) &&
-			!(t->flags & STICKY) && !(t->flags & ICON_UNMAPPED))
-		{
-			if (ASWIN_DESK(t) == oldDesk)
-			{
-				if (Scr.Focus == t)
-					t->FocusDesk = oldDesk;
-				else
-					t->FocusDesk = -1;
-				UnmapIt (t);
-			} else if (ASWIN_DESK(t) == Scr.CurrentDesk)
-			{
-				MapIt (t);
-				if (t->FocusDesk == Scr.CurrentDesk)
-				{
-					FocusWin = t;
-				}
-			}
-		} else
-		{
-			/* Window is sticky */
-			ASWIN_DESK(t) = Scr.CurrentDesk ;
-			set_client_desktop( t->w, Scr.CurrentDesk );
-			if (Scr.Focus == t)
-			{
-				t->FocusDesk = oldDesk;
-				StickyWin = t;
-			}
-		}
-	}
-	XUngrabServer (dpy);
-	/* autoplace sticky icons so they don't wind up over a stationary icon */
-	AutoPlaceStickyIcons ();
+    iterate_asbidirlist( Scr.Windows->clients, change_aswindow_desk_iter_func, (void*)new_desk, NULL, False );
+    XUngrabServer (dpy);
 
-	if (Scr.flags & ClickToFocus)
+    if (get_flags(Scr.Feel.flags, ClickToFocus))
 	{
+        int i ;
+        int circ_count = VECTOR_USED(*(Scr.Windows->circulate_list));
 #ifndef NO_REMEMBER_FOCUS
-		if (FocusWin)
-			SetFocus (FocusWin->w, FocusWin, False);
-		else if (StickyWin && (StickyWin->flags && STICKY))
-			SetFocus (StickyWin->w, StickyWin, False);
-		else
+        ASWindow **circ_list = VECTOR_HEAD(ASWindow*,*(Scr.Windows->circulate_list));
+        for( i =0 ; i < circ_count ; ++i )
+            if( circ_list[i] != NULL && circ_list[i]->magic == MAGIC_ASWINDOW )
+                if( ASWIN_DESK(circ_list[i]) == new_desk )
+                {
+                    focus_aswindow( circ_list[i], False );
+                    break;
+                }
+#else
+        i = circ_count ;
 #endif
-			SetFocus (Scr.NoFocusWin, NULL, False);
-	}
+        if( i >= circ_count )
+            hide_focus();
+    }
 
-	CorrectStackOrder ();
-	update_windowList ();
+    restack_window_list( new_desk );
 
-	/* Change the look to this desktop's one if it really changed */
+    /* Change the look to this desktop's one if it really changed */
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
 	QuickRestart ("look&feel");
 #endif
+
+    /*TODO: implement virtual desktops switching : */
+#if 0
+    /* autoplace sticky icons so they don't wind up over a stationary icon */
+	AutoPlaceStickyIcons ();
+
+
+	CorrectStackOrder ();
+	update_windowList ();
 #endif
+
 }
 
