@@ -1,6 +1,8 @@
 #ifndef SAFEMALLOC_H_HEADER_INCLUDED
 #define SAFEMALLOC_H_HEADER_INCLUDED
 
+#include <malloc.h>
+
 #ifndef safemalloc
 void         *safemalloc (size_t length);
 #endif
