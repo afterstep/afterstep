@@ -682,7 +682,7 @@ add_storage_slots( ASStorageBlock *block )
 static ASStorageBlock *
 create_asstorage_block( int useable_size )
 {
-	int allocate_size = (sizeof(ASStorageBlock)+sizeof(ASStorageSlot) + useable_size) ; 
+	int allocate_size = (sizeof(ASStorageBlock)+ ASStorageSlot_SIZE + useable_size) ; 
 	void *ptr ;	
 	ASStorageBlock *block ;
 
@@ -750,7 +750,7 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags,
 {
 	int i ;
 	int new_block = -1 ; 
-	compressed_size += sizeof(ASStorageSlot);
+	compressed_size += ASStorageSlot_SIZE;
 	i = block_id_start - 1 ;
 	if( i < 0 ) 
 		i = 0 ;
