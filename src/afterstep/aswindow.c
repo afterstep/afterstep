@@ -785,6 +785,215 @@ get_next_window (ASWindow * curr_win, char *action, int dir)
     return NULL;
 }
 
+/********************************************************************
+ * hides focus for the screen.
+ **********************************************************************/
+void
+hide_focus()
+{
+    if (get_flags(Scr.Feel.flags, ClickToFocus) && Scr.Windows->ungrabbed != NULL)
+        grab_aswindow_buttons( Scr.Windows->ungrabbed, False );
+
+    Scr.Windows->focused = NULL;
+    Scr.Windows->ungrabbed = NULL;
+    XRaiseWindow(dpy, Scr.ServiceWin);
+    XSetInputFocus (dpy, Scr.ServiceWin, RevertToParent, Scr.last_Timestamp);
+    XSync(dpy, False );
+}
+
+/********************************************************************
+ * Sets the input focus to the indicated window.
+ **********************************************************************/
+void
+commit_circulation()
+{
+    ASWindow *asw = Scr.Windows->active ;
+LOCAL_DEBUG_OUT( "circulation completed with active window being %p", asw );
+    if( asw )
+        if( vector_remove_elem( Scr.Windows->circulate_list, &asw ) == 1 )
+        {
+            LOCAL_DEBUG_OUT( "reinserting %p into the head of circulation list : ", asw );
+            vector_insert_elem( Scr.Windows->circulate_list, &asw, 1, NULL, True );
+        }
+    Scr.Windows->warp_curr_index = -1 ;
+}
+
+void autoraise_aswindow( void *data )
+{
+    struct timeval tv;
+    time_t msec = Scr.Feel.AutoRaiseDelay ;
+    time_t exp_sec = Scr.Windows->last_focus_change_sec + (msec * 1000 + Scr.Windows->last_focus_change_usec) / 1000000;
+    time_t exp_usec = (msec * 1000 + Scr.Windows->last_focus_change_usec) % 1000000;
+
+    if( Scr.Windows->focused && !get_flags( AfterStepState, ASS_HousekeepingMode) )
+    {
+        gettimeofday (&tv, NULL);
+        if( exp_sec < tv.tv_sec ||
+            (exp_sec == tv.tv_sec && exp_usec <= tv.tv_usec ) )
+        {
+            RaiseObscuredWindow(Scr.Windows->focused);
+        }
+    }
+}
+
+Bool
+focus_aswindow( ASWindow *asw )
+{
+    Bool          do_hide_focus = False ;
+    Bool          do_nothing = False ;
+    Window        w = None;
+
+    if( asw )
+    {
+        if (!get_flags( AfterStepState, ASS_WarpingMode) )
+            if( vector_remove_elem( Scr.Windows->circulate_list, &asw ) == 1 )
+                vector_insert_elem( Scr.Windows->circulate_list, &asw, 1, NULL, True );
+
+#if 0
+        /* ClickToFocus focus queue manipulation */
+        if ( asw != Scr.Focus )
+            asw->focus_sequence = Scr.next_focus_sequence++;
+#endif
+        do_hide_focus = (ASWIN_DESK(asw) != Scr.CurrentDesk) ||
+                        (ASWIN_GET_FLAGS( asw, AS_Iconic ) &&
+                            asw->icon_canvas == NULL && asw->icon_title_canvas == NULL );
+
+        if( !ASWIN_HFLAGS(asw, AS_AcceptsFocus) )
+        {
+            if( Scr.Windows->focused != NULL && ASWIN_DESK(Scr.Windows->focused) == Scr.CurrentDesk )
+                do_nothing = True ;
+            else
+                do_hide_focus = True ;
+        }
+    }else
+        do_hide_focus = True ;
+
+    if (Scr.NumberOfScreens > 1 && !do_hide_focus )
+	{
+        Window pointer_root ;
+        /* if pointer went onto another screen - we need to release focus
+         * and let other screen's manager manage it from now on, untill
+         * pointer comes back to our screen :*/
+        ASQueryPointerRoot(&pointer_root,&w);
+        if(pointer_root != Scr.Root)
+        {
+            do_hide_focus = True;
+            do_nothing = False ;
+        }
+    }
+    if( !do_nothing && do_hide_focus )
+        hide_focus();
+    if( do_nothing || do_hide_focus )
+        return False;
+
+    if (get_flags(Scr.Feel.flags, ClickToFocus) && Scr.Windows->ungrabbed != asw)
+    {  /* need to grab all buttons for window that we are about to
+        * unfocus */
+        grab_aswindow_buttons( Scr.Windows->ungrabbed, False );
+        grab_aswindow_buttons( asw, True );
+        Scr.Windows->ungrabbed = asw;
+    }
+
+    if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+    { /* focus icon window or icon title of the iconic window */
+        if( asw->icon_canvas && !ASWIN_GET_FLAGS(asw, AS_Dead) && validate_drawable(asw->icon_canvas->w, NULL, NULL) != None )
+            w = asw->icon_canvas->w;
+        else if( asw->icon_title_canvas )
+            w = asw->icon_title_canvas->w;
+    }else if( ASWIN_GET_FLAGS(asw, AS_Shaded ) )
+    { /* focus frame window of shaded clients */
+        w = asw->frame ;
+    }else if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+    { /* clients with visible top window can get focus directly:  */
+        w = asw->w ;
+    }
+
+    if( w == None )
+        show_warning( "unable to focus window %lX for client %lX, frame %lX", w, asw->w, asw->frame );
+    else if( !ASWIN_GET_FLAGS(asw, AS_Mapped) )
+        show_warning( "unable to focus unmapped window %lX for client %lX, frame %lX", w, asw->w, asw->frame );
+    else if( ASWIN_GET_FLAGS(asw, AS_UnMapPending) )
+        show_warning( "unable to focus window %lX that is about to be unmapped for client %lX, frame %lX", w, asw->w, asw->frame );
+    else
+    {
+        LOCAL_DEBUG_OUT( "focusing window %lX, client %lX, frame %lX, asw %p", w, asw->w, asw->frame, asw );
+        XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
+        if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus) && !ASWIN_GET_FLAGS(asw, AS_Dead))
+            send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
+
+        Scr.Windows->focused = asw ;
+        if (Scr.Feel.AutoRaiseDelay == 0)
+        {
+            RaiseWindow( asw );
+        }else if (Scr.Feel.AutoRaiseDelay > 0)
+        {
+            struct timeval tv;
+
+            gettimeofday (&tv, NULL);
+            Scr.Windows->last_focus_change_sec =  tv.tv_sec;
+            Scr.Windows->last_focus_change_usec = tv.tv_usec;
+            timer_new (Scr.Feel.AutoRaiseDelay, autoraise_aswindow, Scr.Windows->focused);
+        }
+    }
+
+    XSync(dpy, False );
+    return True;
+}
+
+/*********************************************************************/
+/* focus management goes here :                                      */
+/*********************************************************************/
+/* making window active : */
+/* handing over actuall focus : */
+Bool
+focus_active_window()
+{
+    /* don't fiddle with focus if we are in housekeeping mode !!! */
+LOCAL_DEBUG_OUT( "checking if we are in housekeeping mode (%ld)", get_flags(AfterStepState, ASS_HousekeepingMode) );
+    if( get_flags(AfterStepState, ASS_HousekeepingMode) || Scr.Windows->active == NULL )
+        return False ;
+
+    if( Scr.Windows->focused == Scr.Windows->active )
+        return True ;                          /* already has focus */
+
+    return focus_aswindow( Scr.Windows->active );
+}
+
+/* second version of above : */
+void
+focus_next_aswindow( ASWindow *asw )
+{
+    ASWindow     *new_focus = NULL;
+
+    if( get_flags(Scr.Feel.flags, ClickToFocus))
+        new_focus = get_next_window (asw, NULL, 1);
+    if( !activate_aswindow( new_focus, False, False) )
+        hide_focus();
+}
+
+void
+focus_prev_aswindow( ASWindow *asw )
+{
+    ASWindow     *new_focus = NULL;
+
+    if( get_flags(Scr.Feel.flags, ClickToFocus))
+        new_focus = get_next_window (asw, NULL, -1);
+    if( !activate_aswindow( new_focus, False, False) )
+        hide_focus();
+}
+
+void
+warp_to_aswindow( ASWindow *asw, Bool deiconify )
+{
+    if( asw )
+        activate_aswindow( asw, True, deiconify );
+}
+
+/*************************************************************************/
+/* end of the focus management                                           */
+/*************************************************************************/
+
+
 /*********************************************************************************
  * Find next window in circulate csequence forward (dir 1) or backward (dir -1)
  * from specifyed window. when we reach top or bottom we are turning back

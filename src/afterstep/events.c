@@ -915,8 +915,6 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
     ASWindow     *asw = event->client ;
     XButtonEvent *xbtn = &(event->x.xbutton);
 
-
-
 	/* click to focus stuff goes here */
     if( asw != NULL )
     {
@@ -935,12 +933,9 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
                 }
 	        }
 
-            if ( (get_flags(Scr.Feel.flags, ClickToRaise) &&
-                   (Scr.Feel.RaiseButtons == 0 || (Scr.Feel.RaiseButtons & (1 << xbtn->button)))) ||
-                  Scr.Feel.AutoRaiseDelay == 0 )
-            {
-                restack_window((asw),None,focus_accepted?Above:TopIf);
-            }
+            if ( get_flags(Scr.Feel.flags, ClickToRaise) )
+                if( Scr.Feel.RaiseButtons == 0 || (Scr.Feel.RaiseButtons & (1 << xbtn->button)))
+                    restack_window((asw),None,focus_accepted?Above:TopIf);
 
             if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
   		    {

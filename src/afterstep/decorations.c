@@ -990,4 +990,116 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     grab_window_input( asw, False );
 }
 
+/****************************************************************************
+ *
+ * Sets up the shaped window borders
+ *
+ ****************************************************************************/
+void
+SetShape (ASWindow *asw, int w)
+{
+#ifdef SHAPE
+	LOCAL_DEBUG_CALLER_OUT( "asw(%p)->client(%lX)", asw, asw?asw->w:0 );
+
+	if( asw )
+	{
+        if( ASWIN_GET_FLAGS(asw, AS_Dead) )
+        {
+            clear_canvas_shape( asw->frame_canvas );
+            return;
+        }
+
+        if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+        {                                      /* todo: update icon's shape */
+
+        }else
+        {
+            int i ;
+
+            combine_canvas_shape (asw->frame_canvas, asw->client_canvas, True, True );
+#if 0
+            Window        wdumm;
+			int client_x = 0, client_y = 0 ;
+			unsigned int width, height, bw, unused_depth  ;
+            XGetGeometry( dpy, asw->w, &wdumm, &client_x, &client_y, &width, &height, &bw, &unused_depth );
+
+            if( ASWIN_GET_FLAGS( asw, AS_Shaped ) )
+            {
+				/* we must use Translate coordinates since some of the canvases may not have updated
+				 * their config at the time */
+    			LOCAL_DEBUG_OUT( "combining client shape at %+d%+d", client_x, client_y );
+                XShapeCombineShape (dpy, asw->frame, ShapeBounding,
+                                    client_x+bw,
+                                    client_y+bw,
+                                    asw->w, ShapeBounding, ShapeSet);
+            }else
+            {
+                XRectangle    rect;
+				/* we must use Translate coordinates since some of the canvases may not have updated
+				 * their config at the time */
+				rect.x = client_x ;
+				rect.y = client_y ;
+				LOCAL_DEBUG_OUT( "setting client shape to rectangle at %+d%+d", rect.x, rect.y );
+                rect.width  = width+bw*2;
+                rect.height = height+bw*2;
+
+                XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
+                                         0, 0, &rect, 1, ShapeSet, Unsorted);
+            }
+#endif
+            for( i = 0 ; i < FRAME_SIDES ; ++i )
+                if( asw->frame_sides[i] )
+                    combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i], False, False );
+        }
+    }
+#if 0 /*old code : */
+        int bw = asw->status->border_width ;
+        if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+            XShapeCombineShape (dpy, asw->frame, ShapeBounding,
+                                asw->status->x + bw,
+                                asw->status->y + bw,
+                                asw->w, ShapeBounding, ShapeSet);
+
+		/* windows with titles */
+		if (ASWIN_HFLAGS(asw,AS_Titlebar) && asw->tbar)
+		{
+			XRectangle    rect;
+
+			rect.x = asw->tbar->win_x - bw;
+			rect.y = asw->tbar->win_y - bw;
+			rect.width  = asw->tbar->width  + 2*bw;
+			rect.height = asw->tbar->height + 2*bw;
+
+			XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
+									 0, 0, &rect, 1, ShapeUnion, Unsorted);
+		}
+		/* TODO: add frame decorations shape */
+		/* update icon shape */
+        /*if (asw->icon_canvas != NULL)
+            UpdateIconShape (asw); */
+#endif /* old_code */
+#endif /* SHAPE */
+}
+
+void
+ClearShape (ASWindow *asw)
+{
+#ifdef SHAPE
+    if( asw && asw->frame_canvas )
+    {
+	unsigned int width, height ;
+        XRectangle    rect;
+
+	get_drawable_size( asw->frame_canvas->w, &width, &height );
+        rect.x = 0;
+        rect.y = 0;
+        rect.width  = width;
+        rect.height = height;
+        LOCAL_DEBUG_OUT( "setting shape to rectangle %dx%d", rect.width, rect.height );
+        XShapeCombineRectangles ( dpy, asw->frame, ShapeBounding,
+                                  0, 0, &rect, 1, ShapeSet, Unsorted);
+    }
+#endif /* SHAPE */
+}
+
 
