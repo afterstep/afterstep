@@ -10,7 +10,7 @@ AC_INIT(afterstep/autoexec.in)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
-version="1.8.8"
+version="1.8.9"
 
 dnl# Setup command-line options
 
@@ -180,6 +180,15 @@ LIB_MATH=-lm
 dnl# Check for XPM library
 
 VT_FIND_LIBXPM
+
+AC_MSG_CHECKING("if xpm.h should be X11/xpm.h")
+saved_CPPFLAGS=$CPPFLAGS
+CPPFLAGS=$XPM_CFLAGS
+have_x11_xpm=no
+AC_TRY_CPP([#include <X11/xpm.h>],[AC_DEFINE(HAVE_X11_XPM) have_x11_xpm=yes])
+AC_MSG_RESULT($have_x11_xpm)
+CPPFLAGS=$saved_CPPFLAGS
+
 HAVEXPM="NOXPM"
 have_xpm_write="0"
 if test "x$have_xpm" = "xyes"; then

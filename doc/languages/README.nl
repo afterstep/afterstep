@@ -1,5 +1,5 @@
 ///
-///	Dit is de nederlandse versie van de AfterStep 1.8.8 README
+///	Dit is de nederlandse versie van de AfterStep 1.8.9 README
 ///
 
 

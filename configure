@@ -623,7 +623,7 @@ ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
 
 
 
-version="1.8.8"
+version="1.8.9"
 
 
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
@@ -3338,13 +3338,42 @@ fi
 
 
 
+
+echo $ac_n "checking "if xpm.h should be X11/xpm.h"""... $ac_c" 1>&6
+echo "configure:3344: checking "if xpm.h should be X11/xpm.h"" >&5
+saved_CPPFLAGS=$CPPFLAGS
+CPPFLAGS=$XPM_CFLAGS
+have_x11_xpm=no
+cat > conftest.$ac_ext <<EOF
+#line 3349 "configure"
+#include "confdefs.h"
+#include <X11/xpm.h>
+EOF
+ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
+{ (eval echo configure:3354: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
+if test -z "$ac_err"; then
+  rm -rf conftest*
+  cat >> confdefs.h <<\EOF
+#define HAVE_X11_XPM 1
+EOF
+ have_x11_xpm=yes
+else
+  echo "$ac_err" >&5
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+fi
+rm -f conftest*
+echo "$ac_t""$have_x11_xpm" 1>&6
+CPPFLAGS=$saved_CPPFLAGS
+
 HAVEXPM="NOXPM"
 have_xpm_write="0"
 if test "x$have_xpm" = "xyes"; then
   HAVEXPM="XPM"
   x_libs="$x_libs $XPM_LIBS"
   echo $ac_n "checking for XpmWriteFileFromPixmap in -lXpm""... $ac_c" 1>&6
-echo "configure:3348: checking for XpmWriteFileFromPixmap in -lXpm" >&5
+echo "configure:3377: checking for XpmWriteFileFromPixmap in -lXpm" >&5
 ac_lib_var=`echo Xpm'_'XpmWriteFileFromPixmap | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3352,7 +3381,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lXpm $x_libs $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3356 "configure"
+#line 3385 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -3363,7 +3392,7 @@ int main() {
 XpmWriteFileFromPixmap()
 ; return 0; }
 EOF
-if { (eval echo configure:3367: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3396: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3393,7 +3422,7 @@ done
 HAVESHAPE="NOSHAPE"
 if test "x$enable_shaping" = "xyes"; then
   echo $ac_n "checking for XShapeCombineMask in -lXext""... $ac_c" 1>&6
-echo "configure:3397: checking for XShapeCombineMask in -lXext" >&5
+echo "configure:3426: checking for XShapeCombineMask in -lXext" >&5
 ac_lib_var=`echo Xext'_'XShapeCombineMask | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3401,7 +3430,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lXext $x_libs $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3405 "configure"
+#line 3434 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -3412,7 +3441,7 @@ int main() {
 XShapeCombineMask()
 ; return 0; }
 EOF
-if { (eval echo configure:3416: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3445: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3444,7 +3473,7 @@ LIBS=""
 
 
 echo $ac_n "checking for libjpeg""... $ac_c" 1>&6
-echo "configure:3448: checking for libjpeg" >&5
+echo "configure:3477: checking for libjpeg" >&5
 
 # Check whether --with-jpeg_includes or --without-jpeg_includes was given.
 if test "${with_jpeg_includes+set}" = set; then
@@ -3493,12 +3522,12 @@ else
 
   # First, try using that file with no special directory specified.
 cat > conftest.$ac_ext <<EOF
-#line 3497 "configure"
+#line 3526 "configure"
 #include "confdefs.h"
 #include <jpeglib.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3502: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:3531: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -3570,14 +3599,14 @@ if test "$vt_jpeg_libraries" = NO; then
   ac_save_LIBS="$LIBS"
   LIBS="-ljpeg $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3574 "configure"
+#line 3603 "configure"
 #include "confdefs.h"
 char jpeg_destroy_compress();
 int main() {
 jpeg_destroy_compress()
 ; return 0; }
 EOF
-if { (eval echo configure:3581: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3610: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   LIBS="$ac_save_LIBS"
 # We can link libjpeg with no special library path.
@@ -3629,14 +3658,14 @@ do
   ac_save_LIBS=$LIBS
   LIBS="-L$ac_dir -ljpeg $LIBS"
   cat > conftest.$ac_ext <<EOF
-#line 3633 "configure"
+#line 3662 "configure"
 #include "confdefs.h"
 char jpeg_destroy_compress();
 int main() {
 jpeg_destroy_compress()
 ; return 0; }
 EOF
-if { (eval echo configure:3640: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3669: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   vt_jpeg_libraries=$ac_dir; break;
 else
@@ -3672,12 +3701,12 @@ else
       vt_jpeg_include_X11=no
       if test -z "$jpeg_includes"; then
 	cat > conftest.$ac_ext <<EOF
-#line 3676 "configure"
+#line 3705 "configure"
 #include "confdefs.h"
 #include <X11/jpeglib.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3681: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:3710: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -3755,7 +3784,7 @@ LIBS=""
 
 
 echo $ac_n "checking for libpng""... $ac_c" 1>&6
-echo "configure:3759: checking for libpng" >&5
+echo "configure:3788: checking for libpng" >&5
 
 # Check whether --with-png_includes or --without-png_includes was given.
 if test "${with_png_includes+set}" = set; then
@@ -3804,12 +3833,12 @@ else
 
   # First, try using that file with no special directory specified.
 cat > conftest.$ac_ext <<EOF
-#line 3808 "configure"
+#line 3837 "configure"
 #include "confdefs.h"
 #include <png.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3813: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:3842: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -3881,14 +3910,14 @@ if test "$vt_png_libraries" = NO; then
   ac_save_LIBS="$LIBS"
   LIBS="-lz -lm -lpng $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3885 "configure"
+#line 3914 "configure"
 #include "confdefs.h"
 char png_get_sRGB();
 int main() {
 png_get_sRGB()
 ; return 0; }
 EOF
-if { (eval echo configure:3892: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3921: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   LIBS="$ac_save_LIBS"
 # We can link libpng with no special library path.
@@ -3940,14 +3969,14 @@ do
   ac_save_LIBS=$LIBS
   LIBS="-L$ac_dir -lz -lm -lpng $LIBS"
   cat > conftest.$ac_ext <<EOF
-#line 3944 "configure"
+#line 3973 "configure"
 #include "confdefs.h"
 char png_get_sRGB();
 int main() {
 png_get_sRGB()
 ; return 0; }
 EOF
-if { (eval echo configure:3951: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3980: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   vt_png_libraries=$ac_dir; break;
 else
@@ -3983,12 +4012,12 @@ else
       vt_png_include_X11=no
       if test -z "$png_includes"; then
 	cat > conftest.$ac_ext <<EOF
-#line 3987 "configure"
+#line 4016 "configure"
 #include "confdefs.h"
 #include <png.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3992: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:4021: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*

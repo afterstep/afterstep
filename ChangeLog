@@ -1,3 +1,16 @@
+1.8.8 patch 1 (sasha+allanon)
+ o installastheme.pl now uses the first screen depth reported by xdpyinfo
+   instead of the last; this fixes problems with the look not updating on
+   XFree86 4.x (allanon)
+ o removed reference to xiterm from Wharf config file; wharf now tries to
+   load aterm, and then xterm if that fails (allanon)
+ o fix to mystyle drawing as applyed to empty menu drawing
+ o removed config reading from the pipe - was causing some compile time 
+   problems and really was never needed.
+ o updated README.nl
+ o fixed configure to sheck if X11/xpm.h should be used or just xpm.h, 
+   updated as_xpm.c accordingly.
+
 1.8.4 patch 4 (sasha)
  o Added -fPIC to the compilation flags when compiling with GCC so to allow 
    for compilation on IA64 architecture( as sugested on AS MailingList).

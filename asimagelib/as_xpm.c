@@ -38,8 +38,13 @@
 #include <X11/Xproto.h>
 #include <X11/Xatom.h>
 #include <X11/Intrinsic.h>
+
 #ifdef XPM
+#ifdef HAVE_X11_XPM
 #include <X11/xpm.h>
+#else
+#include <xpm.h>
+#endif
 #endif
 
 #include "../include/aftersteplib.h"
