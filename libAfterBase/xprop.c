@@ -350,7 +350,7 @@ get_as_property ( Window w, Atom property, size_t * data_size, unsigned long *ve
                                AnyPropertyType, &actual_type, &actual_format, &size, &junk, (unsigned char **)&data) != Success)
 			data = NULL;
 	}
-#endif	
+#endif
 	return data ;
 }
 
@@ -364,7 +364,7 @@ read_as_property ( Window w, Atom property, size_t * data_size, unsigned long *v
     if( data )
     {
         *trg = safemalloc( size*sizeof(unsigned long));
-        for( size-- ; size > 0 ; size-- )
+        while( --size >= 0 )
             (*trg)[size] = (unsigned long) (data[size]) ;
         XFree( data );
     }

@@ -17,7 +17,7 @@
  *
  */
 
-
+/*#define LOCAL_DEBUG*/
 #include "../../configure.h"
 
 #include "../../include/asapp.h"
@@ -94,6 +94,7 @@ ParseBaseOptions (const char *filename, char *myname)
   FreeStorageElem *Storage = NULL, *pCurr;
   ConfigItem item;
 
+LOCAL_DEBUG_OUT("filename=\"%s\", myname = \"%s\", ConfigReader=%p", filename, myname, ConfigReader );
   if (!ConfigReader)
     return config;
 
@@ -105,48 +106,50 @@ ParseBaseOptions (const char *filename, char *myname)
   /* getting rid of all the crap first */
   StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
-  for (pCurr = Storage; pCurr; pCurr = pCurr->next)
+    for (pCurr = Storage; pCurr; pCurr = pCurr->next)
     {
-      if (pCurr->term == NULL)
-	continue;
-      if (!ReadConfigItem (&item, pCurr))
-	continue;
-      switch (pCurr->term->id)
-	{
-	case BASE_MODULE_PATH_ID:
-	  config->module_path = item.data.string;
-	  break;
-	case BASE_ICON_PATH_ID:
-	  config->icon_path = item.data.string;
-	  break;
-	case BASE_PIXMAP_PATH_ID:
-	  config->pixmap_path = item.data.string;
-	  break;
-	case BASE_MYNAME_PATH_ID:
-	  config->myname_path = item.data.string;
-	  break;
-	case BASE_DESKTOP_SIZE_ID:
-	  config->desktop_size = item.data.geometry;
-	  /* errorneous value check */
-	  if (!(config->desktop_size.flags & WidthValue))
-	    config->desktop_size.width = 1;
-	  if (!(config->desktop_size.flags & HeightValue))
-	    config->desktop_size.height = 1;
-	  config->desktop_size.flags = WidthValue | HeightValue;
-	  break;
-	case BASE_DESKTOP_SCALE_ID:
-	  config->desktop_scale = item.data.integer;
-	  /* errorneous value check */
-	  if (config->desktop_scale < 1)
-	    config->desktop_scale = 1;
-	  break;
-	default:
-	  item.ok_to_free = 1;
-	}
+        if (pCurr->term == NULL)
+            continue;
+LOCAL_DEBUG_OUT("term %d, keyword\"%s\"", pCurr->term->id, pCurr->term->keyword );
+        if (!ReadConfigItem (&item, pCurr))
+            continue;
+LOCAL_DEBUG_OUT("int val %ld", item.data.integer );
+        switch (pCurr->term->id)
+        {
+            case BASE_MODULE_PATH_ID:
+                config->module_path = item.data.string;
+                break;
+            case BASE_ICON_PATH_ID:
+                config->icon_path = item.data.string;
+                break;
+            case BASE_PIXMAP_PATH_ID:
+                config->pixmap_path = item.data.string;
+                break;
+            case BASE_MYNAME_PATH_ID:
+                config->myname_path = item.data.string;
+                break;
+            case BASE_DESKTOP_SIZE_ID:
+                config->desktop_size = item.data.geometry;
+                /* errorneous value check */
+                if (!(config->desktop_size.flags & WidthValue))
+                config->desktop_size.width = 1;
+                if (!(config->desktop_size.flags & HeightValue))
+                config->desktop_size.height = 1;
+                config->desktop_size.flags = WidthValue | HeightValue;
+                break;
+            case BASE_DESKTOP_SCALE_ID:
+                config->desktop_scale = item.data.integer;
+                /* errorneous value check */
+                if (config->desktop_scale < 1)
+                config->desktop_scale = 1;
+                break;
+            default:
+                item.ok_to_free = 1;
+        }
     }
-  ReadConfigItem (&item, NULL);
+    ReadConfigItem (&item, NULL);
 
-  DestroyConfig (ConfigReader);
-  DestroyFreeStorage (&Storage);
-  return config;
+    DestroyConfig (ConfigReader);
+    DestroyFreeStorage (&Storage);
+    return config;
 }

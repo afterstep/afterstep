@@ -231,16 +231,8 @@ FrameSide;
 
 #define MAX_RUBBER_BAND         6
 
-typedef struct button_t
-  {
-    MyIcon unpressed;		/* icon to draw when button is not pressed */
-    MyIcon pressed;		    /* icon to draw when button is pressed */
-/*    Bool is_pressed;         is the button pressed? */
-	unsigned int width, height ;
-  }
-button_t;
-
-typedef button_t MyButton ;
+struct icon_t;
+struct button_t;
 
 typedef struct
 {

@@ -17,9 +17,9 @@
  *
  */
 
-#include "../configure.h"
+/*#define LOCAL_DEBUG */
 
-/*#define LOCAL_DEBUG*/
+#include "../configure.h"
 
 #include "../include/asapp.h"
 #include "../include/screen.h"
@@ -87,7 +87,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 				prop[i++] = style->gradient.color[k];
 				prop[i++] = style->gradient.color[k];	/* for compatibility with older version */
 				prop[i++] = style->gradient.color[k];	/* for compatibility with older version */
-				LOCAL_DEBUG_OUT ("gradient color at offset %f is %X", style->gradient.offset[k],
+                LOCAL_DEBUG_OUT ("gradient color at offset %f is %lX", style->gradient.offset[k],
 								 style->gradient.color[k]);
 				prop[i++] = style->gradient.offset[k] * 0x1000000;
 			}
@@ -130,7 +130,6 @@ mystyle_get_property (ASWMProps *wmprops)
 		MyStyle      *style;
 		char         *name;
 		unsigned long flags = prop[i + 0];
-
 		name = XGetAtomName (dpy, prop[i + 1]);
 		if ((style = mystyle_find (name)) == NULL)
 			style = mystyle_new_with_name (name);
@@ -181,6 +180,7 @@ mystyle_get_property (ASWMProps *wmprops)
 		}
 		style->colors.fore = prop[i + 4];
 		style->colors.back = prop[i + 5];
+        LOCAL_DEBUG_OUT( "style(%p:\"%s\")->colors(#%lX,#%lX)->flags(0x%lX)->inherit_flags(0x%X)", style, style->name, style->colors.fore, style->colors.back, flags, style->inherit_flags );
 		style->relief.fore = prop[i + 6];
 		style->relief.back = prop[i + 7];
 		style->texture_type = prop[i + 8];
@@ -212,7 +212,7 @@ mystyle_get_property (ASWMProps *wmprops)
 				   style->gradient.color[k].blue = prop[i + 16 + k * 4 + 2];
 				 */
 				style->gradient.offset[k] = (double)prop[i + 16 + k * 4 + 3] / 0x1000000;
-				LOCAL_DEBUG_OUT ("gradient color at offset %f is %X", style->gradient.offset[k],
+                LOCAL_DEBUG_OUT ("gradient color at offset %f is %lX", style->gradient.offset[k],
 								 style->gradient.color[k]);
 			}
 			style->user_flags |= F_BACKGRADIENT;
@@ -290,6 +290,6 @@ mystyle_get_property (ASWMProps *wmprops)
 	}
 
 	/* force update of global gcs */
-	mystyle_fix_styles ();
+    mystyle_fix_styles ();
 	mystyle_set_global_gcs (NULL);
 }

@@ -71,6 +71,50 @@ static ASEventDescription _as_event_types[LASTEvent] = {
 /* MappingNotify	34 */ {"MappingNotify", 	MappingMask				,0}
 };
 
+static struct ContextDescr{
+    int context;
+    char *name ;
+}context_description[] =
+{
+#define CONTEXT_DESCR(ctx)  {ctx, #ctx}
+    CONTEXT_DESCR(C_NO_CONTEXT),
+    CONTEXT_DESCR(C_FrameN),
+    CONTEXT_DESCR(C_FrameE),
+    CONTEXT_DESCR(C_FrameS),
+    CONTEXT_DESCR(C_FrameW),
+    CONTEXT_DESCR(C_FrameNW),
+    CONTEXT_DESCR(C_FrameNE),
+    CONTEXT_DESCR(C_FrameSW),
+    CONTEXT_DESCR(C_FrameSE),
+    CONTEXT_DESCR(C_SIDEBAR),
+    CONTEXT_DESCR(C_VERTICAL_SIDEBAR),
+    CONTEXT_DESCR(C_FRAME),
+
+    CONTEXT_DESCR(C_FrameStart),
+    CONTEXT_DESCR(C_FrameEnd),
+
+    CONTEXT_DESCR(C_WINDOW),
+    CONTEXT_DESCR(C_CLIENT),
+    CONTEXT_DESCR(C_TITLE),
+    CONTEXT_DESCR(C_IconTitle),
+    CONTEXT_DESCR(C_IconButton),
+    CONTEXT_DESCR(C_ICON),
+    CONTEXT_DESCR(C_ROOT),
+    CONTEXT_DESCR(C_L1),
+    CONTEXT_DESCR(C_L2),
+    CONTEXT_DESCR(C_L3),
+    CONTEXT_DESCR(C_L4),
+    CONTEXT_DESCR(C_L5),
+    CONTEXT_DESCR(C_R1),
+    CONTEXT_DESCR(C_R2),
+    CONTEXT_DESCR(C_R3),
+    CONTEXT_DESCR(C_R4),
+    CONTEXT_DESCR(C_R5),
+    CONTEXT_DESCR(C_RALL),
+    CONTEXT_DESCR(C_LALL),
+    CONTEXT_DESCR(C_ALL),
+    {-1, NULL}
+};
 
 /***************************************************************************
  * we need to prepare message handlers :
@@ -121,6 +165,16 @@ const char *event_type2name( int type )
 	if( type > 0 && type < LASTEvent )
 		return _as_event_types[type].name;
 	return "unknown";
+}
+
+const char *
+context2text(int ctx)
+{
+    register int i = -1;
+    while( context_description[++i].name )
+        if( context_description[i].context == ctx )
+            return context_description[i].name;
+    return "unknown";
 }
 
 /***********************************************************************

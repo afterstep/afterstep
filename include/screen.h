@@ -312,6 +312,8 @@ typedef struct ScreenInfo
     Window Root;        /* the root window */
     struct ASImage  *RootImage;
     struct ASCanvas *RootCanvas;
+    /* this is used to limit area of the root window from which to get root image : */
+    XRectangle RootClipArea;                /* used only by modules */
 
     Window SizeWindow;      /* the resize dimensions window */
     Window NoFocusWin;		/* Window which will own focus when no other

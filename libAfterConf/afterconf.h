@@ -8,8 +8,8 @@
 #define BASE_ID_START        	0
 #define BASE_MODULE_PATH_ID     BASE_ID_START
 #define BASE_ICON_PATH_ID     	BASE_ID_START+1
-#define BASE_PIXMAP_PATH_ID	BASE_ID_START+2
-#define BASE_MYNAME_PATH_ID	BASE_ID_START+3
+#define BASE_PIXMAP_PATH_ID     BASE_ID_START+2
+#define BASE_MYNAME_PATH_ID     BASE_ID_START+3
 #define BASE_DESKTOP_SIZE_ID	BASE_ID_START+4
 #define BASE_DESKTOP_SCALE_ID	BASE_ID_START+5
 #define BASE_ID_END           	BASE_ID_START+10
@@ -136,7 +136,7 @@ void PrintMyStyleDefinitions (MyStyleDefinition * list);
  * pointer to a list becomes NULL !
  */
 void
-  ProcessMyStyleDefinitions (MyStyleDefinition ** list, const char *PixmapPath);
+  ProcessMyStyleDefinitions (MyStyleDefinition ** list);
 
 /***************************************************************************/
 extern char *pixmapPath;
@@ -185,9 +185,8 @@ extern char *pixmapPath;
 #define PAGER_COLUMNS_ID	(PAGER_ID_START+9)
 #define PAGER_STICKY_ICONS_ID	(PAGER_ID_START+10)
 #define PAGER_LABEL_ID 		(PAGER_ID_START+11)
-#define PAGER_STYLE_ID		(PAGER_ID_START+12)
-#define PAGER_DESKTOP_IMAGE_ID	(PAGER_ID_START+13)
-#define PAGER_LOADER_ARGS_ID	(PAGER_ID_START+14)
+#define PAGER_STYLE_ID      (PAGER_ID_START+12)
+#define PAGER_SHADE_BUTTON_ID   (PAGER_ID_START+13)
 
 #define PAGER_DECORATION_ID	(PAGER_ID_START+20)
 #define PAGER_MYSTYLE_ID	(PAGER_ID_START+21)
@@ -207,14 +206,15 @@ extern char *pixmapPath;
 
 typedef struct
   {
-    int rows, columns;
+    int    rows, columns;
     ASGeometry geometry, icon_geometry;
     char **labels;
     char **styles;
-    int align;
+    int    align;
     unsigned long flags, set_flags;
-    char *small_font_name;
-    int border_width;
+    char  *small_font_name;
+    int    border_width;
+    char  *shade_button[2];
 
     char *selection_color;
     char *grid_color;
@@ -232,6 +232,7 @@ typedef struct
 #define DESK_STYLES     2
     struct MyStyle *MSDeskTitle[DESK_STYLES];
     struct MyStyle **MSDeskBack;
+    struct button_t *shade_btn ;
 
 }PagerConfig;
 

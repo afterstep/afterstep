@@ -67,6 +67,7 @@ TermDef PagerTerms[] =
   {0, "Rows", 4, TT_INTEGER, PAGER_ROWS_ID, NULL, NULL},
   {0, "Columns", 7, TT_INTEGER, PAGER_COLUMNS_ID, NULL, NULL},
   {0, "StickyIcons", 11, TT_FLAG, PAGER_STICKY_ICONS_ID, NULL, NULL},
+  {TF_DONT_SPLIT , "ShadeButton", 11, TT_TEXT, PAGER_SHADE_BUTTON_ID, NULL, NULL},
   {TF_INDEXED, "Label", 5, TT_TEXT, PAGER_LABEL_ID, NULL, NULL},
 #ifdef PAGER_BACKGROUND
   {TF_INDEXED, "Style", 5, TT_TEXT, PAGER_STYLE_ID, NULL, NULL},
@@ -108,7 +109,7 @@ PagerSpecialFunc (ConfigDef * conf_def, FreeStorageElem ** storage)
 PagerConfig *
 CreatePagerConfig (int ndesks)
 {
-  PagerConfig *config = (PagerConfig *) safemalloc (sizeof (PagerConfig));
+  PagerConfig *config = (PagerConfig *) safecalloc (1, sizeof (PagerConfig));
 
   /* let's initialize Pager's config with some nice values: */
   init_asgeometry (&(config->icon_geometry));
@@ -130,6 +131,8 @@ CreatePagerConfig (int ndesks)
   config->border_width = 1;
   config->border_color = NULL;
   config->style_defs = NULL;
+  config->shade_button[0] = NULL ;
+  config->shade_button[1] = NULL ;
 
   config->more_stuff = NULL;
   config->gravity = NorthWestGravity ;
@@ -140,13 +143,21 @@ CreatePagerConfig (int ndesks)
 void
 DestroyPagerConfig (PagerConfig * config)
 {
-  free (config->labels);
+    if( config->labels )
+        free (config->labels);
 #ifdef PAGER_BACKGROUND
-  free (config->styles);
+    if( config->styles )
+        free (config->styles);
 #endif
-  DestroyFreeStorage (&(config->more_stuff));
-  DestroyMyStyleDefinitions (&(config->style_defs));
-  free (config);
+/*
+    if( config->shade_button[0] )
+        free (config->shade_button[0]);
+    if( config->shade_button[1] )
+        free (config->shade_button[1]);
+ */
+    DestroyFreeStorage (&(config->more_stuff));
+    DestroyMyStyleDefinitions (&(config->style_defs));
+    free (config);
 }
 
 void
@@ -156,66 +167,66 @@ ReadDecorations (PagerConfig * config, FreeStorageElem * pCurr)
 
   item.memory = NULL;
 
-  for (; pCurr; pCurr = pCurr->next)
+    for (; pCurr; pCurr = pCurr->next)
     {
-      if (pCurr->term == NULL)
-	continue;
+        if (pCurr->term == NULL)
+            continue;
 
-      if (pCurr->term->type == TT_FLAG)
-	switch (pCurr->term->id)
-	  {
-	  case PAGER_DECOR_NOLABEL_ID:
-	    config->flags &= ~USE_LABEL;
-		set_flags( config->set_flags, USE_LABEL );
-	    break;
-	  case PAGER_DECOR_NOSEPARATOR_ID:
-	    config->flags &= ~PAGE_SEPARATOR;
-		set_flags( config->set_flags, PAGE_SEPARATOR );
-	    break;
-	  case PAGER_DECOR_NOSELECTION_ID:
-	    config->flags &= ~SHOW_SELECTION;
-		set_flags( config->set_flags, SHOW_SELECTION );
-	    break;
-	  case PAGER_DECOR_LABEL_BELOW_ID:
-	    config->flags |= LABEL_BELOW_DESK;
-		set_flags( config->set_flags, LABEL_BELOW_DESK );
-	    break;
-	  case PAGER_DECOR_HIDE_INACTIVE_ID:
-	    config->flags |= HIDE_INACTIVE_LABEL;
-		set_flags( config->set_flags, HIDE_INACTIVE_LABEL );
-	    break;
-	  }
-      else
-	{
-	  if (!ReadConfigItem (&item, pCurr))
-	    continue;
+        if (pCurr->term->type == TT_FLAG)
+        {
+            switch (pCurr->term->id)
+            {
+                case PAGER_DECOR_NOLABEL_ID:
+                    config->flags &= ~USE_LABEL;
+                    set_flags( config->set_flags, USE_LABEL );
+                    break;
+                case PAGER_DECOR_NOSEPARATOR_ID:
+                    config->flags &= ~PAGE_SEPARATOR;
+                    set_flags( config->set_flags, PAGE_SEPARATOR );
+                    break;
+                case PAGER_DECOR_NOSELECTION_ID:
+                    config->flags &= ~SHOW_SELECTION;
+                    set_flags( config->set_flags, SHOW_SELECTION );
+                    break;
+                case PAGER_DECOR_LABEL_BELOW_ID:
+                    config->flags |= LABEL_BELOW_DESK;
+                    set_flags( config->set_flags, LABEL_BELOW_DESK );
+                    break;
+                case PAGER_DECOR_HIDE_INACTIVE_ID:
+                    config->flags |= HIDE_INACTIVE_LABEL;
+                    set_flags( config->set_flags, HIDE_INACTIVE_LABEL );
+                    break;
+            }
+        }else
+        {
+            if (!ReadConfigItem (&item, pCurr))
+                continue;
 
-	  switch (pCurr->term->id)
-	    {
-
-	    case PAGER_DECOR_SEL_COLOR_ID:
-	      config->selection_color = item.data.string;
-	      config->flags |= SHOW_SELECTION;
-		  set_flags( config->set_flags, PAGER_SET_SELECTION_COLOR|SHOW_SELECTION );
-	      break;
-	    case PAGER_DECOR_GRID_COLOR_ID:
-	      config->grid_color = item.data.string;
-	      config->flags |= DIFFERENT_GRID_COLOR;
-		  set_flags( config->set_flags, PAGER_SET_GRID_COLOR|DIFFERENT_GRID_COLOR );
-	      break;
-	    case PAGER_DECOR_BORDER_WIDTH_ID:
-	      config->border_width = item.data.integer;
-		  set_flags( config->set_flags, PAGER_SET_BORDER_WIDTH );
-	      break;
-	    case PAGER_DECOR_BORDER_COLOR_ID:
-	      config->border_color = item.data.string;
-	      config->flags |= DIFFERENT_BORDER_COLOR;
-		  set_flags( config->set_flags, PAGER_SET_BORDER_COLOR|DIFFERENT_BORDER_COLOR );
-	      break;
-	    default:
-	      item.ok_to_free = 1;
-	    }
-	}
+            switch (pCurr->term->id)
+            {
+                case PAGER_DECOR_SEL_COLOR_ID:
+                    config->selection_color = item.data.string;
+                    config->flags |= SHOW_SELECTION;
+                    set_flags( config->set_flags, PAGER_SET_SELECTION_COLOR|SHOW_SELECTION );
+                    break;
+                case PAGER_DECOR_GRID_COLOR_ID:
+                    config->grid_color = item.data.string;
+                    config->flags |= DIFFERENT_GRID_COLOR;
+                    set_flags( config->set_flags, PAGER_SET_GRID_COLOR|DIFFERENT_GRID_COLOR );
+                    break;
+                case PAGER_DECOR_BORDER_WIDTH_ID:
+                    config->border_width = item.data.integer;
+                    set_flags( config->set_flags, PAGER_SET_BORDER_WIDTH );
+                    break;
+                case PAGER_DECOR_BORDER_COLOR_ID:
+                    config->border_color = item.data.string;
+                    config->flags |= DIFFERENT_BORDER_COLOR;
+                    set_flags( config->set_flags, PAGER_SET_BORDER_COLOR|DIFFERENT_BORDER_COLOR );
+                    break;
+                default:
+                    item.ok_to_free = 1;
+            }
+        }
     }
   ReadConfigItem (&item, NULL);
 }
@@ -223,119 +234,128 @@ ReadDecorations (PagerConfig * config, FreeStorageElem * pCurr)
 PagerConfig *
 ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 {
-  ConfigDef *PagerConfigReader = InitConfigReader (myname, &PagerSyntax, CDT_Filename, (void *) filename, PagerSpecialFunc);
-  PagerConfig *config = CreatePagerConfig ((desk2 - desk1) + 1);
+    ConfigDef *PagerConfigReader = InitConfigReader (myname, &PagerSyntax, CDT_Filename, (void *) filename, PagerSpecialFunc);
+    PagerConfig *config = CreatePagerConfig ((desk2 - desk1) + 1);
 
-  FreeStorageElem *Storage = NULL, *pCurr;
-  ConfigItem item;
-  MyStyleDefinition **styles_tail = &(config->style_defs);
+    FreeStorageElem *Storage = NULL, *pCurr;
+    ConfigItem item;
+    MyStyleDefinition **styles_tail = &(config->style_defs);
 
-  if (!PagerConfigReader)
-    return config;
+    if (!PagerConfigReader)
+        return config;
 
-  item.memory = NULL;
-  PrintConfigReader (PagerConfigReader);
-  ParseConfig (PagerConfigReader, &Storage);
-  PrintFreeStorage (Storage);
+    item.memory = NULL;
+    PrintConfigReader (PagerConfigReader);
+    ParseConfig (PagerConfigReader, &Storage);
+    PrintFreeStorage (Storage);
 
-  /* getting rid of all the crap first */
-  StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
+    /* getting rid of all the crap first */
+    StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
-  for (pCurr = Storage; pCurr; pCurr = pCurr->next)
+    for (pCurr = Storage; pCurr; pCurr = pCurr->next)
     {
-      if (pCurr->term == NULL)
-	continue;
+        if (pCurr->term == NULL)
+            continue;
 
-      if (pCurr->term->type == TT_FLAG)
-	switch (pCurr->term->id)
-	  {
-	  case PAGER_DRAW_BG_ID:
-	    config->flags &= ~REDRAW_BG;
-		set_flags( config->set_flags, REDRAW_BG ) ;
-	    break;
-	  case PAGER_START_ICONIC_ID:
-	    config->flags |= START_ICONIC;
-		set_flags( config->set_flags, START_ICONIC ) ;
-	    break;
-	  case PAGER_FAST_STARTUP_ID:
-	    config->flags |= FAST_STARTUP;
-		set_flags( config->set_flags, FAST_STARTUP ) ;
-	    break;
-	  case PAGER_SET_ROOT_ID:
-	    config->flags |= SET_ROOT_ON_STARTUP;
-		set_flags( config->set_flags, SET_ROOT_ON_STARTUP ) ;
-	    break;
-	  case PAGER_STICKY_ICONS_ID:
-	    config->flags |= STICKY_ICONS;
-		set_flags( config->set_flags, STICKY_ICONS ) ;
-	    break;
-	  }
-      else
-	{
-	  if (!ReadConfigItem (&item, pCurr))
-	    continue;
-	  if ((pCurr->term->flags & TF_INDEXED) &&
-	      (item.index < desk1 || item.index > desk2))
-	    {
-	      item.ok_to_free = 1;
-	      continue;
-	    }
+        if (pCurr->term->type == TT_FLAG)
+        {
+            switch (pCurr->term->id)
+            {
+                case PAGER_DRAW_BG_ID:
+                    config->flags &= ~REDRAW_BG;
+                    set_flags( config->set_flags, REDRAW_BG ) ;
+                    break;
+                case PAGER_START_ICONIC_ID:
+                    config->flags |= START_ICONIC;
+                    set_flags( config->set_flags, START_ICONIC ) ;
+                    break;
+                case PAGER_FAST_STARTUP_ID:
+                    config->flags |= FAST_STARTUP;
+                    set_flags( config->set_flags, FAST_STARTUP ) ;
+                    break;
+                case PAGER_SET_ROOT_ID:
+                    config->flags |= SET_ROOT_ON_STARTUP;
+                    set_flags( config->set_flags, SET_ROOT_ON_STARTUP ) ;
+                    break;
+                case PAGER_STICKY_ICONS_ID:
+                    config->flags |= STICKY_ICONS;
+                    set_flags( config->set_flags, STICKY_ICONS ) ;
+                    break;
+            }
+        }else
+        {
+            if (!ReadConfigItem (&item, pCurr))
+                continue;
+            if ((pCurr->term->flags & TF_INDEXED) &&
+                (item.index < desk1 || item.index > desk2))
+            {
+                item.ok_to_free = 1;
+                continue;
+            }
 
-	  switch (pCurr->term->id)
-	    {
-	    case PAGER_GEOMETRY_ID:
-	      config->geometry = item.data.geometry;
-		  set_flags( config->set_flags, PAGER_SET_GEOMETRY ) ;
-	      break;
-	    case PAGER_ICON_GEOMETRY_ID:
-	      config->icon_geometry = item.data.geometry;
-		  set_flags( config->set_flags, PAGER_SET_ICON_GEOMETRY ) ;
-	      break;
-	    case PAGER_ALIGN_ID:
-	      config->align = (int) item.data.integer;
-		  set_flags( config->set_flags, PAGER_SET_ALIGN ) ;
-	      break;
-	    case PAGER_SMALL_FONT_ID:
-	      config->small_font_name = item.data.string;
-		  set_flags( config->set_flags, PAGER_SET_SMALL_FONT ) ;
-	      break;
-	    case PAGER_ROWS_ID:
-	      config->rows = (int) item.data.integer;
-		  set_flags( config->set_flags, PAGER_SET_ROWS ) ;
-	      break;
-	    case PAGER_COLUMNS_ID:
-	      config->columns = (int) item.data.integer;
-		  set_flags( config->set_flags, PAGER_SET_COLUMNS ) ;
-	      break;
-	    case PAGER_LABEL_ID:
-	      config->labels[item.index - desk1] = item.data.string;
-	      break;
+            switch (pCurr->term->id)
+            {
+                case PAGER_GEOMETRY_ID:
+                    config->geometry = item.data.geometry;
+                    set_flags( config->set_flags, PAGER_SET_GEOMETRY ) ;
+                    break;
+                case PAGER_ICON_GEOMETRY_ID:
+                    config->icon_geometry = item.data.geometry;
+                    set_flags( config->set_flags, PAGER_SET_ICON_GEOMETRY ) ;
+                    break;
+                case PAGER_ALIGN_ID:
+                    config->align = (int) item.data.integer;
+                    set_flags( config->set_flags, PAGER_SET_ALIGN ) ;
+                    break;
+                case PAGER_SMALL_FONT_ID:
+                    config->small_font_name = item.data.string;
+                    set_flags( config->set_flags, PAGER_SET_SMALL_FONT ) ;
+                    break;
+                case PAGER_ROWS_ID:
+                    config->rows = (int) item.data.integer;
+                    set_flags( config->set_flags, PAGER_SET_ROWS ) ;
+                    break;
+                case PAGER_COLUMNS_ID:
+                    config->columns = (int) item.data.integer;
+                    set_flags( config->set_flags, PAGER_SET_COLUMNS ) ;
+                    break;
+                case PAGER_LABEL_ID:
+                    config->labels[item.index - desk1] = item.data.string;
+                    break;
 #ifdef PAGER_BACKGROUND
-	    case PAGER_STYLE_ID:
-	      config->styles[item.index - desk1] = item.data.string;
-	      break;
+                case PAGER_STYLE_ID:
+                    config->styles[item.index - desk1] = item.data.string;
+                    break;
 #endif
-	    case MYSTYLE_START_ID:
-	      styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
-	      item.ok_to_free = 1;
-	      break;
-	      /* decoration options */
-	    case PAGER_DECORATION_ID:
-	      ReadDecorations (config, pCurr->sub);
-	      item.ok_to_free = 1;
-	      break;
-	    default:
-	      item.ok_to_free = 1;
-	    }
-	}
+                case PAGER_SHADE_BUTTON_ID :
+                    if( item.data.string )
+                    {
+                        register char *tmp = parse_filename( item.data.string, &(config->shade_button[0]));
+                        while( isspace(*tmp) ) ++tmp;
+                        if( *tmp != '\0' )
+                            parse_filename( tmp, &(config->shade_button[1]));
+                    }
+                    break ;
+                case MYSTYLE_START_ID:
+                    styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
+                    item.ok_to_free = 1;
+                    break;
+                    /* decoration options */
+                case PAGER_DECORATION_ID:
+                    ReadDecorations (config, pCurr->sub);
+                    item.ok_to_free = 1;
+                    break;
+                default:
+                    item.ok_to_free = 1;
+            }
+        }
     }
 
-  ReadConfigItem (&item, NULL);
-  DestroyConfig (PagerConfigReader);
-  DestroyFreeStorage (&Storage);
-/*    PrintMyStyleDefinitions( config->style_defs ); */
-  return config;
-
+    ReadConfigItem (&item, NULL);
+    DestroyConfig (PagerConfigReader);
+    DestroyFreeStorage (&Storage);
+    /*    PrintMyStyleDefinitions( config->style_defs ); */
+    return config;
 }
 
 /* returns:

@@ -101,3 +101,41 @@ destroy_icon(icon_t **picon)
     }
 }
 
+
+Bool
+load_button( button_t *button, char **filenames, ASImageManager *imman )
+{
+    if( button && imman && filenames )
+    {
+        if( filenames[0] )
+            load_icon(&(button->unpressed), filenames[0], imman );
+        if( filenames[1] )
+            load_icon(&(button->pressed), filenames[1], imman );
+
+        button->width = 0 ;
+        button->height = 0 ;
+
+        if( button->unpressed.image )
+        {
+            button->width = button->unpressed.image->width ;
+            button->height = button->unpressed.image->height ;
+        }
+        if( button->pressed.image )
+        {
+            if( button->pressed.image->width > button->width )
+                button->width = button->pressed.image->width ;
+            if( button->pressed.image->height > button->height )
+                button->height = button->pressed.image->height ;
+        }
+        return ( button->width > 0 && button->height > 0 );
+    }
+    return False;
+}
+
+void
+free_button_resources( button_t *button )
+{
+    free_icon_resources( button->unpressed );
+    free_icon_resources( button->pressed );
+}
+

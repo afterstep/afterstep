@@ -28,6 +28,7 @@
 
 /*#define DO_CLOCKING      */
 #define LOCAL_DEBUG
+#define EVENT_TRACE
 
 #include "../../configure.h"
 
@@ -265,6 +266,14 @@ process_message (unsigned long type, unsigned long *body)
 void
 DispatchEvent (ASEvent * event)
 {
+#ifndef EVENT_TRACE
+    if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
+#endif
+    {
+        show_progress("****************************************************************");
+        show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name(event->x.type), event->x.xany.window, event->w, event->client, context2text(event->context));
+    }
+
     balloon_handle_event (&(event->x));
 
     switch (event->x.type)
@@ -429,6 +438,7 @@ CheckConfigSanity()
 
         sprintf( buf, desk_style_names[i], MyName );
         Config->MSDeskTitle[i] = mystyle_find_or_default( buf );
+LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, Config->MSDeskTitle[i], Config->MSDeskTitle[i]->name, Config->MSDeskTitle[i]->colors.fore, Config->MSDeskTitle[i]->colors.back );
     }
     if( Config->MSDeskBack == NULL )
         Config->MSDeskBack = safecalloc( PagerState.desks_num, sizeof(MyStyle*));
@@ -444,8 +454,27 @@ CheckConfigSanity()
             Config->MSDeskBack[i] = mystyle_find_or_default( buf );
         }
     }
+    /* shade button : */
+    if( Config->shade_btn )
+    {
+        free_button_resources( Config->shade_btn );
+        if( Config->shade_button[0] == NULL )
+        {
+            free( Config->shade_btn );
+            Config->shade_btn = NULL ;
+        }
+    }
+    if( Config->shade_button[0] )
+    {
+        if( Config->shade_btn == NULL )
+            Config->shade_btn = safecalloc( 1, sizeof(button_t));
+        if( !load_button(Config->shade_btn, Config->shade_button, Scr.image_manager ) )
+        {
+            free( Config->shade_btn );
+            Config->shade_btn = NULL;
+        }
+    }
 }
-
 
 void merge_geometry( ASGeometry *from, ASGeometry *to )
 {
@@ -530,8 +559,13 @@ GetOptions (const char *filename)
     if( get_flags( config->set_flags, PAGER_SET_BORDER_COLOR ) )
         parse_argb_color( config->border_color, &(Config->border_color_argb) );
 
+    if( config->shade_button[0] )
+        set_string_value( &(Config->shade_button[0]), config->shade_button[0], NULL, 0 );
+
+    if( config->shade_button[1] )
+        set_string_value( &(Config->shade_button[1]), config->shade_button[1], NULL, 0 );
     if (config->style_defs)
-        ProcessMyStyleDefinitions (&(config->style_defs), PixmapPath);
+        ProcessMyStyleDefinitions (&(config->style_defs));
 
     DestroyPagerConfig (config);
     SHOW_TIME("Config parsing",option_time);
@@ -575,6 +609,7 @@ GetBaseOptions (const char *filename)
     PagerState.desk_height = PagerState.vscreen_height/Scr.VScale;
 
     SHOW_TIME("BaseConfigParsingTime",started);
+    LOCAL_DEBUG_OUT("desk_size(%dx%d),vscreen_size(%dx%d),vscale(%d)", PagerState.desk_width, PagerState.desk_height, PagerState.vscreen_width, PagerState.vscreen_height, Scr.VScale );
 }
 
 /********************************************************************/
@@ -612,8 +647,13 @@ make_pager_window()
 			break;
 	}
     attr.event_mask = StructureNotifyMask ;
-    w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, CWEventMask, &attr);
+    w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 4, InputOutput, CWEventMask, &attr);
     set_client_names( w, MyName, MyName, CLASS_PAGER, MyName );
+
+    Scr.RootClipArea.x = x;
+    Scr.RootClipArea.y = y;
+    Scr.RootClipArea.width = width;
+    Scr.RootClipArea.height = height;
 
     shints.flags = USSize|PMinSize|PResizeInc|PWinGravity;
     if( get_flags( Config->set_flags, PAGER_SET_GEOMETRY ) )
@@ -686,11 +726,13 @@ void rearrange_pager_window()
     XSetWindowAttributes desk_attr;
     desk_attr.event_mask = StructureNotifyMask|ButtonReleaseMask|ButtonPressMask|ButtonMotionMask ;
     ARGB2PIXEL(Scr.asv,Config->border_color_argb,&(desk_attr.border_pixel));
+    handle_canvas_config( PagerState.main_canvas );
     for( i = 0 ; i < PagerState.desks_num ; ++i )
     {
         ASPagerDesk *d = &(PagerState.desks[i]);
         int x, y;
         Bool enable_rendering = True;
+        Bool unmapped = (d->desk_canvas == NULL );
         x = col*PagerState.desk_width;
         y = row*PagerState.desk_height;
 
@@ -700,7 +742,9 @@ void rearrange_pager_window()
             w = create_visual_window(Scr.asv, PagerState.main_canvas->w, x, y, PagerState.desk_width, PagerState.desk_height,
                                      Config->border_width, InputOutput, CWEventMask|CWBorderPixel, &desk_attr );
             d->desk_canvas = create_ascanvas( w );
-            enable_rendering = False ;
+            LOCAL_DEBUG_OUT("+CREAT canvas(%p)->desk(%d)->geom(%dx%d%+d%+d)->parent(%lx)", d->desk_canvas, PagerState.start_desk+i, PagerState.desk_width, PagerState.desk_height, x, y, PagerState.main_canvas->w );
+            //enable_rendering = False ;
+            handle_canvas_config( d->desk_canvas );
         }else
         {
             if( d->desk_canvas->width != PagerState.desk_width || d->desk_canvas->height != PagerState.desk_height )
@@ -710,20 +754,22 @@ void rearrange_pager_window()
         /* create & moveresize label bar : */
         if( get_flags( Config->flags, USE_LABEL ) )
         {
+            int align = (Config->align>0)?ALIGN_LEFT:((Config->align<0)?ALIGN_RIGHT:ALIGN_HCENTER) ;
             if( d->title == NULL )
-            {
                 d->title = create_astbar();
-                add_astbar_label( d->title, 0, 0, 0, 0, NULL );
-            }
             set_astbar_style_ptr( d->title, BAR_STATE_FOCUSED, Config->MSDeskTitle[DESK_ACTIVE] );
             set_astbar_style_ptr( d->title, BAR_STATE_UNFOCUSED, Config->MSDeskTitle[DESK_INACTIVE] );
+            /* delete label if it was previously created : */
+            delete_astbar_tile( d->title, -1 );
             if( Config->labels && Config->labels[i] )
-                change_astbar_first_label( d->title, Config->labels[i] );
+                add_astbar_label( d->title, 0, 0, 0, align, Config->labels[i] );
             else
             {
                 sprintf( buf, "Desk %d", PagerState.start_desk+i );
-                change_astbar_first_label( d->title, buf );
+                add_astbar_label( d->title, 0, 0, 0, align, buf );
             }
+            if( Config->shade_btn )
+                add_astbar_btnblock( d->title, 1, 0, 0, NO_ALIGN, Config->shade_btn, 0xFFFFFFFF, 1, 1, 1, 0, 0,C_R1);
             d->title_size = calculate_astbar_height( d->title );
             place_desk_title(d);
         }else
@@ -741,6 +787,10 @@ void rearrange_pager_window()
 
         if( enable_rendering )
             render_desk( d, False );
+
+        if( unmapped )
+            XMapWindow( dpy, d->desk_canvas->w );
+        ASSync(False);
 
         if( ++col >= PagerState.desk_columns )
         {
@@ -779,8 +829,21 @@ void on_pager_window_moveresize( void *client, Window w, int x, int y, unsigned 
             int new_desk_width = width / PagerState.desk_columns ;
             int new_desk_height = height / PagerState.desk_rows ;
             int col = 0, row = 0;
+            int changes;
 
-            handle_canvas_config( PagerState.main_canvas );
+            changes = handle_canvas_config( PagerState.main_canvas );
+            if( changes != 0 )
+            {
+                Scr.RootClipArea.x = PagerState.main_canvas->root_x;
+                Scr.RootClipArea.y = PagerState.main_canvas->root_y;
+                Scr.RootClipArea.width  = PagerState.main_canvas->width;
+                Scr.RootClipArea.height = PagerState.main_canvas->height;
+                if( Scr.RootImage )
+                {
+                    safe_asimage_destroy( Scr.RootImage );
+                    Scr.RootImage = NULL ;
+                }
+            }
             if( new_desk_width <= 0 )
                 new_desk_width = 1;
             if( new_desk_height <= 0 )

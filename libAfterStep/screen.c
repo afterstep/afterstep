@@ -194,6 +194,9 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long event_mask)
 	scr->MyDisplayHeight = DisplayHeight (dpy, scr->screen);
 	scr->CurrentDesk = -1;
 
+    scr->RootClipArea.width = scr->MyDisplayWidth;
+    scr->RootClipArea.height = scr->MyDisplayHeight;
+
     if( (scr->wmprops = setup_wmprops( scr, (event_mask&SubstructureRedirectMask), 0xFFFFFFFF, NULL )) == NULL )
         return -1;
 

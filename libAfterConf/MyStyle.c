@@ -276,7 +276,7 @@ ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail)
   return tail;
 }
 
-void mystyle_create_from_definition (MyStyleDefinition * def, const char *PixmapPath);
+void mystyle_create_from_definition (MyStyleDefinition * def);
 
 /*
  * this function process a linked list of MyStyle definitions
@@ -290,23 +290,21 @@ void mystyle_create_from_definition (MyStyleDefinition * def, const char *Pixmap
  * pointer to a list becomes NULL !
  */
 void
-ProcessMyStyleDefinitions (MyStyleDefinition ** list, const char *PixmapPath)
+ProcessMyStyleDefinitions (MyStyleDefinition ** list)
 {
-  MyStyleDefinition *pCurr;
-
-  if (list)
-    if (*list)
-      {
-	for (pCurr = *list; pCurr; pCurr = pCurr->next)
-	  mystyle_create_from_definition (pCurr, PixmapPath);
-
-	DestroyMyStyleDefinitions (list);
-	mystyle_fix_styles ();
-      }
+    MyStyleDefinition *pCurr;
+    if (list)
+        if (*list)
+        {
+            for (pCurr = *list; pCurr; pCurr = pCurr->next)
+                mystyle_create_from_definition (pCurr);
+            DestroyMyStyleDefinitions (list);
+            mystyle_fix_styles ();
+        }
 }
 
 void
-mystyle_create_from_definition (MyStyleDefinition * def, const char *PixmapPath)
+mystyle_create_from_definition (MyStyleDefinition * def)
 {
   int i;
   MyStyle *style;

@@ -234,7 +234,7 @@ LoadBaseConfig(void (*read_base_options_func) (const char *))
         char *configfile = make_session_file(Session, BASE_FILE, True );
         if( configfile != NULL )
         {
-            read_base_options_func (Session->overriding_file);
+            read_base_options_func (configfile);
             show_progress("BASE configuration loaded from \"%s\" ...", configfile);
             free( configfile );
         }else

@@ -756,10 +756,7 @@ InitLook (MyLook *look, Bool free_resources)
 #endif /* !NO_TEXTURE */
 		/* titlebar buttons */
         for (i = 0; i < TITLE_BUTTONS; i++)
-		{
-            free_icon_resources( look->buttons[i].unpressed );
-            free_icon_resources( look->buttons[i].pressed );
-		}
+            free_button_resources( &(look->buttons[i]) );
         if( look->configured_icon_areas )
             free( look->configured_icon_areas );
 
@@ -1294,15 +1291,14 @@ void
 SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 {
 	int           num;
-	char          file[256], file2[256];
-	int           fnamelen = 0, offset = 0, linelen;
+    char          *files[2] = {NULL, NULL};
+    int           offset = 0;
 	int           n;
 
 	if (balloon_parse (tline, fd))
 		return;
 
-	linelen = strlen (tline);
-	if ((n = sscanf (tline, "%d", &num)) <= 0)
+    if ((n = sscanf (tline, "%d", &num)) <= 0)
 	{
 		fprintf (stderr, "wrong number of parameters given with TitleButton\n");
 		return;
@@ -1315,51 +1311,19 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 
 	num = translate_title_button(num);
 
-	/* going the hard way to prevent buffer overruns */
-	while (isspace (*(tline + offset)) && offset < linelen)
-		offset++;
-	while (isdigit (*(tline + offset)) && offset < linelen)
-		offset++;
-	while (isspace (*(tline + offset)) && offset < linelen)
-		offset++;
-	for (; !isspace (*(tline + offset)) && offset < linelen; offset++)
-		if (fnamelen < 254)
-			file[fnamelen++] = *(tline + offset);
+    /* going the hard way to prevent buffer overruns */
+    while (isspace (tline[offset]))   offset++;
+    while (isdigit (tline[offset]))   offset++;
+    while (isspace (tline[offset]))   offset++;
 
-	file[fnamelen] = '\0';
-	if (fnamelen)
-	{
-		while (isspace (*(tline + offset)) && offset < linelen)
-			offset++;
-		for (fnamelen = 0; !isspace (*(tline + offset)) && offset < linelen; offset++)
-			if (fnamelen < 254)
-				file2[fnamelen++] = *(tline + offset);
-		file2[fnamelen] = '\0';
-	}
-	if (fnamelen == 0)
-	{
-		fprintf (stderr, "wrong number of parameters given with TitleButton\n");
-		return;
-	}
+    tline = parse_filename( &(tline[offset]), &(files[0]));
+    offset = 0 ;
+    while( isspace(tline[offset]) ) ++offset;
+    if( tline[offset] != '\0' )
+        parse_filename( &(tline[offset]), &(files[1]));
 
-    GetIconFromFile (file, &(Scr.Look.buttons[num].unpressed), 0);
-    GetIconFromFile (file2, &(Scr.Look.buttons[num].pressed), 0);
-
-    Scr.Look.buttons[num].width = 0 ;
-    Scr.Look.buttons[num].height = 0 ;
-
-    if( Scr.Look.buttons[num].unpressed.image )
-	{
-        Scr.Look.buttons[num].width = Scr.Look.buttons[num].unpressed.image->width ;
-        Scr.Look.buttons[num].height = Scr.Look.buttons[num].unpressed.image->height ;
-	}
-    if( Scr.Look.buttons[num].pressed.image )
-	{
-        if( Scr.Look.buttons[num].pressed.image->width > Scr.Look.buttons[num].width )
-            Scr.Look.buttons[num].width = Scr.Look.buttons[num].pressed.image->width ;
-        if( Scr.Look.buttons[num].pressed.image->height > Scr.Look.buttons[num].height )
-            Scr.Look.buttons[num].height = Scr.Look.buttons[num].pressed.image->height ;
-	}
+    if( !load_button( &(Scr.Look.buttons[num]), files, Scr.image_manager ) )
+        show_error( "wrong number of parameters given with TitleButton");
 }
 
 /*****************************************************************************

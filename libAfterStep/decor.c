@@ -307,7 +307,7 @@ void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
 void
 update_canvas_display (ASCanvas * pc)
 {
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)", pc, pc->w, pc->canvas );
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc, pc->w, pc->canvas, pc->width, pc->height );
     if (pc && pc->w != None && !get_flags( pc->state, CANVAS_CONTAINER ))
 	{
 		if (pc->canvas)
@@ -604,6 +604,7 @@ build_btn_block( ASTile *tile,
                 while(  --k >= 0 )
                     blk->buttons[k].x += tile->width ;
         }
+LOCAL_DEBUG_OUT( "real_count=%d", real_count );
     }
     ASSetTileSublayers(*tile,real_count);
 }

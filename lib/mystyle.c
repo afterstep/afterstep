@@ -423,7 +423,8 @@ grab_root_asimage( ScreenInfo *scr )
 	attr.backing_store = Always ;
 	attr.event_mask = ExposureMask ;
 	attr.override_redirect = True ;
-	src = create_visual_window( scr->asv, scr->Root, 0, 0, scr->MyDisplayWidth, scr->MyDisplayHeight,
+    src = create_visual_window( scr->asv, scr->Root, Scr.RootClipArea.x, Scr.RootClipArea.y,
+                                Scr.RootClipArea.width, Scr.RootClipArea.height,
 	    		                0, CopyFromParent,
 				  				CWBackPixmap|CWBackingStore|CWOverrideRedirect|CWEventMask,
 				  				&attr);
@@ -438,7 +439,7 @@ grab_root_asimage( ScreenInfo *scr )
 	for( tick_count = 0 ; !XCheckWindowEvent( dpy, src, ExposureMask, &event ) && tick_count < 100 ; tick_count++)
   		wait_tick();
 	if( tick_count < 100 )
-		root_im = pixmap2ximage( scr->asv, src, 0, 0, scr->MyDisplayWidth, scr->MyDisplayHeight, AllPlanes, 0 );
+        root_im = pixmap2ximage( scr->asv, src, 0, 0, Scr.RootClipArea.width, Scr.RootClipArea.height, AllPlanes, 0 );
 	XDestroyWindow( dpy, src );
 	XUngrabServer( dpy );
 	return root_im ;
@@ -520,12 +521,30 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 			 LOCAL_DEBUG_OUT ("obtained Root pixmap = %lX", root_pixmap);
 			 if (root_pixmap)
 			 {
+                ASImage *tmp_root ;
 #if 0
-				 Scr.RootImage = pixmap2ximage (Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 100);
+                Scr.RootImage = pixmap2ximage (Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, 100);
 #else
-				 Scr.RootImage = pixmap2asimage (Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, False, 100);
+                tmp_root = pixmap2asimage (Scr.asv, root_pixmap, 0, 0, root_w, root_h, AllPlanes, False, 100);
 #endif
-			 }else
+                if( tmp_root )
+                {
+                    if( Scr.RootClipArea.x == 0 && Scr.RootClipArea.y == 0 &&
+                        Scr.RootClipArea.width == Scr.MyDisplayWidth &&
+                        Scr.RootClipArea.height == Scr.MyDisplayHeight )
+                    {
+                        Scr.RootImage = tmp_root ;
+                    }else
+                    {
+                        Scr.RootImage = tile_asimage (Scr.asv, Scr.RootImage,
+                                                    Scr.RootClipArea.x, Scr.RootClipArea.y,
+                                                    Scr.RootClipArea.width, Scr.RootClipArea.height, TINT_NONE,
+                                                    ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+                        destroy_asimage( &tmp_root );
+                    }
+                }
+             }
+             if( Scr.RootImage == NULL )
 				Scr.RootImage = grab_root_asimage( &Scr );
 		 } else
 		 {
@@ -542,7 +561,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		{
 			if (style->texture_type == TEXTURE_TRANSPARENT || style->texture_type == TEXTURE_TRANSPARENT_TWOWAY)
 			{
-				im = tile_asimage (Scr.asv, Scr.RootImage, root_x, root_y,
+                im = tile_asimage (Scr.asv, Scr.RootImage, root_x-Scr.RootClipArea.x, root_y-Scr.RootClipArea.y,
 									width, height, style->tint, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 			} else
 			{
@@ -561,10 +580,10 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 
 				 LOCAL_DEBUG_OUT ("index = %d", index);
 				 layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index];
-				 layers[0].dst_x = 0;
-				 layers[0].dst_y = 0;
-				 layers[0].clip_x = root_x;
-				 layers[0].clip_y = root_y;
+                 layers[0].dst_x = 0;
+                 layers[0].dst_y = 0;
+                 layers[0].clip_x = root_x-Scr.RootClipArea.x;
+                 layers[0].clip_y = root_y-Scr.RootClipArea.y;
 				 layers[0].clip_width = width;
 				 layers[0].clip_height = height;
 

@@ -82,6 +82,7 @@ extern Window        last_event_window;
 
 void event_setup( Bool local );
 const char *event_type2name( int type );
+const char *context2text(int ctx);
 
 /* better use macros so we could override/trace calls later on */
 #define ASCheckMaskEvent(m,e)       check_event_masked(m,e)
