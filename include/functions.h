@@ -43,6 +43,7 @@ typedef enum {
   F_CHANGE_LOOK,
   F_CHANGE_FEEL,
   F_CHANGE_THEME,
+  F_SAVE_WORKSPACE,
   F_ENDFUNC,
   F_ENDPOPUP,
   F_Test,    /* for debugging purposes to be able to test new features before actually

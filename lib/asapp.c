@@ -123,6 +123,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeLook", 10, F_CHANGE_LOOK),	/* ChangeLook "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeFeel", 10, F_CHANGE_FEEL),	/* ChangeFeel "name" file_name */
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeTheme", 11, F_CHANGE_THEME), /* ChangeTheme "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "SaveWorkspace", 13, F_SAVE_WORKSPACE), /* SaveWorkspace "name" file_name */
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndFunction", 11, F_ENDFUNC),
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndPopup", 8, F_ENDPOPUP),
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", 4, F_Test),

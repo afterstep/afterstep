@@ -88,6 +88,7 @@ void quit_func_handler( FunctionData *data, ASEvent *event, int module );
 void windowlist_func_handler( FunctionData *data, ASEvent *event, int module );
 void quickrestart_func_handler( FunctionData *data, ASEvent *event, int module );
 void send_window_list_func_handler( FunctionData *data, ASEvent *event, int module );
+void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module );
 void test_func_handler( FunctionData *data, ASEvent *event, int module );
 
 /* handlers initialization function : */
@@ -146,6 +147,8 @@ void SetupFunctionHandlers()
     function_handlers[F_CHANGE_LOOK] =
         function_handlers[F_CHANGE_FEEL]    =
         function_handlers[F_CHANGE_THEME]   = change_config_func_handler ;
+
+	function_handlers[F_SAVE_WORKSPACE]     = save_workspace_func_handler;
 
     function_handlers[F_REFRESH]            = refresh_func_handler ;
 #ifndef NO_VIRTUAL
@@ -861,6 +864,16 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
         else
             QuickRestart ((data->func == F_CHANGE_LOOK)?"look":"feel");
     }
+}
+
+void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	char *fname = NULL ;
+	if( data->text == NULL )
+		fname = make_session_file( Session, AFTER_SAVE, False );
+    save_aswindow_list( Scr.Windows, fname?fname:data->text );
+	if( fname )
+    	free( fname );
 }
 
 void refresh_func_handler( FunctionData *data, ASEvent *event, int module )
