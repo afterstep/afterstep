@@ -360,11 +360,11 @@ bind_aswindow_styles(ASWindow *t)
 	if( t->style_focus == NULL )
 		t->style_focus = Scr.MSFWindow;
 	t->style_unfocus = styles_names[BACK_UNFOCUSED]?mystyle_find (styles_names[BACK_UNFOCUSED]):NULL ;
-	if( t->style_focus == NULL )
-		t->style_focus = Scr.MSUWindow;
+	if( t->style_unfocus == NULL )
+		t->style_unfocus = Scr.MSUWindow;
 	t->style_sticky = styles_names[BACK_STICKY]?mystyle_find (styles_names[BACK_STICKY]):NULL ;
-	if( t->style_focus == NULL )
-		t->style_focus = Scr.MSSWindow;
+	if( t->style_sticky == NULL )
+		t->style_sticky = Scr.MSSWindow;
 }
 
 /****************************************************************************
@@ -483,13 +483,48 @@ Bool afterstep_parent_hints_func(Window parent, ASParentHints *dst )
 	return True ;
 }
 
+static void
+maximize_window_status( ASStatusHints *status, ASStatusHints *saved_status, ASStatusHints *adjusted_status, ASFlagType flags )
+{
+    ASRectangle rect ;
+	rect.x = 0 ;
+	rect.y = 0 ;
+	rect.width = Scr.MyDisplayWidth ;
+	rect.height = Scr.MyDisplayHeight ;
+
+    if( get_flags( status->flags, AS_StartPositionUser|AS_StartPosition ) )
+    {
+        saved_status->x = status->x ;
+        saved_status->y = status->y ;
+        set_flags( saved_status->flags, AS_Position );
+    }
+    if( get_flags( status->flags, AS_StartSize ) )
+    {
+        saved_status->width = status->width ;
+        saved_status->height = status->height ;
+        set_flags( saved_status->flags, AS_Size );
+    }
+    if( get_flags( flags, AS_MaximizedX ) )
+    {
+        adjusted_status->x = rect.x ;
+        adjusted_status->width = rect.width ;
+    }
+    if( get_flags( flags, AS_MaximizedY ) )
+    {
+        adjusted_status->y = rect.y ;
+        adjusted_status->height = rect.height ;
+    }
+    set_flags( adjusted_status->flags, AS_Position|AS_Size );
+}
+
+
 Bool
 init_aswindow_status( ASWindow *t, ASStatusHints *status ) 
 {
 	extern int PPosOverride ;
-ASStatusHints adjusted_status ;
+	ASStatusHints adjusted_status ;
 	
-	if( t->status )
+	if( t->status == NULL )
 		t->status = safecalloc(1, sizeof(ASStatusHints));
 
     if( get_flags( status->flags, AS_StartDesktop) && status->desktop != Scr.CurrentDesk )
@@ -624,11 +659,18 @@ AddWindow (Window w)
 				print_status_hints( NULL, NULL, &status );
 			}
         }else
+		{
 			show_warning( "Failed to merge window management hints for window %X", w );
+			free ((char *)tmp_win);
+			return (NULL);
+		}
 		tmp_win->hints = hints ;
     }else
+	{
 		show_warning( "Unable to obtain window management hints for window %X", w );
-
+		free ((char *)tmp_win);
+		return (NULL);
+	}
 
 /*  fprintf( stderr, "[%s]: %dx%d%+d%+d\n", tmp_win->name, JunkWidth, JunkHeight, JunkX, JunkY );
 */
@@ -644,7 +686,7 @@ AddWindow (Window w)
 	if (!XGetWindowAttributes (dpy, tmp_win->w, &tmp_win->attr))
 		tmp_win->attr.colormap = Scr.ASRoot.attr.colormap;
 
-	if( ASWIN_GET_FLAGS(tmp_win,AS_Transient ) )
+	if( get_flags(tmp_win->hints->flags,AS_Transient ) )
 	{
 		set_flags(tmp_win->flags, TRANSIENT);
 	}else
@@ -671,22 +713,22 @@ AddWindow (Window w)
 	/* TODO add button translation everywhere */
 	tmp_win->buttons = ~(tmp_win->hints->disabled_buttons) ;
 	SelectDecor (tmp_win);
-	if( ASWIN_GET_FLAGS(tmp_win,AS_AcceptsFocus) )
+	if( get_flags(tmp_win->hints->flags,AS_AcceptsFocus) )
 	{
 		tmp_win->focus_var = 1;
 		tmp_win->flags |= NOFOCUS;
 	}else
 		tmp_win->focus_var = 0;
 
-	if (ASWIN_GET_FLAGS(tmp_win,AS_AvoidCover))
+	if( get_flags(tmp_win->hints->flags,AS_AvoidCover))
 		tmp_win->flags |= AVOID_COVER;
-	if (ASWIN_GET_FLAGS(tmp_win,AS_VerticalTitle))
+	if (get_flags(tmp_win->hints->flags,AS_VerticalTitle))
 		tmp_win->flags |= VERTICAL_TITLE;
-	if (ASWIN_GET_FLAGS(tmp_win,AS_SkipWinList))
+	if (get_flags(tmp_win->hints->flags,AS_SkipWinList))
 		tmp_win->flags |= WINDOWLISTSKIP;
-	if (ASWIN_GET_FLAGS(tmp_win,AS_DontCirculate))
+	if (get_flags(tmp_win->hints->flags,AS_DontCirculate))
 		tmp_win->flags |= CIRCULATESKIP;
-	if (!ASWIN_GET_FLAGS(tmp_win,AS_Icon) || get_flags(Scr.flags, SuppressIcons))
+	if (!get_flags(tmp_win->hints->flags,AS_Icon) || get_flags(Scr.flags, SuppressIcons))
 		tmp_win->flags |= SUPPRESSICON;
 	else
 	{	/* an icon was specified */
@@ -704,7 +746,7 @@ AddWindow (Window w)
 	tmp_win->icon_pm_pixmap = None;
 	tmp_win->icon_pm_mask = None;
 
-	if (!ASWIN_GET_FLAGS(tmp_win,AS_IconTitle))
+	if (!get_flags(tmp_win->hints->flags, AS_IconTitle))
 		tmp_win->flags |= NOICON_TITLE;
 
 	if( !init_aswindow_status( tmp_win, &status ) )

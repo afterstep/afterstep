@@ -1930,7 +1930,7 @@ changeWindowsDesk (ASWindow * t, int new_desk)
 		update_windowList ();
 
 	/* update the _WIN_DESK property */
-	aswindow_set_desk_property (t, ASWIN_DESK(t));
+	set_client_desktop( t->w, ASWIN_DESK(t) );
 }
 /**************************************************************************
  *

@@ -258,7 +258,7 @@ main (int argc, char **argv)
 	newhandler (SIGHUP);
 	newhandler (SIGQUIT);
 	set_signal_handler (SIGSEGV);
-	newhandler (SIGTERM);
+	set_signal_handler (SIGTERM);
 	signal (SIGUSR1, Restart);
 	set_signal_handler (SIGUSR2);
 
@@ -840,6 +840,8 @@ InitVariables (int shallresetdesktop)
 
 	Scr.d_depth = Scr.asv->visual_info.depth;
 	Scr.ASRoot.w = Scr.Root;
+	Scr.ASRoot.hints = safecalloc( 1, sizeof(ASHints));
+	Scr.ASRoot.status = safecalloc( 1, sizeof(ASStatusHints));
 	Scr.ASRoot.next = 0;
 	XGetWindowAttributes (dpy, Scr.Root, &(Scr.ASRoot.attr));
 	Scr.root_pushes = 0;

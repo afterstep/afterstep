@@ -89,7 +89,6 @@ get_window_geometry (ASWindow * t, int flags, int *x, int *y, int *w, int *h)
 		*h = th;
 }
 
-#if 0
 /*
  * pass 0: do not ignore windows behind the target window's layer
  * pass 1: ignore windows behind the target window's layer
@@ -131,7 +130,7 @@ SmartPlacement (ASWindow * t, int *x, int *y, int width, int height, int rx, int
 			for (twin = Scr.ASRoot.next; twin != NULL && loc_ok; twin = twin->next)
 			{
 				/* ignore windows on other desks, and our own window */
-				if (twin->Desk != t->Desk || twin == t)
+				if (ASWIN_DESK(twin) != ASWIN_DESK(t) || twin == t)
 					continue;
 
 				/* ignore non-iconified windows, if we're iconified and not using 
@@ -148,7 +147,7 @@ SmartPlacement (ASWindow * t, int *x, int *y, int width, int height, int rx, int
 
 				/* ignore a window on a lower layer, unless it's an AvoidCover 
 				 * window or instructed to pay attention to it (ie, pass == 0) */
-				if (!(twin->flags & ICONIFIED) && twin->layer < t->layer &&
+				if (!(twin->flags & ICONIFIED) && ASWIN_LAYER(twin) < ASWIN_LAYER(t) &&
 					!(twin->flags & AVOID_COVER) && pass)
 					continue;
 
@@ -173,6 +172,14 @@ SmartPlacement (ASWindow * t, int *x, int *y, int width, int height, int rx, int
 	}
 	return loc_ok;
 }
+
+void place_aswindow( ASWindow *t, ASStatusHints *status )
+{
+#warning "Implement proper manuall placing of windows"  
+	return ;
+}
+
+#if 0
 
 /* Used to parse command line of clients for specific desk requests. */
 /* Todo: check for multiple desks. */

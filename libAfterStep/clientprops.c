@@ -725,8 +725,7 @@ collect_hints (ScreenInfo *scr, Window w, ASFlagType what, ASRawHints *reusable_
 			  if( res == 0 )   return NULL ;
 		}
 
-		if ((all_props = XListProperties (dpy, w, &props_num)) == NULL)
-			return NULL;
+		all_props = XListProperties (dpy, w, &props_num);
 
         if( reusable_memory == NULL )
             hints = (ASRawHints *) safecalloc (1, sizeof (ASRawHints));
@@ -751,17 +750,20 @@ collect_hints (ScreenInfo *scr, Window w, ASFlagType what, ASRawHints *reusable_
 		if (hint_handlers == NULL)
 			init_hint_handlers ();
 
-		while (props_num-- > 0)
+		if( all_props )
 		{
-            if (get_hash_item (hint_handlers, (ASHashableValue) all_props[props_num], (void **)&descr) == ASH_Success)
-                if (descr != NULL)
-                    if( get_flags(descr->hint_class, what) && descr->read_func != NULL )
-					{
-                        descr->read_func (hints, w);
-						set_flags( hints->hints_types, (0x01<<descr->hint_type) );
-					}
+			while (props_num-- > 0)
+			{
+      	  	    if (get_hash_item (hint_handlers, (ASHashableValue) all_props[props_num], (void **)&descr) == ASH_Success)
+        		    if (descr != NULL)
+              		    if( get_flags(descr->hint_class, what) && descr->read_func != NULL )
+						{
+                      		descr->read_func (hints, w);
+							set_flags( hints->hints_types, (0x01<<descr->hint_type) );
+						}
+			}
+			XFree (all_props);
 		}
-		XFree (all_props);
 	}
 	return hints;
 }

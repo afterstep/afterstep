@@ -434,6 +434,11 @@ ConstrainSize (ASWindow * tmp_win, int *widthp, int *heightp)
 	int           baseWidth, baseHeight;
 	int           dwidth = *widthp, dheight = *heightp;
 
+	int maxAspectX  = tmp_win->hints->max_aspect.x ;
+	int maxAspectY  = tmp_win->hints->max_aspect.y ;
+	int minAspectX  = tmp_win->hints->min_aspect.x ;
+	int minAspectY  = tmp_win->hints->min_aspect.y ;
+
 	get_client_geometry (tmp_win, 0, 0, *widthp, *heightp, NULL, NULL, &dwidth, &dheight);
 
 	minWidth = tmp_win->hints->min_width;
@@ -452,6 +457,10 @@ ConstrainSize (ASWindow * tmp_win, int *widthp, int *heightp)
 
 	xinc = tmp_win->hints->width_inc;
 	yinc = tmp_win->hints->height_inc;
+	if( xinc == 0 ) 
+		xinc = 1 ;
+	if( yinc == 0 ) 
+		yinc = 1;
 
 	/*
 	 * First, clamp to min and max values
@@ -477,10 +486,10 @@ ConstrainSize (ASWindow * tmp_win, int *widthp, int *heightp)
 	/*
 	 * Third, adjust for aspect ratio
 	 */
-#define maxAspectX tmp_win->hints->max_aspect.x
-#define maxAspectY tmp_win->hints->max_aspect.y
-#define minAspectX tmp_win->hints->min_aspect.x
-#define minAspectY tmp_win->hints->min_aspect.y
+	if( maxAspectX == 0 ) maxAspectX  = 1 ;
+	if( maxAspectY == 0 ) maxAspectY  = 1 ;
+	if( minAspectX == 0 ) minAspectX  = 1 ;
+	if( minAspectY == 0 ) minAspectY  = 1 ;
 	/*
 	 * The math looks like this:
 	 *
