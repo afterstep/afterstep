@@ -728,11 +728,15 @@ create_wharf_folder_canvas(ASWharfFolder *aswf)
     w = create_visual_window( Scr.asv, Scr.Root, 0, 0, 2, 2, 0, InputOutput, mask, &attr );
 
 #ifdef SHAPE
+	if( get_flags(Config->flags, WHARF_ANIMATE ) )
 	{
 		XRectangle rect ;
 		rect.x = rect.y = 0 ;
 		rect.width = rect.height = 1 ;
 		XShapeCombineRectangles ( dpy, w, ShapeBounding, 0, 0, &rect, 1, ShapeSet, Unsorted);
+		aswf->animate_from_w = 1;
+		aswf->animate_from_h = 1;
+		set_flags(aswf->flags,ASW_AnimationPending );
 	}
 #endif
 
@@ -1275,7 +1279,13 @@ map_wharf_folder( ASWharfFolder *aswf,
 	/* showing window to let user see that we are doing something */
     map_canvas_window(aswf->canvas, True);
 #ifdef SHAPE
-	XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+	if( get_flags(Config->flags, WHARF_ANIMATE ) )
+	{	
+		XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+		aswf->animate_from_w = 1;
+		aswf->animate_from_h = 1;
+		set_flags(aswf->flags,ASW_AnimationPending );
+	}
 #endif
     LOCAL_DEBUG_OUT( "mapping folder window for folder %p", aswf );
     /* final cleanup */
@@ -1697,13 +1707,15 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 
 	moveresize_canvas( aswf->canvas, x, y, width, height );
 	set_wharf_clip_area( aswf, left, top );
-    if( get_flags(Config->flags, WHARF_ANIMATE ) )
+	
+	aswf->animate_to_w = width;
+	aswf->animate_to_h = height;
+    
+	if( get_flags(Config->flags, WHARF_ANIMATE ) )
     {
 		set_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending );
 		aswf->animate_from_w = get_flags( aswf->flags, ASW_Vertical )?aswf->canvas->width:0; 
 		aswf->animate_from_h = get_flags( aswf->flags, ASW_Vertical )?0:aswf->canvas->height;
-		aswf->animate_to_w = width;
-		aswf->animate_to_h = height;
 		aswf->boundary.x = aswf->boundary.y = 0 ; 
 		if( get_flags( aswf->flags, ASW_Vertical ) )
 		{		
@@ -1736,7 +1748,7 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
     clear_flags( aswf->flags, ASW_Withdrawn );
 	ASSync(False);
 
-	if( aswf->canvas->width == width && aswf->canvas->height == height )
+	if( aswf->canvas->width == width && aswf->canvas->height == height && get_flags(Config->flags, WHARF_ANIMATE ))
 	{
 		animate_wharf_loop( aswf, aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h );
 		clear_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending );
@@ -2586,9 +2598,12 @@ on_wharf_pressed( ASEvent *event )
                 	if( get_flags( Config->geometry.flags, YNegative ) )
                     	wy = Scr.MyDisplayHeight - wheight ;
 
-					set_flags(aswf->flags,ASW_UseBoundary );
-					animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, wwidth, wheight );
-					clear_flags(aswf->flags,ASW_UseBoundary );
+					if( get_flags(Config->flags, WHARF_ANIMATE ) )
+					{	
+						set_flags(aswf->flags,ASW_UseBoundary );
+						animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, wwidth, wheight );
+						clear_flags(aswf->flags,ASW_UseBoundary );
+					}
 
 					LOCAL_DEBUG_OUT( "withdrawing folder to %dx%d%+d%+d", wwidth, wheight, wx, wy );
                 	XRaiseWindow( dpy, aswb->canvas->w );
