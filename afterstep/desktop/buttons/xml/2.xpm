@@ -1,3 +1,4 @@
-<tile tint=red>
-	<img src="dots/x_medium"/>
+<tile tint="red">
+  <img src="dots/x_medium"/>
 </tile>
+

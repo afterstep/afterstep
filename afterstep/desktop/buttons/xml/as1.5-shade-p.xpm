@@ -1,5 +1,6 @@
 <bevel colors="#323232 #00000000" border="3 0 0 0">
-	<pad color="#00000000" left=3 top=0 right=2 bottom=5>
-		<img src="dots/bar_medium"/>
-	</pad>
+  <pad color="#00000000" left="3" top="0" right="2" bottom="5">
+    <img src="dots/bar_medium"/>
+  </pad>
 </bevel>
+

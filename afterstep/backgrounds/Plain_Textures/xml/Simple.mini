@@ -1,3 +1,4 @@
-<tile tint=Base>
-	<img src="tiles/SimpleTexture"/>
+<tile tint="Base">
+  <img src="tiles/SimpleTexture"/>
 </tile>
+

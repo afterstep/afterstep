@@ -1,9 +1,12 @@
-<rotate id="arrow_short_small_icon" angle=180><img src="dots/arrow_short_small"/></rotate>
+<rotate id="arrow_short_small_icon" angle="180">
+  <img src="dots/arrow_short_small"/>
+</rotate>
 
-<composite height=16 width=16 merge="clip">
-	<gradient colors="Active ActiveDark" width=16 height=16/>
-	<tile x=2 y=2 tint="BaseDark">
-		<recall srcid="arrow_short_small_icon"/>
-	</tile>
+<composite height="16" width="16" merge="clip">
+  <gradient colors="Active ActiveDark" width="16" height="16"/>
+
+  <tile x="2" y="2" tint="BaseDark">
+    <recall srcid="arrow_short_small_icon"/>
+  </tile>
 </composite>
 

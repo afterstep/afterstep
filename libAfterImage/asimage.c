@@ -2227,7 +2227,6 @@ decode_asscanline_native( ASImageDecoder *imdec, unsigned int skip, int y )
 			if( count < width )
 				set_component( chan, ARGB32_CHAN8(imdec->back_color, i)<<scl->shift, count, width );
 		}
-
 	clear_flags( scl->flags, SCL_DO_ALL);
 	set_flags( scl->flags, imdec->filter);
 }
@@ -2342,7 +2341,6 @@ void                                           /* normal (unbeveled) */
 decode_image_scanline_normal( ASImageDecoder *imdec )
 {
 	int 	 			 y = imdec->next_line;
-
 	if( y - imdec->offset_y >= imdec->out_height )
 	{
 		imdec->buffer.flags = 0 ;
@@ -2464,7 +2462,6 @@ draw_transp_bevel_line ( ASImageDecoder *imdec,
 	int end_point   = imdec->bevel_right + right_delta - (int)bevel->right_inline;
 	int channel ;
 	CARD32 rev_ca = (255-(ca>>8));
-
 	if( start_point < (int)scl->width && end_point > 0 )
 	{
 		for( channel = 0 ; channel < ARGB32_CHANNELS ; ++channel )
@@ -2480,7 +2477,7 @@ draw_transp_bevel_line ( ASImageDecoder *imdec,
 				else
 				{
 					i = start_point-1 ;
-					if( i < (int)scl->width )
+					if( i < (int)scl->width && i >= 0 )
 						chan_img_start[i] = (chan_img_start[i]*rev_ca + ARGB32_CHAN8(left_color,channel)*(ca>>8))>>8 ;
 				}
 				if( end_point >= (int)scl->width )
@@ -2488,7 +2485,8 @@ draw_transp_bevel_line ( ASImageDecoder *imdec,
 				else
 				{
 					end_i = end_point ;
-					chan_img_start[end_i] = (chan_img_start[end_i]*rev_ca + ARGB32_CHAN8(right_color,channel)*(ca>>8))>>8 ;
+					if( end_i >= 0 ) 
+						chan_img_start[end_i] = (chan_img_start[end_i]*rev_ca + ARGB32_CHAN8(right_color,channel)*(ca>>8))>>8 ;
 				}
 				while( ++i < end_i )
 					chan_img_start[i] = (chan_img_start[i]*rev_ca+chan_col)>>8;
@@ -2511,6 +2509,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 		scl->back_color = imdec->back_color ;
 		return ;
 	}
+
 
 	set_flags( scl->flags, imdec->filter );
 	if( y_out < imdec->bevel_top )
@@ -2570,7 +2569,6 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 		draw_solid_bevel_line( scl, -1, left_margin, right_margin, scl->width,
 							   bevel->hi_color, bevel->lo_color,
 							   bevel->hilo_color, bevel->lolo_color );
-
 		if( left_margin < (int)scl->width )
 		{
 			if( get_flags( bevel->type, BEVEL_SOLID_INLINE ) )
@@ -2604,11 +2602,13 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 					draw_transp_bevel_sides( imdec, left_margin, 0, 0, right_margin );
 				}
 
-			}else
+			}
+			else
 			{
-/*fprintf( stderr, __FUNCTION__ ":%d: y_out = %d, imdec->bevel_top = %d, bevel->top_inline = %d\n",
+/* fprintf( stderr, __FUNCTION__ ":%d: y_out = %d, imdec->bevel_top = %d, bevel->top_inline = %d\n",
 				__LINE__,  y_out, imdec->bevel_top, bevel->top_inline);
  */
+ 
 				if( y_out < imdec->bevel_top+bevel->top_inline)
 				{
 					register int line = y_out - imdec->bevel_top;
@@ -2618,9 +2618,10 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 
 					draw_fading_bevel_sides( imdec,	left_margin, left_delta,
 									 	 	right_delta, right_margin );
-/*fprintf( stderr, __FUNCTION__ ":%d: left_delta = %d, right_delta = %d, left_inline = %d, right_inline = %d, bevel_left = %d, bevel_right = %d\n",
+/* fprintf( stderr, __FUNCTION__ ":%d: left_delta = %d, right_delta = %d, left_inline = %d, right_inline = %d, bevel_left = %d, bevel_right = %d\n",
 				__LINE__,  left_delta, right_delta, bevel->left_inline, bevel->right_inline, imdec->bevel_left, imdec->bevel_right);
-*/
+ */ 
+
 					draw_transp_bevel_line ( imdec, left_delta-1, right_delta-1,
 						 			 	 	hda_bevel*(left_delta+1),
 									 	 	bevel->hihi_color, bevel->hi_color, bevel->hilo_color );
@@ -2634,6 +2635,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 
 					draw_fading_bevel_sides( imdec, left_margin, left_delta,
 									 	 	right_delta, right_margin );
+
 					draw_transp_bevel_line ( imdec, left_delta-1, right_delta,
 						 			 	 	hda_shade*(right_delta+1),
 									 	 	bevel->hilo_color, bevel->lo_color, bevel->lolo_color );

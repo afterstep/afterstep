@@ -1,4 +1,4 @@
-<scale width=$minipixmap.width height=$minipixmap.height>
-	<img src=".Cell"/>
+<scale width="$minipixmap.width" height="$minipixmap.height">
+  <img src=".Cell"/>
 </scale>
 

@@ -21,7 +21,6 @@
 #undef DO_CLOCKING
 
 #include "../configure.h"
-#include "../include/afterbase.h"
 #include "asapp.h"
 #include "afterstep.h"
 #include "mystyle.h"
@@ -1486,7 +1485,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
                    style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
                    get_flags( pc->state, CANVAS_FORCE_MASK ));
 #ifdef SHAPE
-    LOCAL_DEBUG_OUT( "render_mask = %d", render_mask );
+    LOCAL_DEBUG_OUT( "render_mask = %d, shape = %p", render_mask, pc->shape );
     if ( render_mask )
 		fmt = ASA_ASImage;
 	else if (pc->shape)

@@ -54,7 +54,6 @@
 #define IN_MODULE
 #define MODULE_X_INTERFACE
 
-#include "../../include/afterbase.h"
 #include "../../libAfterImage/afterimage.h"
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"

@@ -1,7 +1,10 @@
 <composite merge="clip">
-	<img src="normal/PCCase"/>
-	<scale width=40 height=40 x=-4 y=12>
-		<img src="normal/Monitor3D"/>
-	</scale>
-<composite/>
+  <img src="normal/PCCase"/>
+
+  <scale width="40" height="40" x="-4" y="12">
+    <img src="normal/Monitor3D"/>
+  </scale>
+
+  <composite />
+</composite>
 

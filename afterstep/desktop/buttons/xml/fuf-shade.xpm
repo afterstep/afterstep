@@ -1,8 +1,11 @@
-<bevel colors="gray80 black" border="1 1 1 1" solid=0>
-	<composite>
-		<gradient angle=45 colors="black #A9A9A9" width=15 height=15/>
-		<tile tint="#606060">
-			<img src="dots/bar_medium"/>
-		</tile>
-	</composite>
+<bevel colors="gray80 black" border="1 1 1 1" solid="0">
+  <composite>
+    <gradient angle="45" colors="black #A9A9A9" width="15"
+    height="15"/>
+
+    <tile tint="#606060">
+      <img src="dots/bar_medium"/>
+    </tile>
+  </composite>
 </bevel>
+

@@ -967,21 +967,22 @@ merge_layers( ASVisual *asv,
 	ASImage *dst = NULL ;
 	ASImageDecoder **imdecs ;
 	ASImageOutput  *imout ;
-	ASScanline dst_line ;
 	ASImageLayer *pcurr = layers;
 	int i ;
+	ASScanline dst_line ;
 	START_TIME(started);
 
 LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height );
 	if( (dst = create_asimage ( dst_width, dst_height, compression_out)) == NULL )
 		return NULL;
+	
+	prepare_scanline( dst_width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
+	dst_line.flags = SCL_DO_ALL ;
 
 	if( out_format != ASA_ASImage )
 		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 
-	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
-	dst_line.flags = SCL_DO_ALL ;
-	imdecs = safecalloc( count, sizeof(ASImageDecoder*));
+	imdecs = safecalloc( count+20, sizeof(ASImageDecoder*));
 
 /*  don't really know why the hell we need that ???
  *  if( pcurr->im == NULL )
@@ -1047,7 +1048,10 @@ LOCAL_DEBUG_OUT("blending actually...%s", "");
 		}
 		if( min_y < 0 )
 			min_y = 0 ;
-		if( max_y > (int)dst_height )
+		else if( min_y >= (int)dst_height )
+			min_y = dst_height ;
+			
+		if( max_y >= (int)dst_height )
 			max_y = dst_height ;
 		else
 			imout->tiling_step = max_y ;
@@ -1088,8 +1092,8 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 					{
 						tint_component_mod( b->red,   (CARD16)(ARGB32_RED8(tint)<<1),   b->width );
 						tint_component_mod( b->green, (CARD16)(ARGB32_GREEN8(tint)<<1), b->width );
-  						tint_component_mod( b->blue,  (CARD16)(ARGB32_BLUE8(tint)<<1),  b->width );
-						tint_component_mod( b->alpha, (CARD16)(ARGB32_ALPHA8(tint)<<1), b->width );
+  					   	tint_component_mod( b->blue,  (CARD16)(ARGB32_BLUE8(tint)<<1),  b->width );
+					  	tint_component_mod( b->alpha, (CARD16)(ARGB32_ALPHA8(tint)<<1), b->width );
 					}
 					pcurr->merge_scanlines( &dst_line, b, pcurr->dst_x );
 				}

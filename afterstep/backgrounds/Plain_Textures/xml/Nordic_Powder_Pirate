@@ -1,3 +1,4 @@
-<tile tint=Base>
-	<img src="tiles/NordicPowderPirate"/>
+<tile tint="Base">
+  <img src="tiles/NordicPowderPirate"/>
 </tile>
+

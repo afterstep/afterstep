@@ -1,7 +1,9 @@
 <composite merge="clip">
-	<hsv affected_hue="blue" affected_radius=60 hue_offset=-45 value_offset=-10>
-		<img src="large/NetworkedGlobe"/>
-	</hsv>
-	<img src="normal/Helm" x=13 y=13/>
+  <hsv affected_hue="blue" affected_radius="60" hue_offset="-45"
+  value_offset="-10">
+    <img src="large/NetworkedGlobe"/>
+  </hsv>
+
+  <img src="normal/Helm" x="13" y="13"/>
 </composite>
 

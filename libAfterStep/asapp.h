@@ -6,7 +6,6 @@
 #endif
 
 #include <errno.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -42,6 +41,7 @@
 #endif /* HAVE_XINERAMA */
 
 
+#include "../include/afterbase.h"
 #include "functions.h"
 
 #ifdef __cplusplus

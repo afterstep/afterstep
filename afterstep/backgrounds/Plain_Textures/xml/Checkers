@@ -1,1 +1,4 @@
-<tile tint=Base><img src="tiles/Checkers"/></tile>
+<tile tint="Base">
+  <img src="tiles/Checkers"/>
+</tile>
+

@@ -1,3 +1,4 @@
 <bevel colors="black black" border="1 1 1 1">
-	<solid color="red" width=15 height=15/>
+  <solid color="red" width="15" height="15"/>
 </bevel>
+

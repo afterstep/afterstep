@@ -1,8 +1,8 @@
-<composite merge=clip width=16 height=16>
-	<gradient colors="Active ActiveDark" width=16 height=16/>
-	<tile x=2 y=2 tint="BaseLight">
-		<img src="dots/menu_medium"/>
-	</tile>
-</composite>
+<composite merge="clip" width="16" height="16">
+  <gradient colors="Active ActiveDark" width="16" height="16"/>
 
+  <tile x="2" y="2" tint="BaseLight">
+    <img src="dots/menu_medium"/>
+  </tile>
+</composite>
 

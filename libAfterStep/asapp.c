@@ -27,7 +27,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "../include/afterbase.h"
 #include "asapp.h"
 #include "afterstep.h"
 #include "parser.h"
@@ -645,12 +644,20 @@ FreeMyAppResources()
     purge_asimage_registry();
     flush_ashash_memory_pool();
     destroy_screen_gcs(&Scr);
+	if( Scr.RootImage ) 
+	{	
+		safe_asimage_destroy( Scr.RootImage );
+		Scr.RootImage = NULL ;
+	}
+	asxml_var_cleanup();
 	destroy_asvisual( Scr.asv, False );
+	custom_color_cleanup();
     flush_asbidirlist_memory_pool();
     free( MyArgs.saved_argv );
     destroy_assession( Session );
 	destroy_asenvironment( &Environment );
     build_xpm_colormap( NULL );
+	is_executable_in_path ( NULL );
 #ifdef XSHMIMAGE
 	flush_shm_cache();
 #endif

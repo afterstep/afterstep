@@ -1,3 +1,4 @@
-<tile tint=BaseLight>
-	<img src="tiles/DropInjures.mini"/>
+<tile tint="BaseLight">
+  <img src="tiles/DropInjures.mini"/>
 </tile>
+

@@ -1,5 +1,8 @@
 <bevel colors="#323232 #00000000" border="3 0 0 0">
-	<pad color="#00000000" left=4 top=3 right=1 bottom=2>
-		<tile tint="#404040"><img src="dots/x_medium"/></tile>
-	</pad>
+  <pad color="#00000000" left="4" top="3" right="1" bottom="2">
+    <tile tint="#404040">
+      <img src="dots/x_medium"/>
+    </tile>
+  </pad>
 </bevel>
+

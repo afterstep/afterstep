@@ -1,3 +1,4 @@
-<tile tint=Base>
-	<img src="tiles/DorchesterConsolidated"/>
+<tile tint="Base">
+  <img src="tiles/DorchesterConsolidated"/>
 </tile>
+

@@ -1,4 +1,6 @@
 <composite merge="clip">
-	<img src="normal/Document"/>
-	<img src="normal/Pen1"/>
+  <img src="normal/Document"/>
+
+  <img src="normal/Pen1"/>
 </composite>
+

@@ -1,7 +1,12 @@
 <composite merge="clip">
-	<img src="large/Document2"/>
-	<scale width=32 height=32 x=25 y=28>
-		<rotate angle=270><img src="normal/WritingHand"/></rotate>
-	</scale>
-<composite/>
+  <img src="large/Document2"/>
+
+  <scale width="32" height="32" x="25" y="28">
+    <rotate angle="270">
+      <img src="normal/WritingHand"/>
+    </rotate>
+  </scale>
+
+  <composite />
+</composite>
 

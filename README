@@ -23,9 +23,9 @@ various Modules.
  o  jpeg	(ftp://ftp.uu.net/graphics/jpeg/)
  o  png 	(http://www.cdrom.com/pub/png/pngcode.html)
 
-If you use a package management system (like RedHat, Mandrake etc) you will
-need to get the appropriate <libname>-devel rpm and not the actual source code
-mentioned above.
+If you use a package management system (like those provided by the distributions
+such as RedHat, Mandrake, Debian, etc.) you will need to get the appropriate
+<libname>-devel rpm and not the actual source code mentioned above.
 
  THEMES
 +------+
@@ -114,9 +114,20 @@ new features to ascp!  Please also translate README to your language if it
 hasn't been done yet.
 
 
+ LOBBYING
++--------+
+
+If you happen to run AfterStep from a Debian package on a Debian distribution,
+you might want to install the "popularity-contest" package so AfterStep will be
+kept as the most often installed window managers and will thus be present on
+the first disks of the CD and DVD sets.  You can install the
+"popularity-contest" package by entering the following command at the prompt :
+apt-get install popularity-contest
+
+
  MAINTAINERS
 +------------+
 
 Check out the TEAM file.
 
-Feb 3, 2000
+2004

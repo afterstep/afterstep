@@ -1,14 +1,20 @@
-<hsv id="btn_back_active" hue_offset=$ascs.Active.hue saturation_offset=$ascs.Active.saturation-30 value_offset=$ascs.Active.value-60>
-	<img src="bars/btn_back_glass_red"/>
+<hsv id="btn_back_active" hue_offset="$ascs.Active.hue"
+saturation_offset="$ascs.Active.saturation-30"
+value_offset="$ascs.Active.value-60">
+  <img src="bars/btn_back_glass_red"/>
 </hsv>
-<composite merge=clip>
-	<recall srcid="btn_back_active"/>
-	<tile x=5 y=5 tint="white">
-		<scale width=13 height=11>
-			<img src="dots/pin"/>
-		</scale>
-	</tile>
-	<tile tint=#6f7f7f7f x=0 y=0>
-		<recall srcid="btn_back_active"/>
-	</tile>
+
+<composite merge="clip">
+  <recall srcid="btn_back_active"/>
+
+  <tile x="5" y="5" tint="white">
+    <scale width="13" height="11">
+      <img src="dots/pin"/>
+    </scale>
+  </tile>
+
+  <tile tint="#6f7f7f7f" x="0" y="0">
+    <recall srcid="btn_back_active"/>
+  </tile>
 </composite>
+

@@ -1,5 +1,6 @@
 <bevel colors="#00000000 #323232" border="1 1 4 0">
-	<pad color="#00000000" left=3 top=13 right=14 bottom=4>
-		<solid width=3 height=3 color="#FFFFFF"/>
-	</pad>
+  <pad color="#00000000" left="3" top="13" right="14" bottom="4">
+    <solid width="3" height="3" color="#FFFFFF"/>
+  </pad>
 </bevel>
+

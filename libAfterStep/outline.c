@@ -26,7 +26,6 @@
 #include "../configure.h"
 
 #define LOCAL_DEBUG
-#include "../include/afterbase.h"
 #include "asapp.h"
 #include "../libAfterImage/afterimage.h"
 #include "afterstep.h"

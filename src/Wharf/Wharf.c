@@ -32,7 +32,6 @@
 #define EVENT_TRACE
 
 #include "../../configure.h"
-#include "../../include/afterbase.h"
 #include "../../libAfterStep/asapp.h"
 #include <signal.h>
 #include <unistd.h>

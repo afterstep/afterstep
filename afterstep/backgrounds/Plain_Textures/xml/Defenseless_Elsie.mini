@@ -1,1 +1,4 @@
-<tile tint=BaseLight><img src="tiles/DefenselessElsie.mini"/></tile>
+<tile tint="BaseLight">
+  <img src="tiles/DefenselessElsie.mini"/>
+</tile>
+

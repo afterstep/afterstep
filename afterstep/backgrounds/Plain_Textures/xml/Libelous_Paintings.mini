@@ -1,3 +1,4 @@
-<tile tint=BaseLight>
-	<img src="tiles/LibelousPaintings.mini"/>
+<tile tint="BaseLight">
+  <img src="tiles/LibelousPaintings.mini"/>
 </tile>
+

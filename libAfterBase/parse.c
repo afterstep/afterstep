@@ -52,7 +52,8 @@
 ASHashTable *custom_argb_colornames = NULL ;
 
 void
-register_custom_color(const char* name, CARD32 value) {
+register_custom_color(const char* name, CARD32 value) 
+{
 	ASHashData hdata = {0} ;
 
 	if( name == NULL )
@@ -78,6 +79,13 @@ unregister_custom_color(const char* name)
 		else
 	      	remove_hash_item(custom_argb_colornames, AS_HASHABLE(name), NULL, False);
 	}
+}
+
+void
+custom_color_cleanup() 
+{
+	if (custom_argb_colornames != NULL )
+    	destroy_ashash( &custom_argb_colornames );
 }
 
 Bool

@@ -1,5 +1,6 @@
 <composite merge="clip">
-	<img src="normal/Letter"/>
-	<img src="normal/Pen" x=10 y=-10/>
+  <img src="normal/Letter"/>
+
+  <img src="normal/Pen" x="10" y="-10"/>
 </composite>
 

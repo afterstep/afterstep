@@ -39,7 +39,6 @@
 # endif
 #endif
 #endif
-#include "../include/afterbase.h"
 #include "asapp.h"
 #include "afterstep.h"
 #include "parser.h"

@@ -1,3 +1,4 @@
-<scale width=$minipixmap.width height=$minipixmap.height>
-	<img src=".Japanese"/>
+<scale width="$minipixmap.width" height="$minipixmap.height">
+  <img src=".Japanese"/>
 </scale>
+

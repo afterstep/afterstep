@@ -22,7 +22,6 @@
 #include <unistd.h>
 
 #define LOCAL_DEBUG
-#include "../include/afterbase.h"
 #include "asapp.h"
 #include "afterstep.h"
 #include "../libAfterImage/afterimage.h"

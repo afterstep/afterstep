@@ -1,4 +1,9 @@
-<composite op=add>
-	<gradient width=$minipixmap.width height=$minipixmap.height colors="BaseDark BaseLight" angle=45/>
-	<scale width=$minipixmap.width height=$minipixmap.height><img src="tiles/SimpleTexture"/></scale>
+<composite op="add">
+  <gradient width="$minipixmap.width" height="$minipixmap.height"
+  colors="BaseDark BaseLight" angle="45"/>
+
+  <scale width="$minipixmap.width" height="$minipixmap.height">
+    <img src="tiles/SimpleTexture"/>
+  </scale>
 </composite>
+

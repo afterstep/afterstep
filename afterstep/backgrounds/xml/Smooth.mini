@@ -1,1 +1,3 @@
-<gradient width=$minipixmap.width height=$minipixmap.height colors="BaseDark BaseLight" angle=45/>
+<gradient width="$minipixmap.width" height="$minipixmap.height"
+colors="BaseDark BaseLight" angle="45"/>
+

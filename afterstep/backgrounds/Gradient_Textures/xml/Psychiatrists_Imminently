@@ -1,4 +1,8 @@
-<composite op=tint>
-	<gradient width=$xroot.width height=$xroot.height colors="BaseDark BaseLight" angle=45/>
-	<img tile=1 tint="#7fffffff" src="tiles/PsychiatristsImminently"/>
+<composite op="tint">
+  <gradient width="$xroot.width" height="$xroot.height"
+  colors="BaseDark BaseLight" angle="45"/>
+
+  <img tile="1" tint="#7fffffff"
+  src="tiles/PsychiatristsImminently"/>
 </composite>
+

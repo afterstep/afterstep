@@ -166,6 +166,15 @@ asxml_var_nget(char* name, int n) {
       return value;
 }
 
+void
+asxml_var_cleanup(void)
+{
+	if ( asxml_var != NULL )
+    	destroy_ashash( &asxml_var );
+
+}
+
+
 ASImageManager *create_generic_imageman(const char *path)		
 {
 	ASImageManager *my_imman = NULL ;

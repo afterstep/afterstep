@@ -1,3 +1,6 @@
-<hsv hue_offset=$ascs.Inactive1.hue saturation_offset=$ascs.Inactive1.saturation-30 value_offset=$ascs.Inactive1.value-70>
-	<img src="bars/title_rspacer_glass_red"/>
+<hsv hue_offset="$ascs.Inactive1.hue"
+saturation_offset="$ascs.Inactive1.saturation-30"
+value_offset="$ascs.Inactive1.value-70">
+  <img src="bars/title_rspacer_glass_red"/>
 </hsv>
+

@@ -32,7 +32,6 @@
 
 #define IN_MODULE
 #define MODULE_X_INTERFACE
-#include "../../include/afterbase.h"
 #include "../../include/aftersteplib.h"
 #include "../../include/module.h"
 #include "Scroll.h"

@@ -1,3 +1,5 @@
-<bevel border="4 4 4 4" solid=0>
-	<gradient angle=45 width=64 height=64 colors="#585858 #a0a0a0"/>
+<bevel border="4 4 4 4" solid="0">
+  <gradient angle="45" width="64" height="64"
+  colors="#585858 #a0a0a0"/>
 </bevel>
+

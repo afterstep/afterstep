@@ -23,7 +23,6 @@
 
 #include <unistd.h>
 #include <stdarg.h>
-#include "../include/afterbase.h"
 #include "asapp.h"
 #include "afterstep.h"
 #include "screen.h"
@@ -379,6 +378,8 @@ destroy_assession (ASSession * session)
         free( session->overriding_theme );
     if( session->overriding_colorscheme )
         free( session->overriding_colorscheme );
+	if( session->workspace_state )
+		free( session->workspace_state );
 
 	i = session->desks_used ;
     while (--i >= 0)

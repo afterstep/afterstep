@@ -24,7 +24,7 @@
 
 #include "../configure.h"
 
-#include "../include/afterbase.h"
+#include "asapp.h"
 #include "../libAfterImage/afterimage.h"
 #include "screen.h"
 #include "shape.h"

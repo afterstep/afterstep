@@ -1,7 +1,11 @@
 <composite merge="clip">
-	<img src="large/Monitor1"/>
-	<scale width=42 height=42 x=7 y=1>
-		<img src="logos/AfterStep"/>
-	</scale>
-<composite>
+  <img src="large/Monitor1"/>
+
+  <scale width="42" height="42" x="7" y="1">
+    <img src="logos/AfterStep"/>
+  </scale>
+
+  <composite>
+  </composite>
+</composite>
 

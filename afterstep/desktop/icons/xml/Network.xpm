@@ -1,11 +1,14 @@
 <composite>
-	<scale width=32 height=32 x=2 y=2>
-		<img src="large/Terminal"/>
-	</scale>
-	<scale width=32 height=32 x=16 y=16>
-		<img src="large/Terminal"/>
-	</scale>
-	<scale width=32 height=32 y=16>
-		<img src="normal/Ethernet"/>
-	</scale>
+  <scale width="32" height="32" x="2" y="2">
+    <img src="large/Terminal"/>
+  </scale>
+
+  <scale width="32" height="32" x="16" y="16">
+    <img src="large/Terminal"/>
+  </scale>
+
+  <scale width="32" height="32" y="16">
+    <img src="normal/Ethernet"/>
+  </scale>
 </composite>
+

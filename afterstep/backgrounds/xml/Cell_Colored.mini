@@ -1,6 +1,6 @@
-<hsv hue_offset=$ascs.Base.hue value_offset=1>
-	<scale width=$minipixmap.width height=$minipixmap.height>
-			<img src=".Cell"/>
-	</scale>
+<hsv hue_offset="$ascs.Base.hue" value_offset="1">
+  <scale width="$minipixmap.width" height="$minipixmap.height">
+    <img src=".Cell"/>
+  </scale>
 </hsv>
 

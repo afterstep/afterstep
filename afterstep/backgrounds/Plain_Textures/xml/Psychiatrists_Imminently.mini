@@ -1,3 +1,4 @@
-<tile tint=BaseLight>
-	<img src="tiles/PsychiatristsImminently.mini"/>
+<tile tint="BaseLight">
+  <img src="tiles/PsychiatristsImminently.mini"/>
 </tile>
+

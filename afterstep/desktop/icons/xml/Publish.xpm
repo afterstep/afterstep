@@ -1,5 +1,8 @@
 <composite merge="clip">
-	<img src="normal/Newspaper"/>
-	<rotate angle=90 x=-15 y=-10><img src="normal/Pen"/></rotate>
+  <img src="normal/Newspaper"/>
+
+  <rotate angle="90" x="-15" y="-10">
+    <img src="normal/Pen"/>
+  </rotate>
 </composite>
 

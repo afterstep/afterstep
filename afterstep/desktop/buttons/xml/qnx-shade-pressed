@@ -1,6 +1,6 @@
-<hsv hue_offset=$ascs.Active.hue
-     saturation_offset=$ascs.Active.saturation-50
-     value_offset=$ascs.Active.value-60>
-	<img src="dots/qnx-shade-red"/>
+<hsv hue_offset="$ascs.Active.hue"
+saturation_offset="$ascs.Active.saturation-50"
+value_offset="$ascs.Active.value-60">
+  <img src="dots/qnx-shade-red"/>
 </hsv>
 

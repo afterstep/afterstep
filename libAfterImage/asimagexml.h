@@ -80,6 +80,8 @@ struct ASFontManager *create_generic_fontman(Display *dpy, const char *path);
 
 void asxml_var_insert(const char* name, int value);
 void asxml_var_init(void);
+void asxml_var_cleanup(void);
+
 
 ASImage *
 compose_asimage_xml(ASVisual *asv,
