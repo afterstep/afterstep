@@ -66,6 +66,7 @@ static Bool refresh_canvas_config( ASCanvas *pc )
 				XFreePixmap( dpy, pc->mask );
 				pc->mask = None ;
 			}
+			set_flags( pc->state, CANVAS_DIRTY|CANVAS_OUT_OF_SYNC );
 			pc->width  = width ;
 			pc->height = height ;
 		}
@@ -78,7 +79,10 @@ Pixmap get_canvas_canvas( ASCanvas *pc )
 	if( pc == NULL ) 
 		return None ;
 	if( pc->canvas == None ) 
+	{
 		pc->canvas = create_visual_pixmap( Scr.asv, Scr.Root, pc->width, pc->height, 0 );
+		set_flags( pc->state, CANVAS_DIRTY|CANVAS_OUT_OF_SYNC );
+	}
 	return pc->canvas ;
 }
 
@@ -163,7 +167,12 @@ Bool draw_canvas_image( ASCanvas *pc, ASImage *im, int x, int y )
 	if( real_y + height > pc->height )
 		height = pc->height-real_y ;
 LOCAL_DEBUG_OUT( "drawing image %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y ); 		
-	return asimage2drawable( Scr.asv, p, im, NULL, real_x-x, real_y-y, real_x, real_y, width, height, True );
+	if( asimage2drawable( Scr.asv, p, im, NULL, real_x-x, real_y-y, real_x, real_y, width, height, True ) )
+	{
+		set_flags( pc->state, CANVAS_OUT_OF_SYNC );
+		return True ;
+	}
+	return False ;
 }
 
 void update_canvas_display( ASCanvas *pc )
@@ -175,6 +184,7 @@ void update_canvas_display( ASCanvas *pc )
 			XSetWindowBackgroundPixmap( dpy, pc->w, pc->canvas );
 			XClearWindow( dpy, pc->w );
 			XSync( dpy, False );
+			clear_flags( pc->state, CANVAS_DIRTY|CANVAS_OUT_OF_SYNC );
 		}	
 		if( pc->mask )
 		{

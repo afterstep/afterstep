@@ -948,7 +948,9 @@ merge_layers( ASVisual *asv,
 	START_TIME(started);
 
 LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height );
-	dst = create_asimage ( dst_width, dst_height, compression_out);
+	if( (dst = create_asimage ( dst_width, dst_height, compression_out)) == NULL )
+		return NULL;
+	
 	if( out_format != ASA_ASImage ) 
 		set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 
