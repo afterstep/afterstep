@@ -419,6 +419,7 @@ get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwid
     if( py == NULL ) py = &dumm ;
     if( pwidth == NULL ) pwidth = &udumm ;
     if( pheight == NULL ) pheight = &udumm ;
+    if( pbw == NULL ) pbw = &udumm ;
 
     return (XGetGeometry(dpy, pc->w, &wdumm, px, py, pwidth, pheight, pbw, &udumm )!= 0);
 }
@@ -465,6 +466,28 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
         }
 	}
 }
+
+void
+update_canvas_display_mask (ASCanvas * pc)
+{
+#ifdef SHAPE
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc, pc->w, pc->canvas, pc->width, pc->height );
+    if (pc && pc->w != None )
+	{
+        if( !get_flags( pc->state, CANVAS_CONTAINER ))
+        {
+            if (pc->mask)
+            {
+                LOCAL_DEBUG_OUT( "set canvas mask to %lX", pc->mask );
+                XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, pc->mask, ShapeSet);
+            }else
+                set_canvas_shape_to_rectangle( pc );
+            XSync (dpy, False);
+        }
+	}
+#endif
+}
+
 
 void
 clear_canvas_shape (ASCanvas * pc)
@@ -604,8 +627,8 @@ replace_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int chi
         rect.width  = width+bw*2;
         rect.height = height+bw*2;
 
-LOCAL_DEBUG_OUT( "setting bounding container's shape from rectangle %dx%d%+d%+d",  rect.width, rect.height, rect.x, rect.y );
-        XShapeCombineRectangles (dpy, parent->w, ShapeBounding, 0, 0, &rect, 1, ShapeUnion, Unsorted);
+LOCAL_DEBUG_OUT( "subtracting rectangle %dx%d%+d%+d from bounding container's shape",  rect.width, rect.height, rect.x, rect.y );
+        XShapeCombineRectangles (dpy, parent->w, ShapeBounding, 0, 0, &rect, 1, ShapeSubtract, Unsorted);
         return combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw, False, use_window_shape );
     }
 #endif

@@ -56,11 +56,15 @@
 
 #include "../../libAfterConf/afterconf.h"
 
-
-typedef struct ASPagerDesk {
-
+/* pager flags  - shared between PagerDEsk and PagerState */
 #define ASP_DeskShaded          (0x01<<0)
 #define ASP_UseRootBackground   (0x01<<1)
+#define ASP_Shaped              (0x01<<2)
+#define ASP_ShapeDirty          (0x01<<3)
+#define ASP_ReceivingWindowList (0x01<<4)
+
+
+typedef struct ASPagerDesk {
 
     ASFlagType flags ;
     int desk ;
@@ -223,6 +227,7 @@ main (int argc, char **argv)
     /* Request a list of all windows,
      * wait for ConfigureWindow packets */
     SendInfo ("Send_WindowList", 0);
+    set_flags( PagerState.flags, ASP_ReceivingWindowList );
 
     PagerState.main_canvas = create_ascanvas( make_pager_window() );
     redecorate_pager_desks();
@@ -278,8 +283,8 @@ DeadPipe (int nonsense)
     print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
 
-    XFlush (dpy);			/* need this for SetErootPixmap to take effect */
-	XCloseDisplay (dpy);		/* need this for SetErootPixmap to take effect */
+    XFlush (dpy);
+    XCloseDisplay (dpy);
     exit (0);
 }
 
@@ -712,6 +717,16 @@ render_desk( ASPagerDesk *d, Bool force )
     if( force || DoesBarNeedsRendering(d->background) )
         render_astbar( d->background, d->desk_canvas );
 
+    if( d->desk_canvas->mask == None && get_flags(d->flags, ASP_Shaped) )
+    {
+        clear_flags(d->flags, ASP_Shaped);
+        set_flags(d->flags, ASP_ShapeDirty);
+    }else if( d->desk_canvas->mask != None )
+    {
+        set_flags(d->flags, ASP_Shaped);
+        set_flags(d->flags, ASP_ShapeDirty);
+    }
+
     if( is_canvas_dirty( d->desk_canvas) )
     {
         update_canvas_display( d->desk_canvas );
@@ -729,6 +744,9 @@ update_desk_shape( ASPagerDesk *d )
     if( d == NULL )
         return;
 
+    update_canvas_display_mask (d->desk_canvas);
+
+    LOCAL_DEBUG_CALLER_OUT( "desk %p flags = 0x%lX", d, d->flags );
     if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
     {
         XShapeCombineRectangles ( dpy, d->desk_canvas->w, ShapeBounding,
@@ -756,11 +774,19 @@ update_desk_shape( ASPagerDesk *d )
     {
         register ASWindowData **clients = d->clients ;
         i = d->clients_num ;
+        LOCAL_DEBUG_OUT( "clients_num %d", d->clients_num );
         while( --i >= 0 )
+        {
+            LOCAL_DEBUG_OUT( "client %d data %p", i, clients[i] );
             if( clients[i] )
-                combine_canvas_shape( d->desk_canvas, clients[i]->canvas, False, False );
+            {
+                LOCAL_DEBUG_OUT( "combining client \"%s\"", clients[i]->icon_name );
+                combine_canvas_shape( d->desk_canvas, clients[i]->canvas, False, True );
+            }
+        }
     }
 #endif
+    clear_flags( d->flags, ASP_ShapeDirty );
 }
 
 void
@@ -768,8 +794,42 @@ update_pager_shape()
 {
 #ifdef SHAPE
     int i ;
+    Bool shape_cleared = False ;
+
+    if( get_flags( PagerState.flags, ASP_ReceivingWindowList ) )
+        return ;
+
+    LOCAL_DEBUG_CALLER_OUT( "pager flags = 0x%lX", PagerState.flags );
+
+    if( get_flags( PagerState.flags, ASP_ShapeDirty ) )
+    {
+        //clear_canvas_shape (PagerState.main_canvas);
+        shape_cleared = True ;
+        clear_flags( PagerState.flags, ASP_ShapeDirty );
+    }
+
     for( i = 0 ; i < PagerState.desks_num; ++i )
-        combine_canvas_shape( PagerState.main_canvas, PagerState.desks[i].desk_canvas, (i == 0), True );
+    {
+        ASPagerDesk *d = &(PagerState.desks[i]) ;
+        int x, y ;
+
+        get_current_canvas_geometry( d->desk_canvas, &x, &y, NULL, NULL, NULL );
+
+        if( get_flags( d->flags, ASP_Shaped) )
+        {
+            Bool update = get_flags( d->flags, ASP_ShapeDirty) ;
+            if( update )
+                update_desk_shape( d );
+            if( shape_cleared || update )
+//                combine_canvas_shape( PagerState.main_canvas, d->desk_canvas, False, True );
+//            else
+                replace_canvas_shape_at( PagerState.main_canvas, d->desk_canvas, x, y, True );
+        }else if( shape_cleared || get_flags( d->flags, ASP_ShapeDirty) )
+        {
+            replace_canvas_shape_at( PagerState.main_canvas, d->desk_canvas, x, y, True );
+            clear_flags( d->flags, ASP_ShapeDirty);
+        }
+    }
 #endif
 }
 
@@ -934,8 +994,7 @@ LOCAL_DEBUG_OUT( "sel_pos(%+d%+d)->page_size(%dx%d)->desk(%d)", sel_x, sel_y, pa
 
         restack_desk_windows( sel_desk );
         XMapSubwindows( dpy, sel_desk->desk_canvas->w );
-        update_desk_shape( sel_desk );
-        update_pager_shape();
+        set_flags(sel_desk->flags, ASP_ShapeDirty);
     }
 }
 
@@ -1125,7 +1184,6 @@ rearrange_pager_desks(Bool dont_resize_main )
         }else
             x += width+Config->border_width;
     }
-    update_pager_shape();
     ASSync(False);
 }
 
@@ -1306,12 +1364,8 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_upd
                 }
             }else
                 moveresize_canvas( canvas, x, y, width, height );
+
             LOCAL_DEBUG_OUT( "+PLACE->canvas(%p)->geom(%dx%d%+d%+d)", wd->canvas, width, height, x, y );
-        }
-        if( !dont_update_shape )
-        {
-            update_desk_shape( d );
-            update_pager_shape();
         }
     }
 }
@@ -1334,9 +1388,12 @@ on_client_moveresize(ASWindowData *wd )
 {
     if( handle_canvas_config( wd->canvas ) != 0 )
     {
+        ASPagerDesk *d = get_pager_desk( wd->desk );
         set_astbar_size( wd->bar, wd->canvas->width, wd->canvas->height );
         render_astbar( wd->bar, wd->canvas );
         update_canvas_display( wd->canvas );
+        if( d )
+            set_flags(d->flags, ASP_ShapeDirty);
     }
 }
 
@@ -1383,17 +1440,20 @@ void forget_desk_client( int desk, ASWindowData *wd )
                 break;
             }
         LOCAL_DEBUG_OUT( "client found at %d", i );
+        if( i >= 0 )
+            set_flags( d->flags, ASP_ShapeDirty);
     }
 }
 
 void add_desk_client( ASPagerDesk *d, ASWindowData *wd )
 {
-    LOCAL_DEBUG_OUT( "%p, %p", d, wd );
+    LOCAL_DEBUG_OUT( "%p, %p, index %d", d, wd, d?d->clients_num:-1 );
     if( d && wd )
     {
         d->clients = realloc( d->clients, (d->clients_num+1)*sizeof(ASWindowData*));
         d->clients[d->clients_num] = wd ;
         ++(d->clients_num);
+        set_flags( d->flags, ASP_ShapeDirty);
     }
 }
 
@@ -1459,7 +1519,10 @@ change_desk_stacking( int desk, unsigned int clients_num, Window *clients )
         return;
 
     if( d->clients_num < clients_num )
+    {
         d->clients = realloc( d->clients, clients_num*sizeof(ASWindowData*));
+        d->clients_num = clients_num ;
+    }
     for( i = 0 ; i < clients_num ; ++i )
     {
         d->clients[i] = fetch_window_by_id( clients[i] );
@@ -1547,10 +1610,9 @@ move_sticky_clients()
             while( --i >= 0 )
                 if( clients[i] && get_flags( clients[i]->state_flags, AS_Sticky))
                     place_client( d, clients[i], True, True );
-            update_desk_shape( d );
+            set_flags(d->flags, ASP_ShapeDirty);
         }
     }
-    update_pager_shape();
 }
 
 static char as_comm_buf[256];
@@ -1892,8 +1954,14 @@ process_message (unsigned long type, unsigned long *body)
                     change_desk_stacking( body[0], body[1], &(body[2]) );
                 }
                 break ;
+            case M_END_WINDOWLIST :
+                clear_flags( PagerState.flags, ASP_ReceivingWindowList );
+                break ;
+           default:
+                return;
         }
     }
+    update_pager_shape();
 }
 /*************************************************************************
  * Event handling :
@@ -1999,15 +2067,14 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
                 {
                     update_astbar_transparency(PagerState.desks[i].title, PagerState.desks[i].desk_canvas);
                     update_astbar_transparency(PagerState.desks[i].background, PagerState.desks[i].desk_canvas);
-                    if( render_desk( &(PagerState.desks[i]), False ) )
-                    {
-                        update_desk_shape( &(PagerState.desks[i]) );
-                        update_pager_shape();
-                    }
+                    render_desk( &(PagerState.desks[i]), False );
                 }
             }
             break;
+        default:
+            return;
     }
+    update_pager_shape();
 }
 
 void
@@ -2093,12 +2160,10 @@ on_desk_moveresize( ASPagerDesk *d )
             }
         }
     }
-
     update_astbar_transparency(d->title, d->desk_canvas);
     update_astbar_transparency(d->background, d->desk_canvas);
 
     render_desk( d, (changes!=0) );
-    update_desk_shape(d);
 }
 
 void on_pager_window_moveresize( void *client, Window w, int x, int y, unsigned int width, unsigned int height )
@@ -2116,6 +2181,8 @@ void on_pager_window_moveresize( void *client, Window w, int x, int y, unsigned 
             changes = update_main_canvas_config();
             if( changes&CANVAS_RESIZED )
             {
+                set_flags(PagerState.flags, ASP_ShapeDirty);
+
                 new_desk_width  = calculate_pager_desk_width();
                 new_desk_height = calculate_pager_desk_height();
 
@@ -2139,13 +2206,14 @@ void on_pager_window_moveresize( void *client, Window w, int x, int y, unsigned 
         }else                                  /* then its one of our desk subwindows : */
         {
             for( i = 0 ; i < PagerState.desks_num; ++i )
+            {
                 if( PagerState.desks[i].desk_canvas->w == w )
                 {
                     on_desk_moveresize( &(PagerState.desks[i]) );
                     break;
                 }
+            }
         }
-        update_pager_shape();
     }
 }
 
@@ -2387,5 +2455,6 @@ UngrabEm ()
 		grabbed_screen = NULL;
     }
 }
+
 
 

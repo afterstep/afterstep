@@ -32,6 +32,7 @@ struct ASWindowGridAuxData{
     int     min_layer;
     Bool    frame_only ;
     int vx, vy;
+    Bool ignore_avoid_cover ;
 };
 
 typedef struct ASFreeRectangleAuxData{
@@ -43,101 +44,6 @@ typedef struct ASFreeRectangleAuxData{
     ASWindow *to_skip ;
 }ASFreeRectangleAuxData;
 
-
-Bool
-get_aswindow_grid_iter_func(void *data, void *aux_data)
-{
-    ASWindow *asw = (ASWindow*)data ;
-    struct ASWindowGridAuxData *grid_data = (struct ASWindowGridAuxData*)aux_data;
-
-    if( asw && (!IsValidDesk(grid_data->desk) || ASWIN_DESK(asw) == grid_data->desk) )
-    {
-        int outer_gravity = Scr.Feel.EdgeAttractionWindow ;
-        int inner_gravity = Scr.Feel.EdgeAttractionWindow ;
-        if( ASWIN_HFLAGS(asw, AS_AvoidCover) )
-            inner_gravity = -1 ;
-        else if( inner_gravity == 0 || grid_data->min_layer > ASWIN_LAYER(asw))
-            return True;
-
-        if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
-        {
-            add_canvas_grid( grid_data->grid, asw->icon_canvas, outer_gravity, inner_gravity, grid_data->vx, grid_data->vy );
-            if( asw->icon_canvas != asw->icon_title_canvas )
-                add_canvas_grid( grid_data->grid, asw->icon_title_canvas, outer_gravity, inner_gravity, grid_data->vx, grid_data->vy );
-        }else
-        {
-            add_canvas_grid( grid_data->grid, asw->frame_canvas, outer_gravity, inner_gravity, grid_data->vx, grid_data->vy );
-            if( !grid_data->frame_only )
-                add_canvas_grid( grid_data->grid, asw->client_canvas, outer_gravity/2, (inner_gravity*2)/3, grid_data->vx, grid_data->vy );
-        }
-    }
-    return True;
-}
-
-ASGrid*
-make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy )
-{
-    struct ASWindowGridAuxData grid_data ;
-    int resist = Scr.Feel.EdgeResistanceMove ;
-    int attract = Scr.Feel.EdgeAttractionScreen ;
-
-    grid_data.desk = desk ;
-    grid_data.min_layer = min_layer ;
-    grid_data.frame_only = frame_only ;
-    grid_data.grid = safecalloc( 1, sizeof(ASGrid));
-    grid_data.vx = vx ;
-    grid_data.vy = vy ;
-    add_canvas_grid( grid_data.grid, Scr.RootCanvas, resist, attract, vx, vy );
-    /* add all the window edges for this desktop : */
-    iterate_asbidirlist( Scr.Windows->clients, get_aswindow_grid_iter_func, (void*)&grid_data, NULL, False );
-
-#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-    print_asgrid( grid_data.grid );
-#endif
-
-    return grid_data.grid;
-}
-
-void apply_aswindow_move(struct ASMoveResizeData *data)
-{
-    ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
-SHOW_CHECKPOINT;
-LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
-    if( asw )
-    {
-        if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
-            moveresize_aswindow_wm( asw,
-                                    data->curr.x, data->curr.y,
-                                    asw->status->width, asw->status->height, False);
-        else
-            moveresize_aswindow_wm( asw,
-                                    data->curr.x, data->curr.y,
-                                    data->curr.width, data->curr.height, False);
-    }
-}
-
-
-void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
-{
-    ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
-    if( asw )
-    {
-        if( cancelled )
-        {
-    SHOW_CHECKPOINT;
-            LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->start.x, data->start.y);
-            moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height, False );
-        }else
-        {
-    SHOW_CHECKPOINT;
-            LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
-            moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height, False );
-        }
-        ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
-        SendConfigureNotify(asw);
-    }
-    Scr.moveresize_in_progress = NULL ;
-}
 /*************************************************************************/
 /* here we build vector of rectangles, representing one available
  * space each :
@@ -278,7 +184,7 @@ print_rectangles_list( ASVector *list )
 }
 
 static ASVector *
-build_free_space_list( ASWindow *to_skip, ASWindowBox *aswbox, ASGeometry *area, int min_layer )
+build_free_space_list( ASWindow *to_skip, ASGeometry *area, int min_layer )
 {
     ASVector *list = create_asvector( sizeof(XRectangle) );
     ASFreeRectangleAuxData aux_data ;
@@ -307,6 +213,131 @@ build_free_space_list( ASWindow *to_skip, ASWindowBox *aswbox, ASGeometry *area,
     return list;
 }
 
+/*************************************************************************
+ * here we build the grid  to facilitate avoid cover and snap-to-grid
+ * while moving resizing window
+ *************************************************************************/
+Bool
+get_aswindow_grid_iter_func(void *data, void *aux_data)
+{
+    ASWindow *asw = (ASWindow*)data ;
+    struct ASWindowGridAuxData *grid_data = (struct ASWindowGridAuxData*)aux_data;
+
+    if( asw && (!IsValidDesk(grid_data->desk) || ASWIN_DESK(asw) == grid_data->desk) )
+    {
+        int outer_gravity = Scr.Feel.EdgeAttractionWindow ;
+        int inner_gravity = Scr.Feel.EdgeAttractionWindow ;
+        if( ASWIN_HFLAGS(asw, AS_AvoidCover) && !grid_data->ignore_avoid_cover )
+            inner_gravity = -1 ;
+        else if( inner_gravity == 0 || grid_data->min_layer > ASWIN_LAYER(asw))
+            return True;
+
+        if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+        {
+            add_canvas_grid( grid_data->grid, asw->icon_canvas, outer_gravity, inner_gravity, grid_data->vx, grid_data->vy );
+            if( asw->icon_canvas != asw->icon_title_canvas )
+                add_canvas_grid( grid_data->grid, asw->icon_title_canvas, outer_gravity, inner_gravity, grid_data->vx, grid_data->vy );
+        }else
+        {
+            add_canvas_grid( grid_data->grid, asw->frame_canvas, outer_gravity, inner_gravity, grid_data->vx, grid_data->vy );
+            if( !grid_data->frame_only )
+                add_canvas_grid( grid_data->grid, asw->client_canvas, outer_gravity/2, (inner_gravity*2)/3, grid_data->vx, grid_data->vy );
+        }
+    }
+    return True;
+}
+
+ASGrid*
+make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWindow *target )
+{
+    struct ASWindowGridAuxData grid_data ;
+    int resist = Scr.Feel.EdgeResistanceMove ;
+    int attract = Scr.Feel.EdgeAttractionScreen ;
+    int i ;
+    ASVector *free_space_list = NULL;
+    XRectangle *rects = NULL;
+    int w = target->status->width ;
+    int h = target->status->height ;
+    ASGeometry area ;
+
+    grid_data.desk = desk ;
+    grid_data.min_layer = min_layer ;
+    grid_data.frame_only = frame_only ;
+    grid_data.grid = safecalloc( 1, sizeof(ASGrid));
+    grid_data.vx = vx ;
+    grid_data.vy = vy ;
+    grid_data.ignore_avoid_cover = True ;
+    area.x = vx ;
+    area.y = vy ;
+    area.width = Scr.MyDisplayWidth ;
+    area.height = Scr.MyDisplayHeight ;
+
+    /* even though we are not limited to free space - it is best to avoid windows with AvoidCover
+     * bit set */
+    free_space_list =  build_free_space_list( target, &area, AS_LayerHighest );
+    rects = PVECTOR_HEAD(XRectangle,free_space_list);
+
+    i = PVECTOR_USED(free_space_list);
+    /* now we need to find the biggest rectangle : */
+    while( --i >= 0 )
+        if( rects[i].width >= w && rects[i].height >= h )
+        {
+            grid_data.ignore_avoid_cover = False ;
+            break;
+        }
+    destroy_asvector( &free_space_list );
+
+    add_canvas_grid( grid_data.grid, Scr.RootCanvas, resist, attract, vx, vy );
+    /* add all the window edges for this desktop : */
+    iterate_asbidirlist( Scr.Windows->clients, get_aswindow_grid_iter_func, (void*)&grid_data, NULL, False );
+
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    print_asgrid( grid_data.grid );
+#endif
+
+    return grid_data.grid;
+}
+
+void apply_aswindow_move(struct ASMoveResizeData *data)
+{
+    ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
+SHOW_CHECKPOINT;
+LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
+    if( asw )
+    {
+        if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+            moveresize_aswindow_wm( asw,
+                                    data->curr.x, data->curr.y,
+                                    asw->status->width, asw->status->height, False);
+        else
+            moveresize_aswindow_wm( asw,
+                                    data->curr.x, data->curr.y,
+                                    data->curr.width, data->curr.height, False);
+    }
+}
+
+
+void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
+{
+    ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
+    if( asw )
+    {
+        if( cancelled )
+        {
+    SHOW_CHECKPOINT;
+            LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->start.x, data->start.y);
+            moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height, False );
+        }else
+        {
+    SHOW_CHECKPOINT;
+            LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
+            moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height, False );
+        }
+        ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
+        SendConfigureNotify(asw);
+    }
+    Scr.moveresize_in_progress = NULL ;
+}
 /*************************************************************************/
 /* placement routines : */
 /*************************************************************************/
@@ -341,7 +372,7 @@ apply_placement_result( ASWindow *asw, ASFlagType flags, int vx, int vy, unsigne
 
 static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
-    ASVector *free_space_list =  build_free_space_list( asw, aswbox, area, ASWIN_LAYER(asw) );
+    ASVector *free_space_list =  build_free_space_list( asw, area, ASWIN_LAYER(asw) );
     XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
     int i, selected = -1 ;
     unsigned short w = asw->status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
@@ -499,7 +530,7 @@ static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
 
     /* even though we are not limited to free space - it is best to avoid windows with AvoidCover
      * bit set */
-    free_space_list =  build_free_space_list( asw, aswbox, area,
+    free_space_list =  build_free_space_list( asw, area,
                                               free_space_only?ASWIN_LAYER(asw):AS_LayerHighest );
     rects = PVECTOR_HEAD(XRectangle,free_space_list);
 
@@ -553,7 +584,7 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
 
     /* even though we are not limited to free space - it is best to avoid windows with AvoidCover
      * bit set */
-    free_space_list =  build_free_space_list( asw, aswbox, area, AS_LayerHighest );
+    free_space_list =  build_free_space_list( asw, area, AS_LayerHighest );
     rects = PVECTOR_HEAD(XRectangle,free_space_list);
 
     i = PVECTOR_USED(free_space_list);
@@ -600,7 +631,7 @@ static Bool do_tile_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *a
     XRectangle *rects = NULL;
     int i ;
 
-    free_space_list =  build_free_space_list( asw, aswbox, area, ASWIN_LAYER(asw) );
+    free_space_list =  build_free_space_list( asw, area, ASWIN_LAYER(asw) );
     rects = PVECTOR_HEAD(XRectangle,free_space_list);
 
     i = PVECTOR_USED(free_space_list);
@@ -717,7 +748,7 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
         mvrdata->below_sibling = get_lowest_panframe(&Scr);
         set_moveresize_restrains( mvrdata, asw->hints, asw->status);
 //            mvrdata->subwindow_func = on_deskelem_move_subwindow ;
-        mvrdata->grid = make_desktop_grid( ASWIN_DESK(asw), ASWIN_LAYER(asw), False, 0, 0 );
+        mvrdata->grid = make_desktop_grid( ASWIN_DESK(asw), ASWIN_LAYER(asw), False, 0, 0, asw );
         Scr.moveresize_in_progress = mvrdata ;
         InteractiveMoveLoop ();
     }else

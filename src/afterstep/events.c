@@ -1164,24 +1164,38 @@ LOCAL_DEBUG_OUT( "old anchor(%dx%d%+d%+d), new_anchor(%dx%d%+d%+d)", asw->anchor
  *      HandleShapeNotify - shape notification event handler
  *
  ***********************************************************************/
-#ifdef SHAPE
 void
 HandleShapeNotify (ASEvent *event)
 {
+#ifdef SHAPE
     XShapeEvent  *sev = (XShapeEvent *) &(event->x);
+    Window w ;
+    Bool needs_update = (sev->kind == ShapeBounding) ;
+    Bool shaped = sev->shaped ;
 
     if (!event->client)
 		return;
-	if (sev->kind != ShapeBounding)
-		return;
-    if( sev->shaped )
-        ASWIN_SET_FLAGS( event->client, AS_Shaped );
-    else
-        ASWIN_CLEAR_FLAGS( event->client, AS_Shaped );
+    w = event->client->w ;
+    while( ASCheckTypedWindowEvent( w, ShapeEventBase + ShapeNotify, &(event->x) ) )
+    {
+        if (sev->kind == ShapeBounding)
+        {
+            needs_update = True ;
+            shaped = sev->shaped ;
+        }
+    }
 
-    SetShape (event->client, 0);
-}
+    if( needs_update )
+    {
+        if( shaped )
+            ASWIN_SET_FLAGS( event->client, AS_Shaped );
+        else
+            ASWIN_CLEAR_FLAGS( event->client, AS_Shaped );
+
+        SetShape (event->client, 0);
+    }
 #endif /* SHAPE */
+}
 
 #if 1										   /* see SetTimer() */
 /**************************************************************************

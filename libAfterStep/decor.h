@@ -218,6 +218,8 @@ void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line);
 #else
 void update_canvas_display( ASCanvas *pc );
 #endif
+void update_canvas_display_mask (ASCanvas * pc);
+
 
 Bool combine_canvas_shape (ASCanvas *parent, ASCanvas *child, Bool first, Bool use_window_shape );
 Bool combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_w, int child_h, int child_bw, Bool first, Bool use_window_shape );

@@ -444,6 +444,20 @@ load_myback_image( int desk, MyBackground *back )
                 im = tiled_im ;
             }
         }
+        if( im->width > Scr.MyDisplayWidth || im->height > Scr.MyDisplayHeight )
+        {
+            int width = ( im->width > Scr.MyDisplayWidth )?Scr.MyDisplayWidth:im->width ;
+            int height = ( im->height > Scr.MyDisplayHeight )?Scr.MyDisplayHeight:im->height ;
+
+            tiled_im = tile_asimage( Scr.asv, im, 0, 0, width, height, TINT_LEAVE_SAME, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+            LOCAL_DEBUG_OUT( "image croped to %dx%d. tmp_im = %p", width, height, tiled_im );
+            if( tiled_im != im )
+            {
+                safe_asimage_destroy( im );
+                im = tiled_im ;
+            }
+
+        }
     }
     return im;
 }

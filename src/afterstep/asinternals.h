@@ -653,7 +653,7 @@ void change_desktop_background( int desk, int old_desk );
 void HandleBackgroundRequest( struct ASEvent *event );
 
 /******************************* placement.c *******************************/
-ASGrid* make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy );
+ASGrid* make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWindow *target );
 Bool place_aswindow( ASWindow *asw );
 void apply_aswindow_move(struct ASMoveResizeData *data);
 void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled);

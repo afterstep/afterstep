@@ -292,6 +292,7 @@ struct config main_config[] = {
     {"TitleButtonBalloonStyle", assign_quoted_string, &(BalloonConfig.style), NULL},
     {"TitleButtonBalloons", SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
     {"TitleButton", SetTitleButton, (char **)1, (int *)0},
+    {"KillBackgroundThreshold", SetInts, (char**)&(Scr.Look.KillBackgroundThreshold), NULL },
 	{"", 0, (char **)0, (int *)0}
 };
 
@@ -1156,11 +1157,11 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 InitLook (&Scr.Look, True);
                 ParseConfigFile (const_configfile, &tline);
                 show_progress("LOOK configuration loaded from \"%s\" ...", const_configfile);
-#ifdef ASETROOT_FILE				
-				if( Scr.Look.desk_configs == NULL ) 
-				{/* looks like there is no background information in the look file and we should be 
+#ifdef ASETROOT_FILE
+				if( Scr.Look.desk_configs == NULL )
+				{/* looks like there is no background information in the look file and we should be
 				    getting it from the asetroot file : */
-									
+
 		            if( (configfile = make_session_file(Session, ASETROOT_FILE, False )) != NULL )
       			    {
       			        ParseConfigFile (configfile, &tline);
@@ -1169,7 +1170,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
               			free( configfile );
 		            }
 				}
-#endif				
+#endif
             }else
             {
                 show_warning("LOOK configuration file cannot be found");

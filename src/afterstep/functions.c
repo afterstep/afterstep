@@ -188,7 +188,7 @@ typedef struct ASScheduledFunction
      * since they may change by the time function is run : */
     Window client ;
     Window canvas ;
-	
+
 	Bool defered ;
 }ASScheduledFunction;
 
@@ -294,7 +294,7 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 	{
 	    print_func_data(__FILE__, "DoExecuteFunction", __LINE__, data);
 	}
-	
+
     if( sf->client != None )
     {
         ASWindow *asw ;
@@ -356,9 +356,9 @@ DoExecuteFunction ( ASScheduledFunction *sf )
                 func = F_NOP;
         }
 
-		if( event->client == NULL ) 
+		if( event->client == NULL )
       		func = F_NOP;
-		
+
 	}
 
     if( function_handlers[func] || func == F_FUNCTION )
@@ -617,7 +617,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
             mvrdata->below_sibling = get_lowest_panframe(&Scr);
             set_moveresize_restrains( mvrdata, asw->hints, asw->status);
 //            mvrdata->subwindow_func = on_deskelem_move_subwindow ;
-            mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, 0, 0);
+            mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, 0, 0, asw);
             Scr.moveresize_in_progress = mvrdata ;
             ASWIN_SET_FLAGS( asw, AS_MoveresizeInProgress );
         }
