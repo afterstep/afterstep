@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <X11/Xlib.h>	/* For compatibility with older versions of XFree */
+#include <X11/Xlib.h>						   /* For compatibility with older versions of XFree */
 #include <X11/Xutil.h>
 
 #include "../configure.h"
@@ -14,68 +14,66 @@
  * Some usefull parsing functions
  *
  ****************************************************************************/
-char *
+char         *
 ReadIntValue (char *restofline, int *value)
 {
-  sscanf (restofline, "%d", value);
+	sscanf (restofline, "%d", value);
 
-  while (isspace ((unsigned char) *restofline))
-    restofline++;
-  while ((!isspace ((unsigned char) *restofline)) && (*restofline != 0) &&
-	 (*restofline != ',') && (*restofline != '\n'))
-    restofline++;
-  while (isspace ((unsigned char) *restofline))
-    restofline++;
+	while (isspace ((unsigned char)*restofline))
+		restofline++;
+	while ((!isspace ((unsigned char)*restofline)) && (*restofline != 0) &&
+		   (*restofline != ',') && (*restofline != '\n'))
+		restofline++;
+	while (isspace ((unsigned char)*restofline))
+		restofline++;
 
-  return restofline;
+	return restofline;
 }
 
-char *
+char         *
 ReadColorValue (char *restofline, char **color, int *len)
 {
-  char *tmp;
-  *len = 0;
+	char         *tmp;
 
-  while (isspace ((unsigned char) *restofline))
-    restofline++;
-  for (tmp = restofline; (tmp != NULL) && (*tmp != 0) && (*tmp != ',') &&
-       (*tmp != '\n') && (*tmp != '/') && (!isspace ((unsigned char) *tmp));
-       tmp++)
-    (*len)++;
+	*len = 0;
 
-  if (*len > 0)
-    {
-      if (*color)
-	free (*color);
-      *color = safemalloc (*len + 1);
-      strncpy (*color, restofline, *len);
-      (*color)[*len] = 0;
-    }
+	while (isspace ((unsigned char)*restofline))
+		restofline++;
+	for (tmp = restofline; (tmp != NULL) && (*tmp != 0) && (*tmp != ',') &&
+		 (*tmp != '\n') && (*tmp != '/') && (!isspace ((unsigned char)*tmp)); tmp++)
+		(*len)++;
 
-  return tmp;
+	if (*len > 0)
+	{
+		if (*color)
+			free (*color);
+		*color = safemalloc (*len + 1);
+		strncpy (*color, restofline, *len);
+		(*color)[*len] = 0;
+	}
+
+	return tmp;
 }
 
-char *
+char         *
 ReadFileName (char *restofline, char **fname, int *len)
 {
-  char *tmp;
-  *len = 0;
+	char         *tmp;
 
-  while (isspace ((unsigned char) *restofline))
-    restofline++;
-  for (tmp = restofline;
-       (tmp != NULL) && (*tmp != 0) && (*tmp != ',') && (*tmp != '\n');
-       tmp++)
-    (*len)++;
+	*len = 0;
 
-  if (*fname != NULL)
-    free (*fname);
+	while (isspace ((unsigned char)*restofline))
+		restofline++;
+	for (tmp = restofline; (tmp != NULL) && (*tmp != 0) && (*tmp != ',') && (*tmp != '\n'); tmp++)
+		(*len)++;
 
-  if (*len > 0)
-    *fname = mystrndup (restofline, *len);
-  else
-    *fname = NULL;
+	if (*fname != NULL)
+		free (*fname);
 
-  return tmp;
+	if (*len > 0)
+		*fname = mystrndup (restofline, *len);
+	else
+		*fname = NULL;
+
+	return tmp;
 }
-

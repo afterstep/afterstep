@@ -39,34 +39,35 @@
 #include "../include/screen.h"
 
 void
-asimage2icon( ASImage *im, icon_t *icon, Bool ignore_alpha )
+asimage2icon (ASImage * im, icon_t * icon, Bool ignore_alpha)
 {
 	icon->image = im;
-	if( im )
+	if (im)
 	{
-		icon->pix = asimage2pixmap( Scr.asv, Scr.Root, icon->image, NULL, False );
-		if( !ignore_alpha ) 
+		icon->pix = asimage2pixmap (Scr.asv, Scr.Root, icon->image, NULL, False);
+		if (!ignore_alpha)
 		{
-			int depth = check_asimage_alpha (Scr.asv, im );
-			if( depth > 0 )
-				icon->mask = asimage2alpha  ( Scr.asv, Scr.Root, im, NULL, False, True );
-			if( depth == 8 )
-				icon->alpha = asimage2alpha  ( Scr.asv, Scr.Root, im, NULL, False, False );
-        }
+			int           depth = check_asimage_alpha (Scr.asv, im);
+
+			if (depth > 0)
+				icon->mask = asimage2alpha (Scr.asv, Scr.Root, im, NULL, False, True);
+			if (depth == 8)
+				icon->alpha = asimage2alpha (Scr.asv, Scr.Root, im, NULL, False, False);
+		}
 		icon->width = im->width;
-	    icon->height = im->height;
+		icon->height = im->height;
 	}
 }
 
-void 
-free_icon_resources( icon_t icon ) 
+void
+free_icon_resources (icon_t icon)
 {
-	if( icon.pix ) 
-		UnloadImage( icon.pix );
-	if( icon.mask ) 
-		UnloadMask( icon.mask );
-	if( icon.alpha ) 
-		UnloadMask( icon.alpha );
-	if( icon.image ) 
-		safe_asimage_destroy(icon.image);
+	if (icon.pix)
+		UnloadImage (icon.pix);
+	if (icon.mask)
+		UnloadMask (icon.mask);
+	if (icon.alpha)
+		UnloadMask (icon.alpha);
+	if (icon.image)
+		safe_asimage_destroy (icon.image);
 }

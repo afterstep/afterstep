@@ -92,6 +92,8 @@ typedef struct syntax_stack
   {
     SyntaxDef *syntax;
     struct syntax_stack *next;
+    TermDef *current_term;
+	unsigned long current_flags;
   }
 SyntaxStack;
 
@@ -175,6 +177,7 @@ typedef struct config_definition
 #define CF_DISABLED_OPTION	(1<<0)	/* option has #~~DISABLE~~# prepending it */
 #define CF_PUBLIC_OPTION	(1<<1)	/* public options - with no * MyName prepending it */
 #define CF_FOREIGN_OPTION	(1<<2)	/* option had * prepending it, but unknown MyName after that */
+#define CF_LAST_OPTION		(1<<3)	/* option is last in the config file */
 
 #define IsOptionEnabled(config)	(!(config->current_flags&CF_DISABLED_OPTION))
 #define IsOptionDisabled(config)	(config->current_flags&CF_DISABLED_OPTION)
@@ -182,6 +185,7 @@ typedef struct config_definition
 #define IsPrivateOption(config)	(!(config->current_flags&CF_PUBLIC_OPTION))
 #define IsMyOption(config)	(!(config->current_flags&CF_FOREIGN_OPTION))
 #define IsForeignOption(config)	(config->current_flags&CF_FOREIGN_OPTION)
+#define IsLastOption(config)	(config->current_flags&CF_LAST_OPTION)
     unsigned long current_flags;
 
     char *cursor;

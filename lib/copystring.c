@@ -13,29 +13,29 @@
 void
 CopyString (char **dest, char *source)
 {
-  size_t len;
-  char *start;
+	size_t        len;
+	char         *start;
 
-  while (((isspace ((unsigned char) *source)) && (*source != '\n')) && (*source != 0))
-    {
-      source++;
-    }
-  len = 0;
-  start = source;
-  while ((*source != '\n') && (*source != 0))
-    {
-      len++;
-      source++;
-    }
+	while (((isspace ((unsigned char)*source)) && (*source != '\n')) && (*source != 0))
+	{
+		source++;
+	}
+	len = 0;
+	start = source;
+	while ((*source != '\n') && (*source != 0))
+	{
+		len++;
+		source++;
+	}
 
-  source--;
+	source--;
 
-  while ((isspace ((unsigned char) *source)) && (*source != 0) && (len > 0))
-    {
-      len--;
-      source--;
-    }
-  *dest = safemalloc (len + 1);
-  strncpy (*dest, start, len);
-  (*dest)[len] = 0;
+	while ((isspace ((unsigned char)*source)) && (*source != 0) && (len > 0))
+	{
+		len--;
+		source--;
+	}
+	*dest = safemalloc (len + 1);
+	strncpy (*dest, start, len);
+	(*dest)[len] = 0;
 }

@@ -48,66 +48,57 @@
 HashValue
 GetHashValue (char *text, int hash_size)
 {
-  register int i;
-  HashValue hash_value = 0;
-  for (i = 0; i < ((sizeof (HashValue) - sizeof (char)) << 3); i++)
-    {
-      if (text[i] == '\0' || isspace (text[i]))
-	break;
-      hash_value += (((HashValue) (tolower (text[i]))) << i);
-    }
-  return hash_value % hash_size;
+	return option_hash_value( (ASHashableValue)text, hash_size );
 }
 
 void
 InitHash (SyntaxDef * syntax)
 {
-  register int i;
+	register int  i;
 
-  if (syntax->term_hash_size <= 0)
-    syntax->term_hash_size = TERM_HASH_SIZE;
-  if (syntax->term_hash == NULL)
-    syntax->term_hash = (TermDef **) safemalloc (sizeof (TermDef *) * (syntax->term_hash_size));
+	if (syntax->term_hash_size <= 0)
+		syntax->term_hash_size = TERM_HASH_SIZE;
+	if (syntax->term_hash == NULL)
+		syntax->term_hash = (TermDef **) safemalloc (sizeof (TermDef *) * (syntax->term_hash_size));
 
-  for (i = 0; i < syntax->term_hash_size; i++)
-    syntax->term_hash[i] = NULL;
+	for (i = 0; i < syntax->term_hash_size; i++)
+		syntax->term_hash[i] = NULL;
 }
 
 void
 BuildHash (SyntaxDef * syntax)
 {
-  HashValue hash_value;
-  TermDef *current;
-  int i;
-  for (i = 0; syntax->terms[i].keyword; i++)
-    syntax->terms[i].brother = NULL;
+	HashValue     hash_value;
+	TermDef      *current;
+	int           i;
 
-  for (i = 0; syntax->terms[i].keyword; i++)
-    {
-      hash_value = GetHashValue (syntax->terms[i].keyword, syntax->term_hash_size);
-      if (syntax->term_hash[hash_value])
+	for (i = 0; syntax->terms[i].keyword; i++)
+		syntax->terms[i].brother = NULL;
+
+	for (i = 0; syntax->terms[i].keyword; i++)
 	{
-	  for (current = syntax->term_hash[hash_value];
-	       current->brother;
-	       current = current->brother);
-	  current->brother = &(syntax->terms[i]);
+		hash_value = option_hash_value( (ASHashableValue)(syntax->terms[i].keyword), syntax->term_hash_size );
+		if (syntax->term_hash[hash_value])
+		{
+			for (current = syntax->term_hash[hash_value]; current->brother; current = current->brother);
+			current->brother = &(syntax->terms[i]);
+		} else
+			syntax->term_hash[hash_value] = &(syntax->terms[i]);
 	}
-      else
-	syntax->term_hash[hash_value] = &(syntax->terms[i]);
-    }
 }
 
-TermDef *
+TermDef      *
 FindTerm (SyntaxDef * syntax, int type, int id)
 {
-  register int i;
-  if (syntax)
-    for (i = 0; syntax->terms[i].keyword; i++)
-      if (type == TT_ANY || type == syntax->terms[i].type)
-	if (id == ID_ANY || id == syntax->terms[i].id)
-	  return &(syntax->terms[i]);
+	register int  i;
 
-  return NULL;
+	if (syntax)
+		for (i = 0; syntax->terms[i].keyword; i++)
+			if (type == TT_ANY || type == syntax->terms[i].type)
+				if (id == ID_ANY || id == syntax->terms[i].id)
+					return &(syntax->terms[i]);
+
+	return NULL;
 }
 
 /* this one will identify Term using Hash table
@@ -115,15 +106,15 @@ FindTerm (SyntaxDef * syntax, int type, int id)
    - current_term to the term found
    Returns : NULL if no terms found, otherwise same as current_term.
  */
-TermDef *
+TermDef      *
 FindStatementTerm (char *tline, SyntaxDef * syntax)
 {
-  HashValue hash_value;
-  TermDef *pterm;
+	HashValue     hash_value;
+	TermDef      *pterm;
 
-  hash_value = GetHashValue (tline, syntax->term_hash_size);
-  for (pterm = syntax->term_hash[hash_value]; pterm; pterm = pterm->brother)
-    if (mystrncasecmp (tline, pterm->keyword, pterm->keyword_len) == 0)
-      return pterm;
-  return NULL;
+	hash_value = option_hash_value( AS_HASHABLE(tline), syntax->term_hash_size);
+	for (pterm = syntax->term_hash[hash_value]; pterm; pterm = pterm->brother)
+		if (option_compare (AS_HASHABLE(tline), AS_HASHABLE(pterm->keyword)) == 0)
+			return pterm;
+	return NULL;
 }
