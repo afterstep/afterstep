@@ -1,0 +1,128 @@
+PROGS= asview
+
+
+CC		= @CC@
+CCFLAGS         = @CFLAGS@
+# -march=pentiumpro -mcpu=pentiumpro
+EXTRA_DEFINES	= @DEFINE_XLOCALE@
+
+RANLIB		= @RANLIB@
+AR		= ar clq
+CP		= @CP@
+MV		= @MV@
+RM		= @RM@
+RMF		= @RM@ -f
+MKDIR		= @MKDIR@
+FIND		= @FIND@
+XARGS		= @XARGS@
+LDCONFIG	= @LDCONFIG@
+
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= @INSTALL@ -s -m 755
+INSTALL_DATA	= @INSTALL@ -m 644
+
+INCS_X		= @X_CFLAGS@
+INCLUDES	= $(INCS_X)
+
+LIBS_X		= @x_libs@
+LIBS_XEXTS	=
+LIBS_AFTERIMAGE = @AFTERIMAGE_LIBS@
+LIBRARIES	= $(LIBS_AFTERIMAGE) $(LIBS_XEXTS) $(LIBS_X)
+
+LIBDIR		= $(DESTDIR)@libdir@
+BIN_DIR		= $(DESTDIR)@bindir@
+MAN_DIR		= $(DESTDIR)@mandir@/man1
+GNUSTEP		= @with_gnustep_dir@
+GNUSTEPLIB	= @with_gnustep_lib@
+AFTER_DIR	= @with_afterdir@
+
+all:    $(PROGS) 
+
+install.bin:	$(PROGS)
+		@for p in $(PROGS); do \
+	  		$(INSTALL_PROGRAM) $$p $(BIN_DIR) ; \
+		done
+
+install.man:
+		@for f in *.man; do \
+		  echo $(INSTALL_DATA) $$f $(MAN_DIR)/`basename $$f`.1x; \
+		  $(INSTALL_DATA) $$f $(MAN_DIR)/`basename $$f`.1x; \
+		done
+
+uninstall.bin:
+		$(RMF) $(AFTER_BIN_DIR)/$(PROGS)
+
+uninstall.man:
+		$(RMF) $(AFTER_MAN_DIR)/$(PROGS).1x
+
+clean:
+		$(RMF) $(PROGS) *.o *~ *% *.bak \#* core
+
+distclean:
+		$(RMF) $(PROGS) *.o *~ *% *.bak \#* *.orig core Makefile
+
+indent:
+		@SRCS=`find . -name "*.c"`; \
+		if test "x$$SRCS" == "x"; then exit; fi; \
+		for i in $$SRCS; do \
+		  if (indent -di14 -ts4 -i4 -l100 -lc80 -bad -nbbb -bli0 -c48 -cd48 -ce -cli1 -ncs -nbs -nbbo -hnl < $$i > /tmp/$$i); then \
+		    echo "indent $$i"; \
+		    mv /tmp/$$i $$i; \
+		  fi; \
+		done
+
+deps:
+		echo -n > .depend ; \
+		buf="" ; \
+		for f in `find . -name "*.h"` ; do \
+		  if test "x$$buf" != "x"; then \
+		      echo $$buf >>.depend ; \
+		      echo "" >>.depend ; \
+		  fi; \
+		  buf="$$f:"; \
+		  for d in `grep "#include \"" <$$f | awk -F \" '{print $$2}'`; do \
+		      if test "x$$buf" != "x"; then \
+		         echo $$buf \\ >>.depend ; \
+		      fi; \
+		      echo -n "		" >>.depend ; \
+		      buf="$$d "; \
+		  done; \
+		done; \
+		if test "x$$buf" != "x"; then \
+		  echo $$buf >>.depend ; \
+		  buf="" ; \
+		  echo "" >>.depend ; \
+		fi ; \
+		for file in `find . -name "*.c"` ; do \
+		  if test "x$$buf" != "x"; then \
+		      echo $$buf >>.depend ; \
+		      echo >>.depend ; \
+		  fi; \
+		  buf="."`echo $$file | awk -F . '{print $$2}'`".o:" ; \
+		  for d in `grep "#include \"" < $$file | awk -F \" '{print $$2}'`; do \
+		      if test "x$$buf" != "x"; then \
+		         echo $$buf \\ >>.depend ; \
+		      fi; \
+		      echo -n "		" >>.depend ; \
+		      buf="$$d "; \
+		  done; \
+		done; \
+		if test "x$$buf" != "x"; then \
+		  echo $$buf >>.depend ; \
+		fi
+
+asview: asview.o
+		$(CC) asview.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asview
+
+.c.o:
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
+
+.c.s:
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -S $*.c
+
+.lo:	$*.c
+
+
+install:	install.bin install.man
+
+uninstall:	uninstall.bin uninstall.man

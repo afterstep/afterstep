@@ -1,0 +1,235 @@
+dnl# -*- sh -*-
+dnl# Process this file with autoconf to produce a configure script.
+dnl#
+dnl#Copyright (c) 2001 Sasha Vasko <sashav@sprintmail.com>
+
+AC_INIT(Makefile.in)
+AC_CONFIG_HEADER(config.h:config.h.in)
+
+dnl# Setup command-line options
+
+dnl# we need the standard prefixes defined early
+test "x$prefix" = xNONE && prefix=$ac_default_prefix
+test "x$exec_prefix" = xNONE && exec_prefix="$prefix"
+eval "bindir=$bindir"
+eval "datadir=$datadir"
+eval "mandir=$mandir"
+eval "libdir=$libdir"
+eval "includedir=$includedir"
+
+dnl# directories
+AC_ARG_WITH(gnustep_dir,	[  --with-gnustep-dir=DIR  GNUstep directory [~/GNUstep] ],with_gnustep_dir=$withval, with_gnustep_dir="~/GNUstep")
+AC_ARG_WITH(gnustep_lib,	[  --with-gnustep-lib=DIR  GNUstep/Library directory [Library] ],with_gnustep_lib=$withval, with_gnustep_lib="Library")
+AC_ARG_WITH(afterdir,		[  --with-afterdir=DIR     user AfterStep dir [AfterStep] ],with_afterdir=$withval, with_afterdir="AfterStep")
+
+dnl# The following is passed directly to libAfterImage configure :
+
+dnl# compile-time switches
+AC_ARG_ENABLE(i18n,		[  --enable-i18n           support I18N [no] ],enable_i18n=$enableval,enable_i18n="no")
+AC_ARG_ENABLE(xlocale,		[  --enable-xlocale        using X_LOCALE [no] ],enable_xlocale=$enableval,enable_xlocale="no")
+AC_ARG_ENABLE(saveunders,	[  --enable-saveunders     request saveunders for menus [yes] ],enable_saveunders=$enableval,enable_saveunders="yes")
+
+AC_ARG_WITH(locale,		[  --with-locale=LOCALE    locale name you want to use ],with_locale=$withval,with_locale="")
+AC_ARG_ENABLE(shaping,		[  --enable-shaping        support shaped windows [yes] ],enable_shaping=$enableval,enable_shaping="yes")
+
+AC_ARG_WITH(libefence,		[  --with-libefence        compile with libefence to debug buffer overruns [no] ],with_libefence=$withval,with_libefence="")
+AC_ARG_ENABLE(gdb,		[  --enable-gdb            add gdb symbols (-g) (for debugging) [no] ],enable_gdb=$enableval,enable_gdb="no")
+AC_ARG_ENABLE(warn,		[  --enable-warn           turn on more compiler warnings (for debugging) [no] ],enable_warn=$enableval,enable_warn="no")
+AC_ARG_ENABLE(gprof,		[  --enable-gprof          add gprof symbols (-pg) (for debugging) [no] ],enable_gprof=$enableval,enable_gprof="no")
+
+AC_ARG_WITH(afterimage_includes, [  --with-afterimage-includes=DIR  use libAfterImage includes in DIR], afterimage_includes="$withval", afterimage_includes=NO)
+AC_ARG_WITH(afterimage_lib, [  --with-afterimage-lib=DIR  use libAfterImage library located in DIR], afterimage_lib="$withval", afterimage_lib=NO)
+
+
+dnl# Comman stuff : compiler tools, proggies, etc.
+
+AC_PROG_CC
+dnl# now we need to play abot with CFLAGS :
+
+dnl# Remove -g
+if test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
+  CFLAGS=`echo "$CFLAGS " | sed "s/-g / /"`
+fi
+
+dnl# Add -Wall
+if test "x$GCC" = "xyes"; then
+  if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
+    CFLAGS="$CFLAGS -Wall"
+  fi
+fi
+
+dnl# Add -fPIC for IA64 compilation
+AC_CYGWIN
+if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
+  if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
+    CFLAGS="$CFLAGS -fPIC"
+  fi
+fi
+
+dnl# Add -g
+if test "x$enable_gdb" = "xyes"; then
+  CFLAGS="$CFLAGS -g"
+  LDFLAGS="$LDFLAGS -g"
+fi
+
+dnl# Add -pg
+if test "x$enable_gprof" = "xyes"; then
+  CFLAGS="$CFLAGS -pg"
+  LDFLAGS="$LDFLAGS -pg"
+fi
+
+dnl# Add lots more warnings
+if test "x$enable_warn" = "xyes"; then
+  CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
+fi
+
+if test "x$GCC" = "xyes"; then
+   LDFLAGS="$LDFLAGS -rdynamic"
+fi
+
+dnl# install checks :
+AC_PROG_INSTALL
+dnl# if the path to the install program is relative, make it absolute
+currdir=`pwd`
+INSTALL=`echo $INSTALL|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
+INSTALL_PROGRAM=`echo $INSTALL_PROGRAM|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
+INSTALL_DATA=`echo $INSTALL_DATA|sed -e "s@\^\.\.@${currdir}@" -e "s@^autoconf@${currdir}/autoconf@"`
+
+AC_PROG_RANLIB
+
+AC_PATH_PROG(RM, rm, rm)
+AC_PATH_PROG(MV, mv, mv)
+AC_PATH_PROG(CP, cp, cp)
+AC_PATH_PROG(MKDIR, mkdir, mkdir)
+AC_PATH_PROG(PERL, perl, perl)
+AC_PATH_PROG(FIND, find, find)
+AC_PATH_PROG(XARGS, xargs, xargs)
+AC_PATH_PROG(LDCONFIG, ldconfig, ldconfig, $PATH:/sbin:/usr/local/sbin)
+
+dnl# Check for X :
+AC_PATH_XTRA
+x_libs="$LDFLAGS $X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
+AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
+
+dnl# Construct Gnu/AfterStep path from pieces
+with_gnustep_lib=${with_gnustep_dir}/${with_gnustep_lib}
+with_afterdir=${with_gnustep_lib}/${with_afterdir}
+
+
+dnl# let's check for endiannes of our box
+AC_C_BIGENDIAN
+AC_C_INLINE
+
+dnl# Check for headers
+AC_HEADER_DIRENT
+AC_HEADER_TIME
+AC_CHECK_HEADERS(sys/wait.h sys/time.h)
+
+dnl# Check for X shaped window extension
+HAVESHAPE="NOSHAPE"
+if test "x$enable_shaping" = "xyes"; then
+  AC_CHECK_LIB(Xext, XShapeCombineMask, [x_libs="$x_libs -lXext";AC_DEFINE(SHAPE,)],,$x_libs)
+fi
+
+AC_MSG_CHECKING(libAfterImage headers)
+have_afterimage=yes
+local_afterimage=no 
+if test "$afterimage_includes" = NO; then
+  if test -r "../../libAfterImage/asimage.h"; then
+	AC_DEFINE(HAVE_AFTERIMAGE)
+	AC_DEFINE(HAVE_CUSTOM_AFTERIMAGE)
+	local_afterimage=yes
+      AFTERIMAGE_INC_PATH="../.."
+	AC_MSG_RESULT("../../libAfterImage/asimage.h")
+  else
+    AC_CHECK_HEADER(libAfterImage/asimage.h,
+					    [AC_DEFINE(HAVE_AFTERIMAGE) \
+						 AC_MSG_RESULT("<libAfterImage/asimage.h>")],
+						[AC_MSG_RESULT("none found") have_afterimage=no])
+  fi
+else
+  AC_DEFINE(HAVE_AFTERIMAGE)
+  AC_DEFINE(HAVE_CUSTOM_AFTERIMAGE)
+  AFTERIMAGE_INC_PATH=$afterimage_includes
+  AC_MSG_RESULT("$AFTERIMAGE_INC_PATH/libAfterImage/asimage.h>")
+fi
+
+AFTERIMAGE_LIBS=
+if test "x$have_afterimage" = "xyes"; then
+  if test "$afterimage_lib" = NO; then
+	if test "x$local_afterimage" = "xyes"; then 
+		AC_MSG_CHECKING(libAfterImage external libraries)
+  		AFTERIMAGE_LIBS="-L../ `../../libAfterImage/afterimage-libs`"
+		AC_MSG_RESULT($AFTERIMAGE_LIBS)
+	else
+		AC_MSG_CHECKING(libAfterImage external libraries)
+  		AFTERIMAGE_LIBS=`afterimage-libs`
+		if "x$AFTERIMAGE_LIBS" = "x"; then
+			AC_MSG_RESULT("not found - please specify --with-afterimage-lib")			
+		else
+			AC_MSG_RESULT($AFTERIMAGE_LIBS)
+		fi			
+	fi
+  else
+		AC_MSG_CHECKING(libAfterImage external libraries in $afterimage_lib)
+  		AFTERIMAGE_LIBS=`$afterimage_lib/afterimage-libs`
+		if "x$AFTERIMAGE_LIBS" = "x"; then
+			AC_MSG_RESULT(none found)
+			AC_MSG_CHECKING(libAfterImage external libraries in $afterimage_lib/libAfterImage)
+  			AFTERIMAGE_LIBS=`$afterimage_lib/libAfterImage/afterimage-libs`
+			if "x$AFTERIMAGE_LIBS" = "x"; then
+				AC_MSG_RESULT("not found - please specify correct --with-afterimage-lib")			
+			else
+				AFTERIMAGE_LIBS="-L$afterimage_lib/libAfterImage/" $AFTERIMAGE_LIBS
+				AC_MSG_RESULT($AFTERIMAGE_LIBS)
+			fi
+		else
+			AFTERIMAGE_LIBS="-L$afterimage_lib/" $AFTERIMAGE_LIBS
+			AC_MSG_RESULT($AFTERIMAGE_LIBS)
+		fi			
+  fi
+fi  
+AC_SUBST(AFTERIMAGE_INC_PATH)
+AC_SUBST(AFTERIMAGE_LIBS)
+
+
+dnl# Electric Fence goes at the end
+if test "x$with_libefence" = "xyes"; then
+  AC_CHECK_LIB(efence,malloc,x_libs="$x_libs -lefence")
+fi
+
+dnl# define X_LOCALE.  need Linux, NetBSD and etc.
+
+if test "x$enable_xlocale" = "xyes"; then
+  DEFINE_XLOCALE="-DX_LOCALE"
+fi
+
+dnl# Translate enable_* from "yes/no" to "1/0" (for configure.h)
+
+if test "x$enable_i18n" = "xyes"; then AC_DEFINE(I18N) fi
+if test "x$enable_saveunders" = "xno"; then AC_DEFINE(NO_SAVEUNDERS) fi
+
+dnl# Variable strings declaration
+
+AC_SUBST(with_locale)
+AC_SUBST(x_libs)
+AC_SUBST(x_includes)
+AC_SUBST(XEXT_LIB)
+AC_SUBST(LIBPROG)
+AC_SUBST(LIBINSTALL)
+AC_SUBST(DEFINE_XLOCALE)
+AC_SUBST(with_gnustep_dir)
+AC_SUBST(with_gnustep_lib)
+AC_SUBST(with_afterdir)
+AC_SUBST(PERL)
+AC_SUBST(AFTER_IMAGE_INC_PATH)
+
+dnl# Write results
+
+AC_CONFIG_HEADER(config.h)
+
+AC_OUTPUT(\
+Makefile \
+afterimage.h \
+)
+

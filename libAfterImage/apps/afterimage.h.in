@@ -1,0 +1,28 @@
+#ifndef AFTERIMAGE_H_HEADER_INCLUDED
+#define AFTERIMAGE_H_HEADER_INCLUDED
+
+#ifdef HAVE_AFTERIMAGE
+#ifdef  HAVE_CUSTOM_AFTERIMAGE
+#include "@AFTERIMAGE_INC_PATH@/libAfterImage/afterbase.h"
+#include "@AFTERIMAGE_INC_PATH@/libAfterImage/asfont.h"
+#include "@AFTERIMAGE_INC_PATH@/libAfterImage/asimage.h"
+#include "@AFTERIMAGE_INC_PATH@/libAfterImage/asvisual.h"
+#include "@AFTERIMAGE_INC_PATH@/libAfterImage/blender.h"
+#include "@AFTERIMAGE_INC_PATH@/libAfterImage/import.h"
+#else
+#include <libAfterImage/afterbase.h>
+#include <libAfterImage/asfont.h>
+#include <libAfterImage/asimage.h>
+#include <libAfterImage/asvisual.h>
+#include <libAfterImage/blender.h>
+#include <libAfterImage/import.h>
+#endif		/* HAVE_CUSTOM_AFTERIMAGE */
+#else
+
+deliberate syntactic error since libAfterStep cannot work without
+libAfterImage
+
+#endif /* HAVE_AFTERIMAGE */
+
+#endif /* AFTERIMAGE_H_HEADER_INCLUDED */
+
