@@ -16,3 +16,4 @@
   point="60" fgimage="text_fgimage" type="3">AfterStep 2.0</text>
 </composite>
 
+<release srcid="text_fgimage"/>

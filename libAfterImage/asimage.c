@@ -676,6 +676,12 @@ release_asimage_by_name( ASImageManager *imageman, char *name )
 	return res ;
 }
 
+void
+print_asimage_manager(ASImageManager *imageman)
+{
+    print_ashash( imageman->image_hash, string_print );
+}
+
 /* ******************** ASGradient ****************************/
 
 void

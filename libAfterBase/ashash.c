@@ -538,12 +538,24 @@ string_hash_value (ASHashableValue value, ASHashKey hash_size)
 
 	do
 	{
-		c = string[i];
-		if (c == '\0')
-			break;
-		hash_key += (((ASHashKey) c) << i);
-		++i ;
-	}while( i < ((sizeof (ASHashKey) - sizeof (char)) << 3) );
+		if( (c=string[i]) != 0)
+		{
+			hash_key += (ASHashKey) c;
+			if( (c=string[i+1]) != 0)
+			{
+				hash_key += ((ASHashKey) c)<<1;
+				if( (c=string[i+2]) != 0)
+				{
+					hash_key += ((ASHashKey) c)<<2;
+					if( (c=string[i+3]) != 0)
+					{
+						hash_key += ((ASHashKey) c)<<3;
+						i+= 4 ;
+					}
+				}
+			}
+		}
+	}while(c != 0 && i < 32 );
 	return hash_key % hash_size;
 }
 
@@ -602,14 +614,28 @@ casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
 
 	do
 	{
-		c = string[i];
-		if (c == '\0')
-			break;
-		if (isupper (c))
-			c = tolower (c);
-		hash_key += (((ASHashKey) c) << i);
-		++i;
-	}while(i < ((sizeof (ASHashKey) - sizeof (char)) << 3));
+		if( (c=string[i]) != 0)
+		{
+			if (isupper (c))c = tolower (c);
+			hash_key += (ASHashKey) c;
+			if( (c=string[i+1]) != 0)
+			{
+				if (isupper (c))c = tolower (c);
+				hash_key += ((ASHashKey) c)<<1;
+				if( (c=string[i+2]) != 0)
+				{
+					if (isupper (c))c = tolower (c);
+					hash_key += ((ASHashKey) c)<<2;
+					if( (c=string[i+3]) != 0)
+					{
+						if (isupper (c))c = tolower (c);
+						hash_key += ((ASHashKey) c)<<3;
+						i+= 4 ;
+					}
+				}
+			}
+		}
+	}while(c != 0 && i < 32 );
 
 	return hash_key % hash_size;
 }

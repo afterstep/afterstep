@@ -676,7 +676,9 @@ load_myback_image( int desk, MyBackground *back )
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
+	print_asimage_manager(Scr.image_manager);
 #endif
+
     return im;
 }
 

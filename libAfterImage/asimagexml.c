@@ -531,6 +531,28 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
+/****** libAfterImage/asimagexml/tags/release
+ * NAME
+ * release - release(destroy if possible) previously generated and named image by its id.
+ * SYNOPSIS
+ * <release srcid="image_id">
+ * ATTRIBUTES
+ * srcid    Required.  An image ID defined with the "id" parameter for
+ *          any previously created image.
+ ******/
+	if (!strcmp(doc->tag, "release")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
+		const char* srcid = NULL;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "srcid")) srcid = ptr->parm;
+		}
+		if (srcid) 
+		{
+			show_progress("Releasing image id [%s] from imman %p.", srcid, imman);
+			release_asimage_by_name(imman, (char*)srcid );
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
 /****** libAfterImage/asimagexml/tags/color
  * NAME
  * color - defines symbolic name for a color and set of variables.

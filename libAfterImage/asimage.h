@@ -896,6 +896,8 @@ int		 release_asimage_by_name( ASImageManager *imman, char *name );
 void	 forget_asimage( ASImage *im );
 void     forget_asimage_name( ASImageManager *imman, const char *name );
 int		 safe_asimage_destroy( ASImage *im );
+void     print_asimage_manager(ASImageManager *imageman);
+
 
 /****h* libAfterImage/asimage/Gradients
  * DESCRIPTION
