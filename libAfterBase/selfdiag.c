@@ -410,7 +410,7 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 			if (func_name == unknown)
 			{
 #ifdef HAVE_EXECINFO_H
-                dummy = GLIBC_BACKTRACE_FUNC ((void **)&esp, 1);
+                char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&esp, 1);
                 func_name = *dummy;
 				if (*func_name != '[')
 					fprintf (stderr, "  [%s]", func_name);
