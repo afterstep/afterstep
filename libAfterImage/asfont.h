@@ -368,19 +368,26 @@ void 	print_asglyph( FILE* stream, struct ASFont* font, unsigned long c);
  * ASImage *draw_text( const char *text,
  *                     ASFont *font,
  *                     int compression );
+ * Bool get_text_size( const char *text,
+ *                     ASFont *font,
+ *                     unsigned int *width, unsigned int *height );
  * INPUTS
  * text 		- actuall text to render
  * font 		- pointer to ASFont to render text with
  * compression  - compression level to attempt on resulting ASImage.
+ * width        - pointer to value to be set to text width.
+ * height       - pointer to value to be set to text height.
  * RETURN VALUE
  * Pointer to new ASImage containing rendered text on success.
  * NULL on failure.
  * DESCRIPTION
- * draw_text() crreates new ASImage of the size big enough to contain
+ * draw_text() creates new ASImage of the size big enough to contain
  * entire text. It then renders the text using supplied font as an alpha
  * channel of ASImage.
+ * get_text_size() can be used to determine the size of the text about
+ * to be drawn, so that appropriate drawable can be prepared.
  *********/
 struct ASImage *draw_text( const char *text, struct ASFont *font, int compression );
-
+Bool get_text_size( const char *text, struct ASFont *font, unsigned int *width, unsigned int *height );
 
 #endif

@@ -36,6 +36,8 @@
  *                [<foreground_image> [<background_image>]]]]
  */
 
+#define TEXT_MARGIN 10
+
 int main(int argc, char* argv[])
 {
 	Window w ;
@@ -44,12 +46,13 @@ int main(int argc, char* argv[])
 	char *font_name = "fixed";
 	int size = 12 ;
 	char *text = "Smart Brown Dog jumps Over The Lazy Fox, and falls into the ditch.";
-	ARGB32 text_color = ARGB32_WHITE;
+	ARGB32 text_color = ARGB32_White;
 	char *fore_image_file = NULL ;
 	char *back_image_file = "test.xpm" ;
-	ASFontManager *fontman = NULL;
-	ASFont  *font = NULL;
 	ASImage *fore_im = NULL, *back_im = NULL;
+	struct ASFontManager *fontman = NULL;
+	struct ASFont  *font = NULL;
+	unsigned int width, height ;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -70,33 +73,84 @@ int main(int argc, char* argv[])
 	screen = DefaultScreen(dpy);
 	depth = DefaultDepth( dpy, screen );
 
-	/* see ASView.2 : */
-	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
+	/* see ASText.1 : */
+	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
+		font = get_asfont( fontman, font_name, size, 0, ASF_GuessWho );
+	if( font == NULL )
+	{
+		show_error( "unable to load requested font \"%s\". Aborting.", font_name );
+		return 1;
+	}
 
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );
+
+	/* see ASText.2 : */
+	get_text_size( text, font, &width, &height );
+
+	if( back_image_file ) /* see ASView.2 : */
+		back_im = file2ASImage( back_image_file, 0xFFFFFFFF,
+		                        SCREEN_GAMMA, 0, NULL );
+	if( fore_image_file )
+	{
+		ASImage *tmp = file2ASImage( fore_image_file, 0xFFFFFFFF,
+		               		         SCREEN_GAMMA, 0, NULL );
+		if( tmp )
+		{
+			if( tmp->width != width || tmp->height != height )
+			{   /* see ASScale.2 : */
+				fore_im = scale_asimage( asv, tmp, width, height,
+				                         False, 0, ASIMAGE_QUALITY_DEFAULT );
+				destroy_asimage( &tmp );
+			}else
+				fore_im = tmp ;
+		}
+	}
 	/* see ASView.4 : */
 	w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-		                         tile_width, tile_height, 1, 0, NULL,
+		                         width+(TEXT_MARGIN*2),
+								 height+(TEXT_MARGIN*2),
+								 1, 0, NULL,
 								 "ASText" );
 	if( w != None )
 	{
 		Pixmap p ;
-		ASImage *flipped_im ;
+		ASImage *text_im ;
+		ASImage *rendered_im ;
+		ASImageLayer layers[2] ;
 
 		XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
 	  	XMapRaised   (dpy, w);
+
 		/* see ASText.3 : */
-		flipped_im = flip_asimage( 	asv, im,
-			                       	tile_x, tile_y,
-									tile_width, tile_height,
-				       	 			flip,
-				                	True, 0, ASIMAGE_QUALITY_DEFAULT );
-		destroy_asimage( &im );
+		text_im = draw_text( text, font, 0 );
+		if( fore_im )
+		{
+			fore_im->alpha = text_im->alpha ;
+			text_im->alpha = NULL ;
+			destroy_asimage( &text_im );
+		}else
+			fore_im = text_im ;
+
+		layers[0].im = back_im ;
+		layers[0].clip_width = width ;
+		layers[0].clip_height = height ;
+		layers[0].merge_scanlines = alphablend_scanlines ;
+		layers[1].im = fore_im ;
+		layers[1].dst_x = TEXT_MARGIN ;
+		layers[1].dst_y = TEXT_MARGIN ;
+		layers[1].clip_width = fore_im->width ;
+		layers[1].clip_height = fore_im->height ;
+		layers[1].back_color = text_color ;
+		layers[1].merge_scanlines = alphablend_scanlines ;
+		rendered_im = merge_layers( asv, &(layers[0]), 2,
+									width, height,
+									True, 0, ASIMAGE_QUALITY_DEFAULT);
+		destroy_asimage( &fore_im );
+		destroy_asimage( &back_im );
 		/* see ASView.5 : */
-		p = asimage2pixmap( asv, DefaultRootWindow(dpy), flipped_im,
+		p = asimage2pixmap( asv, DefaultRootWindow(dpy), rendered_im,
 				            NULL, True );
-		destroy_asimage( &flipped_im );
 		/* see common.c: set_window_background_and_free() : */
 		p = set_window_background_and_free( w, p );
 	}
@@ -120,6 +174,8 @@ int main(int argc, char* argv[])
 				break;
 		}
   	}
+	destroy_font( font );
+	destroy_font_manager( fontman, False );
     if( dpy )
         XCloseDisplay (dpy);
     return 0 ;
