@@ -159,7 +159,7 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 		im->width = width;
 		im->buf_len = width + width;
 		/* we want result to be 32bit aligned and padded */
-		tmp = safemalloc (sizeof(CARD32)*((im->buf_len>>2)+1));
+		tmp = safemalloc (sizeof(CARD32)*(im->buf_len+1));
 		im->buffer = (CARD8*)tmp;
 
 		im->height = height;
@@ -2378,7 +2378,7 @@ merge_layers( ASVisual *asv,
 			  	unsigned int dst_height,
 			  	ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
-	ASImage *fake_bg ;
+	ASImage *fake_bg = NULL ;
 	ASImage *dst = NULL ;
 	ASImageDecoder **imdecs ;
 	ASImageOutput  *imout ;
@@ -2397,7 +2397,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	tmp_line.flags = SCL_DO_ALL ;
 
 	imdecs = safecalloc( count, sizeof(ASImageDecoder*));
-	if( layers[0].im == NULL ) 
+	if( layers[0].im == NULL )
 		layers[0].im = fake_bg = create_asimage( 1, 1, 0 );
 
 	for( i = 0 ; i < count ; i++ )
@@ -2472,7 +2472,6 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 		dst_line.flags = 0 ;
 		for( ; y < dst_height ; y++  )
 			imout->output_image_scanline( imout, &dst_line, 1);
-		
 		stop_image_output( &imout );
 	}
 #ifdef HAVE_MMX

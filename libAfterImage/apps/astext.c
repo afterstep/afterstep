@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 	/* see ASText.1 : */
 	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
 		font = get_asfont( fontman, font_name, 0, size, ASF_GuessWho );
-print_asglyph( stderr, font, 'y' );		
+print_asglyph( stderr, font, 'y' );
 	if( font == NULL )
 	{
 		show_error( "unable to load requested font \"%s\". Aborting.", font_name );
@@ -159,16 +159,15 @@ print_asglyph( stderr, font, 'y' );
 			destroy_asimage( &text_im );
 		}else
 			fore_im = text_im ;
-
 		/* see ASText.4 : */
 		memset( &(layers[0]), 0x00, sizeof(layers) );
 		layers[0].im = back_im ;
 		layers[0].dst_x = 0 ;
-		layers[0].dst_y = 0 ;		
+		layers[0].dst_y = 0 ;
 		layers[0].clip_width = width ;
 		layers[0].clip_height = height ;
 		layers[0].merge_scanlines = alphablend_scanlines ;
-		layers[1].back_color = ARGB32_Black ;
+		layers[0].back_color = ARGB32_Black ;
 		layers[0].bevel = &bevel ;
 		layers[1].im = fore_im ;
 		layers[1].dst_x = TEXT_MARGIN+BEVEL_HI_WIDTH ;
