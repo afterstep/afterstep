@@ -309,10 +309,17 @@ else
 	  CPPFLAGS="$TTF_INCLUDES $CPPFLAGS"
 	  CFLAGS="$CFLAGS $TTF_INCLUDES $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $X_CFLAGS"
 	  AC_MSG_CHECKING( freetype/freetype.h )
-	  AC_TRY_COMPILE([#include <freetype/freetype.h>],[FT_Face aaa],
-	                 [AC_DEFINE(HAVE_FREETYPE_FREETYPE) AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],
-            		 [AC_MSG_RESULT(no); AC_MSG_CHECKING(freetype.h); \
-					  AC_EGREP_HEADER(FT_Face,freetype.h,[AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],AC_MSG_RESULT(no))] )
+	  AC_EGREP_HEADER(FT_Face,freetype/freetype.h,
+	                  [AC_DEFINE(HAVE_FREETYPE_FREETYPE) AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],
+	                  [AC_MSG_RESULT(no);AC_MSG_CHECKING(freetype.h); \
+					   AC_EGREP_HEADER(FT_Face,freetype.h,
+					                   [AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],
+									   AC_MSG_RESULT(no))]
+					  )
+dnl#	  AC_TRY_COMPILE([#include <freetype/freetype.h>],[FT_Face aaa; aaa=(FT_Face)1],
+dnl#	                 [AC_DEFINE(HAVE_FREETYPE_FREETYPE) AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],
+dnl#            		 [AC_MSG_RESULT(no); AC_MSG_CHECKING(freetype.h); \
+dnl#					  AC_EGREP_HEADER(FT_Face,freetype/freetype.h,[AC_DEFINE(HAVE_FREETYPE) AC_MSG_RESULT(yes)],AC_MSG_RESULT(no))] )
 	  CPPFLAGS=$saved_CPPFLAGS
 	  CFLAGS=$saved_CFLAGS
 	  have_ttf=yes

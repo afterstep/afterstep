@@ -4740,42 +4740,24 @@ echo $ECHO_N "checking freetype/freetype.h ... $ECHO_C" >&6
 #line 4740 "configure"
 #include "confdefs.h"
 #include <freetype/freetype.h>
-int
-main ()
-{
-FT_Face aaa
-  ;
-  return 0;
-}
+
 _ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:4752: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>&5
-  ac_status=$?
-  echo "$as_me:4755: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:4758: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:4761: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  egrep "FT_Face" >/dev/null 2>&1; then
   cat >>confdefs.h <<\EOF
 #define HAVE_FREETYPE_FREETYPE 1
 EOF
  cat >>confdefs.h <<\EOF
 #define HAVE_FREETYPE 1
 EOF
- echo "$as_me:4769: result: yes" >&5
+ echo "$as_me:4753: result: yes" >&5
 echo "${ECHO_T}yes" >&6
 else
-  echo "$as_me: failed program was:" >&5
-cat conftest.$ac_ext >&5
-echo "$as_me:4774: result: no" >&5
-echo "${ECHO_T}no" >&6; echo "$as_me:4775: checking freetype.h" >&5
+  echo "$as_me:4756: result: no" >&5
+echo "${ECHO_T}no" >&6;echo "$as_me:4757: checking freetype.h" >&5
 echo $ECHO_N "checking freetype.h... $ECHO_C" >&6; \
-					  cat >conftest.$ac_ext <<_ACEOF
-#line 4778 "configure"
+					   cat >conftest.$ac_ext <<_ACEOF
+#line 4760 "configure"
 #include "confdefs.h"
 #include <freetype.h>
 
@@ -4785,22 +4767,23 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   cat >>confdefs.h <<\EOF
 #define HAVE_FREETYPE 1
 EOF
- echo "$as_me:4788: result: yes" >&5
+ echo "$as_me:4770: result: yes" >&5
 echo "${ECHO_T}yes" >&6
 else
-  echo "$as_me:4791: result: no" >&5
+  echo "$as_me:4773: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi
 rm -f conftest*
 
 fi
-rm -f conftest.$ac_objext conftest.$ac_ext
+rm -f conftest*
+
 	  CPPFLAGS=$saved_CPPFLAGS
 	  CFLAGS=$saved_CFLAGS
 	  have_ttf=yes
     else
 		enable_ttf=no ;
-		echo "$as_me:4803: result: none found" >&5
+		echo "$as_me:4786: result: none found" >&5
 echo "${ECHO_T}none found" >&6
 		echo "You have to install FreeType libary in order to be able to use TTF fonts."
         have_ttf=no
@@ -4823,30 +4806,30 @@ AFTERIMAGE_LIBS_EXTERNAL=$AFTERIMAGE_LIBS
 AFTERBASE_CFLAGS=
 APPS_AFTERBASE_CFLAGS=
 if test "$with_afterbase" != "NO"; then
-  echo "$as_me:4826: checking libAfterBase headers" >&5
+  echo "$as_me:4809: checking libAfterBase headers" >&5
 echo $ECHO_N "checking libAfterBase headers... $ECHO_C" >&6
   have_afterbase=yes
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
 		AFTERBASE_CFLAGS="-I.."
 	  else
- 	    echo "$as_me:4833: checking for libAfterBase/astypes.h" >&5
+ 	    echo "$as_me:4816: checking for libAfterBase/astypes.h" >&5
 echo $ECHO_N "checking for libAfterBase/astypes.h... $ECHO_C" >&6
 if test "${ac_cv_header_libAfterBase_astypes_h+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   cat >conftest.$ac_ext <<_ACEOF
-#line 4839 "configure"
+#line 4822 "configure"
 #include "confdefs.h"
 #include <libAfterBase/astypes.h>
 _ACEOF
-if { (eval echo "$as_me:4843: \"$ac_cpp conftest.$ac_ext\"") >&5
+if { (eval echo "$as_me:4826: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
   ac_status=$?
   egrep -v '^ *\+' conftest.er1 >conftest.err
   rm -f conftest.er1
   cat conftest.err >&5
-  echo "$as_me:4849: \$? = $ac_status" >&5
+  echo "$as_me:4832: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null; then
   if test -s conftest.err; then
     ac_cpp_err=$ac_c_preproc_warn_flag
@@ -4865,7 +4848,7 @@ else
 fi
 rm -f conftest.err conftest.$ac_ext
 fi
-echo "$as_me:4868: result: $ac_cv_header_libAfterBase_astypes_h" >&5
+echo "$as_me:4851: result: $ac_cv_header_libAfterBase_astypes_h" >&5
 echo "${ECHO_T}$ac_cv_header_libAfterBase_astypes_h" >&6
 if test $ac_cv_header_libAfterBase_astypes_h = yes; then
   :
@@ -4891,11 +4874,11 @@ if test "x$have_afterbase" = "xyes"; then
 #define HAVE_AFTERBASE 1
 EOF
 
-	echo "$as_me:4894: result: $AFTERBASE_CFLAGS" >&5
+	echo "$as_me:4877: result: $AFTERBASE_CFLAGS" >&5
 echo "${ECHO_T}$AFTERBASE_CFLAGS" >&6
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
-    echo "$as_me:4898: result: \"none found\"" >&5
+    echo "$as_me:4881: result: \"none found\"" >&5
 echo "${ECHO_T}\"none found\"" >&6
 fi
 
@@ -5016,7 +4999,7 @@ DEFS=-DHAVE_CONFIG_H
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
-{ echo "$as_me:5019: creating $CONFIG_STATUS" >&5
+{ echo "$as_me:5002: creating $CONFIG_STATUS" >&5
 echo "$as_me: creating $CONFIG_STATUS" >&6;}
 cat >$CONFIG_STATUS <<_ACEOF
 #! $SHELL
@@ -5189,7 +5172,7 @@ cat >>$CONFIG_STATUS <<\EOF
     echo "$ac_cs_version"; exit 0 ;;
   --he | --h)
     # Conflict between --help and --header
-    { { echo "$as_me:5192: error: ambiguous option: $1
+    { { echo "$as_me:5175: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -5215,12 +5198,12 @@ Try \`$0 --help' for more information." >&2;}
   'config.h' ) CONFIG_HEADERS="$CONFIG_HEADERS config.h:config.h.in" ;;
 
   # This is an error.
-  -*) { { echo "$as_me:5218: error: unrecognized option: $1
+  -*) { { echo "$as_me:5201: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
    { (exit 1); exit 1; }; } ;;
-  *) { { echo "$as_me:5223: error: invalid argument: $1" >&5
+  *) { { echo "$as_me:5206: error: invalid argument: $1" >&5
 echo "$as_me: error: invalid argument: $1" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -5493,7 +5476,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:5496: creating $ac_file" >&5
+    { echo "$as_me:5479: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -5511,7 +5494,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:5514: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:5497: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -5524,7 +5507,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:5527: error: cannot find input file: $f" >&5
+           { { echo "$as_me:5510: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -5585,7 +5568,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:5588: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:5571: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -5596,7 +5579,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:5599: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:5582: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -5609,7 +5592,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:5612: error: cannot find input file: $f" >&5
+           { { echo "$as_me:5595: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -5726,7 +5709,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:5729: $ac_file is unchanged" >&5
+      { echo "$as_me:5712: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
