@@ -325,6 +325,12 @@
 
 #ifndef PNG_VERSION_INFO_ONLY
 
+#ifdef _WIN32
+#include "../win32/config.h"
+#else
+#include "../config.h"
+#endif
+
 /* include the compression library's header */
 #ifndef HAVE_ZLIB_H
 #include "../zlib/zlib.h"

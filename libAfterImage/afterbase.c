@@ -15,9 +15,16 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+#ifdef _WIN32
+#include "win32/config.h"
+#else
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -29,17 +36,39 @@
 #endif
 #include <sys/stat.h>
 
-/*#include <X11/Xlib.h>*/
+#if HAVE_DIRENT_H
+# include <dirent.h>
+# define NAMLEN(dirent) strlen((dirent)->d_name)
+#else
+# if HAVE_SYS_DIRENT_H
+#  include <sys/dirent.h>
+#  define NAMLEN(dirent) strlen((dirent)->d_name)
+# else
+#  define dirent direct
+#  define NAMLEN(dirent) (dirent)->d_namlen
+#  if HAVE_SYS_NDIR_H
+#   include <sys/ndir.h>
+#  endif
+#  if HAVE_SYS_DIR_H
+#   include <sys/dir.h>
+#  endif
+#  if HAVE_NDIR_H
+#   include <ndir.h>
+#  endif
+# endif
+#endif
+
 #ifdef _WIN32
-#include "win32/config.h"
 #include "win32/afterbase.h"
+#include "win32/colornames.h"
 #include <io.h>
 #include <windows.h>
 #define access _access
 #else
-#include "config.h"
 #include "afterbase.h"
 #endif
+
+/*#include <X11/Xlib.h>*/
 
 Display *dpy = NULL ;
 char    *asim_ApplicationName = NULL ;
@@ -433,6 +462,26 @@ asim_mystrndup (const char *str, size_t n)
 	return c;
 }
 
+#ifdef _WIN32
+static int compare_xcolor_entries(const void *a, const void *b)
+{
+   return strcmp((const char *) a, ((const XColorEntry *) b)->name);
+}
+
+static int FindColor(const char *name, CARD32 *colorPtr)
+{
+   XColorEntry *found;
+
+   found = bsearch(name, xColors, numXColors, sizeof(XColorEntry),
+                   compare_xcolor_entries);
+   if (found == NULL)
+      return 0;
+
+   *colorPtr = 0xFF000000|((found->red<<16)&0x00FF0000)|((found->green<<8)&0x0000FF00)|((found->blue)&0x000000FF);
+   return 1;
+}
+#endif
+
 /*******************************************************************/
 /* from parse,c : */
 const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
@@ -488,6 +537,13 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 		}else if( *color )
 		{
 			/* does not really matter here what screen to use : */
+#ifdef _WIN32
+			register const char *ptr = &(color[0]);
+            if(!FindColor(color, pargb))
+                return color;
+    		while( !isspace((int)*ptr) && *ptr != '\0' ) ptr++;
+			return ptr;
+#else
 			if( dpy == NULL )
 				return color ;
 			else
@@ -503,6 +559,7 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 				while( !isspace((int)*ptr) && *ptr != '\0' ) ptr++;
 				return ptr;
 			}
+#endif
 		}
 	}
 	return color;
@@ -996,3 +1053,129 @@ asim_wait_tick ()
 #endif
 }
 
+#ifndef _WIN32
+/*
+ * Non-NULL select and dcomp pointers are *NOT* tested, but should be OK.
+ * They are not used by afterstep however, so this implementation should
+ * be good enough.
+ *
+ * c.ridd@isode.com
+ */
+int
+asim_my_scandir (char *dirname, struct direntry *(*namelist[]),
+			int (*select) (const char *), int (*dcomp) (struct direntry **, struct direntry **))
+{
+	DIR          *d;
+	struct dirent *e;						   /* Pointer to static struct inside readdir() */
+	struct direntry **nl;					   /* Array of pointers to dirents */
+	struct direntry **nnl;
+	int           n;						   /* Count of nl used so far */
+	int           sizenl;					   /* Number of entries in nl array */
+	int           j;
+	size_t        realsize;
+	char         *filename;					   /* For building filename to pass to stat */
+	char         *p;						   /* Place where filename starts */
+	struct stat   buf;
+
+
+	d = opendir (dirname);
+
+	if (d == NULL)
+		return -1;
+
+	filename = (char *)safemalloc (strlen (dirname) + PATH_MAX + 2);
+	if (filename == NULL)
+	{
+		closedir (d);
+		return -1;
+	}
+	strcpy (filename, dirname);
+	p = filename + strlen (filename);
+	*p++ = '/';
+	*p = 0;									   /* Just in case... */
+
+	nl = NULL;
+	n = 0;
+	sizenl = 0;
+
+	while ((e = readdir (d)) != NULL)
+	{
+		if ((select == NULL) || select (&(e->d_name[0])))
+		{
+			/* add */
+			if (sizenl == n)
+			{
+				/* Grow array */
+				sizenl += 32;				   /* arbitrary delta */
+				nnl = realloc (nl, sizenl * sizeof (struct direntry *));
+				if (nnl == NULL)
+				{
+					/* Free the old array */
+					for (j = 0; j < n; j++)
+						free (nl[j]);
+					free (nl);
+					free (filename);
+					closedir (d);
+					return -1;
+				}
+				nl = nnl;
+			}
+			realsize = offsetof (struct direntry, d_name)+strlen (e->d_name) + 1;
+			nl[n] = (struct direntry *)safemalloc (realsize);
+			if (nl[n] == NULL)
+			{
+				for (j = 0; j < n; j++)
+					free (nl[j]);
+				free (nl);
+				free (filename);
+				closedir (d);
+				return -1;
+			}
+			/* Fill in the fields using stat() */
+			strcpy (p, e->d_name);
+			if (stat (filename, &buf) == -1)
+			{
+				for (j = 0; j <= n; j++)
+					free (nl[j]);
+				free (nl);
+				free (filename);
+				closedir (d);
+				return -1;
+			}
+			nl[n]->d_mode = buf.st_mode;
+			nl[n]->d_mtime = buf.st_mtime;
+			strcpy (nl[n]->d_name, e->d_name);
+			n++;
+		}
+	}
+	free (filename);
+
+	if (closedir (d) == -1)
+	{
+		free (nl);
+		return -1;
+	}
+	if (n == 0)
+	{
+		if (nl)
+			free (nl);
+/* OK, but not point sorting or freeing anything */
+		return 0;
+	}
+	*namelist = realloc (nl, n * sizeof (struct direntry *));
+
+	if (*namelist == NULL)
+	{
+		for (j = 0; j < n; j++)
+			free (nl[j]);
+		free (nl);
+		return -1;
+	}
+	/* Optionally sort the list */
+	if (dcomp)
+		qsort (*namelist, n, sizeof (struct direntry *), (int (*)())dcomp);
+
+	/* Return the count of the entries */
+	return n;
+}
+#endif

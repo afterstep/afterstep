@@ -32,7 +32,7 @@ typedef struct tagBITMAPFILEHEADER {
 typedef struct tagBITMAPINFOHEADER
 {
 	CARD32 biSize;
-	int32_t biWidth,  biHeight;
+	CARD32 biWidth,  biHeight;
 	CARD16 biPlanes, biBitCount;
 	CARD32 biCompression;
 	CARD32 biSizeImage;

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #endif
 #endif
+   
 
 /* our own version of X Wrapper : */
 #include "xwrap.h"
@@ -48,6 +49,18 @@
 #define AS_ASSERT_NOTVAL(p,v)   ((p)!=(v))
 #define inline
 
+#endif
+
+#ifdef __INTEL_COMPILER
+#define inline
+#endif
+
+#ifndef max
+#define max(x,y)            MAX(x,y)
+#endif
+
+#ifndef min
+#define min(x,y)            MIN(x,y)
 #endif
 
 typedef unsigned long ASFlagType ;
@@ -211,6 +224,14 @@ char   *asim_mystrndup(const char *str, size_t n);
 #endif
 
 /* from libAfterBase/fs.h : */
+#ifndef _WIN32
+struct direntry
+  {
+    mode_t d_mode;		/* S_IFDIR if a directory */
+    time_t d_mtime;
+    char d_name[1];
+  };
+#endif
 int		asim_check_file_mode (const char *file, int mode);
 #if !defined(S_IFREG) || !defined(S_IFDIR)
 #include <sys/stat.h>
@@ -221,6 +242,11 @@ char   *asim_put_file_home (const char *path_with_home);
 #define put_file_home(p) asim_put_file_home(p)
 char   *asim_load_file     (const char *realfilename);
 #define load_file(r)     asim_load_file(r)
+#ifndef _WIN32
+int     asim_my_scandir (char *dirname, struct direntry *(*namelist[]),
+			int (*select) (const char *), int (*dcomp) (struct direntry **, struct direntry **));
+#define my_scandir(d,n,s,dc) asim_my_scandir((d),(n),(s),(dc))   
+#endif
 
 void unix_path2dos_path( char *path );
 char   *asim_find_file (const char *file, const char *pathlist, int type);

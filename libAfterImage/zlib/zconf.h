@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* @(#) $Id: zconf.h,v 1.1 2004/03/16 23:15:28 sasha Exp $ */
+/* @(#) $Id: zconf.h,v 1.2 2004/12/09 17:36:19 sasha Exp $ */
 
 #ifndef ZCONF_H
 #define ZCONF_H
@@ -281,8 +281,15 @@ typedef uLong FAR uLongf;
    typedef Byte       *voidp;
 #endif
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h> /* for off_t */
+#endif
+
+#ifdef HAVE_STDDEF_H
+#include <stddef.h>
+#endif
+
 #ifdef HAVE_UNISTD_H
-#  include <sys/types.h> /* for off_t */
 #  include <unistd.h>    /* for SEEK_* and off_t */
 #  ifdef VMS
 #    include <unixio.h>   /* for off_t */

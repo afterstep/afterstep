@@ -108,6 +108,10 @@
 #include "ascmap.h"
 #include "bmp.h"
 
+#ifdef jmpbuf
+#undef jmpbuf
+#endif
+
 /***********************************************************************************/
 /* High level interface : 														   */
 as_image_writer_func as_image_file_writers[ASIT_Unknown] =

@@ -68,7 +68,7 @@ dnl# AC_SUBST(CC)
 dnl# AC_SUBST(GCC)
 
 AC_CYGWIN
-if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
+if test "x$CYGWIN" = "xno" -a "x$GCC" = "xyes" ; then
   if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
   	CFLAGS="$CFLAGS -fPIC"
   fi
@@ -164,7 +164,7 @@ if test "x$enable_gdb" = "xno"; then
 		DIRTY_CFLAGS="$CFLAGS"
   		CFLAGS="-O3"
   		for f in $DIRTY_CFLAGS; do 
-       		if test "x$f" != "-O2" -a "x$f" != "-O3"; then
+       		if test "x$f" != "x-O2" -a "x$f" != "x-O3" -a "x$f" != "x-O"; then
 		   		CFLAGS="$CFLAGS $f"
 			fi	 
   		done
@@ -175,23 +175,20 @@ dnl# Check for MMX :
 if test "x$enable_mmx_optimization" = "xyes"; then
   AC_MSG_CHECKING(for MMX support)
   if test -z "`echo $build_cpu 2>&1 | grep i*86 >/dev/null`"; then
-	AC_TRY_RUN([int main(){int mmx_available = 0;
-				  asm volatile ( "pushl %%eax\n\t"
-                      "pushl %%ebx\n\t"
-                      "pushl %%ecx\n\t"
-                      "pushl %%edx\n\t"
-                      "movl \$1, %%eax\n\t"
-                      "cpuid\n\t"
-                      "andl \$0x800000, %%edx \n\t"
-					  "movl %%edx, %0\n\t"
-                      "popl %%edx\n\t"
-                      "popl %%ecx\n\t"
-                      "popl %%ebx\n\t"
-                      "popl %%eax\n\t"
-                      : "=m" (mmx_available)
-                      : /* no input */
-					  : "ebx", "ecx", "edx"
-				);return mmx_available!=0?0:1;}],
+	AC_TRY_RUN([int main() {
+                    int ebx_save;
+                    int mmx_available = 0;
+                    asm ("movl %%ebx, %1\n\t"
+                         "movl \$1, %%eax\n\t"
+                         "cpuid\n\t"
+                         "andl \$0x800000, %%edx\n\t"
+                         "movl %1, %%ebx\n\t"
+                         "movl %%edx, %0\n\t"
+                         : "=m" (mmx_available), "=m" (ebx_save)
+                         : /* no input */
+                         : "eax", "ecx", "edx"
+                        );
+                    return mmx_available != 0 ? 0 : 1;}],
 				[AC_DEFINE(HAVE_MMX,1,[Define if CPU supports MMX instructions]) AC_MSG_RESULT(yes)],AC_MSG_RESULT(no))
   else
 	  AC_MSG_RESULT(skipped)

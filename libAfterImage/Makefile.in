@@ -222,7 +222,7 @@ clean:
 		for I in ${subdirs}; do $(RMF) $$I/*.o $$I/*.obj $$I/*.bak; done; \
 		cd apps; make clean; cd ..
 
-distclean:
+distclean: clean
 		$(RMF) $(LIB_SHARED) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile ; \
 		cd apps; make distclean; cd ..
 

@@ -986,7 +986,6 @@ as_set_charset( ASSupportedCharsets new_charset )
 	if( new_charset < 0 || new_charset >= SUPPORTED_CHARSETS_NUM )
 		new_charset = CHARSET_ISO8859_1 ;
 
-LOCAL_DEBUG_OUT( "Setting encoding to %d\n", new_charset );
 	as_current_charset = _as_supported_charsets[new_charset] ;
 	as_current_charset_id = new_charset ;
 	return new_charset ;

@@ -2589,7 +2589,7 @@ case $host_os in
 	 * ) CYGWIN=no;;
 esac
 
-if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
+if test "x$CYGWIN" = "xno" -a "x$GCC" = "xyes" ; then
   if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
   	CFLAGS="$CFLAGS -fPIC"
   fi
@@ -3212,23 +3212,20 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-int main(){int mmx_available = 0;
-				  asm volatile ( "pushl %%eax\n\t"
-                      "pushl %%ebx\n\t"
-                      "pushl %%ecx\n\t"
-                      "pushl %%edx\n\t"
-                      "movl \$1, %%eax\n\t"
-                      "cpuid\n\t"
-                      "andl \$0x800000, %%edx \n\t"
-					  "movl %%edx, %0\n\t"
-                      "popl %%edx\n\t"
-                      "popl %%ecx\n\t"
-                      "popl %%ebx\n\t"
-                      "popl %%eax\n\t"
-                      : "=m" (mmx_available)
-                      : /* no input */
-					  : "ebx", "ecx", "edx"
-				);return mmx_available!=0?0:1;}
+int main() {
+                    int ebx_save;
+                    int mmx_available = 0;
+                    asm ("movl %%ebx, %1\n\t"
+                         "movl \$1, %%eax\n\t"
+                         "cpuid\n\t"
+                         "andl \$0x800000, %%edx\n\t"
+                         "movl %1, %%ebx\n\t"
+                         "movl %%edx, %0\n\t"
+                         : "=m" (mmx_available), "=m" (ebx_save)
+                         : /* no input */
+                         : "eax", "ecx", "edx"
+                        );
+                    return mmx_available != 0 ? 0 : 1;}
 _ACEOF
 rm -f conftest$ac_exeext
 if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5

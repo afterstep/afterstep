@@ -637,42 +637,6 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
 }
 #endif
 
-/*********************************************************************************/
-/* encoding/locale handling						   								 */
-/*********************************************************************************/
-
-/* Now, this is the mess, I know :
- * Internally we store everything in current locale;
- * WE then need to convert it into Unicode 4 byte codes
- *
- * TODO: think about incoming data - does it has to be made local friendly ???
- * Definately
- */
-
-#ifndef X_DISPLAY_MISSING
-static ASGlyphRange*
-split_X11_glyph_range( unsigned int min_char, unsigned int max_char, XCharStruct *chars )
-{
-	ASGlyphRange *first = NULL, **r = &first;
-    int c = 0, delta = (max_char-min_char)+1;
-LOCAL_DEBUG_CALLER_OUT( "min_char = %u, max_char = %u, chars = %p", min_char, max_char, chars );
-	while( c < delta )
-	{
-		while( c < delta && chars[c].width == 0 ) ++c;
-
-		if( c < delta )
-		{
-			*r = safecalloc( 1, sizeof(ASGlyphRange));
-			(*r)->min_char = c+min_char ;
-			while( c < delta && chars[c].width  != 0 ) ++c ;
-			(*r)->max_char = (c-1)+min_char;
-LOCAL_DEBUG_OUT( "created glyph range from %lu to %lu", (*r)->min_char, (*r)->max_char );
-			r = &((*r)->above);
-		}
-	}
-	return first;
-}
-
 static void 
 scale_down_glyph_width( unsigned char *buffer, int from_width, int to_width, int height )
 {
@@ -722,6 +686,44 @@ scale_down_glyph_width( unsigned char *buffer, int from_width, int to_width, int
 		l += to_width ; 
 		k += from_width ;
 	}while( l < to_width*height );
+}
+
+
+
+/*********************************************************************************/
+/* encoding/locale handling						   								 */
+/*********************************************************************************/
+
+/* Now, this is the mess, I know :
+ * Internally we store everything in current locale;
+ * WE then need to convert it into Unicode 4 byte codes
+ *
+ * TODO: think about incoming data - does it has to be made local friendly ???
+ * Definately
+ */
+
+#ifndef X_DISPLAY_MISSING
+static ASGlyphRange*
+split_X11_glyph_range( unsigned int min_char, unsigned int max_char, XCharStruct *chars )
+{
+	ASGlyphRange *first = NULL, **r = &first;
+    int c = 0, delta = (max_char-min_char)+1;
+LOCAL_DEBUG_CALLER_OUT( "min_char = %u, max_char = %u, chars = %p", min_char, max_char, chars );
+	while( c < delta )
+	{
+		while( c < delta && chars[c].width == 0 ) ++c;
+
+		if( c < delta )
+		{
+			*r = safecalloc( 1, sizeof(ASGlyphRange));
+			(*r)->min_char = c+min_char ;
+			while( c < delta && chars[c].width  != 0 ) ++c ;
+			(*r)->max_char = (c-1)+min_char;
+LOCAL_DEBUG_OUT( "created glyph range from %lu to %lu", (*r)->min_char, (*r)->max_char );
+			r = &((*r)->above);
+		}
+	}
+	return first;
 }
 
 void
@@ -1347,7 +1349,7 @@ utf8_to_unicode ( const unsigned char *s )
 
 inline ASGlyph *get_utf8_glyph( const char *utf8, ASFont *font )
 {
-	UNICODE_CHAR uc = utf8_to_unicode ( (const unsgned char*)utf8 );
+	UNICODE_CHAR uc = utf8_to_unicode ( (const unsigned char*)utf8 );
 	return get_unicode_glyph( uc, font );
 }
 

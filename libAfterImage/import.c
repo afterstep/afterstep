@@ -111,6 +111,10 @@
 #include "asimagexml.h"
 #include "transform.h"
 
+#ifdef jmpbuf
+#undef jmpbuf
+#endif
+
 
 /***********************************************************************************/
 /* High level interface : 														   */

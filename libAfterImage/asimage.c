@@ -117,26 +117,20 @@ Bool asimage_use_mmx = False;
 /*inline extern*/
 int mmx_init(void)
 {
+int ebx_save;
 int mmx_available = 0;
 #ifdef HAVE_MMX
 	asm volatile (
-                      /* Get CPU version information */
-                      "pushl %%eax\n\t"
-                      "pushl %%ebx\n\t"
-                      "pushl %%ecx\n\t"
-                      "pushl %%edx\n\t"
+                      "movl %%ebx, %1\n\t"
                       "movl $1, %%eax\n\t"
                       "cpuid\n\t"
-                      "andl $0x800000, %%edx \n\t"
-					  "movl %%edx, %0\n\t"
-                      "popl %%edx\n\t"
-                      "popl %%ecx\n\t"
-                      "popl %%ebx\n\t"
-                      "popl %%eax\n\t"
-                      : "=m" (mmx_available)
+                      "andl \$0x800000, %%edx\n\t"
+                      "movl %1, %%ebx\n\t"
+                      "movl %%edx, %0\n\t"
+                      : "=m" (mmx_available), "=m" (ebx_save)
                       : /* no input */
-					  : "ebx", "ecx", "edx"
-			  );
+                      : "eax", "ecx", "edx"
+                     );
 #endif
 	return mmx_available;
 }

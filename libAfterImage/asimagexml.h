@@ -92,7 +92,7 @@ typedef struct
 	{
 		ASXML_OpeningTag = 0,
 		ASXML_SimpleTag,
-		ASXML_ClosingTag,
+		ASXML_ClosingTag
 	}tag_type ;
 
 	int tags_count ;
