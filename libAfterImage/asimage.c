@@ -375,7 +375,7 @@ asimage_dup_line (ASImage * im, ColorPart color, unsigned int y1, unsigned int y
 size_t
 asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigned int y)
 {
-	int             i = 1, bstart = 0, ccolor = 0;
+	int             i = 0, bstart = 0, ccolor = 0;
 	unsigned int    width;
 	register CARD8 *dst;
 	register int 	tail = 0;
@@ -399,7 +399,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 	{
 /*		width = im->width; */
 		width = im->max_compressed_width ;
-		do
+		while( i < width )
 		{
 			while( i < width && data[i] == data[ccolor])
 			{
@@ -462,7 +462,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 				}
 			}
 /*			fprintf( stderr, "\n"); */
-		}while( i < width );
+		}
 		if( best_size+im->width < tail )
 		{
 			width = im->width;
@@ -1436,18 +1436,19 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 		dst_offset = offset ;
 	copy_width = MIN( src->width-src_offset, dst->width-dst_offset );
 
+	dst->flags = src->flags ;
 	for( color = 0 ; color < IC_NUM_CHANNELS ; ++color )
+	{
+		register CARD32 *psrc = src->channels[color]+src_offset;
+		register CARD32 *pdst = dst->channels[color];
+		int ratio = chan_tint[color];
+/*	fprintf( stderr, "channel %d, tint is %d(%X), src_offset = %d, dst_offset = %d psrc = %p, pdst = %p\n", color, ratio, ratio, src_offset, dst_offset, psrc, pdst );*/
+		for( i = 0 ; i < dst_offset ; ++i )
+			pdst[i] = 0;
+		pdst += dst_offset ;
+
 		if( get_flags(src->flags, 0x01<<color) )
 		{
-			register CARD32 *psrc = src->channels[color]+src_offset;
-			register CARD32 *pdst = dst->channels[color];
-			CARD32 filler = (color == IC_ALPHA)?0x00FF00:0x0000;
-			int ratio = chan_tint[color];
-/*	fprintf( stderr, "channel %d, tint is %d(%X), src_offset = %d, dst_offset = %d psrc = %p, pdst = %p\n", color, ratio, ratio, src_offset, dst_offset, psrc, pdst );*/
-			for( i = 0 ; i < dst_offset ; ++i )
-				pdst[i] = filler;
-			pdst += dst_offset ;
-
 			if( ratio == 255 )
 				for( i = 0 ; i < copy_width ; ++i )
 					pdst[i] = psrc[i]<<8;
@@ -1460,41 +1461,16 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 			else
 				for( i = 0 ; i < copy_width ; ++i )
 					pdst[i] = psrc[i]*ratio;
-			for( ; i < dst->width-dst_offset ; ++i )
-				pdst[i] = filler;
+		}else
+		{
+			for( i = 0 ; i < copy_width ; ++i )
+				pdst[i] = ratio<<8;
+			set_flags( dst->flags, (0x01<<color));
+		}
+		for( ; i < dst->width-dst_offset ; ++i )
+			pdst[i] = 0;
 /*			print_component(pdst, 0, dst->width ); */
-		}
-	dst->flags = src->flags ;
-}
-
-void
-alphablend_scanlines( ASScanline *bottom, ASScanline *top, int unused )
-{
-	register int i = -1, max_i = bottom->width ;
-	while( ++i < max_i )
-	{
-		int a = (top->alpha[i]>>8) ;
-		if( a >= 255 )
-		{
-			bottom->red[i]   = top->red[i] ;
-			bottom->green[i] = top->green[i] ;
-			bottom->blue[i]  = top->blue[i] ;
-		}else if( a > 0 )
-		{
-			int na = 255-a ;
-			bottom->red[i]   = ((bottom->red[i]*na)+(top->red[i]*a))>>8 ;
-			bottom->green[i] = ((bottom->green[i]*na)+(top->green[i]*a))>>8 ;
-			bottom->blue[i]  = ((bottom->blue[i]*na)+(top->blue[i]*a))>>8 ;
-		/* fprintf( stderr, "%X-%2.2X-%2.2X:%X*%X*%X ", top->alpha[i], a, na, bottom->red[i], bottom->green[i], bottom->blue[i] );*/
-		}
-/*		if( bottom->red[i]& 0xFFFF0000 || bottom->green[i]& 0xFFFF0000 ||bottom->blue[i]& 0xFFFF0000 )
-			fprintf( stderr, "%2.2X.%2.2X.%2.2X.%2.2X ", a, bottom->red[i], bottom->green[i], bottom->blue[i] );
-  */	}
-/*	print_component(bottom->red, 0, bottom->width );
-	print_component(bottom->green, 0, bottom->width );
-	print_component(bottom->blue, 0, bottom->width );
-  */
-	/*fprintf( stderr, "\n" );*/
+	}
 }
 
 void
@@ -2225,5 +2201,561 @@ asimage2mask(ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached)
 	return mask;
 }
 
+/*********************************************************************************/
+/*********************************************************************************/
+/*********************************************************************************/
+/* Scanline merging functions : 												 */
+/*********************************************************************************/
 
+inline CARD32
+rgb2value( CARD32 red, CARD32 green, CARD32 blue )
+{
+	if( red > green )
+		return MAX(red,blue);
+	return MAX(green, blue);
+}
+
+inline CARD32
+rgb2saturation( CARD32 red, CARD32 green, CARD32 blue )
+{
+	register int max_val, min_val ;
+	if( red > green )
+	{
+		max_val = MAX(red,blue);
+		min_val = MIN(green,blue);
+	}else
+	{
+		max_val = MAX(green, blue) ;
+		min_val = MIN(red,blue) ;
+	}
+	return max_val > 0 ? ((max_val - min_val)<<15)/(max_val>>1) : 0;
+}
+
+inline CARD32
+rgb2hue( CARD32 red, CARD32 green, CARD32 blue )
+{
+	int max_val, min_val, hue = 0 ;
+	if( red > green )
+	{
+		max_val = MAX(red,blue);
+		min_val = MIN(green,blue);
+	}else
+	{
+		max_val = MAX(green,blue);
+		min_val = MIN(red,blue);
+	}
+	if( max_val != min_val)
+	{
+		int delta = max_val-min_val ;
+#define HUE16_RANGE 		(85<<7)
+		if( red == max_val )
+		{
+			if( green > blue )
+				hue =              ((green - blue) * (HUE16_RANGE-1)) / delta ;
+			else
+				hue = HUE16_RANGE+ ((blue - green) * (HUE16_RANGE-1)) / delta ;
+		}else if( green == max_val )
+		{
+			if( blue > red )
+				hue = HUE16_RANGE*2 + ((blue-red ) * (HUE16_RANGE-1)) / delta ;
+			else
+				hue = HUE16_RANGE*3 + ((red -blue) * (HUE16_RANGE-1)) / delta ;
+		}else if( red > green )
+			hue     = HUE16_RANGE*4 + ((red -green)* (HUE16_RANGE-1)) / delta ;
+		else
+			hue     = HUE16_RANGE*5 + ((green- red)* (HUE16_RANGE-1)) / delta ;
+	}
+	return hue;
+}
+
+inline CARD32
+rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *value )
+{
+	int max_val, min_val, hue = 0 ;
+	if( red > green )
+	{
+		max_val = MAX(red,blue);
+		min_val = MIN(green,blue);
+	}else
+	{
+		max_val = MAX(green,blue);
+		min_val = MIN(red,blue);
+	}
+	*value = max_val ;
+	if( max_val != min_val)
+	{
+		int delta = max_val-min_val ;
+		*saturation = (delta<<15)/(max_val>>1);
+		if( red == max_val )
+		{
+			if( green > blue )
+			{
+				hue =              ((green - blue) * (HUE16_RANGE-1)) / delta ;
+				if( hue == 0 )
+					hue = 1 ;                  /* valid hue must be != 0 */
+			}else
+				hue = HUE16_RANGE+ ((blue - green) * (HUE16_RANGE-1)) / delta ;
+		}else if( green == max_val )
+		{
+			if( blue > red )
+				hue = HUE16_RANGE*2 + ((blue-red ) * (HUE16_RANGE-1)) / delta ;
+			else
+				hue = HUE16_RANGE*3 + ((red -blue) * (HUE16_RANGE-1)) / delta ;
+		}else if( red > green )
+			hue     = HUE16_RANGE*4 + ((red -green)* (HUE16_RANGE-1)) / delta ;
+		else
+			hue     = HUE16_RANGE*5 + ((green- red)* (HUE16_RANGE-1)) / delta ;
+	}else
+		*saturation = 0 ;
+	return hue;
+}
+
+inline void
+hsv2rgb (CARD32 hue, CARD32 saturation, CARD32 value, CARD32 *red, CARD32 *green, CARD32 *blue)
+{
+	if (saturation == 0)
+	{
+    	*blue = *green = *red = value;
+	}else
+	{
+		int range = hue/HUE16_RANGE ;
+		int delta = ((saturation*(value>>1))>>15) ;
+		int min_val = value - delta;
+		int mid_val = (hue - HUE16_RANGE*range) * delta / (HUE16_RANGE-1)  + min_val ;
+		switch( range )
+		{
+			case 0 :                           /* red was max, then green  */
+				*red = value ;
+				*green = mid_val ;
+				*blue = min_val ;
+			    break ;
+			case 1 :                           /* red was max, then blue   */
+				*red = value ;
+				*blue = mid_val ;
+				*green = min_val ;
+			    break ;
+			case 2 :                           /* green was max, then blue */
+				*green = value ;
+				*blue = mid_val ;
+				*red = min_val ;
+			    break ;
+			case 3 :                           /* green was max, then red  */
+				*green = value ;
+				*red = mid_val ;
+				*blue = min_val ;
+			    break ;
+			case 4 :                           /* blue was max, then red   */
+				*blue  = value ;
+				*red   = mid_val ;
+				*green = min_val ;
+			    break ;
+			case 5 :                           /* blue was max, then green */
+				*blue  = value ;
+				*green = mid_val ;
+				*red   = min_val ;
+			    break ;
+		}
+	}
+}
+
+inline CARD32                                         /* returns luminance */
+rgb2luminance (CARD32 red, CARD32 green, CARD32 blue )
+{
+	int max_val, min_val;
+	if( red > green )
+	{
+		max_val = MAX(red,blue);
+		min_val = MIN(green,blue);
+	}else
+	{
+		max_val = MAX(green,blue);
+		min_val = MIN(red,blue);
+	}
+	return (max_val+min_val)>>1;
+}
+
+inline CARD32                                         /* returns hue */
+rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance, CARD32 *saturation )
+{
+	int max_val, min_val, hue = 0 ;
+	if( red > green )
+	{
+		max_val = MAX(red,blue);
+		min_val = MIN(green,blue);
+	}else
+	{
+		max_val = MAX(green,blue);
+		min_val = MIN(red,blue);
+	}
+	*luminance = (max_val+min_val)>>1;
+
+	if( max_val != min_val )
+	{
+		int delta = max_val-min_val ;
+		*saturation = (*luminance < 0x00008000 )?
+							(delta<<15)/ *luminance :
+							(delta<<15)/ (0x0000FFFF - *luminance);
+		if( red == max_val )
+		{
+			if( green > blue )
+			{
+				hue =              ((green - blue) * (HUE16_RANGE-1)) / delta ;
+				if( hue == 0 )
+					hue = 1 ;                  /* valid hue must be != 0 */
+			}else
+				hue = HUE16_RANGE+ ((blue - green) * (HUE16_RANGE-1)) / delta ;
+		}else if( green == max_val )
+		{
+			if( blue > red )
+				hue = HUE16_RANGE*2 + ((blue-red ) * (HUE16_RANGE-1)) / delta ;
+			else
+				hue = HUE16_RANGE*3 + ((red -blue) * (HUE16_RANGE-1)) / delta ;
+		}else if( red > green )
+			hue     = HUE16_RANGE*4 + ((red -green)* (HUE16_RANGE-1)) / delta ;
+		else
+			hue     = HUE16_RANGE*5 + ((green- red)* (HUE16_RANGE-1)) / delta ;
+
+	}else
+		*saturation = 0 ;
+	return hue;
+}
+
+inline void
+hls2rgb (CARD32 hue, CARD32 luminance, CARD32 saturation, CARD32 *red, CARD32 *green, CARD32 *blue)
+{
+	if (saturation == 0)
+	{
+    	*blue = *green = *red = luminance;
+	}else
+	{
+		int range = hue/HUE16_RANGE ;
+		int delta = ( luminance < 0x00008000 )?
+						(saturation*luminance)>>15 :
+	                    (saturation*(0x0000FFFF-luminance))>>15 ;
+		int min_val = ((luminance<<1)-delta)>>1 ;
+		int mid_val = (hue - HUE16_RANGE*range) * delta / (HUE16_RANGE-1)  + min_val ;
+		switch( range )
+		{
+			case 0 :                           /* red was max, then green  */
+				*red = delta+min_val ;
+				*green = mid_val ;
+				*blue = min_val ;
+			    break ;
+			case 1 :                           /* red was max, then blue   */
+				*red = delta+min_val ;
+				*blue = mid_val ;
+				*green = min_val ;
+			    break ;
+			case 2 :                           /* green was max, then blue */
+				*green = delta+min_val ;
+				*blue = mid_val ;
+				*red = min_val ;
+			    break ;
+			case 3 :                           /* green was max, then red  */
+				*green = delta+min_val ;
+				*red = mid_val ;
+				*blue = min_val ;
+			    break ;
+			case 4 :                           /* blue was max, then red   */
+				*blue  = delta+min_val ;
+				*red   = mid_val ;
+				*green = min_val ;
+			    break ;
+			case 5 :                           /* blue was max, then green */
+				*blue  = delta+min_val ;
+				*green = mid_val ;
+				*red   = min_val ;
+			    break ;
+		}
+	}
+}
+
+void
+alphablend_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *alpha = top->alpha, *ba = bottom->alpha;
+	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
+	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
+
+	while( ++i < max_i )
+	{
+		int a = alpha[i] ;
+		if( a >= 0x0000FF00 )
+		{
+			br[i] = tr[i] ;
+			bg[i] = tg[i] ;
+			bb[i] = tb[i] ;
+			ba[i] = 0x0000FF00;
+		}else if( a > 0 )
+		{
+			ba[i] += a ;
+			if( ba[i] > 0x0000FFFF )
+				ba[i] = 0x0000FFFF ;
+			a = (a>>8) ;
+			br[i] = (br[i]*(255-a)+tr[i]*a)>>8 ;
+			bg[i] = (bg[i]*(255-a)+tg[i]*a)>>8 ;
+			bb[i] = (bb[i]*(255-a)+tb[i]*a)>>8 ;
+		}
+	}
+}
+
+void    /* this one was first implemented on XImages by allanon :) - mode 131  */
+allanon_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	max_i = (max_i + (max_i&0x0001)) * 4 ;
+	while( ++i < max_i )
+		b[i] = (b[i]+t[i])>>1 ;
+}
+
+void    /* addition with saturation : */
+add_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	max_i = (max_i + (max_i&0x0001)) * 3 ;
+	while( ++i < max_i )
+	{
+		b[i] = (b[i]+t[i]) ;
+		if( b[i] > 0x0000FFFF )
+			b[i] = 0x0000FFFF ;
+		if( ta[i] < ba[i] )
+			ba[i] = ta[i] ;
+	}
+}
+
+void    /* substruction with saturation : */
+sub_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	max_i = (max_i + (max_i&0x0001)) * 3 ;
+	while( ++i < max_i )
+	{
+		int res = (int)b[i] - (int)t[i] ;
+		b[i] = res < 0 ? 0: res ;
+		if( ta[i] < ba[i] )
+			ba[i] = ta[i] ;
+	}
+}
+
+void    /* absolute pixel value difference : */
+diff_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	max_i = (max_i + (max_i&0x0001)) * 3 ;
+	while( ++i < max_i )
+	{
+		int res = (int)b[i] - (int)t[i] ;
+		b[i] = res < 0 ? -res: res ;
+		if( ta[i] < ba[i] )
+			ba[i] = ta[i] ;
+	}
+}
+
+void    /* darkest of the two makes it in : */
+darken_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	max_i = (max_i + (max_i&0x0001)) * 4 ;
+	while( ++i < max_i )
+	{
+		if( t[i] < b[i] )
+			b[i] = t[i] ;
+	}
+}
+
+void    /* lightest of the two makes it in : */
+lighten_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	max_i = (max_i + (max_i&0x0001)) * 3 ;
+	while( ++i < max_i )
+	{
+		if( t[i] > b[i] )
+			b[i] = t[i] ;
+		if( ta[i] < ba[i] )
+			ba[i] = ta[i] ;
+	}
+}
+
+void    /* guess what this one does - I could not :) */
+screen_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	max_i = (max_i + (max_i&0x0001)) * 3 ;
+	while( ++i < max_i )
+	{
+		int res1 = 0x0000FFFF - (int)b[i] ;
+		int res2 = 0x0000FFFF - (int)t[i] ;
+		res1 = 0x0000FFFF - ((res1*res2)>>16);
+		if( res1 < 0 )
+			res1 = 0 ;
+		b[i] = res1 < 0 ? 0 : res1;
+		if( ta[i] < ba[i] )
+			ba[i] = ta[i] ;
+	}
+}
+
+void    /* somehow overlays bottom with top : */
+overlay_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	max_i = (max_i + (max_i&0x0001)) * 3 ;
+	while( ++i < max_i )
+	{
+
+		int tmp_screen = 0x0000FFFF - (((0x0000FFFF - (int)b[i]) * (0x0000FFFF - (int)t[i])) >> 16);
+		int tmp_mult   = (b[i] * t[i]) >> 16;
+		int res = (b[i] * tmp_screen + (0x0000FFFF - (int)b[i]) * tmp_mult) >> 16;
+		b[i] = res < 0 ? 0 : res;
+		if( ta[i] < ba[i] )
+			ba[i] = ta[i] ;
+	}
+}
+
+void
+hue_scanlines( ASScanline *bottom, ASScanline *top, int mode )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
+	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
+	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
+
+	while( ++i < max_i )
+	{
+		CARD32 hue = rgb2hue( tr[i], tg[i], tb[i]);
+		if( hue > 0 )
+		{
+			CARD32 saturation = rgb2saturation( br[i], bg[i], bb[i]);
+			CARD32 value = rgb2value( br[i], bg[i], bb[i]);;
+
+			hsv2rgb(hue, saturation, value, &br[i], &bg[i], &bb[i]);
+
+		}
+		if( ta[i] < ba[i] )
+			ba[i] = ta[i] ;
+	}
+}
+
+void
+saturate_scanlines( ASScanline *bottom, ASScanline *top, int mode )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
+	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
+	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
+
+	while( ++i < max_i )
+	{
+		CARD32 saturation, value;
+		CARD32 hue = rgb2hsv( br[i], bg[i], bb[i], &saturation, &value);
+
+		saturation = rgb2saturation( tr[i], tg[i], tb[i]);
+		hsv2rgb(hue, saturation, value, &br[i], &bg[i], &bb[i]);
+		if( ta[i] < ba[i] )
+			ba[i] = ta[i] ;
+	}
+}
+
+void
+value_scanlines( ASScanline *bottom, ASScanline *top, int mode )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
+	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
+	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
+
+	while( ++i < max_i )
+	{
+		CARD32 saturation, value;
+		CARD32 hue = rgb2hsv( br[i], bg[i], bb[i], &saturation, &value);
+
+		value = rgb2value( tr[i], tg[i], tb[i]);
+		hsv2rgb(hue, saturation, value, &br[i], &bg[i], &bb[i]);
+
+		if( ta[i] < ba[i] )
+			ba[i] = ta[i] ;
+	}
+}
+
+void
+colorize_scanlines( ASScanline *bottom, ASScanline *top, int mode )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
+	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
+	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
+
+	while( ++i < max_i )
+	{
+#if 1
+		CARD32 luminance, saturation ;
+		CARD32 hue = rgb2hls( tr[i], tg[i], tb[i], &luminance, &saturation );
+
+		luminance = rgb2luminance( br[i], bg[i], bb[i]);
+		hls2rgb(hue, luminance, saturation, &br[i], &bg[i], &bb[i]);
+#else
+		CARD32 h, l, s, r, g, b;
+		h = rgb2hls( br[i], bg[i], bb[i], &l, &s );
+		hls2rgb( h, l, s, &r, &g, &b );
+		if( r > br[i]+10 || r < br[i] - 10 )
+		{
+			fprintf( stderr, "%X.%X.%X -> %X.%X.%X -> %X.%X.%X\n",  br[i], bg[i], bb[i], h, l, s, r, g, b );
+			fprintf( stderr, "%d.%d.%d -> %d.%d.%d -> %d.%d.%d\n",  br[i], bg[i], bb[i], h, l, s, r, g, b );
+		}
+#endif
+
+		if( ta[i] < ba[i] )
+			ba[i] = ta[i] ;
+	}
+}
+
+void
+dissipate_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+{
+	register int i = -1, max_i = bottom->width ;
+	register CARD32 *alpha = top->alpha, *ba = bottom->alpha;
+	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
+	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
+
+	/* add some randomization here  if (rand < alpha) - combine */
+	while( ++i < max_i )
+	{
+		int a = alpha[i] ;
+		if( a >= 0x0000FF00 )
+		{
+			br[i] = tr[i] ;
+			bg[i] = tg[i] ;
+			bb[i] = tb[i] ;
+			ba[i] = 0x0000FF00;
+		}else if( a > 0 )
+		{
+			ba[i] += a ;
+			if( ba[i] > 0x0000FFFF )
+				ba[i] = 0x0000FFFF ;
+			a = (a>>8) ;
+			br[i] = (br[i]*(255-a)+tr[i]*a)>>8 ;
+			bg[i] = (bg[i]*(255-a)+tg[i]*a)>>8 ;
+			bb[i] = (bb[i]*(255-a)+tb[i]*a)>>8 ;
+		}
+	}
+}
+
+/*********************************************************************************/
+/* The end !!!! 																 */
+/*********************************************************************************/
 

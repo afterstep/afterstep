@@ -270,15 +270,15 @@ raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned
 		{
 			while ( --x >= 0 )
 			{
+				row -= 3 ;
+				if( do_alpha )
+				{
+					--row;
+					buf->alpha[x] = row[3];
+				}
 				buf->xc1[x]  = gamma_table[row[0]];
 				buf->xc2[x]= gamma_table[row[1]];
 				buf->xc3[x] = gamma_table[row[2]];
-				if( do_alpha )
-				{
-					buf->alpha[x] = row[3];
-					--row;
-				}
-				row -= 3 ;
 			}
 		}else /* greyscale */
 			while ( --x >= 0 )
@@ -293,15 +293,15 @@ raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned
 		{
 			while ( --x >= 0 )
 			{
+				row -= 3 ;
+				if( do_alpha )
+				{
+					--row;
+					buf->alpha[x] = row[3];
+				}
 				buf->xc1[x]  = row[0];
 				buf->xc2[x]= row[1];
 				buf->xc3[x] = row[2];
-				if( do_alpha )
-				{
-					buf->alpha[x] = row[3];
-					--row;
-				}
-				row -= 3 ;
 			}
 		}else /* greyscale */
 			while ( --x >= 0 )
@@ -925,6 +925,7 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 #endif
 	ASScanline    buf;
 	int y;
+ /*	register int i ;*/
 
 	/* we want to open the input file before doing anything else,
 	 * so that the setjmp() error recovery below can assume the file is open.
@@ -983,7 +984,10 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 #endif
 	y = -1 ;
 	/*cinfo.output_scanline*/
-	while ( ++y < cinfo.output_height )
+/*	for( i = 0 ; i < im->width ; i++ )	fprintf( stderr, "%3.3d    ", i );
+	fprintf( stderr, "\n");
+ */
+ 	while ( ++y < cinfo.output_height )
 	{
 		/* jpeg_read_scanlines expects an array of pointers to scanlines.
 		 * Here the array is only one element long, but you could ask for
@@ -991,6 +995,14 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 		 */
 		(void)jpeg_read_scanlines (&cinfo, buffer, 1);
 		raw2scanline( buffer[0], &buf, gamma_table, im->width, (cinfo.output_components==1), False);
+/*		fprintf( stderr, "src:");
+		for( i = 0 ; i < im->width ; i++ )
+			fprintf( stderr, "%2.2X%2.2X%2.2X ", buffer[0][i*3], buffer[0][i*3+1], buffer[0][i*3+2] );
+		fprintf( stderr, "\ndst:");
+		for( i = 0 ; i < im->width ; i++ )
+			fprintf( stderr, "%2.2X%2.2X%2.2X ", buf.red[i], buf.green[i], buf.blue[i] );
+		fprintf( stderr, "\n");
+ */
 		asimage_add_line (im, IC_RED,   buf.red  , y);
 		asimage_add_line (im, IC_GREEN, buf.green, y);
 		asimage_add_line (im, IC_BLUE,  buf.blue , y);
