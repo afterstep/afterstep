@@ -100,6 +100,7 @@
 #endif
 
 #include "asimage.h"
+#include "imencdec.h"
 #include "bmp.h"
 #include "ximage.h"
 #include "xcf.h"

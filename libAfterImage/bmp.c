@@ -32,6 +32,8 @@
 # include "afterbase.h"
 #endif
 
+#include "asimage.h"
+#include "imencdec.h"
 #include "bmp.h"
 
 

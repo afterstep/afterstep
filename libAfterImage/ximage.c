@@ -50,6 +50,7 @@
 #include "asvisual.h"
 #include "blender.h"
 #include "asimage.h"
+#include "imencdec.h"
 #include "ximage.h"
 
 

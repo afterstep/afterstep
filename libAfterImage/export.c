@@ -99,6 +99,7 @@
 #endif
 
 #include "asimage.h"
+#include "imencdec.h"
 #include "xcf.h"
 #include "xpm.h"
 #include "ungif.h"

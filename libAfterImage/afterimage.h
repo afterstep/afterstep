@@ -7,6 +7,7 @@
 #include "asvisual.h"
 #include "blender.h"
 #include "asimage.h"
+#include "imencdec.h"
 #include "ascmap.h"
 #undef HAVE_FREETYPE
 #include "asfont.h"

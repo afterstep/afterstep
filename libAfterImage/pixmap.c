@@ -63,6 +63,7 @@
 #include "asvisual.h"
 #include "blender.h"
 #include "asimage.h"
+#include "imencdec.h"
 #include "ximage.h"
 #include "transform.h"
 #include "pixmap.h"

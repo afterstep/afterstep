@@ -58,6 +58,7 @@
 # include "afterbase.h"
 #endif
 #include "afterimage.h"
+#include "imencdec.h"
 #include "pixmap.h" /* for GetRootDimensions() */
 
 /****h* libAfterImage/asimagexml

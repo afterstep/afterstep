@@ -58,6 +58,7 @@
 #include "asimage.h"
 #include "import.h"
 #include "export.h"
+#include "imencdec.h"
 #include "ascmap.h"
 
 /***********************************************************************************/
