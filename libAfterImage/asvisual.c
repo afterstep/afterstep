@@ -192,9 +192,50 @@ free_scanline( ASScanline *sl, Bool reusable )
 
 /* ********************* ASVisual ************************************/
 
+#ifndef X_DISPLAY_MISSING
+static XColor black_xcol = { 0, 0x0000, 0x0000, 0x0000, DoRed|DoGreen|DoBlue };
+static XColor white_xcol = { 0, 0xFFFF, 0xFFFF, 0xFFFF, DoRed|DoGreen|DoBlue };
+
+static void find_useable_visual( ASVisual *asv, Display *dpy, int screen,
+	                             Window root, XVisualInfo *list, int nitems,
+								 XSetWindowAttributes *attr )
+{
+	int k ;
+	int (*oldXErrorHandler) (Display *, XErrorEvent *) =
+						XSetErrorHandler (asvisual_empty_XErrorHandler);
+
+	for( k = 0  ; k < nitems ; k++ )
+	{
+		Window       w = None, wjunk;
+		unsigned int width, height, ujunk ;
+		int          junk;
+		/* try and use default colormap when possible : */
+		if( asv->visual_info.visual == DefaultVisual( dpy, (screen) ) )
+			attr->colormap = DefaultColormap( dpy, screen );
+		else
+			attr->colormap = XCreateColormap( dpy, root, list[k].visual, AllocNone);
+		ASV_ALLOC_COLOR( asv, attr->colormap, &black_xcol );
+		ASV_ALLOC_COLOR( asv, attr->colormap, &white_xcol );
+		attr->border_pixel = black_xcol.pixel ;
+/*fprintf( stderr, "checking out visual ID %d, class %d, depth = %d mask = %X,%X,%X\n", list[k].visualid, list[k].class, list[k].depth, list[k].red_mask, list[k].green_mask, list[k].blue_mask 	);*/
+		w = XCreateWindow (dpy, root, -10, -10, 10, 10, 0, 0, CopyFromParent, list[k].visual, CWColormap|CWBorderPixmap|CWBorderPixel, attr );
+		if( w != None && XGetGeometry (dpy, w, &wjunk, &junk, &junk, &width, &height, &ujunk, &ujunk))
+		{
+			/* don't really care what's in it since we do not use it anyways : */
+			asv->visual_info = list[k] ;
+			XDestroyWindow( dpy, w );
+			break;
+		}
+		if( attr->colormap != DefaultColormap( dpy, screen ))
+			XFreeColormap( dpy, attr->colormap );
+	}
+	XSetErrorHandler(oldXErrorHandler);
+}
+#endif
+
 /* Main procedure finding and querying the best visual */
 Bool
-query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int default_depth )
+query_screen_visual_id( ASVisual *asv, Display *dpy, int screen, Window root, int default_depth, VisualID visual_id )
 {
 #ifndef X_DISPLAY_MISSING
 	int nitems = 0 ;
@@ -207,8 +248,6 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 
 	XVisualInfo *list = NULL;
 	XSetWindowAttributes attr ;
-	XColor black_xcol = { 0, 0x0000, 0x0000, 0x0000, DoRed|DoGreen|DoBlue };
-	XColor white_xcol = { 0, 0xFFFF, 0xFFFF, 0xFFFF, DoRed|DoGreen|DoBlue };
 	static XVisualInfo templates[] =
 		/* Visual, visualid, screen, depth, class      , red_mask, green_mask, blue_mask, colormap_size, bits_per_rgb */
 		{{ NULL  , 0       , 0     , 24   , TrueColor  , 0xFF0000, 0x00FF00  , 0x0000FF , 0            , 0 },
@@ -255,53 +294,43 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 
 #ifndef X_DISPLAY_MISSING
 	memset( &attr, 0x00, sizeof( attr ));
-	for( i = 0 ; templates[i].depth != 0 ; i++ )
-	{
-		int k ;
-		int           (*oldXErrorHandler) (Display *, XErrorEvent *) = NULL;
-		int mask = VisualScreenMask|VisualDepthMask|VisualClassMask ;
 
-		templates[i].screen = screen ;
-		if( templates[i].red_mask != 0 )
-			mask |= VisualRedMaskMask;
-		if( templates[i].green_mask != 0 )
-			mask |= VisualGreenMaskMask ;
-		if( templates[i].blue_mask != 0 )
-			mask |= VisualBlueMaskMask ;
-		list = XGetVisualInfo( dpy, mask, &(templates[i]), &nitems );
-		oldXErrorHandler = XSetErrorHandler (asvisual_empty_XErrorHandler);
-		for( k = 0  ; k < nitems ; k++ )
+	if( visual_id == 0 )
+	{
+		for( i = 0 ; templates[i].depth != 0 ; i++ )
 		{
-			Window       w = None, wjunk;
-			unsigned int width, height, ujunk ;
-			int          junk;
-			/* try and use default colormap when possible : */
-			if( asv->visual_info.visual == DefaultVisual( dpy, (screen) ) )
-				attr.colormap = DefaultColormap( dpy, screen );
-			else
-				attr.colormap = XCreateColormap( dpy, root, list[k].visual, AllocNone);
-			ASV_ALLOC_COLOR( asv, attr.colormap, &black_xcol );
-			ASV_ALLOC_COLOR( asv, attr.colormap, &white_xcol );
-			attr.border_pixel = black_xcol.pixel ;
-/*fprintf( stderr, "checking out visual ID %d, class %d, depth = %d mask = %X,%X,%X\n", list[k].visualid, list[k].class, list[k].depth, list[k].red_mask, list[k].green_mask, list[k].blue_mask 	);*/
-			w = XCreateWindow (dpy, root, -10, -10, 10, 10, 0, 0, CopyFromParent, list[k].visual, CWColormap|CWBorderPixmap|CWBorderPixel, &attr );
-			if( w != None && XGetGeometry (dpy, w, &wjunk, &junk, &junk, &width, &height, &ujunk, &ujunk))
+			int mask = VisualScreenMask|VisualDepthMask|VisualClassMask ;
+
+			templates[i].screen = screen ;
+			if( templates[i].red_mask != 0 )
+				mask |= VisualRedMaskMask;
+			if( templates[i].green_mask != 0 )
+				mask |= VisualGreenMaskMask ;
+			if( templates[i].blue_mask != 0 )
+				mask |= VisualBlueMaskMask ;
+
+			if( (list = XGetVisualInfo( dpy, mask, &(templates[i]), &nitems ))!= NULL )
 			{
-				/* don't really care what's in it since we do not use it anyways : */
-				asv->visual_info = list[k] ;
-				XDestroyWindow( dpy, w );
-				break;
+				find_useable_visual( asv, dpy, screen, root, list, nitems, &attr );
+				XFree( list );
+				list = NULL ;
+				if( asv->visual_info.visual != NULL )
+					break;
 			}
-			if( attr.colormap != DefaultColormap( dpy, screen ))
-				XFreeColormap( dpy, attr.colormap );
 		}
-		XSetErrorHandler(oldXErrorHandler);
-		if( list )
-			XFree( list );
-		list = NULL ;
-		if( asv->visual_info.visual != NULL )
-			break;
+	}else
+	{
+		templates[0].visualid = visual_id ;
+		if( (list = XGetVisualInfo( dpy, VisualIDMask, &(templates[0]), &nitems )) != NULL )
+		{
+			find_useable_visual( asv, dpy, screen, root, list, nitems, &attr );
+		 	XFree( list );
+			list = NULL ;
+		}
+		if( asv->visual_info.visual == NULL )
+			show_error( "Visual with requested ID of 0x%X is unusable - will try default instead.", visual_id );
 	}
+
 	if( asv->visual_info.visual == NULL )
 	{  /* we ain't found any decent Visuals - that's some crappy screen you have! */
 		register int vclass = 6 ;
@@ -337,7 +366,7 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 }
 
 ASVisual *
-create_asvisual( Display *dpy, int screen, int default_depth, ASVisual *reusable_memory  )
+create_asvisual_for_id( Display *dpy, int screen, int default_depth, VisualID visual_id, ASVisual *reusable_memory )
 {
 	ASVisual *asv = reusable_memory ;
 #ifndef X_DISPLAY_MISSING
@@ -347,7 +376,7 @@ create_asvisual( Display *dpy, int screen, int default_depth, ASVisual *reusable
 	if( asv == NULL )
 		asv = safemalloc( sizeof(ASVisual) );
 #ifndef X_DISPLAY_MISSING
-	if( query_screen_visual( asv, dpy, screen, root, default_depth ) )
+	if( query_screen_visual_id( asv, dpy, screen, root, default_depth, visual_id ) )
 	{	/* found visual - now off to decide about color handling on it : */
 	 	if( !setup_truecolor_visual( asv ) )
 	 	{  /* well, we don't - lets try and preallocate as many colors as we can but up to
@@ -368,6 +397,19 @@ create_asvisual( Display *dpy, int screen, int default_depth, ASVisual *reusable
 #endif /*ifndef X_DISPLAY_MISSING */
 	return asv;
 }
+
+ASVisual *
+create_asvisual( Display *dpy, int screen, int default_depth, ASVisual *reusable_memory )
+{
+	VisualID visual_id = 0;
+	char *id_env_var ;
+
+	if( (id_env_var = getenv( ASVISUAL_ID_ENVVAR )) != NULL )
+		visual_id = strtol(id_env_var,NULL,16);
+
+	return create_asvisual_for_id( dpy, screen, default_depth, visual_id, reusable_memory );
+}
+
 
 void
 destroy_asvisual( ASVisual *asv, Bool reusable )

@@ -261,6 +261,11 @@ void       free_scanline( ASScanline *sl, Bool reusable );
 typedef struct ASVisual
 {
 	Display      *dpy;
+
+	/* This envvar will be used to determine what X Visual (in hex) to use.
+ 	 * If unset then best possible will be selected automagically : */
+#define ASVISUAL_ID_ENVVAR "AFTERIMAGE_VISUAL_ID"
+
 	XVisualInfo	  visual_info;
 	/* this things are calculated based on Visual : */
 	unsigned long rshift, gshift, bshift;
@@ -380,8 +385,11 @@ typedef struct ASVisual
  * structure. If colors where preallocated successfully - it will also
  * create reverse lookup colormap.
  *********/
-Bool query_screen_visual( ASVisual *asv, Display *dpy, int screen,
-	                      Window root, int default_depth );
+
+Bool query_screen_visual_id( ASVisual *asv, Display *dpy, int screen,
+	                      	 Window root, int default_depth, VisualID visual_id );
+#define query_screen_visual(a,d,s,r,dd) query_screen_visual_id((a),(d),(s),(r),(dd),0)
+
 Bool setup_truecolor_visual( ASVisual *asv );
 void setup_pseudo_visual( ASVisual *asv  );
 void setup_as_colormap( ASVisual *asv );
@@ -419,6 +427,9 @@ void setup_as_colormap( ASVisual *asv );
  * EXAMPLE
  * asview.c: ASView.2
  *********/
+ASVisual *create_asvisual_for_id( Display *dpy, int screen, int default_depth,
+	                              VisualID visual_id,
+								  ASVisual *reusable_memory );
 ASVisual *create_asvisual( Display *dpy, int screen, int default_depth,
 	                       ASVisual *reusable_memory );
 void destroy_asvisual( ASVisual *asv, Bool reusable );
