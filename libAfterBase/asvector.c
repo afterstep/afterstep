@@ -201,8 +201,12 @@ inline void vector_move_data_down( ASVector *v, int index, int offset, int lengt
 {
     register int i ;
     /* word copying is usually faster then raw memory copying */
+	/* assuming that offset  >  0 */
     if( length == -1 )
         length = v->used ;
+	if( offset > 0 && length > v->used - offset )
+		length = v->used - offset ;
+
     if( v->unit == sizeof(long*) )
     {   /* 4 or 8 byte pointer copying  */
         register long** trg = (long**)(v->memory);
@@ -220,7 +224,7 @@ inline void vector_move_data_down( ASVector *v, int index, int offset, int lengt
         register CARD8 *trg = v->memory ;
         register CARD8 *src = trg+(offset*v->unit) ;
         int end = (length)*(v->unit);
-        for( i = index*v->unit ; i < end ; i++ )
+        for( i = index*v->unit ; i < end ; ++i )
             trg[i] = src[i] ;
     }
     v->used-=offset ;

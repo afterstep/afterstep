@@ -417,7 +417,8 @@ ConnectAfterStep (unsigned long message_mask)
     set_module_in_fd( fd );
     set_module_out_fd( fd );
 
-	temp = safemalloc (9 + strlen (MyName) + 1);
+	/* assuming that unsigned long will be limited to 32 chars : */
+	temp = safemalloc (9 + 1 +max(strlen (MyName),32) + 1 + 1);
     sprintf (temp, "SET_NAME \"%s\"", MyName);
     SendInfo ( temp, None);
 	free (temp);
