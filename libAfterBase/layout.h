@@ -175,6 +175,8 @@ void make_layout_grid( ASLayout *layout, ASGrid *grid,
 					   int origin_x, int origin_y,
 	                   short gravity );
 void print_asgrid( ASGrid *grid );
+void destroy_asgrid( ASGrid *grid, Bool reusable );
+
 
 #endif  /* AS_LAYOUT_H_HEADER_FILE */
 

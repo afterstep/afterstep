@@ -898,9 +898,6 @@ moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bo
 #endif
     /* then working on height/y position */
     spacing_needed = collect_sizes( layout, &(as_layout_height[0]), &(as_layout_fixed_height[0]), False );
-	for( i = 0 ; i < layout->dim_y  ; ++i )
-		fprintf( stderr, "\t%d", as_layout_fixed_height[i]);
-	fprintf( stderr, "\n" );
     adjust_sizes( layout->height, height, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]) );
     apply_sizes(layout->v_spacing, layout->offset_north+layout->h_border, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]), &(as_layout_y[0]) );
 #ifdef LOCAL_DEBUG
@@ -1081,6 +1078,31 @@ LOCAL_DEBUG_OUT( "start = %d, end = %d, y = %d, height = %d, lheight = %d", star
 			if( end > start )
 				add_gridline( &(grid->v_lines), x+origin_x, start+origin_y, end+origin_y, gravity, gravity );
         }
+	}
+}
+
+static void
+destroy_gridlines( register ASGridLine *list )
+{
+	while( list )
+	{
+		register ASGridLine *todel = list;
+		list = todel->next ;
+		free( todel );
+	}
+}
+
+void
+destroy_asgrid( ASGrid *grid, Bool reusable )
+{
+	if( grid )
+	{
+		destroy_gridlines( grid->h_lines );
+		destroy_gridlines( grid->v_lines );
+		if( reusable )
+			memset( grid, 0x00, sizeof(ASGrid));
+		else
+			free( grid );
 	}
 }
 
