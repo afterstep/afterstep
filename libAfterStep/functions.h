@@ -204,6 +204,15 @@ typedef struct MenuData
 	unsigned int    recent_items ;
 }MenuData;
 
+#define MAX_MENU_ITEM_HEIGHT    (Scr.MyDisplayHeight>>4)
+#define MAX_MENU_WIDTH          (Scr.MyDisplayWidth>>1)
+#define MAX_MENU_HEIGHT         ((Scr.MyDisplayHeight*9)/10)
+#define MIN_MENU_X              5
+#define MAX_MENU_X              (Scr.MyDisplayWidth-5)
+#define MIN_MENU_Y              5
+#define MAX_MENU_Y              (Scr.MyDisplayHeight-5)
+#define DEFAULT_ARROW_SIZE      (Scr.MyDisplayWidth>>7)
+#define DEFAULT_SCROLLBAR_SIZE      (Scr.MyDisplayWidth>>6)
 
 /* Types of events for the FUNCTION builtin */
 #define MOTION                       'm'
@@ -259,6 +268,7 @@ int parse_menu_item_name (MenuDataItem * item, char **name);
 
 void add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img );
 void menu_data_item_from_func (MenuData * menu, FunctionData * fdata);
+struct ASImage *check_scale_menu_pmap( struct ASImage *im ); 
 void reload_menu_pmaps( MenuData *menu );
 
 void print_func_data(const char *file, const char *func, int line, FunctionData *data);

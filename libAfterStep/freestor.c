@@ -757,7 +757,7 @@ int parse_win_context (char *tline)
 {
     int ctxs = 0;
     parse_context (tline, &ctxs, as_contexts);
-	LOCAL_DEBUG_OUT( "tline = \"%s\", ctxs = %lX", tline, ctxs ); 
+	LOCAL_DEBUG_OUT( "tline = \"%s\", ctxs = %X", tline, ctxs ); 
     return ctxs;
 }
 
@@ -766,7 +766,7 @@ char *parse_modifier_str( char *tline, int *mods_ret )
     int mods = 0;
 	LOCAL_DEBUG_OUT( "tline = \"%s\"", tline ); 
     tline = parse_context (tline, &mods, key_modifiers);
-	LOCAL_DEBUG_OUT( "tline = \"%s\", mods = %lX", tline, mods ); 
+	LOCAL_DEBUG_OUT( "tline = \"%s\", mods = %X", tline, mods ); 
 	*mods_ret = mods;
     return tline;
 }
@@ -777,7 +777,7 @@ char *parse_win_context_str (char *tline, int *ctxs_ret)
 	LOCAL_DEBUG_OUT( "tline = \"%s\"", tline ); 
     tline = parse_context (tline, &ctxs, as_contexts);
     *ctxs_ret = ctxs ;
-	LOCAL_DEBUG_OUT( "tline = \"%s\", ctxs = %lX", tline, ctxs ); 
+	LOCAL_DEBUG_OUT( "tline = \"%s\", ctxs = %X", tline, ctxs ); 
 	return tline;
 }
 

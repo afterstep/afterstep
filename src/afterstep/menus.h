@@ -62,16 +62,6 @@ typedef struct ASMenu
 
 }ASMenu;
 
-#define MAX_MENU_ITEM_HEIGHT    (Scr.MyDisplayHeight>>4)
-#define MAX_MENU_WIDTH          (Scr.MyDisplayWidth>>1)
-#define MAX_MENU_HEIGHT         ((Scr.MyDisplayHeight*9)/10)
-#define MIN_MENU_X              5
-#define MAX_MENU_X              (Scr.MyDisplayWidth-5)
-#define MIN_MENU_Y              5
-#define MAX_MENU_Y              (Scr.MyDisplayHeight-5)
-#define DEFAULT_ARROW_SIZE      (Scr.MyDisplayWidth>>7)
-#define DEFAULT_SCROLLBAR_SIZE      (Scr.MyDisplayWidth>>6)
-
 
 /*************************************************************************/
 /* Function prototypes :                                                 */

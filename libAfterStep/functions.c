@@ -709,6 +709,37 @@ add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, stru
         }
 }
 
+ASImage *
+check_scale_menu_pmap( ASImage *im ) 
+{	
+    if( im )
+    {
+        int w = im->width ;
+        int h = im->height ;
+        if( w > h )
+        {
+            if( w > MAX_MENU_ITEM_HEIGHT )
+            {
+                w = MAX_MENU_ITEM_HEIGHT ;
+                h = (h * w)/im->width ;
+                if( h == 0 )
+                    h = 1 ;
+            }
+        }else if( h > MAX_MENU_ITEM_HEIGHT )
+        {
+            h = MAX_MENU_ITEM_HEIGHT ;
+            w = (w * h)/im->height ;
+            if( w == 0 )
+                w = 1 ;
+        }
+        if( w != im->width || h != im->height )
+        {
+			return scale_asimage( Scr.asv, im, w, h, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+        }
+    }
+	return im;
+}
+
 void
 reload_menu_pmaps( MenuData *menu )
 {
@@ -721,9 +752,20 @@ reload_menu_pmaps( MenuData *menu )
 		{	
     		if( curr->minipixmap )
         	{
+				ASImage *tmp ;
             	if( curr->minipixmap_image )
                 	safe_asimage_destroy(curr->minipixmap_image);
-            	curr->minipixmap_image = get_asimage( Scr.image_manager, curr->minipixmap, ASFLAGS_EVERYTHING, 100 );
+            	tmp = get_asimage( Scr.image_manager, curr->minipixmap, ASFLAGS_EVERYTHING, 100 );
+				curr->minipixmap_image = check_scale_menu_pmap( tmp ); 
+				if( tmp != curr->minipixmap_image )
+				{	
+					char *n ;
+					safe_asimage_destroy(tmp);
+					/* we also need to add our icon into the image_manager ! : */
+					n = safemalloc( strlen( curr->minipixmap ) + 64 );
+					sprintf( n, "%s_scaled_to_%dx%d",curr->minipixmap, curr->minipixmap_image->width, curr->minipixmap_image->height );
+					store_asimage( Scr.image_manager, curr->minipixmap_image, n );					 
+				}
         	}
 			LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
 		}

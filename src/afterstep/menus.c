@@ -210,39 +210,18 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
         safe_asimage_destroy( item->icon );
         item->icon = NULL ;
     }
-    if( mdi->minipixmap_image )
+	/* we can only use images that are reference counted */
+    if( mdi->minipixmap_image && mdi->minipixmap_image->imageman != NULL )
         icon_im = mdi->minipixmap_image ;
     else if( mdi->minipixmap )
         icon_im = GetASImageFromFile( mdi->minipixmap );
     if( icon_im )
-    {
-        int w = icon_im->width ;
-        int h = icon_im->height ;
-        if( w > h )
-        {
-            if( w > MAX_MENU_ITEM_HEIGHT )
-            {
-                w = MAX_MENU_ITEM_HEIGHT ;
-                h = (h * w)/icon_im->width ;
-                if( h == 0 )
-                    h = 1 ;
-            }
-        }else if( h > MAX_MENU_ITEM_HEIGHT )
-        {
-            h = MAX_MENU_ITEM_HEIGHT ;
-            w = (w * h)/icon_im->height ;
-            if( w == 0 )
-                w = 1 ;
-        }
-        if( w != icon_im->width || h != icon_im->height )
-        {
-            item->icon = scale_asimage( Scr.asv, icon_im, w, h, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
-            if( icon_im != mdi->minipixmap_image )
-                safe_asimage_destroy( icon_im );
-        }else if( icon_im == mdi->minipixmap_image )
-            item->icon = dup_asimage( icon_im );
-        else
-            item->icon = icon_im ;
+	{
+		item->icon = check_scale_menu_pmap( icon_im );
+		if( item->icon != icon_im && icon_im != mdi->minipixmap_image )
+			safe_asimage_destroy( icon_im );
+		if( item->icon == mdi->minipixmap_image )
+            item->icon = dup_asimage( item->icon );
     }
 LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item?mdi->item:"NULL", mdi->minipixmap?mdi->minipixmap:"NULL", item->icon );
 
