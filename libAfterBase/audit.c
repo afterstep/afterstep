@@ -527,6 +527,10 @@ void
 output_unfreed_mem (FILE *stream)
 {
 	ASHashIterator i;
+	long asimage_apply_buffer_sum = 0 ;
+	long load_freetype_locale_glyph_sum = 0 ;
+	long compress_glyph_pixmap_sum = 0 ;
+	
 
     if( stream == NULL )
         stream = stderr ;
@@ -559,6 +563,13 @@ output_unfreed_mem (FILE *stream)
 			continue;
 		}else if (m->freed == 0)
 		{
+			if( strcmp( m->fname, "asimage_apply_buffer" ) == 0 ) 
+				asimage_apply_buffer_sum += (long)m->length ;
+			else if( strcmp( m->fname, "load_freetype_locale_glyph" ) == 0 ) 
+				load_freetype_locale_glyph_sum += (long)m->length ;
+			else if( strcmp( m->fname, "compress_glyph_pixmap" ) == 0 ) 
+				compress_glyph_pixmap_sum += (long)m->length ;
+
             fprintf (stream, "%23s|%-5d|%-7ld|%p ", m->fname, m->line, (long)m->length, m->ptr);
 			switch (m->type & 0xff)
 			{
@@ -681,6 +692,11 @@ output_unfreed_mem (FILE *stream)
             fprintf (stream, "\n");
 		}
 	}while( next_hash_item(&i) );
+    fprintf (stream, "===============================================================================\n");
+	fprintf( stream, "Total memory allocated in :\n");
+	fprintf( stream, "\tasimage_apply_buffer() = %ld\n", asimage_apply_buffer_sum );
+	fprintf( stream, "\tload_freetype_locale_glyph() = %ld\n", load_freetype_locale_glyph_sum );
+	fprintf( stream, "\tcompress_glyph_pixmap() = %ld\n", compress_glyph_pixmap_sum );
     fprintf (stream, "===============================================================================\n");
 }
 

@@ -1155,6 +1155,9 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         set_xrootpmap_id (Scr.wmprops, None );
     ASSync(False);
     print_asimage_registry();
+#ifdef DEBUG_ALLOCS	
+	spool_unfreed_mem (__FUNCTION__, "");
+#endif	
     LOCAL_DEBUG_OUT("done%s","" );
     remove_desktop_cover();
 }
