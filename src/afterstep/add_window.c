@@ -1848,6 +1848,7 @@ MyXGrabKey (Display * display, int keycode, unsigned modifiers,
 	}
 	while (mod);
 }
+
 /***********************************************************************
  *  GrabIconButtons - grab needed buttons for the icon window
  ***********************************************************************/
