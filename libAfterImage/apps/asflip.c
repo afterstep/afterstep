@@ -19,7 +19,7 @@
  * Tutorial 3: ASTile  - image tiling and tinting.
  * Tutorial 4: ASMerge - scaling and blending of arbitrary number of
  *                       images.
- * Tutorial 5: ASGradient - drawing multipoint linear gradients.
+ * Tutorial 5: ASGrad  - drawing multipoint linear gradients.
  * SOURCE
  */
 
@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 			                       	tile_x, tile_y,
 									tile_width, tile_height,
 				       	 			flip,
-				                	True, 0, ASIMAGE_QUALITY_DEFAULT );
+				                	ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
 		destroy_asimage( &im );
 		/* see ASView.5 : */
 		p = asimage2pixmap( asv, DefaultRootWindow(dpy), flipped_im,
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
  * 			                       	tile_x, tile_y,
  * 									tile_width, tile_height,
  * 				       	 			flip,
- * 				                	True, 0, ASIMAGE_QUALITY_DEFAULT );
+ * 				                	ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
  * 		destroy_asimage( &im );
  * NOTES
  * As far as we need to render rotated image right away - we set to_xim

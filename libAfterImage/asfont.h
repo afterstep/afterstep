@@ -91,7 +91,6 @@ struct ASFont;
 #endif
 /*************/
 
-#ifdef INCLUDE_ASFONT_PRIVATE
 /****s* libAfterImage/ASGlyph
  * NAME
  * ASGlyph
@@ -151,9 +150,6 @@ typedef struct ASFont
 	char 				 *name;
 
 	ASFontType  	type ;
-#ifdef HAVE_FREETYPE
-	FT_Face  		ft_face;        /* free type font handle */
-#endif
 	ASGlyphRange   *codemap;        /* linked list of glyphsets, each
 									 * representing continuos range of
 									 * available codes */
@@ -169,6 +165,12 @@ typedef struct ASFont
 #define LEFT_TO_RIGHT    1
 #define RIGHT_TO_LEFT   -1
 	int 			pen_move_dir ;  /* direction of the text flow */
+#ifdef HAVE_FREETYPE
+	FT_Face  		ft_face;        /* free type font handle */
+#else
+	CARD32         *pad;
+#endif
+
 }ASFont;
 /*************/
 
@@ -190,10 +192,6 @@ typedef struct ASFontManager
 {
 	Display    *dpy;
 	char 	   *font_path ;
-#ifdef HAVE_FREETYPE
-	Bool 		ft_ok ;
-	FT_Library  ft_library;                    /* free type library handle */
-#endif
 
 	ASHashTable *fonts_hash ;
 
@@ -201,10 +199,14 @@ typedef struct ASFontManager
 	CARD32		*local_unicode;                /* list of unicodes from current locale
 												* - we use it to limit number of glyphs
 												* we load */
+	Bool 		ft_ok ;
+#ifdef HAVE_FREETYPE
+	FT_Library  ft_library;                    /* free type library handle */
+#else
+	void       *pad ;
+#endif
 }ASFontManager;
 /*************/
-
-#endif
 
 /****d* libAfterImage/ASText3DType
  * FUNCTION

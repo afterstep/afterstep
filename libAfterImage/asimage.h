@@ -162,6 +162,12 @@ typedef struct ASImage
 } ASImage;
 /*******/
 
+/****d* libAfterImage/ASAltImFormats
+ * FUNCTION
+ * Identifies what output format should be used for storing the
+ * transformation result.
+ * SOURCE
+ */
 typedef enum {
 	ASA_ASImage = 0,
     ASA_XImage,
@@ -169,6 +175,7 @@ typedef enum {
 	ASA_ARGB32,
 	ASA_Formats
 }ASAltImFormats;
+/*******/
 
 /****d* libAfterImage/LIMITS
  * NAME

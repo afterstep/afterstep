@@ -26,7 +26,7 @@
  * Tutorial 3: ASTile  - image tiling and tinting.
  * Tutorial 4: ASMerge - scaling and blending of arbitrary number of
  *                       images.
- * Tutorial 5: ASGradient - drawing multipoint linear gradients.
+ * Tutorial 5: ASGrad  - drawing multipoint linear gradients.
  * Tutorial 6: ASFlip  - image rotation.
  * SOURCE
  */
@@ -45,7 +45,6 @@
 				  [-r foreground_resize_type] [-R background_resize_type]
  */
 
-#define TEXT_MARGIN 10
 #define BEVEL_HI_WIDTH 3
 #define BEVEL_LO_WIDTH 2
 #define BEVEL_ADDON    (BEVEL_HI_WIDTH+BEVEL_LO_WIDTH)
@@ -85,6 +84,8 @@ int main(int argc, char* argv[])
 	struct ASFont  *font = NULL;
 	unsigned int width, height ;
 	int i ;
+	int text_margin = size/2 ;
+
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -104,8 +105,10 @@ int main(int argc, char* argv[])
 			if( strncmp( argv[i], "-f", 2 ) == 0 )
 				font_name = argv[i+1] ;
 			else if( strncmp( argv[i], "-s", 2 ) == 0 )
+			{
 				size = atoi(argv[i+1]);
-			else if( strncmp( argv[i], "-t", 2 ) == 0 )
+				text_margin = size/2 ;
+			}else if( strncmp( argv[i], "-t", 2 ) == 0 )
 				text = argv[i+1] ;
 			else if( strncmp( argv[i], "-S", 2 ) == 0 )
 			{
@@ -178,8 +181,8 @@ int main(int argc, char* argv[])
 				fore_im = tmp ;
 		}
 	}
-	width  += TEXT_MARGIN*2 ;
-	height += TEXT_MARGIN*2 ;
+	width  += text_margin*2 ;
+	height += text_margin*2 ;
 	if( back_image_file )
 	{ /* see ASView.2 : */
 		ASImage *tmp = file2ASImage( back_image_file, 0xFFFFFFFF,
@@ -233,8 +236,8 @@ int main(int argc, char* argv[])
 		layers[0].back_color = back_color ;
 		layers[0].bevel = &bevel ;
 		layers[1].im = fore_im ;
-		layers[1].dst_x = TEXT_MARGIN+BEVEL_HI_WIDTH ;
-		layers[1].dst_y = TEXT_MARGIN+BEVEL_HI_WIDTH ;
+		layers[1].dst_x = text_margin+BEVEL_HI_WIDTH ;
+		layers[1].dst_y = text_margin+MIN(text_margin,(font->max_height-font->max_ascend))/2+BEVEL_HI_WIDTH;
 		layers[1].clip_width = fore_im->width ;
 		layers[1].clip_height = fore_im->height ;
 		layers[1].back_color = text_color ;

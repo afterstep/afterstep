@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 			/* see ASTile.3 : */
 			tinted_im = tile_asimage( asv, im, tile_x, tile_y,
 				                      tile_width, tile_height,
-				                      tint_color, True, 0,
+				                      tint_color, ASA_XImage, 0,
 									  ASIMAGE_QUALITY_TOP );
 			destroy_asimage( &im );
 			/* see ASView.5 : */
@@ -227,11 +227,12 @@ int main(int argc, char* argv[])
  * sufficient, and is a default. Again, compression is set to 0 since we
  * do not intend to store image for long time. Even better we don't need
  * to store it at all - all we need is XImage, so we can transfer it to
- * the server easily. That is why to_xim argument is set to True. As the
- * result obtained ASImage will not have any data in its buffers, but it
- * will have ximage member set to point to valid XImage. Subsequently we
- * enjoy that convinience, by setting use_cached to True in call to
- * asimage2pixmap. That ought to save us alot of processing.
+ * the server easily. That is why to_xim argument is set to ASA_XImage.
+ * As the result obtained ASImage will not have any data in its buffers,
+ * but it will have ximage member set to point to valid XImage.
+ * Subsequently we enjoy that convinience, by setting use_cached to True
+ * in call to asimage2pixmap(). That ought to save us alot of processing.
+ *
  * Tinting works in both directions - it can increase intensity of the
  * color or decrease it. If any particular channel of the tint_color is
  * greater then 127 then intensity is increased, otherwise its decreased.
@@ -239,7 +240,7 @@ int main(int argc, char* argv[])
  *     tinted_im = tile_asimage( asv, im, tile_x, tile_y,
  *                               tile_width, tile_height,
  *                               tint_color,
- *                               True, 0, ASIMAGE_QUALITY_TOP );
+ *                               ASA_XImage, 0, ASIMAGE_QUALITY_TOP );
  *     destroy_asimage( &im );
  * NOTES
  * SEE ALSO

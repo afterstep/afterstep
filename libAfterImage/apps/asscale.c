@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 	  		XMapRaised   (dpy, w);
 			/* see ASScale.2 : */
 			scaled_im = scale_asimage( asv, im, to_width, to_height,
-				                       True, 0, ASIMAGE_QUALITY_DEFAULT );
+				                       ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
 			destroy_asimage( &im );
 			/* see ASView.5 : */
 			p = asimage2pixmap( asv, DefaultRootWindow(dpy), scaled_im,
@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
  * most cases. Compression is set to 0 since we do not intend to store
  * image for long time. Even better - we don't need to store it at all -
  * all we need is XImage, so we can transfer it to the server easily.
- * That is why to_xim argument is set to True. As the result obtained
+ * That is why to_xim argument is set to ASA_XImage. As the result obtained
  * ASImage will not have any data in its buffers, but it will have
  * ximage member set to point to valid XImage. Subsequently we enjoy
  * that convenience, by setting use_cached to True in call to
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
  *
  * EXAMPLE
  *     scaled_im = scale_asimage( asv, im, to_width, to_height,
- * 	                              True, 0, ASIMAGE_QUALITY_DEFAULT );
+ * 	                              ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
  *     destroy_asimage( &im );
  * NOTES
  * Scaling image up to very large height is much slower then to same

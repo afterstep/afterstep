@@ -119,17 +119,37 @@
  * well. If libAfterBase is not found at compilation time - libAfterImage
  * will use extract from libAfterBase included with libAfterImage.
  *
+ * SEE ALSO
+ * Examples
+ * API Reference
+ *
+ * TODO
+ * Implement support for Targa and PCX image format and maybe some other
+ * formats as well.
+ *
+ * Implement complete support for I18N internationalization.
+ *
+ * Implement color<->pixel conversion for all colordepths.
+ *
+ * AUTHOR
+ * Sasha Vasko <sashav at sprintmail dot com>
+ *********/
+/****h* libAfterImage/Examples
  * EXAMPLE
  * ASView  - image loading from the file and displaying in window.
  * ASScale - image loading from file and scaling to arbitrary size.
  * ASTile  - image loading from file, tiling and tinting to arbitrary
  *           size and color.
  * ASMerge - imgae loading and merging with another image.
- * ASGradient - mutlipoint gradient drawing.
+ * ASGrad  - mutlipoint gradient drawing.
  * ASFlip  - image loading from file and rotation.
  * ASText  - trexturized semitransparent antialised text drawing.
  *
  * SEE ALSO
+ * API Reference
+ ******/
+/****h* libAfterImage/API Reference
+ * CHILDREN
  * Headers :
  *          asvisual.h, blender.h, asimage.h, import.h, asfont.h
  * Structures :
@@ -205,16 +225,6 @@
  *          open_freetype_font(), open_X11_font(), get_asfont(),
  *          destroy_font(), print_asfont(), print_asglyph(),
  *          draw_text()
- * TODO
- * Implement support for Targa and PCX image format and maybe some other
- * formats as well.
- *
- * Implement complete support for I18N internationalization.
- *
- * Implement color<->pixel conversion for all colordepths.
- *
- * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
  *********/
 #endif  /* AFTERIMAGE_H_HEADER_INCLUDED */
 

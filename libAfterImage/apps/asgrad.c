@@ -4,15 +4,15 @@
 #include <stdlib.h>
 
 
-/****h* libAfterImage/tutorials/ASGradient
+/****h* libAfterImage/tutorials/ASGrad
  * NAME
  * Tutorial 5: Gradients.
  * SYNOPSIS
  * libAfterImage application for drawing multipoint linear gradients.
  * DESCRIPTION
  * New steps described in this tutorial are :
- * ASGradient.1. Building gradient specs.
- * ASGradient.2. Actual rendering gradient.
+ * ASGrad.1. Building gradient specs.
+ * ASGrad.2. Actual rendering gradient.
  * SEE ALSO
  * Tutorial 1: ASView  - explanation of basic steps needed to use
  *                       libAfterImage and some other simple things.
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 	if( argc >= 5 )
 	{
 		int i = 2;
-		/* see ASGradient.1 : */
+		/* see ASGrad.1 : */
 		grad.type = atoi( argv[2] );
 		grad.npoints = 0 ;
 		grad.color = safemalloc( ((argc-2)/2)*sizeof(ARGB32));
@@ -147,10 +147,10 @@ int main(int argc, char* argv[])
 
 		XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
 	  	XMapRaised   (dpy, w);
-		/* see ASGradient.2 : */
+		/* see ASGrad.2 : */
 		grad_im = make_gradient( asv, &grad, to_width, to_height,
 			        	            SCL_DO_ALL,
-				                    True, 0, ASIMAGE_QUALITY_DEFAULT );
+				                    ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
 		/* see ASView.5 : */
 		p = asimage2pixmap( asv, DefaultRootWindow(dpy), grad_im,
 				            NULL, True );
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
 }
 /**************/
 
-/****f* libAfterImage/tutorials/ASGradient.1 [5.1]
+/****f* libAfterImage/tutorials/ASGrad.1 [5.1]
  * SYNOPSIS
  * Step 1. Building gradient specs.
  * DESCRIPTION
@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
  * SEE ALSO
  * ARGB32, parse_argb_color(), ASGradient
  ********/
-/****f* libAfterImage/tutorials/ASGradient.2 [5.2]
+/****f* libAfterImage/tutorials/ASGrad.2 [5.2]
  * SYNOPSIS
  * Step 2. Actually rendering gradient.
  * DESCRIPTION
@@ -247,7 +247,7 @@ int main(int argc, char* argv[])
  * EXAMPLE
  * 		grad_im = make_gradient( asv, &grad, to_width, to_height,
  * 		        	             SCL_DO_ALL,
- *  		                     True, 0, ASIMAGE_QUALITY_DEFAULT );
+ *  		                     ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
  * NOTES
  * make_gradient(), ASScanline, ASImage.
  ********/
