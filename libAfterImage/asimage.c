@@ -1751,13 +1751,24 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 {
 	if( imout->next_line < imout->xim->height && imout->next_line >= 0 )
 	{
-		if( !get_flags(to_store->flags, SCL_DO_RED) )
-			set_component( to_store->red  , ARGB32_RED8(to_store->back_color), 0, to_store->width );
-		if( !get_flags(to_store->flags, SCL_DO_GREEN) )
-			set_component( to_store->green, ARGB32_GREEN8(to_store->back_color), 0, to_store->width );
-		if( !get_flags(to_store->flags, SCL_DO_BLUE) )
-			set_component( to_store->blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
-		PUT_SCANLINE(imout->asv, imout->xim,to_store,imout->next_line,imout->xim_line);
+		if( imout->xim->depth == 1 )
+		{
+			if( get_flags(to_store->flags, SCL_DO_ALPHA) )
+			{
+				register int x ;
+				for ( x = MIN(imout->xim->width, to_store->width)-1 ; x >= 0 ; --x )
+					XPutPixel( imout->xim, x, imout->next_line, (to_store->alpha[x] >= 0x7F)?1:0 );
+			}
+		}else
+		{
+			if( !get_flags(to_store->flags, SCL_DO_RED) )
+				set_component( to_store->red  , ARGB32_RED8(to_store->back_color), 0, to_store->width );
+			if( !get_flags(to_store->flags, SCL_DO_GREEN) )
+				set_component( to_store->green, ARGB32_GREEN8(to_store->back_color), 0, to_store->width );
+			if( !get_flags(to_store->flags, SCL_DO_BLUE) )
+				set_component( to_store->blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
+			PUT_SCANLINE(imout->asv, imout->xim,to_store,imout->next_line,imout->xim_line);
+		}
 		if( imout->tiling_step > 0 )
 		{
 			register int i ;
@@ -2853,14 +2864,15 @@ asimage2mask_ximage (ASVisual *asv, ASImage *im)
 		return xim;
 
 	xim = create_visual_ximage( asv, im->width, im->height, 1 );
-	if( (imout = start_image_output( asv, im, xim, True, 0, ASIMAGE_QUALITY_DEFAULT )) == NULL )
+	if( (imout = start_image_output( asv, im, xim, True, 0, ASIMAGE_QUALITY_POOR )) == NULL )
 		return xim;
 
 	prepare_scanline( xim->width, 0, &xim_buf, asv->BGR_mode );
+	xim_buf.flags = SCL_DO_ALPHA ;
 	for (i = 0; i < im->height; i++)
 	{
-		asimage_decode_line (im, IC_RED, xim_buf.alpha, i, 0, xim_buf.width);
-		imout->output_image_scanline( imout, &xim_buf, 1 );
+		asimage_decode_line (im, IC_ALPHA, xim_buf.alpha, i, 0, xim_buf.width);
+		imout->output_image_scanline( imout, &xim_buf, 127 );
 	}
 	free_scanline(&xim_buf, True);
 
