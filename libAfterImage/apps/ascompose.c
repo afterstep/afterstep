@@ -664,6 +664,11 @@ int main(int argc, char** argv) {
         XCloseDisplay (dpy);
 
 #ifdef DEBUG_ALLOCS
+    flush_ashash_memory_pool();
+	asxml_var_cleanup();
+	custom_color_cleanup();
+    build_xpm_colormap( NULL );
+	flush_default_asstorage();
 	print_unfreed_mem();
 #endif
 

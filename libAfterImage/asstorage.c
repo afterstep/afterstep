@@ -1359,6 +1359,11 @@ destroy_asstorage(ASStorage **pstorage)
 #endif
 
 		}	
+		if( storage->comp_buf )
+			free( storage->comp_buf);
+		if( storage->diff_buf )
+			free( storage->diff_buf);
+
 		UsedMemory -= sizeof(ASStorage) ;
 #ifndef DEBUG_ALLOCS
 		free( storage );
