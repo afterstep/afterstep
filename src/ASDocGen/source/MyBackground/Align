@@ -1,5 +1,5 @@
 <varlistentry id="options.Align">
-	<term>Align</term>
+	<term>Align <emphasis remap='I'>[type]</emphasis></term>
 	<listitem>
 		<para>it  will  align resulting image according to type.  Possible
 		values are :
