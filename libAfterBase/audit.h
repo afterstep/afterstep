@@ -20,6 +20,7 @@
 #include "ashash.h"
 
 #ifndef DEBUG_ALLOCS
+
 #define AS_ASSERT(p)            ((p)==NULL)
 #define PRINT_MEM_STATS(m)      do{}while(0)
 #else
