@@ -182,6 +182,7 @@ struct ASStatusHints;
 struct ASCanvas;
 struct ASTBarData;
 
+
 #define AS_CLIENT_EVENT_MASK 		(ColormapChangeMask | \
 									 EnterWindowMask 	| \
 									 FocusChangeMask 	| \

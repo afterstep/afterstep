@@ -48,7 +48,103 @@
 
 #include "menus.h"
 
+/***********************************************************************/
+/* new IconBox handling :                                              */
+/***********************************************************************/
 
+void 
+destroy_asiconbox( ASIconBox **pib )
+{
+	if( pib && *pib)
+	{
+		register ASIconBox *ib = *pib ;
+		if( ib->areas ) 
+			free( ib->areas );
+		if( ib->icons ) 
+			destroy_asbidirlist( &ib->areas );
+		free( ib );
+	  	*pib = NULL ;
+	}
+}
+
+ASIconBox *
+get_iconbox( int desktop )
+{
+	ASIconBox *ib = NULL ;
+	if( IsValidDesk(desktop) )
+	{
+		if( get_flags(Scr.flags, StickyIcons) )
+			ib = Scr.default_icon_box ;
+		else
+			if( Scr.icon_boxes )
+				if( get_hash_item( Scr.icon_boxes, AS_HASHABLE(desktop), &ib ) != ASH_Success )
+					ib = NULL ;
+		if( ib == NULL ) 
+		{
+			ib = safecalloc( 1, sizeof( ASIconBox ));					
+			if( Scr.configured_icon_areas_num == 0 || Scr.configured_icon_areas == NULL ) 
+			{
+				ib->areas_num = 1 ;
+				ib->areas = safecalloc( 1, sizeof(XRectangle) );
+				ib->areas->width = Scr.MyDisplayWidth ;
+				ib->areas->height = Scr.MyDisplayHeight ;
+			}else
+			{	
+				register int i = Scr.configured_icon_areas_num ;
+				ib->areas_num = i ;
+				ib->areas = safecalloc( ib->areas_num, sizeof(XRectangle) );
+				while( --i >= 0 )
+				{
+					ib->areas[i].x     = Scr.configured_icon_areas[i].x     ;
+					ib->areas[i].y     = Scr.configured_icon_areas[i].y     ;
+					ib->areas[i].width = Scr.configured_icon_areas[i].width ;
+					ib->areas[i].height= Scr.configured_icon_areas[i].height;
+				}
+			}				
+			ib->icons = create_asbidirlist( NULL );
+			if( get_flags(Scr.flags, StickyIcons) )
+				Scr.default_icon_box = ib ;
+			else
+			{
+				if( Scr.icon_boxes == NULL )
+					Scr.icon_boxes = create_ashash( 3, NULL, NULL, NULL );
+				
+				if( add_hash_item( Scr.icon_boxes, AS_HASHABLE(desktop), &ib ) != ASH_Success )
+					destroy_asiconbox( &ib );
+			}
+		}
+	}
+	return ib;
+}
+
+Bool
+add_iconbox_icon( ASWindow *asw )
+{
+}
+
+Bool
+change_iconbox_icon_desk( ASWindow *asw, int from_desk, int to_desk )
+{
+
+}
+
+Bool
+remove_iconbox_icon( ASWindow *asw )
+{
+}
+
+void
+rearrange_iconbox_icons( int desktop )
+{
+
+
+}
+
+/***********************************************************************/
+/***********************************************************************/
+/***********************************************************************/
+/* Old stuff :                                                         */
+/***********************************************************************/
 void
 UpdateIconShape (ASWindow * tmp_win)
 {

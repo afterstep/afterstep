@@ -115,6 +115,21 @@ struct ASSupportedHints;
 struct MyFrame;
 struct ASHashTable;
 
+typedef struct ASDesktop
+{
+	int 	Desk ;
+	unsigned short vx, vy ;
+}ASDesktop;
+
+typedef struct ASIconBox
+{
+	int desktop ;
+	XRectangle *areas ;
+	unsigned short areas_num ;
+	ASBiDirList *icons ;
+};	
+	
+
 typedef struct ScreenInfo
   {
 
@@ -129,6 +144,14 @@ typedef struct ScreenInfo
 
     ASWindow ASRoot;		/* the head of the afterstep window list */
     struct ASHashTable *aswindow_xref;         /* xreference of window/resource IDs to ASWindow structures */
+	
+	struct ASHashTable *desktops ;   /* hashed by desk no - we create new one when client is added */
+	
+	XRectangle *configured_icon_areas ;
+	unsigned int configured_icon_areas_num ;
+	struct ASIconBox   *default_icon_box ; /* if we have icons following desktops - then we only need one icon box */
+	struct ASHashTable *icon_boxes ; /* hashed by desk no - one icon box per desktop ! */
+	 
 
     Window Root;		/* the root window */
     Window SizeWindow;		/* the resize dimensions window */
