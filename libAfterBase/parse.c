@@ -7,7 +7,7 @@
 #include "../include/parse.h"
 
 /****************************************************************************
- * 
+ *
  * Some usefull parsing functions
  *
  ****************************************************************************/
@@ -96,7 +96,7 @@ find_doublequotes (char *ptr)
 }
 
 /****************************************************************************
- * 
+ *
  * Copies a string into a new, malloc'ed string
  * Strips leading and trailing whitespace
  *
@@ -114,7 +114,7 @@ stripcpy (const char *source)
 
 
 /****************************************************************************
- * 
+ *
  * Copies a string into a new, malloc'ed string
  * Strips all data before the first quote and after the second
  *
@@ -191,7 +191,7 @@ strip_whitespace (char *str)
 
 
 /****************************************************************************
- * 
+ *
  * Copies a whitespace separated token into a new, malloc'ed string
  * Strips leading and trailing whitespace
  *
@@ -224,7 +224,7 @@ find_config (struct config *table, const char *text)
 }
 
 /****************************************************************************
- * 
+ *
  * Copies a whitespace separated token into a new, malloc'ed string
  * Strips leading and trailing whitespace
  * returns pointer to the end of token in source string
@@ -317,6 +317,47 @@ string_from_int (int param)
 		mem[0] = '-';
 	sprintf (&(mem[neg]), "%u", param);
 	return mem;
+}
+
+static char _as_hex_to_char_table[] = "0123456789ABCDEF";
+
+char         *
+hex_to_buffer_reverse(void *data, size_t bytes, char* buffer)
+{
+
+    char *p = buffer;
+    unsigned char *d = data;
+    register int   i = bytes, k = 0 ;
+
+    if( data == NULL || buffer == NULL )
+        return buffer ;
+
+    while( i > 0 )
+    {
+        i-- ;
+        p[k++] = _as_hex_to_char_table[d[i]>>4];
+        p[k++] = _as_hex_to_char_table[d[i]&0x0F];
+    }
+    return p+k;
+}
+
+char         *
+hex_to_buffer(void *data, size_t bytes, char* buffer)
+{
+    char *p = buffer;
+    unsigned char *d = data;
+    register int   i = bytes, k = 0 ;
+
+    if( data == NULL || buffer == NULL )
+        return buffer ;
+
+    while( i < bytes )
+    {
+        p[k++] = _as_hex_to_char_table[d[i]>>4];
+        p[k++] = _as_hex_to_char_table[d[i]&0x0F];
+        i++ ;
+    }
+    return p+k;
 }
 
 /***********************************************************************

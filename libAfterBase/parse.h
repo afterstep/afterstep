@@ -24,7 +24,7 @@ struct config *find_config (struct config *, const char *);
 /* here we'll strip comments and whitespaces */
 char *stripcomments (char *source);
 char *strip_whitespace (char *str);
-/* some useful string parsing functions 
+/* some useful string parsing functions
  * (returns next position in string after parsed value) */
 char *ReadIntValue (char *restofline, int *value);
 char *ReadColorValue (char *restofline, char **color, int *len);
@@ -38,14 +38,23 @@ char *parse_tab_token (const char *source, char **trg);
 char *parse_filename (const char *source, char **trg);
 /* will parse function values with unit - usefull in AS command parsing */
 char *parse_func_args (char *tline, char *unit, int *func_val);
+
 char *string_from_int (int param);
+char *hex_to_buffer_reverse(void *data, size_t bytes, char* buffer);
+char *hex_to_buffer(void *data, size_t bytes, char* buffer);
+
+#ifdef WORDS_BIGENDIAN
+#define NUMBER2HEX(n,b) hex_to_buffer(&n,sizeof(n),b)
+#else
+#define NUMBER2HEX(n,b) hex_to_buffer_reverse(&n,sizeof(n),b)
+#endif
 
 char scan_for_hotkey (char *txt);
 
 /* this allows for parsing of the comma separated items from single string
    in to the string list */
 /* string list is terminated with NULL element and does not constitute
-   single block of memory - each element has to be allocated and deallocated 
+   single block of memory - each element has to be allocated and deallocated
    individually */
 char *get_comma_item (char *ptr, char **item_start, char **item_end);
 char **comma_string2list (char *string);
