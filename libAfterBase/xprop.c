@@ -417,6 +417,7 @@ set_string_property (Window w, Atom property, char *data)
 {
     if (w != None && property != None && data)
 	{
+LOCAL_DEBUG_OUT( "setting property %X on %X to \"%s\"", property, w, data );
         XChangeProperty (dpy, w, property, XA_STRING, 8,
                          PropModeReplace, (unsigned char *)data, strlen (data));
     }
