@@ -253,6 +253,9 @@ AddWindow (Window w)
     set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win) );
     set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
 
+	if( ASWIN_HFLAGS( tmp_win, AS_AvoidCover )  )
+		enforce_avoid_cover( tmp_win );
+
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
 	 * Set the map state to FALSE to prevent a transition back to

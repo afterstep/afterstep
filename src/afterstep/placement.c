@@ -45,6 +45,14 @@ typedef struct ASFreeRectangleAuxData{
     ASWindow *to_skip ;
 }ASFreeRectangleAuxData;
 
+typedef struct ASAvoidCoverAuxData
+{
+	ASWindow    *new_aswin;
+	ASWindowBox *aswbox ;
+	ASGeometry  *area ;
+}ASAvoidCoverAuxData;
+
+
 /*************************************************************************/
 /* here we build vector of rectangles, representing one available
  * space each :
@@ -767,6 +775,58 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
      return (ASWIN_GET_FLAGS(asw,AS_Dead) == 0 && !get_flags(asw->wm_state_transition, ASWT_TO_WITHDRAWN ));
 }
 
+static Bool do_closest_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
+{
+    ASVector *free_space_list =  build_free_space_list( asw, area, AS_LayerHighest );
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
+    int i, selected = -1 ;
+    short x = asw->status->x;
+    short y = asw->status->y;
+	short selected_x = x ;
+	short selected_y = y ;
+	int selected_factor = 0;
+    unsigned short w = asw->status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
+    unsigned short h = asw->status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
+
+    LOCAL_DEBUG_OUT( "size=%dx%d", w, h );
+    /* now we have to find the optimal rectangle from the list */
+    /* pass 1: find rectangle that is the closest to current position :  */
+    i = PVECTOR_USED(free_space_list);
+    while( --i >= 0 )
+        if( rects[i].width >= w && rects[i].height >=  h  )
+        {
+			short new_x = rects[i].x, new_y = rects[i].y ;
+			short max_x = rects[i].x + rects[i].width - w ;
+			short max_y = rects[i].y + rects[i].height - h ;
+			int new_factor ;
+			if( new_x < x )
+				new_x = min( x, max_x );
+			if( new_y < y )
+				new_y = min( y, max_y );
+			new_factor = ((int)x - (int)new_x) * ((int)x - (int)new_x) +
+						 ((int)y - (int)new_y) * ((int)y - (int)new_y);
+
+            if( selected >= 0 && new_factor > selected_factor )
+                    continue;
+			selected_x = new_x ;
+			selected_y = new_y ;
+			selected_factor = new_factor ;
+			selected = i;
+        }
+    LOCAL_DEBUG_OUT( "selected: %d", selected );
+
+    if( selected >= 0 )
+    {
+        apply_placement_result( asw, XValue|YValue, selected_x, selected_y, 0, 0 );
+        LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
+    }else
+	{
+        LOCAL_DEBUG_OUT( "failed%s","");
+    }
+
+    destroy_asvector( &free_space_list );
+    return (selected >= 0) ;
+}
 
 static Bool
 place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementStrategy which, Bool force)
@@ -893,6 +953,74 @@ Bool place_aswindow( ASWindow *asw )
     }
     return place_aswindow_in_windowbox( asw, Scr.Feel.default_window_box, ASP_UseBackupStrategy, True );
 }
+
+Bool
+avoid_covering_aswin_iter_func(void *data, void *aux_data)
+{
+    ASWindow *asw = (ASWindow*)data ;
+	ASAvoidCoverAuxData *ac_aux_data = (ASAvoidCoverAuxData*)aux_data;
+	ASWindow *new_aswin = ac_aux_data->new_aswin ;
+	ASWindowBox *aswbox = ac_aux_data->aswbox;
+	ASGeometry *area = ac_aux_data->area;
+
+    if( asw && ASWIN_DESK(asw) == ASWIN_DESK(new_aswin) && asw != new_aswin )
+    {
+		ASStatusHints *n = new_aswin->status;
+		ASStatusHints *o = asw->status ;
+
+		LOCAL_DEBUG_OUT( "comparing to %dx%d%+d%+d, layer = %d", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_LAYER(asw) );
+
+		/* we want to move out even lower layer windows so they would not be overlapped by us */
+		if( /*ASWIN_LAYER(asw) < ASWIN_LAYER(new_aswin) ||*/ ASWIN_GET_FLAGS(asw, AS_Iconic ))
+            return True;
+		if( n->x < o->x + o->width && n->y < o->y+ o->height &&
+			n->x + n->width  >= o->x && n->y + n->height >= o->y )
+		{
+			/* move only affected windows : */
+	    	if( do_closest_placement( asw, aswbox, area ) )
+			{
+		   		anchor2status ( asw->status, asw->hints, &(asw->anchor));
+		        /* now lets actually resize the window : */
+        		apply_window_status_size(asw, get_orientation_data(asw));
+			}
+		}
+    }
+    return True;
+}
+
+void enforce_avoid_cover(ASWindow *asw )
+{
+	if( asw && ASWIN_HFLAGS( asw, AS_AvoidCover|AS_ShortLived ) == AS_AvoidCover )
+	{
+	    ASWindowBox aswbox ;
+		ASAvoidCoverAuxData aux_data ;
+		/* we need to move all the res of the window out of the area occupied by us */
+		LOCAL_DEBUG_OUT( "status = %dx%d%+d%+d, layer = %d", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_LAYER(asw) );
+    /* if window has predefined named windowbox for it - we use only this windowbox
+     * otherwise we use all suitable windowboxes in two passes :
+     *   we first try and apply main strategy to place window in the empty space for each box
+     *   if all fails we apply backup strategy of the default windowbox
+     */
+		aux_data.new_aswin = asw ;
+		aux_data.aswbox = &aswbox;
+        aswbox.name = mystrdup("default");
+		aswbox.area.x = aswbox.area.y = 0 ;
+        aswbox.area.width = Scr.MyDisplayWidth ;
+        aswbox.area.height = Scr.MyDisplayHeight ;
+        aswbox.main_strategy = ASP_Manual ;
+        aswbox.backup_strategy = ASP_Manual ;
+        /* we should enforce this one : */
+        aswbox.desk = INVALID_DESK ;
+        aswbox.min_layer = AS_LayerLowest;
+        aswbox.max_layer = AS_LayerHighest;
+
+		aux_data.area = &(aswbox.area);
+
+	    iterate_asbidirlist( Scr.Windows->clients, avoid_covering_aswin_iter_func, (void*)&aux_data, NULL, False );
+
+	}
+}
+
 
 #if 0
 

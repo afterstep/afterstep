@@ -646,12 +646,14 @@ ASGrid* make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int 
 Bool place_aswindow( ASWindow *asw );
 void apply_aswindow_move(struct ASMoveResizeData *data);
 void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled);
+void enforce_avoid_cover(ASWindow *asw );
 
 /******************************* theme.c ***********************************/
 Bool install_theme_file( const char *src );
 
 /******************************* winstatus.c *******************************/
 void complete_wm_state_transition( ASWindow *asw, int state );
+Bool apply_window_status_size(register ASWindow *asw, ASOrientation *od);
 Bool set_window_wm_state( ASWindow *asw, Bool iconify );
 Bool make_aswindow_visible( ASWindow *asw, Bool deiconify );
 void change_aswindow_layer( ASWindow *asw, int layer );
@@ -668,7 +670,6 @@ void release_pressure();
 
 void save_aswindow_anchor( ASWindow *asw, Bool hor, Bool vert );
 void moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height, Bool save_anchor );
-
 
 
 Bool init_aswindow_status( ASWindow *t, ASStatusHints *status );

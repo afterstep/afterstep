@@ -350,7 +350,7 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
     return rendered;
 }
 
-static Bool
+Bool
 apply_window_status_size(register ASWindow *asw, ASOrientation *od)
 {
 	Bool moved = False ;
@@ -666,11 +666,11 @@ on_window_hints_changed( ASWindow *asw )
 	if( hints2decorations( asw, old_hints ) )
 	    on_window_status_changed( asw, False, True );
 
-	if( mystrcmp( old_hints->names[0], hints->names[0] ) != 0 ) 
+	if( mystrcmp( old_hints->names[0], hints->names[0] ) != 0 )
 	    broadcast_window_name( asw );
-	if( mystrcmp( old_hints->res_name, hints->res_name ) != 0 ) 
+	if( mystrcmp( old_hints->res_name, hints->res_name ) != 0 )
   		broadcast_res_names( asw );
-	if( mystrcmp( old_hints->icon_name, hints->icon_name ) != 0 ) 
+	if( mystrcmp( old_hints->icon_name, hints->icon_name ) != 0 )
 	    broadcast_icon_name( asw );
 
 	destroy_hints (old_hints, True);
@@ -990,17 +990,16 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
         if( ! get_flags( t->status->flags, AS_StartsIconic ) )
         {
             int x, y ;
-            if( get_flags( t->hints->flags, AS_Transient ) )
+            if( get_flags( t->hints->flags, AS_Transient|AS_ShortLived ) )
             {
-                x = Scr.MyDisplayWidth / 2 ;
-                y = Scr.MyDisplayHeight / 2 ;
+                x = Scr.MyDisplayWidth ;
+                y = Scr.MyDisplayHeight ;
             }else
-            {
                 ASQueryPointerRootXY( &x, &y );
-                t->status->x = x - t->status->width/2 ;
-                t->status->y = y - t->status->height/2 ;
-            }
-            pending_placement = True ;
+
+            t->status->x = x - t->status->width/2 ;
+            t->status->y = y - t->status->height/2 ;
+            pending_placement = !get_flags( t->hints->flags, AS_ShortLived ) ;
         }
     }
 

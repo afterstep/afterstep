@@ -1169,6 +1169,7 @@ HandleConfigureRequest ( ASEvent *event )
 LOCAL_DEBUG_OUT( "old anchor(%dx%d%+d%+d), new_anchor(%dx%d%+d%+d)", asw->anchor.width, asw->anchor.height, asw->anchor.x, asw->anchor.y, new_anchor.width, new_anchor.height, new_anchor.x, new_anchor.y );
         asw->anchor = new_anchor ;
         on_window_status_changed( asw, True, True );
+		enforce_avoid_cover( asw );
     }
 }
 
