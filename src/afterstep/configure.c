@@ -1238,7 +1238,7 @@ CheckASTree (int thisdesk, Bool parse_look, Bool parse_feel)
 
 }
 
-void
+int
 ParseConfigFile (const char *file, char **tline)
 {
   char *realfilename;
@@ -1247,7 +1247,7 @@ ParseConfigFile (const char *file, char **tline)
 
   /* memory management for parsing buffer */
   if (file == NULL)
-    return;
+    return -1;
 
   realfilename = make_file_name (as_dirs.after_dir, file);
   if (CheckFile (realfilename) != 0)
@@ -1257,7 +1257,7 @@ ParseConfigFile (const char *file, char **tline)
       if (CheckFile (realfilename) != 0)
 	{
 	  free (realfilename);
-	  return;
+	  return -1;
 	}
     }
   /* this should not happen, but still checking */
@@ -1287,6 +1287,7 @@ ParseConfigFile (const char *file, char **tline)
     }
   curr_conf_file = NULL;
   fclose (fp);
+  return 1;
 }
 
 /*****************************************************************************
@@ -1361,10 +1362,18 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
       fprintf (stderr, ".");
       if (parse_look)
 	{
-	  sprintf (configfile, LOOK_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
-	  if( Scr.screen == 0 || CheckFile( configfile ) == -1 ) 		
+	  Bool done = False ;
+	  if( Scr.screen != 0 ) 		
+	  {
+		  sprintf (configfile, LOOK_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
+		  done = ( ParseConfigFile (configfile, &tline) > 0 );
+	  }
+	  if( !done )	  	  
+	  {
 		  sprintf (configfile, LOOK_FILE, thisdesktop, Scr.d_depth);
-	  ParseConfigFile (configfile, &tline);
+/*fprintf( stderr, "screen = %ld, look :[%s]\n", Scr.screen, configfile );*/
+		  ParseConfigFile (configfile, &tline);
+	  }		  
 	}
       fprintf (stderr, ".");
       if (parse_menu)
@@ -1376,10 +1385,17 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
       fprintf (stderr, ".");
       if (parse_feel)
 	{
-	  sprintf (configfile, FEEL_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
-	  if( Scr.screen == 0 || CheckFile( configfile ) == -1 ) 		
+	  Bool done = False ;
+	  if( Scr.screen != 0 ) 		
+	  {
+		  sprintf (configfile, FEEL_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
+		  done = ( ParseConfigFile (configfile, &tline) > 0 );
+	  }
+	  if( !done )		  
+	  {
 		  sprintf (configfile, FEEL_FILE, thisdesktop, Scr.d_depth);
-	  ParseConfigFile (configfile, &tline);
+		  ParseConfigFile (configfile, &tline);
+	  }		  
 	}
       fprintf (stderr, ".");
       ParseConfigFile (AUTOEXEC_FILE, &tline);
