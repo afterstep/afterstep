@@ -236,9 +236,9 @@ typedef struct MyLook
 
     char *DefaultIcon;      /* Icon to use when no other icons are found */
 
-    struct ASIcon *MenuArrow;
-    struct ASIcon *MenuPinOn;
-    struct ASIcon *MenuPinOff;
+    struct icon_t *MenuArrow;
+    struct icon_t *MenuPinOn;
+    struct icon_t *MenuPinOff;
 
     MyButton    buttons[TITLE_BUTTONS];
 

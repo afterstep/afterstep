@@ -50,22 +50,22 @@ load_font (const char *name, MyFont * font)
 	{
 		char         *fn_tmp = NULL;
 
-		fprintf (stderr, "%s: can't get font %s\n", MyName, name);
+        show_error("can't get font \"%s\"", name);
 		fn_tmp = malloc (strlen (name) + strlen (",-*--14-*") + 1);
 		strcpy (fn_tmp, name);
 		strcat (fn_tmp, ",-*--14-*");
-		fprintf (stderr, "Trying... %s\n", fn_tmp);
+        show_error("Trying... \"%s\"\n", fn_tmp);
 		/* then try the given name + ",-*--14-*" */
 		if (((*font).fontset = XCreateFontSet (dpy, fn_tmp, &ml, &mc, &ds)) == NULL)
 		{
 			success = False;
 			/* if we haven't tried the default font yet, try that */
 			if (strcmp (name, default_font) != 0)
-				success = load_font (default_font, font);
-		}
+                success = load_font (default_font, font);
+        }
 		free (fn_tmp);
 	}
-	if (success == True)
+    if (success)
 	{
 		XFontSetExtents *fset_extents;
 		XFontStruct **fs_list;
@@ -74,7 +74,7 @@ load_font (const char *name, MyFont * font)
 		font->font = fs_list[0];
 		if (font->font == NULL)
 		{
-			fprintf (stderr, "couldn't get first font in font set!");
+            show_error("couldn't get first font in font set!");
 			XFreeFontSet (dpy, font->fontset);
 			return False;
 		}
@@ -87,11 +87,14 @@ load_font (const char *name, MyFont * font)
 #else
 	if ((font->font = XLoadQueryFont (dpy, name)) == NULL)
 	{
-		fprintf (stderr, "%s: can't get font %s\n", MyName, name);
+        show_error("can't get font \"%s\"", name);
 		if ((font->font = XLoadQueryFont (dpy, default_font)) == NULL)
+        {
+            show_error("default font \"%s\" is unavailable as well", name);
 			success = False;
+        }
 	}
-	if (success == True)
+    if (success)
 	{
 		font->name = mystrdup (name);
 		font->width = font->font->max_bounds.rbearing + font->font->min_bounds.lbearing;

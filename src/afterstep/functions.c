@@ -136,7 +136,8 @@ void SetupFunctionHandlers()
     function_handlers[F_CHANGE_BACKGROUND]  = change_background_func_handler;
 
     function_handlers[F_CHANGE_LOOK] =
-        function_handlers[F_CHANGE_FEEL]    = change_config_func_handler ;
+        function_handlers[F_CHANGE_FEEL]    =
+        function_handlers[F_CHANGE_THEME]   = change_config_func_handler ;
 
     function_handlers[F_REFRESH]            = refresh_func_handler ;
 #ifndef NO_VIRTUAL

@@ -194,7 +194,6 @@ main (int argc, char **argv)
     /* read config file, set up menus, colors, fonts */
     InitBase (False);
     InitDatabase (False);
-    init_old_look_variables (False);
     LoadASConfig (0, 1, 1, 1);
 
     /* Reparent all the windows and setup pan frames : */

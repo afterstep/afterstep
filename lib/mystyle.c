@@ -1289,9 +1289,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 					 set_flags (style->user_flags, style_func);
 					 style->texture_type = type;
 				 } else
-				 {							   /* treat second parameter as an image filename : */
-					 ASImage      *im = get_asimage (Scr.image_manager, tmp, 0xFFFFFFFF, 100);
-
+                 {  /* treat second parameter as an image filename : */
                      if ( load_icon(&(style->back_icon), tmp, Scr.image_manager ))
 					 {
 						 set_flags (style->user_flags, style_func);
@@ -1399,6 +1397,106 @@ mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient * gradien
 	gradient->offset[gradient->npoints - 1] = 1.0;
 	return type;
 }
+
+void
+mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back,
+					   char *gradient, char *pixmap)
+{
+	if ((fore != NULL) && !((*style).user_flags & F_FORECOLOR))
+	{
+		if (parse_argb_color (fore, &((*style).colors.fore)) != fore)
+			(*style).user_flags |= F_FORECOLOR;
+	}
+	if ((back != NULL) && !((*style).user_flags & F_BACKCOLOR))
+	{
+		if (parse_argb_color (back, &((*style).colors.back)) != back)
+		{
+			(*style).relief.fore = GetHilite ((*style).colors.back);
+			(*style).relief.back = GetShadow ((*style).colors.back);
+			(*style).user_flags |= F_BACKCOLOR;
+		}
+	}
+#ifndef NO_TEXTURE
+    if (type >= 0)
+	{
+		switch (type)
+		{
+		 case TEXTURE_GRADIENT:
+			 style->texture_type = TEXTURE_GRADIENT_TL2BR;
+			 break;
+		 case TEXTURE_HGRADIENT:
+			 style->texture_type = TEXTURE_GRADIENT_L2R;
+			 break;
+		 case TEXTURE_HCGRADIENT:
+			 style->texture_type = TEXTURE_GRADIENT_L2R;
+			 break;
+		 case TEXTURE_VGRADIENT:
+			 style->texture_type = TEXTURE_GRADIENT_T2B;
+			 break;
+		 case TEXTURE_VCGRADIENT:
+			 style->texture_type = TEXTURE_GRADIENT_T2B;
+			 break;
+		 default:
+			 style->texture_type = type;
+			 break;
+		}
+	}
+	if ((type > 0) && (type < TEXTURE_PIXMAP) && !((*style).user_flags & F_BACKGRADIENT))
+	{
+		if (gradient != NULL)
+		{
+			ARGB32        c1, c2 = 0;
+			ASGradient    grad;
+			char         *ptr;
+
+			ptr = (char *)parse_argb_color (gradient, &c1);
+			parse_argb_color (ptr, &c2);
+			if (ptr != gradient && (type = mystyle_parse_old_gradient (type, c1, c2, &grad)) >= 0)
+			{
+				if (style->user_flags & F_BACKGRADIENT)
+				{
+					free (style->gradient.color);
+					free (style->gradient.offset);
+				}
+				style->gradient = grad;
+				grad.type = mystyle_translate_grad_type (type);
+				style->texture_type = type;
+				style->user_flags |= F_BACKGRADIENT;
+			} else
+                show_error ("bad gradient definition in look file: %s", gradient);
+		}
+    } else if ((type == TEXTURE_PIXMAP) && !get_flags(style->user_flags, F_BACKPIXMAP))
+	{
+		if (pixmap != NULL)
+		{
+/* treat second parameter as an image filename : */
+            if ( load_icon(&(style->back_icon), pixmap, Scr.image_manager ))
+            {
+                set_flags (style->user_flags, style_func);
+                style->texture_type = type;
+                set_flags(style->user_flags, F_BACKPIXMAP);
+            } else
+                show_error ("failed to load image file \"%s\" in MyStyle \"%s\".", pixmap, style->name);
+        }
+	}
+#endif
+	(*style).set_flags = (*style).user_flags | (*style).inherit_flags;
+}
+
+void
+mystyle_merge_font (MyStyle * style, MyFont * font)
+{
+	/* NOTE: these should have inherit_flags set, so the font is only
+	 *       unloaded once */
+	if (style != NULL && !(style->set_flags & F_FONT))
+	{
+		style->font = *font;
+		style->inherit_flags |= F_FONT;
+		style->user_flags &= ~F_FONT;		   /* to prevent confusion */
+		style->set_flags = style->user_flags | style->inherit_flags;
+	}
+}
+
 
 ASImageBevel *
 mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reverse)

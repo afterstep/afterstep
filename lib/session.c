@@ -58,7 +58,9 @@ destroy_desk_session (ASDeskSession * session)
 #endif
         if (session->background_file)
 			free (session->background_file);
-		free (session);
+        if (session->theme_file)
+            free (session->theme_file);
+        free (session);
 	}
 }
 
@@ -90,9 +92,17 @@ find_default_background_file (ASSession *session)
 
 	/* it's more difficult with backgrounds since there could be different extensions */
 	/* first checking only private dir : */
-    legacy = safemalloc( strlen(BACK_FILE)+1 );
-    sprintf( legacy, BACK_FILE, 0 );
-    file = find_default_file ( session, legacy, True);  /* legacy stuff */
+    legacy = safemalloc( strlen(BACK_FILE)+1+15 );
+    if( session->scr->screen != 0 )
+    {
+        sprintf( legacy, BACK_FILE ".scr%ld", 0, session->scr->screen);
+        file = find_default_file ( session, legacy, False);  /* legacy stuff */
+    }
+    if( file == NULL )
+    {
+        sprintf( legacy, BACK_FILE, 0 );
+        file = find_default_file ( session, legacy, True);  /* legacy stuff */
+    }
     free( legacy );
     if( file == NULL )
         file = find_default_file ( session, "backgrounds/DEFAULT", False);
@@ -124,9 +134,17 @@ find_default_look_file (ASSession *session)
 
 	/* it's more difficult with backgrounds since there could be different extensions */
 	/* first checking only private dir : */
-    legacy = safemalloc( strlen(LOOK_FILE)+11+1 );
-    sprintf( legacy, LOOK_FILE, 0, session->colordepth );
-    file = find_default_file ( session, legacy, True);  /* legacy stuff */
+    legacy = safemalloc( strlen(LOOK_FILE)+11+1+15 );
+    if( session->scr->screen != 0 )
+    {
+        sprintf( legacy, LOOK_FILE ".scr%ld", 0, session->colordepth, session->scr->screen);
+        file = find_default_file ( session, legacy, False);  /* legacy stuff */
+    }
+    if( file == NULL )
+    {
+        sprintf( legacy, LOOK_FILE, 0, session->colordepth );
+        file = find_default_file ( session, legacy, True);  /* legacy stuff */
+    }
     free( legacy );
     if( file == NULL )
         file = find_default_file ( session, "looks/look.DEFAULT", True);
@@ -141,12 +159,44 @@ find_default_feel_file (ASSession *session)
 
 	/* it's more difficult with backgrounds since there could be different extensions */
 	/* first checking only private dir : */
-    legacy = safemalloc( strlen(FEEL_FILE)+11+1 );
-    sprintf( legacy, FEEL_FILE, 0, session->colordepth );
-    file = find_default_file ( session, legacy, True);  /* legacy stuff */
+    legacy = safemalloc( strlen(FEEL_FILE)+11+1+15 );
+    if( session->scr->screen != 0 )
+    {
+        sprintf( legacy, FEEL_FILE ".scr%ld", 0, session->colordepth, session->scr->screen);
+        file = find_default_file ( session, legacy, False);  /* legacy stuff */
+    }
+    if( file == NULL )
+    {
+        sprintf( legacy, FEEL_FILE, 0, session->colordepth );
+        file = find_default_file ( session, legacy, True);  /* legacy stuff */
+    }
     free( legacy );
     if( file == NULL )
         file = find_default_file ( session, "feels/feel.DEFAULT", True);
+    return file;
+}
+
+
+static char  *
+find_default_theme_file (ASSession *session)
+{
+    char         *legacy ;
+	char         *file = NULL;
+
+	/* it's more difficult with backgrounds since there could be different extensions */
+	/* first checking only private dir : */
+    legacy = safemalloc( strlen(THEME_FILE)+11+1+15 );
+    if( session->scr->screen != 0 )
+    {
+        sprintf( legacy, THEME_FILE ".scr%ld", 0, session->colordepth, session->scr->screen);
+        file = find_default_file ( session, legacy, False);  /* legacy stuff */
+    }
+    if( file == NULL )
+    {
+        sprintf( legacy, THEME_FILE, 0, session->colordepth );
+        file = find_default_file ( session, legacy, True);  /* legacy stuff */
+    }
+    free( legacy );
     return file;
 }
 
@@ -205,7 +255,7 @@ get_desk_session (ASSession * session, int desk)
 ASSession *
 create_assession ( ScreenInfo *scr, char *ashome, char *asshare)
 {
-	ASSession *session = (ASSession *) safemalloc (sizeof (ASSession));
+    ASSession *session = (ASSession *) safecalloc (1, sizeof (ASSession));
 
 
 	session->scr = ( scr == NULL )?&Scr:scr ;     /* sensible default */
@@ -213,15 +263,13 @@ create_assession ( ScreenInfo *scr, char *ashome, char *asshare)
     session->colordepth = session->scr->d_depth ;
     session->ashome = ashome ;
     session->asshare = asshare ;
-    session->overriding_file = NULL ;
-    session->overriding_look = NULL ;
-    session->overriding_feel = NULL ;
 
 	session->defaults = create_desk_session ();
 	session->defaults->desk = INVALID_DESK ;
     session->defaults->look_file = find_default_look_file (session);
     session->defaults->feel_file = find_default_feel_file (session);
     session->defaults->background_file = find_default_background_file (session);
+    session->defaults->theme_file = find_default_theme_file (session);
 
 	session->desks_used = 0 ;
 	session->desks_allocated = 4 ;
@@ -249,6 +297,8 @@ destroy_assession (ASSession * session)
         free( session->overriding_look );
     if( session->overriding_feel )
         free( session->overriding_feel );
+    if( session->overriding_theme )
+        free( session->overriding_theme );
 
 	i = session->desks_used ;
     while (--i >= 0)
@@ -267,16 +317,19 @@ change_default_session (ASSession * session, const char *new_val, int function)
 
 		switch (function)
 		{
-		 case F_CHANGE_LOOK:
+         case F_CHANGE_BACKGROUND:
+			 target = &(session->defaults->background_file);
+			 break;
+         case F_CHANGE_LOOK:
 			 target = &(session->defaults->look_file);
 			 break;
 		 case F_CHANGE_FEEL:
 			 target = &(session->defaults->feel_file);
 			 break;
-		 case F_CHANGE_BACKGROUND:
-			 target = &(session->defaults->background_file);
+         case F_CHANGE_THEME:
+             target = &(session->defaults->theme_file);
 			 break;
-		}
+        }
 		if (target)
 		{
 			char         *good_file;
@@ -304,6 +357,9 @@ change_desk_session (ASSession * session, int desk, const char *new_val, int fun
 
 		switch (function)
 		{
+         case F_CHANGE_BACKGROUND:
+			 target = &(d->background_file);
+			 break;
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
 		 case F_CHANGE_LOOK:
 			 target = &(d->look_file);
@@ -311,11 +367,11 @@ change_desk_session (ASSession * session, int desk, const char *new_val, int fun
 		 case F_CHANGE_FEEL:
 			 target = &(d->feel_file);
 			 break;
-#endif
-		 case F_CHANGE_BACKGROUND:
-			 target = &(d->background_file);
+         case F_CHANGE_THEME:
+             target = &(d->theme_file);
 			 break;
-		 default:
+#endif
+         default:
 			 change_default_session (session, new_val, function);
 		}
 		if (target)
@@ -535,16 +591,19 @@ get_desk_file (ASDeskSession * d, int function)
 	if (d)
 		switch (function)
 		{
-		 case F_CHANGE_LOOK:
+         case F_CHANGE_BACKGROUND:
+			 file = d->background_file;
+			 break;
+         case F_CHANGE_LOOK:
 			 file = d->look_file;
 			 break;
 		 case F_CHANGE_FEEL:
 			 file = d->feel_file;
 			 break;
-		 case F_CHANGE_BACKGROUND:
-			 file = d->background_file;
+         case F_CHANGE_THEME:
+             file = d->theme_file;
 			 break;
-		}
+        }
 	return file;
 }
 
@@ -563,24 +622,28 @@ get_session_file (ASSession * session, int desk, int function)
             return session->overriding_look ;
         if( session->overriding_feel && function == F_CHANGE_FEEL )
             return session->overriding_feel ;
+        if( session->overriding_theme && function == F_CHANGE_THEME )
+            return session->overriding_theme ;
 
 		switch (function)
 		{
+         case F_CHANGE_BACKGROUND:
+			 d = get_desk_session (session, desk);
+			 break;
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
 		 case F_CHANGE_LOOK:
 		 case F_CHANGE_FEEL:
-			 d = get_desk_session (session, desk);
+         case F_CHANGE_THEME:
+             d = get_desk_session (session, desk);
 			 break;
 #else
 		 case F_CHANGE_LOOK:
 		 case F_CHANGE_FEEL:
+         case F_CHANGE_THEME:
 			 d = session->defaults;
 			 break;
 #endif
-		 case F_CHANGE_BACKGROUND:
-			 d = get_desk_session (session, desk);
-			 break;
-		}
+        }
 		if (d)
 		{
 			file = (char *)get_desk_file (d, function);
@@ -731,6 +794,8 @@ set_session_override(ASSession * session, const char *overriding_file, int funct
 			target = &(session->overriding_look);
 		else if( function == F_CHANGE_FEEL )
 			target = &(session->overriding_feel);
+        else if( function == F_CHANGE_THEME )
+            target = &(session->overriding_theme);
 
         if( *target )
         {
@@ -753,7 +818,9 @@ get_session_override(ASSession * session, int function )
 			return session->overriding_look;
 		else if( function == F_CHANGE_FEEL )
 			return session->overriding_feel;
-	}
+        else if( function == F_CHANGE_THEME )
+            return session->overriding_theme;
+    }
     return NULL;
 }
 

@@ -39,6 +39,8 @@
 #include "../../configure.h"
 
 #include "../../include/asapp.h"
+#include <unistd.h>
+
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
 #include "../../include/mystyle.h"
@@ -48,6 +50,7 @@
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
 #include "../../include/balloon.h"
+#include "../../include/session.h"
 #include "../../libAfterImage/afterimage.h"
 #include "../../include/mystyle_property.h"
 
@@ -55,41 +58,32 @@
 #include "asinternals.h"
 
 /* old look auxilary variables : */
-static MyFont StdFont;         /* font structure */
-static MyFont WindowFont;      /* font structure for window titles */
-static MyFont IconFont;        /* for icon labels */
+static MyFont StdFont    = {NULL};         /* font structure */
+static MyFont WindowFont = {NULL};      /* font structure for window titles */
+static MyFont IconFont   = {NULL};        /* for icon labels */
 /*
  * the old-style look variables
  */
-static char         *Stdfont;
-static char         *Windowfont;
-static char         *Iconfont;
-static char         *Menustipple;
-static char         *Stdback;
-static char         *Stdfore;
-static char         *Stickyback;
-static char         *Stickyfore;
-static char         *Hiback;
-static char         *Hifore;
-static char         *Mtitleback;
-static char         *Mtitlefore;
-static char         *Menuback;
-static char         *Menufore;
-static char         *Menuhiback;
-static char         *Menuhifore;
+static char         *Stdfont     = NULL;
+static char         *Windowfont  = NULL;
+static char         *Iconfont    = NULL;
+
+static char         *WindowForeColor[BACK_STYLES]    = { NULL };
+static char         *WindowBackColor[BACK_STYLES]    = { NULL };
+static char         *WindowGradient[BACK_STYLES]     = { NULL };
+static char         *WindowPixmap[BACK_STYLES]       = { NULL };
+static char         *MenuForeColor[MENU_BACK_STYLES] = { NULL };
+static char         *MenuBackColor[MENU_BACK_STYLES] = { NULL };
+static char         *MenuGradient[MENU_BACK_STYLES]  = { NULL };
+static char         *MenuPixmap[MENU_BACK_STYLES]    = { NULL };
+static char         *IconBgColor = NULL;
+static char         *IconTexColor = NULL;
+static char         *IconPixmapFile = NULL;
+
 static char         *TexTypes = NULL;
-static char         *TColor = NULL, *UColor = NULL, *SColor = NULL;
-static char         *IColor = NULL, *MHColor = NULL, *MColor = NULL;
-static char         *TPixmap = NULL, *UPixmap = NULL, *SPixmap = NULL;
-static char         *MTPixmap = NULL, *MPixmap = NULL, *MHPixmap = NULL;
 static int           TitleTextType = 0;
 static int           TitleTextY = 0;
 static int           IconTexType = TEXTURE_BUILTIN;
-static char         *IconBgColor;
-static char         *IconTexColor;
-static char         *IconPixmapFile;
-
-
 
 /* parsing handling functions for different data types : */
 
@@ -104,10 +98,11 @@ void          SetTitleText          (char *tline, FILE * fd, char **junk, int *j
 void          SetTitleButton        (char *tline, FILE * fd, char **junk, int *junk2);
 void          SetFramePart          (char *text, FILE * fd, char **frame, int *id);
 
-void          assign_string         (char *text, FILE * fd, char **arg, int *);
-void          assign_path           (char *text, FILE * fd, char **arg, int *);
-void          assign_themable_path  (char *text, FILE * fd, char **arg, int *);
-void          assign_pixmap         (char *text, FILE * fd, char **arg, int *);
+void          assign_string         (char *text, FILE * fd, char **arg, int *idx);
+void          assign_path           (char *text, FILE * fd, char **arg, int *idx);
+void          assign_themable_path  (char *text, FILE * fd, char **arg, int *idx);
+void          assign_pixmap         (char *text, FILE * fd, char **arg, int *idx);
+void          assign_geometry       (char *text, FILE * fd, char **geom, int *junk);
 void          obsolete              (char *text, FILE * fd, char **arg, int *);
 
 /* main parsing function  : */
@@ -181,19 +176,19 @@ struct config main_config[] = {
 	/* look options */
 	{"Font", assign_string, &Stdfont, (int *)0},
 	{"WindowFont", assign_string, &Windowfont, (int *)0},
-	{"MTitleForeColor", assign_string, &Mtitlefore, (int *)0},
-	{"MTitleBackColor", assign_string, &Mtitleback, (int *)0},
-	{"MenuForeColor", assign_string, &Menufore, (int *)0},
-	{"MenuBackColor", assign_string, &Menuback, (int *)0},
-	{"MenuHiForeColor", assign_string, &Menuhifore, (int *)0},
-	{"MenuHiBackColor", assign_string, &Menuhiback, (int *)0},
-	{"MenuStippleColor", assign_string, &Menustipple, (int *)0},
-	{"StdForeColor", assign_string, &Stdfore, (int *)0},
-	{"StdBackColor", assign_string, &Stdback, (int *)0},
-	{"StickyForeColor", assign_string, &Stickyfore, (int *)0},
-	{"StickyBackColor", assign_string, &Stickyback, (int *)0},
-	{"HiForeColor", assign_string, &Hifore, (int *)0},
-	{"HiBackColor", assign_string, &Hiback, (int *)0},
+    {"MTitleForeColor", assign_string, &MenuForeColor[MENU_BACK_TITLE], (int *)0},
+    {"MTitleBackColor", assign_string, &MenuBackColor[MENU_BACK_TITLE], (int *)0},
+    {"MenuForeColor", assign_string, &MenuForeColor[MENU_BACK_ITEM], (int *)0},
+    {"MenuBackColor", assign_string, &MenuBackColor[MENU_BACK_ITEM], (int *)0},
+    {"MenuHiForeColor", assign_string, &MenuForeColor[MENU_BACK_HILITE], (int *)0},
+    {"MenuHiBackColor", assign_string, &MenuBackColor[MENU_BACK_HILITE], (int *)0},
+    {"MenuStippleColor", assign_string, &MenuForeColor[MENU_BACK_STIPPLE], (int *)0},
+    {"StdForeColor", assign_string, &WindowForeColor[BACK_UNFOCUSED], (int *)0},
+    {"StdBackColor", assign_string, &WindowBackColor[BACK_UNFOCUSED], (int *)0},
+    {"StickyForeColor", assign_string, &WindowForeColor[BACK_STICKY], (int *)0},
+    {"StickyBackColor", assign_string, &WindowBackColor[BACK_STICKY], (int *)0},
+    {"HiForeColor", assign_string, &WindowForeColor[BACK_FOCUSED], (int *)0},
+    {"HiBackColor", assign_string, &WindowBackColor[BACK_FOCUSED], (int *)0},
 	{"IconBox", SetBox, (char **)0, (int *)0},
 	{"IconFont", assign_string, &Iconfont, (int *)0},
 	{"MyStyle", mystyle_parse, &PixmapPath, NULL},
@@ -201,21 +196,23 @@ struct config main_config[] = {
 #ifndef NO_TEXTURE
 	{"TextureTypes", assign_string, &TexTypes, (int *)0},
     {"TextureMaxColors", obsolete, NULL, (int *)0},
-	{"TitleTextureColor", assign_string, &TColor, (int *)0},	/* title */
-	{"UTitleTextureColor", assign_string, &UColor, (int *)0},	/* unfoc tit */
-	{"STitleTextureColor", assign_string, &SColor, (int *)0},	/* stic tit */
-	{"MTitleTextureColor", assign_string, &MColor, (int *)0},	/* menu title */
-	{"MenuTextureColor", assign_string, &IColor, (int *)0},	/* menu items */
-	{"MenuHiTextureColor", assign_string, &MHColor, (int *)0},	/* sel items */
-	{"MenuPixmap", assign_string, &MPixmap, (int *)0},	/* menu entry */
-	{"MenuHiPixmap", assign_string, &MHPixmap, (int *)0},	/* hil m entr */
-	{"MTitlePixmap", assign_string, &MTPixmap, (int *)0},	/* menu title */
-    {"MenuPinOn", assign_pixmap, (char **)&Scr.Look.MenuPinOn, NULL},    /* menu pin */
-    {"MenuPinOff", assign_pixmap, (char **)&Scr.Look.MenuPinOff, NULL},
-    {"MArrowPixmap", assign_pixmap, (char **)&Scr.Look.MenuArrow, NULL},   /* menu arrow */
-	{"TitlePixmap", assign_string, &TPixmap, (int *)0},	/* foc tit */
-	{"UTitlePixmap", assign_string, &UPixmap, (int *)0},	/* unfoc tit */
-	{"STitlePixmap", assign_string, &SPixmap, (int *)0},	/* stick tit */
+    {"TitleTextureColor", assign_string, &WindowGradient[BACK_FOCUSED], (int *)0},    /* title */
+    {"UTitleTextureColor", assign_string, &WindowGradient[BACK_UNFOCUSED], (int *)0},   /* unfoc tit */
+    {"STitleTextureColor", assign_string, &WindowGradient[BACK_STICKY], (int *)0},   /* stic tit */
+    {"MTitleTextureColor", assign_string, &MenuGradient[MENU_BACK_TITLE], (int *)0},   /* menu title */
+    {"MenuTextureColor", assign_string, &MenuGradient[MENU_BACK_ITEM], (int *)0}, /* menu items */
+    {"MenuHiTextureColor", assign_string, &MenuGradient[MENU_BACK_HILITE], (int *)0},  /* sel items */
+    {"MenuPixmap", assign_string, &MenuPixmap[MENU_BACK_ITEM], (int *)0},  /* menu entry */
+    {"MenuHiPixmap", assign_string, &MenuPixmap[MENU_BACK_HILITE], (int *)0},   /* hil m entr */
+    {"MTitlePixmap", assign_string, &MenuPixmap[MENU_BACK_TITLE], (int *)0},   /* menu title */
+    {"TitlePixmap", assign_string,  &WindowPixmap[BACK_FOCUSED], (int *)0}, /* foc tit */
+    {"UTitlePixmap", assign_string, &WindowPixmap[BACK_UNFOCUSED], (int *)0},    /* unfoc tit */
+    {"STitlePixmap", assign_string, &WindowPixmap[BACK_STICKY], (int *)0},    /* stick tit */
+
+    {"MenuPinOn", assign_pixmap, (char **)&Scr.Look.MenuPinOn, (int *)0},    /* menu pin */
+    {"MenuPinOff", assign_pixmap, (char **)&Scr.Look.MenuPinOff, (int *)0},
+    {"MArrowPixmap", assign_pixmap, (char **)&Scr.Look.MenuArrow, (int *)0},   /* menu arrow */
+
     {"TexturedHandle", SetFlag2, (char **)TexturedHandle, (int *)&Scr.Look.flags},
     {"TitlebarNoPush", SetFlag2, (char **)TitlebarNoPush, (int *)&Scr.Look.flags},
 
@@ -246,20 +243,20 @@ struct config main_config[] = {
     {"TitleButtonStyle", SetInts, (char **)&Scr.Look.TitleButtonStyle, (int *)&dummy},
 	{"TitleButton", SetTitleButton, (char **)1, (int *)0},
 	{"TitleTextMode", SetTitleText, (char **)1, (int *)0},
-    {"ResizeMoveGeometry", assign_geometry, &Scr.Look.resize_move_geometry, (int *)0},
+    {"ResizeMoveGeometry", assign_geometry, (char**)&Scr.Look.resize_move_geometry, (int *)0},
     {"StartMenuSortMode", SetInts, (char **)&Scr.Look.StartMenuSortMode, (int *)&dummy},
     {"DrawMenuBorders", SetInts, (char **)&Scr.Look.DrawMenuBorders, (int *)&dummy},
-    {"ButtonSize", SetInts, (char **)&Scr.Look.ButtonWidth, (int *)&Scr.ButtonHeight},
+    {"ButtonSize", SetInts, (char **)&Scr.Look.ButtonWidth, (int *)&Scr.Look.ButtonHeight},
     {"SeparateButtonTitle", SetFlag2, (char **)SeparateButtonTitle, (int *)&Scr.Look.flags},
     {"RubberBand", SetInts, (char **)&Scr.Look.RubberBand, &dummy},
-    {"DefaultStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_DEFAULT], NULL},
-    {"FWindowStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_FOCUSED], NULL},
-    {"UWindowStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_UNFOCUSED], NULL},
-    {"SWindowStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_STICKY], NULL},
-    {"MenuItemStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_ITEM], NULL},
-    {"MenuTitleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_TITLE], NULL},
-    {"MenuHiliteStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_HILITE], NULL},
-    {"MenuStippleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_STIPPLE], NULL},
+    {"DefaultStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_DEFAULT], (int *)0},
+    {"FWindowStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_FOCUSED], (int *)0},
+    {"UWindowStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_UNFOCUSED], (int *)0},
+    {"SWindowStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_STICKY], (int *)0},
+    {"MenuItemStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_ITEM], (int *)0},
+    {"MenuTitleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_TITLE], (int *)0},
+    {"MenuHiliteStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_HILITE], (int *)0},
+    {"MenuStippleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_STIPPLE], (int *)0},
     {"ShadeAnimationSteps", SetInts, (char **)&Scr.Look.ShadeAnimationSteps, (int *)&dummy},
 	{"", 0, (char **)0, (int *)0}
 };
@@ -356,6 +353,7 @@ stripcpy3 (const char *source, const Bool Warn)
 void
 init_old_look_variables (Bool free_resources)
 {
+    int i ;
 	if (free_resources)
 	{
         /* the fonts */
@@ -365,321 +363,161 @@ init_old_look_variables (Bool free_resources)
 			free (Windowfont);
 		if (Iconfont != NULL)
 			free (Iconfont);
+        for( i = 0 ; i < BACK_STYLES ; ++i )
+        {
+            if( WindowForeColor[i] )
+                free( WindowForeColor[i] );
+            if( WindowBackColor[i] )
+                free( WindowBackColor[i] );
+            if( WindowGradient[i] )
+                free( WindowGradient[i] );
+            if( WindowPixmap[i] )
+                free( WindowPixmap[i] );
+        }
+        for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
+        {
+            if( MenuForeColor[i] )
+                free(MenuForeColor[i]);
+            if( MenuBackColor[i] )
+                free(MenuBackColor[i]);
+            if( MenuGradient[i] )
+                free(MenuGradient[i]);
+            if( MenuPixmap[i] )
+                free(MenuPixmap[i]);
+        }
 
-		/* the colors */
-		if (Stdback != NULL)
-			free (Stdback);
-		if (Stdfore != NULL)
-			free (Stdfore);
-		if (Hiback != NULL)
-			free (Hiback);
-		if (Hifore != NULL)
-			free (Hifore);
-		if (Stickyback != NULL)
-			free (Stickyback);
-		if (Stickyfore != NULL)
-			free (Stickyfore);
-		if (Mtitlefore != NULL)
-			free (Mtitlefore);
-		if (Mtitleback != NULL)
-			free (Mtitleback);
-		if (Menuback != NULL)
-			free (Menuback);
-		if (Menufore != NULL)
-			free (Menufore);
-		if (Menuhifore != NULL)
-			free (Menuhifore);
-		if (Menuhiback != NULL)
-			free (Menuhiback);
-		if (Menustipple != NULL)
-			free (Menustipple);
-
-#ifndef NO_TEXTURE
-		if (UColor != NULL)
-			free (UColor);
-		if (TColor != NULL)
-			free (TColor);
-		if (SColor != NULL)
-			free (SColor);
-		if (MColor != NULL)
-			free (MColor);
-		if (IColor != NULL)
-			free (IColor);
-		if (MHColor != NULL)
-			free (MHColor);
-
-		/* the pixmaps */
-		if (UPixmap != NULL)
-			free (UPixmap);
-		if (TPixmap != NULL)
-			free (TPixmap);
-		if (SPixmap != NULL)
-			free (SPixmap);
-		if (MTPixmap != NULL)
-			free (MTPixmap);
-		if (MPixmap != NULL)
-			free (MPixmap);
-		if (MHPixmap != NULL)
-			free (MHPixmap);
-
-		/* miscellaneous stuff */
-		if (TexTypes != NULL)
-			free (TexTypes);
-#endif
-	}
+        if( IconBgColor )
+            free(IconBgColor);
+        if( IconTexColor )
+            free(IconTexColor);
+        if( IconPixmapFile )
+            free(IconPixmapFile);
+        if( TexTypes )
+            free(TexTypes);
+    }
 
 	/* the fonts */
 	Stdfont = NULL;
 	Windowfont = NULL;
 	Iconfont = NULL;
 
-	/* the text type */
-	Scr.TitleTextType = 0;
-
-	/* the colors */
-	Stdback = NULL;
-	Stdfore = NULL;
-	Hiback = NULL;
-	Hifore = NULL;
-	Stickyback = NULL;
-	Stickyfore = NULL;
-	Mtitlefore = NULL;
-	Mtitleback = NULL;
-	Menuback = NULL;
-	Menufore = NULL;
-	Menuhifore = NULL;
-	Menuhiback = NULL;
-	Menustipple = NULL;
-
-#ifndef NO_TEXTURE
-	/* the gradients */
-	UColor = NULL;
-	TColor = NULL;
-	SColor = NULL;
-	MColor = NULL;
-	IColor = NULL;
-	MHColor = NULL;
-
-	/* the pixmaps */
-	UPixmap = NULL;
-	TPixmap = NULL;
-	SPixmap = NULL;
-	MTPixmap = NULL;
-	MPixmap = NULL;
-	MHPixmap = NULL;
-
-	/* miscellaneous stuff */
+    for( i = 0 ; i < BACK_STYLES ; ++i )
+    {
+        WindowForeColor[i] = NULL ;
+        WindowBackColor[i] = NULL ;
+        WindowGradient[i] = NULL ;
+        WindowPixmap[i] = NULL ;
+    }
+    for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
+    {
+        MenuForeColor[i] = NULL ;
+        MenuBackColor[i] = NULL ;
+        MenuGradient[i] = NULL ;
+        MenuPixmap[i] = NULL ;
+    }
+    IconBgColor = NULL ;
+    IconTexColor = NULL ;
+    IconPixmapFile = NULL ;
+    /* miscellaneous stuff */
 	TexTypes = NULL;
-#endif
+    TitleTextType = 0;
+    TitleTextY = 0;
+    IconTexType = TEXTURE_BUILTIN;
+
 }
 
-
-void
-merge_old_look_colors (MyStyle * style, int type, char *fore, char *back,
-					   char *gradient, char *pixmap)
-{
-	if ((fore != NULL) && !((*style).user_flags & F_FORECOLOR))
-	{
-		if (parse_argb_color (fore, &((*style).colors.fore)) != fore)
-			(*style).user_flags |= F_FORECOLOR;
-	}
-	if ((back != NULL) && !((*style).user_flags & F_BACKCOLOR))
-	{
-		if (parse_argb_color (back, &((*style).colors.back)) != back)
-		{
-			(*style).relief.fore = GetHilite ((*style).colors.back);
-			(*style).relief.back = GetShadow ((*style).colors.back);
-			(*style).user_flags |= F_BACKCOLOR;
-		}
-	}
-#ifndef NO_TEXTURE
-    if (type >= 0)
-	{
-		switch (type)
-		{
-		 case TEXTURE_GRADIENT:
-			 style->texture_type = TEXTURE_GRADIENT_TL2BR;
-			 break;
-		 case TEXTURE_HGRADIENT:
-			 style->texture_type = TEXTURE_GRADIENT_L2R;
-			 break;
-		 case TEXTURE_HCGRADIENT:
-			 style->texture_type = TEXTURE_GRADIENT_L2R;
-			 break;
-		 case TEXTURE_VGRADIENT:
-			 style->texture_type = TEXTURE_GRADIENT_T2B;
-			 break;
-		 case TEXTURE_VCGRADIENT:
-			 style->texture_type = TEXTURE_GRADIENT_T2B;
-			 break;
-		 default:
-			 style->texture_type = type;
-			 break;
-		}
-	}
-	if ((type > 0) && (type < TEXTURE_PIXMAP) && !((*style).user_flags & F_BACKGRADIENT))
-	{
-		if (gradient != NULL)
-		{
-			ARGB32        c1, c2 = 0;
-			ASGradient    grad;
-			char         *ptr;
-
-			ptr = (char *)parse_argb_color (gradient, &c1);
-			parse_argb_color (ptr, &c2);
-			if (ptr != gradient && (type = mystyle_parse_old_gradient (type, c1, c2, &grad)) >= 0)
-			{
-				if (style->user_flags & F_BACKGRADIENT)
-				{
-					free (style->gradient.color);
-					free (style->gradient.offset);
-				}
-				style->gradient = grad;
-				grad.type = mystyle_translate_grad_type (type);
-				style->texture_type = type;
-				style->user_flags |= F_BACKGRADIENT;
-			} else
-                show_error ("bad gradient definition in look file: %s", gradient);
-		}
-	} else if ((type == TEXTURE_PIXMAP) && !((*style).user_flags & F_BACKPIXMAP))
-	{
-		if (pixmap != NULL)
-		{
-			int           colors = -1;
-
-			if ((*style).set_flags & F_MAXCOLORS)
-				colors = (*style).max_colors;
-
-			if( GetIconFromFile (pixmap, &(style->back_icon), 0) )
-				(*style).user_flags |= F_BACKPIXMAP;
-        }
-	}
-#endif
-	(*style).set_flags = (*style).user_flags | (*style).inherit_flags;
-}
-
-static void
-merge_old_look_font (MyStyle * style, MyFont * font)
-{
-	/* NOTE: these should have inherit_flags set, so the font is only
-	 *       unloaded once */
-	if (style != NULL && !(style->set_flags & F_FONT))
-	{
-		style->font = *font;
-		style->inherit_flags |= F_FONT;
-		style->user_flags &= ~F_FONT;		   /* to prevent confusion */
-		style->set_flags = style->user_flags | style->inherit_flags;
-	}
-}
 
 /*
  * merge the old variables into the new styles
  * the new styles have precedence
  */
 void
-merge_old_look_variables (void)
+merge_old_look_variables (MyLook *look)
 {
-	MyStyle      *button_title_focus = mystyle_find ("ButtonTitleFocus");
-	MyStyle      *button_title_sticky = mystyle_find ("ButtonTitleSticky");
-	MyStyle      *button_title_unfocus = mystyle_find ("ButtonTitleUnfocus");
+    char         *button_style_names[BACK_STYLES] = {"ButtonTitleFocus", "ButtonTitleUnfocus", "ButtonTitleSticky", "ButtonTitleDefault" };
+    MyStyle      *button_styles[BACK_STYLES];
+    int i ;
+
+    for( i = 0 ; i < BACK_STYLES ; ++i )
+        button_styles[i] = mystyle_find(button_style_names[i]);
 
 	/* the fonts */
 	if (Stdfont != NULL)
 	{
         if (load_font (Stdfont, &StdFont) == False)
-		{
-			fprintf (stderr, "%s: unable to load font %s\n", MyName, Stdfont);
-			exit (1);
-		}
-        merge_old_look_font (Scr.MSMenuItem, &StdFont);
-        merge_old_look_font (Scr.MSMenuHilite, &StdFont);
-        merge_old_look_font (Scr.MSMenuStipple, &StdFont);
-	}
+            exit(1);
+        else
+            for( i = MENU_BACK_ITEM ; i < MENU_BACK_STYLES ; ++i )
+                mystyle_merge_font (look->MSMenu[i], &StdFont);
+    }
 	if (Windowfont != NULL)
 	{
         if (load_font (Windowfont, &WindowFont) == False)
-		{
-			fprintf (stderr, "%s: unable to load font %s\n", MyName, Windowfont);
-			exit (1);
-		}
-        merge_old_look_font (Scr.MSUWindow, &WindowFont);
-        merge_old_look_font (Scr.MSFWindow, &WindowFont);
-        merge_old_look_font (Scr.MSSWindow, &WindowFont);
-        merge_old_look_font (Scr.MSMenuTitle, &WindowFont);
+            exit(1);
+        for( i = 0 ; i < BACK_STYLES ; ++i )
+            mystyle_merge_font (look->MSWindow[i], &WindowFont);
+        mystyle_merge_font (look->MSMenu[MENU_BACK_TITLE], &WindowFont);
 	}
 	if (Iconfont != NULL)
 	{
         if (load_font (Iconfont, &IconFont) == False)
-		{
-			fprintf (stderr, "%s: unable to load font %s\n", MyName, Iconfont);
-			exit (1);
-		}
-        merge_old_look_font (button_title_focus, &IconFont);
-        merge_old_look_font (button_title_sticky, &IconFont);
-        merge_old_look_font (button_title_unfocus, &IconFont);
-	}
+            exit (1);
+        for( i = 0 ; i < BACK_STYLES ; ++i )
+            mystyle_merge_font (button_styles[i], &IconFont);
+    }
 	/* the text type */
-	if (Scr.TitleTextType != 0)
+    if (TitleTextType != 0)
 	{
-		if (((*Scr.MSUWindow).set_flags & F_TEXTSTYLE) == 0)
-		{
-			(*Scr.MSUWindow).text_style = Scr.TitleTextType;
-			(*Scr.MSUWindow).user_flags |= F_TEXTSTYLE;
-			(*Scr.MSUWindow).set_flags |= F_TEXTSTYLE;
-		}
-		if (((*Scr.MSFWindow).set_flags & F_TEXTSTYLE) == 0)
-		{
-			(*Scr.MSFWindow).text_style = Scr.TitleTextType;
-			(*Scr.MSFWindow).user_flags |= F_TEXTSTYLE;
-			(*Scr.MSFWindow).set_flags |= F_TEXTSTYLE;
-		}
-		if (((*Scr.MSSWindow).set_flags & F_TEXTSTYLE) == 0)
-		{
-			(*Scr.MSSWindow).text_style = Scr.TitleTextType;
-			(*Scr.MSSWindow).user_flags |= F_TEXTSTYLE;
-			(*Scr.MSSWindow).set_flags |= F_TEXTSTYLE;
-		}
-	}
+        for( i = 0 ; i < BACK_STYLES ; ++i )
+            if (!get_flags(look->MSWindow[i]->set_flags, F_TEXTSTYLE))
+            {
+                set_flags(look->MSWindow[i]->text_style, TitleTextType);
+                set_flags(look->MSWindow[i]->user_flags, F_TEXTSTYLE);
+                set_flags(look->MSWindow[i]->set_flags, F_TEXTSTYLE);
+            }
+    }
 	/* the colors */
 	/* for black and white - ignore user choices */
 	/* for color - accept user choices */
 	if (Scr.d_depth > 1)
 	{
-		int           utype, ftype, stype, mttype, mhtype, mitype;	/* texture types */
+        int wtype[BACK_STYLES];
+        int mtype[MENU_BACK_STYLES];
 
-		utype = ftype = stype = mttype = mhtype = mitype = -1;
+        for( i = 0 ; i < BACK_STYLES ; ++i )
+            wtype[i] = -1 ;
+        for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
+            mtype[i] = -1 ;
+
 #ifndef NO_TEXTURE
 		if (TexTypes != NULL)
-			sscanf (TexTypes, "%i %i %i %i %i %i", &ftype, &utype, &stype, &mttype, &mitype,
-					&mhtype);
+            sscanf (TexTypes, "%i %i %i %i %i %i", &wtype[BACK_FOCUSED], &wtype[BACK_UNFOCUSED], &wtype[BACK_STICKY],
+                                                   &mtype[MENU_BACK_TITLE], &mtype[MENU_BACK_ITEM], &mtype[MENU_BACK_HILITE]);
 
 		if (IconTexType == TEXTURE_BUILTIN)
 			IconTexType = -1;
 #endif /* !NO_TEXTURE */
 
 		/* check for missing 1.4.5.x keywords */
-		if (Mtitlefore == NULL && Hifore != NULL)
-			Mtitlefore = mystrdup (Hifore);
-		if (Mtitleback == NULL && Hiback != NULL)
-			Mtitleback = mystrdup (Hiback);
-		if (Menuhifore == NULL && Hifore != NULL)
-			Menuhifore = mystrdup (Hifore);
-		if (Menuhiback == NULL && Menuback != NULL)
+        if (MenuForeColor[MENU_BACK_TITLE] == NULL && WindowForeColor[BACK_FOCUSED] != NULL)
+            MenuForeColor[MENU_BACK_TITLE] = mystrdup(WindowForeColor[BACK_FOCUSED]);
+        if (MenuBackColor[MENU_BACK_TITLE] == NULL && WindowBackColor[BACK_FOCUSED] != NULL)
+            MenuBackColor[MENU_BACK_TITLE] = mystrdup(WindowBackColor[BACK_FOCUSED]);
+        if (MenuForeColor[MENU_BACK_HILITE] == NULL && WindowForeColor[BACK_FOCUSED] != NULL)
+            MenuForeColor[MENU_BACK_HILITE] = mystrdup(WindowForeColor[BACK_FOCUSED]);
+        if (MenuBackColor[MENU_BACK_HILITE] == NULL && MenuBackColor[MENU_BACK_ITEM] != NULL)
 		{
-			mhtype = mitype;
-            Menuhiback = mystrdup (Menuback);
-			if ((MHColor == NULL) && (IColor != NULL))
-				MHColor = mystrdup (IColor);
-			if ((MHPixmap == NULL) && (MPixmap != NULL))
-				MHPixmap = mystrdup (MPixmap);
-		}
-        merge_old_look_colors (Scr.MSUWindow, utype, Stdfore, Stdback, UColor, UPixmap);
-        merge_old_look_colors (Scr.MSFWindow, ftype, Hifore, Hiback, TColor, TPixmap);
-        merge_old_look_colors (Scr.MSSWindow, stype, Stickyfore, Stickyback, SColor, SPixmap);
-        merge_old_look_colors (Scr.MSMenuTitle, mttype, Mtitlefore, Mtitleback, MColor, MTPixmap);
-        merge_old_look_colors (Scr.MSMenuItem, mitype, Menufore, Menuback, IColor, MPixmap);
-        merge_old_look_colors (Scr.MSMenuHilite, mhtype, Menuhifore, Menuhiback, MHColor, MHPixmap);
-        merge_old_look_colors (Scr.MSMenuStipple, mitype, Menustipple, Menuback, IColor,  MPixmap);
+            mtype[MENU_BACK_HILITE] = mtype[MENU_BACK_ITEM];
+            MenuBackColor[MENU_BACK_HILITE] = mystrdup (MenuBackColor[MENU_BACK_ITEM]);
+            if (MenuGradient[MENU_BACK_HILITE] == NULL && MenuGradient[MENU_BACK_ITEM] != NULL)
+                MenuGradient[MENU_BACK_HILITE] = mystrdup(MenuGradient[MENU_BACK_ITEM]);
+            if (MenuPixmap[MENU_BACK_HILITE] == NULL && MenuPixmap[MENU_BACK_ITEM] != NULL)
+                MenuPixmap[MENU_BACK_HILITE] = mystrdup(MenuPixmap[MENU_BACK_ITEM]);
+        }
+        for( i = 0 ; i < BACK_STYLES ; ++i )
+            mystyle_merge_colors (look->MSWindow[i], wtype[i], WindowForeColor[i], WindowBackColor[i], WindowGradient[i], WindowPixmap[i]);
+        for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
+            mystyle_merge_colors (look->MSMenu[i], mtype[i], MenuForeColor[i], MenuBackColor[i], MenuGradient[i], MenuPixmap[i]);
 
 #ifndef NO_TEXTURE
 		{
@@ -688,18 +526,15 @@ merge_old_look_variables (void)
 			/* icon styles automagically inherit from window title styles */
 			if (button_pixmap != NULL)
 			{
-				mystyle_merge_styles (Scr.MSFWindow, button_pixmap, 0, 0);
-                merge_old_look_colors (button_pixmap, IconTexType, NULL, IconBgColor, IconTexColor, IconPixmapFile);
+                mystyle_merge_styles (look->MSWindow[BACK_FOCUSED], button_pixmap, 0, 0);
+                mystyle_merge_colors (button_pixmap, IconTexType, NULL, IconBgColor, IconTexColor, IconPixmapFile);
 			}
 		}
 #endif /* !NO_TEXTURE */
-		if (button_title_focus != NULL)
-			mystyle_merge_styles (Scr.MSFWindow, button_title_focus, 0, 0);
-		if (button_title_sticky != NULL)
-			mystyle_merge_styles (Scr.MSSWindow, button_title_sticky, 0, 0);
-		if (button_title_unfocus != NULL)
-			mystyle_merge_styles (Scr.MSUWindow, button_title_unfocus, 0, 0);
-	}
+        for( i = 0 ; i < BACK_STYLES ; ++i )
+            if (button_styles[i] != NULL)
+                mystyle_merge_styles (look->MSWindow[i], button_styles[i], 0, 0);
+    }
     init_old_look_variables (True);            /* no longer need those strings !!!! */
 }
 
@@ -734,154 +569,20 @@ InitBase (Bool free_resources)
     Scr.VScale = 1;
 }
 
-/*
- * Initialize look variables
- */
 void
-InitLook (MyLook *look, Bool free_resources)
+CheckBaseSanity()
 {
-	int           i;
+    if( Scr.VxMax <= 0 )
+        Scr.VxMax = 0 ;
+    else if( Scr.VxMax < 32000/Scr.MyDisplayWidth )
+        Scr.VxMax = (Scr.VxMax * Scr.MyDisplayWidth) - Scr.MyDisplayWidth ;
 
-    balloon_init (free_resources);
-    if (free_resources)
-	{
-		/* styles/textures */
-		while (mystyle_first != NULL)
-			mystyle_delete (mystyle_first);
-
-        if( Scr.DefaultFrame )
-            destroy_myframe( &(Scr.DefaultFrame) );
-		/* GCs */
-		if (Scr.DrawGC != None)
-			XFreeGC (dpy, Scr.DrawGC);
-
-#ifndef NO_TEXTURE
-		/* icons */
-		if (Scr.MenuArrow.pix != None)
-			free_icon_resources( Scr.MenuArrow );
-		if (Scr.MenuPinOn.pix != None)
-			free_icon_resources( Scr.MenuPinOn );
-		if (Scr.MenuPinOff.pix != None)
-			free_icon_resources( Scr.MenuPinOff );
-
-		/* cached gradients */
-		if (Scr.TitleGradient != None)
-			XFreePixmap (dpy, Scr.TitleGradient);
-#endif /* !NO_TEXTURE */
-
-		/* titlebar buttons */
-		for (i = 0; i < 10; i++)
-		{
-			free_icon_resources( Scr.buttons[i].unpressed );
-			free_icon_resources( Scr.buttons[i].pressed );
-		}
-#ifndef NO_TEXTURE
-        if( Scr.configured_icon_areas )
-            free( Scr.configured_icon_areas );
-        if( Scr.default_icon_box )
-            destroy_asiconbox( &(Scr.default_icon_box));
-        if( Scr.icon_boxes )
-            destroy_ashash( &(Scr.icon_boxes));
-        /* iconized window background */
-		if (IconBgColor != NULL)
-			free (IconBgColor);
-		if (IconTexColor != NULL)
-			free (IconTexColor);
-		if (IconPixmapFile != NULL)
-			free (IconPixmapFile);
-#endif /* !NO_TEXTURE */
-
-		/* resize/move window geometry */
-		if (RMGeom != NULL)
-			free (RMGeom);
-        /* temporary old-style fonts : */
-        unload_font (&StdFont);
-        unload_font (&WindowFont);
-        unload_font (&IconFont);
-    }
-    /* styles/textures */
-	mystyle_first = NULL;
-	Scr.MSDefault = NULL;
-	Scr.MSFWindow = NULL;
-	Scr.MSUWindow = NULL;
-	Scr.MSSWindow = NULL;
-	Scr.MSMenuTitle = NULL;
-	Scr.MSMenuItem = NULL;
-	Scr.MSMenuHilite = NULL;
-	Scr.MSMenuStipple = NULL;
-
-    Scr.DefaultFrame = create_default_myframe();
-
-	/* GCs */
-	Scr.DrawGC = None;
-
-#ifndef NO_TEXTURE
-	/* icons */
-	memset(&(Scr.MenuArrow), 0x00, sizeof(MyIcon));
-	memset(&(Scr.MenuPinOn), 0x00, sizeof(MyIcon));
-	memset(&(Scr.MenuPinOff), 0x00, sizeof(MyIcon));
-
-	/* cached gradients */
-	Scr.TitleGradient = None;
-
-#endif /* !NO_TEXTURE */
-	Scr.TitleTextAlign = 0;
-
-	/* titlebar buttons */
-	Scr.TitleButtonSpacing = 2;
-	Scr.TitleButtonStyle = 0;
-	for (i = 0; i < 10; i++)
-		memset(&(Scr.buttons[i]), 0x00, sizeof(MyButton));
-
-#ifndef NO_TEXTURE
-	/* iconized window background */
-	IconTexType = TEXTURE_BUILTIN;
-	IconBgColor = NULL;
-	IconTexColor = NULL;
-	IconPixmapFile = NULL;
-#endif /* !NO_TEXTURE */
-	Scr.ButtonWidth = 0;
-	Scr.ButtonHeight = 0;
-
-	/* resize/move window geometry */
-	RMGeom = NULL;
-
-#ifndef NO_TEXTURE
-	/* frames */
-    if( Scr.DefaultFrame )
-        destroy_myframe( &(Scr.DefaultFrame) );
-    if( Scr.FramesList )
-        destroy_ashash( &(Scr.FramesList));
-#endif /* !NO_TEXTURE */
-
-	/* miscellaneous stuff */
-	RubberBand = 0;
-	DrawMenuBorders = 1;
-	TextureMenuItemsIndividually = 1;
-    Scr.look_flags = SeparateButtonTitle;
-    Scr.configured_icon_areas_num = 0;
-    Scr.configured_icon_areas = NULL ;
-    Scr.default_icon_box = NULL ;
-    Scr.icon_boxes = NULL ;
-
-    look->StartMenuSortMode = DEFAULTSTARTMENUSORT;
-
-    look->supported_hints = create_hints_list();
-    enable_hints_support( look->supported_hints, HINTS_ICCCM );
-    enable_hints_support( look->supported_hints, HINTS_Motif );
-    enable_hints_support( look->supported_hints, HINTS_Gnome );
-    enable_hints_support( look->supported_hints, HINTS_ExtendedWM );
-    enable_hints_support( look->supported_hints, HINTS_ASDatabase );
-    enable_hints_support( look->supported_hints, HINTS_GroupLead );
-    enable_hints_support( look->supported_hints, HINTS_Transient );
-
-    /* temporary old-style fonts : */
-    memset(&StdFont, 0x00, sizeof(MyFont));
-    memset(&WindowFont, 0x00, sizeof(MyFont));
-    memset(&IconFont, 0x00, sizeof(MyFont));
-
-
+    if( Scr.VyMax <= 0 )
+        Scr.VyMax = 0 ;
+    else if( Scr.VyMax < 32000/Scr.MyDisplayHeight )
+        Scr.VyMax = (Scr.VyMax * Scr.MyDisplayHeight) - Scr.MyDisplayHeight ;
 }
+
 
 /*
  * Initialize feel variables
@@ -923,17 +624,221 @@ InitFeel (ASFeel *feel, Bool free_resources)
     feel->AutoReverse = 0;
     feel->Xzap = 12;
     feel->Yzap = 12;
-    feel->EdgeScrollX = Scr.Feel.EdgeScrollY = -100000;
-    feel->ScrollResistance = Scr.Feel.MoveResistance = 0;
-    feel->OpaqueSize = 5;
+    feel->EdgeScrollX = feel->EdgeScrollY = -100000;
+    feel->EdgeResistanceScroll = feel->EdgeResistanceMove = 0;
+    feel->OpaqueMove = 5;
     feel->OpaqueResize = 0;
     feel->ClickTime = 150;
     feel->AutoRaiseDelay = 0;
     feel->RaiseButtons = 0;
     feel->flags = DoHandlePageing;
+    feel->XorValue = (((unsigned long)1) << Scr.d_depth) - 1;
 
     feel->MouseButtonRoot = NULL;
     feel->FuncKeyRoot = NULL;
+}
+
+void
+CheckFeelSanity( ASFeel *feel )
+{
+    /* If no edge scroll line is provided in the setup file, use a default */
+    if (feel->EdgeScrollX == -100000)
+        feel->EdgeScrollX = 25;
+    if (feel->EdgeScrollY == -100000)
+        feel->EdgeScrollY = feel->EdgeScrollX;
+
+    if (get_flags(feel->flags, ClickToRaise) && feel->AutoRaiseDelay == 0)
+        feel->AutoRaiseDelay = -1;
+
+    /* if edgescroll >1000 and < 100000m
+        * wrap at edges of desktop (a "spherical" desktop) */
+    if (feel->EdgeScrollX >= 1000)
+    {
+        feel->EdgeScrollX /= 1000;
+        set_flags(feel->flags, EdgeWrapX);
+    }
+    if (feel->EdgeScrollY >= 1000)
+    {
+        feel->EdgeScrollY /= 1000;
+        set_flags(feel->flags, EdgeWrapY);
+    }
+    feel->EdgeScrollX = feel->EdgeScrollX * Scr.MyDisplayWidth / 100;
+    feel->EdgeScrollY = feel->EdgeScrollY * Scr.MyDisplayHeight / 100;
+
+    if (Scr.VxMax == 0)
+        clear_flags(feel->flags, EdgeWrapX);
+    if (Scr.VyMax == 0)
+        clear_flags(feel->flags, EdgeWrapY);
+}
+
+/*
+ * Initialize look variables
+ */
+void
+InitLook (MyLook *look, Bool free_resources)
+{
+	int           i;
+
+    balloon_init (free_resources);
+    if (free_resources)
+	{
+		/* styles/textures */
+		while (mystyle_first != NULL)
+			mystyle_delete (mystyle_first);
+
+        if( look->DefaultFrame )
+            destroy_myframe( &(look->DefaultFrame) );
+        if( look->FramesList )
+            destroy_ashash( &(look->FramesList));
+
+#ifndef NO_TEXTURE
+		/* icons */
+        if (look->MenuArrow != NULL)
+            destroy_icon( &(look->MenuArrow) );
+        if (look->MenuPinOn != NULL)
+            destroy_icon( &(look->MenuPinOn) );
+        if (look->MenuPinOff != NULL)
+            destroy_icon( &(look->MenuPinOff) );
+
+#endif /* !NO_TEXTURE */
+		/* titlebar buttons */
+		for (i = 0; i < 10; i++)
+		{
+            free_icon_resources( look->buttons[i].unpressed );
+            free_icon_resources( look->buttons[i].pressed );
+		}
+        if( look->configured_icon_areas )
+            free( look->configured_icon_areas );
+
+        if( Scr.default_icon_box )
+            destroy_asiconbox( &(Scr.default_icon_box));
+        if( Scr.icon_boxes )
+            destroy_ashash( &(Scr.icon_boxes));
+
+        /* temporary old-style fonts : */
+        unload_font (&StdFont);
+        unload_font (&WindowFont);
+        unload_font (&IconFont);
+    }
+    /* styles/textures */
+	mystyle_first = NULL;
+    for( i = 0 ; i < BACK_STYLES ; ++i )
+        look->MSWindow[i] = NULL;
+    for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
+        look->MSMenu[i] = NULL;
+
+    look->DefaultFrame = create_default_myframe();
+
+    look->TitleTextAlign = 0;
+
+	/* titlebar buttons */
+    look->TitleButtonSpacing = 2;
+    look->TitleButtonStyle = 0;
+	for (i = 0; i < 10; i++)
+        memset(&(look->buttons[i]), 0x00, sizeof(MyButton));
+
+    look->ButtonWidth = 0;
+    look->ButtonHeight = 0;
+
+	/* resize/move window geometry */
+    memset( &(look->resize_move_geometry), 0x00, sizeof(ASGeometry));
+
+    /* miscellaneous stuff */
+    look->RubberBand = 0;
+    look->flags = TxtrMenuItmInd|SeparateButtonTitle ;
+    look->DrawMenuBorders = 1;
+    look->configured_icon_areas_num = 0;
+    look->configured_icon_areas = NULL ;
+
+    Scr.default_icon_box = NULL ;
+    Scr.icon_boxes = NULL ;
+
+    /* initialize some lists */
+    look->DefaultIcon = NULL;
+    /* free pixmaps that are no longer in use */
+	pixmap_ref_purge ();
+
+    look->StartMenuSortMode = DEFAULTSTARTMENUSORT;
+    look->supported_hints = create_hints_list();
+
+    enable_hints_support( look->supported_hints, HINTS_ICCCM );
+    enable_hints_support( look->supported_hints, HINTS_Motif );
+    enable_hints_support( look->supported_hints, HINTS_Gnome );
+    enable_hints_support( look->supported_hints, HINTS_ExtendedWM );
+    enable_hints_support( look->supported_hints, HINTS_ASDatabase );
+    enable_hints_support( look->supported_hints, HINTS_GroupLead );
+    enable_hints_support( look->supported_hints, HINTS_Transient );
+
+    /* temporary old-style fonts : */
+    memset(&StdFont, 0x00, sizeof(MyFont));
+    memset(&WindowFont, 0x00, sizeof(MyFont));
+    memset(&IconFont, 0x00, sizeof(MyFont));
+}
+
+void
+make_styles (MyLook *look)
+{
+/* make sure the globals are defined */
+    char *style_names[BACK_STYLES] = { "default", "FWindow", "UWindow", "SWindow" };
+    char *menu_style_names[MENU_BACK_STYLES] = { "MenuTitle", "MenuItem", "MenuHilite", "MenuStipple" };
+    int i ;
+
+    if (look->MSWindow[BACK_DEFAULT] == NULL)
+        look->MSWindow[BACK_DEFAULT] = mystyle_find_or_default ("default");
+    for( i = 0 ; i < BACK_STYLES ; ++i )
+        if (look->MSWindow[i] == NULL)
+            look->MSWindow[i] = mystyle_new_with_name (style_names[i]);
+
+    for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
+        if (look->MSMenu[i] == NULL)
+            look->MSMenu[i] = mystyle_new_with_name (menu_style_names[i]);
+
+    if (mystyle_find ("ButtonPixmap") == NULL)
+		mystyle_new_with_name ("ButtonPixmap");
+	if (mystyle_find ("ButtonTitleFocus") == NULL)
+		mystyle_new_with_name ("ButtonTitleFocus");
+	if (mystyle_find ("ButtonTitleSticky") == NULL)
+		mystyle_new_with_name ("ButtonTitleSticky");
+	if (mystyle_find ("ButtonTitleUnfocus") == NULL)
+		mystyle_new_with_name ("ButtonTitleUnfocus");
+}
+
+void
+FixLook( MyLook *look )
+{
+    /* make sure all needed styles are created */
+    make_styles (look);
+    /* merge pre-1.5 compatibility keywords */
+    merge_old_look_variables (look);
+
+    /* fill in remaining members with the default style */
+    mystyle_fix_styles (look);
+    mystyle_set_property (dpy, Scr.Root, _AS_STYLE, XA_INTEGER);
+
+#ifndef NO_TEXTURE
+    /* update frame geometries */
+    if (get_flags( look->flags, DecorateFrames))
+    {
+        if( look->DefaultFrame )
+            myframe_load ( look->DefaultFrame, Scr.image_manager );
+        else
+            look->DefaultFrame = create_default_myframe();
+        /* TODO: need to load the list as well (if we have any )*/
+    }
+#endif /* ! NO_TEXTURE */
+
+    /* updating balloons look */
+    balloon_setup (dpy);
+    balloon_set_style (dpy, mystyle_find_or_default ("TitleButtonBalloon"));
+
+    /* checking sanity of the move-resize window geometry :*/
+    if( !get_flags(look->resize_move_geometry.flags, WidthValue ) )
+        look->resize_move_geometry.width = XTextWidth (look->MSWindow[BACK_FOCUSED]->font.font, " +88888 x +88888 ", 17);
+
+    if( !get_flags(look->resize_move_geometry.flags, HeightValue ) )
+        look->resize_move_geometry.height = look->MSWindow[BACK_FOCUSED]->font.height + SIZE_VINDENT * 2;
+
+    set_flags( look->resize_move_geometry.flags, HeightValue|WidthValue );
 }
 
 /*
@@ -952,62 +857,6 @@ InitDatabase (Bool free_resources)
         Database = NULL ;
 }
 
-void
-ParseDatabase (const char *file)
-{
-    struct name_list *list = NULL ;
-	char         *realfilename;
-
-	/* memory management for parsing buffer */
-	if (file == NULL)
-		return;
-
-	realfilename = make_file_name (as_dirs.after_dir, file);
-	if (CheckFile (realfilename) != 0)
-	{
-		free (realfilename);
-		realfilename = make_file_name (as_dirs.after_sharedir, file);
-		if (CheckFile (realfilename) != 0)
-		{
-            show_progress( "database file \"%s\" does not exists or is not readable.", realfilename );
-			free (realfilename);
-			return;
-		}
-	}
-    if (realfilename)
-	{
-        list = ParseDatabaseOptions (realfilename, "afterstep");
-		free (realfilename);
-        if( list )
-        {
-            Database = build_asdb( list );
-            if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
-                print_asdb( NULL, NULL, Database );
-            while (list != NULL)
-                delete_name_list (&(list));
-        }else
-            show_progress( "no database records loaded." );
-    }else
-        show_progress( "no database file available." );
-    /* XResources : */
-    load_user_database();
-}
-
-/*
-void
-InitDatabase (Bool free_resources)
-{
-	if (free_resources)
-	{
-		while (Scr.TheList != NULL)
-			style_delete (Scr.TheList);
-		if (Scr.DefaultIcon != NULL)
-			free (Scr.DefaultIcon);
-	}
-	Scr.TheList = NULL;
-	Scr.DefaultIcon = NULL;
-}
-*/
 /*
  * Create/destroy window titlebar/buttons as necessary.
  */
@@ -1024,75 +873,50 @@ redecorate_aswindow_iter_func(void *data, void *aux_data)
 }
 
 
+/*************************************************************************/
+/* reading confiug files now :                                           */
+/*************************************************************************/
 void
-make_styles (void)
+ParseDatabase (const char *file)
 {
-/* make sure the globals are defined */
-	if (Scr.MSDefault == NULL)
-	{
-		if ((Scr.MSDefault = mystyle_find ("default")) == NULL)
-			Scr.MSDefault = mystyle_new_with_name ("default");
-	}
-	/* for now, the default style must be named "default" */
-	else if (mystrcasecmp ((*Scr.MSDefault).name, "default"))
-	{
-		free ((*Scr.MSDefault).name);
-		(*Scr.MSDefault).name = mystrdup ("default");
-	}
-	if (Scr.MSFWindow == NULL)
-		Scr.MSFWindow = mystyle_new_with_name ("FWindow");
-	if (Scr.MSUWindow == NULL)
-		Scr.MSUWindow = mystyle_new_with_name ("UWindow");
-	if (Scr.MSSWindow == NULL)
-		Scr.MSSWindow = mystyle_new_with_name ("SWindow");
-	if (Scr.MSMenuTitle == NULL)
-		Scr.MSMenuTitle = mystyle_new_with_name ("MenuTitle");
-	if (Scr.MSMenuItem == NULL)
-		Scr.MSMenuItem = mystyle_new_with_name ("MenuItem");
-	if (Scr.MSMenuHilite == NULL)
-		Scr.MSMenuHilite = mystyle_new_with_name ("MenuHilite");
-	if (Scr.MSMenuStipple == NULL)
-		Scr.MSMenuStipple = mystyle_new_with_name ("MenuStipple");
-	if (mystyle_find ("ButtonPixmap") == NULL)
-		mystyle_new_with_name ("ButtonPixmap");
-	if (mystyle_find ("ButtonTitleFocus") == NULL)
-		mystyle_new_with_name ("ButtonTitleFocus");
-	if (mystyle_find ("ButtonTitleSticky") == NULL)
-		mystyle_new_with_name ("ButtonTitleSticky");
-	if (mystyle_find ("ButtonTitleUnfocus") == NULL)
-		mystyle_new_with_name ("ButtonTitleUnfocus");
+    struct name_list *list = NULL ;
+
+	/* memory management for parsing buffer */
+	if (file == NULL)
+        return ;
+
+    list = ParseDatabaseOptions (file, "afterstep");
+    if( list )
+    {
+        Database = build_asdb( list );
+        if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
+            print_asdb( NULL, NULL, Database );
+        while (list != NULL)
+            delete_name_list (&(list));
+    }else
+        show_progress( "no database records loaded." );
+    /* XResources : */
+    load_user_database();
 }
+
 
 int
 ParseConfigFile (const char *file, char **tline)
 {
-	char         *realfilename;
-	FILE         *fp = NULL;
+    FILE         *fp = NULL;
 	register char *ptr;
 
 	/* memory management for parsing buffer */
 	if (file == NULL)
 		return -1;
 
-	realfilename = make_file_name (as_dirs.after_dir, file);
-	if (CheckFile (realfilename) != 0)
-	{
-		free (realfilename);
-		realfilename = make_file_name (as_dirs.after_sharedir, file);
-		if (CheckFile (realfilename) != 0)
-		{
-			free (realfilename);
-			return -1;
-		}
-	}
-	/* this should not happen, but still checking */
-	if ((fp = fopen (realfilename, "r")) == (FILE *) NULL)
+    /* this should not happen, but still checking */
+    if ((fp = fopen (file, "r")) == (FILE *) NULL)
 	{
         show_error("can't open config file [%s] - skipping it for now.\nMost likely you have incorrect permissions on the AfterStep configuration dir.",
              file);
         return -1;
 	}
-	free (realfilename);
 
 	if (*tline == NULL)
 		*tline = safemalloc (MAXLINELENGTH + 1);
@@ -1117,15 +941,15 @@ ParseConfigFile (const char *file, char **tline)
 }
 
 /*****************************************************************************
- *
+ *****************************************************************************
  * This routine is responsible for reading and parsing the config file
- *
+ ****************************************************************************
  ****************************************************************************/
-/* MakeMenus - for those who can't remember LoadASConfig's real name */
+/* MakeMenus - for those who can't remember LoadASConfig's real name        */
 void
 LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel)
 {
-	int           parse_base = 1, parse_database = 1;
+    int           parse_base = True, parse_database = True;
 	char         *tline = NULL;
 
 	ASImageManager *old_image_manager = Scr.image_manager ;
@@ -1136,281 +960,149 @@ LoadASConfig (int thisdesktop, Bool parse_menu, Bool parse_look, Bool parse_feel
 #endif /* !DIFFERENTLOOKNFEELFOREACHDESKTOP */
 
 	/* kludge: make sure functions get updated */
-	if (parse_menu)
-		parse_feel = True;
+    parse_feel = parse_feel||parse_menu;
 
-	/* always parse database */
-	InitDatabase (True);
-
-	/* base.* variables */
-	if (parse_base || shall_override_config_file)
-        InitBase (True);
-
-	if (parse_look || shall_override_config_file)
-        InitLook (True);
-
-	if (parse_feel || shall_override_config_file)
-		InitFeel (True);
-
-	XORvalue = (((unsigned long)1) << Scr.d_depth) - 1;
-
-	/* initialize some lists */
-    Scr.Look.DefaultIcon = NULL;
-
-	/* free pixmaps that are no longer in use */
-	pixmap_ref_purge ();
-
-	fprintf (stderr, "Detected colordepth : %d. Loading configuration ", Scr.d_depth);
-	if (!shall_override_config_file)
+    show_progress("Detected colordepth : %d. Loading configuration ...", Scr.d_depth);
+    if (Session->overriding_file == NULL )
 	{
-		char          configfile[64];
-
-		CheckASTree (thisdesktop, parse_look, parse_feel);
-		if (parse_base)
+        char *configfile;
+        const char *const_configfile;
+        if (parse_base)
 		{
-			char * old_pixmap_path = PixmapPath ;
-			PixmapPath = NULL ;
-			sprintf (configfile, "%s.%dbpp", BASE_FILE, Scr.d_depth);
-			ParseConfigFile (configfile, &tline);
-			/* Save base filename to pass to modules */
-			if (global_base_file != NULL)
-				free (global_base_file);
-			global_base_file = mystrdup (configfile);
-			if( (old_pixmap_path == NULL && PixmapPath != NULL )||
-			    (old_pixmap_path != NULL && PixmapPath == NULL )||
-				(old_pixmap_path != NULL && PixmapPath != NULL && strcmp(old_pixmap_path, PixmapPath) == 0 ) )
-			{
-				Scr.image_manager = create_image_manager( NULL, 2.2, PixmapPath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
-				if( !parse_look )
-				{
-					InitLook (True);
-					parse_look = True ;
-				}
-				parse_menu = True ;
-				if( !parse_feel )
-				{
-					parse_feel = True;
-					InitFeel (True);
-				}
-			}
-			free( old_pixmap_path );
-		}
-		fprintf (stderr, ".");
-		if (parse_look)
-		{
-			Bool          done = False;
+            if( (configfile = make_session_file(Session, BASE_FILE ".%dbpp", True )) != NULL )
+            {
+                char * old_pixmap_path = PixmapPath ;
 
-            if (Scr.screen != 0)
-			{
-				sprintf (configfile, LOOK_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
-				done = (ParseConfigFile (configfile, &tline) > 0);
-			}
-			if (!done)
-			{
-				sprintf (configfile, LOOK_FILE, thisdesktop, Scr.d_depth);
-/*fprintf( stderr, "screen = %ld, look :[%s]\n", Scr.screen, configfile );*/
-				ParseConfigFile (configfile, &tline);
-			}
+                InitBase (True);
+                ParseConfigFile (configfile, &tline);
+                /* Save base filename to pass to modules */
+                if( (old_pixmap_path == NULL && PixmapPath != NULL )||
+                    (old_pixmap_path != NULL && PixmapPath == NULL )||
+                    (old_pixmap_path != NULL && PixmapPath != NULL && strcmp(old_pixmap_path, PixmapPath) == 0 ) )
+                {
+                    Scr.image_manager = create_image_manager( NULL, 2.2, PixmapPath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
+                    InitLook (&Scr.Look, True);
+                    parse_look = True ;
+                }
+                free( old_pixmap_path );
+                show_progress("BASE configuration loaded from \"%s\" ...", configfile);
+                free( configfile );
+            }else
+            {
+                show_warning("BASE configuration file cannot be found");
+                parse_base = False ;
+            }
         }
-		fprintf (stderr, ".");
-		if (parse_menu)
+        if (parse_look)
+		{
+            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_LOOK) ) != NULL )
+            {
+                InitLook (&Scr.Look, True);
+                ParseConfigFile (const_configfile, &tline);
+                show_progress("LOOK configuration loaded from \"%s\" ...", const_configfile);
+            }else
+            {
+                show_warning("LOOK configuration file cannot be found");
+                parse_look = False ;
+            }
+        }
+        if (parse_menu)
 		{
 			if (tline == NULL)
 				tline = safemalloc (MAXLINELENGTH + 1);
 			MeltStartMenu (tline);
-		}
-		fprintf (stderr, ".");
-		if (parse_feel)
+        }
+        if (parse_feel)
 		{
-			Bool          done = False;
-
-			if (Scr.screen != 0)
-			{
-				sprintf (configfile, FEEL_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
-				done = (ParseConfigFile (configfile, &tline) > 0);
-			}
-			if (!done)
-			{
-				sprintf (configfile, FEEL_FILE, thisdesktop, Scr.d_depth);
-				ParseConfigFile (configfile, &tline);
-			}
-		}
+            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_FEEL) ) != NULL )
+            {
+                InitFeel (&Scr.Feel, True);
+                ParseConfigFile (const_configfile, &tline);
+                show_progress("FEEL configuration loaded from \"%s\" ...", const_configfile);
+            }else
+            {
+                show_warning("FEEL configuration file cannot be found");
+                parse_feel = False ;
+            }
+        }
 		if (parse_feel || parse_look)
 		{
-			Bool          done = False;
-
-			if (Scr.screen != 0)
-			{
-				sprintf (configfile, THEME_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
-				done = (ParseConfigFile (configfile, &tline) > 0);
-			}
-			if (!done)
-			{
-				sprintf (configfile, THEME_FILE, thisdesktop, Scr.d_depth);
-				ParseConfigFile (configfile, &tline);
-			}
-			ParseConfigFile (THEME_OVERRIDE_FILE, &tline);
+            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_THEME) ) != NULL )
+            {
+                ParseConfigFile (const_configfile, &tline);
+                show_progress("THEME configuration loaded from \"%s\" ...", const_configfile);
+                if( (configfile = make_session_data_file  (Session, False, R_OK, THEME_OVERRIDE_FILE, NULL )) != NULL )
+                {
+                    ParseConfigFile (configfile, &tline);
+                    show_progress("THEME OVERRIDES configuration loaded from \"%s\" ...", configfile);
+                    free( configfile );
+                }
+            }
         }
-		fprintf (stderr, ".");
-		ParseConfigFile (AUTOEXEC_FILE, &tline);
-		fprintf (stderr, ".");
-		ParseDatabase (DATABASE_FILE);
-		/* ParseConfigFile (DATABASE_FILE, &tline); */
-		fprintf (stderr, ".");
+        if( (configfile = make_session_file(Session, AUTOEXEC_FILE, False )) != NULL )
+        {
+            ParseConfigFile (configfile, &tline);
+            show_progress("AUTOEXEC configuration loaded from \"%s\" ...", configfile);
+            free( configfile );
+        }else
+            show_warning("AUTOEXEC configuration file cannot be found");
+
+        if( (configfile = make_session_file(Session, DATABASE_FILE, False )) != NULL )
+        {
+            InitDatabase (True);
+            ParseDatabase (configfile);
+            show_progress("DATABASE configuration loaded from \"%s\" ...", configfile);
+            free( configfile );
+        }else
+        {
+            show_warning("DATABASE configuration file cannot be found");
+            parse_database = False ;
+        }
+
 	} else
 	{
 		Scr.image_manager = NULL ;
 		/* Yes, override config file */
-		ParseConfigFile (config_file_to_override, &tline);
-        fprintf (stderr, "......");
-	}
-	free_func_hash ();
+        InitBase (True);
+        InitLook (&Scr.Look, True);
+        InitFeel (&Scr.Feel, True);
+        InitDatabase (True);
+        ParseConfigFile (Session->overriding_file, &tline);
+        show_progress("AfterStep configuration loaded from \"%s\" ...", Session->overriding_file);
+        parse_base = parse_feel = parse_look = parse_database = True ;
+    }
 
 	/* let's free the memory used for parsing */
 	if (tline)
 		free (tline);
-	fprintf (stderr, ". Done.\n");
+    show_progress("Done loading configuration.");
 
-	if (parse_base || shall_override_config_file)
-	{
-		Scr.VxMax = Scr.VxMax * Scr.MyDisplayWidth - Scr.MyDisplayWidth;
-		Scr.VyMax = Scr.VyMax * Scr.MyDisplayHeight - Scr.MyDisplayHeight;
-		if (Scr.VxMax < 0)
-			Scr.VxMax = 0;
-		if (Scr.VyMax < 0)
-			Scr.VyMax = 0;
 
-		if (Scr.VxMax == 0)
-			Scr.flags &= ~EdgeWrapX;
-		if (Scr.VyMax == 0)
-			Scr.flags &= ~EdgeWrapY;
-	}
+    CheckBaseSanity();
+    CheckFeelSanity( &Scr.Feel );
 
-	if (parse_look || shall_override_config_file)
-	{
-		/* make sure all needed styles are created */
-		make_styles ();
-
-		/* merge pre-1.5 compatibility keywords */
-		merge_old_look_variables ();
-
-		/* fill in remaining members with the default style */
-		mystyle_fix_styles ();
-
-		mystyle_set_property (dpy, Scr.Root, _AS_STYLE, XA_INTEGER);
-
-#ifndef NO_TEXTURE
-        /* update frame geometries */
-        if (get_flags( Scr.look_flags, DecorateFrames))
-        {
-            if( Scr.DefaultFrame )
-                myframe_load ( Scr.DefaultFrame, Scr.image_manager );
-            else
-                Scr.DefaultFrame = create_default_myframe();
-            /* need to load the list as well (if we have any )*/
-        }
-#endif /* ! NO_TEXTURE */
-	}
-
-	/* update the resize/move window geometry */
-	if (parse_look || shall_override_config_file)
-	{
-		int           invalid_RMGeom = 0;
-		int           x = 0, y = 0;
-		int           width, height;
-
-		height = (*Scr.MSFWindow).font.height + SIZE_VINDENT * 2;
-		Scr.SizeStringWidth = XTextWidth ((*Scr.MSFWindow).font.font, " +8888 x +8888 ", 15);
-		XSetWindowBorder (dpy, Scr.SizeWindow, (*Scr.MSFWindow).colors.fore);
-		XSetWindowBackground (dpy, Scr.SizeWindow, (*Scr.MSFWindow).colors.back);
-
-		width = Scr.SizeStringWidth + SIZE_HINDENT * 2;
-
-		if ((RMGeom != NULL) && (strlen (RMGeom) == 2))
-		{
-			if (RMGeom[0] == '+')
-				x = 0;
-			else if (RMGeom[0] == '-')
-				x = DisplayWidth (dpy, Scr.screen) - width;
-			else
-				invalid_RMGeom = 1;
-
-			if (RMGeom[1] == '+')
-				y = 0;
-			else if (RMGeom[1] == '-')
-				y = DisplayHeight (dpy, Scr.screen) - height;
-			else
-				invalid_RMGeom = 1;
-		} else
-			invalid_RMGeom = 1;				   /* not necessarily invalid--maybe unspecified */
-
-		if (invalid_RMGeom)
-		{
-			/* the default case is, of course, to center the R/M window */
-			x = (DisplayWidth (dpy, Scr.screen) - width) / 2;
-			y = (DisplayHeight (dpy, Scr.screen) - height) / 2;
-		}
-		XMoveResizeWindow (dpy, Scr.SizeWindow, x, y, width, height);
-	}
-
-	if (parse_feel || shall_override_config_file)
-	{
-		/* If no edge scroll line is provided in the setup file, use a default */
-		if (Scr.EdgeScrollX == -100000)
-			Scr.EdgeScrollX = 25;
-		if (Scr.EdgeScrollY == -100000)
-			Scr.EdgeScrollY = Scr.EdgeScrollX;
-
-		if ((Scr.flags & ClickToRaise) && (Scr.AutoRaiseDelay == 0))
-			Scr.AutoRaiseDelay = -1;
-
-		/* if edgescroll >1000 and < 100000m
-		 * wrap at edges of desktop (a "spherical" desktop) */
-		if (Scr.EdgeScrollX >= 1000)
-		{
-			Scr.EdgeScrollX /= 1000;
-			Scr.flags |= EdgeWrapX;
-		}
-		if (Scr.EdgeScrollY >= 1000)
-		{
-			Scr.EdgeScrollY /= 1000;
-			Scr.flags |= EdgeWrapY;
-		}
-		Scr.EdgeScrollX = Scr.EdgeScrollX * Scr.MyDisplayWidth / 100;
-		Scr.EdgeScrollY = Scr.EdgeScrollY * Scr.MyDisplayHeight / 100;
-	}
+    if (parse_look)
+        FixLook( &Scr.Look );
 
     /* TODO: update the menus */
-	if (parse_look || parse_feel || parse_menu || shall_override_config_file)
+    if (parse_look || parse_feel|| parse_base || parse_menu)
 	{
     }
-
-	/* setup the titlebar buttons */
-	if (parse_look || shall_override_config_file)
-	{
-		balloon_setup (dpy);
-		balloon_set_style (dpy, mystyle_find_or_default ("TitleButtonBalloon"));
-	}
 
     /* force update of window frames */
-	if (parse_look || parse_base || parse_database || shall_override_config_file)
+    if (parse_look || parse_feel || parse_base || parse_database)
         iterate_asbidirlist( Scr.Windows->clients, redecorate_aswindow_iter_func, NULL, NULL, False );
-
-	/* redo icons in case IconBox, ButtonSize, SeparateButtonTitle, or one
-	 * of the Icon definitions in database changed */
-	if (parse_database || parse_look || shall_override_config_file)
-	{
-
-    }
 
     if( old_image_manager && old_image_manager != Scr.image_manager )
 		destroy_image_manager( old_image_manager, False );
 }
 
 /*****************************************************************************
- *
+ *  This series of functions do actuall parsing of config options on per-line
+ *  basis :
+ *****************************************************************************/
+/*****************************************************************************
  * Copies a text string from the config file to a specified location
- *
  ****************************************************************************/
 
 void
@@ -1450,6 +1142,17 @@ assign_path (char *text, FILE * fd, char **arg, int *junk)
 	replaceEnvVar (arg);
 }
 
+void
+assign_geometry (char *text, FILE * fd, char **arg, int *junk)
+{
+    ASGeometry *geom = (ASGeometry*)arg ;
+
+    geom->x = geom->y = 0;
+    geom->width = geom->height = 1;
+    geom->flags = 0 ;
+    parse_geometry (text, &(geom->x), &(geom->y), &(geom->width), &(geom->height), &(geom->flags));
+}
+
 /*****************************************************************************
  * Loads a pixmap to the assigned location
  ****************************************************************************/
@@ -1472,7 +1175,6 @@ void
 SetTitleText (char *tline, FILE * fd, char **junk, int *junk2)
 {
 #ifndef NO_TEXTURE
-	int           n;
 	int           ttype, y;
 
     sscanf (tline, "%d %d", &ttype, &y);
@@ -1539,23 +1241,23 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 		return;
 	}
 
-	GetIconFromFile (file, &(Scr.buttons[num].unpressed), 0);
-	GetIconFromFile (file2, &(Scr.buttons[num].pressed), 0);
+    GetIconFromFile (file, &(Scr.Look.buttons[num].unpressed), 0);
+    GetIconFromFile (file2, &(Scr.Look.buttons[num].pressed), 0);
 
-	Scr.buttons[num].width = 0 ;
-	Scr.buttons[num].height = 0 ;
+    Scr.Look.buttons[num].width = 0 ;
+    Scr.Look.buttons[num].height = 0 ;
 
-	if( Scr.buttons[num].unpressed.image )
+    if( Scr.Look.buttons[num].unpressed.image )
 	{
-		Scr.buttons[num].width = Scr.buttons[num].unpressed.image->width ;
-		Scr.buttons[num].height = Scr.buttons[num].unpressed.image->height ;
+        Scr.Look.buttons[num].width = Scr.Look.buttons[num].unpressed.image->width ;
+        Scr.Look.buttons[num].height = Scr.Look.buttons[num].unpressed.image->height ;
 	}
-	if( Scr.buttons[num].pressed.image )
+    if( Scr.Look.buttons[num].pressed.image )
 	{
-		if( Scr.buttons[num].pressed.image->width > Scr.buttons[num].width )
-			Scr.buttons[num].width = Scr.buttons[num].pressed.image->width ;
-		if( Scr.buttons[num].pressed.image->height > Scr.buttons[num].height )
-			Scr.buttons[num].height = Scr.buttons[num].pressed.image->height ;
+        if( Scr.Look.buttons[num].pressed.image->width > Scr.Look.buttons[num].width )
+            Scr.Look.buttons[num].width = Scr.Look.buttons[num].pressed.image->width ;
+        if( Scr.Look.buttons[num].pressed.image->height > Scr.Look.buttons[num].height )
+            Scr.Look.buttons[num].height = Scr.Look.buttons[num].pressed.image->height ;
 	}
 }
 
@@ -1574,7 +1276,15 @@ SetCursor (char *text, FILE * fd, char **arg, int *junk)
 	if ((num != 2) || (cursor_num >= MAX_CURSORS) || (cursor_num < 0))
 		tline_error ("bad Cursor");
 	else
-		Scr.ASCursors[cursor_num] = XCreateFontCursor (dpy, cursor_style);
+    {
+        Cursor new_c = XCreateFontCursor (dpy, cursor_style);
+        if( new_c )
+        {
+            if( Scr.Feel.cursors[cursor_num] )
+                XFreeCursor( dpy, Scr.Feel.cursors[cursor_num] );
+            Scr.Feel.cursors[cursor_num] = new_c ;
+        }
+    }
 }
 
 void
@@ -1586,6 +1296,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 	int           width, height, x, y;
 	XColor        fore, back;
 	char         *path;
+    Cursor new_c ;
 
 	num = sscanf (text, "%d %s %s", &cursor_num, f_cursor, f_mask);
 	if ((num != 3) || (cursor_num >= MAX_CURSORS) || (cursor_num < 0))
@@ -1626,8 +1337,15 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 		tline_error ("unrecognized format for cursor");
 		return;
 	}
-	Scr.ASCursors[cursor_num] = XCreatePixmapCursor (dpy, cursor, mask, &fore, &back, x, y);
-	XFreePixmap (dpy, mask);
+
+    new_c = XCreatePixmapCursor (dpy, cursor, mask, &fore, &back, x, y);
+    if( new_c )
+    {
+        if( Scr.Feel.cursors[cursor_num] )
+            XFreeCursor( dpy, Scr.Feel.cursors[cursor_num] );
+        Scr.Feel.cursors[cursor_num] = new_c ;
+    }
+    XFreePixmap (dpy, mask);
 	XFreePixmap (dpy, cursor);
 }
 
@@ -1697,9 +1415,9 @@ SetButtonList (char *text, FILE * fd, char **arg1, int *arg2)
 		if (*text == ',')
 			text++;
 		if ((b > 0) && (b <= MAX_MOUSE_BUTTONS))
-			Scr.RaiseButtons |= 1 << b;
+            Scr.Feel.RaiseButtons |= 1 << b;
 	}
-	Scr.flags |= ClickToRaise;
+    set_flags(Scr.Feel.flags, ClickToRaise);
 }
 
 
@@ -1736,18 +1454,18 @@ SetBox (char *text, FILE * fd, char **arg, int *junk)
         show_error("invalid IconBox '%s'", text);
     }else
 	{
-        int box_no = Scr.configured_icon_areas_num;
-        Scr.configured_icon_areas = realloc( Scr.configured_icon_areas, (box_no+1)*sizeof(ASGeometry));
-        Scr.configured_icon_areas[box_no].x = x1 ;
-        Scr.configured_icon_areas[box_no].y = y1 ;
-        Scr.configured_icon_areas[box_no].width = x2-x1 ;
-        Scr.configured_icon_areas[box_no].height = y2-y1 ;
-        Scr.configured_icon_areas[box_no].flags = XValue|YValue|WidthValue|HeightValue ;
+        int box_no = Scr.Look.configured_icon_areas_num;
+        Scr.Look.configured_icon_areas = realloc( Scr.Look.configured_icon_areas, (box_no+1)*sizeof(ASGeometry));
+        Scr.Look.configured_icon_areas[box_no].x = x1 ;
+        Scr.Look.configured_icon_areas[box_no].y = y1 ;
+        Scr.Look.configured_icon_areas[box_no].width = x2-x1 ;
+        Scr.Look.configured_icon_areas[box_no].height = y2-y1 ;
+        Scr.Look.configured_icon_areas[box_no].flags = XValue|YValue|WidthValue|HeightValue ;
         if( x1 > Scr.MyDisplayWidth-x2 )
-            Scr.configured_icon_areas[box_no].flags |= XNegative ;
+            Scr.Look.configured_icon_areas[box_no].flags |= XNegative ;
         if( y1 > Scr.MyDisplayHeight-y2 )
-            Scr.configured_icon_areas[box_no].flags |= YNegative ;
-        ++Scr.configured_icon_areas_num;
+            Scr.Look.configured_icon_areas[box_no].flags |= YNegative ;
+        ++Scr.Look.configured_icon_areas_num;
     }
 }
 
@@ -1760,9 +1478,9 @@ SetFramePart (char *text, FILE * fd, char **frame, int *id)
     {
         if( pframe == NULL )
         {
-            if( Scr.DefaultFrame == NULL )
-                Scr.DefaultFrame = create_myframe();
-            pframe = Scr.DefaultFrame;
+            if( Scr.Look.DefaultFrame == NULL )
+                Scr.Look.DefaultFrame = create_myframe();
+            pframe = Scr.Look.DefaultFrame;
         }
         filename2myframe_part (pframe, (int)id, fname);
         free( fname );

@@ -93,9 +93,9 @@
 #define BACK_DEFAULT		3
 #define BACK_STYLES         4
 
-#define MENU_BACK_ITEM 		0
-#define MENU_BACK_TITLE 	1
-#define MENU_BACK_HILITE 	2
+#define MENU_BACK_TITLE     0
+#define MENU_BACK_ITEM      1
+#define MENU_BACK_HILITE    2
 #define MENU_BACK_STIPPLE 	3
 #define MENU_BACK_STYLES 	4
 

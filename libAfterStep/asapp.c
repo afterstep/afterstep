@@ -100,6 +100,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Background", 10, F_CHANGE_BACKGROUND),	/* Background "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeLook", 10, F_CHANGE_LOOK),	/* ChangeLook "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeFeel", 10, F_CHANGE_FEEL),	/* ChangeFeel "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeTheme", 11, F_CHANGE_THEME), /* ChangeTheme "name" file_name */
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndFunction", 11, F_ENDFUNC),
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndPopup", 8, F_ENDPOPUP),
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", 4, F_Test),
@@ -220,8 +221,10 @@ static CommandLineOpts as_cmdl_options[] =
                                                            handler_set_string, &(MyArgs.override_look), 0, CMO_HasArgs },
 /*14*/{NULL, "feel","Read feel config from requested file","Use it if you want to use different feel\ninstead of what was selected from the menu.",
                                                            handler_set_string, &(MyArgs.override_feel), 0, CMO_HasArgs },
+/*15*/{NULL, "theme","Read theme config from requested file","Use it if you want to use different theme\ninstead of what was selected from the menu.",
+                                                           handler_set_string, &(MyArgs.override_feel), 0, CMO_HasArgs },
 #ifdef DEBUG_TRACE_X
-/*15*/{NULL, "trace-func","Debugging: Trace calls to a function with requested name", NULL,
+/*16*/{NULL, "trace-func","Debugging: Trace calls to a function with requested name", NULL,
                                                            handler_set_string, &(MyArgs.trace_calls), 0, CMO_HasArgs },
 #endif
       {NULL, NULL, NULL, NULL, NULL, NULL, 0 }

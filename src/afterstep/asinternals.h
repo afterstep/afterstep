@@ -88,6 +88,7 @@ extern int    ShapeErrorBase;
 
 extern ASFlagType    AfterStepState;              /* see ASS_ flags above */
 /* this are linked lists of structures : */
+extern struct ASSession  *Session ;              /* filenames of look, feel and background */
 extern struct ASDatabase *Database;
 extern ASHashTable       *ComplexFunctions;
 
