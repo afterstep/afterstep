@@ -1866,9 +1866,14 @@ status2anchor (XRectangle * anchor, ASHints * hints, ASStatusHints * status, uns
 {
 	if (get_flags (status->flags, AS_Size))
 	{
+		int w, h ;
 		constrain_size (hints, status, vwidth, vheight);
-        anchor->width = status->width - (status->frame_size[FR_W]+status->frame_size[FR_E]);
-        anchor->height = status->height - (status->frame_size[FR_N]+status->frame_size[FR_S]);
+		w = (int)status->width - ((int)status->frame_size[FR_W]+(int)status->frame_size[FR_E]);
+		if( w > 0 )
+        	anchor->width = w ;
+		h = (int)status->height - ((int)status->frame_size[FR_N]+(int)status->frame_size[FR_S]);
+		if( h > 0 ) 
+        	anchor->height = h ;
 	}
 
 	if (get_flags (status->flags, AS_Position))
@@ -1894,8 +1899,8 @@ status2anchor (XRectangle * anchor, ASHints * hints, ASStatusHints * status, uns
 		LOCAL_DEBUG_OUT( "anchor = %+d%+d", anchor->x, anchor->y );
 		if (!get_flags (status->flags, AS_Sticky))
 		{
-			anchor->x += status->viewport_x;
-			anchor->y += status->viewport_y;
+			anchor->x += (int)status->viewport_x;
+			anchor->y += (int)status->viewport_y;
 		}
 		LOCAL_DEBUG_OUT( "anchor = %+d%+d", anchor->x, anchor->y );
 	}
@@ -1929,8 +1934,8 @@ anchor2status (ASStatusHints * status, ASHints * hints, XRectangle * anchor)
 	LOCAL_DEBUG_OUT( "status = %+d%+d", status->x, status->y );
 	if (!get_flags (status->flags, AS_Sticky))
 	{
-		status->x -= status->viewport_x;
-		status->y -= status->viewport_y;
+		status->x -= (int)status->viewport_x;
+		status->y -= (int)status->viewport_y;
 	}
 	LOCAL_DEBUG_OUT( "status = %+d%+d", status->x, status->y );
 	set_flags (status->flags, AS_Position);

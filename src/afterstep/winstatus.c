@@ -673,7 +673,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         {
             register unsigned int *frame_size = &(asw->status->frame_size[0]) ;
             int step_size = make_shade_animation_step( asw, od );
-			LOCAL_DEBUG_OUT( "setp_size = %d" );
+			LOCAL_DEBUG_OUT( "step_size = %d", step_size );
             if( step_size <= 0 )  /* don't moveresize client window while shading !!!! */
             {
                 resize_canvases( asw, od, normal_width, normal_height, frame_size );
