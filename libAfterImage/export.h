@@ -4,6 +4,13 @@
  * DESCRIPTION
  * Image output into different file formats.
  * SEE ALSO
+ * Structures :
+ *          ASXpmExportParams
+ *          ASPngExportParams
+ *          ASJpegExportParams
+ *          ASGifExportParams
+ *          ASImageExportParams
+ *
  * Functions :
  *  		ASImage2file()
  *
@@ -13,10 +20,27 @@
  * AUTHOR
  * Sasha Vasko <sasha at aftercode dot net>
  ******************/
+
+/****d* libAfterImage/ExportFlags
+ * FUNCTION
+ * Some common flags that could be used while writing images into
+ * different file formats.
+ * SOURCE
+ */
 #define EXPORT_GRAYSCALE			(0x01<<0)
 #define EXPORT_ALPHA				(0x01<<1)
 #define EXPORT_APPEND				(0x01<<3)  /* adds subimage  */
+/*****/
 
+/****s* libAfterImage/ASXpmExportParams
+ * NAME
+ * ASXpmExportParams
+ * SYNOPSIS
+ * ASXpmExportParams - parameters for export into XPM file.
+ * DESCRIPTION
+ * SEE ALSO
+ * SOURCE
+ */
 typedef struct
 {
 	ASImageFileTypes type;
@@ -25,21 +49,48 @@ typedef struct
 	int opaque_threshold ;
 	int max_colors ;
 }ASXpmExportParams ;
-
+/*******/
+/****s* libAfterImage/ASPngExportParams
+ * NAME
+ * ASPngExportParams
+ * SYNOPSIS
+ * ASPngExportParams - parameters for export into PNG file.
+ * DESCRIPTION
+ * SEE ALSO
+ * SOURCE
+ */
 typedef struct
 {
 	ASImageFileTypes type;
 	ASFlagType flags ;
 	int compression ;
 }ASPngExportParams ;
-
+/*******/
+/****s* libAfterImage/ASJpegExportParams
+ * NAME
+ * ASJpegExportParams
+ * SYNOPSIS
+ * ASJpegExportParams - parameters for export into JPEG file.
+ * DESCRIPTION
+ * SEE ALSO
+ * SOURCE
+ */
 typedef struct
 {
 	ASImageFileTypes type;
 	ASFlagType flags ;
 	int quality ;
 }ASJpegExportParams ;
-
+/*******/
+/****s* libAfterImage/ASGifExportParams
+ * NAME
+ * ASGifExportParams
+ * SYNOPSIS
+ * ASGifExportParams - parameters for export into GIF file.
+ * DESCRIPTION
+ * SEE ALSO
+ * SOURCE
+ */
 typedef struct
 {
 	ASImageFileTypes type;
@@ -47,7 +98,19 @@ typedef struct
 	int dither ;
 	int opaque_threshold ;
 }ASGifExportParams ;
-
+/*******/
+/****s* libAfterImage/ASImageExportParams
+ * NAME
+ * ASImageExportParams
+ * SYNOPSIS
+ * ASImageExportParams - union of structures holding parameters for
+ *   export into different file formats.
+ * DESCRIPTION
+ * Treatment of this union depends on what type of export was requested.
+ * SEE ALSO
+ * ASImageFileTypes
+ * SOURCE
+ */
 typedef union ASImageExportParams
 {
 	ASImageFileTypes   type;
@@ -56,6 +119,7 @@ typedef union ASImageExportParams
 	ASJpegExportParams jpeg;
 	ASGifExportParams  gif;
 }ASImageExportParams;
+/******/
 
 typedef Bool (*as_image_writer_func)( ASImage *im, const char *path,
 									  ASImageExportParams *params );

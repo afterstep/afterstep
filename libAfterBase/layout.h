@@ -33,7 +33,7 @@
  * Other libAfterBase modules :
  *          safemalloc.h
  * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
+ * Sasha Vasko <sasha at aftercode.net>
  ******
  */
 

@@ -5,6 +5,25 @@
  * SYNOPSIS
  * Defines main structures and function for image quantization.
  * DESCRIPTION
+ * Image quantization is needed primarily in order to be able to export
+ * images into file, with colormap format, such as GIF and XPM.
+ * libAfterImage attempts to allocate colorcells to the most used colors,
+ * and then approximate remaining colors with the closest colorcell.
+ *
+ * Since quality of quantization is in reverse proportion to the number
+ * of colors in original image, libAfterImage allows to set arbitrary
+ * level of downsampling of the color spectrum in the range of 8 bit per
+ * channel to 1 bit per channel. Downsampling is performed by simple
+ * dropping of less significant bits off of color values.
+ *
+ * In order to be able to determine closeness of colors, 3-channel RGB
+ * values are converted into flat 24bit (or less if downsampling is used)
+ * index. That is done by intermixing bits from different channels, like
+ * so : R8G8B8R7G7B7...R1G1B1. That flat index is used to arrange colors
+ * in ascending order, and later on to be able to find closest mapped
+ * color. Simple hashing technique is used to speed up the
+ * sorting/searching, as it allows to limit linked lists traversals.
+ *
  * SEE ALSO
  * Structures :
  *          ASColormapEntry
@@ -106,18 +125,38 @@ typedef struct ASSortedColorHash
 	int     last_idx ;
 }ASSortedColorHash;
 
+/****s* libAfterImage/ASColormapEntry
+ * NAME
+ * ASColormapEntry
+ * SYNOPSIS
+ * ASColormapEntry represents single colorcell in the colormap.
+ * DESCRIPTION
+ * SEE ALSO
+ * SOURCE
+ */
+
 typedef struct ASColormapEntry
 {
 	CARD8 red, green, blue;
 }ASColormapEntry;
-
+/*******/
+/****s* libAfterImage/ASColormap
+ * NAME
+ * ASColormap
+ * SYNOPSIS
+ * ASColormap represents entire colormap generated for the image.
+ * DESCRIPTION
+ * SEE ALSO
+ * SOURCE
+ */
 typedef struct ASColormap
 {
-	ASColormapEntry *entries ;
-	unsigned int count ;
-	ASSortedColorHash *hash ;
-	Bool has_opaque ;
+	ASColormapEntry *entries ;  /* array of colorcells */
+	unsigned int count ;        /* number of used colorcells */
+	ASSortedColorHash *hash ;   /* internal data */
+	Bool has_opaque ;           /* If True then Image has opaque pixels */
 }ASColormap;
+/*******/
 
 void         add_index_color   ( ASSortedColorHash *index,
 	                             CARD32 indexed, unsigned int slot,
@@ -134,6 +173,43 @@ int         get_color_index         ( ASSortedColorHash *index,
 ASColormap *color_hash2colormap     ( ASColormap *cmap,
 	                                  unsigned int max_colors );
 
+/****f* libAfterImage/ascmap/colormap_asimage()
+ * SYNOPSIS
+ * int *colormap_asimage( ASImage *im, ASColormap *cmap,
+ *                        unsigned int max_colors, unsigned int dither,
+ *                        int opaque_threshold );
+ * INPUTS
+ * im				- pointer to valid ASImage structure.
+ * cmap             - preallocated structure to store colormap in.
+ * max_colors       - maximum size of the colormap.
+ * dither           - number of bits to strip off the color data ( 0...7 )
+ * opaque_threshold - alpha channel threshold at which pixel should be
+ *                    treated as opaque
+ * RETURN VALUE
+ * pointer to the array of indexes representing pixel's colorcells. This
+ * array has size of WIDTHxHEIGHT where WIDTH and HEIGHT are size of the
+ * source image.
+ * DESCRIPTION
+ * This function is all that is needed to quantize the ASImage. In order
+ * to obtain colorcell of the pixel at (x,y) from result, the following
+ * code could be used :
+ * cmap->entries[res[y*width+x]]
+ * where res is returned pointer.
+ * Recommended value for dither parameter is 4 while quantizing photos to
+ * 256 colors, and it could be less , if original has limited number of
+ * colors.
+ *
+ *********/
+/****f* libAfterImage/ascmap/destroy_colormap()
+ * SYNOPSIS
+ * void destroy_colormap( ASColormap *cmap, Bool reusable );
+ * INPUTS
+ * cmap				- pointer to valid ASColormap structure.
+ * reusable         - if True, then the memory pointed to by cmap will
+ *                    not be deallocated, as if it was allocated on stack
+ * DESCRIPTION
+ * Destroys ASColormap object created using colormap_asimage.
+ *********/
 int *colormap_asimage( ASImage *im, ASColormap *cmap,
 	                   unsigned int max_colors, unsigned int dither,
 					   int opaque_threshold );

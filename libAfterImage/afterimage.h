@@ -116,6 +116,18 @@
  * Actuall image file format is autodetected from the file contents -
  * file name extention is not used and can be anything at all.
  *
+ * 6. Image export into many popular file formats. Currently implemented :
+ * XPM, JPEG, PNG, GIF. Work is underway to implement support for TIFF,
+ * XCF, BMP, ICO.
+ *
+ * 7. Image quantization to arbitrary size colormap.
+ *
+ * 8. libAfterImage could be used without X window system, which is
+ * coninient for such thing as web development. XML Image manipulation
+ * tool, that could be used in such activity is included (see ascompose.c)
+ *
+ * 9. Image reference counting
+ *
  * USES
  * libAfterBase - AfterStep basic functionality library. That Includes
  * Hash tables, file search methods, message output, generic types.
@@ -136,7 +148,7 @@
  * Implement color<->pixel conversion for all colordepths.
  *
  * AUTHOR
- * Sasha Vasko <sashav at sprintmail dot com>
+ * Sasha Vasko <sasha at aftercode dot net>
  *********/
 /****h* libAfterImage/Examples
  * EXAMPLE
@@ -155,13 +167,14 @@
 /****h* libAfterImage/API Reference
  * CHILDREN
  * Headers :
- *          asvisual.h, ascmap.h, asimage.h, asfont.h, ximage.h,
- *          transform.h, blender.h, import.h, export.h
+ *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
+ *          import.h transform.h ximage.h
  * Structures :
  *          ColorPair
  *          ASScanline
  *          ASVisual
  *          ASImage
+ *          ASImageManager
  *          ASImageBevel
  *          ASImageDecoder
  *          ASImageOutput
@@ -171,6 +184,9 @@
  *          ASFont
  *          ASGlyph
  *          ASGlyphRange
+ *          ASColormap
+ *          ASImageExportParams
+ *
  * Functions :
  *   ASScanline handling:
  *  	    prepare_scanline(), free_scanline()
@@ -191,6 +207,9 @@
  *          rgb2value(), rgb2saturation(), rgb2hue(), rgb2luminance(),
  *          rgb2hsv(), rgb2hls(), hsv2rgb(), hls2rgb().
  *
+ *   Image quantization :
+ *          colormap_asimage(), destroy_colormap()
+ *
  *   merge_scanline methods :
  *          alphablend_scanlines(), allanon_scanlines(),
  *          tint_scanlines(), add_scanlines(), sub_scanlines(),
@@ -201,14 +220,27 @@
  *
  *   ASImage handling :
  *          asimage_init(), asimage_start(), create_asimage(),
- *          destroy_asimage()
+ *          clone_asimage(), destroy_asimage()
+ *
+ *   ImageManager Reference counting and managing :
+ *          create_image_manager(), destroy_image_manager(),
+ *          store_asimage(), fetch_asimage(), dup_asimage(),
+ *          release_asimage(), release_asimage_by_name()
+ *
+ *   Layers helper functions :
+ *          init_image_layers(), create_image_layers(),
+ *          destroy_image_layers()
  *
  *   Encoding :
  *          asimage_add_line(),	asimage_add_line_mono(),
- *          asimage_print_line()
+ *          asimage_print_line(), get_asimage_chanmask(),
+ *          move_asimage_channel(), copy_asimage_channel(),
+ *          copy_asimage_lines()
  *
  *   Decoding
- *          start_image_decoding(), stop_image_decoding()
+ *          start_image_decoding(), stop_image_decoding(),
+ *          asimage_decode_line (), set_decoder_shift(),
+ *          set_decoder_back_color()
  *
  *   Output :
  *          start_image_output(), set_image_output_back_color(),
@@ -224,6 +256,8 @@
  *
  *   Import :
  *          file2ASImage(), file2pixmap()
+ *   Export :
+ *   		ASImage2file()
  *
  *   Text Drawing :
  *          create_font_manager(), destroy_font_manager(),
