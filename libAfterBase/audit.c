@@ -269,9 +269,7 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 	  break;
       if (m == NULL)
 	{
-	  fprintf (stderr, "%s:mem to realloc not in list!\n", __FUNCTION__);
-	  fprintf (stderr, "%s:called from %s:%d\n", __FUNCTION__, fname,
-		   line);
+	  fprintf (stderr, "%s:attempt in %s:%d to realloc memory(%p) that was never allocated!\n", __FUNCTION__, fname, line, ptr);
 	  return NULL;
 	  /* exit (1); */
 	}
@@ -310,10 +308,15 @@ countfree (const char *fname, int line, void *ptr)
 {
   mem *m = count_find_and_extract (fname, line, ptr, C_MEM);
 
+  if (ptr == NULL)
+    {
+      fprintf (stderr, "%s:attempt to free NULL memory in %s:%d\n", __FUNCTION__, fname, line);
+      return;
+    }
+
   if (m == NULL)
     {
-      fprintf (stderr, "%s:mem to free not in list!\n", __FUNCTION__);
-      fprintf (stderr, "%s:called from %s:%d\n", __FUNCTION__, fname, line);
+      fprintf (stderr, "%s:attempt in %s:%d to free memory(%p) that was never allocated!\n", __FUNCTION__, fname, line, ptr);
       return;
     }
 
@@ -525,10 +528,15 @@ count_xfreepixmap (const char *fname, int line, Display * display,
 {
   mem *m = count_find_and_extract (fname, line, (void *) pmap, C_PIXMAP);
 
+  if( pmap == None )
+    {
+      fprintf (stderr, "%s:attempt to free None pixmap in %s:%d\n", __FUNCTION__, fname, line);
+      return !Success;
+    }
+  
   if (m == NULL)
     {
-      fprintf (stderr, "%s:mem to free not in list!\n", __FUNCTION__);
-      fprintf (stderr, "%s:called from %s:%d\n", __FUNCTION__, fname, line);
+      fprintf (stderr, "%s:attempt in %s:%d to free Pixmap(0x%X) that was never created, or already freed!\n", __FUNCTION__, fname, line,(unsigned int)pmap);
       return !Success;
     }
 
@@ -553,10 +561,15 @@ count_xfreegc (const char *fname, int line, Display * display, GC gc)
 {
   mem *m = count_find_and_extract (fname, line, (void *) gc, C_GC);
 
+  if (gc == None)
+    {
+      fprintf (stderr, "%s:attempt to free None GC in %s:%d\n", __FUNCTION__, fname, line);
+      return !Success;
+    }
+
   if (m == NULL)
     {
-      fprintf (stderr, "%s:mem to free not in list!\n", __FUNCTION__);
-      fprintf (stderr, "%s:called from %s:%d\n", __FUNCTION__, fname, line);
+      fprintf (stderr, "%s:attempt in %s:%d to free a GC (0x%X)that was never created or already destroyed!\n", __FUNCTION__, fname, line, (unsigned int)gc);
       return !Success;
     }
 
@@ -662,15 +675,22 @@ int
 count_xdestroyimage (const char *fname, int line, XImage * image)
 {
   mem *m;
-  void *image_data = (void *) (image->data), *image_obdata =
-  (void *) (image->obdata);
+  void *image_data  ;
+  void *image_obdata ;
+
+  if( image == NULL ) 
+  {
+    fprintf( stderr, "%s:attempt to free NULL XImage in %s:%d\n",__FUNCTION__, fname, line );
+    return BadValue;
+  }
+  image_data  = (void *) (image->data) ;
+  image_obdata =  (void *) (image->obdata);
 
   if ((m = count_find (fname, line, (void *) image, C_IMAGE, NULL)) == NULL)
     /* can also be of C_MEM type if we allocated it ourselvs */
     if ((m = count_find (fname, line, (void *) image, C_MEM, NULL)) == NULL)
       {
-	fprintf (stderr, "%s:mem to free not in list!\n", __FUNCTION__);
-	fprintf (stderr, "%s:called from %s:%d\n", __FUNCTION__, fname, line);
+	fprintf (stderr, "%s:attempt in %s:%d to destroy an XImage that was never created or already destroyed.\n", __FUNCTION__, fname, line);
 	return !Success;
       }
 
@@ -823,9 +843,13 @@ count_xfree (const char *fname, int line, void *data)
 
   if (m == NULL)
     {
-      fprintf (stderr, "%s:mem to free not in list! (%p)\n", __FUNCTION__,
-	       data);
-      fprintf (stderr, "%s:called from %s:%d\n", __FUNCTION__, fname, line);
+      fprintf (stderr, "%s:attempt to free NULL X memory in %s:%d\n", __FUNCTION__, fname, line);
+      return !Success;
+    }
+
+  if (m == NULL)
+    {
+      fprintf (stderr, "%s:attempt in %s:%d to free X memory (%p) that was never allocated or already freed!\n", __FUNCTION__, fname, line, data);
       return !Success;
     }
 
