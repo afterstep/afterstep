@@ -363,6 +363,17 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
     }
 }
 
+void
+set_string_property (Window w, Atom property, char *data)
+{
+    if (w != None && property != None && data)
+	{
+        XChangeProperty (dpy, w, property, XA_STRING, 8,
+                         PropModeReplace, (unsigned char *)data, strlen (data));
+    }
+}
+
+
 /* AfterStep specific property : */
 void
 set_as_property ( Window w, Atom property, unsigned long *data, size_t data_size, unsigned long version)

@@ -48,6 +48,8 @@ void free_text_property (XTextProperty ** trg);
 void set_32bit_property (Window w, Atom property, Atom type, CARD32 data);
 void set_multi32bit_property (Window w, Atom property, Atom type, int items, ...);
 
+void set_string_property (Window w, Atom property, char *data);
+
 /* This will set X property of XA_INTEGER type to the array of data of
  * the specifyed size
  */
