@@ -1544,6 +1544,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 
 #define GET_TEXT_SIZE_LOOP(getglyph,incr,len) \
 	do{ ++i ;\
+		if( x_positions && (len == 0 || len > i )) x_positions[i] = line_width ; \
 		if( text[i] == '\n' || text[i] == '\0' || (len > 0 && len <= i )) { \
 			if( last_asg && last_asg->width+last_asg->lead > last_asg->step ) \
 				line_width += last_asg->width+last_asg->lead - last_asg->step ; \
@@ -1568,7 +1569,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 	}while( text[i] != '\0' && ( len <= 0 || len > i ))
 
 static Bool
-get_text_size_internal( const char *src_text, ASFont *font, ASTextAttributes *attr, unsigned int *width, unsigned int *height, int length  )
+get_text_size_internal( const char *src_text, ASFont *font, ASTextAttributes *attr, unsigned int *width, unsigned int *height, int length, int *x_positions )
 {
     unsigned int w = 0, h = 0, line_count = 0;
 	unsigned int line_width = 0;
@@ -1629,7 +1630,7 @@ get_text_size( const char *src_text, ASFont *font, ASText3DType type, unsigned i
 {
 	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0 }; 
 	attr.type = type ;
-	return get_text_size_internal( (char*)src_text, font, &attr, width, height, 0/*autodetect length*/ );
+	return get_text_size_internal( (char*)src_text, font, &attr, width, height, 0/*autodetect length*/, NULL );
 }
 
 Bool
@@ -1637,7 +1638,7 @@ get_unicode_text_size( const UNICODE_CHAR *src_text, ASFont *font, ASText3DType 
 {
 	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Unicode, 8, 0, NULL, 0 }; 
 	attr.type = type ;
-	return get_text_size_internal( (char*)src_text, font, &attr, width, height, 0/*autodetect length*/ );
+	return get_text_size_internal( (char*)src_text, font, &attr, width, height, 0/*autodetect length*/, NULL );
 }
 
 Bool
@@ -1645,11 +1646,11 @@ get_utf8_text_size( const char *src_text, ASFont *font, ASText3DType type, unsig
 {
 	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_UTF8, 8, 0, NULL, 0 }; 
 	attr.type = type ;
-	return get_text_size_internal( (char*)src_text, font, &attr, width, height, 0/*autodetect length*/ );
+	return get_text_size_internal( (char*)src_text, font, &attr, width, height, 0/*autodetect length*/, NULL );
 }
 
 Bool
-get_fancy_text_size( const void *src_text, ASFont *font, ASTextAttributes *attr, unsigned int *width, unsigned int *height, int length )
+get_fancy_text_size( const void *src_text, ASFont *font, ASTextAttributes *attr, unsigned int *width, unsigned int *height, int length, int *x_positions )
 {
 	ASTextAttributes internal_attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0 }; 
 	if( attr != NULL ) 
@@ -1659,7 +1660,7 @@ get_fancy_text_size( const void *src_text, ASFont *font, ASTextAttributes *attr,
 			internal_attr.tab_size = 8 ;
 		internal_attr.version = ASTA_VERSION_INTERNAL ;
 	}
-	return get_text_size_internal( src_text, font, &internal_attr, width, height, length );
+	return get_text_size_internal( src_text, font, &internal_attr, width, height, length, x_positions );
 }
 
 inline static void

@@ -490,7 +490,8 @@ Bool get_unicode_text_size( const CARD32 *text,
 Bool get_fancy_text_size( const void *text,
 	                struct ASFont *font, ASTextAttributes *attr,
                     unsigned int *width, unsigned int *height,
-					int length );
+					int length,
+					int *x_positions );        /* array of length elements or NULL */
 /****f* libAfterImage/asfont/get_asfont_glyph_spacing()
  * SYNOPSIS
  * Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y );

@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 /*#define DO_CLOCKING */
 
 #ifdef DO_CLOCKING
@@ -461,7 +461,7 @@ asimage2drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
 		Bool res = False;
 		if ( !use_cached || im->alt.ximage == NULL )
 		{
-            if( (xim = asimage2ximage_ext( asv, im, True )) == NULL )
+            if( (xim = asimage2ximage_ext( asv, im, False )) == NULL )
 			{
 				show_error("cannot export image into XImage.");
 				return None ;

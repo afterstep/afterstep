@@ -39,12 +39,15 @@
 
 #include <X11/keysym.h>
 
+/* <li><b><A href="graphics.php?inc=icons/normal/index">normal</A></b></li> */
+
 struct
 {
 	Window main_window ;
 	char *dir ;
 	char *html_save, *html_save_dir ;
 	char *html_back  ;
+	char *link_format ;
 	Bool display ;
 	ASGeometry geometry ;
 	Bool user_geometry ;
@@ -55,7 +58,7 @@ void asimbrowser_usage()
 {
 	fprintf( stdout,
 		"Usage:\n"
-		"asimbrowse [-h] [-f file] [-o file] [-s string] [-t type] [-v] [-V]"
+		"asimbrowse [-h] [-f file] [-o file] [-s string] [-t type] [-v] [-V] [-l format]"
 #ifndef X_DISPLAY_MISSING
 			" [-n] [-r]"
 #endif /* X_DISPLAY_MISSING */
@@ -68,6 +71,7 @@ void asimbrowser_usage()
         "  -v --version       display version and exit\n"
 		"  -V --verbose       increase verbosity\n"
 		"  -D --debug         show everything and debug messages\n"
+		"  -l --link-format   Set C format string to be used as a template for URLs\n"
 	);
 }
 
@@ -110,6 +114,8 @@ int main(int argc, char** argv)
 			ASIMBrowserState.dir = argv[++i];
 		} else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
 			ASIMBrowserState.display = 0;
+		} else if((!strcmp(argv[i], "--link-format") || !strcmp(argv[i], "-l")) && i < argc + 1){
+			ASIMBrowserState.link_format = argv[++i];
 		}
 	}
 
@@ -131,6 +137,25 @@ int main(int argc, char** argv)
 
 	if( ASIMBrowserState.display )
 		ASIMBrowserState.main_window = create_main_window();
+	if( ASIMBrowserState.link_format != NULL ) 
+	{
+		int i = 0;
+		char *ptr = ASIMBrowserState.link_format;
+		do
+		{
+			ptr = strchr( ptr, '%' );	
+			if( ptr )
+			{
+				++ptr ;
+				++i ;
+			}
+		}while( ptr != NULL );	
+		if( i > 2 ) 
+			ASIMBrowserState.link_format = NULL ;	 
+	}
+	if( ASIMBrowserState.link_format == NULL ) 
+		ASIMBrowserState.link_format = "<li><b><A href=\"%s/%s\">%s</A></b></li>"; 
+
 
 	if( ASIMBrowserState.display )
 		HandleEvents();
@@ -353,7 +378,7 @@ void generate_dir_html( char *dir, char *html_dir )
 	fprintf( of, "<HTML><HEAD><title>%s</title></head>", dir );
 	fprintf( of, "<body BACKGROUND=\"%s\" BGCOLOR=#34404C TEXT=#F5F8FAA LINK=#8888FF VLINK=#88FF88>", ASIMBrowserState.html_back );
 	fprintf( of, "<font color=#F5F8FA><h2>%s</h2>", dir );
-	fprintf( of, "<h4>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A href=\"../%s\">Go Back</A></h4>", ASIMBrowserState.html_save);
+	fprintf( of, "<h4>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A href=\"../%s\">Go Back</A></h4>\n", ASIMBrowserState.html_save);
 
 	list_len = my_scandir ((char*)dir, &list, ignore_dots, NULL);
 	for (i = 0; i < list_len; i++)
@@ -366,10 +391,10 @@ void generate_dir_html( char *dir, char *html_dir )
 
 			if( !dir_header_printed )
 			{
-				fprintf( of, "<h3>Subdirectories : </h3>");
+				fprintf( of, "<h3>Subdirectories : </h3>\n<ul>\n");
 				dir_header_printed = True ;
 			}
-			fprintf( of, "<h4>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A href=\"%s/%s\">%s</A></h4>", list[i]->d_name, ASIMBrowserState.html_save, list[i]->d_name);
+			fprintf( of, "<li><b><A href=\"%s/%s\">%s</A></b></li>\n", list[i]->d_name, ASIMBrowserState.html_save, list[i]->d_name);
 			CheckOrCreate (html_subdir);
 			copy_file( back_src, back_dst );
 			free( back_src );
@@ -378,6 +403,8 @@ void generate_dir_html( char *dir, char *html_dir )
 			free( subdir );
 			free( html_subdir );
 		}
+	if( dir_header_printed ) 
+		fprintf( of, "</ul>\n");
 	curr = im_list ;
 	while( curr )
 	{

@@ -885,7 +885,10 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
                         set_flags( aswb->flags, ASW_MaxSwallow );
                 }
             }
-
+			/* TODO: TRansient buttons are just spacers - they should not 
+			 * have any balloons displayed on them , nor they should 
+			 * interpret any clicks
+			 */
 			if( get_flags( wb->set_flags, WHARF_BUTTON_TRANSIENT ) )
 				set_flags( aswb->flags, ASW_Transient );
 
