@@ -157,8 +157,9 @@ typedef struct ScreenInfo
 	struct ASVisual *asv ;  /* ASVisual for libAfterImage */
 	struct ASImage  *RootImage;
 
-    ASWindow ASRoot;		/* the head of the afterstep window list */
-    struct ASHashTable *aswindow_xref;         /* xreference of window/resource IDs to ASWindow structures */
+    struct ASWindowList *Windows ;
+/*    ASWindow ASRoot;        the head of the afterstep window list */
+/*    struct ASHashTable *aswindow_xref;        xreference of window/resource IDs to ASWindow structures */
 
 	struct ASHashTable *desktops ;   /* hashed by desk no - we create new one when client is added */
 

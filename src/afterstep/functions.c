@@ -167,18 +167,10 @@ void SetupFunctionHandlers()
 
 /* complex functions are stored in hash table ComplexFunctions */
 ComplexFunction *
-get_complex_function( const char *name )
+get_complex_function( char *name )
 {
-    ComplexFunction *func = NULL ;
-    if( name )
-    {
-        if( ComplexFunctions )
-            if( get_hash_item( ComplexFunctions, AS_HASHABLE(name), (void**)&func ) != ASH_Success )
-                func = NULL ;
-    }
-    return func;
+    return find_complex_func( Scr.ComplexFunctions, name );
 }
-
 
 /***********************************************************************
  *  Procedure:
@@ -359,10 +351,10 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
 	}
 
     clicks = 0 ;
-    while( IsClickLoop( event, ButtonReleaseMask, ClickTime ) )
+    while( IsClickLoop( event, ButtonReleaseMask, Scr.ClickTime ) )
     {
         clicks++ ;
-        if( !IsClickLoop( event, ButtonPressMask, ClickTime ) )
+        if( !IsClickLoop( event, ButtonPressMask, Scr.ClickTime ) )
             break;
         clicks++ ;
     }
@@ -407,7 +399,7 @@ void resize_func_handler( FunctionData *data, ASEvent *event, int module )
     /* can't resize icons */
 	if ( ASWIN_GET_FLAGS(event->client, AS_Iconic|AS_Shaded ) )
 		return;
-
+#if 0
     anchor_window_maximized(event->client);
 
     if (data->func_val[0] > 0 && data->func_val[1] >0 && data->func_val[0] != INVALID_POSITION)
@@ -450,6 +442,7 @@ void resize_func_handler( FunctionData *data, ASEvent *event, int module )
         UninstallRootColormap (event->scr);
         UngrabEm ();
     }
+#endif
 }
 
 void move_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -458,6 +451,7 @@ void move_func_handler( FunctionData *data, ASEvent *event, int module )
 	if (event->client == NULL)
 		return;
 
+#if 0
     anchor_window_maximized(event->client);
 
     if ( data->func_val[0] != INVALID_POSITION || data->func_val[1] != INVALID_POSITION)
@@ -475,6 +469,7 @@ void move_func_handler( FunctionData *data, ASEvent *event, int module )
         UninstallRootColormap (event->scr);
         UngrabEm ();
     }
+#endif
 }
 
 
@@ -540,7 +535,7 @@ void movecursor_func_handler( FunctionData *data, ASEvent *event, int module )
     int x, y, junk ;
 	unsigned int ujunk ;
 	Window wjunk;
-	register ScreenInfo *scr = event->scr;
+    register ScreenInfo *scr = &Scr;
 
     XQueryPointer (dpy, scr->Root, &wjunk, &wjunk, &curr_x, &curr_y, &junk, &junk, &ujunk);
     x = make_scroll_pos( data->func_val[0], data->unit_val[0], scr->Vx+curr_x, scr->VxMax+scr->MyDisplayWidth ,scr->MyDisplayWidth );
@@ -550,8 +545,8 @@ void movecursor_func_handler( FunctionData *data, ASEvent *event, int module )
     {
         int new_vx = 0, new_vy = 0;
 
-        new_vx = make_edge_scroll( x, scr->Vx, scr->MyDisplayWidth,  scr->VxMax, scr->CurrentFeel->EdgeScrollX );
-        new_vy = make_edge_scroll( y, scr->Vy, scr->MyDisplayHeight, scr->VyMax, scr->CurrentFeel->EdgeScrollY );
+        new_vx = make_edge_scroll( x, scr->Vx, scr->MyDisplayWidth,  scr->VxMax, scr->EdgeScrollX );
+        new_vy = make_edge_scroll( y, scr->Vy, scr->MyDisplayHeight, scr->VyMax, scr->EdgeScrollY );
         if( new_vx != scr->Vx || new_vy != scr->Vy )
             MoveViewport (scr, new_vx, new_vy);
     }
@@ -570,9 +565,9 @@ LOCAL_DEBUG_CALLER_OUT( "function %d (val0 = %ld), event %d, window 0x%lX, windo
     if (ASWIN_GET_FLAGS(event->client, AS_Iconic) )
     {
         if (data->func_val[0] <= 0)
-            iconify_window( event->client, False, False );
+            iconify_window( event->client, False );
     }else if (data->func_val[0] >= 0)
-        iconify_window( event->client, True, False );
+        iconify_window( event->client, True );
 }
 
 void raiselower_func_handler( FunctionData *data, ASEvent *event, int module )

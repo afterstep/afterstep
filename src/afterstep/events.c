@@ -188,6 +188,37 @@ WaitEventLoop( ASEvent *event, int finish_event_type, long timeout )
     return True ;
 }
 
+/*****************************************************************************
+ * Waits click_time, or until it is evident that the user is not
+ * clicking, but is moving the cursor
+ ****************************************************************************/
+Bool
+IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
+{
+	int dx = 0, dy = 0, total = 0;
+	int x_orig = event->x.xbutton.x_root ;
+	int y_orig = event->x.xbutton.y_root ;
+	register XEvent *xevt = &(event->x) ;
+
+	do
+	{
+        ASFlush();
+		sleep_a_little (1000);
+        if (ASCheckMaskEvent (end_mask, xevt))
+			return True;
+
+        if( total++ > click_time )
+			break;
+
+        if (ASCheckMaskEvent ( ButtonMotionMask | PointerMotionMask, xevt))
+		{
+			dx = x_orig - xevt->xmotion.x_root;
+			dy = y_orig - xevt->xmotion.y_root;
+		}
+	}while( dx > -5 && dx < 5 && dy > -5 && dy < 5 );
+	return False;
+}
+
 
 void
 DigestEvent( ASEvent *event )
@@ -559,11 +590,13 @@ HandlePropertyNotify (ASEvent *event)
 		if ((*Scr.MSMenuTitle).texture_type == 129 || (*Scr.MSMenuItem).texture_type == 129 ||
 			(*Scr.MSMenuHilite).texture_type == 129)
 		{
-			MenuRoot     *menu;
+#if 0                                          /* reimplement menu redrawing : */
+            MenuRoot     *menu;
 
 			for (menu = Scr.first_menu; menu != NULL; menu = menu->next)
 				if ((*menu).is_mapped)
 					move_menu (menu, (*menu).x, (*menu).y);
+#endif
 		}
 	}
 

@@ -69,6 +69,7 @@ void DispatchEvent  ( ASEvent *event );
 void HandleEvents   ();
 void WaitForButtonsUpLoop ();
 Bool WaitEventLoop( ASEvent *event, int finish_event_type, long timeout );
+Bool IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time );
 
 
 Bool KeyboardShortcuts (XEvent * xevent, int return_event, int move_size);

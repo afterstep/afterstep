@@ -96,81 +96,6 @@
 extern int    LastWarpIndex;
 char          NoName[] = "Untitled";		   /* name if no name is specified */
 
-/*************************************************************************
- * We maintain crossreference of X Window ID to ASWindow structure - that is
- * faster then using XContext since we don't have to worry about multiprocessing,
- * thus saving time on interprocess synchronization, that Xlib has to do in
- * order to access list of window contexts.
- *************************************************************************/
-ASWindow *window2ASWindow( Window w )
-{
-    ASWindow *asw = NULL ;
-    if( Scr.aswindow_xref )
-        if( get_hash_item( Scr.aswindow_xref, AS_HASHABLE(w), (void**)&asw ) == ASH_Success )
-            return asw;
-    return asw;
-}
-
-Bool register_aswindow( Window w, ASWindow *asw )
-{
-    if( w && asw )
-    {
-        if( Scr.aswindow_xref == NULL )
-            Scr.aswindow_xref = create_ashash( 0, NULL, NULL, NULL );
-
-        if( add_hash_item( Scr.aswindow_xref, AS_HASHABLE(w), asw ) == ASH_Success )
-            return True;
-    }
-    return False;
-}
-
-Bool unregister_aswindow( Window w )
-{
-    if( w )
-    {
-        if( Scr.aswindow_xref != NULL )
-		{
-            if( remove_hash_item( Scr.aswindow_xref, AS_HASHABLE(w), NULL, False ) == ASH_Success )
-  		        return True;
-		}
-    }
-    return False;
-}
-
-Bool destroy_registered_window( Window w )
-{
-	Bool res = False ;
-    if( w )
-    {
-        if( Scr.aswindow_xref != NULL )
-            res = ( remove_hash_item( Scr.aswindow_xref, AS_HASHABLE(w), NULL, False ) == ASH_Success );
-		XDestroyWindow( dpy, w );
-    }
-    return res;
-}
-
-ASWindow *
-pattern2ASWindow( const char *pattern )
-{
-    wild_reg_exp *wrexp = compile_wild_reg_exp( pattern );
-
-    if( wrexp )
-    {
-        ASWindow *curr = Scr.ASRoot.next ;
-        while( curr != NULL )
-        {
-            if( match_string_list (curr->hints->names, MAX_WINDOW_NAMES, wrexp) == 0 )
-            {
-                destroy_wild_reg_exp( wrexp );
-                return curr;
-            }
-            curr = curr->next ;
-        }
-    }
-    destroy_wild_reg_exp( wrexp );
-    return NULL;
-}
-
 
 #if 0
 /************************************************************************/
@@ -1774,6 +1699,29 @@ hide_hilite()
     }
 }
 
+void
+init_aswindow(ASWindow * t, Bool free_resources )
+{
+	if (!t)
+		return;
+    if( free_resources && t->magic == MAGIC_ASWINDOW )
+    {
+        if( t->transients )
+    	    destroy_asvector( &(t->transients) );
+    	if( t->group_members )
+        	destroy_asvector( &(t->group_members) );
+	    if( t->saved_status )
+    	    free( t->saved_status );
+    	if( t->status )
+        	free( t->status );
+		if( t->hints )
+		    destroy_hints( t->hints, False );
+	}
+    memset (t, 0x00, sizeof (ASWindow));
+    t->magic = MAGIC_ASWINDOW ;
+}
+
+
 /***********************************************************************
  *
  *  Procedure:
@@ -1807,6 +1755,7 @@ AddWindow (Window w)
 
 	/* allocate space for the afterstep window */
 	tmp_win = safecalloc (1, sizeof (ASWindow));
+    init_aswindow( tmp_win, False );
 
 	NeedToResizeToo = False;
 
@@ -1924,11 +1873,7 @@ AddWindow (Window w)
 	ChangeWarpIndex (++LastWarpIndex, F_WARP_F);
 
 	/* add the window into the afterstep list */
-	tmp_win->next = Scr.ASRoot.next;
-	if (Scr.ASRoot.next != NULL)
-		Scr.ASRoot.next->prev = tmp_win;
-	tmp_win->prev = &Scr.ASRoot;
-	Scr.ASRoot.next = tmp_win;
+    enlist_aswindow( tmp_win );
 
     redecorate_window       ( tmp_win, False );
     on_window_title_changed ( tmp_win, False );
@@ -2019,16 +1964,9 @@ Destroy (ASWindow *asw, Bool kill_client)
 
     redecorate_window( asw, True );
     unregister_aswindow( asw->w );
+    delist_aswindow( asw );
 
-    asw->prev->next = asw->next;
-    if (asw->next != NULL)
-        asw->next->prev = asw->prev;
-
-    if (!ASWIN_HFLAGS(asw, AS_SkipWinList))
-		update_windowList ();
-
-    if( asw->hints )
-        destroy_hints( asw->hints, False );
+    init_aswindow( tmp_win, True );
 
     memset( asw, 0x00, sizeof(ASWindow));
     free (asw);

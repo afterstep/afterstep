@@ -246,6 +246,7 @@ struct ASTBarData;
 								     KeyPressMask 		| \
 									 LeaveWindowMask)
 
+
 #define AS_ICON_MYSTYLE					"ButtonPixmap"
 #define AS_ICON_TITLE_MYSTYLE			"ButtonTitleFocus"
 #define AS_ICON_TITLE_STICKY_MYSTYLE	"ButtonTitleSticky"
@@ -257,9 +258,7 @@ struct ASTBarData;
  */
 typedef struct ASWindow
   {
-    struct ASWindow *next;	/* next afterstep window */
-    struct ASWindow *prev;	/* prev afterstep window */
-
+    unsigned long magic ;
     Window           w;     /* the child window */
     Window           frame; /* the frame window */
 #define get_window_frame(asw)   (asw->frame)
@@ -268,6 +267,10 @@ typedef struct ASWindow
 	struct ASStatusHints *status;
 	struct ASStatusHints *saved_status; /* status prior to maximization */
     XRectangle            anchor ;
+
+    struct ASWindow      *transient_owner,  *group_lead ;
+    struct ASVector      *transients,       *group_members ;
+
 
 #define ASWIN_NAME(t)       ((t)->hints->names[0])
 #define ASWIN_CLASS(t)      ((t)->hints->res_class)
@@ -340,16 +343,80 @@ typedef struct ASWindow
 
     long focus_sequence;
     long circulate_sequence;
-  }
-ASWindow;
+  }ASWindow;
 
+typedef struct ASLayer
+{
+    int          layer ;
+    Window       w ;
+    struct ASVector    *members ;          /* vector of ASDesktopElems */
+}ASLayer;
+
+typedef struct ASWindowList
+{
+    struct ASBiDirList *clients ;
+    struct ASHashTable *aswindow_xref;         /* xreference of window/resource IDs to ASWindow structures */
+    struct ASHashTable *layers ;               /* list of ASLayer structures from above hashed by layer num */
+
+    /* lists of pointers to the ASWindow structures */
+    struct ASVector    *circulate_list ;
+    struct ASVector    *sticky_list ;
+
+    ASWindow *root ;         /* root window - special purpose ASWindow struct to
+                              * enable root window handling same way as any other window */
+
+    /* warping/circulation pointers : */
+    int       warp_curr_index;              /* last warped to window */
+    int       warp_init_dir;                /* initial warping direction */
+    int       warp_curr_dir, warp_user_dir; /* current warping direction
+                                             * - internal direction maybe different from
+                                             *  user direction in YOYO mode */
+
+    /* focus pointers : */
+    ASWindow *active;        /* currently active client
+                              *     - may not have focus during housekeeping operations
+                              *     - may be different from hilited/ungrabbed if we changed active
+                              *       client during house keeping operation */
+    ASWindow *focused;       /* currently focused client. Will be NULL during housekeeping */
+    ASWindow *ungrabbed;     /* client that has no grab on mouse events */
+    ASWindow *hilited;       /* client who's frame decorations has been hilited
+                              * to show that it is focused. May not be same as focused/ungrabbed
+                              * right after focus is handed over and before FocusIn event */
+    ASWindow *previous_active;        /* last active client */
+    /* Focus management is somewhat tricky.
+     * Firstly, we have to track pointer movements to see when mouse enters the window
+     *          so we can switch focus to that window. ( or mouse clicked in the window
+     *          where ClickToFocus is requested ). To Accomplish that we grab mouse
+     *          events on all the windows but currently focused.
+     * Secondly we need to hilite currently active window with frame decorations, when window
+     *          gets focus. So right after focus is forced on window and before FocusIn event
+     *          we'll have : (focused == ungrabbed) != hilited
+     * Thirdly, we may need to steal focus for our own needs while we perform housekeeping
+     *          like desk switching, etc. ( GrabEm/UngrabEm ) In such situation window
+     *          remains hilited, but has no focus, and has no pointer event grabs.
+     *          (focused == NULL) != (ungrabbed == hilited)
+     * Fourthsly, When housekeeping is completed we want to give the focus back to it, but
+     *          in some situations housekeeping operations will make us give the focus to
+     *          some other window. To do that we substitute focused pointer to new window
+     *          right before UngrabEm. In this case focused != ( ungrabbed == hilited )
+     */
+}ASWindowList;
+
+
+/* from aswindow.c : */
 ASWindow *window2ASWindow( Window w );
 Bool register_aswindow( Window w, ASWindow *asw );
 Bool unregister_aswindow( Window w );
 Bool destroy_registered_window( Window w );
 ASWindow *pattern2ASWindow( const char *pattern );
+Bool enlist_aswindow( ASWindow *t );
+void delist_aswindow( ASWindow *t );
+void restack_window_list( int desk );
+Bool is_window_obscured (ASWindow * above, ASWindow * below);
+void restack_window( ASWindow *t, Window sibling_window, int stack_mode );
+ASWindow     *get_next_window (ASWindow * curr_win, char *action, int dir);
 
-
+/* from add_window.c : */
 void destroy_icon_windows( ASWindow *asw );
 
 /* swiss army knife - does everything about grabbing : */

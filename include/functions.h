@@ -129,6 +129,25 @@ typedef struct ComplexFunction
     unsigned int    items_num;
 }ComplexFunction;
 
+/* Types of events for the FUNCTION builtin */
+#define MOTION                       'm'
+#define MOTION_UPPER                 'M'
+#define IMMEDIATE                    'i'
+#define IMMEDIATE_UPPER              'I'
+#define CLICK                        'c'
+#define CLICK_UPPER                  'C'
+#define DOUBLE_CLICK                 'd'
+#define DOUBLE_CLICK_UPPER           'D'
+#define TRIPLE_CLICK                 't'
+#define TRIPLE_CLICK_UPPER           'T'
+#define ONE_AND_A_HALF_CLICKS        'o'
+#define ONE_AND_A_HALF_CLICKS_UPPER  'O'
+#define TWO_AND_A_HALF_CLICKS        'h'
+#define TWO_AND_A_HALF_CLICKS_UPPER  'H'
+#define CLICKS_TRIGGERS_LOWER        "mcodht"
+#define CLICKS_TRIGGERS_UPPER        "MCODHT"
+#define MAX_CLICKS_HANDLED           6
+
 struct ASEvent;
 
 typedef void (*as_function_handler)(struct FunctionData *data, struct ASEvent *event, int module);

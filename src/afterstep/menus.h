@@ -161,6 +161,8 @@ int txt2func( const char* text, FunctionData* fdata, int quiet );
 int parse_func( const char* text, FunctionData* data, int quiet );
 int free_func_data( FunctionData* data );
 
+ComplexFunction *find_complex_func( struct ASHashTable *list, char *name );
+
 void ExecuteFunction (struct FunctionData *, struct ASEvent *, int);
 void FocusOn (ASWindow *, int, Bool);
 
