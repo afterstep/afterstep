@@ -150,10 +150,10 @@ enum
 	C_LAST_TYPE
 };
 
-
 static ASHashTable *allocs_hash = NULL ;
-#define DEALLOC_CACHE_SIZE		128
-static mem* deallocated_mem[DEALLOC_CACHE_SIZE] ;
+
+#define DEALLOC_CACHE_SIZE      128
+static mem* deallocated_mem[DEALLOC_CACHE_SIZE+10] ;
 static unsigned int deallocated_used = 0 ;
 
 static long allocations = 0;
@@ -164,9 +164,10 @@ static unsigned long max_alloc = 0;
 static unsigned long max_x_alloc = 0;
 static unsigned long total_alloc = 0;
 static unsigned long total_x_alloc = 0;
+static unsigned long max_service = 0;
+static unsigned long total_service = 0;
 
 static int    service_mode = 0 ;
-
 
 void          count_alloc (const char *fname, int line, void *ptr, size_t length, int type);
 mem          *count_find (const char *fname, int line, void *ptr, int type);
@@ -179,7 +180,13 @@ void mem_destroy (ASHashableValue value,void *data)
 		if( deallocated_used < DEALLOC_CACHE_SIZE )
 			deallocated_mem[deallocated_used++] = (mem*)data ;
 		else
-			free( data );	
+        {
+            if( total_service < sizeof(mem) )
+                show_error( "it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ((mem*)data)->ptr, ((mem*)data)->fname, ((mem*)data)->line );
+            else
+                total_service -= sizeof(mem);
+            free( data );
+        }
 	}
 }
 
@@ -187,10 +194,10 @@ void mem_destroy (ASHashableValue value,void *data)
 void
 count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 {
-	mem          *m;
-	ASHashResult  res ; 
+    mem          *m = NULL;
+	ASHashResult  res ;
 
-	if( service_mode ) 
+    if( service_mode > 0 )
 		return ;
 	if( allocs_hash == NULL )
 	{
@@ -198,16 +205,31 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 		allocs_hash = create_ashash( 256, pointer_hash_value, NULL, mem_destroy );
 		service_mode-- ;
 	}
-	
+
 	if( get_hash_item( allocs_hash, (ASHashableValue)ptr, (void**)&m ) == ASH_Success )
 	{
 		show_error( "Same pointer value 0x%lX is being counted twice!\n  Called from %s:%d - previously allocated in %s:%d", (unsigned long)ptr, fname, line, m->fname, m->line );
 		print_simple_backtrace();
 	}else if( deallocated_used > 0 )
-		m = deallocated_mem[--deallocated_used];
-	else	
+    {
+        m = deallocated_mem[--deallocated_used];
+/*        show_warning( "<mem> reusing deallocation cache  - element %d, pointer %p auditing service memory used (%lu )\n   Called from %s:%d",
+                        deallocated_used, m, total_service, fname, line );
+ */ }else
+    {
 		m = calloc (1, sizeof (mem));
-	m->fname = fname;
+        if( total_service+sizeof(mem) > 1000000 )
+        {
+            show_error( "<mem> too much auditing service memory used (%lu - was %lu)- aborting, please investigate.\n   Called from %s:%d",
+                        total_service+sizeof(mem), total_service, fname, line );
+            print_simple_backtrace();
+            exit(0);
+        }
+        total_service += sizeof(mem);
+        if( total_service > max_service )
+            max_service = total_service ;
+    }
+    m->fname = fname;
 	m->line = line;
 	m->length = length;
 	m->type = type;
@@ -230,6 +252,19 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 
 	if( (res = add_hash_item( allocs_hash, (ASHashableValue)ptr, m )) != ASH_Success )
 		show_error( "failed to log allocation for pointer 0x%lX - result = %d", ptr, res);
+    else
+    {
+        if( total_service+sizeof(ASHashItem) > 1000000 )
+        {
+            show_error( "<add_hash_item> too much auditing service memory used (%lu - was %lu)- aborting, please investigate.\n   Called from %s:%d",
+                        total_service+sizeof(ASHashItem), total_service, fname, line );
+            print_simple_backtrace();
+            exit(0);
+        }
+        total_service += sizeof(ASHashItem);
+        if( total_service > max_service )
+            max_service = total_service ;
+    }
 }
 
 mem          *
@@ -237,11 +272,11 @@ count_find (const char *fname, int line, void *ptr, int type)
 {
 	mem          *m;
 
-	if( allocs_hash != NULL ) 
+	if( allocs_hash != NULL )
 		if( get_hash_item( allocs_hash, (ASHashableValue)ptr, (void**)&m) == ASH_Success )
 			if( (m->type & 0xff) == (type & 0xff) )
 				return m ;
-	return NULL ;		
+	return NULL ;
 }
 
 mem          *
@@ -249,13 +284,19 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 {
 	mem          *m = NULL;
 
-	if( allocs_hash ) 
+	if( allocs_hash )
 	{
 		service_mode++ ;
 		if( remove_hash_item (allocs_hash, (ASHashableValue)ptr, (void**)&m, False) == ASH_Success )
+        {
 			if( (m->type & 0xff) != (type & 0xff) )
-				show_error( "while deallocating pointer 0x%lX discovered that it was allocated with different type", ptr ); 
-		service_mode-- ;
+                show_error( "while deallocating pointer %p discovered that it was allocated with different type\n   Called from %s:%d", ptr, fname, line );
+            if( total_service < sizeof(ASHashItem) )
+                show_error( "it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ptr, fname, line );
+            else
+                total_service -= sizeof(ASHashItem);
+        }
+        service_mode-- ;
 	}
 	if( m )
 	{
@@ -302,26 +343,24 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 	if (ptr != NULL)
 	{
 		mem          *m = NULL;
-		ASHashResult  res ; 
+		ASHashResult  res ;
 
-		if( allocs_hash != NULL ) 
+		if( allocs_hash != NULL )
 		{
 			service_mode++ ;
 			if( remove_hash_item (allocs_hash, (ASHashableValue)ptr, (void**)&m, False) == ASH_Success )
 				if( (m->type & 0xff) != C_MEM )
 				{
-					show_error( "while deallocating pointer 0x%lX discovered that it was allocated with different type", ptr ); 
+					show_error( "while deallocating pointer 0x%lX discovered that it was allocated with different type", ptr );
 					m = NULL ;
 				}
 			service_mode-- ;
 		}
-
-
 		if (m == NULL)
 		{
 			show_error ("%s:attempt in %s:%d to realloc memory(%p) that was never allocated!\n",
 					     __FUNCTION__, fname, line, ptr);
-			print_simple_backtrace();						 
+			print_simple_backtrace();
 			return NULL;
 		}
 		if ((m->type & 0xff) == C_MEM)
@@ -358,16 +397,16 @@ countfree (const char *fname, int line, void *ptr)
 {
 	mem          *m ;
 
-	if( service_mode ) 
+    if( service_mode > 0 )
 		return ;
-		
+
 	if (ptr == NULL)
 	{
 		fprintf (stderr, "%s:attempt to free NULL memory in %s:%d\n", __FUNCTION__, fname, line);
 		return;
 	}
 
-	m = count_find_and_extract (fname, line, ptr, C_MEM);		
+	m = count_find_and_extract (fname, line, ptr, C_MEM);
 	if (m == NULL)
 	{
 		fprintf (stderr,
@@ -393,7 +432,7 @@ countfree (const char *fname, int line, void *ptr)
 #endif
 }
 
-ASHashResult 
+ASHashResult
 countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHashableValue value, void *data )
 {
 	ASHashResult   res = add_hash_item(hash, value, data );
@@ -421,29 +460,31 @@ char* countadd_mystrndup(const char *fname, int line, const char *a, int len)
 	return ptr;
 }
 
-
-
 void
-print_unfreed_mem (void)
+output_unfreed_mem (FILE *stream)
 {
 	ASHashIterator i;
 
-	fprintf (stderr, "===============================================================================\n");
-	fprintf (stderr, "Memory audit: %s\n", MyName);
-	fprintf (stderr, "\n");
-    fprintf (stderr, "   Total   allocs: %lu\n", allocations);
-    fprintf (stderr, "   Total reallocs: %lu\n", reallocations);
-    fprintf (stderr, "   Total deallocs: %lu\n", deallocations);
-    fprintf (stderr, "Max allocs at any one time: %lu\n", max_allocations);
-    fprintf (stderr, "      Lost memory: %lu\n", total_alloc);
-    fprintf (stderr, "    Lost X memory: %lu\n", total_x_alloc);
-    fprintf (stderr, "  Max memory used: %lu\n", max_alloc);
-    fprintf (stderr, "Max X memory used: %lu\n", max_x_alloc);
-	fprintf (stderr, "\n");
-	fprintf (stderr, "List of unfreed memory\n");
-	fprintf (stderr, "----------------------\n");
-	fprintf (stderr, "allocating function    |line |length |pointer    |type (subtype)\n");
-	fprintf (stderr, "-----------------------+-----+-------+-----------+--------------\n");
+    if( stream == NULL )
+        stream = stderr ;
+    fprintf (stream, "===============================================================================\n");
+    fprintf (stream, "Memory audit: %s\n", MyName);
+    fprintf (stream, "\n");
+    fprintf (stream, "   Total   allocs: %lu\n", allocations);
+    fprintf (stream, "   Total reallocs: %lu\n", reallocations);
+    fprintf (stream, "   Total deallocs: %lu\n", deallocations);
+    fprintf (stream, "Max allocs at any one time: %lu\n", max_allocations);
+    fprintf (stream, "Lost audit memory: %lu\n", total_service);
+    fprintf (stream, "      Lost memory: %lu\n", total_alloc);
+    fprintf (stream, "    Lost X memory: %lu\n", total_x_alloc);
+    fprintf (stream, " Max audit memory: %lu\n", max_service);
+    fprintf (stream, "  Max memory used: %lu\n", max_alloc);
+    fprintf (stream, "Max X memory used: %lu\n", max_x_alloc);
+    fprintf (stream, "\n");
+    fprintf (stream, "List of unfreed memory\n");
+    fprintf (stream, "----------------------\n");
+    fprintf (stream, "allocating function    |line |length |pointer    |type (subtype)\n");
+    fprintf (stream, "-----------------------+-----+-------+-----------+--------------\n");
 	if( start_hash_iteration( allocs_hash, &i ) )
 	do
 	{
@@ -451,30 +492,30 @@ print_unfreed_mem (void)
 		m = curr_hash_data( &i );
 		if (m->freed == 0)
 		{
-			fprintf (stderr, "%23s|%-5d|%-7d|0x%08x ", m->fname, m->line, m->length, (unsigned int)m->ptr);
+            fprintf (stream, "%23s|%-5d|%-7d|0x%08x ", m->fname, m->line, m->length, (unsigned int)m->ptr);
 			switch (m->type & 0xff)
 			{
 			 case C_MEM:
-				 fprintf (stderr, "| malloc");
+                 fprintf (stream, "| malloc");
 				 switch (m->type & ~0xff)
 				 {
 				  case C_MALLOC:
-					  fprintf (stderr, " (malloc)");
+                      fprintf (stream, " (malloc)");
 					  break;
 				  case C_CALLOC:
-					  fprintf (stderr, " (calloc)");
+                      fprintf (stream, " (calloc)");
 					  break;
 				  case C_REALLOC:
-					  fprintf (stderr, " (realloc)");
+                      fprintf (stream, " (realloc)");
 					  break;
 				  case C_ADD_HASH_ITEM:
-					  fprintf (stderr, " (add_hash_item)");
+                      fprintf (stream, " (add_hash_item)");
 					  break;
 				  case C_MYSTRDUP:
-					  fprintf (stderr, " (mystrdup)");
+                      fprintf (stream, " (mystrdup)");
 					  break;
 				  case C_MYSTRNDUP:
-					  fprintf (stderr, " (mystrndup)");
+                      fprintf (stream, " (mystrndup)");
 					  break;
 				 }
 				 /* if it seems to be a string, print it */
@@ -491,95 +532,112 @@ print_unfreed_mem (void)
 							 i = m->length;
 					 }
 					 if (i < m->length)
-						 fprintf (stderr, " '%s'", ptr);
+                         fprintf (stream, " '%s'", ptr);
 				 }
 				 break;
 			 case C_PIXMAP:
-				 fprintf (stderr, "| pixmap");
+                 fprintf (stream, "| pixmap");
 				 switch (m->type & ~0xff)
 				 {
 				  case C_CREATEPIXMAP:
-					  fprintf (stderr, " (XCreatePixmap)");
+                      fprintf (stream, " (XCreatePixmap)");
 					  break;
 				  case C_XPMFILE:
-					  fprintf (stderr, " (XpmReadFileToPixmap)");
+                      fprintf (stream, " (XpmReadFileToPixmap)");
 					  break;
 				  case C_BITMAPFROMDATA:
-					  fprintf (stderr, " (XCreateBitmapFromData)");
+                      fprintf (stream, " (XCreateBitmapFromData)");
 					  break;
 				  case C_FROMBITMAP:
-					  fprintf (stderr, " (XCreatePixmapFromBitmapData)");
+                      fprintf (stream, " (XCreatePixmapFromBitmapData)");
 					  break;
 				 }
 				 break;
 			 case C_GC:
-				 fprintf (stderr, "| gc (XCreateGC)");
+                 fprintf (stream, "| gc (XCreateGC)");
 				 break;
 			 case C_IMAGE:
-				 fprintf (stderr, "| image");
+                 fprintf (stream, "| image");
 				 switch (m->type & ~0xff)
 				 {
 				  case 0:
-					  fprintf (stderr, " (XCreateImage)");
+                      fprintf (stream, " (XCreateImage)");
 					  break;
 				  case C_GETIMAGE:
-					  fprintf (stderr, " (XGetImage)");
+                      fprintf (stream, " (XGetImage)");
 					  break;
 				  case C_SUBIMAGE:
-					  fprintf (stderr, " (XSubImage)");
+                      fprintf (stream, " (XSubImage)");
 					  break;
 				  case C_XPMFILE:
-					  fprintf (stderr, " (XpmCreateImageFromXpmImage)");
+                      fprintf (stream, " (XpmCreateImageFromXpmImage)");
 					  break;
 				 }
 				 break;
 			 case C_XMEM:
-				 fprintf (stderr, "| X mem");
+                 fprintf (stream, "| X mem");
 				 switch (m->type & ~0xff)
 				 {
 				  case C_XGETWINDOWPROPERTY:
-					  fprintf (stderr, " (XGetWindowProperty)");
+                      fprintf (stream, " (XGetWindowProperty)");
 					  break;
                   case C_XLISTPROPERTIES:
-                      fprintf (stderr, " (XListProperties)");
+                      fprintf (stream, " (XListProperties)");
 					  break;
                   case C_XGETTEXTPROPERTY:
-                      fprintf (stderr, " (XGetTextProperty)");
+                      fprintf (stream, " (XGetTextProperty)");
                       break;
                   case C_XALLOCCLASSHINT :
-                      fprintf (stderr, " (XAllocClassHint)");
+                      fprintf (stream, " (XAllocClassHint)");
                       break;
                   case C_XALLOCSIZEHINTS :
-                      fprintf (stderr, " (XAllocSizeHints)");
+                      fprintf (stream, " (XAllocSizeHints)");
                       break;
                   case C_XQUERYTREE:
-					  fprintf (stderr, " (XQueryTree)");
+                      fprintf (stream, " (XQueryTree)");
 					  break;
 				  case C_XGETWMHINTS:
-					  fprintf (stderr, " (XGetWMHints)");
+                      fprintf (stream, " (XGetWMHints)");
 					  break;
 				  case C_XGETWMPROTOCOLS:
-					  fprintf (stderr, " (XGetWMProtocols)");
+                      fprintf (stream, " (XGetWMProtocols)");
 					  break;
 				  case C_XGETWMNAME:
-					  fprintf (stderr, " (XGetWMName)");
+                      fprintf (stream, " (XGetWMName)");
 					  break;
 				  case C_XGETCLASSHINT:
-					  fprintf (stderr, " (XGetClassHint)");
+                      fprintf (stream, " (XGetClassHint)");
 					  break;
 				  case C_XGETATOMNAME:
-					  fprintf (stderr, " (XGetAtomName)");
+                      fprintf (stream, " (XGetAtomName)");
 					  break;
 				  case C_XSTRINGLISTTOTEXTPROPERTY:
-					  fprintf (stderr, " (XStringListToTextProperty)");
+                      fprintf (stream, " (XStringListToTextProperty)");
 					  break;
 				 }
 				 break;
 			}
-			fprintf (stderr, "\n");
-		}			
+            fprintf (stream, "\n");
+		}
 	}while( next_hash_item(&i) );
-	fprintf (stderr, "===============================================================================\n");
+    fprintf (stream, "===============================================================================\n");
+}
+
+void
+spool_unfreed_mem (char *filename, const char *comments)
+{
+    FILE *spoolfile = fopen(filename, "w+");
+    if( spoolfile )
+    {
+        fprintf( spoolfile, "%s: Memory Usage Snapshot <%s>", MyName, comments?comments:"no comments" );
+        output_unfreed_mem( spoolfile );
+        fclose( spoolfile );
+    }
+}
+
+void print_unfreed_mem()
+{
+    output_unfreed_mem(NULL);
 }
 
 
@@ -590,8 +648,8 @@ print_unfreed_mem_stats (const char *file, const char *func, int line, const cha
         fprintf( stderr, "%s:%s:%s:%d: Memory audit %s\n", MyName, file, func, line, msg );
     fprintf( stderr, "%s:%s:%s:%d: Memory audit counts: allocs %lu, reallocs: %lu, deallocs: %lu, max simultaneous %lu\n",
                      MyName, file, func, line, allocations, reallocations, deallocations, max_allocations);
-    fprintf( stderr, "%s:%s:%s:%d: Memory audit used memory: private %lu, X %lu, max private %lu, max X %lu\n",
-                     MyName, file, func, line, total_alloc, total_x_alloc, max_alloc, max_x_alloc);
+    fprintf( stderr, "%s:%s:%s:%d: Memory audit used memory: private %lu, X %lu, audit %lu, max private %lu, max X %lu, max audit %lu\n",
+                     MyName, file, func, line, total_alloc, total_x_alloc, total_service, max_alloc, max_x_alloc, max_service);
 }
 
 Pixmap

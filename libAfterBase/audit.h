@@ -155,6 +155,8 @@ Status count_xstringlisttotextproperty (const char *fname, int line,
 int count_xfree (const char *fname, int line, void *data);
 
 void print_unfreed_mem (void);
+void output_unfreed_mem (FILE *stream);
+void spool_unfreed_mem (char *filename, const char *comments);
 void print_unfreed_mem_stats (const char *file, const char *func, int line, const char *msg);
 #define PRINT_MEM_STATS(m)     print_unfreed_mem_stats(__FILE__,__FUNCTION__, __LINE__,(m))
 
