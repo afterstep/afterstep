@@ -162,6 +162,22 @@ typedef struct ASProperty {
 	ASBiDirList *sub_props ;	   
 }ASProperty;
 
+typedef struct ASConfigFile {
+	char *dirname ;
+	char *filename ;
+	char *fullname ;
+	char *myname ;
+
+	FreeStorageElem *free_storage ;
+
+}ASConfigFile;
+
+typedef struct ASPropertyRoot {
+	ASConfigFile *source ;
+	ASProperty   *prop ;
+
+	void  (*on_property_changed)(ASProperty *prop);
+}ASPropertyRoot;
 
 /*************************************************************************/
 /*************************************************************************/

@@ -815,7 +815,7 @@ FreeStorageElem *
 file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, FreeStorageElem **foreign_options )
 {
 	ConfigData cd ;
-	ConfigDef    *reader ;
+	ConfigDef    *config_reader ;
 	FreeStorageElem *storage = NULL ;
 	
 	cd.filename = filename ;
