@@ -614,7 +614,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
                             dont_resize_main_canvas?"Don't ":"Do ", WinListState.windows_num );
     
 	timer_remove_all();
-	if( WinListState.last_message_time+1 >= time(NULL) ) 
+	if( WinListState.last_message_time > time(NULL) ) 
 	{	
 		timer_new (500, postponed_rearrange_winlist, (void*)dont_resize_main_canvas);	  
 		return False;
