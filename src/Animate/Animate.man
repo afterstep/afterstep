@@ -82,8 +82,9 @@ Tells Animate how wide a line to draw with.  Note that with 0 produces a
 fast line at Width 1.
 
 .IP "*AnimateResize \fBmode\fP"
-Tells Animate what method to use to draw resizes.  \fIzoom\fP,  \fIzoom3D\fP,
-\fItwist\fP, \fIflip\fP, \fIturn\fP & \fIrandom\fP are currently supported.
+Tells Animate what method to use to draw resizes.  The six methods currently 
+supported are: \fIzoom\fP,  \fIzoom3D\fP, \fItwist\fP, \fIflip\fP, \fIturn\fP
+and \fIrandom\fP.
 
 
 .SH FILES
