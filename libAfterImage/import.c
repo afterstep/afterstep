@@ -993,13 +993,13 @@ jpeg2ASImage( const char * path, ASImageImportParams *params )
 		(void)jpeg_read_scanlines (&cinfo, buffer, 1);
 		if( cinfo.output_components==1 ) 
 		{	
-			apply_gamma( buffer[0], params->gamma_table, im->width );
-			im->channels[IC_RED][y] = store_data( NULL, buffer[0], im->width, ASStorage_RLEDiffCompress, 0);
+			apply_gamma( (CARD8*)buffer[0], params->gamma_table, im->width );
+			im->channels[IC_RED][y] = store_data( NULL, (CARD8*)buffer[0], im->width, ASStorage_RLEDiffCompress, 0);
 			im->channels[IC_GREEN][y] = dup_data( NULL, im->channels[IC_RED][y] );
 			im->channels[IC_BLUE][y]  = dup_data( NULL, im->channels[IC_RED][y] );
 		}else
 		{		   
-			raw2scanline( buffer[0], &buf, params->gamma_table, im->width, (cinfo.output_components==1), False);
+			raw2scanline( (CARD8*)buffer[0], &buf, params->gamma_table, im->width, (cinfo.output_components==1), False);
 			im->channels[IC_RED][y] = store_data( NULL, (CARD8*)buf.red, buf.width*4, ASStorage_32BitRLE, 0);
 			im->channels[IC_GREEN][y] = store_data( NULL, (CARD8*)buf.green, buf.width*4, ASStorage_32BitRLE, 0);
 			im->channels[IC_BLUE][y] = store_data( NULL, (CARD8*)buf.blue, buf.width*4, ASStorage_32BitRLE, 0);

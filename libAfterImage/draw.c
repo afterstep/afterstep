@@ -30,6 +30,7 @@
 /*#define DO_CLOCKING*/
 
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #ifdef _WIN32
 # include "win32/afterbase.h"
@@ -285,7 +286,10 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 		dy = -dy ;
 
 	if( dx == 0 || dy == 0 ) 
-		return ctx_draw_line_solid( ctx, from_x, from_y, to_x, to_y );
+	{	
+		ctx_draw_line_solid( ctx, from_x, from_y, to_x, to_y );
+		return ;
+	}
 	
 	if( dx >= dy ) 
 	{	
@@ -472,7 +476,7 @@ ctx_draw_bezier( ASDrawContext *ctx, int x0, int y0, int x1, int y1, int x2, int
 			((Y0)>=0 || (Y1)>=0 || (Y2)>=0 || (Y3)>=0) && ((Y0)<ch||(Y1)<ch||(Y2)<ch||(Y3)<ch) ){ \
 			while( bstack_used >= bstack_size ) { \
 				bstack_size += 2048/sizeof(ASCubicBezier); \
-				bstack = realloc( bstack, bstack_size*sizeof(ASCubicBezier)); \
+				bstack = (ASCubicBezier *)realloc( bstack, bstack_size*sizeof(ASCubicBezier)); \
 			} \
 			LOCAL_DEBUG_OUT( "(%d,%d),(%d,%d),(%d,%d),(%d,%d)", X0, Y0, X1, Y1, X2, Y2, X3, Y3 ); \
 			bstack[bstack_used].x0=X0; \
