@@ -746,9 +746,22 @@ broadcast_res_names( ASWindow *asw )
                     (unsigned long)asw, asw->hints->res_name);
     }
 }
+
+broadcast_status_change( int message, ASWindow *asw )
+{
+    if( message == M_DEICONIFY || message == M_ICONIFY )
+    {
+        ASRectangle geom = {INVALID_POSITION, INVALID_POSITION, 0, 0} ;
+        get_icon_root_geometry( asw, &geom );
+        Broadcast ( message, 7, asw->w, asw->frame, (unsigned long)asw,
+                    geom.x, geom.y, geom.width, geom.height);
+    }else if( message == M_MAP )
+        Broadcast (M_MAP, 3, asw->w, asw->frame, (unsigned long)asw);
+}
 /*******************************************************************************/
 /* Low level messaging queue handling :                                        */
 /*******************************************************************************/
+
 #include <sys/errno.h>
 AFTER_INLINE int
 PositiveWrite (int module, unsigned long *ptr, int size)

@@ -184,10 +184,6 @@ typedef struct ScreenInfo
     struct MouseButton *MouseButtonRoot;
     struct FuncKey *FuncKeyRoot;
 
-    int root_pushes;		/* current push level to install root
-				   colormap windows */
-    ASWindow *pushed_window;	/* saved window to install when pushes drops
-				   to zero */
     Cursor ASCursors[MAX_CURSORS];
 
     name_list *TheList;		/* list of window names with attributes */
@@ -254,7 +250,11 @@ typedef struct ScreenInfo
     ASWindow *Ungrabbed;
     ASWindow *PreviousFocus;	/* Window which had focus before afterstep stole it
                                  * to do moves/menus/etc. */
-    int EntryHeight;		/* menu entry height */
+    int root_pushes;            /* current push level to install root colormap windows */
+    ASWindow *pushed_window;    /* saved window to install when pushes drops to zero */
+    ASWindow *colormap_win;
+
+    int EntryHeight;        /* menu entry height */
     int EdgeScrollX;		/* #pixels to scroll on screen edge */
     int EdgeScrollY;		/* #pixels to scroll on screen edge */
     unsigned int nonlock_mods;	/* a mask for non-locking modifiers */

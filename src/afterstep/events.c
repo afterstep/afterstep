@@ -598,46 +598,38 @@ HandleMapRequest (ASEvent *event )
 void
 HandleMapNotify ( ASEvent *event )
 {
-	if (!Tmp_win || (Event.xmap.event == Scr.ASRoot.w))
-	{
-		return;
-	}
-	/*
+    ASWindow *asw = event->client;
+    if ( asw == NULL || event->w == Scr.Root )
+        return;
+    /*
 	 * Need to do the grab to avoid race condition of having server send
 	 * MapNotify to client before the frame gets mapped; this is bad because
 	 * the client would think that the window has a chance of being viewable
 	 * when it really isn't.
 	 */
 	XGrabServer (dpy);
-	if (Tmp_win->icon_pixmap_w != None)
-		XUnmapWindow (dpy, Tmp_win->icon_pixmap_w);
-	XMapSubwindows (dpy, Tmp_win->frame);
+    unmap_canvas_window(dpy, asw->icon_canvas );
+    XMapSubwindows (dpy, asw->frame);
 
-	if (Tmp_win->status->desktop == Scr.CurrentDesk)
+#warning "recode the way windows are removed from screen when desktop changes (make it ICCCM compliant)"
+    if (asw->status->desktop == Scr.CurrentDesk)
 	{
-		XMapWindow (dpy, Tmp_win->frame);
+        XMapWindow (dpy, asw->frame);
 	}
-	if (Tmp_win->flags & ICONIFIED)
-		Broadcast (M_DEICONIFY, 7, Tmp_win->w, Tmp_win->frame, (unsigned long)Tmp_win,
-				   Tmp_win->icon_p_x, Tmp_win->icon_p_y, Tmp_win->icon_p_width,
-				   Tmp_win->icon_p_height);
-	else
-		Broadcast (M_MAP, 3, Tmp_win->w, Tmp_win->frame, (unsigned long)Tmp_win);
 
-	if (Scr.flags & ClickToFocus)
-		SetFocus (Tmp_win->w, Tmp_win, False);
+    broadcast_status_change( ASWIN_GET_FLAGS(asw, AS_Iconic)?M_DEICONIFY:M_MAP, asw );
 
-	if (!ASWIN_HFLAGS(Tmp_win, (AS_Titlebar|AS_Handles)) && (Tmp_win->boundary_width < 2))
-		SetBorder (Tmp_win, False, True, True, Tmp_win->frame);
+    if (get_flags( Scr.flags, ClickToFocus) )
+        focus_aswindow (asw, False);
 
-	XSync (dpy, 0);
+#warning "do we need to un-hilite window at the time of mapNotify?"
+    XSync (dpy, 0);
 	XUngrabServer (dpy);
 	XFlush (dpy);
-	Tmp_win->flags |= MAPPED;
-	Tmp_win->flags &= ~MAP_PENDING;
-	Tmp_win->flags &= ~ICONIFIED;
-	Tmp_win->flags &= ~ICON_UNMAPPED;
-	UpdateVisibility ();
+    ASWIN_SET_FLAGS(asw, AS_Mapped);
+    ASWIN_CLEAR_FLAGS(asw, AS_IconMapped);
+    ASWIN_CLEAR_FLAGS(asw, AS_Iconic);
+    UpdateVisibility ();
 }
 
 
@@ -648,63 +640,34 @@ HandleMapNotify ( ASEvent *event )
  *
  ************************************************************************/
 void
-HandleUnmapNotify ()
+HandleUnmapNotify (ASEvent *event )
 {
 	int           dstx, dsty;
 	Window        dumwin;
 	XEvent        dummy;
 	extern ASWindow *colormap_win;
+    ASWindow *asw = event->client ;
 
-	/*
-	 * The July 27, 1988 ICCCM spec states that a client wishing to switch
-	 * to WithdrawnState should send a synthetic UnmapNotify with the
-	 * event field set to (pseudo-)root, in case the window is already
-	 * unmapped (which is the case for afterstep for IconicState).  Unfortunately,
-	 * we looked for the ASContext using that field, so try the window
-	 * field also.
-	 */
-	if (!Tmp_win)
-	{
-		Event.xany.window = Event.xunmap.window;
-		Tmp_win = window2ASWindow( Event.xany.window );
-	}
-	if (Event.xunmap.event == Scr.ASRoot.w)
+    if ( event->x.xunmap.event == Scr.Root )
 		return;
 
-	if (!Tmp_win)
+    if (!asw)
 		return;
 
-	if (Tmp_win == Scr.Hilite)
-		Scr.Hilite = NULL;
+    /* Window remains hilited even when unmapped !!!! */
+    /* if (Scr.Hilite == asw )
+        Scr.Hilite = NULL; */
 
-	if (Scr.PreviousFocus == Tmp_win)
+    if (Scr.PreviousFocus == asw)
 		Scr.PreviousFocus = NULL;
 
-	if ((Tmp_win == Scr.Focus) && (Scr.flags & ClickToFocus))
-	{
-		ASWindow     *t, *tn = NULL;
-		long          best = LONG_MIN;
+    if (Scr.Focus == asw )
+        focus_next_aswindow( asw );
 
-		for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-		{
-			if ((t->focus_sequence > best) && (t != Tmp_win))
-			{
-				best = t->focus_sequence;
-				tn = t;
-			}
-		}
-		if (tn)
-			SetFocus (tn->w, tn, False);
-		else
-			SetFocus (Scr.NoFocusWin, NULL, False);
-	}
-	if (Scr.Focus == Tmp_win)
-		SetFocus (Scr.NoFocusWin, NULL, False);
-
-	if (Tmp_win == Scr.pushed_window)
+    if (Scr.pushed_window == asw)
 		Scr.pushed_window = NULL;
 
-	if (Tmp_win == colormap_win)
+    if (colormap_win == asw)
 		colormap_win = NULL;
 
 	if ((!(Tmp_win->flags & MAPPED) && !(Tmp_win->flags & ICONIFIED)))
@@ -1114,9 +1077,7 @@ HandleShapeNotify (void)
 
 #if 1										   /* see SetTimer() */
 /**************************************************************************
- *
  * For auto-raising windows, this routine is called
- *
  *************************************************************************/
 volatile int  alarmed;
 void

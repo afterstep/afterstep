@@ -340,6 +340,8 @@ void grab_window_input( ASWindow *asw, Bool release_grab );
 
 void hide_focus();
 Bool focus_aswindow( ASWindow *asw, Bool circulated );
+void focus_next_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */
+
 void hilite_aswindow( ASWindow *asw );         /* actually hilites focused window on reception of event */
 
 void redecorate_window( ASWindow *asw, Bool free_resources );

@@ -67,6 +67,7 @@ extern void match_string (struct config *, char *, char *, FILE *);
 extern struct config *match_string2 (struct config *, char *);
 extern void LoadASConfig (const char *, int, Bool, Bool, Bool);
 
+void DigestEvent( ASEvent *event );
 extern void HandleEvents (struct ASEvent *event);
 extern void HandleFocusIn (struct ASEvent *event);
 extern void HandleFocusOut (struct ASEvent *event);
@@ -153,6 +154,8 @@ void broadcast_focus _change( ASWindow *focused );
 void broadcast_window_name( ASWindow *asw );
 void broadcast_icon_name( ASWindow *asw );
 void broadcast_res_names( ASWindow *asw );
+void broadcast_status_change( int message, ASWindow *asw );
+
 
 void DeadPipe (int);
 unsigned long GetGnomeState (ASWindow * t);

@@ -1485,17 +1485,14 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 Bool
 iconify_window( ASWindow *asw, Bool iconify )
 {
-    ASRectangle geom = {INVALID_POSITION, INVALID_POSITION, 0, 0} ;
-
 LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d, batch = %d", asw, iconify, batch );
-
 
     if( AS_ASSERT(asw) )
         return False;
     if( (iconify?1:0) == (ASWIN_GET_FLAGS(asw, AS_Iconic )?1:0) )
         return False;
 
-    get_icon_root_geometry( asw, &geom );
+    broadcast_status_change( iconify?M_ICONIFY:M_DEICONIFY, asw );
 
     if( iconify )
     {
@@ -1516,19 +1513,13 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
 		   fix it eventually, less we want to end up with iconified transients
 		   without icons
 		 */
-		if ( ASWIN_HFLAGS(asw, AS_Transient))
-		{
-            Broadcast (M_ICONIFY, 7, asw->w, asw->frame,
-                       (unsigned long)asw, -10000, -10000, geom.width, geom.height);
-			BroadcastConfig (M_CONFIGURE_WINDOW, asw);
-		}else
+        BroadcastConfig (M_CONFIGURE_WINDOW, asw);
+
+        if( !ASWIN_HFLAGS(asw, AS_Transient))
 		{
             set_flags( asw->status->flags, AS_Iconic );
             add_iconbox_icon( asw );
-            Broadcast ( M_ICONIFY, 7, asw->w, asw->frame, (unsigned long)asw,
-                        geom.x, geom.y, geom.width, geom.height);
-			BroadcastConfig (M_CONFIGURE_WINDOW, asw);
-			LowerWindow (asw);
+            LowerWindow (asw);
 
 			if ((Scr.flags & ClickToFocus) || (Scr.flags & SloppyFocus))
 			{
@@ -1556,8 +1547,6 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
 
         /* TODO: make sure that the window is on this screen */
 
-        Broadcast (M_DEICONIFY, 7, asw->w, asw->frame, (unsigned long)asw,
-                   geom.x, geom.y, geom.width, geom.height);
         XMapWindow (dpy, asw->w);
         if (ASWIN_DESK(asw) == Scr.CurrentDesk)
         {
@@ -1723,6 +1712,25 @@ focus_aswindow( ASWindow *asw, Bool circulated )
 }
 
 void
+focus_next_aswindow( ASWindow *asw )
+{
+    ASWindow     *new_focus = NULL;
+
+    if( get_flags(Scr.flags, ClickToFocus))
+    {
+        ASWindow     *t;
+        long          best = LONG_MIN;
+        for (t = Scr.ASRoot.next; t != NULL; t = t->next)
+            if ((t->focus_sequence > best) && (t != asw))
+            {
+                best = t->focus_sequence;
+                new_focus = t;
+            }
+    }
+    focus_aswindow( new_focus, False);
+}
+
+void
 hilite_aswindow( ASWindow *asw )
 {
     if( Scr.Hilite != asw )
@@ -1754,7 +1762,6 @@ AddWindow (Window w)
 	ASWindow     *tmp_win;					   /* new afterstep window structure */
 	int           a, b;
 	extern Bool   NeedToResizeToo;
-	extern ASWindow *colormap_win;
 
 #ifdef I18N
 	char        **list;
@@ -1940,7 +1947,7 @@ AddWindow (Window w)
 		resize_window (tmp_win->w, tmp_win, 0, 0, 0, 0);
 	}
 #endif
-	InstallWindowColormaps (colormap_win);
+    InstallWindowColormaps (Scr.colormap_win);
 	if (!ASWIN_HFLAGS(tmp_win, AS_SkipWinList))
 		update_windowList ();
 
@@ -1955,7 +1962,6 @@ Destroy (ASWindow *asw, Bool kill_client)
 {
 	int           i;
 	extern ASWindow *ButtonWindow;
-	extern ASWindow *colormap_win;
 
 	/*
 	 * Warning, this is also called by HandleUnmapNotify; if it ever needs to
@@ -1968,37 +1974,22 @@ Destroy (ASWindow *asw, Bool kill_client)
     XUnmapWindow (dpy, asw->frame);
 	XSync (dpy, 0);
 
+    Broadcast (M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
+
     if ( asw == Scr.Hilite )
 		Scr.Hilite = NULL;
 
     if ( asw == Scr.PreviousFocus )
 		Scr.PreviousFocus = NULL;
 
-    Broadcast (M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
-
     if (asw == Scr.Focus )
-    {
-        ASWindow     *new_focus = NULL;
+        focus_next_aswindow( asw );
 
-        if( get_flags(Scr.flags, ClickToFocus))
-        {
-            ASWindow     *t;
-            long          best = LONG_MIN;
-            for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-                if ((t->focus_sequence > best) && (t != asw))
-                {
-                    best = t->focus_sequence;
-                    new_focus = t;
-                }
-        }
-        focus_aswindow( new_focus, False);
-    }
-
-    if (asw == Scr.pushed_window)
+    if (Scr.pushed_window == asw)
 		Scr.pushed_window = NULL;
 
-    if (asw == colormap_win)
-		colormap_win = NULL;
+    if (Scr.colormap_win == asw )
+        Scr.colormap_win = NULL;
 
 	if (!kill_client)
         RestoreWithdrawnLocation (asw, True);

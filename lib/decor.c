@@ -330,6 +330,13 @@ moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int
     XMoveResizeWindow (dpy, pc->w, x, y, width, height);
 }
 
+void
+unmap_canvas_window( ASCanvas *pc )
+{
+    if( pc && pc->w != None )
+        XUnmapWindow( dpy, pc->w );
+}
+
 /********************************************************************/
 /* ASTBtnData :                                                     */
 /********************************************************************/
