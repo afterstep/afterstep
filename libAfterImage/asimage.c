@@ -293,6 +293,7 @@ asimage_start_static(ASImage * im, unsigned int width, unsigned int height, unsi
 	{
 		register unsigned int i;
 		register CARD8 *ptr ;
+		int line_size = ((width+3)/4)*4 ;
 
 		asimage_init (im, True);
 		set_flags( im->flags, ASIM_STATIC ); 
@@ -305,17 +306,17 @@ asimage_start_static(ASImage * im, unsigned int width, unsigned int height, unsi
 
 		alloc_asimage_channels( im );
 
-		im->memory.pmem = ptr = safemalloc( width*height * 4 );
+		im->memory.pmem = ptr = safemalloc( line_size*height * 4 );
 		for( i = 0 ; i < height ; ++i ) 
 		{
 			im->red[i] = ptr ;
-			ptr += width ; 
+			ptr += line_size ; 
 			im->green[i] = ptr ;
-			ptr += width ; 
+			ptr += line_size ; 
 			im->blue[i] = ptr ;
-			ptr += width ; 
+			ptr += line_size ; 
 			im->alpha[i] = ptr ;
-			ptr += width ; 
+			ptr += line_size ; 
 	
 		}		
 	}
@@ -1204,35 +1205,55 @@ asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y, CARD8 *buff
 {
 	register int len = (buf_used>>2)+1 ;
 	CARD8  **part = im->channels[color];
-	register CARD32  *dwdst = safemalloc( sizeof(CARD32)*len);
 	register CARD32  *dwsrc = (CARD32*)buffer;
+	register CARD32  *dwdst;
+	
+	if( get_flags( im->flags, ASIM_STATIC ) ) 
+		dwdst = (CARD32*)part[y] ;			
+	else
+	{
+		dwdst = safemalloc( sizeof(CARD32)*len);	
+		if (part[y] != NULL)
+			free (part[y]);
+		part[y] = (CARD8*)dwdst;
+	}
+	
 	while( --len >= 0 )
 		dwdst[len] = dwsrc[len];
 
-	if (part[y] != NULL)
-		free (part[y]);
-	part[y] = (CARD8*)dwdst;
 }
 
 static void
 asimage_dup_line (ASImage * im, ColorPart color, unsigned int y1, unsigned int y2, unsigned int length)
 {
 	CARD8       **part = im->channels[color];
-	if (part[y2] != NULL)
-		free (part[y2]);
-	if( part[y1] )
+	if( get_flags( im->flags, ASIM_STATIC ) ) 
 	{
 		register unsigned int i ;
 		register CARD32 *dwsrc = (CARD32*)part[y1];
-		register CARD32 *dwdst ;
+		register CARD32 *dwdst = (CARD32*)part[y2];
 		length = (length>>2)+1;
-		dwdst = safemalloc (sizeof(CARD32)*length);
 		/* 32bit copy gives us about 15% performance gain */
 		for( i = 0 ; i < length ; ++i )
 			dwdst[i] = dwsrc[i];
-		part[y2] = (CARD8*)dwdst;
 	}else
-		part[y2] = NULL;
+	{
+		if (part[y2] != NULL)
+			free (part[y2]);
+		if( part[y1] )
+		{
+			register unsigned int i ;
+			register CARD32 *dwsrc = (CARD32*)part[y1];
+			register CARD32 *dwdst ;
+			length = (length>>2)+1;
+			dwdst = safemalloc (sizeof(CARD32)*length);
+			/* 32bit copy gives us about 15% performance gain */
+			for( i = 0 ; i < length ; ++i )
+				dwdst[i] = dwsrc[i];
+			part[y2] = (CARD8*)dwdst;
+		}else
+			part[y2] = NULL;
+	}
 }
 
 void
