@@ -1409,6 +1409,7 @@ Bool
 set_astbar_hilite( ASTBarData *tbar, unsigned int state, ASFlagType hilite )
 {
     Bool          changed = False;
+LOCAL_DEBUG_CALLER_OUT( "%p,%d,0x%lX", tbar, state, hilite );
     if (tbar && state < BAR_STATE_NUM)
 	{
         changed = (tbar->hilite[state] != (hilite&HILITE_MASK));
@@ -1876,7 +1877,7 @@ LOCAL_DEBUG_CALLER_OUT("tbar(%p)->pc(%p)", tbar, pc );
         return -3;
 	state = get_flags (tbar->state, BAR_STATE_FOCUS_MASK);
 	style = tbar->style[state];
-LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)", style, tbar->width, tbar->height, tbar->root_x, tbar->root_y );
+LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width, tbar->height, tbar->root_x, tbar->root_y, tbar->hilite[state] );
 	if (style == NULL)
         return -2;
 	/* validating our images : */
@@ -1898,6 +1899,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 		if (back == NULL)
             return -1;
 	}
+
     mystyle_make_bevel (style, &bevel, tbar->hilite[state], get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
     //mystyle_make_bevel (style, &bevel, 0, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
 	/* in unfocused and unpressed state we render pixmap and set

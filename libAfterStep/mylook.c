@@ -316,7 +316,13 @@ create_default_myframe(ASFlagType default_title_align)
     SetPartUBevelMask(frame,C_SIDEBAR);
     SetPartSBevelMask(frame,C_SIDEBAR);
     frame->part_fbevel[FR_S]  = DEFAULT_TBAR_HILITE;
+    frame->part_fbevel[FR_SW] = DEFAULT_TBAR_HILITE;
+    frame->part_fbevel[FR_SE] = DEFAULT_TBAR_HILITE;
+    frame->part_ubevel[FR_S]  = DEFAULT_TBAR_HILITE ;
+    frame->part_ubevel[FR_SE] = DEFAULT_TBAR_HILITE ;
     frame->part_ubevel[FR_SW] = DEFAULT_TBAR_HILITE ;
+    frame->part_sbevel[FR_S]  = DEFAULT_TBAR_HILITE ;
+    frame->part_sbevel[FR_SW] = DEFAULT_TBAR_HILITE ;
     frame->part_sbevel[FR_SE] = DEFAULT_TBAR_HILITE ;
     set_flags( frame->set_title_attr, MYFRAME_TitleFBevelSet|
                                       MYFRAME_TitleUBevelSet|
