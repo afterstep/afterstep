@@ -1701,7 +1701,7 @@ WinTabsConfig *ParseWinTabsOptions (const char *filename, char *myname);
 #define ASCONFIG_WinTabs_ID				(ASCONFIG_ID_START+12)
 #define ASCONFIG_ID_END                 (ASCONFIG_ID_START+16)
 
-extern SyntaxDef ASConfigSyntax;   /* THIS SYNTAX INCLUDES ALL OTHER SYNTAXES */
+extern struct SyntaxDef ASConfigSyntax;   /* THIS SYNTAX INCLUDES ALL OTHER SYNTAXES */
 
 /***************************************************************************/
 
