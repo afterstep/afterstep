@@ -265,7 +265,11 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 					 return NULL;
 				 }
 				 new_conf->fd =
+#ifdef __CYGWIN__				 
                      open (realfilename, create ? O_CREAT | O_RDONLY |O_BINARY: O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP|O_BINARY);
+#else					 
+                     open (realfilename, create ? O_CREAT | O_RDONLY: O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP);
+#endif
 				 free (realfilename);
                  set_flags( new_conf->flags, CP_NeedToCloseFile);
 			 }
