@@ -19,7 +19,7 @@
  *
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 
 #ifdef _WIN32
@@ -86,19 +86,21 @@ create_asstorage_block( int useable_size )
 	memset( block, 0x00, sizeof(ASStorageBlock));
 	block->size = allocate_size - sizeof(ASStorageBlock) ;
 	block->total_free = block->size ;
-	block->slots[0] = calloc( AS_STORAGE_SLOTS_BATCH, sizeof(ASStorageSlot*));
-	if( block->slots[0] == NULL ) 
+	block->slots = calloc( AS_STORAGE_SLOTS_BATCH, sizeof(ASStorageSlot*));
+	block->slots_count = AS_STORAGE_SLOTS_BATCH ;
+	if( block->slots == NULL ) 
 	{	
 		free( ptr ); 
 		return NULL;
 	}
 	block->start = (ASStorageSlot*)(ptr+sizeof(ASStorageBlock));
-	block->slots[0][0] = block->start ;
-	block->slots[0][0]->flags = 0 ;  /* slot of the free memory */ 
-	block->slots[0][0]->ref_count = 0 ;
-	block->slots[0][0]->size = block->size ;
-	block->slots[0][0]->uncompressed_size = block->size ;
-	block->last_used = 1 ;
+	block->slots[0] = block->start ;
+	block->slots[0]->flags = 0 ;  /* slot of the free memory */ 
+	block->slots[0]->ref_count = 0 ;
+	block->slots[0]->size = block->size ;
+	block->slots[0]->uncompressed_size = block->size ;
+	block->last_used = 0;
+	block->first_free = 0 ;
 
 	return block;
 }
@@ -135,29 +137,19 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags 
 	return new_block+1;
 }
 
-#define AS_STORAGE_GetNextSlot(slot) ((ASStorageSlot*)(((void*)((slot)+1))+(slot)->size))
-
 static inline void
 destroy_storage_slot( ASStorageBlock *block, int index )
 {
-	int batch_no = AS_STORAGE_Index2Batch(index); 
-	ASStorageSlot **batch = block->slots[batch_no] ;
-	int i = AS_STORAGE_Index2BatchIdx(index);
+	ASStorageSlot **slots = block->slots ;
+	int i = index;
 	
-	batch[i] = NULL ; 
+	slots[i] = NULL ; 
 	if( block->last_used == index ) 
 	{	
-		while( batch_no >= 0 )
-		{	
-			while( --i > 0 ) 
-				if( batch[i] == NULL ) 
-					break;
-			if( i >= 0 ) 
+		while( --i > 0 ) 
+			if( slots[i] != NULL ) 
 				break;
-			i = AS_STORAGE_SLOTS_BATCH ;
-			--batch_no ;
-		}
-		block->last_used = (batch_no<0)?0:(batch_no*AS_STORAGE_SLOTS_BATCH)+i;	 
+		block->last_used = i<0?0:i;	 
 	}
 }
 
@@ -167,7 +159,7 @@ join_storage_slots( ASStorageBlock *block, ASStorageSlot *from_slot, ASStorageSl
 	ASStorageSlot *s = AS_STORAGE_GetNextSlot(from_slot);
 	do
 	{
-		from_slot->size += s->size ;	
+		from_slot->size += ASStorageSlot_FULL_SIZE(s) ;	
 		destroy_storage_slot( block, s->index );
 	}while( s != to_slot );	
 }
@@ -183,57 +175,83 @@ ASStorageSlot *
 select_storage_slot( ASStorageBlock *block, int size )
 {
 	int i = block->first_free, last_used = block->last_used ;
-	int batch_no = AS_STORAGE_Index2Batch(i); 
-	ASStorageSlot **batch = block->slots[batch_no] ;
-	i = AS_STORAGE_Index2BatchIdx(i);
-	while( batch != NULL )
+	ASStorageSlot **slots = block->slots ;
+	
+	while( i < last_used )
 	{
-		while( i < AS_STORAGE_SLOTS_BATCH && i < last_used )
+		ASStorageSlot *slot = slots[i] ;
+		if( slot != 0 )
 		{
-			ASStorageSlot *slot = batch[i] ;
-			if( slot != 0 )
+			int size_to_match = size ;
+			while( slot->flags == 0 )
 			{
-				int size_to_match = size ;
-				while( slot->flags == 0 )
+				if( ASStorageSlot_USABLE_SIZE(slot) >= size )
+					return slot;
+				if( ASStorageSlot_USABLE_SIZE(slot) >= size_to_match )
 				{
-					if( slot->size >= size )
-						return slot;
-					if( slot->size >= size_to_match )
-					{
-						join_storage_slots( block, batch[i], slot );
-						return batch[i];
-					}	
-					size_to_match -= slot->size ;
-					slot = AS_STORAGE_GetNextSlot(slot);											
-				}			
-			}
-			++i ;
+					join_storage_slots( block, slots[i], slot );
+					return slots[i];
+				}	
+				size_to_match -= ASStorageSlot_FULL_SIZE(slot);
+				slot = AS_STORAGE_GetNextSlot(slot);											
+			}			
 		}
-		
-		if( ++batch_no < AS_STORAGE_SLOTS_BATCH_CNT ) 
-			return NULL ;
-		batch = block->slots[batch_no];
-		i = 0;
-		last_used -= AS_STORAGE_SLOTS_BATCH ;
+		++i ;
 	}
+		
 	/* no free slots of sufficient size - need to do defragmentation */
 	defragment_storage_block( block );
-	batch_no = AS_STORAGE_Index2Batch(block->first_free); 
-	i = AS_STORAGE_Index2BatchIdx(block->first_free);
-    if( block->slots[batch_no][i] == NULL || block->slots[batch_no][i]->size  < size ) 
+	i = block->first_free;
+    if( block->slots[i] == NULL || block->slots[i]->size  < size ) 
 		return NULL;
-	return block->slots[batch_no][i];		   
+	return block->slots[i];		   
 }
 
 static inline Bool
 split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 {
-	if( block->last_used < AS_STORAGE_MAX_SLOTS_CNT-1 )
+	int old_size = ASStorageSlot_USABLE_SIZE(slot) ;
+	ASStorageSlot *new_slot ;
+
+	slot->size = to_size ; 
+	new_slot = AS_STORAGE_GetNextSlot(slot);
+	new_slot->flags = 0 ;
+	new_slot->ref_count = 0 ;
+	new_slot->size = old_size - ASStorageSlot_USABLE_SIZE(slot) - ASStorageSlot_SIZE ;											   
+	new_slot->uncompressed_size = 0 ;
+	
+	new_slot->index = 0 ;
+	/* now we need to find where this slot's pointer we should store */		   
+	if( block->unused_count < block->slots_count/10 && block->last_used < block->slots_count-1 )
+	{	
+		new_slot->index = block->last_used ;
+		++(block->last_used) ;
+		--(block->unused_count);
+	}else
 	{
-			
-		
-	}	 
-			 
+		register int i, max_i = block->slots_count ;
+		register ASStorageSlot **slots = block->slots ;
+		for( i = 0 ; i < max_i ; ++i ) 
+			if( slots[i] == NULL ) 
+				break;
+		if( i >= max_i ) 
+		{
+			if( block->slots_count + AS_STORAGE_SLOTS_BATCH > AS_STORAGE_MAX_SLOTS_CNT )
+				return False;
+			else
+			{
+				i = block->slots_count ;
+				block->last_used = i ;
+				block->slots_count += AS_STORAGE_SLOTS_BATCH ; 
+				block->slots = realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
+				memset( &(block->slots[i]),	0x00, AS_STORAGE_SLOTS_BATCH*sizeof(ASStorageSlot*) );
+			}	 
+		}
+ 		new_slot->index = i ;		
+		if( i < block->last_used )
+			--(block->unused_count);
+	}	
+	block->slots[new_slot->index] = new_slot ;
 	return True;
 }
 
@@ -243,18 +261,28 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	ASStorageSlot *slot ;
 	CARD8 *dst ;
 	slot = select_storage_slot( block, compressed_size );
+	LOCAL_DEBUG_OUT( "selected block %p for size %d (compressed %d) and flags %X", slot, size, compressed_size, flags );
 	if( slot == NULL ) 
 		return 0;
-	if( slot->size > compressed_size ) 
+	if( ASStorageSlot_USABLE_SIZE(slot) > compressed_size ) 
 		if( !split_storage_slot( block, slot, compressed_size ) ) 
 			return 0;
-	dst = (CARD8*)(slot+1);
+	dst = &(slot->data[0]);
 	memcpy( dst, data, compressed_size );
 	slot->flags = (flags | ASStorage_Used) ;
 	slot->ref_count = 1;
 	slot->size = compressed_size ;
 	slot->uncompressed_size = size ;
 
+	if( slot->index == block->first_free ) 
+	{
+		int i = block->first_free ;
+		while( ++i < block->last_used ) 
+			if( block->slots[i] && block->slots[i]->flags == 0 ) 
+				break;
+		block->first_free = i ;
+	}
+		  
 	return slot->index+1 ;
 }
 
@@ -292,12 +320,15 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags)
 	int slot_id ;
 	int compressed_size = size ;
 	CARD8 *buffer = data;
+
+	LOCAL_DEBUG_CALLER_OUT( "data = %p, size = %d, flags = %d", data, size, flags );
 	if( size <= 0 || data == NULL || storage == NULL ) 
 		return 0;
 		
 	if( get_flags( flags, ASStorage_CompressionType ) )
 		buffer = compress_stored_data( storage, data, size, flags, &compressed_size );
 	block_id = select_storage_block( storage, compressed_size, flags );
+	LOCAL_DEBUG_OUT( "selected block %d", block_id );
 	if( block_id > 0 ) 
 	{
 		slot_id = store_data_in_block(  storage->blocks[block_id-1], 
@@ -358,6 +389,7 @@ test_asstorage()
 #ifdef TEST_ASSTORAGE
 int main()
 {
+	set_output_threshold( 0 );
 	return test_asstorage();
 }
 #endif

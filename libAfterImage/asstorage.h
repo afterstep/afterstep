@@ -6,10 +6,7 @@
  *	there could be up to 16 arrays of 1024 pointers to slots each in Storage Block
  *	There could be 2^18 StorageBlocks in ASStorage
  */
-#define AS_STORAGE_SLOTS_BATCH		1024  /* so that batch of pointer occupies 1 page  */ 
-#define AS_STORAGE_SLOTS_BATCH_CNT	16
-#define AS_STORAGE_Index2Batch(i)   (((i)>>10)&0x0F)
-#define AS_STORAGE_Index2BatchIdx(i)   ((i)&0x03FF)
+#define AS_STORAGE_SLOTS_BATCH		1024  /* we allocate pointers to slots in batches of one page eache  */ 
 #define AS_STORAGE_SLOT_ID_BITS		14  /* 32*512 == 2^14 */ 
 #define AS_STORAGE_MAX_SLOTS_CNT	(0x01<<AS_STORAGE_SLOT_ID_BITS)
 
@@ -19,6 +16,10 @@
 
 
 #define ASStorageSlot_SIZE 16 /* 16 bytes */
+#define ASStorageSlot_USABLE_SIZE(slot) (((slot)->size+15)&0x8FFFFFF0)
+#define ASStorageSlot_FULL_SIZE(slot) (ASStorageSlot_USABLE_SIZE(slot)+ASStorageSlot_SIZE)
+/* space for slots is allocated in 16 byte increments */
+#define AS_STORAGE_GetNextSlot(slot) ((slot)+1+(ASStorageSlot_USABLE_SIZE(slot)>>4))
 
 typedef struct ASStorageSlot
 {
@@ -48,6 +49,7 @@ typedef struct ASStorageSlot
 	 * 
 	 */
 	CARD16 reserved ;          /* to make us have size rounded by 16 bytes margin */
+	CARD8   data[0] ;
 }ASStorageSlot;
 
 
@@ -61,7 +63,8 @@ typedef struct ASStorageBlock
 	ASStorageSlot  *start;
 	/* array of pointers to slots is allocated separately, so that we can reallocate it 
 	   in case we have lots of small slots */
-	ASStorageSlot **slots[AS_STORAGE_SLOTS_BATCH_CNT];
+	ASStorageSlot **slots;
+	int slots_count, unused_count ;
 	int first_free, last_used ;
 
 }ASStorageBlock;
