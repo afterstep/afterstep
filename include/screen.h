@@ -141,7 +141,7 @@ typedef struct ASIconBox
     ASGeometry *areas ;
 	unsigned short areas_num ;
 	ASBiDirList *icons ;
-};
+}ASIconBox;
 
 
 typedef struct ScreenInfo

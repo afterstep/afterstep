@@ -966,7 +966,13 @@ InitLook (Bool free_resources)
 			free_icon_resources( Scr.buttons[i].pressed );
 		}
 #ifndef NO_TEXTURE
-		/* iconized window background */
+        if( Scr.configured_icon_areas )
+            free( Scr.configured_icon_areas );
+        if( Scr.default_icon_box )
+            destroy_asiconbox( &(Scr.default_icon_box));
+        if( Scr.icon_boxes )
+            destroy_ashash( &(Scr.icon_boxes));
+        /* iconized window background */
 		if (IconBgColor != NULL)
 			free (IconBgColor);
 		if (IconTexColor != NULL)
@@ -1059,7 +1065,10 @@ InitLook (Bool free_resources)
 	TextureMenuItemsIndividually = 1;
     Scr.look_flags = SeparateButtonTitle;
 	MenuMiniPixmaps = 0;
-	Scr.NumBoxes = 0;
+    Scr.configured_icon_areas_num = 0;
+    Scr.configured_icon_areas = NULL ;
+    Scr.default_icon_box = NULL ;
+    Scr.icon_boxes = NULL ;
 }
 
 /*
@@ -1351,7 +1360,6 @@ void
 LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 			  Bool parse_look, Bool parse_feel)
 {
-	ASWindow     *t;
 	int           parse_base = 1, parse_database = 1;
 	char         *tline = NULL;
 
@@ -1361,11 +1369,6 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 	/* only one look & feel should be used */
 	thisdesktop = 0;
 #endif /* !DIFFERENTLOOKNFEELFOREACHDESKTOP */
-
-	/* keep client window geometry, and nuke old frame geometry */
-	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-		get_client_geometry (t, t->frame_x, t->frame_y, t->frame_width, t->frame_height,
-							 &t->frame_x, &t->frame_y, &t->frame_width, &t->frame_height);
 
 	/* kludge: make sure functions get updated */
 	if (parse_menu)

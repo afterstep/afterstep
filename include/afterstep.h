@@ -324,7 +324,7 @@ void destroy_icon_windows( ASWindow *asw );
 
 void MyXGrabButton ( unsigned button, unsigned modifiers,
                      Window grab_window, Bool owner_events, unsigned event_mask,
-                     int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
+                     int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor);
 void MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window);
 
 void grab_window_buttons (Window w, ASFlagType context_mask);
@@ -349,6 +349,11 @@ void on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int w
 void on_window_title_changed( ASWindow *asw, Bool update_display );
 void on_window_status_changed( ASWindow *asw, Bool update_display );
 Bool iconify_window( ASWindow *asw, Bool iconify );
+
+/* from decorations.c :*/
+void disable_titlebuttons_with_function (ASWindow * t, int function);
+
+
 
 
 #define TITLE_OLD		0	/* old (NEXTSTEP 3) style titlebar */

@@ -36,8 +36,7 @@ typedef struct ASRectangle
 {
   int x, y;
   unsigned int width, height;
-}
-ASRectangle;
+}ASRectangle;
 
 
 char *CatString3 (const char *, const char *, const char *);

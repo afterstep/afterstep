@@ -11,8 +11,8 @@ LIB_INCS=
 #           findfile.o asproperty.o
 #
 LIB_OBJS= ASmodule.o Xmodule.o asdatabase.o background.o balloon.o \
-		  catstring3.o copystring.o clientprops.o decor.o font.o \
-		  hints.o loadimg.o myicon.o mystyle.o mystyle_property.o \
+                  catstring3.o copystring.o clientprops.o decor.o event.o \
+                  font.o hints.o loadimg.o myicon.o mystyle.o mystyle_property.o \
 		  parse.o parser.o termhash.o readpacket.o \
 		  timer.o wild.o wmprops.o
 

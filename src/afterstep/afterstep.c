@@ -901,8 +901,6 @@ InitVariables (int shallresetdesktop)
 	Scr.RaiseButtons = 0;
 
 	Scr.flags = 0;
-	Scr.NumBoxes = 0;
-
 	Scr.randomx = Scr.randomy = 0;
 	Scr.buttons2grab = 7;
 

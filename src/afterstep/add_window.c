@@ -96,7 +96,12 @@
 extern int    LastWarpIndex;
 char          NoName[] = "Untitled";		   /* name if no name is specified */
 
-
+/*************************************************************************
+ * We maintain crossreference of X Window ID to ASWindow structure - that is
+ * faster then using XContext since we don't have to worry about multiprocessing,
+ * thus saving time on interprocess synchronization, that Xlib has to do in
+ * order to access list of window contexts.
+ *************************************************************************/
 ASWindow *window2ASWindow( Window w )
 {
     ASWindow *asw = NULL ;
@@ -125,7 +130,7 @@ Bool unregister_aswindow( Window w )
     {
         if( Scr.aswindow_xref != NULL )
 		{
-	        if( remove_hash_item( Scr.aswindow_xref, AS_HASHABLE(w), NULL ) == ASH_Success )
+            if( remove_hash_item( Scr.aswindow_xref, AS_HASHABLE(w), NULL, False ) == ASH_Success )
   		        return True;
 		}
     }
@@ -138,7 +143,7 @@ Bool destroy_registered_window( Window w )
     if( w )
     {
         if( Scr.aswindow_xref != NULL )
-	        res = ( remove_hash_item( Scr.aswindow_xref, AS_HASHABLE(w), NULL ) == ASH_Success )
+            res = ( remove_hash_item( Scr.aswindow_xref, AS_HASHABLE(w), NULL, False ) == ASH_Success );
 		XDestroyWindow( dpy, w );
     }
     return res;
@@ -146,7 +151,6 @@ Bool destroy_registered_window( Window w )
 /**********************************************************************/
 /* window management specifics - mapping/unmapping with no events :   */
 /**********************************************************************/
-
 void
 quietly_unmap_window( Window w, long event_mask )
 {
@@ -164,6 +168,24 @@ quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_m
     XReparentWindow( dpy, w, (new_parent!=None)?new_parent:Scr.Root, x, y );
     XSelectInput (dpy, w, event_mask );
 }
+
+/****************************************************************************/
+/* window management specifics - button ungrabbing convinience functions:   */
+/****************************************************************************/
+inline void
+ungrab_window_buttons( Window w )
+{
+    XUngrabButton (dpy, AnyButton, AnyModifier, w);
+}
+
+inline void
+ungrab_window_keys (Window w )
+{
+    XUngrabKey (dpy, AnyKey, AnyModifier, w);
+}
+
+
+
 
 #if 0
 /************************************************************************/
@@ -274,7 +296,7 @@ check_frame_canvas( ASWindow *asw, Bool required )
 
             /* create windows */
             valuemask = CWBorderPixel | CWCursor | CWEventMask ;
-            if( Scr.asv->visual_info->visual == DefaultVisual( dpy, Scr.screen ) )
+            if( Scr.asv->visual_info.visual == DefaultVisual( dpy, Scr.screen ) )
             {/* only if root has same depth and visual as us! */
                 attributes.background_pixmap = ParentRelative;
                 valuemask |= CWBackPixmap;
@@ -289,7 +311,7 @@ check_frame_canvas( ASWindow *asw, Bool required )
                 attributes.save_under = TRUE;
             }
             w = create_visual_window (Scr.asv, Scr.Root, -10, -10, 5, 5,
-                                      asw->bw, InputOutput, valuemask, &attributes);
+                                      asw->status?asw->status->border_width:0, InputOutput, valuemask, &attributes);
             asw->frame = w ;
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );
@@ -353,8 +375,8 @@ check_client_canvas( ASWindow *asw, Bool required )
         xwc.border_width = withdrawn_status.border_width ;
 
         for( i = 0 ; i < FRAME_SIDES ; ++i )
-            withdrawn_state.frame_size[i] = 0 ;
-        clear_flags( withdrawn_state.flags, AS_Shaded|AS_Iconic );
+            withdrawn_status.frame_size[i] = 0 ;
+        clear_flags( withdrawn_status.flags, AS_Shaded|AS_Iconic );
         anchor2status( &withdrawn_status, asw->hints, &(asw->anchor));
         xwc.x = withdrawn_status.x ;
         xwc.y = withdrawn_status.y ;
@@ -362,7 +384,7 @@ check_client_canvas( ASWindow *asw, Bool required )
         xwc.height = withdrawn_status.height ;
 
         destroy_ascanvas( &canvas );
-        unregister_window( w );
+        unregister_aswindow( w );
 
         /*
          * Prevent the receipt of an UnmapNotify in case we are simply restarting,
@@ -406,7 +428,7 @@ check_icon_canvas( ASWindow *asw, Bool required )
                 attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
                 w = create_visual_window ( Scr.asv, Scr.Root, -10, -10, 1, 1, 0,
                                            InputOutput, valuemask, &attributes );
-                canvas = create_container( w );
+                canvas = create_ascanvas_container( w );
             }else
             { /* reuse client's provided window */
                 attributes.event_mask = AS_ICON_EVENT_MASK;
@@ -421,7 +443,7 @@ check_icon_canvas( ASWindow *asw, Bool required )
         w = canvas->w ;
         destroy_ascanvas( &canvas );
         if( asw->hints && asw->hints->icon.window == w )
-            unregister_window( w );
+            unregister_aswindow( w );
         else
             destroy_registered_window( w );
     }
@@ -447,7 +469,7 @@ check_icon_title_canvas( ASWindow *asw, Bool required, Bool reuse_icon_canvas )
     if( required )
     {
         if( reuse_icon_canvas )
-            canvas = asw->icon_canvas )
+            canvas = asw->icon_canvas ;
         else if( canvas == NULL )
         {                                      /* create canvas here */
 			unsigned long valuemask;
@@ -473,7 +495,7 @@ static ASImage*
 get_window_icon_image( ASWindow *asw )
 {
 	ASImage *im = NULL ;
-	if( ASWIN_HFLAGS( asw, AS_ClientIcon|AS_ClientIconPixmap ) == AS_ClientIcon|AS_ClientIconPixmap &&
+    if( ASWIN_HFLAGS( asw, AS_ClientIcon|AS_ClientIconPixmap ) == (AS_ClientIcon|AS_ClientIconPixmap) &&
 	    get_flags( Scr.flags, KeepIconWindows )&&
 		asw->hints->icon.pixmap != None )
 	{/* convert client's icon into ASImage */
@@ -514,7 +536,7 @@ check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name, ASImage 
 }
 
 /******************************************************************************/
-/* no wexternally available interfaces to the above functions :               */
+/* now externally available interfaces to the above functions :               */
 /******************************************************************************/
 void
 invalidate_window_icon( ASWindow *asw )
@@ -583,7 +605,7 @@ redecorate_window( ASWindow *asw, Bool free_resources )
         check_side_canvas( asw, FR_S, False );
         check_side_canvas( asw, FR_N, False );
 
-        check_icon_title_canvas( asw, False );
+        check_icon_title_canvas( asw, False, False );
         check_icon_canvas( asw, False );
         check_client_canvas( asw, False );
         check_frame_canvas( asw, False );
@@ -692,6 +714,32 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     grab_window_input( asw, False );
 }
 
+/* icon geometry relative to the root window :                      */
+Bool get_icon_root_geometry( ASWindow *asw, ASRectangle *geom )
+{
+    ASCanvas *canvas = NULL ;
+    if( AS_ASSERT(asw) || AS_ASSERT(geom) )
+        return False;
+
+    geom->height = 0 ;
+    if( asw->icon_canvas )
+    {
+        canvas = asw->icon_canvas ;
+        if( asw->icon_title_canvas && asw->icon_title_canvas != canvas )
+            geom->height =  asw->icon_title_canvas->height ;
+    }else if( asw->icon_title_canvas )
+        canvas = asw->icon_title_canvas ;
+
+    if( canvas )
+    {
+        geom->x = canvas->root_x ;
+        geom->y = canvas->root_y ;
+        geom->width  = canvas->width ;
+        geom->height += canvas->height ;
+        return True;
+    }
+    return False;
+}
 
 /* this gets called when Root background changes : */
 void
@@ -802,6 +850,7 @@ on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width,
     }else if( w == asw->frame )
     {/* resize canvases here :*/
         if( width != asw->frame_canvas->width || height != asw->frame_canvas->height )
+        {
             if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
             { /* west and east canvases are the big ones - resize them first */
                 resize_canvases( asw, asw->frame_sides[FR_W],
@@ -813,6 +862,7 @@ on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width,
                                     asw->frame_sides[FR_S],
                                     asw->frame_sides[FR_W],
                                     asw->frame_sides[FR_E], width, height );
+        }
         if( handle_canvas_config (asw->frame_canvas) )
             update_window_transparency( asw );
     }else if( asw->icon_canvas && w == asw->icon_canvas->w )
@@ -827,7 +877,7 @@ on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width,
                 title_size = asw->icon_title->height ;
                 render_astbar( asw->icon_title, asw->icon_canvas );
             }
-            set_astbar_size( asw->icon_button, width, height-title_size )
+            set_astbar_size( asw->icon_button, width, height-title_size );
             render_astbar( asw->icon_button, asw->icon_canvas );
             update_canvas_display( asw->icon_canvas );
         }
@@ -888,6 +938,12 @@ on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width,
                 break;
             }
     }
+}
+
+void
+on_icon_changed( ASWindow *asw )
+{
+    /* TODO: implement icon update : */
 }
 
 void
@@ -1102,7 +1158,6 @@ create_titlebutton_balloon (ASWindow * tmp_win, int b)
 void
 SelectDecor (ASWindow * t)
 {
-	int border_width =0, resize_width = 0;
 	ASHints *hints = t->hints ;
 	ASFlagType tflags = hints->flags ;
 
@@ -1206,6 +1261,12 @@ maximize_window_status( ASStatusHints *status, ASStatusHints *saved_status, ASSt
     set_flags( adjusted_status->flags, AS_Position|AS_Size );
 }
 
+Bool
+place_aswindow( ASWindow *asw, ASStatusHints *status )
+{
+
+    return True;
+}
 
 Bool
 init_aswindow_status( ASWindow *t, ASStatusHints *status )
@@ -1286,11 +1347,17 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 Bool
 iconify_window( ASWindow *asw, Bool iconify )
 {
+    ASRectangle geom = {INVALID_POSITION, INVALID_POSITION, 0, 0} ;
+
 LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d, batch = %d", asw, iconify, batch );
+
+
     if( AS_ASSERT(asw) )
         return False;
     if( (iconify?1:0) == (ASWIN_GET_FLAGS(asw, AS_Iconic )?1:0) )
         return False;
+
+    get_icon_root_geometry( asw, &geom );
 
     if( iconify )
     {
@@ -1314,16 +1381,14 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
 		if ( ASWIN_HFLAGS(asw, AS_Transient))
 		{
             Broadcast (M_ICONIFY, 7, asw->w, asw->frame,
-					   (unsigned long)asw, -10000, -10000, asw->icon_p_width, asw->icon_p_height);
+                       (unsigned long)asw, -10000, -10000, geom.width, geom.height);
 			BroadcastConfig (M_CONFIGURE_WINDOW, asw);
 		}else
 		{
             set_flags( asw->status->flags, AS_Iconic );
             add_iconbox_icon( asw );
-            Broadcast (M_ICONIFY, 7, asw->w, asw->frame,
-			  		   (unsigned long)asw,
-					    asw->icon_p_x, asw->icon_p_y,
-						asw->icon_p_width, asw->icon_p_height);
+            Broadcast ( M_ICONIFY, 7, asw->w, asw->frame, (unsigned long)asw,
+                        geom.x, geom.y, geom.width, geom.height);
 			BroadcastConfig (M_CONFIGURE_WINDOW, asw);
 			LowerWindow (asw);
 
@@ -1354,7 +1419,7 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
         /* TODO: make sure that the window is on this screen */
 
         Broadcast (M_DEICONIFY, 7, asw->w, asw->frame, (unsigned long)asw,
-                   asw->icon_p_x, asw->icon_p_y, asw->icon_p_width, asw->icon_p_height);
+                   geom.x, geom.y, geom.width, geom.height);
         XMapWindow (dpy, asw->w);
         if (ASWIN_DESK(asw) == Scr.CurrentDesk)
         {
@@ -1413,7 +1478,7 @@ SetShape (ASWindow *asw, int w)
 		/* TODO: add frame decorations shape */
 
 		/* update icon shape */
-		if (asw->icon_pixmap_w != None)
+        if (asw->icon_canvas != NULL)
 			UpdateIconShape (asw);
 	}
 #endif /* SHAPE */
@@ -1439,9 +1504,6 @@ ASWindow     *
 AddWindow (Window w)
 {
 	ASWindow     *tmp_win;					   /* new afterstep window structure */
-	unsigned long valuemask;				   /* mask for create windows */
-	XSetWindowAttributes attributes;		   /* attributes for create windows */
-	int           i;
 	int           a, b;
 	extern Bool   NeedToResizeToo;
 	extern ASWindow *colormap_win;
@@ -1651,7 +1713,8 @@ MyXGrabButton ( unsigned button, unsigned modifiers,
                 int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
 {
     if( modifiers == AnyModifier )
-        XGrabButton (dpy, button, AnyModifier, grab_window);
+        XGrabButton (dpy, button, AnyModifier, grab_window,
+                     owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
     else
     {
         register int i = 0 ;
@@ -1693,14 +1756,14 @@ grab_window_buttons (Window w, ASFlagType context_mask)
         if ( MouseEntry->func  && get_flags(MouseEntry->Context, context_mask))
 		{
 			if (MouseEntry->Button > 0)
-                MyXGrabButton (dpy, MouseEntry->Button, MouseEntry->Modifier, w,
+                MyXGrabButton (MouseEntry->Button, MouseEntry->Modifier, w,
 							   True, ButtonPressMask | ButtonReleaseMask,
 							   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
             else
 			{
                 register int  i = MAX_MOUSE_BUTTONS+1;
                 while( --i > 0 )
-                    MyXGrabButton (dpy, i, MouseEntry->Modifier, w,
+                    MyXGrabButton (i, MouseEntry->Modifier, w,
 								   True, ButtonPressMask | ButtonReleaseMask,
 								   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
             }
@@ -1708,11 +1771,6 @@ grab_window_buttons (Window w, ASFlagType context_mask)
 	return;
 }
 
-inline void
-ungrab_window_buttons( Window w )
-{
-    XUngrabButton (dpy, AnyButton, AnyModifier, w);
-}
 
 static void
 grab_focus_click( Window w )
@@ -1723,7 +1781,7 @@ grab_focus_click( Window w )
         for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
             if (Scr.buttons2grab & (0x01 << i))
             {
-                MyXGrabButton (dpy, i + 1, 0, w,
+                MyXGrabButton ( i + 1, 0, w,
                                 True, ButtonPressMask, GrabModeSync,
                                 GrabModeAsync, None, Scr.ASCursors[SYS]);
             }
@@ -1736,11 +1794,15 @@ ungrab_focus_click( Window w )
     if( w )
     {   /* if we do click to focus, remove the grab on mouse events that
          * was made to detect the focus change */
-        for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
-            if (Scr.buttons2grab & (1 << i))
-                MyXUngrabButton (dpy, i + 1, 0, w);
+        register int i = 0;
+        register ASFlagType grab_btn_mask = Scr.buttons2grab<<1 ;
+        while ( ++i <= MAX_MOUSE_BUTTONS )
+            if ( grab_btn_mask&(1<<i) )
+                MyXUngrabButton (i, 0, w);
     }
 }
+
+
 /***********************************************************************
  *  grab_aswindow_buttons - grab needed buttons for all of the windows
  *  for specified client
@@ -1805,12 +1867,6 @@ grab_window_keys (Window w, ASFlagType context_mask)
         }
 }
 
-inline void
-ungrab_window_keys (Window w )
-{
-    XUngrabKey (dpy, AnyKey, AnyModifier, w);
-}
-
 /***********************************************************************
  *  grab_aswindow_keys - grab needed keys for the window
  ***********************************************************************/
@@ -1844,7 +1900,7 @@ hide_focus()
     extern Time   lastTimestamp;
 
     if (get_flags(Scr.flags, ClickToFocus) && Scr.Ungrabbed != NULL)
-        grab_aswindow_buttons( Scr.Ungrabbed, False )
+        grab_aswindow_buttons( Scr.Ungrabbed, False );
 
     Scr.Focus = NULL;
     Scr.Ungrabbed = NULL;

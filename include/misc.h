@@ -265,9 +265,6 @@ void raisePanFrames (void);
 void initPanFrames (void);
 Bool StashEventTime (XEvent *);
 void SetCirculateSequence (ASWindow * tw, int dir);
-void MyXGrabButton (Display *, unsigned, unsigned, Window, Bool, unsigned,
-		    int, int, Window, Cursor);
-void MyXUngrabButton (Display *, unsigned, unsigned, Window);
 void MyXGrabKey (Display *, int, unsigned, Window, Bool, int, int);
 void GrabRaiseClick (ASWindow *);
 void UngrabRaiseClick (ASWindow *);

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1996 Frank Fejes
- * Copyright (C) 1996 Alfredo Kojima 
+ * Copyright (C) 1996 Alfredo Kojima
  * Copyright (C) 1995 Bo Yang
  * Copyright (C) 1993 Robert Nation
  *
@@ -22,10 +22,10 @@
 
 
 /****************************************************************************
- * 
+ *
  * Reads motif mwm window manager hints from a window, and makes necessary
- * adjustments for afterstep. 
- * 
+ * adjustments for afterstep.
+ *
  ****************************************************************************/
 
 #include "../../configure.h"
@@ -72,34 +72,6 @@ GetGnomeState (ASWindow * t)
 	return state;
 }
 
-unsigned long
-SetGnomeState (ASWindow * t)
-{
-	unsigned long state = GetGnomeState (t);
-
-	state &= ~(WIN_STATE_STICKY | WIN_STATE_MINIMIZED |
-			   WIN_STATE_MAXIMIZED_HORIZ | WIN_STATE_MAXIMIZED_VERT | WIN_STATE_SHADED);
-	if (t->flags & STICKY)
-		state |= WIN_STATE_STICKY;
-	if (t->flags & ICONIFIED)
-		state |= WIN_STATE_MINIMIZED;
-	if (t->flags & MAXIMIZED)
-	{
-		if (t->orig_x != t->frame_x || t->orig_wd != t->frame_width)
-			state |= WIN_STATE_MAXIMIZED_HORIZ;
-		if (t->orig_y != t->frame_y || t->orig_ht != t->frame_height)
-			state |= WIN_STATE_MAXIMIZED_VERT;
-	}
-/*if (ASWIN_HFLAGS(t, AS_SkipWinList) state |= WIN_STATE_HIDDEN; */
-	if (t->flags & SHADED)
-		state |= WIN_STATE_SHADED;
-
-	XChangeProperty (dpy, t->w, _XA_WIN_STATE, XA_CARDINAL, 32, PropModeReplace,
-					 (unsigned char *)&state, 1);
-
-	return state;
-}
-
 Bool
 is_function_bound_to_button (int b, int function)
 {
@@ -131,7 +103,7 @@ disable_titlebuttons_with_function (ASWindow * t, int function)
 }
 
 /****************************************************************************
- * 
+ *
  * Checks the function "function", and sees if it
  * is an allowed function for window t,  according to the motif way of life.
  * This routine is used to decide if we should refuse to perform a function.
@@ -142,18 +114,18 @@ check_allowed_function2 (int func, ASWindow * t)
 {
 	if (func == F_NOP)
 		return 0;
-		
+
 	if( t )
 	{
 		ASHints *hints = t->hints ;
 		switch( func )
 		{
-			case F_DELETE : 
+			case F_DELETE :
 				if( !get_flags( hints->protocols, AS_DoesWmDeleteWindow ) )
 					return 0;
-			case F_CLOSE : 
+			case F_CLOSE :
 				return ( get_flags( hints->function_mask, AS_FuncClose ) )?1:0 ;
-			case F_DESTROY : 
+			case F_DESTROY :
 				return ( get_flags( hints->function_mask, AS_FuncKill ) )?1:0 ;
 			case F_MOVE :
 				return (get_flags( hints->function_mask, AS_FuncMove ) )?1:0 ;
@@ -173,11 +145,11 @@ check_allowed_function2 (int func, ASWindow * t)
 	return 1;
 }
 /****************************************************************************
- * 
+ *
  * Checks the function described in menuItem mi, and sees if it
  * is an allowed function for window Tmp_Win,
  * according to the motif way of life.
- * 
+ *
  * This routine is used to determine whether or not to grey out menu items.
  *
  ****************************************************************************/
@@ -186,7 +158,7 @@ check_allowed_function (MenuItem * mi)
 {
 	/* Complex functions are a little tricky... ignore them for now */
 	int func = mi->func ;
-	
+
 	if (func == F_FUNCTION && mi->item != NULL)
 	{
 		/* Hard part! What to do now? */
@@ -210,7 +182,7 @@ check_allowed_function (MenuItem * mi)
 		else
 			return 1;
 	}
-	
+
 	return check_allowed_function2 (func, Tmp_win);
 }
 
