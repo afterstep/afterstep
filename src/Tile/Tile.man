@@ -1,16 +1,17 @@
 .\" t
-.\" @(#)Tile.1  02/07/00
-.TH Tile 1.8 "Feb 7 2000" Tile
+.\" @(#)Tile.1  12/23/01
+.TH Tile 1.8 "Dec 23 2001" Tile
 .UC
 .SH NAME
 \fBTile\fP \- the AfterStep window tiler module
 
 .SH SYNOPSIS
-\fBTile\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help]
-[\-f \fIconfig_file\fP] [\-h | \--help] [\-v | \--version] [\-a] [\-desk] 
-[\-h] [\-m] [\-mn \fIarg\fP] [\-noraise] [\-noresize] [\-nostretch] [\-r] 
-[\-s] [\-t] [\-u]
+.nf
+\fBTile\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\--help]
+[\-h ] [\-desk] [\-h] [\-m] [\-mn \fIarg\fP] [\-noraise]
+[\-noresize] [\-nostretch] [\-r] [\-s] [\-t] [\-u]
 .sp
+.fi
 Although \fBTile\fP can be run from the command line, it is normally 
 spawned by afterstep from within an afterstep menu file by 'Tile':
 .nf
@@ -29,9 +30,9 @@ might appear between tiled windows -- this is why).
 
 .SH OPTIONS
 .IP "\-f \fIconfig_file\fP"
-Use \fIconfig_file\fP instead of the default configuration file.
+Use \fIconfig_file\fP instead of the default settings.
 
-.IP "\-h | \--help"
+.IP "\--help"
 Print a usage message and exit successfully.
 
 .IP "\-v | \--version"
@@ -44,6 +45,12 @@ WindowListSkip style.
 .IP "\-desk"
 Causes all windows on the desk to be cascaded instead of the current
 screen only.
+
+.IP "\-flatx"
+Inhibits border width increment.
+
+.IP "\-flaty"
+Inhibits border height increment.
 
 .IP "\-h"
 Tiles horizontally (default is to tile vertically).
@@ -78,9 +85,6 @@ Causes transient windows to also be affected (implied by \-all).
 .IP "\-u"
 Causes untitled windows to also be affected (implied by \-all).
 
-.SH INITIALIZATION
-\fBTile\fP has no configuration file.
-
 .SH INVOCATION
 \fBTile\fP can be invoked from the \fIautoexec\fP file or by binding the
 action "Module Tile \fI[args]\fP" to a key-stroke in a \fIfeel\fP file,
@@ -102,13 +106,16 @@ If any number is suffixed with the letter p, then it is taken to be a
 pixel value, otherwise it is interpreted as a screen percentage.
 Specifying zero for any parameter is equivalent to not specifying it.
 
+Configuration options can be set in a configuration file, which \fBTile\fP
+will then read with the \-f switch.
+
 .SH EXAMPLES
 This invocation will horizontally tile windows with a bounding box which
 starts at 10 by 10 percent into and down the screen and ends at 90 by 90
 percent into and down the screen.
-.EX
-Tile -h 10 10 90 90
-.EE
+
+Tile \-h 10 10 90 90
+
 
 .SH BUGS
 It is probably not a good idea to delete windows while windows are
@@ -120,4 +127,5 @@ Andrew Veliath
 David Mihm <dmihm@swbell.net> [Man page]
 
 .SH SEE ALSO
-.BR afterstep (1)
+.BR afterstep (1),
+.BR Cascade (1)
