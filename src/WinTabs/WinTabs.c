@@ -117,6 +117,7 @@ void render_tabs( Bool canvas_resized );
 void on_destroy_notify(Window w);
 void select_tab( int tab );
 void press_tab( int tab );
+void set_tab_look( ASWinTab *aswt );
 
 unsigned int find_tab_by_position( int root_x, int root_y );
 
@@ -126,14 +127,17 @@ main( int argc, char **argv )
 {
     /* Save our program name - for error messages */
     InitMyApp (CLASS_GADGET, argc, argv, NULL, NULL, 0 );
-
     set_signal_handler( SIGSEGV );
+
 
     ConnectX( &Scr, PropertyChangeMask|EnterWindowMask );
     ConnectAfterStep (  M_END_WINDOWLIST |
                         M_DESTROY_WINDOW |
                     	WINDOW_CONFIG_MASK |
                     	WINDOW_NAME_MASK );
+    signal (SIGTERM, DeadPipe);
+    signal (SIGKILL, DeadPipe);
+    
     balloon_init (False);
     Config = CreateWinTabsConfig ();
 
@@ -195,6 +199,16 @@ void HandleEvents()
 void
 DeadPipe (int nonsense)
 {
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    int i = PVECTOR_USED(WinTabsState.tabs) ;
+    LOCAL_DEBUG_OUT( "reparenting %d clients back to the Root", i );
+    while( --i >= 0  )
+    {
+        XReparentWindow( dpy, tabs[i].client, Scr.Root, i*10, i*10 );
+    }
+    ASSync(False );
+    fflush(stderr);
+    
     FreeMyAppResources();
 
     if( WinTabsState.main_canvas )
@@ -347,6 +361,18 @@ GetOptions (const char *filename)
 /* PROCESSING OF AFTERSTEP MESSAGES :                                       */
 /****************************************************************************/
 void
+send_swallowed_configure_notify(ASWinTab *aswt)
+{
+    if( aswt->client_canvas )
+    {
+		send_canvas_configure_notify(WinTabsState.main_canvas, aswt->client_canvas );
+    }
+}
+
+
+
+
+void
 process_message (unsigned long type, unsigned long *body)
 {
     LOCAL_DEBUG_OUT( "received message %lX", type );
@@ -385,6 +411,7 @@ DispatchEvent (ASEvent * event)
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
     {
         pointer_tab  = find_tab_by_position( event->x.xmotion.x_root, event->x.xmotion.y_root );
+        LOCAL_DEBUG_OUT( "pointer at %d,%d - pointer_tab = %d", event->x.xmotion.x_root, event->x.xmotion.y_root, pointer_tab );
         if( pointer_tab >= PVECTOR_USED(WinTabsState.tabs) )
             pointer_tab = -1 ;
     }
@@ -393,22 +420,51 @@ DispatchEvent (ASEvent * event)
     {
 	    case ConfigureNotify:
             {
+                int tabs_num  = PVECTOR_USED(WinTabsState.tabs);
+                ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+                Bool rerender_tabs = False ;
+                int tabs_changes = 0 ;
+                
                 if( event->w == WinTabsState.main_window ) 
                 {                        
                     ASFlagType changes = handle_canvas_config( WinTabsState.main_canvas );
                     if( get_flags( changes, CANVAS_RESIZED ) )
                         rearrange_tabs();
-                  
-                    if( changes != 0 ) 
-                        set_root_clip_area( WinTabsState.main_canvas );
+                    else if( get_flags( changes, CANVAS_MOVED ) )
+                    {
+                        int i  = tabs_num;
+                        ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+                        tabs_changes = handle_canvas_config( WinTabsState.tabs_canvas );
+                            
+                        if( tabs_changes != 0 )
+                            safe_asimage_destroy( Scr.RootImage );
+                        while( --i >= 0 ) 
+                        {
+                            handle_canvas_config( tabs[i].client_canvas );
+                            if( update_astbar_transparency(tabs[i].bar, WinTabsState.tabs_canvas, True) )
+                                rerender_tabs = True ;
+                            send_swallowed_configure_notify(&(tabs[i]));
+                        }    
+                    }    
                 }else if( event->w == WinTabsState.tabs_window ) 
                 {
-                    ASFlagType changes = handle_canvas_config( WinTabsState.tabs_canvas );
-                    if( get_flags( changes, CANVAS_RESIZED ) )
+                    tabs_changes = handle_canvas_config( WinTabsState.tabs_canvas );
+                    if( tabs_changes != 0 )
+                        set_root_clip_area(WinTabsState.tabs_canvas );
+                    
+                    if( get_flags( tabs_changes, CANVAS_RESIZED ) )
                     {
                         render_tabs( True );
-                    }    
+                    }else if( get_flags( tabs_changes, CANVAS_MOVED ) )
+                    {
+                        int i = tabs_num ;
+                        while( --i >= 0 ) 
+                            if( update_astbar_transparency(tabs[i].bar, WinTabsState.tabs_canvas, True) )
+                                rerender_tabs = True ;
+                    }        
                 }
+                if( rerender_tabs ) 
+                    render_tabs( tabs_changes&CANVAS_RESIZED );
             }
 	        break;
         case ButtonPress:
@@ -426,9 +482,10 @@ DispatchEvent (ASEvent * event)
 			if( event->x.xcrossing.window == Scr.Root )
 			{
 				withdraw_active_balloon();
-				break;
-			}
+            }
+            break;
         case LeaveNotify :
+            break;
         case MotionNotify :
             if( pointer_tab >= 0 && (event->x.xmotion.state&AllButtonMask) != 0) 
             {
@@ -455,13 +512,20 @@ DispatchEvent (ASEvent * event)
                 Scr.RootImage = NULL ;
             }else if( event->x.xproperty.atom == _AS_STYLE )
 			{
-				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
+                int i  = PVECTOR_USED(WinTabsState.tabs);
+                ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+                
+                LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 				handle_wmprop_event (Scr.wmprops, &(event->x));
 				mystyle_list_destroy_all(&(Scr.Look.styles_list));
 				LoadColorScheme();
 				CheckConfigSanity();
 				/* now we need to update everything */
-			}
+                            
+                while( --i >= 0 ) 
+                    set_tab_look( &(tabs[i]));
+                rearrange_tabs();
+             }
 			break;
     }
 }
@@ -515,7 +579,9 @@ make_wintabs_window()
 
     /* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
-    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|SubstructureRedirectMask);
+    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|SubstructureRedirectMask
+                          //|ButtonReleaseMask | ButtonPressMask 
+                  );
 
 	return w ;
 }
@@ -576,6 +642,8 @@ delete_tab( int index )
         WinTabsState.pressed_tab = -1 ;
     }
     destroy_astbar( &(tabs[index].bar) );
+    XRemoveFromSaveSet (dpy, tabs[index].client);
+    XSelectInput (dpy, tabs[index].client, NoEventMask);
     destroy_ascanvas( &(tabs[index].client_canvas) );
     if( tabs[index].name ) 
         free( tabs[index].name );
@@ -763,16 +831,6 @@ press_tab( int tab )
  * Swallowing code
  **************************************************************************/
 void
-send_swallowed_configure_notify(ASWinTab *aswt)
-{
-    if( aswt->client_canvas )
-    {
-		send_canvas_configure_notify(WinTabsState.main_canvas, aswt->client_canvas );
-    }
-}
-
-
-void
 check_swallow_window( ASWindowData *wd )
 {
     Window w;
@@ -844,6 +902,7 @@ check_swallow_window( ASWindowData *wd )
     nc = aswt->client_canvas = create_ascanvas_container( wd->client );
     XReparentWindow( dpy, wd->client, WinTabsState.main_window, WinTabsState.main_canvas->width - nc->width, WinTabsState.main_canvas->height - nc->height );
     XSelectInput (dpy, wd->client, StructureNotifyMask);
+    XAddToSaveSet (dpy, wd->client);
 
 #if 0   /* TODO : implement support for icons : */
     if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) &&
@@ -866,6 +925,8 @@ check_swallow_window( ASWindowData *wd )
 
     map_canvas_window( nc, True );
     send_swallowed_configure_notify(aswt);
+    
+    select_tab( PVECTOR_USED(WinTabsState.tabs)-1 );
 
     rearrange_tabs();
 
@@ -898,12 +959,14 @@ find_tab_by_position( int root_x, int root_y )
 
     root_x -= tc->root_x ;
     root_y -= tc->root_y ;
+    LOCAL_DEBUG_OUT( "pointer win( %d,%d), tc.size(%dx%d)", root_x, root_y, tc->width, tc->height );
     if( root_x  >= 0 && root_y >= 0 &&
         root_x < tc->width && root_y < tc->height )
     {
         for( i = 0 ; i < tabs_num ; ++i ) 
         {
             register ASTBarData *bar = tabs[i].bar ;
+            LOCAL_DEBUG_OUT( "Checking tab %d at %dx%d%+d%+d", i, bar->width, bar->height, bar->win_x, bar->win_y );
             if( bar->win_x <= root_x && bar->win_x+bar->width > root_x &&
                 bar->win_y <= root_y && bar->win_y+bar->height > root_y )
                 break;

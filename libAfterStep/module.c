@@ -396,7 +396,6 @@ ConnectAfterStep (send_data_type message_mask)
 	/* Dead pipe == AS died */
 	signal (SIGPIPE, DeadPipe);
     fd = Scr.wmprops?socket_connect_client(Scr.wmprops->as_socket_filename):-1;
-    signal (SIGPIPE, DeadPipe);
 
     if (fd < 0)
 	{
