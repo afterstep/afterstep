@@ -52,10 +52,10 @@ typedef struct reg_exp
 {
 	struct reg_exp *prev, *next;
 
-	short int     left_offset, right_offset;   /* min number of characters that we have to 
+	short int     left_offset, right_offset;   /* min number of characters that we have to
 											      leave on each size of the string in question
 											      for other patterns to be able to match */
-	short int     left_fixed, right_fixed;	   /* indicates if we have a * on left or 
+	short int     left_fixed, right_fixed;	   /* indicates if we have a * on left or
 											      right side and therefore flexible
 											      with our position */
 
@@ -75,7 +75,7 @@ typedef struct reg_exp
 	   where ccccc - are single characters that are compared one-to-one
 	   and rr - represent range on characters like r-r.
 	   0x01 denotes range
-	   0x00 denotes end of the symbol. 
+	   0x00 denotes end of the symbol.
 	   so we'll store them in single character array,
 	   plus another array will store negation indicators.
 	 */
@@ -83,8 +83,8 @@ typedef struct reg_exp
 	unsigned char *symbols;
 	unsigned char *negation;
 
-	/* in Booer-Moor algorithm we need to use a skip table  - 
-	   indicating where we should go if character mismatches any symbol 
+	/* in Booer-Moor algorithm we need to use a skip table  -
+	   indicating where we should go if character mismatches any symbol
 	   (skip offset for each character in alphabeth)
 	 */
 	unsigned char skip[256];				   /* skip table */
@@ -97,14 +97,17 @@ parse_singlechar (unsigned char **data, unsigned char *reserved)
 {
 	register unsigned char c = **data;
 
-	while (*reserved)
-		if ((c == *(reserved++)))
-			return 0x00;
+    if( c != '\0' )
+    {
+        while (*reserved)
+            if ((c == *(reserved++)))
+                return 0x00;
 
-	if (c == '\\')
-		c = *(++(*data));
+        if (c == '\\')
+            c = *(++(*data));
 
-	(*data)++;
+        (*data)++;
+    }
 	return c;
 }
 
