@@ -25,12 +25,12 @@
 #include <libAfterBase/socket.h>
 #include <libAfterBase/trace.h>
 #endif		/* HAVE_CUSTOM_AFTERBASE */
-#else    
+#else
 
 /* the goal of this header is to provide sufficient code so that
-   libAfterImage could live without libAfterBase at all. 
-   Basically with define macros and copy over few functions 
-   from libAfterBase 
+   libAfterImage could live without libAfterBase at all.
+   Basically with define macros and copy over few functions
+   from libAfterBase
  */
 
 /* from libAfterBase/astypes.h : */
@@ -70,7 +70,7 @@ typedef struct ASMagic
 }ASMagic;
 
 /* from libAfterBase/selfdiag.h : */
-#define get_caller_func() "unknown" 
+#define get_caller_func() "unknown"
 
 /* from libAfterBase/output.h : */
 /* user app must export these if libAfterBase is not used : */

@@ -217,7 +217,7 @@ AC_SUBST(TIFF_CFLAGS)
 
 if test "$have_tiff" = yes -o "$have_png" = yes ; then
   AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lz -lm"
-fi  
+fi
 
 
 dnl# check for libfreetype
@@ -260,7 +260,7 @@ else
 	TTF_INCLUDES=$ttf_includes
 	AC_DEFINE(HAVE_FREETYPE)
     have_ttf=yes
-  fi	
+  fi
   if test "$have_ttf" = yes; then
 	  AFTERIMAGE_LIBS="`freetype-config --libs` $AFTERIMAGE_LIBS"
   fi
@@ -269,10 +269,10 @@ AC_SUBST(TTF_INCLUDES)
 
 if test "$with_afterbase" != "NO"; then
   AC_MSG_CHECKING(libAfterBase headers)
-  have_afterbase=yes 
+  have_afterbase=yes
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
-		AC_DEFINE(HAVE_AFTERBASE) 
+		AC_DEFINE(HAVE_AFTERBASE)
 		AC_DEFINE(HAVE_CUSTOM_AFTERBASE)
         AFTERBASE_INC_PATH=".."
 		AC_MSG_RESULT("../libAfterBase/astypes.h")
@@ -281,19 +281,19 @@ if test "$with_afterbase" != "NO"; then
 					    [AC_DEFINE(HAVE_AFTERBASE) \
 						 AC_MSG_RESULT("<libAfterBase/astypes.h>")],
 						[AC_MSG_RESULT("none found") have_afterbase=no])
-	  fi	
+	  fi
   else
-	  AC_DEFINE(HAVE_AFTERBASE) 
-	  AC_DEFINE(HAVE_CUSTOM_AFTERBASE)	  
+	  AC_DEFINE(HAVE_AFTERBASE)
+	  AC_DEFINE(HAVE_CUSTOM_AFTERBASE)
 	  AFTERBASE_INC_PATH=$afterbase_includes
   	  AC_MSG_RESULT("$AFTERBASE_INC_PATH/libAfterBase/astypes.h>")
   fi
 fi
 
 AFTERBASE_C=afterbase.c
-if test "x$have_afterbase" = "xyes"; then 
+if test "x$have_afterbase" = "xyes"; then
 	AFTERBASE_C=
-    AFTERIMAGE_LIBS="-lafterbase $AFTERIMAGE_LIBS"
+    AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
 fi
 AC_SUBST(AFTERBASE_INC_PATH)
 AC_SUBST(AFTERBASE_C)
@@ -307,7 +307,7 @@ for L in $AFTERIMAGE_LIBS; do
 	  CLEAN_AFTERIMAGE_LIBS="$CLEAN_AFTERIMAGE_LIBS $L"
   fi
 done
-AFTERIMAGE_LIBS="-L$libdir -lafterimage $CLEAN_AFTERIMAGE_LIBS"
+AFTERIMAGE_LIBS="-L$libdir -lAfterImage $CLEAN_AFTERIMAGE_LIBS"
 AC_SUBST(AFTERIMAGE_LIBS)
 
 dnl# Checks for optional programs
