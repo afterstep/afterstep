@@ -52,7 +52,7 @@ void *insert_bidirelem_before( ASBiDirList *l, void *data, ASBiDirElem *before )
 void  pop_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
 /* destroy element and its data : */
 void  destroy_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
-void  discard_bidirelem( ASBiDirList *l, void *data );
+Bool  discard_bidirelem( ASBiDirList *l, void *data );
 /* returns data of the first element in list, and removes this element from the list */
 void *extract_first_bidirelem( ASBiDirList *l );
 

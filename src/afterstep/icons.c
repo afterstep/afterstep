@@ -283,15 +283,39 @@ Bool
 remove_iconbox_icon( ASWindow *asw )
 {
     ASIconBox *ib = NULL ;
-    if( AS_ASSERT(asw) )
+	Bool success = False ;
+    
+	if( AS_ASSERT(asw) )
         return False;
-    /* we need to remove this window from the list of icons */
-    if((ib = get_iconbox( ASWIN_DESK(asw) )) == NULL )
-		return False;
-   	
-	discard_bidirelem( ib->icons, asw );
-   	rearrange_iconbox( ib );
-    return True;
+    /* we need to remove this window from the list of icons - 
+	 * going through all existing icon boxes just in case : */
+	if( Scr.default_icon_box )
+	{	
+		ib = Scr.default_icon_box ;
+		if( ib && ib->icons ) 
+			if( discard_bidirelem( ib->icons, asw ) ) 
+			{
+				rearrange_iconbox( ib );			
+				success = True;
+			}
+	}
+	
+	if( Scr.icon_boxes ) 
+	{
+		ASHashIterator iterator ; 
+	    if( start_hash_iteration( Scr.icon_boxes, &iterator ))
+        do
+        {
+			ib = (ASIconBox*)curr_hash_data(&iterator);
+			if( discard_bidirelem( ib->icons, asw ) ) 
+			{
+				rearrange_iconbox( ib );			
+				success = True;
+			}
+        }while(next_hash_item( &iterator ));	
+	}
+
+    return success;
 }
 
 Bool

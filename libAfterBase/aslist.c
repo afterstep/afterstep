@@ -261,13 +261,17 @@ pop_bidirelem( ASBiDirList *l, ASBiDirElem *elem )
     l->head = elem ;
 }
 
-void
+Bool
 discard_bidirelem( ASBiDirList *l, void *data )
 {
 	ASBiDirElem *elem ;
 	if( l )
         if( (elem = find_bidirelem( l, data ))!=NULL )
+		{
 			destroy_bidirelem( l, elem );
+			return True;
+		}
+	return False;
 }
 
 void *extract_first_bidirelem( ASBiDirList *l )

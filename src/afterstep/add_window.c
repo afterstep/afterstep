@@ -466,6 +466,7 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
 
     redecorate_window( asw, True );
     unregister_aswindow( asw->w );
+	remove_iconbox_icon( asw );
     delist_aswindow( asw );
 
     init_aswindow( asw, True );
