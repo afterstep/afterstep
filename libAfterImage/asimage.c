@@ -1,51 +1,41 @@
+/*
+ * Copyright (c) 2000,2001 Sasha Vasko <sashav@sprintmail.com>
+ *
+ * This module is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
 
 #include "../configure.h"
 
-#include <errno.h>
 #include <stdio.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <string.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <sys/wait.h>
-#include <sys/time.h>
-#include <time.h>
-
-#ifdef ISC									   /* Saul */
-#include <sys/bsdtypes.h>					   /* Saul */
-#endif /* Saul */
-
-#include <stdlib.h>
-#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
-#include <sys/select.h>
-#endif
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xproto.h>
 #include <X11/Xatom.h>
 #include <X11/Intrinsic.h>
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
 
-#define IN_MODULE
-#define MODULE_X_INTERFACE
+#define LOCAL_DEBUG
 
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
-#include "../include/style.h"
 #include "../include/screen.h"
 #include "../include/ascolor.h"
 #include "../include/mytexture.h"
-#include "../include/module.h"
-#include "../include/parser.h"
-#include "../include/confdefs.h"
-#include "../include/mystyle.h"
-#include "../include/background.h"
-#include "../include/asimage.h"
 #include "../include/XImage_utils.h"
+#include "../include/asimage.h"
 
 /*
  * We Store images using RLE encoding - see asimage.h for more
@@ -55,18 +45,19 @@
 inline unsigned int
 _asimage_get_length (CARD8 * cblock)
 {
-	if (((*cblock) & RLE_DIRECT_B) != 0)
-		return (*cblock) & (RLE_DIRECT_D);
-	if (((*cblock) & RLE_LONG_B) != 0)
-		return ((((*cblock) & RLE_LONG_D) << 8) | *(cblock + 1));
-	return (*cblock) & (RLE_SIMPLE_D);
+	if ((cblock[0] & RLE_DIRECT_B) != 0)
+		return ((unsigned int)cblock[0] & (RLE_DIRECT_D)) + 1;
+	if ((cblock[0] & RLE_LONG_B) != 0)
+		return ((((unsigned int)cblock[0] & RLE_LONG_D) << 8) | (unsigned int)cblock[1])+ RLE_THRESHOLD;
+	return ((unsigned int)cblock[0] & RLE_SIMPLE_D ) + RLE_THRESHOLD;
 }
 #else
 
-#define _asimage_get_length(cblock) \
+/*#define _asimage_get_length(cblock) \
     ((((*cblock)&RLE_DIRECT_B)!= 0 )?   (*cblock) & (RLE_DIRECT_D): \
      ((((*cblock)&RLE_LONG_B) != 0 )?((((*cblock) & RLE_LONG_D)<<8)| *(cblock+1)): \
                                         (*cblock) & (RLE_SIMPLE_D)))
+*/
 #endif
 
 
@@ -165,95 +156,87 @@ asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y)
 }
 
 void
-asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y)
+asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigned int y)
 {
-	int           i;
-	register int  rep_count, block_count;
-	register CARD32 *ptr = data;
-	register CARD32 *bstart, *ccolor;
-	unsigned int  width;
-	CARD8        *tail;
-	Bool          direct = True;
+	int             i = 0, bstart = 0, ccolor = 0;
+	unsigned int    width;
+	register CARD8 *tail;
+	Bool            direct = True;
 
 	if (im == NULL || data == NULL)
 		return;
 	if (im->buffer == NULL || y >= im->height)
 		return;
 
-	bstart = ccolor = ptr;
 	width = im->width;
 	tail = im->buffer;
-	rep_count = block_count = 0;
-
-	for (i = 0; i < width; i++)
+	fprintf( stderr, "%d:%d:%2.2X ", y, color, data[0] );
+	
+	if( width == 1 ) 
 	{
-		if (*ptr == *ccolor)
+		tail[0] = 1 ;
+		tail[1] = data[0] ;
+		tail[2] = RLE_EOL ;
+	}else
+	{
+		while( ++i < width )
 		{
-			rep_count++;
-			if (direct && rep_count >= RLE_THRESHOLD)
-				direct = False;
-		} else
-		{
-			if (!direct)
+			Bool save_block = (i == width-1);
+			fprintf( stderr, "%2.2X ", data[i] );
+			if( data[i] == data[ccolor] && !save_block )
 			{
-				if (rep_count <= RLE_MAX_SIMPLE_LEN)
+				if( direct && i-ccolor >= RLE_THRESHOLD )
 				{
-					tail[0] = (CARD8)  rep_count;
-					tail[1] = (CARD8) *ccolor;
-					tail += 2 ;
-				} else
-				{
-					tail[0] = ((CARD8) (rep_count >> 8)) & RLE_LONG_D;
-					tail[1] = (CARD8) (rep_count) & 0xFF;
-					tail[2] = (CARD8) *ccolor;
-					tail += 3 ;
+					direct = False;
+					save_block = ccolor > bstart ;
 				}
-				block_count = 0;
-				bstart = ptr;
-				direct = True;
-			}
-			ccolor = ptr;
-			rep_count = 0;
-		}
-		block_count++;
-		if (!direct || block_count >= RLE_MAX_DIRECT_LEN)
-			if (bstart < ccolor)
+			}else if( direct )
 			{
-				register int i = ccolor - bstart ;
-				block_count -= rep_count + 1 + 1;
-				*(tail++) = RLE_DIRECT_B | (CARD8) block_count;
-				while ( --i >= 0 )
-					tail[i] = (CARD8)bstart[i];
-				tail += ccolor - bstart ;
-				bstart = ccolor;
-				block_count = rep_count;
-			}
-		ptr++;
-	}
-	if (block_count > 0)
-	{
-		if (bstart < ccolor || rep_count == 0)
-		{									   /* count of 1 is represented by 0 */
-			register int i = ptr - bstart;
-			*(tail++) = RLE_DIRECT_B | (CARD8) (block_count - 1);
-			while (--i >= 0 )
-				tail[i] = (CARD8)bstart[i];
-			tail  += ptr - bstart;
-			bstart = ptr;
-		} else
-		{
-			if (rep_count <= RLE_MAX_SIMPLE_LEN)
-			{								   /* count of 1 is represented by 0 as well but it should not be less the 2 :) */
-				tail[0] = (CARD8) rep_count;
-				tail[1] = (CARD8) *ccolor;
-				tail += 2 ;
-			} else
-			{
-				tail[0] = ((CARD8) (rep_count >> 8)) & RLE_LONG_D;
-				tail[1] = (CARD8) (rep_count) & 0xFF;
-				tail[2] = (CARD8) *ccolor;
-				tail += 3 ;
-			}
+				ccolor = (save_block)?i+1:i ;
+				save_block = save_block || (ccolor - bstart > RLE_MAX_DIRECT_LEN - RLE_THRESHOLD - 1) ;
+			}else
+				save_block = True ;
+			
+			if( save_block )
+			{				
+				if (direct || ccolor > bstart )
+				{/* we have to write direct block */
+					tail[0] = RLE_DIRECT_B | ((CARD8)(ccolor-bstart-1));
+					fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] );
+					tail -= bstart-1 ;
+					while ( bstart < ccolor )
+					{
+						tail[bstart] = (CARD8) data[bstart];
+						fprintf( stderr, "%d: %2.2X ", &(tail[bstart]) - im->buffer, tail[bstart] );
+						++bstart ;
+					}
+					tail += bstart ;
+				}else
+				{   /* we have to write repetition count and length */
+					register unsigned int rep_count = i - ccolor - RLE_THRESHOLD;
+			
+					if (rep_count <= RLE_MAX_SIMPLE_LEN)
+					{
+						tail[0] = (CARD8) rep_count;
+						fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] );
+						tail[1] = (CARD8) data[ccolor];
+						fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] );
+						tail += 2 ;
+					} else
+					{
+						tail[0] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
+						fprintf( stderr, "\n%d: %2.2X ", &(tail[0]) - im->buffer, tail[0] );
+						tail[1] = (CARD8) ((rep_count) & 0x00FF);
+						fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] );
+						tail[2] = (CARD8) data[ccolor];
+						fprintf( stderr, "%d: %2.2X ", &(tail[2]) - im->buffer, tail[2] );
+						tail += 3 ;
+					}
+					bstart = ccolor = i;
+					direct = True;
+				} 
+				fprintf( stderr, "\n");
+			}				
 		}
 	}
 
@@ -278,6 +261,11 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	if ((color_ptr = asimage_get_color_ptr (im, color)) == NULL)
 		return 0;
 	ptr = color_ptr[y];
+	if( ptr == NULL )
+	{
+		show_error( "no data available for line %d", y );
+		return 0;
+	}
 	while (*ptr != RLE_EOL)
 	{
 		while (to_skip-- > 0)
@@ -328,6 +316,7 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 	register CARD8  *src ;
 	register CARD32 *dst;
 	register int  to_write;
+	int written  = 0;
 
 	if (im == NULL || to_buf == NULL)
 		return 0;
@@ -342,15 +331,14 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 	while (*src != RLE_EOL)
 	{
 		to_write = _asimage_get_length (src);
-
+LOCAL_DEBUG_OUT( "line %d component %d written %d to_write %d src[0] 0x%X src[1] 0x%X", y, color, written, to_write, src[0], src[1] );
 		if (((*src) & RLE_DIRECT_B) != 0)
 		{
 			register int i = -1 ;
 			src++;
 			while (to_write >= ++i)			   /* we start counting from 0 - 0 is actually count of 1 */
 				dst[i] = src[i];
-			src += i ;
-			dst += i ;
+			src += to_write ;
 		} else
 		{
 			register int i = -1 ;
@@ -359,9 +347,10 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 			src++;
 			while (to_write >= ++i )
 				dst[i] = *src;
-    		dst += i ;
 			src++;
 		}
+  		dst += to_write ;
+		written += to_write ;
 	}
 	return (dst - to_buf);
 }
@@ -400,6 +389,7 @@ asimage_copy_line (CARD8 * from, CARD8 * to)
 	return (dst - to);
 }
 
+#if 0
 unsigned int  asimage_scale_line_down (CARD8 * from, CARD8 * to, unsigned int from_width, unsigned int to_width);
 
 unsigned int
@@ -415,7 +405,6 @@ asimage_scale_line_up (CARD8 * from, CARD8 * to, unsigned int from_width, unsign
 	return 0;
 }
 
-#if 0
 unsigned int
 asimage_scale_line_down (CARD8 * from, CARD8 * to, unsigned int from_width, unsigned int to_width)
 {
@@ -462,7 +451,7 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 
 	sl->width 	= width ;
 	sl->shift   = shift ;
-	sl->red 	= sl->buffer = safemalloc (width*3);
+	sl->red 	= sl->buffer = safemalloc ((width*3)*sizeof(CARD32));
 	sl->green 	= sl->buffer + width;
 	sl->blue 	= sl->buffer + (width<<1);
 	return sl;
@@ -771,19 +760,22 @@ asimage_from_pixmap (Pixmap p, int x, int y, unsigned int width, unsigned int he
 }
 
 Pixmap
-pixmap_from_asimage(ASImage *im, Drawable d, GC gc)
+pixmap_from_asimage(ASImage *im, Window w, GC gc)
 {
 	XImage       *xim ;
 	Pixmap        p = None;
 	XWindowAttributes attr;
 
-	if( XGetWindowAttributes (dpy, d, &attr) )
+	if( XGetWindowAttributes (dpy, w, &attr) )
+	{
+		set_ascolor_depth( w, attr.depth );
 		if ((xim = ximage_from_asimage( im, attr.depth )) != NULL )
 		{
-			p = XCreatePixmap( dpy, d, im->width, im->height, attr.depth );
+			p = XCreatePixmap( dpy, w, im->width, im->height, attr.depth );
 			XPutImage( dpy, p, gc, xim, 0, 0, 0, 0, im->width, im->height );
 			XDestroyImage (xim);
 		}
+	}
 	return p;
 }
 

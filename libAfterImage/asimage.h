@@ -32,10 +32,10 @@ ctrl_byte3    := 1NNNNNNN (first bit is 1, remaining are length)
 #define RLE_LONG_D 		0x3F
 #define RLE_SIMPLE_D  		0x3F
 
-#define RLE_MAX_DIRECT_LEN      128
+#define RLE_MAX_DIRECT_LEN      127
 #define RLE_MAX_SIMPLE_LEN     	63
 #define RLE_MAX_LONG_LEN     	(64*256)
-#define RLE_THRESHOLD		3
+#define RLE_THRESHOLD		2
 
 typedef struct ASImage
 {
@@ -83,7 +83,7 @@ ASImage *asimage_from_pixmap (Pixmap p, int x, int y,
 			      unsigned int height, unsigned long plane_mask);
 
 XImage* ximage_from_asimage (ASImage *im, int depth);
-Pixmap pixmap_from_asimage(ASImage *im, Drawable d, GC gc);
+Pixmap pixmap_from_asimage(ASImage *im, Window w, GC gc);
 
 
 
