@@ -915,20 +915,20 @@ LOCAL_DEBUG_OUT("blending actually...%s", "");
 		else
 			imout->tiling_step = max_y ;
 
-/*		for( i = 0 ; i < count ; i++ )
-			if( imdecs[i] )
-				imdecs[i]->next_line = min_y - layers[i].dst_y ;
- */
 LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 		dst_line.back_color = imdecs[0]->back_color ;
 		dst_line.flags = 0 ;
-		for( y = 0 ; y < min_y ; y++  )
+		for( y = 0 ; y < min_y ; ++y  )
 			imout->output_image_scanline( imout, &dst_line, 1);
 		dst_line.flags = SCL_DO_ALL ;
-		for( i = 1 ; i < count ; i++ )
-			if( imdecs[i] && pcurr->dst_y < y  )
-				imdecs[i]->next_line = y - pcurr->dst_y ;
-		for( ; y < max_y ; y++  )
+		pcurr = layers ;
+		for( i = 0 ; i < count ; ++i )
+		{
+			if( imdecs[i] && pcurr->dst_y < min_y  )
+				imdecs[i]->next_line = min_y - pcurr->dst_y ;
+			pcurr = (pcurr->next!=NULL)?pcurr->next:pcurr+1 ;
+		}				
+		for( ; y < max_y ; ++y  )
 		{
 			if( layers[0].dst_y <= y && bg_bottom > y )
 				imdecs[0]->decode_image_scanline( imdecs[0] );

@@ -18,14 +18,14 @@
 #include "ashash.h"
 #include "xwrap.h"
 
+#define AUDIT_SERVICE_MEM_LIMIT (4<<20)
+
 #ifndef DEBUG_ALLOCS
 
 #define AS_ASSERT(p)            ((p)==(typeof(p))0)
 #define AS_ASSERT_NOTVAL(p,v)      ((p)!=(typeof(p))v)
 #define PRINT_MEM_STATS(m)      do{}while(0)
 #else
-
-#define AUDIT_SERVICE_MEM_LIMIT (4<<20)
 
 int as_assert (void *p, const char *fname, int line, const char *call);
 
