@@ -438,7 +438,8 @@ LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, 
         {
             free( Config->shade_btn );
             Config->shade_btn = NULL;
-        }
+        }else
+			Config->shade_btn->context = C_TButton0 ;
     }
 
     Scr.Feel.EdgeResistanceMove = 5;
@@ -988,7 +989,7 @@ redecorate_pager_desks()
                 add_astbar_label( d->title, 0, flip?1:0, flip, align, buf );
             }
             if( Config->shade_btn )
-                add_astbar_btnblock( d->title, flip?0:1, 0, flip, NO_ALIGN, Config->shade_btn, 0xFFFFFFFF, 1, 1, 1, 0, 0,C_R1);
+                add_astbar_btnblock( d->title, flip?0:1, 0, flip, NO_ALIGN, &(Config->shade_btn), 0xFFFFFFFF, 1, 1, 1, 0, 0);
             if( get_flags( Config->flags, VERTICAL_LABEL ) )
             {
                 d->title_width = calculate_astbar_width( d->title );
@@ -2251,7 +2252,7 @@ LOCAL_DEBUG_OUT( "main_geometry(%dx%d%+d%+d)", PagerState.main_canvas->width, Pa
         if( PagerState.pressed_desk )
         {
             ASPagerDesk *d = PagerState.pressed_desk ;
-            if( PagerState.pressed_context == C_R1 )
+            if( PagerState.pressed_context == C_TButton0 )
             {
                 if( get_flags( Config->flags, VERTICAL_LABEL ) )
                     shade_desk_column( d, !get_flags( d->flags, ASP_DeskShaded) );

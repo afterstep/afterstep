@@ -1156,6 +1156,20 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 InitLook (&Scr.Look, True);
                 ParseConfigFile (const_configfile, &tline);
                 show_progress("LOOK configuration loaded from \"%s\" ...", const_configfile);
+#ifdef ASETROOT_FILE				
+				if( Scr.Look.desk_configs == NULL ) 
+				{/* looks like there is no background information in the look file and we should be 
+				    getting it from the asetroot file : */
+									
+		            if( (configfile = make_session_file(Session, ASETROOT_FILE, False )) != NULL )
+      			    {
+      			        ParseConfigFile (configfile, &tline);
+              			/* Save base filename to pass to modules */
+				        show_progress("ROOT BACKGROUND configuration loaded from \"%s\" ...", configfile);
+              			free( configfile );
+		            }
+				}
+#endif				
             }else
             {
                 show_warning("LOOK configuration file cannot be found");

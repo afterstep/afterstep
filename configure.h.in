@@ -60,6 +60,7 @@
 #define FEEL_DIR        "feels"
 #define COMP_FILE	"compatibility"                  /* with -f oldrc */
 #define BASE_FILE       "base"                           /* scrdepth */
+#define ASETROOT_FILE   "asetroot"                   /* legacy background configuration */
 #define THEME_OVERRIDE_FILE       "theme-override"
 #define BACK_FILE       "non-configurable/%d_background" /* desk */
 #define LOOK_FILE       "non-configurable/%d_look.%dbpp" /* desk,scrdepth */
