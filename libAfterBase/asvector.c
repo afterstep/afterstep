@@ -24,6 +24,7 @@
 
 #include "config.h"
 #include "astypes.h"
+#include "audit.h"
 #include "output.h"
 #include "safemalloc.h"
 #include "asvector.h"

@@ -475,8 +475,8 @@ close_xpm_file( ASXpmFile **xpm_file )
 #ifdef HAVE_LIBXPM
 			XpmFreeXpmImage (&((*xpm_file)->xpmImage));
 #else
-			if( (*xpm_file)->buffer ) 
-				free( (*xpm_file)->buffer );  			
+			if( (*xpm_file)->buffer )
+				free( (*xpm_file)->buffer );
 #endif
 			free_scanline(&((*xpm_file)->scl), True);
 			if( (*xpm_file)->cmap )
@@ -484,10 +484,11 @@ close_xpm_file( ASXpmFile **xpm_file )
 			if( (*xpm_file)->cmap2 )
 			{
 				register int i ;
-				for( i = 0 ; i < 256 ; i++ ) 
-					free( (*xpm_file)->cmap2[i] );
-				free( (*xpm_file)->cmap2 );					
-			}				
+				for( i = 0 ; i < 256 ; i++ )
+					if( (*xpm_file)->cmap2[i] )
+						free( (*xpm_file)->cmap2[i] );
+				free( (*xpm_file)->cmap2 );
+			}
 			if( (*xpm_file)->cmap_name_xref )
 				destroy_ashash( &((*xpm_file)->cmap_name_xref) );
 #if 0

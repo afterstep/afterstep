@@ -51,7 +51,7 @@
 #include <tiff.h>
 #include <tiffio.h>
 #endif
-#ifdef HAVE_LIBXPM      
+#ifdef HAVE_LIBXPM
 #ifdef HAVE_LIBXPM_X11
 #include <X11/xpm.h>
 #else
@@ -115,7 +115,7 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	va_end (ap);
 
 	/* first lets try to find file as it is */
-	if( (realfilename = locate_image_file(file,paths)) == NULL )
+	if( (realfilename = locate_image_file(file,&(paths[0]))) == NULL )
 	{
 		tmp = safemalloc( filename_len+3+1);
 		strcpy(tmp, file);
@@ -123,12 +123,12 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	if( realfilename == NULL )
 	{ /* let's try and see if appending .gz will make any difference */
 		strcpy(&(tmp[filename_len]), ".gz");
-		realfilename = locate_image_file(tmp,paths);
+		realfilename = locate_image_file(tmp,&(paths[0]));
 	}
 	if( realfilename == NULL )
 	{ /* let's try and see if appending .Z will make any difference */
 		strcpy(&(tmp[filename_len]), ".Z");
-		realfilename = locate_image_file(tmp,paths);
+		realfilename = locate_image_file(tmp,&(paths[0]));
 	}
 	if( realfilename == NULL )
 	{ /* let's try and see if we have subimage number appended */
@@ -141,20 +141,20 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 				subimage = atoi( &tmp[i+1] );
 				tmp[i] = '\0';
 				filename_len = i ;
-				realfilename = locate_image_file(tmp,paths);
+				realfilename = locate_image_file(tmp,&(paths[0]));
 				if( realfilename == NULL )
 				{ /* let's try and see if appending .gz will make any difference */
 					strcpy(&(tmp[filename_len]), ".gz");
-					realfilename = locate_image_file(tmp,paths);
+					realfilename = locate_image_file(tmp,&(paths[0]));
 				}
 				if( realfilename == NULL )
 				{ /* let's try and see if appending .Z will make any difference */
 					strcpy(&(tmp[filename_len]), ".Z");
-					realfilename = locate_image_file(tmp,paths);
+					realfilename = locate_image_file(tmp,&(paths[0]));
 				}
 			}
 	}
-	if( tmp != realfilename )
+	if( tmp != realfilename && tmp != NULL )
 		free( tmp );
 	if( realfilename )
 	{
@@ -172,12 +172,12 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	return im;
 }
 
-Pixmap 
+Pixmap
 file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_out)
 {
 	Pixmap trg = None, mask = None;
-	
-	if( asv && realfilename ) 
+
+	if( asv && realfilename )
 	{
 		double gamma = SCREEN_GAMMA;
 		char  *gamma_str;
@@ -188,30 +188,30 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 			gamma = atof (gamma_str);
 			if (gamma == 0.0)
 				gamma = SCREEN_GAMMA;
-		}				
-		
+		}
+
 		im = file2ASImage( realfilename, 0xFFFFFFFF, gamma, 0, NULL );
-		if( im != NULL ) 
+		if( im != NULL )
 		{
-			trg = asimage2pixmap( asv, root, im, NULL, False ); 
+			trg = asimage2pixmap( asv, root, im, NULL, False );
 			if( mask_out )
 			{
 				register int i ;
-				for( i = 0 ; i < im->height ; i++ ) 
-					if( im->alpha[i] != NULL ) 
+				for( i = 0 ; i < im->height ; i++ )
+					if( im->alpha[i] != NULL )
 					{
-						mask = asimage2mask( asv, root, im, NULL, False ); 
+						mask = asimage2mask( asv, root, im, NULL, False );
 						break;
-					}	
-			}					
+					}
+			}
 		}
 	}
 	if( mask_out )
 	{
-		if( *mask_out ) 
+		if( *mask_out )
 			XFreePixmap( asv->dpy, *mask_out );
-		*mask_out = mask ;			
-	}		
+		*mask_out = mask ;
+	}
 	return trg ;
 }
 
@@ -230,6 +230,7 @@ locate_image_file( const char *file, char **paths )
 		register int i = 0;
 		do
 		{
+fprintf( stderr, "%p , paths[%d] = %s\n", paths, i, paths[i] );
 			realfilename = find_file( file, paths[i], R_OK );
 		}while( paths[i++] != NULL );
 	}

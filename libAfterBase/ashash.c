@@ -33,9 +33,9 @@
 /*#define LOCAL_DEBUG*/
 
 #include "astypes.h"
+#include "audit.h"
 #include "ashash.h"
 #include "safemalloc.h"
-#include "audit.h"
 #include "output.h"
 
 
@@ -160,6 +160,7 @@ add_item_to_bucket (ASHashBucket * bucket, ASHashItem * item, long (*compare_fun
 #ifdef DEBUG_ALLOCS
 #undef add_hash_item
 #undef safemalloc
+void* safemalloc(size_t);
 #undef free
 #endif
 

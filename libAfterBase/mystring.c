@@ -19,14 +19,15 @@
  *
  ****************************************************************************/
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 
-#include "config.h"
 #include "astypes.h"
-#include "output.h"
 #include "audit.h"
+#include "output.h"
 #include "safemalloc.h"
 #include "mystring.h"
 
@@ -79,6 +80,7 @@ mystrncasecmp (const char *s1, const char *s2, size_t n)
 #undef mystrdup
 #undef mystrndup
 #undef safemalloc
+void* safemalloc(size_t);
 char         *
 mystrdup (const char *str)
 {

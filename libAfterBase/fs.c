@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
+#include "config.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -26,7 +28,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "config.h"
+#include "audit.h"
 #include "astypes.h"
 #include "mystring.h"
 #include "safemalloc.h"
@@ -116,14 +118,16 @@ put_file_home (const char *path_with_home)
 	static char  *home = NULL;				   /* the HOME environment variable */
 	static char   default_home[3] = "./";
 	static int    home_len = 0;
-	char         *str, *ptr;
+	char         *str = NULL, *ptr;
 	register int  i;
-
 	if (path_with_home == NULL)
 		return NULL;
 	/* home dir ? */
 	if (path_with_home[0] != '~' || path_with_home[1] != '/')
-		return mystrdup (path_with_home);
+	{
+		char *t = mystrdup (path_with_home);
+		return t;
+	}
 
 	if (home == NULL)
 	{
@@ -134,12 +138,10 @@ put_file_home (const char *path_with_home)
 
 	for (i = 2; path_with_home[i]; i++);
 	str = safemalloc (home_len + i);
-
 	for (ptr = str + home_len-1; i > 0; i--)
 		ptr[i] = path_with_home[i];
 	for (i = 0; i < home_len; i++)
 		str[i] = home[i];
-
 	return str;
 }
 
@@ -168,15 +170,18 @@ find_file (const char *file, const char *pathlist, int type)
 
 	if (file == NULL)
 		return NULL;
+
 	if (*file == '/' || *file == '~' || ((pathlist == NULL) || (*pathlist == '\0')))
 	{
 		path = put_file_home (file);
-		if (access (path, type) == 0)
+		if ( CheckFile (path) == 0 )
+		{
 			return path;
+		}
 		free (path);
 		return NULL;
 	}
-
+/*	return put_file_home(file); */
 	for (i = 0; file[i]; i++);
 	len = i ;
 	for (ptr = (char *)pathlist; *ptr; ptr += i)
@@ -188,31 +193,28 @@ find_file (const char *file, const char *pathlist, int type)
 			max_path = i;
 	}
 
-	path = safemalloc (max_path + 1 + len + 1);
+	path = safemalloc (max_path + 1 + len + 1 + 100);
+	strcpy( path+max_path+1, file );
+	path[max_path] = '/' ;
 
-	/* Search each element of the pathlist for the icon file */
-	while( pathlist[0] != 0 )
+	ptr = (char*)&(pathlist[0]) ;
+	while( ptr[0] != '\0' )
 	{
-		if (pathlist[0] == ':')
-			++pathlist;
-		ptr = (char*)pathlist ;
-		for (i = 0; ptr[i] && ptr[i] != ':'; i++)
-			path[i] = ptr[i];
-		pathlist += i;
-		if (i == 0)
-			continue;
-		path[i] = '/';
-		ptr = &(path[i+1]);
-		i = -1 ;
-		do
+		for( i = 0 ; ptr[i] == ':' ; ++i );
+		ptr += i ;
+		for( i = 0 ; ptr[i] != ':' && ptr[i] != '\0' ; ++i );
+		if( i > 0 )
 		{
-			++i;
-			ptr[i] = file[i];
-		}while( file[i] != '\0' );
-		if (access (path, type) == 0)
-			return path;
+			strncpy( path+max_path-i, ptr, i );
+			if (CheckFile(path) == 0)
+			{
+				char* res = mystrdup(path+max_path-i);
+				free( path );
+				return res;
+			}
+		}
+		ptr += i ;
 	}
-	/* Hmm, couldn't find the file.  Return NULL */
 	free (path);
 	return NULL;
 }
