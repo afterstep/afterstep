@@ -198,7 +198,7 @@ main (int argc, char **argv)
 	InitSession();
     for( i = 1 ; i< argc ; ++i)
 	{
-		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
+		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i]?argv[i]:"(null)", i, MyArgs.saved_argv[i]);	  
 		if( argv[i] != NULL  )
 		{
 			if( (strcmp( argv[i], "-t" ) == 0 || strcmp( argv[i], "--target" ) == 0) && i+1 < argc && argv[i+1] != NULL ) 
