@@ -330,15 +330,23 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 void
 ReloadASImageManager( ASImageManager **old_imageman )
 {
+	char *env_path1 = NULL, *env_path2 = NULL ;
 	if( old_imageman )
 	{
 		*old_imageman = Scr.image_manager ;
 	}else if( Scr.image_manager )
       	destroy_image_manager( Scr.image_manager, False );
 
-    Scr.image_manager = create_image_manager( NULL, 2.2, Environment->pixmap_path?Environment->pixmap_path:"", getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
+	env_path1 = getenv( "IMAGE_PATH" ) ;
+	env_path2 = getenv( "PATH" );
+	if( env_path1 == NULL ) 
+	{
+		env_path1 = env_path2;
+		env_path2 = NULL ;
+	}
+    Scr.image_manager = create_image_manager( NULL, 2.2, Environment->pixmap_path?Environment->pixmap_path:"", env_path1, env_path2, NULL );
 	set_xml_image_manager( Scr.image_manager );
-    show_progress("Pixmap Path changed to \"%s:%s:%s\" ...", Environment->pixmap_path?Environment->pixmap_path:"", getenv( "IMAGE_PATH" ), getenv( "PATH" ));
+    show_progress("Pixmap Path changed to \"%s:%s:%s\" ...", Environment->pixmap_path?Environment->pixmap_path:"", env_path1?env_path1:"", env_path2?env_path2:"");
 }
 
 Bool
