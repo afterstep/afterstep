@@ -256,9 +256,10 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 			{	/* not loaded just yet - lets do it :*/
 				if( type == ASF_Freetype || type == ASF_GuessWho )
 					font = open_freetype_font( fontman, font_string, face_no, size, (type == ASF_Freetype));
-				if( font == NULL )
+				if( font == NULL && type != ASF_Freetype )
+				{/* don't want to try and load font as X11 unless requested to do so */
 					font = open_X11_font( fontman, font_string );
-				else
+				}else
 					freetype = True ;
 				if( font != NULL )
 				{

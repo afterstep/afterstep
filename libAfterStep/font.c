@@ -50,12 +50,20 @@ load_font (const char *name, MyFont * font)
 		}
 	}
 	if( clean_name != NULL )
-		font->as_font = get_asfont (Scr.font_manager, clean_name, 0, font_size, ASF_Freetype);
+	{
+		if( (font->as_font = get_asfont (Scr.font_manager, clean_name, 0, font_size, ASF_Freetype)) != NULL )
+			show_progress( "Successfully loaded freetype font \"%s\"", clean_name );
+	}
 	if( font->as_font == NULL && name != NULL )
-		font->as_font = get_asfont (Scr.font_manager, name, 0, font_size, ASF_GuessWho);
+	{
+		if( (font->as_font = get_asfont (Scr.font_manager, name, 0, font_size, ASF_GuessWho)) != NULL )
+			show_progress( "Successfully loaded font \"%s\"", name );
+	}
 	if( font->as_font == NULL )
+	{
 		font->as_font = get_asfont (Scr.font_manager, default_font, 0, font_size, ASF_GuessWho);
-
+		show_warning( "failed to load font \"%s\" - using default instead", name );
+	}
 	if( clean_name && clean_name != name )
 		free( clean_name );
     if ( font->as_font != NULL )
