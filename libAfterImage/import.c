@@ -23,6 +23,7 @@
 
 /*#define LOCAL_DEBUG*/
 #define DO_CLOCKING
+#include <time.h>
 
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
