@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1993 Rob Nation 
+ * Copyright (C) 1993 Rob Nation
  * Copyright (C) 1995 Bo Yang
  *
  * This program is free software; you can redistribute it and/or modify
@@ -58,7 +58,7 @@ unsigned long Globalgcm;
 
 /***************************************************************************
  *
- * Handles destruction of a window 
+ * Handles destruction of a window
  *
  ****************************************************************************/
 void
@@ -138,26 +138,26 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 			unregister_aswindow(  Tmp_win->icon_pixmap_w );
 	}
 	for (i = 0; i < FRAME_SIDES; i++)
-		if( Tmp_win->frame_canvas[i] ) 
+		if( Tmp_win->frame_canvas[i] )
 		{
 			Window w = Tmp_win->frame_canvas[i]->w ;
 			destroy_ascanvas( &(Tmp_win->frame_canvas[i]) );
 			destroy_registered_window( w );
 		}
 	for (i = 0; i < FRAME_PARTS; i++)
-		if( Tmp_win->frame_bars[i] ) 
+		if( Tmp_win->frame_bars[i] )
 			destroy_astbar( &(Tmp_win->frame_bars[i]) );
-			
-	if( Tmp_win->tbar ) 
+
+	if( Tmp_win->tbar )
 		destroy_astbar( &(Tmp_win->tbar) );
-		
+
 	Tmp_win->prev->next = Tmp_win->next;
 	if (Tmp_win->next != NULL)
 		Tmp_win->next->prev = Tmp_win->prev;
 
 	if (!ASWIN_HFLAGS(Tmp_win, AS_SkipWinList))
 		update_windowList ();
-		
+
 	if( Tmp_win->hints )
 		destroy_hints( Tmp_win->hints, False );
 
@@ -171,7 +171,7 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 
 /**************************************************************************
  *
- * Removes expose events for a specific window from the queue 
+ * Removes expose events for a specific window from the queue
  *
  *************************************************************************/
 int
@@ -191,8 +191,8 @@ flush_expose (Window w)
  *
  *  Procedure:
  *	RestoreWithdrawnLocation
- * 
- *  Puts windows back where they were before afterstep took over 
+ *
+ *  Puts windows back where they were before afterstep took over
  *
  ************************************************************************/
 void
@@ -229,8 +229,8 @@ RestoreWithdrawnLocation (ASWindow * tmp, Bool restart)
 		 *
 		 * gpw -- 11/11/93
 		 *
-		 * Unfortunately, this does horrendous things during re-starts, 
-		 * hence the "if(restart) clause (RN) 
+		 * Unfortunately, this does horrendous things during re-starts,
+		 * hence the "if(restart) clause (RN)
 		 *
 		 * Also, fixed so that it only does this stuff if a window is more than
 		 * half off the screen. (RN)
@@ -295,7 +295,7 @@ RestoreWithdrawnLocation (ASWindow * tmp, Bool restart)
 
 #if 0										   /* (see SetTimer) */
 /**************************************************************************
- * 
+ *
  * For auto-raising windows, this routine is called
  *
  *************************************************************************/
@@ -321,8 +321,8 @@ void
 SetTimer (int delay)
 {
 #if 1
-	/* unfortunately, a bug in glibc-2.0.7 causes the timer version of this 
-	 * code to segfault; until glibc-2.0.7 is no longer in popular use, we 
+	/* unfortunately, a bug in glibc-2.0.7 causes the timer version of this
+	 * code to segfault; until glibc-2.0.7 is no longer in popular use, we
 	 * use the old code */
 #ifdef TIME_WITH_SYS_TIME
 	struct itimerval value;
@@ -424,7 +424,7 @@ StashEventTime (XEvent * ev)
 /******************************************************************************
  *
  * Move a window to the top (dir 1) or bottom (dir -1) of the circulate seq.
- * 
+ *
  *****************************************************************************/
 
 void
@@ -450,64 +450,11 @@ SetCirculateSequence (ASWindow * tw, int dir)
 
 
 
-/******************************************************************************
- *
- * Versions of grab primitives that circumvent modifier problems
- * 
- *****************************************************************************/
-
-unsigned      mygrabs_no_mods[] = { 0 };
-
-void
-MyXGrabButton (Display * display, unsigned button, unsigned modifiers,
-			   Window grab_window, Bool owner_events, unsigned event_mask,
-			   int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
-{
-	unsigned      mod, *mods;
-
-	mods = (modifiers != AnyModifier) ? Scr.lock_mods : mygrabs_no_mods;
-	do
-	{
-		mod = *mods++;
-		XGrabButton (display, button, modifiers | mod, grab_window,
-					 owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
-	}
-	while (mod);
-}
-
-void
-MyXUngrabButton (Display * display, unsigned button, unsigned modifiers, Window grab_window)
-{
-	unsigned      mod, *mods;
-
-	mods = (modifiers != AnyModifier) ? Scr.lock_mods : mygrabs_no_mods;
-	do
-	{
-		mod = *mods++;
-		XUngrabButton (display, button, modifiers | mod, grab_window);
-	}
-	while (mod);
-}
-
-void
-MyXGrabKey (Display * display, int keycode, unsigned modifiers,
-			Window grab_window, Bool owner_events, int pointer_mode, int keyboard_mode)
-{
-	unsigned      mod, *mods;
-
-	mods = (modifiers != AnyModifier) ? Scr.lock_mods : mygrabs_no_mods;
-	do
-	{
-		mod = *mods++;
-		XGrabKey (display, keycode, modifiers | mod, grab_window, owner_events, pointer_mode, keyboard_mode);	// A memory leak occurs here. Bug in Xlib?
-	}
-	while (mod);
-}
 
 /******************************************************************************
  *
  * Grab ClickToRaise button press events for a window
- * 
+ *
  *****************************************************************************/
 void
 GrabRaiseClick (ASWindow * t)
@@ -525,7 +472,7 @@ GrabRaiseClick (ASWindow * t)
 /******************************************************************************
  *
  * Ungrab ClickToRaise button press events to allow their use in applications
- * 
+ *
  *****************************************************************************/
 void
 UngrabRaiseClick (ASWindow * t)
@@ -542,7 +489,7 @@ UngrabRaiseClick (ASWindow * t)
 /******************************************************************************
  *
  * Recalculate the visibility flags
- * 
+ *
  *****************************************************************************/
 
 void

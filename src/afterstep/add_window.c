@@ -1798,9 +1798,60 @@ GrabButtons (ASWindow * tmp_win)
 	return;
 }
 
+/******************************************************************************
+ * Versions of grab primitives that circumvent modifier problems
+ *****************************************************************************/
+unsigned      mygrabs_no_mods[] = { 0 };
+
+void
+MyXGrabButton (Display * display, unsigned button, unsigned modifiers,
+			   Window grab_window, Bool owner_events, unsigned event_mask,
+			   int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
+{
+	unsigned      mod, *mods;
+
+	mods = (modifiers != AnyModifier) ? Scr.lock_mods : mygrabs_no_mods;
+	do
+	{
+		mod = *mods++;
+		XGrabButton (display, button, modifiers | mod, grab_window,
+					 owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
+	}
+	while (mod);
+}
+
+void
+MyXUngrabButton (Display * display, unsigned button, unsigned modifiers, Window grab_window)
+{
+	unsigned      mod, *mods;
+
+	mods = (modifiers != AnyModifier) ? Scr.lock_mods : mygrabs_no_mods;
+	do
+	{
+		mod = *mods++;
+		XUngrabButton (display, button, modifiers | mod, grab_window);
+	}
+	while (mod);
+}
+
+void
+MyXGrabKey (Display * display, int keycode, unsigned modifiers,
+			Window grab_window, Bool owner_events, int pointer_mode, int keyboard_mode)
+{
+	unsigned      mod, *mods;
+
+	mods = (modifiers != AnyModifier) ? Scr.lock_mods : mygrabs_no_mods;
+	do
+	{
+		mod = *mods++;
+		XGrabKey (display, keycode, modifiers | mod, grab_window, owner_events, pointer_mode, keyboard_mode);	// A memory leak occurs here. Bug in Xlib?
+	}
+	while (mod);
+}
 /***********************************************************************
  *  GrabIconButtons - grab needed buttons for the icon window
  ***********************************************************************/
+
 void
 GrabIconButtons (ASWindow * tmp_win, Window w)
 {
