@@ -317,7 +317,7 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 			if (func_name == unknown)
 			{
 #ifdef HAVE_EXECINFO_H
-                dummy = __backtrace_symbols ((void **)&esp, 1)
+                dummy = __backtrace_symbols ((void **)&esp, 1);
                 func_name = *dummy;
 				if (*func_name != '[')
 					fprintf (stderr, "  [%s]", func_name);
