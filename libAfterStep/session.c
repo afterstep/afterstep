@@ -631,8 +631,6 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 	if (CheckDir (ashome) != 0)
 	{
         char         *fullfilename;
-        CheckOrCreate (as_gnustep_dir_name);
-		CheckOrCreate (as_gnusteplib_dir_name);
 		CheckOrCreate (ashome);
 
         fullfilename = make_file_name (ashome, AFTER_SAVE);

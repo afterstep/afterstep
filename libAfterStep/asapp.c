@@ -44,11 +44,9 @@ char          MyClass[MAX_MY_CLASS+1]="unknown";/* application Class name ( Page
 void        (*MyVersionFunc)   (void) = NULL;
 void        (*MyUsageFunc)   (void) = NULL;
 
-char     *as_gnustep_dir_name   = GNUSTEP;
-char     *as_gnusteplib_dir_name= GNUSTEP "/" GNUSTEPLIB;
-char     *as_afterstep_dir_name = GNUSTEP "/" GNUSTEPLIB "/" AFTER_DIR;
-char     *as_save_dir_name      = GNUSTEP "/" GNUSTEPLIB "/" AFTER_DIR "/" AFTER_SAVE;
-char     *as_start_dir_name     = GNUSTEP "/" GNUSTEPLIB "/" AFTER_DIR "/" START_DIR;
+char     *as_afterstep_dir_name = AFTER_DIR;
+char     *as_save_dir_name      = AFTER_DIR "/" AFTER_SAVE;
+char     *as_start_dir_name     = AFTER_DIR "/" START_DIR;
 char     *as_share_dir_name     = AFTER_SHAREDIR;
 
 char     *as_background_dir_name = BACK_DIR ;
@@ -358,8 +356,6 @@ void  handler_show_info( char *argv, void *trg, long param )
             printf ("ManDir            %s\n", AFTER_MAN_DIR);
             printf ("DocDir            %s\n", AFTER_DOC_DIR);
             printf ("ShareDir          %s\n", AFTER_SHAREDIR);
-            printf ("GNUstep           %s\n", GNUSTEP);
-            printf ("GNUstepLib        %s\n", GNUSTEPLIB);
             printf ("AfterDir          %s\n", AFTER_DIR);
             break;
         case SHOW_USAGE   :
@@ -515,24 +511,24 @@ make_default_environment()
 {
 	ASEnvironment *e = safecalloc( 1, sizeof(ASEnvironment) );
 	static const char *default_pixmap_path_format =
-		"%s/%s/%s/desktop/icons/:"
 		"%s/desktop/icons/:"
-		"%s/%s/%s/desktop/:"
+		"%s/desktop/icons/:"
 		"%s/desktop/:"
-		"%s/%s/%s/desktop/buttons/:"
+		"%s/desktop/:"
 		"%s/desktop/buttons/:"
-		"%s/%s/%s/backgrounds/:"
+		"%s/desktop/buttons/:"
+		"%s/backgrounds/:"
 		"%s/backgrounds/:"
 		"%s" ;
 
 	static const char *default_font_path_format =
-		"%s/%s/%s/desktop/fonts/:"
+		"%s/desktop/fonts/:"
 		"%s/desktop/fonts/:"
 		"/usr/share/fonts/default/TrueType/:"
 		"%s" ;
 
 	static const char *default_cursor_path_format =
-		"%s/%s/%s/desktop/cursors:"
+		"%s/desktop/cursors:"
 		"%s/desktop/cursors";
 
 	e->desk_scale = 24 ;
@@ -541,38 +537,34 @@ make_default_environment()
 	e->module_path = mystrdup( AFTER_BIN_DIR );
 	e->icon_path = mystrdup( DEFAULT_ICON_DIR );
 	e->pixmap_path = safemalloc( strlen(default_pixmap_path_format)+
-		                         (strlen(GNUSTEP)+strlen(GNUSTEPLIB)+strlen(AFTER_DIR))*4+
+		                         strlen(AFTER_DIR)*4+
 								 strlen(AFTER_SHAREDIR)*4 +
 								 strlen(DEFAULT_PIXMAP_DIR) + 1);
 	sprintf( e->pixmap_path, default_pixmap_path_format,
-	                         GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+	                         AFTER_DIR,
 							 AFTER_SHAREDIR,
-							 GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+							 AFTER_DIR,
 							 AFTER_SHAREDIR,
-							 GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+							 AFTER_DIR,
 							 AFTER_SHAREDIR,
-							 GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+							 AFTER_DIR,
 							 AFTER_SHAREDIR,
 							 DEFAULT_PIXMAP_DIR );
 
 	e->font_path = safemalloc(   strlen(default_font_path_format)+
-		                         strlen(GNUSTEP)+
-								 strlen(GNUSTEPLIB)+
 								 strlen(AFTER_DIR)+
 								 strlen(AFTER_SHAREDIR) +
 								 strlen(DEFAULT_TTF_DIR) + 1);
 	sprintf( e->font_path, default_font_path_format,
-	                         GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+	                         AFTER_DIR,
 							 AFTER_SHAREDIR,
 							 DEFAULT_TTF_DIR );
 
 	e->cursor_path = safemalloc( strlen(default_cursor_path_format)+
-		                         strlen(GNUSTEP)+
-								 strlen(GNUSTEPLIB)+
 								 strlen(AFTER_DIR)+
 								 strlen(AFTER_SHAREDIR) + 1);
 	sprintf( e->cursor_path, default_cursor_path_format,
-	                         GNUSTEP, GNUSTEPLIB, AFTER_DIR,
+	                         AFTER_DIR,
 							 AFTER_SHAREDIR );
 	return e;
 }

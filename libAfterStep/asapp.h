@@ -222,8 +222,6 @@ extern char        MyClass[MAX_MY_CLASS+1]; /* application Class name ( Pager, W
 extern void      (*MyVersionFunc) (void);
 extern void      (*MyUsageFunc)   (void);
 
-extern char 	 *as_gnustep_dir_name;
-extern char 	 *as_gnusteplib_dir_name;
 extern char 	 *as_afterstep_dir_name;
 extern char 	 *as_save_dir_name;
 extern char 	 *as_start_dir_name;

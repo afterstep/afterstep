@@ -4624,9 +4624,6 @@ fi
 
 
 
-with_gnustep_lib=${with_gnustep_dir}/${with_gnustep_lib}
-with_afterdir=${with_gnustep_lib}/${with_afterdir}
-
 echo "$as_me:$LINENO: checking whether byte ordering is bigendian" >&5
 echo $ECHO_N "checking whether byte ordering is bigendian... $ECHO_C" >&6
 if test "${ac_cv_c_bigendian+set}" = set; then

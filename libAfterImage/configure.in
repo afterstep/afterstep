@@ -200,10 +200,6 @@ fi
 
 
 
-dnl# Construct Gnu/AfterStep path from pieces
-with_gnustep_lib=${with_gnustep_dir}/${with_gnustep_lib}
-with_afterdir=${with_gnustep_lib}/${with_afterdir}
-
 dnl# some standard checks :
 dnl# let's check for endiannes of our box
 AC_C_BIGENDIAN

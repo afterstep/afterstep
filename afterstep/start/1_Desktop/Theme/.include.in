@@ -1,6 +1,6 @@
 keepname
 include "@datadir@/afterstep/themes" ChangeTheme
-include "@with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/themes" ChangeTheme
+include "@with_afterdir@/themes" ChangeTheme
 extension .tar.gz
 extension .tar.bz2
 

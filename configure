@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC sgmltools CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD LIBAFTERBASE_CFLAGS LIBAFTERIMAGE_CFLAGS version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP ASCP_LIBS ASCP_INCLUDES user_ldflags x_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB LIBPROG LIBINSTALL DEFINE_XLOCALE with_gnustep_dir with_gnustep_lib with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC sgmltools CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD LIBAFTERBASE_CFLAGS LIBAFTERIMAGE_CFLAGS version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP ASCP_LIBS ASCP_INCLUDES user_ldflags x_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB LIBPROG LIBINSTALL DEFINE_XLOCALE with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERBASEFILES LIBAFTERIMAGEFILES LIBAFTERSTEPFILES LIBAFTERCONFFILES MAKEFILEDEFINES MAKEFILECOMMON MAKEFILECOMMONLIB'
 
 # Initialize some variables set by options.
@@ -888,8 +888,6 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-gnustep-dir=DIR  GNUstep directory [~/GNUstep]
-  --with-gnustep-lib=DIR  GNUstep/Library directory [Library]
   --with-afterdir=DIR     user AfterStep dir [AfterStep]
   --with-imageloader=APP  used to display non-XPMs [xli -onroot -quiet]
   --with-helpcommand=APP  display manpage for window [xiterm -e man]
@@ -1387,28 +1385,12 @@ eval "libdir=$libdir"
 eval "includedir=$includedir"
 
 
-# Check whether --with-gnustep_dir or --without-gnustep_dir was given.
-if test "${with_gnustep_dir+set}" = set; then
-  withval="$with_gnustep_dir"
-  with_gnustep_dir=$withval
-else
-  with_gnustep_dir="~/GNUstep"
-fi;
-
-# Check whether --with-gnustep_lib or --without-gnustep_lib was given.
-if test "${with_gnustep_lib+set}" = set; then
-  withval="$with_gnustep_lib"
-  with_gnustep_lib=$withval
-else
-  with_gnustep_lib="Library"
-fi;
-
 # Check whether --with-afterdir or --without-afterdir was given.
 if test "${with_afterdir+set}" = set; then
   withval="$with_afterdir"
   with_afterdir=$withval
 else
-  with_afterdir="AfterStep"
+  with_afterdir="~/.afterstep"
 fi;
 
 
@@ -6196,8 +6178,6 @@ echo "$as_me: checking libAfterImage..." >&6;}
   afterimage_lib=
 fi
 
-
-
 echo "$as_me:$LINENO: checking whether byte ordering is bigendian" >&5
 echo $ECHO_N "checking whether byte ordering is bigendian... $ECHO_C" >&6
 if test "${ac_cv_c_bigendian+set}" = set; then
@@ -7644,8 +7624,6 @@ fi
 
 
 
-
-
 MAKEFILEDEFINES=./autoconf/Makefile.defines
 MAKEFILECOMMON=./autoconf/Makefile.common
 MAKEFILECOMMONLIB=./autoconf/Makefile.common.lib
@@ -8397,8 +8375,6 @@ s,@WIDGETS_LIB@,$WIDGETS_LIB,;t t
 s,@LIBPROG@,$LIBPROG,;t t
 s,@LIBINSTALL@,$LIBINSTALL,;t t
 s,@DEFINE_XLOCALE@,$DEFINE_XLOCALE,;t t
-s,@with_gnustep_dir@,$with_gnustep_dir,;t t
-s,@with_gnustep_lib@,$with_gnustep_lib,;t t
 s,@with_afterdir@,$with_afterdir,;t t
 s,@with_imageloader@,$with_imageloader,;t t
 s,@with_soundplayer@,$with_soundplayer,;t t

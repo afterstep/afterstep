@@ -37,8 +37,6 @@ exec_prefix     = @exec_prefix@
 LIBDIR		= $(DESTDIR)@libdir@
 BIN_DIR		= $(DESTDIR)@bindir@
 MAN_DIR		= $(DESTDIR)@mandir@/man1
-GNUSTEP		= @with_gnustep_dir@
-GNUSTEPLIB	= @with_gnustep_lib@
 AFTER_DIR	= @with_afterdir@
 
 # need this for dependancies :

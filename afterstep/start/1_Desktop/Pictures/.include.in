@@ -1,7 +1,7 @@
 keepname
 miniextension  .mini
 include "@datadir@/afterstep/backgrounds" Background
-include "@with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/backgrounds" Background
+include "@with_afterdir@/backgrounds" Background
 include "/usr/share/pixmaps/backgrounds" Background
 include "/usr/local/share/pixmaps/backgrounds" Background
 command Background

@@ -1,2 +1,2 @@
-Exec "E terminal" exec Eterm -P ~/GNUstep/Library/AfterStep/non-configurable/0_background -f white &
+Exec "E terminal" exec Eterm -P ~/.afterstep/non-configurable/0_background -f white &
 MiniPixmap "mini-app.xpm"

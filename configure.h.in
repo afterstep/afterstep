@@ -46,8 +46,6 @@
 #define DEFAULT_PIXMAP_DIR "@x_includes@/X11/pixmaps"
 #define DEFAULT_TTF_DIR "@x_libraries@/X11/fonts/TTF"
 #define AFTER_SHAREDIR	"@datadir@/afterstep"
-#define GNUSTEP         "@with_gnustep_dir@"
-#define GNUSTEPLIB      "@with_gnustep_lib@"
 #define AFTER_DIR       "@with_afterdir@"
 #define AFTER_SAVE      ".workspace_state"
 #define AFTER_NONCF     "non-configurable"

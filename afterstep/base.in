@@ -10,10 +10,10 @@
 #
 ModulePath		@bindir@
 IconPath		@x_includes@/X11/bitmaps/
-FontPath                @with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/desktop/fonts/:@datadir@/afterstep/desktop/fonts/:/usr/share/fonts/default/TrueType/:@x_libraries@/X11/fonts/TTF
-PixmapPath		@with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/desktop/icons/:@datadir@/afterstep/desktop/icons/:@with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/desktop/:@datadir@/afterstep/desktop/:@with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/desktop/buttons/:@datadir@/afterstep/desktop/buttons/:@with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/backgrounds/:@datadir@/afterstep/backgrounds/:@x_includes@/X11/pixmaps/
-CursorPath              @with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/desktop/cursors:@datadir@/afterstep/desktop/cursors
-*ScriptPath		@with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/scripts/:@datadir@/afterstep/scripts/
+FontPath                @with_afterdir@/desktop/fonts/:@datadir@/afterstep/desktop/fonts/:/usr/share/fonts/default/TrueType/:@x_libraries@/X11/fonts/TTF
+PixmapPath		@with_afterdir@/desktop/icons/:@datadir@/afterstep/desktop/icons/:@with_afterdir@/desktop/:@datadir@/afterstep/desktop/:@with_afterdir@/desktop/buttons/:@datadir@/afterstep/desktop/buttons/:@with_afterdir@/backgrounds/:@datadir@/afterstep/backgrounds/:@x_includes@/X11/pixmaps/
+CursorPath              @with_afterdir@/desktop/cursors:@datadir@/afterstep/desktop/cursors
+*ScriptPath		@with_afterdir@/scripts/:@datadir@/afterstep/scripts/
 #
 ##########################################################################
 

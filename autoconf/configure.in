@@ -33,9 +33,9 @@ eval "libdir=$libdir"
 eval "includedir=$includedir"
 
 dnl# directories
-AC_ARG_WITH(gnustep_dir,	[  --with-gnustep-dir=DIR  GNUstep directory [[~/GNUstep]] ],with_gnustep_dir=$withval, with_gnustep_dir="~/GNUstep")
-AC_ARG_WITH(gnustep_lib,	[  --with-gnustep-lib=DIR  GNUstep/Library directory [[Library]] ],with_gnustep_lib=$withval, with_gnustep_lib="Library")
-AC_ARG_WITH(afterdir,		[  --with-afterdir=DIR     user AfterStep dir [[AfterStep]] ],with_afterdir=$withval, with_afterdir="AfterStep")
+dnl# AC_ARG_WITH(gnustep_dir,	[  --with-gnustep-dir=DIR  GNUstep directory [[~/GNUstep]] ],with_gnustep_dir=$withval, with_gnustep_dir="~/GNUstep")
+dnl# AC_ARG_WITH(gnustep_lib,	[  --with-gnustep-lib=DIR  GNUstep/Library directory [[Library]] ],with_gnustep_lib=$withval, with_gnustep_lib="Library")
+AC_ARG_WITH(afterdir,		[  --with-afterdir=DIR     user AfterStep dir [[AfterStep]] ],with_afterdir=$withval, with_afterdir="~/.afterstep")
 
 dnl# helper apps
 AC_ARG_WITH(imageloader,	[  --with-imageloader=APP  used to display non-XPMs [[xli -onroot -quiet]] ],with_imageloader=$withval, with_imageloader="xli -onroot -quiet -colors 20")
@@ -325,12 +325,6 @@ if test -d libAfterBase; then
   afterimage_lib=
 fi
 
-dnl# Commented out by Sasha as we will build path ourselves in as v > 1.9
-dnl# Construct Gnu/AfterStep path from pieces
-dnl# with_gnustep_lib=${with_gnustep_dir}/${with_gnustep_lib}
-dnl# with_afterdir=${with_gnustep_lib}/${with_afterdir}
-
-
 dnl# let's check for endiannes of our box
 AC_C_BIGENDIAN
 AC_C_INLINE
@@ -585,8 +579,6 @@ AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)
 AC_SUBST(DEFINE_XLOCALE)
 AC_SUBST(sgmltools)
-AC_SUBST(with_gnustep_dir)
-AC_SUBST(with_gnustep_lib)
 AC_SUBST(with_afterdir)
 AC_SUBST(with_imageloader)
 AC_SUBST(with_soundplayer)
