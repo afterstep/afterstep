@@ -1078,10 +1078,10 @@ vectorize_asimage( ASImage *im, unsigned int max_colors, unsigned int dither,
  
        v = (v>>12)&0x0FFF;
        pal->points[j] = ((double)v)/0x0FFF;
- 
-       pal->channels[IC_RED][j] = cmap.entries[j].red << 8;
-       pal->channels[IC_GREEN][j] = cmap.entries[j].green << 8;
-       pal->channels[IC_BLUE][j] = cmap.entries[j].blue << 8;
+ 		/* palette uses 16 bit color values for greater precision */
+       pal->channels[IC_RED][j] = cmap.entries[j].red<<QUANT_ERR_BITS;
+       pal->channels[IC_GREEN][j] = cmap.entries[j].green<<QUANT_ERR_BITS;
+       pal->channels[IC_BLUE][j] = cmap.entries[j].blue<<QUANT_ERR_BITS;
        pal->channels[IC_ALPHA][j] = 0xFFFF;
     }
  
