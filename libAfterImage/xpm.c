@@ -22,7 +22,7 @@
 #include "config.h"
 
 /*#define LOCAL_DEBUG */
-#define DO_CLOCKING
+/*#define DO_CLOCKING */
 
 #include <stdlib.h>
 #include <malloc.h>
@@ -425,7 +425,6 @@ parse_xpm_cmap_entry( ASXpmFile *xpm_file, char **colornames )
 		colornames[key] = NULL ;
 
 	ptr = xpm_file->str_buf ;
-	while( isspace(*ptr) ) ++ptr;
 	key = -1;
 	do
 	{

@@ -62,13 +62,13 @@ INCS_X		= @X_CFLAGS@
 INCS_PRIVATE= @AFTERBASE_CFLAGS@
 INCLUDES	= $(INCS_EXTRA) $(INCS_PRIVATE) $(INCS_X)
 
-LIBDIR		= $(DESTDIR)@libdir@
-INCLUDEDIR	= $(DESTDIR)@includedir@
-AFTER_INC_DIR	= $(DESTDIR)@includedir@/afterstep
-AFTER_BIN_DIR	= $(DESTDIR)@bindir@
-AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man3
-AFTER_DOC_DIR	= $(DESTDIR)@datadir@/afterstep/doc
-AFTER_SHAREDIR	= $(DESTDIR)@datadir@/afterstep
+LIBDIR		= @libdir@
+INCLUDEDIR	= @includedir@
+AFTER_INC_DIR	= @includedir@/libAfterImage
+AFTER_BIN_DIR	= @bindir@
+AFTER_MAN_DIR	= @mandir@/man3
+AFTER_DOC_DIR	= @datadir@/libAfterImage/doc
+AFTER_SHAREDIR	= @datadir@/afterstep
 
 all:            @LIBPROG@ $(INSTALLONBUILD)
 
@@ -206,10 +206,6 @@ $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) config.h
 	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
 	 $(LIB_OBJS)
 
-install:	install.lib
-
-uninstall:	uninstall.lib
-
 doc.xref: $(LIB_DOCS)
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
 	echo -n "" > afterimage_xref.lst ; \
@@ -247,4 +243,15 @@ install.man: doc.man
 	  	  echo $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
 		  $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
 		done
+
+install.doc: doc.html
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
+		for f in doc/html/*.html; do \
+	  	  echo $(INSTALL_DATA) doc/html/$$f $(AFTER_DOC_DIR)/$$f.html; \
+		  $(INSTALL_DATA) doc/html/$$f.html $(AFTER_DOC_DIR)/$$f.html; \
+		done
+
+install:	install.lib install.man install.doc
+
+uninstall:	uninstall.lib
 
