@@ -61,8 +61,6 @@ AC_ARG_WITH(afterbase_includes, [  --with-afterbase-includes=DIR  use libAfterBa
 
 dnl# Check for compiler tools
 
-if test "x$FROM_AFTERSTEP_CONFIGURE" = "xyes"; then
-
 AC_PROG_CC
 dnl# AC_SUBST(CC)
 dnl# AC_SUBST(GCC)
@@ -74,6 +72,9 @@ if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
   fi
   LDFLAGS="$LDFLAGS -rdynamic"
 fi
+
+
+if test "x$FROM_AFTERSTEP_CONFIGURE" = "xyes"; then
 
 dnl# AfterSTep already checked everything for us
 	aaa=bbb
@@ -189,7 +190,7 @@ user_ldflags=$LDFLAGS
 
 if test "x$have_x" = "xyes"; then
   x_libs="$X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
-  AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
+  AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,"$LDFLAGS $x_libs")
 fi
 
 dnl# Construct Gnu/AfterStep path from pieces
@@ -209,7 +210,7 @@ dnl# Check for X shaped window extension
 have_shmimage=no
 have_xext_lib=no
 if test "x$enable_shmimage" = "xyes"; then
-	AC_CHECK_LIB(Xext, XShmCreateImage, [have_shmimage=yes],,$x_libs)
+	AC_CHECK_LIB(Xext, XShmCreateImage, [have_shmimage=yes],,"$LDFLAGS $x_libs")
 	if test "x$have_shmimage" = "xyes"; then
 		AC_CHECK_HEADER(sys/ipc.h,,[have_shmimage=no])
 	fi
