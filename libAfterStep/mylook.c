@@ -539,10 +539,20 @@ myframe_has_parts(const MyFrame *frame, ASFlagType mask)
     {
         register int i ;
         for( i = 0 ; i < FRAME_PARTS ; ++i )
-            if( (mask&(0x01<<i)) )
-                if( !IsFramePart(frame,i) )
-                    return False;
-        return True;
+		{	
+            if( get_flags(mask,(0x01<<i)) )
+			{	
+				LOCAL_DEBUG_OUT( "i = %d", i );
+                if( get_flags(frame->parts_mask,(0x01<<i)) )
+				{	
+					LOCAL_DEBUG_OUT( "parts[i] = %p", frame->parts[i] );
+					if(frame->parts[i] || ((frame->part_width[i] || i >= FRAME_SIDES) && frame->part_length[i]))
+					{	
+	                    return True;
+					}
+				}
+			}
+		}
     }
     return False;
 }

@@ -195,7 +195,7 @@ check_side_canvas( ASWindow *asw, FrameSide side, Bool required )
 {
     ASCanvas *canvas = asw->frame_sides[side];
 	Window w;
-
+	LOCAL_DEBUG_CALLER_OUT( "asw = %p, side = %d, required = %d", asw, side, required );
     if( required )
     {
         if( canvas == NULL )
@@ -914,7 +914,10 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 
 	/* 5) we need to prepare windows for 4 frame decoration sides : */
 	if( has_tbar != had_tbar || frame != old_frame )
+	{
+		LOCAL_DEBUG_OUT( "has_tbar = %d, has_top_parts = %d, ", has_tbar, myframe_has_parts(frame, FRAME_TOP_MASK) );
 	   	check_side_canvas( asw, od->tbar_side, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
+	}
     if( !ASWIN_HFLAGS(asw, AS_Handles) )
     {
         check_side_canvas( asw, od->sbar_side, False );

@@ -651,6 +651,7 @@ convert_code_file( const char *source_dir, const char *file, ASXMLInterpreterSta
 				convert_xml_tag( ptr, NULL, state );
 		}
 		/* Delete the xml. */
+		LOCAL_DEBUG_OUT( "xml_elem_delete for doc %p", doc );
 		xml_elem_delete(NULL, doc);
 		free( doc_str );		
 	}	 	   

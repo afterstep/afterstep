@@ -35,8 +35,9 @@
 #include "selfdiag.h"
 #include "safemalloc.h"
 
-#define DETECT_BUFFER_UNDERRUN
+#undef DETECT_BUFFER_UNDERRUN
 #define NOGUARD
+#undef DEBUG_ALLOCS
 
 #ifdef DEBUG_ALLOCS
 #include <string.h>

@@ -212,7 +212,7 @@ make_data_file_info( ASImageListEntry *df, ASXMLInterpreterState *parent_state, 
 		convert_xml_tag( ptr, NULL, &state );
 	
 	end_doc_file( &state );	 	  
-	
+	LOCAL_DEBUG_OUT( "xml_elem_delete for doc %p", xml_state.doc );
 	xml_elem_delete(NULL, xml_state.doc);
 #endif
 }
@@ -450,6 +450,7 @@ gen_data_doc( const char *source_dir, const char *dest_dir,
 		convert_xml_tag( ptr, NULL, &state );
 	end_doc_file( &state );	 	  
 	
+	LOCAL_DEBUG_OUT( "xml_elem_delete for doc %p", xml_state.doc );
 	xml_elem_delete(NULL, xml_state.doc);
 	free( short_fname );
 }

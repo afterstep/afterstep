@@ -85,6 +85,7 @@ find_super_section( xml_elem_t* owner, const char *id )
 			if( attr_curr->tag_id == DOCBOOK_id_ID ) 
 				break;
 		match_found = ( attr_curr!= NULL && strncmp( attr_curr->parm, id, strlen(attr_curr->parm)) == 0 ) ;
+		LOCAL_DEBUG_OUT( "xml_elem_delete for attr %p", attr );
 		xml_elem_delete(NULL, attr);					
 		
 		if( match_found ) 
@@ -264,6 +265,7 @@ convert_xml_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *sta
 		if( doc->tag_id > 0 && doc->tag_id < DOCBOOK_SUPPORTED_IDS ) 
 			if( SupportedDocBookTagInfo[doc->tag_id].handle_end_tag ) 
 				SupportedDocBookTagInfo[doc->tag_id].handle_end_tag( doc, parm, state ); 
+		LOCAL_DEBUG_OUT( "xml_elem_delete for parm %p", parm );
 		if (rparm) *rparm = parm; 
 		else xml_elem_delete(NULL, parm);
 	}else
@@ -353,6 +355,7 @@ check_xml_contents( const char *syntax_dir, const char *file )
 			}	 
 		}	 
 		/* Delete the xml. */
+		LOCAL_DEBUG_OUT( "xml_elem_delete for doc %p", doc );
 		xml_elem_delete(NULL, doc);
 		free( doc_str );		
 	}	 	   

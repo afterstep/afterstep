@@ -100,8 +100,8 @@
 # First available GUI text editor :
 #
 *Wharf TextEditor Text.xpm Exec "cooledit" cooledit --look next &
-*Wharf TextEditor Text.xpm Exec "VIM" vim &
 *Wharf TextEditor logos/GNU Exec "XEmacs" xemacs &
+*Wharf TextEditor Text.xpm Exec "VIM" vim &
 
 #
 # First available Word processor :

@@ -449,7 +449,7 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
     /* side */
     if( longbar )
     {
-        if( title == NULL && corner_size1>0 && corner_size2 > 0 )                    /* we are in the sbar */
+        if( side != od->tbar_side && (corner_size1>0 || corner_size2 > 0) )                    /* we are in the sbar */
         {
             *(od->in_width) = longbar->width ;
             *(od->in_height) = longbar->height ;

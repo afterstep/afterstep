@@ -730,6 +730,7 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
             inherit_myframe( frame, hdata.vptr );
     }
     frame->parts_mask = (frame->parts_mask&(~fd->set_parts))|fd->parts_mask;
+	LOCAL_DEBUG_OUT( "parts_mask == 0x%lX", frame->parts_mask );
     frame->set_parts |= fd->set_parts ;
     for( i = 0 ; i < FRAME_PARTS ; ++i )
     {
