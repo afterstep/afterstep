@@ -500,6 +500,8 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	return im;
 }
 
+ASXpmFile *open_xpm_data(const char **data);
+
 ASImage *
 xpm_data2ASImage( const char **data, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
