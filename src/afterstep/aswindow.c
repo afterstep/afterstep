@@ -130,6 +130,7 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 				char *name = get_flags( asw->internal_flags, ASWF_NameChanged )?NULL:ASWIN_NAME(asw);
 				int i = 0;
 				char *app_name = "*" ;
+				char *cmd_app = NULL, *cmd_args ;
 				/* need to check if we can use window name in the pattern. It has to be :
 				 * 1) Not changed since window initial mapping
 				 * 2) all ASCII
@@ -169,8 +170,14 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 					app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+strlen(name)+1 );
 					sprintf( app_name, "%s:%s:%s", rclass, rname, name );
 				}
-
-                fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s &\n", app_name, asw->hints->client_cmd, geom );
+				
+				cmd_args = parse_token(asw->hints->client_cmd, &cmd_app );
+				if( cmd_app ) 
+				{   /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
+					fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s %s &\n", app_name, cmd_app, geom, cmd_args );
+					free( cmd_app );	
+				}else
+	                fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s &\n", app_name, asw->hints->client_cmd, geom );
 				fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
 						            ", Layer %d"
 									", %s"

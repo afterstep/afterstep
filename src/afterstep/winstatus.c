@@ -852,6 +852,24 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
                 else
                     frame_size[i] = 0;
             }
+			if( tbar_size > 0 ) 
+			{
+				for( i = FRAME_SIDES ; i < FRAME_PARTS ; ++i )
+				{
+					if(get_flags( asw->internal_flags, ASWF_FirstCornerFollowsTbarSize<<(i-FRAME_SIDES)) )
+					{
+						unsigned int real_part = od->frame_rotation[i];
+						if( asw->frame_bars[real_part] )
+						{
+							if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+								set_astbar_size( asw->frame_bars[real_part], asw->frame_bars[real_part]->width, tbar_size );							
+							else							
+								set_astbar_size( asw->frame_bars[real_part], tbar_size, asw->frame_bars[real_part]->height );							
+						}								
+					}	
+				}
+			}	
+			
             frame_size[od->tbar_side] += tbar_size ;
 LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d frame_size = %d,%d,%d,%d", asw->status->width, asw->status->height, asw->status->x, asw->status->y, frame_size[0], frame_size[1], frame_size[2], frame_size[3] );
             anchor2status ( asw->status, asw->hints, &(asw->anchor));

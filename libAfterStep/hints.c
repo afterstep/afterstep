@@ -152,16 +152,34 @@ merge_command_line (ASHints * clean, ASStatusHints * status, ASRawHints * raw)
 			if (len > 0)
 			{
 				register char *trg, *src;
-				register int  k;
 
 				if (clean->client_cmd)
 					free (clean->client_cmd);
-				trg = clean->client_cmd = safecalloc (1, len);
+				trg = clean->client_cmd = safecalloc (1, len+raw->wm_cmd_argc*2+1);
 				for (i = 0; i < raw->wm_cmd_argc; i++)
 					if ((src = raw->wm_cmd_argv[i]) != NULL)
 					{
+						register int k ;
+						Bool add_quotes = False ;
+						for (k = 0; src[k]; k++)
+							if( isspace(src[k]) ) 
+							{
+								add_quotes = True ;
+								break ;
+							}
+						
+						if( add_quotes ) 
+						{
+							trg[0] = '"' ;
+							++trg ;
+						}
 						for (k = 0; src[k]; k++)
 							trg[k] = src[k];
+						if( add_quotes ) 
+						{
+							trg[k] = '"' ;
+							++k ;
+						}
 						trg[k] = ' ';
 						trg += k + 1;
 					}

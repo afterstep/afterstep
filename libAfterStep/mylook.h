@@ -202,7 +202,7 @@ typedef struct MyFrame
 #define MYFRAME_VERT_MASK   ((0x01<<FR_W)|(0x01<<FR_E))
 #define IsSideVertical(side)  ((side) == FR_W || (side)== FR_E)
 #define IsFrameCorner(p)   ((p)>=FRAME_SIDES)
-#define IsFramePart(f,p)   (get_flags((f)->parts_mask,0x01<<(p))&&((f)->parts[(p)] || ((f)->part_width[(p)] && (f)->part_length[(p)])))
+#define IsFramePart(f,p)   (get_flags((f)->parts_mask,0x01<<(p))&&((f)->parts[(p)] || (((f)->part_width[(p)] || p >= FRAME_SIDES) && (f)->part_length[(p)])))
 
     unsigned int spacing ;
 }MyFrame;

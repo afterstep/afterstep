@@ -925,17 +925,41 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
         	{
             	ASImage *img = NULL ;
             	unsigned int real_part = od->frame_rotation[i];
+				int part_width = frame->part_width[i] ;
+				int part_length = frame->part_length[i] ;
 
             	img = frame->parts[i]?frame->parts[i]->image:NULL ;
+				
+				
+				if( img == NULL ) 
+				{
+					if( i < FRAME_SIDES )
+					{
+						if( part_width == 0 ) 
+							part_width = BOUNDARY_WIDTH ;
+						if( part_length == 0 ) 
+							part_length = 1 ;
+						
+					}else
+					{
+						if( part_width == 0 ) 
+						{
+							part_width = CORNER_WIDTH ;
+							set_flags( asw->internal_flags, ASWF_FirstCornerFollowsTbarSize<<(i-FRAME_SIDES)) ;
+						}
+						if( part_length == 0 ) 
+							part_length = BOUNDARY_WIDTH ;
+					}
+				}
 
             	if( (0x01<<i)&MYFRAME_HOR_MASK )
             	{
-                	*(od->in_width) = frame->part_length[i] ;
-                	*(od->in_height) = frame->part_width[i] ;
+                	*(od->in_width) = part_length ;
+                	*(od->in_height) = part_width ;
             	}else
             	{
-                	*(od->in_width) = frame->part_width[i] ;
-                	*(od->in_height) = frame->part_length[i] ;
+                	*(od->in_width) = part_width ;
+                	*(od->in_height) = part_length ;
             	}
     			LOCAL_DEBUG_OUT( "part(%d)->real_part(%d)->from_size(%ux%u)->in_size(%ux%u)->out_size(%ux%u)", i, real_part, frame->part_width[i], frame->part_length[i], *(od->in_width), *(od->in_height), *(od->out_width), *(od->out_height) );
             	check_tbar( &(asw->frame_bars[real_part]), IsFramePart(frame,i), frame_mystyle_name?frame_mystyle_name:mystyle_name,

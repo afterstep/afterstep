@@ -304,8 +304,8 @@ create_default_myframe(ASFlagType default_title_align)
     frame->parts_mask = C_SIDEBAR ;
     frame->set_part_size = C_SIDEBAR ;
     frame->part_width[FR_S] = BOUNDARY_WIDTH ;
-    frame->part_width[FR_SW] = CORNER_WIDTH ;
-    frame->part_width[FR_SE] = CORNER_WIDTH ;
+    frame->part_width[FR_SW] = 0 ;
+    frame->part_width[FR_SE] = 0 ;
     frame->part_length[FR_S] = 1;
     frame->part_length[FR_SW] = BOUNDARY_WIDTH ;
     frame->part_length[FR_SE] = BOUNDARY_WIDTH ;
