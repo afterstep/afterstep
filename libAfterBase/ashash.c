@@ -642,8 +642,8 @@ option_hash_value (ASHashableValue value, ASHashKey hash_size)
 #define VALID_OPTION_CHAR(c)		(isalnum (c) || (c) == '~' || (c) == '_')
 		if (c == '\0' || !VALID_OPTION_CHAR(c))
 			break;
-		if (isupper (c))
-			c = tolower (c);
+		if (isupper ((int)c))
+			c = tolower ((int)c);
 		hash_key += (((ASHashKey) c) << i);
 		++i;
 	}while( i < ((sizeof (ASHashKey) - sizeof (char)) << 3) );
