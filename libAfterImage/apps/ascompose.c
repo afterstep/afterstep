@@ -146,24 +146,38 @@ void version(void) {
 void usage(void) {
 	fprintf( stdout,
 		"Usage:\n"
-		"ascompose [-h] [-f file] [-o file] [-s string] [-t type] [-v] [-V]"
+		"ascompose [-h] [-f file|-] [-o file] [-s string] [-t type] [-v] [-V]"
 #ifndef X_DISPLAY_MISSING
 			" [-n] [-r]"
 #endif /* X_DISPLAY_MISSING */
 			"\n"
 		"  -h --help          display this help and exit\n"
+        "  -v --version       display version and exit\n"
+		" Input options : \n"
 		"  -f --file file     an XML file to use as input\n"
+		"  					  use '-' for filename to read input from STDIN\n"
+		"  -s --string string an XML string to use as input\n"
+		"  -i --include file  process file prior to processing other input\n"
+		" Output options : \n"
 #ifndef X_DISPLAY_MISSING
 		"  -n --no-display    don't display the final image\n"
 		"  -r --root-window   draw result image on root window\n"
 #endif /* X_DISPLAY_MISSING */
 		"  -o --output file   output to file\n"
-		"  -s --string string an XML string to use as input\n"
 		"  -t --type type     type of file to output to\n"
         "  -c --compress level compression level\n"
-        "  -v --version       display version and exit\n"
+		" Feedback options : \n"
 		"  -V --verbose       increase verbosity\n"
+		"  -q --quiet	      output as little information as possible\n"
 		"  -D --debug         show everything and debug messages\n"
+		" Interactive options : \n"
+		"  -I --interactivee  run ascompose in interactive mode - tags are processed,\n" 
+		"                     as soon as they are closed.\n"
+		" Note that when -I option is used in conjunction with input from\n" 
+		" string or a file - ascompose will endlesly loop through the contents\n"
+		" untill it is killed - usefull for slideshow type of activity.\n"
+		" When input comes from STDIN, then ascompose will loop untill Ctrl+D\n"
+		" is received (EOF).\n"
 	);
 }
 
@@ -364,8 +378,8 @@ int main(int argc, char** argv) {
 								        cc, xb.state, xb.tags_count, xb.level, xb.tag_type );
 
 						++char_count ;
-						if( ( xb.state == ASXML_Start || xb.state < 0 ) && 
-							xb.tags_count > 0 && xb.level == 0 ) 
+						if( ( xb.state == ASXML_Start && xb.tags_count > 0 && xb.level == 0) || 
+							  xb.state < 0 ) 
 							break;
 					}		   
 				}else
@@ -373,13 +387,14 @@ int main(int argc, char** argv) {
 					while( char_count < doc_str_len ) 
 					{
 						char_count += spool_xml_tag( &xb, &doc_str[char_count], doc_str_len - char_count );							   
-						if( ( xb.state == ASXML_Start || xb.state < 0 ) && 
-							xb.tags_count > 0 && xb.level == 0 ) 
+						if( ( xb.state == ASXML_Start && xb.tags_count > 0 && xb.level == 0) || 
+							  xb.state < 0 ) 
 							break;
 					}												   
 				}		 
 				if( xb.state == ASXML_Start && xb.tags_count > 0 && xb.level == 0 ) 
 				{
+					printf("<success tag_count=%d/>\n", xb.tags_count );
 					add_xml_buffer_chars( &xb, "", 1 );
 					LOCAL_DEBUG_OUT("buffer: [%s]", xb.buffer );
 	 				im = compose_asimage_xml(asv, my_imman, my_fontman, xb.buffer, ASFLAGS_EVERYTHING, verbose, None, NULL);					
@@ -400,7 +415,22 @@ int main(int argc, char** argv) {
 						im = NULL ;
 					}					
 				}else
+				{
+					printf("<error code=%d text=\"", xb.state );	  
+					switch( xb.state ) 
+					{
+						case ASXML_BadStart : printf( "Text encountered before opening tag bracket - not XML format" ); break;
+						case ASXML_BadTagName : printf( "Invalid characters in tag name" );break;
+						case ASXML_UnexpectedSlash : printf( "Unexpected '/' encountered");break;
+						case ASXML_UnmatchedClose : printf( "Closing tag encountered without opening tag" );break;
+						case ASXML_BadAttrName : printf( "Invalid characters in attribute name" );break;
+						case ASXML_MissingAttrEq : printf( "Attribute name not followed by '=' character" );break;
+						default:
+							printf( "Premature end of the input");break;
+					}
+					printf("\" level=%d tag_count=%d/>\n", xb.level ,xb.tags_count );	  
 					break;
+				}
 			}while(1);
 			if( xb.buffer )
 				free( xb.buffer );

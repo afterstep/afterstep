@@ -2554,20 +2554,41 @@ spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len )
 			++i ;
 			xb->quoted = False ; 
 			xb->state = ASXML_TagAttrOrClose ;
-		}else if( tmp[i] == '/' || tmp[i] == '>' )
+		}else if( tmp[i] == '/' && !xb->quoted)
+		{
+			xb->state = ASXML_AttrSlash ;				
+			add_xml_buffer_chars( xb, "/", 1 );		 			  
+			++i ;
+		}else if( tmp[i] == '>' )
 		{
 			xb->quoted = False ; 
 			xb->verbatim = False ; 
 			xb->state = ASXML_TagAttrOrClose ;				
-		}	 
-		else			
+		}else			
 		{
 			add_xml_buffer_chars( xb, &tmp[i], 1 );
 			++i ;
 		}
 		return i;
 	}	  
-	
+	if( xb->state == ASXML_AttrSlash )  /* looking for attribute value : */
+	{
+		if( tmp[i] == '>' )
+		{
+			xb->tag_type = ASXML_SimpleTag ;
+			add_xml_buffer_chars( xb, ">", 1 );		 			  
+			++i ;
+			++(xb->tags_count);
+			xb->state = ASXML_Start; 	
+			xb->quoted = False ; 
+			xb->verbatim = False ; 
+		}else
+		{
+			xb->state = ASXML_AttrValue ;
+		}		 
+		return i;
+	}
+
 	return (i==0)?1:i;
 }	   
 

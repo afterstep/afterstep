@@ -32,7 +32,8 @@ enum
 	ASXML_AttrName 			= 4,
 	ASXML_AttrEq 			= 5,
 	ASXML_AttrValueStart 	= 6,
-	ASXML_AttrValue 		= 7
+	ASXML_AttrValue 		= 7,
+	ASXML_AttrSlash 		= 8
 } ASXML_ParserState;
 
 enum
