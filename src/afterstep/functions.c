@@ -550,7 +550,7 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 	  val1 = 1;
 	while (!done)
 	  {
-	    if (My_XNextEvent (dpy, &Event))
+	    if (AS_XNextEvent (dpy, &Event))
 	      {
 		DispatchEvent ();
 		if (Event.type == MapNotify)

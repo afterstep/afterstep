@@ -746,6 +746,8 @@ DoTransformPixmap (Pixmap src, MyBackgroundConfig * back)
   unsigned int width, height;
   int x = 0, y = 0;
   ShadingInfo *shading = NULL;
+  unsigned int screen_width = Scr.MyDisplayWidth;
+  unsigned int screen_height = Scr.MyDisplayHeight;
 
   if (src == None)
     return src;
@@ -792,6 +794,17 @@ DoTransformPixmap (Pixmap src, MyBackgroundConfig * back)
     }
   if (shading)
     free (shading);
+	
+  if( Scr.xinerama_screens && Scr.xinerama_screens_num > 1 ) 
+  {
+	  register int i = Scr.xinerama_screens_num ;
+	  while( --i > 0 )
+		  if( Scr.xinerama_screens[i].x == 0 && Scr.xinerama_screens[i].y == 0 ) 
+			  break ;
+	  screen_width = Scr.xinerama_screens[i].width ;
+	  screen_height = Scr.xinerama_screens[i].height ;
+  }	
+	
   /* scale */
   if (back->flags & BGFLAG_SCALE)
     {
@@ -803,8 +816,8 @@ DoTransformPixmap (Pixmap src, MyBackgroundConfig * back)
 	height = back->scale.height;
       if (back->scale.width <= 0 && back->scale.height <= 0)
 	{
-	  width = Scr.MyDisplayWidth;
-	  height = Scr.MyDisplayHeight;
+	  width = screen_width;
+	  height = screen_height;
 	}
 
       if ((trg = ScalePixmap (src, old_width, old_height, width, height, gc, NULL)) != None)
@@ -819,13 +832,13 @@ DoTransformPixmap (Pixmap src, MyBackgroundConfig * back)
       unsigned int old_width = width, old_height = height;
 
       if (back->flags & BGFLAG_PAD_HOR)
-	width = Scr.MyDisplayWidth;
+	width = screen_width;
       if (back->flags & BGFLAG_PAD_VERT)
-	height = Scr.MyDisplayHeight;
+	height = screen_height;
       if (!(back->flags & BGFLAG_PAD_HOR) && !(back->flags & BGFLAG_PAD_VERT))
 	{
-	  width = Scr.MyDisplayWidth;
-	  height = Scr.MyDisplayHeight;
+	  width = screen_width;
+	  height = screen_height;
 	}
 
       x = (back->flags & BGFLAG_ALIGN_RIGHT) ? width - old_width : 0;

@@ -1,4 +1,10 @@
 1.8.9 patch 1 (sasha)
+ o Implemented Xinerama support. When window is initially placed - it
+   will be appropriately moved to not appear in between monitors, unless 
+   user requested geometry explicetely.
+ o When Xinerama is active, and asetroot is requested to scale or pad 
+   background image to the screen size it will use size of the first head
+   ( the one with origin of 0,0 ).
  o Implemented separate Feel, Look, Background and Init/Restart functions 
    for different screens in multihead config with no Xinerama.
  o We now read $TMPDIR in order to locate /tmp directory, and falling back 

@@ -39,12 +39,43 @@
 #include <X11/Xatom.h>
 
 #include "../configure.h"
+
+#ifdef HAVE_XINERAMA
+#include <X11/extensions/Xinerama.h>
+#endif /* SHAPE */
+
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
 #include "../include/style.h"
 #include "../include/mystyle.h"
 #include "../include/screen.h"
 #include "../include/module.h"
+
+#ifdef HAVE_XINERAMA
+static int XineEventBase, XineErrorBase;
+#endif
+void get_Xinerama_rectangles(ScreenInfo *scr)
+{
+#ifdef HAVE_XINERAMA
+  register int i ;
+  XineramaScreenInfo *s ;
+  if( (s = XineramaQueryScreens( dpy, &(scr->xinerama_screens_num) )) != NULL ) 
+  {
+	  scr->xinerama_screens = safemalloc( sizeof(XRectangle)*scr->xinerama_screens_num );
+	  for( i = 0 ; i < scr->xinerama_screens_num ; ++i ) 
+	  {
+		  scr->xinerama_screens[i].x = s[i].x_org ;
+		  scr->xinerama_screens[i].y = s[i].y_org ;
+		  scr->xinerama_screens[i].width = s[i].width ;
+		  scr->xinerama_screens[i].height = s[i].height ;
+	  }
+	  XFree( s );
+  }
+#else
+  scr->xinerama_screens = NULL ;
+  scr->xinerama_screens_num = 0 ;
+#endif
+}
 
 int
 ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask)
@@ -70,6 +101,11 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask)
   scr->MyDisplayWidth = DisplayWidth (dpy, scr->screen);
   scr->MyDisplayHeight = DisplayHeight (dpy, scr->screen);
   scr->CurrentDesk = -1;
+
+#ifdef HAVE_XINERAMA
+  if( XineramaQueryExtension(dpy, &XineEventBase, &XineErrorBase))
+	  get_Xinerama_rectangles(scr);
+#endif
 
   XSelectInput (dpy, scr->Root, message_mask);
   return x_fd;

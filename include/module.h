@@ -136,6 +136,7 @@ void LoadConfig (char *global_config_file, char *config_file_name, void (*read_o
 /* only aplicable to modules with X connection : lib/Xmodule.c */
 #ifdef MODULE_X_INTERFACE
 /* returns fd of the X server connection */
+void get_Xinerama_rectangles(ScreenInfo *scr);
 int ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask);
 /* get's Atom ID's of the atoms names listed in array */
 void InitAtoms (Display * dpy, ASAtom * atoms);

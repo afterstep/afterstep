@@ -1,6 +1,6 @@
 %define	name	AfterStep
-%define	fver	1.8.9
-%define	version	1.8.9
+%define	fver	1.8.10
+%define	version	1.8.10
 %define	release	1
 %define	serial	1
 

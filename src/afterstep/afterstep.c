@@ -132,6 +132,7 @@ int ShapeEventBase, ShapeErrorBase;
 #endif
 #ifdef HAVE_XINERAMA
 int XineEventBase, XineErrorBase;
+void get_Xinerama_rectangles(ScreenInfo *scr);
 #endif
 
 long isIconicState = 0;
@@ -357,23 +358,7 @@ main (int argc, char **argv)
 #endif /* SHAPE */
 #ifdef HAVE_XINERAMA
   if( XineramaQueryExtension(dpy, &XineEventBase, &XineErrorBase))
-  {
-	  register int i ;
-	  XineramaScreenInfo *s ;
-	  if( (s = XineramaQueryScreens( dpy, &(Scr.xinerama_screens_num) )) != NULL ) 
-	  {
-		  Scr.xinerama_screens = safemalloc( sizeof(XRectangle)*Scr.xinerama_screens_num );
-		  for( i = 0 ; i < Scr.xinerama_screens_num ; ++i ) 
-		  {
-			  Scr.xinerama_screens[i].x = s[i].x_org ;
-			  Scr.xinerama_screens[i].y = s[i].y_org ;
-			  Scr.xinerama_screens[i].width = s[i].width ;
-			  Scr.xinerama_screens[i].height = s[i].height ;
-		  }
-		  XFree( s );
-	  }
-	  
-  }
+  	  get_Xinerama_rectangles(&Scr);
 #endif /* XINERAMA */
 
   InternUsefulAtoms ();

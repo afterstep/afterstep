@@ -182,7 +182,7 @@ extern char *fit_vertical_text (MyFont, char *, int, int);
 extern void ConstrainSize (ASWindow *, int *, int *);
 extern void DispatchEvent (void);
 extern void HandleExpose (void);
-int My_XNextEvent (Display *, XEvent *);
+int AS_XNextEvent (Display *, XEvent *);
 #endif /* IN_MODULE */
 
 /*extern void GetXPMFile (ASWindow *); */

@@ -783,7 +783,7 @@ Iconify (ASWindow * tmp_win)
   /* handle any redraw events that the unmap may have caused */
   while (XPending (dpy))
     {
-      My_XNextEvent (dpy, &Event);
+      AS_XNextEvent (dpy, &Event);
       DispatchEvent ();
     }
 

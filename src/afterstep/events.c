@@ -243,7 +243,7 @@ HandleEvents ()
   while (True)
     {
       last_event_type = 0;
-      if (My_XNextEvent (dpy, &Event))
+      if (AS_XNextEvent (dpy, &Event))
 	DispatchEvent ();
     }
 }
@@ -1422,7 +1422,7 @@ enterAlarm (int nonsense)
  *
  ****************************************************************************/
 int
-My_XNextEvent (Display * dpy, XEvent * event)
+AS_XNextEvent (Display * dpy, XEvent * event)
 {
   extern int fd_width, x_fd;
   fd_set in_fdset, out_fdset;
