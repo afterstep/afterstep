@@ -280,11 +280,13 @@ install.man: doc.man
 		done
 
 install.doc: doc.html
-	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
-		for f in doc/html/*.html; do \
-	  	  echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/$$f; \
-		  $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/$$f; \
-		done
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; cd doc/html; \
+	    echo "$(MKDIR) $(AFTER_DOC_DIR)/html"; \
+		$(MKDIR) $(AFTER_DOC_DIR)/html; \
+		for f in *.html; do \
+	  	  echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
+		  $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
+		done; cd ../..;
 
 install:	install.lib install.man install.doc
 
