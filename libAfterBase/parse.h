@@ -1,5 +1,5 @@
-#ifndef _PARSE_
-#define _PARSE_
+#ifndef AS_PARSE_H_HEADER_INCLUDED
+#define AS_PARSE_H_HEADER_INCLUDED
 
 /* used for parsing configuration */
 struct config
@@ -71,4 +71,4 @@ char *list2comma_string (char **list);
 char *make_tricky_text( char *src );
 
 
-#endif /* _PARSE_ */
+#endif /* AS_PARSE_H_HEADER_INCLUDED */

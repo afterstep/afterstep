@@ -23,6 +23,7 @@
 #include "xwrap.h"
 #include "audit.h"
 #include "output.h"
+#include "parse.h"
 
 Display *dpy = NULL;
 

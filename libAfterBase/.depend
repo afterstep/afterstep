@@ -134,4 +134,5 @@
 		config.h \
 		xwrap.h \
 		audit.h \
-		output.h
+		output.h \
+		parse.h

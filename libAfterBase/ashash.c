@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2000 Andrew Ferguson <andrew@owsla.cjb.net>
- * Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
+ * Copyright (c) 1998 Sasha Vasko <sasha@aftercode.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
