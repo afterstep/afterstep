@@ -51,6 +51,8 @@ view ()
 
 prompt ()
 {
+   # this block is for BSD vs SYS V compatibility
+   ##########
    if [ "`echo -n`" = "-n" ]
    then
       n=""
@@ -59,6 +61,7 @@ prompt ()
       n="-n"
       c=""
    fi
+   ##########
 
    echo Please send our developers a postcard:
    echo $n [Allow], Deny, View, Later? $c
