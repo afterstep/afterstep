@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
-
+#define LOCAL_DEBUG
 
 #include "../configure.h"
 #include "../libAfterStep/asapp.h"
@@ -265,7 +265,10 @@ style_copy (name_list * to, name_list * from)
 		if (get_flags (from->set_data_flags, STYLE_STARTUP_DESK))
 			to->Desk = from->Desk;
 		if (get_flags (from->set_data_flags, STYLE_VIEWPORTX))
+		{
+			LOCAL_DEBUG_OUT( "from->ViewportX = %d", from->ViewportX );	  
 			to->ViewportX = from->ViewportX;
+		}
 		if (get_flags (from->set_data_flags, STYLE_VIEWPORTY))
 			to->ViewportY = from->ViewportY;
 		if (get_flags (from->set_data_flags, STYLE_BORDER_WIDTH))
@@ -464,6 +467,7 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 		 case DATABASE_ViewportX_ID:
 			 set_flags (style->set_data_flags, STYLE_VIEWPORTX);
 			 style->ViewportX = item.data.integer;
+			 LOCAL_DEBUG_OUT( "style->ViewportX = %d", style->ViewportX );
 			 break;
 		 case DATABASE_ViewportY_ID:
 			 set_flags (style->set_data_flags, STYLE_VIEWPORTY);

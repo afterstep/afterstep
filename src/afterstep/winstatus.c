@@ -1169,7 +1169,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
         ChangeDesks( status->desktop );
 
     t->status->desktop = Scr.CurrentDesk ;
-
+	
     if( get_flags( status->flags, AS_StartViewportX))
         t->status->viewport_x = MIN(status->viewport_x,Scr.VxMax) ;
     else

@@ -161,6 +161,12 @@ typedef struct ASFont
 	unsigned int	space_size;     /* fixed width value to be used when
 									 * rendering spaces and tabs */
 	int 			spacing_x, spacing_y;
+	/* If these are set to anything above 0 then all the glyphs has to be 
+	 * padded ( if its smaller then the cell ) or scaled down ( if its bigger
+	 * then the cell )
+	 */								   
+	unsigned int    cell_width, cell_height ;
+
 #define LEFT_TO_RIGHT    1
 #define RIGHT_TO_LEFT   -1
 	int 			pen_move_dir ;  /* direction of the text flow */
@@ -422,6 +428,23 @@ struct ASImage *draw_utf8_text( const char *text,
 struct ASImage *draw_unicode_text( const CARD32 *text,
 	                       struct ASFont *font, ASText3DType type,
 						   int compression );
+/* same as above only allows specifying the length of the text, instead of 
+ * using zero-terminated strings :
+ * Note: if length <= 0 then call is equivalent to above. 
+ */
+struct ASImage *draw_text_length( const char *text, 
+							struct ASFont *font, ASText3DType type, 
+							int compression, 
+							int length );
+struct ASImage *draw_utf8_text_length( const char *text, 
+							struct ASFont *font, ASText3DType type, 
+							int compression, 
+							int length );
+struct ASImage *draw_unicode_text_length( const CARD32 *text, 
+							struct ASFont *font, ASText3DType type, 
+							int compression, 
+							int length );
+
 Bool get_text_size( const char *text,
 	                struct ASFont *font, ASText3DType type,
                     unsigned int *width, unsigned int *height );
@@ -431,6 +454,18 @@ Bool get_utf8_text_size( const char *text,
 Bool get_unicode_text_size( const CARD32 *text,
 	                struct ASFont *font, ASText3DType type,
                     unsigned int *width, unsigned int *height );
+Bool get_text_length_size( const char *text,
+	                struct ASFont *font, ASText3DType type,
+                    unsigned int *width, unsigned int *height,
+					int length );
+Bool get_utf8_text_length_size( const char *text,
+	                struct ASFont *font, ASText3DType type,
+                    unsigned int *width, unsigned int *height,
+					int length );
+Bool get_unicode_text_length_size( const CARD32 *text,
+	                struct ASFont *font, ASText3DType type,
+                    unsigned int *width, unsigned int *height,
+					int length );
 /****f* libAfterImage/asfont/get_asfont_glyph_spacing()
  * SYNOPSIS
  * Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y );

@@ -61,6 +61,7 @@ make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord 
 		db_rec->desk = nl->Desk;
 		db_rec->layer = nl->layer;
 		db_rec->viewport_x = nl->ViewportX;
+		LOCAL_DEBUG_OUT( "nl->name = \"%s\", nl->ViewportX = %d", nl->name, nl->ViewportX );
 		db_rec->viewport_y = nl->ViewportY;
 		db_rec->border_width = nl->border_width;
 		db_rec->resize_width = nl->resize_width;
@@ -209,6 +210,7 @@ match_int (ASDatabase * db, DBMatchType type)
 				 case MATCH_layer:
 					 return db_rec->layer;
 				 case MATCH_ViewportX:
+				 	 LOCAL_DEBUG_OUT( "viewport_x = %d", db_rec->viewport_x );
                      return db_rec->viewport_x;
 				 case MATCH_ViewportY:
                      return db_rec->viewport_y;
@@ -327,14 +329,17 @@ fill_asdb_record (ASDatabase * db, char **names, ASDatabaseRecord * reusable_mem
 				match_flags (&(db_rec->set_buttons), &(db_rec->buttons), db, MATCH_Buttons);
 
 			match_data_flags (&(db_rec->set_data_flags), db);
-
+			
 			if (get_flags (db_rec->set_data_flags, STYLE_STARTUP_DESK))
 				db_rec->desk = match_int (db, MATCH_Desk);
 			if (get_flags (db_rec->set_data_flags, STYLE_LAYER))
 				db_rec->layer = match_int (db, MATCH_layer);
-			if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTY))
-				db_rec->viewport_x = match_int (db, MATCH_ViewportX);
 			if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTX))
+			{
+				LOCAL_DEBUG_OUT( "Matching viewport_x%s","");	  
+				db_rec->viewport_x = match_int (db, MATCH_ViewportX);
+			}
+			if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTY))
 				db_rec->viewport_y = match_int (db, MATCH_ViewportY);
 			if (get_flags (db_rec->set_data_flags, STYLE_BORDER_WIDTH))
 				db_rec->border_width = match_int (db, MATCH_border_width);
@@ -582,10 +587,10 @@ print_asdb_record (stream_func func, void *stream, ASDatabaseRecord * db_rec, co
 		func (stream, "%s.desk = %d;\n", prompt, db_rec->desk);
 	if (get_flags (db_rec->set_data_flags, STYLE_LAYER))
 		func (stream, "%s.layer = %d;\n", prompt, db_rec->layer);
-	if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTY))
-		func (stream, "%s.viewport_y = %d;\n", prompt, db_rec->viewport_x);
 	if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTX))
-		func (stream, "%s.viewport_x = %d;\n", prompt, db_rec->viewport_y);
+		func (stream, "%s.viewport_x = %d;\n", prompt, db_rec->viewport_x);
+	if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTY))
+		func (stream, "%s.viewport_y = %d;\n", prompt, db_rec->viewport_y);
 	if (get_flags (db_rec->set_data_flags, STYLE_BORDER_WIDTH))
 		func (stream, "%s.border_width = %u;\n", prompt, db_rec->border_width);
 	if (get_flags (db_rec->set_data_flags, STYLE_HANDLE_WIDTH))

@@ -245,8 +245,9 @@ check_status_sanity (ScreenInfo * scr, ASStatusHints * status)
 
 		if (status->desktop == INVALID_DESK)
 			clear_flags (status->flags, AS_StartDesktop);
-
+		LOCAL_DEBUG_OUT( "viewport_x = %d", status->viewport_x );
 		status->viewport_x = FIT_IN_RANGE (0, status->viewport_x, scr->VxMax);
+		LOCAL_DEBUG_OUT( "viewport_x = %d", status->viewport_x );
 		status->viewport_y = FIT_IN_RANGE (0, status->viewport_y, scr->VyMax);
 		if (status->width < 2)
 			status->width = 2;
@@ -1140,6 +1141,7 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTX))
 		{
 			status->viewport_x = db_rec->viewport_x;
+			LOCAL_DEBUG_OUT( "viewport_x = %d", status->viewport_x );
 			set_flags (status->flags, AS_StartViewportX);
 		}
 		if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTY))
