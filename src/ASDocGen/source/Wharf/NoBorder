@@ -1,8 +1,0 @@
-<varlistentry id="options.NoBorder">
-	<term>NoBorder</term>
-	<listitem>
-		<para>Denotes that beveled borders should  not  be  drawn  around  the
-		<command>Wharf</command> button. Useful with textures or pixmaps that
-		include their own bevels.</para>
-	</listitem>
-</varlistentry>
