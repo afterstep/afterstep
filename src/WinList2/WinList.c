@@ -378,11 +378,8 @@ process_message (send_data_type type, send_data_type *body)
 
 	if( type == M_END_WINDOWLIST )
 	{
-		if( WinListState.postpone_display ) 
-		{	
-			WinListState.postpone_display = False ;
-			rearrange_winlist_window( False );
-		}
+		WinListState.postpone_display = False ;
+		rearrange_winlist_window( False );
 	}else if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
@@ -613,13 +610,6 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     LOCAL_DEBUG_CALLER_OUT( "%sresize canvas. windows_num = %d",
                             dont_resize_main_canvas?"Don't ":"Do ", WinListState.windows_num );
     
-	timer_remove_all();
-	if( WinListState.last_message_time > time(NULL) ) 
-	{	
-		timer_new (500, postponed_rearrange_winlist, (void*)dont_resize_main_canvas);	  
-		return False;
-	}
-	
 	if( dont_resize_main_canvas )
     {
         LOCAL_DEBUG_OUT( "Main_canvas geometry = %dx%d", WinListState.main_canvas->width, WinListState.main_canvas->height );
