@@ -140,7 +140,6 @@ extern XEvent Event;
 extern Window XmuClientWindow ();
 Bool Restarting = False;
 int fd_width, x_fd;
-char *display_name = NULL;
 FILE *savewindow_fd;
 int SmartCircCounter = 0;	/* F_WARP_F/B 0=CirculateUp ; 1=CirculateDown */
 int LastFunction;
