@@ -62,6 +62,8 @@ ASIdentState IdentState = {};
 
 IdentConfig *Config = NULL ;
 /**********************************************************************/
+Window get_target_window();
+
 
 int
 main( int argc, char **argv )
@@ -86,7 +88,7 @@ main( int argc, char **argv )
     CheckConfigSanity();
 
 	if (MyArgs.src_window == 0)
-		GetTargetWindow (&MyArgs.src_window);
+		MyArgs.src_window = get_target_window();
 
     IdentState.main_window = make_ident_window();
     IdentState.main_canvas = create_ascanvas( IdentState.main_window );
@@ -281,135 +283,43 @@ DispatchEvent (ASEvent * event)
 			break;
     }
 }
-
-/***********************************************************************
- *
- * Got window configuration info - if its our window, safe data
- *
- ***********************************************************************/
-void
-list_configure (unsigned long *body)
+/**********************************************************************
+ * If no application window was indicated on the command line, prompt
+ * the user to select one
+ *********************************************************************/
+Window
+get_target_window ()
 {
-  if ((app_win == (Window) body[1]) || (app_win == (Window) body[0])
-      || ((body[19] != 0) && (app_win == (Window) body[19]))
-      || ((body[19] != 0) && (app_win == (Window) body[20])))
+	XEvent eventp;
+	int val = -10, trials;
+	Window target = None;
+
+	trials = 0;
+	while ((trials < 100) && (val != GrabSuccess))
     {
-      app_win = body[1];
-      target.id = body[0];
-      target.frame = body[1];
-      target.frame_x = body[3];
-      target.frame_y = body[4];
-      target.frame_w = body[5];
-      target.frame_h = body[6];
-      target.desktop = body[7];
-      target.flags = body[8];
-      target.title_h = body[9];
-      target.border_w = body[10];
-      target.base_w = body[11];
-      target.base_h = body[12];
-      target.width_inc = body[13];
-      target.height_inc = body[14];
-      target.gravity = body[21];
-      found = 1;
+		val = XGrabPointer (dpy, Scr.Root, True,
+				  		   	ButtonReleaseMask,
+			  				GrabModeAsync, GrabModeAsync, Scr.Root,
+			  				XCreateFontCursor (dpy, XC_crosshair),
+			  				CurrentTime);
+      	if( val != GrabSuccess )
+			sleep_a_little (100);
+		trials++;
     }
+  	if (val != GrabSuccess)
+    {
+    	show_error( "Couldn't grab the cursor!\n", MyName);
+      	DeadPipe();
+    }
+  	XMaskEvent (dpy, ButtonReleaseMask, &eventp);
+  	XUngrabPointer (dpy, CurrentTime);
+  	ASSync(0);
+  	target = eventp.xany.window;
+  	if( eventp.xbutton.subwindow != None )
+    	target = eventp.xbutton.subwindow;
+	return target;
 }
 
-/*************************************************************************
- *
- * Capture  Window name info
- *
- ************************************************************************/
-void
-list_window_name (unsigned long *body)
-{
-  if ((app_win == (Window) body[1]) || (app_win == (Window) body[0]))
-    {
-      strncpy (target.name, (char *) &body[3], 255);
-    }
-}
-
-/*************************************************************************
- *
- * Capture  Window Icon name info
- *
- ************************************************************************/
-void
-list_icon_name (unsigned long *body)
-{
-  if ((app_win == (Window) body[1]) || (app_win == (Window) body[0]))
-    {
-      strncat (target.icon_name, (char *) &body[3], 255);
-    }
-}
-
-
-/*************************************************************************
- *
- * Capture  Window class name info
- *
- ************************************************************************/
-void
-list_class (unsigned long *body)
-{
-  if ((app_win == (Window) body[1]) || (app_win == (Window) body[0]))
-    {
-      strncat (target.class, (char *) &body[3], 255);
-    }
-}
-
-
-/*************************************************************************
- *
- * Capture  Window resource info
- *
- ************************************************************************/
-void
-list_res_name (unsigned long *body)
-{
-  if ((app_win == (Window) body[1]) || (app_win == (Window) body[0]))
-    {
-      strncat (target.res, (char *) &body[3], 255);
-    }
-}
-
-Bool
-gnome_hints (Window id)
-{
-  Atom type;
-  int format;
-  unsigned long length, after;
-  unsigned char *data;
-  Atom Sup_check;
-
-  Sup_check = XInternAtom (dpy, "_WIN_SUPPORTING_WM_CHECK", False);
-  if (Sup_check == None)
-    return False;
-  if (app_win == None)
-    return False;
-  if (XGetWindowProperty (dpy, Scr.Root, Sup_check, 0L, 1L, False, AnyPropertyType,
-			  &type, &format, &length, &after, &data) == Success)
-    {
-      if (type == XA_CARDINAL && format == 32 && length == 1)
-	{
-	  Window win = *(long *) data;
-	  unsigned char *data1;
-	  if (XGetWindowProperty (dpy, win, Sup_check, 0L, 1L, False,
-				  AnyPropertyType, &type, &format, &length,
-				  &after, &data1) == Success)
-	    {
-	      if (type == XA_CARDINAL && format == 32 && length == 1)
-		{
-		  XFree (data);
-		  XFree (data1);
-		  return True;
-		}
-	      XFree (data1);
-	    }
-	}
-      XFree (data);
-    }
-  return False;
-}
 
 /*************************************************************************
  *
@@ -550,91 +460,6 @@ list_end (void)
 }
 
 
-
-/**********************************************************************
- *
- * If no application window was indicated on the command line, prompt
- * the user to select one
- *
- *********************************************************************/
-void
-GetTargetWindow (Window * app_win)
-{
-  XEvent eventp;
-  int val = -10, trials;
-
-  trials = 0;
-  while ((trials < 100) && (val != GrabSuccess))
-    {
-      val = XGrabPointer (dpy, Scr.Root, True,
-			  ButtonReleaseMask,
-			  GrabModeAsync, GrabModeAsync, Scr.Root,
-			  XCreateFontCursor (dpy, XC_crosshair),
-			  CurrentTime);
-      if (val != GrabSuccess)
-	{
-	  sleep_a_little (1000);
-	}
-      trials++;
-    }
-  if (val != GrabSuccess)
-    {
-      fprintf (stderr, "%s: Couldn't grab the cursor!\n", MyName);
-      exit (1);
-    }
-  XMaskEvent (dpy, ButtonReleaseMask, &eventp);
-  XUngrabPointer (dpy, CurrentTime);
-  XSync (dpy, 0);
-  *app_win = eventp.xany.window;
-  if (eventp.xbutton.subwindow != None)
-    *app_win = eventp.xbutton.subwindow;
-}
-
-/************************************************************************
- *
- * Draw the window
- *
- ***********************************************************************/
-void
-RedrawWindow (void)
-{
-  int fontheight, i = 0;
-  struct Item *cur = itemlistRoot;
-
-  fontheight = font.height;
-
-  while (cur != NULL)
-    {
-      /* first column */
-#undef FONTSET
-#define FONTSET font.fontset
-      XDrawString (dpy, main_win, NormalGC, 5, 5 + font.font->ascent + i * fontheight,
-		   cur->col1, strlen (cur->col1));
-      /* second column */
-      XDrawString (dpy, main_win, NormalGC, 10 + max_col1, 5 + font.font->ascent + i * fontheight,
-		   cur->col2, strlen (cur->col2));
-      ++i;
-      cur = cur->next;
-    }
-}
-
-/**************************************************************************
- *  Change the window name displayed in the title bar.
- **************************************************************************/
-void
-change_window_name (char *str)
-{
-  XTextProperty name;
-
-  if (XStringListToTextProperty (&str, 1, &name) == 0)
-    {
-      fprintf (stderr, "%s: cannot allocate window name", MyName);
-      return;
-    }
-  XSetWMName (dpy, main_win, &name);
-  XSetWMIconName (dpy, main_win, &name);
-  XFree (name.value);
-}
 
 
 /**************************************************************************
@@ -793,9 +618,3 @@ freelist (void)
     }
 }
 
-
-void
-nocolor (char *a, char *b)
-{
-  fprintf (stderr, "InitBanner: can't %s %s\n", a, b);
-}
