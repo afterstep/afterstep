@@ -439,7 +439,7 @@ get_window_icon_image( ASWindow *asw )
 static ASTBarData*
 check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name,
             ASImage *img, unsigned short back_w, unsigned short back_h,
-            ASFlagType align,
+            int flip, ASFlagType align,
             ASFlagType fbevel, ASFlagType ubevel,
             unsigned char fcm, unsigned char ucm,
             int context )
@@ -459,11 +459,11 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) )
         if( img )
         {
             LOCAL_DEBUG_OUT("adding bar icon %p %ux%u", img, img->width, img->height );
-            add_astbar_icon( *tbar, 0, 0, 0, align, img );
+            add_astbar_icon( *tbar, 0, 0, flip, align, img );
             if( back_w == 0 )
-                back_w = img->width ;
+                back_w = get_flags(flip,FLIP_VERTICAL)?img->height:img->width ;
             if( back_h == 0 )
-                back_h = img->height ;
+                back_h = get_flags(flip,FLIP_VERTICAL)?img->width:img->height ;
         }
 
         set_astbar_hilite( *tbar, BAR_STATE_FOCUSED, fbevel );
@@ -856,7 +856,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 			ASImage *icon_image = get_window_icon_image( asw );
     		check_tbar( &(asw->icon_button), (asw->icon_canvas != NULL), AS_ICON_MYSTYLE,
             		    icon_image, icon_image?icon_image->width:0, icon_image?icon_image->height:0,/* scaling icon image */
-                		ALIGN_CENTER,
+                		0, ALIGN_CENTER,
                 		DEFAULT_TBAR_HILITE, DEFAULT_TBAR_HILITE,
                 		TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
                 		C_IconButton );
@@ -875,7 +875,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 		(asw->icon_canvas != NULL||asw->icon_title_canvas != NULL) )
 	{
 		check_tbar( &(asw->icon_title), (asw->icon_canvas != NULL||asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
-  	            	NULL, 0, 0, ALIGN_CENTER, DEFAULT_TBAR_HILITE, DEFAULT_TBAR_HILITE,
+  	            	NULL, 0, 0, 0, ALIGN_CENTER, DEFAULT_TBAR_HILITE, DEFAULT_TBAR_HILITE,
               		TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
               		C_IconTitle );
 	}
@@ -933,17 +933,18 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
     			LOCAL_DEBUG_OUT( "part(%d)->real_part(%d)->from_size(%ux%u)->in_size(%ux%u)->out_size(%ux%u)", i, real_part, frame->part_width[i], frame->part_length[i], *(od->in_width), *(od->in_height), *(od->out_width), *(od->out_height) );
             	check_tbar( &(asw->frame_bars[real_part]), IsFramePart(frame,i), frame_mystyle_name?frame_mystyle_name:mystyle_name,
                         	img, *(od->out_width), *(od->out_height),
-                        	frame->part_align[i],
+                        	od->flip, frame->part_align[i],
                         	frame->part_fbevel[i], frame->part_ubevel[i],
                         	TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
                         	frame_contexts[i] );
 	      	}
     	}else
         	for( i = 0 ; i < FRAME_PARTS ; ++i )
-            	check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
+            	check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
 
     	check_tbar( &(asw->tbar), has_tbar, mystyle_name, NULL, 0, 0,
-                	frame->title_align,
+					od->flip,
+					frame->title_align,
                 	frame->title_fbevel, frame->title_ubevel,
                 	frame->title_fcm, frame->title_ucm,
                 	C_TITLE );
@@ -1071,7 +1072,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	        add_astbar_btnblock(asw->tbar,
   		                        od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],
       		                    od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN],
-          		                0, ALIGN_VCENTER,
+          		                od->flip, ALIGN_VCENTER,
               		            &(Scr.Look.ordered_buttons[0]), btn_mask,
                   		        Scr.Look.button_first_right,
                       		    Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
@@ -1081,7 +1082,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
   		    add_astbar_btnblock(asw->tbar,
       		                    od->default_tbar_elem_col[ASO_TBAR_ELEM_RBTN],
           		                od->default_tbar_elem_row[ASO_TBAR_ELEM_RBTN],
-              		            0, ALIGN_VCENTER,
+              		            od->flip, ALIGN_VCENTER,
                   		        &(Scr.Look.ordered_buttons[Scr.Look.button_first_right]), btn_mask,
                       		    TITLE_BUTTONS - Scr.Look.button_first_right,
                           		Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
@@ -1137,12 +1138,12 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     if(  free_resources || asw->hints == NULL || asw->status == NULL )
     {/* destroy window decorations here : */
      /* destruction goes in reverese order ! */
-        check_tbar( &(asw->icon_title),  False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
-        check_tbar( &(asw->icon_button), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
-        check_tbar( &(asw->tbar),        False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
+        check_tbar( &(asw->icon_title),  False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
+        check_tbar( &(asw->icon_button), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
+        check_tbar( &(asw->tbar),        False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
 		i = FRAME_PARTS ;
 		while( --i >= 0 )
-            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
+            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
 
         check_side_canvas( asw, FR_W, False );
         check_side_canvas( asw, FR_E, False );

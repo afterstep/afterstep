@@ -127,7 +127,7 @@ asxml_var_init(void)
 	{
     	asxml_var = create_ashash(0, string_hash_value, string_compare, string_destroy);
     	if (!asxml_var) return;
-    	if (GetRootDimensions(&w, &h))
+    	if (dpy != NULL && GetRootDimensions(&w, &h))
 		{
         	asxml_var_insert("xroot.width", w);
         	asxml_var_insert("xroot.height", h);
@@ -1115,7 +1115,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			width = parse_math(width_str, NULL, width);
 			height = parse_math(height_str, NULL, height);
 		}
-		if (imtmp) {
+		if (imtmp && width > 0 && height > 0 ) {
 			show_progress("Scaling image to [%dx%d].", width, height);
 			result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 			safe_asimage_destroy(imtmp);

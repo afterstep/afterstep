@@ -494,6 +494,9 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
     trace_enable_function(MyArgs.trace_calls);
 #endif
 
+	asxml_var_insert("minipixmap.width", 48);
+	asxml_var_insert("minipixmap.height", 48);
+
 }
 
 void

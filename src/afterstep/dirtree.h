@@ -10,6 +10,7 @@ typedef struct dirtree_t
   struct dirtree_t* child;
 
   char* name;
+  char* stripped_name;
   char* path;
   int flags;
   time_t mtime;
@@ -17,6 +18,7 @@ typedef struct dirtree_t
   FunctionData command;
   char* icon;
   char* extension;
+  char* minipixmap_extension;
   int order;
 } dirtree_t;
 
@@ -25,8 +27,8 @@ enum
 {
   DIRTREE_ID		= (1 << 16) - 1, /* ID assigned to this menu */
   DIRTREE_DIR		= (1 << 16),	 /* if this item a submenu */
-  DIRTREE_KEEPNAME	= (1 << 17),	 /* if we should keep the menu name 
-  					  * for the PopUp command */
+  DIRTREE_KEEPNAME	= (1 << 17),	 /* if we should keep the menu name for the PopUp command */
+  DIRTREE_MINIPIXMAP = (1 << 18),
   DIRTREE_LAST
 };
 

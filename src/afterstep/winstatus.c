@@ -261,7 +261,7 @@ move_resize_corner( ASTBarData *bar, ASCanvas *canvas, ASOrientation *od, int no
 
 inline static Bool
 move_resize_longbar( ASTBarData *bar, ASCanvas *canvas, ASOrientation *od,
-                     int normal_y, unsigned int normal_width,
+                     int normal_offset, unsigned int normal_length,
                      unsigned int corner_size1, unsigned int corner_size2,
                      Bool vertical, Bool force_render )
 {
@@ -269,26 +269,27 @@ move_resize_longbar( ASTBarData *bar, ASCanvas *canvas, ASOrientation *od,
     unsigned int h = bar->height;
     int bar_size ;
 
-    /* swapping bar height in case of vertical orientation : */
+    /* swapping bar height in case of vertical orientation of the etire window: */
     *(od->in_width) = w ;
     *(od->in_height) = h ;
+
     if( vertical )
-    {
+	{   /*vertical bar - west or east */
         bar_size = *(od->out_width);
         *(od->in_width)  = bar_size ;
-        *(od->in_height) = normal_width ;
-        *(od->in_x) = normal_y;
+        *(od->in_height) = normal_length ;
+        *(od->in_x) = normal_offset;
         *(od->in_y) = corner_size1;
     }else
     {
         bar_size = *(od->out_height);
         *(od->in_height) = bar_size ;
-        if( corner_size1+corner_size2 > normal_width )
+        if( corner_size1+corner_size2 > normal_length )
             *(od->in_width) = 1;
         else
-            *(od->in_width) = normal_width-(corner_size1+corner_size2) ;
+            *(od->in_width) = normal_length-(corner_size1+corner_size2) ;
         *(od->in_x) = corner_size1;
-        *(od->in_y) = normal_y;
+        *(od->in_y) = normal_offset;
     }
 
     return move_resize_frame_bar( bar, canvas, *(od->out_x), *(od->out_y), *(od->out_width), *(od->out_height), force_render );
@@ -319,10 +320,11 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
         vertical = True ;
 
     if( title )
-    {
+	{
+		/* title always considered a "horizontal bar" */
         if( move_resize_longbar( title, canvas, od, 0, normal_width, 0, 0, False, force_render ) )
             rendered = True;
-        tbar_size = *(od->out_height);
+        tbar_size = *(od->in_height);
     }
     /* mirror_corner 0 */
     if( corner1 )

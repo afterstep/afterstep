@@ -206,6 +206,10 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
     scr->NumberOfScreens = NumberOfScreens = ScreenCount (dpy);
 	scr->MyDisplayWidth = DisplayWidth (dpy, scr->screen);
 	scr->MyDisplayHeight = DisplayHeight (dpy, scr->screen);
+
+	asxml_var_insert("xroot.width", scr->MyDisplayWidth);
+    asxml_var_insert("xroot.height", scr->MyDisplayHeight);
+
 	scr->CurrentDesk = -1;
 
     scr->RootClipArea.width = scr->MyDisplayWidth;

@@ -45,20 +45,9 @@ dirtree_compar_f dirtree_compar_list[] = {
 dirtree_t    *
 dirtree_new (void)
 {
-	dirtree_t    *tree = (dirtree_t *) safemalloc (sizeof (dirtree_t));
-
-	tree->next = NULL;
-	tree->parent = NULL;
-	tree->child = NULL;
-
-	tree->name = NULL;
-	tree->path = NULL;
-	tree->flags = 0;
-	tree->mtime = 0;
+	dirtree_t    *tree = safecalloc (1,sizeof (dirtree_t));
 
 	init_func_data (&tree->command);
-	tree->icon = NULL;
-	tree->extension = NULL;
 	tree->order = 10000;
 
 	return tree;
@@ -99,12 +88,16 @@ dirtree_delete (dirtree_t * tree)
 	/* free members */
 	if (tree->name != NULL)
 		free (tree->name);
+	if (tree->stripped_name != NULL && tree->stripped_name != tree->name )
+		free (tree->stripped_name);
 	if (tree->path != NULL)
 		free (tree->path);
 	if (tree->icon != NULL)
 		free (tree->icon);
 	if (tree->extension != NULL)
 		free (tree->extension);
+	if (tree->minipixmap_extension != NULL)
+		free (tree->minipixmap_extension);
 	free_func_data (&tree->command);
 
 	free (tree);
@@ -130,6 +123,24 @@ make_absolute (const char *path1, const char *path2)
 		sprintf (path, "%s/%s", path1, path2);
 	}
 	return path;
+}
+
+char *strip_extension( char *name, char *ext )
+{
+	if( name && ext )
+	{
+		int           nlen = strlen (name);
+		int           elen = strlen (ext);
+
+		if (nlen >= elen)
+		{
+			if (!strcmp (name + nlen - elen, ext))
+				return mystrndup(name, nlen - elen);
+			else if (!strncmp (name, ext, elen))
+				return mystrndup(name+elen, nlen - elen);
+		}
+	}
+	return name;
 }
 
 /* assumes that tree->name and tree->path are already filled in */
@@ -270,6 +281,14 @@ dirtree_parse (dirtree_t * tree, const char *file)
 			for (tmp = ptr + strlen (ptr); tmp > ptr && isspace (*(tmp - 1)); tmp--);
 			if (tmp != ptr)
 				tree->extension = mystrndup (ptr, tmp - ptr);
+		}else if (!mystrncasecmp (ptr, "miniextension", 13))
+		{
+			char         *tmp;
+
+			for (ptr += 13; isspace (*ptr); ptr++);
+			for (tmp = ptr + strlen (ptr); tmp > ptr && isspace (*(tmp - 1)); tmp--);
+			if (tmp != ptr)
+				tree->minipixmap_extension = mystrndup (ptr, tmp - ptr);
 		} else if (!mystrncasecmp (ptr, "minipixmap", 10))
 		{
 			for (ptr += 10; isspace (*ptr); ptr++);
@@ -340,8 +359,19 @@ void
 dirtree_merge (dirtree_t * tree)
 {
 	dirtree_t    *t;
-
+	/* PASS1: merge all the subdirs of the current dir */
 	for (t = tree->child; t != NULL; t = t->next)
+	{
+		if( t->stripped_name == NULL )
+		{
+			t->stripped_name = tree->extension?strip_extension( t->name, tree->extension ):t->name;
+			if( t->stripped_name == t->name && tree->minipixmap_extension )
+			{
+				t->stripped_name = strip_extension( t->name, tree->minipixmap_extension );
+				if( t->stripped_name != t->name )
+					set_flags( t->flags, DIRTREE_MINIPIXMAP );
+			}
+		}
 		if (t->flags & DIRTREE_DIR)
 		{
 			dirtree_t    *t2;
@@ -360,6 +390,25 @@ dirtree_merge (dirtree_t * tree)
 					t2 = t2->next;
 			}
 		}
+	}
+	/* PASS2: attach all the minipixmaps : */
+	for (t = tree->child; t != NULL; t = t->next)
+		if( get_flags( t->flags, DIRTREE_MINIPIXMAP ))
+		{	/* let us try and find matching filename */
+			dirtree_t    *t2;
+
+			for (t2 = tree->child; t2 != NULL; t2 = t2->next )
+			{
+				if ( t2 != t && !strcmp(t2->stripped_name, t->stripped_name ) )
+				{
+					if( t2->icon )
+						free( t2->icon );
+					t2->icon = mystrdup( t->path );
+				}
+			}
+		}
+
+	/* PASS3: merge all the subdirs : */
 	for (t = tree->child; t != NULL; t = t->next)
 		dirtree_merge (t);
 }

@@ -350,33 +350,22 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 
 	for (t = tree->child; t != NULL; t = t->next)
 	{
-		if (t->parent != NULL && t->parent->extension != NULL)
-		{
-			int           nlen = strlen (t->name);
-			int           elen = strlen (t->parent->extension);
-
-			if (nlen >= elen)
-			{
-				if (!strcmp (t->name + nlen - elen, t->parent->extension))
-					t->name[nlen - elen] = '\0';
-				else if (!strncmp (t->name, t->parent->extension, elen))
-					memmove (t->name, t->name + elen, nlen - elen + 1);
-			}
-		}
+		if (t->flags & DIRTREE_MINIPIXMAP)
+			continue;
 		if (t->flags & DIRTREE_DIR)
 		{
 /************* Creating Popup Title entry : ************************/
-			fdata = create_named_function(F_POPUP, t->name);
+			fdata = create_named_function(F_POPUP, t->stripped_name);
             if( reload_submenus )
                 fdata->popup = dirtree_make_menu2 (t, buf, reload_submenus);
             else
-                fdata->popup = FindPopup( t->name, True );
+                fdata->popup = FindPopup( t->stripped_name, True );
 /*            if( fdata->popup == NULL )
                 fdata->func = F_NOP;
 */
 			fdata->hotkey = scan_for_hotkey (fdata->name);
 			if (t->flags & DIRTREE_KEEPNAME)
-				fdata->text = mystrdup (t->name);
+				fdata->text = mystrdup (t->stripped_name);
 			else
 				fdata->text = string_from_int (t->flags & DIRTREE_ID);
 
@@ -390,7 +379,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 /************* Done creating Popup Title entry : ************************/
 		} else if (t->command.func != F_NOP)
 		{
-			fdata = create_named_function(t->command.func, t->name);
+			fdata = create_named_function(t->command.func, t->stripped_name);
 			if (t->command.text)
 			{
                 int cmd_len = strlen (t->command.text);
@@ -422,7 +411,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 			} else
 				fdata->text = mystrdup (t->name);
             if( fdata->name == NULL )
-                fdata->name = mystrdup( t->name );
+                fdata->name = mystrdup( t->stripped_name );
 #ifndef NO_AVAILABILITYCHECK
 LOCAL_DEBUG_OUT( "checking availability for \"%s\"", fdata->name?fdata->name:"nameless" );
 			if (IsSwallowFunc(fdata->func) || IsExecFunc(fdata->func))

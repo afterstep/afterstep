@@ -1110,7 +1110,7 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
         if( get_flags( tile->flags, AS_TileVScale ) )
             dst_height = max_height ;
     }
-
+	LOCAL_DEBUG_OUT( "dst_size = %dx%d, im_size = %dx%d, max_size = %dx%d", dst_width, dst_height, im->width, im->height, max_width, max_height );
     if( im->width != dst_width || im->height != dst_height )
     {
         im = scale_asimage( Scr.asv, im, dst_width, dst_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
@@ -1587,7 +1587,7 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
     if( get_flags( flip, FLIP_UPSIDEDOWN ) )
         align_flags = ((align_flags&0x0005)<<1)|((align_flags&(0x0005<<1))>>1)|(align_flags&RESIZE_MASK);
 
-	LOCAL_DEBUG_CALLER_OUT( "align_flags = 0x%X", align_flags );
+	LOCAL_DEBUG_CALLER_OUT( "type = %d, col = %d, row = %d, flip = %d, align_flags = 0x%X", type, col, row, flip, align_flags );
 
 	clear_flags( align_flags, FIT_LABEL_SIZE);
 	if( get_flags( flip, FLIP_VERTICAL ) )
@@ -1682,8 +1682,15 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
             if( (tile->data.icon = dup_asimage( icon )) == NULL )
                     tile->data.icon = clone_asimage( icon, 0xFFFFFFFF );
         }else
-            tile->data.icon = flip_asimage( Scr.asv, icon, 0, 0, icon->width, icon->height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
-
+		{
+			int dst_width = icon->width, dst_height = icon->height ;
+			if( get_flags( flip, FLIP_VERTICAL ) )
+			{
+				dst_width = icon->height ;
+				dst_height = icon->width ;
+			}
+            tile->data.icon = flip_asimage( Scr.asv, icon, 0, 0, dst_width, dst_height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+		}
         tile->width = tile->data.icon->width;
         tile->height = tile->data.icon->height;
         ASSetTileSublayers(*tile,1);

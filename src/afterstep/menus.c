@@ -76,6 +76,8 @@ create_asmenu( const char *name)
     w = make_menu_window( None );
     menu->main_canvas = create_ascanvas( w );
     menu->name = mystrdup(name);
+	menu->scroll_up_bar = create_astbar();
+	menu->scroll_down_bar = create_astbar();
     return menu;
 }
 
@@ -145,6 +147,11 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
                 free( menu->items );
                 menu->items = NULL ;
             }
+
+			if( menu->scroll_up_bar )
+				destroy_astbar(&(menu->scroll_up_bar ));
+			if( menu->scroll_down_bar )
+				destroy_astbar( &(menu->scroll_down_bar));
 
             if( menu->name )
                 free( menu->name );
@@ -534,6 +541,47 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time )
 }
 
 void
+set_menu_scroll_bar_look( ASTBarData *bar, MyLook *look, Bool up )
+{
+	ASFlagType hilite = 0, fhilite = 0;
+
+	bar->h_spacing = DEFAULT_MENU_SPACING ;
+    bar->h_border = DEFAULT_MENU_ITEM_HBORDER ;
+    bar->v_border = DEFAULT_MENU_ITEM_VBORDER ;
+
+    delete_astbar_tile( bar, -1 );
+    /* now readd it as proper type : */
+    if( look->MenuArrow )
+        add_astbar_icon( bar, 7, 0, up?FLIP_VERTICAL:FLIP_VERTICAL|FLIP_UPSIDEDOWN,
+		                 ALIGN_CENTER|RESIZE_H|RESIZE_H_SCALE, look->MenuArrow->image );
+    else
+        add_astbar_label( bar, 7, 0, 0, ALIGN_CENTER, 5, 5, "...", AS_Text_ASCII );
+
+	set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_ITEM] );
+    set_astbar_style_ptr( bar, BAR_STATE_FOCUSED,   look->MSMenu[MENU_BACK_HILITE] );
+
+	if( look->DrawMenuBorders == DRAW_MENU_BORDERS_ITEM )
+        fhilite = hilite = DEFAULT_MENU_HILITE;
+    else if ( Scr.Look.DrawMenuBorders == DRAW_MENU_BORDERS_OVERALL )
+    {
+        hilite = NO_HILITE_OUTLINE|LEFT_HILITE|RIGHT_HILITE|(up?TOP_HILITE:BOTTOM_HILITE) ;
+        fhilite = hilite ;
+    }else if( look->DrawMenuBorders == DRAW_MENU_BORDERS_FOCUSED_ITEM )
+        fhilite = DEFAULT_MENU_HILITE;
+    else if ( Scr.Look.DrawMenuBorders == DRAW_MENU_BORDERS_O_AND_F )
+    {
+        hilite = NO_HILITE_OUTLINE|LEFT_HILITE|RIGHT_HILITE|(up?TOP_HILITE:BOTTOM_HILITE) ;
+        fhilite = DEFAULT_MENU_HILITE ;
+    }
+
+    set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, hilite );
+    set_astbar_hilite( bar, BAR_STATE_FOCUSED, fhilite );
+
+    set_astbar_composition_method( bar, BAR_STATE_UNFOCUSED, Scr.Look.menu_icm );
+    set_astbar_composition_method( bar, BAR_STATE_FOCUSED, Scr.Look.menu_hcm );
+}
+
+void
 set_asmenu_look( ASMenu *menu, MyLook *look )
 {
     int i ;
@@ -541,6 +589,9 @@ set_asmenu_look( ASMenu *menu, MyLook *look )
     int display_size ;
 
     menu->arrow_space = look->MenuArrow?look->MenuArrow->width:DEFAULT_ARROW_SIZE ;
+
+	set_menu_scroll_bar_look( menu->scroll_up_bar, look, True );
+	set_menu_scroll_bar_look( menu->scroll_down_bar, look, False );
 
     i = menu->items_num ;
     while ( --i >= 0 )
@@ -579,6 +630,7 @@ LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
     {
         menu->visible_items_num = MAX_MENU_HEIGHT/max_height;
         display_size = menu->visible_items_num* max_height ;  /* important! */
+		display_size += 2*DEFAULT_ARROW_SIZE ;  /* we'll need to render two more scroll bars */
     }else
         menu->visible_items_num = display_size / max_height ;
 
@@ -592,7 +644,10 @@ LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
     if( menu->top_item > menu->items_num - menu->visible_items_num )
         menu->top_item = menu->items_num - menu->visible_items_num ;
 
-    i = menu->items_num ;
+   set_astbar_size( menu->scroll_up_bar, max_width, DEFAULT_ARROW_SIZE );
+   set_astbar_size( menu->scroll_down_bar, max_width, DEFAULT_ARROW_SIZE );
+
+	i = menu->items_num ;
     while ( --i >= 0 )
         set_astbar_size( menu->items[i].bar, max_width, max_height );
     ASSync(False);
@@ -788,6 +843,8 @@ LOCAL_DEBUG_OUT( "changed(%lX)->main_width(%d)->main_height(%d)->item_height(%d)
             if( get_flags( changed, CANVAS_HEIGHT_CHANGED) )
             {
                 menu->visible_items_num = menu->main_canvas->height / menu->item_height ;
+				if( menu->visible_items_num < menu->items_num )
+					menu->visible_items_num = (menu->main_canvas->height - (DEFAULT_ARROW_SIZE*2) )/ menu->item_height ;
 LOCAL_DEBUG_OUT( "update_canvas_display via set_asmenu_scroll_position from move_resize %s", "");
                 set_asmenu_scroll_position( menu, menu->top_item );
             }

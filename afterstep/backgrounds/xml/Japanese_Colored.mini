@@ -1,0 +1,6 @@
+<hsv hue_offset=$ascs.base_hue value_offset=1>
+	<scale width=$minipixmap.width height=$minipixmap.height>
+		<img src=".Japanese"/>
+	</scale>
+</hsv>
+

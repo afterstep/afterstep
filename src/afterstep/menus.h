@@ -53,11 +53,13 @@ typedef struct ASMenu
     Bool pinned ;
 
     struct ASWindow *owner;
+
+	struct ASTBarData *scroll_up_bar, *scroll_down_bar;
 }ASMenu;
 
 #define MAX_MENU_ITEM_HEIGHT    (Scr.MyDisplayHeight>>4)
 #define MAX_MENU_WIDTH          (Scr.MyDisplayWidth>>1)
-#define MAX_MENU_HEIGHT         ((Scr.MyDisplayHeight*3)/4)
+#define MAX_MENU_HEIGHT         ((Scr.MyDisplayHeight*9)/10)
 #define MIN_MENU_X              5
 #define MAX_MENU_X              (Scr.MyDisplayWidth-5)
 #define MIN_MENU_Y              5
