@@ -144,7 +144,8 @@ void RelieveParts (ASWindow *, int, GC, GC);
 #define RIGHT_HILITE  0x0002
 #define BOTTOM_HILITE 0x0004
 #define LEFT_HILITE   0x0008
-#define FULL_HILITE   0x000F
+#define EXTRA_HILITE  0x0010
+#define FULL_HILITE   0x001F
 
 extern void PagerMoveWindow (void);
 extern void Stick (ASWindow *);

@@ -149,6 +149,12 @@ Function "Move-or-Top"
         ToggleLayer     "DoubleClick" 0 1
 EndFunction
 
+Function "Move-or-Normal"
+        Move            "Motion"
+        RaiseLower      "Click"
+        ToggleLayer     "DoubleClick" 1 0
+EndFunction
+
 # Used to move windows on desktop
 
 Function "Move-or-Iconify"
@@ -263,7 +269,8 @@ Mouse 1         FS      A       Resize
 Mouse 2         FS      A       Move
 Mouse 3         FS      A       Move
 Mouse 1         T       A       Function "Move-or-Top"
-Mouse 2         T       A       RaiseLower
+Mouse 2         T       A       Function "Move-or-Normal"
+#Mouse 2         T       A       RaiseLower
 Mouse 3         T       A       RaiseLower
 Mouse 0         I       A       Function "Move-or-Iconify"
 

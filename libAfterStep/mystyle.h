@@ -180,6 +180,7 @@ void mystyle_draw_vertical_text (Window w, MyStyle * style, const char *text, in
 void mystyle_draw_texturized_text (Window w, MyStyle * style, MyStyle *fore_texture, const char *text, int x, int y);
 void mystyle_draw_texturized_vertical_text (Window w, MyStyle * style, MyStyle *fore_texture, const char *text, int x, int y);
 int mystyle_translate_grad_type( int type );
+ASImage *mystyle_draw_text_image( MyStyle *style, const char *text );
 
 void mystyle_fix_styles (void);
 ASImage *mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int height );
@@ -201,6 +202,7 @@ void mystyle_parse_set_style (char *text, FILE * fd, char **style, int *junk2);
 int mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient *gradient);
 
 void set_func_arg (char *text, FILE * fd, char **value, int *junk);
+ASImageBevel *mystyle_make_bevel (MyStyle *style, ASImageBevel *bevel, int hilite, Bool reverse);
 
 extern MyStyle *mystyle_first;
 

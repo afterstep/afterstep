@@ -1333,3 +1333,68 @@ mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient *gradient
   gradient->offset[gradient->npoints - 1] = 1.0;
   return type;
 }
+
+ASImageBevel *
+mystyle_make_bevel (MyStyle *style, ASImageBevel *bevel, int hilite, Bool reverse)
+{
+    if( style && hilite != 0 )
+    {
+		if( bevel == NULL )
+			bevel = safecalloc( 1, sizeof(ASImageBevel));
+		else
+			memset( bevel, 0x00, sizeof(ASImageBevel));
+		if( reverse != 0 )
+		{
+			bevel->lo_color = style->relief.fore ;
+			bevel->lolo_color = GetHilite(style->relief.fore) ;
+			bevel->hi_color = style->relief.back ;
+			bevel->hihi_color = GetShadow(style->relief.back) ;
+		}else
+		{
+			bevel->hi_color = style->relief.fore ;
+			bevel->hihi_color = GetHilite(style->relief.fore) ;
+			bevel->lo_color = style->relief.back ;
+			bevel->lolo_color = GetShadow(style->relief.back) ;
+		}
+		bevel->hilo_color = GetAverage(style->relief.fore, style->relief.back) ;
+		if( get_flags( hilite, FULL_HILITE ) )
+		{
+			bevel->left_outline = bevel->top_outline = bevel->right_outline = bevel->bottom_outline = 1;
+        	bevel->left_inline = bevel->top_inline =
+ 			bevel->right_inline = bevel->bottom_inline = get_flags( hilite, EXTRA_HILITE)?3:1 ;
+		}else
+		{
+#ifndef DONT_HILITE_PLAIN
+			if( get_flags( hilite, EXTRA_HILITE) )
+			{
+ 				bevel->left_inline = bevel->top_inline =
+				bevel->right_inline = bevel->bottom_inline = 2 ;
+			}
+#endif
+		}
+
+		if( get_flags( hilite, LEFT_HILITE) )
+		{	bevel->left_outline++ ;		bevel->left_inline++ ; }
+		if( get_flags( hilite, TOP_HILITE) )
+		{	bevel->top_outline++ ;		bevel->top_inline++  ; }
+		if( get_flags( hilite, RIGHT_HILITE) )
+		{	bevel->right_outline++ ; 	bevel->right_inline++; }
+		if( get_flags( hilite, BOTTOM_HILITE) )
+		{	bevel->bottom_outline++ ;	bevel->bottom_inline++;}
+
+	}else if( bevel )
+		memset( bevel, 0x00, sizeof(ASImageBevel));
+
+	return bevel;
+}
+
+ASImage *
+mystyle_draw_text_image( MyStyle *style, const char *text )
+{
+	ASImage *im = NULL ;
+	if( style && text )
+	{
+		/* todo: implement text rendering using libAfterImage : */	
+	}
+	return im ;
+}

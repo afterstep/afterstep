@@ -11,7 +11,7 @@ LIB_INCS=
 #           findfile.o asproperty.o
 #
 LIB_OBJS= catstring3.o background.o balloon.o copystring.o \
-	      font.o \
+	      decor.o font.o \
 		  Xmodule.o ASmodule.o \
 		  loadimg.o mystyle.o mystyle_property.o \
 		  parse.o parser.o termhash.o \

@@ -255,6 +255,9 @@ typedef struct ScreenInfo
 	
 	int xinerama_screens_num ;
 	XRectangle *xinerama_screens;
+	
+	ASFontManager  *font_manager ;
+	ASImageManager *image_manager ;
   }
 ScreenInfo;
 

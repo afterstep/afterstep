@@ -92,7 +92,6 @@ char *ModulePath = AFTER_DIR;
 /* exported to aslib */
 char *MyName;
 Display *dpy;
-int screen;
 
 int x_fd, fd_width;
 int ROWS = FALSE;
@@ -249,7 +248,7 @@ main (int argc, char **argv)
   x_fd = ConnectX( &Scr, display_name, PropertyChangeMask);
 
   /* connect to AfterStep */
-  temp = module_get_socket_property (RootWindow (dpy, screen));
+  temp = module_get_socket_property (RootWindow (dpy, Scr.screen));
   fd[0] = fd[1] = module_connect (temp);
   XFree (temp);
   if (fd[0] < 0)
@@ -308,12 +307,12 @@ main (int argc, char **argv)
     }
   else
     {
-      sprintf (configfile, "%s/base.%dbpp", AFTER_DIR, DefaultDepth (dpy, screen));
+      sprintf (configfile, "%s/base.%dbpp", AFTER_DIR, DefaultDepth (dpy, Scr.screen));
       realconfigfile = (char *) PutHome (configfile);
       if (CheckFile (realconfigfile) == -1)
 	{
 	  free (realconfigfile);
-	  sprintf (configfile, "%s/base.%dbpp", AFTER_SHAREDIR, DefaultDepth (dpy, screen));
+	  sprintf (configfile, "%s/base.%dbpp", AFTER_SHAREDIR, DefaultDepth (dpy, Scr.screen));
 	  realconfigfile = PutHome (configfile);
 	}
       ParseBaseOptions (realconfigfile);
