@@ -20,13 +20,22 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <sys/stat.h>
 
 /*#include <X11/Xlib.h>*/
-
+#ifdef _WIN32
+#include "win32/config.h"
+#include "win32/afterbase.h"
+#include <io.h>
+#include <windows.h>
+#define access _access
+#else
 #include "config.h"
 #include "afterbase.h"
+#endif
 
 Display *dpy = NULL ;
 char    *asim_ApplicationName = NULL ;
@@ -482,7 +491,7 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 /* from ashash,c : */
 ASHashKey asim_default_hash_func (ASHashableValue value, ASHashKey hash_size)
 {
-	return value % hash_size;
+	return (ASHashKey)(value % hash_size);
 }
 
 long
@@ -884,7 +893,9 @@ int XQueryColors(void* a,Colormap c,void* x,int m){return 0;}
 #  include <time.h>
 # endif
 #endif
-#include <sys/times.h>
+#ifndef _WIN32
+# include <sys/times.h>
+#endif
 static clock_t _as_ticker_last_tick = 0;
 static clock_t _as_ticker_tick_size = 1;
 static clock_t _as_ticker_tick_time = 0;
@@ -895,6 +906,7 @@ static clock_t _as_ticker_tick_time = 0;
 void
 sleep_a_little (int n)
 {
+#ifndef _WIN32
 	struct timeval value;
 
 	if (n <= 0)
@@ -911,11 +923,15 @@ sleep_a_little (int n)
 #endif
 #endif
 	PORTABLE_SELECT (1, 0, 0, 0, &value);
+#else /* win32 : */
+	Sleep(n);
+#endif
 }
 
 void
 asim_start_ticker (unsigned int size)
 {
+#ifndef _WIN32
 	struct tms    t;
 
 	_as_ticker_last_tick = times (&t);		   /* in system ticks */
@@ -931,18 +947,31 @@ asim_start_ticker (unsigned int size)
 		else
 			_as_ticker_tick_time = 101 / delta;
 	}
+#else
+	_as_ticker_tick_time = 1000;
+	_as_ticker_last_tick = time(NULL) ;
+#endif
 	_as_ticker_tick_size = size;			   /* in ms */
+
 }
 
 void
 asim_wait_tick ()
 {
+#ifndef _WIN32
 	struct tms    t;
 	register clock_t curr = (times (&t) - _as_ticker_last_tick) * _as_ticker_tick_time;
+#else
+	register int curr = (time(NULL) - _as_ticker_last_tick) * _as_ticker_tick_time;
+#endif
 
 	if (curr < _as_ticker_tick_size)
 		sleep_a_little (_as_ticker_tick_size - curr);
 
+#ifndef _WIN32
 	_as_ticker_last_tick = times (&t);
+#else
+	_as_ticker_last_tick = time(NULL) ;
+#endif
 }
 

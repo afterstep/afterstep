@@ -23,7 +23,14 @@
 #undef DEBUG_RECTS2
 #endif
 
+#ifdef _WIN32
+#include "win32/config.h"
+#include <io.h>
+#include <windows.h>
+#define access		_access
+#else
 #include "config.h"
+#endif
 
 
 #define USE_64BIT_FPU
@@ -44,8 +51,11 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "asvisual.h"
 #include "blender.h"
 #include "asimage.h"
@@ -236,7 +246,7 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 {
 	if (im)
 	{
-		register int i;
+		register unsigned int i;
 
 		asimage_init (im, True);
 		/* we want result to be 32bit aligned and padded */
@@ -313,7 +323,7 @@ void print_asimage_func (ASHashableValue value)
     ASImage *im = (ASImage*)value ;
     if( im && im->magic == MAGIC_ASIMAGE )
     {
-        int k;
+        unsigned int k;
         unsigned int red_mem = 0, green_mem = 0, blue_mem = 0, alpha_mem = 0;
         unsigned int red_count = 0, green_count = 0, blue_count = 0, alpha_count = 0;
         fprintf( stderr,"\n\tASImage[%p].size = %dx%d;\n",  im, im->width, im->height );
@@ -822,9 +832,9 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 			bevel->left_inline = MAX((int)out_width,0) ;
 		if( bevel->top_inline > out_height )
 			bevel->top_inline = MAX((int)out_height,0) ;
-		if( bevel->left_inline+bevel->right_inline > out_width )
+		if( bevel->left_inline+bevel->right_inline > (int)out_width )
 			bevel->right_inline = MAX((int)out_width-(int)bevel->left_inline,0) ;
-		if( bevel->top_inline+bevel->bottom_inline > out_height )
+		if( bevel->top_inline+bevel->bottom_inline > (int)out_height )
 			bevel->bottom_inline = MAX((int)out_height-(int)bevel->top_inline,0) ;
 
 		if( bevel->left_outline == 0 && bevel->right_outline == 0 &&
@@ -1032,12 +1042,12 @@ void toggle_image_output_direction( ASImageOutput *imout )
 	{
 		if( imout->bottom_to_top < 0 )
 		{
-			if( imout->next_line >= imout->im->height-1 )
+			if( imout->next_line >= (int)imout->im->height-1 )
 				imout->next_line = 0 ;
 			imout->bottom_to_top = 1 ;
 		}else if( imout->next_line <= 0 )
 		{
-		 	imout->next_line = imout->im->height-1 ;
+		 	imout->next_line = (int)imout->im->height-1 ;
 			imout->bottom_to_top = -1 ;
 		}
 	}
@@ -1141,7 +1151,7 @@ asimage_dup_line (ASImage * im, ColorPart color, unsigned int y1, unsigned int y
 		free (part[y2]);
 	if( part[y1] )
 	{
-		register int i ;
+		register unsigned int i ;
 		register CARD32 *dwsrc = (CARD32*)part[y1];
 		register CARD32 *dwdst ;
 		length = (length>>2)+1;
@@ -1231,7 +1241,7 @@ asimage_add_line_mono (ASImage * im, ColorPart color, register CARD8 value, unsi
 size_t
 asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigned int y)
 {
-	int             i = 0, bstart = 0, ccolor = 0;
+	unsigned int    i = 0, bstart = 0, ccolor = 0;
 	unsigned int    width;
 	register CARD8 *dst;
 	register int 	tail = 0;
@@ -1301,9 +1311,9 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 				ccolor = i ;
 			while( ccolor > bstart )
 			{/* we have to write direct block */
-				int dist = ccolor-bstart ;
+				unsigned int dist = ccolor-bstart ;
 
-				if( tail-bstart < best_size )
+				if( tail-(int)bstart < best_size )
 				{
 					best_tail = tail ;
 					best_bstart = bstart ;
@@ -1325,7 +1335,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 			}
 /*			fprintf( stderr, "\n"); */
 		}
-		if( best_size+im->width < tail )
+		if( best_size+(int)im->width < tail )
 		{
 			width = im->width;
 /*			LOCAL_DEBUG_OUT( " %d:%d >resetting bytes starting with offset %d(%d) (0x%2.2X) to DIRECT_TAIL( %d bytes total )", y, color, best_tail, best_bstart, dst[best_tail], width-best_bstart ); */
@@ -1383,7 +1393,7 @@ int
 check_asimage_alpha (ASVisual *asv, ASImage *im )
 {
 	int recomended_depth = 0 ;
-	int            i;
+	unsigned int            i;
 	ASScanline     buf;
 
 	if( asv == NULL )
