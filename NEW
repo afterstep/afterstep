@@ -1,3 +1,14 @@
+version 2.0 release
+	*Reimplemented Ident module
+	*Added bunch of docs to ASDocGen and incorporated code from asimbrowser to 
+	 generate HTML catalogue of installed files.
+	*Added keyboard shortcuts to menus : 
+		Esc or Left or Backspace - exit menu, 
+		Enter or Right - run selected item or go to submenu
+		Up, Down - select item
+		A-Z,a-z,0-9 select item with hotkey or a first item that starts with 
+		that letter.
+
 version 2.0 beta5
 	*Added Utility for autogeneration and maintenance of documentation - ASDocGen.
 	 It is capable of generating docs in plain text, HTML, PHP, XML and NROFF formats,
