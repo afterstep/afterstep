@@ -236,6 +236,15 @@ typedef struct ASComposeWinProps
 	int timeout ;
 	Bool on_top ;
 	const char *title ;
+	Bool no_shape ; 
+
+	Bool mapped ;
+	
+	int last_x, last_y ; 
+	unsigned int last_width, last_height ;
+	int move_resize_count ;
+	Pixmap last_root_pmap ; 
+	ASImage *last_root_im ;
 }ASComposeWinProps;
 
 Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProps *props);
@@ -254,6 +263,7 @@ int main(int argc, char** argv) {
     char *doc_compress = NULL ;
 	int i;
 	int display = 1, onroot = 0;
+	Bool quiet = False ;
 	enum
 	{
 		COMPOSE_Once = 0,
@@ -285,7 +295,7 @@ int main(int argc, char** argv) {
 #if (HAVE_AFTERBASE_FLAG==1)
 			set_output_threshold(0);
 #endif
-			verbose = 0;
+			verbose = 0; quiet = True ;
 		} else if (!strcmp(argv[i], "--verbose") || !strcmp(argv[i], "-V")) {
 #if (HAVE_AFTERBASE_FLAG==1)
 			set_output_threshold(OUTPUT_VERBOSE_THRESHOLD);
@@ -341,6 +351,8 @@ int main(int argc, char** argv) {
 			main_window_props.center = True;
 		} else if (strcmp(argv[i], "--topmost") == 0 ) {
 			main_window_props.on_top = True;
+		} else if (strcmp(argv[i], "--no-shape") == 0 ) {
+			main_window_props.no_shape = True;
 		} else if (!strcmp(argv[i], "--clipboard") || !strcmp(argv[i], "-C")) {
 			compose_type = COMPOSE_XClipboard;
 		}   else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
@@ -486,7 +498,8 @@ int main(int argc, char** argv) {
 				}		 
 				if( xb.state == ASXML_Start && xb.tags_count > 0 && xb.level == 0 ) 
 				{
-					printf("<success tag_count=%d/>\n", xb.tags_count );
+					if( !display || dpy == NULL || !quiet ) 
+						printf("<success tag_count=%d/>\n", xb.tags_count );
 					add_xml_buffer_chars( &xb, "", 1 );
 					LOCAL_DEBUG_OUT("buffer: [%s]", xb.buffer );
 	 				im = compose_asimage_xml(asv, my_imman, my_fontman, xb.buffer, ASFLAGS_EVERYTHING, verbose, None, NULL);					
@@ -508,23 +521,27 @@ int main(int argc, char** argv) {
 					}					
 				}else if( fp == stdin && xb.state == ASXML_Start && xb.tags_count == 0 && xb.level == 0 ) 
 				{
-					printf("<success tag_count=%d/>\n", xb.tags_count );						  
+					if( !display || dpy == NULL || !quiet ) 
+						printf("<success tag_count=%d/>\n", xb.tags_count );						  
 					break;
 				}else
 				{
-					printf("<error code=%d text=\"", xb.state );	  
-					switch( xb.state ) 
-					{
-						case ASXML_BadStart : printf( "Text encountered before opening tag bracket - not XML format" ); break;
-						case ASXML_BadTagName : printf( "Invalid characters in tag name" );break;
-						case ASXML_UnexpectedSlash : printf( "Unexpected '/' encountered");break;
-						case ASXML_UnmatchedClose : printf( "Closing tag encountered without opening tag" );break;
-						case ASXML_BadAttrName : printf( "Invalid characters in attribute name" );break;
-						case ASXML_MissingAttrEq : printf( "Attribute name not followed by '=' character" );break;
-						default:
-							printf( "Premature end of the input");break;
+					if( !display || dpy == NULL || !quiet ) 
+					{	
+						printf("<error code=%d text=\"", xb.state );	  
+						switch( xb.state ) 
+						{
+							case ASXML_BadStart : printf( "Text encountered before opening tag bracket - not XML format" ); break;
+							case ASXML_BadTagName : printf( "Invalid characters in tag name" );break;
+							case ASXML_UnexpectedSlash : printf( "Unexpected '/' encountered");break;
+							case ASXML_UnmatchedClose : printf( "Closing tag encountered without opening tag" );break;
+							case ASXML_BadAttrName : printf( "Invalid characters in attribute name" );break;
+							case ASXML_MissingAttrEq : printf( "Attribute name not followed by '=' character" );break;
+							default:
+								printf( "Premature end of the input");break;
+						}
+						printf("\" level=%d tag_count=%d/>\n", xb.level ,xb.tags_count );	  
 					}
-					printf("\" level=%d tag_count=%d/>\n", xb.level ,xb.tags_count );	  
 					break;
 				}
 			}while( !display || dpy == NULL || main_window != None);
@@ -653,18 +670,33 @@ make_main_window(Bool onroot, ASComposeWinProps *props)
 	XSetWindowAttributes attributes;
 
 	if( onroot ) 
+	{	
 		w = DefaultRootWindow(dpy);
-	else
+		props->last_x = 0 ;
+		props->last_y = 0 ;
+		props->last_width = 0 ;
+		props->last_height = 0 ;
+	}else
 	{
 		attributes.override_redirect = props->override_redirect ; 
 		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-				                        100, 30, 1, CWOverrideRedirect, &attributes, 
+				                        100, 30, 0, CWOverrideRedirect, &attributes, 
 										"ASCompose",
 										props->title );
-		
+		props->last_x = 32 ;
+		props->last_y = 32 ;
+		props->last_width = 100 ;
+		props->last_height = 30 ;
 		XSelectInput (dpy, w, (StructureNotifyMask|ButtonPressMask|ButtonReleaseMask));
 	}	 
-#endif	
+	props->move_resize_count = 4 ; 
+	props->last_root_pmap = None ;
+	if( props->last_root_im ) 
+		safe_asimage_destroy(props->last_root_im);
+	props->last_root_im = NULL ; 
+		
+
+#endif	 
 	return w;
 }
 
@@ -677,7 +709,8 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 	unsigned int width, height;
 	fd_set        in_fdset;
 	int x_fd = XConnectionNumber (dpy);
-
+	unsigned int shape_rects_count = 0;
+	XRectangle *shape_rects = NULL ;
 
 	if (im == NULL || main_window == None ) 
 		return None;
@@ -709,23 +742,33 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 		}else 
 			move = False ;
 
-		if( move )
+		if( move && (props->last_x != x || props->last_y != y))
+		{	
 			XMoveWindow( dpy, main_window, x, y );
-		XResizeWindow( dpy, main_window, width, height );
-		XMapWindow( dpy, main_window);
+			props->last_x = x ;
+			props->last_y = y ;
+			++(props->move_resize_count);
+		}
+		if( props->last_width != width || props->last_height != height )
+		{	
+			XResizeWindow( dpy, main_window, width, height );
+			props->last_width = width ;
+			props->last_height = height ;
+			++(props->move_resize_count);
+		}
+	
+		if( !props->mapped ) 
+		{	
+			XMapWindow( dpy, main_window);
+			props->mapped = True ;
+		}
 		if( props->on_top ) 
 			XRaiseWindow( dpy, main_window );
 		if( get_flags(get_asimage_chanmask(im), SCL_DO_ALPHA))
 		{	
 #ifdef SHAPE
-			{		
-				unsigned int rects_count = 0;
-				XRectangle *rects = get_asimage_channel_rects( im, IC_ALPHA, 10, &rects_count );
-				if( rects == NULL || rects_count == 0 ) 
-					XShapeCombineMask( dpy, main_window, ShapeBounding, 0, 0, None, ShapeSet );
-				else
-					XShapeCombineRectangles (dpy, main_window, ShapeBounding, 0, 0, rects, rects_count, ShapeSet, Unsorted);
-			}
+			if( !props->no_shape ) 
+				shape_rects = get_asimage_channel_rects( im, IC_ALPHA, 10, &shape_rects_count );
 #endif		   
 #if 1		
 			{		
@@ -734,8 +777,23 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 				ASImage *transp_im = NULL , *tmp ;
 				if (rp) 
 				{
-					get_drawable_size(rp, &width, &height);
-					transp_im = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
+					if( props->move_resize_count > 0 ||
+						props->last_root_pmap != rp ||
+						props->last_root_im == NULL )   
+					{
+						if( props->last_root_im ) 
+							safe_asimage_destroy(props->last_root_im);
+						get_drawable_size(rp, &width, &height);
+						transp_im = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 0);
+						props->last_root_pmap = rp ;
+						props->move_resize_count = 0 ;
+						props->last_root_im = transp_im ;   
+					}else
+					{
+						width = props->last_root_im->width ; 
+						height = props->last_root_im->height ;
+						transp_im = props->last_root_im ;
+					}	 
 				}
 		
 				if( transp_im ) 
@@ -749,19 +807,30 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 					layers[1].im = im ;
 					layers[1].clip_width = im->width ;
 					layers[1].clip_height = im->height ;
-					tmp = merge_layers(asv, layers, 2, im->width, im->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					tmp = merge_layers(asv, layers, 2, im->width, im->height, ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT);
 					if( tmp ) 
 						im = tmp ;
 					free( layers );
-					safe_asimage_destroy(transp_im);
 				}		
 			}
 #endif
 		}		   
 	}
 
-	p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, False );
+	p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, True );
 	p = set_window_background_and_free( main_window, p );
+	XSync(dpy, False);
+#ifdef SHAPE
+	if( shape_rects == NULL || shape_rects_count == 0 ) 
+		XShapeCombineMask( dpy, main_window, ShapeBounding, 0, 0, None, ShapeSet );
+	else
+	{	
+		XShapeCombineRectangles (dpy, main_window, ShapeBounding, 0, 0, shape_rects, shape_rects_count, ShapeSet, Unsorted);
+		free( shape_rects );
+		shape_rects = NULL ;
+	}
+#endif		   
+	XSync(dpy, False);
 	if( im != orig_im ) 
 	{	
 		safe_asimage_destroy(im);

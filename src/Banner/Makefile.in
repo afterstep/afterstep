@@ -1,6 +1,7 @@
 OBJS		=
 
 PROG		= Banner
+SCRIPTS		= Banner
 
 LIBS_PRIVATE    = 
 LIBS_DEPEND     = 
@@ -10,6 +11,6 @@ Banner:
 
 @MAKEFILECOMMON@
 
-install:	install.bin install.man
+install:	$(PROG) install.script install.man
 
-uninstall:	uninstall.bin uninstall.man
+uninstall:	uninstall.script uninstall.man

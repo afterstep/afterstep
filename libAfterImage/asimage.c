@@ -19,7 +19,7 @@
 #undef LOCAL_DEBUG
 #undef DO_CLOCKING
 #ifndef NO_DEBUG_OUTPUT
-#define DEBUG_RECTS
+#undef DEBUG_RECTS
 #undef DEBUG_RECTS2
 #endif
 
