@@ -136,6 +136,8 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "RightTitlebarLayout", 19,    TT_FLAG,   MYFRAME_RightTitlebarLayout_ID, &TbarLayoutSyntax},
     {TF_NO_MYNAME_PREPENDING, "NoBorder", 8,       			TT_FLAG,   MYFRAME_NoBorder_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "AllowBorder", 11,       		TT_FLAG,   MYFRAME_AllowBorder_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "LeftBtnAlign", 12,           TT_FLAG,   MYFRAME_LeftBtnAlign_ID, &AlignSyntax},
+	{TF_NO_MYNAME_PREPENDING, "RightBtnAlign", 13,          TT_FLAG,   MYFRAME_RightBtnAlign_ID, &AlignSyntax},
 
 	{0, NULL, 0, 0, 0}
 };
@@ -390,6 +392,14 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                         fd->title_align = ParseAlignOptions( options->sub );
                         set_flags( fd->set_title_attr, MYFRAME_TitleAlignSet );
                         break;
+					case MYFRAME_LeftBtnAlign_ID :
+                        fd->left_btn_align = ParseAlignOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_LeftBtnAlignSet );
+					    break ;
+					case MYFRAME_RightBtnAlign_ID :
+                        fd->right_btn_align = ParseAlignOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_RightBtnAlignSet );
+					    break ;
                     case MYFRAME_CondenseTitlebar_ID :
                         fd->condense_titlebar = ParseAlignOptions( options->sub );
                         set_flags( fd->set_title_attr, MYFRAME_CondenseTitlebarSet );

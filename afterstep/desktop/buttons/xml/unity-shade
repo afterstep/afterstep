@@ -1,0 +1,6 @@
+<composite>
+  <img src="bars/button_back_unity1"/>
+  <tile tint="HighActiveBack">
+	  <img src="dots/shade_unity"/>
+  </tile>
+</composite>

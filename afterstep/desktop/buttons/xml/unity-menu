@@ -1,0 +1,6 @@
+<composite keep-transparency="1" >
+  <img src="bars/button_back_unity1"/>
+  <tile tint="HighActiveBack">
+	  <img src="dots/arrow_narrow"/>
+  </tile>
+</composite>

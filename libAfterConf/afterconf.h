@@ -431,7 +431,10 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define MYFRAME_LeftTitlebarLayout_ID			(MYFRAME_TitleBackgroundAlign_ID_END+2)
 #define MYFRAME_RightTitlebarLayout_ID			(MYFRAME_TitleBackgroundAlign_ID_END+3)
 
-#define MYFRAME_NoBorder_ID             		(MYFRAME_TitleBackgroundAlign_ID_END+4) 
+#define MYFRAME_LeftBtnAlign_ID					(MYFRAME_TitleBackgroundAlign_ID_END+4)
+#define MYFRAME_RightBtnAlign_ID				(MYFRAME_TitleBackgroundAlign_ID_END+5)
+
+#define MYFRAME_NoBorder_ID             		(MYFRAME_TitleBackgroundAlign_ID_END+6) 
 #define MYFRAME_AllowBorder_ID             		(MYFRAME_NoBorder_ID+1) 
 
 #define MYFRAME_ID_END      (MYFRAME_ID_START+128)
@@ -560,6 +563,7 @@ typedef struct MyFrameDefinition
     int          title_fcm, title_ucm, title_scm;
     ASFlagType   condense_titlebar ;
 	unsigned long left_layout, right_layout ;
+	ASFlagType   left_btn_align, right_btn_align ;
 
 	ASFlagType   flags ;
 	ASFlagType   set_flags ;

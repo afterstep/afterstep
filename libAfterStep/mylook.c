@@ -362,6 +362,8 @@ create_default_myframe(ASFlagType default_title_align)
     frame->title_ubevel = DEFAULT_TBAR_HILITE;
     frame->title_sbevel = DEFAULT_TBAR_HILITE;
     frame->title_align = default_title_align;
+	frame->left_btn_align = ALIGN_VCENTER ;
+	frame->right_btn_align = ALIGN_VCENTER ;
     frame->title_fcm = TEXTURE_TRANSPIXMAP_ALPHA;
     frame->title_ucm = TEXTURE_TRANSPIXMAP_ALPHA;
     frame->title_scm = TEXTURE_TRANSPIXMAP_ALPHA;
@@ -425,6 +427,11 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
 
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleAlignSet ) )
             frame->title_align = ancestor->title_align;
+        
+		if( get_flags( ancestor->set_title_attr, MYFRAME_LeftBtnAlignSet ) )
+            frame->left_btn_align = ancestor->left_btn_align;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_RightBtnAlignSet ) )
+            frame->right_btn_align = ancestor->right_btn_align;
 
         if( get_flags( ancestor->set_title_attr, MYFRAME_CondenseTitlebarSet ) )
             frame->condense_titlebar = ancestor->condense_titlebar;

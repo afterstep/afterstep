@@ -835,6 +835,11 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
         frame->title_sbevel = fd->title_sbevel;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleAlignSet ) )
         frame->title_align = fd->title_align;
+	if( get_flags( fd->set_title_attr, MYFRAME_LeftBtnAlignSet ) )
+        frame->left_btn_align = fd->left_btn_align;
+	if( get_flags( fd->set_title_attr, MYFRAME_RightBtnAlignSet ) )
+        frame->right_btn_align = fd->right_btn_align;
+
     if( get_flags( fd->set_title_attr, MYFRAME_CondenseTitlebarSet ) )
         frame->condense_titlebar = fd->condense_titlebar;
     if( get_flags( fd->set_title_attr, MYFRAME_LeftTitlebarLayoutSet ) )
@@ -877,6 +882,12 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
         frame->title_sbevel = DEFAULT_TBAR_HILITE;
     if( !get_flags(frame->set_title_attr, MYFRAME_TitleAlignSet ) )
         frame->title_align = default_title_align;
+	
+	if( !get_flags( frame->set_title_attr, MYFRAME_LeftBtnAlignSet ) )
+        frame->left_btn_align = ALIGN_VCENTER;
+	if( !get_flags( frame->set_title_attr, MYFRAME_RightBtnAlignSet ) )
+        frame->right_btn_align = ALIGN_VCENTER;
+
     set_flags( frame->set_title_attr, MYFRAME_TitleBevelSet|MYFRAME_TitleAlignSet );
 
 	frame->set_flags = fd->set_flags ;

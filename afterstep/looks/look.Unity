@@ -48,29 +48,26 @@ MyStyle "focused_window_style"
   Inherit	"window_font"
   TextStyle	9
   ForeColor     ActiveText
-DrawTextBackground 0
-  BackPixmap    125 bars/title_titleBG_unity
+  BackPixmap    125 bars/title_tile_unity_bottom
   ~MyStyle
 
 MyStyle "unfocused_window_style"
   Inherit       "window_font"
   TextStyle	9
   ForeColor     InactiveText1Dark
-
-  BackPixmap    125 bars/title_titleBG_unity
-DrawTextBackground 0
+  BackPixmap    125 bars/title_tile_unity_bottom
   ~MyStyle
 
 MyStyle "sticky_window_style"
   Inherit       "window_font"
   ForeColor     InactiveText2
   BackColor	Inactive2
-  BackPixmap    125 bars/title_titleBG_unity
+  BackPixmap    125 bars/title_tile_unity_bottom
   ~MyStyle
 
 MyStyle "focused_frame_style"
   ForeColor     ActiveText
-  BackColor			Saturation(100,Active)
+  BackColor   	Saturation(100,Active)
   BackPixmap  149 	VALUE(100,Saturation(100,Active))
   ~MyStyle
 
@@ -284,11 +281,13 @@ IconBox                 1 -80 -1 -1
 
 MyFrame "unity"
 	TitleBevel		    None
+	BtnBackAlign	    	    Top
 	LeftSpacerBackground	    bars/title_leftSpacer_xml_unity
 	LeftSpacerBackAlign	    Bottom,
 	LeftTitleSpacerBackground   bars/title_leftTitleSpacer_xml_unity
 	LeftTitleSpacerBackAlign    Top,
 	LeftTitlebarLayout	    Spacer,Buttons,TitleSpacer
+	
 
 #	RightBtnBackground	    buttons/button_back_unity
 #	RightBtnBackAlign	    HScaled,Bottom
@@ -297,6 +296,7 @@ MyFrame "unity"
 	RightTitleSpacerBackground  bars/title_rightTitleSpacer_xml_unity
 	RightTitleSpacerBackAlign   Top
 	RightTitlebarLayout	    Spacer,TitleSpacer,Buttons
+	RightBtnAlign		    Bottom
 
 	TitleAlign		    Right,Top
 	TitleBackgroundAlign	    Top,HTiled,
@@ -342,11 +342,11 @@ StartMenuSortMode 1
 # 	or make a 1 pixel space (WM) beside buttons (1);
 #	or use custom offsets (2).
 TitleButtonStyle	2
-TitleButtonYOffset	0
+TitleButtonYOffsetRight	4
 TitleButtonXOffsetLeft	0
 TitleButtonXOffsetRight	1
 #  define the number of pixels between titlebar buttons ; 0
-TitleButtonSpacing	-9
+TitleButtonSpacing	-1
 
 #TitleTextAlign          0
 # TitleButtons : [1] [3] [5] [7] [9] (title) [0] [8] [6] [4] [2]

@@ -220,10 +220,13 @@ typedef struct MyFrame
 #define MYFRAME_CondenseTitlebarSet   	(0x01<<16)
 #define MYFRAME_LeftTitlebarLayoutSet   (0x01<<17)
 #define MYFRAME_RightTitlebarLayoutSet  (0x01<<18)
+#define MYFRAME_LeftBtnAlignSet   		(0x01<<19)
+#define MYFRAME_RightBtnAlignSet  		(0x01<<20)
 
     ASFlagType   title_fbevel, title_ubevel, title_sbevel;
     unsigned int title_fcm, title_ucm, title_scm ;
     ASFlagType   title_align, title_backs_align[MYFRAME_TITLE_BACKS];
+	ASFlagType   left_btn_align, right_btn_align ;
 
     ASFlagType   condense_titlebar ;
 

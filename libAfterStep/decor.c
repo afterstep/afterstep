@@ -866,7 +866,61 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
             tbar->tiles = realloc( tbar->tiles, (((tbar->tiles_num>>2)+1)<<2)*sizeof(ASTile));
         ++(tbar->tiles_num);
     }
+	LOCAL_DEBUG_CALLER_OUT( "type = %d, col = %d, row = %d, flip = %d, align_flags = 0x%lX", type, col, row, flip, align_flags );
 
+    if( get_flags( flip, FLIP_VERTICAL ) && get_flags( flip, FLIP_UPSIDEDOWN ) )
+	{
+		clear_flags( align_flags, PAD_MASK );
+		if( get_flags( align, PAD_LEFT ) )
+			set_flags( align_flags, PAD_TOP );
+		if( get_flags( align, PAD_RIGHT ) )
+			set_flags( align_flags, PAD_BOTTOM );
+		if( get_flags( align, PAD_TOP ) )
+			set_flags( align_flags, PAD_RIGHT );
+		if( get_flags( align, PAD_BOTTOM ) )
+			set_flags( align_flags, PAD_LEFT );
+	}else if( get_flags( flip, FLIP_VERTICAL ) )
+	{
+		clear_flags( align_flags, PAD_MASK );
+		if( get_flags( align, PAD_LEFT ) )
+			set_flags( align_flags, PAD_BOTTOM );
+		if( get_flags( align, PAD_RIGHT ) )
+			set_flags( align_flags, PAD_TOP );
+		if( get_flags( align, PAD_TOP ) )
+			set_flags( align_flags, PAD_LEFT );
+		if( get_flags( align, PAD_BOTTOM ) )
+			set_flags( align_flags, PAD_RIGHT );
+	}else if( get_flags( flip, FLIP_UPSIDEDOWN) )
+	{
+		clear_flags( align_flags, PAD_MASK );
+		if( get_flags( align, PAD_LEFT ) )
+			set_flags( align_flags, PAD_RIGHT );
+		if( get_flags( align, PAD_RIGHT ) )
+			set_flags( align_flags, PAD_LEFT );
+		if( get_flags( align, PAD_TOP ) )
+			set_flags( align_flags, PAD_BOTTOM );
+		if( get_flags( align, PAD_BOTTOM ) )
+			set_flags( align_flags, PAD_TOP );
+	}
+
+	if( get_flags( flip, FLIP_VERTICAL ) )
+	{
+		clear_flags( align_flags, RESIZE_MASK|FIT_LABEL_SIZE );
+		if( get_flags( align, RESIZE_H ) )
+			set_flags( align_flags, RESIZE_V );
+		if( get_flags( align, RESIZE_V ) )
+			set_flags( align_flags, RESIZE_H );
+		if( get_flags( align, RESIZE_H_SCALE ) )
+			set_flags( align_flags, RESIZE_V_SCALE );
+		if( get_flags( align, RESIZE_V_SCALE ) )
+			set_flags( align_flags, RESIZE_H_SCALE );
+		if( get_flags( align, FIT_LABEL_WIDTH ) )
+			set_flags( align_flags, FIT_LABEL_HEIGHT );
+		if( get_flags( align, FIT_LABEL_HEIGHT ) )
+			set_flags( align_flags, FIT_LABEL_WIDTH );
+	}	 
+
+#if 0
     if( get_flags( flip, FLIP_VERTICAL ) )
         align_flags = (((align&PAD_H_MASK)>>PAD_H_OFFSET)<<PAD_V_OFFSET)|
                       (((align&PAD_V_MASK)>>PAD_V_OFFSET)<<PAD_H_OFFSET)|
@@ -875,24 +929,9 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
 
     if( get_flags( flip, FLIP_UPSIDEDOWN ) )
         align_flags = ((align_flags&0x0005)<<1)|((align_flags&(0x0005<<1))>>1)|(align_flags&RESIZE_MASK);
+#endif
 
-	LOCAL_DEBUG_CALLER_OUT( "type = %d, col = %d, row = %d, flip = %d, align_flags = 0x%lX", type, col, row, flip, align_flags );
 
-	clear_flags( align_flags, FIT_LABEL_SIZE);
-	if( get_flags( flip, FLIP_VERTICAL ) )
-	{
-		if( get_flags( align, FIT_LABEL_WIDTH ) )
-        	set_flags( align_flags, FIT_LABEL_HEIGHT );
-    	if( get_flags( align, FIT_LABEL_HEIGHT ) )
-        	set_flags( align_flags, FIT_LABEL_WIDTH );
-	}else
-	{
-
-		if( get_flags( align, FIT_LABEL_WIDTH ) )
-        	set_flags( align_flags, FIT_LABEL_WIDTH );
-    	if( get_flags( align, FIT_LABEL_HEIGHT ) )
-        	set_flags( align_flags, FIT_LABEL_HEIGHT );
-	}
 	LOCAL_DEBUG_CALLER_OUT( "type = %d, flip = %d, align = 0x%X, align_flags = 0x%lX", type, flip, align, align_flags );
     align_flags &= (PAD_MASK|RESIZE_MASK|FIT_LABEL_SIZE);
 
