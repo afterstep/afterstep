@@ -116,24 +116,15 @@ PrintColorConfig (ColorConfig *config )
 ColorConfig *
 ParseColorOptions (const char *filename, char *myname)
 {
-	ConfigData    cd ;
-	ConfigDef    *ConfigReader;
 	ColorConfig   *config = CreateColorConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 
-	cd.filename = filename ;
-	ConfigReader = InitConfigReader (myname, &ColorSyntax, CDT_Filename, cd, NULL);
-	if (!ConfigReader)
+	Storage = file2free_storage(filename, myname, &ColorSyntax, &(config->more_stuff) );
+	if (Storage == NULL)
 		return config;
-
+	
 	item.memory = NULL;
-	PrintConfigReader (ConfigReader);
-	ParseConfig (ConfigReader, &Storage);
-	PrintFreeStorage (Storage);
-
-	/* getting rid of all the crap first */
-	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
 	LOCAL_DEBUG_OUT( "Storage = %p", Storage );
 
@@ -164,7 +155,6 @@ ParseColorOptions (const char *filename, char *myname)
 	}
 	ReadConfigItem (&item, NULL);
 
-	DestroyConfig (ConfigReader);
 	DestroyFreeStorage (&Storage);
 	return config;
 }

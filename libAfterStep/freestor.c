@@ -537,7 +537,7 @@ free_storage2quoted_text (FreeStorageElem * stored, int *ppos)
 				strcpy (ptr - 1, ptr);
 		(*ppos)++;
 	} else
-		show_error ("bad quoted string [%s] for option [%s]. Ignoring!",ptr, stored->term->keyword);
+		show_error ("bad quoted string [%s] (ppos == %d) for option [%s]. Ignoring!",ptr?ptr:"(null)", *ppos, stored->term->keyword);
 
 	return result;
 }

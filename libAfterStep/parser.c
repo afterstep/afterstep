@@ -46,6 +46,36 @@
 #include "functions.h"
 
 char         *_disabled_keyword = DISABLED_KEYWORD;
+char         *_unknown_keyword = "unknown";
+
+static ASHashTable *Keyword2IDHash = NULL ; 
+
+
+void 
+register_keyword_id( const char *keyword, int id ) 
+{
+	ASHashData hdata = {0};
+
+	if( Keyword2IDHash == NULL )
+		Keyword2IDHash = create_ashash( 0, NULL, NULL, NULL );
+
+	hdata.cptr = (char*)keyword ; 
+	add_hash_item( Keyword2IDHash, AS_HASHABLE(id), hdata.vptr );
+}	   
+
+const char*
+keyword_id2keyword( int id )	
+{
+	ASHashData hdata = {0};
+
+	if( Keyword2IDHash == NULL )	
+		return _unknown_keyword;
+	
+	if( get_hash_item(Keyword2IDHash, AS_HASHABLE(id), &hdata.vptr) == ASH_Success ) 
+		return hdata.cptr;
+	
+	return _unknown_keyword;
+}
 
 void
 BuildHash (SyntaxDef * syntax)
@@ -57,7 +87,10 @@ BuildHash (SyntaxDef * syntax)
 	if (syntax->term_hash == NULL)
 		syntax->term_hash = create_ashash (syntax->term_hash_size, option_hash_value, option_compare, NULL);
 	for (i = 0; syntax->terms[i].keyword; i++)
-		add_hash_item (syntax->term_hash, (ASHashableValue) syntax->terms[i].keyword, (void *)&(syntax->terms[i]));
+	{	
+		add_hash_item (syntax->term_hash, AS_HASHABLE(syntax->terms[i].keyword), (void *)&(syntax->terms[i]));
+		register_keyword_id( syntax->terms[i].keyword, syntax->terms[i].id );
+	}
 }
 
 TermDef      *

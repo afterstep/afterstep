@@ -120,6 +120,16 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 
 #define CONFIG_PrivateFiles_ID			(CONFIG_ID_START+39)
 #define CONFIG_SharedFiles_ID			(CONFIG_ID_START+40)
+
+#define CONFIG_flags_ID					(CONFIG_ID_START+41)
+#define CONFIG_x_ID						(CONFIG_ID_START+42)
+#define CONFIG_y_ID						(CONFIG_ID_START+43)
+#define CONFIG_width_ID					(CONFIG_ID_START+44)
+#define CONFIG_height_ID 				(CONFIG_ID_START+45)
+
+#define CONFIG_type_ID	 				(CONFIG_ID_START+46)
+#define CONFIG_tint_ID	 				(CONFIG_ID_START+47)
+#define CONFIG_pixmap_ID 				(CONFIG_ID_START+48)
  
 #define CONFIG_ID_END					(CONFIG_ID_START+64)
 
