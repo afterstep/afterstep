@@ -825,7 +825,6 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
     if (CopyFile (data->text, realfilename) == 0)
     {
         SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
-        forget_asimage_name( Scr.image_manager, realfilename );
         change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
     }
 
