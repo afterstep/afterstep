@@ -1035,11 +1035,21 @@ asim_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool f
 }	 
 
 int 
-asim_sqrt( int sval ) 
+asim_sqrt( double sval ) 
 {
-	long long uval = sval >= 0 ? sval:-sval ;
-	long long res = (uval>=1024?uval>>5:(uval>=64?uval>>3:uval>>1)) ; 
+	long long uval = (sval >= 0) ? (long long)sval:-(long long)sval ;
+	long long res = uval ; 
 	long long t = res*res ;
+	
+	while( t > uval ) 
+	{
+		res = res >> 1 ; 
+		t = t >> 2 ;	  
+	}	 
+	if( t == uval ) 
+		return res;
+	res = (res << 1) + 1 ;
+	t = res*res ;
 	while( t > uval ) 
 	{
 		t -= (res<<1)-1 ;
@@ -1053,44 +1063,67 @@ render_aa_ellips_pixels_l2r( ASDrawContext *ctx, int x, int x1, int x2, int dy, 
 {
 	if( x1 < x2 ) 
 	{	
+		int dx = x2 - x1 ; 
 		y1 -= dy*direction ;
 		y2 += dy*direction ;	 
 		if( dy > 1 )
 		{                      /* vertical line fading up */
-			int i = 0 ; 
-			int delta = 0x0000CFFF/(dy+1) ; 
-			int val = delta ; 
-			for( ; i < dy  ; ++i ) 
+			int i = 0, i2 = dy-1 ; 
+			while( i < dy ) 
 			{
-				CARD32 v = (val>>8);
-	 			CTX_PUT_PIXEL( ctx, x+x1, y1+i*direction, v ) ; 			
-				CTX_PUT_PIXEL( ctx, x-x1, y2-i*direction, v ) ;
-				if( dy < 4 ) 
+				CARD32 v = 128-((dy-1-i)<<8)/((dy<<1)-i);
+				int i_dir = i*direction ; 
+				int i2_dir = i2*direction ; 
+	 			CTX_PUT_PIXEL( ctx, x+x1, y1+i_dir, v ) ; 			
+				CTX_PUT_PIXEL( ctx, x-x1, y2-i_dir, v ) ;
+	 			CTX_PUT_PIXEL( ctx, x+x1+2, y1+i2_dir, v ) ; 			   
+				CTX_PUT_PIXEL( ctx, x-x1-2, y2-i2_dir, v ) ;
+				++i ; --i2 ;
+				if( i < dy) 
 				{	
-					v = (v>>2)*3 ;
-	 				CTX_PUT_PIXEL( ctx, x+x1+1, y1+(i-1)*direction, v ) ; 			   
-					CTX_PUT_PIXEL( ctx, x-x1-1, y2-(i-1)*direction, v ) ;
+					v = v>>1 ;
+					i_dir = i*direction ;
+					i2_dir = i2*direction ; 
+	 				CTX_PUT_PIXEL( ctx, x+x1-1, y1+i_dir, v ) ; 			   
+					CTX_PUT_PIXEL( ctx, x-x1+1, y2-i_dir, v ) ;
+	 				CTX_PUT_PIXEL( ctx, x+x1+3, y1+i2_dir, v ) ; 			   
+					CTX_PUT_PIXEL( ctx, x-x1-3, y2-i2_dir, v ) ;
 				}
-				val += delta ; 	
 			}		   
+		}else if( dy == 1 && dx == 1 ) 
+		{
+#if 1			
+ 			CTX_PUT_PIXEL( ctx, x+x1, y1, 60 ) ; 			   
+			CTX_PUT_PIXEL( ctx, x-x1, y2, 60 ) ;
+ 			CTX_PUT_PIXEL( ctx, x+x1+1, y1-direction, 60 ) ; 			   
+			CTX_PUT_PIXEL( ctx, x-x1-1, y2+direction, 60 ) ;
+ 			CTX_PUT_PIXEL( ctx, x+x1+2, y1, 60 ) ; 			   
+			CTX_PUT_PIXEL( ctx, x-x1-2, y2, 60 ) ;
+ 			CTX_PUT_PIXEL( ctx, x+x1+1, y1+direction, 60 ) ; 			   
+			CTX_PUT_PIXEL( ctx, x-x1-1, y2-direction, 60 ) ;
+#endif
 		}else 	               /* horizontal line fading left */
 		{
-			int dx = x2 - x1 ; 
 			int i = 0 ; 
-			int delta = 0x0000CFFF/(dx+1) ; 	  
-			int val = delta ; 
-			for( ; i < dx ; ++i ) 
+			int mirror_x1 = x1+dx-2 ;
+			while( i < dx ) 
 			{
-				CARD32 v = (val>>8);
-	 			CTX_PUT_PIXEL( ctx, x+x1+i, y1, v ) ; 			
-				CTX_PUT_PIXEL( ctx, x-x1-i, y2, v ) ;
-				if( dx < 4 ) 
+				CARD32 v = 128-((dx-1-i)<<8)/((dx<<1)-i);
+	 			CTX_PUT_PIXEL( ctx, x+(x1+i), y1, v ) ; 			
+				CTX_PUT_PIXEL( ctx, x-(x1+i), y2, v ) ;
+	 			CTX_PUT_PIXEL( ctx, x+(mirror_x1-i), y1+(direction<<1), v ) ; 			   
+				CTX_PUT_PIXEL( ctx, x-(mirror_x1-i), y2-(direction<<1), v ) ;
+				++i ; 
+#if 1
+				if( dx < 4 && i < dx ) 
 				{	
-					v = (v>>2)*3 ;
-					CTX_PUT_PIXEL( ctx, x+x2+i-1, y1+direction, v ) ; 			   
-					CTX_PUT_PIXEL( ctx, x-x2-i+1, y2-direction, v ) ;
+					v = v>>1 ;
+					CTX_PUT_PIXEL( ctx, x+x1+i, y1-direction, v ); 			   
+					CTX_PUT_PIXEL( ctx, x-x1-i, y2+direction, v );
+		 			CTX_PUT_PIXEL( ctx, x+(mirror_x1-i+dx), y1+direction, v ) ; 			   
+					CTX_PUT_PIXEL( ctx, x-(mirror_x1-i+dx), y2-direction, v ) ;
 				}
-				val += delta ; 	
+#endif
 			}		   
 		}
 	}	 
@@ -1204,7 +1237,7 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 		angle -= 180 ; 
 	if( angle > 90 ) 
 	{	
-		angle -= 90 ; 
+		angle = 180-angle ; 
 		direction = -1 ;
 	}
 
@@ -1232,115 +1265,147 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 		int line = yt ; 
 		int old_x1 = x1 ; 
 		int old_x2 = x2 ; 
+		int midx1 = x1 ;
+		int midx2 = x2 ; 
 		int dy1 = 0, dy2 = 0 ;
 		int y1 = line*direction ;
 		double A2 = 2.*A ;
-		double By_B4 = B*(double)line - (B/4.) ;
-		double C2y = 2.*C*(double)line ;
-		double By2F = B*(double)line*(double)line + F;
+		double BB = B*(double)line*(double)line + F - B*(double)line - (B/4.);
+		double CC = C*(double)((line<<1)-1);
 
 		CTX_PUT_PIXEL( ctx, x+xt, y-y1-direction, 255 ) ; 			   
 		CTX_PUT_PIXEL( ctx, x-xt, y+y1+direction, 255 ) ; 			   
 		while( line >= 0 ) 
 		{
-			double d = A*(double)x1*(double)x1 + By2F +C2y*(double)x1 ;
-			
+			double d ; 
+			int dx1 = 0, dx2 = 0 ;
+			int new_midx1, new_midx2 ;
+			d = A*(double)x1*(double)x1 + BB +CC*(double)x1;
 			if( d < 0. ) 
 			{       
-				double G = A - A2*(double)x1-C2y+C ;
-				double AA = G ;
-				int k = 1 ; 
+				double G = A-A2*(double)x1-CC ;
+				double AA = G ; 
+				d += G ; 
+				++dx1 ;
+				while( d < 0. ) { AA += A2 ; d += AA ; ++dx1 ; }
+			}
 
-				d = d - (By_B4+C*(double)x1) + G ; 
-				while( d < 0. ) 
+			d = A*(double)x2*(double)x2 + BB +CC*(double)x2 ;
+			if( line > yr ) 
+			{
+			 	if( d < 0. ) 	
 				{
-					AA += A2 ; 
-					d += AA ;	  
-					++k ;
-				}
-				old_x1 = x1 ;
-				x1 -= (k-1) ;
-				 
-			}
-			d = A*(double)x2*(double)x2 + By2F +C2y*(double)x2 ;
-			
-			if( (d < 0. && line > yr) || (d > 0. && line < yr))
-			{
-				double G = A2*(double)x2+C2y-C ;
-				double AA = 0 ;
-				int k = 1 ; 
-				
-				d -= By_B4+C*(double)x2 ;
-				if( line < yr )
-				{	
-					G = A-G ;
-					AA += G ; 
+					double G = A+A2*(double)x2+CC ;
+					double AA = G ; 
 					d += G ; 
-					while( d > 0. ) 
-					{
-						AA += A2 ; 
-						d += AA ;	  
-						++k ;
-					}
-					k = -k+1 ; 
-				}else
-				{	
-					G += A ;
-					AA += G ;
-					d += G ; 
-					while( d < 0. ) 
-					{
-						AA += A2 ; 
-						d += AA ;	  
-						++k ;
-					}
-					k = (k-1) ; 
-				}
-				if( k != 0 )
-				{	
-					if( x2 == xr ) 
-						render_aa_ellips_pixels_r2l( ctx, x, xr+1, x2, yr-line, y-y1, y+y1, direction);
-					else
-						render_aa_ellips_pixels_r2l( ctx, x, old_x2, x2, dy2, y-y1, y+y1, direction);
-					old_x2 = x2 ;
-					dy2 = 0 ;			   
-					x2 += k;
-				}
-			}else if( line == yr ) 
+					dx2 = 1;
+					while( d < 0. ) { AA += A2 ; d += AA ; ++dx2 ; }
+				}	 
+			}else if( line < yr ) 
 			{
-				render_aa_ellips_pixels_r2l( ctx, x, old_x2, xr, dy2, y-y1, y+y1, direction);
-				old_x2 = x2 ;
-				if( x2 != xr )
-					dy2 = 0 ;			   
-				x2 = xr ;
-			}
-			if( fill ) 
+				if( d > 0. )
+				{	
+					double G = A-A2*(double)x2-CC ;
+					double AA = G ; 
+					d += G ; 
+					dx2 = -1 ;
+					while( d > 0. )	{	AA += A2 ; 	d += AA ; --dx2 ;	}
+				}			
+			}else
+				dx2 = xr - x2 ; 
+					 
+			if( dx1 == 0 ) 
 			{	
-				CTX_FILL_HLINE(ctx,x+x1,y-y1,x+x2,255);
-				CTX_FILL_HLINE(ctx,x-x2,y+y1,x-x1,255);
+    			new_midx1 = midx1 ;	
+			}else /*( dx1 > 0 ) */
+			{
+    			new_midx1 = x1 - dx1/2 ; 	
+				old_x1 = x1 ;
+				x1 -= dx1 ;
+			}
+			if( dx2 == 0 ) 
+			{
+				
+			 	new_midx2 = midx2 ;	
 			}else
 			{
-				CTX_PUT_PIXEL( ctx, x+x1, y-y1, 255 ) ; 			   
-				CTX_PUT_PIXEL( ctx, x+x2, y-y1, 255 ) ; 			   
-				CTX_PUT_PIXEL( ctx, x-x2, y+y1, 255 ) ; 			   
-				CTX_PUT_PIXEL( ctx, x-x1, y+y1, 255 ) ; 			   
+				if( dx2 < 0 ) 	
+				{
+					/* vertical blocks from top right to bottom left */
+					
+				}else
+				{
+					
+				}		 
+				new_midx2 = x2 + dx2/2 ; 
+				old_x2 = x2 ;
+				x2 += dx2 ;
+			}		 
+			
+			if( fill ) 
+			{	
+				CTX_FILL_HLINE(ctx,x+new_midx1+1,y-y1,x+new_midx2-1,255);
+				CTX_FILL_HLINE(ctx,x-new_midx2-1,y+y1,x-new_midx1+1,255);
 			}
-				 
-			++dy1 ;	++dy2;			   
-			if( old_x1 > x1 ) 
-			{
-				render_aa_ellips_pixels_l2r( ctx, x, x1, old_x1, dy1, y-y1, y+y1, direction);
-				old_x1 = x1 ; 
-				dy1 = 0 ;			   
-			}	 
+			
+			if( dx1 != 0 ) 
+			{	
+//				CTX_PUT_PIXEL( ctx, x+new_midx1, y-y1, 255 ) ; 			   
+//				CTX_PUT_PIXEL( ctx, x-new_midx1, y+y1, 255 ) ; 		
+				if( dx1 == 1 ) 
+				{
+					if( dy1 == 1 )
+					{	
+//						CTX_PUT_PIXEL( ctx, x+new_midx1, y-y1-direction, 60 ) ; 			   
+//						CTX_PUT_PIXEL( ctx, x-new_midx1, y+y1+direction, 60 ) ; 		
+//						CTX_PUT_PIXEL( ctx, x+new_midx1+1, y-y1, 60 ) ; 			   
+//						CTX_PUT_PIXEL( ctx, x-new_midx1-1, y+y1, 60 ) ; 		
+					}else
+					{          /* vertical block from (midx1,y1-dy) to ( new_midx1, y1)*/
+						
+					}	 
+				}else
+				{   /* horizontal block from (midx1,y1-1) to ( new_midx1, y1)*/
+				   	int dx = ((midx1 - new_midx1)*5)>>2 ; 
+				   	int i = dx;
+					int delta = 0x0000FFFF/dx ; 
+					int val = delta ; 
+					int y11 = y1+direction ; 
+				   	while( i > 0 )
+				   	{
+						CARD32 v = val >> 8 ;
+				   		CTX_PUT_PIXEL( ctx, x+new_midx1+i, y-y11, ~v ); 			    		
+						CTX_PUT_PIXEL( ctx, x+new_midx1+i, y-y1, v );
+						--i ;
+						val += delta ;
+					}		   
+					
+				}		  
+				dy1 = 0 ;  
+			}
+			
+			if( dx2 != 0 ) 
+			{	
+				CTX_PUT_PIXEL( ctx, x+new_midx2, y-y1, 255 ) ; 			   
+				CTX_PUT_PIXEL( ctx, x-new_midx2, y+y1, 255 ) ; 			   
+
+				dy2 = 0 ; 
+			}
+			
+			/* for each side we either draw a vertical block 2xDY or
+			 * a horizontal block 2xDX
+			 */
+
+			midx1 = new_midx1 ;
+			midx2 = new_midx2 ;
+			
+			CC -= 2.*C ;
+			BB -= B*(double)((line-1)<<1) ;
 			y1 -= direction ;
-			By_B4 -= B ;
-			C2y -= 2.*C ;
-			By2F -= B*(double)((line<<1)-1) ;
 			--line ; 
+			++dy1 ;
+			++dy2 ;
 		}	 
-		CTX_PUT_PIXEL( ctx, x+old_x2, y, 127 ) ; 			   
-		CTX_PUT_PIXEL( ctx, x-old_x2, y, 127 ) ; 			   
 	}		
 }	 
 
@@ -1556,14 +1621,16 @@ int main(int argc, char **argv )
 	asim_set_brush( ctx, 0 ); 
 //	asim_circle( ctx, -1000, -1000, 2000, False );
 //	asim_ellips( ctx, -1000, -1000, 2000, 500, -45, False );
-	asim_circle( ctx, 595, 550, 200, True );
+//	asim_circle( ctx, 595, 550, 200, True );
 	i = 30 ;
 
-	for( k = 0 ; k < 100 ; ++k ) 
-		for( i = 3 ; i < 180 ; i+=5 ) 
+//	for( k = 0 ; k < 100 ; ++k ) 
+//		for( i = 3 ; i < 180 ; i+=5 ) 
 		{	
 			asim_ellips2( ctx, 595, 550, 198, 40, i, False );
-			asim_ellips( ctx, 595, 550, 198, 40, i, False ); 
+			asim_ellips2( ctx, 595, 550, 198, 40, i+30, False );
+			asim_ellips( ctx, 595, 540, 198, 40, i+30, False );
+//			asim_ellips( ctx, 595, 550, 198, 40, i, False ); 
 		}
 	asim_circle( ctx, 705, 275, 90, True );
 
