@@ -1046,20 +1046,27 @@ CARD32 color2pixel24rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixe
 }
 CARD32 color2pixel16bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
 {
-
-	return (encoded_color>>1)&0x00300403;
+	register CARD32 c = encoded_color ;
+    *pixel = ((c&0x000000F8)<<8)|((c&0x0000FC00)>>5)|((c&0x00F80000)>>19);
+	return (c>>1)&0x00030103;
 }
 CARD32 color2pixel16rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
 {
-	return (encoded_color>>1)&0x00300403;
+	register CARD32 c = encoded_color ;
+    *pixel = ((c&0x00F80000)>>8)|((c&0x0000FC00)>>5)|((c&0x000000F8)>>3);
+	return (c>>1)&0x00030103;
 }
 CARD32 color2pixel15bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
 {
-	return (encoded_color>>1)&0x00300C03;
+	register CARD32 c = encoded_color ;
+    *pixel = ((c&0x000000F8)<<7)|((c&0x0000F800)>>6)|((c&0x00F80000)>>19);
+	return (c>>1)&0x00030303;
 }
 CARD32 color2pixel15rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
 {
-	return (encoded_color>>1)&0x00300C03;
+	register CARD32 c = encoded_color ;
+    *pixel = ((c&0x00F80000)>>9)|((c&0x0000F800)>>6)|((c&0x000000F8)>>3);
+	return (c>>1)&0x00030303;
 }
 
 void pixel2color32rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue)
