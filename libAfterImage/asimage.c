@@ -239,7 +239,7 @@ Bool create_image_xim( ASVisual *asv, ASImage *im, ASAltImFormats format )
 	if( *dst == NULL )
 	{
 		int depth = 0 ;
-		if( format == ASA_MaskXImage ) 
+		if( format == ASA_MaskXImage )
 			depth = get_flags(im->flags, ASIM_XIMAGE_8BIT_MASK )? 8: 1;
 		if( (*dst = create_visual_ximage( asv, im->width, im->height, depth )) == NULL )
 			show_error( "Unable to create %sXImage for the visual %d",
@@ -348,8 +348,8 @@ store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
 	return res ;
 }
 
-ASImage *
-fetch_asimage( ASImageManager* imageman, const char *name )
+inline ASImage *
+query_asimage( ASImageManager* imageman, const char *name )
 {
 	ASImage *im = NULL ;
 	if( !AS_ASSERT(imageman) && !AS_ASSERT(name) )
@@ -357,11 +357,19 @@ fetch_asimage( ASImageManager* imageman, const char *name )
 		{
 			if( im->magic != MAGIC_ASIMAGE )
 				im = NULL ;
-			else
-				im->ref_count++ ;
-		}
+        }
 	return im;
 }
+
+ASImage *
+fetch_asimage( ASImageManager* imageman, const char *name )
+{
+    ASImage *im = query_asimage( imageman, name );
+    if( im )
+        im->ref_count++ ;
+    return im;
+}
+
 
 ASImage *
 dup_asimage( ASImage* im )
@@ -390,7 +398,8 @@ release_asimage( ASImage *im )
 			{
 				ASImageManager *imman = im->imageman ;
 				if( !AS_ASSERT(imman) )
-					remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, True);
+                    if( remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, True) != ASH_Success )
+                        destroy_asimage( &im );
 			}else
 				res = im->ref_count ;
 		}
@@ -408,12 +417,21 @@ forget_asimage( ASImage *im )
 			ASImageManager *imman = im->imageman ;
 			if( !AS_ASSERT(imman) )
 				remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, False);
-			im->ref_count = 0;
-			im->imageman = NULL;
+/*            im->ref_count = 0;     release_asimage should still correctly work !!!!
+ *            im->imageman = NULL;
+ */
 		}
 	}
 }
 
+void
+forget_asimage_name( ASImageManager *imman, const char *name )
+{
+    if( !AS_ASSERT(imman) && name != NULL )
+	{
+        remove_hash_item(imman->image_hash, AS_HASHABLE((char*)name), NULL, False);
+    }
+}
 
 inline int
 safe_asimage_destroy( ASImage *im )
@@ -432,7 +450,7 @@ safe_asimage_destroy( ASImage *im )
 			}else
 			{
 				destroy_asimage( &im );
-				res = -1 ;	
+				res = -1 ;
 			}
 		}
 	}
@@ -541,7 +559,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	imdec->buffer.back_color = ARGB32_DEFAULT_BACK_COLOR;
 	if( im == NULL )
 		imdec->decode_asscanline = decode_asscanline_native;
-	else if( get_flags( im->flags, ASIM_DATA_NOT_USEFUL ) && im->alt.ximage != NULL ) 
+	else if( get_flags( im->flags, ASIM_DATA_NOT_USEFUL ) && im->alt.ximage != NULL )
 	{
 		imdec->decode_asscanline = decode_asscanline_ximage;
 		imdec->xim_buffer = safecalloc(1, sizeof(ASScanline));
@@ -1055,7 +1073,7 @@ check_asimage_alpha (ASVisual *asv, ASImage *im )
 
 	if (im == NULL)
 		return 0;
-	
+
 	prepare_scanline( im->width, 0, &buf, asv->BGR_mode );
 	buf.flags = SCL_DO_ALPHA ;
 	for (i = 0; i < im->height; i++)
@@ -1078,12 +1096,12 @@ check_asimage_alpha (ASVisual *asv, ASImage *im )
 			{
 				if( recomended_depth == 0 )
 					recomended_depth = 1 ;
-			}else if( (buf.alpha[count]&0xFF) != 0xFF  )	
+			}else if( (buf.alpha[count]&0xFF) != 0xFF  )
 			{
 				recomended_depth = 8 ;
 				break ;
 			}
-		if( recomended_depth == 8 ) 
+		if( recomended_depth == 8 )
 			break;
 	}
 	free_scanline(&buf, True);
@@ -1766,15 +1784,15 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 		ASScanline *xim_scl = imdec->xim_buffer;
 		int offset_x = imdec->offset_x%xim_width ;
 /*fprintf( stderr, __FILE__ ":" __FUNCTION__ ": width=%d, xim_width=%d, skip = %d, offset_x = %d - tiling\n", width, xim->width, skip, imdec->offset_x );	*/
-  
+
 		GET_SCANLINE(imdec->asv,xim,xim_scl,y,xim->data+xim->bytes_per_line*y);
 		/* We also need to decode mask if we have one :*/
-		if( (xim = imdec->im->alt.mask_ximage ) != NULL ) 
+		if( (xim = imdec->im->alt.mask_ximage ) != NULL )
 		{
 #ifndef X_DISPLAY_MISSING
 			CARD32 *dst = xim_scl->alpha ;
 			register int x = MIN((int)xim_scl->width,xim->width);
-			if( xim->depth == 8 ) 
+			if( xim->depth == 8 )
 			{
 				CARD8  *src = xim->data+xim->bytes_per_line*y ;
 				while(--x >= 0 ) dst[x] = (CARD32)(src[x]);
@@ -1800,7 +1818,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 		{	src = xim_scl->channels[i]-k ; \
 			count = MIN(xim_width+k,width); \
 			for(; k < count ; k++ ) dst[k] = op; \
-		}	
+		}
 
 				if( scl->shift )
 				{
@@ -1814,19 +1832,19 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 					set_component( src, ARGB32_CHAN8(imdec->back_color, i)<<scl->shift, count, width );
 			}
 	}else
-#endif	
+#endif
 	{/* cool we can put data directly into buffer : */
 /*fprintf( stderr, __FILE__ ":" __FUNCTION__ ":direct\n" );	*/
 		int old_offset = scl->offset_x ;
 		scl->offset_x = skip ;
 		GET_SCANLINE(imdec->asv,xim,scl,y,xim->data+xim->bytes_per_line*y);
 		/* We also need to decode mask if we have one :*/
-		if( (xim = imdec->im->alt.mask_ximage ) != NULL ) 
+		if( (xim = imdec->im->alt.mask_ximage ) != NULL )
 		{
 #ifndef X_DISPLAY_MISSING
 			CARD32 *dst = scl->alpha+skip ;
 			register int x = MIN(width,xim_width);
-			if( xim->depth == 8 ) 
+			if( xim->depth == 8 )
 			{
 				CARD8  *src = xim->data+xim->bytes_per_line*y ;
 				while(--x >= 0 ) dst[x] = (CARD32)(src[x]);
@@ -1836,7 +1854,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 			}
 #endif
 		}
-		count = MIN(width,xim_width);  	
+		count = MIN(width,xim_width);
 		scl->offset_x = old_offset ;
 		for( i = 0 ; i < IC_NUM_CHANNELS ; i++ )
 			if( get_flags(filter, 0x01<<i) )
@@ -2201,7 +2219,7 @@ encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
 				CARD8 *dst = xim->data+xim->bytes_per_line*imout->next_line ;
 				while( --x >= 0 )
 					dst[x] = (CARD8)(a[x]);
-			}else 
+			}else
 			{
 				unsigned int nl = imout->next_line ;
 				while( --x >= 0 )
@@ -2471,7 +2489,7 @@ clone_asimage( ASImage *src, ASFlagType filter )
 	{
 		int chan ;
 		dst = create_asimage(src->width, src->height, (src->max_compressed_width*100)/src->width);
-		if( get_flags( src->flags, ASIM_DATA_NOT_USEFUL ) ) 
+		if( get_flags( src->flags, ASIM_DATA_NOT_USEFUL ) )
 			set_flags( dst->flags, ASIM_DATA_NOT_USEFUL );
 		dst->back_color = src->back_color ;
 		for( chan = 0 ; chan < IC_NUM_CHANNELS;  chan++ )

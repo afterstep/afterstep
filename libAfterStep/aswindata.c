@@ -32,6 +32,7 @@
 #include "../include/clientprops.h"
 #include "../include/wmprops.h"
 #include "../include/aswindata.h"
+#include "../include/decor.h"
 
 /**********************************************************************/
 /* Our data :                                        				  */
@@ -55,6 +56,13 @@ window_data_destroy( ASHashableValue val, void *data )
 				free( wd->res_class );
 			if( wd->res_name )
 				free( wd->res_name );
+            if( wd->canvas )
+            {
+                XDestroyWindow( dpy, wd->canvas->w );
+                destroy_ascanvas( &(wd->canvas) );
+            }
+            if( wd->bar )
+                destroy_astbar( &(wd->bar) );
 			wd->magic = 0 ;
 		}
 		free( wd );

@@ -543,7 +543,7 @@ ASLayer *get_aslayer( int layer, ASWindowList *list );
 Bool enlist_aswindow( ASWindow *t );
 void delist_aswindow( ASWindow *t );
 void save_aswindow_list( ASWindowList *list, char *file );
-void restack_window_list( int desk );
+void restack_window_list( int desk, Bool send_msg_only );
 Bool is_window_obscured (ASWindow * above, ASWindow * below);
 void restack_window( ASWindow *t, Window sibling_window, int stack_mode );
 #define RaiseWindow(asw)    do{show_progress(__FILE__ " " __FUNCTION__ ":%d R",__LINE__);restack_window((asw),None,Above);}while(0)

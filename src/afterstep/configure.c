@@ -1159,7 +1159,14 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         iterate_asbidirlist( Scr.Windows->clients, redecorate_aswindow_iter_func, NULL, NULL, False );
 
     if( old_image_manager && old_image_manager != Scr.image_manager )
-		destroy_image_manager( old_image_manager, False );
+    {
+        if(Scr.RootImage && Scr.RootImage->imageman == old_image_manager )
+        {
+            safe_asimage_destroy(Scr.RootImage);
+            Scr.RootImage = NULL ;
+        }
+        destroy_image_manager( old_image_manager, False );
+    }
 }
 
 /*****************************************************************************

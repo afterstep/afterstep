@@ -116,6 +116,8 @@ extern Bool   		 menu_event_mask[LASTEvent];  /* menu event filter */
 
 extern int    menuFromFrameOrWindowOrTitlebar;
 
+#define BACKGROUND_DRAW_CHILD   (MAX_SINGLETONS_NUM-1)
+
 /**************************************************************************/
 /**************************************************************************/
 /* Function prototypes :                                                  */
@@ -289,5 +291,6 @@ void MoveViewport (int newx, int newy, Bool grab);
 void HandlePaging (int HorWarpSize, int VertWarpSize, int *xl,
                    int *yt, int *delta_x, int *delta_y, Bool Grab, struct ASEvent *event);
 void ChangeDesks (int new_desk);
+void change_desktop_background( int desk, int old_desk );
 
 #endif /* ASINTERNALS_H_HEADER_INCLUDED */

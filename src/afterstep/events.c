@@ -674,10 +674,17 @@ HandlePropertyNotify (ASEvent *event)
 	/* force updates for "transparent" windows */
     if (xprop->atom == _XROOTPMAP_ID && event->w == Scr.Root)
 	{
+        read_xrootpmap_id (Scr.wmprops, (xprop->state == PropertyDelete));
         if(Scr.RootImage)
-            destroy_asimage (&(Scr.RootImage));
-        if(Scr.RootBackground && Scr.RootBackground->pmap )
-            Scr.RootImage = Scr.RootBackground->im ;
+        {
+            safe_asimage_destroy (Scr.RootImage);
+            Scr.RootImage = NULL ;
+        }
+        if(Scr.RootBackground && Scr.RootBackground->im != NULL )
+        {
+            if( Scr.RootBackground->pmap && Scr.wmprops->root_pixmap == Scr.RootBackground->pmap );
+                Scr.RootImage = dup_asimage(Scr.RootBackground->im) ;
+        }
 
         iterate_asbidirlist( Scr.Windows->clients, update_transp_iter_func, NULL, NULL, False );
 

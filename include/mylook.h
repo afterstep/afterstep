@@ -172,6 +172,10 @@ typedef struct MyLook
     struct ASHashTable *backs_list;   /* hash of MyBackgrounds   by name */
     struct ASHashTable *desk_configs; /* hash of MyDesktopConfig by desk number */
 
+    unsigned int    KillBackgroundThreshold ; /* if WIDTHxHEIGHT of the background image is greater then this value, then
+                                               * image will be destroyed when there are no windows on the desktop and desktop
+                                               * is switched */
+
     struct MyStyle *MSMenu[MENU_BACK_STYLES]; /* menu MyStyles */
 
     /* focussed, unfocussed, sticky window styles */

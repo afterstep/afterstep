@@ -140,7 +140,6 @@ typedef struct ASBackgroundHandler
     unsigned int pmap_width, pmap_height ;
     int     cmd_pid;
     ASImage *im;
-    int last_good_desk;
 }ASBackgroundHandler;
 
 typedef enum {

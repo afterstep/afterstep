@@ -549,7 +549,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     } else
 	{
 #ifdef DEBUG_ALLOCS
-        restack_window_list(INVALID_DESK);
+        restack_window_list(INVALID_DESK, True);
         clientprops_cleanup ();
         wmprops_cleanup ();
         flush_ashash_memory_pool();

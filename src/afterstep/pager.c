@@ -423,7 +423,7 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
             hide_focus();
     }
 
-    restack_window_list( new_desk );
+    restack_window_list( new_desk, False );
 
     /* Change the look to this desktop's one if it really changed */
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
@@ -445,7 +445,29 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
 
 }
 
-ASImage *load_myback_image( int desk, MyBackground *back )
+/*************************************************************************
+ *  Root Background handling :
+ * - Each root background is described by MyBackground object.
+ * - MyBackground could produce ASImage or it could run an external command
+ * - If ASImage is produced - it will be stored either under its filename,
+ *   if there were no transformation performed, or under MyBackground's name
+ * - When there are no windows on the desk and it gets switched and its
+ *   background size is over the threshold - it will be destroyed/released
+ *   from hash.
+ * - if destroyed ASImage is same as Scr.RootImage - Scr.RootImage will be
+ *   set to NULL.
+ * - ASImage also produces pixmap that goes into Root window background
+ * - pixmap gets published using _X_ROOTPMAP property
+ * - when PropertyNotify event comes and property is set to current pixmap -
+ *   its ASImage will be assigned to Scr.RootImage
+ * - If pixmap is unknown - then Scr.RootImage will be set to NULL and it
+ *   will be generated as required by mystyle functions.
+ * - If Scr.RootImage has no name - it will be destroyed when PropertyNotify
+ *   event arrives
+ **************************************************************************/
+
+ASImage *
+load_myback_image( int desk, MyBackground *back )
 {
     ASImage *im = NULL ;
     if( back->data && back->data[0] )
@@ -517,6 +539,35 @@ ASImage *load_myback_image( int desk, MyBackground *back )
     return im;
 }
 
+void release_old_background( int desk )
+{
+    MyBackground *back = mylook_get_desk_back( &(Scr.Look), desk );
+    ASImage *im = NULL ;
+    char *imname ;
+
+    if( back == NULL || back->type == MB_BackCmd )
+        return ;
+
+    imname = make_myback_image_name( &(Scr.Look), back->name );
+    im = query_asimage( Scr.image_manager, imname );
+    free( imname );
+
+    if( im == NULL && back->type == MB_BackImage )
+    {
+        if( back->data && back->data[0] )
+            im = query_asimage( Scr.image_manager, back->data );
+        if( im == NULL )
+        {
+            const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND);
+            if( const_configfile != NULL )
+                im = query_asimage( Scr.image_manager, const_configfile );
+        }
+    }
+
+    if( im != NULL && im->width*im->height >= Scr.Look.KillBackgroundThreshold )
+        safe_asimage_destroy( im );
+}
+
 void
 change_desktop_background( int desk, int old_desk )
 {
@@ -527,27 +578,21 @@ change_desktop_background( int desk, int old_desk )
 LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", desk, old_desk, new_back, old_back );
     if( new_back == NULL )
         return ;
-    if( old_back && old_back->type != MB_BackMyStyle )
-    {                                          /* release old background */
-        char *old_imname = make_myback_image_name( &(Scr.Look), old_back->name );
-        if( Scr.RootImage && Scr.RootImage->name && strcmp(Scr.RootImage->name, old_imname) == 0 )
-            Scr.RootImage = NULL ;
-        release_asimage_by_name( Scr.image_manager, old_imname );
-        free( old_imname );
-    }
+
+    if( new_back == old_back &&
+        desk != old_desk ) /* if desks are the same then we are reloading current background !!! */
+        return;
+
+    release_old_background( old_desk );
 
     if( Scr.RootBackground == NULL )
         Scr.RootBackground = safecalloc( 1, sizeof(ASBackgroundHandler));
     else
     {                                          /* do cleanup - kill command maybe */
-
-
-    }
-
-    if( Scr.RootImage )
-    {
-        safe_asimage_destroy( Scr.RootImage );
-        Scr.RootImage = NULL ;
+        if( Scr.RootBackground->cmd_pid )
+            check_singleton_child (BACKGROUND_SINGLETON_ID, True);
+        Scr.RootBackground->cmd_pid = 0;
+        Scr.RootBackground->im = NULL ;
     }
 
     new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
@@ -556,13 +601,15 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         if( (new_im = fetch_asimage( Scr.image_manager, new_imname )) == NULL )
         {
             if( (new_im = load_myback_image( desk, new_back )) != NULL )
-                store_asimage( Scr.image_manager, new_im, new_imname );
+                if( new_im->name == NULL )
+                    store_asimage( Scr.image_manager, new_im, new_imname );
         }
     }if( new_back->type == MB_BackMyStyle )
     {
         MyStyle *style = mystyle_find_or_default( new_back->data );
         int root_width = Scr.MyDisplayWidth;
         int root_height = Scr.MyDisplayHeight ;
+        ASImage *old_root = Scr.RootImage;
 
         if( style->texture_type == TEXTURE_SOLID || style->texture_type == TEXTURE_TRANSPARENT ||
             style->texture_type == TEXTURE_TRANSPARENT_TWOWAY )
@@ -580,19 +627,19 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
             Scr.RootImage = create_asimage( root_width, 1, 100 );
             Scr.RootImage->back_color = style->colors.back ;
         }
-
+        LOCAL_DEBUG_OUT( "drawing root background using mystyle \"%s\" size %dx%d", style->name, root_width, root_height );
         new_im = mystyle_make_image( style, 0, 0, root_width, root_height );
 
         if( style->texture_type >= TEXTURE_TRANSPARENT )
         {
             destroy_asimage( &(Scr.RootImage) );
-            Scr.RootImage = NULL ;
+            Scr.RootImage = old_root;
         }
     }else
     {                                          /* run command */
-
+        Scr.RootBackground->cmd_pid = spawn_child( XIMAGELOADER, BACKGROUND_SINGLETON_ID, Scr.screen, None, C_NO_CONTEXT, True, False, new_back->data, NULL );
     }
- LOCAL_DEBUG_OUT( "im(%p)", new_im );
+    LOCAL_DEBUG_OUT( "im(%p)", new_im );
     if( new_im )
     {
         ASBackgroundHandler *bh = Scr.RootBackground ;
@@ -611,7 +658,6 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         bh->pmap_width = new_im->width ;
         bh->pmap_height = new_im->height ;
         bh->im = new_im;
-        bh->last_good_desk = desk;
 
         LOCAL_DEBUG_OUT( "width(%d)->height(%d)", new_im->width, new_im->height );
 

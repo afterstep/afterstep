@@ -34,9 +34,10 @@ struct ASScanline;
  *
  *   ImageManager Reference counting and managing :
  *          create_image_manager(), destroy_image_manager(),
- *          store_asimage(), fetch_asimage(), dup_asimage(),
- *          release_asimage(), release_asimage_by_name(),
- *          forget_asimage(), safe_asimage_destroy()
+ *          store_asimage(), fetch_asimage(), query_asimage(),
+ *          dup_asimage(), release_asimage(),
+ *          release_asimage_by_name(), forget_asimage(),
+ *          safe_asimage_destroy()
  *
  *   Layers helper functions :
  *          init_image_layers(), create_image_layers(),
@@ -192,11 +193,11 @@ typedef struct ASImage
   int                    ref_count ;/* this will tell us what us how many
 									 * times */
   char                  *name ;     /* readonly copy of image name */
-  
+
 #define ASIM_DATA_NOT_USEFUL	(0x01<<0)
 #define ASIM_VECTOR_TOP2BOTTOM	(0x01<<1)
 #define ASIM_XIMAGE_8BIT_MASK	(0x01<<2)
-  ASFlagType			 flags ;    /* combination of the above flags */ 
+  ASFlagType			 flags ;    /* combination of the above flags */
 } ASImage;
 /*******/
 
@@ -330,7 +331,7 @@ typedef struct ASImageBevel
 
 /* low level driver (what data to use - native, XImage or ARGB): */
 typedef void (*decode_asscanline_func)( struct ASImageDecoder *imdec, unsigned int skip, int y );
-/* high level driver (bevel or not bevel): */ 
+/* high level driver (bevel or not bevel): */
 typedef void (*decode_image_scanline_func)(struct ASImageDecoder *imdec);
 
 typedef struct ASImageDecoder
@@ -353,14 +354,14 @@ typedef struct ASImageDecoder
 	int            bevel_left, bevel_top, bevel_right, bevel_bottom ;
 
 	/* scanline buffer containing current scanline */
-	ASScanline 		buffer; /* matches the out_width */ 
+	ASScanline 		buffer; /* matches the out_width */
 
 	/* internal data : */
 	unsigned short   bevel_h_addon, bevel_v_addon ;
 	int 			next_line ;
 
     ASScanline   *xim_buffer; /* matches the size of the original XImage */
-	
+
 	decode_asscanline_func     decode_asscanline ;
 	decode_image_scanline_func decode_image_scanline ;
 }ASImageDecoder;
@@ -763,11 +764,13 @@ Bool set_asimage_vector( ASImage *im, register double *vector );
  * store_asimage()         - add ASImage to the refererence.
  * fetch_asimage()         - retrieve previously stored image, incrementing
  *                           reference count.
+ * query_asimage()         - retrieve previously stored image, without
+ *                           incrementing reference count.
  * dup_asimage()           - increment reference count of stored ASImage.
  * release_asimage()       - decrement reference count/destroy ASImage.
  * release_asimage_by_name()
  * forget_asimage()        - remove ASImage from ASImageManager's hash.
- * safe_asimage_destroy()  - either release or destroy asimage, checking 
+ * safe_asimage_destroy()  - either release or destroy asimage, checking
  *                           if it is attached to ASImageManager.
  *********/
 /****f* libAfterImage/asimage/create_image_manager()
@@ -829,7 +832,17 @@ void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
  * name            - unique name of the image.
  * DESCRIPTION
  * Looks for image with the name in ASImageManager's list and if found,
- * it will increment reference count and return pointer to it.
+ * it will increment reference count, and returns pointer to it.
+ *********/
+/****f* libAfterImage/asimage/query_asimage()
+ * SYNOPSIS
+ * ASImage *query_asimage( ASImageManager* imageman, const char *name );
+ * INPUTS
+ * imageman        - pointer to valid ASImageManager object.
+ * name            - unique name of the image.
+ * DESCRIPTION
+ * Looks for image with the name in ASImageManager's list without
+ * increment reference count, and returns pointer to it.
  *********/
 /****f* libAfterImage/asimage/dup_asimage()
  * SYNOPSIS
@@ -860,10 +873,12 @@ void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
  *********/
 Bool     store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
 ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
+ASImage *query_asimage( ASImageManager* imageman, const char *name );
 ASImage *dup_asimage  ( ASImage* im );         /* increment ref countif applicable */
 int      release_asimage( ASImage *im );
 int		 release_asimage_by_name( ASImageManager *imman, char *name );
 void	 forget_asimage( ASImage *im );
+void     forget_asimage_name( ASImageManager *imman, const char *name );
 int		 safe_asimage_destroy( ASImage *im );
 
 

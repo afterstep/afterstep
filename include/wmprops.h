@@ -147,6 +147,8 @@ typedef struct ASWMProps
 /*                           Interface                                   */
 /*************************************************************************/
 /* low level */
+Bool read_xrootpmap_id (ASWMProps * wmprops, Bool deleted);
+
 /* High level */
 void intern_wmprop_atoms ();
 ASWMProps *setup_wmprops (struct ScreenInfo* scr, Bool manager, ASFlagType what, ASWMProps *reusable_memory);

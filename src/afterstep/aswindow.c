@@ -318,7 +318,7 @@ delist_aswindow( ASWindow *t )
 }
 
 void
-restack_window_list( int desk )
+restack_window_list( int desk, Bool send_msg_only )
 {
     static ASVector *ids = NULL ;
     static ASVector *layers = NULL ;
@@ -358,19 +358,36 @@ restack_window_list( int desk )
             end_k = ids->allocated ;
         for( k = 0 ; k < end_k ; k++ )
             if( ASWIN_DESK(members[k]) == desk )
-                windows[windows_num++] = get_window_frame(members[k]);
+                windows[windows_num++] = members[k]->w;
     }
 
+    VECTOR_USED(*ids) = windows_num ;
     SendStackingOrder (-1, M_STACKING_ORDER, desk, ids);
 
-    if( windows_num > 0 )
+    if( !send_msg_only )
     {
-        XRaiseWindow( dpy, windows[0] );
-        if( windows_num > 1 )
-            XRestackWindows( dpy, windows, windows_num );
-        XSync(dpy, False);
+        l = VECTOR_HEAD(ASLayer*,*layers);
+        windows = VECTOR_HEAD(Window,*ids);
+        for( i = 0 ; i < layers_in ; i++ )
+        {
+            register int k, end_k = VECTOR_USED(*(l[i]->members)) ;
+            register ASWindow **members = VECTOR_HEAD(ASWindow*,*(l[i]->members));
+            if( end_k > ids->allocated )
+                end_k = ids->allocated ;
+            for( k = 0 ; k < end_k ; k++ )
+                if( ASWIN_DESK(members[k]) == desk )
+                    windows[windows_num++] = get_window_frame(members[k]);
+        }
+
+        if( windows_num > 0 )
+        {
+            XRaiseWindow( dpy, windows[0] );
+            if( windows_num > 1 )
+                XRestackWindows( dpy, windows, windows_num );
+            XSync(dpy, False);
+        }
+        raise_scren_panframes (&Scr);
     }
-    raise_scren_panframes (&Scr);
 }
 
 /*
@@ -545,7 +562,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
     vector_remove_elem( src_layer->members, &t );
     vector_insert_elem( dst_layer->members, &t, 1, sibling, above );
 
-	restack_window_list( ASWIN_DESK(t) );
+    restack_window_list( ASWIN_DESK(t), False );
 }
 
 /*

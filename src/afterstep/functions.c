@@ -846,7 +846,6 @@ void exec_func_handler( FunctionData *data, ASEvent *event, int module )
 void change_background_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     char tmpfile[256], *realfilename ;
-
     XGrabPointer (dpy, Scr.Root, True, ButtonPressMask | ButtonReleaseMask,
                   GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[WAIT], CurrentTime);
     XSync (dpy, 0);
@@ -858,11 +857,16 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
 
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
     if (CopyFile (data->text, realfilename) == 0)
+    {
         SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
+        forget_asimage_name( Scr.image_manager, realfilename );
+        change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
+    }
 
     free (realfilename);
     XUngrabPointer (dpy, CurrentTime);
     XSync (dpy, 0);
+
 }
 
 void change_config_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -1032,6 +1036,7 @@ void send_window_list_func_handler( FunctionData *data, ASEvent *event, int modu
         SendPacket (module, M_NEW_PAGE, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
         iterate_asbidirlist( Scr.Windows->clients, send_aswindow_data_iter_func, (void*)module, NULL, False );
         SendPacket (module, M_END_WINDOWLIST, 0);
+        restack_window_list( Scr.CurrentDesk, True );
     }
 }
 

@@ -1092,7 +1092,6 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))", a
                             asw->status->x, asw->status->y,
                             asw->status->width, asw->status->height );
         }
-        broadcast_config (M_CONFIGURE_WINDOW, asw);
     }
 }
 
@@ -1131,6 +1130,36 @@ update_window_frame_moved( ASWindow *asw, ASOrientation *od )
         }
 }
 
+void
+SendConfigureNotify(ASWindow *asw)
+{
+    XEvent client_event ;
+
+    client_event.type = ConfigureNotify;
+    client_event.xconfigure.display = dpy;
+    client_event.xconfigure.event = asw->w;
+    client_event.xconfigure.window = asw->w;
+
+    client_event.xconfigure.x = asw->client_canvas->root_x;
+    client_event.xconfigure.y = asw->client_canvas->root_y;
+    client_event.xconfigure.width = asw->client_canvas->width;
+    client_event.xconfigure.height = asw->client_canvas->height;
+
+    if (client_event.xconfigure.height <= 0)
+        client_event.xconfigure.height = asw->hints->height_inc;
+
+    if (client_event.xconfigure.width <= 0)
+        client_event.xconfigure.width = asw->hints->width_inc;
+
+
+    client_event.xconfigure.border_width = asw->status->border_width;
+    /* Real ConfigureNotify events say we're above title window, so ... */
+    /* what if we don't have a title ????? */
+    client_event.xconfigure.above = asw->frame_canvas[FR_N].w?asw->frame_canvas[FR_N].w:asw->frame;
+    client_event.xconfigure.override_redirect = False;
+    XSendEvent (dpy, asw->w, False, StructureNotifyMask, &client_event);
+}
+
 
 /* this gets called when StructureNotify/SubstractureNotify arrives : */
 void
@@ -1156,6 +1185,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
         handle_canvas_config (asw->client_canvas);
         if( asw->internal && asw->internal->on_moveresize )
             asw->internal->on_moveresize( asw->internal, w );
+
+        broadcast_config (M_CONFIGURE_WINDOW, asw);
     }else if( w == asw->frame )
     {/* resize canvases here :*/
         Bool resized = (width != asw->frame_canvas->width || height != asw->frame_canvas->height);
@@ -1187,7 +1218,12 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
                 ASSync(False);
             }
         }else if( moved )
+        {
             update_window_frame_moved( asw, od );
+            broadcast_config (M_CONFIGURE_WINDOW, asw);
+            SendConfigureNotify(asw);
+            /* also sent synthetic ConfigureNotify : */
+        }
 
         if( moved || resized )
             update_window_transparency( asw );
@@ -1207,6 +1243,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
             render_astbar( asw->icon_button, asw->icon_canvas );
             update_canvas_display( asw->icon_canvas );
         }
+        broadcast_config (M_CONFIGURE_WINDOW, asw);
     }else if( asw->icon_title_canvas && w == asw->icon_title_canvas->w )
     {
         if( handle_canvas_config(asw->icon_title_canvas) && asw->icon_title )
@@ -1215,6 +1252,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
             render_astbar( asw->icon_title, asw->icon_title_canvas );
             update_canvas_display( asw->icon_title_canvas );
         }
+        broadcast_config (M_CONFIGURE_WINDOW, asw);
     }else  /* one of the frame canvases :*/
     {
         Bool found = False;
@@ -1813,7 +1851,7 @@ change_aswindow_layer( ASWindow *asw, int layer )
         /* inserting window into the top of the new layer */
         vector_insert_elem( dst_layer->members, &asw, 1, NULL, False );
 
-        restack_window_list( ASWIN_DESK(asw) );
+        restack_window_list( ASWIN_DESK(asw), False );
     }
 }
 

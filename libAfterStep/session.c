@@ -17,12 +17,12 @@
  *
  */
 
+/*#define LOCAL_DEBUG */
+
 #include "../configure.h"
 
 #include <unistd.h>
 #include <stdarg.h>
-
-/*#define LOCAL_DEBUG*/
 
 #include "../include/asapp.h"
 #include "../include/afterstep.h"
@@ -227,10 +227,12 @@ get_desk_session (ASSession * session, int desk)
 			return session->defaults;
 
 		while (--i >= 0 )
+        {
 			if (session->desks[i]->desk == desk)
-				return d;
+                return session->desks[i];
 			else if( session->desks[i]->desk < desk )
 				break;
+        }
 		d = create_desk_session ();
 		d->desk = desk;
 		if( session->desks_used >= session->desks_allocated )
@@ -627,14 +629,14 @@ get_session_file (ASSession * session, int desk, int function)
 	if (session)
 	{
         /* backgrounds are not config files, and therefor cannot be overriden :*/
-        if( session->overriding_file && function != F_CHANGE_BACKGROUND )
-            return session->overriding_file ;
         if( session->overriding_look && function == F_CHANGE_LOOK )
             return session->overriding_look ;
         if( session->overriding_feel && function == F_CHANGE_FEEL )
             return session->overriding_feel ;
         if( session->overriding_theme && function == F_CHANGE_THEME )
             return session->overriding_theme ;
+        if( session->overriding_file && function != F_CHANGE_BACKGROUND )
+            return session->overriding_file ;
 
 		switch (function)
 		{
@@ -658,37 +660,21 @@ get_session_file (ASSession * session, int desk, int function)
 		if (d)
 		{
 			file = (char *)get_desk_file (d, function);
-			if (file != NULL)
+            LOCAL_DEBUG_OUT( "file for desk %d is \"%s\"", desk, file?"":file );
+            if (file != NULL)
 				if (CheckFile (file) != 0)
 					file = NULL;
-
-			/* fallback to defaults */
-			if (file == NULL && d != session->defaults)
-			{
-				file = (char *)get_desk_file (session->defaults, function);
-				if (file != NULL)
-					if (CheckFile (file) != 0)
-						file = NULL;
-			}
-#if 0
-			if (file == NULL)
-			{
-				switch (function)
-				{
-				 case F_CHANGE_LOOK:
-                     file = find_default_file (session, "looks/look.DEFAULT", True);
-					 break;
-				 case F_CHANGE_FEEL:
-                     file = find_default_file (session, "feels/feel.DEFAULT", True);
-					 break;
-				 case F_CHANGE_BACKGROUND:
-                     file = find_default_background_file (session);
-					 break;
-				}
-			}
-#endif
-		}
-	}
+            /* fallback to defaults */
+            if (file == NULL && d != session->defaults)
+            {
+                file = (char *)get_desk_file (session->defaults, function);
+                LOCAL_DEBUG_OUT( "default file is \"%s\"", file );
+                if (file != NULL)
+                    if (CheckFile (file) != 0)
+                        file = NULL;
+            }
+        }
+    }
 	return file;
 }
 
