@@ -64,6 +64,10 @@ typedef struct ASWinTab
 }ASWinTab;
 
 typedef struct {
+
+#define ASWT_StateMapped	(0x01<<0)
+	ASFlagType flags ;
+
     Window main_window, tabs_window ;
 	ASCanvas *main_canvas ;
 	ASCanvas *tabs_canvas ;
@@ -148,6 +152,7 @@ main( int argc, char **argv )
     WinTabsState.tabs_canvas = create_ascanvas( WinTabsState.tabs_window );
     map_canvas_window( WinTabsState.tabs_canvas, True );
     set_root_clip_area(WinTabsState.main_canvas );
+	/* delay mapping main canvas untill we actually swallowed something ! */
     map_canvas_window( WinTabsState.main_canvas, True );
     /* final cleanup */
 	XFlush (dpy);
@@ -588,6 +593,26 @@ rearrange_tabs()
     int max_width = Config->max_tab_width ; 
     int start = 0 ;
 
+	if( tabs_num == 0 ) 
+	{
+		if( get_flags( WinTabsState.flags, ASWT_StateMapped ) )
+		{
+			XEvent xev ;
+		
+			unmap_canvas_window( WinTabsState.main_canvas );
+			/* we must follow with syntetic UnmapNotify per ICCCM :*/
+			xev.xunmap.type = UnmapNotify ;
+			xev.xunmap.event = Scr.Root ;
+			xev.xunmap.window = WinTabsState.main_window;
+			xev.xunmap.from_configure = False;
+			XSendEvent( dpy, Scr.Root, False, 
+			            SubstructureRedirectMask|SubstructureNotifyMask, 
+						&xev );
+			
+			clear_flags( WinTabsState.flags, ASWT_StateMapped );
+		}
+	}
+
     if( max_width <= 0 || max_width > max_x )
         max_width = max_x ;
 
@@ -637,6 +662,12 @@ rearrange_tabs()
     {    
         moveresize_canvas( tabs[i].client_canvas, 0, y, max_x, max_y );    
     }
+	
+	if( !get_flags( WinTabsState.flags, ASWT_StateMapped ) )
+	{
+		  map_canvas_window( WinTabsState.main_canvas, True );
+		  set_flags( WinTabsState.flags, ASWT_StateMapped );
+	}	
 }
 
 void
