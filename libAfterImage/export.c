@@ -282,7 +282,7 @@ LOCAL_DEBUG_OUT("writing file%s","");
 	destroy_colormap( &cmap, True );
 
 	SHOW_TIME("total",started);
-	return False;
+	return True;
 }
 
 #else  			/* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
@@ -439,7 +439,7 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	fclose(outfile);
 
 	SHOW_TIME("image writing", started);
-	return False ;
+	return True ;
 }
 #else 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 Bool
@@ -572,7 +572,7 @@ LOCAL_DEBUG_OUT( "done writing image%s","" );
 
 	SHOW_TIME("image export",started);
 	LOCAL_DEBUG_OUT("done writing JPEG image \"%s\"", path);
-	return False ;
+	return True ;
 }
 #else 			/* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
 
@@ -608,7 +608,7 @@ ASImage2xcf ( ASImage *im, const char *path,  ASImageExportParams *params )
 
 	free_xcf_image(xcf_im);
 	SHOW_TIME("image export",started);
-	return True ;
+	return False ;
 }
 
 /***********************************************************************************/
@@ -773,7 +773,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	destroy_colormap( &cmap, True );
 
 	SHOW_TIME("image export",started);
-	return False ;
+	return True ;
 }
 #else 			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 Bool
