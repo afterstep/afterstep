@@ -1,4 +1,4 @@
-OBJS		= ASDocGen.o docfile.o xmlproc.o
+OBJS		= ASDocGen.o docfile.o robodoc.o xmlproc.o
 
 PROG		= ASDocGen
 

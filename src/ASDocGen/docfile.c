@@ -26,6 +26,7 @@
 #include "../../libAfterConf/afterconf.h"
 
 #include "ASDocGen.h"
+#include "docfile.h"
 
 const char *HTMLHeaderFormat = "</head>\n"
 					  		   "<body>\n"
