@@ -23,6 +23,7 @@
 /*#define DO_CLOCKING*/
 
 #define HAVE_MMX
+#define USE_64BIT_FPU
 
 #include "../include/aftersteplib.h"
 #include <X11/Intrinsic.h>
@@ -100,30 +101,17 @@ int mmx_off(void)
 
 /**********************   ASImage  ************************************/
 void
-asimage_free_color (ASImage * im, CARD8 ** color)
-{
-	if (im != NULL && color != NULL)
-	{
-		register int  i;
-
-		for (i = 0; i < im->height; i++)
-			if (color[i])
-				free (color[i]);
-		free (color);
-	}
-}
-
-void
 asimage_init (ASImage * im, Bool free_resources)
 {
 	if (im != NULL)
 	{
 		if (free_resources)
 		{
-			asimage_free_color (im, im->red);
-			asimage_free_color (im, im->green);
-			asimage_free_color (im, im->blue);
-			asimage_free_color (im, im->alpha);
+			register int i ;
+			for( i = im->height*4-1 ; i>= 0 ; --i )
+				if( im->red[i] )
+					free( im->red[i] );
+			free(im->red);
 			if (im->buffer)
 				free (im->buffer);
 			if( im->ximage )
@@ -134,64 +122,37 @@ asimage_init (ASImage * im, Bool free_resources)
 }
 
 void
-asimage_start (ASImage * im, unsigned int width, unsigned int height)
+asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression)
 {
 	if (im)
 	{
+		register int i;
+		CARD32 *tmp ;
+
 		asimage_init (im, True);
 		im->width = width;
 		im->buf_len = width + width;
-		im->buffer = safemalloc (im->buf_len);
+		/* we want result to be 32bit aligned and padded */
+		tmp = safemalloc (sizeof(CARD32)*((im->buf_len>>2)+1));
+		im->buffer = (CARD8*)tmp;
 
 		im->height = height;
 
-		im->red = safemalloc (sizeof (CARD8 *) * height);
-		memset (im->red, 0x00, sizeof (CARD8 *) * height);
-		im->green = safemalloc (sizeof (CARD8 *) * height);
-		memset (im->green, 0x00, sizeof (CARD8 *) * height);
-		im->blue = safemalloc (sizeof (CARD8 *) * height);
-		memset (im->blue, 0x00, sizeof (CARD8 *) * height);
-		im->alpha = safemalloc (sizeof (CARD8 *) * height);
-		memset (im->alpha, 0x00, sizeof (CARD8 *) * height);
+		im->red = safemalloc (sizeof (CARD8*) * height * 4);
+		for( i = 0 ; i < height<<2 ; i++ )
+			im->red[i] = 0 ;
+		im->green = im->red+height;
+		im->blue = 	im->red+(height*2);
+		im->alpha = im->red+(height*3);
+		im->channels[IC_RED] = im->red ;
+		im->channels[IC_GREEN] = im->green ;
+		im->channels[IC_BLUE] = im->blue ;
+		im->channels[IC_ALPHA] = im->alpha ;
+
+		im->max_compressed_width = width*compression/100;
 	}
 }
 
-static inline CARD8 **
-asimage_get_color_ptr (ASImage * im, ColorPart color)
-{
-	switch (color)
-	{
-	 case IC_RED:
-		 return im->red;
-	 case IC_GREEN:
-		 return im->green;
-	 case IC_BLUE:
-		 return im->blue;
-	 case IC_ALPHA:
-		 return im->alpha;
-	}
-	return NULL;
-}
-
-void
-asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y)
-{
-	CARD8       **part;
-
-	if (im == NULL)
-		return;
-	if (im->buffer == NULL || y >= im->height)
-		return;
-
-	if ((part = asimage_get_color_ptr (im, color)) != NULL)
-	{
-		if (part[y] != NULL)
-			free (part[y]);
-		part[y] = safemalloc (im->buf_used);
-		memcpy (part[y], im->buffer, im->buf_used);
-		im->buf_used = 0;
-	}
-}
 /********************** ASScanline ************************************/
 ASScanline*
 prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode  )
@@ -214,6 +175,12 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 	sl->xc2 = sl->green = sl->red   + aligned_width;
 	sl->xc3 = sl->blue 	= sl->green + aligned_width;
 	sl->alpha 	= sl->blue  + aligned_width;
+
+	sl->channels[IC_RED] = sl->red ;
+	sl->channels[IC_GREEN] = sl->green ;
+	sl->channels[IC_BLUE] = sl->blue ;
+	sl->channels[IC_ALPHA] = sl->alpha ;
+
 	if( BGR_mode )
 	{
 		sl->xc1 = sl->blue ;
@@ -246,36 +213,36 @@ free_scanline( ASScanline *sl, Bool reusable )
 /********************* ASImageDecoder ****************************/
 ASImageDecoder *
 start_image_decoding( ScreenInfo *scr,ASImage *im, ASFlagType filter,
-					  int offset_x, unsigned int out_width,  int offset_y )
+					  int offset_x, int offset_y, unsigned int out_width )
 {
 	ASImageDecoder *imdec = NULL;
-	if( im == NULL || filter == 0 ) 
+	if( im == NULL || filter == 0 )
 		return NULL;
-	if( scr == NULL ) 
+	if( scr == NULL )
 		scr = &Scr ;
-				
-	if( offset_x < 0 ) 
+
+	if( offset_x < 0 )
 		offset_x = im->width - (offset_x%im->width);
 	else
 		offset_x %= im->width ;
-	if( offset_y < 0 ) 
+	if( offset_y < 0 )
 		offset_y = im->height - (offset_y%im->height);
 	else
 		offset_y %= im->height ;
-	if( out_width == 0 ) 
+	if( out_width == 0 )
 		out_width = im->width ;
-	
+
 	imdec = safecalloc( 1, sizeof(ASImageDecoder));
 	imdec->im = im ;
 	imdec->filter = filter ;
 	imdec->offset_x = offset_x ;
 	imdec->out_width = out_width;
 	imdec->offset_y = offset_y ;
-	
+	imdec->next_line = offset_y ;
 	prepare_scanline(out_width, 0, &(imdec->buffer), scr->BGR_mode );
-	
+
 	return imdec;
-}								   
+}
 
 void
 stop_image_decoding( ASImageDecoder **pimdec )
@@ -346,7 +313,44 @@ stop_image_output( ASImageOutput **pimout )
 /***********************************************************************/
 /*  Compression/decompression 										   */
 /***********************************************************************/
-void
+static void
+asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y)
+{
+	size_t   len = (im->buf_used>>2)+1 ;
+	CARD8  **part = im->channels[color];
+	register CARD32  *dwdst = safemalloc( sizeof(CARD32)*len);
+	register CARD32  *dwsrc = (CARD32*)(im->buffer);
+	register int i ;
+	for( i = 0 ; i < len ; ++i )
+		dwdst[i] = dwsrc[i];
+
+	if (part[y] != NULL)
+		free (part[y]);
+	part[y] = (CARD8*)dwdst;
+}
+
+static void
+asimage_dup_line (ASImage * im, ColorPart color, unsigned int y1, unsigned int y2, unsigned int length)
+{
+	CARD8       **part = im->channels[color];
+	if (part[y2] != NULL)
+		free (part[y2]);
+	if( part[y1] )
+	{
+		register int i ;
+		register CARD32 *dwsrc = (CARD32*)part[y1];
+		register CARD32 *dwdst ;
+		length = (length>>2)+1;
+		dwdst = safemalloc (sizeof(CARD32)*length);
+		/* 32bit copy gives us about 15% performance gain */
+		for( i = 0 ; i < length ; ++i )
+			dwdst[i] = dwsrc[i];
+		part[y2] = (CARD8*)dwdst;
+	}else
+		part[y2] = NULL;
+}
+
+size_t
 asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigned int y)
 {
 	int             i = 1, bstart = 0, ccolor = 0;
@@ -355,23 +359,24 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 	register int 	tail = 0;
 	int best_size, best_bstart = 0, best_tail = 0;
 
-	if (im == NULL || data == NULL)
-		return;
+	if (im == NULL || data == NULL || color <0 || color >= IC_NUM_CHANNELS )
+		return 0;
 	if (im->buffer == NULL || y >= im->height)
-		return;
+		return 0;
 
 	best_size = 0 ;
-	width = im->width;
 	dst = im->buffer;
 /*	fprintf( stderr, "%d:%d:%d<%2.2X ", y, color, 0, data[0] ); */
 
-	if( width == 1 )
+	if( im->width == 1 )
 	{
 		dst[0] = RLE_DIRECT_TAIL ;
 		dst[1] = data[0] ;
 		im->buf_used = 2;
 	}else
 	{
+/*		width = im->width; */
+		width = im->max_compressed_width ;
 		do
 		{
 			while( i < width && data[i] == data[ccolor])
@@ -436,8 +441,9 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 			}
 /*			fprintf( stderr, "\n"); */
 		}while( i < width );
-		if( best_size+width < tail )
+		if( best_size+im->width < tail )
 		{
+			width = im->width;
 			LOCAL_DEBUG_OUT( " %d:%d >resetting bytes starting with offset %d(%d) (0x%2.2X) to DIRECT_TAIL( %d bytes total )", y, color, best_tail, best_bstart, dst[best_tail], width-best_bstart );
 			dst[best_tail] = RLE_DIRECT_TAIL;
 			dst += best_tail+1;
@@ -447,11 +453,23 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 			im->buf_used = best_tail+1+width-best_bstart ;
 		}else
 		{
-			dst[tail] = RLE_EOL;
-			im->buf_used = tail+1;
+			if( i < im->width )
+			{
+				dst[tail] = RLE_DIRECT_TAIL;
+				dst += tail+1 ;
+				data += i;
+				im->buf_used = tail+1+im->width-i ;
+				for( i = im->width-(i+1) ; i >=0 ; --i )
+					dst[i] = data[i] ;
+			}else
+			{
+				dst[tail] = RLE_EOL;
+				im->buf_used = tail+1;
+			}
 		}
 	}
 	asimage_apply_buffer (im, color, y);
+	return im->buf_used;
 }
 
 unsigned int
@@ -462,12 +480,12 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	int           to_skip = 0;
 	int 		  uncopressed_size = 0 ;
 
-	if (im == NULL)
+	if (im == NULL || color < 0 || color >= IC_NUM_CHANNELS )
 		return 0;
 	if (y >= im->height)
 		return 0;
 
-	if ((color_ptr = asimage_get_color_ptr (im, color)) == NULL)
+	if((color_ptr = im->channels[color]) == NULL )
 		return 0;
 	ptr = color_ptr[y];
 	if( ptr == NULL )
@@ -645,23 +663,21 @@ void print_component( register CARD32 *data, int nonsense, int len );
 inline int
 asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width)
 {
-	CARD8       **color_ptr = asimage_get_color_ptr (im, color);
-	register CARD8  *src = color_ptr[y];
+	register CARD8  *src = im->channels[color][y];
 	/* that thing below is supposedly highly optimized : */
-LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_width = %d, src = %X, color_ptr = %X, color_ptr[0] = %X", im->width, color, y, skip, out_width, src, color_ptr, color_ptr[0] );	
+LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_width = %d, src = %p, color_ptr = %p, color_ptr[0] = %p", im->width, color, y, skip, out_width, src, color_ptr, color_ptr[0] );
 	if( src )
 	{
 		register int i = 0;
 #if 1
   		if( skip > 0 || out_width+skip < im->width)
 		{
-			CARD8 *dst = asimage_decode_block8( src, im->buffer, im->width );
 			int max_i ;
-			register CARD8 *src ;
 
+			asimage_decode_block8( src, im->buffer, im->width );
 			skip = skip%im->width ;
 			max_i = MIN(out_width,im->width-skip);
-			src += skip ;
+			src = im->buffer+skip ;
 			while( i < out_width )
 			{
 				while( i < max_i )
@@ -669,31 +685,31 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
 					to_buf[i] = src[i] ;
 					++i ;
 				}
-				src = dst-i ;
+				src = im->buffer-i ;
 				max_i = MIN(out_width,im->width+i) ;
 			}
 		}else
 		{
-#endif		
+#endif
 			i = asimage_decode_block32( src, to_buf, im->width ) - to_buf;
-#if 0
+#if 1
 	  		while( i < out_width )
 			{   /* tiling code : */
 				register CARD32 *src = to_buf-i ;
 				int max_i = MIN(out_width,im->width+i);
-
 				while( i < max_i )
 				{
 					to_buf[i] = src[i] ;
 					++i ;
 				}
 			}
-#endif		
+#endif
 		}
 		return i;
 	}
 	return 0;
 }
+
 
 unsigned int
 asimage_copy_line (CARD8 * from, CARD8 * to, int width)
@@ -1262,6 +1278,25 @@ print_component( register CARD32 *data, int nonsense, int len )
 	fprintf( stderr, "\n");
 }
 
+static inline void
+tint_component_mod( register CARD32 *data, CARD16 ratio, int len )
+{
+	register int i ;
+	if( ratio == 255 )
+		for( i = 0 ; i < len ; ++i )
+			data[i] = data[i]<<8;
+	else if( ratio == 128 )
+		for( i = 0 ; i < len ; ++i )
+			data[i] = data[i]<<7;
+	else if( ratio == 0 )
+		for( i = 0 ; i < len ; ++i )
+			data[i] = 0;
+	else
+		for( i = 0 ; i < len ; ++i )
+			data[i] = data[i]*ratio;
+}
+
+
 /* the following 5 macros will in fact unfold into huge but fast piece of code : */
 /* we make poor compiler work overtime unfolding all this macroses but I bet it  */
 /* is still better then C++ templates :)									     */
@@ -1326,28 +1361,30 @@ do{	f((c1).red,(c2).red,(c3).red,(c4).red,(o1).red,(o2).red,(p),(len+(len&0x01))
 	if(get_flags((c1).flags,SCL_DO_ALPHA)) f((c1).alpha,(c2).alpha,(c3).alpha,(c4).alpha,(o1).alpha,(o2).alpha,(p),(len));	\
   }while(0)
 
-void 
+void
 decode_image_scanline( ASImageDecoder *imdec )
 {
 	int 	 			 y = imdec->next_line%imdec->im->height ;
 	size_t   			 count ;
 	register ASScanline *scl = &(imdec->buffer);
-	
-	clear_flags( scl->flags,SCL_DO_ALL);			
+
+	clear_flags( scl->flags,SCL_DO_ALL);
 	if( get_flags(imdec->filter, SCL_DO_RED) )
-		if( (count = asimage_decode_line(imdec->im,IC_RED, scl->red,y,imdec->offset_x,scl->width)) < scl->width) 
+		if( (count = asimage_decode_line(imdec->im,IC_RED, scl->red,y,imdec->offset_x,scl->width)) < scl->width)
 			set_component( scl->red, 0, count, scl->width );
 	if( get_flags(imdec->filter, SCL_DO_GREEN) )
-		if( (count = asimage_decode_line(imdec->im,IC_GREEN, scl->green,y,imdec->offset_x,scl->width)) < scl->width) 
+		if( (count = asimage_decode_line(imdec->im,IC_GREEN, scl->green,y,imdec->offset_x,scl->width)) < scl->width)
 			set_component( scl->green, 0, count, scl->width );
 	if( get_flags(imdec->filter, SCL_DO_BLUE) )
-		if( (count = asimage_decode_line(imdec->im,IC_BLUE, scl->blue,y,imdec->offset_x,scl->width)) < scl->width) 
+		if( (count = asimage_decode_line(imdec->im,IC_BLUE, scl->blue,y,imdec->offset_x,scl->width)) < scl->width)
 			set_component( scl->blue, 0, count, scl->width );
-	set_flags( scl->flags,get_flags(imdec->filter,SCL_DO_COLOR));			
-	
+	set_flags( scl->flags,get_flags(imdec->filter,SCL_DO_COLOR));
+
 	if( get_flags(imdec->filter, SCL_DO_ALPHA) )
-		if( asimage_decode_line(imdec->im,IC_ALPHA, scl->blue,y,imdec->offset_x,scl->width) >= scl->width) 
-			set_flags( scl->flags,SCL_DO_ALPHA);			
+		if( asimage_decode_line(imdec->im,IC_ALPHA, scl->blue,y,imdec->offset_x,scl->width) >= scl->width)
+			set_flags( scl->flags,SCL_DO_ALPHA);
+
+	++(imdec->next_line);
 }
 
 
@@ -1369,6 +1406,7 @@ output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 
 		}else
 			SCANLINE_FUNC(fast_output_filter, *(new_line),*(imout->available),ratio,new_line->width);
+		imout->available->flags = new_line->flags ;
 	}
 	/* copying/encoding previously cahced line into destination image : */
 	if( imout->used != NULL )
@@ -1393,10 +1431,41 @@ output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 			if( imout->next_line < imout->xim->height )
 			{
 				PUT_SCANLINE(imout->scr,imout->xim,to_store,imout->next_line,imout->xim_line);
+				if( imout->tiling_step > 0 )
+				{
+					register int i ;
+					int max_i = imout->im->height - imout->next_line ;
+					for( i = imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
+						memcpy( imout->xim_line+(i*imout->bpl), imout->xim_line, imout->bpl );
+				}
 				imout->xim_line += imout->bpl;
+
 			}
 		}else if( imout->next_line < imout->im->height )
-			ENCODE_SCANLINE(imout->im,*to_store,imout->next_line);
+		{
+			if( imout->tiling_step )
+			{
+				int bytes_count ;
+				register int i, color ;
+				int max_i = imout->im->height ;
+				for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
+					if( get_flags(to_store->flags,0x01<<color))
+					{
+						bytes_count = asimage_add_line(imout->im, color, to_store->channels[color],   imout->next_line);
+						for( i = imout->next_line+imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
+						{
+/*							fprintf( stderr, "copy-encoding color %d, from lline %d to %d, %d bytes\n", color, imout->next_line, i, bytes_count );*/
+							asimage_dup_line( imout->im, color, imout->next_line, i, bytes_count );
+						}
+					}
+			}else
+			{
+				register int color ;
+				for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
+					if( get_flags(to_store->flags,0x01<<color))
+						asimage_add_line(imout->im, color, to_store->channels[color], imout->next_line);
+			}
+		}
 		++(imout->next_line);
 	}
 	/* rotating the buffers : */
@@ -1618,7 +1687,7 @@ scale_image_up( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, 
 }
 
 ASImage *
-scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim )
+scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim, unsigned int compression_out )
 {
 	ASImage *dst = NULL ;
 	ASImageOutput *imout ;
@@ -1629,7 +1698,7 @@ scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool 
 		return NULL;
 
 	dst = safecalloc(1, sizeof(ASImage));
-	asimage_start (dst, to_width, to_height);
+	asimage_start (dst, to_width, to_height, compression_out);
 	if( to_xim )
 		if( (dst->ximage = create_screen_ximage( scr, to_width, to_height, 0 )) == NULL )
 		{
@@ -1689,20 +1758,22 @@ scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool 
 }
 
 ASImage *
-tile_asimage( ScreenInfo *scr, ASImage *src, 
-		      int offset_x, int offset_y, 
-			  unsigned int to_width, 
-			  unsigned int to_height, Bool to_xim )
+tile_asimage( ScreenInfo *scr, ASImage *src,
+		      int offset_x, int offset_y,
+			  unsigned int to_width,
+			  unsigned int to_height,
+			  ARGB32 tint,
+			  Bool to_xim, unsigned int compression_out )
 {
 	ASImage *dst = NULL ;
 	ASImageDecoder *imdec ;
 	ASImageOutput  *imout ;
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
-	if( (imdec = start_image_decoding(scr, src, SCL_DO_ALL, offset_x, to_width, to_height)) == NULL )
+	if( (imdec = start_image_decoding(scr, src, SCL_DO_ALL, offset_x, offset_y, to_width)) == NULL )
 		return NULL;
 
 	dst = safecalloc(1, sizeof(ASImage));
-	asimage_start (dst, to_width, to_height);
+	asimage_start (dst, to_width, to_height, compression_out);
 	if( to_xim )
 		if( (dst->ximage = create_screen_ximage( scr, to_width, to_height, 0 )) == NULL )
 		{
@@ -1714,20 +1785,37 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
-	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, 0 )) == NULL )
+	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, (tint!=0)?8:0)) == NULL )
 	{
 		asimage_init(dst, True);
 		free( dst );
 		dst = NULL ;
 	}else
 	{
-		int y ;
+		int y, max_y = to_height;
 LOCAL_DEBUG_OUT("tiling actually...%s", "");
-		for( y = 0 ; y < to_height ; y++  )
+		if( to_height > src->height )
 		{
-			decode_image_scanline( imdec );
-			output_image_line( imout, &(imdec->buffer), 1);
-		}			
+			imout->tiling_step = src->height ;
+			max_y = src->height ;
+		}
+		if( tint != 0 )
+		{
+			for( y = 0 ; y < max_y ; y++  )
+			{
+				decode_image_scanline( imdec );
+				tint_component_mod( imdec->buffer.red, ARGB32_RED8(tint)<<1, to_width );
+				tint_component_mod( imdec->buffer.green, ARGB32_GREEN8(tint)<<1, to_width );
+  				tint_component_mod( imdec->buffer.blue, ARGB32_BLUE8(tint)<<1, to_width );
+				tint_component_mod( imdec->buffer.alpha, ARGB32_ALPHA8(tint)<<1, to_width );
+				output_image_line( imout, &(imdec->buffer), 1);
+			}
+		}else
+			for( y = 0 ; y < max_y ; y++  )
+			{
+				decode_image_scanline( imdec );
+				output_image_line( imout, &(imdec->buffer), 1);
+			}
 		stop_image_output( &imout );
 	}
 #ifdef HAVE_MMX
@@ -1741,7 +1829,7 @@ LOCAL_DEBUG_OUT("tiling actually...%s", "");
 /****************************************************************************/
 
 ASImage      *
-ximage2asimage (ScreenInfo *scr, XImage * xim)
+ximage2asimage (ScreenInfo *scr, XImage * xim, unsigned int compression)
 {
 	ASImage      *im = NULL;
 	unsigned char *xim_line;
@@ -1759,7 +1847,7 @@ ximage2asimage (ScreenInfo *scr, XImage * xim)
 	xim_line = xim->data;
 
 	im = (ASImage *) safecalloc (1, sizeof (ASImage));
-	asimage_start (im, xim->width, xim->height);
+	asimage_start (im, xim->width, xim->height, compression);
 #ifdef LOCAL_DEBUG
 	tmp = safemalloc( xim->width * sizeof(CARD32));
 #endif
@@ -1849,14 +1937,14 @@ asimage2mask_ximage (ScreenInfo *scr, ASImage *im)
 }
 
 ASImage      *
-pixmap2asimage(ScreenInfo *scr, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache)
+pixmap2asimage(ScreenInfo *scr, Pixmap p, int x, int y, unsigned int width, unsigned int height, unsigned long plane_mask, Bool keep_cache, unsigned int compression)
 {
 	XImage       *xim = XGetImage (dpy, p, x, y, width, height, plane_mask, ZPixmap);
 	ASImage      *im = NULL;
 
 	if (xim)
 	{
-		im = ximage2asimage (scr, xim);
+		im = ximage2asimage (scr, xim, compression);
 		if( keep_cache )
 			im->ximage = xim ;
 		else

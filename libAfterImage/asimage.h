@@ -50,22 +50,17 @@ typedef struct ASImage
   unsigned int width, height;
   CARD8 **red, **green, **blue;
   CARD8 **alpha;
+  CARD8 **channels[IC_NUM_CHANNELS];/* merely a shortcut for faster translation to the
+									 * above pointers*/
 
   CARD8 *buffer;
   unsigned int buf_used, buf_len;
 
+  unsigned int max_compressed_width;           /* effectively limits compression to speed things up */
+
   XImage *ximage ;
 }
 ASImage;
-
-typedef enum
-{
-  IC_RED = 0,
-  IC_GREEN,
-  IC_BLUE,
-  IC_ALPHA
-}
-ColorPart;
 
 /* Auxilary data structures : */
 typedef struct ASImageDecoder
@@ -76,9 +71,9 @@ typedef struct ASImageDecoder
 	unsigned int    offset_x,    /* left margin on source image before which we skip everything */
 					out_width;   /* actuall length of the output scanline */
 	unsigned int 	offset_y;	 /* top margin */
-								 /* there is no need for out_height - if we go out of the 
-								  * image size - we simply reread lines from the beginning	
-                                  */									
+								 /* there is no need for out_height - if we go out of the
+								  * image size - we simply reread lines from the beginning
+                                  */
 	ASScanline 		buffer;
 	int 			next_line ;
 }ASImageDecoder;
@@ -96,19 +91,18 @@ typedef struct ASImageOutput
 	ASScanline buffer[2], *used, *available;
 	int buffer_shift;   /* -1 means - buffer is empty */
 	int next_line ;
+	unsigned int tiling_step;       /* each line written will be repeated with this
+									 * step untill we exceed image size */
 }ASImageOutput;
 
 
-void asimage_free_color (ASImage * im, CARD8 ** color);
 void asimage_init (ASImage * im, Bool free_resources);
-void asimage_start (ASImage * im, unsigned int width, unsigned int height);
+void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
 
 ASScanline*prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode);
 void       free_scanline( ASScanline *sl, Bool reusable );
 
-void asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y);
-void asimage_add_line (ASImage * im, ColorPart color, CARD32 * data,
-		       unsigned int y);
+size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y);
 
 /* usefull for debugging : (returns memory usage)*/
 unsigned int asimage_print_line (ASImage * im, ColorPart color,
@@ -120,15 +114,15 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
 #define VRB_EVERYTHING		(VRB_LINE_SUMMARY|VRB_CTRL_EXPLAIN|VRB_LINE_CONTENT)
 
 /* what file formats we support : */
-ASImage *xpm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
-ASImage *png2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
-ASImage *jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
-ASImage *xcf2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
-ASImage *ppm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
-ASImage *bmp2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
-ASImage *ico2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
-ASImage *gif2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
-ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+ASImage *xpm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *png2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *xcf2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *ppm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *bmp2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *ico2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *gif2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
 
 typedef enum
 {
@@ -151,15 +145,15 @@ typedef enum
 	ASIT_Unknown
 }ASImageFileTypes;
 
-typedef ASImage* (*as_image_loader_func)( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage );
+typedef ASImage* (*as_image_loader_func)( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
 extern as_image_loader_func as_image_file_loaders[ASIT_Unknown];
 
-ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, ... );
+ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... );
 
-ASImage *ximage2asimage (struct ScreenInfo *scr, XImage * xim);
+ASImage *ximage2asimage (struct ScreenInfo *scr, XImage * xim, unsigned int compression);
 ASImage *pixmap2asimage (struct ScreenInfo *scr, Pixmap p, int x, int y,
 	                     unsigned int width, unsigned int height,
-		  				 unsigned long plane_mask, Bool keep_cache);
+		  				 unsigned long plane_mask, Bool keep_cache, unsigned int compression);
 
 XImage* asimage2ximage  (struct ScreenInfo *scr, ASImage *im);
 XImage* asimage2mask_ximage (struct ScreenInfo *scr, ASImage *im);
@@ -167,10 +161,10 @@ Pixmap  asimage2pixmap  (struct ScreenInfo *scr, ASImage *im, GC gc, Bool use_ca
 Pixmap  asimage2mask    (struct ScreenInfo *scr, ASImage *im, GC gc, Bool use_cached);
 
 /* manipulations : */
-ASImage *scale_asimage( struct ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim );
-ASImage *tile_asimage ( struct ScreenInfo *scr, ASImage *src, int offset_x, int offset_y,  
-															  unsigned int to_width, 
-															  unsigned int to_height, Bool to_xim );
+ASImage *scale_asimage( struct ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool to_xim, unsigned int compression_out );
+ASImage *tile_asimage ( struct ScreenInfo *scr, ASImage *src, int offset_x, int offset_y,
+															  unsigned int to_width,  unsigned int to_height, ARGB32 tint,
+															  Bool to_xim, unsigned int compression_out );
 
 
 

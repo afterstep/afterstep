@@ -83,7 +83,7 @@ as_image_loader_func as_image_file_loaders[ASIT_Unknown] =
 };
 
 ASImage *
-file2ASImage( const char *file, ASFlagType what, double gamma, ... )
+file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... )
 {
 	int 		  filename_len ;
 	int 		  subimage = -1 ;
@@ -99,7 +99,7 @@ file2ASImage( const char *file, ASFlagType what, double gamma, ... )
 
 	filename_len = strlen(file);
 
-	va_start (ap, gamma);
+	va_start (ap, compression);
 	for( i = 0 ; i < 8 ; i++ )
 		if( (paths[i] = va_arg(ap,char*)) == NULL )
 			break;
@@ -154,7 +154,7 @@ file2ASImage( const char *file, ASFlagType what, double gamma, ... )
 		if( file_type == ASIT_Unknown )
 			show_error( "Unknown format of the image file \"%s\". Please check the manual", realfilename );
 		else if( as_image_file_loaders[file_type] )
-			im = as_image_file_loaders[file_type](realfilename, what, gamma, gamma_table, subimage);
+			im = as_image_file_loaders[file_type](realfilename, what, gamma, gamma_table, subimage, compression);
 		else
 			show_error( "Support for the format of image file \"%s\" has not been implemented yet.", realfilename );
 
@@ -631,7 +631,7 @@ Bool asimage_compare_line( ASImage*, int, CARD32*, CARD32*, int, Bool );
 #endif
 
 ASImage *
-xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	XpmImage      xpmImage;
 	ASImage 	 *im = NULL ;
@@ -652,7 +652,7 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		return NULL;
 
 	im = safecalloc( 1, sizeof( ASImage ) );
-	asimage_start( im, xpmImage.width, xpmImage.height );
+	asimage_start( im, xpmImage.width, xpmImage.height, compression );
 	prepare_scanline( im->width, 0, &xpm_buf, False );
 
 	cmap = decode_xpm_colors( &xpmImage );
@@ -713,7 +713,7 @@ LOCAL_DEBUG_OUT( "do_alpha is %d. im->height = %d, im->width = %d", do_alpha, im
 #else  			/* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 
 ASImage *
-xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	show_error( "unable to load file \"%s\" - XPM image format is not supported.\n", path );
 	return NULL ;
@@ -725,7 +725,7 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 /***********************************************************************************/
 #ifdef PNG		/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
-png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	static ASImage 	 *im = NULL ;
 
@@ -822,7 +822,7 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 				png_read_update_info (png_ptr, info_ptr);
 
 				im = safecalloc( 1, sizeof( ASImage ) );
-				asimage_start( im, width, height );
+				asimage_start( im, width, height, compression );
 				prepare_scanline( im->width, 0, &buf, False );
 				do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
 				grayscale = (color_type == PNG_COLOR_TYPE_GRAY_ALPHA) ;
@@ -873,7 +873,7 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 }
 #else 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
-png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	show_error( "unable to load file \"%s\" - PNG image format is not supported.\n", path );
 	return NULL ;
@@ -905,7 +905,7 @@ my_error_exit (j_common_ptr cinfo)
 }
 
 ASImage *
-jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	ASImage *im ;
 	/* This struct contains the JPEG decompression parameters and pointers to
@@ -970,7 +970,7 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 	LOCAL_DEBUG_OUT("stored image size %dx%d", cinfo.output_width,  cinfo.output_height);
 
 	im = safecalloc( 1, sizeof( ASImage ) );
-	asimage_start( im, cinfo.output_width,  cinfo.output_height );
+	asimage_start( im, cinfo.output_width,  cinfo.output_height, compression );
 	prepare_scanline( im->width, 0, &buf, False );
 
 	/* Make a one-row-high sample array that will go away when done with image */
@@ -1029,7 +1029,7 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 }
 #else 			/* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
 ASImage *
-jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	show_error( "unable to load file \"%s\" - JPEG image format is not supported.\n", path );
 	return NULL ;
@@ -1042,7 +1042,7 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 /* XCF - GIMP's native file format : 											   */
 
 ASImage *
-xcf2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+xcf2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	ASImage *im = NULL ;
 	/* More stuff */
@@ -1091,7 +1091,7 @@ xcf2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 #endif
 #if 0
 	im = safecalloc( 1, sizeof( ASImage ) );
-	asimage_start( im, xcf_im->width,  xcf_im->height );
+	asimage_start( im, xcf_im->width,  xcf_im->height, compression );
 	prepare_scanline( im->width, 0, &buf, False );
 
 	y = -1 ;
@@ -1125,7 +1125,7 @@ xcf2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 /***********************************************************************************/
 /* PPM/PNM file format : 											   				   */
 ASImage *
-ppm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+ppm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	ASImage *im = NULL ;
 	/* More stuff */
@@ -1186,7 +1186,7 @@ ppm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 
 		LOCAL_DEBUG_OUT("stored image size %dx%d", width,  height);
 		im = safecalloc( 1, sizeof( ASImage ) );
-		asimage_start( im, width,  height );
+		asimage_start( im, width,  height, compression );
 		prepare_scanline( im->width, 0, &buf, False );
 		y = -1 ;
 		/*cinfo.output_scanline*/
@@ -1284,7 +1284,8 @@ typedef struct tagBITMAPINFOHEADER
 ASImage *
 read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 				ASScanline *buf, CARD8 *gamma_table,
-				unsigned int width, unsigned int height, Bool add_colormap )
+				unsigned int width, unsigned int height,
+				Bool add_colormap, unsigned int compression )
 {
 	Bool success = False ;
 	CARD8 *cmap = NULL ;
@@ -1356,7 +1357,7 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 	data = safemalloc( row_size );
 
 	im = safecalloc( 1, sizeof( ASImage ) );
-	asimage_start( im, width,  height );
+	asimage_start( im, width,  height, compression );
 	/* Window BMP files are little endian  - we need to swap Red and Blue */
 	prepare_scanline( im->width, 0, buf, True );
 
@@ -1425,7 +1426,7 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 }
 
 ASImage *
-bmp2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+bmp2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	ASImage *im = NULL ;
 	/* More stuff */
@@ -1445,7 +1446,7 @@ bmp2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	if( bmp_read16( infile, &bmp_header.bfType, 1 ) )
 		if( bmp_header.bfType == BMP_SIGNATURE )
 			if( bmp_read32( infile, &bmp_header.bfSize, 3 ) == 3 )
-				im = read_bmp_image( infile, bmp_header.bfOffBits, &bmp_info, &buf, gamma_table, 0, 0, False );
+				im = read_bmp_image( infile, bmp_header.bfOffBits, &bmp_info, &buf, gamma_table, 0, 0, False, compression );
 #ifdef LOCAL_DEBUG
 	fprintf( stderr, "bmp.header.bfType = 0x%X\nbmp.header.bfSize = %ld\nbmp.header.bfOffBits = %ld(0x%lX)\n",
 					  bmp_header.bfType, bmp_header.bfSize, bmp_header.bfOffBits, bmp_header.bfOffBits );
@@ -1467,7 +1468,7 @@ bmp2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 /* Windows ICO/CUR file format :   									   			   */
 
 ASImage *
-ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	ASImage *im = NULL ;
 	/* More stuff */
@@ -1509,7 +1510,7 @@ ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 			{
 				fseek( infile, icon.dwImageOffset, SEEK_SET );
 				im = read_bmp_image( infile, icon.dwImageOffset+40+(icon.bColorCount*4), &bmp_info, &buf, gamma_table,
-					                 icon.bWidth, icon.bHeight, (icon.bColorCount==0) );
+					                 icon.bWidth, icon.bHeight, (icon.bColorCount==0), compression );
 			}
 		}
 #ifdef LOCAL_DEBUG
@@ -1549,7 +1550,7 @@ ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 /***********************************************************************************/
 #ifdef GIF		/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 ASImage *
-gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	FILE			   *fp ;
 	int					status = GIF_ERROR;
@@ -1634,7 +1635,7 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	  	ColorMapObject  *cmap = gif->SColorMap ;
 
 		im = safecalloc( 1, sizeof( ASImage ) );
-		asimage_start( im, width, height );
+		asimage_start( im, width, height, compression );
 		prepare_scanline( im->width, 0, &buf, False );
 
 		if( gif->Image.ColorMap != NULL)
@@ -1676,7 +1677,7 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 }
 #else 			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 ASImage *
-gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	show_error( "unable to load file \"%s\" - missing GIF image format libraries.\n", path );
 	return NULL ;
@@ -1685,7 +1686,7 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 
 #ifdef HAVE_TIFF/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
 ASImage *
-tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	TIFF 		 *tif ;
 
@@ -1711,7 +1712,7 @@ tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 		if ((data = (CARD32*) _TIFFmalloc(width * height * sizeof (CARD32))) != NULL)
 		{
 			im = safecalloc( 1, sizeof( ASImage ) );
-			asimage_start( im, width, height );
+			asimage_start( im, width, height, compression );
 			prepare_scanline( im->width, 0, &buf, False );
 
 			if (TIFFReadRGBAImage(tif, width, height, data, 0))
@@ -1752,7 +1753,7 @@ tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 #else 			/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
 
 ASImage *
-tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage )
+tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	show_error( "unable to load file \"%s\" - missing TIFF image format libraries.\n", path );
 	return NULL ;
