@@ -684,9 +684,9 @@ convert_source_file( const char *syntax_dir, const char *file, ASXMLInterpreterS
 		xml_elem_delete(NULL, doc);
 		free( doc_str );		
 	}	 	   
+	LOCAL_DEBUG_OUT( "done with %s", source_file );
 	free( source_file );
 	fprintf( state->dest_fp, "\n" );
-	LOCAL_DEBUG_OUT( "done with %s", source_file );
 	return !empty_file;
 }
 
