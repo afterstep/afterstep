@@ -39,8 +39,8 @@
 
 #include <X11/keysym.h>
 
-#define START_LONG_DRAW_OPERATION   XGrabServer(dpy)
-#define STOP_LONG_DRAW_OPERATION    XUngrabServer(dpy)
+#define START_LONG_DRAW_OPERATION   grab_server()
+#define STOP_LONG_DRAW_OPERATION    ungrab_server()
 
 
 static ASMenu *ASTopmostMenu = NULL;

@@ -234,7 +234,7 @@ SHOW_CHECKPOINT;
     XSync (dpy, 0);
    /***********************************************************/
 #ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
-	XGrabServer (dpy);                		/* grabbed   !!!!!*/
+	grab_server();                		/* grabbed   !!!!!*/
 #endif										/* grabbed   !!!!!*/
     init_screen_panframes(&Scr);            /* grabbed   !!!!!*/
     display_progress( True, "Capturing all windows ..." );
@@ -243,7 +243,7 @@ SHOW_CHECKPOINT;
     check_screen_panframes(&Scr);           /* grabbed   !!!!!*/
     ASSync( False );
 #ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
-	XUngrabServer (dpy);					/* UnGrabbed !!!!!*/
+	ungrab_server();					/* UnGrabbed !!!!!*/
 #endif										/* UnGrabbed !!!!!*/
 	/**********************************************************/
     XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[ASCUR_Default]);
@@ -368,9 +368,9 @@ CleanupScreen()
 
     if( Scr.Windows )
     {
-        XGrabServer (dpy);
+        grab_server();
         destroy_aswindow_list( &(Scr.Windows), True );
-        XUngrabServer (dpy);
+        ungrab_server();
     }
     DestroyManagementWindows();
     CleanupColormaps();

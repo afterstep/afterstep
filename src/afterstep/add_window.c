@@ -230,12 +230,14 @@ AddWindow (Window w)
 	 */
     ASSync( False );
 	if( !pending_placement )
-	    XGrabServer (dpy);
+	{
+	    grab_server();
+	}
     if (validate_drawable(tmp_win->w, NULL, NULL) == None)
 	{
 		destroy_hints(tmp_win->hints, False);
 		free ((char *)tmp_win);
-		XUngrabServer (dpy);
+		ungrab_server();
 		return (NULL);
 	}
     XSetWindowBorderWidth (dpy, tmp_win->w, 0);
@@ -269,7 +271,7 @@ AddWindow (Window w)
 	 * again in HandleMapNotify.
      */
 	if( !pending_placement )
-		XUngrabServer (dpy);
+		ungrab_server();
     broadcast_config (M_ADD_WINDOW, tmp_win);
     broadcast_window_name( tmp_win );
     broadcast_res_names( tmp_win );
@@ -396,7 +398,7 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
         return;
     ++nested_level ;
 
-    XGrabServer( dpy );
+    grab_server();
 	if( !ASWIN_GET_FLAGS( asw, AS_Dead ) )
 	{
 		if( validate_drawable( asw->w, NULL, NULL ) == None )
@@ -419,7 +421,7 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
 		if( !get_flags( asw->internal_flags, ASWF_WindowComplete) )
 		{
 			/* will be deleted from AddWindow  - can't destroy here, since we are in recursive event loop */
-			XUngrabServer( dpy );
+			ungrab_server();
 		    --nested_level ;
 			return;
 		}
@@ -466,7 +468,7 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
     init_aswindow( asw, True );
 
     XSync (dpy, 0);
-    XUngrabServer( dpy );
+    ungrab_server();
 
     memset( asw, 0x00, sizeof(ASWindow));
     free (asw);

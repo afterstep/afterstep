@@ -999,7 +999,7 @@ HandleUnmapNotify (ASEvent *event )
     * NormalState or IconicState.  Handle the transition to WithdrawnState.
     */
 
-    XGrabServer (dpy);
+    grab_server();
     destroyed = ASCheckTypedWindowEvent ( event->w, DestroyNotify, &dummy) ;
 	LOCAL_DEBUG_OUT("wm_state_transition = 0x%X", event->client->wm_state_transition );
 	if( !get_flags( event->client->wm_state_transition, ASWT_FROM_WITHDRAWN ) )
@@ -1007,7 +1007,7 @@ HandleUnmapNotify (ASEvent *event )
 	else
 		event->client->wm_state_transition = ASWT_Withdrawn2Withdrawn ;
     Destroy (event->client, destroyed);               /* do not need to mash event before */
-    XUngrabServer (dpy);
+    ungrab_server();
     ASFlush ();
 }
 

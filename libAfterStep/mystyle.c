@@ -293,7 +293,7 @@ grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 				  				&attr);
 
 	if( src == None ) return NULL ;
-	XGrabServer( dpy );
+	grab_server();
 	grabbed = True ;
 	XMapRaised( dpy, src );
 	XSync(dpy, False );
@@ -323,7 +323,7 @@ grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 			}
 		}
 	XDestroyWindow( dpy, src );
-	XUngrabServer( dpy );
+	ungrab_server();
 	return root_im ;
 }
 

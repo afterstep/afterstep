@@ -464,9 +464,10 @@ PositiveWrite (unsigned int channel, send_data_type *ptr, int size)
 		return -1;
 
 	AddToQueue (module, ptr, size, 0);
-    if (get_flags(module->mask, M_LOCKONSEND))
+    if (get_flags(module->mask, M_LOCKONSEND) && !is_server_grabbed() )
 	{
         int           res ;
+		int wait_count = 0 ; 
         do
         {
             if( (res = FlushQueue (module)) >= 0 )
@@ -477,7 +478,10 @@ PositiveWrite (unsigned int channel, send_data_type *ptr, int size)
                     return size;
                 RunCommand (module->ibuf.func, channel, module->ibuf.window);
             }
-        }while( res >= 0 );
+			sleep_a_millisec(100);/* give it some time to react */
+			++wait_count ;
+			/* module has no more then 20 seconds to unlock us */
+        }while( res >= 0 && wait_count < 200 );
 	}
 	return size;
 }

@@ -234,6 +234,11 @@ extern "C" {
 
 extern Display *dpy;
 
+int grab_server();
+int ungrab_server();
+Bool is_server_grabbed();
+
+
 Bool     get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h);
 Drawable validate_drawable (Drawable d, unsigned int *pwidth, unsigned int *pheight);
 void 	 backtrace_window ( const char *file, int line, Window w );

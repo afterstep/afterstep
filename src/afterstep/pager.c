@@ -163,12 +163,12 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 		if ((*delta_x != 0) || (*delta_y != 0))
 		{
 			if (Grab)
-				XGrabServer (dpy);
+				grab_server();
 			XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, *xl, *yt);
 			MoveViewport (Scr.Vx + *delta_x, Scr.Vy + *delta_y, False);
             XQueryPointer (dpy, Scr.Root, &wdumm, &wdumm, xl, yt, &dumm, &dumm, &udumm);
 			if (Grab)
-				XUngrabServer (dpy);
+				ungrab_server();
 		}
 	}
 #endif
@@ -234,13 +234,13 @@ LOCAL_DEBUG_CALLER_OUT( "new(%+d%+d), old(%+d%+d), max(%+d,%+d)", newx, newy, Sc
 	if (deltax || deltay)
 	{
 		if (grab)
-			XGrabServer (dpy);
+			grab_server();
         /* traverse window list and redo the titlebar/buttons if necessary */
         iterate_asbidirlist( Scr.Windows->clients, viewport_aswindow_iter_func, NULL, NULL, False );
         /* TODO: autoplace sticky icons so they don't wind up over a stationary icon */
 	    check_screen_panframes(&Scr);
 		if (grab)
-			XUngrabServer (dpy);
+			ungrab_server();
     }
 #endif
 #endif
@@ -368,7 +368,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 		}desk_id;
 
 		if ( force_grab )
-			XGrabServer (dpy);
+			grab_server();
 		if( Scr.moveresize_in_progress && !Scr.moveresize_in_progress->move_only )
 		{
 			ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(Scr.moveresize_in_progress->mr));
@@ -391,7 +391,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
         /* TODO: autoplace sticky icons so they don't wind up over a stationary icon */
 	    check_screen_panframes(&Scr);
 		if ( force_grab)
-			XUngrabServer (dpy);
+			ungrab_server();
     }
 	/* yield to let modules handle desktop/viewport change */
 	FlushAllQueues();
@@ -477,9 +477,9 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
     /* Scan the window list, mapping windows on the new Desk, unmapping
 	 * windows on the old Desk; do this in reverse order to reduce client
 	 * expose events */
-	XGrabServer (dpy);
+	grab_server();
     iterate_asbidirlist( Scr.Windows->clients, change_aswindow_desk_iter_func, (void*)new_desk, NULL, False );
-    XUngrabServer (dpy);
+    ungrab_server();
 
     if (get_flags(Scr.Feel.flags, ClickToFocus))
 	{

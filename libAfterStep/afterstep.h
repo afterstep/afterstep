@@ -59,6 +59,8 @@ extern "C" {
 #define ASS_HousekeepingMode    (0x01<<6)      /* after GrabEm and before UngrabEm - noone has focus, we can do what we want. */
 #define ASS_WarpingMode         (0x01<<7)      /* after first F_WARP* and before mouse/keyboard actions. */
 #define ASS_PointerOutOfScreen  (0x01<<8)      /*  */
+#define ASS_ScreenGrabbed		(0x01<<9)      /* XGrabScreen had been issued - we should try and
+												  avoid deadlocks ! */
 
 #define AS_Text_ASCII			0
 #define AS_Text_UTF8			1

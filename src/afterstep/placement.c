@@ -1342,13 +1342,13 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 			if (GrabEm (POSITION))
 			{
 				/* Grabbed the pointer - continue */
-				XGrabServer (dpy);
+				grab_server();
 				DragWidth = tmp_win->frame_width + 2 * tmp_win->bw;
 				DragHeight = tmp_win->frame_height + 2 * tmp_win->bw;
 				XMapRaised (dpy, Scr.SizeWindow);
 				moveLoop (tmp_win, 0, 0, DragWidth, DragHeight, &xl, &yt, False, True);
 				XUnmapWindow (dpy, Scr.SizeWindow);
-				XUngrabServer (dpy);
+				ungrab_server();
 				UngrabEm ();
 			} else
 			{

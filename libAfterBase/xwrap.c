@@ -26,6 +26,7 @@
 #include "parse.h"
 
 Display *dpy = NULL;
+static int DisplayGrabCount = 0 ;
 
 #ifndef X_DISPLAY_MISSING
 static int
@@ -33,7 +34,40 @@ quiet_xerror_handler (Display * dpy, XErrorEvent * error)
 {
     return 0;
 }
+
 #endif
+
+int 
+grab_server()
+{
+#ifndef X_DISPLAY_MISSIN
+	if( dpy )
+	{
+		XGrabServer( dpy );
+		++DisplayGrabCount ;
+	}
+#endif
+	return DisplayGrabCount;	
+}
+
+int 
+ungrab_server()
+{
+#ifndef X_DISPLAY_MISSIN
+	if( dpy )
+	{
+		XUngrabServer( dpy );
+		--DisplayGrabCount ;
+	}
+#endif
+	return DisplayGrabCount;	
+}
+
+Bool
+is_server_grabbed()
+{
+	return (DisplayGrabCount > 0);
+}
 
 int
 get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h)

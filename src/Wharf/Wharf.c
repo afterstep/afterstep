@@ -1719,22 +1719,22 @@ check_swallow_window( ASWindowData *wd )
     if( aswb->swallowed != NULL )
         return;
     /* do the actuall swallowing here : */
-    XGrabServer( dpy );
+    grab_server();
     /* first lets check if window is still not swallowed : it should have no more then 2 parents before root */
     w = get_parent_window( wd->client );
     LOCAL_DEBUG_OUT( "first parent %lX, root %lX", w, Scr.Root );
 	while( w == Scr.Root && ++try_num  < 10 )
 	{/* we should wait for AfterSTep to complete AddWindow protocol */
 	    /* do the actuall swallowing here : */
-    	XUngrabServer( dpy );
+    	ungrab_server();
 		sleep_a_millisec(200*try_num);
-		XGrabServer( dpy );
+		grab_server();
 		w = get_parent_window( wd->client );
 		LOCAL_DEBUG_OUT( "attempt %d:first parent %lX, root %lX", try_num, w, Scr.Root );
 	}
 	if( w == Scr.Root )
 	{
-		XUngrabServer( dpy );
+		ungrab_server();
 		return ;
 	}
     if( w != None )
@@ -1742,7 +1742,7 @@ check_swallow_window( ASWindowData *wd )
     LOCAL_DEBUG_OUT( "second parent %lX, root %lX", w, Scr.Root );
     if( w != Scr.Root )
 	{
-		XUngrabServer( dpy );
+		ungrab_server();
 		return ;
 	}
     withdraw_btn = (WITHDRAW_ON_EDGE(Config) &&
@@ -1796,7 +1796,7 @@ check_swallow_window( ASWindowData *wd )
     update_wharf_folder_size( aswf );
 
     ASSync(False);
-    XUngrabServer( dpy );
+    ungrab_server();
 }
 
 

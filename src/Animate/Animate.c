@@ -293,7 +293,7 @@ do_animate( ASRectangle *from, ASRectangle *to )
 	if( iterations == 0 ) 
 		iterations = ANIMATE_DEFAULT_ITERATIONS ;
 
-	XGrabServer (dpy);
+	grab_server();
 	do
 	{
 		do_brake = params.iter_func( &params );
@@ -308,7 +308,7 @@ do_animate( ASRectangle *from, ASRectangle *to )
 		LOCAL_DEBUG_OUT( "iter = %d of %d, angle = %f, final = %f", params.iter, iterations, params.angle, params.final_angle );
 	}while( !do_brake && params.iter < iterations && params.angle < params.final_angle );
 	ASFlush ();
-	XUngrabServer (dpy);
+	ungrab_server();
 }	  
 
 #if 0
