@@ -543,6 +543,7 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) )
             delete_astbar_tile( *tbar, -1 );
 
         set_astbar_style( *tbar, BAR_STATE_FOCUSED, mystyle_name );
+        set_astbar_style( *tbar, BAR_STATE_UNFOCUSED, "default" );
         delete_astbar_tile( *tbar, -1 );
         if( img )
         {
@@ -737,6 +738,8 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     if( AS_ASSERT(asw) )
         return ;
+
+    ClearShape (asw);
 
     if( !free_resources && asw->hints )
         has_tbar = (ASWIN_HFLAGS(asw, AS_Titlebar)!= 0);
@@ -2269,6 +2272,24 @@ SetShape (ASWindow *asw, int w)
         /*if (asw->icon_canvas != NULL)
             UpdateIconShape (asw); */
 #endif /* old_code */
+#endif /* SHAPE */
+}
+
+void
+ClearShape (ASWindow *asw)
+{
+#ifdef SHAPE
+    if( asw && asw->frame_canvas )
+    {
+        XRectangle    rect;
+        rect.x = 0;
+        rect.y = 0;
+        rect.width  = asw->frame_canvas->width;
+        rect.height = asw->frame_canvas->height;
+
+        XShapeCombineRectangles ( dpy, asw->frame, ShapeBounding,
+                                  0, 0, &rect, 1, ShapeSet, Unsorted);
+    }
 #endif /* SHAPE */
 }
 

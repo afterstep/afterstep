@@ -700,6 +700,7 @@ on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, A
     ASMenu   *menu = (ASMenu*)(asiw->data) ;
     if( menu != NULL && menu->magic == MAGIC_ASMENU )
     {
+        set_asmenu_look( menu, look );
         if( get_flags( what, FEEL_CONFIG_CHANGED ) )
         {
             MenuData *md = FindPopup (menu->name, False);
@@ -710,7 +711,6 @@ on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, A
             }
             set_asmenu_data( menu, md );
         }
-        set_asmenu_look( menu, look );
         set_asmenu_scroll_position( menu, 0 );
         render_asmenu_bars(menu);
     }
@@ -756,7 +756,6 @@ show_asmenu(ASMenu *menu, int x, int y)
     asiw->on_pressure_changed = on_menu_pressure_changed;
     asiw->on_pointer_event = on_menu_pointer_event;
     asiw->on_keyboard_event = on_menu_keyboard_event;
-    asiw->on_look_feel_changed = on_menu_look_feel_changed;
     asiw->on_look_feel_changed = on_menu_look_feel_changed;
     asiw->destroy = menu_destroy;
 

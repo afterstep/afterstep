@@ -674,6 +674,8 @@ ASWindow *AddInternalWindow (Window w,
 void Destroy (ASWindow *, Bool);
 void RestoreWithdrawnLocation (ASWindow *, Bool);
 void SetShape (ASWindow *, int);
+void ClearShape (ASWindow *asw);
+
 
 /* from decorations.c :*/
 void disable_titlebuttons_with_function (ASWindow * t, int function);

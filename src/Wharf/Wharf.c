@@ -383,7 +383,7 @@ SHOW_CHECKPOINT;
         int i ;
         for( i = 0 ; i < WHEV_MAX_EVENTS ; ++i )
         {
-            set_string_value(&(Config->sounds[i]), config->sounds[i], NULL, 0 );
+            set_string_value(&(Config->sounds[i]), mystrdup(config->sounds[i]), NULL, 0 );
             config->sounds[i] = NULL ;
         }
     }

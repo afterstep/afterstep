@@ -487,7 +487,7 @@ GetOptions (const char *filename)
             Config->labels = safecalloc( PagerState.desks_num, sizeof(char*));
         for( i = 0 ; i < PagerState.desks_num ; ++i )
             if( config->labels[i] )
-                set_string_value( &(Config->labels[i]), config->labels[i], NULL, 0 );
+                set_string_value( &(Config->labels[i]), mystrdup(config->labels[i]), NULL, 0 );
     }
     if( config->styles )
     {
@@ -495,13 +495,13 @@ GetOptions (const char *filename)
             Config->styles = safecalloc( PagerState.desks_num, sizeof(char*));
         for( i = 0 ; i < PagerState.desks_num ; ++i )
             if( config->styles[i] )
-                set_string_value( &(Config->styles[i]), config->styles[i], NULL, 0 );
+                set_string_value( &(Config->styles[i]), mystrdup(config->styles[i]), NULL, 0 );
     }
     if( get_flags( config->set_flags, PAGER_SET_ALIGN ) )
         Config->align = config->align ;
 
     if( get_flags( config->set_flags, PAGER_SET_SMALL_FONT ) )
-        set_string_value( &(Config->small_font_name), config->small_font_name, NULL, 0 );
+        set_string_value( &(Config->small_font_name), mystrdup(config->small_font_name), NULL, 0 );
 
     if( get_flags( config->set_flags, PAGER_SET_BORDER_WIDTH ) )
         Config->border_width = config->border_width;
@@ -516,10 +516,10 @@ GetOptions (const char *filename)
         parse_argb_color( config->border_color, &(Config->border_color_argb) );
 
     if( config->shade_button[0] )
-        set_string_value( &(Config->shade_button[0]), config->shade_button[0], NULL, 0 );
+        set_string_value( &(Config->shade_button[0]), mystrdup(config->shade_button[0]), NULL, 0 );
 
     if( config->shade_button[1] )
-        set_string_value( &(Config->shade_button[1]), config->shade_button[1], NULL, 0 );
+        set_string_value( &(Config->shade_button[1]), mystrdup(config->shade_button[1]), NULL, 0 );
 
     if( Config->balloon_conf )
         Destroy_balloonConfig( Config->balloon_conf );

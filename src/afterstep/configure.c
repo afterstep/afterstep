@@ -867,9 +867,9 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {
         if( fd->title_styles[i] )
-            set_string_value(&(frame->title_style_names[i]), fd->title_styles[i], NULL, 0 );
+            set_string_value(&(frame->title_style_names[i]), mystrdup(fd->title_styles[i]), NULL, 0 );
         if( fd->frame_styles[i] )
-            set_string_value(&(frame->frame_style_names[i]), fd->frame_styles[i], NULL, 0 );
+            set_string_value(&(frame->frame_style_names[i]), mystrdup(fd->frame_styles[i]), NULL, 0 );
     }
     if( get_flags( fd->set_title_attr, MYFRAME_TitleBevelSet ) )
         frame->title_bevel = fd->title_bevel;
@@ -881,7 +881,7 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
 
     if( fd->title_back )
     {
-        set_string_value(&(frame->title_back_filename), fd->title_back, NULL, 0 );
+        set_string_value(&(frame->title_back_filename), mystrdup(fd->title_back), NULL, 0 );
         if( !get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet ) )
         {
             frame->title_back_align = FIT_LABEL_SIZE ;
@@ -1070,6 +1070,8 @@ redecorate_aswindow_iter_func(void *data, void *aux_data)
     if(asw )
 	{
         redecorate_window( asw, False );
+        if( asw->internal && asw->internal->on_look_feel_changed )
+            asw->internal->on_look_feel_changed( asw->internal, &Scr.Feel, &Scr.Look, ASFLAGS_EVERYTHING );
         on_window_status_changed( asw, True, False );
     }
     return True;

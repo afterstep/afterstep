@@ -325,7 +325,7 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
         for( i = 0 ; i < FRAME_PARTS ; ++i )
         {
             if( ancestor->part_filenames[i] )
-                set_string_value( &(frame->part_filenames[i]), ancestor->part_filenames[i], NULL, 0 );
+                set_string_value( &(frame->part_filenames[i]), mystrdup(ancestor->part_filenames[i]), NULL, 0 );
             if( get_flags(ancestor->set_part_size, 0x01<<i ) )
             {
                 frame->part_width[i] = ancestor->part_width[i] ;
@@ -342,12 +342,12 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
         for( i = 0 ; i < BACK_STYLES ; ++i )
         {
             if( ancestor->title_style_names )
-                set_string_value( &(frame->title_style_names[i]), ancestor->title_style_names[i], NULL, 0 );
+                set_string_value( &(frame->title_style_names[i]), mystrdup(ancestor->title_style_names[i]), NULL, 0 );
             if( ancestor->frame_style_names )
-                set_string_value( &(frame->frame_style_names[i]), ancestor->frame_style_names[i], NULL, 0 );
+                set_string_value( &(frame->frame_style_names[i]), mystrdup(ancestor->frame_style_names[i]), NULL, 0 );
         }
         if( ancestor->title_back_filename )
-            set_string_value( &(frame->title_back_filename), ancestor->title_back_filename, NULL, 0 );
+            set_string_value( &(frame->title_back_filename), mystrdup(ancestor->title_back_filename), NULL, 0 );
 
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBevelSet ) )
             frame->title_bevel = ancestor->title_bevel;

@@ -55,17 +55,16 @@
 /*  WinList local variables :                                         */
 /**********************************************************************/
 typedef struct {
-	unsigned int  width, height ;
-	ASTBarData *widest, *tallest ;
-	unsigned int max_width, max_height ;
-	ASWindowData *focused;
+
+    ASVector     *window_order ;
+    ASWindowData *focused;
 
     Window       main_window;
     ASCanvas    *main_canvas;
 
 }ASWinListState ;
 
-ASWinListState WinListState = { 100, 100, NULL, NULL, 0, 0, NULL, None, NULL };
+ASWinListState WinListState = { NULL, NULL, None, NULL };
 
 /**********************************************************************/
 /**********************************************************************/
@@ -101,8 +100,6 @@ static Bool rearrange_winlist_window();
 int
 main( int argc, char **argv )
 {
-    Window w ;
-
     /* Save our program name - for error messages */
     InitMyApp (CLASS_WINLIST, argc, argv, NULL, NULL, 0 );
 
@@ -125,9 +122,8 @@ main( int argc, char **argv )
     LoadConfig ("winlist", GetOptions);
     CheckConfigSanity();
 
-	WinList = create_asbidirlist(destroy_winlist_button);
-	WinListWindow = w = make_winlist_window();
-	WinListCanvas = create_ascanvas( WinListWindow );
+    WinListState.main_window = make_winlist_window();
+    WinListState.main_canvas = create_ascanvas( WinListState.main_window );
 
 	/* And at long last our main loop : */
     HandleEvents();
@@ -293,11 +289,11 @@ GetOptions (const char *filename)
         Config->min_col_width = config->min_col_width;
 
     if( config->unfocused_style )
-        set_string_value( &(Config->unfocused_style), config->unfocused_style, NULL, 0 );
+        set_string_value( &(Config->unfocused_style), mystrdup(config->unfocused_style), NULL, 0 );
     if( config->focused_style )
-        set_string_value( &(Config->focused_style), config->focused_style, NULL, 0 );
+        set_string_value( &(Config->focused_style), mystrdup(config->focused_style), NULL, 0 );
     if( config->sticky_style )
-        set_string_value( &(Config->sticky_style), config->sticky_style, NULL, 0 );
+        set_string_value( &(Config->sticky_style), mystrdup(config->sticky_style), NULL, 0 );
 
     if( get_flags(config->set_flags, WINLIST_UseName) )
         Config->show_name_type = config->show_name_type;
@@ -308,7 +304,7 @@ GetOptions (const char *filename)
 
     for( i = 0 ; i < MAX_MOUSE_BUTTONS ; ++i )
         if( config->mouse_actions[i] )
-            set_string_value(&(Config->mouse_actions[i]), config->mouse_actions[i], NULL, 0 );
+            set_string_value(&(Config->mouse_actions[i]), mystrdup(config->mouse_actions[i]), NULL, 0 );
 
     if( Config->balloon_conf )
         Destroy_balloonConfig( Config->balloon_conf );
@@ -401,8 +397,8 @@ make_winlist_window()
 	XSizeHints    shints;
 	ExtendedWMHints extwm_hints ;
 	int x, y ;
-	unsigned int width = (WinListState.width <= 0)?1:WinListState.width;
-	unsigned int height = (WinListState.height <= 0)?1:WinListState.height;
+    unsigned int width = 1;
+    unsigned int height = 1;
 
 	switch( Config->gravity )
 	{
@@ -442,7 +438,6 @@ make_winlist_window()
 
 	/* showing window to let user see that we are doing something */
 	XMapRaised (dpy, w);
-	rearrange_winlist_window();
 	/* final cleanup */
 	XFlush (dpy);
 	sleep (1);								   /* we have to give AS a chance to spot us */

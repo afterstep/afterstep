@@ -211,8 +211,21 @@ invalidate_canvas_config( ASCanvas *pc )
 	if( pc )
 	{
         LOCAL_DEBUG_OUT( "resizing to %dx%d", pc->width+1, pc->height+1 );
-		XResizeWindow( dpy, pc->w, pc->width+1, pc->height+1 );
-		pc->width = 1;
+        XResizeWindow( dpy, pc->w, pc->width+1, pc->height+1 );
+#ifdef SHAPE
+        if ( !get_flags( pc->state, CANVAS_CONTAINER )  )
+        {
+            XRectangle    rect;
+            rect.x = 0;
+            rect.y = 0;
+            rect.width  = pc->width+1;
+            rect.height = pc->height+1;
+            XShapeCombineRectangles ( dpy, pc->w, ShapeBounding,
+                                        0, 0, &rect, 1, ShapeSet, Unsorted);
+        }
+#endif
+
+        pc->width = 1;
 		pc->height = 1;
 		if (pc->canvas)
 		{
@@ -390,6 +403,15 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
                 {
                     LOCAL_DEBUG_OUT( "set canvas mask to %lX", pc->mask );
                     XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, pc->mask, ShapeSet);
+                }else
+                {
+                    XRectangle    rect;
+                    rect.x = 0;
+                    rect.y = 0;
+                    rect.width  = pc->width;
+                    rect.height = pc->height;
+                    XShapeCombineRectangles ( dpy, pc->w, ShapeBounding,
+                                              0, 0, &rect, 1, ShapeSet, Unsorted);
                 }
 #endif
                 XSetWindowBackgroundPixmap (dpy, pc->w, pc->canvas);
@@ -405,6 +427,37 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 		}
 	}
 }
+
+void
+clear_canvas_shape (ASCanvas * pc)
+{
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc, pc->w, pc->canvas, pc->width, pc->height );
+    if (pc && pc->w != None )
+	{
+        if( !get_flags( pc->state, CANVAS_CONTAINER ) )
+        {
+            if (pc->canvas)
+            {
+#ifdef SHAPE
+                XRectangle    rect;
+                rect.x = 0;
+                rect.y = 0;
+                rect.width  = pc->width;
+                rect.height = pc->height;
+                XShapeCombineRectangles ( dpy, pc->w, ShapeBounding,
+                                            0, 0, &rect, 1, ShapeSet, Unsorted);
+                if( pc->mask )
+                {
+                    XFreePixmap( dpy, pc->mask );
+                    pc->mask = None ;
+                    set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
+                }
+#endif
+            }
+        }
+    }
+}
+
 
 Bool
 combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, Bool first )
