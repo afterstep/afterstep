@@ -1,6 +1,6 @@
 <varlistentry id="options.Virtual">
 	<term>Virtual</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines that area is in virtual coordinates.</para>
 	</listitem>
 </varlistentry>

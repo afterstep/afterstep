@@ -1,6 +1,6 @@
 <varlistentry id="options.WindowBox">
-	<term>WindowBox</term>
+	<term>WindowBox <emphasis remap='I'>"windowbox_name"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Starts a WindowBox definition. ~WindowBox ends it.</para>
 	</listitem>
 </varlistentry>

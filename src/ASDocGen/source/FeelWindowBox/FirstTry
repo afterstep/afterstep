@@ -1,7 +1,8 @@
 <varlistentry id="options.FirstTry">
-	<term>FirstTry</term>
+	<term>FirstTry <emphasis remap='I'>SmartPlacement|RandomPlacement|Tile</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>strategy to use while placing window. The FirstTry strategy
+        will attempt to place window in empty space only.</para>
 		<para>See Also: <ulink url="Placement#synopsis">Window Placement types</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

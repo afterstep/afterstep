@@ -1,6 +1,6 @@
 <varlistentry id="options.MaxWidth">
-	<term>MaxWidth</term>
+	<term>MaxWidth <emphasis remap='I'>width</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Places restrains on what size window could be placed in this area.</para>
 	</listitem>
 </varlistentry>

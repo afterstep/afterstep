@@ -1,2 +1,24 @@
 <section label="overview" id="overview">
+
+<para>This is a whole new thing to allow better window placement policy :</para>
+
+<literallayout>WindowBox   "some_name"
+    Area   WxH+X+Y
+    Virtual
+    MinWidth        width
+    MinHeight       height
+    MaxWidth        width
+    MaxHeight       height
+    FirstTry        SmartPlacement|RandomPlacement|Tile
+    ThenTry         RandomPlacement|Cascade|Manual
+    VerticalPriority
+    ReverseOrder
+    Desk        desk
+    MinLayer    min_layer
+    MaxLayer    max_layer
+~WindowBox  </literallayout>
+
+<para>Note that old SmartPlacement/RandomPlacement has been coopted to be
+used for Default windowbox.</para>
+
 </section>

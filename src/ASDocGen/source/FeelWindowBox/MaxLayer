@@ -1,6 +1,7 @@
 <varlistentry id="options.MaxLayer">
-	<term>MaxLayer</term>
+	<term>MaxLayer <emphasis remap='I'>max_layer</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Limits effects of the WindowBox to windows with
+        layer value that falls in range.</para>
 	</listitem>
 </varlistentry>

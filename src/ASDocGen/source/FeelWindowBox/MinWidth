@@ -1,6 +1,6 @@
 <varlistentry id="options.MinWidth">
-	<term>MinWidth</term>
+	<term>MinWidth <emphasis remap='I'>width</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>places restrains on what size window could be placed in this area.</para>
 	</listitem>
 </varlistentry>

@@ -1,7 +1,8 @@
 <varlistentry id="options.ThenTry">
-	<term>ThenTry</term>
+	<term>ThenTry <emphasis remap='I'>RandomPlacement|Cascade|Manual</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>backup strategy to use when there is no suitable empty
+        space.</para>
 		<para>See Also: <ulink url="Placement#synopsis">Window Placement types</ulink> for further details.</para>
 	</listitem>
 </varlistentry>
