@@ -289,6 +289,8 @@ struct config main_config[] = {
     {"TitleButtonBalloonYOffset", SetInts, (char**)&(BalloonConfig.y_offset), NULL},
     {"TitleButtonBalloonDelay", SetInts, (char**)&(BalloonConfig.delay), NULL},
     {"TitleButtonBalloonCloseDelay", SetInts, (char**)&(BalloonConfig.close_delay), NULL},
+	{"TitleButtonBalloonBorderWidth", obsolete, NULL, NULL },
+	{"TitleButtonBalloonBorderColor", obsolete, NULL, NULL },
     {"TitleButtonBalloonStyle", assign_quoted_string, &(BalloonConfig.style), NULL},
     {"TitleButtonBalloons", SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
     {"TitleButton", SetTitleButton, (char **)1, (int *)0},
@@ -1488,7 +1490,7 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 
     if ((n = sscanf (tline, "%d", &num)) <= 0)
 	{
-        show_error("wrong number of parameters given with TitleButton");
+        show_error("wrong number of parameters given with TitleButton in [%s]", tline );
 		return;
 	}
     if (num < 0 || num >= TITLE_BUTTONS)
@@ -1509,7 +1511,7 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
         parse_filename( &(tline[offset]), &(files[1]));
 
     if( !load_button( &(Scr.Look.buttons[num]), files, Scr.image_manager ) )
-        show_error( "wrong number of parameters given with TitleButton");
+        show_error( "Failed to load image files specified for TitleButton %d [%s]", num, tline);
     if( files[0] )
         free(files[0] ) ;
     if( files[1] )
