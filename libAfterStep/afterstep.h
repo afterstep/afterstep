@@ -27,6 +27,10 @@
  */
 #define MAX_BUTTONS 3
 
+/* This is the better approach : */
+#define MAX_MOUSE_BUTTONS 	(Button5-Button1+1)
+
+
 #ifdef SIGNALRETURNSINT
 #define SIGNAL_T int
 #define SIGNAL_RETURN return 0

@@ -78,39 +78,18 @@ ASWinListState WinListState = { 100, 100, NULL, NULL, 0, 0, NULL };
 /* Our configuration options :                                        */
 /**********************************************************************/
 BaseConfig *Base = NULL;
-typedef enum { ASN_Name = 0, ASN_IconName, ASN_ResClass, ASN_ResName, ASN_NameTypes }ASNameTypes ;
-typedef enum { ASA_Left = 0, ASA_Center, ASA_Right, ASA_AligmentTypes } ASAligmentTypes;
 
-typedef struct WinListConfig
-{
-#define 	ASWL_RowsFirst 		(0x01<<16)
-	ASFlagType	flags ;
-	int anchor_x, anchor_y ;
-	int gravity ;
-	unsigned int min_width, min_height ;
-	unsigned int max_width, max_height ;
-	unsigned int min_rows, min_columns ;
-	unsigned int max_rows, max_columns ;
-	unsigned int max_col_width ;
-	
-	char *unfocused_style ;
-	char *focused_style ;
-	char *sticky_style ;
-	
-	ASNameTypes     show_name_type ; /* 0, 1, 2, 3 */
-	ASAligmentTypes name_aligment ;  
 
-}WinListConfig;
-
-WinListConfig Config = { 0, 0, 0, 0, 
+WinListConfig Config = {  0, 0, 0, 0, 
                     	  0, 0, 0, 0, 
-						  1, 0, 1, 0,
-						  0,
+						  1, 0,
+						  0, 0,
 						  "winlist_unfocused_window_style",
 						  "focused_window_style",
 						  "sticky_window_style",
 						  ASN_Name,
-						  ASA_Left };
+						  ASA_Left,  
+						  {NULL, NULL, NULL, NULL, NULL}};
 /**********************************************************************/
 
 void
