@@ -102,13 +102,15 @@ typedef struct ASVisual
 }ASVisual;
 
 Bool query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int default_depth );
-void destroy_asvisual( ASVisual *asv );
+Bool setup_truecolor_visual( ASVisual *asv );
+void setup_pseudo_visual( ASVisual *asv  );
+void setup_as_colormap( ASVisual *asv );
+/* the following is a shortcut aggregating above function together : */
+ASVisual *create_asvisual( Display *dpy, int screen, int default_depth, ASVisual *reusable_memory );
+void destroy_asvisual( ASVisual *asv, Bool reusable );
 Bool visual2visual_prop( ASVisual *asv, size_t *size, unsigned long *version, unsigned long **data );
 Bool visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
 								   size_t size, unsigned long version, unsigned long *data );
-Bool setup_truecolor_visual( ASVisual *asv );
-Bool setup_pseudo_visual( ASVisual *asv  );
-void setup_as_colormap( ASVisual *asv );
 /* handy utility functions for creation of windows/pixmaps/XImages : */
 
 /* this is from xc/programs/xserver/dix/window.h */

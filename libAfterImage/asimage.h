@@ -204,10 +204,10 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
 	                     unsigned int width, unsigned int height,
 		  				 unsigned long plane_mask, Bool keep_cache, unsigned int compression);
 
-XImage* asimage2ximage  (struct ASVisual *asv, ASImage *im);
-XImage* asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
-Pixmap  asimage2pixmap  (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
-Pixmap  asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
+XImage  *asimage2ximage  (struct ASVisual *asv, ASImage *im);
+XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
+Pixmap   asimage2pixmap  (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
+Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
 
 /* manipulations : */
 ASImage *scale_asimage( struct ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int to_height,

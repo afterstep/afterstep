@@ -242,8 +242,33 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 	return True;
 }
 
+ASVisual *
+create_asvisual( Display *dpy, int screen, int default_depth, ASVisual *reusable_memory  )
+{
+	ASVisual *asv = reusable_memory ;
+
+	if( asv == NULL )
+		asv = safemalloc( sizeof(ASVisual) );
+	if( query_screen_visual( asv, dpy, screen, RootWindow (dpy, screen), default_depth ) )
+	{	/* found visual - now off to decide about color handling on it : */
+	 	if( !setup_truecolor_visual( asv ) )
+	 	{  /* well, we don't - lets try and preallocate as many colors as we can but up to
+	   		* 1/4 of the colorspace or 12bpp colors, whichever is smaller */
+	 		setup_pseudo_visual( asv );
+	 		if( asv->as_colormap == NULL )
+	 			setup_as_colormap( asv );
+		}
+	}else
+	{
+		if( reusable_memory != asv )
+			free( asv );
+		asv = NULL ;
+	}
+	return asv;
+}
+
 void
-destroy_asvisual( ASVisual *asv )
+destroy_asvisual( ASVisual *asv, Bool reusable )
 {
 	if( asv )
 	{
@@ -263,6 +288,8 @@ destroy_asvisual( ASVisual *asv )
 					free( asv->as_colormap_reverse.xref );
 			}
 		}
+		if( !reusable )
+			free( asv );
 	}
 }
 
@@ -453,13 +480,11 @@ make_reverse_colorhash( unsigned long *cmap, size_t size, int depth, unsigned sh
 	return hash;
 }
 
-Bool
+void
 setup_pseudo_visual( ASVisual *asv  )
 {
 	XVisualInfo *vi = &(asv->visual_info) ;
 
-	if( vi->class == TrueColor )
-		return False;
 	/* we need to allocate new usable list of colors based on available bpp */
 	asv->true_depth = vi->depth ;
 	if( asv->as_colormap == NULL )
@@ -482,12 +507,12 @@ setup_pseudo_visual( ASVisual *asv  )
 			asv->ximage2scanline_func = ximage2scanline_pseudo6bpp ;
 			asv->scanline2ximage_func = scanline2ximage_pseudo6bpp ;
 		    break ;
+		default:
+			asv->as_colormap_type = ACM_12BPP ;
 		case ACM_12BPP:
 			asv->ximage2scanline_func = ximage2scanline_pseudo12bpp ;
 			asv->scanline2ximage_func = scanline2ximage_pseudo12bpp ;
 		    break ;
-		default:
-			return False;
 	}
 	if( asv->as_colormap != NULL )
 	{
@@ -509,8 +534,6 @@ setup_pseudo_visual( ASVisual *asv  )
 															  asv->true_depth, 0x000F, 4 );
 		}
 	}
-
-	return True;
 }
 
 
