@@ -36,6 +36,11 @@
 extern SyntaxDef AlignSyntax;
 
 TermDef       WinListTerms[] = {
+	/* Feel */
+    {TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL},
+    {0, "FillRowsFirst", 13, TT_FLAG, WINLIST_FillRowsFirst_ID, NULL},
+    {0, "UseSkipList", 11, TT_FLAG, WINLIST_UseSkipList_ID, NULL},
+	/* Look */
     {0, "Geometry", 8, TT_GEOMETRY, WINLIST_Geometry_ID, NULL},
     {0, "MinSize", 7, TT_GEOMETRY, WINLIST_MinSize_ID, NULL},
     {0, "MaxSize", 7, TT_GEOMETRY, WINLIST_MaxSize_ID, NULL},
@@ -60,12 +65,9 @@ TermDef       WinListTerms[] = {
     {0, "HSpacing", 8, TT_UINTEGER, WINLIST_HSpacing_ID, NULL},
     {0, "VSpacing", 8, TT_UINTEGER, WINLIST_VSpacing_ID, NULL},
 
-    {TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL},
     {0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL},
     {0, "FocusedStyle", 12, TT_TEXT, WINLIST_FocusedStyle_ID, NULL},
     {0, "StickyStyle", 11, TT_TEXT, WINLIST_StickyStyle_ID, NULL},
-    {0, "FillRowsFirst", 13, TT_FLAG, WINLIST_FillRowsFirst_ID, NULL},
-    {0, "UseSkipList", 11, TT_FLAG, WINLIST_UseSkipList_ID, NULL},
     {0, "ShapeToContents", 15, TT_FLAG, WINLIST_ShapeToContents_ID, NULL},
     {TF_DEPRECIATED, "Orientation", 11, TT_TEXT, WINLIST_Orientation_ID, NULL},
     {TF_DEPRECIATED, "MaxWidth", 8, TT_UINTEGER, WINLIST_MaxWidth_ID, NULL},

@@ -236,7 +236,6 @@ typedef struct ASProperty {
  * 					feel
  *	 				theme-override
  * 		Module "Pager"
- * 			Options
  * 			PagerLook
  * 				MyStyles
  * 					...
@@ -252,12 +251,16 @@ typedef struct ASProperty {
  * 					feel
  * 					theme-override
  * 					pager
- * 			PagerFile
  * 		Module "Wharf"
- * 			RootFolder
- * 				entries...
- * 				[SubFolder]
- * 			Options
+ * 			Folders	
+ *		 		RootFolder
+ * 					entries...
+ * 					[SubFolder]
+ * 				WharfFile
+ * 			Sounds
+ * 				Sounds
+ * 					entries...
+ * 				WharfFile
  * 			WharfLook
  * 				MyStyles
  * 					...
@@ -273,9 +276,7 @@ typedef struct ASProperty {
  * 					feel
  * 					theme-override
  * 					wharf
- * 			WharfFile
  * 		Module "WinList" 
- * 			Options
  * 			WinListLook
  * 				MyStyles
  * 					...
@@ -291,7 +292,6 @@ typedef struct ASProperty {
  * 					feel
  * 					theme-override
  * 					wharf
- * 			WinListFile
  **************************************************************************
  * 		PrivateFiles
  * 			base
@@ -384,6 +384,35 @@ ASConfigTypeInfo ConfigTypeInfo[] =
 	{ CONFIG_Database_ID, 	 &DatabaseSyntax, 0, 				   1, {CONFIG_DatabaseFile_ID}, 0},	  
   	{0}	 
 };
+
+
+int PagerFeelFiles[] = {CONFIG_FeelFile_ID, CONFIG_ThemeOverrideFile_ID, CONFIG_PagerFile_ID, -1} ;
+int PagerLookFiles[] = {CONFIG_LookFile_ID, CONFIG_ThemeOverrideFile_ID, CONFIG_PagerFile_ID, -1} ;
+int PagerPrivateFiles[] = {CONFIG_PagerFile_ID, -1} ;
+
+typedef struct ASModuleSyntax
+{
+	int config_id ;
+	SyntaxDef *syntax ; 
+	int config_files_id ;
+	int *files ; 	   
+	int config_options_id ;
+}ASModuleSyntax;
+
+ASModuleSyntax PagerSyntaxes[] = {	{CONFIG_PagerFeel_ID, &PagerFeelSyntax, CONFIG_FeelFiles_ID, PagerFeelFiles, CONFIG_FeelOptions_ID },
+									{CONFIG_PagerLook_ID, &PagerLookSyntax, CONFIG_LookFiles_ID, PagerLookFiles, CONFIG_LookOptions_ID },
+									{0, 	  &PagerPrivateSyntax,                0, PagerPrivateFiles, CONFIG_PagerOptions_ID },									
+									{-1, NULL, 0, NULL}};
+typedef struct ASModuleSpecs
+{
+	const char *module_class ;
+	ASModuleSyntax *syntaxes ; 		
+}ASModuleSpecs;
+
+ASModuleSpecs ModulesSpecs[] = 
+	{{CLASS_PAGER, PagerSyntaxes},
+	 {NULL, NULL}
+	};
 
 /*************************************************************************/
 void
@@ -1248,6 +1277,7 @@ load_current_config( ASProperty* config, int id, const char *myname,
 	return load_current_config_fname( config, id, filename, myname, syntax, files_id, file_id, options_id );
 
 }
+
 /*************************************************************************/
 ASProperty* 
 asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *owner_prop, 
@@ -1670,6 +1700,8 @@ melt_func_props( ASProperty *src, ASProperty *dst )
 	
 /*************************************************************************/
 void load_global_configs();
+ASProperty* add_module_config( const char *module_class, const char *module_name );
+
 
 void 
 load_hierarchy()
@@ -1677,6 +1709,7 @@ load_hierarchy()
 	Root = create_property( CONFIG_root_ID, ASProp_Phony, "", True );
 		
 	load_global_configs();
+	add_module_config( CLASS_PAGER, "Pager" );
 }
 
 /*************************************************************************/
@@ -1703,6 +1736,56 @@ load_global_configs()
 			append_property( Root, tmp );
 	}
 }	 
+
+ASProperty* 
+add_module_config( const char *module_class, const char *module_name )
+{
+	int i ;
+	ASProperty *tmp = NULL, *config;
+
+	for( i = 0 ; ModulesSpecs[i].module_class != NULL ; ++i )
+		if( mystrcmp( ModulesSpecs[i].module_class, module_class ) == 0 )
+		{	
+			int k ;
+			config = create_property( CONFIG_Module_ID, ASProp_Phony, module_name, True );
+			for( k = 0 ; ModulesSpecs[i].syntaxes[k].config_id >= 0 ; ++k )
+			{	
+				ASModuleSyntax *ms = &(ModulesSpecs[i].syntaxes[k]);
+				int l ;
+
+				if( ms->config_id == 0 ) 
+				{
+					load_current_config( 	config,
+											ms->config_id, module_name, 
+											ms->syntax, 
+											0, 
+											ms->files[0], 
+											ms->config_options_id);				 		
+				}else
+				{		 
+					tmp = NULL ;
+					for( l = 0 ; ms->files[l] >= 0 ; ++l )
+					{
+						tmp = load_current_config( 	tmp,
+													ms->config_id, module_name, 
+													ms->syntax, 
+													ms->config_files_id, 
+													ms->files[l], 
+													ms->config_options_id);
+					}
+					if( tmp ) 
+						append_property( config, tmp );
+				}
+			}
+			append_property( Root, config );
+		    
+			return tmp ;
+		}
+	return NULL ;
+}
+
+
+
 /*************************************************************************/
 void print_hierarchy( ASProperty *root, int level );
 

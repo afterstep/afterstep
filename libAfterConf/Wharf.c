@@ -64,18 +64,28 @@ SyntaxDef     WhevSyntax = {
 };
 
 TermDef       WharfTerms[] = {
+	/* Folders */
 	{TF_SPECIAL_PROCESSING, "", 0, TT_SPECIAL, WHARF_Wharf_ID, &FuncSyntax},
 	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, WHARF_FOLDER_END, 7, TT_FLAG, WHARF_FolderEnd_ID, NULL},
+	/* Sounds */
+    {0, "Sound", 5,             TT_FILENAME, WHARF_Sound_ID, &WhevSyntax},
+	/* Feel */
+/* the NoWithdraw option is undocumented, deprecated, and
+ ** may be removed at Wharf's maintainer's discretion */
+    {0, "WithdrawStyle", 13,    TT_UINTEGER, WHARF_WithdrawStyle_ID, NULL},
+    {TF_OBSOLETE, "NoWithdraw", 10,       TT_FLAG, WHARF_NoWithdraw_ID, NULL},
+	{0, "AnimateStepsMain", 16, TT_UINTEGER, WHARF_AnimateStepsMain_ID, NULL},
+    {0, "AnimateSteps", 12,     TT_UINTEGER, WHARF_AnimateSteps_ID, NULL},
+    {0, "AnimateDelay", 12,     TT_UINTEGER, WHARF_AnimateDelay_ID, NULL},
+    {0, "AnimateMain", 11,      TT_FLAG, WHARF_AnimateMain_ID, NULL},
+    {0, "Animate", 7,           TT_FLAG, WHARF_Animate_ID, NULL},
+	/* Look */
     {0, "Geometry", 8,          TT_GEOMETRY, WHARF_Geometry_ID, NULL},
     {0, "Rows", 4,              TT_UINTEGER, WHARF_Rows_ID, NULL},
     {0, "Columns", 7,           TT_UINTEGER, WHARF_Columns_ID, NULL},
     {0, "NoPush", 6,            TT_FLAG, WHARF_NoPush_ID, NULL},
     {0, "FullPush", 8,          TT_FLAG, WHARF_FullPush_ID, NULL},
     {TF_OBSOLETE, "NoBorder", 8,          TT_FLAG, WHARF_NoBorder_ID, NULL},
-    {0, "WithdrawStyle", 13,    TT_UINTEGER, WHARF_WithdrawStyle_ID, NULL},
-/* the NoWithdraw option is undocumented, deprecated, and
- ** may be removed at Wharf's maintainer's discretion */
-    {TF_OBSOLETE, "NoWithdraw", 10,       TT_FLAG, WHARF_NoWithdraw_ID, NULL},
     {0, "ForceSize", 9,         TT_GEOMETRY, WHARF_ForceSize_ID, NULL},
 /* TextureType, MaxColors, BgColor, TextureColor, and Pixmap are obsolete */
 	{TF_OBSOLETE, "TextureType", 11, TT_UINTEGER, WHARF_TextureType_ID, NULL},
@@ -83,12 +93,6 @@ TermDef       WharfTerms[] = {
     {TF_OBSOLETE, "BgColor", 7,      TT_COLOR, WHARF_BgColor_ID, NULL},
     {TF_OBSOLETE, "TextureColor", 12,TT_COLOR, WHARF_TextureColor_ID, NULL},
     {TF_OBSOLETE, "Pixmap", 6,       TT_FILENAME, WHARF_Pixmap_ID, NULL},
-	{0, "AnimateStepsMain", 16, TT_UINTEGER, WHARF_AnimateStepsMain_ID, NULL},
-    {0, "AnimateSteps", 12,     TT_UINTEGER, WHARF_AnimateSteps_ID, NULL},
-    {0, "AnimateDelay", 12,     TT_UINTEGER, WHARF_AnimateDelay_ID, NULL},
-    {0, "AnimateMain", 11,      TT_FLAG, WHARF_AnimateMain_ID, NULL},
-    {0, "Animate", 7,           TT_FLAG, WHARF_Animate_ID, NULL},
-    {0, "Sound", 5,             TT_FILENAME, WHARF_Sound_ID, &WhevSyntax},
     {0, "ShowLabel", 9,         TT_FLAG, WHARF_ShowLabel_ID, NULL},
     {0, "LabelLocation", 13,    TT_UINTEGER, WHARF_LabelLocation_ID, NULL},
     {0, "FlipLabel", 9,         TT_FLAG, WHARF_FlipLabel_ID, NULL},

@@ -52,6 +52,9 @@ extern struct SyntaxDef 	 includeSyntax;
 extern struct SyntaxDef      AutoExecSyntax;
 extern struct SyntaxDef      LookSyntax;
 extern struct SyntaxDef      PagerSyntax;
+extern struct SyntaxDef      PagerPrivateSyntax;
+extern struct SyntaxDef      PagerLookSyntax;
+extern struct SyntaxDef      PagerFeelSyntax;
 extern struct SyntaxDef      WharfSyntax;
 extern struct SyntaxDef      WinListSyntax;
 extern struct SyntaxDef      WinTabsSyntax;
@@ -549,15 +552,20 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 
 #define	BALLOON_ID_END				(BALLOON_ID_START+10)
 
-#define BALLOON_TERMS \
- {0, "Balloons", 8, TT_FLAG , BALLOON_USED_ID   , NULL}, \
- {0, "BalloonBorderHilite",19, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax}, \
+#define BALLOON_FLAG_TERM \
+ {0, "Balloons", 8, TT_FLAG , BALLOON_USED_ID   , NULL}
+
+#define BALLOON_FEEL_TERMS \
  {0, "BalloonXOffset", 14, TT_INTEGER, BALLOON_XOffset_ID        , NULL}, \
  {0, "BalloonYOffset", 14, TT_INTEGER, BALLOON_YOffset_ID        , NULL}, \
  {0, "BalloonDelay", 12, TT_UINTEGER, BALLOON_Delay_ID      , NULL}, \
- {0, "BalloonCloseDelay", 17, TT_UINTEGER, BALLOON_CloseDelay_ID , NULL}, \
+ {0, "BalloonCloseDelay", 17, TT_UINTEGER, BALLOON_CloseDelay_ID , NULL}
+
+#define BALLOON_LOOK_TERMS \
+ {0, "BalloonBorderHilite",19, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax}, \
  {0, "BalloonStyle", 12, TT_QUOTED_TEXT, BALLOON_Style_ID , NULL}
 
+#define BALLOON_TERMS BALLOON_FLAG_TERM,BALLOON_FEEL_TERMS,BALLOON_LOOK_TERMS
 
 typedef struct balloonConfig
 {

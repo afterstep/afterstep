@@ -62,26 +62,110 @@ SyntaxDef     PagerDecorationSyntax = {
 	0
 };
 
-TermDef       PagerTerms[] = {
-    {0, "Geometry", 8, TT_GEOMETRY, PAGER_GEOMETRY_ID, NULL},
-    {0, "IconGeometry", 12, TT_GEOMETRY, PAGER_ICON_GEOMETRY_ID, NULL},
-    {0, "Align", 5, TT_FLAG, PAGER_ALIGN_ID, &AlignSyntax},
-    {0, "DontDrawBg", 8, TT_FLAG, PAGER_DRAW_BG_ID, NULL},
-    {0, "SmallFont", 9, TT_FONT, PAGER_SMALL_FONT_ID, NULL},
-    {0, "StartIconic", 11, TT_FLAG, PAGER_START_ICONIC_ID, NULL},
-    {0, "Rows", 4, TT_INTEGER, PAGER_ROWS_ID, NULL},
-    {0, "Columns", 7, TT_INTEGER, PAGER_COLUMNS_ID, NULL},
-    {0, "StickyIcons", 11, TT_FLAG, PAGER_STICKY_ICONS_ID, NULL},
-    {TF_DONT_SPLIT, "ShadeButton", 11, TT_TEXT, PAGER_SHADE_BUTTON_ID, NULL},
-    {TF_INDEXED, "Label", 5, TT_TEXT, PAGER_LABEL_ID, NULL},
-    {TF_INDEXED, "Style", 5, TT_TEXT, PAGER_STYLE_ID, NULL},
-    {0, "ActiveDeskBevel", 15,   TT_FLAG, PAGER_ActiveBevel_ID   , &BevelSyntax},
-    {0, "InActiveDeskBevel", 17, TT_FLAG, PAGER_InActiveBevel_ID , &BevelSyntax},
+#define PAGER_FEEL_TERMS \
+    {0, "DontDrawBg", 8, TT_FLAG, PAGER_DRAW_BG_ID, NULL}, \
+    {0, "StartIconic", 11, TT_FLAG, PAGER_START_ICONIC_ID, NULL}
+
+#define PAGER_LOOK_TERMS \
+    {0, "Align", 5, TT_FLAG, PAGER_ALIGN_ID, &AlignSyntax}, \
+    {0, "SmallFont", 9, TT_FONT, PAGER_SMALL_FONT_ID, NULL}, \
+    {TF_DONT_SPLIT, "ShadeButton", 11, TT_TEXT, PAGER_SHADE_BUTTON_ID, NULL}, \
+    {TF_INDEXED, "Style", 5, TT_TEXT, PAGER_STYLE_ID, NULL}, \
+    {0, "ActiveDeskBevel", 15,   TT_FLAG, PAGER_ActiveBevel_ID   , &BevelSyntax}, \
+    {0, "InActiveDeskBevel", 17, TT_FLAG, PAGER_InActiveBevel_ID , &BevelSyntax}, \
+    {TF_DONT_REMOVE_COMMENTS, "Decoration", 10, TT_TEXT, PAGER_DECORATION_ID, &PagerDecorationSyntax}
+
+#define PAGER_PRIVATE_TERMS \
+	{0, "Geometry", 8, TT_GEOMETRY, PAGER_GEOMETRY_ID, NULL}, \
+    {0, "IconGeometry", 12, TT_GEOMETRY, PAGER_ICON_GEOMETRY_ID, NULL}, \
+    {0, "Rows", 4, TT_INTEGER, PAGER_ROWS_ID, NULL}, \
+    {0, "Columns", 7, TT_INTEGER, PAGER_COLUMNS_ID, NULL}, \
+    {0, "StickyIcons", 11, TT_FLAG, PAGER_STICKY_ICONS_ID, NULL}, \
+    {TF_INDEXED, "Label", 5, TT_TEXT, PAGER_LABEL_ID, NULL}
+
+/* we have sybsyntax for this one too, just like for MyStyle */
+
+TermDef       PagerFeelTerms[] = {
+	/* Feel */
+	PAGER_FEEL_TERMS,
+	BALLOON_FEEL_TERMS,
+	{0, NULL, 0, 0, 0}
+};
+
+SyntaxDef     PagerFeelSyntax = {
+	'\n',
+	'\0',
+	PagerFeelTerms,
+	0,										   /* use default hash size */
+    '\t',
+	"",
+	"\t",
+	"PagerFeel",
+	"PagerFeel",
+	"AfterStep virtual desktop navigation module feel",
+	NULL,
+	0
+};
+
+
+TermDef       PagerLookTerms[] = {
+    /* Look */
+	PAGER_LOOK_TERMS,
 
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
-/* we have sybsyntax for this one too, just like for MyStyle */
-    {TF_DONT_REMOVE_COMMENTS, "Decoration", 10, TT_TEXT, PAGER_DECORATION_ID, &PagerDecorationSyntax},
+/* now special cases that should be processed by it's own handlers */
+    BALLOON_LOOK_TERMS,
+	{0, NULL, 0, 0, 0}
+};
+
+SyntaxDef     PagerLookSyntax = {
+	'\n',
+	'\0',
+	PagerLookTerms,
+	0,										   /* use default hash size */
+    '\t',
+	"",
+	"\t",
+	"PagerLook",
+	"PagerLook",
+	"AfterStep virtual desktop navigation module look",
+	NULL,
+	0
+};
+
+TermDef       PagerPrivateTerms[] = {
+	PAGER_PRIVATE_TERMS,
+	BALLOON_FLAG_TERM,
+	{0, NULL, 0, 0, 0}
+};
+
+SyntaxDef     PagerPrivateSyntax = {
+	'\n',
+	'\0',
+	PagerPrivateTerms,
+	0,										   /* use default hash size */
+    '\t',
+	"",
+	"\t",
+	"Pager",
+	"Pager",
+	"AfterStep virtual desktop navigation module",
+	NULL,
+	0
+};
+
+
+
+TermDef       PagerTerms[] = {
+	/* Feel */
+	PAGER_FEEL_TERMS,
+    /* Look */
+	PAGER_LOOK_TERMS,
+	/* private stuff */
+	PAGER_PRIVATE_TERMS,
+/* including MyStyles definitions processing */
+	INCLUDE_MYSTYLE,
 /* now special cases that should be processed by it's own handlers */
     BALLOON_TERMS,
 	{0, NULL, 0, 0, 0}
