@@ -1857,7 +1857,7 @@ hilite_aswindow( ASWindow *asw )
             on_window_hilite_changed (asw, True);
         
 		if( Scr.Windows->hilited )
-			broadcast_focus_change( asw, False );
+			broadcast_focus_change( Scr.Windows->hilited, False );
 		if( asw )
 			broadcast_focus_change( asw, True );
 

@@ -1780,8 +1780,10 @@ void refresh_client( INT32 old_desk, ASWindowData *wd )
 		}
     }
     set_client_name( wd, False );
+	LOCAL_DEBUG_OUT( "client \"%s\" focused = %d", wd->window_name, wd->focused );
+    set_astbar_focused( wd->bar, NULL, wd->focused );
 	set_client_look( wd, True );
-    set_astbar_focused( wd->bar, wd->canvas, wd->focused );
+	LOCAL_DEBUG_OUT( "placing client%s", "" );
 	if( d != NULL )
 	    place_client( d, wd, False, False );
     LOCAL_DEBUG_OUT( "all done%s", "" );

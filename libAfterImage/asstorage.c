@@ -24,7 +24,7 @@
 #undef DEBUG_COMPRESS
 #undef DEBUG_THRESHOLD
 #endif
-#undef DO_CLOCKING
+#define DO_CLOCKING
 
 #ifdef _WIN32
 #include "win32/config.h"
@@ -1821,7 +1821,7 @@ dup_data(ASStorage *storage, ASStorageID id)
 static int StorageTestKinds[STORAGE_TEST_KINDS][2] = 
 {
 	{100, 1 },
-	{4096, 40000 },
+	{4096, 10000 },
 	{128*1024, 128 },
 	{256*1024, 32 },
 	{512*1024, 16 },
@@ -1830,7 +1830,7 @@ static int StorageTestKinds[STORAGE_TEST_KINDS][2] =
 
 CARD8 Buffer[1024*1024] ;
 /* #define STORAGE_TEST_COUNT  1 */
-#define STORAGE_TEST_COUNT  8+16+32+128+40000+1 
+#define STORAGE_TEST_COUNT  8+16+32+128+10000+1 
 typedef struct ASStorageTest {
 	int size ;
 	CARD8 *data;
@@ -2006,6 +2006,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 	int i, kind, k;
 	int min_size, max_size ;
 	int test_count ;
+	START_TIME(started);
 
 	UsedMemory = 0 ;
 	UncompressedSize = 0 ;
@@ -2018,6 +2019,35 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 							if(!(val)){ fprintf(stderr, "failed\n"); return 1;} \
 							else fprintf(stderr, "success.\n");}while(0)
 	TEST_EVAL( storage != NULL ); 
+	
+#ifdef DO_CLOCKING	
+	fprintf(stderr, "Testing speed for flags 0x%lX...", test_flags);
+	{
+#define SPEED_SIZE 1024*1024*50		
+		CARD8 *speed_buffer ;
+		int i, id ;
+		static CARD32 rnd32_seed = 345824357;
+
+		speed_buffer = safemalloc( SPEED_SIZE );
+
+		for( i = 0 ; i < SPEED_SIZE ; ++i ) 
+			speed_buffer[i] = (MY_RND32())&0x00FF ;
+		
+		{
+			START_TIME(started2);
+			id = store_data( storage, &speed_buffer[0], SPEED_SIZE, test_flags, 0 );
+			SHOW_TIME("RLE compression speed ", started2);
+		}
+		{
+			START_TIME(started3);
+			fetch_data(storage, id, &speed_buffer[0], 0, SPEED_SIZE, 0, NULL);
+			SHOW_TIME("RLE de-compression speed ", started3);
+			forget_data(storage, id );
+		}
+		free( speed_buffer );
+	}	 
+
+#endif
 	
 	fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...", NULL, 0,
 			test_flags);
@@ -2049,6 +2079,8 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
 	fprintf( stderr, "%d :compressed_size = %d, uncompressed_size = %d, ratio = %d %% ###########\n", __LINE__, CompressedSize, UncompressedSize, (UncompressedSize<100)?0:(CompressedSize/(UncompressedSize/100)) );
+	SHOW_TIME("Pass 1", started);
+
 	if( interactive )
 	   fgetc(stdin);
 	for( i = 0 ; i < all_test_count ; ++i ) 
@@ -2080,6 +2112,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 	}
 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
+	SHOW_TIME("Pass 2", started);
 	if( interactive )
 	   fgetc(stdin);
 	for( i = 0 ; i < all_test_count ; ++i ) 
@@ -2102,6 +2135,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 		Tests[i].size = 0 ;
 	}	 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
+	SHOW_TIME("Pass 3", started);
 	if( interactive )
 	   fgetc(stdin);
 	kind = 0 ; 
@@ -2128,6 +2162,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 		}		   
 	}	 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
+	SHOW_TIME("Pass 4", started);
 	if( interactive )
 	   fgetc(stdin);
 	for( i = 0 ; i < all_test_count ; ++i ) 
@@ -2144,6 +2179,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 	}	 
 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
+	SHOW_TIME("Pass 5", started);
 	if( interactive )
 	   fgetc(stdin);
 	for( i = 0 ; i < all_test_count ; ++i ) 
@@ -2167,6 +2203,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 	}	 
 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
+	SHOW_TIME("Pass 6", started);
 	if( interactive )
 		fgetc(stdin);
 	for( k = 0 ; k < 50 ; ++k )
@@ -2248,6 +2285,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 		}	 
 	}	
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
+	SHOW_TIME("Pass 7", started);
 	if( interactive )
 	   fgetc(stdin);
 	kind = 0 ; 
@@ -2275,7 +2313,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 	}	 
 	fprintf( stderr, "%d :memory used %d #####################################################\n", __LINE__, UsedMemory );
 	fprintf( stderr, "%d :compressed_size = %d, uncompressed_size = %d, ratio = %d %% ###########\n", __LINE__, CompressedSize, UncompressedSize, (UncompressedSize<100)?0:(CompressedSize/(UncompressedSize/100)) );
-
+	SHOW_TIME("", started);
 	fprintf(stderr, "Testing storage destruction ...");
 	destroy_asstorage(&storage);
 	TEST_EVAL( storage == NULL ); 
@@ -2354,7 +2392,7 @@ int main(int argc, char **argv )
 		imdec = start_image_decoding(NULL, im, SCL_DO_ALL, 0, 0, im->width, im->height, NULL);
 		fprintf( stderr, "imdec = %p\n", imdec );
 	}
-	
+	fprintf(stderr, "running tests ( res = %d ) ...\n", res );	
 	if( res == 0 )
 		res = test_asstorage(interactive, test_count, 0);
 #if 0	  
