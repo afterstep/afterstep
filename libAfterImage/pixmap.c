@@ -245,10 +245,10 @@ shading2tint32(ShadingInfo * shading)
 {
 	if( shading && !NO_NEED_TO_SHADE(*shading))
 	{
-		CARD16 r16 = ((shading->tintColor.red*shading->shading / 100)>>1)&0x7FFF ;
-		CARD16 g16 = ((shading->tintColor.green*shading->shading / 100)>>1)&0x7FFF ;
-		CARD16 b16 = ((shading->tintColor.blue*shading->shading / 100)>>1)&0x7FFF ;
-		CARD16 a16 = ((0x0000FFFF*shading->shading / 100)>>1)&0x7FFF ;
+		CARD16 r16 = ((shading->tintColor.red*shading->shading / 100)>>9)&0x00FF ;
+		CARD16 g16 = ((shading->tintColor.green*shading->shading / 100)>>9)&0x00FF ;
+		CARD16 b16 = ((shading->tintColor.blue*shading->shading / 100)>>9)&0x00FF ;
+		CARD16 a16 = ((0x0000007F*shading->shading / 100))&0x00FF ;
 		return MAKE_ARGB32(a16,r16,g16,b16);
 	}
 	return TINT_LEAVE_SAME ;
