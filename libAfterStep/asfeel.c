@@ -325,7 +325,10 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
             if( get_flags( feel->flags, RandomPlacement )  )
                 feel->default_window_box->backup_strategy = ASP_RandomPlacement ;
         }else if( get_flags( feel->flags, RandomPlacement )  )
+		{   /* don't really want to use ManualPlacement if onlyRandomPlacement is requested */
             feel->default_window_box->main_strategy = ASP_RandomPlacement ;
+            feel->default_window_box->backup_strategy = ASP_RandomPlacement ;
+		}
 #if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
         if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
 #endif
