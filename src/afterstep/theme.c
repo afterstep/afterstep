@@ -408,7 +408,7 @@ install_theme_file( const char *src )
 		themedir_len = strlen(tmpdir)+11+32;
         theme_dir = safemalloc (themedir_len+1);
         sprintf (theme_dir, "%s/astheme.%ld", tmpdir, getuid() );
-		if( mkdir( theme_dir, 700 ) == -1 )
+		if( mkdir( theme_dir, 0700 ) == -1 )
 		{
 			if( errno != EEXIST  )
 			{
