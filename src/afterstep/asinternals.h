@@ -612,7 +612,8 @@ void SendPacket (int channel, unsigned long  msg_type, unsigned long num_datum, 
 void SendVector (int channel, unsigned long  msg_type, struct ASVector *vector);
 void SendConfig (int module, unsigned long event_type, ASWindow * t);
 void SendString (int module, unsigned long event_type,
-               unsigned long data1, unsigned long data2, unsigned long data3, char *name);
+               unsigned long data1, unsigned long data2, unsigned long data3,
+			   char *name, unsigned long encoding);
 void SendStackingOrder (int channel, unsigned long msg_type, unsigned long desk, ASVector *ids);
 /* simplified specialized interface to above functions : */
 void broadcast_focus_change( ASWindow *asw, Bool focused );

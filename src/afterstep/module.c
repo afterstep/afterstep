@@ -725,7 +725,8 @@ SendConfig (int module, unsigned long event_type, ASWindow * t)
 
 void
 SendString ( int channel, unsigned long msg_type,
-             unsigned long w, unsigned long frame, unsigned long asw_ptr, char *string )
+             unsigned long w, unsigned long frame, unsigned long asw_ptr,
+			 char *string, unsigned long encoding )
 {
     unsigned long data[3];
     long           len = 0;
@@ -742,6 +743,7 @@ SendString ( int channel, unsigned long msg_type,
     data[1] = frame;
     data[2] = asw_ptr;
     append_vector( &module_output_buffer, &(data[0]), 3);
+    append_vector( &module_output_buffer, &encoding, 1);
     serialize_string( string, &module_output_buffer );
     SendBuffer( channel );
 }
@@ -890,7 +892,7 @@ broadcast_window_name( ASWindow *asw )
 {
     if( asw )
         SendString( -1, M_WINDOW_NAME, asw->w, asw->frame,
-                      (unsigned long)asw, ASWIN_NAME(asw));
+                      (unsigned long)asw, ASWIN_NAME(asw), asw->hints->names_encoding[0]);
 }
 
 void
@@ -898,7 +900,7 @@ broadcast_icon_name( ASWindow *asw )
 {
     if( asw )
         SendString( -1, M_ICON_NAME, asw->w, asw->frame,
-                    (unsigned long)asw, ASWIN_ICON_NAME(asw));
+                    (unsigned long)asw, ASWIN_ICON_NAME(asw), asw->hints->names_encoding[asw->hints->icon_name_idx]);
 }
 
 void
@@ -907,9 +909,9 @@ broadcast_res_names( ASWindow *asw )
     if( asw )
     {
         SendString( -1, M_RES_CLASS, asw->w, asw->frame,
-                    (unsigned long)asw, asw->hints->res_class);
+                    (unsigned long)asw, asw->hints->res_class, asw->hints->names_encoding[asw->hints->res_class_idx]);
         SendString( -1, M_RES_NAME, asw->w, asw->frame,
-                    (unsigned long)asw, asw->hints->res_name);
+                    (unsigned long)asw, asw->hints->res_name, asw->hints->names_encoding[asw->hints->res_name_idx]);
     }
 }
 

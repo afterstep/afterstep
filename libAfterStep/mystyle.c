@@ -1599,15 +1599,26 @@ mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reve
 }
 
 ASImage      *
-mystyle_draw_text_image (MyStyle * style, const char *text)
+mystyle_draw_text_image (MyStyle * style, const char *text, unsigned long encoding)
 {
 	ASImage      *im = NULL;
 
 	if (style && text)
 	{
 		if (style->font.as_font)
-        { /* todo: implement text rendering using libAfterImage : */
-			im = draw_text (text, style->font.as_font, style->text_style, 100);
+        {
+			switch( encoding )
+			{
+				case AS_Text_ASCII :
+					im = draw_text (text, style->font.as_font, style->text_style, 100);
+				    break ;
+				case AS_Text_UTF8 :
+					im = draw_utf8_text (text, style->font.as_font, style->text_style, 100);
+				    break ;
+				case AS_Text_UNICODE :
+					im = draw_unicode_text ((CARD32*)text, style->font.as_font, style->text_style, 100);
+				    break ;
+			}
 LOCAL_DEBUG_OUT( "im is %p, back_color is %lX", im, style->colors.fore );
             if (im)
             {

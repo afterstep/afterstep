@@ -60,6 +60,11 @@ extern "C" {
 #define ASS_WarpingMode         (0x01<<7)      /* after first F_WARP* and before mouse/keyboard actions. */
 #define ASS_PointerOutOfScreen  (0x01<<8)      /*  */
 
+#define AS_Text_ASCII			0
+#define AS_Text_UTF8			1
+#define AS_Text_UNICODE			2
+
+
 /* use PanFrames! this replaces the 3 pixel margin with PanFrame windows
  * it should not be an option, once it works right. HEDU 2/2/94
  */

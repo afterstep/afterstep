@@ -740,7 +740,7 @@ estimate_titlebar_size( ASHints *hints )
                             Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                             TBTN_ORDER_L2R );
         /* label */
-        add_astbar_label(   tbar, 1, 0, 0, ALIGN_LEFT, hints->names[0]);
+        add_astbar_label(   tbar, 1, 0, 0, ALIGN_LEFT, hints->names[0], hints->names_encoding[0]);
         /* right buttons : */
         add_astbar_btnblock(tbar, 2, 0, 0, NO_ALIGN,
                             &(Scr.Look.ordered_buttons[Scr.Look.button_first_right]), btn_mask,
@@ -863,7 +863,7 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     if( asw->icon_title )
     {
         LOCAL_DEBUG_OUT( "setting icon label to %s", ASWIN_ICON_NAME(asw) );
-        add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align, ASWIN_ICON_NAME(asw));
+        add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align, ASWIN_ICON_NAME(asw), (asw->hints->icon_name_idx < 0)?AS_Text_ASCII : asw->hints->names_encoding[asw->hints->icon_name_idx]);
     }
     /* 8) now we have to create actuall bars - for each frame element plus one for the titlebar */
     if( ASWIN_HFLAGS(asw, AS_Handles) )
@@ -913,7 +913,7 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
 			set_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
 		else
 			clear_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
-		
+
         /* left buttons : */
         add_astbar_btnblock(asw->tbar,
                             od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN],
@@ -964,7 +964,7 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
                           od->default_tbar_elem_row[ASO_TBAR_ELEM_LBL],
                           od->flip,
                           title_align,
-                          ASWIN_NAME(asw));
+                          asw->hints->names[0], asw->hints->names_encoding[0]);
 
         /* right buttons : */
         add_astbar_btnblock(asw->tbar,
@@ -982,7 +982,7 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
             {
                 char *str = list_functions_by_context (C_TButton0<<i);
                 LOCAL_DEBUG_OUT( "balloon text will be \"%s\"", str?str:"none" );
-                set_astbar_balloon( asw->tbar, C_TButton0<<i, str );
+                set_astbar_balloon( asw->tbar, C_TButton0<<i, str, AS_Text_ASCII );
                 if( str )
                     free( str );
             }

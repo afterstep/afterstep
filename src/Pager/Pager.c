@@ -1095,11 +1095,11 @@ redecorate_pager_desks()
             /* delete label if it was previously created : */
             delete_astbar_tile( d->title, -1 );
             if( Config->labels && Config->labels[i] )
-                add_astbar_label( d->title, 0, flip?1:0, flip, align, Config->labels[i] );
+                add_astbar_label( d->title, 0, flip?1:0, flip, align, Config->labels[i], AS_Text_ASCII );
             else
             {
                 sprintf( buf, "Desk %ld", PagerState.start_desk+i );
-                add_astbar_label( d->title, 0, flip?1:0, flip, align, buf );
+                add_astbar_label( d->title, 0, flip?1:0, flip, align, buf, AS_Text_ASCII );
             }
             if( Config->shade_btn )
                 add_astbar_btnblock( d->title, flip?0:1, 0, flip, NO_ALIGN, &(Config->shade_btn), 0xFFFFFFFF, 1, 1, 1, 0, 0);
@@ -1377,8 +1377,8 @@ set_client_name( ASWindowData *wd, Bool redraw )
 {
     if( wd->bar )
     {
-        change_astbar_first_label( wd->bar, wd->window_name );
-        set_astbar_balloon( wd->bar, 0, wd->window_name );
+        change_astbar_first_label( wd->bar, wd->window_name, wd->window_name_encoding );
+        set_astbar_balloon( wd->bar, 0, wd->window_name, wd->window_name_encoding );
     }
     if( redraw && wd->canvas )
         render_astbar( wd->bar, wd->canvas );
@@ -1574,7 +1574,7 @@ void add_client( ASWindowData *wd )
 
     set_astbar_hilite( wd->bar, BAR_STATE_UNFOCUSED, NORMAL_HILITE|NO_HILITE_OUTLINE );
     set_astbar_hilite( wd->bar, BAR_STATE_FOCUSED, NORMAL_HILITE|NO_HILITE_OUTLINE );
-    add_astbar_label( wd->bar, 0, 0, 0, NO_ALIGN, NULL );
+    add_astbar_label( wd->bar, 0, 0, 0, NO_ALIGN, NULL, AS_Text_ASCII );
     move_astbar( wd->bar, wd->canvas, 0, 0 );
     if( wd->focused )
         set_astbar_focused( wd->bar, NULL, True );

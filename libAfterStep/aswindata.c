@@ -163,15 +163,20 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 	if( (type&WINDOW_NAME_MASK) )
 	{/* read in the name */
 		char **dst = NULL ;
-        unsigned long *pbuf = &(data[3]);
+		unsigned long encoding = data[3] ;
+        unsigned long *pbuf = &(data[4]);
         char *new_name = deserialize_string( &pbuf, NULL );
 LOCAL_DEBUG_OUT( "name received \"%s\"", new_name );
 		switch(type)
 		{
-			case M_WINDOW_NAME : dst = &(wd->window_name); break;
-			case M_ICON_NAME   : dst = &(wd->icon_name); break;
-			case M_RES_CLASS   : dst = &(wd->res_class); break;
-			case M_RES_NAME    : dst = &(wd->res_name ); break;
+			case M_WINDOW_NAME : dst = &(wd->window_name);
+								 wd->window_name_encoding = encoding ;break;
+			case M_ICON_NAME   : dst = &(wd->icon_name);
+								 wd->icon_name_encoding = encoding ; break;
+			case M_RES_CLASS   : dst = &(wd->res_class);
+								 wd->res_class_encoding = encoding ;break;
+			case M_RES_NAME    : dst = &(wd->res_name );
+								 wd->res_name_encoding = encoding ; break;
 			default :
                 free( new_name );
                 return WP_Error ;

@@ -34,6 +34,7 @@ typedef struct ASWindowData
 	char 			*icon_name ;
 	char 			*res_class ;
 	char 			*res_name ;
+	unsigned long 	 window_name_encoding, icon_name_encoding, res_class_encoding, res_name_encoding ;
 
     Bool             focused;
 

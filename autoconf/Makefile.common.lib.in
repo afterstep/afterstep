@@ -24,8 +24,10 @@ install.static:
 		    	    echo "Unable to find $(LIBDIR) in ld.so.conf. In order to use "; \
 		    	    echo "$(LIB_STATIC), you may need to add it or set LD_LIBRARY_PATH."; \
 			fi; \
-			echo "$(LDCONFIG)"; \
-			$(LDCONFIG); \
+			if test -w /etc; then \
+			    echo "$(LDCONFIG)"; \
+			    $(LDCONFIG); \
+			fi; \
 		    fi ;\
 		fi \
 		)

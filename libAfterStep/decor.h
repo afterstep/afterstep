@@ -67,8 +67,10 @@ typedef struct ASBtnBlock {
 
 typedef struct ASLabel {
     char            *text ;
-    struct ASImage  *rendered[2] ;
-	/* 12 bytes */
+	unsigned long    encoding ;                /* one of those AS_Text_ values */
+	struct ASImage  *rendered[2] ;
+
+	/* 16 bytes */
 }ASLabel;
 
 typedef struct ASTile {
@@ -145,9 +147,9 @@ typedef struct ASTile {
 		ASBtnBlock	 bblock;
         struct ASImage     *icon ;
 		ASLabel      label ;
-        unsigned long raw[3];
+        unsigned long raw[4];
 	}data;
-    /* 24 bytes */
+    /* 28 bytes */
 }ASTile;
 
 typedef struct ASTBarData {
@@ -271,11 +273,11 @@ int add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row
                          struct button_t **from_list, ASFlagType context_mask, unsigned int count,
                          int left_margin, int top_margin, int spacing, int order);
 int add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, struct ASImage *icon);
-int add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, const char *text);
+int add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, const char *text, unsigned long encoding);
 Bool delete_astbar_tile( ASTBarData *tbar, int idx );
 
-Bool change_astbar_label (ASTBarData * tbar, int index, const char *label);
-Bool change_astbar_first_label (ASTBarData * tbar, const char *label);
+Bool change_astbar_label (ASTBarData * tbar, int index, const char *label, unsigned long encoding);
+Bool change_astbar_first_label (ASTBarData * tbar, const char *label, unsigned long encoding);
 
 
 Bool move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y );
@@ -295,7 +297,7 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 #endif
 
 void on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave );
-void set_astbar_balloon( ASTBarData *tbar, int context, const char *text );
+void set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned long encoding );
 
 #ifdef __cplusplus
 }

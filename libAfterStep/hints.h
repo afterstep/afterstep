@@ -126,6 +126,9 @@ typedef struct ASHints
   char *names[MAX_WINDOW_NAMES+1] ;
   /* these are merely shortcuts to the above list DON'T FREE THEM !!! */
   char *res_name, *res_class, *icon_name ;
+  int res_name_idx, res_class_idx, icon_name_idx ;
+
+  unsigned char names_encoding[MAX_WINDOW_NAMES+1];  /* one of the AS_Text_ values */
 
   ASFlagType flags ;
   ASFlagType protocols ;

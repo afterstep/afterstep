@@ -523,27 +523,55 @@ make_winlist_window()
 /********************************************************************/
 /* Private stuff : **************************************************/
 static char *
-get_visible_window_name( ASWindowData *wd )
+get_visible_window_name( ASWindowData *wd, unsigned long *encoding )
 {
 	char *vname = NULL ;
 	switch( Config->show_name_type )
 	{
-		case ASN_Name :     vname = wd->window_name ; break ;
-		case ASN_IconName : vname = wd->icon_name ; break ;
-		case ASN_ResClass : vname = wd->res_class ; break ;
-		case ASN_ResName :  vname = wd->res_name ; break ;
+		case ASN_Name :     vname = wd->window_name ;
+							if( encoding )
+								*encoding = wd->window_name_encoding ;
+							break ;
+		case ASN_IconName : vname = wd->icon_name ;
+							if( encoding )
+								*encoding = wd->icon_name_encoding ;
+							break ;
+		case ASN_ResClass : vname = wd->res_class ;
+							if( encoding )
+								*encoding = wd->res_class_encoding ;
+							break ;
+		case ASN_ResName :  vname = wd->res_name ;
+							if( encoding )
+								*encoding = wd->res_name_encoding ;
+							break ;
 	 default :
 	}
 	if( vname == NULL )
 	{
 		if( wd->window_name )
+		{
+			if( encoding )
+				*encoding = wd->window_name_encoding ;
 			return wd->window_name ;
+		}
 		if( wd->icon_name )
+		{
+			if( encoding )
+				*encoding = wd->icon_name_encoding ;
 			return wd->icon_name ;
+		}
 		if( wd->res_class )
+		{
+			if( encoding )
+				*encoding = wd->res_class_encoding ;
 			return wd->res_class ;
+		}
 		if( wd->res_name )
+		{
+			if( encoding )
+				*encoding = wd->res_name_encoding ;
 			return wd->res_name ;
+		}
 	}
 	return vname ;
 }
@@ -621,7 +649,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
                 char *banner = safemalloc( 9+1+2+1+strlen(VERSION)+1);
                 WinListState.idle_bar = create_astbar();
                 sprintf( banner, "AfterStep v. %s", VERSION );
-                add_astbar_label( WinListState.idle_bar, 0, 0, flip, ALIGN_CENTER, banner );
+                add_astbar_label( WinListState.idle_bar, 0, 0, flip, ALIGN_CENTER, banner, AS_Text_ASCII );
                 free( banner );
                 set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
                 set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
@@ -890,7 +918,8 @@ find_button_by_position( int x, int y )
 static void
 configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
 {
-	char *name = get_visible_window_name(wd);
+	unsigned long encoding = AS_Text_ASCII ;
+	char *name = get_visible_window_name(wd, &encoding );
     ASFlagType align = ALIGN_TOP|ALIGN_BOTTOM ;
 
     delete_astbar_tile( tbar, -1 );
@@ -916,11 +945,11 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
     {
         char *iconic_name = safemalloc(1+strlen(name)+1+1);
         sprintf(iconic_name, "(%s)", name );
-        add_astbar_label( tbar, 0, 0, 0, align, iconic_name);
+        add_astbar_label( tbar, 0, 0, 0, align, iconic_name, encoding);
         free( iconic_name );
     }else
-        add_astbar_label( tbar, 0, 0, 0, align, name);
-    set_astbar_balloon( tbar, 0, name );
+        add_astbar_label( tbar, 0, 0, 0, align, name, encoding);
+    set_astbar_balloon( tbar, 0, name, encoding );
     set_astbar_focused( tbar, WinListState.main_canvas, wd->focused );
     if( wd->focused )
 	{

@@ -604,7 +604,7 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
     if( asw->tbar )
     {
         ASCanvas *canvas = ASWIN_HFLAGS(asw, AS_VerticalTitle)?asw->frame_sides[FR_W]:asw->frame_sides[FR_N];
-        if( change_astbar_first_label( asw->tbar, ASWIN_NAME(asw) ) )
+        if( change_astbar_first_label( asw->tbar, asw->hints->names[0], asw->hints->names_encoding[0] ) )
             if( canvas && update_display )
             {
                 render_astbar( asw->tbar, canvas );
@@ -613,7 +613,7 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
     }
     if( asw->icon_title )
     {
-        if( change_astbar_first_label( asw->icon_title, ASWIN_ICON_NAME(asw) ) )
+        if( change_astbar_first_label( asw->icon_title, ASWIN_ICON_NAME(asw), (asw->hints->icon_name_idx<0)?AS_Text_ASCII:asw->hints->names_encoding[asw->hints->icon_name_idx] ) )
             on_icon_changed( asw );
     }
 }

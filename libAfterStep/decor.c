@@ -1158,7 +1158,7 @@ aslabel_style_changed(  ASTile* tile, MyStyle *style, unsigned int state )
     if (lbl->rendered[state] != NULL)
         destroy_asimage( &(lbl->rendered[state]) );
 
-    im = mystyle_draw_text_image (style, lbl->text);
+    im = mystyle_draw_text_image (style, lbl->text, lbl->encoding);
 LOCAL_DEBUG_OUT( "state(%d)->style(\"%s\")->text(\"%s\")->image(%p)->flip(%d)", state, style?style->name:"none", lbl->text, im, flip );
     if( flip != 0 )
     {
@@ -1646,7 +1646,7 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
 }
 
 int
-add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, const char *text)
+add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, const char *text, unsigned long encoding)
 {
 LOCAL_DEBUG_CALLER_OUT( "label \"%s\"", text );
     if( tbar )
@@ -1654,7 +1654,7 @@ LOCAL_DEBUG_CALLER_OUT( "label \"%s\"", text );
         ASTile *tile = add_astbar_tile( tbar, AS_TileLabel, col, row, flip, align );
         ASLabel *lbl = &(tile->data.label);
         lbl->text = mystrdup(text);
-
+		lbl->encoding = encoding ;
         set_astile_styles( tbar, tile, -1 );
 
         ASSetTileSublayers(*tile,1);
@@ -1664,7 +1664,7 @@ LOCAL_DEBUG_CALLER_OUT( "label \"%s\"", text );
 }
 
 Bool
-change_astbar_label (ASTBarData * tbar, int index, const char *label)
+change_astbar_label (ASTBarData * tbar, int index, const char *label, unsigned long encoding )
 {
 	Bool          changed = False;
 
@@ -1691,6 +1691,9 @@ LOCAL_DEBUG_CALLER_OUT( "tbar(%p)->index(%d)->label(\"%s\")", tbar, index, label
             free (lbl->text);
             lbl->text = mystrdup (label);
 		}
+		if( !changed && lbl->encoding != encoding )
+			changed = True ;
+		lbl->encoding = encoding ;
 		if (changed)
         {
             set_astile_styles( tbar, &(tbar->tiles[index]), -1 );
@@ -1702,14 +1705,14 @@ LOCAL_DEBUG_CALLER_OUT( "tbar(%p)->index(%d)->label(\"%s\")", tbar, index, label
 
 
 Bool
-change_astbar_first_label (ASTBarData * tbar, const char *label)
+change_astbar_first_label (ASTBarData * tbar, const char *label, unsigned long encoding)
 {
     if (tbar)
 	{
         register int i ;
         for( i = 0 ; i < tbar->tiles_num ; ++i )
             if( ASTileType(tbar->tiles[i]) == AS_TileLabel )
-                return change_astbar_label (tbar, i, label);
+                return change_astbar_label (tbar, i, label, encoding);
     }
     return False;
 }
@@ -2224,7 +2227,7 @@ on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave )
 }
 
 void
-set_astbar_balloon( ASTBarData *tbar, int context, const char *text )
+set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned long encoding )
 {
     if( tbar != NULL )
     {
@@ -2244,12 +2247,12 @@ set_astbar_balloon( ASTBarData *tbar, int context, const char *text )
                         {
                             if( bb->buttons[k].balloon != NULL )
                             {
-                                balloon_set_text (bb->buttons[k].balloon, text);
+                                balloon_set_text (bb->buttons[k].balloon, text, encoding);
                                 LOCAL_DEBUG_OUT( "changed balloon for tbar(%p)->context(0x%X)->button(%d)->text(%s)->balloon(%p)",
                                                  tbar, context, k, text, bb->buttons[k].balloon );
                             }else
                             {
-                                bb->buttons[k].balloon = create_asballoon_with_text( tbar, text );
+                                bb->buttons[k].balloon = create_asballoon_with_text( tbar, text, encoding );
                                 LOCAL_DEBUG_OUT( "created balloon for tbar(%p)->context(0x%X)->button(%d)->text(%s)->balloon(%p)",
                                                  tbar, context, k, text, bb->buttons[k].balloon );
                             }
@@ -2261,12 +2264,12 @@ set_astbar_balloon( ASTBarData *tbar, int context, const char *text )
         {
             if( tbar->balloon != NULL )
             {
-                balloon_set_text (tbar->balloon, text);
+                balloon_set_text (tbar->balloon, text, encoding);
                 LOCAL_DEBUG_OUT( "changed tbar balloon for tbar(%p)->context(0x%X)->text(%s)->balloon(%p)",
                                                  tbar, context, text, tbar->balloon );
             }else
             {
-                tbar->balloon = create_asballoon_with_text( tbar, text );
+                tbar->balloon = create_asballoon_with_text( tbar, text, encoding );
                 LOCAL_DEBUG_OUT( "created tbar balloon for tbar(%p)->context(0x%X)->text(%s)->balloon(%p)",
                                  tbar, context, text, tbar->balloon );
             }

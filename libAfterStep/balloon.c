@@ -128,7 +128,7 @@ display_active_balloon()
         while (timer_remove_by_data (BalloonState.active));
         BalloonState.active_canvas = create_ascanvas(BalloonState.active_window);
         BalloonState.active_bar = create_astbar();
-        add_astbar_label( BalloonState.active_bar, 0, 0, 0, ALIGN_CENTER, BalloonState.active->text );
+        add_astbar_label( BalloonState.active_bar, 0, 0, 0, ALIGN_CENTER, BalloonState.active->text, AS_Text_ASCII );
         set_active_balloon_look();
         map_canvas_window( BalloonState.active_canvas, True );
 
@@ -261,11 +261,14 @@ create_asballoon (ASTBarData *owner)
 }
 
 ASBalloon *
-create_asballoon_with_text ( ASTBarData *owner, const char *text)
+create_asballoon_with_text ( ASTBarData *owner, const char *text, unsigned long encoding)
 {
     ASBalloon *balloon = create_asballoon(owner);
     if( balloon )
+	{
         balloon->text = mystrdup(text);
+		balloon->encoding = encoding ;
+	}
     return balloon;
 }
 
@@ -285,17 +288,18 @@ destroy_asballoon( ASBalloon **pballoon )
 
 
 void
-balloon_set_text (ASBalloon * balloon, const char *text)
+balloon_set_text (ASBalloon * balloon, const char *text, unsigned long encoding)
 {
     if( balloon->text == text )
         return ;
     if( balloon->text )
         free( balloon->text );
     balloon->text = mystrdup( text );
+	balloon->encoding = encoding ;
     if( balloon == BalloonState.active &&
         BalloonState.active_bar != NULL )
     {
-        if( change_astbar_first_label (BalloonState.active_bar, balloon->text ) )
+        if( change_astbar_first_label (BalloonState.active_bar, balloon->text, encoding ) )
             set_active_balloon_look();
     }
 }

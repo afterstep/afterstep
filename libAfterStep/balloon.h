@@ -26,7 +26,8 @@ typedef struct ASBalloonLook
 typedef struct ASBalloon
 {
     char *text;                     /* text to display in balloon */
-    enum
+	unsigned long encoding ;
+	enum
     {
         BALLOON_TIMER_OPEN,
         BALLOON_TIMER_CLOSE
@@ -48,9 +49,9 @@ void withdraw_balloon( ASBalloon *balloon );
 void display_balloon( ASBalloon *balloon );
 void set_balloon_look( ASBalloonLook *blook );
 ASBalloon *create_asballoon (struct ASTBarData *owner);
-ASBalloon *create_asballoon_with_text ( struct ASTBarData *owner, const char *text);
+ASBalloon *create_asballoon_with_text ( struct ASTBarData *owner, const char *text, unsigned long encoding);
 void destroy_asballoon(ASBalloon **pballoon );
-void balloon_set_text (ASBalloon * balloon, const char *text);
+void balloon_set_text (ASBalloon * balloon, const char *text, unsigned long encoding);
 
 #ifdef __cplusplus
 }

@@ -239,32 +239,47 @@ dnl# first configuringlibraries :
 FROM_AFTERSTEP_CONFIGURE=yes
 export FROM_AFTERSTEP_CONFIGURE
 
+_def_lib_conf_opts=" \
+	--prefix=${prefix} \
+	--exec-prefix=${exec_prefix} \
+	--bindir=${bindir} \
+	--sbindir=${sbindir} \
+	--libexecdir=${libexecdir} \
+	--datadir=${datadir} \
+	--sysconfdir=${sysconfdir} \
+	--sharedstatedir=${sharedstatedir} \
+	--localstatedir=${localstatedir} \
+	--libdir=${libdir} \
+	--includedir=${includedir} \
+	--oldincludedir=${oldincludedir} \
+	--infodir=${infodir} \
+	--mandir=${mandir} \
+	--with-x-includes=${x_includes} \
+	--with-x=${with_x} \
+	--enable-audit=${enable_audit} \
+	--enable-trace=${enable_trace} \
+"
+
 if test -d libAfterBase; then
   AC_CHECKING(libAfterBase)
-  cd libAfterBase ; \
-  ./configure --with-x-includes=$x_includes \
-   --with-x=$with_x \
-   --enable-audit=$enable_audit \
-   --enable-trace=$enable_trace \
-   --enable-trace-x=$enable_trace_x ; \
-  cd ../ ;
-  afterbase_includes=".. -I../.." ;
+  cd libAfterBase; \
+  ./configure $_def_lib_conf_opts \
+   --enable-trace-x=$enable_trace_x; \
+  cd ../
+  afterbase_includes=".. -I../.."
   afterbase_lib=
 fi
 
 if test -d libAfterBase; then
   AC_CHECKING(libAfterImage)
-  cd libAfterImage ; \
-  ./configure --with-x-includes=$x_includes \
-   --with-x=$with_x \
+  cd libAfterImage; \
+  ./configure $_def_lib_conf_opts \
    --with-xpm=$with_xpm   --with-builtin-xpm=$with_builtin_xpm  --with-xpm-includes=$xpm_includes \
    --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes \
    --with-png=$with_png   --with-png-includes=$png_includes \
    --with-gif-includes=$gif_includes \
    --with-tiff=$with_tiff --with-tiff-includes=$tiff_includes \
    --with-ttf=$with_ttf   --with-ttf-includes=$ttf_includes \
-   --enable-audit=$enable_audit \
-   --enable-trace=$enable_trace \
    --enable-mmx-optimization=$enable_mmx_optimization \
    --with-ungif=$with_ungif --with-gif=$with_gif; \
    cd ../
@@ -411,8 +426,7 @@ if test "x$enable_ascp" = "xyes"; then
     if fltk-config --libs >/dev/null  ;then
 	ASCP=ascp ;
 	present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-	for l in `fltk-config --libs` ;	do
-
+	for l in `fltk-config --ldstaticflags`; do
 	    lib_found=no
 	    for p in `echo "$present_libs"` ; do
 		if test "x$l" = "x$p" ; then

@@ -384,35 +384,38 @@ update_colormaps (ScreenInfo * scr, Window w, ASSupportedHints * list, Window **
 /****************************************************************************
  * The following functions actually implement hints merging :
  ****************************************************************************/
-static char  *
-add_name_to_list (char **list, char *name)
+static int
+add_name_to_list (char **list, char *name, unsigned char *encoding_list, unsigned char encoding )
 {
 	register int  i;
 
 	if (name == NULL)
-		return NULL;
+		return -1;
 
 	for (i = 0; i < MAX_WINDOW_NAMES; i++)
 	{
 		if (list[i] == NULL)
 			break;
-		if (strcmp (name, list[i]) == 0)
+		if (encoding_list[i] == encoding && strcmp (name, list[i]) == 0)
 		{
 			free (name);
-			return list[i];
+			return i;
 		}
 	}
 	if (i >= MAX_WINDOW_NAMES)
 	{										   /* tough luck - no more space */
 		free (name);
-		return NULL;
+		return -1;
 	}
 
 	for (; i > 0; i--)
+	{
 		list[i] = list[i - 1];
-
+		encoding_list[i] = encoding_list[i-1] ;
+	}
 	list[0] = name;
-	return name;
+	encoding_list[0] = encoding ;
+	return 0;
 }
 
 static int
@@ -443,14 +446,24 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 		if (raw->wm_class)
 		{
 			if (raw->wm_class->res_class)
-				clean->res_class = add_name_to_list (clean->names, stripcpy (raw->wm_class->res_class));
+			{
+				clean->res_class_idx = add_name_to_list (clean->names, stripcpy (raw->wm_class->res_class), clean->names_encoding, AS_Text_ASCII );
+				clean->res_class = (clean->res_class_idx < 0 )?NULL:clean->names[clean->res_class_idx];
+			}
 			if (raw->wm_class->res_name)
-				clean->res_name = add_name_to_list (clean->names, stripcpy (raw->wm_class->res_name));
+			{
+				clean->res_name_idx = add_name_to_list (clean->names, stripcpy (raw->wm_class->res_name), clean->names_encoding, AS_Text_ASCII);
+				clean->res_name = (clean->res_name_idx < 0 )?NULL:clean->names[clean->res_name_idx];
+			}
 		}
 		if (raw->wm_icon_name)
-			clean->icon_name = add_name_to_list (clean->names, text_property2string (raw->wm_icon_name));
+		{
+			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (raw->wm_icon_name), clean->names_encoding, AS_Text_ASCII);
+			clean->icon_name     = (clean->icon_name_idx < 0 )?NULL:clean->names[clean->icon_name_idx];
+		}
+
 		if (raw->wm_name)
-			add_name_to_list (clean->names, text_property2string (raw->wm_name));
+			add_name_to_list (clean->names, text_property2string (raw->wm_name), clean->names_encoding, AS_Text_ASCII);
 	}
 
 	if (get_flags (what, HINT_STARTUP) && status != NULL)
@@ -944,13 +957,14 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 	if (get_flags (what, HINT_NAME))
 	{
 		if (eh->name)
-			add_name_to_list (clean->names, text_property2string (eh->name));
+			add_name_to_list (clean->names, text_property2string (eh->name), clean->names_encoding, AS_Text_UTF8);
 		if (eh->icon_name)
-			clean->icon_name = add_name_to_list (clean->names, text_property2string (eh->icon_name));
+			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (eh->icon_name), clean->names_encoding, AS_Text_UTF8);
 		if (eh->visible_name)
-			add_name_to_list (clean->names, text_property2string (eh->visible_name));
+			add_name_to_list (clean->names, text_property2string (eh->visible_name), clean->names_encoding, AS_Text_UTF8);
 		if (eh->visible_icon_name)
-			clean->icon_name = add_name_to_list (clean->names, text_property2string (eh->visible_icon_name));
+			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (eh->visible_icon_name), clean->names_encoding, AS_Text_UTF8);
+		clean->icon_name = (clean->icon_name_idx <0 )?NULL: clean->names[clean->icon_name_idx] ;
 	}
 
 	if (get_flags (what, HINT_STARTUP) && status != NULL)
@@ -1299,9 +1313,9 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 			{
 				int           i;
 
-				if( mystrcmp(hints->names[0], clean.names[0]) != 0 )
+				if( hints->names_encoding[0] == clean.names_encoding[0] && mystrcmp(hints->names[0], clean.names[0]) != 0 )
 				    changed = True ;
-				else if( mystrcmp(hints->res_name, clean.res_name) != 0 )
+				else if(  mystrcmp(hints->res_name, clean.res_name) != 0 )
 				    changed = True ;
 				else if( mystrcmp(hints->res_class, clean.res_class) != 0 )
 				    changed = True ;
@@ -1316,12 +1330,16 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 
 				for (i = 0; i < MAX_WINDOW_NAMES; ++i)
 				{
+					hints->names_encoding[i] = clean.names_encoding[i] ;
 					hints->names[i] = clean.names[i];
 					clean.names[i] = NULL;
 				}
 				hints->res_name = clean.res_name;
+				hints->res_name_idx = clean.res_name_idx;
 				hints->res_class = clean.res_class;
+				hints->res_class_idx = clean.res_class_idx;
 				hints->icon_name = clean.icon_name;
+				hints->icon_name_idx = clean.icon_name_idx;
 				show_debug (__FILE__, __FUNCTION__, __LINE__, "names set");
 			} else if (property == XA_WM_HINTS)
 			{
@@ -2751,8 +2769,11 @@ deserialize_names (ASHints * clean, CARD32 ** pbuf, size_t * buf_size)
 		clean->names[i] = deserialize_string (pbuf, buf_size);
 	}
 	clean->res_name = (header[0] < MAX_WINDOW_NAMES) ? clean->names[header[0]] : NULL;
+	clean->res_name_idx = 0 ;
 	clean->res_class = (header[1] < MAX_WINDOW_NAMES) ? clean->names[header[1]] : NULL;
+	clean->res_class_idx = 0 ;
 	clean->icon_name = (header[2] < MAX_WINDOW_NAMES) ? clean->names[header[2]] : NULL;
+	clean->icon_name_idx = 0 ;
 
 	return True;
 }

@@ -222,7 +222,7 @@ void mystyle_error (char *format, char *name, char *text2);
 merge_scanlines_func mystyle_translate_texture_type( int texture_type );
 
 int mystyle_translate_grad_type( int type );
-ASImage *mystyle_draw_text_image( MyStyle *style, const char *text );
+ASImage *mystyle_draw_text_image( MyStyle *style, const char *text, unsigned long encoding );
 unsigned int mystyle_get_font_height( MyStyle *style );
 
 void mystyle_list_fix_styles (ASHashTable *list);

@@ -695,9 +695,9 @@ build_wharf_button_tbar(WharfButton *wb)
     set_astbar_composition_method( bar, BAR_STATE_UNFOCUSED, Config->composition_method );
 
     if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
-        add_astbar_label( bar, label_col, label_row, label_flip, label_align, wb->title );
+        add_astbar_label( bar, label_col, label_row, label_flip, label_align, wb->title, AS_Text_ASCII );
 
-    set_astbar_balloon( bar, 0, wb->title );
+    set_astbar_balloon( bar, 0, wb->title, AS_Text_ASCII );
 
     set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
     LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
@@ -1708,7 +1708,7 @@ on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
     return True;
 }
 
-void 
+void
 update_root_clip_area()
 {
 	/* TODO: update root clip area to the max area occupied by all mapped folders */
