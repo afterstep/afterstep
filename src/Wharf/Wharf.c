@@ -596,16 +596,18 @@ DispatchEvent (ASEvent * event)
         case MotionNotify :
             break ;
         case EnterNotify :
-			if( WharfState.focused_button ) 
-				change_button_focus(WharfState.focused_button, False ); 
 			if( event->x.xcrossing.window == Scr.Root )
 			{
+				if( WharfState.focused_button ) 
+					change_button_focus(WharfState.focused_button, False ); 
 				withdraw_active_balloon();
 				break;
 			}
         case LeaveNotify :
             {
                 ASMagic *obj = fetch_object( event->w ) ;
+				if( WharfState.focused_button ) 
+					change_button_focus(WharfState.focused_button, False ); 
                 if( obj != NULL && obj->magic == MAGIC_WHARF_BUTTON )
                 {
                     ASWharfButton *aswb = (ASWharfButton*)obj;
@@ -1113,6 +1115,8 @@ change_button_focus(ASWharfButton *aswb, Bool focused )
 
 	if( focused ) 
 		WharfState.focused_button = aswb ;
+	else if( WharfState.focused_button == aswb )
+		WharfState.focused_button = NULL ;
 }	 
 
 void

@@ -178,6 +178,14 @@ MyStyle "*WharfTile"
 	BackMultiGradient   6 #10222222 0.0 alpha(20,Inactive2Dark) 0.3 alpha(30,Inactive2Light) 0.5 alpha(60,Active) 0.8 alpha(30,ActiveLight) 1.0
 ~MyStyle
 
+MyStyle "*WharfFocusedTile"
+	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      ActiveText
+	BackColor      Active
+	BackMultiGradient   6 #10222222 0.0 ActiveDark 0.3 ActiveLight 0.5 Inactive2 0.8 Inactive2Light) 1.0
+~MyStyle
+
+
 MyStyle "*MonitorWharfTile"
 	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      InactiveText2

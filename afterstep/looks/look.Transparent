@@ -24,7 +24,7 @@ MyStyle "TitleButtonBalloon"
 
 MyStyle "window_font"
   Font		DefaultSansBold.ttf-16
-  TextStyle	0
+  TextStyle	7
   ~MyStyle
 
 MyStyle "focused_window_style"
@@ -180,6 +180,13 @@ MyStyle "*WharfTile"
 	ForeColor      InactiveText2
 	BackColor      Inactive2
 	BackGradient   6 alpha(20,Inactive2Dark) alpha(30,Inactive2Light)
+~MyStyle
+
+MyStyle "*WharfFocusedTile"
+	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      ActiveText
+	BackColor      Active
+	BackGradient   6 ActiveDark ActiveLight
 ~MyStyle
 
 MyStyle "*MonitorWharfTile"

@@ -1,3 +1,14 @@
+version 2.0 beta5
+	*Added Utility for autogeneration and maintenance of documentation - ASDocGen.
+	 It is capable of generating docs in plain text, HTML, PHP, XML and NROFF formats,
+	 from DocBook XML source, and comments embedded in source code.
+	*Animate module is now back in bussiness.
+	*Added TextStyles 7, 8 and 9 to implement different styles of outlined text
+	*Added ability to hilite focused Wharf tile using MyStyle "*WharfFocusedTile"
+	*Added ability to sort items in WinList menu in alphabetical order using 
+	 WinListSortOrder 1 (in feel)
+	*Added ability to remove icons from WinList menu using WinListHideIcons (in feel).
+
 version 2.0 beta4
 	* Reverted cursor settings back to feel file.
 	* Used ascompose as new Banner module

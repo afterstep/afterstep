@@ -1,6 +1,6 @@
 %define	name	AfterStep
-%define	fver	2.00.beta4b
-%define	version	2.00.beta4b
+%define	fver	@version@
+%define	version	@version@
 %define	release	1
 %define	serial	1
 
@@ -74,6 +74,7 @@ CFLAGS=$RPM_OPT_FLAGS \
 make
 
 if [ -x /usr/bin/sgml2html ]; then sgml2html doc/afterstep.sgml; fi
+cd src/ASDocGen && ASDocGen -l log.html -t html && cd ../..
 
 %install
 if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
@@ -98,7 +99,7 @@ rm -rf %{buildroot}
 
 %files libs
 %defattr(-,root,root)
-%doc libAfterImage/doc/* libAfterImage/README
+%doc libAfterImage/doc/* libAfterImage/README src/ASDocGen/html
 /usr/X11R6/lib/*
 
 %files devel
