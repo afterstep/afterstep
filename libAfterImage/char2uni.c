@@ -683,7 +683,66 @@ static unsigned short *_as_supported_charset[SUPPORTED_CHARSETS_NUM] = {
  &_as_cp1251_2uni[0], 
  &_as_cp1252_2uni[0]
 };
+
+static unsigned short *_as_charset_names[SUPPORTED_CHARSETS_NUM][] = {
+/* Standard 8-bit encodings */
+{"ISO-8859-1", "ISO_8859-1", "ISO_8859-1:1987", "ISO-IR-100", "LATIN1", "L1", "csISOLatin1", 	"ISO8859-1", "ISO8859_1", "CP819", "IBM819", "" },
+{"ISO-8859-2", "ISO_8859-2", "ISO_8859-2:1987", "ISO-IR-101", "LATIN2", "L2", "csISOLatin2", 	"ISO8859-2", "ISO8859_2", "" },
+{"ISO-8859-3", "ISO_8859-3", "ISO_8859-3:1988", "ISO-IR-109", "LATIN3", "L3", "csISOLatin3", 	"ISO8859-3", "ISO8859_3", "" },
+{"ISO-8859-4", "ISO_8859-4", "ISO_8859-4:1988", "ISO-IR-110", "LATIN4", "L4", "csISOLatin4", 	"ISO8859-4", "ISO8859_4", "" },
+{"ISO-8859-5", "ISO_8859-5", "ISO_8859-5:1988", "ISO-IR-144", "CYRILLIC", "csISOLatinCyrill"/*ic*/,"ISO8859-5", "ISO8859_5", "" },
+{"ISO-8859-6", "ISO_8859-6", "ISO_8859-6:1987", "ISO-IR-127", "ARABIC",   "csISOLatinArabic", 	"ISO8859-6", "ISO8859_6", "ECMA-114", "ASMO-708", "" },
+{"ISO-8859-7", "ISO_8859-7", "ISO_8859-7:1987", "ISO-IR-126", "GREEK",    "csISOLatinGreek", 	"ISO8859-7", "ISO8859_7", "ECMA-118", "ELOT_928", "GREEK8", "" },
+{"ISO-8859-8", "ISO_8859-8", "ISO_8859-8:1988", "ISO-IR-138", "HEBREW",   "csISOLatinHebrew",   "ISO8859-8", "ISO8859_8", "" },
+{"ISO-8859-9", "ISO_8859-9", "ISO_8859-9:1989", "ISO-IR-148", "LATIN5", "L5", "csISOLatin5",    "ISO8859-9", "ISO8859_9", "" },
+{"ISO-8859-10","ISO_8859-10","ISO_8859-10:1992","ISO-IR-157", "LATIN6", "L6", "csISOLatin6",    "ISO8859-10", "" },
+{"ISO-8859-13","ISO_8859-13",                   "ISO-IR-179", "LATIN7", "L7",                   "ISO8859-13", "" },
+{"ISO-8859-14","ISO_8859-14","ISO_8859-14:1998","ISO-IR-199", "LATIN8", "L8", 	"ISO-CELTIC",   "ISO8859-14", "" },
+{"ISO-8859-15","ISO_8859-15","ISO_8859-15:1998","ISO-IR-203",									"ISO8859-15", "" },
+{"ISO-8859-16","ISO_8859-16","ISO_8859-16:2000","ISO-IR-226",					  				"ISO8859-16", "" },
+/* Cyrillic 8-bit KOI encodings */
+{"KOI8-R",  "csKOI8R", "" },
+{"KOI8-U",  "" },
+{"KOI8-RU", "" },
+/* Windows 8-bit encodings */
+{"CP1250", "WINDOWS-1250", "MS-EE",  "" },
+{"CP1251", "WINDOWS-1251", "MS-CYRL","" },
+{"CP1252", "WINDOWS-1252", "MS-ANSI","" }
+};
 #endif
+
+
+ASSupportedCharsets 
+parse_charset_name( const char *name )
+{
+#ifdef  I18N
+	ASSupportedCharsets set = 0;
+	if( name == NULL || name[0] == '\0' || name[1] == '\0' ) /* that includes locale "C" */
+		return CHARSET_ISO8859_1 ;
+     
+	if( name[0] == 'K' || name[0] == 'k' )
+		set = CHARSET_KOI8_R ;
+	else if( name[0] == 'M' || name[0] == 'm' )
+		set = CHARSET_CP1250 ;
+	
+	while( set < SUPPORTED_CHARSETS_NUM )
+	{
+		char **aliases =&(_as_charset_names[set][0]) ;
+		register int i = 0 ;
+		char c;
+		while( (c = aliases[i][0]) != '\0' )
+		{
+			if( c == name[1] || tolower(c) == name[0] )
+				if( strcasecmp( aliases[i], name ) == 0 )
+					return set;
+			++i ;
+		}
+		++set;
+	}
+#endif
+	return CHARSET_ISO8859_1 ;
+}
+
 
 const unsigned short *as_current_charset = &_as_iso8859_1_2uni[0];
 
