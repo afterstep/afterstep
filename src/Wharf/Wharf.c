@@ -1270,7 +1270,7 @@ map_wharf_folder( ASWharfFolder *aswf,
 	/* showing window to let user see that we are doing something */
     map_canvas_window(aswf->canvas, True);
 #ifdef SHAPE
-	//XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+	XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
 #endif
     LOCAL_DEBUG_OUT( "mapping folder window for folder %p", aswf );
     /* final cleanup */
@@ -1720,7 +1720,7 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 #ifdef SHAPE		
 		LOCAL_DEBUG_OUT("boundary pos(%dx%d%+d%+d) shaping window %lX", aswf->boundary.width, aswf->boundary.height, aswf->boundary.x, aswf->boundary.y, aswf->canvas->w );
 		/* fprintf( stderr, "setting boundary to 1x1\n" );  */
-	    //XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+	    XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
 #endif
     }
     
@@ -2397,7 +2397,7 @@ void on_wharf_moveresize( ASEvent *event )
     {
         ASWharfFolder *aswf = (ASWharfFolder*)obj;
         ASFlagType changes = handle_canvas_config (aswf->canvas );
-		LOCAL_DEBUG_OUT("Handling folder resize for folder %p", aswf );
+		LOCAL_DEBUG_OUT("Handling folder resize for folder %p, mapped = %d", aswf, get_flags( aswf->flags, ASW_Mapped ) );
         if( aswf->animation_steps == 0 && get_flags( aswf->flags, ASW_Mapped ) && aswf->animation_dir < 0 )
         {
             unmap_wharf_folder( aswf );
@@ -2406,11 +2406,11 @@ void on_wharf_moveresize( ASEvent *event )
             int i = aswf->buttons_num ;
 LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 #ifdef SHAPE
-//            if( get_flags( changes, CANVAS_RESIZED ) && get_flags(aswf->flags,ASW_AnimationPending ) )
-//				XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
+            if( get_flags( changes, CANVAS_RESIZED ) && get_flags(aswf->flags,ASW_AnimationPending ) )
+				XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding, 0, 0, &(aswf->boundary), 1, ShapeSet, Unsorted);
 #endif
 
-			if( !get_flags( aswf->flags, ASW_Withdrawn ) )
+			if( !get_flags( aswf->flags, ASW_Withdrawn ) && get_flags( aswf->flags, ASW_Mapped ))
 			{	
 				set_wharf_clip_area( aswf, aswf->canvas->root_x, aswf->canvas->root_y );
 				while( --i >= 0 )
@@ -2419,7 +2419,7 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 				on_wharf_button_moveresize( aswf->withdrawn_button, event );
 
 #if 1			   
-            if( get_flags( changes, CANVAS_RESIZED ) )
+            if( get_flags( changes, CANVAS_RESIZED ))
 			{
 				LOCAL_DEBUG_OUT("AnimationPending ? = %lX", get_flags(aswf->flags,ASW_AnimationPending));
 				if( get_flags(aswf->flags,ASW_AnimationPending ) )
@@ -2431,7 +2431,7 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 			}
 #endif
 		
-			if( get_flags( changes, CANVAS_RESIZED ) )
+			if( get_flags( changes, CANVAS_RESIZED ) && get_flags( aswf->flags, ASW_Mapped ))
 			{
 				/* fprintf(stderr, "clearing or applying boundary\n");	  */
 				if( !update_wharf_folder_shape( aswf ) ) 
