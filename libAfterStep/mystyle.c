@@ -775,6 +775,31 @@ mystyle_get_global_gcs (MyStyle * style, GC * foreGC, GC * backGC, GC * reliefGC
 		*shadowGC = ShadowGC;
 }
 
+void
+mystyle_free_global_gcs()
+{
+    if (ForeGC != NULL)
+    {
+        XFreeGC( dpy, ForeGC );
+        ForeGC = NULL;
+    }
+    if (BackGC != NULL)
+    {
+        XFreeGC( dpy, BackGC );
+        BackGC = NULL;
+    }
+    if (ReliefGC != NULL)
+    {
+        XFreeGC( dpy, ReliefGC );
+        ReliefGC = NULL;
+    }
+    if (ShadowGC != NULL)
+    {
+        XFreeGC( dpy, ShadowGC );
+        ShadowGC = NULL;
+    }
+}
+
 /*************************************************************************/
 /* Mystyle creation/deletion                                             */
 /*************************************************************************/

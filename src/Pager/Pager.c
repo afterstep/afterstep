@@ -281,9 +281,6 @@ void
 DeadPipe (int nonsense)
 {
 #ifdef DEBUG_ALLOCS
-	int i;
-    GC foreGC, backGC, reliefGC, shadowGC;
-
 /* normally, we let the system clean up, but when auditing time comes
  * around, it's best to have the books in order... */
     balloon_init (1);
@@ -293,13 +290,8 @@ DeadPipe (int nonsense)
     if( Config )
         DestroyPagerConfig (Config);
 
-    mystyle_get_global_gcs (mystyle_first, &foreGC, &backGC, &reliefGC, &shadowGC);
+    mystyle_free_global_gcs();
     mystyle_destroy_all();
-    XFreeGC (dpy, foreGC);
-    XFreeGC (dpy, backGC);
-    XFreeGC (dpy, reliefGC);
-    XFreeGC (dpy, shadowGC);
-
     print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
 

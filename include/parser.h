@@ -66,6 +66,7 @@ typedef struct TermDef
 #define TT_BITLIST     16	/* comma or space separated list of bit numbers to set */
 #define TT_INTARRAY    17	/* array of the integer numbers */
 #define TT_CURSOR      18   /* ASCursor - pair of filenames */
+#define TT_OPTIONAL_PATHNAME 19   /* optional quoted text - could be empty */
 
 #define TT_CUSTOM      64	/* modules can define custom types starting */
   /* with this one */

@@ -804,9 +804,10 @@ FreeConfigItem (ConfigItem * item)
 	 case TT_TEXT:
 	 case TT_PATHNAME:
      case TT_QUOTED_TEXT:
+     case TT_OPTIONAL_PATHNAME:
          item->data.string = NULL;
-
-         free (item->memory);
+         if( item->memory )
+            free (item->memory);
          break;
 
 	 case TT_FUNCTION:
@@ -887,7 +888,10 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 	         case TT_BITLIST :
            		  item->data.integer = free_storage2bitlist(stored,&pos);
 		          break;
-		 case TT_COLOR:
+         case TT_OPTIONAL_PATHNAME:
+             if (!check_avail_args (stored, pos, 1))
+                 return 1;
+         case TT_COLOR:
 		 case TT_FONT:
 		 case TT_FILENAME:
 		 case TT_TEXT:
