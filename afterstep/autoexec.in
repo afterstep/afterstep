@@ -16,7 +16,7 @@ Function "InitFunction"
 	Module  "I"     Pager 0 @with_desktops_1@
 #	Module  "I"	Banner
 #	Wait    "I"     Banner
-	Function "WorkspaceState"
+	Function "I"    WorkspaceState
 EndFunction
 
 #------------------------------------------------------------------------

@@ -299,7 +299,7 @@ LOCAL_DEBUG_OUT( "errno = %d, file %s: checking path \"%s\"", errno, file, try_p
 			{
 				char* res = mystrdup(try_path);
 				free( path );
-LOCAL_DEBUG_OUT( " found at: \"%s\"", try_path );
+LOCAL_DEBUG_OUT( " found at: \"%s\"", res );
 				return res;
 			}
 #ifdef LOCAL_DEBUG
@@ -520,7 +520,7 @@ is_executable_in_path (const char *name)
 			strcat (path, cache);
 			if ((stat (path, &st) != -1) && (st.st_mode & S_IXUSR))
 				cache_result = 1;
-			LOCAL_DEBUG_OUT( "%s found \"%s\"", cache_result?"":"not" );
+			LOCAL_DEBUG_OUT( "%s found \"%s\"", path, cache_result?"":"not" );
 		}
 		free (path);
 	}

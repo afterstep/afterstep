@@ -2923,10 +2923,6 @@ export prefix
 export exec_prefix
 
 
-if test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
-  CFLAGS=`echo "$CFLAGS " | sed "s/-g / /"`
-fi
-
 if test "x$GCC" = "xyes"; then
   if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
     CFLAGS="$CFLAGS -Wall"
@@ -2999,8 +2995,12 @@ if test "x$CYGWIN" != "xyes" -a "x$GCC" = "xyes" ; then
 fi
 
 if test "x$enable_gdb" = "xyes"; then
-  CFLAGS="$CFLAGS -g"
-  LDFLAGS="$LDFLAGS -g"
+  if ! test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
+	CFLAGS="$CFLAGS -g"
+  fi
+  if ! test -n "`echo $LDFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
+	LDFLAGS="$LDFLAGS -g"
+  fi
 else
   CFLAGS="$CFLAGS -DNO_DEBUG_OUTPUT"
 fi

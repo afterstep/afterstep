@@ -109,11 +109,6 @@ export exec_prefix
 
 dnl# now we need to play abot with CFLAGS :
 
-dnl# Remove -g
-if test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
-  CFLAGS=`echo "$CFLAGS " | sed "s/-g / /"`
-fi
-
 dnl# Add -Wall
 if test "x$GCC" = "xyes"; then
   if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
@@ -131,8 +126,12 @@ fi
 
 dnl# Add -g
 if test "x$enable_gdb" = "xyes"; then
-  CFLAGS="$CFLAGS -g"
-  LDFLAGS="$LDFLAGS -g"
+  if ! test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
+	CFLAGS="$CFLAGS -g"
+  fi
+  if ! test -n "`echo $LDFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
+	LDFLAGS="$LDFLAGS -g"
+  fi
 else
   CFLAGS="$CFLAGS -DNO_DEBUG_OUTPUT"
 fi

@@ -365,39 +365,38 @@ complex_pattern2ASWindow( char *pattern )
 		char *ptr = pattern ;
 		char *tmp = safemalloc( strlen(pattern)+1 );
 		int tmp_len = 0;
-		Bool at_least_one = False ;
+		Bool matches_reqired = 0 ;
 
-		if( ptr[0] == ':' ) 
-		{	
+		ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
+		LOCAL_DEBUG_OUT( "res_class pattern = \"%s\"", tmp );
+		if( tmp[0] )
+		{
+			res_class_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+			++matches_reqired ;
 			ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
-			LOCAL_DEBUG_OUT( "res_class pattern = \"%s\"", tmp );
+			LOCAL_DEBUG_OUT( "res_name pattern = \"%s\"", tmp );
 			if( tmp[0] )
 			{
-				res_class_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+				res_name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+				++matches_reqired ;
 				ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
-				LOCAL_DEBUG_OUT( "res_name pattern = \"%s\"", tmp );
-				if( tmp[0] )
+				LOCAL_DEBUG_OUT( "final pattern = \"%s\"", tmp );
+				if( tmp[0] == '#' && isdigit(tmp[1]) )
 				{
-					res_name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
-					ptr = parse_semicolon_token( ptr, tmp, &tmp_len );
-					LOCAL_DEBUG_OUT( "final pattern = \"%s\"", tmp );
-					if( tmp[0] == '#' && isdigit(tmp[1]) )
-					{
-						res_name_no = atoi( tmp+1 ) ;
-						LOCAL_DEBUG_OUT( "res_name_no = %d", res_name_no );					
-					}else
-						name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+					res_name_no = atoi( tmp+1 ) ;
+					LOCAL_DEBUG_OUT( "res_name_no = %d", res_name_no );					
+				}else if( tmp[0] )
+				{	
+					name_wrexp = compile_wild_reg_exp_sized( tmp, tmp_len );
+					++matches_reqired ;
 				}
-			}
-			free( tmp );
-		}else
-		{	
-			res_class_wrexp = compile_wild_reg_exp( ptr );
-			res_name_wrexp = res_class_wrexp ;
-			name_wrexp = res_class_wrexp;	
-			at_least_one = True ;
+			}else
+			{
+				res_name_wrexp = res_class_wrexp ;
+				name_wrexp = res_class_wrexp;	
+			}	 
 		}
-
+		free( tmp );
 
         for( ; e != NULL && (asw == NULL || res_name_no > 0 ) ; LIST_GOTO_NEXT(e) )
         {
@@ -417,7 +416,7 @@ complex_pattern2ASWindow( char *pattern )
 					match_wild_reg_exp( curr->hints->icon_name, name_wrexp) == 0  )
 					++matches;
 
-			if( (matches < 3 && !at_least_one) || (matches == 0 && at_least_one) ) 
+			if( matches < matches_reqired ) 
 				continue;
 			asw = curr ;
 			--res_name_no ;

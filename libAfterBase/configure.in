@@ -79,10 +79,6 @@ dnl# AfterSTep already checked everything for us
 else
 
 dnl# we are alone - have to do all the checks ourselves :
-	dnl# Remove -g
-	if test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
-	  CFLAGS=`echo "$CFLAGS " | sed "s/-g / /"`
-	fi
 	dnl# Add -Wall
 	if test "x$GCC" = "xyes"; then
 	  if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
@@ -102,9 +98,13 @@ dnl# we are alone - have to do all the checks ourselves :
 
 	dnl# Add -g
 	if test "x$enable_gdb" = "xyes"; then
-	  CFLAGS="$CFLAGS -g"
-	  LDFLAGS="$LDFLAGS -g"
+  		if ! test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
+			CFLAGS="$CFLAGS -g"
+  		fi
+	else
+  		CFLAGS="$CFLAGS -DNO_DEBUG_OUTPUT"
 	fi
+
 	dnl# Add -pg
 	if test "x$enable_gprof" = "xyes"; then
 	  CFLAGS="$CFLAGS -pg"

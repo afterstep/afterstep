@@ -159,7 +159,7 @@ typedef struct FunctionData
 
     char* name ;
     char* text ;
-#define COMPLEX_FUNCTION_NAME(pd)  (((pd)->name)?(pd)->name:(pd)->text)
+#define COMPLEX_FUNCTION_NAME(pd)  (((pd)->text)?(pd)->text:(pd)->name)
     char hotkey ;
     void* popup ; /* actually a MenuRoot pointer */
 } FunctionData ;
