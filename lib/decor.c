@@ -547,7 +547,7 @@ check_tbtn_point( ASTBtnBlock *bb, int x, int y )
 void
 destroy_astbtn_block(ASTBtnBlock **pb )
 {
-    if( AS_ASSERT(pb) )
+    if( !AS_ASSERT(pb) )
     {
         ASTBtnBlock *blk = *pb ;
         if( blk )
@@ -593,19 +593,25 @@ destroy_astbar (ASTBarData ** ptbar)
 			ASTBarData   *tbar = *ptbar;
 			register int  i;
 
-			for (i = 0; i < BAR_STATE_NUM; ++i)
+            if( tbar->label_text )
+                free( tbar->label_text );
+
+            if (tbar->left_buttons)
+                destroy_astbtn_block (&(tbar->left_buttons));
+            if (tbar->right_buttons)
+                destroy_astbtn_block (&(tbar->right_buttons));
+
+            for (i = 0; i < BAR_STATE_NUM; ++i)
 			{
 				if (tbar->back[i])
 					destroy_asimage (&(tbar->back[i]));
 				if (tbar->label[i])
 					destroy_asimage (&(tbar->label[i]));
 			}
-            if (tbar->left_buttons)
-                destroy_astbtn_block (&(tbar->left_buttons));
-            if (tbar->right_buttons)
-                destroy_astbtn_block (&(tbar->right_buttons));
 
 			memset (tbar, 0x00, sizeof (ASTBarData));
+            free( tbar );
+            *ptbar = NULL ;
 		}
 }
 

@@ -29,7 +29,13 @@
 /* window list management */
 
 void auto_destroy_aswindow ( void *data )
-{}
+{
+    if( data && ((ASMagic*)data)->magic == MAGIC_ASWINDOW )
+    {
+        ASWindow *asw = (ASWindow*)data;
+        Destroy( asw, False );
+    }
+}
 
 void destroy_aslayer  (ASHashableValue value, void *data);
 
@@ -314,6 +320,13 @@ restack_window_list( int desk )
     register long windows_num = 0 ;
     ASLayer **l ;
     Window  *windows ;
+
+    if( !IsValidDesk(desk) )
+    {
+        destroy_asvector( &ids );
+        destroy_asvector( &layers );
+        return;
+    }
 
     if( layers == NULL )
         layers = create_asvector( sizeof(ASLayer*) );

@@ -51,6 +51,17 @@ static ASBiDirElem *alloc_bidirelem()
 		return safecalloc( 1, sizeof(ASBiDirElem));
 }
 
+void
+flush_asbidirlist_memory_pool()
+{
+	/* we better disable errors as some of this data will belong to memory audit : */
+//    int old_cleanup_mode = set_audit_cleanup_mode(1);
+	while( deallocated_used > 0 )
+		free( deallocated_mem[--deallocated_used] );
+//    set_audit_cleanup_mode(old_cleanup_mode);
+}
+
+
 static inline ASBiDirElem *
 find_bidirelem( ASBiDirList *l, void *data )
 {

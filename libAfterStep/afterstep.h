@@ -382,6 +382,8 @@ typedef struct ASWindow
     struct ASTBarData *icon_button ;
 	struct ASTBarData *icon_title ;
 
+    int shading_steps;
+
 	/********************************************************************/
 	/* END of NEW ASWindow frame decorations                            */
 	/********************************************************************/

@@ -407,6 +407,8 @@ read_wm_state (ASRawHints * hints, Window w)
 					hints->wm_state_icon_win = data[1];
 			}
 		}
+        if( data )
+            XFree( data );
 	}
 }
 

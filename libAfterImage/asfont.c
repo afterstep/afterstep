@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
 
 #define DO_X11_ANTIALIASING
@@ -385,11 +385,14 @@ asfont_destroy (ASHashableValue value, void *data)
 	{
         if( ((ASMagic*)data)->magic == MAGIC_ASFONT )
         {
+            if( (char*)value == ((ASFont*)data)->name )
+                (char*)value = NULL ;          /* name is freed as part of destroy_font */
 /*              fprintf( stderr,"freeing font \"%s\"...", (char*) value ); */
               destroy_font( (ASFont*)data );
 /*              fprintf( stderr,"   done.\n"); */
         }
-        free( (char*)value );
+        if( value )
+            free( (char*)value );
     }
 }
 
@@ -1264,6 +1267,17 @@ typedef enum {
   ASCT_Unicode=sizeof(UNICODE_CHAR)
 }ASCharType;
 
+void
+free_glyph_map( ASGlyphMap *map, Bool reusable )
+{
+    if( map )
+    {
+        free( map->glyphs );
+        if( !reusable )
+            free( map );
+    }
+}
+
 static Bool
 get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMap *map, ASCharType char_type )
 {
@@ -1588,7 +1602,7 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 			}
 		}
 	}while( map.glyphs[i] != GLYPH_EOT );
-
+    free_glyph_map( &map, True );
 	free( memory );
 	free( scanlines );
 #ifdef DO_CLOCKING

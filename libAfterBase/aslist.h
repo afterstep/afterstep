@@ -43,4 +43,7 @@ void  pop_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
 void  destroy_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
 void  discard_bidirelem( ASBiDirList *l, void *data );
 
+void  flush_asbidirlist_memory_pool();
+
+
 #endif /* #ifndef ASVECTOR_HEADER_FILE_INCLUDED */

@@ -257,7 +257,7 @@ struct config main_config[] = {
     {"MenuTitleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_TITLE], (int *)0},
     {"MenuHiliteStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_HILITE], (int *)0},
     {"MenuStippleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_STIPPLE], (int *)0},
-    {"ShadeAnimationSteps", SetInts, (char **)&Scr.Look.ShadeAnimationSteps, (int *)&dummy},
+    {"ShadeAnimationSteps", SetInts, (char **)&Scr.Feel.ShadeAnimationSteps, (int *)&dummy},
 	{"", 0, (char **)0, (int *)0}
 };
 
@@ -649,6 +649,7 @@ InitFeel (ASFeel *feel, Bool free_resources)
     feel->FuncKeyRoot = NULL;
     feel->Popups = NULL;
     feel->ComplexFunctions = NULL;
+    feel->ShadeAnimationSteps = 12;
 
     for( i = 0 ; i < MAX_CURSORS; ++i )
         if( feel->cursors[i] )
@@ -746,8 +747,6 @@ InitLook (MyLook *look, Bool free_resources)
     for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
         look->MSMenu[i] = NULL;
 
-    look->DefaultFrame = create_default_myframe();
-
     look->TitleTextAlign = 0;
 
 	/* titlebar buttons */
@@ -776,6 +775,8 @@ InitLook (MyLook *look, Bool free_resources)
 
     Scr.default_icon_box = NULL ;
     Scr.icon_boxes = NULL ;
+
+    look->DefaultFrame = NULL ;
 
     /* initialize some lists */
     look->DefaultIcon = NULL;
@@ -838,11 +839,11 @@ FixLook( MyLook *look )
     {
         if( look->DefaultFrame )
             myframe_load ( look->DefaultFrame, Scr.image_manager );
-        else
-            look->DefaultFrame = create_default_myframe();
         /* TODO: need to load the list as well (if we have any )*/
     }
 #endif /* ! NO_TEXTURE */
+    if( look->DefaultFrame == NULL )
+        look->DefaultFrame = create_default_myframe();
 
     /* updating balloons look */
     balloon_setup (dpy);
@@ -1019,7 +1020,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                     InitLook (&Scr.Look, True);
                     set_flags(what, PARSE_LOOK_CONFIG);
                 }
-                free( old_pixmap_path );
+                if( old_pixmap_path )
+                    free( old_pixmap_path );
                 show_progress("BASE configuration loaded from \"%s\" ...", configfile);
                 free( configfile );
             }else
@@ -1200,8 +1202,8 @@ assign_pixmap (char *text, FILE * fd, char **arg, int *junk)
     if( parse_filename(text, &fname) != text )
     {
         MyIcon **picon = (MyIcon**)arg ;
-        *arg = safecalloc( 1, sizeof(icon_t));
-        GetIconFromFile (fname, *arg, -1);
+        *picon = safecalloc( 1, sizeof(icon_t));
+        GetIconFromFile (fname, *picon, -1);
         free (fname);
     }
 }

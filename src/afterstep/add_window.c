@@ -860,6 +860,47 @@ frame_corner_width(ASTBarData *c1, ASTBarData *c2 )
 }
 #endif
 
+static int
+make_shade_animation_step( ASWindow *asw, ASOrientation *od )
+{
+    int step_size = 0;
+    if( asw->tbar )
+    {
+        int steps = asw->shading_steps;
+
+        if( steps > 0 )
+        {
+            int from_size, to_size ;
+            *(od->in_width) = asw->frame_canvas->width ;
+            *(od->in_height) = asw->frame_canvas->height ;
+            from_size = *(od->out_height);
+            if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+            {
+                *(od->in_width) = asw->tbar->width ;
+                *(od->in_height) = asw->tbar->height ;
+            }else
+            {
+                *(od->in_width) = asw->status->width ;
+                *(od->in_height) = asw->status->height ;
+            }
+            to_size = *(od->out_height);
+
+            if(from_size != to_size)
+            {
+                int step_delta = (from_size - to_size)/steps ;
+                if( step_delta == 0 )
+                    step_delta = (from_size > to_size)?1:-1;
+LOCAL_DEBUG_OUT( "@@ANIM to(%d)->from(%d)->delta(%d)->step(%d)", to_size, from_size, step_delta, steps );
+
+                step_size = from_size-step_delta;
+                --(asw->shading_steps);
+            }
+        }else if( !ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+            return 0;
+    }
+    return step_size;
+}
+
 inline static Bool
 move_resize_frame_bar( ASTBarData *tbar, ASCanvas *canvas, int normal_x, int normal_y, unsigned int normal_width, unsigned int normal_height, Bool force_render )
 {
@@ -1003,17 +1044,35 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,%ux%u%+d%+d)", asw, w, width, height, x, y );
         handle_canvas_config (asw->client_canvas);
     }else if( w == asw->frame )
     {/* resize canvases here :*/
-        if( width != asw->frame_canvas->width || height != asw->frame_canvas->height )
+        Bool resized = (width != asw->frame_canvas->width || height != asw->frame_canvas->height);
+        Bool moved = handle_canvas_config (asw->frame_canvas);
+        if( resized )
         {
             register unsigned int *frame_size = &(asw->status->frame_size[0]) ;
-            resize_canvases( asw, od, normal_width, normal_height, frame_size );
-            moveresize_canvas( asw->client_canvas,
-                            frame_size[FR_W],
-                            frame_size[FR_N],
-                            width-(frame_size[FR_W]+frame_size[FR_E]),
-                            height-(frame_size[FR_N]+frame_size[FR_S]));
+            int step_size = make_shade_animation_step( asw, od );
+            if( step_size <= 0 )  /* don't moveresize client window while shading !!!! */
+            {
+                resize_canvases( asw, od, normal_width, normal_height, frame_size );
+                moveresize_canvas( asw->client_canvas,
+                                frame_size[FR_W],
+                                frame_size[FR_N],
+                                width-(frame_size[FR_W]+frame_size[FR_E]),
+                                height-(frame_size[FR_N]+frame_size[FR_S]));
+            }else if( normal_height != step_size )
+            {
+                sleep_a_little(10000);
+                /* we get smoother animation if we move decoration ahead of actually
+                 * resizing frame window : */
+                resize_canvases( asw, od, normal_width, step_size, frame_size );
+                *(od->in_width)=normal_width ;
+                *(od->in_height)=step_size ;
+/*LOCAL_DEBUG_OUT( "**SHADE Client(%lx(%s))->(%d>-%d)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->shading_steps, step_size );*/
+                XMoveResizeWindow(  dpy, asw->frame,
+                                    x, y, *(od->out_width), *(od->out_height));
+                ASSync(False);
+            }
         }
-        if( handle_canvas_config (asw->frame_canvas) )
+        if( moved || resized )
             update_window_transparency( asw );
     }else if( asw->icon_canvas && w == asw->icon_canvas->w )
     {
@@ -1045,13 +1104,16 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,%ux%u%+d%+d)", asw, w, width, height, x, y );
             if( asw->frame_sides[i] && asw->frame_sides[i]->w == w )
             {   /* canvas has beer resized - resize tbars!!! */
                 Bool canvas_moved = handle_canvas_config (asw->frame_sides[i]);
-
-                if( move_resize_frame_bars( asw, i, od, normal_width, normal_height, canvas_moved) ||
-                    canvas_moved )  /* now we need to show them on screen !!!! */
-                    update_canvas_display( asw->frame_sides[i] );
-
+                /* don't redraw window decoration while in the middle of animation : */
+                if( asw->shading_steps<= 0 )
+                {
+                    if( move_resize_frame_bars( asw, i, od, normal_width, normal_height, canvas_moved) ||
+                        canvas_moved )  /* now we need to show them on screen !!!! */
+                        update_canvas_display( asw->frame_sides[i] );
+                }
                 break;
             }
+        ASSync(False);
     }
 }
 
@@ -1083,7 +1145,6 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
     char *unfocus_mystyle = NULL ;
     int i ;
     Bool changed = False;
-    unsigned short tbar_size = 0;
     ASOrientation *od = get_orientation_data( asw );
 
     if( AS_ASSERT(asw) )
@@ -1123,6 +1184,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_di
         if( changed || reconfigured )
         {/* now we need to update frame sizes in status */
             unsigned int *frame_size = &(asw->status->frame_size[0]) ;
+            unsigned short tbar_size = 0;
             if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
             {
                 tbar_size = calculate_astbar_width( asw->tbar );
@@ -1144,32 +1206,34 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_di
             }
             frame_size[od->tbar_side] += tbar_size ;
             anchor2status ( asw->status, asw->hints, &(asw->anchor));
-        }else if( asw->tbar )
-            tbar_size = ASWIN_HFLAGS(asw, AS_VerticalTitle )?asw->tbar->width:asw->tbar->height;
+        }
     }
 
     /* now we need to move/resize our frame window */
     /* note that icons are handled by iconbox */
     if( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
 	{
-LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_HFLAGS(asw, AS_VerticalTitle)?"Vert":"Horz", (ASWIN_GET_FLAGS(asw,AS_Shaded)&&tbar_size>0)?"Shaded":"Unshaded" );
-        if( ASWIN_GET_FLAGS( asw, AS_Shaded ) && tbar_size > 0 )
+        int step_size = make_shade_animation_step( asw, od );
+LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_HFLAGS(asw, AS_VerticalTitle)?"Vert":"Horz", step_size>0?"Shaded":"Unshaded", asw->shading_steps, step_size );
+        if( step_size > 0 )
         {
+            if( asw->frame_sides[od->tbar_side] )
+                XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
+            XLowerWindow( dpy, asw->w );
             if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-                XMoveResizeWindow( dpy, asw->frame,
-                                asw->status->x, asw->status->y,
-                                tbar_size, asw->status->height );
+                XMoveResizeWindow(  dpy, asw->frame,
+                                    asw->status->x, asw->status->y,
+                                    step_size, asw->status->height );
             else
-                XMoveResizeWindow( dpy, asw->frame,
-                                asw->status->x, asw->status->y,
-                                asw->status->width, tbar_size );
+                XMoveResizeWindow(  dpy, asw->frame,
+                                    asw->status->x, asw->status->y,
+                                    asw->status->width, step_size );
         }else
         {
+            XRaiseWindow( dpy, asw->w );
             XMoveResizeWindow( dpy, asw->frame,
                             asw->status->x, asw->status->y,
                             asw->status->width, asw->status->height );
-            if( asw->frame_sides[od->tbar_side] )
-                XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
         }
         broadcast_config (M_CONFIGURE_WINDOW, asw);
     }
@@ -1653,6 +1717,10 @@ void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
     on_flags = (~(asw->status->flags))&flags ;
     off_flags = (asw->status->flags)&(~flags) ;
     asw->status->flags = on_flags|off_flags ;
+
+    if( get_flags( flags, AS_Shaded ) )
+        asw->shading_steps = Scr.Feel.ShadeAnimationSteps ;
+
     on_window_status_changed( asw, True, False );
     /* TODO: implement maximization !!!! */
 }

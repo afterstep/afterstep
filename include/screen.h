@@ -191,6 +191,7 @@ typedef struct ASFeel
     int EdgeScrollY;      /* % of the screen height to scroll on screen edge */
     int EdgeResistanceScroll;      /* #pixels to scroll on screen edge */
     int EdgeResistanceMove;      /* #pixels to scroll on screen edge */
+    int ShadeAnimationSteps;
 
     struct ASHashTable *Popups ;
     struct ASHashTable *ComplexFunctions ;
@@ -251,7 +252,6 @@ typedef struct MyLook
 
     /* misc stuff */
     int RubberBand;
-    int ShadeAnimationSteps;
 
     /* these affect window placement : */
     /* None of it should be used by placement related functions from this

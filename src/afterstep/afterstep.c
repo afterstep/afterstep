@@ -384,9 +384,9 @@ CleanupScreen()
 
     destroy_wmprops( Scr.wmprops, False);
     destroy_image_manager( Scr.image_manager, False );
-LOCAL_DEBUG_OUT("destroying font manager : ","");
+LOCAL_DEBUG_OUT("destroying font manager : %s","");
     destroy_font_manager( Scr.font_manager, False );
-LOCAL_DEBUG_OUT("screen cleanup complete.","");
+LOCAL_DEBUG_OUT("screen cleanup complete.%s","");
 }
 
 /*************************************************************************/
@@ -561,6 +561,13 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     } else
 	{
 #ifdef DEBUG_ALLOCS
+        restack_window_list(INVALID_DESK);
+        clientprops_cleanup ();
+        wmprops_cleanup ();
+        flush_ashash_memory_pool();
+        destroy_asvisual( Scr.asv, False );
+        flush_asbidirlist_memory_pool();
+        free( MyArgs.saved_argv );
         print_unfreed_mem ();
 #endif /*DEBUG_ALLOCS */
     }
