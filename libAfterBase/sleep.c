@@ -59,3 +59,11 @@ void wait_tick()
 
     _as_ticker_last_tick = times(&t);
 }
+
+Bool is_tick()
+{
+  struct tms t ;
+  register clock_t curr = (times(&t)-_as_ticker_last_tick)*_as_ticker_tick_time;
+
+    return ( curr < _as_ticker_tick_size )?False:True ;
+}
