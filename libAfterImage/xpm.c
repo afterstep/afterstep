@@ -45,6 +45,13 @@
 #include "asimage.h"
 #include "xpm.h"
 
+#define MAXPRINTABLE 92			/* number of printable ascii chars
+								 * minus \ and " for string compat
+								 * and ? to avoid ANSI trigraphs. */
+
+static char *printable =
+" .XoO+@#$%&*=-;:>,<1234567890qwertyuipasdfghjklzxcvbnmMNBVCZASDFGHJKLPIUYTREWQ!~^/()_`'][{}|";
+
 static struct {
 	char 	*name ;
 	ARGB32   argb ;

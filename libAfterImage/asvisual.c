@@ -88,6 +88,20 @@ debug_AllocColor( const char *file, const char *func, int line, ASVisual *asv, C
 #define ASV_ALLOC_COLOR(asv,cmap,pxcol)  XAllocColor((asv)->dpy,(cmap),(pxcol))
 #endif
 
+/**********************************************************************/
+/* returns the maximum number of true colors between a and b          */
+long
+ARGB32_manhattan_distance (long a, long b)
+{
+	register int d = (int)ARGB32_RED8(a)   - (int)ARGB32_RED8(b);
+	register int t = (d < 0 )? -d : d ;
+
+	d = (int)ARGB32_GREEN8(a) - (int)ARGB32_GREEN8(b);
+	t += (d < 0)? -d : d ;
+	d = (int)ARGB32_BLUE8(a)  - (int)ARGB32_BLUE8(b);
+	return (t+((d < 0)? -d : d)) ;
+}
+
 
 
 /***************************************************************************

@@ -161,6 +161,18 @@ typedef struct ASScanline
 
 /****f* libAfterImage/asvisual/prepare_scanline()
  * SYNOPSIS
+ * long ARGB32_manhattan_distance (long a, long b);
+ * INPUTS
+ * a, b - ARGB32 color values to calculate Manhattan distance in between
+ * RETURN VALUE
+ * returns calculated Manhattan distance.
+ * DESCRIPTION
+ * This function can be used to evaluate closeness of two colors.
+ *********/
+long ARGB32_manhattan_distance (long a, long b);
+
+/****f* libAfterImage/asvisual/prepare_scanline()
+ * SYNOPSIS
  * ASScanline *prepare_scanline ( unsigned int width,
  *                                unsigned int shift,
  *                                ASScanline *reusable_memory,

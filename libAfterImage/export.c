@@ -196,6 +196,294 @@ scanline2raw( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned
 			}
 	}
 }
+/***********************************************************************************/
+/* reduced colormap building code :                                                */
+/***********************************************************************************/
+typedef struct ASMappedColor
+{
+	ARGB32 color ;
+	CARD32 indexed;
+	unsigned int count ;
+	int cmap_idx ;
+	struct ASMappedColor *next ;
+}ASMappedColor;
+
+typedef struct ASSortedColorStack
+{
+	unsigned int count ;
+	ASMappedColor *stack ;
+
+	int good_offset ;                       /* skip to closest stack that
+											 * has mapped colors */
+	ASMappedColor *first_good, *last_good ; /* pointers to first and last
+											 * mapped colors in the stack */
+}ASSortedColorStack;
+
+typedef struct ASSortedColorIndex
+{
+	unsigned int count ;
+#define COLOR_STACK_SLOTS		  512
+	ASSortedColorStack stacks[COLOR_STACK_SLOTS] ;
+}ASSortedColorIndex;
+
+typedef struct ASColormapEntry
+{
+	CARD8 red, green, blue;
+}ASColormapEntry;
+
+typedef struct ASColormap
+{
+	ASColormapEntry *entries ;
+	unsigned int count ;
+	ASHashTable *xref ;
+}ASColormap;
+
+#define MAKE_INDEXED_COLOR(red,green,blue) \
+                   ((((green&0x200)|(blue&0x100)|(red&0x80))<<21)| \
+		            (((green&0x100)|(blue&0x80) |(red&0x40))<<18)| \
+		            (((green&0x80) |(blue&0x40) |(red&0x20))<<15)| \
+					(((green&0x40) |(blue&0x20) |(red&0x10))<<12)| \
+					(((green&0x20) |(blue&0x10) |(red&0x08))<<9)| \
+					(((green&0x10) |(blue&0x08) |(red&0x04))<<6)| \
+					(((green&0x08) |(blue&0x04) |(red&0x02))<<3)| \
+					 ((green&0x04) |(blue&0x02) |(red&0x01)))
+
+
+static inline ASMappedColor *new_mapped_color( ARGB32 color, CARD32 indexed )
+{
+	register ASMappedColor *pnew = malloc( sizeof( ASMappedColor ));
+	if( pnew != NULL )
+	{
+		pnew->color = color ;
+		pnew->indexed = indexed ;
+		pnew->count = 1 ;
+		pnew->cmap_idx = -1 ;
+		pnew->next = NULL ;
+	}
+	return pnew;
+}
+
+int
+add_colormap_color( ASSortedColorIndex *index, ARGB32 color )
+{
+	ASSortedColorStack *stack ;
+	ASMappedColor **pnext ;
+	CARD32 red = (CARD32)(ARGB32_RED8(color));
+	CARD32 green = (CARD32)(ARGB32_GREEN8(color))<<2;
+	CARD32 blue = (CARD32)(ARGB32_BLUE8(color))<<1;
+	CARD32 indexed = MAKE_INDEXED_COLOR(red,green,blue);
+
+	stack = &(index->stacks[(indexed>>15)&0x1FF]);
+	pnext = &(stack->stack);
+	while( *pnext )
+	{
+		register ASMappedColor *pelem = *pnext ;/* to avoid double redirection */
+		if( pelem->indexed == indexed )
+			return ++(pelem->count);
+		else if( pelem->indexed > indexed )
+		{
+			register ASMappedColor *pnew = new_mapped_color( color, indexed );
+			if( pnew )
+			{
+				++(index->count);
+				++(stack->count);
+				pnew->next = pelem ;
+				*pnext = pnew ;
+				return 1;
+			}
+		}
+		pnext = &(pelem->next);
+	}
+	/* we want to avoid memory overflow : */
+	if( (*pnext = new_mapped_color( color, indexed )) != NULL )
+	{
+		++(index->count);
+		++(stack->count);
+		return 1;
+	}
+	return -1;
+}
+
+static inline void
+add_colormap_item( register ASColormapEntry *pentry, ASMappedColor *pelem, int cmap_idx )
+{
+	register ARGB32 c = pelem->color;
+	pentry->red = ARGB32_RED8(c) ;
+	pentry->green = ARGB32_GREEN8(c) ;
+	pentry->blue = ARGB32_BLUE8(c) ;
+	pelem->cmap_idx = cmap_idx ;
+}
+
+unsigned int
+add_colormap_items( ASSortedColorIndex *index, unsigned int start, unsigned int stop, unsigned int quota, ASColormapEntry *entries )
+{
+	int cmap_idx = 0 ;
+	int i ;
+	if( quota >= index->count )
+	{
+		for( i = start ; i < stop ; i++ )
+		{
+			register ASMappedColor *pelem = index->stacks[i].stack ;
+			while ( pelem != NULL )
+			{
+				add_colormap_item( &(entries[cmap_idx]), pelem, cmap_idx );
+				++cmap_idx ;
+				pelem = pelem->next ;
+			}
+		}
+	}else
+	{
+		int total = 0 ;
+		int subcount = 0 ;
+		ASMappedColor *best = NULL ;
+		for( i = start ; i < stop ; i++ )
+			total += index->stacks[i].count ;
+
+		for( i = start ; i < stop ; i++ )
+		{
+			register ASMappedColor *pelem = index->stacks[i].stack ;
+			while ( pelem != NULL )
+			{
+				if( pelem->cmap_idx < 0 )
+				{
+					if( best == NULL )
+						best = pelem ;
+					else if( best->count < pelem->count )
+						best = pelem ;
+					else if( best->count == pelem->count &&
+						     subcount >= (total>>2) && subcount <= (total>>1)*3 )
+						best = pelem ;
+					subcount += pelem->count*quota ;
+					if( subcount >= total )
+					{
+						add_colormap_item( &(entries[cmap_idx]), best, cmap_idx );
+						++cmap_idx ;
+						subcount -= total ;
+						best = NULL ;
+					}
+				}
+				pelem = pelem->next ;
+			}
+		}
+	}
+	return cmap_idx ;
+}
+
+void
+fix_colorindex_shortcuts( ASSortedColorIndex *index )
+{
+	int i ;
+	int last_good = -1, next_good = -1;
+
+	for( i = 0 ; i < COLOR_STACK_SLOTS ; i++ )
+	{
+		register ASMappedColor *pelem = index->stacks[i].stack ;
+		ASMappedColor *first = NULL, *last = NULL ;
+		while( pelem != NULL )
+		{
+			if( pelem->cmap_idx >= 0 )
+			{
+				if( first == NULL ) first = pelem ;
+				last = pelem ;
+			}
+			pelem = pelem->next ;
+		}
+		index->stacks[i].first_good = first ;
+		index->stacks[i].last_good = last ;
+	}
+	for( i = 0 ; i < COLOR_STACK_SLOTS ; i++ )
+	{
+		if( next_good < 0 )
+		{
+			for( next_good = i ; next_good < COLOR_STACK_SLOTS ; next_good++ )
+				if( index->stacks[next_good].first_good )
+					break;
+			if( next_good >= COLOR_STACK_SLOTS )
+				next_good = last_good ;
+		}
+		if( index->stacks[i].first_good )
+		{
+			last_good = i;
+			next_good = -1;
+		}else
+		{
+			if( last_good < 0 || ( i-last_good >= next_good-i && i < next_good ) )
+				index->stacks[i].good_offset = next_good-i ;
+			else
+				index->stacks[i].good_offset = i-last_good ;
+		}
+	}
+}
+
+ASColormap *
+ColorIndex2Colormap( ASSortedColorIndex *index, unsigned int max_colors, ASColormap *reusable_memory )
+{
+	ASColormap *cmap = reusable_memory;
+	int cmap_idx = 0 ;
+	int i ;
+
+	if( cmap == NULL )
+		cmap = safecalloc( 1, sizeof(ASColormap));
+	cmap->count = MIN(max_colors,index->count);
+	cmap->entries = safemalloc( cmap->count*sizeof( ASColormapEntry) );
+	cmap->xref = create_ashash( 0, color_hash_value, NULL, NULL );
+	/* now lets go ahead and populate colormap : */
+	if( index->count <= max_colors )
+	{
+		add_colormap_items( index, 0, COLOR_STACK_SLOTS, index->count, cmap->entries);
+	}else
+	{
+		long subcount = 0 ;
+		int start_slot = 0 ;
+
+		for( i = 0 ; i < COLOR_STACK_SLOTS ; i++ )
+		{
+			subcount += index->stacks[i].count*max_colors ;
+			if( subcount >= index->count )
+			{	/* we need to add subcount/index->count items */
+				int to_add = subcount/index->count ;
+				if( i == COLOR_STACK_SLOTS-1 && to_add < max_colors-cmap_idx )
+					to_add = max_colors-cmap_idx;
+				cmap_idx += add_colormap_items( index, start_slot, i, to_add, &(cmap->entries[cmap_idx]));
+				subcount %= index->count ;
+				start_slot = i+1;
+			}
+		}
+	}
+	fix_colorindex_shortcuts( index );
+	return cmap;
+}
+
+int
+get_color_index( ASSortedColorIndex *index, ARGB32 color )
+{
+	ASSortedColorStack *stack ;
+	ASMappedColor *pnext, *lesser ;
+	CARD32 red = (CARD32)(ARGB32_RED8(color));
+	CARD32 green = (CARD32)(ARGB32_GREEN8(color))<<2;
+	CARD32 blue = (CARD32)(ARGB32_BLUE8(color))<<1;
+	CARD32 indexed = MAKE_INDEXED_COLOR(red,green,blue);
+	int slot = (indexed>>15)&0x1FF, offset ;
+
+	if( (offset = index->stacks[slot].good_offset) != 0 )
+		slot += offset ;
+	stack = &(index->stacks[slot]);
+	if( offset < 0 || stack->last_good->indexed <= indexed )
+		return stack->last_good->cmap_idx;
+	if( offset > 0 || stack->first_good->indexed >= indexed )
+		return stack->first_good->cmap_idx;
+
+	lesser = stack->first_good ;
+	for( pnext = lesser; pnext != stack->last_good ; pnext = pnext->next )
+		if( pnext->cmap_idx >= 0 )
+		{
+			if( pnext->indexed > indexed )
+				return ( pnext->indexed-indexed > indexed-lesser->indexed )?
+						lesser->cmap_idx : pnext->cmap_idx;
+			lesser = pnext ;
+		}
+	return stack->last_good->cmap_idx;
+}
 
 /***********************************************************************************/
 #define SHOW_PENDING_IMPLEMENTATION_NOTE(f) \
