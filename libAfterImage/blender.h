@@ -75,12 +75,18 @@ typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanli
  * DESCRIPTION
  * This functions translate RGB color into respective coordinates of
  * HSV and HLS colorspaces.
+ * REturned hue values are in 16bit format. To translate it to and from
+ * conventional 0-360 degree range, please use :
+ * degrees2hue16() - converts conventional hue in 0-360 range into hue16
+ * hue162degree()  - converts 16bit hue value into conventional degrees.
  ****************/
 #define HUE16_RANGE 		(85<<7)
 #define MAX_HUE16			0x0000FEFF
 #define MIN_HUE16			0x00000001
 int normalize_degrees_val( int degrees );
 CARD32 degrees2hue16( int degrees );
+int    hue162degrees( CARD32 hue );
+
 
 inline CARD32 rgb2value( CARD32 red, CARD32 green, CARD32 blue );
 inline CARD32 rgb2saturation( CARD32 red, CARD32 green, CARD32 blue );

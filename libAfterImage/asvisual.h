@@ -399,6 +399,34 @@ Bool query_screen_visual_id( ASVisual *asv, Display *dpy, int screen,
 Bool setup_truecolor_visual( ASVisual *asv );
 void setup_pseudo_visual( ASVisual *asv  );
 void setup_as_colormap( ASVisual *asv );
+/****f* libAfterImage/asvisual/create_asvisual_for_id()
+ * SYNOPSIS
+ * ASVisual *create_asvisual_for_id( Display *dpy, int screen,
+ *                                   int default_depth,
+ *                                   VisualID visual_id,
+ *                                   ASVisual *reusable_memory );
+ * INPUTS
+ * dpy  		- valid pointer to opened X display.
+ * screen   	- screen number on which to query visuals.
+ * root     	- root window on that screen.
+ * default_depth- default colordepth of the screen.
+ * visual_id    - ID of X visual to use.
+ * reusable_memory - pointer to preallocated ASVisual structure.
+ * RETURN VALUE
+ * Pointer to ASVisual structure initialized with enough information
+ * to be able to deal with current X Visual.
+ * DESCRIPTION
+ * This function calls all the needed functions in order to setup new
+ * ASVisual structure for the specified screen and visual. If
+ * reusable_memory is not null - it will not allocate new ASVisual
+ * structure, but instead will use supplied one. Useful for allocating
+ * ASVisual on stack.
+ * This particular function will not do any autodetection and will use
+ * Visual ID supplied. That is usefull when libAfterImage is used with
+ * an app that has its own approach to Visual handling, and since Visuals
+ * on all Windows, Pixmaps and colormaps must match, there is a need to
+ * synchronise visuals used by an app and libAfterImage.
+ *********/
 /****f* libAfterImage/asvisual/create_asvisual()
  * SYNOPSIS
  * ASVisual *create_asvisual( Display *dpy, int screen,
@@ -418,7 +446,14 @@ void setup_as_colormap( ASVisual *asv );
  * ASVisual structure for the specified screen. If reusable_memory is
  * not null - it will not allocate new ASVisual structure, but instead
  * will use supplied one. Useful for allocating ASVisual on stack.
+ * It is different from create_asvisualfor_id() in that it will attempt
+ * to autodetect best possible visual for the screen. For example on some
+ * SUN Solaris X servers there will be both 8bpp pseudocolor and 24bpp
+ * truecolor, and default will be 8bpp. In this scenario libAfterImage
+ * will detect and use 24bpp true color visual, thus producing much better
+ * results.
  *********/
+
 /****f* libAfterImage/asvisual/destroy_asvisual()
  * SYNOPSIS
  * void destroy_asvisual( ASVisual *asv, Bool reusable );

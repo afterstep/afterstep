@@ -1422,9 +1422,9 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				{
 					ARGB32 color = 0;
 					if( parse_argb_color( ptr->parm, &color ) != ptr->parm )
-						affected_hue = rgb2hue( ARGB32_RED16(color),
+						affected_hue = hue162degrees(rgb2hue( ARGB32_RED16(color),
 												ARGB32_GREEN16(color),
-												ARGB32_BLUE16(color));
+												ARGB32_BLUE16(color)));
 				}
 			}
 			else if (!strcmp(ptr->tag, "affected_radius")) 	affected_radius = atoi(ptr->parm);

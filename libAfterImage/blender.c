@@ -151,8 +151,17 @@ degrees2hue16( int degrees )
 	while ( degrees < 0 ) degrees += 360 ;
 	while ( degrees >= 360 ) degrees -= 360 ;
 
-	hue = degrees * HUE16_RANGE*6 / 360 ;
+	hue = degrees * HUE16_RANGE / 60 ;
 	return (hue==0)?MIN_HUE16:hue ;
+}
+
+int
+hue162degrees( CARD32 hue )
+{
+	if( hue < MIN_HUE16 || hue > MAX_HUE16 )
+		return -1 ;
+
+	return (hue*60)/HUE16_RANGE ;
 }
 
 inline CARD32

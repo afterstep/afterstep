@@ -27,12 +27,12 @@
  * compatible CPUs.
  *
  * SEE ALSO
- *   Transformations :
+ *  Transformations :
  *          scale_asimage(), tile_asimage(), merge_layers(), make_gradient(),
- *          flip_asimage(), pad_asimage(), blur_asimage_gauss(),
- *          fill_asimage()
+ *          flip_asimage(), mirror_asimage(), pad_asimage(),
+ *          blur_asimage_gauss(), fill_asimage(), adjust_asimage_hsv()
  *
- * Other libAfterImage modules :
+ *  Other libAfterImage modules :
  *          ascmap.h asfont.h asimage.h asvisual.h blender.h export.h
  *          import.h transform.h ximage.h
  * AUTHOR
@@ -282,6 +282,65 @@
  * DESCRIPTION
  * Fills rectangle within the existing ASImage with specified color.
  *********/
+/****f* libAfterImage/transform/adjust_asimage_hsv()
+ * SYNOPSIS
+ * ASImage *adjust_asimage_hsv( ASVisual *asv, ASImage *src,
+ *                              int offset_x, int offset_y,
+ *                              unsigned int to_width,
+ *                              unsigned int to_height,
+ *                              unsigned int affected_hue,
+ *                              unsigned int affected_radius,
+ *                              int hue_offset, int saturation_offset,
+ *                              int value_offset,
+ *                              ASAltImFormats out_format,
+ *                              unsigned int compression_out, int quality);
+ * INPUTS
+ * asv           - pointer to valid ASVisual structure
+ * src           - ASImage to adjust colors of.
+ * offset_x,
+ * offset_y      - position on infinite surface tiled with original image,
+ *                 of the left-top corner of the area to be used for new
+ *                 image.
+ * to_width,
+ * to_height     - size of the area of the original image to be used
+ *                 for new image.
+ * affected_hue  - hue in degrees in range 0-360. This allows to limit
+ *                 impact of color adjustment to affect only limited
+ *                 range of hues.
+ * affected_radius Sets the diapason of the range of affected hues.
+ * hue_offset    - value by which to change hues in affected range.
+ * saturation_offset -
+ *                 value by which to change saturation of the pixels in
+ *                 affected hue range.
+ * value_offset  - value by which to change Value(brightness) of pixels
+ *                 in affected hue range.
+ * out_format 	- optionally describes alternative ASImage format that
+ *                should be produced as the result - XImage, ARGB32, etc.
+ * compression_out- compression level of resulting image in range 0-100.
+ * quality      - output quality
+ * RETURN VALUE
+ * returns newly created and encoded ASImage on success, NULL of failure.
+ * DESCRIPTION
+ * This function will tile original image to specified size with offsets
+ * requested, and then it will go though it and adjust hue, saturation and
+ * value of those pixels that have specific hue, set by affected_hue/
+ * affected_radius parameters. When affected_radius is greater then 180
+ * entire image will be adjusted. Note that since grayscale colors have
+ * no hue - the will not get adjusted. Only saturation and value will be
+ * adjusted in gray pixels.
+ * Hue is measured as an angle on a 360 degree circle, The following is
+ * relationship of hue values to regular color names :
+ * red      - 0
+ * yellow   - 60
+ * green    - 120
+ * cyan     - 180
+ * blue     - 240
+ * magenta  - 300
+ * red      - 360
+ *
+ * All the hue values in parameters will be adjusted to fall withing
+ * 0-360 range.
+ *********/
 
 ASImage *scale_asimage( struct ASVisual *asv, ASImage *src,
 						unsigned int to_width, unsigned int to_height,
@@ -327,6 +386,66 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
                	   int x, int y, int width, int height,
 				   ARGB32 color );
 
+ASImage* adjust_asimage_hsv( ASVisual *asv, ASImage *src,
+				    int offset_x, int offset_y,
+	  			    unsigned int to_width, unsigned int to_height,
+					unsigned int affected_hue, unsigned int affected_radius,
+					int hue_offset, int saturation_offset, int value_offset,
+					ASAltImFormats out_format,
+					unsigned int compression_out, int quality );
+
+/****f* libAfterImage/transform/colorize_asimage_vector()
+ * SYNOPSIS
+ * Bool colorize_asimage_vector( ASVisual *asv, ASImage *im,
+ * 		             	         ASVectorPalette *palette,
+ *                               ASAltImFormats out_format,
+ *                               int quality );
+ * INPUTS
+ * asv           - pointer to valid ASVisual structure
+ * im            - ASImage to update.
+ * palette       - palette to be used in conversion of double precision
+ *                 values into colors.
+ * out_format 	 - optionally describes alternative ASImage format that
+ *                 should be produced as the result - XImage, ARGB32, etc.
+ * quality       - output quality
+ * RETURN VALUE
+ * True on success, False on failure.
+ * DESCRIPTION
+ * This function will try to convert double precision indexed image data
+ * into actuall color image using palette. Original data should be attached
+ * to ASImage using vector member. Operation is relatively fast and allows
+ * representation of scientific data as color image with dynamically
+ * changing palette.
+ *********/
+/****f* libAfterImage/transform/create_asimage_from_vector()
+ * SYNOPSIS
+ * ASImage *create_asimage_from_vector( ASVisual *asv, double *vector,
+ *                                      unsigned int width,
+ *                                      unsigned int height,
+ *                                      ASVectorPalette *palette,
+ *                                      ASAltImFormats out_format,
+ *                                      unsigned int compression,
+ *                                      int quality );
+ * INPUTS
+ * asv           - pointer to valid ASVisual structure
+ * vector        - data to be attached to new ASImage and used to generate
+ *                 RGB image
+ * width, height - size of the new image.
+ * palette       - palette to be used in conversion of double precision
+ *                 values into colors.
+ * out_format 	 - optionally describes alternative ASImage format that
+ *                 should be produced as the result - XImage, ARGB32, etc.
+ * compression_out- compression level of resulting image in range 0-100.
+ * quality       - output quality
+ * RETURN VALUE
+ * New ASImage  on success, NULL on failure.
+ * DESCRIPTION
+ * This function is merely a convinience function allowing to create new
+ * ASImage, set its vector data and colorize it using palette - all in
+ * one step.
+ * SEE ALSO
+ * colorize_asimage_vector(), create_asimage(), set_asimage_vector()
+ *********/
 Bool
 colorize_asimage_vector( ASVisual *asv, ASImage *im,
 						 ASVectorPalette *palette,
@@ -339,12 +458,4 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 							ASAltImFormats out_format,
 							unsigned int compression, int quality );
 
-ASImage*
-adjust_asimage_hsv( ASVisual *asv, ASImage *src,
-				    int offset_x, int offset_y,
-	  			    unsigned int to_width, unsigned int to_height,
-					unsigned int affected_hue, unsigned int affected_radius,
-					int hue_offset, int saturation_offset, int value_offset,
-					ASAltImFormats out_format,
-					unsigned int compression_out, int quality );
 #endif

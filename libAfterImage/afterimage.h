@@ -186,6 +186,7 @@
  *          ASGlyphRange
  *          ASColormap
  *          ASImageExportParams
+ *          ASVectorPalette
  *
  * Functions :
  *   ASScanline handling:
@@ -193,7 +194,8 @@
  *
  *   ASVisual initialization :
  *  	    query_screen_visual(), setup_truecolor_visual(),
- *  	    setup_pseudo_visual(), setup_as_colormap(),create_asvisual(),
+ *  	    setup_pseudo_visual(), setup_as_colormap(),
+ *          create_asvisual(), create_asvisual_for_id(),
  *  	    destroy_asvisual()
  *
  *   ASVisual encoding/decoding :
@@ -201,11 +203,12 @@
  *
  *   ASVisual convenience functions :
  *  	    create_visual_window(), create_visual_pixmap(),
- *  	    create_visual_ximage()
+ *  	    create_visual_ximage(), create_visual_gc()
  *
  *   Colorspace conversion :
  *          rgb2value(), rgb2saturation(), rgb2hue(), rgb2luminance(),
- *          rgb2hsv(), rgb2hls(), hsv2rgb(), hls2rgb().
+ *          rgb2hsv(), rgb2hls(), hsv2rgb(), hls2rgb(),
+ *          degrees2hue16(), hue162degrees(), normalize_degrees_val()
  *
  *   Image quantization :
  *          colormap_asimage(), destroy_colormap()
@@ -222,6 +225,10 @@
  *          asimage_init(), asimage_start(), create_asimage(),
  *          clone_asimage(), destroy_asimage()
  *
+ *   ASImage channel data manipulations :
+ *          get_asimage_chanmask(), move_asimage_channel(),
+ *          copy_asimage_channel(), copy_asimage_lines()
+ *
  *   ImageManager Reference counting and managing :
  *          create_image_manager(), destroy_image_manager(),
  *          store_asimage(), fetch_asimage(), dup_asimage(),
@@ -233,14 +240,16 @@
  *
  *   Encoding :
  *          asimage_add_line(),	asimage_add_line_mono(),
- *          asimage_print_line(), get_asimage_chanmask(),
- *          move_asimage_channel(), copy_asimage_channel(),
- *          copy_asimage_lines()
+ *          asimage_print_line()
  *
- *   Decoding
+ *   Decoding :
  *          start_image_decoding(), stop_image_decoding(),
  *          asimage_decode_line (), set_decoder_shift(),
- *          set_decoder_back_color()
+ *          set_decoder_bevel_geom(), set_decoder_back_color()
+ *
+ *   ASImage from scientific data :
+ *          set_asimage_vector(), colorize_asimage_vector(),
+ *          create_asimage_from_vector()
  *
  *   Output :
  *          start_image_output(), set_image_output_back_color(),
@@ -252,7 +261,8 @@
  *
  *   Transformations :
  *          scale_asimage(), tile_asimage(), merge_layers(), make_gradient(),
- *          flip_asimage()
+ *          flip_asimage(), mirror_asimage(), pad_asimage(),
+ *          blur_asimage_gauss(), fill_asimage(), adjust_asimage_hsv()
  *
  *   Import :
  *          file2ASImage(), file2pixmap()

@@ -233,7 +233,7 @@ typedef struct ASImageManager
 
 
 /* Auxiliary data structures : */
-/****s* libAfterImage/ASScientificPalette
+/****s* libAfterImage/ASVectorPalette
  * NAME
  * ASScientificPalette
  * DESCRIPTION
@@ -726,6 +726,17 @@ void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsig
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
 ASImage *clone_asimage( ASImage *src, ASFlagType filter );
 void destroy_asimage( ASImage **im );
+/****f* libAfterImage/asimage/destroy_asimage()
+ * SYNOPSIS
+ * set_asimage_vector( ASImage *im, register double *vector );
+ * INPUTS
+ * im				- pointer to valid ASImage structure.
+ * vector           - scientific data to attach to the image.
+ * DESCRIPTION
+ * This function replaces contents of the vector member of ASImage
+ * structure with new double precision data. Data must have size
+ * of width*height ahere width and height are size of the ASImage.
+ *********/
 Bool set_asimage_vector( ASImage *im, register double *vector );
 
 /****h* libAfterImage/asimage/ImageManager
