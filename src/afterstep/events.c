@@ -162,16 +162,17 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
     register XEvent *xevt = &(tmp_event.x) ;
 
     ASSync(False);
+	start_ticker (click_time*10);
     do
 	{
-        sleep_a_little (1000);
+        sleep_a_little (100);
         if (ASCheckMaskEvent (end_mask, xevt))
         {
             DigestEvent( &tmp_event );
             event->x = *xevt ;                 /* everything else must remain the same !!! */
             return True;
         }
-        if( total++ > click_time )
+        if( is_tick() )
 			break;
 
         LOCAL_DEBUG_OUT( "total=%d/click_time = %d", total, click_time );
@@ -180,9 +181,9 @@ IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
 			dx = x_orig - xevt->xmotion.x_root;
 			dy = y_orig - xevt->xmotion.y_root;
             DigestEvent( &tmp_event );
+		    event->x = *xevt ;                 /* everything else must remain the same !!! */
 		}
     }while( dx > -5 && dx < 5 && dy > -5 && dy < 5 );
-    event->x = *xevt ;                 /* everything else must remain the same !!! */
 
 	return False;
 }

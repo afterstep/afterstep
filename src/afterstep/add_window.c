@@ -2134,6 +2134,7 @@ change_aswindow_layer( ASWindow *asw, int layer )
     if( ASWIN_LAYER(asw) != layer )
     {
         remove_aswindow_from_layer( asw, ASWIN_LAYER(asw));
+	ASWIN_LAYER(asw) = layer ;
         add_aswindow_to_layer( asw, layer );
         restack_window_list( ASWIN_DESK(asw), False );
     }
