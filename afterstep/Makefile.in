@@ -15,18 +15,18 @@ CONFIG_DIR_LIST= feels colorschemes looks scripts themes
 
 install:
 	@if [ -d $(AFTER_SHAREDIR) ] ; then \
-	  echo $(RMF) -r $(AFTER_SHAREDIR)_old; \
-	  echo $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
-	  $(RMF) -r $(AFTER_SHAREDIR)_old; \
-	  $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
-	  no_data_reinstall=$(NO_DATA_REINSTALL); \
-	else \
-	  no_data_reinstall=""; \
-	  echo "no previous installation detected"; \
-	fi; \
-	$(MKDIR) -p $(AFTER_SHAREDIR); \
-	$(MKDIR) -p $(AFTER_DOC_DIR); \
-	if [ -d desktop -a -d backgrounds -a -z "$$no_data_reinstall" ]; then \
+	   echo $(RMF) -r $(AFTER_SHAREDIR)_old; \
+	   echo $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
+	   $(RMF) -r $(AFTER_SHAREDIR)_old; \
+	   $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
+	   no_data_reinstall=$(NO_DATA_REINSTALL); \
+	 else \
+	   no_data_reinstall=""; \
+	   echo "no previous installation detected"; \
+	 fi; \
+	 $(MKDIR) -p $(AFTER_SHAREDIR); \
+	 $(MKDIR) -p $(AFTER_DOC_DIR); \
+	 if [ -d desktop -a -d backgrounds -a -z "$$no_data_reinstall" ]; then \
 		$(MKDIR) -p $(AFTER_SHAREDIR)/desktop; \
 		for D in ${IMAGE_DIR_LIST}; do \
 			$(MKDIR) -p $(AFTER_SHAREDIR)/$$D; \
@@ -73,7 +73,7 @@ install:
 			done; \
 			echo ""; \
 		done; \
-	else \
+	 else \
 		if [ -d $(AFTER_SHAREDIR)_old/backgrounds ]; then \
 			echo "$(CP) -r $(AFTER_SHAREDIR)_old/backgrounds $(AFTER_SHAREDIR)/"; \
 			$(CP) -r $(AFTER_SHAREDIR)_old/backgrounds $(AFTER_SHAREDIR)/;  \
@@ -87,10 +87,10 @@ install:
 			echo "$(CP) -r $(AFTER_SHAREDIR)_old/doc/html $(AFTER_DOC_DIR)/"; \
 			$(CP) -r $(AFTER_SHAREDIR)_old/doc/html $(AFTER_DOC_DIR)/; \
 		fi; \
-	fi; \
-	$(INSTALL_DATA) ../libAfterImage/apps/rose512.jpg $(AFTER_SHAREDIR)/desktop/tiles/rose512.jpg; \
-	$(INSTALL_DATA) ../libAfterImage/apps/fore.xpm $(AFTER_SHAREDIR)/desktop/tiles/fore.xpm; \
-	$(INSTALL_DATA) ../libAfterImage/apps/back.xpm $(AFTER_SHAREDIR)/desktop/tiles/back.xpm
+	 fi; \
+	 $(INSTALL_DATA) ../libAfterImage/apps/rose512.jpg $(AFTER_SHAREDIR)/desktop/tiles/rose512.jpg; \
+	 $(INSTALL_DATA) ../libAfterImage/apps/fore.xpm $(AFTER_SHAREDIR)/desktop/tiles/fore.xpm; \
+	 $(INSTALL_DATA) ../libAfterImage/apps/back.xpm $(AFTER_SHAREDIR)/desktop/tiles/back.xpm
 	@for D in ${CONFIG_DIR_LIST} non-configurable; do \
 		echo "$(MKDIR) -p $(AFTER_SHAREDIR)/$$D"; \
 		$(MKDIR) -p $(AFTER_SHAREDIR)/$$D; \
@@ -103,23 +103,34 @@ install:
 		done; \
 		echo ""; \
 	done
+	@echo "$(MKDIR) -p $(AFTER_SHAREDIR)/non-configurable"; \
+	 $(MKDIR) -p $(AFTER_SHAREDIR)/non-configurable; \
+	 echo "Copying default config files:"; \
+	 echo "Look: $(AFTER_SHAREDIR)/looks/look.DEFAULT"; \
+	 $(CP) $(AFTER_SHAREDIR)/looks/look.DEFAULT $(AFTER_SHAREDIR)/non-configurable/0_look ; \
+	 echo "Feel: $(AFTER_SHAREDIR)/feels/feel.DEFAULT"; \
+	 $(CP) $(AFTER_SHAREDIR)/feels/feel.DEFAULT $(AFTER_SHAREDIR)/non-configurable/0_feel ; \
+	 echo "Background: $(AFTER_SHAREDIR)/backgrounds/Default"; \
+	 $(CP) $(AFTER_SHAREDIR)/backgrounds/Default $(AFTER_SHAREDIR)/non-configurable/0_background; \
+	 echo "Color Scheme: $(AFTER_SHAREDIR)/colorschemes/colorscheme.Stormy_Skies"; \
+	 $(CP) $(AFTER_SHAREDIR)/colorschemes/colorscheme.Stormy_Skies $(AFTER_SHAREDIR)/non-configurable/0_colorscheme
 	@echo "$(MKDIR) -p $(AFTER_SHAREDIR)/start"; \
-	$(MKDIR) -p $(AFTER_SHAREDIR)/start; \
-	echo "$(CP) -r start/* $(AFTER_SHAREDIR)/start/"; \
-	$(CP) -r start/* $(AFTER_SHAREDIR)/start/; 
+	 $(MKDIR) -p $(AFTER_SHAREDIR)/start; \
+	 echo "$(CP) -r start/* $(AFTER_SHAREDIR)/start/"; \
+	 $(CP) -r start/* $(AFTER_SHAREDIR)/start/; 
 	@$(RMF) $(AFTER_SHAREDIR)/start/.include.in; \
-	$(INSTALL_DATA) start/.include $(AFTER_SHAREDIR)/start/.include; \
-	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Feel/.include.in; \
-	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Color_Scheme/.include.in; \
-	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Look/.include.in; \
-	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Theme/.include.in; \
-	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Pictures/.include.in; \
-	$(RMF) $(AFTER_SHAREDIR)/start/2_Modules/Pager.in; \
-	$(RMF) $(AFTER_SHAREDIR)/non-configurable/*.in
-	$(FIND) $(AFTER_SHAREDIR) -name '*.in' -print | $(XARGS) $(RMF) -r
-	$(FIND) $(AFTER_SHAREDIR) -name '*.orig' -print | $(XARGS) $(RMF) -r
-	$(FIND) $(AFTER_SHAREDIR) -name CVS -print | $(XARGS) $(RMF) -r
-	$(FIND) $(AFTER_SHAREDIR) -name .cvsignore -print | $(XARGS) $(RMF)
+	 $(INSTALL_DATA) start/.include $(AFTER_SHAREDIR)/start/.include; \
+	 $(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Feel/.include.in; \
+	 $(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Color_Scheme/.include.in; \
+	 $(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Look/.include.in; \
+	 $(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Theme/.include.in; \
+	 $(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Pictures/.include.in; \
+	 $(RMF) $(AFTER_SHAREDIR)/start/2_Modules/Pager.in; \
+	 $(RMF) $(AFTER_SHAREDIR)/non-configurable/*.in
+	 $(FIND) $(AFTER_SHAREDIR) -name '*.in' -print | $(XARGS) $(RMF) -r
+	 $(FIND) $(AFTER_SHAREDIR) -name '*.orig' -print | $(XARGS) $(RMF) -r
+	 $(FIND) $(AFTER_SHAREDIR) -name CVS -print | $(XARGS) $(RMF) -r
+	 $(FIND) $(AFTER_SHAREDIR) -name .cvsignore -print | $(XARGS) $(RMF)
 	@for f in animate autoexec banner base database pager wharf winlist ; do \
 		echo "$(INSTALL_DATA) $$f $(AFTER_SHAREDIR)/$$f"; \
 		$(INSTALL_DATA) $$f $(AFTER_SHAREDIR)/$$f; \
