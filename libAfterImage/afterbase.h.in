@@ -97,9 +97,11 @@ unsigned int get_output_threshold();
 /* Returns True if something was actually printed  */
 Bool asim_show_error( const char *error_format, ...);
 Bool asim_show_warning( const char *warning_format, ...);
+Bool asim_show_debug( const char *file, const char *func, int line, const char *msg_format, ...);
 
 #define show_error asim_show_error
 #define show_warning asim_show_warning
+#define show_debug asim_show_debug
 
 void asim_nonGNUC_debugout( const char *format, ...);
 inline void asim_nonGNUC_debugout_stub( const char *format, ...);
