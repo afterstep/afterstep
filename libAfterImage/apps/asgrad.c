@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 	ASVisual *asv ;
 	int screen = 0, depth = 0;
 	int dummy, geom_flags = 0;
-	unsigned int tile_width, tile_height ;
+	unsigned int to_width, to_height ;
 	ASGradient grad ;
 	ASGradient default_grad = { 1, 10, &(default_colors[0]), &(default_offsets[0])} ;
 	ASImage *grad_im = NULL;

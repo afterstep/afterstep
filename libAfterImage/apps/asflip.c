@@ -43,7 +43,8 @@ int main(int argc, char* argv[])
 	char *image_file = "rose512.jpg" ;
 	int flip = FLIP_VERTICAL;
 	Bool vertical = False, mirror = False ;
-	int tile_x, tile_y, tile_width, tile_height, geom_flags = 0;
+	int tile_x, tile_y, geom_flags = 0;
+	unsigned int tile_width, tile_height ;
 	ASImage *im = NULL;
 	ASImage *flipped_im = NULL ;
 
@@ -64,7 +65,7 @@ int main(int argc, char* argv[])
 			{
 				switch(argv[i][1])
 				{
-					case 'm' :	
+					case 'm' :
 						mirror = True;
 						vertical = atoi(argv[i+1]) ;
 					    break ;
@@ -104,16 +105,16 @@ int main(int argc, char* argv[])
 		tile_y = 0 ;
 	if( !get_flags(geom_flags, WidthValue ) )
 	{
-		if( !mirror )   
+		if( !mirror )
 			tile_width = (get_flags(flip,FLIP_VERTICAL))?im->height:im->width ;
-		else 
+		else
 			tile_width = im->width ;
 	}
 	if( !get_flags(geom_flags, HeightValue ) )
 	{
-		if( !mirror )   
+		if( !mirror )
 			tile_height = (get_flags(flip,FLIP_VERTICAL))?im->width:im->height;
-		else 
+		else
 			tile_height = im->height ;
 	}
 	printf( "%s: tiling image \"%s\" to %dx%d%+d%+d and then flipping it by %d degrees\n",
@@ -124,7 +125,7 @@ int main(int argc, char* argv[])
 	asv = create_asvisual( dpy, screen, depth, NULL );
 
 	/* see ASFlip.2 : */
-	if( !mirror ) 
+	if( !mirror )
 		flipped_im = flip_asimage( 	asv, im,
 			                       	tile_x, tile_y,
 									tile_width, tile_height,
