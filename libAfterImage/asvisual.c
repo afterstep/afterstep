@@ -902,7 +902,7 @@ create_visual_pixmap( ASVisual *asv, Window root, unsigned int width, unsigned i
 #ifndef X_DISPLAY_MISSING
 	Pixmap p = None ;
 	if( asv != NULL )
-		p = XCreatePixmap( asv->dpy, root, MAX(width,1), MAX(height,1), (depth==0)?asv->true_depth:depth );
+		p = XCreatePixmap( asv->dpy, root, MAX(width,(unsigned)1), MAX(height,(unsigned)1), (depth==0)?asv->true_depth:depth );
 	return p;
 #else
 	return None ;
@@ -943,7 +943,7 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 	if( unit == 24 )
 		unit = 32 ;
 #endif
-	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->true_depth:depth, ZPixmap, 0, NULL, MAX(width,1), MAX(height,1),
+	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->true_depth:depth, ZPixmap, 0, NULL, MAX(width,(unsigned)1), MAX(height,(unsigned)1),
 						   unit, 0);
 	if (ximage != NULL)
 	{
@@ -1080,7 +1080,7 @@ void pixel2color15bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *g
 void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
-	register int i = MIN(xim->width,sl->width-sl->offset_x);
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	register CARD8 *src = (CARD8*)(xim_data+(i-1)*4) ;
 	if( asv->msb_first )
 		do
@@ -1108,7 +1108,7 @@ void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regis
 
 void ximage2scanline16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
-	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x)-1;
 	register CARD16 *src = (CARD16*)xim_data ;
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 #ifdef WORDS_BIGENDIAN
@@ -1135,7 +1135,7 @@ void ximage2scanline16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 }
 void ximage2scanline15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
-	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x)-1;
 	register CARD16 *src = (CARD16*)xim_data ;
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 #ifdef WORDS_BIGENDIAN
@@ -1163,7 +1163,7 @@ void ximage2scanline15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 void
 ximage2scanline_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
-	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x)-1;
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 
 	do
@@ -1185,7 +1185,7 @@ ximage2scanline_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  
 void
 ximage2scanline_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
-	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x)-1;
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 
 	if( xim->bits_per_pixel == 8 )
@@ -1223,7 +1223,7 @@ ximage2scanline_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  
 void
 ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
-	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x)-1;
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 
 	if( xim->bits_per_pixel == 16 )
@@ -1262,7 +1262,7 @@ ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y, 
 void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
-	register int i = MIN(xim->width,sl->width-sl->offset_x);
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	register CARD8 *src = (CARD8*)(xim_data+(i-1)*4) ;
 	if( asv->msb_first )
 		do
@@ -1290,7 +1290,7 @@ void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 
 void scanline2ximage16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
-	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x)-1;
 	register CARD16 *src = (CARD16*)xim_data ;
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
@@ -1348,7 +1348,7 @@ void scanline2ximage16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 
 void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
-	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x)-1;
 	register CARD16 *src = (CARD16*)xim_data ;
     register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
@@ -1408,7 +1408,7 @@ void
 scanline2ximage_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
-	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x)-1;
 	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
 
 	do
@@ -1437,7 +1437,7 @@ void
 scanline2ximage_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
-	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x)-1;
 	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
 
 	if( xim->bits_per_pixel == 8 )
@@ -1492,7 +1492,7 @@ void
 scanline2ximage_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
-	register int i = MIN(xim->width,sl->width-sl->offset_x)-1;
+	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x)-1;
 	register CARD32 c = (r[i]<<20) | (g[i]<<10) | (b[i]);
 
 	if( xim->bits_per_pixel == 16 )

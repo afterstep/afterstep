@@ -646,7 +646,7 @@ LOCAL_DEBUG_OUT( "loading glyph range of %lu-%lu", r->min_char, r->max_char );
 		{
 			int w = chars[i].rbearing - chars[i].lbearing ;
 			r->glyphs[i].lead = chars[i].lbearing ;
-			r->glyphs[i].width = MAX(w,chars[i].width) ;
+			r->glyphs[i].width = MAX(w,(int)chars[i].width) ;
 			r->glyphs[i].step = chars[i].width;
 			total_width += r->glyphs[i].width ;
 			if( chars[i].lbearing > 0 )
@@ -666,7 +666,7 @@ LOCAL_DEBUG_OUT( "loading glyph range of %lu-%lu", r->min_char, r->max_char );
 		for( i = 0 ; i < len ; i++ )
 		{
 			XChar2b test_char ;
-			int offset = MIN(0,chars[i].lbearing);
+			int offset = MIN(0,(int)chars[i].lbearing);
 
 			test_char.byte1 = byte1 ;
 			test_char.byte2 = char_base+i ;
@@ -938,7 +938,7 @@ load_freetype_glyphs( ASFont *font )
 		font->max_height = font->default_glyph.ascend+font->default_glyph.descend;
 		if( font->max_height <= 0 )
 			font->max_height = 1 ;
-		font->max_ascend = MAX(font->default_glyph.ascend,1);
+		font->max_ascend = MAX((int)font->default_glyph.ascend,1);
 	}else
 	{
 		for( r = font->codemap ; r != NULL ; r = r->above )
@@ -1094,7 +1094,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 		}
 	}while( text[i] != '\0' );
 
-	map->width = MAX( w, 1 );
+	map->width = MAX( w, (unsigned int)1 );
 	map->height = line_count * (font->max_height+offset_3d_y);
 	map->height -= font->spacing_y ;
 

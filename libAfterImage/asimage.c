@@ -1610,7 +1610,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 				scl->channels[channel][corner] = ARGB32_CHAN8(corner_color,channel)<<scl->shift ;
 			}
 		if( y == 0 || y == imdec->out_height+bevel->top_outline-1 )
-			scl->alpha[0] = scl->alpha[scl->width-1] = MIN(scl->alpha[0],0x5F<<scl->shift);
+			scl->alpha[0] = scl->alpha[scl->width-1] = MIN(scl->alpha[0],(CARD32)(0x5F<<scl->shift));
 
 		set_flags( scl->flags,imdec->filter);
 	}else
@@ -1734,7 +1734,7 @@ decode_image_scl_bevel_solid( ASImageDecoder *imdec )
 				scl->channels[channel][corner] = ARGB32_CHAN8(corner_color,channel)<<scl->shift ;
 			}
 		if( y == 0 || y == imdec->out_height+bevel->top_outline-1 )
-			scl->alpha[0] = scl->alpha[scl->width-1] = MIN(scl->alpha[0],0x5F<<scl->shift);
+			scl->alpha[0] = scl->alpha[scl->width-1] = MIN(scl->alpha[0],(CARD32)(0x5F<<scl->shift));
 		set_flags( scl->flags,imdec->filter);
 	}else
 	{
@@ -1831,7 +1831,7 @@ encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
 		if( get_flags(to_store->flags, SCL_DO_ALPHA) )
 		{
 			register int x ;
-			for ( x = MIN(xim->width, to_store->width)-1 ; x >= 0 ; --x )
+			for ( x = MIN((unsigned int)(xim->width), to_store->width)-1 ; x >= 0 ; --x )
 				XPutPixel( xim, x, imout->next_line,
 				           (to_store->alpha[x] >= 0x7F)?1:0 );
 		}
