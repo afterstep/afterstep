@@ -22,8 +22,8 @@
 
 #ifndef DEBUG_ALLOCS
 
-#define AS_ASSERT(p)            ((p)==(typeof(p))0)
-#define AS_ASSERT_NOTVAL(p,v)      ((p)!=(typeof(p))v)
+#define AS_ASSERT(p)            ((long)(p)==0)
+#define AS_ASSERT_NOTVAL(p,v)      ((long)(p)!=(long)v)
 #define PRINT_MEM_STATS(m)      do{}while(0)
 #else
 
