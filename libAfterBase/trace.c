@@ -39,6 +39,7 @@
 #include "../include/functions.h"
 #include "../include/menus.h"
 #include "../include/misc.h"
+#include "../include/resources.h"
 
 #if defined(TRACE_XNextEvent) || defined(TRACE_DispatchEvent)
 typedef struct EventDesc {
