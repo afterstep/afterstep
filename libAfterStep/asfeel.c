@@ -309,6 +309,8 @@ print_window_box (ASWindowBox *aswbox, int index)
 		fprintf (stderr, "WindowBox[%d].main_strategy = %d;\n", index, aswbox->main_strategy);
 		fprintf (stderr, "WindowBox[%d].backup_strategy = %d;\n", index, aswbox->backup_strategy);
         fprintf (stderr, "WindowBox[%d].desk = %d;\n", index, aswbox->desk);
+        fprintf (stderr, "WindowBox[%d].min_layer = %d;\n", index, aswbox->min_layer);
+        fprintf (stderr, "WindowBox[%d].max_layer = %d;\n", index, aswbox->max_layer);
     }
 }
 

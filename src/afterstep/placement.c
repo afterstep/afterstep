@@ -34,13 +34,23 @@ struct ASWindowGridAuxData{
     int vx, vy;
 };
 
+typedef struct ASFreeRectangleAuxData{
+    ASVector *list;
+    long    desk;
+    int     min_layer;
+    Bool    frame_only ;
+    ASGeometry area ;
+    ASWindow *to_skip ;
+}ASFreeRectangleAuxData;
+
+
 Bool
 get_aswindow_grid_iter_func(void *data, void *aux_data)
 {
     ASWindow *asw = (ASWindow*)data ;
     struct ASWindowGridAuxData *grid_data = (struct ASWindowGridAuxData*)aux_data;
 
-    if( asw && ASWIN_DESK(asw) == grid_data->desk )
+    if( asw && (!IsValidDesk(grid_data->desk) || ASWIN_DESK(asw) == grid_data->desk) )
     {
         int outer_gravity = Scr.Feel.EdgeAttractionWindow ;
         int inner_gravity = Scr.Feel.EdgeAttractionWindow ;
@@ -123,13 +133,314 @@ SHOW_CHECKPOINT;
     SendConfigureNotify(asw);
     Scr.moveresize_in_progress = NULL ;
 }
+/*************************************************************************/
+/* here we build vector of rectangles, representing one available
+ * space each :
+ */
+/*************************************************************************/
+void
+subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int bottom )
+{
+    register int i = PVECTOR_USED(list);
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,list);
+    XRectangle tmp ;
+    /* must trace in reverse order ! */
+    while( --i >= 0 )
+    {
+        int r_left = rects[i].x, r_right = rects[i].x+rects[i].width ;
+        int r_top = rects[i].y, r_bottom = rects[i].y+rects[i].height ;
+        Bool disected = False ;
+        /* we can build at most 4 rectangles from each substraction : */
+        if( top < r_bottom && bottom >= r_top )
+        {   /* we may need to create 2 vertical rectangles ( left and right ) :*/
+            /* left rectangle : */
+            tmp.y = r_top ;
+            tmp.height = r_bottom - r_top ;
+             if( left > r_left && left < r_right )
+            {
+                rects[i].x = r_left ;
+                rects[i].width = left - r_left ;
+                /* y and height remain unchanged ! */
+                disected = True ;
+            }
+            /* right rectangle : */
+            if( right > r_left && right < r_right )
+            {
+                tmp.x = right ;
+                tmp.width = r_right - right ;
+                if( disected )
+                {
+                    append_vector( list, &tmp, 1 );
+                    rects = PVECTOR_HEAD(XRectangle,list); /* memory may have gotten reallocated */
+                }else
+                {
+                    rects[i] = tmp ;
+                    disected = True ;
+                }
+            }
+        }
+        if( left < r_right && right >= r_left )
+        {   /* we may need to create 2 horizontal rectangles ( top and bottom ) :*/
+            /* top rectangle : */
+            tmp.x = r_left ;
+            tmp.width = r_right - r_left ;
+            if( top > r_top && top < r_bottom )
+            {
+                tmp.y = r_top ;
+                tmp.height = top- r_top ;
+                if( disected )
+                {
+                    append_vector( list, &tmp, 1 );
+                    rects = PVECTOR_HEAD(XRectangle,list); /* memory may have gotten reallocated */
+                }else
+                {
+                    rects[i] = tmp ;
+                    disected = True ;
+                }
+            }
+            /* bottom rectangle */
+            if( bottom > r_top && bottom < r_bottom )
+            {
+                tmp.y = bottom ;
+                tmp.height = r_bottom- bottom ;
+                if( disected )
+                {
+                    append_vector( list, &tmp, 1 );
+                    rects = PVECTOR_HEAD(XRectangle,list); /* memory may have gotten reallocated */
+                }else
+                {
+                    rects[i] = tmp ;
+                    disected = True ;
+                }
+            }
+        }
+    }
+}
 
 
+Bool
+get_free_rectangles_iter_func(void *data, void *aux_data)
+{
+    ASFreeRectangleAuxData *fr_data  = (ASFreeRectangleAuxData*)aux_data ;
+    ASWindow *asw = (ASWindow*)data ;
+    int min_vx = fr_data->area.x, max_vx = fr_data->area.x+fr_data->area.width ;
+    int min_vy = fr_data->area.y, max_vy = fr_data->area.y+fr_data->area.height ;
 
+    if( asw && (!IsValidDesk(fr_data->desk) || ASWIN_DESK(asw) == fr_data->desk) &&
+        asw != fr_data->to_skip)
+    {
+        int x, y;
+        unsigned int width, height, bw;
+        if( !ASWIN_HFLAGS(asw, AS_AvoidCover) && fr_data->min_layer > ASWIN_LAYER(asw))
+            return True;
 
+        if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+        {
+            if( asw->icon_canvas != asw->icon_title_canvas && asw->icon_title_canvas != NULL )
+            {
+                get_current_canvas_geometry( asw->icon_title_canvas, &x, &y, &width, &height, &bw );
+                x += Scr.Vx ;
+                y += Scr.Vy ;
+                if( x+width+bw >= min_vx && x-bw < max_vx &&  y+height+bw >= min_vy && y-bw < max_vy )
+                    subtract_rectangle_from_list( fr_data->list, x-bw, y-bw, x+width+bw, y+height+bw );
+            }
+            get_current_canvas_geometry( asw->icon_canvas, &x, &y, &width, &height,&bw );
+        }else
+            get_current_canvas_geometry( asw->frame_canvas, &x, &y, &width, &height,&bw );
+        x += Scr.Vx ;
+        y += Scr.Vy ;
+        if( x+width+bw >= min_vx && x-bw < max_vx &&  y+height+bw >= min_vy && y-bw < max_vy )
+            subtract_rectangle_from_list( fr_data->list, x-bw, y-bw, x+width+bw, y+height+bw );
+    }
+
+    return True;
+}
+
+static void
+print_rectangles_list( ASVector *list )
+{
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,list);
+    int i = PVECTOR_USED(list);
+
+    fprintf( stderr, "\tRectangles.count = %d;\n", i );
+    while ( --i >= 0 )
+    {
+        fprintf( stderr, "\tRectangles[%d].x = %d;\n", i, rects[i].x );
+        fprintf( stderr, "\tRectangles[%d].y = %d;\n", i, rects[i].y );
+        fprintf( stderr, "\tRectangles[%d].width = %d;\n", i, rects[i].width );
+        fprintf( stderr, "\tRectangles[%d].height = %d;\n", i, rects[i].height );
+    }
+}
+
+static ASVector *
+build_free_space_list( ASWindow *to_skip, ASWindowBox *aswbox, ASGeometry *area, int min_layer )
+{
+    ASVector *list = create_asvector( sizeof(XRectangle) );
+    ASFreeRectangleAuxData aux_data ;
+    XRectangle seed_rect;
+
+    aux_data.to_skip = to_skip ;
+    aux_data.list = list ;
+    aux_data.desk = Scr.CurrentDesk;
+    aux_data.min_layer = min_layer;
+    aux_data.area = *area;
+
+    /* must seed the list with the single rectangle representing the area : */
+    seed_rect.x = area->x ;
+    seed_rect.y = area->y ;
+    seed_rect.width = area->width ;
+    seed_rect.height = area->height ;
+
+    append_vector( list, &seed_rect, 1 );
+
+    iterate_asbidirlist( Scr.Windows->clients, get_free_rectangles_iter_func, (void*)&aux_data, NULL, False );
+
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    print_rectangles_list( list );
+#endif
+
+    return list;
+}
+
+/*************************************************************************/
+/* placement routines : */
+/*************************************************************************/
 static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
-    return False;
+    ASVector *free_space_list =  build_free_space_list( asw, aswbox, area, ASWIN_LAYER(asw) );
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
+    int i, selected = -1 ;
+    unsigned short w = asw->status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
+    unsigned short h = asw->status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
+    unsigned short dw = w>100?w*5/100:5, dh = h>=100?h*5/100:5 ;
+
+    LOCAL_DEBUG_OUT( "size=%dx%d, delta=%dx%d", w, h, dw, dh );
+    /* now we have to find the optimal rectangle from the list */
+    /* pass 1: find rectangle that fits both width and height with margin +- 5% of the window size */
+    i = PVECTOR_USED(free_space_list);
+    while( --i >= 0 )
+        if( rects[i].width >= w && rects[i].height >=  h &&
+            rects[i].width - w < dw && rects[i].height - h < dh )
+        {
+            if( selected >= 0 )
+                if( rects[i].width*rects[i].height >= rects[selected].width*rects[selected].height )
+                    continue;
+            selected = i;
+        }
+    LOCAL_DEBUG_OUT( "pass1: %d", selected );
+    /* if width < height then swap passes 2 and 3 */
+    /* pass 2: find rectangle that fits width within margin +- 5% of the window size  and has maximum height
+     * left after placement */
+    if( selected < 0 )
+    {
+        i = PVECTOR_USED(free_space_list);
+        if( w >= h )
+        {
+            while( --i >= 0 )
+                if( rects[i].width >= w && rects[i].height >=  h && rects[i].width - w < dw )
+                {
+                    if( selected >= 0 )
+                        if( rects[i].height < rects[selected].height )
+                            continue;
+                    selected = i;
+                }
+        }else
+        {
+            while( --i >= 0 )
+                if( rects[i].width >= w && rects[i].height >=  h && rects[i].height - h < dh )
+                {
+                    if( selected >= 0 )
+                        if( rects[i].width < rects[selected].width )
+                            continue;
+                    selected = i;
+                }
+        }
+    }
+    LOCAL_DEBUG_OUT( "pass2: %d", selected );
+    /* pass 3: find rectangle that fits height within margin +- 5% of the window size  and has maximum width
+     * left after placement */
+    if( selected < 0 )
+    {
+        i = PVECTOR_USED(free_space_list);
+        if( w >= h )
+        {
+            while( --i >= 0 )
+                if( rects[i].width >= w && rects[i].height >=  h && rects[i].height - h < dh )
+                {
+                    if( selected >= 0 )
+                        if( rects[i].width < rects[selected].width )
+                            continue;
+                    selected = i;
+                }
+        }else
+        {
+            while( --i >= 0 )
+                if( rects[i].width >= w && rects[i].height >=  h && rects[i].width - w < dw )
+                {
+                    if( selected >= 0 )
+                        if( rects[i].height < rects[selected].height )
+                            continue;
+                    selected = i;
+                }
+        }
+    }
+    LOCAL_DEBUG_OUT( "pass3: %d", selected );
+    /* pass 4: if width >= height then find rectangle with smallest width difference and largest height difference */
+    if( selected < 0 && w >= h )
+    {
+        i = PVECTOR_USED(free_space_list);
+        while( --i >= 0 )
+            if( rects[i].width >= w && rects[i].height >=  h )
+            {
+                selected = i ;
+                break;
+            }
+        while( --i >= 0 )
+            if( rects[i].width >= w && rects[i].height >=  h )
+            {
+                int dw = (rects[i].width > w)?rects[i].width - w:1;
+                int dw_sel = (rects[selected].width > w)?rects[selected].width - w:1;
+                if( (rects[i].height - h)/dw > (rects[selected].height - h)/dw_sel  )
+                    selected = i;
+            }
+    }
+    LOCAL_DEBUG_OUT( "pass4: %d", selected );
+    /* pass 5: if width < height then find rectangle with biggest width difference and smallest height difference */
+    if( selected < 0 )
+    {
+        i = PVECTOR_USED(free_space_list);
+        while( --i >= 0 )
+            if( rects[i].width >= w && rects[i].height >=  h )
+            {
+                selected = i ;
+                break;
+            }
+        while( --i >= 0 )
+            if( rects[i].width >= w && rects[i].height >=  h )
+            {
+                int dh = (rects[i].height > h)?rects[i].height - h:1;
+                int dh_sel = (rects[selected].height > h)?rects[selected].height - h:1;
+                if( (rects[i].width - w)/dh > (rects[selected].width - w)/dh_sel  )
+                    selected = i;
+            }
+    }
+    LOCAL_DEBUG_OUT( "pass5: %d", selected );
+
+    if( selected >= 0 )
+    {
+        int spacer_x = (rects[selected].width > w)? 1: 0;
+        int spacer_y = (rects[selected].height > h)? 1: 0;
+        asw->status->x = rects[selected].x+spacer_x ;
+        asw->status->y = rects[selected].y+spacer_y ;
+        status2anchor( &(asw->anchor), asw->hints, asw->status, Scr.VxMax, Scr.VyMax);
+        LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
+    }else
+    {
+        LOCAL_DEBUG_OUT( "failed%s","");
+    }
+
+    destroy_asvector( &free_space_list );
+    return (selected >= 0) ;
 }
 
 static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area, Bool free_space_only )
@@ -166,6 +477,8 @@ static Bool do_cascade_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
     asw->status->y = y - asw->status->viewport_y ;
 
     aswbox->cascade_pos = newpos ;
+
+    status2anchor( &(asw->anchor), asw->hints, asw->status, Scr.VxMax, Scr.VyMax);
 
     return True;
 }
@@ -237,6 +550,7 @@ place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementS
         else if( area.y + area.height > Scr.VyMax + Scr.MyDisplayHeight )
             area.height = Scr.VyMax + Scr.MyDisplayHeight - area.y ;
     }
+    LOCAL_DEBUG_OUT( "placement area is %dx%d%+d%+d", area.width, area.height, area.x, area.y );
 
     if( !force )
     {
@@ -290,6 +604,9 @@ Bool place_aswindow( ASWindow *asw )
     if( AS_ASSERT(asw->hints) || AS_ASSERT(asw->status)  )
         return False;
 
+    LOCAL_DEBUG_OUT( "status->geom(%dx%d%+d%+d), anchor->geom(%dx%d%+d%+d)",
+                     asw->status->width, asw->status->height, asw->status->x, asw->status->y,
+                     asw->anchor.width, asw->anchor.height, asw->anchor.x, asw->anchor.y );
     if( asw->hints->windowbox_name )
     {
         aswbox = find_window_box( &(Scr.Feel), asw->hints->windowbox_name );
@@ -307,7 +624,7 @@ Bool place_aswindow( ASWindow *asw )
         aswbox = &(Scr.Feel.window_boxes[0]);
         while( --i >= 0 )
         {
-            if( aswbox[i].desk != asw->status->desktop )
+            if( IsValidDesk(aswbox[i].desk) && aswbox[i].desk != asw->status->desktop )
                 continue;
             if( aswbox[i].min_layer > asw->status->layer || aswbox[i].max_layer < asw->status->layer )
                 continue;
