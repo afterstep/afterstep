@@ -9,7 +9,7 @@
 # asapp.c, parse.c screen.c trace.c needs to be split up into
 # generic and AS-specific code :
 
-LIB_INCS=	config.h ashash.h asvector.h astypes.h audit.h \
+LIB_INCS=	ashash.h asvector.h astypes.h audit.h \
 		fs.h mystring.h os.h output.h parse.h \
 		regexp.h safemalloc.h selfdiag.h \
 		sleep.h socket.h timer.h trace.h xprop.h xwrap.h

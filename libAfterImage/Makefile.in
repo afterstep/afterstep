@@ -6,8 +6,8 @@
 ################################################################
 # library specifics :
 
-LIB_INCS= afterbase.h asfont.h asimage.h asvisual.h blender.h \
-		import.h xcf.h xpm.h
+LIB_INCS= config.h afterbase.h asfont.h asimage.h asvisual.h \
+		blender.h import.h xcf.h xpm.h
 
 LIB_OBJS= @AFTERBASE_C@ asfont.o asimage.o asvisual.o blender.o \
 		import.o xcf.o xpm.o
@@ -16,11 +16,11 @@ LIB_OBJS= @AFTERBASE_C@ asfont.o asimage.o asvisual.o blender.o \
 ################################################################
 # generic makefile stuff :
 
-LIB_NAME        = @lib_name@
-LIB_STATIC      = @lib_file_name@.a
-LIB_SHARED      = @lib_file_name@.so
-LIBVER          = @version@
-LIBVERMAJOR     = @version_major@
+LIB_NAME        = LIBAFTERIMAGE
+LIB_STATIC      = libAfterImage.a
+LIB_SHARED      = libAfterImage.so
+LIBVER          = 0.60
+LIBVERMAJOR     = 0
 
 CC		= @CC@
 CCFLAGS         = @CFLAGS@
