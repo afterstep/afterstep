@@ -1075,6 +1075,12 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                 	frame->title_fbevel, frame->title_ubevel,
                 	frame->title_fcm, frame->title_ucm,
                 	C_TITLE );
+		if( asw->tbar ) 
+		{	
+			set_astbar_huesat( asw->tbar, BAR_STATE_FOCUSED, frame->title_fhue, frame->title_fsat );
+			set_astbar_huesat( asw->tbar, BAR_STATE_UNFOCUSED, frame->title_uhue, frame->title_usat );
+		}
+
 		tbar_created = (asw->tbar != NULL);
 	}
 

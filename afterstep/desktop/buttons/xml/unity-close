@@ -1,8 +1,8 @@
 <composite merge="clip" >
-	<tile id="f2" tint="Active">
+	<tile id="f2" tint="Base">
 		<img src="bars/button_r15x17"/> 
 	</tile>
-	<tile id="f3" tint="BaseLight" y="1" >
+	<tile id="f3" tint="InactiveText1" y="1" >
 		<img src="dots/x_thin"/>
 	</tile>
 </composite>

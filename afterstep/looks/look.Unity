@@ -303,9 +303,12 @@ MyFrame "unity"
 	FrameFStyle	"focused_frame_style"
 	FrameUStyle	"unfocused_frame_style"
 	FrameSStyle	"sticky_frame_style"
-
-	TitleUCompositionMethod	138
-	TitleSCompositionMethod	130
+	
+	TitleFHue	hsv(180,100,100)
+	TitleUHue	hsv(30,100,100)
+	TitleSHue	hsv(330,100,100)
+#	TitleUCompositionMethod	138
+#	TitleSCompositionMethod	130
 ~MyFrame
 
 DefaultFrame "unity"

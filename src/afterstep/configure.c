@@ -849,12 +849,28 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
 	}
     if( get_flags( fd->set_title_attr, MYFRAME_RightTitlebarLayoutSet ) )
         frame->right_layout = fd->right_layout;
-    if( get_flags( fd->set_title_attr, MYFRAME_TitleFCMSet ) )
+	if( get_flags( fd->set_title_attr, MYFRAME_TitleFCMSet ) )
         frame->title_fcm = fd->title_fcm;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleUCMSet ) )
         frame->title_ucm = fd->title_ucm;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleSCMSet ) )
         frame->title_scm = fd->title_scm;
+
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleFHueSet ) )
+		parse_hue( fd->title_fhue, &(frame->title_fhue) );
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleUHueSet ) )
+        parse_hue( fd->title_uhue, &(frame->title_uhue) );
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleSHueSet ) )
+        parse_hue( fd->title_shue, &(frame->title_shue) );
+	
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleFSatSet ) )
+        frame->title_fsat = fd->title_fsat;
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleUSatSet ) )
+        frame->title_usat = fd->title_usat;
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleSSatSet ) )
+        frame->title_ssat = fd->title_ssat;
+	
+	
 	for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
 	{
 		if( get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i ) )

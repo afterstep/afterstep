@@ -172,6 +172,8 @@ typedef struct ASTBarData {
     unsigned char composition_method[2] ;         /* focused/unfocused may have different composition methods */
     unsigned char hilite[2] ;
     /* 64 bytes */
+	short hue[2], sat[2] ;
+    /* 68 bytes */
 }ASTBarData ;
 
 ASTBtnData *create_astbtn();
@@ -190,6 +192,7 @@ unsigned int calculate_astbar_width( ASTBarData *tbar );
 Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height );
 Bool set_astbar_hilite( ASTBarData *tbar, unsigned int state, ASFlagType hilite );
 Bool set_astbar_composition_method( ASTBarData *tbar, unsigned int state, unsigned char method );
+Bool set_astbar_huesat( ASTBarData *tbar, unsigned int state, int hue, int sat );
 Bool set_astbar_style_ptr (ASTBarData * tbar, unsigned int state, struct MyStyle *style);
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
 Bool set_astbar_flip( ASTBarData * tbar, int flip );

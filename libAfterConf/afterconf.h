@@ -404,10 +404,16 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define MYFRAME_TitleFCM_ID             (MYFRAME_ID_START+37)
 #define MYFRAME_TitleUCM_ID             (MYFRAME_ID_START+38)
 #define MYFRAME_TitleSCM_ID             (MYFRAME_ID_START+39)
-#define MYFRAME_Inherit_ID              (MYFRAME_ID_START+40)
-#define MYFRAME_DONE_ID                 (MYFRAME_ID_START+41)
+#define MYFRAME_TitleFHue_ID			(MYFRAME_ID_START+40)
+#define MYFRAME_TitleUHue_ID			(MYFRAME_ID_START+41)
+#define MYFRAME_TitleSHue_ID			(MYFRAME_ID_START+42)
+#define MYFRAME_TitleFSat_ID			(MYFRAME_ID_START+43)
+#define MYFRAME_TitleUSat_ID			(MYFRAME_ID_START+44)
+#define MYFRAME_TitleSSat_ID			(MYFRAME_ID_START+45)
+#define MYFRAME_Inherit_ID              (MYFRAME_ID_START+46)
+#define MYFRAME_DONE_ID                 (MYFRAME_ID_START+47)
 
-#define MYFRAME_TitleBackground_ID_START	(MYFRAME_ID_START+42)
+#define MYFRAME_TitleBackground_ID_START	(MYFRAME_ID_START+48)
 #define MYFRAME_LeftBtnBackground_ID		(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_LBTN	)
 #define MYFRAME_LeftSpacerBackground_ID 	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_LSPACER)
 #define MYFRAME_LTitleSpacerBackground_ID 	(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_LTITLE_SPACER)
@@ -561,6 +567,8 @@ typedef struct MyFrameDefinition
     ASFlagType   title_align ;
 	ASFlagType   title_backs_align[MYFRAME_TITLE_BACKS];
     int          title_fcm, title_ucm, title_scm;
+	char 		*title_fhue, *title_uhue, *title_shue; 
+	int          title_fsat, title_usat, title_ssat;
     ASFlagType   condense_titlebar ;
 	unsigned long left_layout, right_layout ;
 	ASFlagType   left_btn_align, right_btn_align ;

@@ -774,6 +774,20 @@ Bool set_astbar_composition_method( ASTBarData *tbar, unsigned int state, unsign
 	return changed;
 }
 
+Bool set_astbar_huesat( ASTBarData *tbar, unsigned int state, int hue, int sat )
+{
+    Bool          changed = False;
+    if (tbar && state < BAR_STATE_NUM)
+	{
+        changed = (tbar->hue[state] != hue || tbar->sat[state] != sat );
+        tbar->hue[state] = hue ;
+		tbar->sat[state] = sat ;
+        if (changed )
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+    }
+	return changed;
+}
+
 
 static inline void
 set_astile_styles( ASTBarData *tbar, ASTile *tile, int state )
@@ -1564,7 +1578,24 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 	}else if (pc->shape)
  		fill_canvas_mask (pc, tbar->win_x, tbar->win_y, tbar->width, tbar->height );
 #endif
-    merged_im = merge_layers (ASDefaultVisual, &layers[0], good_layers, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
+	if( tbar->hue[state] > 0 || tbar->sat[state] >= 0 )
+	{
+		ASImage *tmp_im = merge_layers (ASDefaultVisual, &layers[0], good_layers, tbar->width, tbar->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);		
+		if( tmp_im ) 
+		{	
+			merged_im = adjust_asimage_hsv( ASDefaultVisual, tmp_im,
+				    	0, 0, 
+	  			    	tmp_im->width, tmp_im->height,
+						0, 360,
+						tbar->hue[state] < 0? 0: tbar->hue[state], 
+						tbar->sat[state] < 0? 0: tbar->sat[state], 
+						0,
+						fmt,
+						0, ASIMAGE_QUALITY_DEFAULT );
+			destroy_asimage( &tmp_im );
+		}
+	}else	 
+    	merged_im = merge_layers (ASDefaultVisual, &layers[0], good_layers, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
     for( l = 0 ; l < good_layers ; ++l )
         if( scrap_images[l] )
             destroy_asimage( &(scrap_images[l]) );

@@ -29,6 +29,7 @@ Bool get_custom_color(const char* name, CARD32 *color);
 void custom_color_cleanup();
 
 const char *parse_argb_color( const char *color, CARD32 *pargb );
+const char *parse_hue( const char *color, int *hue );
 
 char *find_doublequotes (char *ptr);
 char *stripcpy (const char *source);

@@ -528,6 +528,28 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 	return color;
 }
 
+const char *parse_hue( const char *color, int *hue )
+{	  
+	CARD32 argb ; 
+	int dumm ;
+	const char *res ;
+	
+	if( color == NULL || hue == NULL ) 
+		return NULL;
+	*hue = 0 ;
+	res = parse_argb_color( color, &argb ) ;
+	if( res != color ) 
+	{
+		parse_rgb2hsv( (argb&0x00FF0000)>>16, (argb&0x0000FF00)>>8, (argb&0x000000FF), hue, &dumm, &dumm );
+
+		while( *hue < 0 ) 
+			*hue += 360 ; 
+		while( *hue >= 360 ) 
+			*hue -= 360 ; 
+	}
+
+	return res;
+}
 /****************************************************************************
  * Some usefull parsing functions
  ****************************************************************************/

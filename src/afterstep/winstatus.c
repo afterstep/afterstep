@@ -953,7 +953,7 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
         Bool decor_shaped = False ;
         int back_type;
         ASFlagType *frame_bevel, title_bevel ;
-        int title_cm ;
+        int title_cm, title_hue, title_sat ;
 
         if( ASWIN_GET_FLAGS(asw, AS_Sticky ) )
         {
@@ -961,12 +961,16 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
             frame_bevel = &(asw->frame_data->part_sbevel[0]);
             title_bevel = asw->frame_data->title_sbevel;
             title_cm    = asw->frame_data->title_scm ;
+			title_hue   = asw->frame_data->title_shue ;
+			title_sat   = asw->frame_data->title_ssat ;
         }else
         {
             back_type = BACK_UNFOCUSED ;
             frame_bevel = &(asw->frame_data->part_ubevel[0]);
             title_bevel = asw->frame_data->title_ubevel;
             title_cm    = asw->frame_data->title_ucm;
+			title_hue   = asw->frame_data->title_uhue ;
+			title_sat   = asw->frame_data->title_usat ;
         }
 
         unfocus_mystyle = asw->hints->mystyle_names[back_type];
@@ -1000,6 +1004,8 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
             if( set_astbar_hilite( asw->tbar, BAR_STATE_UNFOCUSED, title_bevel ) )
                 changed = True ;
             if( set_astbar_composition_method( asw->tbar, BAR_STATE_UNFOCUSED, title_cm ) )
+                changed = True ;
+            if( set_astbar_huesat( asw->tbar, BAR_STATE_UNFOCUSED, title_hue, title_sat ) )
                 changed = True ;
             if( get_flags( asw->frame_data->condense_titlebar, ALIGN_LEFT|ALIGN_RIGHT) || is_astbar_shaped( asw->tbar, -1 ) )
             {    

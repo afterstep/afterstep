@@ -1,5 +1,5 @@
 <pad color="#FF000000" top="1" left="1" bottom="1" right="1">
-	<tile tint="HighInactiveBack">
+	<tile tint="Active">
 		<img src="bars/button_sq10x10"/>
 	</tile>
 </pad>

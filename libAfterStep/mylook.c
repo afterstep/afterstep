@@ -317,6 +317,9 @@ create_myframe()
 	frame->left_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
 	frame->right_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
 
+	frame->title_fsat = frame->title_usat = frame->title_ssat = -1 ;
+	frame->title_fhue = frame->title_uhue = frame->title_shue = -1 ;
+
     return frame;
 
 }
@@ -442,6 +445,20 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
             frame->title_ucm = ancestor->title_ucm;
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSCMSet ) )
             frame->title_scm = ancestor->title_scm;
+
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFHueSet ) )
+            frame->title_fhue = ancestor->title_fhue;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUHueSet ) )
+            frame->title_uhue = ancestor->title_uhue;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSHueSet ) )
+            frame->title_shue = ancestor->title_shue;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFSatSet ) )
+            frame->title_fsat = ancestor->title_fsat;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUSatSet ) )
+            frame->title_usat = ancestor->title_uhue;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSSatSet ) )
+            frame->title_ssat = ancestor->title_ssat;
+
 
         frame->set_title_attr |= ancestor->set_title_attr ;
 

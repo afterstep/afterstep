@@ -223,9 +223,20 @@ typedef struct MyFrame
 #define MYFRAME_LeftBtnAlignSet   		(0x01<<19)
 #define MYFRAME_RightBtnAlignSet  		(0x01<<20)
 
+#define MYFRAME_TitleFHueSet         (0x01<<21)
+#define MYFRAME_TitleUHueSet         (0x01<<22)
+#define MYFRAME_TitleSHueSet         (0x01<<23)
+#define MYFRAME_TitleHueSet          (MYFRAME_TitleFHueSet|MYFRAME_TitleUHueSet|MYFRAME_TitleSHueSet)
+#define MYFRAME_TitleFSatSet         (0x01<<24)
+#define MYFRAME_TitleUSatSet         (0x01<<25)
+#define MYFRAME_TitleSSatSet         (0x01<<26)
+#define MYFRAME_TitleSatSet          (MYFRAME_TitleFSatSet|MYFRAME_TitleUSatSet|MYFRAME_TitleSSatSet)
+
     ASFlagType   title_fbevel, title_ubevel, title_sbevel;
     unsigned int title_fcm, title_ucm, title_scm ;
-    ASFlagType   title_align, title_backs_align[MYFRAME_TITLE_BACKS];
+    int 		 title_fhue, title_uhue, title_shue; 
+	unsigned int title_fsat, title_usat, title_ssat;
+	ASFlagType   title_align, title_backs_align[MYFRAME_TITLE_BACKS];
 	ASFlagType   left_btn_align, right_btn_align ;
 
     ASFlagType   condense_titlebar ;
