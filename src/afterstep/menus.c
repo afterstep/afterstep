@@ -1042,6 +1042,8 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
     }
 }
 
+void menu_destroy( ASInternalWindow *asiw );
+
 /* KeyPress/Release : */
 void
 on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
@@ -1049,12 +1051,46 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
     ASMenu   *menu = (ASMenu*)(asiw->data) ;
     if( menu != NULL && menu->magic == MAGIC_ASMENU )
     {
-        /* TODO : goto to menu item using the shortcut key */
+		KeySym keysym = XLookupKeysym (&(event->x.xkey), 0);
+	    
+		if (keysym == XK_Escape)
+		{	
+			close_asmenu(&menu); 
+/*            menu_destroy( asiw ); */
+            return ;
+		}else if ((keysym >= XK_A && keysym <= XK_Z) ||	/* Only consider alphabetic */
+				  (keysym >= XK_a && keysym <= XK_z) ||
+				  (keysym >= XK_0 && keysym <= XK_9))		/* ...or numeric keys     */
+		{
+			int i ;
+			if (islower (keysym))
+				keysym = toupper (keysym);
+			LOCAL_DEBUG_OUT( "processing keysym [%c]", (char)keysym );
+			/* Search menu for matching hotkey */
+			for( i = 0 ; i < menu->items_num ; i++ )
+				if( menu->items[i].fdata->hotkey == keysym )
+				{
+					press_menu_item( menu, i );
+					return ;
+				}
+			for( i = 0 ; i < menu->items_num ; i++ )
+			{
+				char *n = menu->items[i].source->item ;
+		
+				LOCAL_DEBUG_OUT( "name = %s", n?n:"(null)" );	  
+				if( n != NULL && n[0] == keysym )
+				{
+					press_menu_item( menu, i );
+					return ;
+				}
+			}
+		}else
+		{	 /* TODO : goto to menu item using the shortcut key */
+		}	
     }
 }
 
 /* reconfiguration : */
-void menu_destroy( ASInternalWindow *asiw );
 
 void
 on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, ASFlagType what )

@@ -368,6 +368,7 @@ struct ASTBarData;
 									 ButtonReleaseMask 	| \
                                      PointerMotionMask  | \
 									 EnterWindowMask 	| \
+								     KeyPressMask 		| \
                                      LeaveWindowMask    | \
                                      StructureNotifyMask)
 
