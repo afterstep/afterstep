@@ -22,12 +22,12 @@ MyStyle "TitleButtonBalloon"
   ~MyStyle
 
 MyStyle "window_font"
-  Font		DefaultSans.ttf-16
-  TextStyle	0
+  Font		DefaultSansBold.ttf-16
+  TextStyle	7
   ~MyStyle
 
 MyStyle "focused_window_style"
-  Inherit	window_font
+  Font		DefaultSans.ttf-16
   TextStyle	3
   ForeColor     ActiveText
   BackColor	Active
@@ -52,7 +52,7 @@ MyStyle "sticky_window_style"
 #----------Menu MyStyles---------#
 MyStyle "menu_title_font"
   Font          DefaultFancy.ttf-17
-  TextStyle     0
+  TextStyle     7
   ~MyStyle
 
 MyStyle "menu_font"
@@ -83,6 +83,7 @@ MyStyle "menu_item_style"
 
 MyStyle "menu_hilite_style"
   Font          DefaultBoldOblique.ttf-16
+  TextStyle     7
   ForeColor     HighActiveText
   BackColor     HighActiveBack
   BackGradient  9  HighActiveBackLight HighActiveBackDark
