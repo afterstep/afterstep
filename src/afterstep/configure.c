@@ -1408,7 +1408,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		if( Scr.Look.CursorBack )
 	   		parse_argb_color( Scr.Look.CursorBack, &cursor_back );
 		recolor_feel_cursors( &Scr.Feel, cursor_fore, cursor_back );
-		XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[DEFAULT]);
+		XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[ASCUR_Default]);
 	}
 
     /* TODO: update the menus */

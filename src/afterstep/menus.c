@@ -58,7 +58,7 @@ make_menu_window( Window parent )
     if( parent == None )
         parent = Scr.Root ;
 
-	attr.cursor = Scr.Feel.cursors[MENU] ;
+	attr.cursor = Scr.Feel.cursors[ASCUR_Menu] ;
     attr.event_mask = AS_MENU_EVENT_MASK ;
     w = create_visual_window( Scr.asv, parent, -10, -10, 1, 1, 0, InputOutput, CWEventMask|CWCursor, &attr );
 

@@ -378,9 +378,9 @@ DoExecuteFunction ( ASScheduledFunction *sf )
         if( do_defer && (fin_event != ButtonRelease || !is_interactive_action(data)) )
         {
 
-            int cursor = MOVE ;
+            int cursor = ASCUR_Move ;
             if (func != F_RESIZE && func != F_MOVE)
-                cursor = (func!=F_DESTROY && func!=F_DELETE && func!=F_CLOSE)?SELECT:DESTROY;
+                cursor = (func!=F_DESTROY && func!=F_DELETE && func!=F_CLOSE)?ASCUR_Select:ASCUR_Destroy;
 
             if (DeferExecution (event, cursor, fin_event))
                 func = F_NOP;
@@ -554,13 +554,13 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
 
     if (need_window && event->client == NULL )
     {
-        if (DeferExecution (event, SELECT, ButtonPress))
+        if (DeferExecution (event, ASCUR_Select, ButtonPress))
 		{
 //            WaitForButtonsUpLoop ();
 			return;
 		}
     }
-    if (!GrabEm (&Scr, Scr.Feel.cursors[SELECT]))
+    if (!GrabEm (&Scr, Scr.Feel.cursors[ASCUR_Select]))
 	{
         show_warning( "failed to grab pointer while executing complex function \"%s\"", name );
         XBell (dpy, Scr.screen);
@@ -972,7 +972,7 @@ void exec_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     XGrabPointer( dpy, Scr.Root, True,
 	   		      ButtonPressMask | ButtonReleaseMask,
-                  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[WAIT], CurrentTime);
+                  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
     XSync (dpy, 0);
     spawn_child( data->text, -1, -1, None, C_NO_CONTEXT, True, False, NULL );
     XUngrabPointer (dpy, CurrentTime);
@@ -1019,7 +1019,7 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
 
 	++_as_config_change_recursion;
     XGrabPointer (dpy, Scr.Root, True, ButtonPressMask | ButtonReleaseMask,
-                  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[WAIT], CurrentTime);
+                  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
     XSync (dpy, 0);
 
     if (Scr.screen == 0)
@@ -1250,7 +1250,7 @@ void gethelp_func_handler( FunctionData *data, ASEvent *event, int module )
       		char         *realfilename = PutHome(HELPCOMMAND);
             XGrabPointer (dpy, Scr.Root, True,
                           ButtonPressMask | ButtonReleaseMask,
-                          GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[WAIT], CurrentTime);
+                          GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
             XSync (dpy, 0);
             spawn_child( realfilename, -1, -1, None, C_NO_CONTEXT, True, False, ASWIN_RES_NAME(event->client), NULL);
             free (realfilename);
@@ -1450,7 +1450,7 @@ QuickRestart (char *what)
     if (what)
 	{
         InstallRootColormap();
-        GrabEm (&Scr, Scr.Feel.cursors[WAIT]);
+        GrabEm (&Scr, Scr.Feel.cursors[ASCUR_Wait]);
         LoadASConfig (Scr.CurrentDesk, what_flags);
         UngrabEm ();
 	}

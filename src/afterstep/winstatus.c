@@ -1658,7 +1658,7 @@ LOCAL_DEBUG_OUT("current focused is %p, active is %p", Scr.Windows->focused, Scr
 
     if( force )
     {
-        GrabEm (&Scr, Scr.Feel.cursors[SELECT]);     /* to prevent Enter Notify events to
+        GrabEm (&Scr, Scr.Feel.cursors[ASCUR_Select]);     /* to prevent Enter Notify events to
                                                       be sent to us while shifting windows around */
         if( (res = make_aswindow_visible( asw, deiconify )) )
             Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */

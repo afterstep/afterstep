@@ -191,7 +191,7 @@ check_frame_canvas( ASWindow *asw, Bool required )
                 valuemask |= CWBackPixmap;
             /*}*/
             attributes.border_pixel = Scr.asv->black_pixel;
-            attributes.cursor = Scr.Feel.cursors[DEFAULT];
+            attributes.cursor = Scr.Feel.cursors[ASCUR_Default];
             attributes.event_mask = AS_FRAME_EVENT_MASK;
 
             if (get_flags(Scr.Feel.flags, SaveUnders))
@@ -325,7 +325,7 @@ check_icon_canvas( ASWindow *asw, Bool required )
 
             valuemask = CWBorderPixel | CWCursor | CWEventMask ;
             attributes.border_pixel = Scr.asv->black_pixel;
-            attributes.cursor = Scr.Feel.cursors[DEFAULT];
+            attributes.cursor = Scr.Feel.cursors[ASCUR_Default];
 
             if ((ASWIN_HFLAGS(asw, AS_ClientIcon|AS_ClientIconPixmap) != AS_ClientIcon) ||
                  asw->hints == NULL || asw->hints->icon.window == None ||
@@ -387,7 +387,7 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw-
 
             valuemask = CWBorderPixel | CWCursor | CWEventMask ;
             attributes.border_pixel = Scr.asv->black_pixel;
-            attributes.cursor = Scr.Feel.cursors[DEFAULT];
+            attributes.cursor = Scr.Feel.cursors[ASCUR_Default];
             attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
             /* create windows */
             w = create_visual_window ( Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, -10, -10, 1, 1, 0,

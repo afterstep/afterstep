@@ -101,14 +101,14 @@ grab_window_buttons (Window w, ASFlagType context_mask)
 			if (MouseEntry->Button > 0)
                 MyXGrabButton (MouseEntry->Button, MouseEntry->Modifier, w,
 							   True, ButtonPressMask | ButtonReleaseMask,
-                               GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[DEFAULT]);
+                               GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Default]);
             else
 			{
                 register int  i = MAX_MOUSE_BUTTONS+1;
                 while( --i > 0 )
                     MyXGrabButton (i, MouseEntry->Modifier, w,
 								   True, ButtonPressMask | ButtonReleaseMask,
-                                   GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[DEFAULT]);
+                                   GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Default]);
             }
         }
 	}
@@ -126,7 +126,7 @@ grab_focus_click( Window w )
             {
                 MyXGrabButton ( i + 1, 0, w,
                                 True, ButtonPressMask, GrabModeSync,
-                                GrabModeAsync, None, Scr.Feel.cursors[SYS]);
+                                GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Sys]);
             }
     }
 }
@@ -188,7 +188,7 @@ GrabRaiseClick (ASWindow * t)
 	{
         if (Scr.Feel.RaiseButtons & (1 << b))
             MyXGrabButton (b, 0, t->w, True, ButtonPressMask, GrabModeSync,
-                           GrabModeAsync, None, Scr.Feel.cursors[TITLE_CURSOR]);
+                           GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Title]);
 	}
 }
 

@@ -395,17 +395,16 @@ match_command_line_opt( char *argvi, CommandLineOpts *options )
         return -1;
     if( *ptr == '-' )
     {
-        ptr++;
+        ++ptr;
         if( *ptr == '-' )
         {
-            ptr++;
-            for( opt = 0 ; options[opt].handler ; opt++ )
+            ++ptr;
+            for( opt = 0 ; options[opt].handler ; ++opt )
                 if( strcmp(options[opt].long_opt, ptr ) == 0 )
                     break;
-
         }else
         {
-            for( opt = 0 ; options[opt].handler ; opt++ )
+            for( opt = 0 ; options[opt].handler ; ++opt )
                 if( options[opt].short_opt )
                     if( strcmp(options[opt].short_opt, ptr ) == 0 )
                         break;
@@ -466,18 +465,17 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
         for( i = 1 ; i < argc ; i++ )
         {
             register int opt ;
-
             if( (opt = match_command_line_opt( &(argv[i][0]), as_cmdl_options )) < 0 )
                 continue;
             if( get_flags( (0x01<<opt), MyArgs.mask) )
                 continue;
             if( get_flags( as_cmdl_options[opt].flags, CMO_HasArgs ) )
             {
+				argv[i] = NULL ;
                 if( ++i >= argc )
                     continue;
                 else
                     as_cmdl_options[opt].handler( argv[i], as_cmdl_options[opt].trg, as_cmdl_options[opt].param );
-                argv[i-1] = NULL ;
             }else
                 as_cmdl_options[opt].handler( NULL, as_cmdl_options[opt].trg, as_cmdl_options[opt].param );
             argv[i] = NULL ;
@@ -854,7 +852,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             if( MyArgs.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
                 ptr += sprintf( ptr, " -V %d", MyArgs.verbosity_level );
 
-			if( MyArgs.locale )
+			if( MyArgs.locale && MyArgs.locale[0] && !isspace(MyArgs.locale))
                 ptr += sprintf( ptr, " -L %s", MyArgs.locale );
 
 #ifdef DEBUG_TRACE_X

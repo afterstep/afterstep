@@ -185,6 +185,8 @@ main (int argc, char **argv)
 	PagerState.page_rows = PagerState.page_columns = 1 ;
 
     for( i = 1 ; i< argc ; ++i)
+	{
+		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
 		if( argv[i] != NULL && isdigit (argv[i][0]) )
 		{
 			++desk_cnt ;
@@ -195,7 +197,8 @@ main (int argc, char **argv)
 			else
 				break;
 	    }
-
+	}
+	LOCAL_DEBUG_OUT( "desk1 = %ld, desk2 = %ld, desks = %ld, start_desk = %ld", desk1, desk2, PagerState.desks_num, PagerState.start_desk );
     if (desk2 < desk1)
 	{
         PagerState.desks_num = (desk1-desk2)+1 ;
@@ -312,7 +315,8 @@ CheckConfigSanity()
 
     if( Config == NULL )
         Config = CreatePagerConfig (PagerState.desks_num);
-    if( Config->rows == 0 )
+    LOCAL_DEBUG_OUT( "columns = %d, rows = %d, desks = %ld, start_desk = %ld", Config->columns, Config->rows, PagerState.desks_num, PagerState.start_desk );
+	if( Config->rows == 0 )
         Config->rows = 1;
 	else if( Config->rows > PagerState.desks_num )
 		Config->rows = PagerState.desks_num ;

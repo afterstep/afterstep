@@ -235,7 +235,7 @@ SHOW_CHECKPOINT;
 	XUngrabServer (dpy);					/* UnGrabbed !!!!!*/
 #endif										/* UnGrabbed !!!!!*/
 	/**********************************************************/
-    XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[DEFAULT]);
+    XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[ASCUR_Default]);
 
     display_progress( True, "Seting initial viewport to %+d%+d ...", Scr.wmprops->as_current_vx, Scr.wmprops->as_current_vy );
     /* now we can restore whatever viewport was prior to AS restart */
@@ -270,24 +270,24 @@ void
 CreateCursors (void)
 {
 	/* define cursors */
-    Scr.standard_cursors[POSITION]     = XCreateFontCursor (dpy, XC_left_ptr);
+    Scr.standard_cursors[ASCUR_Position]     = XCreateFontCursor (dpy, XC_left_ptr);
 /*  Scr.ASCursors[DEFAULT] = XCreateFontCursor(dpy, XC_top_left_arrow); */
-    Scr.standard_cursors[DEFAULT]      = XCreateFontCursor (dpy, XC_left_ptr);
-    Scr.standard_cursors[SYS]          = XCreateFontCursor (dpy, XC_left_ptr);
-    Scr.standard_cursors[TITLE_CURSOR] = XCreateFontCursor (dpy, XC_left_ptr);
-    Scr.standard_cursors[MOVE]         = XCreateFontCursor (dpy, XC_fleur);
-    Scr.standard_cursors[MENU]         = XCreateFontCursor (dpy, XC_left_ptr);
-    Scr.standard_cursors[WAIT]         = XCreateFontCursor (dpy, XC_watch);
-    Scr.standard_cursors[SELECT]       = XCreateFontCursor (dpy, XC_dot);
-    Scr.standard_cursors[DESTROY]      = XCreateFontCursor (dpy, XC_pirate);
-    Scr.standard_cursors[LEFT]         = XCreateFontCursor (dpy, XC_left_side);
-    Scr.standard_cursors[RIGHT]        = XCreateFontCursor (dpy, XC_right_side);
-    Scr.standard_cursors[TOP]          = XCreateFontCursor (dpy, XC_top_side);
-    Scr.standard_cursors[BOTTOM]       = XCreateFontCursor (dpy, XC_bottom_side);
-    Scr.standard_cursors[TOP_LEFT]     = XCreateFontCursor (dpy, XC_top_left_corner);
-    Scr.standard_cursors[TOP_RIGHT]    = XCreateFontCursor (dpy, XC_top_right_corner);
-    Scr.standard_cursors[BOTTOM_LEFT]  = XCreateFontCursor (dpy, XC_bottom_left_corner);
-    Scr.standard_cursors[BOTTOM_RIGHT] = XCreateFontCursor (dpy, XC_bottom_right_corner);
+    Scr.standard_cursors[ASCUR_Default]      = XCreateFontCursor (dpy, XC_left_ptr);
+    Scr.standard_cursors[ASCUR_Sys]          = XCreateFontCursor (dpy, XC_left_ptr);
+    Scr.standard_cursors[ASCUR_Title] 		 = XCreateFontCursor (dpy, XC_left_ptr);
+    Scr.standard_cursors[ASCUR_Move]         = XCreateFontCursor (dpy, XC_fleur);
+    Scr.standard_cursors[ASCUR_Menu]         = XCreateFontCursor (dpy, XC_left_ptr);
+    Scr.standard_cursors[ASCUR_Wait]         = XCreateFontCursor (dpy, XC_watch);
+    Scr.standard_cursors[ASCUR_Select]       = XCreateFontCursor (dpy, XC_dot);
+    Scr.standard_cursors[ASCUR_Destroy]      = XCreateFontCursor (dpy, XC_pirate);
+    Scr.standard_cursors[ASCUR_Left]         = XCreateFontCursor (dpy, XC_left_side);
+    Scr.standard_cursors[ASCUR_Right]        = XCreateFontCursor (dpy, XC_right_side);
+    Scr.standard_cursors[ASCUR_Top]          = XCreateFontCursor (dpy, XC_top_side);
+    Scr.standard_cursors[ASCUR_Bottom]       = XCreateFontCursor (dpy, XC_bottom_side);
+    Scr.standard_cursors[ASCUR_TopLeft]      = XCreateFontCursor (dpy, XC_top_left_corner);
+    Scr.standard_cursors[ASCUR_TopRight]     = XCreateFontCursor (dpy, XC_top_right_corner);
+    Scr.standard_cursors[ASCUR_BottomLeft]   = XCreateFontCursor (dpy, XC_bottom_left_corner);
+    Scr.standard_cursors[ASCUR_BottomRight]  = XCreateFontCursor (dpy, XC_bottom_right_corner);
 }
 
 void
