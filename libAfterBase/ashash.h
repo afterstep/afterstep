@@ -89,6 +89,7 @@ void* curr_hash_data( ASHashIterator *iterator );
 
 /* configuration options - case unsensitive and spaces are not alowed */
 ASHashKey option_hash_value (ASHashableValue value, ASHashKey hash_size);
+long option_compare(  ASHashableValue value1, ASHashableValue value2 );
 
 /* case unsensitive strings  - spaces and control chars are alowed */
 ASHashKey casestring_hash_value (ASHashableValue value, ASHashKey hash_size);
