@@ -142,6 +142,7 @@ int main(int argc, char* argv[])
 					fwrite( buffer, size, 1, pf );
 					fclose(pf);
 				}	 
+				free( buffer );
 			}else
 				show_error( "failed to encode image as PNG"); 	 
 		}

@@ -351,10 +351,9 @@ ASImage2xpm ( ASImage *im, const char *path,  ASImageExportParams *params )
 
 /***********************************************************************************/
 #ifdef HAVE_PNG		/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
-Bool
-ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *params )
+static Bool
+ASImage2png_int ( ASImage *im, void *data, png_rw_ptr write_fn, png_flush_ptr flush_fn, register ASImageExportParams *params )
 {
-	FILE *outfile;
 	png_structp png_ptr  = NULL;
 	png_infop   info_ptr = NULL;
 	png_byte *row_pointer;
@@ -368,13 +367,6 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 
 	START_TIME(started);
 	static ASPngExportParams defaults = { ASIT_Png, EXPORT_ALPHA, -1 };
-
-	if( im == NULL )
-		return False;
-
-
-	if ((outfile = open_writeable_image_file( path )) == NULL)
-		return False;
 
 	png_ptr = png_create_write_struct( PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
     if ( png_ptr != NULL )
@@ -411,7 +403,6 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	{
 		LOCAL_DEBUG_OUT( "failed to start image decoding%s", "");
 		png_destroy_write_struct(&png_ptr, &info_ptr);
-		fclose(outfile);
 		return False;
 	}
 
@@ -419,11 +410,17 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	{
 		if( png_ptr )
     		png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-		fclose( outfile );
 		stop_image_decoding( &imdec );
     	return False;
     }
-	png_init_io(png_ptr, outfile);
+
+	if( write_fn == NULL && flush_fn == NULL ) 
+	{	
+		png_init_io(png_ptr, (FILE*)data);
+	}else
+	{
+	    png_set_write_fn(png_ptr,data,(png_rw_ptr) write_fn, flush_fn );	
+	}	 
 
 	if( compression > 0 )
 		png_set_compression_level(png_ptr,MIN(compression,99)/10);
@@ -511,11 +508,83 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	png_destroy_write_struct(&png_ptr, &info_ptr);
 	free( row_pointer );
 	stop_image_decoding( &imdec );
-	fclose(outfile);
 
 	SHOW_TIME("image writing", started);
 	return True ;
 }
+
+Bool
+ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *params )
+{
+	FILE *outfile;
+	Bool res ;
+	
+	if( im == NULL )
+		return False;
+	
+	if ((outfile = open_writeable_image_file( path )) == NULL)
+		return False;
+
+	res = ASImage2png_int ( im, outfile, NULL, NULL, params );
+	
+	fclose(outfile);
+	return res;
+}
+
+typedef struct ASImPNGBuffer
+{
+	CARD8 *buffer ; 
+	int used_size, allocated_size ;
+		 
+}ASImPNGBuffer;
+
+void asim_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
+{
+	ASImPNGBuffer *buff = (ASImPNGBuffer*) png_get_io_ptr(png_ptr); 
+	if( buff && length > 0 )
+	{
+		if( buff->used_size + length > buff->allocated_size ) 
+		{                      /* allocating in 2048 byte increements : */
+			buff->allocated_size = (buff->used_size + length + 2048)&0xFFFFF800 ; 
+			buff->buffer = realloc( buff->buffer, buff->allocated_size );
+		}	 
+		memcpy( &(buff->buffer[buff->used_size]), data, length );
+		buff->used_size += length ;
+	}	 
+}
+	 
+void asim_png_flush_data(png_structp png_ptr)
+{
+ 	/* nothing to do really, but PNG requires it */	
+}	 
+
+
+Bool
+ASImage2PNGBuff( ASImage *im, CARD8 **buffer, int *size, ASImageExportParams *params )
+{
+	ASImPNGBuffer int_buff  ;
+
+	if( im == NULL || buffer == NULL || size == NULL ) 
+		return False;
+	
+	memset( &int_buff, 0x00, sizeof(ASImPNGBuffer) );
+
+ 	if( ASImage2png_int ( im, &int_buff, asim_png_write_data, asim_png_flush_data, params ) )
+	{
+		*buffer	= int_buff.buffer ; 
+		*size = int_buff.used_size ; 		   
+		return True;
+	}
+
+	if( int_buff.buffer ) 
+		free( int_buff.buffer );
+	
+	*buffer = NULL ; 
+	*size = 0 ;
+	return False;
+}
+
+
 #else 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 Bool
 ASImage2png ( ASImage *im, const char *path,  ASImageExportParams *params )
@@ -523,6 +592,17 @@ ASImage2png ( ASImage *im, const char *path,  ASImageExportParams *params )
 	SHOW_UNSUPPORTED_NOTE( "PNG", path );
 	return False;
 }
+
+Bool
+ASImage2PNGBuff( ASImage *im, CARD8 **buffer, int *size, ASImageExportParams *params )
+{
+	if( buffer ) 
+		*buffer = NULL ; 
+	if( size ) 
+		*size = 0 ;
+	return False;
+}
+
 
 #endif 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 /***********************************************************************************/

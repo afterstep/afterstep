@@ -181,6 +181,11 @@ Bool
 ASImage2file( ASImage *im, const char *dir, const char *file,
 			  ASImageFileTypes type, ASImageExportParams *params );
 
+
+Bool
+ASImage2PNGBuff( ASImage *im, CARD8 **buffer, int *size, ASImageExportParams *params );
+
+
 Bool ASImage2xpm ( ASImage *im, const char *path, ASImageExportParams *params );
 Bool ASImage2png ( ASImage *im, const char *path, ASImageExportParams *params );
 Bool ASImage2jpeg( ASImage *im, const char *path, ASImageExportParams *params );

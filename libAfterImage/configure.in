@@ -611,7 +611,7 @@ else
    enable_sharedlibs="yes"
 fi
 if test "x$enable_sharedlibs" = "xyes"; then
-	if test "x$CYGWIN" = "x" ; then
+	if test "x$CYGWIN" = "xyes" ; then
 	   tmp='$(LIB_SHARED_CYG)'
 	   tmp2='install.cyg'
 	else
