@@ -338,22 +338,19 @@ DispatchEvent ( ASEvent *event )
  *
  ************************************************************************/
 void
-HandleFocusIn ()
+HandleFocusIn ( ASEvent *event )
 {
 	XEvent        d;
 	Window        w;
 
-	w = Event.xany.window;
-    while (ASCheckTypedEvent (FocusIn, &d))
-		w = d.xany.window;
+    while (ASCheckTypedEvent (FocusIn, &event.x));
+    DigestEvent( &event );
 
-	Tmp_win = window2ASWindow( w );
-
-	if (!Tmp_win)
+    if (!event->client)
 	{
-		SetBorder (Scr.Hilite, False, True, True, None);
+        SetBorder (Scr.Hilite, False,  True, True, None);
 		Broadcast (M_FOCUS_CHANGE, 3, 0L, 0L, 0L);
-	} else if (Tmp_win != Scr.Hilite)
+    } else if (event->client != Scr.Hilite)
 	{
 		SetBorder (Tmp_win, True, True, True, None);
 		Broadcast (M_FOCUS_CHANGE, 3, Tmp_win->w, Tmp_win->frame, (unsigned long)Tmp_win);
