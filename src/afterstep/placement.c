@@ -561,8 +561,12 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
 
     if( selected >= 0 )
     {
-        int spacer_x = (rects[selected].width > w)? 1: 0;
-        int spacer_y = (rects[selected].height > h)? 1: 0;
+        int spacer_x = 0 ;
+        int spacer_y = 0 ;
+		if( rects[selected].x > 0 && rects[selected].width > w)
+			spacer_x = 1;
+		if( rects[selected].y > 0 && rects[selected].height > h)
+			spacer_y = 1;
         apply_placement_result_asw( asw, XValue|YValue, rects[selected].x+spacer_x, rects[selected].y+spacer_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else

@@ -683,7 +683,7 @@ clip_line( int k, int x0, int y0, int cw, int ch, int *x, int*y )
 Bool asim_set_brush( ASDrawContext *ctx, int brush );
 
 ASDrawContext *
-create_draw_context( unsigned int width, unsigned int height )
+create_asdraw_context( unsigned int width, unsigned int height )
 {
 	ASDrawContext *ctx = safecalloc( 1, sizeof(ASDrawContext));
 	
@@ -698,7 +698,7 @@ create_draw_context( unsigned int width, unsigned int height )
 }	   
 
 void
-destroy_draw_context( ASDrawContext *ctx )
+destroy_asdraw_context( ASDrawContext *ctx )
 {
 	if( ctx )
 	{
@@ -785,7 +785,7 @@ asim_apply_path( ASDrawContext *ctx, int start_x, int start_y, Bool fill, int fi
 }
 
 Bool
-apply_draw_context( ASImage *im, ASDrawContext *ctx, ASFlagType filter ) 
+apply_asdraw_context( ASImage *im, ASDrawContext *ctx, ASFlagType filter ) 
 {
 	int chan ;
 	int width, height ;
@@ -1515,7 +1515,7 @@ int main(int argc, char **argv )
 	drawing1->back_color = ARGB32_Black ;
 
 
-	ctx = create_draw_context(DRAW_TEST_SIZE, DRAW_TEST_SIZE);
+	ctx = create_asdraw_context(DRAW_TEST_SIZE, DRAW_TEST_SIZE);
 	/* actuall drawing starts here */
 #if 1
 /*	for( i = 0 ; i < 50000 ; ++i ) */
@@ -1656,7 +1656,7 @@ int main(int argc, char **argv )
 */
 #if 1
 	/* commit drawing : */
-	apply_draw_context( drawing1, ctx, SCL_DO_ALPHA ); 
+	apply_asdraw_context( drawing1, ctx, SCL_DO_ALPHA ); 
 	
 	layers_num = 2 ;
 	layers = create_image_layers( layers_num );

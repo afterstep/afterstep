@@ -28,9 +28,9 @@ typedef struct ASDrawContext
 
 #define AS_DRAW_BRUSHES	3
 
-ASDrawContext *create_draw_context( unsigned int width, unsigned int height );
-Bool apply_draw_context( ASImage *im, ASDrawContext *ctx, ASFlagType filter );
-void destroy_draw_context( ASDrawContext *ctx );
+ASDrawContext *create_asdraw_context( unsigned int width, unsigned int height );
+Bool apply_asdraw_context( ASImage *im, ASDrawContext *ctx, ASFlagType filter );
+void destroy_asdraw_context( ASDrawContext *ctx );
 
 Bool asim_set_brush( ASDrawContext *ctx, int brush );
 Bool asim_set_custom_brush( ASDrawContext *ctx, ASDrawTool *brush);
