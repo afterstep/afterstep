@@ -65,7 +65,7 @@ ASSupportedCharsets parse_charset_name( const char *name );
  * SOURCE
  */
 /* size of the UTF-8 encoded character is based on value of the first byte : */
-#define UTF8_CHAR_SIZE(c) 	(((c)&0xC0)?(((c)&0x20)?(((c)&0x10)?(((c)&0x08)?(((c)&0x04)?6:5):4):3):2):1)
+#define UTF8_CHAR_SIZE(c) 	((((c)&0xC0)==0xC0)?(((c)&0x20)?(((c)&0x10)?(((c)&0x08)?(((c)&0x04)?6:5):4):3):2):1)
 #ifdef WIN32
 #define UNICODE_CHAR_SIZE(c)	sizeof(UNICODE_CHAR)
 #endif

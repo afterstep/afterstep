@@ -15,7 +15,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 /*#define DO_CLOCKING*/
 
 #include "config.h"
@@ -1235,6 +1235,7 @@ name( const type *text, ASFont *font, ASGlyphMap *map, int space_size, unsigned 
 	do \
 	{ \
 		++i ; \
+		LOCAL_DEBUG_OUT("begin_i=%d, char_code = 0x%2.2X",i,text[i]); \
 		if( text[i] == '\n' || text[i] == '\0' ) \
 		{ \
 			if( last_asg && last_asg->width+last_asg->lead > last_asg->step ) \
@@ -1261,7 +1262,9 @@ name( const type *text, ASFont *font, ASGlyphMap *map, int space_size, unsigned 
 				last_asg = getglyph; \
 				map->glyphs[g++] = last_asg; \
 				line_width += last_asg->step+offset_3d_x ; \
+				LOCAL_DEBUG_OUT("pre_i=%d",i); \
 				incr; /* i+=CHAR_SIZE(text[i])-1; */ \
+				LOCAL_DEBUG_OUT("post_i=%d",i); \
 			} \
 		} \
 	}while( text[i] != '\0' );  \
@@ -1270,7 +1273,7 @@ name( const type *text, ASFont *font, ASGlyphMap *map, int space_size, unsigned 
 }
 
 FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Char,char,get_character_glyph(text[i],font),/* */)
-FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_UTF8,char,get_utf8_glyph(&text[i],font),i+=UTF8_CHAR_SIZE(text[i])-1)
+FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_UTF8,char,get_utf8_glyph(&text[i],font),i+=(UTF8_CHAR_SIZE(text[i])-1))
 FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Unicode,UNICODE_CHAR,get_unicode_glyph(text[i],font),/* */)
 
 typedef enum {
