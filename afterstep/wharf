@@ -1,0 +1,250 @@
+##########################################################################
+# Wharf - primary application launcher :
+#
+#------------------------------------------------------------------------
+
+*WharfAnimate
+*WharfAnimateMain
+*WharfAnimateDelay	2
+*WharfAnimateSteps	5
+*WharfAnimateStepsMain	5
+
+*WharfBalloons
+*WharfBalloonXOffset		10
+*WharfBalloonYOffset		-15
+*WharfBalloonDelay		120
+*WharfBalloonCloseDelay		1200
+*WharfBalloonStyle		"*WharfBalloon"
+*WharfBalloonBorderHilite	Right,Bottom
+
+#------------------------------------------------------------------------
+# Buttons
+#
+*WharfFullPush
+#*WharfNoPush
+*WharfNoBorder
+
+# This will resize Wharf's buttons to fit the size of swallowed apps/icons
+#*WharfFitContents
+
+
+#------------------------------------------------------------------------
+# Geometry
+#
+#*WharfForceSize
+*WharfRows		1
+#*WharfColumns		1
+*WharfGeometry		+5+25
+
+
+#-----------------------------------------------------------------------
+# Applications :
+#
+# X TErms. Note that only one of this will be displayed on Wharf, as they all
+# have same button name. Change button name ( first column after *Wharf) to make them a separate buttons :
+
+*Wharf term aterm Exec "-" aterm -tr -tint blue -fg yellow -bg black &
+*Wharf term rxvt  Exec "-" rxvt  -tr -fg yellow -bg black &
+*Wharf term eterm Exec "-" eterm -tr -tint blue -fg yellow -bg black &
+*Wharf term xterm Exec "-" xterm -fg yellow -bg blue &
+
+#
+# Midnight commander file manager in the term of choice :
+#
+
+#
+# First available GUI file manager :
+#
+
+#
+# First available GUI Web Browser :
+#
+
+#
+# First available GUI e-mail client :
+#
+
+#
+# First available GUI image editor :
+#
+
+#
+# First available GUI text editor :
+#
+
+#
+# First available Word processor :
+#
+
+#
+# Office Suites :
+#
+
+#
+# First available Audio player :
+#
+
+#
+# First available Video player :
+#
+
+#
+# First available IRC client :
+#
+
+
+#
+#  End of the Wharf configuration
+##########################################################################
+##########################################################################
+# MonitorWharf - monitorng applications, system configuration, clocks and docs:
+#
+#------------------------------------------------------------------------
+
+*MonitorWharfAnimate
+*MonitorWharfAnimateMain
+*MonitorWharfAnimateDelay	2
+*MonitorWharfAnimateSteps	5
+*MonitorWharfAnimateStepsMain	5
+
+*MonitorWharfBalloons
+*MonitorWharfBalloonXOffset		10
+*MonitorWharfBalloonYOffset		-15
+*MonitorWharfBalloonDelay		120
+*MonitorWharfBalloonCloseDelay		1200
+*MonitorWharfBalloonStyle		"*WharfBalloon"
+*MonitorWharfBalloonBorderHilite	Right,Bottom
+
+#------------------------------------------------------------------------
+# Buttons
+#
+*MonitorWharfFullPush
+#*MonitorWharfNoPush
+*MonitorWharfNoBorder
+
+# This will resize Wharf's buttons to fit the size of swallowed apps/icons
+#*MonitorWharfFitContents
+
+
+#------------------------------------------------------------------------
+# Geometry
+#
+#*MonitorWharfForceSize
+#*MonitorWharfRows		1
+*MonitorWharfColumns		1
+*MonitorWharfGeometry		-5-5
+
+#-----------------------------------------------------------------------
+# Monitoring Applications :
+#
+
+#
+#  End of the MonitorWharf configuration
+##########################################################################
+
+
+#------------------------------------------------------------------------
+# Entries
+#
+# NOTE:	as<app-name> programs require the APPS
+#	tarball which is separate from the core release.
+#
+# AfterStep documentation
+#
+*Wharf afterstepdoc AfterStep3.xpm Exec "-" afterstepdoc &
+
+#
+# Time
+#
+*Wharf clock - Swallow "asclock" asclock -shape -12 -position +1+1 &
+
+#
+# Pagers
+# If you want to swallow Pager in Wharf, please don't start another one
+# for same desks from the autoexec, or it can cause excesive use of
+# system resources, and slow startup process.
+#
+#*Wharf Pagers Monitor.xpm,3_dots.xpm Folders
+# *Wharf Pager - MaxSwallowModule "Pager" Pager 0 3
+#*Wharf ~Folders
+
+#
+# File system
+#
+#*Wharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &
+
+#
+# System load
+#
+#*Wharf asload - Swallow "asload" asload -shape &
+
+#
+# Mail
+#
+#*Wharf asmail - Swallow "asmail" asmail -geometry +0+0 &
+
+#
+# Mixer
+#
+#*Wharf asmixer - Swallow "asmixer" asmixer -g -1-1 &
+#*Wharf asMix - Swallow "asMix" asmix -shape &
+
+#
+# CD player
+#
+#*Wharf ascd - Swallow "ascd" ascd &
+
+
+*Wharf Applications FileFolders.xpm,3_dots.xpm Folders
+ #*Wharf Files Computer.xpm Exec "-" Files &
+ *Wharf xterm linux-penguin.xpm Exec "-" (exec aterm) || (exec xterm) &
+
+ *Wharf Helpme Info.xpm,3_dots.xpm Folders
+        *Wharf xman Bookshelf.xpm Exec "-" xman &
+#       *Wharf axinfo BookArrows.xpm Exec "-" axinfo &
+#       *Wharf xapm KeyPower.xpm Exec "-" xapm &
+ *Wharf ~Folders
+
+ #*Wharf Office spreadsheet2.xpm,3_dots.xpm Folders
+	#*Wharf nexs spreadsheet.xpm Exec "-" nexs &
+	#*Wharf xbru disk.builder.xpm Exec "-" xbru &
+        #*Wharf linuxconf widget.xpm Exec "-" linuxconf &
+ #*Wharf ~Folders
+
+ #*Wharf Pictures monalisa.xpm,3_dots.xpm Folders
+	#*Wharf xfig draw.xpm Exec "xfig" xfig &
+        #*Wharf 3d RayTracedGear.xpm,3_dots.xpm Folders
+                #*Wharf ac3d Plasma.xpm Exec "ac3d" ac3d &
+                #*Wharf moonlight 3dpaint.xpm Exec "moonlight" moonlight &
+        #*Wharf ~Folders
+	#*Wharf nil nil DropExec "gimp" ee %s &
+	#*Wharf gimp Paint.xpm Exec "image" gimp &
+	#*Wharf ee Eyecon.xpm Exec "image" gimp &
+	#*Wharf xpaint Brush.xpm Exec "xpaint" xpaint &
+ #*Wharf ~Folders
+ #*Wharf netscape netscape.xpm Exec "-" netscape &
+*Wharf ~Folders
+
+#
+# Screen saver
+#
+*Wharf xlock Recycler.xpm  Exec "-" xlock -nolock -nice 0 -mode random &
+
+#
+# X eyes
+#
+*Wharf xeyes nil Swallow "xeyes" xeyes &
+
+#
+# Exit
+#
+*Wharf QuitForm RedFire.xpm Module "QuitForm" Form QuitForm
+
+#
+# Restart
+#
+#*Wharf Recycler shutdown.xpm Restart "" afterstep
+
+#
+############################################################################
+

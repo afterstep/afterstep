@@ -138,7 +138,7 @@ F_FUNCTIONS_NUM
 #define IsInternFunc(f)  ((f)>F_INTERNAL_FUNC_START&&(f)<F_FUNCTIONS_NUM)
 #define IsValidFunc(f)   ((f)>=0&&(f)<F_FUNCTIONS_NUM)
 #define IsSwallowFunc(f) ((f)>=F_SWALLOW_FUNC_START&&(f)<F_SWALLOW_FUNC_END)
-#define IsExecFunc(f)    ((f)>= F_EXEC && (f)<=F_EXECF_KILLMODULEBYNAME)
+#define IsExecFunc(f)    ((f)>= F_EXEC && (f)<=F_KILLMODULEBYNAME)
 
 
 #define UP 1

@@ -263,7 +263,7 @@ LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item, mdi->m
     {
         if( (item->submenu = FindPopup (mdi->fdata->text, True)) == NULL )
             set_flags( item->flags, AS_MenuItemDisabled );
-    }else if( get_flags( mdi->flags, MD_Disabled ) )
+    }else if( get_flags( mdi->flags, MD_Disabled ) || mdi->fdata->func == F_NOP )
         set_flags( item->flags, AS_MenuItemDisabled );
 
     item->fdata = mdi->fdata ;
