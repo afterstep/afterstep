@@ -1682,6 +1682,28 @@ void PrintWinTabsConfig (WinTabsConfig * config);
 int WriteWinTabsOptions (const char *filename, char *myname, WinTabsConfig * config, unsigned long flags);
 WinTabsConfig *ParseWinTabsOptions (const char *filename, char *myname);
 /***************************************************************************/
+/***************************************************************************/
+/* ALL POSSIBLE aFTERsTEP CONFIGS : */
+/***************************************************************************/
+
+#define ASCONFIG_ID_START        		(WINTABS_ID_END+1)
+#define ASCONFIG_Base_ID				(ASCONFIG_ID_START+1)
+#define ASCONFIG_Colorscheme_ID			(ASCONFIG_ID_START+2)
+#define ASCONFIG_Database_ID			(ASCONFIG_ID_START+3)
+#define ASCONFIG_AutoExec_ID			(ASCONFIG_ID_START+4)
+#define ASCONFIG_Command_ID				(ASCONFIG_ID_START+5)
+#define ASCONFIG_Look_ID				(ASCONFIG_ID_START+6)
+#define ASCONFIG_Feel_ID				(ASCONFIG_ID_START+7)
+#define ASCONFIG_Theme_ID				(ASCONFIG_ID_START+8)
+#define ASCONFIG_Pager_ID				(ASCONFIG_ID_START+9)
+#define ASCONFIG_Wharf_ID				(ASCONFIG_ID_START+10)
+#define ASCONFIG_WinList_ID				(ASCONFIG_ID_START+11)
+#define ASCONFIG_WinTabs_ID				(ASCONFIG_ID_START+12)
+#define ASCONFIG_ID_END                 (ASCONFIG_ID_START+16)
+
+extern SyntaxDef ASConfigSyntax;   /* THIS SYNTAX INCLUDES ALL OTHER SYNTAXES */
+
+/***************************************************************************/
 
 #ifdef __cplusplus
 }
