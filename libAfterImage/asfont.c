@@ -1358,6 +1358,7 @@ inline ASGlyph *get_utf8_glyph( const char *utf8, ASFont *font )
 typedef struct ASGlyphMap
 {
 	unsigned int  height, width ;
+#define MAX_SPECIAL_GLYPH	((ASGlyph*)0x00000003)
 #define GLYPH_TAB	((ASGlyph*)0x00000003)
 #define GLYPH_SPACE	((ASGlyph*)0x00000002)
 #define GLYPH_EOL	((ASGlyph*)0x00000001)
@@ -2130,7 +2131,7 @@ draw_text_xrender(  ASVisual *asv, const void *text, ASFont *font, ASTextAttribu
 	int max_gid = 0 ;
 	int i ;
 	int missing_glyphs = 0 ;
-	int glyphs_bmap_size = 0 ;
+	int glyphs_bmap_size = 0, max_height = 0 ;
 
 	if( !get_text_glyph_map( text, font, &map, attr, length) )
 		return;
@@ -2143,9 +2144,11 @@ draw_text_xrender(  ASVisual *asv, const void *text, ASFont *font, ASTextAttribu
 		font->xrender_glyphset = XRenderCreateGlyphSet (asv->dpy, asv->xrender_mask_format);
 	/* Step 2: we have to make sure all the glyphs are in GlyphSet */
 	for( i = 0 ; map.glyphs[i] != GLYPH_EOT ; ++i ) 
-		if( map.glyphs[i]->xrender_gid == 0 ) 
+		if( map.glyphs[i] > MAX_SPECIAL_GLYPH && map.glyphs[i]->xrender_gid == 0 ) 
 		{
 			glyphs_bmap_size += map.glyphs[i]->width * map.glyphs[i]->height ;
+			if( map.glyphs[i]->height > max_height ) 
+				max_height = map.glyphs[i]->height ;
 			++missing_glyphs;
 		}
 	
@@ -2155,21 +2158,33 @@ draw_text_xrender(  ASVisual *asv, const void *text, ASFont *font, ASTextAttribu
 		XGlyphInfo	*glyphs;
 		char *bitmap, *bmap_ptr ;
 		int	 nbytes_bitmap = 0;
-			  
+		CARD8 **scanlines ;
+
+		scanlines = safecalloc(max_height, sizeof(CARD8*));
+
 		bmap_ptr = bitmap = safemalloc( glyphs_bmap_size );
 		glyphs = safecalloc( missing_glyphs, sizeof(XGlyphInfo));
 		gids = safecalloc( missing_glyphs, sizeof(Glyph));
 		for( i = 0 ; map.glyphs[i] != GLYPH_EOT ; ++i ) 
-			if( map.glyphs[i]->xrender_gid == 0 ) 
+			if( map.glyphs[i] > MAX_SPECIAL_GLYPH && map.glyphs[i]->xrender_gid == 0 ) 
 			{	
 				ASGlyph *asg = map.glyphs[i];
-
-				bmap_ptr += asg->width*asg->height ; 				
+				int k = asg->height ;  
+				char *ptr = bmap_ptr + asg->width*asg->height ;
+				bmap_ptr = ptr ; 				   
+				while ( --k >= 0 )
+				{
+					ptr -= asg->width ;	  
+					scanlines[k] = ptr ;
+				}		
+				render_asglyph( scanlines, asg->pixmap,	0, 0, asg->width, asg->height, 0xFF );
+				gids[i] = 
 			}
 		XRenderAddGlyphs( asv->dpy, font->xrender_glyphset, gids, glyphs, missing_glyphs, bitmap, nbytes_bitmap );
 		free( gids );
 		free( glyphs );
 		free( bitmap );
+		free( scanlines );
 	}
 	/* Step 3: actually rendering text  : */
 	if( max_gid <= 255 ) 
