@@ -421,7 +421,6 @@ else
 fi
 AC_MSG_RESULT($AFTERBASE_LIBS)
 
-
 AC_MSG_CHECKING(libAfterImage external libraries)
 AFTERIMAGE_LIBS=
 if test "$afterimage_lib" = NO; then
@@ -438,6 +437,7 @@ else
          image_format=`$afterimage_lib/afterimage-libs --preferred-image-format`
   fi
 fi
+
 AC_MSG_RESULT($AFTERIMAGE_LIBS)
 AC_MSG_CHECKING(preferred image format)
 AC_MSG_RESULT($image_format)
@@ -452,58 +452,95 @@ dnl# if ascp requested - check for fltk libraries
 
 LIBS=$saved_LIBS
 
-ASCP_LIBS=
-ASCP_INCLUDES=
-ASCP=
+ASCP_FLTK_LIBS=
+ASCP_FLTK_INCLUDES=
+ASCP_FLTK=
+ASCP_GTK_LIBS=
+ASCP_GTK_INCLUDES=
+ASCP_GTK=
 
 if test "x$enable_ascp" = "xyes"; then
-    AC_MSG_CHECKING(libraries required by ascp)
+    AC_MSG_CHECKING(libraries required by FLTK version of ascp)
+	enable_ascp=no ;
+
     if fltk-config --libs >/dev/null  ;then
-	ASCP=ascp ;
-	present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-	for l in `fltk-config --ldstaticflags`; do
-	    lib_found=no
-	    for p in `echo "$present_libs"` ; do
-		if test "x$l" = "x$p" ; then
+		present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
+		for l in `fltk-config --ldstaticflags`; do
+	  	  lib_found=no
+	  	  for p in `echo "$present_libs"` ; do
+			  if test "x$l" = "x$p" ; then
     		    lib_found=yes;
-		fi;
-	    done;
-	    if test "x$lib_found" != "xyes" ; then
-			ASCP_LIBS="$ASCP_LIBS $l" ;
-	    fi;
-	done;
-	AC_MSG_RESULT($ASCP_LIBS)
-    else
-	enable_ascp=no ;
-	AC_MSG_RESULT(none found, ascp disabled)
-	echo "You have to install FLTK libaries in order to be able to compile ascp."
-    fi;
-fi;
-
-if test "x$enable_ascp" = "xyes"; then
-    AC_MSG_CHECKING(headers required by ascp)
-    if fltk-config --cflags >/dev/null  ;then
-	ASCP=ascp ;
-	present_incs="$CCFLAGS $x_includes";
-	for l in `fltk-config --cflags` ;	do
-	    inc_found=no
-	    for p in `echo "$present_incs"` ; do
-		if test "x$l" = "x$p" ; then
-    		    inc_found=yes;
-		fi;
-		if test "x$l" = "x-I$p" ; then
-    		    inc_found=yes;
-		fi;
-	    done;
-	    if test "x$inc_found" != "xyes" ; then
-		ASCP_INCLUDES="$ASCP_INCLUDES $l" ;
-	    fi;
-	done;
-	AC_MSG_RESULT($ASCP_INCLUDES)
-    else
-	enable_ascp=no ;
-	AC_MSG_RESULT(none found, ascp disabled)
-	echo "You have to install FLTK library in order to be able to compile ascp."
+		  	  fi;
+	  	  done;
+	  	  if test "x$lib_found" != "xyes" ; then
+		  	ASCP_FLTK_LIBS="$ASCP_FLTK_LIBS $l" ;
+	  	  fi;
+		done;
+		AC_MSG_RESULT($ASCP_FLTK_LIBS)
+	    AC_MSG_CHECKING(headers required by ascp-fltk)
+	
+  		if fltk-config --cflags >/dev/null  ;then
+			present_incs="$CCFLAGS $x_includes";
+			for l in `fltk-config --cflags` ;	do
+	  			inc_found=no
+		  		for p in `echo "$present_incs"` ; do
+					if test "x$l" = "x$p" ; then
+    		  			inc_found=yes;
+					fi;
+					if test "x$l" = "x-I$p" ; then
+    		  			inc_found=yes;
+					fi;
+	  			done;
+	  			if test "x$inc_found" != "xyes" ; then
+					ASCP_FLTK_INCLUDES="$ASCP_FLTK_INCLUDES $l" ;
+	  			fi;
+			done;
+			AC_MSG_RESULT($ASCP_FLTK_INCLUDES)
+			enable_ascp=yes ;
+	  		ASCP_FLTK=ascp-fltk ;
+  		fi;
+	fi;
+    AC_MSG_CHECKING(libraries required by GTK version of ascp)
+    if gtk-config --libs >/dev/null  ;then
+		present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
+		for l in `gtk-config --libs`; do
+	  	  lib_found=no
+	  	  for p in `echo "$present_libs"` ; do
+			  if test "x$l" = "x$p" ; then
+    		    lib_found=yes;
+		  	  fi;
+	  	  done;
+	  	  if test "x$lib_found" != "xyes" ; then
+		  	ASCP_GTK_LIBS="$ASCP_GTK_LIBS $l" ;
+	  	  fi;
+		done;
+		AC_MSG_RESULT($ASCP_GTK_LIBS)
+	    AC_MSG_CHECKING(headers required by ascp-gtk)
+	
+  		if gtk-config --cflags >/dev/null  ;then
+			present_incs="$CCFLAGS $x_includes";
+			for l in `gtk-config --cflags` ;	do
+	  			inc_found=no
+		  		for p in `echo "$present_incs"` ; do
+					if test "x$l" = "x$p" ; then
+    		  			inc_found=yes;
+					fi;
+					if test "x$l" = "x-I$p" ; then
+    		  			inc_found=yes;
+					fi;
+	  			done;
+	  			if test "x$inc_found" != "xyes" ; then
+					ASCP_GTK_INCLUDES="$ASCP_GTK_INCLUDES $l" ;
+	  			fi;
+			done;
+			AC_MSG_RESULT($ASCP_GTK_INCLUDES)
+			enable_ascp=yes ;
+	  		ASCP_GTK=ascp-gtk ;
+  		fi;
+	fi;
+	if test "x$enable_ascp" = "xno"; then
+		AC_MSG_RESULT(neither fltk nor GTK found, ascp disabled)
+		echo "You have to install FLTK or GTK libaries in order to be able to compile ascp."
     fi;
 fi;
 
@@ -572,9 +609,12 @@ AC_SUBST(libafterconf_name)
 AC_SUBST(libafterconf_file_name)
 AC_SUBST(with_locale)
 AC_SUBST(image_format)
-AC_SUBST(ASCP)
-AC_SUBST(ASCP_LIBS)
-AC_SUBST(ASCP_INCLUDES)
+AC_SUBST(ASCP_FLTK)
+AC_SUBST(ASCP_FLTK_LIBS)
+AC_SUBST(ASCP_FLTK_INCLUDES)
+AC_SUBST(ASCP_GTK)
+AC_SUBST(ASCP_GTK_LIBS)
+AC_SUBST(ASCP_GTK_INCLUDES)
 AC_SUBST(user_ldflags)
 AC_SUBST(x_libs)
 AC_SUBST(x_includes)
@@ -653,6 +693,8 @@ libAfterConf/Makefile \
 \
 src/afterstep/Makefile \
 src/ascp/Makefile \
+src/ascp/fltk/Makefile \
+src/ascp/gtk/Makefile \
 src/asetroot/Makefile \
 src/Animate/Makefile \
 src/Audio/Makefile \

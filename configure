@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC sgmltools CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD LIBAFTERBASE_CFLAGS LIBAFTERIMAGE_CFLAGS target target_cpu target_vendor target_os version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP ASCP_LIBS ASCP_INCLUDES user_ldflags x_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB LIBPROG LIBINSTALL DEFINE_XLOCALE with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC sgmltools CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD LIBAFTERBASE_CFLAGS LIBAFTERIMAGE_CFLAGS target target_cpu target_vendor target_os version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK ASCP_GTK_LIBS ASCP_GTK_INCLUDES user_ldflags x_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB LIBPROG LIBINSTALL DEFINE_XLOCALE with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERBASEFILES LIBAFTERIMAGEFILES LIBAFTERSTEPFILES LIBAFTERCONFFILES MAKEFILEDEFINES MAKEFILECOMMON MAKEFILECOMMONLIB'
 
 # Initialize some variables set by options.
@@ -7331,7 +7331,6 @@ fi
 echo "$as_me:$LINENO: result: $AFTERBASE_LIBS" >&5
 echo "${ECHO_T}$AFTERBASE_LIBS" >&6
 
-
 echo "$as_me:$LINENO: checking libAfterImage external libraries" >&5
 echo $ECHO_N "checking libAfterImage external libraries... $ECHO_C" >&6
 AFTERIMAGE_LIBS=
@@ -7349,6 +7348,7 @@ else
          image_format=`$afterimage_lib/afterimage-libs --preferred-image-format`
   fi
 fi
+
 echo "$as_me:$LINENO: result: $AFTERIMAGE_LIBS" >&5
 echo "${ECHO_T}$AFTERIMAGE_LIBS" >&6
 echo "$as_me:$LINENO: checking preferred image format" >&5
@@ -7365,64 +7365,104 @@ fi
 
 LIBS=$saved_LIBS
 
-ASCP_LIBS=
-ASCP_INCLUDES=
-ASCP=
+ASCP_FLTK_LIBS=
+ASCP_FLTK_INCLUDES=
+ASCP_FLTK=
+ASCP_GTK_LIBS=
+ASCP_GTK_INCLUDES=
+ASCP_GTK=
 
 if test "x$enable_ascp" = "xyes"; then
-    echo "$as_me:$LINENO: checking libraries required by ascp" >&5
-echo $ECHO_N "checking libraries required by ascp... $ECHO_C" >&6
+    echo "$as_me:$LINENO: checking libraries required by FLTK version of ascp" >&5
+echo $ECHO_N "checking libraries required by FLTK version of ascp... $ECHO_C" >&6
+	enable_ascp=no ;
+
     if fltk-config --libs >/dev/null  ;then
-	ASCP=ascp ;
-	present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-	for l in `fltk-config --ldstaticflags`; do
-	    lib_found=no
-	    for p in `echo "$present_libs"` ; do
-		if test "x$l" = "x$p" ; then
+		present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
+		for l in `fltk-config --ldstaticflags`; do
+	  	  lib_found=no
+	  	  for p in `echo "$present_libs"` ; do
+			  if test "x$l" = "x$p" ; then
     		    lib_found=yes;
-		fi;
-	    done;
-	    if test "x$lib_found" != "xyes" ; then
-			ASCP_LIBS="$ASCP_LIBS $l" ;
-	    fi;
-	done;
-	echo "$as_me:$LINENO: result: $ASCP_LIBS" >&5
-echo "${ECHO_T}$ASCP_LIBS" >&6
-    else
-	enable_ascp=no ;
-	echo "$as_me:$LINENO: result: none found" >&5
-echo "${ECHO_T}none found" >&6
-	echo "You have to install FLTK libaries in order to be able to compile ascp."
-    fi;
-fi;
+		  	  fi;
+	  	  done;
+	  	  if test "x$lib_found" != "xyes" ; then
+		  	ASCP_FLTK_LIBS="$ASCP_FLTK_LIBS $l" ;
+	  	  fi;
+		done;
+		echo "$as_me:$LINENO: result: $ASCP_FLTK_LIBS" >&5
+echo "${ECHO_T}$ASCP_FLTK_LIBS" >&6
+	    echo "$as_me:$LINENO: checking headers required by ascp-fltk" >&5
+echo $ECHO_N "checking headers required by ascp-fltk... $ECHO_C" >&6
 
-if test "x$enable_ascp" = "xyes"; then
-    echo "$as_me:$LINENO: checking headers required by ascp" >&5
-echo $ECHO_N "checking headers required by ascp... $ECHO_C" >&6
-    if fltk-config --cflags >/dev/null  ;then
-	ASCP=ascp ;
-	present_incs="$CCFLAGS $x_includes";
-	for l in `fltk-config --cflags` ;	do
-	    inc_found=no
-	    for p in `echo "$present_incs"` ; do
-		if test "x$l" = "x$p" ; then
-    		    inc_found=yes;
-		fi;
-		if test "x$l" = "x-I$p" ; then
-    		    inc_found=yes;
-		fi;
-	    done;
-	    if test "x$inc_found" != "xyes" ; then
-		ASCP_INCLUDES="$ASCP_INCLUDES $l" ;
-	    fi;
-	done;
-	echo "$as_me:$LINENO: result: $ASCP_INCLUDES" >&5
-echo "${ECHO_T}$ASCP_INCLUDES" >&6
-    else
-	enable_ascp=no ;
-	echo "$as_me:$LINENO: result: none found" >&5
-echo "${ECHO_T}none found" >&6
-	echo "You have to install FLTK library in order to be able to compile ascp."
+  		if fltk-config --cflags >/dev/null  ;then
+			present_incs="$CCFLAGS $x_includes";
+			for l in `fltk-config --cflags` ;	do
+	  			inc_found=no
+		  		for p in `echo "$present_incs"` ; do
+					if test "x$l" = "x$p" ; then
+    		  			inc_found=yes;
+					fi;
+					if test "x$l" = "x-I$p" ; then
+    		  			inc_found=yes;
+					fi;
+	  			done;
+	  			if test "x$inc_found" != "xyes" ; then
+					ASCP_FLTK_INCLUDES="$ASCP_FLTK_INCLUDES $l" ;
+	  			fi;
+			done;
+			echo "$as_me:$LINENO: result: $ASCP_FLTK_INCLUDES" >&5
+echo "${ECHO_T}$ASCP_FLTK_INCLUDES" >&6
+			enable_ascp=yes ;
+	  		ASCP_FLTK=ascp-fltk ;
+  		fi;
+	fi;
+    echo "$as_me:$LINENO: checking libraries required by GTK version of ascp" >&5
+echo $ECHO_N "checking libraries required by GTK version of ascp... $ECHO_C" >&6
+    if gtk-config --libs >/dev/null  ;then
+		present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
+		for l in `gtk-config --libs`; do
+	  	  lib_found=no
+	  	  for p in `echo "$present_libs"` ; do
+			  if test "x$l" = "x$p" ; then
+    		    lib_found=yes;
+		  	  fi;
+	  	  done;
+	  	  if test "x$lib_found" != "xyes" ; then
+		  	ASCP_GTK_LIBS="$ASCP_GTK_LIBS $l" ;
+	  	  fi;
+		done;
+		echo "$as_me:$LINENO: result: $ASCP_GTK_LIBS" >&5
+echo "${ECHO_T}$ASCP_GTK_LIBS" >&6
+	    echo "$as_me:$LINENO: checking headers required by ascp-gtk" >&5
+echo $ECHO_N "checking headers required by ascp-gtk... $ECHO_C" >&6
+
+  		if gtk-config --cflags >/dev/null  ;then
+			present_incs="$CCFLAGS $x_includes";
+			for l in `gtk-config --cflags` ;	do
+	  			inc_found=no
+		  		for p in `echo "$present_incs"` ; do
+					if test "x$l" = "x$p" ; then
+    		  			inc_found=yes;
+					fi;
+					if test "x$l" = "x-I$p" ; then
+    		  			inc_found=yes;
+					fi;
+	  			done;
+	  			if test "x$inc_found" != "xyes" ; then
+					ASCP_GTK_INCLUDES="$ASCP_GTK_INCLUDES $l" ;
+	  			fi;
+			done;
+			echo "$as_me:$LINENO: result: $ASCP_GTK_INCLUDES" >&5
+echo "${ECHO_T}$ASCP_GTK_INCLUDES" >&6
+			enable_ascp=yes ;
+	  		ASCP_GTK=ascp-gtk ;
+  		fi;
+	fi;
+	if test "x$enable_ascp" = "xno"; then
+		echo "$as_me:$LINENO: result: neither fltk nor GTK found" >&5
+echo "${ECHO_T}neither fltk nor GTK found" >&6
+		echo "You have to install FLTK or GTK libaries in order to be able to compile ascp."
     fi;
 fi;
 
@@ -7744,6 +7784,9 @@ test -n "$target_alias" &&
 
 
 
+
+
+
 MAKEFILEDEFINES=./autoconf/Makefile.defines
 MAKEFILECOMMON=./autoconf/Makefile.common
 MAKEFILECOMMONLIB=./autoconf/Makefile.common.lib
@@ -7761,7 +7804,7 @@ LIBAFTERCONFFILES=./libAfterConf/.shared
 
 
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib configure.h Makefile afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile src/ascp/Makefile src/asetroot/Makefile src/Animate/Makefile src/Audio/Makefile src/Banner/Makefile src/Cascade/Makefile src/Clean/Makefile src/Form/Makefile src/Gnome/Makefile src/Ident/Makefile src/Pager/Makefile src/Save/Makefile src/Script/Widgets/Makefile src/Script/Makefile src/Scroll/Makefile src/Sound/Makefile src/Tile/Makefile src/Wharf/Makefile src/WinList2/Makefile src/WinTabs/Makefile src/Gadget/Makefile src/test/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib configure.h Makefile afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile src/asetroot/Makefile src/Animate/Makefile src/Audio/Makefile src/Banner/Makefile src/Cascade/Makefile src/Clean/Makefile src/Form/Makefile src/Gnome/Makefile src/Ident/Makefile src/Pager/Makefile src/Save/Makefile src/Script/Widgets/Makefile src/Script/Makefile src/Scroll/Makefile src/Sound/Makefile src/Tile/Makefile src/Wharf/Makefile src/WinList2/Makefile src/WinTabs/Makefile src/Gadget/Makefile src/test/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -8298,6 +8341,8 @@ do
   "libAfterConf/Makefile" ) CONFIG_FILES="$CONFIG_FILES libAfterConf/Makefile" ;;
   "src/afterstep/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/afterstep/Makefile" ;;
   "src/ascp/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/ascp/Makefile" ;;
+  "src/ascp/fltk/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/ascp/fltk/Makefile" ;;
+  "src/ascp/gtk/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/ascp/gtk/Makefile" ;;
   "src/asetroot/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/asetroot/Makefile" ;;
   "src/Animate/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Animate/Makefile" ;;
   "src/Audio/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Audio/Makefile" ;;
@@ -8484,9 +8529,12 @@ s,@libafterconf_name@,$libafterconf_name,;t t
 s,@libafterconf_file_name@,$libafterconf_file_name,;t t
 s,@with_locale@,$with_locale,;t t
 s,@image_format@,$image_format,;t t
-s,@ASCP@,$ASCP,;t t
-s,@ASCP_LIBS@,$ASCP_LIBS,;t t
-s,@ASCP_INCLUDES@,$ASCP_INCLUDES,;t t
+s,@ASCP_FLTK@,$ASCP_FLTK,;t t
+s,@ASCP_FLTK_LIBS@,$ASCP_FLTK_LIBS,;t t
+s,@ASCP_FLTK_INCLUDES@,$ASCP_FLTK_INCLUDES,;t t
+s,@ASCP_GTK@,$ASCP_GTK,;t t
+s,@ASCP_GTK_LIBS@,$ASCP_GTK_LIBS,;t t
+s,@ASCP_GTK_INCLUDES@,$ASCP_GTK_INCLUDES,;t t
 s,@user_ldflags@,$user_ldflags,;t t
 s,@x_libs@,$x_libs,;t t
 s,@x_includes@,$x_includes,;t t
