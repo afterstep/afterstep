@@ -184,6 +184,7 @@
 		../../include/asapp.h \
 		../../include/afterstep.h \
 		../../include/screen.h \
+		../../include/decor.h \
 		asinternals.h
 
 ./icons.o: \

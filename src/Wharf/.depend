@@ -14,6 +14,7 @@
 		../../include/asapp.h \
 		../../include/afterstep.h \
 		../../include/screen.h \
+		../../include/session.h \
 		../../include/module.h \
 		../../include/parse.h \
 		../../include/parser.h \
@@ -24,7 +25,8 @@
 		../../include/aswindata.h \
 		../../include/decor.h \
 		../../include/event.h \
-		../../include/wmprops.h
+		../../include/wmprops.h \
+		../../include/functions.h
 
 ./icons.o: \
 		../../configure.h \
