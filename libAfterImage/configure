@@ -2816,7 +2816,7 @@ fi
 
 if test "$have_tiff" = yes -o "$have_png" = yes ; then
   AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lz -lm"
-fi  
+fi
 
 
 
@@ -2904,7 +2904,7 @@ EOF
 EOF
 
     have_ttf=yes
-  fi	
+  fi
   if test "$have_ttf" = yes; then
 	  AFTERIMAGE_LIBS="`freetype-config --libs` $AFTERIMAGE_LIBS"
   fi
@@ -2914,13 +2914,13 @@ fi;
 if test "$with_afterbase" != "NO"; then
   echo $ac_n "checking libAfterBase headers""... $ac_c" 1>&6
 echo "configure:2917: checking libAfterBase headers" >&5
-  have_afterbase=yes 
+  have_afterbase=yes
   if test "$afterbase_includes" = NO; then
 	  if test -r "../libAfterBase/astypes.h"; then
 		cat >> confdefs.h <<\EOF
 #define HAVE_AFTERBASE 1
 EOF
- 
+
 		cat >> confdefs.h <<\EOF
 #define HAVE_CUSTOM_AFTERBASE 1
 EOF
@@ -2966,25 +2966,25 @@ else
 echo "$ac_t"""none found"" 1>&6 have_afterbase=no
 fi
 
-	  fi	
+	  fi
   else
 	  cat >> confdefs.h <<\EOF
 #define HAVE_AFTERBASE 1
 EOF
- 
+
 	  cat >> confdefs.h <<\EOF
 #define HAVE_CUSTOM_AFTERBASE 1
 EOF
-	  
+
 	  AFTERBASE_INC_PATH=$afterbase_includes
   	  echo "$ac_t"""$AFTERBASE_INC_PATH/libAfterBase/astypes.h>"" 1>&6
   fi
 fi
 
 AFTERBASE_C=afterbase.c
-if test "x$have_afterbase" = "xyes"; then 
+if test "x$have_afterbase" = "xyes"; then
 	AFTERBASE_C=
-    AFTERIMAGE_LIBS="-lafterbase $AFTERIMAGE_LIBS"
+    AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
 fi
 
 
@@ -2997,7 +2997,7 @@ for L in $AFTERIMAGE_LIBS; do
 	  CLEAN_AFTERIMAGE_LIBS="$CLEAN_AFTERIMAGE_LIBS $L"
   fi
 done
-AFTERIMAGE_LIBS="-L$libdir -lafterimage $CLEAN_AFTERIMAGE_LIBS"
+AFTERIMAGE_LIBS="-L$libdir -lAfterImage $CLEAN_AFTERIMAGE_LIBS"
 
 
 
