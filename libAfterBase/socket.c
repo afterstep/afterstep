@@ -37,6 +37,7 @@
 #include "config.h"
 #include "astypes.h"
 #include "audit.h"
+#include "safemalloc.h"
 #include "aslist.h"
 #include "output.h"
 #include "socket.h"
