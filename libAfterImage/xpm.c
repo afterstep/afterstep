@@ -43,8 +43,15 @@
 
 #include "afterbase.h"
 #include "asimage.h"
+#include "ascmap.h"
 #include "xpm.h"
 
+#define MAXPRINTABLE 92
+/* number of printable ascii chars minus \ and " for string compat
+ * and ? to avoid ANSI trigraphs. */
+
+static char *printable =
+" .XoO+@#$%&*=-;:>,<1234567890qwertyuipasdfghjklzxcvbnmMNBVCZASDFGHJKLPIUYTREWQ!~^/()_`'][{}|";
 
 static struct {
 	char 	*name ;
@@ -819,5 +826,50 @@ convert_xpm_scanline( ASXpmFile *xpm_file, unsigned int line )
 		free( pixel );
 	}
 	return True;
+}
+
+/**********************************************************************/
+/* XPM writing :                                                      */
+/**********************************************************************/
+
+ASXpmCharmap*
+build_xpm_charmap( ASColormap *cmap, Bool has_alpha, ASXpmCharmap *reusable_memory )
+{
+	ASXpmCharmap *xpm_cmap = reusable_memory ;
+	char *ptr ;
+	int i ;
+	int rem ;
+
+	xpm_cmap->count = cmap->count+((has_alpha)?1:0) ;
+
+	xpm_cmap->cpp = 0 ;
+	for( rem = xpm_cmap->count ; rem > 0 ; rem = rem/MAXPRINTABLE )
+		++(xpm_cmap->cpp) ;
+	ptr = xpm_cmap->char_code = safemalloc(xpm_cmap->count*(xpm_cmap->cpp+1)) ;
+	for( i = 0 ; i < xpm_cmap->count ; i++ )
+	{
+		register int k = xpm_cmap->cpp ;
+		rem = i ;
+		ptr[k] = '\0' ;
+		while( --k >= 0 )
+		{
+			ptr[k] = printable[rem%MAXPRINTABLE] ;
+			rem /= MAXPRINTABLE ;
+		}
+		ptr += xpm_cmap->cpp+1 ;
+	}
+
+	return xpm_cmap;
+}
+
+void destroy_xpm_charmap( ASXpmCharmap *xpm_cmap, Bool reusable )
+{
+	if( xpm_cmap )
+	{
+		if( xpm_cmap->char_code )
+			free( xpm_cmap->char_code );
+		if( !reusable )
+			free( xpm_cmap );
+	}
 }
 

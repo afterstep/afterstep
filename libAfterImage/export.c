@@ -92,9 +92,7 @@ as_image_writer_func as_image_file_writers[ASIT_Unknown] =
 
 Bool
 ASImage2file( ASImage *im, const char *dir, const char *file,
-			  ASImageFileTypes type, int subimage,
-			  unsigned int compression, unsigned int quality,
-			  int max_colors, int depth )
+			  ASImageFileTypes type, ASImageExportParams *params )
 {
 	int   filename_len, dirname_len = 0 ;
 	char *realfilename = NULL ;
@@ -116,7 +114,7 @@ ASImage2file( ASImage *im, const char *dir, const char *file,
 	if( type >= ASIT_Unknown || type < 0 )
 		show_error( "Hmm, I don't seem to know anything about format you trying to write file \"%s\" in\n.\tPlease check the manual", realfilename );
    	else if( as_image_file_writers[type] )
-   		res = as_image_file_writers[type](im, realfilename, type, subimage, compression, quality, max_colors, depth);
+   		res = as_image_file_writers[type](im, realfilename, params);
    	else
    		show_error( "Support for the format of image file \"%s\" has not been implemented yet.", realfilename );
 
@@ -211,78 +209,32 @@ scanline2raw( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned
 Bool print_component( CARD32*, int, unsigned int );
 #endif
 
-typedef struct ASXpmCharmap
-{
-	unsigned int count ;
-	unsigned int cpp ;
-	char *char_code ;
-}ASXpmCharmap;
-
-#define MAXPRINTABLE 92
-/* number of printable ascii chars minus \ and " for string compat
- * and ? to avoid ANSI trigraphs. */
-
-static char *printable =
-" .XoO+@#$%&*=-;:>,<1234567890qwertyuipasdfghjklzxcvbnmMNBVCZASDFGHJKLPIUYTREWQ!~^/()_`'][{}|";
-
-ASXpmCharmap*
-build_xpm_charmap( ASColormap *cmap, Bool has_alpha, ASXpmCharmap *reusable_memory )
-{
-	ASXpmCharmap *xpm_cmap = reusable_memory ;
-	char *ptr ;
-	int i ;
-	int rem ;
-
-	xpm_cmap->count = cmap->count+((has_alpha)?1:0) ;
-
-	xpm_cmap->cpp = 0 ;
-	for( rem = xpm_cmap->count ; rem > 0 ; rem = rem/MAXPRINTABLE )
-		++(xpm_cmap->cpp) ;
-	ptr = xpm_cmap->char_code = safemalloc(xpm_cmap->count*(xpm_cmap->cpp+1)) ;
-	for( i = 0 ; i < xpm_cmap->count ; i++ )
-	{
-		register int k = xpm_cmap->cpp ;
-		rem = i ;
-		ptr[k] = '\0' ;
-		while( --k >= 0 )
-		{
-			ptr[k] = printable[rem%MAXPRINTABLE] ;
-			rem /= MAXPRINTABLE ;
-		}
-		ptr += xpm_cmap->cpp+1 ;
-	}
-
-	return xpm_cmap;
-}
-
-void destroy_xpm_charmap( ASXpmCharmap *xpm_cmap, Bool reusable )
-{
-	if( xpm_cmap )
-	{
-		if( xpm_cmap->char_code )
-			free( xpm_cmap->char_code );
-		if( !reusable )
-			free( xpm_cmap );
-	}
-}
-
 Bool
-ASImage2xpm ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2xpm ( ASImage *im, const char *path, ASImageExportParams *params )
 {
 	FILE *outfile;
 	int y, x ;
 	int *mapped_im, *row_pointer ;
 	ASColormap         cmap;
 	ASXpmCharmap       xpm_cmap ;
-	int xpm_idx = 0 ;
+	int transp_idx = 0;
 	START_TIME(started);
+	ASXpmExportParams defaults = { ASIT_Xpm, EXPORT_ALPHA, 4, 127, 512 } ;
+	register char *ptr ;
 
 	LOCAL_DEBUG_CALLER_OUT ("(\"%s\")", path);
+
+	if( params == NULL )
+		params = (ASImageExportParams *)&defaults ;
 
 	if ((outfile = open_writeable_image_file( path )) == NULL)
 		return False;
 
-	mapped_im = colormap_asimage( im, &cmap, max_colors, 4, 127 );
+	mapped_im = colormap_asimage( im, &cmap, params->xpm.max_colors, params->xpm.dither, params->xpm.opaque_threshold );
+	if( !get_flags( params->xpm.flags, EXPORT_ALPHA) )
+		cmap.has_opaque = False ;
+	else
+		transp_idx = cmap.count ;
 
 LOCAL_DEBUG_OUT("building charmap%s","");
 	build_xpm_charmap( &cmap, cmap.has_opaque, &xpm_cmap );
@@ -291,13 +243,14 @@ LOCAL_DEBUG_OUT("building charmap%s","");
 LOCAL_DEBUG_OUT("writing file%s","");
 	fprintf( outfile, "/* XPM */\nstatic char *asxpm[] = {\n/* columns rows colors chars-per-pixel */\n"
 					  "\"%d %d %d %d\",\n", im->width, im->height, xpm_cmap.count,  xpm_cmap.cpp );
+    ptr = &(xpm_cmap.char_code[0]);
 	for( y = 0 ; y < cmap.count ; y++ )
 	{
-		fprintf( outfile, "\"%s c #%2.2X%2.2X%2.2X\",\n", &(xpm_cmap.char_code[xpm_idx]), cmap.entries[y].red, cmap.entries[y].green, cmap.entries[y].blue );
-		xpm_idx += xpm_cmap.cpp+1 ;
+		fprintf( outfile, "\"%s c #%2.2X%2.2X%2.2X\",\n", ptr, cmap.entries[y].red, cmap.entries[y].green, cmap.entries[y].blue );
+		ptr += xpm_cmap.cpp+1 ;
 	}
 	if( cmap.has_opaque && y < xpm_cmap.count )
-		fprintf( outfile, "\"%s c None\",\n", &(xpm_cmap.char_code[xpm_idx]) );
+		fprintf( outfile, "\"%s c None\",\n", ptr );
 	SHOW_TIME("image header writing",started);
 
 	row_pointer = mapped_im ;
@@ -306,15 +259,18 @@ LOCAL_DEBUG_OUT("writing file%s","");
 		fputc( '"', outfile );
 		for( x = 0; x < im->width ; x++ )
 		{
-			register int idx = (row_pointer[x] >= 0)? row_pointer[x] : cmap.count+1 ;
-/*fprintf( stderr, "index : %d, offset = %d, char = %s\n", row_pointer[x], row_pointer[x]*(xpm_cmap.cpp+1), &(xpm_cmap.char_code[row_pointer[x]*(xpm_cmap.cpp+1)]) );*/
-			fprintf( outfile, "%s", &(xpm_cmap.char_code[idx*(xpm_cmap.cpp+1)]) );
+			register int idx = (row_pointer[x] >= 0)? row_pointer[x] : transp_idx ;
+			register char *ptr = &(xpm_cmap.char_code[idx*(xpm_cmap.cpp+1)]) ;
+			if( idx >= cmap.count )
+				fprintf( stderr, "(%d,%d) -> %d, %d: %s\n", x, y, idx, row_pointer[x], ptr );
+			while( *ptr )
+				fputc( *(ptr++), outfile );
 		}
 		row_pointer += im->width ;
+		fputc( '"', outfile );
 		if( y < im->height-1 )
-			fprintf( outfile, "\",\n" );
-		else
-			fprintf( outfile, "\"\n" );
+			fputc( ',', outfile );
+		fputc( '\n', outfile );
 	}
 	fprintf( outfile, "};\n" );
 	fclose( outfile );
@@ -331,7 +287,7 @@ LOCAL_DEBUG_OUT("writing file%s","");
 #else  			/* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 
 Bool
-ASImage2xpm ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2xpm ( ASImage *im, const char *path,  ASImageExportParams *params )
 {
 	SHOW_UNSUPPORTED_NOTE("XPM",path);
 	return False ;
@@ -343,18 +299,19 @@ ASImage2xpm ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 /***********************************************************************************/
 #ifdef HAVE_PNG		/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 Bool
-ASImage2png ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *params )
 {
 	FILE *outfile;
 	png_structp png_ptr  = NULL;
 	png_infop   info_ptr = NULL;
-	Bool has_alpha ;
-	Bool greyscale = (depth == 1) ;
 	png_byte *row_pointer;
 	ASScanline imbuf ;
 	int y ;
+	Bool has_alpha;
+	Bool grayscale;
+	int compression;
 	START_TIME(started);
-
+	static ASPngExportParams defaults = { ASIT_Png, EXPORT_ALPHA, -1 };
 
 	if ((outfile = open_writeable_image_file( path )) == NULL)
 		return False;
@@ -377,20 +334,34 @@ ASImage2png ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
     }
 	png_init_io(png_ptr, outfile);
 
+	if( params == NULL )
+	{
+		compression = defaults.compression ;
+		grayscale = get_flags(defaults.flags, EXPORT_GRAYSCALE );
+		has_alpha = get_flags(defaults.flags, EXPORT_ALPHA );
+	}else
+	{
+		compression = params->png.compression ;
+		grayscale = get_flags(params->png.flags, EXPORT_GRAYSCALE );
+		has_alpha = get_flags(params->png.flags, EXPORT_ALPHA );
+	}
+
 	if( compression > 0 )
 		png_set_compression_level(png_ptr,MIN(compression,99)/10);
 
 	/* lets see if we have alpha channel indeed : */
-	has_alpha = False ;
-	for( y = 0 ; y < im->height ; y++ )
-		if( im->alpha[y] != NULL )
-		{
-			has_alpha = True ;
-			break;
-		}
-
+	if( has_alpha )
+	{
+		has_alpha = False ;
+		for( y = 0 ; y < im->height ; y++ )
+			if( im->alpha[y] != NULL )
+			{
+				has_alpha = True ;
+				break;
+			}
+	}
 	png_set_IHDR(png_ptr, info_ptr, im->width, im->height, 8,
-		         greyscale ? (has_alpha?PNG_COLOR_TYPE_GRAY_ALPHA:PNG_COLOR_TYPE_GRAY):
+		         grayscale ? (has_alpha?PNG_COLOR_TYPE_GRAY_ALPHA:PNG_COLOR_TYPE_GRAY):
 		                     (has_alpha?PNG_COLOR_TYPE_RGB_ALPHA:PNG_COLOR_TYPE_RGB),
 				 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
 				 PNG_FILTER_TYPE_DEFAULT );
@@ -402,7 +373,7 @@ ASImage2png ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 	png_write_info(png_ptr, info_ptr);
 
 	prepare_scanline( im->width, 0, &imbuf, False );
-	if( greyscale )
+	if( grayscale )
 	{
 		row_pointer = safemalloc( im->width*(has_alpha?2:1));
 		for ( y = 0 ; y < im->height ; y++ )
@@ -416,13 +387,13 @@ ASImage2png ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 			{
 				asimage_decode_line (im, IC_ALPHA,  imbuf.alpha, y, 0, imbuf.width);
 
-				while( --i >= 0 ) /* normalized greylevel computing :  */
+				while( --i >= 0 ) /* normalized graylevel computing :  */
 				{
 					ptr[(i<<1)] = (54*imbuf.red[i]+183*imbuf.green[i]+19*imbuf.blue[i])/256 ;
 					ptr[(i<<1)+1] = imbuf.alpha[i] ;
 				}
 			}else
-				while( --i >= 0 ) /* normalized greylevel computing :  */
+				while( --i >= 0 ) /* normalized graylevel computing :  */
 					ptr[i] = (54*imbuf.red[i]+183*imbuf.green[i]+19*imbuf.blue[i])/256 ;
 			png_write_rows(png_ptr, &row_pointer, 1);
 		}
@@ -471,7 +442,7 @@ ASImage2png ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 }
 #else 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 Bool
-ASImage2png ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2png ( ASImage *im, const char *path,  ASImageExportParams *params )
 {
 	SHOW_UNSUPPORTED_NOTE( "PNG", path );
 	return False;
@@ -484,7 +455,7 @@ ASImage2png ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 /***********************************************************************************/
 #ifdef HAVE_JPEG     /* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
 Bool
-ASImage2jpeg( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2jpeg( ASImage *im, const char *path,  ASImageExportParams *params )
 {
 	ASScanline     imbuf;
 	/* This struct contains the JPEG decompression parameters and pointers to
@@ -496,10 +467,17 @@ ASImage2jpeg( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 	FILE 		 *outfile;		/* target file */
     JSAMPROW      row_pointer[1];/* pointer to JSAMPLE row[s] */
 	int 		  y;
+	ASJpegExportParams defaults = { ASIT_Jpeg, 0, -1 };
+	Bool grayscale;
 	START_TIME(started);
+
+	if( params == NULL )
+		params = (ASImageExportParams *)&defaults ;
 
 	if ((outfile = open_writeable_image_file( path )) == NULL)
 		return False;
+
+	grayscale = get_flags(params->jpeg.flags, EXPORT_GRAYSCALE );
 
 	prepare_scanline( im->width, 0, &imbuf, False );
 	/* Step 1: allocate and initialize JPEG compression object */
@@ -524,13 +502,13 @@ ASImage2jpeg( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 	/* Step 3: set parameters for compression */
 	cinfo.image_width  = im->width; 	/* image width and height, in pixels */
 	cinfo.image_height = im->height;
-	cinfo.input_components = (depth==1)?1:3;		    /* # of color components per pixel */
-	cinfo.in_color_space   = (depth==1)?JCS_GRAYSCALE:JCS_RGB; 	/* colorspace of input image */
+	cinfo.input_components = (grayscale)?1:3;		    /* # of color components per pixel */
+	cinfo.in_color_space   = (grayscale)?JCS_GRAYSCALE:JCS_RGB; 	/* colorspace of input image */
 	/* Now use the library's routine to set default compression parameters.
 	* (You must set at least cinfo.in_color_space before calling this)*/
 	jpeg_set_defaults(&cinfo);
-	if( quality > 0 )
-		jpeg_set_quality(&cinfo, MIN(quality,100), TRUE /* limit to baseline-JPEG values */);
+	if( params->jpeg.quality > 0 )
+		jpeg_set_quality(&cinfo, MIN(params->jpeg.quality,100), TRUE /* limit to baseline-JPEG values */);
 
 	/* Step 4: Start compressor */
 	/* TRUE ensures that we will write a complete interchange-JPEG file.*/
@@ -544,7 +522,7 @@ ASImage2jpeg( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 	* To keep things simple, we pass one scanline per call; you can pass
 	* more if you wish, though.
 	*/
-	if( depth == 1 )
+	if( grayscale )
 	{
 		row_pointer[0] = safemalloc( im->width );
 		for (y = 0; y < im->height; y++)
@@ -554,7 +532,7 @@ ASImage2jpeg( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 			asimage_decode_line (im, IC_RED,   imbuf.red, y, 0, imbuf.width);
 			asimage_decode_line (im, IC_GREEN, imbuf.green, y, 0, imbuf.width);
 			asimage_decode_line (im, IC_BLUE,  imbuf.blue, y, 0, imbuf.width);
-			while( --i >= 0 ) /* normalized greylevel computing :  */
+			while( --i >= 0 ) /* normalized graylevel computing :  */
 				ptr[i] = (54*imbuf.red[i]+183*imbuf.green[i]+19*imbuf.blue[i])/256 ;
 			(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
 		}
@@ -598,7 +576,7 @@ LOCAL_DEBUG_OUT( "done writing image%s","" );
 #else 			/* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
 
 Bool
-ASImage2jpeg( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2jpeg( ASImage *im, const char *path,  ASImageExportParams *params )
 {
 	SHOW_UNSUPPORTED_NOTE( "JPEG", path );
 	return False;
@@ -611,7 +589,7 @@ ASImage2jpeg( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 /* XCF - GIMP's native file format : 											   */
 
 Bool
-ASImage2xcf ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2xcf ( ASImage *im, const char *path,  ASImageExportParams *params )
 {
 	/* More stuff */
 	XcfImage  *xcf_im = NULL;
@@ -635,7 +613,7 @@ ASImage2xcf ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 /***********************************************************************************/
 /* PPM/PNM file format : 											   				   */
 Bool
-ASImage2ppm ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2ppm ( ASImage *im, const char *path,  ASImageExportParams *params )
 {
 	START_TIME(started);
 	SHOW_PENDING_IMPLEMENTATION_NOTE("PPM");
@@ -646,7 +624,7 @@ ASImage2ppm ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 /***********************************************************************************/
 /* Windows BMP file format :   									   				   */
 Bool
-ASImage2bmp ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2bmp ( ASImage *im, const char *path,  ASImageExportParams *params )
 {
 	START_TIME(started);
 	SHOW_PENDING_IMPLEMENTATION_NOTE("BMP");
@@ -657,7 +635,7 @@ ASImage2bmp ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 /***********************************************************************************/
 /* Windows ICO/CUR file format :   									   			   */
 Bool
-ASImage2ico ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2ico ( ASImage *im, const char *path,  ASImageExportParams *params )
 {
 	START_TIME(started);
 	SHOW_PENDING_IMPLEMENTATION_NOTE("ICO");
@@ -667,16 +645,82 @@ ASImage2ico ( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 
 /***********************************************************************************/
 #ifdef HAVE_GIF		/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
-Bool ASImage2gif( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 {
+	GifFileType *gif ;
+	ColorMapObject *gif_cmap ;
+	ASGifExportParams defaults = { ASIT_Gif, 4, 127, 0 };
+	ASColormap         cmap;
+	int transp_idx = 0 ;
+	int *mapped_im ;
+	GifPixelType *row_pointer ;
+	int y ;
 	START_TIME(started);
-	show_error( "I'm sorry but GIF image export is disabled due to stupid licensing issues. Blame UNISYS");
-    SHOW_TIME("image export",started);
+
+	LOCAL_DEBUG_CALLER_OUT ("(\"%s\")", path);
+
+	if( params == NULL )
+		params = (ASImageExportParams *)&defaults ;
+
+	if( (gif = EGifOpenFileName((char*)path, TRUE)) == NULL )
+	{
+		/* TODO: do something about multiimage files !!! */
+		return False ;
+	}
+
+	mapped_im = colormap_asimage( im, &cmap, 256, 2, 127 );/*params->gif.dither, params->gif.opaque_threshold );*/
+	if( !get_flags( params->gif.flags, EXPORT_ALPHA) )
+		cmap.has_opaque = False ;
+	else
+		transp_idx = cmap.count ;
+
+	if( (gif_cmap = MakeMapObject(256, NULL )) == NULL )
+	{
+		PrintGifError();
+		return False;
+	}
+
+	for( y = 0 ; y < cmap.count ; y++ )
+	{
+		gif_cmap->Colors[y].Red = cmap.entries[y].red ;
+		gif_cmap->Colors[y].Green = cmap.entries[y].green ;
+		gif_cmap->Colors[y].Blue = cmap.entries[y].blue ;
+	}
+
+fprintf( stderr, "gif_cmap = %p, count = %d\n", gif_cmap, cmap.count );
+	EGifPutScreenDesc(gif, im->width, im->height, 256, 0, gif_cmap );
+	EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, NULL );
+
+	row_pointer = safemalloc( im->width*sizeof(GifPixelType));
+
+	for( y = 0 ; y < im->height ; y++ )
+	{
+		register int x = im->width ;
+		register int *src = mapped_im + x*y;
+		while( --x >= 0 )
+		{
+			row_pointer[x] = src[x] ;
+			/*fprintf( stderr, "%3.3X ", row_pointer[x] );*/
+		}
+	fprintf(stderr, "\n%-4d", im->height - y - 1);
+		if( EGifPutLine(gif, row_pointer, im->width)  == GIF_ERROR)
+			PrintGifError();
+	}
+	if (EGifCloseFile(gif) == GIF_ERROR)
+		PrintGifError();
+
+	free( row_pointer );
+	free( mapped_im );
+	destroy_colormap( &cmap, True );
+
+/*	show_error( "I'm sorry but GIF image export is disabled due to stupid licensing issues. Blame UNISYS"); */
+
+	SHOW_TIME("image export",started);
 	return False ;
 }
 #else 			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 Bool
-ASImage2gif( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2gif( ASImage *im, const char *path, ASImageExportParams *params )
 {
 	SHOW_UNSUPPORTED_NOTE("GIF",path);
 	return False ;
@@ -685,7 +729,7 @@ ASImage2gif( ASImage *im, const char *path, ASImageFileTypes type, int subimage,
 
 #ifdef HAVE_TIFF/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
 Bool
-ASImage2tiff( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params)
 {
 	START_TIME(started);
 	SHOW_PENDING_IMPLEMENTATION_NOTE("ICO");
@@ -695,7 +739,7 @@ ASImage2tiff( ASImage *im, const char *path, ASImageFileTypes type, int subimage
 #else 			/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
 
 Bool
-ASImage2tiff( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth )
+ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params )
 {
 	SHOW_UNSUPPORTED_NOTE("TIFF",path);
 	return False ;

@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
 		p = asimage2pixmap( asv, DefaultRootWindow(dpy), merged_im,
 			                NULL, True );
 		/* writing result into the file */
-		ASImage2file( merged_im, NULL, "asmerge.jpg", ASIT_Jpeg, 0, 0, 100, 0, 0 );
+		ASImage2file( merged_im, NULL, "asmerge.jpg", ASIT_Jpeg, NULL );
 		destroy_asimage( &merged_im );
 		/* see common.c: set_window_background_and_free() : */
 		p = set_window_background_and_free( w, p );

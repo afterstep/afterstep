@@ -3,6 +3,8 @@
 
 /* our own Xpm handling code : */
 
+struct ASColormap;
+
 typedef enum
 {
 	XPM_Outside = 0,
@@ -55,6 +57,13 @@ typedef enum {
 	XPM_Success = 1
 }ASXpmStatus;
 
+typedef struct ASXpmCharmap
+{
+	unsigned int count ;
+	unsigned int cpp ;
+	char *char_code ;
+}ASXpmCharmap;
+
 /*************************************************************************
  * High level xpm reading interface ;
  *************************************************************************/
@@ -66,5 +75,8 @@ ASImage    *create_xpm_image( ASXpmFile *xpm_file, int compression );
 Bool 		build_xpm_colormap( ASXpmFile *xpm_file );
 Bool 		convert_xpm_scanline( ASXpmFile *xpm_file, unsigned int line );
 
+ASXpmCharmap *build_xpm_charmap( struct ASColormap *cmap, Bool has_alpha,
+	                             ASXpmCharmap *reusable_memory );
+void destroy_xpm_charmap( ASXpmCharmap *xpm_cmap, Bool reusable );
 
 #endif /* AFTERSTEP_XPM_H_HEADER_INCLUDED */

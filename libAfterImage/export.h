@@ -12,35 +12,71 @@
  * AUTHOR
  * Sasha Vasko <sashav at sprintmail dot com>
  ******************/
+#define EXPORT_GRAYSCALE			(0x01<<0)
+#define EXPORT_ALPHA				(0x01<<1)
+#define EXPORT_OVERWRITE			(0x01<<2)
+#define EXPORT_OVERWRITE_SUBIMG		(0x01<<2)
+
+typedef struct
+{
+	ASImageFileTypes type;
+	ASFlagType flags ;
+	int dither ;
+	int opaque_threshold ;
+	int max_colors ;
+}ASXpmExportParams ;
+
+typedef struct
+{
+	ASImageFileTypes type;
+	ASFlagType flags ;
+	int compression ;
+}ASPngExportParams ;
+
+typedef struct
+{
+	ASImageFileTypes type;
+	ASFlagType flags ;
+	int quality ;
+}ASJpegExportParams ;
+
+typedef struct
+{
+	ASImageFileTypes type;
+	ASFlagType flags ;
+	int dither ;
+	int opaque_threshold ;
+	int subimage ;
+}ASGifExportParams ;
+
+typedef union ASImageExportParams
+{
+	ASImageFileTypes   type;
+	ASXpmExportParams  xpm;
+	ASPngExportParams  png;
+	ASJpegExportParams jpeg;
+	ASGifExportParams  gif;
+}ASImageExportParams;
 
 typedef Bool (*as_image_writer_func)( ASImage *im, const char *path,
-			  ASImageFileTypes type, int subimage,
-			  unsigned int compression, unsigned int quality,
-			  int max_colors, int depth );
+									  ASImageExportParams *params );
 extern as_image_writer_func as_image_file_writers[ASIT_Unknown];
 
 
 /****f* libAfterImage/export/ASImage2file()
  * SYNOPSIS
  * Bool ASImage2file( ASImage *im, const char *dir, const char *file,
- *                    ASImageFileTypes type, int subimage,
- *                    unsigned int compression, unsigned int quality,
- *                    int max_colors, int depth );
+					  ASImageFileTypes type, ASImageExportParams *params );
  * INPUTS
  * im			- Image to write out.
  * dir          - directory name to write file into (optional,
  *                could be NULL)
  * file         - file name with or without directory name.
  * type         - output file format. ( see ASImageFileTypes )
- * subimage     - (optional set to 0 if don't care )
- * compression  - compression level of the resulting file (if supported
- *                by file format). Should be in range 0-100. 0 will yeld
- *                default compression level.
- * quality      - optional quality (if supported by file format). Should
- *                be in range 0-100. 0 will yeld default quality level.
- * max_colors   - reserved for future use.
- * depth        - if 1 - will cause greyscale image to be written. Set to
- *                -1 or 0 if don't care.
+ * params       - pointer to ASImageExportParams union's member for the
+ *                above type, with additional export parameters, such as
+ *                quality, compression, etc. If NULL then all defaults
+ *                will be used.
  * RETURN VALUE
  * True on success. False - failure.
  * DESCRIPTION
@@ -58,18 +94,16 @@ extern as_image_writer_func as_image_file_writers[ASIT_Unknown];
 
 Bool
 ASImage2file( ASImage *im, const char *dir, const char *file,
-			  ASImageFileTypes type, int subimage,
-			  unsigned int compression, unsigned int quality,
-			  int max_colors, int depth );
+			  ASImageFileTypes type, ASImageExportParams *params );
 
-Bool ASImage2xpm ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth );
-Bool ASImage2png ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth );
-Bool ASImage2jpeg( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth );
-Bool ASImage2xcf ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth );
-Bool ASImage2ppm ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth );
-Bool ASImage2bmp ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth );
-Bool ASImage2ico ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth );
-Bool ASImage2gif ( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth );
-Bool ASImage2tiff( ASImage *im, const char *path, ASImageFileTypes type, int subimage, unsigned int compression, unsigned int quality, int max_colors, int depth );
+Bool ASImage2xpm ( ASImage *im, const char *path, ASImageExportParams *params );
+Bool ASImage2png ( ASImage *im, const char *path, ASImageExportParams *params );
+Bool ASImage2jpeg( ASImage *im, const char *path, ASImageExportParams *params );
+Bool ASImage2xcf ( ASImage *im, const char *path, ASImageExportParams *params );
+Bool ASImage2ppm ( ASImage *im, const char *path, ASImageExportParams *params );
+Bool ASImage2bmp ( ASImage *im, const char *path, ASImageExportParams *params );
+Bool ASImage2ico ( ASImage *im, const char *path, ASImageExportParams *params );
+Bool ASImage2gif ( ASImage *im, const char *path, ASImageExportParams *params );
+Bool ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params );
 
 #endif

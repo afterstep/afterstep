@@ -1245,7 +1245,7 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	ASScanline    		buf;
 	int 		  		transparent = -1 ;
 	unsigned int  		y;
-	unsigned int		width, height ;
+	unsigned int		width = 0, height = 0;
 	START_TIME(started);
 
 	if ((fp = open_image_file(path)) == NULL)

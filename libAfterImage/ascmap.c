@@ -30,14 +30,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <malloc.h>
-/* <setjmp.h> is used for the optional error recovery mechanism */
-
-#ifdef HAVE_PNG
-/* Include file for users of png library. */
-#include <png.h>
-#else
-#include <setjmp.h>
-#endif
 
 #include "afterbase.h"
 
@@ -131,73 +123,31 @@ void destroy_colorhash( ASSortedColorHash *index, Bool reusable )
 	}
 }
 
-static inline void
-add_colormap_item( register ASColormapEntry *pentry, ASMappedColor *pelem, int cmap_idx )
+#ifdef LOCAL_DEBUG
+void
+check_colorindex_counts( ASSortedColorHash *index )
 {
-	pentry->red   = pelem->red ;
-	pentry->green = pelem->green ;
-	pentry->blue  = pelem->blue ;
-	pelem->cmap_idx = cmap_idx ;
-LOCAL_DEBUG_OUT( "colormap entry added: %d: #%2.2X%2.2X%2.2X",cmap_idx, pelem->red, pelem->green, pelem->blue );
-}
-
-unsigned int
-add_colormap_items( ASSortedColorHash *index, unsigned int start, unsigned int stop, unsigned int quota, unsigned int base, ASColormapEntry *entries )
-{
-	int cmap_idx = 0 ;
 	int i ;
-	if( quota >= index->count_unique )
-	{
-		for( i = start ; i < stop ; i++ )
-		{
-			register ASMappedColor *pelem = index->buckets[i].head ;
-			while ( pelem != NULL )
-			{
-				add_colormap_item( &(entries[cmap_idx]), pelem, base++ );
-				index->buckets[i].count -= pelem->count ;
-				++cmap_idx ;
-				pelem = pelem->next ;
-			}
-		}
-	}else
-	{
-		int total = 0 ;
-		int subcount = 0 ;
-		ASMappedColor *best = NULL ;
-		for( i = start ; i <= stop ; i++ )
-			total += index->buckets[i].count ;
+	int count_unique = 0;
 
-		for( i = start ; i <= stop ; i++ )
+	for( i = 0 ; i < index->buckets_num ; i++ )
+	{
+		register ASMappedColor *pelem = index->buckets[i].head ;
+		int row_count = 0 ;
+		while( pelem != NULL )
 		{
-			register ASMappedColor *pelem = index->buckets[i].head ;
-			while ( pelem != NULL /*&& cmap_idx < quota*/ )
-			{
-				if( pelem->cmap_idx < 0 )
-				{
-					if( best == NULL )
-						best = pelem ;
-					else if( best->count < pelem->count )
-						best = pelem ;
-					else if( best->count == pelem->count &&
-						     subcount >= (total>>2) && subcount <= (total>>1)*3 )
-						best = pelem ;
-					subcount += pelem->count*quota ;
-LOCAL_DEBUG_OUT( "count = %d subtotal = %d, quota = %d, idx = %d, i = %d, total = %d", pelem->count, subcount, quota, cmap_idx, i, total );
-					if( subcount >= total )
-					{
-						add_colormap_item( &(entries[cmap_idx]), best, base++ );
-						index->buckets[i].count -= best->count ;
-						++cmap_idx ;
-						subcount -= total ;
-						best = NULL ;
-					}
-				}
-				pelem = pelem->next ;
-			}
+			count_unique++ ;
+			if( pelem->cmap_idx < 0 )
+				row_count += pelem->count ;
+			pelem = pelem->next ;
 		}
+		if( row_count != index->buckets[i].count )
+			fprintf( stderr, "bucket %d counts-> %d : %d\n", i, row_count, index->buckets[i].count );
 	}
-	return cmap_idx ;
+	fprintf( stderr, "total unique-> %d : %d\n", count_unique, index->count_unique );
+
 }
+#endif
 
 void
 fix_colorindex_shortcuts( ASSortedColorHash *index )
@@ -249,6 +199,85 @@ fix_colorindex_shortcuts( ASSortedColorHash *index )
 	}
 }
 
+
+
+static inline void
+add_colormap_item( register ASColormapEntry *pentry, ASMappedColor *pelem, int cmap_idx )
+{
+	pentry->red   = pelem->red ;
+	pentry->green = pelem->green ;
+	pentry->blue  = pelem->blue ;
+	pelem->cmap_idx = cmap_idx ;
+LOCAL_DEBUG_OUT( "colormap entry added: %d: #%2.2X%2.2X%2.2X",cmap_idx, pelem->red, pelem->green, pelem->blue );
+}
+
+unsigned int
+add_colormap_items( ASSortedColorHash *index, unsigned int start, unsigned int stop, unsigned int quota, unsigned int base, ASColormapEntry *entries )
+{
+	int cmap_idx = 0 ;
+	int i ;
+	if( quota >= index->count_unique )
+	{
+		for( i = start ; i < stop ; i++ )
+		{
+			register ASMappedColor *pelem = index->buckets[i].head ;
+			while ( pelem != NULL )
+			{
+				add_colormap_item( &(entries[cmap_idx]), pelem, base++ );
+				index->buckets[i].count -= pelem->count ;
+				++cmap_idx ;
+				pelem = pelem->next ;
+			}
+		}
+	}else
+	{
+		int total = 0 ;
+		int subcount = 0 ;
+		ASMappedColor *best = NULL ;
+		int best_slot = start;
+		for( i = start ; i <= stop ; i++ )
+			total += index->buckets[i].count ;
+
+		for( i = start ; i <= stop ; i++ )
+		{
+			register ASMappedColor *pelem = index->buckets[i].head ;
+			while ( pelem != NULL /*&& cmap_idx < quota*/ )
+			{
+				if( pelem->cmap_idx < 0 )
+				{
+					if( best == NULL )
+					{
+						best = pelem ;
+						best_slot = i ;
+					}else if( best->count < pelem->count )
+					{
+						best = pelem ;
+						best_slot = i ;
+					}
+					else if( best->count == pelem->count &&
+						     subcount >= (total>>2) && subcount <= (total>>1)*3 )
+					{
+						best = pelem ;
+						best_slot = i ;
+					}
+					subcount += pelem->count*quota ;
+LOCAL_DEBUG_OUT( "count = %d subtotal = %d, quota = %d, idx = %d, i = %d, total = %d", pelem->count, subcount, quota, cmap_idx, i, total );
+					if( subcount >= total )
+					{
+						add_colormap_item( &(entries[cmap_idx]), best, base++ );
+						index->buckets[best_slot].count -= best->count ;
+						++cmap_idx ;
+						subcount -= total ;
+						best = NULL ;
+					}
+				}
+				pelem = pelem->next ;
+			}
+		}
+	}
+	return cmap_idx ;
+}
+
 ASColormap *
 color_hash2colormap( ASColormap *cmap, unsigned int max_colors )
 {
@@ -280,7 +309,7 @@ color_hash2colormap( ASColormap *cmap, unsigned int max_colors )
 		for( i = 0 ; i < index->buckets_num ; i++ )
 		{
 			subcount += index->buckets[i].count*quota ;
-/*LOCAL_DEBUG_OUT( "count = %d, subtotal = %d, to_add = %d, idx = %d, i = %d, total = %d", index->stacks[i].count, subcount, subcount/total, cmap_idx, i, total );*/
+LOCAL_DEBUG_OUT( "count = %d, subtotal = %d, to_add = %d, idx = %d, i = %d, total = %d", index->buckets[i].count, subcount, subcount/total, cmap_idx, i, total );
 			if( subcount >= total )
 			{	/* we need to add subcount/index->count items */
 				int to_add = subcount/total ;
@@ -322,11 +351,11 @@ get_color_index( ASSortedColorHash *index, CARD32 indexed, unsigned int slot )
 		return index->last_idx;
 	index->last_found = indexed ;
 
-/*LOCAL_DEBUG_OUT( "index = %X(%d), slot = %d, offset = %d", indexed, indexed, slot, index->buckets[slot].good_offset );*/
+LOCAL_DEBUG_OUT( "index = %X(%d), slot = %d, offset = %d", indexed, indexed, slot, index->buckets[slot].good_offset );
 	if( (offset = index->buckets[slot].good_offset) != 0 )
 		slot += offset ;
 	stack = &(index->buckets[slot]);
-/*LOCAL_DEBUG_OUT( "first_good = %X(%d), last_good = %X(%d)", stack->head->indexed, stack->head->indexed, stack->tail->indexed, stack->tail->indexed );*/
+LOCAL_DEBUG_OUT( "first_good = %X(%d), last_good = %X(%d)", stack->head->indexed, stack->head->indexed, stack->tail->indexed, stack->tail->indexed );
 	if( offset < 0 || stack->tail->indexed <= indexed )
 		return (index->last_idx=stack->tail->cmap_idx);
 	if( offset > 0 || stack->head->indexed >= indexed )
@@ -335,7 +364,7 @@ get_color_index( ASSortedColorHash *index, CARD32 indexed, unsigned int slot )
 	lesser = stack->head ;
 	for( pnext = lesser; pnext != NULL ; pnext = pnext->next )
 	{
-/*LOCAL_DEBUG_OUT( "lesser = %X(%d), pnext = %X(%d)", lesser->indexed, lesser->indexed, pnext->indexed, pnext->indexed );*/
+LOCAL_DEBUG_OUT( "lesser = %X(%d), pnext = %X(%d)", lesser->indexed, lesser->indexed, pnext->indexed, pnext->indexed );
 			if( pnext->indexed >= indexed )
 			{
 				index->last_idx = ( pnext->indexed-indexed > indexed-lesser->indexed )?
@@ -571,9 +600,17 @@ colormap_asimage( ASImage *im, ASColormap *cmap, unsigned int max_colors, unsign
 	free_scanline(&scl, True);
 	SHOW_TIME("color indexing",started);
 
+#ifdef LOCAL_DEBUG
+check_colorindex_counts( cmap->hash );
+#endif
+
 	LOCAL_DEBUG_OUT("building colormap%s","");
 	color_hash2colormap( cmap, max_colors );
 	SHOW_TIME("colormap calculation",started);
+
+#ifdef LOCAL_DEBUG
+check_colorindex_counts( cmap->hash );
+#endif
 
 	dst = mapped_im ;
 	for( y = 0 ; y < im->height ; ++y )
@@ -590,8 +627,11 @@ colormap_asimage( ASImage *im, ASColormap *cmap, unsigned int max_colors, unsign
 			case 3 :
 			case 4 :
 				for( x = 0 ; x < im->width ; ++x )
+				{
+					LOCAL_DEBUG_OUT( "(%d,%d)", x, y );
 					if( dst[x] >= 0 )
 						dst[x] = get_color_index( cmap->hash, dst[x], ((dst[x]>>14)&0x03FF));
+				}
 				break;
 			case 5 :
 			case 6 :
