@@ -233,12 +233,12 @@ LoadBaseConfig (char *global_config_file, void (*read_base_options_func) (const 
 void
 LoadConfig (char *global_config_file, char *config_file_name, void (*read_options_func) (const char *))
 {
+  char *realconfigfile;
+  char configfile[255];
   if (global_config_file != NULL)
     read_options_func (global_config_file);
   else
     {
-      char *realconfigfile;
-      char configfile[255];
       sprintf (configfile, "%s/%s", AFTER_DIR, config_file_name);
       realconfigfile = (char *) PutHome (configfile);
       if ((CheckFile (realconfigfile)) == -1)
@@ -250,6 +250,22 @@ LoadConfig (char *global_config_file, char *config_file_name, void (*read_option
       read_options_func (realconfigfile);
       free (realconfigfile);
     }
+  strcpy( configfile, AFTER_DIR );
+  sprintf (configfile+strlen(AFTER_DIR), "/" THEME_FILE, 0, DefaultDepth(dpy,screen));
+  realconfigfile = (char *) PutHome (configfile);
+  if ((CheckFile (realconfigfile)) != -1)
+  {
+	  fprintf( stderr, "%s: reading theme file \"%s\"... \n", MyName, realconfigfile );  
+      read_options_func (realconfigfile);
+  }
+  free (realconfigfile);
+
+  sprintf (configfile, "%s/%s", AFTER_DIR, THEME_OVERRIDE_FILE);
+  realconfigfile = (char *) PutHome (configfile);
+  if ((CheckFile (realconfigfile)) != -1)
+      read_options_func (realconfigfile);
+  free (realconfigfile);
+
 }
 
 /**********************************************************************/

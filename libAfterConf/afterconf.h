@@ -156,6 +156,14 @@ extern char *pixmapPath;
 #define FAST_STARTUP		(1<<10)
 #define SET_ROOT_ON_STARTUP	(1<<11)
 #define PAGER_FLAGS_DEFAULT	(USE_LABEL|REDRAW_BG|PAGE_SEPARATOR|SHOW_SELECTION)
+/* set/unset flags : */
+#define PAGER_SET_GEOMETRY  (1<<16)
+#define PAGER_SET_ICON_GEOMETRY  	(1<<17)
+#define PAGER_SET_ALIGN 			(1<<18)
+#define PAGER_SET_SMALL_FONT 		(1<<19)
+#define PAGER_SET_ROWS 				(1<<20)
+#define PAGER_SET_COLUMNS 			(1<<21)
+
 
 /* ID's used in our config */
 #define PAGER_ID_START 		MYSTYLE_ID_END+1
@@ -197,7 +205,7 @@ typedef struct
     char **labels;
     char **styles;
     int align;
-    unsigned short flags;
+    unsigned long flags, set_flags;
     char *small_font_name;
     int rows, columns;
     char *selection_color;

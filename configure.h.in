@@ -53,12 +53,16 @@
 #define START_DIR       "start"
 #define BACK_DIR        "backgrounds"
 #define LOOK_DIR        "looks"
+#define THEME_DIR       "themes"
+#define THEME_DATA_DIR  "themefiles"
 #define FEEL_DIR        "feels"
 #define COMP_FILE	"compatibility"                  /* with -f oldrc */
 #define BASE_FILE       "base"                           /* scrdepth */
+#define THEME_OVERRIDE_FILE       "theme-override"       
 #define BACK_FILE       "non-configurable/%d_background" /* desk */
 #define LOOK_FILE       "non-configurable/%d_look.%dbpp" /* desk,scrdepth */
 #define FEEL_FILE       "non-configurable/%d_feel.%dbpp" /* desk,scrdepth */
+#define THEME_FILE      "non-configurable/%d_theme.%dbpp" /* desk,scrdepth */
 #define MENU_FILE	"non-configurable/startmenu"
 #define AUTOEXEC_FILE   "autoexec"
 #define DATABASE_FILE   "database"

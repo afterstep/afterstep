@@ -136,8 +136,8 @@ ScreenInfo Scr;			/* AS compatible screen information structure */
 Display *dpy;			/* which display are we talking to */
 int screen;
 
-int window_w = 0, window_h = 0, window_x = 0, window_y = 0, window_x_negative = 0,
-  window_y_negative = 0;
+int window_w = 0, window_h = 0, window_x = 0, window_y = 0, 
+    window_x_negative = 0, window_y_negative = 0;
 int icon_x = -10000, icon_y = -10000, icon_w = 0, icon_h = 0;
 int usposition = 0;
 
@@ -1135,51 +1135,83 @@ GetOptions (const char *filename)
 /*   WritePagerOptions( filename, MyName, Pager.desk1, Pager.desk2, config, WF_DISCARD_UNKNOWN|WF_DISCARD_COMMENTS );
  */
 
-  if (config->geometry.flags & WidthValue)
-    window_w = config->geometry.width;
-  if (config->geometry.flags & HeightValue)
-    window_h = config->geometry.height;
-  if (config->geometry.flags & XValue)
-    {
-      window_x = config->geometry.x;
-      usposition = 1;
-      if (config->geometry.flags & XNegative)
-	window_x_negative = 1;
-    }
-  if (config->geometry.flags & YValue)
-    {
-      window_y = config->geometry.y;
-      usposition = 1;
-      if (config->geometry.flags & YNegative)
-	window_y_negative = 1;
-    }
-  if (config->icon_geometry.flags & WidthValue)
-    icon_w = config->icon_geometry.width;
-  if (config->icon_geometry.flags & HeightValue)
-    icon_h = config->icon_geometry.height;
-  if (config->icon_geometry.flags & XValue)
-    icon_x = config->icon_geometry.x;
-  if (config->icon_geometry.flags & YValue)
-    icon_y = config->icon_geometry.y;
+  Pager.Flags = config->flags;
+  if( get_flags( config->set_flags, PAGER_SET_ALIGN ) )
+	  Look.TitleAlign = config->align;
+  if( get_flags( config->set_flags, PAGER_SET_ROWS ) )
+	  Pager.Rows = config->rows;
+  if( get_flags( config->set_flags, PAGER_SET_COLUMNS ) )
+	  Pager.Columns = config->columns;
 
-  for (i = 0; i < Pager.ndesks; i++)
-    {
-      if (Pager.Desks[i].label)
-	free (Pager.Desks[i].label);
-      Pager.Desks[i].label = config->labels[i];
+  if( Pager.Rows == 0 ) 
+	  Pager.Rows = 1 ;
+  if( Pager.Columns == 0 ) 
+	  Pager.Columns = ((Pager.desk2-Pager.desk1)+Pager.Rows-1) / Pager.Rows ;
+  else if( Pager.Rows*Pager.Columns  < Pager.desk2-Pager.desk1 ) 
+  	  Pager.Rows = ((Pager.desk2-Pager.desk1)+Pager.Columns-1) / Pager.Columns ;
+
+  if( get_flags( config->set_flags, PAGER_SET_GEOMETRY ) )
+  {
+    if (config->geometry.flags & WidthValue)
+	  window_w = config->geometry.width;
+    if (config->geometry.flags & HeightValue)
+	  window_h = config->geometry.height;
+    if (config->geometry.flags & XValue)
+	  {
+  	    window_x = config->geometry.x;
+    	usposition = 1;
+        if (config->geometry.flags & XNegative)
+	  	  window_x_negative = 1;
+      }	
+	if (config->geometry.flags & YValue)
+  	{
+  	    window_y = config->geometry.y;
+    	usposition = 1;
+        if (config->geometry.flags & YNegative)
+			window_y_negative = 1;
     }
+  }
+/*
+  if( window_w <= 0 ) 
+	window_w = Pager.xSize*Pager.Columns/Scr.VScale ;
+  if( window_h <= 0 ) 
+	window_h = Pager.ySize*Pager.Rows/Scr.VScale ;
+fprintf( stderr, "windows size will be %dx%d (%dx%d) %d\n", window_w, window_h, Pager.Columns, Pager.Rows, Scr.VScale );
+*/
+
+  if( get_flags( config->set_flags, PAGER_SET_ICON_GEOMETRY ) )
+  {
+    if (config->icon_geometry.flags & WidthValue)
+	  icon_w = config->icon_geometry.width;
+    if (config->icon_geometry.flags & HeightValue)
+	  icon_h = config->icon_geometry.height;
+    if (config->icon_geometry.flags & XValue)
+	  icon_x = config->icon_geometry.x;
+    if (config->icon_geometry.flags & YValue)
+	  icon_y = config->icon_geometry.y;
+
+    for (i = 0; i < Pager.ndesks; i++)
+	{
+  	  if (Pager.Desks[i].label)
+		free (Pager.Desks[i].label);
+	  Pager.Desks[i].label = config->labels[i];
+  	}
 #ifdef PAGER_BACKGROUND
-  for (i = 0; i < Pager.ndesks; i++)
-    {
+    for (i = 0; i < Pager.ndesks; i++)
+	{
       if (Pager.Desks[i].StyleName)
-	free (Pager.Desks[i].StyleName);
+		free (Pager.Desks[i].StyleName);
       Pager.Desks[i].StyleName = config->styles[i];
     }
 #endif
-  Pager.Flags = config->flags;
-  Look.TitleAlign = config->align;
-  Pager.Rows = config->rows;
-  Pager.Columns = config->columns;
+  }
+/*  
+  if( icon_w <= 0 ) 
+	icon_w = 64 ;
+  if( icon_h <= 0 ) 
+	icon_h = 64 ;
+*/
+  
   if (config->small_font_name)
     {
       load_font (config->small_font_name, &(Look.windowFont));

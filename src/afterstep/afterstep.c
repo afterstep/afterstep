@@ -164,7 +164,6 @@ InitASDirNames (Bool freemem)
 	free (as_dirs.after_dir);
       if (as_dirs.after_sharedir)
 	free (as_dirs.after_sharedir);
-
     }
   else
     {

@@ -123,6 +123,7 @@ PagerConfig *
 CreatePagerConfig (int ndesks)
 {
   PagerConfig *config = (PagerConfig *) safemalloc (sizeof (PagerConfig));
+  
   /* let's initialize Pager's config with some nice values: */
   InitMyGeometry (&(config->icon_geometry));
   InitMyGeometry (&(config->geometry));
@@ -134,6 +135,7 @@ CreatePagerConfig (int ndesks)
 #endif
   config->align = 0;
   config->flags = PAGER_FLAGS_DEFAULT;
+  config->set_flags = 0 ;
   config->small_font_name = NULL;
   config->rows = 1;
   config->columns = ndesks;
@@ -282,21 +284,27 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 	    {
 	    case PAGER_GEOMETRY_ID:
 	      config->geometry = item.data.geometry;
+		  set_flags( config->set_flags, PAGER_SET_GEOMETRY ) ;
 	      break;
 	    case PAGER_ICON_GEOMETRY_ID:
 	      config->icon_geometry = item.data.geometry;
+		  set_flags( config->set_flags, PAGER_SET_ICON_GEOMETRY ) ;
 	      break;
 	    case PAGER_ALIGN_ID:
 	      config->align = (int) item.data.integer;
+		  set_flags( config->set_flags, PAGER_SET_ALIGN ) ;
 	      break;
 	    case PAGER_SMALL_FONT_ID:
 	      config->small_font_name = item.data.string;
+		  set_flags( config->set_flags, PAGER_SET_SMALL_FONT ) ;
 	      break;
 	    case PAGER_ROWS_ID:
 	      config->rows = (int) item.data.integer;
+		  set_flags( config->set_flags, PAGER_SET_ROWS ) ;
 	      break;
 	    case PAGER_COLUMNS_ID:
 	      config->columns = (int) item.data.integer;
+		  set_flags( config->set_flags, PAGER_SET_COLUMNS ) ;
 	      break;
 	    case PAGER_LABEL_ID:
 	      config->labels[item.index - desk1] = item.data.string;

@@ -167,6 +167,7 @@ void SetCustomCursor (char *text, FILE * fd, char **arg, int *junk);
 
 void assign_string (char *text, FILE * fd, char **arg, int *);
 void assign_path (char *text, FILE * fd, char **arg, int *);
+void assign_themable_path (char *text, FILE * fd, char **arg, int *);
 void assign_pixmap (char *text, FILE * fd, char **arg, int *);
 
 /*
@@ -178,7 +179,7 @@ struct config main_config[] =
   /* base options */
   {"IconPath", assign_path, &IconPath, (int *) 0},
   {"ModulePath", assign_path, &ModulePath, (int *) 0},
-  {"PixmapPath", assign_path, &PixmapPath, (int *) 0},
+  {"PixmapPath", assign_themable_path, &PixmapPath, (int *) 0},
   {"CursorPath", assign_path, &CursorPath, (int *) 0},
 
   /* database options */
@@ -1398,6 +1399,21 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 		  ParseConfigFile (configfile, &tline);
 	  }
 	}
+	if( parse_feel || parse_look ) 
+	{
+	  Bool done = False ;
+	  if( Scr.screen != 0 )
+	  {
+		  sprintf (configfile, THEME_FILE ".scr%ld", thisdesktop, Scr.d_depth, Scr.screen);
+		  done = ( ParseConfigFile (configfile, &tline) > 0 );
+	  }
+	  if( !done )
+	  {
+		  sprintf (configfile, THEME_FILE, thisdesktop, Scr.d_depth);
+		  ParseConfigFile (configfile, &tline);
+	  }
+	  ParseConfigFile (THEME_OVERRIDE_FILE, &tline);
+	}
       fprintf (stderr, ".");
       ParseConfigFile (AUTOEXEC_FILE, &tline);
       fprintf (stderr, ".");
@@ -1638,6 +1654,23 @@ assign_string (char *text, FILE * fd, char **arg, int *junk)
  * Copies a PATH string from the config file to a specified location
  *
  ****************************************************************************/
+
+void
+assign_themable_path (char *text, FILE * fd, char **arg, int *junk)
+{
+  char *as_theme_data = make_file_name (as_dirs.after_dir, THEME_DATA_DIR);
+  char *tmp = stripcpy (text);
+  int tmp_len ;
+  replaceEnvVar (&tmp);
+  tmp_len = strlen(tmp);
+  *arg = safemalloc( tmp_len+1+strlen(as_theme_data)+1 );
+  strcpy( *arg, tmp );
+  (*arg)[tmp_len] = ':' ;
+  strcpy( (*arg)+tmp_len+1, as_theme_data );
+  free( tmp );
+  free( as_theme_data );
+}
+
 
 void
 assign_path (char *text, FILE * fd, char **arg, int *junk)
