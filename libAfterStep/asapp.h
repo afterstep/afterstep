@@ -232,6 +232,7 @@ extern char 	 *as_share_dir_name;
 extern char      *as_background_dir_name ;
 extern char      *as_look_dir_name ;
 extern char      *as_theme_dir_name ;
+extern char      *as_colorscheme_dir_name ;
 extern char      *as_theme_file_dir_name ;
 extern char      *as_feel_dir_name ;
 extern char      *as_font_dir_name ;

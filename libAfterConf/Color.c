@@ -17,7 +17,7 @@
  *
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 
 #include "../configure.h"
 
@@ -129,18 +129,26 @@ ParseColorOptions (const char *filename, char *myname)
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
+	LOCAL_DEBUG_OUT( "Storage = %p", Storage );
+
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
 		int index ;
+		LOCAL_DEBUG_OUT( "pCurr = %p", pCurr );
 		if (pCurr->term == NULL)
 			continue;
 		if (!ReadConfigItem (&item, pCurr))
 			continue;
 		index = pCurr->term->id - COLOR_ID_START ;
+		LOCAL_DEBUG_OUT( "id %d, index = %d", pCurr->term->id, index );
 		if( index >= 0 && index < ASMC_MainColors )
 		{
+			LOCAL_DEBUG_OUT( "index %d is \"%s\"", index, item.data.string );
 			if( parse_argb_color( item.data.string, &(config->main_colors[index]) )!= item.data.string )
+			{
+				LOCAL_DEBUG_OUT( "Parsed color %d as #%8.8lX", index, config->main_colors[index] );
 				set_flags( config->set_main_colors, (0x01<<index) );
+			}
 		}else if( pCurr->term->id == COLOR_Angle_ID )
 		{
 			config->angle = item.data.integer ;
@@ -251,7 +259,6 @@ ColorConfig2ASColorScheme( ColorConfig *config )
 	if( config )
 	{
 		int i ;
-		config = CreateColorConfig();
 		cs = make_ascolor_scheme( config->main_colors[ASMC_Base], config->angle );
 		for( i = 0 ; i < ASMC_MainColors ; ++i )
 			if( i != ASMC_Base && get_flags( config->set_main_colors, (0x01<<i)) )

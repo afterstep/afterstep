@@ -1513,7 +1513,6 @@ typedef struct ColorConfig
 
 }ColorConfig;
 
-ColorConfig *ParseColorFile (const char *filename, char *myname);
 void DestroyColorConfig (ColorConfig * config);
 
 ColorConfig *ParseColorOptions (const char *filename, char *myname);

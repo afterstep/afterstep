@@ -1178,6 +1178,29 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         }
         if (get_flags(what, PARSE_LOOK_CONFIG))
 		{
+			ASColorScheme *cs = NULL ;
+			/* first we need to load the colorscheme */
+            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_COLORSCHEME) ) != NULL )
+            {
+				ColorConfig *config = ParseColorOptions (const_configfile, MyName);
+				if( config )
+				{
+					cs = ColorConfig2ASColorScheme( config );
+					DestroyColorConfig (config);
+	                show_progress("COLORSCHEME loaded from \"%s\" ...", const_configfile);
+				}else
+					show_progress("COLORSCHEME file format is unrecognizeable in \"%s\" ...", const_configfile);
+
+            }else
+                show_warning("COLORSCHEME is not set");
+
+			if( cs == NULL )
+				cs = make_ascolor_scheme( DEFAULT_COLORSCHEME_BASE, ASCS_DEFAULT_ANGLE );
+			populate_ascs_colors_rgb( cs );
+			populate_ascs_colors_xml( cs );
+			free( cs );
+
+			/* now we can proceed to loading them look and theme */
             if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_LOOK) ) != NULL )
             {
                 InitLook (&Scr.Look, True);

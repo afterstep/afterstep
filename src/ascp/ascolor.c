@@ -369,7 +369,7 @@ DispatchEvent (ASEvent * event)
 				int val = 10 ;
 				if( (event->x.xkey.state&ControlMask) )
 					val = 1 ;
-				LOCAL_DEBUG_OUT( "keysym = 0x%X", XLookupKeysym (&(event->x.xkey),0) );
+				LOCAL_DEBUG_OUT( "keysym = 0x%lX", XLookupKeysym (&(event->x.xkey),0) );
 				switch( XLookupKeysym (&(event->x.xkey), 0) )
 				{
 					case XK_a : ASColorState.curr_param = ASC_PARAM_Angle ;
@@ -615,7 +615,7 @@ do_colorscheme()
 	}
 }
 
-#define normalize_percent_val(v)  (((v)<0)?0:(((v)>=100)?99:(v)))
+#define normalize_percent_val(v)  (((v)<=5)?5:(((v)>100)?100:(v)))
 
 void
 do_change_param( int val )
@@ -653,6 +653,9 @@ do_change_param( int val )
 					ASColorState.angle = 60 ;
 				break ;
 		}
+		LOCAL_DEBUG_OUT( "val = %d, base hsv: %d, %d, %d", val, ASColorState.base_hue,
+			                                                      ASColorState.base_sat,
+																  ASColorState.base_val );
 		ASColorState.base_color = make_color_scheme_argb( 0xFFFF, ASColorState.base_hue,
 			                                                      ASColorState.base_sat,
 																  ASColorState.base_val );

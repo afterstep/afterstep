@@ -139,6 +139,7 @@ void SetupFunctionHandlers()
 
     function_handlers[F_CHANGE_LOOK] =
         function_handlers[F_CHANGE_FEEL]    =
+		function_handlers[F_CHANGE_COLORSCHEME] =
         function_handlers[F_CHANGE_THEME_FILE] = change_config_func_handler ;
 
 	function_handlers[F_CHANGE_THEME]   = change_theme_func_handler ;
@@ -149,7 +150,8 @@ void SetupFunctionHandlers()
 		function_handlers[F_INSTALL_FONT] =
 		function_handlers[F_INSTALL_ICON] =
 		function_handlers[F_INSTALL_TILE] =
-		function_handlers[F_INSTALL_THEME_FILE] = install_file_func_handler ;
+		function_handlers[F_INSTALL_THEME_FILE] =
+		function_handlers[F_INSTALL_COLORSCHEME] = install_file_func_handler ;
 
 
 
@@ -921,7 +923,9 @@ commit_config_change( int func )
     	{
         	if( func == F_CHANGE_THEME )
 				Done ( True, NULL );
-        	else
+        	else if( func == F_CHANGE_COLORSCHEME )
+				QuickRestart ("look");
+			else
             	QuickRestart ((func == F_CHANGE_LOOK)?"look":"feel");
 			_as_config_change_count = 0 ;
 		}
@@ -987,13 +991,23 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
 #endif
     if (Scr.screen == 0)
     {
-        file_template = (data->func == F_CHANGE_LOOK)? LOOK_FILE : ((data->func == F_CHANGE_FEEL)?FEEL_FILE:THEME_FILE) ;
+		switch( data->func )
+		{
+			case F_CHANGE_LOOK : file_template = LOOK_FILE ;   break ;
+			case F_CHANGE_FEEL : file_template = FEEL_FILE ;   break ;
+			case F_CHANGE_COLORSCHEME : file_template = COLORSCHEME_FILE ;   break ;
+			default: file_template = THEME_FILE ;   break ;
+		}
         sprintf (tmpfile, file_template, desk);
     }else
     {
-        file_template =  (data->func == F_CHANGE_LOOK )? LOOK_FILE  ".scr%ld" :
-                        ((data->func == F_CHANGE_FEEL) ? FEEL_FILE  ".scr%ld" :
-                                                         THEME_FILE ".scr%ld" );
+		switch( data->func )
+		{
+			case F_CHANGE_LOOK : file_template = LOOK_FILE  ".scr%ld" ;   break ;
+			case F_CHANGE_FEEL : file_template = FEEL_FILE  ".scr%ld" ;   break ;
+			case F_CHANGE_COLORSCHEME : file_template = COLORSCHEME_FILE  ".scr%ld" ;   break ;
+			default: file_template = THEME_FILE  ".scr%ld" ;   break ;
+		}
         sprintf (tmpfile, file_template, desk, Scr.screen);
     }
 
@@ -1031,6 +1045,7 @@ void install_file_func_handler( FunctionData *data, ASEvent *event, int module )
 		case F_INSTALL_ICON :		dir_name = as_icon_dir_name; desktop_resource = True; break;
 		case F_INSTALL_TILE :		dir_name = as_tile_dir_name; desktop_resource = True; break;
 		case F_INSTALL_THEME_FILE : dir_name = as_theme_file_dir_name; break;
+		case F_INSTALL_COLORSCHEME : dir_name= as_colorscheme_dir_name; break;
 	}
 	if( dir_name != NULL )
 	{

@@ -303,14 +303,16 @@ StorageCleanUp (FreeStorageElem ** storage, FreeStorageElem ** garbadge_bin, uns
 
 	for (ppCurr = storage; *ppCurr; ppCurr = &((*ppCurr)->next))
 	{
-		while ((*ppCurr)->flags & mask)
+		while((*ppCurr)->flags & mask)
 		{
 			pToRem = *ppCurr;
 			*ppCurr = pToRem->next;
 			pToRem->next = *garbadge_bin;
 			*garbadge_bin = pToRem;
+			if( *ppCurr == NULL )
+				return;
 		}
-		if ((*ppCurr)->sub)
+		if ( *ppCurr && (*ppCurr)->sub)
 			StorageCleanUp (&((*ppCurr)->sub), garbadge_bin, mask);
 	}
 }

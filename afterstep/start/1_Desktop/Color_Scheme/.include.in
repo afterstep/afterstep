@@ -1,0 +1,4 @@
+keepname
+include "@datadir@/afterstep/colorschemes" ChangeColorscheme
+include "@with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/colorschemes" ChangeColorscheme
+extension colorscheme.

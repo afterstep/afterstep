@@ -18,6 +18,7 @@ typedef struct ASDeskSession
   char *look_file;
   struct MyLook *look ;
   char *theme_file;
+  char *colorscheme_file;
 }ASDeskSession;
 
 typedef struct ASSession
@@ -26,7 +27,7 @@ typedef struct ASSession
   int   colordepth ;
   char *ashome, *asshare ; /* locations of the AfterStep config directories */
   char *overriding_file  ; /* if user specifies -f option to AS then we use this file for everything */
-  char *overriding_look, *overriding_feel, *overriding_theme ;
+  char *overriding_look, *overriding_feel, *overriding_theme, *overriding_colorscheme ;
 
   ASDeskSession *defaults;
   ASDeskSession **desks;

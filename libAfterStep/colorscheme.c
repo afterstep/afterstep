@@ -288,7 +288,7 @@ make_ascolor_scheme( ARGB32 base, int angle )
 
 	cs->base_hue = hue162degrees(hue16);
 	sat = val162percent(sat16);
-	LOCAL_DEBUG_OUT( "sat16 = %d(0x%lX), sat = %d", sat16, sat16, sat );
+	LOCAL_DEBUG_OUT( "sat16 = %ld(0x%lX), sat = %d", sat16, sat16, sat );
 	val = val162percent(val16);
 	cs->base_sat = max(sat,ASCS_MIN_PRIMARY_SATURATION);
 	cs->base_val = FIT_IN_RANGE(ASCS_MIN_PRIMARY_BRIGHTNESS, val, ASCS_MAX_PRIMARY_BRIGHTNESS);
@@ -416,10 +416,18 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	}
 	cs->main_colors[ASMC_HighActiveText] = make_color_scheme_argb( base_alpha16, cs->base_hue, cs->high_active_text_sat, cs->high_active_text_val);
 
+#if 0
 	if( cs->base_sat  >  ASCS_DISABLED_SATURATION_LEVEL )
 		cs->main_colors[ASMC_DisabledText] = make_color_scheme_argb( base_alpha16, cs->base_hue, cs->base_sat - ASCS_DISABLED_SATURATION_LEVEL, cs->high_inactive_text_val);
+	else if( cs->base_sat  >  ASCS_DISABLED_SATURATION_THRESHOLD )
+		cs->main_colors[ASMC_DisabledText] = make_color_scheme_argb( base_alpha16, cs->base_hue, cs->base_sat + (ASCS_DISABLED_SATURATION_LEVEL*2), cs->high_inactive_text_val);
 	else
 		cs->main_colors[ASMC_DisabledText] = make_color_scheme_argb( base_alpha16, cs->base_hue, cs->base_sat + ASCS_DISABLED_SATURATION_LEVEL, cs->high_inactive_text_val);
+#endif
+	if( cs->base_val > 50 )
+		cs->main_colors[ASMC_DisabledText] = make_color_scheme_argb( base_alpha16, cs->base_hue, (cs->base_sat*80)/100, cs->base_val - ASCS_GRADIENT_BRIGHTNESS_OFFSET/2);
+	else
+		cs->main_colors[ASMC_DisabledText] = make_color_scheme_argb( base_alpha16, cs->base_hue, (cs->base_sat*80)/100, cs->base_val - ASCS_GRADIENT_BRIGHTNESS_OFFSET/2);
 
 	make_grad_argb( &(cs->main_colors[ASMC_BaseDark]), base_alpha16, cs->base_hue, cs->base_sat, cs->base_val, True );
 	make_grad_argb( &(cs->main_colors[ASMC_Inactive1Dark]), base_alpha16, cs->inactive1_hue, cs->inactive1_sat, cs->inactive1_val, False );

@@ -61,6 +61,7 @@
 #define BACK_DIR        "backgrounds"
 #define LOOK_DIR        "looks"
 #define THEME_DIR       "themes"
+#define COLORSCHEME_DIR "colorschemes"
 #define THEME_FILE_DIR  "installed_themes"
 #define FEEL_DIR        "feels"
 #define DESKTOP_DIR     "desktop"
@@ -75,9 +76,12 @@
 #define LOOK_FILE       "non-configurable/%d_look" /* desk */
 #define FEEL_FILE       "non-configurable/%d_feel" /* desk */
 #define THEME_FILE      "non-configurable/%d_theme" /* desk */
+#define COLORSCHEME_FILE "non-configurable/%d_colorscheme" /* desk */
 #define MENU_FILE	"non-configurable/startmenu"
 #define AUTOEXEC_FILE   "autoexec"
 #define DATABASE_FILE   "database"
+
+#define DEFAULT_COLORSCHEME_BASE	0xFF666666   /* base color of the default colorscheme */
 
 			      /* ############# */
 			      /* Look settings */
