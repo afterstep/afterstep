@@ -84,7 +84,7 @@ is_function_bound_to_button (int b, int function)
 		context = C_R1 << (b-FIRST_RIGHT_TBTN);
 
 	for (func = Scr.MouseButtonRoot; func != NULL; func = (*func).NextButton)
-		if ((func->Context & context) && (func->func == function))
+        if ((func->Context & context) && (func->fdata->func == function))
 			return True;
 	return False;
 }
@@ -157,7 +157,7 @@ int
 check_allowed_function (MenuItem * mi)
 {
 	/* Complex functions are a little tricky... ignore them for now */
-	int func = mi->func ;
+    int func = mi->fdata->func ;
 
 	if (func == F_FUNCTION && mi->item != NULL)
 	{

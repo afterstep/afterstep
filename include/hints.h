@@ -235,7 +235,7 @@ int translate_asgeometry( struct ScreenInfo *scr, ASGeometry *asg, int *px, int 
 void real2virtual (ASStatusHints *status, int *x, int *y, int vx, int vy );
 void virtual2real (ASStatusHints *status, int *x, int *y, int vx, int vy);
 int make_anchor_pos (ASStatusHints * status, int pos, unsigned int size, int vpos, int grav, int max_pos);
-int make_detach_pos(ASHints * hints, ASStatusHints * status, XRectangle *anchor, int *detach_x, int *detach_y);
+void make_detach_pos (ASHints * hints, ASStatusHints * status, XRectangle *anchor, int *detach_x, int *detach_y);
 ASFlagType change_placement( struct ScreenInfo *scr, ASHints *hints, ASStatusHints *status, XPoint *anchor, ASStatusHints *new_status, int vx, int vy, ASFlagType what );
 
 void status2anchor( XRectangle *anchor, struct ASHints *hints, struct ASStatusHints *status, unsigned int vwidth, unsigned int vheight );

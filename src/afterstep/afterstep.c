@@ -70,6 +70,7 @@
 
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
+#include "../../libAfterImage/afterimage.h"
 #include "../../include/parse.h"
 #include "../../include/misc.h"
 #include "../../include/style.h"
@@ -82,8 +83,7 @@
 #include "../../libAfterBase/selfdiag.h"
 #include "../../libAfterImage/afterimage.h"
 
-#include "globals.h"
-#include "menus.h"
+#include "asinternals.h"
 
 #define MAXHOSTNAME 255
 
@@ -441,18 +441,16 @@ main (int argc, char **argv)
 
 	XSync (dpy, 0);
 
-    register_aswindow( Scr.Root, &Scr.ASRoot );
-
    /***********************************************************/
 #ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
 	XGrabServer (dpy);                		/* grabbed   !!!!!*/
 #endif										/* grabbed   !!!!!*/
 #ifndef NO_VIRTUAL							/* grabbed   !!!!!*/
-	initPanFrames ();						/* grabbed   !!!!!*/
+    InitPanFrames ();                       /* grabbed   !!!!!*/
 #endif /* NO_VIRTUAL */						/* grabbed   !!!!!*/
 	CaptureAllWindows ();					/* grabbed   !!!!!*/
 #ifndef NO_VIRTUAL							/* grabbed   !!!!!*/
-	checkPanFrames ();						/* grabbed   !!!!!*/
+    CheckPanFrames ();                      /* grabbed   !!!!!*/
 #endif /* NO_VIRTUAL */						/* grabbed   !!!!!*/
 #ifndef DONT_GRAB_SERVER					/* grabbed   !!!!!*/
 	XUngrabServer (dpy);					/* UnGrabbed !!!!!*/
@@ -465,16 +463,16 @@ main (int argc, char **argv)
 	/* watch for incoming module connections */
 	module_setup_socket (Scr.Root, display_string);
 
-	if (Restarting)
-	{
-		if (Scr.RestartFunction != NULL)
-            ExecuteFunction (F_FUNCTION, NULL, NULL, 0, 0, 0, 0, Scr.RestartFunction, -1);
-	} else
-	{
-		if (Scr.InitFunction != NULL)
-            ExecuteFunction (F_FUNCTION, NULL, NULL, 0, 0, 0, 0, Scr.InitFunction, -1);
-	}
-	XDefineCursor (dpy, Scr.Root, Scr.ASCursors[DEFAULT]);
+    {
+        ASEvent event = {0};
+        FunctionData restart_func ;
+        init_func_data( &restart_func );
+        restart_func.func = F_FUNCTION ;
+        restart_func.popup = Restarting?Scr.RestartFunction:Scr.InitFunction ;
+        if (restart_func.popup)
+            ExecuteFunction (&restart_func, &event, -1);
+    }
+    XDefineCursor (dpy, Scr.Root, Scr.ASCursors[DEFAULT]);
 
 	/* make sure we're on the right desk, and the _WIN_DESK property is set */
     ChangeDesks (Scr.CurrentDesk);
@@ -839,10 +837,6 @@ InitVariables (int shallresetdesktop)
 	MenuContext = XUniqueContext ();
 
 	Scr.d_depth = Scr.asv->visual_info.depth;
-	Scr.ASRoot.w = Scr.Root;
-	Scr.ASRoot.hints = safecalloc( 1, sizeof(ASHints));
-	Scr.ASRoot.status = safecalloc( 1, sizeof(ASStatusHints));
-	Scr.ASRoot.next = 0;
 
     Scr.MyDisplayWidth = DisplayWidth (dpy, Scr.screen);
 	Scr.MyDisplayHeight = DisplayHeight (dpy, Scr.screen);
@@ -850,9 +844,7 @@ InitVariables (int shallresetdesktop)
 	Scr.NoBoundaryWidth = 0;
 	Scr.BoundaryWidth = BOUNDARY_WIDTH;
 	Scr.CornerWidth = CORNER_WIDTH;
-	Scr.Hilite = NULL;
-	Scr.Focus = NULL;
-	Scr.Ungrabbed = NULL;
+    Scr.Windows = init_aswindow_list();
 
 	Scr.VScale = 32;
 
@@ -903,8 +895,6 @@ InitVariables (int shallresetdesktop)
 	Scr.flags = 0;
 	Scr.randomx = Scr.randomy = 0;
 	Scr.buttons2grab = 7;
-
-	Scr.next_focus_sequence = 0;
 
 /* ßß
    Scr.InitFunction = NULL;
@@ -975,21 +965,10 @@ InitModifiers (void)
 void
 Reborder ()
 {
-	ASWindow     *t;
-
 	/* remove afterstep frame from all windows */
 	XGrabServer (dpy);
 
-	InstallWindowColormaps (&Scr.ASRoot);	   /* force reinstall */
-
-	for (t = &Scr.ASRoot; t->next != NULL; t = t->next);
-	while (t != &Scr.ASRoot)
-	{
-		ASWindow     *tmp = t->prev;
-
-		Destroy (t, False);
-		t = tmp;
-	}
+    destroy_aswindow_list( &(Scr.Windows), True );
 #ifndef NO_TEXTURE
 	if (DecorateFrames)
 		frame_free_data (NULL, True);
@@ -1139,25 +1118,17 @@ Done (int restart, char *command)
             if( Scr.ComplexFunctions )
                 destroy_ashash( &Scr.ComplexFunctions );
             /* global drawing GCs */
-			if (Scr.NormalGC != NULL)
-				XFreeGC (dpy, Scr.NormalGC);
-			if (Scr.StippleGC != NULL)
-				XFreeGC (dpy, Scr.StippleGC);
 			if (Scr.DrawGC != NULL)
 				XFreeGC (dpy, Scr.DrawGC);
 			if (Scr.LineGC != NULL)
 				XFreeGC (dpy, Scr.LineGC);
-			if (Scr.ScratchGC1 != NULL)
-				XFreeGC (dpy, Scr.ScratchGC1);
-			if (Scr.ScratchGC2 != NULL)
-				XFreeGC (dpy, Scr.ScratchGC2);
 			if (Scr.gray_bitmap != None)
 				XFreePixmap (dpy, Scr.gray_bitmap);
 			/* balloons */
 			balloon_init (1);
 			/* pixmap references */
 			pixmap_ref_purge ();
-			build_xpm_colormap (NULL);
+            build_xpm_colormap (NULL);
 		}
 		print_unfreed_mem ();
 #endif /*DEBUG_ALLOCS */
@@ -1199,140 +1170,4 @@ usage (void)
 	exit (-1);
 }
 
-#ifndef NO_VIRTUAL
-/* the root window is surrounded by four window slices, which are InputOnly.
- * So you can see 'through' them, but they eat the input. An EnterEvent in
- * one of these windows causes a Paging. The windows have the according cursor
- * pointing in the pan direction or are hidden if there is no more panning
- * in that direction. This is mostly intended to get a panning even atop
- * of Motif applictions, which does not work yet. It seems Motif windows
- * eat all mouse events.
- *
- * Hermann Dunkel, HEDU, dunkel@cul-ipn.uni-kiel.de 1/94
- */
 
-/***************************************************************************
- * checkPanFrames hides PanFrames if they are on the very border of the
- * VIRTUELL screen and EdgeWrap for that direction is off.
- * (A special cursor for the EdgeWrap border could be nice) HEDU
- ****************************************************************************/
-void
-checkPanFrames (void)
-{
-	int           wrapX = (Scr.flags & EdgeWrapX);
-	int           wrapY = (Scr.flags & EdgeWrapY);
-
-	/* Remove Pan frames if paging by edge-scroll is permanently or
-	 * temporarily disabled */
-    if ((Scr.EdgeScrollY == 0) || !get_flags(Scr.flags, DoHandlePageing))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameTop.win);
-		Scr.PanFrameTop.isMapped = False;
-		XUnmapWindow (dpy, Scr.PanFrameBottom.win);
-		Scr.PanFrameBottom.isMapped = False;
-	}
-    if ((Scr.EdgeScrollX == 0) || !get_flags(Scr.flags, DoHandlePageing))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
-		Scr.PanFrameLeft.isMapped = False;
-		XUnmapWindow (dpy, Scr.PanFrameRight.win);
-		Scr.PanFrameRight.isMapped = False;
-	}
-    if (((Scr.EdgeScrollX == 0) && (Scr.EdgeScrollY == 0)) || !get_flags(Scr.flags, DoHandlePageing))
-		return;
-
-	/* LEFT, hide only if EdgeWrap is off */
-	if (Scr.Vx == 0 && Scr.PanFrameLeft.isMapped && (!wrapX))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
-		Scr.PanFrameLeft.isMapped = False;
-	} else if (Scr.Vx > 0 && Scr.PanFrameLeft.isMapped == False)
-	{
-		XMapRaised (dpy, Scr.PanFrameLeft.win);
-		Scr.PanFrameLeft.isMapped = True;
-	}
-	/* RIGHT, hide only if EdgeWrap is off */
-	if (Scr.Vx == Scr.VxMax && Scr.PanFrameRight.isMapped && (!wrapX))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameRight.win);
-		Scr.PanFrameRight.isMapped = False;
-	} else if (Scr.Vx < Scr.VxMax && Scr.PanFrameRight.isMapped == False)
-	{
-		XMapRaised (dpy, Scr.PanFrameRight.win);
-		Scr.PanFrameRight.isMapped = True;
-	}
-	/* TOP, hide only if EdgeWrap is off */
-	if (Scr.Vy == 0 && Scr.PanFrameTop.isMapped && (!wrapY))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameTop.win);
-		Scr.PanFrameTop.isMapped = False;
-	} else if (Scr.Vy > 0 && Scr.PanFrameTop.isMapped == False)
-	{
-		XMapRaised (dpy, Scr.PanFrameTop.win);
-		Scr.PanFrameTop.isMapped = True;
-	}
-	/* BOTTOM, hide only if EdgeWrap is off */
-	if (Scr.Vy == Scr.VyMax && Scr.PanFrameBottom.isMapped && (!wrapY))
-	{
-		XUnmapWindow (dpy, Scr.PanFrameBottom.win);
-		Scr.PanFrameBottom.isMapped = False;
-	} else if (Scr.Vy < Scr.VyMax && Scr.PanFrameBottom.isMapped == False)
-	{
-		XMapRaised (dpy, Scr.PanFrameBottom.win);
-		Scr.PanFrameBottom.isMapped = True;
-	}
-}
-
-/****************************************************************************
- *
- * Gotta make sure these things are on top of everything else, or they
- * don't work!
- *
- ***************************************************************************/
-void
-raisePanFrames (void)
-{
-	if (Scr.PanFrameTop.isMapped)
-		XRaiseWindow (dpy, Scr.PanFrameTop.win);
-	if (Scr.PanFrameLeft.isMapped)
-		XRaiseWindow (dpy, Scr.PanFrameLeft.win);
-	if (Scr.PanFrameRight.isMapped)
-		XRaiseWindow (dpy, Scr.PanFrameRight.win);
-	if (Scr.PanFrameBottom.isMapped)
-		XRaiseWindow (dpy, Scr.PanFrameBottom.win);
-}
-
-/****************************************************************************
- *
- * Creates the windows for edge-scrolling
- *
- ****************************************************************************/
-void
-initPanFrames ()
-{
-	XSetWindowAttributes attributes;		   /* attributes for create */
-	unsigned long valuemask;
-
-	attributes.event_mask = (EnterWindowMask | LeaveWindowMask | VisibilityChangeMask);
-	valuemask = (CWEventMask | CWCursor);
-
-	attributes.cursor = Scr.ASCursors[TOP];
-	Scr.PanFrameTop.win = create_visual_window (Scr.asv, Scr.Root, 0, 0, Scr.MyDisplayWidth, PAN_FRAME_THICKNESS, 0,	/* no border */
-												InputOnly, valuemask, &attributes);
-	attributes.cursor = Scr.ASCursors[LEFT];
-	Scr.PanFrameLeft.win = create_visual_window (Scr.asv, Scr.Root, 0, PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, Scr.MyDisplayHeight - 2 * PAN_FRAME_THICKNESS, 0,	/* no border */
-												 InputOnly, valuemask, &attributes);
-	attributes.cursor = Scr.ASCursors[RIGHT];
-	Scr.PanFrameRight.win = create_visual_window (Scr.asv, Scr.Root, Scr.MyDisplayWidth - PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, Scr.MyDisplayHeight - 2 * PAN_FRAME_THICKNESS, 0,	/* no border */
-												  InputOnly, valuemask, &attributes);
-	attributes.cursor = Scr.ASCursors[BOTTOM];
-	Scr.PanFrameBottom.win = create_visual_window (Scr.asv, Scr.Root, 0, Scr.MyDisplayHeight - PAN_FRAME_THICKNESS, Scr.MyDisplayWidth, PAN_FRAME_THICKNESS, 0,	/* no border */
-												   InputOnly, valuemask, &attributes);
-	Scr.PanFrameTop.isMapped = Scr.PanFrameLeft.isMapped =
-		Scr.PanFrameRight.isMapped = Scr.PanFrameBottom.isMapped = False;
-
-	Scr.usePanFrames = True;
-
-}
-
-#endif /* NO_VIRTUAL */

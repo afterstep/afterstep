@@ -48,6 +48,7 @@
 
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
+#include "../../include/decor.h"
 #include "../../include/parse.h"
 #include "../../include/misc.h"
 #include "../../include/style.h"
@@ -558,31 +559,6 @@ KillModuleByName (char *name)
 }
 
 void
-Broadcast (unsigned long event_type, unsigned long num_datum, ...)
-{
-	int           i;
-	va_list       ap;
-	unsigned long *body;
-
-	body = safemalloc ((3 + num_datum) * sizeof (unsigned long));
-
-	body[0] = START_FLAG;
-	body[1] = event_type;
-	body[2] = 3 + num_datum;
-
-	va_start (ap, num_datum);
-	for (i = 0; i < num_datum; i++)
-		body[3 + i] = va_arg (ap, unsigned long);
-
-	va_end (ap);
-
-	for (i = 0; i < npipes; i++)
-		PositiveWrite (i, body, body[2] * sizeof (unsigned long));
-
-	free (body);
-}
-
-void
 SendPacket (int module, unsigned long event_type, unsigned long num_datum, ...)
 {
 	int           i;
@@ -601,7 +577,11 @@ SendPacket (int module, unsigned long event_type, unsigned long num_datum, ...)
 
 	va_end (ap);
 
-	PositiveWrite (module, body, body[2] * sizeof (unsigned long));
+    if( module >= 0 )
+        PositiveWrite (module, body, body[2] * sizeof (unsigned long));
+    else
+        for (i = 0; i < npipes; i++)
+            PositiveWrite (i, body, body[2] * sizeof (unsigned long));
 
 	free (body);
 }
@@ -609,75 +589,37 @@ SendPacket (int module, unsigned long event_type, unsigned long num_datum, ...)
 void
 SendConfig (int module, unsigned long event_type, ASWindow * t)
 {
-	MyStyle      *style;
+    int frame_x = 0, frame_y = 0, frame_width = 0, frame_height = 0;
+    Window icon_title_w = None, icon_pixmap_w = None ;
 
-	if (t == Scr.Hilite)
-		style = t->style_focus;
-	else if (t->flags & STICKY)
-		style = t->style_sticky;
-	else
-		style = t->style_unfocus;
+    if( t->frame_canvas )
+    {
+        frame_x = t->frame_canvas->root_x ;
+        frame_y = t->frame_canvas->root_y ;
+        frame_width = t->frame_canvas->width ;
+        frame_height = t->frame_canvas->height ;
+    }
 
-	SendPacket (module, event_type, 24, t->w, t->frame, (unsigned long)t,
-				t->frame_x, t->frame_y, t->frame_width, t->frame_height,
-				ASWIN_DESK(t), t->flags, t->title_height, t->boundary_width,
+    if( t->icon_canvas )
+        icon_pixmap_w = t->icon_canvas->w ;
+    if( t->icon_title_canvas && t->icon_title_canvas != t->icon_canvas )
+        icon_title_w = t->icon_title_canvas->w ;
+
+
+    SendPacket (module, event_type, 24, t->w, t->frame, (unsigned long)t,
+                frame_x, frame_y, frame_width, frame_height,
+                ASWIN_DESK(t), t->status->flags, t->hints->flags, 0,
 				t->hints->base_width, t->hints->base_height, t->hints->width_inc,
 				t->hints->height_inc, t->hints->min_width, t->hints->min_height,
-				t->hints->max_width, t->hints->max_height, t->icon_title_w,
-				t->icon_pixmap_w, t->hints->gravity, style->colors.fore, style->colors.back);
+                t->hints->max_width,  t->hints->max_height,
+                icon_title_w,         icon_pixmap_w, t->hints->gravity, 0xFFFFFFFF, 0x00000000);
 }
 
 
 void
 BroadcastConfig (unsigned long event_type, ASWindow * t)
 {
-	MyStyle      *style;
-
-	if (t == Scr.Hilite)
-		style = t->style_focus;
-	else if (t->flags & STICKY)
-		style = t->style_sticky;
-	else
-		style = t->style_unfocus;
-
-	Broadcast (event_type, 24, t->w, t->frame, (unsigned long)t,
-			   t->frame_x, t->frame_y, t->frame_width, t->frame_height,
-				ASWIN_DESK(t), t->flags, t->title_height, t->boundary_width,
-				t->hints->base_width, t->hints->base_height, t->hints->width_inc,
-				t->hints->height_inc, t->hints->min_width, t->hints->min_height,
-				t->hints->max_width, t->hints->max_height, t->icon_title_w,
-				t->icon_pixmap_w, t->hints->gravity, style->colors.fore, style->colors.back);
-}
-
-void
-BroadcastName (unsigned long event_type, unsigned long data1,
-			   unsigned long data2, unsigned long data3, char *name)
-{
-	int           l, i;
-	unsigned long *body;
-
-
-	if (name == NULL)
-		return;
-	l = (strlen (name) + 1) / (sizeof (unsigned long)) + 7;
-
-	body = (unsigned long *)safemalloc (l * sizeof (unsigned long));
-
-	body[0] = START_FLAG;
-	body[1] = event_type;
-	body[2] = l;
-
-	body[3] = data1;
-	body[4] = data2;
-	body[5] = data3;
-	strcpy ((char *)&body[6], name);
-
-
-	for (i = 0; i < npipes; i++)
-		PositiveWrite (i, (unsigned long *)body, l * sizeof (unsigned long));
-
-	free (body);
-
+    SendConfig( -1, event_type, t );
 }
 
 
@@ -685,7 +627,7 @@ void
 SendName (int module, unsigned long event_type,
 		  unsigned long data1, unsigned long data2, unsigned long data3, char *name)
 {
-	int           l;
+    int           l, i;
 	unsigned long *body;
 
 	if (name == NULL)
@@ -702,7 +644,11 @@ SendName (int module, unsigned long event_type,
 	body[5] = data3;
 	strcpy ((char *)&body[6], name);
 
-	PositiveWrite (module, (unsigned long *)body, l * sizeof (unsigned long));
+    if( module <0 )
+        for (i = 0; i < npipes; i++)
+            PositiveWrite (i, (unsigned long *)body, l * sizeof (unsigned long));
+    else
+        PositiveWrite (module, (unsigned long *)body, l * sizeof (unsigned long));
 
 	free (body);
 }
@@ -711,27 +657,27 @@ SendName (int module, unsigned long event_type,
 /* usefull functions to simplify life in other places :                        */
 /*******************************************************************************/
 void
-broadcast_focus _change( ASWindow *focused )
+broadcast_focus_change( ASWindow *focused )
 {
     if( focused == NULL )
-        Broadcast (M_FOCUS_CHANGE, 3, 0L, 0L, 0L);
+        SendPacket(-1, M_FOCUS_CHANGE, 3, 0L, 0L, 0L);
     else
-        Broadcast (M_FOCUS_CHANGE, 3, focused->w, focused->frame, (unsigned long)focused);
+        SendPacket(-1, M_FOCUS_CHANGE, 3, focused->w, focused->frame, (unsigned long)focused);
 }
 
 void
 broadcast_window_name( ASWindow *asw )
 {
     if( asw )
-        BroadcastName( M_WINDOW_NAME, asw->w, asw->frame,
-                       (unsigned long)asw, ASWIN_NAME(asw));
+        SendName( -1, M_WINDOW_NAME, asw->w, asw->frame,
+                      (unsigned long)asw, ASWIN_NAME(asw));
 }
 
 void
 broadcast_icon_name( ASWindow *asw )
 {
     if( asw )
-        BroadcastName( M_ICON_NAME, asw->w, asw->frame,
+        SendName( -1, M_ICON_NAME, asw->w, asw->frame,
                     (unsigned long)asw, ASWIN_ICON_NAME(asw));
 }
 
@@ -740,23 +686,24 @@ broadcast_res_names( ASWindow *asw )
 {
     if( asw )
     {
-        BroadcastName (M_RES_CLASS, asw->w, asw->frame,
+        SendName( -1, M_RES_CLASS, asw->w, asw->frame,
                     (unsigned long)asw, asw->hints->res_class);
-        BroadcastName (M_RES_NAME, asw->w, asw->frame,
+        SendName( -1, M_RES_NAME, asw->w, asw->frame,
                     (unsigned long)asw, asw->hints->res_name);
     }
 }
 
+void
 broadcast_status_change( int message, ASWindow *asw )
 {
     if( message == M_DEICONIFY || message == M_ICONIFY )
     {
         ASRectangle geom = {INVALID_POSITION, INVALID_POSITION, 0, 0} ;
         get_icon_root_geometry( asw, &geom );
-        Broadcast ( message, 7, asw->w, asw->frame, (unsigned long)asw,
+        SendPacket( -1, message, 7, asw->w, asw->frame, (unsigned long)asw,
                     geom.x, geom.y, geom.width, geom.height);
     }else if( message == M_MAP )
-        Broadcast (M_MAP, 3, asw->w, asw->frame, (unsigned long)asw);
+        SendPacket( -1, M_MAP, 3, asw->w, asw->frame, (unsigned long)asw);
 }
 /*******************************************************************************/
 /* Low level messaging queue handling :                                        */

@@ -63,26 +63,6 @@ extern void match_string (struct config *, char *, char *, FILE *);
 extern struct config *match_string2 (struct config *, char *);
 extern void LoadASConfig (const char *, int, Bool, Bool, Bool);
 
-/* events.c: */
-void HandleEvents ();
-void DigestEvent( struct ASEvent *event );
-
-extern void HandleFocusIn (struct ASEvent *event);
-extern void HandleFocusOut (struct ASEvent *event);
-extern void HandleDestroyNotify (struct ASEvent *event);
-extern void HandleMapRequest (struct ASEvent *event);
-extern void HandleMapNotify (struct ASEvent *event);
-extern void HandleUnmapNotify (struct ASEvent *event);
-extern void HandleButtonPress (struct ASEvent *event);
-extern void HandleEnterNotify (struct ASEvent *event);
-extern void HandleLeaveNotify (struct ASEvent *event);
-extern void HandleConfigureRequest (struct ASEvent *event);
-extern void HandleClientMessage (struct ASEvent *event);
-extern void HandlePropertyNotify (struct ASEvent *event);
-extern void HandleKeyPress (struct ASEvent *event);
-extern void HandleVisibilityNotify (struct ASEvent *event);
-extern void HandleColormapNotify (struct ASEvent *event);
-
 void quietly_unmap_window( Window w, long event_mask );
 void quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_mask );
 inline void ungrab_window_buttons( Window w );
@@ -137,20 +117,6 @@ extern void KillModuleByName (char *);
 extern void ClosePipes (void);
 void FlushQueue (int module);
 
-void Broadcast (unsigned long, unsigned long,...);
-void BroadcastConfig (unsigned long, ASWindow *);
-void SendPacket (int, unsigned long, unsigned long,...);
-void SendConfig (int, unsigned long, ASWindow *);
-void BroadcastName (unsigned long, unsigned long, unsigned long, unsigned long, char *);
-void SendName (int, unsigned long, unsigned long, unsigned long, unsigned long, char *);
-/* simplified specialized interface to above functions : */
-void broadcast_focus_change( ASWindow *focused );
-void broadcast_window_name( ASWindow *asw );
-void broadcast_icon_name( ASWindow *asw );
-void broadcast_res_names( ASWindow *asw );
-void broadcast_status_change( int message, ASWindow *asw );
-
-
 void DeadPipe (int);
 unsigned long GetGnomeState (ASWindow * t);
 unsigned long SetGnomeState (ASWindow * t);
@@ -184,15 +150,10 @@ Bool GetIconFromFile (char *, MyIcon *, int);
 
 ASWindow *GetNextWindow (const ASWindow *, const int);
 extern ASWindow *Circulate (ASWindow *, char *, Bool);
-void changeDesks (int, int);
-void changeWindowsDesk (ASWindow *, int);
 void aswindow_set_desk_property (ASWindow * t, int new_desk);
 void MapIt (ASWindow *);
 void UnmapIt (ASWindow *);
 void do_save (void);
-void checkPanFrames (void);
-void raisePanFrames (void);
-void initPanFrames (void);
 void SetCirculateSequence (ASWindow * tw, int dir);
 void GrabRaiseClick (ASWindow *);
 void UngrabRaiseClick (ASWindow *);

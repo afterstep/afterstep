@@ -147,8 +147,6 @@ int           IconTexFlags = 0;
 
 int           dummy;
 
-extern Bool   DoHandlePageing;
-
 /* value for the rubberband XORing */
 unsigned long XORvalue;
 int           RubberBand = 0;
@@ -161,6 +159,8 @@ int           AutoReverse = 0;
 int           MenuMiniPixmaps = 0;
 int           StartMenuSortMode = DEFAULTSTARTMENUSORT;
 int           ShadeAnimationSteps = 12;
+int           DecorateFrames = 0 ;
+
 void          SetCustomCursor (char *text, FILE * fd, char **arg, int *junk);
 
 void          assign_string (char *text, FILE * fd, char **arg, int *);
@@ -206,7 +206,7 @@ struct config main_config[] = {
 	{"OpaqueResize", SetInts, (char **)&Scr.OpaqueResize, &dummy},
 	{"XorValue", SetInts, (char **)&XORvalue, &dummy},
 	{"Mouse", ParseMouseEntry, (char **)1, (int *)0},
-	{"Popup", ParsePopupEntry, (char **)1, (int *)0},
+    {"Popup", ParseMenuEntry, (char **)1, (int *)0},
     {"Function", ParseFunctionEntry, (char **)1, (int *)0},
 	{"Key", ParseKeyEntry, (char **)1, (int *)0},
 	{"ClickToFocus", SetFlag, (char **)ClickToFocus, (int *)EatFocusClick},
@@ -928,14 +928,6 @@ InitLook (Bool free_resources)
 			XFreeGC (dpy, Scr.LineGC);
 		if (Scr.DrawGC != None)
 			XFreeGC (dpy, Scr.DrawGC);
-		if (Scr.NormalGC != None)
-			XFreeGC (dpy, Scr.NormalGC);
-		if (Scr.StippleGC != None)
-			XFreeGC (dpy, Scr.StippleGC);
-		if (Scr.ScratchGC1 != None)
-			XFreeGC (dpy, Scr.ScratchGC1);
-		if (Scr.ScratchGC2 != None)
-			XFreeGC (dpy, Scr.ScratchGC2);
 
 		/* fonts */
 		unload_font (&Scr.StdFont);
@@ -1081,8 +1073,11 @@ InitFeel (Bool free_resources)
 			MouseButton  *mb = Scr.MouseButtonRoot;
 
 			Scr.MouseButtonRoot = mb->NextButton;
-			if (mb->action)
-				free (mb->action);
+            if (mb->fdata)
+            {
+                free_func_data( mb->fdata);
+                free (mb->fdata);
+            }
 			free (mb);
 		}
 		while (Scr.FuncKeyRoot != NULL)
@@ -1092,8 +1087,11 @@ InitFeel (Bool free_resources)
 			Scr.FuncKeyRoot = fk->next;
 			if (fk->name != NULL)
 				free (fk->name);
-			if (fk->action != NULL)
-				free (fk->action);
+            if (fk->fdata != NULL)
+            {
+                free_func_data(fk->fdata);
+                free (fk->fdata);
+            }
 			free (fk);
 		}
 	}
@@ -1191,12 +1189,23 @@ InitDatabase (Bool free_resources)
 /*
  * Create/destroy window titlebar/buttons as necessary.
  */
+Bool
+redecorate_aswindow_iter_func(void *data, void *aux_data)
+{
+    ASWindow *asw = (ASWindow*)data;
+    if(asw )
+	{
+        redecorate_window( asw, False );
+        on_window_status_changed( asw, True, False );
+    }
+    return True;
+}
+
+
 void
 titlebar_sanity_check (void)
 {
 	int           i;
-	ASWindow     *t;
-
 	for (i = 4; i >= 0; --i)
 		if (Scr.buttons[i].unpressed.image)
 			break;
@@ -1206,14 +1215,7 @@ titlebar_sanity_check (void)
 			break;
 	Scr.nr_right_buttons = i - 4;
 	/* traverse window list and redo the titlebar/buttons if necessary */
-	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-	{
-		if (ASWIN_HFLAGS(t, AS_Titlebar))
-		{
-            redecorate_window( t, False );
-            on_window_status_changed( t, True, False );
-        }
-	}
+    iterate_asbidirlist( Scr.Windows->clients, redecorate_aswindow_iter_func, NULL, NULL, False );
 }
 
 void
@@ -1618,14 +1620,10 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 		Scr.EdgeScrollY = Scr.EdgeScrollY * Scr.MyDisplayHeight / 100;
 	}
 
-	/* update the menus */
+    /* TODO: update the menus */
 	if (parse_look || parse_feel || parse_menu || shall_override_config_file)
 	{
-		MenuRoot     *menu;
-
-		for (menu = Scr.first_menu; menu != NULL; menu = (*menu).next)
-			MakeMenu (menu);
-	}
+    }
 
 	/* setup the titlebar buttons */
 	if (parse_look || shall_override_config_file)
@@ -1635,37 +1633,18 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 		titlebar_sanity_check ();
 	}
 
-	/* grab the new button/keybindings */
-	if ( parse_feel || shall_override_config_file)
-	{
-		ASWindow     *win;
-		for (win = Scr.ASRoot.next; win != NULL; win = win->next)
-            grab_window_input( win, False );
-    }
-
-	/* force update of window frames */
+    /* force update of window frames */
 	if (parse_look || parse_base || parse_database || shall_override_config_file)
-	{
-		ASWindow     *win;
-
-		for (win = Scr.ASRoot.next; win != NULL; win = win->next)
-		{
-            redecorate_window( win, False );
-            on_window_status_changed( win, True, False );
-        }
-	}
+        iterate_asbidirlist( Scr.Windows->clients, redecorate_aswindow_iter_func, NULL, NULL, False );
 
 	/* redo icons in case IconBox, ButtonSize, SeparateButtonTitle, or one
 	 * of the Icon definitions in database changed */
 	if (parse_database || parse_look || shall_override_config_file)
 	{
-		ASWindow     *win;
 
-		for (win = Scr.ASRoot.next; win != NULL; win = win->next)
-			ChangeIcon (win);
-		AutoPlaceStickyIcons ();
-	}
-	if( old_image_manager && old_image_manager != Scr.image_manager )
+    }
+
+    if( old_image_manager && old_image_manager != Scr.image_manager )
 		destroy_image_manager( old_image_manager, False );
 }
 
@@ -2210,40 +2189,4 @@ CreateGCs (void)
 	gcv.subwindow_mode = IncludeInferiors;
 	Scr.DrawGC = XCreateGC (dpy, Scr.Root, gcm, &gcv);
 
-	gcm = GCFunction | GCPlaneMask | GCGraphicsExposures | GCLineWidth |
-		GCForeground | GCBackground | GCFont;
-	gcv.line_width = 0;
-	gcv.function = GXcopy;
-	gcv.plane_mask = AllPlanes;
-
-	gcv.foreground = (*Scr.MSFWindow).colors.fore;
-	gcv.background = (*Scr.MSFWindow).colors.back;
-	gcv.font = (*Scr.MSFWindow).font.font->fid;
-	/*
-	 * Prevent GraphicsExpose and NoExpose events.  We'd only get NoExpose
-	 * events anyway;  they cause BadWindow errors from XGetWindowAttributes
-	 * call in FindScreenInfo (events.c) (since drawable is a pixmap).
-	 */
-	gcv.graphics_exposures = False;
-
-	Scr.NormalGC = XCreateGC (dpy, Scr.Root, gcm, &gcv);
-
-	gcv.fill_style = FillStippled;
-	gcv.stipple = Scr.gray_bitmap;
-	gcm = GCFunction | GCPlaneMask | GCGraphicsExposures | GCLineWidth | GCForeground |
-		GCBackground | GCFont | GCStipple | GCFillStyle;
-
-	Scr.StippleGC = XCreateGC (dpy, Scr.Root, gcm, &gcv);
-
-	gcm = GCFunction | GCPlaneMask | GCGraphicsExposures | GCLineWidth | GCForeground |
-		GCBackground | GCFont;
-	Globalgcm = gcm;
-	Globalgcv = gcv;
-	gcv.foreground = (*Scr.MSFWindow).relief.fore;
-	gcv.background = (*Scr.MSFWindow).relief.back;
-	Scr.ScratchGC1 = XCreateGC (dpy, Scr.Root, gcm, &gcv);
-
-	gcv.foreground = (*Scr.MSFWindow).relief.back;
-	gcv.background = (*Scr.MSFWindow).relief.fore;
-	Scr.ScratchGC2 = XCreateGC (dpy, Scr.Root, gcm, &gcv);
 }

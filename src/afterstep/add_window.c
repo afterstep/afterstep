@@ -1376,7 +1376,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
     else
         t->status->viewport_y = Scr.Vy ;
     if( t->status->viewport_x != Scr.Vx || t->status->viewport_y != Scr.Vy )
-        MoveViewport (t->status->viewport_x, t->status->viewport_y, 0);
+        MoveViewport (t->status->viewport_x, t->status->viewport_y, False);
 
     adjusted_status = *status ;
 
@@ -1575,7 +1575,7 @@ void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
     on_flags = (~(asw->status->flags))&flags ;
     off_flags = (asw->status->flags)&(~flags) ;
     asw->status->flags = on_flags|off_flags ;
-    on_window_status_changed( asw );
+    on_window_status_changed( asw, True, False );
     /* TODO: implement maximization !!!! */
 }
 
@@ -1849,7 +1849,6 @@ init_aswindow(ASWindow * t, Bool free_resources )
     t->magic = MAGIC_ASWINDOW ;
 }
 
-
 /***********************************************************************
  *
  *  Procedure:
@@ -2074,7 +2073,7 @@ Destroy (ASWindow *asw, Bool kill_client)
     XSelectInput (dpy, asw->w, NoEventMask);
     XSync (dpy, 0);
 
-    Broadcast (M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
+    SendPacket (-1, M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
 
     UninstallWindowColormaps( asw );
 

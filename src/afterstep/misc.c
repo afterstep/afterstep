@@ -41,41 +41,9 @@
 
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
-#include "../../include/parse.h"
-#include "../../include/misc.h"
-#include "../../include/style.h"
 #include "../../include/screen.h"
-#include "../../include/module.h"
-#include "../../include/loadimg.h"
-#include "../../include/clientprops.h"
-#include "../../include/hints.h"
 
 #include "menus.h"
-
-XGCValues     Globalgcv;
-unsigned long Globalgcm;
-
-
-/**********************************************************************/
-/* window management specifics - mapping/unmapping with no events :   */
-/**********************************************************************/
-void
-quietly_unmap_window( Window w, long event_mask )
-{
-    /* blocking UnmapNotify events since that may bring us into Withdrawn state */
-    XSelectInput (dpy, w, event_mask & ~StructureNotifyMask);
-    XUnmapWindow( dpy, w );
-    XSelectInput (dpy, w, event_mask );
-}
-
-void
-quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_mask )
-{
-    /* blocking UnmapNotify events since that may bring us into Withdrawn state */
-    XSelectInput (dpy, w, event_mask & ~StructureNotifyMask);
-    XReparentWindow( dpy, w, (new_parent!=None)?new_parent:Scr.Root, x, y );
-    XSelectInput (dpy, w, event_mask );
-}
 
 /****************************************************************************/
 /* window management specifics - button ungrabbing convinience functions:   */
@@ -141,7 +109,7 @@ grab_window_buttons (Window w, ASFlagType context_mask)
     register MouseButton  *MouseEntry;
 
     for( MouseEntry = Scr.MouseButtonRoot ; MouseEntry ; MouseEntry = MouseEntry->NextButton)
-        if ( MouseEntry->func  && get_flags(MouseEntry->Context, context_mask))
+        if ( MouseEntry->fdata  && get_flags(MouseEntry->Context, context_mask))
 		{
 			if (MouseEntry->Button > 0)
                 MyXGrabButton (MouseEntry->Button, MouseEntry->Modifier, w,
@@ -269,33 +237,6 @@ SetTimer (int delay)
 
 /******************************************************************************
  *
- * Move a window to the top (dir 1) or bottom (dir -1) of the circulate seq.
- *
- *****************************************************************************/
-
-void
-SetCirculateSequence (ASWindow * tw, int dir)
-{
-	ASWindow     *t;
-	long          best = (dir == -1) ? LONG_MAX : LONG_MIN;
-
-	t = Scr.ASRoot.next;
-	if (t)
-	{
-		do
-		{
-			if ((dir == -1) ? (t->circulate_sequence < best) : (t->circulate_sequence > best))
-				best = t->circulate_sequence;
-		}
-		while ((t = t->next));
-	} else
-		best = 0;
-
-	tw->circulate_sequence = best + dir;
-}
-
-/******************************************************************************
- *
  * Grab ClickToRaise button press events for a window
  *
  *****************************************************************************/
@@ -307,7 +248,7 @@ GrabRaiseClick (ASWindow * t)
 	for (b = 1; b <= MAX_MOUSE_BUTTONS; b++)
 	{
 		if (Scr.RaiseButtons & (1 << b))
-			MyXGrabButton (dpy, b, 0, t->w, True, ButtonPressMask, GrabModeSync,
+            MyXGrabButton (b, 0, t->w, True, ButtonPressMask, GrabModeSync,
 						   GrabModeAsync, None, Scr.ASCursors[TITLE_CURSOR]);
 	}
 }
@@ -325,7 +266,7 @@ UngrabRaiseClick (ASWindow * t)
 	for (b = 1; b <= MAX_MOUSE_BUTTONS; b++)
 	{
 		if (Scr.RaiseButtons & (1 << b))
-			MyXUngrabButton (dpy, b, 0, t->w);
+            MyXUngrabButton (b, 0, t->w);
 	}
 }
 
@@ -338,7 +279,8 @@ UngrabRaiseClick (ASWindow * t)
 void
 UpdateVisibility (void)
 {
-	ASWindow     *t, *s, *tbase;
+#if 0
+    ASWindow     *t, *s, *tbase;
 
 	tbase = Scr.ASRoot.next;
 	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
@@ -417,73 +359,9 @@ UpdateVisibility (void)
 			}
 		}
 	}
+#endif
 }
 
-char         *
-fit_vertical_text (MyFont font, char *text, int len, int maxheight)
-{
-	int           savelen, i, h;
-	char         *trunct;
-
-	savelen = len;
-	h = len * font.height;
-
-	while (h > maxheight && len > 0)
-	{
-		len -= 1;
-		h = len * font.height;
-	}
-	if (len <= 0)
-		len = 0;
-	trunct = (char *)safemalloc (len * sizeof (char) + 1);
-	memset (trunct, '\0', len * sizeof (char) + 1);
-	strncpy (trunct, text, len);
-
-	if (savelen != len)
-	{
-		for (i = 1; i <= 3; i++)
-		{
-			len -= 1;
-			if (len <= 0)
-				break;
-			trunct[len] = '.';
-		}
-	}
-	return trunct;
-}
-
-char         *
-fit_horizontal_text (MyFont font, char *text, int len, int maxwidth)
-{
-	int           w, savelen, i;
-	char         *trunct = NULL;
-
-	savelen = len;
-	w = XTextWidth (font.font, text, len);
-	while (w > maxwidth && len > 0)
-	{
-		len -= 1;
-		w = XTextWidth (font.font, text, len);
-	}
-	if (len <= 0)
-		len = 0;
-	trunct = (char *)safemalloc (len * sizeof (char) + 1);
-	memset (trunct, '\0', len * sizeof (char) + 1);
-	strncpy (trunct, text, len);
-
-	if (savelen != len)
-	{
-		for (i = 1; i <= 3; i++)
-		{
-			len -= 1;
-			if (len <= 0)
-				break;
-			trunct[len] = '.';
-		}
-	}
-
-	return trunct;
-}
 
 
 

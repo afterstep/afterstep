@@ -529,7 +529,7 @@ void scroll_func_handler( FunctionData *data, ASEvent *event, int module )
     x = make_scroll_pos( data->func_val[0], data->unit_val[0], scr->Vx, scr->VxMax, scr->MyDisplayWidth );
     y = make_scroll_pos( data->func_val[1], data->unit_val[1], scr->Vy, scr->VyMax, scr->MyDisplayHeight );
 
-    MoveViewport (event->scr, x, y);
+    MoveViewport ( x, y, True);
 #endif
 }
 
@@ -552,7 +552,7 @@ void movecursor_func_handler( FunctionData *data, ASEvent *event, int module )
         new_vx = make_edge_scroll( x, scr->Vx, scr->MyDisplayWidth,  scr->VxMax, scr->EdgeScrollX );
         new_vy = make_edge_scroll( y, scr->Vy, scr->MyDisplayHeight, scr->VyMax, scr->EdgeScrollY );
         if( new_vx != scr->Vx || new_vy != scr->Vy )
-            MoveViewport (scr, new_vx, new_vy);
+            MoveViewport (new_vx, new_vy, True);
     }
 #endif
     x -= scr->Vx ;
@@ -708,7 +708,7 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
 
     realfilename = make_file_name (as_dirs.after_dir, tmpfile);
     if (CopyFile (data->text, realfilename) == 0)
-        Broadcast (M_NEW_BACKGROUND, 1, 1);
+        SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
 
     free (realfilename);
     XUngrabPointer (dpy, CurrentTime);
@@ -763,7 +763,7 @@ void refresh_func_handler( FunctionData *data, ASEvent *event, int module )
 void goto_page_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_VIRTUAL
-    MoveViewport (event->scr, data->func_val[0]*event->scr->MyDisplayWidth, data->func_val[1] * event->scr->MyDisplayHeight);
+    MoveViewport ( data->func_val[0]*event->scr->MyDisplayWidth, data->func_val[1] * event->scr->MyDisplayHeight, True);
 #endif
 }
 
@@ -775,8 +775,8 @@ void toggle_page_func_handler( FunctionData *data, ASEvent *event, int module )
 	else
         set_flags( Scr.flags, DoHandlePageing );
 
-    Broadcast (M_TOGGLE_PAGING, 1, get_flags( Scr.flags, DoHandlePageing ));
-    checkPanFrames ();
+    SendPacket( -1, M_TOGGLE_PAGING, 1, get_flags( Scr.flags, DoHandlePageing ));
+    CheckPanFrames ();
 #endif
 }
 
@@ -955,21 +955,14 @@ QuickRestart (char *what)
 		Scr.PanFrameBottom.isMapped = Scr.PanFrameTop.isMapped =
 			Scr.PanFrameLeft.isMapped = Scr.PanFrameRight.isMapped = False;
 
-		checkPanFrames ();
+        CheckPanFrames ();
 #endif
 
 		UngrabEm ();
 	}
 
 	if (update_background)
-		Broadcast (M_NEW_BACKGROUND, 1, 1);
-}
-
-void
-ChangeDesks (int new_desk)
-{
-    /*TODO: implement virtual desktops switching : */
-
+        SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
 }
 
 

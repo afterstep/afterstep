@@ -1008,8 +1008,8 @@ HandleEnterNotify (ASEvent *event)
 		int           delta_x = 0, delta_y = 0;
 
 		/* this was in the HandleMotionNotify before, HEDU */
-		HandlePaging (NULL, Scr.EdgeScrollX, Scr.EdgeScrollY,
-                      &(ewp->x_root), &(ewp->y_root), &delta_x, &delta_y, True);
+        HandlePaging (Scr.EdgeScrollX, Scr.EdgeScrollY,
+                      &(ewp->x_root), &(ewp->y_root), &delta_x, &delta_y, True, event);
 		return;
 	}
 #endif /* NO_VIRTUAL */

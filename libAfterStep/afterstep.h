@@ -422,11 +422,14 @@ typedef struct ASWindowList
 
 
 /* from aswindow.c : */
+ASWindowList *init_aswindow_list();
+void destroy_aswindow_list( ASWindowList **list, Bool restore_root );
 ASWindow *window2ASWindow( Window w );
 Bool register_aswindow( Window w, ASWindow *asw );
 Bool unregister_aswindow( Window w );
 Bool destroy_registered_window( Window w );
 ASWindow *pattern2ASWindow( const char *pattern );
+ASLayer *get_aslayer( int layer, ASWindowList *list );
 Bool enlist_aswindow( ASWindow *t );
 void delist_aswindow( ASWindow *t );
 void restack_window_list( int desk );
@@ -438,6 +441,7 @@ ASWindow     *warp_aswindow_list ( ASWindowList *list, Bool backwards );
 
 /* from add_window.c : */
 void destroy_icon_windows( ASWindow *asw );
+Bool get_icon_root_geometry( ASWindow *asw, ASRectangle *geom );
 
 /* swiss army knife - does everything about grabbing : */
 void grab_window_input( ASWindow *asw, Bool release_grab );

@@ -1684,7 +1684,6 @@ make_detach_pos (ASHints * hints, ASStatusHints * status, XRectangle *anchor, in
     unsigned int  bw = 0;
     int x = 0, y = 0 ;
     int grav_x, grav_y ;
-    int width, height ;
 
     if (hints == NULL || status == NULL || anchor == NULL )
         return ;
@@ -1932,7 +1931,7 @@ make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, 
 	if (get_flags (status->flags, AS_StartBorderWidth))
 		bw = status->border_width;
 
-    make_detach_pos (hints, status, &anchor, &detach_x, &detach_y);
+    make_detach_pos (hints, status, anchor, &detach_x, &detach_y);
 
     vx = calculate_viewport (&detach_x, anchor->width, vx, scr->MyDisplayWidth, scr->VxMax);
     vy = calculate_viewport (&detach_y, anchor->height, vy, scr->MyDisplayHeight, scr->VyMax);

@@ -61,6 +61,8 @@ extern int    ShapeEventBase;
 /**************************************************************************/
 
 /*************************** colormaps.c : ********************************/
+void ColormapSetup();
+void ColormapCleanup();
 void InstallWindowColormaps (ASWindow *asw);
 void UninstallWindowColormaps (ASWindow *asw);
 void InstallRootColormap (void);
@@ -116,7 +118,6 @@ void SetupFunctionHandlers();
 void ExecuteFunction (struct FunctionData *data, struct ASEvent *event, int Module);
 int  DeferExecution (struct ASEvent *event, int cursor, int FinishEvent);
 void QuickRestart (char *what);
-void ChangeDesks (int new_desk);
 
 /************************* housekeeping.c ********************************/
 Bool GrabEm   ( struct ScreenInfo *scr, Cursor cursor );
@@ -133,14 +134,21 @@ void SetupModules(void);
 void ExecModule (char *action, Window win, int context);
 int  AcceptModuleConnection (int socket_fd);
 
-void Broadcast (unsigned long event_type, unsigned long num_datum, ...);
-
 void SendPacket (int channel, unsigned long  msg_type, unsigned long num_datum, ...);
 void SendString (int channel, unsigned long  msg_type, unsigned long id, unsigned long tag, char *string );
 void SendVector (int channel, unsigned long  msg_type, struct ASVector *vector);
 void SendConfig (int module, unsigned long event_type, ASWindow * t);
 void SendName (int module, unsigned long event_type,
                unsigned long data1, unsigned long data2, unsigned long data3, char *name);
+
+void BroadcastConfig (unsigned long, ASWindow *);
+void SendName (int, unsigned long, unsigned long, unsigned long, unsigned long, char *);
+/* simplified specialized interface to above functions : */
+void broadcast_focus_change( ASWindow *focused );
+void broadcast_window_name( ASWindow *asw );
+void broadcast_icon_name( ASWindow *asw );
+void broadcast_res_names( ASWindow *asw );
+void broadcast_status_change( int message, ASWindow *asw );
 
 
 
@@ -159,9 +167,15 @@ void MoveOutline( struct MoveResizeData * pdata );
 /* we use 4 windows that are InputOnly and therefore are invisible on the
  * sides of the screen to steal mouse events and allow for virtual viewport
  * move when cursor reaches edge of the screen. :*/
-Bool MoveViewport (struct ScreenInfo *scr, int newx, int newy);
-void HandlePaging (struct ScreenInfo *scr, int HorWarpSize, int VertWarpSize, int *xl,
-	 	  		   int *yt, int *delta_x, int *delta_y, Bool Grab);
+void MoveViewport (int newx, int newy, Bool grab);
+void HandlePaging (int HorWarpSize, int VertWarpSize, int *xl,
+                   int *yt, int *delta_x, int *delta_y, Bool Grab, struct ASEvent *event);
+void ChangeDesks (int new_desk);
+void RaisePanFrames (void);
+void CheckPanFrames (void);
+void InitPanFrames ();
+
+
 
 
 #endif /* ASINTERNALS_H_HEADER_INCLUDED */

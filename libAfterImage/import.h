@@ -1,8 +1,9 @@
 #ifndef IMPORT_H_HEADER_INCLUDED
 #define IMPORT_H_HEADER_INCLUDED
 
-#include "xcf.h"
 #include "asimage.h"
+#include "xcf.h"
+#include "xpm.h"
 
 /****h* libAfterImage/import.h
  * DESCRIPTION

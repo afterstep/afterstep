@@ -1,9 +1,9 @@
 OBJS            = add_window.o afterstep.o aswindow.o clientwin.o \
 		colormaps.o configure.o decorations.o dirtree.o \
                 events.o functions.o housekeeping.o module.o myscandir.o \
-                pager.o menuitem.o
+                pager.o menuitem.o misc.o
 
-# icons.o menus.o misc.o move.o windows.o
+# icons.o menus.o move.o windows.o
 # placement.o resize.o
 # style.o - discontinued
 # borders.o - discontinued

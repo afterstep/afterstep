@@ -91,7 +91,7 @@ move_window (XEvent * eventp, Window w, ASWindow * tmp_win, int context,
 		tmp_win->flags |= ICON_MOVED;
 		tmp_win->icon_p_x = FinalX;
 		tmp_win->icon_p_y = FinalY;
-		Broadcast (M_ICON_LOCATION, 7, tmp_win->w, tmp_win->frame,
+        SendPacket( -1, M_ICON_LOCATION, 7, tmp_win->w, tmp_win->frame,
 				   (unsigned long)tmp_win,
 				   tmp_win->icon_p_x, tmp_win->icon_p_y,
 				   tmp_win->icon_p_width, tmp_win->icon_p_height);

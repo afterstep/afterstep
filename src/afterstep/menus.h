@@ -180,7 +180,9 @@ void MenuItemFromFunc( MenuRoot* menu, FunctionData* fdata );
 MenuItem* MenuItemParse(MenuRoot* menu, const char* buf);
 
 int ParseMenuBody (MenuRoot *mr, FILE * fd);
-void ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2);
+void ParseMenuEntry (char *tline, FILE * fd, char **junk, int *junk2);
+void ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2);
+
 void ParseMouseEntry (char *tline, FILE * fd, char **junk, int *junk2);
 void ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2);
 

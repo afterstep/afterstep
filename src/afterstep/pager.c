@@ -41,372 +41,7 @@
 #include "../../include/screen.h"
 #include "../../include/module.h"
 
-#include "menus.h"
-
-extern XEvent Event;
-
-XGCValues     Globalgcv;
-unsigned long Globalgcm;
-
-void          DrawPartitionLines (void);
-ASWindow     *FindCounterpart (Window target);
-Bool          pagerOn = True;
-Bool          EnablePagerRedraw = True;
-
-int
-highest_layer (ASWindow * list)
-{
-	int           highest = -10000;
-
-	for (; list != NULL; list = list->next)
-		if (highest < list->status->layer)
-			highest = list->status->layer;
-	return highest;
-}
-
-int
-highest_layer_below_window (ASWindow * list, ASWindow * w)
-{
-	int           highest = -10000;
-
-	for (; list != NULL; list = list->next)
-		if (highest < list->status->layer && list->status->layer < w->status->layer)
-			highest = list->status->layer;
-	return highest == -10000 ? w->status->layer : highest;
-}
-
-ASWindow     *
-list_prepend (ASWindow * list1, ASWindow * list2)
-{
-	ASWindow     *tmp = list2->prev;
-
-	if (list1 == NULL)
-		return list2;
-	if (list2 == NULL)
-		return list1;
-	list2->prev->next = list1;
-	list1->prev->next = list2;
-	list2->prev = list1->prev;
-	list1->prev = tmp;
-	return list2;
-}
-
-ASWindow     *
-list_append (ASWindow * list1, ASWindow * list2)
-{
-	if (list1 == NULL)
-		return list2;
-	/* check for circular list */
-	if (list1->prev != NULL)
-		list_prepend (list1, list2);
-	else
-	{
-		ASWindow     *ptr;
-
-		for (ptr = list1; ptr->next != NULL; ptr = ptr->next);
-		ptr->next = list2;
-		list2->prev->next = NULL;
-		list2->prev = ptr;
-	}
-	return list1;
-}
-
-ASWindow     *
-list_extract (ASWindow * w)
-{
-	if (w->prev != NULL)
-		w->prev->next = w->next;
-	if (w->next != NULL)
-		w->next->prev = w->prev;
-	w->next = w->prev = w;
-	return w;
-}
-
-/* count the windows in the list */
-int
-list_count_windows (ASWindow * list)
-{
-	int           count = 0;
-	ASWindow     *w;
-
-	for (w = list; w != NULL; w = w->next)
-	{
-		if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
-		{
-			if (w->icon_pixmap_w != None)
-				count++;
-			if (w->icon_title_w != None)
-				count++;
-		}
-		count++;
-		if (w->next == list)
-			break;
-	}
-	return count;
-}
-
-#if 0
-void
-list_print (ASWindow * list)
-{
-	ASWindow     *ptr;
-
-	for (ptr = list; ptr != NULL; ptr = ptr->next)
-	{
-		fprintf (stderr, "%d : '%s'", ptr->layer, ptr->name);
-		fprintf (stderr, " (%sfully visible)", (ptr->flags & VISIBLE) ? "" : "not ");
-		fprintf (stderr, "\n");
-		if (ptr->prev->next != ptr)
-			fprintf (stderr, "INCONSISTENCY 1\n");
-		if (ptr->next != NULL && ptr->next->prev != ptr)
-			fprintf (stderr, "INCONSISTENCY 2\n");
-		if (ptr->next == list)
-			break;
-	}
-}
-#endif
-
-void
-RaiseWindow (ASWindow * t)
-{
-	ASWindow     *list, *w, *wn;
-	int           highest, count;
-	Window       *wins;
-	MenuRoot     *menu;
-
-	SetTimer (0);
-
-	/* collect all windows which go above us */
-	list = NULL;
-	while ((highest = highest_layer (Scr.ASRoot.next)) > t->status->layer)
-		for (w = Scr.ASRoot.next; w != NULL; w = wn)
-		{
-			wn = w->next;
-			if (w->status->layer == highest)
-				list = list_append (list, list_extract (w));
-		}
-
-	/* next, any transients for our window */
-#ifndef DONT_RAISE_TRANSIENTS
-	for (w = Scr.ASRoot.next; w != NULL; w = wn)
-	{
-		wn = w->next;
-		if (get_flags(w->hints->flags, AS_Transient) && w->hints->transient_for == t->w)
-			list = list_append (list, list_extract (w));
-	}
-#endif /* !DONT_RAISE_TRANSIENTS */
-
-	/* next, our window */
-	list = list_append (list, list_extract (t));
-
-	/* count windows to raise */
-	count = 0;
-
-	/* menus always go on top */
-	for (menu = Scr.first_menu; menu != NULL; menu = (*menu).next)
-		if ((*menu).is_mapped == True)
-			count++;
-
-	/* count the windows in the list */
-	count += list_count_windows (list);
-
-	wins = (Window *) safemalloc (count * sizeof (Window));
-	count = 0;
-
-	/* menus always go on top */
-	for (menu = Scr.first_menu; menu != NULL; menu = (*menu).next)
-		if ((*menu).is_mapped == True)
-			wins[count++] = (*menu).w;
-
-	/* next, the windows in the list */
-	for (w = list; w != NULL; w = w->next)
-	{
-		wins[count++] = w->frame;
-		if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
-		{
-			if (w->icon_pixmap_w != None)
-				wins[count++] = w->icon_pixmap_w;
-			if (w->icon_title_w != None)
-				wins[count++] = w->icon_title_w;
-		}
-		if (w->next == list)
-			break;
-	}
-
-	/* put the windows back in the window list */
-	if (Scr.ASRoot.next == NULL && list != NULL)
-	{
-		list->prev->next = NULL;
-		Scr.ASRoot.next = list;
-		list->prev = &Scr.ASRoot;
-	} else
-		list_prepend (Scr.ASRoot.next, list);
-
-	Broadcast (M_RAISE_WINDOW, 3, t->w, t->frame, (unsigned long)t);
-
-	/* raise the windows! */
-	XRaiseWindow (dpy, wins[0]);
-	XRestackWindows (dpy, wins, count);
-	free (wins);
-
-#ifndef NO_VIRTUAL
-	raisePanFrames ();
-#endif
-	UpdateVisibility ();
-}
-
-void
-LowerWindow (ASWindow * t)
-{
-	ASWindow     *list = NULL, *w, *wn;
-	int           highest, count;
-	Window       *wins;
-
-	SetTimer (0);
-
-	/* first, any transients for our window */
-#ifndef DONT_RAISE_TRANSIENTS
-	for (w = Scr.ASRoot.next; w != NULL; w = wn)
-	{
-		wn = w->next;
-		if (get_flags(w->hints->flags, AS_Transient) && w->hints->transient_for == t->w)
-			list = list_append (list, list_extract (w));
-	}
-#endif /* !DONT_RAISE_TRANSIENTS */
-
-	/* next, our window */
-	list = list_append (list, list_extract (t));
-
-	/* next, any windows which go below us */
-	while ((highest = highest_layer_below_window (Scr.ASRoot.next, t)) < t->status->layer)
-		for (w = Scr.ASRoot.next; w != NULL; w = wn)
-		{
-			wn = w->next;
-			if (w->status->layer == highest)
-				list = list_append (list, list_extract (w));
-		}
-
-	/* prepend the last window in Scr.ASRoot (if any) */
-	if (Scr.ASRoot.next != NULL)
-	{
-		for (w = Scr.ASRoot.next; w->next != NULL; w = w->next);
-		list = list_prepend (list, list_extract (w));
-	}
-
-	/* count windows to raise */
-	count = list_count_windows (list);
-
-	wins = (Window *) safemalloc (count * sizeof (Window));
-	count = 0;
-
-	/* add the windows in the list */
-	for (w = list; w != NULL; w = w->next)
-	{
-		wins[count++] = w->frame;
-		if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
-		{
-			if (w->icon_pixmap_w != None)
-				wins[count++] = w->icon_pixmap_w;
-			if (w->icon_title_w != None)
-				wins[count++] = w->icon_title_w;
-		}
-		if (w->next == list)
-			break;
-	}
-
-	/* put the windows back in the window list */
-	list_append (&Scr.ASRoot, list);
-
-	Broadcast (M_LOWER_WINDOW, 3, t->w, t->frame, (unsigned long)t);
-
-	/* restack the windows! */
-	XRestackWindows (dpy, wins, count);
-	free (wins);
-
-	UpdateVisibility ();
-}
-
-
-/******************************************************************************
- *
- * Get the correct window stacking order from the X server and
- * make sure everything that depends on the order is fine and dandy
- *
- *****************************************************************************/
-
-void
-CorrectStackOrder (void)
-{
-	Window        root, parent, *children, *wins;
-	ASWindow     *list, *w;
-	unsigned int  nchildren;
-	int           highest, count;
-
-	if (XQueryTree (dpy, Scr.ASRoot.w, &root, &parent, &children, &nchildren))
-	{
-		Window       *cp;
-		ASWindow     *t;
-
-		for (cp = children; nchildren-- > 0; cp++)
-            if (t = window2aswindow( *cp)) && t->frame == *cp)
-				list_prepend (Scr.ASRoot.next, list_extract (t));
-		XFree (children);
-	} else
-	{
-		fprintf (stderr, "CorrectStackOrder(): XQueryTree failed!\n");
-	}
-
-	/* reorder the windows in layer order */
-	list = NULL;
-	while ((highest = highest_layer (Scr.ASRoot.next)) > -10000)
-	{
-		ASWindow     *wn;
-
-		for (w = Scr.ASRoot.next; w != NULL; w = wn)
-		{
-			wn = w->next;
-			if (w->status->layer == highest)
-				list = list_append (list, list_extract (w));
-		}
-	}
-
-	/* done if there are no windows to restack */
-	if (list == NULL)
-		return;
-
-	/* count windows */
-	count = list_count_windows (list);
-
-	wins = (Window *) safemalloc (count * sizeof (Window));
-	count = 0;
-
-	/* add the windows in the list */
-	for (w = list; w != NULL; w = w->next)
-	{
-		wins[count++] = w->frame;
-		if ((w->flags & ICONIFIED) && !(w->flags & SUPPRESSICON))
-		{
-			if (w->icon_pixmap_w != None)
-				wins[count++] = w->icon_pixmap_w;
-			if (w->icon_title_w != None)
-				wins[count++] = w->icon_title_w;
-		}
-		if (w->next == list)
-			break;
-	}
-
-	/* put the windows back in the window list */
-	list_append (&Scr.ASRoot, list);
-
-	/* raise the windows! */
-	XRestackWindows (dpy, wins, count);
-	free (wins);
-
-#ifndef NO_VIRTUAL
-	raisePanFrames ();
-#endif
-	UpdateVisibility ();
-}
+#include "asinternals.h"
 
 /***************************************************************************
  *
@@ -414,8 +49,8 @@ CorrectStackOrder (void)
  * if needed
  ***************************************************************************/
 void
-HandlePaging (ASWindow * tmp_win, int HorWarpSize, int VertWarpSize, int *xl, int *yt,
-			  int *delta_x, int *delta_y, Bool Grab)
+HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
+              int *delta_x, int *delta_y, Bool Grab, ASEvent *event)
 {
 #ifndef NO_VIRTUAL
 	int           x, y, total;
@@ -440,13 +75,13 @@ HandlePaging (ASWindow * tmp_win, int HorWarpSize, int VertWarpSize, int *xl, in
 		{
 			sleep_a_little (10000);
 			total += 10;
-            if (ASCheckWindowEvent (Scr.PanFrameTop.win, LeaveWindowMask, &Event))
+            if (ASCheckWindowEvent (Scr.PanFrameTop.win, LeaveWindowMask, &(event->x)))
 				return;
-            if (ASCheckWindowEvent (Scr.PanFrameBottom.win, LeaveWindowMask, &Event))
+            if (ASCheckWindowEvent (Scr.PanFrameBottom.win, LeaveWindowMask, &(event->x)))
                 return;
-            if (ASCheckWindowEvent (Scr.PanFrameLeft.win, LeaveWindowMask, &Event))
+            if (ASCheckWindowEvent (Scr.PanFrameLeft.win, LeaveWindowMask, &(event->x)))
 				return;
-            if (ASCheckWindowEvent (Scr.PanFrameRight.win, LeaveWindowMask, &Event))
+            if (ASCheckWindowEvent (Scr.PanFrameRight.win, LeaveWindowMask, &(event->x)))
 				return;
 		}
 
@@ -454,7 +89,7 @@ HandlePaging (ASWindow * tmp_win, int HorWarpSize, int VertWarpSize, int *xl, in
 
 		/* fprintf (stderr, "-------- MoveOutline () called from pager.c\ntmp_win == 0xlX\n", (long int) tmp_win); */
 		/* Turn off the rubberband if its on */
-		MoveOutline ( /*Scr.Root, */ tmp_win, 0, 0, 0, 0);
+//        MoveOutline ( /*Scr.Root, */ tmp_win, 0, 0, 0, 0);
 
 		/* Move the viewport */
 		/* and/or move the cursor back to the approximate correct location */
@@ -546,3 +181,387 @@ HandlePaging (ASWindow * tmp_win, int HorWarpSize, int VertWarpSize, int *xl, in
 	}
 #endif
 }
+
+/***************************************************************************
+ *
+ *  Moves the viewport within the virtual desktop
+ *
+ ***************************************************************************/
+
+Bool
+viewport_aswindow_iter_func( void *data, void *aux_data )
+{
+    ASWindow *asw = (ASWindow*)data ;
+    if( asw )
+    {
+        asw->status->viewport_x = Scr.Vx ;
+        asw->status->viewport_y = Scr.Vy ;
+        on_window_status_changed( asw, True, True );
+    }
+    return True;
+}
+
+
+void
+MoveViewport (int newx, int newy, Bool grab)
+{
+#ifndef NO_VIRTUAL
+	int           deltax, deltay;
+
+	if (grab)
+		XGrabServer (dpy);
+
+	if (newx > Scr.VxMax)
+		newx = Scr.VxMax;
+	if (newy > Scr.VyMax)
+		newy = Scr.VyMax;
+	if (newx < 0)
+		newx = 0;
+	if (newy < 0)
+		newy = 0;
+
+	deltay = Scr.Vy - newy;
+	deltax = Scr.Vx - newx;
+
+	Scr.Vx = newx;
+	Scr.Vy = newy;
+    SendPacket( -1, M_NEW_PAGE, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
+
+	if (deltax || deltay)
+	{
+
+        /* traverse window list and redo the titlebar/buttons if necessary */
+        iterate_asbidirlist( Scr.Windows->clients, viewport_aswindow_iter_func, NULL, NULL, False );
+
+#if 0                                          /* old cruft : */
+        /* Here's an attempt at optimization by reducing (hopefully) the expose
+		 * events sent to moved windows.  Move the windows which will be on the
+		 * new desk, from the front window to the back one.  Move the other
+		 * windows from the back one to the front.  Thus if a window is totally
+		 * (or partially) obscured, it will not be uncovered if possible. */
+
+		/* do the windows which will be on the new desk first */
+		for (t = Scr.ASRoot.next; t != NULL; t = t->next)
+		{
+			t->flags &= ~PASS_1;
+
+			/* don't move sticky windows */
+			if (!(t->flags & STICKY))
+			{
+				int           x, y, w, h;
+
+				get_window_geometry (t, t->flags, &x, &y, &w, &h);
+				w += 2 * t->bw;
+				h += 2 * t->bw;
+				/* do the window now if it would be onscreen after moving */
+				if (x + deltax < Scr.MyDisplayWidth && x + deltax + w > 0 &&
+					y + deltax < Scr.MyDisplayHeight && y + deltay + h > 0)
+				{
+					t->flags |= PASS_1;
+					SetupFrame (t, t->frame_x + deltax, t->frame_y + deltay,
+								t->frame_width, t->frame_height, FALSE);
+				}
+				/* if StickyIcons is set, treat the icon as sticky */
+				if (!(Scr.flags & StickyIcons) &&
+					x + deltax < Scr.MyDisplayWidth && x + deltax + w > 0 &&
+					y + deltax < Scr.MyDisplayHeight && y + deltay + h > 0)
+				{
+					t->flags |= PASS_1;
+					t->icon_p_x += deltax;
+					t->icon_p_y += deltay;
+					if (t->flags & ICONIFIED)
+					{
+						if (t->icon_pixmap_w != None)
+							XMoveWindow (dpy, t->icon_pixmap_w, t->icon_p_x, t->icon_p_y);
+						if (t->icon_title_w != None)
+							XMoveWindow (dpy, t->icon_title_w, t->icon_p_x,
+										 t->icon_p_y + t->icon_p_height);
+						if (!(t->flags & ICON_UNMAPPED))
+							Broadcast (M_ICON_LOCATION, 7, t->w, t->frame,
+									   (unsigned long)t,
+									   t->icon_p_x, t->icon_p_y, t->icon_p_width, t->icon_p_height);
+					}
+				}
+			}
+		}
+		/* now do the other windows, back to front */
+		for (t = &Scr.ASRoot; t->next != NULL; t = t->next);
+		for (; t != &Scr.ASRoot; t = t->prev)
+			if (!(t->flags & PASS_1))
+			{
+				/* don't move sticky windows */
+				if (!(t->flags & STICKY))
+				{
+					SetupFrame (t, t->frame_x + deltax, t->frame_y + deltay,
+								t->frame_width, t->frame_height, FALSE);
+					/* if StickyIcons is set, treat the icon as sticky */
+					if (!(Scr.flags & StickyIcons))
+					{
+						t->icon_p_x += deltax;
+						t->icon_p_y += deltay;
+						if (t->flags & ICONIFIED)
+						{
+							if (t->icon_pixmap_w != None)
+								XMoveWindow (dpy, t->icon_pixmap_w, t->icon_p_x, t->icon_p_y);
+							if (t->icon_title_w != None)
+								XMoveWindow (dpy, t->icon_title_w, t->icon_p_x,
+											 t->icon_p_y + t->icon_p_height);
+							if (!(t->flags & ICON_UNMAPPED))
+								Broadcast (M_ICON_LOCATION, 7, t->w, t->frame,
+										   (unsigned long)t,
+										   t->icon_p_x, t->icon_p_y,
+										   t->icon_p_width, t->icon_p_height);
+						}
+					}
+				}
+            }
+#endif
+        /* autoplace sticky icons so they don't wind up over a stationary icon */
+		AutoPlaceStickyIcons ();
+	}
+    CheckPanFrames ();
+
+	UpdateVisibility ();
+	if (grab)
+		XUngrabServer (dpy);
+#endif
+}
+
+/**************************************************************************
+ * Move to a new desktop
+ *************************************************************************/
+void
+ChangeDesks (int new_desk)
+{
+    /*TODO: implement virtual desktops switching : */
+#if 0
+    int           oldDesk;
+	ASWindow     *t;
+	ASWindow     *FocusWin = 0;
+	static ASWindow *StickyWin = 0;
+	unsigned long data;
+	extern Atom   _XA_WIN_DESK;
+
+	oldDesk = Scr.CurrentDesk;
+
+	if ((val1 != 0) && (val1 != 10000))
+		Scr.CurrentDesk = Scr.CurrentDesk + val1;
+	else
+		Scr.CurrentDesk = val2;
+
+	/* update property to tell us what desk we were on when we restart;
+	 * always do this so that when we get called from main(), the property
+	 * will be set; this property is what we use to determine if we're
+	 * starting up for the first time, or restarting */
+	data = (unsigned long)Scr.CurrentDesk;
+	XChangeProperty (dpy, Scr.Root, _XA_WIN_DESK, XA_CARDINAL, 32,
+					 PropModeReplace, (unsigned char *)&data, 1);
+
+	if (Scr.CurrentDesk == oldDesk)
+		return;
+
+    SendPacket( -1, M_NEW_DESK, 1, Scr.CurrentDesk);
+
+	/* Scan the window list, mapping windows on the new Desk, unmapping
+	 * windows on the old Desk; do this in reverse order to reduce client
+	 * expose events */
+	XGrabServer (dpy);
+	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
+	{
+		/* Only change mapping for non-sticky windows */
+		if (!((t->flags & ICONIFIED) && (Scr.flags & StickyIcons)) &&
+			!(t->flags & STICKY) && !(t->flags & ICON_UNMAPPED))
+		{
+			if (ASWIN_DESK(t) == oldDesk)
+			{
+				if (Scr.Focus == t)
+					t->FocusDesk = oldDesk;
+				else
+					t->FocusDesk = -1;
+				UnmapIt (t);
+			} else if (ASWIN_DESK(t) == Scr.CurrentDesk)
+			{
+				MapIt (t);
+				if (t->FocusDesk == Scr.CurrentDesk)
+				{
+					FocusWin = t;
+				}
+			}
+		} else
+		{
+			/* Window is sticky */
+			ASWIN_DESK(t) = Scr.CurrentDesk ;
+			set_client_desktop( t->w, Scr.CurrentDesk );
+			if (Scr.Focus == t)
+			{
+				t->FocusDesk = oldDesk;
+				StickyWin = t;
+			}
+		}
+	}
+	XUngrabServer (dpy);
+	/* autoplace sticky icons so they don't wind up over a stationary icon */
+	AutoPlaceStickyIcons ();
+
+	if (Scr.flags & ClickToFocus)
+	{
+#ifndef NO_REMEMBER_FOCUS
+		if (FocusWin)
+			SetFocus (FocusWin->w, FocusWin, False);
+		else if (StickyWin && (StickyWin->flags && STICKY))
+			SetFocus (StickyWin->w, StickyWin, False);
+		else
+#endif
+			SetFocus (Scr.NoFocusWin, NULL, False);
+	}
+
+	CorrectStackOrder ();
+	update_windowList ();
+
+	/* Change the look to this desktop's one if it really changed */
+#ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
+	QuickRestart ("look&feel");
+#endif
+#endif
+}
+
+
+
+#ifndef NO_VIRTUAL
+/* the root window is surrounded by four window slices, which are InputOnly.
+ * So you can see 'through' them, but they eat the input. An EnterEvent in
+ * one of these windows causes a Paging. The windows have the according cursor
+ * pointing in the pan direction or are hidden if there is no more panning
+ * in that direction. This is mostly intended to get a panning even atop
+ * of Motif applictions, which does not work yet. It seems Motif windows
+ * eat all mouse events.
+ *
+ * Hermann Dunkel, HEDU, dunkel@cul-ipn.uni-kiel.de 1/94
+ */
+
+/***************************************************************************
+ * checkPanFrames hides PanFrames if they are on the very border of the
+ * VIRTUELL screen and EdgeWrap for that direction is off.
+ * (A special cursor for the EdgeWrap border could be nice) HEDU
+ ****************************************************************************/
+void
+CheckPanFrames (void)
+{
+	int           wrapX = (Scr.flags & EdgeWrapX);
+	int           wrapY = (Scr.flags & EdgeWrapY);
+
+	/* Remove Pan frames if paging by edge-scroll is permanently or
+	 * temporarily disabled */
+    if ((Scr.EdgeScrollY == 0) || !get_flags(Scr.flags, DoHandlePageing))
+	{
+		XUnmapWindow (dpy, Scr.PanFrameTop.win);
+		Scr.PanFrameTop.isMapped = False;
+		XUnmapWindow (dpy, Scr.PanFrameBottom.win);
+		Scr.PanFrameBottom.isMapped = False;
+	}
+    if ((Scr.EdgeScrollX == 0) || !get_flags(Scr.flags, DoHandlePageing))
+	{
+		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
+		Scr.PanFrameLeft.isMapped = False;
+		XUnmapWindow (dpy, Scr.PanFrameRight.win);
+		Scr.PanFrameRight.isMapped = False;
+	}
+    if (((Scr.EdgeScrollX == 0) && (Scr.EdgeScrollY == 0)) || !get_flags(Scr.flags, DoHandlePageing))
+		return;
+
+	/* LEFT, hide only if EdgeWrap is off */
+	if (Scr.Vx == 0 && Scr.PanFrameLeft.isMapped && (!wrapX))
+	{
+		XUnmapWindow (dpy, Scr.PanFrameLeft.win);
+		Scr.PanFrameLeft.isMapped = False;
+	} else if (Scr.Vx > 0 && Scr.PanFrameLeft.isMapped == False)
+	{
+		XMapRaised (dpy, Scr.PanFrameLeft.win);
+		Scr.PanFrameLeft.isMapped = True;
+	}
+	/* RIGHT, hide only if EdgeWrap is off */
+	if (Scr.Vx == Scr.VxMax && Scr.PanFrameRight.isMapped && (!wrapX))
+	{
+		XUnmapWindow (dpy, Scr.PanFrameRight.win);
+		Scr.PanFrameRight.isMapped = False;
+	} else if (Scr.Vx < Scr.VxMax && Scr.PanFrameRight.isMapped == False)
+	{
+		XMapRaised (dpy, Scr.PanFrameRight.win);
+		Scr.PanFrameRight.isMapped = True;
+	}
+	/* TOP, hide only if EdgeWrap is off */
+	if (Scr.Vy == 0 && Scr.PanFrameTop.isMapped && (!wrapY))
+	{
+		XUnmapWindow (dpy, Scr.PanFrameTop.win);
+		Scr.PanFrameTop.isMapped = False;
+	} else if (Scr.Vy > 0 && Scr.PanFrameTop.isMapped == False)
+	{
+		XMapRaised (dpy, Scr.PanFrameTop.win);
+		Scr.PanFrameTop.isMapped = True;
+	}
+	/* BOTTOM, hide only if EdgeWrap is off */
+	if (Scr.Vy == Scr.VyMax && Scr.PanFrameBottom.isMapped && (!wrapY))
+	{
+		XUnmapWindow (dpy, Scr.PanFrameBottom.win);
+		Scr.PanFrameBottom.isMapped = False;
+	} else if (Scr.Vy < Scr.VyMax && Scr.PanFrameBottom.isMapped == False)
+	{
+		XMapRaised (dpy, Scr.PanFrameBottom.win);
+		Scr.PanFrameBottom.isMapped = True;
+	}
+}
+
+/****************************************************************************
+ *
+ * Gotta make sure these things are on top of everything else, or they
+ * don't work!
+ *
+ ***************************************************************************/
+void
+RaisePanFrames (void)
+{
+	if (Scr.PanFrameTop.isMapped)
+		XRaiseWindow (dpy, Scr.PanFrameTop.win);
+	if (Scr.PanFrameLeft.isMapped)
+		XRaiseWindow (dpy, Scr.PanFrameLeft.win);
+	if (Scr.PanFrameRight.isMapped)
+		XRaiseWindow (dpy, Scr.PanFrameRight.win);
+	if (Scr.PanFrameBottom.isMapped)
+		XRaiseWindow (dpy, Scr.PanFrameBottom.win);
+}
+
+/****************************************************************************
+ *
+ * Creates the windows for edge-scrolling
+ *
+ ****************************************************************************/
+void
+InitPanFrames ()
+{
+	XSetWindowAttributes attributes;		   /* attributes for create */
+	unsigned long valuemask;
+
+	attributes.event_mask = (EnterWindowMask | LeaveWindowMask | VisibilityChangeMask);
+	valuemask = (CWEventMask | CWCursor);
+
+	attributes.cursor = Scr.ASCursors[TOP];
+	Scr.PanFrameTop.win = create_visual_window (Scr.asv, Scr.Root, 0, 0, Scr.MyDisplayWidth, PAN_FRAME_THICKNESS, 0,	/* no border */
+												InputOnly, valuemask, &attributes);
+	attributes.cursor = Scr.ASCursors[LEFT];
+	Scr.PanFrameLeft.win = create_visual_window (Scr.asv, Scr.Root, 0, PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, Scr.MyDisplayHeight - 2 * PAN_FRAME_THICKNESS, 0,	/* no border */
+												 InputOnly, valuemask, &attributes);
+	attributes.cursor = Scr.ASCursors[RIGHT];
+	Scr.PanFrameRight.win = create_visual_window (Scr.asv, Scr.Root, Scr.MyDisplayWidth - PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS, Scr.MyDisplayHeight - 2 * PAN_FRAME_THICKNESS, 0,	/* no border */
+												  InputOnly, valuemask, &attributes);
+	attributes.cursor = Scr.ASCursors[BOTTOM];
+	Scr.PanFrameBottom.win = create_visual_window (Scr.asv, Scr.Root, 0, Scr.MyDisplayHeight - PAN_FRAME_THICKNESS, Scr.MyDisplayWidth, PAN_FRAME_THICKNESS, 0,	/* no border */
+												   InputOnly, valuemask, &attributes);
+	Scr.PanFrameTop.isMapped = Scr.PanFrameLeft.isMapped =
+		Scr.PanFrameRight.isMapped = Scr.PanFrameBottom.isMapped = False;
+
+	Scr.usePanFrames = True;
+
+}
+
+#endif /* NO_VIRTUAL */
+

@@ -667,7 +667,7 @@ AutoPlace (ASWindow * t)
 	if (t->icon_title_w != None)
 		XMoveWindow (dpy, t->icon_title_w, t->icon_p_x, t->icon_p_y + t->icon_p_height);
 
-	Broadcast (M_ICON_LOCATION, 7, t->w, t->frame,
+    SendPacket( -1, M_ICON_LOCATION, 7, t->w, t->frame,
 			   (unsigned long)t, t->icon_p_x, t->icon_p_y, t->icon_p_width, t->icon_p_height);
 }
 
