@@ -33,10 +33,11 @@
 
 void usage()
 {
-	printf( "Usage: asflip [-h]|[[-f flip] [-g geom] image]\n");
+	printf( "Usage: asflip [-h]|[[-f flip]|[-m vertical] [-g geom] image]\n");
 	printf( "Where: image - is image filename\n");
 	printf( "       flip  - rotation angle in degrees. 90, 180 and 270 degrees supported\n");
 	printf( "       geom  - source image is tiled using this geometry, prior to rotation\n");
+	printf( "       vertical - 1 - mirror image in vertical direction, 0 - horizontal\n");
 }
 
 int main(int argc, char* argv[])
@@ -46,6 +47,7 @@ int main(int argc, char* argv[])
 	int screen, depth ;
 	char *image_file = "rose512.jpg" ;
 	int flip = FLIP_VERTICAL;
+	Bool vertical = False, mirror = False ;
 	int tile_x, tile_y, tile_width, tile_height, geom_flags = 0;
 	ASImage *im = NULL;
 
@@ -66,7 +68,12 @@ int main(int argc, char* argv[])
 			{
 				switch(argv[i][1])
 				{
+					case 'm' :	
+						mirror = True;
+						vertical = atoi(argv[i+1]) ;
+					    break ;
 					case 'f' :			/* see ASFlip.1 */
+						mirror = False;
 						flip = atoi(argv[i+1])/90 ;
 					    break ;
 					case 'g' :   		/* see ASTile.2 : */
@@ -99,9 +106,19 @@ int main(int argc, char* argv[])
 	if( !get_flags(geom_flags, YValue ) )
 		tile_y = 0 ;
 	if( !get_flags(geom_flags, WidthValue ) )
-		tile_width = (get_flags(flip,FLIP_VERTICAL))?im->height:im->width ;
+	{
+		if( !mirror )   
+			tile_width = (get_flags(flip,FLIP_VERTICAL))?im->height:im->width ;
+		else 
+			tile_width = im->width ;
+	}
 	if( !get_flags(geom_flags, HeightValue ) )
-		tile_height = (get_flags(flip,FLIP_VERTICAL))?im->width:im->height;
+	{
+		if( !mirror )   
+			tile_height = (get_flags(flip,FLIP_VERTICAL))?im->width:im->height;
+		else 
+			tile_height = im->height ;
+	}
 	printf( "%s: tiling image \"%s\" to %dx%d%+d%+d and then flipping it by %d degrees\n",
 		    get_application_name(), image_file,
 			tile_width, tile_height,tile_x, tile_y, flip*90 );
@@ -120,11 +137,19 @@ int main(int argc, char* argv[])
 		XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
 	  	XMapRaised   (dpy, w);
 		/* see ASFlip.2 : */
-		flipped_im = flip_asimage( 	asv, im,
-			                       	tile_x, tile_y,
-									tile_width, tile_height,
-				       	 			flip,
-				                	ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+		if( !mirror ) 
+			flipped_im = flip_asimage( 	asv, im,
+				                       	tile_x, tile_y,
+										tile_width, tile_height,
+					       	 			flip,
+					                	ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+		else
+			flipped_im = mirror_asimage(asv, im,
+				                       	tile_x, tile_y,
+										tile_width, tile_height,
+					       	 			vertical,
+					                	ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+												
 		destroy_asimage( &im );
 		/* see ASView.5 : */
 		p = asimage2pixmap( asv, DefaultRootWindow(dpy), flipped_im,
