@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2002 Sasha Vasko <sasha@aftercode.net>
  * Copyright (c) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
  * Copyright (C) 1997 Dong-hwa Oh <siage@nownuri.net>
  * Copyright (C) 1997 Tomonori <manome@itlb.te.noda.sut.ac.jp>
@@ -475,10 +476,47 @@ on_window_status_changed( ASWindow *asw, Bool update_display )
 
     if( changed )
     {/* now we need to update frame sizes in status */
-
+		unsigned short tbar_size = 0;
+		int tbar_side = FR_N ;
+		unsigned short *frame_size = &(asw->status->frame_size[0]) ;
+	    if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+		{
+			tbar_size = calculate_astbar_width( asw->tbar );
+			tbar_side = FR_W ;
+			set_astbar_size( asw->tbar, tbar_size, asw->tbar?asw->tbar->height:0 );
+		}else
+		{
+			tbar_size = calculate_astbar_height( asw->tbar );
+			set_astbar_size( asw->tbar, asw->tbar?asw->tbar->width:0, tbar_size );
+		}
+		for( i = 0 ; i < FRAME_SIDES ; ++i ) 
+			if( asw->frame_bars[i] )
+				frame_size[i] = IsSideVertical(i)?asw->frame_bars[i]->width:
+				                                  asw->frame_bars[i]->height ;
+			else
+				frame_size[i] = 0;
+				
+		frame_size[tbar_side] += tbar_size ;
+		anchor2status ( asw->status, asw->hints, asw->anchor);
     }
     /* now we need to move/resize our frame window */
-
+	if( ASWIN_FLAGS( asw, AS_Shaded ) )
+	{
+	    if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+			XMoveResizeWindow( dpy, asw->frame, 
+			                   asw->status->x, asw->status->y,
+							   tbar_size, asw->status->height );
+		else
+			XMoveResizeWindow( dpy, asw->frame, 
+			                   asw->status->x, asw->status->y,
+							   asw->status->width, tbar_size );
+	}else if( ASWIN_FLAGS( asw, AS_Iconic ) )
+	{
+	
+	}else
+		XMoveResizeWindow( dpy, asw->frame, 
+		                   asw->status->x, asw->status->y,
+						   asw->status->width, asw->status->height );
 
 }
 /********************************************************************/

@@ -72,7 +72,7 @@ typedef struct ASTBarData {
     /* 28 bytes */
     /* this is what we make our background from :*/
     struct MyStyle      *style[2] ;
-    struct ASImage      *back_texture ;
+    struct ASImage      *back_image ;
     unsigned short       back_width, back_height;
     /* this is the actuall generated background : */
     struct ASImage      *back [2] ;
@@ -122,8 +122,9 @@ typedef struct MyFrame
     unsigned int part_length[FRAME_PARTS];
 #define MYFRAME_HOR_MASK    ((0x01<<FR_N)|(0x01<<FR_S))
 #define MYFRAME_VERT_MASK   ((0x01<<FR_W)|(0x01<<FR_E))
+#define IsSideVertical(side)  ((side) == FR_W || (side)== FR_E)
 #define IsFrameCorner(p)   ((p)>=FRAME_SIDES)
-#define IsFramePart(f,p)   ((f)->parts[(p)] || ((f)->part_width[(p)] && (f)->part_height[(p)]))
+#define IsFramePart(f,p)   ((f)->parts[(p)] || ((f)->part_width[(p)] && (f)->part_length[(p)]))
 
     unsigned int spacing ;
 }MyFrame;
@@ -167,7 +168,7 @@ Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_n
 Bool set_astbar_image( ASTBarData *tbar, ASImage *image );
 Bool set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short height );
 Bool set_astbar_label( ASTBarData *tbar, const char *label );
-Bool set_astbar_btns( ASTBarData *tbar, const ASTBtnBlock *btns, Bool left );
+Bool set_astbar_btns( ASTBarData *tbar, ASTBtnBlock **btns, Bool left );
 Bool move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y );
 Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 

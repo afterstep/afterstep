@@ -511,7 +511,7 @@ create_astbar ()
 }
 
 static inline void
-flush_tbar_backs()
+flush_tbar_backs(ASTBarData *tbar)
 {
     register int i;
     for (i = 0; i < BAR_STATE_NUM; ++i)
@@ -674,7 +674,6 @@ set_astbar_image( ASTBarData *tbar, ASImage *image )
     if( tbar )
         if( tbar->back_image != image )
         {
-            register int i ;
             if( tbar->back_image )
             {
                 safe_asimage_destroy( tbar->back_image );
@@ -683,7 +682,7 @@ set_astbar_image( ASTBarData *tbar, ASImage *image )
             if( image )
                 tbar->back_image = dup_asimage( image );
 
-            flush_tbar_backs();
+            flush_tbar_backs(tbar);
 
             return True;
         }
@@ -698,7 +697,7 @@ set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short hei
         {
             tbar->back_width = width ;
             tbar->back_height = height ;
-            flush_tbar_backs();
+            flush_tbar_backs(tbar);
 
             return True;
         }
@@ -746,7 +745,7 @@ set_astbar_label (ASTBarData * tbar, const char *label)
 }
 
 Bool
-set_astbar_btns( ASTBarData *tbar, const ASTBtnBlock **btns, Bool left )
+set_astbar_btns( ASTBarData *tbar, ASTBtnBlock **btns, Bool left )
 {
     Bool          changed = False;
     ASTBtnBlock  **trg ;
