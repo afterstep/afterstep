@@ -1824,7 +1824,7 @@ DispatchEvent (ASEvent * event)
                 event->w = get_pager_desk( wd->desk )->desk_canvas->w ;
             }else
             {
-                event->client = (ASWindow*)wd;
+                event->client = (void*)wd;
                 event->widget = ((ASWindowData*)(event->client))->canvas ;
                 if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
                     on_astbar_pointer_action( ((ASWindowData*)(event->client))->bar, 0, (event->x.type == LeaveNotify) );
