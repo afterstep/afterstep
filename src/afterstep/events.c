@@ -46,7 +46,6 @@
  *  DispatchEvent - calls appropriate handler for the event
  ************************************************************************/
 void DigestEvent    ( ASEvent *event );
-void DispatchEvent  ( ASEvent *event );
 void afterstep_wait_pipes_input ();
 void SetTimer (int delay);
 
@@ -63,7 +62,7 @@ HandleEvents ()
             if( ASNextEvent (&(event.x), True) )
             {
                 DigestEvent( &event );
-                DispatchEvent( &event );
+                DispatchEvent( &event, False );
             }
 
             ExecutePendingFunctions();
@@ -91,7 +90,7 @@ InteractiveMoveLoop ()
             if( ASNextEvent (&(event.x), True) )
             {
                 DigestEvent( &event );
-                DispatchEvent( &event );
+                DispatchEvent( &event, False );
             }
             if( Scr.moveresize_in_progress == NULL )
                 return;
@@ -128,8 +127,9 @@ WaitEventLoop( ASEvent *event, int finish_event_type, long timeout )
 	unsigned long mask = ButtonPressMask | ButtonReleaseMask |
 						 ExposureMask | KeyPressMask | ButtonMotionMask |
 						 PointerMotionMask	/* | EnterWindowMask | LeaveWindowMask */;
+	Bool done = False ;
 
-    while (event->x.type != finish_event_type)
+    while (!done)
 	{
 		/* block until there is an event */
         ASFlushIfEmpty();
@@ -141,10 +141,16 @@ WaitEventLoop( ASEvent *event, int finish_event_type, long timeout )
         else if (event->x.type == ButtonPress )
 			XAllowEvents (dpy, ReplayPointer, CurrentTime);
 
+        if( event->x.type == finish_event_type )
+		{
+			done = True ;
+			if( event->x.xbutton.window == Scr.Root ) 
+				event->x.xbutton.window = event->x.xbutton.subwindow ;
+			/* otherwise event will be reported as if it occured relative to 
+			   root window */
+		}
         DigestEvent( event );
-//        if( event->x.type == finish_event_type )
-//            return True;
-        DispatchEvent( event );
+        DispatchEvent( event, done );
     }
 
     return True ;
@@ -157,7 +163,7 @@ WaitEventLoop( ASEvent *event, int finish_event_type, long timeout )
 Bool
 IsClickLoop( ASEvent *event, unsigned int end_mask, unsigned int click_time )
 {
-	int dx = 0, dy = 0, total = 0;
+	int dx = 0, dy = 0;
 	int x_orig = event->x.xbutton.x_root ;
 	int y_orig = event->x.xbutton.y_root ;
     /* we are in the middle of running Complex function - we must only do mandatory
@@ -204,6 +210,9 @@ WaitWindowLoop( char *pattern, long timeout )
 
 	if( wrexp == NULL )
 		return False;
+
+	start_ticker ((timeout<=0?DEFAULT_WINDOW_WAIT_TIMEOUT:timeout)*10);
+
 	while (!done)
 	{
 		do
@@ -215,7 +224,9 @@ WaitWindowLoop( char *pattern, long timeout )
                 {
 
                     DigestEvent( &event );
-                    DispatchEvent( &event );
+					/* we do not want user to do anything interactive at that time - hence
+					   deffered == True */
+                    DispatchEvent( &event, True );
                     if( event.x.type == MapNotify && event.client )
                         if( match_string_list (event.client->hints->names, MAX_WINDOW_NAMES, wrexp) == 0 )
                         {
@@ -224,8 +235,13 @@ WaitWindowLoop( char *pattern, long timeout )
                         }
                 }
 			}
+			if( is_tick() )
+				break;
+
 		}while( has_x_events );
 
+		if( is_tick() )
+			break;
 		afterstep_wait_pipes_input ();
 	}
 	destroy_wild_reg_exp( wrexp );
@@ -244,7 +260,7 @@ ConfigureNotifyLoop()
     while( ASCheckTypedEvent(ConfigureNotify,&(event.x)) )
     {
         DigestEvent( &event );
-        DispatchEvent( &event );
+        DispatchEvent( &event, False );
         ASSync(False);
     }
 }
@@ -437,7 +453,7 @@ KeyboardShortcuts (XEvent * xevent, int return_event, int move_size)
 
 
 void
-DispatchEvent ( ASEvent *event )
+DispatchEvent ( ASEvent *event, Bool deffered )
 {
     if( Scr.moveresize_in_progress )
         if( check_moveresize_event( event ) )
@@ -460,7 +476,7 @@ DispatchEvent ( ASEvent *event )
             * indicates that the warp is done */
             if( get_flags( AfterStepState, ASS_WarpingMode ) )
                 EndWarping();
-            HandleButtonPress (event);
+            HandleButtonPress (event, deffered);
             break;
         case ButtonRelease:
             /* if warping, a button press, non-warp keypress, or pointer motion
@@ -468,7 +484,7 @@ DispatchEvent ( ASEvent *event )
             if( get_flags( AfterStepState, ASS_WarpingMode ) )
                 EndWarping();
             if( Scr.Windows->pressed )
-                HandleButtonRelease (event);
+                HandleButtonRelease (event, deffered);
             break;
         case MotionNotify:
             /* if warping, a button press, non-warp keypress, or pointer motion
@@ -873,7 +889,7 @@ HandleUnmapNotify (ASEvent *event )
  *	HandleButtonPress - ButtonPress event handler
  ***********************************************************************/
 void
-HandleButtonPress ( ASEvent *event )
+HandleButtonPress ( ASEvent *event, Bool deffered )
 {
 	unsigned int  modifier;
 	MouseButton  *MouseEntry;
@@ -887,70 +903,75 @@ HandleButtonPress ( ASEvent *event )
     if( asw != NULL )
     {
         Bool          focus_accepted = False;
+		if( !deffered )
+		{
+  		    if (get_flags( Scr.Feel.flags, ClickToFocus) )
+      		{
+          		if ( asw != Scr.Windows->ungrabbed && (xbtn->state & nonlock_mods) == 0)
+              		focus_accepted = focus_aswindow(asw);
+	        }
 
-        if (get_flags( Scr.Feel.flags, ClickToFocus) )
-        {
-            if ( asw != Scr.Windows->ungrabbed && (xbtn->state & nonlock_mods) == 0)
-                focus_accepted = focus_aswindow(asw);
-        }
-
-        if (!ASWIN_GET_FLAGS(asw, AS_Visible))
-        {
-            if (get_flags(Scr.Feel.flags, ClickToRaise) && event->context == C_WINDOW
-                && (Scr.Feel.RaiseButtons & (1 << xbtn->button)) )
-                RaiseWindow (asw);
-            else
-            {
-                if (Scr.Feel.AutoRaiseDelay > 0)
-                {
-                    SetTimer (Scr.Feel.AutoRaiseDelay);
-                } else
-                {
+  		    if (!ASWIN_GET_FLAGS(asw, AS_Visible))
+      		{
+          		if (get_flags(Scr.Feel.flags, ClickToRaise) && event->context == C_WINDOW
+              		&& (Scr.Feel.RaiseButtons & (1 << xbtn->button)) )
+	                RaiseWindow (asw);
+  		        else
+      		    {
+          		    if (Scr.Feel.AutoRaiseDelay > 0)
+	                {
+  		                SetTimer (Scr.Feel.AutoRaiseDelay);
+      		        } else
+          		    {
 #ifdef CLICKY_MODE_1
-                    if (event->w != asw->w)
+	                    if (event->w != asw->w)
 #endif
-                    {
-                        if (Scr.Feel.AutoRaiseDelay == 0)
-                            RaiseWindow (asw);
-                    }
-                }
-            }
-        }
-        if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
-        {
-            XSync (dpy, 0);
-            XAllowEvents (dpy, (event->context == C_WINDOW) ? ReplayPointer : AsyncPointer, CurrentTime);
-            XSync (dpy, 0);
-        }
-        if( focus_accepted )
-            return;
+    	                {
+        	                if (Scr.Feel.AutoRaiseDelay == 0)
+            	                RaiseWindow (asw);
+                	    }
+	                }
+  	  	        }
+    		}
+	        if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
+  		    {
+      		    XSync (dpy, 0);
+          		XAllowEvents (dpy, (event->context == C_WINDOW) ? ReplayPointer : AsyncPointer, CurrentTime);
+	            XSync (dpy, 0);
+  		    }
+		} /* !deffered */
 
         press_aswindow( asw, event->context );
+        
+		if( focus_accepted )
+            return;
     }
-
-    /* we have to execute a function or pop up a menu : */
-    modifier = (xbtn->state & nonlock_mods);
-	/* need to search for an appropriate mouse binding */
-    MouseEntry = Scr.Feel.MouseButtonRoot;
-    while (MouseEntry != NULL)
+	
+	if( !deffered ) 
 	{
-        if ((MouseEntry->Button == xbtn->button || MouseEntry->Button == 0) &&
-            (MouseEntry->Context & event->context) &&
-            (MouseEntry->Modifier == AnyModifier || MouseEntry->Modifier == modifier))
+	    /* we have to execute a function or pop up a menu : */
+  		modifier = (xbtn->state & nonlock_mods);
+		/* need to search for an appropriate mouse binding */
+  		MouseEntry = Scr.Feel.MouseButtonRoot;
+	    while (MouseEntry != NULL)
 		{
-			/* got a match, now process it */
-            if (MouseEntry->fdata != NULL)
+      		if ((MouseEntry->Button == xbtn->button || MouseEntry->Button == 0) &&
+          		(MouseEntry->Context & event->context) &&
+	            (MouseEntry->Modifier == AnyModifier || MouseEntry->Modifier == modifier))
 			{
-                ExecuteFunction (MouseEntry->fdata, event, -1);
-				AShandled = True;
-				break;
+				/* got a match, now process it */
+	            if (MouseEntry->fdata != NULL)
+				{
+      		        ExecuteFunction (MouseEntry->fdata, event, -1);
+					AShandled = True;
+					break;
+				}
 			}
+			MouseEntry = MouseEntry->NextButton;
 		}
-		MouseEntry = MouseEntry->NextButton;
 	}
-
 	/* GNOME this click hasn't been taken by AfterStep */
-    if (!AShandled && xbtn->window == Scr.Root)
+    if (!deffered && !AShandled && xbtn->window == Scr.Root)
 	{
         XUngrabPointer (dpy, CurrentTime);
         XSendEvent (dpy, Scr.wmprops->wm_event_proxy, False, SubstructureNotifyMask, &(event->x));
@@ -962,7 +983,7 @@ HandleButtonPress ( ASEvent *event )
  *  HandleButtonRelease - De-press currently pressed window if all buttons are up
  ***********************************************************************/
 void
-HandleButtonRelease ( ASEvent *event )
+HandleButtonRelease ( ASEvent *event, Bool deffered )
 {   /* click to focus stuff goes here */
 LOCAL_DEBUG_CALLER_OUT("pressed(%p)->state(0x%X)", Scr.Windows->pressed, (event->x.xbutton.state&(Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)) );
     if( (event->x.xbutton.state&AllButtonMask) == (Button1Mask<<(event->x.xbutton.button-Button1)) )

@@ -35,6 +35,8 @@
 			/* Global configured options */
 			/* ######################### */
 
+#define DEFAULT_WINDOW_WAIT_TIMEOUT		3000  /* mlsec */
+
 #define	@sgmltools@
 #define VERSION		"@version@"
 #define AFTER_BIN_DIR	"@bindir@"
