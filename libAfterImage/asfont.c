@@ -210,7 +210,10 @@ open_X11_font( ASFontManager *fontman, const char *font_string)
 #else                                          /* assume ISO Latin 1 encoding */
 
 	if( (xfs = XLoadQueryFont( fontman->dpy, font_string )) == NULL )
+	{
+		show_warning( "failed to load X11 font \"%s\". Sorry about that.", font_string );
 		return NULL;
+	}
 	font = safecalloc( 1, sizeof(ASFont));
 	font->magic = MAGIC_ASFONT ;
 	font->fontman = fontman;
@@ -226,6 +229,12 @@ ASFont*
 get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int size, ASFontType type )
 {
 	ASFont *font = NULL ;
+	Bool freetype = False ;
+	if( face_no > 100 ) 
+		face_no = 0 ;
+	if( size > 1000 ) 
+		size = 1000 ;
+
 	if( fontman && font_string )
 	{
 		if( get_hash_item( fontman->fonts_hash, (ASHashableValue)((char*)font_string), (void**)&font) != ASH_Success )
@@ -234,9 +243,19 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 				font = open_freetype_font( fontman, font_string, face_no, size, (type == ASF_Freetype));
 			if( font == NULL )
 				font = open_X11_font( fontman, font_string );
+			else
+				freetype = True ;				
 			if( font != NULL )
 			{
-				font->name = mystrdup( font_string );
+				if( freetype ) 
+				{
+					int len = strlen( font_string)+1 ;
+					len = ((size>=100)?3:2)+1 ;
+					len = ((face_no>=10)?2:1)+1 ;
+					font->name = safemalloc( len );
+					sprintf( font->name, "%s$%d$%d", font_string, size, face_no );
+				}else
+					font->name = mystrdup( font_string );
 				add_hash_item( fontman->fonts_hash, (ASHashableValue)(char*)font->name, font);
 			}
 		}
@@ -1013,12 +1032,15 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 	const char *ptr = text;
 	ASGlyph *last_asg = NULL ;
 	int offset_3d_x = 0, offset_3d_y = 0 ;
-	int space_size  = (font->space_size>>1)+1;
+	int space_size  = (font->space_size>>1)+1+font->spacing_x;
 
 	apply_text_3D_type( type, &offset_3d_x, &offset_3d_y );
-
+	
 	if( text == NULL || font == NULL || map == NULL)
 		return False;
+
+	offset_3d_x += font->spacing_x ;
+	offset_3d_y += font->spacing_y ;	
 
 	map->glyphs_num = 1;
 	while( *ptr != 0 )
@@ -1065,25 +1087,31 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 	}while( text[i] != '\0' );
 
 	map->width = MAX( w, 1 );
-	map->height = line_count * (font->max_height+offset_3d_y);
+	map->height = line_count * (font->max_height+offset_3d_y); 
+	map->height -= font->spacing_y ;
+		
 	if( map->height <= 0 )
 		map->height = 1 ;
+
 	return True;
 }
 
 Bool
 get_text_size( const char *text, ASFont *font, ASText3DType type, unsigned int *width, unsigned int *height )
 {
-	unsigned int w = 0, h = 0;
+	unsigned int w = 0, h = 0, lines_count = 0;
 	unsigned int line_width = 0;
 	int i = -1;
 	ASGlyph *last_asg = NULL ;
-	int space_size  = (font->space_size>>1)+1;
+	int space_size  = (font->space_size>>1)+1+font->spacing_x;
 	int offset_3d_x = 0, offset_3d_y = 0 ;
 
 	apply_text_3D_type( type, &offset_3d_x, &offset_3d_y );
 	if( text == NULL || font == NULL )
 		return False;
+
+	offset_3d_x += font->spacing_x ;
+	offset_3d_y += font->spacing_y ;	
 
 	do
 	{
@@ -1097,6 +1125,7 @@ get_text_size( const char *text, ASFont *font, ASText3DType type, unsigned int *
 				w = line_width ;
 			line_width = 0 ;
 			h += font->max_height+offset_3d_y ;
+			++lines_count ;
 		}else
 		{
 			last_asg = NULL ;
@@ -1115,6 +1144,7 @@ get_text_size( const char *text, ASFont *font, ASText3DType type, unsigned int *
 		}
 	}while( text[i] != '\0' );
 
+	h -= font->spacing_y ;
 	if( w < 1 )
 		w = 1 ;
 	if( h < 1 )
@@ -1184,13 +1214,16 @@ LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font
 		return NULL;
 
 	apply_text_3D_type( type, &(offset_3d_x), &(offset_3d_y) );
+	
+	offset_3d_x += font->spacing_x ;
+	offset_3d_y += font->spacing_y ;	
+	line_height = font->max_height+offset_3d_y ;
 
 LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 	im = safecalloc( 1, sizeof(ASImage));
 	asimage_start( im, map.width, map.height, compression );
 
-	line_height = font->max_height+offset_3d_y ;
-	space_size  = (font->space_size>>1)+1;
+	space_size  = (font->space_size>>1)+1+font->spacing_x;
 	base_line = font->max_ascend;
 LOCAL_DEBUG_OUT( "line_height is %d, space_size is %d, base_line is %d", line_height, space_size, base_line );
 	scanlines = safemalloc( line_height*sizeof(CARD32*));
@@ -1231,7 +1264,9 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 					line[x] = 0;
 			}
 			pen_x = (font->pen_move_dir == RIGHT_TO_LEFT)? map.width : 0;
-			pen_y += line_height ;
+			pen_y += line_height;
+			if( pen_y <0 ) 
+				pen_y = 0 ;
 		}else
 		{
 			if( map.glyphs[i] == GLYPH_SPACE || map.glyphs[i] == GLYPH_TAB )
@@ -1246,7 +1281,7 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 				/* now comes the fun part : */
 				ASGlyph *asg = map.glyphs[i] ;
 				int y = base_line - asg->ascend;
-				int start_x ;
+				int start_x = 0;
 
 				if( font->pen_move_dir == RIGHT_TO_LEFT )
 					pen_x  -= asg->step+offset_3d_x ;
@@ -1254,8 +1289,10 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 					start_x = pen_x + asg->lead ;
 				else if( pen_x  > -asg->lead )
 					start_x = pen_x + asg->lead ;
-				else
+				if( start_x < 0 )
 					start_x = 0 ;
+				if( y < 0 )
+					y = 0 ;
 
 				switch( type )
 				{
@@ -1310,6 +1347,30 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 	return im;
 }
 
+Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y )
+{
+	if( font ) 
+	{
+		if( x ) 
+			*x = font->spacing_x ;	
+		if( y ) 
+			*y = font->spacing_y ;	
+		return True ;
+	}
+	return False ;
+}
+
+Bool set_asfont_glyph_spacing( ASFont* font, int x, int y )
+{
+	if( font ) 
+	{
+		font->spacing_x = (x < 0 )? 0: x;	
+		font->spacing_y = (y < 0 )? 0: y;	
+		return True ;
+	}
+	return False ;
+}
+
 /* Misc functions : */
 void print_asfont( FILE* stream, ASFont* font)
 {
@@ -1321,6 +1382,8 @@ void print_asfont( FILE* stream, ASFont* font)
 #endif
 		fprintf( stream, "font.max_height = %d\n", font->max_height );
 		fprintf( stream, "font.space_size = %d\n" , font->space_size );
+		fprintf( stream, "font.spacing_x  = %d\n" , font->spacing_x );
+		fprintf( stream, "font.spacing_y  = %d\n" , font->spacing_y );
 		fprintf( stream, "font.max_ascend = %d\n", font->max_ascend );
 		fprintf( stream, "font.pen_move_dir = %d\n", font->pen_move_dir );
 	}

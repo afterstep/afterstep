@@ -163,6 +163,7 @@ typedef struct ASFont
 									 * to the top of the character glyph */
 					space_size;     /* fixed width value to be used when
 									 * rendering spaces and tabs */
+	int 			spacing_x, spacing_y ;									 
 #define LEFT_TO_RIGHT    1
 #define RIGHT_TO_LEFT   -1
 	int 			pen_move_dir ;  /* direction of the text flow */
@@ -421,5 +422,8 @@ struct ASImage *draw_text( const char *text,
 Bool get_text_size( const char *text,
 	                struct ASFont *font, ASText3DType type,
                     unsigned int *width, unsigned int *height );
+
+Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y );
+Bool set_asfont_glyph_spacing( ASFont* font, int x, int y );
 
 #endif

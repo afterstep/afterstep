@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 	int screen, depth ;
 	char *font_name = "test.ttf";
 	int size = 32 ;
-	char *text = "Smart Brown Dog jumps\n Over The Lazy Fox,\n and falls into the ditch.";
+	char *text = "Smart Brown Dog jumps\nOver The Lazy Fox,\nand falls into the ditch.";
 	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
 	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
 	char *fore_image_file = "fore.xpm", *back_image_file = "back.xpm" ;
@@ -163,6 +163,7 @@ int main(int argc, char* argv[])
 	asv = create_asvisual( dpy, screen, depth, NULL );
 
 	/* see ASText.2 : */
+	/*set_asfont_glyph_spacing( font, 10, 40 );*/
 	get_text_size( text, font, type_3d, &width, &height );
 	if( fore_image_file )
 	{
