@@ -371,6 +371,7 @@ GetASImageFromFile (char *file)
 {
     ASImage *im;
     CheckImageManager();
+	LOCAL_DEBUG_OUT( "loading image from file \"%s\"", file );
     im = get_asimage( Scr.image_manager, file, ASFLAGS_EVERYTHING, 100 );
     if( im == NULL )
         show_error( "failed to locate icon file \"%s\" in the IconPath and PixmapPath", file );
@@ -1450,7 +1451,16 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		recolor_feel_cursors( &Scr.Feel, cursor_fore, cursor_back );
 		XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[ASCUR_Default]);
 	}
-
+	if( get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
+	{
+        ASHashIterator  i;
+        if( start_hash_iteration (Scr.Feel.Popups, &i) )
+            do
+            {
+				reload_menu_pmaps( (MenuData *)curr_hash_data(&i) );
+            }while( next_hash_item( &i ));
+	}
+	   
     /* TODO: update the menus */
     if (get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 	{

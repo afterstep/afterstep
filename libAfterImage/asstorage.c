@@ -520,7 +520,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 	CARD8  *buffer = data ;
 	size_t 	buf_size = size ; 
 	
-	if( get_flags( *flags, ASStorage_RLEDiffCompress ) )
+	if( get_flags( *flags, ASStorage_RLEDiffCompress ) && size > ASStorageSlot_SIZE)
 	{
 		int uncompressed_size = size ;
 
@@ -852,7 +852,7 @@ defragment_storage_block( ASStorageBlock *block )
 		while( used < block->end && used->flags == 0 ) 
 			used = AS_STORAGE_GetNextSlot(used);
 		LOCAL_DEBUG_OUT("brk = %p, used = %p, end = %p", brk, used, block->end );
-		if( used >= block->end ) 
+		if( used >= block->end || next_used > block->end) 
 		{
 			total_free = (unsigned long)((CARD8*)block->end - (CARD8*)brk);
 			if( total_free < ASStorageSlot_SIZE ) 
@@ -869,7 +869,6 @@ defragment_storage_block( ASStorageBlock *block )
 			LOCAL_DEBUG_OUT("next_used = %p, next_used->size = %ld", 
 							next_used, next_used->size );
 		}
-
 		if( used != brk	)
 		{/* can't use memcpy as regions may overlap */
 			int size = (ASStorageSlot_FULL_SIZE(used))/4;
@@ -942,6 +941,10 @@ select_storage_slot( ASStorageBlock *block, int size )
 			int size_to_match = size+ASStorageSlot_SIZE ;
 			while( slot->flags == 0 )
 			{
+				ASStorageSlot *next_slot = AS_STORAGE_GetNextSlot(slot);		   
+				if( next_slot >= block->end )
+					break;
+
 				LOCAL_DEBUG_OUT( "start = %p, slot = %p, slot->size = %ld, end = %p, size = %d, size_to_match = %d", block->start, slot, slot->size, block->end, size, size_to_match );
 				if( ASStorageSlot_USABLE_SIZE(slot) >= size )
 					return slot;
@@ -951,10 +954,8 @@ select_storage_slot( ASStorageBlock *block, int size )
 					return slots[i];
 				}	
 				size_to_match -= ASStorageSlot_FULL_SIZE(slot);
-				slot = AS_STORAGE_GetNextSlot(slot);		
+				slot = next_slot;		
 				/* make sure we has not exceeded boundaries of the block */									   
-				if( slot >=  block->end )
-					break;
 			}			
 		}
 		++i ;
@@ -1228,7 +1229,9 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 		{
 			int *a = NULL ; 	  
 			show_error( "Reference ID is the same as target_id: id = %lX, slot_id = %d", id, slot_id );
+#ifndef NO_DEBUG_OUTPUT
 			*a = 0 ;
+#endif						   
 		}
 		/* don't increment refcount, becouse we oonly have one published reference to it so far */
 		/* ++(body_slot->ref_count); */
@@ -1238,17 +1241,33 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 		ref_index = StorageID2SlotIdx(id); ;
 		ref_slot = block->slots[ref_index] ;
 		
-		target_id = store_compressed_data( storage, &(ref_slot->data[0]), 
-										   ref_slot->uncompressed_size, 
-										   ref_slot->size, ref_slot->ref_count, ref_slot->flags );
+		if( block->total_free > ref_slot->size )
+		{
+			/* there is a danger of us trying to reuse same block and defragmented it in between,
+			 * which will screw up the data */
+#ifndef NO_DEBUG_OUTPUT
+			fprintf( stderr, "\t\t %s DANGEROUS RELOCATION! size = %ld",  __FUNCTION__, ref_slot->size );
+#endif						   
+			memcpy( storage->comp_buf, &(ref_slot->data[0]), ref_slot->size );
+			target_id = store_compressed_data(  storage, storage->comp_buf, 
+										   		ref_slot->uncompressed_size, 
+										   		ref_slot->size, ref_slot->ref_count, ref_slot->flags );
+		}else	 
+			target_id = store_compressed_data( storage, &(ref_slot->data[0]), 
+										   	ref_slot->uncompressed_size, 
+										   	ref_slot->size, ref_slot->ref_count, ref_slot->flags );
+		/* lets do this again, in case block was defragmented */
+		ref_slot = block->slots[ref_index] ;
+
 		if( target_id == 0 ) 
 			return NULL;		
 		if( target_id == id ) 
 		{	
 			int *a = NULL ; 
 			show_error( "Reference ID is the same as target_id: id = %lX" );
+#ifndef NO_DEBUG_OUTPUT
 			*a = 0 ;
-
+#endif						   
 		}
 		
 		split_storage_slot( block, ref_slot, sizeof(ASStorageID));

@@ -28,6 +28,7 @@
 #include "parser.h"
 #include "functions.h"
 #include "freestor.h"
+#include "../libAfterImage/afterimage.h"
 
 
 /*************************************************************************/
@@ -707,6 +708,27 @@ add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, stru
             mdi->minipixmap_image = img ;
         }
 }
+
+void
+reload_menu_pmaps( MenuData *menu )
+{
+    MenuDataItem *curr ;
+	
+	LOCAL_DEBUG_OUT( "menu = %p, image_manager = %p", menu, Scr.image_manager );
+
+	if( menu && Scr.image_manager ) 
+		for( curr = menu->first ; curr != NULL ; curr = curr->next )
+		{	
+    		if( curr->minipixmap )
+        	{
+            	if( curr->minipixmap_image )
+                	safe_asimage_destroy(curr->minipixmap_image);
+            	curr->minipixmap_image = get_asimage( Scr.image_manager, curr->minipixmap, ASFLAGS_EVERYTHING, 100 );
+        	}
+			LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
+		}
+}
+
 
 /* this is very often used function so we optimize it as good as we can */
 int

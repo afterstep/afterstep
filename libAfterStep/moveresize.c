@@ -261,7 +261,7 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 	attr.save_under = True ;
     data->geometry_display = create_screen_window( AS_WIDGET_SCREEN(parent), None,
                                 x, y, width, height,
-					  			1, InputOutput,
+					  			0, InputOutput,
 					  			CWOverrideRedirect|CWSaveUnder, &attr );
 #ifndef NO_ASRENDER
     XMapRaised( dpy, data->geometry_display );

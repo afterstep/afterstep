@@ -1316,7 +1316,6 @@ show_asmenu( ASMenu *menu, int x, int y )
     asiw->on_pointer_event = on_menu_pointer_event;
     asiw->on_keyboard_event = on_menu_keyboard_event;
     asiw->on_look_feel_changed = on_menu_look_feel_changed;
-	asiw->on_look_feel_changed = on_menu_look_feel_changed;
 	asiw->on_root_background_changed = on_menu_root_background_changed ;
     asiw->destroy = menu_destroy;
 

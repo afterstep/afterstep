@@ -259,6 +259,8 @@ int parse_menu_item_name (MenuDataItem * item, char **name);
 
 void add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img );
 void menu_data_item_from_func (MenuData * menu, FunctionData * fdata);
+void reload_menu_pmaps( MenuData *menu );
+
 void print_func_data(const char *file, const char *func, int line, FunctionData *data);
 
 #if defined(LOCAL_DEBUG) || defined(DEBUG)
