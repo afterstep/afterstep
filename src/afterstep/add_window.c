@@ -131,6 +131,7 @@ static unsigned int NormalWidth, NormalHeight ;
 typedef struct ASOrientation
 {
     unsigned int frame_contexts[FRAME_PARTS];
+    unsigned int frame_rotation[FRAME_PARTS];
     unsigned int tbar2canvas_xref[FRAME_PARTS+1];
     unsigned int tbar_side;
     unsigned int tbar_corners[2];
@@ -164,7 +165,8 @@ typedef struct ASOrientation
 ASOrientation HorzOrientation =
 {
     { C_FrameN, C_FrameE, C_FrameS, C_FrameW, C_FrameNW,C_FrameNE,C_FrameSW,C_FrameSE },
-/*      N     E     S     W     NW    NE    SE    SW    TITLE */
+    {FR_N, FR_E, FR_S, FR_W, FR_NW, FR_NE, FR_SW, FR_SE },
+/*      N     E     S     W     NW    NE    SW    SE    TITLE */
     {FR_N, FR_E, FR_S, FR_W, FR_N, FR_N, FR_S, FR_S, FR_N },
     FR_N,
     {FR_NW, FR_NE},
@@ -186,8 +188,9 @@ ASOrientation HorzOrientation =
 ASOrientation VertOrientation =
 {
     { C_FrameW, C_FrameN, C_FrameE, C_FrameS, C_FrameSW,C_FrameNW,C_FrameSE,C_FrameNE },
-/*      N     E     S     W     NW    NE    SE    SW    TITLE */
-    {FR_W, FR_N, FR_E, FR_S, FR_W, FR_W, FR_E, FR_E, FR_W },
+    {FR_W, FR_N, FR_E, FR_S, FR_SW, FR_NW, FR_SE, FR_NE },
+/*      N     E     S     W     NW    NE    SW    SE    TITLE */
+    {FR_N, FR_E, FR_S, FR_W, FR_W, FR_E, FR_W, FR_E, FR_W },
     FR_W,
     {FR_SW, FR_NW},
     {FR_NW, FR_SW},
@@ -515,6 +518,7 @@ check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name,
             *tbar = create_astbar();
         }
         set_astbar_style( *tbar, BAR_STATE_FOCUSED, mystyle_name );
+        set_astbar_hilite( *tbar, DEFAULT_TBAR_HILITE );
         set_astbar_image( *tbar, img );
         set_astbar_back_size( *tbar, back_w, back_h );
         set_astbar_size( *tbar, (back_w == 0)?1:back_w, (back_h == 0)?1:back_h );
@@ -711,27 +715,28 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     check_tbar( &(asw->icon_title), (asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
                 NULL, 0, 0, C_IconTitle );
     /* 8) now we have to create actuall bars - for each frame element plus one for the titlebar */
-	for( i = 0 ; i < FRAME_PARTS ; ++i )
+    if( frame )
     {
-        unsigned short back_w = 0, back_h = 0 ;
-        ASImage *img = NULL ;
-
-        if( frame )
+        for( i = 0 ; i < FRAME_PARTS ; ++i )
         {
+            ASImage *img = NULL ;
+            unsigned int real_part = od->frame_rotation[i];
+
             img = frame->parts[i]?frame->parts[i]->image:NULL ;
 
-            if( (0x01<<i)&od->horz_side_mask )
+            if( (0x01<<i)&MYFRAME_HOR_MASK )
             {
-                back_h = frame->part_width[i] ;
-                back_w = frame->part_length[i] ;
+                *(od->in_width) = frame->part_length[i] ;
+                *(od->in_height) = frame->part_width[i] ;
             }else
             {
-                back_w = frame->part_width[i] ;
-                back_h = frame->part_length[i] ;
+                *(od->in_width) = frame->part_width[i] ;
+                *(od->in_height) = frame->part_length[i] ;
             }
+/*LOCAL_DEBUG_OUT( "part(%d)->real_part(%d)->from_size(%ux%u)->in_size(%ux%u)->out_size(%ux%u)", i, real_part, frame->part_width[i], frame->part_length[i], *(od->in_width), *(od->in_height), *(od->out_width), *(od->out_height) );*/
+            check_tbar( &(asw->frame_bars[real_part]), IsFramePart(frame,i), mystyle_name,
+                        img, *(od->out_width), *(od->out_height), frame_contexts[i] );
         }
-        check_tbar( &(asw->frame_bars[i]), IsFramePart(frame,i), mystyle_name,
-                    img, back_w, back_h, frame_contexts[i] );
     }
     check_tbar( &(asw->tbar), has_tbar, mystyle_name, NULL, 0, 0, C_TITLE );
 
@@ -739,8 +744,8 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     if( asw->tbar )
 	{ /* need to add some titlebuttons */
         ASFlagType btn_mask = compile_titlebuttons_mask (asw);
-        asw->tbar->h_spacing = 5 ;
-        asw->tbar->v_spacing = 5 ;
+        asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
+        asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
 		/* left buttons : */
         add_astbar_btnblock(asw->tbar,
                             od->default_tbar_elem_col[0], od->default_tbar_elem_row[0],
@@ -1346,6 +1351,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
         for( i = FRAME_SIDES; --i >= 0; )
             if( is_canvas_dirty(asw->frame_sides[i]) )
                 update_canvas_display( asw->frame_sides[i] );
+        if( asw->internal && asw->internal->on_hilite_changed )
+            asw->internal->on_hilite_changed( asw->internal, NULL, focused );
     }else /* Iconic !!! */
     {
         set_astbar_focused( asw->icon_button, asw->icon_canvas, focused );

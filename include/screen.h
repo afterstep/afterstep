@@ -264,6 +264,9 @@ typedef struct MyLook
     MyButton    buttons[TITLE_BUTTONS];
 
     /* Menu parameters */
+#define DRAW_MENU_BORDERS_NONE      0
+#define DRAW_MENU_BORDERS_ITEM      1
+#define DRAW_MENU_BORDERS_OVERALL   2
     int DrawMenuBorders;
     int StartMenuSortMode;
 

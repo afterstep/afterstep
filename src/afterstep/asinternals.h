@@ -145,6 +145,7 @@ void UninstallAfterStepColormap (void);
 
 /*************************** configure.c **********************************/
 Bool GetIconFromFile (char *file, MyIcon * icon, int max_colors);
+struct ASImage *GetASImageFromFile (char *file);
 
 void InitBase (Bool free_resources);
 void InitDatabase (Bool free_resources);

@@ -308,8 +308,7 @@ obsolete (char *text, FILE * fd, char **arg, int *i)
 /***************************************************************
  * get an icon
  **************************************************************/
-Bool
-GetIconFromFile (char *file, MyIcon * icon, int max_colors)
+void CheckImageManager()
 {
     if( Scr.image_manager == NULL )
 	{
@@ -320,9 +319,25 @@ GetIconFromFile (char *file, MyIcon * icon, int max_colors)
 			ppath = getenv( "PATH" );
 		Scr.image_manager = create_image_manager( NULL, 2.2, ppath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
 	}
+}
 
+Bool
+GetIconFromFile (char *file, MyIcon * icon, int max_colors)
+{
+    CheckImageManager();
     memset( icon, 0x00, sizeof(icon_t));
     return load_icon(icon, file, Scr.image_manager );
+}
+
+ASImage *
+GetASImageFromFile (char *file)
+{
+    ASImage *im;
+    CheckImageManager();
+    im = get_asimage( Scr.image_manager, file, ASFLAGS_EVERYTHING, 100 );
+    if( im == NULL )
+        show_error( "failed to locate icon file \"%s\" in the IconPath and PixmapPath", file );
+    return im;
 }
 
 /*

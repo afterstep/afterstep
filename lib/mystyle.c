@@ -418,15 +418,15 @@ grab_root_asimage( ScreenInfo *scr )
 	/* this only works if we use DefaultVisual - same visual as the Root window :*/
 	if( Scr.asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy) ) )
 		return NULL ;
-	
+
 	attr.background_pixmap = ParentRelative ;
 	attr.backing_store = Always ;
 	attr.event_mask = ExposureMask ;
 	attr.override_redirect = True ;
 	src = create_visual_window( scr->asv, scr->Root, 0, 0, scr->MyDisplayWidth, scr->MyDisplayHeight,
-	    		                0, CopyFromParent, 
+	    		                0, CopyFromParent,
 				  				CWBackPixmap|CWBackingStore|CWOverrideRedirect|CWEventMask,
-				  				&attr); 
+				  				&attr);
 
 	if( src == None ) return NULL ;
 	XGrabServer( dpy );
@@ -533,7 +533,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 			 root_h = Scr.RootImage->height;
 		 }
 		 LOCAL_DEBUG_OUT ("RootImage = %p", Scr.RootImage);
-		
+
 		if (Scr.RootImage == NULL)
 		{  /* simply creating solid color image */
 			im = create_asimage( width, height, 100 );
@@ -590,7 +590,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 					 destroy_asimage (&scaled_im);
 			 }
 		}
-	}		
+	}
 #endif /* NO_TEXTURE */
 	return im;
 }
@@ -1618,6 +1618,7 @@ mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reve
 {
 	if (style && hilite != 0)
 	{
+        int extra_hilite = get_flags (hilite, EXTRA_HILITE)?2:0;
 		if (bevel == NULL)
 			bevel = safecalloc (1, sizeof (ASImageBevel));
 		else
@@ -1636,42 +1637,53 @@ mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reve
 			bevel->lolo_color = GetShadow (style->relief.back);
 		}
 		bevel->hilo_color = GetAverage (style->relief.fore, style->relief.back);
-		if (get_flags (hilite, FULL_HILITE))
-		{
-			bevel->left_outline = bevel->top_outline = bevel->right_outline = bevel->bottom_outline = 1;
-			bevel->left_inline = bevel->top_inline =
-				bevel->right_inline = bevel->bottom_inline = get_flags (hilite, EXTRA_HILITE) ? 3 : 1;
-		} else
-		{
+#if 1
+        if( !get_flags (hilite, NO_HILITE_OUTLINE) )
+        {
+            if (get_flags (hilite, NORMAL_HILITE) )
+            {
+                bevel->left_outline = bevel->top_outline = bevel->right_outline = bevel->bottom_outline = 1;
+                bevel->left_inline = bevel->top_inline =
+                    bevel->right_inline = bevel->bottom_inline = extra_hilite + 1;
+            } else
+            {
 #ifndef DONT_HILITE_PLAIN
-			if (get_flags (hilite, EXTRA_HILITE))
-			{
-				bevel->left_inline = bevel->top_inline = bevel->right_inline = bevel->bottom_inline = 2;
-			}
+                bevel->left_inline = bevel->top_inline = bevel->right_inline = bevel->bottom_inline = extra_hilite;
 #endif
-		}
-
-		if (get_flags (hilite, LEFT_HILITE))
+            }
+        }
+#endif
+        if (get_flags (hilite, LEFT_HILITE))
 		{
 			bevel->left_outline++;
 			bevel->left_inline++;
+            if( get_flags (hilite, NO_HILITE_OUTLINE) )
+            {
+                bevel->left_outline++;
+                bevel->left_inline += extra_hilite ;
+            }
 		}
 		if (get_flags (hilite, TOP_HILITE))
 		{
 			bevel->top_outline++;
 			bevel->top_inline++;
-		}
+            if( get_flags (hilite, NO_HILITE_OUTLINE) )
+                bevel->top_inline += extra_hilite ;
+        }
 		if (get_flags (hilite, RIGHT_HILITE))
 		{
 			bevel->right_outline++;
 			bevel->right_inline++;
+            if( get_flags (hilite, NO_HILITE_OUTLINE) )
+                bevel->right_inline += extra_hilite ;
 		}
 		if (get_flags (hilite, BOTTOM_HILITE))
 		{
 			bevel->bottom_outline++;
 			bevel->bottom_inline++;
-		}
-
+            if( get_flags (hilite, NO_HILITE_OUTLINE) )
+                bevel->bottom_inline += extra_hilite ;
+        }
 	} else if (bevel)
 		memset (bevel, 0x00, sizeof (ASImageBevel));
 

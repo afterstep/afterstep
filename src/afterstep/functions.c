@@ -217,6 +217,7 @@ ExecuteFunction (FunctionData *data, ASEvent *event, int module)
 #endif
 {
     register FunctionCode  func = data->func;
+    ASEvent scratch_event ;
 #ifndef LOCAL_DEBUG
     if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
 #endif
@@ -228,6 +229,13 @@ LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)"
                          event?event->client:NULL,
                          event?(event->client?ASWIN_NAME(event->client):"none"):"none",
                          module );
+    if( event == NULL )
+    {
+        memset( &scratch_event, 0x00, sizeof(ASEvent) );
+        event = &scratch_event ;
+        event->event_time = Scr.last_Timestamp ;
+        event->scr = &Scr ;
+    }
     /* Defer Execution may wish to alter this value */
     if (IsWindowFunc (func))
 	{

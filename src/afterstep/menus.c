@@ -30,7 +30,7 @@
  ***********************************************************************/
 #include "../../configure.h"
 
-#define LOCAL_DEBUG
+//#define LOCAL_DEBUG
 
 #include "../../include/asapp.h"
 #include <X11/keysym.h>
@@ -170,11 +170,32 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
 {
     if( item->bar == NULL )
         item->bar = create_astbar();
-	/* TODO:add minipixmap */
-	/* add label */
-    add_astbar_label( item->bar, 1, 0, 0, ALIGN_LEFT, mdi->item );
-	/* TODO:add hotkey */
-	/* TODO:add popup icon */
+
+    if( item->icon )
+    {
+        safe_asimage_destroy( item->icon );
+        item->icon = NULL ;
+    }
+    if( mdi->minipixmap )
+        item->icon = GetASImageFromFile( mdi->minipixmap );
+LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item, mdi->minipixmap?mdi->minipixmap:NULL, item->icon );
+
+    /* reserve space for minipixmap */
+#define MI_LEFT_SPACER_IDX  0
+    add_astbar_spacer( item->bar, 0, 0, 0, NO_ALIGN, 1, 1 );              /*0*/
+#define MI_LEFT_ICON_IDX    1
+    add_astbar_spacer( item->bar, 0, 0, 0, NO_ALIGN, 1, 1 );              /*1*/
+    /* reserve space for popup icon :*/
+#define MI_POPUP_IDX        2
+    add_astbar_spacer( item->bar, 7, 0, 0, NO_ALIGN, 1, 1 );              /*2*/
+
+    /* optional menu items : */
+    /* add label */
+    if( mdi->item )
+        add_astbar_label( item->bar, 1, 0, 0, ALIGN_LEFT, mdi->item );
+    /* add hotkey */
+    if( mdi->item2 )
+        add_astbar_label( item->bar, 2, 0, 0, ALIGN_RIGHT, mdi->item2 );
 
     item->flags = 0 ;
     if( mdi->fdata->func == F_POPUP )
@@ -183,14 +204,41 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
             set_flags( item->flags, AS_MenuItemDisabled );
     }else if( get_flags( mdi->flags, MD_Disabled ) )
         set_flags( item->flags, AS_MenuItemDisabled );
+
+    item->fdata = mdi->fdata ;
 }
 
 static Bool
-set_asmenu_item_look( ASMenuItem *item, MyLook *look )
+set_asmenu_item_look( ASMenuItem *item, MyLook *look, unsigned int icon_space, unsigned int arrow_space )
 {
+    ASFlagType hilite = NO_HILITE ;
 LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
+
     if( item->bar == NULL )
         return False;
+
+    item->bar->h_spacing = DEFAULT_MENU_SPACING ;
+    item->bar->h_border = DEFAULT_MENU_ITEM_HBORDER ;
+    item->bar->v_border = DEFAULT_MENU_ITEM_VBORDER ;
+
+    if( get_flags( look->flags, MenuMiniPixmaps ) && icon_space > 0 )
+    {
+        //set_astbar_tile_size( item->bar, MI_LEFT_SPACER_IDX, icon_space, 1 );
+        delete_astbar_tile( item->bar, MI_LEFT_ICON_IDX );
+        /* now readd it as minipixmap :*/
+        if( item->icon )
+            add_astbar_icon( item->bar, 0, 0, 0, NO_ALIGN, item->icon );
+        else
+            add_astbar_spacer( item->bar, 0, 0, 0, NO_ALIGN, icon_space, 1 );
+    }
+    /* delete tile from Popup arrow cell : */
+    delete_astbar_tile( item->bar, MI_POPUP_IDX );
+    /* now readd it as proper type : */
+    if( look->MenuArrow && item->fdata->func == F_POPUP )
+        add_astbar_icon( item->bar, 7, 0, 0, NO_ALIGN, look->MenuArrow->image );
+    else
+        add_astbar_spacer( item->bar, 7, 0, 0, NO_ALIGN, arrow_space, 1 );
+
 
     if( get_flags( item->flags, AS_MenuItemDisabled ) )
     {
@@ -201,6 +249,18 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
         set_astbar_style_ptr( item->bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_ITEM] );
         set_astbar_style_ptr( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_HILITE] );
     }
+    if( look->DrawMenuBorders == DRAW_MENU_BORDERS_ITEM )
+        hilite = DEFAULT_MENU_HILITE;
+    else if ( Scr.Look.DrawMenuBorders == DRAW_MENU_BORDERS_OVERALL )
+    {
+        hilite = NO_HILITE_OUTLINE|LEFT_HILITE|RIGHT_HILITE ;
+        if( get_flags( item->flags, AS_MenuItemFirst ) )
+            hilite |= TOP_HILITE ;
+        if( get_flags( item->flags, AS_MenuItemLast ) )
+            hilite |= BOTTOM_HILITE ;
+    }
+
+    set_astbar_hilite( item->bar, hilite );
     return True;
 }
 
@@ -213,6 +273,7 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
     int items_num = md->items_num ;
     int i = 0 ;
     int real_items_num = 0;
+    int max_icon_size  = 0;
     if( menu->items_num < items_num )
     {
         menu->items = realloc( menu->items, items_num*(sizeof(ASMenuItem)));
@@ -235,9 +296,20 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
             }else
             {
                 set_asmenu_item_data( &(menu->items[real_items_num]), mdi );
+
+                if( menu->items[real_items_num].icon )
+                    if( menu->items[real_items_num].icon->width > max_icon_size )
+                        max_icon_size = menu->items[real_items_num].icon->width ;
+
                 ++real_items_num;
             }
+        if( real_items_num > 0 )
+        {
+            set_flags( menu->items[0].flags, AS_MenuItemFirst );
+            set_flags( menu->items[real_items_num-1].flags, AS_MenuItemLast );
+        }
     }
+    menu->icon_space = MIN(max_icon_size,(Scr.MyDisplayWidth>>3));
     /* if we had more then needed tbars - destroy the rest : */
     if( menu->items )
     {
@@ -260,12 +332,14 @@ set_asmenu_look( ASMenu *menu, MyLook *look )
     unsigned int max_width = 0, max_height = 0;
     int display_size ;
 
+    menu->arrow_space = look->MenuArrow?look->MenuArrow->width:5 ;
+
     i = menu->items_num ;
     while ( --i >= 0 )
     {
         unsigned int width, height ;
         register ASTBarData *bar;
-        set_asmenu_item_look( &(menu->items[i]), look );
+        set_asmenu_item_look( &(menu->items[i]), look, menu->icon_space, menu->arrow_space );
         if( (bar= menu->items[i].bar) != NULL )
         {
             width = calculate_astbar_width( bar );
@@ -376,6 +450,18 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
     ASSync(False);
 }
 
+static inline void
+run_item_submenu( ASMenu *menu, int item )
+{
+    if( menu->items[item].submenu )
+    {
+        close_asmenu_submenu( menu );
+        menu->submenu = run_submenu( menu, menu->items[item].submenu,
+                                        menu->main_canvas->root_x+menu->item_width-5,
+                                        menu->main_canvas->root_y+(menu->item_height*(item-(int)menu->top_item))-5 );
+    }
+}
+
 void
 press_menu_item( ASMenu *menu, int pressed )
 {
@@ -409,13 +495,19 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
                 set_astbar_pressed( menu->items[pressed].bar, menu->main_canvas, True );
                 update_display = True ;
             }
-            if( menu->items[pressed].submenu )
-            {
-                close_asmenu_submenu( menu );
-                menu->submenu = run_submenu( menu, menu->items[pressed].submenu,
-                                             menu->main_canvas->root_x+menu->item_width-5,
-                                             menu->main_canvas->root_y+(menu->item_height*(pressed-(int)menu->top_item))-5 );
-            }
+            run_item_submenu( menu, pressed );
+        }
+    }
+/* LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pressed_item, menu->focused );*/
+    if( pressed < 0 && menu->pressed_item >= 0 && menu->focused )
+    {
+        ASMenuItem *item = &(menu->items[menu->pressed_item]);
+        if( !get_flags(item->flags, AS_MenuItemDisabled) &&
+            item->fdata->func != F_POPUP )
+        {
+            ExecuteFunction( item->fdata, NULL, -1 );
+            if( !menu->pinned )
+                close_asmenu( &ASTopmostMenu );
         }
     }
     menu->pressed_item = pressed ;
@@ -485,6 +577,7 @@ on_menu_hilite_changed( ASInternalWindow *asiw, ASMagic *data, Bool focused )
     {
         /* TODO : hilite/unhilite selected item, and
          * withdraw non-pinned menu if it has no submenus */
+        menu->focused = focused ;
     }
 }
 
@@ -538,7 +631,11 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
                 if( xmev->state & ButtonAnyMask )
                     press_menu_item( menu, selection );
                 else
+                {
                     select_menu_item( menu, selection );
+                    if( px > canvas->width-menu->arrow_space )
+                        run_item_submenu( menu, selection );
+                }
             }
         }
     }
@@ -604,6 +701,7 @@ show_asmenu(ASMenu *menu, int x, int y)
     ASStatusHints status ;
     ASHints *hints = safecalloc( 1, sizeof(ASHints) );
     ASInternalWindow *asiw = safecalloc( 1, sizeof(ASInternalWindow));
+    int gravity = NorthWestGravity ;
 
     asiw->data = (ASMagic*)menu;
 
@@ -632,12 +730,17 @@ show_asmenu(ASMenu *menu, int x, int y)
     if( x <= MIN_MENU_X )
         x = MIN_MENU_X ;
     else if( x + menu->optimal_width > MAX_MENU_X )
+    {
         x = MAX_MENU_X - menu->optimal_width ;
+        gravity = NorthEastGravity ;
+    }
     if( y <= MIN_MENU_Y )
         y = MIN_MENU_Y ;
     else if( y + menu->optimal_height > MAX_MENU_Y )
+    {
         y = MAX_MENU_Y - menu->optimal_height ;
-
+        gravity = (gravity == NorthWestGravity)?SouthWestGravity:SouthEastGravity ;
+    }
     status.x = x;
     status.y = y;
     status.width = menu->optimal_width;
@@ -654,9 +757,6 @@ show_asmenu(ASMenu *menu, int x, int y)
     hints->res_name  = hints->names[1];
     hints->res_class = hints->names[1];
     hints->icon_name = hints->names[0];
-	
-	if( Scr.Look.DrawMenuBorders == 2 ) 
-		hints->border_width = 2 ;
 
     hints->flags = AS_DontCirculate|
                    AS_SkipWinList|
@@ -667,7 +767,7 @@ show_asmenu(ASMenu *menu, int x, int y)
                    AS_Gravity|
                    AS_MinSize|
                    AS_MaxSize|
-                   AS_SizeInc|AS_VerticalTitle ;
+                   AS_SizeInc;//|AS_VerticalTitle ;
     hints->protocols = AS_DoesWmTakeFocus ;
     hints->function_mask = ~(AS_FuncPopup|     /* everything else is allowed ! */
                              AS_FuncMinimize|
@@ -679,7 +779,7 @@ show_asmenu(ASMenu *menu, int x, int y)
     hints->max_height = MIN(MAX_MENU_HEIGHT,menu->items_num*menu->item_height);
     hints->width_inc  = 0 ;
     hints->height_inc = menu->item_height;
-    hints->gravity = NorthWestGravity ;/* for now - really should depend on where we were created at */
+    hints->gravity = gravity ;
     hints->border_width = BW ;
     hints->handle_width = BOUNDARY_WIDTH;
 

@@ -17,7 +17,7 @@
  *
  */
 
-#define LOCAL_DEBUG
+//#define LOCAL_DEBUG
 
 #include "../configure.h"
 
@@ -926,7 +926,7 @@ update_astbar_bevel_size (ASTBarData * tbar)
 	for (i = 0; i < BAR_STATE_NUM; ++i)
 		if (tbar->style[i])
 		{
-			mystyle_make_bevel (tbar->style[i], &bevel, ASTBAR_HILITE, False);
+            mystyle_make_bevel (tbar->style[i], &bevel, BAR_FLAGS2HILITE(tbar->state), False);
 			if (tbar->left_bevel < bevel.left_outline)
 				tbar->left_bevel = bevel.left_outline;
 			if (tbar->top_bevel < bevel.top_outline)
@@ -936,6 +936,20 @@ update_astbar_bevel_size (ASTBarData * tbar)
 			if (tbar->bottom_bevel < bevel.bottom_outline)
 				tbar->bottom_bevel = bevel.bottom_outline;
 		}
+}
+
+Bool
+set_astbar_hilite( ASTBarData *tbar, ASFlagType hilite )
+{
+    Bool          changed = False;
+    if (tbar)
+	{
+        changed = (BAR_FLAGS2HILITE(tbar->state) != (hilite&HILITE_MASK));
+        tbar->state = (tbar->state&BAR_FLAGS_HILITE_MASK)|HILITE2BAR_FLAGS(hilite);
+        if (changed )
+            update_astbar_bevel_size (tbar);
+	}
+	return changed;
 }
 
 static inline void
@@ -1023,12 +1037,21 @@ set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short hei
 static ASTile *
 add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char row, int flip, int align )
 {
-    int new_idx = tbar->tiles_num;
+    int new_idx = -1;
     ASFlagType align_flags = align ;
+    /* try 1: see if we have any tiles that has been freed */
+    while( ++new_idx < tbar->tiles_num )
+        if( ASTileType(tbar->tiles[new_idx]) == AS_TileFreed )
+            break;
+
+    /* try 2: allocate new memory : */
     /* allocating memory if 4 tiles increments for more efficient memory management: */
-    if( (tbar->tiles_num &0x0003) == 0)
-        tbar->tiles = realloc( tbar->tiles, (((tbar->tiles_num>>2)+1)<<2)*sizeof(ASTile));
-    ++(tbar->tiles_num);
+    if( new_idx == tbar->tiles_num )
+    {
+        if( (tbar->tiles_num &0x0003) == 0)
+            tbar->tiles = realloc( tbar->tiles, (((tbar->tiles_num>>2)+1)<<2)*sizeof(ASTile));
+        ++(tbar->tiles_num);
+    }
 
     if( get_flags( flip, FLIP_VERTICAL ) )
         align_flags = (((align&PAD_H_MASK)>>PAD_H_OFFSET)<<PAD_V_OFFSET)|
@@ -1044,6 +1067,30 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
                                  ((flip<<AS_TileFlipOffset)&AS_TileFlipMask)|
                                  ((align_flags<<AS_TilePadOffset)&AS_TilePadMask);
     return &(tbar->tiles[new_idx]);
+}
+
+Bool
+delete_astbar_tile( ASTBarData *tbar, int idx )
+{
+
+    if( tbar != NULL && idx < tbar->tiles_num )
+    {
+        register int i ;
+        for( i = 0 ; i < tbar->tiles_num ; ++i )
+            if( i == idx || idx < 0 )
+            {
+                int type = ASTileType(tbar->tiles[i]);
+                if( ASTileTypeHandlers[type].free_astile_handler )
+                    ASTileTypeHandlers[type].free_astile_handler( &(tbar->tiles[i]) );
+                else if( type != AS_TileFreed )
+                {
+                    memset( &(tbar->tiles[i]), 0x00, sizeof(ASTile));
+                    tbar->tiles[i].flags = AS_TileFreed ;
+                }
+            }
+        return True;
+    }
+    return False;
 }
 
 int
@@ -1269,7 +1316,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 			return False;
 	}
 
-    mystyle_make_bevel (style, &bevel, ASTBAR_HILITE, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
+    mystyle_make_bevel (style, &bevel, BAR_FLAGS2HILITE(tbar->state), get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
 	/* in unfocused and unpressed state we render pixmap and set
 	 * window's background to it
 	 * in focused state or in pressed state we render to

@@ -41,9 +41,13 @@ typedef struct MenuData
 typedef struct ASMenuItem
 {
 #define AS_MenuItemDisabled     (0x01<<0)
+#define AS_MenuItemFirst        (0x01<<1)
+#define AS_MenuItemLast         (0x01<<2)
     ASFlagType flags;
     struct ASTBarData *bar;
     struct MenuData   *submenu;
+    struct ASImage    *icon;
+    struct FunctionData *fdata;
 }ASMenuItem;
 
 typedef struct ASMenu
@@ -66,6 +70,10 @@ typedef struct ASMenu
     unsigned int visible_items_num ;
 
     unsigned int optimal_width, optimal_height;
+    unsigned int icon_space, arrow_space ;
+
+    Bool focused ;
+    Bool pinned ;
 
     struct ASWindow *owner;
 }ASMenu;

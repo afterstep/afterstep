@@ -798,6 +798,7 @@ MenuDataItemFromFunc (MenuData * menu, FunctionData * fdata)
             item = NewMenuDataItem (menu);
 			item->fdata = fdata;
 		}
+        item->minipixmap = mystrdup(fdata->name);
     } else
     {
         item = NewMenuDataItem (menu);
@@ -1145,8 +1146,6 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 			{
 				if (parse_func (buf, fdata, True) < 0) /* data is actuall shell command line */
 					fdata->text = stripcpy (buf);
-				else
-					fdata->func = F_NOP ;
 			} else
 				fdata->text = mystrdup (t->name);
             if( fdata->name == NULL )

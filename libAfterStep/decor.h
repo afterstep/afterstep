@@ -124,7 +124,10 @@ typedef struct ASTBarData {
 #define BAR_FLAGS_VERTICAL      (0x01<<16)     /* vertical label */
 #define BAR_FLAGS_IMAGE_BACK    (0x01<<17)     /* back represents an icon instead of  */
 
-#define ASTBAR_HILITE   (BOTTOM_HILITE|RIGHT_HILITE)
+#define BAR_FLAGS_HILITE_OFFSET 18
+#define BAR_FLAGS_HILITE_MASK   (HILITE_MASK<<BAR_FLAGS_HILITE_OFFSET)
+#define BAR_FLAGS2HILITE(f)     (((f)&BAR_FLAGS_HILITE_MASK)>>BAR_FLAGS_HILITE_OFFSET)
+#define HILITE2BAR_FLAGS(h)     (((h)<<BAR_FLAGS_HILITE_OFFSET)&BAR_FLAGS_HILITE_MASK)
 
     ASFlagType  state ;
     unsigned long context ;
@@ -238,6 +241,7 @@ unsigned int calculate_astbar_width( ASTBarData *tbar );
 
 
 Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height );
+Bool set_astbar_hilite( ASTBarData *tbar, ASFlagType hilite );
 Bool set_astbar_style_ptr (ASTBarData * tbar, unsigned int state, struct MyStyle *style);
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
 Bool set_astbar_image( ASTBarData *tbar, struct ASImage *image );
@@ -251,6 +255,8 @@ int add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row
                      unsigned long context_base);
 int add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, struct ASImage *icon);
 int add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, const char *text);
+Bool delete_astbar_tile( ASTBarData *tbar, int idx );
+
 Bool change_astbar_label (ASTBarData * tbar, int index, const char *label);
 Bool change_astbar_first_label (ASTBarData * tbar, const char *label);
 
