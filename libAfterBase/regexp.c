@@ -132,8 +132,6 @@ reg_exp_sym*
 parse_reg_exp_sym( unsigned char **data )
 {/* this is a non-reentrant function in order to conserve memory */
   static reg_exp_sym sym ;
-  int sol_num = 0, range_num = 0 ;
-  unsigned char c ;
 
     sym.negate = 0 ;
     sym.size = 0 ;
@@ -141,7 +139,6 @@ parse_reg_exp_sym( unsigned char **data )
     if( **data == '[' )
     {
       unsigned char *ptr = (*data)+1 ;
-      unsigned char c ;
 
 	if( *ptr == '!' )
 	{
@@ -203,7 +200,7 @@ optimize_reg_exp_sym( unsigned char *trg, reg_exp_sym *p_sym )
 {
 /* there could be up to 255 possible charcters :) - that excludes 0x00 */
   unsigned char scale[256] ;
-  unsigned char *ptr = p_sym->code, *trg_start = trg ;
+  unsigned char *ptr = p_sym->code ;
   unsigned char r_start, r_end ;
     memset( scale, 0x00, 256 );
     while( *ptr )
@@ -644,10 +641,8 @@ match_substring( reg_exp *rexp, char *string, size_t len, int dir )
 { 
   size_t start = 0, end = len ;
   int pos, offset, size  ;
-  reg_exp *curr ;
   register unsigned char *sym, *neg ;
   unsigned char c, r1 ;
-  int no_match ;
   int skip, lead_len ;
   
     if( rexp == NULL ) return 0 ; /* we've riched the end of the search */
@@ -669,8 +664,9 @@ match_substring( reg_exp *rexp, char *string, size_t len, int dir )
     if( rexp->left_fixed || (!(dir&DIR_LEFT) && rexp->lead_len >= 0 ))
     {
 	if( rexp->right_fixed ) 
+	{
 	    if( end-start != size ) return -1 ;
-	else
+	}else
 	    end = start+size ;
     }else if( rexp->right_fixed || !(dir&DIR_RIGHT)) 
 	start = end - size ;
@@ -727,9 +723,8 @@ match_substring( reg_exp *rexp, char *string, size_t len, int dir )
 int  /* returns 0 if we have a match - -1 if we have to keep searching, 1 - error */
 match_wild_reg_exp( char* string, wild_reg_exp *wrexp )
 {
-  reg_exp *curr ;
-  int i = 0, k ;
   size_t len ;
+
     if( wrexp == NULL || string == NULL ) return 1 ;
     if( wrexp->longest == NULL ) return -1 ; /* empty regexp matches nothing */
     
