@@ -508,7 +508,7 @@ set_as_property ( Window w, Atom property, CARD32 *data, size_t data_size, CARD3
 #ifndef X_DISPLAY_MISSING
     CARD32 *buffer;
 
-    buffer = safemalloc (2 * sizeof (CARD32) + data_size);
+    buffer = safemalloc (2 * sizeof (long) + data_size);
 	/* set the property version to 1.0 */
 	buffer[0] = version;
 	/* the size of meaningful data to store */
@@ -517,7 +517,7 @@ set_as_property ( Window w, Atom property, CARD32 *data, size_t data_size, CARD3
 	memcpy (&(buffer[2]), data, data_size);
 
     XChangeProperty (dpy, w, property, XA_INTEGER, 32, PropModeReplace,
-					 (unsigned char *)buffer, 2 + data_size / sizeof (CARD32));
+					 (unsigned char *)buffer, 2 + data_size / sizeof (long));
 	free (buffer);
 #endif
 }

@@ -375,7 +375,7 @@ long**
 get_call_list()
 {
     static long * call_list[MAX_CALL_DEPTH+1] = {NULL};
-#if defined(__GNUC__)
+#if defined(__GNUC__) && defined(_ASMi386_SIGCONTEXT_H)
     if( __builtin_frame_address(0) == NULL ) goto done ;
     if( __builtin_frame_address(1) == NULL ) goto done ;
 
