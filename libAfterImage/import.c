@@ -1318,7 +1318,7 @@ ico2ASImage( const char * path, ASFlagType what )
 
 	icon_dir.idType = 0 ;
 	if( bmp_read16( infile, &icon_dir.idReserved, 3 ) == 3)
-		if( icon_dir.idType == 1 )
+		if( icon_dir.idType == 1 || icon_dir.idType == 2)
 		{
 			fread( &(icon.bWidth), sizeof(CARD8),4,infile );
 			bmp_read16( infile, &(icon.wPlanes), 2 );
