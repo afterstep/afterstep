@@ -103,7 +103,7 @@ static Pixmap __GetRootPixmap (ASVisual *asv, Atom id)
 
 static char* cdata_str = "CDATA";
 static char* container_str = "CONTAINER";
-static ASHashTable *asvar = NULL;
+static ASHashTable *asxml_var = NULL;
 
 static ASImageManager *_as_xml_image_manager = NULL ;
 static ASFontManager *_as_xml_font_manager = NULL ;
@@ -117,52 +117,52 @@ void set_xml_font_manager( ASFontManager *fontman )
 	_as_xml_font_manager = fontman ;
 }
 
-void asvar_insert(const char* name, int value);
+void asxml_var_insert(const char* name, int value);
 
 void
-asvar_init(void) {
+asxml_var_init(void) {
       int w, h;
-      if (asvar) destroy_ashash(&asvar);
-      asvar = create_ashash(0, string_hash_value, string_compare, string_destroy);
-      if (!asvar) return;
+      if (asxml_var) destroy_ashash(&asxml_var);
+      asxml_var = create_ashash(0, string_hash_value, string_compare, string_destroy);
+      if (!asxml_var) return;
       if (GetRootDimensions(&w, &h)) {
-              asvar_insert("xroot.width", w);
-              asvar_insert("xroot.height", h);
+              asxml_var_insert("xroot.width", w);
+              asxml_var_insert("xroot.height", h);
       }
 }
 
 void
-asvar_insert(const char* name, int value) {
+asxml_var_insert(const char* name, int value) {
       int* val = NULL;
 
-      if (!asvar) asvar_init();
-      if (!asvar) return;
+      if (!asxml_var) asxml_var_init();
+      if (!asxml_var) return;
 
       /* Destroy any old data associated with this name. */
-      remove_hash_item(asvar, (ASHashableValue)name, NULL, 1);
+      remove_hash_item(asxml_var, (ASHashableValue)name, NULL, 1);
 
       show_progress("Defining var [%s] == %d.", name, value);
 
       val = NEW(int); *val = value;
-      add_hash_item(asvar, (ASHashableValue)mystrdup(name), val);
+      add_hash_item(asxml_var, (ASHashableValue)mystrdup(name), val);
 }
 
 int
-asvar_get(const char* name) {
+asxml_var_get(const char* name) {
       int* value = NULL;
-      if (!asvar) asvar_init();
-      if (!asvar) return 0;
-      get_hash_item(asvar, (ASHashableValue)name, (void**)&value);
-			if (!value) show_debug(__FILE__, "asvar_get", __LINE__, "Use of undefined variable [%s].", name);
+      if (!asxml_var) asxml_var_init();
+      if (!asxml_var) return 0;
+      get_hash_item(asxml_var, (ASHashableValue)name, (void**)&value);
+			if (!value) show_debug(__FILE__, "asxml_var_get", __LINE__, "Use of undefined variable [%s].", name);
       return value ? *value : 0;
 }
 
 int
-asvar_nget(char* name, int n) {
+asxml_var_nget(char* name, int n) {
       int value;
       char oldc = name[n];
       name[n] = '\0';
-      value = asvar_get(name);
+      value = asxml_var_get(name);
       name[n] = oldc;
       return value;
 }
@@ -175,7 +175,7 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 	ASImageManager *my_imman = imman ;
 	ASFontManager  *my_fontman = fontman ;
 
-      asvar_init();
+      asxml_var_init();
 
 	doc = xml_parse_doc(doc_str);
 	if (verbose > 1) {
@@ -249,7 +249,7 @@ LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.
 	/* Delete the xml. */
 	if (doc) xml_elem_delete(NULL, doc);
 
-      asvar_init();
+      asxml_var_init();
 
 LOCAL_DEBUG_OUT( "returning im = %p, im->imman	= %p, im->magic = %8.8X", im, im?im->imageman:NULL, im?im->magic:0 );
 	return im;
@@ -413,7 +413,7 @@ double parse_math(const char* str, char** endptr, double size) {
 			if (*str == '(') num = parse_math(str + 1, &ptr, size);
                       else if (*str == '$') {
                               for (ptr = (char*)str + 1 ; *ptr && !isspace(*ptr) && *ptr != '+' && *ptr != '-' && *ptr != '*' && *ptr != '/' && *ptr != ')' ; ptr++);
-                              num = asvar_nget((char*)str + 1, ptr - (str + 1));
+                              num = asxml_var_nget((char*)str + 1, ptr - (str + 1));
                       }
 			else num = strtod(str, &ptr);
 			if (str != ptr) {
@@ -1708,9 +1708,9 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
               char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
 		show_progress("Storing image id [%s].", id);
               sprintf(buf, "%s.width", id);
-              asvar_insert(buf, result->width);
+              asxml_var_insert(buf, result->width);
               sprintf(buf, "%s.height", id);
-              asvar_insert(buf, result->height);
+              asxml_var_insert(buf, result->height);
               free(buf);
 		if( !store_asimage( imman, result, id ) )
 		{

@@ -107,13 +107,17 @@ typedef struct ASColorScheme
 #define ASCS_WHITING_SATURATION_LEVEL	5
 #define ASCS_BLACKING_BRIGHTNESS_LEVEL	30
 
-#define ASCS_BLACK_O_WHITE_CRITERIA16(r16,g16,b16)  ((((r16)>>17)+((g16)>>16)+((b16)>>18))>214)
+#define ASCS_BLACK_O_WHITE_CRITERIA16_VAL(r16,g16,b16)  (((r16)>>9)+((g16)>>8)+((b16)>>10))
+#define ASCS_BLACK_O_WHITE_CRITERIA16(r16,g16,b16)  ((((r16)>>9)+((g16)>>8)+((b16)>>10))>214)
 
 #define ASCS_HIGH_BRIGHTNESS_OFFSET	 		10
 #define ASCS_DISABLED_SATURATION_LEVEL		5
 #define ASCS_GRADIENT_BRIGHTNESS_OFFSET 	10
 
 ASColorScheme *make_ascolor_scheme( ARGB32 base, int angle );
+void populate_ascs_colors_rgb( ASColorScheme *cs );
+void populate_ascs_colors_xml( ASColorScheme *cs );
+
 
 #ifdef __cplusplus
 }

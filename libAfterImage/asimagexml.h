@@ -29,6 +29,9 @@ struct ASFontManager ;
 void set_xml_image_manager( struct ASImageManager *imman );
 void set_xml_font_manager( struct ASFontManager *fontman );
 
+void asxml_var_insert(const char* name, int value);
+void asxml_var_init(void);
+
 ASImage *
 compose_asimage_xml(ASVisual *asv,
                     struct ASImageManager *imman,
