@@ -550,14 +550,14 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 		if (t->left_w[i] != None)
 		{
 			flush_expose (t->left_w[i]);
-			draw_button (t, t->left_w[i], i * 2 + 1, DrawGC, ReliefGC, ShadowGC);
+			draw_button (t, t->left_w[i], i, DrawGC, ReliefGC, ShadowGC);
 		}
 
 	for (i = 0; i < Scr.nr_right_buttons; i++)
 		if (t->right_w[i] != None)
 		{
 			flush_expose (t->right_w[i]);
-			draw_button (t, t->right_w[i], (i * 2 + 2) % 10, DrawGC, ReliefGC, ShadowGC);
+			draw_button (t, t->right_w[i], i+FIRST_RIGHT_TBTN, DrawGC, ReliefGC, ShadowGC);
 		}
 
 
@@ -1143,8 +1143,6 @@ SetFocus (Window w, ASWindow * Fw, Bool circulated)
 			return False;
 		}
 	}
-	if (Fw && Fw->focus_var)
-		return False;
 
 	if (Fw && (Fw->status->desktop != Scr.CurrentDesk))
 	{
@@ -1199,7 +1197,7 @@ SetFocus (Window w, ASWindow * Fw, Bool circulated)
 			w = Fw->icon_pixmap_w;
 	}
 
-	if (!(Fw && get_flags(Fw->hints->flags, AS_AcceptsFocus)))
+	if (Fw && ASWIN_HFLAGS(Fw, AS_AcceptsFocus))
 	{
 		/* Window will accept input focus */
 		XSetInputFocus (dpy, w, RevertToParent, lastTimestamp);

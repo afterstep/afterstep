@@ -1403,15 +1403,6 @@ RunCommand (char *cmd, int channel, Window w)
 				 tmp_win->flags ^= CIRCULATESKIP;
 				 update = True;
 			 }
-			 if (xorflag & NOFOCUS)
-			 {
-				 tmp_win->flags ^= NOFOCUS;
-				 if (tmp_win->flags & NOFOCUS)
-					 tmp_win->focus_var = 1;
-				 else
-					 tmp_win->focus_var = 0;
-				 update = True;
-			 }
 			 if (update)
 				 BroadcastConfig (M_CONFIGURE_WINDOW, tmp_win);
 			 break;

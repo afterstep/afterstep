@@ -152,7 +152,7 @@ init_titlebutton_windows (ASWindow * tmp_win, Bool free_resources)
 
 	if (free_resources)
 	{
-		for (i = 0; i < 5; i++)
+		for (i = 0; i < (TITLE_BUTTONS>>1); i++)
 		{
 			if (tmp_win->left_w[i] != None)
 			{
@@ -168,7 +168,7 @@ init_titlebutton_windows (ASWindow * tmp_win, Bool free_resources)
 			}
 		}
 	}
-	for (i = 0; i < 5; i++)
+	for (i = 0; i < (TITLE_BUTTONS>>1); i++)
 	{
 		tmp_win->left_w[i] = None;
 		tmp_win->right_w[i] = None;
@@ -255,7 +255,7 @@ create_titlebutton_balloon (ASWindow * tmp_win, int b)
 		w = tmp_win->left_w[b];
 	}else
 	{
-		int rb = b - FIRST_RIGHT_TBTN ;
+		int rb = RightButtonIdx(b);
 		str = list_functions_by_context (C_R1 << rb);
 		w = tmp_win->right_w[rb];
 	}
@@ -315,7 +315,8 @@ create_titlebutton_windows (ASWindow * tmp_win)
 				Scr.buttons[i].width + Scr.TitleButtonSpacing;
 		}else
 		{
-			tmp_win->right_w[i] = w ;
+			int rb = RightButtonIdx(i);
+			tmp_win->right_w[rb] = w ;
 			tmp_win->nr_right_buttons++;
 			tmp_win->space_taken_right_buttons +=
 				Scr.buttons[i].width + Scr.TitleButtonSpacing;
@@ -693,12 +694,6 @@ AddWindow (Window w)
 	bind_aswindow_styles(tmp_win);
 
 	SelectDecor (tmp_win);
-	if( get_flags(tmp_win->hints->flags,AS_AcceptsFocus) )
-	{
-		tmp_win->focus_var = 1;
-		tmp_win->flags |= NOFOCUS;
-	}else
-		tmp_win->focus_var = 0;
 
 	if( get_flags(tmp_win->hints->flags,AS_AvoidCover))
 		tmp_win->flags |= AVOID_COVER;

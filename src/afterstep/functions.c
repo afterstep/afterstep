@@ -792,11 +792,10 @@ Circulate (ASWindow * tmp_win, char *action, int direction)
 	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 	{
 		/* look for interesting windows */
-		if (!(t->flags & CIRCULATESKIP) &&
-			!(t->flags & NOFOCUS) &&
-			!(t->flags & WINDOWLISTSKIP) &&
-			(AutoTabThroughDesks || ASWIN_DESK(t) == Scr.CurrentDesk) &&
-			(!(Scr.flags & CirculateSkipIcons) || !(t->flags & ICONIFIED)))
+		if ( !ASWIN_HFLAGS(tmp_win,AS_DontCirculate|AS_SkipWinList) &&
+			  ASWIN_HFLAGS(tmp_win,AS_AcceptsFocus) &&
+			  (AutoTabThroughDesks || ASWIN_DESK(t) == Scr.CurrentDesk) &&
+			  (!(Scr.flags & CirculateSkipIcons) || !(t->flags & ICONIFIED)))
 		{
 			if( action != NULL )
 			{

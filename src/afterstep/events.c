@@ -1141,7 +1141,7 @@ HandleEnterNotify ()
 	if (!Tmp_win)
 		return;
 
-	if (Tmp_win->focus_var == 0)
+	if (ASWIN_HFLAGS(Tmp_win,AS_AcceptsFocus))
 	{
 		if (!(Scr.flags & ClickToFocus))
 		{

@@ -190,9 +190,10 @@ typedef struct ASWindow
 #define FIRST_RIGHT_TBTN 	5
 #define IsLeftButton(b) 	((b)<FIRST_RIGHT_TBTN)
 #define IsRightButton(b) 	((b)>=FIRST_RIGHT_TBTN)
+#define RightButtonIdx(b) 	((b)-FIRST_RIGHT_TBTN)
 
-#define IsBtnDisabled(t,b)  (!get_flags((t)->hints->disabled_buttons,(0x01<<(b))))
-#define IsBtnEnabled(t,b)   get_flags((t)->hints->disabled_buttons,(0x01<<(b)))
+#define IsBtnDisabled(t,b)  get_flags((t)->hints->disabled_buttons,(0x01<<(b)))
+#define IsBtnEnabled(t,b)   (!get_flags((t)->hints->disabled_buttons,(0x01<<(b))))
 #define DisableBtn(t,b)  	clear_flags((t)->hints->disabled_buttons,(0x01<<(b)))
 
 
@@ -264,7 +265,6 @@ typedef struct ASWindow
 
     long focus_sequence;
     long circulate_sequence;
-    Bool focus_var;		/* to see if focus will work this way */
 #ifndef NO_TEXTURE
     int bp_width, bp_height;	/* size of background pixmap */
     Pixmap backPixmap;		/* for titlebar background */
