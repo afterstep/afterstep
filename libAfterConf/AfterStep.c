@@ -46,20 +46,20 @@ TermDef       SupportedHintsTerms[] =
     {0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     SupportedHintsSyntax = {
-    ',',
-    '\n',
-    SupportedHintsTerms,
-    7,                                         /* hash size */
-	' ',
-	" ",
-	"\t",
-    "Look Supported hints list",
-	"SupportedHints",
-	"",
-	NULL,
-	0
+SyntaxDef SupportedHintsSyntax = {',','\n',SupportedHintsTerms,7,' '," ","\t","Look Supported hints list","SupportedHints","",NULL,0};
+
+TermDef       PlacementStrategyTerms[] =
+{
+    {TF_NO_MYNAME_PREPENDING, "SmartPlacement", 14, TT_FLAG, 	FEEL_SmartPlacement_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "RandomPlacement", 15, TT_FLAG, 	FEEL_RandomPlacement_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Tile", 5, TT_FLAG, 				FEEL_Tile_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Cascade", 7, TT_FLAG, 			FEEL_Cascade_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Manual", 6, TT_FLAG, 			FEEL_Manual_ID, NULL},
+    {0, NULL, 0, 0, 0}
 };
+
+SyntaxDef PlacementStrategySyntax = {',','\n',PlacementStrategyTerms,7,' '," ","\t","Window Placement types","Placement","",NULL,0};
+
 
 extern SyntaxDef     MyBackgroundSyntax ;      /* see ASetRoot.c */
 /**************************************************************************
@@ -73,8 +73,8 @@ TermDef       WindowBoxTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "MinHeight", 9,         TT_INTEGER, WINDOWBOX_MinHeight_ID	 , NULL},
     {TF_NO_MYNAME_PREPENDING, "MaxWidth", 8,          TT_INTEGER, WINDOWBOX_MaxWidth_ID	  	 , NULL},
     {TF_NO_MYNAME_PREPENDING, "MaxHeight", 9,         TT_INTEGER, WINDOWBOX_MaxHeight_ID	 , NULL},
-    {TF_NO_MYNAME_PREPENDING, "FirstTry", 8,          TT_INTEGER, WINDOWBOX_FirstTry_ID	  	 , NULL},
-    {TF_NO_MYNAME_PREPENDING, "ThenTry", 7,           TT_INTEGER, WINDOWBOX_ThenTry_ID 	  	 , NULL},
+    {TF_NO_MYNAME_PREPENDING, "FirstTry", 8,          TT_INTEGER, WINDOWBOX_FirstTry_ID	  	 , &PlacementStrategySyntax},
+    {TF_NO_MYNAME_PREPENDING, "ThenTry", 7,           TT_INTEGER, WINDOWBOX_ThenTry_ID 	  	 , &PlacementStrategySyntax},
     {TF_NO_MYNAME_PREPENDING, "Desk", 4,              TT_INTEGER, WINDOWBOX_Desk_ID          , NULL},
     {TF_NO_MYNAME_PREPENDING, "MinLayer", 8,          TT_INTEGER, WINDOWBOX_MinLayer_ID      , NULL},
     {TF_NO_MYNAME_PREPENDING, "MaxLayer", 8,          TT_INTEGER, WINDOWBOX_MaxLayer_ID      , NULL},

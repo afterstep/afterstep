@@ -1517,9 +1517,8 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 
 #define FEEL_DontMoveOff_ID           (FEEL_ID_START+4)
 #define FEEL_NoPPosition_ID           (FEEL_ID_START+5)
-#define FEEL_SmartPlacement_ID        (FEEL_ID_START+6)
-#define FEEL_RandomPlacement_ID       (FEEL_ID_START+7)
-#define FEEL_StubbornPlacement_ID     (FEEL_ID_START+8)
+#define FEEL_StubbornPlacement_ID     (FEEL_ID_START+6)
+    
 #define FEEL_MenusHigh_ID             (FEEL_ID_START+9)
 #define FEEL_CenterOnCirculate_ID     (FEEL_ID_START+10)
 
@@ -1575,12 +1574,18 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 #define FEEL_AnimateDeskChange_ID		(FEEL_ID_START+56)	   
 
 /* obsolete stuff : */
-#define FEEL_MWMFunctionHints_ID            (FEEL_ID_START+45)
-#define FEEL_MWMDecorHints_ID               (FEEL_ID_START+46)
-#define FEEL_MWMHintOverride_ID             (FEEL_ID_START+47)
+#define FEEL_MWMFunctionHints_ID      	(FEEL_ID_START+45)
+#define FEEL_MWMDecorHints_ID         	(FEEL_ID_START+46)
+#define FEEL_MWMHintOverride_ID       	(FEEL_ID_START+47)
 
+#define FEEL_PLACEMENT_START_ID        	(FEEL_ID_START+48)
+#define FEEL_SmartPlacement_ID        	(FEEL_PLACEMENT_START_ID+0)
+#define FEEL_RandomPlacement_ID       	(FEEL_PLACEMENT_START_ID+1)
+#define FEEL_Tile_ID				  	(FEEL_PLACEMENT_START_ID+2)	
+#define FEEL_Cascade_ID				  	(FEEL_PLACEMENT_START_ID+3)	
+#define FEEL_Manual_ID				  	(FEEL_PLACEMENT_START_ID+4)
 
-#define FEEL_ID_END                   (FEEL_ID_START+64)
+#define FEEL_ID_END                   	(FEEL_PLACEMENT_START_ID+10)
 
 /************************************
  * WindowBox configuration may look something like this :

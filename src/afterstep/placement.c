@@ -1048,6 +1048,9 @@ Bool place_aswindow( ASWindow *asw )
         aswbox = &(Scr.Feel.window_boxes[0]);
         while( --i >= 0 )
         {
+			LOCAL_DEBUG_OUT("window_box \"%s\": main_strategy = %d, backup_strategy = %d", 
+		   					aswbox[i].name, aswbox[i].main_strategy, aswbox[i].backup_strategy);
+			
             if( IsValidDesk(aswbox[i].desk) && aswbox[i].desk != asw->status->desktop )
                 continue;
             if( aswbox[i].min_layer > asw->status->layer || aswbox[i].max_layer < asw->status->layer )

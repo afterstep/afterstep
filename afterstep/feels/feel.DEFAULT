@@ -109,6 +109,16 @@ RandomPlacement
 #DefaultWindowBox  "some_name"
 #
 
+# this window box prevents windows from being random-placed under WinList :
+WindowBox   "nowinlist"
+ 	Area   		+0+30
+	FirstTry	SmartPlacement
+	ThenTry 	RandomPlacement
+     	MaxLayer    	2
+~WindowBox
+
+DefaultWindowBox  "nowinlist"
+
 ##########################################################################
 # X server performance tweaks :
 #AppsBackingStore

@@ -154,12 +154,18 @@ ProcessWindowBoxOptions (FreeStorageElem * options)
                     set_flags( aswbox->set_flags, ASA_MaxHeightSet);
                     break ;
                 case WINDOWBOX_FirstTry_ID        :
-                    aswbox->main_strategy = item.data.integer ;
-                    set_flags( aswbox->set_flags, ASA_MainStrategySet);
+					if( options->sub != NULL && options->sub->term->id >= FEEL_PLACEMENT_START_ID ) 
+					{	
+                    	aswbox->main_strategy = options->sub->term->id - FEEL_PLACEMENT_START_ID ;
+                    	set_flags( aswbox->set_flags, ASA_MainStrategySet);
+					}
                     break ;
                 case WINDOWBOX_ThenTry_ID         :
-                    aswbox->backup_strategy = item.data.integer ;
-                    set_flags( aswbox->set_flags, ASA_BackupStrategySet);
+					if( options->sub != NULL && options->sub->term->id >= FEEL_PLACEMENT_START_ID ) 
+					{	
+                    	aswbox->backup_strategy = options->sub->term->id - FEEL_PLACEMENT_START_ID ;
+                    	set_flags( aswbox->set_flags, ASA_BackupStrategySet);
+					}
                     break ;
                 case WINDOWBOX_Desk_ID            :
                     aswbox->desk = item.data.integer ;
