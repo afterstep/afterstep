@@ -120,6 +120,24 @@ instead of what was selected from the menu.   </para>
    <para>Set language locale to be used while displaying text.    </para>
    </listitem>
 	</varlistentry>
+	<varlistentry>
+	<term>--myname <replaceable>val</replaceable></term>
+	<listitem>
+   <para>Overrides module's Name to be used while parsing config or reporting to AfterStep.</para>
+   </listitem>
+	</varlistentry>
+	<varlistentry>
+	<term>--geometry <replaceable>WxH+x+y</replaceable></term>
+	<listitem>
+   <para>Overrides module's geometry.</para>
+   </listitem>
+	</varlistentry>
+	<varlistentry>
+	<term>--gravity <replaceable>NorthWest | SouthWest | NorthEast | SouthEast | Static | Center</replaceable></term>
+	<listitem>
+   <para>Overrides module's gravity, that is normally derived from geometry.</para>
+   </listitem>
+	</varlistentry>
 </variablelist>
 </refsect1>
 </section>

@@ -46,6 +46,7 @@
 #endif
 
 #include "functions.h"
+#include "afterstep.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -110,7 +111,9 @@ typedef struct CommandLineOpts
     ASFlagType flags;
 }CommandLineOpts;
 
-extern CommandLineOpts as_standard_cmdl_options[20];/* really its terminated by NULL element */
+#define STANDARD_CMDL_OPTS_NUM 22
+
+extern CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM];/* really its terminated by NULL element */
 
 void  print_command_line_opt(const char *prompt, CommandLineOpts *options, ASFlagType mask);
 int   match_command_line_opt( char *argvi, CommandLineOpts *options );
@@ -119,6 +122,8 @@ void  handler_show_info( char *argv, void *trg, long param );
 void  handler_set_flag( char *argv, void *trg, long param );
 void  handler_set_string( char *argv, void *trg, long param );
 void  handler_set_int( char *argv, void *trg, long param );
+void  handler_set_geometry( char *argv, void *trg, long param );
+void  handler_set_gravity( char *argv, void *trg, long param );
 
 
 typedef struct ASProgArgs
@@ -158,6 +163,9 @@ typedef struct ASProgArgs
 #endif
     char      *log_file ;
     char      *locale ;
+
+	ASGeometry geometry;
+	int gravity ;
 
 }ASProgArgs;
 

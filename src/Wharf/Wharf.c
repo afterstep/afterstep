@@ -175,6 +175,8 @@ typedef struct ASWharfState
 
 ASWharfState WharfState;
 WharfConfig *Config = NULL;
+int Rows_override = -1 ;
+int Columns_override = -1 ;
 
 #define WHARF_BUTTON_EVENT_MASK   (ButtonReleaseMask |\
                                    ButtonPressMask | LeaveWindowMask | EnterWindowMask |\
@@ -219,10 +221,22 @@ void DeadPipe(int);
 int
 main (int argc, char **argv)
 {
-    /* Save our program name - for error messages */
+    int i;
+	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_WHARF, argc, argv, NULL, NULL, 0 );
 	LinkAfterStepConfig();
+    for( i = 1 ; i< argc ; ++i)
+	{
+		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
+		if( argv[i] != NULL )
+		{ 	
+	    	if( strcmp( argv[i] , "--rows" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+				Rows_override = atoi( argv[i+1] );
+	    	else if( strcmp( argv[i] , "--cols" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+				Columns_override = atoi( argv[i+1] );
+		}
+	}
 
     memset( &WharfState, 0x00, sizeof(WharfState));
 
@@ -342,10 +356,18 @@ CheckConfigSanity()
     if( Config == NULL )
         Config = CreateWharfConfig ();
 
+	if( MyArgs.geometry.flags != 0 ) 
+		Config->geometry = MyArgs.geometry ;
+
+	if( Rows_override >= 0 ) 
+		Config->rows = Rows_override ;
+	if( Columns_override >= 0 ) 
+		Config->columns = Columns_override ;
+
     if( Config->rows <= 0 && Config->columns <= 0 )
         Config->rows = 1;
-
-    mystyle_get_property (Scr.wmprops);
+    
+	mystyle_get_property (Scr.wmprops);
 
     sprintf( buf, "*%sTile", get_application_name() );
     LOCAL_DEBUG_OUT("Attempting to use style \"%s\"", buf);
@@ -1282,7 +1304,7 @@ map_wharf_folder( ASWharfFolder *aswf,
 	set_folder_name( aswf, False );
 
     shints.flags = USSize|PWinGravity;
-    if( get_flags( Config->set_flags, WHARF_GEOMETRY ) )
+    if( get_flags( Config->set_flags, WHARF_GEOMETRY ) || get_flags(MyArgs.geometry.flags, XValue|YValue))
         shints.flags |= USPosition ;
     else
         shints.flags |= PPosition ;
@@ -1634,6 +1656,11 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
     if( AS_ASSERT( aswf ) ||
         (get_flags( aswf->flags, ASW_Mapped ) && !get_flags( aswf->flags, ASW_Withdrawn )) )
         return False;
+
+	if( MyArgs.gravity == SouthWestGravity || MyArgs.gravity == SouthEastGravity )
+		south = True ;
+	if( MyArgs.gravity == NorthEastGravity || MyArgs.gravity == SouthEastGravity )
+		east = True ;
 
 	if( aswf != WharfState.root_folder )
 	{

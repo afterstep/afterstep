@@ -225,11 +225,17 @@ CheckConfigSanity()
     if( Config->max_columns > MAX_WINLIST_WINDOW_COUNT || Config->max_columns == 0  )
         Config->max_columns = MAX_WINLIST_WINDOW_COUNT;
 
+	if( MyArgs.geometry.flags != 0 ) 
+		Config->geometry = MyArgs.geometry ;
+	
     Config->gravity = NorthWestGravity ;
     if( get_flags(Config->geometry.flags, XNegative) )
         Config->gravity = get_flags(Config->geometry.flags, YNegative)? SouthEastGravity:NorthEastGravity;
     else if( get_flags(Config->geometry.flags, YNegative) )
         Config->gravity = SouthWestGravity;
+
+	if(MyArgs.gravity != ForgetGravity)
+    	Config->gravity = MyArgs.gravity ;
 
     Config->anchor_x = get_flags( Config->geometry.flags, XValue )?Config->geometry.x:0;
     if( get_flags(Config->geometry.flags, XNegative) )

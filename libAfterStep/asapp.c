@@ -262,7 +262,7 @@ SetMyName (char *argv0)
 
 /* If you change/add options please change InitMyApp below and option flags in aftersteplib.h */
 
-CommandLineOpts as_standard_cmdl_options[20] =
+CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM] =
 {
 #define  SHOW_VERSION   0
 #define  SHOW_CONFIG    1
@@ -303,6 +303,12 @@ CommandLineOpts as_standard_cmdl_options[20] =
                                                            handler_set_string, &(as_app_args.log_file), 0, CMO_HasArgs },
 /*18*/{"L", "locale","Set language locale to be used while displaying text", NULL,
                                                            handler_set_string, &(as_app_args.locale), 0, CMO_HasArgs },
+/*19*/{NULL, "myname","Overrides module name to be used while parsing config files and reporting to AfterStep", NULL,
+                                                           handler_set_string, &(MyName), 0, CMO_HasArgs },
+/*20*/{NULL, "geometry","Overrides module's geometry", NULL,
+                                                           handler_set_geometry, &(as_app_args.geometry), 0, CMO_HasArgs },
+/*21*/{NULL, "gravity","Overrides module's gravity", NULL,
+                                                           handler_set_gravity, &(as_app_args.gravity), 0, CMO_HasArgs },
       {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
 };
 
@@ -413,6 +419,34 @@ void  handler_set_int( char *argv, void *trg, long param )
     if( argv )
         *i = atoi(argv);
 }
+
+void  handler_set_geometry( char *argv, void *trg, long param )
+{
+    register ASGeometry *geom = trg ;
+    if( argv )
+	{
+		memset( geom, 0x00, sizeof(ASGeometry));
+		parse_geometry (argv, &(geom->x), &(geom->y), &(geom->width), &(geom->height), &(geom->flags) );
+	}
+}
+
+void  handler_set_gravity( char *argv, void *trg, long param )
+{
+    register int *i = trg ;
+    *i = ForgetGravity ;
+	if( argv )
+	{
+
+		if( mystrncasecmp( argv, "NorthWest", 9 )== 0 )	  *i = NorthWestGravity ; 
+		else if( mystrncasecmp( argv, "SouthWest", 9 )== 0 )	  *i = SouthWestGravity ; 
+		else if( mystrncasecmp( argv, "NorthEasth", 10 )== 0 )	*i = NorthEastGravity ; 
+		else if( mystrncasecmp( argv, "SouthEast", 9 )== 0 )	  *i = SouthEastGravity ; 
+		else if( mystrncasecmp( argv, "Center", 6 )== 0 )	  *i = CenterGravity ; 
+		else if( mystrncasecmp( argv, "Static", 6 )== 0 )	  *i = StaticGravity ; 
+		else show_warning( "unknown gravity type \"%s\". Use one of: NorthWest, SouthWest, NorthEast, SouthEast, Center, Static", argv );
+	}
+}
+
 
 int
 match_command_line_opt( char *argvi, CommandLineOpts *options )

@@ -139,12 +139,15 @@ ASPagerState PagerState;
 ASHashTable *PagerClients = NULL;
 
 PagerConfig *Config = NULL;
+int Rows_override = 0 ;
+int Columns_override = 0 ;
+
 
 void
 pager_usage (void)
 {
 	printf ("Usage:\n"
-			"%s [--version] [--help] n m\n"
+			"%s [--version] [--help] [--rows rows] [--cols cols] n m\n"
 			"%*s where desktops n through m are displayed\n", MyName, (int)strlen (MyName), MyName);
 	exit (0);
 }
@@ -188,16 +191,22 @@ main (int argc, char **argv)
     for( i = 1 ; i< argc ; ++i)
 	{
 		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
-		if( argv[i] != NULL && isdigit (argv[i][0]) )
-		{
-			++desk_cnt ;
-			if( desk_cnt == 1 )
-				desk1 = atoi (argv[i]);
-			else if( desk_cnt == 2 )
-				desk2 = atoi (argv[i]);
-			else
-				break;
-	    }
+		if( argv[i] != NULL )
+		{ 	
+			if( isdigit (argv[i][0]) )
+			{
+				++desk_cnt ;
+				if( desk_cnt == 1 )
+					desk1 = atoi (argv[i]);
+				else if( desk_cnt == 2 )
+					desk2 = atoi (argv[i]);
+				else
+					break;
+	    	}else if( strcmp( argv[i] , "--rows" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+				Rows_override = atoi( argv[i+1] );
+	    	else if( strcmp( argv[i] , "--cols" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+				Columns_override = atoi( argv[i+1] );
+		}
 	}
 	LOCAL_DEBUG_OUT( "desk1 = %ld, desk2 = %ld, desks = %ld, start_desk = %ld", desk1, desk2, PagerState.desks_num, PagerState.start_desk );
     if (desk2 < desk1)
@@ -231,7 +240,7 @@ main (int argc, char **argv)
 
     Config = CreatePagerConfig (PagerState.desks_num);
 
-    LOCAL_DEBUG_OUT("parsing Options ...%s","");
+    LOCAL_DEBUG_OUT("parsing Options for \"%s\"",MyName);
     LoadBaseConfig (GetBaseOptions);
 	LoadColorScheme();
     LoadConfig ("pager", GetOptions);
@@ -353,6 +362,11 @@ CheckConfigSanity()
 
     if( Config == NULL )
         Config = CreatePagerConfig (PagerState.desks_num);
+
+	if( Rows_override > 0 ) 
+		Config->rows = Rows_override ;
+	if( Columns_override > 0 ) 
+		Config->columns = Columns_override ;
     LOCAL_DEBUG_OUT( "columns = %d, rows = %d, desks = %ld, start_desk = %ld", Config->columns, Config->rows, PagerState.desks_num, PagerState.start_desk );
 	if( Config->rows == 0 )
         Config->rows = 1;
@@ -368,11 +382,18 @@ CheckConfigSanity()
     
 	LOCAL_DEBUG_OUT( "columns = %d, rows = %d, desks = %ld, start_desk = %ld", Config->columns, Config->rows, PagerState.desks_num, PagerState.start_desk );
 
-    Config->gravity = NorthWestGravity ;
+	if( MyArgs.geometry.flags != 0 ) 
+		Config->geometry = MyArgs.geometry ;
+
+	LOCAL_DEBUG_OUT( "geometry = %dx%d%+d%+d", Config->geometry.width, Config->geometry.height, Config->geometry.x, Config->geometry.y );
+
     if( get_flags(Config->geometry.flags, XNegative) )
         Config->gravity = get_flags(Config->geometry.flags, YNegative)? SouthEastGravity:NorthEastGravity;
     else if( get_flags(Config->geometry.flags, YNegative) )
         Config->gravity = SouthWestGravity;
+
+	if(MyArgs.gravity != ForgetGravity)
+    	Config->gravity = MyArgs.gravity ;
 
     if (Config->geometry.width <= Config->columns )
 		clear_flags(Config->geometry.flags, WidthValue);
@@ -426,6 +447,7 @@ CheckConfigSanity()
             Config->geometry.y = get_flags(Config->geometry.flags, YNegative)?
                                     0 : Scr.MyDisplayHeight-Config->geometry.height ;
     }
+
 
     if( get_flags( Config->set_flags, PAGER_SET_ICON_GEOMETRY ) )
     {
@@ -534,6 +556,9 @@ LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, 
     LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
                     Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
     set_balloon_look( Scr.Look.balloon_look );
+
+	LOCAL_DEBUG_OUT( "geometry = %dx%d%+d%+d", Config->geometry.width, Config->geometry.height, Config->geometry.x, Config->geometry.y );
+
 }
 
 void
@@ -701,7 +726,7 @@ make_pager_window()
     Scr.RootClipArea.height = height;
 
     shints.flags = USSize|PMinSize|PResizeInc|PWinGravity;
-    if( get_flags( Config->set_flags, PAGER_SET_GEOMETRY ) )
+    if( get_flags( Config->set_flags, PAGER_SET_GEOMETRY ) || get_flags(MyArgs.geometry.flags, XValue|YValue) )
         shints.flags |= USPosition ;
     else
         shints.flags |= PPosition ;
