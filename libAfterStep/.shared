@@ -5,6 +5,7 @@ LIBAFTERSTEP_OBJS = \
 		$(LIBAFTERSTEP_PATH)/aswindata.c \
 		$(LIBAFTERSTEP_PATH)/balloon.c \
 		$(LIBAFTERSTEP_PATH)/clientprops.c \
+		$(LIBAFTERSTEP_PATH)/colorscheme.c \
 		$(LIBAFTERSTEP_PATH)/decor.c \
 		$(LIBAFTERSTEP_PATH)/event.c \
 		$(LIBAFTERSTEP_PATH)/freestor.c \
@@ -29,6 +30,7 @@ LIBAFTERSTEP_INCS = \
 		$(LIBAFTERSTEP_PATH)/aswindata.h \
 		$(LIBAFTERSTEP_PATH)/balloon.h \
 		$(LIBAFTERSTEP_PATH)/clientprops.h \
+		$(LIBAFTERSTEP_PATH)/colorscheme.h \
 		$(LIBAFTERSTEP_PATH)/decor.h \
 		$(LIBAFTERSTEP_PATH)/event.h \
 		$(LIBAFTERSTEP_PATH)/freestor.h \

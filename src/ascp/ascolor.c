@@ -218,7 +218,7 @@ static char* default_doc_str = " \
 			</bevel> \
 			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText2\" bgcolor=#00000000>Sticky title bar text</text> \
 		</composite> \
-		<composite x=150 y=100> \
+		<composite x=150 y=60> \
 			<bevel colors=\"ActiveLight ActiveDark\" border=\"2 2 3 3\" solid=0> \
 				<gradient angle=90 width=400 height=25 colors=\"ActiveDark ActiveLight\"/> \
 			</bevel> \

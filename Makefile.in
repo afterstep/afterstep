@@ -8,7 +8,7 @@ confsdirs= autoconf libAfterBase libAfterImage
 subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  doc tools \
 		  src/afterstep \
-		  @ASCP@  \
+		  src/ascp \
 		  src/Pager \
 		  src/Wharf \
 		  src/WinList2

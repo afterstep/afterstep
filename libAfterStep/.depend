@@ -51,6 +51,13 @@
 		clientprops.h \
 		hints.h
 
+./colorscheme.o : \
+		../configure.h \
+		asapp.h \
+		afterstep.h \
+		../libAfterImage/afterimage.h \
+		colorscheme.h
+
 ./decor.o : \
 		../configure.h \
 		asapp.h \
@@ -85,7 +92,8 @@
 		afterstep.h \
 		screen.h \
 		parser.h \
-		functions.h
+		functions.h \
+		freestor.h
 
 ./font.o : \
 		../configure.h \
@@ -140,6 +148,7 @@
 		mystyle.h \
 		screen.h \
 		balloon.h \
+		event.h \
 		../libAfterImage/afterimage.h
 
 ./mystyle.o : \

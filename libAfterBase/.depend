@@ -78,11 +78,13 @@
 ./parse.o : \
 		config.h \
 		astypes.h \
+		ashash.h \
 		mystring.h \
 		safemalloc.h \
 		xwrap.h \
 		parse.h \
-		audit.h
+		audit.h \
+		output.h
 
 ./regexp.o : \
 		config.h \

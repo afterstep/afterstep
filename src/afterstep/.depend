@@ -52,7 +52,6 @@
 ./dirtree.o: \
 		../../configure.h \
 		../../libAfterStep/asapp.h \
-		../../include/myscandir.h \
 		dirtree.h
 
 ./events.o: \
@@ -116,11 +115,6 @@
 		asinternals.h \
 		../../libAfterStep/wmprops.h
 
-./myscandir.o: \
-		../../configure.h \
-		../../libAfterStep/asapp.h \
-		../../include/myscandir.h
-
 ./pager.o: \
 		../../configure.h \
 		asinternals.h \
@@ -131,6 +125,12 @@
 		../../configure.h \
 		asinternals.h \
 		../../libAfterStep/moveresize.h
+
+./theme.o: \
+		../../configure.h \
+		asinternals.h \
+		../../libAfterStep/session.h \
+		../../libAfterConf/afterconf.h
 
 ./winstatus.o: \
 		../../configure.h \

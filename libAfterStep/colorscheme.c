@@ -124,8 +124,8 @@ make_ascolor_scheme( ARGB32 base, int angle )
 			cs->active_text_sat = ASCS_WHITING_SATURATION_LEVEL ;
 		else
 			cs->active_text_sat = 0 ;
-		if( cs->active_text_val < ASCS_WHITING_MIN_BRIGHTNESS_LEVEL )
-			cs->active_text_val = ASCS_WHITING_MIN_BRIGHTNESS_LEVEL ;
+		if( cs->active_text_val < ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL )
+			cs->active_text_val = ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL ;
 	}
 	cs->active_text_argb = make_color_scheme_argb( base_alpha16, cs->base_hue, cs->active_text_sat, cs->active_text_val );
 

@@ -4,7 +4,7 @@ OBJS_ASCOLOR    = ascolor.o
 
 OBJS		= $(OBJS_ASCP) $(OBJS_ASCOLOR)
 
-PROG		= ascp ascolor
+PROG		= @ASCP@ ascolor
 
 INCS_PRIVATE	= @ASCP_INCLUDES@
 
