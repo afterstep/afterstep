@@ -1311,7 +1311,8 @@ void desk_func_handler( FunctionData *data, ASEvent *event, int module )
 		new_desk = Scr.CurrentDesk + data->func_val[0];
 	else if( IsValidDesk (data->func_val[1]) )
 		new_desk = data->func_val[1];
-
+	else 
+		return ;
     ChangeDesks (new_desk);
 }
 
