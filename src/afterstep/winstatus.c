@@ -370,7 +370,8 @@ condense_tbar( ASTBarData *tbar, unsigned int max_size, unsigned int *off1, unsi
                         *off2 = *off1 ;
                     }    
                 }
-            }
+            }else 
+				condensed = max_size ;
         }else
         {
             condensed = calculate_astbar_width( tbar );                
@@ -385,7 +386,8 @@ condense_tbar( ASTBarData *tbar, unsigned int max_size, unsigned int *off1, unsi
                         *off2 = *off1 ;
                     }    
                 }
-            }
+            }else 
+				condensed = max_size ;
         }    
     }
 #endif
@@ -1428,7 +1430,7 @@ LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d", asw, iconify );
         else if( asw->icon_title_canvas )
             asw->status->icon_window = asw->icon_title_canvas->w ;
 
-		LOCAL_DEBUG_OUT( "hilited == %p" );
+		LOCAL_DEBUG_OUT( "hilited == %p", Scr.Windows->hilited );
     	if( Scr.Windows->hilited == asw )
 			hide_hilite();
 
