@@ -1040,8 +1040,10 @@ destroy_visual_pixmap( ASVisual *asv, Pixmap *ppmap )
 	if( asv && ppmap )
 		if( *ppmap )
 		{
+#ifndef X_DISPLAY_MISSING
 			XFreePixmap( asv->dpy, *ppmap );
 			*ppmap = None ;
+#endif
 		}
 }
 
@@ -1349,18 +1351,26 @@ Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim,
                   int src_x, int src_y, int dest_x, int dest_y,
 				  unsigned int width, unsigned int height )
 {
+#ifndef X_DISPLAY_MISSING
 	if( xim == NULL || asv == NULL )
 		return False ;
 	return XPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height );
+#else
+	return False;
+#endif
 }
 
 XImage * ASGetXImage( ASVisual *asv, Drawable d,
                   int x, int y, unsigned int width, unsigned int height,
 				  unsigned long plane_mask )
 {
+#ifndef X_DISPLAY_MISSING
 	if( asv == NULL || d == None )
 		return NULL ;
 	return XGetImage( asv->dpy, d, x, y, width, height, plane_mask, ZPixmap );
+#else
+	return NULL ;
+#endif	
 }
 
 #endif                                         /* XSHMIMAGE */
