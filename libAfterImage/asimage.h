@@ -559,9 +559,9 @@ size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsign
  * 	y 				- image row starting with 0
  *	verbosity		- verbosity level - any combination of flags is allowed
  * RETURNS
- *
- *
+ *  amount of memory used by this particular channel of specifyed scanline.
  * DESCRIPTION
+ * 	asimage_print_line()
  *********/
 unsigned int asimage_print_line (ASImage * im, ColorPart color,
 				 unsigned int y, unsigned long verbosity);
@@ -579,6 +579,7 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
  * 										  unsigned int out_width,
  * 										  ASImageBevel *bevel );
  * DESCRIPTION
+ *
  * INPUTS
  *********/
 /****f* libAfterImage/asimage/stop_image_decoding
