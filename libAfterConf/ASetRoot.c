@@ -43,8 +43,8 @@
 #include "../../include/background.h"
 
 /*****************************************************************************
- * 
- * This routine is responsible for reading and parsing the asetroot config 
+ *
+ * This routine is responsible for reading and parsing the asetroot config
  * file
  *
  ****************************************************************************/
@@ -264,7 +264,7 @@ ParseMyBackgroundOptions (FreeStorageElem * Storage, char *myname)
 	  config->flags |= BGFLAG_PAD;
 	  if (item.index & 0x1)
 	    config->flags |= BGFLAG_PAD_HOR;
-	  else if (item.index & 0x2)
+	  if (item.index & 0x2)
 	    config->flags |= BGFLAG_PAD_VERT;
 	  break;
 	default:
