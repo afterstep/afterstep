@@ -88,6 +88,9 @@ static int           IconTexType = TEXTURE_BUILTIN;
 
 static char         *MenuPinOn = NULL ;
 
+static MyFrameDefinition *MyFrameList = NULL ;
+static char         *DefaultFrameName = NULL ;
+
 
 /* parsing handling functions for different data types : */
 
@@ -104,6 +107,7 @@ void          SetFramePart          (char *text, FILE * fd, char **frame, int *i
 void          SetModifier           (char *text, FILE * fd, char **mod, int *junk2);
 
 void          assign_string         (char *text, FILE * fd, char **arg, int *idx);
+void          assign_quoted_string  (char *text, FILE * fd, char **arg, int *junk);
 void          assign_path           (char *text, FILE * fd, char **arg, int *idx);
 void          assign_themable_path  (char *text, FILE * fd, char **arg, int *idx);
 void          assign_pixmap         (char *text, FILE * fd, char **arg, int *idx);
@@ -203,11 +207,12 @@ struct config main_config[] = {
 	{"IconBox", SetBox, (char **)0, (int *)0},
 	{"IconFont", assign_string, &Iconfont, (int *)0},
 	{"MyStyle", mystyle_parse, &PixmapPath, NULL},
+    /* new stuff : */
     {"MyBackground", myback_parse, (char**)"asetroot", NULL},  /* pretending to be asteroot here */
     {"DeskBack", deskback_parse, NULL, NULL },
     {"*asetrootDeskBack", deskback_parse, NULL, NULL },        /* pretending to be asteroot here */
-    //TODO :
-    //{"MyFrame", myframe_parse, &PixmapPath, NULL},
+    {"MyFrame", myframe_parse, (char**)"afterstep", (int*)&MyFrameList},
+    {"DefaultFrame", assign_quoted_string, (char**)&DefaultFrameName, (int*)0},
 
 #ifndef NO_TEXTURE
 	{"TextureTypes", assign_string, &TexTypes, (int *)0},
@@ -762,6 +767,9 @@ InitLook (MyLook *look, Bool free_resources)
         unload_font (&StdFont);
         unload_font (&WindowFont);
         unload_font (&IconFont);
+        DestroyMyFrameDefinitions (&MyFrameList);
+        if( DefaultFrameName )
+            free( DefaultFrameName );
     }
     MenuPinOn = NULL;
 
@@ -773,6 +781,8 @@ InitLook (MyLook *look, Bool free_resources)
     memset(&StdFont, 0x00, sizeof(MyFont));
     memset(&WindowFont, 0x00, sizeof(MyFont));
     memset(&IconFont, 0x00, sizeof(MyFont));
+    MyFrameList = NULL ;
+    DefaultFrameName = NULL ;
 }
 
 void
@@ -803,9 +813,91 @@ make_styles (MyLook *look)
         mystyle_list_new (look->styles_list, "ButtonTitleUnfocus");
 }
 
+MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagType default_title_align )
+{
+    MyFrame *frame = create_myframe();
+    int i ;
+    frame->name = mystrdup( fd->name );
+    for( i = 0 ; i < fd->inheritance_num ; ++i )
+    {
+        MyFrame *ancestor = NULL ;
+        if( get_hash_item( list, AS_HASHABLE(fd->inheritance_list[i]), (void**)&ancestor ) == ASH_Success )
+            inherit_myframe( frame, ancestor );
+    }
+    frame->parts_mask = (frame->parts_mask&(~fd->set_parts))|fd->parts_mask;
+    frame->set_parts |= fd->set_parts ;
+    for( i = 0 ; i < FRAME_PARTS ; ++i )
+    {
+        if( fd->parts[i] )
+            set_string_value(&(frame->part_filenames[i]), mystrdup(fd->parts[i]), NULL, 0);
+        if( get_flags( fd->set_part_size, 0x01<<i ) )
+        {
+            frame->part_width[i] = fd->part_width[i];
+            frame->part_length[i] = fd->part_length[i];
+        }
+        if( get_flags( fd->set_part_bevel, 0x01<<i ) )
+            frame->part_bevel[i] = fd->part_bevel[i];
+        if( get_flags( fd->set_part_align, 0x01<<i ) )
+            frame->part_align[i] = fd->part_align[i];
+    }
+    frame->set_part_size  |= fd->set_part_size ;
+    frame->set_part_bevel |= fd->set_part_bevel ;
+    frame->set_part_align |= fd->set_part_align ;
+
+    for( i = 0 ; i < FRAME_PARTS ; ++i )
+        if( frame->part_filenames[i] )
+            if( !get_flags( frame->set_part_align, 0x01<<i ) )
+            {
+                frame->part_align[i] = RESIZE_V|RESIZE_H ;
+                set_flags( frame->set_part_align, 0x01<<i );
+            }
+
+    for( i = 0 ; i < BACK_STYLES ; ++i )
+    {
+        if( fd->title_styles[i] )
+            set_string_value(&(frame->title_style_names[i]), fd->title_styles[i], NULL, 0 );
+        if( fd->frame_styles[i] )
+            set_string_value(&(frame->frame_style_names[i]), fd->frame_styles[i], NULL, 0 );
+    }
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleBevelSet ) )
+        frame->title_bevel = fd->title_bevel;
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleAlignSet ) )
+        frame->title_align = fd->title_align;
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet ) )
+        frame->title_back_align = fd->title_back_align;
+    frame->set_title_attr |= fd->set_title_attr ;
+
+    if( fd->title_back )
+    {
+        set_string_value(&(frame->title_back_filename), fd->title_back, NULL, 0 );
+        if( !get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet ) )
+        {
+            frame->title_back_align = FIT_LABEL_SIZE ;
+            set_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet );
+        }
+    }
+
+    /* wee need to make sure that frame has such a
+     * neccessary attributes as title align and title bevel : */
+    if( !get_flags(frame->set_title_attr, MYFRAME_TitleBevelSet ) )
+        frame->title_bevel = DEFAULT_TBAR_HILITE;
+    if( !get_flags(frame->set_title_attr, MYFRAME_TitleAlignSet ) )
+        frame->title_align = default_title_align;
+    set_flags( frame->set_title_attr, MYFRAME_TitleBevelSet|MYFRAME_TitleAlignSet );
+
+    if( add_hash_item( list, AS_HASHABLE(frame->name), frame ) != ASH_Success )
+        destroy_myframe( &frame );
+    else
+    {
+        LOCAL_DEBUG_OUT( "added frame with the name \"%s\"", frame->name );
+    }
+    return frame;
+}
+
 void
 FixLook( MyLook *look )
 {
+    ASFlagType default_title_align = ALIGN_LEFT ;
     /* make sure all needed styles are created */
     make_styles (look);
     /* merge pre-1.5 compatibility keywords */
@@ -816,17 +908,42 @@ FixLook( MyLook *look )
 
     mystyle_list_set_property (Scr.wmprops, look->styles_list);
 
+    if(look->TitleTextAlign == JUSTIFY_RIGHT )
+        default_title_align = ALIGN_RIGHT ;
+    else if(look->TitleTextAlign == JUSTIFY_CENTER )
+        default_title_align = ALIGN_CENTER ;
+
 #ifndef NO_TEXTURE
     /* update frame geometries */
     if (get_flags( look->flags, DecorateFrames))
     {
-        if( look->DefaultFrame )
-            myframe_load ( look->DefaultFrame, Scr.image_manager );
+        MyFrameDefinition *fd ;
+        MyFrame *frame ;
         /* TODO: need to load the list as well (if we have any )*/
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+        PrintMyFrameDefinitions (MyFrameList, 1);
+#endif
+        LOCAL_DEBUG_OUT( "MyFrameList %p", MyFrameList );
+        if( MyFrameList )
+            check_myframes_list( look );
+        for( fd = MyFrameList ; fd != NULL ; fd = fd->next )
+        {
+            LOCAL_DEBUG_OUT( "processing MyFrameDefinition %p", fd );
+            frame = add_myframe_from_def( look->FramesList, fd, default_title_align );
+            myframe_load ( frame, Scr.image_manager );
+        }
+        DestroyMyFrameDefinitions (&MyFrameList);
+        if( look->DefaultFrame != NULL )
+            myframe_load ( look->DefaultFrame, Scr.image_manager );
+        else if( DefaultFrameName != NULL )
+        {
+            get_hash_item( look->FramesList, AS_HASHABLE(DefaultFrameName), (void**)&(look->DefaultFrame));
+            LOCAL_DEBUG_OUT( "DefaultFrameName is \"%s\": found frame %p with that name.", DefaultFrameName, look->DefaultFrame );
+        }
     }
 #endif /* ! NO_TEXTURE */
     if( look->DefaultFrame == NULL )
-        look->DefaultFrame = create_default_myframe();
+        look->DefaultFrame = create_default_myframe(default_title_align);
 
     if (MenuPinOn != NULL)
     {
@@ -1184,6 +1301,12 @@ void
 assign_string (char *text, FILE * fd, char **arg, int *junk)
 {
 	*arg = stripcpy (text);
+}
+
+void
+assign_quoted_string (char *text, FILE * fd, char **arg, int *junk)
+{
+    *arg = stripcpy2 (text, 0);
 }
 
 /*****************************************************************************

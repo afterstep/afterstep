@@ -277,18 +277,79 @@ create_myframe()
 }
 
 MyFrame *
-create_default_myframe()
+create_default_myframe(ASFlagType default_title_align)
 {
     MyFrame *frame = create_myframe();
-    frame->flags = C_SIDEBAR ;
+    frame->set_parts = 0xFFFFFFFF ;
+    frame->parts_mask = C_SIDEBAR ;
+    frame->set_part_size = C_SIDEBAR ;
     frame->part_width[FR_S] = BOUNDARY_WIDTH ;
     frame->part_width[FR_SW] = CORNER_WIDTH ;
     frame->part_width[FR_SE] = CORNER_WIDTH ;
     frame->part_length[FR_S] = 1;
     frame->part_length[FR_SW] = BOUNDARY_WIDTH ;
     frame->part_length[FR_SE] = BOUNDARY_WIDTH ;
+    frame->set_part_align = C_SIDEBAR ;
+    frame->part_align[FR_S]  = 0;
+    frame->part_align[FR_SW] = 0 ;
+    frame->part_align[FR_SE] = 0 ;
+    frame->set_part_bevel = C_SIDEBAR ;
+    frame->part_bevel[FR_S]  = DEFAULT_TBAR_HILITE;
+    frame->part_bevel[FR_SW] = DEFAULT_TBAR_HILITE ;
+    frame->part_bevel[FR_SE] = DEFAULT_TBAR_HILITE ;
+    set_flags( frame->set_title_attr, MYFRAME_TitleBevelSet|MYFRAME_TitleAlignSet );
+
+    frame->title_bevel = DEFAULT_TBAR_HILITE;
+    frame->title_align = default_title_align;
+
     frame->spacing = 1;
     return frame ;
+}
+
+void
+inherit_myframe( MyFrame *frame, MyFrame *ancestor )
+{
+    if( frame && ancestor )
+    {
+        int i ;
+        frame->parts_mask = (frame->parts_mask&(~ancestor->set_parts))|ancestor->parts_mask ;
+        frame->set_parts |= ancestor->set_parts ;
+        for( i = 0 ; i < FRAME_PARTS ; ++i )
+        {
+            if( ancestor->part_filenames[i] )
+                set_string_value( &(frame->part_filenames[i]), ancestor->part_filenames[i], NULL, 0 );
+            if( get_flags(ancestor->set_part_size, 0x01<<i ) )
+            {
+                frame->part_width[i] = ancestor->part_width[i] ;
+                frame->part_length[i] = ancestor->part_length[i] ;
+            }
+            if( get_flags(ancestor->set_part_bevel, 0x01<<i ) )
+                frame->part_bevel[i] = ancestor->part_bevel[i];
+            if( get_flags(ancestor->set_part_align, 0x01<<i ) )
+                frame->part_align[i] = ancestor->part_align[i];
+        }
+        frame->set_part_size |= ancestor->set_part_size ;
+        frame->set_part_bevel |= ancestor->set_part_bevel ;
+        frame->set_part_align |= ancestor->set_part_align ;
+        for( i = 0 ; i < BACK_STYLES ; ++i )
+        {
+            if( ancestor->title_style_names )
+                set_string_value( &(frame->title_style_names[i]), ancestor->title_style_names[i], NULL, 0 );
+            if( ancestor->frame_style_names )
+                set_string_value( &(frame->frame_style_names[i]), ancestor->frame_style_names[i], NULL, 0 );
+        }
+        if( ancestor->title_back_filename )
+            set_string_value( &(frame->title_back_filename), ancestor->title_back_filename, NULL, 0 );
+
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBevelSet ) )
+            frame->title_bevel = ancestor->title_bevel;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleAlignSet ) )
+            frame->title_align = ancestor->title_align;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBackAlignSet ) )
+            frame->title_back_align = ancestor->title_back_align;
+
+        frame->set_title_attr |= ancestor->set_title_attr ;
+    }
 }
 
 MyFrame *
@@ -416,6 +477,15 @@ destroy_myframe( MyFrame **pframe )
         *pframe = NULL ;
     }
 }
+
+void check_myframes_list( MyLook *look )
+{
+    if( look->FramesList == NULL )
+    {
+        look->FramesList = create_ashash( 5, string_hash_value, string_compare, myobj_destroy );
+    }
+}
+
 
 /*************************************************************************/
 

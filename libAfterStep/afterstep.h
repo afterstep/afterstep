@@ -104,6 +104,7 @@
 #define PAD_BOTTOM      (0x01<<(PAD_V_OFFSET))    /* rotated with Top on purpose */
 #define PAD_TOP         (0x01<<(PAD_V_OFFSET+1))
 #define PAD_V_MASK      (PAD_TOP|PAD_BOTTOM)
+#define PAD_MASK        (PAD_V_MASK|PAD_H_MASK)
 
 #define RESIZE_H_OFFSET (PAD_V_OFFSET+2)
 #define RESIZE_H        (0x01<<(RESIZE_H_OFFSET))
@@ -115,6 +116,8 @@
 #define RESIZE_V_SCALE  (0x01<<(RESIZE_V_OFFSET+1))
 #define RESIZE_V_MASK   (RESIZE_V|RESIZE_V_SCALE)
 #define RESIZE_MASK     (RESIZE_V_MASK|RESIZE_H_MASK)
+
+#define FIT_LABEL_SIZE  (0x01<<(RESIZE_V_OFFSET+2))
 
 #define NO_ALIGN      0
 #define ALIGN_LEFT    PAD_RIGHT

@@ -18,6 +18,8 @@
  *
  */
 
+#define LOCAL_DEBUG
+
 #include "../../configure.h"
 
 #include "../../include/asapp.h"
@@ -55,7 +57,24 @@ SyntaxDef     AlignSyntax = {
 	0
 };
 
+flag_options_xref AlignFlagsXref[] = {
+    {ALIGN_LEFT, ALIGN_Left_ID     , 0},
+    {ALIGN_TOP, ALIGN_Top_ID      , 0},
+    {ALIGN_RIGHT, ALIGN_Right_ID    , 0},
+    {ALIGN_BOTTOM, ALIGN_Bottom_ID   , 0},
+    {RESIZE_H, ALIGN_HTiled_ID   , 0},
+    {RESIZE_V, ALIGN_VTiled_ID   , 0},
+    {RESIZE_H, ALIGN_HScaled_ID  , 0},
+    {RESIZE_V, ALIGN_VScaled_ID  , 0},
+    {RESIZE_H_SCALE, ALIGN_HScaled_ID, ALIGN_HTiled_ID},
+    {RESIZE_V_SCALE, ALIGN_VScaled_ID, ALIGN_VTiled_ID},
+    {FIT_LABEL_SIZE, ALIGN_LabelSize_ID, 0},
+    {0, 0, 0}
+};
+
+
 TermDef       BevelTerms[] = {
+    {TF_NO_MYNAME_PREPENDING, "None", 4,        TT_FLAG, BEVEL_None_ID     , NULL},
     {TF_NO_MYNAME_PREPENDING, "Left", 4,        TT_FLAG, BEVEL_Left_ID     , NULL},
     {TF_NO_MYNAME_PREPENDING, "Top", 3,         TT_FLAG, BEVEL_Top_ID      , NULL},
     {TF_NO_MYNAME_PREPENDING, "Right", 5,       TT_FLAG, BEVEL_Right_ID    , NULL},
@@ -76,6 +95,16 @@ SyntaxDef     BevelSyntax = {
     "Bevel flags",
 	NULL,
 	0
+};
+
+flag_options_xref BevelFlagsXref[] = {
+    {LEFT_HILITE, BEVEL_Left_ID, BEVEL_None_ID},
+    {TOP_HILITE, BEVEL_Top_ID, BEVEL_None_ID},
+    {RIGHT_HILITE, BEVEL_Right_ID, BEVEL_None_ID},
+    {BOTTOM_HILITE, BEVEL_Bottom_ID, BEVEL_None_ID},
+    {EXTRA_HILITE, BEVEL_Extra_ID, BEVEL_None_ID},
+    {NO_HILITE_OUTLINE, BEVEL_NoOutline_ID, BEVEL_None_ID},
+    {0, 0, 0}
 };
 
 TermDef       MyFrameTerms[] = {
@@ -351,10 +380,11 @@ PrintMyFrameDefinitions (MyFrameDefinition * list, int index)
 
         if (list->name)
             fprintf (stderr, "MyFrame[%d].name = \"%s\";\n", index, list->name);
-		for (i = 0; i < FRAME_PARTS; i++)
+        fprintf (stderr, "MyFrame[%d].set_parts = 0x%lX;\n", index, list->set_parts);
+        fprintf (stderr, "MyFrame[%d].parts_mask = 0x%lX;\n", index, list->parts_mask);
+        for (i = 0; i < FRAME_PARTS; i++)
 			if (list->parts[i])
                 fprintf (stderr, "MyFrame[%d].Side[%d] = \"%s\";\n", index, i, list->parts[i]);
-        fprintf (stderr, "MyFrame[%d].Flags = 0x%lX;\n", index, list->flags);
         for( i = 0 ; i < BACK_STYLES ; ++i )
             if( list->title_styles[i])
                 fprintf (stderr, "MyFrame[%d].TitleStyle[%d] = \"%s\";\n", index, i, list->title_styles[i]);
@@ -363,6 +393,9 @@ PrintMyFrameDefinitions (MyFrameDefinition * list, int index)
                 fprintf (stderr, "MyFrame[%d].FrameStyle[%d] = \"%s\";\n", index, i, list->frame_styles[i]);
         if( list->title_back )
             fprintf (stderr, "MyFrame[%d].TitleBack = \"%s\";\n", index, list->title_back);
+        fprintf (stderr, "MyFrame[%d].set_part_size = 0x%lX;\n", index, list->set_part_size);
+        fprintf (stderr, "MyFrame[%d].set_part_bevel = 0x%lX;\n", index, list->set_part_bevel);
+        fprintf (stderr, "MyFrame[%d].set_part_align = 0x%lX;\n", index, list->set_part_align);
         for( i = 0 ; i < FRAME_PARTS ; ++i )
         {
             fprintf (stderr, "MyFrame[%d].Part[%d].width = %d;\n", index, i, list->part_width[i]);
@@ -370,16 +403,43 @@ PrintMyFrameDefinitions (MyFrameDefinition * list, int index)
             fprintf (stderr, "MyFrame[%d].Part[%d].bevel = 0x%lX;\n", index, i, list->part_bevel[i]);
             fprintf (stderr, "MyFrame[%d].Part[%d].align = 0x%lX;\n", index, i, list->part_align[i]);
         }
+        fprintf (stderr, "MyFrame[%d].set_title_attr = 0x%lX;\n", index, list->set_title_attr);
         fprintf (stderr, "MyFrame[%d].title_bevel = 0x%lX;\n", index, list->title_bevel);
         fprintf (stderr, "MyFrame[%d].title_align = 0x%lX;\n", index, list->title_align);
         fprintf (stderr, "MyFrame[%d].title_back_align = 0x%lX;\n", index, list->title_back_align);
         if( list->inheritance_list )
             for( i = 0 ; i < list->inheritance_num ; ++i )
-            {
                 fprintf (stderr, "MyFrame[%d].Inherit[%d] = \"%s\";\n", index, i, list->inheritance_list[i]);
-            }
         PrintMyFrameDefinitions (list->next, index+1);
     }
+}
+
+ASFlagType
+ParseBevelOptions( FreeStorageElem * options )
+{
+    ASFlagType bevel = 0 ;
+    while( options )
+	{
+        LOCAL_DEBUG_OUT( "options(%p)->keyword(\"%s\")", options, options->term->keyword );
+        if (options->term != NULL)
+            ReadFlagItem (NULL, &bevel, options, BevelFlagsXref);
+        options = options->next;
+    }
+    return bevel;
+}
+
+ASFlagType
+ParseAlignOptions( FreeStorageElem * options )
+{
+    ASFlagType align = 0 ;
+    while( options )
+	{
+        LOCAL_DEBUG_OUT( "options(%p)->keyword(\"%s\")", options, options->term->keyword );
+        if (options->term != NULL)
+            ReadFlagItem (NULL, &align, options, AlignFlagsXref);
+        options = options->next;
+    }
+    return align;
 }
 
 MyFrameDefinition **
@@ -387,6 +447,7 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
 {
 	ConfigItem    item;
 	int           rel_id;
+    MyFrameDefinition *fd = NULL ;
 
 	item.memory = NULL;
 
@@ -394,50 +455,158 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
 	{
 		if (options->term == NULL)
 			continue;
+        LOCAL_DEBUG_OUT( "MyFrame(%p)->options(%p)->keyword(\"%s\")", fd, options, options->term->keyword );
 		if (options->term->id < MYFRAME_ID_START || options->term->id > MYFRAME_ID_END)
 			continue;
 
 		if (options->term->type == TT_FLAG)
 		{
-			if (options->term->id == MYFRAME_DONE_ID && *tail != NULL)
-			{
-				if ((*tail)->name != NULL)
-				{
-					fprintf (stderr, "done parsing myframe: [%s]\n", (*tail)->name);
-					while (*tail)
-						tail = &((*tail)->next);	/* just in case */
-					continue;
-				}
-			}
-			show_error( "Unexpected MyFrame definition keyword. Ignoring." );
-			DestroyMyFrameDefinitions (tail);
-			ReadConfigItem (&item, NULL);
-			return tail;
-		}
+            if( fd != NULL  )
+            {
+                if( options->term->id == MYFRAME_DONE_ID )
+                    break;                     /* for loop */
+                switch( options->term->id )
+                {
+                    case MYFRAME_TitleBevel_ID :
+                        fd->title_bevel = ParseBevelOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_TitleBevelSet );
+                        break;
+                    case MYFRAME_TitleAlign_ID :
+                        fd->title_align = ParseAlignOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_TitleAlignSet );
+                        break;
+                    case MYFRAME_TitleBackgroundAlign_ID :
+                        fd->title_back_align = ParseAlignOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet );
+                        break;
+                    default:
+                        if (!ReadConfigItem (&item, options))
+                            continue;
+                        if( item.index < 0 || item.index >= FRAME_PARTS )
+                        {
+                            item.ok_to_free = 1;
+                            continue;
+                        }
+                        switch( options->term->id )
+                        {
+                            case MYFRAME_NoSide_ID :
+                            case MYFRAME_NoCorner_ID :
+                                clear_flags( fd->parts_mask, 0x01<<item.index );
+                                set_flags( fd->set_parts, 0x01<<item.index );
+                                break;
+                            case MYFRAME_SideAlign_ID :
+                            case MYFRAME_CornerAlign_ID :
+                                fd->part_align[item.index] = ParseAlignOptions( options->sub );
+                                set_flags( fd->set_part_align, 0x01<<item.index );
+                                break;
+                            case MYFRAME_SideBevel_ID :
+                            case MYFRAME_CornerBevel_ID :
+                                fd->part_bevel[item.index] = ParseBevelOptions( options->sub );
+                                set_flags( fd->set_part_bevel, 0x01<<item.index );
+                                break;
+                            default:
+                                show_warning( "Unexpected MyFrame definition keyword \"%s\" . Ignoring.", options->term->keyword );
+                                item.ok_to_free = 1;
+                        }
+                }
+            }
+            continue;
+        }
 
 		if (!ReadConfigItem (&item, options))
 			continue;
 
 		if (*tail == NULL)
-			AddMyFrameDefinition (tail);
-#define SET_SET_FLAG1(f)  SET_SET_FLAG((**tail),f)
-		rel_id = options->term->id - MYFRAME_START_ID;
-		if (rel_id == 0)
+            fd = AddMyFrameDefinition (tail);
+
+        rel_id = options->term->id - MYFRAME_START_ID;
+        if (rel_id == 0)
 		{
-			if ((*tail)->name != NULL)
+            if (fd->name != NULL)
 			{
 				show_error("MyFrame \"%s\": Previous MyFrame definition [%s] was not terminated correctly, and will be ignored.",
-					 	   item.data.string, (*tail)->name);
+                           item.data.string, fd->name);
 				DestroyMyFrameDefinitions (tail);
-				AddMyFrameDefinition (tail);
+                fd = AddMyFrameDefinition (tail);
 			}
-			set_string_value (&((*tail)->name), item.data.string, NULL, 0);
-		} else
+            set_string_value (&(fd->name), item.data.string, NULL, 0);
+        } else if( rel_id <= FRAME_PARTS )
 		{
-			set_string_value (&((*tail)->parts[rel_id - 1]), item.data.string, NULL, 0);
-		}
-	}
-	ReadConfigItem (&item, NULL);
+            --rel_id ;
+            set_string_value (&(fd->parts[rel_id]), item.data.string, &(fd->set_parts), (0x01<<rel_id));
+            set_flags( fd->parts_mask, (0x01<<rel_id));
+        }else
+        {
+            rel_id = item.index ;
+            if( rel_id < 0 || rel_id >= FRAME_PARTS )
+                rel_id = 0 ;
+            switch( options->term->id )
+            {
+                case MYFRAME_Side_ID :
+                case MYFRAME_Corner_ID :
+                    set_string_value (&(fd->parts[rel_id]), item.data.string, &(fd->set_parts), (0x01<<rel_id));
+                    set_flags( fd->parts_mask, (0x01<<rel_id));
+                    break;
+                case MYFRAME_TitleUnfocusedStyle_ID :
+                    set_string_value (&(fd->title_styles[BACK_UNFOCUSED]), item.data.string, NULL, 0);
+                    break;
+                case MYFRAME_TitleFocusedStyle_ID :
+                    set_string_value (&(fd->title_styles[BACK_FOCUSED]), item.data.string, NULL, 0);
+                    break;
+                case MYFRAME_TitleStickyStyle_ID :
+                    set_string_value (&(fd->title_styles[BACK_STICKY]), item.data.string, NULL, 0);
+                    break;
+                case MYFRAME_FrameUnfocusedStyle_ID :
+                    set_string_value (&(fd->frame_styles[BACK_UNFOCUSED]), item.data.string, NULL, 0);
+                    break;
+                case MYFRAME_FrameFocusedStyle_ID :
+                    set_string_value (&(fd->frame_styles[BACK_FOCUSED]), item.data.string, NULL, 0);
+                    break;
+                case MYFRAME_FrameStickyStyle_ID :
+                    set_string_value (&(fd->frame_styles[BACK_STICKY]), item.data.string, NULL, 0);
+                    break;
+                case MYFRAME_TitleBackground_ID :
+                    set_string_value (&(fd->title_back), item.data.string, NULL, 0);
+                    break;
+                case MYFRAME_SideSize_ID :
+                case MYFRAME_CornerSize_ID :
+                    if( get_flags( item.data.geometry.flags, WidthValue) )
+                        fd->part_width[rel_id] = item.data.geometry.width ;
+                    else
+                        fd->part_width[rel_id] = 0 ;
+                    if( get_flags( item.data.geometry.flags, HeightValue) )
+                        fd->part_length[rel_id] = item.data.geometry.height ;
+                    else
+                        fd->part_length[rel_id] = 0 ;
+                    set_flags( fd->set_part_size, (0x01<<rel_id));
+                    break;
+                case MYFRAME_Inherit_ID :
+                    {
+                        fd->inheritance_list = realloc( fd->inheritance_list, (fd->inheritance_num+1)*sizeof(char*));
+                        fd->inheritance_list[fd->inheritance_num] = item.data.string ;
+                        ++(fd->inheritance_num);
+                    }
+                    break;
+                default:
+                    item.ok_to_free = 1;
+                    show_warning( "Unexpected MyFrame definition keyword \"%s\" . Ignoring.", options->term->keyword );
+            }
+        }
+    }
+    if (fd != NULL )
+    {
+        if( fd->name == NULL)
+        {
+            show_warning( "MyFrame with no name encoutered. Discarding." );
+            DestroyMyFrameDefinitions (tail);
+        }else
+        {
+            LOCAL_DEBUG_OUT("done parsing myframe: [%s]", fd->name);
+            while (*tail)
+                tail = &((*tail)->next);    /* just in case */
+        }
+    }
+    ReadConfigItem (&item, NULL);
 	return tail;
 }
 
@@ -460,6 +629,7 @@ MyFrameDef2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyFrameDefi
 		tail = Path2FreeStorage (&MyFrameSyntax, tail, NULL, def->parts[i], MYFRAME_START_ID + i + 1);
 
 	tail = Flag2FreeStorage (&MyFrameSyntax, tail, MYFRAME_DONE_ID);
+    /* TODO: implement the rest of the MyFrame writing : */
 
 	return new_tail;
 }
@@ -474,6 +644,50 @@ MyFrameDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyFrameDef
 	}
 	return tail;
 }
+
+void
+myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list)
+{
+    FilePtrAndData fpd ;
+    ConfigDef    *ConfigReader ;
+    FreeStorageElem *Storage = NULL, *more_stuff = NULL;
+    MyFrameDefinition **list = (MyFrameDefinition**)myframe_list, **tail ;
+
+    if( list == NULL )
+        return;
+    for( tail = list ; *tail != NULL ; tail = &((*tail)->next) );
+
+    fpd.fp = fd ;
+    fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
+    sprintf( fpd.data, "MyFrame %s\n", tline );
+LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
+    ConfigReader = InitConfigReader ((char*)myname, &MyFrameSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+    free( fpd.data );
+
+    if (!ConfigReader)
+        return ;
+
+	PrintConfigReader (ConfigReader);
+	ParseConfig (ConfigReader, &Storage);
+	PrintFreeStorage (Storage);
+
+	/* getting rid of all the crap first */
+    StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
+    DestroyFreeStorage (&more_stuff);
+
+    ProcessMyFrameOptions (Storage, tail);
+
+	DestroyConfig (ConfigReader);
+	DestroyFreeStorage (&Storage);
+}
+
+
+/**********************************************************************/
+/* The following code has been backported from as-devel and remains
+ * undebugged for future use. Feel free to debug it :
+ *                                                      Sasha Vasko.
+ **********************************************************************/
+
 
 /*****************  Create/Destroy DeskBackConfig     *****************/
 DesktopConfig *
@@ -1247,8 +1461,8 @@ WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsig
 	if (get_flags (config->set_flags, LOOK_ButtonSize))
 		tail = Box2FreeStorage (&LookSyntax, tail, &(config->button_size), LOOK_ButtonSize_ID);
 	/* TitleButtons config: */
-	if (config->balloon_conf)
-		tail = balloon2FreeStorage (&LookSyntax, tail, config->balloon_conf);
+/*    if (config->balloon_conf)
+        tail = balloon2FreeStorage (&LookSyntax, tail, config->balloon_conf); */
 
 	if (get_flags (config->set_flags, LOOK_TitleTextAlign))
         tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_text_align, LOOK_TitleTextAlign_ID);

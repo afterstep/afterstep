@@ -2,6 +2,7 @@
 #define CONF_DEFS_H_FILE_INCLUDED
 
 #include "../libAfterImage/asvisual.h"
+struct ASFontManager;
 /***************************************************************************/
 /*                        Base file pasring definitions                    */
 /***************************************************************************/
@@ -176,10 +177,10 @@ FreeStorageElem **MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem *
 #define MYFRAME_FrameStickyStyle_ID     (MYFRAME_ID_START+18)
 #define MYFRAME_TitleBackground_ID      (MYFRAME_ID_START+19)
 #define MYFRAME_SideSize_ID             (MYFRAME_ID_START+20)
-#define MYFRAME_SideAlign_ID            (MYFRAME_ID_START+21)
-#define MYFRAME_SideBevel_ID            (MYFRAME_ID_START+22)
-#define MYFRAME_CornerSize_ID           (MYFRAME_ID_START+23)
-#define MYFRAME_CornerAlign_ID          (MYFRAME_ID_START+24)
+#define MYFRAME_CornerSize_ID           (MYFRAME_ID_START+21)
+#define MYFRAME_SideAlign_ID            (MYFRAME_ID_START+22)
+#define MYFRAME_CornerAlign_ID          (MYFRAME_ID_START+23)
+#define MYFRAME_SideBevel_ID            (MYFRAME_ID_START+24)
 #define MYFRAME_CornerBevel_ID          (MYFRAME_ID_START+25)
 #define MYFRAME_TitleBevel_ID           (MYFRAME_ID_START+26)
 #define MYFRAME_TitleAlign_ID           (MYFRAME_ID_START+27)
@@ -202,12 +203,13 @@ FreeStorageElem **MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem *
 #define ALIGN_ID_END        (ALIGN_ID_START+10)
 
 #define BEVEL_ID_START      (ALIGN_ID_END+1)
-#define BEVEL_Left_ID       (BEVEL_ID_START+1)
-#define BEVEL_Top_ID        (BEVEL_ID_START+2)
-#define BEVEL_Right_ID      (BEVEL_ID_START+3)
-#define BEVEL_Bottom_ID     (BEVEL_ID_START+4)
-#define BEVEL_Extra_ID      (BEVEL_ID_START+5)
-#define BEVEL_NoOutline_ID  (BEVEL_ID_START+6)
+#define BEVEL_None_ID       (BEVEL_ID_START+1)
+#define BEVEL_Left_ID       (BEVEL_ID_START+2)
+#define BEVEL_Top_ID        (BEVEL_ID_START+3)
+#define BEVEL_Right_ID      (BEVEL_ID_START+4)
+#define BEVEL_Bottom_ID     (BEVEL_ID_START+5)
+#define BEVEL_Extra_ID      (BEVEL_ID_START+6)
+#define BEVEL_NoOutline_ID  (BEVEL_ID_START+7)
 #define BEVEL_ID_END        (BEVEL_ID_START+10)
 
 /*********************************************************************
@@ -261,15 +263,20 @@ typedef struct MyFrameDefinition
     struct MyFrameDefinition *next;
 
     char        *name;
-    ASFlagType   flags; /* first 8 bits represent one enabled side/corner each */
+    ASFlagType   set_parts;
+    ASFlagType   parts_mask; /* first 8 bits represent one enabled side/corner each */
     char        *parts[FRAME_PARTS];
     char        *title_styles[BACK_STYLES];
     char        *frame_styles[BACK_STYLES];
     char        *title_back;
+    ASFlagType   set_part_size ;
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
+    ASFlagType   set_part_bevel ;
     ASFlagType   part_bevel[FRAME_PARTS];
+    ASFlagType   set_part_align ;
     ASFlagType   part_align[FRAME_PARTS];
+    ASFlagType   set_title_attr ;
     ASFlagType   title_bevel;
     ASFlagType   title_align, title_back_align;
 
@@ -279,6 +286,7 @@ typedef struct MyFrameDefinition
 }MyFrameDefinition;
 
 /* this functions work exactly like MyStyle stuff ( see above ) */
+void PrintMyFrameDefinitions (MyFrameDefinition * list, int index);
 void DestroyMyFrameDefinitions (MyFrameDefinition ** list);
 MyFrameDefinition **ProcessMyFrameOptions (FreeStorageElem * options,
 					   MyFrameDefinition ** tail);
@@ -288,6 +296,7 @@ FreeStorageElem **MyFrameDefs2FreeStorage (SyntaxDef * syntax,
 					   FreeStorageElem ** tail,
 					   MyFrameDefinition * defs);
 
+void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 /**************************************************************************/
 /**************************************************************************/
 /*                        balloon pasring definitions                       */
@@ -1022,7 +1031,7 @@ typedef struct LookConfig
   unsigned long flags;
   unsigned long set_flags;
 
-  ASBox icon_boxes[MAX_BOXES];
+  ASBox *icon_boxes;
   short unsigned int icon_boxes_num;
 
 #ifndef NO_TEXTURE

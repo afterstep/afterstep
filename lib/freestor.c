@@ -1016,28 +1016,22 @@ ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * 
 
 		while (xref->flag != 0)
 		{
-			if (xref->id_on == stored->term->id)
-				break;
-			if (xref->id_off == stored->term->id)
-			{
-				value = !value;
-				break;
-			}
+            if (xref->id_on == stored->term->id || xref->id_off == stored->term->id )
+            {
+                if (set_flags)
+                    set_flags (*set_flags, xref->flag);
+                if (flags)
+                {
+                    if ((value && xref->id_on == stored->term->id) ||
+                        (!value && xref->id_off == stored->term->id))
+                        set_flags (*flags, xref->flag);
+                    else
+                        clear_flags (*flags, xref->flag);
+                }
+            }
 			xref++;
 		}
-		if (xref->flag != 0)
-		{
-			if (set_flags)
-				set_flags (*set_flags, xref->flag);
-			if (flags)
-			{
-				if (value)
-					set_flags (*flags, xref->flag);
-				else
-					clear_flags (*flags, xref->flag);
-			}
-		}
-		return 1;
+        return 1;
 	}
 	return 0;
 }

@@ -122,24 +122,32 @@ typedef struct MyFrame
 {
     unsigned long magic ;
     char      *name;
-    ASFlagType flags; /* first 8 bits represent one enabled side/corner each */
+    ASFlagType   set_parts;
+    ASFlagType   parts_mask; /* first 8 bits represent one enabled side/corner each */
     struct icon_t    *parts[FRAME_PARTS];
     char             *part_filenames[FRAME_PARTS];
     char             *title_style_names[BACK_STYLES];
     char             *frame_style_names[BACK_STYLES];
     char             *title_back_filename;
     struct icon_t    *title_back;
+    ASFlagType   set_part_size ;
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
+    ASFlagType   set_part_bevel ;
     ASFlagType   part_bevel[FRAME_PARTS];
+    ASFlagType   set_part_align ;
     ASFlagType   part_align[FRAME_PARTS];
+    ASFlagType   set_title_attr ;
+#define MYFRAME_TitleBevelSet       (0x01<<0)
+#define MYFRAME_TitleAlignSet       (0x01<<1)
+#define MYFRAME_TitleBackAlignSet   (0x01<<2)
     ASFlagType   title_bevel;
     ASFlagType   title_align, title_back_align;
 #define MYFRAME_HOR_MASK    ((0x01<<FR_N)|(0x01<<FR_S))
 #define MYFRAME_VERT_MASK   ((0x01<<FR_W)|(0x01<<FR_E))
 #define IsSideVertical(side)  ((side) == FR_W || (side)== FR_E)
 #define IsFrameCorner(p)   ((p)>=FRAME_SIDES)
-#define IsFramePart(f,p)   ((f)->parts[(p)] || ((f)->part_width[(p)] && (f)->part_length[(p)]))
+#define IsFramePart(f,p)   (get_flags((f)->parts_mask,0x01<<(p))&&((f)->parts[(p)] || ((f)->part_width[(p)] && (f)->part_length[(p)])))
 
     unsigned int spacing ;
 }MyFrame;
@@ -229,12 +237,15 @@ typedef struct MyLook
 }MyLook;
 
 MyFrame *create_myframe();
-MyFrame *create_default_myframe();
+MyFrame *create_default_myframe(ASFlagType default_title_align);
+void inherit_myframe( MyFrame *frame, MyFrame *ancestor );
 MyFrame *myframe_find( const char *name );
 void myframe_load ( MyFrame * frame, struct ASImageManager *imman );
 Bool filename2myframe_part (MyFrame *frame, int part, char *filename);
 Bool myframe_has_parts(const MyFrame *frame, ASFlagType mask);
 void destroy_myframe( MyFrame **pframe );
+void check_myframes_list( MyLook *look );
+
 
 char *make_myback_image_name( MyLook *look, char *name );
 void check_mybacks_list( MyLook *look );

@@ -522,6 +522,7 @@ get_window_icon_image( ASWindow *asw )
 static ASTBarData*
 check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name,
             ASImage *img, unsigned short back_w, unsigned short back_h,
+            ASFlagType align, ASFlagType bevel,
             int context )
 {
     if( required )
@@ -538,15 +539,14 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) )
         if( img )
         {
             LOCAL_DEBUG_OUT("adding bar icon %p %ux%u", img, img->width, img->height );
-            add_astbar_icon( *tbar, 0, 0, 0, RESIZE_H|RESIZE_V, img );
+            add_astbar_icon( *tbar, 0, 0, 0, align, img );
             if( back_w == 0 )
                 back_w = img->width ;
             if( back_h == 0 )
                 back_h = img->height ;
-            set_astbar_hilite( *tbar, 0 );
-        }else
-            set_astbar_hilite( *tbar, DEFAULT_TBAR_HILITE );
+        }
 
+        set_astbar_hilite( *tbar, bevel );
         set_astbar_size( *tbar, (back_w == 0)?1:back_w, (back_h == 0)?1:back_h );
         (*tbar)->context = context ;
     }else if( *tbar )
@@ -666,8 +666,8 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     Bool has_tbar = False ;
 	int i ;
     char *mystyle_name = Scr.Look.MSWindow[BACK_FOCUSED]->name;
+    char *frame_mystyle_name = NULL ;
 	ASImage *icon_image = NULL ;
-    ASFlagType title_align = ALIGN_LEFT ;
     ASOrientation *od = get_orientation_data(asw);
     int *frame_contexts  = &(od->frame_contexts[0]);
 
@@ -676,21 +676,17 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
         return ;
 
     if( !free_resources && asw->hints )
-    {
-        if( ASWIN_HFLAGS(asw, AS_Handles) )
-            frame = myframe_find( ASWIN_HFLAGS(asw, AS_Frame)?asw->hints->frame_name:NULL );
         has_tbar = (ASWIN_HFLAGS(asw, AS_Titlebar)!= 0);
-    }
 
     if(  free_resources || asw->hints == NULL || asw->status == NULL )
     {/* destroy window decorations here : */
      /* destruction goes in reverese order ! */
-        check_tbar( &(asw->icon_title), False, NULL, NULL, 0, 0, C_NO_CONTEXT );
-        check_tbar( &(asw->icon_button), False, NULL, NULL, 0, 0, C_NO_CONTEXT );
-        check_tbar( &(asw->tbar), False, NULL, NULL, 0, 0, C_NO_CONTEXT );
+        check_tbar( &(asw->icon_title), False, NULL, NULL, 0, 0, 0, 0, C_NO_CONTEXT );
+        check_tbar( &(asw->icon_button), False, NULL, NULL, 0, 0, 0, 0, C_NO_CONTEXT );
+        check_tbar( &(asw->tbar), False, NULL, NULL, 0, 0, 0, 0, C_NO_CONTEXT );
 		i = FRAME_PARTS ;
 		while( --i >= 0 )
-            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, C_NO_CONTEXT );
+            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, C_NO_CONTEXT );
 
         check_side_canvas( asw, FR_W, False );
         check_side_canvas( asw, FR_E, False );
@@ -705,8 +701,14 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
         return ;
     }
 
+    frame = myframe_find( ASWIN_HFLAGS(asw, AS_Frame)?asw->hints->frame_name:NULL );
+    asw->frame_data = frame ;
+
     if( asw->hints->mystyle_names[BACK_FOCUSED] )
         mystyle_name = asw->hints->mystyle_names[BACK_FOCUSED];
+    if( frame->title_style_names[BACK_FOCUSED] )
+        mystyle_name = frame->title_style_names[BACK_FOCUSED];
+    frame_mystyle_name = frame->frame_style_names[BACK_FOCUSED];
 
     /* 1) we need to create our frame window : */
     if( check_frame_canvas( asw, True ) == NULL )
@@ -715,11 +717,6 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     /* 2) we need to reparent our title window : */
     if( check_client_canvas( asw, True ) == NULL )
         return;
-
-    if(Scr.Look.TitleTextAlign == JUSTIFY_RIGHT )
-        title_align = ALIGN_RIGHT ;
-    else if(Scr.Look.TitleTextAlign == JUSTIFY_CENTER )
-        title_align = ALIGN_CENTER ;
 
     /* 3) we need to prepare icon window : */
     check_icon_canvas( asw, (ASWIN_HFLAGS( asw, AS_Icon) && !get_flags(Scr.Feel.flags, SuppressIcons)) );
@@ -745,7 +742,7 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
 		icon_image = get_window_icon_image( asw );
     check_tbar( &(asw->icon_button), (asw->icon_canvas != NULL), AS_ICON_MYSTYLE,
                 icon_image, icon_image?icon_image->width:0, icon_image?icon_image->height:0,/* scaling icon image */
-                C_IconButton );
+                ALIGN_CENTER, DEFAULT_TBAR_HILITE, C_IconButton );
 	if( icon_image )
         safe_asimage_destroy( icon_image );
     if( asw->icon_button )
@@ -756,14 +753,14 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
 
     /* 7) now we have to create bar for icon title (optional) */
     check_tbar( &(asw->icon_title), (asw->icon_canvas != NULL||asw->icon_title_canvas != NULL), AS_ICON_TITLE_MYSTYLE,
-                NULL, 0, 0, C_IconTitle );
+                NULL, 0, 0, ALIGN_CENTER, DEFAULT_TBAR_HILITE, C_IconTitle );
     if( asw->icon_title )
     {
         LOCAL_DEBUG_OUT( "setting icon label to %s", ASWIN_ICON_NAME(asw) );
-        add_astbar_label( asw->icon_title, 0, 0, 0, title_align, ASWIN_ICON_NAME(asw));
+        add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align, ASWIN_ICON_NAME(asw));
     }
     /* 8) now we have to create actuall bars - for each frame element plus one for the titlebar */
-    if( frame )
+    if( ASWIN_HFLAGS(asw, AS_Handles) )
     {
         for( i = 0 ; i < FRAME_PARTS ; ++i )
         {
@@ -781,12 +778,16 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
                 *(od->in_width) = frame->part_width[i] ;
                 *(od->in_height) = frame->part_length[i] ;
             }
-/*LOCAL_DEBUG_OUT( "part(%d)->real_part(%d)->from_size(%ux%u)->in_size(%ux%u)->out_size(%ux%u)", i, real_part, frame->part_width[i], frame->part_length[i], *(od->in_width), *(od->in_height), *(od->out_width), *(od->out_height) );*/
-            check_tbar( &(asw->frame_bars[real_part]), IsFramePart(frame,i), mystyle_name,
-                        img, *(od->out_width), *(od->out_height), frame_contexts[i] );
+    /*LOCAL_DEBUG_OUT( "part(%d)->real_part(%d)->from_size(%ux%u)->in_size(%ux%u)->out_size(%ux%u)", i, real_part, frame->part_width[i], frame->part_length[i], *(od->in_width), *(od->in_height), *(od->out_width), *(od->out_height) );*/
+            check_tbar( &(asw->frame_bars[real_part]), IsFramePart(frame,i), frame_mystyle_name?frame_mystyle_name:mystyle_name,
+                        img, *(od->out_width), *(od->out_height), frame->part_align[i], frame->part_bevel[i], frame_contexts[i] );
         }
-    }
-    check_tbar( &(asw->tbar), has_tbar, mystyle_name, NULL, 0, 0, C_TITLE );
+    }else
+        for( i = 0 ; i < FRAME_PARTS ; ++i )
+            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, C_NO_CONTEXT );
+
+    check_tbar( &(asw->tbar), has_tbar, mystyle_name, NULL, 0, 0,
+                frame->title_align, frame->title_bevel, C_TITLE );
 
     /* 9) now we have to setup titlebar buttons */
     if( asw->tbar )
@@ -805,7 +806,16 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
         /* label */
         add_astbar_label( asw->tbar,
                           od->default_tbar_elem_col[1], od->default_tbar_elem_row[1],
-                          od->flip, title_align, ASWIN_NAME(asw));
+                          od->flip,
+                          frame->title_align,
+                          ASWIN_NAME(asw));
+        if( frame->title_back )
+        {
+            add_astbar_icon( asw->tbar,
+                              od->default_tbar_elem_col[1], od->default_tbar_elem_row[1],
+                              od->flip, frame->title_back_align&(PAD_MASK|RESIZE_MASK),
+                                        frame->title_back->image);
+        }
         /* right buttons : */
         add_astbar_btnblock(asw->tbar,
                             od->default_tbar_elem_col[2], od->default_tbar_elem_row[2],
@@ -1453,6 +1463,7 @@ void
 on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured )
 {
     char *unfocus_mystyle = NULL ;
+    char *frame_unfocus_mystyle = NULL ;
     int i ;
     Bool changed = False;
     ASOrientation *od = get_orientation_data( asw );
@@ -1472,20 +1483,22 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_di
             on_icon_changed( asw );
     }else
     {
-        if( ASWIN_GET_FLAGS(asw, AS_Sticky ) )
-        {
-            unfocus_mystyle = asw->hints->mystyle_names[BACK_STICKY];
-            if( unfocus_mystyle == NULL )
-                unfocus_mystyle = Scr.Look.MSWindow[BACK_STICKY]->name ;
-        }else
-            unfocus_mystyle = asw->hints->mystyle_names[BACK_UNFOCUSED];
+        int back_type = ASWIN_GET_FLAGS(asw, AS_Sticky )?BACK_STICKY:BACK_UNFOCUSED;
 
+        unfocus_mystyle = asw->hints->mystyle_names[back_type];
+        if( asw->frame_data->title_style_names[back_type] )
+            unfocus_mystyle = asw->frame_data->title_style_names[back_type] ;
+        if( unfocus_mystyle == NULL )
+            unfocus_mystyle = Scr.Look.MSWindow[back_type]->name ;
         if( unfocus_mystyle == NULL )
             unfocus_mystyle = Scr.Look.MSWindow[BACK_UNFOCUSED]->name ;
 
+        frame_unfocus_mystyle = (asw->frame_data->frame_style_names[back_type]==NULL)?
+                                        unfocus_mystyle : asw->frame_data->frame_style_names[back_type];
+
         for( i = 0 ; i < FRAME_PARTS ; ++i )
             if( asw->frame_bars[i] )
-                if( set_astbar_style( asw->frame_bars[i], BAR_STATE_UNFOCUSED, unfocus_mystyle ) )
+                if( set_astbar_style( asw->frame_bars[i], BAR_STATE_UNFOCUSED, frame_unfocus_mystyle ) )
                     changed = True ;
 
         if( asw->tbar )
