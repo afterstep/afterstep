@@ -102,8 +102,12 @@ void set_layout_offsets( ASLayout *layout,
 	                     int east, int north, int west, int south );
 
 /* fixed size handling : */
-void get_layout_fixed_size( ASLayout *layout, unsigned short *fixed_width,
+void get_layout_fixed_size( ASLayout *layout,
+	                        unsigned short *fixed_width,
 	                        unsigned short *fixed_height );
+Bool moveresize_layout( ASLayout *layout,
+	                    unsigned int width, unsigned int height,
+						Bool force );
 
 
 #endif  /* AS_LAYOUT_H_HEADER_FILE */

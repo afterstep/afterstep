@@ -31,6 +31,15 @@
 #include "output.h"
 #include "layout.h"
 
+
+/* these are used to perform different size/position adjustments in order
+ * to avoid dynamic memory allocations :
+ */
+static int as_layout_fixed_width[ASLAYOUT_MAX_SIZE], as_layout_fixed_height[ASLAYOUT_MAX_SIZE] ;
+static int as_layout_width[ASLAYOUT_MAX_SIZE], as_layout_height[ASLAYOUT_MAX_SIZE] ;
+static int as_layout_x[ASLAYOUT_MAX_SIZE], as_layout_y[ASLAYOUT_MAX_SIZE] ;
+
+
 /**********************************************************************/
 /* Creation/Destruction                                               */
 ASLayout *
@@ -391,5 +400,321 @@ LOCAL_DEBUG_OUT( " layout %lX FIXED WIDTH is %d FIXED HEIGHT is %d", (unsigned l
         *fixed_width = width ;
     if( fixed_height )
         *fixed_height = height ;
+}
+
+/****************************************************************************************
+ * The following are dynamic methods and return value that indicates if any of the cached
+ * pixmaps has to be rebuild
+ ****************************************************************************************/
+static int
+collect_sizes( ASLayout *layout, int *layout_size, int *layout_fixed_size, Bool h_direction )
+{
+    int dim ;
+    ASLayoutElem **chains ;
+    register int i ;
+    int spacing_needed = 0 ;
+    int max_span;
+    ASFlagType fixed_flag ;
+	unsigned int spacing ;
+
+    if( h_direction )
+    {
+        dim = layout->dim_x ;
+        chains = layout->cols ;
+        fixed_flag = LF_FixedWidth ;
+		spacing = layout->h_spacing ;
+    }else
+    {
+        dim = layout->dim_y ;
+        chains = layout->rows ;
+        fixed_flag = LF_FixedHeight ;
+		spacing = layout->v_spacing ;
+    }
+
+    /* PASS 1 : we mark all the dead columns with fixed width -1 */
+    for( i = 0 ; i < dim  ; i++ )
+        layout_fixed_size[i] = chains[i]?0:-1 ;
+    /* PASS 2 : we calculate fixed size for columns tarting with elements that has span on 1
+     *          and increasing it untill it reaches up to DIM : */
+    for( max_span = 1; max_span <= dim  ; max_span++ )
+    {
+        for( i = dim-max_span ; i >= 0  ; i-- )
+        {
+            register ASLayoutElem *pelem = chains[i];
+            while( pelem )
+            {
+                unsigned int span ;
+                int fixed_size ;
+                ASLayoutElem *pnext ;
+
+                if( h_direction )
+                {
+                    span = pelem->h_span;
+                    pnext = pelem->below;
+                    fixed_size = get_flags( pelem->flags, LF_FixedWidth )?pelem->fixed_width+(pelem->bw<<1):0 ;
+                }else
+                {
+                    span = pelem->v_span;
+                    pnext = pelem->right;
+                    fixed_size = get_flags( pelem->flags, LF_FixedHeight )?pelem->fixed_height+(pelem->bw<<1):0 ;
+                }
+
+                if( span == max_span && fixed_size > 0 )
+                {
+                    register int k ;
+                    for( k = i + span - 1 ; k > i ; k-- )/* working around span: width = width - spanned_width */
+                        if( layout_fixed_size[k] > 0 )
+                            fixed_size -= layout_fixed_size[k]+spacing;
+                    if( fixed_size > 0 )
+                    {
+                        if( layout_fixed_size[i] == 0 )
+                            layout_fixed_size[i] = fixed_size ;
+                        else if( fixed_size > layout_fixed_size[i] )
+                        {
+                            int limit = i+span ;
+                            for( k = i+1 ; k < limit ; k++ )
+                                if( layout_fixed_size[k] == 0 )
+                                {
+                                    layout_fixed_size[k] = layout_fixed_size[i]-(fixed_size+spacing) ;
+                                    fixed_size = layout_fixed_size[i] ;
+                                }
+                            if( fixed_size > layout_fixed_size[i] )
+                                layout_fixed_size[i] = fixed_size ;
+                        }
+                    }
+                }
+                pelem = pnext ;
+            }
+        }
+    }
+    /* PASS 3 : we collect all the existing sizes  */
+    if( layout_size != NULL )
+    {
+        for( i = dim-1 ; i >=0  ; i-- )
+        {
+            register ASLayoutElem *pelem = chains[i];
+            layout_size[i] = 0 ;
+            while( pelem )
+            {
+                unsigned int span ;
+                int size ;
+                ASLayoutElem *pnext ;
+                if( h_direction )
+                {
+                    span = pelem->h_span;
+                    size = pelem->width ;
+                    pnext = pelem->below;
+                }else
+                {
+                    span = pelem->v_span;
+                    size = pelem->height ;
+                    pnext = pelem->right;
+                }
+                size += (pelem->bw<<1) ;
+                if( size > 0 )
+                {
+                    register int k ;
+                    for( k = i + span - 1 ; k > i ; k-- )/* working around span: width = width - spanned_width */
+                        if( layout_fixed_size[k] > 0 )
+                            size -= layout_size[k]+spacing;
+                    if( layout_size[i] < size )  /* this really should be the same in all rows */
+                        layout_size[i] = size ;
+                }
+                pelem = pnext ;
+            }
+        }
+    }
+    /* PASS 4 : we mark all the columns that has fixed size 0 yet are overlapped
+     * by any fixed item as hidden (-1)  */
+    for( i = dim-1 ; i >=0  ; i-- )
+    {
+        register ASLayoutElem *pelem = chains[i];
+        while( pelem )
+        {
+            unsigned int span ;
+            ASLayoutElem *pnext ;
+            if( h_direction )
+            {
+                span = pelem->h_span;
+                pnext = pelem->below;
+            }else
+            {
+                span = pelem->v_span;
+                pnext = pelem->right;
+            }
+            if( get_flags( pelem->flags, fixed_flag ) )
+            {
+                register int k ;
+                for( k = i + span - 1 ; k >= i ; k-- )/* working around span: width = width - spanned_width */
+                    if( layout_fixed_size[k] == 0 )
+                        layout_fixed_size[k] = -1 ;
+            }
+            pelem = pnext ;
+        }
+    }
+    /* PASS 5 : we collect interelement spacing used  */
+    for( i = dim-1 ; i >0  ; i-- )
+        if( layout_fixed_size[i] >= 0 )
+            spacing_needed += spacing ;
+
+    return spacing_needed;
+}
+
+static void
+adjust_sizes( unsigned int old_total, unsigned int new_total, unsigned int dim, int *sizes, int *fixed_items )
+{
+    register int i;
+    int available = new_total ;
+    int empty_count = 0, non_fixed_count = 0 ;
+    int new_size, old_size ;
+
+	/* first allocating space for fixed items */
+    for( i = 0 ; i < dim ; i++ )
+    {
+        if( fixed_items[i] < 0 )
+            sizes[i] = 0 ;
+        else if( fixed_items[i] > 0 )
+        {
+            if( available <= 0 )
+                sizes[i] = 0 ;
+            else
+			{
+                sizes[i] = MIN( available, fixed_items[i]);
+				available -= sizes[i] ;
+			}
+        }
+	}
+	/* then allocating space for non-fixed items */
+    for( i = 0 ; i < dim ; i++ )
+		if( fixed_items[i] == 0 )
+        {
+            non_fixed_count++;
+            if( (old_size = sizes[i]) == 0 )
+                empty_count++ ;
+            else if( available <= 0 || old_total == 0 )
+            {
+                sizes[i] = 0 ;
+            }else
+            {
+
+                new_size = (old_size*new_total)/old_total ;  /* trying to keep the ratio */
+                sizes[i] = MIN( new_size, available );
+            }
+	        available -= sizes[i] ;
+        }
+    if( available > 0 && empty_count > 0)   /* we have to spread available space among empty non-fixed columns */
+    {
+        new_size = available/empty_count ;
+        if( new_size <= 0 )
+            new_size = 1 ;
+
+        for( i = 0 ; i < dim && empty_count ; i++ )
+            if( sizes[i] == 0 && fixed_items[i] == 0 )
+            {
+                sizes[i] = new_size ;
+                empty_count-- ;
+                if( (available -= new_size ) <= 0 )
+                    break;
+            }
+    }
+    if( available > 0 && non_fixed_count > 0 )   /* we have to spread available space among any non-fixed column */
+    {
+        new_size = available/non_fixed_count ;
+        if( new_size <= 0 )
+            new_size = 1 ;
+
+        for( i = 0 ; i < dim && non_fixed_count > 0 ; i++ )
+            if( fixed_items[i] == 0 )
+            {
+                if( non_fixed_count == 1 )
+                    sizes[i] += available ;
+                else
+                    sizes[i] += new_size ;
+                available -= new_size ;
+                non_fixed_count-- ;
+            }
+    }
+}
+
+static void
+apply_sizes( int spacing, int start_margin, int dim, int *layout_size, int *layout_fixed_size, int *layout_pos )
+{
+    register int i ;
+
+    layout_pos[0] = start_margin ;
+    for( i = 1 ; i < dim  ; i++ )
+    {
+        layout_pos[i] = layout_pos[i-1]+layout_size[i-1];
+        if( layout_fixed_size[i] >= 0 )
+            layout_pos[i] += spacing;
+    }
+}
+
+Bool
+moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bool force )
+{
+    Bool need_redraw = False ;
+
+    if( layout )
+    {
+        register int i ;
+        int spacing_needed = 0 ;
+
+        width -= layout->offset_east+layout->offset_west+(layout->v_border<<1) ;
+        height -= layout->offset_north+layout->offset_south+(layout->h_border<<1) ;
+
+        if( width == layout->width && height == layout->height && !force )
+            return False;
+        /* first working on width/x position */
+        spacing_needed = collect_sizes( layout, &(as_layout_width[0]), &(as_layout_fixed_width[0]), True );
+        adjust_sizes( layout->width-spacing_needed, width-spacing_needed, layout->dim_x, &(as_layout_width[0]), &(as_layout_fixed_width[0]) );
+        apply_sizes(layout->h_spacing, layout->offset_west+layout->v_border, layout->dim_x, &(as_layout_width[0]), &(as_layout_fixed_width[0]), &(as_layout_x[0]) );
+
+        /* then working on height/y position */
+        spacing_needed = collect_sizes( layout, &(as_layout_height[0]), &(as_layout_fixed_height[0]), False );
+        adjust_sizes( layout->height-spacing_needed, height-spacing_needed, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]) );
+        apply_sizes(layout->v_spacing, layout->offset_north+layout->h_border, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]), &(as_layout_y[0]) );
+
+        /* now we can actually apply our calculations : */
+        /* becouse of the static arrays we cann not recurse while we need
+         * info in those arrays. So on the first pass we set all the x/y/w/h
+         * of our elements, and on the second pass - we resize subwidgets
+         */
+        /* Pass 1: */
+        for( i = 0 ; i < layout->dim_y  ; i++ )
+            if( layout->rows[i] )
+            {
+                register ASLayoutElem *pelem = layout->rows[i];
+                int elem_y = as_layout_y[i] ;
+
+				do
+				{
+                    register int k ;
+	                unsigned int w = as_layout_width[pelem->column] ;
+	                unsigned int h = as_layout_height[i] ;
+					int elem_x = as_layout_x[pelem->column] ;
+
+                    for( k = pelem->column+pelem->h_span-1; k > pelem->column ; k-- )
+					{
+					    if( as_layout_fixed_width[k] >= 0 && as_layout_width[k] > 0 )
+                            w += as_layout_width[k]+layout->h_spacing ;
+                    }
+					for( k = pelem->row+pelem->v_span-1; k > pelem->row ; k-- )
+					{
+			            if( as_layout_fixed_height[k] >= 0 && as_layout_height[k] > 0 )
+							h += as_layout_height[k]+layout->v_spacing ;
+					}
+                    LOCAL_DEBUG_OUT( "resizing elem at [%d:%d] to %dx%d%+d%+d", pelem->column, pelem->row, w, h, elem_x, elem_y );
+                    pelem->x = elem_x;
+                    pelem->y = elem_y;
+                    pelem->width = w - (pelem->bw<<1);
+                    pelem->height = h - (pelem->bw<<1);
+				}while( (pelem = pelem->right) != NULL );
+            }
+
+		layout->width = width;
+		layout->height = height;
+    }
+    return need_redraw;
 }
 
