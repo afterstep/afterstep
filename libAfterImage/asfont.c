@@ -230,35 +230,45 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 {
 	ASFont *font = NULL ;
 	Bool freetype = False ;
-	if( face_no > 100 ) 
+	if( face_no >= 100 ) 
 		face_no = 0 ;
-	if( size > 1000 ) 
-		size = 1000 ;
+	if( size >= 1000 ) 
+		size = 999 ;
 
 	if( fontman && font_string )
 	{
 		if( get_hash_item( fontman->fonts_hash, (ASHashableValue)((char*)font_string), (void**)&font) != ASH_Success )
-		{	/* not loaded just yet - lets do it :*/
-			if( type == ASF_Freetype || type == ASF_GuessWho )
-				font = open_freetype_font( fontman, font_string, face_no, size, (type == ASF_Freetype));
-			if( font == NULL )
-				font = open_X11_font( fontman, font_string );
-			else
-				freetype = True ;				
-			if( font != NULL )
-			{
-				if( freetype ) 
+		{
+			char *ff_name ;
+			int len = strlen( font_string)+1 ;
+			len += ((size>=100)?3:2)+1 ;
+			len += ((face_no>=10)?2:1)+1 ;
+			ff_name = safemalloc( len );
+			sprintf( ff_name, "%s$%d$%d", font_string, size, face_no );
+
+			if( get_hash_item( fontman->fonts_hash, (ASHashableValue)((char*)ff_name), (void**)&font) != ASH_Success )
+
+			{	/* not loaded just yet - lets do it :*/
+				if( type == ASF_Freetype || type == ASF_GuessWho )
+					font = open_freetype_font( fontman, font_string, face_no, size, (type == ASF_Freetype));
+				if( font == NULL )
+					font = open_X11_font( fontman, font_string );
+				else
+					freetype = True ;				
+				if( font != NULL )
 				{
-					int len = strlen( font_string)+1 ;
-					len = ((size>=100)?3:2)+1 ;
-					len = ((face_no>=10)?2:1)+1 ;
-					font->name = safemalloc( len );
-					sprintf( font->name, "%s$%d$%d", font_string, size, face_no );
-				}else
-					font->name = mystrdup( font_string );
-				add_hash_item( fontman->fonts_hash, (ASHashableValue)(char*)font->name, font);
+					if( freetype ) 
+					{
+						font->name = ff_name ;
+						ff_name = NULL ;
+					}else
+						font->name = mystrdup( font_string );
+					add_hash_item( fontman->fonts_hash, (ASHashableValue)(char*)font->name, font);
+				}
 			}
-		}
+			if( ff_name != NULL ) 
+				free( ff_name );
+		}			
 		if( font )
 			font->ref_count++ ;
 	}
