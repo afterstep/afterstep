@@ -28,8 +28,15 @@ make_ascolor_scheme( ARGB32 base, unsigned int angle )
 	cs->base_sat = max(sat,ASCS_MIN_PRIMARY_SATURATION);
 	cs->base_val = FIT_IN_RANGE(ASCS_MIN_PRIMARY_BRIGHTNESS, val, ASCS_MAX_PRIMARY_BRIGHTNESS);
 
-	cs->
-	inactive1_hue, inactive1_sat, inactive1_val ;
+	cs->inactive1_hue = cs->base_hue + angle ;
+	if( cs->inactive1_hue > ASCS_MIN_COLD_HUE && cs->inactive_hue < ASCS_MAX_COLD_HUE &&
+		cs->base_sat > ASCS_MIN_PRIMARY_SATURATION + ASCS_COLD_SATURATION_OFFSET )
+		cs->inactive1_sat = cs->base_sat - ASCS_COLD_SATURATION_OFFSET ;
+	else
+		cs->inactive1_sat = cs->base_sat ;
+	cs->inactive1_val = cs->base_val ;
+
+
 	inactive1_argb ;
 	inactive2_hue, inactive2_sat, inactive2_val ;
 	inactive2_argb ;
