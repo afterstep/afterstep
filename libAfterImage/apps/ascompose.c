@@ -845,7 +845,7 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 	p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL, True );
 	p = set_window_background_and_free( main_window, p );
 	XSync(dpy, False);
-#if 0
+#if 1
 #ifdef SHAPE
 	if( shape_rects == NULL || shape_rects_count == 0 ) 
 		XShapeCombineMask( dpy, main_window, ShapeBounding, 0, 0, None, ShapeSet );

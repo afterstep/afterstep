@@ -20,7 +20,10 @@
  */
 
 #undef LOCAL_DEBUG
+#ifndef NO_DEBUG_OUTPUT
 #undef DEBUG_COMPRESS
+#undef DEBUG_THRESHOLD
+#endif
 #undef DO_CLOCKING
 
 #ifdef _WIN32
@@ -1183,7 +1186,7 @@ typedef struct
 	void *buffer ;
 	
 	unsigned int threshold ;
-	int start, end ;
+	int start, end, runs_count ;
 }ASStorageDstBuffer;
 
 typedef void (*data_cpy_func_type)(ASStorageDstBuffer *, void *, size_t);
@@ -1211,10 +1214,15 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 {
 	CARD8 *src8 = src ;
 	unsigned int *runs = (unsigned int*)(dst->buffer) ;
-	int runs_count = dst->offset ;
+	int runs_count = dst->runs_count ;
 	unsigned int threshold = dst->threshold ;
 	int start = dst->start, end = dst->end;
 	int i = 0;
+
+#ifdef DEBUG_THRESHOLD	  
+	fprintf( stderr, __FUNCTION__ ":enter: start = %d, end = %d, runs_count = %d, size = %d\n", 
+			 start, end, runs_count, size );
+#endif
 
 	while( i < size ) 
 	{
@@ -1224,14 +1232,19 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 				++i ;
 			start = i ;
 		}	 
+#ifdef DEBUG_THRESHOLD	  
+		fprintf( stderr, __FUNCTION__ ":1: start = %d, end = %d, i = %d\n", start, end, i );
+#endif
 		
 		if( i < size ) 
 		{	
 			while( i < size && src8[i] >= threshold ) 
 				++i ;
-			if( i < size ) 
-				end = i ;
+			end = i-1 ;
 		}
+#ifdef DEBUG_THRESHOLD	  
+		fprintf( stderr, __FUNCTION__ ":2: start = %d, end = %d, i = %d\n", start, end, i );
+#endif
 		
 		if( start >= 0 && end >= start )
 		{
@@ -1239,10 +1252,17 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 			++runs_count;
 			runs[runs_count] = end ;
 			++runs_count ;
+#ifdef DEBUG_THRESHOLD	  
+			fprintf( stderr, __FUNCTION__ ":3: runs_count = %d\n", runs_count );
+#endif
 			end = -1 ;
 		}
 	}
-	dst->offset = runs_count ;
+#ifdef DEBUG_THRESHOLD	  
+	fprintf( stderr, __FUNCTION__ ":exit: start = %d, end = %d, runs_count = %d, size = %d\n", 
+			 start, end, runs_count, size );
+#endif
+	dst->runs_count = runs_count ;
 	dst->start = start ; 
 	dst->end = end ;
 }	 
@@ -1436,19 +1456,22 @@ threshold_stored_data(ASStorage *storage, ASStorageID id, unsigned int *runs, in
 		buf.buffer = runs ;
 
 		buf.threshold = threshold ; 
-		buf.start = -1 ;
+		buf.start = 0 ;
 		buf.end = -1 ;
-	  
+		buf.runs_count = 0 ;
+#ifdef DEBUG_THRESHOLD	  
+		fprintf( stderr, __FUNCTION__ ": id = 0x%lX, width = %d, threshold = %d\n", id, width, threshold );
+#endif
 		if( fetch_data_int( storage, id, &buf, 0, width, threshold, card8_threshold ) > 0 ) 
 		{
 			if( buf.start >= 0 && buf.end >= buf.start )
 			{
-				runs[buf.offset] = buf.start ;
-				++buf.offset;
-				runs[buf.offset] = buf.end ;
-				++buf.offset ;
+				runs[buf.runs_count] = buf.start ;
+				++buf.runs_count;
+				runs[buf.runs_count] = buf.end ;
+				++buf.runs_count ;
 			}	 
-			return buf.offset;
+			return buf.runs_count;
 		}
 	}
 	return 0 ;	

@@ -1226,7 +1226,9 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 					runs[1] = src->width ;
 				}
 			}
-
+#ifdef DEBUG_RECTS
+			fprintf( stderr, "runs_count = %d\n", runs_count );
+#endif
 			if( runs_count > 0 && (runs_count &0x0001) != 0 )
 			{                                  /* allways wants to have even number of runs */
 				runs[runs_count] = 0 ;
