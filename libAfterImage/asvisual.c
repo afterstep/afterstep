@@ -1360,12 +1360,12 @@ void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 #endif
 		do
 		{
-			src[i] = ENCODE_MSBF_555(/*(c>>21)*/0,(c>>16),c/*(c>>2)*/,/*(c<<5)*/0);
+			src[i] = ENCODE_MSBF_555((c>>21),(c>>16),c/*(c>>2)*/,(c<<5));
 			if( --i < 0 )
 				break;
 			/* carry over quantization error allow for error diffusion:*/
 			c = ((c>>1)&0x00300C03)+((r[i]<<20) | (g[i]<<10) | (b[i]));
-fprintf( stderr, "%s:%d src[%d] = 0x%4.4X, c = 0x%X, color[%d] = #%2.2X%2.2X%2.2X\n", __FUNCTION__, __LINE__, i+1, src[i+1], c, i, r[i], g[i], b[i]);
+/*fprintf( stderr, "%s:%d src[%d] = 0x%4.4X, c = 0x%X, color[%d] = #%2.2X%2.2X%2.2X\n", __FUNCTION__, __LINE__, i+1, src[i+1], c, i, r[i], g[i], b[i]);*/
 			{
 				register CARD32 d = c&0x300C0300 ;
 				if( d )
