@@ -20,6 +20,7 @@
 #include "../configure.h"
 
 /*#define LOCAL_DEBUG*/
+#define HAVE_MMX
 
 #include "../include/aftersteplib.h"
 #include <X11/Intrinsic.h>
@@ -66,7 +67,7 @@ void output_image_line_fine( ASImageOutput *, ASScanline *, int );
 void output_image_line_fast( ASImageOutput *, ASScanline *, int );
 
 /**********************************************************************
- * quality control: we support several levels of quality to allow for 
+ * quality control: we support several levels of quality to allow for
  * smooth work on older computers.
  **********************************************************************/
 #define ASIMAGE_QUALITY_POOR	0
@@ -74,11 +75,44 @@ void output_image_line_fast( ASImageOutput *, ASScanline *, int );
 #define ASIMAGE_QUALITY_GOOD	2
 #define ASIMAGE_QUALITY_TOP		3
 static int asimage_quality_level = ASIMAGE_QUALITY_POOR;
-static void (*output_image_line)( ASImageOutput *, ASScanline *, int ) = output_image_line_fast; 
+static void (*output_image_line)( ASImageOutput *, ASScanline *, int ) = output_image_line_fast;
+static Bool asimage_use_mmx = False;
 
 /**********************************************************************/
 /* initialization routines 											  */
 /**********************************************************************/
+/*************************** MMX **************************************/
+/*inline extern*/
+int mmx_init(void)
+{
+	int mmx_available = 0;
+#ifdef HAVE_MMX
+	__asm__ __volatile__ (
+                      /* Get CPU version information */
+                      "movl $1, %%eax\n\t"
+                      "cpuid\n\t"
+                      "andl $0x800000, %%edx\n\t"
+                      "movl %%edx, %0\n\t"
+                      : "=q" (mmx_available)
+                      : /* no input */
+			  );
+#endif
+	return mmx_available;
+}
+
+int mmx_off(void)
+{
+#ifdef HAVE_MMX
+	__asm__ __volatile__ (
+                      /* exit mmx state : */
+                      "emms \n\t"
+                      : /* no output */
+                      : /* no input  */
+			  );
+#endif
+	return 0;
+}
+
 /**********************   ASImage  ************************************/
 void
 asimage_free_color (ASImage * im, CARD8 ** color)
@@ -178,16 +212,32 @@ static ASScanline*
 prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory  )
 {
 	register ASScanline *sl = reusable_memory ;
+	size_t aligned_width;
+	void *ptr;
 
 	if( sl == NULL )
 		sl = safecalloc( 1, sizeof( ASScanline ) );
 
 	sl->width 	= width ;
 	sl->shift   = shift ;
-	sl->red 	= sl->buffer = safemalloc ((width*4)*sizeof(CARD32));
-	sl->green 	= sl->red   + width;
-	sl->blue 	= sl->green + width;
-	sl->alpha 	= sl->blue  + width;
+	/* we want to align data by 8 byte boundary (double)
+	 * to allow for code with less ifs and easier MMX/3Dnow utilization :*/
+	aligned_width = width + (width&0x00000001);
+	sl->buffer = ptr = safemalloc (((aligned_width*4)+4)*sizeof(CARD32));
+
+	sl->red 	= (CARD32*)(((long)ptr>>3)*8);
+	sl->green 	= sl->red   + aligned_width;
+	sl->blue 	= sl->green + aligned_width;
+	sl->alpha 	= sl->blue  + aligned_width;
+	/* this way we can be sure that our buffers have size of multiplies of 8s
+	 * and thus we can skip unneeded checks in code */
+	/* initializing padding into 0 to avoid any garbadge carry-over
+	 * bugs with diffusion: */
+	sl->red[aligned_width-1]   = 0;
+	sl->green[aligned_width-1] = 0;
+	sl->blue[aligned_width-1]  = 0;
+	sl->alpha[aligned_width-1] = 0;
+
 	return sl;
 }
 
@@ -231,9 +281,9 @@ start_image_output( ASImage *im, XImage *xim, Bool to_xim, int shift )
 	imout->used 	 = NULL;
 	imout->buffer_shift = shift;
 	imout->next_line = 0 ;
-	if( output_image_line == NULL ) 
-		output_image_line = (asimage_quality_level >= ASIMAGE_QUALITY_GOOD )? 
-							output_image_line_fine:output_image_line_fast;	  
+	if( output_image_line == NULL )
+		output_image_line = (asimage_quality_level >= ASIMAGE_QUALITY_GOOD )?
+							output_image_line_fine:output_image_line_fast;
 	return imout;
 }
 
@@ -606,7 +656,7 @@ enlarge_component12( register CARD32 *src, register CARD32 *dst, int *scales, in
 {/* expected len >= 2  */
 	register int i = 0, k = 0;
 	register int c1 = src[0], c4 = src[1];
-LOCAL_DEBUG_OUT( "scaling from %d", len );	
+LOCAL_DEBUG_OUT( "scaling from %d", len );
 	--len; --len ;
 	while( i < len )
 	{
@@ -664,8 +714,8 @@ LOCAL_DEBUG_OUT( "scaling from %d", len );
 		}else
 		{
 			dst[++k] = INTERPOLATE_A_COLOR3(c1,c2,c3,c4);
-			if( dst[k]&0xFF000000 ) 
-				dst[k] = 0 ;  
+			if( dst[k]&0xFF000000 )
+				dst[k] = 0 ;
 			c3 = INTERPOLATE_B_COLOR3(c1,c2,c3,c3);
 			dst[++k] = (c3&0xFF000000 )?0:c3;
 		}
@@ -688,8 +738,8 @@ LOCAL_DEBUG_OUT( "scaling from %d", len );
 			else
 			{
 				dst[++k] = INTERPOLATE_A_COLOR3(c1,c2,c3,c4);
-				if( dst[k]&0xFF000000 ) 
-					dst[k] = 0 ;  
+				if( dst[k]&0xFF000000 )
+					dst[k] = 0 ;
 				c2 = INTERPOLATE_B_COLOR3(c1,c2,c3,c3);
 				dst[k+1] = (c2&0xFF000000 )?0:c2;
 			}
@@ -719,7 +769,7 @@ LOCAL_DEBUG_OUT( "len = %d", len );
 		if( i < len )
 			c4 = src[i+2];
 		T = INTERPOLATION_TOTAL_START(c1,src[i],src[i+1],c4,S);
-		if( step == 0 ) 
+		if( step == 0 )
 		{
 			register CARD32 c = ((T&0xFF000000)!=0)?0:INTERPOLATE_N_COLOR(T,S);
 			do{	dst[k+n] = c;	}while(++n < S);
@@ -784,90 +834,58 @@ shrink_component11( register CARD32 *src, register CARD32 *dst, int *scales, int
 static inline void
 copy_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
 {
-	register int i ;
-	for( i = 0 ; i < len ; ++i )
-		dst[i] = (src[i]&0xFF000000)?0:src[i];
-}
+#ifdef CARD64
+	CARD64 *dsrc = (CARD64*)src;
+	CARD64 *ddst = (CARD64*)dst;
+#else
+	double *dsrc = (double*)src;
+	double *ddst = (double*)dst;
+#endif
+	register int i = 0;
 
-int detect_mmx( void ) 
-{ int mmx_bit; 
-asm( "mov %2, %%eax \n\t" // request feature flag 
-     "cpuid \n\t" // get CPU ID flag 
-	 "and %1, %%edx \n\t" // check MMX bit (bit 23) 
-	 "mov %%edx, %0 \n\t" // move result to mmx_bit 
-: "=m" (mmx_bit) // %0 
-: "i" (0x00000001), // %1 
-"i" (0x00800000) // %2 
-); 
-return mmx_bit; 
-} 
-
-/*inline extern*/
-int mmx_init(void)
-{
-int mmx_available;
-__asm__ __volatile__ (
-                      /* Get CPU version information */
-                      "movl $1, %%eax\n\t"
-                      "cpuid\n\t"
-                      "andl $0x800000, %%edx\n\t"
-                      "movl %%edx, %0\n\t"
-		              "emms" // exit MMX state
-                      : "=q" (mmx_available)
-                      : /* no input */
-              );
-  return mmx_available;
+	len += len&0x01;
+	len = len>>1 ;
+	do
+	{
+		ddst[i] = dsrc[i];
+	}while(++i < len );
 }
 
 void
-add_component( CARD32 *dst, CARD32 *src, int *scales, int len )
+add_component( CARD32 *src, CARD32 *incr, int *scales, int len )
 {
-CARD32 *src2 = dst ;
-if( mmx_init() ) 
-{
-asm volatile
-            (
-            "mov %1, %%eax \n\t" // load Src1 address into EAX
-            "mov %2, %%edx \n\t" // load Src1 address into EAX
-            "mov %0, %%ebx \n\t" // load Src2 address into EBX
-            "mov %3, %%ecx \n\t" // load loop counter (SIZE) into ECX
-            "shr $1, %%ecx \n\t" // counter/8 (MMX loads 8 bytes at a time)
-            ".align 32 \n\t" // 16 byte alignment of the loop entry
-            ".L1010: \n\t"
-            "movq (%%eax), %%mm1 \n\t" // load 8 bytes from Src1 into MM1
-            "paddusb (%%edx), %%mm1 \n\t" // MM1=Src1+Src2 (add 8 bytes with saturation)
-            "movq %%mm1, (%%ebx) \n\t" // store the result in Dest
-            "add $8, %%eax \n\t" // increase Src1, Src2 and Dest 
-            "add $8, %%ebx \n\t" // register pointers by 8
-            "add $8, %%edx \n\t" // register pointers by 8
-            "dec %%ecx \n\t" // decrease the value of the loop counter
-            "jnz .L1010 \n\t" // check loop termination, proceed if necessary
-            "emms \n\t" // exit MMX state
-: "=m" (dst) // %0
-: "m" (src), // %1
-  "m" (src2), // %2
-  "m" (len) // %3
-            ); 
-}else
-{ 
-	register int i, tmp ;
-	fprintf( stderr, "MMX is not supported\n");
-	for( i = 0 ; i < len ; ++i )
+	register int i = 0;
+	len += len&0x01;
+#ifdef HAVE_MMX
+	if( asimage_use_mmx )
 	{
-		if( dst[i] != 0 )
-		{
-  		    tmp = (int)(src[i]) + (int)(dst[i]);
-			src[i] = tmp;
-		}
-	} 
-
-}
-/*	
-if( mmx_available ) 
-	fprintf( stderr, "MMX is supported\n");
-else
-	fprintf( stderr, "MMX is not supported\n");
-*/
+		double *ddst = (double*)&(src[0]);
+		double *dsrc = (double*)&(src[0]);
+		double *dinc = (double*)&(incr[0]);
+		len = len>>1;
+		do{
+			asm volatile
+       		(
+            	"movq %1, %%mm0  \n\t" /* load 8 bytes from src[i] into MM0 */
+            	"paddd %2, %%mm0 \n\t" /* MM0=src[i]>>1              */
+            	"movq %%mm0, %0  \n\t" /* store the result in dest */
+				: "=m" (ddst[i])       /* %0 */
+				: "m"  (dsrc[i]),      /* %1 */
+				  "m"  (dinc[i])       /* %2 */
+	        );
+		}while( ++i < len );
+	}else
+#endif
+	{
+		register int c1, c2;
+		do{
+			c1 = (int)src[i] + (int)incr[i] ;
+			c2 = (int)src[i+1] + (int)incr[i+1] ;
+			src[i] = c1;
+			src[i+1] = c2;
+			i += 2 ;
+		}while( i < len );
+	}
 }
 
 static inline int
@@ -875,7 +893,7 @@ set_component( register CARD32 *src, register CARD32 value, int offset, int len 
 {
 	register int i ;
 	for( i = offset ; i < len ; ++i )
-		src[i] += value;
+		src[i] = value;
 	return len-offset;
 }
 
@@ -883,29 +901,42 @@ static inline void
 divide_component( register CARD32 *src, register CARD32 *dst, int ratio, int len )
 {
 	register int i = 0;
-	int remn = len&0x01;
-	--len;
+	len += len&0x00000001;                     /* we are 8byte aligned/padded anyways */
 	if( ratio == 2 )
 	{
-		do{	
-			dst[i] = (src[i]&0xFF000000)?0:src[i]>>1;
-			dst[i+1] = (src[i+1]&0xFF000000)?0:src[i+1]>>1;
-			i += 2 ;
-		}while( i < len ); 
-		if( remn ) 
-			dst[i] = (src[i]&0xFF000000)?0:src[i]>>1;	
-	}else	
+#ifdef HAVE_MMX
+		if( asimage_use_mmx )
+		{
+			double *ddst = (double*)&(dst[0]);
+			double *dsrc = (double*)&(src[0]);
+			len = len>>1;
+			do{
+				asm volatile
+       		    (
+            		"movq %1, %%mm0  \n\t" // load 8 bytes from src[i] into MM0
+            		"psrld $1, %%mm0 \n\t" // MM0=src[i]>>1
+            		"movq %%mm0, %0  \n\t" // store the result in dest
+					: "=m" (ddst[i]) // %0
+					: "m"  (dsrc[i]) // %1
+	            );
+			}while( ++i < len );
+		}else
+#endif
+			do{
+				dst[i] = src[i]>>1;
+				dst[i+1] = src[i+1]>>1;
+				i += 2 ;
+			}while( i < len );
+	}else
 	{
-		do{	
-			register int c1 = (src[i]&0xFF000000)?0:src[i];
-			register int c2 = (src[i+1]&0xFF000000)?0:src[i+1];			
+		do{
+			register int c1 = src[i];
+			register int c2 = src[i+1];
 			dst[i] = c1/ratio;
 			dst[i+1] = c2/ratio;
 			i+=2;
-		}while( i < len ); 
-		if( remn ) 
-			dst[i] = (src[i]&0xFF000000)?0:src[i]/ratio;	
-	}		
+		}while( i < len );
+	}
 }
 
 static inline void
@@ -913,61 +944,61 @@ rbitshift_component( register CARD32 *src, register CARD32 *dst, int shift, int 
 {
 	register int i ;
 	for( i = 0 ; i < len ; ++i )
-		dst[i] = (((src[i]&0xFF000000)!=0)?0:src[i])>>shift;
+		dst[i] = src[i]>>shift;
 }
 
 /* diffusingly combine src onto self and dst, and rightbitshift src by quantization shift */
 static inline void
-diffuse_shift_component( register CARD32 *line1, register CARD32 *line2, int unused, int len )
+fine_output_filter( register CARD32 *line1, register CARD32 *line2, int unused, int len )
 {/* we carry half of the quantization error onto the surrounding pixels : */
  /*        X    7/16 */
  /* 3/16  5/16  1/16 */
 	register int i ;
 	register CARD32 errp = 0, err = 0, c;
-	c = line1[0] ;
+	c = ((line1[0]&0xFF000000)!=0)?0:line1[0] ;
 	errp = c&QUANT_ERR_MASK;
 	line1[0] = c>>QUANT_ERR_BITS ;
-	line2[0] += (errp*5)>>4 ; 
+	line2[0] += (errp*5)>>4 ;
 
 	for( i = 1 ; i < len ; ++i )
 	{
-		c = line1[i]+((errp*7)>>4) ;
+		c = (((line1[i]&0xFF000000)!=0)?0:line1[i])+((errp*7)>>4) ;
 		err = c&QUANT_ERR_MASK;
 		line1[i] = c>>QUANT_ERR_BITS ;
 		line2[i-1] += (err*3)>>4 ;
 		line2[i] += ((err*5)>>4)+(errp>>4);
 		errp = err ;
-	} 
+	}
 }
 
 static inline void
-simple_diffuse_shift_component( register CARD32 *src, register CARD32 *dst, int ratio, int len )
+fast_output_filter( register CARD32 *src, register CARD32 *dst, int ratio, int len )
 {/* we carry half of the quantization error onto the following pixel and store it in dst: */
-	register int i ;
+	register int i = 0;
 	register CARD32 err = 0, c;
-	if( ratio <= 1 ) 
+	if( ratio <= 1 )
 	{
-  	    for( i = 0 ; i < len ; ++i )
+  	    do
 		{
 			c = (((src[i]&0xFF000000)!=0)?0:src[i])+err;
 			err = (c&QUANT_ERR_MASK)>>1 ;
 			dst[i] = c>>QUANT_ERR_BITS ;
-		}
-	}else if( ratio == 2 ) 
+		}while( ++i < len );
+	}else if( ratio == 2 )
 	{
-  	    for( i = 0 ; i < len ; ++i )
+  	    do
 		{
 			c = (((src[i]&0xFF000000)!=0)?0:src[i]>>1)+err;
 			err = (c&QUANT_ERR_MASK)>>1 ;
 			dst[i] = c>>QUANT_ERR_BITS ;
-		}
-	}else		
-  	    for( i = 0 ; i < len ; ++i )
+		}while( ++i < len );
+	}else
+  	    do
 		{
 			c = (((src[i]&0xFF000000)!=0)?0:src[i]/ratio)+err;
 			err = (c&QUANT_ERR_MASK)>>1 ;
 			dst[i] = c>>QUANT_ERR_BITS ;
-		}
+		}while( ++i < len );
 }
 
 static inline void
@@ -1000,13 +1031,13 @@ rbitshift_component_mod( register CARD32 *data, int bits, int len )
 }
 
 static inline void
-diffuse_shift_component_mod( register CARD32 *data, int bits, int len )
+fast_output_filter_mod( register CARD32 *data, int unused, int len )
 {/* we carry half of the quantization error onto the following pixel : */
 	register int i ;
 	register CARD32 err = 0, c;
 	for( i = 0 ; i < len ; ++i )
 	{
-		c = data[i]+err;
+		c = (((data[i]&0xFF000000)!=0)?0:data[i])+err;
 		err = (c&QUANT_ERR_MASK)>>1 ;
 		data[i] = c>>QUANT_ERR_BITS ;
 	}
@@ -1255,7 +1286,7 @@ LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 			for (i = 0 ; i < width; i++)
 			{ /* diffusion to compensate for quantization error :*/
 				register CARD32 c;
-				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;					
+				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;
 				c = g[i]+err_green; green = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_green = (green&0x03)>>1 ;
 				c = b[i]+err_blue ; blue  = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_blue = (blue&0x07)>>1 ;
 				src[0] = (CARD8)((red&0xF8)|(green>>5));
@@ -1267,7 +1298,7 @@ LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 			for (i = 0 ; i < width; i++)
 			{/* diffusion to compensate for quantization error :*/
 				register CARD32 c;
-				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;					
+				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;
 				c = g[i]+err_green; green = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_green = (green&0x03)>>1 ;
 				c = b[i]+err_blue ; blue  = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_blue = (blue&0x07)>>1 ;
 #ifdef LOCAL_DEBUG
@@ -1295,7 +1326,7 @@ fprintf( stderr, "source #%2.2lX%2.2lX%2.2lX error #%2.2lX%2.2lX%2.2lX result #%
 			for (i = 0 ; i < width; i++)
 			{/* diffusion to compensate for quantization error :*/
 				register CARD32 c;
-				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;					
+				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;
 				c = g[i]+err_green; green = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_green = (green&0x07)>>1 ;
 				c = b[i]+err_blue ; blue  = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_blue = (blue&0x07)>>1 ;
 				src[0] = (CARD8)((red << 2) | (( green >> 3) & 0x03 ))&0x7F;
@@ -1306,7 +1337,7 @@ fprintf( stderr, "source #%2.2lX%2.2lX%2.2lX error #%2.2lX%2.2lX%2.2lX result #%
 			for (i = 0 ; i < width; i++)
 			{/* diffusion to compensate for quantization error :*/
 				register CARD32 c;
-				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;					
+				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;
 				c = g[i]+err_green; green = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_green = (green&0x07)>>1 ;
 				c = b[i]+err_blue ; blue  = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_blue = (blue&0x07)>>1 ;
 				src[1] = (CARD8)(((red>>1)&0x7C)|(green >> 6))&0x7F;
@@ -1326,25 +1357,24 @@ output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	/* caching and preprocessing line into our buffer : */
 	if( new_line )
 	{
-		if( asimage_quality_level == ASIMAGE_QUALITY_TOP ) 
+		if( asimage_quality_level == ASIMAGE_QUALITY_TOP )
 		{
 			if( ratio > 1 )
 				SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,new_line->width);
 			else
 				SCANLINE_FUNC(copy_component,*(new_line),*(imout->available),NULL,new_line->width);
 		}else
-			SCANLINE_FUNC(simple_diffuse_shift_component,*(new_line),*(imout->available),ratio,new_line->width);
-		
+			SCANLINE_FUNC(fast_output_filter, *(new_line),*(imout->available),ratio,new_line->width);
 	}
 	/* copying/encoding previously cahced line into destination image : */
 	if( imout->used != NULL )
 	{
-		if( asimage_quality_level == ASIMAGE_QUALITY_TOP ) 
+		if( asimage_quality_level == ASIMAGE_QUALITY_TOP )
 		{
 			if( new_line != NULL )
-				SCANLINE_FUNC(diffuse_shift_component,*(imout->used),*(imout->available),QUANT_ERR_BITS,new_line->width);
-			else if( imout->buffer_shift > 0 ) 
-				SCANLINE_MOD(diffuse_shift_component_mod,*(imout->used),imout->buffer_shift,imout->used->width);
+				SCANLINE_FUNC(fine_output_filter,*(imout->used),*(imout->available),0,new_line->width);
+			else
+				SCANLINE_MOD(fast_output_filter_mod,*(imout->used),0,imout->used->width);
 		}
 #ifdef LOCAL_DEBUG
 		LOCAL_DEBUG_OUT( "output line %d :", imout->next_line );
@@ -1384,7 +1414,7 @@ output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	if( new_line )
 	{
 		imout->used = &(imout->buffer[0]);
-		SCANLINE_FUNC(simple_diffuse_shift_component,*(new_line),*(imout->used),ratio,new_line->width);
+		SCANLINE_FUNC(fast_output_filter,*(new_line),*(imout->used),ratio,new_line->width);
 	}
 	/* copying/encoding previously cahced line into destination image : */
 	if( imout->used != NULL )
@@ -1413,7 +1443,6 @@ output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	/* rotating the buffers : */
 	imout->used = NULL ;
 }
-
 
 Bool
 check_scale_parameters( ASImage *src, int *to_width, int *to_height )
@@ -1522,83 +1551,8 @@ void
 scale_image_up23( ASImage *src, ASImage *dst, int h_ratio )
 {
 }
+
 #if 0
-void
-scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* scales_v, Bool to_xim)
-{
-	ASScanline src_lines[4], *c1, *c2, *c3, *c4, *next_c4, tmp;
-	ASScanline step ;
-	int i = 0, k = 0, max_i, line_len = MIN(dst->width,src->width);
-	ASImageOutput *imout ;
-
-	if((imout = start_image_output( dst, dst->ximage, to_xim, QUANT_ERR_BITS )) == NULL )
-		return;
-
-	for( i = 0 ; i < 4 ; i++ )
-		prepare_scanline( dst->width, 0, &(src_lines[i]));
-	prepare_scanline( src->width, QUANT_ERR_BITS, &tmp );
-	prepare_scanline( dst->width, QUANT_ERR_BITS, &step );
-
-	c2 = c1 = &(src_lines[0]);
-	c3 = &(src_lines[1]);
-	c4 = &(src_lines[(src->height>2)?2:1]);
-	next_c4 = &(src_lines[3]);
-	DECODE_SCANLINE(src,tmp,0);
-	total.flags = step.flags = c2->flags = tmp.flags ;
-LOCAL_DEBUG_OUT( "rescaling line #%d", 0 );
-	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c2,scales_h,line_len);
-	DECODE_SCANLINE(src,tmp,1);
-	c3->flags = tmp.flags ;
-LOCAL_DEBUG_OUT( "rescaling line #%d", 1 );
-	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c3,scales_h,line_len);
-	i = 0 ;
-	max_i = src->height-1 ;
-	while( i < max_i )
-	{
-		int S = scales_v[i], n ;
-
-		if( i+2 < src->height )
-		{
-			DECODE_SCANLINE(src,tmp,i+2);
-			c4->flags = tmp.flags ;
-LOCAL_DEBUG_OUT( "rescaling line #%d", i+2 );
-			CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c4,scales_h,line_len);
-		}
-		/* now we'll prepare total and step : */
-		SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c3,step,S,dst->width);
-		n = 0;
-		do
-		{
-/*
-#ifdef LOCAL_DEBUG
-		LOCAL_DEBUG_OUT( "src line %d scale factopr in this step %d", i, S );
-		SCANLINE_MOD(print_component,total,1,total.width);
-		SCANLINE_MOD(print_component,step,1,step.width);
-#endif
-*/
-			output_image_line( imout, c3, S<<1);
-			if( ++n >= S ) break;
-			SCANLINE_FUNC(add_component,*c3,step,NULL,dst->width );
-		}while (1);
-		{
-		  ASScanline *tmp = c1;
-			c1 = c2;
-			c2 = c3;
-			c3 = c4;
-			c4 = next_c4;
-			next_c4 = tmp;
-		}			
-		k += n ;
-		++i;
-	}
-	output_image_line( imout, c4, 1);
-	for( i = 0 ; i < 4 ; i++ )
-		free_scanline(&(src_lines[i]), True);
-	free_scanline(&tmp, True);
-	free_scanline(&step, True);
-	stop_image_output( &imout );
-
-}
 #else
 void
 scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* scales_v, Bool to_xim)
@@ -1642,21 +1596,12 @@ LOCAL_DEBUG_OUT( "rescaling line #%d", 1 );
 LOCAL_DEBUG_OUT( "rescaling line #%d", i+2 );
 			CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c4,scales_h,line_len);
 		}
-/*		output_image_line( imout, c2, 1); */
-
 		/* now we'll prepare total and step : */
 		SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,total,step,S,dst->width);
 
 		n = 0;
 		do
 		{
-/*
-#ifdef LOCAL_DEBUG
-		LOCAL_DEBUG_OUT( "src line %d scale factopr in this step %d", i, S );
-		SCANLINE_MOD(print_component,total,1,total.width);
-		SCANLINE_MOD(print_component,step,1,step.width);
-#endif
-*/
 			output_image_line( imout, &total, 1);
 			if( ++n >= S ) break;
 			SCANLINE_FUNC(add_component,total,step,NULL,dst->width );
@@ -1668,7 +1613,7 @@ LOCAL_DEBUG_OUT( "rescaling line #%d", i+2 );
 			c3 = c4;
 			c4 = next_c4;
 			next_c4 = tmp;
-		}			
+		}
 		k += n ;
 		++i;
 	}
@@ -1728,7 +1673,9 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth
 	  fprintf( stderr, "\n" );
 	}
 #endif
-
+#ifdef HAVE_MMX
+	asimage_use_mmx = (mmx_init()!=0);
+#endif
 	if( v_ratio <= 1 ) 					   /* scaling down */
 		scale_image_down( src, dst, h_ratio, scales_h, scales_v, to_xim );
 	else /*if( v_ratio > 1 && v_ratio <= 2)
@@ -1737,7 +1684,9 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth
 		scale_image_up( src, dst, h_ratio );
 	else */
 		scale_image_up( src, dst, h_ratio, scales_h, scales_v, to_xim );
-
+#ifdef HAVE_MMX
+	asimage_use_mmx = mmx_off();
+#endif
 	free( scales_h );
 	free( scales_v );
 	return dst;
