@@ -33,21 +33,6 @@
 #include "../include/asimage.h"
 
 /* Auxilary data structures : */
-
-typedef struct ASScanline
-{
-#define SCL_DO_RED          (0x01<<0)
-#define SCL_DO_GREEN        (0x01<<1)
-#define SCL_DO_BLUE         (0x01<<2)
-#define SCL_DO_ALPHA		(0x01<<3)
-#define SCL_DO_ALL			(SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE|SCL_DO_ALPHA)
-	ASFlagType 	   flags;
-	CARD32        *buffer ;
-	CARD32        *red, *green, *blue, *alpha;
-	unsigned int   width, shift;
-/*    CARD32 r_mask, g_mask, b_mask ; */
-}ASScanline;
-
 /********************************************************************/
 /* This is static piece of data that tell us what is the status of
  * the output stream, and allows us to easily put stuff out :       */
@@ -796,7 +781,7 @@ LOCAL_DEBUG_OUT( "len = %d", len );
 			dst += scales[i] ;
 		}
 		c1 = src[i];
-		if( ++i >= len ) 
+		if( ++i >= len )
 			break;
 	}while(1);
 	*dst = INTERPOLATE_COLOR1(src[i]) ;
@@ -994,10 +979,10 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int
 		register int c = src[0];
   	    do
 		{
-			if( c&0xFFFF0000 ) 
+			if( c&0xFFFF0000 )
 				c = ( c&0x7F000000 )?0:0x0000FFFF;
 			dst[i] = c>>(QUANT_ERR_BITS) ;
-			if( ++i >= len ) 
+			if( ++i >= len )
 				break;
 			c = ((c&QUANT_ERR_MASK)>>(QUANT_ERR_BITS+1))+src[i];
 		}while(1);
@@ -1006,12 +991,12 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int
 		register CARD32 c = src[0];
   	    do
 		{
-			if( c&0xFFFF0000 ) 
+			if( c&0xFFFF0000 )
 				c = ( c&0x7F000000 )?0:0x00007FFF;
 			else
 				c = c>>1 ;
 			dst[i] = c>>(QUANT_ERR_BITS) ;
-			if( ++i >= len ) 
+			if( ++i >= len )
 				break;
 			c = ((c&QUANT_ERR_MASK)>>(QUANT_ERR_BITS+1))+src[i];
 		}while( 1 );
@@ -1020,12 +1005,12 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int
 		register CARD32 c = src[0];
   	    do
 		{
-			if( c&0xFFFF0000 ) 
+			if( c&0xFFFF0000 )
 				c = ( c&0x7F000000 )?0:0x0000FFFF;
-			
+
 			c = c/ratio ;
 			dst[i] = c>>(QUANT_ERR_BITS) ;
-			if( ++i >= len ) 
+			if( ++i >= len )
 				break;
 			c = ((c&QUANT_ERR_MASK)>>(QUANT_ERR_BITS+1))+src[i];
 		}while(1);
@@ -1346,7 +1331,7 @@ LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 				c = ((c>>1)&0x00300403)+((g[i-step]<<20) | (g[i]<<10) | (g[i+step]));
 				{
 					register CARD32 d = c&0x300C0300 ;
-					if( d ) 
+					if( d )
 					{
 						if( c&0x30000000 )
 							d |= 0x0FF00000;
