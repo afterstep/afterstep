@@ -1544,7 +1544,7 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 		ASSync(False);
 		
 		if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
- 			sleep_a_millisec(Config->animate_delay*60);	  
+ 			sleep_a_millisec(Config->animate_delay+1);	  
 		else
 			sleep_a_millisec(50);
 	}	 
@@ -2430,7 +2430,7 @@ do_wharf_animate_iter( void *vdata )
             ASSync( False ) ;
 			if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
 			{	
-				timer_new (Config->animate_delay*60, do_wharf_animate_iter, vdata);	  
+				timer_new (Config->animate_delay+1, do_wharf_animate_iter, vdata);	  
             }else
 				timer_new (60, do_wharf_animate_iter, vdata);	  
         }

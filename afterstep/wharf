@@ -5,9 +5,9 @@
 
 *WharfAnimate
 *WharfAnimateMain
-*WharfAnimateDelay	2
-*WharfAnimateSteps	5
-*WharfAnimateStepsMain	5
+*WharfAnimateDelay	100
+*WharfAnimateSteps	10
+*WharfAnimateStepsMain  10
 
 *WharfBalloons
 *WharfBalloonXOffset		10
