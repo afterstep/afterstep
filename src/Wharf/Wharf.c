@@ -1967,8 +1967,8 @@ do_wharf_animate_iter( void *vdata )
     {
         int new_width = 1, new_height = 1;
         animate_wharf( aswf, &new_width, &new_height );
-        if( new_width == 0 || new_height == 0 ||
-            (new_width == aswf->canvas->width && new_height == aswf->canvas->height ))
+        if( new_width == 0 || new_height == 0 /*||
+            (new_width == aswf->canvas->width && new_height == aswf->canvas->height )*/)
             unmap_wharf_folder( aswf );
         else
         {
