@@ -18,9 +18,9 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#include "config.h"
+#undef LOCAL_DEBUG
 
-/* #define LOCAL_DEBUG */
+#include "config.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -203,7 +203,7 @@ find_file (const char *file, const char *pathlist, int type)
 	int            max_path = 0;
 	register char *ptr;
 	register int   i;
-LOCAL_DEBUG_CALLER_OUT( "file %s", file );
+LOCAL_DEBUG_CALLER_OUT( "file \"%s\", pathlist = \"%s\"", file, pathlist );
 	if (file == NULL)
 		return NULL;
 
@@ -218,7 +218,7 @@ LOCAL_DEBUG_CALLER_OUT( "file %s", file );
 		return NULL;
 	}
 /*	return put_file_home(file); */
-	for (i = 0; file[i]; i++);
+	for (i = 0; file[i]; ++i);
 	len = i ;
 	for (ptr = (char *)pathlist; *ptr; ptr += i)
 	{

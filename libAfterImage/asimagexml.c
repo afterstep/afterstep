@@ -19,6 +19,7 @@
  *
  */
 
+#undef LOCAL_DEBUG
 #include "config.h"
 
 #include <ctype.h>
@@ -33,8 +34,6 @@
 #if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
 #include <sys/select.h>
 #endif
-
-/* #define LOCAL_DEBUG */
 
 #include "afterbase.h"
 #include "afterimage.h"
@@ -181,10 +180,12 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 		if( my_imman == NULL )
 		{
 			path2 = copy_replace_envvar( getenv( ASIMAGE_PATH_ENVVAR ) );
-			if( path == NULL )
+			show_progress("image path is \"%s\".", path2 );
+			if( path != NULL )
 				my_imman = create_image_manager( NULL, SCREEN_GAMMA, path, path2, NULL );
 			else
 				my_imman = create_image_manager( NULL, SCREEN_GAMMA, path2, NULL );
+			LOCAL_DEBUG_OUT( "created image manager %p with search path \"%s\"", my_imman, my_imman->search_path[0] );
 			if( path2 )
 				free( path2 );
 		}
@@ -452,8 +453,13 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				result = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
 			}
 		} else if (src) {
-			show_progress("Loading image [%s].", src);
+			show_progress("Loading image [%s] using imman (%p) with search path \"%s\".", src, imman, imman?imman->search_path[0]:"");
+#if 1
+			result = get_asimage( imman, src, 0xFFFFFFFF, 100 );
+#else
 			result = file2ASImage(src, 0xFFFFFFFF, SCREEN_GAMMA, 100, NULL);
+#endif
+
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -668,7 +674,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * bevel - draws solid bevel frame around the image.
  * SYNOPSIS
  * <bevel id="new_id" colors="color1 color2"
- *        border="left top right bottom">
+ *        border="left top right bottom" solid=0|1>
  * ATTRIBUTES
  * id       Optional.  Image will be given this name for future reference.
  * colors   Optional.  Whitespace-separated list of colors.  Exactly two
@@ -679,6 +685,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  *          Default is "10 10 10 10".  The values represent the offsets
  *          toward the center of the image of each border: left, top,
  *          right, bottom.
+ * solid    Optional - default is 1. If set to 0 will draw bevel gradually
+ *          fading into the image.
  * NOTES
  * This tag applies to the first image contained within the tag.  Any
  * further images will be discarded.
@@ -688,10 +696,12 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		ASImage* imtmp = NULL;
 		char* color_str = NULL;
 		char* border_str = NULL;
+		int solid = 1 ;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
 			if (!strcmp(ptr->tag, "border")) border_str = ptr->parm;
+			if (!strcmp(ptr->tag, "solid")) solid = atoi(ptr->parm);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);;
@@ -699,7 +709,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (imtmp) {
 			ASImageBevel bevel;
 			ASImageLayer layer;
-			bevel.type = BEVEL_SOLID_INLINE;
+			if( solid )
+				bevel.type = BEVEL_SOLID_INLINE;
 			bevel.hi_color = 0xffdddddd;
 			bevel.lo_color = 0xff555555;
 			bevel.top_outline = 0;
