@@ -1329,12 +1329,13 @@ SetShape (ASWindow *asw, int w)
 
         }else
         {
-            int i ;
+            int i, tbar_side = -1 ;
 		    int child_x = 0 ;
 		    int child_y = 0 ;
         	unsigned int width, height, bw;
 			XRectangle    rect;
 
+			/* starting with an empty list of rectangles */
 			if( asw->frame_canvas->shape )
 				flush_vector( asw->frame_canvas->shape );
 			else
@@ -1346,8 +1347,14 @@ SetShape (ASWindow *asw, int w)
         	rect.width  = width;
             rect.height = height;
 
+			/* adding rectangles for all the frame decorations */
+			if( asw->shading_steps == 0 && ASWIN_GET_FLAGS(asw, AS_Shaded) )
+			{
+				ASOrientation *od = get_orientation_data( asw );
+	        	tbar_side = od->tbar_side ;
+			}
           	for( i = 0 ; i < FRAME_SIDES ; ++i )
-              	if( asw->frame_sides[i] )
+              	if( asw->frame_sides[i] && (i == tbar_side || tbar_side == -1) )
 				{
 					int x, y ;
 					unsigned int s_width, s_height, bw ;
@@ -1355,14 +1362,17 @@ SetShape (ASWindow *asw, int w)
 					get_current_canvas_geometry( asw->frame_sides[i], &x, &y, &s_width, &s_height, &bw );
 			
 					combine_canvas_shape_at_geom( asw->frame_canvas, asw->frame_sides[i], x, y,
-							  					  s_width, s_height, bw );
+							  					s_width, s_height, bw );
 /*                  	combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i] ); */
 				}
 
+			/* subtract client rectangle, before adding clients shape */
 			subtract_shape_rectangle( asw->frame_canvas->shape, &rect, 1, child_x, child_y, asw->frame_canvas->width, asw->frame_canvas->height );
+			/* add clients shape */
 			combine_canvas_shape_at_geom (asw->frame_canvas, asw->client_canvas, child_x, child_y, width, height, bw );
 
 			print_shape( asw->frame_canvas->shape ) ;
+			/* apply shape */
 			update_canvas_display_mask (asw->frame_canvas, True);
 			set_flags( asw->internal_flags, ASWF_PendingShapeRemoval );
 
