@@ -24,7 +24,7 @@ LIB_OBJS= asapp.o asdatabase.o asfeel.o aswindata.o \
 		  moveresize.o myicon.o mylook.o mystyle.o mystyle_property.o \
 		  outline.o parser.o screen.o session.o shape.o wmprops.o
 
-CONFIG_OBJS= afterstep-config
+CONFIG_SCRIPT= afterstep-config
 
 LIB_DIR_NAME    = libAfterStep
 LIB_NAME        = LIBAFTERSTEP
@@ -35,7 +35,5 @@ LIBVERMAJOR     = @libafterstep_version_major@
 
 @MAKEFILECOMMONLIB@
 
-
-install.inc:
 
 
