@@ -172,6 +172,49 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	return im;
 }
 
+Pixmap 
+file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_out)
+{
+	Pixmap trg = None, mask = None;
+	
+	if( asv && realfilename ) 
+	{
+		double gamma = SCREEN_GAMMA;
+		char  *gamma_str;
+		ASImage *im = NULL;
+
+		if ((gamma_str = getenv ("SCREEN_GAMMA")) != NULL)
+		{
+			gamma = atof (gamma_str);
+			if (gamma == 0.0)
+				gamma = SCREEN_GAMMA;
+		}				
+		
+		im = file2ASImage( realfilename, 0xFFFFFFFF, gamma, 0, NULL );
+		if( im != NULL ) 
+		{
+			trg = asimage2pixmap( asv, root, im, NULL, False ); 
+			if( mask_out )
+			{
+				register int i ;
+				for( i = 0 ; i < im->height ; i++ ) 
+					if( im->alpha[i] != NULL ) 
+					{
+						mask = asimage2mask( asv, root, im, NULL, False ); 
+						break;
+					}	
+			}					
+		}
+	}
+	if( mask_out )
+	{
+		if( *mask_out ) 
+			XFreePixmap( asv->dpy, *mask_out );
+		*mask_out = mask ;			
+	}		
+	return trg ;
+}
+
 /***********************************************************************************/
 /* Some helper functions :                                                         */
 
@@ -676,7 +719,6 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 		printf ("\n read time (clocks): %lu\n", clock () - started);
 #endif
 
-	/* if( CreateTarget()) */
 	/* Step 7: Finish decompression */
 	/* we must abort the decompress if not all lines were read */
 	if (cinfo.output_scanline < cinfo.output_height)

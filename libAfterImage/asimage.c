@@ -2737,6 +2737,7 @@ asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 {
 	XImage       *xim ;
 	Pixmap        p = None;
+	GC 			  my_gc = gc ;
 
 	if ( !use_cached || im->ximage == NULL )
 	{
@@ -2750,7 +2751,14 @@ asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 	if (xim != NULL )
 	{
 		p = create_visual_pixmap( asv, root, xim->width, xim->height, 0 );
+		if( my_gc == NULL ) 
+		{
+			XGCValues gcv ;
+			my_gc = XCreateGC( asv->dpy, p, 0, &gcv );
+		}		
 		XPutImage( asv->dpy, p, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+		if( my_gc != gc ) 
+			XFreeGC( asv->dpy, my_gc );
 		if( xim != im->ximage )
 			XDestroyImage (xim);
 	}
@@ -2762,6 +2770,7 @@ asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 {
 	XImage       *xim ;
 	Pixmap        mask = None;
+	GC 			  my_gc = gc ;
 
 	if( (xim = asimage2mask_ximage( asv, im )) == NULL )
 	{
@@ -2769,7 +2778,14 @@ asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 		return None ;
 	}
 	mask = create_visual_pixmap( asv, root, xim->width, xim->height, 1 );
-	XPutImage( asv->dpy, mask, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+	if( my_gc == NULL ) 
+	{
+		XGCValues gcv ;
+		my_gc = XCreateGC( asv->dpy, mask, 0, &gcv );
+	}		
+	XPutImage( asv->dpy, mask, my_gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+	if( my_gc != gc ) 
+		XFreeGC( asv->dpy, my_gc );
 	XDestroyImage (xim);
 	return mask;
 }

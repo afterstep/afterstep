@@ -4,6 +4,8 @@
 #include "xcf.h"
 #include "asimage.h"
 
+#define SCREEN_GAMMA 1.0	/* default gamma correction value - */
+
 /* what file formats we support : */
 typedef enum
 {
@@ -47,6 +49,9 @@ ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *
  * ... - NULL terminated list of diferent PATHs to search for file in
  */
 ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... );
+
+/* somewhat easier to call function : */
+Pixmap file2pixmap(struct ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_out);
 
 #endif
 
