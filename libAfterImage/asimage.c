@@ -47,20 +47,20 @@ void output_image_line_fast( ASImageOutput *, ASScanline *, int );
 void output_image_line_direct( ASImageOutput *, ASScanline *, int );
 
 
-/**********************************************************************
+/* *********************************************************************
  * quality control: we support several levels of quality to allow for
  * smooth work on older computers.
- **********************************************************************/
+ * *********************************************************************/
 static int asimage_quality_level = ASIMAGE_QUALITY_GOOD;
 #ifdef HAVE_MMX
 static Bool asimage_use_mmx = True;
 #else
 static Bool asimage_use_mmx = False;
 #endif
-/**********************************************************************/
+/* ********************************************************************/
 /* initialization routines 											  */
-/**********************************************************************/
-/*************************** MMX **************************************/
+/* *********************************************************************/
+/* ************************** MMX **************************************/
 /*inline extern*/
 int mmx_init(void)
 {
@@ -101,7 +101,7 @@ int mmx_off(void)
 	return 0;
 }
 
-/**********************   ASImage  ************************************/
+/* *********************   ASImage  ************************************/
 void
 asimage_init (ASImage * im, Bool free_resources)
 {
@@ -177,7 +177,7 @@ destroy_asimage( ASImage **im )
 }
 
 
-/********************** ASScanline ************************************/
+/* ********************* ASScanline ************************************/
 ASScanline*
 prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode  )
 {
@@ -238,7 +238,7 @@ free_scanline( ASScanline *sl, Bool reusable )
 	}
 }
 
-/********************* ASImageDecoder ****************************/
+/* ******************** ASImageDecoder ****************************/
 ASImageDecoder *
 start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 					  int offset_x, int offset_y, unsigned int out_width, ASImageBevel *bevel )
@@ -304,7 +304,7 @@ stop_image_decoding( ASImageDecoder **pimdec )
 		}
 }
 
-/********************* ASImageOutput ****************************/
+/* ******************** ASImageOutput ****************************/
 ASImageOutput *
 start_image_output( ASVisual *asv, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality )
 {
@@ -421,9 +421,9 @@ stop_image_output( ASImageOutput **pimout )
 	}
 }
 
-/***********************************************************************/
+/* **********************************************************************/
 /*  Compression/decompression 										   */
-/***********************************************************************/
+/* **********************************************************************/
 static void
 asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y)
 {
@@ -967,9 +967,9 @@ asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp,
 	return True;
 }
 
-/*******************************************************************************/
+/* ******************************************************************************/
 /* below goes all kinds of funky stuff we can do with scanlines : 			   */
-/*******************************************************************************/
+/* ******************************************************************************/
 /* this will enlarge array based on count of items in dst per PAIR of src item with smoothing/scatter/dither */
 /* the following formulas use linear approximation to calculate   */
 /* color values for new pixels : 				  				  */
@@ -1679,7 +1679,7 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 	}
 }
 
-/**********************************************************************/
+/* *********************************************************************/
 /*					    	 DECODER : 	   							  */
 
 void                                           /* normal (unbeveled) */
@@ -1805,7 +1805,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 	}
 	++(imdec->next_line);
 }
-/**********************************************************************/
+/* *********************************************************************/
 /*						  ENCODER : 								  */
 void
 encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
@@ -1979,9 +1979,9 @@ output_image_line_direct( ASImageOutput *imout, ASScanline *new_line, int ratio 
 	}
 }
 
-/***********************************************************************************************/
+/* **********************************************************************************************/
 /* drawing gradient on scanline :  															   */
-/***********************************************************************************************/
+/* **********************************************************************************************/
 void
 make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, ARGB32 seed )
 {
@@ -2011,9 +2011,9 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 	}
 }
 
-/***********************************************************************************************/
+/* **********************************************************************************************/
 /* Scaling code ; 																			   */
-/***********************************************************************************************/
+/* **********************************************************************************************/
 Bool
 check_scale_parameters( ASImage *src, int *to_width, int *to_height )
 {
@@ -2064,7 +2064,7 @@ make_scales( unsigned short from_size, unsigned short to_size )
 	return scales;
 }
 
-/********************************************************************/
+/* *******************************************************************/
 void
 scale_image_down( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *scales_h, int* scales_v)
 {
@@ -2171,9 +2171,9 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
 	free_scanline(&step, True);
 }
 
-/******************************************************************************/
+/* *****************************************************************************/
 /* ASImage transformations : 												  */
-/******************************************************************************/
+/* *****************************************************************************/
 ASImage *
 scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int to_height,
 			   Bool to_xim, unsigned int compression_out, int quality )
@@ -2424,9 +2424,9 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 	return dst;
 }
 
-/***************************************************************************************/
+/* **************************************************************************************/
 /* GRADIENT drawing : 																   */
-/***************************************************************************************/
+/* **************************************************************************************/
 static void
 make_gradient_left2right( ASImageOutput *imout, ASScanline *dither_lines, int dither_lines_num, ASFlagType filter )
 {
@@ -2676,9 +2676,9 @@ make_gradient( ASVisual *asv, ASGradient *grad,
 	return im;
 }
 
-/****************************************************************************/
+/* ***************************************************************************/
 /* Image flipping(rotation)													*/
-/****************************************************************************/
+/* ***************************************************************************/
 ASImage *
 flip_asimage( ASVisual *asv, ASImage *src,
 		      int offset_x, int offset_y,
@@ -2813,9 +2813,9 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 
 }
 
-/****************************************************************************/
+/* ***************************************************************************/
 /* ASImage->XImage->pixmap->XImage->ASImage conversion						*/
-/****************************************************************************/
+/* ***************************************************************************/
 
 ASImage      *
 ximage2asimage (ASVisual *asv, XImage * xim, unsigned int compression)
@@ -3004,7 +3004,7 @@ asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 }
 
 
-/*********************************************************************************/
+/* ********************************************************************************/
 /* The end !!!! 																 */
-/*********************************************************************************/
+/* ********************************************************************************/
 
