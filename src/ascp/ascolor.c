@@ -535,28 +535,43 @@ do_colorscheme()
 void
 do_change_param( int val )
 {
-	switch( ASColorState.curr_param )
+	if( ASColorState.base_hue == -1 || 
+		(ASColorState.base_hue == 0 && ASColorState.base_sat == 0 )  )
 	{
-		case ASC_PARAM_BaseHue  :
-			ASColorState.base_hue = normalize_degrees_val(ASColorState.base_hue + val) ;
-			break ;
-		case ASC_PARAM_BaseSat  :
-			ASColorState.base_sat = normalize_percent_val(ASColorState.base_sat + val) ;
-			break ;
-		case ASC_PARAM_BaseVal  :
-			ASColorState.base_val = normalize_percent_val(ASColorState.base_val + val) ;
-			break ;
-		case ASC_PARAM_Angle    :
-			ASColorState.angle += val ;
-			if( ASColorState.angle < 10 )
-				ASColorState.angle = 10 ;
-			else if( ASColorState.angle > 60 )
-				ASColorState.angle = 60 ;
-			break ;
+		CARD32 base_alpha = ARGB32_ALPHA16(ASColorState.base_color);
+		int shade = ARGB32_RED16(ASColorState.base_color);
+		shade = val162percent( shade );
+		shade += val ; 
+		while( shade > 100 ) shade -= 100 ;
+		while( shade < 0 )   shade += 100 ;		
+		
+		shade = percent2val16(shade);
+		ASColorState.base_color = MAKE_ARGB32_GREY(base_alpha, shade);
+	}else
+	{
+		switch( ASColorState.curr_param )
+		{
+			case ASC_PARAM_BaseHue  :
+				ASColorState.base_hue = normalize_degrees_val(ASColorState.base_hue + val) ;
+				break ;
+			case ASC_PARAM_BaseSat  :
+				ASColorState.base_sat = normalize_percent_val(ASColorState.base_sat + val) ;
+				break ;
+			case ASC_PARAM_BaseVal  :
+				ASColorState.base_val = normalize_percent_val(ASColorState.base_val + val) ;
+				break ;
+			case ASC_PARAM_Angle    :
+				ASColorState.angle += val ;
+				if( ASColorState.angle < 10 )
+					ASColorState.angle = 10 ;
+				else if( ASColorState.angle > 60 )
+					ASColorState.angle = 60 ;
+				break ;
+		}
+		ASColorState.base_color = make_color_scheme_argb( 0xFFFF, ASColorState.base_hue,
+			                                                      ASColorState.base_sat,
+																  ASColorState.base_val );
 	}
-	ASColorState.base_color = make_color_scheme_argb( 0xFFFF, ASColorState.base_hue,
-		                                                      ASColorState.base_sat,
-															  ASColorState.base_val );
 
 	do_colorscheme();
 }

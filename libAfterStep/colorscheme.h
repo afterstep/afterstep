@@ -82,7 +82,7 @@ extern "C" {
 #define ASMC_Inactive1Light			17
 #define ASMC_Inactive2Dark			18
 #define ASMC_Inactive2Light			19
-#define ASMC_ActiveDark				10
+#define ASMC_ActiveDark				20
 #define ASMC_ActiveLight			21
 #define ASMC_HighInactiveDark		22
 #define ASMC_HighInactiveLight		23
