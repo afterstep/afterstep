@@ -1,5 +1,5 @@
 <hsv id="btn_back_inactive" hue_offset=$ascs.inactive1_hue saturation_offset=$ascs.inactive1_saturation-30 value_offset=$ascs.inactive1_value-60>
-	<img src="glass/btn_back_glass_red"/>
+	<img src="bars/btn_back_glass_red"/>
 </hsv>
 <rotate id="arrow_short_small_icon" angle=180><img src="dots/arrow_short_small"/></rotate>
 

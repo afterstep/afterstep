@@ -1,1 +1,3 @@
-<hsv hue_offset=$ascs.inactive2_hue saturation_offset=$ascs.inactive2_saturation-30 value_offset=$ascs.inactive2_value-72><img src="glass/title_tile_glass_red_a50"/></hsv>
+<hsv hue_offset=$ascs.inactive2_hue saturation_offset=$ascs.inactive2_saturation-30 value_offset=$ascs.inactive2_value-72>
+  <img src="bars/title_tile_glass_red_a50"/>
+</hsv>

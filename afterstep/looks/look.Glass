@@ -35,21 +35,21 @@ MyStyle "focused_window_style"
   TextStyle	3
   ForeColor     ActiveText
   BackColor	Active
-  BackPixmap    125 title_tile_glass_focused
+  BackPixmap    125 bars/title_tile_glass_focused
   ~MyStyle
 
 MyStyle "unfocused_window_style"
   Inherit       window_font
   ForeColor     InactiveText1
   BackColor	Inactive1
-  BackPixmap    125 title_tile_glass_unfocused
+  BackPixmap    125 bars/title_tile_glass_unfocused
   ~MyStyle
 
 MyStyle "sticky_window_style"
   Inherit       window_font
   ForeColor     InactiveText2
   BackColor	Inactive2
-  BackPixmap    125 title_tile_glass_sticky
+  BackPixmap    125 bars/title_tile_glass_sticky
   ~MyStyle
 
 MyStyle "focused_frame_style"
@@ -240,22 +240,22 @@ IconBox                 1 -80 -1 -1
 
 MyFrame "glass"
 	TitleBevel 		None
-	LeftBtnBackground	title_lbtn_glass
+	LeftBtnBackground	bars/title_lbtn_glass
 	LeftBtnBackAlign	HScaled,VScaled,LabelSize
-	LeftSpacerBackground	title_lspacer_glass_transp
+	LeftSpacerBackground	bars/title_lspacer_glass_transp
 	LeftSpacerBackAlign	VScaled
-	RightSpacerBackground	title_rspacer_glass_transp
+	RightSpacerBackground	bars/title_rspacer_glass_transp
 	RightSpacerBackAlign	VScaled
-	RightBtnBackground	title_rbtn_glass
+	RightBtnBackground	bars/title_rbtn_glass
 	RightBtnBackAlign	HScaled,VScaled,LabelSize
-	Side North		frame_north_glass_transp3
-	Side East		frame_east_glass_transp
-	Side South		frame_south_glass_transp
-	Side West		frame_west_glass_transp
-	Corner NW		frame_nw_glass_transp
-	Corner NE		frame_ne_glass_transp4
-	Corner SW		frame_sw_glass_transp
-	Corner SE		frame_se_glass_transp
+	Side North		bars/frame_north_glass_transp
+	Side East		bars/frame_east_glass_transp
+	Side South		bars/frame_south_glass_transp
+	Side West		bars/frame_west_glass_transp
+	Corner NW		bars/frame_nw_glass_transp
+	Corner NE		bars/frame_ne_glass_transp
+	Corner SW		bars/frame_sw_glass_transp
+	Corner SE		bars/frame_se_glass_transp
 	FrameUnfocusedStyle	"unfocused_frame_style"
 	FrameFocusedStyle	"focused_frame_style"
 	FrameStickyStyle	"sticky_frame_style"
