@@ -34,6 +34,7 @@
 #include "../include/mytexture.h"
 #include "../include/XImage_utils.h"
 #include "../include/asimage.h"
+#include "../include/mytexture.h"
 
 
 void encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store );
@@ -257,7 +258,7 @@ stop_image_decoding( ASImageDecoder **pimdec )
 }
 
 /********************* ASImageOutput ****************************/
-static ASImageOutput *
+ASImageOutput *
 start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality )
 {
 	register ASImageOutput *imout= NULL;
@@ -285,6 +286,12 @@ start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int 
 
 	prepare_scanline( im->width, 0, &(imout->buffer[0]), scr->BGR_mode);
 	prepare_scanline( im->width, 0, &(imout->buffer[1]), scr->BGR_mode);
+
+	imout->chan_fill[IC_RED]   = 0;
+	imout->chan_fill[IC_GREEN] = 0;
+	imout->chan_fill[IC_BLUE]  = 0;
+	imout->chan_fill[IC_ALPHA] = 0xFF;
+
 	imout->available = &(imout->buffer[0]);
 	imout->used 	 = NULL;
 	imout->buffer_shift = shift;
@@ -314,7 +321,18 @@ start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int 
 	return imout;
 }
 
-static void
+void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color )
+{
+	if( imout )
+	{
+		imout->chan_fill[IC_RED]   = ARGB32_RED8  (back_color);
+		imout->chan_fill[IC_GREEN] = ARGB32_GREEN8(back_color);
+		imout->chan_fill[IC_BLUE]  = ARGB32_BLUE8 (back_color);
+		imout->chan_fill[IC_ALPHA] = ARGB32_ALPHA8(back_color);
+	}
+}
+
+void
 stop_image_output( ASImageOutput **pimout )
 {
 	if( pimout )
@@ -370,6 +388,65 @@ asimage_dup_line (ASImage * im, ColorPart color, unsigned int y1, unsigned int y
 		part[y2] = (CARD8*)dwdst;
 	}else
 		part[y2] = NULL;
+}
+
+void
+asimage_erase_line( ASImage * im, ColorPart color, unsigned int y )
+{
+	if( im )
+	{
+		if( color < IC_NUM_CHANNELS )
+		{
+			CARD8       **part = im->channels[color];
+			if( part[y] )
+			{
+				free( part[y] );
+				part[y] = NULL;
+			}
+		}else
+		{
+			int c ;
+			for( c = 0 ; c < IC_NUM_CHANNELS ; c++ )
+			{
+				CARD8       **part = im->channels[color];
+				if( part[y] )
+				{
+					free( part[y] );
+					part[y] = NULL;
+				}
+			}
+		}
+	}
+}
+
+
+size_t
+asimage_add_line_mono (ASImage * im, ColorPart color, register CARD8 value, unsigned int y)
+{
+	register CARD8 *dst;
+	int rep_count;
+
+	if (im == NULL || color <0 || color >= IC_NUM_CHANNELS )
+		return 0;
+	if (im->buffer == NULL || y >= im->height)
+		return 0;
+
+	dst = im->buffer;
+	rep_count = im->width - RLE_THRESHOLD;
+	if (rep_count <= RLE_MAX_SIMPLE_LEN)
+	{
+		dst[0] = (CARD8) rep_count;
+		dst[1] = (CARD8) value;
+		im->buf_used = 2;
+	} else
+	{
+		dst[0] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
+		dst[1] = (CARD8) ((rep_count) & 0x00FF);
+		dst[2] = (CARD8) value;
+		im->buf_used = 3;
+	}
+	asimage_apply_buffer (im, color, y);
+	return im->buf_used;
 }
 
 size_t
@@ -1363,6 +1440,27 @@ tint_component_mod( register CARD32 *data, CARD16 ratio, int len )
 			data[i] = data[i]*ratio;
 }
 
+static inline void
+make_component_gradient16( register CARD32 *data, CARD16 from, CARD16 to, CARD8 seed, int len )
+{
+	register int i ;
+	long incr = (((long)to<<8)-((long)from<<8))/len ;
+
+	if( incr == 0 )
+		for( i = 0 ; i < len ; ++i )
+			data[i] = from;
+	else
+	{
+		long curr = from<<8;
+		curr += ((((CARD32)seed)<<8) > incr)?incr:((CARD32)seed)<<8 ;
+		for( i = 0 ; i < len ; ++i )
+		{/* we make calculations in 24bit per chan, then convert it back to 16 and
+		  * carry over half of the quantization error onto the next pixel */
+			data[i] = curr>>8;
+			curr += ((curr&0x00FF)>>1)+incr ;
+		}
+	}
+}
 
 /* the following 5 macros will in fact unfold into huge but fast piece of code : */
 /* we make poor compiler work overtime unfolding all this macroses but I bet it  */
@@ -1419,16 +1517,20 @@ static inline void
 copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint )
 {
 	register int i ;
-	CARD32 chan_tint[4] ;
+	CARD32 chan_tint[4], chan_fill[4] ;
 	int color ;
 	int copy_width = src->width, dst_offset = 0, src_offset = 0;
 
 	if( offset+src->width < 0 || offset > dst->width )
 		return;
-	chan_tint[IC_RED] = ARGB32_RED8(tint)<<1;
+	chan_tint[IC_RED]   = ARGB32_RED8  (tint)<<1;
 	chan_tint[IC_GREEN] = ARGB32_GREEN8(tint)<<1;
-	chan_tint[IC_BLUE] = ARGB32_BLUE8(tint)<<1;
+	chan_tint[IC_BLUE]  = ARGB32_BLUE8 (tint)<<1;
 	chan_tint[IC_ALPHA] = ARGB32_ALPHA8(tint)<<1;
+	chan_fill[IC_RED]   = ARGB32_RED8  (dst->back_color);
+	chan_fill[IC_GREEN] = ARGB32_GREEN8(dst->back_color);
+	chan_fill[IC_BLUE]  = ARGB32_BLUE8 (dst->back_color);
+	chan_fill[IC_ALPHA] = ARGB32_ALPHA8(dst->back_color);
 	if( offset < 0 )
 		src_offset = -offset ;
 	else
@@ -1442,9 +1544,12 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 		register CARD32 *pdst = dst->channels[color];
 		int ratio = chan_tint[color];
 /*	fprintf( stderr, "channel %d, tint is %d(%X), src_offset = %d, dst_offset = %d psrc = %p, pdst = %p\n", color, ratio, ratio, src_offset, dst_offset, psrc, pdst );*/
-		for( i = 0 ; i < dst_offset ; ++i )
-			pdst[i] = 0;
-		pdst += dst_offset ;
+		{
+			register CARD32 fill = chan_fill[color];
+			for( i = 0 ; i < dst_offset ; ++i )
+				pdst[i] = fill;
+			pdst += dst_offset ;
+		}
 
 		if( get_flags(src->flags, 0x01<<color) )
 		{
@@ -1466,9 +1571,12 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 				pdst[i] = ratio<<8;
 			set_flags( dst->flags, (0x01<<color));
 		}
-		for( ; i < dst->width-dst_offset ; ++i )
-			pdst[i] = 0;
-/*			print_component(pdst, 0, dst->width ); */
+		{
+			register CARD32 fill = chan_fill[color];
+			for( ; i < dst->width-dst_offset ; ++i )
+				pdst[i] = fill;
+/*				print_component(pdst, 0, dst->width ); */
+		}
 	}
 }
 
@@ -1504,6 +1612,13 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 {
 	if( imout->next_line < imout->xim->height )
 	{
+		if( !get_flags(to_store->flags, SCL_DO_RED) )
+			set_component( to_store->red  , ARGB32_RED8(to_store->back_color), 0, to_store->width );
+		if( !get_flags(to_store->flags, SCL_DO_GREEN) )
+			set_component( to_store->green, ARGB32_GREEN8(to_store->back_color), 0, to_store->width );
+		if( !get_flags(to_store->flags, SCL_DO_BLUE) )
+			set_component( to_store->blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
+
 		PUT_SCANLINE(imout->scr,imout->xim,to_store,imout->next_line,imout->xim_line);
 		if( imout->tiling_step > 0 )
 		{
@@ -1521,27 +1636,45 @@ encode_image_scanline_asim( ASImageOutput *imout, ASScanline *to_store )
 {
 	if( imout->next_line < imout->im->height )
 	{
+		CARD32 chan_fill[4];
+		chan_fill[IC_RED]   = ARGB32_RED8  (to_store->back_color);
+		chan_fill[IC_GREEN] = ARGB32_GREEN8(to_store->back_color);
+		chan_fill[IC_BLUE]  = ARGB32_BLUE8 (to_store->back_color);
+		chan_fill[IC_ALPHA] = ARGB32_ALPHA8(to_store->back_color);
 		if( imout->tiling_step )
 		{
 			int bytes_count ;
 			register int i, color ;
 			int max_i = imout->im->height ;
 			for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
+			{
 				if( get_flags(to_store->flags,0x01<<color))
-				{
 					bytes_count = asimage_add_line(imout->im, color, to_store->channels[color],   imout->next_line);
+				else if( chan_fill[color] != imout->chan_fill[color] )
+					bytes_count = asimage_add_line_mono( imout->im, color, chan_fill[color], imout->next_line);
+				else
+				{
+					asimage_erase_line( imout->im, color, imout->next_line );
 					for( i = imout->next_line+imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
-					{
-/*							fprintf( stderr, "copy-encoding color %d, from lline %d to %d, %d bytes\n", color, imout->next_line, i, bytes_count );*/
-						asimage_dup_line( imout->im, color, imout->next_line, i, bytes_count );
-					}
+						asimage_erase_line( imout->im, color, i );
+					continue;
 				}
+				for( i = imout->next_line+imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
+				{
+/*						fprintf( stderr, "copy-encoding color %d, from lline %d to %d, %d bytes\n", color, imout->next_line, i, bytes_count );*/
+					asimage_dup_line( imout->im, color, imout->next_line, i, bytes_count );
+				}
+			}
 		}else
 		{
 			register int color ;
 			for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
 				if( get_flags(to_store->flags,0x01<<color))
 					asimage_add_line(imout->im, color, to_store->channels[color], imout->next_line);
+				else if( chan_fill[color] != imout->chan_fill[color] )
+					asimage_add_line_mono( imout->im, color, chan_fill[color], imout->next_line);
+				else
+					asimage_erase_line( imout->im, color, imout->next_line );
 		}
 	}
 	++(imout->next_line);
@@ -1626,6 +1759,41 @@ output_image_line_direct( ASImageOutput *imout, ASScanline *new_line, int ratio 
 	}
 }
 
+/***********************************************************************************************/
+/* drawing gradient on scanline :  															   */
+/***********************************************************************************************/
+void
+make_gradient_scanline( ASScanline *scl, gradient_t *grad, ASFlagType filter, ARGB32 seed )
+{
+	if( scl && grad && filter != 0 )
+	{
+		int offset = 0, step, i, max_i = grad->npoints - 1 ;
+		for( i = 0  ; i < max_i ; i++ )
+		{
+			if( i == max_i-1 )
+				step = scl->width - offset;
+			else
+				step = grad->offset[i+1] * scl->width - offset ;
+			if( step > 0 )
+			{
+				int color ;
+				for( color = 0 ; color < IC_NUM_CHANNELS ; ++color )
+					if( get_flags( filter, 0x01<<color ) )
+						make_component_gradient16( scl->channels[color]+offset,
+												   ARGB32_CHAN8(grad->color[i],color)<<8,
+												   ARGB32_CHAN8(grad->color[i+1],color)<<8,
+												   ARGB32_CHAN8(seed,color),
+												   step);
+				offset += step ;
+			}
+		}
+		scl->flags = filter ;
+	}
+}
+
+/***********************************************************************************************/
+/* Scaling code ; 																			   */
+/***********************************************************************************************/
 Bool
 check_scale_parameters( ASImage *src, int *to_width, int *to_height )
 {
@@ -2033,6 +2201,103 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 	free_scanline( &dst_line, True );
 	return dst;
 }
+
+ASImage*
+make_gradient( ScreenInfo *scr, gradient_t *grad,
+               unsigned int width, unsigned int height, ASFlagType filter,
+  			   Bool to_xim, unsigned int compression_out, int quality  )
+{
+	ASImage *im = NULL ;
+	ASImageOutput *imout;
+	int line_len = width;
+
+	if( scr == NULL )
+		scr = &Scr ;
+	if( grad == NULL )
+		return NULL;
+	if( width == 0 )
+		width = 2;
+ 	if( height == 0 )
+		height = 2;
+	im = safecalloc( 1, sizeof(ASImage) );
+	asimage_start (im, width, height, compression_out);
+	if( to_xim )
+		if( (im->ximage = create_screen_ximage( scr, width, height, 0 )) == NULL )
+		{
+			show_error( "Unable to create XImage for the screen %d", scr->screen );
+			asimage_init(im, True);
+			free( im );
+			return NULL ;
+		}
+	if( get_flags(grad->type,GRADIENT_TYPE_ORIENTATION) )
+		line_len = height ;
+	if( get_flags(grad->type,GRADIENT_TYPE_DIAG) )
+		line_len += line_len ;
+	if((imout = start_image_output( scr, im, im->ximage, to_xim, QUANT_ERR_BITS, quality)) == NULL )
+	{
+		asimage_init(im, True);
+		free( im );
+		im = NULL ;
+	}else
+	{
+		int dither_lines = MIN(imout->quality+1, 4) ;
+		ASScanline *lines ;
+		int line;
+		static ARGB32 dither_seeds[] = { 0, 0xFFFFFFFF, 0x7F0F7F0F, 0x0F7F0F7F };
+
+		if( dither_lines > im->height || dither_lines > im->width )
+			dither_lines = MIN(im->height, im->width) ;
+
+		lines = safecalloc( dither_lines, sizeof(ASScanline));
+		for( line = 0 ; line < dither_lines ; line++ )
+			prepare_scanline( line_len, QUANT_ERR_BITS, &(lines[line]), scr->BGR_mode );
+
+		switch( grad->type )
+		{
+			case TEXTURE_Left2Right :
+				imout->tiling_step = dither_lines;
+				for( line = 0 ; line < dither_lines ; line++ )
+				{
+					make_gradient_scanline( &(lines[line]), grad, filter, dither_seeds[line] );
+					imout->output_image_scanline( imout, &(lines[line]), 1);
+				}
+  	    	break ;
+			case TEXTURE_Top2Bottom :
+#if 0
+				{
+					int color ;
+					register int i ;
+					for( color = 0 ; color < IC_NUM_CHANNELS ; i++ )
+						if( get_flags( filter, 0x01<<color ) )
+						{
+							CARD32 *part = scl->channels[color];
+							for( i = 0 ; i < height ; i++ )
+							{
+								int bytes_num;
+
+
+							}
+						}
+				}
+#endif
+				break ;
+			case TEXTURE_TopLeft2BottomRight :
+
+		    	break ;
+			case TEXTURE_BottomLeft2TopRight :
+
+		    	break ;
+			default:
+		}
+		stop_image_output( &imout );
+		for( line = 0 ; line < dither_lines ; line++ )
+			free_scanline( &(lines[line]), True );
+	}
+	return im;
+}
+
+
+
 /****************************************************************************/
 /* ASImage->XImage->pixmap->XImage->ASImage conversion						*/
 /****************************************************************************/

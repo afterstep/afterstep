@@ -2,6 +2,7 @@
 #define ASIMAGE_HEADER_FILE_INCLUDED
 
 struct ScreenInfo;
+struct gradient_t;
 
 #define MAX_IMPORT_IMAGE_SIZE 	4000
 
@@ -101,6 +102,7 @@ typedef struct ASImageOutput
 	unsigned char *xim_line;
 	int            height, bpl;
 	ASScanline buffer[2], *used, *available;
+	CARD32 chan_fill[4];
 	int buffer_shift;   /* -1 means - buffer is empty */
 	int next_line ;
 	unsigned int tiling_step;       /* each line written will be repeated with this
@@ -112,6 +114,11 @@ typedef struct ASImageOutput
 	encode_image_scanline_func encode_image_scanline ;  /* low level interface -
 														 * encoding only */
 }ASImageOutput;
+
+ASImageOutput *start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality );
+void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color );
+void stop_image_output( ASImageOutput **pimout );
+
 
 /* it produces  bottom = bottom <merge> top */
 typedef void (*merge_scanlines_func)( ASScanline *bottom, ASScanline *top, int mode);
@@ -152,7 +159,6 @@ ASScanline*prepare_scanline( unsigned int width, unsigned int shift, ASScanline 
 void       free_scanline( ASScanline *sl, Bool reusable );
 
 size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y);
-size_t asimage_add_line8(ASImage * im, ColorPart color, CARD8 * data, unsigned int y);
 
 /* usefull for debugging : (returns memory usage)*/
 unsigned int asimage_print_line (ASImage * im, ColorPart color,
@@ -219,6 +225,9 @@ ASImage *tile_asimage ( struct ScreenInfo *scr, ASImage *src, int offset_x, int 
 ASImage *merge_layers ( struct ScreenInfo *scr, ASImageLayer *layers, int count,
 			  		    unsigned int dst_width, unsigned int dst_height,
 			  		    Bool to_xim, unsigned int compression_out, int quality );
+ASImage *make_gradient( struct ScreenInfo *scr, struct gradient_t *grad,
+               			unsigned int width, unsigned int height, ASFlagType filter,
+  			   			Bool to_xim, unsigned int compression_out, int quality  );
 
 
 
