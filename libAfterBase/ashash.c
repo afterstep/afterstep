@@ -296,6 +296,7 @@ sort_hash_items( ASHashTable *hash, ASHashableValue *values, void **data, unsign
 /***** Iterator functionality *****/
 
 
+
 /************************************************************************/
 /************************************************************************/
 /* 	Some usefull implementations 					*/
