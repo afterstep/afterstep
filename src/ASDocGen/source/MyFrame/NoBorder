@@ -1,6 +1,8 @@
 <varlistentry id="options.NoBorder">
 	<term>NoBorder</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Denotes that beveled borders should not be drawn around
+		the window frame and titlebar.
+		</para>
 	</listitem>
 </varlistentry>
