@@ -56,241 +56,168 @@ XGCValues     Globalgcv;
 unsigned long Globalgcm;
 
 
-/***************************************************************************
- *
- * Handles destruction of a window
- *
- ****************************************************************************/
+/**********************************************************************/
+/* window management specifics - mapping/unmapping with no events :   */
+/**********************************************************************/
 void
-Destroy (ASWindow * Tmp_win, Bool kill_client)
+quietly_unmap_window( Window w, long event_mask )
 {
-	int           i;
-	extern ASWindow *ButtonWindow;
-	extern ASWindow *colormap_win;
+    /* blocking UnmapNotify events since that may bring us into Withdrawn state */
+    XSelectInput (dpy, w, event_mask & ~StructureNotifyMask);
+    XUnmapWindow( dpy, w );
+    XSelectInput (dpy, w, event_mask );
+}
 
-	/*
-	 * Warning, this is also called by HandleUnmapNotify; if it ever needs to
-	 * look at the event, HandleUnmapNotify will have to mash the UnmapNotify
-	 * into a DestroyNotify.
-	 */
-	if (!Tmp_win)
-		return;
+void
+quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_mask )
+{
+    /* blocking UnmapNotify events since that may bring us into Withdrawn state */
+    XSelectInput (dpy, w, event_mask & ~StructureNotifyMask);
+    XReparentWindow( dpy, w, (new_parent!=None)?new_parent:Scr.Root, x, y );
+    XSelectInput (dpy, w, event_mask );
+}
 
-	XUnmapWindow (dpy, Tmp_win->frame);
-	XSync (dpy, 0);
+/****************************************************************************/
+/* window management specifics - button ungrabbing convinience functions:   */
+/****************************************************************************/
+inline void
+ungrab_window_buttons( Window w )
+{
+    XUngrabButton (dpy, AnyButton, AnyModifier, w);
+}
 
-	if (Tmp_win == Scr.Hilite)
-		Scr.Hilite = NULL;
+inline void
+ungrab_window_keys (Window w )
+{
+    XUngrabKey (dpy, AnyKey, AnyModifier, w);
+}
 
-	Broadcast (M_DESTROY_WINDOW, 3, Tmp_win->w, Tmp_win->frame, (unsigned long)Tmp_win);
+/******************************************************************************
+ * Versions of grab primitives that circumvent modifier problems
+ *****************************************************************************/
+void
+MyXGrabButton ( unsigned button, unsigned modifiers,
+                Window grab_window, Bool owner_events, unsigned event_mask,
+                int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
+{
+    if( modifiers == AnyModifier )
+        XGrabButton (dpy, button, AnyModifier, grab_window,
+                     owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
+    else
+    {
+        register int i = 0 ;
+        do
+        {
+            XGrabButton (dpy, button, modifiers | Scr.lock_mods[i], grab_window,
+                         owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
+            if( Scr.lock_mods[i] == 0 )
+                break;
+            ++i ;
+        }while(1);
+    }
+}
 
-	if (Scr.PreviousFocus == Tmp_win)
-		Scr.PreviousFocus = NULL;
+void
+MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window)
+{
+    if( modifiers == AnyModifier )
+        XUngrabButton (dpy, button, AnyModifier, grab_window);
+    else
+    {
+        register int i = 0 ;
+        do
+        {
+            XUngrabButton (dpy, button, modifiers | Scr.lock_mods[i], grab_window);
+            if( Scr.lock_mods[i] == 0 )
+                break;
+            ++i ;
+        }while(1);
+    }
+}
 
-	if (ButtonWindow == Tmp_win)
-		ButtonWindow = NULL;
+void
+grab_window_buttons (Window w, ASFlagType context_mask)
+{
+    register MouseButton  *MouseEntry;
 
-	if ((Tmp_win == Scr.Focus) && (Scr.flags & ClickToFocus))
-	{
-		ASWindow     *t, *tn = NULL;
-		long          best = LONG_MIN;
-
-		for (t = Scr.ASRoot.next; t != NULL; t = t->next)
+    for( MouseEntry = Scr.MouseButtonRoot ; MouseEntry ; MouseEntry = MouseEntry->NextButton)
+        if ( MouseEntry->func  && get_flags(MouseEntry->Context, context_mask))
 		{
-			if ((t->focus_sequence > best) && (t != Tmp_win))
+			if (MouseEntry->Button > 0)
+                MyXGrabButton (MouseEntry->Button, MouseEntry->Modifier, w,
+							   True, ButtonPressMask | ButtonReleaseMask,
+							   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
+            else
 			{
-				best = t->focus_sequence;
-				tn = t;
-			}
-		}
-		if (tn)
-			SetFocus (tn->w, tn, False);
-		else
-			SetFocus (Scr.NoFocusWin, NULL, False);
-	}
-	if (Scr.Focus == Tmp_win)
-		SetFocus (Scr.NoFocusWin, NULL, False);
-
-	if (Tmp_win == Scr.pushed_window)
-		Scr.pushed_window = NULL;
-
-	if (Tmp_win == colormap_win)
-		colormap_win = NULL;
-
-	if (!kill_client)
-		RestoreWithdrawnLocation (Tmp_win, True);
-
-	destroy_registered_window(Tmp_win->frame);
-	unregister_aswindow( Tmp_win->w );
-
-	if (Tmp_win->icon_pm_pixmap != None &&
-		!get_flags(Tmp_win->hints->flags, AS_ClientIconPixmap))
-		UnloadImage (Tmp_win->icon_pm_pixmap);
-
-	if (Tmp_win->icon_title_w)
-		destroy_registered_window( Tmp_win->icon_title_w );
-
-	if ((Tmp_win->icon_pixmap_w != None))
-	{
-		if ( ASWIN_HFLAGS(Tmp_win, AS_ClientIcon|AS_ClientIconPixmap) != AS_ClientIcon )
-			destroy_registered_window( Tmp_win->icon_pixmap_w );
-		else
-			unregister_aswindow(  Tmp_win->icon_pixmap_w );
-	}
-	for (i = 0; i < FRAME_SIDES; i++)
-		if( Tmp_win->frame_canvas[i] )
-		{
-			Window w = Tmp_win->frame_canvas[i]->w ;
-			destroy_ascanvas( &(Tmp_win->frame_canvas[i]) );
-			destroy_registered_window( w );
-		}
-	for (i = 0; i < FRAME_PARTS; i++)
-		if( Tmp_win->frame_bars[i] )
-			destroy_astbar( &(Tmp_win->frame_bars[i]) );
-
-	if( Tmp_win->tbar )
-		destroy_astbar( &(Tmp_win->tbar) );
-
-	Tmp_win->prev->next = Tmp_win->next;
-	if (Tmp_win->next != NULL)
-		Tmp_win->next->prev = Tmp_win->prev;
-
-	if (!ASWIN_HFLAGS(Tmp_win, AS_SkipWinList))
-		update_windowList ();
-
-	if( Tmp_win->hints )
-		destroy_hints( Tmp_win->hints, False );
-
-	free (Tmp_win);
-
-	XSync (dpy, 0);
+                register int  i = MAX_MOUSE_BUTTONS+1;
+                while( --i > 0 )
+                    MyXGrabButton (i, MouseEntry->Modifier, w,
+								   True, ButtonPressMask | ButtonReleaseMask,
+								   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
+            }
+        }
 	return;
 }
 
 
-
-/**************************************************************************
- *
- * Removes expose events for a specific window from the queue
- *
- *************************************************************************/
-int
-flush_expose (Window w)
+void
+grab_focus_click( Window w )
 {
-	XEvent        dummy;
-	int           i = 0;
-
-    while (ASCheckTypedWindowEvent ( w, Expose, &dummy))
-		i++;
-	return i;
+    int i ;
+    if( w )
+    { /* need to grab all buttons for window that we are about to unfocus */
+        for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
+            if (Scr.buttons2grab & (0x01 << i))
+            {
+                MyXGrabButton ( i + 1, 0, w,
+                                True, ButtonPressMask, GrabModeSync,
+                                GrabModeAsync, None, Scr.ASCursors[SYS]);
+            }
+    }
 }
 
+void
+ungrab_focus_click( Window w )
+{
+    if( w )
+    {   /* if we do click to focus, remove the grab on mouse events that
+         * was made to detect the focus change */
+        register int i = 0;
+        register ASFlagType grab_btn_mask = Scr.buttons2grab<<1 ;
+        while ( ++i <= MAX_MOUSE_BUTTONS )
+            if ( grab_btn_mask&(1<<i) )
+                MyXUngrabButton (i, 0, w);
+    }
+}
 
 
 /***********************************************************************
- *
- *  Procedure:
- *	RestoreWithdrawnLocation
- *
- *  Puts windows back where they were before afterstep took over
- *
- ************************************************************************/
+ * Key grabbing :
+ ***********************************************************************/
 void
-RestoreWithdrawnLocation (ASWindow * tmp, Bool restart)
+grab_window_keys (Window w, ASFlagType context_mask)
 {
-	int           w2, h2;
-	unsigned int  mask;
-
-	XWindowChanges xwc;
-
-	if (!tmp)
-		return;
-
-	if (XGetGeometry (dpy, tmp->w, &JunkRoot, &JunkX, &JunkY,
-					  &JunkWidth, &JunkHeight, &JunkBW, &JunkDepth))
-	{
-		get_client_geometry (tmp, tmp->frame_x, tmp->frame_y, tmp->frame_width, tmp->frame_height,
-							 &xwc.x, &xwc.y, NULL, NULL);
-
-		xwc.border_width = tmp->old_bw;
-		mask = (CWX | CWY | CWBorderWidth);
-
-
-		/* We can not assume that the window is currently on the screen.
-		 * Although this is normally the case, it is not always true.  The
-		 * most common example is when the user does something in an
-		 * application which will, after some amount of computational delay,
-		 * cause the window to be unmapped, but then switches screens before
-		 * this happens.  The XTranslateCoordinates call above will set the
-		 * window coordinates to either be larger than the screen, or negative.
-		 * This will result in the window being placed in odd, or even
-		 * unviewable locations when the window is remapped.  The followin code
-		 * forces the "relative" location to be within the bounds of the display
-		 *
-		 * gpw -- 11/11/93
-		 *
-		 * Unfortunately, this does horrendous things during re-starts,
-		 * hence the "if(restart) clause (RN)
-		 *
-		 * Also, fixed so that it only does this stuff if a window is more than
-		 * half off the screen. (RN)
-		 */
-
-
-		if (!restart)
-		{
-			/* Don't mess with it if its partially on the screen now */
-			if ((tmp->frame_x < 0) || (tmp->frame_y < 0) ||
-				(tmp->frame_x >= Scr.MyDisplayWidth) || (tmp->frame_y >= Scr.MyDisplayHeight))
-			{
-				w2 = (tmp->frame_width >> 1);
-				h2 = (tmp->frame_height >> 1);
-				if ((xwc.x < -w2) || (xwc.x > (Scr.MyDisplayWidth - w2)))
-				{
-					xwc.x = xwc.x % Scr.MyDisplayWidth;
-					if (xwc.x < -w2)
-						xwc.x += Scr.MyDisplayWidth;
-				}
-				if ((xwc.y < -h2) || (xwc.y > (Scr.MyDisplayHeight - h2)))
-				{
-					xwc.y = xwc.y % Scr.MyDisplayHeight;
-					if (xwc.y < -h2)
-						xwc.y += Scr.MyDisplayHeight;
-				}
-			}
-		}
-
-		/*
-		 * Prevent the receipt of an UnmapNotify, since that would
-		 * cause a transition to the Withdrawn state.
-		 */
-		if (restart)
-		{
-			XWindowAttributes winattrs;
-			unsigned long eventMask;
-
-			XGetWindowAttributes (dpy, tmp->w, &winattrs);
-			eventMask = winattrs.your_event_mask;
-
-			XSelectInput (dpy, tmp->w, eventMask & ~StructureNotifyMask);
-			XReparentWindow (dpy, tmp->w, Scr.Root, xwc.x, xwc.y);
-			XSelectInput (dpy, tmp->w, eventMask);
-		} else
-			XReparentWindow (dpy, tmp->w, Scr.Root, xwc.x, xwc.y);
-
-
-		if ((tmp->flags & ICONIFIED) && (!(tmp->flags & SUPPRESSICON)))
-		{
-			if (tmp->icon_pixmap_w != None)
-				XUnmapWindow (dpy, tmp->icon_pixmap_w);
-			if (tmp->icon_title_w != None)
-				XUnmapWindow (dpy, tmp->icon_title_w);
-		}
-		XConfigureWindow (dpy, tmp->w, mask, &xwc);
-
-		XSync (dpy, 0);
-	}
+	FuncKey      *tmp;
+	for (tmp = Scr.FuncKeyRoot; tmp != NULL; tmp = tmp->next)
+        if (get_flags( tmp->cont, context_mask ))
+        {
+            if( tmp->mods == AnyModifier )
+                XGrabKey( dpy, tmp->keycode, AnyModifier, w, True, GrabModeAsync, GrabModeAsync);
+            else
+            {
+                register int i = 0;
+                do
+                {/* combining modifiers with <Lock> keys,
+                  * so to enable things like ScrollLock+Alt+A to work the same as Alt+A */
+                    XGrabKey( dpy, tmp->keycode, tmp->mods|Scr.lock_mods[i], w, True, GrabModeAsync, GrabModeAsync);
+                    if( Scr.lock_mods[i] == 0 )
+                        break;
+                    ++i;
+                }while(1);
+            }
+        }
 }
+
 
 
 #if 0										   /* (see SetTimer) */
@@ -338,33 +265,6 @@ SetTimer (int delay)
 	if (delay > 0)
 		timer_new (delay, &autoraise_timer_handler, &autoraise_timer_handler);
 #endif /* 1 */
-}
-
-/***************************************************************************
- *
- * ICCCM Client Messages - Section 4.2.8 of the ICCCM dictates that all
- * client messages will have the following form:
- *
- *     event type	ClientMessage
- *     message type	_XA_WM_PROTOCOLS
- *     window		tmp->w
- *     format		32
- *     data[0]		message atom
- *     data[1]		time stamp
- *
- ****************************************************************************/
-void
-send_clientmessage (Window w, Atom a, Time timestamp)
-{
-	XClientMessageEvent ev;
-
-	ev.type = ClientMessage;
-	ev.window = w;
-	ev.message_type = _XA_WM_PROTOCOLS;
-	ev.format = 32;
-	ev.data.l[0] = a;
-	ev.data.l[1] = timestamp;
-	XSendEvent (dpy, w, False, 0L, (XEvent *) & ev);
 }
 
 /******************************************************************************

@@ -60,14 +60,14 @@ Atom wm_del_win;
 Atom _XA_WM_PROTOCOLS;
 Atom _XA_WM_COLORMAP_WINDOWS;
 
-unsigned long GetColor( char *color ) 
+unsigned long GetColor( char *color )
 {
 	ARGB32 argb ;
 	unsigned long pixel ;
-	
+
 	if( color == parse_argb_color( color, &argb ) )
 		return Scr.asv->black_pixel ;
-	
+
 	ARGB2PIXEL( Scr.asv, argb, &pixel );
 	return pixel ;
 }
@@ -77,7 +77,7 @@ unsigned long MyGetHilite (char *color)
 	ARGB32 argb ;
 	if( color == parse_argb_color( color, &argb ) )
 		return Scr.asv->black_pixel ;
-		
+
 	return GetHilite( argb );
 }
 
@@ -153,7 +153,7 @@ RelieveWindow (Window win, int x, int y, int w, int h,
 
 /************************************************************************
  *
- * Sizes and creates the window 
+ * Sizes and creates the window
  *
  ***********************************************************************/
 XSizeHints mysizehints;
@@ -586,7 +586,7 @@ Loop (Window target)
 
 /************************************************************************
  *
- * Draw the window 
+ * Draw the window
  *
  ***********************************************************************/
 void
@@ -734,34 +734,6 @@ change_icon_name (char *str)
     }
   XSetWMIconName (dpy, main_win, &name);
   XFree (name.value);
-}
-
-
-/***************************************************************************
- *
- * ICCCM Client Messages - Section 4.2.8 of the ICCCM dictates that all
- * client messages will have the following form:
- *
- *     event type	ClientMessage
- *     message type	_XA_WM_PROTOCOLS
- *     window		tmp->w
- *     format		32
- *     data[0]		message atom
- *     data[1]		time stamp
- *
- ****************************************************************************/
-void
-send_clientmessage (Window w, Atom a, Time timestamp)
-{
-  XClientMessageEvent ev;
-
-  ev.type = ClientMessage;
-  ev.window = w;
-  ev.message_type = _XA_WM_PROTOCOLS;
-  ev.format = 32;
-  ev.data.l[0] = a;
-  ev.data.l[1] = timestamp;
-  XSendEvent (dpy, w, False, 0L, (XEvent *) & ev);
 }
 
 

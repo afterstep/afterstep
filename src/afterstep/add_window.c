@@ -148,45 +148,6 @@ Bool destroy_registered_window( Window w )
     }
     return res;
 }
-/**********************************************************************/
-/* window management specifics - mapping/unmapping with no events :   */
-/**********************************************************************/
-void
-quietly_unmap_window( Window w, long event_mask )
-{
-    /* blocking UnmapNotify events since that may bring us into Withdrawn state */
-    XSelectInput (dpy, w, event_mask & ~StructureNotifyMask);
-    XUnmapWindow( dpy, w );
-    XSelectInput (dpy, w, event_mask );
-}
-
-void
-quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_mask )
-{
-    /* blocking UnmapNotify events since that may bring us into Withdrawn state */
-    XSelectInput (dpy, w, event_mask & ~StructureNotifyMask);
-    XReparentWindow( dpy, w, (new_parent!=None)?new_parent:Scr.Root, x, y );
-    XSelectInput (dpy, w, event_mask );
-}
-
-/****************************************************************************/
-/* window management specifics - button ungrabbing convinience functions:   */
-/****************************************************************************/
-inline void
-ungrab_window_buttons( Window w )
-{
-    XUngrabButton (dpy, AnyButton, AnyModifier, w);
-}
-
-inline void
-ungrab_window_keys (Window w )
-{
-    XUngrabKey (dpy, AnyKey, AnyModifier, w);
-}
-
-
-
-
 #if 0
 /************************************************************************/
 /* artifacts of ASWindow icon handling - assimilate in other functions: */
@@ -573,6 +534,69 @@ invalidate_window_icon( ASWindow *asw )
     if( asw )
         check_icon_canvas( asw, False );
 }
+
+/***********************************************************************
+ *  grab_aswindow_buttons - grab needed buttons for all of the windows
+ *  for specified client
+ ***********************************************************************/
+void
+grab_aswindow_buttons( ASWindow *asw, Bool focused )
+{
+    if( asw )
+    {
+        Bool do_focus_grab = (!focused && get_flags( Scr.flags, ClickToFocus ));
+        if( do_focus_grab )
+            grab_focus_click( asw->frame );
+        else
+            ungrab_window_buttons( asw->frame );
+
+        ungrab_window_buttons( asw->w );
+        grab_window_buttons ( asw->w, C_WINDOW);
+
+        if( asw->icon_canvas )
+        {
+            ungrab_window_buttons( asw->icon_canvas->w );
+            grab_window_buttons( asw->icon_canvas->w, C_ICON );
+            if( do_focus_grab )
+                grab_focus_click( asw->icon_canvas->w );
+        }
+
+        if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas )
+        {
+            ungrab_window_buttons( asw->icon_title_canvas->w );
+            grab_window_buttons( asw->icon_title_canvas->w, C_ICON );
+            if( do_focus_grab )
+                grab_focus_click( asw->icon_title_canvas->w );
+        }
+    }
+    XSync(dpy, False );
+}
+
+/***********************************************************************
+ *  grab_aswindow_keys - grab needed keys for the window
+ ***********************************************************************/
+void
+grab_aswindow_keys( ASWindow *asw )
+{
+    if( AS_ASSERT(asw) )
+        return;
+
+    ungrab_window_keys ( asw->frame );
+    grab_window_keys (asw->frame, (C_WINDOW | C_TITLE | C_RALL | C_LALL | C_SIDEBAR));
+
+    if( asw->icon_canvas )
+    {
+        ungrab_window_keys ( asw->icon_canvas->w );
+        grab_window_keys (asw->icon_canvas->w, (C_ICON));
+    }
+    if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas )
+    {
+        ungrab_window_keys ( asw->icon_title_canvas->w );
+        grab_window_keys (asw->icon_title_canvas->w, (C_ICON));
+    }
+    XSync(dpy, False );
+}
+
 
 /* this should set up proper feel settings - grab keyboard and mouse buttons :
  * Note: must be called after redecorate_window, since some of windows may have
@@ -1303,7 +1327,8 @@ SelectDecor (ASWindow * t)
  * The following function was written for
  * new hints management code in libafterstep :
  */
-Bool afterstep_parent_hints_func(Window parent, ASParentHints *dst )
+Bool
+afterstep_parent_hints_func(Window parent, ASParentHints *dst )
 {
 	if( dst == NULL || parent == None ) return False ;
 
@@ -1597,8 +1622,118 @@ SetShape (ASWindow *asw, int w)
 #endif /* SHAPE */
 }
 
+/********************************************************************
+ * hides focus for the screen.
+ **********************************************************************/
+void
+hide_focus()
+{
+    if (get_flags(Scr.flags, ClickToFocus) && Scr.Ungrabbed != NULL)
+        grab_aswindow_buttons( Scr.Ungrabbed, False );
 
+    Scr.Focus = NULL;
+    Scr.Ungrabbed = NULL;
+    XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, Scr.last_Timestamp);
+    XSync(dpy, False );
+}
 
+/********************************************************************
+ * Sets the input focus to the indicated window.
+ **********************************************************************/
+Bool
+focus_aswindow( ASWindow *asw, Bool circulated )
+{
+    Bool          do_hide_focus = False ;
+    Bool          do_nothing = False ;
+    Window        w = None;
+
+    if( asw )
+    {
+        if (!circulated )
+            SetCirculateSequence (asw, 1);
+
+        /* ClickToFocus focus queue manipulation */
+        if ( asw != Scr.Focus && asw != &Scr.ASRoot)
+            asw->focus_sequence = Scr.next_focus_sequence++;
+
+        do_hide_focus = (ASWIN_DESK(asw) != Scr.CurrentDesk) ||
+                        (ASWIN_GET_FLAGS( asw, AS_Iconic ) &&
+                            asw->icon_canvas == NULL && asw->icon_title_canvas == NULL );
+
+        if( !ASWIN_HFLAGS(asw, AS_AcceptsFocus) )
+        {
+            if( Scr.Focus != NULL && ASWIN_DESK(Scr.Focus) == Scr.CurrentDesk )
+                do_nothing = True ;
+            else
+                do_hide_focus = True ;
+        }
+    }else
+        do_hide_focus = True ;
+
+    if (Scr.NumberOfScreens > 1 && !do_hide_focus )
+	{
+        int dumm ;
+        unsigned int udumm ;
+        Window pointer_root ;
+        /* if pointer went onto another screen - we need to release focus
+         * and let other screen's manager manage it from now on, untill
+         * pointer comes back to our screen :*/
+        XQueryPointer (dpy, Scr.Root, &pointer_root, &w, &dumm, &dumm, &dumm, &dumm, &udumm);
+        if(pointer_root != Scr.Root);
+        {
+            do_hide_focus = True;
+            do_nothing = False ;
+        }
+    }
+
+    if( !do_nothing && do_hide_focus )
+        hide_focus();
+    if( do_nothing || do_hide_focus )
+        return False;
+
+    if (get_flags(Scr.flags, ClickToFocus) && Scr.Ungrabbed != asw)
+    {  /* need to grab all buttons for window that we are about to
+        * unfocus */
+        grab_aswindow_buttons( Scr.Ungrabbed, False );
+        grab_aswindow_buttons( asw, True );
+        Scr.Ungrabbed = asw;
+    }
+
+    if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+    { /* focus icon window or icon title of the iconic window */
+        if( asw->icon_canvas )
+            w = asw->icon_canvas->w;
+        else if( asw->icon_title_canvas )
+            w = asw->icon_title_canvas->w;
+    }else if( ASWIN_GET_FLAGS(asw, AS_Shaded ) )
+    { /* focus frame window of shaded clients */
+        w = asw->frame ;
+    }else
+    { /* clients with visible top window can get focus directly:  */
+        w = asw->w ;
+    }
+
+    XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
+    if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus))
+        send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
+    Scr.Focus = asw ;
+
+    XSync(dpy, False );
+    return True;
+}
+
+void
+hilite_aswindow( ASWindow *asw )
+{
+    if( Scr.Hilite != asw )
+    {
+        if( Scr.Hilite )
+            on_window_hilite_changed (Scr.Hilite, False);
+        if( asw )
+            on_window_hilite_changed (asw, True);
+        Scr.Hilite = NULL ;
+    }
+}
 
 /***********************************************************************
  *
@@ -1812,307 +1947,155 @@ AddWindow (Window w)
 	return (tmp_win);
 }
 
-/******************************************************************************
- * Versions of grab primitives that circumvent modifier problems
- *****************************************************************************/
+/***************************************************************************
+ * Handles destruction of a window
+ ****************************************************************************/
 void
-MyXGrabButton ( unsigned button, unsigned modifiers,
-                Window grab_window, Bool owner_events, unsigned event_mask,
-                int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
+Destroy (ASWindow *asw, Bool kill_client)
 {
-    if( modifiers == AnyModifier )
-        XGrabButton (dpy, button, AnyModifier, grab_window,
-                     owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
-    else
+	int           i;
+	extern ASWindow *ButtonWindow;
+	extern ASWindow *colormap_win;
+
+	/*
+	 * Warning, this is also called by HandleUnmapNotify; if it ever needs to
+	 * look at the event, HandleUnmapNotify will have to mash the UnmapNotify
+	 * into a DestroyNotify.
+	 */
+    if (AS_ASSERT(asw))
+		return;
+
+    XUnmapWindow (dpy, asw->frame);
+	XSync (dpy, 0);
+
+    if ( asw == Scr.Hilite )
+		Scr.Hilite = NULL;
+
+    if ( asw == Scr.PreviousFocus )
+		Scr.PreviousFocus = NULL;
+
+    Broadcast (M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
+
+    if (asw == Scr.Focus )
     {
-        register int i = 0 ;
-        do
+        ASWindow     *new_focus = NULL;
+
+        if( get_flags(Scr.flags, ClickToFocus))
         {
-            XGrabButton (dpy, button, modifiers | Scr.lock_mods[i], grab_window,
-                         owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
-            if( Scr.lock_mods[i] == 0 )
-                break;
-            ++i ;
-        }while(1);
-    }
-}
-
-void
-MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window)
-{
-    if( modifiers == AnyModifier )
-        XUngrabButton (dpy, button, AnyModifier, grab_window);
-    else
-    {
-        register int i = 0 ;
-        do
-        {
-            XUngrabButton (dpy, button, modifiers | Scr.lock_mods[i], grab_window);
-            if( Scr.lock_mods[i] == 0 )
-                break;
-            ++i ;
-        }while(1);
-    }
-}
-
-void
-grab_window_buttons (Window w, ASFlagType context_mask)
-{
-    register MouseButton  *MouseEntry;
-
-    for( MouseEntry = Scr.MouseButtonRoot ; MouseEntry ; MouseEntry = MouseEntry->NextButton)
-        if ( MouseEntry->func  && get_flags(MouseEntry->Context, context_mask))
-		{
-			if (MouseEntry->Button > 0)
-                MyXGrabButton (MouseEntry->Button, MouseEntry->Modifier, w,
-							   True, ButtonPressMask | ButtonReleaseMask,
-							   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
-            else
-			{
-                register int  i = MAX_MOUSE_BUTTONS+1;
-                while( --i > 0 )
-                    MyXGrabButton (i, MouseEntry->Modifier, w,
-								   True, ButtonPressMask | ButtonReleaseMask,
-								   GrabModeAsync, GrabModeAsync, None, Scr.ASCursors[DEFAULT]);
-            }
+            ASWindow     *t;
+            long          best = LONG_MIN;
+            for (t = Scr.ASRoot.next; t != NULL; t = t->next)
+                if ((t->focus_sequence > best) && (t != asw))
+                {
+                    best = t->focus_sequence;
+                    new_focus = t;
+                }
         }
+        focus_aswindow( new_focus, False);
+    }
+
+    if (asw == Scr.pushed_window)
+		Scr.pushed_window = NULL;
+
+    if (asw == colormap_win)
+		colormap_win = NULL;
+
+	if (!kill_client)
+        RestoreWithdrawnLocation (asw, True);
+
+    redecorate_window( asw, True );
+
+    unregister_aswindow( asw->w );
+
+    asw->prev->next = asw->next;
+    if (asw->next != NULL)
+        asw->next->prev = asw->prev;
+
+    if (!ASWIN_HFLAGS(asw, AS_SkipWinList))
+		update_windowList ();
+
+    if( asw->hints )
+        destroy_hints( asw->hints, False );
+
+    memset( asw, 0x00, sizeof(ASWindow));
+    free (asw);
+
+	XSync (dpy, 0);
 	return;
 }
 
-
-static void
-grab_focus_click( Window w )
-{
-    int i ;
-    if( w )
-    { /* need to grab all buttons for window that we are about to unfocus */
-        for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
-            if (Scr.buttons2grab & (0x01 << i))
-            {
-                MyXGrabButton ( i + 1, 0, w,
-                                True, ButtonPressMask, GrabModeSync,
-                                GrabModeAsync, None, Scr.ASCursors[SYS]);
-            }
-    }
-}
-
-static void
-ungrab_focus_click( Window w )
-{
-    if( w )
-    {   /* if we do click to focus, remove the grab on mouse events that
-         * was made to detect the focus change */
-        register int i = 0;
-        register ASFlagType grab_btn_mask = Scr.buttons2grab<<1 ;
-        while ( ++i <= MAX_MOUSE_BUTTONS )
-            if ( grab_btn_mask&(1<<i) )
-                MyXUngrabButton (i, 0, w);
-    }
-}
-
-
 /***********************************************************************
- *  grab_aswindow_buttons - grab needed buttons for all of the windows
- *  for specified client
- ***********************************************************************/
+ *  Procedure:
+ *	RestoreWithdrawnLocation
+ *  Puts windows back where they were before afterstep took over
+ ************************************************************************/
 void
-grab_aswindow_buttons( ASWindow *asw, Bool focused )
+RestoreWithdrawnLocation (ASWindow * asw, Bool restart)
 {
-    if( asw )
+    int x = 0, y = 0;
+    unsigned int width = 0, height = 0, bw = 0 ;
+    Window w ;
+    Bool map_too = False ;
+
+LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
+
+    if (AS_ASSERT(asw))
+		return;
+
+    if( asw->status )
     {
-        Bool do_focus_grab = (!focused && get_flags( Scr.flags, ClickToFocus ));
-        if( do_focus_grab )
-            grab_focus_click( asw->frame );
-        else
-            ungrab_window_buttons( asw->frame );
+        if( asw->status->width > 0 )
+            width = asw->status->width ;
+        if( asw->status->height > 0 )
+            width = asw->status->height ;
+        if( get_flags( asw->status->flags, AS_StartBorderWidth) )
+            bw = asw->status->border_width ;
+        /* We'll get withdrawn
+            * location in virtual coordinates, so that when window is mapped again
+            * we'll get it in correct position on the virtual screen.
+            * Besides when we map window we check its postion so it would not be
+            * completely off the screen ( if PPosition only, since User can place
+            * window anywhere he wants ).
+            *                             ( Sasha )
+            */
+        x = make_detach_pos( asw->hints, asw->status, asw->anchor.x, asw->width, Scr.Vx, True );
+        y = make_detach_pos( asw->hints, asw->status, asw->anchor.y, asw->height, Scr.Vy, False );
 
-        ungrab_window_buttons( asw->w );
-        grab_window_buttons ( asw->w, C_WINDOW);
-
-        if( asw->icon_canvas )
+        if ( get_flags(asw->status->flags, AS_Iconic ))
         {
-            ungrab_window_buttons( asw->icon_canvas->w );
-            grab_window_buttons( asw->icon_canvas->w, C_ICON );
-            if( do_focus_grab )
-                grab_focus_click( asw->icon_canvas->w );
-        }
-
-        if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas )
-        {
-            ungrab_window_buttons( asw->icon_title_canvas->w );
-            grab_window_buttons( asw->icon_title_canvas->w, C_ICON );
-            if( do_focus_grab )
-                grab_focus_click( asw->icon_title_canvas->w );
-        }
-    }
-    XSync(dpy, False );
-}
-
-/***********************************************************************
- * Key grabbing :
- ***********************************************************************/
-void
-grab_window_keys (Window w, ASFlagType context_mask)
-{
-	FuncKey      *tmp;
-	for (tmp = Scr.FuncKeyRoot; tmp != NULL; tmp = tmp->next)
-        if (get_flags( tmp->cont, context_mask ))
-        {
-            if( tmp->mods == AnyModifier )
-                XGrabKey( dpy, tmp->keycode, AnyModifier, w, True, GrabModeAsync, GrabModeAsync);
-            else
-            {
-                register int i = 0;
-                do
-                {/* combining modifiers with <Lock> keys,
-                  * so to enable things like ScrollLock+Alt+A to work the same as Alt+A */
-                    XGrabKey( dpy, tmp->keycode, tmp->mods|Scr.lock_mods[i], w, True, GrabModeAsync, GrabModeAsync);
-                    if( Scr.lock_mods[i] == 0 )
-                        break;
-                    ++i;
-                }while(1);
-            }
-        }
-}
-
-/***********************************************************************
- *  grab_aswindow_keys - grab needed keys for the window
- ***********************************************************************/
-void
-grab_aswindow_keys( ASWindow *asw )
-{
-    if( AS_ASSERT(asw) )
-        return;
-
-    ungrab_window_keys ( asw->frame );
-    grab_window_keys (asw->frame, (C_WINDOW | C_TITLE | C_RALL | C_LALL | C_SIDEBAR));
-
-    if( asw->icon_canvas )
-    {
-        ungrab_window_keys ( asw->icon_canvas->w );
-        grab_window_keys (asw->icon_canvas->w, (C_ICON));
-    }
-    if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas )
-    {
-        ungrab_window_keys ( asw->icon_title_canvas->w );
-        grab_window_keys (asw->icon_title_canvas->w, (C_ICON));
-    }
-    XSync(dpy, False );
-}
-/********************************************************************
- * hides focus for the screen.
- **********************************************************************/
-void
-hide_focus()
-{
-    if (get_flags(Scr.flags, ClickToFocus) && Scr.Ungrabbed != NULL)
-        grab_aswindow_buttons( Scr.Ungrabbed, False );
-
-    Scr.Focus = NULL;
-    Scr.Ungrabbed = NULL;
-    XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, Scr.last_Timestamp);
-    XSync(dpy, False );
-}
-
-/********************************************************************
- * Sets the input focus to the indicated window.
- **********************************************************************/
-Bool
-focus_aswindow( ASWindow *asw, Bool circulated )
-{
-    Bool          do_hide_focus = False ;
-    Bool          do_nothing = False ;
-    Window        w = None;
-
-    if( asw )
-    {
-        if (!circulated )
-            SetCirculateSequence (asw, 1);
-
-        /* ClickToFocus focus queue manipulation */
-        if ( asw != Scr.Focus && asw != &Scr.ASRoot)
-            asw->focus_sequence = Scr.next_focus_sequence++;
-
-        do_hide_focus = (ASWIN_DESK(asw) != Scr.CurrentDesk) ||
-                        (ASWIN_GET_FLAGS( asw, AS_Iconic ) &&
-                            asw->icon_canvas == NULL && asw->icon_title_canvas == NULL );
-
-        if( !ASWIN_HFLAGS(asw, AS_AcceptsFocus) )
-        {
-            if( Scr.Focus != NULL && ASWIN_DESK(Scr.Focus) == Scr.CurrentDesk )
-                do_nothing = True ;
-            else
-                do_hide_focus = True ;
-        }
-    }else
-        do_hide_focus = True ;
-
-    if (Scr.NumberOfScreens > 1 && !do_hide_focus )
-	{
-        int dumm ;
-        unsigned int udumm ;
-        Window pointer_root ;
-        /* if pointer went onto another screen - we need to release focus
-         * and let other screen's manager manage it from now on, untill
-         * pointer comes back to our screen :*/
-        XQueryPointer (dpy, Scr.Root, &pointer_root, &w, &dumm, &dumm, &dumm, &dumm, &udumm);
-        if(pointer_root != Scr.Root);
-        {
-            do_hide_focus = True;
-            do_nothing = False ;
+            /* if we don't do that while exiting AfterStep -
+               we will loose the client while starting AS again, as window will be
+               unmapped, AS will be waiting for it to be mapped by client, and
+               client will not be aware that it should do so, as WM exits and
+               startups are transparent for it */
+            map_too = True ;
         }
     }
-
-    if( !do_nothing && do_hide_focus )
-        hide_focus();
-    if( do_nothing || do_hide_focus )
-        return False;
-
-    if (get_flags(Scr.flags, ClickToFocus) && Scr.Ungrabbed != asw)
-    {  /* need to grab all buttons for window that we are about to
-        * unfocus */
-        grab_aswindow_buttons( Scr.Ungrabbed, False );
-        grab_aswindow_buttons( asw, True );
-        Scr.Ungrabbed = asw;
-    }
-
-    if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
-    { /* focus icon window or icon title of the iconic window */
-        if( asw->icon_canvas )
-            w = asw->icon_canvas->w;
-        else if( asw->icon_title_canvas )
-            w = asw->icon_title_canvas->w;
-    }else if( ASWIN_GET_FLAGS(asw, AS_Shaded ) )
-    { /* focus frame window of shaded clients */
-        w = asw->frame ;
-    }else
-    { /* clients with visible top window can get focus directly:  */
-        w = asw->w ;
-    }
-
-    XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
-    if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus))
-        send_clientmessage (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
-    Scr.Focus = asw ;
-
-    XSync(dpy, False );
-    return True;
-}
-
-void
-hilite_aswindow( ASWindow *asw )
-{
-    if( Scr.Hilite != asw )
+    /*
+     * Prevent the receipt of an UnmapNotify, since that would
+     * cause a transition to the Withdrawn state.
+     */
+    XSelectInput (dpy, asw->w, NoEventMask);
+    XGrabServer( dpy );
+    if( get_parent_window( asw->w ) == asw->frame )
     {
-        if( Scr.Hilite )
-            on_window_hilite_changed (Scr.Hilite, False);
-        if( asw )
-            on_window_hilite_changed (asw, True);
-        Scr.Hilite = NULL ;
+        ASStatusHints withdrawn_state ;
+        /* !!! Most of it has been done in datach_basic_widget : */
+        XReparentWindow (dpy, asw->w, Scr.Root, x, y);
+        withdrawn_state.flags = AS_Withdrawn ;
+        withdrawn_state.icon_window = None ;
+        set_client_state( asw->w, &withdrawn_state );
+
+        if( width > 0 && height > 0 )
+            XResizeWindow( dpy, asw->w, width, height );
+        XSetWindowBorderWidth (dpy, asw->w, bw);
+
+        if( map_too )
+            XMapWindow (dpy, asw->w);
+        XSync( dpy, False );
     }
+    XUngrabServer( dpy ) ;
 }
-
-
 
 /**********************************************************************/
 /**********************************************************************/

@@ -198,6 +198,8 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask)
 	x_fd = XConnectionNumber (dpy);
 	XSetErrorHandler (ASErrorHandler);
 
+    intern_hint_atoms ();
+
 	memset (scr, 0x00, sizeof (ScreenInfo));
 
 	scr->screen = DefaultScreen (dpy);

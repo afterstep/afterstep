@@ -109,14 +109,14 @@ static Atom wm_del_win;
 Atom _XA_WM_PROTOCOLS;
 Atom _XA_WM_NAME;
 
-unsigned long GetColor( char *color ) 
+unsigned long GetColor( char *color )
 {
 	ARGB32 argb ;
 	unsigned long pixel ;
-	
+
 	if( color == parse_argb_color( color, &argb ) )
 		return Scr.asv->black_pixel ;
-	
+
 	ARGB2PIXEL( Scr.asv, argb, &pixel );
 	return pixel ;
 }
@@ -854,8 +854,7 @@ DeadPipe (int nonsense)
 	/* delete swallowed windows, but not modules (AfterStep handles those) */
 	if ((Buttons[button].swallow == 3) && (Buttons[button].module == 0))
 	  {
-	    send_clientmessage (Buttons[button].IconWin, wm_del_win, CurrentTime);
-	    XSync (dpy, 0);
+        send_wm_protocol_request(Buttons[button].IconWin, wm_del_win, CurrentTime);
 	  }
       }
   XSync (dpy, 0);
@@ -1195,32 +1194,6 @@ process_message (unsigned long type, unsigned long *body)
     }
 }
 
-/***************************************************************************
- *
- * ICCCM Client Messages - Section 4.2.8 of the ICCCM dictates that all
- * client messages will have the following form:
- *
- *     event type	ClientMessage
- *     message type	_XA_WM_PROTOCOLS
- *     window		tmp->w
- *     format		32
- *     data[0]		message atom
- *     data[1]		time stamp
- *
- ****************************************************************************/
-void
-send_clientmessage (Window w, Atom a, Time timestamp)
-{
-  XClientMessageEvent ev;
-
-  ev.type = ClientMessage;
-  ev.window = w;
-  ev.message_type = _XA_WM_PROTOCOLS;
-  ev.format = 32;
-  ev.data.l[0] = a;
-  ev.data.l[1] = timestamp;
-  XSendEvent (dpy, w, False, 0L, (XEvent *) & ev);
-}
 
 void
 swallow (unsigned long *body)

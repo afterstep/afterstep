@@ -568,89 +568,26 @@ HandleDestroyNotify (ASEvent *event )
 {
     if (event->client)
 	{
-		Destroy (Tmp_win, True);
+        Destroy (event->client, True);
 		UpdateVisibility ();
 	}
 }
 
-
-
-
 /***********************************************************************
- *
  *  Procedure:
  *	HandleMapRequest - MapRequest event handler
- *
  ************************************************************************/
 void
-HandleMapRequest ()
+HandleMapRequest (ASEvent *event )
 {
-	Event.xany.window = Event.xmaprequest.window;
-
-    Tmp_win = window2ASWindow( Event.xany.window );
-	XFlush (dpy);
-
-	/* If the window has never been mapped before ... */
-	if (!Tmp_win)
-	{
-		/* Add decorations. */
-		Tmp_win = AddWindow (Event.xany.window);
-		if (Tmp_win == NULL)
-			return;
-	}
-	/* If it's not merely iconified, and we have hints, use them. */
-	if (!(Tmp_win->flags & ICONIFIED))
-	{
-		int           state = NormalState;
-
-		if( get_flags( Tmp_win->status->flags, AS_Iconic ) )
-			state = IconicState;
-		else if( get_flags( Tmp_win->status->flags, AS_Shaded ) )
-			state = ZoomState;
-
-
-		XGrabServer (dpy);
-		switch (state)
-		{
-		 case DontCareState:
-		 case NormalState:
-		 case InactiveState:
-		 default:
-			 if (Tmp_win->status->desktop == Scr.CurrentDesk)
-			 {
-				 XMapWindow (dpy, Tmp_win->w);
-				 XMapWindow (dpy, Tmp_win->frame);
-				 Tmp_win->flags |= MAP_PENDING;
-				 SetMapStateProp (Tmp_win, NormalState);
-				 if (Scr.flags & ClickToFocus)
-				 {
-					 SetFocus (Tmp_win->w, Tmp_win, False);
-				 }
-			 } else
-			 {
-				 XMapWindow (dpy, Tmp_win->w);
-				 SetMapStateProp (Tmp_win, NormalState);
-			 }
-			 break;
-
-		 case IconicState:
-			 Iconify (Tmp_win);
-			 break;
-
-		 case ZoomState:
-			 Shade (Tmp_win);
-			 break;
-		}
-		XSync (dpy, 0);
-		XUngrabServer (dpy);
-	}
-	/* If no hints, or currently an icon, just "deiconify" */
-	else
-	{
-		DeIconify (Tmp_win);
-	}
+    /* If the window has never been mapped before ... */
+    if (event->client == NULL)
+    {
+        if( (event->client = AddWindow (Event.xany.window)) == NULL )
+            return;
+    }else /* If no hints, or currently an icon, just "deiconify" */
+        iconify_window( event->client, False );
 }
-
 
 /***********************************************************************
  *
@@ -659,7 +596,7 @@ HandleMapRequest ()
  *
  ***********************************************************************/
 void
-HandleMapNotify ()
+HandleMapNotify ( ASEvent *event )
 {
 	if (!Tmp_win || (Event.xmap.event == Scr.ASRoot.w))
 	{

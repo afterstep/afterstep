@@ -56,6 +56,15 @@
 #define SCROLL_REGION 2		/* region around screen edge that */
 				/* triggers scrolling */
 
+#define NO_HILITE     0x0000
+#define TOP_HILITE    0x0001
+#define RIGHT_HILITE  0x0002
+#define BOTTOM_HILITE 0x0004
+#define LEFT_HILITE   0x0008
+#define EXTRA_HILITE  0x0010
+#define FULL_HILITE   0x001F
+
+
 #ifndef TRUE
 #define TRUE	1
 #define FALSE	0
@@ -326,28 +335,12 @@ Bool destroy_registered_window( Window w );
 
 void destroy_icon_windows( ASWindow *asw );
 
-void MyXGrabButton ( unsigned button, unsigned modifiers,
-                     Window grab_window, Bool owner_events, unsigned event_mask,
-                     int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor);
-void MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window);
-
-void grab_window_buttons (Window w, ASFlagType context_mask);
-void ungrab_window_buttons( Window w );
-void grab_aswindow_buttons( ASWindow *asw, Bool focused );
-
-void ungrab_window_keys (Window w );
-void grab_window_keys (Window w, ASFlagType context_mask);
-void grab_aswindow_keys( ASWindow *asw );
-
 /* swiss army knife - does everything about grabbing : */
 void grab_window_input( ASWindow *asw, Bool release_grab );
-
 
 void hide_focus();
 Bool focus_aswindow( ASWindow *asw, Bool circulated );
 void hilite_aswindow( ASWindow *asw );         /* actually hilites focused window on reception of event */
-
-
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
 void update_window_transparency( ASWindow *asw );
@@ -359,10 +352,14 @@ void on_window_pressure_changed( ASWindow *asw, int pressed_context );
 
 Bool iconify_window( ASWindow *asw, Bool iconify );
 
+void SelectDecor (ASWindow *);
+ASWindow *AddWindow (Window);
+void Destroy (ASWindow *, Bool);
+void RestoreWithdrawnLocation (ASWindow *, Bool);
+void SetShape (ASWindow *, int);
+
 /* from decorations.c :*/
 void disable_titlebuttons_with_function (ASWindow * t, int function);
-
-
 
 
 #define TITLE_OLD		0	/* old (NEXTSTEP 3) style titlebar */

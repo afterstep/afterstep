@@ -1644,15 +1644,9 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 	if ( parse_feel || shall_override_config_file)
 	{
 		ASWindow     *win;
-
 		for (win = Scr.ASRoot.next; win != NULL; win = win->next)
-		{
-			XUngrabKey (dpy, AnyKey, AnyModifier, win->w);
-			XUngrabButton (dpy, AnyButton, AnyModifier, win->w);
-			GrabKeys (win);
-			GrabButtons (win);
-		}
-	}
+            grab_window_input( win, False );
+    }
 
 	/* force update of window frames */
 	if (parse_look || parse_base || parse_database || shall_override_config_file)

@@ -363,7 +363,7 @@ ExecuteFunction (FunctionCode func, char *action, ASEvent *event, long val1, lon
 		 if (check_allowed_function2 (func, tmp_win) == 0)
 			 XBell (dpy, Scr.screen);
 		 else if (ASWIN_PROTOS(tmp_win, AS_DoesWmDeleteWindow) && func != F_DESTROY)
-			 send_clientmessage (tmp_win->w, _XA_WM_DELETE_WINDOW, CurrentTime);
+             send_wm_protocol_request (tmp_win->w, _XA_WM_DELETE_WINDOW, CurrentTime);
 		 else
 		 {
 			 if (func == F_DELETE)

@@ -185,7 +185,7 @@ ParseOptions (const char *filename)
 
 /***********************************************************************
  *
- * Detected a broken pipe - time to exit 
+ * Detected a broken pipe - time to exit
  *
  **********************************************************************/
 void
@@ -194,7 +194,7 @@ DeadPipe (int nonsense)
   extern Atom wm_del_win;
 
   XReparentWindow (dpy, app_win, Scr.Root, 0, 0);
-  send_clientmessage (app_win, wm_del_win, CurrentTime);
+  send_wm_protocol_request(app_win, wm_del_win, CurrentTime);
   XSync (dpy, 0);
   exit (0);
 }
@@ -203,7 +203,7 @@ DeadPipe (int nonsense)
 /**********************************************************************
  *
  * If no application window was indicated on the command line, prompt
- * the user to select one 
+ * the user to select one
  *
  *********************************************************************/
 void
@@ -247,8 +247,8 @@ GetTargetWindow (Window * app_win)
 
 /****************************************************************************
  *
- * Find the actual application 
- * 
+ * Find the actual application
+ *
  ***************************************************************************/
 Window
 ClientWindow (Window input)

@@ -253,7 +253,7 @@ typedef struct ScreenInfo
 				   * NOT the window that really has the focus */
     ASWindow *Ungrabbed;
     ASWindow *PreviousFocus;	/* Window which had focus before afterstep stole it
-				   * to do moves/menus/etc. */
+                                 * to do moves/menus/etc. */
     int EntryHeight;		/* menu entry height */
     int EdgeScrollX;		/* #pixels to scroll on screen edge */
     int EdgeScrollY;		/* #pixels to scroll on screen edge */

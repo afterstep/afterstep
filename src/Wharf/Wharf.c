@@ -545,7 +545,7 @@ Loop (void)
 	  switch (Event.type)
 	    {
 	    case Expose:
-#if 0		
+#if 0
 	      for (folder = first_folder; folder != NULL; folder = (*folder).next)
 		if (Event.xany.window == (*folder).win)
 		  {
@@ -553,7 +553,7 @@ Loop (void)
 		    for (button = (*folder).first; button != NULL; button = (*button).next)
 		      RedrawUnpushedOutline (button);
 		  }
-#endif		  
+#endif
 	      break;
 
 	    case ButtonPress:
@@ -1064,21 +1064,21 @@ MapFolder (folder_info * folder)
 }
 
 
-void 
+void
 GenerateButtonImage(button_info * button, Bool pushed)
 {
 	ASImage *im = button->completeIcon ;
 	Pixmap p;
-	if( pushed || NoBorder == 0 ) 
+	if( pushed || NoBorder == 0 )
 	{
 		ASImageLayer layer ;
 		ASImageBevel bevel ;
-	
+
 		init_image_layers( &layer, 1 );
 		layer.im = im ;
 		layer.clip_width = button->width ;
 		layer.clip_height = button->height;
-		
+
 		memset( &bevel, 0x00, sizeof(bevel));
 		if( pushed )
 		{
@@ -1107,7 +1107,7 @@ GenerateButtonImage(button_info * button, Bool pushed)
 			bevel.left_outline = bevel.top_outline = 1 ;
 			bevel.right_outline = bevel.bottom_outline = 2 ;
 		}
-		if( NoBorder == 0 ) 
+		if( NoBorder == 0 )
 		{
 			layer.bevel = &bevel ;
 			if( PushStyle == 0 )
@@ -1120,15 +1120,15 @@ GenerateButtonImage(button_info * button, Bool pushed)
 			layer.clip_width -= layer.dst_x;
 			layer.clip_height -= layer.dst_y;
 		}
-		im = merge_layers( Scr.asv, &layer, 1, button->width, button->height, 
+		im = merge_layers( Scr.asv, &layer, 1, button->width, button->height,
 				  		   ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
 	}
 	if( im )
 	{
-		if( pushed && PushStyle != 0 )  
+		if( pushed && PushStyle != 0 )
 		{
-			asimage2drawable( Scr.asv, button->IconWin, im, NULL, 
-			                  0, 0, 0, 0, 
+			asimage2drawable( Scr.asv, button->IconWin, im, NULL,
+			                  0, 0, 0, 0,
 							  button->width, button->height,
 							  True );
 		}else
@@ -1142,13 +1142,13 @@ GenerateButtonImage(button_info * button, Bool pushed)
 				XFreePixmap( dpy, p );
 			}
 		}
-		if( im != button->completeIcon ) 
+		if( im != button->completeIcon )
 			destroy_asimage( &im );
 	}
 }
 
 
-void 
+void
 GenerateFolderImages(folder_info * folder)
 {
 	register button_info *button ;
@@ -1167,12 +1167,12 @@ CreateIconPixmap (void)
     if (back_pixmap != NULL)
 	  	destroy_asimage( &back_pixmap );
     /* create the icon pixmap */
-	if ( Style->texture_type != TEXTURE_BUILTIN || 
+	if ( Style->texture_type != TEXTURE_BUILTIN ||
   	     (back_pixmap = GetXPMData (( const char**)button_xpm)) == NULL )
     {
     	int width = 64, height = 64;
 #ifndef NO_TEXTURE
-    	if ((Style->texture_type >= TEXTURE_PIXMAP && Style->texture_type < TEXTURE_BUILTIN) && 
+    	if ((Style->texture_type >= TEXTURE_PIXMAP && Style->texture_type < TEXTURE_BUILTIN) &&
 	  	     Style->back_icon.image != NULL)
 		{
 			width = Style->back_icon.image->width;
@@ -1689,7 +1689,7 @@ DeadPipe (int nonsense)
 		safe_asimage_destroy( back_pixmap );
 		back_pixmap = NULL ;
 	}
-	if( imman ) 
+	if( imman )
 	{
 	  destroy_image_manager( imman, False );
 	  imman = NULL ;
@@ -1974,7 +1974,7 @@ ParseBaseOptions (char *filename)
       tline = fgets (line, sizeof (line), fd);
     }
   fclose (fd);
-  if( imman ) 
+  if( imman )
 	  destroy_image_manager( imman, False );
   imman = create_image_manager( NULL, 2.2, pixmapPath, iconPath, NULL );
 }
@@ -2175,7 +2175,7 @@ match_stringWharf (char *tline)
   for (i = actual->num_icons; actual->num_icons < MAX_OVERLAY; i++)
   {
       while (ptr[j] != ',' && j < i2)	j++;
-	  
+
 	  filename = filename?realloc(filename, j - k + 1):safemalloc(j - k + 1);
       strncpy (filename, &(ptr[k]), j - k);
       filename[j-k] = 0;
@@ -2187,7 +2187,7 @@ match_stringWharf (char *tline)
       if (j >= i2)
 		break;
   }
-  if( filename ) 
+  if( filename )
 	  free(filename);
   free (ptr);
   tline = end;
@@ -2745,14 +2745,14 @@ delete_button (button_info * button)
 
   if ((*button).completeIcon)
       destroy_asimage(&((*button).completeIcon));
-	  
+
   if( (*button).mask  )
 	  XFreePixmap( dpy, (*button).mask );
 
   /* delete swallowed windows, but not modules (AfterStep handles those) */
   if (button->swallowed_win != None && !get_flags (button->flags, WB_Module))
     {
-      send_clientmessage ((*button).swallowed_win, _XA_WM_DELETE_WINDOW, CurrentTime);
+      send_wm_protocol_request ((*button).swallowed_win, _XA_WM_DELETE_WINDOW, CurrentTime);
       XSync (dpy, 0);
     }
   /* delete the icon window */
@@ -2776,35 +2776,6 @@ delete_button (button_info * button)
   /* finally, free our own mem */
   free (button);
 }
-
-
-/***************************************************************************
- *
- * ICCCM Client Messages - Section 4.2.8 of the ICCCM dictates that all
- * client messages will have the following form:
- *
- *     event type	ClientMessage
- *     message type	_XA_WM_PROTOCOLS
- *     window		tmp->w
- *     format		32
- *     data[0]		message atom
- *     data[1]		time stamp
- *
- ****************************************************************************/
-void
-send_clientmessage (Window w, Atom a, Time timestamp)
-{
-  XClientMessageEvent ev;
-
-  ev.type = ClientMessage;
-  ev.window = w;
-  ev.message_type = _XA_WM_PROTOCOLS;
-  ev.format = 32;
-  ev.data.l[0] = a;
-  ev.data.l[1] = timestamp;
-  XSendEvent (dpy, w, False, 0L, (XEvent *) & ev);
-}
-
 
 void
 swallow (unsigned long *body)

@@ -36,10 +36,6 @@ struct MenuItem;
 
 extern XGCValues Globalgcv;
 extern unsigned long Globalgcm;
-extern MyFont *IconFont;
-extern Time lastTimestamp;
-extern XEvent Event;
-extern char NoName[];
 
 void set_titlebar_geometry (ASWindow * t);
 void get_client_geometry (ASWindow * t, int frame_x, int frame_y, int frame_width, int frame_height, int *client_x_out, int *client_y_out, int *client_width_out, int *client_height_out);
@@ -48,22 +44,29 @@ void get_frame_geometry (ASWindow * t, int client_x, int client_y, int client_wi
 void get_resize_geometry (ASWindow * t, int client_x, int client_y, int client_width, int client_height, int *frame_x_out, int *frame_y_out, int *frame_width_out, int *frame_height_out);
 
 extern void MoveOutline ( /* Window, */ ASWindow *, int, int, int, int);
-
 extern void DoResize (int, int, ASWindow *, Bool);
 extern void DisplaySize (ASWindow *, int, int, Bool);
 extern void DisplayPosition (ASWindow *, int, int, Bool);
+extern void moveLoop (ASWindow *, int, int, int, int, int *, int *, Bool, Bool);
+extern void Keyboard_shortcuts (XEvent *, int, int);
+
 //extern void SetupFrame (ASWindow *, int, int, int, int, Bool);
 extern void CreateGCs (void);
 extern void InstallWindowColormaps (ASWindow *);
 extern void InstallRootColormap (void);
 extern void UninstallRootColormap (void);
-extern void FetchWmColormapWindows (ASWindow *);
+
+extern void init_old_look_variables (Bool);
+extern void merge_old_look_colors (MyStyle *, int, int, char *, char *, char *, char *);
+extern void merge_old_look_variables (void);
 extern void InitBase (Bool);
 extern void InitLook (Bool);
 extern void InitFeel (Bool);
 extern void InitDatabase (Bool);
+extern void match_string (struct config *, char *, char *, FILE *);
+extern struct config *match_string2 (struct config *, char *);
 extern void LoadASConfig (const char *, int, Bool, Bool, Bool);
-extern void InitEvents (struct ASEvent *event);
+
 extern void HandleEvents (struct ASEvent *event);
 extern void HandleFocusIn (struct ASEvent *event);
 extern void HandleFocusOut (struct ASEvent *event);
@@ -80,23 +83,19 @@ extern void HandlePropertyNotify (struct ASEvent *event);
 extern void HandleKeyPress (struct ASEvent *event);
 extern void HandleVisibilityNotify (struct ASEvent *event);
 extern void HandleColormapNotify (struct ASEvent *event);
-extern int SetTransparency (ASWindow *);
-extern void RestoreWithdrawnLocation (ASWindow *, Bool);
-extern void Destroy (ASWindow *, Bool);
-extern void GetGravityOffsets (ASWindow *, int *, int *);
-extern void MoveViewport (int, int, Bool);
-extern ASWindow *AddWindow (Window);
-extern int MappedNotOverride (Window);
-extern void GrabButtons (ASWindow *);
-extern void GrabKeys (ASWindow *);
-extern void GetWindowSizeHints (ASWindow *);
-extern void ReallyRedrawPager (void);
-extern void SwitchPages (Bool, Bool);
-extern void NextPage (void);
-extern void PrevPage (void);
-extern void moveLoop (ASWindow *, int, int, int, int, int *, int *, Bool, Bool);
 
-extern void Keyboard_shortcuts (XEvent *, int, int);
+void quietly_unmap_window( Window w, long event_mask );
+void quietly_reparent_window( Window w, Window new_parent, int x, int y, long event_mask );
+inline void ungrab_window_buttons( Window w );
+inline void ungrab_window_keys (Window w );
+void MyXGrabButton ( unsigned button, unsigned modifiers,
+                Window grab_window, Bool owner_events, unsigned event_mask,
+                int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor);
+void MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window);
+void grab_window_buttons (Window w, ASFlagType context_mask);
+void grab_window_keys (Window w, ASFlagType context_mask);
+void grab_focus_click( Window w );
+void ungrab_focus_click( Window w );
 
 /* from icons.c */
 void AutoPlace (ASWindow * t);
@@ -112,64 +111,36 @@ void RedoIconName (ASWindow * Tmp_win);
 char *SearchIcon (ASWindow * tmp_win);
 void UpdateIconShape (ASWindow * tmp_win);
 
-extern AFTER_INLINE void RelieveWindow (ASWindow *, Window, int, int, int, int,
-					GC, GC, int);
-
-void RelieveParts (ASWindow *, int, GC, GC);
-#define NO_HILITE     0x0000
-#define TOP_HILITE    0x0001
-#define RIGHT_HILITE  0x0002
-#define BOTTOM_HILITE 0x0004
-#define LEFT_HILITE   0x0008
-#define EXTRA_HILITE  0x0010
-#define FULL_HILITE   0x001F
-
-extern void PagerMoveWindow (void);
 extern void Stick (ASWindow *);
 extern void Maximize (ASWindow *, int, int, int, int);
 extern void Shade (ASWindow *);
-extern void ResetShade (ASWindow *);
 extern void RaiseWindow (ASWindow *);
 extern void LowerWindow (ASWindow *);
 extern Bool GrabEm (int);
 extern void UngrabEm (void);
 extern void CaptureAllWindows (void);
 extern void SetTimer (int);
-extern int flush_expose (Window);
 extern void do_windowList (int, int);
-extern void RaiseThisWindow (int);
 extern void HandlePaging (ASWindow *, int, int, int *, int *, int *, int *, Bool);
-extern void SetShape (ASWindow *, int);
+extern void MoveViewport (int, int, Bool);
 extern void afterstep_err (const char *, const char *, const char *, const char *);
-extern void executeModule (char *, FILE *, char **, int *);
-extern Bool SetFocus (Window, ASWindow *, Bool);
-extern void CheckAndSetFocus (void);
-extern void nofont (char *name);
-extern void match_string (struct config *, char *, char *, FILE *);
-extern struct config *match_string2 (struct config *, char *);
-extern void no_popup (char *);
-extern void KillModule (int, int);
-extern void KillModuleByName (char *);
-extern void ClosePipes (void);
 
 /* this is afterstep specific stuff - we don't want this in modules */
 #ifndef IN_MODULE
 extern char *fit_horizontal_text (MyFont, char *, int, int);
 extern char *fit_vertical_text (MyFont, char *, int, int);
-extern void ConstrainSize (ASWindow *, int *, int *);
 extern void DispatchEvent (void);
-extern void HandleExpose (void);
+extern void HandleExpose (ASEvent *event);
 int AS_XNextEvent (Display *, XEvent *);
 #endif /* IN_MODULE */
 
-/*extern void GetXPMFile (ASWindow *); */
-extern void init_old_look_variables (Bool);
-extern int ParseColor (const char *, int[3], int[3]);
-extern void merge_old_look_colors (MyStyle *, int, int, char *, char *, char *, char *);
-extern void merge_old_look_variables (void);
-extern void get_window_geometry (ASWindow * t, int flags, int *x, int *y, int *w, int *h);
-extern int SmartPlacement (ASWindow *, int *, int *, int, int, int, int, int, int, int);
 extern void usage (void);
+
+extern void executeModule (char *, FILE *, char **, int *);
+extern void KillModule (int, int);
+extern void KillModuleByName (char *);
+extern void ClosePipes (void);
+void FlushQueue (int module);
 
 void Broadcast (unsigned long, unsigned long,...);
 void BroadcastConfig (unsigned long, ASWindow *);
@@ -186,23 +157,12 @@ void broadcast_res_names( ASWindow *asw );
 void DeadPipe (int);
 unsigned long GetGnomeState (ASWindow * t);
 unsigned long SetGnomeState (ASWindow * t);
-void SelectDecor (ASWindow *);
 void ComplexFunction (Window, ASWindow *, XEvent *, unsigned long, struct MenuRoot *);
 extern int DeferExecution (XEvent *, Window *, ASWindow **, unsigned long *, int, int);
-void send_clientmessage (Window, Atom, Time);
-void SetBackgroundTexture (ASWindow * t, Window win, MyStyle * style, Pixmap cache);
-int SetBackground (ASWindow * t, Window win);
-void SetBorder (ASWindow *, Bool, Bool, Bool, Window);
 void move_window (XEvent *, Window, ASWindow *, int, int, int, int, int);
 void resize_window (Window, ASWindow *, int, int, int, int);
 void SetMapStateProp (ASWindow *, int);
-void SetStickyProp (ASWindow *, int, int, int);
-void SetClientProp (ASWindow *);
-void KeepOnTop (void);
-void show_panner (void);
 void WaitForButtonsUp (void);
-Bool PlaceWindow (ASWindow *, unsigned long, int);
-void free_window_names (ASWindow *, Bool, Bool);
 
 int check_allowed_function (struct MenuItem *);
 int check_allowed_function2 (int, ASWindow *);
@@ -210,10 +170,7 @@ void ReInstallActiveColormap (void);
 void ParsePopupEntry (char *, FILE *, char **, int *);
 void ParseMouseEntry (char *, FILE *, char **, int *);
 void ParseKeyEntry (char *, FILE *, char **, int *);
-void SetOneStyle (char *text, FILE *, char **, int *);
 
-void ButtonStyle (void);
-void IconStyle (void);
 void SetTitleButton (char *, FILE *, char **, int *);
 void SetTitleText (char *, FILE *, char **, int *);
 void SetFlag (char *, FILE *, char **, int *);
@@ -226,10 +183,7 @@ void SetBox (char *, FILE *, char **, int *);
 void ReadPipeConfig (char *, FILE *, char **, int *);
 void set_func (char *, FILE *, char **, int *);
 void copy_config (FILE **);
-Bool GetIconXPM (char *, MyIcon *, int);
-Bool GetIconJPG (char *, MyIcon *, int);
 Bool GetIconFromFile (char *, MyIcon *, int);
-Pixmap GetXPMTile (char *, int);
 
 ASWindow *GetNextWindow (const ASWindow *, const int);
 extern ASWindow *Circulate (ASWindow *, char *, Bool);
@@ -243,14 +197,11 @@ void do_save (void);
 void checkPanFrames (void);
 void raisePanFrames (void);
 void initPanFrames (void);
-Bool StashEventTime (XEvent *);
 void SetCirculateSequence (ASWindow * tw, int dir);
-void MyXGrabKey (Display *, int, unsigned, Window, Bool, int, int);
 void GrabRaiseClick (ASWindow *);
 void UngrabRaiseClick (ASWindow *);
 void UpdateVisibility (void);
 void CorrectStackOrder (void);
-void FlushQueue (int module);
 void QuickRestart (char *);
 
 /* function to set the gnome proxy click window */

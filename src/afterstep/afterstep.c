@@ -485,6 +485,49 @@ main (int argc, char **argv)
 /***********************************************************************
  *
  *  Procedure:
+ *	MappedNotOverride - checks to see if we should really
+ *		put a afterstep frame on the window
+ *
+ *  Returned Value:
+ *	TRUE	- go ahead and frame the window
+ *	FALSE	- don't frame the window
+ *
+ *  Inputs:
+ *	w	- the window to check
+ *
+ ***********************************************************************/
+
+int
+MappedNotOverride (Window w)
+{
+	XWindowAttributes wa;
+	Atom          atype;
+	int           aformat;
+	unsigned long nitems, bytes_remain;
+	unsigned char *prop;
+
+	isIconicState = DontCareState;
+
+	if (!XGetWindowAttributes (dpy, w, &wa))
+		return False;
+
+	if (XGetWindowProperty (dpy, w, _XA_WM_STATE, 0L, 3L, False, _XA_WM_STATE,
+							&atype, &aformat, &nitems, &bytes_remain, &prop) == Success)
+	{
+		if (prop != NULL)
+		{
+			isIconicState = *(long *)prop;
+			XFree (prop);
+		}
+	}
+	return (((isIconicState == IconicState) || (wa.map_state != IsUnmapped)) &&
+			(wa.override_redirect != True));
+}
+
+
+/***********************************************************************
+ *
+ *  Procedure:
  *      CaptureAllWindows
  *
  *   Decorates all windows at start-up
@@ -558,48 +601,6 @@ CaptureAllWindows (void)
 	/* after the windows already on the screen are in place,
 	 * don't use PPosition */
 	PPosOverride = FALSE;
-}
-
-/***********************************************************************
- *
- *  Procedure:
- *	MappedNotOverride - checks to see if we should really
- *		put a afterstep frame on the window
- *
- *  Returned Value:
- *	TRUE	- go ahead and frame the window
- *	FALSE	- don't frame the window
- *
- *  Inputs:
- *	w	- the window to check
- *
- ***********************************************************************/
-
-int
-MappedNotOverride (Window w)
-{
-	XWindowAttributes wa;
-	Atom          atype;
-	int           aformat;
-	unsigned long nitems, bytes_remain;
-	unsigned char *prop;
-
-	isIconicState = DontCareState;
-
-	if (!XGetWindowAttributes (dpy, w, &wa))
-		return False;
-
-	if (XGetWindowProperty (dpy, w, _XA_WM_STATE, 0L, 3L, False, _XA_WM_STATE,
-							&atype, &aformat, &nitems, &bytes_remain, &prop) == Success)
-	{
-		if (prop != NULL)
-		{
-			isIconicState = *(long *)prop;
-			XFree (prop);
-		}
-	}
-	return (((isIconicState == IconicState) || (wa.map_state != IsUnmapped)) &&
-			(wa.override_redirect != True));
 }
 
 
