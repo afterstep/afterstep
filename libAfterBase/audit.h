@@ -28,7 +28,7 @@
 int as_assert (void *p, const char *fname, int line, const char *call);
 
 #define AS_ASSERT(p) as_assert((void*)p,__FILE__, __LINE__ ,__FUNCTION__)
-#define AS_ASSERT_NOTVAL(p,val) as_assert((void*)(((p)!=(val))?0:((p)==(typeof(p))0)?-1:p),__FILE__, __LINE__ ,__FUNCTION__)
+#define AS_ASSERT_NOTVAL(p,val) as_assert((void*)(((p)!=(val))?0:(((int)p)==0)?-1:(int)p),__FILE__, __LINE__ ,__FUNCTION__)
 
 #define malloc(a) countmalloc(__FUNCTION__, __LINE__, a)
 #define safemalloc(a) countmalloc(__FUNCTION__, __LINE__, a)
