@@ -923,7 +923,7 @@ rm -f conftest.sh
 
 ac_config_headers="$ac_config_headers config.h:config.h.in"
 
-version="0.90"
+version="0.91"
 version_major="0"
 lib_name="LIBAFTERBASE"
 lib_file_name="libAfterBase"
