@@ -140,6 +140,8 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 {
     struct SaveWindowAuxData *swad = (struct SaveWindowAuxData *)aux_data ;
     ASWindow *asw = (ASWindow*)data ;
+	LOCAL_DEBUG_OUT( "window \"%s\", is a %smodule", ASWIN_NAME(asw), ASWIN_HFLAGS(asw,AS_Module)?
+	" ":"non ");
     if( asw && swad && !ASWIN_HFLAGS(asw,AS_Module) )
     {
 		Bool same_host = (asw->hints->client_host == NULL || mystrcasecmp( asw->hints->client_host, swad->this_host )== 0);
@@ -149,6 +151,8 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 				asw->hints->client_cmd = pid2cmd( asw->hints->pid );
 			
 		}
+		LOCAL_DEBUG_OUT( "same_host = %d, client_smd = \"%s\"", same_host,
+		asw->hints->client_cmd?asw->hints->client_cmd:"(null)" );
 
         if( asw->hints->client_cmd != NULL && same_host )
         {

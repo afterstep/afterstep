@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 
 #ifdef _WIN32
 #include "win32/config.h"
@@ -55,6 +55,9 @@ typedef struct ASDrawContext
 
 	void (*apply_tool_func)( struct ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio );
 }ASDrawContext;
+
+#define CTX_PUT_PIXEL(ctx,x,y,ratio) (ctx)->apply_tool_func(ctx,x,y,ratio)
+#define CTX_FILL_HLINE(ctx,x_from,y,x_to,ratio) fill_hline_notile(ctx,x_from,y,x_to,ratio)
 
 #define AS_DRAW_BRUSHES	3
 
@@ -109,7 +112,7 @@ apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 		CARD8 *dst = ctx->canvas ; 
 		int x, y ;
 
-		if( corner_x+tw < 0 || corner_x >= cw || corner_y+th < 0 || corner_y >= ch ) 
+		if( corner_x+tw <= 0 || corner_x >= cw || corner_y+th <= 0 || corner_y >= ch ) 
 			return ;
 		 
 		if( corner_y > 0 ) 
@@ -150,7 +153,7 @@ apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 				src += tw ; 
 				dst += cw ; 
 			}
-		}else if( ratio != 0 )
+		}else
 		{		 
 			for( y = 0 ; y < ah ; ++y ) 
 			{	
@@ -171,6 +174,44 @@ apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 		}
 	}
 }	   
+
+static void
+apply_tool_point( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
+{
+	int cw = ctx->canvas_width ;
+	if( ratio != 0 && curr_x >= 0 && curr_x < cw && curr_y >= 0 && curr_y < ctx->canvas_height ) 
+	{	
+		CARD32 value = (ctx->tool->matrix[0]*(CARD32)ratio)>>8 ;
+		CARD8 *dst = ctx->canvas + curr_y * cw ; 
+
+		if( dst[curr_x] < value ) 
+			dst[curr_x] = value ;
+	}
+}	   
+
+
+static void
+fill_hline_notile( ASDrawContext *ctx, int x_from, int y, int x_to, CARD8 ratio )
+{
+	int cw = ctx->canvas_width ;
+	if( ratio != 0 && x_to >= 0 && x_from < cw && y >= 0 && y < ctx->canvas_height ) 
+	{	
+		CARD32 value = ratio ;
+		CARD8 *dst = ctx->canvas + y * cw ; 
+		int x1 = x_from, x2 = x_to ; 
+		if( x1 < 0 ) 
+			x1 = 0 ; 
+		if( x2 >= cw ) 
+			x2 = cw - 1 ; 
+
+		while( x1 <= x2 ) 
+		{
+			if( dst[x1] < value ) 
+				dst[x1] = value ;
+			++x1 ;
+		}
+	}
+}
 
 
 /*********************************************************************************/
@@ -201,7 +242,7 @@ ctx_draw_line_solid( ASDrawContext *ctx, int from_x, int from_y, int to_x, int t
 		if( end < x ) 
 			dir = -1 ;				 
       	
-		ctx->apply_tool_func( ctx, x, y, 255 );
+		CTX_PUT_PIXEL( ctx, x, y, 255 );
       	while(x != end)
 		{
         	x += dir;
@@ -211,7 +252,7 @@ ctx_draw_line_solid( ASDrawContext *ctx, int from_x, int from_y, int to_x, int t
           		++y;
         	}else 
 				Dy += inct;
-        	ctx->apply_tool_func( ctx, x, y, 255 );
+        	CTX_PUT_PIXEL( ctx, x, y, 255 );
       	}
 	}else
 	{
@@ -227,7 +268,7 @@ ctx_draw_line_solid( ASDrawContext *ctx, int from_x, int from_y, int to_x, int t
 		if( end < y ) 
 			dir = -1 ;				 
       	
-		ctx->apply_tool_func( ctx, x, y, 255 );
+		CTX_PUT_PIXEL( ctx, x, y, 255 );
       	while(y != end)
 		{
         	y += dir;
@@ -237,7 +278,7 @@ ctx_draw_line_solid( ASDrawContext *ctx, int from_x, int from_y, int to_x, int t
           		++x;
         	}else 
 				Dx += inct;
-        	ctx->apply_tool_func( ctx, x, y, 255 );
+        	CTX_PUT_PIXEL( ctx, x, y, 255 );
       	}
 	}		 
 }	 
@@ -271,7 +312,7 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 		
 		if( end < x ) 	dir = -1 ;				 
       	
-		ctx->apply_tool_func( ctx, x, y, 255 );
+		CTX_PUT_PIXEL( ctx, x, y, 255 );
 /*		LOCAL_DEBUG_OUT( "x = %d, y = %d, dir = %d, value = %d, incr = %d, decr = %d, ratio = %d, value_incr = %d", 
 						 x, y, dir, value, incr, decr, ratio, value_incr );
   */			
@@ -292,31 +333,31 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 				{
 					case 0 :  /* 0 - 32 */ 
 						above = 128 - above ;
-						ctx->apply_tool_func( ctx, x, y-1, above ) ;
-						ctx->apply_tool_func( ctx, x, y, ~(above>>1) ) ; 
+						CTX_PUT_PIXEL( ctx, x, y-1, above ) ;
+						CTX_PUT_PIXEL( ctx, x, y, ~(above>>1) ) ; 
 						break ;	  
 					case 1 :  /* 32 - 64 */ 
 						{
 							int a1 = (above - 32) ;
-							ctx->apply_tool_func( ctx, x, y+1, a1 ) ;
+							CTX_PUT_PIXEL( ctx, x, y+1, a1 ) ;
 							above = (~above)&0x7f ;
-							ctx->apply_tool_func( ctx, x, y-1, above - a1 ) ;
-							ctx->apply_tool_func( ctx, x, y, 255 ) ; 
+							CTX_PUT_PIXEL( ctx, x, y-1, above - a1 ) ;
+							CTX_PUT_PIXEL( ctx, x, y, 255 ) ; 
 						}
 						break ;
 					case 2 :  /* 64 - 96 */  
 						{
 							int a1 = (96 - above) ;	  
-							ctx->apply_tool_func( ctx, x, y-1, a1 ) ;
-							ctx->apply_tool_func( ctx, x, y, 255 ) ; 
-							ctx->apply_tool_func( ctx, x, y+1, above - a1 ) ;
+							CTX_PUT_PIXEL( ctx, x, y-1, a1 ) ;
+							CTX_PUT_PIXEL( ctx, x, y, 255 ) ; 
+							CTX_PUT_PIXEL( ctx, x, y+1, above - a1 ) ;
 						}
 						break ;
 					case 3 :  /* 96 - 128 */ 
 						{
 							above -= ((~above)&0x7f)>>1 ;	  
-							ctx->apply_tool_func( ctx, x, y, ~(above>>1) ) ; 
-							ctx->apply_tool_func( ctx, x, y+1, above ) ;
+							CTX_PUT_PIXEL( ctx, x, y, ~(above>>1) ) ; 
+							CTX_PUT_PIXEL( ctx, x, y+1, above ) ;
 						}
 						break ;
 				}
@@ -337,7 +378,7 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 		
 		if( end < y ) 	dir = -1 ;				 
       	
-		ctx->apply_tool_func( ctx, x, y, 255 );
+		CTX_PUT_PIXEL( ctx, x, y, 255 );
 /*		LOCAL_DEBUG_OUT( "x = %d, y = %d, dir = %d, value = %d, incr = %d, decr = %d, ratio = %d, value_incr = %d", 
 						 x, y, dir, value, incr, decr, ratio, value_incr );
   */			
@@ -358,31 +399,31 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 				{
 					case 0 :  /* 0 - 32 */ 
 						above = 128 - above ;
-						ctx->apply_tool_func( ctx, x-1, y, above ) ;
-						ctx->apply_tool_func( ctx, x, y, ~(above>>1) ) ; 
+						CTX_PUT_PIXEL( ctx, x-1, y, above ) ;
+						CTX_PUT_PIXEL( ctx, x, y, ~(above>>1) ) ; 
 						break ;	  
 					case 1 :  /* 32 - 64 */ 
 						{
 							int a1 = (above - 32) ;
-							ctx->apply_tool_func( ctx, x+1, y, a1 ) ;
+							CTX_PUT_PIXEL( ctx, x+1, y, a1 ) ;
 							above = (~above)&0x7f ;
-							ctx->apply_tool_func( ctx, x-1, y, above - a1 ) ;
-							ctx->apply_tool_func( ctx, x, y, 255 ) ; 
+							CTX_PUT_PIXEL( ctx, x-1, y, above - a1 ) ;
+							CTX_PUT_PIXEL( ctx, x, y, 255 ) ; 
 						}
 						break ;
 					case 2 :  /* 64 - 96 */  
 						{
 							int a1 = (96 - above) ;	  
-							ctx->apply_tool_func( ctx, x-1, y, a1 ) ;
-							ctx->apply_tool_func( ctx, x, y, 255 ) ; 
-							ctx->apply_tool_func( ctx, x+1, y, above - a1 ) ;
+							CTX_PUT_PIXEL( ctx, x-1, y, a1 ) ;
+							CTX_PUT_PIXEL( ctx, x, y, 255 ) ; 
+							CTX_PUT_PIXEL( ctx, x+1, y, above - a1 ) ;
 						}
 						break ;
 					case 3 :  /* 96 - 128 */ 
 						{
 							above -= ((~above)&0x7f)>>1 ;	  
-							ctx->apply_tool_func( ctx, x, y, ~(above>>1) ) ; 
-							ctx->apply_tool_func( ctx, x+1, y, above ) ;
+							CTX_PUT_PIXEL( ctx, x, y, ~(above>>1) ) ; 
+							CTX_PUT_PIXEL( ctx, x+1, y, above ) ;
 						}
 						break ;
 				}
@@ -391,36 +432,30 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 	}		 
 }	 
 
+#define SUPERSAMPLING_BITS	8
+#define SUPERSAMPLING_MASK	0x000000FF
+
 static inline void 
-render_supersampled_pixel( ASDrawContext *ctx, int x8, int y8 )
+render_supersampled_pixel( ASDrawContext *ctx, int xs, int ys )
 {
-	if( x8 >= 0 && y8 >= 0 )
+	if( xs >= 0 && ys >= 0 )
 	{	
-		int xe = x8&0x00FF ; 
-		int ye = y8&0x00FF ; 
-		int x = x8>>8, y = y8>>8 ; 
-				
-		if( xe < 255 && ye < 255 ) 
-		{
-			int v = ((255-xe)*(255-ye))>>8 ;	  
-			ctx->apply_tool_func( ctx, x, y, v ) ; 
-			LOCAL_DEBUG_OUT( "x = %d, y = %d, xe = %d, ye = %d, v = 0x%x", x, y, xe, ye, v );
-		}
-		if( xe > 0  ) 
-		{	
-			int v = (xe*(255-ye))>>8 ;	  
-			ctx->apply_tool_func( ctx, x+1, y, v ) ; 
-			if( ye > 0 ) 
-			{	
-				v = (xe*ye)>>8 ;	  
-				ctx->apply_tool_func( ctx, x+1, y+1, v ) ; 
-			}
-		}
-		if( ye > 0 ) 
-		{
-			int v = ((255-xe)*ye)>>8 ;
-			ctx->apply_tool_func( ctx, x, y+1, v ) ; 
-		}
+		unsigned int xe = xs&SUPERSAMPLING_MASK ; 
+		unsigned int nxe = (~xs)&SUPERSAMPLING_MASK ; 
+		unsigned int x = xs>>SUPERSAMPLING_BITS;
+		unsigned int ye = ys&SUPERSAMPLING_MASK ; 
+		unsigned int nye = (~ys)&SUPERSAMPLING_MASK ; 
+		unsigned int y = ys>>SUPERSAMPLING_BITS; 
+		unsigned int v = (nxe*nye)>>8 ;	  
+			
+		CTX_PUT_PIXEL( ctx, x, y, v ) ; 
+		LOCAL_DEBUG_OUT( "x = %d, y = %d, xe = %d, ye = %d, v = 0x%x", x, y, xe, ye, v );
+		v = (xe*(nye))>>8 ;	  
+		CTX_PUT_PIXEL( ctx, x+1, y, v ) ; 
+		v = ((nxe)*ye)>>8 ;
+		CTX_PUT_PIXEL( ctx, x, ++y, v ) ; 
+		v = (xe*ye)>>8 ;	  
+		CTX_PUT_PIXEL( ctx, x+1, y, v ) ; 
 	}
 }	
 
@@ -492,13 +527,13 @@ ctx_draw_bezier( ASDrawContext *ctx, int x0, int y0, int x1, int y1, int x2, int
 			int x0111 = x011 + ((x111-x011)>>1) ;  	  
 			int y0111 = y011 + ((y111-y011)>>1) ; 
 
-			if( (x0>>8) == (x0111>>8) && (y0>>8) == (y0111>>8) ) 
+			if( (x0&0xFFFFFF00) == (x0111&0xFFFFFF00) && (y0&0xFFFFFF00) == (y0111&0xFFFFFF00) ) 
 			{
 			  	render_supersampled_pixel( ctx, x0, y0 );
 			}else if( x01 != x1 || y01 != y1 || x011 != x2 || y011 != y2 || x0111 != x3 || y0111 != y3 )
 			  	ADD_CubicBezier( x0, y0, x01, y01, x011, y011, x0111, y0111 );
 
-			if( (x3>>8) == (x0111>>8) && (y3>>8) == (y0111>>8) ) 
+			if( (x3&0xFFFFFF00) == (x0111&0xFFFFFF00) && (y3&0xFFFFFF00) == (y0111&0xFFFFFF00) ) 
 			{	
 			  	render_supersampled_pixel( ctx, x3, y3 );
 			}else if( x0111 != x0 || y0111 != y0 || x111 != x1 || y111 != y1 || x31 != x2 || y31 != y2 ) 	
@@ -554,6 +589,8 @@ clip_line( int k, int x0, int y0, int cw, int ch, int *x, int*y )
 /*********************************************************************************/
 /* context functions : 											 				 */
 /*********************************************************************************/
+Bool asim_set_brush( ASDrawContext *ctx, int brush );
+
 ASDrawContext *
 create_draw_context( unsigned int width, unsigned int height )
 {
@@ -563,8 +600,7 @@ create_draw_context( unsigned int width, unsigned int height )
 	ctx->canvas_height = height == 0 ? 1 : height ;
 	ctx->canvas = safecalloc(  ctx->canvas_width*ctx->canvas_height, sizeof(CARD8));
 
-	ctx->tool = &(StandardBrushes[0]) ;  
-	ctx->apply_tool_func = apply_tool_2D ; 
+	asim_set_brush( ctx, 0 ); 
 				   
 	return ctx;
 }	   
@@ -575,7 +611,10 @@ asim_set_brush( ASDrawContext *ctx, int brush )
 	if( brush >= 0 && brush < AS_DRAW_BRUSHES && ctx != NULL ) 
 	{
 		ctx->tool = &(StandardBrushes[brush]) ;  
-		ctx->apply_tool_func = apply_tool_2D ; 
+		if( ctx->tool->width == 1 && ctx->tool->height == 1 ) 
+			ctx->apply_tool_func = apply_tool_point ;
+		else 
+			ctx->apply_tool_func = apply_tool_2D ; 
 		return True;
 	}	 
 	return False;
@@ -682,6 +721,27 @@ asim_circle( ASDrawContext *ctx, int x, int y, int r, Bool fill )
 	{	
 		int dr = r*142 ;       /* that gives us precision of about 0.05% which is 
 								* pretty good for integer math */
+		if( fill ) 
+		{
+			int y1 = 0; 
+			int x1 = r-1;
+			int ty = r*r ;
+			int tx = r*r-(r<<1)+1 ;
+			
+			do
+			{
+				while( tx > ty ) 
+				{
+					tx -= (x1<<1)+1 ;
+					--x1 ;
+				}
+				CTX_FILL_HLINE(ctx,x-x1,y+y1,x+x1,255);
+				CTX_FILL_HLINE(ctx,x-x1,y-y1,x+x1,255);
+				ty -= (y1<<1)+1;
+			
+			}while( ++y1 < r ); 
+		}
+		
 		asim_move_to( ctx, x+r, y );
 		x = x<<8 ; 
 		y = y<<8 ; 
@@ -734,6 +794,9 @@ static inline int asim_sin( int angle )
 void
 asim_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool fill ) 
 {
+	if( rx == ry ) 
+		return asim_circle( ctx, x, y, rx, fill );
+
 	if( ctx && rx > 0 && ry > 0 ) 
 	{	
 		int dx0 = rx, dy0 = ry, dx1 = 0, dy1 = rx*4/3 ;
@@ -996,6 +1059,10 @@ int main(int argc, char **argv )
 	asim_circle( ctx, 595, 550, 200, False );
 	for( i = 0 ; i < 180 ; i+=5 ) 
 		asim_ellips( ctx, 595, 550, 198, 40, i, False );
+
+
+	asim_circle( ctx, 705, 275, 90, True );
+
 
 
 #if 1
