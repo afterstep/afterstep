@@ -1,0 +1,13 @@
+<composite>
+	<scale width=32 height=32 x=2 y=2>
+		<img src="large/Terminal"/>
+	</scale>
+	<scale width=32 height=32 x=8 y=8>
+		<img src="large/Terminal"/>
+	</scale>
+	<scale width=32 height=32 x=16 y=16>
+		<img src="large/Terminal"/>
+	</scale>
+	<img src="normal/HammerGrey"/>
+</composite>
+

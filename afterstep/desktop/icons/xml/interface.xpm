@@ -1,0 +1,7 @@
+<composite merge="clip">
+	<scale width=48 height=48>
+		<img src="large/Interface"/>
+	</scale>
+	<img src="normal/Screwdriver2"/>
+</composite>
+

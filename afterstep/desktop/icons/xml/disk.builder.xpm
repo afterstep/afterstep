@@ -1,0 +1,7 @@
+<composite merge="clip">
+	<img src="normal/CDR"/>
+	<rotate angle=270>
+		<img src="normal/HammerBrown"/>
+	</scale>
+</composite>
+

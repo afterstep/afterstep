@@ -1,0 +1,8 @@
+<composite merge="clip">
+	<hsv affected_hue="blue" affected_radius=10 saturation_offset=40 value_offset=0 hue_offset=-30>
+		<img src="large/NetworkedGlobe"/>
+	</hsv>
+	<img src="normal/SwissArmyKnife" x=10 y=10/>
+	<scale width=12 height=12 x=26 y=33><img src="normal/Info"/></scale>
+</composite>
+

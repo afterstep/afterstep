@@ -1,0 +1,7 @@
+<composite merge="clip">
+	<img src="large/FileCabinet"/>
+	<scale width=32 height=32 x=24 y=2>
+		<img src="normal/Table"/>
+	</scale>
+</composite>
+
