@@ -612,16 +612,6 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     CleanupScreen();
     /* Really make sure that the connection is closed and cleared! */
     XSync (dpy, 0);
-    XCloseDisplay (dpy);
-	dpy = NULL ;
-
-	/* freeing up memory */
-    destroy_assession( Session );
-	destroy_asenvironment( &Environment );
-    InitDatabase(True);
-    free_func_hash ();
-    /* pixmap references */
-    build_xpm_colormap (NULL);
 #ifdef XSHMIMAGE
 	/* may not need to do that as server may still have some of the shared 
 	 * memory and work in it */
@@ -631,9 +621,20 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 	if (restart)
 	{
         spawn_child( local_command, -1, restart_screen,
-                     None, C_NO_CONTEXT, False, False, NULL );
+                     None, C_NO_CONTEXT, False, True, NULL );
     } else
 	{
+	    XCloseDisplay (dpy);
+		dpy = NULL ;
+
+		/* freeing up memory */
+    	destroy_assession( Session );
+		destroy_asenvironment( &Environment );
+    	InitDatabase(True);
+    	free_func_hash ();
+    	/* pixmap references */
+    	build_xpm_colormap (NULL);
+
 #ifdef DEBUG_ALLOCS
         restack_window_list(INVALID_DESK, True);
         clientprops_cleanup ();

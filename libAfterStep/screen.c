@@ -170,7 +170,7 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
     /* Initialize X connection */
     if (!(dpy = XOpenDisplay (MyArgs.display_name)))
 	{
-        show_error("Can't open display %s. Exiting!", XDisplayName (MyArgs.display_name));
+        show_error("Can't open display \"%s\". Exiting!", XDisplayName (MyArgs.display_name));
 		exit (1);
 	}
 

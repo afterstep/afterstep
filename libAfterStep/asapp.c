@@ -781,7 +781,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         char *cmdl;
         char *arg, *screen_str = NULL, *w_str = NULL, *context_str = NULL ;
         va_list ap;
-
+		LOCAL_DEBUG_OUT( "dpy = %p, DisplayString = \"%s\"", dpy, display );
 		LOCAL_DEBUG_OUT( "pid(%d), entered child process to spawn ...", pid );
         len = strlen((char*)cmd);
         if( pass_args )
