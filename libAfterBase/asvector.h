@@ -26,6 +26,7 @@ ASVector *append_vector( ASVector *v, void * data, size_t size );
 
 /* returns index on success, -1 on failure */
 int vector_insert_elem( ASVector *v, void *data, size_t size, void *sibling, int before );
+int vector_relocate_elem( ASVector *v, void *data, unsigned int new_index );
 int vector_find_elem( ASVector *v, void *data );
 /* returns 1 on success, 0 on failure */
 int vector_remove_elem( ASVector *v, void *data );

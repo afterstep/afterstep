@@ -153,58 +153,62 @@ inline size_t vector_find_data( ASVector *v, void *data )
     return i;
 }
 
-inline void vector_move_data_up( ASVector *v, int offset, int length )
+inline void vector_move_data_up( ASVector *v, int index, int offset, int length )
 {
     register int i ;
     /* word copying is usually faster then raw memory copying */
+    if( length == -1 )
+        length = v->used ;
     if( v->unit == sizeof(long*) )
     {   /* 4 or 8 byte pointer copying  */
         register long** src = (long**)(v->memory);
-        register long** trg = src+length;
-        for( i = v->used-1 ; i >= offset ; i-- )
+        register long** trg = src+offset;
+        for( i = length-1 ; i >= index ; i-- )
             trg[i] = src[i] ;
     }else if( v->unit == 2 )
     {   /* 2 byte copying  */
         register CARD16 *src = (CARD16*)(v->memory);
-        register CARD16 *trg = src+length;
-        for( i = v->used-1 ; i >= offset ; i-- )
+        register CARD16 *trg = src+offset;
+        for( i = length-1 ; i >= index ; i-- )
             trg[i] = src[i] ;
     }else
     {   /* raw copy */
         register CARD8 *src = v->memory ;
-        register CARD8 *trg = src+(length*v->unit) ;
-        int start = offset*v->unit ;
-        for( i = (v->used-1)*v->unit ; i >= start ; i-- )
+        register CARD8 *trg = src+(offset*v->unit) ;
+        int start = index*v->unit ;
+        for( i = (length-1)*v->unit ; i >= start ; i-- )
             trg[i] = src[i] ;
     }
-    v->used+=length ;
+    v->used+=offset ;
 }
 
-inline void vector_move_data_down( ASVector *v, int offset, int length )
+inline void vector_move_data_down( ASVector *v, int index, int offset, int length )
 {
     register int i ;
     /* word copying is usually faster then raw memory copying */
+    if( length == -1 )
+        length = v->used ;
     if( v->unit == sizeof(long*) )
     {   /* 4 or 8 byte pointer copying  */
         register long** trg = (long**)(v->memory);
-        register long** src = trg+length;
-        for( i = offset ; i < v->used ; i++ )
+        register long** src = trg+offset;
+        for( i = index ; i < length ; i++ )
             trg[i] = src[i] ;
     }else if( v->unit == 2 )
     {   /* 2 byte copying  */
         register CARD16* trg = (CARD16*)(v->memory);
-        register CARD16* src = trg+length;
-        for( i = offset ; i < v->used ; i++ )
+        register CARD16* src = trg+offset;
+        for( i = index ; i < length ; i++ )
             trg[i] = src[i] ;
     }else
     {   /* raw copy */
         register CARD8 *trg = v->memory ;
-        register CARD8 *src = trg+(length*v->unit) ;
-        int end = (v->used)*(v->unit);
-        for( i = offset*v->unit ; i < end ; i++ )
+        register CARD8 *src = trg+(offset*v->unit) ;
+        int end = (length)*(v->unit);
+        for( i = index*v->unit ; i < end ; i++ )
             trg[i] = src[i] ;
     }
-    v->used-=length ;
+    v->used-=offset ;
 }
 
 inline void vector_set_data( ASVector *v, void *data, int offset, int length)
@@ -215,7 +219,6 @@ inline void vector_set_data( ASVector *v, void *data, int offset, int length)
     {
         register long** trg = ((long**)(v->memory))+offset;
         register long** src = (long**)data ;
-fprintf( stderr, "inserting %d long* at %d\n", length, offset );
         for( i = 0 ; i < length ; i++ )
             trg[i] = src[i] ;
     }else if( v->unit == 2 )
@@ -258,13 +261,34 @@ vector_insert_elem( ASVector *v, void *data, size_t size, void *sibling, int bef
         }else if( !before )
             index ++ ;
     }
-fprintf( stderr, "inserting into vector at %d\n", index );
     if( index < v->used )
-        vector_move_data_up(v,index,size);
+        vector_move_data_up(v,index,size,-1);
     else
         v->used+=size ;
 
     vector_set_data(v,data,index,size);
+    return index;
+}
+
+int
+vector_relocate_elem( ASVector *v, void *data, unsigned int new_index )
+{
+    size_t index = 0;
+
+    if( v == NULL || data == NULL )
+        return -1;
+
+    index = vector_find_data(v,data);
+    if( index >= v->used )
+        return -1;
+    if( index > new_index )
+        vector_move_data_up(v,new_index,1,index-new_index);
+    else if( index < new_index )
+        vector_move_data_down(v,new_index,1,new_index-index);
+    else
+        return index;
+
+    vector_set_data(v,data,new_index,1);
     return index;
 }
 
@@ -287,7 +311,7 @@ vector_remove_elem( ASVector *v, void *data )
 
     if( (index = vector_find_data(v,data)) >= (int)(v->used) )
         return 0;
-    vector_move_data_down( v, index, 1 );
+    vector_move_data_down( v, index, 1, -1 );
     return 1;
 }
 
@@ -299,7 +323,7 @@ vector_remove_index( ASVector *v, size_t index )
     if( index >= v->used )
         return 0;
 
-    vector_move_data_down( v, index, 1 );
+    vector_move_data_down( v, index, 1, -1 );
     return 1;
 }
 
