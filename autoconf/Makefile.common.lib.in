@@ -14,7 +14,7 @@ install.bin:
 install.lib:	@LIBPROG@ @LIBINSTALL@ install.inc
 
 install.static:
-                @( \
+		@( \
 		if test -d $(LIBDIR) && test -w $(LIBDIR); then \
 		    echo "$(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR)"; \
 		    $(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR); \

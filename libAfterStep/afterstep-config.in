@@ -15,8 +15,6 @@ Options:
  [--libs [--external-only]] 
  [--libtool]
  [--cflags]
- [--have-afterbase]
- [--preferred-image-format]
 EOF
   exit $1
 }
