@@ -216,7 +216,7 @@ disable_titlebuttons_with_function (ASWindow * t, int function)
 	for (i = 0; i < 10; i++)
 	{
 		j = (i != 9) ? (i + 1) : 0;
-		if ((Scr.button_style[j] != NO_BUTTON_STYLE) &&
+		if ((Scr.buttons[j].unpressed.image != NULL ) &&
 			!(t->buttons & (BUTTON1 << i)) && is_function_bound_to_button (j, function))
 			t->buttons |= BUTTON1 << i;
 	}

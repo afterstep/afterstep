@@ -77,22 +77,18 @@
 				 C_SIDEBAR|C_L1|C_L2|C_L3|C_L4|C_L5|\
 				 C_R1|C_R2|C_R3|C_R4|C_R5)
 
-typedef struct MyIcon
-  {
-    Pixmap pix;			/* icon pixmap */
-    Pixmap mask;		/* icon mask */
-    int width;			/* icon width */
-    int height;			/* icon height */
-  }
-MyIcon;
+#include "myicon.h"
 
 typedef struct button_t
   {
     MyIcon unpressed;		/* icon to draw when button is not pressed */
-    MyIcon pressed;		/* icon to draw when button is pressed */
+    MyIcon pressed;		    /* icon to draw when button is pressed */
     Bool is_pressed;		/* is the button pressed? */
+	unsigned int width, height ;
   }
 button_t;
+
+typedef button_t MyButton ;
 
 #define FR_N 0
 #define FR_NE 1

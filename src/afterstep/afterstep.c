@@ -381,10 +381,6 @@ main (int argc, char **argv)
 	CreateCursors ();
 	InitVariables (1);
 	module_setup ();
-#ifndef DONT_GRAB_SERVER
-	XGrabServer (dpy);
-#endif
-
 	Scr.gray_bitmap = XCreateBitmapFromData (dpy, Scr.Root, g_bits, g_width, g_height);
 
 	/* the SizeWindow will be moved into place in LoadASConfig() */
@@ -423,17 +419,25 @@ main (int argc, char **argv)
 	XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, CurrentTime);
 
 	XSync (dpy, 0);
+	
+	
+   /***********************************************************/
+#ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
+	XGrabServer (dpy);                		/* grabbed   !!!!!*/
+#endif										/* grabbed   !!!!!*/
+#ifndef NO_VIRTUAL							/* grabbed   !!!!!*/
+	initPanFrames ();						/* grabbed   !!!!!*/
+#endif /* NO_VIRTUAL */						/* grabbed   !!!!!*/
+	CaptureAllWindows ();					/* grabbed   !!!!!*/
+#ifndef NO_VIRTUAL							/* grabbed   !!!!!*/
+	checkPanFrames ();						/* grabbed   !!!!!*/
+#endif /* NO_VIRTUAL */						/* grabbed   !!!!!*/
+#ifndef DONT_GRAB_SERVER					/* grabbed   !!!!!*/
+	XUngrabServer (dpy);					/* UnGrabbed !!!!!*/
+#endif										/* UnGrabbed !!!!!*/
+	/**********************************************************/
 
-#ifndef NO_VIRTUAL
-	initPanFrames ();
-#endif /* NO_VIRTUAL */
-	CaptureAllWindows ();
-#ifndef NO_VIRTUAL
-	checkPanFrames ();
-#endif /* NO_VIRTUAL */
-#ifndef DONT_GRAB_SERVER
-	XUngrabServer (dpy);
-#endif
+
 	fd_width = GetFdWidth ();
 
 	/* watch for incoming module connections */

@@ -21,18 +21,10 @@
 #endif /* SHAPE */
 
 static void   frame_set_sizes ();
-typedef struct
-{
-	Pixmap        pix;
-	Pixmap        mask;
-	int           w;
-	int           h;
-}
-side;
 
 typedef struct
 {
-	side          handle[8];
+	MyIcon          handle[8];
 }
 framed_win;
 
@@ -48,83 +40,26 @@ char         *FrameSW = NULL;
 
 static framed_win ff;
 
-/* get width and height of a drawable */
-
-static int
-frame_get_pix_size (Drawable pix, unsigned int *ret_w, unsigned int *ret_h)
-{
-	Window        root;
-	unsigned int  bw, depth, height, width;
-	int           x, y;
-
-	XGetGeometry (dpy, pix, &root, &x, &y, &width, &height, &bw, &depth);
-	*ret_w = width;
-	*ret_h = height;
-	return 1;
-}
-
 /* load the images */
-
 static int
 frame_load_images ()
 {
-	extern char  *PixmapPath;
-	char         *path;
-	int           maxcols;
-
-	if (Scr.d_depth > 8)
-		maxcols = -1;
-	else
-		maxcols = 10;
-
-	if (FrameSE != NULL && (path = findIconFile (FrameSE, PixmapPath, R_OK)) != NULL)
-	{
-		ff.handle[FR_SE].pix =
-			LoadImageWithMask (dpy, Scr.Root, maxcols, path, &ff.handle[FR_SE].mask);
-		free (path);
-	}
-	if (FrameSW != NULL && (path = findIconFile (FrameSW, PixmapPath, R_OK)) != NULL)
-	{
-		ff.handle[FR_SW].pix =
-			LoadImageWithMask (dpy, Scr.Root, maxcols, path, &ff.handle[FR_SW].mask);
-		free (path);
-	}
-	if (FrameNE != NULL && (path = findIconFile (FrameNE, PixmapPath, R_OK)) != NULL)
-	{
-		ff.handle[FR_NE].pix =
-			LoadImageWithMask (dpy, Scr.Root, maxcols, path, &ff.handle[FR_NE].mask);
-		free (path);
-	}
-	if (FrameNW != NULL && (path = findIconFile (FrameNW, PixmapPath, R_OK)) != NULL)
-	{
-		ff.handle[FR_NW].pix =
-			LoadImageWithMask (dpy, Scr.Root, maxcols, path, &ff.handle[FR_NW].mask);
-		free (path);
-	}
-	if (FrameS != NULL && (path = findIconFile (FrameS, PixmapPath, R_OK)) != NULL)
-	{
-		ff.handle[FR_S].pix =
-			LoadImageWithMask (dpy, Scr.Root, maxcols, path, &ff.handle[FR_S].mask);
-		free (path);
-	}
-	if (FrameN != NULL && (path = findIconFile (FrameN, PixmapPath, R_OK)) != NULL)
-	{
-		ff.handle[FR_N].pix =
-			LoadImageWithMask (dpy, Scr.Root, maxcols, path, &ff.handle[FR_N].mask);
-		free (path);
-	}
-	if (FrameE != NULL && (path = findIconFile (FrameE, PixmapPath, R_OK)) != NULL)
-	{
-		ff.handle[FR_E].pix =
-			LoadImageWithMask (dpy, Scr.Root, maxcols, path, &ff.handle[FR_E].mask);
-		free (path);
-	}
-	if (FrameW != NULL && (path = findIconFile (FrameW, PixmapPath, R_OK)) != NULL)
-	{
-		ff.handle[FR_W].pix =
-			LoadImageWithMask (dpy, Scr.Root, maxcols, path, &ff.handle[FR_W].mask);
-		free (path);
-	}
+	if (FrameSE != NULL )
+		GetIconFromFile (FrameSE, &(ff.handle[FR_SE]), 0);
+	if (FrameSW != NULL )
+		GetIconFromFile (FrameSW, &(ff.handle[FR_SW]), 0);
+	if (FrameNE != NULL )
+		GetIconFromFile (FrameNE, &(ff.handle[FR_NE]), 0);
+	if (FrameNW != NULL )
+		GetIconFromFile (FrameNW, &(ff.handle[FR_NW]), 0);
+	if (FrameS != NULL )
+		GetIconFromFile (FrameS, &(ff.handle[FR_S]), 0);
+	if (FrameN != NULL )
+		GetIconFromFile (FrameN, &(ff.handle[FR_N]), 0);
+	if (FrameE != NULL )
+		GetIconFromFile (FrameE, &(ff.handle[FR_E]), 0);
+	if (FrameW != NULL )
+		GetIconFromFile (FrameW, &(ff.handle[FR_W]), 0);
 
 	return 1;
 }
@@ -153,8 +88,7 @@ frame_init (int free_resources)
 		if (FrameSW != NULL)
 			free (FrameSW);
 		for (i = 0; i < 8; i++)
-			if (ff.handle[i].pix != None)
-				UnloadImage (ff.handle[i].pix);
+			mystyle_free_icon_resources( ff.handle[i] );
 	}
 	FrameN = NULL;
 	FrameS = NULL;
@@ -165,7 +99,7 @@ frame_init (int free_resources)
 	FrameNW = NULL;
 	FrameSW = NULL;
 	for (i = 0; i < 8; i++)
-		ff.handle[i].pix = None;
+		memset(&(ff.handle[i]), 0x00, sizeof(MyIcon) );
 }
 
 /* create the gc and fill Scr.frame* with pix sizes */
@@ -189,9 +123,10 @@ frame_draw_frame (ASWindow * t)
 	{
 		if (ff.handle[i].pix != None)
 			XSetWindowBackgroundPixmap (dpy, t->fw[i], ff.handle[i].pix);
-/*    if (ff.handle[i].mask != None)
-   XShapeCombineMask (dpy, t->fw[i], ShapeBounding, 0, 0,
-   ff.handle[i].mask, ShapeUnion); */
+#ifdef SHAPE
+		if (ff.handle[i].mask != None)
+			XShapeCombineMask (dpy, t->fw[i], ShapeBounding, 0, 0, ff.handle[i].mask, ShapeSet);
+#endif /* SHAPE */
 		XClearWindow (dpy, t->fw[i]);
 	}
 	XSetWindowBackgroundPixmap (dpy, t->frame, None);
@@ -210,8 +145,8 @@ frame_free_data (ASWindow * tw, Bool all)
 	{
 		if (all)
 		{
-			if (ff.handle[i].pix != None)
-				UnloadImage (ff.handle[i].pix);
+			mystyle_free_icon_resources( ff.handle[i] );
+			memset(&(ff.handle[i]), 0x00, sizeof(MyIcon) );			
 		}
 		if (tw != NULL)
 			XDeleteContext (dpy, tw->fw[i], ASContext);
@@ -227,9 +162,10 @@ frame_set_sizes ()
 
 	for (i = 0; i < 8; i++)
 	{
-		if (ff.handle[i].pix != None)
+		if (ff.handle[i].image != NULL)
 		{
-			frame_get_pix_size (ff.handle[i].pix, &w, &h);
+			w = ff.handle[i].width ;
+			h = ff.handle[i].height ;
 			fprintf (stderr, "no: %d w: %d h: %d\n", i, w, h);
 			Scr.fs[i].w = w;
 			Scr.fs[i].h = h;

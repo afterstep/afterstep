@@ -248,7 +248,7 @@ create_titlebutton_balloon (ASWindow * tmp_win, int button)
 	if (!(tmp_win->flags & TITLE))
 		return False;
 	if (!(button & 1) && button / 2 < Scr.nr_left_buttons &&
-		Scr.button_style[button + 1] != NO_BUTTON_STYLE &&
+		Scr.buttons[button + 1].width > 0 &&
 		!(tmp_win->buttons & (BUTTON1 << button)))
 	{
 		if ((str = list_functions_by_context (C_L1 << n)) != NULL)
@@ -258,7 +258,7 @@ create_titlebutton_balloon (ASWindow * tmp_win, int button)
 		}
 	}
 	if ((button & 1) && button / 2 < Scr.nr_right_buttons &&
-		Scr.button_style[(button + 1) % 10] != NO_BUTTON_STYLE &&
+		Scr.buttons[(button + 1) % 10].width > 0 &&
 		!(tmp_win->buttons & (BUTTON1 << button)))
 	{
 		if ((str = list_functions_by_context (C_L1 << n)) != NULL)
@@ -302,32 +302,32 @@ create_titlebutton_windows (ASWindow * tmp_win)
 	for (i = 0; i < 5; i++)
 	{
 		if ((i < Scr.nr_left_buttons) &&
-			(Scr.button_style[i + i + 1] != NO_BUTTON_STYLE) &&
+			(Scr.buttons[i + i + 1].width > 0) &&
 			!(tmp_win->buttons & (BUTTON1 << (i + i))))
 		{
 			tmp_win->left_w[i] =
 				create_visual_window (Scr.asv, tmp_win->frame, -999, -999,
-									  Scr.button_width[i + i + 1], Scr.button_height[i + i + 1],
+									  Scr.buttons[i + i + 1].width, Scr.buttons[i + i + 1].height,
 									  0, InputOutput, valuemask, &attributes);
 			XSaveContext (dpy, tmp_win->left_w[i], ASContext, (caddr_t) tmp_win);
 			tmp_win->nr_left_buttons++;
 			tmp_win->space_taken_left_buttons +=
-				Scr.button_width[i + i + 1] + Scr.TitleButtonSpacing;
+				Scr.buttons[i + i + 1].width + Scr.TitleButtonSpacing;
 			create_titlebutton_balloon (tmp_win, i + i);
 		}
 		if ((i < Scr.nr_right_buttons) &&
-			(Scr.button_style[(i + i + 2) % 10] != NO_BUTTON_STYLE) &&
+			(Scr.buttons[(i + i + 2) % 10].width > 0) &&
 			!(tmp_win->buttons & (BUTTON1 << (i * 2 + 1))))
 		{
 			tmp_win->right_w[i] =
 				create_visual_window (Scr.asv, tmp_win->frame, -999, -999,
-									  Scr.button_width[(i + i + 2) % 10],
-									  Scr.button_height[(i + i + 2) % 10], 0, InputOutput,
+									  Scr.buttons[(i + i + 2) % 10].width,
+									  Scr.buttons[(i + i + 2) % 10].height, 0, InputOutput,
 									  valuemask, &attributes);
 			XSaveContext (dpy, tmp_win->right_w[i], ASContext, (caddr_t) tmp_win);
 			tmp_win->nr_right_buttons++;
 			tmp_win->space_taken_right_buttons +=
-				Scr.button_width[(i + i + 2) % 10] + Scr.TitleButtonSpacing;
+				Scr.buttons[(i + i + 2) % 10].width + Scr.TitleButtonSpacing;
 			create_titlebutton_balloon (tmp_win, i + i + 1);
 		}
 	}

@@ -621,10 +621,7 @@ CreateMenuItem ()
 	item->strlen2 = 0;
 	item->hotkey = 0;
 	item->menu = NULL;
-	item->icon.pix = None;
-	item->icon.mask = None;
-	item->icon.width = 0;
-	item->icon.height = 0;
+	memset(&(item->icon), 0x00, sizeof(MyIcon));
 	return item;
 }
 
@@ -653,10 +650,8 @@ DeleteMenuItem (MenuItem * item)
 		free (item->item2);
 	if (item->action != NULL)
 		free (item->action);
-	if (item->icon.pix != None)
-		UnloadImage (item->icon.pix);
-	if (item->icon.mask != None)
-		UnloadMask (item->icon.mask);
+	mystyle_free_icon_resources( item->icon );
+
 	free (item);
 }
 

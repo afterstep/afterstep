@@ -230,7 +230,7 @@ asimage2alpha_ximage (ASVisual *asv, ASImage *im, Bool bitmap )
 XImage*
 asimage2mask_ximage (ASVisual *asv, ASImage *im)
 {
-	return asimage2alpha_ximage (asv, im, False );
+	return asimage2alpha_ximage (asv, im, True );
 }
 
 ASImage      *
@@ -410,7 +410,7 @@ asimage2alpha(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached, B
 Pixmap
 asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 {
-	return asimage2alpha(asv, root, im, gc, use_cached, False);
+	return asimage2alpha(asv, root, im, gc, use_cached, True);
 }
 /* ********************************************************************************/
 /* The end !!!! 																 */

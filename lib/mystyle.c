@@ -208,12 +208,17 @@ mystyle_get_text_geometry (MyStyle * style, const char *str, int len, int *width
   while (len > 0)
     {
       int w;
-      for (ptr = str; len > 0 && *ptr != '\n'; ptr++, len--);
+      for (ptr = str; len > 0 && *ptr != '\n' && *ptr; ptr++, len--);
       w = XTextWidth (style->font.font, str, ptr - str);
       if (mw < w)
-	mw = w;
+		mw = w;
       mh += style->font.height;
-      str = ptr + (*ptr == '\n');
+	  if( *ptr == '\n' )
+	  {
+		  ++ptr ;
+		  --len ;
+	  }
+      str = ptr ;
     }
   if (width != NULL)
     *width = mw;
@@ -530,7 +535,7 @@ LOCAL_DEBUG_OUT( "index = %d", index );
 	return im ;
 }
 
-static void
+void
 asimage2icon( ASImage *im, icon_t *icon, Bool ignore_alpha )
 {
 	icon->image = im;
@@ -541,9 +546,9 @@ asimage2icon( ASImage *im, icon_t *icon, Bool ignore_alpha )
 		{
 			int depth = check_asimage_alpha (Scr.asv, im );
 			if( depth == 1 )
-				icon->mask = asimage2alpha  ( Scr.asv, Scr.Root, im, NULL, False, False );
+				icon->mask = asimage2alpha  ( Scr.asv, Scr.Root, im, NULL, False, True );
 			else if( depth == 8 )
-				icon->alpha = asimage2alpha  ( Scr.asv, Scr.Root, im, NULL, False, True );
+				icon->alpha = asimage2alpha  ( Scr.asv, Scr.Root, im, NULL, False, False );
         }
 		icon->width = im->width;
 	    icon->height = im->height;

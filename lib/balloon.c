@@ -254,11 +254,14 @@ balloon_set_style (Display * dpy, MyStyle * style)
 void
 balloon_set_text (Balloon * balloon, const char *text)
 {
-  if ((*balloon).text != NULL)
-    free ((*balloon).text);
-  (*balloon).text = (text != NULL) ? mystrdup (text) : NULL;
-  if (balloon_current == balloon)
-    balloon_draw (balloon);
+  if( balloon )
+  {
+	if ((*balloon).text != NULL)
+  	  free ((*balloon).text);
+	(*balloon).text = (text != NULL) ? mystrdup (text) : NULL;
+	if (balloon_current == balloon)
+  	  balloon_draw (balloon);
+  }
 }
 
 static void

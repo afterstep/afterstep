@@ -458,49 +458,25 @@ text_gradient_obsolete (char *text, FILE * fd, char **arg, int *i)
 Bool
 GetIconFromFile (char *file, MyIcon * icon, int max_colors)
 {
-	char         *path = NULL;
-	Bool          success = False;
-	unsigned int  dum;
-	int           dummy;
-	Window        root;
-
+	if( Scr.image_manager )
+	{
+		char *ppath = PixmapPath ;
+		if( ppath == NULL ) 
+			ppath = getenv( "IMAGE_PATH" );
+		if( ppath == NULL )
+			ppath = getenv( "PATH" );
+		Scr.image_manager = create_image_manager( NULL, 2.2, ppath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
+	}
+	
+	icon->image = NULL;
 	(*icon).pix = None;
 	(*icon).mask = None;
+	(*icon).alpha = None;
 	(*icon).width = 0;
 	(*icon).height = 0;
-
-	if ((path = findIconFile (file, PixmapPath, R_OK)) == NULL)
-		return False;
-
-	/* -1 is default for screen depth */
-	if (max_colors == -1 && Scr.d_depth <= 8)
-		max_colors = 10;
-
-	if ((icon->pix = LoadImageWithMask (dpy, Scr.Root, max_colors, path, &(icon->mask))) != None)
-	{
-		success = True;
-		XGetGeometry (dpy, icon->pix, &root, &dummy, &dummy,
-					  &(icon->width), &(icon->height), &dum, &dum);
-	}
-
-	free (path);
-	return success;
-}
-
-/***************************************************************
- *
- * Read a XPM file
- *
- **************************************************************/
-Pixmap
-GetXPMTile (char *file, int max_colors)
-{
-	MyIcon        icon;
-
-	GetIconFromFile (file, &icon, max_colors);
-	if (icon.mask != None)
-		UnloadMask (icon.mask);
-	return icon.pix;
+	asimage2icon( get_asimage( Scr.image_manager, file, 0xFFFFFFFF, 100 ),
+				  icon, False );
+	return (icon->image != NULL);
 }
 
 /*
@@ -747,7 +723,8 @@ merge_old_look_colors (MyStyle * style, int type, int maxcols, char *fore, char 
 
 			if ((*style).set_flags & F_MAXCOLORS)
 				colors = (*style).max_colors;
-			if (((*style).back_icon.pix = GetXPMTile (pixmap, colors)) != None)
+
+			if( GetIconFromFile (pixmap, &(style->back_icon), 0) )				
 				(*style).user_flags |= F_BACKPIXMAP;
 			else
 				afterstep_err ("unable to load pixmap: '%s'", pixmap, NULL, NULL);
@@ -969,11 +946,11 @@ InitLook (Bool free_resources)
 #ifndef NO_TEXTURE
 		/* icons */
 		if (Scr.MenuArrow.pix != None)
-			UnloadImage (Scr.MenuArrow.pix);
+			mystyle_free_icon_resources( Scr.MenuArrow );
 		if (Scr.MenuPinOn.pix != None)
-			UnloadImage (Scr.MenuPinOn.pix);
+			mystyle_free_icon_resources( Scr.MenuPinOn );
 		if (Scr.MenuPinOff.pix != None)
-			UnloadImage (Scr.MenuPinOff.pix);
+			mystyle_free_icon_resources( Scr.MenuPinOff );
 
 		/* cached gradients */
 		if (Scr.TitleGradient != None)
@@ -983,12 +960,9 @@ InitLook (Bool free_resources)
 		/* titlebar buttons */
 		for (i = 0; i < 10; i++)
 		{
-			if (Scr.button_pixmap[i] != None)
-				UnloadImage (Scr.button_pixmap[i]);
-			if (Scr.dbutton_pixmap[i] != None)
-				UnloadImage (Scr.dbutton_pixmap[i]);
+			mystyle_free_icon_resources( Scr.buttons[i].unpressed );
+			mystyle_free_icon_resources( Scr.buttons[i].pressed );
 		}
-
 #ifndef NO_TEXTURE
 		/* iconized window background */
 		if (IconBgColor != NULL)
@@ -1037,9 +1011,9 @@ InitLook (Bool free_resources)
 
 #ifndef NO_TEXTURE
 	/* icons */
-	Scr.MenuArrow.pix = Scr.MenuArrow.mask = None;
-	Scr.MenuPinOn.pix = Scr.MenuPinOn.mask = None;
-	Scr.MenuPinOff.pix = Scr.MenuPinOff.mask = None;
+	memset(&(Scr.MenuArrow), 0x00, sizeof(MyIcon));
+	memset(&(Scr.MenuPinOn), 0x00, sizeof(MyIcon));
+	memset(&(Scr.MenuPinOff), 0x00, sizeof(MyIcon));
 
 	/* cached gradients */
 	Scr.TitleGradient = None;
@@ -1052,19 +1026,10 @@ InitLook (Bool free_resources)
 	/* titlebar buttons */
 	Scr.nr_right_buttons = 0;
 	Scr.nr_left_buttons = 0;
-	Scr.ButtonType = 0;
 	Scr.TitleButtonSpacing = 2;
 	Scr.TitleButtonStyle = 0;
 	for (i = 0; i < 10; i++)
-	{
-		Scr.button_style[i] = NO_BUTTON_STYLE;
-		Scr.button_width[i] = 0;
-		Scr.button_height[i] = 0;
-		Scr.button_pixmap[i] = None;
-		Scr.button_pixmap_mask[i] = None;
-		Scr.dbutton_pixmap[i] = None;
-		Scr.dbutton_pixmap_mask[i] = None;
-	}
+		memset(&(Scr.buttons[i]), 0x00, sizeof(MyButton));
 
 #ifndef NO_TEXTURE
 	/* iconized window background */
@@ -1170,11 +1135,11 @@ titlebar_sanity_check (void)
 	ASWindow     *t;
 
 	for (i = 4; i >= 0; i--)
-		if (Scr.button_style[i * 2 + 1] != NO_BUTTON_STYLE)
+		if (Scr.buttons[i * 2 + 1].unpressed.image)
 			break;
 	Scr.nr_left_buttons = i + 1;
 	for (i = 4; i >= 0; i--)
-		if (Scr.button_style[(i * 2 + 2) % 10] != NO_BUTTON_STYLE)
+		if (Scr.buttons[(i * 2 + 2) % 10].unpressed.image)
 			break;
 	Scr.nr_right_buttons = i + 1;
 	/* traverse window list and redo the titlebar/buttons if necessary */
@@ -1336,6 +1301,8 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 	ASWindow     *t;
 	int           parse_base = 1, parse_database = 1;
 	char         *tline = NULL;
+	
+	ASImageManager *old_image_manager = Scr.image_manager ;
 
 #ifndef DIFFERENTLOOKNFEELFOREACHDESKTOP
 	/* only one look & feel should be used */
@@ -1387,12 +1354,33 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 		CheckASTree (thisdesktop, parse_look, parse_feel);
 		if (parse_base)
 		{
+			char * old_pixmap_path = PixmapPath ;
+			PixmapPath = NULL ;
 			sprintf (configfile, "%s.%dbpp", BASE_FILE, Scr.d_depth);
 			ParseConfigFile (configfile, &tline);
 			/* Save base filename to pass to modules */
 			if (global_base_file != NULL)
 				free (global_base_file);
 			global_base_file = mystrdup (configfile);
+			if( (old_pixmap_path == NULL && PixmapPath != NULL )||
+			    (old_pixmap_path != NULL && PixmapPath == NULL )||
+				(old_pixmap_path != NULL && PixmapPath != NULL && strcmp(old_pixmap_path, PixmapPath) == 0 ) )
+			{
+				Scr.image_manager = create_image_manager( NULL, 2.2, PixmapPath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
+				if( !parse_look )
+				{
+					InitLook (True);
+					init_old_look_variables (True);
+					parse_look = True ;
+				}
+				parse_menu = True ;
+				if( !parse_feel )
+				{
+					parse_feel = True;
+					InitFeel (True);
+				}
+			}
+			free( old_pixmap_path );
 		}
 		fprintf (stderr, ".");
 		if (parse_look)
@@ -1457,6 +1445,7 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 		fprintf (stderr, ".");
 	} else
 	{
+		Scr.image_manager = NULL ;
 		/* Yes, override config file */
 		ParseConfigFile (config_file_to_override, &tline);
 		fprintf (stderr, "......");
@@ -1658,6 +1647,8 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 			ChangeIcon (win);
 		AutoPlaceStickyIcons ();
 	}
+	if( old_image_manager && old_image_manager != Scr.image_manager )
+		destroy_image_manager( old_image_manager, False );
 }
 
 /*****************************************************************************
@@ -1756,16 +1747,10 @@ SetTitleText (char *tline, FILE * fd, char **junk, int *junk2)
 void
 SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 {
-	extern char  *PixmapPath;
-	char         *path = NULL;
 	int           num;
 	char          file[256], file2[256];
 	int           fnamelen = 0, offset = 0, linelen;
 	int           n;
-	unsigned int  dum;
-	int           dummy;
-	Window        root;
-	int           width, height;
 
 	if (balloon_parse (tline, fd))
 		return;
@@ -1808,42 +1793,24 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 		return;
 	}
 
-
-	path = findIconFile (file, PixmapPath, R_OK);
-	if (path == NULL)
+	GetIconFromFile (file, &(Scr.buttons[num].unpressed), 0);
+	GetIconFromFile (file2, &(Scr.buttons[num].pressed), 0);
+	
+	Scr.buttons[num].width = 0 ;
+	Scr.buttons[num].height = 0 ;
+	
+	if( Scr.buttons[num].unpressed.image )
 	{
-		fprintf (stderr, "couldn't find Titlebar button %s\n", file);
-		return;
+		Scr.buttons[num].width = Scr.buttons[num].unpressed.image->width ;
+		Scr.buttons[num].height = Scr.buttons[num].unpressed.image->height ;
 	}
-	Scr.button_pixmap[num] =
-		LoadImageWithMask (dpy, Scr.Root, 256, path, &Scr.button_pixmap_mask[num]);
-	free (path);
-	if (Scr.button_pixmap[num] == None)
-		return;
-
-	XGetGeometry (dpy, Scr.button_pixmap[num], &root, &dummy, &dummy,
-				  &(Scr.button_width[num]), &(Scr.button_height[num]), &dum, &dum);
-	Scr.button_style[num] = XPM_BUTTON_STYLE;
-
-	/* check if the button's height is bigger that the current highest one */
-	if ((path = findIconFile (file2, PixmapPath, R_OK)) == NULL)
+	if( Scr.buttons[num].pressed.image )
 	{
-		fprintf (stderr, "couldn't find Titlebar button %s\n", file2);
-		return;
+		if( Scr.buttons[num].pressed.image->width > Scr.buttons[num].width )
+			Scr.buttons[num].width = Scr.buttons[num].pressed.image->width ;
+		if( Scr.buttons[num].pressed.image->height > Scr.buttons[num].height )
+			Scr.buttons[num].height = Scr.buttons[num].pressed.image->height ;
 	}
-	Scr.ButtonType = 1;
-
-	Scr.dbutton_pixmap[num] =
-		LoadImageWithMask (dpy, Scr.Root, 256, path, &Scr.dbutton_pixmap_mask[num]);
-	free (path);
-	if (Scr.dbutton_pixmap[num] == None)
-		return;
-
-	XGetGeometry (dpy, Scr.dbutton_pixmap[num], &root, &dummy, &dummy, &width, &height, &dum, &dum);
-
-	Scr.button_width[num] = max (width, Scr.button_width[num]);
-	Scr.button_height[num] = max (height, Scr.button_height[num]);
-	Scr.button_style[num] = XPM_BUTTON_STYLE;
 }
 
 /*****************************************************************************

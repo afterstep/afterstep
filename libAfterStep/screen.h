@@ -238,7 +238,9 @@ typedef struct ScreenInfo
     struct MenuRoot *RestartFunction;
     struct MenuRoot *first_menu;	/* head of the menu root list */
 
-    int ButtonType;		/* == 1 if button window shaped */
+	MyButton	buttons[10];
+
+/* obsolete :
     int button_style[10];
     Pixmap button_pixmap[10];
     Pixmap button_pixmap_mask[10];
@@ -246,7 +248,8 @@ typedef struct ScreenInfo
     Pixmap dbutton_pixmap_mask[10];
     int button_width[10];
     int button_height[10];
-    int TitleButtonSpacing;
+ */    
+	int TitleButtonSpacing;
     int TitleButtonStyle;
 
     int ButtonWidth;		/* user-set width of icons */

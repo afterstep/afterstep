@@ -73,18 +73,7 @@ mystyle_fix_styles ();
 struct ASImage;
 struct ASGradient;
 
-
-typedef struct icon_t
-  {
-    struct ASImage *image;		/* ASImage of pix, to reduce XGetImage() calls */
-    Pixmap pix;			/* icon pixmap */
-    Pixmap mask;		/* icon mask */
-    Pixmap alpha;		/* icon 8-bit alpha channel pixmap */
-    int width;			/* icon width */
-    int height;			/* icon height */
-	Atom im_name ;
-  }
-icon_t;
+#include "myicon.h"
 
 /*
  * see comment to style_config in mystyle.c before changing this structure
@@ -212,6 +201,10 @@ GC CreateTintGC (Drawable d, unsigned long tintColor, int function);
 
 /* just a nice error printing function */
 void mystyle_error (char *format, char *name, char *text2);
+
+void asimage2icon( ASImage *im, icon_t *icon, Bool ignore_alpha );
+void mystyle_free_icon_resources( icon_t icon );
+
 
 /* these functions change the global style */
 void mystyle_set_global_gcs (MyStyle * style);

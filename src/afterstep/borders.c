@@ -232,36 +232,20 @@ SetBottomBackground (ASWindow * t, Bool focused)
 void
 draw_button (ASWindow * t, Window w, int index, GC DrawGC, GC ReliefGC, GC ShadowGC)
 {
-	int           style = Scr.button_style[index];
-	int           width = Scr.button_width[index];
-	int           height = Scr.button_height[index];
-	Pixmap        pix;
-	Pixmap        mask;
+	MyIcon *icon = (PressedW != w)?&(Scr.buttons[index].unpressed):&(Scr.buttons[index].pressed) ;
+	if( icon->image == NULL ) 
+		icon = (PressedW == w)?&(Scr.buttons[index].unpressed):&(Scr.buttons[index].pressed) ;		
 
-	if (PressedW != w)
+	if( icon->image != NULL ) 			
 	{
-		pix = Scr.button_pixmap[index];
-		mask = Scr.button_pixmap_mask[index];
-		RelieveWindow (t, w, 0, 0, width, height, ReliefGC, ShadowGC, BOTTOM_HILITE | RIGHT_HILITE);
-	} else
-	{
-		pix = Scr.dbutton_pixmap[index];
-		mask = Scr.dbutton_pixmap_mask[index];
-		RelieveWindow (t, w, 0, 0, width, height, ShadowGC, ReliefGC, BOTTOM_HILITE | RIGHT_HILITE);
-	}
-
-	switch (style)
-	{
-	 case XPM_BUTTON_STYLE:
+		if (PressedW != w)
+			RelieveWindow (t, w, 0, 0, icon->width, icon->height, ReliefGC, ShadowGC, BOTTOM_HILITE | RIGHT_HILITE);
+		else
+			RelieveWindow (t, w, 0, 0, icon->width, icon->height, ShadowGC, ReliefGC, BOTTOM_HILITE | RIGHT_HILITE);
 #ifdef SHAPE
-		 XShapeCombineMask (dpy, w, ShapeBounding, 0, 0, mask, ShapeSet);
+		XShapeCombineMask (dpy, w, ShapeBounding, 0, 0, icon->mask, ShapeSet);
 #endif /* SHAPE */
-		 XCopyArea (dpy, pix, w, DrawGC, 0, 0, width, height, 0, 0);
-		 break;
-
-	 default:
-		 afterstep_err ("Old 10x10 button styles should not be used\n", NULL, NULL, NULL);
-		 Done (0, NULL);
+		XCopyArea (dpy, icon->pix, w, DrawGC, 0, 0, icon->width, icon->height, 0, 0);
 	}
 }
 
@@ -810,8 +794,8 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 					{
 						xwc.x =
 							tmp_win->title_x + (tmp_win->title_width -
-												Scr.button_width[i + i + 1]) / 2;
-						if (xwc.y + Scr.button_height[i + i + 1] + Scr.TitleButtonSpacing <
+												Scr.buttons[i + i + 1].width) / 2;
+						if (xwc.y + Scr.buttons[i + i + 1].height + Scr.TitleButtonSpacing <
 							tmp_win->title_y + tmp_win->title_height)
 							XConfigureWindow (dpy, tmp_win->left_w[i], xwcm, &xwc);
 						else
@@ -819,7 +803,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 							xwc.y = -999;
 							XConfigureWindow (dpy, tmp_win->left_w[i], xwcm, &xwc);
 						}
-						xwc.y += Scr.button_height[i + i + 1] + Scr.TitleButtonSpacing;
+						xwc.y += Scr.buttons[i + i + 1].height + Scr.TitleButtonSpacing;
 					}
 				}
 
@@ -837,8 +821,8 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 					{
 						xwc.x =
 							tmp_win->title_x + (tmp_win->title_width -
-												Scr.button_width[(i + i + 2) % 10]) / 2;
-						xwc.y -= Scr.button_height[(i + i + 2) % 10] + Scr.TitleButtonSpacing;
+												Scr.buttons[(i + i + 2) % 10].width) / 2;
+						xwc.y -= Scr.buttons[(i + i + 2) % 10].height + Scr.TitleButtonSpacing;
 						if (xwc.y > tmp_win->title_y)
 							XConfigureWindow (dpy, tmp_win->right_w[i], xwcm, &xwc);
 						else
@@ -864,8 +848,8 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 					{
 						xwc.y =
 							tmp_win->title_y + (tmp_win->title_height -
-												Scr.button_height[i + i + 1]) / 2;
-						if (xwc.x + Scr.button_width[i + i + 1] + Scr.TitleButtonSpacing <
+												Scr.buttons[i + i + 1].height) / 2;
+						if (xwc.x + Scr.buttons[i + i + 1].width + Scr.TitleButtonSpacing <
 							tmp_win->title_x + tmp_win->title_width)
 							XConfigureWindow (dpy, tmp_win->left_w[i], xwcm, &xwc);
 						else
@@ -873,7 +857,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 							xwc.x = -999;
 							XConfigureWindow (dpy, tmp_win->left_w[i], xwcm, &xwc);
 						}
-						xwc.x += Scr.button_width[i + i + 1] + Scr.TitleButtonSpacing;
+						xwc.x += Scr.buttons[i + i + 1].width + Scr.TitleButtonSpacing;
 					}
 				}
 
@@ -891,8 +875,8 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 					{
 						xwc.y =
 							tmp_win->title_y + (tmp_win->title_height -
-												Scr.button_height[(i + i + 2) % 10]) / 2;
-						xwc.x -= Scr.button_width[(i + i + 2) % 10] + Scr.TitleButtonSpacing;
+												Scr.buttons[(i + i + 2) % 10].height) / 2;
+						xwc.x -= Scr.buttons[(i + i + 2) % 10].width + Scr.TitleButtonSpacing;
 						if (xwc.x > tmp_win->title_x)
 							XConfigureWindow (dpy, tmp_win->right_w[i], xwcm, &xwc);
 						else
@@ -1256,8 +1240,8 @@ set_titlebar_geometry (ASWindow * t)
 			int           i, width = 2;
 
 			for (i = 0; i < 10; i++)
-				if (width < Scr.button_width[i])
-					width = Scr.button_width[i];
+				if (width < Scr.buttons[i].width)
+					width = Scr.buttons[i].width;
 
 			/* leave 3 pixel spacing on each side of the buttons */
 			if (Scr.TitleButtonStyle == 0)
@@ -1280,8 +1264,8 @@ set_titlebar_geometry (ASWindow * t)
 			int           i, height = 2;
 
 			for (i = 0; i < 10; i++)
-				if (height < Scr.button_height[i])
-					height = Scr.button_height[i];
+				if (height < Scr.buttons[i].height)
+					height = Scr.buttons[i].height;
 
 			/* leave 3 pixel spacing on each side of the buttons */
 			if (Scr.TitleButtonStyle == 0)

@@ -225,6 +225,15 @@ LoadImageWithMask (Display * dpy, Window w, unsigned long max_colors, const char
 	if (pMask) *pMask = None ;
 	p = file2pixmap(GetASVisual(), w, realfilename, pMask);
 	
+	if( pMask && *pMask )
+	{
+		int dumm ;
+		unsigned int udumm, depth ;
+		Window root ;
+		XGetGeometry( dpy, *pMask, &root, &dumm, &dumm, &udumm, &udumm, &udumm, &depth );
+		show_progress( "Loaded image [%s]; mask has depth of %d", realfilename, depth );		
+	}
+	
 	if( p == None ) 
 	{
 		fprintf( stderr, "%s:Failed to load image [%s].\n", MyName, realfilename );
