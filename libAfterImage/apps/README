@@ -38,3 +38,44 @@ not have FreeType library version 2 installed.
 Thanks for using libAfterImage. Contributions and bug reports are 
 always welcome. Please e-mail yours to <sashav at sprintmail dot com>,
 or any of the AfterStep mailing lists.
+
+
+ascompose
+-------------------------------------------------------------------------------
+
+ascompose uses an XML input file to compose an image and display it.  The 
+possible XML tags are:
+
+<composite type="alphablend">
+  type     Required.  The compositing operation.  Valid values are the 
+           standard AS blending ops: add, alphablend, allanon, colorize, 
+           darken, diff, dissipate, hue, lighten, overlay, saturate, 
+           screen, sub, tint, value.
+  All images surrounded by this tag will be composited with the given type.
+<scale width="512" height="384">
+  width    Required.  The image will be scaled to this width.
+  height   Required.  The image will be scaled to this height.
+  This tag applies to the first image contained within the tag.  Any 
+  further images will be discarded.  
+<tile width="512" height="384">
+  width    Required.  The image will be tiled to this width.
+  height   Required.  The image will be tiled to this height.
+  This tag applies to the first image contained within the tag.  Any 
+  further images will be discarded.  
+<img src=rose512.jpg/>
+  src      Required.  The filename (NOT URL) of the image file to load.
+
+As an example, the default XML used by ascompose is:
+
+  <composite type=hue>
+    <composite type=add>
+      <scale width=512 height=384><img src=rose512.jpg/></scale>
+      <tile width=512 height=384><img src=back.xpm/></tile>
+    </composite>
+    <tile width=512 height=384><img src=fore.xpm/></tile>
+  </composite>
+
+To see what this does, run "ascompose --verbose", and it will tell you 
+what it is doing at each rendering step.
+
+-------------------------------------------------------------------------------

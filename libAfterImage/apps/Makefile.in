@@ -1,5 +1,5 @@
 
-PROGS= asview asscale astile asmerge asgrad asflip astext
+PROGS= asview asscale astile asmerge asgrad asflip astext ascompose
 
 
 CC		= @CC@
@@ -133,6 +133,9 @@ asflip: asflip.o common.o
 
 astext: astext.o common.o
 		$(CC) astext.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o astext
+
+ascompose: ascompose.o common.o
+		$(CC) ascompose.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o ascompose
 
 .c.o:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
