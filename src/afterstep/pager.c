@@ -757,6 +757,7 @@ release_old_background( int desk, Bool forget )
 #endif
 	if( back->loaded_pixmap && (forget || Scr.Feel.conserve_memory > 0) ) 
 	{
+		LOCAL_DEBUG_OUT( "ROOT_PIXMAP = %lX at %d", Scr.RootBackground->pmap, __LINE__ );
 		if( Scr.RootBackground->pmap == back->loaded_pixmap ) 
 			Scr.RootBackground->pmap = None ;
 		LOCAL_DEBUG_OUT( "destroying pixmap %lX", back->loaded_pixmap );
@@ -1008,12 +1009,20 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
     
     cover_desktop();
     display_progress( True, "Changing background for desktop #%d ...", desk);
+	
+    if( Scr.RootBackground != NULL )
+	{	
+		LOCAL_DEBUG_OUT( "ROOT_PIXMAP = %lX at %d", Scr.RootBackground->pmap, __LINE__ );
+	}
 
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
 #endif
-    release_old_background( old_desk, (desk==old_desk) );
+	if( old_back ) 
+	{LOCAL_DEBUG_OUT( "old_back>>> desk = %d, ptr = %p, loaded_im_name = \"%s\", pixmap = %lX", old_desk, old_back, old_back->loaded_im_name, old_back->loaded_pixmap );}
+	if( new_back ) 
+	{LOCAL_DEBUG_OUT( "new_back>>> desk = %d, ptr = %p, loaded_im_name = \"%s\", pixmap = %lX", desk, new_back, new_back->loaded_im_name, new_back->loaded_pixmap );}
     if( Scr.RootBackground == NULL )
         Scr.RootBackground = safecalloc( 1, sizeof(ASBackgroundHandler));
     else
@@ -1023,6 +1032,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         Scr.RootBackground->cmd_pid = 0;
         Scr.RootBackground->im = NULL ;
     }
+    release_old_background( old_desk, (desk==old_desk) );
 	if( new_back->loaded_pixmap ) 
 	{
 		ASBackgroundHandler *bh = Scr.RootBackground ;			
@@ -1034,7 +1044,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			bh->pmap_width = width ;
         	bh->pmap_height = height ;
         	bh->im = NULL;
-
+			bh->pmap = new_back->loaded_pixmap ;
 			XSetWindowBackgroundPixmap( dpy, Scr.Root, new_back->loaded_pixmap );
 			XClearWindow( dpy, Scr.Root );
 			set_xrootpmap_id (Scr.wmprops, new_back->loaded_pixmap );
@@ -1060,6 +1070,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
             char *new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
             store_asimage( Scr.image_manager, new_im, new_imname );
         }
+		LOCAL_DEBUG_OUT( "ROOT_PIXMAP = %lX at %d", Scr.RootBackground->pmap, __LINE__ );
 		if( old_back && bh->pmap == old_back->loaded_pixmap)
 		{
 			if( Scr.Feel.conserve_memory == 0 )
@@ -1067,7 +1078,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			else
 				old_back->loaded_pixmap = None ;
 		}
-		
+		LOCAL_DEBUG_OUT( "ROOT_PIXMAP = %lX at %d", Scr.RootBackground->pmap, __LINE__ );
 		old_pmap = bh->pmap ;
         if( bh->pmap && (new_im->width != bh->pmap_width ||
             new_im->height != bh->pmap_height) )
@@ -1079,7 +1090,8 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
             LOCAL_DEBUG_OUT( "root pixmap with id %lX destroyed", bh->pmap );
             bh->pmap = None ;
         }
-        if( bh->pmap == None )
+        LOCAL_DEBUG_OUT( "ROOT_PIXMAP = %lX at %d", Scr.RootBackground->pmap, __LINE__ );
+		if( bh->pmap == None )
 		{
             bh->pmap = create_visual_pixmap( Scr.asv, Scr.Root, new_im->width, new_im->height, 0 );
             LOCAL_DEBUG_OUT( "new root pixmap created with id %lX and size %dx%d", bh->pmap, new_im->width, new_im->height );
@@ -1094,6 +1106,10 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 		/*print_asimage( new_im, 0xFFFFFFFF, __FUNCTION__, __LINE__ );*/
         ASSync(False);
         LOCAL_DEBUG_OUT( "width(%d)->height(%d)->pixmap(%lX/%lu)", new_im->width, new_im->height, bh->pmap, bh->pmap );
+		if( old_back ) 
+		{LOCAL_DEBUG_OUT( "old_back>>>#2 desk = %d, ptr = %p, loaded_im_name = \"%s\", pixmap = %lX", old_desk, old_back, old_back->loaded_im_name, old_back->loaded_pixmap );}
+		if( new_back ) 
+		{LOCAL_DEBUG_OUT( "new_back>>>#2 desk = %d, ptr = %p, loaded_im_name = \"%s\", pixmap = %lX", desk, new_back, new_back->loaded_im_name, new_back->loaded_pixmap );}
 		
 		/* cancel last background xfer is there was any  */
 		if( last_back_xfer )
