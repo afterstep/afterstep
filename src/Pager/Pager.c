@@ -1516,11 +1516,14 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_upd
 void
 set_client_look( ASWindowData *wd, Bool redraw )
 {
+    LOCAL_DEBUG_CALLER_OUT( "%p, %p", wd, wd->bar );
+
     if( wd->bar )
     {
         set_astbar_style_ptr( wd->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
         set_astbar_style_ptr( wd->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
-    }
+    }else
+		show_warning( "NULL tbar for window data found. client = %lX", wd->client );
 
     if( redraw && wd->canvas )
         render_astbar( wd->bar, wd->canvas );
@@ -1677,7 +1680,7 @@ change_desk_stacking( int desk, unsigned int clients_num, Window *clients )
     for( i = 0 ; i < clients_num ; ++i )
     {
 		ASWindowData *wd = fetch_window_by_id( clients[i] );
-		int k = d->clients_num;
+		int k = real_clients_count;
 		while( --k >= 0 )
 			if( d->clients[k] == wd )
 				break ; /* already belongs to that desk */
@@ -2273,16 +2276,22 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
 				LoadColorScheme();
 				CheckConfigSanity();
 				/* now we need to update everything */
-				redecorate_pager_desks();
-				rearrange_pager_desks( False );
 				while( --i >= 0 )
                 {
 					register int k = PagerState.desks[i].clients_num ;
 					register ASWindowData **clients = PagerState.desks[i].clients ;
+					LOCAL_DEBUG_OUT( "i = %d, clients_num = %d ", i, k );
 					while( --k >= 0 )
+					{
+						LOCAL_DEBUG_OUT( "k = %d", k );
 						if( clients[k] )
-							set_client_look( clients[k], True );
+							set_client_look( clients[k], False );
+						else
+							show_warning( "client %d of the desk %d is NULL", k, i );
+					}
                 }
+				redecorate_pager_desks();
+				rearrange_pager_desks( False );
 			}
 			return ;
         default:
