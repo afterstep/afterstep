@@ -33,10 +33,13 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 #		  src/Tile \
 #		  src/Zharf @SCRIPT_DIR@
 
-all:
+all:	AfterStep.desktop.final
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} $@ || exit 1); done
 
-
+AfterStep.desktop.final:
+	@$(CP) AfterStep.desktop AfterStep.desktop.final; \
+	echo "Exec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.final ; \
+	echo "Icon=$(AFTER_SHAREDIR)/desktop/icons/large/AfterStep3" >> AfterStep.desktop.final
 
 mkdir:	mkdir.bin mkdir.lib mkdir.man
   
@@ -64,11 +67,8 @@ install.man: mkdir.man
 install.script: mkdir.bin
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} install.script || exit 1); done
 
-install.desktop: 
-	@$(CP) AfterStep.desktop AfterStep.desktop.final; \
-	echo "Exec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.final ; \
-	echo "Icon=$(AFTER_SHAREDIR)/desktop/icons/large/AfterStep3" >> AfterStep.desktop.final ; \
-	if [ -d /usr/share/xsessions ] ; then \
+install.desktop: AfterStep.desktop.final
+	@if [ -d /usr/share/xsessions ] ; then \
 		echo "installing AfterStep.desktop into /usr/share/xsessions/" ; \
 		$(INSTALL_DATA)  AfterStep.desktop.final /usr/share/xsessions/AfterStep.desktop ; \
 	else if [ -d /etc/X11/sessions ] ; then \
@@ -102,7 +102,9 @@ uninstall:
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} uninstall || exit 1); done
 
 clean:
-	@for I in ${subdirs}; do (cd $$I; ${MAKE} clean || exit 1); done
+	@for I in ${subdirs}; do (cd $$I; ${MAKE} clean || exit 1); done; \
+	$(RMF) AfterStep.desktop.final
+
 
 distclean:
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} distclean || exit 1); done

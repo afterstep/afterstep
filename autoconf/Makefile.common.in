@@ -17,11 +17,11 @@ uninstall.bin:
 			$(RMF) $(AFTER_BIN_DIR)/$$p; \
 		done
 
-clean:
-		$(RMF) $(PROG) *.o *~ *% *.bak \#* core
+clean:		module.clean
+		$(RMF) $(PROG) $(PROG).exe *.o *~ *% *.bak \#* core log
 
-distclean:
-		$(RMF) $(PROG) *.o *~ *% *.bak \#* *.orig core Makefile
+distclean:	clean
+		$(RMF) *.orig Makefile
 
 install.lib:	@LIBPROG@ @LIBINSTALL@
 

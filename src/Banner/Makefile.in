@@ -11,6 +11,8 @@ Banner:
 
 @MAKEFILECOMMON@
 
+module.clean:
+		
 install:	$(PROG) install.script
 
 uninstall:	uninstall.script

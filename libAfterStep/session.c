@@ -645,64 +645,12 @@ CheckOrCreateFile (const char *what)
 void
 check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 {
+    char         *fullfilename;
 	/* Create missing directories & put there defaults */
 	if (CheckDir (ashome) != 0)
 	{
-        char         *fullfilename;
 		CheckOrCreate (ashome);
 
-        fullfilename = make_file_name (ashome, AFTER_SAVE);
-        CheckOrCreateFile (fullfilename);
-        free( fullfilename );
-
-#if 0
-        fullfilename = make_file_name (ashome, THEME_FILE_DIR);
-        CheckOrCreate(fullfilename);
-        free( fullfilename );
-
-		fullfilename = make_file_name (ashome, LOOK_DIR);
-        CheckOrCreate(fullfilename);
-        free( fullfilename );
-
-		fullfilename = make_file_name (ashome, FEEL_DIR);
-        CheckOrCreate(fullfilename);
-        free( fullfilename );
-
-		fullfilename = make_file_name (ashome, THEME_DIR);
-        CheckOrCreate(fullfilename);
-        free( fullfilename );
-
-		fullfilename = make_file_name (ashome, COLORSCHEME_DIR);
-        CheckOrCreate(fullfilename);
-        free( fullfilename );
-
-		fullfilename = make_file_name (ashome, BACK_DIR);
-        CheckOrCreate(fullfilename);
-        free( fullfilename );
-#endif
-		fullfilename = make_file_name (ashome, DESKTOP_DIR);
-        CheckOrCreate(fullfilename);
-        free( fullfilename );
-
-		fullfilename = make_file_name (ashome, ICON_DIR);
-        CheckOrCreate(fullfilename);
-        free( fullfilename );
-
-		fullfilename = make_file_name (ashome, FONT_DIR);
-        CheckOrCreate(fullfilename);
-        free( fullfilename );
-
-		fullfilename = make_file_name (ashome, TILE_DIR);
-        CheckOrCreate(fullfilename);
-        free( fullfilename );
-
-        if( create_non_conf )
-        {
-            fullfilename = make_file_name (ashome, AFTER_NONCF);
-            /* legacy non-configurable dir: */
-            CheckOrCreate(fullfilename);
-            free( fullfilename );
-        }
 #if defined(DO_SEND_POSTCARD) && defined(HAVE_POPEN)
 		/* send some info to sasha @ aftercode.net */
 		{
@@ -773,6 +721,59 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 		}
 #endif
 	}
+    fullfilename = make_file_name (ashome, AFTER_SAVE);
+    CheckOrCreateFile (fullfilename);
+    free( fullfilename );
+
+#if 0
+    fullfilename = make_file_name (ashome, THEME_FILE_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
+
+	fullfilename = make_file_name (ashome, LOOK_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
+
+	fullfilename = make_file_name (ashome, FEEL_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
+
+	fullfilename = make_file_name (ashome, THEME_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
+
+	fullfilename = make_file_name (ashome, COLORSCHEME_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
+
+	fullfilename = make_file_name (ashome, BACK_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
+#endif
+	fullfilename = make_file_name (ashome, DESKTOP_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
+
+	fullfilename = make_file_name (ashome, ICON_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
+
+	fullfilename = make_file_name (ashome, FONT_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
+
+	fullfilename = make_file_name (ashome, TILE_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
+	
+	if( create_non_conf )
+    {
+        fullfilename = make_file_name (ashome, AFTER_NONCF);
+        /* legacy non-configurable dir: */
+        CheckOrCreate(fullfilename);
+        free( fullfilename );
+    }
+
 }
 
 static const char *

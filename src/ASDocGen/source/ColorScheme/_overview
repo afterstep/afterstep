@@ -1,2 +1,125 @@
 <section label="overview" id="overview">
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>AfterStep color schemes are supposed to ease the pain of assembling set of colors that go well with each other,
+while providing additional flexibility while designing custom looks/themes. 
+</para><para>
+AfterStep Colorscheme is a standard set of color names, that may have different color values assigned to them.
+This color names are used in defining Look and in XML images. 
+By assigning different color values to teh same color names it is possible to instantly change colors throughout entire Look, 
+without altering any images or configuration files.
+</para>
+<section id='harmonious_colors'><title>HARMONIOUS COLORS</title>
+<para>
+Task of selecting a set of matching colors is a serious matter, and it was studied by artists and designers for centuries.
+AS the result there are certain rules developed to simplify this task. 
+</para>
+<para>Firstly, instead of selecting colors in Red/Green/Blue colorspace, matching colors should be selected using 
+Hue/Saturation/Value (HSV) colorspace. Color hues are the most important characteristic of the color,
+and is measured in degrees from 0(red hue) to 60(yellow hue) to 120(green hue) to 180(cyan hue) to 240(blue hue) to 300(purple hue) and then to 360 which is the same hue as 0 - red.
+Hues could be placed on a so called color circle, making it easier to choose matching colors.
+</para>
+<para>There are two main approaches to selecting color scheme - single hue, or several hues. 
+</para>
+<para>Single hue colors differ in its saturation, and usually allow for a soothing, simple theme. 
+Such theme could be pleasant to look at, but it lacks in excitement, and makes it difficult to distinguish between different elements.
+</para>
+<para>Using several hues makes theme a bit more exciting, and adds more visual cues to the screen, providing for 
+easier operation, and allowing user to relax eye muscles, resulting in better ergonomics.
+Accordingly this is the approach that should be used for user interface colors. 
+Now how to select hues that compose harmonious theme? 
+The rule of the thumb is that hues that are close to each other on color circle go well with each other, while those, located
+on opposing sides of the circle, create contrasting effect. 
+</para>
+<para>AfterStep addresses the task of selecting harmonious colors, 
+by generating a set of colors from a single color using designer rules.
+</para>
+</section>
+
+<section id='image_hues'><title>IMAGE HUES</title>
+<para>Look of the screen (aka Theme), includes numerous images, such as icons, backgrounds, bars, etc. 
+Each such image may have one or several dominating hues, which brings us back to the task of matching hues, in order to 
+achieve harmonious look.
+</para>
+<para>The rule of the thumb to follow here is that, each image on any particular interface element, such as titlebar, should have at least one dominating hue to be the same as
+the hue of the background of this element.
+</para>
+<para>There are several way to make sure that hue of the image matches that of the background : 
+</para>
+<variablelist>
+<varlistentry id="image_hues.tinting">
+<term>tinting</term><listitem>
+If an image has single dominating hue, it could be converted to grayscale and then tinted with the color of the background.
+</listitem></varlistentry>
+<varlistentry id="image_hues.hue_rotation">
+<term>hue rotation</term><listitem>
+If an image has several hues, or a hue and some grayscale parts - its hues could be rotated, by converting image into HSV colorspace,
+changing range of hues, and then converting image back into RGB colorspace.
+</listitem></varlistentry>
+<varlistentry id="image_hues.superimposition">
+<term>superimposition</term><listitem>
+Also image hues may be altered by superimposing it over the background image using allanon composition method, 
+where each pixel is substituted with the average of image's pixel value and background's pixel value.
+</listitem></varlistentry> 
+</variablelist>
+<para>AfterStep addresses the task of changing hues of images using XML image scripting.
+See <ulink url="asimagexml">asimagexml</ulink> for more on that.
+</para>
+</section>
+
+<section id='color_names'><title>COLOR NAMES</title>
+<para>
+AfterStep Colorscheme color names could be separated in several categories : 
+</para>
+<variablelist>
+<varlistentry id="color_names.fore_back">
+<term>Foreground and Background</term><listitem>
+Foreground colors are used to render text, while background colors make up a backdrop for that text.
+Now there are several constraints on foreground colors - they should be contrasting with backgrounds, 
+and it is always better to constrain foreground colors to black and white, as colored text tends to "bleed" ontop background, 
+making it less eligible. Another problem with foreground being colorfull is that it increases strain on user's eyes, 
+forcing them to adapt to too many different contrasting colors.
+</listitem></varlistentry>
+<varlistentry id="color_names.active_inactive">
+<term>Base, Active and Inactive</term><listitem>
+General color theme of the screen is determined by background. 
+Accordingly we term it a Base color, and determine the rest of the colors as relation to it.
+Now at any given time there could be one element that is focused and active, while other are off focus and should 
+assume lower visibility. We define Active colors to be used with focused items (should be contrasting with the Base color). 
+We also define Inactive colors to be used with off-focus items (its a good idea to make them analogues to the Base color). 
+Now as we may have 2 kinds of off-focus windows (sticky and non-sticky ), we actually define 2 Inactive colors: Inactive1 and Inactive2.
+</listitem></varlistentry>
+<varlistentry id="color_names.grads">
+<term>Gradient colors</term><listitem>
+Gradients create very appealing look when used to color titlebars and other interface elements. 
+Generally its a good idea to use colors of the same hue, but having different intensity. 
+To denote colors designated for gradients we add Dark/Light postfix to color names.
+</listitem></varlistentry>
+</variablelist>
+</section>
+
+<section id='color_values'><title>COLOR VALUES</title>
+<para>
+AfterStep supports extremely flexible and extensive ways to define color value. 
+Standard approach is to use #RRGGBB notation. 
+In addition to that, AfterStep supports the following notations :  
+</para>
+
+<variablelist>
+<varlistentry id="color_values.rgb">
+<term>#RGB</term><listitem>
+Same as #RRGGBB, only using 4bit values for components. For example #F84 is the same as #F08040.
+</listitem></varlistentry>
+<term>#ARGB</term><listitem>
+This is the same as #RGB plus Alpha value is added (Alpha value defines opacity of the color).
+</listitem></varlistentry>
+<term>#AARRGGBB</term><listitem>
+This is the same as #RRGGBB plus 8-bit Alpha value is added.
+</listitem></varlistentry>
+</variablelist>
+
+</para>
+
+</section>
+</refsect1>
+
 </section>

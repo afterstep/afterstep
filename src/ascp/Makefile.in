@@ -4,7 +4,7 @@ OBJS_ASIMBROWSER = asimbrowser.o
 
 OBJS		= $(OBJS_ASCOLOR) $(OBJS_ASIMBROWSER)
 
-PROG		= ascolor asimbrowser 
+PROG		= ascolor asimbrowser
 
 LIBS_PRIVATE      = $(LIB_AFTERCONF) $(LIB_AFTERSTEP) \
 					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) $(LIBS_AFTERIMAGE)
@@ -12,13 +12,14 @@ LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) $(LIB_AFTE
 
 @MAKEFILECOMMON@
 
-
 ascolor:        $(OBJS_ASCOLOR) $(LIBS_DEPEND)
 		$(CC) $(OBJS_ASCOLOR) $(LIBS_ALL) -o $(@)
 
 asimbrowser:	$(OBJS_ASIMBROWSER) $(LIBS_DEPEND)
 		$(CC) $(OBJS_ASIMBROWSER) $(LIBS_ALL) -o $(@)
 
+module.clean:
+		
 
 install:	install.bin
 

@@ -9,6 +9,8 @@ LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) $(LIB_WIDG
 
 @MAKEFILECOMMON@
 
+module.clean:
+		
 install:	install.bin install.man
 
 uninstall:	uninstall.bin uninstall.man
