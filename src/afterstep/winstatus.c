@@ -667,6 +667,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         {
 			if( !check_window_offscreen(asw) )
             	update_window_transparency( asw, False );
+			LOCAL_DEBUG_OUT( "resized = %X, shaped = %lX", get_flags( changes, CANVAS_RESIZED ), ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ) );
             if( get_flags( changes, CANVAS_RESIZED ) )
 			{
 				if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
