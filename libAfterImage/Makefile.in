@@ -12,6 +12,8 @@ LIB_INCS= config.h afterbase.h asfont.h asimage.h asvisual.h \
 LIB_OBJS= @AFTERBASE_C@ asfont.o asimage.o asvisual.o blender.o \
 		import.o xcf.o xpm.o
 
+LIB_DOCS= asfont.h asimage.h asvisual.h blender.h import.h
+
 # end specifics
 ################################################################
 # generic makefile stuff :
@@ -37,6 +39,7 @@ MKDIR		= @MKDIR@
 FIND		= @FIND@
 XARGS		= @XARGS@
 LDCONFIG	= @LDCONFIG@
+ROBODOC     = robodoc
 
 YACC		= @YACC@
 LEX		= @LEX@
@@ -59,7 +62,7 @@ LIBDIR		= $(DESTDIR)@libdir@
 INCLUDEDIR	= $(DESTDIR)@includedir@
 AFTER_INC_DIR	= $(DESTDIR)@includedir@/afterstep
 AFTER_BIN_DIR	= $(DESTDIR)@bindir@
-AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man1
+AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man3
 AFTER_DOC_DIR	= $(DESTDIR)@datadir@/afterstep/doc
 AFTER_SHAREDIR	= $(DESTDIR)@datadir@/afterstep
 
@@ -88,8 +91,6 @@ install.static:
 		    fi ;\
 		fi \
 		)
-
-install.man:
 
 install.script:
 
@@ -204,3 +205,32 @@ $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) config.h
 install:	install.lib
 
 uninstall:	uninstall.lib
+
+doc.xref: $(LIB_DOCS)
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
+	echo -n "" > afterimage_xref.lst ; \
+	for f in $$SRCS; do \
+		$(ROBODOC) $$f.h $$f.html HTML C TABSIZE 4 GENXREF doc/$$f.xref; \
+		echo "doc/$$f.xref" >> afterimage_xref.lst; \
+	done; 
+
+
+doc.html:  doc.xref
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
+	for f in $$SRCS; do \
+		$(ROBODOC) $$f.h doc/html/$$f.html HTML C TABSIZE 4 XREF afterimage_xref.lst; \
+	done;
+
+doc.man:  doc.xref
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
+	for f in $$SRCS; do \
+		$(ROBODOC) $$f.h doc/$$f.man TROFF C TABSIZE 4 XREF afterimage_xref.lst; \
+	done;
+
+install.man: doc.man
+	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
+		for f in $$SRCS; do \
+	  	  echo $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
+		  $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
+		done
+
