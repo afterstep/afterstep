@@ -697,7 +697,7 @@ flip_gradient( ASGradient *orig, int flip )
 
 /* ******************** ASImageLayer ****************************/
 
-inline void
+void
 init_image_layers( register ASImageLayer *l, int count )
 {
 	memset( l, 0x00, sizeof(ASImageLayer)*count );
@@ -812,7 +812,7 @@ void print_asimage( ASImage *im, int flags, char * func, int line )
 
 void print_component( register CARD32 *data, int nonsense, int len );
 
-inline int
+int
 asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width)
 {
 	ASStorageID id = im->channels[color][y];

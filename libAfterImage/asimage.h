@@ -756,7 +756,7 @@ ASGradient *flip_gradient( ASGradient *orig, int flip );
  * NAME 
  * init_image_layers()    - initialize set of ASImageLayer structures.
  * SYNOPSIS
- * inline void init_image_layers( register ASImageLayer *l, int count );
+ * void init_image_layers( register ASImageLayer *l, int count );
  * INPUTS
  * l              - pointer to valid ASImageLayer structure.
  * count          - number of elements to initialize.
@@ -764,7 +764,7 @@ ASGradient *flip_gradient( ASGradient *orig, int flip );
  * Initializes array on ASImageLayer structures to sensible defaults.
  * Basically - all zeros and merge_scanlines == alphablend_scanlines.
  *********/
-inline void init_image_layers( register ASImageLayer *l, int count );
+void init_image_layers( register ASImageLayer *l, int count );
 /****f* libAfterImage/asimage/create_image_layers()
  * NAME 
  * create_image_layers()  - allocate and initialize set of ASImageLayer's.
@@ -911,7 +911,7 @@ size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned 
 size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsigned int y);
 ASFlagType get_asimage_chanmask( ASImage *im);
 int check_asimage_alpha (ASVisual *asv, ASImage *im );
-inline int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width);
+int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width);
 void move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
 void copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
 void copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
@@ -1038,7 +1038,7 @@ do{	f((c1).red,(c2).red,(c3).red,(c4).red,(o1).red,(o2).red,(p),(len+(len&0x01))
 #define QUANT_ERR_BITS  	8
 #define QUANT_ERR_MASK  	0x000000FF
 
-inline void copy_component( register CARD32 *src, register CARD32 *dst, int *unused, int len );
+void copy_component( register CARD32 *src, register CARD32 *dst, int *unused, int len );
 
 #ifdef X_DISPLAY_MISSING
 typedef struct XRectangle

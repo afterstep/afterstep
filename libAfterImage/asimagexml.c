@@ -2521,7 +2521,7 @@ void reset_xml_buffer( ASXmlBuffer *xb )
 }	 
 
 
-inline void 
+void 
 add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len )
 {
 	if( xb->used + len > xb->allocated ) 

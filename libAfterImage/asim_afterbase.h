@@ -122,7 +122,7 @@ Bool asim_show_debug( const char *file, const char *func, int line, const char *
 #define show_debug asim_show_debug
 
 void asim_nonGNUC_debugout( const char *format, ...);
-inline void asim_nonGNUC_debugout_stub( const char *format, ...);
+void asim_nonGNUC_debugout_stub( const char *format, ...);
 /* may be used below in case compilation problems occur.
  * Please submit a bug report if usage of any of the following generates errors on
  * your compiler . Thanks!!! */

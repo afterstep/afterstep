@@ -38,7 +38,7 @@
 /* colorspace conversion functions : 											 */
 /*********************************************************************************/
 
-inline CARD32
+CARD32
 rgb2value( CARD32 red, CARD32 green, CARD32 blue )
 {
 	if( red > green )
@@ -46,7 +46,7 @@ rgb2value( CARD32 red, CARD32 green, CARD32 blue )
 	return MAX(green, blue);
 }
 
-inline CARD32
+CARD32
 rgb2saturation( CARD32 red, CARD32 green, CARD32 blue )
 {
 	register int max_val, min_val ;
@@ -172,7 +172,7 @@ hue162degrees( CARD32 hue )
 	return (hue*60)/HUE16_RANGE ;
 }
 
-inline CARD32
+CARD32
 rgb2hue( CARD32 red, CARD32 green, CARD32 blue )
 {
 	int max_val, min_val, hue = 0 ;
@@ -193,7 +193,7 @@ rgb2hue( CARD32 red, CARD32 green, CARD32 blue )
 	return hue;
 }
 
-inline CARD32
+CARD32
 rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *value )
 {
 	int max_val, min_val, hue = 0 ;
@@ -217,7 +217,7 @@ rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *valu
 	return hue;
 }
 
-inline void
+void
 hsv2rgb (CARD32 hue, CARD32 saturation, CARD32 value, CARD32 *red, CARD32 *green, CARD32 *blue)
 {
 	if (saturation == 0 || hue == 0 )
@@ -230,7 +230,7 @@ hsv2rgb (CARD32 hue, CARD32 saturation, CARD32 value, CARD32 *red, CARD32 *green
 	}
 }
 
-inline CARD32                                         /* returns luminance */
+CARD32                                         /* returns luminance */
 rgb2luminance (CARD32 red, CARD32 green, CARD32 blue )
 {
 	int max_val, min_val;
@@ -246,7 +246,7 @@ rgb2luminance (CARD32 red, CARD32 green, CARD32 blue )
 	return (max_val+min_val)>>1;
 }
 
-inline CARD32                                         /* returns hue */
+CARD32                                         /* returns hue */
 rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance, CARD32 *saturation )
 {
 	int max_val, min_val, hue = 0 ;
@@ -275,7 +275,7 @@ rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance, CARD32 *satur
 	return hue;
 }
 
-inline void
+void
 hls2rgb (CARD32 hue, CARD32 luminance, CARD32 saturation, CARD32 *red, CARD32 *green, CARD32 *blue)
 {
 	if (saturation == 0)

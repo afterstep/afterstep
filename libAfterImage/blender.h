@@ -107,10 +107,10 @@ int    hue162degrees( CARD32 hue );
 #define val162percent(p) 	((((CARD32)(p))*100)/0x00FF00)
 
 
-inline CARD32 rgb2value( CARD32 red, CARD32 green, CARD32 blue );
-inline CARD32 rgb2saturation( CARD32 red, CARD32 green, CARD32 blue );
-inline CARD32 rgb2hue( CARD32 red, CARD32 green, CARD32 blue );
-inline CARD32 rgb2luminance (CARD32 red, CARD32 green, CARD32 blue );
+CARD32 rgb2value( CARD32 red, CARD32 green, CARD32 blue );
+CARD32 rgb2saturation( CARD32 red, CARD32 green, CARD32 blue );
+CARD32 rgb2hue( CARD32 red, CARD32 green, CARD32 blue );
+CARD32 rgb2luminance (CARD32 red, CARD32 green, CARD32 blue );
 /****f* libAfterImage/rgb2hsv()
  * NAME
  * rgb2hsv()
@@ -134,8 +134,8 @@ inline CARD32 rgb2luminance (CARD32 red, CARD32 green, CARD32 blue );
  * coordinates at once. These functions work faster then separate
  * translation into each channel.
  ****************/
-inline CARD32 rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *value );
-inline CARD32 rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance, CARD32 *saturation );
+CARD32 rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *value );
+CARD32 rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance, CARD32 *saturation );
 /****f* libAfterImage/hsv2rgb()
  * NAME
  * hsv2rgb()
@@ -158,8 +158,8 @@ inline CARD32 rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance,
  * This functions performs reverse translation from HSV and HSL to
  * RGB color
  ****************/
-inline void hsv2rgb (CARD32 hue, CARD32 saturation, CARD32 value, CARD32 *red, CARD32 *green, CARD32 *blue);
-inline void hls2rgb (CARD32 hue, CARD32 luminance, CARD32 saturation, CARD32 *red, CARD32 *green, CARD32 *blue);
+void hsv2rgb (CARD32 hue, CARD32 saturation, CARD32 value, CARD32 *red, CARD32 *green, CARD32 *blue);
+void hls2rgb (CARD32 hue, CARD32 luminance, CARD32 saturation, CARD32 *red, CARD32 *green, CARD32 *blue);
 
 /* scanline blending 													 */
 /****f* libAfterImage/merge_scanline

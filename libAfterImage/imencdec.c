@@ -196,7 +196,7 @@ asimage_erase_line( ASImage * im, ColorPart color, unsigned int y )
 
 
 /* for consistency sake : */
-inline void
+void
 copy_component( register CARD32 *src, register CARD32 *dst, int *unused, int len )
 {
 #if 1

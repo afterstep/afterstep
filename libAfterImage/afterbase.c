@@ -187,7 +187,7 @@ void asim_nonGNUC_debugout( const char *format, ...)
     fprintf (stderr, "\n" );
 }
 
-inline void asim_nonGNUC_debugout_stub( const char *format, ...)
+void asim_nonGNUC_debugout_stub( const char *format, ...)
 {}
 
 /* from libAfterBase/fs.c : */

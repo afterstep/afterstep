@@ -151,7 +151,7 @@ Bool save_asimage_to_file(const char* file2bsaved, ASImage *im,
 			  			  int delay, int replace);
 
 void reset_xml_buffer( ASXmlBuffer *xb );
-inline void add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len );
+void add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len );
 int spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len );
 char translate_special_sequence( const char *ptr, int len,  int *seq_len );
 void append_cdata( xml_elem_t *cdata_tag, const char *line, int len );
