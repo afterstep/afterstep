@@ -413,21 +413,6 @@ change_desk_session_feel (ASSession * session, int desk, struct ASFeel *feel)
 		d->feel = feel ;
 		if( !AS_ASSERT(session->scr) )
 		{
-			ScreenInfo *scr = session->scr ;
-
-			if( d == session->defaults ||
-				scr->DefaultFeel == old_feel )
-			{
-				ASFeel *old_default_feel = scr->DefaultFeel ;
-				scr->DefaultFeel = feel ;
-
-				if( scr->OnDefaultFeelChanged_hook )
-					scr->OnDefaultFeelChanged_hook( scr, old_default_feel );
-				/* There is a possibility for contention here, if DefaultFeel was
-				 * taken from session other then default one */
-				if( old_default_feel && old_default_feel != old_feel )
-					destroy_asfeel(&(old_default_feel));
-			}
 		}
 		if( session->on_feel_changed_func )
 		{
