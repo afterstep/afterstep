@@ -149,6 +149,11 @@ version 1.99.0 AKA 2.0 beta1
                       [FrameFocusedStyle     <style>
                       [FrameStickyStyle      <style>
                       [TitleBackground       <pixmap>] - gets overlayed over background and under the text
+                      [LeftBtnBackground     <pixmap>] - gets overlayed over background and under the left block of buttons
+                      [LeftSpacerBackground  <pixmap>] - gets overlayed over background between left block of buttons and text label
+                      [RightSpacerBackground <pixmap>] - gets overlayed over background between right block of buttons and text label
+                      [RightBtnBackground    <pixmap>] - gets overlayed over background and under the right block of buttons
+
                   #additional attributes :
                       [SideSize        North|South|East|West|Any <WIDTHxLENGTH>] - pixmap will be scaled to this size
                       [SideAlign       North|South|East|West|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
@@ -174,6 +179,11 @@ version 1.99.0 AKA 2.0 beta1
                       [TitleAlign      None|[Left,Top,Right,Bottom]
                                 - default is Left
                       [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+                      [LeftBtnBackAlign	     None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+                      [LeftSpacerBackAlign   None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+                      [RightSpacerBackAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+                      [RightBtnBackAlign     None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+
                       [TitleCompositionMethod   testure_type]
                       [TitleFocusedCompositionMethod     testure_type]
                       [TitleUnfocusedCompositionMethod   testure_type]
