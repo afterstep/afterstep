@@ -146,6 +146,8 @@ typedef struct ASWharfFolder
 	unsigned int animate_from_w, animate_from_h ;
 	unsigned int animate_to_w, animate_to_h ;
 
+	ASWharfButton *withdrawn_button ;
+
 }ASWharfFolder;
 
 typedef struct ASWharfState
@@ -1433,8 +1435,8 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 	for( i = 0 ; i < steps ; ++i )
 	{
 		rect.x = rect.y = 0 ;		
-		rect.width = get_flags( aswf->flags, ASW_Vertical )?to_width:from_width+((to_width-from_width)/steps)*i ;
-		rect.height = get_flags( aswf->flags, ASW_Vertical )?from_height+((to_height-from_height)/steps)*i:to_height ;
+		rect.width = get_flags( aswf->flags, ASW_Vertical )?to_width:from_width+((to_width-from_width)/steps)*(i+1) ;
+		rect.height = get_flags( aswf->flags, ASW_Vertical )?from_height+((to_height-from_height)/steps)*(i+1):to_height ;
 		
 		if( get_flags( aswf->flags, ASW_Vertical ) )
 		{	
@@ -1665,8 +1667,15 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 		aswf->animate_to_w = width;
 		aswf->animate_to_h = height;
 		aswf->boundary.x = aswf->boundary.y = 0 ; 
-		aswf->boundary.width = 1 ;
-		aswf->boundary.height = 1 ;
+		if( get_flags( aswf->flags, ASW_Vertical ) )
+		{		
+			aswf->boundary.height = (aswf->gravity == NorthEastGravity || aswf->gravity == NorthWestGravity )?aswf->canvas->height:1 ;
+			aswf->boundary.width = (aswf->boundary.height > 1)?aswf->canvas->width:1 ;
+		}else
+		{
+			aswf->boundary.width = (aswf->gravity == NorthWestGravity || aswf->gravity == SouthWestGravity )?aswf->canvas->width:1 ;
+			aswf->boundary.height = (aswf->boundary.width > 1)?aswf->canvas->height:1 ;
+		}	 
 #ifdef SHAPE		
 		/* fprintf( stderr, "setting boundary to 1x1\n" );  */
 	    XShapeCombineRectangles ( dpy, aswf->canvas->w, ShapeBounding,
@@ -2350,21 +2359,14 @@ void on_wharf_moveresize( ASEvent *event )
         {
 LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
             int i = aswf->buttons_num ;
-#if 0			
-			if( get_flags( changes, CANVAS_RESIZED ) )
-			{
-				set_flags(aswf->flags,ASW_UseBoundary );
-				aswf->boundary.x = src_x - aswf->canvas->root_x ;
-				aswf->boundary.y = src_y - aswf->canvas->root_y ;
-				aswf->boundary.width = src_width ;
-				aswf->boundary.height = src_height ;
-				update_wharf_folder_shape( aswf );
-			}
-#endif			
+
 			if( !get_flags( aswf->flags, ASW_Withdrawn ) )
+			{	
 				set_wharf_clip_area( aswf, aswf->canvas->root_x, aswf->canvas->root_y );
-            while( --i >= 0 )
-                on_wharf_button_moveresize( &(aswf->buttons[i]), event );
+				while( --i >= 0 )
+    	            on_wharf_button_moveresize( &(aswf->buttons[i]), event );
+			}else if( aswf->withdrawn_button != NULL )
+				on_wharf_button_moveresize( aswf->withdrawn_button, event );
 
 #if 1			   
             if( get_flags( changes, CANVAS_RESIZED ) )
@@ -2376,6 +2378,7 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 				}
 			}
 #endif
+		
 			if( get_flags( changes, CANVAS_RESIZED ) )
 			{
 				/* fprintf(stderr, "clearing or applying boundary\n");	  */
@@ -2525,6 +2528,8 @@ on_wharf_pressed( ASEvent *event )
                 	aswb->folder_width = wwidth ;
                 	aswb->folder_height = wheight ;
                 	moveresize_canvas( aswb->canvas, 0, 0, wwidth, wheight );
+
+					aswf->withdrawn_button = aswb ;
             	}
             	return;
         	}
