@@ -203,7 +203,7 @@ destroy_asimage( ASImage **im )
 		if( *im && (*im)->imageman == NULL)
 		{
 			asimage_init( *im, True );
-fprintf( stderr, "destroying image : %p\n", *im );
+/*fprintf( stderr, "destroying image : %p\n", *im );*/
 			(*im)->magic = 0;
 			free( *im );
 			*im = NULL ;

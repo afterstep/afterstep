@@ -21,7 +21,7 @@
 #include "config.h"
 
 /*#define LOCAL_DEBUG*/
-#define DO_CLOCKING
+/*#define DO_CLOCKING*/
 
 #include <time.h>
 #include <unistd.h>
@@ -677,7 +677,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 		ASIM_PrintGifError();
 		return False;
 	}
-	memcpy( &(gif_cmap->Colors[0]), &(cmap.entries[0]), MIN(cmap.count,cmap_size)*3 );
+	memcpy( &(gif_cmap->Colors[0]), &(cmap.entries[0]), MIN(cmap.count,(unsigned int)cmap_size)*3 );
 
 	if( get_flags(params->gif.flags, EXPORT_APPEND) )
 		infile = fopen( path, "rb" );

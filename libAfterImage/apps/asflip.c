@@ -38,14 +38,14 @@ void usage()
 
 int main(int argc, char* argv[])
 {
-	Window w ;
 	ASVisual *asv ;
-	int screen, depth ;
+	int screen = 0 , depth = 0 ;
 	char *image_file = "rose512.jpg" ;
 	int flip = FLIP_VERTICAL;
 	Bool vertical = False, mirror = False ;
 	int tile_x, tile_y, tile_width, tile_height, geom_flags = 0;
 	ASImage *im = NULL;
+	ASImage *flipped_im = NULL ;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -86,11 +86,12 @@ int main(int argc, char* argv[])
 	}else
 		usage();
 
+#ifndef X_DISPLAY_MISSING
     dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 	screen = DefaultScreen(dpy);
 	depth = DefaultDepth( dpy, screen );
-
+#endif
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
 	if( im == NULL )
@@ -121,61 +122,51 @@ int main(int argc, char* argv[])
 
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );
-	/* see ASView.4 : */
-	w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-		                         tile_width, tile_height, 1, 0, NULL,
-								 "ASFlip" );
-	if( w != None )
-	{
-		Pixmap p ;
-		ASImage *flipped_im ;
 
-		XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
-	  	XMapRaised   (dpy, w);
-		/* see ASFlip.2 : */
-		if( !mirror ) 
-			flipped_im = flip_asimage( 	asv, im,
-				                       	tile_x, tile_y,
-										tile_width, tile_height,
-					       	 			flip,
-					                	ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
-		else
-			flipped_im = mirror_asimage(asv, im,
-				                       	tile_x, tile_y,
-										tile_width, tile_height,
-					       	 			vertical,
-					                	ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
-												
-		destroy_asimage( &im );
-		/* see ASView.5 : */
-		p = asimage2pixmap( asv, DefaultRootWindow(dpy), flipped_im,
-				            NULL, True );
-		destroy_asimage( &flipped_im );
-		/* see common.c: set_window_background_and_free() : */
-		p = set_window_background_and_free( w, p );
-	}
-	/* see ASView.6 : */
-	while(w != None)
-  	{
-    	XEvent event ;
-	    XNextEvent (dpy, &event);
-  		switch(event.type)
+	/* see ASFlip.2 : */
+	if( !mirror ) 
+		flipped_im = flip_asimage( 	asv, im,
+			                       	tile_x, tile_y,
+									tile_width, tile_height,
+				       	 			flip,
+				                	ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+	else
+		flipped_im = mirror_asimage(asv, im,
+			                       	tile_x, tile_y,
+									tile_width, tile_height,
+				       	 			vertical,
+				                	ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+	destroy_asimage( &im );
+
+	if( flipped_im )
+	{
+#ifndef X_DISPLAY_MISSING
+		/* see ASView.4 : */
+		Window w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+			  		      	                tile_width, tile_height, 1, 0, NULL,
+											"ASFlip" );
+		if( w != None )
 		{
-		  	case ButtonPress:
-				break ;
-	  		case ClientMessage:
-			    if ((event.xclient.format == 32) &&
-	  			    (event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
-		  		{
-					XDestroyWindow( dpy, w );
-					XFlush( dpy );
-					w = None ;
-				}
-				break;
+			Pixmap p ;
+
+		  	XMapRaised   (dpy, w);
+			/* see ASView.5 : */
+			p = asimage2pixmap( asv, DefaultRootWindow(dpy), flipped_im,
+					            NULL, True );
+			destroy_asimage( &flipped_im );
+			/* see common.c: set_window_background_and_free() : */
+			p = set_window_background_and_free( w, p );
+			/* see common.c: wait_closedown() : */
+			wait_closedown(w);
 		}
-  	}
-    if( dpy )
-        XCloseDisplay (dpy);
+  		if( dpy )
+	  		XCloseDisplay (dpy);
+#else
+		/* writing result into the file */
+		ASImage2file( flipped_im, NULL, "asflip.jpg", ASIT_Jpeg, NULL );
+		destroy_asimage( &flipped_im );
+#endif
+	}
     return 0 ;
 }
 /**************/

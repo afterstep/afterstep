@@ -167,7 +167,12 @@ int main(int argc, char* argv[])
 	/* see ASMerge.4 */
 	merged_im = merge_layers( asv, layers, layers_num,
 		                      to_width, to_height,
-		                      ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+#ifndef X_DISPLAY_MISSING
+							  ASA_XImage, 
+#else
+							  ASA_ASImage,
+#endif
+							  0, ASIMAGE_QUALITY_DEFAULT );
 	while( --layers_num >= 0 )
 		destroy_asimage( &(layers[layers_num].im) );
 	free( layers );
@@ -183,7 +188,6 @@ int main(int argc, char* argv[])
 		{
 			Pixmap p ;
 
-			XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
 		  	XMapRaised   (dpy, w);
 			/* see ASView.5 : */
 			p = asimage2pixmap( asv, DefaultRootWindow(dpy), merged_im,
@@ -191,9 +195,9 @@ int main(int argc, char* argv[])
 			destroy_asimage( &merged_im );
 			/* see common.c: set_window_background_and_free() : */
 			p = set_window_background_and_free( w, p );
+			/* see common.c: wait_closedown() : */
 			wait_closedown(w);
 		}
-		/* see common.c: wait_closedown() : */
 		if( dpy )
   	  		XCloseDisplay (dpy);
 #else

@@ -20,8 +20,8 @@
 
 #include "config.h"
 
-#define LOCAL_DEBUG
-#define DO_CLOCKING
+/*#define LOCAL_DEBUG*/
+/*#define DO_CLOCKING*/
 
 #include <stdlib.h>
 #include <malloc.h>
@@ -130,7 +130,7 @@ read_xcf_image( FILE *fp )
 				CARD32 n = *((CARD32*)(prop->data)) ;
 				n = as_ntohl(n);
 				xcf_im->num_cols = n ;
-				xcf_im->colormap = safemalloc( MAX(n*3,XCF_COLORMAP_SIZE));
+				xcf_im->colormap = safemalloc( MAX(n*3,(CARD32)XCF_COLORMAP_SIZE));
 				if( xcf_im->version == 0 )
 				{
 					for( i = 0 ; i < n ; i++ )

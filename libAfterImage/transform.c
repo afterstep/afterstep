@@ -19,9 +19,12 @@
 #include "config.h"
 
 /*#define LOCAL_DEBUG*/
-#define DO_CLOCKING
+/*#define DO_CLOCKING*/
 
 #define USE_64BIT_FPU
+
+/* #define NEED_RBITSHIFT_FUNCS */
+
 
 #include <malloc.h>
 #ifdef DO_CLOCKING
@@ -300,6 +303,7 @@ add_component( CARD32 *src, CARD32 *incr, int *scales, int len )
 	}
 }
 
+#ifdef NEED_RBITSHIFT_FUNCS
 static inline void
 rbitshift_component( register CARD32 *src, register CARD32 *dst, int shift, int len )
 {
@@ -307,6 +311,7 @@ rbitshift_component( register CARD32 *src, register CARD32 *dst, int shift, int 
 	for( i = 0 ; i < len ; ++i )
 		dst[i] = src[i]>>shift;
 }
+#endif
 
 static inline void
 start_component_interpolation( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, register CARD32 *T, register CARD32 *step, CARD16 S, int len)
@@ -355,6 +360,7 @@ component_interpolation_hardcoded( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c
 		}
 }
 
+#ifdef NEED_RBITSHIFT_FUNCS
 static inline void
 divide_component_mod( register CARD32 *data, CARD16 ratio, int len )
 {
@@ -370,7 +376,7 @@ rbitshift_component_mod( register CARD32 *data, int bits, int len )
 	for( i = 0 ; i < len ; ++i )
 		data[i] = data[i]>>bits;
 }
-
+#endif
 void
 print_component( register CARD32 *data, int nonsense, int len )
 {

@@ -22,7 +22,7 @@
 #include "config.h"
 
 /*#define LOCAL_DEBUG*/
-#define DO_CLOCKING
+/*#define DO_CLOCKING*/
 
 #include <time.h>
 #include <unistd.h>

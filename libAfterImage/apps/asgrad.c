@@ -56,15 +56,18 @@ void usage()
 
 int main(int argc, char* argv[])
 {
-	Window w ;
 	ASVisual *asv ;
-	int screen, depth ;
+	int screen = 0, depth = 0;
 	int dummy, to_width, to_height, geom_flags = 0;
 	ASGradient grad ;
 	ASGradient default_grad = { 1, 10, &(default_colors[0]), &(default_offsets[0])} ;
+	ASImage *grad_im = NULL;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
+#if (HAVE_AFTERBASE_FLAG==1)
+	set_output_threshold(OUTPUT_LEVEL_DEBUG);
+#endif
 
 	if( argc > 1 )
 	{
@@ -80,10 +83,12 @@ int main(int argc, char* argv[])
 		usage();
 	memset( &grad, 0x00, sizeof(ASGradient));
 
+#ifndef X_DISPLAY_MISSING
     dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 	screen = DefaultScreen(dpy);
 	depth = DefaultDepth( dpy, screen );
+#endif
 
 	if( argc >= 5 )
 	{
@@ -123,59 +128,60 @@ int main(int argc, char* argv[])
 	}
 
 	/* Making sure tiling geometry is sane : */
+#ifndef X_DISPLAY_MISSING
 	if( !get_flags(geom_flags, WidthValue ) )
 		to_width  = DisplayWidth(dpy, screen)*2/3 ;
 	if( !get_flags(geom_flags, HeightValue ) )
 		to_height = DisplayHeight(dpy, screen)*2/3 ;
+#else
+	if( !get_flags(geom_flags, WidthValue ) )
+		to_width  = 500 ;
+	if( !get_flags(geom_flags, HeightValue ) )
+		to_height = 500 ;
+#endif
 	printf( "%s: rendering gradient of type %d to %dx%d\n",
 		    get_application_name(), grad.type&GRADIENT_TYPE_MASK, to_width, to_height );
 
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );
-	/* see ASView.4 : */
-	w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-		                         to_width, to_height, 1, 0, NULL,
-								 "ASGradient" );
-	if( w != None )
+	/* see ASGrad.2 : */
+	grad_im = make_gradient( asv, &grad, to_width, to_height,
+	        	             SCL_DO_ALL,
+#ifndef X_DISPLAY_MISSING
+							 ASA_XImage, 
+#else
+							 ASA_ASImage,
+#endif
+							 0, ASIMAGE_QUALITY_DEFAULT );
+	if( grad_im ) 
 	{
-		Pixmap p ;
-		ASImage *grad_im ;
-
-		XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
-	  	XMapRaised   (dpy, w);
-		/* see ASGrad.2 : */
-		grad_im = make_gradient( asv, &grad, to_width, to_height,
-			        	            SCL_DO_ALL,
-				                    ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
-		/* see ASView.5 : */
-		p = asimage2pixmap( asv, DefaultRootWindow(dpy), grad_im,
-				            NULL, True );
-		destroy_asimage( &grad_im );
-		/* see common.c: set_window_background_and_free() : */
-		p = set_window_background_and_free( w, p );
-	}
-	/* see ASView.6 : */
-	while(w != None)
-  	{
-    	XEvent event ;
-	    XNextEvent (dpy, &event);
-  		switch(event.type)
+#ifndef X_DISPLAY_MISSING
+		/* see ASView.4 : */
+		Window w = create_top_level_window( asv, 
+		                                    DefaultRootWindow(dpy), 32, 32,
+		                        			to_width, to_height, 1, 0, NULL,
+											"ASGradient" );
+		if( w != None )
 		{
-		  	case ButtonPress:
-				break ;
-	  		case ClientMessage:
-			    if ((event.xclient.format == 32) &&
-	  			    (event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
-		  		{
-					XDestroyWindow( dpy, w );
-					XFlush( dpy );
-					w = None ;
-				}
-				break;
+			Pixmap p ;
+
+		  	XMapRaised   (dpy, w);
+			/* see ASView.5 : */
+			p = asimage2pixmap( asv, DefaultRootWindow(dpy), grad_im,
+					            NULL, True );
+			destroy_asimage( &grad_im );
+			/* see common.c: set_window_background_and_free() : */
+			p = set_window_background_and_free( w, p );
+			/* see common.c: wait_closedown() : */
+			wait_closedown(w);
 		}
-  	}
-    if( dpy )
-        XCloseDisplay (dpy);
+	    if( dpy )
+  		    XCloseDisplay (dpy);
+#else
+		ASImage2file( grad_im, NULL, "asgrad.jpg", ASIT_Jpeg, NULL );
+		destroy_asimage( &grad_im );
+#endif
+	}
     return 0 ;
 }
 /**************/

@@ -64,9 +64,8 @@ void usage()
 
 int main(int argc, char* argv[])
 {
-	Window w ;
 	ASVisual *asv = NULL ;
-	int screen, depth ;
+	int screen = 0, depth = 0;
 	char *font_name = "test.ttf";
 	int size = 32 ;
 	char *text = "Smart Brown Dog jumps\nOver The Lazy Fox,\nand falls into the ditch.";
@@ -75,6 +74,7 @@ int main(int argc, char* argv[])
 	char *fore_image_file = "fore.xpm", *back_image_file = "back.xpm" ;
 	Bool scale_fore_image = False, scale_back_image = False ;
 	ASImage *fore_im = NULL, *back_im = NULL;
+	ASImage *text_im = NULL ;
 	ASText3DType type_3d = AST_ShadeBelow ;
 	struct ASFontManager *fontman = NULL;
 	struct ASFont  *font = NULL;
@@ -132,10 +132,12 @@ int main(int argc, char* argv[])
 		}
 	}
 
+#ifndef X_DISPLAY_MISSING
     dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 	screen = DefaultScreen(dpy);
 	depth = DefaultDepth( dpy, screen );
+#endif
 
 	/* see ASText.1 : */
 	if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
@@ -197,14 +199,22 @@ int main(int argc, char* argv[])
 				back_im = tmp ;
 		}
 	}
-	/* see ASView.4 : */
-	w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-		                         width+BEVEL_ADDON, height+BEVEL_ADDON, 1, 0, NULL,
-								 "ASText" );
-	if( w != None )
+
+	/* see ASText.3 : */
+	text_im = draw_text( text, font, type_3d, 0 );
+	if( fore_im )
 	{
-		Pixmap p ;
-		ASImage *text_im ;
+		move_asimage_channel( fore_im, IC_ALPHA, text_im, IC_ALPHA );
+		destroy_asimage( &text_im );
+	}else
+		fore_im = text_im ;
+
+	/* see ASText.1 : */
+	release_font( font );
+	destroy_font_manager( fontman, False );
+
+	if( fore_im )
+	{
 		ASImage *rendered_im ;
 		ASImageLayer layers[2] ;
 		ASImageBevel bevel = {0/*BEVEL_SOLID_INLINE*/, 0xFFDDDDDD, 0xFF555555, 0xFFFFFFFF, 0xFF777777, 0xFF222222,
@@ -213,17 +223,6 @@ int main(int argc, char* argv[])
 							  BEVEL_HI_WIDTH, BEVEL_HI_WIDTH,
 							  BEVEL_LO_WIDTH, BEVEL_LO_WIDTH } ;
 
-		XSelectInput (dpy, w, (StructureNotifyMask | ButtonPressMask|ButtonReleaseMask));
-	  	XMapRaised   (dpy, w);
-
-		/* see ASText.3 : */
-		text_im = draw_text( text, font, type_3d, 0 );
-		if( fore_im )
-		{
-			move_asimage_channel( fore_im, IC_ALPHA, text_im, IC_ALPHA );
-			destroy_asimage( &text_im );
-		}else
-			fore_im = text_im ;
 		/* see ASText.4 : */
 		init_image_layers( &(layers[0]), 2 );
 		back_im->back_color = back_color ;
@@ -236,48 +235,53 @@ int main(int argc, char* argv[])
 		layers[0].bevel = &bevel ;
 		layers[1].im = fore_im ;
 		layers[1].dst_x = text_margin+BEVEL_HI_WIDTH*2 ;
-		layers[1].dst_y = text_margin+MIN(text_margin,(font->max_height-font->max_ascend))/2+BEVEL_HI_WIDTH*2;
+		layers[1].dst_y = text_margin+MIN((int)text_margin,((int)font->max_height-(int)font->max_ascend))/2+BEVEL_HI_WIDTH*2;
 		layers[1].clip_width = fore_im->width ;
 		layers[1].clip_height = fore_im->height ;
 		rendered_im = merge_layers( asv, &(layers[0]), 2,
 									width+BEVEL_ADDON, height+BEVEL_ADDON,
-									ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT);
+#ifndef X_DISPLAY_MISSING
+									ASA_XImage, 
+#else
+									ASA_ASImage,
+#endif
+									0, ASIMAGE_QUALITY_DEFAULT);
 		destroy_asimage( &fore_im );
 		destroy_asimage( &back_im );
-		/* see ASView.5 : */
-		p = asimage2pixmap( asv, DefaultRootWindow(dpy), rendered_im,
-				            NULL, True );
-		/* see common.c: set_window_background_and_free() : */
-		p = set_window_background_and_free( w, p );
-	}
-	/* see ASView.6 : */
-	while(w != None)
-  	{
-    	XEvent event ;
-	    XNextEvent (dpy, &event);
-  		switch(event.type)
+		
+		if( rendered_im )
 		{
-		  	case ButtonPress:
-				XDestroyWindow( dpy, w );
-				XFlush( dpy );
-				w = None ;
-				break ;
-	  		case ClientMessage:
-			    if ((event.xclient.format == 32) &&
-	  			    (event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
-		  		{
-					XDestroyWindow( dpy, w );
-					XFlush( dpy );
-					w = None ;
-				}
-				break;
+#ifndef X_DISPLAY_MISSING
+			Window w;
+			/* see ASView.4 : */
+			w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+			      		                 width+BEVEL_ADDON, height+BEVEL_ADDON, 
+										 1, 0, NULL,
+										 "ASText" );
+			if( w != None )
+			{
+				Pixmap p ;
+  
+			  	XMapRaised   (dpy, w);
+
+				/* see ASView.5 : */
+				p = asimage2pixmap( asv, DefaultRootWindow(dpy), rendered_im,
+						            NULL, True );
+				destroy_asimage( &rendered_im );
+				/* see common.c: set_window_background_and_free() : */
+				p = set_window_background_and_free( w, p );
+				/* see common.c: wait_closedown() : */
+				wait_closedown(w);
+			}				
+		    if( dpy )
+      			XCloseDisplay (dpy);
+#else
+			/* writing result into the file */
+			ASImage2file( rendered_im, NULL, "astext.jpg", ASIT_Jpeg, NULL );
+			destroy_asimage( &rendered_im );
+#endif				
 		}
-  	}
-	/* see ASText.1 : */
-	release_font( font );
-	destroy_font_manager( fontman, False );
-    if( dpy )
-        XCloseDisplay (dpy);
+	}
     return 0 ;
 }
 /**************/
