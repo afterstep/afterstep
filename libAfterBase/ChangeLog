@@ -1,6 +1,7 @@
 
 2005-03-02  sasha
 
+	* AfterStep 2.00.03 release
 	* fixed longstanding bug with windows not being properly delisted
 	  from iconbox. Thanks Debian users
 

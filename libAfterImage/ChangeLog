@@ -1,4 +1,8 @@
 
+2005-03-02  sasha
+
+	* AfterStep 2.00.03 release
+
 2005-03-01  sasha
 
 	* added support for IMAGE_PATH env var to all apps in libAfterImage
