@@ -1,3 +1,29 @@
+2002-01-15  sashav
+		updated deps and configure scripts
+
+		Completed portability fixing of the day
+
+		Upped version number for libAfterImage and libAfterBase
+
+2002-01-14  sashav
+		Compilation warnings
+
+		Hopefully fixed compilation problems on some stupid compilers that don't understand
+		typeof().
+
+		Fixed Embarrasing bug in MAX macro - it was working the same as
+		MIN :)
+
+		Fixed compilation problems when sign-safe minmax was causing
+		problems on old compilers.
+
+		Fixed compilation problems of compilers that does not support __FUNCTION__
+		define.
+
+		Some dumb compilers just don't know what to do about void*.
+
+		Fixe compile problem with (void*) pointer math
+
 2002-01-10  sashav
 		added XGCValues to xwrap code
 

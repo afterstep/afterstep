@@ -1,3 +1,40 @@
+2002-01-15  sashav
+		updated docs
+
+		updated deps and configure scripts
+
+		added missing show_debug into afterbase.c/.h
+
+		Completed portability fixing of the day
+
+		added missing AS_HASHABLE and show_progress
+
+		Upped version number for libAfterImage and libAfterBase
+
+2002-01-14  sashav
+		Removed unneeded debug code
+
+		Fixed embarrasing bug in MAX macro - it really worked the same as MIN :)
+		*GRRRRR*
+
+		XParseGeometry requires unsigned int*
+
+		XParseGeometry expects pointers to unsigned int
+
+		Hopefully bomb-proof freetype detection
+
+		DOS format somehow creeped in :(
+
+		prototyped ASCommManager - for the generic even/input loop handling
+
+		Added mandatory libm , since we now need exp() from gaussian blurr
+
+		datatype portability issues
+
+		debugging on 64bit big emdian machine
+
+		__FUNCTION__ macro portability issues
+
 2002-01-10  sashav
 		added XGCValues to xwrap code
 
