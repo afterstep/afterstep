@@ -3,60 +3,6 @@
 
 #include "afterbase.h"
 
-/***********************************************************************/
-/* This stuff should be coming from libAfterBase now :                 */
-#if 0
-#ifndef ABS
-#define ABS(a)              ((a)>0   ? (a) : -(a))
-#endif
-#ifndef SGN
-#define SGN(a)              ((a)>0   ?  1  : ((a)<0 ? -1 : 0))
-#endif
-#ifndef MIN
-#define MIN(a,b)            ((a)<(b) ? (a) : (b))
-#endif
-#ifndef MAX
-#define MAX(a,b)            ((a)>(b) ? (a) : (b))
-#endif
-
-#define SWAP(a, b, type)    { type SWAP_NaMe = a; a = b; b = SWAP_NaMe; }
-
-#ifndef get_flags
-#define set_flags(v,f)  	((v)|=(f))
-#define clear_flags(v,f)	((v)&=~(f))
-#define get_flags(v,f)  	((v)&(f))
-#endif
-
-#include <X11/Xlib.h>
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
-
-/* from safemalloc.c */
-void *safemalloc (size_t);
-void safefree (void *);
-/* returns old value */
-int set_use_tmp_heap (int on);
-
-int mystrcasecmp (const char *, const char *);
-int mystrncasecmp (const char *, const char *, size_t);
-
-/* from mystrdup.c */
-#if defined(LOG_STRDUP_CALLS) && defined(DEBUG_ALLOCS)
-char *l_mystrdup (const char *, int, const char *);
-char *l_mystrndup (const char *, int, const char *, size_t);
-#define mystrdup(a)	l_mystrdup(__FUNCTION__,__LINE__,a)
-#define mystrndup(a,b)	l_mystrndup(__FUNCTION__,__LINE__,a,b)
-#else
-char *mystrdup (const char *str);
-char *mystrndup (const char *str, size_t n);
-#endif
-
-#endif /* #if 0 */
-/*  End of libAfterBase stuff                                              */
-/***************************************************************************/
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "../libAfterBase/audit.h"
@@ -85,6 +31,13 @@ char *mystrndup (const char *str, size_t n);
 #include "mystyle.h"
 #include "mystyle_property.h"
 #include "balloon.h"
+
+typedef struct ASRectangle
+{
+  int x, y;
+  unsigned int width, height;
+}
+ASRectangle;
 
 
 char *CatString3 (const char *, const char *, const char *);

@@ -993,7 +993,7 @@ ac_configure="$SHELL $ac_aux_dir/configure" # This should be Cygnus configure.
 
 ac_config_headers="$ac_config_headers config.h:autoconf/config.h.in"
 
-version="1.8.11"
+version="1.8.12"
 app_version="1.8.11"
 libafterstep_version="0.90"
 libafterstep_version_major="0"
@@ -5512,7 +5512,7 @@ LIBAFTERIMAGEFILES=./libAfterImage/.shared
 LIBAFTERSTEPFILES=./lib/.shared
 LIBAFTERCONFFILES=./src/Config/.shared
 
-ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib configure.h Makefile doc/Makefile doc/afterstepdoc lib/Makefile src/Config/Makefile src/afterstep/Makefile src/asetroot/Makefile src/Animate/Makefile src/Audio/Makefile src/Banner/Makefile src/Cascade/Makefile src/Clean/Makefile src/Form/Makefile src/Gnome/Makefile src/Ident/Makefile src/Pager/Makefile src/Save/Makefile src/Script/Widgets/Makefile src/Script/Makefile src/Scroll/Makefile src/Sound/Makefile src/Tile/Makefile src/Wharf/Makefile src/WinList/Makefile src/Zharf/Makefile src/test/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl afterstep/base.8bpp afterstep/base.15bpp afterstep/base.16bpp afterstep/base.24bpp afterstep/base.32bpp afterstep/asetroot afterstep/audio afterstep/autoexec afterstep/compatibility afterstep/pager afterstep/wharf afterstep/zharf afterstep/start/.include afterstep/start/Desktop/Feel/.include afterstep/start/Desktop/Look/.include afterstep/start/Desktop/Theme/.include afterstep/start/Desktop/Pictures/.include"
+ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib configure.h Makefile doc/Makefile doc/afterstepdoc lib/Makefile src/Config/Makefile src/afterstep/Makefile src/asetroot/Makefile src/Animate/Makefile src/Audio/Makefile src/Banner/Makefile src/Cascade/Makefile src/Clean/Makefile src/Form/Makefile src/Gnome/Makefile src/Ident/Makefile src/Pager/Makefile src/Save/Makefile src/Script/Widgets/Makefile src/Script/Makefile src/Scroll/Makefile src/Sound/Makefile src/Tile/Makefile src/Wharf/Makefile src/WinList/Makefile src/WinList2/Makefile src/Zharf/Makefile src/test/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl afterstep/base.8bpp afterstep/base.15bpp afterstep/base.16bpp afterstep/base.24bpp afterstep/base.32bpp afterstep/asetroot afterstep/audio afterstep/autoexec afterstep/compatibility afterstep/pager afterstep/wharf afterstep/zharf afterstep/start/.include afterstep/start/Desktop/Feel/.include afterstep/start/Desktop/Look/.include afterstep/start/Desktop/Theme/.include afterstep/start/Desktop/Pictures/.include"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -5812,6 +5812,7 @@ Try \`$0 --help' for more information." >&2;}
   'src/Tile/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/Tile/Makefile" ;;
   'src/Wharf/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/Wharf/Makefile" ;;
   'src/WinList/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/WinList/Makefile" ;;
+  'src/WinList2/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/WinList2/Makefile" ;;
   'src/Zharf/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/Zharf/Makefile" ;;
   'src/test/Makefile' ) CONFIG_FILES="$CONFIG_FILES src/test/Makefile" ;;
   'tools/Makefile' ) CONFIG_FILES="$CONFIG_FILES tools/Makefile" ;;
@@ -5837,12 +5838,12 @@ Try \`$0 --help' for more information." >&2;}
   'config.h' ) CONFIG_HEADERS="$CONFIG_HEADERS config.h:autoconf/config.h.in" ;;
 
   # This is an error.
-  -*) { { echo "$as_me:5840: error: unrecognized option: $1
+  -*) { { echo "$as_me:5841: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
    { (exit 1); exit 1; }; } ;;
-  *) { { echo "$as_me:5845: error: invalid argument: $1" >&5
+  *) { { echo "$as_me:5846: error: invalid argument: $1" >&5
 echo "$as_me: error: invalid argument: $1" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -6159,7 +6160,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:6162: creating $ac_file" >&5
+    { echo "$as_me:6163: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -6177,7 +6178,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:6180: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:6181: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -6190,7 +6191,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:6193: error: cannot find input file: $f" >&5
+           { { echo "$as_me:6194: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -6251,7 +6252,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:6254: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:6255: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -6262,7 +6263,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:6265: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:6266: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -6275,7 +6276,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:6278: error: cannot find input file: $f" >&5
+           { { echo "$as_me:6279: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -6392,7 +6393,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:6395: $ac_file is unchanged" >&5
+      { echo "$as_me:6396: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \

@@ -593,6 +593,7 @@ src/Sound/Makefile \
 src/Tile/Makefile \
 src/Wharf/Makefile \
 src/WinList/Makefile \
+src/WinList2/Makefile \
 src/Zharf/Makefile \
 src/test/Makefile \
 \
